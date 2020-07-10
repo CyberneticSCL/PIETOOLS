@@ -134,7 +134,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 % The first step is to find a polynomial approximation to S^{-1}
-
+if isa(S,'double')
+    Sh =inv(S);
+else  
 N=100; orderapp=6; % specifies the degree of the polynomial approximation and the number of data points to fit at.
 % It is recommended to use at least a 4th order approximation
 
@@ -177,7 +179,7 @@ K=integral(int_fun,l,u,'ArrayValued',true);
 % Now ready to compute the matrices to return
 
 Sh=Sinv;
-
+end
 Z_h_th=bigZCth*Sinv; % This inherits its degree from S^{-1}
 
 P_inv=inv_opvar(double(NP));
