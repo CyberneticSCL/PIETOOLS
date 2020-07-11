@@ -33,11 +33,87 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STABILITY TEST EXAMPLES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% % A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
+% stability=1;
+% Drv{1}=.5; Cv{1}=1;Drv{2}=.25; Cv{2}=1;
+% tau(1)=1; tau(2)=2;
+% % 
+% An=[-2 .2 -.3 0 -.4;
+%     .2 -3.8 0 .7 0;
+%     .8 0 -1.6 0 0;
+%     0 .8 -.6 -2 .3;
+%     -1 -.1 -1.5 0 -1.8];
+% Ani{1}=[-2.2 0 0 1 0;
+%     1.6 -2.2 1.6 0 0;
+%     -0.2 -0.2 -0.2 -0.2 -0.2;
+%     0 0.4 -1.4 -3.4 1;
+%     -0.2 0.4 -0.1 -1.1 -3.3];
+% En{1}=[ 0.40888 0.00888 0.20888 -0.09112 -0.29112;
+%     0 0.2 0 0 0.6;
+%     -0.1 -0.4 0 -0.8 0;
+%     0 0 -0.1 0 0;
+%     0 0 0 -0.2 -0.1];
+% 
+% An=[-.9 .2;.1 -.9];
+% Ani{1}=[-1.1 -.2;-.1 -1.1];
+% En{1}=[-.2 0;.2 -.1];
+% tau(1)=1.29;
+% 
+% %%% stable for tau<1.3 - light settings
+% 
+% An=[-4 -1;0 -3];
+% Ani{1}=[2 0;1 1];
+% En{1}=+[.2 0;-.1 -.2];
+% tau(1)=.5;
+% 
+% % 
+% % ki=10;kp=10;
+% % a=.4;b=50;h=.2;d=.8;sig=.3;
+% % al1=d+kp;gam1=b*ki*d+a*ki;
+% % al2=(d-kp)*exp(sig*h);gam2=(b*ki*d-a*ki)*exp(sig*h);
+% % beta1=(b*kp+a)*d+b*d^2+a*kp+ki;
+% % beta2=((b*kp+a)*d-b*d^2-a*kp-ki)*exp(sig*h);
+% % 
+% % An=(1/al1)*[0 al1;-sig^2*al1+sig*beta1-gam1 -beta1+2*sig*al1];
+% % Ani{1}=(1/al1)*[0 0;-sig^2*al2+sig*beta2-gam2 -beta2+2*sig*al2];
+% % En{1}=[0 0;0 -al2/al1];
+% % tau(1)=h;
+% %%% A Neutral-Type System: 
+% %%% \dot x(t)- \sum_i En{i}\dot x(t-\tau(i))=An x(t)+\sum_i Ani{i}x(t-\tau_i)
+% %An=[1];En{1}=[.6];Ani{1}=.2;
+% ndim=size(An,1);
+% stability=1;
+% Cr{1}=[eye(ndim);An];
+% A=An;
+% Bv=[Ani{1} En{1}];
+% Cv{1}=eye(2*ndim);
+% Drvi{1}=[zeros(ndim,2*ndim);Bv];
+% % 
 
-% A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
+% %%% A 2-delay Neutral-Type System: 
+% %%% \dot x(t)- \sum_i En{i}\dot x(t-\tau(i))=An x(t)+\sum_i Ani{i}x(t-\tau_i)
+% %An=[1];En{1}=[.6];Ani{1}=.2;
+% En{1}=.2;En{2}=0;
+% An=-1;Ani{1}=0;Ani{2}=-2;
+% h=.4; % max at .4448?
+% tau=[h 2*h];
+
+An=[-2 0;0 -.9];Ani{1}=zeros(2);Ani{2}=[-1 0;-1 -1];
+En{1}=[.1 0;0 .1];En{2}=zeros(2);
+h=1; %max at 1.5804?
+tau=[h 3*h];
+
+ndim=size(An,1);
 stability=1;
-Drv{1}=.5; Cv{1}=1;Drv{2}=.25; Cv{2}=1;
-tau(1)=1; tau(2)=2;
+Cr{1}=[eye(ndim);An];
+Cr{2}=[eye(ndim);An];
+A=An;
+Bv=[Ani{1} En{1} Ani{2} En{2}];
+Cv{1}=[eye(2*ndim);zeros(2*ndim)];
+Cv{2}=[zeros(2*ndim);eye(2*ndim)];
+Drvi{1}=[zeros(ndim,4*ndim);Bv];
+Drvi{2}=[zeros(ndim,4*ndim);Bv];
 % 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

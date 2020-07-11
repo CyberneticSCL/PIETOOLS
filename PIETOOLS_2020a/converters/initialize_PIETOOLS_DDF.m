@@ -125,11 +125,16 @@ else
     lcvd=0;
 end
 
+if lcvd==0&&lcv==0
+        warning(['Problem: The delayed channels have no outputs'])
+        nv=0;
+end    
+nv=0;
 for i=1:nK
     if lcv>=i&&~isempty(Cv{i})
-        nv=size(Cv{1},1);
+        nv=size(Cv{i},1);
     elseif lcvd>=i&&~isempty(Cvd{i})
-        nv=size(Cvd{1},1);
+        nv=size(Cvd{i},1);
     else
         warning(['Problem: Delayed channel ',int2str(i),' has no outputs'])
         nov=1;
