@@ -37,9 +37,15 @@ function out=getprop(T,prop)
 % Initial coding MMP, SS  - 6_20_2020
 
 if length(prop)==1
-    prop = ref.subs;
+    prop = prop.subs;
+    indx = 1:2; indy = 1:2;
 elseif length(prop)==2
-    prop = [prop(1).subs '.' prop(2).subs];
+    if prop(1).subs=='dim'
+        indx = prop(2).subs{1}; indy = prop(2).subs{2};
+        prop = 'dim';
+    else
+        prop = [prop(1).subs '.' prop(2).subs];
+    end
 else
     error('Invalid property name');
 end
@@ -58,9 +64,15 @@ switch prop
     case 'R.R2'
         out = T.R.R2;
     case 'dim'
-        out = T.dim;
+        out = T.dim(indx,indy);
     case 'I'
         out = T.I;
+    case 'var1'
+        out = T.var1;
+    case 'var2'
+        out = T.var2;
+    case 'dimdependent'
+        out = T.dimdependent;
     otherwise
         error('Invalid property name');
 end
