@@ -33,13 +33,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STABILITY TEST EXAMPLES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<<<<<< Updated upstream
-
-% A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
-stability=1;
-Drv{1}=.5; Cv{1}=1;Drv{2}=.25; Cv{2}=1;
-tau(1)=1; tau(2)=2;
-=======
 % 
 % % A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
 % stability=1;
@@ -126,15 +119,13 @@ Ei{1}=[.1 0;0 .1];Ei{2}=zeros(2);
 h=1; %max at 1.5804?
 tau=[h 3*h];
 
-%ndim=size(An,1);
+ndim=size(An,1);
 stability=1;
 
 initialize_PIETOOLS_NDS;
 convert_PIETOOLS_NDS2DDF;
-
-%minimize_PIETOOLS_DDF;
-
-%convert_PIETOOLS_DDF;
+minimize_PIETOOLS_DDF;
+convert_PIETOOLS_DDF;
 
 % Cr{1}=[eye(ndim);An];
 % Cr{2}=[eye(ndim);An];
@@ -144,7 +135,6 @@ convert_PIETOOLS_NDS2DDF;
 % Cv{2}=[zeros(2*ndim);eye(2*ndim)];
 % Drvi{1}=[zeros(ndim,4*ndim);Bv];
 % Drvi{2}=[zeros(ndim,4*ndim);Bv];
->>>>>>> Stashed changes
 % 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

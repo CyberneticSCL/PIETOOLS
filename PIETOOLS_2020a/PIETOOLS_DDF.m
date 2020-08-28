@@ -136,8 +136,8 @@ examples_DDF_library_PIETOOLS
 % there to a PIE. If you have specified a DDE and wish to exploit this
 % structure, use the following option.
 
-examples_DDE_library_PIETOOLS
-DDE2DDF_min=1;
+%examples_DDE_library_PIETOOLS
+%DDE2DDF_min=1;
 
 %%%%%%%%%%%%% Choose Problem to Solve %%%%%%%%%%%%%%%%%%%%%%%%%%
 % If you have not already chosen the problem you want to solve, then
