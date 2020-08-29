@@ -33,13 +33,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STABILITY TEST EXAMPLES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<<<<<< Updated upstream
+%<<<<<<< Updated upstream
 
 % A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
 stability=1;
 Drv{1}=.5; Cv{1}=1;Drv{2}=.25; Cv{2}=1;
 tau(1)=1; tau(2)=2;
-=======
+%=======
 % 
 % % A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
 % stability=1;
@@ -144,7 +144,7 @@ convert_PIETOOLS_NDS2DDF;
 % Cv{2}=[zeros(2*ndim);eye(2*ndim)];
 % Drvi{1}=[zeros(ndim,4*ndim);Bv];
 % Drvi{2}=[zeros(ndim,4*ndim);Bv];
->>>>>>> Stashed changes
+%>>>>>>> Stashed changes
 % 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
