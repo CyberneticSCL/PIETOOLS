@@ -33,13 +33,23 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STABILITY TEST EXAMPLES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<<<<<< HEAD
 %<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> update_MP
 
 % A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
 stability=1;
 Drv{1}=.5; Cv{1}=1;Drv{2}=.25; Cv{2}=1;
 tau(1)=1; tau(2)=2;
+<<<<<<< HEAD
 %=======
+=======
+>>>>>>> Stashed changes
+>>>>>>> update_MP
 % 
 % % A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
 % stability=1;
@@ -128,6 +138,19 @@ tau=[h 3*h];
 
 %ndim=size(An,1);
 stability=1;
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+Cr{1}=[eye(ndim);An];
+Cr{2}=[eye(ndim);An];
+A=An;
+Bv=[Ani{1} En{1} Ani{2} En{2}];
+Cv{1}=[eye(2*ndim);zeros(2*ndim)];
+Cv{2}=[zeros(2*ndim);eye(2*ndim)];
+Drvi{1}=[zeros(ndim,4*ndim);Bv];
+Drvi{2}=[zeros(ndim,4*ndim);Bv];
+=======
+>>>>>>> update_MP
 
 initialize_PIETOOLS_NDS;
 convert_PIETOOLS_NDS2DDF;
@@ -144,7 +167,11 @@ convert_PIETOOLS_NDS2DDF;
 % Cv{2}=[zeros(2*ndim);eye(2*ndim)];
 % Drvi{1}=[zeros(ndim,4*ndim);Bv];
 % Drvi{2}=[zeros(ndim,4*ndim);Bv];
+<<<<<<< HEAD
 %>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+>>>>>>> update_MP
 % 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

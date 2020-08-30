@@ -232,27 +232,18 @@
 % % % % %%% Spring-Mass Network delay problem
 % First node is referenced to wall. Delay between node i and i+1 is
 % tau(i+1). Control input is force at first node and is delayed by tau(n+1). disturbance input is
-% force at last node. regulated output is position of last node plus
-% control effort. sensed output is position of last node.
+% force at last node. regulated output is position of 
 n=3;
 a=1;b=.8;
-A0=[zeros(n) eye(n); -2*eye(n) -b*eye(n)];
+A0=[zeros(n) eye(n); -2*eye(n) -b*eye(n)]
 A0(2*n,n)=-a;A0(2*n,2*n)=-b;
 A0(n+1,1)=-a;A0(n+1,n+1)=-b;
 Ai{1}=zeros(2*n,2*n);Ai{1}(n+1,1)=-a;Ai{1}(n+1,n+1)=-b;
-tau(1)=.1;
 for i=2:n
     Ai{i}=zeros(2*n,2*n);
     Ai{i}(n+i,i-1)=a;Ai{i}(n+i-1,i)=a;Ai{i}(n+i,n+i-1)=b;Ai{i}(n+i-1,n+i)=b;
-    tau(i)=.1*i;
 end
-%tau(n+1)=.1;
-B2=zeros(2*n,1);B2(n+1,1)=1;
-%B2i{n+1}=zeros(2*n,1);B2i{n+1}(n+1,1)=1;
-B1=zeros(2*n,1);B1(2*n,1)=1;
-C1=zeros(1,2*n);C1(1,n)=1;
-C2=zeros(1,2*n);C2(1,n)=1;D12=1;
- Hinf_control=1;
+B2i{n+1}=zeros(2*n,1);B2i{n+1}(n+1,1)=1;B1=zeros(2*n,1);B1(2*n,1)=1;C1(1,2*n)=1;C2(1,2*n)=1;D12=1;
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % %%% Multiple Showering People from [2] - tracking with integral control
 % % % This is the DDE implementation
