@@ -118,6 +118,8 @@ DDE2DDF_min=0;
 
 examples_DDF_library_PIETOOLS
 
+%minimize_PIETOOLS_DDF;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Using DDE examples as DDFs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -137,7 +139,7 @@ examples_DDF_library_PIETOOLS
 % structure, use the following option.
 
 %examples_DDE_library_PIETOOLS
-%DDE2DDF_min=1;
+DDE2DDF_min=1;
 
 %%%%%%%%%%%%% Choose Problem to Solve %%%%%%%%%%%%%%%%%%%%%%%%%%
 % If you have not already chosen the problem you want to solve, then

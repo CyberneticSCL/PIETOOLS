@@ -105,7 +105,7 @@ examples_DDE_library_PIETOOLS
 % wish to use the standard PIE representation of a DDE, then uncomment the
 % following line:
 %
-% DDE_minimal_rep=0; 
+ %DDE_minimal_rep=0; 
 
 %%%%%%%%%%%%% Choose Problem to Solve %%%%%%%%%%%%%%%%%%%%%%%%%%
 % If you have not already chosen the problem you want to solve, then

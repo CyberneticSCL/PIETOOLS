@@ -50,10 +50,90 @@
 %%%%%%% An interface for declaring neutral-type systems
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% % This is the version used in [1], as well as Han, 2005; Fridman, 2001; Fridman,Shaked
+% % 2002, Han, 2004ab, [6] He et al. 2004; Lien and Chen, 2003[3]; Niculescu, 2000;
+% A0=[-.9 .2;.1 -.9];
+% Ai{1}=[-1.1 -.2;-.1 -1.1];
+% Ei{1}=[-.2 0;.2 -.1];
+% tau(1)= 2.262; % max proveable tau is 2.262 using light settings % analytic max is supposedly 2.2255 (Han 2005) although no citation is given
+% 
+
+
+% % % This is the version used in [4] - Park and Won, 2000, Ex. 3
+% A0=[-2 0;0 -1];
+% Ai{1}=[0 .5;.5 0];
+% Ei{1}=[.2 0;0 .2];
+%  tau(1)= 20; % supposedly stable for tau<.7516 (verified by pietools. indeed, stable out to at least tau=20)
+% 
+
+% % This is the version used in [2] (park and Won, 1999a, Ex. 2.2), as well as [1]; 
+% A0=[-2 .1;0 -2];
+% Ai{1}=[.1 .1;-.1 .2];
+% Ai{2}=[.1 0;0 .1];
+% Ei{1}=[.1 .05;.02 .1];
+% Ei{2}=[.05 0;0 .05];
+% tau(1)= .3; % Said to be stable for any tau1=.3, tau2=.6 (verified by pietools)
+% tau(2)= .6;
+
+% % This is the version used in [2](park and Won, 1999a, Ex. 2.3), as well as [1];
+% A0=[-2 1;0 -1];
+% Ai{1}=[0 .3;-.3 0];
+% Ai{2}=[.1 -.05;.05 .1];
+% Ei{1}=[0 -.1;-.1 0];
+% Ei{2}=[.05 0;0 .05];
+% tau(1)= 2.262; % Said to be stable for any h1>0, h2<.552
+% tau(2)= .5;
+
+% This is the version used in [2], as well as [1];
+% A0=[-.9 .2;.1 -.9];
+% Ai{1}=[-1.1 -.2;-.1 -1.1];
+% Ei{1}=[-.2 0;.2 -.1];
+% tau(1)= 2.262; % max proveable tau is 2.262 using light settings % analytic max is supposedly 2.2255 (Han 2005) although no citation is given
+
+
+% % This is an example from [7], Zhao, 2018
+% A0=[-2 0;0 -.9];
+% Ai{2}=[-1 0;-1 -1];
+% Ei{1}=[.1 0;0 .1];
+% h=1.5805; %max at 1.5804? (stability verified for h<2.04)
+% tau=[h 3*h];
+% % % dims = 8, 2
+% % % cpusecs = 22.56, .332
+
+% % This is an example from [7], Zhao, 2018
+% A0=[-2 -1;3.5 0];
+% Ai{2}=[-1.5 0;0 0];
+% Ei{1}=[.9 0;0 0];
+% h=5; %max at .7722? (seems to be stable for all h???)
+% tau=[h 2*h];
+
+% % % This is an example from [7], Zhao, 2018
+% A0=[-1];
+% Ai{2}=[-2];
+% Ei{1}=[.2];
+% h=.603; %max at .6? (stability verified for h<.603)
+% tau=[h 2*h];
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % A NDS Example Problem 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
+% % An Example from Olgac and Sipahi, 2004
+% A0=[0 1 -1 0; 
+% -3.346 -2.715 2.075 -2.007;
+% -4 0 2 0;
+% -3 0 0 6];
+% Ai{1}=[-1 2 2 -1;
+%     3 3 -2 0;
+%     1 2 -1 1;
+%     2 3 1 -3];
+% Ei{1}=[.2 -.1 .5 -.1 ;
+%     -.3 .09 -.15 -.027;
+%     -3.333 .1 .2 1;
+%     -1 2 .5 1];
+%  tau(1)=.0001; % stable for tau <.02755 % No detectable stable delay using PIETOOLS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % An Example from Ramirez and Sipahi, 2020
 % A0=[-2 .2 -.3 0 -.4;
 %     .2 -3.8 0 .7 0;
 %     .8 0 -1.6 0 0;
@@ -69,16 +149,11 @@
 %     -0.1 -0.4 0 -0.8 0;
 %     0 0 -0.1 0 0;
 %     0 0 0 -0.2 -0.1];
-% 
-% A0=[-.9 .2;.1 -.9];
-% Ai{1}=[-1.1 -.2;-.1 -1.1];
-% Ei{1}=[-.2 0;.2 -.1];
-% tau(1)=1.29;
-% 
-% %%% stable for tau<1.3 - light settings
+%  tau(1)=.603; % stable for tau <.603
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Another NDS Example Problem 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Source Uncertain
 % A0=[-4 -1;0 -3];
 % Ai{1}=[2 0;1 1];
 % Ei{1}=+[.2 0;-.1 -.2];
@@ -105,12 +180,7 @@
 % %A0=[1];En{1}=[.6];Ani{1}=.2;
 % ndim=size(An,1);
 % stability=1;
-% Cr{1}=[eye(ndim);An];
-% A0=An;
-% Bv=[Ani{1} En{1}];
-% Cv{1}=eye(2*ndim);
-% Drvi{1}=[zeros(ndim,2*ndim);Bv];
-% % 
+
 
 % %%% A 2-delay Neutral-Type System: 
 % %%% \dot x(t)- \sum_i Ei{i}\dot x(t-\tau(i))=A0 x(t)+\sum_i Ai{i}x(t-\tau_i)
@@ -119,11 +189,7 @@
 % A0=-1;Ai{1}=0;Ai{2}=-2;
 % h=.4; % max at .4448?
 % tau=[h 2*h];
-
-A0=[-2 0;0 -.9];Ai{1}=zeros(2);Ai{2}=[-1 0;-1 -1];
-Ei{1}=[.1 0;0 .1];Ei{2}=zeros(2);
-h=1; %max at 1.5804?
-tau=[h 3*h];
+% 
 
 %ndim=size(An,1);
 stability=1;
@@ -211,3 +277,104 @@ convert_PIETOOLS_NDS2DDF;
 % %Cvdi=0;
 % end
 %%%gam_guess; % min in [.32 .38]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [1] - 
+% @article{chen2001criteria,
+%   title={Criteria for asymptotic stability of a class of neutral systems via a LMI approach},
+%   author={Chen, JD and Lien, CH and Fan, KK and Chou, JH},
+%   journal={IEE Proceedings-Control Theory and Applications},
+%   volume={148},
+%   number={6},
+%   pages={442--447},
+%   year={2001},
+%   publisher={IET}
+% }
+%
+% [2] - 
+% @article{park1999asymptotic,
+%   title={Asymptotic stability of neutral systems with multiple delays},
+%   author={Park, Ju H and Won, S},
+%   journal={Journal of Optimization Theory and Applications},
+%   volume={103},
+%   number={1},
+%   pages={183--200},
+%   year={1999},
+%   publisher={Springer}
+% }
+% 
+% [3] - 
+% @article{lien2000stability,
+%   title={Stability conditions for a class of neutral systems with multiple time delays},
+%   author={Lien, Chang-Hua and Yu, Ker-Wei and Hsieh, Jer-Guang},
+%   journal={Journal of Mathematical Analysis and Applications},
+%   volume={245},
+%   number={1},
+%   pages={20--27},
+%   year={2000},
+%   publisher={Elsevier}
+% }
+%
+% [4] -
+% @article{park2000stability,
+%   title={Stability analysis for neutral delay-differential systems},
+%   author={Park, Ju H and Won, Sangchul},
+%   journal={Journal of the Franklin institute},
+%   volume={337},
+%   number={1},
+%   pages={1--9},
+%   year={2000},
+%   publisher={Elsevier}
+% }
+%
+% [5] - 
+% @article{han2005stability,
+%   title={On stability of linear neutral systems with mixed time delays: a discretized Lyapunov functional approach},
+%   author={Han, Qing-Long},
+%   journal={Automatica},
+%   volume={41},
+%   number={7},
+%   pages={1209--1218},
+%   year={2005},
+%   publisher={Elsevier}
+% }
+% 
+% [6] - 
+% @article{he2004delay,
+%   title={Delay-dependent robust stability criteria for uncertain neutral systems with mixed delays},
+%   author={He, Yong and Wu, Min and She, Jin-Hua and Liu, Guo-Ping},
+%   journal={Systems \& Control Letters},
+%   volume={51},
+%   number={1},
+%   pages={57--65},
+%   year={2004},
+%   publisher={Elsevier}
+% }
+% 
+% [7] - 
+% 
+% @article{zhao2018necessary,
+%   title={Necessary conditions for exponential stability of linear neutral type systems with multiple time delays},
+%   author={Zhao, Ning and Zhang, Xian and Xue, Yu and Shi, Peng},
+%   journal={Journal of the Franklin Institute},
+%   volume={355},
+%   number={1},
+%   pages={458--473},
+%   year={2018},
+%   publisher={Elsevier}
+% }
+% 
+% [8]-
+% @article{olgac2004practical,
+%   title={A practical method for analyzing the stability of neutral type LTI-time delayed systems},
+%   author={Olgac, Nejat and Sipahi, Rifat},
+%   journal={Automatica},
+%   volume={40},
+%   number={5},
+%   pages={847--853},
+%   year={2004},
+%   publisher={Elsevier}
+% }
+
