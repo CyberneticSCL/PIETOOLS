@@ -1,0 +1,6 @@
+# This is ignore file that keeps track of files that should not be commited
+# to the repository. These can be cache files or data files that have no 
+# importance. For example: MATLAB creates .asv files that are temporary 
+# changes to the script or function files and these need not be committed
+
+*.asv
