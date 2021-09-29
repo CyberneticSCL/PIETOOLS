@@ -22,7 +22,6 @@ function c = vertcat(varargin)
 % See also horzcat
 
 % 6/8/2002: PJS  Initial Coding
-% 09/28/2021: DJ - Slight adjustment for arrays with 0 columns
 
 if nargin==1
     c = varargin{1};
@@ -35,9 +34,7 @@ else
     b = polynomial(varargin{2});
     [nrb,ncb] = size(b);
     
-    if size(a,2)==0 && size(b,2)==0 % DJ - 28/09/2021
-        c = polynomial(zeros(size(a,1)+size(b,1),0));
-    elseif isempty(b);
+    if isempty(b);
         c = a;
     elseif isempty(a);
         c = b;

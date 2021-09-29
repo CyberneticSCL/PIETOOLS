@@ -1,6 +1,0 @@
-
-Specifying SeDuMi as required software, there is no option for the user not to install it when installing the SOSTOOLS package.
-Although Matlab is able to install SeDuMi from the link, it doesn't add files to the path.
-When installing the toolbox, Matlab generates an additional folder +SOSTOOLS_debug (used for reference to external files, I believe).
-Matlab also generates a "resources" folder upon installation.
-

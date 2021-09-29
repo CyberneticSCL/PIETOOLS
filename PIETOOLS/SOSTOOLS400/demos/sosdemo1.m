@@ -1,10 +1,10 @@
 % SOSDEMO1 --- Sum of Squares Test
-% Section 3.1 of SOSTOOLS User's Manual
-% 
+% Section 4.1 of SOSTOOLS User's Manual
 
 clear; echo on;
 pvar x1 x2;
 vartable = [x1, x2];
+
 % =============================================
 % First, initialize the sum of squares program
 prog = sosprogram(vartable);   % No decision variables.
@@ -19,7 +19,7 @@ prog = sosineq(prog,p);
 % =============================================
 % And call solver
 solver_opt.solver = 'sedumi';
-prog = sossolve(prog,solver_opt);
+[prog,info] = sossolve(prog,solver_opt);
 
 % =============================================
 % If program is feasible, p(x1,x2) is an SOS.
