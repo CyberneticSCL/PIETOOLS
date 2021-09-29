@@ -1,6 +1,5 @@
 % SOSDEMO2 --- Lyapunov Function Search 
-% Section 3.2 of SOSTOOLS User's Manual
-% 
+% Section 4.2 of SOSTOOLS User's Manual
 
 clear; echo on;
 pvar x1 x2 x3;
@@ -13,12 +12,6 @@ f = [(-x1^3-x1*x3^2)*(x3^2+1);
 
 % =============================================
 % First, initialize the sum of squares program
-%the following was used to test the sosprogram function by passing the decision variables as an argument GV
-%syms dec1 dec2;
-%decvartable = [dec1; dec2];
-%prog = sosprogram(vars,decvartable);
-%which is replacing the previous command
-
 prog = sosprogram(vars);
 
 % =============================================
@@ -43,5 +36,4 @@ prog = sossolve(prog,solver_opt);
 % =============================================
 % Finally, get solution
 SOLV = sosgetsol(prog,V)
-
 echo off;

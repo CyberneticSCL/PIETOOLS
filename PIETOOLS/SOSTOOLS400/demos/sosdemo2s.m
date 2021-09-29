@@ -1,6 +1,5 @@
-% SOSDEMO2 --- Lyapunov Function Search 
-% Section 3.2 of SOSTOOLS User's Manual
-% 
+% SOSDEMO2s --- Lyapunov Function Search 
+% Section 4.2 of SOSTOOLS User's Manual
 
 clear; echo on;
 syms x1 x2 x3;

@@ -1,6 +1,5 @@
-% SOSDEMO4 --- Matrix Copositivity
-% Section 3.4 of SOSTOOLS User's Manual
-% 
+% SOSDEMO4s --- Matrix Copositivity
+% Section 4.4 of SOSTOOLS User's Manual
 
 clear; echo on;
 syms x1 x2 x3 x4 x5;
@@ -15,7 +14,6 @@ J = [1 -1  1  1 -1;
 
 % =============================================
 % First, initialize the sum of squares program
-
 prog = sosprogram(vartable);     % No decision variables.
 
 % =============================================
