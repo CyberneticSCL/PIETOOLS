@@ -8,3 +8,5 @@ PIETOOLS can be used to:
 - solve LPI optimization problems
 	
 The interface is inspired by YALMIP and the program structure is based on that used by SOSTOOLS. By default the LPIs are solved using SeDuMi, however, the toolbox also supports use of other SDP solvers such as Mosek, sdpt3 and sdpnal.
+
+For more information on installation and use refer to the files in PIETOOLS/PIETOOLS_examples/ folder path.
