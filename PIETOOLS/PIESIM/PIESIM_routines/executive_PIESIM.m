@@ -82,12 +82,6 @@ if isNOTPIE(varargin{1}) % if input type is PDE or DDE then convert to PIE first
     syms st;
     
     structure = varargin{1};
-    if (nargin>=2)
-        opts = varargin{2};
-    end
-    if (nargin>=3)
-        uinput = varargin{3};
-    end
     
     if isfield(structure,'tau')
         disp('Solving DDE problem');
