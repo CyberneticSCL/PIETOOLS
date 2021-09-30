@@ -61,7 +61,7 @@ end
 
 
  
-  if (~strcmp(opts.type,'DDE'))
+  if (~strcmp(opts.type,'DDE')&strcmp(opts.plot,'yes'))
   if (uinput.ifexact==true)
       a=uinput.a;
       b=uinput.b;
