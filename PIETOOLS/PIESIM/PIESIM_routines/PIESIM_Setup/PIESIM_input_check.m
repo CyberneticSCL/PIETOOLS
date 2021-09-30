@@ -1,10 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_input_check.m     PIETOOLS 2021d
+% PIESIM_data_check.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [PDE, uinput]=PIESIM_input_check(PDE, uinput)
 % Check if necessary inputs are defined to start the simulations
 % NOTE: All other variables will be checked in PIETOOLS converter
-% Inputs: PDE - PDE structure
+% Inputs: PDE - PDE data structure of the problem
 %         uinput - user's input structure
 % Outputs: PDE - updated PDE structure with variables properly defined (if
 % previously undefined). 
@@ -17,7 +17,6 @@ function [PDE, uinput]=PIESIM_input_check(PDE, uinput)
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 6_1_2021
-
 
  if ~isfield(PDE,'n0')
  disp('Warning: PDE.n0 is not defined. Defaulting to zero');
@@ -174,6 +173,7 @@ function [PDE, uinput]=PIESIM_input_check(PDE, uinput)
  disp('Warning: left and right ends of the domain are the same. Defaulting domain to [-1, 1]');
  PDE.dom=[-1 1];
  end
+ 
  
  
 

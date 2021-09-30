@@ -1,6 +1,6 @@
 function Rop=multipoly2sym(R)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% multipoly2sym.m     PIETOOLS 2021a
+% multipoly2sym.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function converts a pvar object in s and theta to a symbolic object
 % in sym_s and sym_theta

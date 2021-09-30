@@ -27,7 +27,7 @@ close all;
 format long;
 pvar s theta;
 Hinf_control=0;
-
+plot_no_control = 1; % this setting is 1, first run simulation without controller for same IC
 %--------------------------------------------------------------
 % Simulation Examples:Uncomment one of the following 3 examples to run the simulations
 %--------------------------------------------------------------
@@ -65,22 +65,6 @@ Hinf_control=1
 %  DDE.D1=[0 0;0 0;0 0];
 %  DDE.D2=[0;0;.1];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Define simulation parameters
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% the Chebyshev polynomial discretization order 
-opts.N=8;
-
-% final simulation time
-opts.tf=30;
-
-% Integration scheme
-% opts.intScheme = 1 - Backward Difference Formula (BDF)
-opts.intScheme=1;
-opts.Norder=2; % order of truncation term in BDF scheme
-opts.dt=0.01; % gap between time steps
-opts.Nsteps=floor(opts.tf/opts.dt); % number of time steps
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -90,57 +74,30 @@ DDE=initialize_PIETOOLS_DDE(DDE);
 DDF=minimize_PIETOOLS_DDE2DDF(DDE);
 PIE=convert_PIETOOLS_DDF2PIE(DDF);
 
-% extract relevant PIE dimensions
-psize.nu=PIE.Tu.dim(1,2);
-psize.nw=PIE.Tw.dim(1,2);
-psize.nx=PIE.T.dim(1,1);
-psize.nf=0;
-ns=PIE.T.dim(2,1);
-psize.N=opts.N;
-psize.n=ns;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Define inputs and IC
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-syms sx st;
-uinput.ifexact=false;
-uinput.a=-1;
-uinput.b=0;
-if (psize.nw>0)
-    if ~isfield(uinput,'w')
-        uinput.w(1:psize.nw)=sin(st);
-        uinput.w(1:psize.nw)=1+0*st;
-        uinput.w(1:psize.nw)=sin(st);
-        uinput.w(1:psize.nw)=sinc(st);
-    end
-end
-n_diff = PIE.T.dim(2,1);
-uinput.ic.ODE(1:psize.nx)=1;
-uinput.ic.PDE(1:ns)=1;
-
-plot_no_control = 1; % this setting first runs simulation without controller for same IC
-
 if plot_no_control % run simulation without controller
-    solutionA=executive_PIESIM(DDE,opts,uinput);
-    close all;
-    
+    solutionA=executive_PIESIM(DDE); 
 end
 
 if Hinf_control
-    % find the controller and find closed Loop PIE
-    settings_PIETOOLS_custom
+    % use default settings with low order polynomials for controller
+    settings_PIETOOLS_light;
+    settings.options1.sep = 1; % this is necessary for invertible P operator
+    
+    % define LMI solver parameters
     settings.sos_opts.solver = 'sedumi';
     settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
-    settings.eppos2 = 0*1e-4;   % Positivity of Lyapunov Function with respect to spatially distributed states
-    settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function
-    [prog, K, gamma, P, Z] = executive_PIETOOLS_Hinf_control(PIE,settings);
-    PIE = closedLoopPIE(PIE,K);
+    settings.eppos2 = 0;   % Positivity of Lyapunov Function with respect to spatially distributed states
+    settings.epneg = 0;    % Negativity of Derivative of Lyapunov Function
     
-    solutionB=executive_PIESIM(PIE,opts,uinput,n_diff);
-    close all;
+    [prog, K, gamma, P, Z] = executive_PIETOOLS_Hinf_control(PIE,settings);
+    PIE = closedLoopPIE(PIE,K); % find closed loop system with controller
+    n_diff = [0, PIE.T.dim(2,1)]; % this means all distributed states are differentiable 
+    solutionB=executive_PIESIM(PIE,[],[],n_diff);
 end
+close all;
 
-for i=1:psize.nx
+
+for i=1:PIE.T.dim(1,1)
     labels{i} = ['x_',num2str(i)];
 end
 

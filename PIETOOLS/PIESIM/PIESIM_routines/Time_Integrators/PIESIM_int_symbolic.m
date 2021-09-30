@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_int_symbolic.m    PIETOOLS 2021d
+% PIESIM_int_symbolic.m    PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE using a convolution integral in
 % a symbolic form
@@ -138,6 +138,6 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
        end
      
         exp_lambda=exp(diag(D*tf));
-        solcoeff.acheb_f=V*diag(exp_lambda)/V*acheb_f0+V*addition_symbolic;
+        solcoeff.final=V*diag(exp_lambda)/V*acheb_f0+V*addition_symbolic;
         solcoeff.tf=tf;
         

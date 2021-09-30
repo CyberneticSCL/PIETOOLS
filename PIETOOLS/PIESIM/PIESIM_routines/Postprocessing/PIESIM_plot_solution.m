@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_plot_solution.m     PIETOOLS 2021d
+% PIESIM_plot_solution.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 syms sx;
@@ -23,20 +23,18 @@ odesol=solution.timedep.ode';
 dtime=solution.timedep.dtime;
 
 
-% Plotting solutions on the same plot
+% Plotting ODE solutions on the same plot
+if (psize.nx>0)
  figure;
  all_marks = {'o','+','*','.','x','s','d','^','v','>','<','p','h'}; 
- all_colors = {'b','g','k','m','c'};
+ all_colors={'red', 'green', 'blue', 'cyan', 'magenta', 'yellow','black'};
 for i=1:psize.nx
-%  plot(dtime(:),odesol(:,i),'rd','MarkerSize',6,'linewidth',1); hold on; 
-  plot(dtime(:),odesol(:,i),'Marker',all_marks{mod(i,13)},m'MarkerSize',6,'linewidth',1); hold on;
- % fprintf('State %4d', i, 'has marker', all_marks{mod(i,13)});
-  
-  formatSpec = 'State %s has marker %s\n';
-  fprintf(formatSpec, num2str(i), all_marks{mod(i,13)});
+  plot(dtime(:),odesol(:,i),'Marker',all_marks{mod(i,13)},'Color',all_colors{mod(i,7)}, 'MarkerSize',6,'linewidth',1); hold on;  
+  formatSpec = 'ODE state %s has marker %s and color %s\n';
+  fprintf(formatSpec, num2str(i), all_marks{mod(i,13)}, all_colors{mod(i,7)});
   xlabel('Time');
   ylabel('Value of an ODE state');
-  title('Plot of ODE state solutions');
+  title('Plot of ODE state solution(s)');
   ax = gca;
   ax.FontSize = 16;
   H=gca;
@@ -45,7 +43,7 @@ for i=1:psize.nx
 end
   
 
-% Plotting solutions on different plots
+% Plotting ODE solutions on different plots
 % for i=1:psize.nx
 %  figure;
 %   plot(dtime(:),odesol(:,i),'rd','MarkerSize',6,'linewidth',1); hold on; 
@@ -58,6 +56,7 @@ end
 %   H.LineWidth=3;
 %   hold on;
 % end
+end
 end
 
 

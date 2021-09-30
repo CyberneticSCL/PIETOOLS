@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_Input_domain_transform.m     PIETOOLS 2021d
+% PIESIM_Input_domain_transform.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PDE=PIESIM_domain_transform(PDE)
 % This routine transforms the physical PDE domain x\in[a,b] into the

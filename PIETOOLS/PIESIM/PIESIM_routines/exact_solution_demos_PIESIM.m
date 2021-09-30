@@ -1,6 +1,6 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% exact_solution_demos_PIESIM.m     PIETOOLS 2021d
+% exact_solution_demos_PIESIM.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This file contains a library of examples to use with PIESIM that includes: 
 % PDE systems and coupled PDE/ODE systems. 

@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_int_gauss.m    PIETOOLS 2021d
+% PIESIM_int_gauss.m    PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE using  Gauss integration
 %    of the analytical representation of the discretized
@@ -112,8 +112,10 @@ end
         end
            integral_gauss=sum(intsum,2);
            
-        solcoeff.acheb_f=expm(Atotal*tf)*acheb_f0+integral_gauss;
+        solcoeff.final=expm(Atotal*tf)*acheb_f0+integral_gauss;
         solcoeff.tf=tf;
+        
+        
        
        
         
