@@ -139,8 +139,8 @@
 % %%%% answer - 25.907 @ tau=1.5
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % Example A.1 from [3]
-   Hinf_gain=1
-   Hinf_gain_dual=1
+%    Hinf_gain=1
+%    Hinf_gain_dual=1
     DDE.A0=[-2 0;0 -.9];%
     DDE.Ai{1}=[-1 0; -1 -1];%
     DDE.B1=[-.5;1];

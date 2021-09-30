@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_PDE.m     PIETOOLS 2021a
+% PIETOOLS_PDE.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Getting Started: This file is meant to be run from the Matlab editor
 % window and combines many of the scripts and functions in
@@ -178,7 +178,8 @@ end
 %  wish to test pass the example number as in the following format
 % "PDE = examples_PDE_library_PIETOOLS(example_number);"
 % Otherwise, comment the following line and enter your
-% own PDE.
+% own PDE. Alternatively, if you already a PIE structure in your workspace,
+% you can also set use_pie=1 to directly analyse this PIE.
 
 PDE = examples_PDE_library_PIETOOLS(19,'batch');
 use_pie = 0;

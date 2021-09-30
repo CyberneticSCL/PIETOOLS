@@ -26,18 +26,18 @@ if isequal(c,0)
     c = default_dir;
 end
 
-% c_p = [c,filesep,'PIETOOLS_2021a'];
-% out = mkdir(c_p);
-% if ~out
-%     error(['An error appeared when trying to create the folder "%s".\n',...
-%           'Please, check administrative access to modify the destination directory.'],c_p); 
-% end
+c_p = [c,filesep,'PIETOOLS_2021a'];
+out = mkdir(c_p);
+if ~out
+    error(['An error appeared when trying to create the folder "%s".\n',...
+          'Please, check administrative access to modify the destination directory.'],c_p); 
+end
 
 
 %check if tbxmanager is already installed
 if ~exist('tbxmanager')
 % create a new directory in that folder
-d = [c,filesep,'tbxmanager'];
+d = [c_p,filesep,'tbxmanager'];
 if isequal(exist(d,'dir'),7)
     error('The installation directory "%s" already exists.\nPlease, remove or rename the folder or change the installation path.',d);
 end
@@ -96,52 +96,52 @@ cd(default_dir);
 % addpath(c_p);
 
 
-% cd(c);
+cd(c_p);
 
-% % Downloading SOSTOOLS, MULTIPOlY and PIETOOLS  %%%Change Path to PIETOOLS zip%%%
-% 
-% disp(' ');
-% disp('Downloading the PIETOOLS from control.asu.edu.');
-% [f, c] = urlwrite('http://control.asu.edu/pietools/PIETOOLS_2021a.zip', 'PIETOOLS_2021a.zip');
-% rehash;
-% 
-% 
-% 
-% if isequal(c,0)
-%     error('Could not download PIETOOLS from the internet. Check internet access or website status.');
-% end
-% % unzip PIETOOLS
-% disp("Extracting PIETOOLS files");
-% unzip('PIETOOLS_2021a.zip');
-% delete PIETOOLS_2021a.zip;
+% Downloading SOSTOOLS, MULTIPOlY and PIETOOLS  %%%Change Path to PIETOOLS zip%%%
+
+disp(' ');
+disp('Downloading the PIETOOLS from control.asu.edu.');
+[f, c] = urlwrite('http://control.asu.edu/pietools/PIETOOLS_2021a.zip', 'PIETOOLS_2021a.zip');
+rehash;
+
+
+
+if isequal(c,0)
+    error('Could not download PIETOOLS from the internet. Check internet access or website status.');
+end
+% unzip PIETOOLS
+disp("Extracting PIETOOLS files");
+unzip('PIETOOLS_2021a.zip');
+delete PIETOOLS_2021a.zip;
 
 % get back to the original directory
-% cd(default_dir);
+cd(default_dir);
 
 % add path to PIETOOLS+SeDuMi
-% disp(' ');
-% disp('Adding PIETOOLS path to MATLAB.');
-% addpath(genpath(c_p));
+disp(' ');
+disp('Adding PIETOOLS path to MATLAB.');
+addpath(genpath(c_p));
 
-% % save path for future
-% disp(' ');
-% disp('Saving path for future sessions.');
-% status = savepath;
-% 
-% if status
-%     fprintf('Could not save the path to a default location,\nplease provide a location where you want to save the path.');
-%     cn = uigetdir(pwd);
-%     if isequal(cn,0)
-%         disp(' ');
-%         fprintf('No directory specified, saving the path to the current directory "%s".\n\n',default_dir);
-%         cn = default_dir;
-%     end
-%     sn = savepath([cn,filesep,'pathdef.m']);
-%     if sn
-%         error(['Could not save the path automatically.\n',...
-%             'Please, open the "Set Path" button in the Matlab menu and save the path manually to some location.']);
-%     end
-% end
+% save path for future
+disp(' ');
+disp('Saving path for future sessions.');
+status = savepath;
+
+if status
+    fprintf('Could not save the path to a default location,\nplease provide a location where you want to save the path.');
+    cn = uigetdir(pwd);
+    if isequal(cn,0)
+        disp(' ');
+        fprintf('No directory specified, saving the path to the current directory "%s".\n\n',default_dir);
+        cn = default_dir;
+    end
+    sn = savepath([cn,filesep,'pathdef.m']);
+    if sn
+        error(['Could not save the path automatically.\n',...
+            'Please, open the "Set Path" button in the Matlab menu and save the path manually to some location.']);
+    end
+end
 
 disp(' ');
 disp('Installation finished.');

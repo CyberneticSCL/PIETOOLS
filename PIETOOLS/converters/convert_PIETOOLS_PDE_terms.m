@@ -13,11 +13,9 @@ function PIE_out=convert_PIETOOLS_PDE_terms(PDE)
 
 % A Partial Integral Equation is defined by 12 PI operators as
 %
-% BT1op \dot{w}(t)+BT2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B2op u(t)+ + B1op w(t)
-%                                             z(t)= C1op x(t) + D12op u(t)+ + D11op w(t)
-%                                             y(t)= C2op x(t) + D22op u(t)+ + D21op w(t)
-
-% THERE IS A TYPO HERE: B2OP SHOULD MULTIPLY U(T) AND B1OP W(T)
+% BT1op \dot{w}(t)+BT2op \dot{u}(t)+Top \dot{x}(t)= Aop x(t) + B2op u(t) + B1op w(t)
+%                                             z(t)= C1op x(t) + D12op u(t) + D11op w(t)
+%                                             y(t)= C2op x(t) + D22op u(t) + D21op w(t)
 %
 % This script takes a user-defined PDE system in the format outlined in the
 % header of solver_PIETOOLS_PDE and converts it to a PIE by defining the 11
@@ -42,8 +40,8 @@ function PIE_out=convert_PIETOOLS_PDE_terms(PDE)
 % Ebb, Bpb, Drb
 % DJ - 06/02/2012 - replaced X=PDE.dom(:) with X=PDE.dom, adjusted N>2
 % requirement to N>1
-
-
+% DJ 09/29/2021 - correction at the end to fill in empty parameters with
+% appropriate zeros
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -306,6 +304,13 @@ end
 
 
 %nx1 = no; nx2 = np;
+
+% DJ 09/29/2021: fill in empty parameters with appropriate zeros
+opnames = {'Top','Twop','Tuop','Aop','B1op','B2op','C1op','D11op','D12op','C2op','D21op','D22op'};
+for j=1:length(opnames)
+    op = opnames{j};
+    eval([op,'.dim=',op,'.dim;'])
+end
 
 PIE.T = Top; PIE.Tw = Twop; PIE.Tu = Tuop;
 PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;

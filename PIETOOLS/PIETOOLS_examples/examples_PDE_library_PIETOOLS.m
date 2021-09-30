@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_PDE_library_PIETOOLS.m     PIETOOLS 2021a
+% examples_PDE_library_PIETOOLS.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function varargout = examples_PDE_library_PIETOOLS(varargin)
 % This library file contains the definition of some common ODE-PDE systems
@@ -126,20 +126,24 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %     |               + b(s)*x_{s}                  | b = 3*s^2 - 2*s               Gahlawat 2017 [4]
 %     |               + c(s)*x                      | c =-0.5*s^3 + 1.3*s^2 
 %     | BCs:  x(s=0) = 0,     x_{s}(s=1) = 0        |    - 1.5*s + 0.7 +lam
-%     |                                             | lam = 4.66                        
+%     |                                             | lam = 4.66                     
 %--------------------------------------------------------------------------
-% 8.  | ODE:  xo_{t} = k*xo                         | k = -1                (stable for k<0)
+% 8.  | ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)    | a = 1    b = 1        (stable for lam < pi^2 = 9.8696)
+%     | PDE:  x_{t}  = lam * x + x_{ss} + Bpv * xo  | lam = pi^2-1                  Das 2018 [7] (Example 2)
+%     | BCs:  x(s=a) = 0,     x(s=b) = 0            | A, Bxr, and Bpv fixed
+%--------------------------------------------------------------------------
+% 9.  | ODE:  xo_{t} = k*xo                         | k = -1                (stable for k<0)
 %     | PDE:  x_{t} = x_{ss}                        |
 %     | BCs:  x(s=0) = 0,     x(s=1) = xo           |
 %--------------------------------------------------------------------------
-% 9.  | ODE: xo_{t} = xo + x_{s}(s=0)               | k = -2;               (stable for k=-2)            
+% 10. | ODE: xo_{t} = xo + x_{s}(s=0)               | k = -2                (stable for k=-2)            
 %     | PDE: x_{t} = x_{ss}                         |                               Tang 2011 [13]
 %     | BCs: x(s=0) = -xo,    x(s=1) = k*xo         |
 %--------------------------------------------------------------------------
-% 10. | PDE:  x_{t} = Cm*x + (1/R)*x_{ss}           | R = 2.93              (stable for R<2.7)
+% 11. | PDE:  x_{t} = Cm*x + (1/R)*x_{ss}           | R = 2.93              (stable for R<2.7)
 %     | BCs:  x(s=0) = 0,     x_{s}(s=1) = 0        | Cm = [1, 1.5; 5, 0.2]         Ahmadi 2014 [6]
 %--------------------------------------------------------------------------
-% 11. | PDE:  x_{t} = Cm*x + (1/R)*x_{ss}           | R = (21+9)            (stable for R<21)
+% 12. | PDE:  x_{t} = Cm*x + (1/R)*x_{ss}           | R = (21+9)            (stable for R<21)
 %     | BCs:  x(s=0) = 0,     x_{s}(s=1) = 0        | Cm = [0 0 0;                  Ahmadi 2015 [5] Adapted Example B
 %     |                                             |       s 0 0;
 %     |                                             |       -s^2 0 0]
@@ -147,7 +151,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %--------------------------------------------------------------------------
 %        Beam Type Equations 
 %--------------------------------------------------------------------------
-% 12. | PDE: u_{tt} = -c*u_{ssss}                   | c = 0.1
+% 13. | PDE: u_{tt} = -c*u_{ssss}                   | c = 0.1
 %     | BCs: u(s=0) = 0,        u_{ss}(s=1) = 0     |                               Peet 2019 [8] (Example 8.1.0.1)
 %     |      u_{s}(s=0) = 0,    u_{sss}(s=1) = 0    |
 %     | Use states x1 = u_{t}, x2 = u_{ss}.         |
@@ -163,7 +167,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %     |      w(s=0) = 0,        w_{s}(s=1) - phi(s=1) = 0           
 %     |
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-% 13. | Use states:                                 | k = 1                 Hyperbolic implementation (stable)
+% 14. | Use states:                                 | k = 1                 Hyperbolic implementation (stable)
 %     |     x1 = w_{t},   x2 = k*aa*g * (w_{s}-phi),| aa = 1
 %     |     x3 = phi_{t}, x4 = E*II * phi_{s}.      | II = 1
 %     | =>                                          | g = 1
@@ -175,7 +179,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %     |      x3(0) = 0,         x4(1) = 0           |
 %     |                                             |
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-% 14. | Assume all parameters are 1, and use states:|                       Hyperbolic/diffusive implementation (unstable)
+% 15. | Assume all parameters are 1, and use states:|                       Hyperbolic/diffusive implementation (unstable)
 %     |      x1 = w_{t},    x2 = w_{s},             |
 %     |      x3 = phi_{t},  x4 = phi.               |
 %     | =>                                          |
@@ -188,7 +192,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %     |      x2(1) - x4(1) = 0                      |
 %     |                                             |
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-% 15. | We rewrite the system as a single equation: |                       4th order implementation (stable)
+% 16. | We rewrite the system as a single equation: |                       4th order implementation (stable)
 %     | PDE: 0 = alp*w_{ssss} + bet*w_{tt}          |
 %     |           - gam*w_{ttss} + w_{tttt}         |
 %     | Use states:                                 |
@@ -207,7 +211,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %--------------------------------------------------------------------------
 %       Wave Equations
 %--------------------------------------------------------------------------
-% 16. | PDE: u_{tt} = u_{ss}                        | k=1                   (stable for k=1)                  
+% 17. | PDE: u_{tt} = u_{ss}                        | k=1                   (stable for k=1)                  
 %     | BCs: u(s=0) = 0,                            |                               Peet 2019 [8] (Example 8.2)
 %     |      u_{s}(s=1) = -k*u_{t}(s=1)             |
 %     | Use states x1 = u_{s}, x2 = u_{t}.          |
@@ -220,13 +224,13 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %     | BCs: u(s=0) = 0                             |
 %     |      u_{s}(s=1) = -k*u_{t}(s=1)             |
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-% 17. | Use states x1 = u_{t}, x2 = u.              | k = 1
+% 18. | Use states x1 = u_{t}, x2 = u.              | k = 1
 %     | =>                                          | ad = 1
 %     | PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x2_{ss}  |
 %     | BCs: x1(0) = 0,     x2(0) = 0,              |
 %     |      k*x1(1) + x2_{s}(1) = 0                |
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-% 18. | Use states x1 = u_{t}, x2 = u, x3 = u_{s}.  | k = 1                
+% 19. | Use states x1 = u_{t}, x2 = u, x3 = u_{s}.  | k = 1                
 %     | =>                                          | ad = 1
 %     | PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x3_{s}   |
 %     | BCs: x1(0) = 0,     x2(0) = 0,              |
@@ -238,11 +242,11 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %--------------------------------------------------------------------------
 %       Hyperbolic/Transport/Balance Type Systems
 %--------------------------------------------------------------------------
-% 19. | PDE: x_{t} = -x_{s} + w(t)                  |                       (gamma = 0.5)
+% 20. | PDE: x_{t} = -x_{s} + w(t)                  |                       (gamma = 0.5)
 %     | BCs: x(s=0)                                 |
 %     | Out: z(t) = int(x(t,s),s,0,1)               |
 %--------------------------------------------------------------------------
-% 20. | PDE: phi_{tt} = phi_{ss} + w(t)             | k = 0.5               (gamma = 2 for k = 0.5)  
+% 21. | PDE: phi_{tt} = phi_{ss} + w(t)             | k = 0.5               (gamma = 2 for k = 0.5)  
 %     | BCs: phi(s=0) = 0                           |
 %     |      phi_{s}(s=1) = -k*phi_{t}(s=1)         |
 %     | Out: z(t) = int(phi_{t}(t,s),s,0,1)         |
@@ -255,26 +259,26 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-% 21. | PDE: x_{t} = x_{ss} + s*w(t)                |                       (gamma = 0.3333)
+% 22. | PDE: x_{t} = x_{ss} + s*w(t)                |                       (gamma = 0.3333)
 %     | BCs: x(s=0) = 0,        x_{s}(s=1) = 0      |
 %     | Out: z(t) = int(x(t,s),s,0,1)               |
 %--------------------------------------------------------------------------
-% 22. | PDE: x_{t} = A2(s)*x_{ss}                   | A2 = s^3 - s^2 + 2;   (gamma = 15.147 for lamb = 4.6)       
+% 23. | PDE: x_{t} = A2(s)*x_{ss}                   | A2 = s^3 - s^2 + 2;   (gamma = 15.147 for lamb = 4.6)       
 %     |              + A1(s)*x_{s}                  | A1 = 3*s^2 - 2*s;             Shivakumar 2019 [12] (Example 1)
 %     |              + A0(s)*x + w(t)               | A0 =-0.5*s^3 +1.3*s^2
 %     | BCs: x(s=0) = 0,        x_{s}(s=1) = 0      |     -1.5*s +0.7 +lam
 %     | Out: z(t) = x(t,1)                          | lam = 4.6;  
 %--------------------------------------------------------------------------
-% 23. | PDE: xi_{t} = w(t) + lamb*xi        i=1:ne  | lam = (1-1e-2)*pi^2   (gamma = 8.1069 for lamb = (1-1e-2)*pi^2)         
+% 24. | PDE: xi_{t} = w(t) + lamb*xi        i=1:ne  | lam = (1-1e-2)*pi^2   (gamma = 8.1069 for lamb = (1-1e-2)*pi^2)         
 %     |               + sum(xk_{ss},k=1,i)          | ne = 1 (state size)           Shivakumar 2019 [12] (Example 3)
 %     | BCs: x(s=0) = 0,        x(s=1) = 0          |   
 %     | Out: z(t) = int(x(t,s),s,0,1)               |
 %--------------------------------------------------------------------------
-% 24. | PDE: x_{t} = Cm*x + (1/R)*x_{ss} + s*w(t)   | R = 2.6               (gamma = 0.8102 for R = 2.6)
+% 25. | PDE: x_{t} = Cm*x + (1/R)*x_{ss} + s*w(t)   | R = 2.6               (gamma = 0.8102 for R = 2.6)
 %     | BCs: x(s=0) = 0,        x(s=1) = 0          | Cm = [1, 1.5; 5, 0.2]         Ahmadi 2014 [6]
 %     | Out: z(t) = int(x1(t,s),s,0,1)              | 
 %--------------------------------------------------------------------------
-% 25. | PDE: x_{t} = Cm(s)*x + (1/R)*x_{ss} + s*w(t)| R = (21-1e-3)         (gamma =  4.23, for R = 21-1e-3)
+% 26. | PDE: x_{t} = Cm(s)*x + (1/R)*x_{ss} + s*w(t)| R = (21-1e-3)         (gamma =  4.23, for R = 21-1e-3)
 %     | BCs: x(s=0) = 0,        x(s=1) = 0          | Cm = [0,0,0;                  Shivakumar 2019 [12] (Example 2)
 %     | Out: z(t) = int(x(t,s),s,0,1)               |       s,0,0;
 %     |                                             |       s^2,-s^3,0]
@@ -285,14 +289,14 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %--------------------------------------------------------------------------
 %       Hyperbolic Transport, Balance Laws, Conservation Equations
 %--------------------------------------------------------------------------
-% 26. | PDE: x_{t} = x_{s} + w(t)                   | ne = 1 (state size)   (Answer: 1.0012)
+% 27. | PDE: x_{t} = x_{s} + w(t)                   | ne = 1 (state size)   (Answer: 1.0012)
 %     | BCs: x(s=1) = 0                             |
 %     | Out: z(t) = int(x(t,s),s,0,1) + w(t)        |
 %     |      y(t) = int(x(t,s),s,0,1)               |
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-% 27. | PDE: x_{t} = x_{ss} + w(t)                  | ne = 1 (state size)   (Answer: 1.0045) 
+% 28. | PDE: x_{t} = x_{ss} + w(t)                  | ne = 1 (state size)   (Answer: 1.0045) 
 %     | BCs: x(s=0) = 0,        x(s=1) = 0          |
 %     | Out: z(t) = int(x(t,s),s,0,1) + w(t)        |
 %     |      y(t) = x_{s}(s=1)                      |
@@ -303,7 +307,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-% 28. | PDE: x_{t} = lam*x + x_{ss} + u(t)          | lam = 10;
+% 29. | PDE: x_{t} = lam*x + x_{ss} + u(t)          | lam = 10;
 %     | BCs: x(s=0) = 0,        x(s=1)=0            |
 %
 %==========================================================================
@@ -312,12 +316,12 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-% 29. | PDE: x_{t} = x_{ss} + s*w(t)                | N = 8,    
+% 30. | PDE: x_{t} = x_{ss} + s*w(t)                | N = 8,    
 %     | BCs: x(s=0) = 0,       x_{s}(s=1)=0         | x0 =@(s) s^2-2*s
 %     | Out: z(t) = int(x(t,s),s,0,1)               | w =@(t) sin(t+eps)./(t+eps)
 %     |                                             | t_int = [0 2*pi]
 %--------------------------------------------------------------------------
-% 30. | PDE: xi_{t} = lamb*xi + w(t)        i=1:ne  | ne = 1,    
+% 31. | PDE: xi_{t} = lamb*xi + w(t)        i=1:ne  | ne = 1,    
 %     |               + sum(xk_{ss},k=1,i) + w(t)   | lam = (1-1e-2)*pi^2  
 %     | BCs: x(s=0) = 0,       x_{s}(s=1)=0         | N = 8
 %     | Out: z(t) = int(sum(xi(t,s),i=1,ne),s,0,1)  | x0 =@(s) 0
@@ -361,31 +365,27 @@ if nargin==0 %<-- If there is no input, randomly choose a PDE, and present the b
     BATCH = 1;  
     GUI = 1;
 elseif nargin==1 %<-- If there is one input, this input MUST correspond to the desired PDE
-    if isdouble(varargin{1}) && varargin{1}<=30
+    if isdouble(varargin{1}) && varargin{1}<=29
         index = varargin{1};
         BATCH = 1;
-%     elseif isdouble(varargin{1}) && varargin{1}<=30
-%         error('Simulation is not yet available, please wait for a later release!')
     elseif contains(varargin{1},'batch','IgnoreCase',true)
-        index = randi(28,1);
+        index = randi(29,1);
         disp(['Warning: No example has been selected, randomly selecting example ',num2str(index)]);
         BATCH = 1;
     elseif contains(varargin{1},'term','IgnoreCase',true)
-        index = randi(28,1);
+        index = randi(29,1);
         disp(['Warning: No example has been selected, randomly selecting example ',num2str(index)]);
         TERM = 1;
     elseif contains(varargin{1},'gui','IgnoreCase',true)
-        index = randi(28,1);
+        index = randi(29,1);
         disp(['Warning: No example has been selected, randomly selecting example ',num2str(index)]);
         GUI = 1;
     else
         error('First argument must correspond to an example listed in this file')
     end
 elseif nargin>=2
-    if isdouble(varargin{1}) && varargin{1}<=30
+    if isdouble(varargin{1}) && varargin{1}<=29
         index = varargin{1};
-    elseif isdouble(varargin{1}) && varargin{1}<=32
-        error('Simulation is not yet available, please wait for a later release!')
     else
         error('First argument must correspond to an example listed in this file')
     end
@@ -1012,6 +1012,98 @@ end
 
 elseif index==8
 % % % %====================================================================
+% % Heat Equation coupled with ODE at the boundary from Das [7] (Example 2)
+% % ODE        xo_{t} = A * xo + Bxr * x_{s}(s=a)
+% % PDE        x_{t} = lam * x + x_{ss} + Bpv * xo
+% % with BCs   x(s=a) = 0
+% %            x(s=b) = 0
+%
+% % Stable for lam<pi^2
+    
+ lam = pi^2-1;  a = 0;  b = 1;
+
+ %%% Executive function
+ evalin('base','stability = 1')
+ evalin('base','stability_dual = 1')
+ 
+if npars~=0
+ %%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+if BATCH~=0
+ %%% Batch input format
+ PDE_b.n0 = 0;   PDE_b.n1 = 0;   PDE_b.n2 = 2;   PDE_b.nx = 4;
+ PDE_b.dom = [a,b];
+ 
+ % ODE
+ PDE_b.A = [-1.2142,  1.9649,  0.2232,  0.5616;
+            -1.8042, -0.7260, -0.3479,  5.4355;
+            -0.2898,  0.7381, -1.7606,  0.8294;
+            -0.9417, -5.3399, -1.0704, -0.7590]; 
+ PDE_b.E0 = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0] * [zeros(PDE_b.n2) zeros(PDE_b.n2) eye(PDE_b.n2) zeros(PDE_b.n2)];
+
+ % PDE
+ PDE_b.A0 = lam*eye(PDE_b.n2);   PDE_b.A2 = eye(PDE_b.n2);
+ PDE_b.E = [-2.5575 0 1.0368 0;-1.8067 0.4630 1.3621 0];
+ 
+ % BCs
+ PDE_b.B = [eye(PDE_b.n2), zeros(PDE_b.n2), zeros(PDE_b.n2),zeros(PDE_b.n2); 
+          zeros(PDE_b.n2), eye(PDE_b.n2), zeros(PDE_b.n2), zeros(PDE_b.n2)]; 
+end
+if TERM~=0
+ %%% Term-based input format
+ PDE_t.dom = [a,b];
+ PDE_t.n.nx = 4;   PDE_t.n.nv = 4;   PDE_t.n.nr = 2;   PDE_t.n.n_pde = [0,0,2];
+ on = eye(2);     ze = zeros(2);
+
+ % ODE: xo_{t} = A * xo;
+ PDE_t.ODE.A = [-1.2142,  1.9649,  0.2232,  0.5616;
+                -1.8042, -0.7260, -0.3479,  5.4355;
+                -0.2898,  0.7381, -1.7606,  0.8294;
+                -0.9417, -5.3399, -1.0704, -0.7590]; 
+            
+ % ODE: xo_{t} = ... + Bxr * x_{s}(s=0)
+ PDE_t.ODE.Bxr = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0];
+
+ % ODE: v = xo
+ PDE_t.ODE.Cv = eye(PDE_t.n.nx);
+ 
+ % PDE: x_{t} = lam * x
+ PDE_t.PDE.A{1}.coeff = lam*on; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2; PDE_t.PDE.A{1}.D = 0;
+
+ % PDE: x_{t} = ... + x_{ss}
+ PDE_t.PDE.A{2}.coeff = on; PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
+ 
+ % PDE: x_{t} = ... + Bpv * v
+ PDE_t.PDE.Bpv = [-2.5575 0 1.0368 0;-1.8067 0.4630 1.3621 0];
+ 
+ % PDE: r = x_{s}(s=0)
+ PDE_t.PDE.Drb{1}.coeff = on; PDE_t.PDE.Drb{1}.Rstate = 2; PDE_t.PDE.Drb{1}.delta = 0; PDE_t.PDE.Drb{1}.D = 1;
+
+ % BCs: 0 = x(0)       
+ PDE_t.BC.Ebb{1}.coeff = [on;ze]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;
+ 
+ % BCs: 0 = x(1)       
+ PDE_t.BC.Ebb{2}.coeff = [ze;on]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;
+
+end
+if GUI
+ %%% Associated GUI save file
+ app = PIETOOLS_PDE_GUI; 
+ load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Heat_Eq_with_ODE_Das.mat'));
+ logval = app.loadData(data);
+ if logval
+     disp("Failed to load data object. Incorrect structure");
+ end
+end
+
+
+
+elseif index==9
+% % % %====================================================================
 % % Heat Equation coupled with ODE at the boundary
 % % ODE        xo_{t} = k * xo
 % % PDE        x_{t} = x_{ss} 
@@ -1077,7 +1169,7 @@ end
 
 
 
-elseif index==9
+elseif index==10
 % % % %====================================================================
 % % % Coupled ODE-PDE system from [13]
 % % ODE             xo_{t} = xo + x_{s}(s=0)
@@ -1156,7 +1248,7 @@ end
 
 
 
-elseif index==10
+elseif index==11
 % % % %====================================================================
 % % Example Diffusion-reaction from Ahmadi [6]
 % % PDE        x_{t} = Cm*x + (1/R)*x_{ss} 
@@ -1225,7 +1317,7 @@ end
 
 
 
-elseif index==11
+elseif index==12
 % % % %====================================================================
 % % Adapted Example B (Diffusion-Reaction equation) from [5]
 % % PDE        x_{t} = Cm*x + (1/R)*x_{ss} 
@@ -1294,7 +1386,7 @@ end
 
 
 
-elseif index==12
+elseif index==13
 % % % % %------------------------------------------------------------------
 % % % % % 3. Beam Type Equations
 % % % % %------------------------------------------------------------------
@@ -1373,7 +1465,7 @@ end
 
 
 
-elseif index==13
+elseif index==14
 % % % %====================================================================
 % % Timoschenko beam equation (hyperbolic) [8] (Example 8.1.0.2)
 % % PDE        r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})
@@ -1464,7 +1556,7 @@ end
 
 
 
-elseif index==14
+elseif index==15
 % % % %--------------------------------------------------------------------
 % % Timoschenko Beam equation Example (hyperbolic/diffusive) - unstable [8]
 %
@@ -1569,7 +1661,7 @@ end
 
 
 
-elseif index==15
+elseif index==16
 % % % %--------------------------------------------------------------------
 % % Timoschenko Beam equation 4th order implementation - stable
 %
@@ -1675,7 +1767,7 @@ end
 
 
 
-elseif index==16
+elseif index==17
 % % % % %------------------------------------------------------------------
 % % % % % 4. Wave Equations
 % % % % %------------------------------------------------------------------
@@ -1741,7 +1833,7 @@ end
 
 
 
-elseif index==17
+elseif index==18
 % % % %====================================================================
 % % Test 7.5c - Datko Boundary-Damped Wave equation [9]
 % % PDE        u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} 
@@ -1821,7 +1913,7 @@ end
 
 
 
-elseif index==18
+elseif index==19
 % % % %--------------------------------------------------------------------
 % % Test 7.5d - Datko Boundary-Damped Wave equation (Hyperbolic) [9]
 %
@@ -1886,7 +1978,7 @@ end
 
 
 
-elseif index==19
+elseif index==20
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Hinf gain %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1965,7 +2057,7 @@ end
 
 
 
-elseif index==20
+elseif index==21
 % % % %====================================================================
 % % Example tip damped wave equation:
 % % PDE         phi_{tt} = phi_{ss} + w(t)
@@ -2044,7 +2136,7 @@ end
 
 
 
-elseif index==21
+elseif index==22
 % % % % %------------------------------------------------------------------
 % % % % % 2. Diffusive/Heat Equation Type Systems
 % % % % %------------------------------------------------------------------
@@ -2119,7 +2211,7 @@ end
 
 
 
-elseif index==22
+elseif index==23
 % % % %====================================================================
 % %  Parabolic PDE example from [12] (Example 1)
 % % PDE         x_{t} = A0(s)*x + A1(s)*x_{s} + A2(s)*x_{ss} + w(t)
@@ -2201,7 +2293,7 @@ end
 
 
 
-elseif index==23
+elseif index==24
 % % % %====================================================================
 % % Diffusion-Reaction equation from [12] (Example 3)
 % % PDE         xi_{t} = lamb*xi + sum(xk_{ss},k=1,i) + w(t)
@@ -2278,7 +2370,7 @@ end
 
 
 
-elseif index==24
+elseif index==25
 % % % %====================================================================
 % % Diffusion-reation PDE from [6]
 % % PDE         x_{t} = Cm*x + (1/R)*x_{ss} + [s;s]*w(t)
@@ -2361,7 +2453,7 @@ end
 
 
 
-elseif index==25
+elseif index==26
 % % % %====================================================================
 % % Diffusion-reaction PDE from [12]
 % % PDE         x_{t} = Cm(s)*x + (1/R)*x_{ss} + [s;s;s]*w(t)
@@ -2445,7 +2537,7 @@ end
 
 
 
-elseif index==26
+elseif index==27
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Hinf optimal observer %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2524,7 +2616,7 @@ end
 
 
 
-elseif index==27
+elseif index==28
 % % % % %------------------------------------------------------------------
 % % % % % 2. Diffusive/Heat Equation Type Systems
 % % % % %------------------------------------------------------------------
@@ -2604,7 +2696,7 @@ end
 
 
 
-elseif index==28
+elseif index==29
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Hinf optimal controller %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2677,15 +2769,21 @@ if GUI
 end
 
 
-elseif index==29
+elseif index==30
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Additional examples (undocumented) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % % % %------------------------------------------------------------------
+% % % % %
+% % % % %------------------------------------------------------------------
 
 p = 1; q = 0; qc = 3;
 
-A = [0, -1/4, -1/5, 1/5, 1/6;
-1/2, 1, -4, 9/2, 7/2;
--9/4, -1/2, -14, 23, 16;
--1/5, -1/2, -11/4, 1/10, 5/4;
--4/3, -4/3, -9, 9, 5/2];
+A = [ 0,   -1/4, -1/5,  1/5,  1/6;
+      1/2,  1,   -4,    9/2,  7/2;
+     -9/4, -1/2, -14,   23,   16;
+     -1/5, -1/2, -11/4, 1/10, 5/4;
+     -4/3, -4/3, -9,    9,    5/2];
 
 B = [-7/2, -3/2, -1/10, 1/2, 1]';
 C = [1/10, -1/3, -4, 7/8, 7/8];
@@ -2700,6 +2798,10 @@ if npars~=0
  end
 end
 
+if TERM~=0
+ disp('No terms-based input format available for this system, using batch format instead.')
+ BATCH = 1;
+end
 if BATCH~=0
  %%% Batch input format
  PDE_b.nw = 0;   PDE_b.ny = 0;   PDE_b.nz = 0;   PDE_b.nx = 5;   PDE_b.nu = 0;
@@ -2724,8 +2826,16 @@ if BATCH~=0
 %  PDE_b.Bx = [zeros(1,5);C];
 
 end
+if GUI~=0
+ disp('No GUI representation available for this system.')
+end
 
-elseif index==30
+
+
+elseif index==31
+% % % % %------------------------------------------------------------------
+% % % % % 
+% % % % %------------------------------------------------------------------
 
 p = 1; q = 0; qc = 3;
 
@@ -2748,6 +2858,10 @@ if npars~=0
  end
 end
 
+if TERM~=0
+ disp('No terms-based input format available for this system, using batch format instead.')
+ BATCH = 1;
+end
 if BATCH~=0
  %%% Batch input format
  PDE_b.nw = 0;   PDE_b.ny = 0;   PDE_b.nz = 0;   PDE_b.nx = 5;   PDE_b.nu = 0;
@@ -2772,164 +2886,10 @@ if BATCH~=0
  PDE_b.Bx = [zeros(1,5);C];
 
 end
-% elseif index==29
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Simulation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % % Heat equation with distributed disturbance:
-% % % PDE         x_{t} = x_{ss} + s*w(t)
-% % % With BCs    x(s=0) = 0
-% % %             x_{s}(s=1) = 0
-% % % And Output  z(t) = int(x(t,s),s,0,1)
-% 
-%  %%% Executive function
-%  simulation = 1
-%  N = 8;
-%  w = @(t) sin(t+eps)./(t+eps);
-%  x0 = @(s) s^2-2*s;
-%  t_int = [0 2*pi];
-%  
-% if npars~=0
-%  %%% Specify potential parameters
-%  for j=1:npars
-%      eval(params{j});
-%  end
-% end
-% 
-% if BATCH~=0
-%  %%% Batch input format
-%  ne = 1;
-%  PDE_b.n0 = 0;   PDE_b.n1 = 0;   PDE_b.n2 = ne;   PDE_b.nw = 1;   PDE_b.nz = 1;
-%  PDE_b.dom = [0,1];
-% 
-%  on = eye(ne);   zer = zeros(ne);
-%  PDE_b.A2 = on;   B21 = s*on;
-%  PDE_b.Ca1 = on;
-% 
-%  PDE_b.B = [on zer zer zer;
-%           zer zer zer on];
-% 
-% end
-% if TERM~=0
-%  %%% Term-based input format
-%  PDE_t.dom = [0,1];
-%  ne = 1;
-%  PDE_t.n.nz = ne;   PDE_t.n.nw = ne;   PDE_t.n.nr = ne;  PDE_t.n.nv = ne;
-%  PDE_t.n.n_pde = [0,0,ne];
-%  
-%  on = eye(ne);     ze = zeros(ne);
-% 
-%  % ODE: z = r,     v = w
-%  PDE_t.ODE.Dzr = on;
-%  PDE_t.ODE.Dvw = on;
-% 
-%  % PDE: x_{t} = s * v,
-%  PDE_t.PDE.Bpv = s*on;  
-% 
-%  % PDE: r = int_0^1 x(s) ds
-%  PDE_t.PDE.Crp{1}.coeff = on; PDE_t.PDE.Crp{1}.Rstate = 2;
-% 
-%  % PDE: x_{t} = ... + x_{ss}
-%  PDE_t.PDE.A{1}.coeff = on; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2; PDE_t.PDE.A{1}.D = 2; 
-% 
-%  % BC 1: 0 = x(0)       
-%  PDE_t.BC.Ebb{1}.coeff = [on; ze]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;           
-% 
-%  % BC 2: 0 = x_{s}(1)       
-%  PDE_t.BC.Ebb{2}.coeff = [ze; on]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; PDE_t.BC.Ebb{2}.D = 1;
-% 
-% end
-% if GUI
-%  %%% Associated GUI save file
-%  app = PIETOOLS_PDE_GUI; 
-%  load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Heat_Eq_with_Distributed_Disturbance.mat'));
-%  logval = app.loadData(data);
-%  if logval
-%      disp("Failed to load data object. Incorrect structure");
-%  end
-% end
-% 
-% 
-% 
-% elseif index==30
-% % % % %====================================================================
-% % % Diffusion-Reaction equation from [12] (Example 3)
-% % % PDE         xi_{t} = lamb*xi + sum(xk_{ss},k=1,i) + w(t)
-% % % With BCs    x(s=0) = 0
-% % %             x(s=1) = 0
-% % % And Output  z(t) = int(sum(xi(t,s),i=1,ne),s,0,1)
-% 
-%  %%% Executive function
-%  simulation = 1
-%  N = 8;
-%  w = @(t) [sin(t+eps)./(t+eps); cos(t)];
-%  x0 = @(s) 0;
-%  t_int = [0 2*pi];
-%  lam = (1-1e-2)*pi^2; 
-% 
-%  ne = 1;
-%  
-% if npars~=0
-%  %%% Specify potential parameters
-%  for j=1:npars
-%      eval(params{j});
-%  end
-% end
-% 
-% on = eye(ne);     ze = zeros(ne);     lt = tril(ones(ne));
-%  
-% if BATCH~=0
-%  %%% Batch input format
-%  PDE_b.n0 = 0;   PDE_b.n1 = 0;   PDE_b.n2 = ne;   PDE_b.nw = 1;   PDE_b.nz=1;
-%  PDE_b.dom = [0,1];
-%  PDE_b.A0 = lam*on;   PDE_b.A2 = lt;
-%  PDE_b.B21 = ones(ne,1);
-%  PDE_b.Ca1 = ones(1,ne);
-% 
-%  PDE_b.B = [on ze ze ze;
-%           ze on ze ze];
-% 
-% end
-% if TERM~=0
-%  %%% Term-based input format
-%  PDE_t.dom = [0,1];
-%  PDE_t.n.nz = 1;  PDE_t.n.nw = 1;   PDE_t.n.nr = 1;  PDE_t.n.nv = 1;  
-%  PDE_t.n.n_pde = [0,0,ne];
-%  
-%  % ODE: z = r,     v = w
-%  PDE_t.ODE.Dzr = 1;
-%  PDE_t.ODE.Dvw = 1;
-% 
-%  % PDE: xi_{t} = vi = wi
-%  PDE_t.PDE.Bpv = ones(ne,1);  
-% 
-%  % PDE: r = int_0^1 x(s) ds
-%  PDE_t.PDE.Crp{1}.coeff = ones(1,ne); PDE_t.PDE.Crp{1}.Rstate = 2;
-% 
-%  % PDE: xi_{t} = ... + lamb * xi 
-%  PDE_t.PDE.A{1}.coeff = lam*on; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
-% 
-%  % PDE: xi_{t} = ... + sum(xk_{ss},k=1,i)
-%  PDE_t.PDE.A{2}.coeff = lt; PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
-% 
-%  % BC 1: 0 = x(0)
-%  PDE_t.BC.Ebb{1}.coeff = [on;ze]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;            
-% 
-%  % BC 2: 0 = x(1)      
-%  PDE_t.BC.Ebb{2}.coeff = [ze;on]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;   
-% 
-% end
-% if GUI
-%  %%% Associated GUI save file
-%  app = PIETOOLS_PDE_GUI; 
-%  load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Reaction_Diffusion_Eq_with_Disturbance.mat'));
-%  logval = app.loadData(data);
-%  if logval
-%      disp("Failed to load data object. Incorrect structure");
-%  end
-% end
-% 
-% 
+if GUI~=0
+ disp('No GUI representation available for this system.')
+end
+
 
 end
 
@@ -2950,8 +2910,7 @@ if TERM~=0
     varargout{TERM} = PDE_t;
 end
 
-
-
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3022,6 +2981,14 @@ end
 %   pages={4304--4309},
 %   year={2014},
 %   organization={IEEE}
+% }
+%
+% % [7] -
+% @article{das2018representation,
+% author = {Das, Amritam and Shivakumar, Sachin and Weiland, Siep and Peet, Matthew},
+% year = {2018},
+% pages = {},
+% title = {Representation and Stability Analysis of PDE-ODE Coupled Systems}
 % }
 %
 % % [8] - 

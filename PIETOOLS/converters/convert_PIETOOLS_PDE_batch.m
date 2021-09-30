@@ -27,6 +27,8 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 %
 % Initial coding MMP  - 5_29_2019
 %    MMP - updated to new data structure and made the script a function
+% DJ 09/29/2021 - correction at the end to fill in empty parameters with
+% appropriate zeros just in case...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
 % undefined operators to empty opbjects.
@@ -282,7 +284,12 @@ Top=op_slice(Tbigop,1:(nx+np),(nw+nu+1):(nw+nu+nx+np));
 
 %nx1 = nx; nx2 = np;
 
-
+% DJ 09/29/2021: fill in empty parameters with appropriate zeros
+opnames = {'Top','TB1op','TB2op','Aop','B1op','B2op','C1op','D11op','D12op','C2op','D21op','D22op'};
+for j=1:length(opnames)
+    op = opnames{j};
+    eval([op,'.dim=',op,'.dim;'])
+end
 
 %remove temporary opvars
 %clear Apop Phfop Tbigop; 

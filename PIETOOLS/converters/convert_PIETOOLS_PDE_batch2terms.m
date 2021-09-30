@@ -86,7 +86,8 @@ PDE_out.n.nz = PDE.nz;
 PDE_out.n.ny = PDE.ny;
 PDE_out.n.nw = PDE.nw;
 PDE_out.n.nu = PDE.nu;
-PDE_out.n.nv = PDE.nx+PDE.nw+PDE.nu; PDE_out.n.nr = 0; %?
+PDE_out.n.nv = PDE.nx+PDE.nw+PDE.nu; 
+PDE_out.n.nr = PDE.nx+PDE.nz+PDE.ny + 2*PDE.n1 + 4*PDE.n2; %?
 
 PDE_out.dom = PDE.dom;
 

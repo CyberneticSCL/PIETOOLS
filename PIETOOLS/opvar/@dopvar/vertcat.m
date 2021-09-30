@@ -15,7 +15,7 @@ function [Pcat] = vertcat(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - vertcat
 %
-% Copyright (C)2019  M. Peet, S. Shivakumar
+% Copyright (C)2021  M. Peet, S. Shivakumar
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -35,7 +35,8 @@ function [Pcat] = vertcat(varargin)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
-
+%
+% DJ, 09/29/2021: Small adjustment to avoid error with dopvar-opvar concatenation
 
 
 if nargin==1
@@ -56,7 +57,7 @@ else
             Pcat = [a;b];
         else
             bdim = b.dim;
-            if size(a,3)~=sum(bdim(:,2))
+            if ~isa(a,'opvar') && size(a,2)~=sum(bdim(:,2)) % DJ 09/29/2021
                 error("Cannot concatentate vertically. A and B have different input dimensions");
             end
             Pcat = b;
@@ -85,7 +86,7 @@ else
         end
     elseif ~isa(b,'dopvar')
         adim = a.dim;
-        if size(b,3)~=sum(adim(:,2))
+        if ~isa(b,'opvar') && size(b,2)~=sum(adim(:,2)) % DJ 09/29/2021
             error("Cannot concatentate vertically. A and B have different input dimensions");
         end
         Pcat = a;

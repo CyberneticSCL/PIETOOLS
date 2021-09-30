@@ -1,5 +1,6 @@
 % SOSDEMO4 --- Matrix Copositivity
-% Section 4.4 of SOSTOOLS User's Manual
+% Section 3.4 of SOSTOOLS User's Manual
+% 
 
 clear; echo on;
 pvar x1 x2 x3 x4 x5;
@@ -14,6 +15,7 @@ J = [1 -1  1  1 -1;
 
 % =============================================
 % First, initialize the sum of squares program
+
 prog = sosprogram(vartable);     % No decision variables.
 
 % =============================================
@@ -32,4 +34,5 @@ prog = sossolve(prog,solver_opt);
 
 % =============================================
 % If program is feasible, the matrix J is copositive.
+
 echo off

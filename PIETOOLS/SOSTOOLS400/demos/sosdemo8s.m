@@ -1,5 +1,5 @@
-% SOSDEMO8s --- Bounds in Probability
-% Section 4.8 of SOSTOOLS User's Manual
+% SOSDEMO8 --- Bounds in Probability
+% Section 3.8 of SOSTOOLS User's Manual
  
 clear; echo on;
 syms x a b c;
@@ -29,7 +29,7 @@ prog = sosprogram([x],[a,b,c]);
 P = a + b*x + c*x^2 ;
 
 % Nonnegative on the support
-prog = sosineq(prog,P,R);
+prog = sosineq(prog, P ,R);
 
 % Greater than one on the event
 prog = sosineq(prog,P-1,E);
@@ -47,4 +47,5 @@ prog = sossolve(prog,solver_opt);
 % Get solution
 BND = sosgetsol(prog,bnd,16)
 PP = sosgetsol(prog,P);
+
 echo off;

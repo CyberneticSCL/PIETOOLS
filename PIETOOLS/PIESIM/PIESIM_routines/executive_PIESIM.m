@@ -57,8 +57,8 @@
 function solution=executive_PIESIM(varargin)
 
 % required fields for options and uinputs
-fields_opts = {'N','tf','intScheme','Norder','dt','Nsteps','plot'};
-default_opts = {8, 10, 1, 2, 0.01, 1000, 'no'};
+fields_opts = {'N','tf','intScheme','Norder','dt','plot'};
+default_opts = {8, 10, 1, 2, 0.01,'no'};
 
 if nargin==1
     opts = struct();
@@ -72,22 +72,32 @@ else
 end
 
 % check if all options are defined, if not define them
-for i=1: length(fields_opts)
+for i=1:length(fields_opts)
     if ~isfield(opts,fields_opts{i})
-        opts.(fields_opts{i}) = default_opts{i};
-    end
+        opts.(fields_opts{i}) = default_opts{i};  
+        end
 end
+
+
+ opts.Nsteps=floor(opts.tf/opts.dt);
 
 if isNOTPIE(varargin{1}) % if input type is PDE or DDE then convert to PIE first
     syms st;
     
-    structure = varargin{1};
+      structure = varargin{1};
+%     if (nargin>=2)
+%         opts = varargin{2};
+%     end
+%     if (nargin>=3)
+%         uinput = varargin{3};
+%     end
     
     if isfield(structure,'tau')
         disp('Solving DDE problem');
         DDE=structure;
         structure.type='DDE';
         opts.type='DDE';
+        
     else
         disp('Solving PDE problem');
         PDE=structure;
@@ -235,13 +245,10 @@ else
 end % end ifPDE
 
 
-
-
 % Set up initial conditions and boundary inputs for PIE from user-defined
 % functions to the format required for PIE solution
 
 uinput=PIESIM_initial_setup(uinput);
-
 
 
 % Setup a spatial discretization of the initial conditions and the PIE operators with the Chebyshev Galerkin method
@@ -251,6 +258,7 @@ uinput=PIESIM_initial_setup(uinput);
 % Solving in time for Chebyshev coefficients
 
 disp('Setup completed: integrating in time');
+
 solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, Dop);
 
 % Transform solution to physical space

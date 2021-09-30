@@ -1,11 +1,11 @@
 % SOSDEMO3 --- Bound on Global Extremum
-% Section 4.3 of SOSTOOLS User's Manual 
+% Section 3.3 of SOSTOOLS User's Manual
+% 
 
 clear; echo on;
 pvar x1 x2 
 dpvar gam;
 vartable = [x1, x2];
-
 % =============================================
 % First, initialize the sum of squares program
 prog = sosprogram(vartable);

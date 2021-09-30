@@ -1,5 +1,6 @@
-% SOSDEMO5s --- Upper bound for the structured singular value mu
-% Section 4.5 of SOSTOOLS User's Manual
+% SOSDEMO5 --- Upper bound for the structured singular value mu
+% Section 3.5 of SOSTOOLS User's Manual
+% 
 
 clear; echo on;
 syms x1 x2 x3 x4 x5 x6 x7 x8;
@@ -25,7 +26,7 @@ for i = 1:4
     H = M(i,:)'*M(i,:) - (gam^2)*sparse(i,i,1,4,4,1);
     H = [real(H) -imag(H); imag(H) real(H)];
     A{i} = (Z.')*H*Z;
-end
+end;
 
 % =============================================
 % Initialize the sum of squares program
@@ -38,7 +39,7 @@ prog = sosprogram(vartable);
 % Monomial vector: [x1; ... x8]
 for i = 1:4
     [prog,Q{i}] = sossosvar(prog,Z);
-end
+end;
 
 % -- r's -- : constant sum of squares
 Z = monomials(vartable,0);
@@ -46,8 +47,8 @@ r = cell(4,4);
 for i = 1:4
     for j = (i+1):4
         [prog,r{i,j}] = sossosvar(prog,Z,'wscoeff');
-    end
-end
+    end;
+end;
 
 % =============================================
 % Next, define SOSP constraints
@@ -57,12 +58,12 @@ expr = 0;
 % Adding term
 for i = 1:4
     expr = expr - A{i}*Q{i};
-end
+end;
 for i = 1:4
     for j = (i+1):4
         expr = expr - A{i}*A{j}*r{i,j};
-    end
-end
+    end;
+end;
 % Constant term: I(x) = -(x1^4 + ... + x8^4)
 I = -sum(vartable.^4);
 expr = expr + I;
@@ -75,5 +76,6 @@ solver_opt.solver = 'sedumi';
 prog = sossolve(prog,solver_opt);
 
 % =============================================
-% If program is feasible, thus 0.8724 is an upper bound for mu.
+% If program is feasible, then 0.8724 is an upper bound for mu.
+
 echo off

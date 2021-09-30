@@ -1,0 +1,696 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{article}
+
+
+\usepackage{enumitem,geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{grffile}
+\usepackage{bigints}
+\usepackage{refcount}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc}
+\usepackage{mathdots}
+\geometry{margin=1in}
+
+
+
+
+\setlist[enumerate]{wide=0pt, widest=99,leftmargin=\parindent, labelsep=*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Math commands
+\newcommand{\trace}{\mathop{\mathopfont{trace}}}
+\newcommand{\rank}{\mathop{\mathopfont{rank}}}
+\newcommand{\diag}{\mathop{\mathopfont{diag}}}
+\newcommand{\image}{\mathop{\mathopfont{image}}}
+\newcommand{\range}{\mathop{\mathopfont{range}}}
+\newcommand{\dom}{\mathop{\mathopfont{dom}}}
+\newcommand{\spec}{\mathop{\mathopfont{spec}}}
+\newcommand{\ess}{\mathop{\mathopfont{ess}}}
+\newcommand{\co}{\mathop{\mathopfont{co}}}
+\newcommand{\sgn}{\mathop{\mathopfont{sgn}}}
+\newcommand{\mcl}[1]{\mathcal{ #1}}
+\newcommand{\mbf}[1]{\mathbf{ #1}}
+\newcommand{\norm}[1]{\left\Vert #1\right\Vert}
+\newcommand{\hinf}{\ensuremath{H_{\infty}}}
+\newcommand{\ip}[2]{\left\langle{#1},{#2}\right\rangle}
+
+
+\newcommand{\bmat}[1]{\begin{bmatrix} #1\end{bmatrix}}
+\newcommand{\Bmat}[1]{\begin{Bmatrix}#1\end{Bmatrix}}
+\newcommand{\mat}[1]{\begin{matrix}#1\end{matrix}}
+\newcommand{\pmat}[1]{\begin{pmatrix}#1\end{pmatrix}}
+\newcommand{\smat}[1]{\begin{smallmatrix}#1\end{smallmatrix}}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\V}{\mathbb{V}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\HH}{\mathbb{H}}
+\renewcommand{\S}{\mathbb{S}}
+\newcommand{\sob}[2]{W^{2,#1}(#2)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Useful shorthand
+\newcommand{\myint}{\int_{a}^{b}}
+\newcommand{\myinta}[1]{\int_{a}^{#1}}
+\newcommand{\myintb}[1]{\int_{#1}^{b}}
+\newcommand{\attn}[1]{\textcolor{blue}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand\vlines{\fboxsep=-\fboxrule\!\!\!\fbox{\strut}\!\!\!}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{defn}{Definition}[thm]
+\newtheorem{lem}{Lemma}[thm]
+\newtheorem{cor}{Corollary}[thm]
+\newtheorem{prop}{Proposition}[thm]
+\newtheorem{rem}{Remark}
+\newtheorem{example}{Example}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Operator commands
+\newcommand{\fourpi}[4]{\ensuremath{\mcl{P}\left[\footnotesize\begin{array}{c|c}
+			#1&#2\\\hline #3 & \{#4\}
+		\end{array}\right]}}
+%\newcommand{\fourpi}[4]{\ensuremath{\mcl{P}{\footnotesize\bmat{#1,& \hspace{-3mm}#2 \\ #3,& \hspace{-3mm} \left\{#4\right\} }}}}
+\newcommand{\threepi}[1]{\mcl{P}_{\{#1\}}}
+\newcommand{\fourpiFull}[6]{\ensuremath{\mcl{P}\left[\footnotesize\begin{array}{c|c}
+			#1&#2\\\hline #3 & \left\lbrace#4,#5,#6\right\rbrace
+		\end{array}\right]}}
+%\newcommand{\fourpiFull}[6]{\mcl{P}{\footnotesize\bmat{#1,& \hspace{-3mm}#2 \\ #3,& \hspace{-3mm} \left\{#4,#5,#6\right\} }}}
+\newcommand{\threepiFull}[3]{\mcl{P}_{\{#1,#2,#3\}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% custom textboxes
+\newenvironment{Snugshade}[1][236,236,236]{
+    \definecolor{shadecolor}{RGB}{#1}%
+    \begin{shaded}%
+}{%
+    \end{shaded}%
+}
+
+
+
+\setlength{\abovedisplayskip}{3pt}
+\setlength{\belowdisplayskip}{3pt}
+\allowdisplaybreaks
+\begin{document}
+	\title{\texttt{dpvar}: A new class for polynomial variables in MATLAB}
+	\author{Sachin Shivakumar \thanks{Arizona State University} \and Declan Jagt \thanks{Arizona State University} \and Matthew Peet \thanks{Arizona State University}}
+	\maketitle
+	\tableofcontents
+	\newpage
+
+
+	\section{Introduction}\label{sec:introduction}
+	SOSTOOLS is a toolbox designed for parsing and solving of polynomial sum-of-squares optimization problems in MATLAB. A polynomial sum-of-squares optimization problem is typically solved by following the steps:
+	\begin{itemize}
+		\item Define symbolic independent variables (typically of type \texttt{polynomial} or \texttt{sym} in MATLAB).
+		\item Define polynomials with unknown coefficients as decision variables (decision variables are of \textbf{same type} as above)
+		\item Define equality or inequality constraints on the polynomials involving decision variables.
+		\item Declare an objective function.
+		\item Convert the constraints and objective function (from SOSTOOLS format) to parameters compatible with an SDP solver.
+		\item Solve the optimization problem by calling the specified SDP solver.
+		\item Convert solver output back to SOSTOOLS format (or other user-friendly formats).
+	\end{itemize}
+	
+	While computationally solving an SOS problem, in most cases, the first 5 steps take a significant amount of computation time in comparison to the solution step where the actual SDP is solved. The reason behind this is the highlighted in the $2^{nd}$ bullet above.
+	
+	Specifying decision variables and storing them along with independent symbolic variables in a single structure complicates many operations such as indexed access, multiplication, addition, etc., and artificially inflates time taken during search or sorting operations. Moreover, while decision variables will always appear linearly in the polynomial, never to be multiplied, differentiated, etc., the implementation of polynomial objects in SOSTOOLS up to version 3.04 fails to fully exploit the benefits of this linearity.
+
+	With SOSTOOLS 4.0, we reduce computational complexity and memory requirements by introducing a new MATLAB class of objects: the \texttt{dpvar}. Objects of this class are different from \texttt{polynomial} and \texttt{syms} objects, in the sense that decision variables and independent variables are now stored under separate fields (see \ref{subsec:dpvar-classdef}). As a result, operations on \texttt{dpvar} objects are significantly less computationally demanding than the same operations on \texttt{polynomial} and \texttt{syms} objects, allowing for much more efficient parsing of polynomial optimization problems then in previous versions of SOSTOOLS.
+	
+	This manual presents an overview of how the \texttt{dpvar} object is implemented in MATLAB, along with some basic operations that may be performed on \texttt{dpvar} objects.
+
+
+	\section{Notation}\label{sec:notation}
+	Throughtout this document, unless explicitly stated, the symbols listed in this section will have the meaning as defined below.
+	\begin{itemize}
+		\item Typeset font (Example: \texttt{text}) - denotes code in MATLAB compatible syntax
+		\item For any MATLAB variable \texttt{var}, \texttt{var(i,j)} denotes the $(i,j)^{th}$-element. Further, \texttt{:} is used to denote all elements along a particular dimension. For example, \texttt{var(:,j)} corresponds to the vector of with all rows and $j^{th}$ column of the variable \texttt{var}
+		\item \texttt{+, *, /, \^}, etc., stand for standard MATLAB operators with canonical meaning
+		\item $\R$ stands for the set of real numbers
+		\item For any MATLAB variable $P$, the symbol $`.'$ is used to represent the access of a MATLAB field. For example $P.T$ is used to refer to the field $T$ under $P$ that is stored in a MATLAB structure/class.
+	\end{itemize}
+
+	\section{Class definitions}\label{sec:classdef}
+	In this section, we introduce the existing class \texttt{polynomial} along with the new class \texttt{dpvar} to highlight differences between the two classes.
+	\subsection{\texttt{polynomial} class object} \label{subsec:polynomial-classdef}
+
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{pvar s t; \%creates independent polynomial variables}\\
+			&\texttt{C = polynomial(coeff, degmat, [s;t], matdim); \%construct using polynomial structure}&
+		\end{flalign*}
+
+
+	Currently, a polynomial class object has the four properties. For any \texttt{[m,n]} dimensional polynomial object with \texttt{p} independent polynomial variables and a monomial set of length \texttt{z} (with various degrees of \texttt{p}) has the properties
+	\begin{itemize}
+		\item \texttt{coeff}: sparse matrix of size \texttt{[z,(m*n)]}
+		\item \texttt{matdim}: array \texttt{[m,n]}
+		\item \texttt{varname}: a cell-string of size \texttt{[p 1]}
+		\item \texttt{degmat}: a matrix of size \texttt{[z p]}
+	\end{itemize}
+	
+	Given these properties, the polynomial can be reconstructed in two ways:
+	\begin{enumerate}
+		\item First, using elementwise exponential and elementwise multiplication, get the monomial vector $$Z(p) = \texttt{varname}(1)^{\texttt{degmat}(:,1)}.*\dots*\texttt{varname}(p)^{\texttt{degmat}(:,p)}.$$
+		Note that $\texttt{varname}(i)^{\texttt{degmat}(:,i)}$ is a \texttt{[z,1]}-dimensional matrix (\texttt{z}-dimensional vector). Then $Z(p)$ is a vector of dimension \texttt{z}, with each element a monomial in the variables \texttt{varname}.
+		%\item QUESTION: Is there an ordering to the monomials in degmat?
+		%
+		%Seems to be ordered in decreasing magnitude along the odd-numbered columns. The even numbered columns are ordered in increasing magnitude.
+		
+		\item
+		Then, get the polynomial in linear-indexed vector (\texttt{m*n} dimensional ROW vector) using the formula
+		$$P(p) = Z(p)^T*\texttt{coeff}.$$
+		Use \texttt{reshape(P,m,n)} to reshape $P(p)$ to get the matrix of size \texttt{[m,n]}.\\
+		%\item QUESTION: Isn't it better/standard to use $P(p) = \texttt{coeff}^T Z(p)\in \R[p]^{m*n \times 1}$? Why is it not done like this?
+		%
+		%It can be done either way i think, reshape doesnt change if the input is a row vector or column vector.
+		
+		Alternatively, we can first reshape the coefficient matrix, and then multiply with the monomials. In particular, for a matrix pvar of size $m \times n$, the coefficient matrix is structured as
+		\begin{align*}
+			&\bmat{b_1 & \cdots &b_m& \cdots &b_{m(n-1)+1}& \cdots & b_{mn}}\\
+			&\qquad=\bmat{b_{1,1} & \cdots &b_{m,1}&b_{1,2}& \cdots &b_{m,2}&\cdots&b_{1,n}& \cdots & b_{m,n}},
+		\end{align*}
+		where each $b_i$ is a \texttt{z}-dimensional column vector.
+		Constructing the monomial vector $Z(p)$ as in the previous approach, we may than reconstruct the polynomial itself as
+		\[
+		P(p)= \overbrace{\bmat{b_1^T & \cdots & b_{m(n-1)+1}^T\\
+				b_2^T & \cdots & \\
+				\vdots & & \vdots \\
+				b_m^T & \cdots & b_{mn}^T}}^{\hat B}(I_n \otimes Z(p)),
+		\]
+		or, alternatively,
+		\[
+		P(p)= (I_m \otimes Z(p))^T\overbrace{\bmat{b_1 & \cdots & b_{m(n-1)+1}\\
+				b_2 & \cdots & \\
+				\vdots & & \vdots \\
+				b_m & \cdots & b_{mn}}}^{\bar B}\\
+		\]
+	\end{enumerate}
+	As an example, the polynomial
+	\begin{align*}
+	 P(d,x)=\bmat{1&3d_1x_1&5d_1x_1^2\\ 2d_2x_2&4d_2x_1&6d_2x_1x_2}
+	\end{align*}
+	may be stored as a \texttt{polynomial} object \texttt{P}, by assigning it the field values
+	\begin{verbatim}
+		P.varname = {`d_1';`d_2';`x_1';`x_2'};
+		P.dim = [2,3];
+		P.degmat = [0,0,0,0; 0,1,0,1; 1,0,1,0; 0,1,1,0; 1,0,2,0; 0,1,1,1];
+		P.coeff = [1,0,0,0,0,0; 0,2,0,0,0,0; 0,0,3,0,0,0,0;
+		           0,0,0,4,0,0; 0,0,0,0,5,0; 0,0,0,0,0,0,6];
+	\end{verbatim}
+	Note that, since \texttt{coeff} and \texttt{degmat} will be stored as sparse objects, all the zeros in their expressions will not be stored. 
+	
+	
+	\subsection{\texttt{dpvar} class object: modification of \texttt{polynomial} class object}\label{subsec:dpvar-classdef}
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{pvar p\_1 p\_2 ... p\_m; \%creates independent polynomial variables}\\
+			&\texttt{dvarnames = [`coeff\_0',...,`coeff\_n']; \%creates array of strings with decision variables}\\
+			&\texttt{C = dpvar(coeff, degmat, [p\_1, ..., p\_m], dvarnames, matdim); \%construct using dpvar structure}&
+		\end{flalign*}
+
+	Let us now introduce a new class \texttt{dpvar}, with an additional property that stores the list of decision variables. Let us define a polynomial with decision variables $d$ and polynomial variables $p$ as
+	\begin{align*}
+		D(p;d) &= (I_m \otimes Z(d))^TC (I_n \otimes Z(p))\\
+		&=\bmat{Z(d)^T C_{11} Z(p) &\cdots &Z(d)^T C_{1n} Z(p)\\
+			\vdots& \ddots &\vdots\\
+			Z(d)^T C_{m1} Z(p)& \cdots &Z(d)^T C_{mn} Z(p)}
+	\end{align*}
+	where $I$ is an identity matrix and $A(p)$ is a \texttt{polynomial} class object of dimensions \texttt{[(d+1)*m,n]}. Unique property of decision variables is that their highest degree is always 1, integration and differentiation is never performed with respect to decision variables, and decision variables \textit{should} not be multiplied with each other.
+	In MATLAB, the \texttt{dpvar} class has the properties
+	\begin{itemize}
+		\item \texttt{C}: Sparse matrix of size \texttt{[((d+1)*m),z*n]}, describing the coefficient matrix $C$.
+		\item \texttt{matdim}: array \texttt{[m,n]}, describing the matrix dimensions of the polynomial
+		\item \texttt{varname}: a cell-string of size \texttt{[p 1]}, describing the independent variable names
+		\item \texttt{degmat}: a matrix of size \texttt{[z p]}, describing the degrees of variables $p$ in monomial vector $Z(p)$
+		\item \texttt{dvarname}: a cell-string of size \texttt{[d 1]}, describing the decision variable names
+	\end{itemize}
+	As an example, the polynomial
+	\begin{align*}
+	P(d,x)=\bmat{1&3d_1x_1&5d_1x_1^2\\ 2d_2x_2&4d_2x_1&6d_2x_1x_2}
+	\end{align*}
+	with decision variables $d$, may be stored as a \texttt{dpvar} object \texttt{P}, by assigning it the field values
+	\begin{verbatim}
+	P.varname = {`x_1';`x_2'};
+	P.dvarname = {`d_1';`d_2'};
+	P.dim = [2,3];
+	P.degmat = [0,0; 1,0; 0,1; 2,0; 1,1];
+	P.C = [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+	       0,0,0,0,0,0,3,0,0,0,0,0,0,5,0; 
+	       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+	       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+	       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+	       0,0,2,0,0,0,4,0,0,0,0,0,0,0,6];
+	\end{verbatim}
+	
+	Note that, since \texttt{C} and \texttt{degmat} will be stored as sparse objects, all the zeros in their expressions will not be stored. 
+
+	From now on, `sparse matrix operations' is used as an umbrella term to represent operations such as addition, multiplication, factorization, etc. Sparse matrix operations depend linearly on number of non-zero elements, number of rows, and number of columns but not on product of number of rows and columns.
+	
+	\begin{rem} Some benefits, that are outright evident by adopting \texttt{dpvar} class representation instead of \texttt{polynomial} class representation are listed below.
+		\begin{enumerate}
+			\item Size of \texttt{degmat} reduces significantly.
+			\item Given a polynomial with decision variables, both number of non-zero elements and total size of \texttt{coeff} and \texttt{C} remain the same. However, the number of rows and columns are different.
+			\item Since sparse matrix operations are linearly dependent on number of rows and columns, complexity of sparse matrix operations on the two representations will be different.
+			\item In general, \texttt{[m,n]} is fixed and \texttt{m<<z<<d}. Hence, sparse matrix operations complexity may not change significantly. However, since \texttt{m<z}, \texttt{dpvar} representation is slightly better.
+			\item Concatenation and addition operations are likely of same complexity as in \texttt{polynomial} representation.
+		\end{enumerate}
+	\end{rem}
+	
+	
+	
+	
+	\section{Operations involving \texttt{dpvar} objects in MATLAB}\label{sec:operations}
+	
+	We now go over some operations on \texttt{dpvar} class objects while mathematically describing the implementation of each operation in MATLAB.
+	
+	\subsection{Auxiliary operations}\label{subsec:aux-operations}
+	Auxiliary operation, are operations, on dpvar class objects, that are frequently used to warrant a function, however, are seldom of any direct use to any user. Such functions are described in this section for the sake of completion and user knowledge. These functions are unlikely to be used by users directly while solving polynomial SOS optimization problems.
+	\subsubsection{\texttt{degmat\_kron} product} \label{subsec:degkron}
+	Given two monomials $Z_1(p)\in \R^{l_1}$ and $Z_2(p)\in\R^{l_2}$, a commonly required operation is to find $(I_{l_2p}\otimes Z_1(p))(I_{p}\otimes Z_2(p))$ which is equivalently written as
+	\begin{align*}
+		(I_{l_2p}\otimes Z_1(p))(I_{p}\otimes Z_2(p)) &= \bmat{Z_1(p)&&\\&\ddots&\\&&Z_1(p)}_{l_1l_2p\times l_2p}\bmat{Z_2(p)&&\\&\ddots&\\&&Z_2(p)}_{l_2p\times p}\\
+		&=\bmat{Z_1(p)\otimes Z_2(p)&&\\&\ddots&\\&&Z_1(p)\otimes Z_2(p)}_{l_1l_2p\times p}\\
+		&=(I_{p}\otimes (Z_1(p)\otimes Z_2(p)))
+	\end{align*}
+	
+	In MATLAB, each row of `degmat' stores degrees of one monomial. Then
+	\begin{align*}
+	\texttt{Z\_i} = \prod_{j=1}^{n_i} \texttt{varname(j)}^\texttt{{degmat(:,j)}}
+	\end{align*}
+	where the product `$\prod$` and exponent are performed elementwise.
+	When `varname' is same for $Z_1$ and $Z_2$, the kronecker product can be performed by adding rows of degmat.
+	
+	To perform kronecker product between `\texttt{dmat1}' and `\texttt{dmat2}',
+	\begin{enumerate}
+		\item Add every row of `\texttt{dmat2}' to $i^{th}$ row of `\texttt{dmat1}' and stack them vertically as shown below.
+		\item $\texttt{dmat\_new} = \bmat{\texttt{dmat1(1,:)}+\texttt{dmat2(:,:)}\\\texttt{dmat1(2,:)}+\texttt{dmat2(:,:)}\\\vdots\\\texttt{dmat1(end,:)}+\texttt{dmat2(:,:)}}$.
+		\item Then, find unique rows in \texttt{dmat\_new}.
+		\texttt{[dmat\_uni, \texttildelow, IA] = unique(dmat\_new,'rows','stable');}
+		\item Find a matrix $A_{combine}$ such that, \texttt{dmat\_new = Acombine*dmat\_uni;}.
+		\item Using MATLAB `unique' function, the index of rows of \texttt{dmat\_new} found in \texttt{dmat\_uni} is stored in \texttt{IA}. Then \texttt{Acombine(i, IA(i)) = 1; \% i goes from 1 to length(IA)}.
+	\end{enumerate}
+	
+	In \texttt{mtimes}, step 2 of the above list is performed in \texttt{rowwisesum} (function name used for the \texttt{degmat\_kron} operation) and step 5 in \texttt{combine\_degmat}.
+	
+	\subsubsection{\texttt{dpvar2poly} Conversion of \texttt{dpvar} to \texttt{polynomial}}\label{subsec:dpvar2poly}
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{polyVar = dpvar2poly(dpVar); \%returns a polnomial object}&
+		\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{dpVar} : A dpvar class object with fields shown in Section \ref{subsec:dpvar-classdef}
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{polyVar} : A polynomial class object with fields shown in Section \ref{subsec:polynomial-classdef}
+	\end{enumerate}
+
+	Let $D$ be a \texttt{dpvar} class object of the form shown below. We split the coefficient matrix of the \texttt{dpvar} into block matrices, where each $C_{ij} \in \R^{(d+1)\times 1}$, as
+	\begin{align*}
+		D(p;d) &= (I_m \otimes  Z(d))^T C (I_n \otimes Z(p)) = \bmat{Z(d)^T&&\\&\ddots&\\&&Z(d)^T}\bmat{C_{11}&C_{12}&\cdots&C_{1,zn}\\\vdots&\vdots&\ddots&\vdots\\C_{m,1}&C_{m,2}&\cdots&C_{m,zn}}(I_n \otimes Z(p))\\
+		&=\bmat{Z(d)^TC_{11}&Z(d)^TC_{12}&\cdots&Z(d)^TC_{1,zn}\\\vdots&\vdots&\ddots&\vdots\\Z(d)^TC_{m,1}&Z(d)^TC_{m,2}&\cdots&Z(d)^TC_{m,zn}}(I_n \otimes Z(p))\\
+		&=\bmat{C_{11}^TZ(d)&C_{12}^TZ(d)&\cdots&C_{1,zn}^TZ(d)\\\vdots&\vdots&\ddots&\vdots\\C_{m,1}^TZ(d)&C_{m,2}^TZ(d)&\cdots&C_{m,zn}^TZ(d)}(I_n \otimes Z(p))\\
+		&=\bmat{C_{11}^T&C_{12}^T&\cdots&C_{1,zn}^T\\\vdots&\vdots&\ddots&\vdots\\C_{m,1}^T&C_{m,2}^T&\cdots&C_{m,zn}^T}
+		(I_{zn} \otimes Z(d))(I_n \otimes Z(p)) = C_{new}(I_n \otimes Z_{new}(p,d)).
+	\end{align*}
+	To obtain the \texttt{polynomial} object, construct the degmat (combine is not needed since the intersection of the sets $p$ and $d$ is a null set) and then rearrange $C_{new}$ into the shape $z(d+1)\times mn$.
+	
+	To rearrange $C_{new}$, construct a block matrix structure
+	\begin{align*}
+		C_{new} = \bmat{C_{1,1}&\cdots&C_{1,n}\\\vdots&\ddots&\vdots\\C_{m,1}&\cdots&C_{m,n}}
+	\end{align*}
+	where $C_{ij}\in \R^{1\times z(d+1)}$. Then, set
+	\begin{align*}
+		C_{new} = \bmat{C_{1,1}\\\vdots\\C_{m,1}\\C_{1,2}\\\vdots\\C_{m,2}\\\vdots\\C_{m,n}}.
+	\end{align*}
+	The required coefficient for \texttt{polynomial} is $C_{new}^T$.
+	
+	\subsubsection{Conversion of \texttt{polynomial} object to \texttt{dpvar}}\label{subsec:poly2dpvar}
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{dpVar = poly2dpvar(polyVar); \%returns a dpvar object}&
+		\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{polyVar} : A polynomial class object with fields shown in Section \ref{subsec:polynomial-classdef}
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{dpVar} : A dpvar class object with fields shown in Section \ref{subsec:dpvar-classdef}
+	\end{enumerate}
+
+	Suppose $P(p;d)$ is a polynomial of dimension $m\times n$ with decision variables $d$ and polynomial variables $p$. Assuming $d$ have degrees either $0$ or $1$ exclusively \textbf{and} there are no products of decision variables in $d$, we can convert $P$ into a \texttt{dpvar} as shown below.
+	\begin{enumerate}
+		\item Let $P(p;d).coeff = B$, $P(p;d).matdim = [m,n]$ and $P(p;d).degmat = D = Z(p;d)$.
+		\item First, reshape $B$ using \texttt{Bshape} to get $C$. $C = Bshape(B,P(p;d).matdim, length(D))$.
+		\item Then $P(p;d) = C(I_n\otimes Z(p;d))$.
+		\item Split $(I_n\otimes Z(p;d)) = E(I_{zn}\otimes Z(d))(I_n\otimes Z(p))$ where $E$ is some row permutation matrix. $E$ can be found using intersect or ismember function in Matlab.
+		\item Then\begin{align*}
+			P(p;d) &= C(I_n\otimes Z(p;d)) = (C\otimes E)(I_{zn}\otimes Z(d))(I_n\otimes Z(p))\\ &=\bmat{C_{11}&C_{12}&\cdots&C_{1,zn}\\\vdots&\vdots&\ddots&\vdots\\C_{m,1}&C_{m,2}&\cdots&C_{m,zn}}(I_{zn}\otimes Z(d))(I_n\otimes Z(p))\\
+			&= \bmat{C_{11}Z(d)&C_{12}Z(d)&\cdots&C_{1,zn}Z(d)\\\vdots&\vdots&\ddots&\vdots\\C_{m,1}Z(d)&C_{m,2}Z(d)&\cdots&C_{m,zn}Z(d)}(I_n\otimes Z(p))\\
+			&= \bmat{Z(d)^TC_{11}^T&Z(d)^TC_{12}^T&\cdots&Z(d)^TC_{1,zn}^T\\\vdots&\vdots&\ddots&\vdots\\Z(d)^TC_{m,1}^T&Z(d)^TC_{m,2}^T&\cdots&Z(d)^TC_{m,zn}^T}(I_n\otimes Z(p))&=(I_m\otimes Z(d)^T)C_{new}(I_n\otimes Z(p)).
+		\end{align*}
+	\end{enumerate}
+	
+	
+	\subsubsection{\texttt{Bshape} Reshape a pvar to compatible format} \label{subsec:Bshape}
+	\textbf{Syntax:}	
+		\begin{flalign*}
+			&\texttt{B = Bshape(polyVar); \%returns a sparse matrix}&
+		\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{polyVar} : A polynomial class object with fields shown in Section \ref{subsec:polynomial-classdef}
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{B} : A sparse matrix of coefficients used to build the polynomial \texttt{polyVar} that is reshaped as described below
+	\end{enumerate}
+
+
+	Recall that, for a matrix pvar of size $n \times p$, the coefficient matrix is structured as
+	\begin{align*}
+		&\bmat{b_1 & \cdots b_n& \cdots &b_{n(p-1)+1}& \cdots & b_{np}}\\
+		&=\bmat{b_{1,1} & \cdots b_{n,1}&b_{1,2}& \cdots &b_{n,2}&\cdots&b_{1,p}& \cdots & b_{n,p}}
+	\end{align*}
+	If $Z(p)$ is the monomials corresponding to \texttt{degmat}, then the polynomial itself is
+	\[
+	P(p)= \overbrace{\bmat{b_1^T & \cdots & b_{n(p-1)+1}^T\\
+			b_2^T & \cdots & \\
+			\vdots & & \vdots \\
+			b_n^T & \cdots & b_{np}^T}}^{\hat B}(I_p \otimes Z(p))
+	\]
+	Alternatively,
+	\[
+	P(p)= (I_n \otimes  Z(p))^T \overbrace{\bmat{b_1 & \cdots & b_{n(p-1)+1}\\
+			b_2 & \cdots & \\
+			\vdots & & \vdots \\
+			b_n & \cdots & b_{np}}}^{\hat B}
+	\]
+	
+	\subsubsection{\texttt{common\_bases}}\label{subsec:common-bases}
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{[E,F] = common\_bases(E,F); \%dpvars E and F with same monomials and varnames}&
+		\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{E, F} : Two dpvar class objects with (possibly) different monomials, dvarnames, and varnames
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{E, F} : Same two dpvar class objects with (now unified) same monomials, dvarnames, and varnames
+	\end{enumerate}
+
+	Given two dpvar objects $A$ and $B$ of same matrix dimensions, where
+	\begin{align*}
+		A &= \left((I_m \otimes  Z_{dA}(d_A)^T) C_A (I_n \otimes Z_{pA}(p_A))\right),\\
+		B &= \left((I_m \otimes  Z_{dB}(d_B)^T) C_B (I_B \otimes Z_{pB}(p_B))\right),
+	\end{align*}
+	`common\_bases' is frequently used in many binary operations (such as addition, concatenation, etc.) on $A$ and $B$.
+	
+	This function is used to find a common monomial sets $Z_d$ and $Z_p$ in common variables $d_p$ and $p_p$ such that
+	\begin{align*}
+		A &= \left((I_m \otimes  Z_{d}(d_p)^T) C_{pA} (I_n \otimes Z_{p}(p_p))\right),\\
+		B &= \left((I_m \otimes  Z_{d}(d_p)^T) C_{pB} (I_n \otimes Z_{p}(p_p))\right).
+	\end{align*}
+	
+	The common basis sets are obtained by following the steps shown below.
+	\begin{enumerate}
+		\item Find the union $d_p = d_A \cup d_B$ and $p_p = p_A\cup p_B$ using matlab union function.
+		
+		\textbf{Note:} the $Z_d(d_p) = \bmat{0_{1\times nt}\\I_{nt\times nt}}$ where $nt$ is size of the set $d_p$.
+		\item Find $Z_p(p_p)$: first add zero columns to degmat $Z_{pA}$ (and $Z_{pB}$) corresponding to variables in set $p_B - p_A$ (set $p_A-p_B$ for $Z_{pB}$).
+		\item Rearrange columns of extended degmats of $Z_{pA}$ and $Z_{pB}$ to have variable names in the same order.
+		\item Find row-wise union on extended degmats using matlab function to get degmat corresponding to $Z_p(p_p)$.
+		\item Extend $C_{A}$ by introducing zero rows/columns corresponding to missing variables in set $d_p-d_A$/$p_p-p_A$ to obtain $C_{pA}$.
+		\item Repeat previous step for $C_B$.
+	\end{enumerate}
+	
+	
+	\subsubsection{\texttt{compress}}
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{E = compress(E); \%returns a dpvar object with minimal monomial and varname set}&
+		\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{E} : A dpvar class object
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{E} : Same dpvar class object with reduced varnames, dvarnames, and monomials
+	\end{enumerate}
+
+
+	This function is used to reduce the size of a dpvar degmat by eliminating rows and columns with all zero coefficients. This is performed in three stages listed below.
+	\begin{enumerate}
+		\item First identify all zero columns in \texttt{degmat}. Remove the any such column and the variable corresponding to that column number in \texttt{varname}.
+		\item Remove all zero rows in \texttt{degmat}, then remove all the columns in \texttt{C} matrix corresponding to the discarded row numbers in \texttt{degmat}. Note each $i,j$-block matrix in \texttt{C} has a column corresponding to discarded rows.
+		\item Find \texttt{dvarnames} with all zero coefficients in \texttt{C} matrix and remove rows corresponding to those \texttt{dvarnames}. Reduce the \texttt{dvarname} set.
+	\end{enumerate}
+	
+	\subsection{\texttt{mtimes} Multiplication by pvar matrix}
+	
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{A*B \%returns product of a dpvar and polynomial object}&
+		\end{flalign*}
+	
+	Let
+	\begin{align*}
+		D(p;d)*P(p)&= (I_m \otimes Z(d))^TC (I_n \otimes Z_1(p))*B (I_p \otimes Z_2(p))\\
+	\end{align*}
+	where $Z(d)\in\R^{l_d}$, $Z_i(p)\in \R^{l_i}$, $P(p)\in\R^{n\times p}$ and $D(p;d)\in\R^{m\times n}$. Then $C \in \R^{l_dm\times l_1n}$ and $B\in\R^{n\times l_2p}$.
+	First, split $C$ into $l_dm\times n$ block matrix and $B$ into $n\times l_2p$ as
+	\begin{align*}
+		C = \bmat{C_{11}&C_{12}&\cdots&C_{1n}\\\vdots&\vdots&\ddots&\vdots\\C_{l_dm,1}&C_{l_dm,2}&\cdots&C_{l_dm,n}}, \qquad B= \bmat{B_{11}&\cdots&B_{1,l_2p}\\\vdots&\ddots&\vdots\\B_{n,1}&\cdots&B_{n,l_2p}}.
+	\end{align*}
+	Then,
+	\begin{align*}
+		C (Z_1(p)\otimes I_n) = \bmat{C_{11}Z_1(p)&C_{12}Z_1(p)&\cdots&C_{1n}Z_1(p)\\\vdots&\vdots&\ddots&\vdots\\C_{l_dm,1}Z_1(p)&C_{l_dm,2}Z_1(p)&\cdots&C_{l_dm,n}Z_1(p)}.
+	\end{align*}
+	Therefore,
+	\begin{align*}
+		D(p;d)*P(p)&= (I_m \otimes  Z(d))^T C (I_n \otimes Z_1(p))*B (I_p \otimes Z_2(p))\\
+		&= (I_m \otimes  Z(d))^T \bmat{C_{11}Z_1(p)&C_{12}Z_1(p)&\cdots&C_{1n}Z_1(p)\\
+			\vdots&\vdots&\ddots&\vdots\\C_{l_dm,1}Z_1(p)&C_{l_dm,2}Z_1(p)&\cdots&C_{l_dm,n}Z_1(p)}
+		\bmat{B_{11}&\cdots&B_{1,l_2p}\\\vdots&\ddots&\vdots\\B_{n,1}&\cdots&B_{n,l_2p}}(I_p \otimes Z_2(p))\\
+		&=(I_m \otimes  Z(d))^T \bmat{(\sum_{i=1}^nC_{1i}B_{i,1})Z_1(p)&\cdots&(\sum_{i=1}^nC_{1,i}B_{i,l_2p})Z_1(p)\\\vdots&\ddots&\vdots\\(\sum_{i=1}^nC_{l_dm,i}B_{i,1})Z_1(p)&\cdots&(\sum_{i=1}^nC_{l_dm,i}B_{i,l_2p})Z_1(p)}(I_p \otimes Z_2(p))\\
+		&= (I_m \otimes  Z(d))^T  C_{new} (I_{l_2p} \otimes Z_1(p) )(I_p \otimes Z_2(p))\\
+		%	&= (I_m \otimes  Z(d))^T  C_{new} (I_{l_2p}I_p)\otimes(Z_1(p) Z_2(p))
+	\end{align*}
+	where
+	\begin{align*}
+		C_{new} = \bmat{(\sum_{i=1}^nC_{1i}B_{i,1})&\cdots&(\sum_{i=1}^nC_{1,i}B_{i,l_2p})\\\vdots&\ddots&\vdots\\(\sum_{i=1}^nC_{l_dm,i}B_{i,1})&\cdots&(\sum_{i=1}^nC_{l_dm,i}B_{i,l_2p})}.
+	\end{align*}
+	
+	
+	\subsection{\texttt{subs} Substitution}
+
+	\textbf{Syntax:}	
+		\begin{flalign*}
+			&\texttt{A\_sub = subs(A, vars, vars\_b); \%returns dpvar A with vars substituted by vars\_b}&
+		\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{A} : A dpvar class object
+		\item \texttt{vars} : An array of polynomial variables to be substituted
+		\item \texttt{vars\_b} : An array of polynomial variables (or constants) to be substituted (must be of same length as \texttt{vars})
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{A\_sub} : A dpvar class object (same as \texttt{A} but \texttt{vars} replaced by \texttt{vars\_b})
+	\end{enumerate}
+
+	Substitution is valid only for independent variables. Define $subs(Z(p),p=a)=A Z_2(p)$. Then
+	\begin{align*}
+		subs(D(d;p),p=a) &= (I_m \otimes  Z(d))^T C (I_n \otimes subs(Z(p),p=a))  \\
+		&= (I_m \otimes  Z(d))^T C (I_n \otimes A Z_2(p))\\
+		&= (I_m \otimes  Z(d))^T C (I_n \otimes A)(I_n \otimes Z_2(p)).
+	\end{align*}
+	If \texttt{S=subs(Z,p,a)}, then \texttt{A=S.coeff'}.
+	
+	\subsection{\texttt{transpose} Transpose of \texttt{dpvar}}
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{A' \%returns transpose of A, also use A.'}&
+		\end{flalign*}
+
+
+	Transpose of a matrix valued \texttt{dpvar}, with monomials $Z_1(d)\in\R^{l_d}$ and $Z_2(p)\in\R^{l_p}$ is computed using the following formulae.
+	\begin{align*}
+		D(d;p)^T &= \left((I_m \otimes  Z_1(d))^T C (I_n \otimes Z_2(p))\right)^T = (I_n \otimes Z_2(p))^TC^T (I_m \otimes Z_1(d))^T\\
+		&=  (I_n \otimes Z_2(p))^TD(I_m \otimes Z_1(d)) \\&= \bmat{Z_2(p)^TD_{11}Z_1(d)&Z_2(p)^TD_{12}Z_1(d)&\cdots&Z_2(p)^TD_{1,m}Z_1(d)\\\vdots&\vdots&\ddots&\vdots\\Z_2(p)^TD_{n,1}Z_1(d)&Z_2(p)^TD_{n,2}Z_1(d)&\cdots&Z_2(p)^TD_{n,m}Z_1(d)} \\
+		&= \bmat{Z_1(d)^TD_{11}^TZ_2(p)&Z_1(d)^TD_{12}^TZ_2(p)&\cdots&Z_1(d)^TD_{1,m}^TZ_2(p)\\\vdots&\vdots&\ddots&\vdots\\Z_1(d)^TD_{n,1}^TZ_2(p)&Z_1(d)^TD_{n,2}^TZ_2(p)&\cdots&Z_1(d)^TD_{n,m}^TZ_2(p)}\\
+		&= (I_n \otimes Z_1(d))^T\bmat{D_{11}^T&D_{12}^T&\cdots&D_{1,m}^T\\\vdots&\vdots&\ddots&\vdots\\D_{n,1}^T&D_{n,2}^T&\cdots&D_{n,m}^T}
+		(I_m \otimes Z_2(p))
+	\end{align*}
+	where $D_{ij}\in \R^{l_p,l_d}$ is a block matrix and $Z_2(p)^TD_{ij}Z_1(d)$ is has a scalar dimension for all ${i,j}$.
+	
+	\subsection{\texttt{int} Integral of \texttt{dpvar}}
+
+	\textbf{Syntax:}	
+		\begin{flalign*}
+			&\texttt{Aint = int(A,var,LL,UL); \%returns definite integral of A w.r.t. var from LL to UL}&
+		\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{A} : A dpvar class object
+		\item \texttt{var} : A polynomial variable, the variable of integration
+		\item \texttt{LL, UL} : Real numbers (or scalar polynomial variables) corresponding to lower and upper limits of the integral
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{Aint} : A dpvar class object
+	\end{enumerate}
+
+	Integration is for only independent variables.
+	\begin{align*}
+		int(Z(p),p,a,b) &= (I_m \otimes  Z(d))^T C (I_n \otimes int(Z(p),p,a,b))  \\
+		&= (I_m \otimes  Z(d))^T C (I_n \otimes A Z_2(p))\\
+		&= (I_m \otimes  Z(d))^T C (I_n \otimes A)(I_n \otimes Z_2(p)).
+	\end{align*}
+	
+	If \texttt{S=int(Z,p,a,b)}, then \texttt{A=S.coeff'}.
+	
+	\subsection{\texttt{plus} for dpvar objects}
+
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{A+B \%returns sum of dpvar objects}&
+		\end{flalign*}
+
+
+	Given two dpvar objects $A$ and $B$ of same matrix dimensions, where
+	\begin{align*}
+		A &= \left((I_m \otimes  Z_{dA}(d_A)^T) C_A (I_n \otimes Z_{pA}(p_A))\right),\\
+		B &= \left((I_m \otimes  Z_{dB}(d_B)^T) C_B (I_B \otimes Z_{pB}(p_B))\right),
+	\end{align*}
+	addition is performed as described by the following steps.
+	
+	\begin{enumerate}
+		\item Find the unions $d_p = d_A\cup d_B$ and $p_p = p_A \cup p_B$.
+		\item Find the monomial set $Z_d(d_p)$ such that $Z_d = Z_{dA}(d_A)\cup Z_{pB}(d_B)$.
+		\item Similarly, find $Z_p(p_p) = Z_{pA}(p_A)\cup Z_{pB}(p_B)$.
+		\item Introduce zero rows and columns in $C_A$ and $C_B$, respectively, such that
+		\begin{align*}
+			A &= \left((I_m \otimes  Z_{d}(d_p)^T) C_{pA} (I_n \otimes Z_{p}(p_p))\right),\\
+			B &= \left((I_m \otimes  Z_{d}(d_p)^T) C_{pB} (I_n \otimes Z_{p}(p_p))\right).
+		\end{align*}
+		\item Then required addition of dpvars $A$ and $B$ is simply given by
+		\begin{align*}
+			A+B = \left((I_m \otimes  Z_{d}(d_p)^T) (C_{pA}+C_{pB}) (I_n \otimes Z_{p}(p_p))\right).
+		\end{align*}
+	\end{enumerate}
+	
+	\subsection{\texttt{horzcat} and \texttt{vertcat}}
+	\textbf{Syntax:}
+		\begin{flalign*}
+			&\texttt{[A,B]\%returns horizontal concatenation of dpvar objects}\\
+			&\texttt{[A;B]\%returns vertical concatenation of dpvar objects}&
+		\end{flalign*}
+
+
+	Given two dpvar objects $A$ and $B$ with compatible dimensions, where
+	\begin{align*}
+		A &= \left((I_m \otimes  Z_{dA}(d_A))^T C_A (I_n \otimes Z_{pA}(p_A))\right),\\
+		B &= \left((I_m \otimes  Z_{dB}(d_B))^T C_B (I_B \otimes Z_{pB}(p_B))\right),
+	\end{align*}
+	concatenation is performed as described by the following steps.
+	
+	\begin{enumerate}
+		\item Repeat steps 1-4 from previous section
+		\item Then required horizontal concatenation of dpvars $A$ and $B$ is simply given by
+		\begin{align*}
+			\bmat{A&B} = \left((I_m \otimes  Z_{d}(d_p)^T) \bmat{C_{pA}&C_{pB}} (I_{2n} \otimes Z_{p}(p_p))\right).
+		\end{align*}
+		\item Similarly, vertical concatenation is given by
+		\begin{align*}
+			\bmat{A\\B} = \left((I_{2m} \otimes  Z_{d}(d_p)^T) \bmat{C_{pA}\\C_{pB}} (I_{n} \otimes Z_{p}(p_p))\right).
+		\end{align*}
+		
+	\end{enumerate}
+	
+	\subsection{\texttt{subsref}/\texttt{subsasgn}}
+	\paragraph{\texttt{subsref}} is used to access rows and columns of a dpvar \texttt{A} using subscripts. For example, $i$ to $k$ rows and $j$ to $l$ columns of $A$ are accessed by using the command \texttt{A(i:k,j:l)}.
+
+	\noindent\textbf{Syntax:}
+	
+		\begin{flalign*}
+			&\texttt{A(rows,cols) \%returns rows and cols of A specified by the indices}\\
+			&\texttt{A.prop \%returns the specified property `prop' of A}&
+		\end{flalign*}
+
+
+	Since \texttt{subsref} indexing only deals with coefficients (degmats, dvarnames and varnames potentially remain the same), first generate indices of \texttt{A.C} that correspond to rows and columns specified by the subscripts. The formula is given by
+	\begin{align*}
+		\texttt{idxrows = (i-1)*(nd+1)+1 : k*(nd+1)}\\
+		\texttt{idxcols = (j-1)*(ndeg)+1 : l*(ndeg)}
+	\end{align*}
+	where \texttt{nd} is number of dvarnames and \texttt{ndeg} is number of rows of degmat.
+	Then required rows and columns are extracted from \texttt{A.C} matrix using the command \texttt{C(idxrows, idxcols)}.
+	
+	\noindent\textbf{Syntax:}	
+		\begin{flalign*}
+			&\texttt{A(rows,cols) =B; \%reassigns rows and cols of A specified by the indices by B}\\
+			&\texttt{A.prop = B; \%reassigns the specified property `prop' of A by B}&
+		\end{flalign*}
+
+	\paragraph{\texttt{subsasgn}} works in the same way as \texttt{subsref} except at the last stage where instead of extracting the values from \texttt{A.C(idxrows, idxcols)}, new values are assigned at specified index locations.
+	
+	\subsection{\texttt{jacobian}}
+	
+	\textbf{SYNTAX:}
+	\begin{flalign*}
+		&\texttt{J = jacobian(A);}&
+	\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{A} : A dpvar class object
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{J} : A dpvar class object that represents the jacobian of \texttt{A}
+	\end{enumerate}
+
+	This function will be used to find Jacobian matrix from a \texttt{dpvar} object.
+	
+	For $p_d\subseteq p$, jacobian is found using
+	\begin{align*}
+		J(A(p;d),p_d) &= \left((I_m \otimes  Z(d)^T) C_A (I_n \otimes J(Z_{p}(p),p_d))\right) \\
+		&= \left((I_m \otimes  Z(d)^T) C_A (I_d \otimes DZ_{p}(p))\right) = \left((I_m \otimes  Z(d)^T) (C_A (I_d \otimes D))(I_d \otimes Z_{p}(p))\right)
+	\end{align*}
+	for some differentiation matrix $D$.
+	
+	\textbf{NOTE:}
+	A minor	variation of the jacobian is the \texttt{diff()} function which takes \texttt{vars} as an input whereas Jacobian is calculated by using all varnames.
+
+	\noindent\textbf{SYNTAX:}
+	\begin{flalign*}
+		&\texttt{J = diff(A, vars);}&	
+	\end{flalign*}
+	\textbf{Inputs:}
+	\begin{enumerate}
+		\item \texttt{A} : A dpvar class object
+		\item \texttt{vars} : polynomial variables with respect to which the differentiation is performed
+	\end{enumerate}
+	\textbf{Outputs:}
+	\begin{enumerate}
+		\item \texttt{J} : A dpvar class object that represents the partial differentiation of \texttt{A} with respect to \texttt{vars}
+	\end{enumerate}
+
+
+\end{document} 

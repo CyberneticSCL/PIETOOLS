@@ -1,7 +1,7 @@
 % SOSTOOLS -- Sum of Squares Toolbox, demo files
 % Version 4.00
 % 9 September 2021.
-%    Standard SOSTOOLS demos using the PVAR toolbox
+%    Standard SOSTOOLS demos using the PVAR/DPVAR toolbox
 %
 %    SOSDEMO1    --- Sum of squares test.
 %    SOSDEMO2    --- Lyapunov function search.
@@ -14,13 +14,13 @@
 
 %    Standard SOSTOOLS demos using the symbolic math toolbox
 %
-%    SOSDEMO1s    --- Sum of squares test.
-%    SOSDEMO2s    --- Lyapunov function search.
-%    SOSDEMO3s    --- Bound on global extremum.
-%    SOSDEMO4s    --- Matrix copositivity.
-%    SOSDEMO5s    --- Upper bound for the structured singular value mu.
-%    SOSDEMO6s    --- MAX CUT.
-%    SOSDEMO7s    --- Chebyshev polynomials.
-%    SOSDEMO8s    --- Bound in probability.
-%    SOSDEMO9s    --- Matrix SOS decomposition.
-%    SOSDEMO10s   --- Set containment.
+%    SOSDEMO1s   --- Sum of squares test.
+%    SOSDEMO2s   --- Lyapunov function search.
+%    SOSDEMO3s   --- Bound on global extremum.
+%    SOSDEMO4s   --- Matrix copositivity.
+%    SOSDEMO5s   --- Upper bound for the structured singular value mu.
+%    SOSDEMO6s   --- MAX CUT.
+%    SOSDEMO7s   --- Chebyshev polynomials.
+%    SOSDEMO8s   --- Bound in probability.
+%    SOSDEMO9s   --- Matrix SOS decomposition.
+%    SOSDEMO10s  --- Set containment.

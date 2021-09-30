@@ -132,9 +132,9 @@ if strcmp(simulate,'on')
  opts.tf=2;
  opts.dist='constant';
  opts.plot='yes';
- %uinput.ic.ODE=[5,5];
- %solution=executive_PIESIM(DDE,opts,uinput);
- solution=executive_PIESIM(DDE,opts);
+ uinput.ic.ODE=[5,5,5];
+ solution=executive_PIESIM(DDE,opts,uinput);
+ %solution=executive_PIESIM(DDE,opts);
  end
  
 %------------------------------------------------

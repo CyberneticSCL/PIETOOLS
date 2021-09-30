@@ -1,10 +1,10 @@
-% SOSDEMO3s --- Bound on Global Extremum
-% Section 4.3 of SOSTOOLS User's Manual
+% SOSDEMO3 --- Bound on Global Extremum
+% Section 3.3 of SOSTOOLS User's Manual
+% 
 
 clear; echo on;
 syms x1 x2 gam;
 vartable = [x1, x2];
-
 % =============================================
 % First, initialize the sum of squares program
 prog = sosprogram(vartable);
@@ -35,7 +35,6 @@ prog = sossetobj(prog,-gam);
 % And call solver
 solver_opt.solver = 'sedumi';
 prog = sossolve(prog,solver_opt);
-
 % =============================================
 % Finally, get solution
 SOLgamma = sosgetsol(prog,gam)
