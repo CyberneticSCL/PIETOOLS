@@ -130,6 +130,7 @@ switch ref(1).type
             
             % Build the new dpvar with the adjusted coefficient matrix and dimension
             Dpsub = compress(dpvar(Csub, Dp.degmat, Dp.varname, Dp.dvarname,mdim));
+            return
         
         elseif length(ref(1).subs)==2
             % % Consider case of two indices
