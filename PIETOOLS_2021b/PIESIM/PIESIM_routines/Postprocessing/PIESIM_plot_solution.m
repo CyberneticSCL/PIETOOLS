@@ -33,6 +33,7 @@ function PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 9_19_2021
+% Check version before calling subtitle, DJ - 01/05/2021
 
 syms sx;
 
@@ -93,7 +94,11 @@ end
   end
   xlabel('Spatial variable');
   ylabel('Solution at a final time');
-  title('Plot of a primary state solution',num2str(n));
+  if verLessThan('matlab','9.9')    % DJ, 01/05/2021
+    title(['Plot of primary state solution ',num2str(n)]);
+  else
+    title('Plot of a primary state solution',num2str(n));
+  end
   ax = gca;
   ax.FontSize = 16;
   H=gca;
