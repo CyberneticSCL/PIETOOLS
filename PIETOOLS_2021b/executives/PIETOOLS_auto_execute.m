@@ -33,6 +33,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 12/22/2021
+% Updated to enforce separability for control/estimator, SS/DJ - 01/13/2022
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % 1. Check if a PIE has been specified
@@ -103,6 +104,16 @@ if ~exist('settings','var')
     sttngs = input(msg,'s');
     sttngs = strrep(sttngs,'''','');    % Get rid of potential apostrophes
     evalin('base',['settings_PIETOOLS_',sttngs]);   % Construct the settings
+end
+
+% % Ensure separability is enforced for estimator/control executives
+if exist('Hinf_estimator','var') && Hinf_estimator==1
+    settings.options1.sep = 1; %needed to ensure the P is invertible -SS
+    settings.options2.sep = 1;
+end
+if exist('Hinf_control','var') && Hinf_control==1
+    settings.options1.sep = 1; %needed to ensure the P is invertible -SS
+    settings.options2.sep = 1;
 end
 
 % % Check if LF positivity and negativity strictness conditions have been
