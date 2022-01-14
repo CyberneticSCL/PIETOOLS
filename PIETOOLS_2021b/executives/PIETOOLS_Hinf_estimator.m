@@ -98,6 +98,7 @@ ny=C2op.dim(1,1);                % retrieve the number of real-valued observed o
 % In this case, we define the hinf norm variable which needs to be minimized
 dpvar gam;
 prog = sosdecvar(prog, gam); %this sets gamma as decision var
+prog = sosineq(prog, gam); %this ensures gamma is lower bounded
 prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 %
 % Alternatively, the above 3 commands may be commented and a specific gain

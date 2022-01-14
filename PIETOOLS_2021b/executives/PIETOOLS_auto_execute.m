@@ -78,9 +78,13 @@ if exist('Hinf_gain_dual','var') && Hinf_gain_dual==1
     exec = [exec;'Hinf_gain_dual'];
 end
 if exist('Hinf_estimator','var') && Hinf_estimator==1
+    settings.options1.sep=1; %needed to ensure the P is invertible -SS
+    settings.options2.sep=1;
     exec = [exec;'Hinf_estimator'];
 end
 if exist('Hinf_control','var') && Hinf_control==1
+    settings.options1.sep=1; %needed to ensure the P is invertible -SS
+    settings.options2.sep=1;
     exec = [exec;'Hinf_control'];
 end
 
