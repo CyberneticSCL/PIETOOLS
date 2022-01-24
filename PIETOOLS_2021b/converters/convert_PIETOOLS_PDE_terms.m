@@ -188,9 +188,9 @@ G0 = [eye(n_pde(1)) zeros(n_pde(1),np-n_pde(1)); zeros(np-n_pde(1),n_pde(1)) zer
 
 pvar eta;
 % now find E_T and Q_T
-ET = Ebb*[subs(T,s,a);subs(T,s,b)]+int(Ebp*U1*T,s,a,b);
+ET = Ebb*[subs(T,s,a);subs(T,s,b)]-int(Ebp*U1*T,s,a,b);
 ET = double(ET);
-QT = Ebb*[zeros(size(Q));subs(subs(Q,s,b),theta,s)] + Ebp*U2 + int(subs(subs(Ebp*U1*Q,s,eta),theta,s),eta,s,b);
+QT = Ebb*[zeros(size(Q));subs(subs(Q,s,b),theta,s)] - Ebp*U2 - int(subs(subs(Ebp*U1*Q,s,eta),theta,s),eta,s,b);
 
 
 
@@ -242,16 +242,16 @@ if ~singularET
     Bop_PDE.dim = [nr nv+nBVs; np 0]; Bop_PDE.var1 = s; Bop_PDE.var2 = theta; Bop_PDE.I = X;
     Bop_PDE.P = [PDE.PDE.Drv Drb]; Bop_PDE.Q2 = [PDE.PDE.Bpv Bpb];
     
-    %%% We now construct TBVop
+    %%% We now construct TBVop x_b = TBVop[v; x_f]
     opvar TBVop;
     TBVop.dim = [nBVs nv;0 np]; TBVop.var1 = s; TBVop.var2 = theta; TBVop.I = X;
-    TBVop.P = -[subs(T,s,a);subs(T,s,b)]*ETinv*Ebv; 
+    TBVop.P = [subs(T,s,a);subs(T,s,b)]*ETinv*Ebv; 
     TBVop.Q1 = -[subs(T,s,a);subs(T,s,b)]*ETinv*QT + [zeros(size(Q,1),np);subs(subs(Q,s,b),theta,s)];
     
-    %%% We now construct TDop
+    %%% We now construct TDop x_D = TDop[v; x_f]
     opvar TDop;
     TDop.dim = [0 nv; np_all_der np]; TDop.var1 = s; TDop.var2 = theta; TDop.I = X;
-    TDop.Q2 = -U1*T*ETinv*Ebv; TDop.R.R0 = U2; 
+    TDop.Q2 = U1*T*ETinv*Ebv; TDop.R.R0 = U2; 
     TDop.R.R1 = -U1*T*ETinv*subs(QT,s,theta)+U1*Q;
     TDop.R.R2 = -U1*T*ETinv*subs(QT,s,theta);
 

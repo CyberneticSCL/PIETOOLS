@@ -136,7 +136,7 @@ PDE_out.ODE.Dvu = [zeros(nx,nu); zeros(nw,nu); eye(nu)];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Place BC related parameters in correct places
 % Ebp is not present in batch input, so no change needed
-PDE_out.BC.Ebv = -[PDE.Bx PDE.Bw PDE.Bu];
+PDE_out.BC.Ebv = [PDE.Bx PDE.Bw PDE.Bu];
 
 % split B*[x1(a) x1(b) x2(a) x2(b) x2s(a) x2s(b)] in Ebb structure
 % j delta 0, k D = 0, l Rstate [x1 x2]
