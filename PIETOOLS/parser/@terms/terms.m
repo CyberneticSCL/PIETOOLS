@@ -1,17 +1,15 @@
 classdef terms
 properties (SetAccess=protected)
     operator opvar;
-    statevec state;
-    diffcell cell;
-    deltacell cell;
+    statevec struct;
+%     statevec state;
+%     diffcell cell;
+%     deltacell cell;
 end
 methods
     function obj = terms(varargin)
-        if nargin>3
-            obj.deltacell = varargin{4};
-        end
         if nargin>2
-            obj.diffcell = varargin{3};
+            error('Terms object constructor takes only two inputs');
         end
         if nargin>1
             obj.statevec = varargin{2};

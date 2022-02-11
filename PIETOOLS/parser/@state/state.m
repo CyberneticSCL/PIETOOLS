@@ -1,9 +1,8 @@
 classdef state 
     properties
         type {validateType(type)} = {'ode'};
-        vecLength {mustBeInteger,mustBePositive,mustBeScalarOrEmpty} = 1;
-        diff_order {validateDiff(diff_order)} = {[1]};
-        var_indep {validateVar(var_indep)} = {[pvar('t')]};
+        length {mustBeInteger,mustBePositive,mustBeScalarOrEmpty} = 1;
+        var {validateVar(var)} = {[pvar('t')]};
     end
     properties (Hidden, SetAccess=protected)
         segregation {mustBeInteger,mustBePositive,mustBeVector}=[1];
@@ -17,75 +16,31 @@ classdef state
             else
                 if nargin==1
                     obj.type = {varargin{1}};
-                    if strcmp(varargin{1},'ode')
-                        obj.diff_order = {[1]};
-                    elseif strcmp(varargin{1},'pde')
-                        obj.diff_order = {[1,0]};
-                        obj.var_indep = {[pvar('t'),pvar('s1')]};
-                    else
-                        obj.diff_order = {[0]};
+                    if strcmp(varargin{1},'pde')
+                        obj.var = {[pvar('t'),pvar('s1')]};
                     end
                 elseif nargin==2
                     obj.type = varargin{1};
-                    obj.vecLength = varargin{2};
+                    obj.length = varargin{2};
                     obj.segregation = 1;
-                    if strcmp(obj.type,'ode')
-                        obj.diff_order = {[1]};
-                    elseif strcmp(obj.type,'pde')
-                        obj.diff_order = {[1,0]};
-                        obj.var_indep = {[pvar('t'),pvar('s1')]};
-                    else
-                        obj.diff_order = {[0]};
+                    if strcmp(obj.type,'pde')
+                        obj.var = {[pvar('t'),pvar('s1')]};
                     end
                 elseif nargin==3
                     if size(varargin{3},1)~=1
-                        error('diff_order must be a row vector');
+                        error('var must be a row vector');
                     end
                     obj.type = {varargin{1}};
-                    obj.vecLength = varargin{2};
+                    obj.length = varargin{2};
                     obj.segregation = 1;
-                    if strcmp(varargin{1},'pde')
-                        if numel(varargin{3})==1
-                            obj.diff_order = {[1,varargin{3}]};
-                        else
-                            obj.diff_order = {varargin{3}};
-                        end
-                        n_vars = numel(varargin{3});
-                        vars(1) = pvar('t');
-                        for i=2:n_vars
-                            vars(i) = pvar(['s',num2str(i-1)]);
-                        end
-                        obj.var_indep = {vars};
-                    elseif numel(varargin{3})==1
-                       obj.diff_order = {varargin{3}};
-                    else
-                       error('Non-PDE State objects are functions of time and cannot have array input for order of differentiability');
-                    end
-                elseif nargin==4
-                    if size(varargin{3},1)~=1
-                        error('diff_order must be a row vector');
-                    end
-                    if size(varargin{4},1)~=1
-                        error('var_indep must be a row vector');
-                    end
-                    obj.type = {varargin{1}};
-                    obj.vecLength = varargin{2};
-                    obj.segregation = 1;
-                    if numel(varargin{3})==1
-                        obj.diff_order = {[1,varargin{3}]};
-                    else
-                        obj.diff_order = {varargin{3}};
-                    end
-                    obj.var_indep = {varargin{4}};
-                    obj = fix_property_dim(obj);
-                elseif nargin==5 % internal use only, dont use this for constructing state vectors
+                    obj.var = {varargin{3}};
+                elseif nargin==4 % internal use only, dont use this for constructing state vectors
                     obj.type = varargin{1};
-                    obj.vecLength = varargin{2};
-                    obj.diff_order = varargin{3};
-                    obj.var_indep = varargin{4};
-                    obj.segregation = varargin{5};
-                elseif nargin>5
-                    error('State class definition only takes 4 inputs');
+                    obj.length = varargin{2};
+                    obj.var = varargin{3};
+                    obj.segregation = varargin{4};
+                elseif nargin>4
+                    error('State class definition only takes 3 inputs');
                 end
             end
         end
@@ -111,19 +66,9 @@ if ~all(ismember(prop,{'ode','pde','out','in'}))
     error("Type must be one of the following strings: 'ode','pde','out','in'");
 end
 end
-function validateDiff(prop)
-if ~iscell(prop)&&~isvector(prop)
-    error('diff_order must be cell column array');
-end
-for i=1:length(prop)
-    mustBeVector(prop{i});
-    mustBeInteger(prop{i});
-    mustBeNonnegative(prop{i});
-end
-end
 function validateVar(prop)
 if ~iscell(prop)&&~isvector(prop)
-    error('var_indep must be cell column array');
+    error('var must be column cell array of polynomial row vectors');
 end
 for i=1:length(prop)
     mustBeVector(prop{i});
