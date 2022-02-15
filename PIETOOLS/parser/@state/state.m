@@ -1,17 +1,19 @@
 classdef state 
     properties
         type {validateType(type)} = {'ode'};
-        length {mustBeInteger,mustBePositive,mustBeScalarOrEmpty} = 1;
+        length {mustBeInteger,mustBePositive,mustBeVector}=[1];
         var {validateVar(var)} = {[pvar('t')]};
     end
     properties (Hidden, SetAccess=protected)
-        segregation {mustBeInteger,mustBePositive,mustBeVector}=[1];
+        statename;
     end
     methods
         function obj = state(varargin) %constructor
             if nargout==0
                 for i=1:nargin
-                    assignin('caller', varargin{i}, state());
+                    obj = state();
+                    obj.statename = stateNameGenerator();
+                    assignin('caller', varargin{i}, obj);
                 end
             else
                 if nargin==1
@@ -19,27 +21,28 @@ classdef state
                     if strcmp(varargin{1},'pde')
                         obj.var = {[pvar('t'),pvar('s1')]};
                     end
+                    obj.statename = stateNameGenerator();
                 elseif nargin==2
                     obj.type = varargin{1};
                     obj.length = varargin{2};
-                    obj.segregation = 1;
                     if strcmp(obj.type,'pde')
                         obj.var = {[pvar('t'),pvar('s1')]};
                     end
+                    obj.statename = stateNameGenerator();
                 elseif nargin==3
                     if size(varargin{3},1)~=1
                         error('var must be a row vector');
                     end
                     obj.type = {varargin{1}};
                     obj.length = varargin{2};
-                    obj.segregation = 1;
                     obj.var = {varargin{3}};
+                    obj.statename = stateNameGenerator();
                 elseif nargin==4 % internal use only, dont use this for constructing state vectors
                     obj.type = varargin{1};
                     obj.length = varargin{2};
                     obj.var = varargin{3};
-                    obj.segregation = varargin{4};
-                elseif nargin>4
+                    obj.statename = varargin{4};
+                elseif nargin>3
                     error('State class definition only takes 3 inputs');
                 end
             end

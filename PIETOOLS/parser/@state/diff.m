@@ -1,6 +1,6 @@
-function terms_obj = diff(obj,var,order)
+function diffTerms = diff(obj,var,order)
 if nargin==1
-    var = obj.var_indep(1);
+    var = obj.var(1);
     order = 1;
 elseif nargin==2
     order = 1;
@@ -9,5 +9,8 @@ elseif nargin>3
 end
 
 % start converting to terms object and then perform differentiation
+objC = state2terms(obj,'diff',var,order);
 
+opvar T; T.R.R0 = eye(obj.length);
+diffTerms = terms(T,objC);
 end

@@ -9,12 +9,10 @@ else
     end
     
     temptype = [objA.type;objB.type];
-    tempvecLength = objA.vecLength+objB.vecLength;
-    tempdifforder = [objA.diff_order; objB.diff_order];
-    tempvar = [objA.var_indep; objB.var_indep];
-    
-    tempsegregation = [objA.segregation, objA.vecLength+1];
-    obj = state(temptype,tempvecLength,tempdifforder,tempvar,tempsegregation);
+    tempvecLength = [objA.length,objB.length];
+    tempvar = [objA.var; objB.var];
+    tempvarname = [objA.statename; objB.statename];
+    obj = state(temptype,tempvecLength,tempvar,tempvarname);
     if nargin>2
         obj = vertcat(obj,varargin{3:end});
     end

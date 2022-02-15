@@ -2,9 +2,6 @@ classdef terms
 properties (SetAccess=protected)
     operator opvar;
     statevec struct;
-%     statevec state;
-%     diffcell cell;
-%     deltacell cell;
 end
 methods
     function obj = terms(varargin)
