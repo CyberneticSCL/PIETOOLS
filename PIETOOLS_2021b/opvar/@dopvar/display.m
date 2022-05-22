@@ -186,6 +186,8 @@ if ~big
             big = 1;
         end
     end
+else
+    str="";
 end
 end
 end
