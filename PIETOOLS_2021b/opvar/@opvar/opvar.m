@@ -54,7 +54,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
         Q1 = polynomial([]);
         Q2 = polynomial([]);
         R = struct('R0',polynomial([]),'R1',polynomial([]),'R2',polynomial([]));
-        I
+        I(1,2) double = [0,1];
         var1 = pvar('s');
         var2 = pvar('theta');
         dim = [0 0; 0 0];
