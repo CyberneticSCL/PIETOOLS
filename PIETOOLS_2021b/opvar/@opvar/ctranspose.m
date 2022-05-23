@@ -1,4 +1,4 @@
-function [P] = ctranspose(P)
+function [Pt] = ctranspose(P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % P] = ctranspose(P) transposes an operator P: R^p x L2^q to R^m x L2^n
 % Date: 6/13/19
@@ -45,12 +45,12 @@ if ~isa(P,'opvar')
     error('Input must be an opvar variable.');
 end
 
-P.P = P.P';
-Q2 = P.Q2;
-P.Q2 = P.Q1';
-P.Q1 = Q2';
-P.R.R0 = P.R.R0';
-R2 = P.R.R2;
-P.R.R2 = var_swap(P.R.R1',P.var1, P.var2);
-P.R.R1 = var_swap(R2',P.var1, P.var2);
+opvar Pt; Pt.I = P.I; Pt.var1= P.var1; Pt.var2 = P.var2;
+
+Pt.P = P.P';
+Pt.Q2 = P.Q1';
+Pt.Q1 = P.Q2';
+Pt.R.R0 = P.R.R0';
+Pt.R.R2 = var_swap(P.R.R1',P.var1, P.var2);
+Pt.R.R1 = var_swap(P.R.R2',P.var1, P.var2);
 end
