@@ -46,14 +46,17 @@ end
 
 matdim = P.dim;
 
-varargout{1} = sum(matdim(:,1));
-varargout{2} = sum(matdim(1,:));
-varargout{3} = sum(matdim(:,2));
-varargout{4} = sum(matdim(2,:));
-
-if ~exist('dim','var')
-    dim = 1:4;
+if nargout<=1 && nargin==1
+varargout = {sum(matdim,1)};
+return
+elseif nargin==1
+dim = 1:4;
 end
+
+varargout{1} = sum(matdim(:,1));
+varargout{3} = sum(matdim(1,:));
+varargout{2} = sum(matdim(:,2));
+varargout{4} = sum(matdim(2,:));
 
 varargout = varargout(dim);
 end
