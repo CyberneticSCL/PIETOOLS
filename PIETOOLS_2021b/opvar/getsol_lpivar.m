@@ -1,4 +1,4 @@
-function P = getsol_lpivar(sos,P)
+function Psol = getsol_lpivar(sos,P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % P = getsol_lpivar(sos,P) returns the solution for each component of P, 
 % after solving the sos program prog.
@@ -40,15 +40,17 @@ function P = getsol_lpivar(sos,P)
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
 
+opvar Psol; Psol.I = P.I; Psol.var1 = P.var1; Psol.var2 = P.var2;
+
 for i = {'P','Q1','Q2'}
     if ~isempty(P.(i{:}))
-        P.(i{:}) = sosgetsol(sos, P.(i{:}));
+        Psol.(i{:}) = sosgetsol(sos, P.(i{:}));
     end
 end
 for i = {'R0','R1','R2'}
     if ~isempty(P.R.(i{:}))
-        P.R.(i{:}) = sosgetsol(sos, P.R.(i{:}));
+        Psol.R.(i{:}) = sosgetsol(sos, P.R.(i{:}));
     end
 end
-P.P = double(P.P);
+Psol.P = double(Psol.P);
 end

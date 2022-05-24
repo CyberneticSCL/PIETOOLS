@@ -49,6 +49,16 @@ else
     a = varargin{1};
     b = varargin{2};
     
+    opvar Pcat;
+    if isa(a,'opvar')
+        Pcat.I = a.I; Pcat.var1 = a.var1; Pcat.var2 = a.var2;
+    elseif isa(b,'opvar')
+        Pcat.I = b.I; Pcat.var1 = b.var1; Pcat.var2 = b.var2;
+    elseif isa(a,'opvar')&&isa(b,'opvar')
+        if any(a.I~=b.I)||(a.var1~=b.var1)||(a.var2~=b.var2)
+            error('Operators being concatenated have different intervals or different independent variables');
+        end
+    end
     if isa(a,'opvar') % correction to make components have consistent dimensions 8/27-ss
         a.dim = a.dim;
     end
@@ -72,14 +82,14 @@ else
             if size(a,1)~=b.dim(2,1) 
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end 
-            Pcat = b;
+%             Pcat = b;
             Pcat.Q2 = [a b.Q2];
             Pcat.P = [zeros(b.dim(1,1),size(a,2)) b.P];
         elseif b.dim(2,1)==0 % a() is from R to R, Note: L2 to R needs to be an opvar
             if size(a,1)~=b.dim(1,1) 
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end
-            Pcat = b;
+%             Pcat = b;
             Pcat.P = [a b.P];
             Pcat.Q2 = [zeros(b.dim(2,1),size(a,2)) b.Q2];
         else %find if such an operation is valid is any useful scenario and implement it
@@ -90,14 +100,14 @@ else
             if size(b,1)~=a.dim(2,1) 
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end
-            Pcat = a;
+%             Pcat = a;
             Pcat.Q2 = [a.Q2 b];
             Pcat.P = [a.P zeros(a.dim(1,1),size(b,2))];
         elseif a.dim(2,1)==0 % b() is from R to R, Note: L2 to R needs to be an opvar
             if size(b,1)~=a.dim(1,1) 
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end
-            Pcat = a;
+%             Pcat = a;
             Pcat.P = [a.P b];
             Pcat.Q2 = [a.Q2 zeros(a.dim(2,1),size(b,2))];
         else %find if such a operation is valid is any useful scenario and implement it
@@ -107,7 +117,7 @@ else
         if any(b.dim(:,1)~=a.dim(:,1))
             error('Cannot concatentate horizontally. A and B have different output dimensions');
         end
-        Pcat = a;
+%         Pcat = a;
         fset = {'P', 'Q1', 'Q2'};
 
         for i=fset
