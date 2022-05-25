@@ -32,7 +32,7 @@
 % DJ - 06/02/2021; incorporate sosineq_on option
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, Pop, Dop] = PIETOOLS_stability(PIE, settings)
+function [prog, P] = PIETOOLS_stability(PIE, settings)
 
 % get settings information
 if nargin<2
@@ -134,6 +134,7 @@ disp('- Solving the LPI using the specified SDP solver...');
 prog = sossolve(prog,sos_opts); 
 
 % Conclusion:
+P = getsol_lpivar(prog,Pop);
 if exist('prog', 'var')
     if norm(prog.solinfo.info.feasratio-1)<=.3 && ~prog.solinfo.info.numerr
         disp('The System of equations was successfully solved.')

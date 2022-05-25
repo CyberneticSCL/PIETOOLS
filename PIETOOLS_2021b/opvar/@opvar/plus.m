@@ -64,27 +64,27 @@ elseif isa(P1,'opvar')&&isa(P2,'opvar')
 end
 
 if (isa(P1,'polynomial')||isa(P1,'double'))&&all(size(P1)==[1,1])&&all(P2.dim(:,1)==P2.dim(:,2))
-%     Pplus = P2;
+    Pplus = P2;
     Pplus.P=Pplus.P+P1*eye(P2.dim(1,2)); Pplus.R.R0 = Pplus.R.R0+P1*eye(P2.dim(2,2));
 elseif (isa(P2,'polynomial')||isa(P2,'double'))&&all(size(P2)==[1,1])&&all(P1.dim(:,1)==P1.dim(:,2))
-%     Pplus = P1;
+    Pplus = P1;
     Pplus.P=Pplus.P+P2*eye(P1.dim(1,2)); Pplus.R.R0 = Pplus.R.R0+P2*eye(P1.dim(2,2));
 elseif ~isa(P1,'opvar') 
     P2dim = P2.dim;
     if all(P2dim(2,:)==[0,0])&&all(size(P1)==P2dim(1,:))
-%         Pplus = P2;
+        Pplus = P2;
         Pplus.P = P1+Pplus.P;
     elseif all(P2dim(1,:)==[0,0])&&all(size(P1)==P2dim(2,:))
-%         Pplus = P2;
+        Pplus = P2;
         Pplus.R.R0 = P1+Pplus.R.R0;
     end
 elseif ~isa(P2,'opvar')
     P1dim = P1.dim;
     if all(P1dim(2,:)==[0,0])&&all(size(P2)==P1dim(1,:))
-%         Pplus = P1;
+        Pplus = P1;
         Pplus.P = P2+Pplus.P;
     elseif all(P1dim(1,:)==[0,0])&&all(size(P2)==P1dim(2,:))
-%         Pplus = P1;
+        Pplus = P1;
         Pplus.R.R0 = P2+Pplus.R.R0;
     end
 else %both are PI operators

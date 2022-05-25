@@ -48,6 +48,10 @@ if ~isa(P1,'dopvar')&&(P1==0)
     opvar P1; P1.I = P2.I; P1.dim = P2.dim;
 elseif ~isa(P2,'dopvar')&&(P2==0)
     opvar P2; P2.I = P1.I; P2.dim= P1.dim;
+elseif (isa(P1,'opvar')&&isa(P2,'dopvar'))||(isa(P1,'dopvar')&&isa(P2,'opvar'))||(isa(P1,'dopvar')&&isa(P2,'dopvar'))
+    if any(P1.I~=P2.I)||any(P1.dim(:)~=P2.dim(:))
+        error('Operators begin compared do not have same interval or have a mismatch in dimensions');
+    end
 elseif ~isa(P1,'dopvar')|| ~isa(P2,'dopvar')
     error('To check equality either both values must be dopvar objects, or one of them have to be zero');
 end

@@ -31,7 +31,7 @@
 %                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, Pop, gam] = PIETOOLS_Hinf_gain(PIE, settings)
+function [prog, P, gam] = PIETOOLS_Hinf_gain(PIE, settings)
 
 % get settings information
 if nargin<2
@@ -159,6 +159,6 @@ if ~isreal(gam)
 else 
     disp(gam);
 end
-
+P = getsol_lpivar(prog,Pop);
 gam = double(sosgetsol(prog,gam));
 end
