@@ -46,7 +46,7 @@ function [logval, msg] = isvalid(P)
 %
 
 if ~isa(P,'dopvar')
-    error('To check validity input must be opvar object');
+    error('To check validity input must be dopvar object');
 end
 
 dim = P.dim;
@@ -87,9 +87,9 @@ end
 if any(isnan(dim(:)))
     logval=1;
     msg = 'Components have incompatible dimensions';
-elseif ~isa(P.P,'double')
-    logval=2;
-    msg = 'P is not a matrix';
+elseif ~isa(P.P,'double') && (isa(P.P,'dpvar')&&any(P.P.degmat(:)))
+        logval=2;
+        msg = 'P is not a constant dpvar';
 elseif ~isa(Q1,'double')&&~isempty(Q1diff)
     logval=3;
     msg= 'Q1 has pvars different from var1';
@@ -107,6 +107,6 @@ elseif ~isa(R2,'double')&&~isempty(R2diff)
     msg= 'R2 has pvars different from var1 and var2';
 else
     logval=0;
-    msg = 'Valid Opvar';
+    msg = 'Valid Dopvar';
 end
 end

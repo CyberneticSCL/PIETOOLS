@@ -55,9 +55,12 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
         Q2 = polynomial([]);
         R = struct('R0',polynomial([]),'R1',polynomial([]),'R2',polynomial([]));
         I(1,2) double = [0,1];
-        var1 = pvar('s');
-        var2 = pvar('theta');
-        dim = [0 0; 0 0];
+        var1 polynomial = pvar('s');
+        var2 polynomial = pvar('theta');
+        dim(2,2) double = [0 0; 0 0];
+    end
+    properties (Hidden)
+        internal_call = 0;
     end
     properties (Dependent)
         dimdependent;
@@ -76,15 +79,27 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
         end
         function [obj] = set.P(obj,P) 
             obj.P = P;
+            if ~obj.internal_call
+                obj = opvar_autofill(obj);
+            end
         end
         function [obj] = set.Q1(obj,Q1)
             obj.Q1 = Q1;
+            if ~obj.internal_call
+                obj = opvar_autofill(obj);
+            end
         end
         function [obj] = set.Q2(obj,Q2)
             obj.Q2 = Q2;
+            if ~obj.internal_call
+                obj = opvar_autofill(obj);
+            end
         end
         function [obj] = set.R(obj,R)
             obj.R = R;
+            if ~obj.internal_call
+                obj = opvar_autofill(obj);
+            end
         end
         function [d] = get.dimdependent(obj)
             % for consistent dimensions following vectors should have
@@ -137,6 +152,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
         end
         function [obj] = set.dim(obj,val)
             obj.dim = val;
+            obj.internal_call=1;
             if isempty(obj.P)
                 obj.P = zeros(val(1,:));
             end
@@ -155,6 +171,10 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
             if isempty(obj.R.R2)
                 obj.R.R2 = zeros(val(2,1),val(2,2));
             end
+            obj.internal_call=0;
+        end
+        function obj = opvar_autofill(obj)
+            obj.dim = obj.dim;
         end
     end
 end

@@ -44,18 +44,18 @@ if nargin<3
     tol=1e-14;
 end    
 
-if ~isa(P1,'opvar')&&(P1==0) 
+if ~isa(P1,'dopvar')&&(P1==0) 
     opvar P1; P1.I = P2.I; P1.dim = P2.dim;
-elseif ~isa(P2,'opvar')&&(P2==0)
+elseif ~isa(P2,'dopvar')&&(P2==0)
     opvar P2; P2.I = P1.I; P2.dim= P1.dim;
-elseif ~isa(P1,'opvar')|| ~isa(P2,'opvar')
+elseif ~isa(P1,'dopvar')|| ~isa(P2,'dopvar')
     error('To check equality either both values must be opvar objects, or one of them have to be zero');
 end
 
 
 
 if any(P1.dim~=P2.dim)
-    disp('Opvars have different dimensions and hence cannot be equal');
+    disp('Dopvars have different dimensions and hence cannot be equal');
     logval=0;
 end
 
@@ -64,11 +64,31 @@ diff.P = double(diff.P);
 diff.Q1 = polynomial(diff.Q1); diff.Q2 = polynomial(diff.Q2); diff.R.R0 = polynomial(diff.R.R0); 
 diff.R.R1 = polynomial(diff.R.R1); diff.R.R2 = polynomial(diff.R.R2); 
 diff.P(abs(diff.P)<tol)=0;
-diff.Q1.coefficient(abs(diff.Q1.coefficient)<tol)=0;
-diff.Q2.coefficient(abs(diff.Q2.coefficient)<tol)=0;
-diff.R.R0.coefficient(abs(diff.R.R0.coefficient)<tol)=0;
-diff.R.R1.coefficient(abs(diff.R.R1.coefficient)<tol)=0;
-diff.R.R2.coefficient(abs(diff.R.R2.coefficient)<tol)=0;
+if isa(diff.Q1,'dpvar')
+    diff.Q1.coefficient(abs(diff.Q1.coefficient)<tol)=0;
+else
+    diff.Q1(abs(diff.Q1)<tol)=0;
+end
+if isa(diff.Q2,'dpvar')
+    diff.Q2.coefficient(abs(diff.Q2.coefficient)<tol)=0;
+else
+    diff.Q2(abs(diff.Q2)<tol)=0;
+end
+if isa(diff.R.R0,'dpvar')
+    diff.R.R0.coefficient(abs(diff.R.R0.coefficient)<tol)=0;
+else
+    diff.R.R0(abs(diff.R.R0)<tol)=0;
+end
+if isa(diff.R.R1,'dpvar')
+    diff.R.R1.coefficient(abs(diff.R.R1.coefficient)<tol)=0;
+else
+    diff.R.R1(abs(diff.R.R1)<tol)=0;
+end
+if isa(diff.R.R2,'dpvar')
+    diff.R.R2.coefficient(abs(diff.R.R2.coefficient)<tol)=0;
+else
+    diff.R.R2(abs(diff.R.R2)<tol)=0;
+end
 
 
 try

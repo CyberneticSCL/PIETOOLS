@@ -49,6 +49,16 @@ else
     a = varargin{1};
     b = varargin{2};
     
+    opvar Pcat;
+    if isa(a,'opvar')
+        Pcat.I = a.I; Pcat.var1 = a.var1; Pcat.var2 = a.var2;
+    elseif isa(b,'opvar')
+        Pcat.I = b.I; Pcat.var1 = b.var1; Pcat.var2 = b.var2;
+    elseif isa(a,'opvar')&&isa(b,'opvar')
+        if any(a.I~=b.I)||(a.var1~=b.var1)||(a.var2~=b.var2)
+            error('Operators being concatenated have different intervals or different independent variables');
+        end
+    end
     if isa(a,'opvar') % correction to make components have consistent dimensions 8/27-ss
         a.dim = a.dim;
     end
@@ -73,7 +83,7 @@ else
             if size(a,2)~=sum(bdim(:,2))
                 error("Cannot concatentate vertically. A and B have different input dimensions");
             end
-            Pcat = b;
+%             Pcat = b;
             if bdim(2,2) ==0
                 Pcat.P = [a; b.P]; % a() is from R to R
                 Pcat.Q1 =[zeros(size(a,1),b.dim(2,2)); b.Q1];
@@ -91,7 +101,7 @@ else
         if size(b,2)~=sum(adim(:,2))
             error("Cannot concatentate vertically. A and B have different input dimensions");
         end
-        Pcat = a;
+%         Pcat = a;
         if adim(2,2) ==0
             Pcat.P = [a.P; b]; % b() is from R to R
             Pcat.Q1 = [a.Q1; zeros(size(b,1),a.dim(2,2))];
@@ -107,7 +117,7 @@ else
         if any(b.dim(:,2)~=a.dim(:,2))
             error("Cannot concatentate vertically. A and B have different input dimensions");
         end
-        Pcat = a;
+%         Pcat = a;
         fset = {'P', 'Q1', 'Q2'};
         for i=fset
             Pcat.(i{:}) = [a.(i{:}); b.(i{:})];

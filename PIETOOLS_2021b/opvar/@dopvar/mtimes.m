@@ -59,7 +59,7 @@ if isa(P1,'opvar')||isa(P2,'opvar')
     b=P1.I(2);
     ds = P1.var1;
     dtheta = P1.var2;
-    I = P2.I;
+    I = P1.I;
 
     dopvar Pcomp;
     Pcomp.I = I; Pcomp.var1 = ds; Pcomp.var2 = dtheta;
@@ -74,7 +74,11 @@ if isa(P1,'opvar')||isa(P2,'opvar')
     Pcomp.R.R1 = P1.Q2*subs(P2.Q1,ds,dtheta)+Ptemp.R.R1;
     Pcomp.R.R2 = P1.Q2*subs(P2.Q1,ds,dtheta)+Ptemp.R.R2;
 elseif ~isa(P2,'dopvar') %multiplication of operator times matrix
-    Pcomp = P1;
+    ds = P1.var1;
+    dtheta = P1.var2;
+    I = P1.I;
+    dopvar Pcomp;
+    Pcomp.I = I; Pcomp.var1 = ds; Pcomp.var2 = dtheta;
     if all(size(P2)==[1,1]) %scalar multiplication
         Pcomp.P = P2*P1.P;
         Pcomp.Q1 = P2*P1.Q1;
@@ -101,7 +105,11 @@ elseif ~isa(P2,'dopvar') %multiplication of operator times matrix
         Pcomp.R.R2 = P1.R.R2*P2p;
     end
 else %multiplication of matrix times the operator
-    Pcomp = P2;
+    ds = P2.var1;
+    dtheta = P2.var2;
+    I = P2.I;
+    dopvar Pcomp;
+    Pcomp.I = I; Pcomp.var1 = ds; Pcomp.var2 = dtheta;
     if all(size(P1)==[1,1]) %scalar times operator
         Pcomp.P = P1*P2.P;
         Pcomp.Q1 = P1*P2.Q1;
