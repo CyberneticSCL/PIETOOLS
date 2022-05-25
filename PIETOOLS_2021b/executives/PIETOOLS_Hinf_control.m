@@ -46,7 +46,7 @@
 %                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, Kop, gam, Pop, Zop] = PIETOOLS_Hinf_control(PIE, settings)
+function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control(PIE, settings)
 
 % get settings information
 if nargin<2
@@ -191,11 +191,12 @@ disp('The feedback control gains have been saved in the PI operator K')
 gam = double(sosgetsol(prog,gam));
 
 P = getsol_lpivar(prog,Pop);
+Z = getsol_lpivar(prog,Zop);
 err = isequal(P.R.R1,P.R.R2);
 if ~all(err(:))
     Kop = 'Inverse for opvar can only be calculated for opvar with R1=R2';
 else
-    Kop = getController(getsol_lpivar(prog, Pop), getsol_lpivar(prog, Zop));
+    Kop = getController(P,Z);
 end
 
 end
