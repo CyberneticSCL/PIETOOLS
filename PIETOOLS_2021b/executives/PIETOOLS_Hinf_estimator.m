@@ -178,10 +178,10 @@ gam = double(sosgetsol(prog,gam));
 
 P = getsol_lpivar(prog,Pop);
 Z = getsol_lpivar(prog,Zop);
-err = isequal(P.R.R1,P.R.R2);
-if ~all(err(:))
-    Lop = 'Inverse for opvar can only be calculated for opvar with R1=R2';
-else
-    Lop = getObserver(getsol_lpivar(prog, Pop), getsol_lpivar(prog, Zop));
-end
+% err = isequal(P.R.R1,P.R.R2);
+% if ~all(err(:))
+%     Lop = 'Inverse for opvar can only be calculated for opvar with R1=R2';
+% else
+Lop = getObserver(P,Z);
+% end
 end
