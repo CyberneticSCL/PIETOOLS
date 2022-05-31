@@ -1,4 +1,50 @@
 function [Pinv] = inv_opvar(Pop, tol)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [Pinv] = inv_opvar(Pop, tol) computes the inverse operator of the
+% operator
+% INPUT
+%   Pop: positive definite opvar to invert
+%   tol: order of coefficients in the polynomials that should be truncated
+% 
+% OUTPUT 
+%   Pinv: inverse opvar object. Inverse opvar is a numerical inversion and
+%   should be used with care and reservations.
+% 
+% NOTES:
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% or S. Shivakumar at sshivak8@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETools - inv_opvar
+%
+% Copyright (C)2019  M. Peet, S. Shivakumar
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding SS - 5_31_2022
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 if nargin==1
     tol=1e-8;
@@ -134,12 +180,12 @@ R1temp = polynomial(Ra);
 R2temp = polynomial(Rb);
 
 % Error check: fix degmats if var1, var2 are missing
-if isempty(R0temp.degmat)
+if isempty(R0temp.degmat)% if s is not present
     R0temp = polynomial(R0temp.coefficient,zeros(size(R0temp.degmat,1),1),var1.varname,R0temp.matdim);
 end
-if isempty(R1temp.degmat)
+if isempty(R1temp.degmat)% if neither s nor theta is present
     R1temp = polynomial(R1temp.coefficient,zeros(size(R1temp.degmat,1),2),[var1.varname;var2.varname],R1temp.matdim);
-elseif size(R1temp.degmat,2)<2
+elseif size(R1temp.degmat,2)<2 % if only one of s or theta is present
     if ismember(R1temp.varname,var1.varname)
         missingVar = var2.varname;
     else
@@ -147,9 +193,9 @@ elseif size(R1temp.degmat,2)<2
     end
     R1temp = polynomial(R1temp.coefficient,[R1temp.degmat,zeros(size(R1temp.degmat,1),1)],[R1temp.varname;missingVar],R1temp.matdim);
 end
-if isempty(R2temp.degmat)
+if isempty(R2temp.degmat) % if neither s nor theta is present
     R2temp = polynomial(R2temp.coefficient,zeros(size(R2temp.degmat,1),2),[var1.varname;var2.varname],R2temp.matdim);
-elseif size(R2temp.degmat,2)<2
+elseif size(R2temp.degmat,2)<2 % if only s or theta is present
     if ismember(R2temp.varname,var1.varname)
         missingVar = var2.varname;
     else
