@@ -24,7 +24,7 @@ elseif all(Pop.dim(1,:)==0)
     
     A = subs([G{1}*F{1} G{1}*F{2}; -G{2}*F{1} -G{2}*F{2}],var2,var1);
     
-    U = eye(size(A));
+    U = polynomial(eye(size(A)));
     Uk = U;
     
     % find max terms needed for approximation
@@ -63,7 +63,7 @@ elseif all(Pop.dim(1,:)==0)
         P = [zeros(size(U11)) zeros(size(U12)); U22\U21 eye(size(U22))];
         
         % finding U-inverse
-        Uinv = eye(size(A));
+        Uinv = polynomial(eye(size(A)));
         Ukinv = Uinv;
         for i=1:Nmax
             Ukinv = int(Ukinv*A,var1,X(1),var1);
@@ -105,6 +105,7 @@ if ~isa(P,'opvar')
     error('Input should be an opvar class object');
 end
 X = P.I; var1 = P.var1; var2 = P.var2;
+
 % finding U-inverse  
 N=100; orderapp=4; 
 dx = (X(2)-X(1))/N; 
@@ -124,14 +125,47 @@ for i=1:size(P.R.R0,1)
 end
 
 Rinv.coefficient(find(abs(Rinv.coefficient)<1e-10)) = 0;
-
 Ra = Rinv*P.R.R1;
 Rb = Rinv*P.R.R2;
 
-Ra_maxdeg = max(Ra.degmat);
-Rb_maxdeg = max(Rb.degmat);
+% Error check: Change Rinv, Ra, Rb to polynomials if they are not polynomials
+R0temp = polynomial(Rinv);
+R1temp = polynomial(Ra);
+R2temp = polynomial(Rb);
 
-if Ra_maxdeg(1)<= Ra_maxdeg(2)
+% Error check: fix degmats if var1, var2 are missing
+if isempty(R0temp.degmat)
+    R0temp = polynomial(R0temp.coefficient,zeros(size(R0temp.degmat,1),1),var1.varname,R0temp.matdim);
+end
+if isempty(R1temp.degmat)
+    R1temp = polynomial(R1temp.coefficient,zeros(size(R1temp.degmat,1),2),[var1.varname;var2.varname],R1temp.matdim);
+elseif size(R1temp.degmat,2)<2
+    if ismember(R1temp.varname,var1.varname)
+        missingVar = var2.varname;
+    else
+        missingVar = var1.varname;
+    end
+    R1temp = polynomial(R1temp.coefficient,[R1temp.degmat,zeros(size(R1temp.degmat,1),1)],[R1temp.varname;missingVar],R1temp.matdim);
+end
+if isempty(R2temp.degmat)
+    R2temp = polynomial(R2temp.coefficient,zeros(size(R2temp.degmat,1),2),[var1.varname;var2.varname],R2temp.matdim);
+elseif size(R2temp.degmat,2)<2
+    if ismember(R2temp.varname,var1.varname)
+        missingVar = var2.varname;
+    else
+        missingVar = var1.varname;
+    end
+    R2temp = polynomial(R2temp.coefficient,[R2temp.degmat,zeros(size(R2temp.degmat,1),1)],[R2temp.varname;missingVar],R2temp.matdim);
+end
+Rinv = R0temp; Ra = R1temp; Rb = R2temp;
+
+Ra_vnames = Ra.varname;
+Rb_vnames = Rb.varname;
+
+Ra_maxdeg = max(Ra.degmat,[],1);
+Rb_maxdeg = max(Rb.degmat,[],1);
+
+if Ra_maxdeg(ismember(Ra_vnames,var1.varname))<= Ra_maxdeg(ismember(Ra_vnames,var2.varname))
     [newdegmat,idx] = sortrows(Ra.degmat);
     [val,~,~] = unique(full(Ra.degmat(:,1)));
     Ra = polynomial(Ra.coefficient(idx,:),Ra.degmat(idx,:),Ra.varname,Ra.matdim);
@@ -155,7 +189,7 @@ else
     end
 end
 
-if Rb_maxdeg(1)<= Rb_maxdeg(2)
+if Rb_maxdeg(ismember(Rb_vnames,var1.varname))<= Rb_maxdeg(ismember(Rb_vnames,var2.varname))
     [newdegmat,idx] = sortrows(Rb.degmat);
     [val,~,~] = unique(full(Rb.degmat(:,1)));
     Rb = polynomial(Rb.coefficient(idx,:),Rb.degmat(idx,:),Rb.varname,Rb.matdim);
