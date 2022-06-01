@@ -211,50 +211,54 @@ Rb_vnames = Rb.varname;
 Ra_maxdeg = max(Ra.degmat,[],1);
 Rb_maxdeg = max(Rb.degmat,[],1);
 
-if Ra_maxdeg(ismember(Ra_vnames,var1.varname))<= Ra_maxdeg(ismember(Ra_vnames,var2.varname))
+var1_loc_Ra = ismember(Ra_vnames,var1.varname);
+var2_loc_Ra = ismember(Ra_vnames,var2.varname);
+if Ra_maxdeg(var1_loc_Ra)<= Ra_maxdeg(var2_loc_Ra)
     [newdegmat,idx] = sortrows(Ra.degmat);
-    [val,~,~] = unique(full(Ra.degmat(:,1)));
+    [val,~,~] = unique(full(Ra.degmat(:,var1_loc_Ra)));
     Ra = polynomial(Ra.coefficient(idx,:),Ra.degmat(idx,:),Ra.varname,Ra.matdim);
     F{1} = kron(var1.^(val'),eye(size(Ra)));
     G{1} = {};
     for i=1:length(val)
-        loctemp = find(newdegmat(:,1)==val(i));
-        temp = polynomial(Ra.coefficient(loctemp,:),Ra.degmat(loctemp,2),Ra.varname(2),Ra.matdim);
+        loctemp = find(newdegmat(:,var1_loc_Ra)==val(i));
+        temp = polynomial(Ra.coefficient(loctemp,:),Ra.degmat(loctemp,var2_loc_Ra),var2.varname,Ra.matdim);
         G{1} = [G{1};temp];
     end
 else
     [newdegmat,idx] = sortrows(Ra.degmat,2);
-    [val,~,~] = unique(full(Ra.degmat(:,2)));
+    [val,~,~] = unique(full(Ra.degmat(:,var2_loc_Ra)));
     Ra = polynomial(Ra.coefficient(idx,:),Ra.degmat(idx,:),Ra.varname,Ra.matdim);
     G{1} = kron(var2.^val,eye(size(Ra)));
     F{1} = {};
     for i=1:length(val)
-        loctemp = find(newdegmat(:,2)==val(i));
-        temp = polynomial(Ra.coefficient(loctemp,:),Ra.degmat(loctemp,1),Ra.varname(1),Ra.matdim);
+        loctemp = find(newdegmat(:,var2_loc_Ra)==val(i));
+        temp = polynomial(Ra.coefficient(loctemp,:),Ra.degmat(loctemp,var1_loc_Ra),var1.varname,Ra.matdim);
         F{1} = [F{1},temp];
     end
 end
 
-if Rb_maxdeg(ismember(Rb_vnames,var1.varname))<= Rb_maxdeg(ismember(Rb_vnames,var2.varname))
+var1_loc_Rb = ismember(Rb_vnames,var1.varname);
+var2_loc_Rb = ismember(Rb_vnames,var2.varname);
+if Rb_maxdeg(var1_loc_Rb)<= Rb_maxdeg(var2_loc_Rb)
     [newdegmat,idx] = sortrows(Rb.degmat);
-    [val,~,~] = unique(full(Rb.degmat(:,1)));
+    [val,~,~] = unique(full(Rb.degmat(:,var1_loc_Ra)));
     Rb = polynomial(Rb.coefficient(idx,:),Rb.degmat(idx,:),Rb.varname,Rb.matdim);
     F{2} = kron(var1.^(val'),eye(size(Rb)));
     G{2} = {};
     for i=1:length(val)
-        loctemp = find(newdegmat(:,1)==val(i));
-        temp = polynomial(Rb.coefficient(loctemp,:),Rb.degmat(loctemp,2),Rb.varname(2),Rb.matdim);
+        loctemp = find(newdegmat(:,var1_loc_Rb)==val(i));
+        temp = polynomial(Rb.coefficient(loctemp,:),Rb.degmat(loctemp,var2_loc_Rb),var2.varname,Rb.matdim);
         G{2} = [G{2};temp];
     end
 else
     [newdegmat,idx] = sortrows(Rb.degmat,2);
-    [val,~,~] = unique(full(Rb.degmat(:,2)));
+    [val,~,~] = unique(full(Rb.degmat(:,var2_loc_Rb)));
     Rb = polynomial(Rb.coefficient(idx,:),Rb.degmat(idx,:),Rb.varname,Rb.matdim);
     G{2} = kron(var2.^val,eye(size(Rb)));
     F{2} = {};
     for i=1:length(val)
-        loctemp = find(newdegmat(:,2)==val(i));
-        temp = polynomial(Rb.coefficient(loctemp,:),Rb.degmat(loctemp,1),Rb.varname(1),Rb.matdim);
+        loctemp = find(newdegmat(:,var2_loc_Rb)==val(i));
+        temp = polynomial(Rb.coefficient(loctemp,:),Rb.degmat(loctemp,var1_loc_Rb),var1.varname,Rb.matdim);
         F{2} = [F{2},temp];
     end
 end
