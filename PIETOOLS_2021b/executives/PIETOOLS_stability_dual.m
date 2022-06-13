@@ -142,7 +142,29 @@ disp('- Solving the LPI using the specified SDP solver...');
 prog = sossolve(prog,sos_opts); 
 % Conclusion:
 P = getsol_lpivar(prog,Pop);
-if exist('prog', 'var') %exist('prog.solinfo', 'var')
+if strcmp(settings.sos_opts.solver,'sdpt3')
+    if exist('prog', 'var')
+        if ~(prog.solinfo.info.pinf||prog.solinfo.info.dinf)
+            disp('The System of equations was successfully solved.')
+        elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf
+            disp('The System of equations was not solved.')
+        else
+            disp('Unable to definitively determine feasibility. Numerical errors dominating or at the limit of stability.')
+        end
+    end
+elseif strcmp(settings.sos_opts.solver,'sdpnalplus')
+    if exist('prog', 'var')
+        if ~(prog.solinfo.info.pinf||prog.solinfo.info.dinf)
+            disp('The System of equations was successfully solved.')
+        elseif ~(prog.solinfo.info.pinf||prog.solinfo.info.dinf) && prog.solinfo.info.numerr
+            disp('The System of equations was successfully solved. However, Double-check the precision.')
+        elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf || prog.solinfo.info.numerr
+            disp('The System of equations was not solved.')
+        else
+            disp('Unable to definitively determine feasibility. Numerical errors dominating or at the limit of stability.')
+        end
+    end
+elseif exist('prog', 'var')
     if norm(prog.solinfo.info.feasratio-1)<=.3 && ~prog.solinfo.info.numerr
         disp('The System of equations was successfully solved.')
     elseif norm(prog.solinfo.info.feasratio-1)<=.3 && prog.solinfo.info.numerr
