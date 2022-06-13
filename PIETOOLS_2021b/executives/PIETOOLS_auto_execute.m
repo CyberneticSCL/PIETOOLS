@@ -118,7 +118,7 @@ end
 
 % % Check if LF positivity and negativity strictness conditions have been
 % % specified
-if ~isfield(settings,'sos_opts') || isfield(settings.sos_opts,'solver')
+if ~isfield(settings,'sos_opts') || ~isfield(settings.sos_opts,'solver')
     settings.sos_opts.solver = 'sedumi';
     % % Other optional SDP solvers supported by PIETOOLS
     % settings.sos_opts.solver ='mosek';
