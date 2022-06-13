@@ -1,21 +1,14 @@
-function [Pinv] = inv_opvar(P)
+function [Pinv] = inv_opvar(Pop, tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [Pinv] = inv_opvar(P) computes the inverse operator of the
+% [Pinv] = inv_opvar(Pop, tol) computes the inverse operator of the
 % operator
-%
-% P[ x1    ](s)=[ P.P*x1 +int_I(1)^I(2) P.Q(th)x_2(th)d th                    ]
-%  [ x2(s) ]    [ P.Q(s)^T*x1 +P.R.R0(s)x_2(s) + int_I(1)^I(2) P.R.R1(s,th)x_2(th)dth ]
-%
 % INPUT
-%   P: positive definite opvar to invert
-%   I = [l1 u1] interval of integration
-%
+%   Pop: positive definite opvar to invert
+%   tol: order of coefficients in the polynomials that should be truncated
+% 
 % OUTPUT 
 %   Pinv: inverse opvar object. Inverse opvar is a numerical inversion and
 %   should be used with care and reservations.
-% The inverse operator has the form
-% P^-1[ x1    ](s)=[ Ph*x1 +int_I(1)^I(2) Qh(th)x_2(th)d th                    ]
-%     [ x2(s) ]    [ Qh(s)^T*x1 +tau*Sh(s)x_2(s) + tau* int_I(1)^I(2) Rh(s,th)x_2(th)dth ]
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -47,179 +40,226 @@ function [Pinv] = inv_opvar(P)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP - 7_1_2020
-% Updated to the Nth order format, added 4th order implementation of 
-% Timoshenko beam equation. DJ - 05-24-2021
-% Assure parameters are dpvar before converting to poly, DJ - 12/30/2021
-%       <-- Not really an optimal fix...
+% Initial coding SS - 5_31_2022
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if isa(P,'opvar')||isa(P,'dopvar')
-try 
-    err = double(P.R.R1-P.R.R2);
-    if err~=0
-        error('Inverse for opvar can only be calculated for opvar with R1=R2');
-    end
-catch ME
-    error('Inverse for opvar can only be calculated for opvar with R1=R2');
-end
+
+
+if nargin==1
+    tol=1e-8;
 end
 
-I = P.I; s = P.var1; theta = P.var2;
-l=I(1);u=I(2);
-tau=u-l;
-r=tau;
-
-if P.dim(2,2) == 0
-    opvar Pinv;
-    Pinv.I = I;
-    Pinv.P = inv(P.P); Pinv.Q1=[]; Pinv.Q2 = []; Pinv.R.R0= []; 
-    return
+if ~isa(Pop,'opvar')|| any(Pop.dim(:,1)~=Pop.dim(:,2))
+    error('Only opvar class objects with equal input and output dimensions can be inverted using this function');
 end
 
-NP = polynomial(P.P);
-NQ = polynomial(dpvar2poly(dpvar(P.Q1)));   % DJ, 12/30/2021
-Sa = polynomial(dpvar2poly(dpvar(P.R.R0)));
-Ra = polynomial(dpvar2poly(dpvar(P.R.R1)));
-NR = Ra; NS = Sa;
 
-
-
-
-n_dim=size(NP,1);
-m_dim=size(NS,1);
-
-% if ~iscell(I)
-%     error(['I must be a cell array of intervals'])
-% end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The first step is to construct the separable representation of the
-% Polynomials Q and R
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% For ZQ and NR, we need to convert to the forms
-% NQ=H Z(s) and NR= Z(s)^T Gam Z(theta) as per paper
-% or for us this is Q=HZ(theta) and NR= Z(theta)^T Gam Z(ksi)
-% however, we need to be consistent about our Z
-
-dQ=NQ.degmat;
-dmQ=max(max(dQ));
-dR=NR.degmat;
-dmR=max(max(dR));
-dm=max([dmQ dmR]);
-ZCth=polynomial(eye(dm+1),[0:dm]',{'s'},[dm+1 1]); % common vector of monomials
-bigZCth=[];
-for i=1:m_dim
-    bigZCth=blkdiag(bigZCth,ZCth);
-end
-
-% Now use bigZCth to find H!
-nZ=length(ZCth);
-bigC = zeros(n_dim,nZ*m_dim);
-for i=1:n_dim
-    for j=1:m_dim
-        [CQij,Ztemp,etemp] = poly2basis(NQ(i,j),ZCth); % examine each element of NQ
-        bigC(i,(nZ*(j-1)+1):(nZ*j))=CQij.';
-    end
-end
-H=bigC;
-
-
-% H*bigZCth-NQ  uncomment to verify the representation (should be 0)
-
-% Now we deal with NR
-
-for i=1:m_dim
-    for j=1:m_dim % address the decomposition of each element separately and place in the larger matrix Q
-        dmij=NR(i,j).degmat;
-        cfij=NR(i,j).coeff;
-        CN=zeros(dm+1,dm+1);
-        for k=1:length(cfij) % take each coefficient and put it in its proper place in CN, which is then assembled into CbigN
-            CN(full(dmij(k,1))+1,full(dmij(k,2))+1)=cfij(k);
-        end
-        Gam(((dm+1)*(i-1)+1):((dm+1)*i),((dm+1)*(j-1)+1):((dm+1)*j))=CN;
-    end
-end
-%bigZCksi=subs(bigZCth,th,ksi);
-%bigZCksi.'*Gam*bigZCth-NR % this should be zero
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Now that we have the right representation, we can construct the inverse
-% using Keqin's formula.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% The first step is to find a polynomial approximation to S^{-1}
-if isa(NS,'double')
-    Sh =inv(NS);
-else  
-N=100; orderapp=6; % specifies the degree of the polynomial approximation and the number of data points to fit at.
-% It is recommended to use at least a 4th order approximation
-
-interval = tau/N; % specifies the degree of the polynomial approximation and the number of data points to fit at.
-% It is recommended to use at least a 4th order approximation
-ii=0;
-
-
-th = s; ksi = theta;
-
-for ss=[l:interval:u]
-    ii=ii+1;
-    NShtemp(:,:,ii)=inv(double(subs(NS,th,ss))); % Calculates the value of the inverse of S at every point in the interval
-end
-
-% The following fits a polynomial to every element of S^{-1}
-for i=1:m_dim
-    for j=1:m_dim
-        Data1=squeeze(NShtemp(i,j,:))';
-        tempCoeffs =polyfit([l:interval:u],Data1,orderapp); % uses matlab internal polynomial representation 
-%         [temp,S,mu]=polyfit([l:interval:u],Data1,orderapp); % uses matlab internal polynomial representation
-%        S.normr
-%         syms th2   %Converts to a symbolic variable representation
-%         Sinv_temp=s2p(poly2sym(temp,th2)); % this approach works, but seems fragile. 
-       
-        Sinv(i,j)=th.^(orderapp:-1:0)*tempCoeffs';
-        clear Data1 temp Sinv_temp
-    end
-end
-% This is the polynomial that is returned. It is not used to calculate the
-% following integral, however.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-% Now we compute the matrix K (does not use the approximate S^{-1})
-% This is an anonymous function which is the integrand 
-int_fun = @(sss) double(subs(bigZCth,th,sss))*inv(double(subs(NS,th,sss)))*double(subs(bigZCth,th,sss)).';
-% Uses Matlab internal numerical integration routine.
-K=integral(int_fun,l,u,'ArrayValued',true);
-
-% Now ready to compute the matrices to return
-
-Sh=Sinv;
-end
-Z_h_th=bigZCth*Sinv; % This inherits its degree from S^{-1}
-
-P_inv=inv(double(NP));
-
-ndtemp=size(K,1);
-
-T=inv(eye(ndtemp)+K*Gam-r*K*H.'*P_inv*H); % A Matrix
-H_h=-P_inv*H*T; % A Matrix
-
-%ndtemp2=size(P_inv,1);
-
-Ph=(eye(n_dim) + r*P_inv*H*T*K*H.')*P_inv;
-Qh = H_h*Z_h_th; % Same degree as S^{-1}
-
-Gam_h=(r*T.'*H.'*P_inv*H-Gam)*inv(eye(ndtemp)+K*Gam); % A Matrix
-
-Z_h_ksi=subs(Z_h_th,th,ksi);   
-Rh = Z_h_th.'*Gam_h*Z_h_ksi;  % Twice the degree of S^{-1}
-
+X = Pop.I; var1 = Pop.var1; var2 = Pop.var2;
 opvar Pinv;
-Pinv.I = I;
-Pinv.P = Ph; Pinv.Q1=Qh; Pinv.Q2 = Qh'; Pinv.R.R0= Sh; Pinv.R.R1 = Rh; Pinv.R.R2 = Rh;
+Pinv.I = X; Pinv.var1 = var1; Pinv.var2 = var2;
+
+if all(Pop.dim(2,:)==0)
+    if isa(Pop.P,'polynomial')
+        Pop.P = double(Pop.P);
+    end
+    Pinv.P = inv(Pop.P);
+elseif all(Pop.dim(1,:)==0)
+    [F,G,R0inv] = getsemisepmonomials(Pop);
+    F{1} = - F{1}; F{2} = - F{2};
+    
+    A = subs([G{1}*F{1} G{1}*F{2}; -G{2}*F{1} -G{2}*F{2}],var2,var1);
+    
+    U = polynomial(eye(size(A)));
+    Uk = U;
+    
+    % find max terms needed for approximation
+    normA = sqrt(max(abs(eig(double(int(A'*A,var1,X(1),X(2)))))));
+    Nmax = 1;
+    while (normA^Nmax)/factorial(Nmax)>eps
+        Nmax = Nmax+1;
+    end
+    for i=1:Nmax
+        Uk = int(A*Uk,var1,X(1),var1);
+        if isa(Uk, 'double')
+            Uk = polynomial(Uk);
+        end
+        if max(abs(Uk.coefficient(:)))<tol
+            break;
+        end
+        U = U+Uk;
+    end
+    
+    U.coefficient(find(abs(U.coefficient)<tol)) = 0;
+    
+    
+    U11 = U(1:size(G{1},1), 1:size(F{1},2));
+    U12 = U(1:size(G{1},1), size(F{1},2)+1:end);
+    U21 = U(size(G{1},1)+1:end, 1:size(F{1},2));
+    U22 = U(size(G{1},1)+1:end, size(F{1},2)+1:end);
+    U21 = double(subs(U21,var1,X(2)));
+    U22 = double(subs(U22,var1,X(2)));
+    
+    
+    
+    if rcond(U22)<eps
+        error('Given PI operator is likely non-invertible');
+    else
+        C = [F{1} F{2}]; B = [G{1}; -G{2}];
+        P = [zeros(size(U11)) zeros(size(U12)); U22\U21 eye(size(U22))];
+        
+        % finding U-inverse
+        Uinv = polynomial(eye(size(A)));
+        Ukinv = Uinv;
+        for i=1:Nmax
+            Ukinv = int(Ukinv*A,var1,X(1),var1);
+            if isa(Ukinv, 'double')
+                Ukinv = polynomial(Ukinv);
+            end
+            if max(abs(Ukinv.coefficient(:)))<tol
+                break;
+            end
+            Uinv = Uinv-Ukinv;
+        end
+        
+        Uinv.coefficient(find(abs(Uinv.coefficient)<tol)) = 0;
+        Uinv = subs(Uinv,var1,var2);
+        
+        Pinv.R.R0 = R0inv;
+        Pinv.R.R1 = C*U*(eye(size(P))-P)*Uinv*B*subs(R0inv,var1,var2);
+        Pinv.R.R2 = -C*U*P*Uinv*B*subs(R0inv,var1,var2);
+    end
+else
+    opvar A B C D;
+    A.I = X; A.var1 = Pop.var1; A.var2 = Pop.var2;
+    B.I = X; B.var1 = Pop.var1; B.var2 = Pop.var2;
+    C.I = X; C.var1 = Pop.var1; C.var2 = Pop.var2;
+    D.I = X; D.var1 = Pop.var1; D.var2 = Pop.var2;
+    A.P = Pop.P; B.Q1 = Pop.Q1; C.Q2 = Pop.Q2; D.R = Pop.R;
+%     Dinv = opvar_inverse_iterative(D,tol);
+    Ainv = inv_opvar(A,tol);
+%     TA = opvar_inverse_iterative(A-B*Dinv*C,tol);
+    TB = inv_opvar(D-C*Ainv*B,tol);
+%     Pinv = [TA,         -Ainv*B*TB;
+%             -Dinv*C*TA, TB];
+        
+    Pinv = [Ainv+Ainv*B*TB*C*Ainv, -Ainv*B*TB; -TB*C*Ainv, TB];
+end
+end
+function [F,G, Rinv] = getsemisepmonomials(P)
+if ~isa(P,'opvar')
+    error('Input should be an opvar class object');
+end
+X = P.I; var1 = P.var1; var2 = P.var2;
+
+% finding U-inverse  
+N=100; orderapp=4; 
+dx = (X(2)-X(1))/N; 
+ii=0;
+Rtemp = zeros(size(P.R.R0,1),size(P.R.R0,2),N);
+for ss=[X(1):dx:X(2)]
+    ii=ii+1;
+    Rtemp(:,:,ii)= inv(double(subs(P.R.R0,var1,ss))); % Calculates the value of the inverse of S at every point in the interval
+end
+Rinv = polynomial(zeros(size(P.R.R0)));
+for i=1:size(P.R.R0,1)
+    for j=1:size(P.R.R0,2)
+        Data1=squeeze(Rtemp(i,j,:))';
+        tempCoeffs =polyfit([X(1):dx:X(2)],Data1,orderapp); % uses matlab internal polynomial representation 
+        Rinv(i,j)=var1.^(orderapp:-1:0)*tempCoeffs';
+    end
 end
 
+Rinv.coefficient(find(abs(Rinv.coefficient)<1e-10)) = 0;
+Ra = Rinv*P.R.R1;
+Rb = Rinv*P.R.R2;
 
+% Error check: Change Rinv, Ra, Rb to polynomials if they are not polynomials
+R0temp = polynomial(Rinv);
+R1temp = polynomial(Ra);
+R2temp = polynomial(Rb);
 
+% Error check: fix degmats if var1, var2 are missing
+if isempty(R0temp.degmat)% if s is not present
+    R0temp = polynomial(R0temp.coefficient,zeros(size(R0temp.degmat,1),1),var1.varname,R0temp.matdim);
+end
+if isempty(R1temp.degmat)% if neither s nor theta is present
+    R1temp = polynomial(R1temp.coefficient,zeros(size(R1temp.degmat,1),2),[var1.varname;var2.varname],R1temp.matdim);
+elseif size(R1temp.degmat,2)<2 % if only one of s or theta is present
+    if ismember(R1temp.varname,var1.varname)
+        missingVar = var2.varname;
+    else
+        missingVar = var1.varname;
+    end
+    R1temp = polynomial(R1temp.coefficient,[R1temp.degmat,zeros(size(R1temp.degmat,1),1)],[R1temp.varname;missingVar],R1temp.matdim);
+end
+if isempty(R2temp.degmat) % if neither s nor theta is present
+    R2temp = polynomial(R2temp.coefficient,zeros(size(R2temp.degmat,1),2),[var1.varname;var2.varname],R2temp.matdim);
+elseif size(R2temp.degmat,2)<2 % if only s or theta is present
+    if ismember(R2temp.varname,var1.varname)
+        missingVar = var2.varname;
+    else
+        missingVar = var1.varname;
+    end
+    R2temp = polynomial(R2temp.coefficient,[R2temp.degmat,zeros(size(R2temp.degmat,1),1)],[R2temp.varname;missingVar],R2temp.matdim);
+end
+Rinv = R0temp; Ra = R1temp; Rb = R2temp;
 
+Ra_vnames = Ra.varname;
+Rb_vnames = Rb.varname;
+
+Ra_maxdeg = max(Ra.degmat,[],1);
+Rb_maxdeg = max(Rb.degmat,[],1);
+
+var1_loc_Ra = ismember(Ra_vnames,var1.varname);
+var2_loc_Ra = ismember(Ra_vnames,var2.varname);
+if Ra_maxdeg(var1_loc_Ra)<= Ra_maxdeg(var2_loc_Ra)
+    [newdegmat,idx] = sortrows(Ra.degmat);
+    [val,~,~] = unique(full(Ra.degmat(:,var1_loc_Ra)));
+    Ra = polynomial(Ra.coefficient(idx,:),Ra.degmat(idx,:),Ra.varname,Ra.matdim);
+    F{1} = kron(var1.^(val'),eye(size(Ra)));
+    G{1} = {};
+    for i=1:length(val)
+        loctemp = find(newdegmat(:,var1_loc_Ra)==val(i));
+        temp = polynomial(Ra.coefficient(loctemp,:),Ra.degmat(loctemp,var2_loc_Ra),var2.varname,Ra.matdim);
+        G{1} = [G{1};temp];
+    end
+else
+    [newdegmat,idx] = sortrows(Ra.degmat,2);
+    [val,~,~] = unique(full(Ra.degmat(:,var2_loc_Ra)));
+    Ra = polynomial(Ra.coefficient(idx,:),Ra.degmat(idx,:),Ra.varname,Ra.matdim);
+    G{1} = kron(var2.^val,eye(size(Ra)));
+    F{1} = {};
+    for i=1:length(val)
+        loctemp = find(newdegmat(:,var2_loc_Ra)==val(i));
+        temp = polynomial(Ra.coefficient(loctemp,:),Ra.degmat(loctemp,var1_loc_Ra),var1.varname,Ra.matdim);
+        F{1} = [F{1},temp];
+    end
+end
+
+var1_loc_Rb = ismember(Rb_vnames,var1.varname);
+var2_loc_Rb = ismember(Rb_vnames,var2.varname);
+if Rb_maxdeg(var1_loc_Rb)<= Rb_maxdeg(var2_loc_Rb)
+    [newdegmat,idx] = sortrows(Rb.degmat);
+    [val,~,~] = unique(full(Rb.degmat(:,var1_loc_Ra)));
+    Rb = polynomial(Rb.coefficient(idx,:),Rb.degmat(idx,:),Rb.varname,Rb.matdim);
+    F{2} = kron(var1.^(val'),eye(size(Rb)));
+    G{2} = {};
+    for i=1:length(val)
+        loctemp = find(newdegmat(:,var1_loc_Rb)==val(i));
+        temp = polynomial(Rb.coefficient(loctemp,:),Rb.degmat(loctemp,var2_loc_Rb),var2.varname,Rb.matdim);
+        G{2} = [G{2};temp];
+    end
+else
+    [newdegmat,idx] = sortrows(Rb.degmat,2);
+    [val,~,~] = unique(full(Rb.degmat(:,var2_loc_Rb)));
+    Rb = polynomial(Rb.coefficient(idx,:),Rb.degmat(idx,:),Rb.varname,Rb.matdim);
+    G{2} = kron(var2.^val,eye(size(Rb)));
+    F{2} = {};
+    for i=1:length(val)
+        loctemp = find(newdegmat(:,var2_loc_Rb)==val(i));
+        temp = polynomial(Rb.coefficient(loctemp,:),Rb.degmat(loctemp,var1_loc_Rb),var1.varname,Rb.matdim);
+        F{2} = [F{2},temp];
+    end
+end
+end

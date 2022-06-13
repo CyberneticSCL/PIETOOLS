@@ -41,6 +41,7 @@ function Psol = getsol_lpivar(sos,P)
 % Initial coding MMP, SS, DJ  - 09/26/2021
 
 opvar Psol; Psol.I = P.I; Psol.var1 = P.var1; Psol.var2 = P.var2;
+Psol.dim = P.dim;
 
 for i = {'P','Q1','Q2'}
     if ~isempty(P.(i{:}))
