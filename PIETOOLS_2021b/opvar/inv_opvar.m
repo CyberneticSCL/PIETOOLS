@@ -50,8 +50,8 @@ if nargin==1
     tol=1e-8;
 end
 
-if ~isa(Pop,'opvar')|| ~any(Pop.dim(:,1)==Pop.dim(:,2))
-    error('Only symmetrix opvar class objects can be inverted using this function');
+if ~isa(Pop,'opvar')|| any(Pop.dim(:,1)~=Pop.dim(:,2))
+    error('Only opvar class objects with equal input and output dimensions can be inverted using this function');
 end
 
 
