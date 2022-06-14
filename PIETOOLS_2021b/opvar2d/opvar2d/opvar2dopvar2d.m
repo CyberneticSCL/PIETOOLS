@@ -53,9 +53,7 @@ end
 
 % Initialize the dopvar2d object with the same spatial domain and
 % dimensions as the opvar2d object
-D = dopvar2d();
-D.I = P.I;
-D.dim = P.dim;
+D = dopvar2d([],P.dim,P.I,P.var1,P.var2);
 
 if nargin==1
     % If no decision variable names are specified just use "dpvar" to convert
@@ -113,6 +111,9 @@ if nargin==1
 elseif nargin==2
     % If decision variable names are specified, use poly2dpvar to convert
     % each element to a dpvar with specified dvarnames
+    if ~iscellstr(dvarname) && ~ischar(dvarname)
+        error('Decision variable names must be specified as a cell of ''char'' objects')
+    end    
     fset = {'R00', 'R0x', 'R0y', 'R02', 'Rx0', 'Rxy', 'Ry0', 'Ryx', 'R20'};
     for f=fset
         if ~isempty(P.(f{:}))

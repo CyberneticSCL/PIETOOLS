@@ -48,9 +48,7 @@ end
 
 % Initialize the dopvar2d object with the same spatial domain and
 % dimensions as the opvar2d object
-P = dopvar2d();
-P.I = D.I;
-P.dim = D.dim;
+P = opvar2d([],D.dim,D.I,D.var1,D.var2);
 
 % Convert each component of D to a polynomial class object
 fset = {'R00', 'R0x', 'R0y', 'R02', 'Rx0', 'Rxy', 'Ry0', 'Ryx', 'R20'};
