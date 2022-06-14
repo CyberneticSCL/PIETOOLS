@@ -135,7 +135,8 @@ prog = sossolve(prog,sos_opts);
 
 % Conclusion:
 P = getsol_lpivar(prog,Pop);
-if strcmp(settings.sos_opts.solver,'sdpt3')
+
+if isfield(settings.sos_opts,'solver')&&strcmp(settings.sos_opts.solver,'sdpt3')
     if exist('prog', 'var')
         if ~(prog.solinfo.info.pinf||prog.solinfo.info.dinf)
             disp('The System of equations was successfully solved.')
@@ -145,7 +146,7 @@ if strcmp(settings.sos_opts.solver,'sdpt3')
             disp('Unable to definitively determine feasibility. Numerical errors dominating or at the limit of stability.')
         end
     end
-elseif strcmp(settings.sos_opts.solver,'sdpnalplus')
+elseif isfield(settings.sos_opts,'solver')&&strcmp(settings.sos_opts.solver,'sdpnalplus')
     if exist('prog', 'var')
         if ~(prog.solinfo.info.pinf||prog.solinfo.info.dinf)
             disp('The System of equations was successfully solved.')
