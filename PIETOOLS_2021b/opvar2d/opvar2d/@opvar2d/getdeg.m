@@ -1,39 +1,59 @@
-function [opdegs,maxdegs,mindegs] = getdeg(P)
+function [T] = getdeg(P,fprint)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [opdegs,maxdegs,mindegs] = getdeg(P) extract the degrees of the variables
-% appearing in each parameter of an opvar2d object P, with components 
+% [T] = getdeg(P,fprint) provides the min and max degree of the monomials present in
+% the components of a PI operator. The result returned is a 2D array with
+% entries described as below.
+% For a PI operator with components 
 %   R00 , R0x , R0y , R02;
 %   Rx0 , Rxx , Rxy , Rx2;
 %   Ry0 , Ryx , Ryy , Ry2;
 %   R20 , R2x , R2y , R22;
+% the function returns
+% the following table.
+% T = [ min_R00_ss1         minR00_tt1      min_R00_ss2         min_R00_tt2;
+%       min_R0x_ss1         minR0x_tt1      min_R0x_ss2         min_R0x_tt2;
+%       min_R0y_ss1         minR0y_tt1      min_R0y_ss2         min_R0y_tt2;
+%       min_R02_ss1         minR02_tt1      min_R02_ss2         min_R02_tt2;
+%       min_Rx0_ss1         minRx0_tt1      min_Rx0_ss2         min_Rx0_tt2;
+%       min_Rxx{1}_ss1      minRxx{1}_tt1   min_Rxx{1}_ss2      min_Rxx{1}_tt2;
+%       min_Rxx{2}_ss1      minRxx{2}_tt1   min_Rxx{2}_ss2      min_Rxx{2}_tt2;
+%       min_Rxx{3}_ss1      minRxx{3}_tt1   min_Rxx{3}_ss2      min_Rxx{3}_tt2;
+%       min_Rxy_ss1         minRxy_tt1      min_Rxy_ss2         min_Rxy_tt2;
+%       min_Rx2{1}_ss1      minRx2{1}_tt1   min_Rx2{1}_ss2      min_Rx2{1}_tt2;
+%       min_Rx2{2}_ss1      minRx2{2}_tt1   min_Rx2{2}_ss2      min_Rx2{2}_tt2;
+%       min_Rx2{3}_ss1      minRx2{3}_tt1   min_Rx2{3}_ss2      min_Rx2{3}_tt2;
+%       min_Ry0_ss1         minRy0_tt1      min_Ry0_ss2         min_Ry0_tt2;
+%       min_Ryx_ss1         minRyx_tt1      min_Ryx_ss2         min_Ryx_tt2;
+%       min_Ryy{1}_ss1      minRyy{1}_tt1   min_Ryy{1}_ss2      min_Ryy{1}_tt2;
+%       min_Ryy{2}_ss1      minRyy{2}_tt1   min_Ryy{2}_ss2      min_Ryy{2}_tt2;
+%       min_Ryy{3}_ss1      minRyy{3}_tt1   min_Ryy{3}_ss2      min_Ryy{3}_tt2;
+%       min_Ry2{1}_ss1      minRy2{1}_tt1   min_Ry2{1}_ss2      min_Ry2{1}_tt2;
+%       min_Ry2{2}_ss1      minRy2{2}_tt1   min_Ry2{2}_ss2      min_Ry2{2}_tt2;
+%       min_Ry2{3}_ss1      minRy2{3}_tt1   min_Ry2{3}_ss2      min_Ry2{3}_tt2;
+%       min_R20_ss1         minR20_tt1      min_R20_ss2         min_R20_tt2;
+%       min_R2x{1}_ss1      minR2x{1}_tt1   min_R2x{1}_ss2      min_R2x{1}_tt2;
+%       min_R2x{2}_ss1      minR2x{2}_tt1   min_R2x{2}_ss2      min_R2x{2}_tt2;
+%       min_R2x{3}_ss1      minR2x{3}_tt1   min_R2x{3}_ss2      min_R2x{3}_tt2;
+%       min_R2y{1}_ss1      minR2y{1}_tt1   min_R2y{1}_ss2      min_R2y{1}_tt2;
+%       min_R2y{2}_ss1      minR2y{2}_tt1   min_R2y{2}_ss2      min_R2y{2}_tt2;
+%       min_R2y{3}_ss1      minR2y{3}_tt1   min_R2y{3}_ss2      min_R2y{3}_tt2;
+%       min_R22{1,1}_ss1    minR22{1,1}_tt1 min_R22{1,1}_ss2    min_R22{1,1}_tt2;
+%       min_R22{2,1}_ss1    minR22{2,1}_tt1 min_R22{2,1}_ss2    min_R22{2,1}_tt2;
+%       min_R22{3,1}_ss1    minR22{3,1}_tt1 min_R22{3,1}_ss2    min_R22{3,1}_tt2;
+%       min_R22{1,2}_ss1    minR22{1,2}_tt1 min_R22{1,2}_ss2    min_R22{1,2}_tt2;
+%       min_R22{1,3}_ss1    minR22{1,3}_tt1 min_R22{1,3}_ss2    min_R22{1,3}_tt2;
+%       min_R22{2,2}_ss1    minR22{2,2}_tt1 min_R22{2,2}_ss2    min_R22{2,2}_tt2;
+%       min_R22{3,2}_ss1    minR22{3,2}_tt1 min_R22{3,2}_ss2    min_R22{3,2}_tt2;
+%       min_R22{2,3}_ss1    minR22{2,3}_tt1 min_R22{2,3}_ss2    min_R22{2,3}_tt2;
+%       min_R22{3,3}_ss1    minR22{3,3}_tt1 min_R22{3,3}_ss2    min_R22{3,3}_tt2]
+%
 % 
 % INPUT
-%   P: opvar2d class object.
-%
+% P : opvar2d class object
+% fprint: flag if set to 1 the degree bounds will be printed
+% 
 % OUTPUT
-%   opdegs: struct with same fieldnames as P, with each field an nx4 array
-%           containing the degrees of the variables in the associated
-%           component in P. Each column corresponds to one of the four
-%           variables, arranged as 
-%               [P.var1(1), P.var2(1), P.var1(2), P.var2(2)];
-%
-%   maxdegs: struct with same fieldnames as P, with each field a 4x4 array
-%           containing the maximal degrees of the variables in the
-%           associated component in P. Maximal joint degrees in
-%           combinations of variables are also provided, ordered as
-%
-%                 0 |         ss2 |         tt2 |         ss2*tt2
-%          ---------|-------------|-------------|-----------------
-%               ss1 |     ss1*ss2 |     ss1*tt2 |     ss1*ss2*tt2
-%          ---------|-------------|-------------|-----------------
-%               tt1 |     tt1*ss2 |     tt1*tt2 |     tt1*ss2*tt2 
-%          ---------|-------------|-------------|-----------------
-%           ss1*tt1 | ss1*tt1*ss2 | ss1*tt1*tt2 | ss1*tt1*ss2*tt2  
-%
-%           where ss1=P.var1(1), ss2=P.var1(2), tt1=P.var2(1), tt2=P.var2(2);
-%
-%   mindegs: similar to maxdegs, only providing minimal (total) degrees
-%           instead of maximal degress in each variable
+% T : Array containing min and max degree of monomials in the components of P
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -63,11 +83,27 @@ function [opdegs,maxdegs,mindegs] = getdeg(P)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 04_11_2022
+% Initial coding DJ - 02_27_2021
+%   ^ Based heavily on "@opvar"-getdeg code by SS ^
+
+if nargin==1
+    fprint=0;
+end
 
 if ~isa(P,'opvar2d')
-    error('Input must be a dopvar2d object.');
+    error('Input must be an opvar2d variable.');
 end
+fset = {'R00','R0x','R0y','R02','Rx0','Rxy','Ry0','Ryx','R20'};
+kset = {1,2,3,4,5,9,13,14,21};
+fsetx = {'Rxx','Rx2','R2x'};
+ksetx = {(6:8),(10:12),(22:24)};
+fsety = {'Ryy','Ry2','R2y'};
+ksety = {(15:17),(18:20),(25:27)};
+fset2 = {'R22'};
+kset2 = {[28,31,32;29,33,35;30,34,36]};
+k=1;
+ftot = length(fset)+3*length(fsetx)+3*length(fsety)+9*length(fset2);
+T = zeros(ftot,8);
 
 % ss1
 if isa(P.var1(1),'polynomial')
@@ -94,120 +130,121 @@ elseif isa(P.var2,'char')
     var22 = P.var2(2);
 end
 
-% Initialize the degree objects
-opdegs = struct();
-maxdegs = struct();
-mindegs = struct();
 
-opdegs.vars = reshape([P.var1,P.var2],4,1);
-maxdegs.vars = reshape([P.var1,P.var2],4,1);
-mindegs.vars = reshape([P.var1,P.var2],4,1);
-        
-fset = {'R00','R0x','R0y','R02','Rx0','Rxx','Rxy','Rx2',...
-        'Ry0','Ryx','Ryy','Ry2','R20','R2x','R2y','R22'};   % fieldnames of the dopvar2d object
-% For each parameter, extract the degmat
 for f=1:length(fset)
-    PR = P.(fset{f});
-    if isa(PR,'double') || isempty(PR)
-        % If the object is not polynomial, degrees are all zero
-        opdegs.(fset{f}) = zeros(0,4);
-        maxdegs.(fset{f}) = zeros(4,4);
-        mindegs.(fset{f}) = zeros(4,4);
-        
-    elseif isa(PR,'polynomial')
-        % Find which variable in the polynomial corresponds to each
-        % variable of the opvar
-        idx1 = find(strcmp(PR.varname,var11));  % ss1
-        idx2 = find(strcmp(PR.varname,var12));  % tt1
-        idx3 = find(strcmp(PR.varname,var21));  % ss2
-        idx4 = find(strcmp(PR.varname,var22));  % tt2
-        
-        PRdegs = PR.degmat;                 % Extract degtable in current vars
-        nmons = size(PRdegs,1);
-        opdegs.(fset{f}) = sparse(zeros(nmons,4));  % Initialize new degmat in all 4 vars
-        maxdegs.(fset{f}) = zeros(4,4);             % Initialize max degs array
-        mindegs.(fset{f}) = zeros(4,4);             % Initialize max degs array
-        
-        % % For each variable, add the degrees to the appropriate column of
-        % % the degmat
-        if ~isempty(idx1)   % Degrees in ss1
-            opdegs.(fset{f})(:,1) = PRdegs(:,idx1);
+k = kset{f};
+    if isa(P.(fset{f}),'polynomial')
+        idx1 = find(strcmp(P.(fset{f}).varname,var11));
+        idx2 = find(strcmp(P.(fset{f}).varname,var12));
+        idx3 = find(strcmp(P.(fset{f}).varname,var21));
+        idx4 = find(strcmp(P.(fset{f}).varname,var22));
+        idx = [idx1,idx2,idx3,idx4];
+        deg = P.(fset{f}).degmat(:,[idx1,idx2,idx3,idx4]);
+
+        if ~isempty(idx1)
+            i1 = find(idx==idx1);
+            T(k,[1,5]) = [min(deg(:,i1)) max(deg(:,i1))];
         end
-        if ~isempty(idx2)   % Degrees in tt1
-            opdegs.(fset{f})(:,2) = PRdegs(:,idx2);
+        if ~isempty(idx2)
+            i1 = find(idx==idx2);
+            T(k,[2,6]) = [min(deg(:,i1)) max(deg(:,i1))];
         end
-        if ~isempty(idx3)   % Degrees in ss2
-            opdegs.(fset{f})(:,3) = PRdegs(:,idx3);
+        if ~isempty(idx3)
+            i1 = find(idx==idx3);
+            T(k,[3,7]) = [min(deg(:,i1)) max(deg(:,i1))];
         end
-        if ~isempty(idx4)   % Degrees in tt2
-            opdegs.(fset{f})(:,4) = PRdegs(:,idx4);
-        end
-        for l = 2:2^4   % Loop over all possible combinations of variables
-            indcs = cell(1,4);
-            [indcs{:}] = ind2sub(2*ones(1,4),l);        % Indices associated to position l in a 2x2x2x2 array
-            log_indcs = cell2mat(indcs)==2;             % Logical values indicating which vars contribute to the considered joint degree
-            maxdegs.(fset{f})(l) = max(sum(opdegs.(fset{f})(:,log_indcs),2)); % Take maximal joint degree in the considered variable
-            mindegs.(fset{f})(l) = min(sum(opdegs.(fset{f})(:,log_indcs),2)); % Take maximal joint degree in the considered variable
-        end
-        
-    elseif isa(PR,'cell')
-        for j=1:numel(PR)
-            PRR = PR{j};
-            
-            if isa(PRR,'double') || isempty(PRR)
-                % If the object is not polynomial, degrees are all zero
-                opdegs.(fset{f}){j} = zeros(0,4);
-                maxdegs.(fset{f}){j} = zeros(4,4);
-                mindegs.(fset{f}){j} = zeros(4,4);
-            
-            elseif isa(PRR,'polynomial') || isa(PRR,'dpvar')
-                % Find which variable in the polynomial corresponds to each
-                % variable of the opvar
-                idx1 = find(strcmp(PRR.varname,var11));  % ss1
-                idx2 = find(strcmp(PRR.varname,var12));  % tt1
-                idx3 = find(strcmp(PRR.varname,var21));  % ss2
-                idx4 = find(strcmp(PRR.varname,var22));  % tt2
-                
-                PRdegs = PRR.degmat;                 % Extract degtable in current vars
-                nmons = size(PRdegs,1);
-                opdegs.(fset{f}){j} = zeros(nmons,4); % Initialize new degmat in all 4 vars
-                maxdegs.(fset{f}){j} = zeros(4,4);     % Initialize max degs array
-                mindegs.(fset{f}){j} = zeros(4,4);     % Initialize max degs array
-                
-                % % For each variable, add the degrees to the appropriate column of
-                % % the degmat
-                if ~isempty(idx1)   % Degrees in ss1
-                    opdegs.(fset{f}){j}(:,1) = PRdegs(:,idx1);
-                end
-                if ~isempty(idx2)   % Degrees in tt1
-                    opdegs.(fset{f}){j}(:,2) = PRdegs(:,idx2);
-                end
-                if ~isempty(idx3)   % Degrees in ss2
-                    opdegs.(fset{f}){j}(:,3) = PRdegs(:,idx3);
-                end
-                if ~isempty(idx4)   % Degrees in tt2
-                    opdegs.(fset{f}){j}(:,4) = PRdegs(:,idx4);
-                end
-                for l = 2:2^4   % Loop over all possible combinations of variables
-                    indcs = cell(1,4);
-                    [indcs{:}] = ind2sub(2*ones(1,4),l);        % Indices associated to position l in a 2x2x2x2 array
-                    log_indcs = cell2mat(indcs)==2;             % Logical values indicating which vars contribute to the considered joint degree
-                    maxdegs.(fset{f}){j}(l) = max(sum(opdegs.(fset{f}){j}(:,log_indcs),2)); % Take maximal joint degree in the considered variable
-                    mindegs.(fset{f}){j}(l) = min(sum(opdegs.(fset{f}){j}(:,log_indcs),2)); % Take maximal joint degree in the considered variable
-                end
-                
-            else
-                error(['Component ',fset{f},'{',num2str(j),'} of dopvar2d object is not properly specified'])
-            end
-        end
-        
-    else
-        error(['Component ',fset{f},' of dopvar2d object is not properly specified'])
+        if ~isempty(idx4)
+            i1 = find(idx==idx4);
+            T(k,[4,8]) = [min(deg(:,i1)) max(deg(:,i1))];
+        end  
     end
 end
 
-opdegs.R22 = reshape(opdegs.R22,[3,3]);
-maxdegs.R22 = reshape(maxdegs.R22,[3,3]);
-mindegs.R22 = reshape(mindegs.R22,[3,3]);
+fsetxy = [fsetx, fsety];
+ksetxy = [ksetx, ksety];
+for f=1:length(fsetxy)
+    for i=1:3
+        k = ksetxy{f}(i);
+        if isa(P.(fsetxy{f}){i},'polynomial')
+            idx1 = find(strcmp(P.(fsetxy{f}){i}.varname,var11));
+            idx2 = find(strcmp(P.(fsetxy{f}){i}.varname,var12));
+            idx3 = find(strcmp(P.(fsetxy{f}){i}.varname,var21));
+            idx4 = find(strcmp(P.(fsetxy{f}){i}.varname,var22));
+            idx = [idx1,idx2,idx3,idx4];
+            deg = P.(fsetxy{f}){i}.degmat(:,[idx1,idx2,idx3,idx4]);
+
+            if ~isempty(idx1)
+                i1 = find(idx==idx1);
+                T(k,[1,5]) = [min(deg(:,i1)) max(deg(:,i1))];
+            end
+            if ~isempty(idx2)
+                i1 = find(idx==idx2);
+                T(k,[2,6]) = [min(deg(:,i1)) max(deg(:,i1))];
+            end
+            if ~isempty(idx3)
+                i1 = find(idx==idx3);
+                T(k,[3,7]) = [min(deg(:,i1)) max(deg(:,i1))];
+            end
+            if ~isempty(idx4)
+                i1 = find(idx==idx4);
+                T(k,[4,8]) = [min(deg(:,i1)) max(deg(:,i1))];
+            end  
+        end
+    end
+end
+
+for f=1:length(fset2)
+    for i=1:3
+    for j=1:3
+        k = kset2{f}(i,j);
+        if isa(P.(fset2{f}){i,j},'polynomial')
+            idx1 = find(strcmp(P.(fset2{f}){i,j}.varname,var11));
+            idx2 = find(strcmp(P.(fset2{f}){i,j}.varname,var12));
+            idx3 = find(strcmp(P.(fset2{f}){i,j}.varname,var21));
+            idx4 = find(strcmp(P.(fset2{f}){i,j}.varname,var22));
+            idx = [idx1,idx2,idx3,idx4];
+            deg = P.(fset2{f}){i,j}.degmat(:,[idx1,idx2,idx3,idx4]);
+
+            if ~isempty(idx1)
+                i1 = find(idx==idx1);
+                T(k,[1,5]) = [min(deg(:,i1)) max(deg(:,i1))];
+            end
+            if ~isempty(idx2)
+                i1 = find(idx==idx2);
+                T(k,[2,6]) = [min(deg(:,i1)) max(deg(:,i1))];
+            end
+            if ~isempty(idx3)
+                i1 = find(idx==idx3);
+                T(k,[3,7]) = [min(deg(:,i1)) max(deg(:,i1))];
+            end
+            if ~isempty(idx4)
+                i1 = find(idx==idx4);
+                T(k,[4,8]) = [min(deg(:,i1)) max(deg(:,i1))];
+            end  
+        end
+    end
+    end
+end
+
+
+
+T = full(T);
+if fprint==1
+    fsetfull = {'R00','R0x','R0y','R02',...
+                'Rx0','Rxx{1}','Rxx{2}','Rxx{3}','Rxy','Rx2{1}','Rx2{2}','Rx2{3}',...
+                'Ry0','Ryx','Ryy{1}','Ryy{2}','Ryy{3}','Ry2{1}','Ry2{2}','Ry2{3}',...
+                'R20','R2x{1}','R2x{2}','R2x{3}','R2y{1}','R2y{2}','R2y{3}',...
+                'R22{1,1}','R22{2,1}','R22{3,1}','R22{1,2}','R22{1,3}',...
+                'R22{2,2}','R22{3,2}','R22{2,3}','R22{3,3}'}';
+    min_var11 = T(:,1);
+    min_var12 = T(:,2);
+    min_var21 = T(:,3);
+    min_var22 = T(:,4);
+    max_var11 = T(:,5);
+    max_var12 = T(:,6);
+    max_var21 = T(:,7);
+    max_var22 = T(:,8);
+    table(fsetfull,min_var11,min_var12,min_var21,min_var22,max_var11,max_var12,max_var21,max_var22)
+end
 
 end
