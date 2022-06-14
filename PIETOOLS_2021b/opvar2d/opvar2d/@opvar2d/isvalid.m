@@ -1,4 +1,4 @@
-function [logval, msg] = isvalid(P)
+function [logval, msg] = isvalid(P,type)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [logval, msg] = isvalid(P) tests if operator 
 % P: R^m0 x L2^mx x L2^my x L2^m2 to R^n0 x L2^nx x L2^ny x L2^n2
@@ -8,10 +8,15 @@ function [logval, msg] = isvalid(P)
 % Version: 1.0
 % 
 % INPUT
-% P: opvar2d class object
+% P:    opvar2d class object
+% type: optional input of type char. If type='type' is specified, rather
+%       than returning true of false, an output logval is returned
+%       depending on what issue there may be with P.
 % 
 % OUTPUT
-% logval: returns 0 if the object is a valid opvar
+% logval: Returns 1 if the object is a valid opvar2d, 0 otherwise.
+%         If optional input type='type' is specified, returns:
+%                 0 if the object is a valid opvar2d,
 %                 1 if the object has incorrect dimensions
 %                 2 if component P.R00 is not a matrix
 %                 3.1 if R0x, Rx0 or Rxx{1,1} are not polynomials in ss1
@@ -27,8 +32,7 @@ function [logval, msg] = isvalid(P)
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% R00 , R0x , R0y , R02;
-
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % PIETools - isvalid
@@ -54,11 +58,23 @@ function [logval, msg] = isvalid(P)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 02_04_2021  
+% Initial coding DJ - 02_04_2021
 %   ^ Based heavily on "@opvar"-isvalid code by SS ^
+% 02/18/2022 - DJ: Adjusted to return true and false instead of double.
 
 if ~isa(P,'opvar2d')
     error('To check validity input must be opvar2d object');
+end
+if nargin==1
+    type = 0;
+elseif nargin==2
+    if strcmp(type,'type') || strcmp(type,'issue')
+        type = 1;
+    else
+        error('Second argument must be char object ''type''')
+    end
+else
+    error('Function takes at most two arguments')
 end
 
 dim = P.dim;
@@ -258,11 +274,11 @@ end
 logval=0;
 msg = 'Valid opvar2d';
 
-if any(isnan(dim(:,:)),'all')
+if any(any(isnan(dim(:,:))))
     logval=1;
     msg = 'Components have incompatible dimensions';
 %%%%%%%%%%%%%%% R0.
-elseif ~isa(R00,'double')
+elseif ~(isa(R00,'double') || (isa(R00,'polynomial') && ~any(R00.degmat)))
     logval=2;
     msg = 'R00 is not a matrix';
 elseif ~isa(R0x,'double')&&~isempty(R0xdiff)
@@ -359,5 +375,9 @@ for i=1:3
     end
 end
 
+% Adjust the output to just true or false if desired
+if ~type                % We care only if P is opvar2d, not why it may not be
+    logval = ~logval;   % No error means valid opvar2d
+end
 
 end

@@ -60,11 +60,11 @@ else % sequentially creating a block diagonal matrix
         if isa(A,'opvar2d') && isa(B,'opvar2d')
             if any(any(A.I~=B.I))
                 error('Spatial domain of opvar2d objects must match for block-diagonal concatenation');
+            elseif any(~isequal(A.var1,B.var1)) || any(~isequal(A.var2,B.var2))
+                error('The spatial variables of opvar2d objects must match for block-diagonal concatenation');
             end
-            opvar2d O1 O2;
-            O1.I = A.I; O2.I = A.I;
-            O1.dim = [A.dim(:,1),B.dim(:,2)];
-            O2.dim = [B.dim(:,1),A.dim(:,2)];
+            O1 = opvar2d([],[A.dim(:,1),B.dim(:,2)],A.I,A.var1,A.var2);
+            O2 = opvar2d([],[B.dim(:,1),A.dim(:,2)],A.I,A.var1,A.var2);
             
             Fdiag = [A, O1; O2, B];
             
