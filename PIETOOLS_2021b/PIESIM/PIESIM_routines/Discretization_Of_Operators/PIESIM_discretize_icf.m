@@ -12,6 +12,7 @@
 %
 % Outputs:
 % 1) coeff - Chebyshev coefficients for initial conditions and forcing functions
+% 2) B1_nonpol - contribution to PIE B1 operator arising from non-polynomial forcing
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -19,6 +20,8 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  11_05_2021
+% YP 6_16_2022 Renamed uinput.B21_nonpol to uinput.Bpw_nonpol, updated description of
+% outputs
 
 function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,grid,gridall);
 
@@ -77,12 +80,11 @@ coeff.acheb_f0=acheb_f0;
 
 % Discretize matrix operator for non-polynomial in space forcing
 
-if isfield(uinput,'B21_nonpol') 
-B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, nw, uinput.B21_nonpol, p, gridall);
+if isfield(uinput,'Bpw_nonpol') 
+B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, nw, uinput.Bpw_nonpol, p, gridall);
 else
 B1_nonpol=[];   
 end
-
 
 
 
