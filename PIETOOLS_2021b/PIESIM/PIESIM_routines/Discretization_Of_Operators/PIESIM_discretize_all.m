@@ -4,12 +4,13 @@
 % Perform discretization of computational grid, initial conditions, forcing functions and PIE operators 
 %
 % Inputs:
-% 1) PIE - PIE structure of the problem, with PI operators, T,Tu,Tw,A,Bi currently supported
+% 1) PIE - PIE structure of the problem
 % 2) uinput - user-defined boundary inputs, forcing and initial conditions
 % 3) psize - size of the problem: contains the variables nu,nw,nx,N,n0,n1,n2
 %
 % Outputs:
-% 1) Dop - discrete PIE operators containing Chebyshev matrices for T,Tu,Tw,A,Bi
+% 1) Dop - discrete PIE operators containing Chebyshev matrices for
+% T,Tu,Tw,A,Bi,Ci
 % 2) coeff - Chebyshev coefficients for initial conditions and forcing functions
 % 3) grid - contains physical and computational grid for n0 states
 %
