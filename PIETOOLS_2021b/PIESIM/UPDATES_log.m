@@ -42,3 +42,11 @@
 % PIESIM_transform_to_solution.m - Added reconstruction of observed and regulated outputs.
 % Added a support of case when LHS PDE operator is not the same as the
 % state map operator. Note: input arguments changed.
+
+% In folder "Time_Integrators"
+
+% PIESIM_time_integrate.m - added a call to a function that performs
+% stability check
+
+% PIESIM_stability_check.m - added a new function that checks numerical stability of time integration scheme and 
+% outputs suggestions if unstable
