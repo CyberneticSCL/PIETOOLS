@@ -41,9 +41,13 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 9_18_2021
+% YP 6/16/2022 - added stability check
 
 function solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, Dop)
 N=psize.N;
+
+PIESIM_stability_check(opts, Dop.Atotal);
+    
 switch opts.intScheme 
      case 1    
      solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, Dop);
