@@ -1,9 +1,0 @@
-
-Home page
-https://sedumi.ie.lehigh.edu/?page_id=58
-
-Software page
-https://github.com/sqlp/sedumi/archive/refs/heads/master.zip
-
-GNU license
-https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html#SEC1
