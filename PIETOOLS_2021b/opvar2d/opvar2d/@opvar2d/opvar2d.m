@@ -98,9 +98,9 @@ end
 properties (Dependent)
     dimdependent;
 end
-properties (Dependent)
-    struct;
-end
+% properties (Dependent)
+%     struct;
+% end
 
 methods
     function [P] = opvar2d(varargin) %constructor
@@ -371,7 +371,7 @@ methods
                         P = set(P,'Rxy',polynomial(mat(rind(1)+1:rind(2),cind(2)+1:cind(3))));
                         L(1).subs = 'Ryy';
                         P = subsasgn(P,L,polynomial(mat(rind(2)+1:rind(3),cind(2)+1:cind(3))));
-                        L(1).subs = 'Ryy';
+                        L(1).subs = 'Ry2';
                         P = subsasgn(P,L,polynomial(mat(rind(3)+1:rind(4),cind(2)+1:cind(3))));
                         
                         set(P,'R02',polynomial(mat(1:rind(1),cind(3)+1:cind(4))));
@@ -639,5 +639,19 @@ methods
     function [val] = get.dim(obj)
         val = obj.dimdependent;
     end
+    
+    function [out] = struct(obj)
+        out.dim = obj.dim;
+        out.I = obj.I;
+        out.var1 = obj.var1;    out.var2 = obj.var2;
+        Rparams = {'R00', 'R0x', 'R0y', 'R02';
+                   'Rx0', 'Rxx', 'Rxy', 'Rx2';
+                   'Ry0', 'Ryx', 'Ryy', 'Ry2';
+                   'R20', 'R2x', 'R2y', 'R22'};
+        for k=1:numel(Rparams)
+            out.(Rparams{k}) = obj.(Rparams{k});
+        end
+    end
+    
 end
 end

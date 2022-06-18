@@ -618,6 +618,7 @@ elseif isa(PR_val,'cell')
         error(['Parameters "',Rparams{ii_loc,jj_loc},'" should be specified as a cell of size ',num2str(size(Pop.Rparams{ii_loc,jj_loc},1))','-by-',num2str(size(Pop.Rparams{ii_loc,jj_loc},2)),'.'])
     end
     PR_val = reshape(PR_val,size(Pop.(Rparams{ii_loc,jj_loc})));
+    nr = dim_ij(1);     nc = dim_ij(2);
     
     % % Check if all parameters have the same dimensions, and
     % % expand/compress zero arrays if necessary.
