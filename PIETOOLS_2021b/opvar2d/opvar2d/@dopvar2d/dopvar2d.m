@@ -401,7 +401,7 @@ methods
                         P = set(P,'Rxy',dpvar(mat(rind(1)+1:rind(2),cind(2)+1:cind(3))));
                         L(1).subs = 'Ryy';
                         P = subsasgn(P,L,dpvar(mat(rind(2)+1:rind(3),cind(2)+1:cind(3))));
-                        L(1).subs = 'Ryy';
+                        L(1).subs = 'Ry2';
                         P = subsasgn(P,L,dpvar(mat(rind(3)+1:rind(4),cind(2)+1:cind(3))));
                         
                         set(P,'R02',dpvar(mat(1:rind(1),cind(3)+1:cind(4))));
