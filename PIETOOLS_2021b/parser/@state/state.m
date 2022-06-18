@@ -49,15 +49,17 @@ classdef state
         end
         
         % other class methods
-        obj = diff(obj,var,order);
         obj = delta(obj,var,var_val);
-        obj = plus(obj1,obj2);
+        obj = diff(obj,var,order);
+        obj = eq(obj1,obj2);
+        obj = horzcat(varargin);
+        obj = int(obj,var,limits);
         obj = minus(obj1,obj2);
+        obj = mtimes(obj,K);
+        obj = ne(obj1,obj2);
+        obj = plus(obj1,obj2);
         obj = uplus(obj);
         obj = uminus(obj);
-        obj = mtimes(obj,K);
-        obj = int(obj,var,limits);
-        obj = horzcat(varargin);
         obj = vertcat(varargin);
     end
 end
