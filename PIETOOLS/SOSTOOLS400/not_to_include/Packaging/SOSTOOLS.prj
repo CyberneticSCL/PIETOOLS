@@ -1,0 +1,165 @@
+<deployment-project plugin="plugin.toolbox" plugin-version="1.0">
+  <configuration file="/home/djagt/Programs/MATLAB/R2021a/toolbox/SOSTOOLS400_debug/not_to_include/Packaging/SOSTOOLS.prj" location="/home/djagt/Programs/MATLAB/R2021a/toolbox/SOSTOOLS400_debug/not_to_include/Packaging" name="SOSTOOLS" target="target.toolbox" target-name="Package Toolbox">
+    <param.appname>SOSTOOLS</param.appname>
+    <param.authnamewatermark>Antonis Papachristodoulou</param.authnamewatermark>
+    <param.email>sostools@cds.caltech.edu</param.email>
+    <param.company />
+    <param.summary>Sum-of-Squares Optimization Toolbox</param.summary>
+    <param.description>SOSTOOLS is a free, third-party MATLAB toolbox for solving sum of squares programs. The
+techniques behind it are based on the sum of squares decomposition for multivariate polynomials, which can be efficiently computed using semidefinite programming. SOSTOOLS is devel-
+oped as a consequence of the recent interest in sum of squares polynomials,
+partly due to the fact that these techniques provide convex relaxations for many hard problems
+such as global, constrained, and boolean optimization.</param.description>
+    <param.screenshot>${PROJECT_ROOT}/SOSTOOLS_logo_cut.png</param.screenshot>
+    <param.version>4.00</param.version>
+    <param.output>${PROJECT_ROOT}/SOSTOOLS.mltbx</param.output>
+    <param.products.name />
+    <param.products.id />
+    <param.products.version />
+    <param.platforms />
+    <param.guid>2f3a429c-1362-464a-bb9f-896284c741d4</param.guid>
+    <param.exclude.filters>% List files contained in your toolbox folder that you would like to exclude
+% from packaging.  Excludes should be listed relative to the toolbox folder.
+% Some examples of how to specify excludes are provided below:
+%
+% A single file in the toolbox folder:
+% .svn
+%
+% A single file in a subfolder of the toolbox folder:
+% example/.svn
+%
+% All files in a subfolder of the toolbox folder:
+% example/*
+%
+% All files of a certain name in all subfolders of the toolbox folder:
+% **/.svn
+%
+% All files matching a pattern in all subfolders of the toolbox folder:
+% **/*.bak
+%
+
+% Exclude not_to_include files
+not_to_include
+
+% Exclude Packaging files
+%+SOSTOOLS400_debug
+Packaging</param.exclude.filters>
+    <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
+    <param.examples />
+    <param.demosxml />
+    <param.apps />
+    <param.registered.apps />
+    <param.docs />
+    <param.getting.started.guide />
+    <param.matlabpath.excludes />
+    <param.javaclasspath.excludes />
+    <param.exported.on.package>false</param.exported.on.package>
+    <param.required.addons />
+    <param.matlab.project.id />
+    <param.matlab.project.name />
+    <param.release.start />
+    <param.release.end />
+    <param.release.current.only>false</param.release.current.only>
+    <param.compatiblity.windows>true</param.compatiblity.windows>
+    <param.compatiblity.macos>true</param.compatiblity.macos>
+    <param.compatiblity.linux>true</param.compatiblity.linux>
+    <param.compatiblity.matlabonline>false</param.compatiblity.matlabonline>
+    <param.installation.map />
+    <param.additional.sw.names />
+    <param.additional.sw.licenses />
+    <param.additional.sw.win.url />
+    <param.additional.sw.mac.url />
+    <param.additional.sw.linux.url />
+    <unset>
+      <param.company />
+      <param.output />
+      <param.products.name />
+      <param.products.id />
+      <param.products.version />
+      <param.platforms />
+      <param.exclude.pcodedmfiles />
+      <param.examples />
+      <param.demosxml />
+      <param.apps />
+      <param.registered.apps />
+      <param.docs />
+      <param.getting.started.guide />
+      <param.matlabpath.excludes />
+      <param.javaclasspath.excludes />
+      <param.exported.on.package />
+      <param.required.addons />
+      <param.matlab.project.id />
+      <param.matlab.project.name />
+      <param.release.start />
+      <param.release.end />
+      <param.release.current.only />
+      <param.compatiblity.windows />
+      <param.compatiblity.macos />
+      <param.compatiblity.linux />
+      <param.additional.sw.names />
+      <param.additional.sw.licenses />
+      <param.additional.sw.win.url />
+      <param.additional.sw.mac.url />
+      <param.additional.sw.linux.url />
+    </unset>
+    <fileset.rootdir>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug</file>
+    </fileset.rootdir>
+    <fileset.rootfiles>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/Contents.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/addsostools.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/cddpath.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/custom</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/demos</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/docs</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/dpvar</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/internal</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/monomials.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/mpmonomials.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/multipoly</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sosdecvar.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/soseq.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sosgetsol.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sosineq.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sosmatrixineq.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sospolymatrixvar.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sospolyvar.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sosposmatr.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sosposmatrvar.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sosprogram.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sospsimplify.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sosquadvar.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sossetobj.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sossolve.asv</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sossolve.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sossosmatrixvar.m</file>
+      <file>${MATLAB_ROOT}/toolbox/SOSTOOLS400_debug/sossosvar.m</file>
+    </fileset.rootfiles>
+    <fileset.depfun.included />
+    <fileset.depfun.excluded />
+    <fileset.package />
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}" name="SOSTOOLS.mltbx" optional="false">/home/djagt/Programs/MATLAB/R2021a/toolbox/SOSTOOLS400_debug/not_to_include/Packaging/SOSTOOLS.mltbx</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>/home/djagt/Programs/MATLAB/R2021a</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>true</unix>
+      <mac>false</mac>
+      <windows>false</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>true</linux>
+      <solaris>false</solaris>
+      <osver>5.4.0-84-generic</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>glnxa64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
