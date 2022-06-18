@@ -52,6 +52,7 @@ function [DP] = delta_opvar2d(P,invar,inval,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/27/2021
+% DJ, 06/17/2022 - Support edge boundary inputs (e.g. inval=(x,1)).
 
 % % Error checking
 if ~isa(P,'opvar2d')
@@ -82,6 +83,16 @@ while ~isempty(addvar)
 
     if ~any(ismember(P.var1.varname,delvar))
         error('Each input variable must correspond to one of the variables appearing in the opvar2d object')
+    end
+    
+    if ispvar(ppp) && all(isequal(delvar,ppp))
+        DP = P;
+        continue
+    else
+        try ppp = double(ppp);
+        catch
+            error('Evaluation of the operator at a varying position is not supported')
+        end
     end
 
     % % % Perform the evaluation % % %
