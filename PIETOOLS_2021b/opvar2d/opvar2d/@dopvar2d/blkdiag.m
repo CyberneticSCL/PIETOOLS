@@ -46,6 +46,7 @@ function Fdiag = blkdiag(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/27/2021
+% 06/24/2022, DJ - Fix for blkdiag with non-opvar2d object
 
 if nargin==1
     Fdiag=varargin{1};
@@ -68,9 +69,9 @@ else % sequentially creating a block diagonal matrix
             
             Fdiag = [A, O1; O2, B];
             
-        elseif (isa(A,'opvar2d') || isa(A,'dopvar2d')) && (isa(B,'polynomial') || isa(B,'double'))
-            if ~nnz(A.I)==2
-                error('Block-diagonal concatenation of opvar2d with polynomial or double is only supported if opvar2d maps only from and to a single space')
+        elseif (isa(A,'opvar2d') || isa(A,'dopvar2d')) && (isa(B,'polynomial') || isa(B,'double') || isa(B,'dpvar'))
+            if ~(nnz(A.dim(:,1))==1 && nnz(A.dim(:,2))==1)
+                error('Block-diagonal concatenation of dopvar2d with polynomial or double is only supported if dopvar2d maps only from and to a single space')
             end
             if isa(B,'polynomial') && (any(~ismember(B.varname,A.var1.varname)) || any(~ismember(B.varname,A.var2.varname)))
                 error('Variables appearing in the objects to concatenate should match')
@@ -152,8 +153,8 @@ else % sequentially creating a block diagonal matrix
             Fdiag.dim = Fdiag.dim;
             
             elseif isa(B,'opvar2d') || isa(B,'dopvar2d')% && (isa(A,'polynomial') || isa(A,'double'))
-            if ~nnz(B.I)==2
-                error('Block-diagonal concatenation of opvar2d with polynomial or double is only supported if opvar2d maps only from and to a single space')
+            if ~(nnz(B.dim(:,1))==1 && nnz(B.dim(:,2))==1)
+                error('Block-diagonal concatenation of dopvar2d with polynomial or double is only supported if dopvar2d maps only from and to a single space')
             end
             if isa(A,'polynomial') && (any(~ismember(A.varname,B.var1.varname)) || any(~ismember(A.varname,B.var2.varname)))
                 error('Variables appearing in the objects to concatenate should match')
