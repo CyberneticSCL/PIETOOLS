@@ -4,6 +4,10 @@ if isa(objA,'state')&&isa(K,'state')
     error('Two state type objects cannot be multiplied');
 end
 
+if numel(K)~=1 && size(K,2)~=length(objA)
+    error('Dimensions of multiplier and state vector do not match. Cannot be multiplied');
+end
+
 if isa(K,'state') && (size(objA,1)==1)
     prodTerms = mtimes(objA,K);
     return

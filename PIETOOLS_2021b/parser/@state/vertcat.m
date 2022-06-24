@@ -9,7 +9,7 @@ else
     end
     
     temptype = [objA.type;objB.type];
-    tempvecLength = [objA.length,objB.length];
+    tempvecLength = [objA.veclength,objB.veclength];
     tempvar = [objA.var; objB.var];
     tempvarname = [objA.statename; objB.statename];
     obj = state(temptype,tempvecLength,tempvar,tempvarname);

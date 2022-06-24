@@ -11,6 +11,6 @@ end
 % start converting to terms object and then perform differentiation
 objC = state2terms(obj,'delta',var,val);
 
-opvar T; T.R.R0 = eye(obj.length);
+opvar T; T.R.R0 = eye(length(obj));
 deltaTerms = terms(T,objC);
 end

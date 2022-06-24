@@ -4,7 +4,7 @@ if ~isa(objA,'state')||~isa(objB,'state')
     error('Only state type objects can be added together');
 end
 
-if sum(objA.length)~=sum(objB.length)
+if length(objA)~=length(objB)
     error('States of unequal length cannot be added');
 end
 

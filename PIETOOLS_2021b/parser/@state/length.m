@@ -1,3 +1,3 @@
 function veclen = length(objA)
-veclen = sum(objA.length);
+veclen = sum(objA.veclength);
 end

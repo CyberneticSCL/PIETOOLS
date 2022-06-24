@@ -15,16 +15,17 @@ methods
             obj.operator = varargin{1};    
         end
     end
-    obj = plus(objA,objB);
+    
+    obj = delta(objA,var,val);
+    obj = diff(objA,var,order);
+    obj = horzcat(objA,objB);
+    obj = int(objA,var,lim);
     obj = minus(objA,objB);
+    obj = mtimes(objA,objB); % note only one of two inputs can be terms object
+    obj = plus(objA,objB);
+    obj = times(objA,objB); % note only one of two inputs can be terms object
     obj = uplus(objA);
     obj = uminus(objA);
-    obj = diff(objA,var,order);
-    obj = int(objA,var,lim);
-    obj = delta(objA,var,val);
-    obj = mtimes(objA,objB); % note only one of two inputs can be terms object
-    obj = times(objA,objB); % note only one of two inputs can be terms object
-    obj = horzcat(objA,objB);
     obj = vertcat(objA,objB);
 end
 end

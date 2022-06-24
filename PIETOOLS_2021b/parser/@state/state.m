@@ -1,7 +1,7 @@
 classdef state 
     properties
         type {validateType(type)} = {'ode'};
-        length {mustBeInteger,mustBePositive,mustBeVector}=[1];
+        veclength {mustBeInteger,mustBePositive,mustBeVector}=[1];
         var {validateVar(var)} = {[pvar('t')]};
     end
     properties (Hidden, SetAccess=protected)
@@ -24,7 +24,7 @@ classdef state
                     obj.statename = stateNameGenerator();
                 elseif nargin==2
                     obj.type = varargin{1};
-                    obj.length = varargin{2};
+                    obj.veclength = varargin{2};
                     if strcmp(obj.type,'pde')
                         obj.var = {[pvar('t'),pvar('s1')]};
                     end
@@ -34,12 +34,12 @@ classdef state
                         error('var must be a row vector');
                     end
                     obj.type = {varargin{1}};
-                    obj.length = varargin{2};
+                    obj.veclength = varargin{2};
                     obj.var = {varargin{3}};
                     obj.statename = stateNameGenerator();
                 elseif nargin==4 % internal use only, dont use this for constructing state vectors
                     obj.type = varargin{1};
-                    obj.length = varargin{2};
+                    obj.veclength = varargin{2};
                     obj.var = varargin{3};
                     obj.statename = varargin{4};
                 elseif nargin>3
@@ -54,10 +54,12 @@ classdef state
         obj = eq(obj1,obj2);
         obj = horzcat(varargin);
         obj = int(obj,var,limits);
+        obj = length(obj);
         obj = minus(obj1,obj2);
         obj = mtimes(obj,K);
         obj = ne(obj1,obj2);
         obj = plus(obj1,obj2);
+        obj = size(obj);
         obj = uplus(obj);
         obj = uminus(obj);
         obj = vertcat(varargin);

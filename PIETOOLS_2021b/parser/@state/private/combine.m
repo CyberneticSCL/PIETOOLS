@@ -14,10 +14,10 @@ for i=1:nargin
 end
 end
 function P = findPermutation(A,B)
-P = zeros(sum(B.length),sum(A.length));
-blen = [0,cumsum(B.length)]+1; alen = [0,cumsum(A.length)]+1;
+P = zeros(length(B),length(A));
+blen = [0,cumsum(B.veclength)]+1; alen = [0,cumsum(A.veclength)]+1;
 [~,idx] = ismember(B.statename, A.statename);
 for i=1:length(blen)-1
-    P(blen(i):blen(i+1)-1,alen(idx(i)):alen(idx(i)+1)-1) = eye(A.length(idx(i)));
+    P(blen(i):blen(i+1)-1,alen(idx(i)):alen(idx(i)+1)-1) = eye(A.veclength(idx(i)));
 end
 end
