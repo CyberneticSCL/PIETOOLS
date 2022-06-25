@@ -1,4 +1,4 @@
-function [dP] = diff_opvar2d(P,invar,opts)
+function [dP] = diff_opvar2d(P,invar,deg,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [[dP] = diff_opvar(P) calculates spatial derivative of (Pu)(s) with respect to
 % variable var so that d(P*u) = dP*[u;du]
@@ -15,7 +15,9 @@ function [dP] = diff_opvar2d(P,invar,opts)
 %             will be performed p times
 %           - If invar(i) = x*y, invar(i) will be split into two separate
 %             variables [x;y]
-%   opts: optional inputs (see OUTPUT for details)
+%   deg:    nx1 array of integers, defining to what order P should be
+%           differentiated with respect to each variable
+%   opts:   Optional inputs (see OUTPUT for details)
 % 
 % OUTPUT 
 %   dP: derivative of P with respect to variable invar
@@ -65,267 +67,289 @@ end
 if isempty(invar)
     dP = P;
     return
+else
+    P = poly_opvar2d(P);   % Convert all parameters to polynomial for differentiation
 end
-
 if ndims(invar)>=3 || ~any(size(invar)==1)
     error('Differentiation variables must be input as an nx1 cell of strings, or nx1 polynomial')
 end
-   
-% % Differentiate with respect to each element of invar separately
-difvar = invar(1);
-addvar = invar(2:end);
-% For polynomial variable x^p*y^q, decompose into [x;x;...;x;y;...;y]
-if isa(difvar,'polynomial')
-    try
-        double(difvar);
-        isdble = 1;
-    catch
-        isdble = 0;
-    end
-    if isdble
-        % If difvar is double, we're not differentiating
-        [dP] = diff_opvar2d(P,addvar,opts);
-        return
-    else
-        if any(difvar.matdim~=1) || any(difvar.coef~=1)
-            error('Each element of polynomial variable array must correspond to a single variable with coefficient 1')
-        end
-        if length(difvar.varname)>1
-            addvar = [difvar;addvar];
-            difdeg = difvar.degmat;
-            adddeg = difvar.degmat;
-            difdeg(2:end) = 0;
-            adddeg(1) = 0;
-            difvar.degmat = difdeg;
-            addvar.degmat = adddeg;
-        end
-        if difvar.degmat>1
-            repval = difvar.degmat-1;
-            difvar.degmat = 1;
-            addvar = [repmat(difvar,[repval,1]);addvar];
-        end
-        difvar = difvar.varname;
-    end
-end
-
-if ~any(ismember(P.var1.varname,difvar))
-    error('Each differentiation variable must be one of the variables appearing in the opvar2d object')
-end
-
-% % % Perform the differentiation % % %
-opvar2d dP;
-dP.I = P.I;
-dim_new = P.dim;
-if strcmp(P.var1(1).varname,difvar) || strcmp(P.var2(1).varname,difvar)
-    % The differentiation variable is the first variable
-    sss = P.var1(1);    ttt = P.var2(1);
-    if nargin==3 && (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
-        % In this case, our state [u0; ux; uy; u2] doesn't change
-        if any(~isequal(dP.Rxx{1},0)) || any(~isequal(dP.Rx2{1},0)) || any(~isequal(dP.R2x{1},0)) || ...
-           any(~isequal(dP.R22{1,1},0)) || any(~isequal(dP.R22{1,2},0)) || any(~isequal(dP.R22{1,3},0))
-            error('"Pure differentiation" of PI operator is only possible when there are no multiplier terms along the dimension of differentiation')
-        else
-            dP.dim = dim_new;
-            
-            % Take the derivatives for the map to L2[x]
-            if dim_new(2,1)~=0
-            if dim_new(1,2)~=0
-            dP.Rx0 = diff(P.Rx0,sss);
-            end
-            if dim_new(2,2)~=0
-            dP.Rxx{1} = subs(P.Rxx{2}-P.Rxx{3},ttt,sss);
-            dP.Rxx{2} = diff(P.Rxx{2},sss);
-            dP.Rxx{3} = diff(P.Rxx{3},sss);
-            end
-            if dim_new(3,2)~=0
-            dP.Rxy = diff(P.Rxy,sss);
-            end
-            if dim_new(4,2)~=0
-            dP.Rx2{1} = subs(P.Rx2{2}-P.Rx2{3},ttt,sss);
-            dP.Rx2{2} = diff(P.Rx2{2},sss);
-            dP.Rx2{3} = diff(P.Rx2{3},sss);
-            end
-            end
-            % Take the derivatives for the map to L2[x,y]
-            if dim_new(4,1)~=0
-            if dim_new(1,2)~=0
-            dP.R20 = diff(P.R20,sss);
-            end
-            if dim_new(2,2)~=0
-            dP.R2x{1} = subs(P.R2x{2}-P.R2x{3},ttt,sss);
-            dP.R2x{2} = diff(P.R2x{2},sss);
-            dP.R2x{3} = diff(P.R2x{3},sss);
-            end
-            if dim_new(3,2)~=0
-            dP.R2y{1} = diff(P.R2y{1},sss);
-            dP.R2y{2} = diff(P.R2y{2},sss);
-            dP.R2y{3} = diff(P.R2y{3},sss);
-            end
-            if dim_new(4,2)~=0
-            dP.R22{1,1} = subs(P.R22{2,1}-P.R22{3,1},ttt,sss);
-            dP.R22{1,2} = subs(P.R22{2,2}-P.R22{3,2},ttt,sss);
-            dP.R22{1,3} = subs(P.R22{2,3}-P.R22{3,3},ttt,sss);
-            dP.R22{2,1} = diff(P.R22{2,1},sss);
-            dP.R22{2,2} = diff(P.R22{2,2},sss);
-            dP.R22{2,3} = diff(P.R22{2,3},sss);
-            dP.R22{3,1} = diff(P.R22{3,1},sss);
-            dP.R22{3,2} = diff(P.R22{3,2},sss);
-            dP.R22{3,3} = diff(P.R22{3,3},sss);
-            end
-            end
-        end
-    else
-        % In this case, our state extends to [u0; ux; ux_x; uy; u2; u2_x];
-        dim_new(2,2) = 2*dim_new(2,2);  % state [ux] becomes [ux; ux_x];
-        dim_new(4,2) = 2*dim_new(4,2);  % state [u2] becomes [u2; u2_x];
-        dP.dim = dim_new;
-        
-        % Take the derivatives for the map to L2[x]
-        if dim_new(2,1)~=0
-        if dim_new(1,2)~=0
-        dP.Rx0 = diff(P.Rx0,sss);
-        end
-        if dim_new(2,2)~=0
-        dP.Rxx{1} = [diff(P.Rxx{1},sss) + subs(P.Rxx{2}-P.Rxx{3},ttt,sss), P.Rxx{1}];
-        dP.Rxx{2} = [diff(P.Rxx{2},sss) zeros(size(P.Rxx{2}))];
-        dP.Rxx{3} = [diff(P.Rxx{3},sss) zeros(size(P.Rxx{3}))];
-        end
-        if dim_new(3,2)~=0
-        dP.Rxy = diff(P.Rxy,sss);
-        end
-        if dim_new(4,2)~=0
-        dP.Rx2{1} = [diff(P.Rx2{1},sss) + subs(P.Rx2{2}-P.Rx2{3},ttt,sss), P.Rx2{1}];
-        dP.Rx2{2} = [diff(P.Rx2{2},sss) zeros(size(P.Rx2{2}))];
-        dP.Rx2{3} = [diff(P.Rx2{3},sss) zeros(size(P.Rx2{3}))];
-        end
-        end
-        % Take the derivatives for the map to L2[x,y]
-        if dim_new(4,1)~=0
-        if dim_new(1,2)~=0
-        dP.R20 = diff(P.R20,sss);
-        end
-        if dim_new(2,2)~=0
-        dP.R2x{1} = [diff(P.R2x{1},sss) + subs(P.R2x{2}-P.R2x{3},ttt,sss), P.R2x{1}];
-        dP.R2x{2} = [diff(P.R2x{2},sss) zeros(size(P.R2x{2}))];
-        dP.R2x{3} = [diff(P.R2x{3},sss) zeros(size(P.R2x{3}))];
-        end
-        if dim_new(3,2)~=0
-        dP.R2y{1} = diff(P.R2y{1},sss);
-        dP.R2y{2} = diff(P.R2y{2},sss);
-        dP.R2y{3} = diff(P.R2y{3},sss);
-        end
-        if dim_new(4,2)~=0
-        dP.R22{1,1} = [diff(P.R22{1,1},sss) + subs(P.R22{2,1}-P.R22{3,1},ttt,sss), P.R22{1,1}];
-        dP.R22{1,2} = [diff(P.R22{1,2},sss) + subs(P.R22{2,2}-P.R22{3,2},ttt,sss), P.R22{1,2}];
-        dP.R22{1,3} = [diff(P.R22{1,3},sss) + subs(P.R22{2,3}-P.R22{3,3},ttt,sss), P.R22{1,3}];
-        dP.R22{2,1} = [diff(P.R22{2,1},sss) zeros(size(P.R22{2,1}))];
-        dP.R22{2,2} = [diff(P.R22{2,2},sss) zeros(size(P.R22{2,2}))];
-        dP.R22{2,3} = [diff(P.R22{2,3},sss) zeros(size(P.R22{2,3}))];
-        dP.R22{3,1} = [diff(P.R22{3,1},sss) zeros(size(P.R22{3,1}))];
-        dP.R22{3,2} = [diff(P.R22{3,2},sss) zeros(size(P.R22{3,2}))];
-        dP.R22{3,3} = [diff(P.R22{3,3},sss) zeros(size(P.R22{3,3}))];
-        end
-        end
-    end
-    
+if nargin==3 && isa(deg,'char')
+    opts = deg;
+elseif all(size(deg)==size(invar))
+    invar = invar.^deg;
 else
+    error('An order of derivative must be specified for each variable')
+end
+   
+
+% % Differentiate with respect to each element of invar separately
+addvar = invar(:);
+while ~isempty(addvar)
+    difvar = addvar(1);     % Differentiate wrt diffvar now
+    addvar = addvar((2:end)'); % Differentiate wrt remaining variables later
     
-    % The differentiation variable is the second variable
-    sss = P.var1(2);    ttt = P.var2(2);
-    if nargin==3 && (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
-        % In this case, our state [u0; ux; uy; u2] doesn't change
-        if any(~isequal(dP.Ryy{1},0)) || any(~isequal(dP.Ry2{1},0)) || any(~isequal(dP.R2y{1},0)) || ...
-           any(~isequal(dP.R22{1,1},0)) || any(~isequal(dP.R22{2,1},0)) || any(~isequal(dP.R22{3,1},0))
-            error('"Pure differentiation" of PI operator is only possible when there are no multiplier terms along the dimension of differentiation')
-        else
-            dP.dim = dim_new;
-            
-            % Take the derivatives for the map to L2[y]
-            dP.Ry0 = diff(P.Ry0,sss);
-            
-            dP.Ryy{1} = subs(P.Ryy{2}-P.Ryy{3},ttt,sss);
-            dP.Ryy{2} = diff(P.Ryy{2},sss);
-            dP.Ryy{3} = diff(P.Ryy{3},sss);
-            
-            dP.Ryx = diff(P.Ryx,sss);
-            
-            dP.Ry2{1} = subs(P.Ry2{2}-P.Ry2{3},ttt,sss);
-            dP.Ry2{2} = diff(P.Ry2{2},sss);
-            dP.Ry2{3} = diff(P.Ry2{3},sss);
-            
-            % Take the derivatives for the map to L2[x,y]
-            dP.R20 = diff(P.R20,sss);
-            
-            dP.R2x{1} = diff(P.R2x{1},sss);
-            dP.R2x{2} = diff(P.R2x{2},sss);
-            dP.R2x{3} = diff(P.R2x{3},sss);
-            
-            dP.R2y{1} = subs(P.R2y{2}-P.R2y{3},ttt,sss);
-            dP.R2y{2} = diff(P.R2y{2},sss);
-            dP.R2y{3} = diff(P.R2y{3},sss);
-            
-            dP.R22{1,1} = subs(P.R22{1,2}-P.R22{1,3},ttt,sss);
-            dP.R22{2,1} = subs(P.R22{2,2}-P.R22{2,3},ttt,sss);
-            dP.R22{3,1} = subs(P.R22{3,2}-P.R22{3,3},ttt,sss);
-            dP.R22{1,2} = diff(P.R22{1,2},sss);
-            dP.R22{2,2} = diff(P.R22{2,2},sss);
-            dP.R22{3,2} = diff(P.R22{3,2},sss);
-            dP.R22{1,3} = diff(P.R22{1,3},sss);
-            dP.R22{2,3} = diff(P.R22{2,3},sss);
-            dP.R22{3,3} = diff(P.R22{3,3},sss);
+    % For polynomial variable x^p*y^q, decompose into [x;x;...;x;y;...;y]
+    if isa(difvar,'polynomial')
+        % First, see if the variable is a constant
+        try
+            double(difvar);
+            isdble = 1;
+        catch
+            isdble = 0;
         end
-    else
-        % In this case, our state extends to [u0; ux; uy; uy_y; u2; u2_y];
-        dim_new(3,2) = 2*dim_new(3,2);  % state [uy] becomes [uy; uy_y];
-        dim_new(4,2) = 2*dim_new(4,2);  % state [u2] becomes [u2; u2_y];
-        dP.dim = dim_new;
-        
-        % Take the derivatives for the map to L2[y]
-        dP.Ry0 = diff(P.Ry0,sss);
-        
-        dP.Ryy{1} = [diff(P.Ryy{1},sss) + subs(P.Ryy{2}-P.Ryy{3},ttt,sss), P.Ryy{1}];
-        dP.Ryy{2} = [diff(P.Ryy{2},sss) zeros(size(P.Ryy{2}))];
-        dP.Ryy{3} = [diff(P.Ryy{3},sss) zeros(size(P.Ryy{3}))];
-        
-        dP.Ryx = diff(P.Ryx,sss);
-        
-        dP.Ry2{1} = [diff(P.Ry2{1},sss) + subs(P.Ry2{2}-P.Ry2{3},ttt,sss), P.Ry2{1}];
-        dP.Ry2{2} = [diff(P.Ry2{2},sss) zeros(size(P.Ry2{2}))];
-        dP.Ry2{3} = [diff(P.Ry2{3},sss) zeros(size(P.Ry2{3}))];
-        
-        % Take the derivatives for the map to L2[x,y]
-        dP.R20 = diff(P.R20,sss);
-        
-        dP.R2x{1} = diff(P.R2x{1},sss);
-        dP.R2x{2} = diff(P.R2x{2},sss);
-        dP.R2x{3} = diff(P.R2x{3},sss);
-        
-        dP.R2y{1} = [diff(P.R2y{1},sss) + subs(P.R2y{2}-P.R2y{3},ttt,sss), P.R2y{1}];
-        dP.R2y{2} = [diff(P.R2y{2},sss) zeros(size(P.R2y{2}))];
-        dP.R2y{3} = [diff(P.R2y{3},sss) zeros(size(P.R2y{3}))];
-        
-        dP.R22{1,1} = [diff(P.R22{1,1},sss) + subs(P.R22{1,2}-P.R22{1,3},ttt,sss), P.R22{1,1}];
-        dP.R22{2,1} = [diff(P.R22{2,1},sss) + subs(P.R22{2,2}-P.R22{2,3},ttt,sss), P.R22{2,1}];
-        dP.R22{3,1} = [diff(P.R22{3,1},sss) + subs(P.R22{3,2}-P.R22{3,3},ttt,sss), P.R22{3,1}];
-        dP.R22{1,2} = [diff(P.R22{1,2},sss) zeros(size(P.R22{1,2}))];
-        dP.R22{2,2} = [diff(P.R22{2,2},sss) zeros(size(P.R22{2,2}))];
-        dP.R22{3,2} = [diff(P.R22{3,2},sss) zeros(size(P.R22{3,2}))];
-        dP.R22{1,3} = [diff(P.R22{1,3},sss) zeros(size(P.R22{1,3}))];
-        dP.R22{2,3} = [diff(P.R22{2,3},sss) zeros(size(P.R22{2,3}))];
-        dP.R22{3,3} = [diff(P.R22{3,3},sss) zeros(size(P.R22{3,3}))];
-    
+        % If the variable is constant, we will not differentiate
+        if ~isdble
+            if any(difvar.coef~=1) || size(difvar.degmat,1)>1
+                error('Each element of polynomial variable array must correspond to a single variable with coefficient 1')
+            end
+            if length(difvar.varname)>1
+                % If difvar contains multiple variables, extract only first variable for differentiation now
+                newvar = difvar;    % Variables to differentiate wrt later
+                
+                difdeg = difvar.degmat;
+                difdeg(2:end) = 0;      % For now, differentiate only wrt first variable
+                difvar.degmat = difdeg;
+                
+                newdeg = newvar.degmat;
+                newdeg(1) = 0;          % Differentiate wrt remaining later
+                newvar.degmat = newdeg;
+                addvar = [newvar;addvar];
+            end
+            if difvar.degmat>1
+                % If we want to differentiate wrt x^p, differentiate p times with respect to x
+                repval = difvar.degmat-1;
+                difvar.degmat = 1;
+                addvar = [repmat(difvar,[repval,1]);addvar];
+            end
+            difvar = difvar.varname;
+        end
     end
     
+    % Next, differentiate with respect to difvar, unless difvar is a
+    % constant
+    if ~isdble        
+        if ~any(ismember(P.var1.varname,difvar))
+            error('Each differentiation variable must be one of the variables appearing in the opvar2d object')
+        end
+        
+        % % % Perform the differentiation % % %
+        opvar2d dP;
+        dP.I = P.I;  
+        dP.var1 = P.var1;   dP.var2 = P.var2;
+        dim_new = P.dim;
+        if strcmp(P.var1(1).varname,difvar) || strcmp(P.var2(1).varname,difvar)
+            % The differentiation variable is the first variable
+            sss = P.var1(1);    ttt = P.var2(1);
+            if nargin==3 && (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
+                % In this case, our state [u0; ux; uy; u2] doesn't change
+                if any(~isequal(dP.Rxx{1},0)) || any(~isequal(dP.Rx2{1},0)) || any(~isequal(dP.R2x{1},0)) || ...
+                        any(~isequal(dP.R22{1,1},0)) || any(~isequal(dP.R22{1,2},0)) || any(~isequal(dP.R22{1,3},0))
+                    error('"Pure differentiation" of PI operator is only possible when there are no multiplier terms along the dimension of differentiation')
+                else
+                    dP.dim = dim_new;
+                    
+                    % Take the derivatives for the map to L2[x]
+                    if dim_new(2,1)~=0
+                        if dim_new(1,2)~=0
+                            dP.Rx0 = diff(P.Rx0,sss);
+                        end
+                        if dim_new(2,2)~=0
+                            dP.Rxx{1} = polynomial(subs(P.Rxx{2}-P.Rxx{3},ttt,sss));
+                            dP.Rxx{2} = diff(P.Rxx{2},sss);
+                            dP.Rxx{3} = diff(P.Rxx{3},sss);
+                        end
+                        if dim_new(3,2)~=0
+                            dP.Rxy = diff(P.Rxy,sss);
+                        end
+                        if dim_new(4,2)~=0
+                            dP.Rx2{1} = polynomial(subs(P.Rx2{2}-P.Rx2{3},ttt,sss));
+                            dP.Rx2{2} = diff(P.Rx2{2},sss);
+                            dP.Rx2{3} = diff(P.Rx2{3},sss);
+                        end
+                    end
+                    % Take the derivatives for the map to L2[x,y]
+                    if dim_new(4,1)~=0
+                        if dim_new(1,2)~=0
+                            dP.R20 = diff(P.R20,sss);
+                        end
+                        if dim_new(2,2)~=0
+                            dP.R2x{1} = polynomial(subs(P.R2x{2}-P.R2x{3},ttt,sss));
+                            dP.R2x{2} = diff(P.R2x{2},sss);
+                            dP.R2x{3} = diff(P.R2x{3},sss);
+                        end
+                        if dim_new(3,2)~=0
+                            dP.R2y{1} = diff(P.R2y{1},sss);
+                            dP.R2y{2} = diff(P.R2y{2},sss);
+                            dP.R2y{3} = diff(P.R2y{3},sss);
+                        end
+                        if dim_new(4,2)~=0
+                            dP.R22{1,1} = polynomial(subs(P.R22{2,1}-P.R22{3,1},ttt,sss));
+                            dP.R22{1,2} = polynomial(subs(P.R22{2,2}-P.R22{3,2},ttt,sss));
+                            dP.R22{1,3} = polynomial(subs(P.R22{2,3}-P.R22{3,3},ttt,sss));
+                            dP.R22{2,1} = diff(P.R22{2,1},sss);
+                            dP.R22{2,2} = diff(P.R22{2,2},sss);
+                            dP.R22{2,3} = diff(P.R22{2,3},sss);
+                            dP.R22{3,1} = diff(P.R22{3,1},sss);
+                            dP.R22{3,2} = diff(P.R22{3,2},sss);
+                            dP.R22{3,3} = diff(P.R22{3,3},sss);
+                        end
+                    end
+                end
+            else
+                % In this case, our state extends to [u0; ux; ux_x; uy; u2; u2_x];
+                dim_new(2,2) = 2*dim_new(2,2);  % state [ux] becomes [ux; ux_x];
+                dim_new(4,2) = 2*dim_new(4,2);  % state [u2] becomes [u2; u2_x];
+                dP.dim = dim_new;
+                
+                % Take the derivatives for the map to L2[x]
+                if dim_new(2,1)~=0
+                    if dim_new(1,2)~=0
+                        dP.Rx0 = diff(P.Rx0,sss);
+                    end
+                    if dim_new(2,2)~=0
+                        dP.Rxx{1} = [diff(P.Rxx{1},sss) + polynomial(subs(P.Rxx{2}-P.Rxx{3},ttt,sss)), P.Rxx{1}];
+                        dP.Rxx{2} = [diff(P.Rxx{2},sss) zeros(size(P.Rxx{2}))];
+                        dP.Rxx{3} = [diff(P.Rxx{3},sss) zeros(size(P.Rxx{3}))];
+                    end
+                    if dim_new(3,2)~=0
+                        dP.Rxy = diff(P.Rxy,sss);
+                    end
+                    if dim_new(4,2)~=0
+                        dP.Rx2{1} = [diff(P.Rx2{1},sss) + polynomial(subs(P.Rx2{2}-P.Rx2{3},ttt,sss)), P.Rx2{1}];
+                        dP.Rx2{2} = [diff(P.Rx2{2},sss) zeros(size(P.Rx2{2}))];
+                        dP.Rx2{3} = [diff(P.Rx2{3},sss) zeros(size(P.Rx2{3}))];
+                    end
+                end
+                % Take the derivatives for the map to L2[x,y]
+                if dim_new(4,1)~=0
+                    if dim_new(1,2)~=0
+                        dP.R20 = diff(P.R20,sss);
+                    end
+                    if dim_new(2,2)~=0
+                        dP.R2x{1} = [diff(P.R2x{1},sss) + polynomial(subs(P.R2x{2}-P.R2x{3},ttt,sss)), P.R2x{1}];
+                        dP.R2x{2} = [diff(P.R2x{2},sss) zeros(size(P.R2x{2}))];
+                        dP.R2x{3} = [diff(P.R2x{3},sss) zeros(size(P.R2x{3}))];
+                    end
+                    if dim_new(3,2)~=0
+                        dP.R2y{1} = diff(P.R2y{1},sss);
+                        dP.R2y{2} = diff(P.R2y{2},sss);
+                        dP.R2y{3} = diff(P.R2y{3},sss);
+                    end
+                    if dim_new(4,2)~=0
+                        dP.R22{1,1} = [diff(P.R22{1,1},sss) + polynomial(subs(P.R22{2,1}-P.R22{3,1},ttt,sss)), P.R22{1,1}];
+                        dP.R22{1,2} = [diff(P.R22{1,2},sss) + polynomial(subs(P.R22{2,2}-P.R22{3,2},ttt,sss)), P.R22{1,2}];
+                        dP.R22{1,3} = [diff(P.R22{1,3},sss) + polynomial(subs(P.R22{2,3}-P.R22{3,3},ttt,sss)), P.R22{1,3}];
+                        dP.R22{2,1} = [diff(P.R22{2,1},sss) zeros(size(P.R22{2,1}))];
+                        dP.R22{2,2} = [diff(P.R22{2,2},sss) zeros(size(P.R22{2,2}))];
+                        dP.R22{2,3} = [diff(P.R22{2,3},sss) zeros(size(P.R22{2,3}))];
+                        dP.R22{3,1} = [diff(P.R22{3,1},sss) zeros(size(P.R22{3,1}))];
+                        dP.R22{3,2} = [diff(P.R22{3,2},sss) zeros(size(P.R22{3,2}))];
+                        dP.R22{3,3} = [diff(P.R22{3,3},sss) zeros(size(P.R22{3,3}))];
+                    end
+                end
+            end
+            
+        else
+            
+            % The differentiation variable is the second variable
+            sss = P.var1(2);    ttt = P.var2(2);
+            if nargin==3 && (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
+                % In this case, our state [u0; ux; uy; u2] doesn't change
+                if any(~isequal(dP.Ryy{1},0)) || any(~isequal(dP.Ry2{1},0)) || any(~isequal(dP.R2y{1},0)) || ...
+                        any(~isequal(dP.R22{1,1},0)) || any(~isequal(dP.R22{2,1},0)) || any(~isequal(dP.R22{3,1},0))
+                    error('"Pure differentiation" of PI operator is only possible when there are no multiplier terms along the dimension of differentiation')
+                else
+                    dP.dim = dim_new;
+                    
+                    % Take the derivatives for the map to L2[y]
+                    dP.Ry0 = diff(P.Ry0,sss);
+                    
+                    dP.Ryy{1} = polynomial(subs(P.Ryy{2}-P.Ryy{3},ttt,sss));
+                    dP.Ryy{2} = diff(P.Ryy{2},sss);
+                    dP.Ryy{3} = diff(P.Ryy{3},sss);
+                    
+                    dP.Ryx = diff(P.Ryx,sss);
+                    
+                    dP.Ry2{1} = polynomial(subs(P.Ry2{2}-P.Ry2{3},ttt,sss));
+                    dP.Ry2{2} = diff(P.Ry2{2},sss);
+                    dP.Ry2{3} = diff(P.Ry2{3},sss);
+                    
+                    % Take the derivatives for the map to L2[x,y]
+                    dP.R20 = diff(P.R20,sss);
+                    
+                    dP.R2x{1} = diff(P.R2x{1},sss);
+                    dP.R2x{2} = diff(P.R2x{2},sss);
+                    dP.R2x{3} = diff(P.R2x{3},sss);
+                    
+                    dP.R2y{1} = polynomial(subs(P.R2y{2}-P.R2y{3},ttt,sss));
+                    dP.R2y{2} = diff(P.R2y{2},sss);
+                    dP.R2y{3} = diff(P.R2y{3},sss);
+                    
+                    dP.R22{1,1} = polynomial(subs(P.R22{1,2}-P.R22{1,3},ttt,sss));
+                    dP.R22{2,1} = polynomial(subs(P.R22{2,2}-P.R22{2,3},ttt,sss));
+                    dP.R22{3,1} = polynomial(subs(P.R22{3,2}-P.R22{3,3},ttt,sss));
+                    dP.R22{1,2} = diff(P.R22{1,2},sss);
+                    dP.R22{2,2} = diff(P.R22{2,2},sss);
+                    dP.R22{3,2} = diff(P.R22{3,2},sss);
+                    dP.R22{1,3} = diff(P.R22{1,3},sss);
+                    dP.R22{2,3} = diff(P.R22{2,3},sss);
+                    dP.R22{3,3} = diff(P.R22{3,3},sss);
+                end
+            else
+                % In this case, our state extends to [u0; ux; uy; uy_y; u2; u2_y];
+                dim_new(3,2) = 2*dim_new(3,2);  % state [uy] becomes [uy; uy_y];
+                dim_new(4,2) = 2*dim_new(4,2);  % state [u2] becomes [u2; u2_y];
+                dP.dim = dim_new;
+                
+                % Take the derivatives for the map to L2[y]
+                dP.Ry0 = diff(P.Ry0,sss);
+                
+                dP.Ryy{1} = [diff(P.Ryy{1},sss) + polynomial(subs(P.Ryy{2}-P.Ryy{3},ttt,sss)), P.Ryy{1}];
+                dP.Ryy{2} = [diff(P.Ryy{2},sss) zeros(size(P.Ryy{2}))];
+                dP.Ryy{3} = [diff(P.Ryy{3},sss) zeros(size(P.Ryy{3}))];
+                
+                dP.Ryx = diff(P.Ryx,sss);
+                
+                dP.Ry2{1} = [diff(P.Ry2{1},sss) + polynomial(subs(P.Ry2{2}-P.Ry2{3},ttt,sss)), P.Ry2{1}];
+                dP.Ry2{2} = [diff(P.Ry2{2},sss) zeros(size(P.Ry2{2}))];
+                dP.Ry2{3} = [diff(P.Ry2{3},sss) zeros(size(P.Ry2{3}))];
+                
+                % Take the derivatives for the map to L2[x,y]
+                dP.R20 = diff(P.R20,sss);
+                
+                dP.R2x{1} = diff(P.R2x{1},sss);
+                dP.R2x{2} = diff(P.R2x{2},sss);
+                dP.R2x{3} = diff(P.R2x{3},sss);
+                
+                dP.R2y{1} = [diff(P.R2y{1},sss) + polynomial(subs(P.R2y{2}-P.R2y{3},ttt,sss)), P.R2y{1}];
+                dP.R2y{2} = [diff(P.R2y{2},sss) zeros(size(P.R2y{2}))];
+                dP.R2y{3} = [diff(P.R2y{3},sss) zeros(size(P.R2y{3}))];
+                
+                dP.R22{1,1} = [diff(P.R22{1,1},sss) + polynomial(subs(P.R22{1,2}-P.R22{1,3},ttt,sss)), P.R22{1,1}];
+                dP.R22{2,1} = [diff(P.R22{2,1},sss) + polynomial(subs(P.R22{2,2}-P.R22{2,3},ttt,sss)), P.R22{2,1}];
+                dP.R22{3,1} = [diff(P.R22{3,1},sss) + polynomial(subs(P.R22{3,2}-P.R22{3,3},ttt,sss)), P.R22{3,1}];
+                dP.R22{1,2} = [diff(P.R22{1,2},sss) zeros(size(P.R22{1,2}))];
+                dP.R22{2,2} = [diff(P.R22{2,2},sss) zeros(size(P.R22{2,2}))];
+                dP.R22{3,2} = [diff(P.R22{3,2},sss) zeros(size(P.R22{3,2}))];
+                dP.R22{1,3} = [diff(P.R22{1,3},sss) zeros(size(P.R22{1,3}))];
+                dP.R22{2,3} = [diff(P.R22{2,3},sss) zeros(size(P.R22{2,3}))];
+                dP.R22{3,3} = [diff(P.R22{3,3},sss) zeros(size(P.R22{3,3}))];
+                
+            end
+        end
+        P = dP; % Differentiate dP wrt remaining variables addvar
+    end 
 end
 
 % Get rid of terms which are practically zero
-dP = zremove(dP);
+tol = 1e-14;
+dP = clean_opvar(P,tol);
 
-% Continue differentiation with respect to remaining variables
-if ~isempty(addvar) && nargin==3
-    dP = diff_opvar2d(dP,addvar,opts);
-elseif ~isempty(addvar)
-    dP = diff_opvar2d(dP,addvar);
-end
+% % Continue differentiation with respect to remaining variables
+% if ~isempty(addvar) && exist('opts','var')
+%     dP = diff_opvar2d(dP,addvar,opts);
+% elseif ~isempty(addvar)
+%     dP = diff_opvar2d(dP,addvar);
+% end
 
 end
