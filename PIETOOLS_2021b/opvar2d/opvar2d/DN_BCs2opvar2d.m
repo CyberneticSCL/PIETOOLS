@@ -4,14 +4,14 @@ function [Ebb] = DN_BCs2opvar2d(Bindx,n11,n22,dom)
 
 % Conditions are enforce on hypercube described by dom=[a(1),b(1);a(2),b(2)];
 
-% Bindx describes conditions on first order state of size n1
+% Bindx describes conditions on first order state of size n11
 % Bindx must be binary column vector of length 4
 % Bindx(i)==1 enforces Dirichlet condition at boundary i \in {1,2,3,4}
 % Bindx(1)+Bindx(3) must be equal to 1, enforcing one condition in dimension 2
 % Bindx(2)+Bindx(4) must be equal to 1, enforcing one condition in dimension 1
 
 
-% Dindx describes conditions on second order state of size n2
+% Dindx describes conditions on second order state of size n22
 % Dindx must be binary matrix of size [4,2]
 % Dindx(i,1)==1 enforces Dirichlet condition at boundary i \in {1,2,3,4}
 % Dindx(i,2)==1 enforces Neumann condition at boundary i \in {1,2,3,4}
@@ -34,9 +34,9 @@ function [Ebb] = DN_BCs2opvar2d(Bindx,n11,n22,dom)
 %               
 %               a(2)
 
-% This numbering deviates from order in full boundary vector u_bf
+% This numbering deviates from order in full boundary vector X_bf
 % We use the following vector to translate order of corners in code to
-% order in u_bf:
+% order in X_bf:
 bf_order = [1;3;4;2];
 
 Bindx11 = Bindx(1:4*n11,1);

@@ -19,7 +19,7 @@ function b = subsasgn(a,L,RHS)
 % or D. Jagt at djagt@asu.edu
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022 M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -45,7 +45,6 @@ function b = subsasgn(a,L,RHS)
 %a = opvar2d(a);
 %sza = size(a);
 switch L(1).type
-    
     case '.'
         if length(L) == 1
             temp = RHS;
@@ -109,4 +108,4 @@ switch L(1).type
         error('{}- like subsassign is not supported for opvar2d objects.');
 end
 
-b.dim = b.dim;
+end
