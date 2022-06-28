@@ -1,4 +1,4 @@
-classdef state 
+classdef state
     properties
         type {validateType(type)} = {'ode'};
         veclength {mustBeInteger,mustBePositive,mustBeVector}=[1];
@@ -7,6 +7,10 @@ classdef state
     properties (Hidden, SetAccess=protected)
         statename;
     end
+    methods (Access = {?terms, ?state})
+        objterms = state2terms(obj,operator,var,val);
+    end
+    
     methods
         function obj = state(varargin) %constructor
             if nargout==0

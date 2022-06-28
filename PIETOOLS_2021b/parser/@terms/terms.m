@@ -1,4 +1,4 @@
-classdef terms
+classdef (InferiorClasses={?state})terms
 properties (SetAccess=protected)
     operator opvar;
     statevec struct;
@@ -16,16 +16,17 @@ methods
         end
     end
     
-    obj = delta(objA,var,val);
-    obj = diff(objA,var,order);
-    obj = horzcat(objA,objB);
+%     obj = delta(objA,var,val);
+%     obj = diff(objA,var,order);
+%     obj = horzcat(varargin);
     obj = int(objA,var,lim);
+    obj = length(obj);
     obj = minus(objA,objB);
     obj = mtimes(objA,objB); % note only one of two inputs can be terms object
     obj = plus(objA,objB);
-    obj = times(objA,objB); % note only one of two inputs can be terms object
+%     obj = times(objA,objB); % note only one of two inputs can be terms object
     obj = uplus(objA);
     obj = uminus(objA);
-    obj = vertcat(objA,objB);
+    obj = vertcat(varargin);
 end
 end
