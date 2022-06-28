@@ -7,8 +7,9 @@ classdef state
     properties (Hidden, SetAccess=protected)
         statename;
     end
-    methods (Access = {?terms, ?state})
+    methods (Access = {?terms, ?sys, ?state})
         objterms = state2terms(obj,operator,var,val);
+        [out, varargout] = combine(varargin)
     end
     
     methods
