@@ -159,6 +159,3 @@ end % for kk=i
 end % j
 A(:,k+1)=vecmult1(:)+vecmult2(:);
 end % k
-
-
-
