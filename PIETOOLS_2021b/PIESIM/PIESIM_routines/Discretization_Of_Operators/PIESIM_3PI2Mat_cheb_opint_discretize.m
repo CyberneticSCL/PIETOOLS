@@ -23,7 +23,6 @@
 % Initial coding YP  - 6_28_2022
 function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p)
 
-
 pvar s theta;
 
 Norder=N-p;
@@ -104,8 +103,8 @@ vecmult1=zeros(N+1,1);
 vecmult2=zeros(N+1,1);
 for j=0:maxdeg+1
     for m=0:maxdeg+1
-% Integrate R1 (T_(k+m) and T_|k-m|) polynomials on [-1,theta]
-% Integrate R2 (T_(k+m) and T_|k-m|) polynomials on [theta,1]
+% Integrate R1 (T_(k+m) and T_|k-m|) polynomials on [-1,s]
+% Integrate R2 (T_(k+m) and T_|k-m|) polynomials on [s,1]
 
 vecint1=zeros(N+1,1);
 vecint2=zeros(N+1,1);
