@@ -2,8 +2,18 @@ function out = getPDEparams(pdeObj)
 equations = pdeObj.equation;
 statelist = pdeObj.states;
 eqnNum = length(equations);
+odeeqns = {}; pdeeqns = {}; outeqns = {}; bceqns = {};
 for i=1:eqnNum
     eqnType{i} = identifyEqnType(equations{i});
+    if strcmp(eqnType{i},'ode')
+        odeeqns{end+1} = equations{i};
+    elseif strcmp(eqnType{i},'pde')
+        pdeeqns{end+1} = equations{i};
+    elseif strcmp(eqnType{i},'out')
+        outeqns{end+1} = equations{i};
+    elseif strcmp(eqnType{i},'bc')
+        bceqns{end+1} = equations{i};
+    end
 end
 out = pdeparams();
 
@@ -26,8 +36,8 @@ for i=1:eqnNum
         end
     else % find nr terms
         if ismember('pde',statevec.state.type)
-           eqnlen = sum(equations{i}.operator.dim(:,1));
-           out.n.nr = out.n.nr+eqnlen;
+            eqnlen = sum(equations{i}.operator.dim(:,1));
+            out.n.nr = out.n.nr+eqnlen;
         end
     end
 end
@@ -57,6 +67,19 @@ for i=1:eqnNum
     end
 end
 out.n.n_pde = zeros(1,N+1);
+out.n.n_pde(end) = npde_sum;
+
+% extract ODE params
+
+% extract output params
+
+% extract BC params
+
+% extract PDE params
+
+% extract interconnection signals, v
+
+% extract interconnection signals, r
 
 
 asdfs=0;

@@ -4,6 +4,14 @@ if nargin==1
 else
     objA = varargin{1};
     objB = varargin{2};
+    if isempty(objA)
+        obj = objB;
+        return
+    elseif isempty(objB)
+        obj = objA;
+        return
+    end
+    
     if isa(objA,'state')
         objA = state2terms(objA);
     end
