@@ -8,11 +8,8 @@ else
         error('Only state class objects can be vertically concatenated');
     end
     
-    temptype = [objA.type;objB.type];
-    tempvecLength = [objA.veclength,objB.veclength];
-    tempvar = [objA.var; objB.var];
-    tempvarname = [objA.statename; objB.statename];
-    obj = state(temptype,tempvecLength,tempvar,tempvarname);
+    obj(1,1) = objA;
+    obj(2,1) = objB;
     if nargin>2
         obj = vertcat(obj,varargin{3:end});
     end

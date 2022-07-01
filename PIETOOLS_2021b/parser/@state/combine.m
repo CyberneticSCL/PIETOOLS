@@ -2,23 +2,23 @@ function [out, varargout] = combine(varargin)
 out = varargin{1};
 for i=2:nargin
     tmp = varargin{i};
-    for j=1:length(tmp.veclength)
+    for j=1:length(tmp)
         s.type = '()'; s.subs = {j};
         temp = subsref(tmp,s); % some weird error if temp is not used
-        if ~ismember(temp.statename,out.statename)
+        if ~ismember(temp,out)
             out = [out; temp];
         end
     end
 end
 
-varargout = cell(1,length(out.statename));
+varargout = cell(1,nargin);
 
 for i=1:nargin
     varargout{i} = findPermutation(out,varargin{i});
 end
 end
 function P = findPermutation(A,B)
-P = zeros(length(B),length(A));
+P = zeros(sum(stateveclength(B)),sum(stateveclength(A)));
 blen = [0,cumsum(B.veclength)]+1; alen = [0,cumsum(A.veclength)]+1;
 [~,idx] = ismember(B.statename, A.statename);
 for i=1:length(blen)-1

@@ -1,8 +1,10 @@
 classdef state
     properties
-        type {validateType(type)} = {'ode'};
-        veclength {mustBeInteger,mustBePositive,mustBeVector}=[1];
-        var {validateVar(var)} = {[pvar('t')]};
+        type {mustBeMember(type,{'ode','pde','in','out'})} = 'ode';
+        veclength {mustBeInteger,mustBePositive}=1;
+        var {mustBeVector,mustBeA(var,'polynomial')} = [pvar('t')];
+        diff_order {mustBeInteger,mustBeVector,mustBeNonnegative}= [0];
+        delta_val {mustBeVector,mustBeA(delta_val,["polynomial","double"])}= [pvar('t')];
     end
     properties (Hidden, SetAccess=protected)
         statename;
@@ -22,37 +24,39 @@ classdef state
                 end
             else
                 if nargin==1
-                    obj.type = {varargin{1}};
+                    obj.type = varargin{1};
                     if strcmp(varargin{1},'pde')
-                        obj.var = {[pvar('t'),pvar('s1')]};
+                        obj.var = [pvar('t'),pvar('s')];
+                        obj.diff_order = [0,0];
+                        obj.delta_val = [pvar ('t'),pvar('s')];
                     end
                     obj.statename = stateNameGenerator();
                 elseif nargin==2
-                    obj.type = {varargin{1}};
+                    obj.type = varargin{1};
                     obj.veclength = varargin{2};
                     if strcmp(obj.type,'pde')
-                        obj.var = {[pvar('t'),pvar('s1')]};
+                        obj.var = [pvar('t'),pvar('s')];
+                        obj.diff_order = [0,0];
+                        obj.delta_val = [pvar ('t'),pvar('s')];
                     end
                     obj.statename = stateNameGenerator();
                 elseif nargin==3
                     if size(varargin{3},1)~=1
                         error('var must be a row vector');
                     end
-                    obj.type = {varargin{1}};
-                    obj.veclength = varargin{2};
-                    obj.var = {varargin{3}};
-                    obj.statename = stateNameGenerator();
-                elseif nargin==4 % internal use only, dont use this for constructing state vectors
-                    if ~iscell(varargin{1})
-                        varargin{1} = {varargin{1}};
-                    end
                     obj.type = varargin{1};
                     obj.veclength = varargin{2};
-                    if ~iscell(varargin{3})
-                        varargin{3} = {varargin{3}};
-                    end
+                    obj.var = varargin{3};
+                    obj.statename = stateNameGenerator();
+                    obj.diff_order = zeros(1,length(varargin{3}));
+                    obj.delta_val = varargin{3};
+                elseif nargin==4 % internal use only, dont use this for constructing state vectors
+                    obj.type = varargin{1};
+                    obj.veclength = varargin{2};
                     obj.var = varargin{3};
                     obj.statename = varargin{4};
+                    obj.diff_order = zeros(1,length(varargin{3}));
+                    obj.delta_val = varargin{3};
                 elseif nargin>3
                     error('State class definition only takes 3 inputs');
                 end
@@ -62,34 +66,15 @@ classdef state
         % other class methods
         obj = delta(obj,var,var_val);
         obj = diff(obj,var,order);
-        obj = eq(obj1,obj2);
+        logval = eq(obj1,obj2);
         obj = horzcat(varargin);
         obj = int(obj,var,limits);
-        obj = length(obj);
+        logval = ismember(objA, objB)
         obj = minus(obj1,obj2);
         obj = mtimes(obj,K);
-        obj = ne(obj1,obj2);
+        logval = ne(obj1,obj2);
         obj = plus(obj1,obj2);
-        obj = size(obj);
         obj = uplus(obj);
         obj = uminus(obj);
-        obj = vertcat(varargin);
     end
-end
-function validateType(prop)
-if ~iscell(prop)&&~isvector(prop)
-    error('Type must be cell column array');
-end
-if ~all(ismember(prop,{'ode','pde','out','in'}))
-    error("Type must be one of the following strings: 'ode','pde','out','in'");
-end
-end
-function validateVar(prop)
-if ~iscell(prop)&&~isvector(prop)
-    error('var must be column cell array of polynomial row vectors');
-end
-for i=1:length(prop)
-    mustBeVector(prop{i});
-    mustBeA(prop{i},'polynomial');
-end
 end
