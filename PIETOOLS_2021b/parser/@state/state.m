@@ -28,7 +28,7 @@ classdef state
                     end
                     obj.statename = stateNameGenerator();
                 elseif nargin==2
-                    obj.type = varargin{1};
+                    obj.type = {varargin{1}};
                     obj.veclength = varargin{2};
                     if strcmp(obj.type,'pde')
                         obj.var = {[pvar('t'),pvar('s1')]};
@@ -43,8 +43,14 @@ classdef state
                     obj.var = {varargin{3}};
                     obj.statename = stateNameGenerator();
                 elseif nargin==4 % internal use only, dont use this for constructing state vectors
+                    if ~iscell(varargin{1})
+                        varargin{1} = {varargin{1}};
+                    end
                     obj.type = varargin{1};
                     obj.veclength = varargin{2};
+                    if ~iscell(varargin{3})
+                        varargin{3} = {varargin{3}};
+                    end
                     obj.var = varargin{3};
                     obj.statename = varargin{4};
                 elseif nargin>3

@@ -12,7 +12,10 @@ else
     end
     
     tempoperator = [objA.operator; objB.operator];
-    tempstatevec = [objA.statevec; objB.statevec];
+    tmpA = objA.statevec.state;tmpB = objB.statevec.state;
+    tempstatevec.state = [tmpA;tmpB];
+    tempstatevec.diff = [objA.statevec.diff; objB.statevec.diff];
+    tempstatevec.delta = [objA.statevec.delta; objB.statevec.delta];
     
     obj = terms(tempoperator,tempstatevec);
     if nargin>2

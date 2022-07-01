@@ -1,9 +1,13 @@
 function [out, varargout] = combine(varargin)
 out = varargin{1};
 for i=2:nargin
-    if ~ismember(varargin{i}.statename,out.statename)
-        temp = varargin{i}; % some weird error if temp is not used
-        out = [out; temp];
+    tmp = varargin{i};
+    for j=1:length(tmp.veclength)
+        s.type = '()'; s.subs = {j};
+        temp = subsref(tmp,s); % some weird error if temp is not used
+        if ~ismember(temp.statename,out.statename)
+            out = [out; temp];
+        end
     end
 end
 
