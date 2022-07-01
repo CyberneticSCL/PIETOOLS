@@ -17,10 +17,10 @@ for i=1:nargin
     varargout{i} = findPermutation(out,varargin{i});
 end
 end
-function P = findPermutation(A,B)
-P = zeros(sum(stateveclength(B)),sum(stateveclength(A)));
+function P = findPermutation(A,B) % returns P, such that B = P*A
+P = zeros(sum(B.veclength),sum(A.veclength));
 blen = [0,cumsum(B.veclength)]+1; alen = [0,cumsum(A.veclength)]+1;
-[~,idx] = ismember(B.statename, A.statename);
+[~,idx] = ismember(B, A);
 for i=1:length(blen)-1
     P(blen(i):blen(i+1)-1,alen(idx(i)):alen(idx(i)+1)-1) = eye(A.veclength(idx(i)));
 end

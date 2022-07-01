@@ -15,5 +15,5 @@ objC = state2terms(objC);
 opvar T; 
 T.R.R0 = permMatsA-permMatsB;
 
-sumTerms = terms(T,objC.statevec);
+sumTerms = terms(T,objC);
 end

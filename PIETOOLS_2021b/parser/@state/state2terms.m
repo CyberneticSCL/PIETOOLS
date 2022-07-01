@@ -8,22 +8,23 @@ end
 
 opvar T; T.R.R0 = eye(length(obj));
 
-termsOut = struct();
-termsOut.state = obj;
 
-termsOut.diff = cellfun(@(x) zeros(size(x)),obj.var,'un',0); 
-termsOut.delta = obj.var;
+termsOut = obj;
 
 if strcmp(operator,'diff')
     diffvar =var;
     difforder = val;
-    idx = cellfun(@(x) difforder*isequal(x,diffvar),obj.var,'un',0);
-    termsOut.diff = idx;
+    for i=1:length(termsOut)
+        idx = find(isequal(termsOut(i).var,diffvar));
+        termsOut(i).diff_order(idx) = difforder;
+    end
 elseif strcmp(operator,'delta')
     subvar = var;
     subval = val;
-    idx = cellfun(@(x) subs(x,subvar,subval),obj.var,'un',0);
-    termsOut.delta = idx;
+    for i=1:length(termsOut)
+        idx = find(isequal(termsOut(i).var,subvar));
+        termsOut(i).delta_val(idx) = subval;
+    end
 end
 
 out = terms(T,termsOut);

@@ -29,7 +29,7 @@ switch s(1).type
             error('Inaccessible/unknown property for the state object');
         end
     case '()'
-        out = subsref('builtin',obj,s);
+        out = builtin('subsref',obj,s);
     case '{}'
         error('Not a valid indexing expression')
 end

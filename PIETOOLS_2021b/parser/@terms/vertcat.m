@@ -4,13 +4,7 @@ if nargin==1
 else
     objA = varargin{1};
     objB = varargin{2};
-    if isempty(objA)
-        obj = objB;
-        return
-    elseif isempty(objB)
-        obj = objA;
-        return
-    end
+    
     
     if isa(objA,'state')
         objA = state2terms(objA);
@@ -19,11 +13,20 @@ else
         objB = state2terms(objB);
     end
     
-    tempoperator = [objA.operator; objB.operator];
-    tmpA = objA.statevec.state;tmpB = objB.statevec.state;
-    tempstatevec.state = [tmpA;tmpB];
-    tempstatevec.diff = [objA.statevec.diff; objB.statevec.diff];
-    tempstatevec.delta = [objA.statevec.delta; objB.statevec.delta];
+    if isempty(objA)
+        obj = objB;
+        return
+    elseif isempty(objB)
+        obj = objA;
+        return
+    end
+    
+    opvar zeroAB zeroBA;
+    zeroAB.dim = [0 0; objA.operator.dim(2,1) sum(objA.statevec.veclength)]; 
+    zeroBA.dim = [0 0; objB.operator.dim(2,1) sum(objB.statevec.veclength)];
+    
+    tempoperator = [objA.operator zeroAB; zeroBA objB.operator];
+    tempstatevec = [objA.statevec; objB.statevec];
     
     obj = terms(tempoperator,tempstatevec);
     if nargin>2

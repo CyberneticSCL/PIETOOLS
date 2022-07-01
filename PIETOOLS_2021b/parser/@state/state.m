@@ -69,7 +69,7 @@ classdef state
         logval = eq(obj1,obj2);
         obj = horzcat(varargin);
         obj = int(obj,var,limits);
-        logval = ismember(objA, objB)
+        [logval,idx] = ismember(objA, objB)
         obj = minus(obj1,obj2);
         obj = mtimes(obj,K);
         logval = ne(obj1,obj2);

@@ -15,10 +15,7 @@ if length(objA)~=length(objB)
 end
 
 tempoperator = [objA.operator objB.operator];
-tmpA = objA.statevec.state;tmpB = objB.statevec.state;
-tempstatevec.state = [tmpA;tmpB];
-tempstatevec.diff = [objA.statevec.diff; objB.statevec.diff];
-tempstatevec.delta = [objA.statevec.delta; objB.statevec.delta];
+tempstatevec = [objA.statevec; objB.statevec];
     
 sumTerms = terms(tempoperator,tempstatevec);
 end

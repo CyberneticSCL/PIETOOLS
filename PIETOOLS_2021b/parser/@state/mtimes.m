@@ -22,5 +22,5 @@ if numel(K)==1
 else
     T.R.R0 = K;
 end
-prodTerms = terms(T,objC.statevec);
+prodTerms = terms(T,objC);
 end

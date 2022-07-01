@@ -1,7 +1,7 @@
 classdef (InferiorClasses={?state})terms
 properties (SetAccess=protected)
     operator opvar;
-    statevec struct;
+    statevec state;
 end
 methods
     function obj = terms(varargin)
