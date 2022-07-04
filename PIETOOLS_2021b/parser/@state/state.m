@@ -28,7 +28,7 @@ classdef state
                     if strcmp(varargin{1},'pde')
                         obj.var = [pvar('t'),pvar('s')];
                         obj.diff_order = [0,0];
-                        obj.delta_val = [pvar ('t'),pvar('s')];
+                        obj.delta_val = [pvar('t'),pvar('s')];
                     end
                     obj.statename = stateNameGenerator();
                 elseif nargin==2
@@ -64,7 +64,7 @@ classdef state
         end
         
         % other class methods
-        obj = delta(obj,var,var_val);
+        obj = subs(obj,var,var_val);
         obj = diff(obj,var,order);
         logval = eq(obj1,obj2);
         obj = horzcat(varargin);
