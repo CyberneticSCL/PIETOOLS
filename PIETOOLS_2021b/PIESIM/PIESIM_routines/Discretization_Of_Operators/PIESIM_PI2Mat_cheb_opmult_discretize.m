@@ -32,49 +32,34 @@
 % Initial coding YP  - 12_21_2021
 function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rop, p)
 
+pvar s;
+
 A_nonsquare(1:N+1,1:N-p+1)=0;
 
-Rsym=multipoly2sym(Rop);
-
-    if (isempty(Rsym))
-        Rop_local=0;
-    else
-        Rop_local=Rsym;
-    end
-        
-    if (isa(Rop_local,'double')==1)
-        b=Rop_local;
-    else
-    b=coeffs(Rop_local,'all');
-    end
-
-Tpoly = [b];
-M = size(b,2);
-if (M<2) 
-    Tpoly = [0 b];
-    if isempty(b) 
-        Tpoly =[0 0];
-    end
-    M=2;
+if isa(Rop,'polynomial')
+    deg=Rop.maxdeg;
+else
+    deg=1;
 end
-C = zeros(M,M);
-C(1,1) = 1;
-C(2,2) = 1;
-for n = 3:M
-  C(n,:) = [0,2*C(n-1,1:M-1)] - C(n-2,:);
+
+chebgrid=cos(pi*(0:deg+1)/(deg+1));
+if isa(Rop,'polynomial')
+    Reval=subs(Rop,s,chebgrid);
+else
+    Reval=Rop*ones(1,deg+2);
 end
-C = fliplr( C );
-TpolyLC = Tpoly/C;
+
+acheb=fcht(double(Reval));
 
 for i=1:N-p+1
     id=i-1;
-    for j=1:length(TpolyLC)
+    for j=1:length(acheb)
         jd=j-1;
         if (jd+id<=N)
-        A_nonsquare(jd+id+1,i)=A_nonsquare(jd+id+1,i)+0.5*TpolyLC(j);
+        A_nonsquare(jd+id+1,i)=A_nonsquare(jd+id+1,i)+0.5*acheb(j);
         end
         if (abs(jd-id)<=N)
-        A_nonsquare(abs(jd-id)+1,i)=A_nonsquare(abs(jd-id)+1,i)+0.5*TpolyLC(j);
+        A_nonsquare(abs(jd-id)+1,i)=A_nonsquare(abs(jd-id)+1,i)+0.5*acheb(j);
         end
     end
 end

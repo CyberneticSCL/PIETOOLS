@@ -18,60 +18,45 @@
 % non-square total matrix operator for reconstruction of the primary
 % solution
 %
-%
-% Requires: multipoly2sym 
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding YP  - 5_31_2021
+% Initial coding YP  - 6_30_2022
 function [A, A_nonsquare]=PIESIM_POLy2Mat_cheb(N, nx, Rop, p)
-pvar s theta
-syms sym_s sym_theta
+pvar s 
 ns=size(p,2);
+
+if isa(Rop,'polynomial')
+    deg=Rop.maxdeg;
+else
+    deg=1;
+end
+
+chebgrid=cos(pi*(0:deg+1)/(deg+1));
+
 for m=1:ns
         
 A(1:N+1,1:nx,m)=0;
 
-Rsym=multipoly2sym(Rop);
-
 
 for k=1:nx
-    if (isempty(Rsym))
+    if (isempty(Rop))
         Rop_local=0;
     else
-        Rop_local=Rsym(m,k);
+        Rop_local=Rop(m,k);
     end
-        
-    if (isa(Rop_local,'double')==1)
-        b=Rop_local;
+    if isa(Rop_local,'polynomial')
+    Reval=subs(Rop_local,s,chebgrid);
     else
-    b=coeffs(Rop_local,'all');
+    Reval=Rop_local*ones(1,deg+2);
     end
 
-Tpoly = [b];
-M = size(b,2);
-if (M<2) 
-    Tpoly = [0 b];
-    if isempty(b) 
-        Tpoly =[0 0];
-    end
-    M=2;
-end
-C = zeros(M,M);
-C(1,1) = 1;
-C(2,2) = 1;
-for n = 3:M
-  C(n,:) = [0,2*C(n-1,1:M-1)] - C(n-2,:);
-end
-C = fliplr( C );
-TpolyLC = Tpoly/C;
+    acheb=fcht(double(Reval));
 
-
-for j=1:size(TpolyLC,2);
-A(j,k,m)=TpolyLC(1,j);
+for j=1:size(acheb);
+A(j,k,m)=acheb(j);
 end
 
 end % k loop

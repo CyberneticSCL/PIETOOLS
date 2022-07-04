@@ -14,20 +14,44 @@
 % A - discretization matrix of the Q1 operator: 
 % dimension nx x n0(N+1) n1N n2(N-1)
 %
-% Requires: multipoly2sym, chebyshevT 
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding YP  - 5_31_2021
+% Initial coding YP  - 6_30_2022
 function A=PIESIM_PI2Mat_cheb_opint_discretize(N, nx, Rop, p);
-syms sym_s sym_theta
+pvar s
 
 ns=size(p,2);
 
-  Q1=multipoly2sym(Rop);
+if isa(Rop,'polynomial')
+    deg=Rop.maxdeg;
+else
+    deg=1;
+end
+
+Reval=zeros(nx,ns,deg+2);
+acheb=zeros(nx,ns,deg+2);
+
+chebgrid=cos(pi*(0:deg+1)/(deg+1));
+if isa(Rop,'polynomial')
+for j=1:ns
+    for i=1:nx
+    Reval(i,j,:)=(subs(Rop(i,j),s,chebgrid))';
+    acheb(i,j,:)=fcht(double(Reval(i,j,:)));
+    end 
+end 
+else
+for j=1:ns
+for i=1:nx
+    Reval(i,j,:)=Rop(i,j);
+    acheb(i,j,:)=fcht(double(Reval(i,j,:)));
+end
+end
+end
+
+
   
   for j=1:ns
         Norder=N-p(j);
@@ -36,9 +60,24 @@ ns=size(p,2);
   
         for k=0:Norder
             for i=1:nx
-        ak=int(Q1(i,j)*chebyshevT(k,sym_s),sym_s,[-1,1]);
+ vecint=0;
+ for m=0:deg+1
+% Integrate Rop (T_(k+m) and T_|k-m|) polynomials on [-1,1]
+
+index=[k+m,abs(k-m)];
+for kk=index
+ if (kk==0)
+     vecint=vecint+0.5*acheb(i,j,m+1)*(1)^1-0.5*acheb(i,j,m+1)*(-1)^1;
+ elseif (kk==1)
+     vecint=vecint+0.5*0.25*acheb(i,j,m+1)*((1)^0+(1)^2)-0.5*0.25*acheb(i,j,m+1)*((-1)^0+(-1)^2);
+ else
+    vecint=vecint+0.5*0.5*acheb(i,j,m+1)/(kk+1)*(1)^(kk+1)-0.5*0.5*acheb(i,j,m+1)/(kk-1)*(1)^(kk-1)...
+    -0.5*0.5*acheb(i,j,m+1)/(kk+1)*(-1)^(kk+1)+0.5*0.5*acheb(i,j,m+1)/(kk-1)*(-1)^(kk-1);
+end % if
+end % for kk=index
+end % for m
        
-        A(i,k+1)=ak;
+        A(i,k+1)=vecint;
             end
         end
         
@@ -46,6 +85,7 @@ ns=size(p,2);
   end
         
         A=cell2mat(A_cell);
+
   
 
 

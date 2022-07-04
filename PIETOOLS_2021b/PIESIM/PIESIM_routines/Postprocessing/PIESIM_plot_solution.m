@@ -73,7 +73,7 @@ if (psize.nx>0)
     end 
 
  figure;
- plot(dtime,odesol,'-S'); 
+ plot(dtime,odesol,'-S','linewidth',2); 
  title('Time evolution of ODE states');
  xlabel('Time');
  ylabel('Value of an ODE state');
@@ -97,7 +97,7 @@ y=solution.timedep.observed';
     end 
 
  figure;
- plot(dtime,y,'-S'); 
+ plot(dtime,y,'-S','linewidth',2); 
  title('Time evolution of observed outputs');
  xlabel('Time');
  ylabel('Value of an observed output');
@@ -121,7 +121,7 @@ z=solution.timedep.regulated';
     end 
 
  figure;
- plot(dtime,z,'-S'); 
+ plot(dtime,z,'-S','linewidth',2); 
  title('Time evolution of regulated outputs');
  xlabel('Time');
  ylabel('Value of a regulated output');
@@ -164,7 +164,6 @@ end
   else
    legend('Numerical solution');
   end
- % title('Plot of a primary state solution',num2str(n));
   ax = gca;
   ax.FontSize = 24;
   H=gca;

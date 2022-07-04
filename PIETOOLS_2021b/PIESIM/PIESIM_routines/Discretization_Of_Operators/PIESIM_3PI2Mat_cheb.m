@@ -14,23 +14,20 @@
 % A_nonsquare -non-square discretization matrix for transform between
 % funamental and primary solution
 %
-% Requires: chebyshevT 
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding YP  - 5_29_2021
+% Initial coding YP  - 6_28_2022
 function [A, A_nonsquare]=PIESIM_3PI2Mat_cheb(N, Rop, p)
-syms sym_s sym_theta
 
 ns=size(p,2);
 
 
   R0=Rop.R.R0;
-  R1=multipoly2sym(Rop.R.R1);
-  R2=multipoly2sym(Rop.R.R2);
+  R1=Rop.R.R1;
+  R2=Rop.R.R2;
 
 
 for i=1:ns

@@ -1,4 +1,24 @@
-% PIESIM update of 06.16.2022
+% 1) PIESIM update of 06.30.2022
+
+% Changed PIE-to-discrete conversion from
+% symbolic to a non-symbolic procedure: results in speed-ups of up to 10,000 for
+% N=512 and more for larger N
+
+% Files updated:
+
+% In folder "Discretization_of_Operators"
+
+% PIESIM_3PI2Mat_cheb_opint_discretize.m
+% PIESIM_3PI2Mat_cheb.m
+% PIESIM_PI2Mat_cheb_opint_discretize.m
+% PIESIM_PI2Mat_cheb_opmult_discretize.m
+% PIESIM_Poly2Mat_cheb.m
+
+% In folder "Posptrocessing"
+% PIESIM_plot_solution.m - changed thickness of lines for plotting
+
+
+% 2) PIESIM update of 06.16.2022
 
 % examples_pde_library_PIESIM.m - updated to include terms format, 
 % added more examples in terms format 
