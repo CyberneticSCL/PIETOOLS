@@ -235,7 +235,7 @@ if ~singularET
     % for convenience
     opvar Aop_PDE Bop_PDE;
     
-    Aop_PDE.dim = [nr 0; np np_all_der]; Aop_PDE.var1 = s; Aop_PDE.var2 = theta; Aop_PDE.I = X;
+    Aop_PDE.dim = [nr 0; np np_all_der_full]; Aop_PDE.var1 = s; Aop_PDE.var2 = theta; Aop_PDE.I = X;
     Aop_PDE.R.R0 = Ap0;     Aop_PDE.R.R1 = Ap1;     Aop_PDE.R.R2 = Ap2;
     Aop_PDE.Q1 = Crp;
     
@@ -250,7 +250,7 @@ if ~singularET
     
     %%% We now construct TDop x_D = TDop[v; x_f]
     opvar TDop;
-    TDop.dim = [0 nv; np_all_der np]; TDop.var1 = s; TDop.var2 = theta; TDop.I = X;
+    TDop.dim = [0 nv; np_all_der_full np]; TDop.var1 = s; TDop.var2 = theta; TDop.I = X;
     TDop.Q2 = U1*T*ETinv*Ebv; TDop.R.R0 = U2; 
     TDop.R.R1 = -U1*T*ETinv*subs(QT,s,theta)+U1*Q;
     TDop.R.R2 = -U1*T*ETinv*subs(QT,s,theta);
