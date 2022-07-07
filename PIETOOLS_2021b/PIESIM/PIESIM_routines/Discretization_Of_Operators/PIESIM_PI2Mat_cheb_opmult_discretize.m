@@ -21,15 +21,12 @@
 % non-square total matrix operator for reconstruction of the primary
 % solution
 %
-%
-% Requires: multipoly2sym 
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding YP  - 12_21_2021
+% Initial coding YP  - 06_28_2022
 function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rop, p)
 
 pvar s;
