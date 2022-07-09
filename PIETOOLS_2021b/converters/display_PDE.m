@@ -654,9 +654,15 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
         
         % Add the dummy variables
         use_theta_trm(kk) = true;
-        Rvar1_list{kk} = Rvar2_list{kk}; % Evaluate state at dummy var
-        sub_Rvar1_list{kk} = sub_Rvar2_list{kk};
-        dtheta_trm = ['d',Rvar2_list{kk},' ',dtheta_trm,];
+        if isa(L_kk,'double') && isa(U_kk,'double')
+            dtheta_trm = ['d',Rvar1_list{kk},' ',dtheta_trm,];
+        else
+            % For partial integrals, evaluate state at dummy variable
+            % position.
+            Rvar1_list{kk} = Rvar2_list{kk}; % Evaluate state at dummy var
+            sub_Rvar1_list{kk} = sub_Rvar2_list{kk};
+            dtheta_trm = ['d',Rvar2_list{kk},' ',dtheta_trm,];
+        end        
     end
 end
 if ~isempty(int_trm)

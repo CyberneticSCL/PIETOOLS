@@ -478,13 +478,16 @@ end
 [PDE,diff_tab] = check_terms(PDE,'z',diff_tab);
 [PDE,diff_tab] = check_terms(PDE,'y',diff_tab);
 
-% Also set the size of the inputs
+% Also set the size and domain of the inputs
 for ii=1:numel(PDE.w)
     if isfield(PDE.w{ii},'size') && PDE.w{ii}.size ~= PDE.w_tab(ii,2)
         error(['The specified size "w{',num2str(ii),'}.size" does not match the observed size of component "w{',num2str(ii),'};',...
                 ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
     end
     PDE.w{ii}.size = PDE.w_tab(ii,2);
+    PDE.w{ii}.vars = PDE.vars(logical(PDE.w_tab(ii,3:2+nvars)),:);
+    PDE.w{ii}.dom = PDE.dom(logical(PDE.w_tab(ii,3:2+nvars)),:);
+    PDE.w{ii} = orderfields(PDE.w{ii},{'size','vars','dom'});
 end
 for ii=1:numel(PDE.u)
     if isfield(PDE.u{ii},'size') && PDE.u{ii}.size ~= PDE.u_tab(ii,2)
@@ -492,6 +495,9 @@ for ii=1:numel(PDE.u)
                 ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
     end
     PDE.u{ii}.size = PDE.u_tab(ii,2);
+    PDE.u{ii}.vars = PDE.vars(logical(PDE.u_tab(ii,3:2+nvars)),:);
+    PDE.u{ii}.vars = PDE.dom(logical(PDE.u_tab(ii,3:2+nvars)),:);
+    PDE.u{ii} = orderfields(PDE.u{ii},{'size','vars','dom'});
 end
 
 
@@ -677,7 +683,7 @@ for ii=1:numel(PDE.(obj))
             PDE_comp.vars = polynomial(PDE_comp.vars);
         end
         % Make sure the specified variables are distinct.
-        if length(PDE_comp.vars.varname)~=prod(size(PDE_comp.vars)) % would use numel, but not available for polynomials...
+        if ~isempty(PDE_comp.vars) && length(PDE_comp.vars.varname)~=prod(size(PDE_comp.vars)) % would use numel, but not available for polynomials...
             error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
                     ' spatial variables must be distinct.'])
         end
@@ -688,12 +694,12 @@ for ii=1:numel(PDE.(obj))
     % > Unfortunately, we have to extract the variable names
     % individually, as the order of vars.varname may not match the
     % order of the actual variables. <
-    if size(PDE_comp.vars,2)==2 && ~isdouble(PDE_comp.vars(2))
+    if ~isempty(PDE_comp.vars) && size(PDE_comp.vars,2)==2 && ~isdouble(PDE_comp.vars(2))
         % If dummy variables are available add these to the list as well.
         for pp=1:size(PDE_comp.vars,1)
             var_list = [var_list; [PDE_comp.vars(pp,1).varname, PDE_comp.vars(pp,2).varname, {true}]];
         end
-    else
+    elseif ~isempty(PDE_comp.vars)
         % Otherwise, set variables as "0", and use "false" to indicate that
         % no dummy variables have been specified for these primary
         % variables.
@@ -929,7 +935,7 @@ for ii=1:numel(PDE.(obj))
             elseif size(Dval,1)>1 && nR==1
                 nR = size(term_jj.D,1);
                 Rindx = repmat(Rindx,[nR,1]);
-            elseif size(Dval,1)>1 && nR>1
+            elseif size(Dval,1)~=nR
                 error(['The number of state components in "',term_name,'.x" should match the number of derivatives "',term_name,'.D".'])
             end
         else
@@ -1008,7 +1014,7 @@ for ii=1:numel(PDE.(obj))
                 error(['The coefficients "',term_name,'.C" are not appropriately specified;',...
                         ' coefficients should be specified as an array of type "double" or "polynomial".'])
             elseif isfield(PDE.(obj){ii},'size') && PDE.(obj){ii}.size~=size(term_jj.C,1)
-                error(['The number of rows of the matrix "',term_name,'.C" does not match the specified size "',Robj,'{',num2str(ii),'}.size".'])
+                error(['The number of rows of the matrix "',term_name,'.C" does not match the specified size "',obj,'{',num2str(ii),'}.size".'])
             else
                 Lobj_tab(ii,2) = size(term_jj.C,1);
             end
