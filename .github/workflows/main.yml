@@ -1,5 +1,7 @@
 name: Update SOSTOOLS
-on:
+on: 
+  workflow_dispatch:
+    #
   schedule:
     # Runs every sunday at 5:30 or 17:30 UTC
     - cron:  '30 17 1 * *'
