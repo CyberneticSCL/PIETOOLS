@@ -14,7 +14,8 @@ jobs:
           token: ${{ secrets.PAT }}
       - name: Update SOSTOOLS
         run: |
-          git clone https://github.com/oxfordcontrol/SOSTOOLS: PIETOOLS_2021b/
+          cd PIETOOLS_2021b/SOSTOOLS
+          git clone --depth 1 -b SOSTOOLS400 https://github.com/oxfordcontrol/SOSTOOLS
           git config --global user.name "GitHub Action"
           git config --global user.email "noreply@github.com"
           git commit -am "Updating SOSTOOLS"
