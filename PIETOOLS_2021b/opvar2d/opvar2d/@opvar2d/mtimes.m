@@ -670,13 +670,13 @@ end
 % are zero
 %ismult1 = any(any(~isequal(P1{1,1},0)));
 isint1_x = any(any(P1{2,1}.C~=0)) || any(any(P1{3,1}.C~=0));
-isint1_y = any(any(P1{1,2}.C~=0)) || any(any(P1{1,2}.C~=0));
+isint1_y = any(any(P1{1,2}.C~=0)) || any(any(P1{1,3}.C~=0));
 isint1_xy = any(any(P1{2,2}.C~=0)) || any(any(P1{3,2}.C~=0)) ...
              || any(any(P1{2,3}.C~=0)) || any(any(P1{3,3}.C~=0));
          
 ismult2 = any(any(P2{1,1}.C~=0));
 isint2_x = any(any(P2{2,1}.C~=0)) || any(any(P2{3,1}.C~=0));
-isint2_y = any(any(P2{1,2}.C~=0)) || any(any(P2{1,2}.C~=0));
+isint2_y = any(any(P2{1,2}.C~=0)) || any(any(P2{1,3}.C~=0));
 isint2_xy = any(any(P2{2,2}.C~=0)) || any(any(P2{3,2}.C~=0)) ...
              || any(any(P2{2,3}.C~=0)) || any(any(P2{3,3}.C~=0));
 
