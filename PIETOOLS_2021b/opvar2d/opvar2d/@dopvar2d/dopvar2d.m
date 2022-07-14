@@ -494,6 +494,35 @@ methods
         if ~all(size(Pdim_new)==[4,2]) || any(Pdim_new(:)<0)
             error('Dimension of an opvar2d object must be specified as a 4x2 array of nonnegative integers')
         end
+        
+        % If we're initializing a dopvar2d object, don't bother checking
+        % parameter sizes, but simply set the new parameters as zeros.
+        Pdim = obj.dim;
+        if all(Pdim(:)==0)
+            Rparams = {'R00', 'R0x', 'R0y', 'R02';
+                       'Rx0', 'Rxx', 'Rxy', 'Rx2';
+                       'Ry0', 'Ryx', 'Ryy', 'Ry2';
+                       'R20', 'R2x', 'R2y', 'R22'};
+            for k=1:numel(Rparams)
+                PR = obj.(Rparams{k});
+                [rnum,cnum] = ind2sub(size(Rparams),k);
+                PRdim_new = [Pdim_new(rnum,1),Pdim_new(cnum,2)];
+                if all(PRdim_new==0)
+                    continue
+                elseif ~isa(PR,'cell')
+                    % Set all-zero parameter, without additional checks
+                    obj = set(obj,Rparams{k},dpvar(zeros(PRdim_new)),'nocheck');
+                elseif isa(PR,'cell')
+                    PR_new = cell(size(PR));
+                    for l=1:numel(PR)
+                        PR_new{l} = dpvar(zeros(PRdim_new));
+                    end
+                    obj = set(obj,Rparams{k},PR_new,'nocheck');
+                end
+            end
+            return
+        end
+        
         % Compare the proposed dimensions to the current dimensions
         Pdim = obj.dim;
         dim_match = Pdim_new==Pdim;
