@@ -1,4 +1,4 @@
-function out = set(Pop,prop,val)
+function out = set(Pop,prop,val,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % out = set(obj,prop,val) takes in one opvar2d object obj, and returns a
 % opvar2d object out with out.prop = val
@@ -10,6 +10,11 @@ function out = set(Pop,prop,val)
 % Pop:  opvar2d class object
 % prop: char class object specifying a field name for the opvar2d
 % val:  a value to be assigned to Pop.(prop)
+% opts: optional char field that can be 'nosubs' to perform no substitution
+%       of the variables in the parameters when adjusting the variables
+%       Pop.var1 or Pop.var2, or can be 'nocheck' when setting a parameter
+%       Pop.R.. to avoid performing a full check that the dimensions and
+%       variables in the parameter match those of the operator.
 %
 % OUTPUT
 % out:  opvar2d object with Pop.(prop)=val
@@ -42,6 +47,10 @@ function out = set(Pop,prop,val)
 %
 % Initial coding DJ - 13/06/2022
 
+
+if nargin<4
+    opts = [];
+end
      
 % % Call the appropriate subroutine to set the desired property
 if strcmp(prop,'dom') || strcmp(prop,'I')
@@ -49,10 +58,10 @@ if strcmp(prop,'dom') || strcmp(prop,'I')
     out.I = val;    % I field has its own function in the class function file
     return
 elseif strcmp(prop,'var1')
-    out = set_var1(Pop,val);
+    out = set_var1(Pop,val,opts);
     return
 elseif strcmp(prop,'var2')
-    out = set_var2(Pop,val);
+    out = set_var2(Pop,val,opts);
     return
 elseif strcmp(prop,'dim')
     out = Pop;
@@ -64,7 +73,7 @@ else
                'Ry0', 'Ryx', 'Ryy', 'Ry2';
                'R20', 'R2x', 'R2y', 'R22'};
     if ismember(prop,Rparams)
-        out = set_param(Pop,prop,val);
+        out = set_param(Pop,prop,val,opts);
     else
         error(['The proposed "',prop,'" is not a settable field in ''opvar2d'' class objects'])        
     end
@@ -113,7 +122,7 @@ if nargin==3 && strcmp(opts,'nosubs')
     out = Pop;
     out.var1 = val;
     return
-elseif nargin==3
+elseif nargin==3 && ~isempty(opts)
     error('Unrecognized option; third argument must be ''nosubs'' or empty.')
 end
 
@@ -203,7 +212,7 @@ if nargin==3 && strcmp(opts,'nosubs')
     out = Pop;
     out.var2 = val;
     return
-elseif nargin==3
+elseif nargin==3 && ~isempty(opts)
     error('Unrecognized option; third argument must be ''nosubs'' or empty.')
 end
 
@@ -248,7 +257,7 @@ end
 
 
 %%
-function out = set_param(Pop,PR_name,PR_val)
+function out = set_param(Pop,PR_name,PR_val,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % out = set_param(obj,PR_name,PR_val) takes in one opvar2d object Pop, and
 % a opvar2d object out with out.(PR_name) = PR_val, if possible.
@@ -268,6 +277,9 @@ function out = set_param(Pop,PR_name,PR_val)
 %           cell of double or polynomial class objects otherwise. PR_val
 %           should specify the desired value of the parameter
 %           Pop.(PR_name);
+% opts:     (optional argument) char object 'nocheck', used to assign the
+%           desired parameter without checking for the dimensions and
+%           variables to match.
 %
 % OUTPUT
 % out:  opvar2d object with Pop.(PR_name) = PR_val. 
@@ -297,21 +309,144 @@ function out = set_param(Pop,PR_name,PR_val)
 % Initial coding DJ - 13/06/2022
 
 
-% % To set the new parameter, we first determine the dimensions and spatial
-% % variables of the current parameters. If a parmeter is all zeroes, we
-% % will allow its dimension to be adjusted (if necessary) to match the
-% dimensions of the new variable.
-
 % List of parameters that may be adjusted
 Rparams = {'R00', 'R0x', 'R0y', 'R02';
            'Rx0', 'Rxx', 'Rxy', 'Rx2';
            'Ry0', 'Ryx', 'Ryy', 'Ry2';
            'R20', 'R2x', 'R2y', 'R22'};
 
+% % If no check is requested, simply assign the parameter without checking
+% % the variables and dimensions to match.
+if strcmp(opts,'nocheck')
+    out = Pop;
+    [ii_loc,jj_loc] = find(ismember(Rparams,PR_name));
+    out.(Rparams{ii_loc,jj_loc}) = PR_val;
+    % If the desired parameter is a dpvar, convert the operator to a
+    % dopvar2d object
+    if isa(PR_val,'dpvar')
+        out = opvar2dopvar2d(out);
+    end
+    return
+end
+
+% Otherwise, perform a relatively simple check to see if the dimensions and
+% variables of the new parameter make sense with those of the operator.
+[ii_loc,jj_loc] = find(ismember(Rparams,PR_name));
+if isempty(PR_val)
+    % If the parameter to replace is defined by a cell, assume the user
+    % wants all of the cell elements to be empty.
+    if isa(Pop.(Rparams{ii_loc,jj_loc}),'cell')
+        PR_val = cell(size(Pop.(Rparams{ii_loc,jj_loc})));
+    end
+    % If the proposed parameter and current parameter are both empty,
+    % adjust the dimensions of the proposed parameter.
+    if any([Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]==0)
+        if isa(PR_val,'cell')
+            for k=1:numel(PR_val)
+                PR_val{k} = polynomial(zeros([Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]));
+            end
+        else
+            PR_val = polynomial(zeros([Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]));
+        end
+        ismatch_dim = true;
+        ismatch_vars = true;
+    else
+        % If the current parameter is not empty, we'll have to see if we
+        % can reconcile the dimensions of the proposed parameter with the
+        % current shape of the opvar2d object.
+        ismatch_dim = false;
+        ismatch_vars = false;
+    end
+elseif isa(PR_val,'double')
+    % Check that the dimensions of the parameter match those of the
+    % operator.
+    ismatch_dim = all(size(PR_val)==[Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]);
+    ismatch_vars = true;    % No variables is always fine
+elseif isa(PR_val,'polynomial') || isa(PR_val,'dpvar')
+    if isa(Pop.(Rparams{ii_loc,jj_loc}),'cell')
+        error(['The proposed parameter "',Rparams{ii_loc,jj_loc},'" should be specified as a cell.'])
+    end
+    % Check that the dimensions of the parameter match those of the
+    % operator.
+    ismatch_dim = all(size(PR_val)==[Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]);
+    % Check which variables may appear in the proposed parameter.
+    Param_vars = {polynomial([]),          Pop.var1(1), Pop.var1(2),    Pop.var1;
+                  Pop.var1(1),    polynomial([]),       Pop.var1,       polynomial([]);
+                  Pop.var1(2),    Pop.var1,             polynomial([]), polynomial([]);
+                  Pop.var1,       polynomial([]),       polynomial([]), polynomial([])};
+    Param_vars = Param_vars{ii_loc,jj_loc};    
+    % Check if the variables in the parameter match the expected variables.
+    if isempty(PR_val.varname)
+        ismatch_vars = true;
+    else
+        ismatch_vars = all(ismember(PR_val.varname,Param_vars.varname));
+    end
+elseif isa(PR_val,'cell')
+    % Check that the parameters are appropriately specified.
+    if ~isa(Pop.(Rparams{ii_loc,jj_loc}),'cell')
+        error(['The proposed parameter "',Rparams{ii_loc,jj_loc},'" should be specified as an object of type "double" or "polynomial".'])
+    elseif numel(PR_val)~=numel(Pop.(Rparams{ii_loc,jj_loc}))
+        error(['The number of elements of the specified parameter do not match the number of elements of "Pop.',Rparams{ii_loc,jj_loc},'".'])
+    else
+        reshape(PR_val,size(Pop.(Rparams{ii_loc,jj_loc})));
+    end
+    % Establish which variables the parameter may depend on.
+    if ii_loc==2 && jj_loc==2
+        Param_vars = {Pop.var1(1);[Pop.var1(1);Pop.var2(1)];[Pop.var1(1);Pop.var2(1)]};
+    elseif ii_loc==3 && jj_loc==3
+        Param_vars = {Pop.var1(2),[Pop.var1(2);Pop.var2(2)],[Pop.var1(2);Pop.var2(2)]};
+    elseif ii_loc==2 || jj_loc==2
+        Param_vars = {Pop.var1; [Pop.var1;Pop.var2(1)]; [Pop.var1;Pop.var2(1)]};
+    elseif ii_loc==3 || jj_loc==3
+        Param_vars = {Pop.var1, [Pop.var1;Pop.var2(2)], [Pop.var1;Pop.var2(2)]};
+    else
+        Param_vars = {Pop.var1,               [Pop.var1;Pop.var2(2)], [Pop.var1;Pop.var2(2)];
+                      [Pop.var1;Pop.var2(1)], [Pop.var1;Pop.var2],    [Pop.var1;Pop.var2];
+                      [Pop.var1;Pop.var2(1)], [Pop.var1;Pop.var2],    [Pop.var1;Pop.var2]};
+    end
+    % For each of the elements of the parameter, make sure the dimensions
+    % match those of the operator, and the variables match the expected
+    % variables.
+    ismatch_dim = true;
+    ismatch_vars = true;
+    for k=1:numel(PR_val)
+        ismatch_dim = all(size(PR_val{k})==[Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]);
+        if isa(PR_val{k},'polynomial') || isa(PR_val{k},'dpvar')
+            ismatch_vars = ismatch_vars && all(ismember(PR_val{k}.varname,Param_vars{k}.varname));
+        elseif ~isa(PR_val{k},'double')
+            error(['Each element of the proposed parameter "',Rparams{ii_loc,jj_loc},'" should be specified as an object of type "double" or "polynomial".'])
+        end
+        if ~ismatch_dim || ~ismatch_vars
+            break
+        end        
+    end
+else
+    error(['Parameters should be specified as objects of type "double" or "polynomial".'])
+end
+
+% If the dimensions and variables of the parameter make sense, we can set
+% the new parameter, and return.
+if ismatch_dim && ismatch_vars
+    out = Pop;
+    out.(Rparams{ii_loc,jj_loc}) = PR_val;
+    % If the desired parameter is a dpvar, convert the operator to a
+    % dopvar2d object
+    if isa(PR_val,'dpvar')
+        out = opvar2dopvar2d(out);
+    end
+    return
+end
+
+% % Otherwise, perform some more extensive checks:
+% % To set the new parameter, we first determine the dimensions and spatial
+% % variables of the current parameters. If a parmeter is all zeroes, we
+% % will allow its dimension to be adjusted (if necessary) to match the
+% dimensions of the new variable.
+
 dim_out = zeros(size(Rparams));         % Output dimensions of the parameters    
 dim_in = zeros(size(Rparams));          % Input dimensions of the parameters
 iszero_param = false(size(Rparams));    % Logical array indicating if parameters are all zero
-varname_list = cell(0,1);                      % Full list of variable names that appear
+varname_list = cell(0,1);               % Full list of variable names that appear
 varname_indx = zeros(0,4);              % logical array indicating to which variable each varname might correspond
 
 for k=1:numel(Rparams)
@@ -990,6 +1125,11 @@ if adjust_vartab
     
     var1 = [var1_1; var1_2];
     var2 = [var2_1; var2_2];
+    % Check that the new set of variables makes sense.
+    if length(unique([var1.varname;var2.varname]))~=(length(var1)+length(var2))
+        error(['The variables in the proposed parameters conflict with the currently set variables of the operator.',...
+                ' Please adjust the variables in the parameter, or the variables "Pop.var1" and "Pop.var2" of the operator.'])
+    end
     
     % Finally, some checks:
     if isempty(varnum_var1_1) && isempty(varnum_var1_2)
