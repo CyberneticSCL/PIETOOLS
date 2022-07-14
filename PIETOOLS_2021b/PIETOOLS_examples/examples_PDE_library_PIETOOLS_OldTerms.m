@@ -124,7 +124,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %--------------------------------------------------------------------------
 % 7.  | PDE:  x_{t} = a(s)*x_{ss}                   | a = s^3 - s^2 + 2     (unstable for lam > 4.66)            
 %     |               + b(s)*x_{s}                  | b = 3*s^2 - 2*s               Gahlawat 2017 [4]
-%     |               + c(s,lam)*x                  | c =-0.5*s^3 + 1.3*s^2 
+%     |               + c(s)*x                      | c =-0.5*s^3 + 1.3*s^2 
 %     | BCs:  x(s=0) = 0,     x_{s}(s=1) = 0        |    - 1.5*s + 0.7 +lam
 %     |                                             | lam = 4.66                     
 %--------------------------------------------------------------------------
@@ -310,40 +310,6 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 % 29. | PDE: x_{t} = lam*x + x_{ss} + u(t)          | lam = 10;
 %     | BCs: x(s=0) = 0,        x(s=1)=0            |
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%       2D Examples
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%==========================================================================
-%       Stability analysis
-%==========================================================================
-%--------------------------------------------------------------------------
-%       Advection Equation
-%--------------------------------------------------------------------------
-% 31. | PDE: x_{t} = c1*x_{s1} + c2*x_{s2}          | c1 = 1; c2 = 1;
-%     | BCs: x(s1=0) = 0,   x(s2=0) = 0;            | ne = 1 (state size)
-%--------------------------------------------------------------------------
-%       Diffusive/Heat Equation Type Systems
-%--------------------------------------------------------------------------
-% 32. | PDE: x_{t} = lam*x + c1*x_{(2,0)}           | lam = 19;             (stable for lam <= 2*pi^2) 
-%     |                         + c2*x_{(0,2)}      | c1 = 1;   c2 = 1;             Holmes, 1994 [14]
-%     | BCs: x(s1=0) = 0,   x(s2=0) = 0,            | ne = 1 (state size)
-%     |      x(s1=1) = 0,   x(s2=1) = 0;            |
-%--------------------------------------------------------------------------
-% 33. | PDE: x_{t} = a*x                            | a = 1;
-%     |               + b1*x_{(1,0)} + b2*x_{(0,1)} | b1 = 1;   b2 = 1;    
-%     |                + c1*x_{(2,0)} + c2*x_{(0,2)}| c1 = 1;   c2 = 1;
-%     | BCs: x(s1=0) = 0,   x_{s1}(s1=0) = 0,       | ne = 1 (state size)
-%     |      x(s2=0) = 0,   x_{s2}(s2=0) = 0;       |
-%--------------------------------------------------------------------------
-% 34. | PDE: x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)}   | c1 = 1;   c2 = 1;
-%     | BCs: x(s1=0) = 0;       x(s2=0) = 0;        | ne = 1; (state size)
-%     |      x(s1=1) = 0;       x(s2=1) = 0;        |
-%--------------------------------------------------------------------------
-% 35. | ODE: x1_{t} = (A+BK)*x1 + B*x2(s1=0,s2=0)   | A = I; B = I;
-%     | PDE: x2_{t} = c1*x_{(2,0)} + c2*x_{(0,2)}   | K = -2*I;
-%     | BCs: x2_{(1,0)}(s1=0) = 0;  x2(s1=1) = 0;   |
-%     |      x2_{(0,1)}(s2=0) = 0;  x2(s2=1) = 0;   |
-%
 %==========================================================================
 %       Additional Examples (Undocumented)
 %==========================================================================
@@ -380,7 +346,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % NOTE: The currently defined PDE struct will be cleared to avoid conflict
-pvar s theta
+pvar s
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -487,7 +453,7 @@ npars = length(params);
 fprintf([' --- Extracting ODE-PDE example ', num2str(index),' ---\n']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STABILITY TEST EXAMPLES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STABILITY TEST Examples%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if index==0
     % % Example 2 from amritams paper
@@ -538,16 +504,13 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Single 1D state component
- PDE_t.x{1}.vars = s;
- PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,1];
 
  % PDE: x_{t} = x_{s}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = 1;
+ PDE_t.PDE.A{1}.coeff = 1; PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1; PDE_t.PDE.A{1}.D = 1;
 
  % BCs: 0 = x(0)
- PDE_t.BC{1}.term{1}.loc = 0;
+ PDE_t.BC.Ebb{1}.coeff = 1; PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0;
 
 end
 if GUI
@@ -638,31 +601,24 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % A single state component.
- PDE_t.x{1}.vars = s;
- PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,2];
  
  % PDE: x_{t} = Fm*x
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.C = Fm;
- 
+ PDE_t.PDE.A{1}.coeff = Fm; PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1;
+
  % PDE: x_{t} = ... -Lm*x_{s}
- PDE_t.x{1}.term{2}.x = 1;
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.C = -Lm;
- 
+ PDE_t.PDE.A{2}.coeff = -Lm; PDE_t.PDE.A{2}.Lstate = 1; PDE_t.PDE.A{2}.Rstate = 1; PDE_t.PDE.A{2}.D = 1;
+
  ny1 = size(Gm1,1);    ny2 = size(Gm3,1);
  on0 = eye(ny1);       on1 = eye(ny2);     zer12 = zeros(ny1,ny2);
- 
+
  % BCs: 0 = [Gm1,0;-Gm3,1] * x(0)       
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;
- PDE_t.BC{1}.term{1}.C = [-Gm1, zer12; -Gm3, on1];
- 
+ PDE_t.BC.Ebb{1}.coeff = [-Gm1, zer12; -Gm3, on1];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0;
+
  % BCs: 0 = ... + [1,-Gm2;0,-Gm4] * x(1)
- PDE_t.BC{1}.term{2}.x = 1;
- PDE_t.BC{1}.term{2}.loc = 1;
- PDE_t.BC{1}.term{2}.C = [on0, -Gm2; zer12', -Gm4];
+ PDE_t.BC.Ebb{2}.coeff = [on0, -Gm2; zer12', -Gm4]; 
+ PDE_t.BC.Ebb{2}.Rstate = 1; PDE_t.BC.Ebb{2}.delta = 1;
 
 end
 if GUI
@@ -749,26 +705,24 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;
- PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,ne];
  
  % PDE: x_{t} = Mm * x
- PDE_t.x{1}.term{1}.C = Mm;
+ PDE_t.PDE.A{1}.coeff = Mm; PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1;
 
- % PDE: x_{t} = ... -Lm * x_{s}
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.C = -Lm;
- 
+ % PDE: x_{t} = ... -Lm * x
+ PDE_t.PDE.A{2}.coeff = -Lm; PDE_t.PDE.A{2}.Lstate = 1; PDE_t.PDE.A{2}.Rstate = 1; PDE_t.PDE.A{2}.D = 1;
+
  ny1 = size(K00,1);    ny2 = size(K10,1);
  on0 = eye(ny1);       on1 = eye(ny2);     zer12 = zeros(ny1,ny2);
 
  % BCs: 0 = [1,-K01;0,-K11] * x(0)
- PDE_t.BC{1}.term{1}.loc = 0;
- PDE_t.BC{1}.term{1}.C = [on0, -K01; zer12', -K11];      
+ PDE_t.BC.Ebb{1}.coeff = [on0, -K01; zer12', -K11];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0;         
 
  % BCs: 0 = ... + [-K00,0;-K10,1] * x(1)
- PDE_t.BC{1}.term{2}.loc = 1;
- PDE_t.BC{1}.term{2}.C = [-K00, zer12; -K10, on1];   
+ PDE_t.BC.Ebb{2}.coeff = [-K00, zer12; -K10, on1];
+ PDE_t.BC.Ebb{2}.Rstate = 1; PDE_t.BC.Ebb{2}.delta = 1;       
 
 end
 if GUI
@@ -840,23 +794,23 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;
- PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,2];
  
  % PDE: x_{t} = [0,sig1;sig2,0] * x
- PDE_t.x{1}.term{1}.C = [0, sig1; sig2, 0];
+ PDE_t.PDE.A{1}.coeff = [0, sig1; sig2, 0];
+ PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1;
 
  % PDE: x_{t} = ... + [-1/r1,0;0,1/r2] * x_{s}
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.C = [-1/r1, 0; 0, 1/r2];
+ PDE_t.PDE.A{2}.coeff = [-1/r1, 0; 0, 1/r2];
+ PDE_t.PDE.A{2}.Lstate = 1; PDE_t.PDE.A{2}.Rstate = 1; PDE_t.PDE.A{2}.D = 1;
  
- % BCs: 0 = [1,-qb;0,0] * x(0)
- PDE_t.BC{1}.term{1}.loc = 0;
- PDE_t.BC{1}.term{1}.C = [1 -qb; 0 0];
+ % BCs: 0 = [1,-qb;0,0] * x(0)         
+ PDE_t.BC.Ebb{1}.coeff = [1 -qb; 0 0];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0;
 
- % BCs: 0 = ... + [0,0;-pb,1] * x(1)
- PDE_t.BC{1}.term{2}.loc = 1;
- PDE_t.BC{1}.term{2}.C = [0 0; -pb 1];
+ % BCs: 0 = ... + [0,0;-pb,1] * x(1)      
+ PDE_t.BC.Ebb{2}.coeff = [0 0; -pb 1];
+ PDE_t.BC.Ebb{2}.Rstate = 1; PDE_t.BC.Ebb{2}.delta = 1; 
 
 end
 if GUI
@@ -908,20 +862,23 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,0,ne];
 
  % PDE: x_{t} = lam*x
- PDE_t.x{1}.term{1}.C = lam * eye(ne);
+ PDE_t.PDE.A{1}.coeff = lam*eye(ne);
+ PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;
 
  % PDE: x_{t} = ... + x_{ss}
- PDE_t.x{1}.term{2}.D = 2;
- PDE_t.x{1}.term{2}.C = eye(ne);
+ PDE_t.PDE.A{2}.coeff = eye(ne);
+ PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2;
 
- % BCs: 0 = x(s=0)
- PDE_t.BC{1}.term{1}.loc = 0;
+ % BCs: 0 = x(s=0)       
+ PDE_t.BC.Ebb{1}.coeff = [eye(ne);zeros(ne)];
+ PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;
  
  % BCs: 0 = x(s=1)
- PDE_t.BC{2}.term{1}.loc = 1;              
+ PDE_t.BC.Ebb{2}.coeff = [zeros(ne);eye(ne)];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;                 
 
 end
 if GUI
@@ -972,20 +929,23 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,0,ne];
  
  % PDE: x_{t} = lam*x
- PDE_t.x{1}.term{1}.C = lam*eye(ne);
+ PDE_t.PDE.A{1}.coeff = lam*eye(ne);
+ PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;
 
  % PDE: x_{t} = ... + x_{ss}
- PDE_t.x{1}.term{2}.D = 2;
+ PDE_t.PDE.A{2}.coeff = eye(ne);
+ PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2;
 
  % BCs: 0 = x(s=0)
- PDE_t.BC{1}.term{1}.loc = 0;      
+ PDE_t.BC.Ebb{1}.coeff = [eye(ne);zeros(ne)];
+ PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;        
 
  % BCs: 0 = x_{s}(s=1)
- PDE_t.BC{2}.term{1}.D = 1;
- PDE_t.BC{2}.term{1}.loc = 1;       
+ PDE_t.BC.Ebb{2}.coeff = [zeros(ne);eye(ne)];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; PDE_t.BC.Ebb{2}.D = 1;         
 
 end
 if GUI
@@ -1044,25 +1004,27 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,0,ne];
 
  % PDE: x_{t} = cfun * x
- PDE_t.x{1}.term{1}.C = cfun*eye(ne);
+ PDE_t.PDE.A{1}.coeff = cfun*eye(ne);
+ PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
 
  % PDE: x_{t} = ... + bfun * x_{s}
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.C = bfun*eye(ne);
- 
+ PDE_t.PDE.A{2}.coeff = bfun*eye(ne);
+ PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 1; 
+
  % PDE: x_{t} = ... + afun * x_{ss}
- PDE_t.x{1}.term{3}.D = 2;
- PDE_t.x{1}.term{3}.C = afun;
- 
+ PDE_t.PDE.A{3}.coeff = afun*eye(ne);
+ PDE_t.PDE.A{3}.Lstate = 2; PDE_t.PDE.A{3}.Rstate = 2; PDE_t.PDE.A{3}.D = 2; 
+
  % BCs: 0 = x(0)
- PDE_t.BC{1}.term{1}.loc = 0;  
+ PDE_t.BC.Ebb{1}.coeff = [eye(ne);zeros(ne)];
+ PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;      
 
  % BCs: 0 = x_{s}(1)
- PDE_t.BC{2}.term{1}.D = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ PDE_t.BC.Ebb{2}.coeff = [zeros(ne);eye(ne)];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; PDE_t.BC.Ebb{2}.D = 1; 
 
 end
 if GUI
@@ -1122,45 +1084,40 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize ODE state component.
- PDE_t.x{1}.vars = [];
- % Initialize PDE state component.
- PDE_t.x{2}.vars = s;   PDE_t.x{2}.dom = [a,b];
+ PDE_t.dom = [a,b];
+ PDE_t.n.nx = 4;   PDE_t.n.nv = 4;   PDE_t.n.nr = 2;   PDE_t.n.n_pde = [0,0,2];
+ on = eye(2);     ze = zeros(2);
 
  % ODE: xo_{t} = A * xo;
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.C = [-1.2142,  1.9649,  0.2232,  0.5616;
-                         -1.8042, -0.7260, -0.3479,  5.4355;
-                         -0.2898,  0.7381, -1.7606,  0.8294;
-                         -0.9417, -5.3399, -1.0704, -0.7590]; 
+ PDE_t.ODE.A = [-1.2142,  1.9649,  0.2232,  0.5616;
+                -1.8042, -0.7260, -0.3479,  5.4355;
+                -0.2898,  0.7381, -1.7606,  0.8294;
+                -0.9417, -5.3399, -1.0704, -0.7590]; 
             
  % ODE: xo_{t} = ... + Bxr * x_{s}(s=0)
- PDE_t.x{1}.term{2}.x = 2;
- PDE_t.x{1}.term{2}.loc = 0;
- PDE_t.x{1}.term{2}.C = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0];
+ PDE_t.ODE.Bxr = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0];
+
+ % ODE: v = xo
+ PDE_t.ODE.Cv = eye(PDE_t.n.nx);
  
  % PDE: x_{t} = lam * x
- PDE_t.x{2}.term{1}.x = 2;
- PDE_t.x{2}.term{1}.C = lam*eye(2);
- 
+ PDE_t.PDE.A{1}.coeff = lam*on; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2; PDE_t.PDE.A{1}.D = 0;
+
  % PDE: x_{t} = ... + x_{ss}
- PDE_t.x{2}.term{2}.x = 2;
- PDE_t.x{2}.term{2}.D = 2;
+ PDE_t.PDE.A{2}.coeff = on; PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
  
  % PDE: x_{t} = ... + Bpv * v
- PDE_t.x{2}.term{3}.x = 1;
- PDE_t.x{2}.term{3}.C = [-2.5575 0 1.0368 0;-1.8067 0.4630 1.3621 0];
+ PDE_t.PDE.Bpv = [-2.5575 0 1.0368 0;-1.8067 0.4630 1.3621 0];
  
- % BCs: 0 = x(0)   
- PDE_t.BC{1}.term{1}.x = 2;
- PDE_t.BC{1}.term{1}.loc = a;
- PDE_t.BC{1}.term{1}.C = eye(2);
+ % PDE: r = x_{s}(s=0)
+ PDE_t.PDE.Drb{1}.coeff = on; PDE_t.PDE.Drb{1}.Rstate = 2; PDE_t.PDE.Drb{1}.delta = 0; PDE_t.PDE.Drb{1}.D = 1;
+
+ % BCs: 0 = x(0)       
+ PDE_t.BC.Ebb{1}.coeff = [on;ze]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;
  
- % BCs: 0 = x(1)
- PDE_t.BC{2}.term{1}.x = 2;
- PDE_t.BC{2}.term{1}.loc = b;
- PDE_t.BC{2}.term{1}.C = eye(2);
- 
+ % BCs: 0 = x(1)       
+ PDE_t.BC.Ebb{2}.coeff = [ze;on]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;
+
 end
 if GUI
  %%% Associated GUI save file
@@ -1209,29 +1166,24 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize ODE state component.
- PDE_t.x{1}.vars = [];
- % Initialize 1D PDE state component.
- PDE_t.x{2}.vars = s;   PDE_t.x{2}.dom = [0,1];
+ PDE_t.dom = [0,1];
+ PDE_t.n.nx = 1;   PDE_t.n.nv = 1;   PDE_t.n.n_pde = [0,0,1];
 
  % ODE: xo_{t} = k * xo;
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.C = k;
+ PDE_t.ODE.A = k;
+
+ % ODE: v = xo;
+ PDE_t.ODE.Cv = 1;
 
  % PDE: x_{t} = x_{ss}
- PDE_t.x{2}.term{1}.x = 2;
- PDE_t.x{2}.term{1}.D = 2;
+ PDE_t.PDE.A{1}.coeff = 1; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2; PDE_t.PDE.A{1}.D = 2; 
 
- % BCs: 0 = x(0)
- PDE_t.BC{1}.term{1}.x = 2;
- PDE_t.BC{1}.term{1}.loc = 0;
+ % BCs: 0 = x(0)       
+ PDE_t.BC.Ebb{1}.coeff = [1;0]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;    
 
- % BCs: 0 = x(1) - xo
- PDE_t.BC{2}.term{1}.x = 2;
- PDE_t.BC{2}.term{1}.loc = 1;
- 
- PDE_t.BC{2}.term{2}.x = 1;
- PDE_t.BC{2}.term{2}.C = -1;
+ % BCs: 0 = x(1) - v = x(1) - xo
+ PDE_t.BC.Ebb{2}.coeff = [0;1]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;         
+ PDE_t.BC.Ebv = [0;-1];
 
 end
 if GUI
@@ -1283,40 +1235,34 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize ODE state component.
- PDE_t.x{1}.vars = [];
- % Initialize 1D PDE state component.
- PDE_t.x{2}.vars = s;   PDE_t.x{2}.dom = [0,1];
+ PDE_t.dom = [0,1];
+ PDE_t.n.nx = 1;
+ PDE_t.n.nu = 1;   PDE_t.n.nv = 1;
+ PDE_t.n.n_pde = [0,0,1];
 
  % ODE: xo_{t} = xo
- PDE_t.x{1}.term{1}.x = 1;
+ PDE_t.ODE.A = 1;
  
- % ODE: xo_{t} = ... + x_{s}(s=0)
- PDE_t.x{1}.term{2}.x = 2;
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.loc = 0;
+ % ODE: xo_{t} = ... + r (= x_{s}(s=0))
+ PDE_t.ODE.Bxr = 1;
  
  % ODE: v = xo
  PDE_t.ODE.Cv = 1;
 
  % PDE: x_{t} = x_{ss}
- PDE_t.x{2}.term{1}.x = 2;
- PDE_t.x{2}.term{1}.D = 2;
+ PDE_t.PDE.A{1}.coeff = 1; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2; PDE_t.PDE.A{1}.D = 2; 
+ 
+ % PDE: r = x_{s}(s=0)
+ PDE_t.PDE.Drb{1}.coeff = 1; PDE_t.PDE.Drb{1}.Rstate = 2; PDE_t.PDE.Drb{1}.delta = 0; PDE_t.PDE.Drb{1}.D = 1;
 
  % BC 1: 0 = x(0)      
- PDE_t.BC{1}.term{1}.x = 2;
- PDE_t.BC{1}.term{1}.loc = 0;
+ PDE_t.BC.Ebb{1}.coeff = [1; 0]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;
  
- % BC 1: 0 = ... + xo   
- PDE_t.BC{1}.term{2}.x = 1;
+ % BC 2: 0 = x(1)        
+ PDE_t.BC.Ebb{2}.coeff = [0; 1]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; 
  
- % BC 2: 0 = x(1) 
- PDE_t.BC{2}.term{1}.x = 2;
- PDE_t.BC{2}.term{1}.loc = 1;
- 
- % BC 2: 0 = ... -k * xo
- PDE_t.BC{2}.term{2}.x = 1;
- PDE_t.BC{2}.term{2}.C = -k;
+ % BC 1: 0 = ... + v (= xo)     ;   BC 2: 0 = ... - K*v (= xo)
+ PDE_t.BC.Ebv = [1; -k];
 
 end
 if GUI
@@ -1370,21 +1316,22 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,0,ne];
  
  % PDE: x_{t} = Cm * x
- PDE_t.x{1}.term{1}.C = Cm;
+ PDE_t.PDE.A{1}.coeff = Cm; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
 
  % PDE: x_{t} = ... + (1/R) * x_{ss}
- PDE_t.x{1}.term{2}.D = 2;
- PDE_t.x{1}.term{2}.C = (1/R)*eye(ne);
+ PDE_t.PDE.A{2}.coeff = (1/R)*eye(ne);
+ PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
 
- % BCs: 0 = x(0)
- PDE_t.BC{1}.term{1}.loc = 0;         
+ % BCs: 0 = x(0)        
+ PDE_t.BC.Ebb{1}.coeff = [on;ze];
+ PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;           
 
  % BCs: 0 = x_{s}(1)
- PDE_t.BC{2}.term{1}.D = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ PDE_t.BC.Ebb{2}.coeff = [ze;on];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; PDE_t.BC.Ebb{2}.D = 1;
 
 end
 if GUI
@@ -1438,21 +1385,22 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,0,ne];
  
  % PDE: x_{t} = Cm * x
- PDE_t.x{1}.term{1}.C = Cm;
+ PDE_t.PDE.A{1}.coeff = Cm; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
 
  % PDE: x_{t} = ... + (1/R) * x_{ss}
- PDE_t.x{1}.term{2}.D = 2;
- PDE_t.x{1}.term{2}.C = (1/R)*eye(ne);
+ PDE_t.PDE.A{2}.coeff = (1/R)*on;
+ PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
 
- % BCs: 0 = x(0)
- PDE_t.BC{1}.term{1}.loc = 0;         
+ % BCs: 0 = x(0)        
+ PDE_t.BC.Ebb{1}.coeff = [on;ze];
+ PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0; 
 
  % BCs: 0 = x_{s}(1)
- PDE_t.BC{2}.term{1}.D = 1;
- PDE_t.BC{2}.term{1}.loc = 1;   
+ PDE_t.BC.Ebb{2}.coeff = [ze;on];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; PDE_t.BC.Ebb{2}.D = 1;     
 
 end
 if GUI
@@ -1511,45 +1459,27 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;    PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,0,2];
  
  % PDE: x_{t} = [0,-c;1,0] * x_{ss}
- PDE_t.x{1}.term{1}.D = 2;
- PDE_t.x{1}.term{1}.C = [0, -c; 1, 0];
+ PDE_t.PDE.A{1}.coeff = [0, -c; 1, 0];
+ PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2; PDE_t.PDE.A{1}.D = 2; 
 
  % BCs: 0 = x1(0)
- PDE_t.BC{1}.term{1}.loc = 0;
- PDE_t.BC{1}.term{1}.C = [1,0];
+ PDE_t.BC.Ebb{1}.coeff = [1,0;0,0;0,0;0,0];
+ PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0; 
 
  % BCs: 0 = x2(1)
- PDE_t.BC{2}.term{1}.loc = 1;
- PDE_t.BC{2}.term{1}.C = [0,1];      
+ PDE_t.BC.Ebb{2}.coeff = [0,0;0,1;0,0;0,0];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;           
 
  % BCs: 0 = x1_{s}(0)
- PDE_t.BC{3}.term{1}.D = 1;
- PDE_t.BC{3}.term{1}.loc = 0;
- PDE_t.BC{3}.term{1}.C = [1,0];
+ PDE_t.BC.Ebb{3}.coeff = [0,0;0,0;1,0;0,0];
+ PDE_t.BC.Ebb{3}.Rstate = 2; PDE_t.BC.Ebb{3}.delta = 0; PDE_t.BC.Ebb{3}.D = 1;
 
  % BCs: 0 = x2_{s}(1)
- PDE_t.BC{4}.term{1}.D = 1;
- PDE_t.BC{4}.term{1}.loc = 1;
- PDE_t.BC{4}.term{1}.C = [0,1];
- 
-%  % Note that BCs can also be coupled together:
-%  
-%  PDE_t.BC{1}.term{1}.loc = 0;
-%  PDE_t.BC{1}.term{1}.C = [1,0;0,0];
-%  
-%  PDE_t.BC{1}.term{2}.loc = 1;
-%  PDE_t.BC{1}.term{1}.C = [0,0;0,1];
-%  
-%  PDE_t.BC{2}.term{1}.D = 1;
-%  PDE_t.BC{2}.term{1}.loc = 0;
-%  PDE_t.BC{2}.term{1}.C = [1,0;0,0];
-%  
-%  PDE_t.BC{2}.term{2}.D = 1;
-%  PDE_t.BC{2}.term{2}.loc = 1;
-%  PDE_t.BC{2}.term{1}.C = [0,0;0,1];
+ PDE_t.BC.Ebb{4}.coeff = [0,0;0,0;0,0;0,1];
+ PDE_t.BC.Ebb{4}.Rstate = 2; PDE_t.BC.Ebb{4}.delta = 1; PDE_t.BC.Ebb{4}.D = 1;
 
 end
 if GUI
@@ -1617,29 +1547,30 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.x{1}.vars = s;    PDE_t.x{1}.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,4];
  
  % PDE: x2_{t} = -k*aa*g * x3,   x3_{t} = (1/r/II) * x2
- PDE_t.x{1}.term{1}.C = [0, 0,      0,       0; 
-                         0, 0,      -k*aa*g, 0;
-                         0, 1/r/II, 0,       0;
-                         0, 0,      0,       0];
+ PDE_t.PDE.A{1}.coeff = [0, 0,      0,       0; 
+                       0, 0,      -k*aa*g, 0;
+                       0, 1/r/II, 0,       0;
+                       0, 0,      0,       0];
+ PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1;  
 
  % PDE: x1_{t} = (1/r/aa) * x2_{s},        x2_{t} = ... + k*aa*g * x1_{s}
  %      x3_{t} = ... + (1/r/II) * x4_{s}   x4_{t} = E*II * x3_{s}
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.C = [0,      1/r/aa, 0,    0; 
-                         k*aa*g, 0,      0,    0;
-                         0,      0,      0,    1/r/II;
-                         0,      0,      E*II, 0];
+ PDE_t.PDE.A{2}.coeff = [0,      1/r/aa, 0,    0; 
+                       k*aa*g, 0,      0,    0;
+                       0,      0,      0,    1/r/II;
+                       0,      0,      E*II, 0];
+ PDE_t.PDE.A{2}.Lstate = 1; PDE_t.PDE.A{2}.Rstate = 1; PDE_t.PDE.A{2}.D = 1; 
 
  % BCs: 0 = x1(0),   0 = x3(0)
- PDE_t.BC{1}.term{1}.loc = 0;
- PDE_t.BC{1}.term{1}.C = [1,0,0,0;0,0,1,0;0,0,0,0;0,0,0,0];
+ PDE_t.BC.Ebb{1}.coeff = [1,0,0,0;0,0,1,0;0,0,0,0;0,0,0,0];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0; 
 
  % BCs: 0 = x4(1),   0 = x2(1)
- PDE_t.BC{1}.term{2}.loc = 1;
- PDE_t.BC{1}.term{2}.C = [0,0,0,0;0,0,0,0;0,0,0,1;0,1,0,0];
+ PDE_t.BC.Ebb{2}.coeff = [0,0,0,0;0,0,0,0;0,0,0,1;0,1,0,0];
+ PDE_t.BC.Ebb{2}.Rstate = 1; PDE_t.BC.Ebb{2}.delta = 1; 
 
 end
 if GUI
@@ -1700,100 +1631,51 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.vars = s;    PDE_t.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,3,1];
  
- % PDE 1: x1_{t} = x2_{s} - x4_{s}
- PDE_t.x{1}.term{1}.x = [2;4];
- PDE_t.x{1}.term{1}.D = 1;
- PDE_t.x{1}.term{1}.C = [1,-1];
- 
- % PDE 2: x2_{t} = x1_{s}
- PDE_t.x{2}.term{1}.x = 1;
- PDE_t.x{2}.term{1}.D = 1;
- 
- % PDE 3: x3_{t} = x2 - x4
- PDE_t.x{3}.term{1}.x = [2;4];
- PDE_t.x{3}.term{1}.C = [1,-1];
- 
- % PDE 4: x4_{t} = x3
- PDE_t.x{4}.term{1}.x = 3;
- 
- % BC 1: x4(0) = 0
- PDE_t.BC{1}.term{1}.x = 4;
- PDE_t.BC{1}.term{1}.loc = 0;
- 
- % BC 2: x4_{s}(1) = 0 
- PDE_t.BC{2}.term{1}.x = 4;
- PDE_t.BC{2}.term{1}.D = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
- 
- % BC 3: x3(0) = 0 
- PDE_t.BC{3}.term{1}.x = 3;
- PDE_t.BC{3}.term{1}.loc = 0;
- 
- % BC 4: x1(0) = 0
- PDE_t.BC{4}.term{1}.x = 1;
- PDE_t.BC{4}.term{1}.loc = 0;
- 
- % BC 5: x2(1)-x4(1) = 0
- PDE_t.BC{5}.term{1}.x = [2;4];
- PDE_t.BC{5}.term{1}.loc = 1;
- PDE_t.BC{5}.term{1}.C = [1,-1];
- 
-% % % Alternatively, group together x1 x2 and x3
-%  PDE_t.vars = s;    PDE_t.dom = [0,1];
-%  
-%  % PDE: x3_{t} = x2
-%  PDE_t.x{1}.term{1}.x = 1;
-%  PDE_t.x{1}.term{1}.C = [0 0 0; 0 0 0; 0 1 0];
-% 
-%  % PDE: x1_{t} = x2_{s},   x2_{t} = x1_{s}
-%  PDE_t.x{1}.term{2}.x = 1;
-%  PDE_t.x{1}.term{2}.D = 1;
-%  PDE_t.x{1}.term{2}.C = [0 1 0; 1 0 0; 0 0 0];
-%  
-%  % PDE: x3_{t} = ... - x4
-%  PDE_t.x{1}.term{3}.x = 2;
-%  PDE_t.x{1}.term{3}.C = [0; 0; -1];
-%  
-%  % PDE: x1_{t} = ... - x4_{s}
-%  PDE_t.x{1}.term{4}.x = 2;
-%  PDE_t.x{1}.term{4}.D = 1;
-%  PDE_t.x{1}.term{4}.C = [-1; 0; 0];
-%  
-%  % PDE: x3_{t} = ... + x4_{ss}
-%  PDE_t.x{1}.term{5}.x = 2;
-%  PDE_t.x{1}.term{5}.D = 2;
-%  PDE_t.x{1}.term{5}.C = [0; 0; 1];
-% 
-%  % PDE: x4_{t} = x3
-%  PDE_t.x{2}.term{1}.x = 1;
-%  PDE_t.x{2}.term{1}.C = [0 0 1];
-% 
-%  % BC 1: 0 = x1(0) 
-%  %       0 = x3(0)
-%  PDE_t.BC{1}.term{1}.x = 1;
-%  PDE_t.BC{1}.term{1}.loc = 0;
-%  PDE_t.BC{1}.term{1}.C = [1,0,0;0,0,1];
-% 
-%  % BC 2: 0 = x4(0)
-%  PDE_t.BC{2}.term{1}.x = 2;
-%  PDE_t.BC{2}.term{1}.loc = 0;
-% 
-%  % BC 3: 0 = x4_{s}(1)
-%  PDE_t.BC{3}.term{1}.x = 2;
-%  PDE_t.BC{3}.term{1}.D = 1;
-%  PDE_t.BC{3}.term{1}.loc = 1;
-% 
-%  % BC 4: 0 = x2(1)
-%  PDE_t.BC{4}.term{1}.x = 1;
-%  PDE_t.BC{4}.term{1}.loc = 1;
-%  PDE_t.BC{4}.term{1}.C = [0,1,0];
-% 
-%  % BC 4: 0 = ... - x4(1)
-%  PDE_t.BC{4}.term{2}.x = 2;
-%  PDE_t.BC{4}.term{2}.loc = 1;
-%  PDE_t.BC{4}.term{2}.C = -1;
+ % PDE: x3_{t} = x2
+ PDE_t.PDE.A{1}.coeff = [0 0 0; 0 0 0; 0 1 0];
+ PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1;  
+
+ % PDE: x1_{t} = x2_{s},   x2_{t} = x1_{s}
+ PDE_t.PDE.A{2}.coeff = [0 1 0; 1 0 0; 0 0 0];
+ PDE_t.PDE.A{2}.Lstate = 1; PDE_t.PDE.A{2}.Rstate = 1; PDE_t.PDE.A{2}.D = 1; 
+
+ % PDE: x4_{t} = x3
+ PDE_t.PDE.A{3}.coeff = [0 0 1];
+ PDE_t.PDE.A{3}.Lstate = 2; PDE_t.PDE.A{3}.Rstate = 1;  
+
+ % PDE: x3_{t} = ... - x4
+ PDE_t.PDE.A{4}.coeff = [0; 0; -1];
+ PDE_t.PDE.A{4}.Lstate = 1; PDE_t.PDE.A{4}.Rstate = 2;  
+
+ % PDE: x1_{t} = ... - x4_{s}
+ PDE_t.PDE.A{5}.coeff = [-1; 0; 0];
+ PDE_t.PDE.A{5}.Lstate = 1; PDE_t.PDE.A{5}.Rstate = 2; PDE_t.PDE.A{5}.D = 1; 
+
+ % PDE: x3_{t} = ... + x4_{ss}
+ PDE_t.PDE.A{6}.coeff = [0; 0; 1];
+ PDE_t.PDE.A{6}.Lstate = 1; PDE_t.PDE.A{6}.Rstate = 2; PDE_t.PDE.A{6}.D = 2; 
+
+ % BC 1: 0 = x1(0),     BC 2: 0 = x3(0)
+ PDE_t.BC.Ebb{1}.coeff = [1,0,0;0,0,1;0,0,0;0,0,0;0,0,0];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0; 
+
+ % BC 3: 0 = x4(0)
+ PDE_t.BC.Ebb{2}.coeff = [0;0;1;0;0];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 0; 
+
+ % BC 4: 0 = x4_{s}(1)
+ PDE_t.BC.Ebb{3}.coeff = [0;0;0;1;0];
+ PDE_t.BC.Ebb{3}.Rstate = 2; PDE_t.BC.Ebb{3}.delta = 1; PDE_t.BC.Ebb{3}.D = 1;
+
+ % BC 5: 0 = x2(1)
+ PDE_t.BC.Ebb{4}.coeff = [0,0,0;0,0,0;0,0,0;0,0,0;0,1,0];
+ PDE_t.BC.Ebb{4}.Rstate = 1; PDE_t.BC.Ebb{4}.delta = 1; 
+
+ % BC 5: 0 = ... - x4(1)
+ PDE_t.BC.Ebb{5}.coeff = [0;0;0;0;-1];
+ PDE_t.BC.Ebb{5}.Rstate = 2; PDE_t.BC.Ebb{5}.delta = 1; 
 
 end
 if GUI
@@ -1843,55 +1725,63 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.vars = s;    PDE_t.dom = [0,1];
- 
- % PDE: x1 = -bet * x3 + gam * x3_{ss}
- PDE_t.x{1}.term{1}.x = 3;
- PDE_t.x{1}.term{1}.D = [0;2];
- PDE_t.x{1}.term{1}.C = [-bet, gam];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [1,0,2,0,1];
+
+ % PDE: x1 = -bet * x3
+ PDE_t.PDE.A{1}.coeff = [0, -bet];
+ PDE_t.PDE.A{1}.Lstate = 0; PDE_t.PDE.A{1}.Rstate = 2;  
+
+ % PDE: x1 = ... + gam * x3_{ss}
+ PDE_t.PDE.A{2}.coeff = [0, gam];
+ PDE_t.PDE.A{2}.Lstate = 0; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
 
  % PDE: x1 = ... - alp * x4_{ssss}
- PDE_t.x{1}.term{2}.x = 4;
- PDE_t.x{1}.term{2}.D = 4;
- PDE_t.x{1}.term{2}.C = -alp;
+ PDE_t.PDE.A{3}.coeff = -alp;
+ PDE_t.PDE.A{3}.Lstate = 0; PDE_t.PDE.A{3}.Rstate = 4; PDE_t.PDE.A{3}.D = 4; 
+
+ % PDE: x3 = x1
+ PDE_t.PDE.A{4}.coeff = [0; 1];
+ PDE_t.PDE.A{4}.Lstate = 2; PDE_t.PDE.A{4}.Rstate = 0;  
 
  % PDE: x2 = x3
- PDE_t.x{2}.term{1}.x = 3;
- 
- % PDE: x3 = x1
- PDE_t.x{3}.term{1}.x = 1;
+ PDE_t.PDE.A{5}.coeff = [0, 1; 0, 0];
+ PDE_t.PDE.A{5}.Lstate = 2; PDE_t.PDE.A{5}.Rstate = 2;  
 
  % PDE: x4 = x2
- PDE_t.x{4}.term{1}.x = 2;
+ PDE_t.PDE.A{6}.coeff = [1, 0];
+ PDE_t.PDE.A{6}.Lstate = 4; PDE_t.PDE.A{6}.Rstate = 2;  
 
- % BC 1: 0 = x4(0)
- PDE_t.BC{1}.term{1}.x = 4;
- PDE_t.BC{1}.term{1}.loc = 0;
+ % BC 1: 0 = x4(0)   
+ PDE_t.BC.Ebb{1}.coeff = [1;0;0;0;0;0;0;0];
+ PDE_t.BC.Ebb{1}.Rstate = 4; PDE_t.BC.Ebb{1}.delta = 0;  
 
  % BC 2: 0 = x4(1)
- PDE_t.BC{2}.term{1}.x = 4;
- PDE_t.BC{2}.term{1}.loc = 1;
+ PDE_t.BC.Ebb{2}.coeff = [0;1;0;0;0;0;0;0];
+ PDE_t.BC.Ebb{2}.Rstate = 4; PDE_t.BC.Ebb{2}.delta = 0; PDE_t.BC.Ebb{2}.D = 1;
 
- % BC 3: 0 = x4_{ss}(1) - x4(1)
- PDE_t.BC{3}.term{1}.x = 4;
- PDE_t.BC{3}.term{1}.D = [2;0];
- PDE_t.BC{3}.term{1}.loc = 1;
- PDE_t.BC{3}.term{1}.C = [1,-1];
+ % BC 3: 0 = x4_{ss}(1)
+ PDE_t.BC.Ebb{3}.coeff = [0;0;1;0;0;0;0;0];
+ PDE_t.BC.Ebb{3}.Rstate = 4; PDE_t.BC.Ebb{3}.delta = 1; PDE_t.BC.Ebb{3}.D = 2;  
+
+ % BC 3: 0 = ... - x4(1)
+ PDE_t.BC.Ebb{4}.coeff = [0;0;-1;0;0;0;0;0];
+ PDE_t.BC.Ebb{4}.Rstate = 4; PDE_t.BC.Ebb{4}.delta = 1; 
       
- % BC 4: 0 = x4_{sss}(1) - x4_{s}(1)
- PDE_t.BC{4}.term{1}.x = 4;
- PDE_t.BC{4}.term{1}.D = [3;1];
- PDE_t.BC{4}.term{1}.loc = 1;
- PDE_t.BC{4}.term{1}.C = [1,-1]; 
+ % BC 4: 0 = x4_{sss}(1)
+ PDE_t.BC.Ebb{5}.coeff = [0;0;0;1;0;0;0;0];
+ PDE_t.BC.Ebb{5}.Rstate = 4; PDE_t.BC.Ebb{5}.delta = 1; PDE_t.BC.Ebb{5}.D = 3;
 
- % BC 5: 0 = x2(0),             % BC 7: 0 = x3(0)      
- PDE_t.BC{5}.term{1}.x = 2;     PDE_t.BC{7}.term{1}.x = 3;
- PDE_t.BC{5}.term{1}.loc = 0;   PDE_t.BC{7}.term{1}.loc = 0;
- 
- % BC 6: 0 = x2_{s}(0),         % BC 8: 0 = x3_{s}(0)
- PDE_t.BC{6}.term{1}.x = 2;     PDE_t.BC{8}.term{1}.x = 3;
- PDE_t.BC{6}.term{1}.D = 1;     PDE_t.BC{8}.term{1}.D = 1;
- PDE_t.BC{6}.term{1}.loc = 0;   PDE_t.BC{8}.term{1}.loc = 0;                 
+ % BC 4: 0 = ... - x4_{ss}(1)
+ PDE_t.BC.Ebb{6}.coeff = [0;0;0;-1;0;0;0;0];
+ PDE_t.BC.Ebb{6}.Rstate = 4; PDE_t.BC.Ebb{6}.delta = 1; PDE_t.BC.Ebb{6}.D = 1;          
+
+ % BC 5: 0 = x2(0),        BC 7: 0 = x3(0)
+ PDE_t.BC.Ebb{7}.coeff = [0,0;0,0;0,0;0,0;1,0;0,0;0,1;0,0];
+ PDE_t.BC.Ebb{7}.Rstate = 2; PDE_t.BC.Ebb{7}.delta = 0; 
+
+ % BC 6: 0 = x2_{s}(0),    BC 8: 0 = x3_{s}(0)
+ PDE_t.BC.Ebb{8}.coeff = [0,0;0,0;0,0;0,0;0,0;1,0;0,0;0,1];
+ PDE_t.BC.Ebb{8}.Rstate = 2; PDE_t.BC.Ebb{8}.delta = 0; PDE_t.BC.Ebb{8}.D = 1;                   
 
 end
 if GUI
@@ -1945,25 +1835,19 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.vars = s;    PDE_t.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,2];
  
  % PDE: x1_{t} = x2_{s},   x2_{t} = x1_{s}
- PDE_t.x{1}.term{1}.x = 2;
- PDE_t.x{1}.term{1}.D = 1;
- 
- PDE_t.x{2}.term{1}.x = 1;
- PDE_t.x{2}.term{1}.D = 1;
+ PDE_t.PDE.A{1}.coeff = [0, 1; 1, 0];
+ PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1; PDE_t.PDE.A{1}.D = 1; 
 
  % BC1: 0 = x2(0)
- PDE_t.BC{1}.term{1}.x = 2;
- PDE_t.BC{1}.term{1}.loc = 0;       
+ PDE_t.BC.Ebb{1}.coeff = [0 1; 0 0];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0;          
 
  % BC2: 0 = x1(1) + k*x2(1)
- PDE_t.BC{2}.term{1}.x = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
- PDE_t.BC{2}.term{2}.x = 2;
- PDE_t.BC{2}.term{2}.loc = 1;
- PDE_t.BC{2}.term{2}.C = k;  
+ PDE_t.BC.Ebb{2}.coeff = [0 0; 1 k];
+ PDE_t.BC.Ebb{2}.Rstate = 1; PDE_t.BC.Ebb{2}.delta = 1;       
 
 end
 if GUI
@@ -2015,33 +1899,35 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.vars = s;        PDE_t.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,1,1];
  
- % PDE: x1_{t} = -2*ad * x1 - ad^2 * x2
- PDE_t.x{1}.term{1}.x = [1;2];
- PDE_t.x{1}.term{1}.C = [-2*ad, -ad^2];
- 
- % PDE: x1_{t} = ... + x2_{ss}
- PDE_t.PDE.A{4}.coeff = 1; PDE_t.PDE.A{4}.Lstate = 1; PDE_t.PDE.A{4}.Rstate = 2; PDE_t.PDE.A{4}.D = 2; 
- PDE_t.x{1}.term{2}.x = 2;
- PDE_t.x{1}.term{2}.D = 2;
+ % PDE: x1_{t} = -2*ad * x1
+ PDE_t.PDE.A{1}.coeff = -2*ad; PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1;  
 
  % PDE: x2_{t} = x1
- PDE_t.x{2}.term{1}.x = 1; 
+ PDE_t.PDE.A{2}.coeff = 1; PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 1;  
+
+ % PDE: x1_{t} = ... - ad^2 * x2
+ PDE_t.PDE.A{3}.coeff = -ad^2; PDE_t.PDE.A{3}.Lstate = 1; PDE_t.PDE.A{3}.Rstate = 2;  
+
+ % PDE: x1_{t} = ... + x2_{ss}
+ PDE_t.PDE.A{4}.coeff = 1; PDE_t.PDE.A{4}.Lstate = 1; PDE_t.PDE.A{4}.Rstate = 2; PDE_t.PDE.A{4}.D = 2; 
 
  % BC 1: 0 = x1(0)
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;
+ PDE_t.BC.Ebb{1}.coeff = [1;0;0];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0; 
 
- % BC 2: 0 = x2(0)      
- PDE_t.BC{2}.term{1}.x = 2;
- PDE_t.BC{2}.term{1}.loc = 0;
+ % BC 2: 0 = x2(0)        
+ PDE_t.BC.Ebb{2}.coeff = [0;1;0];
+ PDE_t.BC.Ebb{2}.Rstate = 2;  PDE_t.BC.Ebb{2}.delta = 0;
 
- % BC 3: 0 = k * x1(1) + x2_{s}(1)
- PDE_t.BC{3}.term{1}.x = [1;2];
- PDE_t.BC{3}.term{1}.loc = 1;
- PDE_t.BC{3}.term{1}.D = [0;1];
- PDE_t.BC{3}.term{1}.C = [k, 1];
+ % BC 3: 0 = k * x1(1)
+ PDE_t.BC.Ebb{3}.coeff = [0;0;k];
+ PDE_t.BC.Ebb{3}.Rstate = 1; PDE_t.BC.Ebb{3}.delta = 1;        
+
+ % BC 3: 0 = ... + x2_{s}(1)    
+ PDE_t.BC.Ebb{4}.coeff = [0;0;1];
+ PDE_t.BC.Ebb{4}.Rstate = 2; PDE_t.BC.Ebb{4}.delta = 1; PDE_t.BC.Ebb{4}.D = 1;
 
 end
 if GUI
@@ -2090,31 +1976,23 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- PDE_t.vars = s;    PDE_t.dom = [0,1];
+ PDE_t.dom = [0,1];   PDE_t.n.n_pde = [0,3];
  
- % PDE: x1_{t} = -2*ad * x1 - ad^2 * x2
- PDE_t.x{1}.term{1}.x = [1; 2];
- PDE_t.x{1}.term{1}.C = [-2*ad, -ad^2];
- 
- % PDE: x1_{t} = ... + x3_{s}
- PDE_t.x{1}.term{2}.x = 3;
- PDE_t.x{1}.term{2}.D = 1;
- 
- % PDE: x2_{t} = x1
- PDE_t.x{2}.term{1}.x = 1;
+ % PDE: x1_{t} = -2*ad * x1 - ad^2 * x2,   x2_{t} = x1
+ PDE_t.PDE.A{1}.coeff = [-2*ad, -ad^2, 0; 1, 0, 0; 0, 0, 0];
+ PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1;  
 
- % PDE: x3_{t} = x1_{s}
- PDE_t.x{3}.term{1}.x = 1;
- PDE_t.x{3}.term{1}.D = 1;
+ % PDE: x1_{t} = ... + x3_{s},     x3_{t} = x1_{s}
+ PDE_t.PDE.A{2}.coeff = [0, 0, 1; 0, 0, 0; 1, 0, 0];
+ PDE_t.PDE.A{2}.Lstate = 1; PDE_t.PDE.A{2}.Rstate = 1; PDE_t.PDE.A{2}.D = 1; 
 
- % BC 1: 0 = x1(0)              BC 2: 0 = x2(0) 
- PDE_t.BC{1}.term{1}.x = 1;     PDE_t.BC{2}.term{1}.x = 2;
- PDE_t.BC{1}.term{1}.loc = 0;   PDE_t.BC{2}.term{1}.loc = 0;
+ % BC 1: 0 = x1(0)     BC 2: 0 = x3(0)        
+ PDE_t.BC.Ebb{1}.coeff = [1,0,0;0,1,0;0,0,0];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0; 
 
  % BC 3: 0 = k * x1(1) + x3(1)
- PDE_t.BC{3}.term{1}.x = [1; 3];
- PDE_t.BC{3}.term{1}.loc = 1;
- PDE_t.BC{3}.term{1}.C = [k,1];
+ PDE_t.BC.Ebb{2}.coeff = [0,0,0;0,0,0;k,0,1];
+ PDE_t.BC.Ebb{2}.Rstate = 1;  PDE_t.BC.Ebb{2}.delta = 1;
 
 end
 if GUI
@@ -2174,28 +2052,26 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize a PDE state.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.w{1}.vars = [];  PDE_t.z{1}.vars = [];
+ PDE_t.dom = [0,1];
+ ne = 1;
+ PDE_t.n.nz = ne;   PDE_t.n.nw = ne;   PDE_t.n.nr = ne;  PDE_t.n.nv = ne;
+ PDE_t.n.n_pde = [0,ne];
  
- % PDE: x_{t} = -x_{s}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = 1;
- PDE_t.x{1}.term{1}.C = -eye(ne);
- 
- % PDE: x_{t} = ... + w
- PDE_t.x{1}.term{2}.w = 1;
- 
- % Output: z = int_{0}^{1} x(s) ds
- PDE_t.z{1}.term{1}.x = 1;
- % Since z is finite-dimensional, PIETOOLS will implement the integral by
- % default. However, we can also explicitly initialize the integral:
- % PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
+ % ODE: z = r,     v = w
+ PDE_t.ODE.Dzr = eye(ne);    % We let z = r = PDE-to-ODE output
+ PDE_t.ODE.Dvw = eye(ne);    % We let w = v = ODE-to-PDE input
+
+ % PDE: x_{t} = v = w
+ PDE_t.PDE.Bpv = eye(ne); 
+
+ % PDE: r = int_0^1 x2(s) ds
+ PDE_t.PDE.Crp{1}.coeff = on; PDE_t.PDE.Crp{1}.Rstate = 1;
+
+ % PDE: x_{t} = ... - x_{s}
+ PDE_t.PDE.A{1}.coeff = -1*on; PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1; PDE_t.PDE.A{1}.D = 1; 
 
  % BCs: 0 = x(0)        
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;
+ PDE_t.BC.Ebb{1}.coeff = on; PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0;  
 
 end
 if GUI
@@ -2250,37 +2126,31 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state components.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- PDE_t.x{2}.vars = s;   PDE_t.x{2}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.w{1}.vars = [];  PDE_t.z{1}.vars = [];
+ PDE_t.dom = [0,1];
+ PDE_t.n.nz = 1;   PDE_t.n.nw = 1;   PDE_t.n.nr = 1;   PDE_t.n.nv = 1;
+ PDE_t.n.n_pde = [0,2];
  
- % PDE: x1_{t} = x2_{s}
- PDE_t.x{1}.term{1}.x = 2;
- PDE_t.x{1}.term{1}.D = 1;
+ % ODE: z = r,     v = w;
+ PDE_t.ODE.Dzr = 1;
+ PDE_t.ODE.Dvw = 1;
 
- % PDE: x2_{t} = x1_{s}
- PDE_t.x{2}.term{1}.x = 1;
- PDE_t.x{2}.term{1}.D = 1;
- 
- % PDE: x2_{t} = ... + w
- PDE_t.x{2}.term{2}.w = 1;
- 
- % Output: z = int_{0}^{1} x2(s) ds
- PDE_t.z{1}.term{1}.x = 2;
- % Since z is finite-dimensional, PIETOOLS will implement the integral by
- % default. However, we can also explicitly initialize the integral:
- % PDE_t.z{1}.term{1}.I{2} = PDE_t.x{2}.dom;
+ % PDE: x2_{t} = v = w
+ PDE_t.PDE.Bpv = [0; 1];
+
+ % PDE: r = int_0^1 x2(s) ds
+ PDE_t.PDE.Crp{1}.coeff = [0, 1]; PDE_t.PDE.Crp{1}.Rstate = 1;
+
+ % PDE: x1_{t} = x2_{s},   x2_{t} = ... + x1_{s}
+ PDE_t.PDE.A{1}.coeff = [0, 1; 1, 0];
+ PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1; PDE_t.PDE.A{1}.D = 1; 
 
  % BC 1: 0 = x2(0)         
- PDE_t.BC{1}.term{1}.x = 2;
- PDE_t.BC{1}.term{1}.loc = 0;        
+ PDE_t.BC.Ebb{1}.coeff = [0,1;0,0];
+ PDE_t.BC.Ebb{1}.Rstate = 1; PDE_t.BC.Ebb{1}.delta = 0;           
 
- % BC 2: 0 = x1(1) + k*x2(1)
- PDE_t.BC{2}.term{1}.x = [1; 2];
- PDE_t.BC{2}.term{1}.loc = 1;
- PDE_t.BC{2}.term{1}.C = [1, k];
+ % BC 2: 0 = x1(1) + k*x2(1)      
+ PDE_t.BC.Ebb{2}.coeff = [0,0;1,k];
+ PDE_t.BC.Ebb{2}.Rstate = 1; PDE_t.BC.Ebb{2}.delta = 1;   
 
 end
 if GUI
@@ -2334,30 +2204,28 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.w{1}.vars = [];  PDE_t.z{1}.vars = [];
- 
- % PDE: x_{t} = x_{ss}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = 2;
- 
- % PDE: x_{t} = ... + s * w,
- PDE_t.x{1}.term{2}.w = 1;
- PDE_t.x{1}.term{2}.C = s*eye(ne);
+ PDE_t.dom = [0,1];
+ PDE_t.n.nz = ne;   PDE_t.n.nw = ne;   PDE_t.n.nr = ne;  PDE_t.n.nv = ne;
+ PDE_t.n.n_pde = [0,0,ne];
 
- % Output: z = int_{0}^{1} x(s) ds
- PDE_t.z{1}.term{1}.x = 1;
+ % ODE: z = r,     v = w
+ PDE_t.ODE.Dzr = on;
+ PDE_t.ODE.Dvw = on;
 
- % BC 1: 0 = x(0)     
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;         
+ % PDE: x_{t} = s * v,
+ PDE_t.PDE.Bpv = s*on;  
 
- % BC 2: 0 = x_{s}(1)
- PDE_t.BC{2}.term{1}.x = 1;
- PDE_t.BC{2}.term{1}.D = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ % PDE: r = int_0^1 x(s) ds
+ PDE_t.PDE.Crp{1}.coeff = on; PDE_t.PDE.Crp{1}.Rstate = 2;
+
+ % PDE: x_{t} = ... + x_{ss}
+ PDE_t.PDE.A{1}.coeff = on; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2; PDE_t.PDE.A{1}.D = 2; 
+
+ % BC 1: 0 = x(0)       
+ PDE_t.BC.Ebb{1}.coeff = [on; ze]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;           
+
+ % BC 2: 0 = x_{s}(1)       
+ PDE_t.BC.Ebb{2}.coeff = [ze; on]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; PDE_t.BC.Ebb{2}.D = 1;
 
 end
 if GUI
@@ -2412,31 +2280,34 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.w{1}.vars = [];  PDE_t.z{1}.vars = [];
+ PDE_t.dom = [0,1];
+ PDE_t.n.nz = 1;   PDE_t.n.nw = 1;   PDE_t.n.nr = 1;   PDE_t.n.nv = 1;
+ PDE_t.n.n_pde = [0,0,1];
  
- % PDE: x_{t} = A0 * x + A1 * x_{s} + A2 * x_{ss}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = [0; 1; 2];
- PDE_t.x{1}.term{1}.C = [A0, A1, A2];
- 
- % PDE: x_{t} = ... + w;
- PDE_t.x{1}.term{2}.w = 1;
- 
- % Output: z = x(s=1)
- PDE_t.z{1}.term{1}.x = 1;
- PDE_t.z{1}.term{1}.loc = 1;
- 
- % BC 1: 0 = x(0)     
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;
- 
- % BC 2: 0 = x_{s}(1)
- PDE_t.BC{2}.term{1}.x = 1;
- PDE_t.BC{2}.term{1}.D = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ % ODE: z = r,     v = w
+ PDE_t.ODE.Dzr = 1;      % We let z = r = PDE-to-ODE output
+ PDE_t.ODE.Dvw = 1;      % We let w = v = ODE-to-PDE input
+
+ % PDE: x_{t} = v = w
+ PDE_t.PDE.Bpv = 1;
+
+ % PDE: r = x(1)
+ PDE_t.PDE.Drb{1}.coeff = 1; PDE_t.PDE.Drb{1}.Rstate = 2; PDE_t.PDE.Drb{1}.delta = 1;
+
+ % PDE: x_{t} = A0 * x
+ PDE_t.PDE.A{1}.coeff = A0; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
+
+ % PDE: x_{t} = ... + A1 * x_{s}
+ PDE_t.PDE.A{2}.coeff = A1; PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 1; 
+
+ % PDE: x_[t} = ... + A2 * x_{ss}
+ PDE_t.PDE.A{3}.coeff = A2; PDE_t.PDE.A{3}.Lstate = 2; PDE_t.PDE.A{3}.Rstate = 2; PDE_t.PDE.A{3}.D = 2; 
+
+ % BC 1: 0 = x(0)       
+ PDE_t.BC.Ebb{1}.coeff = [1;0]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;           
+
+ % BC 2: 0 = x_{s}(1)      
+ PDE_t.BC.Ebb{2}.coeff = [0;1]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; PDE_t.BC.Ebb{2}.D = 1;
 
 end
 if GUI
@@ -2489,33 +2360,31 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.w{1}.vars = [];  PDE_t.z{1}.vars = [];
-
- % PDE: x_{t} = lam * xi
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.C = lam;
+ PDE_t.dom = [0,1];
+ PDE_t.n.nz = ne;  PDE_t.n.nw = ne;   PDE_t.n.nr = ne;  PDE_t.n.nv = ne;  
+ PDE_t.n.n_pde = [0,0,ne];
  
- % PDE: x_{t} = ... + sum_{k=1}^{i}(xk_{ss})
- PDE_t.x{1}.term{2}.x = 1;
- PDE_t.x{1}.term{2}.D = 2;
- PDE_t.x{1}.term{2}.C = lt; % lower-triangular matrix
- 
- % PDE: x_{t} = ... + w
- PDE_t.x{1}.term{3}.w = 1;
- 
-  % Output: z = int_{0}^{1} x(s) ds
- PDE_t.z{1}.term{1}.x = 1;
+ % ODE: z = r,     v = w
+ PDE_t.ODE.Dzr = on;
+ PDE_t.ODE.Dvw = on;
 
- % BC 1: 0 = x(0)     
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;         
+ % PDE: xi_{t} = vi = wi
+ PDE_t.PDE.Bpv = on;  
 
- % BC 2: 0 = x(1)
- PDE_t.BC{2}.term{1}.x = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ % PDE: r = int_0^1 x(s) ds
+ PDE_t.PDE.Crp{1}.coeff = on; PDE_t.PDE.Crp{1}.Rstate = 2;
+
+ % PDE: xi_{t} = ... + lamb * xi 
+ PDE_t.PDE.A{1}.coeff = lam*on; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
+
+ % PDE: xi_{t} = ... + sum(xk_{ss},k=1,i)
+ PDE_t.PDE.A{2}.coeff = lt; PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
+
+ % BC 1: 0 = x(0)
+ PDE_t.BC.Ebb{1}.coeff = [on;ze]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;            
+
+ % BC 2: 0 = x(1)      
+ PDE_t.BC.Ebb{2}.coeff = [ze;on]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;   
 
 end
 if GUI
@@ -2572,32 +2441,34 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.w{1}.vars = [];  PDE_t.z{1}.vars = []; 
+ PDE_t.dom = [0,1];
+ PDE_t.n.nz = 1;   PDE_t.n.nw = 1;   PDE_t.n.nr = 1;   PDE_t.n.nv = 1;
+ PDE_t.n.n_pde = [0,0,ne];    
  
- % PDE: x_{t} = Cm * x + (1/R) * x_{ss}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = [0; 2];
- PDE_t.x{1}.term{1}.C = [Cm, (1/R)*eye(ne)];
- 
- % PDE: x_{t} = ... + [s;s] * w
- PDE_t.x{1}.term{2}.w = 1;
- PDE_t.x{1}.term{2}.C = s*ones(ne,1);
- 
- % Output: z = int_{0}^{1} x(s) ds
- PDE_t.z{1}.term{1}.x = 1;
- PDE_t.z{1}.term{1}.C = [1,zeros(1,ne-1)];
+ % ODE: z = r,     v = w
+ PDE_t.ODE.Dzr = 1;
+ PDE_t.ODE.Dvw = 1;
 
- % BC 1: 0 = x(0)     
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;         
+ % PDE: x_{t} = [s;s] * v = [s;s] * w
+ PDE_t.PDE.Bpv = s*ones(ne,1);  
 
- % BC 2: 0 = x(1)
- PDE_t.BC{2}.term{1}.x = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ % PDE: r = int_0^1 x1(s) ds
+ PDE_t.PDE.Crp{1}.coeff = [1 zeros(1,ne-1)]; PDE_t.PDE.Crp{1}.Rstate = 2;
  
+ % PDE: x_{t} = ... + Cm * x
+ PDE_t.PDE.A{1}.coeff = Cm; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
+
+ % PDE: x_{t} = ... + (1/R) * x_{ss}
+ PDE_t.PDE.A{2}.coeff = (1/R)*eye(ne); PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
+
+ % BC 1: 0 = x(0)      
+ PDE_t.BC.Ebb{1}.coeff = [on; ze];
+ PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0; 
+
+ % BC 2: 0 = x(1)       
+ PDE_t.BC.Ebb{2}.coeff = [ze; on];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;           
+
 end
 if GUI
  %%% Associated GUI save file
@@ -2653,30 +2524,34 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.w{1}.vars = [];  PDE_t.z{1}.vars = []; 
+ PDE_t.dom = [0,1];
+ PDE_t.n.nz = ne;   PDE_t.n.nw = 1;   PDE_t.n.nr = ne;   PDE_t.n.nv = 1;
+ PDE_t.n.n_pde = [0,0,ne];
+
  
- % PDE: x_{t} = Cm * x + (1/R) * x_{ss}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = [0; 2];
- PDE_t.x{1}.term{1}.C = [Cm, (1/R)*eye(ne)];
+ % ODE: z = r,     v = w
+ PDE_t.ODE.Dzr = eye(3);
+ PDE_t.ODE.Dvw = 1;
+
+ % PDE: x_{t} = [s;s;s] * v = [s;s;s] * w
+ PDE_t.PDE.Bpv = s*ones(ne,1);  
+
+ % PDE: r = int_0^1 x(s) ds
+ PDE_t.PDE.Crp{1}.coeff = on; PDE_t.PDE.Crp{1}.Rstate = 2;
  
- % PDE: x_{t} = ... + [s;s;s] * w
- PDE_t.x{1}.term{2}.w = 1;
- PDE_t.x{1}.term{2}.C = s*ones(ne,1);
- 
- % Output: z = int_{0}^{1} x(s) ds
- PDE_t.z{1}.term{1}.x = 1;
+ % PDE: x_{t} = ... + Cm * x
+ PDE_t.PDE.A{1}.coeff = Cm; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
+
+ % PDE: x_{t} = ... + (1/R) * x_{ss}
+ PDE_t.PDE.A{2}.coeff = (1/R)*on; PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
 
  % BC 1: 0 = x(0)     
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;         
+ PDE_t.BC.Ebb{1}.coeff = [on;ze];
+ PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;  
 
- % BC 2: 0 = x(1)
- PDE_t.BC{2}.term{1}.x = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ % BC 2: 0 = x(1)    
+ PDE_t.BC.Ebb{2}.coeff = [ze;on];
+ PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; 
 
 end
 if GUI
@@ -2734,32 +2609,29 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.z{1}.vars = [];  PDE_t.w{1}.vars = [];
- PDE_t.y{1}.vars = [];
+ PDE_t.dom = [0,1];
+ ne = 1;
+ PDE_t.n.ny = ne;   PDE_t.n.nz = ne;   PDE_t.n.nw = ne;   PDE_t.n.nr = ne;   PDE_t.n.nv = ne;
+ PDE_t.n.n_pde = [0,ne];
  
- % PDE: x_{t} = x_{s}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = 1;
- 
- % PDE: x_{t} = ... + w;
- PDE_t.x{1}.term{2}.w = 1;
- 
- % Output: z = int_{0}^{1} x(s) ds
- PDE_t.z{1}.term{1}.x = 1;
- 
- % Output: z = ... + w
- PDE_t.z{1}.term{2}.w  =1;
- 
- % Output: y = int_{0}^{1} x(s) ds
- PDE_t.y{1}.term{1}.x = 1;
+ % ODE: z = w,   z = ... + r,   y = r,   v = w
+ PDE_t.ODE.Dzw = on;
+ PDE_t.ODE.Dzr = on;    
+ PDE_t.ODE.Dyr = on;
+ PDE_t.ODE.Dvw = on;
 
- % BC 1: 0 = x(1)     
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 1;
- 
+ % PDE: x_{t} = v
+ PDE_t.PDE.Bpv = on;  
+
+ % PDE: r = int_0^1 x(s) ds
+ PDE_t.PDE.Crp{1}.coeff = on; PDE_t.PDE.Crp{1}.Rstate = 1;
+
+ % PDE: x_{t} = x_{s}
+ PDE_t.PDE.A{1}.coeff = on; PDE_t.PDE.A{1}.Lstate = 1; PDE_t.PDE.A{1}.Rstate = 1; PDE_t.PDE.A{1}.D = 1; 
+
+ % BCs: 0 = x(1)      
+ PDE_t.BC.Ebb{1}.coeff = on; PDE_t.BC.Ebb{1}.delta = 1; PDE_t.BC.Ebb{1}.Rstate = 1; 
+
 end
 if GUI
  %%% Associated GUI save file
@@ -2814,38 +2686,31 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize finite-dimensional inputs and outputs.
- PDE_t.z{1}.vars = [];  PDE_t.w{1}.vars = [];
- PDE_t.y{1}.vars = [];
- 
- % PDE: x_{t} = x_{ss}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = 2;
- PDE_t.x{1}.term{1}.C = eye(ne);
- 
- % PDE: x_{t} = ... + w
- PDE_t.x{1}.term{2}.w = 1;
- 
- % Output: z = int_{0}^{1} x(s) ds
- PDE_t.z{1}.term{1}.x = 1;
- 
- % Output: z = ... + w
- PDE_t.z{1}.term{2}.w  =1;
- 
- % Output: y = x_{s}(s=1)
- PDE_t.y{1}.term{1}.x = 1;
- PDE_t.y{1}.term{1}.D = 1;
- PDE_t.y{1}.term{1}.loc = 1;
+ PDE_t.dom = [0,1];
+ ne = 1;
+ PDE_t.n.ny = ne;   PDE_t.n.nz = ne;   PDE_t.n.nw = ne;   PDE_t.n.nr = 2*ne;   PDE_t.n.nv = ne;
+ PDE_t.n.n_pde = [0,0,ne];
 
- % BC 1: 0 = x(0)     
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;         
+ % ODE: z = w,   z = ... + r1,   y = r2,   v = w
+ PDE_t.ODE.Dzw = on; PDE_t.ODE.Dzr = [on,ze]; PDE_t.ODE.Dyr = [ze,on]; PDE_t.ODE.Dvw = on;
 
- % BC 2: 0 = x(1)
- PDE_t.BC{2}.term{1}.x = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ % PDE: x_{t} = v
+ PDE_t.PDE.Bpv = on;  
+
+ % PDE: r1 = int_0^1 x(s) ds
+ PDE_t.PDE.Crp{1}.coeff = [on; ze]; PDE_t.PDE.Crp{1}.Rstate = 2;
+
+ % PDE: r2 = x_{s}(1)
+ PDE_t.PDE.Drb{1}.coeff = [ze;on]; PDE_t.PDE.Drb{1}.Rstate = 2; PDE_t.PDE.Drb{1}.delta = 1; PDE_t.PDE.Drb{1}.D = 1;         
+
+ % PDE: x_{t} = ... + x_{ss}
+ PDE_t.PDE.A{1}.coeff = on; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2; PDE_t.PDE.A{1}.D = 2; 
+
+ % BC 1: 0 = x(0)      
+ PDE_t.BC.Ebb{1}.coeff = [on; ze]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;           
+
+ % BC 2: 0 = x(1)      
+ PDE_t.BC.Ebb{2}.coeff = [ze; on]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1;   
 
 end
 if GUI
@@ -2868,7 +2733,7 @@ elseif index==29
 % % % % % 2. Diffusive/Heat Equation Type Systems
 % % % % %------------------------------------------------------------------
 % % % Stabilizing controller for Heat Equation with z=0 and w=0:
-% % PDE             x_{t} = lam*x + x_{ss} + u(t)
+% % PDE             x_{t} = lamb*x + x_{ss} + u(t)
 % % With BCs        x(s=0) = 0
 % %                 x(s=1) = 0
 
@@ -2899,26 +2764,27 @@ if BATCH~=0
 end
 if TERM~=0
  %%% Term-based input format
- % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
- % Initialize a finite-dimensional input.
- PDE_t.u{1}.vars = [];
- 
- % PDE: x_{t} = lam * x + x_{ss}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = [0; 2];
- PDE_t.x{1}.term{1}.C = [lam, 1];
- 
- % PDE: x_{t} = ... + w
- PDE_t.x{1}.term{2}.u = 1;
- 
- % BC 1: 0 = x(0)
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;      
+ PDE_t.dom = [0,1];
+ PDE_t.n.nu = 1;   PDE_t.n.nv = 1;
+ PDE_t.n.n_pde = [0,0,1];
+
+ % ODE: v = u
+ PDE_t.ODE.Dvu = 1;
+
+ % PDE: x_{t} = v
+ PDE_t.PDE.Bpv = 1;  
+
+ % PDE: x_{t} = ... + lamb * x
+ PDE_t.PDE.A{1}.coeff = lam; PDE_t.PDE.A{1}.Lstate = 2; PDE_t.PDE.A{1}.Rstate = 2;  
+
+ % PDE: x_{t} = ... + x_{ss}
+ PDE_t.PDE.A{2}.coeff = 1; PDE_t.PDE.A{2}.Lstate = 2; PDE_t.PDE.A{2}.Rstate = 2; PDE_t.PDE.A{2}.D = 2; 
+
+ % BC 1: 0 = x(0)      
+ PDE_t.BC.Ebb{1}.coeff = [1; 0]; PDE_t.BC.Ebb{1}.Rstate = 2; PDE_t.BC.Ebb{1}.delta = 0;           
 
  % BC 2: 0 = x(1)        
- PDE_t.BC{2}.term{1}.x = 1;
- PDE_t.BC{2}.term{1}.loc = 1;
+ PDE_t.BC.Ebb{2}.coeff = [0; 1]; PDE_t.BC.Ebb{2}.Rstate = 2; PDE_t.BC.Ebb{2}.delta = 1; 
 
 end
 if GUI
@@ -2932,276 +2798,7 @@ if GUI
 end
 
 
-
-elseif index==31
-%%%####################################################################%%%%
-% % # # # # # # # # # # # #     2D EXAMPLES     # # # # # # # # # # # # % %
-%%%####################################################################%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STABILITY TEST EXAMPLES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% % % % %==================================================================
-% % % 2D transport equation
-% % % PDE         x_{t}  = c1*x_{s1} + c2*x_{s2}
-% % % With BCs    x(s1=0) = 0;   x(s2=0) = 0;
-
-%%% Executive Function:
- evalin('base','stability = 1;');
-
- c1 = 1; c2 = 1; 
- ne = 1;
- 
-if npars~=0
-%%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
- TERM = 1;
-end
-if TERM~=0
- %%% Term-based input format
- PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
- 
- % PDE: x_{t} = [c1, c2] * [x_{s1}; x_{s2}]
- PDE_t.x{1}.term{1}.D = [1,0; 0,1];
- PDE_t.x{1}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
- 
- % BC1: 0 = x(s1,0)
- PDE_t.BC{1}.term{1}.loc = [s1,0];
- % BC2: 0 = x(0,s2)
- PDE_t.BC{2}.term{1}.loc = [0,s2];
- 
-end
-if GUI~=0
- disp('No GUI representation available for this system.')
-end
- 
- 
-
-elseif index==32
-% % % % %==================================================================
-% % % 2D reaction-diffusion equation
-% % % PDE         x_{t}   = lam*x + c1*x_{s1s1} + c2*x_{s2s2}
-% % % With BCs    x(s1=0) = 0;   x(s2=0) = 0;
-% % %             x(s1=1) = 0;   x(s2=1) = 0;
-%
-% % Stable when lam <= 2*pi^2 (Holmes, 1994 [14]).
-    
-%%% Executive Function:
- evalin('base','stability = 1;');
-
- c1 = 1; c2 = 2; lam = 19;
- ne = 1;
- 
-if npars~=0
-%%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
- TERM = 1;
-end
-if TERM~=0
- %%% Term-based input format
- PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
- 
- % PDE: x_{t} = [lam, c1, c2] * [x; x_{s1s1}; x_{s2s2}]
- PDE_t.x{1}.term{1}.D = [0,0; 2,0; 0,2];
- PDE_t.x{1}.term{1}.C = [lam*eye(ne), c1*eye(ne), c2*eye(ne)];
- 
- % BC1: 0 = x(s1,0)                     % BC3: 0 = x(s1,1)
- PDE_t.BC{1}.term{1}.loc = [s1,0];      PDE_t.BC{3}.term{1}.loc = [s1,1];
- % BC2: 0 = x(0,s2)                     % BC4: 0 = x(1,s2)
- PDE_t.BC{2}.term{1}.loc = [0,s2];      PDE_t.BC{4}.term{1}.loc = [1,s2];
- 
-end
-if GUI~=0
- disp('No GUI representation available for this system.')
-end
-
-
-
-elseif index==33
-% % % 2D parabolic equation
-% % % PDE         x_{t}  = a*x + b1*x_{s1} + b2*x_{s2} + c1*x_{s1s1} + c2*x_{s2s2}
-% % % With BCs    x(s1=0) = 0;        x(s2=0) = 0;
-% % %             x_{s1}(s1=0) = 0;   x_{s2}(s2=0) = 0;
-    
-%%% Executive Function:
- evalin('base','stability = 1;');
-
- a = 1;  b1 = 1;  b2 = 1;  c1 = 1;  c2 = 1;
- ne = 1;
- 
-if npars~=0
-%%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
- TERM = 1;
-end
-if TERM~=0
- %%% Term-based input format
- PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
- 
- % PDE: x_{t} = a * x
- PDE_t.x{1}.term{1}.C = a*eye(ne);
- 
- % PDE: x_{t} = ... + [b1, b2] * [x_{(1,0)}; x_{(0,1)}]
- PDE_t.x{1}.term{2}.D = [1,0; 0,1];
- PDE_t.x{1}.term{2}.C = [b1*eye(ne), b2*eye(ne)];
- 
- % PDE: x_{t} = ... + [c1, c2] * [x_{(2,0)}; x_{(0,2)}]
- PDE_t.x{1}.term{3}.D = [2,0; 0,2];
- PDE_t.x{1}.term{3}.C = [c1*eye(ne), c2*eye(ne)]; 
- 
- % BC1: 0 = x(s1,0)                     
- PDE_t.BC{1}.term{1}.loc = [s1,0];
- % BC2: 0 = x(0,s2)
- PDE_t.BC{2}.term{1}.loc = [0,s2];
- % BC3: 0 = x_{(1,0)}(s1,0)
- PDE_t.BC{3}.term{1}.D = [1,0];
- PDE_t.BC{3}.term{1}.loc = [s1,0];
- % BC4: 0 = x_{(0,1)}(0,s2)
- PDE_t.BC{4}.term{1}.D = [0,1];
- PDE_t.BC{4}.term{1}.loc = [0,s2];
- 
-end
-if GUI~=0
- disp('No GUI representation available for this system.')
-end
- 
- 
-
-elseif index==34
-% % % % %==================================================================
-% % % 2D wave equation
-% % % PDE         x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)};
-% % % With BCs    x(s1=0) = 0;       x(s2=0) = 0;
-% % %             x(s1=1) = 0;       x(s2=1) = 0;
-
-%%% Executive Function:
- evalin('base','stability = 1;');
-
- c1 = 1;  c2 = 1;
- ne = 1;
- 
-if npars~=0
-%%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
- TERM = 1;
-end
-if TERM~=0
- %%% Term-based input format
- PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
- 
- % PDE: x_{tt} = [c1, c2] * [x_{s1s1}; x_{s2s2}]
- PDE_t.x{1}.tdiff = 2;
- PDE_t.x{1}.term{1}.D = [2,0; 0,2];
- PDE_t.x{1}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
- 
- % BC1: 0 = x(s1,0)                     % BC3: 0 = x(s1,1)
- PDE_t.BC{1}.term{1}.loc = [s1,0];      PDE_t.BC{3}.term{1}.loc = [s1,1];
- % BC2: 0 = x(0,s2)                     % BC4: 0 = x(1,s2)
- PDE_t.BC{2}.term{1}.loc = [0,s2];      PDE_t.BC{4}.term{1}.loc = [1,s2];
- 
-end
-if GUI~=0
- disp('No GUI representation available for this system.')
-end
-
-
-
-elseif index==35
-% % % % %==================================================================
-% % % 2D heat equation coupled to ODE
-% % % ODE         x1_{t}  = (A+BK)*x1 + B*x2(s1=0,s2=0)
-% % % PDE         x2_{t}  = c1*x_{(2,0)} + c2*x_{(0,2)}
-% % % With BCs    x2_{(1,0)}(s1=0) = 0;     x2(s1=1) = 0;
-% % %             x2_{(0,1)}(s2=0) = 0;     x2(s2=1) = 0;    
-
-%%% Executive Function:
- evalin('base','stability = 1;');
-
- c1 = 1;  c2 = 1;   k = -2;
- nx = 1;    ne = 1;
- 
- A = eye(nx);    B = eye(nx,ne);  K = k*eye(ne,nx);
- 
-if npars~=0
-%%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-nx = size(A,1);     ne = size(K,1);
-
-if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
- TERM = 1;
-end
-if TERM~=0
- %%% Term-based input format
- % Initialize an ODE state component.
- PDE_t.x{1}.vars = [];
- % Initialize a 2D PDE state component.
- PDE_t.x{2}.vars = [s1;s2];   PDE_t.x{2}.dom = [0,1;0,1];
- 
- % ODE: x1_{t} = (A+B*K)*x1
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.C = A+B*K;
- 
- % ODE: x1_{t} = ... + B*x2(s1=0,s2=0)
- PDE_t.x{1}.term{2}.x =2;
- PDE_t.x{1}.term{2}.loc = [0,0];
- PDE_t.x{1}.term{2}.C = B;
- 
- % PDE: x2_{t} = [c1, c2] * [x2_{s1s1}; x2_{s2s2}]
- PDE_t.x{2}.term{1}.x = 2;
- PDE_t.x{2}.term{1}.D = [2,0; 0,2];
- PDE_t.x{2}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
- 
- % BC1: 0 = x2(s1,0)              
- PDE_t.BC{1}.term{1}.x = 2;
- PDE_t.BC{1}.term{1}.loc = [s1,0];      
- % BC2: 0 = x2(0,s2)
- PDE_t.BC{2}.term{1}.x = 2;
- PDE_t.BC{2}.term{1}.loc = [0,s2];
- % BC3: 0 = x2_{s2}(s1,0)
- PDE_t.BC{3}.term{1}.x = 2;
- PDE_t.BC{3}.term{1}.D = [0,1];
- PDE_t.BC{3}.term{1}.loc = [s1,0];
- % BC4: 0 = x2_{s1}(0,s2)
- PDE_t.BC{4}.term{1}.x = 2;
- PDE_t.BC{4}.term{1}.D = [1,0];
- PDE_t.BC{4}.term{1}.loc = [0,s2];
- 
-end
-if GUI~=0
- disp('No GUI representation available for this system.')
-end
-
-
-elseif index==100
+elseif index==30
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Additional examples (undocumented) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3264,7 +2861,7 @@ end
 
 
 
-elseif index==101
+elseif index==31
 % % % % %------------------------------------------------------------------
 % % % % % 
 % % % % %------------------------------------------------------------------
@@ -3471,31 +3068,6 @@ end
 % author = {Shuxia Tang and Chengkang Xie},
 % keywords = {Coupled system, PDEs, Boundary control, Output feedback},
 % abstract = {This note is devoted to stabilizing a coupled PDE–ODE system with interaction at the interface. First, a state feedback boundary controller is designed, and the system is transformed into an exponentially stable PDE–ODE cascade with an invertible integral transformation, where PDE backstepping is employed. Moreover, the solution to the resulting closed-loop system is derived explicitly. Second, an observer is proposed, which is proved to exhibit good performance in estimating the original coupled system, and then an output feedback boundary controller is obtained. For both the state and output feedback boundary controllers, exponential stability analyses in the sense of the corresponding norms for the resulting closed-loop systems are provided. The boundary controller and observer for a scalar coupled PDE–ODE system as well as the solutions to the closed-loop systems are given explicitly.}
-% }
-%
-% % [14] - 
-% E. E. Holmes, M. Lewis, J. Banks, and R. R. Veit, “Partial differential
-% equations in ecology: Spatial interactions and population dynamics,”
-% Ecology, vol. 75, pp. 17–29, 1994.
-%
-% % [15] -
-% @inproceedings{meyer2015stability,
-%   title={Stability analysis of parabolic linear PDEs with two spatial dimensions using Lyapunov method and SOS},
-%   author={Meyer, Evgeny and Peet, Matthew M},
-%   booktitle={2015 54th IEEE Conference on Decision and Control (CDC)},
-%   pages={1884--1890},
-%   year={2015},
-%   organization={IEEE}
-% }
-%
-% % [16] - 
-% @inproceedings{demetriou2019feedback,
-% title={Feedback kernel approximations and sensor selection for controlled 2D parabolic PDEs using computational geometry methods},
-% author={Demetriou, Michael A and Hu, Weiwei},
-% booktitle={2019 IEEE 58th Conference on Decision and Control (CDC)},
-% pages={2144--2150},
-% year={2019},
-% organization={IEEE}
 % }
 
 %

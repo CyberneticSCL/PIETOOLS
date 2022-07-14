@@ -1,801 +1,2115 @@
+function PDE = initialize_PIETOOLS_PDE_terms(PDE,suppress_summary)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize_PIETOOLS_PDE_terms.m     PIETOOLS 2021b
+% PDE = initialize_PIETOOLS_PDE_temrs(PDE) takes a PDE data structure and
+% checks that all the necessary fields are appropriately specified, and
+% assigns a default value to all the optional fields that have not been
+% specified.
+% 
+% INPUT
+%   PDE: "struct" or "pde_struct" class object.
+%   suppress_summary: Logical index. If 'false' or not specified, a summary
+%                     of the observed state, input, output and BC
+%                     information will be printed in the command window at
+%                     the end of the initialization process.
+%
+% OUTPUT
+%   PDE: "pde_struct" class object describing the same system as the input.
+%
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%
+% The PDE structure has the following fields:
+%
+% - PDE.dim:    Integer "p" specifying the dimension of the
+%   (dependent) spatial domain of the system. Currently, only p<=2 is
+%               supported.
+% - PDE.vars:   A px2 pvar (polynomial class) object specifying
+%   (dependent) the p spatial variables that appear in the system in the
+%               first column, and the associated dummy variables in the
+%               second column.
+% - PDE.dom:    A px2 "double" array specifying the interval on
+%   (dependent) which each of p spatial variables exists.
+%
+% - PDE.x:      A cell with each element i defining a state 
+%   (mandatory) component x_i and associated differential equation
+%               \dot{x}_i = ....
+% - PDE.y:      A cell with each element i defining an observed
+%   (optional)  output y_i and associated equation y_i = .... If not
+%               specified, it is assumed that the system has no observed
+%               outputs.
+% - PDE.z:      A cell with each element i defining a regulated
+%   (optional)  output z_i and associated equation z_i = .... If not
+%               specified, it is assumed that the system has no regulated
+%               outputs.
+% - PDE.u:      A cell with each element i defining an actuator
+%   (optional)  input u_i that appears in the system. If not specified, it
+%               is assumed that the system has no actuator inputs.
+% - PDE.w:      A cell with each element i defining an exogenous
+%   (optional)  input w_i that appears in the system. If not specified, it
+%               is assumed that the system has no exogenous inputs.
+% - PDE.BC:     A cell with each element i defining a boundary
+%   (mandatory) condition 0 = ... of the system.
+%
+% For each state component, input, and output, the size of this component,
+% as well as the number of variables it depends on and their associated 
+% domain are specified in the same manner, through fields "size", "vars" 
+% and "dom". In addition, the order of differentiability of state
+% components is indicated through "diff", and the order of the temporal
+% derivative in the LHS of the PDE is indicated through "tdiff". That is,
+% PDE.x{i} has fields:
+%
+% - PDE.x{i}.size:  An integer n_i indicating the number of
+%   (optional)      variables in the ith state component x_i. If
+%                   not specified, a size is determined based on the size
+%                   of coefficient matrices in the different equations
+%                   defining or relying on this state. If specified, an
+%                   error will be thrown if the size of these coefficient
+%                   matrices does not match the specified size.
+% - PDE.x{i}.vars:  A p_ix2 "pvar" (polynomial class) object
+%   (mandatory)     specifying the p_i spatial variables that the
+%                   component depends on in the first column, and the
+%                   associated dummy variables in the second column. If not
+%                   specified, the component is assumed to be
+%                   finite-dimensional, unless global variables PDE.vars
+%                   are specified. In that case, any state component is
+%                   assumed to vary in these global variables, but inputs
+%                   and outputs are still assumed to be finite-dimensional.
+% - PDE.x{i}.dom:   A p_ix2 "double" array specifying the
+%   (mandatory)     spatial interval on which each of the p_i variables
+%                   that the component depends on exists.
+% - PDE.x{i}.diff:  A 1xp_i array of integers specifying for
+%   (optional)      each of the p_i variables on which the state component
+%                   depends to what order the component is differentiable
+%                   with respect to this variable. The field should not be
+%                   specified for inputs, outputs, or BCs. If no "diff" is
+%                   specified, the function will look through all the terms
+%                   in each equation that depends on the component x_i, and
+%                   use the maximal order of any derivative taken of this
+%                   component as the maximal order of differentiability.
+%
+% - PDE.x{i}.tdiff: A scalar integer r_i indicating the order
+%   (optional)      of the temporal derivative in the PDE d_t^{r_i} x_i=...
+%                   associated to the ith state component. Should not be
+%                   specified for the inputs, outputs, or BCs. Defaults to
+%                   1 if not specified.
+%
+% - PDE.x{i}.term:  A cell with each element defining a term in
+%   (mandatory)     the (differential) equation associated to the
+%                   component. Should not be specified for the inputs
+%                   PDE.w{i} or PDE.u{i}.
+%
+% To specify the PDEs, output equations, and boundary conditions, a cell
+% "term" is used, each element describing a term in the equation. Each of
+% these terms is structured in the same way as
+%
+% term_j = int_{I{1}(1)}^{I{1}(2) ... int_{I{p_r}(1)}^{I{p_r}(2)}
+%             [ C(s_1,...,s_{p_i},theta_1,...,theta_{p_r}) * 
+%                   d_{s_{1}}^D(1) ... d_{s_{p_r}}^{D(p_r)}
+%                       x_r(loc(1),...,loc(p_r)) ]dtheta_{p_r} ... dtheta_1
+%
+% where x_r could be replaced by w_r or u_r. Such a term can then be
+% specified through the fields
+%
+% -    term{j}.x;   An integer r specifying which state component x_r
+%   OR term{j}.w;   or input w_r or u_r the term is defined by. Only one of
+%   OR term{j}.u:   these fields can be specified, and one of these fields
+%   (mandatory)     must be specified. If none of these fields is
+%                   specified, and the systems pertains only a single state
+%                   component, the value defaults to the index of this
+%                   state component (1).
+% - term{j}.D:      A 1xp_r integer array specifying the order of the
+%   (optional)      derivative of the state component x_r in each of the
+%                   p_r variables that this state component depends on.
+%                   Should not be specified if the term involves an input
+%                   w_r or u_r (we cannot take derivatives of inputs). If
+%                   not specified, it defaults to D=zeros(1,p_r), taking no
+%                   derivative.
+% - term{j}.loc:    A 1xp_r "pvar" (polynomial class) or "double" array
+%   (optional)      specifying the spatial position at which to evaluate
+%                   the state. For any variable s_k in [a,b] on which the
+%                   state depends, only loc(k)=s_k, loc(k)=a or loc(k)=b is
+%                   allowed. Should not be specified if the term involves
+%                   an input w_r or u_r. For BCs, this field is mandatory,
+%                   as otherwise it is unclear at which boundary the state
+%                   is considered. In the other equations, if no "loc" is
+%                   specified, it defaults to loc=[s_{1},...,s_{p_r}],
+%                   where (s_{1},...,s_{p_r}) are the spatial variables on
+%                   which the state depends.
+% - term{j}.C:      A n_ixn_r "polynomial" or "double" array, specifying
+%   (optional)      the coefficient matrix with which the component x_r,
+%                   w_r or u_w is multiplied, as it contributes to the
+%                   considered equation. If it is polynomial, it can only
+%                   vary in the state variables on which the LHS component
+%                   x_i, y_i, or z_i depends. If integration is performed,
+%                   it can also depend on the dummy variables associated
+%                   to the spatial variables on which the RHS component
+%                   x_r, w_r or u_r depends. If not specified, it defaults
+%                   to an identity matrix.
+% - term{j}.I:      A cell of p_r elements, the kth of which must be a 1x2
+%   (optional)      "pvar" or "double" array specifying on which domain to
+%                   integrate the RHS component with respect to the kth
+%                   variable on which it depends. If the kth element is
+%                   empty, no integration is performed along this
+%                   direction. Otherwise, for the kth variables s_k in
+%                   [a,b], only I{k}=[a,s_k], I{k}=[s_k,b] or I{k}=[a,b]
+%                   can be specified. Any other domain of integration will
+%                   not be allowed. If no I is specified, it defaults to a
+%                   p_rx1 cell of which each element is empty, performing
+%                   no integration.
+%
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%
+% The initialization function verifies that all mandatory fields are
+% proprly specified, and assigns a value to the optional fields which the
+% user has not specified, as well as to the dependent fields. In addition,
+% it builds the tables x_tab, y_tab, z_tab, u_tab, w_tab and BC_tab. The
+% number of rows in each of these tables matches the number of associated
+% components (e.g. x_tab has one row for each element of PDE.x), and for a 
+% system with p global variables, the number of columns is given by 2+p.
+% The first column specifies the index associated to each component.
+% The second column specifies the size of this (vector-valued) component.
+% The remaining columns j+2 for j=1:p are logical indices indicating
+% whether the considered component varies in the jth global variable.
+% The x_tab has p additional columns, indicating for each variable j=1:p to
+% what order the state component is differentiable in this spatial
+% variable.
+%
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%
+% NOTES:
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% or D. Jagt at djagt@asu.edu
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function PDE_out=initialize_PIETOOLS_PDE_terms(PDE)
-% initializes and checks the PDE formulation using the term-based input
-% format.  undefined signals are set to length 0 with 0 value
-% corresponding parameters are set to zero valued terms of appropriate
-% dimension
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% User-Defined Inputs for specifying the dynamics:
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% NOTE: All dimensions (nx,nw,nu,nz,ny,nv,nr) are assumed to be 0 by default.
-% Specifically, (all optional)
-% PDE.n.nx     -  number of ODE states
-% PDE.n.nw     -  number of disturbances
-% PDE.n.nu     -  number of controlled inputs
-% PDE.n.nz     -  number of regulated outputs
-% PDE.n.ny     -  number of observed outputs
-% PDE.n.nv     -  number of ODE to PDE interconnection signals
-% PDE.n.nr     -  number of PDE to ODE interconnection signals
+% PIETools - initialize_PIETOOLS_PDE
 %
-% NOTE: Any matrix with a 0-dimension should be ommitted
+% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
 %
-% PDE Terms (required)
-% PDE.n.n_pde  -  dimensions of all PDE states segregated based on differentiability (Required)
-% PDE.dom    -  interval of the domain of the spatial variable - s \in [a,b] (Required)
-
-% PDE.PDE.A  -  structure describing the dynamics of the PDE subsystem
-% PDE.PDE.Bpv(s) (optional) -  polynomial matrix in pvar s of dimension (n0+n1+n2) x nv       - Distributed effect of ODE interconnection in the domain of the PDE
-% PDE.PDE.Bpb(s) (optional) -  polynomial matrix in pvar s of dimension (n0+n1+n2) x 2sum(i*n_pde(i), i=1,to N )       - Distributed effect of boundary values in the domain of the PDE
-
-%%%%%% Boundary conditions (optional)
-% PDE.BC.Ebb     - structure specifying boundary conditions
-% PDE.BC.Ebp     - structure specifying integral boundary conditions
-% PDE.BC.Ebv     -  matrix of dimension nBC x nv        - effect of ODE interconnection on Boundary Conditions
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Interconnection signals (all optional)
-% ODE to PDE
-% PDE.ODE.Cv    -  coefficients of ODE in v, nv x no size matrix
-% PDE.ODE.Dvw    -  coefficients of disturbance in v, nv x nw size matrix
-% PDE.ODE.Dvu    -  coefficients of controlled inputs in v, nv x nu size matrix
-
-
-% PDE to ODE
-% PDE.PDE.Crp - structure specifying integral terms in interconnection signal r, size nr x sum((i+1)*n_pde(i),i=0 to N)
-% PDE.PDE.Drv - matrix of dimension nr x nv           - feed through term from v to r
-% PDE.PDE.Drb - structure specifying Boundary values terms in interconnection signal r, size nr x 2*sum((i)*n_pde(i),i=1 to N)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ODE Dynamics (all optional)
-% PDE.n.nx     -  number of ODE states
-% PDE.ODE.A      - matrix of dimension no x no                             - ODE dynamics
-% PDE.ODE.Bxw    -  matrix of dimension no x nw                            - Effect of disturbance on ODE state
-% PDE.ODE.Bxu    -  matrix of dimension no x nu                            - Effect of input on ODE state
-% PDE.ODE.Bxr    -  matrix of dimension no x nr                            - Effect of interconnection signal r on ODE state
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Regulated outputs (all optional)
-% PDE.n.nz     -  number of regulated outputs
-% PDE.ODE.Cz     -  matrix of dimension nz x no                            - Effect of ODE states on regulated output
-% PDE.ODE.Dzw    -  matrix of dimension nz x nw                            - Effect of disturbance on regulated output (avoid for H2-optimal control problems)
-% PDE.ODE.Dzu    -  matrix of dimension nz x nu                            - Effect of control input on regulated output (Recommended for realistic controllers)
-% PDE.ODE.Dzr    -  matrix of dimension nz x nr                            - Effect of interconnection signal r on regulated output
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Observed outputs (all optional)
-% PDE.n.ny     -  number of observed outputs
-% PDE.ODE.Cy     -  matrix of dimension ny x nx                            - Effect of ODE states on observed output
-% PDE.ODE.Dyw    -  matrix of dimension ny x nw                            - Effect of disturbance on observed output (e.g. sensor noise)
-% PDE.ODE.Dyu    -  matrix of dimension ny x nu                            - Effect of control input on observed output (rare)
-% PDE.ODE.Dyr    -  matrix of dimension ny x nr                            - Effect of interconnection signal r on observed outputs
-
-% ~ NOTE: The workspace is cleaned at the end of the file, but feel free to
-% exclude variables from this cleaning process if they are needed for
-% anything.
-
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP  - 5_29_2021
-% SS - 6/1/2021; modified initA, initCrp etc to allow for repeated terms
-% DJ - 12/29/2021: Added option to suppress (less important) warnings
+% Initial coding DJ - 07/07/2022
+
+
+% % % --------------------------------------------------------------- % % %
+% % % Check the PDE structure, and initialize any fields that the user has
+% % % not set.
+
+% If no input is provided, initialize an empty system
+if nargin==0
+    PDE = pde_struct;
+    return
+elseif nargin==1
+    suppress_summary = false;
+end
+% Convert the input to a "pde_struct" object.
+if ~isa(PDE,'struct') && ~isa(PDE,'pde_struct')
+    error('Input must be a ''struct'' or ''pde_struct'' class object.')
+elseif isa(PDE,'struct')
+    PDE = pde_struct(PDE);
+end
+ncomps_x = length(PDE.x);
+
+
+% % % --------------------------------------------------------------- % % %
+% % % Build a full list of the spatial variables that appear, and
+% % % their domain.
+
+% % First check if a set of global variables and associated domain has been
+% % specified.
+if ~isempty(PDE.dom) && ~isempty(PDE.vars)
+    % If global variables have been specified, make sure they have been
+    % appropriately specified.
+    global_dom = PDE.dom;
+    global_vars = PDE.vars;
+    if size(global_dom,2)~=2
+        error(['The global domain has not been appropriately specified:'...
+                '"dom" must be a px2 array specifying the interval on which each of the p spatial variables exists.'])
+    elseif any(global_dom(:,1) >= global_dom(:,2))
+        error(['The global domain has not been appropriately specified:'...
+                'lower boundaries of spatial domain cannot exceed the upper boundaries.'])
+    end
+    if size(global_vars,2)>2
+        error(['The global variables have not been appropriately specified:'...
+                '"vars" should be a px2 array, specifying the p primary and dummy spatial variables.'])
+    elseif size(global_vars,1)~=size(global_dom,1)
+        error(['The global variables have not been appropriately specified:'...
+                'the number of variables does not match the dimension of the specified domain.'])
+    end
+    % If variable names are specified, convert to pvar objects.
+    if ~ispvar(global_vars) && ~iscellstr(global_vars)
+        error(['The global variables have not been appropriately specified:'...
+                'spatial variables must be specified as pvar (polynomial class) objects.'])
+    elseif iscellstr(global_vars)
+        global_vars = polynomial(global_vars);
+    end
+    if length(global_vars.varname)~=prod(size(global_vars))
+        error(['Global variables have not been appropriately specified:'...
+                'spatial variables must be distinct.'])
+    end
+    % If no dummy variables have been specified, do not set any dummy
+    % variables just yet.
+    if size(global_vars,2)==1
+        global_vars = [global_vars,zeros(size(global_vars,1),1)];
+    end
+elseif isempty(PDE.dom) && ~isempty(PDE.vars)
+    % We do not allow variables to be specified without domain.
+    error(['A domain must be specified for the spatial variables.'])
+elseif isempty(PDE.vars) && ~isempty(PDE.dom)
+    % We do not allow a domain to be specified without variables.    
+    error(['No spatial variables have been specified.'])
+else
+    % If no global variables are available, initialize an empty set.
+    global_dom = zeros(0,2);
+    global_vars = polynomial(zeros(0,2));
+end
+PDE.dom = global_dom;
+PDE.vars = global_vars;
+    
+% % Next, determine for each state, input, and output what spatial variables
+% % it depends on, along with their domain.
+[PDE,dom_list_x,var_list_x,comp_list_x] = extract_vars(PDE,'x');
+[PDE,dom_list_w,var_list_w,comp_list_w] = extract_vars(PDE,'w');
+[PDE,dom_list_u,var_list_u,comp_list_u] = extract_vars(PDE,'u');
+[PDE,dom_list_z,var_list_z,comp_list_z] = extract_vars(PDE,'z');
+[PDE,dom_list_y,var_list_y,comp_list_y] = extract_vars(PDE,'y');
+
+% Combine the lists to get a full list of variable names and their
+% associated domains.
+dom_list = [dom_list_x; dom_list_w; dom_list_u; dom_list_z; dom_list_y];
+var_list = [var_list_x; var_list_w; var_list_u; var_list_z; var_list_y];
+comp_list = [comp_list_x; comp_list_w; dom_list_u; comp_list_z; comp_list_y];
+
+% Keep track of which rows in the full list correspond to states, inputs,
+% and outputs.
+nvars_arr = [size(comp_list_x,1); size(comp_list_w,1); size(comp_list_u,1); size(comp_list_z,1); size(comp_list_y,1)];
+nnvars_arr = cumsum([0; nvars_arr]);    
+
+
+% % Establish a unique set of primary variables from the full set.
+[var1_list_unique,id1,varnum_list] = unique(var_list(:,1)); % list_unique = list(id1);  list = list_unique(varnum_list)
+nvars = length(var1_list_unique);
+if nvars>2
+    error('Currently, PIETOOLS supports only problems with at most two distinct spatial variables.')
+end
+
+% % Loop over the unique variables, and make sure each is coupled to just
+% % one domain and (at most) one dummy variable.
+for varnum=1:nvars
+    % Find rows in var_list associated to unique spatial variable varnum.
+    var_locs = find(varnum_list==varnum);   
+    % Check that each spatial variable is coupled with just one interval on
+    % which it exists.
+    if any(any(dom_list(var_locs(2:end,:),:) - dom_list(var_locs(1:end-1,:),:)))
+        error(['The same spatial variable seems to exist on different domains for different states/inputs/outputs;'...
+                ' please make sure that the domain of any one variable across different components x{i}, w{i}, u{i}, z{i} and y{i} is identical.'])
+    end
+    % For the given variable varnum, check the third column of var_list to
+    % establish whether any dummy variables have been coupled to this 
+    % variable
+    has_var2_ii = cell2mat(var_list(var_locs,3));
+    if ~any(has_var2_ii)
+        % If there is no dummy variable associated to the spatial
+        % variable varnum, define a new dummy variable.
+        var2_name_ii = [var1_list_unique{varnum},'_dum'];
+        var_list(var_locs,2) = {var2_name_ii};
+    else
+        % Otherwise, make sure only one dummy variable is coupled to the
+        % spatial variable.
+        var2_list_ii = var_list(var_locs,2);
+        var2_list_ii = unique(var2_list_ii(has_var2_ii));
+        if length(var2_list_ii)>1
+            error(['The same spatial variable seems to be coupled with different dummy variables across different states/inputs/outputs;'...
+                    ' please make sure that the dummy variable associated to any one variable across different components x{i}, w{i}, u{i}, z{i} and y{i} is the same.'])
+        else
+            % Make sure that the dummy variable is linked to the spatial
+            % variable varnum throughout the var_list
+            var_list(var_locs,2) = var2_list_ii;
+        end
+    end
+end
+
+% Make sure that each dummy variable is coupled to at most one spatial
+% variable.
+var2_names = var_list(id1,2);
+if length(unique(var2_names))~=length(var2_names)
+    error(['Different spatial variables seem to be coupled to the same dummy variable;'...
+            ' please use a distinct dummy variable for each distinct primary spatial variable.'])
+end
+
+% % Set a (unique) set of global variables, and their associated domain,
+% % and add these to the PDE structure.
+global_vars = polynomial(var_list(id1,1:2));
+global_dom = dom_list(id1,:);
+
+PDE.dim = size(global_vars,1);  % also keep track of the dimension of the PDE
+PDE.dom = global_dom;
+PDE.vars = global_vars;
+
+
+
+% % % --------------------------------------------------------------- % % %
+% % % Now that we have established a unique set of variables, we build
+% % % tables for each state, input, and output, keeping track of which
+% % % of the global variables they depend on, as well as their size.
+
+% % First, establish for each state, input, and output which rows in the
+% % var_list and dom_list correspond to this component.
+n_comps = [numel(PDE.x); numel(PDE.w); numel(PDE.u); numel(PDE.z); numel(PDE.y)];
+comp_indcs = cell(5,1);
+for j=1:numel(comp_indcs)
+    % For j=1:5, indices correspond to the rows in var_list associated with
+    % x (j=1), w(j=2), u (j=3), z (j=4), and y (j=5).
+    comp_indcs{j} = nnvars_arr(j)+1:nnvars_arr(j+1);
+end
+
+% % For the states, inputs, and outputs, we build a table with the number of
+% % rows equal to the number of components of this state, input and output.
+tab_cell = cell(5,1);   % {x_tab (j=1); w_tab (j=2); u_tab (j=3); z_tab (j=4); y_tab (j=5)}.
+for j=1:numel(tab_cell)
+    % The first two columns in the table list the index associated to this
+    % component, and respectively the size of the component.
+    tab_j = zeros(n_comps(j),2 + nvars);
+    tab_j(:,1) = 1:n_comps(j);
+    %tab_j(:,2) = 1;     % Assume each component is scalar-valued for now
+    
+    % The remaining nvars columns are binary indices, indicating for each
+    % varnum=1:nvars whether the component varies in the variable varnum.
+    if isempty(comp_indcs{j})
+        % There are no rows in var_list associated to object j.
+        tab_cell{j} = tab_j;
+        continue
+    end
+    % Extract variable names and associated indices assoicated to this
+    % object (the state, input, or output).
+    comp_list_j = comp_list(comp_indcs{j});
+    varnum_list_j = varnum_list(comp_indcs{j});    
+    for varnum=1:nvars
+        var_locs = varnum_list_j==varnum;   % Rows in var_list associated to spatial variable varnum
+        row_nums = comp_list_j(var_locs);   % Components that vary in variable varnum
+        tab_j(row_nums,2+varnum) = 1;       % Use binary index to indicate dependence on variable varnum of component j
+    end
+    % Store the new table.
+    tab_cell{j} = tab_j;
+end
+
+% Separate and store the tables in the PDE structure
+PDE.x_tab = tab_cell{1};
+PDE.w_tab = tab_cell{2};
+PDE.u_tab = tab_cell{3};
+PDE.z_tab = tab_cell{4};
+PDE.y_tab = tab_cell{5};
+
+% Also build a table for the boundary conditions, where once again, each
+% row corresponds to a particular condition, with the first column
+% providing an index associated to this condition, and the second column
+% a number of equations (size) associated to this condition. The remaining
+% columns are filled with binary indices, indicating for each of the global
+% variables whether the function f(s) in the BC 0=f(s) depends on this
+% variable.
+BC_tab = zeros(numel(PDE.BC),2+nvars);
+BC_tab(:,1) = 1:numel(PDE.BC);
+%BC_tab(:,2) = 1;    % Assume each BC concerns just a single equation for now
+PDE.BC_tab = BC_tab;
+
+
+% % For the state components, we also store the order of differentiability
+% % in each spatial variable, in diff_tab.
+diff_tab = zeros(numel(PDE.x),nvars);
+
+% For the different equations for x, y, z, and the BCs, we use 
+% "get_diff_tab" to loops over the terms in each of these equations, 
+% checking the order of the derivatives of the state components to
+% establish an order of differentiability of each component.
+% The functions also determine a size for each state, input, output, and
+% BC, and stores it in the second column of the appropriate table 
+% PDE.(*)_tab. 
+[PDE,diff_tab] = get_diff_tab(PDE,'x',diff_tab);
+[PDE,diff_tab] = get_diff_tab(PDE,'z',diff_tab);
+[PDE,diff_tab] = get_diff_tab(PDE,'y',diff_tab);
+[PDE,diff_tab] = get_diff_tab(PDE,'BC',diff_tab);
+
+% For any state component of which the size is not clear, also the
+% component to be scalar.
+PDE.x_tab(PDE.x_tab(:,2)==0,2) = 1;
+% For the inputs, outputs, and BCs of which the size is unclear, if all
+% state components are the same size, assume the other objects to be of
+% this same size as well
+if all(PDE.x_tab(2:end,2)==PDE.x_tab(1:end-1,2))
+    shared_size = PDE.x_tab(1,2);
+    PDE.y_tab(PDE.y_tab(:,2)==0,2) = shared_size;
+    PDE.z_tab(PDE.z_tab(:,2)==0,2) = shared_size;
+    PDE.u_tab(PDE.u_tab(:,2)==0,2) = shared_size;
+    PDE.w_tab(PDE.w_tab(:,2)==0,2) = shared_size;
+    PDE.BC_tab(PDE.BC_tab(:,2)==0,2) = shared_size;
+else
+    % Otherwise, assume they are all scalar.
+    PDE.y_tab(PDE.y_tab(:,2)==0,2) = 1;
+    PDE.z_tab(PDE.z_tab(:,2)==0,2) = 1;
+    PDE.u_tab(PDE.u_tab(:,2)==0,2) = 1;
+    PDE.w_tab(PDE.w_tab(:,2)==0,2) = 1;
+    PDE.BC_tab(PDE.BC_tab(:,2)==0,2) = 1;
+end
+
+
+% % % --------------------------------------------------------------- % % %
+% % % Now that we have all the necessary information on our states, inputs
+% % % and outputs, we loop over the different terms in the different
+% % % equations (except for the BCs) and make sure all the mandatory fields
+% % % are appropriately specified. Any optional fields that are no
+% % % specified are assigned the associated default value.
+
+[PDE,diff_tab] = check_terms(PDE,'x',diff_tab);
+[PDE,diff_tab] = check_terms(PDE,'z',diff_tab);
+[PDE,diff_tab] = check_terms(PDE,'y',diff_tab);
+
+% Also set the size and domain of the inputs
+for ii=1:numel(PDE.w)
+    if isfield(PDE.w{ii},'size') && PDE.w{ii}.size ~= PDE.w_tab(ii,2)
+        error(['The specified size "w{',num2str(ii),'}.size" does not match the observed size of component "w{',num2str(ii),'};',...
+                ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
+    end
+    PDE.w{ii}.size = PDE.w_tab(ii,2);
+    PDE.w{ii}.vars = PDE.vars(logical(PDE.w_tab(ii,3:2+nvars)),:);
+    PDE.w{ii}.dom = PDE.dom(logical(PDE.w_tab(ii,3:2+nvars)),:);
+    PDE.w{ii} = orderfields(PDE.w{ii},{'size','vars','dom'});
+end
+for ii=1:numel(PDE.u)
+    if isfield(PDE.u{ii},'size') && PDE.u{ii}.size ~= PDE.u_tab(ii,2)
+        error(['The specified size "u{',num2str(ii),'}.size" does not match the observed size of component "u{',num2str(ii),'};',...
+                ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
+    end
+    PDE.u{ii}.size = PDE.u_tab(ii,2);
+    PDE.u{ii}.vars = PDE.vars(logical(PDE.u_tab(ii,3:2+nvars)),:);
+    PDE.u{ii}.vars = PDE.dom(logical(PDE.u_tab(ii,3:2+nvars)),:);
+    PDE.u{ii} = orderfields(PDE.u{ii},{'size','vars','dom'});
+end
+
+
+% % % --------------------------------------------------------------- % % %
+% % % Finally: The boundary conditions!
+% % % For the boundary conditions, we perform very similar checks as for
+% % % the previous equations. However, for the BCs, a field ".loc" MUST be
+% % % specified in each term involving a state component, indicating at
+% % % what (boundary) position this state component should be evaluated.
+% % % Also, we determine for each condition whether it is finite or
+% % % infinite-dimensional, and in what variables it might vary, and keep 
+% % % track of this in the table PDE.BC_tab.
+
+BC_state_tab = zeros(numel(PDE.BC),numel(PDE.x));
+
+for ii=1:numel(PDE.BC)
+    
+    % Set the number of BCs that this field describes.
+    if isfield(PDE.BC{ii},'size') && PDE.BC{ii}.size ~= PDE.BC_tab(ii,2)
+        error(['The specified size "BC{',num2str(ii),'}.size" does not match the observed number of BC equations of "BC{',num2str(ii),'};',...
+                ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
+    end
+    PDE.BC{ii}.size = PDE.BC_tab(ii,2);
+    
+    [PDE,BC_state_indcs] = check_BC_terms(PDE,ii);
+    BC_state_tab(ii,BC_state_indcs) = true;
+    
+    % Make sure that the boundary condition is indeed a boundary condition.
+    if all(PDE.BC_tab(ii,3:2+nvars))
+        error(['The boundary condition "BC{',num2str(ii),'}", of the form 0=f(s), is defined by a function f(s) that varies on the interior of the spatial domain.',...
+                ' Please use boundary positions in "BC{',num2str(ii),'}.term{j}.loc" and integrals "BC{',num2str(ii),'}.term{j}.I" to make sure the boundary condition function f(s) does vary in all spatial directions.'])
+    else
+        % Keep track of which variables s the function f(s) in the BC
+        % 0=f(s) depends on, and their associated domain.
+        PDE.BC{ii}.vars = global_vars(logical(PDE.BC_tab(ii,3:2+nvars)),:);
+        PDE.BC{ii}.dom = global_dom(logical(PDE.BC_tab(ii,3:2+nvars)),:);
+    end
+    
+    if isfield(PDE.BC{ii},'eq_num')
+        % The field eq_num was only for internal use...
+        PDE.BC{ii} = rmfield(PDE.BC{ii},'eq_num');
+    end
+    % Also order the fields specifying each BC.
+    PDE.BC{ii} = orderfields(PDE.BC{ii},{'size','vars','dom','term'});    
+end
+
+% For each order of differentiability of the state components, a boundary
+% condition must be specified for the system to be well-posed.
+required_num_BCs_arr = sum(diff_tab,2);         % Required number of BCs for each state component
+observed_num_BCs_arr = sum(BC_state_tab,1)';    % Observed number of BCs which contain each state component
+if any(observed_num_BCs_arr < required_num_BCs_arr) || sum(PDE.BC_tab(:,2)) < PDE.x_tab(:,2)'*required_num_BCs_arr
+    warning(['The number of boundary conditions specified for certain state components seems to be insufficient to ensure a well-posed system;',...
+                ' conversion to a PIE will likely not be possible.',...
+                ' Please ensure that for each state component, the number of boundary conditions along any spatial dimension matches the order of differentiability of this component along this dimension.'])
+end
+% Should we also check that sufficient BCs are specified along each spatial
+% dimension?
+
+
+% % % --------------------------------------------------------------- % % %
+% % % With that, we have finished the initialization. We return the
+% % % structure as a "PDE_struct" class object, and display some results.
+
+% Append the orders of differentiability to the x_tab.
+PDE.x_tab = [PDE.x_tab, diff_tab];
+
+
+% % Finally, if desired, display an overview of how many state components,
+% % inputs, outputs, and BCs were encountered, what their sizes are, and on
+% % what variables they depend.
+if ~suppress_summary
+    print_initialization_summary(PDE,'x',ncomps_x);
+    print_initialization_summary(PDE,'u');
+    print_initialization_summary(PDE,'w');
+    print_initialization_summary(PDE,'y');
+    print_initialization_summary(PDE,'z');
+    print_initialization_summary(PDE,'BC');
+end
+
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function [PDE,dom_list,var_list,comp_list] = extract_vars(PDE,obj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Suppress warnings if desired
-suppress = (evalin('base','exist(''silent_initialize_pde'',''var'')') && evalin('base','silent_initialize_pde'));
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Test for domain (mandatory variables)
-if ~isfield(PDE,'dom')
-    PDE.dom = [0,1];
-    disp('Warning: PDE domain not defined. Defaulting to [0,1]');
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize proper structure if not initialized
-if ~isfield(PDE,'ODE')
-    PDE.ODE = struct();
-    %PDE.n.no = 0;   
-    %PDE.n.nz = 0;       PDE.n.nw = 0;
-    %PDE.n.ny = 0;       PDE.n.nu = 0;
-    %PDE.n.nv = 0;       PDE.n.nr = 0;
-end
-if ~isfield(PDE,'BC')
-    PDE.BC = struct();
-end
-if ~isfield(PDE,'n')
-    PDE.n = struct();
-end
-if ~isfield(PDE,'PDE')
-    PDE.PDE = struct();
-    %PDE.n.n_pde = 0;
-    %PDE.n.nv = 0;       PDE.n.nr = 0;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Now we try to identify dimensions of inputs, outputs, number of ODE
-% states
-% NOTE: Number of PDE states is a mandatory variable and must be explicitly
-% defined. 
-
-% First make a list of all variables that are currently defined in PDE
-% object
-list = [fieldnames(PDE.n); fieldnames(PDE.ODE); fieldnames(PDE.PDE); fieldnames(PDE.BC)];
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-logVal = isdefined(list,{'nx';'Bxu';'Bxw';'Bxr';'Cy';'Cz';'Cv'});
-
-if ~isempty(logVal)
-    if isfield(PDE.ODE,'A')
-        PDE.n.nx = size(PDE.ODE.A,1);
-    elseif logVal==2
-        PDE.n.nx = size(PDE.ODE.Bxu,1);
-    elseif logVal==3
-        PDE.n.nx = size(PDE.ODE.Bxw,1);
-    elseif logVal==4
-        PDE.n.nx = size(PDE.ODE.Bxr,1);
-    elseif logVal==5
-        PDE.n.nx = size(PDE.ODE.Cy,2);
-    elseif logVal==6
-        PDE.n.nx = size(PDE.ODE.Cz,2);
-    elseif logVal==7
-        PDE.n.nx = size(PDE.ODE.Cv,2);
-    end
-else
-    if ~suppress
-    disp('Warning: Number of ODE state variables is neither defined explicitly nor through parameters. Defaulting to zero');
-    end
-    PDE.n.nx=0;
-end
-
-logVal = isdefined(list,{'nu';'Bxu';'Dzu';'Dyu';'Dvu'});
-if ~isempty(logVal)
-    if logVal==2
-        PDE.n.nu = size(PDE.ODE.Bxu,2);
-    elseif logVal==3
-        PDE.n.nu = size(PDE.ODE.Dzu,2);
-    elseif logVal==4
-        PDE.n.nu = size(PDE.ODE.Dyu,2);
-    elseif logVal==5
-        PDE.n.nu = size(PDE.ODE.Dvu,2);
-    end
-else
-    if ~suppress
-    disp('Warning: Number of inputs is neither defined explicitly nor through parameters. Defaulting to zero');
-    end
-    PDE.n.nu=0;
-end
-
-logVal = isdefined(list,{'nw';'Bxw';'Dzw';'Dyw';'Dvw'});
-if ~isempty(logVal)
-    if logVal==2
-        PDE.n.nw = size(PDE.ODE.Bxw,2);
-    elseif logVal==3
-        PDE.n.nw = size(PDE.ODE.Dzw,2);
-    elseif logVal==4
-        PDE.n.nw = size(PDE.ODE.Dyw,2);
-    elseif logVal==5
-        PDE.n.nw = size(PDE.ODE.Dvw,2);
-    end
-else
-    if ~suppress
-    disp('Warning: Number of disturbances is neither defined explicitly nor through parameters. Defaulting to zero');
-    end
-    PDE.n.nw=0;
-end
-
-logVal = isdefined(list,{'nz';'Cz';'Dzw';'Dzu';'Dzr'});
-if ~isempty(logVal)
-    if logVal==2        
-        PDE.n.nz = size(PDE.ODE.Cz,1);
-    elseif logVal==3
-        PDE.n.nz = size(PDE.ODE.Dzw,1);
-    elseif logVal==4
-        PDE.n.nz = size(PDE.ODE.Dzu,1);
-    elseif logVal==5
-        PDE.n.nz = size(PDE.ODE.Dzr,1);
-    end
-else
-    if ~suppress
-    disp('Warning: Number of regulated outputs is neither defined explicitly nor through parameters. Defaulting to zero');
-    end
-    PDE.n.nz=0;
-end
-
-logVal = isdefined(list,{'ny';'Cy';'Dyw';'Dyu';'Dyr'});
-if ~isempty(logVal)
-    if logVal==2
-        PDE.n.ny = size(PDE.ODE.Cy,1);
-    elseif logVal==3
-        PDE.n.ny = size(PDE.ODE.Dyw,1);
-    elseif logVal==4
-        PDE.n.ny = size(PDE.ODE.Dyu,1);
-    elseif logVal==5
-        PDE.n.ny = size(PDE.ODE.Dyr,1);
-    end
-else
-    if ~suppress
-    disp('Warning: Number of observed outputs is neither defined explicitly nor through parameters. Defaulting to zero');
-    end
-    PDE.n.ny=0;
-end
-
-logVal = isdefined(list,{'nv';'Cv';'Dvw';'Dvu'});
-if ~isempty(logVal)
-    if logVal==2        
-        PDE.n.nv = size(PDE.ODE.Cv,1);
-    elseif logVal==3
-        PDE.n.nv = size(PDE.ODE.Dvw,1);
-    elseif logVal==4
-        PDE.n.nv = size(PDE.ODE.Dvu,1);
-    end
-else
-    if ~suppress
-    disp('Warning: Number of ODE 2 PDE interconnection signals is neither defined explicitly nor through parameters. Defaulting to zero');
-    end
-    PDE.n.nv=0;
-end
-
-
-logVal = isdefined(list,{'nr';'Bxr';'Dzr';'Dyr';'Crp';'Drb';'Drv'});
-if ~isempty(logVal)
-    if logVal==2   
-        PDE.n.nr = size(PDE.ODE.Bxr,2);
-    elseif logVal==3   
-        PDE.n.nr = size(PDE.ODE.Dzr,2);
-    elseif logVal==4
-        PDE.n.nr = size(PDE.ODE.Dyr,2);
-    elseif logVal==5   
-        PDE.n.nr = size(PDE.PDE.Crp,1);
-    elseif logVal==6
-        PDE.n.nr = size(PDE.PDE.Drb,1);
-    elseif logVal==7   
-        PDE.n.nr = size(PDE.PDE.Drv,1);
-    end
-else
-    if ~suppress
-    disp('Warning: Number of PDE 2 ODE interconnection signals is neither defined explicitly nor through parameters. Defaulting to zero');
-    end
-    PDE.n.nr=0;
-end
-
-if ~isfield(PDE.n,'n_pde')
-    disp('Warning: Number of PDE states n_pde is not defined. Defaulting to zero');
-    PDE.n.n_pde=[];
-    N=1;
-    np =0; np_all_derivatives=0; nBVs=0; nBC = nBVs/2;
-else
-    N = length(PDE.n.n_pde)-1;
-    % find total PDE states
-    np = sum(PDE.n.n_pde(1:N+1));
-    % find all possible derivatives length
-    % % np_all_derivatives = sum((1:N+1).*PDE.n.n_pde);
-    np_all_derivatives = sum(1:N+1);
-    % find total possible Boundary values
-    nBVs=2*sum((0:N).*PDE.n.n_pde); nBC = nBVs/2;
-end
-
-% find specified number of BCs
-logVal = isdefined(list,{'Ebb';'Ebv';'Ebp'});
-if ~isempty(logVal) && ~(length(PDE.n.n_pde)<2)
-    if logVal==1
-        nBC = size(PDE.BC.Ebb{end}.coeff,1);
-    elseif logVal==2
-        nBC = size(PDE.BC.Ebv{end}.coeff,1);
-    elseif logVal==3
-        nBC = size(PDE.BC.Ebp{end}.coeff,1);
-    end
-elseif ~exist('nBC','var')
-    if ~suppress
-    disp('Warning: Number of BCs is neither defined explicitly nor through parameters. Defaulting to zero');
-    end
-    nBC=0;
-end
-
-
-% Assuming dimensions are now known, initialize the remaining parameters to zero based on
-% the dimensions
-pvar s theta;
-
-PDE.vars = [s;theta];
-
+% [PDE,dom_list,var_list,comp_list] = extract_vars(PDE,obj)
+% checks component "comp" of a PDE structure "PDE", and verifies that the
+% variables that this component depends on, as well as their associated
+% domain, have been properly specified. The observed variables and their
+% associated domain are returned along with the updated PDE structure.
 %
-% Define number of variable explicitly for further reference
-no = PDE.n.nx;  n_pde = PDE.n.n_pde;
-nw = PDE.n.nw;  nu = PDE.n.nu;  nr = PDE.n.nr;
-nz = PDE.n.nz;  ny = PDE.n.ny;  nv = PDE.n.nv;
+% INPUTS:
+% - PDE:    A "struct" or "pde_struct" class object defining a PDE.
+% - obj:    A "char" object 'x', 'y', 'z', 'u' or 'w', specifying for which
+%           object of the PDE we are checking the variables.
+%
+% OUTPUTS:
+% - PDE:        The same structure as the input "PDE", now with fields
+%               "vars" and "dom" specified for all elements PDE.(comp){ii}.
+% - dom_list:   An nx2 "double" array collecting the spatial domains 
+%               "PDE.(obj){ii}.dom" for all elements ii.
+% - var_list:   An nx3 cell listing all the observed variable names
+%               "PDE.(comp){ii}.vars(:,1)" for all elements ii in the first
+%               column, the observed associated dummy variable names
+%               "PDE.(obj){ii}.vars(:,2)" in the second column, and a
+%               logical index indicating whether a dummy variable has in
+%               fact been specified or not.
+% - comp_list:  An nx1 integer array specifying for each of the observed
+%               variable names from which element ii of "PDE.(comp)" it was
+%               extracted.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize ODE dynamics related parameters
-if ~isfield(PDE.ODE,'A')
-    if ~suppress
-    disp('A is undefined. Defaulting to zero');
+% Initialize an empty list of variable names and associated domains.
+var_list = cell(0,3);
+dom_list = zeros(0,2);
+comp_list = zeros(0,1);     % Keep track of which component is associated to each variable
+
+% % Loop over the equations for each component of "comp".
+for ii=1:numel(PDE.(obj))
+    PDE_comp = PDE.(obj){ii};
+    if ~isfield(PDE_comp,'dom') && ~isfield(PDE_comp,'vars')
+        % Set default values.
+        if strcmp(obj,'x') && ~isempty(PDE.dom)
+            % For state components default variables/domain to the global
+            % values.
+            PDE_comp.vars = PDE.vars;
+            PDE_comp.dom = PDE.dom;
+        else
+            % For inputs and outputs, assume finite-dimensionality if no
+            % variables have been specified.
+            PDE.(obj){ii}.vars = polynomial(zeros(0,2));
+            PDE.(obj){ii}.dom = zeros(0,2);
+            continue
+        end
+    elseif isfield(PDE_comp,'dom') && ~isfield(PDE_comp,'vars')
+        % A lack of variables is only allowed if the domain indicates the
+        % component to be finite-dimensional.
+        if isempty(PDE_comp.dom)
+            PDE.(obj){ii}.vars = polynomial(zeros(0,2));
+            continue
+        else
+            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                    ' no spatial variables have been specified.'])
+        end
+    elseif isfield(PDE_comp,'vars') && ~isfield(PDE_comp,'dom')
+        % A lack of domain is only allowed if the vars indicate the
+        % component to be finite-dimensional.
+        if isempty(PDE_comp.vars)
+            PDE.(obj){ii}.dom = zeros(0,2);
+            continue
+        else
+            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                    ' no spatial domain has been specified.'])
+        end
+    else
+        % Check that the domain has been properly specified
+        if size(PDE_comp.dom,2)~=2
+            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                    ' "dom" must be a px2 array specifying the interval on which each of the p spatial variables exists.'])
+        elseif any(PDE_comp.dom(:,1) >= PDE_comp.dom(:,2))
+            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                    ' lower boundaries of spatial domain cannot exceed the upper boundaries.'])
+        end
+        % Check that the variables have been properly specified
+        if size(PDE_comp.vars,2)>2
+            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                    ' "vars" should be a px2 array, specifying the p primary and dummy spatial variables.'])
+        elseif size(PDE_comp.vars,1)~=size(PDE_comp.dom,1)
+            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                    ' the number of specified variables in "vars" does not match the dimension of the spatial domain in "dom".'])
+        end
+        % If variable names (rather than variables) have been specified,
+        % convert to polynomial objects.
+        if ~isempty(PDE_comp.vars) && ~ispvar(PDE_comp.vars) && ~iscellstr(PDE_comp.vars)
+            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                    ' spatial variables must be specified as pvar (polynomial class) objects.'])
+        elseif iscellstr(PDE_comp.vars)
+            PDE_comp.vars = polynomial(PDE_comp.vars);
+        end
+        % Make sure the specified variables are distinct.
+        if ~isempty(PDE_comp.vars) && length(PDE_comp.vars.varname)~=prod(size(PDE_comp.vars)) % would use numel, but not available for polynomials...
+            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                    ' spatial variables must be distinct.'])
+        end
     end
-    PDE.ODE.A = zeros(no);
-elseif any(size(PDE.ODE.A)~=[no,no])
-    disp('A has incorrect dimension. Defaulting to zero');
-    PDE.ODE.A = zeros(no);
+    % Add the proposed domain to the list
+    dom_list = [dom_list; PDE_comp.dom];
+    % Add the proposed variable names to  the list.
+    % > Unfortunately, we have to extract the variable names
+    % individually, as the order of vars.varname may not match the
+    % order of the actual variables. <
+    if ~isempty(PDE_comp.vars) && size(PDE_comp.vars,2)==2 && ~isdouble(PDE_comp.vars(2))
+        % If dummy variables are available add these to the list as well.
+        for pp=1:size(PDE_comp.vars,1)
+            var_list = [var_list; [PDE_comp.vars(pp,1).varname, PDE_comp.vars(pp,2).varname, {true}]];
+        end
+    elseif ~isempty(PDE_comp.vars)
+        % Otherwise, set variables as "0", and use "false" to indicate that
+        % no dummy variables have been specified for these primary
+        % variables.
+        for pp=1:size(PDE_comp.vars,1)
+            var_list = [var_list; [PDE_comp.vars(pp,1).varname, 0, {false}]];
+        end
+    end
+    % Keep track of which component these variables correspond to.
+    comp_list = [comp_list; ii*ones(size(PDE_comp.vars,1),1)];
+    PDE.(obj){ii} = PDE_comp;
 end
-if ~isfield(PDE.ODE,'Bxw')
-    if ~suppress
-    disp('Bxw is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Bxw = zeros(no,nw);
-elseif any(size(PDE.ODE.Bxw)~=[no,nw])
-    disp('Bxw has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Bxw = zeros(no,nw);
+    
 end
-if ~isfield(PDE.ODE,'Bxu')
-    if ~suppress
-    disp('Bxu is undefined. Defaulting to zero');
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function [PDE,diff_tab] = get_diff_tab(PDE,obj,diff_tab)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [PDE,diff_tab] = get_diff_tab(PDE,obj,diff_tab)
+% checks the different equations for each of the components of state, 
+% output, or BC "obj", to establish the required order of differentiability
+% for each state component x{ii}, returned as diff_tab.
+%
+% INPUTS:
+% - PDE:        A "struct" or "pde_struct" class object defining a PDE.
+% - obj:        A "char" object 'x', 'y', 'z', or 'BC', specifying for
+%               which equations of the PDE we are checking the terms.
+% - diff_tab:   A nx x p integer array specifying for each of the nx
+%               elements of PDE.x (i.e. each state component) to what order
+%               it must be differentiable with respect to each of the p
+%               global variables PDE.vars.
+%
+% OUTPUTS:
+% - PDE:        The same structure as the input "PDE", now with the terms
+%               in the equations for "PDE.(obj){ii}" updated to explicitly
+%               include orders of derivative if not specified (all orders
+%               default to zero), as well as spatial positions (default to
+%               interior of domain) if not specified. The tables x_tab
+%               through BC_tab are also updated to include new sizes for
+%               the different states, inputs, outputs, and BCs.
+% - diff_tab:   A nx x p integer array specifying for each of the nx
+%               elements of PDE.x (i.e. each state component) to what order
+%               it must be differentiable with respect to each of the p
+%               global variables PDE.vars. Orders of differentiability will
+%               not decrease with respect to the input, but may increase if
+%               in some term of some equation, a higher order spatial
+%               derivative is taken of some state component than the
+%               current order of differentiability for this state component
+%               in the input "diff_tab".
+%
+% For example, if diff_tab(i,k) = 3, but a term involving 
+% \partial_{s_k}^{5} x_i is encountered, diff_tab will be updated such that
+% diff_tab(i,k) = 5. If then another term involving \partial_{s_k}^{2} x_i
+% is encountered, diff_tab is not adjusted, as the maximal required order
+% of differentiability does not change.
+%
+% NOTE: For any variable s\in[a,b], if x_i is differentiable wrt s up to
+% order d, at s=a or s=b, it is taken to be differentiable only up to order
+% d-1. For example, if a term involving partial_{s_k}^2 x_i(s_{k}) is 
+% encountered, the order of differentiability will be set such that
+% diff_tab(i,k)>=2. However, if a term involving 
+% partial_{s_k}^2 x_i(s_{k}=a_{k}) is encountered, the order of 
+% differentiability will be set such that diff_tab(i,k)>=3. This also means
+% that, if a term involving simply x_i(s_k=a_k) is encountered, state
+% component x_i is taken to be at least first order differentiable wrt s_k.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Extract the number of global variables, and the table associated to the
+% considered object x, y, z, or BC.
+nvars = size(diff_tab,2);
+Lobj_tab = PDE.([obj,'_tab']);
+
+% % Loop over the equations for each component of "comp".
+for ii=1:numel(PDE.(obj))
+    % First assign an equation number to the component.
+    PDE.(obj){ii}.eq_num = ii;
+    % This is only for internal use, and will be removed at the end.
+    
+    
+    % If an explicit order of differentiability has already been specified,
+    % set this order in our diff_tab.
+    if strcmp(obj,'x') && isfield(PDE.x{ii},'diff')
+        % Establish the global variables on which the component depends.
+        has_var_Lstate = logical(Lobj_tab(ii,3:2+nvars));
+        nvars_Lstate = sum(has_var_Lstate);
+        % Make sure the order of differentiability is appropriately
+        % specified.
+        if size(PDE.x{ii}.diff,1)~=1
+            error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
+                    ' the field should be specified as a 1xp array indicating the order of the derivative in each of the p variables on which the considered state "x{',num2str(ii),'}" depends.'])
+        elseif size(PDE.x{ii}.diff,2)==nvars
+            % Orders of differentiation have been specified with respect to
+            % all of the global variables.
+            if any(PDE.x{ii}.diff(1,~has_var_Lstate))
+                error(['State componen "x{',num2str(ii),'}" appears to be differentiable with respect to variables it does not depend on;',...
+                        ' please specify orders of differentiability "x{',num2str(ii),'}.diff" only for variables on which the component depends.']);
+            else
+                % Retain derivative orders only for variables on which
+                % the state actually depends.
+                PDE.x{ii}.diff = PDE.x{ii}.diff(1,has_var_Lstate);
+            end
+        elseif size(PDE.x{ii}.diff,2)~=nvars_Lstate
+            % The number of derivative orders does not match the number
+            % of variables.
+            error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
+                    ' please make sure the number of derivative orders matches the number of variables on which the considered state component depends.']);
+        end
+        % Update the order of differentiability.
+        diff_tab(ii,has_var_Lstate) = max(diff_tab(ii,has_var_Lstate),PDE.x{ii}.diff);
     end
-    PDE.ODE.Bxu = zeros(no,nu);
-elseif any(size(PDE.ODE.Bxu)~=[no,nu])
-    disp('Bxu has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Bxu = zeros(no,nu);
-end
-if ~isfield(PDE.ODE,'Bxr')
-    if ~suppress
-    disp('Bxr is undefined. Defaulting to zero');
+    
+    % Also check if a size has been specified for the component.
+    if isfield(PDE.(obj){ii},'size')
+        Lobj_tab(ii,2) = PDE.(obj){ii}.size;
     end
-    PDE.ODE.Bxr = zeros(no,nr);
-elseif any(size(PDE.ODE.Bxr)~=[no,nr])
-    disp('Bxr has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Bxr = zeros(no,nr);
+    
+    % % Next, loop over the terms in the PDE, and check the order of the
+    % % derivative of the state component considered in each term.
+    if ~isfield(PDE.(obj){ii},'term')
+        warning(['No equation has been specified for ',obj,'{',num2str(ii),'};',...
+                    ' to specify terms in the differential equation for this component, use the field ',obj,'{',num2str(ii),'}.term']);
+        PDE.(obj){ii}.term = cell(0);
+        continue
+    else
+        % Make sure the terms are specified as a 1xn cell.
+        PDE.(obj){ii}.term = PDE.(obj){ii}.term(:)';
+    end
+    for jj=1:numel(PDE.(obj){ii}.term)
+        % Assign a term number to the term (only for internal use in the
+        % "check_terms" function), and keep track of the term name for
+        % error messages and warnings.
+        PDE.(obj){ii}.term{jj}.term_num = jj;
+        term_jj = PDE.(obj){ii}.term{jj};
+        term_name = [obj,'{',num2str(ii),'}.term{',num2str(jj),'}'];
+        
+        % Establish whether the term involves a state component or input.
+        if ~isfield(term_jj,'x') && ~isfield(term_jj,'w') && ~isfield(term_jj,'u')
+            if numel(PDE.x)==1
+                % If there is only one state component, assume the term
+                % involves this state.
+                term_jj.x = 1;
+            else
+                error(['It is unclear which state component or input term ',obj,'{',num2str(ii),'}.term{',num2str(jj),'} involves;',...
+                        ' please explicitly specify a state component through "term{',num2str(jj),'}.x", or an input through "term{',num2str(jj),'}.w" or "term{',num2str(jj),'}.u".'])
+            end
+        elseif (isfield(term_jj,'x') + isfield(term_jj,'w') + isfield(term_jj,'u'))~=1
+            error(['Term ',obj,'{',num2str(ii),'}.term{',num2str(jj),'} appears to involve both a state component and an input;',...
+                    ' please specify at most one of the fields "term{',num2str(jj),'}.x", "term{',num2str(jj),'}.w", or "term{',num2str(jj),'}.u".'])
+        end
+        if isfield(term_jj,'x')
+            Robj = 'x';
+            is_x_Rcomp = true;
+        elseif isfield(term_jj,'w')
+            Robj = 'w';
+            is_x_Rcomp = false;
+        else
+            Robj = 'u';
+            is_x_Rcomp = false;
+        end
+        
+        % Determine which state component or input the term depends on.
+        Rindx = term_jj.(Robj)(:);
+        nR = length(Rindx);
+        if ~isa(Rindx,'double')
+            error(['Field "',term_name,'.',Robj,'" is not appropriately specified;',...
+                    ' please provide a single positive integer to indicate which component the considered term involves.'])
+        end
+        if isempty(Rindx) && numel(PDE.(Robj))==1
+            % If no compoennt is specified, but only one component of the
+            % considered kind (state or input) is available, assume this to
+            % be the desired component.
+            Rindx = 1;
+            nR = 1;
+        elseif isempty(Rindx) || any(Rindx<=0)
+            error(['Field "',term_name,'.',Robj,'" is not appropriately specified;',...
+                    ' please provide a single positive integer to indicate which component the considered term involves.'])
+        elseif any(Rindx>numel(PDE.(Robj)))
+            error(['The component "',term_name,'.',Robj,'" does not exist;',...
+                    ' please initialize the component by setting "PDE.',Robj,'{',num2str(jj),'}.vars" and "PDE.',Robj,'{',num2str(jj),'}.dom".'])
+        end
+        
+        % Establish which of the global variables each component depends on.
+        has_vars_Rcomp = PDE.([Robj,'_tab'])(Rindx,3:end);
+        if nR>1
+            % If multiple components are specified, make sure that they 
+            % depend on the same spatial variables.
+            if any(any(has_vars_Rcomp(2:end,:) - has_vars_Rcomp(1:end-1,:)))
+                error(['Term "',term_name,'" is not appropriate;',...
+                        ' inclusion of multiple components ".',Robj,'" is supported only if all components vary in the same spatial variables.'])
+            else
+                has_vars_Rcomp = has_vars_Rcomp(1,:);
+            end
+        end
+        has_vars_Rcomp = logical(has_vars_Rcomp);
+        nvars_Rcomp = sum(has_vars_Rcomp);
+        
+        % % Finally, if a derivative is specified, update the maximal
+        % % order of differentiability of the involved state component.
+        % First check if derivatives are appropriately specified.
+        if is_x_Rcomp && (~isfield(term_jj,'D') || isempty(term_jj.D))
+            % If no derivative is specified, assume no derivative is
+            % desired (default to 0).
+            Dval = zeros(nR,nvars_Rcomp);
+        elseif is_x_Rcomp
+            % Otherwise, check that the number of orders matches the number
+            % of variables.
+            Dval = term_jj.D;
+            if size(term_jj.D,2)==nvars
+                % Derivatives have been specified with respect to all of
+                % the global variables.
+                if any(any(term_jj.D(:,~has_vars_Rcomp)))
+                    error(['Term "',obj,'{',num2str(ii),'}.term{',num2str(jj),'}" seems to differentiate state component x{',num2str(Rindx),'} with respect to a variable it does not depend on;',...
+                            ' please specify orders of the derivative only for variables on which the component depends.']);
+                else
+                    % Retain derivative orders only for variables on which
+                    % the state actually depends.
+                    Dval = Dval(:,has_vars_Rcomp);
+                end
+            elseif size(term_jj.D,2)~=nvars_Rcomp
+                % The number of derivative orders does not match the number
+                % of variables
+                error(['The order of differentiation "',obj,'{',num2str(ii),'}.term{',num2str(jj),'}.D" is not appropriately specified;',...
+                        ' please make sure the number of derivative orders matches the number of variables on which the considered state component depends.']);
+            end            
+            % Also make sure the number of specified derivatives matches
+            % the number of proposed states.
+            if size(Dval,1)==1 && nR>1
+                Dval = repmat(Dval,[nR,1]);
+            elseif size(Dval,1)>1 && nR==1
+                nR = size(term_jj.D,1);
+                Rindx = repmat(Rindx,[nR,1]);
+            elseif size(Dval,1)~=nR
+                error(['The number of state components in "',term_name,'.x" should match the number of derivatives "',term_name,'.D".'])
+            end
+        else
+            % The term involves an input --> no derivative is allowed.
+            if isfield(term_jj,'D') && any(term_jj.D)
+                error(['Term "',term_name,'" is not appropriate;',...
+                        ' derivatives of inputs are not supported.'])
+            elseif isfield(term_jj,'D')
+                PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'D');
+            end
+        end
+        
+        % Next, check if a spatial position is appropriately specified.
+        if is_x_Rcomp && (~isfield(term_jj,'loc') || isempty(term_jj.loc))
+            % For BCs, a spatial position MUST be specified.
+            if strcmp(obj,'BC') && any(has_vars_Rcomp)
+                error(['BC term "',term_name,'" is not appropriately specified;',...
+                        ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
+            elseif strcmp(obj,'BC')
+                PDE.(obj){ii}.term{jj}.loc = zeros(1,0);
+            end
+            % Ohterwise, if no position is specified, evaluate the state on 
+            % the interior of the domain.
+            Rloc = repmat(PDE.vars(has_vars_Rcomp,1)',[nR,1]);
+        elseif is_x_Rcomp
+            % If a position is specified, make sure that it is appropriate.
+            Rloc = term_jj.loc;
+            if ~isa(Rloc,'double') && ~isa(Rloc,'polynomial')
+                error(['The spatial position "',term_name,'.loc" is not appropriately specified;',...
+                        ' the position should be specified as an array of type "double" or "polynomial".'])
+            end
+            % Check that the dimension matches the number of spatial
+            % variables on which the considered state component depends.
+            if size(Rloc,2)==nvars
+                % Location specified for global vars --> retain only Rvars
+                Rloc = Rloc(:,has_vars_Rcomp);
+            elseif size(Rloc,2)~=nvars_Rcomp
+                error(['The spatial position "',term_name,'.loc" is not appropriately specified;',...
+                        ' the number of elements should match the number of variables on which "',term_name,'.',Robj,'" depends.'])
+            end
+            % Also make sure the number of positions matches the number of
+            % considered state components.
+            if size(Rloc,1)==1 && nR>1
+                Rloc = repmat(Rloc,[nR,1]);
+            elseif size(Rloc,1)>1 && nR==1
+                % Repeat the Rindx and derivative orders if the user asks
+                % the state to be evaluated at multiple positions.
+                Rloc = term_jj.loc;
+                nR = size(Rloc,1);
+                Rindx = repmat(Rindx,[nR,1]);
+                Dval = repmat(Dval,[nR,1]);
+            elseif size(Rloc,1)>1 && nR>1
+                error(['The number of state components in "',term_name,'.x" should match the number of derivatives "',term_name,'.D".'])
+            end
+            Rloc = polynomial(Rloc);
+        elseif isfield(term_jj,'loc')
+            % The term involves an input --> no spatial position may be 
+            % specified.
+            if  (length(term_jj.loc)~=nvars && length(term_jj.loc)~=nvars_Rcomp) || ...
+                (length(term_jj.loc)==nvars && ~all(isequal(polynomial(term_jj.loc),PDE.vars(:,1)') | isequal(polynomial(term_jj.loc),PDE.vars(:,2)'))) || ...
+                (length(term_jj.loc)==nvars_Rcomp && ~all(isequal(polynomial(term_jj.loc),PDE.vars(has_vars_Rcomp,1)') | isequal(polynomial(term_jj.loc),PDE.vars(has_vars_Rcomp,2)')))
+                % A spatial position has been provided which is not on the
+                % interior of the domain.
+                error(['Term "',term_name,'" is not appropriate;',...
+                        ' no spatial position ".loc" cannot be specified for terms involving an input.'])
+            elseif isfield(term_jj,'loc')
+                PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'loc');
+                continue
+            end
+        end
+        
+        % Also, if a coefficient matrix is provided, use this matrix to
+        % establish a size of the LHS component, and RHS component.
+        if isfield(term_jj,'C')
+            if ~isa(term_jj.C,'double') && ~isa(term_jj.C,'polynomial')
+                error(['The coefficients "',term_name,'.C" are not appropriately specified;',...
+                        ' coefficients should be specified as an array of type "double" or "polynomial".'])
+            elseif isfield(PDE.(obj){ii},'size') && PDE.(obj){ii}.size~=size(term_jj.C,1)
+                error(['The number of rows of the matrix "',term_name,'.C" does not match the specified size "',obj,'{',num2str(ii),'}.size".'])
+            else
+                Lobj_tab(ii,2) = size(term_jj.C,1);
+            end
+            % If only a single RHS component is provided, the number of
+            % columns of C should match the size of this component.
+            if nR==1 && isfield(PDE.(Robj){Rindx},'size') && PDE.(Robj){Rindx}.size~=size(term_jj.C,2)
+                error(['The number of columns of the matrix "',term_name,'.C" does not match the specified size "',Robj,'{',num2str(Rindx),'}.size".'])
+            elseif nR==1
+                PDE.([Robj,'_tab'])(Rindx,2) = size(term_jj.C,2);
+            elseif nR==size(term_jj.C,2)
+                PDE.([Robj,'_tab'])(Rindx,2) = 1;
+            end
+        end
+        
+        if ~is_x_Rcomp
+            % At this point, if the term does not involve a state
+            % component, we can move on to the next equation.
+            continue
+        end
+        
+        % Finally, update the order of differentiability of the considered
+        % state components.
+        for kk=1:nR
+            % If the state is evaluated at a boundary, the order of
+            % the derivative can be 1 less than the maximal order of 
+            % differentiability.
+            isboundary_var = false(1,nvars_Rcomp);
+            for ll=1:nvars_Rcomp
+                isboundary_var(ll) = isdouble(Rloc(kk,ll));
+            end
+            diff_order_kk = Dval(kk,:) + isboundary_var;
+            diff_tab(Rindx(kk),has_vars_Rcomp) = max(diff_tab(Rindx(kk),has_vars_Rcomp),diff_order_kk);
+        end
+        % Update the specified term.
+        PDE.(obj){ii}.term{jj}.(Robj) = Rindx;
+        PDE.(obj){ii}.term{jj}.D = Dval;
+        PDE.(obj){ii}.term{jj}.loc = Rloc;
+    end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize ODE 2 PDE interconnection related parameters
-if ~isfield(PDE.ODE,'Cv')
-    if ~suppress
-    disp('Cv is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Cv = zeros(nv,no);
-elseif any(size(PDE.ODE.Cv)~=[nv,no])
-    disp('Cv has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Cv = zeros(nv,no);
+% Store the updated table with potentially new size information for the
+% state, output, or BCs.
+PDE.([obj,'_tab']) = Lobj_tab;
+
 end
-if ~isfield(PDE.ODE,'Dvw')
-    if ~suppress
-    disp('Dvw is undefined. Defaulting to zero');
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function [PDE,diff_tab] = check_terms(PDE,obj,diff_tab)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [PDE,diff_tab] = check_terms(PDE,obj,diff_tab)
+% checks the different terms in the different equations for each of the 
+% components of the state, output, or BC "obj", to check that all mandatory
+% fields have been properly specified, and to assign a default value to all
+% optional fields that the user has not specified.
+%
+% INPUTS:
+% - PDE:        A "struct" or "pde_struct" class object defining a PDE.
+% - obj:        A "char" object 'x', 'y', or 'z', specifying for
+%               which equations of the PDE we are checking the terms.
+% - diff_tab:   A nx x p integer array specifying for each of the nx
+%               elements of PDE.x (i.e. each state component) to what order
+%               it must be differentiable with respect to each of the p
+%               global variables PDE.vars.
+%
+% OUTPUTS:
+% - PDE:        The same structure as the input "PDE", now with all fields
+%               in the structures "PDE.(obj){ii}.term{jj}" for all ii and
+%               jj specified. In addition, any term corresponding to
+%               multiple terms in the actual equation will be split up into
+%               separate terms, for the PDEs, if higher order temporal
+%               derivatives are requested, additional state components and
+%               PDEs will be added to represent the system using only
+%               first-order temporal derivatives.
+% - diff_tab:   Similar array as in the input, only with potential
+%               additional rows. These rows correspond to the state
+%               components added to account for higher order temporal
+%               derivatives in the PDE, but the spatial differentiability
+%               of all of these added state components will be zero wrt all
+%               spatial variables.
+%
+% For example, if \partial_t^3 x_i = eq_i(x_1,...,x_{nx}) is specified, 
+% then this will be split into
+%   \partial_t x_i      = x_{nx+1}
+%   \partial_t x_{nx+1} = x_{nx+2}
+%   \partial_t x_{nx+2} = eq_i(x_1,...,x_{nx})
+% where the added state components x_{nx+1} and x_{nx+2} are assumed not to
+% be differentiable with respect to any spatial variable.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Extract the global variables and their associated domain.
+global_vars = PDE.vars;
+global_dom = PDE.dom;
+nvars = size(global_vars,1);
+
+% Extract the table associated to the considered object x, y, or z.
+Lobj_tab = PDE.([obj,'_tab']);
+
+% Loop over the equations, noting that equations may be added if higher 
+% order temporal derivatives are requested.
+n_eqs = numel(PDE.(obj));
+ii = 1;
+while ii<=n_eqs
+    
+    if isfield(PDE.(obj){ii},'eq_num')
+        eq_num_str = num2str(PDE.(obj){ii}.eq_num);
+    else
+        eq_num_str = num2str(ii);
     end
-    PDE.ODE.Dvw = zeros(nv,nw);
-elseif any(size(PDE.ODE.Dvw)~=[nv,nw])
-    disp('Dvw has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Dvw = zeros(nv,nw);
-end
-if ~isfield(PDE.ODE,'Dvu')
-    if ~suppress
-    disp('Dvu is undefined. Defaulting to zero');
+    
+    % First, check which of the global variables our LHS component (state
+    % or output) actually depends on.
+    has_vars_Lcomp = logical(Lobj_tab(ii,3:end));
+    
+    % Set the variables and domain of the component
+    PDE.(obj){ii}.vars = global_vars(has_vars_Lcomp,:);
+    PDE.(obj){ii}.dom = global_dom(has_vars_Lcomp,:);
+    
+    % Set the size of the component
+    if isfield(PDE.(obj){ii},'size') && PDE.(obj){ii}.size ~= PDE.([obj,'_tab'])(ii,2)
+        error(['The specified size "',obj,'{',eq_num_str,'}.size" does not match the observed size of component "',obj,'{',num2str(ii),'};',...
+                ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
     end
-    PDE.ODE.Dvu = zeros(nv,nu);
-elseif any(size(PDE.ODE.Dvu)~=[nv,nu])
-    disp('Dvu has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Dvu = zeros(nv,nu);
+    PDE.(obj){ii}.size = PDE.([obj,'_tab'])(ii,2);
+
+    % For the state components, also check the order of differentiability,
+    % and requested temporal derivative.
+    if strcmp(obj,'x')
+        % Check if an order of differentiability in each of the spatial
+        % variables has been specified, and set it otherwise.
+        if isfield(PDE.x{ii},'diff') && any(PDE.x{ii}.diff~=diff_tab(ii,has_vars_Lcomp))
+            warning(['The specified order of differentiability "PDE.x{',eq_num_str,'}.diff" is smaller than the observed order of this state component in the PDE, and will therefore be increased.',...
+                        ' If you wish to retain the original order of differentiability, please make sure that the order of any derivative of the state does not exceed this specified order.']);
+        end
+        PDE.x{ii}.diff = diff_tab(ii,:);
+        
+        % Check if a temporal derivative is specified, and add new state
+        % components if necessary.
+        if ~isfield(PDE.x{ii},'tdiff')
+            PDE.x{ii}.tdiff = 1;
+        elseif PDE.x{ii}.tdiff>1
+            % If a higher order temporal derivative is specified, split the
+            % state component as
+            % \dot{x}_{ii}           = x_{n_eq+1}
+            % \dot{x}_{n_eq+1}       = x_{n_eq+2}
+            %      :
+            % \dot{x}_{n_eq+tdiff-1} = PDE of x_{ii}
+            tdiff = PDE.x{ii}.tdiff;
+            vars_ii = PDE.x{ii}.vars(:,1)';
+            PDE.x = [PDE.x(:); cell(tdiff-2,1) PDE.x(ii)];
+            % The added state components will have the same size and
+            % variables...
+            PDE.x_tab = [PDE.x_tab; repmat(PDE.x_tab(ii,:),[tdiff-1,1])];
+            PDE.x_tab(n_eqs+1:end,1) = (n_eqs+1 : n_eqs+tdiff-1)';
+            % ... but will not be differentiable in space.
+            diff_tab = [diff_tab; zeros(tdiff-1,nvars)];
+            
+            % Update the locally stored table.
+            Lobj_tab = PDE.x_tab;
+            
+            % Set the equation associated to component ii to
+            % \dot{x}_{ii} = x_{n_eq+1}.
+            PDE.x{ii}.tdiff = 1;
+            PDE.x{ii}.term = {};
+            PDE.x{ii}.term{1}.x = n_eqs + 1;
+            PDE.x{ii}.term{1}.D = zeros(1,length(vars_ii));
+            PDE.x{ii}.term{1}.loc = vars_ii;
+            PDE.x{ii}.term{1}.C = eye(PDE.x{ii}.size);
+            PDE.x{ii}.term{1}.I = cell(0);
+            for extra_eq = 1:tdiff-2
+                % Set the equations associated to the other components as
+                % \dot{x}_{n_eq+kk} = x_{n_eq+kk+1}.
+                eq_num = n_eqs + extra_eq;
+                PDE.x{eq_num}.eq_num = ii;
+                PDE.x{eq_num}.vars = PDE.x{ii}.vars;
+                PDE.x{eq_num}.dom = PDE.x{ii}.dom;
+                PDE.x{eq_num}.diff = zeros(size(PDE.x{ii}.diff));
+                PDE.x{eq_num}.tdiff = 1;
+                PDE.x{eq_num}.term{1}.x = eq_num + 1;
+                PDE.x{eq_num}.term{1}.D = zeros(1,length(vars_ii));
+                PDE.x{eq_num}.term{1}.loc = vars_ii;
+                PDE.x{eq_num}.term{1}.C = eye(PDE.x{ii}.size);
+                PDE.x{eq_num}.term{1}.I = cell(0);
+            end
+            % For the final component, we already have the equation, 
+            % \dot{x}_{n_eq+tdiff-1} = PDE of x{ii}
+            % we just need to update the order of the temporal derivative,
+            % and the order of differentiability in the spatial variables.
+            PDE.x{end}.tdiff = 1;
+            PDE.x{end}.diff = zeros(size(PDE.x{ii}.diff));
+            
+            % Since the current equation \dot{x}_{ii} = x_{n_eq+1} is
+            % already properly specified, we just need to clean up a bit,
+            % and we can move on to the next equation.
+            if isfield(PDE.x{ii},'eq_num')
+                PDE.x{ii} = rmfield(PDE.x{ii},'eq_num');
+            end
+            PDE.x{ii} = orderfields(PDE.x{ii},{'size','vars','dom','diff','tdiff','term'});
+            
+            n_eqs = n_eqs + tdiff-1;    % Update the number of equations
+            ii = ii+1;
+            continue
+        end
+    end
+    
+    % % Now we dive into the equation associated to the considered 
+    % % component.    
+    % Loop over the terms, and make sure they are properly specified.
+    n_terms = numel(PDE.(obj){ii}.term);
+    jj = 1;
+    while jj<=n_terms
+        term_jj = PDE.(obj){ii}.term{jj};
+        % For the error messages, keep track of the name of this term.
+        % We use "eq_num" and "term_num" since the number of equations and
+        % terms may change as we initialize.
+        if isfield(PDE.(obj){ii}.term{jj},'term_num')
+            term_num = PDE.(obj){ii}.term{jj}.term_num;
+        else
+            term_num = jj;
+        end
+        term_name = [obj,'{',eq_num_str,'}.term{',num2str(term_num),'}'];
+        
+        
+        % % % Assing default values to the empty fields.
+        % % First check which state component or input is involved.
+        if isfield(term_jj,'x')
+            Robj = 'x';
+            is_x_Robj = true;
+        elseif isfield(term_jj,'w')
+            Robj = 'w';
+            is_x_Robj = false;
+        else
+            Robj = 'u';
+            is_x_Robj = false;
+        end
+        Rindx = term_jj.(Robj)(:);
+        nR = length(Rindx);
+        % Establish which spatial variables each component depends on.
+        has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx(1),3:end));
+        nvars_Rcomp = sum(has_vars_Rcomp);
+        % Note that we already checked all the different components listed
+        % in Rindx to depend on the same variables in "get_diff".
+        
+        % % Extract a derivative (was already initialized in "get_diff").
+        if is_x_Robj && (~isfield(term_jj,'D') || isempty(term_jj.D))
+            % If no derivative is specified, assume no derivative is
+            % desired.
+            Dval = zeros(nR,nvars);
+        elseif is_x_Robj
+            Dval = term_jj.D;
+        end
+        
+        % % Extract a spatial position (was already initialized in 
+        % % "get_diff").
+        if is_x_Robj && (~isfield(term_jj,'loc') || isempty(term_jj.loc))
+            % If no position is specified, evaluate state on the interior
+            % of the domain.
+            Rloc = repmat(global_vars(has_vars_Rcomp,1)',[nR,1]);
+        elseif is_x_Robj
+            Rloc = term_jj.loc;
+        end
+        
+        % % Initialize coefficients.
+        if ~isfield(term_jj,'C') || isempty(term_jj.C)
+            % If no coefficient are specified, assume each term is scaled
+            % with a factor 1.
+            if any(PDE.([Robj,'_tab'])(Rindx,2)~=Lobj_tab(ii,2))
+                error(['The size of the component "',obj,'{',eq_num_str,'}" does not match that of the components specified in "',term_name,'.',Robj,'";',...
+                        ' please specify a matrix "',term_name,'.C" describing how each component on the right-hand side contributes to the equation for "',obj,'{',eq_num_str,'}".'])
+            else
+                Cval = repmat(eye(Lobj_tab(ii,2)),[1,nR]);
+            end
+        else
+            % Otherwise, verify that the size of the matrix makes sense.
+            Cval = term_jj.C;
+            if ~isa(Cval,'double') && ~isa(Cval,'polynomial')
+                error(['The coefficients "',term_name,'.C" are not appropriately specified;',...
+                        ' coefficients should be specified as an array of type "double" or "polynomial".'])
+            elseif size(Cval,1)~=Lobj_tab(ii,2)
+                error(['The number of rows of the coefficient matrix "',term_name,'.C" does not match the number of equations "',obj,'{',eq_num_str,'}.size" it contributes to.'])
+            elseif size(Cval,2)~=sum(PDE.([Robj,'_tab'])(Rindx,2))
+                error(['The number of columns of the coefficient matrix "',term_name,'.C" does not match the number of state variables it maps.'])
+            end
+        end
+        
+        % % Initialize an empty integral (for now) if no integral is 
+        % % specified.
+        if isfield(term_jj,'I')
+            Ival = term_jj.I(:);
+            if ~isa(Ival,'cell')
+                error(['The field "',term_name,'.I" is not appropriately specified;',...
+                        ' the field should be a cell with each element k providing the desired domain of integration in variable k of component "',Robj,'{',num2str(Rindx),'}" depends.'])
+            end
+        else
+            Ival = cell(0);
+        end
+        
+        % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        % % % If multiple terms are included, split into separate elements.
+        C_colnums = cumsum([0;PDE.([Robj,'_tab'])(Rindx,2)]);
+        if nR>1
+            % % We squeeze the new terms between the current one and the
+            % % following ones.
+            PDE.(obj){ii}.term = [PDE.(obj){ii}.term(1:jj), repmat(PDE.(obj){ii}.term(jj),[1,nR-1]), PDE.(obj){ii}.term(jj+1:end)];
+            if is_x_Robj
+                % Make sure each term indeed describes just one term.
+                for kk=1:nR-1
+                    C_cols = C_colnums(kk+1)+1 : C_colnums(kk+2);
+                    PDE.(obj){ii}.term{jj+kk}.(Robj) = Rindx(kk+1);
+                    PDE.(obj){ii}.term{jj+kk}.D = Dval(kk+1,:);
+                    PDE.(obj){ii}.term{jj+kk}.loc = Rloc(kk+1,:);
+                    PDE.(obj){ii}.term{jj+kk}.C = Cval(:,C_cols);
+                    PDE.(obj){ii}.term{jj+kk}.I = Ival;
+                    PDE.(obj){ii}.term{jj+kk}.term_num = term_num;
+                end
+            else
+                % Make sure each term indeed describes just one term.
+                for kk=1:nR-1
+                    C_cols = C_colnums(kk+1)+1 : C_colnums(kk+2);
+                    PDE.(obj){ii}.term{jj+kk}.(Robj) = Rindx(kk+1);
+                    PDE.(obj){ii}.term{jj+kk}.C = Cval(:,C_cols);
+                    PDE.(obj){ii}.term{jj+kk}.I = Ival;
+                    PDE.(obj){ii}.term{jj+kk}.term_num = term_num;
+                end
+            end
+            % Update the number of terms.
+            n_terms = n_terms + nR-1;
+        end
+        % % Adjust the current element "term{jj}" to describe only the 
+        % % first term.
+        Rindx = Rindx(1);
+        sz_R = PDE.([Robj,'_tab'])(Rindx,2);
+        Cval = Cval(:,1:sz_R);
+        if is_x_Robj
+            Dval = Dval(1,:);
+            Rloc = Rloc(1,:);
+            PDE.(obj){ii}.term{jj}.(Robj) = Rindx;
+            PDE.(obj){ii}.term{jj}.D = Dval;
+            PDE.(obj){ii}.term{jj}.loc = Rloc;
+            PDE.(obj){ii}.term{jj}.C = Cval;
+            PDE.(obj){ii}.term{jj}.I = Ival;
+        else
+            PDE.(obj){ii}.term{jj}.(Robj) = Rindx;
+            PDE.(obj){ii}.term{jj}.C = Cval;
+            PDE.(obj){ii}.term{jj}.I = Ival;
+        end
+        
+        
+        % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        % % % Having initialized all the fields, and ensured that the
+        % % % current term truly describes just one term, we now make sure
+        % % % everything is properly specified, and fill in any remaining
+        % % % gaps (most notably, the integrals).
+        
+        % % First, make sure that the specified location is appropriate.
+        % Extract the variables associated to the RHS component, and their
+        % associated domains
+        Rvars = global_vars(has_vars_Rcomp,:);
+        Rdom = global_dom(has_vars_Rcomp,:);
+        % Keep track of which variables the term actually varies in
+        % (without integration).
+        isvariable_term_jj = true(1,nvars_Rcomp);   % Element kk will be false if variable kk is evaluated at a boundary.
+        if is_x_Robj
+            for kk=1:nvars_Rcomp
+                % For each variable s\in[a,b], check that it is evaluated
+                % at either s=s, s=a or s=b. 
+                Rloc_kk = Rloc(kk);
+                if isa(Rloc_kk,'double') || isa(Rloc_kk,'polynomial') && isdouble(Rloc_kk)
+                    % s=a or s=b.
+                    Rloc_kk = double(Rloc_kk);
+                    if ~ismember(Rloc_kk,Rdom(kk,:))
+                        error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                        ' spatial position must match a boundary of the domain, or the appropriate spatial variable.'])
+                    else
+                        % Indicate that the term does not vary along this
+                        % dimension.
+                        isvariable_term_jj(kk) = false;
+                    end
+                elseif ispvar(Rloc_kk)
+                    % s=s.
+                    if ~isequal(Rloc_kk,Rvars(kk,1)) && ~isequal(Rloc_kk,Rvars(kk,2))
+                        error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                                ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s.'])
+                    else
+                        % Replace any dummy variables with primary
+                        % variables.
+                        Rloc_kk = Rvars(kk,1);
+                        PDE.(obj){ii}.term{jj}.loc(kk) = Rloc_kk;
+                    end
+                else
+                    error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                                ' spatial position must be specified as "double" or "pvar" (polynomial class) object.'])                
+                end
+            end
+        end
+        
+        % % Establish which variables the term depends on but the LHS does
+        % % not, and must therefore be integrated out.
+        must_int_var = ~(has_vars_Lcomp(has_vars_Rcomp)) & isvariable_term_jj;
+        % Keep track of along which variables integration is actually
+        % performed.
+        is_int_var = must_int_var;
+        if ~isfield(term_jj,'I') || isempty(term_jj.I)
+            % If no integral is specified, make sure to integrate over the
+            % full domain for all required dimensions (variables that do
+            % not appear in the LHS component), and perform no integration
+            % along any other dimensions.
+            Ival = cell(nvars_Rcomp,1);
+            Ival(must_int_var,1) = mat2cell(Rdom(must_int_var,:),ones(sum(must_int_var),1));    % Integrate over full domain
+            PDE.(obj){ii}.term{jj}.I = Ival;
+        else
+            % If integrals are specified, make sure that they are
+            % appropriate.
+            if numel(Ival)>nvars_Rcomp
+                error(['The field "',term_name,'.I" is not appropriately specified;',...
+                        ' the number of elements should match the number of spatial variables on which component "',term_name,'.',Robj,'{',num2str(Rindx),'}" depends.'])
+            end
+            for kk = 1:numel(Ival)
+                % Check for all spatial dimensions that the integral is
+                % properly specified and appropriate.
+                if isempty(Ival{kk}) && ~must_int_var(kk)
+                    continue
+                elseif isempty(Ival{kk}) 
+                    % If integration must be performed, but is not
+                    % specified, introduce it anyway.
+                    Ival{kk} = Rdom(kk,:);
+                elseif ~isempty(Ival{kk}) && ~isvariable_term_jj(kk)
+                    % Avoid integration in variables along which the
+                    % considered component does not depend.
+                    error(['The proposed integral "',term_name,'.I{',num2str(kk),'}" is not allowed;',...
+                            ' the considered component "',term_name,'.',Robj,'{',num2str(Rindx),'}" at the specified position "',term_name,'.loc" does not vary along the proposed dimension of integration.'])
+                end
+                if (~isa(Ival{kk},'double') && ~isa(Ival{kk},'polynomial')) || ~all(size(Ival{kk})==[1,2])
+                    error(['The field "',term_name,'.I" is not appropriately specified;',...
+                            ' each element k must be a 1x2 array of type "double" or "polynomial", indicating the domain of integration in variable k of component "',Robj,'{',num2str(Rindx),'}" depends.'])
+                end
+                Ival_kk = polynomial(Ival{kk});
+                % For variables we have to get rid of, we must integrate
+                % along the entire domain.
+                if must_int_var(kk) && ~all(isequal(Ival_kk,Rdom(kk,:)))
+                    error(['The proposed integral "',term_name,'.I{',num2str(kk),'}" is not appropriate;',...
+                            ' integration over the full domain of variable "',Rvars(kk,1).varname{1},'" is required as component "',obj,'{',eq_num_str,'}" does not depend on this variable.'])
+                end
+                % Check that the integral is taken over one of the allowed
+                % domains.
+                if all(isequal(Ival_kk,polynomial(Rdom(kk,2:-1:1)))) || all(isequal(Ival_kk,[Rvars(kk,1),Rdom(kk,1)])) || all(isequal(Ival_kk,[Rdom(kk,2),Rvars(kk,1)]))
+                    % Integration is performed over mirror image of allowed
+                    % domain (for whatever reason);
+                    Cval = -Cval;
+                    PDE.(obj){ii}.term{jj}.C = Cval;
+                    Ival{kk} = Ival{kk}(1,end:-1:1);
+                elseif ~(all(isequal(Ival_kk,polynomial(Rdom(kk,:)))) || all(isequal(Ival_kk,[Rdom(kk,1),Rvars(kk,1)])) || all(isequal(Ival_kk,[Rvars(kk,1),Rdom(kk,2)])))
+                    error(['The proposed integral "',term_name,'.I{',num2str(kk),'}" is not allowed;',...
+                            ' for a variable s in [a,b], integration is only allowed over [a,s], [s,b], or [a,b].'])
+                end   
+                is_int_var(kk) = true;  % Indicate that we are integrating along this spatial direction.
+            end
+            PDE.(obj){ii}.term{jj}.I = Ival;            
+        end
+        
+        % % Finally, we check that the coefficients are appropriately
+        % % specified.
+        if isa(Cval,'polynomial') && ~isdouble(Cval)
+            % Establish variable names that the term is allowed to have:
+            
+            % Cval can have variables that appear in the LHS component.
+            Lcomp_varname = global_vars(has_vars_Lcomp,1).varname;            
+            % Currently, opvar and opvar2d objects only use dummy variables
+            % in partial integrals, not integrals over the full domain. As
+            % such, dummy variables in Cval corresponding to spatial
+            % dimensions that  are integrated out should be
+            % replaced with primary variables as well.
+            if any(must_int_var)
+                Cval = subs(Cval,Rvars(must_int_var,2),Rvars(must_int_var,1));
+                Rcomp_varname_1 = Rvars(must_int_var,1).varname;
+            else
+                Rcomp_varname_1 = {};
+            end
+            % For variables that both the LHS component and RHS component
+            % share, but for which a (partial) integral is used, a dummy 
+            % variable may appear in Cval.
+            Rcomp_varname_2 = Rvars(is_int_var & ~must_int_var,2).varname;
+            
+            % Check that the polynomial does not depend on any "illegal"
+            % variables.
+            if any(~ismember(Cval.varname,[Lcomp_varname; Rcomp_varname_1; Rcomp_varname_2]))
+                error(['The proposed polynomial "',term_name,'.C" is not appropriate;',...
+                        ' the spatial variables it depends on do not make sense with the variables of the component "',obj,'{',num2str(ii),'}  it contributes to, and/or the component "',Robj,'{',num2str(Rindx),'} it maps.'])
+            end
+            
+            % Also check if a particular state variable in the component
+            %  may not need to be differentiated.
+            if is_x_Robj && any(Dval==diff_tab(Rindx,:)) && size(Cval,2)>1
+                for kk=1:size(Cval,2)
+                    if all(isequal(Cval(:,kk),zeros(size(Cval,1),1)))
+                        warning(['The ',num2str(kk),'th state variable in component "x{',num2str(Rindx),'}" appears not to contribute to the term "',term_name,'", but will still be differentiated up to degrees "',term_name,'.D".',...
+                                    ' If this state variable does not need to be differentiable up to the same order as the other variables in state component component "x{',num2str(Rindx),'}", then please add it as a separate component to the PDE structure.']) 
+                    end
+                end
+            end
+        else
+            % If not polynomial, only check if a particular state variable 
+            % in the component may not need to be differentiated.
+            Cval = double(Cval);
+            if is_x_Robj && any(Dval==diff_tab(Rindx,:)) && size(Cval,2)>1
+                for kk=1:size(Cval,2)
+                    if ~any(Cval(:,kk))
+                        warning(['The ',num2str(kk),'th state variable in component "x{',num2str(Rindx),'}" appears not to contribute to the term "',term_name,'", but will still be differentiated up to degrees "',term_name,'.D".',...
+                                    ' If this state variable does not need to be differentiable up to the same order as the other variables in state component component "x{',num2str(Rindx),'}", then please add it as a separate component to the PDE structure.']) 
+                    end
+                end
+            end
+        end
+        PDE.(obj){ii}.term{jj}.C = Cval;
+        
+        
+        % % With that, the term should be good. We order the fields, and
+        % % move on to the next term.
+        if isfield(PDE.(obj){ii}.term{jj},'term_num')
+            % The field term_num was only for internal use...
+            PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'term_num');
+        end
+        if is_x_Robj
+            PDE.(obj){ii}.term{jj} = orderfields(PDE.(obj){ii}.term{jj},{Robj,'D','loc','C','I'});
+        else
+            PDE.(obj){ii}.term{jj} = orderfields(PDE.(obj){ii}.term{jj},{Robj,'C','I'});
+        end
+        jj = jj+1; 
+    end
+    
+    
+    % % Having checked the entire equation, we clean up, and move on to the
+    % % next one.    
+    if isfield(PDE.(obj){ii},'eq_num')
+        % The field eq_num was only for internal use...
+        PDE.(obj){ii} = rmfield(PDE.(obj){ii},'eq_num');
+    end
+    % Also order the fields of the LHS component.
+    if strcmp(obj,'x')
+        PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'size','vars','dom','diff','tdiff','term'});
+    else
+        PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'size','vars','dom','term'});
+    end
+    
+    ii = ii+1;
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize Regulated output related parameters
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-if ~isfield(PDE.ODE,'Cz')
-    if ~suppress
-    disp('Cz is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Cz = zeros(nz,no);
-elseif any(size(PDE.ODE.Cz)~=[nz,no])
-    disp('Cz has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Cz = zeros(nz,no);
-end
-if ~isfield(PDE.ODE,'Dzw')
-    if ~suppress
-    disp('Dzw is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Dzw = zeros(nz,nw);
-elseif any(size(PDE.ODE.Dzw)~=[nz,nw])
-    disp('Dzw has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Dzw = zeros(nz,nw);
-end
-if ~isfield(PDE.ODE,'Dzu')
-    if ~suppress
-    disp('Dzu is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Dzu = zeros(nz,nu);
-elseif any(size(PDE.ODE.Dzu)~=[nz,nu])
-    disp('Dzu has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Dzu = zeros(nz,nu);
-end
-if ~isfield(PDE.ODE,'Dzr')
-    if ~suppress
-    disp('Dzr is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Dzr = zeros(nz,nr);
-elseif any(size(PDE.ODE.Dzr)~=[nz,nr])
-    disp('Dzr has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Dzr = zeros(nz,nr);
-end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize Observed output related parameters
 
-if ~isfield(PDE.ODE,'Cy')
-    if ~suppress
-    disp('Cy is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Cy = zeros(ny,no);
-elseif any(size(PDE.ODE.Cy)~=[ny,no])
-    disp('Cy has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Cy = zeros(ny,no);
-end
-if ~isfield(PDE.ODE,'Dyw')
-    if ~suppress
-    disp('Dyw is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Dyw = zeros(ny,nw);
-elseif any(size(PDE.ODE.Dyw)~=[ny,nw])
-    disp('Dyw has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Dyw = zeros(ny,nw);
-end
-if ~isfield(PDE.ODE,'Dyu')
-    if ~suppress
-    disp('Dyu is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Dyu = zeros(ny,nu);
-elseif any(size(PDE.ODE.Dyu)~=[ny,nu])
-    disp('Dyu has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Dyu = zeros(ny,nu);
-end
-if ~isfield(PDE.ODE,'Dyr')
-    if ~suppress
-    disp('Dyr is undefined. Defaulting to zero');
-    end
-    PDE.ODE.Dyr = zeros(ny,nr);
-elseif any(size(PDE.ODE.Dyr)~=[ny,nr])
-    disp('Dyr has incorrect dimension. Defaulting to zero');
-    PDE.ODE.Dyr = zeros(ny,nr);
-end
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function [PDE,BC_state_indcs] = check_BC_terms(PDE,eq_num)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [PDE,BC_state_tab_ii] = check_BC_terms(PDE,eq_num)
+% checks the different terms in the BC specified by "eq_num", to check that 
+% all mandatory fields have been properly specified, and to assign a 
+% default value to all optional fields that the user has not specified. In
+% addition, "PDE.BC_tab" is updated to indicate on which variables s the
+% function f(s) defining the boundary condition 0=f(s) depends.
+%
+% INPUTS:
+% - PDE:        A "struct" or "pde_struct" class object defining a PDE.
+% - eq_num:     Integer specifying which equation "PDE.BC{eq_num}" to
+%               check.
+%
+% OUTPUTS:
+% - PDE:        The same structure as the input "PDE", now with all fields
+%               in the structures "PDE.BC{eq_num}.term{jj}" for all jj
+%               specified. In addition, the ith row of the array 
+%               "PDE.BC_tab" is updated to indicate for each spatial
+%               variable whether the function f_i(s) defining the BC
+%               0=f_i(s) depends on this spatial variable.
+% - BC_state_indcs: An integer array specifying which state components
+%                   appear in the considered boundary condition.
+%
+% The main difference between this function and the other "check_terms"
+% function is that, where we know the states and outputs to depend on
+% particular spatial variables, and can therefore check that each term also
+% depends on these same variables (and does not introduce other variables),
+% fot the BCs, no variables are specified. Instead, we check for each of
+% the specified terms what variables it depends on, and then say that the
+% BC depends on the union of all of these variables.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize PDE dynamics related parameters
+% Extract the global variables and their associated domains.
+global_vars = PDE.vars;
+global_dom = PDE.dom;
+nvars = size(global_vars,1);
 
-if ~isfield(PDE.PDE,'Bpv')
-    if ~suppress
-    disp('Bpv is undefined. Defaulting to zero');
+% Keep track of which state components appear in the BC.
+BC_state_indcs = [];
+
+% Loop over the terms, noting that terms may be added if some element 
+% PDE.BC{eq_num}.term{jj} actually describes multiple terms.
+jj = 1;
+n_terms = numel(PDE.BC{eq_num}.term);
+while jj<=n_terms
+    term_jj = PDE.BC{eq_num}.term{jj};
+    
+    % For the error messages, keep track of the name of the term.
+    if isfield(PDE.BC{eq_num},'eq_num')
+        eq_num_str = num2str(PDE.BC{eq_num}.eq_num);
+    else
+        eq_num_str = num2str(eq_num);
     end
-    PDE.PDE.Bpv = polynomial(zeros(np,nv));
-elseif any(size(PDE.PDE.Bpv)~=[np,nv])
-    disp('Bpv has incorrect dimension. Defaulting to zero');
-    PDE.PDE.Bpv = polynomial(zeros(np,nv));
-end
+    if isfield(PDE.BC{eq_num}.term{jj},'term_num')
+        term_num = PDE.BC{eq_num}.term{jj}.term_num;
+    else
+        term_num = jj;
+    end
+    term_name = ['BC{',eq_num_str,'}.term{',num2str(term_num),'}'];
+    
+    
+    % % % Assign a default value to all the non-specified fields.    
+    % % First check which state component or input is involved.
+    if isfield(term_jj,'x')
+        Robj = 'x';
+        is_x_Robj = true;
+    elseif isfield(term_jj,'w')
+        Robj = 'w';
+        is_x_Robj = false;
+    else
+        Robj = 'u';
+        is_x_Robj = false;
+    end
+    Rindx = term_jj.(Robj)(:);
+    nR = length(Rindx);
+    % Establish which spatial variables each component depends on.
+    has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx(1),3:end));
+    nvars_Rcomp = sum(has_vars_Rcomp);
+    % Note that we already checked all the different components listed
+    % in Rindx to depend on the same variables in "get_diff".
+        
+    % % Extract a derivative (was already initialized in "get_diff").
+    if is_x_Robj && (~isfield(term_jj,'D') || isempty(term_jj.D))
+        % If no derivative is specified, assume no derivative is
+        % desired.
+        Dval = zeros(nR,nvars);
+    elseif is_x_Robj
+        Dval = term_jj.D;
+    end
 
-% initialize a temporary Bpb regardless of user input
-% initBpb = repmat({struct('coeff',{},'Lstate',{},'Rstate',{},'D',{},'delta',{})}, 1,(N+1)*(2*np_all_derivatives-2*(N+1)))
-initBpb = cell(1,(N+1)*(2*np_all_derivatives-2*(N+1)));
-m=1;
-for i=0:N
-    for j=0:1
-        for k=0:N-1   
-            for l=k+1:N
-                tmp.coeff = polynomial(zeros(n_pde(i+1),n_pde(l+1)));
-                tmp.Lstate = i;
-                tmp.Rstate = l;
-                tmp.D = k;
-                tmp.delta = j;
-                initBpb{m} = tmp;
-                m=m+1;
+    % % Extract a spatial position (was already initialized in 
+    % % "get_diff").
+    if is_x_Robj
+        Rloc = term_jj.loc;
+    end
+    
+    % % Initialize coefficients.
+    if ~isfield(term_jj,'C') || isempty(term_jj.C)
+        % If no coefficients are specified, assume each term is scaled
+        % with a factor 1.
+        if any(PDE.([Robj,'_tab'])(Rindx,2)~=PDE.BC_tab(eq_num,2))
+            error(['The size of the component "BC{',eq_num_str,'}" does not match that of the components specified in "',term_name,'.',Robj,'";',...
+                ' please specify a matrix "',term_name,'.C" describing how each component on the right-hand side contributes to the equation for "BC{',eq_num_str,'}".'])
+        else
+            Cval = repmat(eye(max(PDE.BC_tab(eq_num,2),1)),[1,nR]);
+        end
+    else
+        % Otherwise, verify that the size of the matrix makes sense.
+        Cval = term_jj.C;        
+        if ~isa(Cval,'double') && ~isa(Cval,'polynomial')
+            error(['The coefficients "',term_name,'.C" are not appropriately specified;',...
+                ' coefficients should be specified as an array of type "double" or "polynomial".'])
+        elseif size(Cval,1)~=PDE.BC_tab(eq_num,2)
+            error(['The number of rows of the coefficient matrix "',term_name,'.C" does not match the number of BC equations "BC{',eq_num_str,'}.size" it contributes to.'])
+        elseif size(Cval,2)~=sum(PDE.([Robj,'_tab'])(Rindx,2))
+            error(['The number of columns of the coefficient matrix "',term_name,'.C" does not match the number of state variables it maps.'])
+        end
+        if size(Cval,2)~=sum(PDE.([Robj,'_tab'])(Rindx,2))
+            error(['The number of columns of the coefficient matrix "',term_name,'.C" does not match the number of state variables it maps.'])
+        end
+    end
+    
+    % % Initialize an empty integral (for now) if no integral is
+    % % specified.
+    if isfield(term_jj,'I')
+        Ival = term_jj.I(:);
+        if ~isa(Ival,'cell')
+            error(['The field "',term_name,'.I" is not appropriately specified;',...
+                ' the field should be a cell with each element k providing the desired domain of integration in variable k of component "',Robj,'{',num2str(Rindx),'}" depends.'])
+        end
+    else
+        Ival = cell(nvars_Rcomp,1);
+    end
+    
+    % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % % % If multiple terms are included, split into separate elements.
+    C_colnums = cumsum([0;PDE.([Robj,'_tab'])(Rindx,2)]);
+    if nR>1
+        % % We squeeze the new terms between the current one and the
+        % % following ones.
+        PDE.BC{eq_num}.term = [PDE.BC{eq_num}.term(1:jj), repmat(PDE.BC{eq_num}.term(jj),[1,nR-1]), PDE.BC{eq_num}.term(jj+1:end)];
+        if is_x_Robj
+            % Make sure each term indeed describes just one term.
+            for kk=1:nR-1
+                C_cols = C_colnums(kk+1)+1 : C_colnums(kk+2);
+                PDE.BC{eq_num}.term{jj+kk}.(Robj) = Rindx(kk+1);
+                PDE.BC{eq_num}.term{jj+kk}.D = Dval(kk+1,:);
+                PDE.BC{eq_num}.term{jj+kk}.loc = Rloc(kk+1,:);
+                PDE.BC{eq_num}.term{jj+kk}.C = Cval(:,C_cols);
+                PDE.BC{eq_num}.term{jj+kk}.I = Ival;
+                PDE.BC{eq_num}.term{jj+kk}.term_num = term_num;
+            end
+        else
+            % Make sure each term indeed describes just one term.
+            for kk=1:nR-1
+                C_cols = C_colnums(kk+1)+1 : C_colnums(kk+2);
+                PDE.BC{eq_num}.term{jj+kk}.(Robj) = Rindx(kk+1);
+                PDE.BC{eq_num}.term{jj+kk}.C = Cval(:,C_cols);
+                PDE.BC{eq_num}.term{jj+kk}.I = Ival;
+                PDE.BC{eq_num}.term{jj+kk}.term_num = term_num;
+            end
+        end
+        n_terms = n_terms + nR-1;
+    end
+    % % Adjust the current element to describe only the first term.
+    Rindx = Rindx(1);
+    sz_R = PDE.([Robj,'_tab'])(Rindx,2);
+    Cval = Cval(:,1:sz_R);
+    if is_x_Robj
+        Dval = Dval(1,:);
+        Rloc = Rloc(1,:);
+        PDE.BC{eq_num}.term{jj}.(Robj) = Rindx;
+        PDE.BC{eq_num}.term{jj}.D = Dval;
+        PDE.BC{eq_num}.term{jj}.loc = Rloc;
+        PDE.BC{eq_num}.term{jj}.C = Cval;
+        PDE.BC{eq_num}.term{jj}.I = Ival;
+    else
+        PDE.BC{eq_num}.term{jj}.(Robj) = Rindx;
+        PDE.BC{eq_num}.term{jj}.C = Cval;
+        PDE.BC{eq_num}.term{jj}.I = Ival;
+    end
+    
+    
+    % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    % % % Having initialized all the fields, and ensured that the
+    % % % current term truly describes just one term, we now make sure
+    % % % everything is properly specified, and fill in any remaining
+    % % % gaps.
+    
+    % % First, make sure that the specified location is appropriate.
+    % Extract the variables associated to the RHS component, and their
+    % associated domains
+    Rvars = global_vars(has_vars_Rcomp,:);
+    Rdom = global_dom(has_vars_Rcomp,:);
+    % Keep track of which variables the term actually varies in
+    % (without integration).
+    isvariable_term_jj = true(1,nvars_Rcomp);
+    if is_x_Robj
+        for kk=1:nvars_Rcomp
+            % For each of the spatial variables, check if an appropriate
+            % spatial position has been specified.
+            Rloc_kk = Rloc(kk);
+            if isa(Rloc_kk,'double') || isa(Rloc_kk,'polynomial') && isdouble(Rloc_kk)
+                Rloc_kk = double(Rloc_kk);
+                if ~ismember(Rloc_kk,Rdom(kk,:))
+                    error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                        ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s.'])
+                else
+                    % Indicate that the term does not vary along this
+                    % dimension.
+                    isvariable_term_jj(kk) = false;
+                end
+            elseif ispvar(Rloc_kk)
+                if ~isequal(Rloc_kk,Rvars(kk,1)) && ~isequal(Rloc_kk,Rvars(kk,2))
+                    error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                        ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s.'])
+                else
+                    % Replace any dummy variables with primary
+                    % variables.
+                    Rloc_kk = Rvars(kk,1);
+                    PDE.BC{eq_num}.term{jj}.loc(kk) = Rloc_kk;
+                end
+            else
+                error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                    ' spatial position must be specified as "double" or "pvar" (polynomial class) object.'])
             end
         end
     end
-end
-if ~isfield(PDE.PDE,'Bpb')
-    if ~suppress
-    disp('Bpb is undefined. Defaulting to zero');
-    end
-    PDE.PDE.Bpb = initBpb;
-else
-    dispVal = 0;
-    for m=1:length(PDE.PDE.Bpb)
-        tmp = PDE.PDE.Bpb{m};
-        i = tmp.Lstate; j = tmp.delta; l = tmp.Rstate;
-        if ~isfield(tmp,'D')
-            tmp.D = 0;
+    
+    % % Check the integrals, and establish which variables the boundary
+    % % condition depends on.
+    % Keep track of wrt which variables some integration is performed.
+    is_int_var_Rcomp = false(1,nvars_Rcomp);
+    if ~isfield(term_jj,'I') || isempty(term_jj.I)
+        % If no integral is specified, assume no integration is desired.
+        Ival = cell(nvars_Rcomp,1);
+        PDE.BC{eq_num}.term{jj}.I = Ival;
+    else
+        % If integrals are specified, make sure that they are
+        % appropriate.
+        if numel(Ival)>nvars_Rcomp
+            error(['The field "',term_name,'.I" is not appropriately specified;',...
+                ' the number of elements should match the number of spatial variables on which component "',term_name,'.',Robj,'{',num2str(Rindx),'}" depends.'])
         end
-        k = tmp.D; 
-        loc = i*(2*np_all_derivatives-2*(N+1)) + j*(np_all_derivatives-N-1) + sum(N-1:-1:N-k) + l; 
-        if any(size(tmp.coeff)~=[n_pde(tmp.Lstate+1),n_pde(tmp.Rstate+1)]) 
-            % wrong size, dont change initBpb
-            dispVal = 1;
-        else % correct term, replace in initBpb
-            initBpb{loc}.coeff = initBpb{loc}.coeff+tmp.coeff;
-        end
-    end
-    %finally, sub PDE.PDE.Bpb with initBpb which has update values, correct
-    %size and missing terms
-    PDE.PDE.Bpb = initBpb;
-    if dispVal
-        disp('Some terms in Bpb have incorrect dimension or are missing. Defaulting them to zero');
-    end
-end
-
-
-% initialize a temporary A regardless of user input
-clear tmp
-initA = cell(1,3*(N+1)*np_all_derivatives);
-m=1;
-for i=0:2
-    for j=0:N
-        for k=0:N   
-            for l=k:N
-                tmp.coeff = polynomial(zeros(n_pde(j+1),n_pde(l+1)));
-                tmp.Lstate = j;
-                tmp.Rstate = l;
-                tmp.D = k;
-                tmp.I = i;
-                initA{m} = tmp;
-                m=m+1;
+        for kk = 1:numel(Ival)
+            if isempty(Ival{kk})
+                continue
+            elseif ~isvariable_term_jj(kk)
+                % Avoid integration in variables along which the
+                % considered component does not depend.
+                error(['The proposed integral "',term_name,'.I{',num2str(kk),'}" is not allowed;',...
+                    ' the considered component "',term_name,'.',Robj,'{',num2str(Rindx),'}" at the specified position "',term_name,'.loc" does not vary along the proposed dimension of integration.'])
             end
+            if (~isa(Ival{kk},'double') && ~isa(Ival{kk},'polynomial')) || ~all(size(Ival{kk})==[1,2])
+                error(['The field "',term_name,'.I" is not appropriately specified;',...
+                    ' each element k must be a 1x2 array of type "double" or "polynomial", indicating the domain of integration in variable k of component "',Robj,'{',num2str(Rindx),'}" depends.'])
+            end
+            Ival_kk = polynomial(Ival{kk});
+            % Check that the integral is taken over one of the allowed
+            % domains.
+            if all(isequal(Ival_kk,Rdom(kk,:)))
+                % The integral will discard any spatial dependence on the kkth
+                % variable.
+                isvariable_term_jj(kk) = false;
+            elseif all(isequal(Ival_kk,polynomial(Rdom(kk,2:-1:1))))
+                % Integration is performed over mirror image of full domain
+                % (for whatever reason).
+                Cval = -Cval;
+                PDE.BC{eq_num}.term{jj}.C = Cval;
+                Ival{kk} = Ival{kk}(1,end:-1:1);
+                isvariable_term_jj(kk) = false;
+            elseif all(isequal(Ival_kk,[Rvars(kk,1),Rdom(kk,1)])) || all(isequal(Ival_kk,[Rdom(kk,2),Rvars(kk,1)]))
+                % Integration is performed over mirror image of partial domain
+                % (for whatever reason).
+                Cval = -Cval;
+                PDE.BC{eq_num}.term{jj}.C = Cval;
+                Ival{kk} = Ival{kk}(1,end:-1:1);
+            elseif ~(all(isequal(Ival_kk,[Rdom(kk,1),Rvars(kk,1)])) || all(isequal(Ival_kk,[Rvars(kk,1),Rdom(kk,2)])))
+                error(['The proposed integral "',term_name,'.I{',num2str(kk),'}" is not allowed;',...
+                    ' for a variable s in [a,b], integration is only allowed over [a,s], [s,b], or [a,b].'])
+            end
+            is_int_var_Rcomp(kk) = true;  % Indicate that we are integrating this variable.
         end
+        PDE.BC{eq_num}.term{jj}.I = Ival;
     end
+    % Logical indices indicating which of the global variables are
+    % integrated.
+    is_int_var_full = false(1,nvars);
+    is_int_var_full(has_vars_Rcomp) = is_int_var_Rcomp;
+    
+    % Logical indices indicating which of the global variables the term
+    % actually varies in (are not boundary positions or integrated out).
+    isvariable_term_jj_full = false(1,nvars);
+    isvariable_term_jj_full(has_vars_Rcomp) = isvariable_term_jj;
+    
+    % % Finally, we check that the coefficients are appropriately
+    % % specified.
+    if isa(Cval,'polynomial') && ~isdouble(Cval)
+        % Make sure the polynomial does not introduce any new variables.
+        if any(~ismember(Cval.varname,global_vars.varname))
+            error(['The proposed polynomial "',term_name,'.C" is not appropriate;',...
+                ' some of the spatial variables it depends on do not appear in any state component, input, or output.'])
+        end
+        
+        % Check for each global variable and associated dummy variable if
+        % it appears in Cval.
+        has_var1_Cval = false(1,nvars);
+        has_var2_Cval = false(1,nvars);
+        for kk=1:nvars
+            has_var1_Cval(kk) = ismember(global_vars(kk,1).varname,Cval.varname);
+            has_var2_Cval(kk) = ismember(global_vars(kk,2).varname,Cval.varname);
+        end
+        
+        % Check that no dummy variables are used along directions of no
+        % integration.
+        if any(has_var2_Cval & ~is_int_var_full)
+            error(['The proposed polynomial "',term_name,'.C" is not appropriate;',...
+                ' dummy variables are allowed only in directions along which the term is integrated.'])
+        end
+        % Check if any variable is (accidentally) introduced which the
+        % integrals would otherwise remove.
+        if any(has_var1_Cval & ~has_var2_Cval & is_int_var_full)
+            warning(['The proposed polynomial "',term_name,'.C" introduces a dependence of the term on a variable which the integral removes;',...
+                ' if you wish the polynomial to act as kernel, use a dummy variable, which can be specified in the second column of "',Robj,'{',num2str(Rindx),'}.vars".'])
+        end
+        
+        % Any primary variable that the polynomial Cval depends on will be
+        % one the term depends on.
+        isvariable_term_jj_full = isvariable_term_jj_full | has_var1_Cval;
+    end
+    PDE.BC{eq_num}.term{jj}.C = Cval;
+    
+    % Add any variable dependence that the term introduces to the table.
+    PDE.BC_tab(eq_num,3:2+nvars) = PDE.BC_tab(eq_num,3:2+nvars) | isvariable_term_jj_full;
+    
+    % Also keep track of which state variables appear in the BC.
+    BC_state_indcs = [BC_state_indcs;Rindx];
+    
+    % % With that, the term should be good. We order the fields, and
+    % % move on to the next term.
+    if isfield(PDE.BC{eq_num}.term{jj},'term_num')
+        % The field term_num was only for internal use...
+        PDE.BC{eq_num}.term{jj} = rmfield(PDE.BC{eq_num}.term{jj},'term_num');
+    end
+    if is_x_Robj
+        PDE.BC{eq_num}.term{jj} = orderfields(PDE.BC{eq_num}.term{jj},{Robj,'D','loc','C','I'});
+    else
+        PDE.BC{eq_num}.term{jj} = orderfields(PDE.BC{eq_num}.term{jj},{Robj,'C','I'});
+    end
+    jj = jj+1;
 end
 
-% if A is undefined define
-if ~isfield(PDE.PDE, 'A')
-    if ~suppress
-    disp('PDE dynamics structure A is undefined. Defaulting to zero');
-    end
-    PDE.PDE.A = initA;
-else % if A is defined, check if the dimensions are correct and check if terms are missing
-    dispVal = 0;
-    for m=1:length(PDE.PDE.A)
-        tmp = PDE.PDE.A{m};
-        j = tmp.Lstate; l = tmp.Rstate;
-        if ~isfield(tmp,'D')
-            tmp.D = 0;
-        end
-        if ~isfield(tmp,'I')
-            tmp.I = 0;
-        end
-        k = tmp.D; i = tmp.I;
-        loc = (i)*(N+1)*np_all_derivatives + (j)*np_all_derivatives + sum(N:-1:N-k+1) + l + 1; % find this
-        if any(size(tmp.coeff)~=[n_pde(tmp.Lstate+1),n_pde(tmp.Rstate+1)]) % wrong size, dont change initA
-            dispVal = 1;
-        else % correct term, replace in initA
-            initA{loc}.coeff = initA{loc}.coeff+tmp.coeff;
-        end
-    end
-    %finally, sub PDE.PDE.A with initA which has update values, correct
-    %size and missing terms
-    PDE.PDE.A = initA;
-    if dispVal
-            disp('Some of the terms in PDE dynamics structure A have incorrect dimension or are missing. Defaulting them to zero');
-    end
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize PDE to ODE signal parameters
-if ~isfield(PDE.PDE,'Drv')
-    if ~suppress
-    disp('Drv is undefined. Defaulting to zero');
-    end
-    PDE.PDE.Drv = zeros(nr,nv);
-elseif any(size(PDE.PDE.Drv)~=[nr,nv])
-    disp('Drv has incorrect dimension. Defaulting to zero');
-    PDE.PDE.Drv = zeros(nr,nv);
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function print_initialization_summary(PDE,obj,ncomps_x)
+% print_initialization_summary(PDE,obj,ncomps_x)
+% prints in the command window some information concerning how many
+% components "PDE.(obj)" were encountered, on what variables each of these
+% components depends, and (iff obj=='x') to what order the component is
+% differentiable in each of the spatial variables on which it depends.
+%
+% INPUTS:
+% - PDE:        A "struct" or "pde_struct" class object defining a PDE.
+% - obj:        char 'x', 'y', 'z', 'u', 'w', or 'BC', indicating for which
+%               field the information is desired.
+% - ncomps_x:   Integer scalar specifying how many state components were
+%               present in the PDE before initialization. Needs only be
+%               specified if obj=='x'.
+%
+% OUTPUTS:
+% Displays information in the command window concerning the number of
+% observed components of type obj, along with the size of each of these
+% components, what variables they depend on, and (if obj=='x') to what
+% order they are differentiable in each of these variables.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Set a name associated to each object.
+if strcmp(obj,'x')
+    object_name = 'state component';
+elseif strcmp(obj,'y')
+    object_name = 'observed output';
+elseif strcmp(obj,'z')
+    object_name = 'regulated output';
+elseif strcmp(obj,'u')
+    object_name = 'actuator input';
+elseif strcmp(obj,'w')
+    object_name = 'exogenous input';
+elseif strcmp(obj,'BC')
+    object_name = 'boundary condition';
 end
-
-% initialize a temporary Drb regardless of user input
-clear tmp
-initDrb = cell(1,2*np_all_derivatives - 2*(N+1));
-m=1;
-for j=0:1
-    for k=0:N-1   
-        for l=k+1:N
-            tmp.coeff = zeros(nr,n_pde(l+1));
-            tmp.Rstate = l;
-            tmp.D = k;
-            tmp.delta = j;
-            initDrb{m} = tmp;
-            m=m+1;
-        end
-    end
-end
-
-if ~isfield(PDE.PDE,'Drb')
-    if ~suppress
-    disp('Drb is undefined. Defaulting to zero');
-    end
-    PDE.PDE.Drb = initDrb;
+% If there are multiple components of the object, we add an 's' at the end.
+num_comps = numel(PDE.(obj));
+if num_comps>1
+    add_s = 's';
 else
-    dispVal = 0;
-    for m=1:length(PDE.PDE.Drb)
-        tmp = PDE.PDE.Drb{m};
-        j = tmp.delta; l = tmp.Rstate;
-        if ~isfield(tmp,'D')
-            tmp.D = 0;
-        end
-        k = tmp.D;
-        loc = j*(np_all_derivatives-N-1) + sum(N-1:-1:N-k) + l;
-        if any(size(tmp.coeff)~=[nr,n_pde(tmp.Rstate+1)]) 
-            % wrong size, dont change initBpb
-            dispVal = 1;
-        else % correct term, replace in initBpb
-            initDrb{loc}.coeff = initDrb{loc}.coeff+tmp.coeff;
-        end
-    end
-    %finally, sub PDE.PDE.Drb with initDpb which has update values, correct
-    %size and missing terms
-    PDE.PDE.Drb = initDrb;
-    if dispVal
-        disp('Some terms in Drb have incorrect dimension or are missing. Defaulting them to zero');
-    end
+    add_s = '';
 end
 
-% initialize a temporary Crp regardless of user input
-clear tmp
-initCrp = cell(1,np_all_derivatives);
-m=1;
-
-for k=0:N   
-    for l=k:N
-        tmp.coeff = polynomial(zeros(nr,n_pde(l+1)));
-        tmp.Rstate = l;
-        tmp.D = k;
-        initCrp{m} = tmp;
-        m=m+1;
-    end
-end
-% if Crp is undefined define
-if ~isfield(PDE.PDE, 'Crp')
-    if ~suppress
-    disp('PDE output structure Crp is undefined. Defaulting to zero');
-    end
-    PDE.PDE.Crp = initCrp;
-else % if Crp is defined, check if the dimensions are correct and check if terms are missing
-    dispVal = 0;
-    for m=1:length(PDE.PDE.Crp)
-        tmp = PDE.PDE.Crp{m};
-        l = tmp.Rstate;
-        if ~isfield(tmp,'D')
-            tmp.D = 0;
-        end
-        k = tmp.D;
-        loc = sum(N:-1:N-k+1) + l + 1; % find this
-        if any(size(tmp.coeff)~=[nr,n_pde(tmp.Rstate+1)]) % wrong size, dont change initA
-            dispVal = 1;
-        else % correct term, replace in initA
-            initCrp{loc}.coeff = initCrp{loc}.coeff+tmp.coeff;
-        end
-    end
-    %finally, sub PDE.PDE.Crp with initCrp which has update values, correct
-    %size and missing terms
-    PDE.PDE.Crp = initCrp;
-    if dispVal
-        disp('Some of the terms in PDE output structure Crp have incorrect dimension or are missing. Defaulting them to zero');
-    end
-end
+% Use UNICODE to add subscript indices to different components.
+sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
+% Determine how many subscripts will be needed.
+n_digits = 1+floor(log(num_comps)/log(10));
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize BC related parameters
-
-if ~isfield(PDE.BC,'Ebv')
-    if ~suppress
-    disp('Ebv is undefined. Defaulting to zero');
-    end
-    PDE.BC.Ebv = zeros(nBC,nv);
-elseif any(size(PDE.BC.Ebv)~=[nBC,nv])
-    disp('Ebv has incorrect dimension. Defaulting to zero');
-    PDE.BC.Ebv = zeros(nBC,nv);
-end
-
-% initialize a temporary Ebp regardless of user input
-clear tmp
-initEbp = cell(1,np_all_derivatives);
-m=1;
-for k=0:N   
-    for l=k:N
-        tmp.coeff = polynomial(zeros(nBC,n_pde(l+1)));
-        tmp.Rstate = l;
-        tmp.D = k;
-        initEbp{m} = tmp;
-        m=m+1;
-    end
-end
-% if Ebp is undefined define
-if ~isfield(PDE.BC, 'Ebp')
-    if ~suppress
-    disp('PDE BC structure Ebp is undefined. Defaulting to zero');
-    end
-    PDE.BC.Ebp = initEbp;
-else % if Ebp is defined, check if the dimensions are correct and check if terms are missing
-    dispVal = 0;
-    for m=1:length(PDE.BC.Ebp)
-        tmp = PDE.BC.Ebp{m};
-        l = tmp.Rstate;
-        if ~isfield(tmp,'D')
-            tmp.D = 0;
-        end
-        k = tmp.D;
-        loc = sum(N:-1:N-k+1) + l + 1;
-        if any(size(tmp.coeff)~=[nBC,n_pde(tmp.Rstate+1)]) % wrong size, dont change initA
-            dispVal = 1;
-        else % correct term, replace in initEbp
-            initEbp{loc}.coeff = initEbp{loc}.coeff+tmp.coeff;
-        end
-    end
-    %finally, sub PDE.BC.Ebp with initCrp which has update values, correct
-    %size and missing terms
-    PDE.BC.Ebp = initEbp;
-    if dispVal
-        disp('Some of the terms in PDE BC structure Ebp have incorrect dimension or are missing. Defaulting them to zero');
-    end
-end
-
-
-
-% initialize a temporary Ebb regardless of user input
-clear tmp
-initEbb = cell(1,2*np_all_derivatives - 2*(N+1));
-m=1;
-
-for j=0:1
-    for k=0:N-1   
-        for l=k+1:N
-            tmp.coeff = zeros(nBC,n_pde(l+1));
-            tmp.Rstate = l;
-            tmp.D = k;
-            tmp.delta = j;
-            initEbb{m} = tmp;
-            m=m+1;
-        end
-    end
-end
-
-if ~isfield(PDE.BC,'Ebb')
-    if ~suppress
-    disp('Ebb is undefined. Defaulting to zero');
-    end
-    PDE.BC.Ebb = initEbb;
+% Determine which variables appear in the different components of this
+% object.
+nvars = size(PDE.vars,1);
+global_vars_obj = PDE.vars(any(PDE.([obj,'_tab'])(:,3:2+nvars),1),:);
+if isempty(global_vars_obj)
+    global_varnames = '(t)';
 else
-    dispVal = 0;
-    for m=1:length(PDE.BC.Ebb)
-        tmp = PDE.BC.Ebb{m};
-        j = tmp.delta; l = tmp.Rstate;
-        if ~isfield(tmp,'D')
-            tmp.D = 0;
-        end
-        k = tmp.D; 
-        loc = j*(np_all_derivatives-N-1) + sum(N-1:-1:N-k) + l; 
-        if any(size(tmp.coeff)~=[nBC,n_pde(tmp.Rstate+1)]) 
-            % wrong size, dont change initBpb
-            dispVal = 1;
-        else % correct term, replace in initEbb
-            initEbb{loc}.coeff = initEbb{loc}.coeff+tmp.coeff;
-        end
+    global_varnames =  global_vars_obj(1,1).varname{1};
+    for kk=2:size(PDE.vars,1)
+        global_varnames = [global_varnames,',',PDE.vars(kk,1).varname{1}];
     end
-    %finally, sub PDE.BC.Ebb with initBpb which has update values, correct
-    %size and missing terms
-    PDE.BC.Ebb = initEbb;
-    if dispVal
-        disp('Some terms in Ebb have incorrect dimension or are missing. Defaulting them to zero');
+    global_varnames = ['(t,',global_varnames,')'];
+end
+
+% Estimate the size of the string of characters denoting the components
+% "PDE.(obj){ii}".
+LHS_length_max = 1+length(obj)+n_digits+length(global_varnames) + 3; % e.g. ' x13(t,s1,s2,s3)', 
+if num_comps==1
+    LHS_length_max = LHS_length_max - 1;    % No subscript index.
+end
+
+if num_comps==0
+    % If there are no components for this object, display nothing.
+    %fprintf(['Encountered no ',object_name,add_s,'.\n']);  % Should we indicate that no object of this type was encountered?
+    return
+else
+    % Indicate how many components of the considered object were
+    % encountered.
+    if strcmp(obj,'x')
+        fprintf(['\n','Encountered ',num2str(ncomps_x),' ',object_name,add_s,': \n']);
+    else
+        fprintf(['\n','Encountered ',num2str(num_comps),' ',object_name,add_s,': \n']);
+    end
+end
+% For each of the components, display its size, and which variables it
+% depends on.
+for ii=1:num_comps
+    comp_ii = PDE.(obj){ii};
+    
+    % Establish the names of the variables on which the component depends.
+    if isempty(comp_ii.vars)
+        varnames_ii = '';
+        varnames_ii_t = 't';    % All components may vary in time
+    else
+        % Set a comma separated list.
+        varnames_ii = comp_ii.vars(1,1).varname{1};
+        for kk=2:size(comp_ii.vars,1)
+            varnames_ii = [varnames_ii,',',comp_ii.vars(kk,1).varname{1}];
+        end
+        varnames_ii_t = ['t,',varnames_ii]; % All components may vary in time
+    end
+    
+    % Establish the (subscript) index for the component.
+    LHS_length = length(varnames_ii_t);
+    if numel(PDE.(obj))==1
+        % There is only one state component --> no need to give index
+        Lcomp_idx = '';
+    elseif numel(PDE.(obj))<=9
+        % The state number consists of a single decimal.
+        Lcomp_idx = sub_num{ii+1};
+        LHS_length = LHS_length + 1;
+    else
+        % The state number consists of multiple decimals.
+        Lcomp_idx = cell2mat(sub_num(str2num(num2str(ii)')+1)');
+        LHS_length = LHS_length + length(num2str(ii));
+    end
+    % Set the name of the component, including its depdence on spatial
+    % variables.
+    if strcmp(obj,'BC')
+        LHS_name = [' F',Lcomp_idx,'(',varnames_ii_t,') = 0'];
+        LHS_length = length(obj) + LHS_length + 7;
+    else
+        LHS_name = [' ',obj,Lcomp_idx,'(',varnames_ii_t,')'];
+        LHS_length = length(obj) + LHS_length + 3;
+    end
+    
+    % If the state component is one that has been added to impose the
+    % higher order temporal derivative, indicate to which component the
+    % added state corresponds.
+    if strcmp(obj,'x') && ii>ncomps_x
+        if (numel(PDE.(obj))-ncomps_x)~=1
+            add_s2 = 's';
+        else
+            add_s2 = '';
+        end
+        % Indicate that the remaining state components were all added
+        % during initialization.
+        if ii==ncomps_x+1
+            fprintf(['\n','Added ',num2str(numel(PDE.(obj))-ncomps_x),' ',object_name,add_s2,': \n']);
+        end
+        % For the added state components, indicate of which state component
+        % they are the temporal derivative.
+        Rcomp_idx = cell2mat(sub_num(str2num(num2str(PDE.x{ii}.term{1}.x)')+1)');
+        xdot = '\x1E8B';    % UNICODE \dot{x}
+        RHS = [' := ',xdot,Rcomp_idx,'(',varnames_ii_t,')'];
+    else
+        RHS = [',',repmat(' ',[1,LHS_length_max-LHS_length])];
+    end
+    
+    % Determine the order of differentiability in each spatial variable for
+    % the state component
+    if strcmp(obj,'x')
+        D = comp_ii.diff;
+        has_vars_comp = logical(PDE.([obj,'_tab'])(ii,2+1:2+nvars));
+        D = D(has_vars_comp);
+        if isempty(D)
+            % If the component does not vary in space, indicate that it is
+            % finite dimensional.
+            fprintf([LHS_name,RHS,' of size ',num2str(comp_ii.size),', finite-dimensional;\n'])
+        else
+            % Otherwise, indicate the order of differentiability for the state
+            diff_order_ii = num2str(D(1));
+            for kk=2:length(D)
+                diff_order_ii = [diff_order_ii,',',num2str(D(kk))];
+            end
+
+            fprintf([LHS_name,RHS,' of size ',num2str(comp_ii.size),', differentiable up to order (',diff_order_ii,') in variables (',varnames_ii,');\n'])
+        end
+    else
+        % If the object is not a state component, there is no order of
+        % differentiability to specify.
+        fprintf([LHS_name,RHS,' of size ',num2str(comp_ii.size),';\n'])
     end
 end
 
-
-clear initA initBpb initCrp initDrb initEbp initEbb;
-clear no np nr nu nv nw ny nz n_pde nBC nBVs np_all_derivatives
-clear i j k l m N
-clear list loc logVal dispVal tmp
-
-PDE_out=PDE;
-end 
-function logicalVal = isdefined(defined_list, test_list)
-%this function tests if the terms in test_list are present in the
-%defined_list and returns the first match location
-logicalVal = find(ismember(test_list, defined_list));
-if ~isempty(logicalVal)
-    logicalVal = logicalVal(1);
 end
-end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
