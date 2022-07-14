@@ -72,8 +72,12 @@ if ~all(size(invar)==size(inval))
 end
 
 
-% % Differentiate with respect to each element of invar separately
+% % Evaluate with respect to each element of invar separately
 addvar = invar(:);      addval = inval(:);
+% Avoid unnecessary evaluations at e.g. x = x.
+rm_vars = isequal(addvar,addval);
+addvar = addvar(~rm_vars);
+addval = addval(~rm_vars);
 while ~isempty(addvar)
     delvar = addvar(1);         ppp = addval(1);
     addvar = addvar(2:end);     addval = addval(2:end);
