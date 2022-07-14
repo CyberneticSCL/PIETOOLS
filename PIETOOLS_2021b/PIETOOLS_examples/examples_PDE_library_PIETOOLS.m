@@ -1295,9 +1295,6 @@ if TERM~=0
  PDE_t.x{1}.term{2}.x = 2;
  PDE_t.x{1}.term{2}.D = 1;
  PDE_t.x{1}.term{2}.loc = 0;
- 
- % ODE: v = xo
- PDE_t.ODE.Cv = 1;
 
  % PDE: x_{t} = x_{ss}
  PDE_t.x{2}.term{1}.x = 2;
