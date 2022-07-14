@@ -48,9 +48,7 @@ end
 
 % Initialize the dopvar2d object with the same spatial domain and
 % dimensions as the opvar2d object
-P = dopvar2d();
-P.I = D.I;
-P.dim = D.dim;
+P = opvar2d([],D.dim,D.I,D.var1,D.var2);
 
 % Convert each component of D to a polynomial class object
 fset = {'R00', 'R0x', 'R0y', 'R02', 'Rx0', 'Rxy', 'Ry0', 'Ryx', 'R20'};
@@ -58,7 +56,7 @@ for f=fset
     if ~isempty(D.(f{:}))
         P.(f{:}) = polynomial(D.(f{:}));
     else
-        P.(f{:}) = [];
+        P.(f{:}) = polynomial(zeros(size(D.(f{:}))));
     end
 end
 fset = {'Rxx','Rx2','R2x'};
@@ -69,7 +67,7 @@ for f=fset
         if ~isempty(tmp_inR{i,1})
             tmp_outR{i,1} = polynomial(tmp_inR{i,1});
         else
-            tmp_outR{i,1} = [];
+            tmp_outR{i,1} = polynomial(zeros(size(tmp_inR{i,1})));
         end
     end
     P.(f{:}) = tmp_outR;
@@ -82,7 +80,7 @@ for f=fset
         if ~isempty(tmp_inR{1,j})
             tmp_outR{1,j} = polynomial(tmp_inR{1,j});
         else
-            tmp_outR{1,j} = [];
+            tmp_outR{1,j} = polynomial(zeros(size(tmp_inR{1,j})));
         end
     end
     P.(f{:}) = tmp_outR;
@@ -96,7 +94,7 @@ for f=fset
             if ~isempty(tmp_inR{i,j})
                 tmp_outR{i,j} = polynomial(tmp_inR{i,j});
             else
-                tmp_outR{i,j} = [];
+                tmp_outR{i,j} = polynomial(zeros(size(tmp_inR{i,j})));
             end
         end
     end

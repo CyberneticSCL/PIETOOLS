@@ -1,6 +1,6 @@
 function P1 = poly_opvar2d(P1)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% P1 = poly_opvar2d(P1) converts all components of P1 to polynomial class
+% P1 = poly_opvar2d(P1) converts all parameters of P1 to polynomial class.
 % Date: 09/27/21
 % Version: 1.0
 % 
@@ -17,7 +17,7 @@ function P1 = poly_opvar2d(P1)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - poly_opvar2d
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by

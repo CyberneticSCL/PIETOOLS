@@ -44,7 +44,7 @@ function [logval] = isempty(P)
 % Initial coding DJ - 07_12_2021
 
 if ~isa(P,'dopvar2d')
-    error('To check isempty input must be object dopvar2d');
+    error('To check isempty input must be a dopvar2d class object');
 end
 
 dim = P.dim;

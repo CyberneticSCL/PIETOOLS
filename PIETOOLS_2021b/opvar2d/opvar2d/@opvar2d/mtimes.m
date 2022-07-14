@@ -47,11 +47,13 @@ function [Pcomp] = mtimes(P1,P2)
 %   ^ Based heavily on "@opvar"-mtimes code by SS ^
 %
 % DJ, 02-20-2020: Added "if" statements to improve speed of algorithm
-
+% 02/19/2022 - DJ: Update for product of empty opvar with matrix
+% 04/06/2022 - DJ: Update to increase speed
+% 04/14/2022 - DJ: Update to use "int_simple"
 
 
 if isa(P1,'opvar2d') && isa(P2,'opvar2d')
-    P1.dim = P1.dim; P2.dim = P2.dim;
+    %P1.dim = P1.dim; P2.dim = P2.dim;
     if any(P1.dim(:,2)~=P2.dim(:,1))
         error("Composition requires inner dimensions of the operators to match");
     end
@@ -66,24 +68,22 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     b = I(:,2);
     
     % Initialize the composition
-    Pcomp = opvar2d();
-    Pcomp.dim = [P1.dim(:,1),P2.dim(:,2)];
-    Pcomp.I = I;
-    Pcomp.var1 = ds;
-    Pcomp.var2 = dt;
+    Pcomp = opvar2d([], [P1.dim(:,1),P2.dim(:,2)], I, ds, dt);
     
     n0 = Pcomp.dim(1,1);    m0 = Pcomp.dim(1,2);
     nx = Pcomp.dim(2,1);    mx = Pcomp.dim(2,2);
     ny = Pcomp.dim(3,1);    my = Pcomp.dim(3,2);
     n2 = Pcomp.dim(4,1);    m2 = Pcomp.dim(4,2);
     
+    % No need to compose if either object is empty or zero
+    if (isempty(P1) || isempty(P2)) %|| (P1==0 || P2==0)
+        return
+    end    
     
     % Distinguish most common case, in which opvar only maps 2D functions
     if all(all(P1.dim(1:3,:)==zeros(3,2))) && all(all(P2.dim(1:3,:)==zeros(3,2)))
-        
         R22 = PL2L_compose2D(P1.R22,P2.R22,ds,dt,I);
         Pcomp.R22 = R22;
-        
     else
     
     % Compute the composite functions
@@ -98,11 +98,11 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     % R -> R -> R
     Pcomp.R00 = P1.R00*P2.R00;
     % R -> L2[x] -> R
-    Pcomp.R00 = Pcomp.R00 + int(P1.R0x*P2.Rx0,ds(1),a(1),b(1));
+    Pcomp.R00 = Pcomp.R00 + int_simple(P1.R0x*P2.Rx0,ds(1),a(1),b(1));
     % R -> L2[y] -> R
-    Pcomp.R00 = Pcomp.R00 + int(P1.R0y*P2.Ry0,ds(2),a(2),b(2));
+    Pcomp.R00 = Pcomp.R00 + int_simple(P1.R0y*P2.Ry0,ds(2),a(2),b(2));
     % R -> L2[x,y] -> R
-    Pcomp.R00 = Pcomp.R00 + int(int(P1.R02*P2.R20,ds(1),a(1),b(1)),ds(2),a(2),b(2));
+    Pcomp.R00 = Pcomp.R00 + int_simple(int_simple(P1.R02*P2.R20,ds(1),a(1),b(1)),ds(2),a(2),b(2));
     end
     
     % % % L2[x] --> R component
@@ -112,9 +112,9 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     % L2[x] -> L2[x] -> R
     Pcomp.R0x = Pcomp.R0x + PIoMat_composeND(P1.R0x,P2.Rxx,ds,dt,I);
     % L2[x] -> L2[y] -> R
-    Pcomp.R0x = Pcomp.R0x + int(P1.R0y*P2.Ryx,ds(2),a(2),b(2));
+    Pcomp.R0x = Pcomp.R0x + int_simple(P1.R0y*P2.Ryx,ds(2),a(2),b(2));
     % L2[x] -> L2[x,y] -> R
-    Pcomp.R0x = Pcomp.R0x + int(PIoMat_composeND(P1.R02,P2.R2x,ds,dt,I),ds(2),a(2),b(2));
+    Pcomp.R0x = Pcomp.R0x + int_simple(PIoMat_composeND(P1.R02,P2.R2x,ds,dt,I),ds(2),a(2),b(2));
     end
     
     % % % L2[y] --> R component
@@ -122,11 +122,11 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     % L2[y] -> R -> R
     Pcomp.R0y = P1.R00*P2.R0y;
     % L2[y] -> L2[x] -> R
-    Pcomp.R0y = Pcomp.R0y + int(P1.R0x*P2.Rxy,ds(1),a(1),b(1));
+    Pcomp.R0y = Pcomp.R0y + int_simple(P1.R0x*P2.Rxy,ds(1),a(1),b(1));
     % L2[y] -> L2[y] -> R
     Pcomp.R0y = Pcomp.R0y + PIoMat_composeND(P1.R0y,P2.Ryy,ds,dt,I);
     % L2[y] -> L2[x,y] -> R
-    Pcomp.R0y = Pcomp.R0y + int(PIoMat_composeND(P1.R02,P2.R2y,ds,dt,I),ds(1),a(1),b(1));
+    Pcomp.R0y = Pcomp.R0y + int_simple(PIoMat_composeND(P1.R02,P2.R2y,ds,dt,I),ds(1),a(1),b(1));
     end
     
     % % % L2[x,y] --> R component
@@ -152,9 +152,9 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     % R -> L2[x] -> L2[x]
     Pcomp.Rx0 = Pcomp.Rx0 + PIoMat_composeND(P1.Rxx,P2.Rx0,ds,dt,I);
     % R -> L2[y] -> L2[x]
-    Pcomp.Rx0 = Pcomp.Rx0 + int(P1.Rxy*P2.Ry0,ds(2),a(2),b(2));
+    Pcomp.Rx0 = Pcomp.Rx0 + int_simple(P1.Rxy*P2.Ry0,ds(2),a(2),b(2));
     % R -> L2[x,y] -> L2[x]
-    Pcomp.Rx0 = Pcomp.Rx0 + int(PIoMat_composeND(P1.Rx2,P2.R20,ds,dt,I),ds(2),a(2),b(2));
+    Pcomp.Rx0 = Pcomp.Rx0 + int_simple(PIoMat_composeND(P1.Rx2,P2.R20,ds,dt,I),ds(2),a(2),b(2));
     end
     
     % % % L2[x] --> L2[x] component
@@ -168,9 +168,9 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     % L2[x] -> L2[x,y] -> L2[x]
     Rxx_22 = PL2L_compose1D(P1.Rx2,P2.R2x,ds,dt,I,1);
     
-    Pcomp.Rxx{1} = Rxx_xx{1} + int(Rxx_22{1},ds(2),a(2),b(2));
-    Pcomp.Rxx{2} = Rxx_00 + Rxx_xx{2} + int(Rxx_yy + Rxx_22{2},ds(2),a(2),b(2));
-    Pcomp.Rxx{3} = Rxx_00 + Rxx_xx{3} + int(Rxx_yy + Rxx_22{3},ds(2),a(2),b(2));
+    Pcomp.Rxx{1} = Rxx_xx{1} + int_simple(Rxx_22{1},ds(2),a(2),b(2));
+    Pcomp.Rxx{2} = Rxx_00 + Rxx_xx{2} + int_simple(Rxx_yy + Rxx_22{2},ds(2),a(2),b(2));
+    Pcomp.Rxx{3} = Rxx_00 + Rxx_xx{3} + int_simple(Rxx_yy + Rxx_22{3},ds(2),a(2),b(2));
     end
     
     % % % L2[y] --> L2[x] component
@@ -199,12 +199,12 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     Rx2_22_1 = PL2L_compose1D(P1.Rx2,P2.R22(:,2),ds,dt,I,1);
     Rx2_22_2 = PL2L_compose1D(P1.Rx2,P2.R22(:,3),ds,dt,I,1);
     Rx2_22 = cell(3,1);
-    Rx2_22{1} = Rx2_22_0{1} + int(var_swap(Rx2_22_1{1},ds(2),dt(2)),dt(2),ds(2),b(2))...
-                            + int(var_swap(Rx2_22_2{1},ds(2),dt(2)),dt(2),a(2),ds(2));
-    Rx2_22{2} = Rx2_22_0{2} + int(var_swap(Rx2_22_1{2},ds(2),dt(2)),dt(2),ds(2),b(2))...
-                            + int(var_swap(Rx2_22_2{2},ds(2),dt(2)),dt(2),a(2),ds(2));
-    Rx2_22{3} = Rx2_22_0{3} + int(var_swap(Rx2_22_1{3},ds(2),dt(2)),dt(2),ds(2),b(2))...
-                            + int(var_swap(Rx2_22_2{3},ds(2),dt(2)),dt(2),a(2),ds(2));
+    Rx2_22{1} = Rx2_22_0{1} + int_simple(var_swap(Rx2_22_1{1},ds(2),dt(2)),dt(2),ds(2),b(2))...
+                            + int_simple(var_swap(Rx2_22_2{1},ds(2),dt(2)),dt(2),a(2),ds(2));
+    Rx2_22{2} = Rx2_22_0{2} + int_simple(var_swap(Rx2_22_1{2},ds(2),dt(2)),dt(2),ds(2),b(2))...
+                            + int_simple(var_swap(Rx2_22_2{2},ds(2),dt(2)),dt(2),a(2),ds(2));
+    Rx2_22{3} = Rx2_22_0{3} + int_simple(var_swap(Rx2_22_1{3},ds(2),dt(2)),dt(2),ds(2),b(2))...
+                            + int_simple(var_swap(Rx2_22_2{3},ds(2),dt(2)),dt(2),a(2),ds(2));
                         
     Pcomp.Rx2{1} = Rx2_xx{1} + Rx2_22{1};
     Pcomp.Rx2{2} = Rx2_00 + Rx2_yy + Rx2_xx{2} + Rx2_22{2};
@@ -220,11 +220,11 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     % R -> R -> L2[y]
     Pcomp.Ry0 = P1.Ry0*P2.R00;
     % R -> L2[x] -> L2[y]
-    Pcomp.Ry0 = Pcomp.Ry0 + int(P1.Ryx*P2.Rx0,ds(1),a(1),b(1));
+    Pcomp.Ry0 = Pcomp.Ry0 + int_simple(P1.Ryx*P2.Rx0,ds(1),a(1),b(1));
     % R -> L2[y] -> L2[y]
     Pcomp.Ry0 = Pcomp.Ry0 + PIoMat_composeND(P1.Ryy,P2.Ry0,ds,dt,I);
     % R -> L2[x,y] -> L2[y]
-    Pcomp.Ry0 = Pcomp.Ry0 + int(PIoMat_composeND(P1.Ry2,P2.R20,ds,dt,I),ds(1),a(1),b(1));
+    Pcomp.Ry0 = Pcomp.Ry0 + int_simple(PIoMat_composeND(P1.Ry2,P2.R20,ds,dt,I),ds(1),a(1),b(1));
     end
     
     % % % L2[x] --> L2[y] component
@@ -250,9 +250,9 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     % L2[y] -> L2[x,y] -> L2[y]
     Ryy_22 = PL2L_compose1D(P1.Ry2,P2.R2y,ds,dt,I,2);
     
-    Pcomp.Ryy{1} = Ryy_yy{1} + int(Ryy_22{1},ds(1),a(1),b(1));
-    Pcomp.Ryy{2} = Ryy_00 + Ryy_yy{2} + int(Ryy_xx + Ryy_22{2},ds(1),a(1),b(1));
-    Pcomp.Ryy{3} = Ryy_00 + Ryy_yy{3} + int(Ryy_xx + Ryy_22{3},ds(1),a(1),b(1));
+    Pcomp.Ryy{1} = Ryy_yy{1} + int_simple(Ryy_22{1},ds(1),a(1),b(1));
+    Pcomp.Ryy{2} = Ryy_00 + Ryy_yy{2} + int_simple(Ryy_xx + Ryy_22{2},ds(1),a(1),b(1));
+    Pcomp.Ryy{3} = Ryy_00 + Ryy_yy{3} + int_simple(Ryy_xx + Ryy_22{3},ds(1),a(1),b(1));
     end
     
     % % % L2[x,y] --> L2[y] component
@@ -269,12 +269,12 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     Ry2_22_1 = PL2L_compose1D(P1.Ry2,P2.R22(2,:),ds,dt,I,2);
     Ry2_22_2 = PL2L_compose1D(P1.Ry2,P2.R22(3,:),ds,dt,I,2);
     Ry2_22 = cell(1,3);
-    Ry2_22{1} = Ry2_22_0{1} + int(var_swap(Ry2_22_1{1},ds(1),dt(1)),dt(1),ds(1),b(1))...
-                            + int(var_swap(Ry2_22_2{1},ds(1),dt(1)),dt(1),a(1),ds(1));
-    Ry2_22{2} = Ry2_22_0{2} + int(var_swap(Ry2_22_1{2},ds(1),dt(1)),dt(1),ds(1),b(1))...
-                            + int(var_swap(Ry2_22_2{2},ds(1),dt(1)),dt(1),a(1),ds(1));
-    Ry2_22{3} = Ry2_22_0{3} + int(var_swap(Ry2_22_1{3},ds(1),dt(1)),dt(1),ds(1),b(1))...
-                            + int(var_swap(Ry2_22_2{3},ds(1),dt(1)),dt(1),a(1),ds(1));
+    Ry2_22{1} = Ry2_22_0{1} + int_simple(var_swap(Ry2_22_1{1},ds(1),dt(1)),dt(1),ds(1),b(1))...
+                            + int_simple(var_swap(Ry2_22_2{1},ds(1),dt(1)),dt(1),a(1),ds(1));
+    Ry2_22{2} = Ry2_22_0{2} + int_simple(var_swap(Ry2_22_1{2},ds(1),dt(1)),dt(1),ds(1),b(1))...
+                            + int_simple(var_swap(Ry2_22_2{2},ds(1),dt(1)),dt(1),a(1),ds(1));
+    Ry2_22{3} = Ry2_22_0{3} + int_simple(var_swap(Ry2_22_1{3},ds(1),dt(1)),dt(1),ds(1),b(1))...
+                            + int_simple(var_swap(Ry2_22_2{3},ds(1),dt(1)),dt(1),a(1),ds(1));
                         
     Pcomp.Ry2{1} = Ry2_yy{1} + Ry2_22{1};
     Pcomp.Ry2{2} = Ry2_00 + Ry2_xx + Ry2_yy{2} + Ry2_22{2};
@@ -315,14 +315,14 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     R2x_22_2 = PL2L_compose1D(P1.R22(:,3),P2_2x,ds,dt,I,1);
     R2x_22 = cell(3,1);
     R2x_22{1} = subs(R2x_22_0{1},dt(2),ds(2))...
-                + int(R2x_22_1{1},dt(2),a(2),ds(2))...
-                + int(R2x_22_2{1},dt(2),ds(2),b(2));
+                + int_simple(R2x_22_1{1},dt(2),a(2),ds(2))...
+                + int_simple(R2x_22_2{1},dt(2),ds(2),b(2));
     R2x_22{2} = subs(R2x_22_0{2},dt(2),ds(2))... 
-                + int(R2x_22_1{2},dt(2),a(2),ds(2))...
-                + int(R2x_22_2{2},dt(2),ds(2),b(2));
+                + int_simple(R2x_22_1{2},dt(2),a(2),ds(2))...
+                + int_simple(R2x_22_2{2},dt(2),ds(2),b(2));
     R2x_22{3} = subs(R2x_22_0{3},dt(2),ds(2))... 
-                + int(R2x_22_1{3},dt(2),a(2),ds(2))...
-                + int(R2x_22_2{3},dt(2),ds(2),b(2));
+                + int_simple(R2x_22_1{3},dt(2),a(2),ds(2))...
+                + int_simple(R2x_22_2{3},dt(2),ds(2),b(2));
             
     Pcomp.R2x{1} = R2x_xx{1} + R2x_22{1};
     Pcomp.R2x{2} = R2x_00 + R2x_yy + R2x_xx{2} + R2x_22{2};
@@ -347,14 +347,14 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     R2y_22_2 = PL2L_compose1D(P1.R22(3,:),P2_2y,ds,dt,I,2);
     R2y_22 = cell(1,3);
     R2y_22{1} = subs(R2y_22_0{1},dt(1),ds(1))...
-                + int(R2y_22_1{1},dt(1),a(1),ds(1))...
-                + int(R2y_22_2{1},dt(1),ds(1),b(1));
+                + int_simple(R2y_22_1{1},dt(1),a(1),ds(1))...
+                + int_simple(R2y_22_2{1},dt(1),ds(1),b(1));
     R2y_22{2} = subs(R2y_22_0{2},dt(1),ds(1))... 
-                + int(R2y_22_1{2},dt(1),a(1),ds(1))...
-                + int(R2y_22_2{2},dt(1),ds(1),b(1));
+                + int_simple(R2y_22_1{2},dt(1),a(1),ds(1))...
+                + int_simple(R2y_22_2{2},dt(1),ds(1),b(1));
     R2y_22{3} = subs(R2y_22_0{3},dt(1),ds(1))... 
-                + int(R2y_22_1{3},dt(1),a(1),ds(1))...
-                + int(R2y_22_2{3},dt(1),ds(1),b(1));
+                + int_simple(R2y_22_1{3},dt(1),a(1),ds(1))...
+                + int_simple(R2y_22_2{3},dt(1),ds(1),b(1));
     
     Pcomp.R2y{1} = R2y_yy{1} + R2y_22{1};
     Pcomp.R2y{2} = R2y_00 + R2y_xx + R2y_yy{2} + R2y_22{2};
@@ -428,6 +428,11 @@ elseif ~isa(P2,'opvar2d') %multiplication of operator times matrix
     else
         if size(P2,1)~=sum(P1.dim(:,2))
             error("Multiplication requires inner dimensions of the operators to match");
+        elseif all(all(P1.dim(:,:)==0))
+            warning(['Object P in opvar2d-matrix product P*M has no rows or columns, P.dim(:,:)=0.'...
+                        ' The product has ambiguous dimensions; returning the input matrix M.'])
+            Pcomp = P2;
+            return
         end
 
         mindx = cumsum(P1.dim(:,2));
@@ -497,6 +502,11 @@ else %multiplication of matrix times the operator
     else
         if size(P1,2)~=sum(P2.dim(:,1))
             error("Multiplication requires inner dimensions of the operators to match");
+        elseif all(all(P2.dim(:,:)==0))
+            warning(['Object P in matrix-opvar2d product M*P has no rows or columns, P.dim(:,:)=0.'...
+                        ' The product has ambiguous dimensions; returning the input matrix M.'])
+            Pcomp = P1;
+            return
         end
 
         nindx = cumsum(P2.dim(:,1));
@@ -507,16 +517,16 @@ else %multiplication of matrix times the operator
             P1_0 = zeros(n1,P2.dim(1,1));
         end
         if isempty(P1_x)
-            n1 = size(P1,1) * (P2.dim(2,2)>0);
-            P1_x = zeros(n1,P2.dim(2,1));
+            n2 = size(P1,1) * (P2.dim(2,2)>0);
+            P1_x = zeros(n2,P2.dim(2,1));
         end
         if isempty(P1_y)
-            n1 = size(P1,1) * (P2.dim(3,2)>0);
-            P1_y = zeros(n1,P2.dim(3,1));
+            n3 = size(P1,1) * (P2.dim(3,2)>0);
+            P1_y = zeros(n3,P2.dim(3,1));
         end
         if isempty(P1_2)
-            n1 = size(P1,1) * (P2.dim(4,2)>0);
-            P1_2 = zeros(n1,P2.dim(4,1));
+            n4 = size(P1,1) * (P2.dim(4,2)>0);
+            P1_2 = zeros(n4,P2.dim(4,1));
         end
         
         Pcomp.R00 = P1_0*P2.R00;
@@ -607,12 +617,12 @@ P2{3} = subs(P2{3},ds,db);
     
 
 % Describe compositions of 1D integrals
-Pc{2} = Pc{2} + int(P1{2}*P2{3},db,a,dt) ...
-              + int(P1{2}*P2{2},db,dt,ds) ...
-              + int(P1{3}*P2{2},db,ds,b);
-Pc{3} = Pc{3} + int(P1{2}*P2{3},db,a,ds) ...
-              + int(P1{3}*P2{3},db,ds,dt) ...
-              + int(P1{3}*P2{2},db,dt,b);
+Pc{2} = Pc{2} + int_simple(P1{2}*P2{3},db,a,dt) ...
+              + int_simple(P1{2}*P2{2},db,dt,ds) ...
+              + int_simple(P1{3}*P2{2},db,ds,b);
+Pc{3} = Pc{3} + int_simple(P1{2}*P2{3},db,a,ds) ...
+              + int_simple(P1{3}*P2{3},db,ds,dt) ...
+              + int_simple(P1{3}*P2{2},db,dt,b);
 
 end
 
@@ -650,148 +660,237 @@ db = [bt1; bt2];
 
 % Initialize the composition
 Pc = cell(3,3);
+% Convert potential "double"s to "polynomial"
+for j=1:9
+    P1{j} = polynomial(P1{j});
+    P2{j} = polynomial(P2{j});
+end
+
+% To reduce computation time, we avoid computations with parameters which
+% are zero
+%ismult1 = any(any(~isequal(P1{1,1},0)));
+isint1_x = any(any(P1{2,1}.C~=0)) || any(any(P1{3,1}.C~=0));
+isint1_y = any(any(P1{1,2}.C~=0)) || any(any(P1{1,3}.C~=0));
+isint1_xy = any(any(P1{2,2}.C~=0)) || any(any(P1{3,2}.C~=0)) ...
+             || any(any(P1{2,3}.C~=0)) || any(any(P1{3,3}.C~=0));
+         
+ismult2 = any(any(P2{1,1}.C~=0));
+isint2_x = any(any(P2{2,1}.C~=0)) || any(any(P2{3,1}.C~=0));
+isint2_y = any(any(P2{1,2}.C~=0)) || any(any(P2{1,3}.C~=0));
+isint2_xy = any(any(P2{2,2}.C~=0)) || any(any(P2{3,2}.C~=0)) ...
+             || any(any(P2{2,3}.C~=0)) || any(any(P2{3,3}.C~=0));
 
 
-% Describe the compositions of multipliers with integrals
+% % Describe the compositions of multiplier with PI operator
 Pc{1,1} = P1{1,1}*P2{1,1};
-Pc{2,1} = P1{1,1}*P2{2,1} + P1{2,1}*subs(P2{1,1},ds(1),dt(1));
-Pc{3,1} = P1{1,1}*P2{3,1} + P1{3,1}*subs(P2{1,1},ds(1),dt(1));
-Pc{1,2} = P1{1,1}*P2{1,2} + P1{1,2}*subs(P2{1,1},ds(2),dt(2));
-Pc{1,3} = P1{1,1}*P2{1,3} + P1{1,3}*subs(P2{1,1},ds(2),dt(2));
-Pc{2,2} = P1{1,1}*P2{2,2} + P1{1,2}*subs(P2{2,1},ds(2),dt(2)) ...
-        + P1{2,1}*subs(P2{1,2},ds(1),dt(1)) + P1{2,2}*subs(P2{1,1},ds,dt);
-Pc{3,2} = P1{1,1}*P2{3,2} + P1{1,2}*subs(P2{3,1},ds(2),dt(2)) ...
-        + P1{3,1}*subs(P2{1,2},ds(1),dt(1)) + P1{3,2}*subs(P2{1,1},ds,dt);
-Pc{2,3} = P1{1,1}*P2{2,3} + P1{1,3}*subs(P2{2,1},ds(2),dt(2)) ...
-        + P1{2,1}*subs(P2{1,3},ds(1),dt(1)) + P1{2,3}*subs(P2{1,1},ds,dt);
-Pc{3,3} = P1{1,1}*P2{3,3} + P1{1,3}*subs(P2{3,1},ds(2),dt(2)) ...
-        + P1{3,1}*subs(P2{1,3},ds(1),dt(1)) + P1{3,3}*subs(P2{1,1},ds,dt);
+Pc{2,1} = P1{1,1}*P2{2,1};
+Pc{3,1} = P1{1,1}*P2{3,1};
+Pc{1,2} = P1{1,1}*P2{1,2};
+Pc{1,3} = P1{1,1}*P2{1,3};
+Pc{2,2} = P1{1,1}*P2{2,2};
+Pc{3,2} = P1{1,1}*P2{3,2};
+Pc{2,3} = P1{1,1}*P2{2,3};
+Pc{3,3} = P1{1,1}*P2{3,3};
+
+% % Add compositions of PI operator with multiplier
+if ismult2
+    if isint1_x
+        Pc{2,1} = Pc{2,1} + P1{2,1}*subs(P2{1,1},ds(1),dt(1));
+        Pc{3,1} = Pc{3,1} + P1{3,1}*subs(P2{1,1},ds(1),dt(1));
+    end
+    if isint1_y
+        Pc{1,2} = Pc{1,2} + P1{1,2}*subs(P2{1,1},ds(2),dt(2));
+        Pc{1,3} = Pc{1,3} + P1{1,3}*subs(P2{1,1},ds(2),dt(2));
+    end
+    if isint1_xy
+        Pc{2,2} = Pc{2,2} + P1{2,2}*subs(P2{1,1},ds,dt);
+        Pc{3,2} = Pc{3,2} + P1{3,2}*subs(P2{1,1},ds,dt);
+        Pc{2,3} = Pc{2,3} + P1{2,3}*subs(P2{1,1},ds,dt);
+        Pc{3,3} = Pc{3,3} + P1{3,3}*subs(P2{1,1},ds,dt);
+    end
+end
+
+% % Add compositions of 1D y-integrals with 1D x-integrals
+if isint2_x
+    if isint1_y
+        Pc{2,2} = Pc{2,2} + P1{1,2}*subs(P2{2,1},ds(2),dt(2));
+        Pc{3,2} = Pc{3,2} + P1{1,2}*subs(P2{3,1},ds(2),dt(2));
+        Pc{2,3} = Pc{2,3} + P1{1,3}*subs(P2{2,1},ds(2),dt(2));
+        Pc{3,3} = Pc{3,3} + P1{1,3}*subs(P2{3,1},ds(2),dt(2));
+    end
+    if isint1_x || isint1_xy
+        % Replace intermediate variable by beta for further compositions
+        P2{2,1} = subs(P2{2,1},ds(1),db(1));
+        P2{3,1} = subs(P2{3,1},ds(1),db(1));
+    end
+end
     
+% % Add compositions of 1D x-integrals with 1D y-integrals
+if isint2_y
+    if isint1_x
+        Pc{2,2} = Pc{2,2} + P1{2,1}*subs(P2{1,2},ds(1),dt(1));
+        Pc{3,2} = Pc{3,2} + P1{3,1}*subs(P2{1,2},ds(1),dt(1));
+        Pc{2,3} = Pc{2,3} + P1{2,1}*subs(P2{1,3},ds(1),dt(1));
+        Pc{3,3} = Pc{3,3} + P1{3,1}*subs(P2{1,3},ds(1),dt(1));
+    end
+    if isint1_y || isint1_xy
+        % Replace intermediate variable by beta for further compositions
+        P2{1,2} = subs(P2{1,2},ds(2),db(2));
+        P2{1,3} = subs(P2{1,3},ds(2),db(2));
+    end
+end
+
+if isint2_xy && (isint1_x || isint1_y || isint1_xy)
+    % Replace intermediate variable by beta for further compositions
+    P2{2,2} = subs(P2{2,2},ds,db);
+    P2{3,2} = subs(P2{3,2},ds,db);
+    P2{2,3} = subs(P2{2,3},ds,db);
+    P2{3,3} = subs(P2{3,3},ds,db);
+end
     
-% Replace intermediate variable by beta
-P1{2,1} = subs(P1{2,1},dt(1),db(1));
-P1{3,1} = subs(P1{3,1},dt(1),db(1));
-P1{1,2} = subs(P1{1,2},dt(2),db(2));
-P1{1,3} = subs(P1{1,3},dt(2),db(2));
-P1{2,2} = subs(P1{2,2},dt,db);
-P1{3,2} = subs(P1{3,2},dt,db);
-P1{2,3} = subs(P1{2,3},dt,db);
-P1{3,3} = subs(P1{3,3},dt,db);
 
-P2{2,1} = subs(P2{2,1},ds(1),db(1));
-P2{3,1} = subs(P2{3,1},ds(1),db(1));
-P2{1,2} = subs(P2{1,2},ds(2),db(2));
-P2{1,3} = subs(P2{1,3},ds(2),db(2));
-P2{2,2} = subs(P2{2,2},ds,db);
-P2{3,2} = subs(P2{3,2},ds,db);
-P2{2,3} = subs(P2{2,3},ds,db);
-P2{3,3} = subs(P2{3,3},ds,db);
+% % Add composition of 1D x-integral with PI operator
+if isint1_x
+    % Replace intermediate variable by beta for further compositions
+    P1{2,1} = subs(P1{2,1},dt(1),db(1));
+    P1{3,1} = subs(P1{3,1},dt(1),db(1));
     
+    % Add compositions of 1D x-integrals with 1D x-integrals
+    if isint2_x
+        Pc{2,1} = Pc{2,1} + int_simple(P1{2,1}*P2{3,1},db(1),a(1),dt(1)) ...
+                          + int_simple(P1{2,1}*P2{2,1},db(1),dt(1),ds(1)) ...
+                          + int_simple(P1{3,1}*P2{2,1},db(1),ds(1),b(1));
+        Pc{3,1} = Pc{3,1} + int_simple(P1{2,1}*P2{3,1},db(1),a(1),ds(1)) ...
+                          + int_simple(P1{3,1}*P2{3,1},db(1),ds(1),dt(1)) ...
+                          + int_simple(P1{3,1}*P2{2,1},db(1),dt(1),b(1));
+    end
+    % Add compositions of 1D x-integrals with 2D integrals
+    if isint2_xy
+        Pc{2,2} = Pc{2,2} + int_simple(P1{2,1}*subs(P2{3,2},db(2),ds(2)),db(1),a(1),dt(1)) ...
+                  + int_simple(P1{2,1}*subs(P2{2,2},db(2),ds(2)),db(1),dt(1),ds(1)) ...
+                  + int_simple(P1{3,1}*subs(P2{2,2},db(2),ds(2)),db(1),ds(1),b(1));
+        Pc{3,2} = Pc{3,2} + int_simple(P1{2,1}*subs(P2{3,2},db(2),ds(2)),db(1),a(1),ds(1)) ...
+                  + int_simple(P1{3,1}*subs(P2{3,2},db(2),ds(2)),db(1),ds(1),dt(1)) ...
+                  + int_simple(P1{3,1}*subs(P2{2,2},db(2),ds(2)),db(1),dt(1),b(1));
+        Pc{2,3} = Pc{2,3} + int_simple(P1{2,1}*subs(P2{3,3},db(2),ds(2)),db(1),a(1),dt(1)) ...
+                  + int_simple(P1{2,1}*subs(P2{2,3},db(2),ds(2)),db(1),dt(1),ds(1)) ...
+                  + int_simple(P1{3,1}*subs(P2{2,3},db(2),ds(2)),db(1),ds(1),b(1));
+        Pc{3,3} = Pc{3,3} + int_simple(P1{2,1}*subs(P2{3,3},db(2),ds(2)),db(1),a(1),ds(1)) ...
+                  + int_simple(P1{3,1}*subs(P2{3,3},db(2),ds(2)),db(1),ds(1),dt(1)) ...
+                  + int_simple(P1{3,1}*subs(P2{2,3},db(2),ds(2)),db(1),dt(1),b(1));
+    end
+end
 
-% Describe compositions of 1D integrals
-Pc{2,1} = Pc{2,1} + int(P1{2,1}*P2{3,1},db(1),a(1),dt(1)) ...
-                  + int(P1{2,1}*P2{2,1},db(1),dt(1),ds(1)) ...
-                  + int(P1{3,1}*P2{2,1},db(1),ds(1),b(1));
-Pc{3,1} = Pc{3,1} + int(P1{2,1}*P2{3,1},db(1),a(1),ds(1)) ...
-                  + int(P1{3,1}*P2{3,1},db(1),ds(1),dt(1)) ...
-                  + int(P1{3,1}*P2{2,1},db(1),dt(1),b(1));
-Pc{1,2} = Pc{1,2} + int(P1{1,2}*P2{1,3},db(2),a(2),dt(2)) ...
-                  + int(P1{1,2}*P2{1,2},db(2),dt(2),ds(2)) ...
-                  + int(P1{1,3}*P2{1,2},db(2),ds(2),b(2));
-Pc{1,3} = Pc{1,3} + int(P1{1,2}*P2{1,3},db(2),a(2),ds(2)) ...
-                  + int(P1{1,3}*P2{1,3},db(2),ds(2),dt(2)) ...
-                  + int(P1{1,3}*P2{1,2},db(2),dt(2),b(2));
+% % Add composition of 1D y-integral with PI operator
+if isint1_y
+    % Replace intermediate variable by beta for further compositions
+    P1{1,2} = subs(P1{1,2},dt(2),db(2));
+    P1{1,3} = subs(P1{1,3},dt(2),db(2));
+    
+    % Add compositions of 1D y-integrals with 1D y-integrals
+    if isint2_y
+        Pc{1,2} = Pc{1,2} + int_simple(P1{1,2}*P2{1,3},db(2),a(2),dt(2)) ...
+                          + int_simple(P1{1,2}*P2{1,2},db(2),dt(2),ds(2)) ...
+                          + int_simple(P1{1,3}*P2{1,2},db(2),ds(2),b(2));
+        Pc{1,3} = Pc{1,3} + int_simple(P1{1,2}*P2{1,3},db(2),a(2),ds(2)) ...
+                          + int_simple(P1{1,3}*P2{1,3},db(2),ds(2),dt(2)) ...
+                          + int_simple(P1{1,3}*P2{1,2},db(2),dt(2),b(2));
+    end
+    % Add compositions of 1D y-integrals with 2D integrals
+    if isint2_xy
+        Pc{2,2} = Pc{2,2} + int_simple(P1{1,2}*subs(P2{2,3},db(1),ds(1)),db(2),a(2),dt(2)) ...
+                  + int_simple(P1{1,2}*subs(P2{2,2},db(1),ds(1)),db(2),dt(2),ds(2)) ...
+                  + int_simple(P1{1,3}*subs(P2{2,2},db(1),ds(1)),db(2),ds(2),b(2));
+        Pc{3,2} = Pc{3,2} + int_simple(P1{1,2}*subs(P2{3,3},db(1),ds(1)),db(2),a(2),dt(2)) ...
+                  + int_simple(P1{1,2}*subs(P2{3,2},db(1),ds(1)),db(2),dt(2),ds(2)) ...
+                  + int_simple(P1{1,3}*subs(P2{3,2},db(1),ds(1)),db(2),ds(2),b(2));
+        Pc{2,3} = Pc{2,3} + int_simple(P1{1,2}*subs(P2{2,3},db(1),ds(1)),db(2),a(2),ds(2)) ...
+                  + int_simple(P1{1,3}*subs(P2{2,3},db(1),ds(1)),db(2),ds(2),dt(2)) ...
+                  + int_simple(P1{1,3}*subs(P2{2,2},db(1),ds(1)),db(2),dt(2),b(2));
+        Pc{3,3} = Pc{3,3} + int_simple(P1{1,2}*subs(P2{3,3},db(1),ds(1)),db(2),a(2),ds(2)) ...
+                  + int_simple(P1{1,3}*subs(P2{3,3},db(1),ds(1)),db(2),ds(2),dt(2)) ...
+                  + int_simple(P1{1,3}*subs(P2{3,2},db(1),ds(1)),db(2),dt(2),b(2));
+    end
+end
 
-              
-% Decribe compositions of 1D integral with 2D integral
-Pc{2,2} = Pc{2,2} + int(P1{2,1}*subs(P2{3,2},db(2),ds(2)),db(1),a(1),dt(1)) ...
-                  + int(P1{2,1}*subs(P2{2,2},db(2),ds(2)),db(1),dt(1),ds(1)) ...
-                  + int(P1{3,1}*subs(P2{2,2},db(2),ds(2)),db(1),ds(1),b(1)) ...
-                  + int(subs(P1{2,2},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),a(1),dt(1)) ...
-                  + int(subs(P1{2,2},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),dt(1),ds(1)) ...
-                  + int(subs(P1{3,2},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),ds(1),b(1)) ...
-                  + int(P1{1,2}*subs(P2{2,3},db(1),ds(1)),db(2),a(2),dt(2)) ...
-                  + int(P1{1,2}*subs(P2{2,2},db(1),ds(1)),db(2),dt(2),ds(2)) ...
-                  + int(P1{1,3}*subs(P2{2,2},db(1),ds(1)),db(2),ds(2),b(2)) ...
-                  + int(subs(P1{2,2},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),a(2),dt(2)) ...
-                  + int(subs(P1{2,2},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),dt(2),ds(2)) ...
-                  + int(subs(P1{2,3},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),ds(2),b(2));
-Pc{3,2} = Pc{3,2} + int(P1{2,1}*subs(P2{3,2},db(2),ds(2)),db(1),a(1),ds(1)) ...
-                  + int(P1{3,1}*subs(P2{3,2},db(2),ds(2)),db(1),ds(1),dt(1)) ...
-                  + int(P1{3,1}*subs(P2{2,2},db(2),ds(2)),db(1),dt(1),b(1)) ...
-                  + int(subs(P1{2,2},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),a(1),ds(1)) ...
-                  + int(subs(P1{3,2},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),ds(1),dt(1)) ...
-                  + int(subs(P1{3,2},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),dt(1),b(1)) ...
-                  + int(P1{1,2}*subs(P2{3,3},db(1),ds(1)),db(2),a(2),dt(2)) ...
-                  + int(P1{1,2}*subs(P2{3,2},db(1),ds(1)),db(2),dt(2),ds(2)) ...
-                  + int(P1{1,3}*subs(P2{3,2},db(1),ds(1)),db(2),ds(2),b(2)) ...
-                  + int(subs(P1{3,2},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),a(2),dt(2)) ...
-                  + int(subs(P1{3,2},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),dt(2),ds(2)) ...
-                  + int(subs(P1{3,3},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),ds(2),b(2));
-Pc{2,3} = Pc{2,3} + int(P1{2,1}*subs(P2{3,3},db(2),ds(2)),db(1),a(1),dt(1)) ...
-                  + int(P1{2,1}*subs(P2{2,3},db(2),ds(2)),db(1),dt(1),ds(1)) ...
-                  + int(P1{3,1}*subs(P2{2,3},db(2),ds(2)),db(1),ds(1),b(1)) ...
-                  + int(subs(P1{2,3},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),a(1),dt(1)) ...
-                  + int(subs(P1{2,3},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),dt(1),ds(1)) ...
-                  + int(subs(P1{3,3},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),ds(1),b(1)) ...
-                  + int(P1{1,2}*subs(P2{2,3},db(1),ds(1)),db(2),a(2),ds(2)) ...
-                  + int(P1{1,3}*subs(P2{2,3},db(1),ds(1)),db(2),ds(2),dt(2)) ...
-                  + int(P1{1,3}*subs(P2{2,2},db(1),ds(1)),db(2),dt(2),b(2)) ...
-                  + int(subs(P1{2,2},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),a(2),ds(2)) ...
-                  + int(subs(P1{2,3},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),ds(2),dt(2)) ...
-                  + int(subs(P1{2,3},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),dt(2),b(2));
-Pc{3,3} = Pc{3,3} + int(P1{2,1}*subs(P2{3,3},db(2),ds(2)),db(1),a(1),ds(1)) ...
-                  + int(P1{3,1}*subs(P2{3,3},db(2),ds(2)),db(1),ds(1),dt(1)) ...
-                  + int(P1{3,1}*subs(P2{2,3},db(2),ds(2)),db(1),dt(1),b(1)) ...
-                  + int(subs(P1{2,3},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),a(1),ds(1)) ...
-                  + int(subs(P1{3,3},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),ds(1),dt(1)) ...
-                  + int(subs(P1{3,3},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),dt(1),b(1)) ...
-                  + int(P1{1,2}*subs(P2{3,3},db(1),ds(1)),db(2),a(2),ds(2)) ...
-                  + int(P1{1,3}*subs(P2{3,3},db(1),ds(1)),db(2),ds(2),dt(2)) ...
-                  + int(P1{1,3}*subs(P2{3,2},db(1),ds(1)),db(2),dt(2),b(2)) ...
-                  + int(subs(P1{3,2},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),a(2),ds(2)) ...
-                  + int(subs(P1{3,3},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),ds(2),dt(2)) ...
-                  + int(subs(P1{3,3},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),dt(2),b(2));              
-
-              
-% Describe compositions of 2D integrals
-Pc{2,2} = Pc{2,2} + int(int(P1{2,2}*P2{3,3},db(1),a(1),dt(1)) ...
-                        + int(P1{2,2}*P2{2,3},db(1),dt(1),ds(1)) ...
-                        + int(P1{3,2}*P2{2,3},db(1),ds(1),b(1)),db(2),a(2),dt(2)) ...
-                  + int(int(P1{2,2}*P2{3,2},db(1),a(1),dt(1)) ...
-                        + int(P1{2,2}*P2{2,2},db(1),dt(1),ds(1)) ...
-                        + int(P1{3,2}*P2{2,2},db(1),ds(1),b(1)),db(2),dt(2),ds(2)) ...
-                  + int(int(P1{2,3}*P2{3,2},db(1),a(1),dt(1)) ...
-                        + int(P1{2,3}*P2{2,2},db(1),dt(1),ds(1)) ...
-                        + int(P1{3,3}*P2{2,2},db(1),ds(1),b(1)),db(2),ds(2),b(2));
-Pc{3,2} = Pc{3,2} + int(int(P1{2,2}*P2{3,3},db(1),a(1),ds(1)) ...
-                        + int(P1{3,2}*P2{3,3},db(1),ds(1),dt(1)) ...
-                        + int(P1{3,2}*P2{2,3},db(1),dt(1),b(1)),db(2),a(2),dt(2)) ...
-                  + int(int(P1{2,2}*P2{3,2},db(1),a(1),ds(1)) ...
-                        + int(P1{3,2}*P2{3,2},db(1),ds(1),dt(1)) ...
-                        + int(P1{3,2}*P2{2,2},db(1),dt(1),b(1)),db(2),dt(2),ds(2)) ...
-                  + int(int(P1{2,3}*P2{3,2},db(1),a(1),ds(1)) ...
-                        + int(P1{3,3}*P2{3,2},db(1),ds(1),dt(1)) ...
-                        + int(P1{3,3}*P2{2,2},db(1),dt(1),b(1)),db(2),ds(2),b(2));
-Pc{2,3} = Pc{2,3} + int(int(P1{2,2}*P2{3,3},db(1),a(1),dt(1)) ...
-                        + int(P1{2,2}*P2{2,3},db(1),dt(1),ds(1)) ...
-                        + int(P1{3,2}*P2{2,3},db(1),ds(1),b(1)),db(2),a(2),ds(2)) ...
-                  + int(int(P1{2,3}*P2{3,3},db(1),a(1),dt(1)) ...
-                        + int(P1{2,3}*P2{2,3},db(1),dt(1),ds(1)) ...
-                        + int(P1{3,3}*P2{2,3},db(1),ds(1),b(1)),db(2),ds(2),dt(2)) ...
-                  + int(int(P1{2,3}*P2{3,2},db(1),a(1),dt(1)) ...
-                        + int(P1{2,3}*P2{2,2},db(1),dt(1),ds(1)) ...
-                        + int(P1{3,3}*P2{2,2},db(1),ds(1),b(1)),db(2),dt(2),b(2));
-Pc{3,3} = Pc{3,3} + int(int(P1{2,2}*P2{3,3},db(1),a(1),ds(1)) ...
-                        + int(P1{3,2}*P2{3,3},db(1),ds(1),dt(1)) ...
-                        + int(P1{3,2}*P2{2,3},db(1),dt(1),b(1)),db(2),a(2),ds(2)) ...
-                  + int(int(P1{2,3}*P2{3,3},db(1),a(1),ds(1)) ...
-                        + int(P1{3,3}*P2{3,3},db(1),ds(1),dt(1)) ...
-                        + int(P1{3,3}*P2{2,3},db(1),dt(1),b(1)),db(2),ds(2),dt(2)) ...
-                  + int(int(P1{2,3}*P2{3,2},db(1),a(1),ds(1)) ...
-                        + int(P1{3,3}*P2{3,2},db(1),ds(1),dt(1)) ...
-                        + int(P1{3,3}*P2{2,2},db(1),dt(1),b(1)),db(2),dt(2),b(2));
-                    
+% % Add composition of 2D integral with PI operator
+if isint1_xy
+    % Replace intermediate variable by beta for further compositions
+    P1{2,2} = subs(P1{2,2},dt,db);
+    P1{3,2} = subs(P1{3,2},dt,db);
+    P1{2,3} = subs(P1{2,3},dt,db);
+    P1{3,3} = subs(P1{3,3},dt,db);
+    
+    % Add compositions of 2D integrals with 1D x-integrals
+    if isint2_x
+        Pc{2,2} = Pc{2,2} + int_simple(subs(P1{2,2},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),a(1),dt(1)) ...
+                  + int_simple(subs(P1{2,2},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),dt(1),ds(1)) ...
+                  + int_simple(subs(P1{3,2},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),ds(1),b(1));
+        Pc{3,2} = Pc{3,2} + int_simple(subs(P1{2,2},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),a(1),ds(1)) ...
+                  + int_simple(subs(P1{3,2},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),ds(1),dt(1)) ...
+                  + int_simple(subs(P1{3,2},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),dt(1),b(1));
+        Pc{2,3} = Pc{2,3} + int_simple(subs(P1{2,3},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),a(1),dt(1)) ...
+                  + int_simple(subs(P1{2,3},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),dt(1),ds(1)) ...
+                  + int_simple(subs(P1{3,3},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),ds(1),b(1)); 
+        Pc{3,3} = Pc{3,3} + int_simple(subs(P1{2,3},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),a(1),ds(1)) ...
+                  + int_simple(subs(P1{3,3},db(2),dt(2))*subs(P2{3,1},ds(2),dt(2)),db(1),ds(1),dt(1)) ...
+                  + int_simple(subs(P1{3,3},db(2),dt(2))*subs(P2{2,1},ds(2),dt(2)),db(1),dt(1),b(1));
+    end
+    % Decribe compositions of 2D integrals with 1D y-integrals
+    if isint2_y
+        Pc{2,2} = Pc{2,2} + int_simple(subs(P1{2,2},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),a(2),dt(2)) ...
+                  + int_simple(subs(P1{2,2},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),dt(2),ds(2)) ...
+                  + int_simple(subs(P1{2,3},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),ds(2),b(2));
+        Pc{3,2} = Pc{3,2} + int_simple(subs(P1{3,2},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),a(2),dt(2)) ...
+                  + int_simple(subs(P1{3,2},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),dt(2),ds(2)) ...
+                  + int_simple(subs(P1{3,3},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),ds(2),b(2));
+        Pc{2,3} = Pc{2,3} + int_simple(subs(P1{2,2},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),a(2),ds(2)) ...
+                  + int_simple(subs(P1{2,3},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),ds(2),dt(2)) ...
+                  + int_simple(subs(P1{2,3},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),dt(2),b(2));
+        Pc{3,3} = Pc{3,3} + int_simple(subs(P1{3,2},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),a(2),ds(2)) ...
+                  + int_simple(subs(P1{3,3},db(1),dt(1))*subs(P2{1,3},ds(1),dt(1)),db(2),ds(2),dt(2)) ...
+                  + int_simple(subs(P1{3,3},db(1),dt(1))*subs(P2{1,2},ds(1),dt(1)),db(2),dt(2),b(2));   
+    end
+    % Describe compositions of 2D integrals with 2D integrals
+    if isint2_xy
+        Pc{2,2} = Pc{2,2} + int_simple(int_simple(P1{2,2}*P2{3,3},db(1),a(1),dt(1)) ...
+                        + int_simple(P1{2,2}*P2{2,3},db(1),dt(1),ds(1)) ...
+                        + int_simple(P1{3,2}*P2{2,3},db(1),ds(1),b(1)),db(2),a(2),dt(2)) ...
+                  + int_simple(int_simple(P1{2,2}*P2{3,2},db(1),a(1),dt(1)) ...
+                        + int_simple(P1{2,2}*P2{2,2},db(1),dt(1),ds(1)) ...
+                        + int_simple(P1{3,2}*P2{2,2},db(1),ds(1),b(1)),db(2),dt(2),ds(2)) ...
+                  + int_simple(int_simple(P1{2,3}*P2{3,2},db(1),a(1),dt(1)) ...
+                        + int_simple(P1{2,3}*P2{2,2},db(1),dt(1),ds(1)) ...
+                        + int_simple(P1{3,3}*P2{2,2},db(1),ds(1),b(1)),db(2),ds(2),b(2));
+        Pc{3,2} = Pc{3,2} + int_simple(int_simple(P1{2,2}*P2{3,3},db(1),a(1),ds(1)) ...
+                        + int_simple(P1{3,2}*P2{3,3},db(1),ds(1),dt(1)) ...
+                        + int_simple(P1{3,2}*P2{2,3},db(1),dt(1),b(1)),db(2),a(2),dt(2)) ...
+                  + int_simple(int_simple(P1{2,2}*P2{3,2},db(1),a(1),ds(1)) ...
+                        + int_simple(P1{3,2}*P2{3,2},db(1),ds(1),dt(1)) ...
+                        + int_simple(P1{3,2}*P2{2,2},db(1),dt(1),b(1)),db(2),dt(2),ds(2)) ...
+                  + int_simple(int_simple(P1{2,3}*P2{3,2},db(1),a(1),ds(1)) ...
+                        + int_simple(P1{3,3}*P2{3,2},db(1),ds(1),dt(1)) ...
+                        + int_simple(P1{3,3}*P2{2,2},db(1),dt(1),b(1)),db(2),ds(2),b(2));
+        Pc{2,3} = Pc{2,3} + int_simple(int_simple(P1{2,2}*P2{3,3},db(1),a(1),dt(1)) ...
+                        + int_simple(P1{2,2}*P2{2,3},db(1),dt(1),ds(1)) ...
+                        + int_simple(P1{3,2}*P2{2,3},db(1),ds(1),b(1)),db(2),a(2),ds(2)) ...
+                  + int_simple(int_simple(P1{2,3}*P2{3,3},db(1),a(1),dt(1)) ...
+                        + int_simple(P1{2,3}*P2{2,3},db(1),dt(1),ds(1)) ...
+                        + int_simple(P1{3,3}*P2{2,3},db(1),ds(1),b(1)),db(2),ds(2),dt(2)) ...
+                  + int_simple(int_simple(P1{2,3}*P2{3,2},db(1),a(1),dt(1)) ...
+                        + int_simple(P1{2,3}*P2{2,2},db(1),dt(1),ds(1)) ...
+                        + int_simple(P1{3,3}*P2{2,2},db(1),ds(1),b(1)),db(2),dt(2),b(2));
+        Pc{3,3} = Pc{3,3} + int_simple(int_simple(P1{2,2}*P2{3,3},db(1),a(1),ds(1)) ...
+                        + int_simple(P1{3,2}*P2{3,3},db(1),ds(1),dt(1)) ...
+                        + int_simple(P1{3,2}*P2{2,3},db(1),dt(1),b(1)),db(2),a(2),ds(2)) ...
+                  + int_simple(int_simple(P1{2,3}*P2{3,3},db(1),a(1),ds(1)) ...
+                        + int_simple(P1{3,3}*P2{3,3},db(1),ds(1),dt(1)) ...
+                        + int_simple(P1{3,3}*P2{2,3},db(1),dt(1),b(1)),db(2),ds(2),dt(2)) ...
+                  + int_simple(int_simple(P1{2,3}*P2{3,2},db(1),a(1),ds(1)) ...
+                        + int_simple(P1{3,3}*P2{3,2},db(1),ds(1),dt(1)) ...
+                        + int_simple(P1{3,3}*P2{2,2},db(1),dt(1),b(1)),db(2),dt(2),b(2));
+    end
+end
 
 end
 
@@ -842,10 +941,10 @@ if isa(P1,'cell') && ~isa(P2,'cell')
         P1i = P1{i}*subs(P2,[ds([a_indx,b_indx]);MT],[dt([a_indx,b_indx]);MT]);
     
         for d=a_indx
-            P1i =  int(P1i,dt(d),I(d,1),ds(d));
+            P1i =  int_simple(P1i,dt(d),I(d,1),ds(d));
         end
         for d=b_indx
-            P1i =  int(P1i,dt(d),ds(d),I(d,2));
+            P1i =  int_simple(P1i,dt(d),ds(d),I(d,2));
         end
         
         PoM = PoM + P1i;
@@ -874,10 +973,10 @@ elseif ~isa(P1,'cell') && isa(P2,'cell')
         P2i = P1i*P2i;
     
         for d=a_indx
-            P2i =  int(P2i,dt(d),I(d,1),ds(d));
+            P2i =  int_simple(P2i,dt(d),I(d,1),ds(d));
         end
         for d=b_indx
-            P2i =  int(P2i,dt(d),ds(d),I(d,2));
+            P2i =  int_simple(P2i,dt(d),ds(d),I(d,2));
         end
         
         PoM = PoM + P2i;
@@ -916,10 +1015,10 @@ elseif isa(P1,'cell') && isa(P2,'cell')
             Pni = P1i*subs(P2i,[ds([a_indx1,b_indx1]);MT],[dt([a_indx1,b_indx1]);MT]);
     
             for d=[a_indx1,a_indx2]
-                Pni =  int(Pni,dt(d),I(d,1),ds(d));
+                Pni =  int_simple(Pni,dt(d),I(d,1),ds(d));
             end
             for d=[b_indx1,b_indx2]
-                Pni =  int(Pni,dt(d),ds(d),I(d,2));
+                Pni =  int_simple(Pni,dt(d),ds(d),I(d,2));
             end
             PoM = PoM + Pni;
         end
