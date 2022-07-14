@@ -45,6 +45,7 @@ function D = opvar2dopvar2d(P,dvarname)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ, MP, SS - 08/05/2021
+% 07/14/2022, DJ: Bugfix for case with empty parameters.
 
 % Error checking
 if ~isa(P,'opvar2d') && ~isa(P,'dopvar2d')
@@ -62,8 +63,6 @@ if nargin==1
     for f=fset
         if ~isempty(P.(f{:}))
             D.(f{:}) = dpvar(P.(f{:}));
-        else
-            D.(f{:}) = [];
         end
     end
     fset = {'Rxx','Rx2','R2x'};
@@ -73,8 +72,6 @@ if nargin==1
         for i=1:3
             if ~isempty(tmp_inR{i,1})
                 tmp_outR{i,1} = dpvar(tmp_inR{i,1});
-            else
-                tmp_outR{i,1} = [];
             end
         end
         D.(f{:}) = tmp_outR;
@@ -119,7 +116,7 @@ elseif nargin==2
         if ~isempty(P.(f{:}))
             D.(f{:}) = poly2dpvar(polynomial(P.(f{:})),dvarname);
         else
-            D.(f{:}) = [];
+            D.(f{:}) = dpvar(zeros(size(P.(f{:}))));
         end
     end
     fset = {'Rxx','Rx2','R2x'};
@@ -130,7 +127,7 @@ elseif nargin==2
             if ~isempty(tmp_inR{i,1})
                 tmp_outR{i,1} = poly2dpvar(polynomial(tmp_inR{i,1}),dvarname);
             else
-                tmp_outR{i,1} = [];
+                tmp_outR{i,1} = dpvar(zeros(size(tmp_inR{i,1})));
             end
         end
         D.(f{:}) = tmp_outR;
@@ -143,7 +140,7 @@ elseif nargin==2
             if ~isempty(tmp_inR{1,j})
                 tmp_outR{1,j} = poly2dpvar(polynomial(tmp_inR{1,j}),dvarname);
             else
-                tmp_outR{1,j} = [];
+                tmp_outR{1,j} = dpvar(zeros(size(tmp_inR{1,j})));
             end
         end
         D.(f{:}) = tmp_outR;
@@ -157,7 +154,7 @@ elseif nargin==2
                 if ~isempty(tmp_inR{i,j})
                     tmp_outR{i,j} = poly2dpvar(polynomial(tmp_inR{i,j}),dvarname);
                 else
-                    tmp_outR{i,j} = [];
+                    tmp_outR{i,j} = dpvar(zeros(size(tmp_inR{i,j})));
                 end
             end
         end

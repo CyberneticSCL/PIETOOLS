@@ -56,7 +56,7 @@ for f=fset
     if ~isempty(D.(f{:}))
         P.(f{:}) = polynomial(D.(f{:}));
     else
-        P.(f{:}) = [];
+        P.(f{:}) = polynomial(zeros(size(D.(f{:}))));
     end
 end
 fset = {'Rxx','Rx2','R2x'};
@@ -67,7 +67,7 @@ for f=fset
         if ~isempty(tmp_inR{i,1})
             tmp_outR{i,1} = polynomial(tmp_inR{i,1});
         else
-            tmp_outR{i,1} = [];
+            tmp_outR{i,1} = polynomial(zeros(size(tmp_inR{i,1})));
         end
     end
     P.(f{:}) = tmp_outR;
@@ -80,7 +80,7 @@ for f=fset
         if ~isempty(tmp_inR{1,j})
             tmp_outR{1,j} = polynomial(tmp_inR{1,j});
         else
-            tmp_outR{1,j} = [];
+            tmp_outR{1,j} = polynomial(zeros(size(tmp_inR{1,j})));
         end
     end
     P.(f{:}) = tmp_outR;
@@ -94,7 +94,7 @@ for f=fset
             if ~isempty(tmp_inR{i,j})
                 tmp_outR{i,j} = polynomial(tmp_inR{i,j});
             else
-                tmp_outR{i,j} = [];
+                tmp_outR{i,j} = polynomial(zeros(size(tmp_inR{i,j})));
             end
         end
     end
