@@ -45,8 +45,9 @@ pvar s theta;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % --- Specify settings ---
+settings = lpisettings('light');
 % settings_PIETOOLS_heavy;
- settings_PIETOOLS_light;
+%  settings_PIETOOLS_light;
 % settings_PIETOOLS_stripped;
 % settings.sos_opts.solver='sedumi';    % Solver to use
 % settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
@@ -54,7 +55,7 @@ pvar s theta;
 % settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
- PIETOOLS_auto_execute
+%  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
 % [prog, P] = PIETOOLS_stability(PIE,settings);
