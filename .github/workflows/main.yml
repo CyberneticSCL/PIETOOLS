@@ -1,0 +1,23 @@
+name: Update SOSTOOLS
+on: 
+  workflow_dispatch:
+    #
+  schedule:
+    # Runs every sunday at 5:30 or 17:30 UTC
+    - cron:  '30 17 1 * *'
+jobs:
+  update-sos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
+      - name: Update SOSTOOLS
+        run: |
+          cd PIETOOLS_2021b/SOSTOOLS400
+          git clone --depth 1 -b SOSTOOLS400 https://github.com/oxfordcontrol/SOSTOOLS
+          git add . 
+          git config --global user.name "GitHub Action"
+          git config --global user.email "noreply@github.com"
+          git commit -am "Updating SOSTOOLS"
+          git push origin master

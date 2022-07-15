@@ -1,14 +1,14 @@
 function Fdiag = blkdiag(varargin)
-% F = blkdiag(varargin) generates a block diagonal opvar2d object using
+% F = blkdiag(varargin) generates a block diagonal dopvar2d object using
 % varargs as the diag blocks
 % 
 % INPUTS:
-%   varargs: opvar2d, poly, or double object. At least one object should
-%            be opvar2d
+%   varargs: dopvar2d, opvar2d, dpvar, polynomial, or double object.
+%            At least one object should be opvar2d.
 % 
 % OUTPUTS:
-% Fdiag: an opvar2d object
-%           - If two objects A,B are opvar2d, blkdiag(A,B) will perform
+% Fdiag: a dopvar2d object
+%           - If two objects A,B are dopvar2d/opvar2d, blkdiag(A,B) will perform
 %             concatenation [A.Rij, 0    ]
 %                           [0    , B.Rij] on the different parameters Rij
 %             defining A and B
@@ -22,7 +22,7 @@ function Fdiag = blkdiag(varargin)
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
-
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
 %
@@ -58,27 +58,27 @@ else % sequentially creating a block diagonal matrix
     elseif isempty(B)
         Fdiag = A;
     else
-        if isa(A,'opvar2d') && isa(B,'opvar2d')
+        if (isa(A,'opvar2d') || isa(A,'dopvar2d')) && (isa(B,'opvar2d') || isa(B,'dopvar2d'))
             if any(any(A.I~=B.I))
-                error('Spatial domain of opvar2d objects must match for block-diagonal concatenation');
+                error('Spatial domain of dopvar2d objects must match for block-diagonal concatenation');
             elseif any(~isequal(A.var1,B.var1)) || any(~isequal(A.var2,B.var2))
-                error('The spatial variables of opvar2d objects must match for block-diagonal concatenation');
+                error('The spatial variables of dopvar2d objects must match for block-diagonal concatenation');
             end
-            O1 = opvar2d([],[A.dim(:,1),B.dim(:,2)],A.I,A.var1,A.var2);
-            O2 = opvar2d([],[B.dim(:,1),A.dim(:,2)],A.I,A.var1,A.var2);
+            O1 = dopvar2d([],[A.dim(:,1),B.dim(:,2)],A.I,A.var1,A.var2);
+            O2 = dopvar2d([],[B.dim(:,1),A.dim(:,2)],A.I,A.var1,A.var2);
             
             Fdiag = [A, O1; O2, B];
             
-        elseif isa(A,'opvar2d') && (isa(B,'polynomial') || isa(B,'double'))
+        elseif (isa(A,'opvar2d') || isa(A,'dopvar2d')) && (isa(B,'polynomial') || isa(B,'double') || isa(B,'dpvar'))
             if ~(nnz(A.dim(:,1))==1 && nnz(A.dim(:,2))==1)
-                error('Block-diagonal concatenation of opvar2d with polynomial or double is only supported if opvar2d maps only from and to a single space')
+                error('Block-diagonal concatenation of dopvar2d with polynomial or double is only supported if dopvar2d maps only from and to a single space')
             end
             if isa(B,'polynomial') && (any(~ismember(B.varname,A.var1.varname)) || any(~ismember(B.varname,A.var2.varname)))
                 error('Variables appearing in the objects to concatenate should match')
             end
             % If B is not opvar2d, take block diagonal of A.Rij with B for the
             % (only) nonempty parameter A.Rij of A
-            opvar2d Fdiag;
+            dopvar2d Fdiag;
             Fdiag.I = A.I;
             Fdiag.var1 = A.var1;    Fdiag.var2 = A.var2;
             if A.dim(1,1)~=0
@@ -152,16 +152,16 @@ else % sequentially creating a block diagonal matrix
             end
             Fdiag.dim = Fdiag.dim;
             
-            elseif isa(B,'opvar2d')% && (isa(A,'polynomial') || isa(A,'double'))
+            elseif isa(B,'opvar2d') || isa(B,'dopvar2d')% && (isa(A,'polynomial') || isa(A,'double'))
             if ~(nnz(B.dim(:,1))==1 && nnz(B.dim(:,2))==1)
-                error('Block-diagonal concatenation of opvar2d with polynomial or double is only supported if opvar2d maps only from and to a single space')
+                error('Block-diagonal concatenation of dopvar2d with polynomial or double is only supported if dopvar2d maps only from and to a single space')
             end
             if isa(A,'polynomial') && (any(~ismember(A.varname,B.var1.varname)) || any(~ismember(A.varname,B.var2.varname)))
                 error('Variables appearing in the objects to concatenate should match')
             end
             % If A is not opvar2d, take block diagonal of B.Rij with A for the
             % (only) nonempty parameter B.Rij of B
-            opvar2d Fdiag;
+            dopvar2d Fdiag;
             Fdiag.I = B.I;
             Fdiag.var1 = B.var1;    Fdiag.var2 = B.var2;
             if B.dim(1,1)~=0

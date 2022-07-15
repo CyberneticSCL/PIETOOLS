@@ -160,28 +160,53 @@ else
         end
     else
         if any(b.dim(:,2)~=a.dim(:,2))
-            error("Cannot concatentate vertically. A and B have different input dimensions");
+            error('Cannot concatentate horizontally. A and B have different column dimensions');
+        elseif any(any(b.I~=a.I))
+            error('Cannot concatentate horizontally: A and B have different domains');
         end
-        if isa(a,'dopvar2d')
-            Pcat = a;
-        else
-            Pcat = b;
+        % Initialize the concatenated operator
+        newdim = [a.dim(:,1)+b.dim(:,1),a.dim(:,2)];
+        Pcat = dopvar2d([],newdim,a.I,a.var1,a.var2);
+        
+        % Only concatenate columns which are nonempty
+        fset = {};
+        c = zeros(4,1);
+        if Pcat.dim(1,2)~=0
+            fset = [fset,'R00','Rx0','Ry0','R20'];
+            c(1) = 1;
         end
-        fset = {'R00', 'R0x', 'R0y', 'R02', 'Rx0', 'Rxy', 'Ry0', 'Ryx', 'R20'};
+        if Pcat.dim(2,2)~=0
+            fset = [fset,'R0x','Ryx'];
+            c(2) = 1;
+        end
+        if Pcat.dim(3,2)~=0
+            fset = [fset,'R0y','Rxy'];
+            c(3) = 1;
+        end
+        if Pcat.dim(4,2)~=0
+            fset = [fset,'R02'];
+            c(4) = 1;
+        end
+        
+        % Perform the concatenation
         for f=fset
             Pcat.(f{:}) = [a.(f{:}); b.(f{:})];
         end
         for i=1:3
-            Pcat.Rxx{i,1} = [a.Rxx{i,1}; b.Rxx{i,1}];
-            Pcat.Rx2{i,1} = [a.Rx2{i,1}; b.Rx2{i,1}];
-            Pcat.R2x{i,1} = [a.R2x{i,1}; b.R2x{i,1}];
-            
-            Pcat.Ryy{1,i} = [a.Ryy{1,i}; b.Ryy{1,i}];
-            Pcat.Ry2{1,i} = [a.Ry2{1,i}; b.Ry2{1,i}];
-            Pcat.R2y{1,i} = [a.R2y{1,i}; b.R2y{1,i}];
-            
-            for j=1:3
-                Pcat.R22{i,j} = [a.R22{i,j}; b.R22{i,j}];
+            if c(2)
+                Pcat.Rxx{i,1} = [a.Rxx{i,1}; b.Rxx{i,1}];
+                Pcat.R2x{i,1} = [a.R2x{i,1}; b.R2x{i,1}];
+            end
+            if c(3)
+                Pcat.Ryy{1,i} = [a.Ryy{1,i}; b.Ryy{1,i}];
+                Pcat.R2y{1,i} = [a.R2y{1,i}; b.R2y{1,i}];
+            end
+            if c(4)
+                Pcat.Rx2{i,1} = [a.Rx2{i,1}; b.Rx2{i,1}];
+                Pcat.Ry2{1,i} = [a.Ry2{1,i}; b.Ry2{1,i}];
+                for j=1:3
+                    Pcat.R22{i,j} = [a.R22{i,j}; b.R22{i,j}];
+                end
             end
         end
     end
