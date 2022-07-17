@@ -2,7 +2,7 @@ classdef sys
     properties
         equation {validateEquation(equation)} = {};
         type char {mustBeMember(type,{'pde','dde','ddf','pie'})} = 'pde';
-        params {mustBeA(params,'pde_struct')} = pde_struct();
+        params {mustBeA(params,{'pde_struct','pie_struct'})} = pde_struct();
         ControlledInputs;
         ObservedOutputs;
     end

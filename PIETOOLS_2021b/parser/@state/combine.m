@@ -18,10 +18,12 @@ for i=1:nargin
 end
 end
 function P = findPermutation(A,B) % returns P, such that B = P*A
-P = zeros(sum(B.veclength),sum(A.veclength));
-blen = [0,cumsum(B.veclength)]+1; alen = [0,cumsum(A.veclength)]+1;
+s.type = '.'; s.subs = 'veclength';
+P = zeros(sum(subsref(B,s)),sum(subsref(A,s)));
+blen = [0;cumsum(subsref(B,s))]+1; alen = [0;cumsum(subsref(A,s))]+1;
 [~,idx] = ismember(B, A);
 for i=1:length(blen)-1
-    P(blen(i):blen(i+1)-1,alen(idx(i)):alen(idx(i)+1)-1) = eye(A.veclength(idx(i)));
+    tmp = subsref(A,s);
+    P(blen(i):blen(i+1)-1,alen(idx(i)):alen(idx(i)+1)-1) = eye(tmp(idx(i)));
 end
 end

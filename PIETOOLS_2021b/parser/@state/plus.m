@@ -9,7 +9,7 @@ end
 
 [objC,permMatsA,permMatsB] = combine(objA,objB); % objA = permMats{1}*objC and objB = permMats{2}*objC
 
-objC = state2terms(objC);
+%objC = state2terms(objC);
 opvar T; T.R.R0 = permMatsA+permMatsB;
 sumTerms = terms(T,objC);
 end

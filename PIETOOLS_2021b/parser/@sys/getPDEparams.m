@@ -86,6 +86,13 @@ asdfs=0;
 end
 function out = identifyEqnType(equation)
 statevec = equation.statevec;
+classifiedeqns = zeros(length(equation),1);
+for i=1:length(statevec)
+    if strcmp(statevec(i).type,'ode')
+    elseif strcmp(statevec(i).type,'pde')
+    elseif strcmp(statevec(i).type,'out')
+    end
+end
 
 if any(strcmp(statevec.state.type,'out')) %if equation has output
     out = 'out';
