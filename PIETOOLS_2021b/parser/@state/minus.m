@@ -9,7 +9,7 @@ if length(objA)~=length(objB)
 end
 
 for i=1:length(objA)
-    if (objA(i).diff(1))&&(objB(i).diff(1))
+    if (objA(i).diff_order(1))&&(objB(i).diff_order(1))
         error("Two states with time derivatives cannot be added together");
     end
 end
