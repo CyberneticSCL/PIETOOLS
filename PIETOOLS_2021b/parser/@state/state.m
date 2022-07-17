@@ -66,14 +66,14 @@ classdef state
         % other class methods
         obj = subs(obj,var,var_val);
         obj = diff(obj,var,order);
-        logval = eq(obj1,obj2);
+        logval = eq(objA,objB);
         obj = horzcat(varargin);
         obj = int(obj,var,limits);
-        [logval,idx] = ismember(objA, objB)
-        obj = minus(obj1,obj2);
+        [logval,idx] = ismember(objA,objB)
+        obj = minus(objA,objB);
         obj = mtimes(obj,K);
-        logval = ne(obj1,obj2);
-        obj = plus(obj1,obj2);
+        logval = ne(objA,objB);
+        obj = plus(objA,objB);
         obj = uplus(obj);
         obj = uminus(obj);
     end

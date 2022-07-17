@@ -15,7 +15,7 @@ if numel(K)~=1 && size(K,2)~=length(objA)
     error('Dimensions of multiplier and state vector do not match. Cannot be multiplied');
 end
 
-objC = state2terms(objA);
+% objC = state2terms(objA);
 opvar T;
 if numel(K)==1
     T.R.R0 = K*eye(length(objA));
