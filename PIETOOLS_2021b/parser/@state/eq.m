@@ -19,9 +19,5 @@ if any(objA(i).diff_order~=objB(i).diff_order)
     logval=0;
     return
 end
-if any(~isequal(objA(i).delta_val,objB(i).delta_val))
-    logval=0;
-    return
-end
 end
 end

@@ -2,9 +2,8 @@ classdef state
     properties
         type {mustBeMember(type,{'ode','pde','in','out'})} = 'ode';
         veclength {mustBeInteger,mustBePositive}=1;
-        var {mustBeVector,mustBeA(var,'polynomial')} = [pvar('t')];
+        var {mustBeVector,mustBeA(var,["polynomial","double"])} = [pvar('t')];
         diff_order {mustBeInteger,mustBeVector,mustBeNonnegative}= [0];
-        delta_val {mustBeVector,mustBeA(delta_val,["polynomial","double"])}= [pvar('t')];
     end
     properties (Hidden, SetAccess=protected)
         statename;
@@ -28,7 +27,6 @@ classdef state
                     if strcmp(varargin{1},'pde')
                         obj.var = [pvar('t'),pvar('s')];
                         obj.diff_order = [0,0];
-                        obj.delta_val = [pvar('t'),pvar('s')];
                     end
                     obj.statename = stateNameGenerator();
                 elseif nargin==2
@@ -37,7 +35,6 @@ classdef state
                     if strcmp(obj.type,'pde')
                         obj.var = [pvar('t'),pvar('s')];
                         obj.diff_order = [0,0];
-                        obj.delta_val = [pvar ('t'),pvar('s')];
                     end
                     obj.statename = stateNameGenerator();
                 elseif nargin==3
@@ -49,14 +46,12 @@ classdef state
                     obj.var = varargin{3};
                     obj.statename = stateNameGenerator();
                     obj.diff_order = zeros(1,length(varargin{3}));
-                    obj.delta_val = varargin{3};
                 elseif nargin==4 % internal use only, dont use this for constructing state vectors
                     obj.type = varargin{1};
                     obj.veclength = varargin{2};
                     obj.var = varargin{3};
                     obj.statename = varargin{4};
                     obj.diff_order = zeros(1,length(varargin{3}));
-                    obj.delta_val = varargin{3};
                 elseif nargin>3
                     error('State class definition only takes 3 inputs');
                 end

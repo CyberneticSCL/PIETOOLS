@@ -26,7 +26,7 @@ end
 for i=1:length(objC)
     idx = find(isequal(objC(i).var,var));
     if ~isempty(idx)
-        objC(i).delta_val(idx) = pvar('theta');
+        objC(i).var(idx) = pvar('theta');
     end
 end
 prodTerms = terms(T,objC);

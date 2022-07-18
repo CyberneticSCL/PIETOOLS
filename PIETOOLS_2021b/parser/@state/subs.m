@@ -14,6 +14,6 @@ for i=1:length(obj)
         error('Subs operation on ODE states, inputs, and outputs is not supported')
     end
     idx = find(isequal(obj(i).var,old));
-    obj(i).delta_val(idx) = new;
+    obj(i).var(idx) = new;
 end
 end

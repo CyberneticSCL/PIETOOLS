@@ -13,10 +13,6 @@ switch s(1).type
             for i=1:length(obj)
                 out(i,1) = obj(i).veclength;
             end
-        elseif strcmp(s(1).subs,'delta_val')
-            for i=1:length(obj)
-                out{i,1} = obj(i).delta_val;
-            end
         elseif strcmp(s(1).subs,'diff_order')
             for i=1:length(obj)
                 out{i,1} = obj(i).diff_order;
