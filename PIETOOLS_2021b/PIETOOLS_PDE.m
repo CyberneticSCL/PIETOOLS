@@ -22,22 +22,22 @@ pvar s theta;
 % PIETOOLS_PDE_GUI
 
 % % --- Example Library Option (See User Manual, Section 14) ---
- PDE = examples_PDE_library_PIETOOLS;
+%  PDE = examples_PDE_library_PIETOOLS;
 % PDE = examples_PDE_library_PIETOOLS(5,'batch');
 % PDE = examples_PDE_library_PIETOOLS(5,'terms');
 
 % % --- Batch or Terms Declaration Option (See User Manual, Section 13) ---
-% PDE_b.n0 = 0;   PDE_b.n1 = 1;   PDE_b.n2 = 0;   % state dimensions
-% PDE_b.dom = [0,1];                              % spatial domain
-% PDE_b.A1= 1;                                    % PDE dx/dt = A*dx/ds
-% PDE_b.B = [eye(PDE_b.n1) zeros(PDE_b.n1)];      % BC x(0) = 0;
+PDE_b.n0 = 0;   PDE_b.n1 = 2;   PDE_b.n2 = 0;   % state dimensions
+PDE_b.dom = [0,1];                              % spatial domain
+PDE_b.A1= [0 1; 2 0]; PDE_b.A0 = [0 0; 0 -2];                                    % PDE dx/dt = A*dx/ds
+PDE_b.B = [0 1 0 0; 0 0 1 0];      % BC x(0) = 0;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- PIE = convert_PIETOOLS_PDE(PDE);
+ PIE = convert_PIETOOLS_PDE(PDE_b);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,7 +58,7 @@ settings = lpisettings('light');
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-% [prog, P] = PIETOOLS_stability(PIE,settings);
+[prog, P] = PIETOOLS_stability(PIE,settings);
 % [prog, P] = PIETOOLS_stability_dual(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);

@@ -39,5 +39,7 @@ sttgns.eppos2 = 1*1e-6;   % Positivity of Lyapunov Function with respect to spat
 
 if derivative_strictness
     sttgns.epneg = derivative_strictness;    % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+else
+    sttgns.epneg=0;
 end
 end

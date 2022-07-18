@@ -7,10 +7,10 @@ end
 if ~poly2double(lim(2))&&~poly2double(lim(1))
     error('Integral should have at least one limit of integration as 0 or 1');
 end
-if poly2double(lim(2))&&(double(lim(2))==1)
+if poly2double(lim(2))&&(double(lim(2))~=1)
     error('Upper limit of integration can only be a "pvar" variable or 1');
 end
-if poly2double(lim(1))&&(double(lim(1))==0)
+if poly2double(lim(1))&&(double(lim(1))~=0)
     error('Lower limit of integration can only be a "pvar" variable or 0');
 end
 out = [];

@@ -5,7 +5,7 @@ if any(isequal(lim,var))
 end
 
 try
-    intterms = double(objA.operator.R.R2)|double(objA.operator.R.R1);
+    intterms = double(objA.operator.R.R2)|double(objA.operator.R.R1); %R1 and R2 must be zero
     if any(intterms(:))
         error('Double integrals are currently not supported')
     end

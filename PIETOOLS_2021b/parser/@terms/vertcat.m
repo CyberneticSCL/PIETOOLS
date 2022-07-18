@@ -5,7 +5,6 @@ else
     objA = varargin{1};
     objB = varargin{2};
     
-    
     if isa(objA,'state')
         objA = state2terms(objA);
     end
@@ -22,11 +21,11 @@ else
     end
     
     opvar zeroAB zeroBA;
-    zeroAB.dim = [0 0; objA.operator.dim(2,1) sum(objA.statevec.veclength)]; 
-    zeroBA.dim = [0 0; objB.operator.dim(2,1) sum(objB.statevec.veclength)];
+    zeroAB.dim = [0 0; objA.operator.dim(2,1) sum(objB.statevec.veclength)]; 
+    zeroBA.dim = [0 0; sum(objB.statevec.veclength) objA.operator.dim(2,1)];
     
     tempoperator = [objA.operator zeroAB; zeroBA objB.operator];
-    tempstatevec = [objA.statevec; objB.statevec];
+    tempstatevec = vertcat(objA.statevec, objB.statevec);
     
     obj = terms(tempoperator,tempstatevec);
     if nargin>2

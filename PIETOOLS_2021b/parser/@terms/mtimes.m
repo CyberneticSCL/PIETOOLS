@@ -1,8 +1,12 @@
 function prodTerms = mtimes(K,objA)
 
+if isa(K,'terms')
+    error('Left multiplication by state/terms object is not supported');
+end
 if isa(objA,'terms')&&isa(K,'terms')
     error('Two terms type objects cannot be multiplied');
 end
+
 
 if numel(K)~=1 && size(K,2)~=length(objA)
     error('Dimensions of multiplier and terms object do not match. Cannot be multiplied');

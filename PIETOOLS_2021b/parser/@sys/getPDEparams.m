@@ -15,7 +15,10 @@ for i=1:eqnNum
         bceqns{end+1} = equations{i};
     end
 end
-out = pdeparams();
+
+[~]=summarize_sys(obj);
+
+out = pde_struct();
 
 
 % find the dimensions of the various signals
