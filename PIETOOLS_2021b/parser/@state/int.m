@@ -1,4 +1,4 @@
-function prodTerms = int(objC, var, lim)
+function out = int(objC, var, lim)
 
 if any(isequal(lim,var))
     error('Limits of integration and integration variable are the same. Change the variable naming');
@@ -7,27 +7,28 @@ end
 if ~poly2double(lim(2))&&~poly2double(lim(1))
     error('Integral should have at least one limit of integration as 0 or 1');
 end
-
-opvar T; s.type = '.'; s.subs = 'veclength';
-if poly2double(lim(2))
-    if (double(lim(2))==1)
-        T.R.R2 = eye(subsref(objC,s));
-    else 
-        error('Upper limit of integration can only be a "pvar" variable or 1');
-    end
+if poly2double(lim(2))&&(double(lim(2))==1)
+    error('Upper limit of integration can only be a "pvar" variable or 1');
 end
-if poly2double(lim(1))  
-    if (double(lim(1))==0)
-        T.R.R1 = eye(subsref(objC,s));    
-    else
-        error('Lower limit of integration can only be a "pvar" variable or 0');
-    end
+if poly2double(lim(1))&&(double(lim(1))==0)
+    error('Lower limit of integration can only be a "pvar" variable or 0');
 end
+out = [];
 for i=1:length(objC)
-    idx = find(isequal(objC(i).var,var));
-    if ~isempty(idx)
-        objC(i).var(idx) = pvar('theta');
+idx = find(isequal(objC(i).var,var));
+if isempty(idx) % state drops out of integration
+    K = int(1,var,lim(1),lim(2));
+    out = [out;mtimes(K,objC(i))];
+else
+    opvar T; s.type = '.'; s.subs = 'veclength';
+    if poly2double(lim(2))
+            T.R.R2 = eye(subsref(objC(i),s));
     end
+    if poly2double(lim(1))
+            T.R.R1 = eye(subsref(objC(i),s));
+    end
+    objC(i).var(idx) = T.var1;
+    out = [out;terms(T,objC)];
 end
-prodTerms = terms(T,objC);
+end
 end
