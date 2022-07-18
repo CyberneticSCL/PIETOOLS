@@ -46,26 +46,26 @@ switch s(1).type
     case '()'
         if length(s) == 1
             % Implement obj(indices)
-            out = obj(s(1).subs);
+            out = obj(s(1).subs{1});
         elseif length(s) == 2 && strcmp(s(2).type,'.')
         % Implement obj(ind).PropertyName
             if strcmp(s(2).subs,'type')
-               out = obj(s(1).subs).type;
+               out = obj(s(1).subs{1}).type;
             elseif strcmp(s(2).subs,'var')
-                out = obj(s(1).subs).var;
+                out = obj(s(1).subs{1}).var;
             elseif strcmp(s(2).subs,'veclength')
-                out = obj(s(1).subs).veclength;
+                out = obj(s(1).subs{1}).veclength;
             elseif strcmp(s(2).subs,'diff_order')
-                out = obj(s(1).subs).diff_order;
+                out = obj(s(1).subs{1}).diff_order;
             elseif strcmp(s(2).subs,'statename')
-                out = obj(s(1).subs).statename;
+                out = obj(s(1).subs{1}).statename;
             else
                 error('Inaccessible/unknown property for the state object');
             end
         elseif length(s) == 3 && strcmp(s(2).type,'.') && strcmp(s(3).type,'()')
         % Implement obj(indices).PropertyName(indices)
-            out = obj(s(1).subs).(s(2).subs(:));
-            out = out(s(3).subs);
+            out = obj(s(1).subs{1}).(s(2).subs(:));
+            out = out(s(3).subs{1});
         else
         % Use built-in for any other expression
             error('Invalid indexing operation on state objec');
