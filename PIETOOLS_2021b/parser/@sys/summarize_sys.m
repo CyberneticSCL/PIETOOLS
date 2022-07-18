@@ -1,4 +1,4 @@
-function summarize_sys(obj)
+function summarize_sys(obj,varargin)
 
 if strcmp(obj.type,'pde')
     statelist = obj.states;
@@ -19,26 +19,13 @@ if strcmp(obj.type,'pde')
     fprintf('Number of Disturbance inputs: %d\n',n_in-sum(obj.ControlledInputs));
     fprintf('Number of Control inputs: %d\n',sum(obj.ControlledInputs));
     
-    equations = pdeObj.equation;
-    eqnNum = length(equations);
-    for i=1:eqnNum
-        eqnType{i} = identifyEqnType(equations(i));
-        if strcmp(eqnType{i},'ode')
-            odeeqns{end+1} = equations(i);
-        elseif strcmp(eqnType{i},'pde')
-            pdeeqns{end+1} = equations(i);
-        elseif strcmp(eqnType{i},'out')
-            outeqns{end+1} = equations(i);
-        elseif strcmp(eqnType{i},'bc')
-            bceqns{end+1} = equations(i);
-        end
-    end
+    eqnType = varargin{1};
     
     disp('----- Summary of identified equations -----');
-    fprintf('Number of ODE dynamics: %d\n',length(odeeqns));
-    fprintf('Number of PDE dynamics: %d\n',length(pdeeqns));
-    fprintf('Number of output equations: %d\n',length(outeqns));
-    fprintf('Number of Boundary conditions: %d\n',length(bceqns));
+    fprintf('Number of ODE dynamics: %d\n',sum(strcmp(eqnType,'ode')));
+    fprintf('Number of PDE dynamics: %d\n',sum(strcmp(eqnType,'pde')));
+    fprintf('Number of output equations: %d\n',sum(strcmp(eqnType,'out')));
+    fprintf('Number of Boundary conditions: %d\n',sum(strcmp(eqnType,'bc')));
 end
 
 end
