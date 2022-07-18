@@ -8,17 +8,17 @@ if ~poly2double(lim(2))&&~poly2double(lim(1))
     error('Integral should have at least one limit of integration as 0 or 1');
 end
 
-opvar T;
+opvar T; s.type = '.'; s.subs = 'veclength';
 if poly2double(lim(2))
     if (double(lim(2))==1)
-        T.R.R2 = eye(sum(objC.veclength));
+        T.R.R2 = eye(subsref(objC,s));
     else 
         error('Upper limit of integration can only be a "pvar" variable or 1');
     end
 end
 if poly2double(lim(1))  
     if (double(lim(1))==0)
-        T.R.R1 = eye(sum(objC.veclength));    
+        T.R.R1 = eye(subsref(objC,s));    
     else
         error('Lower limit of integration can only be a "pvar" variable or 0');
     end
