@@ -4,7 +4,9 @@ if ~isa(objA,'state')||~isa(objB,'state')
     error('Only state type objects can be added together');
 end
 
-if length(objA)~=length(objB)
+s.type = '.'; s.subs = 'veclength';
+
+if sum(subsref(objA,s))~=sum(subsref(objB,s))
     error('States of unequal length cannot be added');
 end
 

@@ -22,15 +22,15 @@ if strcmp(obj.type,'pde')
     equations = pdeObj.equation;
     eqnNum = length(equations);
     for i=1:eqnNum
-        eqnType{i} = identifyEqnType(equations{i});
+        eqnType{i} = identifyEqnType(equations(i));
         if strcmp(eqnType{i},'ode')
-            odeeqns{end+1} = equations{i};
+            odeeqns{end+1} = equations(i);
         elseif strcmp(eqnType{i},'pde')
-            pdeeqns{end+1} = equations{i};
+            pdeeqns{end+1} = equations(i);
         elseif strcmp(eqnType{i},'out')
-            outeqns{end+1} = equations{i};
+            outeqns{end+1} = equations(i);
         elseif strcmp(eqnType{i},'bc')
-            bceqns{end+1} = equations{i};
+            bceqns{end+1} = equations(i);
         end
     end
     

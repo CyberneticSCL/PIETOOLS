@@ -1,6 +1,6 @@
 classdef sys
     properties
-        equation {validateEquation(equation)} = {};
+        equation {validateEquation(equation)} = [];
         type char {mustBeMember(type,{'pde','dde','ddf','pie'})} = 'pde';
         params {mustBeA(params,{'pde_struct','pie_struct'})} = pde_struct();
         ControlledInputs;
@@ -67,11 +67,11 @@ classdef sys
     end
 end
 function validateEquation(prop)
-if ~iscell(prop)
-    error('Equations must be stored in cell column array');
-end
-eqntype = cellfun(@(x) ~isa(x,'terms'), prop,'un',0);
-eqntype = cell2mat(eqntype);
+% if ~iscell(prop)
+%     error('Equations must be stored in cell column array');
+% end
+eqntype = (~isa(prop,'terms'))&& (~isempty(prop));
+% eqntype = cell2mat(eqntype);
 if ~isempty(eqntype)&&any(eqntype(:))
     error("Equation entries should be terms type object.");
 end

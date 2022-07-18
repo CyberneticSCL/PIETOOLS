@@ -8,7 +8,7 @@ if isa(K,'state')
     error('Left multiplication by a state object is not supported');
 end
 
-if numel(K)~=1 && size(K,2)~=length(objA)
+if numel(K)~=1 && (size(K,2)~=sum(objA.veclength))&& (sum(objA.veclength)~=1)
     error('Dimensions of multiplier and state vector do not match. Cannot be multiplied');
 end
 

@@ -21,8 +21,8 @@ else
     end
     
     opvar zeroAB zeroBA;
-    zeroAB.dim = [0 0; objA.operator.dim(2,1) sum(objB.statevec.veclength)]; 
-    zeroBA.dim = [0 0; sum(objB.statevec.veclength) objA.operator.dim(2,1)];
+    zeroAB.dim = [0 0; objA.operator.dim(2,1) objB.operator.dim(2,2)]; 
+    zeroBA.dim = [0 0; objB.operator.dim(2,1) objA.operator.dim(2,2)];
     
     tempoperator = [objA.operator zeroAB; zeroBA objB.operator];
     tempstatevec = vertcat(objA.statevec, objB.statevec);

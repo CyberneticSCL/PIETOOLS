@@ -6,7 +6,8 @@ if eqnNum==0
 else
 out = [];
 for i=1:eqnNum
-    out = combine_statename(out,equations{i}.statevec);
+    tempterms = equations(i);
+    out = combine_statename(out,tempterms.statevec);
 end
 end
 end

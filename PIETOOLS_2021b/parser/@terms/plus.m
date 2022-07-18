@@ -15,7 +15,7 @@ if length(objA)~=length(objB)
 end
 
 tempoperator = [objA.operator objB.operator];
-tempstatevec = [objA.statevec; objB.statevec];
+tempstatevec = vertcat(objA.statevec, objB.statevec);
     
 sumTerms = terms(tempoperator,tempstatevec);
 end
