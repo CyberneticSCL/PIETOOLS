@@ -43,8 +43,8 @@ for i=1:length(equations)
             end
         end
         % Now go through each term in the equation to populate parameters
-        tempOp = equations.operator.R.R0; % ODEs can only have opvar with P terms 
-        tempOq = equations.operator.R.R1; % ODEs can only have opvar with Q1 terms,  R1=R2
+        tempOp = eqnTemp.operator.R.R0; % ODEs can only have opvar with P terms 
+        tempOq = eqnTemp.operator.R.R1; % ODEs can only have opvar with Q1 terms,  R1=R2
         for k=1:length(veclen_sum)-1
             if derivLoc==k % dont add anything since its the derivative term
                 out.x{xXDict(derivName)}.term{k}.C = [];
@@ -53,15 +53,15 @@ for i=1:length(equations)
             end
             if strcmp(equations.statevec(k).type,'ode') % contribution from ode state
                 out.x{xXDict(derivName)}.term{k}.x = equations.statevec(k).statename;
-                out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(j)}.term{k}.C;tempOp(1,veclen_sum(k):veclen_sum(k))];
+                out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(derivName)}.term{k}.C; tempOp(1,veclen_sum(k):veclen_sum(k))];
             end
             if strcmp(equations.statevec(k).type,'in') % contribution from inputs
                 if obj.ControlledInputs(something) % separate between w and u
                     out.x{xXDict(derivName)}.term{k}.u = equations.statevec(k).statename;
-                    out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(j)}.term{k}.C;tempOp(1,veclen_sum(k):veclen_sum(k))];
+                    out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(derivName)}.term{k}.C; tempOp(1,veclen_sum(k):veclen_sum(k))];
                 else
                     out.x{xXDict(derivName)}.term{k}.w = equations.statevec(k).statename;
-                    out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(j)}.term{k}.C;tempOp(1,veclen_sum(k):veclen_sum(k))];
+                    out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(derivName)}.term{k}.C; tempOp(1,veclen_sum(k):veclen_sum(k))];
                 end
             end
             if strcmp(equations.statevec(k).type,'pde') % contribution from pde state (integral or boundary term)
