@@ -4,15 +4,15 @@ statelist = pdeObj.states;
 eqnNum = length(equations);
 odeeqns = {}; pdeeqns = {}; outeqns = {}; bceqns = {};
 for i=1:eqnNum
-    eqnType{i} = identifyEqnType(equations{i});
+    eqnType{i} = identifyEqnType(equations(i));
     if strcmp(eqnType{i},'ode')
-        odeeqns{end+1} = equations{i};
+        odeeqns{end+1} = equations(i);
     elseif strcmp(eqnType{i},'pde')
-        pdeeqns{end+1} = equations{i};
+        pdeeqns{end+1} = equations(i);
     elseif strcmp(eqnType{i},'out')
-        outeqns{end+1} = equations{i};
+        outeqns{end+1} = equations(i);
     elseif strcmp(eqnType{i},'bc')
-        bceqns{end+1} = equations{i};
+        bceqns{end+1} = equations(i);
     end
 end
 
@@ -86,26 +86,4 @@ out.n.n_pde(end) = npde_sum;
 
 
 asdfs=0;
-end
-function out = identifyEqnType(equation)
-statevec = equation.statevec;
-classifiedeqns = zeros(length(equation),1);
-for i=1:length(statevec)
-    if strcmp(statevec(i).type,'ode')
-    elseif strcmp(statevec(i).type,'pde')
-    elseif strcmp(statevec(i).type,'out')
-    end
-end
-
-if any(strcmp(statevec.state.type,'out')) %if equation has output
-    out = 'out';
-elseif any(cellfun(@(x) x(1)~=0, statevec.diff,'un',1))%if term has derivative of time
-    if strcmp(statevec.state(find(cellfun(@(x) x(1)~=0, statevec.diff,'un',1))).type,'ode')% ode with derivative of time
-        out = 'ode';
-    else %pde
-        out = 'pde';
-    end
-else % boundary condition
-    out = 'bc';
-end
 end
