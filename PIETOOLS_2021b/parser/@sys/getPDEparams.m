@@ -65,6 +65,17 @@ for i=1:length(equations)
                 end
             end
             if strcmp(equations.statevec(k).type,'pde') % contribution from pde state (integral or boundary term)
+                if % boundary term
+                    out.x{xXDict(derivName)}.term{k}.x = equations.statevec(k).statename;
+                    out.x{xXDict(derivName)}.term{k}.C = ;
+                    out.x{xXDict(derivName)}.term{k}.Loc = equations.statevec(k).var(2);
+                    out.x{xXDict(derivName)}.term{k}.D = equations.statevec(k).diff_order(2);
+                else % integral term
+                    out.x{xXDict(derivName)}.term{k}.x = equations.statevec(k).statename;
+                    out.x{xXDict(derivName)}.term{k}.C = ;
+                    out.x{xXDict(derivName)}.term{k}.I = [0,1];
+                    out.x{xXDict(derivName)}.term{k}.D = equations.statevec(k).diff_order(2);
+                end
             end
         end
     end
