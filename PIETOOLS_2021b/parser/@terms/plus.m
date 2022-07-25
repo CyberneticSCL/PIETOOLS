@@ -16,6 +16,15 @@ end
 
 tempoperator = [objA.operator objB.operator];
 tempstatevec = vertcat(objA.statevec, objB.statevec);
+
+isdot_A = []; isout_A=[]; 
+for i=1:length(tempstatevec)
+    isdot_A = [isdot_A; tempstatevec(i).diff_order(1)*ones(tempstatevec(i).veclength,1)];
+    isout_A = [isout_A; strcmp(tempstatevec(i).type,'out')*ones(tempstatevec(i).veclength,1)];
+end
+
+for i=1:sum(tempoperator.dim(:,1))
     
+end
 sumTerms = terms(tempoperator,tempstatevec);
 end
