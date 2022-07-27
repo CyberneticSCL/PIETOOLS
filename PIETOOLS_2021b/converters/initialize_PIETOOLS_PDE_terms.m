@@ -225,6 +225,13 @@ elseif isa(PDE,'struct')
 end
 ncomps_x = length(PDE.x);
 
+% % Re-order the cell elements
+PDE.x = [PDE.x(:)];
+PDE.y = [PDE.y(:)];
+PDE.z = [PDE.z(:)];
+PDE.u = [PDE.u(:)];
+PDE.w = [PDE.w(:)];
+PDE.BC = [PDE.BC(:)];
 
 % % % --------------------------------------------------------------- % % %
 % % % Build a full list of the spatial variables that appear, and
@@ -431,6 +438,7 @@ PDE.BC_tab = BC_tab;
 % % For the state components, we also store the order of differentiability
 % % in each spatial variable, in diff_tab.
 diff_tab = zeros(numel(PDE.x),nvars);
+BC_diff_tab = zeros(numel(PDE.BC),nvars);
 
 % For the different equations for x, y, z, and the BCs, we use 
 % "get_diff_tab" to loops over the terms in each of these equations, 
@@ -478,6 +486,9 @@ end
 [PDE,diff_tab] = check_terms(PDE,'z',diff_tab);
 [PDE,diff_tab] = check_terms(PDE,'y',diff_tab);
 
+% Append the order of differentiability to the x_tab.
+PDE.x_tab = [PDE.x_tab, diff_tab];
+
 % Also set the size and domain of the inputs
 for ii=1:numel(PDE.w)
     if isfield(PDE.w{ii},'size') && PDE.w{ii}.size ~= PDE.w_tab(ii,2)
@@ -522,8 +533,9 @@ for ii=1:numel(PDE.BC)
     end
     PDE.BC{ii}.size = PDE.BC_tab(ii,2);
     
-    [PDE,BC_state_indcs] = check_BC_terms(PDE,ii);
+    [PDE,BC_diff_tab_ii,BC_state_indcs] = check_BC_terms(PDE,ii);
     BC_state_tab(ii,BC_state_indcs) = true;
+    BC_diff_tab(ii,:) = BC_diff_tab_ii;
     
     % Make sure that the boundary condition is indeed a boundary condition.
     if all(PDE.BC_tab(ii,3:2+nvars))
@@ -544,6 +556,9 @@ for ii=1:numel(PDE.BC)
     PDE.BC{ii} = orderfields(PDE.BC{ii},{'size','vars','dom','term'});    
 end
 
+% Append the orders of differentiability to the BC_tab.
+PDE.BC_tab = [PDE.BC_tab, BC_diff_tab];
+
 % For each order of differentiability of the state components, a boundary
 % condition must be specified for the system to be well-posed.
 required_num_BCs_arr = sum(diff_tab,2);         % Required number of BCs for each state component
@@ -560,10 +575,6 @@ end
 % % % --------------------------------------------------------------- % % %
 % % % With that, we have finished the initialization. We return the
 % % % structure as a "PDE_struct" class object, and display some results.
-
-% Append the orders of differentiability to the x_tab.
-PDE.x_tab = [PDE.x_tab, diff_tab];
-
 
 % % Finally, if desired, display an overview of how many state components,
 % % inputs, outputs, and BCs were encountered, what their sizes are, and on
@@ -1266,7 +1277,7 @@ while ii<=n_eqs
         if is_x_Robj && (~isfield(term_jj,'D') || isempty(term_jj.D))
             % If no derivative is specified, assume no derivative is
             % desired.
-            Dval = zeros(nR,nvars);
+            Dval = zeros(nR,nvars_Rcomp);
         elseif is_x_Robj
             Dval = term_jj.D;
         end
@@ -1422,12 +1433,16 @@ while ii<=n_eqs
         % performed.
         is_int_var = must_int_var;
         if ~isfield(term_jj,'I') || isempty(term_jj.I)
-            % If no integral is specified, make sure to integrate over the
-            % full domain for all required dimensions (variables that do
-            % not appear in the LHS component), and perform no integration
-            % along any other dimensions.
+            % If no integral is specified, but an integral is required,
+            % throw an error.
+            if any(must_int_var)
+                error(['The term "',term_name,'" appears to depend on a variable that the component "',obj,'{',num2str(ii),'}" does not depend on. This is not suppoprted.',...
+                        ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the term at a particular, so as to remove the dependence on any "illegal" variables.'])
+            end
+            % Otherwise, if no integral is specified, assume that no
+            % integral is  desired.
             Ival = cell(nvars_Rcomp,1);
-            Ival(must_int_var,1) = mat2cell(Rdom(must_int_var,:),ones(sum(must_int_var),1));    % Integrate over full domain
+            %Ival(must_int_var,1) = mat2cell(Rdom(must_int_var,:),ones(sum(must_int_var),1));    % Integrate over full domain
             PDE.(obj){ii}.term{jj}.I = Ival;
         else
             % If integrals are specified, make sure that they are
@@ -1443,8 +1458,10 @@ while ii<=n_eqs
                     continue
                 elseif isempty(Ival{kk}) 
                     % If integration must be performed, but is not
-                    % specified, introduce it anyway.
-                    Ival{kk} = Rdom(kk,:);
+                    % specified, throw an error
+                    error(['The term "',term_name,'" appears to depend on a variable that the component "',Robj,'{',num2str(Rindx),'}" does not depend on. This is not suppoprted.',...
+                            ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the state at a particular, so as to remove the dependence on any "illegal" variables.'])
+                    %Ival{kk} = Rdom(kk,:);
                 elseif ~isempty(Ival{kk}) && ~isvariable_term_jj(kk)
                     % Avoid integration in variables along which the
                     % considered component does not depend.
@@ -1511,7 +1528,7 @@ while ii<=n_eqs
             
             % Also check if a particular state variable in the component
             %  may not need to be differentiated.
-            if is_x_Robj && any(Dval==diff_tab(Rindx,:)) && size(Cval,2)>1
+            if is_x_Robj && any(Dval==diff_tab(Rindx,has_vars_Rcomp)) && size(Cval,2)>1
                 for kk=1:size(Cval,2)
                     if all(isequal(Cval(:,kk),zeros(size(Cval,1),1)))
                         warning(['The ',num2str(kk),'th state variable in component "x{',num2str(Rindx),'}" appears not to contribute to the term "',term_name,'", but will still be differentiated up to degrees "',term_name,'.D".',...
@@ -1523,7 +1540,7 @@ while ii<=n_eqs
             % If not polynomial, only check if a particular state variable 
             % in the component may not need to be differentiated.
             Cval = double(Cval);
-            if is_x_Robj && any(Dval==diff_tab(Rindx,:)) && size(Cval,2)>1
+            if is_x_Robj && any(Dval==diff_tab(Rindx,has_vars_Rcomp)) && size(Cval,2)>1
                 for kk=1:size(Cval,2)
                     if ~any(Cval(:,kk))
                         warning(['The ',num2str(kk),'th state variable in component "x{',num2str(Rindx),'}" appears not to contribute to the term "',term_name,'", but will still be differentiated up to degrees "',term_name,'.D".',...
@@ -1573,7 +1590,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function [PDE,BC_state_indcs] = check_BC_terms(PDE,eq_num)
+function [PDE,BC_diff_tab,BC_state_indcs] = check_BC_terms(PDE,eq_num)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PDE,BC_state_tab_ii] = check_BC_terms(PDE,eq_num)
 % checks the different terms in the BC specified by "eq_num", to check that 
@@ -1592,8 +1609,12 @@ function [PDE,BC_state_indcs] = check_BC_terms(PDE,eq_num)
 %               in the structures "PDE.BC{eq_num}.term{jj}" for all jj
 %               specified. In addition, the ith row of the array 
 %               "PDE.BC_tab" is updated to indicate for each spatial
-%               variable whether the function f_i(s) defining the BC
-%               0=f_i(s) depends on this spatial variable.
+%               variable whether the function F_i(s) defining the BC
+%               0=F_i(s) depends on this spatial variable.
+% - BC_diff_tab:    A 1xp array indicating for the specified
+%                   boundary condition to what order the RHS function
+%                   F_i(s) defining the BC 0=F_i(s) is differentiable in
+%                   each of the p global variables s1,...,sp.
 % - BC_state_indcs: An integer array specifying which state components
 %                   appear in the considered boundary condition.
 %
@@ -1613,6 +1634,8 @@ global_dom = PDE.dom;
 nvars = size(global_vars,1);
 
 % Keep track of which state components appear in the BC.
+diff_tab = PDE.x_tab(:,3+nvars:2+2*nvars);
+BC_diff_tab = zeros(1,nvars);
 BC_state_indcs = [];
 
 % Loop over the terms, noting that terms may be added if some element 
@@ -1651,7 +1674,7 @@ while jj<=n_terms
     Rindx = term_jj.(Robj)(:);
     nR = length(Rindx);
     % Establish which spatial variables each component depends on.
-    has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx(1),3:end));
+    has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx(1),3:2+nvars));
     nvars_Rcomp = sum(has_vars_Rcomp);
     % Note that we already checked all the different components listed
     % in Rindx to depend on the same variables in "get_diff".
@@ -1660,7 +1683,7 @@ while jj<=n_terms
     if is_x_Robj && (~isfield(term_jj,'D') || isempty(term_jj.D))
         % If no derivative is specified, assume no derivative is
         % desired.
-        Dval = zeros(nR,nvars);
+        Dval = zeros(nR,nvars_Rcomp);
     elseif is_x_Robj
         Dval = term_jj.D;
     end
@@ -1910,8 +1933,12 @@ while jj<=n_terms
     % Add any variable dependence that the term introduces to the table.
     PDE.BC_tab(eq_num,3:2+nvars) = PDE.BC_tab(eq_num,3:2+nvars) | isvariable_term_jj_full;
     
-    % Also keep track of which state variables appear in the BC.
+    % Also keep track of which state variables appear in the BC, and what
+    % the maximal order of differentiability is of the states.
     BC_state_indcs = [BC_state_indcs;Rindx];
+    if is_x_Robj
+        BC_diff_tab = max(BC_diff_tab,diff_tab(Rindx,:));
+    end
     
     % % With that, the term should be good. We order the fields, and
     % % move on to the next term.
