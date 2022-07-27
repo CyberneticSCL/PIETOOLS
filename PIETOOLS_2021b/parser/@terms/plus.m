@@ -24,7 +24,11 @@ for i=1:length(tempstatevec)
 end
 
 for i=1:sum(tempoperator.dim(:,1))
-    
+   rowval = tempoperator.R.R0(i,:);
+   if (length(rowval(isdot_A))+length(rowval(isout_A))>1)
+       error('Linear combination of time derivatives or outputs is not allowed');
+   end
 end
+
 sumTerms = terms(tempoperator,tempstatevec);
 end

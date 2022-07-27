@@ -3,7 +3,6 @@ function out = int(objC, var, lim)
 if any(isequal(lim,var))
     error('Limits of integration and integration variable are the same. Change the variable naming');
 end
-
 if ~poly2double(lim(2))&&~poly2double(lim(1))
     error('Integral should have at least one limit of integration as 0 or 1');
 end

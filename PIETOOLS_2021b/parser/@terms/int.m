@@ -3,6 +3,15 @@ function prodTerms = int(objA, var, lim)
 if any(isequal(lim,var))
     error('Limits of integration and integration variable are the same. Change the variable naming');
 end
+if ~poly2double(lim(2))&&~poly2double(lim(1))
+    error('Integral should have at least one limit of integration as 0 or 1');
+end
+if poly2double(lim(2))&&(double(lim(2))~=1)
+    error('Upper limit of integration can only be a "pvar" variable or 1');
+end
+if poly2double(lim(1))&&(double(lim(1))~=0)
+    error('Lower limit of integration can only be a "pvar" variable or 0');
+end
 
 try
     intterms = double(objA.operator.R.R2)|double(objA.operator.R.R1); %R1 and R2 must be zero
@@ -11,6 +20,16 @@ try
     end
 catch
     error('Double integrals are currently not supported')
+end
+
+isdot_A = []; isout_A=[]; 
+tempstatevec = objA.statevec;
+for i=1:length(tempstatevec)
+    isdot_A = [isdot_A; tempstatevec(i).diff_order(1)*ones(tempstatevec(i).veclength,1)];
+    isout_A = [isout_A; strcmp(tempstatevec(i).type,'out')*ones(tempstatevec(i).veclength,1)];
+end
+if any((isdot_A|isout_A))
+    error("Integration of vectors with outputs or time-derivative of state is not allowed");
 end
 
 
@@ -22,5 +41,5 @@ if poly2double(lim(1))
 T.R.R1 = objA.operator.R.R0;    
 end
 
-prodTerms = terms(T,objA.statevec);
+prodTerms = terms(T,tempstatevec);
 end
