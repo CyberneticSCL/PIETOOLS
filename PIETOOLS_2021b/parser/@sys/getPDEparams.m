@@ -2,12 +2,7 @@ function out = getPDEparams(pdeObj)
 equations = pdeObj.equation;
 statelist = pdeObj.states;
 eqnNum = length(equations);
-odeeqns = {}; pdeeqns = {}; outeqns = {}; bceqns = {};
-for i=1:eqnNum
-    eqnType{i} = identifyEqnType(equations(i));
-end
 
-[~]=summarize_sys(obj,eqnType);
 
 veclen_sum = [0;cumsum(equations.statevec.veclength)]+1;
 odeidx = find(strcmp(equations.statevec.type,'ode')); % find all terms with ode states
