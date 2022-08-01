@@ -3,7 +3,14 @@ equations = pdeObj.equation;
 statelist = pdeObj.states;
 eqnNum = length(equations);
 
+% build a dictionary of state names for future reference
+odeNames = statelist(find(strcmp(statelist.type,'ode'))).statename;
+pdeNames = statelist(find(strcmp(statelist.type,'pde'))).statename;
+xNames = [odeNames; pdeNames];
+outNames = statelist(find(strcmp(statelist.type,'out'))).statename;
+inNames = statelist(find(strcmp(statelist.type,'in'))).statename;
 
+% find the term location of states in the equation
 veclen_sum = [0;cumsum(equations.statevec.veclength)]+1;
 odeidx = find(strcmp(equations.statevec.type,'ode')); % find all terms with ode states
 pdeidx = find(strcmp(equations.statevec.type,'pde')); % find all terms with pde states
@@ -11,76 +18,38 @@ outidx = find(strcmp(equations.statevec.type,'out')); % find all terms with outp
 inidx = find(strcmp(equations.statevec.type,'in')); % find all terms with input
 
 
+
 % start parsing the system equations
 out = pde_struct();
 
+% set known global properties 
 out.dim = 1;
 out.domain = [0,1];
 out.vars = [pvar('s'),pvar('theta')];
 
-odeNames = statelist(find(strcmp(statelist.type,'ode'))).statename;
-pdeNames = statelist(find(strcmp(statelist.type,'pde'))).statename;
-xXDict = containers.map([odeNames;pdeNames],1:length(odeNames)+length(pdeNames));
-outNames = statelist(find(strcmp(statelist.type,'out'))).statename;
-YZDict = containers.map(outNames,1:length(outNames));
-inNames = statelist(find(strcmp(statelist.type,'in'))).statename;
-WUDict = containers.map(inNames,1:length(inNames));
+% set state properties
+out.x = cell(length(xNames),1);
+out.w = cell(length(inNames)-sum(pdeObj.ControlledInputs),1);
+out.u = cell(sum(pdeObj.ControlledInputs),1);
+out.z = cell(length(outNames)-sum(pdeObj.ObservedOutputs),1);
+out.y = cell(sum(pdeObj.ObservedOutputs),1);
 
-% extract ODE params
-tmpodeidx = odeidx;
-for i=1:length(equations)
-    eqnTemp = equations(i);
-    if strcmp(eqnType{i},'ode') % if ode equation extract ODE parameters
-        for j=1:length(odeidx)% find the time derivative term
-            if equations.statevec(odeidx(j)).diff_order{1} 
-                derivLoc = odeidx(j);
-                derivName = equations.statevec(derivLoc).statename;
-            end
-        end
-        % Now go through each term in the equation to populate parameters
-        tempOp = eqnTemp.operator.R.R0; % ODEs can only have opvar with P terms 
-        tempOq = eqnTemp.operator.R.R1; % ODEs can only have opvar with Q1 terms,  R1=R2
-        for k=1:length(veclen_sum)-1
-            if derivLoc==k % dont add anything since its the derivative term
-                out.x{xXDict(derivName)}.term{k}.C = [];
-                out.x{xXDict(derivName)}.term{k}.x = [];
-                continue
-            end
-            if strcmp(equations.statevec(k).type,'ode') % contribution from ode state
-                out.x{xXDict(derivName)}.term{k}.x = equations.statevec(k).statename;
-                out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(derivName)}.term{k}.C; tempOp(1,veclen_sum(k):veclen_sum(k))];
-            end
-            if strcmp(equations.statevec(k).type,'in') % contribution from inputs
-                if obj.ControlledInputs(something) % separate between w and u
-                    out.x{xXDict(derivName)}.term{k}.u = equations.statevec(k).statename;
-                    out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(derivName)}.term{k}.C; tempOp(1,veclen_sum(k):veclen_sum(k))];
-                else
-                    out.x{xXDict(derivName)}.term{k}.w = equations.statevec(k).statename;
-                    out.x{xXDict(derivName)}.term{k}.C = [out.x{xXDict(derivName)}.term{k}.C; tempOp(1,veclen_sum(k):veclen_sum(k))];
-                end
-            end
-            if strcmp(equations.statevec(k).type,'pde') % contribution from pde state (integral or boundary term)
-                if % boundary term
-                    out.x{xXDict(derivName)}.term{k}.x = equations.statevec(k).statename;
-                    out.x{xXDict(derivName)}.term{k}.C = ;
-                    out.x{xXDict(derivName)}.term{k}.Loc = equations.statevec(k).var(2);
-                    out.x{xXDict(derivName)}.term{k}.D = equations.statevec(k).diff_order(2);
-                else % integral term
-                    out.x{xXDict(derivName)}.term{k}.x = equations.statevec(k).statename;
-                    out.x{xXDict(derivName)}.term{k}.C = ;
-                    out.x{xXDict(derivName)}.term{k}.I = [0,1];
-                    out.x{xXDict(derivName)}.term{k}.D = equations.statevec(k).diff_order(2);
-                end
-            end
-        end
-    end
-    if strcmp(eqnType{i},'pde') % if pde equation extract PDE parameters
-    end
-    if strcmp(eqnType{i},'out') % if Output equation extract Z/Y parameters
-    end
-    if strcmp(eqnType{i},'bc') % if BC extract BC parameters
-    end
+isdot_A = []; isout_A=[]; 
+for i=1:length(equations.statevec)
+    isdot_A = [isdot_A; equations.statevec(i).diff_order(1)*ones(equations.statevec(i).veclength,1)];
 end
 
+
+
+for i=1:eqnNum
+    row = equations(i);
+    if ~isequal(strcmp(equations.statevec.type,'out').*row.operator.R0,0) % equation has outputs
+        
+    elseif ~isequal(isdot_A.*any(strcmp(equations.statevec.type,{'ode','pde'})).*row.operator.R0,0)% equation has dynamics
+        
+    else % boundary conditions
+        
+    end
+end
 
 end
