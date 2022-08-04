@@ -1,4 +1,4 @@
-function prodTerms = int(objA, var, lim)
+function intTerms = int(objA, var, lim)
 
 if any(isequal(lim,var))
     error('Limits of integration and integration variable are the same. Change the variable naming');
@@ -22,12 +22,13 @@ catch
     error('Double integrals are currently not supported')
 end
 
-isdot_A = []; isout_A=[]; 
+% isdot_A = []; isout_A=[]; 
 tempstatevec = objA.statevec;
-for i=1:length(tempstatevec)
-    isdot_A = [isdot_A; tempstatevec(i).diff_order(1)*ones(tempstatevec(i).veclength,1)];
-    isout_A = [isout_A; strcmp(tempstatevec(i).type,'out')*ones(tempstatevec(i).veclength,1)];
-end
+isdot_A = isdot(tempstatevec); isout_A=isout(tempstatevec); 
+% for i=1:length(tempstatevec)
+%     isdot_A = [isdot_A; tempstatevec(i).diff_order(1)*ones(tempstatevec(i).veclength,1)];
+%     isout_A = [isout_A; strcmp(tempstatevec(i).type,'out')*ones(tempstatevec(i).veclength,1)];
+% end
 if any((isdot_A|isout_A))
     error("Integration of vectors with outputs or time-derivative of state is not allowed");
 end
@@ -41,5 +42,5 @@ if poly2double(lim(1))
 T.R.R1 = objA.operator.R.R0;    
 end
 
-prodTerms = terms(T,tempstatevec);
+intTerms = terms(T,tempstatevec);
 end

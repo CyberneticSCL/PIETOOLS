@@ -12,11 +12,11 @@ end
 if poly2double(lim(1))&&(double(lim(1))~=0)
     error('Lower limit of integration can only be a "pvar" variable or 0');
 end
-isdot_C = []; isout_C=[]; 
-for i=1:length(objA)
-    isdot_C = [isdot_C; objC(i).diff_order(1)*ones(subsref(objC(i),s),1)];
-    isout_C = [isout_C; strcmp(objC(i).type,'out')*ones(subsref(objC(i),s),1)];
-end
+isdot_C = isdot(objC); isout_C=isout(objC); 
+% for i=1:length(objA)
+%     isdot_C = [isdot_C; objC(i).diff_order(1)*ones(subsref(objC(i),s),1)];
+%     isout_C = [isout_C; strcmp(objC(i).type,'out')*ones(subsref(objC(i),s),1)];
+% end
 if any((isdot_C|isout_C))
     error("Integration of vectors with outputs or time-derivative of state is not allowed");
 end
