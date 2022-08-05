@@ -17,12 +17,21 @@ end
 tempoperator = [objA.operator objB.operator];
 tempstatevec = vertcat(objA.statevec, objB.statevec);
 
+% <<<<<<< Updated upstream
 isdot_A = isdot(tempstatevec); isout_A=isout(tempstatevec); 
 % isdot_A = []; isout_A=[]; 
 % for i=1:length(tempstatevec)
 %     isdot_A = [isdot_A; tempstatevec(i).diff_order(1)*ones(tempstatevec(i).veclength,1)];
 %     isout_A = [isout_A; strcmp(tempstatevec(i).type,'out')*ones(tempstatevec(i).veclength,1)];
 % end
+% =======
+% isdot_A = []; isout_A=[]; 
+% for i=1:length(tempstatevec)
+%     isdot_A = [isdot_A; tempstatevec(i).diff_order(1)*ones(tempstatevec(i).veclength,1)];
+%     isout_A = [isout_A; strcmp(tempstatevec(i).type,'out')*ones(tempstatevec(i).veclength,1)];
+% end
+% isdot_A = boolean(isdot_A); isout_A = boolean(isout_A);
+% >>>>>>> Stashed changes
 
 for i=1:sum(tempoperator.dim(:,1))
    rowval = tempoperator.R.R0(i,:);

@@ -8,6 +8,7 @@ if length(objA)~=length(objB)
     error('States of unequal length cannot be added');
 end
 
+% <<<<<<< Updated upstream
 isdot_A = isdot(objA); isdot_B = isdot(objB); isout_A=isout(objA); isout_B = isout(objB);
 % for i=1:length(objA)
 %     isdot_A = [isdot_A; objA(i).diff_order(1)*ones(subsref(objA(i),s),1)];
@@ -17,6 +18,18 @@ isdot_A = isdot(objA); isdot_B = isdot(objB); isout_A=isout(objA); isout_B = iso
 %     isdot_B = [isdot_B; objB(i).diff_order(1)*ones(subsref(objB(i),s),1)];
 %     isout_B = [isout_B; strcmp(objB(i).type,'out')*ones(subsref(objB(i),s),1)];
 % end
+% =======
+s.type = '.'; s.subs = 'veclength';
+% isdot_A = []; isdot_B = []; isout_A=[]; isout_B = [];
+% for i=1:length(objA)
+%     isdot_A = [isdot_A; objA(i).diff_order(1)*ones(subsref(objA(i),s),1)];
+%     isout_A = [isout_A; strcmp(objA(i).type,'out')*ones(subsref(objA(i),s),1)];
+% end
+% for i=1:length(objB)
+%     isdot_B = [isdot_B; objB(i).diff_order(1)*ones(subsref(objB(i),s),1)];
+%     isout_B = [isout_B; strcmp(objB(i).type,'out')*ones(subsref(objB(i),s),1)];
+% end
+% >>>>>>> Stashed changes
 if any((isdot_A&isout_B)|(isout_A&isdot_B)|(isout_A&isout_B)|(isdot_A&isdot_B))
     error("Any linear combinations of outputs and time-derivative of state are not allowed");
 end

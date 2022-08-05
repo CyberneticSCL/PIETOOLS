@@ -7,8 +7,10 @@ eqnNum = length(equations);
 odeNames = statelist(find(strcmp(statelist.type,'ode'))).statename;
 pdeNames = statelist(find(strcmp(statelist.type,'pde'))).statename;
 xNames = [odeNames; pdeNames];
-outNames = statelist(find(strcmp(statelist.type,'out'))).statename;
-inNames = statelist(find(strcmp(statelist.type,'in'))).statename;
+zNames = statelist(find((~pdeObj.ObservedOutputs).*strcmp(statelist.type,'out'))).statename;
+yNames = statelist(find(pdeObj.ObservedOutputs.*strcmp(statelist.type,'out'))).statename;  
+uNames = statelist(find(pdeObj.ControlledInputs.*strcmp(statelist.type,'in'))).statename;
+wNames = statelist(find(~(pdeObj.ControlledInputs).*strcmp(statelist.type,'in'))).statename;
 
 % find the term location of states in the equation
 veclen_sum = [0;cumsum(equations.statevec.veclength)]+1;
@@ -24,31 +26,97 @@ out = pde_struct();
 
 % set known global properties 
 out.dim = 1;
-out.domain = [0,1];
+out.dom = [0,1];
 out.vars = [pvar('s'),pvar('theta')];
 
 % set state properties
 out.x = cell(length(xNames),1);
-out.w = cell(length(inNames)-sum(pdeObj.ControlledInputs),1);
-out.u = cell(sum(pdeObj.ControlledInputs),1);
-out.z = cell(length(outNames)-sum(pdeObj.ObservedOutputs),1);
-out.y = cell(sum(pdeObj.ObservedOutputs),1);
+out.w = cell(length(wNames),1);
+out.u = cell(length(uNames),1);
+out.z = cell(length(zNames),1);
+out.y = cell(length(yNames),1);
 
 isdot_A = []; isout_A=[]; 
 for i=1:length(equations.statevec)
     isdot_A = [isdot_A; equations.statevec(i).diff_order(1)*ones(equations.statevec(i).veclength,1)];
+    isout_A = [isout_A; strcmp(equations.statevec(i).type,'out')*ones(equations.statevec(i).veclength,1)];
 end
-
+isdot_A = boolean(isdot_A); isout_A = boolean(isout_A);
 
 
 for i=1:eqnNum
     row = equations(i);
-    if ~isequal(strcmp(equations.statevec.type,'out').*row.operator.R0,0) % equation has outputs
-        
-    elseif ~isequal(isdot_A.*any(strcmp(equations.statevec.type,{'ode','pde'})).*row.operator.R0,0)% equation has dynamics
-        
+    if any(strcmp(equations.statevec.type,'out')'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec)))) % equation has outputs
+        % find which output 
+        outLoc = find(strcmp(equations.statevec.type,'out')'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
+        outNametemp = equations.statevec(outLoc).statename;
+        if ismember(outNametemp, zNames)% regulated output
+            tmp = out.z;
+            Loc = find(outNametemp == zNames); 
+        else % observed output
+            tmp = out.y;
+            Loc = find(outNametemp == yNames); 
+        end
+        % now separate the terms
+        for j=1:length(equations.statevec)
+            if strcmp(equations.statevec(j).type,'ode')% ode state term
+                tmp{Loc}.term{j}.C = row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1);
+                tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
+            elseif strcmp(equations.statevec(j).type,'pde')% pde state term
+                tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
+                if isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))),zeros(1,equations.statevec(j).veclength))% integral term
+                    tmp{Loc}.term{j}.C = row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1));
+                    tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
+                else % boundary term
+                    tmp{Loc}.term{j}.C = row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1);
+                    tmp{Loc}.term{j}.loc = equations.statevec(j).var(2);
+                    tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
+                end
+            elseif ismember(equations.statevec(j).statename,wNames) % disturbance term
+                tmp{Loc}.term{j}.C = row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1);
+                tmp{Loc}.term{j}.w = find(equations.statevec(j).statename==wNames);
+            elseif ismember(equations.statevec(j).statename,uNames)% control input term
+                tmp{Loc}.term{j}.C = row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1);
+                tmp{Loc}.term{j}.u = find(equations.statevec(j).statename==uNames);
+            end
+        end
+        if ismember(outNametemp, zNames)% regulated output
+            out.z = tmp;
+        else % observed output
+            out.y = tmp;
+        end
+    elseif any(isdot_A&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))))% equation has dynamics
+        % find which x
+        outLoc = find(isdot_A.*any(strcmp(equations.statevec.type,{'ode','pde'}))'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
+        outNametemp = equations.statevec(outLoc).statename;
+        tmp = out.x;
+        Loc = find(outNametemp == xNames); 
+        % now separate the terms
+        for j=1:length(equations.statevec)
+            if strcmp(equations.statevec(j).type,'ode')% ode state term
+                tmp{Loc}.term{j}.C = row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1);
+                tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
+            elseif strcmp(equations.statevec(j).type,'pde')% pde state term
+                tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
+                if isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))),zeros(1,equations.statevec(j).veclength))% integral term
+                    tmp{Loc}.term{j}.C = row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1));
+                    tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
+                else % boundary term
+                    tmp{Loc}.term{j}.C = row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1);
+                    tmp{Loc}.term{j}.loc = equations.statevec(j).var(2);
+                    tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
+                end
+            elseif ismember(equations.statevec(j).statename,wNames) % disturbance term
+                tmp{Loc}.term{j}.C = row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1);
+                tmp{Loc}.term{j}.w = find(equations.statevec(j).statename==wNames);
+            elseif ismember(equations.statevec(j).statename,uNames)% control input term
+                tmp{Loc}.term{j}.C = row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1);
+                tmp{Loc}.term{j}.u = find(equations.statevec(j).statename==uNames);
+            end
+        end
+        out.x = tmp;
     else % boundary conditions
-        
+        % 
     end
 end
 
