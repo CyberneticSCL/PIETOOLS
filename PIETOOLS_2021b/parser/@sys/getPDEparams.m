@@ -36,19 +36,19 @@ out.u = cell(length(uNames),1);
 out.z = cell(length(zNames),1);
 out.y = cell(length(yNames),1);
 
-isdot_A = []; isout_A=[]; 
-for i=1:length(equations.statevec)
-    isdot_A = [isdot_A; equations.statevec(i).diff_order(1)*ones(equations.statevec(i).veclength,1)];
-    isout_A = [isout_A; strcmp(equations.statevec(i).type,'out')*ones(equations.statevec(i).veclength,1)];
-end
-isdot_A = boolean(isdot_A); isout_A = boolean(isout_A);
+isdot_A = isdot(equations.statevec); isout_A=isout(equations.statevec); 
+% for i=1:length(equations.statevec)
+%     isdot_A = [isdot_A; equations.statevec(i).diff_order(1)*ones(equations.statevec(i).veclength,1)];
+%     isout_A = [isout_A; strcmp(equations.statevec(i).type,'out')*ones(equations.statevec(i).veclength,1)];
+% end
+% isdot_A = boolean(isdot_A); isout_A = boolean(isout_A);
 
 
 for i=1:eqnNum
     row = equations(i);
-    if any(strcmp(equations.statevec.type,'out')'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec)))) % equation has outputs
+    if any(isout_A&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec)))) % equation has outputs
         % find which output 
-        outLoc = find(strcmp(equations.statevec.type,'out')'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
+        outLoc = find(isout_A&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
         outNametemp = equations.statevec(outLoc).statename;
         if ismember(outNametemp, zNames)% regulated output
             tmp = out.z;
