@@ -176,12 +176,16 @@ end
 % finally remove output and derivative terms
 dotidx = find(isdot_A); outidx = find(isout_A); rmidx = [dotidx;outidx];
 for i=1:length(xNames)
-    out.x{i}.terms(rmidx) = [];
+    rmidx2 = [rmidx; (rmidx+length(out.x{i}.term)/3); (rmidx+2*length(out.x{i}.term)/3)];
+    out.x{i}.term(rmidx2) = [];
 end
 for i=1:length(zNames)
-out.z{i}.terms(rmidx) = [];
+out.z{i}.term(rmidx) = [];
 end
 for i=1:length(yNames)
-out.y{i}.terms(rmidx) = [];
+out.y{i}.term(rmidx) = [];
+end
+for i=1:length(out.BC)
+out.BC{i}.term(rmidx) = [];
 end
 end

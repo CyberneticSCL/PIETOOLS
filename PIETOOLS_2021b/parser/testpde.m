@@ -14,4 +14,5 @@ ssobj = setControl(ssobj,u);
 ssobj = setObserve(ssobj,y);
 
 ssobj = getParams(ssobj);
+%%
 display_PDE(ssobj.params);
