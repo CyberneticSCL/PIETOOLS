@@ -345,8 +345,8 @@ methods
                     P = opvar2d();
                     P = set(P,'dim',Pdim);
                     P = set(P,'I',varargin{3});
-                    P = set(P,'var1',[varargin{4}(1);varargin{4}(2)]);
-                    P = set(P,'var2',[varargin{5}(1);varargin{5}(2)]);
+                    P = set(P,'var1',[varargin{4}(1);varargin{4}(2)],'nosubs');
+                    P = set(P,'var2',[varargin{5}(1);varargin{5}(2)],'nosubs');
                     
                     % Set the parameters based on value of first argument
                     if ~isempty(varargin{1})

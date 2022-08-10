@@ -10,6 +10,11 @@ function out = set(Pop,prop,val,opts)
 % Pop:  opvar2d class object
 % prop: char class object specifying a field name for the opvar2d
 % val:  a value to be assigned to Pop.(prop)
+% opts: optional char field that can be 'nosubs' to perform no substitution
+%       of the variables in the parameters when adjusting the variables
+%       Pop.var1 or Pop.var2, or can be 'nocheck' when setting a parameter
+%       Pop.R.. to avoid performing a full check that the dimensions and
+%       variables in the parameter match those of the operator.
 %
 % OUTPUT
 % out:  opvar2d object with Pop.(prop)=val
@@ -40,7 +45,8 @@ function out = set(Pop,prop,val,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 13/06/2022
+% Initial coding DJ - 06/13/2022
+% DJ, 08/09/2022 - Keep parameters polynomial after setting vars.
 
 
 if nargin<4
@@ -109,7 +115,8 @@ function out = set_var1(Pop,val,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 13/06/2022
+% Initial coding DJ - 06/13/2022
+% DJ, 08/09/2022 - Keep parameters polynomial after substitution.
 
 % If 'nosubs' option is passed, we assume the variables to be properly
 % specified, and simply set them without performing any substitution
@@ -149,12 +156,12 @@ if any(~isequal(val,var1))
     for k=1:numel(Rparams)
         PR = Pop.(Rparams{k});
         if isa(PR,'polynomial')
-            out.(Rparams{k}) = subs(PR,var1(~isequal(val,var1)),val(~isequal(val,var1)));
+            out.(Rparams{k}) = polynomial(subs(PR,var1(~isequal(val,var1)),val(~isequal(val,var1))));
         elseif isa(PR,'cell')
             for l=1:numel(PR)
                 PRR = PR{l};
                 if isa(PRR,'polynomial')
-                    PR{l} = subs(PRR,var1(~isequal(val,var1)),val(~isequal(val,var1)));
+                    PR{l} = polynomial(subs(PRR,var1(~isequal(val,var1)),val(~isequal(val,var1))));
                 end
             end
             out.(Rparams{k}) = PR;
@@ -199,7 +206,8 @@ function out = set_var2(Pop,val,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 13/06/2022
+% Initial coding DJ - 06/13/2022
+% DJ, 08/09/2022 - Keep parameters polynomial after substitution.
 
 % If 'nosubs' option is passed, we assume the variables to be properly
 % specified, and simply set them without performing any substitution
@@ -238,7 +246,7 @@ if any(~isequal(val,var2))
         for l=2:numel(PR)
             PRR = PR{l};
             if isa(PRR,'polynomial')
-                PR{l} = subs(PRR,var2(~isequal(val,var2)),val(~isequal(val,var2)));
+                PR{l} = polynomial(subs(PRR,var2(~isequal(val,var2)),val(~isequal(val,var2))));
             end
         end
         out.(RRparams{k}) = PR;
@@ -324,18 +332,124 @@ if strcmp(opts,'nocheck')
     return
 end
 
-% % Otherwise, perform some checks:
+% Otherwise, perform a relatively simple check to see if the dimensions and
+% variables of the new parameter make sense with those of the operator.
+[ii_loc,jj_loc] = find(ismember(Rparams,PR_name));
+if isempty(PR_val)
+    % If the parameter to replace is defined by a cell, assume the user
+    % wants all of the cell elements to be empty.
+    if isa(Pop.(Rparams{ii_loc,jj_loc}),'cell')
+        PR_val = cell(size(Pop.(Rparams{ii_loc,jj_loc})));
+    end
+    % If the proposed parameter and current parameter are both empty,
+    % adjust the dimensions of the proposed parameter.
+    if any([Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]==0)
+        if isa(PR_val,'cell')
+            for k=1:numel(PR_val)
+                PR_val{k} = polynomial(zeros([Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]));
+            end
+        else
+            PR_val = polynomial(zeros([Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]));
+        end
+        ismatch_dim = true;
+        ismatch_vars = true;
+    else
+        % If the current parameter is not empty, we'll have to see if we
+        % can reconcile the dimensions of the proposed parameter with the
+        % current shape of the opvar2d object.
+        ismatch_dim = false;
+        ismatch_vars = false;
+    end
+elseif isa(PR_val,'double')
+    % Check that the dimensions of the parameter match those of the
+    % operator.
+    ismatch_dim = all(size(PR_val)==[Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]);
+    ismatch_vars = true;    % No variables is always fine
+elseif isa(PR_val,'polynomial') || isa(PR_val,'dpvar')
+    if isa(Pop.(Rparams{ii_loc,jj_loc}),'cell')
+        error(['The proposed parameter "',Rparams{ii_loc,jj_loc},'" should be specified as a cell.'])
+    end
+    % Check that the dimensions of the parameter match those of the
+    % operator.
+    ismatch_dim = all(size(PR_val)==[Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]);
+    % Check which variables may appear in the proposed parameter.
+    Param_vars = {polynomial([]),          Pop.var1(1), Pop.var1(2),    Pop.var1;
+                  Pop.var1(1),    polynomial([]),       Pop.var1,       polynomial([]);
+                  Pop.var1(2),    Pop.var1,             polynomial([]), polynomial([]);
+                  Pop.var1,       polynomial([]),       polynomial([]), polynomial([])};
+    Param_vars = Param_vars{ii_loc,jj_loc};    
+    % Check if the variables in the parameter match the expected variables.
+    if isempty(PR_val.varname)
+        ismatch_vars = true;
+    else
+        ismatch_vars = all(ismember(PR_val.varname,Param_vars.varname));
+    end
+elseif isa(PR_val,'cell')
+    % Check that the parameters are appropriately specified.
+    if ~isa(Pop.(Rparams{ii_loc,jj_loc}),'cell')
+        error(['The proposed parameter "',Rparams{ii_loc,jj_loc},'" should be specified as an object of type "double" or "polynomial".'])
+    elseif numel(PR_val)~=numel(Pop.(Rparams{ii_loc,jj_loc}))
+        error(['The number of elements of the specified parameter do not match the number of elements of "Pop.',Rparams{ii_loc,jj_loc},'".'])
+    else
+        reshape(PR_val,size(Pop.(Rparams{ii_loc,jj_loc})));
+    end
+    % Establish which variables the parameter may depend on.
+    if ii_loc==2 && jj_loc==2
+        Param_vars = {Pop.var1(1);[Pop.var1(1);Pop.var2(1)];[Pop.var1(1);Pop.var2(1)]};
+    elseif ii_loc==3 && jj_loc==3
+        Param_vars = {Pop.var1(2),[Pop.var1(2);Pop.var2(2)],[Pop.var1(2);Pop.var2(2)]};
+    elseif ii_loc==2 || jj_loc==2
+        Param_vars = {Pop.var1; [Pop.var1;Pop.var2(1)]; [Pop.var1;Pop.var2(1)]};
+    elseif ii_loc==3 || jj_loc==3
+        Param_vars = {Pop.var1, [Pop.var1;Pop.var2(2)], [Pop.var1;Pop.var2(2)]};
+    else
+        Param_vars = {Pop.var1,               [Pop.var1;Pop.var2(2)], [Pop.var1;Pop.var2(2)];
+                      [Pop.var1;Pop.var2(1)], [Pop.var1;Pop.var2],    [Pop.var1;Pop.var2];
+                      [Pop.var1;Pop.var2(1)], [Pop.var1;Pop.var2],    [Pop.var1;Pop.var2]};
+    end
+    % For each of the elements of the parameter, make sure the dimensions
+    % match those of the operator, and the variables match the expected
+    % variables.
+    ismatch_dim = true;
+    ismatch_vars = true;
+    for k=1:numel(PR_val)
+        ismatch_dim = all(size(PR_val{k})==[Pop.dim(ii_loc,1),Pop.dim(jj_loc,2)]);
+        if isa(PR_val{k},'polynomial') || isa(PR_val{k},'dpvar')
+            ismatch_vars = ismatch_vars && all(ismember(PR_val{k}.varname,Param_vars{k}.varname));
+        elseif ~isa(PR_val{k},'double')
+            error(['Each element of the proposed parameter "',Rparams{ii_loc,jj_loc},'" should be specified as an object of type "double" or "polynomial".'])
+        end
+        if ~ismatch_dim || ~ismatch_vars
+            break
+        end        
+    end
+else
+    error(['Parameters should be specified as objects of type "double" or "polynomial".'])
+end
+
+% If the dimensions and variables of the parameter make sense, we can set
+% the new parameter, and return.
+if ismatch_dim && ismatch_vars
+    out = Pop;
+    out.(Rparams{ii_loc,jj_loc}) = PR_val;
+    % If the desired parameter is a dpvar, convert the operator to a
+    % dopvar2d object
+    if isa(PR_val,'dpvar')
+        out = opvar2dopvar2d(out);
+    end
+    return
+end
+
+% % Otherwise, perform some more extensive checks:
 % % To set the new parameter, we first determine the dimensions and spatial
 % % variables of the current parameters. If a parmeter is all zeroes, we
 % % will allow its dimension to be adjusted (if necessary) to match the
 % dimensions of the new variable.
 
-
-
 dim_out = zeros(size(Rparams));         % Output dimensions of the parameters    
 dim_in = zeros(size(Rparams));          % Input dimensions of the parameters
 iszero_param = false(size(Rparams));    % Logical array indicating if parameters are all zero
-varname_list = cell(0,1);                      % Full list of variable names that appear
+varname_list = cell(0,1);               % Full list of variable names that appear
 varname_indx = zeros(0,4);              % logical array indicating to which variable each varname might correspond
 
 for k=1:numel(Rparams)
@@ -1014,6 +1128,11 @@ if adjust_vartab
     
     var1 = [var1_1; var1_2];
     var2 = [var2_1; var2_2];
+    % Check that the new set of variables makes sense.
+    if length(unique([var1.varname;var2.varname]))~=(length(var1)+length(var2))
+        error(['The variables in the proposed parameters conflict with the currently set variables of the operator.',...
+                ' Please adjust the variables in the parameter, or the variables "Pop.var1" and "Pop.var2" of the operator.'])
+    end
     
     % Finally, some checks:
     if isempty(varnum_var1_1) && isempty(varnum_var1_2)
