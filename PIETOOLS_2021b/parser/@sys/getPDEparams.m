@@ -44,9 +44,9 @@ out.BC = cell(0,1);
 isdot_A = isdot(equations.statevec); isout_A=isout(equations.statevec); 
 for i=1:eqnNum
     row = equations(i);
-    if any(isout_A&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec)))) % equation has outputs
+    if any(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec)))) % equation has outputs
         % find which output 
-        outLoc = find(isout_A&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
+        outLoc = find(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
         outNametemp = equations.statevec(outLoc).statename;
         if ismember(outNametemp, zNames)% regulated output
             tmp = out.z;
@@ -65,8 +65,8 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
             elseif strcmp(equations.statevec(j).type,'pde')% pde state term
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
-                if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))),zeros(1,equations.statevec(j).veclength))% integral term
-                    tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))];
+                if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)),zeros(1,equations.statevec(j).veclength))% integral term
+                    tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
                     tmp{Loc}.term{j}.I{1} = [0,1];
                 else % boundary term
@@ -87,9 +87,9 @@ for i=1:eqnNum
         else % observed output
             out.y = tmp;
         end
-    elseif any(isdot_A&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))))% equation has dynamics
+    elseif any(isdot_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))))% equation has dynamics
         % find which x
-        outLoc = find(isdot_A.*any(strcmp(equations.statevec.type,{'ode','pde'}))'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
+        outLoc = find(isdot_A'.*any(strcmp(equations.statevec.type,{'ode'})|strcmp(equations.statevec.type,{'pde'}))'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
         outNametemp = equations.statevec(outLoc).statename;
         tmp = out.x;
         Loc = find(outNametemp == xNames); 
@@ -117,23 +117,25 @@ for i=1:eqnNum
             end
         end
         for j = length(equations.statevec)+1:2*length(equations.statevec) % extract all the R1 terms
+            jtmp = j- length(equations.statevec);
             if ~isfield(tmp{Loc},'term')||(length(tmp{Loc}.term)<j) % term is not initialized 
                 tmp{Loc}.term{j}.C = [];
             end
-            if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))),zeros(1,equations.statevec(j).veclength))% integral term
+            if any(~isequal(polynomial(row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)),zeros(1,equations.statevec(jtmp).veclength)))% integral term
                 tmp{Loc}.term{j}.I{1} = [0,pvar('s')];
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))];
-                tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
+                tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
             end
         end
         for j = 2*length(equations.statevec)+1:3*length(equations.statevec) % extract all the R2 terms
+            jtmp = j- 2*length(equations.statevec);
             if ~isfield(tmp{Loc},'term')||(length(tmp{Loc}.term)<j) % term is not initialized 
                 tmp{Loc}.term{j}.C = [];
             end
-            if ~isequal(polynomial(row.operator.R.R2(:,veclen_sum(j):veclen_sum(j+1))),zeros(1,equations.statevec(j).veclength))% integral term
+            if any(~isequal(polynomial(row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)),zeros(1,equations.statevec(jtmp).veclength)))% integral term
                 tmp{Loc}.term{j}.I{1} = [pvar('s'),1]; 
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R2(:,veclen_sum(j):veclen_sum(j+1))];
-                tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
+                tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
             end
         end
         out.x = tmp;
@@ -150,8 +152,8 @@ for i=1:eqnNum
                 tmp{k+1}.term{j}.x = find(equations.statevec(j).statename==xNames);
             elseif strcmp(equations.statevec(j).type,'pde')% pde state term
                 tmp{k+1}.term{j}.x = find(equations.statevec(j).statename==xNames);
-                if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))),zeros(1,equations.statevec(j).veclength))% integral term
-                    tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))];
+                if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)),zeros(1,equations.statevec(j).veclength))% integral term
+                    tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{k+1}.term{j}.D = equations.statevec(j).diff_order(2);
                     tmp{k+1}.term{j}.I{1} = [0,1];
                 else % boundary term
@@ -171,4 +173,15 @@ for i=1:eqnNum
     end
 end
 
+% finally remove output and derivative terms
+dotidx = find(isdot_A); outidx = find(isout_A); rmidx = [dotidx;outidx];
+for i=1:length(xNames)
+    out.x{i}.terms(rmidx) = [];
+end
+for i=1:length(zNames)
+out.z{i}.terms(rmidx) = [];
+end
+for i=1:length(yNames)
+out.y{i}.terms(rmidx) = [];
+end
 end
