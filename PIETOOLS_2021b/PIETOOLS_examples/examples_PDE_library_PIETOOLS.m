@@ -325,21 +325,49 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
 % 32. | PDE: x_{t} = lam*x + c1*x_{(2,0)}           | lam = 19;             (stable for lam <= 2*pi^2) 
-%     |                         + c2*x_{(0,2)}      | c1 = 1;   c2 = 1;             Holmes, 1994 [14]
+%     |                         + c2*x_{(0,2)}      | c1 = 1;   c2 = 1;             Holmes, 1994 [14] Eq. (14)   
 %     | BCs: x(s1=0) = 0,   x(s2=0) = 0,            | ne = 1 (state size)
 %     |      x(s1=1) = 0,   x(s2=1) = 0;            |
 %--------------------------------------------------------------------------
-% 33. | PDE: x_{t} = a*x                            | a = 4.9;              (stable for a <= 0.5*pi^2) 
+% 33. | PDE: x_{t} = C*(x_{(2,0} + x_{(0,2)})       | C = 1;
+%     |               - b1*x_{(1,0)} - b2*x_{(0,1)} | b1 = 0.5; b2 = 2;             Holmes, 1994 [14] Eq. (2)
+%     | BCs: x(s1=0) = 0,   x(s2=0) = 0,            | ne = 1 (state size)
+%     |      x(s1=1) = 0,   x(s2=1) = 0;            |
+%--------------------------------------------------------------------------
+% 34. | PDE: x_{t} = -1/(2*lam) * x_{tt}            | lam = 1;
+%     |               +(C^2/2*lam)*(x_{(2,0}        | C = 1;                        Holmes, 1994 [14] Eq. (3)
+%     |                               + x_{(0,2)})  | ne = 1 (state size)
+%     | BCs: x(s1=0) = 0,   x(s2=0) = 0,            | 
+%     |      x(s1=1) = 0,   x(s2=1) = 0;            |
+%     | Use states x1 = x,    x2 = x_{t}            |
+%     | =>                                          |
+%     | PDE: x1_{t} = x2                            |
+%     |      x2_{t} = -2*lam*x2                     |
+%     |              + C^2*(x1_{(2,0} + x1_{(0,2)}) |
+%--------------------------------------------------------------------------
+% 35. | PDE: x_{t} = a*x                            | a = 4.9;              (stable for a <= 0.5*pi^2) 
 %     |               + b1*x_{(1,0)} + b2*x_{(0,1)} | b1 = 0;   b2 = 0;    
 %     |                + c1*x_{(2,0)} + c2*x_{(0,2)}| c1 = 1;   c2 = 1;
 %     | BCs: x(s1=0) = 0,   x_{s1}(s1=1) = 0,       | ne = 1 (state size)
 %     |      x(s2=0) = 0,   x_{s2}(s2=1) = 0;       |
 %--------------------------------------------------------------------------
-% 34. | PDE: x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)}   | c1 = 1;   c2 = 1;
+% 36. | PDE: x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)}   | c1 = 1;   c2 = 1;
 %     | BCs: x(s1=0) = 0;       x(s2=0) = 0;        | ne = 1; (state size)
 %     |      x(s1=1) = 0;       x(s2=1) = 0;        |
 %--------------------------------------------------------------------------
-% 35. | ODE: x1_{t} = (A+BK)*x1 + B*x2(s1=0,s2=0)   | A = I; B = I;
+% 37. | PDE: p_{t}  = -s2*p_{s1} - v1_{s1} - v2_{s2}| M = 0.1;
+%     |      v1_{t} = -s2*v1_{s1} -v2               | lam = 1; nu = 1;              Antonelli, 2021 [17]
+%     |               -(1/M^2)*p_{s1}               |
+%     |                 +nu*(v1_{s1s1} + v1_{s2s2}) |
+%     |                 +lam*(v1_{s1s1} + v2_{s2s1})|
+%     |       v2_{t} = -s2*v2_{s1} -(1/M^2)*p_{s2}  |
+%     |                 +nu*(v2_{s1s1} + v2_{s2s2}) |
+%     |                 +lam*(v1_{s1s2} + v2_{s2s2})|
+%     | BCs: p(s1=0) = 0;      p(s2=0) = 0;         |
+%     |      v(s1=0) = 0;      v(s2=0) = 0;         |
+%     |      v(s1=1) = 0;      v(s2=1) = 0;         |
+%--------------------------------------------------------------------------
+% 38. | ODE: x1_{t} = (A+BK)*x1 + B*x2(s1=0,s2=0)   | A = I; B = I;
 %     | PDE: x2_{t} = c1*x_{(2,0)} + c2*x_{(0,2)}   | K = -2*I;
 %     | BCs: x2_{(1,0)}(s1=0) = 0;  x2(s1=1) = 0;   |
 %     |      x2_{(0,1)}(s2=0) = 0;  x2(s2=1) = 0;   |
@@ -423,7 +451,7 @@ else
 end
 
 if nargin0==1 %<-- If there is one input, this input MUST correspond to the desired PDE
-    if isdouble(varargin0{1}) && varargin0{1}<=29
+    if isdouble(varargin0{1}) && varargin0{1}<=30
         index = varargin0{1};
         BATCH = 1;
     elseif contains(varargin0{1},'batch','IgnoreCase',true)
@@ -442,7 +470,7 @@ if nargin0==1 %<-- If there is one input, this input MUST correspond to the desi
         error('First argument must correspond to an example listed in this file')
     end
 elseif nargin0>=2
-    if isdouble(varargin0{1}) && varargin0{1}<=35
+    if isdouble(varargin0{1}) && varargin0{1}<=40
         index = varargin0{1};
     else
         error('First argument must correspond to an example listed in this file')
@@ -2957,7 +2985,7 @@ if npars~=0
 end
 
 if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
+ disp('No batch input format available for this system, using terms-based format instead.')
  TERM = 1;
 end
 if TERM~=0
@@ -2982,7 +3010,7 @@ end
 
 elseif index==32
 % % % % %==================================================================
-% % % 2D reaction-diffusion equation
+% % % 2D reaction-diffusion equation (KISS Model)
 % % % PDE         x_{t}   = lam*x + c1*x_{s1s1} + c2*x_{s2s2}
 % % % With BCs    x(s1=0) = 0;   x(s2=0) = 0;
 % % %             x(s1=1) = 0;   x(s2=1) = 0;
@@ -3003,7 +3031,7 @@ if npars~=0
 end
 
 if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
+ disp('No batch input format available for this system, using terms-based format instead.')
  TERM = 1;
 end
 if TERM~=0
@@ -3027,12 +3055,123 @@ end
 
 
 elseif index==33
+% % % % %==================================================================
+% % % 2D advection-diffusion equation ((Holmes, 1994 [14])
+% % % PDE         x_{t}   = C*(x_{s1s1} + x_{s2s2}) - b1*x_{s1} - b2*x_{s2}
+% % % With BCs    x(s1=0) = 0;   x(s2=0) = 0;
+% % %             x(s1=1) = 0;   x(s2=1) = 0;
+
+%%% Executive Function:
+ evalin('base','stability = 1;');
+
+ C = 1;  b1 = 0.5;  b2 = 2;
+ ne = 1;
+ 
+if npars~=0
+%%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+if BATCH~=0
+ disp('No batch input format available for this system, using terms-based format instead.')
+ TERM = 1;
+end
+if TERM~=0
+ %%% Term-based input format
+ PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
+ 
+ % PDE: x_{t} = [C, C] * [x_{s1s1}; x_{s2s2}];
+ PDE_t.x{1}.term{1}.D = [2,0; 0,2];
+ PDE_t.x{1}.term{1}.C = [C*eye(ne), C*eye(ne)];
+ 
+ % PDE: x_{t} = ... + [b1, b2] * [x_{s1}; x_{s2}];
+ PDE_t.x{1}.term{2}.D = [1,0; 0,1];
+ PDE_t.x{1}.term{2}.C = [b1*eye(ne), b2*eye(ne)];
+ 
+ % BC1: 0 = x(s1,0)                     % BC3: 0 = x(s1,1)
+ PDE_t.BC{1}.term{1}.loc = [s1,0];      PDE_t.BC{3}.term{1}.loc = [s1,1];
+ % BC2: 0 = x(0,s2)                     % BC4: 0 = x(1,s2)
+ PDE_t.BC{2}.term{1}.loc = [0,s2];      PDE_t.BC{4}.term{1}.loc = [1,s2];
+ 
+end
+if GUI~=0
+ disp('No GUI representation available for this system.')
+end
+
+
+
+elseif index==34
+% % % % %==================================================================
+% % % Telegraph equation (Holmes, 1994 [14])
+% % % PDE         x_{t}   = -1/(2*lam) * x_{tt} + (C^2/2*lam)*(x_{s1s1} + x_{s2s2})
+% % % With BCs    x(s1=0) = 0;   x(s2=0) = 0;
+% % %             x(s1=1) = 0;   x(s2=1) = 0;
+% % %
+% % % Use states x1 = x, x2 = x_{t}, then:
+% % %
+% % % PDE         x1_{t}   = x2
+% % %             x2_{t}   = -2*lam * x2 + C^2*(x1_{s1s1} + x1_{s2s2})
+% % % With BCs    x1(s1=0) = 0;   x1(s2=0) = 0;
+% % %             x1(s1=1) = 0;   x1(s2=1) = 0;
+
+%%% Executive Function:
+ evalin('base','stability = 1;');
+
+ C = 1;  lam = 1;
+ ne = 1;
+ 
+if npars~=0
+%%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+if BATCH~=0
+ disp('No batch input format available for this system, using terms-based format instead.')
+ TERM = 1;
+end
+if TERM~=0
+ %%% Term-based input format
+ PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
+ PDE_t.x{2}.vars = [s1;s2];   PDE_t.x{2}.dom = [0,1;0,1];
+ 
+ % PDE: x1_{t} = x2;
+ PDE_t.x{1}.term{1}.x = 2;
+ 
+ % PDE: x2_{t} = -2*lam*x2
+ PDE_t.x{2}.term{1}.x = 2;
+ PDE_t.x{2}.term{1}.C = -2*lam;
+ 
+ % PDE: x2_{t} = ... + [C^2, C^2] * [x1_{s1s1}; x1_{s2s2}];
+ PDE_t.x{2}.term{2}.x = 1;
+ PDE_t.x{2}.term{2}.D = [2,0; 0,2];
+ PDE_t.x{2}.term{2}.C = [C^2 * eye(ne), C^2 * eye(ne)];
+ 
+ % BC1: 0 = x1(s1,0)                    % BC3: 0 = x1(s1,1)
+ PDE_t.BC{1}.term{1}.x = 1;             PDE_t.BC{3}.term{1}.x = 1;
+ PDE_t.BC{1}.term{1}.loc = [s1,0];      PDE_t.BC{3}.term{1}.loc = [s1,1];
+ % BC2: 0 = x1(0,s2)                    % BC4: 0 = x1(1,s2)
+ PDE_t.BC{2}.term{1}.x = 1;             PDE_t.BC{4}.term{1}.x = 1;
+ PDE_t.BC{2}.term{1}.loc = [0,s2];      PDE_t.BC{4}.term{1}.loc = [1,s2];
+ 
+end
+if GUI~=0
+ disp('No GUI representation available for this system.')
+end
+
+
+
+elseif index==35
 % % % 2D parabolic equation
 % % % PDE         x_{t}  = a*x + b1*x_{s1} + b2*x_{s2} + c1*x_{s1s1} + c2*x_{s2s2}
 % % % With BCs    x(s1=0) = 0;        x(s2=0) = 0;
 % % %             x_{s1}(s1=1) = 0;   x_{s2}(s2=1) = 0;
 %
 % For c1=c2=1, b1=b2=0, will be stable when a <= 0.5*pi^2
+% (Demetriou, 2019 [17]).
     
 %%% Executive Function:
  evalin('base','stability = 1;');
@@ -3048,7 +3187,7 @@ if npars~=0
 end
 
 if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
+ disp('No batch input format available for this system, using terms-based format instead.')
  TERM = 1;
 end
 if TERM~=0
@@ -3084,7 +3223,7 @@ end
  
  
 
-elseif index==34
+elseif index==36
 % % % % %==================================================================
 % % % 2D wave equation
 % % % PDE         x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)};
@@ -3105,7 +3244,7 @@ if npars~=0
 end
 
 if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
+ disp('No batch input format available for this system, using terms-based format instead.')
  TERM = 1;
 end
 if TERM~=0
@@ -3129,7 +3268,117 @@ end
 
 
 
-elseif index==35
+elseif index==37
+% % % % %==================================================================
+% % % Isentropic compressible Navier-Stokes, linearized around pE=1, and
+% % % vE=[vE1; vE2] = [s2;0] (Antonelli, 2021 [17])
+% % % PDE         p_{t}  = -s2*p_{s1} - v1_{s1} - v2_{s2}
+% % %             v1_{t} = -s2*v1_{s1} - v2 - (1/M^2)*p_{s1} + nu*(v1_{s1s1} + v1_{s2s2}) + lam*(v1_{s1s1} + v2_{s2s1})
+% % %             v2_{t} = -s2*v2_{s1}      - (1/M^2)*p_{s2} + nu*(v2_{s1s1} + v2_{s2s2}) + lam*(v1_{s1s2} + v2_{s2s2})
+% % % With BCs    p(s1=0) = 0;          p(s2=0) = 0;
+% % %             v(s1=0) = 0;          v(s2=0) = 0;
+% % %             v(s1=1) = 0;          v(s2=1) = 0;
+
+%%% Executive Function:
+ evalin('base','stability = 1;');
+
+ M = 0.1;  lam = 1;  nu = 1;
+ 
+if npars~=0
+%%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+if BATCH~=0
+ disp('No batch input format available for this system, using terms-based format instead.')
+ TERM = 1;
+end
+if TERM~=0
+ %%% Term-based input format
+ PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
+ PDE_t.x{2}.vars = [s1;s2];   PDE_t.x{2}.dom = [0,1;0,1];
+ PDE_t.x{3}.vars = [s1;s2];   PDE_t.x{3}.dom = [0,1;0,1];
+ 
+ % PDE: x1_{t} = -s2*x1_{s1}
+ PDE_t.x{1}.term{1}.x = 1;
+ PDE_t.x{1}.term{1}.C = -s2;
+ 
+ % PDE: x1_{t} = ... - x2
+ PDE_t.x{1}.term{2}.x = 2;
+ PDE_t.x{1}.term{2}.C = -1;
+ 
+ % PDE: x1_{t} = ... -(1/M^2)*p_{s1}
+ PDE_t.x{1}.term{3}.x = 3;
+ PDE_t.x{1}.term{3}.C = -(1/M^2);
+ 
+ % PDE: x1_{t} = ... + nu*(v1_{s1s1} + v1_{s2s2})
+ PDE_t.x{1}.term{4}.x = [1; 1];
+ PDE_t.x{1}.term{4}.D = [2,0; 0,2];
+ PDE_t.x{1}.term{4}.C = [nu, nu];
+ 
+ % PDE: x1_{t} = ... + lam*(v1_{s1s2} + v2_{s2s2})
+ PDE_t.x{1}.term{5}.x = [1; 2];
+ PDE_t.x{1}.term{5}.D = [1,1; 0,2];
+ PDE_t.x{1}.term{5}.C = [lam, lam];
+ 
+ 
+ % PDE: x2_{t} = -s2*x2_{s1}
+ PDE_t.x{2}.term{1}.x = 2;
+ PDE_t.x{2}.term{1}.C = -s2;
+ 
+ % PDE: x2_{t} = ... -(1/M^2)*p_{s1}
+ PDE_t.x{2}.term{2}.x = 3;
+ PDE_t.x{2}.term{2}.C = -(1/M^2);
+ 
+ % PDE: x2_{t} = ... + nu*(v2_{s1s1} + v2_{s2s2})
+ PDE_t.x{2}.term{3}.x = [2; 2];
+ PDE_t.x{2}.term{3}.D = [2,0; 0,2];
+ PDE_t.x{2}.term{3}.C = [nu, nu];
+ 
+ % PDE: x2_{t} = ... + lam*(v1_{s1s1} + v2_{s2s1})
+ PDE_t.x{2}.term{4}.x = [1; 2];
+ PDE_t.x{2}.term{4}.D = [2,0; 1,1];
+ PDE_t.x{2}.term{4}.C = [lam, lam];
+ 
+ 
+ % PDE: x3_{t} = -s2*x3
+ PDE_t.x{3}.term{1}.x = 3;
+ PDE_t.x{3}.term{1}.C = -s2;
+ 
+ % PDE: x3_{t} = ... - x1_{s1} - x2_{s2}
+ PDE_t.x{3}.term{2}.x = [1;2];
+ PDE_t.x{3}.term{2}.D = [1,0; 0,1];
+ PDE_t.x{3}.term{2}.C = [-1, -1];
+ 
+ 
+ % BC1: 0 = x1(0,s2);                   % BC2: 0 = x1(1,s2);
+ PDE_t.BC{1}.term{1}.x = 1;             PDE_t.BC{2}.term{1}.x = 1;
+ PDE_t.BC{1}.term{1}.loc = [0,s2];      PDE_t.BC{2}.term{1}.loc = [1,s2];
+ % BC3: 0 = x1(s1,0);                   % BC4: 0 = x1(s1,1);
+ PDE_t.BC{3}.term{1}.x = 1;             PDE_t.BC{4}.term{1}.x = 1;
+ PDE_t.BC{3}.term{1}.loc = [s1,0];      PDE_t.BC{4}.term{1}.loc = [s1,1];
+ 
+ % BC5: 0 = x2(0,s2);                   % BC6: 0 = x2(1,s2);
+ PDE_t.BC{5}.term{1}.x = 2;             PDE_t.BC{6}.term{1}.x = 2;
+ PDE_t.BC{5}.term{1}.loc = [0,s2];      PDE_t.BC{6}.term{1}.loc = [1,s2];
+ % BC7: 0 = x2(s1,0);                   % BC8: 0 = x2(s1,1);
+ PDE_t.BC{7}.term{1}.x = 2;             PDE_t.BC{8}.term{1}.x = 2;
+ PDE_t.BC{7}.term{1}.loc = [s1,0];      PDE_t.BC{8}.term{1}.loc = [s1,1];
+ 
+ % BC5: 0 = x3(0,s2);                   % BC6: 0 = x3(s1,0);
+ PDE_t.BC{9}.term{1}.x = 3;             PDE_t.BC{10}.term{1}.x = 3;
+ PDE_t.BC{9}.term{1}.loc = [0,s2];      PDE_t.BC{10}.term{1}.loc = [s1,0];
+ 
+end
+if GUI~=0
+ disp('No GUI representation available for this system.')
+end
+
+
+
+elseif index==38
 % % % % %==================================================================
 % % % 2D heat equation coupled to ODE
 % % % ODE         x1_{t}  = (A+BK)*x1 + B*x2(s1=0,s2=0)
@@ -3155,7 +3404,7 @@ end
 nx = size(A,1);     ne = size(K,1);
 
 if BATCH~=0
- disp('No batch input format available for this system, using terms-base format instead.')
+ disp('No batch input format available for this system, using terms-based format instead.')
  TERM = 1;
 end
 if TERM~=0
@@ -3201,7 +3450,8 @@ end
 
 
 
-elseif index==36
+elseif index==39
+
 
 
 
@@ -3502,5 +3752,16 @@ end
 % year={2019},
 % organization={IEEE}
 % }
-
+%
+% % [17] -
+% @article{antonelli2021linear,
+%  title={Linear stability analysis of the homogeneous Couette flow in a 2D isentropic compressible fluid},
+%  author={Antonelli, Paolo and Dolce, Michele and Marcati, Pierangelo},
+%  journal={Annals of PDE},
+%  volume={7},
+%  number={2},
+%  pages={1--53},
+%  year={2021},
+%  publisher={Springer}
+%}
 %
