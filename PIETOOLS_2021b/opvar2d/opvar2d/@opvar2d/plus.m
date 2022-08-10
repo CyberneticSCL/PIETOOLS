@@ -96,7 +96,7 @@ elseif ~isa(P2,'opvar2d')
     
 else %both are PI operators
     if any(any(P1.dim~=P2.dim))
-        error('Operators dimensions do not match. Check the validity of the addition operation.');
+        error('Operator dimensions do not match. Check the validity of the addition operation.');
     end
     if any(P1.I~=P2.I)
         error('Operators act on different intervals and cannot be added');

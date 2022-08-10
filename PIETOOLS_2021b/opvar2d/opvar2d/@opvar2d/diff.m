@@ -73,11 +73,16 @@ end
 if ndims(invar)>=3 || ~any(size(invar)==1)
     error('Differentiation variables must be input as an nx1 cell of strings, or nx1 polynomial')
 end
-if nargin==3 && isa(deg,'char')
-    opts = deg;
-elseif all(size(deg)==size(invar))
+if nargin>4
+    error('At most 4 inputs are accepted')
+elseif nargin==4
     invar = invar.^deg;
-else
+elseif nargin==3 && isa(deg,'char')
+    opts = deg;
+elseif nargin==3 && all(size(deg)==size(invar))
+    opts = '';
+    invar = invar.^deg;
+elseif nargin==3
     error('An order of derivative must be specified for each variable')
 end
    
@@ -140,7 +145,7 @@ while ~isempty(addvar)
         if strcmp(P.var1(1).varname,difvar) || strcmp(P.var2(1).varname,difvar)
             % The differentiation variable is the first variable
             sss = P.var1(1);    ttt = P.var2(1);
-            if nargin==3 && (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
+            if (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
                 % In this case, our state [u0; ux; uy; u2] doesn't change
                 if any(~isequal(dP.Rxx{1},0)) || any(~isequal(dP.Rx2{1},0)) || any(~isequal(dP.R2x{1},0)) || ...
                         any(~isequal(dP.R22{1,1},0)) || any(~isequal(dP.R22{1,2},0)) || any(~isequal(dP.R22{1,3},0))
@@ -253,7 +258,7 @@ while ~isempty(addvar)
             
             % The differentiation variable is the second variable
             sss = P.var1(2);    ttt = P.var2(2);
-            if nargin==3 && (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
+            if (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
                 % In this case, our state [u0; ux; uy; u2] doesn't change
                 if any(~isequal(dP.Ryy{1},0)) || any(~isequal(dP.Ry2{1},0)) || any(~isequal(dP.R2y{1},0)) || ...
                         any(~isequal(dP.R22{1,1},0)) || any(~isequal(dP.R22{2,1},0)) || any(~isequal(dP.R22{3,1},0))

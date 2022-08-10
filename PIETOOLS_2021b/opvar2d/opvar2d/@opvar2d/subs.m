@@ -53,6 +53,7 @@ function [DP] = subs(P,invar,inval,opts)
 %
 % Initial coding DJ - 08/27/2021
 % DJ, 06/17/2022 - Support edge boundary inputs (e.g. inval=(x,1)).
+% DJ, 08/06/2022 - Use explicit opvar2d subsref.
 
 % % Error checking
 if ~isa(P,'opvar2d')
@@ -70,6 +71,9 @@ end
 if ~all(size(invar)==size(inval))
     error('The number of input variables must match the number of values at which to evaluate them')
 end
+if nargin<4
+    opts = '';
+end
 
 
 % % Evaluate with respect to each element of invar separately
@@ -78,6 +82,10 @@ addvar = invar(:);      addval = inval(:);
 rm_vars = isequal(addvar,addval);
 addvar = addvar(~rm_vars);
 addval = addval(~rm_vars);
+if isempty(addvar)
+    DP = P;
+    return
+end
 while ~isempty(addvar)
     delvar = addvar(1);         ppp = addval(1);
     addvar = addvar(2:end);     addval = addval(2:end);
@@ -179,12 +187,15 @@ while ~isempty(addvar)
         end
 
         % If desired, and possible, get rid of ux(p) and u2(p,y) contributions
-        if nargin==4 && (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
+        if strcmpi(opts,'exclude') || strcmpi(opts,'pure')
             exclude_c = [P.dim(1,2)+1:P.dim(1,2)+P.dim(2,2), P.dim(1,2)+2*P.dim(2,2)+P.dim(3,2)+1: P.dim(1,2)+2*P.dim(2,2)+P.dim(3,2)+P.dim(4,2)];
-            if ~isempty(exclude_c) && DP(:,exclude_c)==0
+            ref1 = struct();
+            ref1.type = '()';       ref1.subs = {':',exclude_c};
+            if ~isempty(exclude_c) && subsref(DP,ref1)==0
                 include_c = 1:size(DP,2);
                 include_c(exclude_c) = [];
-                DP = DP(:,include_c);
+                ref1.subs{2} = include_c;
+                DP = subsref(DP,ref1);
             elseif ~isempty(exclude_c)
                 error(['The desired option ''',opts,''' is not allowed: Delta*P*u is not independent of Delta*u'])
             end
@@ -264,12 +275,15 @@ while ~isempty(addvar)
         end
 
         % If desired, and possible, get rid of ux(p) and u2(p,y) contributions
-        if nargin==4 && (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
+        if strcmpi(opts,'exclude') || strcmpi(opts,'pure')
             exclude_c = [P.dim(1,2)+1:P.dim(1,2)+P.dim(3,2), P.dim(1,2)+2*P.dim(3,2)+P.dim(2,2)+1: P.dim(1,2)+2*P.dim(3,2)+P.dim(2,2)+P.dim(4,2)];
-            if ~isempty(exclude_c) && DP(:,exclude_c)==0
+            ref1 = struct();
+            ref1.type = '()';       ref1.subs = {':',exclude_c};
+            if ~isempty(exclude_c) && subsref(DP,ref1)==0
                 include_c = 1:size(DP,2);
                 include_c(exclude_c) = [];
-                DP = DP(:,include_c);
+                ref1.subs{2} = include_c;
+                DP = subsref(DP,ref1);
             elseif ~isempty(exclude_c)
                 error(['The desired option ''',opts,''' is not allowed: Delta*P*u is not independent of Delta*u'])
             end
