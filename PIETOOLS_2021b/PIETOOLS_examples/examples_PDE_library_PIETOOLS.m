@@ -329,11 +329,11 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %     | BCs: x(s1=0) = 0,   x(s2=0) = 0,            | ne = 1 (state size)
 %     |      x(s1=1) = 0,   x(s2=1) = 0;            |
 %--------------------------------------------------------------------------
-% 33. | PDE: x_{t} = a*x                            | a = 1;
-%     |               + b1*x_{(1,0)} + b2*x_{(0,1)} | b1 = 1;   b2 = 1;    
+% 33. | PDE: x_{t} = a*x                            | a = 4.9;              (stable for a <= 0.5*pi^2) 
+%     |               + b1*x_{(1,0)} + b2*x_{(0,1)} | b1 = 0;   b2 = 0;    
 %     |                + c1*x_{(2,0)} + c2*x_{(0,2)}| c1 = 1;   c2 = 1;
-%     | BCs: x(s1=0) = 0,   x_{s1}(s1=0) = 0,       | ne = 1 (state size)
-%     |      x(s2=0) = 0,   x_{s2}(s2=0) = 0;       |
+%     | BCs: x(s1=0) = 0,   x_{s1}(s1=1) = 0,       | ne = 1 (state size)
+%     |      x(s2=0) = 0,   x_{s2}(s2=1) = 0;       |
 %--------------------------------------------------------------------------
 % 34. | PDE: x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)}   | c1 = 1;   c2 = 1;
 %     | BCs: x(s1=0) = 0;       x(s2=0) = 0;        | ne = 1; (state size)
@@ -343,19 +343,19 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %     | PDE: x2_{t} = c1*x_{(2,0)} + c2*x_{(0,2)}   | K = -2*I;
 %     | BCs: x2_{(1,0)}(s1=0) = 0;  x2(s1=1) = 0;   |
 %     |      x2_{(0,1)}(s2=0) = 0;  x2(s2=1) = 0;   |
-%
+% 
 %==========================================================================
 %       Additional Examples (Undocumented)
 %==========================================================================
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-% 30. | PDE: x_{t} = x_{ss} + s*w(t)                | N = 8,    
+% 101.| PDE: x_{t} = x_{ss} + s*w(t)                | N = 8,    
 %     | BCs: x(s=0) = 0,       x_{s}(s=1)=0         | x0 =@(s) s^2-2*s
 %     | Out: z(t) = int(x(t,s),s,0,1)               | w =@(t) sin(t+eps)./(t+eps)
 %     |                                             | t_int = [0 2*pi]
 %--------------------------------------------------------------------------
-% 31. | PDE: xi_{t} = lamb*xi + w(t)        i=1:ne  | ne = 1,    
+% 102.| PDE: xi_{t} = lamb*xi + w(t)        i=1:ne  | ne = 1,    
 %     |               + sum(xk_{ss},k=1,i) + w(t)   | lam = (1-1e-2)*pi^2  
 %     | BCs: x(s=0) = 0,       x_{s}(s=1)=0         | N = 8
 %     | Out: z(t) = int(sum(xi(t,s),i=1,ne),s,0,1)  | x0 =@(s) 0
@@ -363,9 +363,6 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %     |                                             | t_int = [0 2*pi]
 %__________________________________________________________________________
 %==========================================================================
-%
-%
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -380,7 +377,7 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % NOTE: The currently defined PDE struct will be cleared to avoid conflict
-pvar s theta
+pvar s theta s1 s2 theta1 theta2
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
@@ -445,7 +442,7 @@ if nargin0==1 %<-- If there is one input, this input MUST correspond to the desi
         error('First argument must correspond to an example listed in this file')
     end
 elseif nargin0>=2
-    if isdouble(varargin0{1}) && varargin0{1}<=29
+    if isdouble(varargin0{1}) && varargin0{1}<=35
         index = varargin0{1};
     else
         error('First argument must correspond to an example listed in this file')
@@ -2186,9 +2183,7 @@ if TERM~=0
  
  % Output: z = int_{0}^{1} x(s) ds
  PDE_t.z{1}.term{1}.x = 1;
- % Since z is finite-dimensional, PIETOOLS will implement the integral by
- % default. However, we can also explicitly initialize the integral:
- % PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
+ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
  % BCs: 0 = x(0)        
  PDE_t.BC{1}.term{1}.x = 1;
@@ -2266,9 +2261,7 @@ if TERM~=0
  
  % Output: z = int_{0}^{1} x2(s) ds
  PDE_t.z{1}.term{1}.x = 2;
- % Since z is finite-dimensional, PIETOOLS will implement the integral by
- % default. However, we can also explicitly initialize the integral:
- % PDE_t.z{1}.term{1}.I{2} = PDE_t.x{2}.dom;
+ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{2}.dom;
 
  % BC 1: 0 = x2(0)         
  PDE_t.BC{1}.term{1}.x = 2;
@@ -2346,6 +2339,7 @@ if TERM~=0
 
  % Output: z = int_{0}^{1} x(s) ds
  PDE_t.z{1}.term{1}.x = 1;
+ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
  % BC 1: 0 = x(0)     
  PDE_t.BC{1}.term{1}.x = 1;
@@ -2505,6 +2499,7 @@ if TERM~=0
  
   % Output: z = int_{0}^{1} x(s) ds
  PDE_t.z{1}.term{1}.x = 1;
+ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
  % BC 1: 0 = x(0)     
  PDE_t.BC{1}.term{1}.x = 1;
@@ -2586,6 +2581,7 @@ if TERM~=0
  % Output: z = int_{0}^{1} x(s) ds
  PDE_t.z{1}.term{1}.x = 1;
  PDE_t.z{1}.term{1}.C = [1,zeros(1,ne-1)];
+ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
  % BC 1: 0 = x(0)     
  PDE_t.BC{1}.term{1}.x = 1;
@@ -2666,6 +2662,7 @@ if TERM~=0
  
  % Output: z = int_{0}^{1} x(s) ds
  PDE_t.z{1}.term{1}.x = 1;
+ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
  % BC 1: 0 = x(0)     
  PDE_t.BC{1}.term{1}.x = 1;
@@ -2746,12 +2743,14 @@ if TERM~=0
  
  % Output: z = int_{0}^{1} x(s) ds
  PDE_t.z{1}.term{1}.x = 1;
+ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
  
  % Output: z = ... + w
  PDE_t.z{1}.term{2}.w  =1;
  
  % Output: y = int_{0}^{1} x(s) ds
  PDE_t.y{1}.term{1}.x = 1;
+ PDE_t.y{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
  % BC 1: 0 = x(1)     
  PDE_t.BC{1}.term{1}.x = 1;
@@ -2827,6 +2826,7 @@ if TERM~=0
  
  % Output: z = int_{0}^{1} x(s) ds
  PDE_t.z{1}.term{1}.x = 1;
+ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
  
  % Output: z = ... + w
  PDE_t.z{1}.term{2}.w  =1;
@@ -3030,12 +3030,14 @@ elseif index==33
 % % % 2D parabolic equation
 % % % PDE         x_{t}  = a*x + b1*x_{s1} + b2*x_{s2} + c1*x_{s1s1} + c2*x_{s2s2}
 % % % With BCs    x(s1=0) = 0;        x(s2=0) = 0;
-% % %             x_{s1}(s1=0) = 0;   x_{s2}(s2=0) = 0;
+% % %             x_{s1}(s1=1) = 0;   x_{s2}(s2=1) = 0;
+%
+% For c1=c2=1, b1=b2=0, will be stable when a <= 0.5*pi^2
     
 %%% Executive Function:
  evalin('base','stability = 1;');
 
- a = 1;  b1 = 1;  b2 = 1;  c1 = 1;  c2 = 1;
+ a = 4.9;  b1 = 0;  b2 = 0;  c1 = 1;  c2 = 1;
  ne = 1;
  
 if npars~=0
@@ -3068,12 +3070,12 @@ if TERM~=0
  PDE_t.BC{1}.term{1}.loc = [s1,0];
  % BC2: 0 = x(0,s2)
  PDE_t.BC{2}.term{1}.loc = [0,s2];
- % BC3: 0 = x_{(1,0)}(s1,0)
- PDE_t.BC{3}.term{1}.D = [1,0];
- PDE_t.BC{3}.term{1}.loc = [s1,0];
- % BC4: 0 = x_{(0,1)}(0,s2)
- PDE_t.BC{4}.term{1}.D = [0,1];
- PDE_t.BC{4}.term{1}.loc = [0,s2];
+ % BC3: 0 = x_{(0,1)}(s1,1)
+ PDE_t.BC{3}.term{1}.D = [0,1];
+ PDE_t.BC{3}.term{1}.loc = [s1,1];
+ % BC4: 0 = x_{(1,0)}(1,s2)
+ PDE_t.BC{4}.term{1}.D = [1,0];
+ PDE_t.BC{4}.term{1}.loc = [1,s2];
  
 end
 if GUI~=0
@@ -3177,25 +3179,31 @@ if TERM~=0
  PDE_t.x{2}.term{1}.D = [2,0; 0,2];
  PDE_t.x{2}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
  
- % BC1: 0 = x2(s1,0)              
+ % BC1: 0 = x2_{s2}(s1,0)              
  PDE_t.BC{1}.term{1}.x = 2;
+ PDE_t.BC{1}.term{1}.D = [0,1];
  PDE_t.BC{1}.term{1}.loc = [s1,0];      
- % BC2: 0 = x2(0,s2)
+ % BC2: 0 = x2_{s1}(0,s2)
  PDE_t.BC{2}.term{1}.x = 2;
+ PDE_t.BC{2}.term{1}.D = [1,0];
  PDE_t.BC{2}.term{1}.loc = [0,s2];
- % BC3: 0 = x2_{s2}(s1,0)
+ % BC3: 0 = x2(s1,1)
  PDE_t.BC{3}.term{1}.x = 2;
- PDE_t.BC{3}.term{1}.D = [0,1];
- PDE_t.BC{3}.term{1}.loc = [s1,0];
- % BC4: 0 = x2_{s1}(0,s2)
+ PDE_t.BC{3}.term{1}.loc = [s1,1];
+ % BC4: 0 = x2(1,s2)
  PDE_t.BC{4}.term{1}.x = 2;
- PDE_t.BC{4}.term{1}.D = [1,0];
- PDE_t.BC{4}.term{1}.loc = [0,s2];
+ PDE_t.BC{4}.term{1}.loc = [1,s2];
  
 end
 if GUI~=0
  disp('No GUI representation available for this system.')
 end
+
+
+
+elseif index==36
+
+
 
 
 elseif index==100
