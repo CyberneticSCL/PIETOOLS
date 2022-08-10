@@ -46,6 +46,7 @@ function out = set(Pop,prop,val,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 13/06/2022
+% DJ, 08/09/2022 - Keep parameters dpvar after setting vars.
 
 
 if nargin<4
@@ -115,6 +116,7 @@ function out = set_var1(Pop,val,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 13/06/2022
+% DJ, 08/09/2022 - Keep parameters dpvar after substitution.
 
 % If 'nosubs' option is passed, we assume the variables to be properly
 % specified, and simply set them without performing any substitution
@@ -153,13 +155,13 @@ if any(~isequal(val,var1))
                'R20', 'R2x', 'R2y', 'R22'};
     for k=1:numel(Rparams)
         PR = Pop.(Rparams{k});
-        if isa(PR,'polynomial')
-            out.(Rparams{k}) = subs(PR,var1(~isequal(val,var1)),val(~isequal(val,var1)));
+        if isa(PR,'polynomial') || isa(PR,'dpvar')
+            out.(Rparams{k}) = dpvar(subs(PR,var1(~isequal(val,var1)),val(~isequal(val,var1))));
         elseif isa(PR,'cell')
             for l=1:numel(PR)
                 PRR = PR{l};
-                if isa(PRR,'polynomial')
-                    PR{l} = subs(PRR,var1(~isequal(val,var1)),val(~isequal(val,var1)));
+                if isa(PRR,'polynomial') || isa(PRR,'dpvar')
+                    PR{l} = dpvar(subs(PRR,var1(~isequal(val,var1)),val(~isequal(val,var1))));
                 end
             end
             out.(Rparams{k}) = PR;
@@ -205,6 +207,7 @@ function out = set_var2(Pop,val,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 13/06/2022
+% DJ, 08/09/2022 - Keep parameters dpvar after substitution.
 
 % If 'nosubs' option is passed, we assume the variables to be properly
 % specified, and simply set them without performing any substitution
@@ -242,8 +245,8 @@ if any(~isequal(val,var2))
         PR = Pop.(RRparams{k});
         for l=2:numel(PR)
             PRR = PR{l};
-            if isa(PRR,'polynomial')
-                PR{l} = subs(PRR,var2(~isequal(val,var2)),val(~isequal(val,var2)));
+            if isa(PRR,'polynomial') || isa(PRR,'dpvar')
+                PR{l} = dpvar(subs(PRR,var2(~isequal(val,var2)),val(~isequal(val,var2))));
             end
         end
         out.(RRparams{k}) = PR;
