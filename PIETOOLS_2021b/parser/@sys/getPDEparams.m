@@ -98,6 +98,9 @@ for i=1:eqnNum
             if ~isfield(tmp{Loc},'term')||(length(tmp{Loc}.term)<j) % term is not initialized 
                 tmp{Loc}.term{j}.C = [];
             end
+            if (j==outLoc) % derivative term, ignore
+                continue;
+            end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
@@ -173,19 +176,51 @@ for i=1:eqnNum
     end
 end
 
-% finally remove output and derivative terms
-dotidx = find(isdot_A); outidx = find(isout_A); rmidx = [dotidx;outidx];
+% finally remove empty/zero terms
+% dotidx = find(isdot_A); outidx = find(isout_A); rmidx = [dotidx;outidx];
 for i=1:length(xNames)
-    rmidx2 = [rmidx; (rmidx+length(out.x{i}.term)/3); (rmidx+2*length(out.x{i}.term)/3)];
-    out.x{i}.term(rmidx2) = [];
+    for j=length(out.x{i}.term):-1:1
+        coeffvec = out.x{i}.term{j}.C(:);
+        if isempty(coeffvec)
+            out.x{i}.term(j) = [];
+        elseif all(isequal(polynomial(coeffvec),zeros(length(coeffvec),1)))
+            out.x{i}.term(j) = [];
+        end
+    end
+%     rmidx2 = [rmidx; (rmidx+length(out.x{i}.term)/3); (rmidx+2*length(out.x{i}.term)/3)];
+%     out.x{i}.term(rmidx2) = [];
 end
 for i=1:length(zNames)
-out.z{i}.term(rmidx) = [];
+    for j=length(out.z{i}.term):-1:1
+        coeffvec = out.z{i}.term{j}.C(:);
+        if isempty(coeffvec)
+            out.z{i}.term(j) = [];
+        elseif all(isequal(polynomial(coeffvec),zeros(length(coeffvec),1)))
+            out.z{i}.term(j) = [];
+        end
+    end
+% out.z{i}.term(rmidx) = [];
 end
 for i=1:length(yNames)
-out.y{i}.term(rmidx) = [];
+    for j=length(out.y{i}.term):-1:1
+        coeffvec = out.y{i}.term{j}.C(:);
+        if isempty(coeffvec)
+            out.y{i}.term(j) = [];
+        elseif all(isequal(polynomial(coeffvec),zeros(length(coeffvec),1)))
+            out.y{i}.term(j) = [];
+        end
+    end
+% out.y{i}.term(rmidx) = [];
 end
 for i=1:length(out.BC)
-out.BC{i}.term(rmidx) = [];
+    for j=length(out.BC{i}.term):-1:1
+        coeffvec = out.BC{i}.term{j}.C(:);
+        if isempty(coeffvec)
+            out.BC{i}.term(j) = [];
+        elseif all(isequal(polynomial(coeffvec),zeros(length(coeffvec),1)))
+            out.BC{i}.term(j) = [];
+        end
+    end
+% out.BC{i}.term(rmidx) = [];
 end
 end
