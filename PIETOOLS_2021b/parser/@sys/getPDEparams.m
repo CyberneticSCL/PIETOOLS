@@ -57,6 +57,9 @@ for i=1:eqnNum
         end
         % now separate the terms
         for j=1:length(equations.statevec)
+            if ~isfield(tmp{Loc},'term')||(length(tmp{Loc}.term)<j) % term is not initialized 
+                tmp{Loc}.term{j}.C = [];
+            end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
@@ -92,6 +95,9 @@ for i=1:eqnNum
         Loc = find(outNametemp == xNames); 
         % now separate the terms
         for j=1:length(equations.statevec) % first extract all the R0 terms
+            if ~isfield(tmp{Loc},'term')||(length(tmp{Loc}.term)<j) % term is not initialized 
+                tmp{Loc}.term{j}.C = [];
+            end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
@@ -111,6 +117,9 @@ for i=1:eqnNum
             end
         end
         for j = length(equations.statevec)+1:2*length(equations.statevec) % extract all the R1 terms
+            if ~isfield(tmp{Loc},'term')||(length(tmp{Loc}.term)<j) % term is not initialized 
+                tmp{Loc}.term{j}.C = [];
+            end
             if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))),zeros(1,equations.statevec(j).veclength))% integral term
                 tmp{Loc}.term{j}.I{1} = [0,pvar('s')];
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1))];
@@ -118,6 +127,9 @@ for i=1:eqnNum
             end
         end
         for j = 2*length(equations.statevec)+1:3*length(equations.statevec) % extract all the R2 terms
+            if ~isfield(tmp{Loc},'term')||(length(tmp{Loc}.term)<j) % term is not initialized 
+                tmp{Loc}.term{j}.C = [];
+            end
             if ~isequal(polynomial(row.operator.R.R2(:,veclen_sum(j):veclen_sum(j+1))),zeros(1,equations.statevec(j).veclength))% integral term
                 tmp{Loc}.term{j}.I{1} = [pvar('s'),1]; 
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R2(:,veclen_sum(j):veclen_sum(j+1))];
@@ -128,7 +140,11 @@ for i=1:eqnNum
     else % boundary conditions
         tmp = out.BC;
         k = length(tmp);
+        tmp{k+1} = [];
         for j=1:length(equations.statevec)
+            if ~isfield(tmp{k+1},'term')||(length(tmp{k+1}.term)<j) % term is not initialized 
+                tmp{k+1}.term{j}.C = [];
+            end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
                 tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{k+1}.term{j}.x = find(equations.statevec(j).statename==xNames);
