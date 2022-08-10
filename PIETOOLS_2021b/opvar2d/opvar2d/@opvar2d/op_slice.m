@@ -43,6 +43,7 @@ function Psop = op_slice(Pbop,indr,indc)
 %
 % Initial coding DJ - 02_04_2021  
 %   ^ Based heavily on "@opvar"-op_slice code by SS ^
+% DJ, 08/09/22 - Bugfix when indr or indc are column vectors.
 
 % Decompose the input opvar
 dim_old = Pbop.dim; 
@@ -68,7 +69,7 @@ indrx = [];                 indcx = [];
 indry = [];                 indcy = [];
 indr2 = [];                 indc2 = [];
 
-for i=indr %rows
+for i=indr(:)' %rows
     if i<(n0_old+1)
         n0_new = n0_new+1;
         indr0 = [indr0 i];
@@ -86,7 +87,7 @@ for i=indr %rows
     end
 end
 
-for i=indc %columns
+for i=indc(:)' %columns
     if i<(m0_old+1)
         m0_new = m0_new+1;
         indc0 = [indc0 i];
