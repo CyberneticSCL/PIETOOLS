@@ -44,6 +44,10 @@ switch s(1).type
             error('Invalid indexing operation on state objec');
         end
     case '()'
+        if isempty(s(1).subs{1})
+                out= [];
+                return;
+        end
         if length(s) == 1
             % Implement obj(indices)
             out = obj(s(1).subs{1});
@@ -72,4 +76,7 @@ switch s(1).type
         end
     otherwise
         error('Invalid indexing operation on state objec');
+end
+if isempty(out)
+    out = 0;
 end

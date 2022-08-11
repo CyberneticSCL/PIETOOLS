@@ -1,5 +1,5 @@
-x = state('ode'); X = state('pde'); w = state('in'); u = state('in');
-z = state('out'); y = state('out');
+x = state('ode',2); X = state('pde',2); w = state('in',2); u = state('in',2);
+z = state('out',2); y = state('out',2);
 pvar s theta t;
 ssobj = sys(); ssobj.type = 'pde';
 
