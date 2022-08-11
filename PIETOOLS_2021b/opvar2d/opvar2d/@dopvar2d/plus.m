@@ -93,14 +93,14 @@ elseif ~isa(P2,'dopvar2d') && ~isa(P2,'opvar2d')
         Pplus.R22{1,1} = P2 + Pplus.R22{1,1};
     end
     
-else %both are dopvar2d or opvar2d objects
+else % both are dopvar2d or opvar2d objects
     if any(any(P1.dim~=P2.dim))
         error('Operators dimensions do not match. Check the validity of the addition operation.');
     end
     if any(P1.I~=P2.I)
         error('Operators act on different intervals and cannot be added');
     end
-    %Create a holder variable for the resultant operator
+    % Create a holder variable for the resultant operator
     if isa(P2,'dopvar2d')
         Pplus = P2;
     else
@@ -175,7 +175,5 @@ else %both are dopvar2d or opvar2d objects
         end
         Pplus.(f{:}) = PplusR;
     end
-        
-
 end
 end

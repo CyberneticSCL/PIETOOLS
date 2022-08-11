@@ -1,25 +1,25 @@
-function P1 = zremove(P1,tol)
+function P1 = clean_opvar(P1,tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% P1 = zremove(P1,tol) removes terms from opvar2d P1 with coefficients
+% P1 = clean_opvar(P1,tol) removes terms from dopvar2d P1 with coefficients
 % with a value less than a tolerance tol
 % Date: 08/27/21
 % Version: 1.0
 % 
 % INPUT
-% P1: opvar2d class objects
+% P1:  dopvar2d class objects
 % tol: acceptable tolerance value, defaults to 1e-14. 
 %       -Any term (of any component) of P1 with a coefficient value less 
 %        than or equal to tol gets removed.
 % 
 % OUTPUT
-% P1: opvar2d class object with only nontrivial terms retained
+% P1: dopvar2d class object with only nontrivial terms retained
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETools - zremove
+% PIETools - clean_opvar
 %
 % Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
 %
@@ -42,7 +42,7 @@ function P1 = zremove(P1,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 08_27_2021 
+% Initial coding DJ - 03_09_2022
 
 if nargin<2
     tol=1e-14;
@@ -64,8 +64,14 @@ for f=1:length(fset)
         PRC(abs(PRC)<tol) = 0;
         PR.coef = PRC;
         P1.(fset{f}) = combine(PR); % Combine polynomial to get rid of unnecessary zeros
+    elseif isa(PR,'dpvar')
+        % If object is dpvar, also get rid of coefficients close to zero
+        PRC = PR.C;
+        PRC(abs(PRC)<tol) = 0;
+        PR.C = PRC;
+        P1.(fset{f}) = compress(PR);    % Remove monomials that no longer contribute
     else
-        error('Parameters of an opvar2d class object must be of type "double" or "polynomial"')
+        error('Parameters of a dopvar2d class object must be of type "double", "polynomial", or "dpvar"')
     end
 end
 
@@ -88,8 +94,14 @@ for f=1:length(fsetc)
             PRRC(abs(PRRC)<tol) = 0;
             PRR.coef = PRRC;
             PR{indx} = combine(PRR);
+        elseif isa(PRR,'dpvar')
+            % If object is dpvar, also get rid of coefficients close to zero
+            PRRC = PRR.C;
+            PRRC(abs(PRRC)<tol) = 0;
+            PRR.C = PRRC;
+            PR{indx} = compress(PRR);    % Remove monomials that no longer contribute
         else
-            error('Parameters of an opvar2d class object must be of type "double" or "polynomial"')
+            error('Parameters of a dopvar2d class object must be of type "double", "polynomial", or "dpvar"')
         end
     end
     P1.(fsetc{f}) = PR;

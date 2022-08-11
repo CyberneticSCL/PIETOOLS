@@ -61,17 +61,21 @@
 % Outputs: 
 % 1) solution 
 % solution is a strucutre with the following fields
-% --- solution.tf - actual final time of the solution
-% --- solution.final.pde - pde (distributed state) solution at a final time : matrix of
-%     dimension (N+1) x ns, ns=n0+n1+n2
-% --- solution.final.ode - ode solution at a final time : array of dimensions
-%     nx x 1
+% --- solution.tf - scalar - actual final time of the solution
+% --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
+% --- solution.final.ode - array of size nx - ode solution at a final time 
+% --- solution.final.observed - array of size ny  - final value of observed outputs
+% --- solution.final.regulated - array of size nz  - final value of regulated outputs
 
-% IF OPTS.INTSCHEME=1 (BDF) OPTION (there are additional outputs)
-% --- solution.timedep.ode - array of size nx x Nsteps - time-dependent solution of nx ODE states
-% --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
-% --- solution of ns PDE (distributed) states of the primary PDE system
+% IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
+% --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
+% --- solution.timedep.ode - array of size nx x Nsteps - time-dependent solution of nx ODE states
+%     solution of ns PDE (distributed) states of the primary PDE system
+% --- solution.timedep.observed - array of size ny x Nsteps -
+%     time-dependent value of observed outputs
+% --- solution.timedep.regulated - array of size nz x Nsteps -
+%     time-dependent value of regulated outputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,6 +86,9 @@
 % Initial coding YP  - 5/26/2021
 % Changing inputs and outputs to allow PIEs to be sent as inputs directly -
 % SS 9/20/2021 - moved to PIESIM_options_check
+% YP 6/16/2022 - changed arguments in transform to solution to allow for different 
+% LHS of PDE (T) and map (T0) operators (between fundamental and primary states) -
+% needed, for example, for Orr-Sommerfeld equation
 
 function [solution, grid]=PIESIM(varargin)
 
@@ -99,6 +106,14 @@ function [solution, grid]=PIESIM(varargin)
         
         % Convert PDE to PIE
         PIE=convert_PIETOOLS_PDE_batch(PDE);
+
+    elseif strcmp(opts.type,'PDT')
+        PDT=varargin{1};
+        % Check the inputs and define problem size
+        [PDT, uinput, psize]=PIESIM_input_check(PDT, uinput, opts);
+        
+        % Convert PDE to PIE
+        PIE=convert_PIETOOLS_PDE_terms(PDT);
 
     elseif strcmp(opts.type,'DDE')
         DDE=varargin{1};
@@ -132,7 +147,6 @@ uinput=PIESIM_initial_setup(uinput,psize.n,opts.type);
 % operators with the Chebyshev Galerkin method
 
 [Dop, coeff, grid]=PIESIM_discretize_all(PIE, uinput, psize);
-
 % Solving in time for Chebyshev coefficients
 
 disp('Setup completed: integrating in time');
@@ -141,13 +155,12 @@ solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, Dop);
 
 % Transform solution to physical space
 
-solution=PIESIM_transform_to_solution(psize, PIE.Tu, PIE.Tw, Dop.Mcheb_nonsquare, uinput, grid, solcoeff, opts);
+solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, solcoeff, opts);
 
 
 % Output and plot results
 
 PIESIM_plot_solution(solution, psize, uinput,grid, opts)
-
 end
 
 

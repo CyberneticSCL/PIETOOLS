@@ -1,4 +1,4 @@
-
+function settings = settings_PIETOOLS_veryheavy()
 % DJ - 06/02/2021 - adjusted to store sosineq_on and clear auxilliary variables at the end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % internal variables:
@@ -67,7 +67,7 @@ end
 
 % Clear internal variables
 clear Dup n_order1 n_order2 n_order3 n_order4
-
+end
 
 
 

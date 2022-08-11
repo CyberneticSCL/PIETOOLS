@@ -20,7 +20,7 @@ function Psop=subsref(Pbop,ref)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - subsref
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022 M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -42,9 +42,13 @@ function Psop=subsref(Pbop,ref)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07_12_2021
+% DJ, 05/24/22 - Allow domain to be extracted with dom
 
 switch ref(1).type
     case '.'
+        if numel(ref)==1 && strcmp(ref.subs,'dom')
+            ref.subs = 'I';
+        end
         Psop = getprop(Pbop,ref);
     case '()'
         dim = sum(Pbop.dim);
@@ -69,4 +73,5 @@ switch ref(1).type
             end
         end        
         Psop = op_slice(Pbop,indr,indc);
+end
 end

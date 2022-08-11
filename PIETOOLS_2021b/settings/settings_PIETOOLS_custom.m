@@ -1,4 +1,4 @@
-
+function settings = settings_PIETOOLS_custom()
 % DJ - 06/02/2021 - adjusted to store sosineq_on and clear auxilliary variables at the end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % internal variables:

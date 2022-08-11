@@ -22,22 +22,22 @@ pvar s theta;
 % PIETOOLS_PDE_GUI
 
 % % --- Example Library Option (See User Manual, Section 14) ---
- PDE = examples_PDE_library_PIETOOLS;
+%  PDE = examples_PDE_library_PIETOOLS;
 % PDE = examples_PDE_library_PIETOOLS(5,'batch');
 % PDE = examples_PDE_library_PIETOOLS(5,'terms');
 
 % % --- Batch or Terms Declaration Option (See User Manual, Section 13) ---
-% PDE_b.n0 = 0;   PDE_b.n1 = 1;   PDE_b.n2 = 0;   % state dimensions
-% PDE_b.dom = [0,1];                              % spatial domain
-% PDE_b.A1= 1;                                    % PDE dx/dt = A*dx/ds
-% PDE_b.B = [eye(PDE_b.n1) zeros(PDE_b.n1)];      % BC x(0) = 0;
+PDE_b.n0 = 0;   PDE_b.n1 = 2;   PDE_b.n2 = 0;   % state dimensions
+PDE_b.dom = [0,1];                              % spatial domain
+PDE_b.A1= [0 1; 2 0]; PDE_b.A0 = [0 0; 0 -2];                                    % PDE dx/dt = A*dx/ds
+PDE_b.B = [0 1 0 0; 0 0 1 0];      % BC x(0) = 0;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
- PIE = convert_PIETOOLS_PDE(PDE);
+ PIE = convert_PIETOOLS_PDE(PDE_b);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -45,8 +45,9 @@ pvar s theta;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % --- Specify settings ---
+settings = lpisettings('light');
 % settings_PIETOOLS_heavy;
- settings_PIETOOLS_light;
+%  settings_PIETOOLS_light;
 % settings_PIETOOLS_stripped;
 % settings.sos_opts.solver='sedumi';    % Solver to use
 % settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
@@ -54,10 +55,10 @@ pvar s theta;
 % settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
- PIETOOLS_auto_execute
+%  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-% [prog, P] = PIETOOLS_stability(PIE,settings);
+[prog, P] = PIETOOLS_stability(PIE,settings);
 % [prog, P] = PIETOOLS_stability_dual(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
