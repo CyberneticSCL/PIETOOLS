@@ -20,7 +20,7 @@ function sos = lpi_ineq(sos,P, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - lpi_ineq
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -49,10 +49,18 @@ switch nargin
     case 1
         error('Not enough inputs!')
     case 2
+        if isa(P,'opvar2d') || isa(P,'dopvar2d')
+            sos = lpi_ineq_2d(sos,P);
+            return
+        end
         options.psatz=0;
         options.pure=0;
         options.sep =0;
     case 3
+        if isa(P,'opvar2d') || isa(P,'dopvar2d')
+            sos = lpi_ineq_2d(sos,P,options);
+            return
+        end
         if ~isfield(options,'psatz')
             options.psatz=0;
         end

@@ -17,7 +17,7 @@ function Psol = getsol_lpivar(sos,P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - getsol_lpivar
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -39,6 +39,11 @@ function Psol = getsol_lpivar(sos,P)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
+
+if isa(P,'opvar2d') || isa(P,'dopvar2d')
+    Psol = getsol_lpivar_2d(sos,P);
+    return
+end
 
 opvar Psol; Psol.I = P.I; Psol.var1 = P.var1; Psol.var2 = P.var2;
 Psol.dim = P.dim;
