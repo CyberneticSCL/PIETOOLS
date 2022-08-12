@@ -2757,7 +2757,7 @@ end
 if TERM~=0
  %%% Term-based input format
  % Initialize 1D PDE state component.
- PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
+ PDE_t.x{1}.vars = [s,theta];   PDE_t.x{1}.dom = [0,1];
  % Initialize finite-dimensional inputs and outputs.
  PDE_t.z{1}.vars = [];  PDE_t.w{1}.vars = [];
  PDE_t.y{1}.vars = [];
@@ -3020,7 +3020,7 @@ elseif index==32
 %%% Executive Function:
  evalin('base','stability = 1;');
 
- c1 = 1; c2 = 2; lam = 19;
+ c1 = 1; c2 = 1; lam = 19;
  ne = 1;
  
 if npars~=0
