@@ -138,17 +138,31 @@ x_tab = PDE.x_tab;
 nvars = size(vars,1);
 
 
-% Establish how many state components there are that very in each possible
+% Establish how many state components there are that vary in each possible
 % combination of variables.
 dep_tab = x_tab(:,3:2+nvars);
 diff_tab = x_tab(:,3+nvars:2*nvars+2);
 ncomps = size(x_tab,1);
 np_arr = x_tab(:,2);    % Number of state variables in each component
 nnp_arr = cumsum([0;np_arr]);   % Row number in the full state associated to the first variable of each component
-x_tab_rindcs_00 = ~any(dep_tab,2);                 % Row indices in x_tab associated to finite dimensional states
-x_tab_rindcs_10 = dep_tab(:,1) & ~dep_tab(:,2);   % Row indices in x_tab associated to states that vary just in s1
-x_tab_rindcs_01 = ~dep_tab(:,1) & dep_tab(:,2);   % Row indices in x_tab associated to states that vary just in s2
-x_tab_rindcs_11 = dep_tab(:,1) & dep_tab(:,2);    % Row indices in x_tab associated to states that vary in s1 and s2
+if nvars==0
+    x_tab_rindcs_00 = true(length(np_arr),1);
+    x_tab_rindcs_10 = false(length(np_arr),1);
+    x_tab_rindcs_01 = false(length(np_arr),1);
+    x_tab_rindcs_11 = false(length(np_arr),1);
+elseif nvars==1
+    x_tab_rindcs_00 = ~dep_tab;                 % Row indices in x_tab associated to finite dimensional states
+    x_tab_rindcs_10 = ~x_tab_rindcs_00;         % Row indices in x_tab associated to states that vary just in s1
+    x_tab_rindcs_01 = false(length(np_arr),1);
+    x_tab_rindcs_11 = false(length(np_arr),1);
+elseif nvars==2    
+    x_tab_rindcs_00 = ~any(dep_tab,2);                 % Row indices in x_tab associated to finite dimensional states
+    x_tab_rindcs_10 = dep_tab(:,1) & ~dep_tab(:,2);   % Row indices in x_tab associated to states that vary just in s1
+    x_tab_rindcs_01 = ~dep_tab(:,1) & dep_tab(:,2);   % Row indices in x_tab associated to states that vary just in s2
+    x_tab_rindcs_11 = dep_tab(:,1) & dep_tab(:,2);    % Row indices in x_tab associated to states that vary in s1 and s2
+else
+    error('At most 2 spatial variables are currently supported.')
+end
 
 % Set the dimension of the state.
 np_00 = sum(x_tab(x_tab_rindcs_00,2));

@@ -89,12 +89,13 @@ function PIE = convert_PIETOOLS_PDE_2D(PDE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Initialization                                          % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Coefficients smaller than tol in PI operators will be discarded.
 op_clean_tol = 1e-14;   
 
 % Initialize PDE in case this has not been done.
 PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+
+fprintf('\n --- Converting the PDE to an Equivalent PIE --- \n')
 
 % Extract spatial variables, and their domain (these will be used in
 % multiple subroutines).
@@ -102,6 +103,40 @@ global dom;         dom = PDE.dom;
 global vars;        vars = PDE.vars;
 global nvars;       nvars = size(vars,1);
 
+% If the PDE is not 2D, we artificially augment.
+if nvars==0
+    % Define a 2D domain with variables.
+    pvar ss1 tt1 ss2 tt2
+    vars = [ss1,tt1; ss2,tt2];
+    dom = [0,1;0,1];
+    nvars = 2;
+    
+    % Add a temporary state variable that exists on the 2D domain.
+    ncomps = numel(PDE.x);
+    PDE.x{ncomps+1}.dom = dom;
+    PDE.x{ncomps+1}.vars = vars;
+    PDE.x{ncomps+1}.term{1}.x = ncomps+1;
+    % Initialize the augmented system, and get rid of the temporary state.
+    PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+    PDE.x = PDE.x((1:ncomps)');
+    PDE.x_tab = PDE.x_tab((1:ncomps)',:);
+elseif nvars==1
+     % Define a 2D domain with variables.
+    pvar ss2 tt2
+    vars = [vars; [ss2,tt2]];
+    dom = [dom; [0,1]];
+    nvars = 2;
+    
+    % Add a temporary state variable that exists on the 2D domain.
+    ncomps = numel(PDE.x);
+    PDE.x{ncomps+1}.dom = dom;
+    PDE.x{ncomps+1}.vars = vars;
+    PDE.x{ncomps+1}.term{1}.x = ncomps+1;
+    % Initialize the augmented system, and get rid of the temporary state.
+    PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+    PDE.x = PDE.x((1:ncomps)');
+    PDE.x_tab = PDE.x_tab((1:ncomps)',:);
+end
 
 % Since opvar2d objects are constructed to strictly map states x that can
 % be decomposed as
@@ -322,14 +357,14 @@ PIE.Tu = Top_u;
 
 % Store the PI operators defining the PIE.
 PIE.A = clean_opvar(Aop_x2x,op_clean_tol);
-PIE.Bw = clean_opvar(Bop_w2x,op_clean_tol);
-PIE.Bu = clean_opvar(Bop_u2x,op_clean_tol);
-PIE.Cz = clean_opvar(Cop_x2z,op_clean_tol);
-PIE.Cy = clean_opvar(Cop_x2y,op_clean_tol);
-PIE.Dzw = clean_opvar(Dop_w2z,op_clean_tol);
-PIE.Dzu = clean_opvar(Dop_u2z,op_clean_tol);
-PIE.Dyw = clean_opvar(Dop_w2y,op_clean_tol);
-PIE.Dyu = clean_opvar(Dop_u2y,op_clean_tol);
+PIE.B1 = clean_opvar(Bop_w2x,op_clean_tol);
+PIE.B2 = clean_opvar(Bop_u2x,op_clean_tol);
+PIE.C1 = clean_opvar(Cop_x2z,op_clean_tol);
+PIE.C2 = clean_opvar(Cop_x2y,op_clean_tol);
+PIE.D11 = clean_opvar(Dop_w2z,op_clean_tol);
+PIE.D12 = clean_opvar(Dop_u2z,op_clean_tol);
+PIE.D21 = clean_opvar(Dop_w2y,op_clean_tol);
+PIE.D22 = clean_opvar(Dop_u2y,op_clean_tol);
 
 % Finally, keep track of how the state components in the original PDE are
 % now ordered in the PIE.
@@ -1300,14 +1335,14 @@ for jj = 1:numel(Pop_x_cell)
     
     % Repeat for the input signals.
     if any(Top_u.dim(:,2))
-        Top_u_jj = Top_u({include_params});
+        Top_u_jj = Top_u(retain_xvars,:);
         Top_u_jj = diff(Top_u_jj,vars(:,1),Dval','pure');
         Top_u_jj = subs(Top_u_jj,vars(:,1),Rloc','pure');
         PTop = Pop_jj * Top_u_jj;
         Pop_u = Pop_u + PTop;
     end
     if any(Top_w.dim(:,2))
-        Top_w_jj = Top_w({include_params});
+        Top_w_jj = Top_w(retain_xvars,:);
         Top_w_jj = diff(Top_w_jj,vars(:,1),Dval','pure');
         Top_w_jj = subs(Top_w_jj,vars(:,1),Rloc','pure');
         PTop = Pop_jj * Top_w_jj;
