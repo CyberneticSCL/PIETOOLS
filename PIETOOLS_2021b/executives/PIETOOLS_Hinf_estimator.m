@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_Hinf_estimator.m     PIETOOLS 2021b
+% PIETOOLS_Hinf_estimator.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script executes an H-infty gain analysis for a 4-PIE System defined
 % by the 7 4-PI operator representation
@@ -40,6 +40,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, Lop, gam, P, Z] = PIETOOLS_Hinf_estimator(PIE, settings)
+
+if PIE.dim==2
+    error('Optimal estimator design of 2D PIEs is currently not supported.')
+end
 
 % get settings information
 if nargin<2
