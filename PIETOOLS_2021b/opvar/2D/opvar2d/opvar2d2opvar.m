@@ -48,6 +48,15 @@ function Pop_1d = opvar2d2opvar(Pop_2d,use_space_idx)
 %
 % Initial coding DJ, - 08/12/2022.
 
+% % % Process the inputs.
+
+% Check if we're converting an opvar2d or dopvar2d object.
+is_dopvar = false;
+if isa(Pop_2d,'dopvar2d')
+    is_dopvar = true;
+elseif ~isa(Pop_2d,'opvar2d')
+    error(['Input must be of class ''opvar2d'' or ''dopvar2d''.'])
+end
 
 % Conversion from 2d opvar to 1d opvar is only supported if the 2d operator
 % only maps functions in at most one spatial variable.
@@ -79,8 +88,16 @@ if ~any(use_space)
     use_space(1) = true;
 end
 
+
+
+% % % Construct the opvar object.
+
 % Initialize a 1D operator on the desired domain.
-Pop_1d = opvar();
+if is_dopvar
+    Pop_1d = dopvar();
+else
+    Pop_1d = opvar();
+end
 Pop_1d.I = Pop_2d.I(use_space,:);
 Pop_1d.var1 = Pop_2d.var1(use_space,:);
 Pop_1d.var2 = Pop_2d.var2(use_space,:);
