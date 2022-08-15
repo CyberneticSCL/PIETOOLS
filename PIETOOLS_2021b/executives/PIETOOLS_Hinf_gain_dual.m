@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_Hinf_gain_dual.m     PIETOOLS 2021b
+% PIETOOLS_Hinf_gain_dual.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script executes an alternative `dual' H-infty gain analysis for the 4-PIE System defined
 % by the 5 4-PI operator representation
@@ -43,6 +43,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, P, gam] = PIETOOLS_Hinf_gain_dual(PIE, settings)
+
+if PIE.dim==2
+    % Call the 2D version of the executive.
+    if nargin==1
+        [prog, P, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE);
+    else
+        [prog, P, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE,settings);
+    end
+    return
+end
 
 % get settings information
 if nargin<2

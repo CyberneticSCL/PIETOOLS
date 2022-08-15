@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_stability.m     PIETOOLS 2021b
+% PIETOOLS_stability.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script executes a stability analysis for a 4-PIE System defined
 % by the 2 4-PI operator representation
@@ -33,6 +33,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, P] = PIETOOLS_stability(PIE, settings)
+
+if PIE.dim==2
+    % Call the 2D version of the executive.
+    if nargin==1
+        [prog, P] = PIETOOLS_stability_2D(PIE);
+    else
+        [prog, P] = PIETOOLS_staibility_2D(PIE,settings);
+    end
+    return
+end
 
 % get settings information
 if nargin<2

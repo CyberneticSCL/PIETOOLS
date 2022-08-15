@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_Hinf_control.m     PIETOOLS 2021b
+% PIETOOLS_Hinf_control.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script executes a synthesis code for H-infty optimal full-state 
 % feedback controller design (w/o control at the boundary) for a 4-PIE 
@@ -47,6 +47,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control(PIE, settings)
+
+if PIE.dim==2
+    error('Optimal control of 2D PIEs is currently not supported.')
+end
 
 % get settings information
 if nargin<2

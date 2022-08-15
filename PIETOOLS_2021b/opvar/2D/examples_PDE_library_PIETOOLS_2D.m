@@ -70,6 +70,16 @@ BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
 GUI = 0;        % 1 to load GUI, 0 not to
 
+% Suppress (some) warnings in PDE initialization
+evalin('base','silent_initialize_pde = true;');
+% Each example comes with its own executives, so initially disable all
+evalin('base','stability = 0;');
+evalin('base','stability_dual = 0;');
+evalin('base','Hinf_gain = 0;')
+evalin('base','Hinf_gain_dual = 0;')
+evalin('base','Hinf_estimator = 0;')
+evalin('base','Hinf_control = 0;')
+
 params = {};
 
 % Collect the inputs
@@ -77,7 +87,7 @@ if nargin==0 %<-- If there is no input, pause the script and let the user specif
     userinp = input('\n Select an example (1 through 5) to convert \n ---> ','s');
     varargin0 = split(userinp,[" ",","]);
     index = str2double(varargin0{1});
-    if ~isnan(index) && (index>=1 && index<=5)
+    if ~isnan(index) && (index>=1 && index<=10)
         varargin0{1} = index;
     else
         userinp = input('\n No existing example specified... Please input an integer value 1 through 5 to extract the example \n ---> ','s');
@@ -96,7 +106,7 @@ else
 end
 
 if nargin0==1 %<-- If there is one input, this input MUST correspond to the desired PDE
-    if isdouble(varargin0{1}) && varargin0{1}<=5
+    if isdouble(varargin0{1}) && varargin0{1}<=10
         index = varargin0{1};
         TERM = 1;
     elseif contains(varargin0{1},'batch','IgnoreCase',true)
@@ -115,7 +125,7 @@ if nargin0==1 %<-- If there is one input, this input MUST correspond to the desi
         error('First argument must correspond to an example listed in this file')
     end
 elseif nargin0>=2
-    if isdouble(varargin0{1}) && varargin0{1}<=5
+    if isdouble(varargin0{1}) && varargin0{1}<=10
         index = varargin0{1};
     else
         error('First argument must correspond to an example listed in this file')
@@ -167,9 +177,9 @@ if index==1
 % % % With BCs    u(x=0) = 0;   u(y=0) = 0;
 
  %%% Executive Function:
- evalin('base','stability = 1');
+ evalin('base','stability = 1;');
 
- cx = 1; cy = 1; 
+ cx = 1; cy = 2; 
  n11 = 1;
  
 if npars~=0
@@ -206,9 +216,11 @@ elseif index==2
 % % % PDE         u_{t}  = lam*u + cx*u_{xx} + cy*u_{yy}
 % % % With BCs    u(x=0) = 0;   u(y=0) = 0;
 % % %             u(x=1) = 0;   u(y=1) = 0;
+%
+% % Stable when lam <= 2*pi^2 (Holmes, 1994 [1]).
 
  %%% Executive Function:
- evalin('base','stability = 1');
+ evalin('base','stability = 1;');
 
  cx = 1; cy = 1; lam = 2*pi^2-1e-2;
  n22 = 1;
@@ -255,7 +267,7 @@ elseif index==3
 % % %             u_{x}(x=0) = 0;   u_{y}(y=0) = 0;
 
  %%% Executive Function:
- evalin('base','stability = 1');
+ evalin('base','stability = 1;');
 
  a = 1;  bx = 1;  by = 1;  cx = 1;  cy = 1;
  n22 = 1;
@@ -318,7 +330,7 @@ elseif index==4
 % %      u1(y=0) = u2(y=0) = u1(y=1) = u2(y=1) = 0.
 
  %%% Executive Function:
- evalin('base','stability = 1');
+ evalin('base','stability = 1;');
 
  cx = 1;  cy = 1;
  n22 = 2;
@@ -366,7 +378,7 @@ elseif index==5
 % % %             u(x=1) = 0;       u(y=1) = 0;
 
  %%% Executive Function:
- evalin('base','stability = 1');
+ evalin('base','stability = 1;');
 
  cx = 1;     cy = 1;     k = -2;
  nx = 1; n22 = 1;
@@ -407,7 +419,396 @@ end
  BCindx = [zeros(2*n22,1),ones(2*n22,1);ones(2*n22,1),zeros(2*n22,1)];
  PDE_t.BC.Ebb = DN_BCs2opvar2d(BCindx,0,n22,PDE_t.dom);
  
+
+
+elseif index==6
+% % % % %==================================================================
+% % % 2D reaction-diffusion equation with disturbance
+% % % PDE         X_{t}  = lam*X + cx*X_{xx} + cy*X_{yy} + Bw*w(t)
+% % % Output      z(t)   = int_dom Cz*X(t,x,y) dxdy
+% % % With BCs    u(x=0) = 0;   u(y=0) = 0;
+% % %             u(x=1) = 0;   u(y=1) = 0;
+%
+% % Stable for w(t)=0 when lam <= 2*pi^2 (Holmes, 1994 [1]).
+
+ %%% Executive Function:
+ evalin('base','Hinf_gain = 1;');
+
+ n22 = 1;   nw = 1;     nz = 1;
+ Lx = 1;    Ly = 1;
+ cx = 1;    cy = 1;     lam = (pi/Lx)^2 + (pi/Ly)^2;
+ Bw = 1*eye(n22,nw);    Cz = 1*eye(nz,n22);
  
+if npars~=0
+%%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+ PDE_t.dom = [0,Lx;0,Ly];
+ PDE_t.n.n_pde = [0,0,0; 0,0,0; 0,0,n22];
+ PDE_t.n.nw = nw;   PDE_t.n.nz = nz;
+
+ % ODE: v(t) = Bw*w(t)
+ PDE_t.ODE.Dvw = Bw;
+ 
+ % ODE: z(t) = r(t)
+ PDE_t.ODE.Dzr = eye(nz);
+
+ % PDE: u_{t} = lam * X
+ PDE_t.PDE.A{1}.Lstate = [2,2];
+ PDE_t.PDE.A{1}.Rstate = [2,2];
+ PDE_t.PDE.A{1}.coeff = lam*eye(n22);
+ PDE_t.PDE.A{1}.D = [0,0];
+
+ % PDE: u_{t} = ... + cx * X_{xx}
+ PDE_t.PDE.A{2}.Lstate = [2,2];
+ PDE_t.PDE.A{2}.Rstate = [2,2];
+ PDE_t.PDE.A{2}.coeff = cx*eye(n22);
+ PDE_t.PDE.A{2}.D = [2,0];
+
+ % PDE: u_{t} = ... + cy * X_{yy}
+ PDE_t.PDE.A{3}.Lstate = [2,2];
+ PDE_t.PDE.A{3}.Rstate = [2,2];
+ PDE_t.PDE.A{3}.coeff = cy*eye(n22);
+ PDE_t.PDE.A{3}.D = [0,2];
+ 
+ % PDE: X_{t} = ... + v(t) = ... + Bw*w(t)
+ PDE_t.PDE.Bpv = eye(n22);
+ 
+ % PDE: z(t) = r(t) = int_{dom} Cz(x,y)*X(t,x,y) dx dy
+ PDE_t.PDE.Crp{1}.Rstate = [2,2];
+ PDE_t.PDE.Crp{1}.coeff = Cz;
+ PDE_t.PDE.Crp{1}.D = [0,0];
+
+ BCindx = [ones(4*n22,1), zeros(4*n22,1)]; % Dirichlet conditions on all boundaries
+
+ PDE_t.BC.Ebb = DN_BCs2opvar2d(BCindx,0,n22,PDE_t.dom);
+ 
+ 
+ 
+elseif index==7
+% % % % %==================================================================
+% % % Custom parabolic PDE with all Dirichlet BCs
+% % % PDE         X_{t}  = al(x,y)*(X_{xx} + X_{yy}) 
+% % %                       + bet(x,y)*(X_{x}+X_{y}) + gam(x,y)*X 
+% % %                           + Bw(x,y)*w(t)
+% % % Output      z(t)   = int_dom Cz(x,y)*X(t,x,y) dxdy
+% % % With BCs    u(x=0) = 0;   u(y=0) = 0;
+% % %             u(x=1) = 0;   u(y=1) = 0;
+%
+
+ %%% Executive Function:
+ evalin('base','Hinf_gain = 1;');
+
+ Lx = 1;    Ly = 1;
+ al = 1;    bet = 0;    gam = (pi/Lx)^2 + (pi/Ly)^2;
+ Bw = 1;    Cz = 1;
+ 
+if npars~=0
+%%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+ n22 = size(al,2);  nw = size(Bw,2);   nz = size(Cz,1);
+
+ PDE_t.dom = [-Lx/2,Lx/2;-Ly/2,Ly/2];
+ PDE_t.n.n_pde = [0,0,0; 0,0,0; 0,0,n22];
+ PDE_t.n.nw = nw;   PDE_t.n.nz = nz;
+
+ % ODE: v(t) = w(t)
+ PDE_t.ODE.Dvw = eye(nw);
+ 
+ % ODE: z(t) = r(t)
+ PDE_t.ODE.Dzr = eye(nz);
+
+ % PDE: u_{t} = gam(x,y) * X
+ PDE_t.PDE.A{1}.Lstate = [2,2];
+ PDE_t.PDE.A{1}.Rstate = [2,2];
+ PDE_t.PDE.A{1}.coeff = gam*eye(n22);
+ PDE_t.PDE.A{1}.D = [0,0];
+
+ % PDE: u_{t} = ... + bet(x,y) * X_{x}
+ PDE_t.PDE.A{2}.Lstate = [2,2];
+ PDE_t.PDE.A{2}.Rstate = [2,2];
+ PDE_t.PDE.A{2}.coeff = bet*eye(n22);
+ PDE_t.PDE.A{2}.D = [1,0];
+
+ % PDE: u_{t} = ... + bet(x,y) * X_{y}
+ PDE_t.PDE.A{3}.Lstate = [2,2];
+ PDE_t.PDE.A{3}.Rstate = [2,2];
+ PDE_t.PDE.A{3}.coeff = bet*eye(n22);
+ PDE_t.PDE.A{3}.D = [0,1];
+ 
+ % PDE: u_{t} = ... + al(x,y) * X_{xx}
+ PDE_t.PDE.A{4}.Lstate = [2,2];
+ PDE_t.PDE.A{4}.Rstate = [2,2];
+ PDE_t.PDE.A{4}.coeff = al*eye(n22);
+ PDE_t.PDE.A{4}.D = [2,0];
+
+ % PDE: u_{t} = ... + al(x,y) * X_{yy}
+ PDE_t.PDE.A{5}.Lstate = [2,2];
+ PDE_t.PDE.A{5}.Rstate = [2,2];
+ PDE_t.PDE.A{5}.coeff = al*eye(n22);
+ PDE_t.PDE.A{5}.D = [0,2];
+ 
+ % PDE: X_{t} = ... + v(t) = ... + Bw*w(t)
+ PDE_t.PDE.Bpv = Bw;
+ 
+ % PDE: z(t) = r(t) = int_{dom} Cz(x,y)*X(t,x,y) dx dy
+ PDE_t.PDE.Crp{1}.Rstate = [2,2];
+ PDE_t.PDE.Crp{1}.coeff = Cz;
+ PDE_t.PDE.Crp{1}.D = [0,0];
+
+ BCindx = [ones(4*n22,1), zeros(4*n22,1)]; % Dirichlet conditions on all boundaries
+
+ PDE_t.BC.Ebb = DN_BCs2opvar2d(BCindx,0,n22,PDE_t.dom);
+ 
+ 
+ 
+elseif index==8
+% % % % %==================================================================
+% % % Custom parabolic PDE with Dirichlet and Neumann BCs
+% % % PDE         X_{t}  = al(x,y)*(X_{xx} + X_{yy}) 
+% % %                       + bet(x,y)*(X_{x}+X_{y}) + gam(x,y)*X 
+% % %                           + Bw(x,y)*w(t)
+% % % Output      z(t)   = int_dom Cz(x,y)*X(t,x,y) dxdy
+% % % With BCs    u(x=0) = 0;       u(y=0) = 0;
+% % %             u_{x}(x=1) = 0;   u_{y}(y=1) = 0;
+%
+% For al=1, bet=0, will be stable when gam <= 0.5*pi^2
+
+ %%% Executive Function:
+ evalin('base','Hinf_gain = 1;');
+
+ Lx = 1;    Ly = 1;
+ al = 1;    bet = 0;    gam = (pi/Lx)^2 + (pi/Ly)^2;
+ Bw = 1;    Cz = 1;
+ 
+if npars~=0
+%%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+ n22 = size(al,2);  nw = size(Bw,2);   nz = size(Cz,1);
+
+ PDE_t.dom = [-Lx/2,Lx/2;-Ly/2,Ly/2];
+ PDE_t.n.n_pde = [0,0,0; 0,0,0; 0,0,n22];
+ PDE_t.n.nw = nw;   PDE_t.n.nz = nz;
+
+ % ODE: v(t) = w(t)
+ PDE_t.ODE.Dvw = eye(nw);
+ 
+ % ODE: z(t) = r(t)
+ PDE_t.ODE.Dzr = eye(nz);
+
+ % PDE: u_{t} = gam(x,y) * X
+ PDE_t.PDE.A{1}.Lstate = [2,2];
+ PDE_t.PDE.A{1}.Rstate = [2,2];
+ PDE_t.PDE.A{1}.coeff = gam*eye(n22);
+ PDE_t.PDE.A{1}.D = [0,0];
+
+ % PDE: u_{t} = ... + bet(x,y) * X_{x}
+ PDE_t.PDE.A{2}.Lstate = [2,2];
+ PDE_t.PDE.A{2}.Rstate = [2,2];
+ PDE_t.PDE.A{2}.coeff = bet*eye(n22);
+ PDE_t.PDE.A{2}.D = [1,0];
+
+ % PDE: u_{t} = ... + bet(x,y) * X_{y}
+ PDE_t.PDE.A{3}.Lstate = [2,2];
+ PDE_t.PDE.A{3}.Rstate = [2,2];
+ PDE_t.PDE.A{3}.coeff = bet*eye(n22);
+ PDE_t.PDE.A{3}.D = [0,1];
+ 
+ % PDE: u_{t} = ... + al(x,y) * X_{xx}
+ PDE_t.PDE.A{4}.Lstate = [2,2];
+ PDE_t.PDE.A{4}.Rstate = [2,2];
+ PDE_t.PDE.A{4}.coeff = al*eye(n22);
+ PDE_t.PDE.A{4}.D = [2,0];
+
+ % PDE: u_{t} = ... + al(x,y) * X_{yy}
+ PDE_t.PDE.A{5}.Lstate = [2,2];
+ PDE_t.PDE.A{5}.Rstate = [2,2];
+ PDE_t.PDE.A{5}.coeff = al*eye(n22);
+ PDE_t.PDE.A{5}.D = [0,2];
+ 
+ % PDE: X_{t} = ... + v(t) = ... + Bw*w(t)
+ PDE_t.PDE.Bpv = Bw;
+ 
+ % PDE: z(t) = r(t) = int_{dom} Cz(x,y)*X(t,x,y) dx dy
+ PDE_t.PDE.Crp{1}.Rstate = [2,2];
+ PDE_t.PDE.Crp{1}.coeff = Cz;
+ PDE_t.PDE.Crp{1}.D = [0,0];
+
+ BCindx = [ones(2*n22,1), zeros(2*n22,1); zeros(2*n22,1), ones(2*n22,1)]; % Dirichlet and Neumann conditions on opposing boundaries
+
+ PDE_t.BC.Ebb = DN_BCs2opvar2d(BCindx,0,n22,PDE_t.dom);
+ 
+ 
+ 
+ elseif index==9
+% % % % %==================================================================
+% % % Randomly generated parabolic PDE
+% % % PDE         X_{t}  = (5*x^2-15*x*y+13*y^2)*X_{xx} + X_{yy} 
+% % %                           + (10*x-15*y)*X_{x} + (-15*x+26*y)*X_{y}
+% % %                               + (-17*x^4+30*y+25*x^2+8*y^3+50*y^4)*X 
+% % %                                   + 16*x*(x-1)*y*(y-1)*w(t)
+% % % Output      z(t)   = int_dom Cz*X(t,x,y) dxdy
+% % % With BCs    u(x=0) = 0;   u(y=0) = 0;
+% % %             u(x=1) = 0;   u(y=1) = 0;
+%
+% % [2], Meyer 2015
+
+ %%% Executive Function:
+ evalin('base','Hinf_gain = 1;');
+
+ n22 = 1;   nw = n22;   nz = n22;
+ Lx = 1;    Ly = 1;
+ 
+if npars~=0
+%%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+ PDE_t.dom = [0,Lx;0,Ly];
+ PDE_t.n.n_pde = [0,0,0; 0,0,0; 0,0,n22];
+ PDE_t.n.nw = nw;   PDE_t.n.nz = nz;
+
+ % ODE: v(t) = w(t)
+ PDE_t.ODE.Dvw = eye(n22,nw);
+ 
+ % ODE: z(t) = r(t)
+ PDE_t.ODE.Dzr = eye(nz);
+
+ % PDE: u_{t} = (-17*x^4+30*y+25*x^2+8*y^3+50*y^4) * X
+ PDE_t.PDE.A{1}.Lstate = [2,2];
+ PDE_t.PDE.A{1}.Rstate = [2,2];
+ PDE_t.PDE.A{1}.coeff = (-17*ss1^4+30*ss2+25*ss1^2+8*ss2^3+50*ss2^4)*eye(n22);
+ PDE_t.PDE.A{1}.D = [0,0];
+
+ % PDE: u_{t} = ... + (10*x-15*y) * X_{x}
+ PDE_t.PDE.A{2}.Lstate = [2,2];
+ PDE_t.PDE.A{2}.Rstate = [2,2];
+ PDE_t.PDE.A{2}.coeff = (10*ss1-15*ss2)*eye(n22);
+ PDE_t.PDE.A{2}.D = [1,0];
+ 
+ % PDE: u_{t} = ... + (-15*x+26*y) * X_{y}
+ PDE_t.PDE.A{3}.Lstate = [2,2];
+ PDE_t.PDE.A{3}.Rstate = [2,2];
+ PDE_t.PDE.A{3}.coeff = (-15*ss1+26*ss2)*eye(n22);
+ PDE_t.PDE.A{3}.D = [0,1];
+ 
+ % PDE: u_{t} = ... + (5*x^2-15*x*y+13*y^2) * X_{xx}
+ PDE_t.PDE.A{4}.Lstate = [2,2];
+ PDE_t.PDE.A{4}.Rstate = [2,2];
+ PDE_t.PDE.A{4}.coeff = (5*ss1^2-15*ss1*ss2+13*ss2^2)*eye(n22);
+ PDE_t.PDE.A{4}.D = [2,0];
+
+ % PDE: u_{t} = ... + X_{yy}
+ PDE_t.PDE.A{5}.Lstate = [2,2];
+ PDE_t.PDE.A{5}.Rstate = [2,2];
+ PDE_t.PDE.A{5}.coeff = eye(n22);
+ PDE_t.PDE.A{5}.D = [0,2];
+ 
+ % PDE: X_{t} = ... + (2/Lx)^2*(2/Ly^2)*x*(x-Lx)*y*(y-Ly)*v(t)
+ PDE_t.PDE.Bpv = (2/Lx)^2*(2/Ly)^2* ss1*(ss1-Lx)* ss2*(ss2-Ly)* eye(n22);
+ 
+ % PDE: z(t) = r(t) = int_{dom} Cz(x,y)*X(t,x,y) dx dy
+ PDE_t.PDE.Crp{1}.Rstate = [2,2];
+ PDE_t.PDE.Crp{1}.coeff = eye(nz,n22);
+ PDE_t.PDE.Crp{1}.D = [0,0];
+
+ BCindx = [ones(4*n22,1), zeros(4*n22,1)]; % Dirichlet conditions on all boundaries
+
+ PDE_t.BC.Ebb = DN_BCs2opvar2d(BCindx,0,n22,PDE_t.dom);
+ 
+ 
+ 
+elseif index==10
+% % % % %==================================================================
+% % % Parabolic PDE with disturbance and actuator input
+% % % PDE         X_{t}  = al*(X_{xx}+X_{yy}) + bet_x*X_{x} + bet_y*X_{y}
+% % %                           + lam*X + Bw(x,y)*w(t) + Bu(x,y)*u(t)
+% % % Output      z(t)   = int_{dom} Cz(x,y)*X(t,x,y) dxdy
+% % % With BCs    X(x=0) = 0;   X(y=0) = 0;
+% % %             X(x=1) = 0;   X(y=1) = 0;
+%
+% % [3], Demetriou 2019
+
+ %%% Executive Function:
+ evalin('base','Hinf_gain = 1;');
+
+ Lx = 1;    Ly = 1;
+ n22 = 1;   nw = 1;     nu = 1;     nz = 1;
+ al = 0.1;  betx = 0;   bety = 0;       lam = (pi/Lx)^2 + (pi/Ly)^2;
+ Bw = 1*eye(n22,nw);    Bu = 1*eye(n22,nu);     Cz = 1*eye(nz,n22);
+ 
+if npars~=0
+%%% Specify potential parameters
+ for j=1:npars
+     eval(params{j});
+ end
+end
+
+ PDE_t.dom = [0,Lx;0,Ly];
+ PDE_t.n.n_pde = [0,0,0; 0,0,0; 0,0,n22];
+ PDE_t.n.nw = nw;   PDE_t.n.nu = nu;   PDE_t.n.nz = nz;
+
+ % ODE: v(t) = Bw*w(t) + Bu*u(t)
+ PDE_t.ODE.Dvw = Bw;
+ PDE_t.ODE.Dvu = Bu;
+ 
+ % ODE: z(t) = r(t)
+ PDE_t.ODE.Dzr = eye(nz);
+
+ % PDE: X_{t} = gam * X
+ PDE_t.PDE.A{1}.Lstate = [2,2];
+ PDE_t.PDE.A{1}.Rstate = [2,2];
+ PDE_t.PDE.A{1}.coeff = lam*eye(n22);
+ PDE_t.PDE.A{1}.D = [0,0];
+
+ % PDE: X_{t} = ... + betx * X_{x}
+ PDE_t.PDE.A{2}.Lstate = [2,2];
+ PDE_t.PDE.A{2}.Rstate = [2,2];
+ PDE_t.PDE.A{2}.coeff = betx*eye(n22);
+ PDE_t.PDE.A{2}.D = [1,0];
+
+ % PDE: X_{t} = ... + bety * X_{y}
+ PDE_t.PDE.A{3}.Lstate = [2,2];
+ PDE_t.PDE.A{3}.Rstate = [2,2];
+ PDE_t.PDE.A{3}.coeff = bety*eye(n22);
+ PDE_t.PDE.A{3}.D = [0,1];
+
+ % PDE: X_{t} = ... + al * X_{xx}
+ PDE_t.PDE.A{4}.Lstate = [2,2];
+ PDE_t.PDE.A{4}.Rstate = [2,2];
+ PDE_t.PDE.A{4}.coeff = al*eye(n22);
+ PDE_t.PDE.A{4}.D = [2,0];
+
+ % PDE: X_{t} = ... + al * X_{yy}
+ PDE_t.PDE.A{5}.Lstate = [2,2];
+ PDE_t.PDE.A{5}.Rstate = [2,2];
+ PDE_t.PDE.A{5}.coeff = al*eye(n22);
+ PDE_t.PDE.A{5}.D = [0,2];
+ 
+ % PDE: X_{t} = ... + v(t) = ... + Bu*u(t) + Bw*w(t)
+ PDE_t.PDE.Bpv = eye(n22);
+ 
+ % PDE: z(t) = r(t) = int_{dom} Cz(x,y)*X(t,x,y) dx dy
+ PDE_t.PDE.Crp{1}.Rstate = [2,2];
+ PDE_t.PDE.Crp{1}.coeff = Cz;
+ PDE_t.PDE.Crp{1}.D = [0,0];
+
+ BCindx = [ones(4*n22,1),zeros(2*n22,1)]; % Dirichlet conditions on all boundaries
+
+ PDE_t.BC.Ebb = DN_BCs2opvar2d(BCindx,0,n22,PDE_t.dom);
 
 end
 
@@ -429,3 +830,32 @@ if TERM~=0
 end
 
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% % [1] - 
+% E. E. Holmes, M. Lewis, J. Banks, and R. R. Veit, “Partial differential
+% equations in ecology: Spatial interactions and population dynamics,”
+% Ecology, vol. 75, pp. 17–29, 1994.
+%
+% % [2] -
+% @inproceedings{meyer2015stability,
+%   title={Stability analysis of parabolic linear PDEs with two spatial dimensions using Lyapunov method and SOS},
+%   author={Meyer, Evgeny and Peet, Matthew M},
+%   booktitle={2015 54th IEEE Conference on Decision and Control (CDC)},
+%   pages={1884--1890},
+%   year={2015},
+%   organization={IEEE}
+% }
+%
+% % [3] - 
+% @inproceedings{demetriou2019feedback,
+% title={Feedback kernel approximations and sensor selection for controlled 2D parabolic PDEs using computational geometry methods},
+% author={Demetriou, Michael A and Hu, Weiwei},
+% booktitle={2019 IEEE 58th Conference on Decision and Control (CDC)},
+% pages={2144--2150},
+% year={2019},
+% organization={IEEE}
+% }

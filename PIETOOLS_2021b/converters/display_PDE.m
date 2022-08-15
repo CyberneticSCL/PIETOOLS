@@ -172,6 +172,7 @@ for eq_num=1:numel(PDE.x)
     % % First construct the LHS of the PDE
     x_comp = PDE.x{eq_num}; % Extract the info for the considered state
     LHS_length = 2;         % Keep track of the size of the expression on the LHS
+    eq_info = PDE.x_tab(eq_num,:);
     
     % Set the order for the temporal derivative of the state.
     if isfield(x_comp,'tdiff')
@@ -240,7 +241,7 @@ for eq_num=1:numel(PDE.x)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(x_comp.term)
-        term_str = construct_term(PDE,x_comp,eq_num,trm,var_list);
+        term_str = construct_term(PDE,x_comp,eq_num,eq_info,trm,var_list);
         x_eq_new = [x_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -268,6 +269,7 @@ for eq_num=1:numel(PDE.y)
     % % First construct the LHS of the output equation
     y_comp = PDE.y{eq_num}; % Extract the info for the considered output
     LHS_length = 2;         % Keep track of the size of the expression on the LHS
+    eq_info = PDE.y_tab(eq_num,:);
     
     % Establish the set of variables on which the output depends.
     tab_row = find(PDE.y_tab(:,1)==eq_num);
@@ -317,7 +319,7 @@ for eq_num=1:numel(PDE.y)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(y_comp.term)
-        term_str = construct_term(PDE,y_comp,eq_num,trm,var_list);
+        term_str = construct_term(PDE,y_comp,eq_num,eq_info,trm,var_list);
         y_eq_new = [y_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -345,6 +347,7 @@ for eq_num=1:numel(PDE.z)
     % % First construct the LHS of the output equation
     z_comp = PDE.z{eq_num}; % Extract the info for the considered output
     LHS_length = 2;         % Keep track of the size of the expression on the LHS
+    eq_info = PDE.z_tab(eq_num,:);
     
     % Establish the set of variables on which the output depends.
     tab_row = find(PDE.z_tab(:,1)==eq_num);
@@ -394,7 +397,7 @@ for eq_num=1:numel(PDE.z)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(z_comp.term)
-        term_str = construct_term(PDE,z_comp,eq_num,trm,var_list);
+        term_str = construct_term(PDE,z_comp,eq_num,eq_info,trm,var_list);
         z_eq_new = [z_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -421,6 +424,7 @@ for eq_num=1:numel(PDE.BC)
        
     % % First construct the LHS of the output equation
     BC_comp = PDE.BC{eq_num};
+    eq_info = PDE.BC_tab(eq_num,:);
     LHS = '0';
     LHS_length = 3;
         
@@ -437,7 +441,7 @@ for eq_num=1:numel(PDE.BC)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(BC_comp.term)
-        term_str = construct_term(PDE,BC_comp,eq_num,trm,var_list);
+        term_str = construct_term(PDE,BC_comp,eq_num,eq_info,trm,var_list);
         BC_eq_new = [BC_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -466,7 +470,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function term_str = construct_term(PDE,eq,eq_num,term_num,var_list)
+function term_str = construct_term(PDE,eq,eq_num,eq_info,term_num,var_list)
 % Build a str to represent term number "trm" in the equation "eq" of the
 % PDE structure "PDE".
 
@@ -481,7 +485,7 @@ sup_var1_list = var_list(:,5);
 nvars = length(var1_list);
 var1_name = PDE.vars(:,1).varname;
 var2_name = PDE.vars(:,2).varname;
-
+has_vars_eq = eq_info(3:2+nvars);
 
 % % % Define a number of symbols we'll need to display the system
 % Subscripts
@@ -582,6 +586,7 @@ sub_Rvar1_list = sub_var1_list(Rvar_indcs);
 sub_Rvar2_list = sub_var2_list(Rvar_indcs);
 %sup_Rvar1_list = sup_var1_list(Rvar_indcs);
 
+has_vars_eq = has_vars_eq(Rvar_indcs);
 
 % % % Display the integrals
 int_trm = '';
@@ -654,7 +659,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
         
         % Add the dummy variables
         use_theta_trm(kk) = true;
-        if isa(L_kk,'double') && isa(U_kk,'double')
+        if isa(L_kk,'double') && isa(U_kk,'double') && ~has_vars_eq(kk)
             dtheta_trm = ['d',Rvar1_list{kk},' ',dtheta_trm,];
         else
             % For partial integrals, evaluate state at dummy variable
@@ -662,7 +667,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
             Rvar1_list{kk} = Rvar2_list{kk}; % Evaluate state at dummy var
             sub_Rvar1_list{kk} = sub_Rvar2_list{kk};
             dtheta_trm = ['d',Rvar2_list{kk},' ',dtheta_trm,];
-        end        
+       end        
     end
 end
 if ~isempty(int_trm)
@@ -723,7 +728,7 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
             for idx=2:length(Cvar2_list)
                 Cvar_str = [Cvar_str,',',Cvar2_list{idx}];
             end
-            Cvar_str = [Cvar_str,') * '];
+            Cvar_str = [Cvar_str,')'];
         else
             Cvar_str = '';
         end
