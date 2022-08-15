@@ -920,7 +920,7 @@ if includeL(1)
     end
     if includeL(6) && ~options.sep(2)==1
         Pop.R0y = Pop.R0y + int_simple(gir*subs(N{ij(1),ij(6)},tt2,ss2),rr2,ss2,I(2,2));
-    elseif includeL(3) && options.sep(2)==1
+    elseif includeL(6) && options.sep(2)==1
         Pop.R0y = Pop.R0y + int_simple(gir*subs(N{ij(1),ij(6)},tt2,ss2),rr2,I(2,1),I(2,2));
     end
     if includeL(7)
@@ -1164,7 +1164,7 @@ elseif includeL(3) && options.sep(1)==1
     if includeL(9) && ~options.sep(3)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,tt1,I(1,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,tt1,I(1,2));
-    elseif options.sep(3)
+    elseif includeL(9) && options.sep(3)
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,I(1,1),I(1,2));

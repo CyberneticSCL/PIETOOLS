@@ -395,7 +395,7 @@ if ~Zexclude(3) || ~Zexclude(4)
     nZd_x = sum(max(Zd_joint+1-xdeg_min-ttdeg_min,1));
     Zd_x = zeros(nZd_x,2);
     indx_n = 0;
-    for k=1:nZd_x
+    for k=1:size(Zd_joint,1)
         Zdk_xtt = Zd_joint(k);                                  % Required joint degree in x*tt
         i1x = min(xdeg_min,Zdk_xtt);
         i1tt = min(ttdeg_min,Zdk_xtt-i1x);
@@ -496,7 +496,7 @@ if ~Zexclude(6) || ~Zexclude(7)
     nZd_y = sum(max(Zd_joint+1-ydeg_min-nudeg_min,1));  % Number of possible monomials in (x,tt) with joint degrees in (x*tt) as in Zd_joint
     Zd_y = zeros(nZd_y,2);
     indx_n = 0;
-    for k=1:nZd_y
+    for k=1:size(Zd_joint,1)
         Zdk_ynu = Zd_joint(k);                                  % Required joint degree in y*nu
         i1y = min(ydeg_min,Zdk_ynu);
         i1nu = min(nudeg_min,Zdk_ynu-i1y);
@@ -579,7 +579,7 @@ if ~Zexclude(9) || ~Zexclude(10)
     nZd_x = sum(max(Zd_joint(:,1)+1-xdeg_min-ttdeg_min,1));  % Number of possible monomials in (x,tt,y) with joint degrees in (x*tt,y) as in Zd_joint
     Zd_x = zeros(nZd_x,2);
     indx_n = 0;
-    for k=1:nZd_x
+    for k=1:size(Zd_joint,1)
         Zdk_xtt = Zd_joint(k,1);                                    % Required joint degree in x*tt
         i1x = min(xdeg_min,Zdk_xtt);
         i1tt = min(ttdeg_min,Zdk_xtt-i1x);
@@ -647,7 +647,7 @@ if ~Zexclude(11) || ~Zexclude(12)
     nZd_y = sum(max(Zd_joint(:,2)+1-ydeg_min-nudeg_min,1));  % Number of possible monomials in (x,y,nu) with joint degrees in (x,y*nu) as in Zd_joint
     Zd_y = zeros(nZd_y,2);
     indx_n = 0;
-    for k=1:nZd_y
+    for k=1:size(Zd_joint,1)
         Zdk_ynu = Zd_joint(k,2);                                    % Required joint degree in u*nu
         i1y = min(ydeg_min,Zdk_ynu);
         i1nu = min(nudeg_min,Zdk_ynu-i1y);

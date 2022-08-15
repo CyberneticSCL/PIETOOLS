@@ -25,7 +25,7 @@ function [prog,Zop] = lpivar(prog,n,I,d)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - lpivar
 %
-% Copyright (C)2019  M. Peet, S. Shivakumar
+% Copyright (C)2022  M. Peet, S. Shivakumar
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -52,7 +52,15 @@ function [prog,Zop] = lpivar(prog,n,I,d)
 if nargin<3
     error("Not enough input arguments");
 elseif nargin==3
+    if all(size(I)==[2,2])
+        [prog,Zop] = lpivar_2d(prog,n,I);
+        return
+    end
     d = [1,1,1];
+end
+if all(size(I)==[2,2])
+    [prog,Zop] = lpivar_2d(prog,n,I,d);
+    return
 end
 
 pvar s theta;

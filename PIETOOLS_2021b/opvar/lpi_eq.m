@@ -17,7 +17,7 @@ function sos = lpi_eq(sos,P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - lpi_eq
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -40,6 +40,10 @@ function sos = lpi_eq(sos,P)
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
 %
+if isa(P,'opvar2d') || isa(P,'dopvar2d')
+    sos = lpi_eq_2d(sos,P);
+    return
+end
 for i = {'P','Q1','Q2'}
     if ~isempty(P.(i{:}))
         sos = soseq(sos, P.(i{:}));

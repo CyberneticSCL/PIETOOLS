@@ -66,8 +66,8 @@ settings.LF_deg.dy = dy;
 settings.LF_deg.d2 = d2;
   
 % % Should we exclude any parameters (monomials), or require separability?
-settings.LF_opts.sep = [1;  % Set 1 to enforce Rxx{2}=Rxx{3}
-                        1;  % Set 1 to enforce Ryy{2}=Ryy{3}
+settings.LF_opts.sep = [0;  % Set 1 to enforce Rxx{2}=Rxx{3}
+                        0;  % Set 1 to enforce Ryy{2}=Ryy{3}
                         1;  % Set 1 to enforce R22{2,1}=R22{3,1}
                         1;  % Set 1 to enforce R22{1,2}=R22{1,2}
                         1;  % Set 1 to enforce R22{2,2}=R22{3,2}, R22{2,3}=R22{3,3}

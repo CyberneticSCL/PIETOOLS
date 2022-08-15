@@ -1,8 +1,86 @@
-classdef pie_struct
+classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
+% pde_struct is a class of objects used to describe PIE systems in
+% PIETOOLS 2022a. It has the following fields:
+%
+% - PDE.dim:    Integer "p" specifying the dimension of the
+%               spatial domain of the system. Currently, only p<=2 is
+%               supported.
+% - PDE.vars:   A px2 pvar (polynomial class) object specifying
+%               the p spatial variables that appear in the system in the
+%               first column, and the associated dummy variables in the
+%               second column.
+% - PDE.dom:    A px2 "double" array specifying the interval on
+%               which each of p spatial variables exists.
+%
+% - PIE.T, PIE.Tw, PIE.Tu:
+%               opvar or opvar2d objects describing the map from a
+%               fundamental state xf in the PIE to an associated state x in
+%               the equivalent PDE representation, as:
+%                   x = T*xf + Tw*w + Tu*u;
+%               where w are exogenous inputs, and u are actuator inputs.
+%               The operators are uniquely defined by the boundary
+%               conditions in the PDE structure, taking the form
+%                   0 = F(x,w,u).
+%
+% - PIE.A,  PIE.B1,  PIE.B2,
+%   PIE.C1, PIE.D11, PIE.D12,
+%   PIE.C2, PIE.D21, PIE.D22:      
+%               opvar or opvar2d objects defining a Partial Integral
+%               Equation (PIE) of the form
+%
+%       Tu * u + Tw * w + T * x = A  * x + B1  * w + B2  * u;
+%                             z = C1 * x + D11 * w + D12 * u;
+%                             y = C2 * x + D21 * w + D22 * u;
+%
+% - PIE.x_tab, PIE.w_tab, PIE.u_tab, PIE.z_tab, PIE.y_tab:
+%
+%               ncomp x (2+nvars) arrays providing information on the state
+%               components, exogenous inputs, actuator inputs, regulated
+%               outputs, and observed outputs in the PIE structure. 
+%               For example, if the fundamental state xf consists of 
+%               ncomp_x components, the first column of PIE.x_tab provides 
+%               for each of these state components an index, indicating
+%               which state component in the original PDE is associated to
+%               this fundamental state component. 
+%               The second column of PIE.x_tab provides the size of each 
+%               state component.
+%               Columns 3:2+nvars are binary values, indicating for each of
+%               the nvars variables in the PIE whether the state component
+%               depends on this spatial variable.
+%               NOTE: PIE.x_tab has nvars extra columns (3+nvars:2+2*nvars)
+%               indicating for each spatial variable to what order the PDE
+%               state compopnent is differentiated wrt this variable in
+%               defining the associated fundamental state component in the
+%               PIE.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding SS, DJ - 08/12/2022
+    
     properties
-        dom = [0,1];
-        vars = [pvar('s'), pvar('theta')];
-        dim = 1;
+        dom = zeros(0,2);
+        vars = polynomial(zeros(0,2));
+        dim = 0;
         T;
         Tw;
         Tu;
@@ -16,7 +94,16 @@ classdef pie_struct
         D21;
         D22;
     end
-    properties (hidden)
-        signal_dims = [0,0,0,0,0,0]; % store sizes of (x,X,z,y,w,u) here
+    
+    properties (Hidden)
+        % The tables with standardized information on each of the components
+        % should not be specified by the user, but should be added to the
+        % structure by the conversion function".
+        x_tab = zeros(0,2); % [state_num, state_size, isvar1, isvar2, vardiff1, vardiff2]
+        u_tab = zeros(0,2);
+        w_tab = zeros(0,2);
+        y_tab = zeros(0,2);
+        z_tab = zeros(0,2);
     end
+    
 end

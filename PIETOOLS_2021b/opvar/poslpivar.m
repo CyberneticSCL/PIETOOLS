@@ -52,7 +52,7 @@ function [prog,Pop] = poslpivar(prog,n,I,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - poslpivar
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -82,17 +82,26 @@ switch nargin
     case 2
         error('Not enough inputs!')
     case 3
+        if all(size(I)==[2,2])
+            [prog,Pop] = poslpivar_2d(prog,n,I);
+        end
         d = {1,[1,1,1],[1,1,1]};
         options.psatz=0;
         options.exclude=[0 0 0 0];
         options.diag=0;
         options.sep =0;
     case 4
+        if all(size(I)==[2,2])
+            [prog,Pop] = poslpivar_2d(prog,n,I,d);
+        end
         options.psatz=0;
         options.exclude=[0 0 0 0];
         options.diag=0;
         options.sep =0;
     case 5
+        if all(size(I)==[2,2])
+            [prog,Pop] = poslpivar_2d(prog,n,I,d,options);
+        end
         if ~isfield(options,'psatz')
             options.psatz=0;
         end

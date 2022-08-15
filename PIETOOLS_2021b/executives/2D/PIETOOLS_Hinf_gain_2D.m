@@ -134,6 +134,8 @@ if isfield(settings,'use_bisect')
             gain = 0.5*gam_min + 0.5*gam_max;
         end
     end
+else
+    use_bisect = false;
 end
 
 
@@ -448,6 +450,10 @@ function outcell = extract_psatz_deg(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to
 % determine if a cell element has been defined for each psatz term.
 
+if all(use_psatz==0)
+    outcell = {};
+    return
+end
 if isa(incell,'struct')
     for j=1:length(use_psatz)
         outcell{j} = incell;
@@ -469,6 +475,10 @@ function outcell = extract_psatz_opts(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to
 % determine if a cell element has been defined for each psatz term.
 
+if all(use_psatz==0)
+    outcell = {};
+    return
+end
 if isa(incell,'struct')
     for j=1:length(use_psatz)
         outcell{j} = incell;
