@@ -44,9 +44,10 @@ out.BC = cell(0,1);
 isdot_A = isdot(equations.statevec); isout_A=isout(equations.statevec); 
 for i=1:eqnNum
     row = equations(i);
-    if any(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec)))) % equation has outputs
+    if any(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength)))) % equation has outputs
         % find which output 
-        outLoc = find(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
+        outLoc = find(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength))));
+        outLoc = find(outLoc<veclen_sum,1)-1;
         outNametemp = equations.statevec(outLoc).statename;
         if ismember(outNametemp, zNames)% regulated output
             tmp = out.z;
@@ -87,9 +88,10 @@ for i=1:eqnNum
         else % observed output
             out.y = tmp;
         end
-    elseif any(isdot_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))))% equation has dynamics
+    elseif any(isdot_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength))))% equation has dynamics
         % find which x
-        outLoc = find(isdot_A'.*any(strcmp(equations.statevec.type,{'ode'})|strcmp(equations.statevec.type,{'pde'}))'&~isequal(polynomial(row.operator.R.R0),zeros(1,length(equations.statevec))));
+        outLoc = find(isdot_A'.*any(strcmp(equations.statevec.type,{'ode'})|strcmp(equations.statevec.type,{'pde'}))'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength))));
+        outLoc = find(outLoc<veclen_sum,1)-1;
         outNametemp = equations.statevec(outLoc).statename;
         tmp = out.x;
         Loc = find(outNametemp == xNames); 

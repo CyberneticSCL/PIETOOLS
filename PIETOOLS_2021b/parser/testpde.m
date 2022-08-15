@@ -8,7 +8,7 @@ eqns = [diff(x,t)+5*x-3*u;
         z-x-int(X,s,[0,1])-u;
         y-diff(subs(X,s,0),s)-w;
         subs(X,s,0);
-        subs(diff(X,s),s,1)-x];
+        subs(diff(X,s),s,1)];
 ssobj = addequation(ssobj,eqns);
 ssobj = setControl(ssobj,u);
 ssobj = setObserve(ssobj,y);

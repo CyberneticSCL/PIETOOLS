@@ -1,4 +1,4 @@
-classdef state
+classdef (InferiorClasses={?polynomial,?dpvar})state
     properties
         type {mustBeMember(type,{'ode','pde','in','out'})} = 'ode';
         veclength {mustBeInteger,mustBePositive}=1;
