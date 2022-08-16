@@ -1,4 +1,4 @@
-function PDE_params = parsePDEParams(varlist, PDE_Text, metadata)
+function PDE_struct = parsePDEParams(varlist, PDE_Text, metadata)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % parsePDEParams.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,6 +48,12 @@ else
     PDE.Xvaridx = [];
 end
 
+keys = [xlist;Xlist;wlist;ulist;zlist;ylist];
+vals = [1:length(xlist) length(xlist)+1:length(xlist)+length(Xlist) 1:length(wlist) 1:length(ulist) 1:length(zlist) 1:length(ylist)]; 
+statenameMap = containers.Map(keys,vals);
+
+pvar s theta;
+PDE.vars = [s;theta];
 PDE.n.nx = sum(contains(varlist(:,1),'x'));
 PDE.n.nw = sum(contains(varlist(:,1),'w'));
 PDE.n.nu = sum(contains(varlist(:,1),'u'));
@@ -60,22 +66,47 @@ PDE.n.n_pde = n_pde;
 PDE.n.nz = sum(contains(varlist(:,1),'z'));
 PDE.n.ny = sum(contains(varlist(:,1),'y'));
 
-PDE.ODE = struct(); PDE.PDE = struct(); PDE.BC = struct();
-%initialize PDE parameters
-% init_PDE_params;
-pvar s theta;
-PDE.vars = [s;theta];
+
+% first set the standard known parameters of pde_struct
+PDE_struct.dim = 1;
+PDE_struct.dom = [0 1];
+PDE_struct.vars = PDE.vars(1);
+
+% extract dimensions of various signals, x X z y w u & BC
+no = PDE.n.nx; nw = PDE.n.nw; nu = PDE.n.nu;
+n_pde = PDE.n.n_pde; nz = PDE.n.nz; ny = PDE.n.ny;
+N = length(n_pde)-1; %max derivative
+nBC = sum(n_pde.*(0:N));
+
+% now initialize cell structure for the dynamics, outputs and BCs
+PDE_struct.x = cell(no+sum(n_pde),1);
+PDE_struct.w = cell(nw,1);
+PDE_struct.u = cell(nu,1);
+PDE_struct.z = cell(nz,1);
+PDE_struct.y = cell(ny,1);
+PDE_struct.BC = cell(nBC,1);
+
+% specify first no cells as ODE states
+for i=1:no
+    PDE_struct.x{i}.vars = [];
+end
+% specify order of differentiation for PDE states
+diffvals = varlist(contains(varlist(:,1),'X'),2);
+for i=no+1:no+sum(n_pde)
+    PDE_struct.x{i}.diff = diffvals{i-no};
+end
+
+
 % get PDE params
-PDE.PDE.Bpx ={};PDE.PDE.Bpw ={};PDE.PDE.Bpu ={};PDE.PDE.App ={};PDE.PDE.Bpb ={};PDE.PDE.Bpi ={};
+iLoc = no+1;
 for i=metadata(1)+1:metadata(2)-1
     eqn = PDE_text{i}; % get line
     Lstate = regexp(eqn,'[\w]+ =','match'); % get Lstate
     % separate LHS and RHS, also remove partial derivative in time
     eqn = regexprep(eqn,['\\partial_t ',Lstate],'');
     Lstate = Lstate{1}(1:end-2); % remove equal sign
+    PDE_struct.x{iLoc}.term = [];
     
-    % identify Lstate number
-    Xn = str2double(Lstate(2:end)); %find output number to arrange the matrices
     % separate terms on RHS
     eqn = split(eqn);
     ode_coeffs = eqn(contains(eqn,'x')); % ode terms 
@@ -90,32 +121,35 @@ for i=metadata(1)+1:metadata(2)-1
         term =ode_coeffs{k};
         Rstate = regexp(term,'x[0-9]+','match');
         coeff = regexprep(term,'x[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.PDE.Bpx{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
+        PDE_struct.x{iLoc}.term{k} = tmp;
+        clear tmp;
     end
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
         coeff = regexprep(term,'w[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.PDE.Bpw{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.w = statenameMap(keyval);
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
         coeff = regexprep(term,'u[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.PDE.Bpu{end+1} = tmp;        
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.u = statenameMap(keyval);
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(pde_coeffs)
         term =pde_coeffs{k};
-        Rstate = regexp(term,'X[0-9]+\(.\)','match');
+        Rstate = regexp(term,'X[0-9]+\(s\)','match');
         coeff = regexprep(term,'X[0-9]+\(s\)','');
         der_order = regexp(coeff,'(\\partial_s)+(\^.)?','match');
         if isempty(der_order)
@@ -126,13 +160,13 @@ for i=metadata(1)+1:metadata(2)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        keyval = regexprep(Rstate{1},'\(s\)','');
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.PDE.App{end+1} = tmp;
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
-    clear tmp;
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
         Rstate = regexp(term,'X[0-9]+\(.\)','match');
@@ -146,13 +180,14 @@ for i=metadata(1)+1:metadata(2)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.loc = regexprep(Rstate{1},'X[0-9]+\(',''); tmp.loc = str2double(tmp.loc(1:end-1));
+        keyval = regexprep(Rstate{1},'\(.\)','');
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.PDE.Bpb{end+1} = tmp;
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
-    clear tmp;
     for k=1:length(pde_icoeffs)
         term =pde_icoeffs{k};
         Rstate = regexp(term,'X[0-9]+','match');
@@ -169,23 +204,25 @@ for i=metadata(1)+1:metadata(2)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        tmp.I = [eval_b(a{1}(2:end-1)) eval_b(b{1}(2:end))];
-        PDE.PDE.Bpi{end+1} = tmp;
+        tmp.I{1} = [eval_b(a{1}(2:end-1)) eval_b(b{1}(2:end))];
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
-    clear tmp;
+    iLoc = iLoc+1;
 end
 % get ODE params
-PDE.ODE.A={}; PDE.ODE.Bxw={};PDE.ODE.Bxu={};PDE.ODE.Bxb={};PDE.ODE.Bxi={};
+iLoc = 1;
 for i=metadata(2)+1:metadata(3)-1
     eqn = PDE_text{i}; % get line
     Lstate = regexp(eqn,'[\w]+ =','match'); % get Lstate
     % separate LHS and RHS, also remove partial derivative in time
     eqn = regexprep(eqn,['\\partial_t ',Lstate],'');
     Lstate = Lstate{1}(1:end-2); % remove equal sign
+    PDE_struct.x{iLoc}.term = [];
     
     % separate terms on RHS
     eqn = split(eqn);
@@ -200,28 +237,31 @@ for i=metadata(2)+1:metadata(3)-1
         term =ode_coeffs{k};
         Rstate = regexp(term,'x[0-9]+','match');
         coeff = regexprep(term,'x[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.A{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
+        PDE_struct.x{iLoc}.term{k} = tmp;
+        clear tmp;
     end
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
         coeff = regexprep(term,'w[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.Bxw{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.w = statenameMap(keyval);
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
         coeff = regexprep(term,'u[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.Bxu{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.u = statenameMap(keyval);
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
@@ -236,11 +276,12 @@ for i=metadata(2)+1:metadata(3)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.loc = regexprep(Rstate{1},'X[0-9]+\(',''); tmp.loc = str2double(tmp.loc(1:end-1));
+        keyval = regexprep(Rstate{1},'\(.\)','');
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.ODE.Bxb{end+1} = tmp;
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
     for k=1:length(pde_icoeffs)
@@ -256,16 +297,18 @@ for i=metadata(2)+1:metadata(3)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.I{1} = [0,1];
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.ODE.Bxi{end+1} = tmp;
+        PDE_struct.x{iLoc}.term{end+1} = tmp;
         clear tmp;
     end
+    iLoc = iLoc+1;
 end
 % get regulated output params
-PDE.ODE.Cz={}; PDE.ODE.Dzw={};PDE.ODE.Dzu={};PDE.ODE.Dzb={};PDE.ODE.Dzi={};
+iLoc = 1;
 for i=metadata(3)+1:metadata(4)-1
     eqn = PDE_text{i}; % get line
     Loutput = regexp(eqn,'[\w]+ =','match'); % get Loutput
@@ -273,7 +316,7 @@ for i=metadata(3)+1:metadata(4)-1
     % separate LHS and RHS, also remove partial derivative in time
     eqn = regexprep(eqn,Loutput,'');
     Lstate = Loutput{1}(1:end-2); % remove equal sign
-    
+    PDE_struct.z{iLoc}.term = [];
     % separate terms on RHS
     eqn = split(eqn);
     ode_coeffs = eqn(contains(eqn,'x')); % ode terms 
@@ -287,28 +330,31 @@ for i=metadata(3)+1:metadata(4)-1
         term =ode_coeffs{k};
         Rstate = regexp(term,'x[0-9]+','match');
         coeff = regexprep(term,'x[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.Cz{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
+        PDE_struct.z{iLoc}.term{k} = tmp;
+        clear tmp;
     end
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
         coeff = regexprep(term,'w[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.Dzw{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.w = statenameMap(keyval);
+        PDE_struct.z{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
         coeff = regexprep(term,'u[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.Dzu{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.u = statenameMap(keyval);
+        PDE_struct.z{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
@@ -323,13 +369,14 @@ for i=metadata(3)+1:metadata(4)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.loc = regexprep(Rstate{1},'X[0-9]+\(',''); tmp.loc = str2double(tmp.loc(1:end-1));
+        keyval = regexprep(Rstate{1},'\(.\)','');
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.ODE.Dzb{end+1} = tmp;
+        PDE_struct.z{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
-    clear tmp;
     for k=1:length(pde_icoeffs)
         term =pde_icoeffs{k};
         Rstate = regexp(term,'X[0-9]+','match');
@@ -343,16 +390,18 @@ for i=metadata(3)+1:metadata(4)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.I{1} = [0,1];
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.ODE.Dzi{end+1} = tmp;
+        PDE_struct.z{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
-    clear tmp;
+    iLoc = iLoc+1;
 end
 % get observed output params
-PDE.ODE.Cy={}; PDE.ODE.Dyw={};PDE.ODE.Dyu={};PDE.ODE.Dyb={};PDE.ODE.Dyi={};
+iLoc = 1;
 for i=metadata(4)+1:metadata(5)-1
     eqn = PDE_text{i}; % get line
     Loutput = regexp(eqn,'[\w]+ =','match'); % get Loutput
@@ -360,7 +409,7 @@ for i=metadata(4)+1:metadata(5)-1
     % separate LHS and RHS, also remove partial derivative in time
     eqn = regexprep(eqn,Loutput,'');
     Lstate = Loutput{1}(1:end-2); % remove equal sign
-    
+    PDE_struct.y{iLoc}.term = [];
     % separate terms on RHS
     eqn = split(eqn);
     ode_coeffs = eqn(contains(eqn,'x')); % ode terms 
@@ -374,28 +423,31 @@ for i=metadata(4)+1:metadata(5)-1
         term =ode_coeffs{k};
         Rstate = regexp(term,'x[0-9]+','match');
         coeff = regexprep(term,'x[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.Cy{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
+        PDE_struct.y{iLoc}.term{k} = tmp;
+        clear tmp;
     end
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
         coeff = regexprep(term,'w[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.Dyw{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.w = statenameMap(keyval);
+        PDE_struct.y{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
         coeff = regexprep(term,'u[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
-        PDE.ODE.Dyu{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.u = statenameMap(keyval);
+        PDE_struct.y{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
@@ -410,11 +462,13 @@ for i=metadata(4)+1:metadata(5)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.loc = regexprep(Rstate{1},'X[0-9]+\(',''); tmp.loc = str2double(tmp.loc(1:end-1));
+        keyval = regexprep(Rstate{1},'\(.\)','');
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.ODE.Dyb{end+1} = tmp;
+        PDE_struct.y{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     clear tmp;
     for k=1:length(pde_icoeffs)
@@ -430,16 +484,18 @@ for i=metadata(4)+1:metadata(5)-1
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = Lstate;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.I{1} = [0,1];
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.ODE.Dyi{end+1} = tmp;
+        PDE_struct.y{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
-    clear tmp;
+    iLoc = iLoc+1;
 end
 % get BC params
-PDE.BC.Ex = {};PDE.BC.Ew = {};PDE.BC.Eu = {};PDE.BC.Ebb = {};PDE.BC.Ebp = {};
+iLoc = 1;
 for i=metadata(5)+1:length(PDE_Text)
     eqn = PDE_text{i}; % get line
     
@@ -455,34 +511,37 @@ for i=metadata(5)+1:length(PDE_Text)
     inp_coeffs = eqn(contains(eqn,'u')); % input terms
     pde_bcoeffs = eqn(endsWith(eqn,'(0)')|endsWith(eqn,'(1)')); %pde boundary terms
     pde_icoeffs = eqn(endsWith(eqn,'ds')); %pde integral terms
-    
+    PDE_struct.BC{iLoc}.term = [];
     % place terms in appropriate structure
     for k=1:length(ode_coeffs)
         term =ode_coeffs{k};
         Rstate = regexp(term,'x[0-9]+','match');
         coeff = regexprep(term,'x[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = BCn;
-        tmp.Rstate = Rstate{1};
-        PDE.BC.Ex{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
+        PDE_struct.BC{iLoc}.term{k} = tmp;
+        clear tmp;
     end
     for k=1:length(dis_coeffs)
         term =dis_coeffs{k};
         Rstate = regexp(term,'w[0-9]+','match');
         coeff = regexprep(term,'w[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = BCn;
-        tmp.Rstate = Rstate{1};
-        PDE.BC.Ew{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.w = statenameMap(keyval);
+        PDE_struct.BC{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(inp_coeffs)
         term =inp_coeffs{k};
         Rstate = regexp(term,'u[0-9]+','match');
         coeff = regexprep(term,'u[0-9]+','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = BCn;
-        tmp.Rstate = Rstate{1};
-        PDE.BC.Eu{end+1} = tmp;
+        tmp.C = eval_b(coeff);
+        keyval = Rstate{1};
+        tmp.u = statenameMap(keyval);
+        PDE_struct.BC{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
     for k=1:length(pde_bcoeffs)
         term =pde_bcoeffs{k};
@@ -497,13 +556,14 @@ for i=metadata(5)+1:length(PDE_Text)
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = BCn;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.loc = regexprep(Rstate{1},'X[0-9]+\(',''); tmp.loc = str2double(tmp.loc(1:end-1));
+        keyval = regexprep(Rstate{1},'\(.\)','');
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.BC.Ebb{end+1} = tmp;
+        PDE_struct.BC{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
-    clear tmp;
     for k=1:length(pde_icoeffs)
         term =pde_icoeffs{k};
         Rstate = regexp(term,'X[0-9]+','match');
@@ -517,16 +577,18 @@ for i=metadata(5)+1:length(PDE_Text)
             der_order = str2double(regexprep(der_order{1},'\\partial_s\^',''));
         end
         coeff = regexprep(coeff,'(\\partial_s)+(\^.)?','');
-        tmp.coeff = eval_b(coeff);
-        tmp.Lstate = BCn;
-        tmp.Rstate = Rstate{1};
+        tmp.C = eval_b(coeff);
+        tmp.I{1} = [0,1];
+        keyval = Rstate{1};
+        tmp.x = statenameMap(keyval);
         tmp.D = der_order;
-        PDE.BC.Ebp{end+1} = tmp;
+        PDE_struct.BC{iLoc}.term{end+1} = tmp;
+        clear tmp;
     end
-    clear tmp;
+    iLoc = iLoc+1;
 end
 
-PDE_params = getPDEstructure(PDE);
+PDE_struct = initialize_PIETOOLS_PDE_terms(PDE_struct);
 end
 
 function val = eval_b(exp)
