@@ -38,7 +38,9 @@ out.y = cell(length(yNames),1);
 out.BC = cell(0,1);
 
 
-
+% specify ode locations in out.x
+[~,tmpidx] = ismember(odeNames,xNames);
+out.x{tmpidx}.vars = [];
 
 
 isdot_A = isdot(equations.statevec); isout_A=isout(equations.statevec); 
@@ -66,7 +68,7 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
             elseif strcmp(equations.statevec(j).type,'pde')% pde state term
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
-                if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)),zeros(1,equations.statevec(j).veclength))% integral term
+                if any(~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)),zeros(1,equations.statevec(j).veclength)))% integral term
                     tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
                     tmp{Loc}.term{j}.I{1} = [0,1];

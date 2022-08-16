@@ -7,7 +7,7 @@ if isa(objA,'terms')&&isa(K,'terms')
     error('Two terms type objects cannot be multiplied');
 end
 
-isdot_A = isdot(objA); isout_A=isout(objA); 
+isdot_A = isdot(objA.statevec); isout_A=isout(objA.statevec); 
 % isdot_A = []; isout_A=[]; 
 % for i=1:length(objA)
 %     isdot_A = [isdot_A; objA(i).diff_order(1)*ones(subsref(objA(i),s),1)];
