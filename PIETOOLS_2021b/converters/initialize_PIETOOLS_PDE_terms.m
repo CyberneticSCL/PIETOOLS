@@ -225,13 +225,27 @@ elseif isa(PDE,'struct')
 end
 ncomps_x = length(PDE.x);
 
-% % Re-order the cell elements
+% % Re-order the cell elements.
 PDE.x = [PDE.x(:)];
 PDE.y = [PDE.y(:)];
 PDE.z = [PDE.z(:)];
 PDE.u = [PDE.u(:)];
 PDE.w = [PDE.w(:)];
 PDE.BC = [PDE.BC(:)];
+
+% Sort the rows of the tables.
+[~,new_order_x] = sort(PDE.x_tab(:,1));
+PDE.x_tab = PDE.x_tab(new_order_x,:);
+[~,new_order_y] = sort(PDE.y_tab(:,1));
+PDE.y_tab = PDE.y_tab(new_order_y,:);
+[~,new_order_z] = sort(PDE.z_tab(:,1));
+PDE.z_tab = PDE.z_tab(new_order_z,:);
+[~,new_order_u] = sort(PDE.u_tab(:,1));
+PDE.u_tab = PDE.u_tab(new_order_u,:);
+[~,new_order_w] = sort(PDE.w_tab(:,1));
+PDE.w_tab = PDE.w_tab(new_order_w,:);
+[~,new_order_BC] = sort(PDE.BC_tab(:,1));
+PDE.BC_tab = PDE.BC_tab(new_order_BC,:);
 
 % % % --------------------------------------------------------------- % % %
 % % % Build a full list of the spatial variables that appear, and
@@ -540,7 +554,7 @@ for ii=1:numel(PDE.BC)
     % Make sure that the boundary condition is indeed a boundary condition.
     if all(PDE.BC_tab(ii,3:2+nvars))
         error(['The boundary condition "BC{',num2str(ii),'}", of the form 0=f(s), is defined by a function f(s) that varies on the interior of the spatial domain.',...
-                ' Please use boundary positions in "BC{',num2str(ii),'}.term{j}.loc" and integrals "BC{',num2str(ii),'}.term{j}.I" to make sure the boundary condition function f(s) does vary in all spatial directions.'])
+                ' Please use boundary positions in "BC{',num2str(ii),'}.term{j}.loc" and integrals "BC{',num2str(ii),'}.term{j}.I" to make sure the boundary condition function f(s) does not vary along all spatial directions.'])
     else
         % Keep track of which variables s the function f(s) in the BC
         % 0=f(s) depends on, and their associated domain.
@@ -802,6 +816,9 @@ for ii=1:numel(PDE.(obj))
         nvars_Lstate = sum(has_var_Lstate);
         % Make sure the order of differentiability is appropriately
         % specified.
+        if size(PDE.x{ii}.diff,1)~=1 && size(PDE.x{ii}.diff,2)==1
+            PDE.x{ii}.diff = PDE.x{ii}.diff';
+        end
         if size(PDE.x{ii}.diff,1)~=1
             error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
                     ' the field should be specified as a 1xp array indicating the order of the derivative in each of the p variables on which the considered state "x{',num2str(ii),'}" depends.'])
@@ -1164,7 +1181,7 @@ while ii<=n_eqs
             warning(['The specified order of differentiability "PDE.x{',eq_num_str,'}.diff" is smaller than the observed order of this state component in the PDE, and will therefore be increased.',...
                         ' If you wish to retain the original order of differentiability, please make sure that the order of any derivative of the state does not exceed this specified order.']);
         end
-        PDE.x{ii}.diff = diff_tab(ii,:);
+        PDE.x{ii}.diff = diff_tab(ii,has_vars_Lcomp);
         
         % Check if a temporal derivative is specified, and add new state
         % components if necessary.
@@ -1506,7 +1523,7 @@ while ii<=n_eqs
             % Currently, opvar and opvar2d objects only use dummy variables
             % in partial integrals, not integrals over the full domain. As
             % such, dummy variables in Cval corresponding to spatial
-            % dimensions that  are integrated out should be
+            % dimensions that are integrated out should be
             % replaced with primary variables as well.
             if any(must_int_var)
                 Cval = subs(Cval,Rvars(must_int_var,2),Rvars(must_int_var,1));
@@ -1523,7 +1540,7 @@ while ii<=n_eqs
             % variables.
             if any(~ismember(Cval.varname,[Lcomp_varname; Rcomp_varname_1; Rcomp_varname_2]))
                 error(['The proposed polynomial "',term_name,'.C" is not appropriate;',...
-                        ' the spatial variables it depends on do not make sense with the variables of the component "',obj,'{',num2str(ii),'}  it contributes to, and/or the component "',Robj,'{',num2str(Rindx),'} it maps.'])
+                        ' the spatial variables it depends on do not make sense with the variables of the component "',obj,'{',num2str(ii),'}"  it contributes to, and/or the component "',Robj,'{',num2str(Rindx),'}" it maps.'])
             end
             
             % Also check if a particular state variable in the component
