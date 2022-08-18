@@ -28,7 +28,7 @@ function [] = display_PDE(PDE,name)
 % or D. Jagt at djagt@asu.edu
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -128,8 +128,10 @@ sup_s = '\x02E2';
 % % Other symbols
 partial = '\x2202';
 %int = '\x222B';
-xdot = '\x1E8B';
-xddot = '\x1E8D';
+%xdot = '\x1E8B';
+xdot = [partial,sub_t,' x'];
+%xddot = '\x1E8D';
+xddot = [partial,sub_t,sup_num{3},' x'];
 
 
 % Establish cell with (UNICODE) characters for the primary variables
