@@ -93,7 +93,7 @@ function PIE = convert_PIETOOLS_PDE_2D(PDE)
 op_clean_tol = 1e-14;   
 
 % Initialize PDE in case this has not been done.
-PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+PDE = initialize_PIETOOLS_PDE(PDE,true);
 
 fprintf('\n --- Converting the PDE to an Equivalent PIE --- \n')
 
@@ -117,7 +117,7 @@ if nvars==0
     PDE.x{ncomps+1}.vars = vars;
     PDE.x{ncomps+1}.term{1}.x = ncomps+1;
     % Initialize the augmented system, and get rid of the temporary state.
-    PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+    PDE = initialize_PIETOOLS_PDE(PDE,true);
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
 elseif nvars==1
@@ -133,7 +133,7 @@ elseif nvars==1
     PDE.x{ncomps+1}.vars = vars;
     PDE.x{ncomps+1}.term{1}.x = ncomps+1;
     % Initialize the augmented system, and get rid of the temporary state.
-    PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+    PDE = initialize_PIETOOLS_PDE(PDE,true);
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
 end
@@ -1123,7 +1123,8 @@ for eqnum=1:numel(PDE.(obj))
                     [use_var_list{:}] = ind2sub(size(issub_op),ll);
                     use_var_list = cell2mat(use_var_list)-1;
                     % Remove the last variable from the combination.
-                    last_var = find(use_var_list,1,'last');
+                    use_var_sub_list = use_var_list & use_loc;
+                    last_var = find(use_var_sub_list,1,'last');
                     use_var_list(last_var) = 0;
                     % Add the size of state components that depend on the
                     % considered combination to that of components that

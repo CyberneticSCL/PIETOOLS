@@ -133,7 +133,7 @@ function [PDE] = expand_PIETOOLS_PDE_BCs(PDE)
 
 % Initialize the PDE, if it seems this has not yet been done.
 if ~isa(PDE,'pde_struct') || isempty(PDE.BC_tab)
-    PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+    PDE = initialize_PIETOOLS_PDE(PDE,true);
 end
 
 % Extract some important parameter.s
@@ -146,10 +146,6 @@ for kk=1:nvars
     global_varname_1{kk} = var1(kk).varname{1};
 end
 pvar dumvar
-
-% 
-BC_tab = PDE.BC_tab;
-dep_tab = BC_tab(:,3:2+nvars);
 
 % Set a new PDE structure, in which the BCs are expanded and sorted
 PDE_new = PDE;
@@ -191,12 +187,6 @@ for ii=1:numel(PDE.BC)
     BC_tab_ii = zeros(nBCs_ii,2+2*nvars);
     BC_tab_ii(:,2) = PDE.BC_tab(ii,2);
     BC_tab_ii(:,3:2+nvars) = dep_tab_expanded_ii;   
-    
-    
-    % Finite-dimensional BCs cannot be decompsed any further.
-    if ~any(dep_tab(ii,:))
-        continue
-    end   
     
     jj = 1;
     while(jj<=numel(BC_ii.term))
@@ -376,7 +366,8 @@ for ii=1:numel(PDE.BC)
                     % For variables on which BC kk does not depend, we
                     % evaluate the variable at the lower boundary
                     Cval_kk = polynomial(subs(Cval,vars(~var_log_kk,1),dom(~var_log_kk,1)));
-                    has_vars_Cval = ismember(global_varname_1(has_vars_Rcomp),Cval_kk.varname);
+                    %has_vars_Cval = ismember(global_varname_1(has_vars_Rcomp),Cval_kk.varname);
+                    has_vars_Cval = ismember(global_varname_1,Cval_kk.varname);
                     
                     has_vars_term = has_vars_term | has_vars_Cval';
                     
@@ -399,7 +390,9 @@ for ii=1:numel(PDE.BC)
                         BC_new_ii{kk}.int_tab = [BC_new_ii{kk}.int_tab; int_type_list_full];
                         BC_new_ii{kk}.is_xcomp = [BC_new_ii{kk}.is_xcomp, true];
                         
-                        BC_tab_ii(kk,3+nvars:2+2*nvars) = max(BC_tab_ii(kk,3+nvars:2+2*nvars),Dval);
+                        BC_diff_tab_ii_kk = BC_tab_ii(kk,3+nvars:2+2*nvars);
+                        BC_diff_tab_ii_kk(has_vars_Rcomp) = max(BC_diff_tab_ii_kk(has_vars_Rcomp), Dval);
+                        BC_tab_ii(kk,3+nvars:2+2*nvars) = BC_diff_tab_ii_kk;
                     end
                 end                
                 jj = jj+1;
