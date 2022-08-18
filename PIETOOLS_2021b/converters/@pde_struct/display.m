@@ -52,7 +52,7 @@ function display(PDE,name)
 %
 % Initial coding DJ - 07/08/2022
 
-try PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+try PDE = initialize_PIETOOLS_PDE(PDE,true);
     display_PDE(PDE,name);
 catch
     disp(PDE);

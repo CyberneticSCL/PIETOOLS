@@ -52,7 +52,7 @@ function [] = display_PDE(PDE,name)
 % Initial coding DJ - 07/08/2022
 
 % Initialize the system
-try PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+try PDE = initialize_PIETOOLS_PDE(PDE,true);
 catch
     error(['The presented PDE is not finished, or not appropriate.',...
             ' Please check that the PDE is properly specified, and run "initialize_PIETOOLS_PDE" to check for any errors.'])
