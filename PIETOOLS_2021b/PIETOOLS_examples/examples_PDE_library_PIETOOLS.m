@@ -538,52 +538,7 @@ elseif index==1
 % % Transport equation x_{t} = x_{s}
 % % with BC            x(s=0) = 0
 
- %%% Executive Function:
- evalin('base','stability = 1;');
- evalin('base','stability_dual = 1;');
-
-
-if npars~=0
- %%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-if BATCH~=0
- %%% Batch input format
- PDE_b.n0 = 0;   PDE_b.n1 = 1;   PDE_b.n2 = 0;
- PDE_b.dom = [0,1];
- 
- PDE_b.A1= 1; 
- 
- on = eye(PDE_b.n1);   ze = zeros(PDE_b.n1);
- PDE_b.B = [ze on];
-
-end
-if TERM~=0
- %%% Term-based input format
- % Single 1D state component
- PDE_t.x{1}.vars = s;
- PDE_t.x{1}.dom = [0,1];
-
- % PDE: x_{t} = x_{s}
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.D = 1;
-
- % BCs: 0 = x(0)
- PDE_t.BC{1}.term{1}.loc = 0;
-
-end
-if GUI
- %%% Associated GUI save file
- app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Transport_Eq.mat'));
- logval = app.loadData(data);
- if logval
-    disp("Failed to load data object. Incorrect structure");
- end
-end
+ [PDE_t,PDE_b] = PIETOOLS_PDE_Example_Transport_Eq(GUI,params);
 
 
 elseif index>=2 && index<3
@@ -595,112 +550,7 @@ elseif index>=2 && index<3
 % %
 %%%% There are several examples from [1] included here. Add a decimal to
 %%%% your example input to specify a particular set of parameters.
-
-if index==2 || index==2.1
-% % Example 5.1
- Gm1=[.2];
- Gm2=[-.3];
- Gm3=[.6];
- Gm4=[.1];
- Lm=[-3 0;0 1];
- Fm=[.2 -.3; .6 .1];
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Lamare_Ex_5_1.mat');
-elseif index==2.2
-% % Example 5.2
- Gm1=[.1];
- Gm2=[-.8];
- Gm3=[.6];
- Gm4=[-.4];
- Lm=[-1 0;0 1];
- Fm=[-.3 .1; .1 -.3];
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Lamare_Ex_5_2.mat');
-elseif index==2.3
-% % Example 5.3
- Gm1=[-.2202];
- Gm2=[1.3955];
- Gm3=[-.0596];
- Gm4=[.2090];
- Lm=[-1 0;0 2];
- Fm=[-.1 .1; .5 -.8];
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Lamare_Ex_5_3.mat');
-elseif index==2.4
-% % Example 5.4
- Gm1=[.5];
- Gm2=[-.4];
- Gm3=[.2];
- Gm4=[.8];
- Lm=[-2 0;0 1];
- Fm=[-.6565 -.3743; -.113 -.6485];
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Lamare_Ex_5_4.mat');
-else
- error(['Example ',num2str(indx),'does not exist, please choose from 2.1, 2.2, 2.3 or 2.4']);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Examples from [1]
-
- %%% Executive function
- evalin('base','stability = 1;')
-%%% evalin('base','stability_dual = 1;')
-
-if npars~=0
- %%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-if BATCH~=0
- %%% Batch input format
- PDE_b.n0 = 0;   PDE_b.n1 = 2;   PDE_b.n2=0;
- PDE_b.dom = [0,1];
- PDE_b.A0 = Fm; 
- PDE_b.A1 = -Lm;
- ny1 = size(Gm1,1);   ny2 = size(Gm3,1);
- on0 = eye(ny1);   on1 = eye(ny2);   zer12 = zeros(ny1,ny2);
- PDE_b.B = [-Gm1 zer12 on0 -Gm2;
-          -Gm3 on1 zer12' -Gm4];
-
-end
-if TERM~=0
- %%% Term-based input format
- % A single state component.
- PDE_t.x{1}.vars = s;
- PDE_t.x{1}.dom = [0,1];
- 
- % PDE: x_{t} = Fm*x
- PDE_t.x{1}.term{1}.x = 1;
- PDE_t.x{1}.term{1}.C = Fm;
- 
- % PDE: x_{t} = ... -Lm*x_{s}
- PDE_t.x{1}.term{2}.x = 1;
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.C = -Lm;
- 
- ny1 = size(Gm1,1);    ny2 = size(Gm3,1);
- on0 = eye(ny1);       on1 = eye(ny2);     zer12 = zeros(ny1,ny2);
- 
- % BCs: 0 = [Gm1,0;-Gm3,1] * x(0)       
- PDE_t.BC{1}.term{1}.x = 1;
- PDE_t.BC{1}.term{1}.loc = 0;
- PDE_t.BC{1}.term{1}.C = [-Gm1, zer12; -Gm3, on1];
- 
- % BCs: 0 = ... + [1,-Gm2;0,-Gm4] * x(1)
- PDE_t.BC{1}.term{2}.x = 1;
- PDE_t.BC{1}.term{2}.loc = 1;
- PDE_t.BC{1}.term{2}.C = [on0, -Gm2; zer12', -Gm4];
-
-end
-if GUI
- %%% Associated GUI save file
- app = PIETOOLS_PDE_GUI; 
- load(dir);
- logval = app.loadData(data);
- if logval
-    disp("Failed to load data object. Incorrect structure");
- end
-end
-
-
+    [PDE_t,PDE_b] = PIETOOLS_PDE_Example_Lamare(index,GUI,params);
 
 elseif index==3
 % % % %====================================================================
@@ -710,102 +560,7 @@ elseif index==3
 % %         [x_-(s=1)] = [K10, K11] [x_-(s=0)]
 %
 % The implementation is based on a Linearized Saint–Venant–Exner Model
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % NOTE: The values here have been chosen arbitrarily (feel free to adjust)
-
- Hs = 1;       Vs = 1;     Bs = 0.1;
- g = 10;       Cf = 1;
-
- Lm = diag(sort(eig([Vs,Hs,0;10,Vs,10;0,1*Vs^2,0])));
- lm1 = Lm(1,1);    lm2 = Lm(2,2);      lm3 = Lm(3,3);
-
- al1 = Cf*(3*Vs - 2*lm1) * Vs/Hs * lm1/((lm1-lm2)*(lm1-lm3));
- al2 = Cf*(3*Vs - 2*lm2) * Vs/Hs * lm2/((lm2-lm3)*(lm2-lm1));
- al3 = Cf*(3*Vs - 2*lm3) * Vs/Hs * lm3/((lm3-lm1)*(lm3-lm2));
-
- Mm = [al1*ones(3,1) , al2*ones(3,1) , al3*ones(3,1)];
-
- a21 = (lm1 - lm2) * (1+ ((lm1-Vs) * (lm2-Vs))/(g*Hs));
- a32 = (lm2 - lm3) * (1+ ((lm2-Vs) * (lm3-Vs))/(g*Hs));
- a13 = (lm3 - lm1) * (1+ ((lm3-Vs) * (lm1-Vs))/(g*Hs));
- c21 = (lm3/g) * (lm1 - lm2);
- c32 = (lm1/g) * (lm2 - lm3);
- c13 = (lm2/g) * (lm3 - lm1);
-
- k1 = 1;       k2 = 2;
- pi2 = (a21 - c21*k1)/(a32 - c32*k1);
- pi3 = (a13 - c13*k1)/(a32 - c32*k1);
- chi2 = ((lm2 - Vs)/(lm1 - Vs)) * ((g + (lm2-Vs)*k2)/(g + (lm1-Vs)*k2));
- chi3 = ((lm3 - Vs)/(lm1 - Vs)) * ((g + (lm3-Vs)*k2)/(g + (lm1-Vs)*k2));
-
- K = [0,chi2,chi3; pi2,0,0; pi3,0,0];
- K00 = K(1,1);   K01 = K(1,2:3);
- K10 = K(2:3,1); K11 = K(2:3,2:3);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% %%% Executive function
- evalin('base','stability = 1;')
-%%% evalin('base','stability_dual = 1;')
-
-if npars~=0
- %%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-ne = size(Lm,1);
-
-if BATCH~=0
- %%% Batch input format
- PDE_b.n0 = 0;   PDE_b.n1 = ne;   PDE_b.n2 = 0;
- PDE_b.dom = [0,1];
-
- PDE_b.A0 = Mm; 
- PDE_b.A1 = -Lm;
-
- ny1 = size(K00,1);   ny2 = size(K10,1);
- on0 = eye(ny1);   on1 = eye(ny2);   zer12 = zeros(ny1,ny2);
- PDE_b.B = [ on0 -K01 -K00 zer12;
-          zer12' -K11 -K10  on1;];
-
-end
-if TERM~=0
- %%% Term-based input format
- PDE_t.x{1}.vars = s;
- PDE_t.x{1}.dom = [0,1];
- 
- % PDE: x_{t} = Mm * x
- PDE_t.x{1}.term{1}.C = Mm;
-
- % PDE: x_{t} = ... -Lm * x_{s}
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.C = -Lm;
- 
- ny1 = size(K00,1);    ny2 = size(K10,1);
- on0 = eye(ny1);       on1 = eye(ny2);     zer12 = zeros(ny1,ny2);
-
- % BCs: 0 = [1,-K01;0,-K11] * x(0)
- PDE_t.BC{1}.term{1}.loc = 0;
- PDE_t.BC{1}.term{1}.C = [on0, -K01; zer12', -K11];      
-
- % BCs: 0 = ... + [-K00,0;-K10,1] * x(1)
- PDE_t.BC{1}.term{2}.loc = 1;
- PDE_t.BC{1}.term{2}.C = [-K00, zer12; -K10, on1];   
-
-end
-if GUI
- %%% Associated GUI save file
- app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Diagne_Ex.mat'));
- logval = app.loadData(data);
- if logval
-    disp("Failed to load data object. Incorrect structure");
- end
-end
-
+[PDE_t,PDE_b] = PIETOOLS_PDE_Example_Diagne(GUI,params);
 
 
 elseif index>=4 && index<5
@@ -816,83 +571,7 @@ elseif index>=4 && index<5
 % % with BCs   x1(s=0) = qb*x2(s=0)
 % %            x2(s=1) = pb*x1(s=1)
 %
-%%%% There are several examples from [3] included here. Add a decimal to
-%%%% your example input to specify a particular set of parameters.
-if index==4 || index==4.1
- r1=.8;   r2=1.1;   sig1=2.3;   sig2=-3.5;    qb=-.7;   pb=.5;  % Stable with stripped settings
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Saba_Ex_1.mat');
- 
-elseif index==4.2
- r1=.5;   r2=1.1;   sig1=1;     sig2=-.1;     qb=1.2;   pb=0;   % Stable with stripped settings
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Saba_Ex_2.mat');
- 
-elseif index==4.3
- r1=.5;   r2=1.1;   sig1=1;     sig2=1;       qb=1.2;   pb=-.7;
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Saba_Ex_3.mat');
- 
-elseif index==4.4
- r1=.5;   r2=1.1;   sig1=1;     sig2=.663;    qb=1.2;   pb=0;   % max sig2=.663 
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Saba_Ex_4.mat');
- 
-elseif index==4.5
- r1=.5;   r2=1.1;   sig1=1;     sig2=2.048;   qb=1.2;   pb=-.4; % max sig2=1.049 
- dir = fullfile(root,'Examples_PDE_GUI/Stability_Examples/Saba_Ex_5.mat');
- 
-else
- error(['Example ',num2str(indx),'does not exist, please choose from 4.1, 4.2, 4.3, 4.4 or 4.5']);
-end
-
- %%% Executive function
- evalin('base','stability = 1;')
-%%% evalin('base','stability_dual = 1;')
-
-if npars~=0
- %%% Specify potential parameters
- for j=1:npars
-     eval(params{j});
- end
-end
-
-if BATCH~=0
- %%% Batch input format
- PDE_b.n0 = 0;   PDE_b.n1 = 2;   PDE_b.n2 = 0;
- PDE_b.dom = [0,1];
-
- PDE_b.A0 = [0 sig1; sig2 0]; 
- PDE_b.A1 = [-1/r1 0; 0 1/r2];
- PDE_b.B = [1 -qb, 0, 0; 0, 0, -pb, 1];
-
-end
-if TERM~=0
- %%% Term-based input format
- PDE_t.x{1}.vars = s;
- PDE_t.x{1}.dom = [0,1];
- 
- % PDE: x_{t} = [0,sig1;sig2,0] * x
- PDE_t.x{1}.term{1}.C = [0, sig1; sig2, 0];
-
- % PDE: x_{t} = ... + [-1/r1,0;0,1/r2] * x_{s}
- PDE_t.x{1}.term{2}.D = 1;
- PDE_t.x{1}.term{2}.C = [-1/r1, 0; 0, 1/r2];
- 
- % BCs: 0 = [1,-qb;0,0] * x(0)
- PDE_t.BC{1}.term{1}.loc = 0;
- PDE_t.BC{1}.term{1}.C = [1 -qb; 0 0];
-
- % BCs: 0 = ... + [0,0;-pb,1] * x(1)
- PDE_t.BC{1}.term{2}.loc = 1;
- PDE_t.BC{1}.term{2}.C = [0 0; -pb 1];
-
-end
-if GUI
- %%% Associated GUI save file
- app = PIETOOLS_PDE_GUI; 
- load(dir);
- logval = app.loadData(data);
- if logval
-    disp("Failed to load data object. Incorrect structure");
- end
-end
+[PDE_t,PDE_b] = PIETOOLS_PDE_Example_Saba(index,GUI,params);
 
 
 
@@ -952,7 +631,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Reaction_Diffusion_Eq_1.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Reaction_Diffusion_Eq_1.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1016,7 +695,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Reaction_Diffusion_Gahlawat.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Reaction_Diffusion_Gahlawat.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1093,7 +772,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Parabolic_Eq_Gahlawat.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Parabolic_Eq_Gahlawat.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1190,7 +869,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Heat_Eq_with_ODE_Das.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Heat_Eq_with_ODE_Das.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1262,7 +941,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Heat_Eq_with_ODE_in_BC.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Heat_Eq_with_ODE_in_BC.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1344,7 +1023,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Heat_Eq_with_ODE_Tang.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Heat_Eq_with_ODE_Tang.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1412,7 +1091,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Reaction_Diffusion_Ahmadi.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Reaction_Diffusion_Ahmadi.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1480,7 +1159,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Reaction_Diffusion_Ahmadi_2.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Reaction_Diffusion_Ahmadi_2.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1577,7 +1256,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Euler_Bernoulli_Beam_Eq.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Euler_Bernoulli_Beam_Eq.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1667,7 +1346,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Timoshenko_Beam_1.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Timoshenko_Beam_1.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1821,7 +1500,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Timoshenko_Beam_2.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Timoshenko_Beam_2.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1919,7 +1598,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Timoshenko_Beam_3.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Timoshenko_Beam_3.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -1991,7 +1670,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Wave_Eq_Boundary_Damped.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Wave_Eq_Boundary_Damped.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2069,7 +1748,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Wave_Eq_Datko_Boundary_Damped_1.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Wave_Eq_Datko_Boundary_Damped_1.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2142,7 +1821,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Stability_Examples/Wave_Eq_Datko_Boundary_Damped_2.mat'));
+ load(fullfile(root,'Examples_Libary/Stability_Examples/Wave_Eq_Datko_Boundary_Damped_2.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2221,7 +1900,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Transport_Eq_with_Disturbance.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Gain_Examples/Transport_Eq_with_Disturbance.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2304,7 +1983,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Wave_Eq_Tip_Damped.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Gain_Examples/Wave_Eq_Tip_Damped.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2382,7 +2061,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Heat_Eq_with_Distributed_Disturbance.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Gain_Examples/Heat_Eq_with_Distributed_Disturbance.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2461,7 +2140,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Parabolic_Eq_with_Disturbance.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Gain_Examples/Parabolic_Eq_with_Disturbance.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2541,7 +2220,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Reaction_Diffusion_Eq_with_Disturbance.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Gain_Examples/Reaction_Diffusion_Eq_with_Disturbance.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2623,7 +2302,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Reaction_Diffusion_Eq_with_Distributed_Disturbance.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Gain_Examples/Reaction_Diffusion_Eq_with_Distributed_Disturbance.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2704,7 +2383,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Gain_Examples/Reaction_Diffusion_Eq_with_Distributed_Disturbance_2.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Gain_Examples/Reaction_Diffusion_Eq_with_Distributed_Disturbance_2.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2788,7 +2467,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Optimal_Observer_Examples/Transport_Eq_with_Observed_Output.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Optimal_Observer_Examples/Transport_Eq_with_Observed_Output.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2876,7 +2555,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Optimal_Observer_Examples/Heat_Eq_with_Observed_Output.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Optimal_Observer_Examples/Heat_Eq_with_Observed_Output.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
@@ -2949,7 +2628,7 @@ end
 if GUI
  %%% Associated GUI save file
  app = PIETOOLS_PDE_GUI; 
- load(fullfile(root,'Examples_PDE_GUI/Hinf_Optimal_Controller_Examples/Reaction_Diffusion_Eq_with_Controlled_Input.mat'));
+ load(fullfile(root,'Examples_Libary/Hinf_Optimal_Controller_Examples/Reaction_Diffusion_Eq_with_Controlled_Input.mat'));
  logval = app.loadData(data);
  if logval
      disp("Failed to load data object. Incorrect structure");
