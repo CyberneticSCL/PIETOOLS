@@ -106,24 +106,29 @@ if any(Rxx0_degmax~=0) || any(Ryy0_degmax~=0)
     error('P.Rxx{1,1} and/or P.Ryy{1,1} vary in space; inversion not supported')
 else
     Rxx0 = double(Rxx0);
-    sgm = svd(Rxx0);
-    if sgm(end)/sgm(1) <= tol
-        error('P.Rxx{1,1} matrix is (close to) singular; operator is not invertible')
-    elseif length(sgm) < size(Rxx0,2)
-        error('P.Rxx{1,1} matrix is of insufficient column rank; operator not (left-)invertible')
+    if ~isempty(Rxx0)
+        sgm = svd(Rxx0);
+        if sgm(end)/sgm(1) <= tol
+            error('P.Rxx{1,1} matrix is (close to) singular; operator is not invertible')
+        elseif length(sgm) < size(Rxx0,2)
+            error('P.Rxx{1,1} matrix is of insufficient column rank; operator not (left-)invertible')
+        end
     end
     
     Ryy0 = double(Ryy0);
-    sgm = svd(Ryy0);
-    if sgm(end)/sgm(1) <= tol
-        error('P.Ryy{1,1} matrix is (close to) singular; operator is not invertible')
-    elseif length(sgm) < size(Ryy0,2)
-        error('P.Ryy{1,1} matrix is of insufficient column rank; operator not (left-)invertible')
+    if ~isempty(Ryy0)
+        sgm = svd(Ryy0);
+        if sgm(end)/sgm(1) <= tol
+            error('P.Ryy{1,1} matrix is (close to) singular; operator is not invertible')
+        elseif length(sgm) < size(Ryy0,2)
+            error('P.Ryy{1,1} matrix is of insufficient column rank; operator not (left-)invertible')
+        end
     end
 end
 
 
 % Perform the separation into constant and polynomial parts
+P = struct(P);
 P.Rxx = Rxx1;   P.Ryy = Ryy1;
 [Z,H] = poly_separate(P);
 
@@ -164,9 +169,8 @@ H0yHat = -(R00inv*H0y - (R00inv*H0x/(eye(q0x) + Kxx*Pixx)) * Kxx*Pixy) * M2;
 H0xHat = -(R00inv*H0x + H0yHat*Kyy*Piyx)/(eye(q0x) + Kxx*Pixx);
 R00Hat = (eye(m0) - H0xHat*Kxx*Hx0 - H0yHat*Kyy*Hy0) * R00inv;
         
-Phat = opvar2d();
-Phat.I = P.I;
-%Phat.dim = P.dim;
+% Initialize the inverse
+Phat = opvar2d([],fliplr(P.dim),P.I,ds,dt);
 
 Phat.R00 = R00Hat;
 Phat.R0x = H0xHat*Z0x*Rxx0Hat;
@@ -183,8 +187,6 @@ Phat.Ryx = Ryy0Hat*Zy0'*GyxHat*Z0x*Rxx0Hat;
 Phat.Ryy{1,1} = Ryy0Hat;
 Phat.Ryy{1,2} = Ryy0Hat*Zy0'*GyyHat*subs(Z0y*Ryy0Hat,ds(2),dt(2));
 Phat.Ryy{1,3} = Ryy0Hat*Zy0'*GyyHat*subs(Z0y*Ryy0Hat,ds(2),dt(2));
-
-Phat.dim = Phat.dim;
 
 end
 

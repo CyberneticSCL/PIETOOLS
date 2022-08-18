@@ -205,11 +205,11 @@ if sep_Rxx && sep_Ryy && all(P1dim(end,:)==0)
         sgm_x = svd(Rxx0);
         Ryy0 = double(P1op.Ryy{1});
         sgm_y = svd(Ryy0);
-        if sgm_x(end)/sgm_x(1) > tol && length(sgm) >= size(Rxx0,2) && ...
-                sgm_y(end)/sgm_y(1) > tol && length(sgm) >= size(Ryy0,2)
+        if (isempty(Rxx0) || sgm_x(end)/sgm_x(1) > tol && length(sgm) >= size(Rxx0,2)) && ...
+                (isempty(Ryy0) || sgm_y(end)/sgm_y(1) > tol && length(sgm) >= size(Ryy0,2))
             % Compute Xop using exact inverse of P1op
             [P1inv] = inv_opvar2d_separable(P1op'); % P1inv * P1op' = I --> P1op * P1inv' = I
-            Xop = P2op * P1inv';
+            Xop = P2op * P1inv';        % Xop*P1op = P2op --> Xop = P2op * P1inv
             
             % Return a (heuristic) estimate of the accuracy of the result.
             ERRop = Xop * P1op - P2op;
