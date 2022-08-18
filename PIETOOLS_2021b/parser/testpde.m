@@ -3,7 +3,7 @@ z = state('out',2); y = state('out',2);
 pvar s theta t;
 ssobj = sys(); ssobj.type = 'pde';
 
-eqns = [diff(x,t)+5*x-3*u;
+eqns = [diff(x,t)+5*x-3*u; % dot x = -5 x + 3 u
         diff(X,t)-3*X+diff(X,s,2)+w;
         z-x-int(X,s,[0,1])-u;
         y-diff(subs(X,s,0),s)-w;
