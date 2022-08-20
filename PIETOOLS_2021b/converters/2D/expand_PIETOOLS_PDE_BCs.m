@@ -223,7 +223,7 @@ for ii=1:numel(PDE.BC)
             % each of the new boundary conditions, and move on to the next
             % term.            
             for kk=1:nBCs_ii
-                BC_new_ii{kk}.term = {BC_new_ii{kk}.term, BC_ii.term{jj}};
+                BC_new_ii{kk}.term = [BC_new_ii{kk}.term, BC_ii.term{jj}];
                 var_log_kk = logical(dep_tab_expanded_ii(kk,:));
                 BC_new_ii{kk}.term{end}.C = subs(BC_new_ii{kk}.term{end}.C,vars(~var_log_kk,1),dom(~var_log_kk,1));
                 BC_new_ii{kk}.is_xcomp = [BC_new_ii{kk}.is_xcomp, false];
@@ -491,7 +491,7 @@ for ii=1:numel(PDE.BC)
         % If all terms are integrated over the same indefinite domain in a
         % particular spatial direction, the integrand itself must be zero:
         % 0 = int_{a}^s f(tt) dtt --> 0 = f(s)
-        is_xcomp_kk = BC_new_ii{kk}.is_xcomp;
+        is_xcomp_kk = logical(BC_new_ii{kk}.is_xcomp);
         int_tab_kk = BC_new_ii{kk}.int_tab(is_xcomp_kk,:);
         remove_int = any(int_tab_kk,1) & any(int_tab_kk<3,1) & ~any(int_tab_kk(2:end,:) - int_tab_kk(1:end-1,:),1);
         if any(remove_int)

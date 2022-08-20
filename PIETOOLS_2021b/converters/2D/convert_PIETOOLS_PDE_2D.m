@@ -332,9 +332,9 @@ Pop.x = Pop_x2z_cell;   Pop.u = Pop_u2z;    Pop.w = Pop_w2z;
 [Cop_x2z, Dop_u2z, Dop_w2z] = impose_fundamental_map(Top,Pop,loc_diff_tab_z,retain_xvars_z);
 
 % % % With that, we can equivalently represent the PDE as a PIE:
-% % %   Tw * w + Tu * u + Tx * xf = A  * xf + Bu  * u + Bw  * w ;
-% % %                           y = Cy * xf + Dyu * u + Dyw * w ;
-% % %                           z = Cz * xf + Dzu * u + Dzw * w ;
+% % %   Tw * w_{t} + Tu * u_{t} + Tx * xf_{t} = A  * xf + Bu  * u + Bw  * w ;
+% % %                                  y      = Cy * xf + Dyu * u + Dyw * w ;
+% % %                                  z      = Cz * xf + Dzu * u + Dzw * w ;
 
 
 
