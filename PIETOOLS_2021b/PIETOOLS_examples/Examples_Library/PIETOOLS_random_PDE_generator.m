@@ -1,4 +1,4 @@
-function PDE = PIETOOLS_random_PDE_generator()
+function PDE = PIETOOLS_random_PDE_generator(dim,max_diff,n_comps,max_size,max_terms,max_deg)
 %PIETOOLS_RANDOM_PDE_GENERATOR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,16 +6,43 @@ function PDE = PIETOOLS_random_PDE_generator()
 %rng('default');
 % rng(12345);
 
-nvars = 2;
-max_diff = 3;
-max_deg = 2;
-max_terms = 3;
-max_states = 3;
-max_inputs = 2;
-max_outputs = 2;
-max_size = 3;
+arguments
+    dim {mustBeMember(dim,[0;1;2])} = 2;
+    max_diff {mustBeNonnegative} = 3;
+    n_comps {mustBeNonnegative} = [randi(3),randi([0,2]),randi([0,2]),randi([0,2]),randi([0,2])];
+    max_size {mustBeNonnegative} = [randi(3),randi(2,[1,4])];
+    max_terms {mustBeNonnegative} = 4;
+    max_deg {mustBeNonnegative} = 2;
+end
+
+% Check that the maximal number of components has been properly
+% specified.
+if numel(n_comps)==1
+    n_comps = n_comps*ones(1,5);
+elseif numel(n_comps)==3
+    n_comps = [n_comps(1), n_comps(2)*ones(1,2), n_comps(2)*ones(1,2)];
+elseif numel(n_comps)~=5
+    error('The maximal size of the components should be specified as a 1x5 array, providing sizes for [x, w, u, z, y].')
+else
+    n_comps = n_comps(:)';
+end
+
+% Check that the maximal size of the components has been properly
+% specified.
+if numel(max_size)==1
+    max_size = max_size*ones(1,5);
+elseif numel(max_size)==3
+    max_size = [max_size(1), max_size(2)*ones(1,2), max_size(2)*ones(1,2)];
+elseif numel(max_size)~=5
+    error('The maximal size of the components should be specified as a 1x5 array, providing sizes for [x, w, u, z, y].')
+else
+    max_size = max_size(:)';
+end
+    
 
 
+
+nvars = dim;
 pvar s1 s2 theta1 theta2
 vars = [s1,theta1; s2,theta2];
 dom = randi(3,[2,1])-2;
@@ -26,9 +53,9 @@ PDE.vars = vars;
 PDE.dom = dom;
 
 % Establish the actual dimension of the domain
-nx = randi(max_states);
-nu = randi(max_inputs+1)-1;     ny = randi(max_outputs+1)-1;
-nw = randi(max_inputs+1)-1;     nz = randi(max_outputs+1)-1;
+nx = n_comps(1);
+nw = n_comps(2);     nz = n_comps(4);
+nu = n_comps(3);     ny = n_comps(5);
 
 % Define the state components (size, variables, order of
 % differentiability).
@@ -36,7 +63,7 @@ x_tab = zeros(nx,2+2*nvars);
 for ii=1:nx
     
     % Set the size of the component.
-    sz_ii = randi(max_size);
+    sz_ii = randi(max_size(1));
     
     % Set the number of variables on which the component depends.
     dep_ii = zeros(1,nvars);    % Binary indices, indicating whether the component depends on each variable
@@ -59,11 +86,10 @@ end
 u_tab = zeros(nu,2+nvars);  y_tab = zeros(ny,2+nvars);
 w_tab = zeros(nw,2+nvars);  z_tab = zeros(nz,2+nvars);
 
-u_tab(:,1) = (1:nu);    u_tab(:,2) = randi(max_size,[nu,1]);
-w_tab(:,1) = (1:nw);    w_tab(:,2) = randi(max_size,[nw,1]);
-y_tab(:,1) = (1:ny);    y_tab(:,2) = randi(max_size,[ny,1]);
-z_tab(:,1) = (1:nz);    z_tab(:,2) = randi(max_size,[nz,1]);
-
+w_tab(:,1) = (1:nw);    w_tab(:,2) = randi(max_size(2),[nw,1]);
+u_tab(:,1) = (1:nu);    u_tab(:,2) = randi(max_size(3),[nu,1]);
+z_tab(:,1) = (1:nz);    z_tab(:,2) = randi(max_size(4),[nz,1]);
+y_tab(:,1) = (1:ny);    y_tab(:,2) = randi(max_size(5),[ny,1]);
 
 PDE.x_tab = x_tab;  
 PDE.u_tab = u_tab;
@@ -101,150 +127,15 @@ for ii=1:ncomps
     % an equation.
     nr = obj_tab(ii,2);     % Number of elements of the component
     has_vars_Lcomp = logical(obj_tab(ii,3:2+nvars));
-    var1_Lcomp = vars(has_vars_Lcomp,1);
     
     % Create a random number of new terms to describe the equation of
     % component ii.
     nterms_ii = randi(max_terms);
     PDE.(obj){ii}.term = cell(1,nterms_ii);
+
     for jj=1:nterms_ii
-        term_jj = build_random_term(PDE,has_vars_Lcomp,nr,max_deg);
-%         term_jj = struct();
-%         Robj_indx = randi(nx+nw+nu);
-%         if Robj_indx>nx
-%             % % The term involves an input.
-%             if Robj_indx>(nx+nw)
-%                 % The input is an actuator input.
-%                 Robj_indx = Robj_indx - nx - nw;
-%                 term_jj.u = Robj_indx;
-%                 nc = PDE.u_tab(Robj_indx,2);
-%             else
-%                 % The input is an exogenous input.
-%                 Robj_indx = Robj_indx - nx;
-%                 term_jj.w = Robj_indx;
-%                 nc = PDE.w_tab(Robj_indx,2);
-%             end
-%             if isempty(var1_Lcomp)
-%                 % Create a random matrix.
-%                 Cval = randi(max_deg+1,[nr,nc])-1;
-%             else
-%                 % Create a random polynomial.
-%                 Cval = PIETOOLS_random_poly_generator(nr,nc,var1_Lcomp,max_deg);
-%                 if max(abs(Cval.coeff))==0
-%                     % Avoid adding a zero term to the PDE.
-%                     Cval = eye(nr,nc);
-%                 end
-%             end
-%             term_jj.C = Cval;
-%         else
-%             % % % The term involves a state component.
-%             % Establish the size of the state component.
-%             nc = PDE.x_tab(Robj_indx,2);
-%             % Determine on which variables the component depends.
-%             has_vars_Rcomp = logical(PDE.x_tab(Robj_indx,3:2+nvars));
-%             nvars_Rcomp = sum(has_vars_Rcomp);
-%             var1_Rcomp = vars(has_vars_Rcomp,1);
-%             dom_Rcomp = dom(has_vars_Rcomp,:);
-%             var_dom_Rcomp = [var1_Rcomp,dom_Rcomp];
-%             % Determine to what degree the component is differentiable wrt
-%             % each variable.
-%             diff_Rcomp = PDE.x_tab(Robj_indx,3+nvars:2+2*nvars);
-%             
-%             % % Randomly generate a derivative, integral, and position at
-%             % % which to evaluate the state.
-%             Dval = zeros(1,nvars_Rcomp);
-%             Idom = cell(nvars_Rcomp,1);
-%             locval = var1_Rcomp';
-%             % For the integrals and position, we have a fixed number of
-%             % options for each variable.
-%             int_type = randi(4,[nvars_Rcomp,1])-1;
-%             loc_type = randi(3,[nvars_Rcomp,1])-1;
-%             for kk=1:nvars_Rcomp
-%                 % Set the order of the derivative wrt var kk.
-%                 Dval(kk) = randi(diff_Rcomp(kk)+1) - 1;
-%                 
-%                 % Set the domain of integration.
-%                 if int_type(kk)==0
-%                     % No integration is performed wrt var kk.
-%                     Idom{kk} = [];
-%                 elseif int_type(kk)==1
-%                     % Partial integral int_{a}^{s}.
-%                     Idom{kk} = [dom_Rcomp(kk,1),var1_Rcomp(kk)];
-%                 elseif int_type(kk)==2
-%                     % Partial integral int_{s}^{b}.
-%                     Idom{kk} = [var1_Rcomp(kk),dom_Rcomp(kk,2)];
-%                 else
-%                     % Full integral int_{a}^{b}.
-%                     Idom{kk} = dom_Rcomp(kk,:);
-%                 end
-%                 % Set the position at which to evaluate the state.
-%                 if int_type(kk)<3 && ...
-%                     loc_type(kk)==0 && ~ismember(var1_Rcomp(kk).varname,var1_Lcomp.varname)
-%                     % If no full integral is taken wrt variable kk, but the
-%                     % LHS component does not depend on variable kk, we have
-%                     % to evaluate the state at the upper or lower boundary
-%                     % in this variable.
-%                     locval(kk) = dom_Rcomp(kk,randi(2));
-%                 elseif ((loc_type(kk)>0)+Dval(kk))>diff_Rcomp(kk)
-%                     % For a state differentiable up to degree N wrt s, we
-%                     % can only evaluate derivatives d^n/ds^n x(s) at s=a or
-%                     % s=b if n is strictly smaller than N.
-%                     locval(kk) = var1_Rcomp(kk);
-%                     if ~ismember(var1_Rcomp(kk).varname,var1_Lcomp.varname)
-%                         % To remove dependence on variables, we have to
-%                         % integrate.
-%                         loc_type(kk) = 3;
-%                         Idom{kk} = dom_Rcomp(kk,:);
-%                     end
-%                 elseif int_type(kk)>0
-%                     % If we're integrating wrt var kk, don't also evaluate 
-%                     % the state at a boundary wrt var kk.
-%                     locval(kk) = var1_Rcomp(kk);
-%                 else
-%                     locval(kk) = var_dom_Rcomp(kk,loc_type(kk)+1);
-%                 end
-%             end
-%             
-%             % % % Finally, generate random coefficients.
-%             % First determine which primary and dummy variables may appear
-%             % in the coefficient matrix.
-%             
-%             % Primary variables can only be used if either the LHS
-%             % component depends on them, or if they are integrated out from
-%             % the RHS component (using a type 3 integral).
-%             use_primary_vars = has_vars_Lcomp;
-%             use_primary_vars(has_vars_Rcomp) = use_primary_vars(has_vars_Rcomp) | (int_type==3)';
-%             % Dummy variables can be used only if we're using partial 
-%             % integrals, i.e. if both the LHS and RHS depend on this
-%             % variable, and we are integrating the RHS.
-%             use_dummy_vars = has_vars_Lcomp & has_vars_Rcomp;
-%             use_dummy_vars(has_vars_Rcomp) = use_dummy_vars(has_vars_Rcomp) & (int_type>0)';
-%             
-%             % Set the full list of variables we can use.
-%             varlist = [vars(use_primary_vars,1); vars(use_dummy_vars,2)];
-%             % To reduce complexity, don't retain all variables per se.
-%             varlist = varlist(logical(randi([0,1],[length(varlist),1])));
-%             % Generate a random polynomial in these variables.
-%             if isempty(varlist)
-%                 % Create a random matrix.
-%                 Cval = randi(max_deg+1,[nr,nc])-1;
-%             else
-%                 % Create a random polynomial.
-%                 Cval = PIETOOLS_random_poly_generator(nr,nc,varlist,max_deg);
-%                 if max(abs(Cval.coeff))==0
-%                     % Avoid adding a zero term to the PDE.
-%                     Cval = eye(nr,nc);
-%                 end
-%             end
-%             
-%             % Set all properties of the term.
-%             term_jj.x = Robj_indx;
-%             term_jj.D = Dval;
-%             term_jj.loc = locval;
-%             term_jj.I = Idom;
-%             term_jj.C = Cval;            
-%         end
-        
+        % Build a new random term.
+        term_jj = build_random_term(PDE,has_vars_Lcomp,nr,max_deg);        
         % Add the new term to the PDE.
         PDE.(obj){ii}.term{jj} = term_jj;
     end
@@ -336,12 +227,19 @@ for ii=1:nBCs
     % Add some more random terms if desired.
     toggle = false;
     if toggle
-        
-        
-        
+        nterms_ii = randi(max_terms);
+        PDE.BC{ii}.term = [PDE.BC{ii}.term, cell(1,nterms_ii-1)];
+        for jj=2:nterms_ii
+            % Build a new random term.
+            term_jj = build_random_term(PDE,has_vars_Lcomp,nr,max_deg);        
+            % Add the new term to the PDE.
+            PDE.BC{ii}.term{jj} = term_jj;
+        end
     end
     
 end
+
+PDE = initialize_PIETOOLS_PDE(PDE,true);
 
 
 end
@@ -361,7 +259,12 @@ nu = size(PDE.u_tab,1);
 nw = size(PDE.w_tab,1);
 
 term_jj = struct();
-Robj_indx = randi(nx+nw+nu);
+% Enhance the probability of using a state component.
+if randi([0,1])
+    Robj_indx = randi(nx);
+else
+    Robj_indx = randi(nx+nw+nu);
+end
 if Robj_indx>nx
     % % The term involves an input.
     if Robj_indx>(nx+nw)
