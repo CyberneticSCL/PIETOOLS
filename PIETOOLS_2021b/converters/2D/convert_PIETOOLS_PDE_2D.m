@@ -700,7 +700,7 @@ for BCnum = 1:numel(PDE.BC)
             % %     or core boundary component x_bc is involved.
             % Determine which state component appears.
             comp_indx = term_jj.x;
-            has_vars_xcomp = logical(x_tab(comp_indx,3+nvars:2+2*nvars));
+            has_vars_xcomp = logical(x_tab(comp_indx,3:2+nvars));
             nvars_xcomp = sum(has_vars_xcomp);
             % Establish the maximal order of differentiability of the
             % considered state component.
@@ -776,8 +776,8 @@ for BCnum = 1:numel(PDE.BC)
                     param_linsz = cumprod([1,param_sz_full]);
                     param_linsz = param_linsz(1:end-1);
                     for ll=1:size(Pop_int_indx_full,1)
-                        int_lindx = (Pop_int_indx(ll,:)-1)*param_linsz' + 1;
-                        %f2BC_params{Pop_rnum,Pop_cnum}{int_lindx} = polynomial(f2BC_params{Pop_rnum,Pop_cnum}{int_lindx});
+                        %int_lindx = (Pop_int_indx(ll,:)-1)*param_linsz' + 1;
+                        int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
                         f2BC_params.(Rparam){int_lindx}(rindcs,cindcs) = Cval;
                     end
                 end
@@ -1070,9 +1070,9 @@ for eqnum=1:numel(PDE.(obj))
             Rdom = PDE.dom(has_vars_xcomp,:);
             if ~isa(Rloc,'double') && ~isdouble(Rloc)
                 for kk=1:nvars_xcomp
-                    if isdouble(Rloc(kk)) && double(Rloc)==Rdom(kk,1)
+                    if isdouble(Rloc(kk)) && double(Rloc(kk))==Rdom(kk,1)
                         loc_val(kk) = -1;
-                    elseif isdouble(Rloc(kk)) && double(Rloc)==Rdom(kk,2)
+                    elseif isdouble(Rloc(kk)) && double(Rloc(kk))==Rdom(kk,2)
                         loc_val(kk) = 1;
                     end
                 end
