@@ -1027,11 +1027,12 @@ for eqnum=1:numel(PDE.(obj))
             Pop_cnum = (cindcs(1)>nnw_op(1:end-1) & cindcs(1)<=nnw_op(2:end));
             cindcs = cindcs - nnw_op(Pop_cnum);
             
+            % Add the coefficients to the appropriate parameter.
             Rparam = Rparams{Pop_rnum,Pop_cnum};
             if iscell_Rparam(Pop_rnum,Pop_cnum)
-                params_w.(Rparam){1}(rindcs,cindcs) = term_jj.C;
+                params_w.(Rparam){1}(rindcs,cindcs) = params_w.(Rparam){1}(rindcs,cindcs) + term_jj.C;
             else
-                params_w.(Rparam)(rindcs,cindcs) = term_jj.C;
+                params_w.(Rparam)(rindcs,cindcs) = params_w.(Rparam)(rindcs,cindcs) + term_jj.C;
             end
             
         elseif isfield(term_jj,'u')
@@ -1043,11 +1044,12 @@ for eqnum=1:numel(PDE.(obj))
             Pop_cnum = (cindcs(1)>nnu_op(1:end-1) & cindcs(1)<=nnu_op(2:end));
             cindcs = cindcs - nnu_op(Pop_cnum);
             
+            % Add the coefficients to the appropriate parameter.
             Rparam = Rparams{Pop_rnum,Pop_cnum};
             if iscell_Rparam(Pop_rnum,Pop_cnum)
-                params_u.(Rparam){1}(rindcs,cindcs) = term_jj.C;
+                params_u.(Rparam){1}(rindcs,cindcs) = params_u.(Rparam){1}(rindcs,cindcs) + term_jj.C;
             else
-                params_u.(Rparam)(rindcs,cindcs) = term_jj.C;
+                params_u.(Rparam)(rindcs,cindcs) = params_u.(Rparam)(rindcs,cindcs) + term_jj.C;
             end
             
         else
@@ -1231,7 +1233,7 @@ for eqnum=1:numel(PDE.(obj))
                 param_linsz = param_linsz(1:end-1);
                 for ll=1:size(Pop_int_indx_full,1)
                     int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
-                    params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) = Cval;
+                    params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) = params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) + Cval;
                 end
             end               
         end
