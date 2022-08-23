@@ -402,11 +402,15 @@ end
 % % For the states, inputs, and outputs, we build a table with the number of
 % % rows equal to the number of components of this state, input and output.
 tab_cell = cell(5,1);   % {x_tab (j=1); w_tab (j=2); u_tab (j=3); z_tab (j=4); y_tab (j=5)}.
+objs = {'x','w','u','z','y'};
 for j=1:numel(tab_cell)
     % The first two columns in the table list the index associated to this
     % component, and respectively the size of the component.
     tab_j = zeros(n_comps(j),2 + nvars);
     tab_j(:,1) = 1:n_comps(j);
+    if size(PDE.([objs{j},'_tab']),1)==size(tab_j,1)
+        tab_j(:,2) = PDE.([objs{j},'_tab'])(:,2);
+    end
     %tab_j(:,2) = 1;     % Assume each component is scalar-valued for now
     
     % The remaining nvars columns are binary indices, indicating for each
@@ -816,6 +820,9 @@ for ii=1:numel(PDE.(obj))
         nvars_Lstate = sum(has_var_Lstate);
         % Make sure the order of differentiability is appropriately
         % specified.
+        if size(PDE.x{ii}.diff,1)~=1 && size(PDE.x{ii}.diff,2)==1
+            PDE.x{ii}.diff = PDE.x{ii}.diff';
+        end
         if size(PDE.x{ii}.diff,1)~=1
             error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
                     ' the field should be specified as a 1xp array indicating the order of the derivative in each of the p variables on which the considered state "x{',num2str(ii),'}" depends.'])
@@ -1178,7 +1185,7 @@ while ii<=n_eqs
             warning(['The specified order of differentiability "PDE.x{',eq_num_str,'}.diff" is smaller than the observed order of this state component in the PDE, and will therefore be increased.',...
                         ' If you wish to retain the original order of differentiability, please make sure that the order of any derivative of the state does not exceed this specified order.']);
         end
-        PDE.x{ii}.diff = diff_tab(ii,:);
+        PDE.x{ii}.diff = diff_tab(ii,has_vars_Lcomp);
         
         % Check if a temporal derivative is specified, and add new state
         % components if necessary.
@@ -1473,7 +1480,7 @@ while ii<=n_eqs
                 elseif isempty(Ival{kk}) 
                     % If integration must be performed, but is not
                     % specified, throw an error
-                    error(['The term "',term_name,'" appears to depend on a variable that the component "',Robj,'{',num2str(Rindx),'}" does not depend on. This is not suppoprted.',...
+                    error(['The term "',term_name,'" appears to depend on a variable that the component "',obj,'{',eq_num_str,'}" does not depend on. This is not suppoprted.',...
                             ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the state at a particular, so as to remove the dependence on any "illegal" variables.'])
                     %Ival{kk} = Rdom(kk,:);
                 elseif ~isempty(Ival{kk}) && ~isvariable_term_jj(kk)
@@ -1545,7 +1552,16 @@ while ii<=n_eqs
             if is_x_Robj && any(Dval==diff_tab(Rindx,has_vars_Rcomp)) && size(Cval,2)>1
                 for kk=1:size(Cval,2)
                     if all(isequal(Cval(:,kk),zeros(size(Cval,1),1)))
-                        warning(['The ',num2str(kk),'th state variable in component "x{',num2str(Rindx),'}" appears not to contribute to the term "',term_name,'", but will still be differentiated up to degrees "',term_name,'.D".',...
+                        if kk==1
+                            kkth = [num2str(kk),'st'];
+                        elseif kk==2
+                            kkth = [num2str(kk),'nd'];
+                        elseif kk==3
+                            kkth = [num2str(kk),'rd'];
+                        else
+                            kkth = [num2str(kk),'th'];
+                        end
+                        warning(['The ',kkth,' state variable in component "x{',num2str(Rindx),'}" appears not to contribute to the term "',term_name,'", but will still be differentiated up to degrees "',term_name,'.D".',...
                                     ' If this state variable does not need to be differentiable up to the same order as the other variables in state component component "x{',num2str(Rindx),'}", then please add it as a separate component to the PDE structure.']) 
                     end
                 end
@@ -1557,7 +1573,16 @@ while ii<=n_eqs
             if is_x_Robj && any(Dval==diff_tab(Rindx,has_vars_Rcomp)) && size(Cval,2)>1
                 for kk=1:size(Cval,2)
                     if ~any(Cval(:,kk))
-                        warning(['The ',num2str(kk),'th state variable in component "x{',num2str(Rindx),'}" appears not to contribute to the term "',term_name,'", but will still be differentiated up to degrees "',term_name,'.D".',...
+                        if kk==1
+                            kkth = [num2str(kk),'st'];
+                        elseif kk==2
+                            kkth = [num2str(kk),'nd'];
+                        elseif kk==3
+                            kkth = [num2str(kk),'rd'];
+                        else
+                            kkth = [num2str(kk),'th'];
+                        end
+                        warning(['The ',kkth,' state variable in component "x{',num2str(Rindx),'}" appears not to contribute to the term "',term_name,'", but will still be differentiated up to degrees "',term_name,'.D".',...
                                     ' If this state variable does not need to be differentiable up to the same order as the other variables in state component component "x{',num2str(Rindx),'}", then please add it as a separate component to the PDE structure.']) 
                     end
                 end
@@ -2130,8 +2155,8 @@ for ii=1:num_comps
     % the state component
     if strcmp(obj,'x')
         D = comp_ii.diff;
-        has_vars_comp = logical(PDE.([obj,'_tab'])(ii,2+1:2+nvars));
-        D = D(has_vars_comp);
+        %has_vars_comp = logical(PDE.([obj,'_tab'])(ii,2+1:2+nvars));
+        %D = D(has_vars_comp);
         if isempty(D)
             % If the component does not vary in space, indicate that it is
             % finite dimensional.
