@@ -816,9 +816,6 @@ for ii=1:numel(PDE.(obj))
         nvars_Lstate = sum(has_var_Lstate);
         % Make sure the order of differentiability is appropriately
         % specified.
-        if size(PDE.x{ii}.diff,1)~=1 && size(PDE.x{ii}.diff,2)==1
-            PDE.x{ii}.diff = PDE.x{ii}.diff';
-        end
         if size(PDE.x{ii}.diff,1)~=1
             error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
                     ' the field should be specified as a 1xp array indicating the order of the derivative in each of the p variables on which the considered state "x{',num2str(ii),'}" depends.'])
@@ -1181,7 +1178,7 @@ while ii<=n_eqs
             warning(['The specified order of differentiability "PDE.x{',eq_num_str,'}.diff" is smaller than the observed order of this state component in the PDE, and will therefore be increased.',...
                         ' If you wish to retain the original order of differentiability, please make sure that the order of any derivative of the state does not exceed this specified order.']);
         end
-        PDE.x{ii}.diff = diff_tab(ii,has_vars_Lcomp);
+        PDE.x{ii}.diff = diff_tab(ii,:);
         
         % Check if a temporal derivative is specified, and add new state
         % components if necessary.
