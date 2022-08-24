@@ -1181,7 +1181,7 @@ for eqnum=1:numel(PDE.(obj))
                 % If the involved parameter does not involve partial
                 % integration, just set the term.
                 Cval = subs(Cval,vars(:,2),vars(:,1));
-                params_x_cell{Pop_op_indx}.(Rparam)(rindcs,cindcs) = Cval;
+                params_x_cell{Pop_op_indx}.(Rparam)(rindcs,cindcs) = params_x_cell{Pop_op_indx}.(Rparam)(rindcs,cindcs) + Cval;
             else
                 Idoms = term_jj.I;
                 % First, estbalish along which directions integration is
