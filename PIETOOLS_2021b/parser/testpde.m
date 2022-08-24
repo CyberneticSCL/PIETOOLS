@@ -15,5 +15,5 @@ ssobj = setObserve(ssobj,y);
 
 ssobj = getParams(ssobj);
 %%
-initialize_PIETOOLS_PDE_terms(ssobj.params);
+initialize_PIETOOLS_PDE(ssobj.params);
 display_PDE(ssobj.params);

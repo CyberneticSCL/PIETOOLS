@@ -191,7 +191,8 @@ while ~isempty(addvar)
             exclude_c = [P.dim(1,2)+1:P.dim(1,2)+P.dim(2,2), P.dim(1,2)+2*P.dim(2,2)+P.dim(3,2)+1: P.dim(1,2)+2*P.dim(2,2)+P.dim(3,2)+P.dim(4,2)];
             ref1 = struct();
             ref1.type = '()';       ref1.subs = {':',exclude_c};
-            if ~isempty(exclude_c) && subsref(DP,ref1)==0
+            tol = 1e-12;
+            if ~isempty(exclude_c) && eq(subsref(DP,ref1),0,tol)    % Check that excluded components are zero up to tolerance.
                 include_c = 1:size(DP,2);
                 include_c(exclude_c) = [];
                 ref1.subs{2} = include_c;
@@ -276,10 +277,11 @@ while ~isempty(addvar)
 
         % If desired, and possible, get rid of ux(p) and u2(p,y) contributions
         if strcmpi(opts,'exclude') || strcmpi(opts,'pure')
-            exclude_c = [P.dim(1,2)+1:P.dim(1,2)+P.dim(3,2), P.dim(1,2)+2*P.dim(3,2)+P.dim(2,2)+1: P.dim(1,2)+2*P.dim(3,2)+P.dim(2,2)+P.dim(4,2)];
+            exclude_c = [P.dim(1,2)+1:P.dim(1,2)+P.dim(3,2), P.dim(1,2)+P.dim(3,2)+P.dim(2,2)+1: P.dim(1,2)+P.dim(3,2)+P.dim(2,2)+P.dim(4,2)];
             ref1 = struct();
             ref1.type = '()';       ref1.subs = {':',exclude_c};
-            if ~isempty(exclude_c) && subsref(DP,ref1)==0
+            tol = 1e-12;
+            if ~isempty(exclude_c) && eq(subsref(DP,ref1),0,tol)
                 include_c = 1:size(DP,2);
                 include_c(exclude_c) = [];
                 ref1.subs{2} = include_c;

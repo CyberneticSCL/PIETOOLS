@@ -1,16 +1,15 @@
-% SOSDEMO7 --- Chebyshev polynomials
-% Section 3.7 of SOSTOOLS User's Manual
+% SOSDEMO7s --- Chebyshev polynomials
+% Section 4.7 of SOSTOOLS User's Manual
 
 clear; echo on;
- 
-ndeg = 8;   % Degree of Chebyshev polynomial
-
 syms x gam;
+
+% Degree of Chebyshev polynomial
+ndeg = 8;   
 
 % =============================================
 % First, initialize the sum of squares program
 prog = sosprogram([x],[gam]);
-
 
 % Create the polynomial P
 Z = monomials(x,[0:ndeg-1]);
@@ -30,7 +29,6 @@ prog = sossolve(prog,solver_opt);
 
 % =============================================
 % Finally, get solution
-SOLV = sosgetsol(prog, P)
-GAM = sosgetsol(prog, gam)
-
+SOLV = sosgetsol(prog,P)
+GAM = sosgetsol(prog,gam)
 echo off

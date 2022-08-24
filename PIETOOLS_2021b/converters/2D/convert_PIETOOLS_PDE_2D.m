@@ -90,10 +90,10 @@ function PIE = convert_PIETOOLS_PDE_2D(PDE)
 % % % % % Initialization                                          % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Coefficients smaller than tol in PI operators will be discarded.
-op_clean_tol = 1e-14;   
+op_clean_tol = 1e-12;   
 
 % Initialize PDE in case this has not been done.
-PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+PDE = initialize_PIETOOLS_PDE(PDE,true);
 
 fprintf('\n --- Converting the PDE to an Equivalent PIE --- \n')
 
@@ -117,7 +117,7 @@ if nvars==0
     PDE.x{ncomps+1}.vars = vars;
     PDE.x{ncomps+1}.term{1}.x = ncomps+1;
     % Initialize the augmented system, and get rid of the temporary state.
-    PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+    PDE = initialize_PIETOOLS_PDE(PDE,true);
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
 elseif nvars==1
@@ -133,7 +133,7 @@ elseif nvars==1
     PDE.x{ncomps+1}.vars = vars;
     PDE.x{ncomps+1}.term{1}.x = ncomps+1;
     % Initialize the augmented system, and get rid of the temporary state.
-    PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+    PDE = initialize_PIETOOLS_PDE(PDE,true);
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
 end
@@ -332,9 +332,9 @@ Pop.x = Pop_x2z_cell;   Pop.u = Pop_u2z;    Pop.w = Pop_w2z;
 [Cop_x2z, Dop_u2z, Dop_w2z] = impose_fundamental_map(Top,Pop,loc_diff_tab_z,retain_xvars_z);
 
 % % % With that, we can equivalently represent the PDE as a PIE:
-% % %   Tw * w + Tu * u + Tx * xf = A  * xf + Bu  * u + Bw  * w ;
-% % %                           y = Cy * xf + Dyu * u + Dyw * w ;
-% % %                           z = Cz * xf + Dzu * u + Dzw * w ;
+% % %   Tw * w_{t} + Tu * u_{t} + Tx * xf_{t} = A  * xf + Bu  * u + Bw  * w ;
+% % %                                  y      = Cy * xf + Dyu * u + Dyw * w ;
+% % %                                  z      = Cz * xf + Dzu * u + Dzw * w ;
 
 
 
@@ -345,7 +345,7 @@ Pop.x = Pop_x2z_cell;   Pop.u = Pop_u2z;    Pop.w = Pop_w2z;
 % define our PIE.
 
 % Keep track of the variables and domain of the system.
-PIE = struct();
+PIE = pie_struct();
 PIE.dim = nvars;
 PIE.dom = dom;
 PIE.vars = vars;
@@ -700,7 +700,7 @@ for BCnum = 1:numel(PDE.BC)
             % %     or core boundary component x_bc is involved.
             % Determine which state component appears.
             comp_indx = term_jj.x;
-            has_vars_xcomp = logical(x_tab(comp_indx,3+nvars:2+2*nvars));
+            has_vars_xcomp = logical(x_tab(comp_indx,3:2+nvars));
             nvars_xcomp = sum(has_vars_xcomp);
             % Establish the maximal order of differentiability of the
             % considered state component.
@@ -776,8 +776,8 @@ for BCnum = 1:numel(PDE.BC)
                     param_linsz = cumprod([1,param_sz_full]);
                     param_linsz = param_linsz(1:end-1);
                     for ll=1:size(Pop_int_indx_full,1)
-                        int_lindx = (Pop_int_indx(ll,:)-1)*param_linsz' + 1;
-                        %f2BC_params{Pop_rnum,Pop_cnum}{int_lindx} = polynomial(f2BC_params{Pop_rnum,Pop_cnum}{int_lindx});
+                        %int_lindx = (Pop_int_indx(ll,:)-1)*param_linsz' + 1;
+                        int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
                         f2BC_params.(Rparam){int_lindx}(rindcs,cindcs) = Cval;
                     end
                 end
@@ -1027,11 +1027,12 @@ for eqnum=1:numel(PDE.(obj))
             Pop_cnum = (cindcs(1)>nnw_op(1:end-1) & cindcs(1)<=nnw_op(2:end));
             cindcs = cindcs - nnw_op(Pop_cnum);
             
+            % Add the coefficients to the appropriate parameter.
             Rparam = Rparams{Pop_rnum,Pop_cnum};
             if iscell_Rparam(Pop_rnum,Pop_cnum)
-                params_w.(Rparam){1}(rindcs,cindcs) = term_jj.C;
+                params_w.(Rparam){1}(rindcs,cindcs) = params_w.(Rparam){1}(rindcs,cindcs) + term_jj.C;
             else
-                params_w.(Rparam)(rindcs,cindcs) = term_jj.C;
+                params_w.(Rparam)(rindcs,cindcs) = params_w.(Rparam)(rindcs,cindcs) + term_jj.C;
             end
             
         elseif isfield(term_jj,'u')
@@ -1043,11 +1044,12 @@ for eqnum=1:numel(PDE.(obj))
             Pop_cnum = (cindcs(1)>nnu_op(1:end-1) & cindcs(1)<=nnu_op(2:end));
             cindcs = cindcs - nnu_op(Pop_cnum);
             
+            % Add the coefficients to the appropriate parameter.
             Rparam = Rparams{Pop_rnum,Pop_cnum};
             if iscell_Rparam(Pop_rnum,Pop_cnum)
-                params_u.(Rparam){1}(rindcs,cindcs) = term_jj.C;
+                params_u.(Rparam){1}(rindcs,cindcs) = params_u.(Rparam){1}(rindcs,cindcs) + term_jj.C;
             else
-                params_u.(Rparam)(rindcs,cindcs) = term_jj.C;
+                params_u.(Rparam)(rindcs,cindcs) = params_u.(Rparam)(rindcs,cindcs) + term_jj.C;
             end
             
         else
@@ -1070,9 +1072,9 @@ for eqnum=1:numel(PDE.(obj))
             Rdom = PDE.dom(has_vars_xcomp,:);
             if ~isa(Rloc,'double') && ~isdouble(Rloc)
                 for kk=1:nvars_xcomp
-                    if isdouble(Rloc(kk)) && double(Rloc)==Rdom(kk,1)
+                    if isdouble(Rloc(kk)) && double(Rloc(kk))==Rdom(kk,1)
                         loc_val(kk) = -1;
-                    elseif isdouble(Rloc(kk)) && double(Rloc)==Rdom(kk,2)
+                    elseif isdouble(Rloc(kk)) && double(Rloc(kk))==Rdom(kk,2)
                         loc_val(kk) = 1;
                     end
                 end
@@ -1123,7 +1125,8 @@ for eqnum=1:numel(PDE.(obj))
                     [use_var_list{:}] = ind2sub(size(issub_op),ll);
                     use_var_list = cell2mat(use_var_list)-1;
                     % Remove the last variable from the combination.
-                    last_var = find(use_var_list,1,'last');
+                    use_var_sub_list = use_var_list & use_loc;
+                    last_var = find(use_var_sub_list,1,'last');
                     use_var_list(last_var) = 0;
                     % Add the size of state components that depend on the
                     % considered combination to that of components that
@@ -1178,7 +1181,7 @@ for eqnum=1:numel(PDE.(obj))
                 % If the involved parameter does not involve partial
                 % integration, just set the term.
                 Cval = subs(Cval,vars(:,2),vars(:,1));
-                params_x_cell{Pop_op_indx}.(Rparam)(rindcs,cindcs) = Cval;
+                params_x_cell{Pop_op_indx}.(Rparam)(rindcs,cindcs) = params_x_cell{Pop_op_indx}.(Rparam)(rindcs,cindcs) + Cval;
             else
                 Idoms = term_jj.I;
                 % First, estbalish along which directions integration is
@@ -1230,7 +1233,7 @@ for eqnum=1:numel(PDE.(obj))
                 param_linsz = param_linsz(1:end-1);
                 for ll=1:size(Pop_int_indx_full,1)
                     int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
-                    params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) = Cval;
+                    params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) = params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) + Cval;
                 end
             end               
         end

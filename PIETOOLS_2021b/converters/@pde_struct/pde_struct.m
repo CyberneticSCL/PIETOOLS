@@ -49,7 +49,7 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pde_struct
 % x_tab(ii,2+p+j)=0 if x_tab(ii,2+j)=0.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -107,7 +107,7 @@ methods
         if nargin==1
             if ischar(varargin{1})
                 if nargout==0
-                    assignin('caller', varargin{i}, pde_struct());
+                    assignin('caller', varargin{i}, dopvar2d());
                 end
             elseif isa(varargin{1},'pde_struct')
                 obj = varargin{1};
@@ -172,7 +172,7 @@ methods
                     % Allow new pde_structs to be defined using
                     % > pde_struct PDE1 PDE2 PDE3 ...
                     if nargout==0
-                        assignin('caller', varargin{i}, pde_struct());
+                        assignin('caller', varargin{i}, dopvar2d());
                     end
                 else
                     error("Input must be strings");
