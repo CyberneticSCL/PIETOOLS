@@ -233,10 +233,12 @@ if Pop_f2BC==0
     Top_x = Pop_f2x;
 else
     % Pop_f2b = - P_b2BC\P_f2BC;
-    try Pop_f2b = -mldivide(Pop_b2BC,Pop_f2BC,1,1e-10,5);
+    Pop_f2b = -mldivide(Pop_b2BC,Pop_f2BC,1,1e-10,5);
+    % Check that the inverse is sufficiently accurate.
+    if eq(Pop_b2BC * Pop_f2b + Pop_f2BC,0,op_clean_tol)
         Top_x = Pop_b2x*Pop_f2b + Pop_f2x;
         Top_x = clean_opvar(Top_x,op_clean_tol);
-    catch
+    else
         error(['The PI operator defining the boundary conditions appears not to be invertible.',...
                 ' Please make sure that your system is well-posed.'])
     end
@@ -244,27 +246,29 @@ end
 % Then Tu.
 if ~any(np_op.u) || Pop_u2BC==0
     % Pop_f2b = - P_b2BC\P_u2BC;
-     % Avoid computations if inputs are not preset/do not contribute to BCs.
+     % Avoid computations if inputs are not present/do not contribute to BCs.
     Top_u = opvar2d([],[np_op.x,np_op.u],dom,vars);
 else
-    try Pop_u2b = -mldivide(Pop_b2BC,Pop_u2BC,1,1e-10,5);
+    Pop_u2b = -mldivide(Pop_b2BC,Pop_u2BC,1,1e-10,5);
+    if eq(Pop_b2BC * Pop_u2b + Pop_u2BC,0,op_clean_tol)
         Top_u = Pop_b2x*Pop_u2b;
         Top_u = clean_opvar(Top_u,op_clean_tol);
-    catch
+    else
         error(['The PI operator defining the boundary conditions appears not to be invertible.',...
                 ' Please make sure that your system is well-posed.'])
     end
 end
 % Then Tw.
 if ~any(np_op.w) || Pop_w2BC==0
-    % Avoid computations if inputs are not preset/do not contribute to BCs.
+    % Avoid computations if inputs are not present/do not contribute to BCs.
     Top_w = opvar2d([],[np_op.x,np_op.w],dom,vars);
 else
     % Pop_w2b = - P_b2BC\P_w2BC;
-    try Pop_w2b = -mldivide(Pop_b2BC,Pop_w2BC,1,1e-10,5);
+    Pop_w2b = -mldivide(Pop_b2BC,Pop_w2BC,1,1e-10,5);
+    if eq(Pop_b2BC * Pop_w2b + Pop_w2BC,0,op_clean_tol)
         Top_w = Pop_b2x*Pop_w2b;
         Top_w = clean_opvar(Top_w,op_clean_tol);
-    catch
+    else
         error(['The PI operator defining the boundary conditions appears not to be invertible.',...
                 ' Please make sure that your system is well-posed.'])
     end
