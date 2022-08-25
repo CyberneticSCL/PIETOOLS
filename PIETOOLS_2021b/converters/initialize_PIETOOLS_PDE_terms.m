@@ -823,7 +823,9 @@ for ii=1:numel(PDE.(obj))
         if size(PDE.x{ii}.diff,1)~=1 && size(PDE.x{ii}.diff,2)==1
             PDE.x{ii}.diff = PDE.x{ii}.diff';
         end
-        if size(PDE.x{ii}.diff,1)~=1
+        if isempty(PDE.x{ii}.diff) && nvars_Lstate==0
+            PDE.x{ii}.diff = zeros(1,0);
+        elseif size(PDE.x{ii}.diff,1)~=1
             error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
                     ' the field should be specified as a 1xp array indicating the order of the derivative in each of the p variables on which the considered state "x{',num2str(ii),'}" depends.'])
         elseif size(PDE.x{ii}.diff,2)==nvars
@@ -1881,6 +1883,9 @@ while jj<=n_terms
             error(['The field "',term_name,'.I" is not appropriately specified;',...
                 ' the number of elements should match the number of spatial variables on which component "',term_name,'.',Robj,'{',num2str(Rindx),'}" depends.'])
         end
+        % Keep track of which along which directions a full integral is
+        % performed.
+        %is_full_int = false(1,numel(Ival));
         for kk = 1:numel(Ival)
             if isempty(Ival{kk})
                 continue
@@ -1901,6 +1906,7 @@ while jj<=n_terms
                 % The integral will discard any spatial dependence on the kkth
                 % variable.
                 isvariable_term_jj(kk) = false;
+                %is_full_int(kk) = true;
             elseif all(isequal(Ival_kk,polynomial(Rdom(kk,2:-1:1))))
                 % Integration is performed over mirror image of full domain
                 % (for whatever reason).
@@ -1926,6 +1932,8 @@ while jj<=n_terms
     % integrated.
     is_int_var_full = false(1,nvars);
     is_int_var_full(has_vars_Rcomp) = is_int_var_Rcomp;
+    %is_full_int_full = false(1,nvars);
+    %is_full_int_full(has_vars_Rcomp) = is_full_int;
     
     % Logical indices indicating which of the global variables the term
     % actually varies in (are not boundary positions or integrated out).
