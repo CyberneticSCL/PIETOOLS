@@ -28,7 +28,7 @@ function [] = display_PDE(PDE,name)
 % or D. Jagt at djagt@asu.edu
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ function [] = display_PDE(PDE,name)
 % Initial coding DJ - 07/08/2022
 
 % Initialize the system
-try PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+try PDE = initialize_PIETOOLS_PDE(PDE,true);
 catch
     error(['The presented PDE is not finished, or not appropriate.',...
             ' Please check that the PDE is properly specified, and run "initialize_PIETOOLS_PDE" to check for any errors.'])
@@ -128,8 +128,10 @@ sup_s = '\x02E2';
 % % Other symbols
 partial = '\x2202';
 %int = '\x222B';
-xdot = '\x1E8B';
-xddot = '\x1E8D';
+%xdot = '\x1E8B';
+xdot = [partial,sub_t,' x'];
+%xddot = '\x1E8D';
+xddot = [partial,sub_t,sup_num{3},' x'];
 
 
 % Establish cell with (UNICODE) characters for the primary variables
@@ -492,6 +494,8 @@ has_vars_eq = eq_info(3:2+nvars);
 sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 sub_min = '\x208B';
 sub_a = '\x2090';
+sub_lp = '\x208D';
+sub_rp = '\x208E';
 
 % Superscripts
 sup_num = cell(10,1);    % Superscripts
@@ -732,9 +736,26 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
         else
             Cvar_str = '';
         end
-        eq_indx = sub_num{eq_num+1};
-        trm_indx = sub_num{term_num+1};
-        C_trm = [C_trm,'C',eq_indx,'',trm_indx,Cvar_str,' * '];
+        % Add subscripts indicating the equation and term number.
+        if eq_num<=9
+            % The equation number consists of a single decimal
+            eq_indx = sub_num{eq_num+1};
+        else
+            % The equation number consists of multiple decimals
+            eq_indx = cell2mat(sub_num(str2num(num2str(eq_num)')+1)');
+        end
+        if term_num<=9
+            % The equation number consists of a single decimal
+            trm_indx = sub_num{term_num+1};
+        else
+            % The equation number consists of multiple decimals
+            trm_indx = cell2mat(sub_num(str2num(num2str(term_num)')+1)');
+        end
+        if eq_num>9 || term_num>9
+            C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,sub_rp,Cvar_str,' * '];
+        else
+            C_trm = [C_trm,'C',eq_indx,'',trm_indx,Cvar_str,' * '];
+        end
     end
 %     if ~isempty(C_trm)
 %         C_trm = [strtrim(C_trm),' '];

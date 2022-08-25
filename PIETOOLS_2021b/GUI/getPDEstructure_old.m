@@ -38,7 +38,7 @@ varidx = PDE_GUI.varidx;
 Xvaridx = PDE_GUI.Xvaridx;
 
 % storing dimensions for convenience
-PDE = initialize_PIETOOLS_PDE_terms(PDE);
+PDE = initialize_PIETOOLS_PDE_terms_legacy(PDE);
 
 no = PDE.n.nx; nw = PDE.n.nw; nu = PDE.n.nu;
 n_pde = PDE.n.n_pde; nz = PDE.n.nz; ny = PDE.n.ny;

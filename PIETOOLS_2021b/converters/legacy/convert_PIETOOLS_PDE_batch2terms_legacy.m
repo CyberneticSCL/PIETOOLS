@@ -91,7 +91,7 @@ PDE_out.n.nr = PDE.nx+PDE.nz+PDE.ny + 2*PDE.n1 + 4*PDE.n2; %?
 
 PDE_out.dom = PDE.dom;
 
-PDE_out = initialize_PIETOOLS_PDE_terms(PDE_out);
+PDE_out = initialize_PIETOOLS_PDE_terms_legacy(PDE_out);
 
 N = length(PDE_out.n.n_pde)-1;
 % find total PDE states

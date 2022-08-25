@@ -29,7 +29,7 @@ function display(PDE,name)
 % or D. Jagt at djagt@asu.edu
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ function display(PDE,name)
 %
 % Initial coding DJ - 07/08/2022
 
-try PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+try PDE = initialize_PIETOOLS_PDE(PDE,true);
     display_PDE(PDE,name);
 catch
     disp(PDE);

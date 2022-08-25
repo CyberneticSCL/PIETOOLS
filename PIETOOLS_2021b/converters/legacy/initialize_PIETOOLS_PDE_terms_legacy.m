@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % initialize_PIETOOLS_PDE_terms.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function PDE_out=initialize_PIETOOLS_PDE_terms(PDE)
+function PDE_out=initialize_PIETOOLS_PDE_terms_legacy(PDE)
 % initializes and checks the PDE formulation using the term-based input
 % format.  undefined signals are set to length 0 with 0 value
 % corresponding parameters are set to zero valued terms of appropriate

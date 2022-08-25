@@ -588,7 +588,8 @@ for i=metadata(5)+1:length(PDE_Text)
     iLoc = iLoc+1;
 end
 
-PDE_struct = initialize_PIETOOLS_PDE_terms(PDE_struct);
+
+PDE_struct = initialize_PIETOOLS_PDE(PDE_struct);
 end
 
 function val = eval_b(exp)

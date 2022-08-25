@@ -132,11 +132,11 @@ function [PDE] = expand_PIETOOLS_PDE_BCs(PDE)
 
 
 % Initialize the PDE, if it seems this has not yet been done.
-if ~isa(PDE,'pde_struct') || isempty(PDE.BC_tab)
-    PDE = initialize_PIETOOLS_PDE_terms(PDE,true);
+if ~isa(PDE,'pde_struct') || (size(PDE.BC_tab,1)~=sum(sum(PDE.x_tab(:,3+PDE.dim:2+2*PDE.dim))))
+    PDE = initialize_PIETOOLS_PDE(PDE,true);
 end
 
-% Extract some important parameter.s
+% Extract some important parameters
 vars = PDE.vars;
 var1 = PDE.vars(:,1);
 dom = PDE.dom;
@@ -146,10 +146,6 @@ for kk=1:nvars
     global_varname_1{kk} = var1(kk).varname{1};
 end
 pvar dumvar
-
-% 
-BC_tab = PDE.BC_tab;
-dep_tab = BC_tab(:,3:2+nvars);
 
 % Set a new PDE structure, in which the BCs are expanded and sorted
 PDE_new = PDE;
@@ -172,13 +168,20 @@ for ii=1:numel(PDE.BC)
     BC_new_ii{1}.term = cell(1,0);
     BC_new_ii{1}.int_tab = zeros(0,nvars);
     BC_new_ii{1}.is_xcomp = zeros(0,nvars);
+    % For each new BC 0=F_kk(s), keep track of which variables the function
+    % F_kk depends on using binary indices.
     dep_tab_expanded_ii = zeros(nBCs_ii,nvars);
+    % Loop over all possible combinations of the nvars variables.
     for kk=2:nBCs_ii
+        % Establish which combination of variables is associated to index
+        % kk.
         sub_indx_kk = cell(1,nvars);
         [sub_indx_kk{:}] = ind2sub(hasvars_BC_ii+1,kk);
         sub_indx_kk = cell2mat(sub_indx_kk);
         dep_tab_expanded_ii(kk,:) = sub_indx_kk - 1;
         
+        % Initialize a new (empty) boundary condition 0=F_kk(s) that
+        % depends on the considered combination of variables.
         BC_new_ii{kk}.size = BC_new_ii{1}.size;
         BC_new_ii{kk}.vars = BC_new_ii{1}.vars;
         BC_new_ii{kk}.dom = BC_new_ii{1}.dom;
@@ -188,16 +191,19 @@ for ii=1:numel(PDE.BC)
         BC_new_ii{kk}.int_tab = BC_new_ii{1}.int_tab;
         BC_new_ii{kk}.is_xcomp = BC_new_ii{1}.is_xcomp;
     end
+    % Build a new table with BC information associated to the new
+    % (expanded) boundary conditions.
     BC_tab_ii = zeros(nBCs_ii,2+2*nvars);
     BC_tab_ii(:,2) = PDE.BC_tab(ii,2);
-    BC_tab_ii(:,3:2+nvars) = dep_tab_expanded_ii;   
+    BC_tab_ii(:,3:2+nvars) = dep_tab_expanded_ii;
     
+    % For some BCs, decomposition into e.g. separate edge and corner BCs is
+    % not possible. For this, we keep track of which variables MUST appear
+    % in the current BC ii.
+    remove_BC_ii = false(nBCs_ii,1);
     
-    % Finite-dimensional BCs cannot be decompsed any further.
-    if ~any(dep_tab(ii,:))
-        continue
-    end   
-    
+    % Loop over all terms in the BC ii, decomposing them into terms
+    % depending on the core boundary and fundamental state components.
     jj = 1;
     while(jj<=numel(BC_ii.term))
         term_jj = BC_ii.term{jj};
@@ -213,10 +219,9 @@ for ii=1:numel(PDE.BC)
             Robj = 'u';
             is_x_Robj = false;
         end
-        %is_x_comp_ii = [is_x_comp_ii; is_x_Robj];
         Rindx = find(PDE.([Robj,'_tab'])(:,1)==term_jj.(Robj));
-        %nR = 1;
-        % Establish which spatial variables each component depends on.
+        
+        % Establish which spatial variables the component depends on.
         has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx(1),3:2+nvars));
         nvars_Rcomp = sum(has_vars_Rcomp);
         dom_Rcomp = dom(has_vars_Rcomp,:);
@@ -233,7 +238,7 @@ for ii=1:numel(PDE.BC)
             % each of the new boundary conditions, and move on to the next
             % term.            
             for kk=1:nBCs_ii
-                BC_new_ii{kk}.term = {BC_new_ii{kk}.term, BC_ii.term{jj}};
+                BC_new_ii{kk}.term = [BC_new_ii{kk}.term, BC_ii.term{jj}];
                 var_log_kk = logical(dep_tab_expanded_ii(kk,:));
                 BC_new_ii{kk}.term{end}.C = subs(BC_new_ii{kk}.term{end}.C,vars(~var_log_kk,1),dom(~var_log_kk,1));
                 BC_new_ii{kk}.is_xcomp = [BC_new_ii{kk}.is_xcomp, false];
@@ -275,8 +280,6 @@ for ii=1:numel(PDE.BC)
                         ' There must be a bug in the initialization file...'])
             end
         end
-        %isbc_tab_ii(jj,has_vars_Rcomp) = isbndry_loc;
-        %int_tab_ii(jj,has_vars_Rcomp) = int_type_list;
         
         
         % % We check now for two cases in which the state needs to be
@@ -354,9 +357,14 @@ for ii=1:numel(PDE.BC)
             Dval_mismatch(~isbndry_loc) = x_diff_max(~isbndry_loc) - Dval(~isbndry_loc);
             if ~any(Dval_mismatch)
                 % The state is differentiated up to the maximally allowed
-                % degree --> we can move on.
-                
+                % degree --> no further expansion is necessary.
+                % Add contribution of this term to each of the decomposed
+                % boundary conditions, e.g. separate corner, edge, and
+                % plane BCs.                
                 for kk=1:nBCs_ii
+                    if remove_BC_ii(kk)
+                        continue
+                    end
                     var_log_kk = logical(dep_tab_expanded_ii(kk,:));
                     var_log_kk_jj = var_log_kk(has_vars_Rcomp);
                     if any(int_type_list(~var_log_kk_jj)==1)
@@ -369,29 +377,39 @@ for ii=1:numel(PDE.BC)
                     has_vars_term = false(1,nvars);
                     has_vars_term(has_vars_Rcomp) = ~isbndry_loc;
                     
+                    % Replace integrals int_s^b with int_a^b if we're
+                    % evaluating s=a.
+                    make_full_int = (int_type_list==2 & ~var_log_kk(has_vars_Rcomp));
+                    % Any full integral will remove the dependence on a
+                    % variable
                     is_full_int = false(1,nvars);
-                    is_full_int(has_vars_Rcomp) = int_type_list==3;
-                    has_vars_term(is_full_int) = false; % Full integrals will remove dependence on a variable
+                    is_full_int(has_vars_Rcomp) = (int_type_list==3 | make_full_int);
+                    has_vars_term(is_full_int) = false;
                     
                     % For variables on which BC kk does not depend, we
                     % evaluate the variable at the lower boundary
                     Cval_kk = polynomial(subs(Cval,vars(~var_log_kk,1),dom(~var_log_kk,1)));
-                    has_vars_Cval = ismember(global_varname_1(has_vars_Rcomp),Cval_kk.varname);
-                    
-                    has_vars_term = has_vars_term | has_vars_Cval';
+                    has_vars_Cval = ismember(global_varname_1,Cval_kk.varname)';
+                    has_vars_term = has_vars_term | has_vars_Cval;
                     
                     if any(has_vars_term & ~var_log_kk)
                         % If the term depends on variables that do not
-                        % appear in BC kk, it cannot contribute to this BC.
+                        % appear in BC kk, then a proper decomposition into
+                        % e.g. corner and edge BCs is not possible. Any BC
+                        % involving this term must be allowed to depend on
+                        % the variables appearing in this term.
+                        remove_BC_ii(kk) = true;
                         continue
                     elseif max(max(abs(Cval_kk.coeff)))<=1e-13
                         % If the coefficients are zero, the term does not
                         % contribute.
                         continue
-                    elseif ~any(has_vars_term - var_log_kk)
+                    else    %if ~any(has_vars_term - var_log_kk)
                         % Split contributions to corners, edges, planes, etc.
                         BC_new_ii{kk}.term = [BC_new_ii{kk}.term, BC_ii.term{jj}];
                         BC_new_ii{kk}.term{end}.C = Cval_kk;
+                        int_dom_kk = mat2cell(dom(make_full_int,:),ones(sum(make_full_int),1));
+                        BC_new_ii{kk}.term{end}.I(make_full_int) = int_dom_kk;
                         
                         %BC_new_ii{kk}.isbc_tab(has_vars_Rcomp) = BC_new_ii{1}.isbc_tab;
                         int_type_list_full = zeros(1,nvars);
@@ -399,12 +417,18 @@ for ii=1:numel(PDE.BC)
                         BC_new_ii{kk}.int_tab = [BC_new_ii{kk}.int_tab; int_type_list_full];
                         BC_new_ii{kk}.is_xcomp = [BC_new_ii{kk}.is_xcomp, true];
                         
-                        BC_tab_ii(kk,3+nvars:2+2*nvars) = max(BC_tab_ii(kk,3+nvars:2+2*nvars),Dval);
+                        BC_diff_tab_ii_kk = BC_tab_ii(kk,3+nvars:2+2*nvars);
+                        BC_diff_tab_ii_kk(has_vars_Rcomp) = max(BC_diff_tab_ii_kk(has_vars_Rcomp), Dval);
+                        BC_tab_ii(kk,3+nvars:2+2*nvars) = BC_diff_tab_ii_kk;
                     end
                 end                
                 jj = jj+1;
                 continue
             end
+            
+            % % % The state is not differentiated up to the maximally
+            % % % degree --> we decompose it into a core boundary state and
+            % % % fundamental state component:
 
             % Establish the first spatial variable wrt which the state must
             % still be differentiated.
@@ -490,15 +514,16 @@ for ii=1:numel(PDE.BC)
     kk = 1;
     while kk<=numel(BC_new_ii)
         % If the new BC has no terms, there's no point in keeping it.
-        if isempty(BC_new_ii{kk}.term)
-            BC_new_ii = [BC_new_ii(1:kk-1); BC_new_ii(kk+1:end)];
-            BC_tab_ii = [BC_tab_ii(1:kk-1); BC_tab_ii(kk+1:end)];
+        if isempty(BC_new_ii{kk}.term) || remove_BC_ii(kk)
+            BC_new_ii = [BC_new_ii(1:kk-1,:); BC_new_ii(kk+1:end,:)];
+            BC_tab_ii = [BC_tab_ii(1:kk-1,:); BC_tab_ii(kk+1:end,:)];
+            remove_BC_ii = [remove_BC_ii(1:kk-1); remove_BC_ii(kk+1:end)];
             continue
         end
         % If all terms are integrated over the same indefinite domain in a
         % particular spatial direction, the integrand itself must be zero:
         % 0 = int_{a}^s f(tt) dtt --> 0 = f(s)
-        is_xcomp_kk = BC_new_ii{kk}.is_xcomp;
+        is_xcomp_kk = logical(BC_new_ii{kk}.is_xcomp);
         int_tab_kk = BC_new_ii{kk}.int_tab(is_xcomp_kk,:);
         remove_int = any(int_tab_kk,1) & any(int_tab_kk<3,1) & ~any(int_tab_kk(2:end,:) - int_tab_kk(1:end-1,:),1);
         if any(remove_int)

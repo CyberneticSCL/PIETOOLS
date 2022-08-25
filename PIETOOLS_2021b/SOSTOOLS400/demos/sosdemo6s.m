@@ -1,6 +1,5 @@
-% SOSDEMO6 --- MAX CUT
-% Section 3.6 of SOSTOOLS User's Manual
-% 
+% SOSDEMO6s --- MAX CUT
+% Section 4.6 of SOSTOOLS User's Manual
 
 clear; echo on;
 syms x1 x2 x3 x4 x5;
@@ -33,7 +32,7 @@ Z = monomials(vartable,[0 1]);
 Z = monomials(vartable,0:2);
 for i = 1:5
     [prog,p{1+i}] = sospolyvar(prog,Z);
-end;
+end
 
 % =============================================
 % Next, define SOSP constraints
@@ -45,7 +44,7 @@ gamma = 4;
 expr = p{1}*(gamma-f);
 for i = 2:6
     expr = expr + p{i}*bc{i-1};
-end;
+end
 expr = expr - (gamma-f)^2;
 
 prog = sosineq(prog,expr);
@@ -54,6 +53,7 @@ prog = sosineq(prog,expr);
 % And call solver
 solver_opt.solver = 'sedumi';
 prog = sossolve(prog,solver_opt);
+
 % =============================================
 % If program is feasible, 4 is an upper bound for the cut.
 echo off
