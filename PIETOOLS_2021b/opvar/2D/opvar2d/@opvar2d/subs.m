@@ -191,7 +191,7 @@ while ~isempty(addvar)
             exclude_c = [P.dim(1,2)+1:P.dim(1,2)+P.dim(2,2), P.dim(1,2)+2*P.dim(2,2)+P.dim(3,2)+1: P.dim(1,2)+2*P.dim(2,2)+P.dim(3,2)+P.dim(4,2)];
             ref1 = struct();
             ref1.type = '()';       ref1.subs = {':',exclude_c};
-            tol = 1e-12;
+            tol = 1e-10;
             if ~isempty(exclude_c) && eq(subsref(DP,ref1),0,tol)    % Check that excluded components are zero up to tolerance.
                 include_c = 1:size(DP,2);
                 include_c(exclude_c) = [];
@@ -280,7 +280,7 @@ while ~isempty(addvar)
             exclude_c = [P.dim(1,2)+1:P.dim(1,2)+P.dim(3,2), P.dim(1,2)+P.dim(3,2)+P.dim(2,2)+1: P.dim(1,2)+P.dim(3,2)+P.dim(2,2)+P.dim(4,2)];
             ref1 = struct();
             ref1.type = '()';       ref1.subs = {':',exclude_c};
-            tol = 1e-12;
+            tol = 1e-10;
             if ~isempty(exclude_c) && eq(subsref(DP,ref1),0,tol)
                 include_c = 1:size(DP,2);
                 include_c(exclude_c) = [];

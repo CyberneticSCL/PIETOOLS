@@ -1451,14 +1451,14 @@ Xop_params_xy = cell2mat(iGvec_cell_xy);
 eps_arr = [eps_0;eps_x;eps_y;eps_xy];
 eps = max(eps_arr);
 if any(eps>tol)
-    if all(all(deg_fctr==deg_fctr_max))
+    if any(any(deg_fctr==deg_fctr_max))
         fprintf(['\n An accurate inverse (up to specified tolerance) could not be obtained with a degree increase factor of \n'])
         display(deg_fctr)
         fprintf([' Returning the current best guess of the inverse.\n '])
         deg_fctr_final = deg_fctr;
     else
         deg_fctr_new = min(round(deg_fctr.*2),deg_fctr_max);
-        [Xop,eps,deg_fctr_final] = mrdivide_opvar2d(P2op,P1op,deg_fctr_new,tol,deg_fctr_max);
+        [Xop,eps,deg_fctr_final] = mrdivide(P2op,P1op,deg_fctr_new,tol,deg_fctr_max);
     return
     end
 else
