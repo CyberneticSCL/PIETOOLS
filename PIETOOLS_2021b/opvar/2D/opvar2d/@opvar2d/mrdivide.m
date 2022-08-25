@@ -117,6 +117,9 @@ elseif nargin==4
 elseif nargin>5
     error('At most 5 inputs are accepted')
 end
+% Keep track of how many iterations have already been performed.
+global iter_num_mrdivide_opvar2d
+
 
 % % % Check and process the inputs
 if ~isa(P1op,'opvar2d')
@@ -1451,7 +1454,12 @@ Xop_params_xy = cell2mat(iGvec_cell_xy);
 eps_arr = [eps_0;eps_x;eps_y;eps_xy];
 eps = max(eps_arr);
 if any(eps>tol)
-    if any(any(deg_fctr==deg_fctr_max))
+    if isempty(iter_num_mrdivide_opvar2d)
+        iter_num_mrdivide_opvar2d = 1;
+    else
+        iter_num_mrdivide_opvar2d = iter_num_mrdivide_opvar2d + 1;
+    end
+    if any(any(deg_fctr==deg_fctr_max)) || iter_num_mrdivide_opvar2d>=10
         fprintf(['\n An accurate inverse (up to specified tolerance) could not be obtained with a degree increase factor of \n'])
         display(deg_fctr)
         fprintf([' Returning the current best guess of the inverse.\n '])
