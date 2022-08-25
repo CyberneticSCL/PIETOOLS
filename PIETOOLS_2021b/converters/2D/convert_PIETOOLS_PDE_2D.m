@@ -233,7 +233,11 @@ if Pop_f2BC==0
     Top_x = Pop_f2x;
 else
     % Pop_f2b = - P_b2BC\P_f2BC;
-    Pop_f2b = -mldivide(Pop_b2BC,Pop_f2BC,1,1e-10,5);
+    try Pop_f2b = -mldivide(Pop_b2BC,Pop_f2BC,1,1e-10,5);
+    catch
+        error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                ' Please make sure that your system is well-posed.'])
+    end
     % Check that the inverse is sufficiently accurate.
     if eq(Pop_b2BC * Pop_f2b + Pop_f2BC,0,op_clean_tol)
         Top_x = Pop_b2x*Pop_f2b + Pop_f2x;
@@ -249,7 +253,11 @@ if ~any(np_op.u) || Pop_u2BC==0
      % Avoid computations if inputs are not present/do not contribute to BCs.
     Top_u = opvar2d([],[np_op.x,np_op.u],dom,vars);
 else
-    Pop_u2b = -mldivide(Pop_b2BC,Pop_u2BC,1,1e-10,5);
+    try Pop_u2b = -mldivide(Pop_b2BC,Pop_u2BC,1,1e-10,5);
+    catch
+        error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                ' Please make sure that your system is well-posed.'])
+    end
     if eq(Pop_b2BC * Pop_u2b + Pop_u2BC,0,op_clean_tol)
         Top_u = Pop_b2x*Pop_u2b;
         Top_u = clean_opvar(Top_u,op_clean_tol);
@@ -264,7 +272,11 @@ if ~any(np_op.w) || Pop_w2BC==0
     Top_w = opvar2d([],[np_op.x,np_op.w],dom,vars);
 else
     % Pop_w2b = - P_b2BC\P_w2BC;
-    Pop_w2b = -mldivide(Pop_b2BC,Pop_w2BC,1,1e-10,5);
+    try Pop_w2b = -mldivide(Pop_b2BC,Pop_w2BC,1,1e-10,5);
+    catch
+        error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                ' Please make sure that your system is well-posed.'])
+    end
     if eq(Pop_b2BC * Pop_w2b + Pop_w2BC,0,op_clean_tol)
         Top_w = Pop_b2x*Pop_w2b;
         Top_w = clean_opvar(Top_w,op_clean_tol);
