@@ -131,7 +131,7 @@ switch index
 %        [x_-(s=1)] = [K10, K11] [x_-(s=0)]         | specified
 %   The implementation is based on a Linearized Saint–Venant–Exner Model
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diagne(GUI,params);
-%-----|--------------------------------------------------------------------
+%--------------------------------------------------------------------------
     case {4.0,4.1,4.2,4.4,4.3,4.5}
 % 	PDE: x1_{t} = sig1*x2 - (1/r1)*x1_{s}           | Different parameters          Saba 2019 [3] 
 %        x2_{t} = sig2*x1 + (1/r2)*x2_{s}           | may be invoked calling  
@@ -516,7 +516,7 @@ switch index
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
     end
-    PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params)
+    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params);
 %--------------------------------------------------------------------------
     case 40
 %   ODE: X_{t} = A*X(t) + A1*X(t-tau) + B*x(t,s1=0) | tau = 1;
@@ -694,12 +694,11 @@ if GUI~=0
  disp('No GUI representation available for this system.')
 end
 
-
-
 %__________________________________________________________________________
 %==========================================================================
 end
 
+% % % Processing of the outputs.
 % Check if the number of desired outputs is reasonable
 if nargout>0 && BATCH==0 && TERM==0
     error('No PDE structure has been produced. Use "Get PDE Object" in the GUI or specify ''batch'' or ''terms'' to obtain corresponding structure')
@@ -714,7 +713,17 @@ if BATCH~=0
     varargout{BATCH} = PDE_b;
 end
 if TERM~=0
+    PDE_t = initialize_PIETOOLS_PDE(PDE_t,true);
+    display_PDE(PDE_t);
     varargout{TERM} = PDE_t;
+end
+
+% Check if the user wants to run the executive
+userinp = input('\n Would you like to run the executive associated to this problem? (y/n) \n ---> ','s');
+if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
+    PIE = convert_PIETOOLS_PDE(varargout{1});
+    assignin('base','PIE',PIE);
+    evalin('base','PIETOOLS_auto_execute');
 end
 
 end
@@ -933,7 +942,7 @@ params = {};
 
 % Collect the inputs
 if nargin1==0 %<-- If there is no input, pause the script and let the user specify an example
-    userinp = input('\n Select an example (1 through 29) to convert \n ---> ','s');
+    userinp = input('\n Select an example (1 through 40) to convert \n ---> ','s');
     varargin0 = split(userinp,[" ",","]);
     index = str2double(varargin0{1});
     if ~isnan(index) && (index>=0 && index<=n_examples)
