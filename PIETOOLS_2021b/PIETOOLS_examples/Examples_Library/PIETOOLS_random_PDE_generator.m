@@ -136,7 +136,7 @@ end
 % Check that the maximal number of terms in each equation has been properly
 % specified.
 if numel(max_terms)==1
-    max_terms = max_terms*ones(1,3);
+    max_terms = max_terms*ones(1,5);
 elseif numel(max_terms)==3
     max_terms = [max_terms(1), max_terms(2)*ones(1,2)];
 elseif numel(max_terms)~=3
