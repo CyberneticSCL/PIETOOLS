@@ -106,4 +106,13 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
         z_tab = zeros(0,2);
     end
     
+methods
+    function display(obj,name)
+        try disp_pie(obj,name)
+        catch
+            disp(obj);
+        end
+    end
+    end
+    
 end
