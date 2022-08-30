@@ -323,7 +323,7 @@ nnvars_arr = cumsum([0; nvars_arr]);
 
 
 % % Establish a unique set of primary variables from the full set.
-[var1_list_unique,id1,varnum_list] = unique(var_list(:,1)); % list_unique = list(id1);  list = list_unique(varnum_list)
+[var1_list_unique,id1,varnum_list] = unique(var_list(:,1),'stable'); % list_unique = list(id1);  list = list_unique(varnum_list)
 nvars = length(var1_list_unique);
 if nvars>2
     error('Currently, PIETOOLS supports only problems with at most two distinct spatial variables.')
