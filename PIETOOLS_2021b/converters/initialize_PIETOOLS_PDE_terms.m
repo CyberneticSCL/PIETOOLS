@@ -1340,6 +1340,10 @@ while ii<=n_eqs
         
         % % Initialize an empty integral (for now) if no integral is 
         % % specified.
+        if isfield(term_jj,'int') && ~isfield(term_jj,'I')
+            term_jj.I = term_jj.int;
+            PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'int');
+        end
         if isfield(term_jj,'I')
             Ival = term_jj.I(:);
             if ~isa(Ival,'cell')
@@ -1763,6 +1767,10 @@ while jj<=n_terms
     
     % % Initialize an empty integral (for now) if no integral is
     % % specified.
+    if isfield(term_jj,'int') && ~isfield(term_jj,'I')
+        term_jj.I = term_jj.int;
+        PDE.BC{eq_num}.term{jj} = rmfield(PDE.BC{eq_num}.term{jj},'int');
+    end
     if isfield(term_jj,'I')
         Ival = term_jj.I(:);
         if ~isa(Ival,'cell')
