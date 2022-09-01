@@ -158,8 +158,8 @@ for ii=1:numel(PDE.BC)
     
     % For each boundary function that varies along a spatial dimension, we
     % decompose the function into edge and corner values.
-    hasvars_BC_ii = PDE.BC_tab(ii,3:2+nvars);       % Which variables does the BC depend on?
-    nBCs_ii = prod(2.^hasvars_BC_ii);               % How many different types of boundaries does the boundary comprise?
+    has_vars_BC_ii = PDE.BC_tab(ii,3:2+nvars);       % Which variables does the BC depend on?
+    nBCs_ii = prod(2.^has_vars_BC_ii);               % How many different types of boundaries does the boundary comprise?
     % Decompose e.g. plane into plane+edges+corners
     BC_new_ii = cell(nBCs_ii,1);
     BC_new_ii{1}.size = BC_ii.size;
@@ -176,7 +176,7 @@ for ii=1:numel(PDE.BC)
         % Establish which combination of variables is associated to index
         % kk.
         sub_indx_kk = cell(1,nvars);
-        [sub_indx_kk{:}] = ind2sub(hasvars_BC_ii+1,kk);
+        [sub_indx_kk{:}] = ind2sub(has_vars_BC_ii+1,kk);
         sub_indx_kk = cell2mat(sub_indx_kk);
         dep_tab_expanded_ii(kk,:) = sub_indx_kk - 1;
         
@@ -223,6 +223,7 @@ for ii=1:numel(PDE.BC)
         
         % Establish which spatial variables the component depends on.
         has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx(1),3:2+nvars));
+        has_vars_BC_ii_Rcomp = has_vars_BC_ii(has_vars_Rcomp);
         nvars_Rcomp = sum(has_vars_Rcomp);
         dom_Rcomp = dom(has_vars_Rcomp,:);
         vars_Rcomp = vars(has_vars_Rcomp,:);
@@ -271,6 +272,13 @@ for ii=1:numel(PDE.BC)
                 continue
             elseif isa(Idoms{ll},'double') || isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll})
                 int_type_list(ll) = 3;  % Integrating over full spatial domain
+                if ~has_vars_BC_ii_Rcomp(ll)
+                    % For full integrals, kernels may have been specified
+                    % using primary variables, rather than dummy vars. For
+                    % use in this function, make sure kernels are specified
+                    % using dummy vars.
+                    Cval = subs(Cval,vars_Rcomp(ll,1),vars_Rcomp(ll,2));
+                end
             elseif isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll}(1))
                 int_type_list(ll) = 1;  % Integrating over lower "half" of domain
             elseif isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll}(2))
@@ -469,9 +477,10 @@ for ii=1:numel(PDE.BC)
                 BC_ii.term{jj+1}.C = subs(Cval,var11,var22);    % primary variable becomes dummy variable in integral
             elseif isequal(Idoms{must_diff_indx}(1)-aval,0) && isequal(Idoms{must_diff_indx}(2)-bval,0)
                 % If the state is already integrated from a to b, the
-                % term is constant, and we can just multiply with (s-a).
+                % term is constant, and we can just multiply with (b-s).
                 BC_ii.term{jj+1}.I = Idoms;
-                BC_ii.term{jj+1}.C = (var11-aval) * Cval;
+                pvar dumvar
+                BC_ii.term{jj+1}.C = int(subs(Cval,var22,dumvar),dumvar,var22,bval);
             elseif isequal(Idoms{must_diff_indx}(1)-aval,0) && isequal(Idoms{must_diff_indx}(2)-var11,0)
                 % If the state is already integrated from a to s, we have
                 % to integrate C from theta to s:

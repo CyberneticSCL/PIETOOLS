@@ -690,9 +690,9 @@ for BCnum = 1:numel(PDE.BC)
             Rparam = Rparams{Pop_rnum,Pop_cnum};
             if iscell_Rparam(Pop_rnum,Pop_cnum)
             %w2BC_params{Pop_rnum,Pop_cnum} = polynomial(w2BC_params{Pop_rnum,Pop_cnum}{1});
-                w2BC_params.(Rparam){1}(rindcs,cindcs) = term_jj.C;
+                w2BC_params.(Rparam){1}(rindcs,cindcs) = w2BC_params.(Rparam){1}(rindcs,cindcs) + term_jj.C;
             else
-                w2BC_params.(Rparam)(rindcs,cindcs) = term_jj.C;
+                w2BC_params.(Rparam)(rindcs,cindcs) = w2BC_params.(Rparam)(rindcs,cindcs) + term_jj.C;
             end
         elseif isfield(term_jj,'u')
             % % The term involves an actuator input.
@@ -706,9 +706,9 @@ for BCnum = 1:numel(PDE.BC)
             % Set the appropriate rows and columns of the parameter.
             Rparam = Rparams{Pop_rnum,Pop_cnum};
             if iscell_Rparam(Pop_rnum,Pop_cnum)
-                u2BC_params.(Rparam){1}(rindcs,cindcs) = term_jj.C;
+                u2BC_params.(Rparam){1}(rindcs,cindcs) = u2BC_params.(Rparam){1}(rindcs,cindcs) + term_jj.C;
             else
-                u2BC_params.(Rparam)(rindcs,cindcs) = term_jj.C;
+                u2BC_params.(Rparam)(rindcs,cindcs) = u2BC_params.(Rparam)(rindcs,cindcs) + term_jj.C;
             end
         else
             % % The term involves an state component.
@@ -738,7 +738,7 @@ for BCnum = 1:numel(PDE.BC)
                     % If the involved parameter does not involve partial
                     % integration, just set the term.
                     Cval = subs(Cval,vars(:,2),vars(:,1));
-                    f2BC_params.(Rparam)(rindcs,cindcs) = Cval;
+                    f2BC_params.(Rparam)(rindcs,cindcs) = f2BC_params.(Rparam)(rindcs,cindcs) + Cval;
                 else
                     % Otherwise, we'll have to check whether multiplier or
                     % integration is desired.
@@ -794,7 +794,7 @@ for BCnum = 1:numel(PDE.BC)
                     for ll=1:size(Pop_int_indx_full,1)
                         %int_lindx = (Pop_int_indx(ll,:)-1)*param_linsz' + 1;
                         int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
-                        f2BC_params.(Rparam){int_lindx}(rindcs,cindcs) = Cval;
+                        f2BC_params.(Rparam){int_lindx}(rindcs,cindcs) = f2BC_params.(Rparam){int_lindx}(rindcs,cindcs) + Cval;
                     end
                 end
             else
@@ -840,7 +840,7 @@ for BCnum = 1:numel(PDE.BC)
                     % If the considered parameter does not involve partial
                     % integration, just set the term.
                     Cval = subs(Cval,vars(:,2),vars(:,1));
-                    b2BC_params.(Rparam)(rindcs,cindcs) = Cval;
+                    b2BC_params.(Rparam)(rindcs,cindcs) = b2BC_params.(Rparam)(rindcs,cindcs) + Cval;
                 else
                     % Otherwise, we'll have to check whether multiplier or
                     % integration is desired.
@@ -894,7 +894,7 @@ for BCnum = 1:numel(PDE.BC)
                     for ll=1:size(Pop_int_indx_full,1)
                         int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
                         %b2BC_params{Pop_rnum,Pop_cnum}{int_lindx} = polynomial(b2BC_params{Pop_rnum,Pop_cnum}{int_lindx});
-                        b2BC_params.(Rparam){int_lindx}(rindcs,cindcs) = Cval;
+                        b2BC_params.(Rparam){int_lindx}(rindcs,cindcs) = b2BC_params.(Rparam){int_lindx}(rindcs,cindcs) + Cval;
                     end
                 end
             end
