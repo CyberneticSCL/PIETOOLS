@@ -44,7 +44,7 @@ function disp_pie(PIE,name)
 
 % % % Set up a list of characters that we need for the display
 % Name of the PIE structure.
-if isempty(name)
+if nargin==1
     name = 'ans';
 end
 % Times character (x)
