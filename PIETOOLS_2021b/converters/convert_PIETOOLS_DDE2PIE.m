@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_DDE2PIE.m     PIETOOLS 2021b
+% convert_PIETOOLS_DDE2PIE.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE=convert_PIETOOLS_DDE2PIE(DDE)
 % NAIVE Conversion of the DDE formulation to PIE formulation
@@ -45,6 +45,7 @@ function PIE=convert_PIETOOLS_DDE2PIE(DDE)
 % Initial coding MP - 7_01_2020
 %  MP - 6_1_2021:  made a function. Changed name. Added warning
 %  SS - 9/28: added correction to fix 0x0 empty matrices by replacing with empty matrices of correct size 
+%  DJ - 09/01/2022: Output result as "pie_struct" object.
 
 disp('WARNING: convert_PIETOOLS_DDE2PIE is no longer supported! Direct conversion of DDE to PIE is NOT recommended and may result in very large computation times!!! Please use minimize_PIETOOLS_DDE2PIE instead!')
 
@@ -239,11 +240,13 @@ TB1op.dim = [nx nw; nxb 0];
 TB2op.dim = [nx nw; nxb 0]; 
 
 
+PIE = pie_struct();
+PIE.dim = 1;
+PIE.vars = [Top.var1,Top.var2];
 PIE.dom=[-1 0];
 PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;
 PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
 PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
 PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
-PIE_out=PIE;
 
 end
