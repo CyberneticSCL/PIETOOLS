@@ -1,6 +1,6 @@
-function Px = apply_opvar(P,v)
-% Px = apply_opvar(P,x) applies the PI operator P to polynomial x and
-% returns the result Px=P*x;
+function Pv = apply_opvar(P,v)
+% Pv = apply_opvar(P,v) applies the PI operator P to polynomial x and
+% returns the result Pv=P*v;
 %
 % INPUT
 % - P:      m x n opvar or opvar2d class object.
@@ -61,7 +61,7 @@ if size(v,1)~=nnc_arr(end)
 end
 if all(nnc_arr==0)
     nr_arr = P.dim(:,1);
-    Px = polynomial(zeros(sum(nr_arr),size(v,2)));
+    Pv = polynomial(zeros(sum(nr_arr),size(v,2)));
     return
 end
 
@@ -77,14 +77,14 @@ if ~use_2d
     
     % % Apply the operator:
     % Finite-dimensional output.
-    Px0 = P.R00*v0 + int(P.R0x*vx,ds1,a1,b1);
+    Px0 = P.P*v0 + int(P.Q1*vx,ds1,a1,b1);
 
     % Infinite-dimensional (1D) output.
-    Pxx = P.Rx0*v0;
-    Pxx = Pxx + P.Rxx{1,1}*vx + int(P.Rxx{2,1}*subs(vx,ds1,dt1),dt1,a1,ds1) + int(P.Rxx{3,1}*subs(vx,ds1,dt1),dt1,ds1,b1);
+    Pxx = P.Q2*v0;
+    Pxx = Pxx + P.R.R0*vx + int(P.R.R1*subs(vx,ds1,dt1),dt1,a1,ds1) + int(P.R.R2*subs(vx,ds1,dt1),dt1,ds1,b1);
     
     % Return the result.
-    Px = [Px0;Pxx];
+    Pv = [Px0;Pxx];
     
 else
     % Split the polynomial into finite-dimensional, 1D, and 2D components
@@ -126,7 +126,7 @@ else
         + int(int(P.R22{2,3}*subs(v2,ds,dt),dt1,a1,ds1),dt2,ds2,b2) + int(int(P.R22{3,3}*subs(v2,ds,dt),dt1,ds1,b1),dt2,ds2,b2);
 
     % Return the result.
-    Px = [Px0;Pxx;Pxy;Px2];
+    Pv = [Px0;Pxx;Pxy;Px2];
 end
 
 end
