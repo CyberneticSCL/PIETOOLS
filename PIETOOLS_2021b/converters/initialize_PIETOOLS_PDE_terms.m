@@ -985,13 +985,38 @@ for ii=1:numel(PDE.(obj))
         % Next, check if a spatial position is appropriately specified.
         if is_x_Rcomp && (~isfield(term_jj,'loc') || isempty(term_jj.loc))
             % For BCs, a spatial position MUST be specified.
-            if strcmp(obj,'BC') && any(has_vars_Rcomp)
+            if strcmp(obj,'BC') && any(has_vars_Rcomp) && ~isfield(term_jj,'I') && ~isfield(term_jj,'int')
                 error(['BC term "',term_name,'" is not appropriately specified;',...
                         ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
+            elseif strcmp(obj,'BC') && isfield(term_jj,'I') || isfield(term_jj,'int')
+                % If a full integral is used, it's okay if no position is
+                % specified.
+                if isfield(term_jj,'int') && ~isfield(term_jj,'I')
+                    term_jj.I = term_jj.int;
+                    PDE.(obj){ii}.term{jj}.I = term_jj.I;
+                    PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'int');
+                end
+                if ~isa(term_jj.I,'cell')
+                    error(['BC term "',term_name,'" is not appropriately specified;',...
+                            ' the field "',term_name,'.I" should be specified as a cell with each element describing the domain of integration along the associated variable.'])
+                end
+                % Check whether full integral is taken along any spatial
+                % direction.
+                use_full_int = false;
+                for kk=1:numel(term_jj.I)
+                    if ~isempty(term_jj.I{kk}) && (isa(term_jj.I{kk},'double') || (isa(term_jj.I{kk},'polynomial') && isdouble(term_jj.I{kk})))
+                        use_full_int = true;
+                        break
+                    end
+                end
+                if ~use_full_int
+                    error(['BC term "',term_name,'" is not appropriately specified;',...
+                        ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
+                end
             elseif strcmp(obj,'BC')
                 PDE.(obj){ii}.term{jj}.loc = zeros(1,0);
             end
-            % Ohterwise, if no position is specified, evaluate the state on 
+            % Otherwise, if no position is specified, evaluate the state on 
             % the interior of the domain.
             Rloc = repmat(PDE.vars(has_vars_Rcomp,1)',[nR,1]);
         elseif is_x_Rcomp
