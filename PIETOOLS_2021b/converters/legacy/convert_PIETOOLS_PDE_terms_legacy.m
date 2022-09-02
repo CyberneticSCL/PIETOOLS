@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert_PIETOOLS_PDE_terms.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function PIE_out=convert_PIETOOLS_PDE_terms(PDE)
+function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 % convert_PIETOOLS_PDE_terms is the new version of the PDE converter 
 % file which uses the term-based data structure and performs the following tasks.
 % 1) It verifies the dimension compatibility of input parameters of ODE-PDE
