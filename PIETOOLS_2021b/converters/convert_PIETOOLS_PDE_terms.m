@@ -4,13 +4,18 @@ function PIE = convert_PIETOOLS_PDE_terms(PDE)
 % extract standard information from the new terms format (domain,
 % dimension, vars, etc.)
 dom = PDE.dom;
-xtab = PDE.x_tab;
-odestate = [xtab(:,3)==0];
-odeID = xtab(odestate,1);
-pdetab = xtab(~odestate,:);
+
+odeID = PDE.x_tab(PDE.x_tab(:,3)==0,1);
+pdetab = PDE.x_tab(PDE.x_tab(:,3)~=0,:);
 [~,sortidx] = sort(pdetab(:,3),1);
 pdetab = pdetab(sortidx,:); % PDE table sorted based on order of differentiability
 pdeID = pdetab(sortidx,1);
+[~,reorder] = ismember([odeID;pdeID],PDE.x_tab(:,1));
+x = PDE.x(reorder); z = PDE.z; y = PDE.y; BC = PDE.BC;
+xtab = PDE.x_tab(reorder,:);
+odestate = xtab(:,3)==0;
+odeID = xtab(odestate);
+
 difforder = pdetab(:,4);
 pdesize = pdetab(:,2);
 for i=0:max(difforder)
@@ -39,12 +44,13 @@ upartition = [0 cumsum(PDE.u_tab(:,2))]+1;
 zpartition = [0 cumsum(PDE.z_tab(:,2))]+1;
 ypartition = [0 cumsum(PDE.y_tab(:,2))]+1;
 xpartition = [0 cumsum(PDE.x_tab(odestate,2))]+1;
+Xpartition = [0 cumsum(pdetab(:,2))]+1;
 rpartition = 1;
 vpartition = 1;
 
 % calculate nr and nv the interconnection signals
 nr = 0; nv = 0;
-x = PDE.x; z = PDE.z; y = PDE.y; BC = PDE.BC;
+
 for i=1:length(z) % look for nr terms in z
     for j=1:length(z{i}.term)
         nrlen = size(z{i}.term{j}.C,1);
@@ -270,10 +276,23 @@ for i=1:length(x)
                 vcols = find(tmpterm.w==PDE.w_tab(:,1));
                 vcols = wpartition(vcols):wpartition(vcols+1)-1;
                 PDE_out.PDE.Dvw(vrows,vcols) = tmpterm.C;
-                rows = ;
+                rows = Xpartition(i-n.nx):Xpartition(i-n.nx+1)-1;
                 PDE_out.PDE.Bpv(rows,vcols) = eye(size(vcols,1));
+                k=k+1;
             elseif isfield(tmpterm,'u') % add to v signal Dvu 
+                vcols = find(tmpterm.u==PDE.u_tab(:,1));
+                vcols = wpartition(vcols):wpartition(vcols+1)-1;
+                PDE_out.PDE.Dvu(vrows,vcols) = tmpterm.C;
+                rows = Xpartition(i-n.nx):Xpartition(i-n.nx+1)-1;
+                PDE_out.PDE.Bpv(rows,vcols) = eye(size(vcols,1));
+                k=k+1;
             elseif isfield(tmpterm,'x')&& ismember(tmpterm.x,odeID) % add to v signal Cv 
+                vcols = find(tmpterm.x==odeID);
+                vcols = wpartition(vcols):wpartition(vcols+1)-1;
+                PDE_out.PDE.Cv(vrows,vcols) = tmpterm.C;
+                rows = Xpartition(i-n.nx):Xpartition(i-n.nx+1)-1;
+                PDE_out.PDE.Bpv(rows,vcols) = eye(size(vcols,1));
+                k=k+1;
             else % add to A/Bpb
                 if % integral add to A
                 else % boundary add to Bpb
