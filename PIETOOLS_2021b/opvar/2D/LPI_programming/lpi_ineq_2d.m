@@ -572,6 +572,9 @@ if ~Zexclude(9) || ~Zexclude(10)
     joint_degs = [sum(Pdmat,[1,2])-1,Pdmat(:,3)];                   % Degrees in [x*tt,y], subtracting contribution from integral
     joint_degs = joint_degs(all(joint_degs>=0,2),:);
     joint_degs = unique(joint_degs,'rows');
+    if isempty(joint_degs)
+        joint_degs = zeros(1,size(joint_degs,2));
+    end
     Zd_joint = getSOSmonomials(joint_degs,1);
     
     % Then, for each joint degree, establish all combinations of degrees in x
@@ -640,6 +643,9 @@ if ~Zexclude(11) || ~Zexclude(12)
     joint_degs = [Pdmat(:,1),sum(Pdmat(:,[2,3]),2)-1];                  % Degrees in [x,y*nu], subtracting contribution from integral
     joint_degs = joint_degs(all(joint_degs>=0,2),:);
     joint_degs = unique(joint_degs,'rows');
+    if isempty(joint_degs)
+        joint_degs = zeros(1,size(joint_degs,2));
+    end
     Zd_joint = getSOSmonomials(joint_degs,1);
     
     % Then, for each joint degree, establish all combinations of degrees in y
@@ -708,6 +714,9 @@ if any(~Zexclude(13:16))
     joint_degs = unique(Pdmat * kron(speye(2),ones(2,1)),'rows');
     joint_degs = joint_degs-[1,1];
     joint_degs = joint_degs(all(joint_degs>=0,2),:);
+    if isempty(joint_degs)
+        joint_degs = zeros(1,size(joint_degs,2));
+    end
     Zd_xy = getSOSmonomials(joint_degs,1);
     nZd_xy = size(Zd_xy,1);
     

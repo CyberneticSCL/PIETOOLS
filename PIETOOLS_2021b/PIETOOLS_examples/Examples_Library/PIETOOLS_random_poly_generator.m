@@ -65,6 +65,7 @@ elseif nargin==2
     else
         error('No variable names have been provided.')
     end
+    nZ = min(nZ,nchoosek(length(varname)+dmax,dmax));   % Make sure number of monomials does not exceed possible number of monomials.
 elseif nargin==3
     if isa(nc,'polynomial') || iscellstr(nc) || ischar(nc)
         nZ = varname;
@@ -77,6 +78,7 @@ elseif nargin==3
         end
     end
     dmax = nZ;
+    nZ = min(nZ,nchoosek(length(varname)+dmax,dmax));   % Make sure number of monomials does not exceed possible number of monomials.
 elseif nargin==4
     if isa(nc,'polynomial') || iscellstr(nc) || ischar(nc)
         nZ = varname;
@@ -89,6 +91,7 @@ elseif nargin==4
         end
     end
     dmax = nZ;
+    nZ = min(nZ,nchoosek(length(varname)+dmax,dmax));   % Make sure number of monomials does not exceed possible number of monomials.
 end
 
 % % % Error check the inputs
@@ -113,7 +116,7 @@ matdim = [nr nc];
 
 % Establish degrees for the variables in each possible monomial up to
 % maximal degree dmax;
-degmat = monomials(nvars,dmax);
+degmat = monomials(nvars,0:dmax);
 if nZ>size(degmat,1)
     warning(['The desired size of the monomial basis exceeds the maximal amount of monomials possible in the specified variables up to the specified degree.'])
     nZ = size(degmat,1);

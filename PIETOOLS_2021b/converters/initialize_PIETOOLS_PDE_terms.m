@@ -323,7 +323,7 @@ nnvars_arr = cumsum([0; nvars_arr]);
 
 
 % % Establish a unique set of primary variables from the full set.
-[var1_list_unique,id1,varnum_list] = unique(var_list(:,1)); % list_unique = list(id1);  list = list_unique(varnum_list)
+[var1_list_unique,id1,varnum_list] = unique(var_list(:,1),'stable'); % list_unique = list(id1);  list = list_unique(varnum_list)
 nvars = length(var1_list_unique);
 if nvars>2
     error('Currently, PIETOOLS supports only problems with at most two distinct spatial variables.')
@@ -823,7 +823,9 @@ for ii=1:numel(PDE.(obj))
         if size(PDE.x{ii}.diff,1)~=1 && size(PDE.x{ii}.diff,2)==1
             PDE.x{ii}.diff = PDE.x{ii}.diff';
         end
-        if size(PDE.x{ii}.diff,1)~=1
+        if isempty(PDE.x{ii}.diff) && nvars_Lstate==0
+            PDE.x{ii}.diff = zeros(1,0);
+        elseif size(PDE.x{ii}.diff,1)~=1
             error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
                     ' the field should be specified as a 1xp array indicating the order of the derivative in each of the p variables on which the considered state "x{',num2str(ii),'}" depends.'])
         elseif size(PDE.x{ii}.diff,2)==nvars
@@ -983,13 +985,38 @@ for ii=1:numel(PDE.(obj))
         % Next, check if a spatial position is appropriately specified.
         if is_x_Rcomp && (~isfield(term_jj,'loc') || isempty(term_jj.loc))
             % For BCs, a spatial position MUST be specified.
-            if strcmp(obj,'BC') && any(has_vars_Rcomp)
+            if strcmp(obj,'BC') && any(has_vars_Rcomp) && ~isfield(term_jj,'I') && ~isfield(term_jj,'int')
                 error(['BC term "',term_name,'" is not appropriately specified;',...
                         ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
+            elseif strcmp(obj,'BC') && isfield(term_jj,'I') || isfield(term_jj,'int')
+                % If a full integral is used, it's okay if no position is
+                % specified.
+                if isfield(term_jj,'int') && ~isfield(term_jj,'I')
+                    term_jj.I = term_jj.int;
+                    PDE.(obj){ii}.term{jj}.I = term_jj.I;
+                    PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'int');
+                end
+                if ~isa(term_jj.I,'cell')
+                    error(['BC term "',term_name,'" is not appropriately specified;',...
+                            ' the field "',term_name,'.I" should be specified as a cell with each element describing the domain of integration along the associated variable.'])
+                end
+                % Check whether full integral is taken along any spatial
+                % direction.
+                use_full_int = false;
+                for kk=1:numel(term_jj.I)
+                    if ~isempty(term_jj.I{kk}) && (isa(term_jj.I{kk},'double') || (isa(term_jj.I{kk},'polynomial') && isdouble(term_jj.I{kk})))
+                        use_full_int = true;
+                        break
+                    end
+                end
+                if ~use_full_int
+                    error(['BC term "',term_name,'" is not appropriately specified;',...
+                        ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
+                end
             elseif strcmp(obj,'BC')
                 PDE.(obj){ii}.term{jj}.loc = zeros(1,0);
             end
-            % Ohterwise, if no position is specified, evaluate the state on 
+            % Otherwise, if no position is specified, evaluate the state on 
             % the interior of the domain.
             Rloc = repmat(PDE.vars(has_vars_Rcomp,1)',[nR,1]);
         elseif is_x_Rcomp
@@ -1338,6 +1365,10 @@ while ii<=n_eqs
         
         % % Initialize an empty integral (for now) if no integral is 
         % % specified.
+        if isfield(term_jj,'int') && ~isfield(term_jj,'I')
+            term_jj.I = term_jj.int;
+            PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'int');
+        end
         if isfield(term_jj,'I')
             Ival = term_jj.I(:);
             if ~isa(Ival,'cell')
@@ -1761,6 +1792,10 @@ while jj<=n_terms
     
     % % Initialize an empty integral (for now) if no integral is
     % % specified.
+    if isfield(term_jj,'int') && ~isfield(term_jj,'I')
+        term_jj.I = term_jj.int;
+        PDE.BC{eq_num}.term{jj} = rmfield(PDE.BC{eq_num}.term{jj},'int');
+    end
     if isfield(term_jj,'I')
         Ival = term_jj.I(:);
         if ~isa(Ival,'cell')
@@ -1881,6 +1916,9 @@ while jj<=n_terms
             error(['The field "',term_name,'.I" is not appropriately specified;',...
                 ' the number of elements should match the number of spatial variables on which component "',term_name,'.',Robj,'{',num2str(Rindx),'}" depends.'])
         end
+        % Keep track of which along which directions a full integral is
+        % performed.
+        %is_full_int = false(1,numel(Ival));
         for kk = 1:numel(Ival)
             if isempty(Ival{kk})
                 continue
@@ -1901,6 +1939,7 @@ while jj<=n_terms
                 % The integral will discard any spatial dependence on the kkth
                 % variable.
                 isvariable_term_jj(kk) = false;
+                %is_full_int(kk) = true;
             elseif all(isequal(Ival_kk,polynomial(Rdom(kk,2:-1:1))))
                 % Integration is performed over mirror image of full domain
                 % (for whatever reason).
@@ -1926,6 +1965,8 @@ while jj<=n_terms
     % integrated.
     is_int_var_full = false(1,nvars);
     is_int_var_full(has_vars_Rcomp) = is_int_var_Rcomp;
+    %is_full_int_full = false(1,nvars);
+    %is_full_int_full(has_vars_Rcomp) = is_full_int;
     
     % Logical indices indicating which of the global variables the term
     % actually varies in (are not boundary positions or integrated out).

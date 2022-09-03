@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_DDF.m     PIETOOLS 2021b
+% convert_PIETOOLS_DDF.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE=convert_PIETOOLS_DDF(DDF)
 % This a setup routine for converting DDFs into PIEs
@@ -25,6 +25,7 @@ function PIE=convert_PIETOOLS_DDF(DDF)
 % Initial coding MP - 10_01_2020
 %  MP - 5_30_2021; converted script to function format
 % SS - 9/28, added a dimension correction step to replace 0x0 empty
+%  DJ - 09/01/2022: Output result as "pie_struct" object.
 % matrices with empty matrices of correct size
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -268,12 +269,14 @@ nx1=nx;nx2=nxb;
 a=-1;b=0;
 X = [a b];
 
+PIE = pie_struct();
+PIE.dim = 1;
+PIE.vars = [Top.var1,Top.var2];
 PIE.dom=X;
 PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;
 PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
 PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
 PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
-PIE_out=PIE;
 
 
 end

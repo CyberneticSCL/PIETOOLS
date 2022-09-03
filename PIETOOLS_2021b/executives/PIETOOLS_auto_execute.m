@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_AUTO_EXECUTE.m     PIETOOLS 2021b
+% PIETOOLS_AUTO_EXECUTE.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % A script to aid users in analyzing and controlling PIEs using PIETOOLS
 % If a desired executive has been specified (e.g. 'Hinf_gain=1'), and a
@@ -103,36 +103,7 @@ if ~exist('settings','var')
     msg = ['   Please input ''extreme'', ''stripped'', ''light'', ''heavy'', ''veryheavy'', or ''custom'' \n ---> '];
     sttngs = input(msg,'s');
     sttngs = strrep(sttngs,'''','');    % Get rid of potential apostrophes
-    evalin('base',['settings_PIETOOLS_',sttngs]);   % Construct the settings
-end
-
-% % Ensure separability is enforced for estimator/control executives
-if exist('Hinf_estimator','var') && Hinf_estimator==1
-    settings.options1.sep = 1; %needed to ensure the P is invertible -SS
-    settings.options2.sep = 1;
-end
-if exist('Hinf_control','var') && Hinf_control==1
-    settings.options1.sep = 1; %needed to ensure the P is invertible -SS
-    settings.options2.sep = 1;
-end
-
-% % Check if LF positivity and negativity strictness conditions have been
-% % specified
-if ~isfield(settings,'sos_opts') || ~isfield(settings.sos_opts,'solver')
-    settings.sos_opts.solver = 'sedumi';
-    % % Other optional SDP solvers supported by PIETOOLS
-    % settings.sos_opts.solver ='mosek';
-    % settings.sos_opts.solver='sdpnalplus';
-    % settings.sos_opts.solver='sdpt3';
-end
-if ~isfield(settings,'eppos')
-    settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
-end
-if ~isfield(settings,'eppos2')
-    settings.eppos2 = 1*1e-6;   % Positivity of Lyapunov Function with respect to spatially distributed states
-end
-if ~isfield(settings,'epneg')
-    settings.epneg = 0;         % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+    settings = lpisettings(sttngs);     % Construct the settings
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -154,7 +125,7 @@ elseif contains(exec{j},'estimator')        % Hinf_estimator
     outval = '[prog_estimator, L_estimator, Hinf_gain_estimator, P_estimator, Z_estimator]';
 end
 infun = ['PIETOOLS_',exec{j},'(PIE,settings)'];
-evalin('base',[outval,'=',infun]);  % Run the executive
+evalin('base',[outval,'=',infun,';']);  % Run the executive
 end
 
 % % % Clean up...
