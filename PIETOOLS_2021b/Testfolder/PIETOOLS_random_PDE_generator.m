@@ -136,8 +136,8 @@ end
 % Check that the maximal number of terms in each equation has been properly
 % specified.
 if numel(max_terms)==1
-    max_terms = max_terms*ones(1,5);
-elseif numel(max_terms)==3
+    max_terms = max_terms*ones(1,3);
+elseif numel(max_terms)==2
     max_terms = [max_terms(1), max_terms(2)*ones(1,2)];
 elseif numel(max_terms)~=3
     error('The maximal size of the components should be specified as a 1x5 array, providing sizes for [x, w, u, z, y].')
@@ -233,7 +233,7 @@ end
 % % % Define terms in the PDE
 objs = {'x','z','y'};
 for kk = 1:length(objs)
-obj = objs{1};
+obj = objs{kk};
 obj_tab = PDE.([obj,'_tab']);
 ncomps = size(obj_tab,1);
 for ii=1:ncomps
