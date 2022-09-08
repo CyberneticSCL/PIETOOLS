@@ -52,9 +52,13 @@ function display(PDE,name)
 %
 % Initial coding DJ - 07/08/2022
 
+if nargin<2
+    name = '';
+end
+
 try PDE = initialize_PIETOOLS_PDE(PDE,true);
     display_PDE(PDE,name);
-catch
+catch me
     disp(PDE);
 end
 
