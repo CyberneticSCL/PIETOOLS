@@ -988,7 +988,7 @@ for ii=1:numel(PDE.(obj))
             if strcmp(obj,'BC') && any(has_vars_Rcomp) && ~isfield(term_jj,'I') && ~isfield(term_jj,'int')
                 error(['BC term "',term_name,'" is not appropriately specified;',...
                         ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
-            elseif strcmp(obj,'BC') && isfield(term_jj,'I') || isfield(term_jj,'int')
+            elseif strcmp(obj,'BC') && any(has_vars_Rcomp) && isfield(term_jj,'I') || isfield(term_jj,'int')
                 % If a full integral is used, it's okay if no position is
                 % specified.
                 if isfield(term_jj,'int') && ~isfield(term_jj,'I')
