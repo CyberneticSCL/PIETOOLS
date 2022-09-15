@@ -169,7 +169,13 @@ if ~big
     for i=1:size(prop,1)
         row ="";
         for j=1:size(prop,2)
-            temp = evalc('prop(i,j)');
+            try 
+                temp = evalc('prop(i,j)');
+            catch
+                str="";
+                big = 1;
+                return
+            end
             temp = convertCharsToStrings(temp);
             temp = regexprep(temp,'[\n\r]','');
             temp = regexprep(temp,' ','');
