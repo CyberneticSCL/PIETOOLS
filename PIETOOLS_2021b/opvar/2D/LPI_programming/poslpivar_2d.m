@@ -633,7 +633,7 @@ else
     end
     
     % Constructing Zyo(ss2), Zya(ss2,tt2) and Zyb(ss2,tt2)
-    st_varname = [ss1.varname; tt1.varname];
+    st_varname = [ss2.varname; tt2.varname];
     if ~isa(dy{1},'polynomial')
         Zyo_s = polynomial(eye(size(dy{1},1)),dy{1},ss2.varname,[size(dy{1},1),1]);
     end
