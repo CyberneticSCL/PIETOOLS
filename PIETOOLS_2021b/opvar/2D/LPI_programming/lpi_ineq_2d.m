@@ -580,7 +580,7 @@ if ~Zexclude(9) || ~Zexclude(10)
     % Then, for each joint degree, establish all combinations of degrees in x
     % and tt that add up to this joint degree:
     nZd_x = sum(max(Zd_joint(:,1)+1-xdeg_min-ttdeg_min,1));  % Number of possible monomials in (x,tt,y) with joint degrees in (x*tt,y) as in Zd_joint
-    Zd_x = zeros(nZd_x,2);
+    Zd_x = zeros(nZd_x,3);
     indx_n = 0;
     for k=1:size(Zd_joint,1)
         Zdk_xtt = Zd_joint(k,1);                                    % Required joint degree in x*tt
@@ -639,7 +639,7 @@ if ~Zexclude(11) || ~Zexclude(12)
     % plus 1 as a result of the integration. Extract first the joint degrees,
     % and establish the necessary degrees in [x,y*nu] of the monomials
     % Z2{1,j}, so that their product returns all the necessary joint degrees:
-    Pdmat = [Pdegs.R22{1,2}(:,[1,3,4]);Pdegs.R22{1,31}(:,[1,3,4])];     % All degrees in [x, y, nu]
+    Pdmat = [Pdegs.R22{1,2}(:,[1,3,4]);Pdegs.R22{1,3}(:,[1,3,4])];     % All degrees in [x, y, nu]
     joint_degs = [Pdmat(:,1),sum(Pdmat(:,[2,3]),2)-1];                  % Degrees in [x,y*nu], subtracting contribution from integral
     joint_degs = joint_degs(all(joint_degs>=0,2),:);
     joint_degs = unique(joint_degs,'rows');
@@ -651,7 +651,7 @@ if ~Zexclude(11) || ~Zexclude(12)
     % Then, for each joint degree, establish all combinations of degrees in y
     % and nu that add up to this joint degree:
     nZd_y = sum(max(Zd_joint(:,2)+1-ydeg_min-nudeg_min,1));  % Number of possible monomials in (x,y,nu) with joint degrees in (x,y*nu) as in Zd_joint
-    Zd_y = zeros(nZd_y,2);
+    Zd_y = zeros(nZd_y,3);
     indx_n = 0;
     for k=1:size(Zd_joint,1)
         Zdk_ynu = Zd_joint(k,2);                                    % Required joint degree in u*nu
@@ -667,7 +667,7 @@ if ~Zexclude(11) || ~Zexclude(12)
     end
     Zd_y = makesparse(Zd_y);
     Z2_xy{1,2} = Zd_y;      Z2_xy{1,3} = Zd_y;
-    Z2_oy{1,2} = Zd_y;      Z2_oy{1,3} = Zd_x;
+    Z2_oy{1,2} = Zd_y;      Z2_oy{1,3} = Zd_y;
     
     
     % % Next, introduce additional monomials to account for the constant limits
@@ -685,8 +685,8 @@ if ~Zexclude(11) || ~Zexclude(12)
     Zd_o = [repmat(Zd_o_xnu(:,1),[nd_y,1]), kron(Zd_o_y,ones(nd_xnu,1)), repmat(Zd_o_xnu(:,2),[nd_y,1])];
     % Finally, store the degrees
     Zd_o = makesparse(Zd_o);
-    Z2_xo{2,1} = Zd_o;      Z2_xo{3,1} = Zd_o;
-    Z2_oo{2,1} = Zd_o;      Z2_oo{3,1} = Zd_o;
+    Z2_xo{1,2} = Zd_o;      Z2_xo{1,3} = Zd_o;
+    Z2_oo{1,2} = Zd_o;      Z2_oo{1,3} = Zd_o;
     
 else
     Z2_xy{1,2} = zeros(0,3);   Z2_xy{1,3} = zeros(0,3);
