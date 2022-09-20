@@ -294,7 +294,29 @@ for i=1:length(x)
                 PDE_out.PDE.Bpv(rows,vcols) = eye(size(vcols,1));
                 k=k+1;
             else % add to A/Bpb
-                if % integral add to A
+                if ~isfield(tmpterm,'loc')% integral add to A
+                    lstate = xtab(i,4);
+                    rstate = pdetab((tmpterm.x==pdeID),3); % max derivative
+                    if ~isfield(tmpterm,'D')
+                        tmpterm.D = 0;
+                    end
+                    rcols = pdetab([pdetab(:,3)==rstate],:);
+                    idLoc = find(tmpterm.x==rcols(:,1));
+                    cSum = [0 cumsum(rcols(:,2))]+1;
+                    rcols = cSum(idLoc):cSum(idLoc)-1;
+                    rrows = pdetab([pdetab(:,3)==lstate],:);
+                    idLoc = find(tmpterm.x==rrows(:,1));
+                    cSum = [0 cumsum(rrows(:,2))]+1;
+                    rrows = cSum(idLoc):cSum(idLoc)-1;
+                    der = tmpterm.D;
+                    if isfield(tmpterm,'I')&&isequal(tmpterm.I(2),pvar('s'))%R1 term
+                        loc=(N+1)*np_all_derivatives + (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
+                    elseif isfield(tmpterm,'I')&&isequal(tmpterm.I(1),pvar('s'))%R2 term
+                        loc = 2*(N+1)*np_all_derivatives + (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
+                    else % R0 term
+                        loc = (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
+                    end
+                    PDE_out.PDE.A{loc}.coeff(rrows,rcols) = tmpterm.C;
                 else % boundary add to Bpb
                 end
             end
@@ -303,15 +325,6 @@ for i=1:length(x)
 end
 
 
-% interconnection signals
-PDE_out.ODE.Cv = ;
-PDE_out.ODE.Dvw = ;
-PDE_out.ODE.Dvu = ;
-PDE_out.ODE.Dvr = ;
-
-% PDE dynamics
-PDE_out.PDE.A = ;
-PDE_out.PDE.Bpv = ;
 PDE_out.PDE.Bpb = ;
 
 % PDE BCs
