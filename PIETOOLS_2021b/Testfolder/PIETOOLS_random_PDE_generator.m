@@ -157,6 +157,9 @@ vars = vars(1:nvars,:);
 dom = randi(3,[2,1])-2;
 dom = [dom, dom+randi(3,[2,1])];
 dom = dom(1:nvars,:);
+if dim == 1
+    dom = [0,1];
+end
 
 % Initialize an empty PDE in the proposed variables.
 PDE = pde_struct();
