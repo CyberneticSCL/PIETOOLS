@@ -64,24 +64,24 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.C = [];
             end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
             elseif strcmp(equations.statevec(j).type,'pde')% pde state term
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
                 if any(~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)),zeros(1,equations.statevec(j).veclength)))% integral term
-                    tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                    tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
                     tmp{Loc}.term{j}.I{1} = [0,1];
                 else % boundary term
-                    tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                    tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{Loc}.term{j}.loc = equations.statevec(j).var(2);
                     tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
                 end
             elseif ismember(equations.statevec(j).statename,wNames) % disturbance term
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.w = find(equations.statevec(j).statename==wNames);
             elseif ismember(equations.statevec(j).statename,uNames)% control input term
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.u = find(equations.statevec(j).statename==uNames);
             end
         end
@@ -106,20 +106,20 @@ for i=1:eqnNum
                 continue;
             end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
             elseif strcmp(equations.statevec(j).type,'pde')% pde state term
                 tmp{Loc}.term{j}.x = find(equations.statevec(j).statename==xNames);
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 if poly2double(equations.statevec(j).var(2)) % boundary term
                     tmp{Loc}.term{j}.loc = equations.statevec(j).var(2);
                 end
                 tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
             elseif ismember(equations.statevec(j).statename,wNames) % disturbance term
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.w = find(equations.statevec(j).statename==wNames);
             elseif ismember(equations.statevec(j).statename,uNames)% control input term
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.u = find(equations.statevec(j).statename==uNames);
             end
         end
@@ -130,7 +130,7 @@ for i=1:eqnNum
             end
             if any(~isequal(polynomial(row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)),zeros(1,equations.statevec(jtmp).veclength)))% integral term
                 tmp{Loc}.term{j}.I{1} = [0,pvar('s')];
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
             end
         end
@@ -141,7 +141,7 @@ for i=1:eqnNum
             end
             if any(~isequal(polynomial(row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)),zeros(1,equations.statevec(jtmp).veclength)))% integral term
                 tmp{Loc}.term{j}.I{1} = [pvar('s'),1]; 
-                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
+                tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
             end
         end
@@ -155,24 +155,24 @@ for i=1:eqnNum
                 tmp{k+1}.term{j}.C = [];
             end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
-                tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{k+1}.term{j}.x = find(equations.statevec(j).statename==xNames);
             elseif strcmp(equations.statevec(j).type,'pde')% pde state term
                 tmp{k+1}.term{j}.x = find(equations.statevec(j).statename==xNames);
                 if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)),zeros(1,equations.statevec(j).veclength))% integral term
-                    tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                    tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; -row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{k+1}.term{j}.D = equations.statevec(j).diff_order(2);
                     tmp{k+1}.term{j}.I{1} = [0,1];
                 else % boundary term
-                    tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                    tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{k+1}.term{j}.loc = equations.statevec(j).var(2);
                     tmp{k+1}.term{j}.D = equations.statevec(j).diff_order(2);
                 end
             elseif ismember(equations.statevec(j).statename,wNames) % disturbance term
-                tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{k+1}.term{j}.w = find(equations.statevec(j).statename==wNames);
             elseif ismember(equations.statevec(j).statename,uNames)% control input term
-                tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
+                tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{k+1}.term{j}.u = find(equations.statevec(j).statename==uNames);
             end
         end
