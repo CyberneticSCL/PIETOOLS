@@ -24,4 +24,5 @@ elseif strcmp(convertTo,'ddf') && (strcmp(obj.type,'nds')||strcmp(obj.type,'dde'
     out.type = 'ddf';
 end
 
+fprintf('Conversion to %s was successful\n', convertTo);
 end
