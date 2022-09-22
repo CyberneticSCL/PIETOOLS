@@ -59,6 +59,7 @@ fprintf('\n --- Converting ODE-PDE to PIE --- \n');
 X = PDE.dom;
 
 polyvars = PDE.vars;
+PIE.vars = PDE.vars;
 s = polyvars(1);
 theta = polyvars(2);
 n = PDE.n;

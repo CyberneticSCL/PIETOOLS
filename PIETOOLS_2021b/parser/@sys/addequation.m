@@ -4,4 +4,7 @@ if isa(eqn,'state')
 end
 
 obj.equation = [obj.equation; eqn];
+
+
+fprintf('%d equations were added to sys() object\n',length(eqn));
 end

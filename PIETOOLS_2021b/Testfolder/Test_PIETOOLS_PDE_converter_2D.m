@@ -8,7 +8,7 @@ n_comps = randi([1,4],1,5);
 max_size = randi([1,4],1,5);
 max_terms = 5;
 max_deg = 2;
-add_BC_terms = 1;
+add_BC_terms = 0;
 
 tol = 1e-9;
 

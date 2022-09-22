@@ -10,6 +10,17 @@ classdef sys
         states;
     end
     methods
+        function obj = sys(type)
+            if nargin==0
+                type = 'pde';
+            end
+            obj.equation = [];
+            obj.params = pde_struct();
+            obj.ControlledInputs = [];
+            obj.ObservedOutputs = [];
+            obj.type = type;
+            fprintf('Initialized sys() object of type "%s"\n',obj.type);
+        end
         function prop = get.states(obj)
             prop = getStatesFromEquations(obj);
         end
