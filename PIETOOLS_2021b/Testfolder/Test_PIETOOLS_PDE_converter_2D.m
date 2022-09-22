@@ -2,13 +2,13 @@
 
 ntests = 100;
 
-dim = 2;
+dim = 1;
 max_diff = 3;
-n_comps = [3,2,2,2,2];
-max_size = [2,2,2,2,2];
+n_comps = randi([1,4],1,5);
+max_size = randi([1,4],1,5);
 max_terms = 5;
 max_deg = 2;
-add_BC_terms = 0;
+add_BC_terms = 1;
 
 tol = 1e-9;
 
@@ -18,7 +18,11 @@ for test_num=1:ntests
     PDE = PIETOOLS_random_PDE_generator(dim,max_diff,n_comps,max_size,max_terms,max_deg,add_BC_terms);
     %assignin('base','PDE_test',PDE);
     % Convert the PDE to a PIE.
-    PIE = convert_PIETOOLS_PDE_2D(PDE);
+    if ~PDE.dim
+        continue;
+    end
+    PDE = initialize_PIETOOLS_PDE_terms(PDE);
+    PIE = convert_PIETOOLS_PDE(PDE);
     %assignin('base','PIE_test',PIE);
 
     % Check that the PIE is appropriate.

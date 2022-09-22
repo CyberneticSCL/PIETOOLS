@@ -16,7 +16,7 @@ pdeID = pdetab(sortidx,1); % find the PDE names in sorted order
 
 % now we reorder PDE.x and reobtain odetab/pdetab/odeID/pdeID in a sorted
 % order
-PDE.x = PDE.x(reorder); PDE.x_tab = PDE.x_tab(reorder);
+PDE.x = PDE.x(reorder); PDE.x_tab = PDE.x_tab(reorder,:);
 x = PDE.x; z = PDE.z; y = PDE.y; BC = PDE.BC;
 
 odetab = PDE.x_tab(PDE.x_tab(:,3)==0,:); % find the ODE table
@@ -97,7 +97,7 @@ for i=1:length(x)
         end
     else % it is pde dynamics; look for nv terms
         for j=1:length(x{i}.term)
-            nvlen = size(x{i}.term{j}.C,1);
+            nvlen = size(x{i}.term{j}.C,2);
             if isfield(x{i}.term{j},'x')&& ismember(x{i}.term{j}.x,odeID)
                 nv=nv+nvlen;
                 vpartition(end+1) = vpartition(end)+nvlen;
@@ -113,7 +113,7 @@ for i=1:length(x)
 end
 for i=1:length(BC) % look for nv terms in BC
     for j=1:length(BC{i}.term)
-        nvlen = size(BC{i}.term{j}.C,1);
+        nvlen = size(BC{i}.term{j}.C,2);
         if isfield(BC{i}.term{j},'x')&& ismember(BC{i}.term{j}.x,odeID)
             nv=nv+nvlen;
             vpartition(end+1) = vpartition(end)+nvlen;
@@ -128,6 +128,7 @@ for i=1:length(BC) % look for nv terms in BC
 end
 
 n.nr = nr; n.nv = nv;
+
 
 % place all the parameters in an appropriate structure
 PDE_out.n = n;
@@ -144,7 +145,7 @@ k= 1; % we use counter k for rows in r signal (increase k by one when next rpart
 for i=1:length(z)
     rows = zpartition(i):zpartition(i+1)-1; % find which rows the coefficients will go to
     for j=1:length(z{i}.term) % now go term by term
-        tmpterm = z{i}.term;
+        tmpterm = z{i}.term{j};
         if isfield(tmpterm,'x') % either ode or pde coeff; place in Cz or Dzr
             if ismember(tmpterm.x,odeID) % ode state; place in Cz
                 cols = find(tmpterm.x==odetab(:,1));
@@ -166,7 +167,7 @@ for i=1:length(z)
                     loc = sum(N:-1:N-der+1) + maxder + 1;
                     PDE_out.PDE.Crp{loc}.coeff(rrows,rcols) = tmpterm.C;
                 else % boundary value term goes to Drb
-                    del = tmpterm.loc(1); % location value
+                    del = double(tmpterm.loc(1)); % location value
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
                     end
@@ -192,7 +193,7 @@ end
 for i=1:length(y)
     rows = ypartition(i):ypartition(i+1)-1; % find which rows the coefficients will go to
     for j=1:length(y{i}.term) % now go term by term
-        tmpterm = y{i}.term;
+        tmpterm = y{i}.term{j};
         if isfield(tmpterm,'x') % either ode or pde coeff; place in Cy or Dyr
             if ismember(tmpterm.x,odeID) % ode state; place in Cy
                 cols = find(tmpterm.x==odetab(:,1));
@@ -214,7 +215,7 @@ for i=1:length(y)
                     loc = sum(N:-1:N-der+1) + maxder + 1;
                     PDE_out.PDE.Crp{loc}.coeff(rrows,rcols) = tmpterm.C;
                 else % boundary value term goes to Drb
-                    del = tmpterm.loc(1); % location value
+                    del = double(tmpterm.loc(1)); % location value
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
                     end
@@ -240,7 +241,7 @@ for i=1:length(x)
     if odestate(i) % only go through ODE dynamics for now
         rows = xpartition(i):xpartition(i+1)-1; % find which rows the coefficients will go to
         for j=1:length(x{i}.term) % now go term by term
-            tmpterm = x{i}.term;
+            tmpterm = x{i}.term{j};
             if isfield(tmpterm,'x') % either ode or pde coeff; place in A or Bxr
                 if ismember(tmpterm.x,odeID) % ode state; place in A
                     cols = find(tmpterm.x==odetab(:,1));
@@ -262,7 +263,7 @@ for i=1:length(x)
                         loc = sum(N:-1:N-der+1) + maxder + 1;
                         PDE_out.PDE.Crp{loc}.coeff(rrows,rcols) = tmpterm.C;
                     else % boundary value term goes to Drb
-                        del = tmpterm.loc(1); % location value
+                        del = double(tmpterm.loc(1)); % location value
                         if ~isfield(tmpterm,'D')
                             tmpterm.D = 0;
                         end
@@ -291,56 +292,61 @@ for i=1:length(x)
     if ~odestate(i) % only go through PDE dynamics now
         for j=1:length(x{i}.term)
             tmpterm = x{i}.term{j};
-            rows = Xpartition(i-n.nx):Xpartition(i-n.nx+1)-1; % remove n.nx because first i elements should now be only ode dynamics
-            vrows = vpartition(k):vpartition(k+1)-1;
+            rows = Xpartition(i-sum(odestate)):Xpartition(i-sum(odestate)+1)-1; % remove odestate because first i elements should now be only ode dynamics
             if isfield(tmpterm,'x')&& ismember(tmpterm.x,odeID) % add to Bpv and add to v signal Cv
-                PDE_out.PDE.Bpv(rows,vrows) = eye(length(vrows)); % columns are same as vrows
+                vrows = vpartition(k):vpartition(k+1)-1;
+                PDE_out.PDE.Bpv(rows,vrows) = tmpterm.C; % columns are same as vrows
                 vcols = find(tmpterm.x==odetab(:,1));
                 vcols = xpartition(vcols):xpartition(vcols+1)-1;
-                PDE_out.ODE.Cv(vrows,vcols) = tmpterm.C;
+                PDE_out.ODE.Cv(vrows,vcols) = eye(length(vrows));
                 k=k+1;
             elseif isfield(tmpterm,'w') % add to v signal Dvw and Bpv
-                PDE_out.PDE.Bpv(rows,vrows) = eye(length(vrows)); % columns are same as vrows
+                vrows = vpartition(k):vpartition(k+1)-1;
+                PDE_out.PDE.Bpv(rows,vrows) = tmpterm.C; % columns are same as vrows
                 vcols = find(tmpterm.w==PDE.w_tab(:,1));
                 vcols = wpartition(vcols):wpartition(vcols+1)-1;
-                PDE_out.ODE.Dvw(vrows,vcols) = tmpterm.C;
+                PDE_out.ODE.Dvw(vrows,vcols) = eye(length(vrows));
                 k=k+1;
             elseif isfield(tmpterm,'u') % add to v signal Dvu and Bpv
-                PDE_out.PDE.Bpv(rows,vrows) = eye(length(vrows)); % columns are same as vrows
+                vrows = vpartition(k):vpartition(k+1)-1;
+                PDE_out.PDE.Bpv(rows,vrows) = tmpterm.C; % columns are same as vrows
                 vcols = find(tmpterm.u==PDE.u_tab(:,1));
-                vcols = wpartition(vcols):wpartition(vcols+1)-1;
-                PDE_out.ODE.Dvu(vrows,vcols) = tmpterm.C;
+                vcols = upartition(vcols):upartition(vcols+1)-1;
+                PDE_out.ODE.Dvu(vrows,vcols) = eye(length(vrows));
                 k=k+1;
             else % add to A/Bpb
                 lstate = xtab(i,4); % max derivative of LHS state
                 rstate = pdetab((tmpterm.x==pdeID),4); % max derivative of RHS term state
                 rcols = pdetab(pdetab(:,4)==rstate,:);
                 idLoc = find(tmpterm.x==rcols(:,1));
-                cSum = [0 cumsum(rcols(:,2))]+1;
+                cSum = [0 cumsum(rcols(:,2))']+1;
                 rcols = cSum(idLoc):cSum(idLoc+1)-1;
                 rrows = pdetab(pdetab(:,4)==lstate,:);
                 idLoc = find(tmpterm.x==rrows(:,1));
-                cSum = [0 cumsum(rrows(:,2))]+1;
+                cSum = [0 cumsum(rrows(:,2))']+1;
                 rrows = cSum(idLoc):cSum(idLoc+1)-1;
-                if ~isfield(tmpterm,'loc')% integral add to A
+                if ~poly2double(tmpterm.loc(1))% integral add to A
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
                     end
                     der = tmpterm.D; % derivative order of current term
-                    if isfield(tmpterm,'I')&&isequal(tmpterm.I(2),pvar('s'))%R1 term
-                        loc=(N+1)*np_all_derivatives + (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
-                    elseif isfield(tmpterm,'I')&&isequal(tmpterm.I(1),pvar('s'))%R2 term
-                        loc = 2*(N+1)*np_all_derivatives + (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
-                    else % R0 term
+                    if ~isempty(tmpterm.I{1})
+                        interval = tmpterm.I{1}'
+                        if poly2double(interval(1))%R1 term
+                            loc=(N+1)*np_all_derivatives + (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
+                        end
+                        if poly2double(interval(2))%R2 term
+                            loc = 2*(N+1)*np_all_derivatives + (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
+                        end
+                    else% R0 term
                         loc = (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
                     end
-                    PDE_out.PDE.A{loc}.coeff(rrows,rcols) = tmpterm.C;
                 else % boundary add to Bpb
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
                     end
                     der = tmpterm.D;
-                    deltaval = tmpterm.loc(1);
+                    deltaval = double(tmpterm.loc(1));
                     loc = lstate*(2*np_all_derivatives-2*(N+1)) + deltaval*(np_all_derivatives-N-1) + sum(N-1:-1:N-der) + rstate;
                     PDE_out.PDE.Bpb{loc}.coeff(rrows,rcols) = tmpterm.C;
                 end
@@ -353,55 +359,52 @@ end
 % PDE BCs
 for i=1:length(BC)
     for j=1:length(BC{i}.term)
-            tmpterm = BC{i}.term{j};
-            rows = BCpartition(i):BCpartition(i+1)-1; 
+        tmpterm = BC{i}.term{j};
+        rows = BCpartition(i):BCpartition(i+1)-1;
+        if isfield(tmpterm,'x')&& ismember(tmpterm.x,odeID) % add to Ebv and add to v signal Cv
             vrows = vpartition(k):vpartition(k+1)-1;
-            if isfield(tmpterm,'x')&& ismember(tmpterm.x,odeID) % add to Ebv and add to v signal Cv
-                PDE_out.BC.Ebv(rows,vrows) = eye(length(vrows)); % columns are same as vrows
-                vcols = find(tmpterm.x==odetab(:,1));
-                vcols = xpartition(vcols):xpartition(vcols+1)-1;
-                PDE_out.ODE.Cv(vrows,vcols) = tmpterm.C;
-                k=k+1;
-            elseif isfield(tmpterm,'w') % add to v signal Dvw and Ebv
-                PDE_out.BC.Ebv(rows,vrows) = eye(length(vrows)); % columns are same as vrows
-                vcols = find(tmpterm.w==PDE.w_tab(:,1));
-                vcols = wpartition(vcols):wpartition(vcols+1)-1;
-                PDE_out.ODE.Dvw(vrows,vcols) = tmpterm.C;
-                k=k+1;
-            elseif isfield(tmpterm,'u') % add to v signal Dvu and Ebv
-                PDE_out.BC.Ebv(rows,vrows) = eye(length(vrows)); % columns are same as vrows
-                vcols = find(tmpterm.u==PDE.u_tab(:,1));
-                vcols = wpartition(vcols):wpartition(vcols+1)-1;
-                PDE_out.ODE.Dvu(vrows,vcols) = tmpterm.C;
-                k=k+1;
-            else % add to Ebp/Ebb
-                lstate = xtab(i,4); % max derivative of LHS state
-                rstate = pdetab((tmpterm.x==pdeID),4); % max derivative of RHS term state
-                rcols = pdetab(pdetab(:,4)==rstate,:);
-                idLoc = find(tmpterm.x==rcols(:,1));
-                cSum = [0 cumsum(rcols(:,2))]+1;
-                rcols = cSum(idLoc):cSum(idLoc+1)-1;
-                rrows = pdetab(pdetab(:,4)==lstate,:);
-                idLoc = find(tmpterm.x==rrows(:,1));
-                cSum = [0 cumsum(rrows(:,2))]+1;
-                rrows = cSum(idLoc):cSum(idLoc+1)-1;
-                if ~isfield(tmpterm,'loc')% integral add to Ebp
-                    if ~isfield(tmpterm,'D')
-                        tmpterm.D = 0;
-                    end
-                    der = tmpterm.D; % derivative order of current term
-                    loc=sum(N:-1:N-der+1) + rstate + 1;
-                    PDE_out.BC.Ebp{loc}.coeff(rrows,rcols) = tmpterm.C;
-                else % boundary value, add to Ebb
-                    if ~isfield(tmpterm,'D')
-                        tmpterm.D = 0;
-                    end
-                    der = tmpterm.D;
-                    deltaval = tmpterm.loc(1);
-                    loc=deltaval*(np_all_derivatives-N-1) + sum(N-1:-1:N-der) + rstate;
-                    PDE_out.BC.Ebb{loc}.coeff(rrows,rcols) = tmpterm.C;
+            PDE_out.BC.Ebv(rows,vrows) = tmpterm.C; % columns are same as vrows
+            vcols = find(tmpterm.x==odetab(:,1));
+            vcols = xpartition(vcols):xpartition(vcols+1)-1;
+            PDE_out.ODE.Cv(vrows,vcols) = eye(length(vrows));
+            k=k+1;
+        elseif isfield(tmpterm,'w') % add to v signal Dvw and Ebv
+            vrows = vpartition(k):vpartition(k+1)-1;
+            PDE_out.BC.Ebv(rows,vrows) = tmpterm.C; % columns are same as vrows
+            vcols = find(tmpterm.w==PDE.w_tab(:,1));
+            vcols = wpartition(vcols):wpartition(vcols+1)-1;
+            PDE_out.ODE.Dvw(vrows,vcols) = eye(length(vrows));
+            k=k+1;
+        elseif isfield(tmpterm,'u') % add to v signal Dvu and Ebv
+            vrows = vpartition(k):vpartition(k+1)-1;
+            PDE_out.BC.Ebv(rows,vrows) = tmpterm.C; % columns are same as vrows
+            vcols = find(tmpterm.u==PDE.u_tab(:,1));
+            vcols = upartition(vcols):upartition(vcols+1)-1;
+            PDE_out.ODE.Dvu(vrows,vcols) = eye(length(vrows));
+            k=k+1;
+        else % add to Ebp/Ebb
+            rstate = pdetab((tmpterm.x==pdeID),4); % max derivative of RHS term state
+            rcols = pdetab(pdetab(:,4)==rstate,:);
+            idLoc = find(tmpterm.x==rcols(:,1));
+            cSum = [0 cumsum(rcols(:,2))']+1;
+            rcols = cSum(idLoc):cSum(idLoc+1)-1;
+            if ~poly2double(tmpterm.loc(1))% integral add to Ebp
+                if ~isfield(tmpterm,'D')
+                    tmpterm.D = 0;
                 end
+                der = tmpterm.D; % derivative order of current term
+                loc=sum(N:-1:N-der+1) + rstate + 1;
+                PDE_out.BC.Ebp{loc}.coeff(rows,rcols) = tmpterm.C;
+            else % boundary value, add to Ebb
+                if ~isfield(tmpterm,'D')
+                    tmpterm.D = 0;
+                end
+                der = tmpterm.D;
+                deltaval = double(tmpterm.loc(1));
+                loc=deltaval*(np_all_derivatives-N-1) + sum(N-1:-1:N-der) + rstate;
+                PDE_out.BC.Ebb{loc}.coeff(rows,rcols) = tmpterm.C;
             end
+        end
     end
 end
 
