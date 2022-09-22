@@ -31,6 +31,25 @@ function [Xop,eps,deg_fctr_final] = mldivide(P1op,P2op,deg_fctr,tol,deg_fctr_max
 % % Very lazy implementation:
 % % If    P1op * Xop = P2op,
 % % then  Xop' * P1op' = P2op';
+if nargin<2
+    error(['At least two arguments P1 and P2 are necessary to compute P2/P1']);
+elseif nargin==2
+    tol = 1e-8;
+    deg_fctr = 2*ones(4,2);
+    deg_fctr_max = [10,10; 10,10; 5,5; 5,5];
+elseif nargin==3
+    tol = 1e-8;
+    deg_fctr_max = [10,10; 10,10; 5,5; 5,5];
+elseif nargin==4
+    if all(size(tol)==[4,2])
+        deg_fctr_max = tol;
+        tol = 1e-8;
+    else
+        deg_fctr_max = [10,10; 10,10; 5,5; 5,5];
+    end
+elseif nargin>5
+    error('At most 5 inputs are accepted')
+end
 [Xop,eps,deg_fctr_final] = mrdivide(P2op',P1op',fliplr(deg_fctr),tol,fliplr(deg_fctr_max));
 Xop = Xop';
 deg_fctr_final = fliplr(deg_fctr_final);

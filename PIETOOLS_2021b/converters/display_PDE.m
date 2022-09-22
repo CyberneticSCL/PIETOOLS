@@ -494,6 +494,7 @@ has_vars_eq = eq_info(3:2+nvars);
 sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 sub_min = '\x208B';
 sub_a = '\x2090';
+sup_b = '\x1D47';
 sub_lp = '\x208D';
 sub_rp = '\x208E';
 
@@ -640,7 +641,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
             if (round(U_kk)-U_kk)~=0
                 % The upper limit is not integer --> indicate
                 % as just n_kk
-                int_term = [int_term,sup_b,sup_num{kk+1}];
+                int_trm = [int_trm,sup_b,sup_num{kk+1}];
             else
                 if U_kk < 0
                     % Negative value: add a minus
@@ -696,7 +697,7 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
     end
     if isa(Cval,'double') && all(size(Cval,1)==size(Cval,2)) && ~any(any(Cval-diag(diag(Cval)))) && ...
         ~any(any(Cval-Cval(1,1)*eye(size(Cval))))
-        % Constant scalar factor
+        % % Constant scalar factor
         Cval = Cval(1,1);
         if Cval<0 && term_num==1
             sign_trm = ' = - ';
@@ -709,11 +710,29 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
             C_trm = [C_trm,num2str(Cval),' * '];
         end
     elseif isa(Cval,'double')
-        % Constant matrix-valued factor
-        eq_indx = sub_num{eq_num+1};
-        trm_indx = sub_num{term_num+1};
-        C_trm = [C_trm,'C',eq_indx,'',trm_indx,' * '];
+        % % Constant matrix-valued factor        
+        % Add subscripts indicating the equation and term number.
+        if eq_num<=9
+            % The equation number consists of a single decimal
+            eq_indx = sub_num{eq_num+1};
+        else
+            % The equation number consists of multiple decimals
+            eq_indx = cell2mat(sub_num(str2num(num2str(eq_num)')+1)');
+        end
+        if term_num<=9
+            % The equation number consists of a single decimal
+            trm_indx = sub_num{term_num+1};
+        else
+            % The equation number consists of multiple decimals
+            trm_indx = cell2mat(sub_num(str2num(num2str(term_num)')+1)');
+        end
+        if eq_num>9 || term_num>9
+            C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,sub_rp,' * '];
+        else
+            C_trm = [C_trm,'C',eq_indx,'',trm_indx,' * '];
+        end
     else
+        % % Polynomial function.
         Cvar1_indcs = ismember(var1_name,Cval.varname);
         Cvar1_list = var1_list(Cvar1_indcs);
         Cvar2_indcs = ismember(var2_name,Cval.varname);

@@ -269,8 +269,13 @@ if ~isempty(PDE.dom) && ~isempty(PDE.vars)
         error(['The global variables have not been appropriately specified:'...
                 '"vars" should be a px2 array, specifying the p primary and dummy spatial variables.'])
     elseif size(global_vars,1)~=size(global_dom,1)
-        error(['The global variables have not been appropriately specified:'...
-                'the number of variables does not match the dimension of the specified domain.'])
+        if size(global_vars,1)==1 && size(global_vars,2)==size(global_dom,1)
+            % Only primary spatial variables have been specified
+            global_vars = global_vars';
+        else
+            error(['The global variables have not been appropriately specified:'...
+                    'the number of variables does not match the dimension of the specified domain.'])
+        end
     end
     % If variable names are specified, convert to pvar objects.
     if ~ispvar(global_vars) && ~iscellstr(global_vars)
@@ -557,8 +562,8 @@ for ii=1:numel(PDE.BC)
     
     % Make sure that the boundary condition is indeed a boundary condition.
     if all(PDE.BC_tab(ii,3:2+nvars))
-        error(['The boundary condition "BC{',num2str(ii),'}", of the form 0=f(s), is defined by a function f(s) that varies on the interior of the spatial domain.',...
-                ' Please use boundary positions in "BC{',num2str(ii),'}.term{j}.loc" and integrals "BC{',num2str(ii),'}.term{j}.I" to make sure the boundary condition function f(s) does not vary along all spatial directions.'])
+        error(['The boundary condition "BC{',num2str(ii),'}", of the form 0=F(s), is defined by a function F(s) that varies on the interior of the spatial domain.',...
+                ' Please use boundary positions in "BC{',num2str(ii),'}.term{j}.loc" and integrals "BC{',num2str(ii),'}.term{j}.I" to make sure the boundary condition function F(s) does not vary along all spatial directions.'])
     else
         % Keep track of which variables s the function f(s) in the BC
         % 0=f(s) depends on, and their associated domain.
@@ -700,8 +705,13 @@ for ii=1:numel(PDE.(obj))
             error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
                     ' "vars" should be a px2 array, specifying the p primary and dummy spatial variables.'])
         elseif size(PDE_comp.vars,1)~=size(PDE_comp.dom,1)
-            error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
-                    ' the number of specified variables in "vars" does not match the dimension of the spatial domain in "dom".'])
+            if size(PDE_comp.vars,1)==1 && size(PDE_comp.vars,2)==size(PDE_comp.dom,1)
+                % Only primary spatial variables are specified.
+                PDE_comp.vars = PDE_comp.vars';
+            else
+                error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
+                        ' the number of specified variables in "vars" does not match the dimension of the spatial domain in "dom".'])
+            end
         end
         % If variable names (rather than variables) have been specified,
         % convert to polynomial objects.
@@ -984,11 +994,11 @@ for ii=1:numel(PDE.(obj))
         
         % Next, check if a spatial position is appropriately specified.
         if is_x_Rcomp && (~isfield(term_jj,'loc') || isempty(term_jj.loc))
-            % For BCs, a spatial position MUST be specified.
-            if strcmp(obj,'BC') && any(has_vars_Rcomp) && ~isfield(term_jj,'I') && ~isfield(term_jj,'int')
-                error(['BC term "',term_name,'" is not appropriately specified;',...
-                        ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
-            elseif strcmp(obj,'BC') && any(has_vars_Rcomp) && isfield(term_jj,'I') || isfield(term_jj,'int')
+            % % For BCs, a spatial position MUST be specified.
+            %if strcmp(obj,'BC') && any(has_vars_Rcomp) && ~isfield(term_jj,'I') && ~isfield(term_jj,'int')
+            %    error(['BC term "',term_name,'" is not appropriately specified;',...
+            %            ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
+            if strcmp(obj,'BC') && isfield(term_jj,'I') || isfield(term_jj,'int')
                 % If a full integral is used, it's okay if no position is
                 % specified.
                 if isfield(term_jj,'int') && ~isfield(term_jj,'I')
