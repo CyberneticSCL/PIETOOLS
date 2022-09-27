@@ -475,7 +475,7 @@ BC_diff_tab = zeros(numel(PDE.BC),nvars);
 [PDE,diff_tab] = get_diff_tab(PDE,'y',diff_tab);
 [PDE,diff_tab] = get_diff_tab(PDE,'BC',diff_tab);
 
-% For any state component of which the size is not clear, also the
+% For any state component of which the size is not clear, assume the
 % component to be scalar.
 PDE.x_tab(PDE.x_tab(:,2)==0,2) = 1;
 % For the inputs, outputs, and BCs of which the size is unclear, if all
@@ -487,14 +487,14 @@ if all(PDE.x_tab(2:end,2)==PDE.x_tab(1:end-1,2))
     PDE.z_tab(PDE.z_tab(:,2)==0,2) = shared_size;
     PDE.u_tab(PDE.u_tab(:,2)==0,2) = shared_size;
     PDE.w_tab(PDE.w_tab(:,2)==0,2) = shared_size;
-    PDE.BC_tab(PDE.BC_tab(:,2)==0,2) = shared_size;
+    %PDE.BC_tab(PDE.BC_tab(:,2)==0,2) = shared_size;
 else
     % Otherwise, assume they are all scalar.
     PDE.y_tab(PDE.y_tab(:,2)==0,2) = 1;
     PDE.z_tab(PDE.z_tab(:,2)==0,2) = 1;
     PDE.u_tab(PDE.u_tab(:,2)==0,2) = 1;
     PDE.w_tab(PDE.w_tab(:,2)==0,2) = 1;
-    PDE.BC_tab(PDE.BC_tab(:,2)==0,2) = 1;
+    %PDE.BC_tab(PDE.BC_tab(:,2)==0,2) = 1;
 end
 
 
@@ -1778,15 +1778,25 @@ while jj<=n_terms
     if ~isfield(term_jj,'C') || isempty(term_jj.C)
         % If no coefficients are specified, assume each term is scaled
         % with a factor 1.
-        if any(PDE.([Robj,'_tab'])(Rindx,2)~=PDE.BC_tab(eq_num,2))
+        if PDE.BC_tab(eq_num,2)==0
+            % If we don't know the size of the BC, assume it is equal to
+            % the size of the considered state component/input
+            PDE.BC_tab(eq_num,2) = PDE.([Robj,'_tab'])(Rindx,2);
+            PDE.BC{eq_num}.size = PDE.BC_tab(eq_num,2);
+            Cval = repmat(eye(PDE.BC_tab(eq_num,2)),[1,nR]);
+        elseif any(PDE.([Robj,'_tab'])(Rindx,2)~=PDE.BC_tab(eq_num,2))
             error(['The size of the component "BC{',eq_num_str,'}" does not match that of the components specified in "',term_name,'.',Robj,'";',...
                 ' please specify a matrix "',term_name,'.C" describing how each component on the right-hand side contributes to the equation for "BC{',eq_num_str,'}".'])
         else
             Cval = repmat(eye(max(PDE.BC_tab(eq_num,2),1)),[1,nR]);
         end
     else
-        % Otherwise, verify that the size of the matrix makes sense.
+        % Otherwise, verify that the dimensions of the matrix makes sense.
         Cval = term_jj.C;        
+        if PDE.BC_tab(eq_num,2)==0
+            PDE.BC_tab(eq_num,2) = size(Cval,1);
+            PDE.BC{eq_num}.size = PDE.BC_tab(eq_num,2);
+        end
         if ~isa(Cval,'double') && ~isa(Cval,'polynomial')
             error(['The coefficients "',term_name,'.C" are not appropriately specified;',...
                 ' coefficients should be specified as an array of type "double" or "polynomial".'])
