@@ -6,7 +6,7 @@ function [Pop_f2x, Pop_b2x, bc_state_tab] = PIETOOLS_FTC_Expansion_2D(PDE)
 % 
 % INPUTS:
 % - PDE:    A struct or pde_struct object defining a PDE in the terms
-%           format (see also "initialize_PIETOOLS_PDE_terms").
+%           format (see also "@pde_struct/initialize").
 %
 % OUTPUTS:
 % - Pop_f2x:    opvar2d object describing the map from the fundamental

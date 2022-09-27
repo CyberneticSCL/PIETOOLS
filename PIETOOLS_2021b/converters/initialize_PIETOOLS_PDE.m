@@ -16,11 +16,14 @@ function PDE_out = initialize_PIETOOLS_PDE(PDE,silent_initialize)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Call the appropriate initialization function.
-if isa(PDE,'pde_struct') || isfield(PDE,'x')
+if isa(PDE,'pde_struct') || isa(PDE,'struct') && isfield(PDE,'x')
+    if isa(PDE,'struct')
+        PDE = pde_struct(PDE);
+    end
     if nargin==1
-        PDE_out = initialize_PIETOOLS_PDE_terms(PDE);
+        PDE_out = initialize(PDE);
     else
-        PDE_out = initialize_PIETOOLS_PDE_terms(PDE,silent_initialize);
+        PDE_out = initialize(PDE,silent_initialize);
     end
 elseif isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
     PDE_out = initialize_PIETOOLS_PDE_batch(PDE);

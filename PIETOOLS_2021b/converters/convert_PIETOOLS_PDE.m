@@ -35,14 +35,14 @@ function PIE_out = convert_PIETOOLS_PDE(PDE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Call the appropriate converter function.
-if isa(PDE,'pde_struct') || isfield(PDE,'x')
-    if PDE.dim<=1
-        PIE_out = convert_PIETOOLS_PDE_terms(PDE);
-    elseif PDE.dim==2
-        PIE_out = convert_PIETOOLS_PDE_2D(PDE);
-    else
-        error('Conversion of PDEs in more than 2 spatial variables to PIEs is currently not supported.')
+if isa(PDE,'pde_struct') || isa(PDE,'struct') && isfield(PDE,'x')
+    % Convert 'struct' to 'pde_struct'.
+    if isa(PDE,'struct')
+        PDE = pde_struct(PDE);
     end
+    % Call the "@pde_struct/convert" function.
+    PDE = initialize(PDE,true);
+    PIE_out = convert(PDE,'pie');
 elseif isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
     PIE_out = convert_PIETOOLS_PDE_batch(PDE);
 elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')

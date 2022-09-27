@@ -4,7 +4,7 @@ function ismatch_arr = PIETOOLS_compare_PDE_PIE(PDE,PIE,tol)
 % 
 % INPUTS:
 % - PDE:    A pde_struct object defining a PDE in the terms format
-%           (see also "initialize_PIETOOLS_PDE_terms").
+%           (see also the "@pde_struct/initialize" function).
 % - PIE:    A pie_struct object, generated using the appropriate (1D or 2D)
 %           PDE to PIE converter function on the PDE structure "PDE".
 % - tol:    Allowed error in the PIE versus the PDE. That is, comparing

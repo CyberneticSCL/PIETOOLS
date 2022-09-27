@@ -6,7 +6,7 @@ function PIE = convert_PIETOOLS_PDE_2D(PDE)
 % 
 % INPUTS:
 % - PDE:    A struct or pde_struct object defining a PDE in the terms
-%           format (see also "initialize_PIETOOLS_PDE_terms").
+%           format (see also "@pde_struct/initialize").
 %
 % OUTPUTS:
 % - PIE:    A struct with fields:
@@ -402,7 +402,7 @@ function [PDE,comp_order] = reorder_comps(PDE,obj)
 %
 % INPUTS:
 % - PDE:    A struct or pde_struct type object, defining a PDE in the terms
-%           format (see also the initialize_PIETOOLS_PDE_terms function).
+%           format (see also the "@pde_struct/initialize" function).
 % - obj:    'x', 'y', 'z', 'u', 'w', indicating for what object to reorder
 %           the components.
 %
@@ -587,8 +587,8 @@ function [Pop_b2BC, Pop_f2BC, Pop_u2BC, Pop_w2BC] = construct_PI_ops_BCs(PDE,bc_
 %
 % INPUTS:
 % - PDE:            A struct or pde_struct type object, defining a PDE in 
-%                   the terms format (see also the 
-%                   initialize_PIETOOLS_PDE_terms function).
+%                   the terms format (see also the "@pde_struct/initialize"
+%                   function).
 % - bc_state_tab:   A Nx(2+2*nvars) array, defining the core boundary state. 
 %               For j=1,...N, element
 %               (j,2) should provide the size of the state component;
@@ -925,7 +925,7 @@ function [Pop_x_cell, Pop_u, Pop_w, loc_diff_tab, retain_xvars_cell] = construct
 %
 % INPUTS:
 % - PDE:    A struct or pde_struct type object, defining a PDE in the terms
-%           format (see also the initialize_PIETOOLS_PDE_terms function).
+%           format (see also the "@pde_struct/initialize" function).
 % - obj:    'x', 'y', or 'z', indicating which equations to be represented
 %           using PI operators.
 %

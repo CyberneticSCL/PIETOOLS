@@ -21,7 +21,7 @@ for test_num=1:ntests
     if ~PDE.dim
         continue;
     end
-    PDE = initialize_PIETOOLS_PDE_terms(PDE);
+    PDE = initialize(PDE);
     PIE = convert_PIETOOLS_PDE(PDE);
     %assignin('base','PIE_test',PIE);
 

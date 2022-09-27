@@ -1,12 +1,12 @@
-function PDE = initialize_PIETOOLS_PDE_terms(PDE,suppress_summary)
+function PDE = initialize(PDE,suppress_summary)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PDE = initialize_PIETOOLS_PDE_temrs(PDE) takes a PDE data structure and
+% PDE = initialize(PDE) takes a PDE data structure and
 % checks that all the necessary fields are appropriately specified, and
 % assigns a default value to all the optional fields that have not been
 % specified.
 % 
 % INPUT
-%   PDE: "struct" or "pde_struct" class object.
+%   PDE:              "pde_struct" class object.
 %   suppress_summary: Logical index. If 'false' or not specified, a summary
 %                     of the observed state, input, output and BC
 %                     information will be printed in the command window at
@@ -1019,12 +1019,12 @@ for ii=1:numel(PDE.(obj))
                         break
                     end
                 end
-                if ~use_full_int
-                    error(['BC term "',term_name,'" is not appropriately specified;',...
-                        ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
-                end
-            elseif strcmp(obj,'BC')
-                PDE.(obj){ii}.term{jj}.loc = zeros(1,0);
+%                 if ~use_full_int
+%                     error(['BC term "',term_name,'" is not appropriately specified;',...
+%                         ' a spatial position "',term_name,'.loc" at which to evaluate the state is required when specifying BCs.'])
+%                 end
+%             elseif strcmp(obj,'BC')
+%                 PDE.(obj){ii}.term{jj}.loc = zeros(1,0);
             end
             % Otherwise, if no position is specified, evaluate the state on 
             % the interior of the domain.
