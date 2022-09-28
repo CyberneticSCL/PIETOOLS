@@ -319,7 +319,7 @@ PDE.vars = global_vars;
 % associated domains.
 dom_list = [dom_list_x; dom_list_w; dom_list_u; dom_list_z; dom_list_y];
 var_list = [var_list_x; var_list_w; var_list_u; var_list_z; var_list_y];
-comp_list = [comp_list_x; comp_list_w; dom_list_u; comp_list_z; comp_list_y];
+comp_list = [comp_list_x; comp_list_w; comp_list_u; comp_list_z; comp_list_y];
 
 % Keep track of which rows in the full list correspond to states, inputs,
 % and outputs.
@@ -530,7 +530,7 @@ for ii=1:numel(PDE.u)
     end
     PDE.u{ii}.size = PDE.u_tab(ii,2);
     PDE.u{ii}.vars = PDE.vars(logical(PDE.u_tab(ii,3:2+nvars)),:);
-    PDE.u{ii}.vars = PDE.dom(logical(PDE.u_tab(ii,3:2+nvars)),:);
+    PDE.u{ii}.dom = PDE.dom(logical(PDE.u_tab(ii,3:2+nvars)),:);
     PDE.u{ii} = orderfields(PDE.u{ii},{'size','vars','dom'});
 end
 
@@ -693,6 +693,9 @@ for ii=1:numel(PDE.(obj))
         end
     else
         % Check that the domain has been properly specified
+        if isempty(PDE_comp.dom)
+            PDE_comp.dom = zeros(0,2);
+        end
         if size(PDE_comp.dom,2)~=2
             error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
                     ' "dom" must be a px2 array specifying the interval on which each of the p spatial variables exists.'])
@@ -2035,8 +2038,8 @@ while jj<=n_terms
     
     % Also keep track of which state variables appear in the BC, and what
     % the maximal order of differentiability is of the states.
-    BC_state_indcs = [BC_state_indcs;Rindx];
     if is_x_Robj
+        BC_state_indcs = [BC_state_indcs;Rindx];
         BC_diff_tab = max(BC_diff_tab,diff_tab(Rindx,:));
     end
     
