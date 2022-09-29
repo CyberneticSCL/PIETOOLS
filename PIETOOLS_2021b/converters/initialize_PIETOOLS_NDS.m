@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize_PIETOOLS_NDS.m     PIETOOLS 2021b
+% initialize_PIETOOLS_NDS.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function NDS_out=initialize_PIETOOLS_NDS(NDS)
 % initializes and checks the NDS formulation as described at the end of

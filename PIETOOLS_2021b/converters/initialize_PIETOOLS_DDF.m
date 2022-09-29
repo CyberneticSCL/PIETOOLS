@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize_PIETOOLS_DDF.m     PIETOOLS 2021b
+% initialize_PIETOOLS_DDF.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DDF_out=initialize_PIETOOLS_DDF(DDF)
 % This a initialize/preprocessing routine, executed prior to 

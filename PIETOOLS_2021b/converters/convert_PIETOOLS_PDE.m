@@ -1,14 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert_PIETOOLS_PDE_terms.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function PIE_out = convert_PIETOOLS_PDE(PDE)
-% convert_PIETOOLS_PDE is the new version of the PDE converter 
-% file which performs the following two tasks.
-% 1) It verifies the dimension compatibility of input parameters of ODE-PDE
-% and sets any missing parameters to zero.
-% 2) It converts the input ODE-PDE representation to a PIE
-% representation.
-
+function PIE_out = convert_PIETOOLS_PDE(PDE,out_type)
+% convert_PIETOOLS_PDE takes a PDE structure and calls the appropriate PDE
+% to PIE converter function, returning the associated PIE structure.
+% Input argument "type" is optional, and should be equal to ''pie'' when
+% specified, as only conversion from PDE to PIE is supported.
+%
 % A Partial Integral Equation is defined by 12 PI operators as
 %
 % Tw \dot{w}(t) + Tu \dot{u}(t) + T \dot{x}(t) = A  x(t) + B1 w(t)  + B2 u(t);
@@ -34,8 +32,13 @@ function PIE_out = convert_PIETOOLS_PDE(PDE)
 % Initial coding MMP, SS, DJ, 08/18/2022.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Only conversion to PIE is allowed
+if nargin==2 && ~strcmpi(out_type,'pie')
+    error('Second argument must be ''pie'', or must be omitted. Only conversion from PDE to PIE is supported.')
+end
+
 % Call the appropriate converter function.
-if isa(PDE,'pde_struct') || isa(PDE,'struct') && isfield(PDE,'x')
+if isa(PDE,'pde_struct') || (isa(PDE,'struct') && isfield(PDE,'x'))
     % Convert 'struct' to 'pde_struct'.
     if isa(PDE,'struct')
         PDE = pde_struct(PDE);

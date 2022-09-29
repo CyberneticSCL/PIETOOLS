@@ -25,8 +25,8 @@ function display(PDE,name)
 %   outputs. An unfinished PDE will likely produce issues in the
 %   initialization function, so only complete systems can be displayed.
 %
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% or D. Jagt at djagt@asu.edu
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt

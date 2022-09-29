@@ -15,6 +15,11 @@ function PDE_out = initialize_PIETOOLS_PDE(PDE,silent_initialize)
 % Initial coding DJ, 08/18/2022.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if nargin==0
+    PDE_out = pde_struct();
+    return
+end
+    
 % Call the appropriate initialization function.
 if isa(PDE,'pde_struct') || isa(PDE,'struct') && isfield(PDE,'x')
     if isa(PDE,'struct')

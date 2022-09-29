@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize_PIETOOLS_DDE.m     PIETOOLS 2021b
+% initialize_PIETOOLS_DDE.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DDE_out=initialize_PIETOOLS_DDE(DDE)
 % initializes and checks the DDE formulation as in PIETOOLS_DDE

@@ -1,9 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_NDS2DDF.m     PIETOOLS 2021b
+% convert_PIETOOLS_NDS2DDF.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function DDF=convert_PIETOOLS_NDS2DDF(NDS);
-
-%
+function DDF=convert_PIETOOLS_NDS2DDF(NDS)
 % This script takes a fully formed NDS representation and find a
 % DDF representation of that NDS. 
 % 

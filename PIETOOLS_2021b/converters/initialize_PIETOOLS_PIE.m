@@ -12,9 +12,9 @@ function PIE = initialize_PIETOOLS_PIE(PIE)
 %   PIE: "pie_struct" class object describing the same system as the input.
 % 
 % NOTES:
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% or D. Jagt at djagt@asu.edu
-
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date

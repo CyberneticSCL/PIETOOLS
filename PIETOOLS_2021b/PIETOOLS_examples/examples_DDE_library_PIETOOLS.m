@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_DDE_library_PIETOOLS.m     PIETOOLS 2021b
+% examples_DDE_library_PIETOOLS.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This library file contains the definition of some common DDE systems
 % drawn from the literature. To use one of the examples, simply uncomment
