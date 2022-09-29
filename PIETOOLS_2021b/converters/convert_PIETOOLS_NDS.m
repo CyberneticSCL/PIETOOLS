@@ -1,21 +1,20 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert_PIETOOLS_NDS.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [PIE,DDF_min,DDF] = convert_PIETOOLS_NDS(NDS,out_type)
+function [DDF,DDF_min,PIE] = convert_PIETOOLS_NDS(NDS,out_type)
 % This a setup routine for converting NDSs into PIEs
 % First converts NDS representation to DDF representation using
 % "convert_PIETOOLS_NDS2DDF".
-% If type=='ddf_max', the function will return the DDF representation as
-% first and only argument.
-% If type=='ddf' or type=='PIE', minimizes the DDF representation using
+% Then minimizes the DDF representation using
 % "minimize_PIETOOLS_DDF".
-% If type=='ddf', the function will return the minimized DDF representation
-% as first argument, and the original DDF representation as second
-% argument.
-% If type=='pie', converts DDF representation to PIE representation using
+% Then, converts DDF representation to PIE representation using
 % "convert_PIETOOLS_DDF".
-% The function returns the PIE representation, the minimized DDF
-% representation, and the non-minimized DDF representation.
+% If type=='ddf_max', the function will compute and return ONLY the 
+% non-minimized DDF representation.
+% If type=='ddf' or type=='ddf_min', the function will also compute the
+% minimized representation, and return ONLY this minimized representation.
+% If type=='pie', the function will also compute the PIE representation,
+% and return ONLY this PIE representation.
 % 
 % A Partial Integral Equation is defined by 12 PI operators as
 %
@@ -36,37 +35,44 @@ function [PIE,DDF_min,DDF] = convert_PIETOOLS_NDS(NDS,out_type)
 
 % Check that desired conversion makes sense.
 return_ddf = false;
-return_ddf_max = false;
-if nargin>=2 && strcmpi(out_type,'ddf_max')
-    return_ddf_max = true;
-    if nargout>2
-        error('At most 1 output2 is supported for NDS to non-minimal DDF conversion.')
+return_pie = false;
+if nargin>=2
+    if nargout>1
+        error('At most one output is returned when a system type for the output is specified.')
     end
-elseif nargin>=2 && (strcmpi(out_type,'ddf') || strcmpi(out_type,'ddf_min'))
-    return_ddf = true;
-    if nargout>2
-        error('At most 2 outputs are supported for NDS to DDF conversion.')
+    if strcmpi(out_type,'ddf') || strcmpi(out_type,'ddf_min')
+        return_ddf = true;
+    elseif strcmpi(out_type,'pie')
+        return_pie = true;
+    elseif ~strcmpi(out_type,'ddf_max')
+        error('Second argument must be one of ''pie'',''ddf'', or ''ddf_max''. PIETOOLS cannot convert NDSs to any other type.')
     end
-elseif nargin>=2 && ~strcmpi(out_type,'pie')
-    error('Second argument must be one of ''pie'',''ddf'', or ''ddf_max''. PIETOOLS cannot convert NDs to any other type.')
 end
 
 % First convert to DDF.
 DDF = convert_PIETOOLS_NDS2DDF(NDS);
-if return_ddf_max
-    PIE = DDF;
+if nargout==1 && ~return_ddf && ~return_pie
     return
 end
 
 % Then minimize the DDF.
 DDF_min = minimize_PIETOOLS_DDF(DDF);
-if return_ddf
-    PIE = DDF_min;
-    DDF_min = DDF;
+if nargout==2
+    return
+elseif return_ddf
+    % If a minimal DDF representation is explicitly requested, return this
+    % as first and only argument.
+    DDF = DDF_min;
     return
 end
 
 % Then convert DDF to PIE.
-PIE = convert_PIETOOLS_DDF(DDF_min);
+PIE = convert_PIETOOLS_DDF(DDF_min,'pie');
+if return_pie
+    % If a PIE representation is explicitly requested, return this as first
+    % and only argument.
+    DDF = PIE;
+    return
+end
 
 end

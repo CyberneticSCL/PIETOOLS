@@ -1,15 +1,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert_PIETOOLS_DDE.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [PIE,DDF] = convert_PIETOOLS_DDE(DDE,out_type)
+function [DDF,PIE] = convert_PIETOOLS_DDE(DDE,out_type)
 % This a setup routine for converting DDEs into DDFs and PIEs
 % First converts DDE representation to minimal DDF representation using
 % "minimize_PIETOOLS_DDE2DDF".
-% If type=='ddf', the DDF structure will be returned.
-% If type=='pie', converts DDF representation to PIE representation using
+% Then converts DDF representation to PIE representation using
 % "convert_PIETOOLS_DDF".
-% The function returns the PIE representation, and the intermediate
-% DDF representation.
+% If type=='ddf', only the DDF structure is computed and returned.
+% If type=='pie', only PIE structure is returned (though DDF is also
+% computed).
 % 
 % A Partial Integral Equation is defined by 12 PI operators as
 %
@@ -29,24 +29,31 @@ function [PIE,DDF] = convert_PIETOOLS_DDE(DDE,out_type)
 %
 
 % Check that desired conversion makes sense.
-return_ddf = false;
-if nargin>=2 && (strcmpi(out_type,'ddf') || strcmpi(out_type,'ddf_min'))
-    return_ddf = true;
+return_pie = false;
+if nargin>=2
     if nargout>1
-        error('At most 1 output is supported for DDE to DDF conversion.')
+        error('At most one output is returned when an output system type is specified.')
     end
-elseif nargin>=2 && ~strcmpi(out_type,'pie')
-    error('Second argument must be one of ''pie'' or ''ddf''. PIETOOLS cannot convert DDEs to any other type.')
+    if strcmpi(out_type,'pie')
+        return_pie = true;
+    elseif ~strcmpi(out_type,'ddf') && ~strcmpi(out_type,'ddf_min')
+        error('Second argument must be one of ''pie'' or ''ddf''. PIETOOLS cannot convert DDEs to any other type.')
+    end
 end
 
 % First convert to DDF.
 DDF = minimize_PIETOOLS_DDE2DDF(DDE);
-if return_ddf
-    PIE = DDF;
+if nargout==1 && ~return_pie
     return
 end
 
 % Then convert DDF to PIE.
-PIE = convert_PIETOOLS_DDF(DDF);
+PIE = convert_PIETOOLS_DDF(DDF,'pie');
+if return_pie
+    % If the PIE is specifically requested, return the PIE as first
+    % argument.
+    DDF = PIE;
+    return
+end
 
 end
