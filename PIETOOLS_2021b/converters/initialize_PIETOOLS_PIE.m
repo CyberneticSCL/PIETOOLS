@@ -68,111 +68,250 @@ dimstruct.nz = find_nz(PIE.Tw,PIE.B1,PIE.D11,PIE.D21);
 dimstruct.ny = find_ny(PIE.Tw,PIE.B1,PIE.D11,PIE.D21);
 
 
-
-% optional fields
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% optional fields, separate based on 1d and 2d cases
 if ~isfield(PIE,'C1')
-    opvar tmp; tmp.dim = [[dimstruct.nz;0],PIE.T.dim(:,1)];
-    PIE.C1 = tmp;
-else
-    if any(PIE.C1.dim(:)~=[[dimstruct.nz;0];PIE.T.dim(:,1)])
-        warning('PIE.C1, PIE.T have incompatible dimensions. Defaulting C1 to zero operator');
+    if PIE.dim==1
         opvar tmp; tmp.dim = [[dimstruct.nz;0],PIE.T.dim(:,1)];
         PIE.C1 = tmp;
+    else % 2d
+        opvar2d tmp; tmp.dim = [[dimstruct.nz;0;0;0],PIE.T.dim(:,1)];
+        PIE.C1 = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.C1.dim(:)~=[[dimstruct.nz;0];PIE.T.dim(:,1)])
+            warning('PIE.C1, PIE.T have incompatible dimensions. Defaulting C1 to zero operator');
+            opvar tmp; tmp.dim = [[dimstruct.nz;0],PIE.T.dim(:,1)];
+            PIE.C1 = tmp;
+        end
+    else
+        if any(PIE.C1.dim(:)~=[[dimstruct.nz;0;0;0];PIE.T.dim(:,1)])
+            warning('PIE.C1, PIE.T have incompatible dimensions. Defaulting C1 to zero operator');
+            opvar2d tmp; tmp.dim = [[dimstruct.nz;0;0;0],PIE.T.dim(:,1)];
+            PIE.C1 = tmp;
+        end
     end
 end
+%--------------------------------------------------------------------------
 if ~isfield(PIE,'C2')
-    opvar tmp; tmp.dim = [[dimstruct.ny;0],PIE.T.dim(:,1)];
-    PIE.C2 = tmp;
-else
-    if any(PIE.C2.dim(:)~=[[dimstruct.ny;0];PIE.T.dim(:,1)])
-        warning('PIE.C2, PIE.T have incompatible dimensions. Defaulting C2 to zero operator');
+    if PIE.dim==1
         opvar tmp; tmp.dim = [[dimstruct.ny;0],PIE.T.dim(:,1)];
         PIE.C2 = tmp;
+    else % 2d
+        opvar2d tmp; tmp.dim = [[dimstruct.ny;0;0;0],PIE.T.dim(:,1)];
+        PIE.C2 = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.C2.dim(:)~=[[dimstruct.ny;0];PIE.T.dim(:,1)])
+            warning('PIE.C2, PIE.T have incompatible dimensions. Defaulting C2 to zero operator');
+            opvar tmp; tmp.dim = [[dimstruct.ny;0],PIE.T.dim(:,1)];
+            PIE.C2 = tmp;
+        end
+    else
+        if any(PIE.C2.dim(:)~=[[dimstruct.ny;0;0;0];PIE.T.dim(:,1)])
+            warning('PIE.C2, PIE.T have incompatible dimensions. Defaulting C2 to zero operator');
+            opvar2d tmp; tmp.dim = [[dimstruct.ny;0;0;0],PIE.T.dim(:,1)];
+            PIE.C2 = tmp;
+        end
     end
 end
-
-
+%--------------------------------------------------------------------------
 if ~isfield(PIE,'Tw')
-    opvar Tw; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0]];
-    PIE.Tw = tmp;
-else
-    if any(PIE.T.dim(:,1)~=PIE.Tw.dim(:,1))||any(PIE.Tw.dim(:,2)~=[dimstruct.nw;0])
-        warning('PIE.Tw and PIE.T map to different spaces. Defaulting Tw to zero operator');
-        opvar Tw; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0]];
+    if PIE.dim==1
+        opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0]];
+        PIE.Tw = tmp;
+    else
+        opvar2d tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0;0;0]];
         PIE.Tw = tmp;
     end
-end
-if ~isfield(PIE,'Tu')
-    opvar Tu; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0]];
-    PIE.Tu = tmp;
 else
-    if any(PIE.T.dim(:,1)~=PIE.Tu.dim(:,1))||any(PIE.Tu.dim(:,2)~=[dimstruct.nu;0])
-        warning('PIE.Tu and PIE.T map to different spaces. Defaulting Tw to zero operator');
+    if PIE.dim==1
+        if any(PIE.T.dim(:,1)~=PIE.Tw.dim(:,1))||any(PIE.Tw.dim(:,2)~=[dimstruct.nw;0])
+            warning('PIE.Tw and PIE.T map to different spaces. Defaulting Tw to zero operator');
+            opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0]];
+            PIE.Tw = tmp;
+        end
+    else
+        if any(PIE.T.dim(:,1)~=PIE.Tw.dim(:,1))||any(PIE.Tw.dim(:,2)~=[dimstruct.nw;0;0;0])
+            warning('PIE.Tw and PIE.T map to different spaces. Defaulting Tw to zero operator');
+            opvar2d tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0;0;0]];
+            PIE.Tw = tmp;
+        end
+    end
+end
+%--------------------------------------------------------------------------
+if ~isfield(PIE,'Tu')
+    if PIE.dim==1
         opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0]];
         PIE.Tu = tmp;
+    else
+        opvar2d tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0;0;0]];
+        PIE.Tu = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.T.dim(:,1)~=PIE.Tu.dim(:,1))||any(PIE.Tu.dim(:,2)~=[dimstruct.nu;0])
+            warning('PIE.Tu and PIE.T map to different spaces. Defaulting Tu to zero operator');
+            opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0]];
+            PIE.Tu = tmp;
+        end
+    else
+        if any(PIE.T.dim(:,1)~=PIE.Tu.dim(:,1))||any(PIE.Tu.dim(:,2)~=[dimstruct.nu;0;0;0])
+            warning('PIE.Tu and PIE.T map to different spaces. Defaulting Tu to zero operator');
+            opvar2d tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0;0;0]];
+            PIE.Tu = tmp;
+        end
     end
 end
+%--------------------------------------------------------------------------
 if ~isfield(PIE,'B1')
-    opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0]];
-    PIE.B1 = tmp;
-else
-    if any(PIE.B1.dim(:)~=PIE.Tw.dim(:))
-        warning('PIE.Tw, PIE.B1 map to different spaces. Defaulting B1 to zero operator');
+    if PIE.dim==1
         opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0]];
         PIE.B1 = tmp;
+    else
+        opvar2d tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0;0;0]];
+        PIE.B1 = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.B1.dim(:)~=PIE.Tw.dim(:))
+            warning('PIE.Tw, PIE.B1 map to different spaces. Defaulting B1 to zero operator');
+            opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0]];
+            PIE.B1 = tmp;
+        end
+    else
+        if any(PIE.B1.dim(:)~=PIE.Tw.dim(:))
+            warning('PIE.Tw, PIE.B1 map to different spaces. Defaulting B1 to zero operator');
+            opvar2d tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nw;0;0;0]];
+            PIE.B1 = tmp;
+        end
     end
 end
+%--------------------------------------------------------------------------
 if ~isfield(PIE,'B2')
-    opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0]];
-    PIE.B2 = tmp;
-else
-    if any(PIE.B2.dim(:)~=PIE.Tu.dim(:))
-        warning('PIE.Tu, PIE.B2 map to different spaces. Defaulting B2 to zero operator');
+    if PIE.dim==1
         opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0]];
         PIE.B2 = tmp;
+    else
+        opvar2d tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0;0;0]];
+        PIE.B2 = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.B2.dim(:)~=PIE.Tu.dim(:))
+            warning('PIE.Tu, PIE.B2 map to different spaces. Defaulting B2 to zero operator');
+            opvar tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0]];
+            PIE.B2 = tmp;
+        end
+    else
+        if any(PIE.B2.dim(:)~=PIE.Tu.dim(:))
+            warning('PIE.Tu, PIE.B2 map to different spaces. Defaulting B2 to zero operator');
+            opvar2d tmp; tmp.dim = [PIE.T.dim(:,1),[dimstruct.nu;0;0;0]];
+            PIE.B2 = tmp;
+        end
     end
 end
+%--------------------------------------------------------------------------
 if ~isfield(PIE,'D11')
-    opvar tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nw;0]];
-    PIE.D11 = tmp;
-else
-    if any(PIE.D11.dim(:)~=[PIE.C1.dim(:,1);[dimstruct.nw;0]])
-        warning('PIE.C1, PIE.D11 have incompatible dimensions. Defaulting D11 to zero operator');
+    if PIE.dim==1
         opvar tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nw;0]];
         PIE.D11 = tmp;
+    else
+        opvar2d tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nw;0;0;0]];
+        PIE.D11 = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.D11.dim(:)~=[PIE.C1.dim(:,1);[dimstruct.nw;0]])
+            warning('PIE.C1, PIE.D11 have incompatible dimensions. Defaulting D11 to zero operator');
+            opvar tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nw;0]];
+            PIE.D11 = tmp;
+        end
+    else
+        if any(PIE.D11.dim(:)~=[PIE.C1.dim(:,1);[dimstruct.nw;0;0;0]])
+            warning('PIE.C1, PIE.D11 have incompatible dimensions. Defaulting D11 to zero operator');
+            opvar2d tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nw;0;0;0]];
+            PIE.D11 = tmp;
+        end
     end
 end
+%--------------------------------------------------------------------------
 if ~isfield(PIE,'D12')
-    opvar tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nu;0]];
-    PIE.D12 = tmp;
-else
-    if any(PIE.D12.dim(:)~=[PIE.C1.dim(:,1);[dimstruct.nu;0]])
-        warning('PIE.C1, PIE.D12 have incompatible dimensions. Defaulting D12 to zero operator');
+    if PIE.dim==1
         opvar tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nu;0]];
         PIE.D12 = tmp;
+    else
+        opvar2d tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nu;0;0;0]];
+        PIE.D12 = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.D12.dim(:)~=[PIE.C1.dim(:,1);[dimstruct.nu;0]])
+            warning('PIE.C1, PIE.D12 have incompatible dimensions. Defaulting D12 to zero operator');
+            opvar tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nu;0]];
+            PIE.D12 = tmp;
+        end
+    else
+        if any(PIE.D12.dim(:)~=[PIE.C1.dim(:,1);[dimstruct.nu;0;0;0]])
+            warning('PIE.C1, PIE.D12 have incompatible dimensions. Defaulting D12 to zero operator');
+            opvar2d tmp; tmp.dim = [PIE.C1.dim(:,1),[dimstruct.nu;0;0;0]];
+            PIE.D12 = tmp;
+        end
     end
 end
+%--------------------------------------------------------------------------
 if ~isfield(PIE,'D21')
-    opvar tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nw;0]];
-    PIE.D21 = tmp;
-else
-    if any(PIE.D21.dim(:)~=[PIE.C2.dim(:,1);[dimstruct.nw;0]])
-        warning('PIE.C2, PIE.D21 have incompatible dimensions. Defaulting D21 to zero operator');
+    if PIE.dim==1
         opvar tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nw;0]];
         PIE.D21 = tmp;
+    else
+        opvar2d tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nw;0;0;0]];
+        PIE.D21 = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.D21.dim(:)~=[PIE.C2.dim(:,1);[dimstruct.nw;0]])
+            warning('PIE.C2, PIE.D21 have incompatible dimensions. Defaulting D21 to zero operator');
+            opvar tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nw;0]];
+            PIE.D21 = tmp;
+        end
+    else
+        if any(PIE.D21.dim(:)~=[PIE.C2.dim(:,1);[dimstruct.nw;0;0;0]])
+            warning('PIE.C2, PIE.D21 have incompatible dimensions. Defaulting D21 to zero operator');
+            opvar2d tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nw;0;0;0]];
+            PIE.D21 = tmp;
+        end
     end
 end
+%--------------------------------------------------------------------------
 if ~isfield(PIE,'D22')
-    opvar tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nu;0]];
-    PIE.D22 = tmp;
-else
-    if any(PIE.D22.dim(:)~=[PIE.C2.dim(:,1);[dimstruct.nu;0]])
-        warning('PIE.C2, PIE.D22 have incompatible dimensions. Defaulting D22 to zero operator');
+    if PIE.dim==1
         opvar tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nu;0]];
         PIE.D22 = tmp;
+    else
+        opvar2d tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nu;0;0;0]];
+        PIE.D22 = tmp;
+    end
+else
+    if PIE.dim==1
+        if any(PIE.D22.dim(:)~=[PIE.C2.dim(:,1);[dimstruct.nu;0]])
+            warning('PIE.C2, PIE.D22 have incompatible dimensions. Defaulting D22 to zero operator');
+            opvar tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nu;0]];
+            PIE.D22 = tmp;
+        end
+    else
+        if any(PIE.D22.dim(:)~=[PIE.C2.dim(:,1);[dimstruct.nu;0;0;0]])
+            warning('PIE.C2, PIE.D22 have incompatible dimensions. Defaulting D22 to zero operator');
+            opvar2d tmp; tmp.dim = [PIE.C2.dim(:,1),[dimstruct.nu;0;0;0]];
+            PIE.D22 = tmp;
+        end
     end
 end
 end
+
+
 function val = find_nw(PIE)
 flag =1;
 if isfield(PIE,'Tw')

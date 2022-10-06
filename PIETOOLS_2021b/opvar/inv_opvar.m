@@ -54,6 +54,11 @@ if ~isa(Pop,'opvar')|| any(Pop.dim(:,1)~=Pop.dim(:,2))
     error('Only opvar class objects with equal input and output dimensions can be inverted using this function');
 end
 
+if all(isequal(P.R.R1,P.R.R2)) % if pi operator is separable then use analytical formulae from the old code
+    Pinv = inv_opvar_old(Pop);
+    return;
+end
+
 
 X = Pop.I; var1 = Pop.var1; var2 = Pop.var2;
 opvar Pinv;
