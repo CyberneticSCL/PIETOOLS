@@ -21,12 +21,10 @@
 % analytical integraiton - see options in solver_PIESIM.m)
 % 4) Outputs and plots the PDE and ODE solutions at a final time and
 
-clear;
-clc;
+clear; clc;
 close all;
 format long;
 pvar s theta;
-Hinf_control=0;
 plot_no_control = 1; % this setting is 1, first run simulation without controller for same IC
 %--------------------------------------------------------------
 % Simulation Examples:Uncomment one of the following 3 examples to run the simulations
@@ -35,7 +33,6 @@ plot_no_control = 1; % this setting is 1, first run simulation without controlle
 % % % % Example B.2 from [4], adapted from [7]
 % % % % \dot x=.1x(t)-x(t-tau)+w(t)+u(t)
 % % % % % z(t)=x(t)+w(t)
-% Hinf_control=1
 % DDE.A0=[2 1;0 -1];%
 % DDE.Ai{1}=[-1 0; -1 1];%
 % DDE.B1=[-.5;1]; DDE.B2=[3;1];
@@ -44,7 +41,6 @@ plot_no_control = 1; % this setting is 1, first run simulation without controlle
 % DDE.tau(1) = .3;
 % % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % Example B.3 from [4], adapted from [6]
-Hinf_control=1
    DDE.A0=[-1 2;0 1];%
    DDE.Ai{1}=[.6 -.4; 0 0];%
    DDE.Ai{2}=[0 0; 0 -.5];%
@@ -70,17 +66,17 @@ Hinf_control=1
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert DDE to PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DDE=initialize_PIETOOLS_DDE(DDE); 
-DDF=minimize_PIETOOLS_DDE2DDF(DDE);
-PIE=convert_PIETOOLS_DDF2PIE(DDF);
+DDE = initialize_PIETOOLS_DDE(DDE); 
+DDF = convert_PIETOOLS_DDE(DDE,'ddf');
+PIE = convert_PIETOOLS_DDF(DDF,'pie');
 
 if plot_no_control % run simulation without controller
-    solutionA=PIESIM(DDE); 
+    solutionA = PIESIM(DDE); 
 end
 
 if Hinf_control
     % use default settings with low order polynomials for controller
-    settings_PIETOOLS_light;
+    settings = lpisettings('light');
     settings.options1.sep = 1; % this is necessary for invertible P operator
     
     % define LMI solver parameters
@@ -92,7 +88,7 @@ if Hinf_control
     [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
     PIE = closedLoopPIE(PIE,K); % find closed loop system with controller
     ndiff = [0, PIE.T.dim(2,1)]; % this means all distributed states are differentiable 
-    solutionB=PIESIM(PIE,ndiff);
+    solutionB = PIESIM(PIE,ndiff);
 end
 close all;
 
