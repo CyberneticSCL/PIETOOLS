@@ -5,7 +5,7 @@ arguments
 end
 
 if strcmp(convertTo, 'pie')
-    out = obj;
+    out = sys();
     if strcmp(obj.type,'pde')
         out.params = convert_PIETOOLS_PDE(obj.params);
     elseif strcmp(obj.type,'dde')
