@@ -46,6 +46,9 @@ if nargin==2 && ~strcmpi(out_type,'pie')
     error('Only conversion from PDE to PIE is supported. The second argument must be set to ''pie'', or be omitted.')
 end
 
+% Initialize the PDE.
+PDE = initialize(PDE,true);
+
 % Check the spatial dimension of the system, and call the corresponding 
 % converter.
 if PDE.dim<=1
