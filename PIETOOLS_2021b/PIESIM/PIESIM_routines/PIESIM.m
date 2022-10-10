@@ -119,9 +119,9 @@ function [solution, grid]=PIESIM(varargin)
         DDE=varargin{1};
 
         % Convert DDE to PIE
-        DDE=initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
-        DDF=minimize_PIETOOLS_DDE2DDF(DDE);
-        PIE=convert_PIETOOLS_DDF2PIE(DDF);
+        DDE = initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
+        DDF = convert_PIETOOLS_DDE(DDE,'ddf');
+        PIE = convert_PIETOOLS_DDF(DDF,'pie');
 
         % Check the inputs and define problem size
         [PIE,uinput,psize]=PIESIM_input_check(PIE,uinput,opts);
