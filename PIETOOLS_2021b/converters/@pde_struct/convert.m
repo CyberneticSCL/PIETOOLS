@@ -58,5 +58,8 @@ elseif PDE.dim==2
 else
     error('PIETOOLS does not currently support conversion of PDEs in more than 2 spatial variables'); 
 end
+if isa(PIE_out,'struct')
+    PIE_out = pie_struct(PIE_out);
+end
 
 end
