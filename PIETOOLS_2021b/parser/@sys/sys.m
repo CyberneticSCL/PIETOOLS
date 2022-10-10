@@ -25,8 +25,9 @@ classdef sys
             prop = getStatesFromEquations(obj);
         end
         function prop = get.params(obj)
-            if isempty(obj.params)
-                prop = getParams(obj);
+            if isempty(obj.params.x)
+                obj = getParams(obj);
+                prop = obj.params;
             else
                 prop = obj.params;
             end
