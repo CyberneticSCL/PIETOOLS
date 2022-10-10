@@ -223,9 +223,9 @@
 %%%% Use these commands to convert the NDS to a DDF
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % NDS=initialize_PIETOOLS_NDS(NDS);
-% DDF=convert_PIETOOLS_NDS2DDF(NDS);
+% DDF=convert_PIETOOLS_NDS(NDS,'pie');
 % DDF=minimize_PIETOOLS_DDF(DDF);
-% PIE=convert_PIETOOLS_DDF2PIE(DDF);
+% PIE=convert_PIETOOLS_DDF(DDF,'pie');
 
 
 
