@@ -234,12 +234,12 @@ if DDE2DDF==1
 else
     if DDF_min==1
         % % Construct a minimal realizatio of the DDF and then convert to a PIE
-        DDF=initialize_PIETOOLS_DDF(DDF);
-        DDF=minimize_PIETOOLS_DDF(DDF);
-        PIE=convert_PIETOOLS_DDF2PIE(DDF);
+        DDF = initialize_PIETOOLS_DDF(DDF);
+        DDF = minimize_PIETOOLS_DDF(DDF);
+        PIE = convert_PIETOOLS_DDF(DDF,'pie');
     else
-        DDF=initialize_PIETOOLS_DDF(DDF);
-        PIE=convert_PIETOOLS_DDF2PIE(DDF);
+        DDF = initialize_PIETOOLS_DDF(DDF);
+        PIE = convert_PIETOOLS_DDF(DDF,'pie');
     end
 end
 
