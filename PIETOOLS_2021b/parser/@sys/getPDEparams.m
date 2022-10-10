@@ -40,7 +40,9 @@ out.BC = cell(0,1);
 
 % specify ode locations in out.x
 [~,tmpidx] = ismember(odeNames,xNames);
+if ~isempty(tmpidx)
 out.x{tmpidx}.vars = [];
+end
 
 
 isdot_A = isdot(equations.statevec); isout_A=isout(equations.statevec); 
