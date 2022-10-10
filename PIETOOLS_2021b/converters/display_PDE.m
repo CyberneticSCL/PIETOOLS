@@ -52,6 +52,13 @@ function [] = display_PDE(PDE,name)
 % Initial coding DJ - 07/08/2022
 
 % Initialize the system
+if isa(PDE,'sys')
+    try PDE = PDE.params;
+    catch
+        disp(PDE);
+        return
+    end
+end
 try PDE = initialize_PIETOOLS_PDE(PDE,true);
 catch
     error(['The presented PDE is not finished, or not appropriate.',...

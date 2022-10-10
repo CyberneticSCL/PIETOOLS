@@ -237,9 +237,9 @@ DDE=initialize_PIETOOLS_DDE(DDE); % error checking an preprocessing
 
 if DDE_minimal_rep==1
    % % Conversion from DDE to DDF using a minimal DDF representation.
-    DDE=initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
-    DDF=minimize_PIETOOLS_DDE2DDF(DDE);
-    PIE=convert_PIETOOLS_DDF2PIE(DDF);  
+    DDE = initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
+    DDF = minimize_PIETOOLS_DDE2DDF(DDE);
+    PIE = convert_PIETOOLS_DDF(DDF,'pie');  
 else
    % % Conversion from DDE to DDF using the formulation in our Automatica Paper.
     PIE=convert_PIETOOLS_DDE2PIE(DDE);

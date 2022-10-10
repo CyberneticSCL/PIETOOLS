@@ -107,7 +107,7 @@ methods
         if nargin==1
             if ischar(varargin{1})
                 if nargout==0
-                    assignin('caller', varargin{i}, dopvar2d());
+                    assignin('caller', varargin{1}, pde_struct());
                 end
             elseif isa(varargin{1},'pde_struct')
                 obj = varargin{1};
@@ -172,7 +172,7 @@ methods
                     % Allow new pde_structs to be defined using
                     % > pde_struct PDE1 PDE2 PDE3 ...
                     if nargout==0
-                        assignin('caller', varargin{i}, dopvar2d());
+                        assignin('caller', varargin{i}, pde_struct());
                     end
                 else
                     error("Input must be strings");

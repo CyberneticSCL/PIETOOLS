@@ -107,6 +107,103 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
     end
     
 methods
+    function obj = pie_struct(varargin)
+        %PIE_STRUCT Construct an instance of this class
+        %   Detailed explanation goes here
+        
+        if nargin==1
+            if ischar(varargin{1})
+                if nargout==0
+                    assignin('caller', varargin{1}, pie_struct());
+                end
+            elseif isa(varargin{1},'pie_struct')
+                obj = varargin{1};
+            elseif isa(varargin{1},'struct')
+                % If a struct is provided, convert to a "pie_struct".
+                obj = pie_struct();
+                % Copy information from any field in the struct to the
+                % pde_struct.
+                if isfield(varargin{1},'dim')
+                    obj.dim = varargin{1}.dim;
+                end
+                if isfield(varargin{1},'vars')
+                    obj.vars = varargin{1}.vars;
+                end
+                if isfield(varargin{1},'dom')
+                    obj.dom = varargin{1}.dom;
+                end
+                
+                if isfield(varargin{1},'T')
+                    obj.T = varargin{1}.T;
+                end
+                if isfield(varargin{1},'Tu')
+                    obj.Tu = varargin{1}.Tu;
+                end
+                if isfield(varargin{1},'Tw')
+                    obj.Tw = varargin{1}.Tw;
+                end
+                if isfield(varargin{1},'A')
+                    obj.A = varargin{1}.A;
+                end
+                if isfield(varargin{1},'B1')
+                    obj.B1 = varargin{1}.B1;
+                end
+                if isfield(varargin{1},'B2')
+                    obj.B2 = varargin{1}.B2;
+                end
+                if isfield(varargin{1},'C1')
+                    obj.C1 = varargin{1}.C1;
+                end
+                if isfield(varargin{1},'D11')
+                    obj.D11 = varargin{1}.D11;
+                end
+                if isfield(varargin{1},'D12')
+                    obj.D12 = varargin{1}.D12;
+                end
+                if isfield(varargin{1},'C2')
+                    obj.C2 = varargin{1}.C2;
+                end
+                if isfield(varargin{1},'D21')
+                    obj.D21 = varargin{1}.D21;
+                end
+                if isfield(varargin{1},'D22')
+                    obj.D22 = varargin{1}.D22;
+                end
+                
+                if isfield(varargin{1},'x_tab')
+                    obj.x_tab = varargin{1}.x_tab;
+                end
+                if isfield(varargin{1},'u_tab')
+                    obj.u_tab = varargin{1}.u_tab;
+                end
+                if isfield(varargin{1},'w_tab')
+                    obj.w_tab = varargin{1}.w_tab;
+                end
+                if isfield(varargin{1},'y_tab')
+                    obj.y_tab = varargin{1}.y_tab;
+                end
+                if isfield(varargin{1},'z_tab')
+                    obj.z_tab = varargin{1}.z_tab;
+                end
+            else
+                error("Input must be strings");
+            end
+        else
+            for i=1:nargin
+                if ischar(varargin{i})
+                    % Allow new pde_structs to be defined using
+                    % > pie_struct PIE1 PIE2 PIE3 ...
+                    if nargout==0
+                        assignin('caller', varargin{i}, pie_struct());
+                    end
+                else
+                    error("Input must be strings");
+                end
+            end
+        end
+    end
+    
+    
     function display(obj,name)
         try disp_pie(obj,name)
         catch

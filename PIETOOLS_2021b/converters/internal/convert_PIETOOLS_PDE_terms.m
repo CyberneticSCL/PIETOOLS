@@ -341,7 +341,6 @@ for i=1:length(x)
                     else% R0 term
                         loc = (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
                     end
-                    PDE_out.PDE.A{loc}.coeff(rrows,rcols) = tmpterm.C;
                 else % boundary add to Bpb
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
@@ -413,4 +412,5 @@ end
 
 % finally, use old converter to get the PIE
 PIE = convert_PIETOOLS_PDE_terms_legacy(PDE_out);
+PIE = pie_struct(PIE);
 end
