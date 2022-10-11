@@ -89,6 +89,9 @@
 % YP 6/16/2022 - changed arguments in transform to solution to allow for different 
 % LHS of PDE (T) and map (T0) operators (between fundamental and primary states) -
 % needed, for example, for Orr-Sommerfeld equation
+% DJ 10/10/2022 - Update for new terms format and command line parser.
+% Batch format and old terms format can still be used, in which case
+% opts.type is PDE_t or PDE_b.
 
 function [solution, grid]=PIESIM(varargin)
 
@@ -99,29 +102,21 @@ function [solution, grid]=PIESIM(varargin)
 % Input check and conversion to PIE (if data structure is not PIE)
 %--------------------------------------------------------------------
 
-    if strcmp(opts.type,'PDE')
-        PDE=varargin{1};
+    if strcmp(opts.type,'PDE') || strcmp(opts.type,'PDE_t') || strcmp(opts.type,'PDE_b')
+        PDE = varargin{1};
         % Check the inputs and define problem size
-        [PDE, uinput, psize]=PIESIM_input_check(PDE, uinput, opts);
+        [PDE, uinput, psize] = PIESIM_input_check(PDE, uinput, opts);
         
         % Convert PDE to PIE
-        PIE=convert_PIETOOLS_PDE_batch(PDE);
-
-    elseif strcmp(opts.type,'PDT')
-        PDT=varargin{1};
-        % Check the inputs and define problem size
-        [PDT, uinput, psize]=PIESIM_input_check(PDT, uinput, opts);
-        
-        % Convert PDE to PIE
-        PIE=convert_PIETOOLS_PDE_terms(PDT);
+        PIE = convert_PIETOOLS_PDE(PDE,'pie');
 
     elseif strcmp(opts.type,'DDE')
         DDE=varargin{1};
 
         % Convert DDE to PIE
-        DDE=initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
-        DDF=minimize_PIETOOLS_DDE2DDF(DDE);
-        PIE=convert_PIETOOLS_DDF2PIE(DDF);
+        DDE = initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
+        DDF = convert_PIETOOLS_DDE(DDE,'ddf');
+        PIE = convert_PIETOOLS_DDF(DDF,'pie');
 
         % Check the inputs and define problem size
         [PIE,uinput,psize]=PIESIM_input_check(PIE,uinput,opts);

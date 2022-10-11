@@ -37,6 +37,7 @@ function [opts, uinput]=PIESIM_options_check(varinput)
 % Initial coding YP  - 12_22_2021
 % Added a clause -  "If piesize is not found, default to last argument" -
 % 6/16/2022
+% Update to account for new terms format - DJ, 10/10/2022.
 
 
 nargin=length(varinput);
@@ -53,55 +54,55 @@ if nargin==1
     opts = struct();
     uinput = struct();
 else
-% Check if options field is passed
+    % Check if options field is passed
     for k=2:nargin
-    optdefine=0;
-    for i=1:length(fields_opts)
-        if isfield(varinput{k},fields_opts{i})
-            optdefine=1;
-            kopt=k;
-            break;
+        optdefine=0;
+        for i=1:length(fields_opts)
+            if isfield(varinput{k},fields_opts{i})
+                optdefine=1;
+                kopt=k;
+                break;
+            end
         end
-    end
         if (optdefine==1)
             break
         end
     end
     if (optdefine==1)
-         opts = varinput{kopt};
+        opts = varinput{kopt};
     else
-         opts=struct();
+        opts=struct();
     end
-
-% Check if uinput field is passed
+    
+    % Check if uinput field is passed
     for k=2:nargin
-    optdefine=0;
-    for i=1:length(fields_uinput)
-        if isfield(varinput{k},fields_uinput{i})
-            optdefine=1;
-            kuopt=k;
-            break
+        optdefine=0;
+        for i=1:length(fields_uinput)
+            if isfield(varinput{k},fields_uinput{i})
+                optdefine=1;
+                kuopt=k;
+                break
+            end
         end
-    end
         if (optdefine==1)
             break
         end
     end
-
+    
     if (optdefine==1)
         uinput = varinput{kuopt};
     else
         uinput=struct();
     end
-
+    
 end
 
 % check if all options are defined, if not define them
 for i=1:length(fields_opts)
     if ~isfield(opts,fields_opts{i})
-        opts.(fields_opts{i}) = default_opts{i};  
-    X = ['Warning: option  ',fields_opts{i},' is not defined. Setting to a default value of ', num2str(default_opts{i})];
-    disp(X);
+        opts.(fields_opts{i}) = default_opts{i};
+        X = ['Warning: option  ',fields_opts{i},' is not defined. Setting to a default value of ', num2str(default_opts{i})];
+        disp(X);
     end
 end
 opts.Nsteps=floor(opts.tf/opts.dt);
@@ -110,36 +111,39 @@ opts.Nsteps=floor(opts.tf/opts.dt);
 %-------------------------------------
 % Determine the type of the problem
 %-------------------------------------
-    
-      structure = varinput{1};
-    
-     if isfield(structure,'T')
-        disp('Solving PIE problem');
-        opts.type='PIE';
 
-        kargs = 2:nargin;
-        ksize = kargs(find(kargs~=kopt));
-        ksize = ksize(find(ksize~=kuopt));
-        if (isempty(ksize))
-             error("If input object type is PIE, then number of differentiable states should be specified, for example 'executive_PIESIM(PIE,opts,uinput,n_pde)'");
-        else
+structure = varinput{1};
+
+if isa(structure,'pie_struct') || isfield(structure,'T')
+    disp('Solving PIE problem');
+    opts.type='PIE';
+    
+    kargs = 2:nargin;
+    ksize = kargs(find(kargs~=kopt));
+    ksize = ksize(find(ksize~=kuopt));
+    if (isempty(ksize))
+        error("If input object type is PIE, then number of differentiable states should be specified, for example 'executive_PIESIM(PIE,opts,uinput,n_pde)'");
+    else
         opts.piesize=varinput{ksize};
         % If piesize is not found, default to last argument
         if (isempty(opts.piesize))
             opts.piesize=varinput{nargin};
         end
-        end
-     elseif isfield(structure,'tau')
-        disp('Solving DDE problem');
-        opts.type='DDE';        
-     elseif isfield(structure,'B')
-        disp('Solving PDE problem in batch format');
-        opts.type='PDE';
-     elseif isfield(structure,'PDE')
-        disp('Solving PDE problem in terms format');
-        opts.type='PDT';
-     else
-     error('Data structure must be specified')
-     end
+    end
+elseif isfield(structure,'tau')
+    disp('Solving DDE problem');
+    opts.type='DDE';
+elseif isa(structure,'pde_struct') || isa(structure,'sys')
+    disp('Solving PDE problem');
+    opts.type='PDE';
+elseif isfield(PDE,'nx') || isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
+    disp('Solving PDE problem in legacy batch format');
+    opts.type='PDE_b';
+elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')
+    disp('Solving PDE problem in legacy terms format');
+    opts.type='PDE_t';
+else
+    error('Data structure must be specified')
+end
     
-
+end
