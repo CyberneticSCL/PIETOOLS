@@ -54,7 +54,6 @@ else
     error('The input PDE is not appropriately specified. Please define your PDE as a "pde_struct" class object, and consult the manual and examples for illustration of the structure.')
 end
 
-PIE_out = initialize_PIETOOLS_PIE(PIE_out);
 
 
 end

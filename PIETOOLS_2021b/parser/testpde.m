@@ -13,7 +13,4 @@ ssobj = addequation(ssobj,eqns);
 ssobj = setControl(ssobj,u);
 ssobj = setObserve(ssobj,y);
 
-ssobj = getParams(ssobj);
-%%
-initialize_PIETOOLS_PDE(ssobj.params);
-display_PDE(ssobj.params);
+pie = convert(ssobj,'pie');
