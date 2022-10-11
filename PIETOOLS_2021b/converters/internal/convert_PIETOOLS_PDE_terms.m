@@ -167,7 +167,7 @@ for i=1:length(z)
                     loc = sum(N:-1:N-der+1) + maxder + 1;
                     PDE_out.PDE.Crp{loc}.coeff(rrows,rcols) = tmpterm.C;
                 else % boundary value term goes to Drb
-                    del = double(tmpterm.loc(1)); % location value
+                    del = (double(tmpterm.loc(1))==dom(2)); % location value
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
                     end
@@ -215,7 +215,7 @@ for i=1:length(y)
                     loc = sum(N:-1:N-der+1) + maxder + 1;
                     PDE_out.PDE.Crp{loc}.coeff(rrows,rcols) = tmpterm.C;
                 else % boundary value term goes to Drb
-                    del = double(tmpterm.loc(1)); % location value
+                    del = (double(tmpterm.loc(1))==dom(2)); % location value
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
                     end
@@ -263,7 +263,7 @@ for i=1:length(x)
                         loc = sum(N:-1:N-der+1) + maxder + 1;
                         PDE_out.PDE.Crp{loc}.coeff(rrows,rcols) = tmpterm.C;
                     else % boundary value term goes to Drb
-                        del = double(tmpterm.loc(1)); % location value
+                        del = (double(tmpterm.loc(1))==dom(2)); % location value
                         if ~isfield(tmpterm,'D')
                             tmpterm.D = 0;
                         end
@@ -347,7 +347,7 @@ for i=1:length(x)
                         tmpterm.D = 0;
                     end
                     der = tmpterm.D;
-                    deltaval = double(tmpterm.loc(1));
+                    deltaval = (double(tmpterm.loc(1))==dom(2));    % 0 if lower boundary, 1 if upper boundary
                     loc = lstate*(2*np_all_derivatives-2*(N+1)) + deltaval*(np_all_derivatives-N-1) + sum(N-1:-1:N-der) + rstate;
                     PDE_out.PDE.Bpb{loc}.coeff(rrows,rcols) = tmpterm.C;
                 end
@@ -401,7 +401,7 @@ for i=1:length(BC)
                     tmpterm.D = 0;
                 end
                 der = tmpterm.D;
-                deltaval = double(tmpterm.loc(1));
+                deltaval = (double(tmpterm.loc(1))==dom(2));    % 0 if lower boundary, 1 if upper boundary
                 loc=deltaval*(np_all_derivatives-N-1) + sum(N-1:-1:N-der) + rstate;
                 PDE_out.BC.Ebb{loc}.coeff(rows,rcols) = tmpterm.C;
             end
