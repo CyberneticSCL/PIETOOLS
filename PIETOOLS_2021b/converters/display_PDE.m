@@ -78,6 +78,7 @@ width_max = 150;
 %theta = '\x03B8';
 %rho = ' ';
 phi = '\x03D5';
+tau = '\x03C4';
 
 % % Subscripts
 sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
@@ -170,6 +171,17 @@ else
         sub_var2_list{vv} = [sub_phi,sub_var_num];
     end
 end
+ndelays = size(PDE.tau,1);
+if ndelays==1
+    tau_list = {tau};
+else
+    tau_list = cell(ndelays,1);
+    for vv = 1:ndelays
+        sub_var_num = cell2mat(sub_num(str2num(num2str(vv)')+1)');
+        tau_list{vv} = [tau,sub_var_num];
+    end
+end
+
 var_list = [var1_list, var2_list, sub_var1_list, sub_var2_list, sup_var1_list];
 
 
@@ -250,7 +262,7 @@ for eq_num=1:numel(PDE.x)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(x_comp.term)
-        term_str = construct_term(PDE,x_comp,eq_num,eq_info,trm,var_list);
+        term_str = construct_term(PDE,x_comp,eq_num,eq_info,trm,var_list,tau_list);
         x_eq_new = [x_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -328,7 +340,7 @@ for eq_num=1:numel(PDE.y)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(y_comp.term)
-        term_str = construct_term(PDE,y_comp,eq_num,eq_info,trm,var_list);
+        term_str = construct_term(PDE,y_comp,eq_num,eq_info,trm,var_list,tau_list);
         y_eq_new = [y_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -406,7 +418,7 @@ for eq_num=1:numel(PDE.z)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(z_comp.term)
-        term_str = construct_term(PDE,z_comp,eq_num,eq_info,trm,var_list);
+        term_str = construct_term(PDE,z_comp,eq_num,eq_info,trm,var_list,tau_list);
         z_eq_new = [z_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -450,7 +462,7 @@ for eq_num=1:numel(PDE.BC)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(BC_comp.term)
-        term_str = construct_term(PDE,BC_comp,eq_num,eq_info,trm,var_list);
+        term_str = construct_term(PDE,BC_comp,eq_num,eq_info,trm,var_list,tau_list);
         BC_eq_new = [BC_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -479,7 +491,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function term_str = construct_term(PDE,eq,eq_num,eq_info,term_num,var_list)
+function term_str = construct_term(PDE,eq,eq_num,eq_info,term_num,var_list,tau_list)
 % Build a str to represent term number "trm" in the equation "eq" of the
 % PDE structure "PDE".
 
@@ -492,8 +504,19 @@ sub_var2_list = var_list(:,4);
 sup_var1_list = var_list(:,5);
 
 nvars = length(var1_list);
-var1_name = PDE.vars(:,1).varname;
-var2_name = PDE.vars(:,2).varname;
+ndelays = length(tau_list);
+% Extract varnames one at a time, since "polynomial" class stores varnames
+% alphabetically.
+var1_name = cell(nvars,1);
+var2_name = cell(nvars,1);
+for vv=1:nvars
+    var1_name{vv} = PDE.vars(vv,1).varname{1};
+    var2_name{vv} = PDE.vars(vv,2).varname{1};
+end
+tau_name = cell(ndelays,1);
+for vv=1:ndelays
+    tau_name{vv} = PDE.tau(vv,1).varname{1};
+end
 has_vars_eq = eq_info(3:2+nvars);
 
 % % % Define a number of symbols we'll need to display the system
@@ -502,6 +525,7 @@ sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 sub_min = '\x208B';
 sub_a = '\x2090';
 sup_b = '\x1D47';
+sub_T = '\x1D1B';
 sub_lp = '\x208D';
 sub_rp = '\x208E';
 
@@ -522,6 +546,7 @@ sup_min = '\x207B';
 % Partial derivative and integral symbol
 partial = '\x2202';
 int = '\x222B';
+tau = '\x1D70F';
         
 % % % Establish which state or input the term involves
 if isfield(PDE_term,'x')
@@ -539,13 +564,13 @@ if isfield(PDE_term,'x')
     end
     tab_row = find(PDE.x_tab(:,1)==rr);
     Rvar_indcs = logical(PDE.x_tab(tab_row,3:3+nvars-1));
-    if isa(PDE.x{rr}.vars,'polynomial')
-        Rvar1_name = PDE.x{rr}.vars(:,1).varname;
-        Rvar2_name = PDE.x{rr}.vars(:,2).varname;
-    else
-        Rvar1_name = cell(0,1);
-        Rvar2_name = cell(0,1);
-    end
+%     if isa(PDE.x{rr}.vars,'polynomial')
+%         Rvar1_name = PDE.x{rr}.vars(:,1).varname;
+%         Rvar2_name = PDE.x{rr}.vars(:,2).varname;
+%     else
+%         Rvar1_name = cell(0,1);
+%         Rvar2_name = cell(0,1);
+%     end
 elseif isfield(PDE_term,'w')
     Rstate_trm = 'w';
     rr = PDE_term.w;
@@ -561,13 +586,13 @@ elseif isfield(PDE_term,'w')
     end
     tab_row = find(PDE.w_tab(:,1)==rr);
     Rvar_indcs = logical(PDE.w_tab(tab_row,3:3+nvars-1));
-    if isa(PDE.w{rr}.vars,'polynomial')
-        Rvar1_name = PDE.w{rr}.vars(:,1).varname;
-        Rvar2_name = PDE.w{rr}.vars(:,2).varname;
-    else
-        Rvar1_name = cell(0,1);
-        Rvar2_name = cell(0,1);
-    end
+%     if isa(PDE.w{rr}.vars,'polynomial')
+%         Rvar1_name = PDE.w{rr}.vars(:,1).varname;
+%         Rvar2_name = PDE.w{rr}.vars(:,2).varname;
+%     else
+%         Rvar1_name = cell(0,1);
+%         Rvar2_name = cell(0,1);
+%     end
 elseif isfield(PDE_term,'u')
     Rstate_trm = 'u';
     rr = PDE_term.u;
@@ -583,13 +608,13 @@ elseif isfield(PDE_term,'u')
     end
     tab_row = find(PDE.u_tab(:,1)==rr);
     Rvar_indcs = logical(PDE.u_tab(tab_row,3:3+nvars-1));
-    if isa(PDE.u{rr}.vars,'polynomial')
-        Rvar1_name = PDE.u{rr}.vars(:,1).varname;
-        Rvar2_name = PDE.u{rr}.vars(:,2).varname;
-    else
-        Rvar1_name = cell(0,1);
-        Rvar2_name = cell(0,1);
-    end
+%     if isa(PDE.u{rr}.vars,'polynomial')
+%         Rvar1_name = PDE.u{rr}.vars(:,1).varname;
+%         Rvar2_name = PDE.u{rr}.vars(:,2).varname;
+%     else
+%         Rvar1_name = cell(0,1);
+%         Rvar2_name = cell(0,1);
+%     end
 end
 Rstate_trm = [Rstate_trm,Rstate_idx];
 Rvar1_list = var1_list(Rvar_indcs);
@@ -600,9 +625,54 @@ sub_Rvar2_list = sub_var2_list(Rvar_indcs);
 
 has_vars_eq = has_vars_eq(Rvar_indcs);
 
-% % % Display the integrals
+
+% % % Display the delay
 int_trm = '';
 dtheta_trm = '';
+Rvar1_str = '(t';
+if isfield(PDE_term,'delay')
+    delay = PDE_term.delay;
+    if (isa(delay,'double') || isdouble(delay)) && double(delay)~=0
+        % % Delay is a real value a, just display x(t-a)
+        Rvar1_str = [Rvar1_str,'-',num2str(double(PDE_term.delay))];
+    elseif isa(delay,'polynomial') && ~isdouble(delay)
+        % % Delay is distributed, we have to build an integral.
+        % First determine which delay variable is involved, and display
+        % x(t-tau)
+        delay = PDE_term.delay;
+        tau_indx = ismember(tau_name,delay.varname{1});
+        if sum(tau_indx)>1
+            error('The term involves multiple delays...')
+        end
+        tau_indx = find(tau_indx,1,'first');
+        tau1 = tau_list(tau_indx);
+        Rvar1_str = [Rvar1_str,'+',tau1{1}];
+        
+        % % Now for the integral
+        % Add lower limit
+        L_kk = abs(double(PDE.tau(tau_indx,2)));
+        if (round(L_kk)-L_kk)~=0
+            % The lower limit is not integer --> indicate
+            % as just a_kk
+            int_trm = [int_trm,sub_min,sub_T,sub_num{tau_indx+1}];
+        else
+            int_trm = [int_trm,sub_min];
+            if L_kk<=9
+                % The value consists of a single decimal
+                int_trm = [int_trm,sub_num{L_kk+1}];
+            else
+                % The value consists of multiple decimals
+                int_trm = [int_trm, cell2mat(sub_num(str2num(num2str(L_kk)')+1)')];
+            end
+        end
+        int_trm = [int_trm,int,sup_num{1}];
+        % Add dtau at end of integral
+        dtheta_trm = ['d',tau1{1},' ',dtheta_trm,];
+    end
+end
+
+
+% % % Display the integrals
 use_theta_trm = false(length(Rvar1_list),1);
 if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
     for kk=1:numel(PDE_term.I)
@@ -617,7 +687,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
             if (round(L_kk)-L_kk)~=0
                 % The lower limit is not integer --> indicate
                 % as just a_kk
-                int_term = [int_term,sub_a,sub_num{kk+1}];
+                int_trm = [int_trm,sub_a,sub_num{kk+1}];
             else
                 if L_kk < 0
                     % Negative value: add a minus
@@ -740,12 +810,23 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
         end
     else
         % % Polynomial function.
+        Ctau_indcs = ismember(tau_name,Cval.varname);
+        Ctau_list = tau_list(Ctau_indcs);
         Cvar1_indcs = ismember(var1_name,Cval.varname);
         Cvar1_list = var1_list(Cvar1_indcs);
         Cvar2_indcs = ismember(var2_name,Cval.varname);
         Cvar2_list = var2_list(Cvar2_indcs);
+        % Account for delay.
+        if any(Ctau_indcs)
+            Cvar_str = ['(',Ctau_list{1},','];
+        elseif any(Cvar1_indcs) || any(Cvar2_indcs)
+            Cvar_str = '(';
+        else
+            Cvar_str = '';
+        end
+        % Account for spatial dependence.
         if any(Cvar1_indcs)
-            Cvar_str = ['(',Cvar1_list{1}];
+            Cvar_str = [Cvar_str,Cvar1_list{1}];
             for idx=2:length(Cvar1_list)
                 Cvar_str = [Cvar_str,',',Cvar1_list{idx}];
             end
@@ -754,13 +835,11 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
             end
             Cvar_str = [Cvar_str,')'];
         elseif any(Cvar2_indcs)
-            Cvar_str = ['(',Cvar2_list{1}];
+            Cvar_str = [Cvar_str,Cvar2_list{1}];
             for idx=2:length(Cvar2_list)
                 Cvar_str = [Cvar_str,',',Cvar2_list{idx}];
             end
             Cvar_str = [Cvar_str,')'];
-        else
-            Cvar_str = '';
         end
         % Add subscripts indicating the equation and term number.
         if eq_num<=9
@@ -825,7 +904,6 @@ if (isfield(PDE_term,'loc') && ~isempty(PDE_term.loc))
         end
     end
 end
-Rvar1_str = '(t';
 for idx=1:size(Rvar1_list,1)
     Rvar1_str = [Rvar1_str,',',Rvar1_list{idx}];
 end
