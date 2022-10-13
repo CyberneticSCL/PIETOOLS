@@ -11,6 +11,9 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pde_struct
 %               second column.
 % - PDE.dom:    A px2 "double" array specifying the interval on
 %               which each of p spatial variables exists.
+% - PDE.tau:    A qx2 "polynomial" array specifying temporal variables in
+%               the first column, and the maximal value these delays can
+%               assume in the second column.
 %
 % - PDE.x:      A cell with each element i defining a state 
 %               component x_i and associated differential equation
@@ -77,6 +80,7 @@ properties
     dim = 0;
     vars = polynomial(zeros(0,2));
     dom = zeros(0,2);
+    tau = polynomial(zeros(0,2));
     
     x = cell(0);
     u = cell(0);
@@ -96,7 +100,9 @@ properties (Hidden)
     y_tab = zeros(0,2);
     z_tab = zeros(0,2);
     BC_tab = zeros(0,2);
-
+    
+    has_delays = false;
+    has_hotd = false;
 end
     
 methods
@@ -124,6 +130,9 @@ methods
                 end
                 if isfield(varargin{1},'dom')
                     obj.dom = varargin{1}.dom;
+                end
+                if isfield(varargin{1},'tau')
+                    obj.dom = varargin{1}.tau;
                 end
                 
                 if isfield(varargin{1},'x')
