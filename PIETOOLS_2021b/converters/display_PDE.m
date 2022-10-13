@@ -546,7 +546,7 @@ sup_min = '\x207B';
 % Partial derivative and integral symbol
 partial = '\x2202';
 int = '\x222B';
-tau = '\x1D70F';
+%tau = '\x1D70F';
         
 % % % Establish which state or input the term involves
 if isfield(PDE_term,'x')

@@ -863,7 +863,7 @@ for ii=1:n_comps
     % or output) actually depends on.
     has_vars_Lcomp = logical(Lobj_tab(ii,3:end));
     nvars_Lcomp = sum(has_vars_Lcomp);
-    Lvars_new = global_vars(has_vars_Lcomp,1);
+    Lvars_new = global_vars(has_vars_Lcomp,:);
     
     % Set the variables and domain of the component
     if ~isfield(PDE.(obj){ii},'vars')
@@ -875,7 +875,7 @@ for ii=1:n_comps
         var_order = zeros(1,nvars_Lcomp);
         for kk=1:nvars_Lcomp
             % var_order is such that Lvars_new = Lvars_old(var_order)
-            var_order(kk) = find(isequal(Lvars_new(kk),Lvars_old),1,'first');
+            var_order(kk) = find(isequal(Lvars_new(kk,1),Lvars_old),1,'first');
         end
     end
     PDE.(obj){ii}.vars = Lvars_new;
@@ -979,6 +979,7 @@ for ii=1:numel(PDE.(obj))
             else
                 % Retain derivative orders only for variables on which
                 % the state actually depends.
+                PDE.x{ii}.diff = PDE.x{ii}.diff(Gvar_order);    % account for re-ordering of vars
                 PDE.x{ii}.diff = PDE.x{ii}.diff(1,has_var_Lstate);
             end
         elseif size(PDE.x{ii}.diff,2)~=nvars_Lstate
@@ -986,6 +987,8 @@ for ii=1:numel(PDE.(obj))
             % of variables.
             error(['The order of differentiability "x{',num2str(ii),'}.diff" is not appropriately specified;',...
                     ' please make sure the number of derivative orders matches the number of variables on which the considered state component depends.']);
+        else
+            PDE.x{ii}.diff = PDE.x{ii}.diff(PDE.x{ii}.var_order);    % account for re-ordering of vars
         end
         % Update the order of differentiability.
         diff_tab(ii,has_var_Lstate) = max(diff_tab(ii,has_var_Lstate),PDE.x{ii}.diff);
@@ -1344,14 +1347,13 @@ while ii<=n_eqs
     % First, check which of the global variables our LHS component (state
     % or output) actually depends on.
     has_vars_Lcomp = logical(Lobj_tab(ii,3:end));
-    Lvar_order = PDE.(obj){ii}.var_order;
 
     % For the state components, also check the order of differentiability,
     % and requested temporal derivative.
     if strcmp(obj,'x')
         % Check if an order of differentiability in each of the spatial
         % variables has been specified, and set it otherwise.
-        if isfield(PDE.x{ii},'diff') && any(PDE.x{ii}.diff(Lvar_order)~=diff_tab(ii,has_vars_Lcomp))
+        if isfield(PDE.x{ii},'diff') && any(PDE.x{ii}.diff~=diff_tab(ii,has_vars_Lcomp))
             warning(['The specified order of differentiability "PDE.x{',eq_num_str,'}.diff" is smaller than the observed order of this state component in the PDE, and will therefore be increased.',...
                         ' If you wish to retain the original order of differentiability, please make sure that the order of any derivative of the state does not exceed this specified order.']);
         end
@@ -1463,7 +1465,6 @@ while ii<=n_eqs
         % Establish which spatial variables each component depends on.
         has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx(1),3:end));
         nvars_Rcomp = sum(has_vars_Rcomp);
-        Rvar_order = PDE.(Robj){Rindx}.var_order;   % new_vars = old_vars(var_order)
         % Note that we already checked all the different components listed
         % in Rindx to depend on the same variables in "get_diff".
         
@@ -1622,6 +1623,7 @@ while ii<=n_eqs
         % associated domains
         Rvars = global_vars(has_vars_Rcomp,:);
         Rdom = global_dom(has_vars_Rcomp,:);
+        Rvar_order = PDE.(Robj){Rindx}.var_order;   % new_vars = old_vars(var_order)
         % Keep track of which variables the term actually varies in
         % (without integration).
         isvariable_term_jj = true(1,nvars_Rcomp);   % Element kk will be false if variable kk is evaluated at a boundary.
