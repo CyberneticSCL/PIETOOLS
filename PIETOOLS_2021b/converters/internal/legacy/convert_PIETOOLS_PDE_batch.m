@@ -141,7 +141,11 @@ ncL2=np;
  
 %%%%%%%%%%%%%%%%%%%% Defining Primal Dynamics %%%%%%%%%%%%%%%%%%%%%%%
 % Some terms are not yet compatible:
-Exx=zeros(np,nrL1);
+if isfield(PDE,'Exx')
+Exx=PDE.Exx;
+else
+    Exx = zeros(np,nrL1);
+end
 Rxx1=zeros(np,nrL2);
 Rxx2=zeros(np,nrL2);
 
