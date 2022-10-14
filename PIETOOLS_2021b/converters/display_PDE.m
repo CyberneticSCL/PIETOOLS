@@ -58,8 +58,10 @@ if isa(PDE,'sys')
         disp(PDE);
         return
     end
+elseif isa(PDE,'struct')
+    PDE = pde_struct(PDE);
 end
-try PDE = initialize_PIETOOLS_PDE(PDE,true);
+try PDE = initialize(PDE,true);
 catch
     error(['The presented PDE is not finished, or not appropriate.',...
             ' Please check that the PDE is properly specified, and run "initialize_PIETOOLS_PDE" to check for any errors.'])
