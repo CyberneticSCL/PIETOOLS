@@ -81,7 +81,7 @@ end
 
 
 % Initialize the PDE, and extract the old variables and their domains.
-PDE = initialize(PDE,true);
+PDE = initialize(PDE,true); % STILL have to account for changing of variable order in output old_ito_new
 old_vars = PDE.vars;
 old_dom = PDE.dom;
 nvars = size(old_vars,1);
@@ -310,7 +310,7 @@ for ii=1:ncomps
                     end
                 end                        
                 term_jj.I{kk} = Idom_kk;  
-                fctr = fctr * fctr_new2old(kk);
+                fctr = fctr * var_fctr_Rcomp(kk);
             end
         end
             

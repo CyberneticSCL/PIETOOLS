@@ -169,7 +169,7 @@ tau_name = cell(ndelays,1);
 for vv=1:ndelays
     % varnames are extracted 1-by-1, as "polynomial" stores them
     % alphabetically.
-    tau_name{vv} = PDE.tau(vv,1).varname{1};
+    tau_name{vv} = PDE.vars(nvars_old+vv,1).varname{1};
 end
 
 for ii=1:ncomps
@@ -246,7 +246,9 @@ for ii=1:ncomps
                     term_jj = rmfield(term_jj,Robj);
                     term_jj.x = new_state_idx;
                     term_jj.D = zeros(1,sum(has_vars_delay_state));
-                    term_jj.loc = PDE.vars(has_vars_delay_state,1)';
+                    new_loc = PDE.vars(:,1)';
+                    new_loc(tau_idx) = -delay;
+                    term_jj.loc = new_loc(has_vars_delay_state);
                     term_jj.delay = 0;
                 else
                     % The combination of Robj and delay does not occur yet,
@@ -264,7 +266,9 @@ for ii=1:ncomps
                     term_jj = rmfield(term_jj,Robj);
                     term_jj.x = new_state_idx;
                     term_jj.D = zeros(1,sum(has_vars_delay_state));
-                    term_jj.loc = PDE.vars(has_vars_delay_state,1)';
+                    new_loc = PDE.vars(:,1)';
+                    new_loc(tau_idx) = -delay;
+                    term_jj.loc = new_loc(has_vars_delay_state);
                     term_jj.delay = 0;
                 end
             else
@@ -306,7 +310,9 @@ for ii=1:ncomps
                 term_jj = rmfield(term_jj,Robj);
                 term_jj.x = new_state_idx;
                 term_jj.D = zeros(1,sum(has_vars_delay_state));
-                term_jj.loc = PDE.vars(has_vars_delay_state,1)';
+                new_loc = PDE.vars(:,1)';
+                new_loc(tau_idx) = -delay;
+                term_jj.loc = new_loc(has_vars_delay_state);
                 term_jj.delay = 0;
             end
         else
