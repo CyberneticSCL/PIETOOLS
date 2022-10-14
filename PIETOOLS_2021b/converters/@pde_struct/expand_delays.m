@@ -1,10 +1,10 @@
-function [PDE] = expand_delays(PDE,suppress_summary)
+function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 % PDE = expand_delays(PDE) takes a pde_struct and retruns a PDE with no
 % time delays, using new state variables to represent the delayed terms.
 %
 % INPUTS:
 % PDE:  A pde_struct class object, defining a PDE in a manner as
-%       outlined in "initialize_PIETOOLS_PDE".
+%       outlined in "@pde_struct/initialize".
 % suppress_summary: logical value indicating whether to suppress the 
 %                   output summary. Defaults to false.
 % 
@@ -16,6 +16,28 @@ function [PDE] = expand_delays(PDE,suppress_summary)
 %       such that x_n(t,s,r2) = (d/dr)^{D} v(t-s,r1=a,r2). This is done by
 %       adding a transport equation \dot{x}_n(t,s,r2) = (d/ds) x(t,s,r_2),
 %       and a BC x_n(t,0,r2) = (d/dr)^{D} v(t,r1=a,r2).
+% del_state_tab:    A q x (2+2*nvars_old) table of integers, matching
+%                   each of the q newly added state components with a
+%                   unique combination of state/input, delay variable,
+%                   spatial position, and derivative. In particular:
+%                   The first are integer values indicating for each of the
+%                       1:q new states which component obj_k it corresponds
+%                       to, where obj_k = x_k if k<nx_old, 
+%                       obj_k = w_{k-nx_old} if k<nx_old + nw,
+%                       and obj_k = u_{k-nx_old-nw} else,
+%                       if del_state_tab(j,1) = k.
+%                   The second column are integer values indicating which
+%                       of the spatial variables is used to represent the
+%                       delay, so that x_j(t,s_l) = obj_k(t-s_l) if
+%                       del_state_tab(j,2) = l.
+%                   Columns l=3:2+nvars_old indicate for each of the
+%                       spatial variables s_l in the original PDE whether
+%                       the state obj_k is evaluated at s_l=s_l (0),
+%                       s_l=a_l (1), or s_l=b_l (0).
+%                   Columns l=3+nvars_old:end indicate for each of the
+%                       spatial variables s_l in the original PDE to what
+%                       order the state obj_k is differentiated with
+%                       respect to this spatial variable.
 %
 % NOTES:
 %
@@ -51,7 +73,13 @@ if nargin==1
 end
 
 % % % Initialize the PDE, and extract some necessary parameters
-PDE = initialize(PDE,true);
+if ~PDE.is_initialized
+    PDE = initialize(PDE,true);
+end
+if ~PDE.has_delay
+    fprintf(['\n','No delayed states or inputs were encountered.'])
+    return
+end
 
 % Extract number of components of each type.
 nx = numel(PDE.x);
@@ -104,16 +132,16 @@ PDE.BC_tab = [PDE.BC_tab(:,1:2+nvars),zeros(nBC,ndelays),PDE.BC_tab(:,3+nvars:2+
 % % Remaining columns indicate the desired order of the
 % %     derivative of x_i wrt each of the original spatial vars r.
 del_state_tab = zeros(0,2+2*nvars);
-[PDE,del_state_tab] = expand_terms(PDE,del_state_tab,'x',nx);
-[PDE,del_state_tab] = expand_terms(PDE,del_state_tab,'z',nz);
-[PDE,del_state_tab] = expand_terms(PDE,del_state_tab,'y',ny);
-[PDE,del_state_tab] = expand_terms(PDE,del_state_tab,'BC',nBC);
-
+[PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,'x',nx);
+[PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,'z',nz);
+[PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,'y',ny);
+[PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,'BC',nBC);
 
 
 % % % Finally, clean up the structure and return.
 % Remove the delay variables (they have all been replaced by spatial vars).
 PDE.tau = zeros(0,2);
+PDE.has_delay = false;
 
 % Display summary of the results.
 if ~suppress_summary
@@ -121,7 +149,7 @@ if ~suppress_summary
     if ndelay_states==0
         fprintf(['\n','No delays were encountered.\n'])
     else
-        print_summary_expand_delay(PDE,del_state_tab,nvars)
+        print_summary_expand_delay(PDE,del_state_tab)
     end
 end
 
@@ -132,7 +160,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function [PDE,del_state_tab] = expand_terms(PDE,del_state_tab,Lobj,ncomps)
+function [PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,Lobj,ncomps)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Loop over all the terms in the equation for "Lobj", replacing
 % any instance of a delayed state (d/dr)^{D} x(t-s,r), input w(t-s,r),
@@ -172,6 +200,8 @@ for vv=1:ndelays
     tau_name{vv} = PDE.vars(nvars_old+vv,1).varname{1};
 end
 
+% % Loop over all equations for the considered obj, replacing delays with 
+% % new states.
 for ii=1:ncomps
     nterms = numel(PDE.(Lobj){ii}.term);
     % % Loop over all terms and replace delays with new state.
@@ -200,8 +230,8 @@ for ii=1:ncomps
             has_vars_Robj = logical(PDE.x_tab(Rindx,3:2+nvars));
             diff_Robj(has_vars_Robj) = term_jj.D;   
             
-            % Use index 0, 1, 2 to indicate x is evaluated at interior,
-            % lower boundary, upper boundary.
+            % Use index 0, 1, 2 to indicate if x is evaluated at interior,
+            % lower boundary, or upper boundary for each spatial variable.
             dom_Robj = PDE.dom(has_vars_Robj,:);
             loc_Robj_partial = zeros(1,sum(has_vars_Robj));
             for kk=1:numel(loc_Robj_partial)
@@ -215,11 +245,11 @@ for ii=1:ncomps
         elseif isfield(term_jj,'w')
             Robj = 'w';
             Rindx = term_jj.w;
-            state_idx = Rindx + nx;
+            state_idx = Rindx + nx; % w inputs are assigned indices nx+1 through nx+nw
         else
             Robj = 'u';
             Rindx = term_jj.u;
-            state_idx = Rindx + nx + numel(PDE.w);
+            state_idx = Rindx + nx + numel(PDE.w);  % u inputs are assigned indices nx+nw+1 through nx+nw+nu
         end
        
         % Distinguish case where delay is a fixed real value, and where
@@ -247,7 +277,7 @@ for ii=1:ncomps
                     term_jj.x = new_state_idx;
                     term_jj.D = zeros(1,sum(has_vars_delay_state));
                     new_loc = PDE.vars(:,1)';
-                    new_loc(tau_idx) = -delay;
+                    new_loc(tau_idx) = -delay;  % Evaluate at s=-delay
                     term_jj.loc = new_loc(has_vars_delay_state);
                     term_jj.delay = 0;
                 else
@@ -267,24 +297,22 @@ for ii=1:ncomps
                     term_jj.x = new_state_idx;
                     term_jj.D = zeros(1,sum(has_vars_delay_state));
                     new_loc = PDE.vars(:,1)';
-                    new_loc(tau_idx) = -delay;
+                    new_loc(tau_idx) = -delay;  % Evaluate at s=-delay
                     term_jj.loc = new_loc(has_vars_delay_state);
                     term_jj.delay = 0;
                 end
             else
                 % The delay has not been included in our delay table yet
-                % --> we have to add it
-                
+                % --> we have to add it.
                 % % % Add the delay to the PDE as a new spatial variable.
                 % Define new spatial variables (s,th) to represent the delay.
                 tau_idx = size(PDE.vars,1) + 1;
                 var1 = polynomial({['ntau_',num2str(tau_idx)]});
                 var2 = polynomial({['tau_dum',num2str(tau_idx)]});
                 PDE.vars = [PDE.vars; [var1,var2]];
-                % Add the corresponding dom
                 PDE.dom = [PDE.dom; [-delay,0]];
                 
-                % Add the new spatial variable to all the tables
+                % Add the new spatial variable to all the tables.
                 PDE.x_tab = [PDE.x_tab(:,1:2+nvars),zeros(size(PDE.x_tab,1),1),PDE.x_tab(:,3+nvars:2+2*nvars),zeros(size(PDE.x_tab,1),1)];
                 PDE.w_tab = [PDE.w_tab,zeros(size(PDE.w_tab,1),1)];
                 PDE.u_tab = [PDE.u_tab,zeros(size(PDE.u_tab,1),1)];
@@ -292,7 +320,7 @@ for ii=1:ncomps
                 PDE.y_tab = [PDE.y_tab,zeros(size(PDE.y_tab,1),1)];
                 PDE.BC_tab = [PDE.BC_tab(:,1:2+nvars),zeros(size(PDE.BC_tab,1),1),PDE.BC_tab(:,3+nvars:2+2*nvars),zeros(size(PDE.BC_tab,1),1)];
                 
-                % Add the combination of delay, Robj, and diff to the table.
+                % Add the combination of delay, Robj, and diff to table.
                 del_state_tab = [del_state_tab; [state_idx,tau_idx,loc_Robj(1:nvars_old),diff_Robj(1:nvars_old)]];
                 loc_Robj = [loc_Robj,0];
                 diff_Robj = [diff_Robj,0];
@@ -303,7 +331,6 @@ for ii=1:ncomps
                 nvars = size(PDE.vars,1);
                 new_state_idx = size(PDE.x_tab,1);
 
-
                 % % % Adjust the term to replace delay by new state var:
                 %   d/dr Robj(t-s,r1=a,r2) = xnew(t,s,r2)
                 has_vars_delay_state = logical(PDE.x_tab(new_state_idx,3:2+nvars));
@@ -311,7 +338,7 @@ for ii=1:ncomps
                 term_jj.x = new_state_idx;
                 term_jj.D = zeros(1,sum(has_vars_delay_state));
                 new_loc = PDE.vars(:,1)';
-                new_loc(tau_idx) = -delay;
+                new_loc(tau_idx) = -delay;  % Evaluate at s=-delay
                 term_jj.loc = new_loc(has_vars_delay_state);
                 term_jj.delay = 0;
             end
@@ -478,15 +505,21 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function print_summary_expand_delay(PDE,del_state_tab,nvars_old)
+function print_summary_expand_delay(PDE,del_state_tab)
 % print_initialization_summary(PDE,obj,ncomps_x)
 % prints in the command window some information concerning how many
 % state components have been added to the system.
 %
 % INPUTS:
 % - PDE:        A "struct" or "pde_struct" class object defining a PDE.
-% - ncomps_x:   Integer scalar specifying how many state components were
-%               present in the PDE before expanding delays. 
+% - del_state_tab:  A q x (2+2*nvars_old) array linking each of the q new
+%                   state components to a particular combination of
+%                   state or input, indicated by first column;
+%                   delay variable, indicated by second column;
+%                   boundary at which to evaluate state, indicated by
+%                   columns 3:2+nvars_old;
+%                   derivative wrt each of the original spatial vars,
+%                   indicated by columns 3+nvars_old:2+2*nvars_old.
 %
 % OUTPUTS:
 % Displays information in the command window concerning the number of
@@ -498,6 +531,7 @@ function print_summary_expand_delay(PDE,del_state_tab,nvars_old)
 
 nx_old = numel(PDE.x) - size(del_state_tab,1);  % Number of state components in original PDE.
 nx_new = size(del_state_tab,1);                 % number of added state components
+nvars_old = (size(del_state_tab,2)-2)/2;        % Number of spatial variables in original PDE.
 nvars = size(PDE.vars,1);                       % total number of spatial variables in new PDE.
 
 % Check if any state components have actually been added.
@@ -509,7 +543,6 @@ elseif nx_new==1
 elseif nx_new>1
     fprintf(['\n','Added ',num2str(numel(PDE.x)-nx_old),' state components: \n']);
 end
-
 
 
 % % % Set up a library of char objects to use in the display
@@ -525,17 +558,37 @@ sup_num{7} = '\x2076';
 sup_num{8} = '\x2077';
 sup_num{9} = '\x2078';
 sup_num{10} = '\x2079';
-
 % UNICODE subscript indices.
 sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
-
 % Symbol for partial integration.
 partial = '\x2202';
+% Determine how many subscripts will be needed.
+n_digits = 1+floor(log(numel(PDE.x))/log(10));
 
 
+% % For the purpose of clearer display, we make an estimate of how long the
+% % display will be. 
+% First, determine which variables appear in the different state variables.
+nvars = size(PDE.vars,1);
+global_vars_obj = PDE.vars(any(PDE.x_tab(:,3:2+nvars),1),:);
+if isempty(global_vars_obj)
+    global_varnames = '(t)';
+else
+    global_varnames =  global_vars_obj(1,1).varname{1};
+    for kk=2:size(PDE.vars,1)
+        global_varnames = [global_varnames,',',PDE.vars(kk,1).varname{1}];
+    end
+    global_varnames = ['(t,',global_varnames,')'];
+end
+% Then, estimate the size of the string of characters denoting the components
+% "PDE.x{ii}".
+nvars_max = max(sum(PDE.x_tab(:,3:2+nvars),2));
+lngth_varnames_mean = ceil(length(global_varnames)*nvars_max/nvars);
+LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+2; % e.g. ' x13(t,s1,s2,s3)', 
 
-% Loop over the new components, displaying the variables it depends on, and
-% which component in the original PDE it represents.
+
+% % Loop over the new components, displaying the variables it depends on,
+% % and which component in the original PDE it represents.
 for ii=1:nx_new
 
     % % % Build a str to represent the new delay variable x_n(t,s,r2)
@@ -567,7 +620,7 @@ for ii=1:nx_new
     % Set the name of the component, including its depdence on spatial
     % variables.
     LHS_name = [' x',Lcomp_idx,'(',varnames_ii_t,')'];
-    
+    LHS_length = 1 + LHS_length + 3;
     
     
     % % % Build a str to represent the component which the new state
@@ -626,24 +679,21 @@ for ii=1:nx_new
             continue
         elseif D_kk==1
             % Don't display superscript 1 in derivative
-            D_trm = [D_trm,' (',partial,'/',partial,Rvar1(kk).varname{1},')'];
+            D_trm = [D_trm,'(',partial,'/',partial,Rvar1(kk).varname{1},') '];
         elseif D_kk<=9
-            D_trm = [D_trm,' (',partial,sup_num{D_kk+1},'/',partial,Rvar1(kk).varname{1},sup_num{D_kk+1},')'];
+            D_trm = [D_trm,'(',partial,sup_num{D_kk+1},'/',partial,Rvar1(kk).varname{1},sup_num{D_kk+1},') '];
         else
             D_sup = cell2mat(sup_num(str2num(num2str(D_kk)')+1)');
-            D_trm = [D_trm,' (',partial,D_sup,'/',partial,Rvar1(kk).varname{1},D_sup,')'];
+            D_trm = [D_trm,'(',partial,D_sup,'/',partial,Rvar1(kk).varname{1},D_sup,') '];
         end
-    end
-    if ~isempty(D_trm)
-        D_trm = [D_trm,' '];
     end
 
     % Define the RHS object
     RHS = [' := ',D_trm,Robj,Rvar1_str];
 
     % % % Finally, display
-    fprintf(['     ',LHS_name,RHS,';\n'])
-
+    MT_space = max(LHS_length_max-LHS_length,1);
+    fprintf(['  ',LHS_name,repmat(' ',[1,MT_space]),RHS,';\n'])
 end
 
 end

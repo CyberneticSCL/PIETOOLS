@@ -81,7 +81,11 @@ end
 
 
 % Initialize the PDE, and extract the old variables and their domains.
-PDE = initialize(PDE,true); % STILL have to account for changing of variable order in output old_ito_new
+if ~PDE.is_initialized
+    [PDE,var_order] = initialize(PDE,true); % PDE_out.vars = PDE_in.(var_order,:);
+else
+    var_order = 1:size(PDE.vars,1);
+end
 old_vars = PDE.vars;
 old_dom = PDE.dom;
 nvars = size(old_vars,1);
@@ -182,20 +186,43 @@ PDE_new = replace_vars_terms(PDE,PDE_new,'BC',old_vars,new_vars_aug,old_dom,new_
 % Indicate in the command line which variables have been changed.
 ismerge = var_indcs_old~=var_indcs_new;
 
-if ~any(ismerge) && ~silent_merge
-    fprintf('\n   No variables have been merged.\n')
-elseif sum(ismerge)==1
-    fprintf(['\n   Variable ',num2str(var_indcs_old(ismerge)),' has been merged with variable ',num2str(var_indcs_new(ismerge)),'.\n'])  
-else
-    fprintf(['\n   Variables ',num2str(var_indcs_old(ismerge)),' have been merged with variables ',num2str(var_indcs_new(ismerge)),'.\n'])  
+if ~silent_merge
+    if ~any(ismerge)
+        fprintf('\n   No variables have been merged.\n')
+    else
+        old_vars_merge = old_vars(var_indcs_old(ismerge),1);
+        new_vars_merge = old_vars(var_indcs_new(ismerge),1);
+        old_var_names = old_vars_merge(1).varname{1};
+        new_var_names = new_vars_merge(1).varname{1};
+        if sum(ismerge)==1
+            fprintf(['\n   Variable ',old_var_names,' has been merged with variable ',new_var_names,'.\n'])  
+        else
+            for kk=2:size(old_vars_merge,1)
+                old_var_names = [old_var_names,',',old_vars_merge(kk).varname{1}];
+                new_var_names = [new_var_names,',',new_vars_merge(kk).varname{1}];
+            end
+            fprintf(['\n   Variables (',old_var_names,') have been merged with variables (',new_var_names,') respectively.\n'])  
+        end
+    end
+end
+
+if nargout>1
+    % By intializing the PDE, the order of the variables may have changed.
+    % If the user requests an expression for the old variables in terms of
+    % the new ones, we'll have to reorder our expression "old_ito_new" to
+    % match the order of the variables in the input PDE.
+    [~,old_var_order] = sort(var_order);
+    old_ito_new = old_ito_new(old_var_order,:);
 end
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
 
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 function PDE_new = replace_vars_terms(PDE,PDE_new,Lobj,old_vars,new_vars,old_dom,new_dom,new2old,fctr_new2old)
-
 % Loop over all components of the object Lobj, replacing the old variables
 % in their PDEs with the new variables.
 nvars = size(old_vars,1);

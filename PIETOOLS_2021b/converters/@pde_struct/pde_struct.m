@@ -101,8 +101,9 @@ properties (Hidden)
     z_tab = zeros(0,2);
     BC_tab = zeros(0,2);
     
-    has_delays = false;
-    has_hotd = false;
+    is_initialized = false; % Has the system already been initialized.
+    has_delay = false;      % Does the system involve any delayed states/inputs?
+    has_hotd = false;       % Does the system involve any higher-order temporal derivatives?
 end
     
 methods

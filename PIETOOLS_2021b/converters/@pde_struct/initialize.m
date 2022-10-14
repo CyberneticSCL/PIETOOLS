@@ -1,4 +1,4 @@
-function PDE = initialize(PDE,suppress_summary)
+function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PDE = initialize(PDE) takes a PDE data structure and
 % checks that all the necessary fields are appropriately specified, and
@@ -14,6 +14,9 @@ function PDE = initialize(PDE,suppress_summary)
 %
 % OUTPUT
 %   PDE: "pde_struct" class object describing the same system as the input.
+%   Gvar_order:     New order of the variables in PDE.vars, assuming
+%                   a field PDE.vars was already specified in the input
+%                   PDE: PDE_out.vars = PDE_in.vars(Gvar_order,:);
 %
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %
@@ -551,28 +554,6 @@ BC_diff_tab = zeros(numel(PDE.BC),nvars);
 % Append the order of differentiability to the x_tab.
 PDE.x_tab = [PDE.x_tab, diff_tab];
 
-% Also set the size and domain of the inputs
-% for ii=1:numel(PDE.w)
-%     if isfield(PDE.w{ii},'size') && PDE.w{ii}.size ~= PDE.w_tab(ii,2)
-%         error(['The specified size "w{',num2str(ii),'}.size" does not match the observed size of component "w{',num2str(ii),'};',...
-%                 ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
-%     end
-%     PDE.w{ii}.size = PDE.w_tab(ii,2);
-%     PDE.w{ii}.vars = PDE.vars(logical(PDE.w_tab(ii,3:2+nvars)),:);
-%     PDE.w{ii}.dom = PDE.dom(logical(PDE.w_tab(ii,3:2+nvars)),:);
-%     PDE.w{ii} = orderfields(PDE.w{ii},{'size','vars','dom'});
-% end
-% for ii=1:numel(PDE.u)
-%     if isfield(PDE.u{ii},'size') && PDE.u{ii}.size ~= PDE.u_tab(ii,2)
-%         error(['The specified size "u{',num2str(ii),'}.size" does not match the observed size of component "u{',num2str(ii),'};',...
-%                 ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
-%     end
-%     PDE.u{ii}.size = PDE.u_tab(ii,2);
-%     PDE.u{ii}.vars = PDE.vars(logical(PDE.u_tab(ii,3:2+nvars)),:);
-%     PDE.u{ii}.dom = PDE.dom(logical(PDE.u_tab(ii,3:2+nvars)),:);
-%     PDE.u{ii} = orderfields(PDE.u{ii},{'size','vars','dom'});
-% end
-
 
 % % % --------------------------------------------------------------- % % %
 % % % Finally: The boundary conditions!
@@ -866,7 +847,7 @@ for ii=1:n_comps
     Lvars_new = global_vars(has_vars_Lcomp,:);
     
     % Set the variables and domain of the component
-    if ~isfield(PDE.(obj){ii},'vars')
+    if ~isfield(PDE.(obj){ii},'vars') || isempty(PDE.(obj){ii}.vars)
         var_order = (1:nvars_Lcomp);
     else
         % If variables have already been specified, we have to keep track
@@ -1359,74 +1340,14 @@ while ii<=n_eqs
         end
         PDE.x{ii}.diff = diff_tab(ii,has_vars_Lcomp);
         
-        % Check if a temporal derivative is specified, and add new state
-        % components if necessary.
+        % Check if a temporal derivative is specified.
         if ~isfield(PDE.x{ii},'tdiff')
             PDE.x{ii}.tdiff = 1;
         elseif PDE.x{ii}.tdiff>1
-            % If a higher order temporal derivative is specified, split the
-            % state component as
-            % \dot{x}_{ii}           = x_{n_eq+1}
-            % \dot{x}_{n_eq+1}       = x_{n_eq+2}
-            %      :
-            % \dot{x}_{n_eq+tdiff-1} = PDE of x_{ii}
-            tdiff = PDE.x{ii}.tdiff;
-            vars_ii = PDE.x{ii}.vars(:,1)';
-            PDE.x = [PDE.x(:); cell(tdiff-2,1) PDE.x(ii)];
-            % The added state components will have the same size and
-            % variables...
-            PDE.x_tab = [PDE.x_tab; repmat(PDE.x_tab(ii,:),[tdiff-1,1])];
-            PDE.x_tab(n_eqs+1:end,1) = (n_eqs+1 : n_eqs+tdiff-1)';
-            % ... but will not be differentiable in space.
-            diff_tab = [diff_tab; zeros(tdiff-1,nvars)];
-            
-            % Update the locally stored table.
-            Lobj_tab = PDE.x_tab;
-            
-            % Set the equation associated to component ii to
-            % \dot{x}_{ii} = x_{n_eq+1}.
-            PDE.x{ii}.tdiff = 1;
-            PDE.x{ii}.term = {};
-            PDE.x{ii}.term{1}.x = n_eqs + 1;
-            PDE.x{ii}.term{1}.D = zeros(1,length(vars_ii));
-            PDE.x{ii}.term{1}.loc = vars_ii;
-            PDE.x{ii}.term{1}.C = eye(PDE.x{ii}.size);
-            PDE.x{ii}.term{1}.I = cell(0);
-            PDE.x{ii}.term{1}.delay = 0;
-            for extra_eq = 1:tdiff-2
-                % Set the equations associated to the other components as
-                % \dot{x}_{n_eq+kk} = x_{n_eq+kk+1}.
-                eq_num = n_eqs + extra_eq;
-                PDE.x{eq_num}.eq_num = ii;
-                PDE.x{eq_num}.vars = PDE.x{ii}.vars;
-                PDE.x{eq_num}.dom = PDE.x{ii}.dom;
-                PDE.x{eq_num}.diff = zeros(size(PDE.x{ii}.diff));
-                PDE.x{eq_num}.tdiff = 1;
-                PDE.x{eq_num}.term{1}.x = eq_num + 1;
-                PDE.x{eq_num}.term{1}.D = zeros(1,length(vars_ii));
-                PDE.x{eq_num}.term{1}.loc = vars_ii;
-                PDE.x{eq_num}.term{1}.C = eye(PDE.x{ii}.size);
-                PDE.x{eq_num}.term{1}.I = cell(0);
-                PDE.x{ii}.term{1}.delay = 0;
-            end
-            % For the final component, we already have the equation, 
-            % \dot{x}_{n_eq+tdiff-1} = PDE of x{ii}
-            % we just need to update the order of the temporal derivative,
-            % and the order of differentiability in the spatial variables.
-            PDE.x{end}.tdiff = 1;
-            PDE.x{end}.diff = zeros(size(PDE.x{ii}.diff));
-            
-            % Since the current equation \dot{x}_{ii} = x_{n_eq+1} is
-            % already properly specified, we just need to clean up a bit,
-            % and we can move on to the next equation.
-            if isfield(PDE.x{ii},'eq_num')
-                PDE.x{ii} = rmfield(PDE.x{ii},'eq_num');
-            end
-            PDE.x{ii} = orderfields(PDE.x{ii},{'size','vars','dom','diff','tdiff','term'});
-            
-            n_eqs = n_eqs + tdiff-1;    % Update the number of equations
-            ii = ii+1;
-            continue
+            % Higher order temporal derivatives will need to be processed
+            % before conversion to a PIE is possible.
+            % This can be done using the function "expand_tderivatives".
+            PDE.has_hotd = true;
         end
     end
     
@@ -1501,7 +1422,7 @@ while ii<=n_eqs
                 delay = abs(double(delay));
                 delay_varname = cell(0,1);     % The coefficients are allowed to depend on the delay
                 if delay~=0
-                    PDE.has_delays = true;
+                    PDE.has_delay = true;
                 end
             elseif ispvar(delay) && length(delay.varname)>1
                 error(['The delay "',term_name,'.delay" is not properly specified;',...
@@ -1511,7 +1432,7 @@ while ii<=n_eqs
                         ' any distributed delay variable should be specified in the field "PDE.tau", along with the domain on which it exists.'])
             else
                 delay_varname = delay.varname;
-                PDE.has_delays = true;
+                PDE.has_delay = true;
             end
         end
         % We won't be doing anything with the delay here, we process delays
@@ -1953,7 +1874,7 @@ while jj<=n_terms
             delay = abs(double(delay));
             delay_varname = cell(0,1);     % The coefficients are allowed to depend on the delay
             if delay~=0
-                PDE.has_delays = true;
+                PDE.has_delay = true;
             end
         elseif ispvar(delay) && length(delay.varname)>1
             error(['The delay "',term_name,'.delay" is not properly specified;',...
@@ -1963,7 +1884,7 @@ while jj<=n_terms
                     ' any distributed delay variable should be specified in the field "PDE.tau", along with the domain on which it exists.'])
         else
             delay_varname = delay.varname;
-            PDE.has_delays = true;
+            PDE.has_delay = true;
         end
     end
     % We won't be doing anything with the delay here, we process delays
