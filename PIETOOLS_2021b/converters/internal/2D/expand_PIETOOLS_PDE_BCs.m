@@ -166,7 +166,7 @@ for ii=1:numel(PDE.BC)
     BC_new_ii{1}.vars = BC_ii.vars;
     BC_new_ii{1}.dom = BC_ii.dom;
     BC_new_ii{1}.term = cell(1,0);
-    BC_new_ii{1}.int_tab = zeros(0,nvars);
+    BC_new_ii{1}.int_tab = zeros(1,0);
     BC_new_ii{1}.is_xcomp = zeros(0,nvars);
     % For each new BC 0=F_kk(s), keep track of which variables the function
     % F_kk depends on using binary indices.
@@ -243,6 +243,7 @@ for ii=1:numel(PDE.BC)
                 var_log_kk = logical(dep_tab_expanded_ii(kk,:));
                 BC_new_ii{kk}.term{end}.C = subs(BC_new_ii{kk}.term{end}.C,vars(~var_log_kk,1),dom(~var_log_kk,1));
                 BC_new_ii{kk}.is_xcomp = [BC_new_ii{kk}.is_xcomp, false];
+                BC_new_ii{kk}.int_tab = [BC_new_ii{kk}.int_tab; zeros(1,nvars)];
             end
             jj = jj+1;
             continue
@@ -396,7 +397,9 @@ for ii=1:numel(PDE.BC)
                     
                     % For variables on which BC kk does not depend, we
                     % evaluate the variable at the lower boundary
-                    Cval_kk = polynomial(subs(Cval,vars(~var_log_kk,1),dom(~var_log_kk,1)));
+                    if any(~var_log_kk)
+                        Cval_kk = polynomial(subs(Cval,vars(~var_log_kk,1),dom(~var_log_kk,1)));
+                    end
                     has_vars_Cval = ismember(global_varname_1,Cval_kk.varname)';
                     has_vars_term = has_vars_term | has_vars_Cval;
                     
