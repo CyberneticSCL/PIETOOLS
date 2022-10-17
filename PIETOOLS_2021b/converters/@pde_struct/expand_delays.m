@@ -75,6 +75,7 @@ end
 % % % Initialize the PDE, and extract some necessary parameters
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
+    PDE.is_initialized = true;
 end
 if ~PDE.has_delay
     fprintf(['\n','No delayed states or inputs were encountered.'])
@@ -149,7 +150,7 @@ if ~suppress_summary
     if ndelay_states==0
         fprintf(['\n','No delays were encountered.\n'])
     else
-        print_summary_expand_delay(PDE,del_state_tab)
+        print_expand_delay_summary(PDE,del_state_tab)
     end
 end
 
@@ -470,6 +471,9 @@ PDE.BC = [PDE.BC; struct()];
 PDE.BC{end}.size = Robj_size;
 PDE.BC{end}.vars = full_vars(has_vars_Robj,:);
 PDE.BC{end}.dom = full_dom(has_vars_Robj,:);
+PDE.BC_tab = [PDE.BC_tab;
+              [size(PDE.BC_tab,1)+1,Robj_size,double(has_vars_Robj),zeros(1,nvars)]];
+PDE.BC_tab(2+nvars+tau_var_idx) = 1;    % BC involves first order diff wrt delay variable.
 
 % Set up the BC:   (d/dr)^{diff} Robj(t,r1=a,r2) = xnew(t,s=0,r2)
 % First term: (d/dr)^{diff} Robj(t,r1=a,r2)
@@ -505,10 +509,11 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function print_summary_expand_delay(PDE,del_state_tab)
-% print_initialization_summary(PDE,obj,ncomps_x)
+function print_expand_delay_summary(PDE,del_state_tab)
+% print_expand_delay_summary(PDE,obj,ncomps_x)
 % prints in the command window some information concerning how many
-% state components have been added to the system.
+% state components have been added to the system, and which delayed
+% states/inputs these represent.
 %
 % INPUTS:
 % - PDE:        A "struct" or "pde_struct" class object defining a PDE.
@@ -522,10 +527,9 @@ function print_summary_expand_delay(PDE,del_state_tab)
 %                   indicated by columns 3+nvars_old:2+2*nvars_old.
 %
 % OUTPUTS:
-% Displays information in the command window concerning the number of
-% added components of type obj, along with the size of each of these
-% components, what variables they depend on, and (if obj=='x') to what
-% order they are differentiable in each of these variables.
+% Displays information in the command window concerning how many
+% state components have been added to the system, and which delayed
+% states/inputs these represent.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

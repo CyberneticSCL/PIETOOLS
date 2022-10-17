@@ -46,7 +46,7 @@ if nargin==2 && ~strcmpi(out_type,'pie')
     error('Only conversion from PDE to PIE is supported. The second argument must be set to ''pie'', or be omitted.')
 end
 
-% % % Get rid of any highere-order temporal derivatives and delays in the
+% % % Get rid of any higher-order temporal derivatives and delays in the
 % % % system, and try to reduce the number of spatial variables.
 PDE = initialize(PDE,true);
 PDE.is_initialized = true;
@@ -69,6 +69,9 @@ if PDE.dim>2
     end
 end
 
+% Reorder state components, inputs, and outputs, so that these may be
+% represented using PI operators.
+[PDE] = reorder_comps(PDE,'all');
 
 % Check the spatial dimension of the system, and call the corresponding 
 % converter.
