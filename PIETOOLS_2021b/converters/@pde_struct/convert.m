@@ -49,20 +49,19 @@ end
 % % % Get rid of any higher-order temporal derivatives and delays in the
 % % % system, and try to reduce the number of spatial variables.
 PDE = initialize(PDE,true);
-PDE.is_initialized = true;
 if PDE.has_hotd
     fprintf(['\n','Higher-order temporal derivatives were encounterd:\n']);
-    fprintf(['   Running "expand_tderivatives" to reduce to first-order temporal derivatives...\n']);
+    fprintf([' --- Running "expand_tderivatives" to reduce to first-order temporal derivatives ---\n']);
     PDE = expand_tderivatives(PDE);
 end
 if PDE.has_delay
     fprintf(['\n','Delayed states on inputs were encounterd:\n']);
-    fprintf(['   Running "expand_delays" to remove the delays...\n']);
+    fprintf([' --- Running "expand_delays" to remove the delays --- \n']);
     PDE = expand_delays(PDE);
 end
 if PDE.dim>2
     fprintf(['\n','The PDE involves more than 2 spatial variables:\n']);
-    fprintf(['   Attempting to reduce the dimensionality using "combine_vars"...\n']);
+    fprintf([' --- Attempting to reduce the dimensionality using "combine_vars" ---\n']);
     PDE = combine_vars(PDE);
     if PDE.dim>2
         error('The number of spatial variables could not be reduced to 2 or less; conversion to PIE is not currently supported.')
@@ -71,7 +70,8 @@ end
 
 % Reorder state components, inputs, and outputs, so that these may be
 % represented using PI operators.
-[PDE] = reorder_comps(PDE,'all');
+fprintf(['\n',' --- Reordering the state components to allow for representation as PIE ---\n']);
+[PDE] = reorder_comps(PDE,{'x','u','w','y','z'});
 
 % Check the spatial dimension of the system, and call the corresponding 
 % converter.

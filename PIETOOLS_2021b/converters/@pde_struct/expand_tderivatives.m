@@ -67,7 +67,6 @@ end
 % temporal derivatives.
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
-    PDE.is_initialized = true;
 end
 if ~PDE.has_hotd
     fprintf(['\n','No higher-order temporal derivatives were encountered.'])
@@ -163,10 +162,12 @@ end
 
 % Finally, display a summary, unless otherwise indicated, and return.
 PDE.has_hotd = false;
+% All fields of the returned PDE should still be appropriately specified.
+PDE.is_initialized = true;
+
 if ~suppress_summary
     print_tdiff_expansion_summary(PDE,tdiff_state_tab)
 end
-
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

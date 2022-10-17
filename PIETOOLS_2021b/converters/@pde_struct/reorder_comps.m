@@ -26,7 +26,6 @@ function [PDE,comp_order] = reorder_comps(PDE,obj,suppress_summary)
 %               struct with field "comp_order.obj" specifying how the
 %               components of "obj" have been reordered.
 %
-%
 % NOTES:
 % The components are seperated first based on which variables they depend
 % on, combining e.g. the state components x_{j} into a full state
@@ -80,7 +79,6 @@ end
 % Extract PDE information.
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
-    PDE.is_initialized = true;
 end
 % If there is no reordering to be done, just return.
 if numel(PDE.(obj))==0 || numel(PDE.(obj))==1
@@ -158,6 +156,8 @@ PDE.(obj) = PDE.(obj)(comp_order);
 % Assign new indices 1:ncomps to the components.
 obj_tab_new(:,1) = 1:size(obj_tab_new,1);
 PDE.([obj,'_tab']) = obj_tab_new;
+% All fields of the returned PDE should still be appropriately specified.
+PDE.is_initialized = true;
 
 % Print a summary, if desired.
 if ~suppress_summary
@@ -210,7 +210,7 @@ if all(comp_order == (1:ncomps)')
     return
 else
     % Otherwise, we list the new order of the components.
-    fprintf(['\n','The ',object_name,'s have been re-ordered as:\n']);
+    fprintf(['\n','The ',object_name,'s have been reordered as:\n']);
 end
 
 % Use UNICODE to add subscript indices to different components.
@@ -237,7 +237,7 @@ end
 % "PDE.x{ii}".
 nvars_max = max(sum(PDE.([obj,'_tab'])(:,3:2+nvars),2));
 lngth_varnames_mean = ceil(length(global_varnames)*nvars_max/nvars);
-LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+2; % e.g. ' x13(t,s1,s2,s3)', 
+LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+3; % e.g. ' x13(t,s1,s2,s3)', 
 
 
 % % For each of the components, display its size, and which variables it

@@ -75,7 +75,6 @@ end
 % % % Initialize the PDE, and extract some necessary parameters
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
-    PDE.is_initialized = true;
 end
 if ~PDE.has_delay
     fprintf(['\n','No delayed states or inputs were encountered.'])
@@ -143,6 +142,8 @@ del_state_tab = zeros(0,2+2*nvars);
 % Remove the delay variables (they have all been replaced by spatial vars).
 PDE.tau = zeros(0,2);
 PDE.has_delay = false;
+PDE.dim = size(PDE.vars,1);
+PDE = initialize(PDE,true);
 
 % Display summary of the results.
 if ~suppress_summary
@@ -436,6 +437,7 @@ Robj_size = Robj_tab(1,2);
 % % % Add a new state component to x_tab.
 % The new state should depend on the same variables as Robj.
 PDE.x_tab = [PDE.x_tab; Robj_tab];
+PDE.x_tab(end,1) = size(PDE.x_tab,1);
 has_vars_Robj = logical(PDE.x_tab(end,3:2+nvars));
 % The new state should also depend on the new delay variable.
 PDE.x_tab(end,[2+tau_var_idx,2+nvars+tau_var_idx]) = 1;
