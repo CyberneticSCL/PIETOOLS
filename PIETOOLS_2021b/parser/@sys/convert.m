@@ -23,11 +23,12 @@ if strcmp(convertTo, 'pie')
 elseif strcmp(convertTo,'ddf') && (strcmp(obj.type,'nds')||strcmp(obj.type,'dde'))
     out = obj;
     if strcmp(obj.type,'nds')
-        out.params = convert_PIETOOLS_NDS2DDF(obj.params);
+        tmp = convert_PIETOOLS_NDS2DDF(obj.params);
     elseif strcmp(obj.type,'dde')
-        out.params = minimize_PIETOOLS_DDE2DDF(obj.params);
+        tmp = minimize_PIETOOLS_DDE2DDF(obj.params);
     end
     out.type = 'ddf';
+    out.params = tmp;
 end
 
 fprintf('Conversion to %s was successful\n', convertTo);

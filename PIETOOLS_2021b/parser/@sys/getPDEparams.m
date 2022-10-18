@@ -3,6 +3,9 @@ equations = pdeObj.equation;
 statelist = pdeObj.states;
 eqnNum = length(equations);
 
+% temporary pvars
+pvar t;
+
 % build a dictionary of state names for future reference
 odeNames = statelist(find(strcmp(statelist.type,'ode'))).statename;
 pdeNames = statelist(find(strcmp(statelist.type,'pde'))).statename;
@@ -43,6 +46,7 @@ out.BC = cell(0,1);
 if ~isempty(tmpidx)
 out.x{tmpidx}.vars = [];
 end
+
 
 
 isdot_A = isdot(equations.statevec); isout_A=isout(equations.statevec); 
@@ -86,6 +90,10 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.u = find(equations.statevec(j).statename==uNames);
             end
+            % extract delay term, if it exists
+            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
+                tmp{Loc}.term{j}.delay = double(equations.statevec(j).var(1)-t);
+            end
         end
         if ismember(outNametemp, zNames)% regulated output
             out.z = tmp;
@@ -124,6 +132,10 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{Loc}.term{j}.u = find(equations.statevec(j).statename==uNames);
             end
+            % extract delay term, if it exists
+            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
+                tmp{Loc}.term{j}.delay = double(equations.statevec(j).var(1)-t);
+            end
         end
         for j = length(equations.statevec)+1:2*length(equations.statevec) % extract all the R1 terms
             jtmp = j- length(equations.statevec);
@@ -135,6 +147,10 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
             end
+            % extract delay term, if it exists
+            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
+                tmp{Loc}.term{j}.delay = double(equations.statevec(j).var(1)-t);
+            end
         end
         for j = 2*length(equations.statevec)+1:3*length(equations.statevec) % extract all the R2 terms
             jtmp = j- 2*length(equations.statevec);
@@ -145,6 +161,10 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.I{1} = [pvar('s'),1]; 
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
+            end
+            % extract delay term, if it exists
+            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
+                tmp{Loc}.term{j}.delay = double(equations.statevec(j).var(1)-t);
             end
         end
         out.x = tmp;
@@ -176,6 +196,10 @@ for i=1:eqnNum
             elseif ismember(equations.statevec(j).statename,uNames)% control input term
                 tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                 tmp{k+1}.term{j}.u = find(equations.statevec(j).statename==uNames);
+            end
+            % extract delay term, if it exists
+            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
+                tmp{k+1}.term{j}.delay = double(equations.statevec(j).var(1)-t);
             end
         end
         out.BC = tmp;

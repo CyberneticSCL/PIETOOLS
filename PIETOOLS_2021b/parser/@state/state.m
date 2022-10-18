@@ -5,6 +5,10 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
         var {mustBeVector,mustBeA(var,["polynomial","double"])} = [pvar('t')];
         diff_order {mustBeInteger,mustBeVector,mustBeNonnegative}= [0];
     end
+    properties (Hidden)
+        maxdiff = [0];
+        dom = [];
+    end
     properties (Hidden, SetAccess=protected)
         statename;
     end
