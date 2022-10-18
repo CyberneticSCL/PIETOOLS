@@ -1,5 +1,6 @@
 function PIE = convert_PIETOOLS_PDE_terms(PDE)
 % For now convert the new terms format to old terms format
+evalin('base','silent_initialize_pde = true;')
 
 % extract standard information from the new terms format (domain,
 % dimension, vars, etc.)
