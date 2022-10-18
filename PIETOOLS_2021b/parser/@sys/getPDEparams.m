@@ -91,7 +91,7 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.u = find(equations.statevec(j).statename==uNames);
             end
             % extract delay term, if it exists
-            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
+            if double(equations.statevec(j).var(1)-t) % non-zero delay term
                 tmp{Loc}.term{j}.delay = double(equations.statevec(j).var(1)-t);
             end
         end
@@ -133,7 +133,7 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.u = find(equations.statevec(j).statename==uNames);
             end
             % extract delay term, if it exists
-            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
+            if double(equations.statevec(j).var(1)-t) % non-zero delay term
                 tmp{Loc}.term{j}.delay = double(equations.statevec(j).var(1)-t);
             end
         end
@@ -148,8 +148,8 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
             end
             % extract delay term, if it exists
-            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
-                tmp{Loc}.term{j}.delay = double(equations.statevec(j).var(1)-t);
+            if double(equations.statevec(jtmp).var(1)-t) % non-zero delay term
+                tmp{Loc}.term{j}.delay = double(equations.statevec(jtmp).var(1)-t);
             end
         end
         for j = 2*length(equations.statevec)+1:3*length(equations.statevec) % extract all the R2 terms
@@ -163,8 +163,8 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
             end
             % extract delay term, if it exists
-            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
-                tmp{Loc}.term{j}.delay = double(equations.statevec(j).var(1)-t);
+            if double(equations.statevec(jtmp).var(1)-t) % non-zero delay term
+                tmp{Loc}.term{j}.delay = double(equations.statevec(jtmp).var(1)-t);
             end
         end
         out.x = tmp;
@@ -198,7 +198,7 @@ for i=1:eqnNum
                 tmp{k+1}.term{j}.u = find(equations.statevec(j).statename==uNames);
             end
             % extract delay term, if it exists
-            if ~double(equations.statevec(j).var(1)-t) % non-zero delay term
+            if double(equations.statevec(j).var(1)-t) % non-zero delay term
                 tmp{k+1}.term{j}.delay = double(equations.statevec(j).var(1)-t);
             end
         end
