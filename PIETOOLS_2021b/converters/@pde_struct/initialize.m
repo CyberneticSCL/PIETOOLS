@@ -811,7 +811,7 @@ function PDE = set_props(PDE,obj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PDE = set_vars(PDE,obj)
 % sets the properties of each component of the state, input, or output
-% "obj", such as its size, and the variables it depends on.
+% "obj", such as the variables it depends on.
 %
 % INPUTS:
 % - PDE:        A "struct" or "pde_struct" class object defining a PDE.
@@ -820,7 +820,7 @@ function PDE = set_props(PDE,obj)
 %
 % OUTPUTS:
 % - PDE:        The same structure as the input "PDE", now with
-%               "PDE.obj{ii}.size", "PDE.obj{ii}.vars", "PDE.obj{ii}.dom" 
+%               "PDE.obj{ii}.vars", "PDE.obj{ii}.dom" 
 %               specified for each appropriate element ii.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -840,7 +840,6 @@ for ii=1:n_comps
         error(['The specified size "',obj,'{',eq_num_str,'}.size" does not match the observed size of component "',obj,'{',num2str(ii),'};',...
                 ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
     end
-    PDE.(obj){ii}.size = PDE.([obj,'_tab'])(ii,2);
     
     % Next, check which of the global variables our LHS component (state
     % or output) actually depends on.
@@ -1351,6 +1350,9 @@ while ii<=n_eqs
     else
         eq_num_str = num2str(ii);
     end
+    
+    % Set the size of the object.
+    PDE.(obj){ii}.size = PDE.([obj,'_tab'])(ii,2);
     
     % First, check which of the global variables our LHS component (state
     % or output) actually depends on.
