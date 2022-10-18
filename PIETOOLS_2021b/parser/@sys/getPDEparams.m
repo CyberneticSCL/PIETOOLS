@@ -146,6 +146,7 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.I{1} = [0,pvar('s')];
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
+                tmp{Loc}.term{j}.x = find(equations.statevec(jtmp).statename==xNames);
             end
             % extract delay term, if it exists
             if double(equations.statevec(jtmp).var(1)-t) % non-zero delay term
@@ -161,6 +162,7 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.I{1} = [pvar('s'),1]; 
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
+                tmp{Loc}.term{j}.x = find(equations.statevec(jtmp).statename==xNames);
             end
             % extract delay term, if it exists
             if double(equations.statevec(jtmp).var(1)-t) % non-zero delay term
