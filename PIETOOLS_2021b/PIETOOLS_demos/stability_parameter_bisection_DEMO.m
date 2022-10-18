@@ -33,8 +33,11 @@ PDE.BC{2}.term{1}.loc = b;
 
 %%% Initialize settings for solving the LPI
 settings = lpisettings('veryheavy');
-settings.sos_opts.params.fid = 0;   % Suppress output in command window
+if strcmp(settings.sos_opts.solver,'sedumi')
+    settings.sos_opts.params.fid = 0;   % Suppress output in command window
+end
 
+%%% Perform bisection on the value of lam
 for iter = 1:n_iters
     % Update the value of lam in the PDE.
     PDE.x{1}.term{1}.C = lam;
@@ -45,6 +48,8 @@ for iter = 1:n_iters
     % Re-run the stability test.
     fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
     prog = PIETOOLS_stability(PIE,settings);
+
+    % Check if the system is stable
     if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)>0.3
         % Stability cannot be verified, decreasing the value of lam...
         lam_max = lam;

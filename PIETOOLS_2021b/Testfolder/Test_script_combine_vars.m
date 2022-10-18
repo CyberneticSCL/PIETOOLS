@@ -9,7 +9,7 @@ nvars = size(old_vars);
 old_dom = randi(5,[8,1])-3;
 old_dom = [old_dom,old_dom + randi(4,[8,1])];
 
-dep_tab = logical(randi([0,1],5,8))
+dep_tab = logical(randi([0,1],5,8));
 dep_tab_old = dep_tab;
 
 
@@ -73,3 +73,78 @@ PDE.BC{3}.term{1}.delay = 2;
 
 PDE = initialize(PDE);
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+pde_struct PDE;
+pvar s nu xi
+PDE.tau = [nu,1; xi,4];
+
+PDE.x{2}.vars = s;
+PDE.x{2}.dom = [0,1];
+
+PDE.x{1}.term{1}.x = 2;
+PDE.x{1}.term{1}.I{1} = [0,1];
+PDE.x{1}.term{1}.delay = 1/4;
+
+PDE.x{1}.term{2}.x = 1;
+PDE.x{1}.term{2}.delay = nu;
+
+PDE.x{2}.term{1}.x = 2;
+PDE.x{2}.term{1}.D = 1;
+PDE.x{2}.term{1}.delay = -3;
+
+PDE.x{2}.term{2}.x = 1;
+PDE.x{2}.term{2}.delay = xi;
+
+PDE.BC{1}.term{1}.x = 2;
+PDE.BC{1}.term{1}.loc = 0;
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+pde_struct PDE;
+pvar s
+PDE.x{1}.vars = s;
+PDE.x{1}.dom = [0,1];
+PDE.x{2}.vars = [];
+
+PDE.x{1}.tdiff = 3;
+PDE.x{1}.term{1}.x = 1;
+PDE.x{1}.term{1}.D = 2;
+
+PDE.x{2}.tdiff = 4;
+PDE.x{2}.term{1}.x = 2;
+
+PDE.BC{1}.term{1}.x = 1;
+PDE.BC{1}.term{1}.loc = 0;
+
+PDE.BC{2}.term{1}.x = 1;
+PDE.BC{2}.term{1}.loc = 1;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+pde_struct PDE;
+pvar ss1 ss2 tt1 tt2
+PDE.x{1}.vars = [ss1;ss2];
+PDE.x{1}.dom = [0,1;-1,1];
+PDE.y{1}.vars = [ss1];
+PDE.y{1}.dom = [0,1];
+
+PDE.x{1}.tdiff = 2;
+PDE.x{1}.term{1}.D = [2,0;0,2];
+PDE.x{1}.term{1}.C = [1,1];
+
+PDE.y{1}.term{1}.x = 1;
+PDE.y{1}.term{1}.I{2} = [-1,1];
+
+PDE.BC{1}.term{1}.x = 1;
+PDE.BC{1}.term{1}.loc = [0,ss2];
+PDE.BC{2}.term{1}.x = 1;
+PDE.BC{2}.term{1}.loc = [1,ss2];
+PDE.BC{3}.term{1}.x = 1;
+PDE.BC{3}.term{1}.loc = [ss1,-1];
+PDE.BC{4}.term{1}.x = 1;
+PDE.BC{4}.term{1}.loc = [ss1,1];
