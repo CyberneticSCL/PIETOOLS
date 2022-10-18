@@ -142,6 +142,8 @@ del_state_tab = zeros(0,2+2*nvars);
 % Remove the delay variables (they have all been replaced by spatial vars).
 PDE.tau = zeros(0,2);
 PDE.has_delay = false;
+PDE.dim = size(PDE.vars,1);
+PDE = initialize(PDE,true);
 
 % Display summary of the results.
 if ~suppress_summary
@@ -149,7 +151,7 @@ if ~suppress_summary
     if ndelay_states==0
         fprintf(['\n','No delays were encountered.\n'])
     else
-        print_summary_expand_delay(PDE,del_state_tab)
+        print_expand_delay_summary(PDE,del_state_tab)
     end
 end
 
@@ -435,6 +437,7 @@ Robj_size = Robj_tab(1,2);
 % % % Add a new state component to x_tab.
 % The new state should depend on the same variables as Robj.
 PDE.x_tab = [PDE.x_tab; Robj_tab];
+PDE.x_tab(end,1) = size(PDE.x_tab,1);
 has_vars_Robj = logical(PDE.x_tab(end,3:2+nvars));
 % The new state should also depend on the new delay variable.
 PDE.x_tab(end,[2+tau_var_idx,2+nvars+tau_var_idx]) = 1;
@@ -470,6 +473,9 @@ PDE.BC = [PDE.BC; struct()];
 PDE.BC{end}.size = Robj_size;
 PDE.BC{end}.vars = full_vars(has_vars_Robj,:);
 PDE.BC{end}.dom = full_dom(has_vars_Robj,:);
+PDE.BC_tab = [PDE.BC_tab;
+              [size(PDE.BC_tab,1)+1,Robj_size,double(has_vars_Robj),zeros(1,nvars)]];
+PDE.BC_tab(2+nvars+tau_var_idx) = 1;    % BC involves first order diff wrt delay variable.
 
 % Set up the BC:   (d/dr)^{diff} Robj(t,r1=a,r2) = xnew(t,s=0,r2)
 % First term: (d/dr)^{diff} Robj(t,r1=a,r2)
@@ -505,10 +511,11 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function print_summary_expand_delay(PDE,del_state_tab)
-% print_initialization_summary(PDE,obj,ncomps_x)
+function print_expand_delay_summary(PDE,del_state_tab)
+% print_expand_delay_summary(PDE,obj,ncomps_x)
 % prints in the command window some information concerning how many
-% state components have been added to the system.
+% state components have been added to the system, and which delayed
+% states/inputs these represent.
 %
 % INPUTS:
 % - PDE:        A "struct" or "pde_struct" class object defining a PDE.
@@ -522,10 +529,9 @@ function print_summary_expand_delay(PDE,del_state_tab)
 %                   indicated by columns 3+nvars_old:2+2*nvars_old.
 %
 % OUTPUTS:
-% Displays information in the command window concerning the number of
-% added components of type obj, along with the size of each of these
-% components, what variables they depend on, and (if obj=='x') to what
-% order they are differentiable in each of these variables.
+% Displays information in the command window concerning how many
+% state components have been added to the system, and which delayed
+% states/inputs these represent.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

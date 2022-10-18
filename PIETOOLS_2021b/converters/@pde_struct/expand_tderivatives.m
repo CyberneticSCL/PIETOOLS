@@ -162,10 +162,12 @@ end
 
 % Finally, display a summary, unless otherwise indicated, and return.
 PDE.has_hotd = false;
+% All fields of the returned PDE should still be appropriately specified.
+PDE.is_initialized = true;
+
 if ~suppress_summary
     print_tdiff_expansion_summary(PDE,tdiff_state_tab)
 end
-
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -175,11 +177,11 @@ end
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 function print_tdiff_expansion_summary(PDE,tdiff_state_tab)
-% print_initialization_summary(PDE,obj,ncomps_x)
-% prints in the command window some information concerning how many
-% components "PDE.(obj)" were encountered, on what variables each of these
-% components depends, and (iff obj=='x') to what order the component is
-% differentiable in each of the spatial variables on which it depends.
+% print_tdifff_expanion_summary(PDE,obj,ncomps_x)
+% prints in the command window some information concerning how many new
+% state components have been introduced to represent the higher-order
+% temporal derivatives, and which of the original state components these
+% correspond to.
 %
 % INPUTS:
 % - PDE:    A "pde_struct" class object defining a PDE.

@@ -403,6 +403,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Transport_Eq(GUI,params);
 %--------------------------------------------------------------------------
@@ -416,6 +417,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params);
 %--------------------------------------------------------------------------
@@ -427,6 +429,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Reaction_Diffusion_Eq(GUI,params);
 %--------------------------------------------------------------------------
@@ -446,6 +449,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params);
 %--------------------------------------------------------------------------
@@ -458,6 +462,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params);
 %--------------------------------------------------------------------------
@@ -468,6 +473,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params);
 %--------------------------------------------------------------------------
@@ -485,6 +491,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params);
 %--------------------------------------------------------------------------
@@ -496,6 +503,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE(GUI,params);
 %--------------------------------------------------------------------------
@@ -515,6 +523,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params);
 %--------------------------------------------------------------------------
@@ -543,6 +552,7 @@ switch index
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
+        BATCH = 0;
     end    
     [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params);
 % %---------------------------------------------------------------------% %
@@ -962,7 +972,7 @@ nargin0 = length(varargin0);
 if nargin0==1 %<-- If there is one input, this input MUST correspond to the desired PDE
     if isdouble(varargin0{1}) && varargin0{1}<=n_examples
         index = varargin0{1};
-        BATCH = 1;
+        TERM = 1;
     elseif contains(varargin0{1},'batch','IgnoreCase',true)
         index = randi(n_examples,1);
         disp(['Warning: No example has been selected, randomly selecting example ',num2str(index)]);

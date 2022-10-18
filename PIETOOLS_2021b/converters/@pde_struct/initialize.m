@@ -655,6 +655,8 @@ if ~suppress_summary
     print_initialization_summary(PDE,'BC');
 end
 
+% Indicate that the PDE has been initialized.
+PDE.is_initialized = true;
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -1059,7 +1061,10 @@ for ii=1:numel(PDE.(obj))
         end
         has_vars_Rcomp = logical(has_vars_Rcomp);
         nvars_Rcomp = sum(has_vars_Rcomp);
-        Rvar_order = PDE.(Robj){Rindx}.var_order;  % new_vars = old_vars(var_order)
+        Rvar_order = zeros(nR,nvars_Rcomp);
+        for kk=1:size(Rindx,1)
+            Rvar_order(kk,:) = PDE.(Robj){Rindx(kk)}.var_order;  % new_vars = old_vars(var_order)
+        end
         
         % % Finally, if a derivative is specified, update the maximal
         % % order of differentiability of the involved state component.
@@ -1090,7 +1095,18 @@ for ii=1:numel(PDE.(obj))
                 error(['The order of differentiation "',obj,'{',num2str(ii),'}.term{',num2str(jj),'}.D" is not appropriately specified;',...
                         ' please make sure the number of derivative orders matches the number of variables on which the considered state component depends.']);
             else
-                Dval = Dval(:,Rvar_order);
+                if size(Rvar_order,1)==1
+                    Dval = Dval(:,Rvar_order);
+                elseif size(Dval,1)==1
+                    Dval = repmat(Dval,[size(Rvar_order,1),1]);
+                    for kk=1:size(Rvar_order,1)
+                        Dval(kk,:) = Dval(kk,Rvar_order(kk,:));
+                    end
+                elseif size(Dval,1)==size(Rvar_order,1)
+                    for kk=1:size(Rvar_order,1)
+                        Dval(kk,:) = Dval(kk,Rvar_order(kk,:));
+                    end
+                end                    
             end            
             % Also make sure the number of specified derivatives matches
             % the number of proposed states.
@@ -1170,7 +1186,18 @@ for ii=1:numel(PDE.(obj))
                 error(['The spatial position "',term_name,'.loc" is not appropriately specified;',...
                         ' the number of elements should match the number of variables on which "',term_name,'.',Robj,'" depends.'])
             else
-                Rloc = Rloc(:,Rvar_order);
+                if size(Rvar_order,1)==1
+                    Rloc = Rloc(:,Rvar_order);
+                elseif size(Rloc,1)==1
+                    Rloc = repmat(Rloc,[size(Rvar_order,1),1]);
+                    for kk=1:size(Rvar_order,1)
+                        Rloc(kk,:) = Rloc(kk,Rvar_order(kk,:));
+                    end
+                elseif size(Rloc,1)==size(Rvar_order,1)
+                    for kk=1:size(Rvar_order,1)
+                        Rloc(kk,:) = Rloc(kk,Rvar_order(kk,:));
+                    end
+                end                
             end
             % Also make sure the number of positions matches the number of
             % considered state components.

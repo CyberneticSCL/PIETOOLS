@@ -1,5 +1,4 @@
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
-function [PDE,comp_order] = reorder_comps(PDE,obj)
+function [PDE,comp_order] = reorder_comps(PDE,obj,suppress_summary)
 % This function reorders the rows of tables PDE.x_tab, PDE.w_tab,
 % PDE.u_tab, PDE.y_tab and PDE.z_tab, in preparation of converting the PDE
 % to a PIE.
@@ -7,8 +6,12 @@ function [PDE,comp_order] = reorder_comps(PDE,obj)
 % INPUTS:
 % - PDE:    A struct or pde_struct type object, defining a PDE in the terms
 %           format (see also the "@pde_struct/initialize" function).
-% - obj:    'x', 'y', 'z', 'u', 'w', indicating for what object to reorder
-%           the components.
+% - obj:    'x', 'y', 'z', 'u', 'w', or 'BC', indicating for what object to
+%           reorder the components. Defaults to 'all', in which case all
+%           components of all objects are reordered.
+% - suppress_summary:   Logical value indicating whether to suppress the
+%                       summary of the reorder process, defaults to false.
+%
 %
 % OUTPUTS:
 % - PDE:    A structure of the same type as the input, with the table
@@ -19,7 +22,9 @@ function [PDE,comp_order] = reorder_comps(PDE,obj)
 %           component of PDE.x, PDE.u, or PDE.w.
 % - comp_order: An nx1 array indicating the new order of the components of
 %               obj, so that PDE_new.(obj){j} = PDE_old.(obj){comp_order(j)}.
-%
+%               If multiple objects are specified. comp_order will be a
+%               struct with field "comp_order.obj" specifying how the
+%               components of "obj" have been reordered.
 %
 % NOTES:
 % The components are seperated first based on which variables they depend
@@ -43,20 +48,56 @@ function [PDE,comp_order] = reorder_comps(PDE,obj)
 % Initial coding DJ - 08/09/2022
 %
 
+% % % Check the input arguments
+if nargin==1
+    % If no particular object is specified, reorder all components
+    obj = 'all';
+    suppress_summary = false;
+elseif nargin==2
+    suppress_summary = false;    
+end
+
+% If multiple objects are specified, run the function for each object
+% separately.
+if isa(obj,'char') && strcmp(obj,'all')
+    obj = {'x','w','u','z','y','BC'};
+end
+if isa(obj,'cell')
+    comp_order = struct();
+    for k=1:numel(obj)
+        obj_k = obj{k};
+        [PDE,comp_order_obj] = reorder_comps(PDE,obj_k,suppress_summary);
+        comp_order.(obj_k) = comp_order_obj;
+    end
+    return
+elseif ~ismember(obj,{'x','w','u','z','y','BC'})
+    error('The second argument must be one of {''x'',''w'',''u'',''z'',''y'',''BC'',''all''}.')
+end
+
+
+% % % Run the actual function.
 % Extract PDE information.
+if ~PDE.is_initialized
+    PDE = initialize(PDE,true);
+end
+% If there is no reordering to be done, just return.
+if numel(PDE.(obj))==0 || numel(PDE.(obj))==1
+    comp_order = ones(numel(PDE.(obj)),1);
+    return
+end
 nvars = PDE.dim;
 
-% Re-order the rows of x_tab such that:
-% - the index of the state components increases fastest;
+% Re-order the rows of obj_tab such that:
+% - the index of the components increases fastest;
 % - the order of differentiability wrt each of the nvars variables
 %   increase next, with the order of differentiability wrt the first
 %   variable increasing fastest and the order of differentiability wrt the
 %   last variable increases slowest;
-% - the dependence of the componetn on each of the nvars variables
+% - the dependence of the component on each of the nvars variables
 %   increase last, with the dependence on the first variable increasing
 %   fastest and the dependence on the last variable increasing slowest.
 % For inputs, there is no order of differentiability.
-if strcmp(obj,'x')
+if strcmp(obj,'x') || strcmp(obj,'BC')
     % For the state components, we order based on order of
     % differentiability as well.
     comp_tab = PDE.x_tab;
@@ -108,14 +149,146 @@ if strcmp(obj,'x') || strcmp(obj,'u') || strcmp(obj,'w')
         end
     end
 end
-
+% Establish the new order of the components.
 comp_order = obj_tab_new(:,1);
-%if strcmp(obj,'x') || strcmp(obj,'y') || strcmp(obj,'z')
-% Re-arrange the equations to match the new order
+% Re-arrange the equations to match the new order.
 PDE.(obj) = PDE.(obj)(comp_order);
-%end
-
+% Assign new indices 1:ncomps to the components.
 obj_tab_new(:,1) = 1:size(obj_tab_new,1);
 PDE.([obj,'_tab']) = obj_tab_new;
+% All fields of the returned PDE should still be appropriately specified.
+PDE.is_initialized = true;
+
+% Print a summary, if desired.
+if ~suppress_summary
+    print_reorder_summary(PDE,obj,comp_order)
+end
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function print_reorder_summary(PDE,obj,comp_order)
+% print_reorder_summary(PDE,obj,ncomps_x)
+% prints in the command window some information concerning the new order of
+% the components "obj" in the PDE structure.
+%
+% INPUTS:
+% - PDE:    A "pde_struct" class object defining a PDE.
+% - obj:    Char 'x', 'u', 'w', 'y', 'z', or 'BC', indicating for which
+%           object to display the new order of the variables.
+% - comp_order: comp_order(j) provides the index of the component in the
+%               original PDE associated to component j in the new PDE.
+%
+% OUTPUTS:
+% Displays information in the command window concerning the new order of
+% the components in PDE.obj, compared to the original PDE.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Set a name associated to each object.
+if strcmp(obj,'x')
+    object_name = 'state component';
+elseif strcmp(obj,'y')
+    object_name = 'observed output';
+elseif strcmp(obj,'z')
+    object_name = 'regulated output';
+elseif strcmp(obj,'u')
+    object_name = 'actuator input';
+elseif strcmp(obj,'w')
+    object_name = 'exogenous input';
+elseif strcmp(obj,'BC')
+    object_name = 'boundary condition';
+end
+ncomps = numel(PDE.(obj));
+if all(comp_order == (1:ncomps)')
+    % The order of the components has not changed.
+    fprintf(['\n','The order of the ',object_name,'s ',obj,' has not changed.\n']);
+    return
+else
+    % Otherwise, we list the new order of the components.
+    fprintf(['\n','The ',object_name,'s have been reordered as:\n']);
+end
+
+% Use UNICODE to add subscript indices to different components.
+sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
+% Determine how many subscripts will be needed.
+n_digits = 1+floor(log(ncomps)/log(10));
+
+
+% % For the purpose of clearer display, we make an estimate of how long the
+% % display will be. 
+% First, determine which variables appear in the different state variables.
+nvars = size(PDE.vars,1);
+global_vars_obj = PDE.vars(any(PDE.([obj,'_tab'])(:,3:2+nvars),1),:);
+if isempty(global_vars_obj)
+    global_varnames = '(t)';
+else
+    global_varnames =  global_vars_obj(1,1).varname{1};
+    for kk=2:size(PDE.vars,1)
+        global_varnames = [global_varnames,',',PDE.vars(kk,1).varname{1}];
+    end
+    global_varnames = ['(t,',global_varnames,')'];
+end
+% Then, estimate the size of the string of characters denoting the components
+% "PDE.x{ii}".
+nvars_max = max(sum(PDE.([obj,'_tab'])(:,3:2+nvars),2));
+lngth_varnames_mean = ceil(length(global_varnames)*nvars_max/nvars);
+LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+3; % e.g. ' x13(t,s1,s2,s3)', 
+
+
+% % For each of the components, display its size, and which variables it
+% % depends on.
+for ii=1:ncomps
+    old_idx = comp_order(ii);
+    comp_ii = PDE.(obj){ii};
+    
+    % Establish the names of the variables on which the component depends.
+    if isempty(comp_ii.vars)
+        varnames_ii = '';
+        varnames_ii_t = 't';    % All components may vary in time
+    else
+        % Set a comma separated list.
+        varnames_ii = comp_ii.vars(1,1).varname{1};
+        for kk=2:size(comp_ii.vars,1)
+            varnames_ii = [varnames_ii,',',comp_ii.vars(kk,1).varname{1}];
+        end
+        varnames_ii_t = ['t,',varnames_ii]; % All components may vary in time
+    end
+    
+    % Establish the (subscript) index for the component.
+    LHS_length = length(varnames_ii_t);
+    if numel(PDE.x)==1
+        % There is only one state component --> no need to give index
+        Lcomp_idx = '';
+    elseif numel(PDE.x)<=9
+        % The state number consists of a single decimal.
+        Lcomp_idx = sub_num{old_idx+1};
+        LHS_length = LHS_length + 1;
+    else
+        % The state number consists of multiple decimals.
+        Lcomp_idx = cell2mat(sub_num(str2num(num2str(old_idx)')+1)');
+        LHS_length = LHS_length + length(num2str(old_idx));
+    end
+    % Set the name of the component, including its depdence on spatial
+    % variables.
+    LHS_name = [' x',Lcomp_idx,'(',varnames_ii_t,')'];
+    LHS_length = 1 + LHS_length + 3;
+        
+    % For the added state components, indicate of which state component
+    % they are the temporal derivative.
+    new_idx = ii;
+    Rcomp_idx = cell2mat(sub_num(str2num(num2str(new_idx)')+1)');
+    RHS = [' -->   x',Rcomp_idx,'(',varnames_ii_t,')'];
+%    RHS = '';
+    
+    % % % Finally, display:
+    MT_space = max(LHS_length_max-LHS_length,1);
+    fprintf(['  ',LHS_name,repmat(' ',[1,MT_space]),RHS,'\n']);
+end
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
