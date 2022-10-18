@@ -8,6 +8,7 @@
 % What is Poincare Inequality?
 % Find C; such that for an function u \in H^1[0, 1]
 % ||u|| ≤ C||u_s||
+% where H^1[0,1] := {u: u_{s}\in L_2[0,1] & u(0)=u(1)=0}
 
 % Optimization Problem
 % min C, such that
@@ -43,23 +44,23 @@ PDE = initialize(PDE);
 
 %%%%% Convert the PDE to a PIE
 PIE = convert(PDE,'pie');
-Top = PIE.T;
-H1 = PIE.A;
+H2 = PIE.T;     % H2 x_{ss} = x
+H1 = PIE.A;     % H1 x_{ss} = x_{s}
 
 
-%%%%%   Solve the LPI < Top u_ss, Top u_ss> - gam <H1 u_ss, H1 u_ss> <=0
-%%%%%   where (Top u_ss) = u and (H1 u_ss) = u_s
+%%%%%   Solve the LPI < H2 x_ss, H2 x_ss> - gam <H1 x_ss, H1 x_ss> <=0
+%%%%%   where (H2 x_ss) = x and (H1 x_ss) = x_s
 % % First, define dpvar gam and set up an optimization problem
 dpvar gam;
-vars = [Top.var1; Top.var2];
+vars = [H2.var1; H2.var2];
 prob = sosprogram(vars,gam);
 
-% % Set gam as objective function
+% % Set gam as objective function to minimize
 prob = sossetobj(prob, gam);
 
-% % Set up the constraint Top'*Top-gam<=0
-opts.psatz = 1;     % Add psatz term to allow Top'*Top>gam outside of [a,b]
-prob = lpi_ineq(prob,-(Top'*Top-gam*H1'*H1),opts);
+% % Set up the constraint H2'*H2-gam H1'*H1<=0
+opts.psatz = 1;     % Add psatz term to allow H2'*H2 > gam H1'*H1 outside of [a,b]
+prob = lpi_ineq(prob,-(H2'*H2-gam*H1'*H1),opts);
 
 % Solve and retrieve the solution
 prob = sossolve(prob);
@@ -69,4 +70,4 @@ poincare_constant = sqrt(double(sosgetsol(prob,gam)));
 echo off
 
 fprintf(['\n If successful, ',num2str(poincare_constant),' is an upper bound on Poincare''s constant for this problem.\n'])
-fprintf([' An optimal value of Poincare''s constant for this problem is known to be 1/pi=',num2str(1/(pi)),'.\n']);
+fprintf([' An optimal value of Poincare''s constant on domain [0,1] is known to be 1/pi=',num2str(1/(pi)),'.\n']);
