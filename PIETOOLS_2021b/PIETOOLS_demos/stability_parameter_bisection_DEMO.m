@@ -56,7 +56,6 @@ for iter = 1:n_iters
         lam = 0.5*(lam_min + lam_max);
     else
         % The system is stable, trying a larger value of lam...
-        lam_success = lam;
         lam_min = lam;
         lam = 0.5*(lam_min + lam_max);
     end    
