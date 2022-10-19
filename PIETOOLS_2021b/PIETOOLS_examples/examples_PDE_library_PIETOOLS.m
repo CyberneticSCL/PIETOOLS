@@ -1023,8 +1023,8 @@ elseif nargin0>=2
     end
 end
 if BATCH==0 && TERM==0 && GUI==0
-    disp('Warning: The input format has not been (appropriately) defined, reverting to batch input format...');
-    BATCH=1;
+    disp('Warning: The input format has not been (appropriately) defined, reverting to terms input format...');
+    TERM=1;
 end
 
 end
