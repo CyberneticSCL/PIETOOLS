@@ -34,7 +34,7 @@ pvar s theta s1 s2 theta1 theta2
 evalin('base','stability = 1;');
 
 % Specify the parameters
-ne = 1;   lam = 0; %9.86
+ne = 1;   lam = 9.86; %9.86
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters

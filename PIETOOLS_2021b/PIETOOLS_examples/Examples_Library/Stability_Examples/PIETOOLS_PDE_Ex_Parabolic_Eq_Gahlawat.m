@@ -40,9 +40,9 @@ evalin('base','stability_dual = 1;')
 
 % Specify the parameters
 ne = 1; lam = 4.66;
-afun = s^3 - s^2 + 2;
-bfun = 3*s^2 - 2*s;
-cfun = -0.5*s^3 + 1.3*s^2 - 1.5*s + 0.7 + lam;
+a = s^3 - s^2 + 2;
+b = 3*s^2 - 2*s;
+c = -0.5*s^3 + 1.3*s^2 - 1.5*s + 0.7 + lam;
  
 npars = length(params);
 if npars~=0
@@ -58,9 +58,9 @@ end
 PDE_b.n0 = 0;   PDE_b.n1 = 0;   PDE_b.n2 = ne;
 PDE_b.dom = [0,1];
 
-PDE_b.A2 = afun*eye(ne);
-PDE_b.A1 = bfun*eye(ne);
-PDE_b.A0 = cfun*eye(ne);
+PDE_b.A2 = a*eye(ne);
+PDE_b.A1 = b*eye(ne);
+PDE_b.A0 = c*eye(ne);
 
 PDE_b.B = [eye(ne), zeros(ne), zeros(ne), zeros(ne);
     zeros(ne), zeros(ne), zeros(ne), eye(ne)];
@@ -70,15 +70,15 @@ PDE_b.B = [eye(ne), zeros(ne), zeros(ne), zeros(ne);
 PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
 
 % PDE: x_{t} = cfun * x
-PDE_t.x{1}.term{1}.C = cfun*eye(ne);
+PDE_t.x{1}.term{1}.C = c*eye(ne);
 
 % PDE: x_{t} = ... + bfun * x_{s}
 PDE_t.x{1}.term{2}.D = 1;
-PDE_t.x{1}.term{2}.C = bfun*eye(ne);
+PDE_t.x{1}.term{2}.C = b*eye(ne);
 
 % PDE: x_{t} = ... + afun * x_{ss}
 PDE_t.x{1}.term{3}.D = 2;
-PDE_t.x{1}.term{3}.C = afun;
+PDE_t.x{1}.term{3}.C = a;
 
 % BCs: 0 = x(0)
 PDE_t.BC{1}.term{1}.loc = 0;
