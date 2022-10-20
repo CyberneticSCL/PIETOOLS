@@ -241,7 +241,6 @@ TB2op.dim = [nx nw; nxb 0];
 
 
 PIE = pie_struct();
-PIE.dim = 1;
 PIE.vars = [Top.var1,Top.var2];
 PIE.dom=[-1 0];
 PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;

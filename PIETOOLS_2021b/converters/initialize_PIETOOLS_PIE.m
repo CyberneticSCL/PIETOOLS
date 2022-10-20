@@ -34,9 +34,6 @@ end
 if ~isfield(PIE,'dom')
     PIE.dom = [0,1];
 end
-if ~isfield(PIE,'dim')
-    PIE.dim = 1;
-end
 if ~isfield(PIE,'vars')
     PIE.vars = [pvar('s'),pvar('theta')];
 end

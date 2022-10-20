@@ -77,9 +77,11 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pde_struct
 
     
 properties
-    dim = 0;
+    % Primary and dummy spatial variables that appear in the system.
     vars = polynomial(zeros(0,2));
+    % Interval on which each spatial variable exists.
     dom = zeros(0,2);
+    % Delay variables (1st column) and associated delays (2nd column).
     tau = polynomial(zeros(0,2));
     
     x = cell(0);
@@ -105,6 +107,11 @@ properties (Hidden)
     has_delay = false;      % Does the system involve any delayed states/inputs?
     has_hotd = false;       % Does the system involve any higher-order temporal derivatives?
 end
+properties (Dependent)
+    % Dimension of the system
+    dim = 0;
+end
+
     
 methods
     function obj = pde_struct(varargin)
@@ -123,9 +130,6 @@ methods
                 obj = pde_struct();
                 % Copy information from any field in the struct to the
                 % pde_struct.
-                if isfield(varargin{1},'dim')
-                    obj.dim = varargin{1}.dim;
-                end
                 if isfield(varargin{1},'vars')
                     obj.vars = varargin{1}.vars;
                 end
@@ -188,6 +192,16 @@ methods
                     error("Input must be strings");
                 end
             end
+        end
+    end
+
+    function dim_val = get.dim(obj)
+        % Get spatial dimension of PDE.
+        if size(obj.vars,1)==size(obj.dom,1)
+            % Each variable should be assigned a domain.
+            dim_val = size(obj.vars,1);
+        else
+            dim_val = nan;
         end
     end
 end

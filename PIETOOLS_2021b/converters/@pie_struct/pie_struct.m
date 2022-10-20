@@ -80,7 +80,6 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
     properties
         dom = zeros(0,2);
         vars = polynomial(zeros(0,2));
-        dim = 0;
         T;
         Tw;
         Tu;
@@ -105,6 +104,11 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
         y_tab = zeros(0,2);
         z_tab = zeros(0,2);
     end
+
+    properties (Dependent)
+        % Spatial dimension of the PIE.
+        dim = 0;
+    end
     
 methods
     function obj = pie_struct(varargin)
@@ -122,10 +126,7 @@ methods
                 % If a struct is provided, convert to a "pie_struct".
                 obj = pie_struct();
                 % Copy information from any field in the struct to the
-                % pde_struct.
-                if isfield(varargin{1},'dim')
-                    obj.dim = varargin{1}.dim;
-                end
+                % pie_struct.
                 if isfield(varargin{1},'vars')
                     obj.vars = varargin{1}.vars;
                 end
@@ -202,9 +203,19 @@ methods
             end
         end
     end
-    
+
+    function dim_val = get.dim(obj)
+        % Get spatial dimension of PDE.
+        if size(obj.vars,1)==size(obj.dom,1)
+            % Each variable should be assigned a domain.
+            dim_val = size(obj.vars,1);
+        else
+            dim_val = nan;
+        end
+    end
     
     function display(obj,name)
+        % Pseudo display function, just "disp" in structured manner.
         try disp_pie(obj,name)
         catch
             disp(obj);

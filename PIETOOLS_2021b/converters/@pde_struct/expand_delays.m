@@ -142,7 +142,6 @@ del_state_tab = zeros(0,2+2*nvars);
 % Remove the delay variables (they have all been replaced by spatial vars).
 PDE.tau = zeros(0,2);
 PDE.has_delay = false;
-PDE.dim = size(PDE.vars,1);
 PDE = initialize(PDE,true);
 
 % Display summary of the results.
@@ -154,6 +153,9 @@ if ~suppress_summary
         print_expand_delay_summary(PDE,del_state_tab)
     end
 end
+
+% Normalize domain to reduce the number of spatial variables.
+PDE = combine_vars(PDE);
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

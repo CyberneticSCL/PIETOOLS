@@ -274,7 +274,6 @@ a=-1;b=0;
 X = [a b];
 
 PIE = pie_struct();
-PIE.dim = 1;
 PIE.vars = [Top.var1,Top.var2];
 PIE.dom=X;
 PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;

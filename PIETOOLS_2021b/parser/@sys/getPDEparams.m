@@ -27,8 +27,7 @@ inidx = find(strcmp(equations.statevec.type,'in')); % find all terms with input
 % start parsing the system equations
 out = pde_struct();
 
-% set known global properties 
-out.dim = 1;
+% set known global properties
 out.dom = [0,1];
 out.vars = [pvar('s'),pvar('theta')];
 

@@ -400,7 +400,6 @@ if size(PDE.vars,1)==size(global_vars,1)
     end
 end
 
-PDE.dim = size(global_vars,1);  % also keep track of the dimension of the PDE
 PDE.dom = global_dom;
 PDE.vars = global_vars;
 

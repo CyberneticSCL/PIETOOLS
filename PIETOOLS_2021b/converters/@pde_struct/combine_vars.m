@@ -164,7 +164,6 @@ PDE_new = PDE;
 % Update the global variables and their domains
 PDE_new.vars = new_vars;
 PDE_new.dom = new_dom;
-PDE_new.dim = nvars_new;
 
 % % % Update the object tables x_tab, etc. to match the new dependence.
 PDE_new.x_tab = PDE.x_tab(:,[1, 2, 2+var_indcs_retain', 2+nvars_new+var_indcs_retain']);

@@ -365,7 +365,6 @@ Pop.x = Pop_x2z_cell;   Pop.u = Pop_u2z;    Pop.w = Pop_w2z;
 
 % Keep track of the variables and domain of the system.
 PIE = pie_struct();
-PIE.dim = nvars;
 PIE.dom = dom;
 PIE.vars = vars;
 
