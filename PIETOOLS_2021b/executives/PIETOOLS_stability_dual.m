@@ -42,7 +42,7 @@ if PIE.dim==2
     if nargin==1
         [prog, P] = PIETOOLS_stability_dual_2D(PIE);
     else
-        [prog, P] = PIETOOLS_staibility_dual_2D(PIE,settings);
+        [prog, P] = PIETOOLS_stability_dual_2D(PIE,settings);
     end
     return
 end
