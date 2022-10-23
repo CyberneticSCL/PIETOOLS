@@ -637,6 +637,10 @@ for kk = 1:numel(objs)
         elseif strcmp(obj,'y') || strcmp(obj,'z') || strcmp(obj,'BC')
             PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'size','vars','dom','term'});
         else
+            if ~isfield(PDE.(obj){ii},'size')
+                % Set number of input variables.
+                PDE.(obj){ii}.size = PDE.([obj,'_tab'])(ii,2);
+            end
             PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'size','vars','dom'});
         end
     end
