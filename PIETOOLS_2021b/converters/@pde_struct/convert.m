@@ -77,6 +77,7 @@ fprintf(['\n',' --- Reordering the state components to allow for representation 
 % converter.
 if PDE.dim<=1
     PIE = convert_PIETOOLS_PDE_terms(PDE);
+    PIE.vars = PDE.vars;
 elseif PDE.dim==2
     PIE = convert_PIETOOLS_PDE_2D(PDE);
 else
