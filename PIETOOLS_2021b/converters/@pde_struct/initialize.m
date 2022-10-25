@@ -490,6 +490,34 @@ BC_tab(:,1) = 1:numel(PDE.BC);
 PDE.BC_tab = BC_tab;
 
 
+% Using the tables, set the variables on which each state, input, and
+% output depends.
+PDE = set_vars(PDE,'x');
+PDE = set_vars(PDE,'y');
+PDE = set_vars(PDE,'z');
+PDE = set_vars(PDE,'u');
+PDE = set_vars(PDE,'w');
+
+
+% % For the state components, we also store the order of differentiability
+% % in each spatial variable, in diff_tab.
+diff_tab = zeros(numel(PDE.x),nvars);
+BC_diff_tab = zeros(numel(PDE.BC),nvars);
+
+% For the different equations for x, y, z, and the BCs, we use 
+% "get_diff_tab" to loops over the terms in each of these equations, 
+% checking the order of the derivatives of the state components to
+% establish an order of differentiability of each component.
+% The functions also determine a size for each state, input, output, and
+% BC, and stores it in the second column of the appropriate table 
+% PDE.(*)_tab. 
+[PDE,diff_tab] = get_diff_tab(PDE,'x',diff_tab,Gvar_order);
+[PDE,diff_tab] = get_diff_tab(PDE,'z',diff_tab,Gvar_order);
+[PDE,diff_tab] = get_diff_tab(PDE,'y',diff_tab,Gvar_order);
+[PDE,diff_tab] = get_diff_tab(PDE,'BC',diff_tab,Gvar_order);
+
+
+% % Finally, set sizes of the objects.
 % For any state component of which the size is not clear, assume the
 % component to be scalar.
 PDE.x_tab(PDE.x_tab(:,2)==0,2) = 1;
@@ -511,32 +539,6 @@ else
     PDE.w_tab(PDE.w_tab(:,2)==0,2) = 1;
     %PDE.BC_tab(PDE.BC_tab(:,2)==0,2) = 1;
 end
-
-% Using the tables, set the variables on which each state, input, and
-% output depends.
-PDE = set_props(PDE,'x');
-PDE = set_props(PDE,'y');
-PDE = set_props(PDE,'z');
-PDE = set_props(PDE,'u');
-PDE = set_props(PDE,'w');
-
-
-% % For the state components, we also store the order of differentiability
-% % in each spatial variable, in diff_tab.
-diff_tab = zeros(numel(PDE.x),nvars);
-BC_diff_tab = zeros(numel(PDE.BC),nvars);
-
-% For the different equations for x, y, z, and the BCs, we use 
-% "get_diff_tab" to loops over the terms in each of these equations, 
-% checking the order of the derivatives of the state components to
-% establish an order of differentiability of each component.
-% The functions also determine a size for each state, input, output, and
-% BC, and stores it in the second column of the appropriate table 
-% PDE.(*)_tab. 
-[PDE,diff_tab] = get_diff_tab(PDE,'x',diff_tab,Gvar_order);
-[PDE,diff_tab] = get_diff_tab(PDE,'z',diff_tab,Gvar_order);
-[PDE,diff_tab] = get_diff_tab(PDE,'y',diff_tab,Gvar_order);
-[PDE,diff_tab] = get_diff_tab(PDE,'BC',diff_tab,Gvar_order);
 
 
 % % % --------------------------------------------------------------- % % %
@@ -810,7 +812,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function PDE = set_props(PDE,obj)
+function PDE = set_vars(PDE,obj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PDE = set_vars(PDE,obj)
 % sets the properties of each component of the state, input, or output
@@ -838,11 +840,11 @@ Lobj_tab = PDE.([obj,'_tab']);
 % Loop over the components, assigning the values of each field.
 n_comps = numel(PDE.(obj));
 for ii=1:n_comps
-    % First, set the size of the component
-    if isfield(PDE.(obj){ii},'size') && PDE.(obj){ii}.size ~= PDE.([obj,'_tab'])(ii,2)
-        error(['The specified size "',obj,'{',eq_num_str,'}.size" does not match the observed size of component "',obj,'{',num2str(ii),'};',...
-                ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
-    end
+%     % First, set the size of the component
+%     if isfield(PDE.(obj){ii},'size') && PDE.(obj){ii}.size ~= PDE.([obj,'_tab'])(ii,2)
+%         error(['The specified size "',obj,'{',ii,'}.size" does not match the observed size of component "',obj,'{',num2str(ii),'};',...
+%                 ' please adjust the specified size or the dimensions of the matrices "C" in the appropriate terms.'])
+%     end
     
     % Next, check which of the global variables our LHS component (state
     % or output) actually depends on.
