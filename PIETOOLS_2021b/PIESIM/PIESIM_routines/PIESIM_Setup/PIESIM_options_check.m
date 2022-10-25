@@ -136,10 +136,10 @@ elseif isfield(structure,'tau')
 elseif isa(structure,'pde_struct') || isa(structure,'sys')
     disp('Solving PDE problem');
     opts.type='PDE';
-elseif isfield(PDE,'nx') || isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
+elseif isfield(structure,'nx') || isfield(structure,'n0') || isfield(structure,'n1') || isfield(structure,'n2')
     disp('Solving PDE problem in legacy batch format');
     opts.type='PDE_b';
-elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')
+elseif isfield(structure,'n') || isfield(structure,'ODE')  || isfield(structure,'PDE')
     disp('Solving PDE problem in legacy terms format');
     opts.type='PDE_t';
 else

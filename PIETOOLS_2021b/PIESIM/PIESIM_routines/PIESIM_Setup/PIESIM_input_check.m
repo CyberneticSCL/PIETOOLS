@@ -53,13 +53,13 @@ if strcmp(opts.type,'PDE_b')
 %-----------------------------------------------------------
 % Input check for PDEs in batch format
 %-----------------------------------------------------------
-    [structure, uinput, psize] = PIESIM_input_check_PDE_batch(varargin);
+    [structure, uinput, psize] = PIESIM_input_check_PDE_batch(varargin{:});
     
 elseif strcmp(opts.type,'PDE_t')
 %-----------------------------------------------------------
 % Input check for PDEs in legacy terms format
 %-----------------------------------------------------------
-    [structure, uinput, psize] = PIESIM_input_check_PDE_terms_legacy(varargin);
+    [structure, uinput, psize] = PIESIM_input_check_PDE_terms_legacy(varargin{:});
 
 elseif strcmp(opts.type,'PDE')
 %-----------------------------------------------------------
@@ -659,13 +659,6 @@ if (psize.n.nw>0)
         uinput.w(1,size(uinput.w,2):psize.n.nw)=0;
     end
 end
-psize.nu=psize.n.nu;
-psize.nw=psize.n.nw;
-psize.nx=psize.n.nx;
-psize.nz=psize.n.nz;
-psize.ny=psize.n.ny;
-psize.N=opts.N;
-psize.n=psize.n.n_pde;
 
 
 if ~isfield(psize,'dom')
@@ -682,5 +675,14 @@ uinput.a=psize.dom(1);
 uinput.b=psize.dom(2);
 
 structure=psize;
+clear psize;
+
+psize.nu=structure.n.nu;
+psize.nw=structure.n.nw;
+psize.nx=structure.n.nx;
+psize.nz=structure.n.nz;
+psize.ny=structure.n.ny;
+psize.N=opts.N;
+psize.n=structure.n.n_pde;
 
 end
