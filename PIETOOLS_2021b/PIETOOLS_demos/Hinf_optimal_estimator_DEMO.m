@@ -116,7 +116,8 @@ else
     opts.simplify = true;
     prog_sol = sossolve(prog,opts);
 
-    % Extract the solved values of the operators P and Z
+    % Extract the solved value of gam and the operators P and Z
+    gam_val = sosgetsol(prog_sol,gam);
     Pval = getsol_lpivar(prog_sol,P);
     Zval = getsol_lpivar(prog_sol,Z);
     
