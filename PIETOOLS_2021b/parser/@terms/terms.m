@@ -22,6 +22,8 @@ methods
     obj = int(objA,var,lim);
     obj = length(obj);
     obj = minus(objA,objB);
+    obj = eq(objA,objB);
+    obj = isequal(objA,objB);
     obj = mtimes(objA,objB); % note only one of two inputs can be terms object
     obj = plus(objA,objB);
 %     obj = times(objA,objB); % note only one of two inputs can be terms object

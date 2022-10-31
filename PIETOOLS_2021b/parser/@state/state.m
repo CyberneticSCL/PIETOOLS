@@ -73,6 +73,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
         obj = subs(obj,var,var_val);
         obj = diff(obj,var,order);
         logval = eq(objA,objB);
+        logval = isequal(objA,objB);
         obj = horzcat(varargin);
         obj = int(obj,var,limits);
         [logval,idx] = ismember(objA,objB)
