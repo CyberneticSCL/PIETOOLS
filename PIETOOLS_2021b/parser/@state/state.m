@@ -6,8 +6,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
         diff_order {mustBeInteger,mustBeVector,mustBeNonnegative}= [0];
     end
     properties (Hidden)
-        maxdiff = [0];
-        dom = [];
+        maxdiff = "undefined";
+        dom = [0,1];
     end
     properties (Hidden, SetAccess=protected)
         statename;
@@ -62,6 +62,13 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
             end
         end
         
+        function obj = set.dom(obj,dom)
+            obj.dom = dom;
+        end
+        function obj = set.maxdiff(obj,maxdiff)
+            obj.maxdiff = maxdiff;
+        end
+
         % other class methods
         obj = subs(obj,var,var_val);
         obj = diff(obj,var,order);

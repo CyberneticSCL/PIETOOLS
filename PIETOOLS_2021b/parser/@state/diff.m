@@ -16,6 +16,11 @@ for i=1:length(obj)
         error('Differentiation of inputs and outputs is currently not supported')
     end
     idx = find(isequal(obj(i).var,var));
-    obj(i).diff_order(idx) = obj(i).diff_order(idx)+order;
+    if ~strcmp("undefined",obj(i).maxdiff)&&(obj(i).diff_order(idx)+order>obj(i).maxdiff(idx))
+        msg = "Differentiation with respect to "+var.varname+" exceeds specified max derivative, "+num2str(obj(i).maxdiff(idx));
+        error(msg);
+    else
+        obj(i).diff_order(idx) = obj(i).diff_order(idx)+order;
+    end
 end
 end

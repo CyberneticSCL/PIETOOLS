@@ -3,6 +3,9 @@ equations = pdeObj.equation;
 statelist = pdeObj.states;
 eqnNum = length(equations);
 
+% change the domain to global value specified
+dom = pdeObj.dom;
+
 % temporary pvars
 pvar t;
 
@@ -76,7 +79,7 @@ for i=1:eqnNum
                 if any(~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)),zeros(1,equations.statevec(j).veclength)))% integral term
                     tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{Loc}.term{j}.D = equations.statevec(j).diff_order(2);
-                    tmp{Loc}.term{j}.I{1} = [0,1];
+                    tmp{Loc}.term{j}.I{1} = dom;
                 else % boundary term
                     tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{Loc}.term{j}.loc = equations.statevec(j).var(2);
@@ -142,7 +145,7 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.C = [];
             end
             if any(~isequal(polynomial(row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)),zeros(1,equations.statevec(jtmp).veclength)))% integral term
-                tmp{Loc}.term{j}.I{1} = [0,pvar('s')];
+                tmp{Loc}.term{j}.I{1} = [dom(1),pvar('s')];
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
                 tmp{Loc}.term{j}.x = find(equations.statevec(jtmp).statename==xNames);
@@ -158,7 +161,7 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.C = [];
             end
             if any(~isequal(polynomial(row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)),zeros(1,equations.statevec(jtmp).veclength)))% integral term
-                tmp{Loc}.term{j}.I{1} = [pvar('s'),1]; 
+                tmp{Loc}.term{j}.I{1} = [pvar('s'),dom(2)]; 
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
                 tmp{Loc}.term{j}.x = find(equations.statevec(jtmp).statename==xNames);
@@ -185,7 +188,7 @@ for i=1:eqnNum
                 if ~isequal(polynomial(row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)),zeros(1,equations.statevec(j).veclength))% integral term
                     tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; -row.operator.R.R1(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{k+1}.term{j}.D = equations.statevec(j).diff_order(2);
-                    tmp{k+1}.term{j}.I{1} = [0,1];
+                    tmp{k+1}.term{j}.I{1} = dom;
                 else % boundary term
                     tmp{k+1}.term{j}.C = [tmp{k+1}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
                     tmp{k+1}.term{j}.loc = equations.statevec(j).var(2);

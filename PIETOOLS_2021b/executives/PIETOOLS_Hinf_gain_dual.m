@@ -150,9 +150,9 @@ end
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop = [-gam*eye(nz)   D11op              C1op*Pop*Top';
-        D11op'                -gam*eye(nw)  B1op';
-        Top*Pop*C1op'       B1op          Top*Pop*Aop'+Aop*Pop*Top']; 
+Dop = [-gam*eye(nz)      D11op              C1op*Pop*Top';
+        D11op'          -gam*eye(nw)        B1op';
+        Top*Pop*C1op'    B1op               Top*Pop*Aop'+Aop*Pop*Top']; 
     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

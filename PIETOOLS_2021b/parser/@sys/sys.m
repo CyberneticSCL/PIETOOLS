@@ -5,6 +5,7 @@ classdef sys
         params {mustBeA(params,{'pde_struct','pie_struct'})} = pde_struct();
         ControlledInputs;
         ObservedOutputs;
+        dom = [0,1];
     end
     properties (Dependent)
         states;
@@ -34,6 +35,9 @@ classdef sys
         end
         function obj = set.params(obj,params)
             obj.params = params;
+        end
+        function obj = set.dom(obj,dom)
+            obj.dom = dom;
         end
         function out = get.ObservedOutputs(obj)
             if isempty(obj.ObservedOutputs)
