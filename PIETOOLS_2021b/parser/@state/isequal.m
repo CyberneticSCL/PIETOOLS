@@ -19,7 +19,7 @@ if any(objA(i).diff_order~=objB(i).diff_order)
     logval=0;
     return
 end
-if any(objA(i).var~=objB(i).var)
+if any(~isequal(objA(i).var,objB(i).var))
     logval=0;
     return
 end

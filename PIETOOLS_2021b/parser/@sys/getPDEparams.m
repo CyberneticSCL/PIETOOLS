@@ -145,7 +145,11 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.C = [];
             end
             if any(~isequal(polynomial(row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)),zeros(1,equations.statevec(jtmp).veclength)))% integral term
-                tmp{Loc}.term{j}.I{1} = [dom(1),pvar('s')];
+                if ismember(xNames(Loc),odeNames)
+                    tmp{Loc}.term{j}.I{1} = dom;
+                else
+                    tmp{Loc}.term{j}.I{1} = [dom(1),pvar('s')];
+                end
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R1(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
                 tmp{Loc}.term{j}.x = find(equations.statevec(jtmp).statename==xNames);
@@ -161,7 +165,11 @@ for i=1:eqnNum
                 tmp{Loc}.term{j}.C = [];
             end
             if any(~isequal(polynomial(row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)),zeros(1,equations.statevec(jtmp).veclength)))% integral term
-                tmp{Loc}.term{j}.I{1} = [pvar('s'),dom(2)]; 
+                if ismember(xNames(Loc),odeNames)
+                    continue;
+                else
+                    tmp{Loc}.term{j}.I{1} = [pvar('s'),dom(2)]; 
+                end
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R2(:,veclen_sum(jtmp):veclen_sum(jtmp+1)-1)];
                 tmp{Loc}.term{j}.D = equations.statevec(jtmp).diff_order(2);
                 tmp{Loc}.term{j}.x = find(equations.statevec(jtmp).statename==xNames);
