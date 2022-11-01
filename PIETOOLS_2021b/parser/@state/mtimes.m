@@ -17,9 +17,9 @@ isdot_A = isdot(objA); isout_A=isout(objA);
 if any((isdot_A|isout_A))
     error("Multiplication involving vectors with outputs or time-derivative of state is not allowed");
 end
+s.type = '.'; s.subs = 'veclength';
 
-
-if numel(K)~=1 && (size(K,2)~=sum(objA.veclength))&& (sum(objA.veclength)~=1)
+if numel(K)~=1 && (size(K,2)~=sum(subsref(objA,s)))&& (sum(subsref(objA,s))~=1)
     error('Dimensions of multiplier and state vector do not match. Cannot be multiplied');
 end
 
