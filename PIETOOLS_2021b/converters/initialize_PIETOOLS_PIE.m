@@ -26,8 +26,10 @@ if nargin==0
     PIE = pie_struct();
     return
 end
-
-if ~isa(PIE,'struct') && ~isa(PIE,'pie_struct')
+if isa(PIE,'pie_struct')
+    PIE = initialize(PIE);
+    return
+elseif ~isa(PIE,'struct')
     error('Input must be a ''struct'' or ''pie_struct'' class object.')
 end
 
@@ -59,10 +61,10 @@ else
 end
 
 % find remaining dimensions
-dimstruct.nw = find_nw(PIE.Tw,PIE.B1,PIE.D11,PIE.D21);
-dimstruct.nu = find_nu(PIE.Tw,PIE.B1,PIE.D11,PIE.D21);
-dimstruct.nz = find_nz(PIE.Tw,PIE.B1,PIE.D11,PIE.D21);
-dimstruct.ny = find_ny(PIE.Tw,PIE.B1,PIE.D11,PIE.D21);
+dimstruct.nw = find_nw(PIE);
+dimstruct.nu = find_nu(PIE);
+dimstruct.nz = find_nz(PIE);
+dimstruct.ny = find_ny(PIE);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -143,10 +143,10 @@ C_CL = [C1, 0*C1; 0*C1, C1];            D_CL = [D11; 0*D11];
 PIE_CL = pie_struct();
 PIE_CL.vars = PIE.vars;
 PIE_CL.dom = PIE.dom;
-PIE_CL.T = T_CL;        PIE_CL.Tw = opvar();    PIE_CL.Tu = opvar();
-PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;       PIE_CL.B2 = opvar();
-PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;      PIE_CL.D12 = opvar();
-PIE_CL.C2 = opvar();    PIE_CL.D21 = opvar();   PIE_CL.D22 = opvar();
+PIE_CL.T = T_CL;
+PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
+PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
+PIE_CL = initialize(PIE_CL);
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
