@@ -2,22 +2,22 @@
 % for a PIE, and how the estimated state can be simulated.
 %
 % We consider the system defined by:
-% PDE:      \dot{v}(t,s) = (d^2/ds^2) v(t,s) + 5 v(t,s) + w(t),    s in [0,1];
-% Outputs:       z(t)    = int_{0}^{1} v(t,s) ds + w(t);
-%                y(t)    = int_{0}^{1} v(t,s) ds;
-% BCs:                0  = v(t,0) = v(t,1);
+% PDE:      \dot{x}(t,s) = (d^2/ds^2) x(t,s) + 5 x(t,s) + w(t),    s in [0,1];
+% Outputs:       z(t)    = int_{0}^{1} x(t,s) ds + w(t);
+%                y(t)    = int_{0}^{1} x(t,s) ds;
+% BCs:                0  = x(t,0) = x(t,1);
 %
-% Letting x:=(d^2/ds^2)v, We derive an equivalent PIE of the form:
-% [T \dot{x}](t,s) = [A x](t,s) + [B1 w](t,s);
-%             z(t) = [C1 x](t)  + [D11 w](t);
-%             y(t) = [C2 x](t)  + [D21 w](t);
+% Letting v:=(d^2/ds^2)x, We derive an equivalent PIE of the form:
+% [T \dot{v}](t,s) = [A v](t,s) + [B1 w](t,s);
+%             z(t) = [C1 v](t)  + [D11 w](t);
+%             y(t) = [C2 v](t)  + [D21 w](t);
 %
-% We design an estimator of the form:
-% [T \dot{xhat}](t,s) = [A xhat](t,s) + [L(yhat-y)](t,s);
-%             zhat(t) = [C1 xhat](t)
-%             yhat(t) = [C2 xhat](t)
+% So that x = T*v. We design an estimator of the form:
+% [T \dot{vhat}](t,s) = [A vhat](t,s) + [L(yhat-y)](t,s);
+%             zhat(t) = [C1 vhat](t)
+%             yhat(t) = [C2 vhat](t)
 %
-% Using this estimator, the errors e=(xhat-x) and ztilde = (zhat-z) satisfy
+% Using this estimator, the errors e=(vhat-v) and ztilde = (zhat-z) satisfy
 % [T \dot{e}](t,s) = [(A+L*C2) e](t,s) - [(B1+L*D21) w](t,s);
 %        ztilde(t) = [C1 e](t)         - [D11 w](t);
 %
@@ -36,7 +36,7 @@
 %
 % We manually declare this LPI here, but it can also be solved using the
 % "PIETOOLS_Hinf_estimator" executive file.
-% We simulate the PIE state x and estimated state xhat using PIESIM.
+% We simulate the PDE state x and estimated state xhat using PIESIM.
 %
 %%
 clc; clear; close all;
@@ -128,8 +128,8 @@ end
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Build a PIE modeling the actual state x, and estimated state xhat:
-% [T, 0] [\dot{x}(t)   ] = [A,     0     ] [x(t)   ] + [B1   ] w(t)
-% [0, T] [\dot{xhat}(t)]   [-L*C2, A+L*C2] [xhat(t)] + [L*D21]
+% [T, 0] [\dot{v}(t)   ] = [A,     0     ] [v(t)   ] + [B1   ] w(t)
+% [0, T] [\dot{vhat}(t)]   [-L*C2, A+L*C2] [vhat(t)] + [L*D21]
 %
 %              [z(t)   ] = [C1, 0 ] [x   ]           + [D11] w(t)
 %              [zhat(t)]   [0,  C1] [xhat]             [0  ]
@@ -150,12 +150,12 @@ PIE_CL.C2 = opvar();    PIE_CL.D21 = opvar();   PIE_CL.D22 = opvar();
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Simulate and plot the actual and estimated output using PIESIM
+% % % Simulate and plot the actual and estimated PDE state using PIESIM
 
-% Declare initial conditions for the primary states of the PIE
+% Declare initial conditions for the state components of the PIE
 syms st sx real
-uinput.ic.PDE = [20*(sx^2-sx);  % Actual initial state value
-                 0];            % Estimated initial state value
+uinput.ic.PDE = [20*(sx^2-sx);  % Actual initial PIE state value
+                 0];            % Estimated initial PIE state value
  
 % Declare the value of the disturbance w(t)
 uinput.w = 2*sin(pi*st);
@@ -164,11 +164,12 @@ uinput.w = 2*sin(pi*st);
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
 opts.tf = 1;        % Simulate up to t = 1;
-opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF) 
 opts.dt = 1e-3;     % Use time step of 10^-3
+opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF) 
+ndiff = [0,0,2];    % The PDE state involves 2 second order differentiable state variables
 
 % Simulate the solution to the PIE with estimator.
-[solution,grid] = PIESIM(PIE_CL,opts,uinput,[0,0,2]);
+[solution,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
 
 % Extract actual and estimated solution at each time step.
 x_act = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
@@ -176,25 +177,25 @@ x_est = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 tval = solution.timedep.dtime;
 
 % Set options for the plot
-plot_indcs = floor(linspace(1,opts.tf/opts.dt,76)); 
+plot_indcs = floor(linspace(1,opts.tf/opts.dt,66)); 
 tplot = tval(plot_indcs);           % Only plot at select times
 colors = {'g','b','r','m','k'};     % Colors for the plot
-grid_idcs = [2,3,5];                % Only plot at a few grid points
+grid_idcs = [5,3,2];                % Only plot at a few grid points
 
 % Plot evolution of actual and estimated
 fig1 = figure(1);
 hold on
 for j=grid_idcs
     s_pos = num2str(grid.phys(j));  % Position associated to grid index.
-    plot(tplot,x_act(j,plot_indcs),[colors{j},'-'],'LineWidth',2,'DisplayName',['$x(s=',s_pos,')$']);
-    plot(tplot,x_est(j,plot_indcs),[colors{j},'o--'],'LineWidth',1.5,'DisplayName',['$\hat{x}(s=',s_pos,')$']);
+    plot(tplot,x_act(j,plot_indcs),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}(s=',s_pos,')$']);
+    plot(tplot,x_est(j,plot_indcs),[colors{j},'o--'],'LineWidth',1.5,'DisplayName',['$\mathbf{\hat{x}}(s=',s_pos,')$']);
 end
 hold off
 
 % Clean up the figure
 lgd = legend('Interpreter','latex');                lgd.FontSize=  10.5;
 xlabel('Time','FontSize',15,'Interpreter','latex');  ylabel('State Value','FontSize',15,'Interpreter','latex');
-title('Value of PIE state $x(t)$ and estimate $\hat{x}(t)$ at several grid points','Interpreter','latex','FontSize',16);
+title('Value of PDE state $x(t)$ and estimate $\hat{x}(t)$ at several grid points','Interpreter','latex','FontSize',16);
 fig1.Position = [700 600 800 450];
 
 %%
