@@ -1081,6 +1081,10 @@ for ii=1:numel(PDE.(obj))
             % Otherwise, check that the number of orders matches the number
             % of variables.
             Dval = term_jj.D;
+            if ~isa(Dval,'double') || any(Dval(:)<0)
+                error(['The order of differentiation "',obj,'{',num2str(ii),'}.term{',num2str(jj),'}.D" is not appropriately specified;',...
+                        ' derivative orders must be specified as a type "double" array of nonnegative integers.']);
+            end
             if size(term_jj.D,2)==nvars
                 % Derivatives have been specified with respect to all of
                 % the global variables.
