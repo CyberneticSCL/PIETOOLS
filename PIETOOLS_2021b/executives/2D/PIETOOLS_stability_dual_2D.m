@@ -184,8 +184,9 @@ if use_lpi_ineq
 else
     disp('   - Using an equality constraint...');
     
-     % Next, build a positive operator Qeop to enforce Qop == -Qeop;
-    [progQ, Qeop] = poslpivar_2d(prog,np_op,dom,eq_deg,eq_opts);
+    % Next, build a positive operator Qeop to enforce Qop == -Qeop;
+    Qdim = Qop.dim(:,1);
+    [progQ, Qeop] = poslpivar_2d(prog,Qdim,dom,eq_deg,eq_opts);
     
     toggle = 0; % Set toggle=1 to check whether the monomials in Qeop are sufficient.
     if toggle
@@ -200,7 +201,7 @@ else
             warning('The specified options for the equality constraint do not allow sufficient freedom to enforce the inequality constraint. Additional monomials are being added.')
 
             % Construct a new positive operator Qeop with greater degrees
-            [progQ, Qeop] = poslpivar_2d(prog,np_op+nw_op+nz_op,dom,eq_deg,eq_opts);
+            [progQ, Qeop] = poslpivar_2d(prog,Qdim,dom,eq_deg,eq_opts);
 
             % Check that now Qeop has all the necessary monomials
             par_indx = find(~(isgood_Qpar(:)));   % Indices of parameters we still need to verify are okay
@@ -212,8 +213,7 @@ else
     % Introduce the psatz term.
     for j=1:length(eq_use_psatz)
         if eq_use_psatz(j)~=0
-            eq_opts_psatz{j}.exclude(8:12) = eq_opts_psatz_exclude(8:12);
-            [prog, Qe2op] = poslpivar_2d(prog,np_op+nw_op+nz_op,dom, eq_deg_psatz{j},eq_opts_psatz{j});
+            [prog, Qe2op] = poslpivar_2d(prog,Qdim,dom, eq_deg_psatz{j},eq_opts_psatz{j});
             Qeop = Qeop+Qe2op;
         end
     end
