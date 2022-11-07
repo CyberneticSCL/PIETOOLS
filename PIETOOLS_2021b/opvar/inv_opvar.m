@@ -84,6 +84,9 @@ elseif all(Pop.dim(1,:)==0)
     while (normA^Nmax)/factorial(Nmax)>eps
         Nmax = Nmax+1;
     end
+    if Nmax>99 % capping Nmax to avoid huge computation time
+        Nmax = 99;
+    end
     for i=1:Nmax
         Uk = int(A*Uk,var1,X(1),var1);
         if isa(Uk, 'double')

@@ -1,4 +1,4 @@
-function [K] = getController(P,Z)
+function [K] = getController(P,Z,tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % getController.m     PIETOOLS 2021a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -19,8 +19,12 @@ function [K] = getController(P,Z)
 %
 % Initial coding SS - 5/20/2021
 
+if nargin==2
+    tol = 1e-8;
+end
+
 if isvalid(P)==0 && isvalid(Z)==0
-    K = Z*inv_opvar(P);
+    K = Z*inv_opvar(P,tol);
 else
     error("Inputs must be opvar variables");
 end
