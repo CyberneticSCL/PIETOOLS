@@ -37,10 +37,10 @@ ylabel('$x_1(t), ~~~x_2(t)$','Interpreter','latex','FontSize',15);
 xlabel('t','FontSize',15,'Interpreter','latex');
 %% Simulating and plotting closed loop system
 opts.tf=10;
-uinput.ic.PDE = [0;0];
+uinput.ic.PDE = [0;0]; uinput.ic.ODE = [0,0];
 solution_cl=PIESIM(PIE,opts,uinput,ndiff);
 
-plot(solution_cl.timedep.dtime,solution_cl.timedep.ode,'--o','MarkerIndices',1:50:length(solution_ol.timedep.dtime));
+plot(solution_cl.timedep.dtime,solution_cl.timedep.ode,'--o','MarkerIndices',1:50:length(solution_cl.timedep.dtime));
 ax = gca;
 set(ax,'XTick',solution_cl.timedep.dtime(1:150:end));
 lgd1 = legend('$x_1$','$x_2$','Interpreter','latex'); lgd1.FontSize = 10.5; 
