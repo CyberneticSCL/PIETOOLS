@@ -169,7 +169,11 @@ nz = sum(nz_op);                % Total number of regulated output signals
 % set the Hinfty norm as an objective function value 
 
 prog = sosprogram(vars(:));         % Initialize the program structure
-prog.vartable = [vars(:,1).varname; vars(:,2).varname]; % Make sure the variables are in the right order.
+for kk=1:prod(size(vars))
+    % Make sure variables are in right order (pvar stores them
+    % alphabetically.
+    prog.vartable(kk) = vars(kk).varname;
+end
 if gain==0
     fprintf('\n --- Searching for an Hinf gain bound using the primal KYP lemma --- \n')
     % If no gain is provided, include the gain as a decision variable, and
