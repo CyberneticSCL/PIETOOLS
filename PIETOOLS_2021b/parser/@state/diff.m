@@ -9,9 +9,9 @@ elseif nargin>3
 end
 
 for i=1:length(obj)
-    if isequal(var,obj(i).var(1))&&((order>1)||(any(obj(i).diff_order>0)))
-        error('Higher order derivatives of time and temporal-spatial mixed derivatives are currently not supported')
-    end
+%     if isequal(var,obj(i).var(1))&&((order>1)||(any(obj(i).diff_order>0)))
+%         error('Higher order derivatives of time and temporal-spatial mixed derivatives are currently not supported')
+%     end
     if ismember(obj(i).type,{'in','out'})
         error('Differentiation of inputs and outputs is currently not supported')
     end
