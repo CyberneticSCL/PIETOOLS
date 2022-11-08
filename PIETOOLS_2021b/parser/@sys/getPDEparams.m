@@ -114,8 +114,8 @@ for i=1:eqnNum
             if ~isfield(tmp{Loc},'term')||(length(tmp{Loc}.term)<j) % term is not initialized 
                 tmp{Loc}.term{j}.C = [];
             end
-            if (j==outLoc) % derivative term, ignore
-                continue;
+            if (j==outLoc) % derivative term, check time derivative order
+                tmp{Loc}.tdiff = equations.statevec(j).diff_order(1);
             end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
