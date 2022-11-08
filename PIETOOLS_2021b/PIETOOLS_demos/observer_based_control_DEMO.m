@@ -14,12 +14,17 @@
 %             z(t) = [C1 v](t)  + [D11 w](t) + [D12 u](t);
 %             y(t) = [C2 v](t)  + [D21 w](t) + [D22 u](t)
 %
-% Using a state feedback control u = Kv we get the closed loop PIE
-% [T \dot{v}](t,s) = [(A + B2*K) v](t,s) + [B1 w](t,s);
-%             z(t) = [(C1 + D12*K) v](t) + [D11 w](t)
+% We find the observer gains L by solving the LPI
 %
-% We wish to compute an operator K that minimizes the L2 gain from
-% disturbances w to the output z. This is achieved solving
+% min_{gam,P,Z} gam
+% s.t.  P>=0
+%       [-gam*I,           -D11',  -(P*B1+Z*D21)'*T           ]=: Q <=0
+%       [-D11,             -gam*I, C1                         ]
+%       [-T'*(P*B1+Z*D21), C1',    (P*A+Z*C2)'*T+T'*(P*A+Z*C2)]
+%
+% where L = P^{-1}*Z.
+
+% Likewise we find a state feedback control u = Kv by solving
 % the LPI
 %
 % min_{gam,P,Z} gam
@@ -28,11 +33,8 @@
 %       [  D11'            -gam*I    B1'                        ] <= 0
 %       [  T*(C1*P+D12*Z)   B1       (A*P+B2*Z)*T'+T*(A*P+B2*Z)']
 %
-% If the above LPI is successfully solved, then for K = Z*P^{-1}, we have
-% ||z||_{L2}/||w||_{L2} <= gam
+% where K = Z*P^{-1}.
 %
-% We manually declare this LPI here, but it can also be solved using the
-% "PIETOOLS_Hinf_control" executive file.
 % We simulate the open loop and closed loop response of the PDE for various
 % IC using PIESIM.
 %
@@ -46,14 +48,16 @@ echo on
 pvar s t
 lam = 4;
 PDE = sys();
-x = state('pde');   w = state('in');
+x = state('pde');   w = state('in'); y = state('out');
 z = state('out', 2);   u = state('in');
 eqs = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
     z == [int(x,s,[0,1]) + w; u];
+    y == subs(x,s,1);
     subs(x,s,0)==0;
     subs(diff(x,s),s,1)==0];
 PDE = addequation(PDE,eqs);
 PDE = setControl(PDE,u);
+PDE = setObserve(PDE,y);
 display_PDE(PDE);
 
 % Compute the associated PIE, and extract the operators.
@@ -61,17 +65,18 @@ PIE = convert(PDE,'pie');       PIE = PIE.params;
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
 B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
-
+C2 = PIE.C2;    D21 = PIE.D21;  D22 = PIE.D22;
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Compute an optimal observer operator L for the PIE.
 
-use_executive = false;  % <-- set to true to use predefined executive
+use_executive = true;  % <-- set to true to use predefined executive
 if use_executive
     % % Use the predefined Hinf estimator executive function.
     settings = lpisettings('heavy');
-    [prog, Kval, gam_val] = PIETOOLS_Hinf_control(PIE, settings);
+    [prog_k, Kval, gam_co_val] = PIETOOLS_Hinf_control(PIE, settings);
+    [prog_l, Lval, gam_ob_val] = PIETOOLS_Hinf_estimator(PIE, settings);
 else
     % % Manually construct and solve the LPI program for optimal
     % % estimator synthesis.
@@ -97,14 +102,27 @@ else
     Zdim = B2.dim(:,[2,1]);
     Zdom = PIE.dom;
     Zdeg = [4,0,0];
-    [prog,Z] = lpivar(prog,Zdim,Zdom,Zdeg);
-
-    % Declare the LPI constraint Q<=0.
+    [prog,Z_con] = lpivar(prog,Zdim,Zdom,Zdeg);
+    
+    % Declare the LPI constraint Q_con<=0 for controller.
     nw = size(B1,2);    nz = size(C1,1);
-    Q = [-gam*eye(nz)    D11          (C1*P+D12*Z)*(T');
+    Q_con = [-gam*eye(nz)    D11          (C1*P+D12*Z_con)*(T');
         D11'           -gam*eye(nw)  B1';
-        T*(C1*P+D12*Z)' B1           (A*P+B2*Z)*(T')+T*(A*P+B2*Z)'];
-    prog = lpi_ineq(prog,-Q);
+        T*(C1*P+D12*Z_con)' B1           (A*P+B2*Z_con)*(T')+T*(A*P+B2*Z_con)'];
+    prog = lpi_ineq(prog,-Q_con);
+
+    Zdim = C2.dim(:,[2,1]);
+    Zdom = PIE.dom;
+    Zdeg = [4,0,0];
+    [prog,Z_obs] = lpivar(prog,Zdim,Zdom,Zdeg);
+
+    % Declare the LPI constraint Q_obs<=0 for observer.
+    nw = size(B1,2);    nz = size(C1,1);
+    Q_obs = [-gam*eye(nw),     -D11',        -(P*B1+Z_obs*D21)'*T;
+         -D11,             -gam*eye(nz), C1;
+         -T'*(P*B1+Z_obs*D21), C1',          (P*A+Z_obs*C2)'*T+T'*(P*A+Z_obs*C2)];
+    prog = lpi_ineq(prog,-Q_obs);
+
 
     % Set the objective function: minimize gam
     prog = sossetobj(prog, gam);
@@ -117,34 +135,32 @@ else
     % Extract the solved value of gam and the operators P and Z
     gam_val = sosgetsol(prog_sol,gam);
     Pval = getsol_lpivar(prog_sol,P);
-    Zval = getsol_lpivar(prog_sol,Z);
+    Zval_con = getsol_lpivar(prog_sol,Z_con);
+    Zval_obs = getsol_lpivar(prog_sol,Z_obs);
 
     % Build the optimal observer operator K.
-    Kval = getController(Pval,Zval,1e-3);
+    Kval = getController(Pval,Zval_con,1e-3);
+    Lval = getObserver(Pval,Zval_obs,1e-3);
 end
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 
 % Construct the operators defining the PIE.
-use_CL_function = false;
+T_CL = [T, 0*T; 0*T, T];
+A_CL = [A, B2*Kval; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
+C_CL = [C1, D12*Kval; 0*C1, C1];            D_CL = [D11; 0*D11];
 
-if use_CL_function
-    PIE_CL = closedLoopPIE(PIE,Kval);
-else
-    T_CL = T;
-    A_CL = A+B2*Kval;   B_CL = B1;
-    C_CL = C1+D12*Kval; D_CL = D11;
 
-    % Declare the PIE.
-    PIE_CL = pie_struct();
-    PIE_CL.vars = PIE.vars;
-    PIE_CL.dom = PIE.dom;
-    PIE_CL.T = T_CL;
-    PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
-    PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
-    PIE_CL = initialize(PIE_CL);
-end
+
+% Declare the PIE.
+PIE_CL = pie_struct();
+PIE_CL.vars = PIE.vars;
+PIE_CL.dom = PIE.dom;
+PIE_CL.T = T_CL;
+PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
+PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
+PIE_CL = initialize(PIE_CL);
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Simulate and plot the actual and estimated PDE state using PIESIM
@@ -161,37 +177,28 @@ opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
 ndiff = [0,0,1];    % The PDE state involves 1 second order differentiable state variables
 
 % Simulate the solution to the PIE without controller for different IC.
-uinput.ic.PDE = -10*sx;    % IC PIE
+uinput.ic.PDE = [-10*sx];   % IC PIE 
 uinput.w = exp(-st); % disturbance
-[solution_OL_a,grid] = PIESIM(PIE,opts,uinput,ndiff);
-uinput.ic.PDE = sin(sx*pi/2);    % IC PIE
-[solution_OL_b,grid] = PIESIM(PIE,opts,uinput,ndiff);
-
+[solution_OL,grid] = PIESIM(PIE,opts,uinput,ndiff);
 
 % Simulate the solution to the PIE with controller for different IC and disturbance.
-uinput.ic.PDE = -10*sx;    % IC PIE
+ndiff = [0,0,2]; 
+uinput.ic.PDE = [-10*sx; 0];    % IC PIE and observed state
 uinput.w = exp(-st);   % disturbance
 [solution_CL_a,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
-uinput.ic.PDE = sin(sx*pi/2);    % IC PIE
-uinput.w = exp(-st);   % disturbance
+uinput.ic.PDE = [sin(sx*pi/2); 0];    % IC PIE
+uinput.w = 5*sin(pi*st)./(st+eps);   % disturbance
 [solution_CL_b,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
 
-uinput.ic.PDE = -10*sx;    % IC PIE
-uinput.w = sin(pi*st)./(st+eps);   % disturbance
-[solution_CL_aa,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
-uinput.ic.PDE = sin(sx*pi/2);    % IC PIE
-uinput.w = sin(pi*st)./(st+eps);   % disturbance
-[solution_CL_ab,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
 
 %%
 % Extract actual solution at each time step.
-tval = solution_OL_a.timedep.dtime;
-x_OL_a = reshape(solution_OL_a.timedep.pde(:,1,:),opts.N+1,[]);
-x_OL_b = reshape(solution_OL_b.timedep.pde(:,1,:),opts.N+1,[]);
+tval = solution_OL.timedep.dtime;
+x_OL = reshape(solution_OL.timedep.pde(:,1,:),opts.N+1,[]);
 x_CL_a = reshape(solution_CL_a.timedep.pde(:,1,:),opts.N+1,[]);
+hatx_CL_a = reshape(solution_CL_a.timedep.pde(:,2,:),opts.N+1,[]);
 x_CL_b = reshape(solution_CL_b.timedep.pde(:,1,:),opts.N+1,[]);
-x_CL_aa = reshape(solution_CL_aa.timedep.pde(:,1,:),opts.N+1,[]);
-x_CL_ab = reshape(solution_CL_ab.timedep.pde(:,1,:),opts.N+1,[]);
+hatx_CL_b = reshape(solution_CL_b.timedep.pde(:,2,:),opts.N+1,[]);
 XX = linspace(0,1,20);
 %%
 % Set options for the plot
@@ -203,120 +210,85 @@ grid_idcs = 1:2:9;                % Only plot at a few grid points
 
 % Plot open loop response for different IC
 fig1 = figure(1); 
-subplot(1,2,1); hold on;
+hold on;
 for j = 1:length(plot_indcs)
     s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_OL_a(:,plot_indcs(j)),XX);
+    [YY] = spline(grid.phys,x_OL(:,plot_indcs(j)),XX);
     plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
 end 
 hold off;
-subplot(1,2,2); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_OL_b(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end
-hold off;
+
 fig1.Position = [100 100 3000 2000];
-ax1 = subplot(1,2,1);     
+ax1 = gca;     
 set(ax1,'XTick',XX(1:4:end));
 lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
 lgd1.Location = 'northwest';
 xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Open loop $\mathbf{x}(t)$; $\mathbf{x}(0)=\frac{5}{4}(1-s^2)$','Interpreter','latex','FontSize',15);
-ax2 = subplot(1,2,2);
-set(ax2,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd2.FontSize = 10.5; 
-lgd1.Location = 'northeast';
-xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Open loop $\mathbf{x}(t)$; $\mathbf{x}(0)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2} s)$','Interpreter','latex','FontSize',15);
+
 
 %%
 % Plot closed loop response for different IC
 fig2 = figure(2); 
 fig2.Position = [50 50 3000 2000];
-subplot(2,2,1); hold on;
+subplot(2,1,1); hold on;
 for j = 1:length(plot_indcs)
     s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
     [YY] = spline(grid.phys,x_CL_a(:,plot_indcs(j)),XX);
     plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
 end 
 hold off;
-subplot(2,2,2); hold on;
+subplot(2,1,2); hold on;
 for j = 1:length(plot_indcs)
     s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
     [YY] = spline(grid.phys,x_CL_b(:,plot_indcs(j)),XX);
     plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
 end
 hold off;
-subplot(2,2,3); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_CL_aa(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end
-hold off;
-subplot(2,2,4); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_CL_ab(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end
-hold off;
 
-ax1 = subplot(2,2,1);
+
+ax1 = subplot(2,1,1);
 set(ax1,'XTick',XX(1:4:end));
 lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
 lgd1.Location = 'southwest';
 xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=\frac{5}{4}(1-s^2)$, $w(t)=e^{-t}$','Interpreter','latex','FontSize',15);
-ax2 = subplot(2,2,2);
+ax2 = subplot(2,1,2);
 set(ax2,'XTick',XX(1:4:end));
 lgd1 = legend('Interpreter','latex');                lgd2.FontSize = 10.5; 
 lgd1.Location = 'northwest';
 xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $\mathbf{x}(0)=e^{-t}$','Interpreter','latex','FontSize',15);
-ax3 = subplot(2,2,3);
-set(ax3,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
-lgd1.Location = 'southwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=\frac{5}{4}(1-s^2)$, $w(t)=\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
-ax4 = subplot(2,2,4);     
-set(ax4,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd2.FontSize = 10.5; 
-lgd1.Location = 'northwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
+title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
+
 %%
-w1_tval = subs(sin(pi*st)./(st+eps),tval);
-w2_tval = subs(exp(-st),tval);
+w2_tval = subs(5*sin(pi*st)./(st+eps),tval);
+w1_tval = subs(exp(-st),tval);
 z_quadrature = double(subs(0.5*sx^2-sx,grid.phys));
 k_quadrature = double(subs(Kval.Q1,s,grid.phys));
 ZZ1 = trapz(z_quadrature,x_CL_a)+double(w1_tval); %int wa
-ZZ2 = trapz(z_quadrature,x_CL_aa)+double(w2_tval);%int wb
-ZZ3 = trapz(k_quadrature,x_CL_a); %u wa
-ZZ4 = trapz(k_quadrature,x_CL_aa); %u wb
+ZZ2 = trapz(z_quadrature,x_CL_b)+double(w2_tval);%int wb
+ZZ3 = trapz(k_quadrature,hatx_CL_a); %u wa
+ZZ4 = trapz(k_quadrature,hatx_CL_b); %u wb
 fig3 = figure(3); XX = linspace(0,1,2000);
 subplot(1,2,1); hold on;
 [YY] = spline(tval,ZZ1,XX);
 plot(XX,YY,'--o','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = e^{-t}$']);
 [YY] = spline(tval,ZZ2,XX);
-plot(XX,YY,'--x','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = \frac{\sin(\pi t)}{t}$']); hold off;
+plot(XX,YY,'--x','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = 5\frac{\sin(\pi t)}{t}$']); hold off;
 subplot(1,2,2); hold on;
 [YY] = spline(tval,ZZ3,XX);
 plot(XX,YY,'--o','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = e^{-t}$']);
 [YY] = spline(tval,ZZ4,XX);
-plot(XX,YY,'--x','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = \frac{\sin(\pi t)}{t}$']); hold off;
+plot(XX,YY,'--x','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = 5\frac{\sin(\pi t)}{t}$']); hold off;
 
 ax5 = subplot(1,2,1);
-set(ax5,'XTick',tval(1:90:end),'xlim',[0,0.75]);
+set(ax5,'XTick',tval(1:90:end));
 lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5; 
-lgd1.Location = 'southeast';
+lgd1.Location = 'northeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$z(t)$','FontSize',15,'Interpreter','latex');
 title('Closed loop $z(t) = \int_0^1 \mathbf{x}(t,s) ds+w(t)$','Interpreter','latex','FontSize',15);
 ax6 = subplot(1,2,2);
-set(ax6,'XTick',tval(1:90:end),'xlim',[0,0.75]);
+set(ax6,'XTick',tval(1:90:end));
 lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5; 
 lgd1.Location = 'southeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');
