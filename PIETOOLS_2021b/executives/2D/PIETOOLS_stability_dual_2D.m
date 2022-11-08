@@ -123,7 +123,11 @@ np_op = Aop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE st
 % set the Hinfty norm as an objective function value 
 disp(' === Executing dual stability test === ')
 prog = sosprogram(vars(:));      % Initialize the program structure
-prog.vartable = [vars(:,1).varname; vars(:,2).varname]; % Make sure the variables are in the right order.
+for kk=1:prod(size(vars))
+    % Make sure variables are in right order (pvar stores them
+    % alphabetically.
+    prog.vartable(kk) = vars(kk).varname;
+end
 
 
 
@@ -146,7 +150,7 @@ end
 
 % Ensure strict positivity of the operator
 if ~all(eppos==0)
-    Ip = blkdiag(eppos(1)*eye(np_op(1)),zeros(np_op(2)),zeros(np_op(3)),eppos(4)*eye(np_op(4)));
+    Ip = blkdiag(eppos(1)*eye(np_op(1)),eppos(2)*eye(np_op(2)),eppos(3)*eye(np_op(3)),eppos(4)*eye(np_op(4)));
     Iop = opvar2d(Ip,[np_op,np_op],dom,vars);
     Pop = Pop + Iop;
 end

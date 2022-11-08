@@ -145,7 +145,11 @@ nz = sum(nz_op);                % Total number of regulated output signals
 % set the Hinfty norm as an objective function value 
 fprintf('\n --- Searching for an Hinf gain bound using the dual KYP lemma --- \n')
 prog = sosprogram(vars(:));         % Initialize the program structure
-prog.vartable = [vars(:,1).varname; vars(:,2).varname]; % Make sure the variables are in the right order.
+for kk=1:prod(size(vars))
+    % Make sure variables are in right order (pvar stores them
+    % alphabetically.
+    prog.vartable(kk) = vars(kk).varname;
+end
 if gain==0
     % If no gain is provided, include the gain as a decision variable, and
     % look for a minimum
@@ -176,7 +180,7 @@ end
 
 % Ensure strict positivity of the operator
 if ~all(eppos==0)
-    Ip = blkdiag(eppos(1)*eye(np_op(1)),zeros(np_op(2)),zeros(np_op(3)),eppos(4)*eye(np_op(4)));
+    Ip = blkdiag(eppos(1)*eye(np_op(1)),eppos(2)*eye(np_op(2)),eppos(3)*eye(np_op(3)),eppos(4)*eye(np_op(4)));
     Iop = opvar2d(Ip,[np_op,np_op],dom,vars);
     Pop = Pop + Iop;
 end
