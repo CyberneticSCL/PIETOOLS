@@ -18,13 +18,13 @@ function [structure, uinput, psize]=PIESIM_input_check(varargin)
 % Not used for PDE/DDE, required for PIE
 % 4) varargin(4): n_pde - number of states with increasing differentiability, for example
 % [1,2,3] stands for (1) continuous state, (2) continuously differentiable,
-% and (3) twice continuously differentiable states - only used it data structure is PIE 
+% and (3) twice continuously differentiable states - only used it data structure is PIE
 
-% Outputs: 
+% Outputs:
 % 1) structure - PDE, DDE or PIE - updated data structure with variables properly defined (if
-% previously undefined). 
+% previously undefined).
 % 2) uinput - updated user's input structure with variables properly defined (if
-% previously undefined). 
+% previously undefined).
 % 3) psize - size of the problem. Includes nu, nw, nx, nf, N and n
 % (corresponding to n_PDE)
 % All properly defined variables are uchanged.
@@ -50,32 +50,32 @@ opts=varargin{3};
 
 
 if strcmp(opts.type,'PDE_b')
-%-----------------------------------------------------------
-% Input check for PDEs in batch format
-%-----------------------------------------------------------
+    %-----------------------------------------------------------
+    % Input check for PDEs in batch format
+    %-----------------------------------------------------------
     [structure, uinput, psize] = PIESIM_input_check_PDE_batch(varargin{:});
-    
+
 elseif strcmp(opts.type,'PDE_t')
-%-----------------------------------------------------------
-% Input check for PDEs in legacy terms format
-%-----------------------------------------------------------
+    %-----------------------------------------------------------
+    % Input check for PDEs in legacy terms format
+    %-----------------------------------------------------------
     [structure, uinput, psize] = PIESIM_input_check_PDE_terms_legacy(varargin{:});
 
 elseif strcmp(opts.type,'PDE')
-%-----------------------------------------------------------
-% Input check for PDEs in terms format
-%-----------------------------------------------------------
+    %-----------------------------------------------------------
+    % Input check for PDEs in terms format
+    %-----------------------------------------------------------
     if isa(structure,'struct')
         structure = pde_struct(structure);  % Convert struct to pde_struct
     elseif isa(structure,'sys')
         structure = structure.params;   % Extract terms from sys object
     end
-    
+
     PDE = initialize(structure);
     [PDE,x_order] = reorder_comps(PDE,'x'); % Reorder components in increasing order of differentiability
     psize = struct();
     % Checking of the PDE inputs begins
-    
+
     if PDE.dim>1
         error('PIESIM is currently not supported for systems involving more than 1 spatial variable.')
     elseif PDE.dim==0
@@ -83,7 +83,7 @@ elseif strcmp(opts.type,'PDE')
         pvar s theta
         vars = [s,theta];
         dom = [-1,1];
-        
+
         % Add a temporary state variable that exists on the 1D domain.
         ncomps = numel(PDE.x);
         PDE.x{ncomps+1}.dom = dom;
@@ -94,7 +94,7 @@ elseif strcmp(opts.type,'PDE')
         PDE.x = PDE.x((1:ncomps)');
         PDE.x_tab = PDE.x_tab((1:ncomps)',:);
     end
-    
+
     % Establish size of ODE and PDE state components
     x_tab = PDE.x_tab;
     psize.nx = sum(x_tab(~x_tab(:,3),2));   % Size of ODE state component
@@ -105,23 +105,23 @@ elseif strcmp(opts.type,'PDE')
     end
     x_order_PDE = x_order(psize.nx+1:end);
     ns = sum(psize.n);
-    
+
     % Establish sizes of inputs and outputs
     psize.nw = sum(PDE.w_tab(:,2));
     psize.nu = sum(PDE.u_tab(:,2));
     psize.nz = sum(PDE.z_tab(:,2));
     psize.ny = sum(PDE.y_tab(:,2));
-    
+
     % Define problem size for discretization
     psize.N = opts.N;
-    
-    
+
+
     if ~isfield(uinput,'ic')
         if psize.nx>0
             disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
-        end    
+        end
         if ns>0
-        disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
+            disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
         end
         uinput.ic.ODE(1:psize.nx)=0;
         uinput.ic.PDE(1:ns)=sin(pi*sx);
@@ -138,8 +138,8 @@ elseif strcmp(opts.type,'PDE')
         uinput.ic.x = uinput.ic.x(x_order); % Reorder initial conditions to match new ordering of state components.
         uinput.ic.ODE = uinput.ic.x(1:psize.nx);
         uinput.ic.PDE = uinput.ic.x(psize.nx+1:end);
-    end  
-    
+    end
+
     % Check initial conditions for PDE state variables
     if ns>0
         if ~isfield(uinput.ic,'PDE')
@@ -148,7 +148,7 @@ elseif strcmp(opts.type,'PDE')
         elseif ~isempty(symvar(uinput.ic.PDE)) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
             error('Initial conditions for PDE must be symbolic expressions in sx');
         end
-    end  
+    end
     if(size(uinput.ic.PDE,2)<ns)
         disp('Warning: Number of initial conditions on PDE states is less than the number of PDE states');
         disp('Defalting the rest to zero');
@@ -159,7 +159,7 @@ elseif strcmp(opts.type,'PDE')
         uinput.ic=rmfield(uinput.ic,'PDE');
         uinput.ic.PDE(1:ns)=0.;
     end
-    
+
     % Check initial conditions for ODE state variables
     if (psize.nx>0)
         if ~isfield(uinput.ic,'ODE')
@@ -179,8 +179,8 @@ elseif strcmp(opts.type,'PDE')
             uinput.ic=rmfield(uinput.ic,'ODE');
             uinput.ic.ODE(1:psize.nx)=0.;
         end
-    end    
-    
+    end
+
     % Check for actuator inputs
     if (psize.nu>0)
         if ~isfield(uinput,'u')
@@ -198,7 +198,7 @@ elseif strcmp(opts.type,'PDE')
             psize.nu=0;
         end
     end
-    
+
     % Check disturbance setup
     if (psize.nw>0)
         if ~isfield(uinput,'w')
@@ -218,10 +218,10 @@ elseif strcmp(opts.type,'PDE')
                 disp('Defalting PDE.nw to zero');
                 psize.nw=0;
             end
-        end        
+        end
     end
-    
-    
+
+
     if ~isfield(uinput,'ifexact')
         disp('Watning: uinput.ifexact is not specified. Defaulting  to false');
         uinput.ifexact=false;
@@ -236,115 +236,115 @@ elseif strcmp(opts.type,'PDE')
             uinput.ifexact=false;
         end
     end
-    
+
     if (PDE.dom(1)==PDE.dom(2))
         disp('Warning: left and right ends of the domain are the same. Defaulting domain to [-1, 1]');
         PDE.dom=[-1 1];
     end
-    
+
     uinput.a = PDE.dom(1);
     uinput.b = PDE.dom(2);
-    
+
     % Checking of the PDE inputs ends
     structure = PDE;
-    
-           
-elseif (opts.type=='DDE')
-%-----------------------------------------------------------
-% Input check for DDEs
-%-----------------------------------------------------------
-        PIE=structure;  % In DDE case, systems must be passed as PIE.
 
-% Define problem size for discretization
-        psize.nu=PIE.Tu.dim(1,2);
-        psize.nw=PIE.Tw.dim(1,2);
-        psize.nx=PIE.T.dim(1,1);
-        ns=PIE.T.dim(2,1);
-        psize.N=opts.N;
-        psize.n=[0 ns];
-        
-  %  This is not checked. Need to change later
+
+elseif (opts.type=='DDE')
+    %-----------------------------------------------------------
+    % Input check for DDEs
+    %-----------------------------------------------------------
+    PIE=structure;  % In DDE case, systems must be passed as PIE.
+
+    % Define problem size for discretization
+    psize.nu=PIE.Tu.dim(1,2);
+    psize.nw=PIE.Tw.dim(1,2);
+    psize.nx=PIE.T.dim(1,1);
+    ns=PIE.T.dim(2,1);
+    psize.N=opts.N;
+    psize.n=[0 ns];
+
+    %  This is not checked. Need to change later
     %------------------------
     psize.nz=0;
     psize.ny=0;
     %------------------------
 
-  % Checking of the DDE inputs begins
+    % Checking of the DDE inputs begins
 
-        uinput.a=-1;
-        uinput.b=0;
-        uinput.ifexact=false;
-        
-        if (psize.nw>0)
-            if ~isfield(uinput,'w')
-                disp('Disturbances are not defined. Defaulting to a user-specified signal type');
-                if ~isfield(opts,'dist')
-                    disp('Signal type for disturbances is not defined. Defaulting to a sinusoidal type');
-                    uinput.w(1:psize.nw)=sin(st);
-                else
-                    switch opts.dist
-                        case 'constant'
-                            uinput.w(1:psize.nw)=1+0*st;
-                        case 'sin'
-                            uinput.w(1:psize.nw)=sin(st);
-                        case 'sinc'
-                            uinput.w(1:psize.nw)=sinc(st);
-                        otherwise
-                            disp('Signal type for disturbances is not defined. Defaulting to a sinusoidal type');
-                            uinput.w(1:psize.nw)=sin(st);
-                    end
+    uinput.a=-1;
+    uinput.b=0;
+    uinput.ifexact=false;
+
+    if (psize.nw>0)
+        if ~isfield(uinput,'w')
+            disp('Disturbances are not defined. Defaulting to a user-specified signal type');
+            if ~isfield(opts,'dist')
+                disp('Signal type for disturbances is not defined. Defaulting to a sinusoidal type');
+                uinput.w(1:psize.nw)=sin(st);
+            else
+                switch opts.dist
+                    case 'constant'
+                        uinput.w(1:psize.nw)=1+0*st;
+                    case 'sin'
+                        uinput.w(1:psize.nw)=sin(st);
+                    case 'sinc'
+                        uinput.w(1:psize.nw)=sinc(st);
+                    otherwise
+                        disp('Signal type for disturbances is not defined. Defaulting to a sinusoidal type');
+                        uinput.w(1:psize.nw)=sin(st);
                 end
             end
         end
-        if (psize.nu>0)
-            if ~isfield(uinput,'u')
-                disp('Control inputs are not defined. Defaulting to zero');
-                uinput.u(1:psize.nu)=0;
-            end
+    end
+    if (psize.nu>0)
+        if ~isfield(uinput,'u')
+            disp('Control inputs are not defined. Defaulting to zero');
+            uinput.u(1:psize.nu)=0;
         end
-        if ~isfield(uinput,'ic')
+    end
+    if ~isfield(uinput,'ic')
+        disp('Initial conditions on ODE states are not defined. Defaulting to 1');
+        uinput.ic.ODE(1:psize.nx)=1;
+        disp('Initial conditions on history are not defined. Defaulting to 1');
+        uinput.ic.PDE(1:ns)=1;
+    else
+        if ~isfield(uinput.ic,'ODE')
             disp('Initial conditions on ODE states are not defined. Defaulting to 1');
             uinput.ic.ODE(1:psize.nx)=1;
+        end
+        if ~isfield(uinput.ic,'PDE')
             disp('Initial conditions on history are not defined. Defaulting to 1');
             uinput.ic.PDE(1:ns)=1;
-        else
-            if ~isfield(uinput.ic,'ODE')
-                disp('Initial conditions on ODE states are not defined. Defaulting to 1');
-                uinput.ic.ODE(1:psize.nx)=1;
-            end
-            if ~isfield(uinput.ic,'PDE')
-                disp('Initial conditions on history are not defined. Defaulting to 1');
-                uinput.ic.PDE(1:ns)=1;
-            end
-            
-            if size(uinput.ic.ODE,1)>1
-                uinput.ic.ODE=uinput.ic.ODE';
-            end
-            if max(size(uinput.ic.ODE))<psize.nx
-                disp('Not enought number of initial conditions is defined. Defaulting the rest to 1');
-                uinput.ic.ODE(max(size(uinput.ic.ODE)):psize.nx)=1;
-            elseif max(size(uinput.ic.ODE))>psize.nx
-                disp('Too many initial conditions are defined. Ignoring extra conditions');
-                new_ic(1:psize.nx)=uinput.ic.ODE(1:psize.nx);
-                uinput.ic.ODE=new_ic;
-            end
-            
-            
         end
 
-  % Checking of the DDE inputs ends
+        if size(uinput.ic.ODE,1)>1
+            uinput.ic.ODE=uinput.ic.ODE';
+        end
+        if max(size(uinput.ic.ODE))<psize.nx
+            disp('Not enought number of initial conditions is defined. Defaulting the rest to 1');
+            uinput.ic.ODE(max(size(uinput.ic.ODE)):psize.nx)=1;
+        elseif max(size(uinput.ic.ODE))>psize.nx
+            disp('Too many initial conditions are defined. Ignoring extra conditions');
+            new_ic(1:psize.nx)=uinput.ic.ODE(1:psize.nx);
+            uinput.ic.ODE=new_ic;
+        end
+
+
+    end
+
+    % Checking of the DDE inputs ends
 
 elseif (opts.type=='PIE')
-%-----------------------------------------------------------
-% Input check for PIEs
-%-----------------------------------------------------------
+    %-----------------------------------------------------------
+    % Input check for PIEs
+    %-----------------------------------------------------------
     PIE=structure;
 
-    % Define problem size for discretization    
+    % Define problem size for discretization
     psize.nu=PIE.Tu.dim(1,2);
     psize.nw=PIE.Tw.dim(1,2);
     psize.nx=PIE.T.dim(1,1);
-
+    ns=PIE.T.dim(2,1);
     %  This is not checked. Need to change later
     %------------------------
     psize.nz=0;
@@ -353,13 +353,13 @@ elseif (opts.type=='PIE')
 
     psize.N=opts.N;
     psize.n=opts.piesize;
-    
+
     if isfield(PIE,'dom')
         uinput.a=PIE.dom(1);
         uinput.b=PIE.dom(2);
     end
-    
-    
+
+
     % check if all uinputs are defined, if not define them
     if ~isfield(uinput,'a')
         uinput.a = 0;
@@ -370,26 +370,47 @@ elseif (opts.type=='PIE')
     if ~isfield(uinput,'ifexact')
         uinput.ifexact = false;
     end
-    
+
     if ~isfield(uinput,'w')
-      uinput.w(1:psize.nw) = 0;
-      disp('Warning: disturbances are not defined. Defaulting to zero');
+        uinput.w(1:psize.nw) = 0;
+        disp('Warning: disturbances are not defined. Defaulting to zero');
     end
 
     if ~isfield(uinput,'u')
-      uinput.u(1:psize.nu) = 0;
-      disp('Warning: control inputs are not defined. Defaulting to zero');
+        uinput.u(1:psize.nu) = 0;
+        disp('Warning: control inputs are not defined. Defaulting to zero');
     end
- 
+
     if ~isfield(uinput,'ic')
-        uinput.ic.ODE(1:PIE.T.dim(1,1))=1;
-        uinput.ic.PDE(1:PIE.T.dim(2,1)) = sin(pi*sx);
-        disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
-        disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
+        disp('Initial conditions on ODE states are not defined. Defaulting to 1');
+        uinput.ic.ODE(1:psize.nx)=1;
+        disp('Initial conditions on history are not defined. Defaulting to 1');
+        uinput.ic.PDE(1:ns)=1;
+    else
+        if ~isfield(uinput.ic,'ODE')
+            disp('Initial conditions on ODE states are not defined. Defaulting to 1');
+            uinput.ic.ODE(1:psize.nx)=1;
+        end
+        if ~isfield(uinput.ic,'PDE')
+            disp('Initial conditions on history are not defined. Defaulting to 1');
+            uinput.ic.PDE(1:ns)=1;
+        end
+
+        if size(uinput.ic.ODE,1)>1
+            uinput.ic.ODE=uinput.ic.ODE';
+        end
+        if max(size(uinput.ic.ODE))<psize.nx
+            disp('Not enought number of initial conditions is defined. Defaulting the rest to 1');
+            uinput.ic.ODE(max(size(uinput.ic.ODE)):psize.nx)=1;
+        elseif max(size(uinput.ic.ODE))>psize.nx
+            disp('Too many initial conditions are defined. Ignoring extra conditions');
+            new_ic(1:psize.nx)=uinput.ic.ODE(1:psize.nx);
+            uinput.ic.ODE=new_ic;
+        end
     end
 
 end
- 
+
 end
 
 
@@ -487,7 +508,7 @@ if (PDE.nx>0)
         disp('Defalting the rest to zero');
         uinput.ic.ODE(size(uinput.ic.PDE,2)+1:PDE.nx)=0;
     end
-    
+
     if(size(uinput.ic.ODE,2)>PDE.nx)
         disp('Warning: Number of initial conditions on ODE states is greater than the number of ODE states');
         disp('Defaulting all ODE initial conditions to zero');
@@ -512,7 +533,7 @@ if (PDE.nu>0)
         uinput.u(size(uinput.u,2)+1:PDE.nu)=0;
         uinput.udot(size(uinput.u,2)+1:PDE.nu)=0;
     end
-    
+
     if (size(uinput.u,2)>PDE.nu)
         disp('Warning: Number of provided u inputs is  greater than nu.');
         disp('Defalting PDE.nu to zero');
@@ -540,7 +561,7 @@ if (PDE.nw>0)
             PDE.nw=0;
         end
     end
-    
+
     if isfield(PDE,'Bw')
         nc_Bw=size(PDE.Bw,2);
         if (nc_Bw<PDE.nw)
@@ -548,13 +569,13 @@ if (PDE.nw>0)
             PDE.Bw(:,nc_Bw+1:PDE.nw)=0;
         end
     end
-    
-    
+
+
     if isfield(PDE,'B21_nonpol')
         uinput.Bpw_nonpol=PDE.B21_nonpol;
     end
-    
-    
+
+
 end
 
 
