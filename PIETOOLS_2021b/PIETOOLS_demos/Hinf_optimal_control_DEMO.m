@@ -41,12 +41,12 @@ echo on
 % % % Declare the PDE, and convert it to a PIE.
 % Declare the PDE using command line parser
 pvar s t
-lam = 4;
+lam = 5;
 PDE = sys();
 x = state('pde');   w = state('in');
 z = state('out', 2);   u = state('in');
 eqs = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
-    z == [int(x,s,[0,1]) + w; u];
+    z == [int(x,s,[0,1]); u];
     subs(x,s,0)==0;
     subs(diff(x,s),s,1)==0];
 PDE = addequation(PDE,eqs);
@@ -152,7 +152,7 @@ syms st sx real
 % Set options for the discretization and simulation:
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
-opts.tf = 1;        % Simulate up to t = 1;
+opts.tf = 10;        % Simulate up to t = 1;
 opts.dt = 1e-3;     % Use time step of 10^-3
 opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
 ndiff = [0,0,1];    % The PDE state involves 1 second order differentiable state variables
