@@ -32,13 +32,13 @@ PDE_b.dom = [0,1];                              % spatial domain
 PDE_b.A1= [0 1; 2 0]; PDE_b.A0 = [0 0; 0 -2];                                    % PDE dx/dt = A*dx/ds
 PDE_b.B = [0 1 0 0; 0 0 1 0];      % BC x(0) = 0;
 
-
+PDE = initialize_PIETOOLS_PDE(PDE_b);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  PIE = convert_PIETOOLS_PDE(PDE_b);
-
+ 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 3: Analysis or Control script
@@ -58,7 +58,8 @@ settings = lpisettings('light');
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-[prog, P] = PIETOOLS_stability(PIE,settings);
+[prog,P] = lpisolve(PIE,settings,'stability');
+% [prog, P] = PIETOOLS_stability(PIE,settings);
 % [prog, P] = PIETOOLS_stability_dual(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
