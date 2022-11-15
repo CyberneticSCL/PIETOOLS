@@ -46,12 +46,12 @@ echo on
 % % % Declare the PDE, and convert it to a PIE.
 % Declare the PDE using command line parser
 pvar s t
-lam = 4;
+lam = 5;
 PDE = sys();
 x = state('pde');   w = state('in'); y = state('out');
 z = state('out', 2);   u = state('in');
 eqs = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
-    z == [int(x,s,[0,1]) + w; u];
+    z == [int(x,s,[0,1]); u]; % change z = int(x,s,[0,1])
     y == subs(x,s,1);
     subs(x,s,0)==0;
     subs(diff(x,s),s,1)==0];
@@ -171,20 +171,20 @@ syms st sx real
 % Set options for the discretization and simulation:
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
-opts.tf = 1;        % Simulate up to t = 1;
+opts.tf = 10;        % Simulate up to t = 1;
 opts.dt = 1e-3;     % Use time step of 10^-3
 opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
 ndiff = [0,0,1];    % The PDE state involves 1 second order differentiable state variables
 
 % Simulate the solution to the PIE without controller for different IC.
 uinput.ic.PDE = [-10*sx];   % IC PIE 
-uinput.w = exp(-st); % disturbance
+uinput.w = 5*exp(-st); % disturbance
 [solution_OL,grid] = PIESIM(PIE,opts,uinput,ndiff);
 
 % Simulate the solution to the PIE with controller for different IC and disturbance.
 ndiff = [0,0,2]; 
 uinput.ic.PDE = [-10*sx; 0];    % IC PIE and observed state
-uinput.w = exp(-st);   % disturbance
+uinput.w = 5*exp(-st);   % disturbance
 [solution_CL_a,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
 uinput.ic.PDE = [sin(sx*pi/2); 0];    % IC PIE
 uinput.w = 5*sin(pi*st)./(st+eps);   % disturbance
@@ -293,6 +293,8 @@ lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5;
 lgd1.Location = 'southeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');
 title('Control effort $u(t)$','Interpreter','latex','FontSize',15);
+%%
+surf(tval,grid.phys,x_OL);
 %%
 %%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
