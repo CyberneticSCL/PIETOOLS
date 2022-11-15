@@ -208,71 +208,42 @@ tplot = tval(plot_indcs);           % Only plot at select times
 colors = {'b','g','m','r','k','c','r','y','o'};     % Colors for the plot
 grid_idcs = 1:2:9;                % Only plot at a few grid points
 
-% Plot open loop response for different IC
-fig1 = figure(1); 
-hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_OL(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end 
-hold off;
-
-fig1.Position = [100 100 3000 2000];
-ax1 = gca;     
-set(ax1,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
-lgd1.Location = 'northwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Open loop $\mathbf{x}(t)$; $\mathbf{x}(0)=\frac{5}{4}(1-s^2)$','Interpreter','latex','FontSize',15);
-
-
 %%
-% Plot closed loop response for different IC
-fig2 = figure(2); 
-fig2.Position = [50 50 3000 2000];
-subplot(2,1,1); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_CL_a(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end 
-hold off;
-subplot(2,1,2); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_CL_b(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end
-hold off;
+tsteps = 1:50:length(tval);
+fig1 = figure(1);
+surf(tval(tsteps),grid.phys,x_OL(:,tsteps,:),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+colorbar;
+xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
+zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
+title('Open loop response with $\mathbf{x}(0,s)=\frac{5}{4}(1-s^2)$, $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
 
+fig2 = figure(2);
+subplot(2,1,1);
+surf(tval(tsteps),grid.phys,x_CL_a(:,tsteps,:),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+colorbar; 
+xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
+zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
+title('Closed loop response with $\mathbf{x}(0,s)=\frac{5}{4}(1-s^2)$, $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
 
-ax1 = subplot(2,1,1);
-set(ax1,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
-lgd1.Location = 'southwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=\frac{5}{4}(1-s^2)$, $w(t)=e^{-t}$','Interpreter','latex','FontSize',15);
-ax2 = subplot(2,1,2);
-set(ax2,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd2.FontSize = 10.5; 
-lgd1.Location = 'northwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
-
+subplot(2,1,2);
+surf(tval(tsteps),grid.phys,x_CL_b(:,tsteps,:),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+colorbar; 
+xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
+zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
+title('Closer loop response with $\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
 %%
 w2_tval = subs(5*sin(pi*st)./(st+eps),tval);
-w1_tval = subs(exp(-st),tval);
+w1_tval = subs(5*exp(-st),tval);
 z_quadrature = double(subs(0.5*sx^2-sx,grid.phys));
 k_quadrature = double(subs(Kval.Q1,s,grid.phys));
-ZZ1 = trapz(z_quadrature,x_CL_a)+double(w1_tval); %int wa
-ZZ2 = trapz(z_quadrature,x_CL_b)+double(w2_tval);%int wb
+ZZ1 = trapz(z_quadrature,x_CL_a); %int wa
+ZZ2 = trapz(z_quadrature,x_CL_b);%int wb
 ZZ3 = trapz(k_quadrature,hatx_CL_a); %u wa
 ZZ4 = trapz(k_quadrature,hatx_CL_b); %u wb
 fig3 = figure(3); XX = linspace(0,1,2000);
 subplot(1,2,1); hold on;
 [YY] = spline(tval,ZZ1,XX);
-plot(XX,YY,'--o','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = e^{-t}$']);
+plot(XX,YY,'--o','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = 5e^{-t}$']);
 [YY] = spline(tval,ZZ2,XX);
 plot(XX,YY,'--x','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = 5\frac{\sin(\pi t)}{t}$']); hold off;
 subplot(1,2,2); hold on;
@@ -293,8 +264,6 @@ lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5;
 lgd1.Location = 'southeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');
 title('Control effort $u(t)$','Interpreter','latex','FontSize',15);
-%%
-surf(tval,grid.phys,x_OL);
 %%
 %%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
