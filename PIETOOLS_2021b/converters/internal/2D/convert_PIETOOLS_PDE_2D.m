@@ -106,6 +106,24 @@ global dom;         dom = PDE.dom;
 global vars;        vars = PDE.vars;
 global nvars;       nvars = size(vars,1);
 
+% Since opvar2d objects are constructed to strictly map states x that can
+% be decomposed as
+%       [x0]    [ R^n0          ]
+%   x = [x1] in [ L2^n1 [s1]    ]
+%       [x2]    [ L2^n2 [s2]    ]
+%       [x3]    [ L2^n3 [s1,s2] ]
+% we have to re-arrange the state components, inputs and outputs to also
+% occur in this order. That is, if e.g.
+%   x = [x_i; x_j; x_k] in [ L2^n_i[s2]; R^n_j; L2^n_k[s2] ], 
+% we re-order the state components x_i, x_j and x_k such that 
+%   x_new = [x_j; x_i; x_k] in [ R^n_j; L2^n_i[s2]; L2^n_k[s2] ];
+% We do this useing the "reorder_comps" subroutine.
+[PDE,xcomp_order] = reorder_comps(PDE,'x',true);
+[PDE,ycomp_order] = reorder_comps(PDE,'y',true);
+[PDE,zcomp_order] = reorder_comps(PDE,'z',true);
+[PDE,wcomp_order] = reorder_comps(PDE,'w',true);
+[PDE,ucomp_order] = reorder_comps(PDE,'u',true);
+
 % If the PDE is not 2D, we artificially augment.
 if nvars==0
     % Define a 2D domain with variables.
@@ -140,24 +158,6 @@ elseif nvars==1
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
 end
-
-% Since opvar2d objects are constructed to strictly map states x that can
-% be decomposed as
-%       [x0]    [ R^n0          ]
-%   x = [x1] in [ L2^n1 [s1]    ]
-%       [x2]    [ L2^n2 [s2]    ]
-%       [x3]    [ L2^n3 [s1,s2] ]
-% we have to re-arrange the state components, inputs and outputs to also
-% occur in this order. That is, if e.g.
-%   x = [x_i; x_j; x_k] in [ L2^n_i[s2]; R^n_j; L2^n_k[s2] ], 
-% we re-order the state components x_i, x_j and x_k such that 
-%   x_new = [x_j; x_i; x_k] in [ R^n_j; L2^n_i[s2]; L2^n_k[s2] ];
-% We do this useing the "reorder_comps" subroutine.
-[PDE,xcomp_order] = reorder_comps(PDE,'x',true);
-[PDE,ycomp_order] = reorder_comps(PDE,'y',true);
-[PDE,zcomp_order] = reorder_comps(PDE,'z',true);
-[PDE,wcomp_order] = reorder_comps(PDE,'w',true);
-[PDE,ucomp_order] = reorder_comps(PDE,'u',true);
 
 % Extract the tables providing information on the spatial dependence (and
 % order of differentiability) of the state, input, and output components.
