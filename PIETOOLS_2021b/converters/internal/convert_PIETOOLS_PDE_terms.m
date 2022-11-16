@@ -160,7 +160,7 @@ for i=1:length(z)
                 cSum = [0 cumsum(rcols(:,2))']+1;
                 rcols = cSum(idLoc):cSum(idLoc+1)-1;
                 PDE_out.ODE.Dzr(rows,rrows) = eye(length(rows)); % columns will be same as rrows
-                if isfield(tmpterm,'I') % integral term, goes to Crp
+                if isfield(tmpterm,'I') && ~isempty(tmpterm.I{1}) % integral term, goes to Crp
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
                     end
@@ -208,7 +208,7 @@ for i=1:length(y)
                 cSum = [0 cumsum(rcols(:,2))']+1;
                 rcols = cSum(idLoc):cSum(idLoc+1)-1;
                 PDE_out.ODE.Dyr(rows,rrows) = eye(length(rows)); % columns will be same as rrows
-                if isfield(tmpterm,'I') % integral term, goes to Crp
+                if isfield(tmpterm,'I') && ~isempty(tmpterm.I{1}) % integral term, goes to Crp
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
                     end
@@ -256,7 +256,7 @@ for i=1:length(x)
                     cSum = [0 cumsum(rcols(:,2))']+1;
                     rcols = cSum(idLoc):cSum(idLoc+1)-1;
                     PDE_out.ODE.Bxr(rows,rrows) = eye(length(rows)); % columns will be same as rrows
-                    if isfield(tmpterm,'I') % integral term, goes to Crp
+                    if isfield(tmpterm,'I') && ~isempty(tmpterm.I{1}) % integral term, goes to Crp
                         if ~isfield(tmpterm,'D')
                             tmpterm.D = 0;
                         end
