@@ -79,7 +79,7 @@ classdef sys
         obj = removeControl(obj,input);
         obj = setObserve(obj,output);
         obj = removeObserve(obj,output);
-        
+        display(obj);
     end
 end
 function validateEquation(prop)
