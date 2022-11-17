@@ -1,18 +1,21 @@
-function [prog, varargout] = lpisolve(PIE,settings,lpi,fn_hnd)
+function [prog, varargout] = lpisolve(PIE,settings,lpi)
 if nargin<3
-    error('Insufficient number of arguments. Correct syntax: lpisolve(PIE,settings,lpi,function_handle)');
+    error('Insufficient number of arguments. Correct syntax: lpisolve(PIE,settings,lpi)');
 end
 if isempty(settings)
     settings = lpisettings('light');
+elseif ~isa(settings,'string')&&~isa(settings,'struct')
+    error("Settings must either be a string value or a settings structure similar to the output of lpisettings() function.")
 end
 if ~ismember(lpi,{'stability','stability-dual','l2-gain','l2-gain-dual','hinf-observer','hinf-controller','custom'})
     error("Unknown lpi type. Use 'custom' option and pass the function handle for the lpi to be solved");
-end
-if strcmp(lpi,'custom') && nargin~=4
-    error("lpi type was set to 'custom', however, no function handle was passed. Correct syntax: lpisolve(PIE,settings,lpi,function_handle)");
+elseif ~isa(lpi,'function_handle')
+    error("lpi must be a string value or a function handle.");
 end
 
-
+if isa(settings,'string')
+    settings = lpisettings(settings);
+end
 
 switch lpi
     case 'stability'
@@ -33,8 +36,8 @@ switch lpi
     case 'hinf-controller'
         [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
         varargout{1} = P; varargout{2} = K; varargout{3} = gamma; varargout{4} = P; varargout{5} = Z;
-    case 'custom'
-        [prog, vout] = fn_hnd(PIE,settings);
+    otherwise
+        [prog, vout] = lpi(PIE,settings);
         varargout = cell(1,length(vout));
         for i=1:length(vout)
             varargout{i} = vout{i};
