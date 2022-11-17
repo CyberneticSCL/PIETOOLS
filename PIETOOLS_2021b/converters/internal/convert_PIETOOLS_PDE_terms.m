@@ -414,6 +414,10 @@ end
 
 % finally, use old converter to get the PIE
 PIE = convert_PIETOOLS_PDE_terms_legacy(PDE_out);
+if strcmp(PIE,'Singular ET')
+    disp('Conversion to PIE unsuccessful. B_T is singular.')
+    return;
+end
 PIE.vars = PDE.vars;
 PIE = pie_struct(PIE);
 end
