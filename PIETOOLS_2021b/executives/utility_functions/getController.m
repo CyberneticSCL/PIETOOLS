@@ -4,7 +4,7 @@ function [K] = getController(P,Z,tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function returns controller gains K = ZP^{-1} as an opvar object given
 % Lyapunov opvar variable P and opvar variable Z used in the LPI for hinf
-% optimal observer LPI
+% optimal controller LPI
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following inputs must be defined passed:
