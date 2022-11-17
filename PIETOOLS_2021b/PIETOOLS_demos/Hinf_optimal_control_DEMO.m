@@ -88,7 +88,7 @@ else
     opts.sep = 0;
     [prog,P] = poslpivar(prog,Pdim,Pdom,Pdeg,opts);
     eppos = 1e-3;
-    P.R.R0 = P.R.R0 + eppos*eye(size(P));
+    P.R.R0 = P.R.R0 + eppos*eye(size(P.R.R0));
 
     % Declare the indefinite PI operator decision variable Z
     Zdim = B2.dim(:,[2,1]);
