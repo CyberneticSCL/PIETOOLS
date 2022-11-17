@@ -10,13 +10,33 @@ dom = pdeObj.dom;
 pvar t;
 
 % build a dictionary of state names for future reference
-odeNames = statelist(find(strcmp(statelist.type,'ode'))).statename;
-pdeNames = statelist(find(strcmp(statelist.type,'pde'))).statename;
+odeNames = []; pdeNames = []; zNames = []; yNames = []; wNames = []; uNames = [];
+tmp = statelist(find(strcmp(statelist.type,'ode')));
+if ~isempty(tmp) 
+    odeNames = tmp.statename;
+end
+tmp = statelist(find(strcmp(statelist.type,'pde')))
+if ~isempty(tmp) 
+    pdeNames = tmp.statename;
+end
 xNames = [odeNames; pdeNames];
-zNames = statelist(find((~pdeObj.ObservedOutputs).*strcmp(statelist.type,'out'))).statename;
-yNames = statelist(find(pdeObj.ObservedOutputs.*strcmp(statelist.type,'out'))).statename;  
-wNames = statelist(find(~(pdeObj.ControlledInputs).*strcmp(statelist.type,'in'))).statename;
-uNames = statelist(find(pdeObj.ControlledInputs.*strcmp(statelist.type,'in'))).statename;
+tmp = statelist(find((~pdeObj.ObservedOutputs).*strcmp(statelist.type,'out')));
+if ~isempty(tmp) 
+   zNames = tmp.statename;
+end
+tmp = statelist(find((pdeObj.ObservedOutputs).*strcmp(statelist.type,'out')));
+if ~isempty(tmp) 
+    yNames = tmp.statename;
+end
+tmp = statelist(find(~(pdeObj.ControlledInputs).*strcmp(statelist.type,'in')));
+if ~isempty(tmp) 
+    wNames = tmp.statename;
+end
+tmp = statelist(find(pdeObj.ControlledInputs.*strcmp(statelist.type,'in')));
+if ~isempty(tmp) 
+    uNames = tmp.statename;
+end
+clear tmp;
 
 % find the term location of states in the equation
 veclen_sum = [0;cumsum(equations.statevec.veclength)]+1;

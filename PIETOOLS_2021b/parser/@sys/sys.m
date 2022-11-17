@@ -1,4 +1,4 @@
-classdef sys
+classdef (InferiorClasses={?state}) sys
     properties
         equation {validateEquation(equation)} = [];
         type char {mustBeMember(type,{'pde','dde','ddf','pie'})} = 'pde';
