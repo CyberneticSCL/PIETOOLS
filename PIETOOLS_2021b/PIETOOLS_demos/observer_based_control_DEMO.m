@@ -199,7 +199,6 @@ x_CL_a = reshape(solution_CL_a.timedep.pde(:,1,:),opts.N+1,[]);
 hatx_CL_a = reshape(solution_CL_a.timedep.pde(:,2,:),opts.N+1,[]);
 x_CL_b = reshape(solution_CL_b.timedep.pde(:,1,:),opts.N+1,[]);
 hatx_CL_b = reshape(solution_CL_b.timedep.pde(:,2,:),opts.N+1,[]);
-XX = linspace(0,1,20);
 %%
 % Set options for the plot
 plot_indcs = floor(logspace(0,log(opts.tf/opts.dt)/log(10),5));
@@ -244,6 +243,7 @@ xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15
 zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Closer loop response with $\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
 %%
+XX = linspace(0,10,200);
 w2_tval = subs(5*sin(pi*st)./(st+eps),tval);
 w1_tval = subs(5*exp(-st),tval);
 z_quadrature = double(subs(0.5*sx^2-sx,grid.phys));
@@ -252,7 +252,7 @@ ZZ1 = trapz(z_quadrature,x_CL_a); %int wa
 ZZ2 = trapz(z_quadrature,x_CL_b);%int wb
 ZZ3 = trapz(k_quadrature,hatx_CL_a); %u wa
 ZZ4 = trapz(k_quadrature,hatx_CL_b); %u wb
-fig3 = figure(3); XX = linspace(0,1,2000);
+fig3 = figure(3); 
 subplot(1,2,1); hold on;
 [YY] = spline(tval,ZZ1,XX);
 plot(XX,YY,'--o','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = 5e^{-t}$']);
@@ -265,13 +265,13 @@ plot(XX,YY,'--o','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$
 plot(XX,YY,'--x','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = 5\frac{\sin(\pi t)}{t}$']); hold off;
 
 ax5 = subplot(1,2,1);
-set(ax5,'XTick',tval(1:90:end));
+set(ax5,'XTick',tval(1:900:end));
 lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5; 
 lgd1.Location = 'northeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$z(t)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $z(t) = \int_0^1 \mathbf{x}(t,s) ds+w(t)$','Interpreter','latex','FontSize',15);
+title('Closed loop $z(t) = \int_0^1 \mathbf{x}(t,s) ds$','Interpreter','latex','FontSize',15);
 ax6 = subplot(1,2,2);
-set(ax6,'XTick',tval(1:90:end));
+set(ax6,'XTick',tval(1:900:end));
 lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5; 
 lgd1.Location = 'southeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');

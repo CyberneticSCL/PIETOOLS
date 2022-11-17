@@ -76,8 +76,7 @@ fprintf(['\n',' --- Reordering the state components to allow for representation 
 % Check the spatial dimension of the system, and call the corresponding 
 % converter.
 if PDE.dim<=1
-    PIE = convert_PIETOOLS_PDE_terms(PDE);
-    PIE.vars = PDE.vars;
+    PIE = convert_PIETOOLS_PDE_terms(PDE);    
 elseif PDE.dim==2
     PIE = convert_PIETOOLS_PDE_2D(PDE);
 else

@@ -15,23 +15,17 @@ pdeNames = statelist(find(strcmp(statelist.type,'pde'))).statename;
 xNames = [odeNames; pdeNames];
 zNames = statelist(find((~pdeObj.ObservedOutputs).*strcmp(statelist.type,'out'))).statename;
 yNames = statelist(find(pdeObj.ObservedOutputs.*strcmp(statelist.type,'out'))).statename;  
-uNames = statelist(find(pdeObj.ControlledInputs.*strcmp(statelist.type,'in'))).statename;
 wNames = statelist(find(~(pdeObj.ControlledInputs).*strcmp(statelist.type,'in'))).statename;
+uNames = statelist(find(pdeObj.ControlledInputs.*strcmp(statelist.type,'in'))).statename;
 
 % find the term location of states in the equation
 veclen_sum = [0;cumsum(equations.statevec.veclength)]+1;
-odeidx = find(strcmp(equations.statevec.type,'ode')); % find all terms with ode states
-pdeidx = find(strcmp(equations.statevec.type,'pde')); % find all terms with pde states
-outidx = find(strcmp(equations.statevec.type,'out')); % find all terms with output 
-inidx = find(strcmp(equations.statevec.type,'in')); % find all terms with input
-
-
 
 % start parsing the system equations
 out = pde_struct();
 
 % set known global properties
-out.dom = [0,1];
+out.dom = dom;
 out.vars = [pvar('s'),pvar('theta')];
 
 % set state properties
@@ -43,18 +37,22 @@ out.y = cell(length(yNames),1);
 out.BC = cell(0,1);
 
 
-% specify ode locations in out.x
+% specify ode states in out.x by saying out.x.vars has no spatial variable
 [~,tmpidx] = ismember(odeNames,xNames);
 if ~isempty(tmpidx)
 out.x{tmpidx}.vars = [];
 end
 
+% find time derivatives and output state locations
+isdot_A = isdot(equations.statevec); % find which elements in statevec have time derivatives
+isout_A = isout(equations.statevec); % find which elements in statevec have output terms
 
-
-isdot_A = isdot(equations.statevec); isout_A=isout(equations.statevec); 
-for i=1:eqnNum
+% NOW, we start conversion to PDE terms format
+for i=1:eqnNum % start one "scalar" equation at a time, vector valued states are split
     row = equations(i);
-    if any(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength)))) % equation has outputs
+    hasOutput = any(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength)))); 
+    hasDynamics = any(isdot_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength))));
+    if hasOutput % equation has outputs 
         % find which output 
         outLoc = find(isout_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength))));
         outLoc = find(outLoc<veclen_sum,1)-1;
@@ -102,7 +100,7 @@ for i=1:eqnNum
         else % observed output
             out.y = tmp;
         end
-    elseif any(isdot_A'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength))))% equation has dynamics
+    elseif hasDynamics % equation has dynamics
         % find which x
         outLoc = find(isdot_A'.*any(strcmp(equations.statevec.type,{'ode'})|strcmp(equations.statevec.type,{'pde'}))'&~isequal(polynomial(row.operator.R.R0),zeros(1,sum(equations.statevec.veclength))));
         outLoc = find(outLoc<veclen_sum,1)-1;
@@ -116,6 +114,7 @@ for i=1:eqnNum
             end
             if (j==outLoc) % derivative term, check time derivative order
                 tmp{Loc}.tdiff = equations.statevec(j).diff_order(1);
+                continue;
             end
             if strcmp(equations.statevec(j).type,'ode')% ode state term
                 tmp{Loc}.term{j}.C = [tmp{Loc}.term{j}.C; -row.operator.R.R0(:,veclen_sum(j):veclen_sum(j+1)-1)];
