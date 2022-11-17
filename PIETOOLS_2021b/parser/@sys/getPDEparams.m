@@ -15,7 +15,7 @@ tmp = statelist(find(strcmp(statelist.type,'ode')));
 if ~isempty(tmp) 
     odeNames = tmp.statename;
 end
-tmp = statelist(find(strcmp(statelist.type,'pde')))
+tmp = statelist(find(strcmp(statelist.type,'pde')));
 if ~isempty(tmp) 
     pdeNames = tmp.statename;
 end
