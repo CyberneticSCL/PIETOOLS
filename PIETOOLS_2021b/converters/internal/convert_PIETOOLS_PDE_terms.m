@@ -318,14 +318,14 @@ for i=1:length(x)
             else % add to A/Bpb
                 lstate = xtab(i,4); % max derivative of LHS state
                 rstate = pdetab((tmpterm.x==pdeID),4); % max derivative of RHS term state
-                rcols = pdetab(pdetab(:,4)==rstate,:);
-                idLoc = find(tmpterm.x==rcols(:,1));
-                cSum = [0 cumsum(rcols(:,2))']+1;
-                rcols = cSum(idLoc):cSum(idLoc+1)-1;
-                rrows = pdetab(pdetab(:,4)==lstate,:);
-                idLoc = find(tmpterm.x==rrows(:,1));
-                cSum = [0 cumsum(rrows(:,2))']+1;
-                rrows = cSum(idLoc):cSum(idLoc+1)-1;
+                cols = pdetab(pdetab(:,4)==rstate,:);
+                idLoc = find(tmpterm.x==cols(:,1));
+                cSum = [0 cumsum(cols(:,2))']+1;
+                cols = cSum(idLoc):cSum(idLoc+1)-1;
+                rows = pdetab(pdetab(:,4)==lstate,:);
+                idLoc = find(i==rows(:,1));
+                cSum = [0 cumsum(rows(:,2))']+1;
+                rows = cSum(idLoc):cSum(idLoc+1)-1;
                 if ~poly2double(tmpterm.loc(1))% integral add to A
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
@@ -342,7 +342,7 @@ for i=1:length(x)
                     else% R0 term
                         loc = (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
                     end
-                    PDE_out.PDE.A{loc}.coeff(rrows,rcols) = tmpterm.C;
+                    PDE_out.PDE.A{loc}.coeff(rows,cols) = tmpterm.C;
                 else % boundary add to Bpb
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
@@ -350,7 +350,7 @@ for i=1:length(x)
                     der = tmpterm.D;
                     deltaval = (double(tmpterm.loc(1))==dom(2));    % 0 if lower boundary, 1 if upper boundary
                     loc = lstate*(2*np_all_derivatives-2*(N+1)) + deltaval*(np_all_derivatives-N-1) + sum(N-1:-1:N-der) + rstate;
-                    PDE_out.PDE.Bpb{loc}.coeff(rrows,rcols) = tmpterm.C;
+                    PDE_out.PDE.Bpb{loc}.coeff(rows,cols) = tmpterm.C;
                 end
             end
         end
