@@ -211,22 +211,39 @@ grid_idcs = 1:2:9;                % Only plot at a few grid points
 tsteps = 1:50:length(tval);
 fig1 = figure(1);
 surf(tval(tsteps),grid.phys,x_OL(:,tsteps,:),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
-colorbar;
+%mesh(tval(tsteps),grid.phys,x_OL(:,tsteps,:))
+set(gcf, 'Color', 'w');
+colormap jet
+h=colorbar ;
+ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
+box on
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Open loop response with $\mathbf{x}(0,s)=\frac{5}{4}(1-s^2)$, $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
 
+   % mesh(t(100:tend).*1e3,x(1:ndof),z(100:tend,1:ndof).')
+   % view([0,90]
 fig2 = figure(2);
 subplot(2,1,1);
 surf(tval(tsteps),grid.phys,x_CL_a(:,tsteps,:),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
-colorbar; 
+%mesh(tval(tsteps),grid.phys,x_CL_a(:,tsteps,:))
+set(gcf, 'Color', 'w');
+colormap jet
+h=colorbar ;
+ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
+box on
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Closed loop response with $\mathbf{x}(0,s)=\frac{5}{4}(1-s^2)$, $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
 
 subplot(2,1,2);
 surf(tval(tsteps),grid.phys,x_CL_b(:,tsteps,:),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
-colorbar; 
+%mesh(tval(tsteps),grid.phys,x_CL_b(:,tsteps,:))
+set(gcf, 'Color', 'w');
+colormap jet
+h=colorbar ;
+ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
+box on
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Closer loop response with $\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
