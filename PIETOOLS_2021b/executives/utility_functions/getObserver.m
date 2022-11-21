@@ -24,7 +24,7 @@ if nargin==2
 end
 
 if isvalid(P)==0 && isvalid(Z)==0
-L = inv_opvar(P,tol)*Z;
+L = inv(P,tol)*Z;
 else
     error("Inputs must be opvar variables");
 end
