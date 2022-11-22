@@ -1,4 +1,14 @@
 function obj = diff(obj,var,order)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% State-class method that differentiates a vector of states, x, in variable
+% 'var' by 'order' times
+% Input: 
+% obj - state class object, x 
+% var - pvar w.r.t. which differentiation is done
+% order - positive integer, specifying order of differentiation
+% Output:
+% obj - state class object, \partial_{var}^{order} x
+
 if nargin==1
     var = obj.var(1);
     order = 1;

@@ -1,4 +1,11 @@
 function logval = isequal(objA,objB)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% State-class method that specifies if objA=objB
+% Input: 
+% objA, objB - state class object
+% Output:
+% logval - 0 (if objA is not equal to objB) or 1 (if objA=objB)
+
 logval = 1;
 if ~isa(objA,'state')||~isa(objB,'state')
     logval = 0;

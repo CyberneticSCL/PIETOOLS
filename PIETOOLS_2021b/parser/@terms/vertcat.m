@@ -1,4 +1,11 @@
 function obj = vertcat(varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% terms-class method that performs [objA;objB] concatenation 
+% Input: 
+% varargin - terms class objects
+% Output:
+% obj - terms class object [varargin{1};...varargin{n}]
+
 if nargin==1
     obj = varargin{1};
 else

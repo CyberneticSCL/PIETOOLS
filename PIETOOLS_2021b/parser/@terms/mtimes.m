@@ -1,4 +1,11 @@
 function prodTerms = mtimes(K,objA)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% terms-class method that performs K*objA
+% Input: 
+% objA - terms class objects
+% K - polynomial or double matrix
+% Output:
+% prodTerms - terms class object K*objA
 
 if isa(K,'terms')
     error('Left multiplication by state/terms object is not supported');

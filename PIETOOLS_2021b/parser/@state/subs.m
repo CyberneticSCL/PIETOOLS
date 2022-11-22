@@ -1,4 +1,11 @@
 function obj = subs(obj,old,new)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% State-class method that performs replaces obj(old) by obj(new)
+% Input: 
+% obj - state class object, obj(old)
+% old, new - pvar variable
+% Output:
+% obj - state class object, obj(new)
 
 if nargin~=3
     error('Substitution requires 3 inputs: state object, variable to be substituted, value to be substituted.');

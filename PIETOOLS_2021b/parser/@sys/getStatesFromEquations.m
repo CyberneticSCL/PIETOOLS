@@ -1,4 +1,11 @@
 function out = getStatesFromEquations(obj)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sys-class method that identifies unique states in equations list
+% Input: 
+% obj - sys class object
+% Output:
+% out - vector of state class objects
+
 equations = obj.equation;
 eqnNum = length(equations);
 if eqnNum==0

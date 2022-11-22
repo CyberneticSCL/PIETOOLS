@@ -1,4 +1,13 @@
 function out = subsref(obj,s)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% State-class method for sub indexing of obj. Allowed subindexing:
+% obj.(property), obj(a:b)
+% Input: 
+% obj - state class object
+% s - indexing structure
+% Output:
+% out - obj(s) or obj.s, state class object
+
 switch s(1).type
     case '.'
         if length(s) == 1

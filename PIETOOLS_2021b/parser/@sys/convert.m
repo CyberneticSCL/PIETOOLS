@@ -1,4 +1,13 @@
 function out = convert(obj,convertTo)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sys-class method that converts obj from one type to another (typically
+% PIE)
+% Input: 
+% obj - sys class object
+% convertTo - string, 'pie' or 'ddf'
+% Output:
+% obj - sys class object with pie or ddf parameters
+
 arguments
     obj;
     convertTo {mustBeMember(convertTo,{'pie','ddf'})} = '';

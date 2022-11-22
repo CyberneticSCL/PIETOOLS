@@ -1,4 +1,7 @@
 function strOut = stateNameGenerator()
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% internal method to generate unique ID for state class objects
+
 persistent n
 
 if isempty(n)

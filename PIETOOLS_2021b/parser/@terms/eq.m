@@ -1,4 +1,11 @@
 function obj = eq(objA,objB)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% terms-class method that creates the equality constraint objA==objB
+% Input: 
+% objA, objB - terms class objects
+% Output:
+% terms_obj - terms class object objA-objB
+
 if isa(objA,'state')
     objA = state2terms(objA);
 end

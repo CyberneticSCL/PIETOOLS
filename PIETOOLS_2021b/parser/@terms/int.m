@@ -1,4 +1,12 @@
 function intTerms = int(objA, var, lim)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% terms-class method that integrates objA
+% Input: 
+% objA - terms class objects
+% var - polynomial variable wrt which integration is performed
+% lim - limits of integration, 1x2 pvar or double
+% Output:
+% intTerms - terms class object \int_{lim{1}}^{lim{2}} objA d(var)
 
 if any(isequal(lim,var))
     error('Limits of integration and integration variable are the same. Change the variable naming');

@@ -1,4 +1,11 @@
 function logval = isequal(objA,objB)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% terms-class method that tests objA=objB
+% Input: 
+% objA, objB - terms class objects 
+% Output:
+% logval - 0 or 1
+
 logval = 1;
 if ~isa(objA,'terms')||~isa(objB,'terms')
     logval = 0;

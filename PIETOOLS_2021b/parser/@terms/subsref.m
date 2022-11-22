@@ -1,4 +1,12 @@
 function out = subsref(obj,s)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% terms-class method used in sub-indexing
+% Input: 
+% obj - terms class objects
+% s - sub indexing structure
+% Output:
+% out - obj.s or obj(s)
+
 switch s(1).type
     case '.'
         out = builtin('subsref',obj,s);

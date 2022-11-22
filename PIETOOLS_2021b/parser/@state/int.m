@@ -1,4 +1,13 @@
 function out = int(objC, var, lim)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% State-class method that integrates a vector of states, x, in variable
+% 'var' by 'lim' limit
+% Input: 
+% obj - state class object, x 
+% var - pvar w.r.t. which differentiation is done
+% lim - a 1x2 pvar object (or double object) 
+% Output:
+% out - state class object, \int_{lim{1}}^{lim{2}} x d(var)
 
 dom = objC.dom;
 

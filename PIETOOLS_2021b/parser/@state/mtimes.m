@@ -1,4 +1,12 @@
 function prodTerms = mtimes(K,objA)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% State-class method that performs K*objA
+% Input: 
+% objA - state class objects
+% K - polynomial or double
+% Output:
+% prodTerms - A*[objA], where A=K
+
 
 if isa(objA,'state')&&isa(K,'state')
     error('Two state type objects cannot be multiplied');

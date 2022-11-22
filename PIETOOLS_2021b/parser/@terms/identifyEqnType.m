@@ -1,4 +1,12 @@
 function out = identifyEqnType(equation)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% terms-class method that identifies if equation has time derivatives,
+% outputs, or just boundary values
+% Input: 
+% equation - terms class objects
+% Output:
+% out - string, 'ode', 'pde', 'out', 'bc'
+
 statevec = equation.statevec;
 classifiedeqns = zeros(length(equation),1);
 for i=1:length(statevec)

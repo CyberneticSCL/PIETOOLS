@@ -1,4 +1,11 @@
 function terms_obj = eq(objA,objB)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% State-class method that creates the equality constraint objA==objB
+% Input: 
+% objA, objB - state class objects of same length
+% Output:
+% terms_obj - an equation objA-objB==0
+
 if ~isa(objA,'state')&&(objA==0)
     terms_obj = state2terms(-objB);
 elseif ~isa(objB,'state')&&(objB==0)

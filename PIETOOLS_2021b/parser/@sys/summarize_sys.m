@@ -1,4 +1,9 @@
 function summarize_sys(obj,varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sys-class method that displays a summary of sys object explains number of
+% states and equations
+% Input: 
+% obj - sys class object
 
 if strcmp(obj.type,'pde')
     statelist = obj.states;

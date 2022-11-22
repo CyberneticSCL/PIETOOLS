@@ -1,4 +1,11 @@
 function sumTerms = plus(objA,objB)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% terms-class method that performs objA+objB
+% Input: 
+% objA, objB - terms class objects
+% Output:
+% sumTerms - terms class object objA+objB
+
 if isa(objA,'state')
     objA = state2terms(objA);
 elseif ~isa(objA,'terms')

@@ -1,4 +1,12 @@
 function out = getPDEparams(pdeObj)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sys-class method that parses PDE equations into standard parametric form for
+% PDE
+% Input: 
+% obj - sys class object
+% Output:
+% out - sys class object with PDE parameters initialized
+
 equations = pdeObj.equation;
 statelist = pdeObj.states;
 eqnNum = length(equations);

@@ -1,4 +1,7 @@
 function n = getDifferentiability(varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% not used currently
+
 if nargin==1
     nBC = varargin{1};
 elseif nargin==2
