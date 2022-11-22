@@ -297,7 +297,7 @@ end
 
 %remove temporary opvars
 %clear Apop Phfop Tbigop; 
-PIE.dom=X;
+PIE.dom=X; PIE.dim = 1;
 PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;
 PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
 PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;

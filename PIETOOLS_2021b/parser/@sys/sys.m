@@ -1,4 +1,39 @@
 classdef (InferiorClasses={?state}) sys
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sys class is the container class to store equations and parameters for
+% pde, pie, time-delay systems and does not take any input arguments for
+% initialization. To initialize, use X = sys(). The type of sys can be
+% modified using the commands X.type = 'pde' or 'pie'. Likewise, the domain
+% can be changed using the command X.dom = [0,5]. The other properties of
+% system object can not be accessed or modified directly to avoid
+% unintended errors.
+
+% NOTES:
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+
     properties
         equation {validateEquation(equation)} = [];
         type char {mustBeMember(type,{'pde','dde','ddf','pie'})} = 'pde';

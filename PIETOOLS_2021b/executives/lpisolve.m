@@ -43,10 +43,12 @@ if isempty(settings)
 elseif ~isa(settings,'string')&&~isa(settings,'struct')
     error("Settings must either be a string value or a settings structure similar to the output of lpisettings() function.")
 end
-if ~ismember(lpi,{'stability','stability-dual','l2-gain','l2-gain-dual','hinf-observer','hinf-controller','custom'})
-    error("Unknown lpi type. Use 'custom' option and pass the function handle for the lpi to be solved");
+if (isa(lpi,'string')||isa(lpi,'char'))&&ismember(lpi,{'stability','stability-dual','l2-gain','l2-gain-dual','hinf-observer','hinf-controller','custom'})
+    % do nothing
 elseif ~isa(lpi,'function_handle')
     error("lpi must be a string value or a function handle.");
+else
+    error("Unknown lpi type");
 end
 
 if isa(settings,'string')
