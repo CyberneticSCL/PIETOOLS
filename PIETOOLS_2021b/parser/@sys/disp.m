@@ -9,7 +9,7 @@ function disp(obj)
 if strcmp(obj.type,'pde')
     display_PDE(obj.params);
 elseif strcmp(obj.type,'pie')
-    display(obj.params);
+    disp_pie(obj.params);
 else
     error('Display is supported only for sys objects of type PDE or PIE');
 end
