@@ -1,3 +1,6 @@
+% DEMO5_Hinf_optimal_estimator.m
+% See Chapter 11.5 for a description
+%
 % This document illustrates how an Hinfty optimal estimator can be designed
 % for a PIE, and how the estimated state can be simulated.
 %

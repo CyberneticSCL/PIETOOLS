@@ -1,3 +1,6 @@
+% DEMO4_stability_parameter_bisection.m
+% See Chapter 11.4 for a description
+%
 % This document illustrates how PIETOOLS can be used to find the maximal
 % value of a parameter for which a PDE is stable, using bisection.
 
