@@ -68,7 +68,7 @@ ylabel('$\mathbf{z}(t)$','FontSize',15,'Interpreter','latex');
 title('Open loop zero-state response with $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
 
 %% Use the predefined Hinf estimator executive function.
-settings = lpisettings('heavy');
+settings = lpisettings('heavy',0,'','sedumi');
 [prog, Kval, gam_val] = PIETOOLS_Hinf_control(PIE, settings);
 
 %% Closed loop with the sinthesized controller.

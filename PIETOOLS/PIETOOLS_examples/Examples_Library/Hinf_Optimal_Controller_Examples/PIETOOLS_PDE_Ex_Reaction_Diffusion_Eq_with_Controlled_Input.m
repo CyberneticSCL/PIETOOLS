@@ -77,7 +77,16 @@ PDE_t.BC{1}.term{1}.loc = 0;
 % BC 2: 0 = x(1)
 PDE_t.BC{2}.term{1}.x = 1;
 PDE_t.BC{2}.term{1}.loc = 1;
-
+% command line
+% pvar t s;
+% x = state('pde'); u = state('in');
+% w = state('in'); z=state('out',2);
+% pde = sys();
+% eq_dyn = diff(x,t)==10*x+diff(x,s,2)+u+w;
+% eq_out = z==[int(x,s,[0,1]);u];
+% pde = addequation(pde,[eq_dyn;eq_out]);
+% eq_bc = [subs(x, s, 0) == 0;subs(x, s, 1) == 0];
+% pde = addequation(pde,eq_bc);
 
 if GUI
     %%% Associated GUI save file
