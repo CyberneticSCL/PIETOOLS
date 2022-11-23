@@ -26,4 +26,3 @@ if ~isequal(objA.statevec,objB.statevec)
     return
 end
 end
-end
