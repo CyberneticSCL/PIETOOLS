@@ -55,6 +55,10 @@ if isa(settings,'string')
     settings = lpisettings(settings);
 end
 
+if isa(PIE,'sys')
+    PIE = PIE.params;
+end
+
 switch lpi
     case 'stability'
         [prog, P] = PIETOOLS_stability(PIE,settings);
