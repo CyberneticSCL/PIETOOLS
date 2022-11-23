@@ -1,3 +1,4 @@
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIESIM_input_check.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -186,16 +187,19 @@ elseif strcmp(opts.type,'PDE')
         if ~isfield(uinput,'u')
             disp('Warning: nu is greater than zero, but user-defiened u inputs are not provided. Defaulting PDE.nu to zero.');
             psize.nu=0;
-        end
-        if (size(uinput.u,2)<psize.nu)
-            disp('Warning: Number of provided u inputs is less than nu.');
-            disp('Defalting the rest of u inputs and their time derivatives to zero');
-            uinput.u(size(uinput.u,2)+1:psize.nu)=0;
-            uinput.udot(size(uinput.u,2)+1:psize.nu)=0;
-        elseif (size(uinput.u,2)>psize.nu)
-            disp('Warning: Number of provided u inputs is  greater than nu.');
-            disp('Defalting PDE.nu to zero');
-            psize.nu=0;
+        elseif ~isempty(symvar(uinput.u)) && any(~ismember(symvar(uinput.u),{'st'}))
+            error('Control inputs must be symbolic expressions in st');
+        else
+            if (size(uinput.u,2)<psize.nu)
+                disp('Warning: Number of provided u inputs is less than nu.');
+                disp('Defalting the rest of u inputs and their time derivatives to zero');
+                uinput.u(size(uinput.u,2)+1:psize.nu)=0;
+                uinput.udot(size(uinput.u,2)+1:psize.nu)=0;
+            elseif (size(uinput.u,2)>psize.nu)
+                disp('Warning: Number of provided u inputs is  greater than nu.');
+                disp('Defalting PDE.nu to zero');
+                psize.nu=0;
+            end
         end
     end
 
