@@ -114,7 +114,7 @@ classdef (InferiorClasses={?state}) sys
         obj = removeControl(obj,input);
         obj = setObserve(obj,output);
         obj = removeObserve(obj,output);
-        display(obj);
+        disp(obj);
     end
 end
 function validateEquation(prop)
