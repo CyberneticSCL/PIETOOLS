@@ -265,7 +265,8 @@ elseif (opts.type=='DDE')
 
     %  This is not checked. Need to change later
     %------------------------
-    psize.nz=0;
+    
+    psize.nz=PIE.C1.dim(1,1);
     psize.ny=0;
     %------------------------
 
@@ -347,7 +348,7 @@ elseif (opts.type=='PIE')
     ns=PIE.T.dim(2,1);
     %  This is not checked. Need to change later
     %------------------------
-    psize.nz=0;
+    psize.nz=PIE.C1.dim(1,1);
     psize.ny=0;
     %------------------------
 
