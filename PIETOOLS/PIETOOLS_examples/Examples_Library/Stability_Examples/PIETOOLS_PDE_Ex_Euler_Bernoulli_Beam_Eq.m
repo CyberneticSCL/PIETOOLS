@@ -104,8 +104,12 @@ PDE_t.BC{4}.term{1}.C = [0,1];
 %  PDE_t.BC{2}.term{2}.D = 1;
 %  PDE_t.BC{2}.term{2}.loc = 1;
 %  PDE_t.BC{2}.term{2}.C = [0,0;0,1];
-
-
+% command-line formaty
+% PDE_c=sys();
+% x1 = state('pde');x2 = state('pde');
+% eq_PDEs = [diff(x1,t) == -c*diff(x2,s,2); diff(x2,t)==diff(x1,s,2)];
+% eq_BCs = [subs(x1,s,0) == 0; subs(x2,s,1) == 0; subs(diff(x1,s),s,0) ==0; subs(diff(x2,s),s,1)==0];
+% PDE_c = addequation(PDE_c,[eq_PDEs;eq_BCs]);
 if GUI
     %%% Associated GUI save file
     app = PIETOOLS_PDE_GUI;

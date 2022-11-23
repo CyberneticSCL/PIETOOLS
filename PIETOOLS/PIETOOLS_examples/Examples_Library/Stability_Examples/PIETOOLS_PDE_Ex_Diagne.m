@@ -120,7 +120,13 @@ PDE_t.BC{1}.term{1}.C = [on0, -K01; zer12', -K11];
 PDE_t.BC{1}.term{2}.loc = 1;
 PDE_t.BC{1}.term{2}.C = [-K00, zer12; -K10, on1];
 
-
+%%% Command-line format
+% PDE_c=sys();
+% x = state('pde',3);
+% eq_PDE = diff(x,t)==Mm*x -Lm*diff(x,s); 
+% eq_BC =  [on0, -K01; zer12', -K11]*subs(x,s,0) + [-K00, zer12; -K10, on1]*subs(x,s,1)==0;        
+% % addequations to pde system; set control inputs/observed inputs, if any
+% PDE_c = addequation(PDE_c,[eq_PDE;eq_BC]);
 if GUI
     %%% Associated GUI save file
     app = PIETOOLS_PDE_GUI;

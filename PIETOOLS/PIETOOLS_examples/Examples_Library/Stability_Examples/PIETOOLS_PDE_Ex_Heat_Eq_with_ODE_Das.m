@@ -106,8 +106,13 @@ PDE_t.BC{1}.term{1}.C = eye(2);
 PDE_t.BC{2}.term{1}.x = 2;
 PDE_t.BC{2}.term{1}.loc = b;
 PDE_t.BC{2}.term{1}.C = eye(2);
-
-
+% command-line format
+% PDE_c=sys();
+% xo=state('ode');x=state('pde');
+% eq_ODEPDE=[diff(xo,t) == A*xo+Bxr*subs(diff(x,s),s,a)
+%                         diff(x,t) == lam*x+diff(x,s,2)+Bpv*xo];
+% eq_BCs=[subs(x,s,a)==0;subs(x,s,b)==0];
+% PDE_c=addequation(PDE_c,[eq_ODEPDE;eq_BCs]);
 if GUI
     %%% Associated GUI save file
     app = PIETOOLS_PDE_GUI;
