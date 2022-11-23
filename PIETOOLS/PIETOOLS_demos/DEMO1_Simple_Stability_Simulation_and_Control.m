@@ -9,13 +9,18 @@
 %  With BCs        x(s=0) = 0
 %                         x(s=1) = 0
 % and regulated output z = int_0^1 x ds 
-
+%%
 clear all; clc;close all;
 pvar t s;syms st st;
+%%
+%%%%%%%%%%%%%%%%%%%%%%
+% change the value of lambda to see how the stability changes
+lambda=10;
+
 x = state('pde'); u = state('in');
 w = state('in'); z=state('out',2);
 pde = sys();
-eq_dyn = diff(x,t)==10*x+diff(x,s,2)+u+w;
+eq_dyn = diff(x,t)==-lambda*x+diff(x,s,2)+u+w;
 eq_out = z==[int(x,s,[0,1]);u];
 pde = addequation(pde,[eq_dyn;eq_out]);
 eq_bc = [subs(x, s, 0) == 0;subs(x, s, 1) == 0];
@@ -83,6 +88,9 @@ settings = lpisettings('heavy',0,'','sedumi');
     PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
     PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
     PIE_CL = initialize(PIE_CL);
+%     %% Stability Analysis of the system by solving an LPI.
+% settings = lpisettings('heavy');
+% [prog, P] = PIETOOLS_stability(PIE_CL,settings);
 %% Simulate the solution to the PIE with controller
 %PIE = convert_PIETOOLS_PDE(odepde);
 [solution_CL,grids] = PIESIM(PIE_CL,opts,uinput,ndiff);
