@@ -1,4 +1,4 @@
-function out = convert(obj,convertTo)
+function [params,out] = convert(obj,convertTo)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sys-class method that converts obj from one type to another (typically
 % PIE)
@@ -29,6 +29,7 @@ if strcmp(convertTo, 'pie')
     out = sys();
     out.type = 'pie';
     out.params = tmp;
+    params = tmp;
 elseif strcmp(convertTo,'ddf') && (strcmp(obj.type,'nds')||strcmp(obj.type,'dde'))
     out = obj;
     if strcmp(obj.type,'nds')
@@ -38,6 +39,7 @@ elseif strcmp(convertTo,'ddf') && (strcmp(obj.type,'nds')||strcmp(obj.type,'dde'
     end
     out.type = 'ddf';
     out.params = tmp;
+    params = tmp;
 end
 
 fprintf('Conversion to %s was successful\n', convertTo);
