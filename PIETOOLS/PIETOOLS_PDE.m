@@ -23,21 +23,25 @@ pvar s theta;
 
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
-PDE_b = examples_PDE_library_PIETOOLS(5,'batch');
-% PDE = examples_PDE_library_PIETOOLS(5,'terms');
+%PDE = examples_PDE_library_PIETOOLS(5,'batch');
+% PDE = examples_PDE_library_PIETOOLS(29,'terms');
 
-% % --- Batch or Terms Declaration Option (See User Manual, Section 13) ---
-% PDE_b.n0 = 0;   PDE_b.n1 = 2;   PDE_b.n2 = 0;   % state dimensions
-% PDE_b.dom = [0,1];                              % spatial domain
-% PDE_b.A1= [0 1; 2 0]; PDE_b.A0 = [0 0; 0 -2];                                    % PDE dx/dt = A*dx/ds
-% PDE_b.B = [0 1 0 0; 0 0 1 0];      % BC x(0) = 0;
+% % --- Manual Declaration Option --- To use this example, comment lines 38
+% and 44. Next, uncomment line 43
+% pvar s t
+%   A1=[0 1; 2 0]; A0=[0 0; 0 -2];
+% PDE =sys();
+% x1=state('pde');x2=state('pde');x=[x1;x2];
+% eq_dyn=diff(x,t)==A0*x+A1*diff(x,s);
+% eq_bc=[subs(x2,s,0)==0;subs(x1,s,1)==0];
+% PDE=addequation(PDE,[eq_dyn;eq_bc]);
+%PDE = initialize_PIETOOLS_PDE(PDE);
 
-PDE = initialize_PIETOOLS_PDE(PDE_b);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
- PIE = convert_PIETOOLS_PDE(PDE_b);
+PIE=convert(PDE,'pie');
+% PIE = convert_PIETOOLS_PDE(PDE);
  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -59,8 +63,8 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-% [prog,P] = lpisolve(PIE,settings,'stability');
-[prog, P] = PIETOOLS_stability(PIE,settings);
+ [prog,P] = lpisolve(PIE,settings,'stability');
+%[prog, P] = PIETOOLS_stability(PIE,settings);
 % [prog, P] = PIETOOLS_stability_dual(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
@@ -92,11 +96,14 @@ if any(ismember(fieldnames(solution),'timedep'))
     for i=1:size(pde_sol,2)
         Z = squeeze(pde_sol(:,i,:));
         ax(i)=subplot(size(pde_sol,2),1,i);
-        surf(t, X, Z);
-        shading interp;
-        xlabel('t');
-        ylabel('s');
-        zlabel(['x_',num2str(i),'(t,s)'],'Interpreter','tex');
+        surf(t,grid.phys,Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+        h=colorbar ;
+        colormap jet
+        box on
+        ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
+        set(gcf, 'Color', 'w');
+        xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
+        zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
     end
     subplot(ax(1));
     title('Time evolution of PDE states, x, plotted against space, s');
