@@ -87,11 +87,13 @@ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{2}.dom;
 PDE_t.BC{1}.term{1}.x = 2;
 PDE_t.BC{1}.term{1}.loc = 0;
 
-% BC 2: 0 = x1(1) + k*x2(1)
-PDE_t.BC{2}.term{1}.x = [1; 2];
+% BC 2: 0 = x1(1)...
+PDE_t.BC{2}.term{1}.x = 1;
 PDE_t.BC{2}.term{1}.loc = 1;
-PDE_t.BC{2}.term{1}.C = [1, k];
-
+%...+ k*x2(1)
+PDE_t.BC{2}.term{2}.x=2;
+PDE_t.BC{2}.term{2}.loc=1;
+PDE_t.BC{2}.term{2}.C=k;
 
 if GUI
     %%% Associated GUI save file

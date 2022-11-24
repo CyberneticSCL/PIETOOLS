@@ -38,7 +38,7 @@ pvar s theta s1 s2 theta1 theta2
 evalin('base','Hinf_gain = 1;')
 %%% evalin('base','Hinf_gain_dual = 1;')
 
-lam = 4.6; 
+lam = -4.6; 
 A0 = -0.5*s^3 + 1.3*s^2 - 1.5*s + 0.7 + lam;
 A1 = 3*s^2 - 2*s; 
 A2 = s^3 - s^2 + 2;

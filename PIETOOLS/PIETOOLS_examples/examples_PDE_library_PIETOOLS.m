@@ -384,8 +384,10 @@ switch index
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
     case 29
-%   PDE: x_{t} = lam*x + x_{ss} + u(t)              | lam = 10;
-%   BCs: x(s=0) = 0,        x(s=1)=0                |
+% % PDE                            x_{t} = lam*x + x_{ss} + u(t) + w(t)
+% % With BCs                         x(s=0) = 0
+% %                                         x(s=1) = 0
+% % and regulated output  z = [ int(x(s,t),s,0,1);u]
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input(GUI,params);
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

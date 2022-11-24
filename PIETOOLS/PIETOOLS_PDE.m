@@ -23,8 +23,8 @@ pvar s theta;
 
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
-%PDE = examples_PDE_library_PIETOOLS(5,'batch');
-PDE = examples_PDE_library_PIETOOLS(29,'batch');
+%PDE = examples_PDE_library_PIETOOLS(25,'batch');
+PDE = examples_PDE_library_PIETOOLS(32,'terms');
 
 % % --- Manual Declaration Option --- To use this example, comment lines 38
 % and 44 and uncomment line 43
