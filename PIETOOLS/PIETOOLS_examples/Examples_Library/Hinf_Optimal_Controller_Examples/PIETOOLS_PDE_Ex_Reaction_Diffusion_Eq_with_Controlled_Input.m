@@ -16,10 +16,10 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_I
 % %---------------------------------------------------------------------% %
 % % Example pure transport equation 1D: 
 % % % Stabilizing controller for Heat Equation with z=0 and w=0:
-% % PDE             x_{t} = lam*x + x_{ss} + u(t)
-% % With BCs        x(s=0) = 0
-% %                 x(s=1) = 0
-% %
+% % PDE                            x_{t} = lam*x + x_{ss} + u(t) + w
+% % With BCs                         x(s=0) = 0
+% %                                         x(s=1) = 0
+% % and regulated output  z = \int_0^1 x(s,t) ds
 % % Parameter lam can be set.
 % %---------------------------------------------------------------------% %
 
@@ -45,22 +45,42 @@ end
 
 % % % Construct the PDE.
 %%% Batch input format
-PDE_b.nw = 0;   PDE_b.ny = 0;   PDE_b.nz = 0;   PDE_b.nx = 0;   PDE_b.nu = 1;
+% number of inputs
+PDE_b.nw = 1;   PDE_b.nu = 1;
+% number of outputs
+PDE_b.ny = 0;   PDE_b.nz = 2; 
+% number of ODE states
+PDE_b.nx = 0;
+% number of PDE states
 PDE_b.n0 = 0;   PDE_b.n1 = 0;   PDE_b.n2 = 1;
 PDE_b.dom = [0,1];
-
+% PDE state dynamics
 PDE_b.A0 = lam;   PDE_b.A2 = 1;
-PDE_b.B22 = 1;    %PDE_b.D12 = 1;
-
+% control input to PDE state
+PDE_b.B22 = 1;   
+% disturbance to PDE state
+PDE_b.B21 = 1;    
+% boundary conditions
 PDE_b.B = [1 0 0 0;
            0 1 0 0];
+% PDE state to regulated output
+PDE_b.Ca1 = [ 1
+                        0];
+% control input to regulated output
+PDE_b.D12 = [0
+                        1];
 
 
 %%% Term-based input format
 % Initialize 1D PDE state component.
 PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
-% Initialize a finite-dimensional input.
+% Initialize finite-dimensional inputs.
 PDE_t.u{1}.vars = [];
+PDE_t.w{1}.vars = [];
+
+% Initialize finite-dimensional, vector-valued outputs
+PDE_t.z{1}.vars=[];
+PDE_t.z{2}.vars=[];
 
 % PDE: x_{t} = lam * x + x_{ss}
 PDE_t.x{1}.term{1}.x = 1;
@@ -68,7 +88,10 @@ PDE_t.x{1}.term{1}.D = [0; 2];
 PDE_t.x{1}.term{1}.C = [lam, 1];
 
 % PDE: x_{t} = ... + w
-PDE_t.x{1}.term{2}.u = 1;
+PDE_t.x{1}.term{2}.w = 1;
+
+% PDE: x_{t} = ... + u
+PDE_t.x{1}.term{3}.u = 1;
 
 % BC 1: 0 = x(0)
 PDE_t.BC{1}.term{1}.x = 1;
@@ -77,6 +100,18 @@ PDE_t.BC{1}.term{1}.loc = 0;
 % BC 2: 0 = x(1)
 PDE_t.BC{2}.term{1}.x = 1;
 PDE_t.BC{2}.term{1}.loc = 1;
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+
+% z = [z_1 ; z_2] such that 
+% z_1 = \int_0^1 x(s,t) ds
+PDE_t.z{1}.term{1}.x = 1;
+PDE_t.z{1}.term{1}.I{1} = [0, 1];
+% z_2 = u
+PDE_t.z{2}.term{1}.u = 1;
+=======
+>>>>>>> Stashed changes
 % command line
 % pvar t s;
 % x = state('pde'); u = state('in');
@@ -87,6 +122,10 @@ PDE_t.BC{2}.term{1}.loc = 1;
 % pde = addequation(pde,[eq_dyn;eq_out]);
 % eq_bc = [subs(x, s, 0) == 0;subs(x, s, 1) == 0];
 % pde = addequation(pde,eq_bc);
+<<<<<<< Updated upstream
+=======
+>>>>>>> d88181bbfd227725f38a513d2ec6b0a523a0dd0f
+>>>>>>> Stashed changes
 
 if GUI
     %%% Associated GUI save file
