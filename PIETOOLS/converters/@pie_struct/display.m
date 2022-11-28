@@ -44,6 +44,8 @@ function display(PIE,name)
 
 % % % Set up a list of characters that we need for the display
 % Name of the PIE structure.
+
+try 
 if nargin==1
     name = 'ans';
 end
@@ -144,5 +146,7 @@ fprintf(['\n      C2: [',ny,ttimes,nx,' ',op,'];    ',...
                 'D22: [',ny,ttimes,nu,' ',op,']; ']);
 
 fprintf('\n');
-            
+
+catch ME
+    disp(PIE);
 end

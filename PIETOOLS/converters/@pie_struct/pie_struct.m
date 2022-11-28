@@ -214,13 +214,4 @@ methods
         end
     end
     
-    function display(obj,name)
-        % Pseudo display function, just "disp" in structured manner.
-        try disp_pie(obj,name)
-        catch
-            disp(obj);
-        end
-    end
-    end
-    
 end
