@@ -1,6 +1,6 @@
 classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
-% pde_struct is a class of objects used to describe PIE systems in
-% PIETOOLS 2022a. It has the following fields:
+% pie_struct is a class of objects used to describe PIE systems in
+% PIETOOLS 2022. It has the following fields:
 %
 % - PDE.dim:    Integer "p" specifying the dimension of the
 %               spatial domain of the system. Currently, only p<=2 is
@@ -52,7 +52,7 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %               state compopnent is differentiated wrt this variable in
 %               defining the associated fundamental state component in the
 %               PIE.
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

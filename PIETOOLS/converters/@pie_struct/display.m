@@ -1,4 +1,4 @@
-function disp_pie(PIE,name)
+function display(PIE,name)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Display the fields of a "pie_struct" object 'PIE', with name 'name'.
 %
@@ -15,7 +15,7 @@ function disp_pie(PIE,name)
 % fields the input PIE pertains, ordered in a particular manner, without
 % showing e.g. the structure of the associated system or the specific
 % variables, domain or parameters.
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - disp_pie
 %

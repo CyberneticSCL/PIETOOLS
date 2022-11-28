@@ -50,7 +50,7 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pde_struct
 % for j=1:p provide the order up to which each state component is
 % differentiable with each spatial variable it depends on, where always
 % x_tab(ii,2+p+j)=0 if x_tab(ii,2+j)=0.
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

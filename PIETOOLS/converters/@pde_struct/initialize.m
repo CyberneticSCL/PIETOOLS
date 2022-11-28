@@ -1,5 +1,4 @@
 function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PDE = initialize(PDE) takes a PDE data structure and
 % checks that all the necessary fields are appropriately specified, and
 % assigns a default value to all the optional fields that have not been
@@ -185,7 +184,7 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - initialize_PIETOOLS_PDE
 %

@@ -1,6 +1,6 @@
 function display(PDE,name)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% display(PDE,name) displays in the command window the PDE defined by the
+% display(PDE,name) 
+% Displays in the command window the PDE defined by the
 % pde_struct object "PDE", with name "name".
 %
 % INPUTS:
@@ -27,7 +27,7 @@ function display(PDE,name)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

@@ -1,6 +1,6 @@
 function [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
 % [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
-% takes a pde_struct and represents it using fewer spatial variables, all
+% Takes a pde_struct and represents it using fewer spatial variables, all
 % on the same domain dom.
 %
 % INPUTS:
@@ -29,7 +29,7 @@ function [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

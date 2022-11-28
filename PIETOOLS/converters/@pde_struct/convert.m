@@ -1,4 +1,5 @@
 function PIE = convert(PDE,out_type)
+% PIE = convert(PDE,out_type)
 % Convert a 'pde_struct' object PDE to an associated 'pie_struct' object
 % PIE.
 %
@@ -15,6 +16,11 @@ function PIE = convert(PDE,out_type)
 %               representation of the input PDE, if this representation
 %               exists.
 %
+% NOTES:
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+% or D. Jagt at djagt@asu.edu
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - pde_struct/convert
 %
@@ -34,12 +40,12 @@ function PIE = convert(PDE,out_type)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 09/27/2022
+% Initial coding DJ - 10/11/2022
 
 % We support only PDE to PIE conversion.
 if nargin==2 && ~strcmpi(out_type,'pie')

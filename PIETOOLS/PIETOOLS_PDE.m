@@ -36,7 +36,7 @@ PDE = examples_PDE_library_PIETOOLS(32,'terms');
 % eq_bc=[subs(x2,s,0)==0;subs(x1,s,1)==0];
 % PDE=addequation(PDE,[eq_dyn;eq_bc]);
 PDE = initialize_PIETOOLS_PDE(PDE);
-
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
