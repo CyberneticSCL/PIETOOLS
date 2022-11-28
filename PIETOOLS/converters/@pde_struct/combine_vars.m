@@ -347,11 +347,15 @@ for ii=1:ncomps
         Cval = term_jj.C;
         if isa(Cval,'polynomial')
             % Substitute in expression for s in terms of t
-            Cval = subs(Cval,old_vars_Lcomp(:,1),new2old_Lcomp(:,1));
+            if size(old_vars_Lcomp,1)>0
+                Cval = subs(Cval,old_vars_Lcomp(:,1),new2old_Lcomp(:,1));
+            end
             if any(is_partial_int)
                 new2old_Rcomp = subs(new2old_Rcomp,new_vars_Rcomp(is_partial_int,1),new_vars_Rcomp(is_partial_int,2));
             end
-            Cval = subs(Cval,old_vars_Rcomp(:),new2old_Rcomp(:));
+            if size(old_vars_Rcomp,1)>0
+                Cval = subs(Cval,old_vars_Rcomp(:),new2old_Rcomp(:));
+            end
         end
         % Multiply with scaling due to integration/differentiation.
         term_jj.C = Cval*fctr;

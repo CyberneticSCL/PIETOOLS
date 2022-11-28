@@ -100,7 +100,7 @@ nvars = PDE.dim;
 if strcmp(obj,'x') || strcmp(obj,'BC')
     % For the state components, we order based on order of
     % differentiability as well.
-    comp_tab = PDE.x_tab;
+    comp_tab = PDE.([obj,'_tab']);
     dep_tab = comp_tab(:,3:2+nvars);
     diff_tab = comp_tab(:,3+nvars:2*nvars+2);
     comp_tab_alt = [dep_tab(:,end:-1:1), diff_tab(:,end:-1:1), comp_tab(:,1), comp_tab(:,2)];

@@ -1745,6 +1745,7 @@ while ii<=n_eqs
                     end
                 end
             end
+            iszero_Cval = false;
         else
             % If not polynomial, only check if a particular state variable 
             % in the component may not need to be differentiated.
@@ -1766,8 +1767,17 @@ while ii<=n_eqs
                     end
                 end
             end
+            % Check if coefficients are all zero.
+            iszero_Cval = all(all(Cval==0));
         end
-        PDE.(obj){ii}.term{jj}.C = Cval;
+        % If the coefficients are all zero, we can remove this term.
+        if iszero_Cval
+            PDE.(obj){ii}.term = [PDE.(obj){ii}.term(1:jj-1),PDE.(obj){ii}.term(jj+1:end)];
+            n_terms = n_terms - 1;
+            continue
+        else
+            PDE.(obj){ii}.term{jj}.C = Cval;
+        end
         
         
         % % With that, the term should be good. We order the fields, and 
