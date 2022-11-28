@@ -61,7 +61,9 @@ end
 if numel(PDE_t.y)>0
     PDE_p = addequation(PDE_p,eqns_y);
 end
-PDE_p = addequation(PDE_p,eqns_BC);
+if numel(PDE_t.BC)>0
+    PDE_p = addequation(PDE_p,eqns_BC);
+end
 
 % Set controlled inputs.
 for ii=1:numel(PDE_t.u)
@@ -71,8 +73,6 @@ end
 for ii=1:numel(PDE_t.y)
     PDE_p = setObserve(PDE_p,y{ii});
 end
-
-
 
 end
 

@@ -30,9 +30,12 @@ if ~no_reorder
     end
     % Reorder components.
     PDE1 = reorder_comps(PDE1,'all',true);
+    PDE1 = combine_terms(PDE1,'all');
     % Scale to standard domain [0,1].
-    dom = [zeros(PDE1.dim,1),ones(PDE1.dim,1)];
-    PDE1 = combine_vars(PDE1,dom,true);
+    if PDE1.dim>0
+        dom = [zeros(PDE1.dim,1),ones(PDE1.dim,1)];
+        PDE1 = combine_vars(PDE1,dom,true);
+    end
     % Expand higher-order temporal derivatives.
     if PDE1.has_hotd
         PDE1 = expand_tderivatives(PDE1,true);
@@ -52,9 +55,12 @@ if ~no_reorder
     end
     % Reorder components.
     PDE2 = reorder_comps(PDE2,'all',true);
+    PDE2 = combine_terms(PDE2,'all');
     % Scale to standard domain [0,1].
-    dom = [zeros(PDE2.dim,1),ones(PDE2.dim,1)];
-    PDE2 = combine_vars(PDE2,dom,true);
+    if PDE2.dim>0
+        dom = [zeros(PDE2.dim,1),ones(PDE2.dim,1)];
+        PDE2 = combine_vars(PDE2,dom,true);
+    end
     % Expand higher-order temporal derivatives.
     if PDE2.has_hotd
         PDE2 = expand_tderivatives(PDE2,true);
@@ -206,7 +212,7 @@ logval = true;
 for ii=1:numel(PDE1.(obj))
     % First check if the number of terms in the equation matches.
     if numel(PDE1.(obj){ii}.term) ~= numel(PDE2.(obj){ii}.term)
-        disp('Number of terms in equation ',obj,'{',num2str(ii),'} does not match.')
+        disp(['Number of terms in equation ',obj,'{',num2str(ii),'} does not match.'])
         logval = false;
         continue
     end
@@ -220,19 +226,19 @@ for ii=1:numel(PDE1.(obj))
         % Check if the considered component matches
         if isfield(term1_jj,'x')
             if ~isfield(term2_jj,'x') || term1_jj.x~=term2_jj.x
-                disp('The considered components in ',trm_name,' do not match.');
+                disp(['The considered components in ',trm_name,' do not match.']);
                 logval = false;
                 continue
             end            
         elseif isfield(term1_jj,'w')
             if ~isfield(term2_jj,'w') || term1_jj.w~=term2_jj.w
-                disp('The considered components in ',trm_name,' do not match.');
+                disp(['The considered components in ',trm_name,' do not match.']);
                 logval = false;
                 continue
             end
         else
             if ~isfield(term2_jj,'u') || term1_jj.u~=term2_jj.u
-                disp('The considered components in ',trm_name,' do not match.');
+                disp(['The considered components in ',trm_name,' do not match.']);
                 logval = false;
                 continue
             end
@@ -241,28 +247,28 @@ for ii=1:numel(PDE1.(obj))
         if isfield(term1_jj,'x')
             % Check if the derivatives match
             if ~all(term1_jj.D==term2_jj.D)
-                disp('The specified derivatives ',trm_name,'.D do not match.')
+                disp(['The specified derivatives ',trm_name,'.D do not match.'])
                 logval = false;
             end
             % Check that the spatial positions match
             if ~all(isequal(term1_jj.loc,term2_jj.loc))
-                disp('The specified spatial positions ',trm_name,'.loc do not match.')
+                disp(['The specified spatial positions ',trm_name,'.loc do not match.'])
                 logval = false;
             end
         end
         % Check if the delays match
         if ~all(isequal(term1_jj.delay,term2_jj.delay))
-            disp('The specified delays ',trm_name,'.delay do not match.')
+            disp(['The specified delays ',trm_name,'.delay do not match.'])
             logval = false;
         end
         % Check if the integrals match
         if numel(term1_jj.I)~=numel(term2_jj.I)
-            disp('The number of integrals in ',trm_name,' does not match.')
+            disp(['The number of integrals in ',trm_name,' does not match.'])
             logval = false;
         else
             for ll=1:numel(term1_jj.I)
                 if ~all(isequal(term1_jj.I{ll},term2_jj.I{ll}))
-                    disp('The domains of integration ',trm_name,'.I{',num2str(ll),'} do not match.')
+                    disp(['The domains of integration ',trm_name,'.I{',num2str(ll),'} do not match.'])
                     logval = false;
                 end
             end
@@ -284,15 +290,15 @@ for ii=1:numel(PDE1.(obj))
                     if numel(CFCTR)==1 || all(CFCTR(2:end)-CFCTR(1:end-1)==0)
                         Cfctr = CFCTR(1);
                     else
-                        disp('The specified coefficients ',trm_name,'.C do not match.')
+                        disp(['The specified coefficients ',trm_name,'.C do not match.'])
                         logval = false;
                     end
                 else
-                    disp('The specified coefficients ',trm_name,'.C do not match.')
+                    disp(['The specified coefficients ',trm_name,'.C do not match.'])
                 logval = false;
                 end
             else
-                disp('The specified coefficients ',trm_name,'.C do not match.')
+                disp(['The specified coefficients ',trm_name,'.C do not match.'])
                 logval = false;
             end
         end  
