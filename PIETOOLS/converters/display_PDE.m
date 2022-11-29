@@ -86,6 +86,8 @@ tau = '\x03C4';
 sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 % sub_min = '\x208B';
 % sub_a = '\x2090';
+sub_i = '\x1D62';
+sub_j = '\x2C7C';
 sub_s = '\x209B';
 sub_t = '\x209C';
 % sub_rho = '\x1D68';
@@ -186,6 +188,10 @@ end
 
 var_list = [var1_list, var2_list, sub_var1_list, sub_var2_list, sup_var1_list];
 
+% If the coefficients in the terms are too big, they will be displayed as
+% "C_{ij}" instead. We use "use_Cij" to keep track of whether or not this
+% is done at all.
+use_Cij = false;
 
 % % % Display the PDEs for the observed outputs.
 if isfield(PDE,'x') || isa(PDE,'pde_struct')
@@ -264,7 +270,8 @@ for eq_num=1:numel(PDE.x)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(x_comp.term)
-        term_str = construct_term(PDE,x_comp,eq_num,eq_info,trm,var_list,tau_list);
+        [term_str,use_Cij_ii] = construct_term(PDE,x_comp,eq_num,eq_info,trm,var_list,tau_list);
+        use_Cij = use_Cij || use_Cij_ii;
         x_eq_new = [x_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -342,7 +349,9 @@ for eq_num=1:numel(PDE.y)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(y_comp.term)
-        term_str = construct_term(PDE,y_comp,eq_num,eq_info,trm,var_list,tau_list);
+        eq_num_full = eq_num + numel(PDE.x);
+        [term_str,use_Cij_ii] = construct_term(PDE,y_comp,eq_num_full,eq_info,trm,var_list,tau_list);
+        use_Cij = use_Cij || use_Cij_ii;
         y_eq_new = [y_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -420,7 +429,9 @@ for eq_num=1:numel(PDE.z)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(z_comp.term)
-        term_str = construct_term(PDE,z_comp,eq_num,eq_info,trm,var_list,tau_list);
+        eq_num_full = eq_num + numel(PDE.x) + numel(PDE.y);
+        [term_str,use_Cij_ii] = construct_term(PDE,z_comp,eq_num_full,eq_info,trm,var_list,tau_list);
+        use_Cij = use_Cij || use_Cij_ii;
         z_eq_new = [z_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -464,7 +475,9 @@ for eq_num=1:numel(PDE.BC)
     end
     % Otherwise, loop over the terms, adding each to the equation.
     for trm = 1:numel(BC_comp.term)
-        term_str = construct_term(PDE,BC_comp,eq_num,eq_info,trm,var_list,tau_list);
+        eq_num_full = eq_num + numel(PDE.x) + numel(PDE.y) + numel(PDE.z);
+        [term_str,use_Cij_ii] = construct_term(PDE,BC_comp,eq_num_full,eq_info,trm,var_list,tau_list);
+        use_Cij = use_Cij || use_Cij_ii;
         BC_eq_new = [BC_eq, term_str];
         
         % If the size of the equation becomes too large, start a new line.
@@ -481,6 +494,10 @@ for eq_num=1:numel(PDE.BC)
 end
 end
 
+if use_Cij
+    fprintf(['\n\n Call "PDE.C{i,j}" to see the value of coefficients C',sub_i,sub_j,' as in the displayed equations.\n'])
+end
+
 fprintf('\n \n')
 
 end
@@ -493,7 +510,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function term_str = construct_term(PDE,eq,eq_num,eq_info,term_num,var_list,tau_list)
+function [term_str,use_Cij] = construct_term(PDE,eq,eq_num,eq_info,term_num,var_list,tau_list)
 % Build a str to represent term number "trm" in the equation "eq" of the
 % PDE structure "PDE".
 
@@ -777,6 +794,7 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
     if isa(Cval,'double') && all(size(Cval,1)==size(Cval,2)) && ~any(any(Cval-diag(diag(Cval)))) && ...
         ~any(any(Cval-Cval(1,1)*eye(size(Cval))))
         % % Constant scalar factor
+        use_Cij = false;
         Cval = Cval(1,1);
         if Cval<0 && term_num==1
             sign_trm = ' = - ';
@@ -789,7 +807,8 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
             C_trm = [C_trm,num2str(Cval),' * '];
         end
     elseif isa(Cval,'double')
-        % % Constant matrix-valued factor        
+        % % Constant matrix-valued factor   
+        use_Cij = true;
         % Add subscripts indicating the equation and term number.
         if eq_num<=9
             % The equation number consists of a single decimal
@@ -812,6 +831,7 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
         end
     else
         % % Polynomial function.
+        use_Cij = true;
         Ctau_indcs = ismember(tau_name,Cval.varname);
         Ctau_list = tau_list(Ctau_indcs);
         Cvar1_indcs = ismember(var1_name,Cval.varname);
