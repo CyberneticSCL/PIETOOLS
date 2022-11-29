@@ -1,3 +1,6 @@
+% DEMO6_Hinf_optimal_control.m
+% See Chapter 11.6 of the manual for a description.
+%
 % This document illustrates how an Hinfty optimal controller can be designed
 % for a PDE using the PIE/LPI framework.
 %

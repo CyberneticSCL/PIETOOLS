@@ -1,3 +1,11 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIE_simulation_SNIPPET.m 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Code Snippet illustrating usage of PIESIM for simulation of PIEs.
+% See Section 6.3.3 in Manual for a description.
+% See also "DDE_simulation_SNIPPET.m".
+
 %% Defining DDE and finding an optimal controller
 DDE.A0=[-1 2;0 1]; DDE.Ai{1}=[.6 -.4; 0 0];
 DDE.Ai{2}=[0 0; 0 -.5]; DDE.B1=[1;1];

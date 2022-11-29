@@ -1,14 +1,14 @@
 % DEMO1_Simple_Stability_Simulation_and_Control_Problem.m
-% See Chapter 2 for a full description
+% See Chapter 2 of the manual for a description.
 %
 % This document illustrates, with a simple example, how PIETOOLS can be used to simulate systems
 % dynamics, analyse stability and design optimal controllers for the
 % system.
-%  The Example is a pure transport equation on 1D: 
-%  PDE             x_{t} = lam*x + x_{ss} + u(t) +w(t)
-%  With BCs        x(s=0) = 0
-%                         x(s=1) = 0
-% and regulated output z = int_0^1 x ds 
+%  The example is a pure transport equation on 1D: 
+%  PDE                  x_{t}  = lam*x + x_{ss} + u(t) +w(t)
+%  With BCs             x(s=0) = 0
+%                       x(s=1) = 0
+% and regulated output  z      = int_0^1 x ds 
 %%
 clear all; clc;close all;
 pvar t s;syms st st;

@@ -1,10 +1,10 @@
-% DEMO2_poincare_inequality.m
-% See Chapter 11.4 for a description
+% DEMO3_poincare_inequality.m
+% See Chapter 11.3 of the manual for a description.
 %
-% This document has illustrates how the poincare constant can be found
+% This document illustrates how the Poincare constant can be found
 % using PIETOOLS
 
-% This example is included in the paper (page 6, Demoenstration 3)
+% This example is also included in the paper (page 6, Demoenstration 3)
 % link: https://arxiv.org/pdf/1910.01338.pdf
 
 

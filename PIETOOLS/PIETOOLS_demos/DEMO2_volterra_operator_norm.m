@@ -1,10 +1,10 @@
-% DEMO3_volterra_operator_norm.m
-% See Chapter 11.3 for a description
+% DEMO2_volterra_operator_norm.m
+% See Chapter 11.2 of the manual for a description.
 %
-% This document illustrates how the norm of the volterra integral operator
+% This document illustrates how the norm of the Volterra integral operator
 % can be computed in PIETOOLS.
 
-% This example is included in the paper (page 5, Demonstration 2)
+% This example is also included in the paper (page 5, Demonstration 2)
 % link: https://arxiv.org/pdf/1910.01338.pdf
 
 % Volterra integral operator

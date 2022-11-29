@@ -1,3 +1,6 @@
+% DEMO7_observer_based_control.m
+% See Chapter 11.7 of the manual for a description.
+%
 % This document illustrates construction of an observer-based state feedback 
 % controller. We construct the observer and controller separately
 % and couple them to find a closed loop system which is then simulated for 

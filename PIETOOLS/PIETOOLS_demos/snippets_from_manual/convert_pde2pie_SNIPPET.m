@@ -1,14 +1,13 @@
-% Code Snippet illustrating usage of convert_pde2pie.m
-% See Section ##.#.# in Manual for a description
+% Code Snippet illustrating usage of convert.m
+% See Section 5.2 in Manual for a description.
 %
-
-% This document illustrates the process of declaring a reaction-diffusion 
-% PDE coupled with an ODE at the boundary, and converting it to a PIE.
+% This document illustrates the process of declaring a heat equation
+% with integral BCs, and converting it to a PIE.
 
 % Equations
-% ODE:     \dot(xo)(t) = -2xo(t)
-% PDE:     \dot(xp)(t,s) = lamb xp(t,s) + xp_ss(t,s),   a<s<b
-% BCs:     xp(t,a) = 0,   xp(t,b) = xo(t)
+% PDE:     \dot(x)(t,s) = x_ss(t,s),         a<s<b
+% BCs:     x(t,a) + int(x,s,[a,b]) = 0,   
+%          x(t,b) + int(x,s,[a,b]) = 0.
 % Domain:  a=0, b=1
 
 %%
@@ -17,26 +16,29 @@ echo on
 %%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
 
 %%% Zeroth step: Define temporal variable t and spatial variable s in [a,b]
-lamb = 5;
-pvar t s theta;
-a = 0;      b = 1;
+pvar s t
+a = 0;   b = 1;
 
 
 %%% First step: Declare the state components, inputs and outputs (if
 %%% applicable)
 PDE = sys();
-xo = state('ode');
-xp = state('pde');
+x = state('pde');
 
 
 %%% Second step: Declare the PDE equations
-PDE = addequation(PDE,[diff(xo,t) + 2*xo;
-                       diff(xp,t) - lamb*xp - diff(xp,s,2)]);
+PDE_dyn = diff(x,t) == diff(x,s,2);
+PDE = addequation(PDE,PDE_dyn);
              
                    
 %%% Third step: Declare the boundary conditions
-PDE = addequation(PDE,[subs(xp,s,a);
-                       subs(xp,s,b) - xo]);
+PDE_BCs = [subs(x,s,0) + int(x,s,[a,b]) == 0;
+           subs(x,s,1) + int(x,s,[a,b]) == 0];
+PDE = addequation(PDE,PDE_BCs);
+
+
+%%% Fourth step: Set the domain of the PDE
+PDE.dom = [a,b];
          
                    
 %%% Final step: Convert to a PIE

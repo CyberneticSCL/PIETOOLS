@@ -1,17 +1,18 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% DDE_simulation_DEMO.m 
+% DDE_simulation_SNIPPET.m 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Code Snippet illustrating usage of PIESIM for simulation of DDEs.
+% See Section 6.3.2 in Manual for a description.
 
-% This is a demo file for simulation of DDEs using PIESIM code.
-% It perfoms the following functions:
+% This code perfoms the following functions:
 % 1) Sets up the DDE problem (either by calling an example from the library
 % or setting it up manually)
 % 2) Finds a PIE (constructs closed-loop observer or controller if
 % specified)
 % 2) Call the executive solver for PIESIM (exectuive_PIESIM.m)
 
-% The executive rotuine performs the following functions:
+% The executive routine performs the following functions:
 % 1) Checks if all inputs are defined and (if not) setting up default
 % options
 % 1) Converts the DDE to PIE problem
