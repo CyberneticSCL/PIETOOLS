@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_Hinf_estimator.m     PIETOOLS 2022a
+% PIETOOLS_Hinf_estimator.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script executes an H-infty gain analysis for a 4-PIE System defined
 % by the 7 4-PI operator representation
@@ -7,6 +7,18 @@
 %          z(t)=C1op x(t) + D11op w(t)
 %          y(t)=C2op x(t) + D21op w(t)
 %
+% INPUT: 
+% PIE - A pie_struct class object with the above listed PI operators as fields
+% settings - An lpisettings() structure with relevant optimization parameters defined
+% 
+% OUTPUT:
+% prog - a solved sosprogram structure from SOSTOOLS
+% L - observer gains that stabilize the system has Hinf performance 
+% gam - Hinf norm for the obtained observer
+% P - Lyapunov function parameter that proves stability of the observer
+%     error
+% Z - Observer variable used to linearize the Bilinearity in the Hinf LPI
+% 
 % NOTE: The resulting estimator has the form
 % Top \dot \hat x(t)=Aop  \hat x(t) + (Pop)^{-1}Zop*(C2op \hat x(t)-y(t))
 %
@@ -15,18 +27,24 @@
 % If any other parts of the PIE are present, these are ignored. Top, Aop,
 % B1op, C1op, C2op, D11op, and D21op must be properly defined for the script to function.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The following inputs must be defined externally:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
-% PIE - PIE data structure. Includes elements T,A,B1,C1,D11, C2, D21 - 4-PI operators, typically defined by the conversion script
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
 %
-% settings - a matlab structure with following fields are needed, if
-% undefined default values are used
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
 %
-% sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-% dd1,dd2,dd3,ddZ,opts,options1,options2,options - accuracy settings, typically defined by the settings script
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DEVELOPER LOGS:
 % If you modify this code, document all changes carefully and include date

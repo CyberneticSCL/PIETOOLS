@@ -1,12 +1,23 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_Hinf_control.m     PIETOOLS 2022a
+% PIETOOLS_Hinf_control.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This script executes a synthesis code for H-infty optimal full-state 
+% This function executes a synthesis code for H-infty optimal full-state 
 % feedback controller design (w/o control at the boundary) for a 4-PIE 
 % System defined by the 7 4-PI operator representation
 % Top \dot x(t)=Aop  x(t) +  B1op w(t) +  B2op u(t)
 %          z(t)=C1op x(t) + D11op w(t) + D12op u(t)
 %
+% INPUT: 
+% PIE - A pie_struct class object with the above listed PI operators as fields
+% settings - An lpisettings() structure with relevant optimization parameters defined
+% 
+% OUTPUT:
+% prog - a solved sosprogram structure from SOSTOOLS
+% K - controller gains that stabilize the system has Hinf performance 
+% gam - Hinf norm for the obtained controller
+% P - Lyapunov function parameter that proves stability
+% Z - Controller variable used to linearize the Bilinearity in the Hinf LPI
+% 
 % NOTE: The resulting controller has the form
 % u(t) = Zop*(Pop)^{-1} x(t)
 %
@@ -21,19 +32,25 @@
 % problem. At present, if this occurs, we recommend using bisection on a
 % fixed Hinf gain bound or searching for a stabilizing controller.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The following inputs must be defined externally:
-% DEVELOPER LOGS:
-%
-% PIE - PIE data structure. Include elements T,A,B1,B2,C1,D11,D12 which are 4-PI operators, typically defined by the conversion script
-%
-% settings - a matlab structure with following fields are needed, if
-% undefined default values are used
-%
-% sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
-%
-% dd1,dd2,dd3,ddZ,opts,options1,options2,options - accuracy settings, typically defined by the settings script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -45,6 +62,16 @@
 % DJ - 06/02/2021; incorporate sosineq_on option, replacd gamma with gam to
 %                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DEVELOPER LOGS:
+%
+% PIE - PIE data structure. Include elements T,A,B1,B2,C1,D11,D12 which are 4-PI operators, typically defined by the conversion script
+%
+% settings - a matlab structure with following fields are needed, if
+% undefined default values are used
+%
+% sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
+%
+% dd1,dd2,dd3,ddZ,opts,options1,options2,options - accuracy settings, typically defined by the settings script
 
 function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control(PIE, settings)
 

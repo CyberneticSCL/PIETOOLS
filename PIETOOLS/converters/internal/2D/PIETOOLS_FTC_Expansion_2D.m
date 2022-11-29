@@ -102,7 +102,7 @@ function [Pop_f2x, Pop_b2x, bc_state_tab] = PIETOOLS_FTC_Expansion_2D(PDE)
 %       [                                           :                   ]
 %       [ \partial_{s1}^{N1-1} \partial_{s2}^{N2}   x3_{N1,N2}(a1,s2)   ]
 % 
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - PIETOOLS_FTC_Expansion_2D
 %

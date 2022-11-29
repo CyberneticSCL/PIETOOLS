@@ -16,7 +16,7 @@ function out = end(a,k,n)
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
 %

@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_PDE_2D.m     PIETOOLS 2022a
+% convert_PIETOOLS_PDE_2D.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE = convert_PIETOOLS_PDE_2D(PDE)
 % Convert a coupled ODE-1D_PDE-2D_PDE system to an equivalent PIE.
@@ -58,7 +58,7 @@ function PIE = convert_PIETOOLS_PDE_2D(PDE)
 %   structure may not be the same as that in the PDE structure. Check e.g.
 %   PIE.x_tab(:,1) to see how the state components of the PDE have been
 %   re-arranged.
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE_2D
 %

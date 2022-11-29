@@ -11,6 +11,15 @@
 % Eop* \dot x(t)=Aop*  x(t) + C1op*  w(t)
 %           z(t)=B1op* x(t) + D11op* w(t)
 %
+% INPUT: 
+% PIE - A pie_struct class object with the above listed PI operators as fields
+% settings - An lpisettings() structure with relevant optimization parameters defined
+% 
+% OUTPUT:
+% prog - a solved sosprogram structure from SOSTOOLS
+% gam - Hinf norm of the system
+% P - Lyapunov function parameter used in Hinf gain LPI
+% 
 % NOTE: it is known that the induced Hinf gain of the primal and dual systems are
 % equivalent
 %
@@ -19,17 +28,24 @@
 % If any other parts of the PIE are present, these are ignored. Top, Aop,
 % B1op, C1op, and D11op must be properly defined for the script to function.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The following inputs must be defined externally:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
-% PIE - PIE data structure. Includes elements T,A,B1,C1,D11 - 4-PI operators, typically defined by the conversion script
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
 %
-% settings - a matlab structure with following fields are needed, if
-% undefined default values are used
-% 
-% sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
 %
-% dd1,dd2,dd3,opts,options1,options2,options - accuracy settings, typically defined by the settings script
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DEVELOPER LOGS:
 % If you modify this code, document all changes carefully and include date

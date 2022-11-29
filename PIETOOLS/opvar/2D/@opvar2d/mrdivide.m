@@ -70,7 +70,7 @@ function [Xop,eps,deg_fctr_final] = mrdivide(P2op,P1op,deg_fctr,tol,deg_fctr_max
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

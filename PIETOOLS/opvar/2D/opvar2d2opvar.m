@@ -23,7 +23,7 @@ function Pop_1d = opvar2d2opvar(Pop_2d,use_space_idx)
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

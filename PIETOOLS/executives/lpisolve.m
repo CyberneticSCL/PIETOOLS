@@ -8,11 +8,11 @@ function [prog, varargout] = lpisolve(PIE,settings,lpi)
 % Output -
 % prog: solved sosprogram() structure
 % varargout: output variables from different lpi types
-
+%
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

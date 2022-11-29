@@ -32,7 +32,7 @@ function [logval, msg] = isvalid(P,type)
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % PIETools - isvalid

@@ -4,11 +4,11 @@ classdef (InferiorClasses={?state})terms
 % P*x = 0, where P is PI operator (opvar class object) and x is a
 % state-vector (state class object). There is no way to initialize or
 % modify this class object directly.
-
+% 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

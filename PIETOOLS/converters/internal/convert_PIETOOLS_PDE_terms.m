@@ -1,13 +1,13 @@
 function PIE = convert_PIETOOLS_PDE_terms(PDE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function takes a PDE in new terms format and converts it to the old
-% terms format. Refer to the PIETOOLS manual details on different input
-% formats.
-
+% terms format. Refer to the PIETOOLS manual details on the new terms
+% format and other input formats.
+% 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

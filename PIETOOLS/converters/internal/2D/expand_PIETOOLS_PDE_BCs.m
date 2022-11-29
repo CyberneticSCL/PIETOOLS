@@ -102,7 +102,7 @@ function [PDE] = expand_PIETOOLS_PDE_BCs(PDE)
 %       [                                           :                   ]
 %       [ \partial_{s1}^{N1-1} \partial_{s2}^{N2}   x3_{N1,N2}(a1,s2)   ]
 % 
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - expand_PIETOOLS_PDE_BCs
 %

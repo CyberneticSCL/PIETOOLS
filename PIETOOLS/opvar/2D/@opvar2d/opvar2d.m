@@ -38,7 +38,7 @@ classdef (InferiorClasses={?dpvar,?polynomial}) opvar2d
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - opvar2d
 %

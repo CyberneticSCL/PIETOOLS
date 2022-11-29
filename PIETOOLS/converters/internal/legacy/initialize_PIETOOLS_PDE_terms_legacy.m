@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize_PIETOOLS_PDE_terms_legacy.m     PIETOOLS 2022a
+% initialize_PIETOOLS_PDE_terms_legacy.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PDE_out=initialize_PIETOOLS_PDE_terms_legacy(PDE)
 % initializes and checks the PDE formulation using the legacy term-based

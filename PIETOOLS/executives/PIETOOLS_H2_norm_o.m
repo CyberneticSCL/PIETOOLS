@@ -7,14 +7,14 @@ function output = PIETOOLS_H2_norm_o(PIE, settings,varargin)
 %   PIE : PIE structure of the corresponding system
 %   settings : options related to PIETOOLS
 % output: structure with the following fields
- %   h2= computed H2 norm for SDP problem or optional input value for feasibility tests;
- %   W= Observability gramian, a positive PI operator;
- %  prog= sum of squares program information;
-
+%   h2= computed H2 norm for SDP problem or optional input value for feasibility tests;
+%   W= Observability gramian, a positive PI operator;
+%  prog= sum of squares program information;
+%
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

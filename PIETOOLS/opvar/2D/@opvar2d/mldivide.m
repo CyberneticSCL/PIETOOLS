@@ -3,7 +3,7 @@ function [Xop,eps,deg_fctr_final] = mldivide(P1op,P2op,deg_fctr,tol,deg_fctr_max
 % computes an opvar2d object Xop=P1op\P2op, such that P1op*Xop = P2op.
 %
 % For Information, see the "mrdivide" function (for now).
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %

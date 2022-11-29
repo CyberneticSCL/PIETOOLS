@@ -17,7 +17,7 @@ function Psop=op_slice(Pbop,indr,indc)
 % or S. Shivakumar at sshivak8@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETools - ctranspose
+% PIETools - op_slice
 %
 % Copyright (C)2019  M. Peet, S. Shivakumar
 %

@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_DDE2PIE.m     PIETOOLS 2022a
+% convert_PIETOOLS_DDE2PIE.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function PIE=convert_PIETOOLS_DDE2PIE(DDE)
+function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 % NAIVE Conversion of the DDE formulation to PIE formulation
 % This script uses an inefficient method of constructing a PIE
 % representation of a DDE as defined in solver_PIETOOLS_DDE and
@@ -36,6 +36,23 @@ function PIE=convert_PIETOOLS_DDE2PIE(DDE)
 % Ai, Adi, C1i, C1di, C2i, C2di      for x(t) 
 % B1i, B1di D11i, D11di, D21i, D21di for w(t)
 % B2i, B2di D12i, D12di, D22i, D22di for u(t)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %

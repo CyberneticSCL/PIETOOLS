@@ -1,6 +1,4 @@
 function [Zth,H] = poly_decomp_1D_econ(Q)
-
-%
 % poly_decomp_1D_econ creates a monomial-matrix decomposition of the matrix-valued polynomial
 % Q in a single spatial variable such that Q(s)=H*Zth(s) where Z is the
 % smallest vector of n-dimensional monomial bases needed

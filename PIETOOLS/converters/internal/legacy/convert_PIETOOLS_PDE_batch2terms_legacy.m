@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PDE_batch2terms.m     PIETOOLS 2021b
+% convert_PDE_batch2terms.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PDE_terms=convert_PIETOOLS_PDE_batch2terms(PDE_batch)
 % converts the PDE object format from batch to terms. Refer to files

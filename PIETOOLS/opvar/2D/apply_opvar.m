@@ -9,7 +9,7 @@ function Pv = apply_opvar(P,v)
 % OUTPUT:
 % - Pv:     m x k 'polynomial' class object, corresponding to the result of
 %           applying the PI operator associated to P to the polynomial x.
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - apply_opvar
 %

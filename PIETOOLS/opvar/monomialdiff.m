@@ -14,7 +14,6 @@ function [d1, d2] = monomialdiff(Z1,Z2)
 % or S. Shivakumar at sshivak8@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
 % PIETools - monomialdiff
 %
 % Copyright (C)2019  M. Peet, S. Shivakumar

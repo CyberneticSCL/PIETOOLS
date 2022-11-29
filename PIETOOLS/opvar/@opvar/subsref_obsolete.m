@@ -17,7 +17,7 @@ function Psop=subsref(Pbop,ref)
 % or S. Shivakumar at sshivak8@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETools - ctranspose
+% PIETools - subsref
 %
 % Copyright (C)2019  M. Peet, S. Shivakumar
 %

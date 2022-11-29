@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_PDE_terms.m     PIETOOLS 2021b
+% convert_PIETOOLS_PDE_terms.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 % convert_PIETOOLS_PDE_terms is the new version of the PDE converter 

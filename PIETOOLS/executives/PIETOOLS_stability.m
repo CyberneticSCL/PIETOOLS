@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_stability.m     PIETOOLS 2022a
+% PIETOOLS_stability.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script executes a stability analysis for a 4-PIE System defined
 % by the 2 4-PI operator representation
@@ -8,19 +8,31 @@
 % If any other parts of the PIE are present, these are ignored. Both Top
 % and Aop must be properly defined for the script to function.
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The following inputs must be defined externally:
-%
-% PIE - PIE data structure. Includes T,A - 4-PI operators, typically defined by the conversion script
-%
-% settings - a matlab structure with following fields are needed, if
-% undefined default values are used
+% INPUT: 
+% PIE - A pie_struct class object with the above listed PI operators as fields
+% settings - An lpisettings() structure with relevant optimization parameters defined
 % 
-% eppos,eppos2,epneg % stricness terms typically defined by the solver script
+% OUTPUT:
+% prog - a solved sosprogram structure from SOSTOOLS
+% P - Lyapunov function parameter that proves stability
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
-% sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
 %
-% dd1,dd2,dd3,opts,options1,options2,options - accuracy settings, typically defined by the settings script
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DEVELOPER LOGS:
 % If you modify this code, document all changes carefully and include date

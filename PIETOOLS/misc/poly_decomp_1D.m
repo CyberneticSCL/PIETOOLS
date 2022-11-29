@@ -1,6 +1,4 @@
 function [Zth,H] = poly_decomp_1D(Q)
-
-%
 % poly_decomp_1D creates a monomial-matrix decomposition of the matrix-valued polynomial
 % Q in a single spatial variable such that Q(s)=H*Zth(s) where Z is the
 % vector of n-dimensional monomial bases 

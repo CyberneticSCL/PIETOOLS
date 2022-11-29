@@ -19,7 +19,7 @@ function [Phat] = inv_opvar2d_separable(P)
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - inv_opvar2d_separable
 %

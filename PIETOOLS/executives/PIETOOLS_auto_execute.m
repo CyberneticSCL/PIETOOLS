@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_AUTO_EXECUTE.m     PIETOOLS 2022a
+% PIETOOLS_AUTO_EXECUTE.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % A script to aid users in analyzing and controlling PIEs using PIETOOLS
 % If a desired executive has been specified (e.g. 'Hinf_gain=1'), and a
@@ -9,7 +9,7 @@
 % executive they want to run.
 % If no settings have been specified, the script will ask the user what
 % setting they want to use.
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
 %
@@ -35,7 +35,8 @@
 % Initial coding DJ - 12/22/2021
 % Updated to enforce separability for control/estimator, SS/DJ - 01/13/2022
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 % % % 1. Check if a PIE has been specified
 if ~exist('PIE','var')
     if exist('PIE_GUI','var')

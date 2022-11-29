@@ -32,7 +32,7 @@ function [isgood_D,isgood_Dpar,deg] = checkdeg_lpi_eq_2d(Pop,Dop,deg,p_indx)
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - checkdeg_lpi_ineq_2d
 %

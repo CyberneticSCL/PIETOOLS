@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize_PIETOOLS_PDE_batch.m     PIETOOLS 2021b
+% initialize_PIETOOLS_PDE_batch.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PDE_out=initialize_PIETOOLS_PDE_batch(PDE)
 % initializes and checks the PDE formulation using the batch input format. 

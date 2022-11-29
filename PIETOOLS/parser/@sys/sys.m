@@ -7,11 +7,11 @@ classdef (InferiorClasses={?state}) sys
 % can be changed using the command X.dom = [0,5]. The other properties of
 % system object can not be accessed or modified directly to avoid
 % unintended errors.
-
+% 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
-%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
