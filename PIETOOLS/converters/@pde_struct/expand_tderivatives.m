@@ -30,6 +30,9 @@ function [PDE,tdiff_state_tab] = expand_tderivatives(PDE,suppress_summary)
 % Therefore, we will not explicitly enforce any additional BCs, instead
 % letting these be implicitly enforced through the relation 
 %   (d/dt) x_j = x_n.
+% Nevertheless, this may introduce conservatism in e.g. stability tests.
+% An updated version adding BCs may be incorporated in a later version of 
+% PIETOOLS.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
@@ -167,6 +170,10 @@ PDE.is_initialized = true;
 
 if ~suppress_summary
     print_tdiff_expansion_summary(PDE,tdiff_state_tab)
+end
+if nx_new>nx && any(any(PDE.x_tab(nx+1:end,3:2+nvars)))
+    fprintf(2,['\n Warning: No BCs have been imposed on the newly added state components representing the higher order temporal derivatives. \n',...
+                 '          Results of e.g. stability tests may be very conservative.\n'])
 end
 
 end

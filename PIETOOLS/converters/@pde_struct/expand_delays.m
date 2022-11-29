@@ -40,6 +40,11 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 %                       respect to this spatial variable.
 %
 % NOTES:
+% No boundary conditions are enforced upon the newly added state
+% components. For the ODE state components, on which no BCs are imposed
+% anyway, this is no problem, but for PDE state components with delay, this 
+% may introduce conservatism in e.g. stability tests. An updated version
+% adding BCs may be incorporated in a later version of PIETOOLS.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
@@ -132,10 +137,10 @@ PDE.BC_tab = [PDE.BC_tab(:,1:2+nvars),zeros(nBC,ndelays),PDE.BC_tab(:,3+nvars:2+
 % % Remaining columns indicate the desired order of the
 % %     derivative of x_i wrt each of the original spatial vars r.
 del_state_tab = zeros(0,2+2*nvars);
-[PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,'x',nx);
-[PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,'z',nz);
-[PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,'y',ny);
-[PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,'BC',nBC);
+[PDE,del_state_tab,is_PDE_delay_x] = expand_delays_terms(PDE,del_state_tab,'x',nx);
+[PDE,del_state_tab,is_PDE_delay_z] = expand_delays_terms(PDE,del_state_tab,'z',nz);
+[PDE,del_state_tab,is_PDE_delay_y] = expand_delays_terms(PDE,del_state_tab,'y',ny);
+[PDE,del_state_tab,is_PDE_delay_b] = expand_delays_terms(PDE,del_state_tab,'BC',nBC);
 
 
 % % % Finally, clean up the structure and return.
@@ -153,6 +158,10 @@ if ~suppress_summary
         print_expand_delay_summary(PDE,del_state_tab)
     end
 end
+if any([is_PDE_delay_x, is_PDE_delay_z, is_PDE_delay_y, is_PDE_delay_b])
+    fprintf(2,['\n Warning: No BCs have been imposed on the newly added state components representing the delayed PDE states. \n',...
+                 '          Results of e.g. stability tests may be very conservative.\n'])
+end
 
 % Normalize domain to reduce the number of spatial variables.
 PDE = combine_vars(PDE);
@@ -164,7 +173,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function [PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,Lobj,ncomps)
+function [PDE,del_state_tab,is_PDE_delay] = expand_delays_terms(PDE,del_state_tab,Lobj,ncomps)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Loop over all the terms in the equation for "Lobj", replacing
 % any instance of a delayed state (d/dr)^{D} x(t-s,r), input w(t-s,r),
@@ -188,6 +197,8 @@ function [PDE,del_state_tab] = expand_delays_terms(PDE,del_state_tab,Lobj,ncomps
 %           delays in the equations of "Lobj" replaced by new states.
 % - del_state_tab:  Updated array of size (n+m) x (2+nvars), with 
 %                   information on the m newly added state components.
+% - is_PDE_delay:   Logical value indicating whether delay occurs in any
+%                   infinite-dimensional state component.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -195,6 +206,8 @@ nvars_old = (size(del_state_tab,2) - 2)/2;  % Original number of spatial vars.
 ndelays = size(PDE.vars,1) - nvars_old;     % Number of spatial vars representing delays
 nvars = size(PDE.vars,1);                   % Total number of spatial vars
 nx = numel(PDE.x) - size(del_state_tab,1);  % Original number of state components
+
+is_PDE_delay = false;   % Keep track of whether any infinite-dimensional state is delayed  
 
 % Extract variable names
 tau_name = cell(ndelays,1);
@@ -232,6 +245,7 @@ for ii=1:ncomps
 
             % Establish what derivative is taken of the state component.
             has_vars_Robj = logical(PDE.x_tab(Rindx,3:2+nvars));
+            is_PDE_delay = is_PDE_delay || any(has_vars_Robj);
             diff_Robj(has_vars_Robj) = term_jj.D;   
             
             % Use index 0, 1, 2 to indicate if x is evaluated at interior,
