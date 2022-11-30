@@ -569,7 +569,7 @@ if ~Zexclude(9) || ~Zexclude(10)
     % and establish the necessary degrees in [x*tt,y] of the monomials
     % Z2{i,1}, so that their product returns all the necessary joint degrees:
     Pdmat = [Pdegs.R22{2,1}(:,[1,2,3]);Pdegs.R22{3,1}(:,[1,2,3])];  % All degrees in [x, tt, y]
-    joint_degs = [sum(Pdmat,[1,2])-1,Pdmat(:,3)];                   % Degrees in [x*tt,y], subtracting contribution from integral
+    joint_degs = [sum(Pdmat(:,[1,2]),2)-1,Pdmat(:,3)];                   % Degrees in [x*tt,y], subtracting contribution from integral
     joint_degs = joint_degs(all(joint_degs>=0,2),:);
     joint_degs = unique(joint_degs,'rows');
     if isempty(joint_degs)
