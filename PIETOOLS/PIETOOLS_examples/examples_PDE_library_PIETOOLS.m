@@ -330,7 +330,7 @@ switch index
     case 23
 %   PDE: x_{t} = A2(s)*x_{ss}                       | A2 = s^3 - s^2 + 2;   (gamma = 15.147 for lamb = 4.6)       
 %                + A1(s)*x_{s}                      | A1 = 3*s^2 - 2*s;             Shivakumar 2019 [12] (Example 1)
-%                + A0(s)*x + w(t)                   | A0 =-0.5*s^3 +1.3*s^2
+%                + A0(s)*x + w(t)                   | A0 =-0.5*s^3 +1.3*s^2   (gamma = 23.7-57 using "veryheavy" settings)                
 %   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |     -1.5*s +0.7 +lam
 %   Out: z(t) = x(t,1)                              | lam = 4.6;  
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,params);

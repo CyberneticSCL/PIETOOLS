@@ -11,20 +11,21 @@
 % and regulated output  z      = int_0^1 x ds 
 %%
 clear all; clc;close all;
-pvar t s;syms st st;
+pvar t s;syms st sx;
 %%
 %%%%%%%%%%%%%%%%%%%%%%
-% change the value of lambda to see how the stability changes
-lambda=10;
-
-x = state('pde'); u = state('in');
-w = state('in'); z=state('out',2);
+phi=state('pde',2);x=state('ode');
+ w= state('in'); z=state('out',2);u=state('in');
 pde = sys();
-eq_dyn = diff(x,t)==-lambda*x+diff(x,s,2)+u+w;
-eq_out = z==[int(x,s,[0,1]);u];
+eq_dyn = [diff(x,t,1) == -x+u
+                diff(phi,t,1)==[0 1; 1 0]*diff(phi,s,1)+[0;1]*s*w+[0 0;0 -.1]*phi];
+eq_out= z ==[int([1 0]*phi,s,[0,1])
+                                                    u];
 pde = addequation(pde,[eq_dyn;eq_out]);
-eq_bc = [subs(x, s, 0) == 0;subs(x, s, 1) == 0];
-pde = addequation(pde,eq_bc);
+bc1 = [0 1]*subs(phi,s,0) == 0;
+bc2 = [1 0]*subs(phi,s,1) == x;
+pde = addequation(pde,[bc1;bc2]);
+ pde= setControl(pde,[u]);
 %% Compute the associated PIE representation, and extract the operators.
 PIE = convert(pde,'pie');   
 T = PIE.T;
@@ -37,43 +38,45 @@ settings = lpisettings('heavy');
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
 opts.tf = 10;        % Simulate up to t = 1;
-opts.dt = 1e-1;     % Use time step of 10^-3
+opts.dt = 1e-2;     % Use time step of 10^-3
 opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
-ndiff = [0,0,1];    % The PDE state involves 1 second order differentiable state variables
+ndiff = [0,2,0];    % The PDE state involves 2 first order differentiable state variables   
 %opts.Norder=1;
 %% Simulate the solution to the PDE system without controller.
-uinput.ic.PDE = 0;  
-uinput.w = 5*exp(-st); % disturbance
+uinput.ic.PDE = [0,0];  
+uinput.ic.ODE = 0;  
+uinput.u=0;
+uinput.w = sin(5*st)*exp(-st); % disturbance
 [solution,grids] = PIESIM(pde, opts, uinput, ndiff);
 %% Extract actual solution at each time step and defining discretized variables.
 tval = solution.timedep.dtime;
-phi = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
+phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
+phi2 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
 zval =solution.timedep.regulated;
 wval=subs(uinput.w,st,tval);
 %% Plots Open Loop.
 figure(1);
-surf(tval,grids.phys,phi,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tval,grids.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h=colorbar ;
 colormap jet
 box on
-ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
+ylabel(h,'$|\mathbf{x}_2(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w');
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
-zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Open loop zero-state response with $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
+zlabel('$\mathbf{x}_2(t,s)$','FontSize',15,'Interpreter','latex');
+title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 
 figure(2);
-plot(tval,wval,'b',tval,zval,'m','LineWidth',2)
+plot(tval,wval,'k',tval,zval(1,:),'r','LineWidth',2)
 grid on
 box on
 set(gcf, 'Color', 'w');
-legend('$\mathbf{w}(t)$','$\mathbf{z}(t)$','Interpreter','latex','FontSize',15)
+legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','$\mathbf{u}(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
-ylabel('$\mathbf{z}(t)$','FontSize',15,'Interpreter','latex');
-title('Open loop zero-state response with $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
+ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
+title('Open loop zero-state response with $w(t)=sin(5t)5e^{-t}$','Interpreter','latex','FontSize',15);
 
 %% Use the predefined Hinf estimator executive function.
-settings = lpisettings('heavy',0,'','sedumi');
 [prog, Kval, gam_val] = PIETOOLS_Hinf_control(PIE, settings);
 
 %% Closed loop with the sinthesized controller.
@@ -96,28 +99,39 @@ settings = lpisettings('heavy',0,'','sedumi');
 [solution_CL,grids] = PIESIM(PIE_CL,opts,uinput,ndiff);
 %% Extract actual solution at each time step and defining discretized variables.
 tval = solution_CL.timedep.dtime;
-phi = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
-%zval =solution_CL.timedep.regulated;
+phi1 = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
+phi2 = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
+zval_cl =solution_CL.timedep.regulated;
 wval=subs(uinput.w,st,tval);
 
 %% Plots Closed Loop.
-figure(3);
-surf(tval,grids.phys,phi,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+figure(3)
+surf(tval,grids.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h=colorbar ;
 colormap jet
 box on
-ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
+ylabel(h,'$|\mathbf{x}_2(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w');
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
-zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop zero-state response with $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
+zlabel('$\mathbf{x}_2(t,s)$','FontSize',15,'Interpreter','latex');
+title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 
-% figure(4);
-% plot(tval,wval,'b',tval,zval,'m','LineWidth',2)
-% grid on
-% box on
-% set(gcf, 'Color', 'w');
-% legend('$\mathbf{w}(t)$','$\mathbf{z}(t)$','Interpreter','latex','FontSize',15)
-% xlabel('$t$','FontSize',15,'Interpreter','latex');    
-% ylabel('$\mathbf{z}(t)$','FontSize',15,'Interpreter','latex');
-% title('Open loop zero-state response with $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
+figure(4);
+plot(tval,wval,'k',tval,zval_cl(1,:),'r',tval,zval_cl(2,:),'b','LineWidth',2)
+grid on
+box on
+set(gcf, 'Color', 'w');
+legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','$\mathbf{u}(t)$','Interpreter','latex','FontSize',15)
+xlabel('$t$','FontSize',15,'Interpreter','latex');    
+ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
+title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
+%%
+figure(5);
+plot(tval,zval(1,:),'r',tval,zval_cl(1,:),'b','LineWidth',2)
+grid on
+box on
+set(gcf, 'Color', 'w');
+legend('$\mathbf{r}(t)$','$\mathbf{r}_{cl}(t)$','Interpreter','latex','FontSize',15)
+xlabel('$t$','FontSize',15,'Interpreter','latex');    
+ylabel('$\mathbf{z}(t)$','FontSize',15,'Interpreter','latex');
+title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);

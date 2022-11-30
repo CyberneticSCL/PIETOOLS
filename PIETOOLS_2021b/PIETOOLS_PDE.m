@@ -23,11 +23,11 @@ pvar s theta;
 
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
-%PDE = examples_PDE_library_PIETOOLS(25,'batch');
-PDE = examples_PDE_library_PIETOOLS(24,'terms');
+% PDE = examples_PDE_library_PIETOOLS(5,'batch');
+ PDE = examples_PDE_library_PIETOOLS(25,'terms');
 
 % % --- Manual Declaration Option --- To use this example, comment lines 38
-% and 44 and uncomment line 43
+% and 44. Next, uncomment line 43
 % pvar s t
 %   A1=[0 1; 2 0]; A0=[0 0; 0 -2];
 % PDE =sys();
@@ -35,8 +35,8 @@ PDE = examples_PDE_library_PIETOOLS(24,'terms');
 % eq_dyn=diff(x,t)==A0*x+A1*diff(x,s);
 % eq_bc=[subs(x2,s,0)==0;subs(x1,s,1)==0];
 % PDE=addequation(PDE,[eq_dyn;eq_bc]);
+
 PDE = initialize_PIETOOLS_PDE(PDE);
-%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,15 +63,15 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-% [prog,P] = lpisolve(PIE,settings,'stability');
-%[prog, P] = PIETOOLS_stability(PIE,settings);
+%[prog,P] = lpisolve(PIE,settings,'stability');
+% [prog, P] = PIETOOLS_stability(PIE,settings);
 % [prog, P] = PIETOOLS_stability_dual(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
- %[prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
+% [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
 % [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
 
-%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)
 % Only works for PDE examples in batch input format

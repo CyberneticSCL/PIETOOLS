@@ -99,7 +99,7 @@ if GUI
         disp("Failed to load data object. Incorrect structure");
     end
 end
-
+disp('Warning: With sedumi solver, this example requires at least settings veryheavy.')
 end
 % @inproceedings{shivakumar2019computing,
 %   title={Computing input-ouput properties of coupled linear pde systems},
