@@ -49,15 +49,15 @@ PDE = initialize_PIETOOLS_PDE(PDE);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % --- Specify settings ---
-settings = settings_PIETOOLS_light;
+%settings = settings_PIETOOLS_light;
 % settings = lpisettings('light');
 % settings_PIETOOLS_heavy;
 %  settings_PIETOOLS_light;
 % settings_PIETOOLS_stripped;
-settings.sos_opts.solver='sedumi';    % Solver to use
-settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
-settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
-settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+% settings.sos_opts.solver='sedumi';    % Solver to use
+% settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
+% settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
+% settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
 %  PIETOOLS_auto_execute

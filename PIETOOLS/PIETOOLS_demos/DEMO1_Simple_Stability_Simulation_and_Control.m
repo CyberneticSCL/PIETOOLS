@@ -48,32 +48,22 @@ uinput.ic.ODE = 0;
 uinput.u=0;
 uinput.w = sin(5*st)*exp(-st); % disturbance
 [solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
-%% Stability Analysis of the system by solving an LPI.
-% compute the associated PIE representation, and extract the operators.
-PIE = convert(odepde,'pie');   
-T = PIE.T;
-A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
-B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
-% call the executive with chosen settings
-settings = lpisettings('heavy');
-[prog, P] = PIETOOLS_stability(PIE,settings);
-
 %% Extract actual solution at each time step and defining discretized variables.
 tval = solution.timedep.dtime;
 phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
 phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 zval =solution.timedep.regulated;
 wval=subs(uinput.w,st,tval);
-%% Plots Open Loop.
+%% Plots of open-loop system.
 figure(1);
 surf(tval,grids.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h=colorbar ;
 colormap jet
 box on
-ylabel(h,'$|\mathbf{x}_2(t,s)|$','interpreter', 'latex','FontSize',15)
+ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w');
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
-zlabel('$\mathbf{x}_2(t,s)$','FontSize',15,'Interpreter','latex');
+zlabel('$\dot{\mathbf{x}}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 
 figure(2);
@@ -85,6 +75,17 @@ legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','$\mathbf{u}(t)$','Interpreter','late
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
 ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Open loop zero-state response with $w(t)=sin(5t)5e^{-t}$','Interpreter','latex','FontSize',15);
+%% Stability Analysis of the system by solving an LPI.
+% compute the associated PIE representation, and extract the operators.
+PIE = convert(odepde,'pie');   
+T = PIE.T;
+A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
+B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
+% call the executive with chosen settings
+settings = lpisettings('heavy');
+[prog, P] = PIETOOLS_stability(PIE,settings);
+%% Hinf gain of the open-loop system.
+[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 
 %% Use the predefined Hinf estimator executive function.
 [prog, Kval, gam_val] = PIETOOLS_Hinf_control(PIE, settings);
@@ -120,10 +121,10 @@ surf(tval,grids.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp'
 h=colorbar ;
 colormap jet
 box on
-ylabel(h,'$|\mathbf{x}_2(t,s)|$','interpreter', 'latex','FontSize',15)
+ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w');
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
-zlabel('$\mathbf{x}_2(t,s)$','FontSize',15,'Interpreter','latex');
+zlabel('$\dot{\mathbf{x}}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 
 figure(4);
