@@ -119,7 +119,7 @@ Ebv = PDE.BC.Ebv;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % first construct all opvars needed for PIE
-opvar Top Tw Tu; %LHS opvars
+opvar Top Twop Tuop; %LHS opvars
 Top.dim = [no no; np np]; Top.var1 = s; Top.var2 = theta; Top.I = X;
 
 Twop.dim = [no nw; np 0]; Twop.var1 = s; Twop.var2 = theta; Twop.I = X;
@@ -289,8 +289,8 @@ if ~singularET
     Aop=[TbigO((1):(no),(1):(no))   TbigO((1):(no),(no+nw+nu+1):(no+nw+nu+np)); 
          TbigP(nr+1:nr+np,1:no)     TbigP(nr+1:nr+np,(no+nw+nu+1):(no+nw+nu+np))];
     tmp = Tvop*Vop_out;
-    Twop = tmp(1:np,(no+1):(no+nw));
-    Tuop = tmp(1:np,(no+nw+1):(no+nw+nu));
+    Twop.Q2 = tmp(1:np,(no+1):(no+nw)).Q2;Twop.R = tmp(1:np,(no+1):(no+nw)).R;
+    Tuop.Q2 = tmp(1:np,(no+nw+1):(no+nw+nu)).Q2;Tuop.R = tmp(1:np,(no+nw+1):(no+nw+nu)).R;
 %    TB1op = Twop;
 %    TB2op = Tuop;
     Top = Thatop;
@@ -299,7 +299,7 @@ if ~singularET
 else
 % do nothing
 % fill the singular case formulae
-PIE_out = 'Singular ET';
+PIE_out = 'Singular B_T: A PIE representation of this PDE may not exist';
 return
 end
 
