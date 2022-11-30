@@ -12,28 +12,28 @@
 %%
 clear all; clc;close all;
 pvar t s;syms st sx;
-%%
+%% Declaring the System
+% define the parameters
+c=1;b=.1;
 %%%%%%%%%%%%%%%%%%%%%%
+% create the equation variables
 phi=state('pde',2);x=state('ode');
- w= state('in'); z=state('out',2);u=state('in');
-pde = sys();
+w= state('in');u=state('in');
+z=state('out',2);
+% create the system
+odepde = sys();
+% add the dynamic equations
 eq_dyn = [diff(x,t,1) == -x+u
-                diff(phi,t,1)==[0 1; 1 0]*diff(phi,s,1)+[0;1]*s*w+[0 0;0 -.1]*phi];
+                diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
 eq_out= z ==[int([1 0]*phi,s,[0,1])
                                                     u];
-pde = addequation(pde,[eq_dyn;eq_out]);
+odepde = addequation(odepde,[eq_dyn;eq_out]);
+% add the boundary conditions
 bc1 = [0 1]*subs(phi,s,0) == 0;
 bc2 = [1 0]*subs(phi,s,1) == x;
-pde = addequation(pde,[bc1;bc2]);
- pde= setControl(pde,[u]);
-%% Compute the associated PIE representation, and extract the operators.
-PIE = convert(pde,'pie');   
-T = PIE.T;
-A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
-B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
-%% Stability Analysis of the system by solving an LPI.
-settings = lpisettings('heavy');
-[prog, P] = PIETOOLS_stability(PIE,settings);
+odepde = addequation(odepde,[bc1;bc2]);
+% set the control signal
+odepde= setControl(odepde,[u]);
 %% Set options for the discretization and simulation:
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
@@ -47,11 +47,21 @@ uinput.ic.PDE = [0,0];
 uinput.ic.ODE = 0;  
 uinput.u=0;
 uinput.w = sin(5*st)*exp(-st); % disturbance
-[solution,grids] = PIESIM(pde, opts, uinput, ndiff);
+[solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
+%% Stability Analysis of the system by solving an LPI.
+% compute the associated PIE representation, and extract the operators.
+PIE = convert(odepde,'pie');   
+T = PIE.T;
+A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
+B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
+% call the executive with chosen settings
+settings = lpisettings('heavy');
+[prog, P] = PIETOOLS_stability(PIE,settings);
+
 %% Extract actual solution at each time step and defining discretized variables.
 tval = solution.timedep.dtime;
 phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
-phi2 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
+phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 zval =solution.timedep.regulated;
 wval=subs(uinput.w,st,tval);
 %% Plots Open Loop.
@@ -100,7 +110,7 @@ title('Open loop zero-state response with $w(t)=sin(5t)5e^{-t}$','Interpreter','
 %% Extract actual solution at each time step and defining discretized variables.
 tval = solution_CL.timedep.dtime;
 phi1 = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
-phi2 = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
+phi2 = reshape(solution_CL.timedep.pde(:,2,:),opts.N+1,[]);
 zval_cl =solution_CL.timedep.regulated;
 wval=subs(uinput.w,st,tval);
 
