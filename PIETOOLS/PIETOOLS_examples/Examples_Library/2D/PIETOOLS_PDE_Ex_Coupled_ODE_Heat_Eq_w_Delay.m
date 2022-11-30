@@ -20,7 +20,7 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)
 % % With BCs    x_{s1}(t,s1=0) = 0;   
 % %             x(t,s1=1) = u(t);   or x_{s1}(t,s1=1) = u(t);
 % %
-% % Let x1(t)=X(t) and x2(t,s1)=x(t). Let further x3(t,s2) and x4(t,s1,s2)
+% % Let x1(t)=X(t) and x2(t,s1)=x(t,s1). Let further x3(t,s2) and x4(t,s1,s2)
 % % be such that:
 % %     x3(t,s2=1+tau)    = x1(t)     with x3_{t} = x3_{s2}   s2 in [1,1+tau]
 % %     x4(t,s1,s2=1+tau) = x2(t,s1)  with x4_{t} = x4_{s2}
@@ -34,6 +34,8 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)
 % %         x2(t,s1=1) = u(t);              or x2_{s1}(t,s1=1) = u(t);
 % %         x3(t,s2=1+tau) = x1(t);
 % %         x4(t,s1,s2=1+tau) = x2(t,s1);
+% %         x4_{s1}(t,s1=0,s2) = 0;
+% %         x4(t,s1=1,s2) = u(t);
 % %
 % % Parameters tau, A, A1, B, a and a2 can be set.
 % %---------------------------------------------------------------------% %
@@ -60,101 +62,72 @@ end
 
 
 % % % Construct the PDE.
-expand_delays = false;
-if ~expand_delays
-    %%% Term-baed input format with delay.
-    PDE_t.x{1}.vars = [];
-    PDE_t.x{2}.vars = s1;       PDE_t.x{2}.dom = [0,1];
-    PDE_t.u{1}.vars = [];   % Input does not vary in space.
+% Initialize the state variables and input.
+PDE_t.x{1}.vars = [];
+PDE_t.x{2}.vars = s1;       PDE_t.x{2}.dom = [0,1];
+PDE_t.x{3}.vars = s2;       PDE_t.x{3}.dom = [1,1+tau];
+PDE_t.x{4}.vars = [s1;s2];  PDE_t.x{4}.dom = [0,1; 1,1+tau];
+PDE_t.u{1}.vars = [];   % Input does not vary in space.
 
-    % ODE: x1_{t} = A*x1(t)
-    PDE_t.x{1}.term{1}.x = 1;
-    PDE_t.x{1}.term{1}.C = A;
-    % ODE: x1_{t} = ... + A1*x3(t-tau)
-    PDE_t.x{1}.term{2}.x = 1;
-    PDE_t.x{1}.term{2}.delay = tau;
-    PDE_t.x{1}.term{2}.C = A1;
-    % ODE: x1_{t} = ... + B*x2(t,s1=0);
-    PDE_t.x{1}.term{3}.x = 2;
-    PDE_t.x{1}.term{3}.loc = 0;
-    PDE_t.x{1}.term{3}.C = B;
+% ODE: x1_{t} = A*x1(t)
+PDE_t.x{1}.term{1}.x = 1;
+PDE_t.x{1}.term{1}.C = A;
+% ODE: x1_{t} = ... + A1*x3(t,1)
+PDE_t.x{1}.term{2}.x = 3;
+PDE_t.x{1}.term{2}.loc = 1;
+PDE_t.x{1}.term{2}.C = A1;
+% ODE: x1_{t} = ... + B*x2(t,s1=0);
+PDE_t.x{1}.term{3}.x = 2;
+PDE_t.x{1}.term{3}.loc = 0;
+PDE_t.x{1}.term{3}.C = B;
 
-    % PDE: x2_{t} = x2_{s1s1} + a*x2
-    PDE_t.x{2}.term{1}.x = [2; 2];
-    PDE_t.x{2}.term{1}.D = [2; 0];
-    PDE_t.x{2}.term{1}.C = [1, a];
-    % PDE: x2_{t} = ... + a2*x2(t-tau,s1);
-    PDE_t.x{2}.term{2}.x = 2;
-    PDE_t.x{2}.term{2}.delay = tau;
-    PDE_t.x{2}.term{2}.C = a2;
+% PDE: x2_{t} = x2_{s1s1} + a*x2
+PDE_t.x{2}.term{1}.x = [2; 2];
+PDE_t.x{2}.term{1}.D = [2; 0];
+PDE_t.x{2}.term{1}.C = [1, a];
+% PDE: x2_{t} = ... + a2*x4(t,s1,s2=1);
+PDE_t.x{2}.term{2}.x = 4;
+PDE_t.x{2}.term{2}.loc = [s1,1];
+PDE_t.x{2}.term{2}.C = a2;
 
-    % BC1: 0 = x2_{s1}(t,s1=0);
-    PDE_t.BC{1}.term{1}.x = 2;
-    PDE_t.BC{1}.term{1}.D = 1;
-    PDE_t.BC{1}.term{1}.loc = 0;
+% PDE: x3_{t} = x3_{s2};
+PDE_t.x{3}.term{1}.x = 3;
+PDE_t.x{3}.term{1}.D = 1;
 
-    % BC2: 0 = x2(t,s1=1) - u(t)
-    PDE_t.BC{2}.term{1}.x = 2;          PDE_t.BC{2}.term{2}.u = 1;
-    PDE_t.BC{2}.term{1}.loc = 1;        PDE_t.BC{2}.term{2}.C = -1;
-    PDE_t.BC{2}.term{1}.D = 0;
-else
-    %%% Term-based input format without delays.
-    % Initialize the state variables and input.
-    PDE_t.x{1}.vars = [];
-    PDE_t.x{2}.vars = s1;       PDE_t.x{2}.dom = [0,1];
-    PDE_t.x{3}.vars = s2;       PDE_t.x{3}.dom = [1,1+tau];
-    PDE_t.x{4}.vars = [s1;s2];  PDE_t.x{4}.dom = [0,1; 1,1+tau];
-    PDE_t.u{1}.vars = [];   % Input does not vary in space.
-
-    % ODE: x1_{t} = A*x1(t)
-    PDE_t.x{1}.term{1}.x = 1;
-    PDE_t.x{1}.term{1}.C = A;
-    % ODE: x1_{t} = ... + A1*x3(t,1)
-    PDE_t.x{1}.term{2}.x = 3;
-    PDE_t.x{1}.term{2}.loc = 1;
-    PDE_t.x{1}.term{2}.C = A1;
-    % ODE: x1_{t} = ... + B*x2(t,s1=0);
-    PDE_t.x{1}.term{3}.x = 2;
-    PDE_t.x{1}.term{3}.loc = 0;
-    PDE_t.x{1}.term{3}.C = B;
-
-    % PDE: x2_{t} = x2_{s1s1} + a*x2
-    PDE_t.x{2}.term{1}.x = [2; 2];
-    PDE_t.x{2}.term{1}.D = [2; 0];
-    PDE_t.x{2}.term{1}.C = [1, a];
-    % PDE: x2_{t} = ... + a2*x4(t,s1,s2=1);
-    PDE_t.x{2}.term{2}.x = 4;
-    PDE_t.x{2}.term{2}.loc = [s1,1];
-    PDE_t.x{2}.term{2}.C = a2;
-
-    % PDE: x3_{t} = x3_{s2};
-    PDE_t.x{3}.term{1}.x = 3;
-    PDE_t.x{3}.term{1}.D = 1;
-
-    % PDE: x4_{t} = x4_{s2};
-    PDE_t.x{4}.term{1}.x = 4;
-    PDE_t.x{4}.term{1}.D = [0,1];
+% PDE: x4_{t} = x4_{s2};
+PDE_t.x{4}.term{1}.x = 4;
+PDE_t.x{4}.term{1}.D = [0,1];
 
 
-    % BC1: 0 = x2_{s1}(t,s1=0);
-    PDE_t.BC{1}.term{1}.x = 2;
-    PDE_t.BC{1}.term{1}.D = 1;
-    PDE_t.BC{1}.term{1}.loc = 0;
+% BC1: 0 = x2_{s1}(t,s1=0);
+PDE_t.BC{1}.term{1}.x = 2;
+PDE_t.BC{1}.term{1}.D = 1;
+PDE_t.BC{1}.term{1}.loc = 0;
 
-    % BC2: 0 = x2(t,s1=1) - u(t)
-    PDE_t.BC{2}.term{1}.x = 2;          PDE_t.BC{2}.term{2}.u = 1;
-    PDE_t.BC{2}.term{1}.loc = 1;        PDE_t.BC{2}.term{2}.C = -1;
-    PDE_t.BC{2}.term{1}.D = 0;
+% BC2: 0 = x2(t,s1=1) - u(t)
+PDE_t.BC{2}.term{1}.x = 2;          PDE_t.BC{2}.term{2}.u = 1;
+PDE_t.BC{2}.term{1}.loc = 1;        PDE_t.BC{2}.term{2}.C = -1;
+PDE_t.BC{2}.term{1}.D = 0;
 
-    % BC3: 0 = x3(t,s2=1+tau) - x1(t);
-    PDE_t.BC{3}.term{1}.x = 3;          PDE_t.BC{3}.term{2}.x = 1;
-    PDE_t.BC{3}.term{1}.loc = 1+tau;    PDE_t.BC{3}.term{2}.C = -1;
+% BC3: 0 = x3(t,s2=1+tau) - x1(t);
+PDE_t.BC{3}.term{1}.x = 3;          PDE_t.BC{3}.term{2}.x = 1;
+PDE_t.BC{3}.term{1}.loc = 1+tau;    PDE_t.BC{3}.term{2}.C = -1;
 
-    % BC4: 0 = x4(t,s1,s2=1+tau) - x2(t,s1);
-    PDE_t.BC{4}.term{1}.x = 4;              PDE_t.BC{4}.term{2}.x = 2;
-    PDE_t.BC{4}.term{1}.loc = [s1,1+tau];   PDE_t.BC{4}.term{2}.loc = s1;          
-                                            PDE_t.BC{4}.term{2}.C = -1; 
-end
+% BC4: 0 = x4(t,s1,s2=1+tau) - x2(t,s1);
+PDE_t.BC{4}.term{1}.x = 4;              PDE_t.BC{4}.term{2}.x = 2;
+PDE_t.BC{4}.term{1}.loc = [s1,1+tau];   PDE_t.BC{4}.term{2}.loc = s1;          
+                                        PDE_t.BC{4}.term{2}.C = -1; 
+                                        
+% BC5: 0 = x4_{s1}(t,s1=0,s2);
+PDE_t.BC{5}.term{1}.x = 4;
+PDE_t.BC{5}.term{1}.D = [1,0];
+PDE_t.BC{5}.term{1}.loc = [0,s2];
+
+% BC6: 0 = x4(t,s1=1,s2) - u(t)
+PDE_t.BC{6}.term{1}.x = 4;          PDE_t.BC{6}.term{2}.u = 1;
+PDE_t.BC{6}.term{1}.loc = [1,s2];   PDE_t.BC{6}.term{2}.C = -1;
+PDE_t.BC{6}.term{1}.D = [0,0];              
+                                        
                                         
 if GUI~=0
     disp('No GUI representation available for this system.')

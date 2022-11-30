@@ -20,14 +20,14 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params)
 % %             x(t,s1=1) = u(t-tau);
 % %
 % % Introduce transport equation:
-% %     u(t) = x2(t,1+D),   x2_{t} = x2_{s2}        s2 in [1,1+tau]
+% %     u(t) = x2(t,1+tau),   x2_{t} = x2_{s2}        s2 in [1,1+tau]
 % % Then
 % %
 % % PDE:    x1_{t}         = x1_{s1s1} + lam * x1;
 % %         x2_{t}         = x2_{s2};
 % % BCs:    x1(t,s1=0)     = 0;
 % %         x1(t,s1=1)     = x2(t,s2=1);
-% %         x2(t,s2=1+tay) = u(t);
+% %         x2(t,s2=1+tau) = u(t);
 % %
 % % Parameters tau and lam can be set.
 % %---------------------------------------------------------------------% %
