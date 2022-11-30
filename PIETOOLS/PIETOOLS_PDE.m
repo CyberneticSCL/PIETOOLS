@@ -24,7 +24,7 @@ pvar s theta;
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
 %PDE = examples_PDE_library_PIETOOLS(25,'batch');
-PDE = examples_PDE_library_PIETOOLS(24,'terms');
+PDE = examples_PDE_library_PIETOOLS(34,'terms');
 
 % % --- Manual Declaration Option --- To use this example, comment lines 38
 % and 44 and uncomment line 43
@@ -76,35 +76,39 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 % Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)
 % Only works for PDE examples in batch input format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[solution, grid] = PIESIM(PDE);
-
-% Note: you can also specify time stepping options and user inputs, such as initial
-% conditions and non-zero boundary inputs, via
-% solution = executive_PIESIM(PDE, opts), 
-% solution = executive_PIESIM(PDE, [], uinput), or 
-% solution = executive_PIESIM(PDE, opts, uinput), please consult the user's manual
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Step 4b: Plotting solution 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if any(ismember(fieldnames(solution),'timedep'))
-    t = solution.timedep.dtime;
-    X = repmat(grid.phys,1,length(t));
-    pde_sol = solution.timedep.pde;
-    t = repmat(t,size(pde_sol,1),1);
-    figure;
-    for i=1:size(pde_sol,2)
-        Z = squeeze(pde_sol(:,i,:));
-        ax(i)=subplot(size(pde_sol,2),1,i);
-        surf(t,grid.phys,Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
-        h=colorbar ;
-        colormap jet
-        box on
-        ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
-        set(gcf, 'Color', 'w');
-        xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
-        zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
+if PIE.dim ~=2  
+    [solution, grid] = PIESIM(PDE);
+    
+    % Note: you can also specify time stepping options and user inputs, such as initial
+    % conditions and non-zero boundary inputs, via
+    % solution = executive_PIESIM(PDE, opts), 
+    % solution = executive_PIESIM(PDE, [], uinput), or 
+    % solution = executive_PIESIM(PDE, opts, uinput), please consult the user's manual
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Step 4b: Plotting solution 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if any(ismember(fieldnames(solution),'timedep'))
+        t = solution.timedep.dtime;
+        X = repmat(grid.phys,1,length(t));
+        pde_sol = solution.timedep.pde;
+        t = repmat(t,size(pde_sol,1),1);
+        figure;
+        for i=1:size(pde_sol,2)
+            Z = squeeze(pde_sol(:,i,:));
+            ax(i)=subplot(size(pde_sol,2),1,i);
+            surf(t,grid.phys,Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+            h=colorbar ;
+            colormap jet
+            box on
+            ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
+            set(gcf, 'Color', 'w');
+            xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
+            zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
+        end
+        subplot(ax(1));
+        title('Time evolution of PDE states, x, plotted against space, s');
     end
-    subplot(ax(1));
-    title('Time evolution of PDE states, x, plotted against space, s');
+else
+    disp('PIESIM is currently not supported for systems involving more than 1 spatial variable.')
 end
