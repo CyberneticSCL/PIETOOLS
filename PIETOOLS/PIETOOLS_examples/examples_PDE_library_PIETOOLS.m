@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_PDE_library_PIETOOLS.m     PIETOOLS 2022a
+% examples_PDE_library_PIETOOLS.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function varargout = examples_PDE_library_PIETOOLS(varargin)
 % This library file contains the definition of some common ODE-PDE systems
@@ -446,8 +446,10 @@ switch index
 %   PDE: x1_{t} = x2                                |
 %        x2_{t} = C^2*(x1_{(2,0} + x1_{(0,2)})      |
 %                   - 2*lam*x2                      |
-%   BCs: x(s1=0) = 0,   x(s2=0) = 0,                | 
-%        x(s1=1) = 0,   x(s2=1) = 0;                |
+%   BCs: x1(s1=0) = 0,   x1(s2=0) = 0,              | 
+%        x1(s1=1) = 0,   x1(s2=1) = 0;              |
+%        x2(s1=0) = 0,   x2(s2=0) = 0,              | 
+%        x2(s1=1) = 0,   x2(s2=1) = 0;              |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -472,6 +474,14 @@ switch index
 %   PDE: x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)}       | c1 = 1;   c2 = 1;
 %   BCs: x(s1=0) = 0;       x(s2=0) = 0;            | ne = 1; (state size)
 %        x(s1=1) = 0;       x(s2=1) = 0;            |
+%   Use states x1 = x,    x2 = x_{t}                |
+%       =>                                          |
+%   PDE: x1_{t} = x2;                               | 
+%        x2_{t} = c1*x1_{(2,0)} + c2*x1_{(0,2)};    |
+%   BCs: x1(s1=0) = 0;      x1(s2=0) = 0;           |
+%        x1(s1=1) = 0;      x1(s2=1) = 0;           |
+%        x2(s1=0) = 0;      x2(s2=0) = 0;           |
+%        x2(s1=1) = 0;      x2(s2=1) = 0;           |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -551,12 +561,72 @@ switch index
 %           x2(t,s1=1) = u(t);                      |
 %           x3(t,s2=1+tau) = x1(t);                 |
 %           x4(t,s1,s2=1+tau) = x2(t,s1);           |    
+%           x4_{s1}(t,s1=0,s2) = 0;
+%           x4(t,s1=1,s2) = u(t);
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
         BATCH = 0;
     end    
     [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params);
+%--------------------------------------------------------------------------
+    case 41
+%   PDE:    x_{t}  = c*x_{s1s1}(t,s1) + a0*x(t,s1)  | tau = 1;
+%                       - a1*x(t-tau,s1);           | c = 1;
+%   BCs:    x(t,s1=0) = 0;                          | a0 = 1.9;
+%           x(t,s1=pi) = 0;                         | a1 = 1;
+%   Set x1=x, and x2(t,s1,s2)=x1(t-s2,s1).          |
+%   Introduce transport equation:                   | For c=a1=1, a0=1.9,           Caliskan, 2009 [20]  
+%           x1(t)  = x2(t,0);                       | stable for tau<1.0347
+%           x2_{t} = -x2_{s2},  s2 in [0,tau];      |
+%   Then                                            |
+%   PDE:    x1_{t}  = c*x1_{s1s1}(t,s1)+a0*x1(t,s1) |
+%                       - a1*x2(t,s1,s2=tau);       |
+%           x2_{t}  = -x2_{s2};                     |
+%   BCs:    x1(t,s1=0)     = 0;                     |
+%           x1(t,s1=pi)    = 0;                     |
+%           x2(t,s1,s2=0)  = x1(t,s1);              |
+%           x2(t,s1=0,s2)  = 0;                     |
+%           x2(t,s1=pi,s2) = 0;                     |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end    
+    [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params);
+%--------------------------------------------------------------------------
+    case 42 
+%   PDE:    x_{tt}  = x_{s1s1}(t,s1);   s1 in [0,1] | tau = 1;  
+%   BCs:    x(t,0) = 0;                             | k = 1;
+%           x_{s1}(t,1) = -k*(1-mu)*x_{t}(t,1)      | mu = 0.4;
+%                           - k*mu*x_{t}(t-tau,1);  |
+% Introduce:                                        | Stable for mu<0.5             Xu, 2006 [21]  
+%     x1(t) = - k * (1-mu) * \dot{u}(1,t)           |
+%               - k*mu*\dot{u}(1,t-tau);            |
+%     x2(t,s1) = x(t,s1);                           |
+%     x3(t,s1) = x_{t}(t,s1);                       |
+%     x4(t,s2) = x(t-tau*s2,1);                     |
+%     x5(t,s2) = x_{t}(t-tau*s2,1);                 |
+% Then:                                             |
+%   ODE:    x1_{t}(t)    = x2_{s1}(t,1);            |
+%   PDE:    x2_{t}(t,s1) = x3(t,s1);                |    s1 in (0,1)
+%           x3_{t}(t,s1) = x2_{s1s1}(t,s1);         |       
+%           x4_{t}(t,s2) = -(1/tau) x4_{s2}(t,s2);  |    s2 in (0,1)
+%           x5_{t}(t,s2) = -(1/tau) x5_{s2}(t,s2);  |
+%   BCs:    x2(t,0) = 0;                            |                         
+%           x3(t,0) = 0;                            |
+%           x4(t,0) = x2(t,1);                      |
+%           x5(t,0) = x3(t,1);                      |
+%           x1(t) = - k * (1-mu) * x2(t,1)          |
+%                           - k * mu * x4(t,1);     |
+%           x2_{s1}(t,1) = -k*(1-mu)*x3_{t}(t,1)    |
+%                               - k*mu*x5_{t}(t,1); |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end    
+    [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params);
 % %---------------------------------------------------------------------% %
 % 
 %==========================================================================
@@ -928,13 +998,45 @@ end
 %   year={2017},
 %   publisher={Elsevier}
 % }
+%
+% % [20] -
+% @article{CALISKAN2009,
+%  title = {Stability Analysis of the Heat Equation with Time-Delayed Feedback},
+%  journal = {IFAC Proceedings Volumes},
+%  volume = {42},
+%  number = {6},
+%  pages = {220-224},
+%  year = {2009},
+%  note = {6th IFAC Symposium on Robust Control Design},
+%  issn = {1474-6670},
+%  doi = {https://doi.org/10.3182/20090616-3-IL-2002.00038},
+%  url = {https://www.sciencedirect.com/science/article/pii/S1474667015404057},
+%  author = {Sina Yamaç çalişkan and Hitay özbay},
+% }
+%
+% % [21] -
+% @article{XU_2006,
+%      author = {Xu, Gen Qi and Yung, Siu Pang and Li, Leong Kwan},
+%      title = {Stabilization of wave systems with input delay in the boundary control},
+%      journal = {ESAIM: Control, Optimisation and Calculus of Variations},
+%      pages = {770--785},
+%      publisher = {EDP-Sciences},
+%      volume = {12},
+%      number = {4},
+%      year = {2006},
+%      doi = {10.1051/cocv:2006021},
+%      zbl = {1105.35016},
+%      mrnumber = {2266817},
+%      language = {en},
+%      url = {http://www.numdam.org/articles/10.1051/cocv:2006021/}
+% }
 
 
 function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % Subroutine to process the user inputs for the 
 % examples_PDE_library_PIETOOLS function.
 
-n_examples = 40;
+n_examples = 42;
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
