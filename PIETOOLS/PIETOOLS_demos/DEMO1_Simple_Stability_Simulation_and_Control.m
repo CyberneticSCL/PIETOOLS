@@ -28,12 +28,12 @@ eq_dyn = [diff(x,t,1)==-x+u
 eq_out= z ==[int([1 0]*phi,s,[0,1])
                                  u];
 odepde = addequation(odepde,[eq_dyn;eq_out]);
+% set the control signal
+odepde= setControl(odepde,[u]);
 % add the boundary conditions
 bc1 = [0 1]*subs(phi,s,0)==0;
 bc2 = [1 0]*subs(phi,s,1)==x;
 odepde = addequation(odepde,[bc1;bc2]);
-% set the control signal
-odepde= setControl(odepde,[u]);
 %% Set options for the discretization and simulation:
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
@@ -74,7 +74,7 @@ set(gcf, 'Color', 'w');
 legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
 ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
-title('Open loop zero-state response with $w(t)=sin(5t)5e^{-t}$','Interpreter','latex','FontSize',15);
+title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 %% Stability Analysis of the system by solving an LPI.
 % compute the associated PIE representation, and extract the operators.
 PIE = convert(odepde,'pie');   
@@ -87,7 +87,7 @@ settings = lpisettings('heavy');
 %% Hinf gain of the open-loop system.
 [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 
-%% Use the predefined Hinf estimator executive function.
+%% Use the predefined Hinf controller executive function.
 [prog, Kval, gam_val] = PIETOOLS_Hinf_control(PIE, settings);
 
 %% Closed loop with the sinthesized controller.
@@ -132,7 +132,7 @@ plot(tval,wval,'k',tval,zval_cl(1,:),'r',tval,zval_cl(2,:),'b','LineWidth',2)
 grid on
 box on
 set(gcf, 'Color', 'w');
-legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','Interpreter','latex','FontSize',15)
+legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','$\mathbf{u}(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
 ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
