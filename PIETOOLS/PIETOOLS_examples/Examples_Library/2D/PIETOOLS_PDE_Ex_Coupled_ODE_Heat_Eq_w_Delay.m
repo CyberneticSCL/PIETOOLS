@@ -51,7 +51,7 @@ pvar s theta s1 s2 theta1 theta2
 evalin('base','stability = 1;');
 %evalin('base','stability_dual = 1;');
 
-ne = 1; tau = 1; A = 1; A1 = 0.5; B = -1; a = 1; a2 = 0.5;
+ne = 1; tau = 1; A = -1; A1 = 0.5; B = -1; a = 1; a2 = 0.5;
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters

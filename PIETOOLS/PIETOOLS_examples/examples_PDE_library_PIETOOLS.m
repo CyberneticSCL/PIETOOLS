@@ -541,7 +541,7 @@ switch index
 %--------------------------------------------------------------------------
     case 40
 %   ODE: X_{t} = A*X(t) + A1*X(t-tau) + B*x(t,s1=0) | tau = 1;
-%   PDE: x_{t} = x_{s1s1} + a*x + a2*x(t-tau);      | A = 1;    A1 = 0.5;           Kang, 2017 [19] 
+%   PDE: x_{t} = x_{s1s1} + a*x + a2*x(t-tau);      | A = -1;    A1 = 0.5;          Kang, 2017 [19] 
 %   BCs: x_{s1}(t,s1=0) = 0;                        | B = -1;
 %        x(t,s1=1) = 0;                             | a = 1;    a2 = 0.5;
 %   Set x1(t)=X(t), x2(t,s1)=x(t), and introduce    |
