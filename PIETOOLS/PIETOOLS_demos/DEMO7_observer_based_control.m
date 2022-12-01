@@ -64,7 +64,7 @@ PDE = setObserve(PDE,y);
 display_PDE(PDE);
 
 % Compute the associated PIE, and extract the operators.
-PIE = convert(PDE,'pie');       PIE = PIE.params;
+PIE = convert(PDE,'pie');  
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
 B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;

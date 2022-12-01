@@ -23,14 +23,14 @@ z=state('out',2);
 % create the system
 odepde = sys();
 % add the dynamic equations
-eq_dyn = [diff(x,t,1) == -x+u
+eq_dyn = [diff(x,t,1)==-x+u
                 diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
 eq_out= z ==[int([1 0]*phi,s,[0,1])
-                                                    u];
+                                 u];
 odepde = addequation(odepde,[eq_dyn;eq_out]);
 % add the boundary conditions
-bc1 = [0 1]*subs(phi,s,0) == 0;
-bc2 = [1 0]*subs(phi,s,1) == x;
+bc1 = [0 1]*subs(phi,s,0)==0;
+bc2 = [1 0]*subs(phi,s,1)==x;
 odepde = addequation(odepde,[bc1;bc2]);
 % set the control signal
 odepde= setControl(odepde,[u]);
@@ -71,7 +71,7 @@ plot(tval,wval,'k',tval,zval(1,:),'r','LineWidth',2)
 grid on
 box on
 set(gcf, 'Color', 'w');
-legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','$\mathbf{u}(t)$','Interpreter','latex','FontSize',15)
+legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
 ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Open loop zero-state response with $w(t)=sin(5t)5e^{-t}$','Interpreter','latex','FontSize',15);
@@ -132,7 +132,7 @@ plot(tval,wval,'k',tval,zval_cl(1,:),'r',tval,zval_cl(2,:),'b','LineWidth',2)
 grid on
 box on
 set(gcf, 'Color', 'w');
-legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','$\mathbf{u}(t)$','Interpreter','latex','FontSize',15)
+legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
 ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
@@ -145,4 +145,4 @@ set(gcf, 'Color', 'w');
 legend('$\mathbf{r}(t)$','$\mathbf{r}_{cl}(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
 ylabel('$\mathbf{z}(t)$','FontSize',15,'Interpreter','latex');
-title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
+title('Zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
