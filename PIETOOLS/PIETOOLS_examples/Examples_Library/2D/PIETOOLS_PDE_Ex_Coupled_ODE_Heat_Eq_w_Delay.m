@@ -18,7 +18,7 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)
 % % ODE         X_{t} = A*X(t) + A1*X(t-tau) + B*x(t,s1=0)
 % % PDE         x_{t} = x_{s1s1} + a*x + a2*x(t-tau);     s1 in [0,1]
 % % With BCs    x_{s1}(t,s1=0) = 0;   
-% %             x(t,s1=1) = u(t);   or x_{s1}(t,s1=1) = u(t);
+% %             x(t,s1=1) = 0;
 % %
 % % Let x1(t)=X(t) and x2(t,s1)=x(t,s1). Let further x3(t,s2) and x4(t,s1,s2)
 % % be such that:
@@ -31,11 +31,11 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params)
 % %         x3_{t} = x3_{s2};
 % %         x4_{t} = x4_{s2};
 % % BCs:    x2_{s1}(t,s1=0) = 0;
-% %         x2(t,s1=1) = u(t);              or x2_{s1}(t,s1=1) = u(t);
+% %         x2(t,s1=1) = 0;
 % %         x3(t,s2=1+tau) = x1(t);
 % %         x4(t,s1,s2=1+tau) = x2(t,s1);
 % %         x4_{s1}(t,s1=0,s2) = 0;
-% %         x4(t,s1=1,s2) = u(t);
+% %         x4(t,s1=1,s2) = 0;
 % %
 % % Parameters tau, A, A1, B, a and a2 can be set.
 % %---------------------------------------------------------------------% %
@@ -67,7 +67,6 @@ PDE_t.x{1}.vars = [];
 PDE_t.x{2}.vars = s1;       PDE_t.x{2}.dom = [0,1];
 PDE_t.x{3}.vars = s2;       PDE_t.x{3}.dom = [1,1+tau];
 PDE_t.x{4}.vars = [s1;s2];  PDE_t.x{4}.dom = [0,1; 1,1+tau];
-PDE_t.u{1}.vars = [];   % Input does not vary in space.
 
 % ODE: x1_{t} = A*x1(t)
 PDE_t.x{1}.term{1}.x = 1;
@@ -104,9 +103,9 @@ PDE_t.BC{1}.term{1}.x = 2;
 PDE_t.BC{1}.term{1}.D = 1;
 PDE_t.BC{1}.term{1}.loc = 0;
 
-% BC2: 0 = x2(t,s1=1) - u(t)
-PDE_t.BC{2}.term{1}.x = 2;          PDE_t.BC{2}.term{2}.u = 1;
-PDE_t.BC{2}.term{1}.loc = 1;        PDE_t.BC{2}.term{2}.C = -1;
+% BC2: 0 = x2(t,s1=1)
+PDE_t.BC{2}.term{1}.x = 2;
+PDE_t.BC{2}.term{1}.loc = 1;
 PDE_t.BC{2}.term{1}.D = 0;
 
 % BC3: 0 = x3(t,s2=1+tau) - x1(t);
@@ -123,9 +122,9 @@ PDE_t.BC{5}.term{1}.x = 4;
 PDE_t.BC{5}.term{1}.D = [1,0];
 PDE_t.BC{5}.term{1}.loc = [0,s2];
 
-% BC6: 0 = x4(t,s1=1,s2) - u(t)
-PDE_t.BC{6}.term{1}.x = 4;          PDE_t.BC{6}.term{2}.u = 1;
-PDE_t.BC{6}.term{1}.loc = [1,s2];   PDE_t.BC{6}.term{2}.C = -1;
+% BC6: 0 = x4(t,s1=1,s2)
+PDE_t.BC{6}.term{1}.x = 4;          
+PDE_t.BC{6}.term{1}.loc = [1,s2];
 PDE_t.BC{6}.term{1}.D = [0,0];              
                                         
                                         
