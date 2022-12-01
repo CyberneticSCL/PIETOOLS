@@ -543,7 +543,7 @@ switch index
 %   ODE: X_{t} = A*X(t) + A1*X(t-tau) + B*x(t,s1=0) | tau = 1;
 %   PDE: x_{t} = x_{s1s1} + a*x + a2*x(t-tau);      | A = 1;    A1 = 0.5;           Kang, 2017 [19] 
 %   BCs: x_{s1}(t,s1=0) = 0;                        | B = -1;
-%        x(t,s1=1) = u(t);                          | a = 1;    a2 = 0.5;
+%        x(t,s1=1) = 0;                             | a = 1;    a2 = 0.5;
 %   Set x1(t)=X(t), x2(t,s1)=x(t), and introduce    |
 %   transport equation to incorporate delay:        |
 %        x3_{t} = x3_{s2}                           |
@@ -558,11 +558,11 @@ switch index
 %           x3_{t} = x3_{s2};                       |
 %           x4_{t} = x4_{s2};                       |
 %   BCs:    x2_{s1}(t,s1=0) = 0;                    |
-%           x2(t,s1=1) = u(t);                      |
+%           x2(t,s1=1) = 0;                         |
 %           x3(t,s2=1+tau) = x1(t);                 |
 %           x4(t,s1,s2=1+tau) = x2(t,s1);           |    
-%           x4_{s1}(t,s1=0,s2) = 0;
-%           x4(t,s1=1,s2) = u(t);
+%           x4_{s1}(t,s1=0,s2) = 0;                 |
+%           x4(t,s1=1,s2) = 0;                      |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -632,29 +632,6 @@ switch index
 %==========================================================================
 %       Additional Examples (Undocumented)
 %==========================================================================
-%--------------------------------------------------------------------------
-%       Diffusive/Heat Equation Type Systems
-%--------------------------------------------------------------------------
-% 101.| PDE: x_{t} = x_{ss} + s*w(t)                | N = 8,    
-%     | BCs: x(s=0) = 0,       x_{s}(s=1)=0         | x0 =@(s) s^2-2*s
-%     | Out: z(t) = int(x(t,s),s,0,1)               | w =@(t) sin(t+eps)./(t+eps)
-%     |                                             | t_int = [0 2*pi]
-%--------------------------------------------------------------------------
-% 102.| PDE: xi_{t} = lamb*xi + w(t)        i=1:ne  | ne = 1,    
-%     |               + sum(xk_{ss},k=1,i) + w(t)   | lam = (1-1e-2)*pi^2  
-%     | BCs: x(s=0) = 0,       x_{s}(s=1)=0         | N = 8
-%     | Out: z(t) = int(sum(xi(t,s),i=1,ne),s,0,1)  | x0 =@(s) 0
-%     |                                             | w =@(t) sin(t+eps)./(t+eps)
-%     |                                             | t_int = [0 2*pi]
-%__________________________________________________________________________
-%==========================================================================
-
-
-
-
-
-
-
 case index==100
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Additional examples (undocumented) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -883,10 +860,10 @@ end
 %
 % % [7] -
 % @article{das2018representation,
-% author = {Das, Amritam and Shivakumar, Sachin and Weiland, Siep and Peet, Matthew},
-% year = {2018},
-% pages = {},
-% title = {Representation and Stability Analysis of PDE-ODE Coupled Systems}
+%   author = {Das, Amritam and Shivakumar, Sachin and Weiland, Siep and Peet, Matthew},
+%   year = {2018},
+%   pages = {},
+%   title = {Representation and Stability Analysis of PDE-ODE Coupled Systems}
 % }
 %
 % % [8] - 
@@ -925,18 +902,18 @@ end
 %
 % % [13] -
 % @article{tang2011state,
-% title = {State and output feedback boundary control for a coupled PDE–ODE system},
-% journal = {Systems & Control Letters},
-% volume = {60},
-% number = {8},
-% pages = {540-545},
-% year = {2011},
-% issn = {0167-6911},
-% doi = {https://doi.org/10.1016/j.sysconle.2011.04.011},
-% url = {https://www.sciencedirect.com/science/article/pii/S0167691111000922},
-% author = {Shuxia Tang and Chengkang Xie},
-% keywords = {Coupled system, PDEs, Boundary control, Output feedback},
-% abstract = {This note is devoted to stabilizing a coupled PDE–ODE system with interaction at the interface. First, a state feedback boundary controller is designed, and the system is transformed into an exponentially stable PDE–ODE cascade with an invertible integral transformation, where PDE backstepping is employed. Moreover, the solution to the resulting closed-loop system is derived explicitly. Second, an observer is proposed, which is proved to exhibit good performance in estimating the original coupled system, and then an output feedback boundary controller is obtained. For both the state and output feedback boundary controllers, exponential stability analyses in the sense of the corresponding norms for the resulting closed-loop systems are provided. The boundary controller and observer for a scalar coupled PDE–ODE system as well as the solutions to the closed-loop systems are given explicitly.}
+%   title = {State and output feedback boundary control for a coupled PDE–ODE system},
+%   journal = {Systems & Control Letters},
+%   volume = {60},
+%   number = {8},
+%   pages = {540-545},
+%   year = {2011},
+%   issn = {0167-6911},
+%   doi = {https://doi.org/10.1016/j.sysconle.2011.04.011},
+%   url = {https://www.sciencedirect.com/science/article/pii/S0167691111000922},
+%   author = {Shuxia Tang and Chengkang Xie},
+%   keywords = {Coupled system, PDEs, Boundary control, Output feedback},
+%   abstract = {This note is devoted to stabilizing a coupled PDE–ODE system with interaction at the interface. First, a state feedback boundary controller is designed, and the system is transformed into an exponentially stable PDE–ODE cascade with an invertible integral transformation, where PDE backstepping is employed. Moreover, the solution to the resulting closed-loop system is derived explicitly. Second, an observer is proposed, which is proved to exhibit good performance in estimating the original coupled system, and then an output feedback boundary controller is obtained. For both the state and output feedback boundary controllers, exponential stability analyses in the sense of the corresponding norms for the resulting closed-loop systems are provided. The boundary controller and observer for a scalar coupled PDE–ODE system as well as the solutions to the closed-loop systems are given explicitly.}
 % }
 %
 % % [14] - 
@@ -956,24 +933,24 @@ end
 %
 % % [16] - 
 % @inproceedings{demetriou2019feedback,
-% title={Feedback kernel approximations and sensor selection for controlled 2D parabolic PDEs using computational geometry methods},
-% author={Demetriou, Michael A and Hu, Weiwei},
-% booktitle={2019 IEEE 58th Conference on Decision and Control (CDC)},
-% pages={2144--2150},
-% year={2019},
-% organization={IEEE}
+%   title={Feedback kernel approximations and sensor selection for controlled 2D parabolic PDEs using computational geometry methods},
+%   author={Demetriou, Michael A and Hu, Weiwei},
+%   booktitle={2019 IEEE 58th Conference on Decision and Control (CDC)},
+%   pages={2144--2150},
+%   year={2019},
+%   organization={IEEE}
 % }
 %
 % % [17] -
 % @article{antonelli2021linear,
-%  title={Linear stability analysis of the homogeneous Couette flow in a 2D isentropic compressible fluid},
-%  author={Antonelli, Paolo and Dolce, Michele and Marcati, Pierangelo},
-%  journal={Annals of PDE},
-%  volume={7},
-%  number={2},
-%  pages={1--53},
-%  year={2021},
-%  publisher={Springer}
+%   title={Linear stability analysis of the homogeneous Couette flow in a 2D isentropic compressible fluid},
+%   author={Antonelli, Paolo and Dolce, Michele and Marcati, Pierangelo},
+%   journal={Annals of PDE},
+%   volume={7},
+%   number={2},
+%   pages={1--53},
+%   year={2021},
+%   publisher={Springer}
 %}
 %
 % % [18] -
@@ -1001,17 +978,17 @@ end
 %
 % % [20] -
 % @article{CALISKAN2009,
-%  title = {Stability Analysis of the Heat Equation with Time-Delayed Feedback},
-%  journal = {IFAC Proceedings Volumes},
-%  volume = {42},
-%  number = {6},
-%  pages = {220-224},
-%  year = {2009},
-%  note = {6th IFAC Symposium on Robust Control Design},
-%  issn = {1474-6670},
-%  doi = {https://doi.org/10.3182/20090616-3-IL-2002.00038},
-%  url = {https://www.sciencedirect.com/science/article/pii/S1474667015404057},
-%  author = {Sina Yamaç çalişkan and Hitay özbay},
+%   title = {Stability Analysis of the Heat Equation with Time-Delayed Feedback},
+%   journal = {IFAC Proceedings Volumes},
+%   volume = {42},
+%   number = {6},
+%   pages = {220-224},
+%   year = {2009},
+%   note = {6th IFAC Symposium on Robust Control Design},
+%   issn = {1474-6670},
+%   doi = {https://doi.org/10.3182/20090616-3-IL-2002.00038},
+%   url = {https://www.sciencedirect.com/science/article/pii/S1474667015404057},
+%   author = {Sina Yamaç çalişkan and Hitay özbay},
 % }
 %
 % % [21] -
