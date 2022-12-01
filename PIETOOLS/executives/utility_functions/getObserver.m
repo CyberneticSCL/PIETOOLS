@@ -20,7 +20,7 @@ function [L] = getObserver(P,Z,tol)
 % Initial coding SS - 5/20/2021
 
 if nargin==2
-    tol = 1e-8;
+    tol = 1e-5;
 end
 
 if isvalid(P)==0 && isvalid(Z)==0
