@@ -99,12 +99,12 @@ elseif strcmp(opts.type,'PDE')
     % Establish size of ODE and PDE state components
     x_tab = PDE.x_tab;
     psize.nx = sum(x_tab(~x_tab(:,3),2));   % Size of ODE state component
-    x_order_ODE = x_order(1:psize.nx);
+%    x_order_ODE = x_order(1:psize.nx);
     nmax = max(x_tab(:,4));     % maximal order of differentiability
     for j=0:nmax
         psize.n(j+1) = sum(x_tab(x_tab(:,4)==j & x_tab(:,3),2)); % Size of state differentiable up to order j
     end
-    x_order_PDE = x_order(psize.nx+1:end);
+%    x_order_PDE = x_order(psize.nx+1:end);
     ns = sum(psize.n);
 
     % Establish sizes of inputs and outputs
