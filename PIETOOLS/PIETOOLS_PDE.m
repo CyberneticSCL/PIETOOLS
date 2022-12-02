@@ -48,7 +48,7 @@ PDEt = initialize_PIETOOLS_PDE(PDEt);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PIE=convert(PDE,'pie');
  PIEt = convert_PIETOOLS_PDE(PDEt);
- compare_PIEs(PIEt,PIEb)
+ %compare_PIEs(PIEt,PIEb)
  %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 3: Analysis or Control script
