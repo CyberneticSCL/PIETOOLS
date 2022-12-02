@@ -138,7 +138,7 @@ ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 %%
 figure(5);
-plot(tval,zval(1,:),'r',tval,zval_cl(1,:),'b','LineWidth',2)
+plot(tval,zval(1,:),'r--',tval,zval_cl(1,:),'r','LineWidth',2)
 grid on
 box on
 set(gcf, 'Color', 'w');
