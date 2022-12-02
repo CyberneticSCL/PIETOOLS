@@ -34,7 +34,7 @@ pvar s theta s1 s2 theta1 theta2
 evalin('base','stability = 1;');
 %evalin('base','stability_dual = 1;');
 
-a = 4.9;  b1 = 0;  b2 = 0;  c1 = 1;  c2 = 1;
+a = 4.0;  b1 = 0;  b2 = 0;  c1 = 1;  c2 = 1;
 ne = 1;
 npars = length(params);
 if npars~=0

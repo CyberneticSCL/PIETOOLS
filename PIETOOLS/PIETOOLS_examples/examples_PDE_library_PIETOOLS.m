@@ -458,7 +458,7 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params);
 %--------------------------------------------------------------------------
     case 35
-%   PDE: x_{t} = a*x                                | a = 4.9;              (stable for a <= 0.5*pi^2) 
+%   PDE: x_{t} = a*x                                | a = 4.0;              (stable for a <= 0.5*pi^2) 
 %                 + b1*x_{(1,0)} + b2*x_{(0,1)}     | b1 = 0;   b2 = 0;             Demetriou, 2019 [17]   
 %                  + c1*x_{(2,0)} + c2*x_{(0,2)}    | c1 = 1;   c2 = 1;
 %   BCs: x(s1=0) = 0,       x_{s1}(s1=1) = 0,       | ne = 1 (state size)
