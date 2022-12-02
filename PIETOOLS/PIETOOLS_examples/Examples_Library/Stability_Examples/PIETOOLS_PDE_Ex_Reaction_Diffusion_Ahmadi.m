@@ -35,7 +35,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
 
 % Specify the parameters
-Cm = [1, 1.5; 5, 0.2];      R = 2.93; % [2.93 2.94]
+Cm = [1, 1.5; 5, 0.2];      R = 2.6; % [2.93 2.94]
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -57,7 +57,7 @@ PDE_b.A0 = Cm;
 PDE_b.A2 = (1/R)*on;
 
 PDE_b.B = [on ze ze ze;
-    ze on ze ze];
+    ze  ze ze on];
 
 
 %%% Term-based input format
@@ -83,7 +83,7 @@ if GUI
     app = PIETOOLS_PDE_GUI;
     load(fullfile(root,'PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_GUI.mat'));
     logval = app.loadData(data);
-    if logval
+    if logvals
         disp("Failed to load data object. Incorrect structure");
     end
 end

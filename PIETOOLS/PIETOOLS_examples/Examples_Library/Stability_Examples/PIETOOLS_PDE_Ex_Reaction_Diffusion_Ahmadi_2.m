@@ -17,7 +17,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params)
 % % Adapted Example B (Diffusion-Reaction equation) from Ahmadi:
 % % PDE        x_{t} = Cm*x + (1/R)*x_{ss} 
 % % with BCs   x(s=0) = 0
-% %            x_{s}(s=1) = 0
+% %                   x(s=1) = 0
 % %
 % % Parameters Cm and R can be set.
 % % Stable for R<21.
@@ -74,8 +74,7 @@ PDE_t.x{1}.term{2}.C = (1/R)*eye(ne);
 % BCs: 0 = x(0)
 PDE_t.BC{1}.term{1}.loc = 0;
 
-% BCs: 0 = x_{s}(1)
-PDE_t.BC{2}.term{1}.D = 1;
+% BCs: 0 = x(1)
 PDE_t.BC{2}.term{1}.loc = 1;
 
 

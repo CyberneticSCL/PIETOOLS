@@ -14,7 +14,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params)
 %               format.
 %
 % %---------------------------------------------------------------------% %
-% % Heat Equation coupled with ODE at the boundary from Das (Example 2):
+% % Heat Equation coupled with ODE from Das (Example 2):
 % % ODE        xo_{t} = A * xo + Bxr * x_{s}(s=a)
 % % PDE        x_{t} = lam * x + x_{ss} + Bpv * xo
 % % with BCs   x(s=a) = 0
@@ -52,14 +52,18 @@ PDE_b.n0 = 0;   PDE_b.n1 = 0;   PDE_b.n2 = 2;   PDE_b.nx = 4;
 PDE_b.dom = [a,b];
 
 % ODE
+% ODE dynamic matrix
 PDE_b.A = [-1.2142,  1.9649,  0.2232,  0.5616;
     -1.8042, -0.7260, -0.3479,  5.4355;
     -0.2898,  0.7381, -1.7606,  0.8294;
     -0.9417, -5.3399, -1.0704, -0.7590];
+% PDE state to ODE dynamics
 PDE_b.E0 = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0] * [zeros(PDE_b.n2) zeros(PDE_b.n2) eye(PDE_b.n2) zeros(PDE_b.n2)];
 
 % PDE
+% PDE dynamics
 PDE_b.A0 = lam*eye(PDE_b.n2);   PDE_b.A2 = eye(PDE_b.n2);
+% ODE state to PDE dynamics
 PDE_b.E = [-2.5575 0 1.0368 0;-1.8067 0.4630 1.3621 0];
 
 % BCs

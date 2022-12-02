@@ -23,8 +23,8 @@ pvar s theta;
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
-PDEb = examples_PDE_library_PIETOOLS(8,'batch');
-PDEt = examples_PDE_library_PIETOOLS(8,'terms');
+PDEb = examples_PDE_library_PIETOOLS(13,'batch');
+PDEt = examples_PDE_library_PIETOOLS(13,'terms');
 
 % % --- Manual Declaration Option --- To use this example, comment lines 38
 % and 44 and uncomment line 43
@@ -83,7 +83,7 @@ PDEt = initialize_PIETOOLS_PDE(PDEt);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if PIEt.dim ~=2  
     opts.tf=10;
-    [solution, grid] = PIESIM(PDEb,opts);
+    [solution, grid] = PIESIM(PDEt,opts);
     
     % Note: you can also specify time stepping options and user inputs, such as initial
     % conditions and non-zero boundary inputs, via
