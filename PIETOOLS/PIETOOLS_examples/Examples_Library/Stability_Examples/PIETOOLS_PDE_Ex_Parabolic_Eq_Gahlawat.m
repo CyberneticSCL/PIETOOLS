@@ -39,7 +39,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
 
 % Specify the parameters
-ne = 1; lam = 4.66;
+ne = 1; lam = 4.6;
 a = s^3 - s^2 + 2;
 b = 3*s^2 - 2*s;
 c = -0.5*s^3 + 1.3*s^2 - 1.5*s + 0.7 + lam;
