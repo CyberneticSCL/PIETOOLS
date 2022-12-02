@@ -179,7 +179,7 @@ switch index
 %--------------------------------------------------------------------------
     case 11
 % 	PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 2.93              (stable for R<2.7)
-%   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            | Cm = [1, 1.5; 5, 0.2]         Ahmadi 2014 [6]
+%   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            | Cm = [1, 1.5; 5, 0.2]         Peet 2018 [22]
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params);
 %--------------------------------------------------------------------------
     case 12
@@ -1007,7 +1007,15 @@ end
 %      language = {en},
 %      url = {http://www.numdam.org/articles/10.1051/cocv:2006021/}
 % }
-
+% % [22] -
+% @inproceedings{peet2018new,
+%   title={A new state-space representation for coupled PDEs and scalable Lyapunov stability analysis in the SOS framework},
+%   author={Peet, Matthew M},
+%   booktitle={2018 IEEE Conference on Decision and Control (CDC)},
+%   pages={545--550},
+%   year={2018},
+%   organization={IEEE}
+% }
 
 function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % Subroutine to process the user inputs for the 

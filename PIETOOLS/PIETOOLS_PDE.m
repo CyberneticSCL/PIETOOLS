@@ -23,8 +23,8 @@ pvar s theta;
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
-PDEb = examples_PDE_library_PIETOOLS(13,'batch');
-PDEt = examples_PDE_library_PIETOOLS(13,'terms');
+PDEb = examples_PDE_library_PIETOOLS(2,'batch');
+PDEt = examples_PDE_library_PIETOOLS(2,'terms');
 
 % % --- Manual Declaration Option --- To use this example, comment lines 38
 % and 44 and uncomment line 43
@@ -56,20 +56,20 @@ PDEt = initialize_PIETOOLS_PDE(PDEt);
 
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_light;
-% settings = lpisettings('light');
+settings = lpisettings('heavy');
 % settings_PIETOOLS_heavy;
 %  settings_PIETOOLS_light;
 % settings_PIETOOLS_stripped;
-% settings.sos_opts.solver='sedumi';    % Solver to use
-% settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
-% settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
-% settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+settings.sos_opts.solver='sdpt3';    % Solver to use
+settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
+settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
+settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-% [prog,P] = lpisolve(PIE,settings,'stability');
+[prog,P] = lpisolve(PIEt,settings,'stability');
 %[prog, P] = PIETOOLS_stability(PIE,settings);
 % [prog, P] = PIETOOLS_stability_dual(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
