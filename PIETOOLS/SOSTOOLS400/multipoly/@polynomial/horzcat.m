@@ -37,7 +37,7 @@ else
     
     if nra==0 && nrb==0                     % DJ, 06/17/22
         c = polynomial(zeros(nra,nca+ncb));
-    elseif isempty(b);
+    elseif all(size(b)==0)      % DJ, 12/02/2022  replace  %isempty(b);
         c = a;
     elseif isempty(a);
         c = b;

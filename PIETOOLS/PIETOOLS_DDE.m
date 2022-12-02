@@ -199,14 +199,9 @@ if strcmp(simulate,'on')
 %
 % settings_PIETOOLS_extreme is often infeasible
 
-sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
 
-% settings_PIETOOLS_veryheavy
-% settings_PIETOOLS_heavy
- settings_PIETOOLS_light;
-% settings_PIETOOLS_stripped
-% settings_PIETOOLS_extreme
-% settings_PIETOOLS_custom
+settings = lpisettings('light');
+settings.sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -171,9 +171,9 @@ if lcvd==0&&lcv==0
 end    
 nv=0;
 for i=1:nK
-    if lcv>=i&&~isempty(Cv{i})
+    if lcv>=i && ~isempty(Cv{i})
         nv=size(Cv{i},1);
-    elseif lcvd>=i&&~isempty(Cvd{i})
+    elseif lcvd>=i && ~isempty(Cvd{i})
         nv=size(Cvd{i},1);
     else
         warning(['Problem: Delayed channel ',int2str(i),' has no outputs'])

@@ -139,8 +139,8 @@
 % %%%% answer - 25.907 @ tau=1.5
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % Example A.1 from [3]
-%    Hinf_gain=1
-%    Hinf_gain_dual=1
+   Hinf_gain=1
+   Hinf_gain_dual=1
     DDE.A0=[-2 0;0 -.9];%
     DDE.Ai{1}=[-1 0; -1 -1];%
     DDE.B1=[-.5;1];
@@ -322,7 +322,7 @@
 % Hinf_control=1
 % aM=1/1.964; kM=-.0117;zM=.8;wM=6;
 % DDE.A0=[-aM 0 0; 0 0 1; 0 -wM^2 -2*zM*wM];
-%   Ad{1}=[0 kM*aM 0; 0 0 0; 0 0 0];
+%  DDE.Adi{1}=[0 kM*aM 0; 0 0 0; 0 0 0];
 %  DDE.C0=[1 0 0; 0 1 0;0 0 0]; DDE.C{1}=[0 0 0;0 0 0;0 0 0];
 %  DDE.B2=[0;0;wM^2]; %B in paper
 %  DDE.B1=[1 0;0 0;0 10]; % D in paper

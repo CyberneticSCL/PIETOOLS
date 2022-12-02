@@ -156,9 +156,9 @@ B2op.I = [-1 0]; B2op.dim = [nx nu; nxb 0]; B2op.var1 = s; B2op.var2 = theta;
 D11op.I = [-1 0]; D11op.dim = [nz nw; 0 0]; D11op.var1 = s; D11op.var2 = theta;
 D12op.I = [-1 0]; D12op.dim = [nz nu; 0 0]; D12op.var1 = s; D12op.var2 = theta;
 D21op.I = [-1 0]; D21op.dim = [ny nw; 0 0]; D21op.var1 = s; D21op.var2 = theta;
-D22op.I = [-1 0]; D22op.dim = [ny nw; 0 0]; D22op.var1 = s; D22op.var2 = theta;
+D22op.I = [-1 0]; D22op.dim = [ny nu; 0 0]; D22op.var1 = s; D22op.var2 = theta;
 TB1op.I = [-1 0]; TB1op.dim = [nx nw; nxb 0]; TB1op.var1 = s; TB1op.var2 = theta;
-TB2op.I = [-1 0]; TB2op.dim = [nx nw; nxb 0]; TB2op.var1 = s; TB2op.var2 = theta;
+TB2op.I = [-1 0]; TB2op.dim = [nx nu; nxb 0]; TB2op.var1 = s; TB2op.var2 = theta;
 
 
 % We now define the 12-opvar system representation
@@ -280,9 +280,9 @@ B2op.dim = [nx nu; nxb 0];
 D11op.dim = [nz nw; 0 0]; 
 D12op.dim = [nz nu; 0 0]; 
 D21op.dim = [ny nw; 0 0]; 
-D22op.dim = [ny nw; 0 0]; 
+D22op.dim = [ny nu; 0 0]; 
 TB1op.dim = [nx nw; nxb 0]; 
-TB2op.dim = [nx nw; nxb 0]; 
+TB2op.dim = [nx nu; nxb 0]; 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -294,10 +294,10 @@ X = [a b];
 PIE = pie_struct();
 PIE.vars = [Top.var1,Top.var2];
 PIE.dom=X;
-PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;
-PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
-PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
-PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
+PIE.T = Top;    PIE.Tw = TB1op;     PIE.Tu = TB2op;
+PIE.A = Aop;    PIE.B1 = B1op;      PIE.B2 = B2op;
+PIE.C1 = C1op;  PIE.D11 = D11op;    PIE.D12 = D12op;
+PIE.C2 = C2op;  PIE.D21 = D21op;    PIE.D22 = D22op;
 
 % Make sure dimensions of operators match.
 PIE = initialize(PIE);
