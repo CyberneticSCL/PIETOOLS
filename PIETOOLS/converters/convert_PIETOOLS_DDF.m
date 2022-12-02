@@ -299,5 +299,7 @@ PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
 PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
 PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
 
+% Make sure dimensions of operators match.
+PIE = initialize(PIE);
 
 end

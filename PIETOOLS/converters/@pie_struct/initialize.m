@@ -199,9 +199,9 @@ n_ops = numel(op_names);
 for kk=1:n_ops
     opname = op_names{kk};
     opval = PIE.(opname);
-    if (isa(opval,'opvar') || isa(opval,'opvar2d')) && ~(opval==0)
-        % A non-zero operator has been specified
-        % --> extract the row dimensions
+    if (isa(opval,'opvar') || isa(opval,'opvar2d')) && any(any(opval.dim))
+        % A non-empty operator has been specified
+        % --> extract the row dimensions or column dimensions
         if PIE.dim==1 && isa(opval,'opvar2d')
             warning(["PI operators for a 1D PIE should be specified as opvar objects; attempting to convert ",opname," to opvar..."])
             opval = opvar2d2opvar(opval);
@@ -213,8 +213,8 @@ for kk=1:n_ops
             % If no dimensions were previously known, set the dimensions.
             dim = opval.dim(:,idx);
             opname_1 = opname;
-        elseif ~all(opval.dim(:,idx)==dim)
-            % If dimensions were already known, the value should match.
+        elseif ~all(opval.dim(:,idx)==dim) && ~(opval==0)
+            % If dimensions were already known, the dimensions should match.
             if idx==1
                 error(["The output (row) dimensions of the operator ",opname," should match those of the operator ",opname_1,"."]);
             else

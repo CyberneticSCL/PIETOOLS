@@ -71,7 +71,7 @@ elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')
 else
     error('The input PDE is not appropriately specified. Please define your PDE as a "pde_struct" class object, and consult the manual and examples for illustration of the structure.')
 end
-
-
+% Make sure dimensions of operators match.
+PIE_out = initialize(PIE_out);
 
 end
