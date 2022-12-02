@@ -20,87 +20,89 @@ function [K] = getController(P,Z,tol)
 % Initial coding SS - 5/20/2021
 
 if nargin==2
-    tol = 1e-5;
+    tol = 1e-4;
 end
 
 if isvalid(P)==0 && isvalid(Z)==0
     K = Z*inv(P,tol);
-
-if ~isempty(K.P)
-    Kp=K.P;
-    Kpcoeff=full(Kp.coefficient);
-    for i=1:size(Kpcoeff,1)
-        for j=1:size(Kpcoeff,2)
-            if abs(Kpcoeff(i,j))<=1e-4
-                Kpcoeff(i,j)=0;
+    
+    %Truncate the controller to the accuracy defined by tol.
+    
+    if ~isempty(K.P)
+        Kp=K.P;
+        Kpcoeff=full(Kp.coefficient);
+        for i=1:size(Kpcoeff,1)
+            for j=1:size(Kpcoeff,2)
+                if abs(Kpcoeff(i,j))<=1e-4
+                    Kpcoeff(i,j)=0;
+                end
             end
         end
+        K.P.coefficient=sparse(Kpcoeff);
     end
-    K.P.coefficient=sparse(Kpcoeff);
-end
-if ~isempty(K.Q1)
-    Kp=K.Q1;
-    Kpcoeff=full(Kp.coefficient);
-    for i=1:size(Kpcoeff,1)
-        for j=1:size(Kpcoeff,2)
-            if abs(Kpcoeff(i,j))<=tol
-                Kpcoeff(i,j)=0;
+    if ~isempty(K.Q1)
+        Kp=K.Q1;
+        Kpcoeff=full(Kp.coefficient);
+        for i=1:size(Kpcoeff,1)
+            for j=1:size(Kpcoeff,2)
+                if abs(Kpcoeff(i,j))<=tol
+                    Kpcoeff(i,j)=0;
+                end
             end
         end
+        K.Q1.coefficient=sparse(Kpcoeff);
     end
-    K.Q1.coefficient=sparse(Kpcoeff);
-end
-if ~isempty(K.Q2)
-    Kp=K.Q2;
-    Kpcoeff=full(Kp.coefficient);
-    for i=1:size(Kpcoeff,1)
-        for j=1:size(Kpcoeff,2)
-            if abs(Kpcoeff(i,j))<=tol
-                Kpcoeff(i,j)=0;
+    if ~isempty(K.Q2)
+        Kp=K.Q2;
+        Kpcoeff=full(Kp.coefficient);
+        for i=1:size(Kpcoeff,1)
+            for j=1:size(Kpcoeff,2)
+                if abs(Kpcoeff(i,j))<=tol
+                    Kpcoeff(i,j)=0;
+                end
             end
         end
+        K.Q2.coefficient=sparse(Kpcoeff);
     end
-    K.Q2.coefficient=sparse(Kpcoeff);
-end
-
-if ~isempty(K.R.R0)
-    Kp=K.R.R0;
-    Kpcoeff=full(Kp.coefficient);
-    for i=1:size(Kpcoeff,1)
-        for j=1:size(Kpcoeff,2)
-            if abs(Kpcoeff(i,j))<=tol
-                Kpcoeff(i,j)=0;
+    
+    if ~isempty(K.R.R0)
+        Kp=K.R.R0;
+        Kpcoeff=full(Kp.coefficient);
+        for i=1:size(Kpcoeff,1)
+            for j=1:size(Kpcoeff,2)
+                if abs(Kpcoeff(i,j))<=tol
+                    Kpcoeff(i,j)=0;
+                end
             end
         end
+        K.R.R0.coefficient=sparse(Kpcoeff);
     end
-    K.R.R0.coefficient=sparse(Kpcoeff);
-end
-
-if ~isempty(K.R.R1)
-    Kp=K.R.R1;
-    Kpcoeff=full(Kp.coefficient);
-    for i=1:size(Kpcoeff,1)
-        for j=1:size(Kpcoeff,2)
-            if abs(Kpcoeff(i,j))<=tol
-                Kpcoeff(i,j)=0;
+    
+    if ~isempty(K.R.R1)
+        Kp=K.R.R1;
+        Kpcoeff=full(Kp.coefficient);
+        for i=1:size(Kpcoeff,1)
+            for j=1:size(Kpcoeff,2)
+                if abs(Kpcoeff(i,j))<=tol
+                    Kpcoeff(i,j)=0;
+                end
             end
         end
+        K.R.R1.coefficient=sparse(Kpcoeff);
     end
-    K.R.R1.coefficient=sparse(Kpcoeff);
-end
-
-if ~isempty(K.R.R2)
-    Kp=K.R.R2;
-    Kpcoeff=full(Kp.coefficient);
-    for i=1:size(Kpcoeff,1)
-        for j=1:size(Kpcoeff,2)
-            if abs(Kpcoeff(i,j))<=tol
-                Kpcoeff(i,j)=0;
+    
+    if ~isempty(K.R.R2)
+        Kp=K.R.R2;
+        Kpcoeff=full(Kp.coefficient);
+        for i=1:size(Kpcoeff,1)
+            for j=1:size(Kpcoeff,2)
+                if abs(Kpcoeff(i,j))<=tol
+                    Kpcoeff(i,j)=0;
+                end
             end
         end
+        K.R.R2.coefficient=sparse(Kpcoeff);
     end
-    K.R.R2.coefficient=sparse(Kpcoeff);
-end
 else
     error("Inputs must be opvar variables");
 end
