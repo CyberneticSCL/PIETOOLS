@@ -244,7 +244,7 @@ ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w');
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closer loop response with $\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
+title('Closed loop response with $\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
 %%
 XX = linspace(0,10,200);
 w2_tval = subs(5*sin(pi*st)./(st+eps),tval);
