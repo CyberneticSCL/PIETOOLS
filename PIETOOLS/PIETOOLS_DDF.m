@@ -181,15 +181,8 @@ examples_NDSDDF_library_PIETOOLS
 % settings_PIETOOLS_stripped sacrifices accuracy
 %
 % settings_PIETOOLS_extreme is often infeasible
-
+settings = lpisettings('light');
 sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
-
-% settings_PIETOOLS_veryheavy
-% settings_PIETOOLS_heavy
- settings_PIETOOLS_light;
-% settings_PIETOOLS_stripped
-% settings_PIETOOLS_extreme
-% settings_PIETOOLS_custom
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -209,8 +202,6 @@ settings.sos_opts.solver='sedumi';
 settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 0*1e-4;   % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function %%% Default Setttings: %%%%%%
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % END: Linear PI Inequality (LPI) solver settings:

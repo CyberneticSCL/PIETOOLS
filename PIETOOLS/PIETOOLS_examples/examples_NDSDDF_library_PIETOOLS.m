@@ -114,14 +114,14 @@
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % This is an example from [7], Zhao, 2018 ?????
-% stability=1
-% stability_dual=1
-% NDS.A0=[-2 -1;3.5 0];
-% NDS.Ai{2}=[-1.5 0;0 0];
-% NDS.Ei{1}=[.9 0;0 0];
-% h=.777125; 
-% NDS.tau=[h 2*h];
-%%% max at .7722? 
+% % % % stability=1
+% % % % stability_dual=1
+% % % % NDS.A0=[-2 -1;3.5 0];
+% % % % NDS.Ai{2}=[-1.5 0;0 0];
+% % % % NDS.Ei{1}=[.9 0;0 0];
+% % % % h=.77125;
+% % % % %%% max at .7722? 
+% % % % NDS.tau=[h 2*h];
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % This is an example from [7], Zhao, 2018
@@ -248,10 +248,10 @@
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 % % A pure Difference Equation r_1(t)=Drv{1}*Cv{1}*r_1(t-tau(1))+Drv{2}*Cv{2}*r_2(t-tau(2))
-stability=1;
-stability_dual=1;
-DDF.Drv{1}=.5; DDF.Cv{1}=1;DDF.Drv{2}=.25; DDF.Cv{2}=1;
-DDF.tau(1)=1; DDF.tau(2)=2;
+% stability=1;
+% stability_dual=1;
+% DDF.Drv{1}=.5; DDF.Cv{1}=1;DDF.Drv{2}=.25; DDF.Cv{2}=1;
+% DDF.tau(1)=1; DDF.tau(2)=2;
 % 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -260,45 +260,45 @@ DDF.tau(1)=1; DDF.tau(2)=2;
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % %%% Multiple Showering People - tracking with integral control
 % % % This is the DDF implementation
-% Hinf_control=1
-% n=2; %This is the number of users and can be changed
-% shower_ex=2;
-% nndelay=n;
-% % the delay for user i is tau(i)=i;
-% for i=1:nndelay
-%     DDF.tau(i)=n;
-% end
-% % set all alphas to 1
-% alpha=1;
-% alphav=alpha*ones(n,1);
-% % set all gammas to 1/n
-% gamma=1/n;
-% gammaM=gamma*ones(n,n);
-% zn=zeros(n);
-% 
-% DDF.A0=[zn eye(n);zn zn];
-% 
-% Gam=zn;
-% for i=1:n
-%     for j=1:n
-%         if i~=j
-%             Gam(i,j)=alphav(j)*gammaM(i,j);
-%         else
-%             Gam(i,j)=-alphav(i);
-%         end
-%         
-%     end
-% end
-% DDF.B1=[-eye(n);-Gam];
-% DDF.B2=[zn;eye(n)];
-% 
+Hinf_control=1
+n=2; %This is the number of users and can be changed
+shower_ex=2;
+nndelay=n;
+% the delay for user i is tau(i)=i;
+for i=1:nndelay
+    DDF.tau(i)=n;
+end
+% set all alphas to 1
+alpha=1;
+alphav=alpha*ones(n,1);
+% set all gammas to 1/n
+gamma=1/n;
+gammaM=gamma*ones(n,n);
+zn=zeros(n);
+
+DDF.A0=[zn eye(n);zn zn];
+
+Gam=zn;
+for i=1:n
+    for j=1:n
+        if i~=j
+            Gam(i,j)=alphav(j)*gammaM(i,j);
+        else
+            Gam(i,j)=-alphav(i);
+        end
+        
+    end
+end
+DDF.B1=[-eye(n);-Gam];
+DDF.B2=[zn;eye(n)];
+
 % %There are 3 option for the number of outputs in this example:
-% %%%% Full outputs, Full disturbances
-% % DDF.B1=[-eye(n);-Gam];
-% % DDF.C1=[eye(n) zn;zn zn];
-% % DDF.D12=[zn;.1*eye(n)];
-% 
-% %%%%% 2 outputs, Full disturbances
+% %%%% 1) Full outputs, Full disturbances
+DDF.B1=[-eye(n);-Gam];
+DDF.C1=[eye(n) zn;zn zn];
+DDF.D12=[zn;.1*eye(n)];
+
+% %%%%% 2) 2 outputs, Full disturbances
 % DDF.B1=[-eye(n);-Gam];
 % DDF.C1=[ones(1,n) zeros(1,n);zeros(1,2*n)];
 % DDF.D11=[zeros(2,n)];
@@ -306,7 +306,7 @@ DDF.tau(1)=1; DDF.tau(2)=2;
 % % N=5 - light - gam = .714, IPM=17.4
 % % N=30 - extreme - gam = 5.37, IPM=35,620
 % 
-% % Now for new DDF terms
+% % 3) Now for new DDF terms
 % DDF.Bv=[zn;Gam];
 % 
 % for i=1:nndelay

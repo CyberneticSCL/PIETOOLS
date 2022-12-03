@@ -26,20 +26,7 @@ end
 if isvalid(P)==0 && isvalid(Z)==0
     K = Z*inv(P,tol);
     
-    %Truncate the controller to the accuracy defined by tol.
-    
-    if ~isempty(K.P)
-        Kp=K.P;
-        Kpcoeff=full(Kp.coefficient);
-        for i=1:size(Kpcoeff,1)
-            for j=1:size(Kpcoeff,2)
-                if abs(Kpcoeff(i,j))<=1e-4
-                    Kpcoeff(i,j)=0;
-                end
-            end
-        end
-        K.P.coefficient=sparse(Kpcoeff);
-    end
+    %Truncate the polynomial parts on the controllers to the accuracy defined by tol.
     if ~isempty(K.Q1)
         Kp=K.Q1;
         Kpcoeff=full(Kp.coefficient);
