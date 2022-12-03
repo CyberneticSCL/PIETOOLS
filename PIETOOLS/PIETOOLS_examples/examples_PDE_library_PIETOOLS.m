@@ -225,7 +225,7 @@ switch index
 %                                                   |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params);
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-    case 15
+    case 15 
 %   Assume all parameters are 1, and use states:    |                       Hyperbolic/diffusive implementation (unstable)
 %        x1 = w_{t},    x2 = w_{s},                 |
 %        x3 = phi_{t},  x4 = phi.                   |
