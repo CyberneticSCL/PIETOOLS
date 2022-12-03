@@ -60,7 +60,7 @@ settings = lpisettings('heavy');
 % settings_PIETOOLS_heavy;
 %  settings_PIETOOLS_light;
 % settings_PIETOOLS_stripped;
-settings.sos_opts.solver='sdpt3';    % Solver to use
+settings.sos_opts.solver='sedumi';    % Solver to use
 settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
