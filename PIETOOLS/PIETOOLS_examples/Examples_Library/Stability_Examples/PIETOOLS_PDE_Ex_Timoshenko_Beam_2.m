@@ -41,7 +41,7 @@ root = fileparts(loc);
 pvar s theta s1 s2 theta1 theta2
 
 %%% Executive Function:
-evalin('base','stability = 1;');
+evalin('base','stability_dual= 1;');
 
 % Specify the parameters
 npars = length(params);

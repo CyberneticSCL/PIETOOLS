@@ -15,7 +15,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq(GUI,params)
 %
 % %---------------------------------------------------------------------% %
 % % Transport equation: 
-% % PDE:        x_{t}  = -x_{s}
+% % PDE:        x_{t}  = v x_{s}
 % % with BC     x(s=0) = 0
 % %---------------------------------------------------------------------% %
 
@@ -29,7 +29,8 @@ pvar s theta s1 s2 theta1 theta2
 %%% Executive Function:
 evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;');
-
+% Specify the parameters
+v=-1;
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -44,7 +45,7 @@ end
 PDE_b.n0 = 0;   PDE_b.n1 = 1;   PDE_b.n2 = 0;
 PDE_b.dom = [0,1];
 
-PDE_b.A1= -1;
+PDE_b.A1= c;
 
 on = eye(PDE_b.n1);   ze = zeros(PDE_b.n1);
 PDE_b.B = [on ze];
@@ -57,7 +58,7 @@ PDE_t.x{1}.dom = [0,1];
 
 % PDE: x_{t} = x_{s}
 PDE_t.x{1}.term{1}.x = 1;
-PDE_t.x{1}.term{1}.C= -1;
+PDE_t.x{1}.term{1}.C= c;
 PDE_t.x{1}.term{1}.D = 1;
 
 % BCs: 0 = x(0)

@@ -114,7 +114,7 @@ switch index
 %       Hyperbolic Transport, Balance Laws, Conservation Equations
 %--------------------------------------------------------------------------
     case 1
-% 	PDE: x_{t} = x_{s}                              |   
+% 	PDE: x_{t} = v x_{s}                              |   
 %   BCs: x(s=0) = 0                                 |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq(GUI,params);
 %-----|-------------------------------------------------------------------

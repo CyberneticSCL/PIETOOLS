@@ -23,10 +23,10 @@ pvar s theta;
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
-PDEb = examples_PDE_library_PIETOOLS(2,'batch');
-PDEt = examples_PDE_library_PIETOOLS(2,'terms');
+PDEb = examples_PDE_library_PIETOOLS(15,'batch');
+PDEt = examples_PDE_library_PIETOOLS(15,'terms');
 
-% % --- Manual Declaration Option --- To use this example, comment lines 38
+%% --- Manual Declaration Option --- To use this example, comment lines 38
 % and 44 and uncomment line 43
 % pvar s t
 %   A1=[0 1; 2 0]; A0=[0 0; 0 -2];
@@ -55,11 +55,11 @@ PDEt = initialize_PIETOOLS_PDE(PDEt);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % --- Specify settings ---
-%settings = settings_PIETOOLS_light;
+settings = settings_PIETOOLS_light;
 settings = lpisettings('heavy');
-% settings_PIETOOLS_heavy;
-%  settings_PIETOOLS_light;
-% settings_PIETOOLS_stripped;
+settings_PIETOOLS_heavy;
+ settings_PIETOOLS_light;
+settings_PIETOOLS_stripped;
 settings.sos_opts.solver='sedumi';    % Solver to use
 settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
@@ -69,9 +69,9 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-[prog,P] = lpisolve(PIEt,settings,'stability');
+%[prog,P] = lpisolve(PIEt,settings,'stability');
 %[prog, P] = PIETOOLS_stability(PIE,settings);
-% [prog, P] = PIETOOLS_stability_dual(PIE,settings);
+ [prog, P] = PIETOOLS_stability_dual(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
  %[prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
@@ -81,9 +81,9 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %% Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)
 % Only works for PDE examples in batch input format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if PIEt.dim ~=2  
+if PIEb.dim ~=2  
     opts.tf=10;
-    [solution, grid] = PIESIM(PDEt,opts);
+    [solution, grid] = PIESIM(PDEb,opts);
     
     % Note: you can also specify time stepping options and user inputs, such as initial
     % conditions and non-zero boundary inputs, via
