@@ -2,8 +2,8 @@ function settings = settings_PIETOOLS_stripped()
 % Returns settings structure with degrees between 2 and 3 with lower
 % triangular structure in square root of positive definite PIs
 %
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% or D. Jagt at djagt@asu.edu
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
+% S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
@@ -64,7 +64,9 @@ settings.ddZ=[2*n_order1 2*n_order2 2*n_order3];
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Options for the derivative
 %
-if ~exist('sosineq_on','var')       
+if evalin('base','exist(''sosineq_on'',''var'')') 
+    sosineq_on = evalin('base','sosineq_on');
+else
     sosineq_on = 0;
 end
 settings.sosineq_on = sosineq_on;
