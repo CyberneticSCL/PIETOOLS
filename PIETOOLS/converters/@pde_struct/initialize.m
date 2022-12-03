@@ -1887,10 +1887,10 @@ while jj<=n_terms
     nR = length(Rindx);
     % Establish which spatial variables each component depends on.
     has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx(1),3:2+nvars));
-    nvars_Rcomp = sum(has_vars_Rcomp);
-    Rvar_order = PDE.(Robj){Rindx}.var_order;
     % Note that we already checked all the different components listed
     % in Rindx to depend on the same variables in "get_diff".
+    nvars_Rcomp = sum(has_vars_Rcomp);    
+    
         
     % % Extract a derivative (was already initialized in "get_diff").
     if is_x_Robj && (~isfield(term_jj,'D') || isempty(term_jj.D))
@@ -2054,6 +2054,7 @@ while jj<=n_terms
     % associated domains
     Rvars = global_vars(has_vars_Rcomp,:);
     Rdom = global_dom(has_vars_Rcomp,:);
+    Rvar_order = PDE.(Robj){Rindx}.var_order;   % new_vars = old_vars(var_order)
     % Keep track of which variables the term actually varies in
     % (without integration).
     isvariable_term_jj = true(1,nvars_Rcomp);
