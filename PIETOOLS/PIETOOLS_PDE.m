@@ -23,8 +23,8 @@ pvar s theta;
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
-PDEb = examples_PDE_library_PIETOOLS(10,'batch');
-PDEt = examples_PDE_library_PIETOOLS(10,'terms');
+PDEb = examples_PDE_library_PIETOOLS(28,'batch');
+PDEt = examples_PDE_library_PIETOOLS(28,'terms');
 
 %% --- Manual Declaration Option --- To use this example, comment lines 38
 % and 44 and uncomment line 43
@@ -56,7 +56,7 @@ PDEt = initialize_PIETOOLS_PDE(PDEt);
 
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_light;
-settings = lpisettings('heavy');
+settings = lpisettings('light');
 %settings_PIETOOLS_heavy;
  %settings_PIETOOLS_light;
 %settings_PIETOOLS_stripped;
@@ -69,13 +69,15 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-%[prog,P] = lpisolve(PIEt,settings,'stability');
+%[prog,P] = lpisolve(PIE,settings,'stability');
 %[prog, P] = PIETOOLS_stability(PIE,settings);
 %[prog, P] = PIETOOLS_stability_dual(PIE,settings);
 %[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 %[prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
- %[prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
+ [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
 % [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
+%[prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);
+%[prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)

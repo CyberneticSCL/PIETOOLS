@@ -16,7 +16,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_I
 % %---------------------------------------------------------------------% %
 % % Example pure transport equation 1D: 
 % % % Stabilizing controller for Heat Equation with z=0 and w=0:
-% % PDE                            x_{t} = lam*x + x_{ss} + u(t) + w
+% % PDE                            x_{t} = lam*x + x_{ss} + (s-s^2)u(t) + (s-s^2)w
 % % With BCs                         x(s=0) = 0
 % %                                         x(s=1) = 0
 % % and regulated output  z =[ int(x(s,t),s,0,1);u]
@@ -57,9 +57,9 @@ PDE_b.dom = [0,1];
 % PDE state dynamics
 PDE_b.A0 = lam;   PDE_b.A2 = 1;
 % control input to PDE state
-PDE_b.B22 = 1;   
+PDE_b.B22 = s-s^2;   
 % disturbance to PDE state
-PDE_b.B21 = 1;    
+PDE_b.B21 = s-s^2;    
 % boundary conditions
 PDE_b.B = [1 0 0 0;
            0 1 0 0];
@@ -89,10 +89,10 @@ PDE_t.x{1}.term{1}.C = [lam, 1];
 
 % PDE: x_{t} = ... + w
 PDE_t.x{1}.term{2}.w = 1;
-
+PDE_t.x{1}.term{2}.C = s-s^2;
 % PDE: x_{t} = ... + u
 PDE_t.x{1}.term{3}.u = 1;
-
+PDE_t.x{1}.term{3}.C = s-s^2;
 % BC 1: 0 = x(0)
 PDE_t.BC{1}.term{1}.x = 1;
 PDE_t.BC{1}.term{1}.loc = 0;
@@ -112,7 +112,7 @@ PDE_t.z{2}.term{1}.u = 1;
 % x = state('pde'); u = state('in');
 % w = state('in'); z=state('out',2);
 % pde = sys();
-% eq_dyn = diff(x,t)==10*x+diff(x,s,2)+u+w;
+% eq_dyn = diff(x,t)==10*x+diff(x,s,2)+(s-s^2)u+(s-s^2)w;
 % eq_out = z==[int(x,s,[0,1]);u];
 % pde = addequation(pde,[eq_dyn;eq_out]);
 % eq_bc = [subs(x, s, 0) == 0;subs(x, s, 1) == 0];

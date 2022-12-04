@@ -15,7 +15,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Observed_Output(GUI,p
 %
 % %---------------------------------------------------------------------% %
 % % Example 1D transport:
-% % PDE             x_{t} = x_{s} + w(t)
+% % PDE             x_{t} = x_{s} + (s-s^2)w(t)
 % % with BC         x(s=1) = 0
 % % And Outputs     z(t) = int(x(t,s),s,0,1) + w(t)
 % %                 y(t) = int(x(t,s),s,0,1)
@@ -53,7 +53,7 @@ PDE_b.dom = [0,1];
 
 PDE_b.A1 = on;
 PDE_b.Ca1 = on;   PDE_b.Ca2 = on;
-PDE_b.B21 = on;   PDE_b.D11 = on;
+PDE_b.B21 = on.*(s-s^2);   PDE_b.D11 = on;
 
 PDE_b.B = [ze on];
 
@@ -76,8 +76,8 @@ PDE_t.x{1}.term{2}.w = 1;
 PDE_t.z{1}.term{1}.x = 1;
 PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
-% Output: z = ... + w
-PDE_t.z{1}.term{2}.w  =1;
+% Output: z = ... + (s-s^2)w
+PDE_t.z{1}.term{2}.w  = (s-s^2);
 
 % Output: y = int_{0}^{1} x(s) ds
 PDE_t.y{1}.term{1}.x = 1;

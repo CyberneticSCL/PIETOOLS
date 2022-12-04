@@ -1,22 +1,23 @@
-function output = PIETOOLS_H2_norm_o(PIE, settings,varargin)
-% This function solves the minimization problem to obtain the H2 norm of a linear distributed parameter
-% system using the observability gramian approach and PIE framework. For
+function [prog,Wo, gam]= PIETOOLS_H2_norm_o(PIE, settings,varargin)
+% This function solves a minimization problem to obtain the H2 norm of a linear distributed parameter
+% system using the observability gramian approach and PIEs framework. For
 % the feasibility test an additional input with a assigned value to the
 % norm is required.
 % inputs: (mandatory)
 %   PIE : PIE structure of the corresponding system
 %   settings : options related to PIETOOLS
-% output: structure with the following fields
-%   h2= computed H2 norm for SDP problem or optional input value for feasibility tests;
-%   W= Observability gramian, a positive PI operator;
+% outputs: 
+%   gam = computed H2 norm for SDP problem or optional input value for feasibility tests;
+%   Wo= Observability gramian, a positive PI operator;
 %  prog= sum of squares program information;
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
-% S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
+% S. Shivakumar at sshivak8@asu.edu, D. Jagt at djagt@asu.edu, or D.
+% Braghini d166353@dac.unicamp.br.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt, D. Braghini
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -171,7 +172,7 @@ function output = PIETOOLS_H2_norm_o(PIE, settings,varargin)
     % else 
     %     disp(gam);
     % end
-     P = getsol_lpivar(prog,Wop);
+     Wo = getsol_lpivar(prog,Wop);
     % gam = double(sosgetsol(prog,gam));
     % end
    if nargin<=2 || ~isfield(options,'h2')
@@ -182,9 +183,5 @@ function output = PIETOOLS_H2_norm_o(PIE, settings,varargin)
 %      gam = sqrt(double(sosgetsol(prog,gam)));
 %             disp('The H2 norm of the given system is upper bounded by:')
 %              disp(gam);
-    %% set outputs
-    output.h2=gam;
-    output.W=P;
-    output.prog=prog;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

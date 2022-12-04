@@ -45,7 +45,7 @@ end
 PDE_b.n0 = 0;   PDE_b.n1 = 1;   PDE_b.n2 = 0;
 PDE_b.dom = [0,1];
 
-PDE_b.A1= c;
+PDE_b.A1= v;
 
 on = eye(PDE_b.n1);   ze = zeros(PDE_b.n1);
 PDE_b.B = [on ze];
@@ -58,7 +58,7 @@ PDE_t.x{1}.dom = [0,1];
 
 % PDE: x_{t} = x_{s}
 PDE_t.x{1}.term{1}.x = 1;
-PDE_t.x{1}.term{1}.C= c;
+PDE_t.x{1}.term{1}.C= v;
 PDE_t.x{1}.term{1}.D = 1;
 
 % BCs: 0 = x(0)
