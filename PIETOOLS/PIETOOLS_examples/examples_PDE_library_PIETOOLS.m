@@ -172,9 +172,9 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params);
 %--------------------------------------------------------------------------
     case 10
-%   ODE: xo_{t} = xo + x_{s}(s=0)               	| k = -2                (stable for k=-2)            
+%   ODE: xo_{t} = xo + x_{s}(s=0)               	| k = 2                (stable for k=-2)            
 %   PDE: x_{t} = x_{ss}                             |                               Tang 2011 [13]
-%   BCs: x(s=0) = -xo,    x(s=1) = k*xo             |
+%   BCs: x(s=0) = xo,    x(s=1) = -k*xo             |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params);
 %--------------------------------------------------------------------------
     case 11

@@ -17,8 +17,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params)
 % % Coupled ODE-PDE system from Tang (see reference below):
 % % ODE             xo_{t} = xo + x_{s}(s=0)
 % % PDE             x_{t} = x_{ss}
-% % With BCs        x(s=0) = -xo
-% %                 x(s=1) = k * xo
+% % With BCs        x(s=0) = xo
+% %                 x(s=1) = -k * xo
 % %
 % % Parameter k can be set.
 % %---------------------------------------------------------------------% %
@@ -82,13 +82,14 @@ PDE_t.BC{1}.term{1}.loc = 0;
 % BC 1: 0 = ... + xo
 PDE_t.BC{1}.term{2}.x = 1;
 
-% BC 2: 0 = x(1)
+% BC 2: 0 = -x(1)
 PDE_t.BC{2}.term{1}.x = 2;
 PDE_t.BC{2}.term{1}.loc = 1;
+PDE_t.BC{2}.term{2}.C = -1;
 
-% BC 2: 0 = ... -k * xo
+% BC 2: 0 = ... k * xo
 PDE_t.BC{2}.term{2}.x = 1;
-PDE_t.BC{2}.term{2}.C = -k;
+PDE_t.BC{2}.term{2}.C = k;
 
 
 if GUI
