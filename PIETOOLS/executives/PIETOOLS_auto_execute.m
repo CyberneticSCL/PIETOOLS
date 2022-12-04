@@ -11,7 +11,7 @@
 % setting they want to use.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -114,19 +114,26 @@ end
 for j=1:length(exec)
 if strcmpi(exec{j},'stability')             % stability
     outval = '[prog_stability, P_stability]';
+    msg_out = '';
 elseif strcmpi(exec{j},'stability_dual')    % stability_dual
     outval = '[prog_stability_d, P_stability_d]';
+    msg_out = '';
 elseif strcmp(exec{j},'Hinf_gain')          % Hinf_gain
     outval = '[prog_Hinf_gain, P_Hinf_gain, Hinf_gain]';
+    msg_out = ['The upper bound on the H-infty norm has been saved as "Hinf_gain".'];
 elseif strcmp(exec{j},'Hinf_gain_dual')     % Hinf_gain_dual
     outval = '[prog_Hinf_gain_d, P_Hinf_gain_d, Hinf_gain_dual]';
+    msg_out = ['The upper bound on the (dual) H-infty norm has been saved as "Hinf_gain_dual".'];
 elseif contains(exec{j},'control')          % Hinf_control
     outval = '[prog_control, K_control, Hinf_gain_control, P_control, Z_control]';
+    msg_out = ['The (optimal) feedback control gain operator has been saved as "K_control".'];
 elseif contains(exec{j},'estimator')        % Hinf_estimator
     outval = '[prog_estimator, L_estimator, Hinf_gain_estimator, P_estimator, Z_estimator]';
+    msg_out = ['The (optimal) estimator operator has been saved as "L_estimator".'];
 end
 infun = ['PIETOOLS_',exec{j},'(PIE,settings)'];
 evalin('base',[outval,'=',infun,';']);  % Run the executive
+disp(msg_out);      % Display some output information.
 end
 
 % % % Clean up...

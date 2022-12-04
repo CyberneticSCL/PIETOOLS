@@ -217,7 +217,6 @@ if ~isreal(gam)
 else 
     disp(gam);
 end
-disp('The feedback control gains have been saved in the PI operator K')
 
 gam = double(sosgetsol(prog,gam));
 
