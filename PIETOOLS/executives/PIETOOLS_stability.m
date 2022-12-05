@@ -157,42 +157,6 @@ prog = sossolve(prog,sos_opts);
 
 % Conclusion:
 P = getsol_lpivar(prog,Pop);
-
-if isfield(settings.sos_opts,'solver')&&strcmp(settings.sos_opts.solver,'sdpt3')
-    if exist('prog', 'var')
-        if ~(prog.solinfo.info.pinf||prog.solinfo.info.dinf)
-            disp('The System of equations was successfully solved.')
-        elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf
-            disp('The System of equations was not solved.')
-        else
-            disp('Unable to definitively determine feasibility. Numerical errors dominating or at the limit of stability.')
-        end
-    end
-elseif isfield(settings.sos_opts,'solver')&&strcmp(settings.sos_opts.solver,'sdpnalplus')
-    if exist('prog', 'var')
-        if ~(prog.solinfo.info.pinf||prog.solinfo.info.dinf)
-            disp('The System of equations was successfully solved.')
-        elseif ~(prog.solinfo.info.pinf||prog.solinfo.info.dinf) && prog.solinfo.info.numerr
-            disp('The System of equations was successfully solved. However, Double-check the precision.')
-        elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf || prog.solinfo.info.numerr
-            disp('The System of equations was not solved.')
-        else
-            disp('Unable to definitively determine feasibility. Numerical errors dominating or at the limit of stability.')
-        end
-    end
-elseif exist('prog', 'var')
-    if norm(prog.solinfo.info.feasratio-1)<=.3 && ~prog.solinfo.info.numerr
-        disp('The System of equations was successfully solved.')
-    elseif norm(prog.solinfo.info.feasratio-1)<=.3 && prog.solinfo.info.numerr
-        disp('The System of equations was successfully solved. However, Double-check the precision.')
-    elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf || norm(prog.solinfo.info.feasratio+1)<=.1
-        disp('The System of equations was not solved.')
-    else
-        disp('Unable to definitively determine feasibility. Numerical errors dominating or at the limit of stability.')
-    end
-else
-    disp('System converted to PIE. No problem solved because executive file was not selected');
-end
 end
 function prog = remove_dup(prog)
 for i=1:length(prog.expr.At)
