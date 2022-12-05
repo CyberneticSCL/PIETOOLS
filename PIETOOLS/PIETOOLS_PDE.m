@@ -23,8 +23,8 @@ pvar s theta;
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
 %  PDE = examples_PDE_library_PIETOOLS;
-PDEb = examples_PDE_library_PIETOOLS(28,'batch');
-PDEt = examples_PDE_library_PIETOOLS(28,'terms');
+PDEb = examples_PDE_library_PIETOOLS(1,'batch');
+PDEt = examples_PDE_library_PIETOOLS(1,'terms');
 
 %% --- Manual Declaration Option --- To use this example, comment lines 38
 % and 44 and uncomment line 43
@@ -41,7 +41,6 @@ PDEb = initialize_PIETOOLS_PDE(PDEb);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PIE=convert(PDE,'pie');
 PIEb = convert_PIETOOLS_PDE(PDEb);
-PDEt = initialize_PIETOOLS_PDE(PDEt);
 PIEt = convert_PIETOOLS_PDE(PDEt);
 PIEt==PIEb
 %%
@@ -61,7 +60,7 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-[prog,P] = lpisolve(PIEt,settings,'hinf-observer');
+% [prog,P] = lpisolve(PIEt,settings,'hinf-observer');
 %[prog, P] = PIETOOLS_stability(PIE,settings);
 %[prog, P] = PIETOOLS_stability_dual(PIE,settings);
 %[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);

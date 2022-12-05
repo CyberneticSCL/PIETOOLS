@@ -54,7 +54,7 @@ PDE_b.A2 = 1;
 PDE_b.Bx = [-1; k];
 
 PDE_b.B = [1 0 0 0;
-    0 1 0 0];
+           0 1 0 0];
 
 
 %%% Term-based input format
@@ -85,7 +85,7 @@ PDE_t.BC{1}.term{2}.x = 1;
 % BC 2: 0 = -x(1)
 PDE_t.BC{2}.term{1}.x = 2;
 PDE_t.BC{2}.term{1}.loc = 1;
-PDE_t.BC{2}.term{2}.C = -1;
+PDE_t.BC{2}.term{1}.C = -1;
 
 % BC 2: 0 = ... k * xo
 PDE_t.BC{2}.term{2}.x = 1;
