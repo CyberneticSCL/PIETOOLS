@@ -188,7 +188,7 @@ G0 = [eye(n_pde(1)) zeros(n_pde(1),np-n_pde(1)); zeros(np-n_pde(1),n_pde(1)) zer
 
 
 pvar eta;
-% now find E_T and Q_T
+% now find E_T (B_T in paper) and Q_T (B_T*B_Q in paper)
 ET = Ebb*[subs(T,s,a);subs(T,s,b)]-int(Ebp*U1*T,s,a,b);
 ET = double(ET);
 QT = Ebb*[zeros(size(Q));subs(subs(Q,s,b),theta,s)] - Ebp*U2 - int(subs(subs(Ebp*U1*Q,s,eta),theta,s),eta,s,b);
@@ -202,7 +202,7 @@ if abs(det(ET))>eps
     singularET = 0;
 else % do SVD
 %     warning('Defined boundary conditions are rank deficient or have prohibited boundary conditions. Your system is likely ill-posed.');
-    [U,S,V] = svd(ET);
+%     [U,S,V] = svd(ET);
     singularET = 1;
 end
 
@@ -232,7 +232,7 @@ if ~singularET
     Vop_out.dim = [nv no+nw+nu; 0 0]; Vop_out.var1 = s; Vop_out.var2 = theta; Vop_out.I = X;
     Vop_out.P = [PDE.ODE.Cv PDE.ODE.Dvw PDE.ODE.Dvu];
     
-    % now we construct Aop_PDE for PDE subsystem, [X_t; r] = Aop_PDE*[X_all_der] + Bop_PDE*[v; X_b]
+    % now we construct Aop_PDE for PDE subsystem, [r; X_t] = Aop_PDE*[X_all_der] + Bop_PDE*[v; X_b]
     % note this does not include BC which will be constructed separately
     % for convenience
     opvar Aop_PDE Bop_PDE;
@@ -244,21 +244,22 @@ if ~singularET
     Bop_PDE.dim = [nr nv+nBVs; np 0]; Bop_PDE.var1 = s; Bop_PDE.var2 = theta; Bop_PDE.I = X;
     Bop_PDE.P = [PDE.PDE.Drv Drb]; Bop_PDE.Q2 = [PDE.PDE.Bpv Bpb];
     
-    %%% We now construct TBVop: x_b = TBVop[v; x_f]
+    %%% We now construct TBVop: X_b = TBVop[v; X_f] (mathcal B in paper)
     opvar TBVop;
     TBVop.dim = [nBVs nv;0 np]; TBVop.var1 = s; TBVop.var2 = theta; TBVop.I = X;
     TBVop.P = [subs(T,s,a);subs(T,s,b)]*ETinv*Ebv; 
     TBVop.Q1 = -[subs(T,s,a);subs(T,s,b)]*ETinv*QT + [zeros(size(Q,1),np);subs(subs(Q,s,b),theta,s)];
     
-    %%% We now construct TDop: x_D = TDop[v; x_f]
+    %%% We now construct TDop: X_D = TDop[v; X_f] (mathcal F in paper)
     opvar TDop;
     TDop.dim = [0 nv; np_all_der_full np]; TDop.var1 = s; TDop.var2 = theta; TDop.I = X;
     TDop.Q2 = U1*T*ETinv*Ebv; TDop.R.R0 = U2; 
-    TDop.R.R1 = -U1*T*ETinv*subs(QT,s,theta)+U1*Q;
     TDop.R.R2 = -U1*T*ETinv*subs(QT,s,theta);
+    TDop.R.R1 = TDop.R.R2+U1*Q;
+    
 
-    %%% We now construct the TbigP,
-    % Vop_out_extended, [v,x_f] = [Vop_out*[x; w; u]; x_f] = Vop_out_extended[x;w;u;x_f]
+    %%% We now construct the TbigP, [r; X_t] = TbipP*[x;w;u;x_f]
+    % Vop_out_extended, [v,x_f] = [Vop_out*[x; w; u]; x_f] = Vop_out_extended*[x;w;u;x_f]
     Vop_out_extended = Vop_out;
     Vop_out_extended.Q1 = zeros(nv,np);
     Vop_out_extended.Q2 = zeros(np,no+nw+nu);
@@ -274,7 +275,7 @@ if ~singularET
     TbigP = (Aop_PDE*TDop+Bop_PDE_sliced+Bop_PDE(1:nr+np,nv+1:nv+nBVs)*TBVop)...
         *Vop_out_extended;
 
-    %%% We now construct the TbigO
+    %%% We now construct the TbigO, [x_t;z;y] = TbigO*[x;w;u;x_f]
     Aop_ODE_sliced = Aop_ODE(1:no+nz+ny,1:no+nw+nu);
     Aop_ODE_sliced.dim(2,2) = np;
     TbigO = Aop_ODE_sliced + Aop_ODE(1:no+nz+ny,(no+nw+nu+1):(no+nw+nu+nr))*TbigP(1:nr,1:no+nw+nu+np);
@@ -290,11 +291,11 @@ if ~singularET
     B2op=[TbigO((1):(no),no+nw+1:no+nw+nu);TbigP(nr+1:nr+np,no+nw+1:no+nw+nu)];
     Aop=[TbigO((1):(no),(1):(no))   TbigO((1):(no),(no+nw+nu+1):(no+nw+nu+np)); 
          TbigP(nr+1:nr+np,1:no)     TbigP(nr+1:nr+np,(no+nw+nu+1):(no+nw+nu+np))];
+    
+    % LHS PI operators
     tmp = Tvop*Vop_out;
     Twop.Q2 = tmp(1:np,(no+1):(no+nw)).Q2;Twop.R = tmp(1:np,(no+1):(no+nw)).R;
     Tuop.Q2 = tmp(1:np,(no+nw+1):(no+nw+nu)).Q2;Tuop.R = tmp(1:np,(no+nw+1):(no+nw+nu)).R;
-%    TB1op = Twop;
-%    TB2op = Tuop;
     Top = Thatop;
     tmp = tmp.Q2;
     Top.P = eye(no);    Top.Q2 = -tmp(1:np,1:no);

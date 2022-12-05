@@ -1,8 +1,8 @@
 % example library batch and terms comparison test
 close all; clc; clear;
 pvar s theta;
-examp_list = [1:30];
-
+examp_list = [1:29];
+logvals = [];
 for i=examp_list
 PDEb = examples_PDE_library_PIETOOLS(i,'batch');
 PDEt = examples_PDE_library_PIETOOLS(i,'terms');
