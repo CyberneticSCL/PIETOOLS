@@ -27,7 +27,7 @@ loc = mfilename('fullpath');
 root = fileparts(loc);
 
 % Initialize variables
-pvar s theta s1 s2 theta1 theta2
+pvar t s theta s1 s2 theta1 theta2
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;')
@@ -51,7 +51,7 @@ PDE_b.n0 = 0;   PDE_b.n1 = ne;   PDE_b.n2 = 0;   PDE_b.nw = ne;   PDE_b.nz = ne;
 PDE_b.dom = [0,1];
 
 PDE_b.A1 = -1*on;
-PDE_b.B21 = on;   PDE_b.B21 = on;
+PDE_b.B21 = on;   
 PDE_b.Ca1 = 1;
 
 PDE_b.B = [on ze];
@@ -78,7 +78,22 @@ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 % BCs: 0 = x(0)
 PDE_t.BC{1}.term{1}.x = 1;
 PDE_t.BC{1}.term{1}.loc = 0;
-
+% command-line parser
+% x=state('pde');
+% w=state('in');
+% z=state('out');
+% % create the system
+% PDE_t = sys();
+% % add the dynamic equations
+% eq_dyn=diff(x,t,1)==-diff(x,s,1)+w;
+% % add output equation
+% eq_out=z==int(x,s,[0,1]);                      
+% PDE_t = addequation(PDE_t,[eq_dyn;eq_out]);
+% % set the control signal
+% %pde= setControl(pde,[u]);
+% % add the boundary conditions
+% bc = subs(x,s,0)==0;
+% PDE_t = addequation(PDE_t,bc);
 
 if GUI
     %%% Associated GUI save file

@@ -371,7 +371,7 @@ switch index
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
     case 28
-%   PDE: x_{t} = x_{ss} + (s-s^2)w(t)                      | ne = 1 (state size)   (Answer: 1.0045) 
+%   PDE: x_{t} = x_{ss} + w(t)                      | ne = 1 (state size)   (Answer: 1.0045) 
 %   BCs: x(s=0) = 0,        x(s=1) = 0              |
 %   Out: z(t) = int(x(t,s),s,0,1) + w(t)            |
 %        y(t) = x_{s}(s=1)                          |
