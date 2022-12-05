@@ -1,9 +1,9 @@
 close all; clc; clear;
-pvar s theta; 
+pvar s theta;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS_PDE.m     PIETOOLS 2021b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Getting Started: 
+% Getting Started:
 %
 % Step 1: Declare a PDE model (Batch Format, Example file or GUI)
 % Step 2: Convert to a PIE
@@ -40,8 +40,8 @@ PDEb = initialize_PIETOOLS_PDE(PDEb);
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PIE=convert(PDE,'pie');
- PIEb = convert_PIETOOLS_PDE(PDEb);
- %%
+PIEb = convert_PIETOOLS_PDE(PDEb);
+%%
 PDEt = initialize_PIETOOLS_PDE(PDEt);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
@@ -83,18 +83,18 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %% Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)
 % Only works for PDE examples in batch input format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if PIEt.dim ~=2  
+if PIEt.dim ~=2
     opts.tf=10;
     [solution, grid] = PIESIM(PDEt,opts);
-    
+
     % Note: you can also specify time stepping options and user inputs, such as initial
     % conditions and non-zero boundary inputs, via
-    % solution = executive_PIESIM(PDE, opts), 
-    % solution = executive_PIESIM(PDE, [], uinput), or 
+    % solution = executive_PIESIM(PDE, opts),
+    % solution = executive_PIESIM(PDE, [], uinput), or
     % solution = executive_PIESIM(PDE, opts, uinput), please consult the user's manual
-    
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Step 4b: Plotting solution 
+    % Step 4b: Plotting solution
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if any(ismember(fieldnames(solution),'timedep'))
         t = solution.timedep.dtime;
