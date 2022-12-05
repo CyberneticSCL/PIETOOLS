@@ -320,7 +320,7 @@ PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;
 PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
 PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
 PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
-PIE_out=PIE;
+PIE_out=pie_struct(PIE);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % System Definition:

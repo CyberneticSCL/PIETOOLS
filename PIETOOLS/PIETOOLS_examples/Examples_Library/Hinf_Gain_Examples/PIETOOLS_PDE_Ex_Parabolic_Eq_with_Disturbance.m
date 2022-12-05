@@ -57,7 +57,7 @@ PDE_b.n0 = 0;   PDE_b.n1 = 0;   PDE_b.n2 = 1;   PDE_b.nw = 1;   PDE_b.nz = 1;
 PDE_b.dom = [0,1];
 
 PDE_b.A0 = A0;  PDE_b.A1 = A1;   PDE_b.A2 = A2;
-PDE_b.B21 = s;
+PDE_b.B21 = 1;
 PDE_b.C10 = [0,1,0,0];
 
 PDE_b.B = [1 0 0 0;

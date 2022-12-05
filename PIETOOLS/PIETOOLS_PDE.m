@@ -61,13 +61,13 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %  PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
-%[prog,P] = lpisolve(PIE,settings,'stability');
+[prog,P] = lpisolve(PIEt,settings,'hinf-observer');
 %[prog, P] = PIETOOLS_stability(PIE,settings);
 %[prog, P] = PIETOOLS_stability_dual(PIE,settings);
 %[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
 %  [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
-[prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIEb,settings);
+% [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIEb,settings);
 %[prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);
 %[prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);
 

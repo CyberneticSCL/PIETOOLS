@@ -53,7 +53,7 @@ PDE_b.dom = [0,1];
 
 PDE_b.A1 = on;
 PDE_b.Ca1 = on;   PDE_b.Ca2 = on;
-PDE_b.B21 = on.*(s-s^2);   PDE_b.D11 = on;
+PDE_b.B21 = on;   PDE_b.D11 = on;
 
 PDE_b.B = [ze on];
 
@@ -76,8 +76,9 @@ PDE_t.x{1}.term{2}.w = 1;
 PDE_t.z{1}.term{1}.x = 1;
 PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
-% Output: z = ... + (s-s^2)w
-PDE_t.z{1}.term{2}.w  = (s-s^2);
+% Output: z = ... + w
+PDE_t.z{1}.term{2}.w  = 1;
+PDE_t.z{1}.term{2}.C  = 1;
 
 % Output: y = int_{0}^{1} x(s) ds
 PDE_t.y{1}.term{1}.x = 1;
