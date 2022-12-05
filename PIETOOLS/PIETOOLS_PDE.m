@@ -48,7 +48,6 @@ PDEt = initialize_PIETOOLS_PDE(PDEt);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PIE=convert(PDE,'pie');
  PIEt = convert_PIETOOLS_PDE(PDEt);
- %compare_PIEs(PIEt,PIEb)
  %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 3: Analysis or Control script
@@ -60,6 +59,7 @@ settings = lpisettings('light');
 %settings = settings_PIETOOLS_light();
 %settings =settings_PIETOOLS_heavy();
  %settings=settings_PIETOOLS_veryheavy();
+%settings = settings_PIETOOLS_heavy;
 settings.sos_opts.solver='sedumi';    % Solver to use
 settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
