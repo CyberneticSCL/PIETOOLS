@@ -269,9 +269,9 @@ elseif (opts.type=='DDE')
 
     %  This is not checked. Need to change later
     %------------------------
-    
+    % assuming only finite-dimensional outputs
     psize.nz=PIE.C1.dim(1,1);
-    psize.ny=0;
+    psize.ny = sum(PIE.C2.dim(1,1));  
     %------------------------
 
     % Checking of the DDE inputs begins
@@ -353,7 +353,7 @@ elseif (opts.type=='PIE')
     %  This is not checked. Need to change later
     %------------------------
     psize.nz=PIE.C1.dim(1,1);
-    psize.ny=0;
+    psize.ny = sum(PIE.C2.dim(1,1));  
     %------------------------
 
     psize.N=opts.N;

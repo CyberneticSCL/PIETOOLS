@@ -4,11 +4,16 @@
 % This document illustrates, with a simple example, how PIETOOLS can be used to simulate systems
 % dynamics, analyse stability and design optimal controllers for the
 % system.
-%  The example is a pure transport equation on 1D: 
-%  PDE                  x_{t}  = lam*x + x_{ss} + u(t) +w(t)
-%  With BCs             x(s=0) = 0
-%                       x(s=1) = 0
-% and regulated output  z      = int_0^1 x ds 
+%  The example is the damped wave equation with dynamic boundary input:
+%                xi_{tt}=c xi_{ss}-b xi_{t}+sw(t)
+%  using the state phi=(X1,X2) such that X1=xi_{s} and X2=xi_{t}:
+%  ODE                 x_{t}  = -x + u(t) 
+%  PDEs:              X1_{t} =  X2_{s}
+%                          X2_{t} = cX1_{s}-bX2_{t}+sw(t)
+%  With BCs         X1(s=0) = 0
+%                          X2(s=1) = x = exp(-t)x(t=0)+ int_0^t exp(-t+tau) u(tau) d tau
+%                  
+% and regulated output  z= int_0^1 xi_{s} ds = xi(s=1)-xi(s=0). 
 %%
 clear all; clc;close all;
 pvar t s;syms st sx;

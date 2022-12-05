@@ -17,7 +17,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Observed_Output(GUI,params
 % % Example Heat Equation:
 % % PDE             x_{t} = x_{ss} + w(t)
 % % With BCs        x(s=0) = 0
-% %                 x(s=1) = 0
+% %                        x(s=1) = 0
 % % And Outputs     z(t) = int(x(t,s),s,0,1) + w(t)
 % %                 y(t) = x_{s}(s=1)
 % %
