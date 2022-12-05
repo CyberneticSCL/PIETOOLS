@@ -52,8 +52,8 @@ PDE_b.nw = ne;   PDE_b.ny = ne;   PDE_b.nz = ne;   PDE_b.nx = 0;
 PDE_b.n0 = 0;    PDE_b.n1 = 0;    PDE_b.n2 = ne;
 PDE_b.dom = [0,1];
 
-PDE_b.A2 = on; PDE_b.Ca1 = on;
-PDE_b.C20 = [ze ze ze on];  PDE_b.B21 = on;   D11 = on;
+PDE_b.A2 = on; PDE_b.Ca1 = on; PDE_b.B21 = on*(s-s^2);   PDE_b.D11 = on;
+PDE_b.C20 = [ze ze ze on];  
 
 PDE_b.B = [on ze ze ze;
            ze on ze ze];

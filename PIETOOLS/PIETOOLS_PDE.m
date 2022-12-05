@@ -48,18 +48,15 @@ PDEt = initialize_PIETOOLS_PDE(PDEt);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PIE=convert(PDE,'pie');
  PIEt = convert_PIETOOLS_PDE(PDEt);
- %compare_PIEs(PIEt,PIEb)
+ compare_PIEs(PIEt,PIEb)
  %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 3: Analysis or Control script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % --- Specify settings ---
-%settings = settings_PIETOOLS_light;
-settings = lpisettings('light');
-%settings_PIETOOLS_heavy;
- %settings_PIETOOLS_light;
-%settings_PIETOOLS_stripped;
+%settings = settings_PIETOOLS_heavy;
+settings = lpisettings('heavy');
 settings.sos_opts.solver='sedumi';    % Solver to use
 settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
@@ -73,9 +70,9 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %[prog, P] = PIETOOLS_stability(PIE,settings);
 %[prog, P] = PIETOOLS_stability_dual(PIE,settings);
 %[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
-%[prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
- [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
-% [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
+% [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
+%  [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
+[prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIEb,settings);
 %[prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);
 %[prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);
 
