@@ -67,7 +67,7 @@ if isa(PDE,'pde_struct') || (isa(PDE,'struct') && isfield(PDE,'x'))
 elseif isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
     PIE_out = convert_PIETOOLS_PDE_batch(PDE);
 elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')
-    PIE_out = convert_PIETOOLS_PDE_terms_internal(PDE);
+    PIE_out = convert_PIETOOLS_PDE_terms_legacy(PDE);
 else
     error('The input PDE is not appropriately specified. Please define your PDE as a "pde_struct" class object, and consult the manual and examples for illustration of the structure.')
 end
