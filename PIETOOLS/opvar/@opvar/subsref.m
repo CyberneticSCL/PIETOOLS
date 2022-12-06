@@ -75,6 +75,8 @@ switch s(1).type
             elseif i<(nr1_old+nr2_old+1)
                 nr2_new=nr2_new+1;
                 indr2=[indr2 i-nr1_old];
+            elseif nr1_old==0 && nr2_old==0
+                indr1 = []; indr2 = [];
             else
                 error('index exceeds the number of rows in the original opvar')
             end
@@ -86,6 +88,8 @@ switch s(1).type
             elseif i<(nc1_old+nc2_old+1)
                 nc2_new=nc2_new+1;
                 indc2=[indc2 i-nc1_old];
+            elseif nc1_old==0 && nc2_old==0
+                indc1 = []; indc2 = [];
             else
                 error('index exceeds the number of columns in the original opvar')
             end
