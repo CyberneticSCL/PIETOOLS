@@ -1,4 +1,4 @@
-function [params,out] = convert(obj,convertTo)
+function [out,params] = convert(obj,convertTo)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sys-class method that converts obj from one type to another (typically
 % PIE)
