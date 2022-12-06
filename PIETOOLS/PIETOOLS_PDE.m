@@ -35,12 +35,12 @@ pvar s theta;
 % eq_dyn=diff(x,t)==A0*x+A1*diff(x,s);
 % eq_bc=[subs(x2,s,0)==0;subs(x1,s,1)==0];
 % PDE=addequation(PDE,[eq_dyn;eq_bc]);
-PDE= initialize_PIETOOLS_PDE(PDEb);
+PDE= initialize_PIETOOLS_PDE(PDE);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PIE=convert(PDE,'pie');
-PIE = convert_PIETOOLS_PDE(PDEb);
+PIE = convert_PIETOOLS_PDE(PDE);
 %PIEt = convert_PIETOOLS_PDE(PDEt);
 %PIEt==PIEb
 %%
