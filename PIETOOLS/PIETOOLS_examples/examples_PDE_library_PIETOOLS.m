@@ -399,7 +399,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Advection Equation
 %--------------------------------------------------------------------------
-    case 31
+    case 30
 %   PDE: x_{t} = c1*x_{s1} + c2*x_{s2}              | c1 = 1; c2 = 1;
 %   BCs: x(s1=0) = 0,   x(s2=0) = 0;                |   ne = 1 (state size)
     if BATCH~=0
@@ -411,7 +411,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-    case 32
+    case 31
 %   PDE: x_{t} = lam*x + c1*x_{(2,0)}               | lam = 19;             (stable for lam <= 2*pi^2) 
 %                           + c2*x_{(0,2)}          | c1 = 1;   c2 = 1;             Holmes, 1994 [14] Eq. (14)   
 %   BCs: x(s1=0) = 0,   x(s2=0) = 0,                | ne = 1 (state size)
@@ -423,7 +423,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params);
 %--------------------------------------------------------------------------
-    case 33
+    case 32
 %   PDE: x_{t} = C*(x_{(2,0} + x_{(0,2)})           | C = 1;
 %                 - b1*x_{(1,0)} - b2*x_{(0,1)}     | b1 = 0.5; b2 = 2;             Holmes, 1994 [14] Eq. (2)
 %   BCs: x(s1=0) = 0,   x(s2=0) = 0,                | ne = 1 (state size)
@@ -435,7 +435,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Reaction_Diffusion_Eq(GUI,params);
 %--------------------------------------------------------------------------
-    case 34
+    case 33
 %   PDE: x_{t} = -1/(2*lam) * x_{tt}                | lam = 1;
 %                 +(C^2/2*lam)*(x_{(2,0}            | C = 1;                        Holmes, 1994 [14] Eq. (3)
 %                                 + x_{(0,2)})      | ne = 1 (state size) 
@@ -457,7 +457,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params);
 %--------------------------------------------------------------------------
-    case 35
+    case 34
 %   PDE: x_{t} = a*x                                | a = 4.0;              (stable for a <= 0.5*pi^2) 
 %                 + b1*x_{(1,0)} + b2*x_{(0,1)}     | b1 = 0;   b2 = 0;             Demetriou, 2019 [17]   
 %                  + c1*x_{(2,0)} + c2*x_{(0,2)}    | c1 = 1;   c2 = 1;
@@ -470,7 +470,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params);
 %--------------------------------------------------------------------------
-    case 36
+    case 35
 %   PDE: x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)}       | c1 = 1;   c2 = 1;
 %   BCs: x(s1=0) = 0;       x(s2=0) = 0;            | ne = 1; (state size)
 %        x(s1=1) = 0;       x(s2=1) = 0;            |
@@ -489,7 +489,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params);
 %--------------------------------------------------------------------------
-    case 37
+    case 36
 %   PDE: p_{t}  = -s2*p_{s1} - v1_{s1} - v2_{s2}    | M = 0.1;
 %        v1_{t} = -s2*v1_{s1} -v2 -(1/M^2)*p_{s1}   | lam = 1; nu = 1;              Antonelli, 2021 [17]
 %                  +nu*(v1_{s1s1} + v1_{s2s2})      |
@@ -507,7 +507,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params);
 %--------------------------------------------------------------------------
-    case 38
+    case 37
 %   ODE: x1_{t} = (A+BK)*x1 + B*x2(s1=0,s2=0)       | A = I; B = I;
 %   PDE: x2_{t} = c1*x_{(2,0)} + c2*x_{(0,2)}       | K = -2*I;
 %   BCs: x2_{(1,0)}(s1=0) = 0;  x2(s1=1) = 0;       |
@@ -519,7 +519,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE(GUI,params);
 %--------------------------------------------------------------------------
-    case 39
+    case 38
 %   PDE: x_{t} = x_{s1s1} + lam * x;    s1 in [0,1] | tau = 1;
 %   BCs: x(t,s1=0) = 0;                             | lam = 1;                      Kristic, 2009 [18] 
 %        x(t,s1=1) = u(t-tau);                      |
@@ -539,7 +539,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params);
 %--------------------------------------------------------------------------
-    case 40
+    case 39
 %   ODE: X_{t} = A*X(t) + A1*X(t-tau) + B*x(t,s1=0) | tau = 1;
 %   PDE: x_{t} = x_{s1s1} + a*x + a2*x(t-tau);      | A = -1;    A1 = 0.5;          Kang, 2017 [19] 
 %   BCs: x_{s1}(t,s1=0) = 0;                        | B = -1;
@@ -570,7 +570,7 @@ switch index
     end    
     [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params);
 %--------------------------------------------------------------------------
-    case 41
+    case 40
 %   PDE:    x_{t}  = c*x_{s1s1}(t,s1) + a0*x(t,s1)  | tau = 1;
 %                       - a1*x(t-tau,s1);           | c = 1;
 %   BCs:    x(t,s1=0) = 0;                          | a0 = 1.9;
@@ -595,7 +595,7 @@ switch index
     end    
     [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params);
 %--------------------------------------------------------------------------
-    case 42 
+    case 41 
 %   PDE:    x_{tt}  = x_{s1s1}(t,s1);   s1 in [0,1] | tau = 1;  
 %   BCs:    x(t,0) = 0;                             | k = 1;
 %           x_{s1}(t,1) = -k*(1-mu)*x_{t}(t,1)      | mu = 0.4;
@@ -632,7 +632,7 @@ switch index
 %==========================================================================
 %       Additional Examples (Undocumented)
 %==========================================================================
-case index==100
+case 100
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Additional examples (undocumented) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
