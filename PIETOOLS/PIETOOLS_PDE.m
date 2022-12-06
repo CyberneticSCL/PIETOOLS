@@ -23,11 +23,12 @@ pvar s theta;
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
   PDE = examples_PDE_library_PIETOOLS;
-%PDEb = examples_PDE_library_PIETOOLS(1,'batch');
-%PDEt = examples_PDE_library_PIETOOLS(1,'terms');
+%PDE = examples_PDE_library_PIETOOLS(1,'batch');
+%PDE = examples_PDE_library_PIETOOLS(1,'terms');
 
-%% --- Manual Declaration Option --- To use this example, comment lines 38
-% and 44 and uncomment line 43
+%% --- Manual Declaration Option --- 
+% To use this example, comment lines 43
+% and 45 and uncomment line 44
 % pvar s t
 %   A1=[0 1; 2 0]; A0=[0 0; 0 -2];
 % PDE =sys();
@@ -35,10 +36,11 @@ pvar s theta;
 % eq_dyn=diff(x,t)==A0*x+A1*diff(x,s);
 % eq_bc=[subs(x2,s,0)==0;subs(x1,s,1)==0];
 % PDE=addequation(PDE,[eq_dyn;eq_bc]);
-PDE= initialize_PIETOOLS_PDE(PDE);
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+PDE= initialize_PIETOOLS_PDE(PDE);
 %PIE=convert(PDE,'pie');
 PIE = convert_PIETOOLS_PDE(PDE);
 %PIEt = convert_PIETOOLS_PDE(PDEt);
