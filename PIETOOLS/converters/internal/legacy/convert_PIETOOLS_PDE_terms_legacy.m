@@ -298,7 +298,7 @@ if ~singularET
     Tuop.Q2 = tmp(1:np,(no+nw+1):(no+nw+nu)).Q2;Tuop.R = tmp(1:np,(no+nw+1):(no+nw+nu)).R;
     Top = Thatop;
     tmp = tmp.Q2;
-    Top.P = eye(no);    Top.Q2 = -tmp(1:np,1:no);
+    Top.P = eye(no);    Top.Q2 = tmp(1:np,1:no);
 else
 % do nothing
 % fill the singular case formulae
