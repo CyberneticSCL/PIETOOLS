@@ -74,7 +74,7 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %% Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)
 % Only works for PDE examples in batch input format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if PIEt.dim ~=2
+if PIE.dim ~=2
     opts.tf=10;
     [solution, grid] = PIESIM(PDEt,opts);
 
