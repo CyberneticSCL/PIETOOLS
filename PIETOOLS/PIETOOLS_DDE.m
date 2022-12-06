@@ -26,7 +26,8 @@
 close all; clear all; %path(pathdef); 
 clc; pvar s theta;
 stability=0; stability_dual=0; Hinf_gain=0; Hinf_gain_dual=0; Hinf_control=0; Hinf_estimator=0;
-sosineq_on=1; DDE_minimal_rep=1;
+DDE_minimal_rep=1;
+% sosineq_on=1; 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % BEGIN: USER INPUT: Define the DDE
