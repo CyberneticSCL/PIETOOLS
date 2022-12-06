@@ -397,21 +397,21 @@ for i=1:length(BC)
         rows = BCpartition(i):BCpartition(i+1)-1;
         if isfield(tmpterm,'x')&& ismember(tmpterm.x,odeID) % add to Ebv and add to v signal Cv
             vrows = vpartition(k):vpartition(k+1)-1;
-            PDE_out.BC.Ebv(rows,vrows) = tmpterm.C; % columns are same as vrows
+            PDE_out.BC.Ebv(rows,vrows) = -tmpterm.C; % columns are same as vrows
             vcols = find(tmpterm.x==odetab(:,1));
             vcols = xpartition(vcols):xpartition(vcols+1)-1;
             PDE_out.ODE.Cv(vrows,vcols) = eye(length(vrows));
             k=k+1;
         elseif isfield(tmpterm,'w') % add to v signal Dvw and Ebv
             vrows = vpartition(k):vpartition(k+1)-1;
-            PDE_out.BC.Ebv(rows,vrows) = tmpterm.C; % columns are same as vrows
+            PDE_out.BC.Ebv(rows,vrows) = -tmpterm.C; % columns are same as vrows
             vcols = find(tmpterm.w==PDE.w_tab(:,1));
             vcols = wpartition(vcols):wpartition(vcols+1)-1;
             PDE_out.ODE.Dvw(vrows,vcols) = eye(length(vrows));
             k=k+1;
         elseif isfield(tmpterm,'u') % add to v signal Dvu and Ebv
             vrows = vpartition(k):vpartition(k+1)-1;
-            PDE_out.BC.Ebv(rows,vrows) = tmpterm.C; % columns are same as vrows
+            PDE_out.BC.Ebv(rows,vrows) = -tmpterm.C; % columns are same as vrows
             vcols = find(tmpterm.u==PDE.u_tab(:,1));
             vcols = upartition(vcols):upartition(vcols+1)-1;
             PDE_out.ODE.Dvu(vrows,vcols) = eye(length(vrows));
@@ -428,7 +428,7 @@ for i=1:length(BC)
                 end
                 der = tmpterm.D; % derivative order of current term
                 loc=sum(N:-1:N-der+1) + rstate + 1;
-                PDE_out.BC.Ebp{loc}.coeff(rows,rcols) = tmpterm.C;
+                PDE_out.BC.Ebp{loc}.coeff(rows,rcols) = -tmpterm.C;
             else % boundary value, add to Ebb
                 if ~isfield(tmpterm,'D')
                     tmpterm.D = 0;
@@ -445,7 +445,7 @@ end
 
 
 % finally, use old converter to get the PIE
-PIE = convert_PIETOOLS_PDE_terms_legacy(PDE_out);
+PIE = convert_PIETOOLS_PDE_terms_internal(PDE_out);
 if strcmp(PIE,'Singular B_T: A PIE representation of this PDE may not exist')
     disp('Conversion to PIE unsuccessful. B_T is singular.')
     return;
