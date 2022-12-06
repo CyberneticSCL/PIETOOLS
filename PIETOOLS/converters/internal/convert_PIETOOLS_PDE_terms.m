@@ -445,7 +445,7 @@ end
 
 
 % finally, use old converter to get the PIE
-PIE = convert_PIETOOLS_PDE_terms_internal(PDE_out);
+PIE = convert_PIETOOLS_PDE_terms_legacy(PDE_out);
 if strcmp(PIE,'Singular B_T: A PIE representation of this PDE may not exist')
     disp('Conversion to PIE unsuccessful. B_T is singular.')
     return;
