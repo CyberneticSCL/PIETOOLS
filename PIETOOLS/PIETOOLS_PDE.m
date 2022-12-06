@@ -76,7 +76,7 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if PIE.dim ~=2
     opts.tf=10;
-    [solution, grid] = PIESIM(PDEt,opts);
+    [solution, grid] = PIESIM(PDE,opts);
 
     % Note: you can also specify time stepping options and user inputs, such as initial
     % conditions and non-zero boundary inputs, via
