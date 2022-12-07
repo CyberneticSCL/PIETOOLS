@@ -82,7 +82,8 @@ ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 %% Stability Analysis of the system by solving an LPI.
 % compute the associated PIE representation, and extract the operators.
-PIE = convert(odepde,'pie');   
+PIE = convert(odepde,'pie'); 
+PIE = PIE.params;   
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
 B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
