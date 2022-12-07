@@ -100,6 +100,21 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 % Process the user inputs
 [index,BATCH,TERM,GUI,params] = process_inputs(varargin,nargin);
 
+if index>=31 && index<=42
+    userinp = input(['\n Examples (31 through 40) correspond to 2D PDEs that take significant computational time and memory.\n ' ...
+        'Do you want to continue? (y/n) \n ---> '],'s');
+    if strcmp(userinp,'n')
+        varargout{1} = 'stop';
+        return;
+    elseif strcmp(userinp,'y')
+        % do nothing, continue.
+    else
+        error('Unrecognized input. Example was not loaded.')
+    end
+
+end
+
+
 fprintf([' --- Extracting ODE-PDE example ', num2str(index),' ---\n']);
 switch index
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

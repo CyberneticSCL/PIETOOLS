@@ -22,8 +22,8 @@ pvar s theta;
 % PIETOOLS_PDE_GUI
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
-  PDE = examples_PDE_library_PIETOOLS;
-%PDE = examples_PDE_library_PIETOOLS(1,'batch');
+% PDE = examples_PDE_library_PIETOOLS;
+PDE = examples_PDE_library_PIETOOLS(32,'batch');
 %PDE = examples_PDE_library_PIETOOLS(1,'terms');
 
 %% --- Manual Declaration Option --- 
@@ -40,11 +40,11 @@ pvar s theta;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-PDE= initialize_PIETOOLS_PDE(PDE);
+% PDE= initialize_PIETOOLS_PDE(PDE);
 %PIE=convert(PDE,'pie');
 PIE = convert_PIETOOLS_PDE(PDE);
-%PIEt = convert_PIETOOLS_PDE(PDEt);
-%PIEt==PIEb
+%PIE = convert_PIETOOLS_PDE(PDE);
+
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 3: Analysis or Control script
@@ -52,8 +52,8 @@ PIE = convert_PIETOOLS_PDE(PDE);
 
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_heavy;
-settings = lpisettings('heavy');
-settings.sos_opts.solver='sedumi';    % Solver to use
+settings = lpisettings('veryheavy');
+settings.sos_opts.solver='mosek';    % Solver to use
 settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -63,14 +63,14 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 
 % % --- Manually run desired executives ---
 % [prog,P] = lpisolve(PIE,settings,'hinf-observer');
-%[prog, P] = PIETOOLS_stability(PIE,settings);
-%[prog, P] = PIETOOLS_stability_dual(PIE,settings);
-%[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
-%[prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
-%[prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
-%[prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
-%[prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);
-%[prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);
+% [prog, P] = PIETOOLS_stability(PIE,settings);
+% [prog, P] = PIETOOLS_stability_dual(PIE,settings);
+[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
+% [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
+% [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
+% [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
+% [prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);
+% [prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)

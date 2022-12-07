@@ -156,7 +156,7 @@ syms st sx real
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
 opts.tf = 10;        % Simulate up to t = 1;
-opts.dt = 1e-3;     % Use time step of 10^-3
+opts.dt = 1e-2;     % Use time step of 10^-3
 opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
 ndiff = [0,0,1];    % The PDE state involves 1 second order differentiable state variables
 
