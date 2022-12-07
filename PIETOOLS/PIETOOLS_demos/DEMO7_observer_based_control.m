@@ -44,7 +44,7 @@
 %%
 clc; clear; close all;
 echo on
-%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%% Start Code %%%%%%%%%%%%%%%%%%
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Declare the PDE, and convert it to a PIE.
 % Declare the PDE using command line parser
@@ -72,80 +72,12 @@ C2 = PIE.C2;    D21 = PIE.D21;  D22 = PIE.D22;
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Compute an optimal observer operator L for the PIE.
+% % % Compute an optimal observer gains and optimal controller gains for the PIE.
 
-use_executive = true;  % <-- set to true to use predefined executive
-if use_executive
-    % % Use the predefined Hinf estimator executive function.
-    settings = lpisettings('heavy');
-    [prog_k, Kval, gam_co_val] = PIETOOLS_Hinf_control(PIE, settings);
-    [prog_l, Lval, gam_ob_val] = PIETOOLS_Hinf_estimator(PIE, settings);
-else
-    % % Manually construct and solve the LPI program for optimal
-    % % estimator synthesis.
-
-    % Initialize the LPI program
-    vars = PIE.vars(:);
-    prog = sosprogram(vars);
-
-    % Declare the decision variable gamma
-    dpvar gam;
-    prog = sosdecvar(prog, gam);
-
-    % Declare a positive semidefinite PI operator decision variable P>=0
-    Pdim = T.dim(:,1);
-    Pdom = PIE.dom;
-    Pdeg = {2,[1,1,2],[1,1,2]};
-    opts.sep = 0;
-    [prog,P] = poslpivar(prog,Pdim,Pdom,Pdeg,opts);
-    eppos = 1e-3;
-    P.R.R0 = P.R.R0 + eppos*eye(size(P));
-
-    % Declare the indefinite PI operator decision variable Z
-    Zdim = B2.dim(:,[2,1]);
-    Zdom = PIE.dom;
-    Zdeg = [4,0,0];
-    [prog,Z_con] = lpivar(prog,Zdim,Zdom,Zdeg);
-    
-    % Declare the LPI constraint Q_con<=0 for controller.
-    nw = size(B1,2);    nz = size(C1,1);
-    Q_con = [-gam*eye(nz)    D11          (C1*P+D12*Z_con)*(T');
-        D11'           -gam*eye(nw)  B1';
-        T*(C1*P+D12*Z_con)' B1           (A*P+B2*Z_con)*(T')+T*(A*P+B2*Z_con)'];
-    prog = lpi_ineq(prog,-Q_con);
-
-    Zdim = C2.dim(:,[2,1]);
-    Zdom = PIE.dom;
-    Zdeg = [4,0,0];
-    [prog,Z_obs] = lpivar(prog,Zdim,Zdom,Zdeg);
-
-    % Declare the LPI constraint Q_obs<=0 for observer.
-    nw = size(B1,2);    nz = size(C1,1);
-    Q_obs = [-gam*eye(nw),     -D11',        -(P*B1+Z_obs*D21)'*T;
-         -D11,             -gam*eye(nz), C1;
-         -T'*(P*B1+Z_obs*D21), C1',          (P*A+Z_obs*C2)'*T+T'*(P*A+Z_obs*C2)];
-    prog = lpi_ineq(prog,-Q_obs);
-
-
-    % Set the objective function: minimize gam
-    prog = sossetobj(prog, gam);
-
-    % Solve the optimization program
-    opts.solver = 'sedumi';
-    opts.simplify = true;
-    prog_sol = sossolve(prog,opts);
-
-    % Extract the solved value of gam and the operators P and Z
-    gam_val = sosgetsol(prog_sol,gam);
-    Pval = getsol_lpivar(prog_sol,P);
-    Zval_con = getsol_lpivar(prog_sol,Z_con);
-    Zval_obs = getsol_lpivar(prog_sol,Z_obs);
-
-    % Build the optimal observer operator K.
-    Kval = getController(Pval,Zval_con,1e-3);
-    Lval = getObserver(Pval,Zval_obs,1e-3);
-end
-
+% % Use the predefined Hinf estimator executive function.
+settings = lpisettings('heavy');
+[prog_k, Kval, gam_co_val] = PIETOOLS_Hinf_control(PIE, settings);
+[prog_l, Lval, gam_ob_val] = PIETOOLS_Hinf_estimator(PIE, settings);
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 
@@ -174,8 +106,8 @@ syms st sx real
 % Set options for the discretization and simulation:
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
-opts.tf = 10;        % Simulate up to t = 1;
-opts.dt = 1e-3;     % Use time step of 10^-3
+opts.tf = 10;        % Simulate up to t = 10;
+opts.dt = 1e-2;     % Use time step of 10^-2
 opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
 ndiff = [0,0,1];    % The PDE state involves 1 second order differentiable state variables
 
@@ -280,5 +212,5 @@ lgd1.Location = 'southeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');
 title('Control effort $u(t)$','Interpreter','latex','FontSize',15);
 %%
-%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%% End Code %%%%%%%%%%%%%%%%%%
 echo off

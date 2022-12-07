@@ -39,7 +39,7 @@
 %%
 clc; clear; close all;
 echo on
-%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%% Start Code %%%%%%%%%%%%%%%%%%
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Declare the PDE, and convert it to a PIE.
 % Declare the PDE using command line parser
@@ -155,8 +155,8 @@ syms st sx real
 % Set options for the discretization and simulation:
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
-opts.tf = 10;        % Simulate up to t = 1;
-opts.dt = 1e-2;     % Use time step of 10^-3
+opts.tf = 10;        % Simulate up to t = 10;
+opts.dt = 1e-2;     % Use time step of 10^-2
 opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
 ndiff = [0,0,1];    % The PDE state involves 1 second order differentiable state variables
 
@@ -322,5 +322,5 @@ lgd1.Location = 'southeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');
 title('Control effort $u(t)$','Interpreter','latex','FontSize',15);
 %%
-%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%% End Code %%%%%%%%%%%%%%%%%%
 echo off
