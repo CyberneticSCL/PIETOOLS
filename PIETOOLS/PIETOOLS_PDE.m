@@ -22,8 +22,8 @@ pvar s theta;
 % PIETOOLS_PDE_GUI
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
-% PDE = examples_PDE_library_PIETOOLS;
-PDE = examples_PDE_library_PIETOOLS(15,'batch');
+ PDE = examples_PDE_library_PIETOOLS;
+%PDE = examples_PDE_library_PIETOOLS(15,'batch');
 % PDE = examples_PDE_library_PIETOOLS(15,'terms');
 
 %% --- Manual Declaration Option --- 
@@ -52,7 +52,7 @@ PIE = convert_PIETOOLS_PDE(PDE);
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_heavy;
 settings = lpisettings('veryheavy');
-settings.sos_opts.solver='mosek';    % Solver to use
+settings.sos_opts.solver='sedumi';    % Solver to use
 settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -64,7 +64,7 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 % [prog,P] = lpisolve(PIE,settings,'hinf-observer');
 % [prog, P] = PIETOOLS_stability(PIE,settings);
 % [prog, P] = PIETOOLS_stability_dual(PIE,settings);
-[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
+%[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
 % [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
 % [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
