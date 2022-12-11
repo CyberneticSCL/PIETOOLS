@@ -294,9 +294,9 @@ DDF.B2=[zn;eye(n)];
 
 % %There are 3 option for the number of outputs in this example:
 % %%%% 1) Full outputs, Full disturbances
-DDF.B1=[-eye(n);-Gam];
-DDF.C1=[eye(n) zn;zn zn];
-DDF.D12=[zn;.1*eye(n)];
+% DDF.B1=[-eye(n);-Gam];
+% DDF.C1=[eye(n) zn;zn zn];
+% DDF.D12=[zn;.1*eye(n)];
 
 % %%%%% 2) 2 outputs, Full disturbances
 % DDF.B1=[-eye(n);-Gam];
@@ -307,12 +307,12 @@ DDF.D12=[zn;.1*eye(n)];
 % % N=30 - extreme - gam = 5.37, IPM=35,620
 % 
 % % 3) Now for new DDF terms
-% DDF.Bv=[zn;Gam];
-% 
-% for i=1:nndelay
-%     DDF.Cr{i}=[zeros(1,n+i-1) 1 zeros(1,n-i)];
-% DDF.Cv{i}=zeros(n,1);DDF.Cv{i}(i,1)=1;
-% end
+DDF.Bv=[zn;Gam];
+
+for i=1:nndelay
+    DDF.Cr{i}=[zeros(1,n+i-1) 1 zeros(1,n-i)];
+DDF.Cv{i}=zeros(n,1);DDF.Cv{i}(i,1)=1;
+end
 %%%gam_guess; % min in [.32 .38]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

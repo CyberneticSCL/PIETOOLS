@@ -41,10 +41,10 @@ function [prog,Wo, gam]= PIETOOLS_H2_norm_o(PIE, settings,varargin)
     if PIE.dim==2
         % Call the 2D version of the executive.
         if nargin==2
-            output = PIETOOLS_H2_norm_2D(PIE,settings);
+            [prog,Wo, gam] = PIETOOLS_H2_norm_2D_o(PIE,settings);
         elseif nargin>2
             options=struct(varargin{:});
-            output = PIETOOLS_H2_norm_2D(PIE,settings,options);
+            [prog,Wo, gam]= PIETOOLS_H2_norm_2D_o(PIE,settings,options);
         else
             disp('Incorrect number of inputs, try again \n')
             return

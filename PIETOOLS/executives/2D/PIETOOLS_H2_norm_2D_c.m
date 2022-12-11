@@ -1,7 +1,5 @@
-function output = PIETOOLS_H2_norm_2D(PIE, settings,options)
+function [prog,Wc, gam] = PIETOOLS_H2_norm_2D_c(PIE, settings,options)
 % STEP 0: Extract LPI settings and necessary PI operators
-    
-
 %     if nargin==1
 %         settings = settings_PIETOOLS_light_2D;
 %         settings.sos_opts.simplify = 1;         % Use psimplify
@@ -73,7 +71,7 @@ function output = PIETOOLS_H2_norm_2D(PIE, settings,options)
     dom = PIE.dom;                  % Spatial domain of the PIE
     np_op = Aop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
     
-    fprintf('\n --- Searching for H2 norm bound using the observability gramian --- \n')
+    fprintf('\n --- Searching for H2 norm bound using the controlability gramian --- \n')
     % Declare an SOS program and initialize domain and opvar spaces
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -124,11 +122,11 @@ function output = PIETOOLS_H2_norm_2D(PIE, settings,options)
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % STEP 2: Using the observability gramian
+    % STEP 2: Using the controlability gramian
     
     disp('- Constructing the Negativity Constraint...');
     
-    Dop =  (Aop'*Wop)*Top+Top'*(Wop*Aop)+C1op'*C1op;
+    Dop =  (Aop*Wop)*Top'+Top*(Wop*Aop')+B1op*B1op';
         
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,7 +156,7 @@ function output = PIETOOLS_H2_norm_2D(PIE, settings,options)
         prog = lpi_eq_2d(prog,Deop+Dop); %Dop=-Deop
      end
     
-    tempObj = B1op'*Wop*B1op;
+    tempObj = C1op*Wop*C1op';
     tempMat = tempObj.R00;
     traceVal=0;
     for idx = 1:size(tempMat,1)
@@ -172,7 +170,7 @@ function output = PIETOOLS_H2_norm_2D(PIE, settings,options)
     disp('- Solving the LPI using the specified SDP solver...');
     prog = sossolve(prog,sos_opts); 
     
-     P = getsol_lpivar(prog,Wop);
+     Wc = getsol_lpivar(prog,Wop);
     % gam = double(sosgetsol(prog,gam));
     % end
      if nargin<=2 || ~isfield(options,'h2')
@@ -181,9 +179,9 @@ function output = PIETOOLS_H2_norm_2D(PIE, settings,options)
              disp(gam);
     end
     %% set outputs
-    output.h2=gam;
-    output.W=P;
-    output.prog=prog;
+%     output.h2=gam;
+%     output.W=P;
+%     output.prog=prog;
 
 end
 

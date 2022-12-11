@@ -208,7 +208,8 @@ elseif strcmp(opts.type,'PDE')
         if ~isfield(uinput,'w')
             disp('Warning: nw is greater than zero, but user-defiened w inputs are not provided. Defaulting PDE.nw to zero.');
             psize.nw=0;
-        elseif ~isempty(symvar(uinput.w)) && any(~ismember(symvar(uinput.w),{'st'}))
+        elseif ~isempty(symvar(uinput.w')) && any(~ismember(symvar(uinput.w'),{'st'}))
+            %elseif ~isempty(symvar(uinput.w)) && any(~ismember(symvar(uinput.w),{'st'}))
             error('Disturbance inputs must be symbolic expressions in st');
         else
             if (size(uinput.w,2)<psize.nw)

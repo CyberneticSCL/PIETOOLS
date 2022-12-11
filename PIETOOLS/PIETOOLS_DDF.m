@@ -189,9 +189,9 @@ sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality
 % Specify Solver
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Default Setttings: %%%%%%
-settings.sos_opts.solver='sedumi';
+%settings.sos_opts.solver='sedumi';
 % Other optional SDP solvers supported by PIETOOLS
-% settings.sos_opts.solver ='mosek';
+ settings.sos_opts.solver ='mosek';
 % settings.sos_opts.solver='sdpnalplus';
 % settings.sos_opts.solver='sdpt3';
 
