@@ -88,7 +88,7 @@ T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
 B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
 % call the executive with chosen settings
-settings = lpisettings('heavy');
+settings = lpisettings('light');
 [prog, P] = PIETOOLS_stability(PIE,settings);
 %% Hinf gain of the open-loop system.
 [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
