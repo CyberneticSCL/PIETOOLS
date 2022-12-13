@@ -1,0 +1,618 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DEMO4_stability_parameter_bisection</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-12-13"><meta name="DC.source" content="DEMO4_stability_parameter_bisection.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Set bisection limits for lam.</a></li><li><a href="#4">Initialize a PDE structure.</a></li><li><a href="#5">Initialize settings for solving the LPI</a></li><li><a href="#6">Perform bisection on the value of lam</a></li></ul></div><pre class="codeinput"><span class="comment">% DEMO4_stability_parameter_bisection.m</span>
+<span class="comment">% See Chapter 11.4 of the manual for a description.</span>
+<span class="comment">%</span>
+<span class="comment">% This document illustrates how PIETOOLS can be used to find the maximal</span>
+<span class="comment">% value of a parameter for which a PDE is stable, using bisection.</span>
+
+<span class="comment">% Reaction-diffusion PDE</span>
+<span class="comment">% \dot{x}(t,s) = lam*x(t,s) + x_{ss}(t,s);</span>
+<span class="comment">% x(t,0) = x(t,1) = 0;</span>
+<span class="comment">% Stable when lam &lt;= pi^2 = 9.8696 (Ahmadi 2015).</span>
+</pre><pre class="codeinput">clc; clear;
+echo <span class="string">on</span>
+<span class="comment">%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%</span>
+</pre><h2 id="3">Set bisection limits for lam.</h2><pre class="codeinput">lam_min = 0;        lam_max = 20;
+lam = 0.5*(lam_min + lam_max);
+n_iters = 8;
+</pre><h2 id="4">Initialize a PDE structure.</h2><pre class="codeinput">a = 0;  b = 1;
+pvar <span class="string">s</span>
+pde_struct <span class="string">PDE</span>;
+PDE.x{1}.vars = s;
+PDE.x{1}.dom = [a,b];
+
+<span class="comment">% Set the PDE \dot{x}(t,s) = lam*x(t,s) + x_{ss}(t,s);</span>
+PDE.x{1}.term{1}.C = lam;
+PDE.x{1}.term{2}.D = 2;
+
+<span class="comment">% Set the BCs x(t,a) = x(t,b) = 0;</span>
+PDE.BC{1}.term{1}.loc = a;
+PDE.BC{2}.term{1}.loc = b;
+</pre><h2 id="5">Initialize settings for solving the LPI</h2><pre class="codeinput">settings = lpisettings(<span class="string">'veryheavy'</span>);
+<span class="keyword">if</span> strcmp(settings.sos_opts.solver,<span class="string">'sedumi'</span>)
+    settings.sos_opts.params.fid = 0;   <span class="comment">% Suppress output in command window</span>
+<span class="keyword">end</span>
+</pre><h2 id="6">Perform bisection on the value of lam</h2><pre class="codeinput"><span class="keyword">for</span> iter = 1:n_iters
+    <span class="comment">% Update the value of lam in the PDE.</span>
+    PDE.x{1}.term{1}.C = lam;
+
+    <span class="comment">% Update the PIE.</span>
+    PIE = convert(PDE,<span class="string">'pie'</span>);
+
+    <span class="comment">% Re-run the stability test.</span>
+    fprintf([<span class="string">'\n'</span>,<span class="string">' --- Running the stability test with lam = '</span>,num2str(lam),<span class="string">' ---\n'</span>])
+    prog = PIETOOLS_stability(PIE,settings);
+
+    <span class="comment">% Check if the system is stable</span>
+    <span class="keyword">if</span> prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+        <span class="comment">% Stability cannot be verified, decreasing the value of lam...</span>
+        lam_max = lam;
+        lam = 0.5*(lam_min + lam_max);
+    <span class="keyword">else</span>
+        <span class="comment">% The system is stable, trying a larger value of lam...</span>
+        lam_min = lam;
+        lam = 0.5*(lam_min + lam_max);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+<span class="comment">%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%</span>
+echo <span class="string">off</span>
+
+fprintf([<span class="string">'\n Stability of the system could be verified for lam&lt;='</span>,num2str(lam_min),<span class="string">'.\n'</span>])
+fprintf([<span class="string">' An analytic bound on lam guaranteeing stability is pi^2='</span>,num2str(pi^2),<span class="string">'.\n'</span>]);
+
+<span class="comment">% @article{valmorbida2015stability,</span>
+<span class="comment">%   title={Stability analysis for a class of partial differential equations via semidefinite programming},</span>
+<span class="comment">%   author={Valmorbida, Giorgio and Ahmadi, Mohamadreza and Papachristodoulou, Antonis},</span>
+<span class="comment">%   journal={IEEE Transactions on Automatic Control},</span>
+<span class="comment">%   volume={61},</span>
+<span class="comment">%   number={6},</span>
+<span class="comment">%   pages={1649--1654},</span>
+<span class="comment">%   year={2015},</span>
+<span class="comment">%   publisher={IEEE}</span>
+<span class="comment">% }</span>
+</pre><pre class="codeoutput">%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+
+%%% Set bisection limits for lam.
+lam_min = 0;        lam_max = 20;
+lam = 0.5*(lam_min + lam_max);
+n_iters = 8;
+
+%%% Initialize a PDE structure.
+a = 0;  b = 1;
+pvar s
+pde_struct PDE;
+PDE.x{1}.vars = s;
+PDE.x{1}.dom = [a,b];
+
+% Set the PDE \dot{x}(t,s) = lam*x(t,s) + x_{ss}(t,s);
+PDE.x{1}.term{1}.C = lam;
+PDE.x{1}.term{2}.D = 2;
+
+% Set the BCs x(t,a) = x(t,b) = 0;
+PDE.BC{1}.term{1}.loc = a;
+PDE.BC{2}.term{1}.loc = b;
+
+%%% Initialize settings for solving the LPI
+settings = lpisettings('veryheavy');
+if strcmp(settings.sos_opts.solver,'sedumi')
+    settings.sos_opts.params.fid = 0;   % Suppress output in command window
+end
+
+%%% Perform bisection on the value of lam
+for iter = 1:n_iters
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+    
+    % Re-run the stability test.
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
+
+ --- Running the stability test with lam = 10 ---
+    prog = PIETOOLS_stability(PIE,settings);
+
+ --- Executing Primal Stability Test --- 
+- Parameterizing Positive Lyapunov Operator using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 3122   230
+ 
+ 
+Residual norm: 1.4202e-06
+ 
+         iter: 17
+    feasratio: -0.2636
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0310 0.5290 0.0110]
+      wallsec: 0.5710
+       cpusec: 1.0156
+
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+        % Stability cannot be verified, decreasing the value of lam...
+        lam_max = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+    
+    % Re-run the stability test.
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
+
+ --- Running the stability test with lam = 5 ---
+    prog = PIETOOLS_stability(PIE,settings);
+
+ --- Executing Primal Stability Test --- 
+- Parameterizing Positive Lyapunov Operator using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 3122   230
+ 
+ 
+Residual norm: 1.2274e-07
+ 
+         iter: 13
+    feasratio: 1.0001
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0 0.3600 0]
+      wallsec: 0.3600
+       cpusec: 0.6562
+
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+    else
+        % The system is stable, trying a larger value of lam...
+        lam_min = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+    
+    % Re-run the stability test.
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
+
+ --- Running the stability test with lam = 7.5 ---
+    prog = PIETOOLS_stability(PIE,settings);
+
+ --- Executing Primal Stability Test --- 
+- Parameterizing Positive Lyapunov Operator using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 3122   230
+ 
+ 
+Residual norm: 1.8976e-06
+ 
+         iter: 12
+    feasratio: 1.0041
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0 0.3050 0]
+      wallsec: 0.3050
+       cpusec: 0.4688
+
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+    else
+        % The system is stable, trying a larger value of lam...
+        lam_min = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+    
+    % Re-run the stability test.
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
+
+ --- Running the stability test with lam = 8.75 ---
+    prog = PIETOOLS_stability(PIE,settings);
+
+ --- Executing Primal Stability Test --- 
+- Parameterizing Positive Lyapunov Operator using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 3122   230
+ 
+ 
+Residual norm: 2.8761e-07
+ 
+         iter: 14
+    feasratio: 0.9876
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0070 0.3350 0]
+      wallsec: 0.3420
+       cpusec: 0.3906
+
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+    else
+        % The system is stable, trying a larger value of lam...
+        lam_min = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+    
+    % Re-run the stability test.
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
+
+ --- Running the stability test with lam = 9.375 ---
+    prog = PIETOOLS_stability(PIE,settings);
+
+ --- Executing Primal Stability Test --- 
+- Parameterizing Positive Lyapunov Operator using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 3122   230
+ 
+ 
+Residual norm: 2.1765e-07
+ 
+         iter: 15
+    feasratio: 1.0077
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0 0.4200 0.0160]
+      wallsec: 0.4360
+       cpusec: 0.6875
+
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+    else
+        % The system is stable, trying a larger value of lam...
+        lam_min = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+    
+    % Re-run the stability test.
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
+
+ --- Running the stability test with lam = 9.6875 ---
+    prog = PIETOOLS_stability(PIE,settings);
+
+ --- Executing Primal Stability Test --- 
+- Parameterizing Positive Lyapunov Operator using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 3122   230
+ 
+ 
+Residual norm: 4.3523e-07
+ 
+         iter: 15
+    feasratio: 1.0099
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0070 0.3440 0]
+      wallsec: 0.3510
+       cpusec: 0.4375
+
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+    else
+        % The system is stable, trying a larger value of lam...
+        lam_min = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+    
+    % Re-run the stability test.
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
+
+ --- Running the stability test with lam = 9.8438 ---
+    prog = PIETOOLS_stability(PIE,settings);
+
+ --- Executing Primal Stability Test --- 
+- Parameterizing Positive Lyapunov Operator using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 3122   230
+ 
+ 
+Residual norm: 3.0045e-07
+ 
+         iter: 16
+    feasratio: 1.0122
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0 0.4790 0.0010]
+      wallsec: 0.4800
+       cpusec: 0.8750
+
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+    else
+        % The system is stable, trying a larger value of lam...
+        lam_min = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+    
+    % Re-run the stability test.
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
+
+ --- Running the stability test with lam = 9.9219 ---
+    prog = PIETOOLS_stability(PIE,settings);
+
+ --- Executing Primal Stability Test --- 
+- Parameterizing Positive Lyapunov Operator using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 3122   230
+ 
+ 
+Residual norm: 7.3406e-07
+ 
+         iter: 17
+    feasratio: 0.1010
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0 0.3920 0]
+      wallsec: 0.3920
+       cpusec: 0.4375
+
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)&gt;0.3
+        % Stability cannot be verified, decreasing the value of lam...
+        lam_max = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
+echo off
+
+ Stability of the system could be verified for lam&lt;=9.8438.
+ An analytic bound on lam guaranteeing stability is pi^2=9.8696.
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% DEMO4_stability_parameter_bisection.m
+% See Chapter 11.4 of the manual for a description.
+%
+% This document illustrates how PIETOOLS can be used to find the maximal
+% value of a parameter for which a PDE is stable, using bisection.
+
+% Reaction-diffusion PDE
+% \dot{x}(t,s) = lam*x(t,s) + x_{ss}(t,s);
+% x(t,0) = x(t,1) = 0;
+% Stable when lam <= pi^2 = 9.8696 (Ahmadi 2015).
+
+%%
+clc; clear;
+echo on
+%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+
+%%% Set bisection limits for lam.
+lam_min = 0;        lam_max = 20;
+lam = 0.5*(lam_min + lam_max);
+n_iters = 8;
+
+%%% Initialize a PDE structure.
+a = 0;  b = 1;
+pvar s
+pde_struct PDE;
+PDE.x{1}.vars = s;
+PDE.x{1}.dom = [a,b];
+
+% Set the PDE \dot{x}(t,s) = lam*x(t,s) + x_{ss}(t,s);
+PDE.x{1}.term{1}.C = lam;
+PDE.x{1}.term{2}.D = 2;
+
+% Set the BCs x(t,a) = x(t,b) = 0;
+PDE.BC{1}.term{1}.loc = a;
+PDE.BC{2}.term{1}.loc = b;
+
+%%% Initialize settings for solving the LPI
+settings = lpisettings('veryheavy');
+if strcmp(settings.sos_opts.solver,'sedumi')
+    settings.sos_opts.params.fid = 0;   % Suppress output in command window
+end
+
+%%% Perform bisection on the value of lam
+for iter = 1:n_iters
+    % Update the value of lam in the PDE.
+    PDE.x{1}.term{1}.C = lam;
+    
+    % Update the PIE.
+    PIE = convert(PDE,'pie');
+    
+    % Re-run the stability test.
+    fprintf(['\n',' REPLACE_WITH_DASH_DASH- Running the stability test with lam = ',num2str(lam),' REPLACE_WITH_DASH_DASH-\n'])
+    prog = PIETOOLS_stability(PIE,settings);
+
+    % Check if the system is stable
+    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)>0.3
+        % Stability cannot be verified, decreasing the value of lam...
+        lam_max = lam;
+        lam = 0.5*(lam_min + lam_max);
+    else
+        % The system is stable, trying a larger value of lam...
+        lam_min = lam;
+        lam = 0.5*(lam_min + lam_max);
+    end    
+end
+%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
+echo off
+
+fprintf(['\n Stability of the system could be verified for lam<=',num2str(lam_min),'.\n'])
+fprintf([' An analytic bound on lam guaranteeing stability is pi^2=',num2str(pi^2),'.\n']);
+
+% @article{valmorbida2015stability,
+%   title={Stability analysis for a class of partial differential equations via semidefinite programming},
+%   author={Valmorbida, Giorgio and Ahmadi, Mohamadreza and Papachristodoulou, Antonis},
+%   journal={IEEE Transactions on Automatic Control},
+%   volume={61},
+%   number={6},
+%   pages={1649REPLACE_WITH_DASH_DASH1654},
+%   year={2015},
+%   publisher={IEEE}
+% }
+##### SOURCE END #####
+--></body></html>

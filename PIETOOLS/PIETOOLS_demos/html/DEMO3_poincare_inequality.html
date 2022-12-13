@@ -1,0 +1,352 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DEMO3_poincare_inequality</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-12-13"><meta name="DC.source" content="DEMO3_poincare_inequality.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% DEMO3_poincare_inequality.m</span>
+<span class="comment">% See Chapter 11.3 of the manual for a description.</span>
+<span class="comment">%</span>
+<span class="comment">% This document illustrates how the Poincare constant can be found</span>
+<span class="comment">% using PIETOOLS</span>
+
+<span class="comment">% This example is also included in the paper (page 6, Demoenstration 3)</span>
+<span class="comment">% link: https://arxiv.org/pdf/1910.01338.pdf</span>
+
+
+<span class="comment">% What is Poincare Inequality?</span>
+<span class="comment">% Find C; such that for an function u \in H^1[0, 1]</span>
+<span class="comment">% ||u|| &#8804; C||u_s||</span>
+<span class="comment">% where H^1[0,1] := {u: u_{s}\in L_2[0,1] &amp; u(0)=u(1)=0}</span>
+
+<span class="comment">% Optimization Problem</span>
+<span class="comment">% min C, such that</span>
+<span class="comment">% &lt;u, u&gt; &#8722; C &lt;u_s,u_s&gt; &#8804; 0</span>
+</pre><pre class="codeinput">clc; clear;
+echo <span class="string">on</span>
+<span class="comment">%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%</span>
+
+<span class="comment">%%%%%   Declare the PDE</span>
+
+<span class="comment">% % Initialize the PDE structure and spatial variable s in [a,b]</span>
+pvar <span class="string">s</span> <span class="string">theta</span>;
+pde_struct <span class="string">PDE</span>;
+a = 0;      b = 1;
+
+<span class="comment">% % Declare the state variables x(t,s)</span>
+PDE.x{1}.vars = s;
+PDE.x{1}.dom = [a,b];
+PDE.x{1}.diff = 2;          <span class="comment">% Let x be second order differentiable wrt s.</span>
+
+<span class="comment">% % Declare the PDE \dot{x}(t,s) = \partial_{s} x(t,s)</span>
+PDE.x{1}.term{1}.D = 1;     <span class="comment">% Order of the derivative wrt s</span>
+
+<span class="comment">% % Declare the boundary conditions x(t,a) = x(t,b) = 0</span>
+PDE.BC{1}.term{1}.loc = a;      <span class="comment">% Evaluate x at s=a</span>
+PDE.BC{2}.term{1}.loc = b;      <span class="comment">% Evaluate x at s=b</span>
+
+<span class="comment">% % Initialize the system</span>
+PDE = initialize(PDE);
+
+
+<span class="comment">%%%%% Convert the PDE to a PIE</span>
+PIE = convert(PDE,<span class="string">'pie'</span>);
+H2 = PIE.T;     <span class="comment">% H2 x_{ss} = x</span>
+H1 = PIE.A;     <span class="comment">% H1 x_{ss} = x_{s}</span>
+
+
+<span class="comment">%%%%%   Solve the LPI &lt; H2 x_ss, H2 x_ss&gt; - gam &lt;H1 x_ss, H1 x_ss&gt; &lt;=0</span>
+<span class="comment">%%%%%   where (H2 x_ss) = x and (H1 x_ss) = x_s</span>
+<span class="comment">% % First, define dpvar gam and set up an optimization problem</span>
+dpvar <span class="string">gam</span>;
+vars = [H2.var1; H2.var2];
+prob = sosprogram(vars,gam);
+
+<span class="comment">% % Set gam as objective function to minimize</span>
+prob = sossetobj(prob, gam);
+
+<span class="comment">% % Set up the constraint H2'*H2-gam H1'*H1&lt;=0</span>
+opts.psatz = 1;     <span class="comment">% Add psatz term to allow H2'*H2 &gt; gam H1'*H1 outside of [a,b]</span>
+prob = lpi_ineq(prob,-(H2'*H2-gam*H1'*H1),opts);
+
+<span class="comment">% Solve and retrieve the solution</span>
+prob = sossolve(prob);
+poincare_constant = sqrt(double(sosgetsol(prob,gam)));
+
+<span class="comment">%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%</span>
+echo <span class="string">off</span>
+
+fprintf([<span class="string">'\n If successful, '</span>,num2str(poincare_constant),<span class="string">' is an upper bound on Poincare''s constant for this problem.\n'</span>])
+fprintf([<span class="string">' An optimal value of Poincare''s constant on domain [0,1] is known to be 1/pi='</span>,num2str(1/(pi)),<span class="string">'.\n'</span>]);
+</pre><pre class="codeoutput">%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+
+%%%%%   Declare the PDE
+
+% % Initialize the PDE structure and spatial variable s in [a,b]
+pvar s theta;
+pde_struct PDE;
+a = 0;      b = 1;
+
+% % Declare the state variables x(t,s)
+PDE.x{1}.vars = s;
+PDE.x{1}.dom = [a,b];
+PDE.x{1}.diff = 2;          % Let x be second order differentiable wrt s.
+
+% % Declare the PDE \dot{x}(t,s) = \partial_{s} x(t,s)
+PDE.x{1}.term{1}.D = 1;     % Order of the derivative wrt s
+
+% % Declare the boundary conditions x(t,a) = x(t,b) = 0
+PDE.BC{1}.term{1}.loc = a;      % Evaluate x at s=a
+PDE.BC{2}.term{1}.loc = b;      % Evaluate x at s=b
+
+% % Initialize the system
+PDE = initialize(PDE);
+
+Encountered 1 state component: 
+ x(t,s),    of size 1, differentiable up to order (2) in variables (s);
+
+Encountered 2 boundary conditions: 
+ F&#8321;(t) = 0, of size 1;
+ F&#8322;(t) = 0, of size 1;
+
+
+%%%%% Convert the PDE to a PIE
+PIE = convert(PDE,'pie');
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting ODE-PDE to PIE --- 
+H2 = PIE.T;     % H2 x_{ss} = x
+H1 = PIE.A;     % H1 x_{ss} = x_{s}
+
+
+%%%%%   Solve the LPI &lt; H2 x_ss, H2 x_ss&gt; - gam &lt;H1 x_ss, H1 x_ss&gt; &lt;=0
+%%%%%   where (H2 x_ss) = x and (H1 x_ss) = x_s
+% % First, define dpvar gam and set up an optimization problem
+dpvar gam;
+vars = [H2.var1; H2.var2];
+prob = sosprogram(vars,gam);
+
+% % Set gam as objective function to minimize
+prob = sossetobj(prob, gam);
+
+% % Set up the constraint H2'*H2-gam H1'*H1&lt;=0
+opts.psatz = 1;     % Add psatz term to allow H2'*H2 &gt; gam H1'*H1 outside of [a,b]
+prob = lpi_ineq(prob,-(H2'*H2-gam*H1'*H1),opts);
+
+% Solve and retrieve the solution
+prob = sossolve(prob);
+Size: 339   69
+ 
+The coefficient matrix is not full row rank, numerical problems may occur.
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Put 1 free variables in a quadratic cone
+eqs m = 69, order n = 29, dim = 341, blocks = 4
+nnz(A) = 1023 + 0, nnz(ADA) = 4709, nnz(L) = 2389
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            1.01E+00 0.000
+  1 :   2.94E-01 2.66E-01 0.000 0.2632 0.9000 0.9000   0.51  1  1  2.5E+00
+  2 :   4.11E-01 8.60E-02 0.000 0.3231 0.9000 0.9000   0.25  1  1  1.2E+00
+  3 :   3.63E-01 2.23E-02 0.000 0.2600 0.9000 0.9000   0.64  1  1  3.3E-01
+  4 :   2.25E-01 6.40E-03 0.000 0.2862 0.9000 0.9000   1.23  1  1  8.2E-02
+  5 :   1.61E-01 1.73E-03 0.000 0.2704 0.9000 0.9000   1.28  1  1  1.9E-02
+  6 :   1.49E-01 4.89E-04 0.000 0.2825 0.9000 0.9000   1.14  1  1  5.1E-03
+  7 :   1.57E-01 1.72E-04 0.000 0.3528 0.9000 0.9000   0.81  1  1  2.1E-03
+  8 :   1.64E-01 7.12E-05 0.000 0.4132 0.9000 0.9000   0.64  1  1  1.1E-03
+  9 :   1.68E-01 2.78E-05 0.000 0.3905 0.9000 0.9000   0.69  1  1  4.9E-04
+ 10 :   1.71E-01 1.37E-05 0.000 0.4917 0.9000 0.9000   0.58  1  1  3.1E-04
+ 11 :   1.73E-01 5.79E-06 0.000 0.4235 0.9000 0.9000   0.61  1  1  1.6E-04
+ 12 :   1.75E-01 3.09E-06 0.000 0.5333 0.9000 0.9000   0.48  1  1  1.1E-04
+ 13 :   1.76E-01 1.26E-06 0.000 0.4077 0.9000 0.9000   0.58  1  1  5.5E-05
+ 14 :   1.78E-01 6.30E-07 0.000 0.5005 0.9000 0.9000   0.43  1  1  3.8E-05
+ 15 :   1.79E-01 2.52E-07 0.000 0.3991 0.9000 0.9000   0.54  1  2  1.9E-05
+ 16 :   1.79E-01 1.22E-07 0.000 0.4852 0.9000 0.9000   0.41  1  2  1.3E-05
+ 17 :   1.80E-01 4.86E-08 0.000 0.3978 0.9000 0.9000   0.54  2  2  6.4E-06
+ 18 :   1.80E-01 1.08E-08 0.000 0.2230 0.6845 0.9000   0.41  2  2  4.3E-06
+ 19 :   1.81E-01 3.65E-09 0.000 0.3373 0.9000 0.9135   0.53  2  2  1.9E-06
+ 20 :   1.81E-01 1.62E-09 0.000 0.4425 0.9081 0.9000   0.51  3  3  1.1E-06
+ 21 :   1.81E-01 9.01E-10 0.000 0.5579 0.6076 0.9000   0.44  5  4  8.4E-07
+ 22 :   1.81E-01 3.24E-10 0.000 0.3593 0.9000 0.9175   0.57  5  4  4.0E-07
+ 23 :   1.81E-01 1.44E-10 0.000 0.4447 0.9143 0.9000   0.46  5  5  2.4E-07
+ 24 :   1.82E-01 8.36E-11 0.000 0.5807 0.5466 0.9000   0.37  5  6  1.9E-07
+ 25 :   1.82E-01 2.83E-11 0.000 0.3386 0.9000 0.9216   0.46  7  6  9.3E-08
+ 26 :   1.82E-01 1.34E-11 0.000 0.4727 0.9100 0.9000   0.42  7  8  6.0E-08
+ 27 :   1.82E-01 7.63E-12 0.000 0.5702 0.5890 0.9000   0.32 10 10  4.8E-08
+ 28 :   1.82E-01 3.05E-12 0.000 0.3991 0.9000 0.9179   0.48 12 10  2.5E-08
+ 29 :   1.82E-01 1.44E-12 0.000 0.4720 0.8628 0.9000   0.39 18 21  1.7E-08
+ 30 :   1.82E-01 8.03E-13 0.000 0.5584 0.9000 0.9000   0.39 15 14  1.3E-08
+ 31 :   1.82E-01 5.58E-13 0.000 0.6943 0.9000 0.9489   0.45 15 15  1.0E-08
+ 32 :   1.82E-01 2.30E-13 0.000 0.4131 0.9000 0.9432   0.52 24 25  5.1E-09
+
+iter seconds digits       c*x               b*y
+ 32      0.6   3.6  1.8203777777e-01  1.8208352246e-01
+|Ax-b| =   1.1e-08, [Ay-c]_+ =   3.4E-11, |x|=  5.2e+03, |y|=  6.8e+04
+
+Detailed timing (sec)
+   Pre          IPM          Post
+4.700E-02    2.280E-01    1.599E-02    
+Max-norms: ||b||=5.000000e-01, ||c|| = 1,
+Cholesky |add|=3, |skip| = 35, ||L.L|| = 1.64194e+07.
+ 
+Residual norm: 1.1069e-08
+ 
+         iter: 32
+    feasratio: 0.5198
+         pinf: 0
+         dinf: 0
+       numerr: 0
+       timing: [0.0470 0.2280 0.0160]
+      wallsec: 0.2910
+       cpusec: 0.6719
+
+poincare_constant = sqrt(double(sosgetsol(prob,gam)));
+
+%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
+echo off
+
+ If successful, 0.42666 is an upper bound on Poincare's constant for this problem.
+ An optimal value of Poincare's constant on domain [0,1] is known to be 1/pi=0.31831.
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% DEMO3_poincare_inequality.m
+% See Chapter 11.3 of the manual for a description.
+%
+% This document illustrates how the Poincare constant can be found
+% using PIETOOLS
+
+% This example is also included in the paper (page 6, Demoenstration 3)
+% link: https://arxiv.org/pdf/1910.01338.pdf
+
+
+% What is Poincare Inequality?
+% Find C; such that for an function u \in H^1[0, 1]
+% ||u|| ≤ C||u_s||
+% where H^1[0,1] := {u: u_{s}\in L_2[0,1] & u(0)=u(1)=0}
+
+% Optimization Problem
+% min C, such that
+% <u, u> − C <u_s,u_s> ≤ 0
+
+%%
+clc; clear; 
+echo on
+%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+
+%%%%%   Declare the PDE
+
+% % Initialize the PDE structure and spatial variable s in [a,b]
+pvar s theta;
+pde_struct PDE;
+a = 0;      b = 1;
+
+% % Declare the state variables x(t,s)
+PDE.x{1}.vars = s;
+PDE.x{1}.dom = [a,b];
+PDE.x{1}.diff = 2;          % Let x be second order differentiable wrt s.
+
+% % Declare the PDE \dot{x}(t,s) = \partial_{s} x(t,s)
+PDE.x{1}.term{1}.D = 1;     % Order of the derivative wrt s
+
+% % Declare the boundary conditions x(t,a) = x(t,b) = 0
+PDE.BC{1}.term{1}.loc = a;      % Evaluate x at s=a
+PDE.BC{2}.term{1}.loc = b;      % Evaluate x at s=b
+
+% % Initialize the system
+PDE = initialize(PDE);
+
+
+%%%%% Convert the PDE to a PIE
+PIE = convert(PDE,'pie');
+H2 = PIE.T;     % H2 x_{ss} = x
+H1 = PIE.A;     % H1 x_{ss} = x_{s}
+
+
+%%%%%   Solve the LPI < H2 x_ss, H2 x_ss> - gam <H1 x_ss, H1 x_ss> <=0
+%%%%%   where (H2 x_ss) = x and (H1 x_ss) = x_s
+% % First, define dpvar gam and set up an optimization problem
+dpvar gam;
+vars = [H2.var1; H2.var2];
+prob = sosprogram(vars,gam);
+
+% % Set gam as objective function to minimize
+prob = sossetobj(prob, gam);
+
+% % Set up the constraint H2'*H2-gam H1'*H1<=0
+opts.psatz = 1;     % Add psatz term to allow H2'*H2 > gam H1'*H1 outside of [a,b]
+prob = lpi_ineq(prob,-(H2'*H2-gam*H1'*H1),opts);
+
+% Solve and retrieve the solution
+prob = sossolve(prob);
+poincare_constant = sqrt(double(sosgetsol(prob,gam)));
+
+%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
+echo off
+
+fprintf(['\n If successful, ',num2str(poincare_constant),' is an upper bound on Poincare''s constant for this problem.\n'])
+fprintf([' An optimal value of Poincare''s constant on domain [0,1] is known to be 1/pi=',num2str(1/(pi)),'.\n']);
+##### SOURCE END #####
+--></body></html>
