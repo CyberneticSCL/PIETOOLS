@@ -74,10 +74,10 @@ switch lpi
         varargout{1} = P; varargout{2} = gamma;
     case 'hinf-observer'
         [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
-        varargout{1} = P; varargout{2} = L; varargout{3} = gamma; varargout{4} = P; varargout{5} = Z;
+        varargout{1} = L; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
     case 'hinf-controller'
         [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
-        varargout{1} = P; varargout{2} = K; varargout{3} = gamma; varargout{4} = P; varargout{5} = Z;
+        varargout{1} = K; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
     otherwise
         [prog, vout] = lpi(PIE,settings);
         varargout = cell(1,length(vout));
