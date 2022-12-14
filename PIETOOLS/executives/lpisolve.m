@@ -43,7 +43,7 @@ if isempty(settings)
 elseif ~isa(settings,'string')&&~isa(settings,'struct')
     error("Settings must either be a string value or a settings structure similar to the output of lpisettings() function.")
 end
-if (isa(lpi,'string')||isa(lpi,'char'))&&ismember(lpi,{'stability','stability-dual','l2-gain','l2-gain-dual','hinf-observer','hinf-controller','custom'})
+if (isa(lpi,'string')||isa(lpi,'char'))&&ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','custom'})
     % do nothing
 elseif ~isa(lpi,'function_handle')
     error("lpi must be a string value or a function handle.");
@@ -66,10 +66,10 @@ switch lpi
     case 'stability-dual'
         [prog, P] = PIETOOLS_stability_dual(PIE,settings);
         varargout{1} = P;
-    case 'l2-gain'
+    case 'l2gain'
         [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
         varargout{1} = P; varargout{2} = gamma;
-    case 'l2-gain-dual'
+    case 'l2gain-dual'
         [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
         varargout{1} = P; varargout{2} = gamma;
     case 'hinf-observer'
