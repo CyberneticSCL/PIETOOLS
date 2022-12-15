@@ -1,3 +1,7 @@
 *.asv
 */desktop.ini
 *.DS_Store
+*.prj
+*.mltbx
+demos.xml
+DesktopToolset.xml
