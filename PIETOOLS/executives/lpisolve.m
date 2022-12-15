@@ -40,7 +40,7 @@ if nargin<3
 end
 if isempty(settings)
     settings = lpisettings('light');
-elseif ~isa(settings,'string')&&~isa(settings,'struct')
+elseif ~(isa(settings,'string')||isa(settings,'char'))&&~isa(settings,'struct')
     error("Settings must either be a string value or a settings structure similar to the output of lpisettings() function.")
 end
 if (isa(lpi,'string')||isa(lpi,'char'))&&ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','custom'})
@@ -51,7 +51,7 @@ else
     error("Unknown lpi type");
 end
 
-if isa(settings,'string')
+if isa(settings,'string')||isa(settings,'char')
     settings = lpisettings(settings);
 end
 
