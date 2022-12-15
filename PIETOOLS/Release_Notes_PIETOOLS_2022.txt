@@ -2,32 +2,32 @@ NOTE: PIETOOLS 2022 is the same version as PIETOOLS 3.0 available on MATLAB tool
 Major Updates:
 
 1. Simplified LPI declaration and solving for Analysis, Control and Estimation 
--- PIETOOLS 2022 has added wrapper functions to simplify and generalize the workflow for different class of 
+-- PIETOOLS 2022 has added wrapper functions to simplify and generalize the workflow for different classes of 
    systems, such as, `lpisolve()' for all the executives, `lpisettings()' for all the optimization parameters,
-   and `initialize() & convert()' for defining PIEs.
+   and `initialize()' & `convert()' for defining PIEs.
 
 2. New input formats
 -- PIETOOLS 2022 introduces two new input formats `terms' format and `command-line parser' format. 
--- The new terms format overrides the old terms format (which is no longer supported) and uses matlab structures with fields 
+-- The new terms format overrides the old terms format (which is no longer supported) and uses Matlab structures with fields 
    vastly different from previous terms format. 
 -- The parser format (along with the GUI for PDEs) is one of the easiest formats that can be used to define PDEs
-   in one spatial dimension and delays. Parser format involves predefining variables (state-class objects) and
-   manipulating of these variables, symbolically, to define a dynamical system. 
--- Please refer to the manual for details on the new terms format and parser format.
+   in one spatial dimension and systems with delays. Parser format involves predefining variables (state-class objects) and
+   manipulating these variables, symbolically, to define a dynamical system. 
+Please refer to the manual for details on the new terms format and parser format.
 
 3. Support for 2D PDEs
 -- PIETOOLS now supports analysis and control of PDE systems with 2 spatial variables. As such, the workflow
    to define such a PDE and solve an analysis problem is identical to that of time-delay systems and PDE systems
-   with one spatial dimensions. Defining 2D-PDEs is only possible through the new terms format (GUI and parser formats
-   support will be included in the upcoming release).
+   with one spatial dimensions. Defining 2D PDEs is only possible through the new terms format (support for GUI and parser
+   formats will be included in a later release).
 
 4. Objects
 -- PDEs and PIEs are now stored as `pde_struct' and `pie_struct' class objects. This is the first step towards making
-   PIETOOLS more object-oriented and modular. Along with these class definitions, a display function has be customized
+   PIETOOLS more object-oriented and modular. Along with these class definitions, a display function has been customized
    to display the defined PDE systems in an easy-to-understand format.
 
 5. Updates to Getting Started Demos
--- Various demo files have been added to demonstrate various problems that can be solved using
-   PIETOOLS in the folder path `PIETOOLS_demos\'. 
+-- Multiple demo files have been added to demonstrate how PIETOOLS can be used to solve a variety of problems.
+   See the folder path `PIETOOLS_demos\'. 
 
 
