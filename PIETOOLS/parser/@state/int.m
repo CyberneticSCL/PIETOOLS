@@ -60,7 +60,7 @@ s.type = '.'; s.subs = 'veclength';
 %     isdot_C = [isdot_C; objC(i).diff_order(1)*ones(subsref(objC(i),s),1)];
 %     isout_C = [isout_C; strcmp(objC(i).type,'out')*ones(subsref(objC(i),s),1)];
 % end
-% isdot_C = boolean(isdot_C); isout_C = boolean(isout_C);
+% isdot_C = logical(isdot_C); isout_C = logical(isout_C);
 % >>>>>>> Stashed changes
 if any((isdot_C|isout_C))
     error("Integration of vectors with outputs or time-derivative of state is not allowed");
