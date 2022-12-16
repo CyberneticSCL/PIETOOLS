@@ -4,7 +4,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - README
 %
-% Copyright (C)2019  M. Peet, S. Shivakumar
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -31,17 +31,17 @@
 % the PIETOOLS folder, the toolbox may not function as expected. In that
 % case, reinstall using the install script or contact sshivak@asu.edu or
 % mpeet@asu.edu for support.
-
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % What is PIETOOLS?
 % PIETOOLS is a free MATLAB toolbox for formulating and solving Linear PI 
-% Inequalities (LPIs) programs. PIETOOLS can be used to define 3-PI or 4-PI 
-% operators, declare 3-PI or 4-PI operators variables (postive semidefinite 
+% Inequalities (LPIs) programs. PIETOOLS can be used to define 1D and 2D PI 
+% operators, declare 1D and 2D PI operator variables (postive semidefinite 
 % or indefinite), add operator inequality constraints, and solve LPI 
 % optimization problems. The interface is inspired by YALMIP and the program 
 % structure is based on that used by SOSTOOLS. By default the LPIs are solved
 % using SeDuMi.
-
+%
 % What is a PIE?
 % PIE stands for Partial Integral Equation and is an alternative 
 % representation for many commonly encountered classes of systems, including 
@@ -67,7 +67,8 @@
 % 
 % What can I do with PIETOOLS?
 % The use of PIETOOLS is organized into 4 categories. These are:
-% 1) Manipulation of 3-PI and 4-PI operators.
+% 1) Manipulation of 1D and 2D PI operators.
 % 2) Constructing and Solving Linear PI Inequalities (LPIs).
 % 3) Converting PDEs/DDEs/DDFs to PIEs.
 % 4) Solving LPIs for Analysis and Control of PIEs.
+% 5) Numerically simulating PDE, DDE, and PIE solutions.
