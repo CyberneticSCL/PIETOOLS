@@ -228,7 +228,7 @@ elseif strcmp(opts.type,'PDE')
 
 
     if ~isfield(uinput,'ifexact')
-        disp('Watning: uinput.ifexact is not specified. Defaulting  to false');
+        disp('Warning: uinput.ifexact is not specified. Defaulting  to false');
         uinput.ifexact=false;
     elseif(uinput.ifexact)
         if ~isfield(uinput,'exact')
@@ -586,7 +586,7 @@ end
 
 
 if ~isfield(uinput,'ifexact')
-    disp('Watning: uinput.ifexact is not specified. Defaulting  to false');
+    disp('Warning: uinput.ifexact is not specified. Defaulting  to false');
     uinput.ifexact=false;
 end
 
