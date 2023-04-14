@@ -34,7 +34,7 @@ function [out,params] = convert(obj,convertTo)
 % authorship, and a brief description of modifications
 arguments
     obj;
-    convertTo {mustBeMember(convertTo,{'pie','ddf'})} = '';
+    convertTo {mustBeMember(convertTo,{'pie','ddf'})} = 'pie';
 end
 
 if strcmp(convertTo, 'pie')

@@ -108,10 +108,10 @@ nx2=Aop.dim(2,1);                % retrieve the number of distributed states fro
 % function candidate
 disp('- Parameterizing Positive Lyapunov Operator using specified options...');
 
-[prog, P1op] = poslpivar(prog, [nx1 ,nx2],X,dd1,options1);
+[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, [nx1 ,nx2],X,dd12,options12);
+    [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1),X,dd12,options12);
     Pop=P1op+P2op;
 else
     Pop=P1op;
@@ -148,10 +148,10 @@ if sosineq_on
 else
     disp('  - Using an Equality constraint...');
 
-    [prog, De1op] = poslpivar(prog, [nx1, nx2],X,dd2,options2);
+    [prog, De1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog,[nx1, nx2],X, dd3,options3);
+        [prog, De2op] = poslpivar(prog,PIE.T.dim(:,1),X, dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
