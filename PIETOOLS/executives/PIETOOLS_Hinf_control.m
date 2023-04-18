@@ -150,10 +150,10 @@ prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 % contruct the estimator gain
 disp('- Declaring Positive Storage Operator variable and indefinite Controller operator variable using specified options...');
 
-[prog, P1op] = poslpivar(prog, [nx1 ,nx2],X,dd1,options1);
+[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, [nx1 ,nx2],X,dd12,options12);
+    [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1),X,dd12,options12);
     Pop=P1op+P2op;
 else
     Pop=P1op;
@@ -163,7 +163,7 @@ end
 Pop.P = Pop.P+eppos*eye(nx1);
 Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);  
 
-[prog,Zop] = lpivar(prog,[nu nx1;0 nx2],X,ddZ);
+[prog,Zop] = lpivar(prog,[PIE.B2.dim(:,2),PIE.T.dim(:,1)],X,ddZ);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -173,9 +173,16 @@ Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);
 % Pheq = [ -gamma*I  D11       (C1*P+D12*Z)*T'
 %          D11'         -gamma*I            B1'
 %          T*(C1*P+D12*Z)      B1       (A*P+B2*Z)*T'+T*(A*P+B2*Z)']
+% adding adjustment for infinite-dimensional I/O
+opvar Iw Iz;
+Iw.dim = [PIE.B1.dim(:,2),PIE.B1.dim(:,2)];
+Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
+Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
+Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
-Dop = [-gam*eye(nz)   PIE.D11              (PIE.C1*Pop+PIE.D12*Zop)*(PIE.T');
-        PIE.D11'                -gam*eye(nw)  PIE.B1';
+
+Dop = [-gam*Iz   PIE.D11              (PIE.C1*Pop+PIE.D12*Zop)*(PIE.T');
+        PIE.D11'                -gam*Iw  PIE.B1';
         PIE.T*(PIE.C1*Pop+PIE.D12*Zop)'       PIE.B1         (PIE.A*Pop+PIE.B2*Zop)*(PIE.T')+PIE.T*(PIE.A*Pop+PIE.B2*Zop)']; 
 
 disp('- Parameterize the derivative inequality...');
@@ -194,10 +201,10 @@ else
     disp('  - Using an Equality constraint...');
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%% The old way, where you have to specify everything
-    [prog, De1op] = poslpivar(prog, [nw+nz+nx1, nx2],X,dd2,options2);
+    [prog, De1op] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog,[nw+nz+nx1, nx2],X, dd3,options3);
+        [prog, De2op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;

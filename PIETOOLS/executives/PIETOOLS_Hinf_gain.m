@@ -129,10 +129,10 @@ prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 % function candidate
 disp('- Declaring Positive Lyapunov Operator variable using specified options...');
 
-[prog, P1op] = poslpivar(prog, [nx1 ,nx2],X,dd1,options1);
+[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, [nx1 ,nx2],X,dd12,options12);
+    [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1),X,dd12,options12);
     Pop=P1op+P2op;
 else
     Pop=P1op;
@@ -146,11 +146,18 @@ end
 %          D         -gamma*I C
 %          T'*P*B      C'       T'*P*A+A'*P*T]
 
+% adding adjustment for infinite-dimensional I/O
+opvar Iw Iz;
+Iw.dim = [PIE.B1.dim(:,2),PIE.B1.dim(:,2)];
+Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
+Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
+Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
+
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop = [-gam*eye(nw)+TB1op'*(Pop*B1op)+(Pop*B1op)'*TB1op     D11op'             (Pop*B1op)'*Top+TB1op'*(Pop*Aop);
-        D11op                                              -gam*eye(nz)        C1op;
+Dop = [-gam*Iw+TB1op'*(Pop*B1op)+(Pop*B1op)'*TB1op     D11op'             (Pop*B1op)'*Top+TB1op'*(Pop*Aop);
+        D11op                                              -gam*Iz        C1op;
         Top'*(Pop*B1op)+(Pop*Aop)'*TB1op                    C1op'              (Pop*Aop)'*Top+Top'*(Pop*Aop)];
     
     
@@ -165,10 +172,10 @@ if sosineq_on
     prog = lpi_ineq(prog,-Dop,opts);
 else
     disp('  - Using an Equality constraint...');
-    [prog, De1op] = poslpivar(prog, [nw+nz+nx1, nx2],X,dd2,options2);
+    [prog, De1op] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog,[nw+nz+nx1, nx2],X, dd3,options3);
+        [prog, De2op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
