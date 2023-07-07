@@ -123,9 +123,9 @@ elseif all(Pop.dim(1,:)==0)
             tmp = polynomial(U(i,j));
             Nmx = 4;
             XX = linspace(0,1,1000);
-            YY = double(subs(tmp,tmp.varname,XX));
+            YY = double(subs(tmp,var1,XX));
             p = polyfit(XX,YY,Nmx);
-            tmp = p(end:-1:1)*monomials(pvar(tmp.varname{1}),0:Nmx);
+            tmp = p(end:-1:1)*monomials(var1,0:Nmx);
             U(i,j) = tmp;
         end
     end
@@ -182,9 +182,9 @@ elseif all(Pop.dim(1,:)==0)
                 tmp = Uinv(i,j);
                 Nmx = 4;
                 XX = linspace(0,1,1000);
-                YY = double(subs(tmp,tmp.varname,XX));
+                YY = double(subs(tmp,var2,XX));
                 p = polyfit(XX,YY,Nmx);
-                tmp = p(end:-1:1)*monomials(pvar(tmp.varname{1}),0:Nmx);
+                tmp = p(end:-1:1)*monomials(var2,0:Nmx);
                 Uinv(i,j) = tmp;
             end
         end
