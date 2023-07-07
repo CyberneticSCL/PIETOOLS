@@ -31,9 +31,9 @@ function settings = settings_PIETOOLS_veryheavy()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 n_order1 = 4; 
-n_order2 = 4; % This is supposed to be an accuracy/non-balancing degree
-n_order3 = 2;
-n_order4 = max([n_order2,n_order3]);
+n_order2 = 3; % This is supposed to be an accuracy/non-balancing degree
+n_order3 = 3;
+n_order4 = n_order2+n_order3;
 
 
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

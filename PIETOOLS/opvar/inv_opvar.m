@@ -45,12 +45,14 @@ function [Pinv] = inv_opvar(Pop, tol)
 
 
 if nargin==1
-    tol=1e-8;
+    tol=1e-7;
 end
 
 if ~isa(Pop,'opvar')|| any(Pop.dim(:,1)~=Pop.dim(:,2))
     error('Only opvar class objects with equal input and output dimensions can be inverted using this function');
 end
+
+Pop = clean(Pop,tol);
 
 if all(isequal(Pop.R.R1,Pop.R.R2)) % if pi operator is separable then use analytical formulae from the old code
     Pinv = inv_opvar_old(Pop);
@@ -79,25 +81,55 @@ elseif all(Pop.dim(1,:)==0)
     % find max terms needed for approximation
     normA = sqrt(max(abs(eig(double(int(A'*A,var1,X(1),X(2)))))));
     Nmax = 1;
-    while (normA^Nmax)/factorial(Nmax)>eps
+    while (normA^Nmax)/factorial(Nmax)>tol
         Nmax = Nmax+1;
     end
-    if Nmax>19 % capping Nmax to avoid huge computation time
-        Nmax = 19;
-    end
+
+%     if Nmax>5 % capping Nmax to avoid huge computation time
+%         Nmax = 5;
+%     end
+
     for i=1:Nmax
-        Uk = int(A*Uk,var1,X(1),var1);
+        % remove terms from integrand that would be too small after Nmax
+        % integrations
+        tmp = A*Uk;
+        spMax = max(abs(X)); % this is the max value the variable in the polynmial tmp can take
+        cfMax = max(abs(tmp.coef(:))); dmat = tmp.degmat;
+        termMax_numerator = cfMax*spMax.^(dmat+1);
+        termMax_denominator = dmat+1;
+        termMax = termMax_numerator./termMax_denominator;
+        idx2remove = termMax<tol;
+        newCf = tmp.coef(~idx2remove,:) ;
+        newdmat = tmp.degmat(~idx2remove,:);
+        tmp = polynomial(newCf,newdmat,tmp.varname,tmp.matdim);
+
+
+        Uk = int(tmp,var1,X(1),var1);
         if isa(Uk, 'double')
             Uk = polynomial(Uk);
         end
-        if max(abs(Uk.coefficient(:)))<tol
+        if max(abs(Uk.coefficient(:)))<eps
             break;
         end
+        Uk.coefficient(find(abs(Uk.coefficient)<tol)) = 0;
         U = U+Uk;
     end
     
     U.coefficient(find(abs(U.coefficient)<tol)) = 0;
     
+    % added this to reduce the order of polynomials
+    for i=1:size(U,1)
+        for j=1:size(U,2)
+            tmp = polynomial(U(i,j));
+            Nmx = 4;
+            XX = linspace(0,1,1000);
+            YY = double(subs(tmp,tmp.varname,XX));
+            p = polyfit(XX,YY,Nmx);
+            tmp = p(end:-1:1)*monomials(pvar(tmp.varname{1}),0:Nmx);
+            U(i,j) = tmp;
+        end
+    end
+
     
     U11 = U(1:size(G{1},1), 1:size(F{1},2));
     U12 = U(1:size(G{1},1), size(F{1},2)+1:end);
@@ -118,7 +150,20 @@ elseif all(Pop.dim(1,:)==0)
         Uinv = polynomial(eye(size(A)));
         Ukinv = Uinv;
         for i=1:Nmax
-            Ukinv = int(Ukinv*A,var1,X(1),var1);
+            % remove terms from integrand that would be too small after Nmax
+        % integrations
+        tmp = Ukinv*A;
+        spMax = max(abs(X)); % this is the max value the variable in the polynmial tmp can take
+        cfMax = max(abs(tmp.coef(:))); dmat = tmp.degmat;
+        termMax_numerator = cfMax*spMax.^(dmat+1);
+        termMax_denominator = dmat+1;
+        termMax = termMax_numerator./termMax_denominator;
+        idx2remove = termMax<tol;
+        newCf = tmp.coef(~idx2remove,:) ;
+        newdmat = tmp.degmat(~idx2remove,:);
+        tmp = polynomial(newCf,newdmat,tmp.varname,tmp.matdim);
+
+            Ukinv = int(tmp,var1,X(1),var1);
             if isa(Ukinv, 'double')
                 Ukinv = polynomial(Ukinv);
             end
@@ -127,13 +172,27 @@ elseif all(Pop.dim(1,:)==0)
             end
             Uinv = Uinv-Ukinv;
         end
-        
+
         Uinv.coefficient(find(abs(Uinv.coefficient)<tol)) = 0;
         Uinv = subs(Uinv,var1,var2);
+
+        % added this to reduce the order of polynomials
+        for i=1:size(Uinv,1)
+            for j=1:size(Uinv,2)
+                tmp = Uinv(i,j);
+                Nmx = 4;
+                XX = linspace(0,1,1000);
+                YY = double(subs(tmp,tmp.varname,XX));
+                p = polyfit(XX,YY,Nmx);
+                tmp = p(end:-1:1)*monomials(pvar(tmp.varname{1}),0:Nmx);
+                Uinv(i,j) = tmp;
+            end
+        end
         
         Pinv.R.R0 = R0inv;
         Pinv.R.R1 = C*U*(eye(size(P))-P)*Uinv*B*subs(R0inv,var1,var2);
         Pinv.R.R2 = -C*U*P*Uinv*B*subs(R0inv,var1,var2);
+        Pinv = clean(Pinv,tol);
     end
 else
     opvar A B C D;
@@ -150,6 +209,7 @@ else
 %             -Dinv*C*TA, TB];
         
     Pinv = [Ainv+Ainv*B*TB*C*Ainv, -Ainv*B*TB; -TB*C*Ainv, TB];
+    Pinv = clean(Pinv,tol);
 end
 end
 function [F,G, Rinv] = getsemisepmonomials(P)
@@ -159,7 +219,7 @@ end
 X = P.I; var1 = P.var1; var2 = P.var2;
 
 % finding U-inverse  
-N=100; orderapp=4; 
+N=100; orderapp=max(P.R.R0.degmat(:)); 
 dx = (X(2)-X(1))/N; 
 ii=0;
 Rtemp = zeros(size(P.R.R0,1),size(P.R.R0,2),N);
