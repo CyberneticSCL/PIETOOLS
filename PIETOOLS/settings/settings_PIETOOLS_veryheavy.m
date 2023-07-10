@@ -30,7 +30,7 @@ function settings = settings_PIETOOLS_veryheavy()
 % internal variables:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-n_order1 = 4; 
+n_order1 = 3; 
 n_order2 = 3; % This is supposed to be an accuracy/non-balancing degree
 n_order3 = 3;
 n_order4 = n_order2+n_order3;
@@ -40,7 +40,7 @@ n_order4 = n_order2+n_order3;
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Options for the LF
 
-settings.override1=0;   % No Psatz in LF
+settings.override1=1;   % No Psatz in LF
 settings.options1.sep = 0; %this is to select separable case, R1=R2
 settings.options1.exclude=[0 0 0 0]; % using LU or UL decomposition in the LF seems to have minimal impact...
 settings.options12.sep = 0; %this is to select separable case, R1=R2
