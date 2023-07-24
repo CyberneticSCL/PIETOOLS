@@ -47,8 +47,9 @@ function [sos,Deop] = lpi_ineq_2d(sos,Pop, options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 07_21_2021 
-% 02/21/2022 - DJ: Update to allow multiple psatz terms
+% Initial coding MMP, SS, DJ - 07_21_2021 
+% 02/21/2022 - DJ: Update to allow multiple psatz terms;
+% 07/24/2023 - DJ: Update to exploit symmetry in lpi_eq;
 
 % Extract the inputs
 switch nargin
@@ -74,7 +75,7 @@ end
 
 dim = Pop.dim;
 if dim(:,1)~=dim(:,2)
-    error('Non-symmetric Operators cannot be sign definite. Unable to set the inequality');
+    error('Non-symmetric operators cannot be sign definite. Unable to set the inequality');
 end
 
 % We're going to enforce inequality P>=0, by building an operator Deop>=0,
@@ -185,19 +186,19 @@ if toggle==1    % Using maximal degrees
     end
 elseif toggle==2    % Using predefined monomials
     % % Add addtional terms with separable kernels
-    if any(~options2.exclude([3,4,9,10,13,14,15,16]))
-        options2.sep = [1,0,1,0,1,0];
-        [sosD, Deop_x] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oy,options2);
-    end
-    if any(~options2.exclude([6,7,11,12,13,14,15,16]))
-        options2.sep = [0,1,0,1,0,1];
-        [sosD, Deop_y] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_xo,options2);
-    end
-    if any(~options2.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
-        options2.sep = [1,1,1,1,1,1];
-        [sosD, Deop_xy] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oo,options2);
-    end
-    Deop = Deop + Deop_x + Deop_y + Deop_xy;
+%     if any(~options2.exclude([3,4,9,10,13,14,15,16]))
+%         options2.sep = [1,0,1,0,1,0];
+%         [sosD, Deop_x] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oy,options2);
+%     end
+%     if any(~options2.exclude([6,7,11,12,13,14,15,16]))
+%         options2.sep = [0,1,0,1,0,1];
+%         [sosD, Deop_y] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_xo,options2);
+%     end
+%     if any(~options2.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
+%         options2.sep = [1,1,1,1,1,1];
+%         [sosD, Deop_xy] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oo,options2);
+%     end
+%     Deop = Deop + Deop_x + Deop_y + Deop_xy;
 end
 sos = sosD; % Make sure the SOS program contains the right operator Deop
     
@@ -209,8 +210,8 @@ for j=1:length(options.psatz)
         Deop = Deop+De2op; 
     end
 end
-% Enforce the constraint
-sos = lpi_eq_2d(sos,Deop-Pop);  %Pop==Deop
+% Enforce the constraint, exploiting symmetry
+sos = lpi_eq_2d(sos,Deop-Pop,'symmetric');  %Pop==Deop
 
 end
 
