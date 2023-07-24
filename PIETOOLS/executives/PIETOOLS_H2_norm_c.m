@@ -151,7 +151,7 @@ disp('Requires creating H2 norm script for 2D systems')
         else
             Deop=De1op;
         end
-        prog = lpi_eq(prog,Deop+Dop); %Dop=-Deop
+        prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
     end
     
     tempObj = C1op*Wop*C1op';

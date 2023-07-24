@@ -1,4 +1,4 @@
-function sos = lpi_eq_2d(sos,P)
+function sos = lpi_eq_2d(sos,P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sos = lpi_eq_2d(prog,P) sets up equality constraints for each component.
 % P.R00 = 0     P.R0x = 0       P.R0y = 0       P.R02 = 0
@@ -7,10 +7,13 @@ function sos = lpi_eq_2d(sos,P)
 % P.R20 = 0     P.R2x{i} = 0    P.R2y{j} = 0    P.R22{i,j} = 0
 %
 % INPUT
-%   prog: SOS program to modify.
-%   P: PI dopvar2d variable
+%   sos:    SOS program to modify.
+%   P:      PI dopvar2d variable to set equal to 0.
+%   opts:   Optional input. Set opts = 'symmetric' if P is known to be
+%           symmetric, to enforce only parameters on and below the diagonal
+%           to be zero (as the rest will follow by symmetry).
 % OUTPUT 
-%   sos: SOS program
+%   sos:    Modified SOS program
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -40,18 +43,35 @@ function sos = lpi_eq_2d(sos,P)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ  - 07_21_2021
+% Initial coding MMP, SS, DJ  - 07_21_2021
+% 07/24/2023 - DJ: Add option to exploit symmetry of operators;
 %
-for f = {'R00','R0x','R0y','R02','Rx0','Rxy','Ry0','Ryx','R20'}
+
+% Check if symmetric option is specified.
+if nargin>=3 &&  strcmp(opts,'symmetric')
+    % Enforce only lower-triangular parameters to be zero
+    % --> rest will follow by symmetry of the operator
+    fset  = {'R00','Rx0','Ry0','Ryx','R20'};
+    imax = 2;
+    is_symmetric = true;
+else
+    % Enforce all parameters to be zero
+    fset = {'R00','R0x','R0y','R02','Rx0','Rxy','Ry0','Ryx','R20'};
+    imax = 3;
+    is_symmetric = false;
+end
+
+% Enforce parameters in operator to be zero.
+for f = fset
     if ~isempty(P.(f{:}))
         sos = soseq(sos, P.(f{:}));
     end
 end
-for i=1:3
+for i=1:imax
     if ~isempty(P.Rxx{i,1}) && any(any(P.Rxx{i}.C))
         sos = soseq(sos, P.Rxx{i,1});
     end
-    if ~isempty(P.Rx2{i,1}) && any(any(P.Rx2{i}.C))
+    if ~is_symmetric && ~isempty(P.Rx2{i,1}) && any(any(P.Rx2{i}.C))
         sos = soseq(sos, P.Rx2{i,1});
     end
     if ~isempty(P.R2x{i,1}) && any(any(P.R2x{i}.C))
@@ -61,17 +81,22 @@ for i=1:3
     if ~isempty(P.Ryy{1,i}) && any(any(P.Ryy{i}.C))
         sos = soseq(sos, P.Ryy{1,i});
     end
-    if ~isempty(P.Ry2{1,i}) && any(any(P.Ry2{i}.C))
+    if ~is_symmetric && ~isempty(P.Ry2{1,i}) && any(any(P.Ry2{i}.C))
         sos = soseq(sos, P.Ry2{1,i});
     end
     if ~isempty(P.R2y{1,i}) && any(any(P.R2y{i}.C))
         sos = soseq(sos, P.R2y{1,i});
     end
     
-    for j=1:3
+    for j=1:imax
         if ~isempty(P.R22{i,j}) && any(any(P.R22{i,j}.C))
             sos = soseq(sos, P.R22{i,j});
         end
+    end
+end
+if is_symmetric
+    if ~isempty(P.R22{3,2}) && any(any(P.R22{3,2}.C))
+        sos = soseq(sos, P.R22{3,2});
     end
 end
 end

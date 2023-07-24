@@ -1,14 +1,17 @@
-function sos = lpi_eq(sos,P)
+function sos = lpi_eq(sos,P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sos = lpi_eq(prog,P) sets up equality constraints for each component.
 % P.P=0
 % P.Qi =0
 % P.Ri = 0
 % INPUT
-%   prog: SOS program to modify.
-%   P: PI dopvar variable
+%   sos:    SOS program to modify.
+%   P:      PI dopvar variable to set equal to 0.
+%   opts:   Optional input. Set opts = 'symmetric' if P is known to be
+%           symmetric, to enforce only parameters on and below the diagonal
+%           to be zero (as the rest will follow by symmetry).
 % OUTPUT 
-%   sos: SOS program
+%   sos:    Modified SOS program
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -39,17 +42,38 @@ function sos = lpi_eq(sos,P)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
+% 07/24/2023 - DJ: Add option to exploit symmetry of operators;
 %
+
+% Pass 2D operator to associated lpi_eq function.
 if isa(P,'opvar2d') || isa(P,'dopvar2d')
-    sos = lpi_eq_2d(sos,P);
+    if nargin>=3
+        sos = lpi_eq_2d(sos,P,opts);
+    else
+        sos = lpi_eq_2d(sos,P);
+    end
     return
 end
-for i = {'P','Q1','Q2'}
+
+% Check if symmetric option is specified.
+if nargin>=3 && strcmpi(opts,'symmetric')
+    % Enforce only lower-triangular parameters to be zero
+    % --> rest will follow by symmetry of the operator
+    i_set1 = {'P','Q2'};
+    i_set2 = {'R0','R1'};
+else
+    % Enforce all parameters to be zero
+    i_set1 = {'P','Q1','Q2'};
+    i_set2 = {'R0','R1','R2'};
+end
+
+% Enforce parameters in operator to be zero.
+for i = i_set1
     if ~isempty(P.(i{:}))
         sos = soseq(sos, P.(i{:}));
     end
 end
-for i = {'R0','R1','R2'}
+for i = i_set2
     if ~isempty(P.R.(i{:}))
         C = P.R.(i{:}); 
         if ~all(all(C.C==0))

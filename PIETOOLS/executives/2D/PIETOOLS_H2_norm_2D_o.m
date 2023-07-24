@@ -153,7 +153,7 @@ function [prog,Wo, gam] = PIETOOLS_H2_norm_2D_o(PIE, settings,options)
     
         end
 
-        prog = lpi_eq_2d(prog,Deop+Dop); %Dop=-Deop
+        prog = lpi_eq_2d(prog,Deop+Dop,'symmetric'); %Dop=-Deop
      end
     
     tempObj = B1op'*Wop*B1op;

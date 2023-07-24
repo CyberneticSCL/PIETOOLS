@@ -148,7 +148,7 @@ else
     else
         Deop=De1op;
     end
-    prog = lpi_eq(prog,Dop+Deop); %Dop=-Deop
+    prog = lpi_eq(prog,Dop+Deop,'symmetric'); %Dop=-Deop
 end
 
 disp('- Solving the LPI using the specified SDP solver...');
