@@ -221,7 +221,7 @@ else
     end
     
     % Enforce the equality constraint Qop=-Qeop.
-    prog = lpi_eq_2d(prog,Qeop+Qop);
+    prog = lpi_eq_2d(prog,Qeop+Qop,'symmetric');
 end
 
 
