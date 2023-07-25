@@ -45,7 +45,7 @@ if ~isa(P,'opvar')
 end
 
 dim = P.dim;
-if any(dim(:,1)~=dim(:,2))|| ~(P==P')
+if any(dim(:,1)~=dim(:,2))|| ~eq(P,P',1e-10)
     error('Opvar object can be sign definite if and only if it is self-adjoint')
 end
 
