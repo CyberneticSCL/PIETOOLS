@@ -5,11 +5,11 @@ function [Pinv] = inv_opvar(Pop, tol)
 % INPUT
 %   Pop: positive definite opvar to invert
 %   tol: order of coefficients in the polynomials that should be truncated
-% 
-% OUTPUT 
+%
+% OUTPUT
 %   Pinv: inverse opvar object. Inverse opvar is a numerical inversion and
 %   should be used with care and reservations.
-% 
+%
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
@@ -72,12 +72,12 @@ if all(Pop.dim(2,:)==0)
 elseif all(Pop.dim(1,:)==0)
     [F,G,R0inv] = getsemisepmonomials(Pop);
     F{1} = - F{1}; F{2} = - F{2};
-    
+
     A = subs([G{1}*F{1} G{1}*F{2}; -G{2}*F{1} -G{2}*F{2}],var2,var1);
-    
+
     U = polynomial(eye(size(A)));
     Uk = U;
-    
+
     % find max terms needed for approximation
     normA = sqrt(max(abs(eig(double(int(A'*A,var1,X(1),X(2)))))));
     Nmax = 1;
@@ -85,9 +85,9 @@ elseif all(Pop.dim(1,:)==0)
         Nmax = Nmax+1;
     end
 
-%     if Nmax>5 % capping Nmax to avoid huge computation time
-%         Nmax = 5;
-%     end
+    %     if Nmax>5 % capping Nmax to avoid huge computation time
+    %         Nmax = 5;
+    %     end
 
     for i=1:Nmax
         % remove terms from integrand that would be too small after Nmax
@@ -114,9 +114,9 @@ elseif all(Pop.dim(1,:)==0)
         Uk.coefficient(find(abs(Uk.coefficient)<tol)) = 0;
         U = U+Uk;
     end
-    
+
     U.coefficient(find(abs(U.coefficient)<tol)) = 0;
-    
+   
     % added this to reduce the order of polynomials
     for i=1:size(U,1)
         for j=1:size(U,2)
@@ -130,38 +130,38 @@ elseif all(Pop.dim(1,:)==0)
         end
     end
 
-    
+
     U11 = U(1:size(G{1},1), 1:size(F{1},2));
     U12 = U(1:size(G{1},1), size(F{1},2)+1:end);
     U21 = U(size(G{1},1)+1:end, 1:size(F{1},2));
     U22 = U(size(G{1},1)+1:end, size(F{1},2)+1:end);
     U21 = double(subs(U21,var1,X(2)));
     U22 = double(subs(U22,var1,X(2)));
-    
-    
-    
+
+
+
     if rcond(U22)<eps
         error('Given PI operator is likely non-invertible');
     else
         C = [F{1} F{2}]; B = [G{1}; -G{2}];
         P = [zeros(size(U11)) zeros(size(U12)); U22\U21 eye(size(U22))];
-        
+
         % finding U-inverse
         Uinv = polynomial(eye(size(A)));
         Ukinv = Uinv;
         for i=1:Nmax
             % remove terms from integrand that would be too small after Nmax
-        % integrations
-        tmp = Ukinv*A;
-        spMax = max(abs(X)); % this is the max value the variable in the polynmial tmp can take
-        cfMax = max(abs(tmp.coef(:))); dmat = tmp.degmat;
-        termMax_numerator = cfMax*spMax.^(dmat+1);
-        termMax_denominator = dmat+1;
-        termMax = termMax_numerator./termMax_denominator;
-        idx2remove = termMax<tol;
-        newCf = tmp.coef(~idx2remove,:) ;
-        newdmat = tmp.degmat(~idx2remove,:);
-        tmp = polynomial(newCf,newdmat,tmp.varname,tmp.matdim);
+            % integrations
+            tmp = Ukinv*A;
+            spMax = max(abs(X)); % this is the max value the variable in the polynmial tmp can take
+            cfMax = max(abs(tmp.coef(:))); dmat = tmp.degmat;
+            termMax_numerator = cfMax*spMax.^(dmat+1);
+            termMax_denominator = dmat+1;
+            termMax = termMax_numerator./termMax_denominator;
+            idx2remove = termMax<tol;
+            newCf = tmp.coef(~idx2remove,:) ;
+            newdmat = tmp.degmat(~idx2remove,:);
+            tmp = polynomial(newCf,newdmat,tmp.varname,tmp.matdim);
 
             Ukinv = int(tmp,var1,X(1),var1);
             if isa(Ukinv, 'double')
@@ -174,7 +174,7 @@ elseif all(Pop.dim(1,:)==0)
         end
 
         Uinv.coefficient(find(abs(Uinv.coefficient)<tol)) = 0;
-        Uinv = subs(Uinv,var1,var2);
+        Uinv = polynomial(subs(Uinv,var1,var2));
 
         % added this to reduce the order of polynomials
         for i=1:size(Uinv,1)
@@ -188,7 +188,7 @@ elseif all(Pop.dim(1,:)==0)
                 Uinv(i,j) = tmp;
             end
         end
-        
+
         Pinv.R.R0 = R0inv;
         Pinv.R.R1 = C*U*(eye(size(P))-P)*Uinv*B*subs(R0inv,var1,var2);
         Pinv.R.R2 = -C*U*P*Uinv*B*subs(R0inv,var1,var2);
@@ -201,13 +201,13 @@ else
     C.I = X; C.var1 = Pop.var1; C.var2 = Pop.var2;
     D.I = X; D.var1 = Pop.var1; D.var2 = Pop.var2;
     A.P = Pop.P; B.Q1 = Pop.Q1; C.Q2 = Pop.Q2; D.R = Pop.R;
-%     Dinv = opvar_inverse_iterative(D,tol);
+    %     Dinv = opvar_inverse_iterative(D,tol);
     Ainv = inv_opvar(A,tol);
-%     TA = opvar_inverse_iterative(A-B*Dinv*C,tol);
+    %     TA = opvar_inverse_iterative(A-B*Dinv*C,tol);
     TB = inv_opvar(D-C*Ainv*B,tol);
-%     Pinv = [TA,         -Ainv*B*TB;
-%             -Dinv*C*TA, TB];
-        
+    %     Pinv = [TA,         -Ainv*B*TB;
+    %             -Dinv*C*TA, TB];
+
     Pinv = [Ainv+Ainv*B*TB*C*Ainv, -Ainv*B*TB; -TB*C*Ainv, TB];
     Pinv = clean(Pinv,tol);
 end
@@ -218,25 +218,30 @@ if ~isa(P,'opvar')
 end
 X = P.I; var1 = P.var1; var2 = P.var2;
 
-% finding U-inverse  
-N=100; orderapp=max(P.R.R0.degmat(:)); 
-dx = (X(2)-X(1))/N; 
-ii=0;
-Rtemp = zeros(size(P.R.R0,1),size(P.R.R0,2),N);
-for ss=[X(1):dx:X(2)]
-    ii=ii+1;
-    Rtemp(:,:,ii)= inv(double(subs(P.R.R0,var1,ss))); % Calculates the value of the inverse of S at every point in the interval
-end
-Rinv = polynomial(zeros(size(P.R.R0)));
-for i=1:size(P.R.R0,1)
-    for j=1:size(P.R.R0,2)
-        Data1=squeeze(Rtemp(i,j,:))';
-        tempCoeffs =polyfit([X(1):dx:X(2)],Data1,orderapp); % uses matlab internal polynomial representation 
-        Rinv(i,j)=var1.^(orderapp:-1:0)*tempCoeffs';
+if poly2double(P.R.R0)
+    Rinv = inv(double(P.R.R0));
+else
+    % finding R0-inverse
+    N=100; orderapp=max(P.R.R0.degmat(:));
+    dx = (X(2)-X(1))/N;
+    ii=0;
+    Rtemp = zeros(size(P.R.R0,1),size(P.R.R0,2),N);
+    for ss=[X(1):dx:X(2)]
+        ii=ii+1;
+        Rtemp(:,:,ii)= inv(double(subs(P.R.R0,var1,ss))); % Calculates the value of the inverse of S at every point in the interval
     end
+    Rinv = polynomial(zeros(size(P.R.R0)));
+    for i=1:size(P.R.R0,1)
+        for j=1:size(P.R.R0,2)
+            Data1=squeeze(Rtemp(i,j,:))';
+            tempCoeffs =polyfit([X(1):dx:X(2)],Data1,orderapp); % uses matlab internal polynomial representation
+            Rinv(i,j)=var1.^(orderapp:-1:0)*tempCoeffs';
+        end
+    end
+    Rinv.coefficient(find(abs(Rinv.coefficient)<1e-10)) = 0;
 end
 
-Rinv.coefficient(find(abs(Rinv.coefficient)<1e-10)) = 0;
+
 Ra = Rinv*P.R.R1;
 Rb = Rinv*P.R.R2;
 

@@ -37,5 +37,8 @@ function inv_pi_op = inv(pi_op,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+    if nargin==1
+        tol=1e-7;
+    end
     inv_pi_op = inv_opvar(pi_op,tol);
 end

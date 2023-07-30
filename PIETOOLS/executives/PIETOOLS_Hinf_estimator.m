@@ -207,5 +207,7 @@ gam = double(sosgetsol(prog,gam));
 
 P = getsol_lpivar(prog,Pop);
 Z = getsol_lpivar(prog,Zop);
-Lop = getObserver(P,Z);
+
+Lop = P\Z;
+% Lop = getObserver(P,Z);
 end

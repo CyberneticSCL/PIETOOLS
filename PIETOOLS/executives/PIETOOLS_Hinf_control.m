@@ -231,6 +231,7 @@ P = getsol_lpivar(prog,Pop);
 Z = getsol_lpivar(prog,Zop);
 
 Kop = getController(P,Z);
+% Kop = Z/P;
 % end
 
 end

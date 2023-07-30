@@ -80,7 +80,7 @@ if sosineq_on
     % if sosineq is used, then options2, options3 defined here are unused
 else
     % These options are NOT passed to sosineq
-    Dup=1;
+    Dup=5;
     settings.override2=0;   % Psatz in Derv
     % when not using sosineq, options 2 is for the nominal part of the derv,
     % options3 is for the Psatz part of the derv
