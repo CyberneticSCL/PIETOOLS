@@ -1629,8 +1629,8 @@ while ii<=n_eqs
             % If no integral is specified, but an integral is required,
             % throw an error.
             if any(must_int_var)
-                error(['The term "',term_name,'" appears to depend on a variable that the component "',obj,'{',num2str(ii),'}" does not depend on. This is not suppoprted.',...
-                        ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the term at a particular, so as to remove the dependence on any "illegal" variables.'])
+                error(['The term "',term_name,'" appears to depend on a variable that the component "',obj,'{',num2str(ii),'}" does not depend on. This is not supported.',...
+                        ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the term at a particular position, so as to remove the dependence on any "illegal" variables.'])
             end
             % Otherwise, if no integral is specified, assume that no
             % integral is  desired.
@@ -1658,8 +1658,8 @@ while ii<=n_eqs
                 elseif isempty(Ival{kk}) 
                     % If integration must be performed, but is not
                     % specified, throw an error
-                    error(['The term "',term_name,'" appears to depend on a variable that the component "',obj,'{',eq_num_str,'}" does not depend on. This is not suppoprted.',...
-                            ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the state at a particular, so as to remove the dependence on any "illegal" variables.'])
+                    error(['The term "',term_name,'" appears to depend on a variable that the component "',obj,'{',eq_num_str,'}" does not depend on. This is not supported.',...
+                            ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the state at a particular position, so as to remove the dependence on any "illegal" variables.'])
                     %Ival{kk} = Rdom(kk,:);
                 elseif ~isempty(Ival{kk}) && ~isvariable_term_jj(kk)
                     % Avoid integration in variables along which the
