@@ -242,7 +242,7 @@ for ii=1:ncomps
     % Loop over all terms in the PDE for the component, replacing the old
     % variables by the new variables.
     if strcmp(Lobj,'w') || strcmp(Lobj,'u')
-        break
+        continue
     end
     nterms = numel(PDE.(Lobj){ii}.term);
     for jj=1:nterms
