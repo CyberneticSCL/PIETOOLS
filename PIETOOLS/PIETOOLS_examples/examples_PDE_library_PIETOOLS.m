@@ -1063,11 +1063,12 @@ if nargin1==0 %<-- If there is no input, pause the script and let the user speci
         varargin0{1} = index;
     else
         userinp = input('\n No existing example specified... Please input an integer value 1 through 29 to extract the example \n ---> ','s');
+        varargin0 = split(userinp,[" ",","]);
         index = str2double(varargin0{1});
         if isnan(index)
             error('Please specify the desired example as first argument when calling ''examples_PDE_library_PIETOOLS''')
         else
-            varargin0 = [str2double(userinp);varargin];
+            varargin0 = [str2double(userinp);varargin0];
         end
     end
 end
