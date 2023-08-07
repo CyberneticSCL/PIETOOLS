@@ -104,7 +104,4 @@ PIEcl.D12 = dummy;
 dummy.dim = [PIE.C2.dim(:,1),[0;0]];
 PIEcl.D22 = dummy;
 
-PIEcl = pie_struct(PIEcl);
-PIEcl.vars = [K.var1; K.var2];
-PIEcl.dom = K.I;
 end

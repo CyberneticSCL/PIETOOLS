@@ -1,14 +1,14 @@
-function [Z_Pinv] = mrdivide(Z,P, tol)
+function [Pinv] = inv_opvar_new(Pop, tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [Pinv] = mrdivide(P, Z, tol) computes the composition of left inverse
-% with a PI operator ZP^{-1} numerically
+% [Pinv] = inv_opvar(Pop, tol) computes the inverse operator of the
+% operator
 % INPUT
-%   P: positive definite opvar to invert
-%   Z: opvar to compose with
+%   Pop: positive definite opvar to invert
 %   tol: order of coefficients in the polynomials that should be truncated
 %
 % OUTPUT
-%   Z_Pinv: ZP^{-1}
+%   Pinv: inverse opvar object. Inverse opvar is a numerical inversion and
+%   should be used with care and reservations.
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -44,167 +44,45 @@ function [Z_Pinv] = mrdivide(Z,P, tol)
 
 
 
-if nargin==2
+if nargin==1
     tol=1e-7;
 end
 
-if ~isa(P,'opvar')|| any(P.dim(:,1)~=P.dim(:,2))
+if ~isa(Pop,'opvar')|| any(Pop.dim(:,1)~=Pop.dim(:,2))
     error('Only opvar class objects with equal input and output dimensions can be inverted using this function');
 end
 
-if any(P.dim(:,1)~=Z.dim(:,2))
-    error('Dimensions incompatible; cannot compose P-inverse and Z.');
+Pop = clean(Pop,tol);
+
+if all(isequal(Pop.R.R1,Pop.R.R2)) % if pi operator is separable then use analytical formulae from the old code
+    Pinv = inv_opvar_old(Pop);
+    return;
 end
 
-if any(P.I~=Z.I)
-    error('P and Z on different domains; Cannot compose.');
-end
 
-P = clean(P,tol);
-Z = clean(Z,tol);
+X = Pop.I; var1 = Pop.var1; var2 = Pop.var2;
+opvar Pinv;
+Pinv.I = X; Pinv.var1 = var1; Pinv.var2 = var2;
 
-X = P.I; var1 = P.var1; var2 = P.var2;
-
-prog = sosprogram([var1,var2]);
-
-[prog,K] = lpivar(prog,[Z.dim(:,1),P.dim(:,1)],X,[50,50,50]);
-
-tmp = K*P-Z;
-
-% solve least squares regression to find coefficients of K such that
-% norm(KP-Z) is minimized
-N_grid= 30; maxIter = 300;
-dS = linspace(X(1),X(2),N_grid);
-
-A=[];
-if ~isempty(tmp.P)
-    A = [A; tmp.P.C'];
-    decVars = tmp.P.dvarname;
-end
-if ~isempty(tmp.Q1)
-    [decVars,ia,ib] = union(decVars,tmp.Q1.dvarname,'stable');
-    if ~isempty(ib)
-        A = [A,zeros(size(A,1),length(ib))];
+if all(Pop.dim(2,:)==0)
+    if isa(Pop.P,'polynomial')
+        Pop.P = double(Pop.P);
     end
-    for si=dS
-        tmp_poly = subs(tmp.Q1,var1,si);
-        A = [A; tmp_poly.C'];
-    end
-end
-if ~isempty(tmp.Q2)
-    [decVars,ia,ib] = union(decVars,tmp.Q2.dvarname,'stable');
-    if ~isempty(ib)
-        A = [A,zeros(size(A,1),length(ib))];
-    end
-    for si=dS
-        tmp_poly = subs(tmp.Q2,var1,si);
-        A = [A; tmp_poly.C'];
-    end
-end
-if ~isempty(tmp.R.R0)
-    [decVars,ia,ib] = union(decVars,tmp.R.R0.dvarname,'stable');
-    if ~isempty(ib)
-        A = [A,zeros(size(A,1),length(ib))];
-    end
-    for si=dS
-        tmp_poly = subs(tmp.R.R0,var1,si);
-        A = [A; tmp_poly.C'];
-    end
-end
-if ~isempty(tmp.R.R1)
-    [decVars,ia,ib] = union(decVars,tmp.R.R0.dvarname,'stable');
-    if ~isempty(ib)
-        A = [A,zeros(size(A,1),length(ib))];
-    end
-    for si=dS
-        tmp_poly = subs(tmp.R.R1,var1,si);
-        A = [A; tmp_poly.C'];
-    end
-end
-if ~isempty(tmp.R.R2)
-    [decVars,ia,ib] = union(decVars,tmp.R.R0.dvarname,'stable');
-    if ~isempty(ib)
-        A = [A,zeros(size(A,1),length(ib))];
-    end
-    for si=dS
-        tmp_poly = subs(tmp.R.R2,var1,si);
-        A = [A; tmp_poly.C'];
-    end
-end
+    Pinv.P = inv(Pop.P);
+elseif all(Pop.dim(1,:)==0)
+    %     [F,G,R0inv] = getsemisepmonomials(Pop);
+    %     F{1} = - F{1}; F{2} = - F{2};
+    %
+    %     A = subs([G{1}*F{1} G{1}*F{2}; -G{2}*F{1} -G{2}*F{2}],var2,var1);
+    %
+    %     U = polynomial(eye(size(A)));
+    %     Uk = U;
 
-dvar = [];
-for i=1:length(decVars)
-    dvar = [dvar; pvar(decVars{i})];
-end
+    % find max terms needed for approximation
+    %     normA = sqrt(max(abs(eig(double(int(A'*A,var1,X(1),X(2)))))));
 
-[cf,flag,res,itcon,resvec,lsvec] = lsqr(A(:,2:end),-A(:,1),tol,maxIter);
-
-if flag
-    error('Failed to find a suitable right inverse and determine ZP^{-1}');
-else
-    opvar Z_Pinv; 
-    Z_Pinv.dim = K.dim; Z_Pinv.I = K.I;
-    Z_Pinv.var1 = K.var1; Z_Pinv.var2 = K.var2;
-
-    if ~isempty(K.P)
-        Z_Pinv.P = subs(dpvar2poly(K.P),dvar,cf);
-    end
-    if ~isempty(K.Q1)
-        Z_Pinv.Q1 = subs(dpvar2poly(K.Q1),dvar,cf);
-    end
-    if ~isempty(K.Q2)
-        Z_Pinv.Q2 = subs(dpvar2poly(K.Q2),dvar,cf);
-    end
-    if ~isempty(K.R.R0)
-        Z_Pinv.R.R0 = subs(dpvar2poly(K.R.R0),dvar,cf);
-    end
-    if ~isempty(K.R.R1)
-        Z_Pinv.R.R1 = subs(dpvar2poly(K.R.R1),dvar,cf);
-    end
-    if ~isempty(K.R.R2)
-        Z_Pinv.R.R2 = subs(dpvar2poly(K.R.R2),dvar,cf);
-    end
-end
-if 0
-opvar out;
-out.I = X; out.var1 = var1; out.var2 = var2;
-
-% orderApp - the global upper limit on the order of polynomials used in the
-% output opvar
-orderApp = 5;
-
-[Fd1, Fd2, Gd1, Gd2, Ad, Rinvd, dx] = getsemisepmonomials(P,orderApp);
-
-% first lets find R0 term of Pinv*Z; P.R0^{-1}*Z.R0
-ii=1;
-for ss=dX
-    R0d(ii,:,:)= double(subs(P.R.R0,var1,ss))\double(subs(Z.R.R0,var1,ss)); % Calculates the value of the inverse at every point in the interval
-end
-tmp = polynomial(zeros(size(P.R.R0,1),size(Z.R.R0,2)));
-for i=1:size(P.R.R0,1)
-    for j=1:size(Z.R.R0,2)
-        Data1=squeeze(tmp(:,i,j))';
-        tempCoeffs =polyfit([X(1):dx:X(2)],Data1,orderApp); % uses matlab internal polynomial representation
-        tmp(i,j)=var1.^(orderapp:-1:0)*tempCoeffs';
-    end
-end
-out.R.R0 = tmp;
-
-% next steps will be mixed since we need to evaluate multiple functions
-% numerically before finally performing the polyfit on the parameters of
-% output opvar.
-
-
-
-
-if all(P.dim(2,:)==0)
-    if isa(P.P,'polynomial')
-        P.P = double(P.P);
-    end
-    out.P = inv(P.P);
-elseif all(P.dim(1,:)==0)
     orderapp = 5;
-    [Fd1, Fd2, Gd1, Gd2, Ad, R0inv, Rinvd, dx] = getsemisepmonomials_discrete(P);
+    [Fd1, Fd2, Gd1, Gd2, Ad, R0inv, Rinvd, dx] = getsemisepmonomials_discrete(Pop);
      
     for i=1:size(Ad,1)
         tmp(i,:,:) = squeeze(Ad(i,:,:))'*squeeze(Ad(i,:,:));
@@ -262,7 +140,7 @@ elseif all(P.dim(1,:)==0)
             Udinv = Udinv-Udinvk;
         end
 
-        out.R.R0 = R0inv;
+        Pinv.R.R0 = R0inv;
 
         for i=1:size(Ad,1)
                 tmp(i,:,:) = squeeze(C(i,:,:))*squeeze(U(i,:,:))*(eye(size(P))-P)*squeeze(Uinv(i,:,:))*squeeze(B(i,:,:));
@@ -276,18 +154,18 @@ elseif all(P.dim(1,:)==0)
             end
         end
 
-        out.R.R1 = tmp2*subs(R0inv,var1,var2);
+        Pinv.R.R1 = tmp2*subs(R0inv,var1,var2);
         tmp = -C*U*P*Uinv*B*subs(R0inv,var1,var2);
-        out.R.R2 = tmp;
-        out = clean(out,tol);
+        Pinv.R.R2 = tmp;
+        Pinv = clean(Pinv,tol);
     end
 else
     opvar A B C D;
-    Ad.I = X; Ad.var1 = P.var1; Ad.var2 = P.var2;
-    B.I = X; B.var1 = P.var1; B.var2 = P.var2;
-    C.I = X; C.var1 = P.var1; C.var2 = P.var2;
-    D.I = X; D.var1 = P.var1; D.var2 = P.var2;
-    Ad.P = P.P; B.Q1 = P.Q1; C.Q2 = P.Q2; D.R = P.R;
+    Ad.I = X; Ad.var1 = Pop.var1; Ad.var2 = Pop.var2;
+    B.I = X; B.var1 = Pop.var1; B.var2 = Pop.var2;
+    C.I = X; C.var1 = Pop.var1; C.var2 = Pop.var2;
+    D.I = X; D.var1 = Pop.var1; D.var2 = Pop.var2;
+    Ad.P = Pop.P; B.Q1 = Pop.Q1; C.Q2 = Pop.Q2; D.R = Pop.R;
     %     Dinv = opvar_inverse_iterative(D,tol);
     Ainv = inv_opvar(Ad,tol);
     %     TA = opvar_inverse_iterative(A-B*Dinv*C,tol);
@@ -295,12 +173,11 @@ else
     %     Pinv = [TA,         -Ainv*B*TB;
     %             -Dinv*C*TA, TB];
 
-    out = [Ainv+Ainv*B*TB*C*Ainv, -Ainv*B*TB; -TB*C*Ainv, TB];
-    out = clean(out,tol);
+    Pinv = [Ainv+Ainv*B*TB*C*Ainv, -Ainv*B*TB; -TB*C*Ainv, TB];
+    Pinv = clean(Pinv,tol);
 end
 end
-end
-function [F1,F2,G1,G2,A,Rtemp,dX] = getsemisepmonomials(P,orderApp)
+function [F1,F2,G1,G2,A,Rinv, Rtemp,dX] = getsemisepmonomials_discrete(P)
 if ~isa(P,'opvar')
     error('Input should be an opvar class object');
 end
