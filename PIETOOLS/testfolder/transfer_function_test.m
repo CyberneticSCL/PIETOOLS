@@ -43,13 +43,29 @@ st.sos_opts.solver = 'mosek';
 %% find h2-norm & hinf-norm of the transfer function
 opvar I; I.dim = PIE.T.dim; I.var1 = PIE.T.var1; I.var2 = PIE.T.var2;
 I.R.R0 = 1;
-lims = 10; N=200;
-dw = linspace(-lims,lims,N);
-dW = 1i*10.^(dw);
+lims = 50; dw = 0.5;
+N = lims/dw;
+dW = linspace(0.1,lims,N);
+intS = 0;
 hinf_norm = 0;
 for i=1:length(dW)
     w = dW(i);
-    [tfncR,tfncI] = tf_2(PIE,w);
-    H = double(tfnewR)+1i*double(tfnewI);
+%     [tfncR,tfncI] = tf(PIE,w);
+    % finding -A+i wT, analytically
+    M_r = -inv(PIE.A+w^2*PIE.T*PIE.A*PIE.T);
+    M_i = w*PIE.T*M_r;
+    tfnewR = PIE.C1*M_r*PIE.B1;
+    tfnewI = PIE.C1*M_i*PIE.B1;
+    H = double(tfnewR.P)+1i*double(tfnewI.P);
     hinf_norm = max(hinf_norm,abs(H));
+%     errR(i)=double(tfnewR.P-tfncR.P);
+%     errI(i)=double(tfnewI.P-tfncI.P);
 end
+%%
+plot(dW,errR,'x'); hold on;
+plot(dW,errI,'o');
+title('Error in approximation of transfer function.')
+legend('Real part','Imaginary part');
+xlabel('Frequency, w');
+ylabel('err');
+
