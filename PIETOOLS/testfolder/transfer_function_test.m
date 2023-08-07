@@ -1,27 +1,11 @@
 clc; clear;
-syms sx;
-tf_analytic = (cosh(sqrt(sx))-1)/(sqrt(sx)*sinh(sqrt(sx)));
-figure(1);
-w = linspace(-10,10,500);
-freq = 1i*10.^(w);
-resp = subs(tf_analytic,sx,freq);
-hinf_analytic = max(double(abs(resp)));
-loglog(-1i*freq,double(abs(resp)));
-title('Bode plot: $\dot{\mathbf{x}}=\mathbf{x}_{ss},~~\mathbf{x}(0)=0,~~\mathbf{x}(1)=w,~~z=\int_0^1 \mathbf{x}(s) ds$','Interpreter','latex');
-xlabel('$\omega$','Interpreter','latex');
-ylabel('$| G(i \omega) |$','Interpreter','latex');
-str = "Max |G| = "+num2str(hinf_analytic);
-dim = [.2 .5 .3 .3];
-annotation('textbox',dim,'String',str,'FitBoxToText','on');
-%%
-
 pvar s t theta;
 x = state('pde'); z = state('out'); w = state('in');
 
 % heat equation
-eqns = [diff(x,t)==diff(x,s,2); 
+eqns = [diff(x,t)==diff(x,s,2)+(s^2-s)*w; 
              z==int(x,s,[0,1]);
-             subs(x,s,0)==0; subs(diff(x,s),s,1)==w];
+             subs(x,s,0)==0; subs(diff(x,s),s,1)==0];
 % % transport equation
 % eqns = [diff(x,t)==diff(x,s)+w; 
 %              z==int(x,s,[0,1]);
@@ -40,6 +24,9 @@ PIE = pie.params;
 st = lpisettings('heavy');
 st.sos_opts.solver = 'mosek';
 [prog,P,gam_hinf] = lpisolve(PIE,st,'l2gain');
+[prog,P,gam_hinf_d] = lpisolve(PIE,st,'l2gain-dual');
+[prog,P,gam_o] = lpisolve(PIE,st,'h2-o');
+[prog,P,gam_c] = lpisolve(PIE,st,'h2-c');
 %% find h2-norm & hinf-norm of the transfer function
 opvar I; I.dim = PIE.T.dim; I.var1 = PIE.T.var1; I.var2 = PIE.T.var2;
 I.R.R0 = 1;
