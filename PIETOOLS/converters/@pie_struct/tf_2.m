@@ -7,15 +7,14 @@ nz = PIE.C1.dim(1,1);
 nw = PIE.B1.dim(1,2);
 
 C = PIE.C1; B = PIE.B1; Tw = PIE.Tw;
-T = PIE.T; Ap = PIE.A; X = PIE.T.I;var1 = PIE.T.var1;
-var2 = PIE.T.var2;
+T = PIE.T; A = PIE.A;
 
 opvar Z Zb;
 Z.dim = PIE.C1.dim;
 Zb.dim = PIE.B1.dim;
 
 bigC = [C,Z;Z,C];
-bigT = [-Ap,w*T; -w*T,-Ap];
+bigT = [-A,w*T; -w*T,-A];
 bigB = [B-w*Tw,Zb;Zb,B-w*Tw];
 
 Cq1 = bigC.Q1;
@@ -23,53 +22,39 @@ Bq2 = bigB.Q2;
 
 [F,G] = getsemisepmonomials(bigT);
 F{1} = - F{1}; F{2} = - F{2};
-q = size(G{2},1); p = size(F{1},2);
-% R_1a = F1, R_1b = G1, R_2a = G2, R_2b = G2,
+
+% R_1a = F1, R_1b = G1, R_2a = G2, R_2b = G2, 
 
 % find A(s_i) = [R_{1,b}(s_i)R_0(s_i)^{-1}R_{1,a}(s_i)&
 %                       R_{1,b}(s_i)R_0(s_i)^{-1}R_{2,a}(s_i)\\
 %                         -R_{2,b}(s_i)R_0(s_i)^{-1}R_{1,a}(s_i)&
 %                            -R_{2,b}(s_i)R_0(s_i)^{-1}R_{2,a}(s_i)]
 N = 100;
-si = linspace(X(1),X(2),N); ds = si(2)-si(1);
-A = zeros(length(si),p+q,p+q);
-U = A;
-V = U; Uk = U; Vk = V;
+si = linspace(X(1),X(2),N); ds = s(2)-s(1);
 for i=1:length(si)
     sval = si(i);
-    tmp = double(subs(bigT.R.R0,var1,sval));
+    tmp = subs(R0,var1,sval);
     R0inv(i,:,:)=inv(tmp);
-    tmp1 = double(subs(G{1},var2,sval))*squeeze(R0inv(i,:,:));
-    tmp2 = -double(subs(G{2},var2,sval))*squeeze(R0inv(i,:,:));
-    A(i,:,:) = [tmp1*double(subs(F{1},var1,sval)),tmp1*double(subs(F{2},var1,sval));
-        tmp2*double(subs(F{1},var1,sval)),tmp2*double(subs(F{2},var1,sval))];
+    tmp1 = subs(G{1},var2,sval)/squeeze(tmp);
+    tmp2 = -subs(G{2},var2,sval)/squeeze(tmp);
+    A(i,:,:) = [tmp1*subs(F{1},var1,sval),tmp1*subs(F{2},var1,sval);
+                  tmp2*subs(F{1},var1,sval),tmp2*subs(F{2},var1,sval)];
     U(i,:,:) = eye(size(A(i,:,:),[2,3]));
-    A2(i,:,:) = squeeze(A(i,:,:))'*squeeze(A(i,:,:));
 end
-Uk = A; Vk = A;
+Uk = U;
+V = U; Vk = U;
 
-Nmax = 1;
-normA = sqrt(max(abs(eig(squeeze(trapz(si,A2))))));
-
-while (normA^Nmax)/factorial(Nmax)>1e-7
-    Nmax = Nmax+1;
-end
-
-tmp = zeros(length(si),p+q,p+q);
-tmp2 = zeros(length(si),p+q,p+q);
 for j=1:Nmax
-    U=U+Uk; V=V+Vk;
-    for i=1:size(A,1)
-        tmp(i,:,:) = squeeze(A(i,:,:))*squeeze(Uk(i,:,:));
-        tmp2(i,:,:) = squeeze(Vk(i,:,:))*squeeze(A(i,:,:));
-    end
-    for i=2:size(A,1)
-        Uk(i,:,:) = trapz(si(1:i),tmp(1:i,:,:));
-        Vk(i,:,:) = trapz(si(1:i),tmp2(1:i,:,:));
-    end
+for i=1:size(A,1)
+    tmp(i,:,:) = squeeze(A(i,:,:))*squeeze(Uk(i,:,:));
+    tmp2(i,:,:) = squeeze(Vk(i,:,:))*squeeze(A(i,:,:));
+    Uk(i,:,:) = trapz(si(1:i),tmp(1:i,:,:));
+    Vk(i,:,:) = trapz(si(1:i),tmp2(1:i,:,:));
+end
+U=U+Uk; V=V+Vk;
 end
 
-
+q = size(G{2},1); p = size(F{1},2);
 tmp = squeeze(U(end,:,:));
 U22 = tmp(p+1:end,p+1:end); U21 = tmp(p+1:end,1:p);
 P = [zeros(p), zeros(p,q); U22\U21, eye(q)];
@@ -77,27 +62,14 @@ I_P = eye(size(P))-P;
 
 
 for i=1:size(A,1)
-    lC1(i,:,:) = double(subs(Cq1,var1,si(i)))*squeeze(R0inv(i,:,:))*double(subs([F{1},F{2}],var1,si(i)))*squeeze(U(i,:,:))*I_P;
-    lC2(i,:,:) = -double(subs(Cq1,var1,si(i)))*squeeze(R0inv(i,:,:))*double(subs([F{1},F{2}],var1,si(i)))*squeeze(U(i,:,:))*P;
-    rB(i,:,:) = squeeze(V(i,:,:))*double(subs([G{1};-G{2}],var2,si(i)))*squeeze(R0inv(i,:,:))*double(subs(Bq2,var1,si(i)));
+    lC1(i,:,:) = subs(Cq1*squeeze(R0inv(i,:,:))*[F{1},F{2}]*squeeze(U(i,:,:))*IP,var1,si(i));    
+    lC2(i,:,:) = subs(Cq1*squeeze(R0inv(i,:,:))*[F{1},F{2}]*squeeze(U(i,:,:))*P,var1,si(i));    
+    rB(i,:,:) = subs(squeeze(V(i,:,:))*[G{1};-G{2}]*squeeze(R0inv(i,:,:))*Bq2,var1,si(i));
 end
 for i=1:size(A,1)
-    tmpA(i,:,:) = squeeze(lC1(i,:,:))*squeeze(rB(i,:,:));
-    tmpB(i,:,:) = squeeze(lC2(i,:,:))*squeeze(rB(i,:,:));
-end
-
-for i=1:size(A,1)
-    TF(i,:,:) = double(subs(Cq1,var1,si(i)))*squeeze(R0inv(i,:,:))*double(subs(Bq2,var1,si(i)));
-    if i==1
-        TF2(i,:,:) = zeros(size(tmpB(i,:,:),[2,3]));
-    else
-        TF2(i,:,:) = trapz(si(1:i),tmpB(1:i,:,:));
-    end
-    if i==size(A,1)
-        TF1(i,:,:) = zeros(size(tmpA(i,:,:),[2,3]));
-    else
-        TF1(i,:,:) = trapz(si(i:end),tmpA(i:end,:,:));
-    end
+    TF(i,:,:) = subs(Cq1*squeeze(R0inv(i,:,:))*Bq2,var1,si(i));
+    TF1(i,:,:) = trapz(si(i:end),squeeze(lC1(i:end,:,:))*squeeze(rB(i:end,:,:)));
+    TF2(i,:,:) = trapz(si(1:i),squeeze(lC2(1:i,:,:))*squeeze(rB(1:i,:,:)));
 end
 TF = TF+TF1+TF2;
 tmp = squeeze(trapz(si, TF)); % TF is size n_grid*2*nz*2*nw;
@@ -162,7 +134,7 @@ elseif size(R2temp.degmat,2)<2 % if only s or theta is present
     end
     R2temp = polynomial(R2temp.coefficient,[R2temp.degmat,zeros(size(R2temp.degmat,1),1)],[R2temp.varname;missingVar],R2temp.matdim);
 end
-Ra = R1temp; Rb = R2temp;
+Rinv = R0temp; Ra = R1temp; Rb = R2temp;
 
 Ra_vnames = Ra.varname;
 Rb_vnames = Rb.varname;
