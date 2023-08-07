@@ -107,6 +107,9 @@ dmQ=max(max(dQ));
 dR=NR.degmat;
 dmR=max(max(dR));
 dm=max([dmQ dmR]);
+if isempty(dm)
+    dm=0;
+end
 ZCth=polynomial(eye(dm+1),[0:dm]',{'s'},[dm+1 1]); % common vector of monomials
 bigZCth=[];
 for i=1:m_dim

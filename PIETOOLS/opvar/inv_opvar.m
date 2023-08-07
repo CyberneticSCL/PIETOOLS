@@ -55,8 +55,10 @@ end
 Pop = clean(Pop,tol);
 
 if all(isequal(Pop.R.R1,Pop.R.R2)) % if pi operator is separable then use analytical formulae from the old code
-    Pinv = inv_opvar_old(Pop);
-    return;
+    if ~(poly2double(Pop.R.R1)&&all(double(Pop.R.R1(:))==0))
+        Pinv = inv_opvar_old(Pop);
+        return;
+    end
 end
 
 

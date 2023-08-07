@@ -9,7 +9,7 @@ opvar Z Zb;
 Z.dim = PIE.C1.dim;
 Zb.dim = PIE.B1.dim;
 
-bigTF = @(w) [C,Z;Z,C]*inv([-A,w*T; -w*T -A])*[B,Zb;Zb,B];
+bigTF = @(w) [C,Z;Z,C]*inv([-A,w*T; -w*T -A],1e-12)*[B-w*PIE.Tw,Zb;Zb,B-w*PIE.Tw];
 
 tmp = bigTF(w);
 

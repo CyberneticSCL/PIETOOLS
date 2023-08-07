@@ -103,6 +103,7 @@ if ~isempty(tmp.Q2)
     end
     for si=dS
         tmp_poly = subs(tmp.Q2,var1,si);
+        [At,b] = getequation(tmp_poly,[],decVars,[],'eq');
         A = [A; tmp_poly.C'];
     end
 end
