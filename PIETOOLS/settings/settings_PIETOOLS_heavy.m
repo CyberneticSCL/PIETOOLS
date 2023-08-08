@@ -34,7 +34,7 @@ function settings = settings_PIETOOLS_heavy()
 n_order1 = 2; 
 n_order2 = 1; % This is supposed to be an accuracy/non-balancing degree
 n_order3 = 1;
-n_order4 = max([n_order2,n_order3]);
+n_order4 = n_order2+n_order3;
 
 
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,11 +85,11 @@ else
     % when not using sosineq, options 2 is for the nominal part of the derv,
     % options3 is for the Psatz part of the derv
     settings.options2.psatz=0;
-    settings.options2.exclude= [0 1 0 0];
+    settings.options2.exclude= [0 0 0 0];
     settings.dd2 = {n_order1+1, [n_order2+Dup, n_order3+Dup, n_order4+Dup], [n_order2+Dup, n_order3+Dup, n_order4+Dup]};
     
     settings.options3.psatz=1; % this should always be 1, otherwise no point
-    settings.options3.exclude = [0 1 0 1]; % using the LU or UL decomposition in the psatz term seems to have minimal impact when norder2=1 norder1=2
+    settings.options3.exclude = [0 0 0 0]; 
     settings.dd3 = {n_order1, [n_order2+Dup-1, n_order3+Dup-1, n_order4+Dup-1], [n_order2+Dup-1, n_order3+Dup-1, n_order4+Dup-1]};
     % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end

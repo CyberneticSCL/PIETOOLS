@@ -1,20 +1,21 @@
-function logval = opvar_postest(P)
+function out = clean(in,tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% logval = opvar_postest(P) tests, numerically, if P is a positive definite opvar 
+% out = clean(in,tol) removes all polynomial terms with a coefficient smaller than tol
 % 
 % INPUT
-%   P: PI opvar variable
+% in: opvar class object
+% tol: tolerance value, default 1e-7
 % 
-% OUTPUT 
-%   logval: -1 if negative definite, 0 if indefinite, 1 if positive
-%   definite
+% OUTPUT
+% out: opvar class object
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETools - opvar_postest
+%
+% PIETools - isvalid
 %
 % Copyright (C)2019  M. Peet, S. Shivakumar
 %
@@ -37,32 +38,28 @@ function logval = opvar_postest(P)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, SS  - 7_26_2019
-%
 
-if ~isa(P,'opvar')
-    error('Input must be an opvar object');
+if nargin<2
+    tol=1e-7;
 end
+out = in;
+fields = {'P','Q1','Q2','R0','R1','R2'};
 
-dim = P.dim;
-if any(dim(:,1)~=dim(:,2))|| ~eq(P,P',1e-10)
-    error('Opvar object can be sign definite if and only if it is self-adjoint')
-end
-
-dim = dim(:,1);
-a = P.I(1); b=P.I(2); s = P.var1; theta = P.var2;
-for i=1:100
-    x = -10+20*rand(dim(1),1);
-    xmbf = (-10+20*rand(dim(2),10))*monomials(s,[0:9]);
-    inprod(i) = double(x'*P.P*x + int(x'*P.Q1*xmbf,s,a,b) + int(xmbf'*P.Q2*x,s,a,b)...
-        + int(xmbf'*P.R.R0*xmbf,s,a,b)+ int(int(xmbf'*P.R.R1*subs(xmbf,s,theta),theta,a,s),s,a,b)...
-        + int(int(xmbf'*P.R.R1*subs(xmbf,s,theta),theta,s,b),s,a,b));
-end
-if all(inprod>=0)
-    logval=1;
-elseif all(inprod<=0)
-    logval=-1;
-else
-    logval=0;
+for i=fields
+    if any(ismember(i{:},'R'))
+        tmp = in.R.(i{:});
+    else
+        tmp = in.(i{:});
+    end
+    if isa(tmp,'double')
+        tmp(find(abs(tmp)<tol))=0;
+    else
+        tmp.coefficient(find(abs(tmp.coefficient)<tol)) = 0;
+    end
+    if any(ismember(i{:},'R'))
+        out.R.(i{:})=tmp;
+    else
+        out.(i{:})=tmp;
+    end
 end
 end
