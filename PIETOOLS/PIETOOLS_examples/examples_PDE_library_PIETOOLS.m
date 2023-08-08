@@ -321,6 +321,8 @@ switch index
 %   BCs: x(s=0) = 0                                 |
 %   Out: z(t) = int(x(t,s),s,0,1)                   |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params);
+    % stripped - 15.0321
+    % light - .5104
 %--------------------------------------------------------------------------
     case 21
 %   PDE: phi_{tt} = phi_{ss} + w(t)                 | k = 0.5               (gamma = 2 for k = 0.5)  
@@ -333,6 +335,10 @@ switch index
 %        x2_{t} = x1_{s} + w(t)                     |
 %   BCs: x2(0) = 0,     x1(1) + k*x2(1) = 0         |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params);
+%   stripped -- 6.6074/24.3873
+%   light -- .8421
+%   heavy -- .8419
+
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
@@ -341,6 +347,10 @@ switch index
 %   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |
 %   Out: z(t) = int(x(t,s),s,0,1)                   |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance(GUI,params);
+% stripped - 6.2875
+% light - 0.2097
+% heavy - 0.2083
+% veryheavy - 0.2083
 %--------------------------------------------------------------------------
     case 23
 %   PDE: x_{t} = A2(s)*x_{ss}                       | A2 = s^3 - s^2 + 2;   (gamma = 15.147 for lamb = 4.6)       
@@ -369,7 +379,8 @@ switch index
 %   Out: z(t) = int(x(t,s),s,0,1)                   |       s,0,0;
 %                                                   |       s^2,-s^3,0]
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance_2(GUI,params);
-%     
+%     light -- 147.3174
+%     heavy -- 125.0233
 %==========================================================================
 %       Hinf-optimal observer
 %==========================================================================
