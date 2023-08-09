@@ -267,7 +267,17 @@ for i=2:length(si)
     Au = U{1}-A{i}*ds/2; 
     U{i} = Au\bu;
     bv = bv+V{i-1}*A{i-1}*ds/2;
-%     V{i} = bv/Au;
-    V{i} = inv(U{i});
+    V{i} = bv/Au;
+%     V{i} = inv(U{i});
+end
+if 0
+for i=3:length(si)
+    bu = bu + A{i-2}*U{i-2}*ds/6+4*A{i-1}*U{i-1}*ds/6;
+    Au = U{1}-A{i}*ds/6; 
+    U{i} = Au\bu;
+    bv = bv+V{i-2}*A{i-2}*ds/6+4*V{i-1}*A{i-1}*ds/6;
+    V{i} = bv/Au;
+%     V{i} = inv(U{i});
+end
 end
 end
