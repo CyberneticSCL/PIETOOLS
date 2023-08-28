@@ -230,8 +230,9 @@ gam = double(sosgetsol(prog,gam));
 P = getsol_lpivar(prog,Pop);
 Z = getsol_lpivar(prog,Zop);
 
-% Kop = getController(P,Z);
-Kop = Z/P;
+Kop = getController(P,Z);
+% Kop = Z/P;
+% Kop =0;
 % end
 
 end

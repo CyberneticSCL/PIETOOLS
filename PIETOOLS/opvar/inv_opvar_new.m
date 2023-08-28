@@ -138,14 +138,26 @@ else
     C.I = X; C.var1 = Pop.var1; C.var2 = Pop.var2;
     D.I = X; D.var1 = Pop.var1; D.var2 = Pop.var2;
     A.P = Pop.P; B.Q1 = Pop.Q1; C.Q2 = Pop.Q2; D.R = Pop.R;
-    %     Dinv = opvar_inverse_iterative(D,tol);
-    Ainv = inv_opvar(A,tol);
-    %     TA = opvar_inverse_iterative(A-B*Dinv*C,tol);
-    TB = inv_opvar(D-C*Ainv*B,tol);
-    %     Pinv = [TA,         -Ainv*B*TB;
-    %             -Dinv*C*TA, TB];
+    
+    isAinvertible = (det(A.P)>=1e-8);
 
-    Pinv = [Ainv+Ainv*B*TB*C*Ainv, -Ainv*B*TB; -TB*C*Ainv, TB];
+    if ~isAinvertible
+        Ainv = inv_opvar(A,tol);
+        TB = inv_opvar(D-C*Ainv*B,tol);
+        Pinv = [Ainv+Ainv*B*TB*C*Ainv,  -Ainv*B*TB; 
+                   -TB*C*Ainv,                       TB];
+    else
+        Dinv = inv_opvar(D,tol);
+        TA = inv_opvar(A-B*Dinv*C,tol);
+        Pinv = [TA,               -TA*B*Dinv;
+                    -Dinv*C*TA,  Dinv+Dinv*C*TA*B*Dinv];
+    end
+
+    
+
+    
+
+    
     Pinv = clean(Pinv,tol);
 end
 end
@@ -266,8 +278,9 @@ for i=2:length(si)
     bu = bu + A{i-1}*U{i-1}*ds/2;
     Au = U{1}-A{i}*ds/2; 
     U{i} = Au\bu;
-    bv = bv+V{i-1}*A{i-1}*ds/2;
-    V{i} = bv/Au;
+    Av = U{1}+A{i}*ds/2; 
+    bv = bv-V{i-1}*A{i-1}*ds/2;
+    V{i} = bv/Av;
 %     V{i} = inv(U{i});
 end
 if 0
@@ -275,8 +288,9 @@ for i=3:length(si)
     bu = bu + A{i-2}*U{i-2}*ds/6+4*A{i-1}*U{i-1}*ds/6;
     Au = U{1}-A{i}*ds/6; 
     U{i} = Au\bu;
-    bv = bv+V{i-2}*A{i-2}*ds/6+4*V{i-1}*A{i-1}*ds/6;
-    V{i} = bv/Au;
+    Av = U{1}+A{i}*ds/6; 
+    bv = bv-V{i-2}*A{i-2}*ds/6-4*V{i-1}*A{i-1}*ds/6;
+    V{i} = bv/Av;
 %     V{i} = inv(U{i});
 end
 end

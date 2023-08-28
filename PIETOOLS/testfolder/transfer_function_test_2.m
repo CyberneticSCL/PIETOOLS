@@ -26,7 +26,7 @@ st.sos_opts.solver = 'mosek';
 [prog,P,gam_hinf] = lpisolve(PIE,st,'l2gain');
 %%
 clear resp_num;
-lims = 3; Ns=50; N = 20;
+lims = 3; Ns=30; N = 20;
 dw = linspace(-lims,lims,N);
 dW = 10.^(dw);
 % dW = [-dW(end:-1:1),dW];
@@ -38,7 +38,7 @@ C = PIE.C1; B = PIE.B1; Tw = PIE.Tw; Ap = PIE.A; T = PIE.T;
 nz = PIE.C1.dim(1,1);
 nw = PIE.B1.dim(2,1);
 si = linspace(C.I(1),C.I(2),Ns);
-ep = 5;
+ep = 0;
 for i=1:length(dW)
     i
     w = dW(i);

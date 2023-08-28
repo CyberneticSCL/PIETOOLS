@@ -214,8 +214,21 @@ else % use a function that is positive everywhere
 end
 
 % % % Construct the monomial bases Z and positive matrix Q % % %
+if ~isfield(options,'d0')
+    d0=0;
+else
+    d0 = options.d0;
+end
+
 
 % % Build the monomials
+nZ0 = d0+1;
+Z0degmat = (0:d0)';   % maximal degree d0
+Z0coeff = speye(nZ0);
+Z0varname = var1.varname;
+Z0matdim = [nZ0 1];
+Z0s = polynomial(Z0coeff,Z0degmat,Z0varname,Z0matdim);
+
 % Construct Z1(s)
 nZ1 = d{1}+1;
 Z1degmat = (0:d{1})';   % maximal degree d{1}
@@ -243,37 +256,6 @@ Z3varname = [var1.varname; var2.varname];
 Z3matdim = [nZ3 1];
 Z3sth=polynomial(Z3coeff,Z3degmat,Z3varname,Z3matdim);
 
-% % Build the associated block matrices
-% bZ1 = [Z1,0 ,...,0 ;]   etc.
-%       [0 ,Z1,...,0 ;]
-%       [: ,: , . ,: ;]
-%       [0 ,0 ,...,Z1 ]
-
-% The size of the matrices must be such that bZ1'*Q22*bZ1 \in L_2^(n2xn2) 
-%nBZ1 = n2*nZ1;
-%nBZ2 = n2*nZ2;
-%nBZ3 = n2*nZ3;
-
-bZ1s=[];
-for i=1:n2
-    bZ1s=blkdiag(bZ1s,Z1s);
-end
-
-bZ2sth=[];
-for i=1:n2
-    bZ2sth=blkdiag(bZ2sth,Z2sth);
-end
-
-bZ3sth=[];
-for i=1:n2
-    bZ3sth=blkdiag(bZ3sth,Z3sth);
-end
-
-% Swap the variables s and th for later purposes
-%bZ2ths = var_swap(bZ2sth,var1,var2);
-%bZ3ths = var_swap(bZ3sth,var1,var2);
-
-
 % % Declare the positive matrix variable
 
 % We are going to compute bZL'*Q*bZR
@@ -281,6 +263,7 @@ includeL = ~excludeL;
 ZL = cell(1,sum(includeL));
 ZR = cell(1,sum(includeL));
 
+Z0th = subs(Z0s,var1,var2);
 Z1th = subs(Z1s,var1,var2);
 Z2etath = subs(Z2sth,var1,sss);
 Z2etas = subs(Z2etath,var2,var1);
@@ -291,8 +274,8 @@ mdim = [];
 ndim = [];
 indx = 1;
 if includeL(1)
-    ZL{indx} = 1;
-    ZR{indx} = 1;
+    ZL{indx} = Z0s;
+    ZR{indx} = Z0th;
     mdim = [mdim;n1];
     ndim = [ndim;n1];
     indx = indx+1;
@@ -364,7 +347,7 @@ if excludeL(1)==0
     %P = P+Q{1,1}*int(gs,var1,I(1),I(2));
     %P = P + int(gs * ZQZconstruct(poly1,poly1,Q{1,1},[n1,n1],var1,var2,sss,1,0),var1,I(1),I(2));
     i1 = include_indx(1);     j1 = include_indx(1);
-    P = P + N{i1,j1} * int(gs,var1,I(1),I(2));
+    P = P +  int(subs(N{i1,j1},var2,var1)*gs,var1,I(1),I(2));
     if excludeL(2)==0
         %QT = QT + Q{1,2}*gs*bZ1s;
         %QT = QT + gs * ZQZconstruct(poly1,Z1s,Q{1,2},[n1,n2],var1,var2,sss,0,0);
