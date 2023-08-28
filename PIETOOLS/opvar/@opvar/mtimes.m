@@ -75,9 +75,9 @@ Pcomp.R.R1 = P1.Q2*subs(P2.Q1,ds,dtheta)+Ptemp.R.R1;
 Pcomp.R.R2 = P1.Q2*subs(P2.Q1,ds,dtheta)+Ptemp.R.R2;
 
 elseif ~isa(P2,'opvar') %multiplication of operator times matrix
-    ds = P2.var1;
-    dtheta = P2.var2;
-    I = P2.I;
+    ds = P1.var1;
+    dtheta = P1.var2;
+    I = P1.I;
     opvar Pcomp; Pcomp.I = I; Pcomp.var1 = ds; Pcomp.var2 = dtheta;
     if all(size(P2)==[1,1]) %scalar multiplication
         Pcomp.P = P2*P1.P;
