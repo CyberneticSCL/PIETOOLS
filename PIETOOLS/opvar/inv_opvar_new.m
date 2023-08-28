@@ -46,6 +46,9 @@ function [Pinv] = inv_opvar_new(Pop, tol,N)
 
 if nargin==1
     tol=1e-7;
+    N=50;
+elseif nargin==2
+    N=50;
 end
 
 if ~isa(Pop,'opvar')|| any(Pop.dim(:,1)~=Pop.dim(:,2))
