@@ -77,19 +77,47 @@ function [sos,info] = sossolve(sos,options)
 % 03/09/2022 - DJ - Add check "isempty(K.s)" for sdpt3, sdpnal, sdpnalplus
 % 08/14/2022 - DJ - Add check "phasevalue==pUNBD" and "==dUNBD" for sdpa.
 % 09/03/2022 - DJ - Add check K.q==0 and K.r==0 in call to sdpa.
+% 12/15/2022 - DJ - Remove 0x0 decision variables after psimplify.
+% 02/07/2023 - DJ - Bugfix "addextrasosvar" for matrix-valued polynomials.
+% 03/20/2023 - DJ - Add check for existence of solver on path.
 
 if (nargin==1)
     %Default options from old sossolve
-    options.solver = 'sedumi';
+    options.solver = 'none';
     options.params.tol = 1e-9;
     options.params.alg = 2;
-elseif ((nargin==2) & ~isnumeric('options') )%2 arguments given,
+elseif ((nargin==2) && ~isnumeric('options') )%2 arguments given,
     if ~isfield(options,'solver')
-        options.solver = 'sedumi';
+        options.solver = 'none';
     end
     if ~isfield(options,'params')
         options.params.tol = 1e-9;%default values for SeDuMi
         options.params.alg = 2;
+    end
+end
+
+% Check if solver is appropriately specified.
+solver_list = {'sedumi'; 'mosek'; 'sdpt3'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpa'; 'cdcs'};
+path_list = {'sedumi'; 'mosekopt'; 'sqlp'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpam'; 'cdcs'};
+if strcmp(options.solver,'none')
+    % If no solver is specified, default to first one found on path.
+    for k=1:length(solver_list)
+        if exist(path_list{k},'file')
+            options.solver = solver_list{k};
+            break
+        end
+    end
+    if strcmp(options.solver,'none')
+        error('No SDP solver detected. Please make sure the desired solver is on the Matlab path.')
+    end
+else
+    % Otherwise, check that the desired solver is indeed on Matlab path.
+    [is_solver,solver_num] = ismember(options.solver,solver_list);
+    if ~is_solver
+        error(['The desired SDP solver ''',options.solver,''' is not supported by SOSTOOLS. Please pass one of: ',...
+                '''sedumi'', ''mosek'', ''sdpt3'', ''csdp'', ''sdpnal'', ''sdpnalplus'', ''sdpa'', ''cdcs''.'])
+    elseif ~exist(path_list{solver_num},'file')
+        error(['The desired SDP solver ''',solver_list{solver_num},''' could not be found. Please make sure the function ''',path_list{solver_num},''' is on the Matlab path.'])
     end
 end
 
@@ -192,7 +220,7 @@ if options.simplify==1 | (strcmp(lower(options.simplify),'on') | strcmp(lower(op
     b = b;
     chosen_idx = (dv2x ~= 0);
     c = c(chosen_idx);
-    K = K;
+    K.s(K.s==0) = [];   % Get rid of 0x0 variables, DJ - 12/15/22
     size_AT_solved = size(At);
     %if size(At,2)~=length(b) | length(b) > length(c)
     %    error('Error simplifying the problem, it may be infeasible. Try running without ''simplify''.')
@@ -209,6 +237,9 @@ elseif isfield(options,'frlib')
     c = prg_primal.c';
     K = prg_primal.K;
     size_AT_solved = size(At);
+
+    fprintf('Old A size: %d  %d\n', size_At_full);
+    fprintf('New A size: %d  %d\n', size_AT_solved);
     
     if size(At,2)~=length(b) | length(b) > length(c)
         error('Error simplifying the problem, it may be infeasible. Try running without ''frlib''.')
@@ -273,18 +304,23 @@ elseif strcmp(lower(options.solver),'mosek')
     info.cpusec = res.info.MSK_DINF_OPTIMIZER_TIME; %OK
     info.iter = res.info.MSK_IINF_INTPNT_ITER;   %OK
     info.feasratio = res.info.MSK_DINF_INTPNT_OPT_STATUS;
-    if strcmp(res.sol.itr.prosta,'DUAL_INFEASIBLE')
+    if contains(res.sol.itr.prosta,'INFEASIBLE') && contains(res.sol.itr.prosta,'DUAL')
         info.dinf = 1;
     else
         info.dinf = 0;
     end
-    if strcmp(res.sol.itr.prosta,'PRIM_INFEASIBLE')
+    if contains(res.sol.itr.prosta,'INFEASIBLE') && contains(res.sol.itr.prosta,'PRIM')
         info.pinf = 1;
     else
         info.pinf = 0;
     end
-    
-    info.numerr = 0;
+    if contains(res.sol.itr.prosta,'UNKNOWN')
+        info.numerr = 2;
+    elseif contains(res.sol.itr.solsta,'UNKNOWN')
+        info.numerr = 1;
+    else
+        info.numerr = 0;
+    end
 elseif strcmp(lower(options.solver),'cdcs')
     % CDCS in action
     size_At = size(At);
@@ -767,11 +803,11 @@ if ~isfield(sos,'symvartable')
                 Atnew(:,indx_new) = sos.expr.At{i}(:,indx_old)*R1;  % Adjust At to match new monomials
                 
                 % What coefficients of S are associated to element j?
-                [rindx,cindx] = ind2sub([Fdim,Fdim],j); % Matrix element k,l
-                Crindx = rindx + Fdim*(0:1:nmons_Z-1);  % Row indices of associated coefficients of S
-                Ccindx = cindx + Fdim*(0:1:nmons_Z-1);  % Col indices of associated coefficients of S
+                [rindx,cindx] = ind2sub([Fdim,Fdim],j);     % Matrix element k,l
+                Crindx = (rindx-1)*nmons_Z + (1:nmons_Z);   % Row indices of associated coefficients of S
+                Ccindx = (cindx-1)*nmons_Z + (1:nmons_Z);   % Col indices of associated coefficients of S
                 Cindx = reshape(Crindx' + Fdim*nmons_Z*(Ccindx-1),[],1); % Linear indices of coefficients
-                
+
                 % Pair each monomial with the appropriate coefficient
                 rindx = sos.extravar.idx{var} + Cindx - 1;  % Rows in At associated to coefficients of S
                 cindx = (j-1)*nmons_new + Zindx;            % Columns in At associated to coefficients of S
@@ -784,8 +820,7 @@ if ~isfield(sos,'symvartable')
             sos.expr.At{i} = Atnew;     % Update the values of At and b
             sos.expr.b{i} = bnew;
    
-        end
-            
+        end     
     end
         
 else
