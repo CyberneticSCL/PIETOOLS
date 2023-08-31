@@ -80,8 +80,6 @@ function [A,b,K,z,dv2x,Nfv,feas,zrem, removed_rows] = sospsimplify(A,b,K,z,dv2x,
 %              removed equality constraints for remaining dec vars known to be zero
 % 09/11/21 AT Bug related to A( : , abs(xsign)< tol ) = 0;
 %             Change all element-wise operations to 'spfun' for sparse matrix
-% 01/30/23 DJ Comment out lines that do not contribute in
-%               LOCALxsignupdate(xsignOld,A,b, tol)
 
 
 %--------------------------------------------------------------------
@@ -260,12 +258,12 @@ xsign = xsignOld;
 % Process constraints of the form:  aij*xj = bi
 ridx = find(  sum(spones(A), 2)==1  );
 if ~isempty(ridx)
-    [cidx,~]=find( A(ridx,:)' );
-%    idx = sub2ind(size(A),ridx,cidx);      % DJ, 01/30/2023
+    [cidx,tmp]=find( A(ridx,:)' );
+    idx = sub2ind(size(A),ridx,cidx);
     % change element wise operation for sparse matrix.
-%    signA = spfun(@sign, A(idx) );
+    signA = spfun(@sign, A(idx) );
     signb = spfun(@sign, b(ridx) );    
-%    xsignUpdate = signA.*signb;
+    xsignUpdate = signA.*signb;
     xsignUpdate =  signb;
  
 %     % XXX PJS 12/07/09: If cidx = [2;2] and xsignUpdate = [1; NaN] then 

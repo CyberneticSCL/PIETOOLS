@@ -55,22 +55,16 @@ else
         error('Objects being concatenated horizontally have different numbers of rows');
     end
     
-
-    % If first input is not a dpvar, convert to dpvar object.
+    % If input is not a dpvar, convert to dpvar object
     if isa(E,'double')
         E = dpvar(E,zeros(1,0),{},{},size(E));
+    elseif isa(F,'double')
+        F = dpvar(F,zeros(1,0),{},{},size(F));
     elseif isa(E,'polynomial')
         E = poly2dpvar(E);
-    elseif ~isa(E,'dpvar')
-        error('Concatenation is only supported for objects of type double, polynomial, or dpvar');
-    end
-        
-    % If second input is not a dpvar, convert to dpvar object.
-    if isa(F,'double')
-        F = dpvar(F,zeros(1,0),{},{},size(F));
     elseif isa(F,'polynomial')
         F = poly2dpvar(F);
-    elseif ~isa(F,'dpvar')
+    elseif ~isa(E,'dpvar') || ~isa(F,'dpvar')
         error('Concatenation is only supported for objects of type double, polynomial, or dpvar');
     end
     

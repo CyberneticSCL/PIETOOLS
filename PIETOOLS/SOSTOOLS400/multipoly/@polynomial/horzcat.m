@@ -23,7 +23,6 @@ function c = horzcat(varargin)
 
 % 6/8/2002: PJS  Initial Coding
 % 06/17/22: DJ, Fix output dimensions when both inputs are empty
-% 12/02/22: DJ, Bugfix for when array has only one nonzero dimension
 
 if nargin==1
     c = varargin{1};
@@ -38,7 +37,7 @@ else
     
     if nra==0 && nrb==0                     % DJ, 06/17/22
         c = polynomial(zeros(nra,nca+ncb));
-    elseif all(size(b)==0)                  % DJ, 12/02/22
+    elseif all(size(b)==0)      % DJ, 12/02/2022  replace  %isempty(b);
         c = a;
     elseif isempty(a);
         c = b;

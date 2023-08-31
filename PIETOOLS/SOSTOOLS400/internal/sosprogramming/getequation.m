@@ -70,10 +70,6 @@ if isa(symexpr,'dpvar')
     cvartable_prog = char(vartable);
     cdvartable_prog = char(decvartable);
     dvarname = symexpr.dvarname;
-    if isempty(dvarname)
-        error(['Direct constraints on independent variables are not supported.',...
-                ' Please make sure your constraint involves at least one decision variable.'])
-    end
     varname = symexpr.varname;
     %    cdvarname=char(symexpr.dvarname);
     %    cvarname=char(symexpr.varname);
@@ -143,7 +139,7 @@ if isa(symexpr,'dpvar')
     % synchronize dpvars to SOS program decvartable
     [~,idx]=ismember(dvarname,cdvartable_prog); % also slow??
     if ~isempty(find(~idx,1))
-        error('The given expression has a decision variable which does not appear in the sosprogram')
+        error('the given expression has a decision variable which does not appear in the sosprogram')
     end
     At=sparse([],[],[],n_dvars_prog,n_cons,nnz(At_temp));
     At(idx,:)=-At_temp; % main time sink?
@@ -220,12 +216,7 @@ elseif isa(symexpr,'polynomial')
         end
     end
     b = sparse(coeffnts);
-
-    if isempty(At) || ~any(any(At))
-        error(['Direct constraints on independent variables are not supported.',...
-                ' Please make sure your constraint involves at least one decision variable.'])
-    end
-
+    
 else
     % PJS: Original Code to Handle Symbolic Objects
     
@@ -354,10 +345,6 @@ else
             Mivec = reshape(coeffnts_decvar((i-1)*dimp+1:i*dimp,:),dimp^2,1);
             At(:,(i-1)*dimp^2+1:i*dimp^2) = sparse(-double(jacobian(Mivec,decvartable))');
         end
-    end
-    if isempty(At) || ~any(any(At))
-        error(['Direct constraints on independent variables are not supported.',...
-                ' Please make sure your constraint involves at least one decision variable.'])
     end
     
     %b = sparse(coeffnts);

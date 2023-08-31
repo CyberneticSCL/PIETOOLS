@@ -70,12 +70,7 @@ function [Q,Z,decomp,Den] = findsos(P,flag,options)
 % 08/14/22 - DJ: Adjust polynomial implementation of 'rational' case. 
 %                Also allow rational expansion in non-integer case.
 % 09/03/22 - DJ: Initialize empty output fields if nargout>=3.
-% 02/07/23 - DJ: Bugfix case where P has constant elements (on diagonal).
-% 05/04/23 - DJ: Allow slightly negative eigenvalues in 'rational' case.
 
-% Set tolerance for positivity of eigenvalues of Qr in rational case.
-pos_tol_1 = -1e-14; % If min(eig(Qr)) <= pos_tol_1, return Qr with warning
-pos_tol_2 = -1e-10; % If min(eig(Qr)) <= pos_tol_2, just return Q
 
 if nargin == 2
     if ~strcmp(flag,'rational')
@@ -89,33 +84,28 @@ elseif nargin==1
 	options.solver='sedumi';
 end
 
-
-% Check if matrix is square
-dimp = size(P);
-if dimp(1)~=dimp(2)
-	disp('The polynomial matrix is not square, it cannot be a sum of squares');
-	Q = [];
-	Z = [];
-    if nargout >= 3
-		decomp = [];
-		Den = [];
-    end
-	return
-end
-
-if isa(P,'double')
-    % The object is just a constant matrix --> convert to polynomial
-    P = polynomial(P);
-end
-
 if isa(P,'sym')
+	dimp = size(P);
+	if dimp(1)~=dimp(2) ;
+		disp(['The polynomial matrix is not square, it cannot be a sum of squares']);
+		Q = [];
+		Z = [];
+        if nargout >= 3
+			decomp = [];
+			Den = [];
+        end
+		return;
+	end;
+	
 	
 	P = expand(P);  % Do we need this? JA
 	%vars = findsym(P);
 	%vars = sym(['[',vars,']']);
 	vars = symvar(P);  % JA Edit
 	
-	%     nvars = size(vars,2);
+	nvars = size(vars,2) ;
+	
+	
 	%     for var = 1:nvars;
 	%         for j = 1:dimp(1)
 	%             if rem(double(feval(symengine,'degree',P(j,j))),2) ;
@@ -140,7 +130,7 @@ if isa(P,'sym')
 	
 	prog = sosprogram(vars);
 	prog = sosineq(prog,P);
-    [prog,info] = sossolve(prog,options);
+	[prog,info] = sossolve(prog,options);
 	
 	if strcmp(options.solver,'SDPNAL')
 		disp('findsos function currently not supported for SDPNAL solver');
@@ -189,7 +179,7 @@ if isa(P,'sym')
                 n = sqrt(length(Qflat));
                 Qr = reshape(Qflat,n,n);
                 % Qr should be PSD (should really check symbolically)
-                if min(eig(Qr/NN))>=pos_tol_2 ; kmax=0 ; pd = 1 ; end
+                if min(eig(Qr/NN))>-1e-14 ; kmax=0 ; pd = 1 ; end
                 % Increase N, and try again
                 N = 2*N;
             catch
@@ -198,22 +188,14 @@ if isa(P,'sym')
                 Qr = reshape(xx,n,n);
                 break
             end
-        end
-        % If eigenvalues of Qr are negative but small, return rational
-        % decomposition with a warning.
-        if pd==1 && min(eig(Qr/NN))<pos_tol_1    % DJ, 05/04/23
-            fprintf(2,['Warning: Returned matrix Q in decomposition Zd''*Q*Zd has negative eigenvalue ',num2str(min(eig(Qr/NN))),'.\n',...
-                       '         Rational decomposition may not be SOS.\n']);
-        end
+		end
 		
 		% Experimental, no good error checking yet, so we check that
 		% expand(NN*P - Z.'*Qr*Z) is zero!
-		if (expand(NN*P-Z.'*Qr*Z) ~= 0) || (pd == 0)
-% 			Qr = []; Z = []; NN = [];
-% 			disp('Could not compute a rational SOS!');
-            fprintf(2,['Warning: Could not compute a rational SOS decomposition;',...
-                       ' returning real-valued decomposition instead.\n']);
-            Qr = Q; NN = 1;
+		
+		if (expand(NN*P-Z.'*Qr*Z) ~= 0) | (pd == 0);
+			Qr = []; Z = []; NN = [];
+			disp('Could not compute a rational SOS!');
 		end
 		
 		if nargout == 4
@@ -242,6 +224,18 @@ else
 	% Most of this code simply mimics the symbolic case and hence the
 	% overlap can be reduced.
 	
+	dimp = size(P);
+	if dimp(1)~=dimp(2) ;
+		disp(['The polynomial matrix is not square, it cannot be a sum of squares']);
+		Q = [];
+		Z = [];
+        if nargout >= 3
+			decomp = [];
+			Den = [];
+        end
+		return;
+	end;
+	
 	nvars = P.nvar;
 	vars = polynomial(zeros(nvars,1));
 	for j = 1:nvars
@@ -251,11 +245,7 @@ else
 	for var = 1:nvars;
 		for j = 1:dimp(1)
 			Pjj = P(j,j);
-            if isempty(Pjj.degmat)
-                maxdeg = 0;
-            else
-			    maxdeg = max(Pjj.degmat(:,var));
-            end
+			maxdeg = max(Pjj.degmat(:,var));
 			if rem(maxdeg,2)
 				disp(['Degree in ',vars(var).varname{1},' is not even for the diagonal elements. The polynomial matrix cannot be a sum of squares']);
 				Q = [];
@@ -282,10 +272,7 @@ else
 	end;
 	
 	prog = sosprogram(vars);
-    if isempty(P.degmat)
-        % DJ, 02/07/23: Add a decision var to the program to avoid error.
-        [prog,~] = sossosvar(prog,1);
-    end
+	%prog = sosineq(prog,P);
     prog = sosineq(prog,dpvar(P));
 	[prog,info] = sossolve(prog,options); %AP edit to pass solver.
 	
@@ -307,14 +294,9 @@ else
 			Den = [];
         end
 		return;
-    else
-        if isempty(P.degmat)
-            % DJ, 02/07/23: Remove the added decision variable.
-            Q = reshape(prog.solinfo.RRx(2:end),sqrt(length(prog.solinfo.RRx)-1),sqrt(length(prog.solinfo.RRx)-1));
-        else
-		    Q = reshape(prog.solinfo.RRx,sqrt(length(prog.solinfo.RRx)),sqrt(length(prog.solinfo.RRx)));
-        end
-		if isa(P,'sym')
+	else
+		Q = reshape(prog.solinfo.RRx,sqrt(length(prog.solinfo.RRx)),sqrt(length(prog.solinfo.RRx)));
+		if isa(P,'sym');
 			Z = mysympower(vars,prog.extravar.Z{1});
 		else
 			pvar Z
@@ -339,7 +321,7 @@ else
                 n = sqrt(length(Qflat));
                 Qr = reshape(Qflat,n,n);
                 % Qr should be PSD (should really check symbolically)
-                if min(eig(Qr/NN))>=pos_tol_2 ; kmax=0 ; pd = 1 ; end
+                if min(eig(Qr/NN))>-1e-14 ; kmax=0 ; pd = 1 ; end
                 % Increase N, and try again
                 N = 2*N;
             catch
@@ -348,25 +330,16 @@ else
                 Qr = reshape(xx,n,n);
                 break
             end
-        end
-
-        % If eigenvalues of Qr are negative but small, return rational
-        % decomposition with a warning.
-        if pd==1 && min(eig(Qr/NN))<pos_tol_1    % DJ, 05/04/23
-            fprintf(2,['Warning: Returned matrix Q in decomposition Zd''*Q*Zd has negative eigenvalue ',num2str(min(eig(Qr/NN))),'.\n',...
-                       '         Rational decomposition may not be SOS.\n']);
-        end
+		end
 		
 		% Experimental, no good error checking yet, so we check that
 		% expand(NN*P - Z.'*Qr*Z) is zero!
 		err = NN*P-Z.'*Qr*Z;
 		if (isa(err,'polynomial') && max(max(abs(err.coeff)))>=1e-14) ...
                 || (isa(err,'double') && ~all(err==0)) || (pd == 0)  % DJ, 08/14/22: remove call to "expand"
-% 			Qr=[];Z=[];NN=[];
-% 			disp('Could not compute a rational SOS!');
-            fprintf(2,['Warning: Could not compute a rational SOS decomposition;',...
-                       ' returning real-valued decomposition instead.\n']);
-            Qr = Q; NN = 1;
+            % shouldn't we return the non-rational expansion?
+			Qr=[];Z=[];NN=[];
+			disp('Could not compute a rational SOS!');
 		end
 		
 		if nargout == 4
