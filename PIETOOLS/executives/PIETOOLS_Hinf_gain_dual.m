@@ -188,10 +188,10 @@ if sosineq_on
     prog = lpi_ineq(prog,-Dop,opts);
 else
     disp('  - Using an Equality constraint...');
-    [prog, De1op] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
+    [prog, De1op,Qpa] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
+        [prog, De2op,Qpb] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
@@ -206,10 +206,11 @@ prog = sossolve(prog,sos_opts);
 
 disp('The H-infty norm of the given system is upper bounded by:')
 if ~isreal(gam)
-    disp(double(sosgetsol(prog,gam))); % check the Hinf norm, if the solved successfully
-else 
-    disp(gam);
-end
+    gam = double(sosgetsol(prog,gam)); % check the Hinf norm, if the solved successfully
+end 
+disp(gam);
 P = getsol_lpivar(prog,Pop);
-gam = double(sosgetsol(prog,gam));
+Qpa = sosgetsol(prog,Qpa); Qpb = sosgetsol(prog,Qpb);
+Qpa = cell2mat(cellfun(@(x) double(x), Qpa,'UniformOutput',false));
+Qpb = cell2mat(cellfun(@(x) double(x), Qpb,'UniformOutput',false));gam = double(sosgetsol(prog,gam));
 end
