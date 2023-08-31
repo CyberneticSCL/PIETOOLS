@@ -180,8 +180,6 @@ Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
 Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
 Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
-opvar Pop; Pop.dim = PIE.T.dim;
-Pop.P = eye(PIE.T.dim(1,1)); Pop.R.R0 = eye(PIE.T.dim(2,2));
 
 Dop = [-gam*Iz   PIE.D11              (PIE.C1*Pop+PIE.D12*Zop)*(PIE.T');
         PIE.D11'                -gam*Iw  PIE.B1';
