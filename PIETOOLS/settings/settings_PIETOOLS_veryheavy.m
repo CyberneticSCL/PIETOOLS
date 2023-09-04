@@ -83,11 +83,11 @@ else
     % when not using sosineq, options 2 is for the nominal part of the derv,
     % options3 is for the Psatz part of the derv
     settings.options2.exclude= [0 0 0 0];
-    settings.dd2 = {n_order1+1, [n_order2+Dup, n_order3+Dup, n_order4+Dup], [n_order2+Dup, n_order3+Dup, n_order4+Dup]};
+    settings.dd2 = {n_order1+1, [n_order2+Dup, n_order3+Dup, n_order4+2*Dup], [n_order2+Dup, n_order3+Dup, n_order4+2*Dup]};
     
     settings.options3.psatz=1; % this should always be 1, otherwise no point
     settings.options3.exclude = [0 0 0 0]; 
-    settings.dd3 = {n_order1, [n_order2+Dup-1, n_order3+Dup-1, n_order4+Dup-1], [n_order2+Dup-1, n_order3+Dup-1, n_order4+Dup-1]};
+    settings.dd3 = {n_order1, [n_order2+Dup-1, n_order3+Dup-1, n_order4+2*Dup-2], [n_order2+Dup-1, n_order3+Dup-1, n_order4+2*Dup-2]};
     % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
