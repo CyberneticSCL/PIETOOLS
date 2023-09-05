@@ -49,7 +49,7 @@
 %                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P, gam] = PIETOOLS_Hinf_gain(PIE, settings)
+function [prog, P, gam,Dop] = PIETOOLS_Hinf_gain(PIE, settings)
 
 if PIE.dim==2
     % Call the 2D version of the executive.
@@ -116,7 +116,7 @@ dpvar gam;
 prog = sosdecvar(prog, gam); %this sets gam = gamma as decision var
 prog = sosineq(prog, gam); %this ensures gamma is lower bounded
 prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
-%
+% gam = 0.0827;
 % Alternatively, the above 3 commands may be commented and a specific gain
 % test specified by defining a specific desired value of gamma. This
 % results in a feasibility test instead of an optimization problem.
@@ -156,11 +156,11 @@ Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop = [-gam*Iw+TB1op'*(Pop*B1op)+(Pop*B1op)'*TB1op     D11op'             (Pop*B1op)'*Top+TB1op'*(Pop*Aop);
+Dop = [-gam*Iw+TB1op'*Pop*B1op+B1op'*Pop*TB1op     D11op'             B1op'*Pop*Top+TB1op'*Pop*Aop;
         D11op                                              -gam*Iz        C1op;
-        Top'*(Pop*B1op)+(Pop*Aop)'*TB1op                    C1op'              (Pop*Aop)'*Top+Top'*(Pop*Aop)];
+        Top'*Pop*B1op+Aop'*Pop*TB1op                    C1op'              Aop'*Pop*Top+Top'*Pop*Aop];
     
-    
+Dop = clean(Dop,1e-9);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 3: Impose Negativity Constraint. There are two methods, depending on
