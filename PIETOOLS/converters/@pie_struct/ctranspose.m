@@ -1,14 +1,19 @@
-function [Pt] = ctranspose(P)
+function out_pie = ctranspose(in_pie)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Pt = ctranspose(P) transposes an operator P: R^p x L2^q to R^m x L2^n
-% Date: 6/13/19
-% Version: 1.0
+% out_pie = ctranspose(in_pie) constructs and returns the dual of a given
+% PIE system. For e.g.,
+% Given a pie_struct with parameters of the PIE
+% T \dot x = A x+ B1 w, z = C1 x + D11 w
+% the output is the pie_struct with parameters corresponding to the PIE
+% T' \dot x = A' x+ C1' w, z = B1' x + D11' w
+% i.e., out_pie.T = in_pie.T', out_pie.A = in_pie.A', out_pie.C1 = in_pie.B1'
+%        out_pie.B1 = in_pie.C1', out_pie.D11 = in_pie.D11'
 % 
 % INPUT
-% P: opvar class object
+% in_pie: pie_struct class object with Tw=0 and Tu=0
 % 
 % OUTPUT
-% Padj: transpose of the input opvar with the same matlab structure as
+% out_pie: pie_struct class object that represents the dual of the in_pie 
 % 
 % 
 % NOTES:
@@ -16,9 +21,7 @@ function [Pt] = ctranspose(P)
 % or S. Shivakumar at sshivak8@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETools - ctranspose
-%
-% Copyright (C)2019  M. Peet, S. Shivakumar
+% Copyright (C)2023  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -39,18 +42,16 @@ function [Pt] = ctranspose(P)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, SS  - 7_26_2019
-%
-if ~isa(P,'opvar')
-    error('Input must be an opvar variable.');
+% Initial coding SS  - 9_7_2023
+
+if ~(in_pie.Tw==0)||~(in_pie.Tu==0)
+    error('Dual PIE cannot be found for systems with disturbances at the boundary');
 end
 
-opvar Pt; Pt.I = P.I; Pt.var1= P.var1; Pt.var2 = P.var2;
-
-Pt.P = P.P';
-Pt.Q2 = P.Q1';
-Pt.Q1 = P.Q2';
-Pt.R.R0 = P.R.R0';
-Pt.R.R2 = var_swap(P.R.R1',P.var1, P.var2);
-Pt.R.R1 = var_swap(P.R.R2',P.var1, P.var2);
+out_pie=in_pie;
+out_pie.A= in_pie.A';
+out_pie.T= in_pie.T';
+out_pie.C1= in_pie.B1';
+out_pie.B1= in_pie.C1';
+out_pie.D11= in_pie.D11';
 end
