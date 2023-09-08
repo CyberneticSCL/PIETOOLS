@@ -61,33 +61,38 @@ else
     is_symmetric = false;
 end
 
-% Enforce parameters in operator to be zero.
+% % Enforce parameters in operator to be zero.
+% Start with parameters consisting of just one element
 for f = fset
     if ~isempty(P.(f{:}))
         sos = soseq(sos, P.(f{:}));
     end
 end
-for i=1:imax
-    if ~isempty(P.Rxx{i,1}) && any(any(P.Rxx{i}.C))
-        sos = soseq(sos, P.Rxx{i,1});
-    end
-    if ~is_symmetric && ~isempty(P.Rx2{i,1}) && any(any(P.Rx2{i}.C))
-        sos = soseq(sos, P.Rx2{i,1});
-    end
+% Now for off-diagonal 3-PI operators
+for i=1:3
     if ~isempty(P.R2x{i,1}) && any(any(P.R2x{i}.C))
         sos = soseq(sos, P.R2x{i,1});
     end
-    
+    if ~isempty(P.R2y{1,i}) && any(any(P.R2y{i}.C))
+        sos = soseq(sos, P.R2y{i,1});
+    end
+end
+if ~is_symmetric
+    if ~isempty(P.Rx2{i,1}) && any(any(P.Rx2{i}.C))
+        sos = soseq(sos, P.Rx2{i,1});
+    end
+    if ~isempty(P.Ry2{1,i}) && any(any(P.Ry2{i}.C))
+        sos = soseq(sos, P.Ry2{i,1});
+    end
+end
+% Finally, diagonal 3-PI (9-PI) operators
+for i=1:imax
+    if ~isempty(P.Rxx{i,1}) && any(any(P.Rxx{i}.C))
+        sos = soseq(sos, P.Rxx{i,1});
+    end    
     if ~isempty(P.Ryy{1,i}) && any(any(P.Ryy{i}.C))
         sos = soseq(sos, P.Ryy{1,i});
     end
-    if ~is_symmetric && ~isempty(P.Ry2{1,i}) && any(any(P.Ry2{i}.C))
-        sos = soseq(sos, P.Ry2{1,i});
-    end
-    if ~isempty(P.R2y{1,i}) && any(any(P.R2y{i}.C))
-        sos = soseq(sos, P.R2y{1,i});
-    end
-    
     for j=1:imax
         if ~isempty(P.R22{i,j}) && any(any(P.R22{i,j}.C))
             sos = soseq(sos, P.R22{i,j});
@@ -95,6 +100,7 @@ for i=1:imax
     end
 end
 if is_symmetric
+    % correction for the 9-PI operator
     if ~isempty(P.R22{3,2}) && any(any(P.R22{3,2}.C))
         sos = soseq(sos, P.R22{3,2});
     end

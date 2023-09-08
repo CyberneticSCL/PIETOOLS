@@ -1,6 +1,6 @@
 function [Pt] = ctranspose(P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% P] = ctranspose(P) transposes an operator P: R^p x L2^q to R^m x L2^n
+% Pt = ctranspose(P) transposes an operator P: R^p x L2^q to R^m x L2^n
 % Date: 6/13/19
 % Version: 1.0
 % 

@@ -41,34 +41,10 @@ function opVar = dopvar2opvar(dopVar)
 opvar opVar;
 opVar.I = dopVar.I; opVar.dim = dopVar.dim;
 opVar.var1 = dopVar.var1; opVar.var2 = dopVar.var2;
-if ~isempty(dopVar.P)
-    opVar.P = dpvar2poly(dopVar.P);
-else
-    opVar.P = [];
-end
-if ~isempty(dopVar.Q1)
-    opVar.Q1 = dpvar2poly(dopVar.Q1);
-else
-    opVar.Q1 = [];
-end
-if ~isempty(dopVar.Q2)
-    opVar.Q2 = dpvar2poly(dopVar.Q2);
-else
-    opVar.Q2 = [];
-end
-if ~isempty(dopVar.R.R0)
-    opVar.R.R0 = dpvar2poly(dopVar.R.R0);
-else
-    opVar.R.R0 = [];
-end
-if ~isempty(dopVar.R.R1)
-    opVar.R.R1 = dpvar2poly(dopVar.R.R1);
-else
-    opVar.R.R1 = [];
-end
-if ~isempty(dopVar.R.R2)
-    opVar.R.R2 = dpvar2poly(dopVar.R.R2);
-else
-    opVar.R.R2 = [];
-end
+opVar.P = dpvar2poly(dopVar.P);
+opVar.Q1 = dpvar2poly(dopVar.Q1);
+opVar.Q2 = dpvar2poly(dopVar.Q2);
+opVar.R.R0 = dpvar2poly(dopVar.R.R0);
+opVar.R.R1 = dpvar2poly(dopVar.R.R1);
+opVar.R.R2 = dpvar2poly(dopVar.R.R2);
 end
