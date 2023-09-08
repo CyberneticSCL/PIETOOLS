@@ -158,7 +158,7 @@ disp('- Constructing the Negativity Constraint...');
 
 Dop = [-gam*Iw+TB1op'*Pop*B1op+B1op'*Pop*TB1op     D11op'             B1op'*Pop*Top+TB1op'*Pop*Aop;
         D11op                                              -gam*Iz        C1op;
-        Top'*Pop*B1op+Aop'*Pop*TB1op                    C1op'              Aop'*Pop*Top+Top'*Pop*Aop];
+        Top'*Pop*B1op+Aop'*Pop*TB1op                    C1op'              Aop'*Pop*Top+Top'*Pop*Aop+epneg*Top'*Pop*Top];
     
 Dop = clean(Dop,1e-9);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

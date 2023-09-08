@@ -174,7 +174,7 @@ Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
 Dop = [-gam*Iz      D11op              C1op*Pop*Top';
         D11op'          -gam*Iw        B1op';
-        Top*Pop*C1op'    B1op               Top*Pop*Aop'+Aop*Pop*Top']; 
+        Top*Pop*C1op'    B1op               Top*Pop*Aop'+Aop*Pop*Top'+epneg*Top*Pop*Top']; 
     
 Dop = clean(Dop,1e-9);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
