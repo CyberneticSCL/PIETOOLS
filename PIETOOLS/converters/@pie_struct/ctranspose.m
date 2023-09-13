@@ -54,4 +54,8 @@ out_pie.T= in_pie.T';
 out_pie.C1= in_pie.B1';
 out_pie.B1= in_pie.C1';
 out_pie.D11= in_pie.D11';
+opvar Zw Zu; 
+Zw.dim = [in_pie.T.dim(:,1),in_pie.C1.dim(:,1)]; 
+Zu.dim = [in_pie.T.dim(:,1),in_pie.C1.dim(:,1)]; 
+out_pie.Tw = Zw; out_pie.Tu = Zu;
 end

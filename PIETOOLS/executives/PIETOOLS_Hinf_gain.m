@@ -114,9 +114,9 @@ nz=C1op.dim(1,1);                % retrieve the number of real-valued regulated 
 % In this case, we define the hinf norm variable which needs to be minimized
 dpvar gam;
 prog = sosdecvar(prog, gam); %this sets gam = gamma as decision var
-prog = sosineq(prog, gam); %this ensures gamma is lower bounded
+% prog = sosineq(prog, gam); %this ensures gamma is lower bounded
 prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
-% gam = 0.0827;
+% gam = 2;
 % Alternatively, the above 3 commands may be commented and a specific gain
 % test specified by defining a specific desired value of gamma. This
 % results in a feasibility test instead of an optimization problem.
@@ -129,8 +129,9 @@ prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 % function candidate
 disp('- Declaring Positive Lyapunov Operator variable using specified options...');
 
-[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
-
+% [prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
+[prog, P1op] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X);
+P1op.R.R2 = varswap(P1op.R.R1,varlist(2),varlist(1));
 if override1~=1
     [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1),X,dd12,options12);
     Pop=P1op+P2op;
@@ -153,14 +154,26 @@ Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
 Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
 Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
+% opvar Pop;
+% Pop.dim = Top.dim; Pop.P = eye(Top.dim(1,1));
+% Pop.R.R0 = eye(Top.dim(2,2));
 
 disp('- Constructing the Negativity Constraint...');
 
+
+
 Dop = [-gam*Iw+TB1op'*Pop*B1op+B1op'*Pop*TB1op     D11op'             B1op'*Pop*Top+TB1op'*Pop*Aop;
         D11op                                              -gam*Iz        C1op;
-        Top'*Pop*B1op+Aop'*Pop*TB1op                    C1op'              Aop'*Pop*Top+Top'*Pop*Aop+epneg*Top'*Pop*Top];
-    
+        Top'*Pop*B1op+Aop'*Pop*TB1op                    C1op'              Aop'*Pop*Top+Top'*Pop*Aop+epneg*Pop];
+
 Dop = clean(Dop,1e-9);
+
+dopvar Dopnew;
+Dopnew.dim = [0,0; sum(Dop.dim,1)];
+Dopnew.dim = Dopnew.dim;
+Dopnew.R.R0 = [Dop.P, 0.5*Dop.Q2'; 0.5*Dop.Q2, Dop.R.R0];
+Dopnew.R.R1 = [zeros(nz+nw+nx1), 0.5*Dop.Q1;0.5*Dop.Q1', Dop.R.R1];
+Dopnew.R.R2 = [zeros(nz+nw+nx1), 0.5*Dop.Q1;0.5*Dop.Q1', Dop.R.R2];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 3: Impose Negativity Constraint. There are two methods, depending on
@@ -172,14 +185,20 @@ if sosineq_on
     prog = lpi_ineq(prog,-Dop,opts);
 else
     disp('  - Using an Equality constraint...');
-    [prog, De1op] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
+    [prog, De1op,Q_d] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
+%     [prog, De1op,Q_d] = poslpivar(prog, Dopnew.dim(:,2),X,dd2,options2);
     
     if override2~=1
+%         [prog, De2op] = poslpivar(prog,Dopnew.dim(:,2),X, dd3,options3);
         [prog, De2op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
     end
+%     options3.sep = 1;options2.sep = 1;
+%     [prog, De3op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd2,options2);
+%     [prog, De4op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
+%     Deop = Deop+De3op+De4op;
     prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
 end
 

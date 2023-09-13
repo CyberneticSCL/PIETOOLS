@@ -1,4 +1,4 @@
-function [prog,Pop] = poslpivar(prog,n,I,d,options)
+function [prog,Pop,Nmat] = poslpivar(prog,n,I,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [prog,Pop] = poslpivar(prog,n,I,d,options) declares 
 % a positive 4-PI decision operator Pop, with fields:
@@ -275,7 +275,7 @@ ndim = [];
 indx = 1;
 if includeL(1)
     ZL{indx} = Z0s;
-    ZR{indx} = Z0th;
+    ZR{indx} = Z0s;
     mdim = [mdim;n1];
     ndim = [ndim;n1];
     indx = indx+1;
@@ -300,7 +300,7 @@ if includeL(4)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
 end
-[prog,N] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+[prog,N,Nmat] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
 
 include_indx = cumsum(includeL);
     
