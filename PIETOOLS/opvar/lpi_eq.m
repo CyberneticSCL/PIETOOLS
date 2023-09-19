@@ -70,7 +70,10 @@ end
 % Enforce parameters in operator to be zero.
 for i = i_set1
     if ~isempty(P.(i{:}))
-        sos = soseq(sos, P.(i{:}));
+        C = P.(i{:}); 
+        if ~all(all(C.C==0))
+            sos = soseq(sos, C);
+        end
     end
 end
 for i = i_set2

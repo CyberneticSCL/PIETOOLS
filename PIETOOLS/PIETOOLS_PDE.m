@@ -51,10 +51,10 @@ PIE = convert_PIETOOLS_PDE(PDE);
 
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_heavy;
-settings = lpisettings('veryheavy');
-settings.sos_opts.solver='sedumi';    % Solver to use
-settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
-settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
+settings = lpisettings('heavy');
+settings.sos_opts.solver='mosek';    % Solver to use
+settings.eppos = 0e-4;                % Positivity of Lyapunov Function with respect to real-valued states
+settings.eppos2 = 0e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 
 % % --- Prompt for settings and choose executive automatically based on the example ---

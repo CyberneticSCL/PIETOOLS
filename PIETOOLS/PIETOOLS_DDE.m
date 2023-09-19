@@ -116,7 +116,7 @@ DDE_minimal_rep=1;
 
 examples_DDE_library_PIETOOLS
 
-simulate='on';
+simulate='off';
 
 if strcmp(simulate,'on')
 %------------------------------------------------
@@ -209,7 +209,7 @@ settings.sosineq_on=0; % binary variable indicating whether to use ineqaulity or
 % Specify Solver
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Default Setttings: %%%%%%
-settings.sos_opts.solver='sedumi';
+settings.sos_opts.solver='mosek';
 % Other optional SDP solvers supported by PIETOOLS
 % settings.sos_opts.solver ='mosek';
 % settings.sos_opts.solver='sdpnalplus';
@@ -253,7 +253,7 @@ if Hinf_gain==1
     [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 end
 if Hinf_gain_dual==1
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
+    [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE',settings);
 end
 if Hinf_control==1
     [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);

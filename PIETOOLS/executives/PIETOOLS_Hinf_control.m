@@ -164,7 +164,7 @@ Pop.P = Pop.P+eppos*eye(nx1);
 Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);  
 
 [prog,Zop] = lpivar(prog,[PIE.B2.dim(:,2),PIE.T.dim(:,1)],X,ddZ);
-
+[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X,ddZ);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 2: Define the KYP matrix
@@ -180,10 +180,13 @@ Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
 Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
 Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
+% Dop = [-gam*Iz                                        PIE.D11       (PIE.C1*Pop*PIE.T'+PIE.D12*Zop*PIE.T');
+%            PIE.D11'                                      -gam*Iw        PIE.B1';
+%            (PIE.C1*Pop*PIE.T'+PIE.D12*Zop*PIE.T')'       PIE.B1         (PIE.A*Pop*PIE.T'+PIE.B2*Zop*PIE.T')'+PIE.A*Pop*PIE.T'+PIE.B2*Zop*PIE.T']; 
 
-Dop = [-gam*Iz   PIE.D11              (PIE.C1*Pop+PIE.D12*Zop)*(PIE.T');
-        PIE.D11'                -gam*Iw  PIE.B1';
-        PIE.T*(PIE.C1*Pop+PIE.D12*Zop)'       PIE.B1         (PIE.A*Pop+PIE.B2*Zop)*(PIE.T')+PIE.T*(PIE.A*Pop+PIE.B2*Zop)']; 
+Dop = [-gam*Iz                                        PIE.D11       (PIE.C1*Qop+PIE.D12*Zop);
+           PIE.D11'                                      -gam*Iw        PIE.B1';
+           (PIE.C1*Qop+PIE.D12*Zop)'       PIE.B1         (PIE.A*Qop+PIE.B2*Zop)'+PIE.A*Qop+PIE.B2*Zop]; 
 
 disp('- Parameterize the derivative inequality...');
 
@@ -211,6 +214,8 @@ else
     end
     % derivative negativity
     % constraints
+    prog = lpi_eq(prog, PIE.T*Qop-Qop'*PIE.T');
+    prog = lpi_eq(prog, PIE.T*Qop-Pop,'symmetric');
     prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
 end
 
@@ -227,7 +232,7 @@ end
 
 gam = double(sosgetsol(prog,gam));
 
-P = getsol_lpivar(prog,Pop);
+P = getsol_lpivar(prog,Qop);
 Z = getsol_lpivar(prog,Zop);
 
 Kop = getController(P,Z);
