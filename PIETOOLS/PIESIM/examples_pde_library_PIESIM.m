@@ -1871,7 +1871,7 @@ case 8
           uinput.w(2)=  cos(b-c*st);
 
 %-----------------------------------------
-% Example 26 - traveling wave solution with characteristuinput.ic.PDE boundary
+% Example 26 - traveling wave solution with characteristic boundary
 % conditions at the right end
 % Use these boundary conditions with c>0 for enhanced stability 
 % Boundary conditions
@@ -2004,7 +2004,7 @@ case 8
 
     
   %-----------------------------------------
-% Example 28 - propagating Gauss bump with characteristuinput.ic.PDEs boundary
+% Example 28 - propagating Gauss bump with characteristic boundary
 % conditions at the right end
 % Use these boundary conditions with c>0 for enhanced stability 
 % Boundary conditions 
