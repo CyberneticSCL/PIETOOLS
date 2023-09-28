@@ -3,8 +3,8 @@ function [prog,Pop,Nmat] = poslpivar(prog,n,I,d,options)
 % [prog,Pop] = poslpivar(prog,n,I,d,options) declares 
 % a positive 4-PI decision operator Pop, with fields:
 %
-% P = Q11 int(gs,s,a,b)
-% Q(s) = g(s) Q12 Z1(s) + int( gth Q13 Z2(th,s) dth, s, b) + int( gth Q14 Z3(th,s) dth, a, s)
+% P = int(gs Z0(s)'*Q11*Z0(s),s,a,b)
+% Q(s) = g(s) Z0(s)'*Q12 Z1(s) + int( gth Z0(th)'*Q13 Z2(th,s) dth, s, b) + int( gth Z0(th)'*Q14 Z3(th,s) dth, a, s)
 % R0(s) = gs Z1(s) Q22 Z1(s)
 % R1(s,th) = gs Z1(s) Q23 Z2(s,th) + gth Z3(th,s) Q42 Z1(th) + 
 %            int(geta Z2(eta,s)' Q33 Z2(eta,th) deta,s,b)+int(geta Z3(eta,s) Q43 Z2(eta,th) deta,th,s)
@@ -30,6 +30,7 @@ function [prog,Pop,Nmat] = poslpivar(prog,n,I,d,options)
 %   n(2): dimension of L2 part
 %   I = [l u] interval of integration
 %   -Optional INPUTS
+%   d0: degree of s in Z0(s)
 %   d{1}: degree of s in Z1(s)
 %   d{2}(1): degree of s in Z2(s,th), defaults to d(1)
 %   d{2}(2): degree of th in Z2(s,th), defaults to d(1)
@@ -74,6 +75,8 @@ function [prog,Pop,Nmat] = poslpivar(prog,n,I,d,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
+% Added optional arguments to expand basis to include 
+% separable kernel along with semi-sep and added d0, SS - 9/28/23
 
 % % % Set-up % % %
 
@@ -220,6 +223,12 @@ else
     d0 = options.d0;
 end
 
+if ~isfield(options,'dsep')
+    dsep = -1;
+else 
+    dsep=options.dsep
+end
+
 
 % % Build the monomials
 nZ0 = d0+1;
@@ -255,6 +264,18 @@ Z3coeff = speye(nZ3);
 Z3varname = [var1.varname; var2.varname];
 Z3matdim = [nZ3 1];
 Z3sth=polynomial(Z3coeff,Z3degmat,Z3varname,Z3matdim);
+
+if dsep~=-1
+    Zsepdegmat = [repmat((0:dsep)',dsep+1,1),vec(repmat(0:dsep,dsep+1,1))];
+    Zsepdegmat(sum(Zsepdegmat,2)>dsep,:)= [];
+    nZsep=size(Zsepdegmat,1);
+    Zsepcoeff = speye(nZsep);
+    Zsepvarname = [var1.varname; var2.varname];
+    Zsepmatdim = [nZsep 1];
+    Zsepsth=polynomial(Zsepcoeff,Zsepdegmat,Zsepvarname,Zsepmatdim);
+    Zsepetath = subs(Zsepsth,var1,sss);
+    Zsepetas = subs(Zsepetath,var2,var1);
+end
 
 % % Declare the positive matrix variable
 
@@ -300,6 +321,13 @@ if includeL(4)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
 end
+if dsep>=0
+    ZL{indx} = Zsepetas;
+    ZR{indx} = Zsepetath;
+    mdim = [mdim;n2];
+    ndim = [ndim;n2];
+end
+
 [prog,N,Nmat] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
 
 include_indx = cumsum(includeL);
@@ -365,11 +393,15 @@ if excludeL(1)==0
         i1 = include_indx(1);     j1 = include_indx(3);
         QT = QT + int(geta * subs(N{i1,j1},var2,var1),sss,I(1),I(2));
     end
-    if excludeL(4)==0
+    if excludeL(4)==0 
         %QT = QT + int(Q{1,4}*gth*bZ3ths,var2,I(1),var1);
         %QT = QT + int(gth * ZQZconstruct(poly1,Z2sth,Q{1,4},[n1,n2],var1,var2,sss,0,0),var2,I(1),var1);
         i1 = include_indx(1);     j1 = include_indx(4);
         QT = QT + int(geta * subs(N{i1,j1},var2,var1),sss,I(1),var1);
+    end
+    if dsep>=0
+        i1 = include_indx(1);  
+        QT = QT + int(geta * subs(N{i1,end},var2,var1),sss,I(1),I(2));
     end
 end
 
@@ -397,6 +429,10 @@ if excludeL(2)==0
         i1 = include_indx(4);     j1 = include_indx(2);
         R1 = R1 + gth * subs(N{i1,j1},sss,var2);
     end
+    if dsep>=0
+            i1 = include_indx(2);    
+            R1 = R1 + gs * subs(N{i1,end},sss,var1)+gth * subs(N{end,i1},sss,var1);
+    end
 end
 
 % Define terms in R1 related to the second monomial basis
@@ -411,11 +447,19 @@ if excludeL(3)==0 && ~options.sep==1
         i1 = include_indx(4);     j1 = include_indx(3);
         R1 = R1 + int(geta * N{i1,j1},sss,var2,var1);
     end
+    if dsep>=0
+        i1 = include_indx(3);    
+        R1 = R1 + int(geta * N{i1,end},sss,var1,I(2))+int(geta * N{end,i1},sss,var1,I(2));
+    end
 elseif excludeL(3)==0 && options.sep==1
     %R1 = R1 + int(geta * bZ2etas'*Q{3,3}*bZ2etath,sss,I(1),I(2));
     %R1 = R1 + int(geta * ZQZconstruct(Z2sth,Z2sth,Q{3,3},[n2,n2],var1,var2,sss,1,0),sss,I(1),I(2));
     i1 = include_indx(3);     j1 = include_indx(3);
     R1 = R1 + int(geta * N{i1,j1},sss,I(1),I(2));
+    if dsep>=0
+        i1 = include_indx(3);    
+        R1 = R1 + int(geta * N{i1,end},sss,var1,I(2))++ int(geta * N{end,i1},sss,var1,I(2));
+    end
 end
 
 % Define terms in R1 related to the third monomial basis
@@ -424,6 +468,13 @@ if excludeL(4)==0
     %R1 = R1 + int(geta * ZQZconstruct(Z3sth,Z3sth,Q{4,4},[n2,n2],var1,var2,sss,1,0),sss,I(1),var2);
     i1 = include_indx(4);     j1 = include_indx(4);
     R1 = R1 + int(geta * N{i1,j1},sss,I(1),var2);
+    if dsep>=0
+        i1 = include_indx(4);    
+        R1 = R1 + int(geta * N{i1,end},sss,I(1),var2)+ int(geta * N{end,i1},sss,I(1),var2);
+    end
+end
+if dsep>=0
+    R1 = R1 + int(geta * N{end,end},sss,I(1),I(2));
 end
 
 % Define R2
