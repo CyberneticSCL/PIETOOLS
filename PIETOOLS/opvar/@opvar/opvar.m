@@ -46,6 +46,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
 %
 % Initial coding MMP, SS  - 7_26_2019
 % Changed var1 and var2 to be pvars instead of chars. SS - 9/6/2019
+% DJ - 09/28/23: Add conversion cell to opvar.
 
 
 
@@ -67,6 +68,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
     end
     methods
         function [P] = opvar(varargin) %constructor
+            if iscellstr(varargin)
             for i=1:nargin
                 if ischar(varargin{i})
                     if nargout==0
@@ -74,6 +76,117 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
                     end
                 else
                     error("Input must be strings");
+                end
+            end
+            else
+                P = opvar;
+                A = varargin{1};
+                if ~isa(A,"cell") || (~all(size(A)==[2,2]) && ~all(size(A)==[1,3]))
+                    error('First argument to opvar must be 2x2 cell specifying parameters defining a 4-PI operator')
+                end
+                if all(size(A)==[1,3])
+                    A = {[],[]; [],A};
+                end
+                for j=1:3
+                    if ~isa(A{j},'double') && ~isa(A{j},'polynomial')
+                        error('Parameters of opvar should be specified as arrays of type ''double'' or ''polynomial''')
+                    end
+                end
+                % Set values of R->R, L2->R and R->L2 parameters
+                if ~isempty(A{1,1})
+                    P.P = A{1};
+                end
+                if ~isempty(A{2,1})
+                    if P.dim(1,2)~=0 && size(A{2,1},2)~=P.dim(1,2)
+                        error('Input dimensions of specified parameters do not match')
+                    end
+                    P.Q2 = polynomial(A{2,1});
+                end
+                if ~isempty(A{1,2})
+                    if P.dim(1,1)~=0 && size(A{1,2},1)~=P.dim(1,1)
+                        error('Output dimensions of specified parameters do not match')
+                    end
+                    P.Q1 = polynomial(A{1,2});
+                end
+                % Set values of 3-PI parameters
+                if isa(A{2,2},'double') || isa(A{2,2},'polynomial')
+                    if ~isempty(A{2,2})
+                        if P.dim(2,2)~=0 && size(A{2,2},2)~=P.dim(2,2)
+                            error('Input dimensions of specified parameters do not match')
+                        elseif P.dim(2,1)~=0 && size(A{2,2},1)~=P.dim(2,1)
+                            error('Output dimensions of specified parameters do not match')
+                        end
+                        P.R.R0 = polynomial(A{2,2});
+                    end
+                elseif isa(A{2,2},'cell') && numel(A{2,2})<=3
+                    fset = {'R0','R1','R2'};
+                    A22 = A{2,2};
+                    for j=1:numel(A22)
+                        if isempty(A22{j})
+                            continue
+                        end
+                        if ~isa(A22{j},'double') && ~isa(A22{j},'polynomial')
+                            error('Parameters of opvar should be specified as arrays of type ''double'' or ''polynomial''')
+                        elseif P.dim(2,2)~=0 && size(A22{j},2)~=P.dim(2,2)
+                            error('Input dimensions of specified parameters do not match')
+                        elseif P.dim(2,1)~=0 && size(A22{j},1)~=P.dim(2,1)
+                            error('Output dimensions of specified parameters do not match')
+                        end
+                        P.R.(fset{j})=A22{j};
+                    end
+                else
+                    error('Parameters defining 3-PI subcomponent should be specified as 1x3 cell')
+                end
+                if nargin==1
+                    return
+                end
+                % Set the domain of the operator
+                if ~isa(varargin{2},'double') || ~all(size(varargin{2})==[1,2])
+                    error('The domain of the PI operator should be specified as 1x2 array')
+                elseif varargin{2}(1)>=varargin{2}(2)
+                    error('The specified domain is invalid: make sure a<b in the interval [a,b]')
+                else
+                    P.I = varargin{2};
+                end
+                if nargin==2
+                    return
+                end
+                % Set the first spatial variable.
+                var1 = varargin{3};
+                if ischar(varargin{3})
+                    var1 = {var1};
+                end
+                if ~isa(var1,'polynomial') && ~iscellstr(var1)
+                    error('Variables of the operator should be specified as ''polynomial'' or ''cellstr''')
+                else
+                    var1 = polynomial(var1);
+                end
+                if length(var1)==1
+                    P.var1 = var1;
+                elseif length(var1)==2 && nargin==3
+                    P.var1 = var1(1);   P.var2 = var1(2);
+                else
+                    error('At most two spatial variables can be specified')
+                end
+                if nargin==3
+                    return
+                end
+                % Set the second spatial variable.
+                var2 = varargin{4};
+                if ischar(varargin{4})
+                    var2 = {var2};
+                end
+                if ~isa(var2,'polynomial') && ~iscellstr(var2)
+                    error('Variables of the operator should be specified as ''polynomial'' or ''cellstr''')
+                else
+                    var2 = polynomial(var2);
+                end
+                if length(var2)>1
+                    error('At most two spatial variables can be specified')
+                end
+                P.var2 = var2(1);
+                if nargin>4
+                    error('opvar accepts at most 4 arguments')
                 end
             end
         end
