@@ -78,38 +78,68 @@ else
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end
             Pcat = [a b];
-        elseif b.dim(1,1)==0 % a() is from R to L2, Note: L2 to L2 needs to be an opvar
+        elseif b.dim(1,1)==0
+            % b:RxL2-->L2, assume a:R-->L2
+            % NOTE: a:L2-->L2 must be specified as opvar
             if size(a,1)~=b.dim(2,1) 
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end 
-%             Pcat = b;
-            Pcat.Q2 = [a b.Q2];
-            Pcat.P = [zeros(b.dim(1,1),size(a,2)) b.P];
-        elseif b.dim(2,1)==0 % a() is from R to R, Note: L2 to R needs to be an opvar
+            %Pcat.P = [zeros(b.dim(1,1),size(a,2)), b.P];
+            Pcat.Q2 = [a,b.Q2];
+            Pcat.R.R0 = b.R.R0;
+            Pcat.R.R1 = b.R.R1;
+            Pcat.R.R2 = b.R.R2;
+%             Pcat.Q2 = b.Q2;
+%             Pcat.R.R0 = [a, b.R.R0];
+%             Pcat.R.R1 = [zeros(b.dim(2,1),size(a,2)), b.R.R1];
+%             Pcat.R.R2 = [zeros(b.dim(2,1),size(a,2)), b.R.R2];
+        elseif b.dim(2,1)==0 
+            % b:RxL2-->R, assume a:R-->R
             if size(a,1)~=b.dim(1,1) 
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end
-%             Pcat = b;
+            if isa(a,'polynomial') || isa(b,'dpvar')
+                try a=double(a);
+                catch
+                    error('Convert arguments to opvar for this concatenation')
+                end
+            end
             Pcat.P = [a b.P];
-            Pcat.Q2 = [zeros(b.dim(2,1),size(a,2)) b.Q2];
+            Pcat.Q1 = b.Q1;
+            %Pcat.Q2 = [zeros(b.dim(2,1),size(a,2)) b.Q2];
         else %find if such an operation is valid is any useful scenario and implement it
             error('Cannot concatenate horizontally. This feature is not yet supported.');
         end
     elseif ~isa(b,'opvar')
-        if a.dim(1,1)==0 % b() is from R to L2, Note: L2 to L2 needs to be an opvar
+        if a.dim(1,1)==0
+            % a:RxL2-->L2, assume b:R-->L2
+            % NOTE: b:L2-->L2 must be specified as opvar
             if size(b,1)~=a.dim(2,1) 
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end
-%             Pcat = a;
-            Pcat.Q2 = [a.Q2 b];
-            Pcat.P = [a.P zeros(a.dim(1,1),size(b,2))];
-        elseif a.dim(2,1)==0 % b() is from R to R, Note: L2 to R needs to be an opvar
+            %Pcat.P = [a.P zeros(a.dim(1,1),size(b,2))];
+            Pcat.Q2 = [a.Q2, b];
+            Pcat.R.R0 = a.R.R0;
+            Pcat.R.R1 = a.R.R1;
+            Pcat.R.R2 = a.R.R2;
+%             Pcat.Q2 = a.Q2;
+%             Pcat.R.R0 = [a.R.R0, b];
+%             Pcat.R.R1 = [a.R.R1, zeros(a.dim(2,1),size(b,2))];
+%             Pcat.R.R2 = [a.R.R2, zeros(a.dim(2,1),size(b,2))];
+        elseif a.dim(2,1)==0
+            % a:RxL2-->R, assume b:R-->R
             if size(b,1)~=a.dim(1,1) 
                 error('Cannot concatentate horizontally. A and B have different output dimensions');
             end
-%             Pcat = a;
+            if isa(a,'polynomial') || isa(b,'dpvar')
+                try a=double(a);
+                catch
+                    error('Convert arguments to opvar for this concatenation')
+                end
+            end
             Pcat.P = [a.P b];
-            Pcat.Q2 = [a.Q2 zeros(a.dim(2,1),size(b,2))];
+            Pcat.Q1 = a.Q1;
+            %Pcat.Q2 = [a.Q2 zeros(a.dim(2,1),size(b,2))];
         else %find if such a operation is valid is any useful scenario and implement it
             error('Cannot concatenate horizontally.This feature is not yet supported.');
         end
@@ -117,9 +147,7 @@ else
         if any(b.dim(:,1)~=a.dim(:,1))
             error('Cannot concatentate horizontally. A and B have different output dimensions');
         end
-%         Pcat = a;
         fset = {'P', 'Q1', 'Q2'};
-
         for i=fset
             Pcat.(i{:}) = [a.(i{:}) b.(i{:})];
         end

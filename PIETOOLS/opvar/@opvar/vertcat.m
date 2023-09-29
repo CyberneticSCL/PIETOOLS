@@ -85,13 +85,28 @@ else
             end
 %             Pcat = b;
             if bdim(2,2) ==0
+                % b:R-->RxL2, assume a:R-->R
+                if isa(a,'polynomial') || isa(b,'dpvar')
+                    try a=double(a);
+                    catch
+                        error('Convert arguments to opvar for this concatenation')
+                    end
+                end
                 Pcat.P = [a; b.P]; % a() is from R to R
-                Pcat.Q1 =[zeros(size(a,1),b.dim(2,2)); b.Q1];
-            elseif bdim(1,2)==0 % a() is from L2 to L2, Note: a() cannot be a matrix and map L2 to R 
-                Pcat.Q2 = [zeros(size(a,1),b.dim(1,2)); b.Q2];
-                Pcat.R.R0 = [a; b.R.R0];
-                Pcat.R.R1 = [zeros(size(a)); b.R.R1];
-                Pcat.R.R2 = [zeros(size(a)); b.R.R2];
+                Pcat.Q1 = [zeros(size(a,1),b.dim(2,2)); b.Q1];
+                Pcat.Q2 = b.Q2;
+            elseif bdim(1,2)==0 
+                % b:L2-->RxL2, assume a:L2-->R
+                % NOTE: a:L2-->L2 must be specified as opvar
+                %Pcat.Q2 = [zeros(size(a,1),bdim(1,2)); b.Q2];
+                Pcat.Q1 = [a; b.Q1];
+                Pcat.R.R0 = b.R.R0;
+                Pcat.R.R1 = b.R.R1;
+                Pcat.R.R2 = b.R.R2;
+%                 Pcat.Q1 = b.Q1;
+%                 Pcat.R.R0 = [a; b.R.R0];
+%                 Pcat.R.R1 = [zeros(size(a)); b.R.R1];
+%                 Pcat.R.R2 = [zeros(size(a)); b.R.R2];
             else %find if such a operation is valid is any useful scenario and implement it
                 error('Cannot concatenate vertically. This feature is not yet supported.');
             end
@@ -103,13 +118,28 @@ else
         end
 %         Pcat = a;
         if adim(2,2) ==0
+            % a:R-->RxL2, assume b:R-->R
+            if isa(b,'polynomial') || isa(b,'dpvar')
+                try b=double(b);
+                catch
+                    error('Convert arguments to opvar for this concatenation')
+                end
+            end
             Pcat.P = [a.P; b]; % b() is from R to R
             Pcat.Q1 = [a.Q1; zeros(size(b,1),a.dim(2,2))];
-        elseif adim(1,2)==0 % b() is from L2 to L2, Note: b() cannot be L2 to R and not be opvar
-            Pcat.Q2 = [a.Q2; zeros(size(b,1),a.dim(1,2))];
-            Pcat.R.R0 = [a.R.R0; b];
-            Pcat.R.R1 = [a.R.R1; zeros(size(b))];
-            Pcat.R.R2 = [a.R.R2; zeros(size(b))];
+            Pcat.Q2 = a.Q2;
+        elseif adim(1,2)==0 
+            % a:L2-->RxL2, assume b:L2-->R
+            % NOTE: b:L2-->L2 must be specified as opvar
+            %Pcat.Q2 = [a.Q2; zeros(size(b,1),adim(1,2))];
+            Pcat.Q1 = [a.Q1; b];
+            Pcat.R.R0 = a.R.R0;
+            Pcat.R.R1 = a.R.R1;
+            Pcat.R.R2 = a.R.R2;
+%             Pcat.Q1 = a.Q1;
+%             Pcat.R.R0 = [a.R.R0; b];
+%             Pcat.R.R1 = [a.R.R1; zeros(size(b))];
+%             Pcat.R.R2 = [a.R.R2; zeros(size(b))];
         else %find if such a operation is valid is any useful scenario and implement it
             error('Cannot concatenate vertically. This feature is not yet supported.');
         end
