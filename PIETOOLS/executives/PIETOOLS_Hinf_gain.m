@@ -156,15 +156,20 @@ Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
 disp('- Constructing the Negativity Constraint...');
 
-[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X);
+% [prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X);
+
+Dop = [-gam*Iw     D11op'             B1op'*Pop*Top;
+        D11op                   -gam*Iz        C1op;
+        Top'*Pop*B1op          C1op'              Aop'*Pop*Top+Top'*Pop*Aop];
 
 % Dop = [-gam*Iw+TB1op'*Pop*B1op+B1op'*Pop*TB1op     D11op'             B1op'*Pop*Top+TB1op'*Pop*Aop;
 %         D11op                                              -gam*Iz        C1op;
 %         Top'*Pop*B1op+Aop'*Pop*TB1op                    C1op'              Aop'*Pop*Top+Top'*Pop*Aop+tmp*(Aop'*V+V'*Aop)+tmp2*(Aop'+Aop)];
 
-Dop = [-gam*Iw     D11op'             B1op'*Qop;
-        D11op           -gam*Iz        C1op;
-        Qop'*B1op     C1op'          Aop'*Qop+Qop'*Aop];
+
+% Dop = [-gam*Iw     D11op'             B1op'*Qop;
+%         D11op           -gam*Iz        C1op;
+%         Qop'*B1op     C1op'          Aop'*Qop+Qop'*Aop];
 
 % dpvar tmp; prog = sosdecvar(prog,tmp); prog = sosineq(prog,tmp);
 % Dop.R.R2 = Dop.R.R2+tmp;
@@ -198,7 +203,7 @@ else
 %     [prog, De4op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
 %     Deop = Deop+De3op+De4op;
 %     prog = lpi_eq(prog, Top'*Qop-Qop'*Top);
-    prog = lpi_eq(prog, Top'*Qop-Pop);
+%     prog = lpi_eq(prog, Top'*Qop-Pop);
     prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
 end
 
