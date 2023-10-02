@@ -55,6 +55,8 @@ else
     zeroAB.dim = [0 0; objA.operator.dim(2,1) objB.operator.dim(2,2)]; 
     zeroBA.dim = [0 0; objB.operator.dim(2,1) objA.operator.dim(2,2)];
     
+    objA.operator.var2 = pvar('theta'); objB.operator.var2 = pvar('theta');
+
     tempoperator = [objA.operator zeroAB; zeroBA objB.operator];
     tempstatevec = vertcat(objA.statevec, objB.statevec);
     
