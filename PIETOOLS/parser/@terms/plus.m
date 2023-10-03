@@ -45,6 +45,7 @@ if length(objA)~=length(objB)
     error('Terms of unequal length cannot be added');
 end
 
+objA.operator.var2 = pvar('theta'); objB.operator.var2 = pvar('theta');
 tempoperator = [objA.operator objB.operator];
 tempstatevec = vertcat(objA.statevec, objB.statevec);
 
