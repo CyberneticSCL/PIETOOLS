@@ -10,9 +10,9 @@ function sos = lpi_eq(sos,P,opts)
 %   opts:   Optional input. Set opts = 'symmetric' if P is known to be
 %           symmetric, to enforce only parameters on and below the diagonal
 %           to be zero (as the rest will follow by symmetry).
-% OUTPUT 
+% OUTPUT
 %   sos:    Modified SOS program
-% 
+%
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
@@ -67,20 +67,53 @@ else
     i_set2 = {'R0','R1','R2'};
 end
 
+if isfield(opts,'lin_rep')
+    lin_rep = opts.lin_rep;
+else
+    lin_rep = 0;
+end
 % Enforce parameters in operator to be zero.
 for i = i_set1
     if ~isempty(P.(i{:}))
-        C = P.(i{:}); 
+        C = P.(i{:});
         if ~all(all(C.C==0))
             sos = soseq(sos, C);
         end
     end
 end
-for i = i_set2
-    if ~isempty(P.R.(i{:}))
-        C = P.R.(i{:}); 
-        if ~all(all(C.C==0))
-            sos = soseq(sos, C);
+
+if lin_rep==0
+    for i = i_set2
+        if ~isempty(P.R.(i{:}))
+            C = P.R.(i{:});
+            if ~all(all(C.C==0))
+                sos = soseq(sos, C);
+            end
+        end
+    end
+else
+    R0 = P.R.R0; R1 = P.R.R1;
+    dim = size(R0);
+    for i=1:dim(1)
+        if ~isempty(R0)
+            C = R0(i,i);
+            D = R1(i,i);
+            if ~all(all(C.C==0))
+                sos = soseq(sos, C);
+            end
+            if ~all(all(D.C==0))
+                sos = soseq(sos, D);
+            end
+            for j=1:i-1
+                C = R0(i,j)+R0(j,i);
+                D = R1(i,j)+R1(j,i);
+                if ~all(all(C.C==0))
+                    sos = soseq(sos, C);
+                end
+                if ~all(all(D.C==0))
+                    sos = soseq(sos, D);
+                end
+            end
         end
     end
 end
