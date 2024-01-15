@@ -204,7 +204,9 @@ else
 %     Deop = Deop+De3op+De4op;
 %     prog = lpi_eq(prog, Top'*Qop-Qop'*Top);
 %     prog = lpi_eq(prog, Top'*Qop-Pop);
-    prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
+    opts.symmetric = 1;
+    opts.lin_rep = 1;
+    prog = lpi_eq(prog,Deop+Dop,opts); %Dop=-Deop
 end
 
 

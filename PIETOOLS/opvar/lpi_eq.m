@@ -56,7 +56,7 @@ if isa(P,'opvar2d') || isa(P,'dopvar2d')
 end
 
 % Check if symmetric option is specified.
-if nargin>=3 && strcmpi(opts,'symmetric')
+if nargin>=3 && isfield(opts,'symmetric')
     % Enforce only lower-triangular parameters to be zero
     % --> rest will follow by symmetry of the operator
     i_set1 = {'P','Q2'};

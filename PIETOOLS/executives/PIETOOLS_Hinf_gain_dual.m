@@ -196,7 +196,8 @@ else
     else
         Deop=De1op;
     end
-    prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
+    opts.symmetric = 1; opts.lin_rep = 1;
+    prog = lpi_eq(prog,Deop+Dop,opts); %Dop=-Deop
 end
 
 
