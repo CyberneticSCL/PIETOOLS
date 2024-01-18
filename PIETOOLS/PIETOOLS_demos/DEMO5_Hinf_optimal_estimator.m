@@ -64,7 +64,7 @@ PDE = setObserve(PDE,y);                        % Set y as an observed output
 display_PDE(PDE);                               % Display the system in the command window
 
 % Compute the associated PIE.
-PIE = convert(PDE,'pie');       PIE = PIE.params;
+PIE = convert(PDE,'pie');       %PIE = PIE.params;
 % Extract the PI operators defining the PIE.
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    C2 = PIE.C2;
@@ -79,7 +79,7 @@ B1 = PIE.B1;    D11 = PIE.D11;  D21 = PIE.D21;
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Compute an optimal observer operator L for the PIE.
 
-use_executive = false;  % <-- set to true to use predefined executive
+use_executive = true;  % <-- set to true to use predefined executive
 if use_executive
     % % Use the predefined Hinf estimator executive function.
     % Declare settings to use: choose from
