@@ -67,7 +67,7 @@ B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Compute an optimal observer operator L for the PIE.
 
-use_executive = false;  % <-- set to true to use predefined executive
+use_executive = true;  % <-- set to true to use predefined executive
 if use_executive
     % % Use the predefined Hinf estimator executive function.
     settings = lpisettings('heavy');
@@ -127,7 +127,7 @@ end
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 
 % Construct the operators defining the PIE.
-use_CL_function = false;
+use_CL_function = true;
 
 if use_CL_function
     PIE_CL = closedLoopPIE(PIE,Kval);

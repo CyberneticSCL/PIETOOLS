@@ -52,7 +52,7 @@ if ~isa(K, 'opvar')
     error('Second input to closedLoopPIE() must be an opvar class object');
 end
 
-if ~strcmp(type,'controller') && strcmp(type,'observer')
+if ~strcmp(type,'controller') && ~strcmp(type,'observer')
     error('Third input to closedLoopPIE() must be "controller" or "observer"');
 end
 
@@ -135,7 +135,7 @@ nx = T.dim(:,2); nw = Tw.dim(:,2); nu = Tu.dim(:,2);
 nz = C1.dim(:,1); ny = C2.dim(:,1);
 
 opvar Tcl Twcl Tucl Acl B1cl B2cl C1cl C2cl D11cl D12cl D21cl D22cl;
-C2cl.dim = [[1;0],2*nx]; D21cl.dim = [[1;0],nw]; D22cl.dim = [[1;0],nu];
+C2cl.dim = [[0;0],2*nx]; D21cl.dim = [[0;0],nw]; D22cl.dim = [[0;0],nu];
 C1cl.dim = [2*nz,2*nx]; D11cl.dim = [2*nz,nw]; D12cl.dim = [2*nz,nu];
 Tcl.dim = [2*nx,2*nx]; Twcl.dim = [2*nx,nw]; Tucl.dim = [2*nx,nu];
 Acl.dim = [2*nx,2*nx]; B1cl.dim = [2*nx,nw]; B2cl.dim = [2*nx,nu];
@@ -185,4 +185,5 @@ PIEcl.dom = PIE.dom;
 PIEcl.vars = PIE.vars;
 
 PIEcl = pie_struct(PIEcl);
+PIEcl = initialize(PIEcl);
 end

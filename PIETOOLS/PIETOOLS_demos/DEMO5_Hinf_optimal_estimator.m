@@ -157,18 +157,22 @@ end
 %
 % where V = [v; vhat] and Z = [z; zhat].
 
-% Construct the operators defining the PIE.
-T_CL = [T, 0*T; 0*T, T];        % use 0*T to define zero-operaotr of same dimensions as T
-A_CL = [A, 0*A; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
-C_CL = [C1, 0*C1; 0*C1, C1];            D_CL = [D11; 0*D11];
 
-% Declare the PIE.
-PIE_CL = pie_struct();                      % Initialize the PIE structure
-PIE_CL.vars = PIE.vars;                     % Set the spatial variables of the PIE
-PIE_CL.dom = PIE.dom;                       % Set the domain of the spatial variables
-PIE_CL.T = T_CL;                            % Declare the operator T
-PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;   % Declare the operators A and B1
-PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;  % Declare the operators C1 and D11
+
+% Construct the operators defining the PIE.
+PIE_CL = closedLoopPIE(PIE,Lval,'observer');
+
+% T_CL = [T, 0*T; 0*T, T];        % use 0*T to define zero-operaotr of same dimensions as T
+% A_CL = [A, 0*A; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
+% C_CL = [C1, 0*C1; 0*C1, C1];            D_CL = [D11; 0*D11];
+% 
+% % Declare the PIE.
+% PIE_CL = pie_struct();                      % Initialize the PIE structure
+% PIE_CL.vars = PIE.vars;                     % Set the spatial variables of the PIE
+% PIE_CL.dom = PIE.dom;                       % Set the domain of the spatial variables
+% PIE_CL.T = T_CL;                            % Declare the operator T
+% PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;   % Declare the operators A and B1
+% PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;  % Declare the operators C1 and D11
 PIE_CL = initialize(PIE_CL);                % Fill in all the blanks in the PIE structure
 
 

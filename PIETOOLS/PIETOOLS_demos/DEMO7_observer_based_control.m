@@ -83,19 +83,24 @@ settings = lpisettings('heavy');
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 
 % Construct the operators defining the PIE.
-T_CL = [T, 0*T; 0*T, T];
-A_CL = [A, B2*Kval; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
-C_CL = [C1, D12*Kval; 0*C1, C1];            D_CL = [D11; 0*D11];
-
-
-
-% Declare the PIE.
-PIE_CL = pie_struct();
-PIE_CL.vars = PIE.vars;
-PIE_CL.dom = PIE.dom;
-PIE_CL.T = T_CL;
-PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
-PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
+PIE_CL = closedLoopPIE(PIE,Lval,'observer');
+opvar Kvalnew; Kvalnew.dim = [PIE.Tu.dim(:,2), 2*PIE.T.dim(:,2)];
+Kvalnew.P = [zeros(PIE.Tu.dim(1,2),PIE.T.dim(1,1)), Kval.P];
+Kvalnew.Q1 = [zeros(PIE.Tu.dim(1,2),PIE.T.dim(2,1)), Kval.Q1];
+PIE_CL = closedLoopPIE(PIE_CL,Kvalnew,'controller');
+% T_CL = [T, 0*T; 0*T, T];
+% A_CL = [A, B2*Kval; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
+% C_CL = [C1, D12*Kval; 0*C1, C1];            D_CL = [D11; 0*D11];
+% 
+% 
+% 
+% % Declare the PIE.
+% PIE_CL = pie_struct();
+% PIE_CL.vars = PIE.vars;
+% PIE_CL.dom = PIE.dom;
+% PIE_CL.T = T_CL;
+% PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
+% PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
 PIE_CL = initialize(PIE_CL);
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
