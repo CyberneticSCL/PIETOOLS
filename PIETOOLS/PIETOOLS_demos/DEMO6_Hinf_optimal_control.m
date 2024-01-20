@@ -57,24 +57,23 @@ PDE = setControl(PDE,u);
 display_PDE(PDE);
 
 % Compute the associated PIE, and extract the operators.
-PIE = convert(PDE,'pie');       %PIE = PIE.params;
+PIE = convert(PDE,'pie');
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
 B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
 
 
-
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Compute an optimal observer operator L for the PIE.
+% % % Compute an optimal controller gain operator K for the PIE.
 
 use_executive = true;  % <-- set to true to use predefined executive
 if use_executive
-    % % Use the predefined Hinf estimator executive function.
+    % % Use the predefined Hinf control executive function.
     settings = lpisettings('heavy');
     [prog, Kval, gam_val] = PIETOOLS_Hinf_control(PIE, settings);
 else
     % % Manually construct and solve the LPI program for optimal
-    % % estimator synthesis.
+    % % controller synthesis.
 
     % Initialize the LPI program
     vars = PIE.vars(:);
@@ -100,9 +99,13 @@ else
     [prog,Z] = lpivar(prog,Zdim,Zdom,Zdeg);
 
     % Declare the LPI constraint Q<=0.
-    nw = size(B1,2);    nz = size(C1,1);
-    Q = [-gam*eye(nz)    D11          (C1*P+D12*Z)*(T');
-        D11'           -gam*eye(nw)  B1';
+    opvar Iw Iz;
+    Iw.dim = [B1.dim(:,2),B1.dim(:,2)];     Iz.dim = [C1.dim(:,1),C1.dim(:,1)];
+    Iw.P = eye(size(Iw.P));                 Iz.P = eye(size(Iz.P));
+    Iw.R.R0 = eye(size(Iw.R.R0));           Iz.R.R0 = eye(size(Iz.R.R0));
+
+    Q = [-gam*Iz        D11          (C1*P+D12*Z)*(T');
+        D11'            -gam*Iw      B1';
         T*(C1*P+D12*Z)' B1           (A*P+B2*Z)*(T')+T*(A*P+B2*Z)'];
     prog = lpi_ineq(prog,-Q);
 
@@ -119,22 +122,26 @@ else
     Pval = getsol_lpivar(prog_sol,P);
     Zval = getsol_lpivar(prog_sol,Z);
 
-    % Build the optimal observer operator K.
+    % Build the optimal control operator K.
     Kval = getController(Pval,Zval,1e-3);
 end
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
+% % % Build a closed-loop PIE model, imposing the control u=K*v:
+% [T \dot{v}](t,s) = [(A + B2*K) v](t,s) + [B1 w](t,s);
+%             z(t) = [(C1 + D12*K) v](t) + [D11 w](t)
 
-% Construct the operators defining the PIE.
 use_CL_function = true;
-
 if use_CL_function
+    % % Use the built-in function to construct the closed-loop PIE
     PIE_CL = closedLoopPIE(PIE,Kval);
 else
+    % % Manually construct the closed-loop PIE system
+    % Construct the operators defining the PIE.
     T_CL = T;
-    A_CL = A+B2*Kval;   B_CL = B1;
-    C_CL = C1+D12*Kval; D_CL = D11;
+    A_CL = A + B2*Kval;     B_CL = B1;
+    C_CL = C1 + D12*Kval;   D_CL = D11;
 
     % Declare the PIE.
     PIE_CL = pie_struct();
@@ -145,6 +152,7 @@ else
     PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
     PIE_CL = initialize(PIE_CL);
 end
+
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Simulate and plot the actual and estimated PDE state using PIESIM
@@ -321,6 +329,7 @@ lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5;
 lgd1.Location = 'southeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');
 title('Control effort $u(t)$','Interpreter','latex','FontSize',15);
+fig3.Position = [200 150 1000 450];
 %%
 %%%%%%%%%%%%%%%%%% End Code %%%%%%%%%%%%%%%%%%
 echo off
