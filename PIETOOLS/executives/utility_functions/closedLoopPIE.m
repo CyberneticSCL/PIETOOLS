@@ -15,8 +15,8 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 % y = (C2 + D22*K) x + D21 w 
 % 
 % if type='observer'
-% [T 0][\dot x   ] +[Tw;] w +[Tu] u = [A     0     ][x   ] +[B1   ] w +[B2   ] u 
-% [0 T][\dot xhat]  [0  ]    [0 ]     [-K*C2 A+K*C2][xhat] +[K*D21]    [K*D22]
+% [T 0][\dot x   ] +[Tw] w +[Tu] u = [A     0     ][x   ] +[B1   ] w +[B2   ] u 
+% [0 T][\dot xhat]  [0 ]    [0 ]     [-K*C2 A+K*C2][xhat] +[K*D21]    [K*D22]
 % 
 % z = [C1 0 ][x   ] +[D11] w +[D12] u
 %     [0  C1][xhat]  [0  ]    [0  ]
