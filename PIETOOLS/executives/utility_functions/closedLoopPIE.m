@@ -11,13 +11,16 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 % PIE 
 % if type='controller' (default)
 % (T + Tu*K) \dot x +Tw w = (A + B2*K) x + B1 w 
-% z = (C1 + D12*K)x + D11 w 
+% z = (C1 + D12*K) x + D11 w 
 % y = (C2 + D22*K) x + D21 w 
 % 
 % if type='observer'
-% [T 0; 0 T][\dot x; \dot xhat] +[Tw; 0] w+[Tu; 0] u = [A 0; -K*C2 A+K*C2][x; xhat] + [B1; K*D21] w +[B2; K*D22] u
-% z = [C1 0;0 C1][x; xhat] + [D11; 0] w + [D12; 0] u
-% y = [0 0][x; xhat] + [0] w + [0] u 
+% [T 0][\dot x   ] +[Tw;] w +[Tu] u = [A     0     ][x   ] +[B1   ] w +[B2   ] u 
+% [0 T][\dot xhat]  [0  ]    [0 ]     [-K*C2 A+K*C2][xhat] +[K*D21]    [K*D22]
+% 
+% z = [C1 0 ][x   ] +[D11] w +[D12] u
+%     [0  C1][xhat]  [0  ]    [0  ]
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INPUTS:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -47,6 +50,7 @@ end
 if ~isa(PIE,'pie_struct')
     error('First input to closedLoopPIE() must be a pie_struct object');
 end
+PIE = initialize(PIE);
 
 if ~isa(K, 'opvar')
     error('Second input to closedLoopPIE() must be an opvar class object');
@@ -103,36 +107,36 @@ end
 
 
 % for convenience extract PI operators from PIE
-T = PIE.T; Tw = PIE.Tw; Tu = PIE.Tu;
-A = PIE.A; B1 = PIE.B1; B2 = PIE.B2;
-C1 = PIE.C1; D11 = PIE.D11; D12 = PIE.D12;
-C2 = PIE.C2; D21 = PIE.D21; D22 = PIE.D22;
+T = PIE.T;      Tw = PIE.Tw;    Tu = PIE.Tu;
+A = PIE.A;      B1 = PIE.B1;    B2 = PIE.B2;
+C1 = PIE.C1;    D11 = PIE.D11;  D12 = PIE.D12;
+C2 = PIE.C2;    D21 = PIE.D21;  D22 = PIE.D22;
 
 if strcmp(type,'controller') % build controller closed-loop system
-PIEcl.T = PIE.T+PIE.Tu*K;
-PIEcl.Tw = PIE.Tw;
-PIEcl.A = PIE.A+PIE.B2*K; 
-PIEcl.B1 = PIE.B1;
-PIEcl.C1 = PIE.C1+PIE.D12*K;
-PIEcl.D11 = PIE.D11;
-PIEcl.C2 = PIE.C2+PIE.D22*K;
-PIEcl.D21 = PIE.D21;
+    if ~all(K.dim(:,2)==Tu.dim(:,1))
+        error('Input dimensions of controller gain should match size of the PIE state')
+    elseif ~all(K.dim(:,1)==Tu.dim(:,2))
+        error('Output dimensions of controller gain should match size of the actuator input')
+    end
 
-opvar dummy;
-dummy.I = PIE.T.I; dummy.dim = [PIE.T.dim(:,1),[0;0]];
-dummy.var1 = PIE.T.var1; dummy.var2 = PIE.T.var2;
+    pie_struct PIEcl;
+    PIEcl.T = T + Tu*K;     PIEcl.Tw = Tw;
+    PIEcl.A = A + B2*K;     PIEcl.B1 = B1;
+    PIEcl.C1 = C1 + D12*K;  PIEcl.D11 = D11;
+    PIEcl.C2 = C2 + D22*K;  PIEcl.D21 = D21;
 
-PIEcl.Tu = dummy;
-PIEcl.B2 = dummy;
-dummy.dim = [PIE.C1.dim(:,1),[0;0]];
-PIEcl.D12 = dummy;
-dummy.dim = [PIE.C2.dim(:,1),[0;0]];
-PIEcl.D22 = dummy;
+    PIEcl = initialize(PIEcl);
+
 else % build observer closed-loop system
-L = K;
+    L = K;
+    if ~all(L.dim(:,2)==C2.dim(:,1))
+        error('Input dimensions of observer gain should match size of the observed output')
+    elseif ~all(L.dim(:,1)==C2.dim(:,2))
+        error('Output dimensions of observer gain should match size of the PIE state')
+    end
 
 nx = T.dim(:,2); nw = Tw.dim(:,2); nu = Tu.dim(:,2);
-nz = C1.dim(:,1); ny = C2.dim(:,1);
+nz = C1.dim(:,1);
 
 opvar Tcl Twcl Tucl Acl B1cl B2cl C1cl C2cl D11cl D12cl D21cl D22cl;
 C2cl.dim = [[0;0],2*nx]; D21cl.dim = [[0;0],nw]; D22cl.dim = [[0;0],nu];
@@ -175,15 +179,13 @@ Tucl.P = [Tu.P;zeros(nx(1),nu(1))];
 Tucl.Q2 = [Tu.Q2; zeros(nx(2),nu(1))];
 
 % assign values to pie_struct object container
-PIEcl.T=Tcl;PIEcl.Tw=Twcl;PIEcl.Tu=Tucl;
-PIEcl.A=Acl;PIEcl.B1=B1cl;PIEcl.B2=B2cl;
-PIEcl.C1=C1cl;PIEcl.D11=D11cl;PIEcl.D12=D12cl;
-PIEcl.C2=C2cl;PIEcl.D21=D21cl;PIEcl.D22=D22cl;
+pie_struct PIEcl;
+PIEcl.T=Tcl;    PIEcl.Tw=Twcl;      PIEcl.Tu=Tucl;
+PIEcl.A=Acl;    PIEcl.B1=B1cl;      PIEcl.B2=B2cl;
+PIEcl.C1=C1cl;  PIEcl.D11=D11cl;    PIEcl.D12=D12cl;
+PIEcl.C2=C2cl;  PIEcl.D21=D21cl;    PIEcl.D22=D22cl;
+
+PIEcl = initialize(PIEcl);
 end
 
-PIEcl.dom = PIE.dom;
-PIEcl.vars = PIE.vars;
-
-PIEcl = pie_struct(PIEcl);
-PIEcl = initialize(PIEcl);
 end
