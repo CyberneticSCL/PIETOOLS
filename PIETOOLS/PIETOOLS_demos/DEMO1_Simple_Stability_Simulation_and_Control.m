@@ -97,7 +97,7 @@ title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','l
 % the PDE representation to a PIE representation. This is performed using
 % the following code. 
 PIE = convert(odepde,'pie'); 
-PIE = PIE.params;   
+%PIE = PIE.params;   
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
 B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;

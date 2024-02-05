@@ -64,8 +64,7 @@ PDE = setObserve(PDE,y);
 display_PDE(PDE);
 
 % Compute the associated PIE, and extract the operators.
-PIE = convert(PDE,'pie');  
-PIE = PIE.params;
+PIE = convert(PDE,'pie');
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
 B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
@@ -73,30 +72,57 @@ C2 = PIE.C2;    D21 = PIE.D21;  D22 = PIE.D22;
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Compute an optimal observer gains and optimal controller gains for the PIE.
+% % % Compute an optimal observer gain and controller gain for the PIE.
 
-% % Use the predefined Hinf estimator executive function.
+% % Use the predefined Hinf control and estimator executive functions.
 settings = lpisettings('heavy');
 [prog_k, Kval, gam_co_val] = PIETOOLS_Hinf_control(PIE, settings);
 [prog_l, Lval, gam_ob_val] = PIETOOLS_Hinf_estimator(PIE, settings);
 
+
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
+% % % Build a PIE modeling the actual state v, and estimated state vhat,
+% % %   under optimal control u=K*vhat;
+% [T, 0] [\dot{v}(t)   ] = [A,     B2*K  ] [v(t)   ] + [B1   ] w(t)
+% [0, T] [\dot{vhat}(t)]   [-L*C2, A+L*C2] [vhat(t)] + [L*D21]
+%
+%              [z(t)   ] = [C1, D12*K ] [v   ]           + [D11] w(t)
+%              [zhat(t)]   [0,  C1    ] [vhat]             [0  ]
+%
+% This PIE has the form
+% T_CL * \dot{V}(t) = A_CL * V(t) + B_CL * w(t)
+%             Z(t)  = C_CL * V(t) + D_CL * w(t)
+%
+% where V = [v; vhat] and Z = [z; zhat].
 
-% Construct the operators defining the PIE.
-T_CL = [T, 0*T; 0*T, T];
-A_CL = [A, B2*Kval; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
-C_CL = [C1, D12*Kval; 0*C1, C1];            D_CL = [D11; 0*D11];
+use_CL_function = true;
+if use_CL_function
+    % % Use the built-in function to construct the closed-loop PIE
+    % Construct the closed-loop observer system without imposing the
+    % control law u=K*vhat
+    PIE_CL = closedLoopPIE(PIE,Lval,'observer');
 
+    % Build an operator K_new such that K*vhat = [0,K]*[v; vhat] = K_new*V;
+    Kval_new = [0*Kval, Kval];
 
+    % Impose the control law u = K_new*V in the closed-loop observer system
+    PIE_CL = closedLoopPIE(PIE_CL,Kval_new,'controller');
+else
+    % % Manually construct the closed-loop PIE system
+    % Construct the operators defining the PIE.
+    T_CL = [T, 0*T; 0*T, T];
+    A_CL = [A, B2*Kval; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
+    C_CL = [C1, D12*Kval; 0*C1, C1];            D_CL = [D11; 0*D11];    
+    
+    % Declare the PIE.
+    PIE_CL = pie_struct();
+    PIE_CL.vars = PIE.vars; PIE_CL.dom = PIE.dom;
+    PIE_CL.T = T_CL;
+    PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
+    PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
+    PIE_CL = initialize(PIE_CL);
+end
 
-% Declare the PIE.
-PIE_CL = pie_struct();
-PIE_CL.vars = PIE.vars;
-PIE_CL.dom = PIE.dom;
-PIE_CL.T = T_CL;
-PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
-PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
-PIE_CL = initialize(PIE_CL);
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Simulate and plot the actual and estimated PDE state using PIESIM
@@ -154,7 +180,8 @@ ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w');
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Open loop response with $\mathbf{x}(0,s)=\frac{5}{4}(1-s^2)$, $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
+title('Open-loop response with $\mathbf{x}(0,s)=\frac{5}{4}(1-s^2)$, $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
+fig1.Position = [200 150 1000 450];
 
 fig2 = figure(2);
 subplot(2,1,1);
@@ -166,7 +193,8 @@ ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w'); 
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop response with $\mathbf{x}(0,s)=\frac{5}{4}(1-s^2)$, $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
+title('Closed-loop response with $\mathbf{x}(0,s)=\frac{5}{4}(1-s^2)$, $w(t)=5e^{-t}$','Interpreter','latex','FontSize',15);
+fig2.Position = [200 150 1000 450];
 
 subplot(2,1,2);
 surf(tval(tsteps),grid.phys,x_CL_b(:,tsteps,:),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
@@ -177,7 +205,7 @@ ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w');
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop response with $\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
+title('Closed-loop response with $\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=5\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
 %%
 XX = linspace(0,10,200);
 w2_tval = subs(5*sin(pi*st)./(st+eps),tval);
@@ -205,13 +233,14 @@ set(ax5,'XTick',tval(1:900:end));
 lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5; 
 lgd1.Location = 'northeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$z(t)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $z(t) = \int_0^1 \mathbf{x}(t,s) ds$','Interpreter','latex','FontSize',15);
+title('Closed-loop $z(t) = \int_0^1 \mathbf{x}(t,s) ds$','Interpreter','latex','FontSize',15);
 ax6 = subplot(1,2,2);
 set(ax6,'XTick',tval(1:900:end));
 lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5; 
 lgd1.Location = 'southeast';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');
 title('Control effort $u(t)$','Interpreter','latex','FontSize',15);
+fig3.Position = [200 150 1000 450];
 %%
 %%%%%%%%%%%%%%%%%% End Code %%%%%%%%%%%%%%%%%%
 echo off

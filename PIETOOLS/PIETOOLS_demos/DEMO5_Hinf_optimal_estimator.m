@@ -64,7 +64,8 @@ PDE = setObserve(PDE,y);                        % Set y as an observed output
 display_PDE(PDE);                               % Display the system in the command window
 
 % Compute the associated PIE.
-PIE = convert(PDE,'pie');       PIE = PIE.params;
+PIE = convert(PDE,'pie');
+
 % Extract the PI operators defining the PIE.
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    C2 = PIE.C2;
@@ -77,9 +78,9 @@ B1 = PIE.B1;    D11 = PIE.D11;  D21 = PIE.D21;
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Compute an optimal observer operator L for the PIE.
+% % % Compute an optimal observer gain operator L for the PIE.
 
-use_executive = false;  % <-- set to true to use predefined executive
+use_executive = true;  % <-- set to true to use predefined executive
 if use_executive
     % % Use the predefined Hinf estimator executive function.
     % Declare settings to use: choose from
@@ -119,10 +120,14 @@ else
     [prog,Z] = lpivar(prog,Zdim,Zdom,Zdeg);
 
     % Declare the LPI constraint Q<=0.
-    nw = size(B1,2);    nz = size(C1,1);
-    Q = [-gam*eye(nw),     -D11',        -(P*B1+Z*D21)'*T;
-         -D11,             -gam*eye(nz), C1;
-         -T'*(P*B1+Z*D21), C1',          (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
+    opvar Iw Iz;
+    Iw.dim = [B1.dim(:,2),B1.dim(:,2)];     Iz.dim = [C1.dim(:,1),C1.dim(:,1)];
+    Iw.P = eye(size(Iw.P));                 Iz.P = eye(size(Iz.P));
+    Iw.R.R0 = eye(size(Iw.R.R0));           Iz.R.R0 = eye(size(Iz.R.R0));
+
+    Q = [-gam*Iw,           -D11',        -(P*B1+Z*D21)'*T;
+         -D11,              -gam*Iz,      C1;
+         -T'*(P*B1+Z*D21),  C1',          (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
     prog = lpi_ineq(prog,-Q);       % Add the constraint -Q>=0 to the LPI program
 
     % Set the objective function: minimize gam
@@ -157,19 +162,26 @@ end
 %
 % where V = [v; vhat] and Z = [z; zhat].
 
-% Construct the operators defining the PIE.
-T_CL = [T, 0*T; 0*T, T];        % use 0*T to define zero-operaotr of same dimensions as T
-A_CL = [A, 0*A; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
-C_CL = [C1, 0*C1; 0*C1, C1];            D_CL = [D11; 0*D11];
-
-% Declare the PIE.
-PIE_CL = pie_struct();                      % Initialize the PIE structure
-PIE_CL.vars = PIE.vars;                     % Set the spatial variables of the PIE
-PIE_CL.dom = PIE.dom;                       % Set the domain of the spatial variables
-PIE_CL.T = T_CL;                            % Declare the operator T
-PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;   % Declare the operators A and B1
-PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;  % Declare the operators C1 and D11
-PIE_CL = initialize(PIE_CL);                % Fill in all the blanks in the PIE structure
+use_CL_function = true;
+if use_CL_function
+    % % Use the built-in function to construct the closed-loop PIE
+    PIE_CL = closedLoopPIE(PIE,Lval,'observer');
+else
+    % % Manually construct the closed-loop PIE system
+    % Construct the operators defining the PIE.
+    T_CL = [T, 0*T; 0*T, T];        % use 0*T to define zero-operaotr of same dimensions as T
+    A_CL = [A, 0*A; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
+    C_CL = [C1, 0*C1; 0*C1, C1];            D_CL = [D11; 0*D11];
+    
+    % Declare the PIE.
+    PIE_CL = pie_struct();                      % Initialize the PIE structure
+    PIE_CL.vars = PIE.vars;                     % Set the spatial variables of the PIE
+    PIE_CL.dom = PIE.dom;                       % Set the domain of the spatial variables
+    PIE_CL.T = T_CL;                            % Declare the operator T
+    PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;   % Declare the operators A and B1
+    PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;  % Declare the operators C1 and D11
+    PIE_CL = initialize(PIE_CL);                % Fill in all the blanks in the PIE structure
+end
 
 
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
@@ -249,6 +261,6 @@ ax2 = subplot(1,2,2);   ax2.XScale = 'log';     ax2.XTickLabels = {'0.001';'0.01
 lgd2 = legend('Interpreter','latex');                lgd2.FontSize = 10.5;
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{e}$','FontSize',15,'Interpreter','latex');
 title('Error $\mathbf{e}=\mathbf{\hat{x}}(t)-\mathbf{x}(t)$','Interpreter','latex','FontSize',15);
-fig1.Position = [700 600 1000 450];
+fig1.Position = [200 150 1000 450];
 
 end

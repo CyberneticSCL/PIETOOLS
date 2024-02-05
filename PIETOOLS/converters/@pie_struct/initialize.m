@@ -77,19 +77,15 @@ end
 if ~isa(PIE.T,'opvar') && ~isa(PIE.T,'opvar2d')
     error("PIE.T is a mandatory element of PIE structure and cannot be defaulted to zero");
 else
+    % Adapt domain and variables of PIE to those of the T operator
+    PIE.dom = PIE.T.I;
+    PIE.vars = [PIE.T.var1,PIE.T.var2];
     if PIE.dim==1 && isa(PIE.T,'opvar2d')
         warning("PI operators for a 1D PIE should be specified as opvar objects; attempting to convert T to opvar...")
         PIE.T = opvar2d2opvar(PIE.T);
     elseif PIE.dim==2 && isa(PIE.T,'opvar')
         warning("PI operators for a 2D PIE should be specified as opvar2d objects; attempting to convert T to opvar2d...")
         PIE.T = opvar2d2opvar(PIE.T);
-    end
-    if any(size(PIE.T.I)~=size(PIE.dom))
-        error("The spatial dimension of the operator T does not match the spatial dimension of the PIE.");
-    elseif any(any(PIE.T.I~=PIE.dom))
-        error("The spatial domain of the operator T does not match the spatial domain of the PIE.");
-    elseif ~all(all(isequal([PIE.T.var1,PIE.T.var2],PIE.vars)))
-        error("The spatial variables of the operator T do not match those of the PIE.")
     end
     if any(PIE.T.dim(:,1)~=PIE.T.dim(:,2))
         error("PIE.T operator must be a map between symmetric spaces");
