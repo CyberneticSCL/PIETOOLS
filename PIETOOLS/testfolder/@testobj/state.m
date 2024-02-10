@@ -46,6 +46,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
         Subs = [pvar('t')]; % row vector of pvars showing the substituted value; i-th column corresponds to i-th variable in Vars
         Int = [];   % Matrix of size (length(Vars)-1)x3; First value of row i states if there is an integral on i-th spatial variable, second value is kernel of lower integral, third value is kernel of upper integral
         Dom = []; % Matrix of size (length(Vars)-1)x2; domain of spatial variables, i-th row corresponds to domain of the spatial variable si in Vars.
+        Dim = 0; % number of spatial dimensions
     end
     properties (Hidden)
         MaxDiff = [inf]; % max allowable order of differentiation of each variable in Vars
@@ -68,55 +69,52 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
             else
                 if nargin>=1
                     if strcmp(varargin{1},'in')
-                        obj.type = {'finite'; 'in'; 'disturbance'};
+                        obj.type = {'infinite'; 'in'; 'disturbance'};
                     elseif strcmp(varargin{1},'out')
-                        obj.type = {'finite'; 'out'; 'regulated'};
+                        obj.type = {'infinite'; 'out'; 'regulated'};
                     elseif strcmp(varargin{1},'pde')
                         obj.type = {'infinite'; 'pde'};
-                        obj.Vars = [pvar('t'),pvar('s1')];
-                        obj.Diff = [0,0];
-                        obj.Subs = obj.Vars;
-                        obj.Int = [0,0,0];
+                    elseif ~strcmp(varargin{1},'ode')
+                        error("First input to state() class constructor should be: 'ode','pde','in', or 'out'");
                     end
                 end
                 if nargin>=2
-                    
-                elseif nargin==4 % internal use only, dont use this for constructing state vectors
-                    obj.type = varargin{1};
-                    obj.veclength = varargin{2};
-                    obj.var = varargin{3};
-                    obj.statename = varargin{4};
-                    obj.diff_order = zeros(1,length(varargin{3}));
-                elseif nargin>3
-                    error('State class definition only takes 3 inputs');
+                    obj.Dim = varargin{2};
+                    if obj.Dim>0
+                        obj.type{1} = 'infinite';
+                    end
                 end
                 if nargin>=3
                     obj.Length = varargin{3};
                 end
-                obj.statename = stateNameGenerator();
+                if nargin>=4
+                    obj.Dom = varargin{4};
+                else
+                    obj.Dom = repmat([0,1],obj.Dim,1);
+                end
+                if nargin>=5 % internal use only, dont use this for constructing state vectors
+                    if strcmp(varargin{5},'statename')
+                        obj.statename = varargin{6};
+                    else
+                        error('Unknown 5th and 6th input for state() constructor');
+                    end
+                else
+                    obj.statename = stateNameGenerator();
+                end
+                if strcmp(obj.type{1},'infinite')
+                    tmpVars = obj.Vars;
+                    for i=1:obj.Dim
+                        tmpVars = [tmpVars,pvar(['s',num2str(i)])];
+                    end
+                    obj.Vars = tmpVars;
+                    obj.Diff = zeros(1,obj.Dim+1);
+                    obj.Int = zeros(obj.Dim,3);
+                    obj.Subs = tmpVars;
+                    obj.MaxDiff = repmat([inf],1,obj.Dim+1);
+                end
             end
         end
         
-        function obj = set.dom(obj,dom)
-            obj.dom = dom;
-        end
-        function obj = set.maxdiff(obj,maxdiff)
-            obj.maxdiff = maxdiff;
-        end
-
-        % other class methods
-        obj = subs(obj,var,var_val);
-        obj = diff(obj,var,order);
-        logval = eq(objA,objB);
-        logval = isequal(objA,objB);
-        obj = horzcat(varargin);
-        obj = int(obj,var,limits);
-        [logval,idx] = ismember(objA,objB)
-        obj = minus(objA,objB);
-        obj = mtimes(obj,K);
-        logval = ne(objA,objB);
-        obj = plus(objA,objB);
-        obj = uplus(obj);
-        obj = uminus(obj);
+        
     end
 end
