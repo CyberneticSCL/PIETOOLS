@@ -93,21 +93,21 @@ fprintf('\n --- Executing Primal Stability Test --- \n')
 varlist = [PIE.A.var1; PIE.A.var2];  % retrieving the names of the independent pvars from Aop (typically s and th)
 prog = sosprogram(varlist);      % Initialize the program structure
 X=PIE.A.I;                         % retrieve the domain from Aop
-nx1=PIE.A.dim(1,1);                % retrieve the number of ODE states from Aop
-nx2=PIE.A.dim(2,1);                % retrieve the number of distributed states from Aop
+nx1=PIE.A.dim(1,2);                % retrieve the number of ODE states from Aop
+nx2=PIE.A.dim(2,2);                % retrieve the number of distributed states from Aop
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 1: declare the posopvar variable, Pop, which defines the Lyapunov 
 % function candidate
 disp('- Parameterizing Positive Lyapunov Operator using specified options...');
 
-[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
-[prog, Qop] = lpivar(prog, PIE.T.dim,X,ddZ);
+[prog, P1op] = poslpivar(prog, [PIE.T.dim(:,1)],X,dd1,options1);
+[prog, Qop] = lpivar(prog, [PIE.T.dim(:,1),PIE.T.dim(:,1)],X,ddZ);
 dpvar lam;
 prog = sosdecvar(prog,lam); prog = sosineq(prog,lam);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1),X,dd12,options12);
+    [prog, P2op] = poslpivar(prog, [PIE.T.dim(:,1)],X,dd12,options12);
     Pop=P1op+P2op;
 else
     Pop=P1op;
@@ -143,10 +143,10 @@ if sosineq_on
 else
     disp('  - Using an Equality constraint...');
     
-    [prog, De1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd2,options2);
+    [prog, De1op] = poslpivar(prog, PIE.T.dim(:,2),X,dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog,PIE.T.dim(:,1),X, dd3,options3);
+        [prog, De2op] = poslpivar(prog,PIE.T.dim(:,2),X, dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
