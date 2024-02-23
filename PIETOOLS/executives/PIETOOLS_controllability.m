@@ -1,4 +1,4 @@
-function [prog, Wc,Wc2] = PIETOOLS_controllability(PIE,settings,varargin)
+function [prog, lam,Wc] = PIETOOLS_controllability(PIE,settings,varargin)
 if PIE.dim==2
     disp('Requires creating H2 norm script for 2D systems')
     return
@@ -28,7 +28,9 @@ end
 % Dumping relevant 4-PI operators to the workspace
 Aop=PIE.A;
 Top=PIE.T;
+B1op=PIE.B1;
 B2op=PIE.B2;    %TB1op = PIE.Tw;
+C1op=PIE.C1;
 C2op=PIE.C2;
 %D11op=PIE.D11;
 
@@ -40,8 +42,10 @@ prog = sosprogram(varlist);      % Initialize the program structure
 X=Aop.I;                         % retrieve the domain from Aop
 nx1=Aop.dim(1,1);                % retrieve the number of ODE states from Aop
 nx2=Aop.dim(2,1);                % retrieve the number of distributed states from Aop
+nw=B1op.dim(1,2);
 nu=B2op.dim(1,2);                % retrieve the number of real-valued disturbances
-ny=C2op.dim(1,1);                % retrieve the number of real-valued regulated outputs
+nz=C1op.dim(1,1);                % retrieve the number of real-valued regulated outputs
+ny= C2op.dim(1,1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -55,6 +59,11 @@ ny=C2op.dim(1,1);                % retrieve the number of real-valued regulated 
 % function candidate
 disp('- Declaring Gramian using specified options...');
 
+dpvar lam;
+prog = sosdecvar(prog,lam);
+prog = sossetobj(prog,lam);
+prog = sosineq(prog,lam);
+
 [prog, P1op] = poslpivar(prog, [nx1 ,nx2],X,dd1,options1);
 if override1~=1
     [prog, P2op] = poslpivar(prog, [nx1 ,nx2],X,dd12,options12);
@@ -62,19 +71,14 @@ if override1~=1
 else
     Wop=P1op;
 end
-[prog, P3op] = poslpivar(prog, [nx1 ,nx2],X,dd1,options1);
-if override1~=1
-    [prog, P4op] = poslpivar(prog, [nx1 ,nx2],X,dd12,options12);
-    W2op=P3op+P4op;
-else
-    W2op=P3op;
-end
 
-% Wop.R.R0 = Wop.R.R0+eppos*eye(nx2);
+
+Wop.P = Wop.P+eppos*eye(nx1);
+Wop.R.R0 = Wop.R.R0+eppos*eye(nx2);
 % W2op.R.R0 = W2op.R.R0+eppos*eye(nx2);
-opvar tmp; tmp.R.R1 = Wop.var1; tmp.R.R2 = Wop.var1;
-Wop = Wop+eppos*tmp;
-W2op = W2op+eppos*tmp;
+% opvar tmp; tmp.R.R1 = Wop.var1; tmp.R.R2 = Wop.var1;
+% Wop = Wop+eppos*tmp;
+% W2op = W2op+eppos*tmp;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -83,8 +87,13 @@ W2op = W2op+eppos*tmp;
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop =  (Aop*Wop)*Top'+Top*(Wop*Aop')+B2op*B2op'+epneg*tmp;
-D2op =  (Aop*W2op)*Top'+Top*(W2op*Aop')+B2op*B2op'+epneg*tmp;
+% lam = 0;
+opvar I; I.dim = PIE.T.dim; I.R.R0 = eye(nx2); I.P = eye(nx1);
+
+Dop =  B1op*B1op'+lam*(PIE.A-I)*(PIE.A-I)'+0.5*lam*(PIE.T+PIE.A+I)*(PIE.T+PIE.A+I)'...
+            -PIE.A*Wop*PIE.A'-0.5*(PIE.T-PIE.A+I)*Wop*(PIE.T-PIE.A+I)' - lam*I;
+D2op =  B1op*B1op'+(PIE.A-I)*Wop*(PIE.A-I)'+0.5*(PIE.T+PIE.A+I)*Wop*(PIE.T+PIE.A+I)'...
+            -lam*PIE.A*PIE.A'-0.5*lam*(PIE.T-PIE.A+I)*(PIE.T-PIE.A+I)' - Wop;
 
 
 
@@ -110,14 +119,14 @@ else
         Deop=De1op;
         Deop2=De3op;
     end
-    prog = lpi_eq(prog,Dop+Deop,'symmetric'); %Dop=-Deop
-    prog = lpi_eq(prog,D2op-Deop2,'symmetric'); %Dop=Deop
+    prog = lpi_eq(prog,Dop-Deop,'symmetric'); %Dop=-Deop
+    prog = lpi_eq(prog,D2op+Deop2,'symmetric'); %Dop=Deop
 end
 
 
 %solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
 prog = sossolve(prog,sos_opts);
+lam = sosgetsol(prog,lam);
 Wc = getsol_lpivar(prog,Wop);
-Wc2 = getsol_lpivar(prog,W2op);
 end
