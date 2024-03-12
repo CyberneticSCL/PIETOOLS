@@ -157,7 +157,7 @@ end
 
 % enforce strict positivity on the operator
 Pop.P = Pop.P+eppos*eye(nx1);
-Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);  
+Pop.R.R0 = Pop.R.R0+eppos*eye(nx2);  
 
 [prog,Zop] = lpivar(prog,[PIE.T.dim(:,1),PIE.C2.dim(:,1)],X,ddZ);
 [prog,Wop] = lpivar(prog,[PIE.C2.dim(:,1),PIE.C2.dim(:,1)],X,ddZ);
@@ -178,7 +178,7 @@ Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
 Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
 
-Dop = [(PIE.A'*Pop+Zop*PIE.C2)*(PIE.T)+PIE.T'*(PIE.A*Pop+Zop*PIE.C2)'+PIE.C1'*PIE.C1]; 
+Dop = [(Pop*PIE.A+Zop*PIE.C2)'*(PIE.T)+PIE.T'*(Pop*PIE.A+Zop*PIE.C2)+PIE.C1'*PIE.C1+epneg*PIE.T'*PIE.T]; 
 
 Dop2 = [Wop -(PIE.B1'*Pop+PIE.D21'*Zop'); -(PIE.B1'*Pop+PIE.D21'*Zop')' Pop];
 
