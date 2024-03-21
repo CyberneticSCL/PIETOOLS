@@ -1,14 +1,13 @@
 classdef (InferiorClasses={?polynomial,?dpvar})state
     properties (SetAccess=protected)
         type = {'finite'; 'ode'};
-        len =1;
-        var = [pvar('t')];
-        multiplier = 1;
-        intKernel = [];
-        intLim = [];
-        diffOrder = [0];
-        maxdiff = [inf];
-        dom = [];
+        len =[1];
+        var = {[pvar('t')]};
+        multiplier = [1];
+        intLim = {[]};
+        diffOrder = {[0]};
+        maxdiff = {[inf]};
+        dom = {[]};
     end
     properties (Hidden, SetAccess=protected)
         statename;
@@ -26,7 +25,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
                     assignin('caller', varargin{i}, obj);
                 end
             else
-                ;
+                %
             end
         end
         
@@ -37,8 +36,6 @@ classdef (InferiorClasses={?polynomial,?dpvar})state
         function obj = set.var(obj,var)
         end
         function obj = set.multiplier(obj,multiplier)
-        end
-        function obj = set.intKernel(obj,intKernel)
         end
         function obj = set.intLim(obj,intLim)
         end

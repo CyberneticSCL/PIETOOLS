@@ -1,7 +1,8 @@
 classdef integral
     properties 
         var;
-        val;
+        statevar;
+        kernel;
         lim;
     end
 end

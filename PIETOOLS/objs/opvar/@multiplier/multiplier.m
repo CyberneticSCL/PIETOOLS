@@ -1,6 +1,7 @@
 classdef multiplier
     properties
         var;
-        val;
+        statevar;
+        kernel;
     end
 end
