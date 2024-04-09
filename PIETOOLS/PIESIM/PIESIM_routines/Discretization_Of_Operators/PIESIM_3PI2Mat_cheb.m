@@ -41,15 +41,14 @@ for i=1:ns
          csize=N-p(j)+1;
 %        
 % Treatment of mutliplicative operator (opmult stands for multiplicative)
-        [A_opmult_cell{i,j}, A_opmult_cell_nonsquare{i,j}]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, R0(i,j), p(j));
+        [A_opmult, A_opmult_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, R0(i,j), p(j));
  % Treatment of integrative operator (opint stands for integrative)
-         A_opint_block_nonsquare=PIESIM_3PI2Mat_cheb_opint_discretize(N,R1(i,j),R2(i,j),p(j)); 
-         A_opint_block=A_opint_block_nonsquare(1:rsize,1:csize);
-         A_opint_cell{i,j}=A_opint_block;
-         A_opint_cell_nonsquare{i,j}=A_opint_block_nonsquare;
+         A_opint_nonsquare=PIESIM_3PI2Mat_cheb_opint_discretize(N,R1(i,j),R2(i,j),p(j)); 
+         A_opint=A_opint_nonsquare(1:rsize,1:csize);
+
  % Summing multiplicative and integrative together
-         A_cell{i,j}=double(A_opmult_cell{i,j}+A_opint_cell{i,j});
-         A_cell_nonsquare{i,j}=double(A_opmult_cell_nonsquare{i,j}+A_opint_cell_nonsquare{i,j});
+         A_cell{i,j}=double(A_opmult+A_opint);
+         A_cell_nonsquare{i,j}=double(A_opmult_nonsquare+A_opint_nonsquare);
 %         
      end
 end
