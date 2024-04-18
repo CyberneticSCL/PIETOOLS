@@ -132,7 +132,7 @@ function [PDE] = expand_PIETOOLS_PDE_BCs(PDE)
 
 
 % Initialize the PDE, if it seems this has not yet been done.
-if ~isa(PDE,'pde_struct') || (size(PDE.BC_tab,1)~=sum(sum(PDE.x_tab(:,3+PDE.dim:2+2*PDE.dim))))
+if ~isa(PDE,'pde_struct') || ~PDE.is_initialized %(size(PDE.BC_tab,1)~=sum(sum(PDE.x_tab(:,3+PDE.dim:2+2*PDE.dim))))
     PDE = initialize_PIETOOLS_PDE(PDE,true);
 end
 
