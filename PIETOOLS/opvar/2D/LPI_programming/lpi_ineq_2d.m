@@ -101,35 +101,47 @@ options2.exclude(5) = options.pure(2);
 options3.exclude(5) = options.pure(2);
 
 tol = 1e-14;
-if (isa(Pop.R22{1,1},'double') && max(max(Pop.R22{1,1}))<tol) || all(max(max(Pop.R22{1,1}.C))<tol)
+if (isa(Pop.R00,'double') && max(max(abs(Pop.R00)))<tol) || all(max(max(abs(Pop.R00.C)))<tol)
+    options2.exclude(1) = 1;
+    options3.exclude(1) = 1;
+end
+if (isa(Pop.Rxx{1},'double') && max(max(abs(Pop.Rxx{1})))<tol) || all(max(max(abs(Pop.Rxx{1}.C)))<tol)
+    options2.exclude(2) = 1;
+    options3.exclude(2) = 1;
+end
+if (isa(Pop.Ryy{1},'double') && max(max(abs(Pop.Ryy{1})))<tol) || all(max(max(abs(Pop.Ryy{1}.C)))<tol)
+    options2.exclude(5) = 1;
+    options3.exclude(5) = 1;
+end
+if (isa(Pop.R22{1,1},'double') && max(max(abs(Pop.R22{1,1})))<tol) || all(max(max(abs(Pop.R22{1,1}.C)))<tol)
     options2.exclude(8) = 1;
     options3.exclude(8) = 1;
 else
     options2.exclude(8) = max([options.pure(3),options.pure(4),options.pure(5)]);
     options3.exclude(8) = max([options.pure(3),options.pure(4),options.pure(5)]);
 end
-if (isa(Pop.R22{2,1},'double') && max(max(Pop.R22{2,1}))<tol) || all(max(max(Pop.R22{2,1}.C))<tol)
+if (isa(Pop.R22{2,1},'double') && max(max(abs(Pop.R22{2,1})))<tol) || all(max(max(abs(Pop.R22{2,1}.C)))<tol)
     options2.exclude(9) = 1;
     options3.exclude(9) = 1;
 else
     options2.exclude(9) = options.pure(4);
     options3.exclude(9) = options.pure(4); 
 end
-if (isa(Pop.R22{3,1},'double') && max(max(Pop.R22{3,1}))<tol) || all(max(max(Pop.R22{3,1}.C))<tol)
+if (isa(Pop.R22{3,1},'double') && max(max(abs(Pop.R22{3,1})))<tol) || all(max(max(abs(Pop.R22{3,1}.C)))<tol)
     options2.exclude(10) = 1;
     options3.exclude(10) = 1;
 else
     options2.exclude(10) = options.pure(4);
     options3.exclude(10) = options.pure(4); 
 end
-if (isa(Pop.R22{1,2},'double') && max(max(Pop.R22{1,2}))<tol) || all(max(max(Pop.R22{1,2}.C))<tol)
+if (isa(Pop.R22{1,2},'double') && max(max(abs(Pop.R22{1,2})))<tol) || all(max(max(abs(Pop.R22{1,2}.C)))<tol)
     options2.exclude(11) = 1;
     options3.exclude(11) = 1;
 else
     options2.exclude(11) = options.pure(5);
     options3.exclude(11) = options.pure(5); 
 end
-if (isa(Pop.R22{1,3},'double') && max(max(Pop.R22{1,3}))<tol) || all(max(max(Pop.R22{1,3}.C))<tol)
+if (isa(Pop.R22{1,3},'double') && max(max(abs(Pop.R22{1,3})))<tol) || all(max(max(abs(Pop.R22{1,3}.C)))<tol)
     options2.exclude(12) = 1;
     options3.exclude(12) = 1;
 else
@@ -166,7 +178,8 @@ end
 
 % % Add aditional degrees of freedom/monomials to obtain a (hopefully)
 % % feasible problem
-if toggle==1    % Using maximal degrees
+toggle2 = 0;
+if toggle2==1    % Using maximal degrees
     % % Check that the parameters of Deop indeed contain all monomials that appear
     % % in the parameters of Pop
     p_indx = [2;3;4;6;7;8;11;12;16];    % Check only lower-triangular parameters
@@ -184,21 +197,21 @@ if toggle==1    % Using maximal degrees
         p_indx = find(~(isgood_Dpar(:)));   % Indices of parameters we still need to verify are okay
         [isgood_Deop,isgood_Dpar,degs] = checkdeg_lpi_eq_2d(Pop,Deop,degs,p_indx);    
     end
-elseif toggle==2    % Using predefined monomials
+elseif toggle2==2    % Using predefined monomials
     % % Add addtional terms with separable kernels
-%     if any(~options2.exclude([3,4,9,10,13,14,15,16]))
-%         options2.sep = [1,0,1,0,1,0];
-%         [sosD, Deop_x] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oy,options2);
-%     end
-%     if any(~options2.exclude([6,7,11,12,13,14,15,16]))
-%         options2.sep = [0,1,0,1,0,1];
-%         [sosD, Deop_y] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_xo,options2);
-%     end
-%     if any(~options2.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
-%         options2.sep = [1,1,1,1,1,1];
-%         [sosD, Deop_xy] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oo,options2);
-%     end
-%     Deop = Deop + Deop_x + Deop_y + Deop_xy;
+    if any(~options2.exclude([3,4,9,10,13,14,15,16]))
+        options2.sep = [1,0,1,0,1,0];
+        [sosD, Deop_x] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oy,options2);
+    end
+    if any(~options2.exclude([6,7,11,12,13,14,15,16]))
+        options2.sep = [0,1,0,1,0,1];
+        [sosD, Deop_y] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_xo,options2);
+    end
+    if any(~options2.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
+        options2.sep = [1,1,1,1,1,1];
+        [sosD, Deop_xy] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oo,options2);
+    end
+    Deop = Deop + Deop_x + Deop_y + Deop_xy;
 end
 sos = sosD; % Make sure the SOS program contains the right operator Deop
     
@@ -207,7 +220,24 @@ for j=1:length(options.psatz)
     if options.psatz(j)~=0
         options3.psatz = options.psatz(j);
         [sos, De2op] = poslpivar_2d(sos, [n0 ,nx, ny, n2],dom,degs,options3);
-        Deop = Deop+De2op; 
+        Deop = Deop+De2op;
+
+        % % Add addtional terms with separable kernels
+        if toggle2==2
+            if any(~options3.exclude([3,4,9,10,13,14,15,16]))
+                options3.sep = [1,0,1,0,1,0];
+                [sos, De2op_x] = poslpivar_2d(sos, [n0, nx, ny, n2],dom,degs_oy,options3);
+            end
+            if any(~options3.exclude([6,7,11,12,13,14,15,16]))
+                options3.sep = [0,1,0,1,0,1];
+                [sos, De2op_y] = poslpivar_2d(sos, [n0, nx, ny, n2],dom,degs_xo,options3);
+            end
+            if any(~options3.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
+                options3.sep = [1,1,1,1,1,1];
+                [sos, De2op_xy] = poslpivar_2d(sos, [n0, nx, ny, n2],dom,degs_oo,options3);
+            end
+            Deop = Deop + De2op_x + De2op_y + De2op_xy;
+        end
     end
 end
 % Enforce the constraint, exploiting symmetry
