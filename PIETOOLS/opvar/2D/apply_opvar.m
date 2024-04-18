@@ -40,17 +40,20 @@ function Pv = apply_opvar(P,v)
 % Check that the PI operator is properly specified, and whether it is a 1D
 % or 2D operator.
 use_2d = false;
-if ~isa(P,'opvar') && ~isa(P,'opvar2d')
+if ~isa(P,'opvar') && ~isa(P,'opvar2d') && ~isa(P,'dopvar') && ~isa(P,'dopvar2d')
     error('The first argument should be of class ''opvar'' or ''opvar2d'', representing a PI operator.')
-elseif isa(P,'opvar2d')
+elseif isa(P,'opvar2d') || isa(P,'dopvar2d')
     use_2d = true;
 end
 
 % Check that the polynomial has been properly specified.
 if isa(v,'double')
     v = polynomial(v);
-elseif ~isa(v,'polynomial')
+elseif ~isa(v,'polynomial') && ~isa(v,'dpvar')
     error('The second argument should be of class ''double'' or ''polynomial'', representing a polynomial on which to apply the PI operator.')
+end
+if (isa(P,'dopvar') || isa(P,'dopvar2d')) && isa(v,'dpvar')
+    error('Dopvar object cannot be applied to dpvar object.')
 end
 
 % Check that the dimensions of the operator and polynomial match.
