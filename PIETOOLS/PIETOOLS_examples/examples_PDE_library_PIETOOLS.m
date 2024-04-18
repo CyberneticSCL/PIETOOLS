@@ -497,7 +497,7 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params);
 %--------------------------------------------------------------------------
     case 35
-%   PDE: x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)}       | c1 = 1;   c2 = 1;
+%   PDE: x_{tt} = c1*x_{(2,0)} + c2*x_{(0,2)}       | c1 = 1;   c2 = 1;
 %   BCs: x(s1=0) = 0;       x(s2=0) = 0;            | ne = 1; (state size)
 %        x(s1=1) = 0;       x(s2=1) = 0;            |
 %   Use states x1 = x,    x2 = x_{t}                |
