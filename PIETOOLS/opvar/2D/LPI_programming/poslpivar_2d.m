@@ -1,4 +1,4 @@
-function [prog,Pop] = poslpivar_2d(prog,n,I,d,options)
+function [prog,Pop,Tmat] = poslpivar_2d(prog,n,I,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [prog,Pop,LLL,bZ_col] = poslpivar_2d(prog,n,I,d,options) declares 
 % a positive 0112D PI operator. 
@@ -88,6 +88,8 @@ function [prog,Pop] = poslpivar_2d(prog,n,I,d,options)
 % OUTPUT 
 %   prog: modified SOS program with new variables and constraints
 %   Pop: operator structure
+%   Tmat: cell or array providing the coefficients defining the positive
+%         operator Pop.
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -525,7 +527,6 @@ rr = [rr1;rr2];
 psatz = abs(options.psatz);
 if psatz==0
     gss=polynomial(1);
-    
 elseif psatz==1
     gss=(ss1-I(1,1))*(I(1,2)-ss1)*(ss2-I(2,1))*(I(2,2)-ss2);
     
@@ -544,7 +545,7 @@ end
 %     gss = gss^2;  
 % end
 
-% Introduce varitations with adjusted variables for later purposes
+% Introduce variations with adjusted variables for later purposes
 gtt = subs(gss,var1,var2);
 grr = subs(gss,var1,rr);
 gts = subs(gss,ss1,tt1);
@@ -563,6 +564,7 @@ gir = subs(gis,ss2,rr2);
 gri = subs(gsi,ss1,rr1);
 
 gii = int(gis,ss2,I(2,1),I(2,2));
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -887,7 +889,11 @@ if includeL(16)
 end
 
 % Compute the product N = ZL'*T*ZR for positive decision matrix T
-[prog,N] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+if nargout==3
+    [prog,N,Tmat] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+else
+    [prog,N] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+end
 
 
 ij = cumsum(includeL);
@@ -2198,10 +2204,10 @@ else
 end
 dsize_prod = 2.^(0:nvars-1);    % Vector translating step 1 increase in dimension d to associated increase in linear index
 
-if maxdegs(1)~=0 && ~isnan(maxdegs(1))
-    warning('The very first element of the maximal degree object does not correspond to any variable; the input value will be ignored')
-    maxdegs(1) = 0;
-end
+% if maxdegs(1)~=0 && ~isnan(maxdegs(1))
+% %    warning('The very first element of the maximal degree object does not correspond to any variable; the input value will be ignored')
+%     maxdegs(1) = 0;
+% end
 
 % % To be safe, we perform several cycles of updates to the degrees, though
 % % 1 should be sufficient (in general)
