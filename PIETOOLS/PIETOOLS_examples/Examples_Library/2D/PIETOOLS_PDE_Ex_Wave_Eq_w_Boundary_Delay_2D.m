@@ -1,4 +1,4 @@
-function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params)
+function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay_2D(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -15,28 +15,28 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params)
 %
 % %---------------------------------------------------------------------% %
 % % Wave Equation with Delay in BCs (Xu 2006):
-% % PDE         x_{tt}  = x_{ss}(t,s);       s1 in [0,1]   
+% % PDE         x_{tt}  = x_{s1s1}(t,s1);       s1 in [0,1]   
 % % With BCs    x(t,0) = 0;   
-% %             x_{s}(t,1) = -k*(1-mu)*x_{t}(t,1) - k*mu*x_{t}(t-tau,1);
+% %             x_{s1}(t,1) = -k*(1-mu)*x_{t}(t,1) - k*mu*x_{t}(t-tau,1);
 % %
 % % Introduce:
-% %     x1(t)   = -k*(1-mu)*x(t,1) -k*mu*x(t-tau,1);
-% %     x2(t,s) = x(t,s);
-% %     x3(t,s) = x_{t}(t,s);
-% %     x4(t,s) = x(t-tau*s,1);
-% %     x5(t,s) = x_{t}(t-tau*s,1);
+% %     x1(t)    = - k*(1-mu)*x(t,1) - k*mu*x(t-tau,1);
+% %     x2(t,s1) = x(t,s1);
+% %     x3(t,s1) = x_{t}(t,s1);
+% %     x4(t,s2) = x(t-tau*s2,1);
+% %     x5(t,s2) = x_{t}(t-tau*s2,1);
 % % Then:
-% % ODE:    x1_{t}(t)   = x2_{s}(t,1);
-% % PDE:    x2_{t}(t,s) = x3(t,s);                    s in (0,1)
-% %         x3_{t}(t,s) = x2_{ss}(t,s);                
-% %         x4_{t}(t,s) = -(1/tau) x4_{s}(t,s);     
-% %         x5_{t}(t,s) = -(1/tau) x5_{s}(t,s);
+% % ODE:    x1_{t}(t)    = x2_{s1}(t,1);
+% % PDE:    x2_{t}(t,s1) = x3(t,s1);                    s1 in (0,1)
+% %         x3_{t}(t,s1) = x2_{s1s1}(t,s1);                
+% %         x4_{t}(t,s2) = -(1/tau) x4_{s2}(t,s2);      s2 in (0,1)
+% %         x5_{t}(t,s2) = -(1/tau) x5_{s2}(t,s2);
 % % BCs:    x2(t,0) = 0;
 % %         x3(t,0) = 0;
 % %         x4(t,0) = x2(t,1);
 % %         x5(t,0) = x3(t,1);
 % %         x1(t)   = - k*(1-mu)*x2(t,1) - k*mu*x4(t,1);
-% %         x2_{s}(t,1) = - k*(1-mu)*x3(t,1) - k*mu*x5(t,1);
+% %         x2_{s1}(t,1) = - k*(1-mu)*x3(t,1) - k*mu*x5(t,1);
 % %
 % % Parameters tau, k, and mu can be set.
 % % Stable whenever mu < 1/2
@@ -53,6 +53,7 @@ pvar s theta s1 s2 theta1 theta2
 evalin('base','stability = 1;');
 %evalin('base','stability_dual = 1;');
 
+a = 0;      b = 1;  
 k = 1;
 tau = 1;    mu = 0.5-1e-1;
 npars = length(params);
@@ -69,57 +70,57 @@ end
 % Initialize the state variables and input.
 pde_struct PDE_t;
 PDE_t.x{1}.vars = [];
-PDE_t.x{2}.vars = [s,theta];    PDE_t.x{2}.dom = [0,1];
-PDE_t.x{3}.vars = [s,theta];    PDE_t.x{3}.dom = [0,1];
+PDE_t.x{2}.vars = [s1,theta1];    PDE_t.x{2}.dom = [a,b];
+PDE_t.x{3}.vars = [s1,theta1];    PDE_t.x{3}.dom = [a,b];
 PDE_t.x{3}.diff = 2;    % x3 must be 2nd order differentiable wrt s1
-PDE_t.x{4}.vars = [s,theta];    PDE_t.x{4}.dom = [0,1];
-PDE_t.x{5}.vars = [s,theta];    PDE_t.x{5}.dom = [0,1];
+PDE_t.x{4}.vars = [s2,theta2];    PDE_t.x{4}.dom = [0,1];
+PDE_t.x{5}.vars = [s2,theta2];    PDE_t.x{5}.dom = [0,1];
 
-% PDE: x1_{t}(t) = x2_{s}(t,1)
+% PDE: x1_{t}(t) = x2_{s1}(t,1)
 PDE_t.x{1}.term{1}.x = 2;
 PDE_t.x{1}.term{1}.D = 1;
-PDE_t.x{1}.term{1}.loc = 1;
+PDE_t.x{1}.term{1}.loc = b;
 
-% PDE: x2_{t}(t,s) = x3(t,s)
+% PDE: x2_{t}(t,s1) = x3(t,s1)
 PDE_t.x{2}.term{1}.x = 3;
 
-% PDE: x3_{t}(t,s) = x2_{ss}(t,s);
+% PDE: x3_{t}(t,s1) = x2_{s1s1}(t,s1);
 PDE_t.x{3}.term{1}.x = 2;
 PDE_t.x{3}.term{1}.D = 2;
 
-% PDE: x4_{t}(t,s) = -(1/tau)*x4_{s}(t,s);
+% PDE: x4_{t}(t,s2) = -(1/tau)*x4_{s2}(t,s2);
 PDE_t.x{4}.term{1}.x = 4;
 PDE_t.x{4}.term{1}.D = 1;
 PDE_t.x{4}.term{1}.C = -1/tau;
 
-% PDE: x5_{t}(t,s) = -(1/tau)*x5_{s}(t,s);
+% PDE: x5_{t}(t,s2) = -(1/tau)*x5_{s2}(t,s2);
 PDE_t.x{5}.term{1}.x = 5;
 PDE_t.x{5}.term{1}.D = 1;
 PDE_t.x{5}.term{1}.C = -1/tau;
 
 
-% BC1: x2(t,s=0) = 0;              BC4: x3(t,s=0) = 0;
+% BC1: x2(t,s1=a) = 0;              BC4: x3(t,s1=a) = 0;
 PDE_t.BC{1}.term{1}.x = 2;          PDE_t.BC{4}.term{1}.x = 3;
-PDE_t.BC{1}.term{1}.loc = 0;        PDE_t.BC{4}.term{1}.loc = 0;
+PDE_t.BC{1}.term{1}.loc = a;        PDE_t.BC{4}.term{1}.loc = a;
 
-% BC2: x1(t) = -k*(1-mu)*x2(t,s=1) - k*mu*x4(t,s=1)
+% BC2: x1(t) = -k*(1-mu)*x2(t,s1=b) - k*mu*x4(t,s2=1)
 PDE_t.BC{2}.term{1}.x = 1;  PDE_t.BC{2}.term{2}.x = 2;        PDE_t.BC{2}.term{3}.x = 4;
                             PDE_t.BC{2}.term{2}.C = k*(1-mu); PDE_t.BC{2}.term{3}.C = k*mu;
-                            PDE_t.BC{2}.term{2}.loc = 1;      PDE_t.BC{2}.term{3}.loc = 1;
+                            PDE_t.BC{2}.term{2}.loc = b;      PDE_t.BC{2}.term{3}.loc = 1;
 
-% BC3: x2_{s1}(t,s=1) = -k*(1-mu)*x3(t,s=1) - k*mu*x5(t,s=1)
+% BC3: x2_{s1}(t,s1=b) = -k*(1-mu)*x3(t,s1=b) - k*mu*x5(t,s2=1)
 PDE_t.BC{3}.term{1}.x = 2;    PDE_t.BC{3}.term{2}.x = 3;        PDE_t.BC{3}.term{3}.x = 5;
 PDE_t.BC{3}.term{1}.D = 1;    PDE_t.BC{3}.term{2}.C = k*(1-mu); PDE_t.BC{3}.term{3}.C = k*mu;
-PDE_t.BC{3}.term{1}.loc = 1;  PDE_t.BC{3}.term{2}.loc = 1;      PDE_t.BC{3}.term{3}.loc = 1;
+PDE_t.BC{3}.term{1}.loc = b;  PDE_t.BC{3}.term{2}.loc = b;      PDE_t.BC{3}.term{3}.loc = 1;
 
-% BC5: (Sewing condition) x4(t,s=0) = x2(t,s=1);
+% BC5: (Sewing condition) x4(t,s2=0) = x2(t,s1=b);
 PDE_t.BC{5}.term{1}.x = 4;      PDE_t.BC{5}.term{2}.x = 2;
-PDE_t.BC{5}.term{1}.loc = 0;    PDE_t.BC{5}.term{2}.loc = 1;
+PDE_t.BC{5}.term{1}.loc = 0;    PDE_t.BC{5}.term{2}.loc = b;
                                 PDE_t.BC{5}.term{2}.C = -1;
 
-% BC6: (Sewing condition) x5(t,s=0) = x3(t,s=1);
+% BC6: (Sewing condition) x5(t,s2=0) = x3(t,s1=b);
 PDE_t.BC{6}.term{1}.x = 5;      PDE_t.BC{6}.term{2}.x = 3;
-PDE_t.BC{6}.term{1}.loc = 0;    PDE_t.BC{6}.term{2}.loc = 1;
+PDE_t.BC{6}.term{1}.loc = 0;    PDE_t.BC{6}.term{2}.loc = b;
                                 PDE_t.BC{6}.term{2}.C = -1;
 
                                 

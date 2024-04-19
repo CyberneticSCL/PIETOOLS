@@ -622,31 +622,31 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params);
 %--------------------------------------------------------------------------
     case 41 
-%   PDE:    x_{tt}  = x_{s1s1}(t,s1);   s1 in [0,1] | tau = 1;  
+%   PDE:    x_{tt}  = x_{ss}(t,s);   s in [0,1]     | tau = 1;  
 %   BCs:    x(t,0) = 0;                             | k = 1;
-%           x_{s1}(t,1) = -k*(1-mu)*x_{t}(t,1)      | mu = 0.4;
+%           x_{s}(t,1) = -k*(1-mu)*x_{t}(t,1)       | mu = 0.4;
 %                           - k*mu*x_{t}(t-tau,1);  |
 % Introduce:                                        | Stable for mu<0.5             Xu, 2006 [21]  
-%     x1(t) = - k * (1-mu) * \dot{u}(1,t)           |
-%               - k*mu*\dot{u}(1,t-tau);            |
-%     x2(t,s1) = x(t,s1);                           |
-%     x3(t,s1) = x_{t}(t,s1);                       |
-%     x4(t,s2) = x(t-tau*s2,1);                     |
-%     x5(t,s2) = x_{t}(t-tau*s2,1);                 |
+%     x1(t)    = - k*(1-mu)*x(1,t)                  |
+%                   - k*mu*x(1,t-tau);              |
+%     x2(t,s) = x(t,s);                             |
+%     x3(t,s) = x_{t}(t,s);                         |
+%     x4(t,s) = x(t-tau*s,1);                       |
+%     x5(t,s) = x_{t}(t-tau*s,1);                   |
 % Then:                                             |
-%   ODE:    x1_{t}(t)    = x2_{s1}(t,1);            |
-%   PDE:    x2_{t}(t,s1) = x3(t,s1);                |    s1 in (0,1)
-%           x3_{t}(t,s1) = x2_{s1s1}(t,s1);         |       
-%           x4_{t}(t,s2) = -(1/tau) x4_{s2}(t,s2);  |    s2 in (0,1)
-%           x5_{t}(t,s2) = -(1/tau) x5_{s2}(t,s2);  |
+%   ODE:    x1_{t}(t)    = x2_{s}(t,1);             |
+%   PDE:    x2_{t}(t,1) = x3(t,s);                  |    s in (0,1)
+%           x3_{t}(t,1) = x2_{ss}(t,s);             |       
+%           x4_{t}(t,2) = -(1/tau) x4_{s}(t,2);     |
+%           x5_{t}(t,2) = -(1/tau) x5_{s}(t,2);     |
 %   BCs:    x2(t,0) = 0;                            |                         
 %           x3(t,0) = 0;                            |
 %           x4(t,0) = x2(t,1);                      |
 %           x5(t,0) = x3(t,1);                      |
 %           x1(t) = - k * (1-mu) * x2(t,1)          |
 %                           - k * mu * x4(t,1);     |
-%           x2_{s1}(t,1) = -k*(1-mu)*x3_{t}(t,1)    |
-%                               - k*mu*x5_{t}(t,1); |
+%           x2_{s}(t,1) = -k*(1-mu)*x3(t,1)         |
+%                               - k*mu*x5(t,1);     |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
