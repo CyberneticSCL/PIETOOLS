@@ -51,7 +51,7 @@ PIE = convert_PIETOOLS_PDE(PDE);
 
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_heavy;
-settings = lpisettings('veryheavy');
+settings = lpisettings('heavy');
 settings.sos_opts.solver='sedumi';    % Solver to use
 settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states

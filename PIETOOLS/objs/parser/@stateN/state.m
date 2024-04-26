@@ -1,6 +1,6 @@
 classdef (InferiorClasses={?polynomial,?dpvar})state
     properties (SetAccess=protected)
-        type = {'finite'; 'ode'};
+        type = ["finite"; "ode"];
         len =[1];
         var = {[pvar('t')]};
         multiplier = [1];
