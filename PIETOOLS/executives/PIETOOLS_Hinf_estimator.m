@@ -144,6 +144,10 @@ else
     Pop=P1op;
 end
 
+% enforce strict positivity on the operator
+Pop.P = Pop.P+eppos*eye(nx1);
+Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);  
+
 [prog,Zop] = lpivar(prog,[PIE.T.dim(:,1),PIE.C2.dim(:,1)],X,ddZ);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
