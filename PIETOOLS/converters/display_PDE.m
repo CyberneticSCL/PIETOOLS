@@ -87,7 +87,8 @@ sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 % sub_min = '\x208B';
 % sub_a = '\x2090';
 sub_i = '\x1D62';
-sub_j = '\x2C7C';
+%sub_j = '\x2C7C';
+sub_k = '\x2096';
 sub_s = '\x209B';
 sub_t = '\x209C';
 % sub_rho = '\x1D68';
@@ -495,7 +496,7 @@ end
 end
 
 if use_Cij
-    fprintf(['\n\n Call "PDE.C{i,j}" to see the value of coefficients C',sub_i,sub_j,' as in the displayed equations.\n'])
+    fprintf(['\n\n Call "PDE.C{i,k}" to see the value of coefficients C',sub_i,sub_k,' as in the displayed equations.\n'])
 end
 
 fprintf('\n \n')
@@ -758,17 +759,18 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
             int_trm = [int_trm, sup_var1_list{Ukk_var1_indx}];
         end
         
-        % Add the dummy variables
+        % Keep track of whether primary or dummy variable is used in
+        % integral.
         use_theta_trm(kk) = true;
-        if isa(L_kk,'double') && isa(U_kk,'double') && ~has_vars_eq(kk)
+        if ispvar(PDE_term.loc(kk)) && ismember(PDE_term.loc(kk).varname{1},var1_name)
+            % Use standard spatial variable for integration
             dtheta_trm = ['d',Rvar1_list{kk},' ',dtheta_trm,];
         else
-            % For partial integrals, evaluate state at dummy variable
-            % position.
+            % Use dummy variable for integration.
             Rvar1_list{kk} = Rvar2_list{kk}; % Evaluate state at dummy var
             sub_Rvar1_list{kk} = sub_Rvar2_list{kk};
             dtheta_trm = ['d',Rvar2_list{kk},' ',dtheta_trm,];
-       end        
+        end      
     end
 end
 if ~isempty(int_trm)
