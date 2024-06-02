@@ -56,10 +56,14 @@ if nargin<2
     name = '';
 end
 
-try PDE = initialize_PIETOOLS_PDE(PDE,true);
+if PDE.is_initialized
     display_PDE(PDE,name);
-catch me
-    disp(PDE);
+else
+    try PDE = initialize(PDE,true);
+        display_PDE(PDE,name);
+    catch me
+        disp(PDE);
+    end
 end
 
 return
