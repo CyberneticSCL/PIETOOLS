@@ -180,8 +180,8 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params);
 %--------------------------------------------------------------------------
     case 11
-% 	PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 0.5               (stable for R<2.7)
-%   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            | Cm = [1, 1.5; 5, 0.2]         Peet 2018 [22]
+% 	PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 2.9               (stable for R<2.7 (not tight))
+%   BCs:  x(s=0) = 0,     x(s=1) = 0                | Cm = [1, 1.5; 5, 0.2]         Ahmadi 2014 [6] Example D
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params);
 %--------------------------------------------------------------------------
     case 12
@@ -866,7 +866,7 @@ end
 %   publisher={IEEE}
 % }
 % 
-% % [6] - 
+% % [6] - arXiv version!
 % @inproceedings{valmorbida2014semi,
 %   title={Semi-definite programming and functional inequalities for distributed parameter systems},
 %   author={Valmorbida, Giorgio and Ahmadi, Mohamadreza and Papachristodoulou, Antonis},
