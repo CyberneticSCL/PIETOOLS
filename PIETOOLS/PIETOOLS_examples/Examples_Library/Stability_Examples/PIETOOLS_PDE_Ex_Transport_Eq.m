@@ -15,7 +15,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq(GUI,params)
 %
 % %---------------------------------------------------------------------% %
 % % Transport equation: 
-% % PDE:        x_{t}  = v x_{s}
+% % PDE:        x_{t}  = v*x_{s}
 % % with BC     x(s=0) = 0
 % %---------------------------------------------------------------------% %
 

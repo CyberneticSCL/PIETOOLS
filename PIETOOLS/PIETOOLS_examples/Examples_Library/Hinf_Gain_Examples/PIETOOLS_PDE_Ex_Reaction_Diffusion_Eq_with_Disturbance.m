@@ -62,12 +62,13 @@ PDE_b.B = [on ze ze ze;
 %%% Term-based input format
 % Initialize 1D PDE state component.
 PDE_t.x{1}.vars = s;   PDE_t.x{1}.dom = [0,1];
+PDE_t.x{1}.size = ne;
 % Initialize finite-dimensional inputs and outputs.
 PDE_t.w{1}.vars = [];  PDE_t.z{1}.vars = [];
 
 % PDE: x_{t} = lam * xi
 PDE_t.x{1}.term{1}.x = 1;
-PDE_t.x{1}.term{1}.C = lam;
+PDE_t.x{1}.term{1}.C = lam*eye(ne);
 
 % PDE: x_{t} = ... + sum_{k=1}^{i}(xk_{ss})
 PDE_t.x{1}.term{2}.x = 1;
