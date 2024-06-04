@@ -210,7 +210,7 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07/07/2022
-% DJ, 05/28/2024 - Remove dummy variables in e.g. fields PDE.x{i}.vars
+% DJ, 06/03/2024 - Adjust declaration of dummy variables for integration
 
 
 % % % --------------------------------------------------------------- % % %
