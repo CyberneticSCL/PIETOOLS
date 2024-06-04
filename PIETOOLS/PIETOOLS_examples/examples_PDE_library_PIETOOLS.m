@@ -792,7 +792,7 @@ end
 
 % Warn user that executives for 2D examples may take a lot of time.
 if index>=30 && index<=42
-    fprintf('\n Examples (31 through 40) correspond to 2D PDEs that take significant computational time and memory.\n');
+    fprintf('\n Examples 30 through 40 correspond to 2D PDEs, that take significant computational time and memory.\n');
 end
 
 % Check if the user wants to run the executive
