@@ -73,10 +73,11 @@ PDE_t.x{1}.term{1}.C = eye(ne);
 
 % PDE: x_{t} = ... + w
 PDE_t.x{1}.term{2}.w = 1;
-PDE_t.x{1}.term{2}.C = 1;
+PDE_t.x{1}.term{2}.C = eye(ne);
 
 % Output: z = int_{0}^{1} x(s) ds
 PDE_t.z{1}.term{1}.x = 1;
+PDE_t.z{1}.term{1}.C = eye(ne);
 PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 
 % Output: z = ... + w

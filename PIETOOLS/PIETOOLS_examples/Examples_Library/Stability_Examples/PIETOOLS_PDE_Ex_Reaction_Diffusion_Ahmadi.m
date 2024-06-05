@@ -17,7 +17,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params)
 % % Example Diffusion-reaction from Ahmadi (see reference below):
 % % PDE        x_{t} = Cm*x + (1/R)*x_{ss} 
 % % with BCs   x(s=0) = 0
-% %            x_{s}(s=1) = 0
+% %            x(s=1) = 0
 % %
 % % Parameters Cm and R can be set.
 % % Stable for R<2.7.
@@ -35,7 +35,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
 
 % Specify the parameters
-Cm = [1, 1.5; 5, 0.2];      R = 2.6; % [2.93 2.94]
+Cm = [1, 1.5; 5, 0.2];      R = 2.9; % [2.93 2.94]
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -74,7 +74,6 @@ PDE_t.x{1}.term{2}.C = (1/R)*eye(ne);
 PDE_t.BC{1}.term{1}.loc = 0;
 
 % BCs: 0 = x_{s}(1)
-PDE_t.BC{2}.term{1}.D = 1;
 PDE_t.BC{2}.term{1}.loc = 1;
 
 

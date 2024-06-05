@@ -69,11 +69,11 @@ end
 % Initialize the state variables and input.
 pde_struct PDE_t;
 PDE_t.x{1}.vars = [];
-PDE_t.x{2}.vars = [s,theta];    PDE_t.x{2}.dom = [0,1];
-PDE_t.x{3}.vars = [s,theta];    PDE_t.x{3}.dom = [0,1];
+PDE_t.x{2}.vars = s;    PDE_t.x{2}.dom = [0,1];
+PDE_t.x{3}.vars = s;    PDE_t.x{3}.dom = [0,1];
 PDE_t.x{3}.diff = 2;    % x3 must be 2nd order differentiable wrt s1
-PDE_t.x{4}.vars = [s,theta];    PDE_t.x{4}.dom = [0,1];
-PDE_t.x{5}.vars = [s,theta];    PDE_t.x{5}.dom = [0,1];
+PDE_t.x{4}.vars = s;    PDE_t.x{4}.dom = [0,1];
+PDE_t.x{5}.vars = s;    PDE_t.x{5}.dom = [0,1];
 
 % PDE: x1_{t}(t) = x2_{s}(t,1)
 PDE_t.x{1}.term{1}.x = 2;
