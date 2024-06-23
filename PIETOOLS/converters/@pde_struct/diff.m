@@ -185,7 +185,7 @@ for ii=1:numel(PDE_out.free)
         end
         % Determine which state variable is involved in the term.
         %Ridx = PDE_out.([obj,'_tab'])(:,1)==PDE_out.free{ii}.term{jj}.obj;
-        Ridx = PDE_out.free{ii}.term{jj}.obj;
+        Ridx = PDE_out.free{ii}.term{jj}.(obj);
         % Determine which variables the state depends on.
         vars_obj = PDE_out.(obj){Ridx}.vars;
 
@@ -258,7 +258,7 @@ for ii=1:numel(PDE_out.free)
 
             % First account for term C*D^(dval)x
             dval_obj = compute_d_obj(vars_obj,vars_jj,dval_jj);
-            PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term(jj).D +dval_obj;
+            PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term{jj}.D +dval_obj;
             trm_num = trm_num+1;
 
             % Then, add all other terms D^(i)C *D^(dval-i)x            
@@ -282,8 +282,8 @@ for ii=1:numel(PDE_out.free)
 
                 % Set a new term with the differentiated coefficients, and 
                 % lower-order derivative of state.
-                PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term(jj);
-                PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term(jj).D +(dval_obj-dval_C);
+                PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term{jj};
+                PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term{jj}.D +(dval_obj-dval_C);
                 PDE_out.free{ii}.term{trm_num}.C = Cll;
 
                 % Keep track of which variables the term depends on
