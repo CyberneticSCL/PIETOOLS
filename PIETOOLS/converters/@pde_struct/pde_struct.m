@@ -15,6 +15,12 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pde_struct
 %               the first column, and the maximal value these delays can
 %               assume in the second column.
 %
+% - PDE.free:   A cell with each element i defining a sum of terms that may
+%               be used to define a differential equation, output equation,
+%               or boundary condition. This field is used to temporarily
+%               store these terms and allow them to be manipulated using
+%               command line operations such as addition and
+%               multiplication, to construct actual equations.
 % - PDE.x:      A cell with each element i defining a state 
 %               component x_i and associated differential equation
 %               \dot{x}_i = ....
@@ -90,6 +96,8 @@ properties
     y = cell(0);
     z = cell(0);
     BC = cell(0);
+
+    free = cell(0);
     
 end
 properties (Hidden)
@@ -115,8 +123,12 @@ end
     
 methods
     function obj = pde_struct(varargin)
-        %PDE_STRUCT Construct an instance of this class
-        %   Detailed explanation goes here
+        % PDE_STRUCT Construct an instance of this class
+        % Calling "pde_struct PDE1;" or "PDE1=pde_struct() initializes 
+        % empty pde_struct objects.
+        % Calling "PDE1=pde_struct(PDE1)" converts a 'struct' object to
+        % a 'pde_struct' object, given that the input 'struct' has the
+        % necessary fields.
         
         if nargin==1
             if ischar(varargin{1})
