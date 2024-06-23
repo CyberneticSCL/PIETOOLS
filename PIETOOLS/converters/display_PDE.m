@@ -565,12 +565,14 @@ sup_min = '\x207B';
 
 % Partial derivative and integral symbol
 partial = '\x2202';
-int = '\x222B';
+int_symbol = '\x222B';
 %tau = '\x1D70F';
         
 % % % Establish which state or input the term involves
 if isfield(PDE_term,'x')
     Rstate_trm = 'x';
+    %tab_row = PDE_term.x;
+    %rr = PDE.x{tab_row}.ID;
     rr = PDE_term.x;
     if numel(PDE.x)==1
         % There is only one state component --> no need to give index
@@ -582,7 +584,8 @@ if isfield(PDE_term,'x')
         % The state number consists of multiple decimals
         Rstate_idx = cell2mat(sub_num(str2num(num2str(rr)')+1)');
     end
-    tab_row = find(PDE.x_tab(:,1)==rr);
+    %tab_row = find(PDE.x_tab(:,1)==rr);
+    tab_row = rr;
     Rvar_indcs = logical(PDE.x_tab(tab_row,3:3+nvars-1));
 %     if isa(PDE.x{rr}.vars,'polynomial')
 %         Rvar1_name = PDE.x{rr}.vars(:,1).varname;
@@ -604,7 +607,8 @@ elseif isfield(PDE_term,'w')
         % The input number consists of multiple decimals
         Rstate_idx = cell2mat(sub_num(str2num(num2str(rr)')+1)');
     end
-    tab_row = find(PDE.w_tab(:,1)==rr);
+    %tab_row = find(PDE.w_tab(:,1)==rr);
+    tab_row = rr;
     Rvar_indcs = logical(PDE.w_tab(tab_row,3:3+nvars-1));
 %     if isa(PDE.w{rr}.vars,'polynomial')
 %         Rvar1_name = PDE.w{rr}.vars(:,1).varname;
@@ -615,6 +619,8 @@ elseif isfield(PDE_term,'w')
 %     end
 elseif isfield(PDE_term,'u')
     Rstate_trm = 'u';
+    %tab_row = PDE_term.u;
+    %rr = PDE.u{tab_row}.ID;
     rr = PDE_term.u;
     if numel(PDE.u)==1
         % There is only one actuator input --> no need to give index
@@ -626,7 +632,8 @@ elseif isfield(PDE_term,'u')
         % The input number consists of multiple decimals
         Rstate_idx = cell2mat(sub_num(str2num(num2str(rr)')+1)');
     end
-    tab_row = find(PDE.u_tab(:,1)==rr);
+    %tab_row = find(PDE.u_tab(:,1)==rr);
+    tab_row = rr;
     Rvar_indcs = logical(PDE.u_tab(tab_row,3:3+nvars-1));
 %     if isa(PDE.u{rr}.vars,'polynomial')
 %         Rvar1_name = PDE.u{rr}.vars(:,1).varname;
@@ -685,7 +692,7 @@ if isfield(PDE_term,'delay')
                 int_trm = [int_trm, cell2mat(sub_num(str2num(num2str(L_kk)')+1)')];
             end
         end
-        int_trm = [int_trm,int,sup_num{1}];
+        int_trm = [int_trm,int_symbol,sup_num{1}];
         % Add dtau at end of integral
         dtheta_trm = ['d',tau1{1},' ',dtheta_trm,];
     end
@@ -729,7 +736,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
         end
         
         % % Add integral symbol
-        int_trm = [int_trm,int];
+        int_trm = [int_trm,int_symbol];
         
         % % Add upper limit of integral.
         U_kk = PDE_term.I{kk}(2);

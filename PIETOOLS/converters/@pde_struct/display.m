@@ -51,6 +51,7 @@ function display(PDE,name)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07/08/2022
+% DJ - 06/10/2024:  Allow crude display of non-initialized PDE structures.
 
 if nargin<2
     name = '';
@@ -59,11 +60,16 @@ end
 if PDE.is_initialized
     display_PDE(PDE,name);
 else
-    try PDE = initialize(PDE,true);
-        display_PDE(PDE,name);
-    catch me
-        disp(PDE);
+    if is_pde_var(PDE)
+        PDE = var2term(PDE);
     end
+    display_PDE_crude(PDE);
+% else
+%     try PDE = initialize(PDE,true);
+%         display_PDE(PDE,name);
+%     catch me
+%         disp(PDE);
+%     end
 end
 
 return
