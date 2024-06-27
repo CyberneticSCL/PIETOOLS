@@ -364,7 +364,7 @@ function dC = polydiff(C,vars,dval)
 dC = C;
 for ii=1:length(vars)
     for jj=1:dval(ii)
-        dC = diff(C,vars(ii));
+        dC = diff(dC,vars(ii));
     end
 end
 end
