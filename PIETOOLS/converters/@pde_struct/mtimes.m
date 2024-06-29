@@ -88,7 +88,8 @@ if isa(C,'opvar')
     % % Now, the opvar object has a structure
     % %     C = [P, Q1; Q2, R]
     % % Extract information from the object.
-    n_eqs_1 = C.dim(1,2);   n_eqs_2 = C.dim(1,2);
+    n_eqs_1 = C.dim(1,2);       n_eqs_2 = C.dim(2,2);
+    n_eqs_out1 = C.dim(1,1);    n_eqs_out2 = C.dim(2,1);
     Cvar1 = C.var1;      Cvar2 = C.var2;
     Cdom = C.I;
     if n_eqs_1~=0
@@ -133,12 +134,19 @@ if isa(C,'opvar')
         % Apply R to the PDE
         PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
         PDE_out22 = C.R.R0*PDE_in2 +int(C.R.R1*PDE_subs,Cvar2,[Cdom(1),Cvar1]) ...
-                    +int(C.R.R1*subs(PDE_in2,Cvar1,Cvar2),Cvar2,[Cvar1,Cdom(2)]);
+                    +int(C.R.R2*PDE_subs,Cvar2,[Cvar1,Cdom(2)]);
     else
         PDE_out12 = 0;
         PDE_out22 = 0;
     end
-    PDE_out = [PDE_out11+PDE_out12; PDE_out21+PDE_out22];
+    % % Add the terms, and concatenate
+    if n_eqs_out1>0 && n_eqs_out2>0
+        PDE_out = [PDE_out11+PDE_out12; PDE_out21+PDE_out22];
+    elseif n_eqs_out1>0
+        PDE_out = PDE_out11+PDE_out12;
+    elseif n_eqs_out2>0
+        PDE_out = PDE_out21+PDE_out22;
+    end
     return
 end
 
