@@ -131,10 +131,33 @@ if isa(C,'opvar')
     if n_eqs_2~=0
         % Apply Q1 to the PDE;
         PDE_out12 = int(C.Q1*PDE_in2,Cvar1,Cdom);
-        % Apply R to the PDE
-        PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
-        PDE_out22 = C.R.R0*PDE_in2 +int(C.R.R1*PDE_subs,Cvar2,[Cdom(1),Cvar1]) ...
-                    +int(C.R.R2*PDE_subs,Cvar2,[Cvar1,Cdom(2)]);
+        % % Apply R to the PDE
+        % First apply multiplier operator.
+        PDE_out22 = C.R.R0*PDE_in2;
+        % Check if any integration is performed.
+        R1 = cleanpoly(polynomial(C.R.R1),1e-12);
+        R2 = cleanpoly(polynomial(C.R.R2),1e-12);
+        if any(any(abs(R1.C)))
+            % Partial integral a^s is taken.
+            if any(any(abs(R2.C)))
+                % Partial integral s^b is also taken
+                % --> re-organize as full integral and Volterra operator.
+                PDE_out22 = PDE_out22 +int(R2*PDE_in2,Cvar1,Cdom);
+                R1 = cleanpoly(R1-R2,1e-12);
+                if any(any(abs(R1.C)))
+                    PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
+                    PDE_out22 = PDE_out22 +int(R1*PDE_subs,Cvar2,[Cdom(1),Cvar1]);
+                end
+            else
+                % Only partial integral a^s is taken;
+                PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
+                PDE_out22 = PDE_out22 +int(R1*PDE_subs,Cvar2,[Cdom(1),Cvar1]);
+            end
+        elseif any(any(abs(R2.C)))
+            % Only partial integral s^b is taken;
+            PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
+            PDE_out22 = PDE_out22 +int(R2*PDE_subs,Cvar2,[Cvar1,Cdom(2)]);
+        end
     else
         PDE_out12 = 0;
         PDE_out22 = 0;
