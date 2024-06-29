@@ -58,8 +58,8 @@ end
 [is_pde_var_in,obj] = is_pde_var(PDE_in);
 if ~is_pde_var(PDE_in) && ~is_pde_term(PDE_in)
     error("The input PDE structure should correspond to a free term to be used in a PDE.")
-elseif is_pde_var_in && ~strcmp(obj,'x') && ~strcmp(obj,'u') && ~strmcp(obj,'w')
-    error("Substitution of outputs is currently not supported.")
+elseif is_pde_var_in && ~strcmp(obj,'x') && ~strcmp(obj,'u') && ~strcmp(obj,'w')
+    error("Integration of outputs is currently not supported.")
 end
 
 % % Check that the variables are properly specified.
@@ -144,8 +144,18 @@ for ii=1:numel(PDE_out.free)
         if is_LHS_term(term_jj)
             error("Integration of outputs or temporal derivatives of state variables is not supported.")
         end
+        % Check what kind of object the term does correspond to.
+        if isfield(term_jj,'x')
+            obj_jj = 'x';
+        elseif isfield(term_jj,'u')
+            obj_jj = 'u';
+        elseif isfield(term_jj,'w')
+            obj_jj = 'w';
+        else
+            error("Integration of output signals is not supported.")
+        end
         % Initialize default integral if no location has been specified.
-        obj_vars = PDE_in.x{term_jj.x}.vars(:,1);
+        obj_vars = PDE_in.(obj_jj){term_jj.(obj_jj)}.vars(:,1);
         if ~isfield(term_jj,'I')
             % Empty cell corresponds to no integration.
             term_jj.I = cell(length(obj_vars),1);
@@ -189,12 +199,11 @@ for ii=1:numel(PDE_out.free)
                 end
             else
                 % The term does not depend on the specified variable
-                % --> integration amounts to multiplication with size of
-                % domain.
+                % --> only coefficients need to be integrated.
                 if isfield(term_jj,'C')
-                    term_jj.C = term_jj.C*(U(ll)-L(ll));
+                    term_jj.C = int(term_jj.C,vars(ll),L(ll),U(ll));
                 else
-                    term_jj.C = (U(ll)-L(ll));
+                    term_jj.C = polynomial(U(ll)-L(ll));
                 end
             end
         end
@@ -204,8 +213,8 @@ for ii=1:numel(PDE_out.free)
     % Update the list of variables on which the equation depends.
     if isfield(PDE_out.free{ii},'vars')
         vars_ii = PDE_out.free{ii}.vars;
-        retain_vars = true(length(vars_ii),1);
-        for ll=1:length(vars_ii)
+        retain_vars = true(size(vars_ii,1),1);
+        for ll=1:size(vars_ii,1)
             % Check if integration is performed with variable vars_ii(ll); 
             is_int_var = isequal(vars_ii(ll),vars);
             if any(is_int_var) && is_full_int(is_int_var)
