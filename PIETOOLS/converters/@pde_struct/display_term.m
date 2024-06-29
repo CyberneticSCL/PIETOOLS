@@ -237,7 +237,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
             int_trm = [int_trm,int_symbol];
         else
             % The lower limit is a variable, set to s_kk
-            int_trm = [int_trm,int_symbol,'_{',L_kk.varname{1},'}'];
+            int_trm = [int_trm,'{',L_kk.varname{1},'}_',int_symbol];
             %Lkk_var1_indx = ismember(var1_name,L_kk.varname{1});
             %int_trm = [int_trm, sub_var1_list{Lkk_var1_indx}];
         end
@@ -336,7 +336,7 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
         % Set display of the variables on which the function depends
         Cvar_str = ['(',Cval.varname{1}];
         for kk=2:length(Cval.varname)
-            [Cvar_str,',',Cval.varname{kk}];
+            Cvar_str = [Cvar_str,',',Cval.varname{kk}];
         end
         Cvar_str = [Cvar_str,')'];
 
