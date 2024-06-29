@@ -42,10 +42,11 @@ function PDE_out = mtimes(C,PDE_in)
 % % % Process the inputs
 
 % % Check that the first input makes sense.
-if ~isa(C,'double') && ~isa(C,'polynomial')
+if ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'opvar')
     error("The first factor in the product should be of type 'double' or 'polynomial'.")
+elseif ~isa(C,'opvar')
+    C = polynomial(C);
 end
-C = polynomial(C);
 
 % % Check that the second input makes sense.
 % Make sure the input is a pde_struct object.
@@ -62,6 +63,84 @@ end
 % Initialize the output PDE.
 PDE_out = PDE_in;
 
+
+% % % Deal with the case that the coefficients are specified as 'opvar'
+% % % object, requiring (partial) integrals to be taken.
+if isa(C,'opvar')
+    % % Convert separate PDE variables to free terms.
+    if is_pde_var_in
+        PDE_in = var2term(PDE_in);
+    end
+    % % Check that the size makes sense.
+    n_eqs = size(PDE_in,'free','vec_size_tot');
+    if sum(C.dim(:,2))~=n_eqs
+        error("Column dimension of the factor should match row dimension of PDE object.")
+    elseif n_eqs==0
+        PDE_out = PDE_in;
+        return
+    elseif sum(C.dim(:,1))==0
+        % Empty output.
+        PDE_out = PDE_in;
+        PDE_out.free = cell(0,1);
+        return
+    end
+    
+    % % Now, the opvar object has a structure
+    % %     C = [P, Q1; Q2, R]
+    % % Extract information from the object.
+    n_eqs_1 = C.dim(1,2);   n_eqs_2 = C.dim(1,2);
+    Cvar1 = C.var1;      Cvar2 = C.var2;
+    Cdom = C.I;
+    if n_eqs_1~=0
+        % % Determine which equations to multiply with [P;Q2], and which to
+        % % multiply with [Q1;R]
+        eq_num = 0;     eq_tot = 0;
+        while eq_tot<n_eqs_1
+            % Keep adding equations until we have "n_eqs_1" many.
+            eq_num = eq_num + 1;
+            eq_tot = eq_tot + PDE_in.free{eq_num}.size;
+        end
+        if eq_tot~=n_eqs_1
+            error("Multiplication with opvar is not supported: some vector-valued state or input components appear to have both finite- and infinite-dimensional elements")
+        end
+        % Extract equations to multiply with [P;Q2].
+        PDE_in1 = PDE_in;
+        PDE_in1.free = PDE_in1.free(1:eq_num);
+        if n_eqs_2~=0
+            % Extract equations to multiply with [Q1;R];
+            PDE_in2 = PDE_in;
+            PDE_in2.free = PDE_in2.free(eq_num+1:end);
+        end
+    else
+        % No equations to multiply with [P;Q2].
+        PDE_in2 = PDE_in;
+    end
+
+    % % Apply the finite-dimensional components of C to the PDE;
+    if n_eqs_1~=0
+        % Apply P to the PDE;
+        PDE_out11 = C.P*PDE_in1;
+        % Apply Q2 to the PDE;
+        PDE_out21 = C.Q2*PDE_in1;
+    else
+        PDE_out11 = 0;
+        PDE_out21 = 0;
+    end
+    % % Apply the infinite-dimensional components of C to the PDE;
+    if n_eqs_2~=0
+        % Apply Q1 to the PDE;
+        PDE_out12 = int(C.Q1*PDE_in2,Cvar1,Cdom);
+        % Apply R to the PDE
+        PDE_subs = subs(PDE_in2,Cvar1,Cvar2);
+        PDE_out22 = C.R.R0*PDE_in2 +int(C.R.R1*PDE_subs,Cvar2,[Cdom(1),Cvar1]) ...
+                    +int(C.R.R1*subs(PDE_in2,Cvar1,Cvar2),Cvar2,[Cvar1,Cdom(2)]);
+    else
+        PDE_out12 = 0;
+        PDE_out22 = 0;
+    end
+    PDE_out = [PDE_out11+PDE_out12; PDE_out21+PDE_out22];
+    return
+end
 
 % % % Deal with the case that the input PDE corresponds to just a PDE 
 % % % variable (state, input, output)

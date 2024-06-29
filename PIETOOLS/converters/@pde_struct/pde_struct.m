@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pde_struct
+classdef (InferiorClasses={?opvar,?opvar2d,?dpvar,?polynomial}) pde_struct
 % pde_struct is a class of objects used to describe PDE systems in
 % PIETOOLS 2022a. It has the following fields:
 %
