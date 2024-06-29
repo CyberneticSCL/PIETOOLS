@@ -55,8 +55,8 @@ end
 [is_pde_var_in,obj] = is_pde_var(PDE_in);
 if ~is_pde_var(PDE_in) && ~is_pde_term(PDE_in)
     error("The input PDE structure should correspond to a free term to be used in a PDE.")
-elseif is_pde_var_in && ~strcmp(obj,'x')
-    error("Substitution of inputs or outputs is currently not supported.")
+elseif is_pde_var_in && ~(strcmp(obj,'x') || strcmp(obj,'u') || strcmp(obj,'w'))
+    error("Substitution of outputs is currently not supported.")
 end
 
 % % Check that the variables are properly specified.
@@ -132,13 +132,23 @@ for ii=1:numel(PDE_out.free)
         if is_LHS_term(term_jj)
             error("Substitution of outputs or temporal derivatives of state variables is not supported.")
         end
-        % Also check the term does not take an input, for which we also
-        % cannot perform substitution.
-        if isfield(term_jj,'u') || isfield(term_jj,'w')
-            error("Substitution of inputs is not supported.")
+        % % Also check the term does not take an input, for which we also
+        % % cannot perform substitution.
+        % if isfield(term_jj,'u') || isfield(term_jj,'w')
+        %     error("Substitution of inputs is not supported.")
+        % end
+        % Check what kind of object the term does correspond to.
+        if isfield(term_jj,'x')
+            obj_jj = 'x';
+        elseif isfield(term_jj,'u')
+            obj_jj = 'u';
+        elseif isfield(term_jj,'w')
+            obj_jj = 'w';
+        else
+            error("Integration of output signals is not supported.")
         end
         % Initialize default location if no location has been specified.
-        obj_vars = PDE_in.x{term_jj.x}.vars(:,1);
+        obj_vars = PDE_in.(obj_jj){term_jj.(obj_jj)}.vars(:,1);
         if ~isfield(term_jj,'loc')
             term_jj.loc = obj_vars';
         end
@@ -177,8 +187,8 @@ for ii=1:numel(PDE_out.free)
     % Update the list of variables on which the equation depends.
     if isfield(PDE_out.free{ii},'vars')
         vars_ii = PDE_out.free{ii}.vars;
-        retain_vars = true(length(vars_ii),1);
-        for ll=1:length(vars_ii)
+        retain_vars = true(size(vars_ii,1),1);
+        for ll=1:size(vars_ii,1)
             % Check if integration is performed with variable vars_ii(ll); 
             is_subs_var = isequal(vars_ii(ll),vars);
             if any(is_subs_var) && is_fixed_loc(is_subs_var)
