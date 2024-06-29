@@ -75,7 +75,7 @@ elseif ~is_pde_term(RHS)
     if is_pde_var(RHS)
         RHS = var2term(RHS);
     else
-        error("Right-hand side in eqaution of 'pde_struct' objects should consist solely of PDE terms.")
+        error("Right-hand side in equation of 'pde_struct' objects should consist solely of PDE terms.")
     end
 end
 
@@ -160,112 +160,5 @@ for ii=1:numel(RHS.free)
     % Get rid of loose PDE terms.
     PDE_out.free = {};
 end
-
-
-
-
-% 
-% % % % Deal with case that LHS=0
-% % % % --> declare BCs.
-% if isnumeric(LHS)
-%     PDE_out = RHS;
-%     % Move each PDE temporary equation into a boundary condition.
-%     for ii=1:numel(RHS.free)
-%         PDE_out.BC{ii} = RHS.free{ii};
-%     end
-%     % Get rid of the temporary equations.
-%     PDE_out.free = {};
-%     return
-% end
-% 
-% % % % Deal with case that LHS is [d/dt x; y; z];
-% PDE_out = RHS;
-% %ncomps_x = zeros(numel(LHS.x),1);
-% 
-% % Make sure the number of equations matches.
-% if numel(LHS.free)~=numel(RHS.free)
-%     error("The number of rows of the left- and right-hand sides should match.")
-% end
-% 
-% % Make sure that at least one of sides contains a temporal derivative of a
-% % state, or an output signal....
-% 
-% 
-% % Determine what type of equation is being set.
-% is_obj_list = [numel(LHS.x)>0; numel(LHS.y)>0; numel(LHS.z)>0];
-% if ~any(is_obj_list)
-%     error("The left-hand side should correspond to the temporal derivative of a state, or to an output signal.")
-% elseif sum(is_obj_list)>1
-%     error("The left-hand side can correspond to only one of the following: a state x, a regulated output z, or a sensed output y.")
-% end
-% obj_list = ['x';'y';'z'];
-% obj = obj_list(is_obj_list);
-% 
-% % Make sure the number of equations in LHS and RHS match.
-% if numel(LHS.(obj))~=numel(RHS.free)
-%     error("The number of rows of the left- and right-hand sides should match.")
-% end
-% 
-% % % Combine the object tables
-% tab_1 = LHS.([obj,'_tab']);     tab_2 = RHS.([obj,'_tab']);
-% if ~isempty(tab_2)
-%     % % The object appears both in LHS and RHS (can really only be state x)
-%     % % --> Combine information on the considered object from LHS and RHS
-% 
-%     % Create a unique table containing the index numbers and sizes of the
-%     % object components that appear both in LHS and RHS
-%     tab_full = [tab_1;tab_2];
-%     [new_IDs,idcs1,idcs2] = unique(tab_full(:,1),'stable');   % new_IDs = tab_full(idcs1,1);      tab_full(:,1) = new_IDs(idcs2);
-%     PDE_out.([obj,'_tab']) = tab_full(idcs1,:);
-% 
-%     % Initialize the associated object in the output structure.
-%     n_obj_LHS = size(tab_1,1);      n_obj = length(new_IDs);
-%     PDE_out.(obj) = cell(n_obj,1);
-%     % Copy components primarily from LHS, as that has potential temporal
-%     % derivaitve information.
-%     is_LHS_comp = idcs1<=n_obj_LHS;     
-%     PDE_out.(obj)(is_LHS_comp) = LHS.(obj)(idcs1(is_LHS_comp));
-%     % Fill in the gaps corresponding to components that appear only in RHS.
-%     PDE_out.(obj)(~is_LHS_comp) = RHS.(obj)(idcs1(~is_LHS_comp)-n_obj_LHS);
-% 
-%     % Keep track of how old component numbers relate to new ones
-%     new_obnums_RHS = idcs2(n_obj_LHS+1:end);   % new_idx = new_obnums_RHS(old_idx);
-% else
-%     % % The object does not appear in RHS
-%     % % --> just copy information from LHS.
-%     PDE_out.([obj,'_tab']) = tab_1;
-%     PDE_out.(obj) = LHS.(obj);
-%     idcs1 = 1:numel(LHS.(obj));
-% end
-% 
-% % % Loop over all elements on LHS, and set the associated equation.
-% for ii=1:numel(LHS.(obj))
-%     eq_num = idcs1(ii);
-%     if strcmp(obj,'x') && (~isfield(LHS.(obj){eq_num},'tdiff') || LHS.(obj){eq_num}.tdiff==0)
-%         error(["No temporal derivative is take of state component ",num2str(eq_num)," on the left-hand side of the equation."])
-%     elseif isfield(LHS.(obj){eq_num},'term') && ~isempty(LHS.(obj){eq_num}.term)
-%         error("The left-hand side contains terms, this is not supported.")
-%     end
-%     % Check that the size and variables match.
-%     if LHS.(obj){eq_num}.size~=RHS.free{ii}.size
-%         error("The size of the terms on the left-hand side should match that of the terms on the right-hand side.")
-%     elseif any(~ismember(RHS.free{ii}.vars.varname,LHS.(obj){eq_num}.vars.varname))
-%         error("The equation cannot be set: the left-hand side and right-hand side depend on different spatial variables.")
-%     end
-%     % % Add the terms to the equation
-%     PDE_out.(obj){ii}.term = RHS.free{ii}.term;
-%     if strcmp(obj,'x')
-%     for jj=1:numel(PDE_out.(obj){ii}.term)
-%         % Make sure the state number that appears in the term matches the
-%         % order of the states in the output PDE structure.
-%         if isfield(PDE_out.(obj){ii}.term{jj},'x')
-%             PDE_out.(obj){ii}.term{jj}.x = new_obnums_RHS(PDE_out.(obj){ii}.term{jj}.x);
-%         end
-%     end
-%     end
-% end
-% 
-% % Get rid of the temporary equations.
-% PDE_out.free = {};
 
 end
