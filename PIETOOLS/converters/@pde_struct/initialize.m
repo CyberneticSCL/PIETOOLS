@@ -448,17 +448,17 @@ for j=1:numel(tab_cell)
     % The first two columns in the table list the index associated to this
     % component, and respectively the size of the component.
     tab_j = zeros(n_comps(j),2 + nvars);
-    % for i=1:n_comps(j)
-    %     if isfield(PDE.(objs(j)){i},'ID')
-    %         % If an ID is already specified for the object, store it in the
-    %         % first column of the table.
-    %         tab_j(i,1) = PDE.(objs(j)){i}.ID;
-    %     else
-    %         % Otherwise, generate a new ID.
-    %         tab_j(i,1) = getPDEvarID(objs(j));
-    %     end
-    % end
-    tab_j(:,1) = 1:n_comps(j);
+    for i=1:n_comps(j)
+        if isfield(PDE.(objs{j}){i},'ID')
+            % If an ID is already specified for the object, store it in the
+            % first column of the table.
+            tab_j(i,1) = PDE.(objs{j}){i}.ID;
+        else
+            % Otherwise, generate a new ID.
+            tab_j(i,1) = stateNameGenerator;
+        end
+    end
+    %tab_j(:,1) = 1:n_comps(j);
     if size(PDE.([objs{j},'_tab']),1)==size(tab_j,1)
         tab_j(:,2) = PDE.([objs{j},'_tab'])(:,2);
     end
@@ -519,7 +519,7 @@ diff_tab = zeros(numel(PDE.x),nvars);
 BC_diff_tab = zeros(numel(PDE.BC),nvars);
 
 % For the different equations for x, y, z, and the BCs, we use 
-% "get_diff_tab" to loops over the terms in each of these equations, 
+% "get_diff_tab" to loop over the terms in each of these equations, 
 % checking the order of the derivatives of the state components to
 % establish an order of differentiability of each component.
 % The functions also determine a size for each state, input, output, and
