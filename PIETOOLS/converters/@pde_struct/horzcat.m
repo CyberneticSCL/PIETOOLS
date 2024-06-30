@@ -57,6 +57,11 @@ else
 end
 
 % % Check that the inputs are appropriate.
+if isa(PDE_1,'state')
+    PDE_1 = state2pde_struct(PDE_1);
+elseif isa(PDE_1,'terms')
+    PDE_1 = terms2pde_struct(PDE_1);
+end
 if ~isa(PDE_1,'pde_struct')
     error("Concatenation of 'pde_struct' objects with non-pde struct objects is not supported.")
 end

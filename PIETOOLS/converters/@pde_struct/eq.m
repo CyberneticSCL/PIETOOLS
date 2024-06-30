@@ -40,6 +40,11 @@ function PDE_out = eq(LHS,RHS)
 % % % Process the inputs
 
 % % Check that the first input makes sense
+if isa(LHS,'state')
+    LHS = state2pde_struct(LHS);
+elseif isa(LHS,'terms')
+    LHS = terms2pde_struct(LHS);
+end
 if isa(LHS,'polynomial') && isdouble(LHS)
     LHS = double(LHS);
 elseif isa(LHS,'polynomial')
@@ -58,6 +63,11 @@ elseif isa(LHS,'pde_struct') && ~is_pde_term(LHS)
 end
 
 % % Check that the second input makes sense
+if isa(RHS,'state')
+    RHS = state2pde_struct(RHS);
+elseif isa(RHS,'terms')
+    RHS = terms2pde_struct(RHS);
+end
 if isa(RHS,'polynomial') && isdouble(RHS)
     RHS = double(RHS);
 elseif isa(RHS,'polynomial')

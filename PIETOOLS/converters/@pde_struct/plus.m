@@ -42,6 +42,11 @@ function [PDE_out] = plus(PDE_1,PDE_2)
 
 % % % Process the inputs
 % % Check that inputs are of appropriate type.
+if isa(PDE_1,'state')
+    PDE_1 = state2pde_struct(PDE_1);
+elseif isa(PDE_1,'terms')
+    PDE_1 = terms2pde_struct(PDE_1);
+end
 if ~isa(PDE_1,'pde_struct') 
     % Summation with non-pde_struct objects is supported only for zeros.
     if isa(PDE_1,'polynomial') && isdouble(PDE_1)
@@ -54,6 +59,11 @@ if ~isa(PDE_1,'pde_struct')
     else
         error("Summation of 'pde_struct' objects with non-'pde_struct' objects is not supported.")
     end
+end
+if isa(PDE_2,'state')
+    PDE_2 = state2pde_struct(PDE_2);
+elseif isa(PDE_2,'terms')
+    PDE_2 = terms2pde_struct(PDE_2);
 end
 if ~isa(PDE_2,'pde_struct') 
     % Summation with non-pde_struct objects is supported only for zeros.
@@ -92,19 +102,46 @@ end
 % % Determine what type of objects we can extract from PDE_1
 if is_pde_term(PDE_1)
     objs_1 = {'free'};
-    ncomps_arr = numel(PDE_1.free);
+    n_eqs_arr = numel(PDE_1.free);
+    n_eqs_1 = n_eqs_arr;
     ncomps_1 = numel(PDE_1.free);
 else
     % Assume order [d/dt x; y; z; BC]
     objs_1 = {'x';'y';'z';'BC'};
     ncomps_arr = [numel(PDE_1.x); numel(PDE_1.y); numel(PDE_1.z); numel(PDE_1.BC)];
     ncomps_1 = sum(ncomps_arr);
+    % Check for how many objects a PDE has actually been specified.
+    n_eqs_arr = ncomps_arr;
+    include_idcs_1 = cell(1,length(ncomps_arr));
+    idx = 0;
+    for kk=1:numel(objs_1)
+        include_idcs_1{kk} = [];
+        for ii=1:numel(PDE_1.(objs_1{kk}))
+            idx = idx+1;
+            if ~isfield(PDE_1.(objs_1{kk}){ii},'term') || isempty(PDE_1.(objs_1{kk}){ii}.term)
+                % No equation has been specified for this object.
+                n_eqs_arr(kk) = n_eqs_arr(kk)-1;
+            else
+                include_idcs_1{kk} = [include_idcs_1{kk};ii];
+            end
+        end
+    end
+    n_eqs_1 = sum(n_eqs_arr);
 end
 ncomps_2 = numel(PDE_2.free);
-nncomps_arr = cumsum([0;ncomps_arr]);   % If nncomps_arr(j-1)<ii<=nncomps_arr(j), then equation ii corresponds to object objs_1{j};
+nn_eqs_arr = cumsum([0;n_eqs_arr]);   % If nncomps_arr(j-1)<ii<=nncomps_arr(j), then equation ii corresponds to object objs_1{j};
 
-if ncomps_1~=ncomps_2
-    error("The numbers of rows of terms to add do not match.")
+% Assume terms need to be added only to components for which an equation
+% has been specified.
+add_eqs_only = true;
+if n_eqs_1~=ncomps_2
+    if ncomps_1~=ncomps_2
+        error("The numbers of rows of terms to add do not match.")
+    else
+        % assume terms need to be added to all components.
+        nn_eqs_arr = cumsum([0;ncomps_arr]);
+        add_eqs_only = false;
+    end
 end
 
 % % % Perform the actual addition
@@ -188,9 +225,14 @@ else
 
         % Establish which type of object corresponds to equation ii in
         % PDE_1 (not in PDE_1_out!)
-        ob_idx = find(ii<=nncomps_arr,1,'first')-1;
+        ob_idx = find(ii<=nn_eqs_arr,1,'first')-1;
         obj_1 = objs_1{ob_idx};
-        eq_num_1 = ii - nncomps_arr(ob_idx);
+        eq_num_1 = ii - nn_eqs_arr(ob_idx);
+        if add_eqs_only
+            % Adjust equation number in case only already specified
+            % equations get new terms.
+            eq_num_1 = include_idcs_1{ob_idx}(eq_num_1);
+        end
 
         % Check that the size of the terms in PDE_1 and PDE_2 match.
         if PDE_1.(obj_1){eq_num_1}.size~=PDE_2.free{ii}.size

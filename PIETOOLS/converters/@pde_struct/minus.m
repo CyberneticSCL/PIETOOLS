@@ -41,6 +41,11 @@ function PDE_out = minus(PDE_1,PDE_2)
 % Initial coding DJ - 06/23/2024
 
 % % Check that the first input is of suitable type.
+if isa(PDE_1,'state')
+    PDE_1 = state2pde_struct(PDE_1);
+elseif isa(PDE_1,'terms')
+    PDE_1 = terms2pde_struct(PDE_1);
+end
 if isa(PDE_1,'polynomial') && isdouble(PDE_1)
     % Convert possible polynomial to double.
     PDE_1 = double(PDE_1);
@@ -52,6 +57,11 @@ if ~isa(PDE_1,'pde_struct') && (~isnumeric(PDE_1) || ~all(all(PDE_1==0)))
 end
 
 % % Check that the second input is of suitable type.
+if isa(PDE_2,'state')
+    PDE_2 = state2pde_struct(PDE_2);
+elseif isa(PDE_2,'terms')
+    PDE_2 = terms2pde_struct(PDE_2);
+end
 if isa(PDE_2,'polynomial') && isdouble(PDE_2)
     PDE_2 = double(PDE_2);
 end

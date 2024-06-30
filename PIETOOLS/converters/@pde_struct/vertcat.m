@@ -57,12 +57,22 @@ end
 % % Check that inputs are of appropriate type.
 % We only support concatenation of PDE structures with other PDE
 % structures, or with zeros, nothing else.
+if isa(PDE_1,'state')
+    PDE_1 = state2pde_struct(PDE_1);
+elseif isa(PDE_1,'terms')
+    PDE_1 = terms2pde_struct(PDE_1);
+end
 if isa(PDE_1,'polynomial') && isdouble(PDE_1)
     % Just in case, for some reason, zeros are specified as polynomial...
     PDE_1 = double(PDE_1);
 end
 if ~isa(PDE_1,'pde_struct') && (~isnumeric(PDE_1) || ~all(all(PDE_1==0)))
     error("Concatenation of 'pde_struct' objects with non-'pde_struct' objects is not supported.")
+end
+if isa(PDE_2,'state')
+    PDE_2 = state2pde_struct(PDE_2);
+elseif isa(PDE_2,'terms')
+    PDE_2 = terms2pde_struct(PDE_2);
 end
 if isa(PDE_2,'polynomial') && isdouble(PDE_2)
     PDE_2 = double(PDE_2);
@@ -99,8 +109,13 @@ end
 
 % % Make sure either both inputs correspond to completed PDEs,
 % % or both inputs correspond to loose terms to add to PDEs
-if (~is_pde_term_1 && is_pde_term_2) || (is_pde_term_1 && ~is_pde_term_2)
-    error("Concatenation of completed PDE equations with separate PDE terms or zeros is not supported.")
+if (~is_pde_term_1 && is_pde_term_2)
+    % Convert free terms to equation.
+    PDE_2 = (PDE_2==0);
+elseif (is_pde_term_1 && ~is_pde_term_2)
+    % Convert free terms to equation.
+    PDE_1 = (PDE_1==0);
+    %error("Concatenation of completed PDE equations with separate PDE terms or zeros is not supported.")
 end
 
 
