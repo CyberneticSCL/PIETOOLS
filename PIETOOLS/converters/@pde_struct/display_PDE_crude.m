@@ -122,7 +122,7 @@ for kk=1:numel(eq_types)
             if Lobj_ID<=9
                 Lobj_ID_sub = sub_num{Lobj_ID+1};
             else
-                Lobj_ID_sub = cell2mat(sub_num(str2num(num2str(eq_struct.tdiff)')+1)');
+                Lobj_ID_sub = cell2mat(sub_num(str2num(num2str(Lobj_ID)')+1)');
             end
             Lstate_trm = [Lstate_trm,Lobj_ID_sub];
             % % Add the variables on which the object depends.
