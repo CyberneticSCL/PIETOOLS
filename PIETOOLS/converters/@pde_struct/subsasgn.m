@@ -58,7 +58,7 @@ end
 % If the PDE structure corresponds to a single variable (state, input, or
 % output), allow the variables, domain, and size to be set.
 [is_var,obj] = is_pde_var(PDE);
-if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'dom'})
+if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'var';'dom'})
     % Allow the size of the object to be set.
     if strcmp(prop(1).subs,'size')
         if ~isnumeric(val) || numel(val)~=1 || val<=0 || round(val)~=val
@@ -67,7 +67,7 @@ if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'d
             PDE.(obj){1}.size = val;
             PDE.([obj,'_tab'])(1,2) = val;
         end
-    elseif strcmp(prop(1).subs,'vars')
+    elseif strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'var')
     % Allow the spatial variables on which the object depends to be set.
         if ischar(val) && size(val,1)==1
             % Convert variable name to polynomial.
@@ -88,7 +88,13 @@ if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'d
         else
             vars = vars(:);
         end
+        % Remove any temporal variables, if specified.
+        if ismember('t',vars.varname)
+            vars = vars(~isequal(vars,polynomial({'t'})));
+        end
         PDE.(obj){1}.vars = vars;
+        % Also set a domain for the variables.
+        PDE.(obj){1}.dom = [zeros(size(vars,1),1),ones(size(vars,1),1)];
     elseif strcmp(prop(1).subs,'dom')
     % Allow the domain of the variables to be set.
         % If variables are specified, the number of domains should match

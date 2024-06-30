@@ -195,7 +195,10 @@ elseif strcmp(prop(1).type,'()')
 
 elseif strcmp(prop(1).type,'.')
     % % % Allow,size, variables and domain of PDE variable to be extracted.
-    if is_var && (strcmp(prop(1).subs,'size') || strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'dom'))
+    if is_var && (strcmp(prop(1).subs,'size') || strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'var') || strcmp(prop(1).subs,'dom'))
+        if strcmp(prop(1).subs,'var')
+            prop(1).subs = 'vars';
+        end
         val = PDE.(obj){1}.(prop(1).subs);
         % Perform remaining subsref.
         if numel(prop)>1
