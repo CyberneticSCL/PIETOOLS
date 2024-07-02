@@ -90,8 +90,12 @@ for j=1:length(p_indx)
             DR{k} = dpvar(DR{k});
             PRdeg = PR{k}.degmat;                   % Degrees of monomials in parameter PRk
             DRdeg = DR{k}.degmat;                   % Degrees of monomials in parameter DRk
-            deg_dif = setdiff(PRdeg,DRdeg,'rows');  % Monomials in PRk that are not in DRk
-            isgood_DRk = isempty(deg_dif);          % 1 if the DRk has all monomial also in PRk
+            if isempty(PRdeg)
+                isgood_DRk = true;
+            else
+                deg_dif = setdiff(PRdeg,DRdeg,'rows');  % Monomials in PRk that are not in DRk
+                isgood_DRk = isempty(deg_dif);          % 1 if the DRk has all monomial also in PRk
+            end
             isgood_Dpar(p) = isgood_Dpar(p) && isgood_DRk; % Is parameter p okay?
             
             % If DR is missing monomials, increase the maximal monomial
@@ -113,8 +117,12 @@ for j=1:length(p_indx)
         DR = dpvar(DR);
         PRdeg = PR.degmat;                          % Degrees of monomials in parameter PR
         DRdeg = DR.degmat;                          % Degrees of monomials in parameter DR
-        deg_dif = setdiff(PRdeg,DRdeg,'rows');      % Monomials in PR that are not in DR
-        isgood_DR = isempty(deg_dif);               % 1 if the DR has all monomial also in PR
+        if isempty(PRdeg)
+            isgood_DR = true;
+        else
+            deg_dif = setdiff(PRdeg,DRdeg,'rows');      % Monomials in PR that are not in DR
+            isgood_DR = isempty(deg_dif);               % 1 if the DR has all monomial also in PR
+        end
         isgood_Dpar(p) = isgood_Dpar(p) && isgood_DR;   % Is parameter p okay?
     end
 end
@@ -122,7 +130,7 @@ end
 % Check if all parameters in Pop can be matched by those in Dop
 isgood_D = all(isgood_Dpar(:));
 
-% If all diagoanl parameters (Rxx, Ryy, R22) are fine, but any off-diagonal 
+% If all diagonal parameters (Rxx, Ryy, R22) are fine, but any off-diagonal 
 % parameter (e.g. R2x) cannot be matched, we have to puzzle a bit with
 % which degrees to increase...
 if ~isgood_D && all(diag(isgood_Dpar))
