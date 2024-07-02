@@ -104,7 +104,7 @@ else
 end
 
 % Perform the integration
-Zint_coef = diag(1./(Z_deg(:,ivar_idx)+1))*Z_coef;
+Zint_coef = Z_coef./(Z_deg(:,ivar_idx)+1);
 Zint_deg = Z_deg;
 Zint_deg(:,ivar_idx) = Z_deg(:,ivar_idx)+1;
 Zint_var = Z_var;
