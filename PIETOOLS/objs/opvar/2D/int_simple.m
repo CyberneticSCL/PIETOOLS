@@ -104,12 +104,7 @@ else
 end
 
 % Perform the integration
-% creating sparse matrix for faster computation: Sachin
-tmpDim = size(Z_coef,1);
-tmp_intScaling = sparse(1:tmpDim, 1:tmpDim,1./(Z_deg(:,ivar_idx)+1),tmpDim, tmpDim);
-Zint_coef = tmp_intScaling*Z_coef;
 
-%Zint_coef = diag(1./(Z_deg(:,ivar_idx)+1))*Z_coef;
 Zint_deg = Z_deg;
 Zint_deg(:,ivar_idx) = Z_deg(:,ivar_idx)+1;
 Zint_var = Z_var;

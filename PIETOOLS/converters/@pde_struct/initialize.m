@@ -210,6 +210,7 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07/07/2022
+% DJ, 06/03/2024 - Adjust declaration of dummy variables for integration
 
 
 % % % --------------------------------------------------------------- % % %
@@ -327,14 +328,23 @@ dom_list = [dom_list_x; dom_list_w; dom_list_u; dom_list_z; dom_list_y];
 var_list = [var_list_x; var_list_w; var_list_u; var_list_z; var_list_y];
 comp_list = [comp_list_x; comp_list_w; comp_list_u; comp_list_z; comp_list_y];
 
+% Also include variables specified as global variables.
+global_varnames = cell(size(global_vars,1),1);
+for jj=1:size(global_vars,1)
+    global_varnames{jj} = global_vars(jj,1).varname{1};
+end
+var_list = [global_varnames; var_list];
+dom_list = [global_dom; dom_list];
+
 % Keep track of which rows in the full list correspond to states, inputs,
 % and outputs.
-nvars_arr = [size(comp_list_x,1); size(comp_list_w,1); size(comp_list_u,1); size(comp_list_z,1); size(comp_list_y,1)];
-nnvars_arr = cumsum([0; nvars_arr]);    
+nvars_arr = [size(global_vars,1);size(comp_list_x,1); size(comp_list_w,1); size(comp_list_u,1); size(comp_list_z,1); size(comp_list_y,1)];
+nnvars_arr = cumsum(nvars_arr);    
+nncomps_arr = nnvars_arr - size(global_vars,1);
 
 
 % % Establish a unique set of primary variables from the full set.
-[var1_list_unique,id1,varnum_list] = unique(var_list(:,1),'stable'); % list_unique = list(id1);  list = list_unique(varnum_list)
+[var1_list_unique,id1,varnum_list] = unique(var_list,'stable'); % list_unique = list(id1);  list = list_unique(varnum_list)
 nvars = length(var1_list_unique);
 if nvars>2 && ~suppress_summary
     warning(['Currently, PIETOOLS supports only problems with at most two distinct spatial variables.'...
@@ -344,6 +354,7 @@ end
 
 % % Loop over the unique variables, and make sure each is coupled to just
 % % one domain and (at most) one dummy variable.
+var_list_dum = cell(nvars,1);
 for varnum=1:nvars
     % Find rows in var_list associated to unique spatial variable varnum.
     var_locs = find(varnum_list==varnum);   
@@ -353,41 +364,21 @@ for varnum=1:nvars
         error(['The same spatial variable seems to exist on different domains for different states/inputs/outputs;'...
                 ' please make sure that the domain of any one variable across different components x{i}, w{i}, u{i}, z{i} and y{i} is identical.'])
     end
-    % For the given variable varnum, check the third column of var_list to
-    % establish whether any dummy variables have been coupled to this 
-    % variable
-    has_var2_ii = cell2mat(var_list(var_locs,3));
-    if ~any(has_var2_ii)
-        % If there is no dummy variable associated to the spatial
-        % variable varnum, define a new dummy variable.
-        var2_name_ii = [var1_list_unique{varnum},'_dum'];
-        var_list(var_locs,2) = {var2_name_ii};
+    % For the given variable varnum, check if a dummy variable has already
+    % been specified in global_vars;
+    if min(var_locs)<=size(global_vars,1) && ispvar(global_vars(min(var_locs),2))
+        var_list_dum(var_locs,1) = global_vars(min(var_locs),2).varname;
     else
-        % Otherwise, make sure only one dummy variable is coupled to the
-        % spatial variable.
-        var2_list_ii = var_list(var_locs,2);
-        var2_list_ii = unique(var2_list_ii(has_var2_ii));
-        if length(var2_list_ii)>1
-            error(['The same spatial variable seems to be coupled with different dummy variables across different states/inputs/outputs;'...
-                    ' please make sure that the dummy variable associated to any one variable across different components x{i}, w{i}, u{i}, z{i} and y{i} is the same.'])
-        else
-            % Make sure that the dummy variable is linked to the spatial
-            % variable varnum throughout the var_list
-            var_list(var_locs,2) = var2_list_ii;
-        end
+        % If not, assign a new dummy variable based on the name of the
+        % associated spatial variable.
+        var2_name_ii = [var1_list_unique{varnum},'_dum'];
+        var_list_dum(var_locs,1) = {var2_name_ii};
     end
-end
-
-% Make sure that each dummy variable is coupled to at most one spatial
-% variable.
-var2_names = var_list(id1,2);
-if length(unique(var2_names))~=length(var2_names)
-    error(['Different spatial variables seem to be coupled to the same dummy variable;'...
-            ' please use a distinct dummy variable for each distinct primary spatial variable.'])
 end
 
 % % Set a (unique) set of global variables, and their associated domain,
 % % and add these to the PDE structure.
+var_list = [var_list,var_list_dum];
 global_vars = polynomial(var_list(id1,1:2));
 global_dom = dom_list(id1,:);
 
@@ -429,10 +420,12 @@ end
 % % var_list and dom_list correspond to this component.
 n_comps = [numel(PDE.x); numel(PDE.w); numel(PDE.u); numel(PDE.z); numel(PDE.y)];
 comp_indcs = cell(5,1);
+var_indcs = cell(5,1);
 for j=1:numel(comp_indcs)
     % For j=1:5, indices correspond to the rows in var_list associated with
     % x (j=1), w(j=2), u (j=3), z (j=4), and y (j=5).
-    comp_indcs{j} = nnvars_arr(j)+1:nnvars_arr(j+1);
+    comp_indcs{j} = nncomps_arr(j)+1:nncomps_arr(j+1);
+    var_indcs{j} = nnvars_arr(j)+1:nnvars_arr(j+1);
 end
 
 % % For the states, inputs, and outputs, we build a table with the number of
@@ -456,10 +449,10 @@ for j=1:numel(tab_cell)
         tab_cell{j} = tab_j;
         continue
     end
-    % Extract variable names and associated indices assoicated to this
+    % Extract variable names and corresponding indices associated to this
     % object (the state, input, or output).
     comp_list_j = comp_list(comp_indcs{j});
-    varnum_list_j = varnum_list(comp_indcs{j});    
+    varnum_list_j = varnum_list(var_indcs{j});    
     for varnum=1:nvars
         var_locs = varnum_list_j==varnum;   % Rows in var_list associated to spatial variable varnum
         row_nums = comp_list_j(var_locs);   % Components that vary in variable varnum
@@ -547,9 +540,9 @@ end
 % % % are appropriately specified. Any optional fields that are no
 % % % specified are assigned the associated default value.
 
-[PDE,diff_tab] = check_terms(PDE,'x',diff_tab);
-[PDE,diff_tab] = check_terms(PDE,'z',diff_tab);
-[PDE,diff_tab] = check_terms(PDE,'y',diff_tab);
+[PDE,diff_tab] = check_terms(PDE,'x',diff_tab,suppress_summary);
+[PDE,diff_tab] = check_terms(PDE,'z',diff_tab,suppress_summary);
+[PDE,diff_tab] = check_terms(PDE,'y',diff_tab,suppress_summary);
 
 % Append the order of differentiability to the x_tab.
 PDE.x_tab = [PDE.x_tab, diff_tab];
@@ -576,7 +569,7 @@ for ii=1:numel(PDE.BC)
     end
     PDE.BC{ii}.size = PDE.BC_tab(ii,2);
     
-    [PDE,BC_diff_tab_ii,BC_state_indcs] = check_BC_terms(PDE,ii);
+    [PDE,BC_diff_tab_ii,BC_state_indcs] = check_BC_terms(PDE,ii,suppress_summary);
     BC_state_tab(ii,BC_state_indcs) = true;
     BC_diff_tab(ii,:) = BC_diff_tab_ii;
     
@@ -587,7 +580,7 @@ for ii=1:numel(PDE.BC)
     else
         % Keep track of which variables s the function f(s) in the BC
         % 0=f(s) depends on, and their associated domain.
-        PDE.BC{ii}.vars = global_vars(logical(PDE.BC_tab(ii,3:2+nvars)),:);
+        PDE.BC{ii}.vars = global_vars(logical(PDE.BC_tab(ii,3:2+nvars)),1);
         PDE.BC{ii}.dom = global_dom(logical(PDE.BC_tab(ii,3:2+nvars)),:);
     end
     
@@ -606,7 +599,7 @@ PDE.BC_tab = [PDE.BC_tab, BC_diff_tab];
 % condition must be specified for the system to be well-posed.
 required_num_BCs_arr = sum(diff_tab,2);         % Required number of BCs for each state component
 observed_num_BCs_arr = sum(BC_state_tab,1)';    % Observed number of BCs which contain each state component
-if any(observed_num_BCs_arr < required_num_BCs_arr) || sum(PDE.BC_tab(:,2)) < PDE.x_tab(:,2)'*required_num_BCs_arr
+if (any(observed_num_BCs_arr < required_num_BCs_arr) || sum(PDE.BC_tab(:,2)) < PDE.x_tab(:,2)'*required_num_BCs_arr) && ~suppress_summary
     warning(['The number of boundary conditions specified for certain state components seems to be insufficient to ensure a well-posed system;',...
                 ' conversion to a PIE will likely not be possible.',...
                 ' Please ensure that for each state component, the number of boundary conditions along any spatial dimension matches the order of differentiability of this component along this dimension.'])
@@ -687,12 +680,8 @@ function [PDE,dom_list,var_list,comp_list] = extract_vars(PDE,obj)
 %               "vars" and "dom" specified for all elements PDE.(comp){ii}.
 % - dom_list:   An nx2 "double" array collecting the spatial domains 
 %               "PDE.(obj){ii}.dom" for all elements ii.
-% - var_list:   An nx3 cell listing all the observed variable names
-%               "PDE.(comp){ii}.vars(:,1)" for all elements ii in the first
-%               column, the observed associated dummy variable names
-%               "PDE.(obj){ii}.vars(:,2)" in the second column, and a
-%               logical index indicating whether a dummy variable has in
-%               fact been specified or not.
+% - var_list:   An nx1 cell listing all the observed variable names
+%               "PDE.(obj){ii}.vars(:,1)" for all elements ii.
 % - comp_list:  An nx1 integer array specifying for each of the observed
 %               variable names from which element ii of "PDE.(comp)" it was
 %               extracted.
@@ -700,9 +689,10 @@ function [PDE,dom_list,var_list,comp_list] = extract_vars(PDE,obj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Initialize an empty list of variable names and associated domains.
-var_list = cell(0,3);
-dom_list = zeros(0,2);
-comp_list = zeros(0,1);     % Keep track of which component is associated to each variable
+var_list = cell(1,numel(PDE.(obj)));
+dom_list = cell(numel(PDE.(obj)),1);
+comp_list = cell(numel(PDE.(obj)),1);     % Keep track of which component is associated to each variable
+nvars_list = zeros(numel(PDE.(obj)),1);    % Keep track of how many variables each component depends on
 
 % % Loop over the equations for each component of "comp".
 for ii=1:numel(PDE.(obj))
@@ -712,12 +702,12 @@ for ii=1:numel(PDE.(obj))
         if strcmp(obj,'x') && ~isempty(PDE.dom)
             % For state components default variables/domain to the global
             % values.
-            PDE_comp.vars = PDE.vars;
+            PDE_comp.vars = PDE.vars(:,1);
             PDE_comp.dom = PDE.dom;
         else
             % For inputs and outputs, assume finite-dimensionality if no
             % variables have been specified.
-            PDE.(obj){ii}.vars = polynomial(zeros(0,2));
+            PDE.(obj){ii}.vars = polynomial(zeros(0,1));
             PDE.(obj){ii}.dom = zeros(0,2);
             continue
         end
@@ -725,7 +715,7 @@ for ii=1:numel(PDE.(obj))
         % A lack of variables is only allowed if the domain indicates the
         % component to be finite-dimensional.
         if isempty(PDE_comp.dom)
-            PDE.(obj){ii}.vars = polynomial(zeros(0,2));
+            PDE.(obj){ii}.vars = polynomial(zeros(0,1));
             continue
         else
             error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
@@ -754,16 +744,19 @@ for ii=1:numel(PDE.(obj))
                     ' lower boundaries of spatial domain cannot exceed the upper boundaries.'])
         end
         % Check that the variables have been properly specified
-        if size(PDE_comp.vars,2)>2
+        if size(PDE_comp.vars,1)>1 && size(PDE_comp.vars,2)>2
             error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
-                    ' "vars" should be a px2 array, specifying the p primary and dummy spatial variables.'])
+                    ' "vars" should be a px1 array, specifying the p spatial variables on which the object depends.'])
+        elseif size(PDE_comp.vars,1)==size(PDE_comp.dom,1) && size(PDE_comp.vars,2)==2
+            % If dummy variables have been specified, get rid of them.
+            PDE_comp.vars = PDE_comp.vars(:,1);
         elseif size(PDE_comp.vars,1)~=size(PDE_comp.dom,1)
             if size(PDE_comp.vars,1)==1 && size(PDE_comp.vars,2)==size(PDE_comp.dom,1)
                 % Only primary spatial variables are specified.
                 PDE_comp.vars = PDE_comp.vars';
             else
                 error(['Component ',obj,'{',num2str(ii),'} is not appropriately specified:'...
-                        ' the number of specified variables in "vars" does not match the dimension of the spatial domain in "dom".'])
+                        ' the number of specified variables in "vars" should match the number of specified domains in "dom".'])
             end
         end
         % If variable names (rather than variables) have been specified,
@@ -781,29 +774,36 @@ for ii=1:numel(PDE.(obj))
         end
     end
     % Add the proposed domain to the list
-    dom_list = [dom_list; PDE_comp.dom];
+    dom_list{ii} = PDE_comp.dom;
     % Add the proposed variable names to  the list.
     % > Unfortunately, we have to extract the variable names
     % individually, as the order of vars.varname may not match the
     % order of the actual variables. <
-    if ~isempty(PDE_comp.vars) && size(PDE_comp.vars,2)==2 && ~isdouble(PDE_comp.vars(2))
-        % If dummy variables are available add these to the list as well.
+    if ~isempty(PDE_comp.vars)
+        var_list_ii = cell(1,size(PDE_comp.vars,1));
         for pp=1:size(PDE_comp.vars,1)
-            var_list = [var_list; [PDE_comp.vars(pp,1).varname, PDE_comp.vars(pp,2).varname, {true}]];
+            var_list_ii{pp} = PDE_comp.vars(pp,1).varname{1};
         end
-    elseif ~isempty(PDE_comp.vars)
-        % Otherwise, set variables as "0", and use "false" to indicate that
-        % no dummy variables have been specified for these primary
-        % variables.
-        for pp=1:size(PDE_comp.vars,1)
-            var_list = [var_list; [PDE_comp.vars(pp,1).varname, 0, {false}]];
-        end
+        var_list{ii} = var_list_ii;
     end
     % Keep track of which component these variables correspond to.
-    comp_list = [comp_list; ii*ones(size(PDE_comp.vars,1),1)];
+    comp_list{ii} = ii*ones(size(PDE_comp.vars,1),1);
     PDE.(obj){ii} = PDE_comp;
+    % Keep track of how many variables the component depends on.
+    nvars_list(ii) = size(PDE_comp.vars,1);
 end
-    
+
+% Reorder the components based on how many variables they depend on.
+[~,idcs] = sort(nvars_list,'descend');      % nvars_list(idcs) = sorted_nvars_list;
+var_list = var_list(idcs);
+dom_list = dom_list(idcs);
+comp_list = comp_list(idcs);
+
+% Extract the information into a single cell or 'double' array
+var_list = [var_list{:}]';
+dom_list = cell2mat(dom_list);
+comp_list = cell2mat(comp_list);
+
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
@@ -864,7 +864,7 @@ for ii=1:n_comps
             var_order(kk) = find(isequal(Lvars_new(kk,1),Lvars_old),1,'first');
         end
     end
-    PDE.(obj){ii}.vars = Lvars_new;
+    PDE.(obj){ii}.vars = Lvars_new(:,1);
     PDE.(obj){ii}.var_order = var_order;  
     PDE.(obj){ii}.dom = global_dom(has_vars_Lcomp,:); 
 end
@@ -1123,7 +1123,7 @@ for ii=1:numel(PDE.(obj))
                 nR = size(term_jj.D,1);
                 Rindx = repmat(Rindx,[nR,1]);
             elseif size(Dval,1)~=nR
-                error(['The number of state components in "',term_name,'.x" should match the number of derivatives "',term_name,'.D".'])
+                error(['The number of state components in "',term_name,'.x" should match the number of rows in "',term_name,'.D".'])
             end
         else
             % The term involves an input --> no derivative is allowed.
@@ -1185,27 +1185,52 @@ for ii=1:numel(PDE.(obj))
             end
             % Check that the dimension matches the number of spatial
             % variables on which the considered state component depends.
-            if size(Rloc,2)==nvars
-                % Location specified for global vars --> retain only Rvars
-                Rloc = Rloc(:,Gvar_order);
-                Rloc = Rloc(:,has_vars_Rcomp);
-            elseif size(Rloc,2)~=nvars_Rcomp
+            if size(Rloc,2)~=nvars_Rcomp
                 error(['The spatial position "',term_name,'.loc" is not appropriately specified;',...
-                        ' the number of elements should match the number of variables on which "',term_name,'.',Robj,'" depends.'])
-            else
-                if size(Rvar_order,1)==1
-                    Rloc = Rloc(:,Rvar_order);
-                elseif size(Rloc,1)==1
-                    Rloc = repmat(Rloc,[size(Rvar_order,1),1]);
-                    for kk=1:size(Rvar_order,1)
-                        Rloc(kk,:) = Rloc(kk,Rvar_order(kk,:));
-                    end
-                elseif size(Rloc,1)==size(Rvar_order,1)
-                    for kk=1:size(Rvar_order,1)
-                        Rloc(kk,:) = Rloc(kk,Rvar_order(kk,:));
-                    end
-                end                
+                        ' it should be specified as row vector with number of elements matching the number of variables on which "',term_name,'.',Robj,'" depends.'])
             end
+            % Re-order the positions to match the new order of the vars.
+            if size(Rvar_order,1)==1
+                Rloc = Rloc(:,Rvar_order);
+            elseif size(Rloc,1)==1
+                Rloc = repmat(Rloc,[size(Rvar_order,1),1]);
+                for kk=1:size(Rvar_order,1)
+                    Rloc(kk,:) = Rloc(kk,Rvar_order(kk,:));
+                end
+            elseif size(Rloc,1)==size(Rvar_order,1)
+                for kk=1:size(Rvar_order,1)
+                    Rloc(kk,:) = Rloc(kk,Rvar_order(kk,:));
+                end
+            end
+
+            %--------------------------------------------------------------
+            % DJ 05/29/2024
+            % OLD Approach that allowed location to be specified in terms
+            % of global vars directly, this leads to issues with variable
+            % switching...
+            % if size(Rloc,2)==nvars
+            %     % Location specified for global vars --> retain only Rvars
+            %     Rloc = Rloc(:,Gvar_order);
+            %     Rloc = Rloc(:,has_vars_Rcomp);
+            % elseif size(Rloc,2)~=nvars_Rcomp
+            %     error(['The spatial position "',term_name,'.loc" is not appropriately specified;',...
+            %             ' the number of elements should match the number of variables on which "',term_name,'.',Robj,'" depends.'])
+            % else
+            %     if size(Rvar_order,1)==1
+            %         Rloc = Rloc(:,Rvar_order);
+            %     elseif size(Rloc,1)==1
+            %         Rloc = repmat(Rloc,[size(Rvar_order,1),1]);
+            %         for kk=1:size(Rvar_order,1)
+            %             Rloc(kk,:) = Rloc(kk,Rvar_order(kk,:));
+            %         end
+            %     elseif size(Rloc,1)==size(Rvar_order,1)
+            %         for kk=1:size(Rvar_order,1)
+            %             Rloc(kk,:) = Rloc(kk,Rvar_order(kk,:));
+            %         end
+            %     end                
+            % end
+            %--------------------------------------------------------------
+
             % Also make sure the number of positions matches the number of
             % considered state components.
             if size(Rloc,1)==1 && nR>1
@@ -1217,8 +1242,8 @@ for ii=1:numel(PDE.(obj))
                 nR = size(Rloc,1);
                 Rindx = repmat(Rindx,[nR,1]);
                 Dval = repmat(Dval,[nR,1]);
-            elseif size(Rloc,1)>1 && nR>1
-                error(['The number of state components in "',term_name,'.x" should match the number of derivatives "',term_name,'.D".'])
+            elseif size(Rloc,1)~=nR && nR>1
+                error(['The number of state components in "',term_name,'.x" should match the number of rows in "',term_name,'.loc".'])
             end
             Rloc = polynomial(Rloc);
         elseif isfield(term_jj,'loc')
@@ -1296,7 +1321,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function [PDE,diff_tab] = check_terms(PDE,obj,diff_tab)
+function [PDE,diff_tab] = check_terms(PDE,obj,diff_tab,suppress_warnings)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PDE,diff_tab] = check_terms(PDE,obj,diff_tab)
 % checks the different terms in the different equations for each of the 
@@ -1312,6 +1337,8 @@ function [PDE,diff_tab] = check_terms(PDE,obj,diff_tab)
 %               elements of PDE.x (i.e. each state component) to what order
 %               it must be differentiable with respect to each of the p
 %               global variables PDE.vars.
+% - suppress_warnings:      Boolean object set to "true" to avoid printing
+%                           warnings about the PDE object.
 %
 % OUTPUTS:
 % - PDE:        The same structure as the input "PDE", now with all fields
@@ -1371,7 +1398,7 @@ while ii<=n_eqs
     if strcmp(obj,'x')
         % Check if an order of differentiability in each of the spatial
         % variables has been specified, and set it otherwise.
-        if isfield(PDE.x{ii},'diff') && any(PDE.x{ii}.diff~=diff_tab(ii,has_vars_Lcomp))
+        if isfield(PDE.x{ii},'diff') && any(PDE.x{ii}.diff~=diff_tab(ii,has_vars_Lcomp)) && ~suppress_warnings
             warning(['The specified order of differentiability "PDE.x{',eq_num_str,'}.diff" is smaller than the observed order of this state component in the PDE, and will therefore be increased.',...
                         ' If you wish to retain the original order of differentiability, please make sure that the order of any derivative of the state does not exceed this specified order.']);
         end
@@ -1432,6 +1459,8 @@ while ii<=n_eqs
             % desired.
             Dval = zeros(nR,nvars_Rcomp);
         elseif is_x_Robj
+            % Note that the derivative should have already been properly
+            % initialized in "get_diff"
             Dval = term_jj.D;
         end
         
@@ -1509,7 +1538,7 @@ while ii<=n_eqs
             Ival = term_jj.I(:);
             if ~isa(Ival,'cell')
                 error(['The field "',term_name,'.I" is not appropriately specified;',...
-                        ' the field should be a cell with each element k providing the desired domain of integration in variable k of component "',Robj,'{',num2str(Rindx),'}" depends.'])
+                        ' the field should be a cell with each element k providing the desired domain of integration in variable k on which component "',Robj,'{',num2str(Rindx),'}" depends.'])
             end
         else
             Ival = cell(0);
@@ -1577,14 +1606,22 @@ while ii<=n_eqs
         % % % gaps (most notably, the integrals).
         
         % % First, make sure that the specified location is appropriate.
+        % Note that the number and order of the positions in "loc" should 
+        % have already been properly initialized in "get_diff".
+        % It remains only to check that the specified positions make sense.
+
         % Extract the variables associated to the RHS component, and their
         % associated domains
         Rvars = global_vars(has_vars_Rcomp,:);
         Rdom = global_dom(has_vars_Rcomp,:);
-        Rvar_order = PDE.(Robj){Rindx}.var_order;   % new_vars = old_vars(var_order)
+        % Keep track of the order of the variables in Rvars on which Rcomp 
+        % depends.
+        Rvar_order = PDE.(Robj){Rindx}.var_order;   % new_vars = old_vars(var_order)        
         % Keep track of which variables the term actually varies in
         % (without integration).
         isvariable_term_jj = true(1,nvars_Rcomp);   % Element kk will be false if variable kk is evaluated at a boundary.
+        use_dummy_var = false(1,nvars_Rcomp);       % Element kk will be true if variable kk is evaluated at a dummy variable for integration. 
+        dummy_vars = Rvars(:,1);                    % Keep track of dummy variables that may be used
         if is_x_Robj
             for kk=1:nvars_Rcomp
                 % For each variable s\in[a,b], check that it is evaluated
@@ -1603,13 +1640,16 @@ while ii<=n_eqs
                     end
                 elseif ispvar(Rloc_kk)
                     % s=s.
-                    if ~isequal(Rloc_kk,Rvars(kk,1)) && ~isequal(Rloc_kk,Rvars(kk,2))
-                        error(['The spatial position "',term_name,'.loc" is not appropriate;',...
-                                ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s.'])
-                    else
-                        % Replace any dummy variables with primary
-                        % variables.
-                        Rloc_kk = Rvars(kk,1);
+                    if ~isequal(Rloc_kk,Rvars(kk,1))
+                        if ismember(Rloc_kk.varname{1},global_vars(:,1).varname)
+                            % We cannot evaluate at e.g. s1=s2.
+                            error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                                   ' swapping of spatial variables is not supported.'])
+                        end
+                        use_dummy_var(kk) = true;
+                        dummy_vars(kk) = Rloc_kk;
+                        % Replace with proper dummy variable.
+                        Rloc_kk = Rvars(kk,2);
                         PDE.(obj){ii}.term{jj}.loc(kk) = Rloc_kk;
                     end
                 else
@@ -1617,6 +1657,12 @@ while ii<=n_eqs
                                 ' spatial position must be specified as "double" or "pvar" (polynomial class) object.'])                
                 end
             end
+        end
+        % Check that we're not evaluating e.g. x(s1=th,s2=th).
+        true_dummy_vars = dummy_vars(use_dummy_var);
+        if any(use_dummy_var) && length(true_dummy_vars)~=length(true_dummy_vars.varname)
+            error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                    ' the same dummy variable cannot be used for integration along different spatial directions.'])
         end
         
         % % Establish which variables the term depends on but the LHS does
@@ -1631,6 +1677,9 @@ while ii<=n_eqs
             if any(must_int_var)
                 error(['The term "',term_name,'" appears to depend on a variable that the component "',obj,'{',num2str(ii),'}" does not depend on. This is not supported.',...
                         ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the term at a particular position, so as to remove the dependence on any "illegal" variables.'])
+            elseif any(use_dummy_var)
+                error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                       ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s, if no integration is performed.'])
             end
             % Otherwise, if no integral is specified, assume that no
             % integral is  desired.
@@ -1653,18 +1702,23 @@ while ii<=n_eqs
             for kk = 1:numel(Ival)
                 % Check for all spatial dimensions that the integral is
                 % properly specified and appropriate.
-                if isempty(Ival{kk}) && ~must_int_var(kk)
+                if isempty(Ival{kk}) && ~must_int_var(kk) && ~use_dummy_var(kk)
                     continue
-                elseif isempty(Ival{kk}) 
+                elseif isempty(Ival{kk}) && must_int_var(kk)
                     % If integration must be performed, but is not
                     % specified, throw an error
                     error(['The term "',term_name,'" appears to depend on a variable that the component "',obj,'{',eq_num_str,'}" does not depend on. This is not supported.',...
                             ' Please use the field "',term_name,'.I" to introduce an integral, or the field "',term_name,'.loc" to evaluate the state at a particular position, so as to remove the dependence on any "illegal" variables.'])
                     %Ival{kk} = Rdom(kk,:);
+                elseif isempty(Ival{kk}) && use_dummy_var(kk)
+                    % Dependence on a dummy variable only makes sense if
+                    % integration is performed
+                    error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                       ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s, if no integration is performed.'])
                 elseif ~isempty(Ival{kk}) && ~isvariable_term_jj(kk)
                     % Avoid integration in variables along which the
                     % considered component does not depend.
-                    error(['The proposed integral "',term_name,'.I{',num2str(kk),'}" is not allowed;',...
+                    error(['The proposed integral "',term_name,'.I" is not allowed;',...
                             ' the considered component "',term_name,'.',Robj,'{',num2str(Rindx),'}" at the specified position "',term_name,'.loc" does not vary along the proposed dimension of integration.'])
                 end
                 if (~isa(Ival{kk},'double') && ~isa(Ival{kk},'polynomial')) || ~all(size(Ival{kk})==[1,2])
@@ -1691,6 +1745,16 @@ while ii<=n_eqs
                             ' for a variable s in [a,b], integration is only allowed over [a,s], [s,b], or [a,b].'])
                 end   
                 is_int_var(kk) = true;  % Indicate that we are integrating along this spatial direction.
+                % Replace dummy variable with primary variable for full
+                % integral.
+                if must_int_var(kk)
+                    PDE.(obj){ii}.term{jj}.loc(kk) = Rvars(kk,1);
+                end
+                % Conversely, replace primary variable with dummy variable
+                % for partial integral.
+                if ~all(isequal(Ival_kk,Rdom(kk,:))) && ~use_dummy_var(kk)
+                    PDE.(obj){ii}.term{jj}.loc(kk) = Rvars(kk,2);
+                end
             end
             PDE.(obj){ii}.term{jj}.I = Ival;       
         end
@@ -1708,7 +1772,21 @@ while ii<=n_eqs
             % dimensions that are integrated out should be
             % replaced with primary variables as well.
             if any(must_int_var)
-                Cval = subs(Cval,Rvars(must_int_var,2),Rvars(must_int_var,1));
+                % Check that Cval does not introduce a primary variable
+                % which it must also integrate out.
+                must_int_vars = Rvars(must_int_var,1);
+                must_int_dumvars = dummy_vars(must_int_var);
+                must_use_dummy = use_dummy_var(must_int_var);
+                for kk=1:length(must_int_vars)
+                    if must_use_dummy(kk) && ismember(must_int_vars(kk).varname,Cval.varname)
+                        error(['The proposed polynomial "',term_name,'.C" is not appropriate;',...
+                        ' to function as kernel, C can only depend on the dummy variable "',must_int_dumvars(kk).varname{1},'" not the spatial variable "',must_int_vars(kk).varname{1},'".'])
+                    end
+                end
+                % Replace any dummy variables used for full integration
+                % with primary variables.
+                Cval = subs(Cval,must_int_dumvars,must_int_vars);
+                Cval = subs(Cval,Rvars(must_int_var,2),must_int_vars);
                 Rcomp_varname_1 = Rvars(must_int_var,1).varname;
             else
                 Rcomp_varname_1 = {};
@@ -1716,6 +1794,11 @@ while ii<=n_eqs
             % For variables that both the LHS component and RHS component
             % share, but for which a (partial) integral is used, a dummy 
             % variable may appear in Cval.
+            if any(is_int_var & ~must_int_var & use_dummy_var)
+                % Replace the input dummy variable with the default ones.
+                Cval = subs(Cval,dummy_vars(is_int_var & ~must_int_var & use_dummy_var),Rvars(is_int_var & ~must_int_var & use_dummy_var,2));
+            end
+            % Keep track of which dummy variables Cval may depend on.
             Rcomp_varname_2 = Rvars(is_int_var & ~must_int_var,2).varname;
             
             % Check that the polynomial does not depend on any "illegal"
@@ -1729,7 +1812,7 @@ while ii<=n_eqs
             %  may not need to be differentiated.
             if is_x_Robj && any(Dval==diff_tab(Rindx,has_vars_Rcomp)) && size(Cval,2)>1
                 for kk=1:size(Cval,2)
-                    if all(isequal(Cval(:,kk),zeros(size(Cval,1),1)))
+                    if all(isequal(Cval(:,kk),zeros(size(Cval,1),1))) && ~suppress_warnings
                         if kk==1
                             kkth = [num2str(kk),'st'];
                         elseif kk==2
@@ -1751,7 +1834,7 @@ while ii<=n_eqs
             Cval = double(Cval);
             if is_x_Robj && any(Dval==diff_tab(Rindx,has_vars_Rcomp)) && size(Cval,2)>1
                 for kk=1:size(Cval,2)
-                    if ~any(Cval(:,kk))
+                    if ~any(Cval(:,kk)) && ~suppress_warnings
                         if kk==1
                             kkth = [num2str(kk),'st'];
                         elseif kk==2
@@ -1802,7 +1885,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function [PDE,BC_diff_tab,BC_state_indcs] = check_BC_terms(PDE,eq_num)
+function [PDE,BC_diff_tab,BC_state_indcs] = check_BC_terms(PDE,eq_num,suppress_warnings)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PDE,BC_state_tab_ii] = check_BC_terms(PDE,eq_num)
 % checks the different terms in the BC specified by "eq_num", to check that 
@@ -1815,6 +1898,8 @@ function [PDE,BC_diff_tab,BC_state_indcs] = check_BC_terms(PDE,eq_num)
 % - PDE:        A "struct" or "pde_struct" class object defining a PDE.
 % - eq_num:     Integer specifying which equation "PDE.BC{eq_num}" to
 %               check.
+% - suppress_warnings:      Boolean object set to "true" to avoid printing
+%                           warnings about the PDE object.
 %
 % OUTPUTS:
 % - PDE:        The same structure as the input "PDE", now with all fields
@@ -2058,6 +2143,8 @@ while jj<=n_terms
     % Keep track of which variables the term actually varies in
     % (without integration).
     isvariable_term_jj = true(1,nvars_Rcomp);
+    use_dummy_var = false(1,nvars_Rcomp);       % Element kk will be true if variable kk is evaluated at a dummy variable for integration. 
+    dummy_vars = Rvars(:,1);                    % Keep track of dummy variables that may be used
     if is_x_Robj
         for kk=1:nvars_Rcomp
             % For each of the spatial variables, check if an appropriate
@@ -2074,13 +2161,16 @@ while jj<=n_terms
                     isvariable_term_jj(kk) = false;
                 end
             elseif ispvar(Rloc_kk)
-                if ~isequal(Rloc_kk,Rvars(kk,1)) && ~isequal(Rloc_kk,Rvars(kk,2))
-                    error(['The spatial position "',term_name,'.loc" is not appropriate;',...
-                        ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s.'])
-                else
-                    % Replace any dummy variables with primary
-                    % variables.
-                    Rloc_kk = Rvars(kk,1);
+                if ~isequal(Rloc_kk,Rvars(kk,1))
+                    if ismember(Rloc_kk.varname{1},global_vars(:,1).varname)
+                        % We cannot evaluate at e.g. s1=s2.
+                        error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                               ' swapping of spatial variables is not supported.'])
+                    end
+                    use_dummy_var(kk) = true;
+                    dummy_vars(kk) = Rloc_kk;
+                    % Replace with proper dummy variable.
+                    Rloc_kk = Rvars(kk,2);
                     PDE.BC{eq_num}.term{jj}.loc(kk) = Rloc_kk;
                 end
             else
@@ -2089,12 +2179,26 @@ while jj<=n_terms
             end
         end
     end
+    % Check that we're not evaluating e.g. x(s1=th,s2=th).
+    true_dummy_vars = dummy_vars(use_dummy_var);
+    if any(use_dummy_var) && length(true_dummy_vars)~=length(true_dummy_vars.varname)
+        error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                ' the same dummy variable cannot be used for integration along different spatial directions.'])
+    end
     
     % % Check the integrals, and establish which variables the boundary
     % % condition depends on.
     % Keep track of wrt which variables some integration is performed.
     is_int_var_Rcomp = false(1,nvars_Rcomp);
+    % Keep track of which integrals are expected to remove the spatial dependence;
+    is_full_int_var = false(1,nvars_Rcomp);
     if ~isfield(term_jj,'I') || isempty(term_jj.I)
+        % If no integral is specified, evaluating at dummy vars makes no
+        % sense.
+        if any(use_dummy_var)
+            error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                   ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s, if no integration is performed.'])
+        end
         % If no integral is specified, assume no integration is desired.
         Ival = cell(nvars_Rcomp,1);
         PDE.BC{eq_num}.term{jj}.I = Ival;
@@ -2111,12 +2215,15 @@ while jj<=n_terms
             Ival = [Ival;cell(nvars_Rcomp-numel(Ival),1)];
         end
         Ival = Ival(Rvar_order);    % Reorder based on new ordering of variables.
-        % Keep track of which along which directions a full integral is
-        % performed.
-        %is_full_int = false(1,numel(Ival));
+        % Check whether a proper domain of integration has been specified.
         for kk = 1:numel(Ival)
-            if isempty(Ival{kk})
+            if isempty(Ival{kk}) && ~use_dummy_var(kk)
                 continue
+            elseif isempty(Ival{kk}) && use_dummy_var(kk)
+                % Dependence on a dummy variable only makes sense if
+                % integration is performed
+                error(['The spatial position "',term_name,'.loc" is not appropriate;',...
+                   ' for any variable s in [a,b], PIETOOLS can only evaluate s=a, s=b, or s=s, if no integration is performed.'])
             elseif ~isvariable_term_jj(kk)
                 % Avoid integration in variables along which the
                 % considered component does not depend.
@@ -2131,10 +2238,14 @@ while jj<=n_terms
             % Check that the integral is taken over one of the allowed
             % domains.
             if all(isequal(Ival_kk,Rdom(kk,:)))
-                % The integral will discard any spatial dependence on the kkth
-                % variable.
+                % An integral is taken over the full domain.
                 isvariable_term_jj(kk) = false;
-                %is_full_int(kk) = true;
+                if ~use_dummy_var(kk)
+                    % The integral is taken with using the primary
+                    % spatial variable
+                    % --> assume dependence on this variable is discarded
+                    is_full_int_var(kk) = true;
+                end
             elseif all(isequal(Ival_kk,polynomial(Rdom(kk,2:-1:1))))
                 % Integration is performed over mirror image of full domain
                 % (for whatever reason).
@@ -2142,35 +2253,54 @@ while jj<=n_terms
                 PDE.BC{eq_num}.term{jj}.C = Cval;
                 Ival{kk} = Ival{kk}(1,end:-1:1);
                 isvariable_term_jj(kk) = false;
+                if ~use_dummy_var(kk)
+                    % The integral is taken using the primary
+                    % spatial variable
+                    % --> assume dependence on this variable is discarded
+                    is_full_int_var(kk) = true;
+                end
             elseif all(isequal(Ival_kk,[Rvars(kk,1),Rdom(kk,1)])) || all(isequal(Ival_kk,[Rdom(kk,2),Rvars(kk,1)]))
                 % Integration is performed over mirror image of partial domain
                 % (for whatever reason).
                 Cval = -Cval;
                 PDE.BC{eq_num}.term{jj}.C = Cval;
                 Ival{kk} = Ival{kk}(1,end:-1:1);
-            elseif ~(all(isequal(Ival_kk,[Rdom(kk,1),Rvars(kk,1)])) || all(isequal(Ival_kk,[Rvars(kk,1),Rdom(kk,2)])))
+            elseif ~all(isequal(Ival_kk,Rdom(kk,:))) && ~(all(isequal(Ival_kk,[Rdom(kk,1),Rvars(kk,1)])) || all(isequal(Ival_kk,[Rvars(kk,1),Rdom(kk,2)])))
                 error(['The proposed integral "',term_name,'.I{',num2str(kk),'}" is not allowed;',...
                     ' for a variable s in [a,b], integration is only allowed over [a,s], [s,b], or [a,b].'])
             end
             is_int_var_Rcomp(kk) = true;  % Indicate that we are integrating this variable.
+
+            % For partial integral, replace primary variable with dummy 
+            % variable in loc.
+            if ~all(isequal(Ival_kk,Rdom(kk,:))) && ~use_dummy_var(kk)
+                PDE.BC{eq_num}.term{jj}.loc(kk) = Rvars(kk,2);
+            end
         end
         PDE.BC{eq_num}.term{jj}.I = Ival;
     end
     % Logical indices indicating which of the global variables are
     % integrated.
-    is_int_var_full = false(1,nvars);
-    is_int_var_full(has_vars_Rcomp) = is_int_var_Rcomp;
-    %is_full_int_full = false(1,nvars);
-    %is_full_int_full(has_vars_Rcomp) = is_full_int;
+    is_int_var_global = false(1,nvars);
+    is_int_var_global(has_vars_Rcomp) = is_int_var_Rcomp;
     
     % Logical indices indicating which of the global variables the term
     % actually varies in (are not boundary positions or integrated out).
-    isvariable_term_jj_full = false(1,nvars);
-    isvariable_term_jj_full(has_vars_Rcomp) = isvariable_term_jj;
+    isvariable_term_jj_global = false(1,nvars);
+    isvariable_term_jj_global(has_vars_Rcomp) = isvariable_term_jj;
+
+    % Determine which variables are fully integrated out
+    is_full_int_var_global = false(1,nvars);
+    is_full_int_var_global(has_vars_Rcomp) = is_full_int_var;
     
     % % Finally, we check that the coefficients are appropriately
     % % specified.
     if isa(Cval,'polynomial') && ~isdouble(Cval)
+        % Replace any input dummy variable with the default ones.
+        if any(use_dummy_var)
+            Cval = subs(Cval,dummy_vars(use_dummy_var),Rvars(use_dummy_var,2));
+        end
+
         % Make sure the polynomial does not introduce any new variables.
         if any(~ismember(Cval.varname,[global_vars.varname;delay_varname]))
             error(['The proposed polynomial "',term_name,'.C" is not appropriate;',...
@@ -2188,25 +2318,39 @@ while jj<=n_terms
         
         % Check that no dummy variables are used along directions of no
         % integration.
-        if any(has_var2_Cval & ~is_int_var_full)
+        if any(has_var2_Cval & ~is_int_var_global)
             error(['The proposed polynomial "',term_name,'.C" is not appropriate;',...
                 ' dummy variables are allowed only in directions along which the term is integrated.'])
         end
+
         % Check if any variable is (accidentally) introduced which the
         % integrals would otherwise remove.
-        if any(has_var1_Cval & ~has_var2_Cval & is_int_var_full)
+        % Note that if "is_full_int_var(kk)" is true, var1(kk) will be
+        % integrated out again.
+        if any(has_var1_Cval & ~has_var2_Cval & ~isvariable_term_jj_global & ~is_full_int_var_global) && ~suppress_warnings
             warning(['The proposed polynomial "',term_name,'.C" introduces a dependence of the term on a variable which the integral removes;',...
-                ' if you wish the polynomial to act as kernel, use a dummy variable, which can be specified in the second column of "',Robj,'{',num2str(Rindx),'}.vars".'])
+                ' if you wish for the polynomial to act as kernel, use a dummy variable, and set the appropriate element of "',term_name,'.loc" equal to this dummy variable.'])
         end
         
         % Any primary variable that the polynomial Cval depends on will be
         % one the term depends on.
-        isvariable_term_jj_full = isvariable_term_jj_full | has_var1_Cval;
+        % However, in case of a full integral, var1 will be integrated out
+        % again.
+        isvariable_term_jj_global = isvariable_term_jj_global | (has_var1_Cval & ~is_full_int_var_global);
+        isvariable_term_jj = isvariable_term_jj_global(has_vars_Rcomp);
+
+        % If full integral is taken, replace dummy variable with primary
+        % variable
+        replace_dummy_var = ~isvariable_term_jj & use_dummy_var;
+        if any(replace_dummy_var)
+            PDE.BC{eq_num}.term{jj}.loc(replace_dummy_var) = Rvars(replace_dummy_var,1);
+            Cval = subs(Cval,Rvars(replace_dummy_var,2),Rvars(replace_dummy_var,1));
+        end
     end
     PDE.BC{eq_num}.term{jj}.C = Cval;
     
     % Add any variable dependence that the term introduces to the table.
-    PDE.BC_tab(eq_num,3:2+nvars) = PDE.BC_tab(eq_num,3:2+nvars) | isvariable_term_jj_full;
+    PDE.BC_tab(eq_num,3:2+nvars) = PDE.BC_tab(eq_num,3:2+nvars) | isvariable_term_jj_global;
     
     % Also keep track of which state variables appear in the BC, and what
     % the maximal order of differentiability is of the states.

@@ -70,28 +70,28 @@ for f = fset
 end
 % Now for off-diagonal 3-PI operators
 for i=1:3
-    if ~isempty(P.R2x{i,1}) && any(any(P.R2x{i}.C))
-        sos = soseq(sos, P.R2x{i,1});
+    if ~isempty(P.R2x{i}) && any(any(P.R2x{i}.C))
+        sos = soseq(sos, P.R2x{i});
     end
-    if ~isempty(P.R2y{1,i}) && any(any(P.R2y{i}.C))
-        sos = soseq(sos, P.R2y{i,1});
+    if ~isempty(P.R2y{i}) && any(any(P.R2y{i}.C))
+        sos = soseq(sos, P.R2y{i});
+    end
+if ~is_symmetric
+    if ~isempty(P.Rx2{i}) && any(any(P.Rx2{i}.C))
+        sos = soseq(sos, P.Rx2{i});
+    end
+    if ~isempty(P.Ry2{i}) && any(any(P.Ry2{i}.C))
+        sos = soseq(sos, P.Ry2{i});
     end
 end
-if ~is_symmetric
-    if ~isempty(P.Rx2{i,1}) && any(any(P.Rx2{i}.C))
-        sos = soseq(sos, P.Rx2{i,1});
-    end
-    if ~isempty(P.Ry2{1,i}) && any(any(P.Ry2{i}.C))
-        sos = soseq(sos, P.Ry2{i,1});
-    end
 end
 % Finally, diagonal 3-PI (9-PI) operators
 for i=1:imax
-    if ~isempty(P.Rxx{i,1}) && any(any(P.Rxx{i}.C))
-        sos = soseq(sos, P.Rxx{i,1});
+    if ~isempty(P.Rxx{i}) && any(any(P.Rxx{i}.C))
+        sos = soseq(sos, P.Rxx{i});
     end    
-    if ~isempty(P.Ryy{1,i}) && any(any(P.Ryy{i}.C))
-        sos = soseq(sos, P.Ryy{1,i});
+    if ~isempty(P.Ryy{i}) && any(any(P.Ryy{i}.C))
+        sos = soseq(sos, P.Ryy{i});
     end
     for j=1:imax
         if ~isempty(P.R22{i,j}) && any(any(P.R22{i,j}.C))

@@ -278,28 +278,28 @@ for ii=1:ncomps
     
     % Establish the (subscript) index for the component.
     LHS_length = length(varnames_ii_t);
-    if numel(PDE.x)==1
-        % There is only one state component --> no need to give index
+    if numel(PDE.(obj))==1
+        % There is only one component --> no need to give index
         Lcomp_idx = '';
-    elseif numel(PDE.x)<=9
-        % The state number consists of a single decimal.
+    elseif numel(PDE.(obj))<=9
+        % The component number consists of a single decimal.
         Lcomp_idx = sub_num{old_idx+1};
         LHS_length = LHS_length + 1;
     else
-        % The state number consists of multiple decimals.
+        % The component number consists of multiple decimals.
         Lcomp_idx = cell2mat(sub_num(str2num(num2str(old_idx)')+1)');
         LHS_length = LHS_length + length(num2str(old_idx));
     end
     % Set the name of the component, including its depdence on spatial
     % variables.
-    LHS_name = [' x',Lcomp_idx,'(',varnames_ii_t,')'];
+    LHS_name = [' ',obj,Lcomp_idx,'(',varnames_ii_t,')'];
     LHS_length = 1 + LHS_length + 3;
         
     % For the added state components, indicate of which state component
     % they are the temporal derivative.
     new_idx = ii;
     Rcomp_idx = cell2mat(sub_num(str2num(num2str(new_idx)')+1)');
-    RHS = [' -->   x',Rcomp_idx,'(',varnames_ii_t,')'];
+    RHS = [' -->   ',obj,Rcomp_idx,'(',varnames_ii_t,')'];
 %    RHS = '';
     
     % % % Finally, display:

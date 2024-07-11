@@ -79,8 +79,9 @@ PDE_t.x{2}.term{1}.D = 2;
 PDE_t.BC{1}.term{1}.x = 2;
 PDE_t.BC{1}.term{1}.loc = 0;
 
-% BC 1: 0 = ... + xo
+% BC 1: 0 = ... - xo
 PDE_t.BC{1}.term{2}.x = 1;
+PDE_t.BC{1}.term{2}.C = -1;
 
 % BC 2: 0 = -x(1)
 PDE_t.BC{2}.term{1}.x = 2;

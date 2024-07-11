@@ -21,7 +21,7 @@
 %
 % Initial coding YP  - 6_30_2022
 function A=PIESIM_PI2Mat_cheb_opint_discretize(N, nx, Rop, p);
-pvar s
+pvar s var
 
 ns=size(p,2);
 
@@ -37,8 +37,13 @@ acheb=zeros(nx,ns,deg+2);
 chebgrid=cos(pi*(0:deg+1)/(deg+1));
 if isa(Rop,'polynomial')
 for j=1:ns
-    for i=1:nx
-    Reval(i,j,:)=(subs(Rop(i,j),s,chebgrid))';
+    for i=1:nx  
+        if (isempty(Rop.varname))
+            var=s;
+        else
+            var=Rop.varname;
+        end
+    Reval(i,j,:)=(subs(Rop(i,j),var,chebgrid))';
     acheb(i,j,:)=fcht(double(Reval(i,j,:)));
     end 
 end 

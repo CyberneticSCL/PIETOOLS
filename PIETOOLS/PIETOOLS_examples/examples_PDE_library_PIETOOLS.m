@@ -100,19 +100,6 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)
 % Process the user inputs
 [index,BATCH,TERM,GUI,params] = process_inputs(varargin,nargin);
 
-if index>=31 && index<=42
-    userinp = input(['\n Examples (31 through 40) correspond to 2D PDEs that take significant computational time and memory.\n ' ...
-        'Do you want to continue? (y/n) \n ---> '],'s');
-    if strcmp(userinp,'n')
-        varargout{1} = 'stop';
-        return;
-    elseif strcmp(userinp,'y')
-        % do nothing, continue.
-    else
-        error('Unrecognized input. Example was not loaded.')
-    end
-
-end
 
 
 fprintf([' --- Extracting ODE-PDE example ', num2str(index),' ---\n']);
@@ -129,7 +116,7 @@ switch index
 %       Hyperbolic Transport, Balance Laws, Conservation Equations
 %--------------------------------------------------------------------------
     case 1
-% 	PDE: x_{t} = v x_{s}                              |   
+% 	PDE: x_{t} = v*x_{s}                            | v=-1;   
 %   BCs: x(s=0) = 0                                 |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq(GUI,params);
 %-----|-------------------------------------------------------------------
@@ -187,18 +174,18 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params);
 %--------------------------------------------------------------------------
     case 10
-%   ODE: xo_{t} = xo + x_{s}(s=0)               	| k = 2                (stable for k=-2)            
+%   ODE: xo_{t} = xo + x_{s}(s=0)               	| k = -2                (stable for k=-2)            
 %   PDE: x_{t} = x_{ss}                             |                               Tang 2011 [13]
-%   BCs: x(s=0) = xo,    x(s=1) = -k*xo             |
+%   BCs: x(s=0) = xo,    x(s=1) = k*xo              |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params);
 %--------------------------------------------------------------------------
     case 11
-% 	PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 2.93              (stable for R<2.7)
-%   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            | Cm = [1, 1.5; 5, 0.2]         Peet 2018 [22]
+% 	PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 2.9               (stable for R<2.7 (not tight))
+%   BCs:  x(s=0) = 0,     x(s=1) = 0                | Cm = [1, 1.5; 5, 0.2]         Ahmadi 2014 [6] Example D
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params);
 %--------------------------------------------------------------------------
     case 12
-%   PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = (21+9)            (stable for R<21)
+%   PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = (21+9)            (stable for R<21 (not tight))
 %   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            | Cm = [0 0 0;                  Ahmadi 2015 [5] Adapted Example B
 %                                                   |       s 0 0;
 %                                                   |       -s^2 0 0]
@@ -388,7 +375,7 @@ switch index
 %       Hyperbolic Transport, Balance Laws, Conservation Equations
 %--------------------------------------------------------------------------
     case 27
-%   PDE: x_{t} = x_{s} + w(t)                       | ne = 1 (state size)   (Answer: 1.0012)
+%   PDE: x_{t} = x_{s} + w(t)                       |                       (Answer: 1.0012)
 %   BCs: x(s=1) = 0                                 |
 %   Out: z(t) = int(x(t,s),s,0,1) + w(t)            |
 %        y(t) = int(x(t,s),s,0,1)                   |
@@ -410,10 +397,10 @@ switch index
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
     case 29
-% % PDE                            x_{t} = lam*x + x_{ss} + (s-s^2)u(t) + (s-s^2)w
-% % With BCs                         x(s=0) = 0
-% %                                         x(s=1) = 0
-% % and regulated output  z = [ int(x(s,t),s,0,1);u]
+% % PDE: x_{t} = lam*x + x_{ss} + (s-s^2)u(t) + (s-s^2)w    | lam = 10;
+% % BCs: x(s=0) = 0,        x(s=1) = 0
+% % Out: z1(t) = int(x(s,t),s,0,1)
+% %      z2(t) = u(t)
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input(GUI,params);
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -497,7 +484,7 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params);
 %--------------------------------------------------------------------------
     case 35
-%   PDE: x_{tt} = c1*u_{(2,0)} + c2*x_{(0,2)}       | c1 = 1;   c2 = 1;
+%   PDE: x_{tt} = c1*x_{(2,0)} + c2*x_{(0,2)}       | c1 = 1;   c2 = 1;
 %   BCs: x(s1=0) = 0;       x(s2=0) = 0;            | ne = 1; (state size)
 %        x(s1=1) = 0;       x(s2=1) = 0;            |
 %   Use states x1 = x,    x2 = x_{t}                |
@@ -622,31 +609,31 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params);
 %--------------------------------------------------------------------------
     case 41 
-%   PDE:    x_{tt}  = x_{s1s1}(t,s1);   s1 in [0,1] | tau = 1;  
+%   PDE:    x_{tt}  = x_{ss}(t,s);   s in [0,1]     | tau = 1;  
 %   BCs:    x(t,0) = 0;                             | k = 1;
-%           x_{s1}(t,1) = -k*(1-mu)*x_{t}(t,1)      | mu = 0.4;
+%           x_{s}(t,1) = -k*(1-mu)*x_{t}(t,1)       | mu = 0.4;
 %                           - k*mu*x_{t}(t-tau,1);  |
 % Introduce:                                        | Stable for mu<0.5             Xu, 2006 [21]  
-%     x1(t) = - k * (1-mu) * \dot{u}(1,t)           |
-%               - k*mu*\dot{u}(1,t-tau);            |
-%     x2(t,s1) = x(t,s1);                           |
-%     x3(t,s1) = x_{t}(t,s1);                       |
-%     x4(t,s2) = x(t-tau*s2,1);                     |
-%     x5(t,s2) = x_{t}(t-tau*s2,1);                 |
+%     x1(t)    = - k*(1-mu)*x(1,t)                  |
+%                   - k*mu*x(1,t-tau);              |
+%     x2(t,s) = x(t,s);                             |
+%     x3(t,s) = x_{t}(t,s);                         |
+%     x4(t,s) = x(t-tau*s,1);                       |
+%     x5(t,s) = x_{t}(t-tau*s,1);                   |
 % Then:                                             |
-%   ODE:    x1_{t}(t)    = x2_{s1}(t,1);            |
-%   PDE:    x2_{t}(t,s1) = x3(t,s1);                |    s1 in (0,1)
-%           x3_{t}(t,s1) = x2_{s1s1}(t,s1);         |       
-%           x4_{t}(t,s2) = -(1/tau) x4_{s2}(t,s2);  |    s2 in (0,1)
-%           x5_{t}(t,s2) = -(1/tau) x5_{s2}(t,s2);  |
+%   ODE:    x1_{t}(t)    = x2_{s}(t,1);             |
+%   PDE:    x2_{t}(t,1) = x3(t,s);                  |    s in (0,1)
+%           x3_{t}(t,1) = x2_{ss}(t,s);             |       
+%           x4_{t}(t,2) = -(1/tau) x4_{s}(t,2);     |
+%           x5_{t}(t,2) = -(1/tau) x5_{s}(t,2);     |
 %   BCs:    x2(t,0) = 0;                            |                         
 %           x3(t,0) = 0;                            |
 %           x4(t,0) = x2(t,1);                      |
 %           x5(t,0) = x3(t,1);                      |
 %           x1(t) = - k * (1-mu) * x2(t,1)          |
 %                           - k * mu * x4(t,1);     |
-%           x2_{s1}(t,1) = -k*(1-mu)*x3_{t}(t,1)    |
-%                               - k*mu*x5_{t}(t,1); |
+%           x2_{s}(t,1) = -k*(1-mu)*x3(t,1)         |
+%                               - k*mu*x5(t,1);     |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -803,6 +790,11 @@ if TERM~=0
     varargout{TERM} = PDE_t;
 end
 
+% Warn user that executives for 2D examples may take a lot of time.
+if index>=30 && index<=42
+    fprintf('\n Examples 30 through 40 correspond to 2D PDEs, that take significant computational time and memory.\n');
+end
+
 % Check if the user wants to run the executive
 userinp = input('\n Would you like to run the executive associated to this problem? (y/n) \n ---> ','s');
 if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
@@ -874,7 +866,7 @@ end
 %   publisher={IEEE}
 % }
 % 
-% % [6] - 
+% % [6] - arXiv version!
 % @inproceedings{valmorbida2014semi,
 %   title={Semi-definite programming and functional inequalities for distributed parameter systems},
 %   author={Valmorbida, Giorgio and Ahmadi, Mohamadreza and Papachristodoulou, Antonis},
