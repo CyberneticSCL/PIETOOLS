@@ -1,0 +1,154 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIESIM_discretize_icf_2D.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Perform discretization of initial conditions and forcing functions in 2D
+%
+% Inputs:
+% 1) uinput - user-defined boundary inputs, forcing and initial conditions
+% 2) psize - size of the PIE problem: all variables defining the size of the PIE problem
+% 3) grid - physical and computational grid for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
+% 4) gridall - cell array of size dmax containing physical grid for all states
+% depending on their degree of differentiability; dmax corresponds to the
+% maximum degree of differentiability among all the states
+%  gridall.x - grids in x direction
+%  gridall.y - grids in y direction
+%
+% Outputs:
+% 1) coeff - Chebyshev coefficients for initial conditions and forcing functions
+% 2) B1_nonpol - contribution to the PIE B1 operator arising from non-polynomial in space forcing
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding YP  04_16_2024
+
+function [coeff,B1_nonpol]=PIESIM_discretize_icf_2D(uinput,psize,grid,gridall);
+
+syms sx sy st;
+
+% Define local variables
+
+no=psize.no;
+nw=psize.nw;
+a=uinput.dom(1,1);
+b=uinput.dom(1,2);
+c=uinput.dom(2,1);
+d=uinput.dom(2,2);
+N=psize.N;
+
+
+
+psize_aux0=[0 psize.nx psize.ny psize.n];
+nsump0=cumsum(psize_aux0);
+
+% Define degree of smoothness p of 2D-1var states
+psize_aux1=[1 psize.nx];
+nsum=cumsum(psize.nx);
+nsump1=cumsum(psize_aux1);
+for i=1:length(psize.nx);
+px(nsump1(i):nsum(i))=i-1;
+end
+
+psize_aux1=[1 psize.ny];
+psize_aux0=[0 psize.ny];
+nsum=cumsum(psize.ny);
+nsump1=cumsum(psize_aux1);
+for i=1:length(psize.ny);
+py(nsump1(i):nsum(i))=i-1;
+end
+
+% Define degree of smoothness p of 2D-2var states
+psize_aux1=[1 psize.n];
+psize_aux0=[0 psize.n];
+nsum=cumsum(psize.n);
+nsump1=cumsum(psize_aux1);
+for i=1:length(psize.n);
+p(nsump1(i):nsum(i))=i-1;
+end
+
+
+% Define initial conditions on states on the physcal grid for states.
+% var_f denotes the value of the solution variable of the fundamental
+% states.
+% Define Chebyshev coefficients of initial conditions in the same loop
+% acheb_f denotes the Chebyshev coefficients of the fundamental states
+% Each state vector array coefficients are arranged into a global column
+% vector
+
+ic=uinput.ic.PDE;
+
+acheb_glob_x{1}=[];
+acheb_glob_y{1}=[];
+acheb_glob{1}=[];
+
+for i=1:length(psize.nx)
+ acheb=double.empty(N-i+2,0);
+ for n=1:psize.nx(i);
+     var(:,n)=double(subs(ic(n+nsump0(i)),gridall.x{i}));
+     acheb(:,n)=fcht(var(:,n));
+ end
+ acheb_glob_x{i}=reshape(acheb, [], 1);
+ clear('acheb');
+ clear('var');
+end
+
+for i=1:length(psize.ny)
+    ii=i+sum(psize.nx);
+ acheb=double.empty(N-i+2,0);
+ for n=1:psize.ny(i);
+     var(:,n)=double(subs(ic(n+nsump0(ii)),gridall.y{i}));
+     acheb(:,n)=fcht(var(:,n));
+ end
+ acheb_glob_y{i}=reshape(acheb, [], 1);
+ clear('acheb');
+ clear('var');
+ end
+
+
+ for i=1:length(psize.n)
+    ii=i+sum(psize.nx)+sum(psize.ny);
+ acheb=double.empty((N-i+2)*(N-i+2),0);
+ for n=1:psize.n(i)
+     var=double(subs(subs(ic(n+nsump0(ii)),sx,gridall.x{i}),sy,gridall.y{i}'));
+     aacheb=fcgltran2d(var,1);
+     acheb(:,n)=aacheb(:);
+ end
+ acheb_glob{i}=reshape(acheb, [], 1);
+ clear('acheb');
+ clear('var');
+ end
+
+% Concatenate coefficients of all states into a single column vector
+
+ acheb_f0=cat(1, acheb_glob_x{:}, acheb_glob_y{:}, acheb_glob{:});
+
+% Add initial conditions on ODE states to the front of initial conditions
+if (no>0)
+acheb_f0=cat(1,uinput.ic.ODE',acheb_f0);
+end
+
+coeff.acheb_f0=acheb_f0;
+
+
+% Discretize matrix operator for non-polynomial in space forcing
+% Only assume forcing on one variable at this point 
+
+ if isfield(uinput,'wspace')
+ Nonpol=sx*sy*zeros(sum(psize.n),nw); 
+ for k=1:nw
+ Nonpol(1,k)=uinput.wspace(k);
+ end
+ B1_nonpol = PIESIM_NonPoly2Mat_cheb_2D(N, nw, Nonpol, p, gridall);
+ else
+ B1_nonpol=[];   
+ end
+
+
+
+
+  
+
+
+
