@@ -101,7 +101,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      if isfield(Tw,'Q2') 
      bc=Tw.Q2*wvec;
      else
-     bc=0;
+     bc=zeros(size(Tw,1));
      end
      
      
@@ -164,10 +164,10 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      solution.final.pde{1}(:,n) = ifcht(acheb_p_local);
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances 
-     if(psize.nw>0 & ~isempty(bcw_input))
+     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
          solution.final.pde{1}(:,n)=solution.final.pde{1}(:,n)+bcw_input(:,n);
      end % endif
-     if(psize.nu>0 & ~isempty(bcu_input))
+     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
      solution.final.pde{1}(:,n)=solution.final.pde{1}(:,n)+bcu_input(:,n);
      end % endif
      end % ns
@@ -180,10 +180,10 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      solution.final.pde{1}(:,ng) = ifcht(acheb_p_local);
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances 
-     if(psize.nw>0 & ~isempty(bcw_input))
+     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || all(all(bcw_input==0))))
          solution.final.pde{1}(:,ng)=solution.final.pde{1}(:,ng)+bcw_input(:,ng);
      end % endif
-     if(psize.nu>0 & ~isempty(bcu_input))
+     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
      solution.final.pde{1}(:,ng)=solution.final.pde{1}(:,ng)+bcu_input(:,ng);
      end % endif
      end % ns
@@ -199,10 +199,10 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances
 
-      if(psize.nw>0 & ~isempty(bcw_input))
+      if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
       solution.final.pde{2}(:,:,n)=solution.final.pde{2}(:,:,n)+bcw_input(:,ng);
       end
-      if(psize.nu>0 & ~isempty(bcu_input))
+      if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
       solution.final.pde{2}(:,:,n)=solution.final.pde{2}(:,:,n)+bcu_input(:,ng);
       end
      end
@@ -349,10 +349,10 @@ if (opts.intScheme==1&opts.tf~=0)
      solution.timedep.pde{1}(:,n,ntime) = ifcht(acheb_p_local);
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances 
-     if(psize.nw>0 & ~isempty(bcw_input))
+     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
          solution.timedep.pde{1}(:,n,ntime)=solution.timedep.pde{1}(:,n,ntime)+bcw_input(:,n);
      end % endif
-     if(psize.nu>0 & ~isempty(bcu_input))
+     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
      solution.timedep.pde{1}(:,n,ntime)=solution.timedep.pde{1}(:,n,ntime)+bcu_input(:,n);
      end % endif
      end % ns
@@ -365,10 +365,10 @@ if (opts.intScheme==1&opts.tf~=0)
      solution.timedep.pde{1}(:,ng,ntime) = ifcht(acheb_p_local);
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances 
-     if(psize.nw>0 & ~isempty(bcw_input))
+     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0)))) 
          solution.timedep.pde(:,ng,ntime)=solution.timedep.pde{1}(:,ng,ntime)+bcw_input(:,ng);
      end % endif
-     if(psize.nu>0 & ~isempty(bcu_input))
+     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
      solution.timedep.pde{1}(:,ng,ntime)=solution.timedep.pde{1}(:,ng,ntime)+bcu_input(:,ng);
      end % endif
      end % ns
@@ -386,10 +386,10 @@ if (opts.intScheme==1&opts.tf~=0)
 
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances 
-     if(psize.nw>0 & ~isempty(bcw_input))
+     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
          solution.timedep.pde{2}(:,:,n,ntime)=solution.timedep.pde{2}(:,:,n,ntime)+bcw_input(:,:,ng);
      end
-     if(psize.nu>0 & ~isempty(bcu_input))
+     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
      solution.timedep.pde{2}(:,:,n,ntime)=solution.timedep.pde{2}(:,:,n,ntime)+bcu_input(:,:,ng);
      end
      end
