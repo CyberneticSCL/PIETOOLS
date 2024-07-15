@@ -324,18 +324,26 @@ if PDE.dim==2
         if ~isfield(uinput,'u')
             disp('Warning: nu is greater than zero, but user-defiened u inputs are not provided. Defaulting PDE.nu to zero.');
             psize.nu=0;
-        elseif ~isempty(symvar(uinput.u)) && any(~ismember(symvar(uinput.u),{'st'}))
-            error('Control inputs must be symbolic expressions in st');
         else
-            if (size(uinput.u,2)<psize.nu)
-                disp('Warning: Number of provided u inputs is less than nu.');
-                disp('Defalting the rest of u inputs and their time derivatives to zero');
-                uinput.u(size(uinput.u,2)+1:psize.nu)=0;
-                uinput.udot(size(uinput.u,2)+1:psize.nu)=0;
-            elseif (size(uinput.u,2)>psize.nu)
-                disp('Warning: Number of provided u inputs is  greater than nu.');
-                disp('Defalting PDE.nu to zero');
-                psize.nu=0;
+            if ~isempty(symvar(uinput.u)) && any(~ismember(symvar(uinput.u),{'st'}))
+                error('Control inputs must be symbolic expressions in st');
+            else
+                % Check that the input is of appropriate type and size.
+                if isa(uinput.u,'double')
+                    uinput.u = sym(uinput.u);
+                elseif ~isa(uinput.u,'sym')
+                    error('Inputs u should be specified as object of type ''double'' or ''sym''.')
+                end
+                if (size(uinput.u,2)<psize.nu)
+                    disp('Warning: Number of provided u inputs is less than nu.');
+                    disp('Defaulting the rest of u inputs and their time derivatives to zero');
+                    uinput.u(size(uinput.u,2)+1:psize.nu)=0;
+                    uinput.udot(size(uinput.u,2)+1:psize.nu)=0;
+                elseif (size(uinput.u,2)>psize.nu)
+                    disp('Warning: Number of provided u inputs is  greater than nu.');
+                    disp('Defaulting PDE.nu to zero');
+                    psize.nu=0;
+                end
             end
         end
     end
@@ -346,19 +354,27 @@ if PDE.dim==2
         if ~isfield(uinput,'w')
             disp('Warning: nw is greater than zero, but user-defiened w inputs are not provided. Defaulting PDE.nw to zero.');
             psize.nw=0;
-        elseif ~isempty(symvar(uinput.w')) && any(~ismember(symvar(uinput.w'),{'st'})) && PDE.dim<2
-            error('Disturbance inputs must be symbolic expressions in st');
         else
-            if (size(uinput.w,2)<psize.nw)
-                disp('Warning: Number of provided w inputs is less than nw');
-                disp('Defalting the rest of w inputs and their time derivatives to zero');
-                uinput.w(size(uinput.w,2)+1:psize.nw)=0;
-                uinput.wdot(size(uinput.w,2)+1:psize.nw)=0;
+            % Check that the input is of appropriate type and size.
+            if isa(uinput.w,'double')
+                uinput.w = sym(uinput.w);
+            elseif ~isa(uinput.w,'sym')
+                error('Inputs w should be specified as object of type ''double'' or ''sym''.')
             end
-            if (size(uinput.w,2)>psize.nw)
-                disp('Warning: Number of provided w inputs is greater than nw');
-                disp('Defalting PDE.nw to zero');
-                psize.nw=0;
+            if ~isempty(symvar(uinput.w')) && any(~ismember(symvar(uinput.w'),{'st'})) && PDE.dim<2
+                error('Disturbance inputs must be symbolic expressions in st');
+            else
+                if (size(uinput.w,2)<psize.nw)
+                    disp('Warning: Number of provided w inputs is less than nw');
+                    disp('Defaulting the rest of w inputs and their time derivatives to zero');
+                    uinput.w(size(uinput.w,2)+1:psize.nw)=0;
+                    uinput.wdot(size(uinput.w,2)+1:psize.nw)=0;
+                end
+                if (size(uinput.w,2)>psize.nw)
+                    disp('Warning: Number of provided w inputs is greater than nw');
+                    disp('Defaulting PDE.nw to zero');
+                    psize.nw=0;
+                end
             end
         end
     end
