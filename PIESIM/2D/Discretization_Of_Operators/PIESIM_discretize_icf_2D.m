@@ -12,6 +12,10 @@
 % maximum degree of differentiability among all the states
 %  gridall.x - grids in x direction
 %  gridall.y - grids in y direction
+% 5) B1_neq0 - nx x nw array of type 'logical', specifying for each row
+%    i in (1:nx) and each column j in (1:nw) whether the element B1(i,j)
+%    of the PI operator B1 is nonzero, i.e. whether the disturbance w
+%    contributes to the state equation i.
 %
 % Outputs:
 % 1) coeff - Chebyshev coefficients for initial conditions and forcing functions
@@ -23,8 +27,10 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  04_16_2024
+% DJ, 07/16/2024 - add input "B1_neq0", to keep track of which state
+%                   equation each disturbance contributes to.
 
-function [coeff,B1_nonpol]=PIESIM_discretize_icf_2D(uinput,psize,grid,gridall);
+function [coeff,B1_nonpol]=PIESIM_discretize_icf_2D(uinput,psize,grid,gridall,B1_neq0)
 
 syms sx sy st;
 
@@ -134,21 +140,12 @@ coeff.acheb_f0=acheb_f0;
 
 % Discretize matrix operator for non-polynomial in space forcing
 % Only assume forcing on one variable at this point 
-
- if isfield(uinput,'wspace')
- Nonpol=sx*sy*zeros(sum(psize.n),nw); 
- for k=1:nw
- Nonpol(1,k)=uinput.wspace(k);
- end
- B1_nonpol = PIESIM_NonPoly2Mat_cheb_2D(N, nw, Nonpol, p, gridall);
- else
- B1_nonpol=[];   
- end
-
-
-
-
-  
-
-
-
+if isfield(uinput,'wspace')
+    Nonpol=sx*sy*zeros(sum(psize.n),nw); 
+    for k=1:nw
+        Nonpol(B1_neq0(:,k),k)=uinput.wspace(k);
+    end
+        B1_nonpol = PIESIM_NonPoly2Mat_cheb_2D(N, nw, Nonpol, p, gridall);
+    else
+        B1_nonpol=[];   
+end
