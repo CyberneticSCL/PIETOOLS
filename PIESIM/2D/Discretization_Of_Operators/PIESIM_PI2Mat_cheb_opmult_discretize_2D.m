@@ -29,6 +29,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% DJ, 07/17/24  - bugfix in case "R" is not polynomial;
 
 function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize_2D(N, R, rsize, csize)
 
@@ -40,7 +41,7 @@ chebgrid=cos(pi*(0:csize-1)/(csize-1));
     if isa(R,'polynomial')
     Reval=subs(subs(R,s1,chebgrid)',s2,chebgrid);
     else
-    Reval=R*ones(1,csize^2);
+    Reval=R*ones(csize,csize);
     end
 
     acheb=reshape(fcgltran2d(double(Reval),1),[],1);

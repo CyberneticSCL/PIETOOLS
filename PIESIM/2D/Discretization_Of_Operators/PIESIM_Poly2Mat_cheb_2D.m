@@ -25,7 +25,9 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-function [A, A_nonsquare]=PIESIM_POLy2Mat_cheb_2D(N, no, Rop, p)
+% DJ, 07/17/24  - bugfix in case "Rop" is not polynomial;
+
+function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb_2D(N, no, Rop, p)
 pvar s1 s2
 ns=size(p,2);
 
@@ -48,12 +50,12 @@ for k=1:size(Rop,2)
     if isa(Rop_local,'polynomial')
     Reval=subs(subs(Rop_local,s1,chebgrid)',s2,chebgrid);
     else
-    Reval=Rop_local*ones(1,rsize^2);
+    Reval=Rop_local*ones(rsize,rsize);
     end
 
     acheb=reshape(fcgltran2d(double(Reval),1),[],1);
 
-for j=1:size(acheb);
+for j=1:size(acheb)
 A_block(j,k,m)=acheb(j);
 A_block_nonsquare(j,k,m)=acheb(j);
 end
