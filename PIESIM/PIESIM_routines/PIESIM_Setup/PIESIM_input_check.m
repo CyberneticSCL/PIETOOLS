@@ -234,7 +234,11 @@ if PDE.dim==2
             error('Number of initial conditions should match the number of state variables')
         end
         uinput.ic.x = uinput.ic.x(x_order); % Reorder initial conditions to match new ordering of state components.
-        uinput.ic.ODE = uinput.ic.x(1:psize.no);
+        if hasSymType(uinput.ic.x(1:psize.no),'variable')
+            error('Initial conditions for ODE must be scalar constants');
+        else
+            uinput.ic.ODE = double(uinput.ic.x(1:psize.no));
+        end
         uinput.ic.PDE = uinput.ic.x(psize.no+1:end);
         disp('Initial conditions have been reordered to correspond to new ordering');
     else
