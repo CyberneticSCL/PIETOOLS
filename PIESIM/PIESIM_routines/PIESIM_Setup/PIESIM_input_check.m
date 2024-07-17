@@ -171,8 +171,14 @@ if PDE.dim==2
     psize.n=array;
      end % if 
 
-
-    psize.x_tab=x_tab;
+    % Split vector-valued state components into separate scalar-valued ones
+    psize.x_tab = zeros(sum(x_tab(:,2)),size(x_tab,2));
+    r_strt = 0;
+    for i=1:size(x_tab,1)
+        nr = x_tab(i,2);    % Check the size of state component i
+        psize.x_tab(r_strt+(1:nr),:) = repmat(x_tab(i,:),nr,1);
+        r_strt = r_strt+nr;
+    end
     psize.dim=PDE.dim;
 
 %    x_order_PDE = x_order(psize.no+1:end);
@@ -222,8 +228,8 @@ if PDE.dim==2
         if (isfield(uinput.ic,'ODE') || isfield(uinput.ic,'PDE'))
             disp('Initial conditions have been specified using both "ic.x" and "ic.ODE", "ic.PDE". Continuing with the initial conditions "ic.x".')
         end
-        if ~isempty(symvar(uinput.ic.PDE)) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
-            error('Initial conditions for PDE must be symbolic expressions in sx');
+        if ~isempty(symvar(sym(uinput.ic.x))) && any(~ismember(symvar(uinput.ic.x),{'sx';'sy'}))
+            error('Initial conditions for PDE must be symbolic expressions in sx (and sy for 2D PDEs)');
         elseif size(uinput.ic.x,2)~=(psize.no + ns)
             error('Number of initial conditions should match the number of state variables')
         end
@@ -231,11 +237,19 @@ if PDE.dim==2
         uinput.ic.ODE = uinput.ic.x(1:psize.no);
         uinput.ic.PDE = uinput.ic.x(psize.no+1:end);
         disp('Initial conditions have been reordered to correspond to new ordering');
+    else
+        % Declare empty initial conditions if none have been specified.
+        if ~isfield(uinput.ic,'PDE')
+            uinput.ic.PDE = sym([]);
+        end
+        if ~isfield(uinput.ic,'ODE')
+            uinput.ic.ODE = sym([]);
+        end
     end
 
        % Check initial conditions for ODE state variables
     if (psize.no>0)
-        if ~isfield(uinput.ic,'ODE')
+        if ~isfield(uinput.ic,'ODE') || isempty(uinput.ic.ODE)
             disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
             uinput.ic.ODE(1:psize.no)=0;
         elseif any(~isdouble(uinput.ic.ODE))
@@ -250,7 +264,7 @@ if PDE.dim==2
             disp('Defaulting all ODE initial conditions to zero');
             clear uinput.ic.ODE;
             uinput.ic=rmfield(uinput.ic,'ODE');
-            uinput.ic.ODE(1:psize.no)=0.;
+            uinput.ic.ODE(1:psize.no)=0;
         end
     end
     
@@ -259,13 +273,13 @@ if PDE.dim==2
     if isfield(uinput.ic,'PDE')
     if(size(uinput.ic.PDE,2)<ns)
         disp('Warning: Number of initial conditions on PDE states is less than the number of PDE states');
-        disp('Defalting the rest to zero');
-        uinput.ic.PDE(1,size(uinput.ic.PDE,2)+1:ns)=0;
+        disp('Defaulting the rest to zero');
+        uinput.ic.PDE(1,size(uinput.ic.PDE,2)+1:ns)=sym(0);
     elseif(size(uinput.ic.PDE,2)>ns)
         disp('Warning: Number of initial conditions on PDE states is greater than the number of PDE states');
         disp('Defaulting all initial conditions to zero');
         uinput.ic=rmfield(uinput.ic,'PDE');
-        uinput.ic.PDE(1:ns)=0.;
+        uinput.ic.PDE(1:ns)=sym(0);
     end
         if ~issorted(x_order)
     uinput.ic.x=uinput.ic.ODE;
