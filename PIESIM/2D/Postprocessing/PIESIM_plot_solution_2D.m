@@ -45,6 +45,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% DJ, 07/17/2024    -   Bugfix for extraction of exact solutions.
 
 syms sx sy;
 
@@ -150,147 +151,150 @@ end
 end
 
 % 1D states, differentiable in x
-
+ns_tot = psize.no;
 if (sum(psize.nx)>0)
- if (~strcmp(opts.type,'DDE')& strcmp(opts.plot,'yes'))
-    if (~isempty(solution.final.pde))
-  if (uinput.ifexact==true)
-      a=uinput.dom(1,1);
-      b=uinput.dom(1,2);
-  exact_grid=linspace(a,b,101);
-  exsol_grid=double.empty(101,0);
-  end % endif (uinput.ifexact)
-  ns=sum(psize.nx);
-  for n=1:ns
-      if (uinput.ifexact==true)
-  exsol_grid_time=subs(uinput.exact(n),sx,exact_grid);
-  exsol_grid=double(subs(exsol_grid_time,solution.tf));
-      end % endif (uinput.ifexact)
-  figure;
-  plot(grid.phys(:,1),solution.final.pde{1}(:,n),'rd','MarkerSize',12,'linewidth',2); hold on;
-  if (uinput.ifexact==true)
-  plot(exact_grid,exsol_grid,'k','linewidth',3); 
-  end % endif (uinput.ifexact)
-  xlabel('Spatial variable');
-  ylabel('Solution at a final time');
-  title('Plot of a primary state solution',num2str(n));
-
-  if (uinput.ifexact==true)
-   legend('Numerical solution','Analytical solution');
-  else
-   legend('Numerical solution');
-  end % endif (uinput.ifexact)
-  ax = gca;
-  ax.FontSize = 24;
-  H=gca;
-  H.LineWidth=3;
-  end % for n=1:ns
-    else
-disp('PDE solution is infinite. Unable to plot. Numerical value is not returned.')
+    if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
+        if (~isempty(solution.final.pde))
+            if (uinput.ifexact==true)
+                a=uinput.dom(1,1);
+                b=uinput.dom(1,2);
+                exact_grid=linspace(a,b,101);
+                exsol_grid=double.empty(101,0);
+            end % endif (uinput.ifexact)
+            ns=sum(psize.nx);
+            for n=1:ns
+                % Plot the exact solution if desired.
+                if (uinput.ifexact==true)
+                    exsol_grid_time=subs(uinput.exact(n+ns_tot),sx,exact_grid);
+                    exsol_grid=double(subs(exsol_grid_time,solution.tf));
+                end % endif (uinput.ifexact)
+                figure;
+                plot(grid.phys(:,1),solution.final.pde{1}(:,n),'rd','MarkerSize',12,'linewidth',2); hold on;
+                if (uinput.ifexact==true)
+                plot(exact_grid,exsol_grid,'k','linewidth',3); 
+                end % endif (uinput.ifexact)
+                xlabel('Spatial variable');
+                ylabel('Solution at a final time');
+                title('Plot of a primary state solution',num2str(n));
+                
+                if (uinput.ifexact==true)
+                legend('Numerical solution','Analytical solution');
+                else
+                legend('Numerical solution');
+                end % endif (uinput.ifexact)
+                ax = gca;
+                ax.FontSize = 24;
+                H=gca;
+                H.LineWidth=3;
+            end % for n=1:ns
+            % Keep track of total number of state variables
+            ns_tot = ns_tot + ns;
+        else
+            disp('PDE solution is infinite. Unable to plot. Numerical value is not returned.')
+        end
     end
-
- end
 end
 
 
 % 1D states, differentiable in y
-
 if (sum(psize.ny)>0)
- if (~strcmp(opts.type,'DDE')& strcmp(opts.plot,'yes'))
-    if (~isempty(solution.final.pde))
-  if (uinput.ifexact==true) 
-      c=uinput.dom(2,1);
-      d=uinput.dom(2,2);
-  exact_grid=linspace(c,d,101);
-  exsol_grid=double.empty(101,0);
-  end % endif (uinput.ifexact)
-  ns=sum(psize.ny);
-  for n=1:ns
-      if (uinput.ifexact==true)
-  exsol_grid_time=subs(uinput.exact(n),sx,exact_grid);
-  exsol_grid=double(subs(exsol_grid_time,solution.tf));
-      end % endif (uinput.ifexact)
-  figure;
-  plot(grid.phys(:,2),solution.final.pde{1}(:,n),'rd','MarkerSize',12,'linewidth',2); hold on;
-  if (uinput.ifexact==true)
-  plot(exact_grid,exsol_grid,'k','linewidth',3); 
-  end % endif (uinput.ifexact)
-  xlabel('Spatial variable');
-  ylabel('Solution at a final time');
-  ng=sum(psize.nx)+n;
-  title('Plot of a primary state solution',num2str(ng));
-
-  if (uinput.ifexact==true)
-   legend('Numerical solution','Analytical solution');
-  else
-   legend('Numerical solution');
-  end % endif (uinput.ifexact)
-  ax = gca;
-  ax.FontSize = 24;
-  H=gca;
-  H.LineWidth=3;
-  end % for n=1:ns
-    else
-disp('PDE solution is infinite. Unable to plot. Numerical value is not returned.')
+    if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
+        if (~isempty(solution.final.pde))
+            if (uinput.ifexact==true) 
+                c=uinput.dom(2,1);
+                d=uinput.dom(2,2);
+                exact_grid=linspace(c,d,101);
+                exsol_grid=double.empty(101,0);
+            end % endif (uinput.ifexact)
+            ns=sum(psize.ny);
+            for n=1:ns
+                % Plot the exact solution if desired.
+                if (uinput.ifexact==true)
+                    exsol_grid_time=subs(uinput.exact(ns_tot+n),sy,exact_grid);
+                    exsol_grid=double(subs(exsol_grid_time,solution.tf));
+                end % endif (uinput.ifexact)
+            figure;
+            ng=sum(psize.nx)+n;
+            plot(grid.phys(:,2),solution.final.pde{1}(:,ng),'rd','MarkerSize',12,'linewidth',2); hold on;
+            if (uinput.ifexact==true)
+            plot(exact_grid,exsol_grid,'k','linewidth',3); 
+            end % endif (uinput.ifexact)
+            xlabel('Spatial variable');
+            ylabel('Solution at a final time');
+            title('Plot of a primary state solution',num2str(ng));
+            
+            if (uinput.ifexact==true)
+            legend('Numerical solution','Analytical solution');
+            else
+            legend('Numerical solution');
+            end % endif (uinput.ifexact)
+            ax = gca;
+            ax.FontSize = 24;
+            H=gca;
+            H.LineWidth=3;
+            end % for n=1:ns
+            % Keep track of total number of state variables
+            ns_tot = ns_tot + ns;
+        else
+            disp('PDE solution is infinite. Unable to plot. Numerical value is not returned.')
+        end
     end
-
- end
 end
 
-  % 2D states
 
-  if (~strcmp(opts.type,'DDE')& strcmp(opts.plot,'yes'))
-  if (uinput.ifexact==true)
-      a=uinput.dom(1,1);
-      b=uinput.dom(1,2);
-      c=uinput.dom(2,1);
-      d=uinput.dom(2,2);
-  exact_grid_x=linspace(a,b,101);
-  exact_grid_y=linspace(c,d,101);
-  exsol_grid=double.empty(101,0);
-  end
-  ns=sum(psize.n);
-  for n=1:ns
-      if (uinput.ifexact==true)
-  exsol_grid_time=subs(subs(uinput.exact(n),sx,exact_grid_x'),sy,exact_grid_y);
-  exsol_grid=double(subs(exsol_grid_time,solution.tf));
-  exsol_numgrid_time=subs(subs(uinput.exact(n),sx,grid.phys(:,1)),sy,grid.phys(:,2)');
-  exsol_numgrid=double(subs(exsol_numgrid_time,solution.tf));
-      end
+% 2D states
+if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
+    if (uinput.ifexact==true)
+    a=uinput.dom(1,1);
+    b=uinput.dom(1,2);
+    c=uinput.dom(2,1);
+    d=uinput.dom(2,2);
+    exact_grid_x=linspace(a,b,101);
+    exact_grid_y=linspace(c,d,101);
+    exsol_grid=double.empty(101,0);
+    end
+    ns=sum(psize.n);
+    for n=1:ns
+    if (uinput.ifexact==true)
+    exsol_grid_time=subs(subs(uinput.exact(n+ns_tot),sx,exact_grid_x'),sy,exact_grid_y);
+    exsol_grid=double(subs(exsol_grid_time,solution.tf));
+    exsol_numgrid_time=subs(subs(uinput.exact(n+ns_tot),sx,grid.phys(:,1)),sy,grid.phys(:,2)');
+    exsol_numgrid=double(subs(exsol_numgrid_time,solution.tf));
+    end
+    
+    
+    % Plot isosurface for numerical solution
+    figure;
+    surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n));
+    xlabel('x'), ylabel('y'), zlabel('Numerical Solution');
+    ax = gca;
+    ax.FontSize = 24;
+    H=gca;
+    H.LineWidth=3;
+    ng=sum(psize.nx)+sum(psize.ny)+n;
+    title('Plot of primary state solution',num2str(ng));
 
-
-  % Plot isosurface for numerical solution
-  figure;
-  surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n));
-  xlabel('x'), ylabel('y'), zlabel('Numerical Solution');
-  ax = gca;
-  ax.FontSize = 24;
-  H=gca;
-  H.LineWidth=3;
-
-  if (uinput.ifexact==true)
-  % Plot isosurface for analytical solution
-  figure;
-  surf(exact_grid_x,exact_grid_y,exsol_grid);
-  xlabel('x'), ylabel('y'), zlabel('Analytical Solution');
-  ax = gca;
-  ax.FontSize = 24;
-  H=gca;
-  H.LineWidth=3;
-
-  figure;
-  % Plot isosurface for the diffefence between analytical and numerical solution
-  surf(grid.phys(:,1),grid.phys(:,2),exsol_numgrid-solution.final.pde{2}(:,:,n));
-  xlabel('x'), ylabel('y'), zlabel('Error');
-  end
-  ng=sum(psize.nx)+sum(psize.ny)+n;
-  title('Plot of a primary state solution',num2str(ng));
-
-  ax = gca;
-  ax.FontSize = 24;
-  H=gca;
-  H.LineWidth=3;
-  end
-  end
-
-
+    if (uinput.ifexact==true)
+    % Plot isosurface for analytical solution
+    figure;
+    surf(exact_grid_x,exact_grid_y,exsol_grid);
+    xlabel('x'), ylabel('y'), zlabel('Analytical Solution');
+    ax = gca;
+    ax.FontSize = 24;
+    H=gca;
+    H.LineWidth=3;
+    title('Exact primary state solution',num2str(ng));
+    
+    figure;
+    % Plot isosurface for the diffefence between analytical and numerical solution
+    surf(grid.phys(:,1),grid.phys(:,2),exsol_numgrid-solution.final.pde{2}(:,:,n));
+    xlabel('x'), ylabel('y'), zlabel('Error');
+    title('Error in primary state solution',num2str(ng));
+    end
+    
+    ax = gca;
+    ax.FontSize = 24;
+    H=gca;
+    H.LineWidth=3;
+    end
+end
