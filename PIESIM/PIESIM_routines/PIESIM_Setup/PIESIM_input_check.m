@@ -289,12 +289,13 @@ if PDE.dim==2
         uinput.ic.PDE(1:ns)=sym(0);
     end
         if ~issorted(x_order)
-    uinput.ic.x=uinput.ic.ODE;
-    uinput.ic.x(psize.no+1:psize.no+ns)=uinput.ic.PDE; 
-    uinput.ic.x = uinput.ic.x(x_order); % Reorder initial conditions to match new ordering of state components.
-    uinput.ic.ODE = uinput.ic.x(1:psize.no);
-    uinput.ic.PDE = uinput.ic.x(psize.no+1:end);
-    disp('Initial conditions have been reordered to correspond to new ordering');
+            uinput.ic.x = sym(zeros(1,psize.no+ns));
+            uinput.ic.x(1:psize.no)=sym(uinput.ic.ODE);
+            uinput.ic.x(psize.no+1:psize.no+ns)=sym(uinput.ic.PDE); 
+            uinput.ic.x = uinput.ic.x(x_order); % Reorder initial conditions to match new ordering of state components.
+            uinput.ic.ODE = uinput.ic.x(1:psize.no);
+            uinput.ic.PDE = uinput.ic.x(psize.no+1:end);
+            disp('Initial conditions have been reordered to correspond to new ordering');
         end
     end
 
