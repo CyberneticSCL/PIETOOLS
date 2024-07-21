@@ -53,12 +53,14 @@ if strcmp(opts.type,'PDE_b')
     % Input check for PDEs in batch format
     %-----------------------------------------------------------
     [structure, uinput, psize] = PIESIM_input_check_PDE_batch(varargin{:});
+    psize.dim = 1;
 
 elseif strcmp(opts.type,'PDE_t')
     %-----------------------------------------------------------
     % Input check for PDEs in legacy terms format
     %-----------------------------------------------------------
     [structure, uinput, psize] = PIESIM_input_check_PDE_terms_legacy(varargin{:});
+    psize.dim = 1;
 
 elseif strcmp(opts.type,'PDE')
     %-----------------------------------------------------------
@@ -73,6 +75,7 @@ elseif strcmp(opts.type,'PDE')
     PDE = initialize(structure);
     [PDE,x_order] = reorder_comps(PDE,'x'); % Reorder components in increasing order of differentiability
     psize = struct();
+    psize.dim = PDE.dim;
     % Checking of the PDE inputs begins
 
 
@@ -300,7 +303,7 @@ if PDE.dim==2
         if ~isfield(uinput.ic,'PDE')
             disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
             uinput.ic.PDE(1:ns)=sin(pi*sx);
-        elseif ~isempty(symvar(uinput.ic.PDE)) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
+        elseif ~isempty(symvar(sym(uinput.ic.PDE))) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
             error('Initial conditions for PDE must be symbolic expressions in sx');
         end
     end
@@ -340,10 +343,10 @@ if PDE.dim==2
     % Check for actuator inputs
     if (psize.nu>0)
         if ~isfield(uinput,'u')
-            disp('Warning: nu is greater than zero, but user-defiened u inputs are not provided. Defaulting PDE.nu to zero.');
+            disp('Warning: nu is greater than zero, but user-defined u inputs are not provided. Defaulting PDE.nu to zero.');
             psize.nu=0;
         else
-            if ~isempty(symvar(uinput.u)) && any(~ismember(symvar(uinput.u),{'st'}))
+            if ~isempty(symvar(sym(uinput.u))) && any(~ismember(symvar(uinput.u),{'st'}))
                 error('Control inputs must be symbolic expressions in st');
             else
                 % Check that the input is of appropriate type and size.
@@ -447,6 +450,7 @@ elseif (opts.type=='DDE')
     PIE=structure;  % In DDE case, systems must be passed as PIE.
 
     % Define problem size for discretization
+    psize.dim = 1;      % DDE is 1D
     psize.nu=PIE.Tu.dim(1,2);
     psize.nw=PIE.Tw.dim(1,2);
     psize.no=PIE.T.dim(1,1);
@@ -531,6 +535,14 @@ elseif (opts.type=='PIE')
     % Input check for PIEs
     %-----------------------------------------------------------
     PIE=structure;
+
+    if isa(PIE,'pie_struct') || isfield(PIE,'dim')
+        psize.dim = PIE.dim;
+    elseif isa(PIE.T,'opvar2d')
+        psize.dim = 2;
+    else
+        psize.dim = 1;
+    end
 
     % Define problem size for discretization
     psize.nu=PIE.Tu.dim(1,2);
@@ -671,7 +683,7 @@ end
 if ~isfield(uinput.ic,'PDE')
     disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
     uinput.ic.PDE(1:ns)=sin(pi*sx);
-elseif ~isempty(symvar(uinput.ic.PDE)) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
+elseif ~isempty(symvar(sym(uinput.ic.PDE))) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
     error('Initial conditions for PDE must be symbolic expressions in sx');
 end
 
