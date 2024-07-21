@@ -29,6 +29,8 @@
 % Initial coding YP  04_16_2024
 % DJ, 07/16/2024 - add input "B1_neq0", to keep track of which state
 %                   equation each disturbance contributes to.
+%                  Also, add support for forcing to multiple state
+%                  components in multiple variables.
 
 function [coeff,B1_nonpol]=PIESIM_discretize_icf_2D(uinput,psize,grid,gridall,B1_neq0)
 
@@ -141,11 +143,32 @@ coeff.acheb_f0=acheb_f0;
 % Discretize matrix operator for non-polynomial in space forcing
 % Only assume forcing on one variable at this point 
 if isfield(uinput,'wspace')
-    Nonpol=sx*sy*zeros(sum(psize.n),nw); 
+    ns_list = [psize.no; sum(psize.nx); sum(psize.ny); sum(psize.n)];
+    ns_list_cum = cumsum(ns_list);
+    Nonpol=sx*sy*zeros(ns_list_cum(end),nw);
+    % Set the non-polynomial spatial contribution of each disturbance to
+    % each state variable.
     for k=1:nw
         Nonpol(B1_neq0(:,k),k)=uinput.wspace(k);
     end
-        B1_nonpol = PIESIM_NonPoly2Mat_cheb_2D(N, nw, Nonpol, p, gridall);
-    else
-        B1_nonpol=[];   
+    % Express contribution in terms of Chebyshev coefficients.
+    % First set contribution to ODE states.
+    B1_nonpol = double(Nonpol(1:ns_list_cum(1),:));
+    % Then contribution to 1D PDE states in just x.
+    if ns_list_cum(1)<ns_list_cum(2)
+        B1_nonpol = [B1_nonpol;
+                    PIESIM_NonPoly2Mat_cheb(N, nw, Nonpol(ns_list_cum(1)+1:ns_list_cum(2),:), px, gridall.x)];
+    end
+    % Then contribution to 1D PDE states in just y.
+    if ns_list_cum(2)<ns_list_cum(3)
+        B1_nonpol = [B1_nonpol; 
+                    PIESIM_NonPoly2Mat_cheb(N, nw, Nonpol(ns_list_cum(2)+1:ns_list_cum(3),:), py, gridall.y)];
+    end
+    % And finally contribution to 2D PDE states.
+    if ns_list_cum(3)<ns_list_cum(4)
+        B1_nonpol = [B1_nonpol; 
+                    PIESIM_NonPoly2Mat_cheb_2D(N, nw, Nonpol(ns_list_cum(3)+1:ns_list_cum(4),:), p, gridall)];
+    end
+else
+    B1_nonpol=[];   
 end
