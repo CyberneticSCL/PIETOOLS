@@ -41,11 +41,11 @@ for i=1:no
         Rstrip=polynomial(Rloc.coeff(k),Rloc.degmat(k,:),Rloc.varname,Rloc.matdim);
             Rs1=subs(Rstrip,s2,1);
             % Integrate in s1 direction over the interval [-1,1]
-            int_s1=PIESIM_PI2Mat_cheb_opint_discretize(N, 1, Rs1, p);
+            int_s1=PIESIM_PI2Mat_cheb_opint_discretize(N, 1, Rs1, p(j));
             index = find(strcmp(Rstrip.varname, 's2'));
             Rs2=polynomial(1,Rstrip.degmat(1,index),Rstrip.varname(index),Rstrip.matdim);
             % Integrate in s2 direction over the interval [-1,1]
-            int_s2=PIESIM_PI2Mat_cheb_opint_discretize(N, 1, Rs2, p);
+            int_s2=PIESIM_PI2Mat_cheb_opint_discretize(N, 1, Rs2, p(j));
             int=int+kron(int_s2,int_s1);
     end
             Astring=[Astring,int];
