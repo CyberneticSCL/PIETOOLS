@@ -61,7 +61,7 @@ init_option=1;
 % For 2D problems: example = xxx (between 1 and 6) to correspond to an Example number in
 % the 'examples_pde_library_PIESIM_2D.m'
 if (init_option==1)
-    example=6;
+    example=19;
 
     if (dim==1)
     if (example<1|example>38)
@@ -70,7 +70,7 @@ if (init_option==1)
     end
     [PDE,uinput]=examples_pde_library_PIESIM_1D(example);
     else   % dim=2
-    if (example<1|example>6)
+    if (example<1|example>20)
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
         example=1;
     end
@@ -180,11 +180,11 @@ opts.ploteig='yes';
 % unless necessary 
 % Input N - the Chebyshev polynomial discretization order of the
 %            distributed states
-opts.N=8;
+opts.N=16;
 
 %-----------------------------------------------------------
 % Input the desired final time of the solution
-opts.tf=0.1;
+opts.tf=0.8;
 
 %-----------------------------------------------------------
 % Choose temporal integration scheme 
