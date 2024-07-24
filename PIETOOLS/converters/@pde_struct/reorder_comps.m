@@ -97,9 +97,27 @@ end
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
 end
-% If there is no reordering to be done, just return.
-if numel(PDE.(obj))==0 || numel(PDE.(obj))==1
-    comp_order = ones(numel(PDE.(obj)),1);
+% If there is no reordering to be done, just replace the ID with 1 and
+% return.
+if numel(PDE.(obj))==0
+    comp_order = zeros(0,1);
+    return
+elseif numel(PDE.(obj))==1
+    % Assign new indices 1:ncomps to the components.
+    obj_tab_new = PDE.([obj,'_tab']);
+    comp_order = obj_tab_new(:,1);
+    obj_tab_new(:,1) = 1:size(obj_tab_new,1);
+    PDE.([obj,'_tab']) = obj_tab_new;
+    % Replace the ID of the object accordingly
+    if isfield(PDE.(obj){1},'ID')
+        PDE.(obj){1}.ID = 1;
+    end
+    % All fields of the returned PDE should still be appropriately specified.
+    PDE.is_initialized = true;
+    % Print a summary, if desired.
+    if ~suppress_summary
+        print_reorder_summary(PDE,obj,comp_order)
+    end
     return
 end
 nvars = PDE.dim;
@@ -121,7 +139,7 @@ if strcmp(obj,'x') || strcmp(obj,'BC')
     dep_tab = comp_tab(:,3:2+nvars);
     diff_tab = comp_tab(:,3+nvars:2*nvars+2);
     comp_tab_alt = [dep_tab(:,end:-1:1), diff_tab(:,end:-1:1), comp_tab(:,1), comp_tab(:,2)];
-    comp_tab_alt = sortrows_integerTable(comp_tab_alt);
+    [comp_tab_alt,old2new_idcs] = sortrows_integerTable(comp_tab_alt);      % comp_tab_out = comp_tab_in(old2new,:);
     obj_tab_new = [comp_tab_alt(:,end-1:end), comp_tab_alt(:,nvars:-1:1), comp_tab_alt(:,2*nvars:-1:nvars+1)];
 else
     % For inputs, we have no order of differentiability, but we do need to
@@ -129,39 +147,39 @@ else
     comp_tab = PDE.([obj,'_tab']);
     dep_tab = comp_tab(:,3:2+nvars);
     comp_tab_alt = [dep_tab(:,end:-1:1), comp_tab(:,1), comp_tab(:,2)];
-    comp_tab_alt = sortrows_integerTable(comp_tab_alt);
+    [comp_tab_alt,old2new_idcs] = sortrows_integerTable(comp_tab_alt);
     obj_tab_new = [comp_tab_alt(:,end-1:end), comp_tab_alt(:,nvars:-1:1)];
 end
 
 if strcmp(obj,'x') || strcmp(obj,'u') || strcmp(obj,'w')
     % Adjust the terms in each equation to match the new order of the
     % components.
-    [~,new_order] = sort(obj_tab_new(:,1));    % comp_tab_new(new_order,:) = comp_tab_old
+    [~,new2old_idcs] = sort(old2new_idcs);    % comp_tab_new(new_order,:) = comp_tab_old
     for ii=1:numel(PDE.x)
         for jj=1:numel(PDE.x{ii}.term)
             if isfield(PDE.x{ii}.term{jj},obj)
-                PDE.x{ii}.term{jj}.(obj) = new_order(PDE.x{ii}.term{jj}.(obj));
+                PDE.x{ii}.term{jj}.(obj) = new2old_idcs(PDE.x{ii}.term{jj}.(obj));
             end
         end
     end
     for ii=1:numel(PDE.y)
         for jj=1:numel(PDE.y{ii}.term)
             if isfield(PDE.y{ii}.term{jj},obj)
-                PDE.y{ii}.term{jj}.(obj) = new_order(PDE.y{ii}.term{jj}.(obj));
+                PDE.y{ii}.term{jj}.(obj) = new2old_idcs(PDE.y{ii}.term{jj}.(obj));
             end
         end
     end
     for ii=1:numel(PDE.z)
         for jj=1:numel(PDE.z{ii}.term)
             if isfield(PDE.z{ii}.term{jj},obj)
-                PDE.z{ii}.term{jj}.(obj) = new_order(PDE.z{ii}.term{jj}.(obj));
+                PDE.z{ii}.term{jj}.(obj) = new2old_idcs(PDE.z{ii}.term{jj}.(obj));
             end
         end
     end
     for ii=1:numel(PDE.BC)
         for jj=1:numel(PDE.BC{ii}.term)
             if isfield(PDE.BC{ii}.term{jj},obj)
-                PDE.BC{ii}.term{jj}.(obj) = new_order(PDE.BC{ii}.term{jj}.(obj));
+                PDE.BC{ii}.term{jj}.(obj) = new2old_idcs(PDE.BC{ii}.term{jj}.(obj));
             end
         end
     end
@@ -169,10 +187,16 @@ end
 % Establish the new order of the components.
 comp_order = obj_tab_new(:,1);
 % Re-arrange the equations to match the new order.
-PDE.(obj) = PDE.(obj)(comp_order);
+PDE.(obj) = PDE.(obj)(old2new_idcs);
 % Assign new indices 1:ncomps to the components.
 obj_tab_new(:,1) = 1:size(obj_tab_new,1);
 PDE.([obj,'_tab']) = obj_tab_new;
+% Replace the IDs of the components accordingly
+for ii=1:numel(PDE.(obj))
+    if isfield(PDE.(obj){ii},'ID')
+        PDE.(obj){ii}.ID = ii;
+    end
+end
 % All fields of the returned PDE should still be appropriately specified.
 PDE.is_initialized = true;
 
@@ -227,7 +251,7 @@ if all(comp_order == (1:ncomps)')
     return
 else
     % Otherwise, we list the new order of the components.
-    fprintf(['\n','The ',object_name,'s have been reordered as:\n']);
+    fprintf(['\n','The ',object_name,'s have been re-indexed as:\n']);
 end
 
 % Use UNICODE to add subscript indices to different components.
@@ -278,10 +302,7 @@ for ii=1:ncomps
     
     % Establish the (subscript) index for the component.
     LHS_length = length(varnames_ii_t);
-    if numel(PDE.(obj))==1
-        % There is only one component --> no need to give index
-        Lcomp_idx = '';
-    elseif numel(PDE.(obj))<=9
+    if old_idx<=9
         % The component number consists of a single decimal.
         Lcomp_idx = sub_num{old_idx+1};
         LHS_length = LHS_length + 1;
