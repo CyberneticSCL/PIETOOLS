@@ -142,7 +142,12 @@ if is_pde_var_in
     % Check that the object indeed depends on the variables with which to
     % differentiate.
     if any(~ismember(vars.varname,vars_obj.varname))
-        error("Differentiation is only supported with respect to variables on which the state depends.")
+        % If not, differentiating returns 0.
+        PDE_out.free{1}.vars = [];
+        PDE_out.free{1}.size = PDE_in.([obj,'_tab'])(1,2);
+        PDE_out.free{1}.term = cell(1,0);
+        return;
+        %error("Differentiation is only supported with respect to variables on which the state depends.")
     end
 
     % Initialize a PDE term with no derivative
@@ -167,27 +172,27 @@ end
 % % % multiple terms.
 % % Loop over all equations, and take the derivative.
 for ii=1:numel(PDE_out.free)
-    PDE_out.free{ii}.trm = {};
+    PDE_out.free{ii}.term = {};
     n_trms = numel(PDE_in.free{ii}.term);
     trm_num = 1;
     % % Loop over all the terms, taking the desired derivative.
     for jj=1:n_trms
         % Make sure no derivative is taken of an output, or the temporal
         % derivative of a state.
-        if is_LHS_term(PDE_out.free{ii}.term{jj})
+        if is_LHS_term(PDE_in.free{ii}.term{jj})
             error("Differentiation of an output object or temporal derivative of a state is not supported.")
         end
         % Make sure derivative is only take of state variables, not inputs.
-        if isfield(PDE_out.free{ii}.term{jj},'x')
+        if isfield(PDE_in.free{ii}.term{jj},'x')
             Robj = 'x';
         else
             error('Differentiation of input signals is currently not supported.')
         end
         % Determine which state variable is involved in the term.
         %Ridx = PDE_out.([obj,'_tab'])(:,1)==PDE_out.free{ii}.term{jj}.obj;
-        Ridx = PDE_out.free{ii}.term{jj}.(obj);
+        Ridx = PDE_in.free{ii}.term{jj}.(obj);
         % Determine which variables the state depends on.
-        vars_obj = PDE_out.(obj){Ridx}.vars;
+        vars_obj = PDE_in.(obj){Ridx}.vars;
 
         % Check if the coefficients depend on the variables with which to
         % differentiate.
@@ -203,8 +208,8 @@ for ii=1:numel(PDE_out.free)
                 % Otherwise, add order of derivative to current order of
                 % derivative.
                 dval_obj = compute_d_obj(vars_obj,vars,dval);
-                PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term(jj);
-                PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term(jj).D +dval_obj;
+                PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term{jj};
+                PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term{jj}.D +dval_obj;
                 trm_num = trm_num+1;
             end
         else
@@ -230,13 +235,12 @@ for ii=1:numel(PDE_out.free)
                         dval_jj(kk) = 0;
                     end
                 end
-                if all(isequal(PDE_out.free{ii}.term{trm_num}.C,0))
+                if all(isequal(Cjj,0))
                     % Don't add zero term.
                     continue
                 else
-                    % Add remaining nonzero term from product rule.
-                    PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term{jj};
-                    PDE_out.free{ii}.term{trm_num}.C = Cjj;
+                    % Replace coefficients with their derivative.
+                    PDE_in.free{ii}.term{jj}.C = Cjj;
                     % Keep track of which variables the term depends on.
                     tmp_vars_ii_jj = addvars(vars_obj,Cjj);     
                     tmp_vars_ii = unique([tmp_vars_ii;tmp_vars_ii_jj.varname]);
@@ -258,6 +262,7 @@ for ii=1:numel(PDE_out.free)
 
             % First account for term C*D^(dval)x
             dval_obj = compute_d_obj(vars_obj,vars_jj,dval_jj);
+            PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term{jj};
             PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term{jj}.D +dval_obj;
             trm_num = trm_num+1;
 
