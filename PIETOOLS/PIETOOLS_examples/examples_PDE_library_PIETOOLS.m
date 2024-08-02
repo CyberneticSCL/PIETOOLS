@@ -640,7 +640,75 @@ switch index
         BATCH = 0;
     end    
     [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_w_Boundary_Delay(GUI,params);
-% %---------------------------------------------------------------------% %
+%
+%==========================================================================
+%       Hinf-gain analysis
+%==========================================================================
+%--------------------------------------------------------------------------
+%       Diffusive/Heat Equation Type Systems
+%--------------------------------------------------------------------------
+    case 42
+%   PDE: x_{t} = lam*x + nu*x_{(2,0)}               | r = 5;  nu = 1;           (stable for r <= nu*pi^2*(1/(b-a)^2 +(1/4)/(d-c)^2)) 
+%                           + nu*x_{(0,2)} + w      | a = 0;   b = 1;           (Exact L2 gain gam = 0.11101 for default params) 
+%   OUT:     z = int(int(x,s1,a,b),s2,c,d)          | c = 0;   d = 1;
+%   BCs: x(s1=a) = 0,   x(s2=c) = 0,                | ne = 1 (state size)
+%        x(s1=b) = 0,   x_{s2}(s2=d) = 0;           |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params);
+%
+%--------------------------------------------------------------------------
+    case 43
+%   PDE: x_{t} = lam*x + nu*x_{(2,0)}               | r = 15;  nu = 1;          (stable for r <= nu*pi^2*(1/(b-a)^2 +1/(d-c)^2)) 
+%                           + nu*x_{(0,2)} + w      | a = 0;   b = 1;           (Exact L2 gain gam = 0.17110 for default params) 
+%   OUT:     z = int(int(x,s1,a,b),s2,c,d)          | c = 0;   d = 1;
+%   BCs: x(s1=a) = 0,   x(s2=c) = 0,                | ne = 1 (state size)
+%        x(s1=b) = 0,   x(s2=d) = 0;                |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDD(GUI,params);
+%
+%--------------------------------------------------------------------------
+    case 44
+%   PDE: x_{t} = lam*x + nu*x_{(2,0)}               | r = 1;  nu = 1;           (stable for r <= nu*pi^2*((1/4)/(b-a)^2 +(1/4)/(d-c)^2)) 
+%                           + nu*x_{(0,2)} + w      | a = 0;   b = 1;           (Exact L2 gain gam = 0.20668 for default params) 
+%   OUT:     z = int(int(x,s1,a,b),s2,c,d)          | c = 0;   d = 1;
+%   BCs: x(s1=a) = 0,        x(s2=c) = 0,           | ne = 1 (state size)
+%        x_{s1}(s1=b) = 0,   x_{s2}(s2=d) = 0;      |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN(GUI,params);
+%
+%==========================================================================
+%       Hinf-optimal observer
+%==========================================================================
+%--------------------------------------------------------------------------
+%       Diffusive/Heat Equation Type Systems
+%--------------------------------------------------------------------------
+    case 45
+%   PDE: x_{t} = lam*x + nu*x_{(2,0)}               | r = 8;  nu = 1;           (stable for r <= nu*pi^2*((1/4)/(b-a)^2 +(1/4)/(d-c)^2)) 
+%                       + nu*x_{(0,2)}              | a = 0;   b = 1;           
+%                        + Cw(s1,s2)*w;             | c = 0;   d = 1;
+%   OUT:    y1 = x(s2=d) + w1;                      | ne = 1 (state size)
+%           y2 = x(s1=b) + w2;                      | Cw = (s1^2-b)*(s2^2-d); 
+%           z = int(int(x,s1,a,b),s2,c,d)           |
+%   BCs: x(s1=a) = 0,        x(s2=c) = 0,           |
+%        x_{s1}(s1=b) = 0,   x_{s2}(s2=d) = 0;      |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,params);
 % 
 %==========================================================================
 %       Additional Examples (Undocumented)
@@ -1039,7 +1107,7 @@ function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % Subroutine to process the user inputs for the 
 % examples_PDE_library_PIETOOLS function.
 
-n_examples = 42;
+n_examples = 45;
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
