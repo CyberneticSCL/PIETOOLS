@@ -76,6 +76,9 @@ if ~isfield(settings,'eppos')
               1e-6];    % Positivity of Lyapunov Function with respect to 2D spatially distributed states
 else
     eppos = settings.eppos;
+    if numel(eppos)==1
+        eppos = eppos*ones(4,1);
+    end
 end
 if ~isfield(settings,'epneg')
     epneg = 0;         % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -164,11 +167,13 @@ end
 
 disp(' - Constructing the Negativity Constraint');
 
+TPop = Top*Pop;
+TPAop = TPop*Aop';
 if epneg==0
-    Qop = Top*Pop*Aop' + Aop*Pop*Top'; 
+    Qop = TPAop' + TPAop; 
 else
     % Enforce strict negativity
-    Qop = Top*Pop*Aop' + Aop*Pop*Top' + epneg*(Top*Top'); 
+    Qop = TPAop' + TPAop + 2*epneg*(TPop*Top');
 end
 % Get rid of terms that are below tolerance
 ztol = 1e-12;
@@ -189,6 +194,7 @@ else
     disp('   - Using an equality constraint...');
     
     % Next, build a positive operator Qeop to enforce Qop == -Qeop;
+    eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol);
     Qdim = Qop.dim(:,1);
     [progQ, Qeop] = poslpivar_2d(prog,Qdim,dom,eq_deg,eq_opts);
     
@@ -217,6 +223,8 @@ else
     % Introduce the psatz term.
     for j=1:length(eq_use_psatz)
         if eq_use_psatz(j)~=0
+            eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
+            eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
             [prog, Qe2op] = poslpivar_2d(prog,Qdim,dom, eq_deg_psatz{j},eq_opts_psatz{j});
             Qeop = Qeop+Qe2op;
         end
@@ -253,6 +261,7 @@ end
 
 
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function outcell = extract_psatz_deg(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to

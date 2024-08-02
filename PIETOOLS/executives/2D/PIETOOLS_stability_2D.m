@@ -74,6 +74,9 @@ if ~isfield(settings,'eppos')
               1e-6];    % Positivity of Lyapunov Function with respect to 2D spatially distributed states
 else
     eppos = settings.eppos;
+    if numel(eppos)==1
+        eppos = eppos*ones(4,1);
+    end
 end
 if ~isfield(settings,'epneg')
     epneg = 0;         % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -162,11 +165,13 @@ end
 
 disp(' - Constructing the Negativity Constraint');
 
+PTop = Pop*Top;
+APTop = Aop'*PTop;
 if epneg==0
-    Qop = Top'*Pop*Aop + Aop'*Pop*Top; 
+    Qop = APTop' + APTop; 
 else
     % Enforce strict negativity
-    Qop = Top'*Pop*Aop + Aop'*Pop*Top + epneg*(Top'*Top); 
+    Qop = APTop' + APTop + 2*epneg*(Top'*PTop); 
 end
 % Get rid of terms that are below tolerance
 ztol = 1e-12;
@@ -186,11 +191,12 @@ if use_lpi_ineq
 else
     disp('   - Using an equality constraint...');
     
-    % Next, build a positive operator Qeop to enforce Qop == -Qeop;
+    % % Next, build a positive operator Qeop to enforce Qop == -Qeop;
+    eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol);
     Qdim = Qop.dim(:,1);
     [progQ, Qeop] = poslpivar_2d(prog,Qdim,dom,eq_deg,eq_opts);
     
-    toggle = 1; % Set toggle=1 to check whether the monomials in Qeop are sufficient.
+    toggle = 0; % Set toggle=1 to check whether the monomials in Qeop are sufficient.
     if toggle
         % Check that the parameters of Qeop indeed contain all monomials that
         % appear in the parameters of Qop
@@ -215,6 +221,8 @@ else
     % Introduce the psatz term.
     for j=1:length(eq_use_psatz)
         if eq_use_psatz(j)~=0
+            eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
+            eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
             [prog, Qe2op] = poslpivar_2d(prog,Qdim,dom, eq_deg_psatz{j},eq_opts_psatz{j});
             Qeop = Qeop+Qe2op;
         end
@@ -277,6 +285,9 @@ else
 end
 
 end
+
+
+%%
 function outcell = extract_psatz_opts(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to
 % determine if a cell element has been defined for each psatz term.

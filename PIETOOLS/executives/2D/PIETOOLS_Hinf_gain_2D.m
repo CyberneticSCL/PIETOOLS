@@ -80,6 +80,9 @@ if ~isfield(settings,'eppos')
               1e-6];    % Positivity of Lyapunov Function with respect to 2D spatially distributed states
 else
     eppos = settings.eppos;
+    if numel(eppos)==1
+        eppos = eppos*ones(4,1);
+    end
 end
 if ~isfield(settings,'epneg')
     epneg = 0;         % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -109,6 +112,10 @@ else
     eq_opts_psatz = extract_psatz_opts(settings.eq_opts_psatz,eq_use_psatz);
 end
 
+% Set the tolerance in the difference between the feasratio and 1 that will
+% be accepted as a successful solution.
+feastol = 0.3;
+
 % Do we use bisection to estimate the Hinf norm?
 if isfield(settings,'use_bisect')
     use_bisect = settings.use_bisect;
@@ -132,6 +139,9 @@ if isfield(settings,'use_bisect')
             gain = settings.bisect_opts.start;  % Starting gain
         else
             gain = 0.5*gam_min + 0.5*gam_max;
+        end
+        if isfield(settings.bisect_opts,'feastol')
+            feastol = settings.bisect_opts.feastol;
         end
     end
 else
@@ -168,19 +178,19 @@ nz = sum(nz_op);                % Total number of regulated output signals
 % STEP 1: Initialize the SOS program in the provided spatial variables, and
 % set the Hinfty norm as an objective function value 
 
-prog = sosprogram(vars(:));         % Initialize the program structure
+prog_0 = sosprogram(vars(:));         % Initialize the program structure
 for kk=1:prod(size(vars))
     % Make sure variables are in right order (pvar stores them
     % alphabetically.
-    prog.vartable(kk) = vars(kk).varname;
+    prog_0.vartable(kk) = vars(kk).varname;
 end
 if gain==0
     fprintf('\n --- Searching for an Hinf gain bound using the primal KYP lemma --- \n')
     % If no gain is provided, include the gain as a decision variable, and
     % look for a minimum
     dpvar gam;
-    prog = sosdecvar(prog, gam);    % This sets gam = gamma as decision var
-    prog = sossetobj(prog, gam);    % This minimizes gamma, comment for feasibility test
+    prog_0 = sosdecvar(prog_0, gam);    % This sets gam = gamma as decision var
+    prog_0 = sossetobj(prog_0, gam);    % This minimizes gamma, comment for feasibility test
 else
     fprintf(['\n --- Testing the Hinf gain bound gam = ',num2str(gain),' using the primal KYP lemma --- \n'])
     % If a gain is provided, just check the LPI is feasible with this gain
@@ -194,12 +204,12 @@ end
 disp('- Declaring a positive Lyapunov operator variable using the specified options...');
 
 % Initialize an operator which is positive semidefinite everywhere
-[prog, Pop] = poslpivar_2d(prog,np_op,dom,LF_deg,LF_opts);
+[prog_0, Pop] = poslpivar_2d(prog_0,np_op,dom,LF_deg,LF_opts);
 
 % Add an additional term with psatz multiplier if requested
 for j=1:length(LF_use_psatz)
     if LF_use_psatz(j)~=0
-        [prog, P2op] = poslpivar_2d(prog,np_op,dom,LF_deg_psatz{j},LF_opts_psatz{j});
+        [prog_0, P2op] = poslpivar_2d(prog_0,np_op,dom,LF_deg_psatz{j},LF_opts_psatz{j});
         Pop = Pop + P2op;
     end
 end
@@ -221,16 +231,22 @@ Iwop = opvar2d(eye(nw),[nw_op,nw_op],dom,vars);
 Izop = opvar2d(eye(nz),[nz_op,nz_op],dom,vars);
 
 % Assemble the KYP operator
-if epneg==0
-    Qop = [-gam*Iwop+Twop'*(Pop*Bop)+(Pop*Bop)'*Twop,   Dop',        (Pop*Bop)'*Top+Twop'*(Pop*Aop);
-           Dop,                                         -gam*Izop,   Cop;
-           Top'*(Pop*Bop)+(Pop*Aop)'*Twop,              Cop',        (Pop*Aop)'*Top+Top'*(Pop*Aop)];
-else
-    % Ensure strict negativity
-    Qop = [-gam*Iwop+Twop'*(Pop*Bop)+(Pop*Bop)'*Twop,   Dop',        (Pop*Bop)'*Top+Twop'*(Pop*Aop);
-           Dop,                                         -gam*Izop,   Cop;
-           Top'*(Pop*Bop)+(Pop*Aop)'*Twop,              Cop',        (Pop*Aop)'*Top+Top'*(Pop*Aop) + epneg*(Top'*Top)];
-end
+% if epneg==0
+%     % Qop = [-gam*Iwop+Twop'*(Pop*Bop)+(Pop*Bop)'*Twop,   Dop',        (Pop*Bop)'*Top+Twop'*(Pop*Aop);
+%     %        Dop,                                         -gam*Izop,   Cop;
+%     %        Top'*(Pop*Bop)+(Pop*Aop)'*Twop,              Cop',        (Pop*Aop)'*Top+Top'*(Pop*Aop)];
+Qop = vertcat_legacy(horzcat_legacy(-gam*Iwop+Twop'*(Pop*Bop)+(Pop*Bop)'*Twop, Dop', (Pop*Bop)'*Top+Twop'*(Pop*Aop)),...
+                     horzcat_legacy(Dop, -gam*Izop, Cop),...
+                     horzcat_legacy(Top'*(Pop*Bop)+(Pop*Aop)'*Twop, Cop', (Pop*Aop)'*Top+Top'*(Pop*Aop)));
+% else
+%     % Ensure strict negativity
+%     % Qop = [-gam*Iwop+Twop'*(Pop*Bop)+(Pop*Bop)'*Twop,   Dop',        (Pop*Bop)'*Top+Twop'*(Pop*Aop);
+%     %        Dop,                                         -gam*Izop,   Cop;
+%     %        Top'*(Pop*Bop)+(Pop*Aop)'*Twop,              Cop',        (Pop*Aop)'*Top+Top'*(Pop*Aop) + epneg*(Top'*Top)];
+%     Qop = vertcat_legacy(horzcat_legacy(-gam*Iwop+Twop'*(Pop*Bop)+(Pop*Bop)'*Twop, Dop', (Pop*Bop)'*Top+Twop'*(Pop*Aop)),...
+%                          horzcat_legacy(Dop, -gam*Izop, Cop),...
+%                          horzcat_legacy(Top'*(Pop*Bop)+(Pop*Aop)'*Twop, Cop', (Pop*Aop)'*Top+Top'*(Pop*Aop)+epneg*(Top'*Top)));
+% end
 % Get rid of terms that are below tolerance
 ztol = 1e-12;
 Qop = clean_opvar(Qop,ztol);
@@ -243,37 +259,16 @@ disp('- Enforcing the negativity constraint...');
 
 if use_lpi_ineq
     disp('  - Using lpi_ineq...');
-    prog = lpi_ineq_2d(prog,-Qop,ineq_opts);
+    prog = lpi_ineq_2d(prog_0,-Qop,ineq_opts);
 else
     disp('  - Using an equality constraint...');
     
     % First, check if we can exclude any monomials
-    tol = ztol*1e-1;
-    eq_opts_psatz_exclude = zeros(1,16);
-    if (isa(Qop.R22{1,1},'double') && max(max(Qop.R22{1,1}))<tol) || all(max(max(Qop.R22{1,1}.C))<tol)
-        eq_opts.exclude(8) = 1;
-        eq_opts_psatz_exclude(8) = 1;
-    end
-    if (isa(Qop.R22{2,1},'double') && max(max(Qop.R22{2,1}))<tol) || all(max(max(Qop.R22{2,1}.C))<tol)
-        eq_opts.exclude(9) = 1;
-        eq_opts_psatz_exclude(9) = 1;
-    end
-    if (isa(Qop.R22{3,1},'double') && max(max(Qop.R22{3,1}))<tol) || all(max(max(Qop.R22{3,1}.C))<tol)
-        eq_opts.exclude(10) = 1;
-        eq_opts_psatz_exclude(10) = 1;
-    end
-    if (isa(Qop.R22{1,2},'double') && max(max(Qop.R22{1,2}))<tol) || all(max(max(Qop.R22{1,2}.C))<tol)
-        eq_opts.exclude(11) = 1;
-        eq_opts_psatz_exclude(11) = 1;
-    end
-    if (isa(Qop.R22{1,3},'double') && max(max(Qop.R22{1,3}))<tol) || all(max(max(Qop.R22{1,3}.C))<tol)
-        eq_opts.exclude(12) = 1;
-        eq_opts_psatz_exclude(12) = 1;
-    end
+    eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol);
     
     % Next, build a positive operator Qeop to enforce Qop == -Qeop;
     Qdim = Qop.dim(:,1);
-    [progQ, Qeop] = poslpivar_2d(prog,Qdim,dom,eq_deg,eq_opts);
+    [progQ, Qeop] = poslpivar_2d(prog_0,Qdim,dom,eq_deg,eq_opts);
     
     toggle = 0; % Set toggle=1 to check whether the monomials in Qeop are sufficient.
     if toggle
@@ -300,7 +295,8 @@ else
     % Introduce the psatz term.
     for j=1:length(eq_use_psatz)
         if eq_use_psatz(j)~=0
-            eq_opts_psatz{j}.exclude(8:12) = eq_opts_psatz_exclude(8:12);
+            eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
+            eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
             [prog, Qe2op] = poslpivar_2d(prog,Qdim,dom, eq_deg_psatz{j},eq_opts_psatz{j});
             Qeop = Qeop+Qe2op;
         end
@@ -319,14 +315,14 @@ disp('- Solving the LPI using the specified SDP solver...');
 prog = sossolve(prog,sos_opts); 
 
 % Check the results
-if norm(prog.solinfo.info.feasratio-1)<=.3 && ~prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
+if norm(prog.solinfo.info.feasratio-1)<=feastol && ~prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
     if gain==0
         gam = double(sosgetsol(prog,gam));
     end
     disp('The H-infty norm of the given system is upper bounded by:')
     disp(gam); % check the Hinf norm, if the problem was solved successfully
     solve_val = 1;
-elseif norm(prog.solinfo.info.feasratio-1)<=.3 && prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
+elseif norm(prog.solinfo.info.feasratio-1)<=feastol && prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
     if gain==0
         gam = double(sosgetsol(prog,gam));
     end
@@ -387,7 +383,7 @@ if use_bisect
         disp('- Updating the negativity constraint...');
         gam_diff = gam - gam_old;
         Oop = opvar2d([],[np_op,np_op],dom,vars);   % Zero operator
-        Qop_diff = blkdiag(-gam_diff*Iwop,-gam_diff*Izop,Oop);
+        Qop_diff = blkdiag_legacy(-gam_diff*Iwop,-gam_diff*Izop,Oop);
         Qop = Qop + Qop_diff;
         
         % STEP 4b: Impose Negativity Constraint. There are two methods,
@@ -396,10 +392,10 @@ if use_bisect
         
         if use_lpi_ineq
             disp('  - Using lpi_ineq...');
-            prog = lpi_ineq_2d(prog,-Qop,ineq_opts);
+            prog = lpi_ineq_2d(prog_0,-Qop,ineq_opts);
         else
             disp('  - Using an equality constraint...');
-            [prog, Qeop] = poslpivar_2d(prog,np_op+nw_op+nz_op,dom,eq_deg,eq_opts);
+            [prog, Qeop] = poslpivar_2d(prog_0,np_op+nw_op+nz_op,dom,eq_deg,eq_opts);
             for j=1:length(eq_use_psatz)
                 if eq_use_psatz(j)~=0
                     [prog, Qe2op] = poslpivar_2d(prog,np_op+nw_op+nz_op,dom, eq_deg_psatz{j},eq_opts_psatz{j});
@@ -416,11 +412,11 @@ if use_bisect
         prog = sossolve(prog,sos_opts);
         
         % Check the results
-        if norm(prog.solinfo.info.feasratio-1)<=.3 && ~prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
+        if norm(prog.solinfo.info.feasratio-1)<=feastol && ~prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
             disp('The H-infty norm of the given system is upper bounded by:')
             disp(gam); % check the Hinf norm, if the problem was solved successfully
             solve_val = 1;
-        elseif norm(prog.solinfo.info.feasratio-1)<=.3 && prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
+        elseif norm(prog.solinfo.info.feasratio-1)<=feastol && prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
             disp('The system of equations was successfully solved. However, Double-check the precision.')
             disp('The H-infty norm of the given system is upper bounded by:')
             disp(gam);
@@ -476,6 +472,10 @@ else
 end
 
 end
+
+
+
+%%
 function outcell = extract_psatz_opts(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to
 % determine if a cell element has been defined for each psatz term.
