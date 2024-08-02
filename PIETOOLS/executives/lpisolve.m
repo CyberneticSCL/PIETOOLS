@@ -43,20 +43,25 @@ if isempty(settings)
 elseif ~(isa(settings,'string')||isa(settings,'char'))&&~isa(settings,'struct')
     error("Settings must either be a string value or a settings structure similar to the output of lpisettings() function.")
 end
-if (isa(lpi,'string')||isa(lpi,'char'))&&ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','custom'})
-    % do nothing
-elseif ~isa(lpi,'function_handle')
-    error("lpi must be a string value or a function handle.");
-else
-    error("Unknown lpi type");
+if isa(lpi,'function_handle')
+    % Assume the input 'lpi' refers to a function that can be called as
+    %   [prog, vout] = lpi(PIE,settings);
+    % Do nothing here...
+elseif ~(isa(lpi,'string') || isa(lpi,'char'))
+    error("The input 'lpi' must be a string value or a function handle.");
+elseif ~ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','custom'})
+    error("Specified LPI type must be one of 'stability', 'stability-dual', 'l2gain', 'l2gain-dual', 'hinf-observer', or 'hinf-controller'.")
 end
 
 if isa(settings,'string')||isa(settings,'char')
     settings = lpisettings(settings);
 end
 
-if isa(PIE,'sys')
+if isa(PIE,'sys') && strcmpi(PIE.type,'pie')
     PIE = PIE.params;
+elseif (isa(PIE,'sys') && strcmpi(PIE.type,'pde')) || isa(PIE,'pde_struct')
+    % Convert PDE to PIE
+    PIE = convert(PIE,'pie');
 end
 
 switch lpi
