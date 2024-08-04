@@ -227,6 +227,8 @@ if PDE.dim==2
         end
     end
 
+    ireorder=0;
+
     if isfield(uinput.ic,'x')
         if (isfield(uinput.ic,'ODE') || isfield(uinput.ic,'PDE'))
             disp('Initial conditions have been specified using both "ic.x" and "ic.ODE", "ic.PDE". Continuing with the initial conditions "ic.x".')
@@ -237,6 +239,7 @@ if PDE.dim==2
             error('Number of initial conditions should match the number of state variables')
         end
         uinput.ic.x = uinput.ic.x(x_order); % Reorder initial conditions to match new ordering of state components.
+        ireorder=1;
         if hasSymType(uinput.ic.x(1:psize.no),'variable')
             error('Initial conditions for ODE must be scalar constants');
         else
@@ -288,7 +291,8 @@ if PDE.dim==2
         uinput.ic=rmfield(uinput.ic,'PDE');
         uinput.ic.PDE(1:ns)=sym(0);
     end
-        if ~issorted(x_order)
+    % Reorder initial conditions only if it has bot been reordered already
+        if ~issorted(x_order) & ~ireorder
             uinput.ic.x = sym(zeros(1,psize.no+ns));
             uinput.ic.x(1:psize.no)=sym(uinput.ic.ODE);
             uinput.ic.x(psize.no+1:psize.no+ns)=sym(uinput.ic.PDE); 
