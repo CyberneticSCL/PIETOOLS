@@ -10,7 +10,7 @@ if length(objA)~=length(objB)
     return
 end
 
-for i=1:length(objA.len,1)
+for i=1:size(objA.len,1)
 if (objA(i).statename~=objB(i).statename)
     logval=0;
     return
