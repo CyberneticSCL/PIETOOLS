@@ -1465,7 +1465,7 @@ PDE.x{4}.vars = [s1;s2];    PDE.x{4}.dom = [a,b;c,d];   % x{4}=[u3;u3_{t}]
 PDE.x{4}.size = 2;
 
 % X_{tt}(t) = -C^2*X(t);
-PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [0,1;-C^2,1];
+PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [0,1;-C^2,0];
 
 % u1_{tt}(x,t)   = C^2*(b-a)^2/pi^2*u1_{xx}
 PDE.x{2}.term{1}.x = 2;     PDE.x{2}.term{1}.C = [0,1,0,0; 0,0,C^2*(b-a)^2/pi^2,0];
