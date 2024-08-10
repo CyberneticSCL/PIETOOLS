@@ -185,7 +185,9 @@ if strcmp(obj,'x') || strcmp(obj,'u') || strcmp(obj,'w')
     end
 end
 % Establish the new order of the components.
-comp_order = obj_tab_new(:,1);
+%comp_order = obj_tab_new(:,1);
+comp_order = old2new_idcs;
+old_IDs = obj_tab_new(:,1);
 % Re-arrange the equations to match the new order.
 PDE.(obj) = PDE.(obj)(old2new_idcs);
 % Assign new indices 1:ncomps to the components.
@@ -202,7 +204,7 @@ PDE.is_initialized = true;
 
 % Print a summary, if desired.
 if ~suppress_summary
-    print_reorder_summary(PDE,obj,comp_order)
+    print_reorder_summary(PDE,obj,old_IDs)
 end
 
 end
@@ -212,7 +214,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function print_reorder_summary(PDE,obj,comp_order)
+function print_reorder_summary(PDE,obj,old_IDs)
 % print_reorder_summary(PDE,obj,ncomps_x)
 % prints in the command window some information concerning the new order of
 % the components "obj" in the PDE structure.
@@ -221,8 +223,8 @@ function print_reorder_summary(PDE,obj,comp_order)
 % - PDE:    A "pde_struct" class object defining a PDE.
 % - obj:    Char 'x', 'u', 'w', 'y', 'z', or 'BC', indicating for which
 %           object to display the new order of the variables.
-% - comp_order: comp_order(j) provides the index of the component in the
-%               original PDE associated to component j in the new PDE.
+% - old_ID: comp_order(j) provides the ID of the component in the
+%           original PDE associated to component j in the new PDE.
 %
 % OUTPUTS:
 % Displays information in the command window concerning the new order of
@@ -245,7 +247,7 @@ elseif strcmp(obj,'BC')
     object_name = 'boundary condition';
 end
 ncomps = numel(PDE.(obj));
-if all(comp_order == (1:ncomps)')
+if all(old_IDs == (1:ncomps)')
     % The order of the components has not changed.
     fprintf(['\n','The order of the ',object_name,'s ',obj,' has not changed.\n']);
     return
@@ -284,7 +286,7 @@ LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+3; % e.g. ' x13(t,s1,s2,s3
 % % For each of the components, display its size, and which variables it
 % % depends on.
 for ii=1:ncomps
-    old_idx = comp_order(ii);
+    old_ID = old_IDs(ii);
     comp_ii = PDE.(obj){ii};
     
     % Establish the names of the variables on which the component depends.
@@ -302,14 +304,14 @@ for ii=1:ncomps
     
     % Establish the (subscript) index for the component.
     LHS_length = length(varnames_ii_t);
-    if old_idx<=9
+    if old_ID<=9
         % The component number consists of a single decimal.
-        Lcomp_idx = sub_num{old_idx+1};
+        Lcomp_idx = sub_num{old_ID+1};
         LHS_length = LHS_length + 1;
     else
         % The component number consists of multiple decimals.
-        Lcomp_idx = cell2mat(sub_num(str2num(num2str(old_idx)')+1)');
-        LHS_length = LHS_length + length(num2str(old_idx));
+        Lcomp_idx = cell2mat(sub_num(str2num(num2str(old_ID)')+1)');
+        LHS_length = LHS_length + length(num2str(old_ID));
     end
     % Set the name of the component, including its depdence on spatial
     % variables.

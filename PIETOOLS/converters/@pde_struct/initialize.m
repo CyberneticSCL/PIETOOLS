@@ -449,16 +449,21 @@ for j=1:numel(tab_cell)
     % component, and respectively the size of the component.
     tab_j = zeros(n_comps(j),2 + nvars);
     for i=1:n_comps(j)
-        if isfield(PDE.(objs{j}){i},'ID')
-            % If an ID is already specified for the object, store it in the
-            % first column of the table.
-            tab_j(i,1) = PDE.(objs{j}){i}.ID;
-        else
-            % Otherwise, generate a new ID.
-            tab_j(i,1) = stateNameGenerator;
+        % If an ID has not been specified for the object, generate one:
+        if ~isfield(PDE.(objs{j}){i},'ID')
+            PDE.(objs{j}){i}.ID = stateNameGenerator;
         end
+        % if isfield(PDE.(objs{j}){i},'ID')
+        %     % If an ID is already specified for the object, store it in the
+        %     % first column of the table.
+        %     tab_j(i,1) = PDE.(objs{j}){i}.ID;
+        % else
+        %     % Otherwise, generate a new ID.
+        %     tab_j(i,1) = stateNameGenerator;
+        % end
     end
-    %tab_j(:,1) = 1:n_comps(j);
+    % Replace the IDs in the table with just 1:n;
+    tab_j(:,1) = 1:n_comps(j);
     if size(PDE.([objs{j},'_tab']),1)==size(tab_j,1)
         tab_j(:,2) = PDE.([objs{j},'_tab'])(:,2);
     end
@@ -893,7 +898,7 @@ for ii=1:n_comps
     PDE.(obj){ii}.dom = global_dom(has_vars_Lcomp,:); 
 
     % Also set an ID for the object.
-    PDE.(obj){ii}.ID = Lobj_tab(ii,1);
+    %PDE.(obj){ii}.ID = Lobj_tab(ii,1);
 end
 
 end
@@ -2525,6 +2530,12 @@ for ii=1:num_comps
         Lcomp_idx = cell2mat(sub_num(str2num(num2str(ii)')+1)');
         LHS_length = LHS_length + length(num2str(ii));
     end
+    % % Also determine the ID for this component.
+    % if ~strcmp(obj,'BC')
+    %     ID_ii = PDE.(obj){ii}.ID;
+    %     Lcomp_ID = cell2mat(sub_num(str2num(num2str(ID_ii)')+1)');
+    %     LHS_length = LHS_length + length(num2str(ID_ii));
+    % end
     % Set the name of the component, including its depdence on spatial
     % variables.
     if strcmp(obj,'BC')
@@ -2532,6 +2543,7 @@ for ii=1:num_comps
         LHS_length = length(obj) + LHS_length + 7;
     else
         LHS_name = [' ',obj,Lcomp_idx,'(',varnames_ii_t,')'];
+        % LHS_name = [' ',obj,Lcomp_ID,'(',varnames_ii_t,') -->', LHS_name];
         LHS_length = length(obj) + LHS_length + 3;
     end
     
