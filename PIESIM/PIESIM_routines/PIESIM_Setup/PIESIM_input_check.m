@@ -74,6 +74,7 @@ elseif strcmp(opts.type,'PDE')
 
     PDE = initialize(structure);
     [PDE,x_order] = reorder_comps(PDE,'x'); % Reorder components in increasing order of differentiability
+    x_order = vec_order2elem_order(x_order,PDE.x_tab(:,2)); % Adjust order to account for vector-valued state components;
     psize = struct();
     psize.dim = PDE.dim;
     % Checking of the PDE inputs begins
