@@ -63,6 +63,10 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % derivative in the LHS of the PDE is indicated through "tdiff". That is,
 % PDE.x{i} has fields:
 %
+% - PDE.x{i}.ID:    An integer specifying a unique ID for the considered
+%                   state, input, or output object. This ID is used so that
+%                   we may distinguih PDE objects in the workspace, but
+%                   will be overwritten when calling "initialize".
 % - PDE.x{i}.size:  An integer n_i indicating the number of
 %   (optional)      variables in the ith state component x_i. If
 %                   not specified, a size is determined based on the size
@@ -211,6 +215,7 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 %
 % Initial coding DJ - 07/07/2022
 % DJ, 06/03/2024 - Adjust declaration of dummy variables for integration
+% DJ, 06/23/2024 - Add support (or lack thereoff) for free terms.
 
 
 % % % --------------------------------------------------------------- % % %
@@ -229,6 +234,13 @@ if ~isa(PDE,'struct') && ~isa(PDE,'pde_struct')
     error('Input must be a ''struct'' or ''pde_struct'' class object.')
 elseif isa(PDE,'struct')
     PDE = pde_struct(PDE);
+end
+if ~isempty(PDE.free)
+    for ii=1:numel(PDE.free)
+        if isfield(PDE.free{ii},'term') && ~isempty(PDE.free{ii}.term)
+            error("Initialization is not supported: the PDE structure still involves free terms, not linked to any differential equation, output signal, or boundary condition.")
+        end
+    end
 end
 ncomps_x = length(PDE.x);
 
@@ -436,6 +448,21 @@ for j=1:numel(tab_cell)
     % The first two columns in the table list the index associated to this
     % component, and respectively the size of the component.
     tab_j = zeros(n_comps(j),2 + nvars);
+    for i=1:n_comps(j)
+        % If an ID has not been specified for the object, generate one:
+        if ~isfield(PDE.(objs{j}){i},'ID')
+            PDE.(objs{j}){i}.ID = stateNameGenerator;
+        end
+        % if isfield(PDE.(objs{j}){i},'ID')
+        %     % If an ID is already specified for the object, store it in the
+        %     % first column of the table.
+        %     tab_j(i,1) = PDE.(objs{j}){i}.ID;
+        % else
+        %     % Otherwise, generate a new ID.
+        %     tab_j(i,1) = stateNameGenerator;
+        % end
+    end
+    % Replace the IDs in the table with just 1:n;
     tab_j(:,1) = 1:n_comps(j);
     if size(PDE.([objs{j},'_tab']),1)==size(tab_j,1)
         tab_j(:,2) = PDE.([objs{j},'_tab'])(:,2);
@@ -497,7 +524,7 @@ diff_tab = zeros(numel(PDE.x),nvars);
 BC_diff_tab = zeros(numel(PDE.BC),nvars);
 
 % For the different equations for x, y, z, and the BCs, we use 
-% "get_diff_tab" to loops over the terms in each of these equations, 
+% "get_diff_tab" to loop over the terms in each of these equations, 
 % checking the order of the derivatives of the state components to
 % establish an order of differentiability of each component.
 % The functions also determine a size for each state, input, output, and
@@ -627,15 +654,17 @@ for kk = 1:numel(objs)
         end
         % Also order the fields of the LHS component.
         if strcmp(obj,'x')
-            PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'size','vars','dom','diff','tdiff','term'});
-        elseif strcmp(obj,'y') || strcmp(obj,'z') || strcmp(obj,'BC')
+            PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'ID','size','vars','dom','diff','tdiff','term'});
+        elseif strcmp(obj,'y') || strcmp(obj,'z')
+            PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'ID','size','vars','dom','term'});
+        elseif strcmp(obj,'BC')
             PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'size','vars','dom','term'});
         else
             if ~isfield(PDE.(obj){ii},'size')
                 % Set number of input variables.
                 PDE.(obj){ii}.size = PDE.([obj,'_tab'])(ii,2);
             end
-            PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'size','vars','dom'});
+            PDE.(obj){ii} = orderfields(PDE.(obj){ii},{'ID','size','vars','dom'});
         end
     end
 end
@@ -867,6 +896,9 @@ for ii=1:n_comps
     PDE.(obj){ii}.vars = Lvars_new(:,1);
     PDE.(obj){ii}.var_order = var_order;  
     PDE.(obj){ii}.dom = global_dom(has_vars_Lcomp,:); 
+
+    % Also set an ID for the object.
+    %PDE.(obj){ii}.ID = Lobj_tab(ii,1);
 end
 
 end
@@ -1249,13 +1281,13 @@ for ii=1:numel(PDE.(obj))
         elseif isfield(term_jj,'loc')
             % The term involves an input --> no spatial position may be 
             % specified.
-            if  (length(term_jj.loc)~=nvars && length(term_jj.loc)~=nvars_Rcomp) || ...
+            if  (length(term_jj.loc)~=nvars && size(term_jj.loc,2)~=nvars_Rcomp) || ...
                 (length(term_jj.loc)==nvars && ~all(isequal(polynomial(term_jj.loc(Gvar_order)),PDE.vars(:,1)') | isequal(polynomial(term_jj.loc(Gvar_order)),PDE.vars(:,2)'))) || ...
                 (length(term_jj.loc)==nvars_Rcomp && ~all(isequal(polynomial(term_jj.loc(Rvar_order)),PDE.vars(has_vars_Rcomp,1)') | isequal(polynomial(term_jj.loc(Rvar_order)),PDE.vars(has_vars_Rcomp,2)')))
                 % A spatial position has been provided which is not on the
                 % interior of the domain.
                 error(['Term "',term_name,'" is not appropriate;',...
-                        ' no spatial position ".loc" cannot be specified for terms involving an input.'])
+                        ' a spatial position ".loc" cannot be specified for terms involving an input.'])
             elseif isfield(term_jj,'loc')
                 PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'loc');
                 continue
@@ -2498,6 +2530,12 @@ for ii=1:num_comps
         Lcomp_idx = cell2mat(sub_num(str2num(num2str(ii)')+1)');
         LHS_length = LHS_length + length(num2str(ii));
     end
+    % % Also determine the ID for this component.
+    % if ~strcmp(obj,'BC')
+    %     ID_ii = PDE.(obj){ii}.ID;
+    %     Lcomp_ID = cell2mat(sub_num(str2num(num2str(ID_ii)')+1)');
+    %     LHS_length = LHS_length + length(num2str(ID_ii));
+    % end
     % Set the name of the component, including its depdence on spatial
     % variables.
     if strcmp(obj,'BC')
@@ -2505,6 +2543,7 @@ for ii=1:num_comps
         LHS_length = length(obj) + LHS_length + 7;
     else
         LHS_name = [' ',obj,Lcomp_idx,'(',varnames_ii_t,')'];
+        % LHS_name = [' ',obj,Lcomp_ID,'(',varnames_ii_t,') -->', LHS_name];
         LHS_length = length(obj) + LHS_length + 3;
     end
     
