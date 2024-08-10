@@ -92,7 +92,7 @@ function PIESIM_stability_check(opts, Atotal);
     [zmax,indmax_inter]=max(abs(z_permit));
     indmax=ind_permit(indmax_inter);
 
-    if (real(lambda)*real(z(indmax))>tol_real & imag(lambda)*imag(z(indmax))>0)
+    if (real(lambda)*real(z(indmax))>tol_real & imag(lambda)*imag(z(indmax))>=0)
     am(k)=abs(z(indmax))/abs(lambda);
     else
     am(k)=0;
