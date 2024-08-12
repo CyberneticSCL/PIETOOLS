@@ -90,7 +90,7 @@ function PIE = convert_PIETOOLS_PDE_2D(PDE)
 % % % % % Initialization                                          % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Coefficients smaller than tol in PI operators will be discarded.
-op_clean_tol = 1e-12;   
+op_clean_tol = 1e-8;   
 
 % Initialize PDE in case this has not been done.
 PDE = pde_struct(PDE);
