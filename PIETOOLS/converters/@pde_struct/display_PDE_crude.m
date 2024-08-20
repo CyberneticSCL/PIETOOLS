@@ -78,10 +78,12 @@ for kk=1:numel(eq_types)
         % right-hand side.
         Lobj = '0';
         eq_sign = ' = ';
+        use_ID = 0.5;   % Use the ID only if available.
     else
         % For free terms, there is no equation, so no equal sign.
         Lobj = '';
         eq_sign = '   ';
+        use_ID = true;
     end
     % % Loop over all the equations of the considered type.
     for ii=1:numel(PDE.(eq_type))
@@ -116,8 +118,10 @@ for kk=1:numel(eq_types)
             % % Assign an index to the state or output signal.
             if isfield(eq_struct,'ID')
                 Lobj_ID = eq_struct.ID;
+                use_ID = true;
             else
                 Lobj_ID = ii;
+                use_ID = false;
             end
             if Lobj_ID<=9
                 Lobj_ID_sub = sub_num{Lobj_ID+1};
@@ -143,7 +147,7 @@ for kk=1:numel(eq_types)
         fprintf(['\n ',Lstate_trm,eq_sign])
     
         % % Print the first term
-        [term_str,term_sign] = display_term(PDE,eq_struct.term{1},[ii+n_eqs_tot,1]);
+        [term_str,term_sign] = display_term(PDE,eq_struct.term{1},[ii+n_eqs_tot,1],use_ID);
         if term_sign==-1
             fprintf(['- ',term_str]);
         else
@@ -151,7 +155,7 @@ for kk=1:numel(eq_types)
         end
         % % Print the remaining terms.
         for jj=2:numel(eq_struct.term)
-            [term_str,term_sign,use_Cjj] = display_term(PDE,eq_struct.term{jj},[ii+n_eqs_tot,jj]);
+            [term_str,term_sign,use_Cjj] = display_term(PDE,eq_struct.term{jj},[ii+n_eqs_tot,jj],use_ID);
             if term_sign==-1
                 fprintf([' - ',term_str]);
             else

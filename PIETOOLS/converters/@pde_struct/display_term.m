@@ -1,4 +1,4 @@
-function [term_str,term_sign,use_Cij] = display_term(PDE,PDE_term,C_idcs)
+function [term_str,term_sign,use_Cij] = display_term(PDE,PDE_term,C_idcs,use_ID)
 % Build a 'char' object to display the term "PDE_term" in the 'pde_struct'
 % object "PDE".
 %
@@ -11,6 +11,11 @@ function [term_str,term_sign,use_Cij] = display_term(PDE,PDE_term,C_idcs)
 % - C_idcs:     1x2 array of type 'double' specifying indices (i,j) for the
 %               coefficients C_{i,j} in the term if these coefficients
 %               cannot be displayed explicitly.
+% - use_ID:     Boolean variable specifying whether in the display the ID
+%               should be used to assign an index to the state component,
+%               disturbance, or input. If set to false, the index
+%               associated to the state component, input or disturbance
+%               will be used instead.
 %
 % OUTPUT
 % - term_str:   1xn char object representing the term
@@ -101,11 +106,12 @@ int_symbol = '\x222B';
 if nargin<=2
     eq_num = 1;
     term_num = 1;
-    vars = polynomial(zeros(0,1));
-elseif nargin<=3
+else
     eq_num = C_idcs(1);
     term_num = C_idcs(2);
-    vars = polynomial(zeros(0,1));
+end
+if nargin<=3
+    use_ID = false;
 end
 
         
@@ -130,21 +136,56 @@ if isfield(PDE_term,'x')
 else
     if isfield(PDE_term,'y')
         Robj = 'y';
+        tab_row = PDE_term.(Robj);
+        Rstate_trm = Robj;
     elseif isfield(PDE_term,'z')
         Robj = 'z';
+        tab_row = PDE_term.(Robj);
+        Rstate_trm = Robj;
     elseif isfield(PDE_term,'u')
         Robj = 'u';
+        tab_row = PDE_term.(Robj);
+        Rstate_trm = Robj;
     elseif isfield(PDE_term,'w')
         Robj = 'w';
+        tab_row = PDE_term.(Robj);
+        Rstate_trm = Robj;
+    elseif numel(PDE.x)<=1
+        % Assume the term involves the first and only state component;
+        Robj = 'x';
+        tab_row = 1;
+        % Display potential temporal derivative of state.
+        if isfield(PDE_term,'tdiff') && PDE_term.tdiff>0
+            tdiff_Robj = PDE_term.tdiff;
+            if tdiff_Robj==1
+                Rstate_trm = [partial,sub_t,' ',Robj];
+            elseif tdiff_Robj<=9
+                Rstate_trm = [partial,sub_t,sup_num{tdiff_Robj+1},Robj];
+            else
+                tD_sup = cell2mat(sup_num(str2num(num2str(tdiff_Robj)')+1)');
+                Rstate_trm = [partial,sub_t,tD_sup,Robj];
+            end
+        else
+            Rstate_trm = Robj;
+        end
     else
         error("The term to display is not properly specified: it does not involve any state, input, or output variable.")
     end
-    tab_row = PDE_term.(Robj);
-    Rstate_trm = Robj;
+end
+% Deal with case that PDE structure contains insufficient information.
+if tab_row>numel(PDE.(Robj))
+    fprintf('\n')
+    error("The PDE equations refer to a state, input, or output component that has not been specified in the structure; display is not supported.")
 end
     
 % Assign an index to the state, input, or output
-R_ID = PDE.(Robj){tab_row}.ID;
+if use_ID>0 && isfield(PDE.(Robj){tab_row},'ID')
+    R_ID = PDE.(Robj){tab_row}.ID;
+elseif use_ID==1
+    error("Some PDE variables appear not to have been assigned an identifier; display is ambiguous...")
+else
+    R_ID = tab_row;
+end
 if R_ID<=9
     % The state index consists of a single decimal
     Rstate_idx = sub_num{R_ID+1};
@@ -371,8 +412,20 @@ end
 % % % Display the partial derivatives
 D_trm = '';
 if isfield(PDE_term,'D') && ~isempty(PDE_term.D)
+    if size(PDE_term.D,1)>1
+        % For multiple derivatives, enclose in brackets
+        D_trm = [D_trm,'['];
+    end
+    for ii=1:size(PDE_term.D,1)
+    if all(PDE_term.D(ii,:)==0)
+        % Don't display partial symbol to 0th power
+        if size(PDE_term.D,1)>1
+            D_trm = [D_trm,'1; '];
+        end
+        continue
+    end
     for kk=1:size(PDE_term.D,2)
-        D_kk = PDE_term.D(kk);
+        D_kk = PDE_term.D(ii,kk);
         if D_kk==0
             % Don't display partial symbol to 0th power
             continue
@@ -386,6 +439,15 @@ if isfield(PDE_term,'D') && ~isempty(PDE_term.D)
             D_trm = [D_trm,'(',partial,'/',partial,Rvarname{kk},')',D_sup];
         end
     end
+    if ii<size(PDE_term.D,1)
+        % Start new row of differential operator
+        D_trm = [D_trm,'; '];
+    end
+    end
+    if size(PDE_term.D,1)>1
+        % Close brackets for multiple derivatives.
+        D_trm = [D_trm,'].*'];
+    end
     if ~isempty(D_trm)
         D_trm = [strtrim(D_trm),' '];
     end
@@ -395,8 +457,18 @@ end
 
 % % % Display the location at which to evaluate the state
 if (isfield(PDE_term,'loc') && ~isempty(PDE_term.loc))
+    Rstate_name = Rstate_trm;
+    Rvar_t = Rvar1_str;
+    if size(PDE_term.loc,1)>1
+        % For evaluation at multiple locations, enclose in brackets.
+        Rstate_trm = '[';
+    else
+        Rstate_trm = '';
+    end
+    for ii=1:size(PDE_term.loc,1)
+        Rvar1_str = Rvar_t;
     for kk=1:size(PDE_term.loc,2)
-        loc_kk = PDE_term.loc(kk);
+        loc_kk = PDE_term.loc(ii,kk);
         if isa(loc_kk,'double') || (isa(loc_kk,'polynomial') && isdouble(loc_kk))
             loc_kk = num2str(double(loc_kk));
         else
@@ -404,7 +476,17 @@ if (isfield(PDE_term,'loc') && ~isempty(PDE_term.loc))
         end
         Rvar1_str = [Rvar1_str,',',loc_kk];
     end
-elseif ~isfield(PDE_term,'loc')
+    Rvar1_str = [Rvar1_str,')'];
+    Rstate_trm = [Rstate_trm,Rstate_name,Rvar1_str];
+    if ii<size(PDE_term.loc,1)
+        % Start the next line, evaluating the state at another position.
+        Rstate_trm = [Rstate_trm,'; '];
+    end
+    end
+    if size(PDE_term.loc,1)>1
+        Rstate_trm = [Rstate_trm,']'];
+    end
+else%if ~isfield(PDE_term,'loc')
     % If no location is specified (e.g. for inputs or outputs), assume the
     % object is not evaluated at any position.
     if isfield(PDE.(Robj){tab_row},'vars')
@@ -414,12 +496,16 @@ elseif ~isfield(PDE_term,'loc')
             Rvar1_str = [Rvar1_str,',',loc_kk];
         end
     end
+    Rvar1_str = [Rvar1_str,')'];
+    % Display variables on which the state/input depends.
+    Rstate_trm = [Rstate_trm, Rvar1_str];
 end
-Rvar1_str = [Rvar1_str,')'];
+%Rvar1_str = [Rvar1_str,')'];
+%Rstate_trm = [Rstate_trm, Rvar1_str];
 
 
 
 % % % Finally, combine to construct the full term
-term_str = [int_trm,C_trm,D_trm,Rstate_trm,Rvar1_str,dtheta_trm];
+term_str = [int_trm,C_trm,D_trm,Rstate_trm,dtheta_trm];
 
 end
