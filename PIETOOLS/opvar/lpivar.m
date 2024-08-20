@@ -47,6 +47,7 @@ function [prog,Zop] = lpivar(prog,n,I,d)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 7_26_2019
+% DJ, 08/20/24 - Minor bugfix in case length(d)==1
 %
 
 if nargin<3
@@ -74,7 +75,7 @@ Zs = monomials(var1,0:d(1));
 if length(d)==2
     Zsth = mpmonomials({var1,var2},{0:d(2),0:d(1)});
 elseif length(d)==1
-    Zsth=mpmonomials({var1,var2},0:d);
+    Zsth=mpmonomials({[var1,var2]},{0:d});
 elseif length(d)==3
     Zsth=mpmonomials({var1,var2},{0:d(3),0:d(2)});
 else
