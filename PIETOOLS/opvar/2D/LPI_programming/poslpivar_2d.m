@@ -143,7 +143,11 @@ switch nargin
           options.sep = ones(1,6);
           options.center_monomials = 0;
     case 4
-        if isfield(d,'Zx') && isfield(d,'Zy') && isfield(d,'Z2')
+        if isnumeric(d) && all(size(d)==1)
+            dval = d;   d = struct();
+            d.dx = {dval;[dval;dval;dval];[dval;dval;dval]};       
+            d.dy = {dval,[dval,dval,dval],[dval,dval,dval]};
+        elseif isfield(d,'Zx') && isfield(d,'Zy') && isfield(d,'Z2')
             d.use_monomials = 1;
             d.dx = d.Zx;
             d.dy = d.Zy;
@@ -153,7 +157,7 @@ switch nargin
                  isfield(d,'Z2') && (isfield(d,'dx') || isfield(d,'dy'))
             error('Specifying both monomials and maximal degrees is currently not supported')
         end
-        if (~isfield(d,'use_monomials') || ~d.use_monomials) && (~isfield(options,'use_monomials') || ~options.use_monomials) ...
+        if (~isfield(d,'use_monomials') || ~d.use_monomials) ...
                 && ~isfield(d,'dx') && ~isfield(d,'dy') && ~isfield(d,'d2')
             fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
         elseif isfield(d,'use_monomials')
