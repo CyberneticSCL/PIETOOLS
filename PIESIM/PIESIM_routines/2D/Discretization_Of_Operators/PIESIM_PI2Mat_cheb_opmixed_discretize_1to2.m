@@ -72,7 +72,7 @@ for i=1:ns_row
             % Poly2mat in the other direction
             index = find(strcmp(Rstrip.varname, snstr));
             R_poly=polynomial(1,Rstrip.degmat(1,index),Rstrip.varname(index),Rstrip.matdim);
-            [op_poly,op_poly_nonsquare]=PIESIM_Poly2Mat_cheb(N, 1, R_poly, p(i));
+            [op_poly,op_poly_nonsquare]=PIESIM_Poly2Mat_cheb(N, R_poly, p(i));
             if (dir=='x')
             for jcol=1:csize
             sumop(:,jcol)=sumop(:,jcol)+kron(op_poly,op_mult(:,jcol));

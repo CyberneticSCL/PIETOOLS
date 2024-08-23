@@ -35,67 +35,19 @@ function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize_2D(N, R, rsize, c
 
 pvar s1 s2;
 
-chebgrid=cos(pi*(0:csize-1)/(csize-1));
+p=N+1-csize;
 
-
-    if isa(R,'polynomial')
-    Reval=subs(subs(R,s1,chebgrid)',s2,chebgrid);
-    else
-    Reval=R*ones(csize,csize);
+        A=0;
+        A_nonsquare=0;
+    for k=1:R.nterms
+        Rstrip=polynomial(R.coeff(k),R.degmat(k,:),R.varname,R.matdim);
+            Rs1=subs(Rstrip,s2,1);
+            % Multiplicative operator in s1 direction
+            [mult_s1,mult_s1_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rs1, p);
+            index = find(strcmp(Rstrip.varname, 's2'));
+            Rs2=polynomial(1,Rstrip.degmat(1,index),Rstrip.varname(index),Rstrip.matdim);
+            % Multiplicative operator in s2 direction
+            [mult_s2,mult_s2_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rs2, p);
+            A=A+kron(mult_s2,mult_s1);
+            A_nonsquare=A_nonsquare+kron(mult_s2_nonsquare,mult_s1_nonsquare);
     end
-
-    acheb=reshape(fcgltran2d(double(Reval),1),[],1);
-
-A(1:rsize^2,1:csize^2)=0;
-A_nonsquare(1:(N+1)^2,1:csize^2)=0;
-
-for i=1:csize^2
-    id_x=mod(i-1,csize);
-    id_y=floor((i-id_x+1)/csize);
-    for j=1:length(acheb)
-        jd_x=mod(j-1,csize);
-        jd_y=floor((j-jd_x+1)/csize);
-            pos=(jd_y+id_y)*csize+(jd_x+id_x)+1;
-            if (pos<=(N+1)^2)
-            A_nonsquare(pos,i)=A_nonsquare(pos,i)+0.25*acheb(j);
-            end
-            pos=(abs(jd_y-id_y))*csize+(jd_x+id_x)+1;
-            if (pos<=(N+1)^2)
-            A_nonsquare(pos,i)=A_nonsquare(pos,i)+0.25*acheb(j);
-            end
-            pos=(jd_y+id_y)*csize+abs(jd_x-id_x)+1;
-            if (pos<=(N+1)^2)
-            A_nonsquare(pos,i)=A_nonsquare(pos,i)+0.25*acheb(j);
-            end
-            pos=(abs(jd_y-id_y))*csize+abs(jd_x-id_x)+1;
-            if (pos<=(N+1)^2)
-            A_nonsquare(pos,i)=A_nonsquare(pos,i)+0.25*acheb(j);
-            end
-        end 
-        end 
-
-for i=1:csize^2
-    id_x=mod(i-1,csize);
-    id_y=floor((i-id_x+1)/csize);
-    for j=1:length(acheb)
-        jd_x=mod(j-1,csize);
-        jd_y=floor((j-jd_x+1)/csize);
-            pos=(jd_y+id_y)*csize+(jd_x+id_x)+1;
-            if (pos<=rsize^2) 
-            A(pos,i)=A(pos,i)+0.25*acheb(j);
-            end
-            pos=(abs(jd_y-id_y))*csize+(jd_x+id_x)+1;
-            if (pos<=rsize^2) 
-            A(pos,i)=A(pos,i)+0.25*acheb(j);
-            end
-            pos=(jd_y+id_y)*csize+abs(jd_x-id_x)+1;
-            if (pos<=rsize^2) 
-            A(pos,i)=A(pos,i)+0.25*acheb(j);
-            end
-            pos=(abs(jd_y-id_y))*csize+abs(jd_x-id_x)+1;
-            if (pos<=rsize^2) 
-            A(pos,i)=A(pos,i)+0.25*acheb(j);
-            end
-    end
-end
-

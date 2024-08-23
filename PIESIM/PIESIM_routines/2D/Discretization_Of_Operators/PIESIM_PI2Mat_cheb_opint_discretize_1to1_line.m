@@ -59,11 +59,11 @@ for i=1:ns_row
         Rstrip=polynomial(Rloc.coeff(k),Rloc.degmat(k,:),Rloc.varname,Rloc.matdim);
             Rint=subs(Rstrip,var,1);
             % Integrate in pint direction over the interval [-1,1]
-            op_int=PIESIM_PI2Mat_cheb_opint_discretize(N, 1, Rint, pint(j));
+            op_int=PIESIM_PI2Mat_cheb_opint_discretize(N, Rint, pint(j));
             index = find(strcmp(Rstrip.varname, snstr));
             R_row=polynomial(1,Rstrip.degmat(1,index),Rstrip.varname(index),Rstrip.matdim);
             % Convert to a matrix operator in prow direction 
-            [op_row,op_row_nonsquare]=PIESIM_Poly2Mat_cheb(N, 1, R_row, prow(i));
+            [op_row,op_row_nonsquare]=PIESIM_Poly2Mat_cheb(N, R_row, prow(i));
             int=int+kron(op_row,op_int);
             int_nonsquare=int_nonsquare+kron(op_row_nonsquare,op_int);
     end % k

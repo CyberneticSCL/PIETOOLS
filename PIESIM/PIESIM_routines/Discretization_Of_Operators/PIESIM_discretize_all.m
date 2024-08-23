@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_all.m     PIETOOLS 2021b
+% PIESIM_discretize_all.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of computational grid, initial conditions, forcing functions and PIE operators 
 %
@@ -29,7 +29,7 @@ function [Dop, coeff, grid]=PIESIM_discretize_all(PIE, uinput, psize);
 
 % Discretize initial conditions and non-polynomial in space forcing matrix operator
 
-[coeff, B1_nonpol]=PIESIM_discretize_icf(uinput,psize,grid,gridall);
+[coeff, B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
 % Discretize PIE operators
 Dop=PIESIM_discretize_ops(PIE,psize);

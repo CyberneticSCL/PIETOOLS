@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_input_check.m     PIETOOLS 2021b
+% PIESIM_input_check.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [structure, uinput, psize]=PIESIM_input_check(varargin)
 % Check if necessary inputs are defined to start the simulations
@@ -75,6 +75,9 @@ elseif strcmp(opts.type,'PDE')
     PDE = initialize(structure);
     [PDE,x_order] = reorder_comps(PDE,'x'); % Reorder components in increasing order of differentiability
     x_order = vec_order2elem_order(x_order,PDE.x_tab(:,2)); % Adjust order to account for vector-valued state components;
+
+    [PDE,w_order] = reorder_comps(PDE,'w'); % Reorder disturbances in increasing order of differentiability
+
     psize = struct();
     psize.dim = PDE.dim;
     % Checking of the PDE inputs begins
@@ -324,7 +327,7 @@ if PDE.dim==2
             uinput.ic.PDE(nsx+nsy+1:ns)=sin(pi*sx)*sin(pi*sy);
         end
         end
-    end
+    end % PDE.dim
 
     if ~isfield(uinput,'ifexact')
         disp('Warning: uinput.ifexact is not specified. Defaulting  to false');
@@ -384,6 +387,10 @@ if PDE.dim==2
             disp('Warning: nw is greater than zero, but user-defiened w inputs are not provided. Defaulting PDE.nw to zero.');
             psize.nw=0;
         else
+
+    if ~issorted(w_order)
+        uinput.w = uinput.w(w_order) % Reorder disturbances if needed
+    end
             % Check that the input is of appropriate type and size.
             if isa(uinput.w,'double')
                 uinput.w = sym(uinput.w);
@@ -409,7 +416,7 @@ if PDE.dim==2
     end
 
 
-    % Split forcing into spatial and temporal parts
+    % Split disturbances into spatial and temporal parts
     for k=1:psize.nw
     if(~isdouble(uinput.w(k)))
     if(has(uinput.w(k),sx)|has(uinput.w(k),sy))
@@ -428,6 +435,31 @@ if PDE.dim==2
     end
     end
 
+    % Count number of disturbances according to their spatial structure
+
+   psize.nw2=0;
+   psize.nwx=0;
+   psize.nwy=0;
+   psize.nw0=0;
+
+   if isfield(uinput,'wspace')
+     for k=1:psize.nw
+         if (uinput.wspace(k)==0)
+             psize.nw0=psize.nw0+1;
+         else
+             if has(uinput.wspace(k),'sx') & has(uinput.wspace(k),'sy')
+             psize.nw2=psize.nw2+1;
+             else 
+                 if has(uinput.wspace(k),'sx')
+                 psize.nwx=psize.nwx+1; 
+                 else
+                 psize.nwy=psize.nwy+1; 
+                 end
+             end
+         end
+     end
+ end
+
     
     if (PDE.dim<2)
     if (PDE.dom(1)==PDE.dom(2))
@@ -444,8 +476,6 @@ if PDE.dim==2
         end
         end
     end
-
-    uinput.dom=PDE.dom; 
 
     % Checking of the PDE inputs ends
     structure = PDE;

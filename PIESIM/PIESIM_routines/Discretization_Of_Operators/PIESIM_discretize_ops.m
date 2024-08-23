@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_ops.m     PIETOOLS 2021b
+% PIESIM_discretize_ops.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of PIE operators with Chebyshev methods  
 %
@@ -25,11 +25,6 @@ function Dop=PIESIM_discretize_ops(PIE, psize);
 
 % Define local variables
 
-no=psize.no;
-nw=psize.nw;
-nu=psize.nu;
-nro=psize.nro;
-noo=psize.noo;
 N=psize.N;
 
 % Define "Degree of smoothness for each PDE state". Currently we keep track of it in a discretization of PIE
@@ -63,16 +58,16 @@ end
 % Set the last entry to PIESIM_4PI2Mat_cheb to 2 if a structure has an
 % empty bottom row (for C1 and C2 operators)
 
- Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,nw,PIE.Tw,p,0);
- Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,nu,PIE.Tu,p,0);
- Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,nw,PIE.B1,p,0);
- Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,nu,PIE.B2,p,0);
- Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,nro,PIE.C1,p,2);
- Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,noo,PIE.C2,p,2);
- Dop.Acheb=PIESIM_4PI2Mat_cheb(N,no,PIE.A,p,1);
- [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,no,PIE.T,p,1);
+ Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,0);
+ Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,0);
+ Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,PIE.B1,p,0);
+ Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,0);
+ Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,PIE.C1,p,2);
+ Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,PIE.C2,p,2);
+ Dop.Acheb=PIESIM_4PI2Mat_cheb(N,PIE.A,p,1);
+ [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,1);
  if isfield(PIE,'T0') 
-     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,no,PIE.T0,p,1);
+     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T0,p,1);
  end
 %  
   Dop.Mcheb_inv=inv(Mcheb);

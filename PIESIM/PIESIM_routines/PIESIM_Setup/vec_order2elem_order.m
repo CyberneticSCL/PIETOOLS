@@ -1,3 +1,12 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% elem_order.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding DJ - 8_1_2024
+
 function elem_order = vec_order2elem_order(vecs_order,vec_sizes)
 % ELEM_ORDER = VEC_ORDER2ELEM_ORDER(VECS_ORDER,VEC_SIZES) takes a list of
 % indices specifying an order of vectors, and determines the associated

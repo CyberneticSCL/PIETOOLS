@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM.m     PIETOOLS 2021b
+% PIESIM.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Please, contact Y. Peet at ypeet@asu.edu for support
 
@@ -133,7 +133,7 @@ function [solution, grid,time]=PIESIM(varargin)
     if (psize.dim==1)
     PIE = rescalePIE(PIE,[-1,1]);
     else
-    PIE = rescalePIE_2D(PIE,uinput.dom,[-1,1;-1,1]);
+    PIE = rescalePIE_2D(PIE,[-1,1;-1,1]);
     end
    
 %-------------------------------------------------------------------------

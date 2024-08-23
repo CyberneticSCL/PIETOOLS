@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_3PI2Mat_cheb_opint_discretize.m     PIETOOLS 2021b
+% PIESIM_3PI2Mat_cheb_opint_discretize.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - a dicrete matrix representation of an integrative portion
 % of the 3PI operator

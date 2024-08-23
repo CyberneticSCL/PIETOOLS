@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_options_check.m     PIETOOLS 2021b
+% PIESIM_options_check.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [opts, uinput]=PIESIM_options_check(varinput)
 % Check if option and uinput fields are supplied by the user
@@ -105,7 +105,11 @@ for i=1:length(fields_opts)
         disp(X);
     end
 end
+if (opts.dt~=0)
 opts.Nsteps=floor(opts.tf/opts.dt);
+else
+opts.Nsteps=0;
+end
 % Check if opts.intScheme is defined correctly
 if (opts.intScheme~=1&opts.intScheme~=2)
     i=3;

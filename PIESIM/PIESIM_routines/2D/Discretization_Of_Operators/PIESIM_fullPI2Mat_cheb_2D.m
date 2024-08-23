@@ -4,16 +4,14 @@
 % Constructs a discrete version of the full 2D PI operator  
 %
 % Inputs:
-% nscalar - number of ODE states if flag=1
-% nscalar - number of disturbances or control inputs if flag=0
-% nscalar - number of regulated or observed outputs if flag=2
 % Rop - 2D PI operator 
 % psize - size of the PIE problem: all variables defining the size of the PIE problem
-% flag = 0 if a structure only contains the left column (for Tw, Tu, B1 and B2
+% flag = 0 if a structure has only the first row and is acting on disturbances or control inputs (for D11, D12,
+% D21, D22 operators)
+% flag = 1 if a structure is a full operator acting on disturbances or control inputs (for Tw, Tu, B1 and B2
 % operators)
-% flag = 1 if a structure is a full operator (for A and T)
-% flag = 2 if a structure has only the first row (for C1, C2
-% operators)
+% flag = 2 if a structure has only the first row and acts on the PDE + ODE states (for C1, C2 operators)
+% flag = 3 if a structure is a full operator acting on the PDE+ODE states (for A and T)
 %
 % Outputs:
 % A - square discretization matrix that transforms spatio-temporal PIE into
@@ -33,7 +31,7 @@
 %
 % Initial coding YP  - 4_16_2024
 
-function [A, A_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(nscalar, Rop, psize, flag)
+function [A, A_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(Rop, psize, flag)
 
 N=psize.N;
 
@@ -85,19 +83,19 @@ end
 
 % Discretize the first column
 
-if (nscalar>0)
+if size(Rop.R00,2)>0
 
-% R00block: size nscalar x nscalar 
+% R00block 
  R00block=double(Rop.R00);
 
- if (flag~=2)
+ if (mod(flag,2)==1)
 
 % Rx0block 
     if(sum(psize.nx)>0)
     if (nargout==1)
-    Rx0block{1}= PIESIM_Poly2Mat_cheb(N, nscalar, Rop.Rx0, px);
+    Rx0block{1}= PIESIM_Poly2Mat_cheb(N, Rop.Rx0, px);
     else
-    [Rx0block{1}, Rx0block{2}]=PIESIM_Poly2Mat_cheb(N, nscalar, Rop.Rx0, px);
+    [Rx0block{1}, Rx0block{2}]=PIESIM_Poly2Mat_cheb(N, Rop.Rx0, px);
     end
     end   % Rx0 block
 
@@ -106,9 +104,9 @@ if (nscalar>0)
 
     if(sum(psize.ny)>0)
     if (nargout==1)
-    Ry0block{1}= PIESIM_Poly2Mat_cheb(N, nscalar, Rop.Ry0, py);
+    Ry0block{1}= PIESIM_Poly2Mat_cheb(N,Rop.Ry0, py);
     else
-    [Ry0block{1}, Ry0block{2}]=PIESIM_Poly2Mat_cheb(N, nscalar, Rop.Ry0, py);
+    [Ry0block{1}, Ry0block{2}]=PIESIM_Poly2Mat_cheb(N, Rop.Ry0, py);
     end
     end   % Ry0 block
 
@@ -116,75 +114,87 @@ if (nscalar>0)
 
      if(sum(psize.n)>0)
      if (nargout==1)
-     R20block{1}= PIESIM_Poly2Mat_cheb_2D(N, nscalar, Rop.R20, p);
+     R20block{1}= PIESIM_Poly2Mat_cheb_2D(N, Rop.R20, p);
      else
-     [R20block{1}, R20block{2}]= PIESIM_Poly2Mat_cheb_2D(N, nscalar, Rop.R20, p);
+     [R20block{1}, R20block{2}]= PIESIM_Poly2Mat_cheb_2D(N,Rop.R20, p);
      end
      end %R20 block
 
  end %flag 
 
-end % nscalar = first column
+end % size(Rop.R00,2) = first column
 
 % Discretize the second column
 
-if (sum(psize.nx)>0 & flag~=0)
+if (size(Rop.R0x,2)>0)
+
+    if (flag<=1)
+    pcol=zeros(size(Rop.R0x,2),1);
+    else
+    pcol=px;
+    end
 
     % R0x block
 
-    if (nscalar>0)
-        R0xblock=PIESIM_PI2Mat_cheb_opint_discretize(N, nscalar, Rop.R0x, px);
-    end % nscalar = R0x block
+    if (size(Rop.R0x,1)>0)
+        R0xblock=PIESIM_PI2Mat_cheb_opint_discretize(N, Rop.R0x, pcol);
+    end % R0x block
 
-if (flag~=2)
+if (mod(flag,2)==1)
       % Rxx block
       Rn.R0=Rop.Rxx{1};
       Rn.R1=Rop.Rxx{2};
       Rn.R2=Rop.Rxx{3};
      if (nargout==1)
-        Rxxblock{1}=PIESIM_3PI2Mat_cheb(N, Rn, px);
+        Rxxblock{1}=PIESIM_3PI2Mat_cheb(N, Rn, px, pcol);
      else
-        [Rxxblock{1},Rxxblock{2}]=PIESIM_3PI2Mat_cheb(N, Rn, px);
+        [Rxxblock{1},Rxxblock{2}]=PIESIM_3PI2Mat_cheb(N, Rn, px, pcol);
      end
 
       % Ryx block
  if sum(psize.ny)>0
          if(nargout==1)
- Ryxblock{1}=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, px, py, 'x');
+ Ryxblock{1}=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, pcol, py, 'x');
          else
- [Ryxblock{1}, Ryxblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, px, py, 'x');
+ [Ryxblock{1}, Ryxblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, pcol, py, 'x');
          end
  end
 
       % R2x block
      if sum(psize.n)>0
          if(nargout==1)
-     R2xblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, p, px, 'x');
+     R2xblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, p, pcol, 'x');
          else
-     [R2xblock{1},R2xblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, p, px,'x');
+     [R2xblock{1},R2xblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, p, pcol,'x');
     end
  end
 
-end % flag~=2
+end % flag
 
 end % second column
 
 % Discretize the third column
 
-if (sum(psize.ny)>0 & flag~=0)
+if (size(Rop.R0y,2)>0)  
+    if (flag<=1)
+    pcol=zeros(size(Rop.R0y,2),1);
+    else
+    pcol=py;
+    end
+
 
 % R0y block
-    if (nscalar>0)
-        R0yblock=PIESIM_PI2Mat_cheb_opint_discretize(N, nscalar, Rop.R0y, py);
-    end % nscalar = R0x block
+    if (size(Rop.R0y,1)>0)
+        R0yblock=PIESIM_PI2Mat_cheb_opint_discretize(N, Rop.R0y, pcol);
+    end % R0x block
 
-    if (flag~=2)
+    if (mod(flag,2)==1)
       % Rxy block
      if sum(psize.nx)>0
          if(nargout==1)
-    [Rxyblock{1}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, px, py, 'y');
+    [Rxyblock{1}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, px, pcol, 'y');
          else
-    [Rxyblock{1}, Rxyblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, px, py, 'y');
+    [Rxyblock{1}, Rxyblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, px, pcol, 'y');
          end
     end
 
@@ -193,58 +203,64 @@ if (sum(psize.ny)>0 & flag~=0)
       Rn.R1=Rop.Ryy{2};
       Rn.R2=Rop.Ryy{3};
       if (nargout==1)
-      Ryyblock{1}=PIESIM_3PI2Mat_cheb(N, Rn, py);
+      Ryyblock{1}=PIESIM_3PI2Mat_cheb(N, Rn, py, pcol);
       else
-      [Ryyblock{1},Ryyblock{2}]=PIESIM_3PI2Mat_cheb(N, Rn, py);
+      [Ryyblock{1},Ryyblock{2}]=PIESIM_3PI2Mat_cheb(N, Rn, py, pcol);
       end
 
       % R2y block
     if sum(psize.n)>0
          if(nargout==1)
-     R2yblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, p, py, 'y');
+     R2yblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, p, pcol, 'y');
          else
-     [R2yblock{1},R2yblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, p, py,'y');
+     [R2yblock{1},R2yblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, p, pcol,'y');
     end
     end
 
-end % flag~=2
+end % flag
 
 end % third column
 
 
 % Discretize the fourth column
 
-if (sum(psize.n)>0 & flag~=0)
-
-    % R02 block
-    if (nscalar>0)
-    R02block=PIESIM_PI2Mat_cheb_opint_discretize_2to0(N, nscalar, Rop.R02, p);
+if (size(Rop.R02,2)>0)
+    if (flag<=1)
+    pcol=zeros(size(Rop.R02,2),1);
+    else
+    pcol=p;
     end
 
-    if (flag~=2)
+    % R02 block
+    if (size(Rop.R02,1)>0)
+    R02block=PIESIM_PI2Mat_cheb_opint_discretize_2to0(N, Rop.R02, pcol);
+    end
+
+    if (mod(flag,2)==1)
 
     % Rx2 block 
     if sum(psize.nx)>0
     if(nargout==1)
-     Rx2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, p, px, 'x');
+     Rx2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, pcol, px, 'x');
          else
-     [Rx2block{1},Rx2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, p, px,'x');
+     [Rx2block{1},Rx2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, pcol, px,'x');
     end
     end
 
     % Ry2 block 
-    if sum(psize.ny)>0 if(nargout==1)
-     Ry2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, p, py, 'y');
+    if sum(psize.ny)>0 
+        if(nargout==1)
+     Ry2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, pcol, py, 'y');
          else
-     [Ry2block{1},Ry2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, p, py,'y');
+     [Ry2block{1},Ry2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, pcol, py,'y');
     end
     end
 
     % R22 block
      if (nargout==1) 
-     R22block{1}=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, p);
+     R22block{1}=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, p, pcol);
      else
-     [R22block{1}, R22block{2}]=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, p);
+     [R22block{1}, R22block{2}]=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, p, pcol);
      end
 
     end
@@ -256,12 +272,8 @@ end % fourth column
 A=[];
 A_nonsquare=[];
 
-if flag==0
-     A=[R00block; Rx0block{1}; Ry0block{1}; R20block{1}];
-     if (nargout>1)
-     A_nonsquare=[R00block; Rx0block{2}; Ry0block{2}; R20block{2}];
-     end
-elseif flag==1 
+
+if (mod(flag,2)==1)
      A=[R00block R0xblock R0yblock R02block; ...
         Rx0block{1} Rxxblock{1} Rxyblock{1} Rx2block{1};...
         Ry0block{1} Ryxblock{1} Ryyblock{1} Ry2block{1};...

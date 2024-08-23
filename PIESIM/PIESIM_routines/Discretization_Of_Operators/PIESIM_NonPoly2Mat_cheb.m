@@ -1,14 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_NonPoly2Mat_cheb.m     PIETOOLS 2021b
+% PIESIM_NonPoly2Mat_cheb.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - discrete matrix representation of a non-polymonial operator
 %
 % Inputs:
 % 1) N   - polynomial order of Chebyshev discretization polynomial
-% 2) no - number of disturbances
-% 3) vRop -  non-polynomial matrix operator size (n0+n1+n2) x no
-% 4) p - scalar - a "degree of smoothness" vector
-% 5) gridall - cell array of size 3 containing physical grid for n0, n1 and
+% 2) Rop -  non-polynomial matrix operator size (n0+n1+n2) x no
+% 3) p - scalar - a "degree of smoothness" vector
+% 4) gridall - cell array of size 3 containing physical grid for n0, n1 and
 % n2 states
 %
 % Outputs:
@@ -22,10 +21,11 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 11_27_2021
-function A=PIESIM_NonPOLy2Mat_cheb(N, no, Rop, p, gridall)
+function A=PIESIM_NonPOLy2Mat_cheb(N, Rop, p, gridall)
 pvar s theta
 syms sym_s sym_theta
 ns=size(p,2);
+no=size(Rop,2);
 
 
 for m=ns:-1:1

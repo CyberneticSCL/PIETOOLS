@@ -6,20 +6,14 @@
 % Inputs:
 % 1) uinput - user-defined boundary inputs, forcing and initial conditions
 % 2) psize - size of the PIE problem: all variables defining the size of the PIE problem
-% 3) grid - physical and computational grid for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
-% 4) gridall - cell array of size dmax containing physical grid for all states
+% 3) gridall - cell array of size dmax containing physical grid for all states
 % depending on their degree of differentiability; dmax corresponds to the
 % maximum degree of differentiability among all the states
 %  gridall.x - grids in x direction
 %  gridall.y - grids in y direction
-% 5) B1_neq0 - nx x nw array of type 'logical', specifying for each row
-%    i in (1:nx) and each column j in (1:nw) whether the element B1(i,j)
-%    of the PI operator B1 is nonzero, i.e. whether the disturbance w
-%    contributes to the state equation i.
 %
-% Outputs:
-% 1) coeff - Chebyshev coefficients for initial conditions and forcing functions
-% 2) B1_nonpol - contribution to the PIE B1 operator arising from non-polynomial in space forcing
+% Output:
+% coeff - Chebyshev coefficients for initial conditions and forcing functions
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -27,12 +21,8 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  04_16_2024
-% DJ, 07/16/2024 - add input "B1_neq0", to keep track of which state
-%                   equation each disturbance contributes to.
-%                  Also, add support for forcing to multiple state
-%                  components in multiple variables.
 
-function [coeff,B1_nonpol]=PIESIM_discretize_icf_2D(uinput,psize,grid,gridall,B1_neq0)
+function coeff=PIESIM_discretize_icf_2D(uinput,psize,gridall)
 
 syms sx sy st;
 
@@ -139,36 +129,61 @@ end
 
 coeff.acheb_f0=acheb_f0;
 
+% Discretize spatial contribution of u and w disturbnaces
 
-% Discretize matrix operator for non-polynomial in space forcing
-% Only assume forcing on one variable at this point 
-if isfield(uinput,'wspace')
-    ns_list = [psize.no; sum(psize.nx); sum(psize.ny); sum(psize.n)];
-    ns_list_cum = cumsum(ns_list);
-    Nonpol=sx*sy*zeros(ns_list_cum(end),nw);
-    % Set the non-polynomial spatial contribution of each disturbance to
-    % each state variable.
-    for k=1:nw
-        Nonpol(B1_neq0(:,k),k)=uinput.wspace(k);
-    end
-    % Express contribution in terms of Chebyshev coefficients.
-    % First set contribution to ODE states.
-    B1_nonpol = double(Nonpol(1:ns_list_cum(1),:));
-    % Then contribution to 1D PDE states in just x.
-    if ns_list_cum(1)<ns_list_cum(2)
-        B1_nonpol = [B1_nonpol;
-                    PIESIM_NonPoly2Mat_cheb(N, nw, Nonpol(ns_list_cum(1)+1:ns_list_cum(2),:), px, gridall.x)];
-    end
-    % Then contribution to 1D PDE states in just y.
-    if ns_list_cum(2)<ns_list_cum(3)
-        B1_nonpol = [B1_nonpol; 
-                    PIESIM_NonPoly2Mat_cheb(N, nw, Nonpol(ns_list_cum(2)+1:ns_list_cum(3),:), py, gridall.y)];
-    end
-    % And finally contribution to 2D PDE states.
-    if ns_list_cum(3)<ns_list_cum(4)
-        B1_nonpol = [B1_nonpol; 
-                    PIESIM_NonPoly2Mat_cheb_2D(N, nw, Nonpol(ns_list_cum(3)+1:ns_list_cum(4),:), p, gridall)];
-    end
-else
-    B1_nonpol=[];   
-end
+coeff.u=1;
+coeff.w=1;
+
+ if isfield(uinput,'wspace')
+     Nforce=psize.nw0+(N+1)*(psize.nwx+psize.nwy)+(N+1)^2*psize.nw2;
+     coeff.w=zeros(Nforce,nw);
+         k=0;
+         index=1;
+         for kk=1:psize.nw0
+         k=k+1;
+             coeff.w(index,k)=1;
+             index=index+1;
+         end
+         for kk=1:psize.nwx
+             k=k+1;
+             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace(k), 0, gridall.x);
+             index=index+N+1;
+         end 
+         for kk=1:psize.nwy
+             k=k+1;
+             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace(k), 0, gridall.y);
+             index=index+N+1;
+         end
+         for kk=1:psize.nw2
+             k=k+1;
+             coeff.w(index:index+(N+1)^2-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace(k), 0, gridall);
+             index=index+(N+1)^2;
+         end
+ end
+
+ if isfield(uinput,'uspace')
+     Nforce=psize.nu0+N*(psize.nux+psize.nuy)+N^2^psize.nu2;
+     coeff.w=zeros(Nforce,nu);
+         k=0;
+         index=1;
+         for kk=1:psize.nu0
+         k=k+1;
+             coeff.u(index,k)=1;
+             index=index+1;
+         end
+         for kk=1:psize.nux
+             k=k+1;
+             coeff.u(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.uspace(k), 0, gridall.x);
+             index=index+N+1;
+         end 
+         for kk=1:psize.nwy
+             k=k+1;
+             coeff.u(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.uspace(k), 0, gridall.y);
+             index=index+N+1;
+         end
+         for kk=1:psize.nw2
+             k=k+1;
+             coeff.u(index:index+(N+1)^2-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace(k), 0, gridall);
+             index=index+(N+1)^2;
+         end
+ end

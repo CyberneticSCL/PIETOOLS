@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_PI2Mat_cheb_opmult_discretize.m     PIETOOLS 2021b
+% PIESIM_PI2Mat_cheb_opmult_discretize.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A, A_nonsquare - discrete matrix representations of a polymonial
 % multiplicative operator 

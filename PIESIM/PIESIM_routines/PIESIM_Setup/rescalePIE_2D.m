@@ -1,12 +1,20 @@
-function PIE = rescalePIE_2D(PIE,dom,I)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% rescalePIE_2D.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding YP - 4_16_2024
+
+function PIE = rescalePIE_2D(PIE,I)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIE = rescalePIE_2D(PIE,I) takes in a PIE structure and spatial domain 
 % I = [a,b;c,d], and outputs an equivalent PIE structure on I domain. 
 %
 % INPUT:
 %
-% T: a 2D PI operator
-% dom: original domain
+% T: a 2D PI operator defined on an original domain
 % I: new domain
 % 
 % NOTES:
@@ -45,28 +53,28 @@ elseif nargin>3
     error("Incorrect number of inputs; only 3 inputs are allowed");
 end
 
-PIE.T = transl_2D(PIE.T,dom,I);
-PIE.A = transl_2D(PIE.A,dom,I);
+PIE.T = transl_2D(PIE.T,I);
+PIE.A = transl_2D(PIE.A,I);
 
 if isfield(PIE,'T0')
-PIE.T0 = transl_2D(PIE.T0,dom,I);
+PIE.T0 = transl_2D(PIE.T0,I);
 end
-PIE.Tw = transl_2D(PIE.Tw,dom,I);
-PIE.Tu = transl_2D(PIE.Tu,dom,I);
-PIE.B1 = transl_2D(PIE.B1,dom,I);
-PIE.B2 = transl_2D(PIE.B2,dom,I);
-PIE.C1 = transl_2D(PIE.C1,dom,I);
-PIE.C2 = transl_2D(PIE.C2,dom,I);
-PIE.D11 = transl_2D(PIE.D11,dom,I);
-PIE.D12 = transl_2D(PIE.D12,dom,I);
-PIE.D21 = transl_2D(PIE.D21,dom,I);
-PIE.D22 = transl_2D(PIE.D22,dom,I);
+PIE.Tw = transl_2D(PIE.Tw,I);
+PIE.Tu = transl_2D(PIE.Tu,I);
+PIE.B1 = transl_2D(PIE.B1,I);
+PIE.B2 = transl_2D(PIE.B2,I);
+PIE.C1 = transl_2D(PIE.C1,I);
+PIE.C2 = transl_2D(PIE.C2,I);
+PIE.D11 = transl_2D(PIE.D11,I);
+PIE.D12 = transl_2D(PIE.D12,I);
+PIE.D21 = transl_2D(PIE.D21,I);
+PIE.D22 = transl_2D(PIE.D22,I);
 
 if isfield(PIE,'L')
-PIE.L = transl_2D(PIE.L,dom,I);
+PIE.L = transl_2D(PIE.L,I);
 end
 if isfield(PIE,'K')
-PIE.K =transl_2D(PIE.K,dom,I);
+PIE.K =transl_2D(PIE.K,I);
 end
 
 end

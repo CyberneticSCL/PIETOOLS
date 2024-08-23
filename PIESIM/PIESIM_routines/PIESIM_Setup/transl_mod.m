@@ -1,6 +1,15 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% transl_mod.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding YP - 6_1_2021
+
 function T = transl_mod(T,I)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% T = transl(T,I) takes in a 4-PI operator T that acts on
+% T = transl_mod(T,I) takes in a 4-PI operator T that acts on
 % functions in the interval [a,b] and changes it to a 4-PI operator that
 % acts on functions on the interval [c,d].
 %

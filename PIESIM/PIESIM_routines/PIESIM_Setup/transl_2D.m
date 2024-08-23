@@ -1,13 +1,21 @@
-function T = transl_2D(T,dom,I)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% T = transl(T,dom,I) takes in a full 2D PI operator T that acts on
-% functions on the domain 'dom' and changes it to a 2D PI operator that
+% transl_2D.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding YP - 4_16_2024
+
+function T = transl_2D(T,I)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% T = transl_2D(T,I) takes in a full 2D PI operator T that acts on
+% functions on the original domain and changes it to a 2D PI operator that
 % acts on functions on the domain I.
 %
 % INPUT:
 %
 % T: a 2D PI operator
-% dom: original domain
 % I: new domain
 % 
 % NOTES:
@@ -39,7 +47,7 @@ function T = transl_2D(T,dom,I)
 %
 % Initial coding YP  - 4_16_2024
 
-I_init = dom;
+I_init = T.I;
 ax = I_init(1,1);
 bx = I_init(1,2);
 ay = I_init(2,1);

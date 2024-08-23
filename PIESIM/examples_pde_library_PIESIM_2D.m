@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_pde_library_PIESIM_2D.m     PIETOOLS 2021b
+% examples_pde_library_PIESIM_2D.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This file contains a library of 2D examples to use with PIESIM that includes: 
-% PDE systems and coupled PDE/ODE systems. 
+% PDE sys+++tems and coupled PDE/ODE systems. 
 % Each example sets up the PDE structure of the system, 
 % defines initial and boundary conditions, and, if applicable, 
 % an exact PDE solution for verification (exact solution for PDE/ODE systems
@@ -37,12 +37,12 @@ switch example
     
     % NOTE: uinput.ic.PDE signifies initial conditions
     %       uinput.w, uinput.u signifies inhomogeneous inputs (either through
-    %       boundary conditions or disctibuted)
+    %       boundary conditions or distributed)
     
-    % In the following examples: spatial variable is denoted as x
+    % In the following examples: spatial variables are denoted as x, y
     % Temporal variable is denoted as t
-    % Symbolic variabls for x is sx, and a symbolic variable for t is st
-    % Domain boundaries are specified as x\in[a,b]
+    % Symbolic variabls for x is sx, for y is sy, and a symbolic variable for t is st
+    % Domain boundaries are specified as x\in[a,b]x[c,d]
     
 %----------------------------------------
 % Parabolic equation examples
@@ -1216,7 +1216,7 @@ case 15
 
 % % Set the spatial domain 
 a=0;   b=1;
-c=0;   d=1;
+c=0;   d=2;
 uinput.dom=[a b;c d]; 
 
 % Set the wave velocity 
@@ -1328,8 +1328,6 @@ uinput.exact([1,2]) = int(u_ex,sy,c,d);
 uinput.exact([3,4]) = int(u_ex,sx,a,b);
 uinput.exact([5,6]) = u_ex;
 
-
-
 %----------------------------------------
 %% Example 16 - 2D wave equation with Periodic BCs along x-direction
 %----------------------------------------
@@ -1340,7 +1338,7 @@ case 16
 % %   u(x,c,t)=0;           u_{y}(x,d,t)=0;
 % % With initial conditions
 % %     u(x,y) = ampl0*sin(0.5*pi/(d-c)*y) +ampl1*sin(freq*pi*x-shft)*sin(2.5*pi/(d-c)*y);
-% %     u_{t}(x,t) = ampl2*C*sqrt((freq*pi)^2 +(2.5*pi/(d-c))^2)*sin(freq*pi*x-shft)*sin(2.5*pi/(d-c)*y);
+% %     u_{t}(x,y) = ampl2*C*sqrt((freq*pi)^2 +(2.5*pi/(d-c))^2)*sin(freq*pi*x-shft)*sin(2.5*pi/(d-c)*y);
 % % We get an exact solution
 % %     u(x,y) = ampl0*sin(0.5*pi/(d-c)*y)*cos(C*0.5*pi/(d-c)*t) +sin(freq*pi*x-shft)*sin(2.5*pi/(d-c)*y)*(ampl1*cos(lam*t)+ampl2*sin(lam*t));
 
@@ -1350,9 +1348,14 @@ c=0;   d=1;
 uinput.dom=[a b;c d]; 
 
 % Set the wave velocity, and initial condition parameters.
-C = 2; 
-ampl0 = 3;      ampl1 = 2;     ampl2 = 1;
-freq = 3;       shft = 0.25*pi;
+%C = 1; 
+%ampl0 = 3;      ampl1 = 2;     ampl2 = 1;
+%freq = 3;       shft = 0.25*pi;
+
+C = 1; 
+ampl0 = 1;      ampl1 = 1;     ampl2 = 0;
+freq = 1;       shft = 0;
+
 
 % % % Construct the PDE.
 % % We cannot represent the peridoic boundary conditions direclty as PIE.
@@ -1387,7 +1390,7 @@ PDE.BC{1}.term{1}.x = 1;            PDE.BC{2}.term{1}.x = 1;
 PDE.BC{1}.term{1}.loc = c;          PDE.BC{2}.term{1}.loc = d;
                                     PDE.BC{2}.term{1}.D = 1;
 
-% int_{a}^{b}u(x,y,t)dy = U1(t,x);  u(a,y,t) = u(b,y,t);
+% int_{a}^{b}u(x,y,t)dx = U1(y,t);  u(a,y,t) = u(b,y,t);
 PDE.BC{3}.term{1}.x = 2;            PDE.BC{4}.term{1}.x = 2;
 PDE.BC{3}.term{1}.I = {[a,b];[]};   PDE.BC{4}.term{1}.loc = [a,s2];
 PDE.BC{3}.term{2}.x = 1;            PDE.BC{4}.term{2}.x = 2;
@@ -1420,7 +1423,7 @@ uinput.exact([3,4]) = u_ex;
 
 
 %----------------------------------------
-%% Example 17 - 2D wave equation with Periodic BCs along x-direction
+%% Example 17 - Coupled ODE - 1D PDE - 2D PDE system
 %----------------------------------------
 case 17
 % % Coupled ODE - 1D PDE - 2D PDE system
@@ -1449,6 +1452,10 @@ case 17
 % % Set the spatial domain 
 a=0;   b=1;
 c=0;   d=5;
+
+%a=-1;   b=1;
+%c=-1;   d=1;
+
 uinput.dom=[a b;c d]; 
 
 % Set the wave velocity and amplitude
@@ -1475,7 +1482,7 @@ PDE.x{2}.term{1}.D = [0;2];
 PDE.x{3}.term{1}.x = 3;     PDE.x{3}.term{1}.C = [0,1,0,0; 0,0,C^2*(d-c)^2/(25*pi^2),0];
 PDE.x{3}.term{1}.D = [0;2];
 
-% u3_{t}(x,y,t) = 0.5*visc/pi^2*((b-a)^2*u_{xx}+(d-c)^2/25 *u_{yy})
+% u3_{t}(x,y,t) = 0.5*C^2/pi^2*((b-a)^2*u_{xx}+(d-c)^2/25 *u_{yy})
 PDE.x{4}.term{1}.x = 4;     PDE.x{4}.term{1}.C = [0,1,0,0,0,0; 0,0,0.5*C^2/pi^2*(b-a)^2,0,0.5*C^2/pi^2*(d-c)^2/25,0];
 PDE.x{4}.term{1}.D = [0,0;2,0;0,2];
 
@@ -1531,15 +1538,15 @@ uinput.exact([7,8]) = u_ex;
 %----------------------------------------
 case 18
 % % Transport equation along x- and y-direction.
-% %   u_{t}(x,y,t) = -v*(u_{x}(x,y,t)+u_{y}(x,y,t)       (x,y) in [0,b]x[0,d]
+% %   u_{t}(x,y,t) = -v*(u_{x}(x,y,t)+u_{y}(x,y,t))      (x,y) in [0,b]x[0,d]
 % %   u1_{t}(x,t) = -v*u1_{x}(x,y,t) -w2;    
 % %   u2_{t}(y,t) = -v*u2_{y}(x,y,t) -w2;
 % % with BCs
 % %   u(0,y,t) = u2(y,t);     u(x,0,t) = u1(x,t);
 % %   u1(0,t) = w1(t);         u2(0,t) = w1(t)
 % % Starting with an initial condition
-% %   u(x,y,t) = ampl*(sin(x)+sin(y));
-% %   u1(x,t) = ampl*sin(x);        u2(y,t) = ampl*sin(y);
+% %   u(x,y,0) = ampl*(sin(x)+sin(y));
+% %   u1(x,0) = ampl*sin(x);        u2(y,0) = ampl*sin(y);
 % % And using forcing
 % %   w1(t) = 2*ampl*sin(-v*t);     w2 = ampl*v*cos(v*t)
 % % we get an exact solution
@@ -1547,9 +1554,11 @@ case 18
 % %   u1(x,t) = ampl*(sin(x-v*t) +sin(-v*t));     
 % %   u2(y,t) = ampl*(sin(y-v*t) +sin(-v*t));
 
-% % Set the spatial domain 
+% Set the spatial domain 
 a=0;   b=2*pi;
 c=0;   d=2*pi;
+
+
 uinput.dom=[a b;c d]; 
 
 % Set the wave velocity and amplitude
@@ -1592,25 +1601,26 @@ PDE.BC{3}.term{2}.C = -1;           PDE.BC{4}.term{2}.C = -1;
 % % Set the initial conditions
 % %   u(x,y,t) = ampl*(sin(x)+sin(y));
 % %   u1(x,t) = ampl*sin(x);        u2(y,t) = ampl*sin(y);
+
 u_ic = ampl*(sin(sx) +sin(sy));
 uinput.ic.x(1) = u_ic;
 uinput.ic.x(2) = subs(u_ic,sy,c);
 uinput.ic.x(3) = subs(u_ic,sx,a);
 
 % % Set the forcing
-% %   w1(t) = 2*ampl*sin(-v*t);     w2 = ampl*v*cos(v*t)
-uinput.w(1) = 2*ampl*sin(-v*st);    uinput.w(2) = ampl*v*cos(v*st);
+% %   w1(t) = 2*ampl*sin(-v*t);     w2 = ampl*v*cos(-v*t)
+uinput.w(1) = 2*ampl*sin(-v*st);    uinput.w(2) = ampl*v*cos(-v*st);
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*(sin(x-v*t) +sin(y-v*t));
 % %   u1(x,t) = ampl*(sin(x-v*t) +sin(-v*t));     
 % %   u2(y,t) = ampl*(sin(y-v*t) +sin(-v*t));
+
 u_ex = ampl*(sin(sx-v*st) +sin(sy-v*st));
+
 uinput.exact(1) = u_ex;
 uinput.exact(2) = subs(u_ex,sy,c);
 uinput.exact(3) = subs(u_ex,sx,a);
-
-
 
 %----------------------------------------
 %% Example 19 - Mixed diffusive equation

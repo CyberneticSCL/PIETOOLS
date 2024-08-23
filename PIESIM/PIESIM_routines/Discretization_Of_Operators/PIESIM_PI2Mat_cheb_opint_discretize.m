@@ -1,11 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_PI2Mat_cheb_opint_discretize.m     PIETOOLS 2021b
+% PIESIM_PI2Mat_cheb_opint_discretize.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - discrete matrix representation for the integrative Q1 operator  
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
-% no - number of ODE states
 % Rop - Q1 operator of dimension no x ns
 % p - vector of dimension 1xns -
 % a "degree of smoothness" structure for PDE, see Peet & Peet 2021 paper
@@ -22,10 +21,11 @@
 % Initial coding YP  - 6_30_2022% 
 % YP -  added support for an arbitary variable name - 04_16_2024
 
-function A=PIESIM_PI2Mat_cheb_opint_discretize(N, no, Rop, p);
+function A=PIESIM_PI2Mat_cheb_opint_discretize(N, Rop, p);
 pvar var s
 
 ns=size(p,2);
+no=size(Rop,1);
 
 if isa(Rop,'polynomial')
     deg=Rop.maxdeg;

@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_int_bdf.m    PIETOOLS 2021b
+% PIESIM_int_bdf.m    PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE with implicit
 % backward-difference formula (BDF) - unconditionally stable for diffusive
@@ -16,22 +16,29 @@
 % solcoeff - contains:
 % 1) solcoeff.acheb_f - Chebyshev coefficients of the final
 % solution, ODE+PDE states
-% 2) solcoeff.tf - final time of the solution 
-% 3) solcoeff.timedep.ode -
+% 2) solcoeff.w and solcoeff.u - Chebyshev coefficients of a spatial
+% component of forcing functions introduced through uinput.w and uinput.u
+% (time-independent, needed for reconstruction of the solution) 
+% 3) solcoeff.tf - final time of the solution 
+% 4) solcoeff.timedep.ode -
 % time-dependent Chebyshev coefficients of the ODE states of PIE system for
 % output (for ODE states, Chebyshev coefficients are equal to the solution
 % of the states, since the ODE states are not spatially dependent)
-% 4) solcoeff.timedep.pde -
+% 5) solcoeff.timedep.pde -
 % time-dependent Chebyshev coefficients of the PDE states of PIE system for output 
 % (for PDE states, an inverse Fourier transform needs to be performed to recover physical solution from its )
 % Chebyshev coefficients) 
-% 5)solcoeff.timedep.dtime - temporal stamps (discrete time values) of the time-dependent solution
+% 6)solcoeff.timedep.dtime - temporal stamps (discrete time values) of the time-dependent solution
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 5_26_2021
+
+% YP 8_18_2024 - added support for spatially-variant multiple disturbances
+% across multiple states (thrugh coeff.u, coeff.w)
+% Added solcoeff,u, solcoeff.w to solcoeff structure
 
 function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, Dop)
 nw=psize.nw;
@@ -99,12 +106,12 @@ t=0;
     % Contribution to inhomogeneous term due to boundary disturbances 
      if (isempty(B1cheb)==0&any(B1cheb,'all')~=0)
      wvec(:,1)=double(subs(uinput.w(:),t));
-     inhom=inhom+Mcheb_inv*B1cheb*wvec;
+     inhom=inhom+Mcheb_inv*B1cheb*coeff.w*wvec;
      end
     % Contribution to inhomogeneous term due to time derivative of boundary disturbances  
      if (isempty(Twcheb)==0&any(Twcheb,'all')~=0)
      wdotvec(:,1)=double(subs(uinput.wdot(:),t));
-     inhom=inhom-Mcheb_inv*Twcheb*wdotvec;
+     inhom=inhom-Mcheb_inv*Twcheb*coeff.w*wdotvec;
      end
      end
      
@@ -112,12 +119,12 @@ t=0;
     % Contribution to inhomogeneous term due to boundary inputs  
      if (isempty(B2cheb)==0&any(B2cheb,'all')~=0)
      uvec(:,1)=double(subs(uinput.u(:),t));
-     inhom=inhom+Mcheb_inv*B2cheb*uvec;
+     inhom=inhom+Mcheb_inv*B2cheb*coeff.u*uvec;
      end
     % Contribution to inhomogeneous term due to time derivative of boundary inputs  
      if (isempty(Tucheb)==0&any(Tucheb,'all')~=0)
      udotvec(:,1)=double(subs(uinput.udot(:),t));
-     inhom=inhom-Mcheb_inv*Tucheb*udotvec;
+     inhom=inhom-Mcheb_inv*Tucheb*coeff.u*udotvec;
      end
      end
     
@@ -194,6 +201,9 @@ t=0;
    % Chebyshev coefficients to output
        solcoeff.final=achebi;
        solcoeff.tf=t;
+
+       solcoeff.w=coeff.w;
+       solcoeff.u=coeff.u;
 
        
        

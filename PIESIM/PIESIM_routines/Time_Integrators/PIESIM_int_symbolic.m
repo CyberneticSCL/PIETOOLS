@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_int_symbolic.m    PIETOOLS 2021b
+% PIESIM_int_symbolic.m    PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE using a convolution integral in
 % a symbolic form
@@ -72,10 +72,10 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
             
              
              if (isempty(B1cheb)==0&any(B1cheb,'all')~=0)
-             inhom(j,:)=inhom(j,:)+(B1cheb*wvec).';
+             inhom(j,:)=inhom(j,:)+(B1cheb*coeff.w*wvec).';
              end
              if (isempty(Twcheb)==0&any(Twcheb,'all')~=0)
-             inhom(j,:)=inhom(j,:)-(Twcheb*wdotvec).';
+             inhom(j,:)=inhom(j,:)-(Twcheb*coeff.w*wdotvec).';
              end
              end % nw>0
              
@@ -99,10 +99,10 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
             
              
              if (isempty(B2cheb)==0&any(B2cheb,'all')~=0)
-             inhom(j,:)=inhom(j,:)+(B2cheb*uvec).';
+             inhom(j,:)=inhom(j,:)+(B2cheb*coeff.u*uvec).';
              end
              if (isempty(Tucheb)==0&any(Tucheb,'all')~=0)
-             inhom(j,:)=inhom(j,:)-(Tucheb*udotvec).';
+             inhom(j,:)=inhom(j,:)-(Tucheb*coeff.u*udotvec).';
              end
              end % nu>0
   

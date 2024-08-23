@@ -6,7 +6,6 @@
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
-% no - number of ODE states
 % Rop -  polynomial matrix operator 
 % p - scalar - a "degree of smoothness" vector
 %
@@ -27,9 +26,10 @@
 % Initial coding YP  - 4_16_2024
 % DJ, 07/17/24  - bugfix in case "Rop" is not polynomial;
 
-function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb_2D(N, no, Rop, p)
+function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb_2D(N, Rop, p)
 pvar s1 s2
 ns=size(p,2);
+no=size(Rop,2);
 
 for m=1:ns
 

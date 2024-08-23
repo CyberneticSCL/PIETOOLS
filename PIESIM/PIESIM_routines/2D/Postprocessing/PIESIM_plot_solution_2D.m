@@ -264,8 +264,17 @@ if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
     
     
     % Plot isosurface for numerical solution
+
+    % PIESIM stores nD solutions by columns, i.e., e.g., for u(x,y), the
+    % entries with fixed y and varying x are stored in columnes, and the
+    % entries with fixed x and varying y are stored in rows
+
+    % MATLAb surf routine does the opposite, so we plot the transpose of
+    % the solution vector to get a correct orienation in space 
+
+    % Solution is stored
     figure;
-    surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n));
+    surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n)');
     xlabel('x'), ylabel('y'), zlabel('Numerical Solution');
     ax = gca;
     ax.FontSize = 24;
@@ -277,7 +286,7 @@ if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
     if (uinput.ifexact==true)
     % Plot isosurface for analytical solution
     figure;
-    surf(exact_grid_x,exact_grid_y,exsol_grid);
+    surf(exact_grid_x,exact_grid_y,exsol_grid');
     xlabel('x'), ylabel('y'), zlabel('Analytical Solution');
     ax = gca;
     ax.FontSize = 24;
@@ -287,7 +296,7 @@ if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
     
     figure;
     % Plot isosurface for the diffefence between analytical and numerical solution
-    surf(grid.phys(:,1),grid.phys(:,2),exsol_numgrid-solution.final.pde{2}(:,:,n));
+    surf(grid.phys(:,1),grid.phys(:,2),exsol_numgrid'-solution.final.pde{2}(:,:,n)');
     xlabel('x'), ylabel('y'), zlabel('Error');
     title('Error in primary state solution',num2str(ng));
     end

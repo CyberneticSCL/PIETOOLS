@@ -6,11 +6,9 @@
 %
 % Inputs:
 % 1) N   - polynomial order of Chebyshev discretization polynomial
-% 2) no - number of non-spatially varying (finite-dimensional) states related through the
-% operator Rop
-% 3) Rop -  non-polynomial matrix operator 
-% 4) p - scalar (non-polynomial) - a "degree of smoothness" vector
-% 5) gridall - cell array of size dmax containing physical grid for all states
+% 2) Rop -  non-polynomial matrix operator 
+% 3) p - scalar (non-polynomial) - a "degree of smoothness" vector
+% 4) gridall - cell array of size dmax containing physical grid for all states
 % depending on their degree of differentiability; dmax corresponds to the
 % maximum degree of differentiability among all the states
 %  gridall.x - grids in x direction
@@ -28,9 +26,10 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-function A=PIESIM_NonPOLy2Mat_cheb_2D(N, no, Rop, p, gridall)
+function A=PIESIM_NonPOLy2Mat_cheb_2D(N, Rop, p, gridall)
 syms sx sy
 ns=size(p,2);
+no=size(Rop,2);
 
 for m=ns:-1:1
     rsize=N-p(m)+1;

@@ -1,13 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_4PI2Mat_cheb.m     PIETOOLS 2021b
+% PIESIM_4PI2Mat_cheb.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs a discrete version of the multi-dimensional 4PI operator  
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
-% no - number of ODE states if flag=1
-% no - number of disturbances or control inputs if flag=0
-% no - number of regulated or observed outputs if flag=2
 % Rop - 4PI operator 
 % p - vector of dimension 1xns -
 % a "degree of smoothness" structure for 3PI, see Peet & Peet 2021 paper
@@ -32,7 +29,7 @@
 % YP - added flag = 2 and corresponding discretizations - now supports
 % computing of observed and regulated outputs
 
-function [A, A_nonsquare]=PIESIM_4PI2Mat_cheb(N, no, Rop, p, flag)
+function [A, A_nonsquare]=PIESIM_4PI2Mat_cheb(N, Rop, p, flag)
 
 % Pblock: size no x no
 Pblock=double(Rop.P);
@@ -40,7 +37,7 @@ Pblock=double(Rop.P);
 % Q1block: size no x n0(N+1) n1N n2(N-1)
 
 if (flag==1)||(flag==2)
-    Q1block=PIESIM_PI2Mat_cheb_opint_discretize(N, no, Rop.Q1, p);
+    Q1block=PIESIM_PI2Mat_cheb_opint_discretize(N, Rop.Q1, p);
 end
 
 
@@ -49,7 +46,7 @@ end
 
 if (nargout==1)
     if flag~=2
-        Q2block= PIESIM_Poly2Mat_cheb(N, no, Rop.Q2, p);
+        Q2block= PIESIM_Poly2Mat_cheb(N, Rop.Q2, p);
     end
 if (flag==1)
     Rblock=PIESIM_3PI2Mat_cheb(N, Rop.R, p);
@@ -58,7 +55,7 @@ else
 % Q2block_nonsquare: size n0n1n2(N+1)^3 x no
 % Rblock_nonsquare: size  n0n1n2(N+1)^3 x n0(N+1) n1N n2(N-1)
 if flag~=2
-[Q2block, Q2block_nonsquare]= PIESIM_Poly2Mat_cheb(N, no, Rop.Q2, p);
+[Q2block, Q2block_nonsquare]= PIESIM_Poly2Mat_cheb(N, Rop.Q2, p);
 end
 if (flag==1)
 [Rblock, Rblock_nonsquare]=PIESIM_3PI2Mat_cheb(N, Rop.R, p);

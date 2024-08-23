@@ -73,12 +73,10 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      end
      C1op=Dop.C1cheb;
      C2op=Dop.C2cheb;
-     D11op=PIE.D11.R00;
-     D12op=PIE.D12.R00;
-     D21op=PIE.D21.R00;
-     D22op=PIE.D22.R00;
-     Tu=PIE.Tu;
-     Tw=PIE.Tw;
+     D11op=Dop.D11cheb;
+     D12op=Dop.D12cheb;
+     D21op=Dop.D21cheb;
+     D22op=Dop.D22cheb;
 
      if (solcoeff.tf~=opts.tf) 
      disp('Warning: solution final time does not match user input final time');
@@ -90,87 +88,22 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 
  % Reconstruction of the coefficients of the primary states
    acheb_p = Mcheb_nonsquare*solcoeff.final;
-
- %  acheb_p=inv(Dop.Mcheb_inv)*solcoeff.final;
           
  % Reconstuctution of primary states in the physical space    
      
      % Define inhomogeneous contributions due to boundary disturbances 
      if (psize.nw>0)
      wvec(:,1)=double(subs(uinput.w(:),tf));
-
-     if ~isempty(Tw.Rx0) 
-     bc{1}=Tw.Rx0*wvec;
-     else
-     bc{1}=zeros(size(Tw,1));
-     end
-
-     if ~isempty(Tw.Ry0) 
-     bc{2}=Tw.Ry0*wvec;
-     else
-     bc{2}=zeros(size(Tw,1));
-     end
-
-     if ~isempty(Tw.R20) 
-     bc{3}=Tw.R20*wvec;
-     else
-     bc{3}=zeros(size(Tw,1));
-     end
-     
-     nshift=[0 nx nx+ny];
-     for k=1:3
-     if (isa(bc{k},'polynomial') & bc{k}.maxdeg>0)   
-     coeff=zeros(bc{k}.maxdeg+1,size(bc{k},1));
-     if(~isempty(bc{k}.degmat))
-         for nterms=1:bc{k}.nterms 
-         coeff(bc{k}.degmat(nterms)+1,:)=bc{k}.coefficient(nterms,:);
-         end
-     else
-         coeff(:)=bc{k}.coefficient(:);
-     end
-     coeff=flipud(coeff);
-     for n=1:size(coeff,2);
-     bcw_input(:,n+nshift(k))=polyval(coeff(:,n),grid.comp);
-     end
-     else % bc{k}.maxdeg=0 --> scalar entry
-     for n=1:length(bc{k})
-         if (k<3)
-     bcw_input{n+nshift(k)}(1:length(grid.comp),:)=double(bc{k}(n));
-         else
-     bcw_input{n+nshift(k)}(1:length(grid.comp),1:length(grid.comp))=double(bc{k}(n));
-         end
-     end
-     end % isa(bc{k},'polynomial') & bc{k}.maxdeg>0)
-     end %k=1:3
+     acheb_p=acheb_p+Dop.Twcheb_nonsquare*solcoeff.w*wvec;
      end % psize.nw>0
-     
-     
+
+
      % Define inhomogeneous contributions due to boundary inputs
      if (psize.nu>0)
      uvec(:,1)=double(subs(uinput.u(:),tf));
-     bc=Tu.Q2*uvec;
-
-     if (isa(bc,'polynomial') & bc{k}.maxdeg>0)  
-     coeff=zeros(bc.maxdeg+1,size(bc,1));
-     if(~isempty(bc.degmat))
-     for nterms=1:bc.nterms 
-       coeff(bc.degmat(nterms)+1,:)=bc.coefficient(nterms,:);
-     end
-     else
-     coeff(:)=bc.coefficient(:);
-     end
-
-     coeff=flipud(coeff);
-     for n=1:size(coeff,2);
-     bcu_input(:,n)=polyval(coeff(:,n),grid.comp);
-     end
-     else
-     for n=1:length(bc)
-     bcu_input(1:length(grid.comp),n)=bc(n);
-     end
-     end
-     end %psize.nu>0
-
+     acheb_p=acheb_p+Dop.Tucheb_nonsquare*solcoeff.u*uvec;
+     end % psize.nu>0
+     
      
      % Reconstruct solution using inverse Chebyshev transform 
 
@@ -181,15 +114,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
          n2=no+n*(N+1);
      acheb_p_local=acheb_p(n1:n2);
      solution.final.pde{1}(:,n) = ifcht(acheb_p_local);
-      % Add contribution to solution due to inhomogeneous boundary inputs
-      % and disturbances 
-     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
-         solution.final.pde{1}(:,n)=solution.final.pde{1}(:,n)+bcw_input{n};
-     end % endif
-     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
-     solution.final.pde{1}(:,n)=solution.final.pde{1}(:,n)+bcu_input(:,n);
-     end % endif
-     end % ns
+     end % nx
 
      for n=1:ny
          ng=nx+n;
@@ -197,15 +122,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
          n2=no+nx*(N+1)+n*(N+1);
      acheb_p_local=acheb_p(n1:n2);
      solution.final.pde{1}(:,ng) = ifcht(acheb_p_local);
-      % Add contribution to solution due to inhomogeneous boundary inputs
-      % and disturbances 
-     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
-         solution.final.pde{1}(:,ng)=solution.final.pde{1}(:,ng)+bcw_input{ng};
-     end % endif
-     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
-     solution.final.pde{1}(:,ng)=solution.final.pde{1}(:,ng)+bcu_input(:,ng);
-     end % endif
-     end % ns
+     end % ny
 
      % Reconstruct 2D states
      for n=1:ns
@@ -215,16 +132,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      acheb_p_local_2D=acheb_p(n1:n2);
      acheb_local_2D=reshape(acheb_p_local_2D,N+1,N+1);
      solution.final.pde{2}(:,:,n)=fcgltran2d(acheb_local_2D,0);
-      % Add contribution to solution due to inhomogeneous boundary inputs
-      % and disturbances
-
-      if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
-      solution.final.pde{2}(:,:,n)=solution.final.pde{2}(:,:,n)+bcw_input{ng};
-      end
-      if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
-      solution.final.pde{2}(:,:,n)=solution.final.pde{2}(:,:,n)+bcu_input(:,ng);
-      end
-     end
+     end % ns
      solution.final.ode=solcoeff.final(1:no);
 
 %   Reconstruction of observed and regulated outputs
@@ -232,20 +140,20 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
     if(psize.nro>0)
     solution.final.regulated=C1op*solcoeff.final;
     if (psize.nw>0)
-    solution.final.regulated=solution.final.regulated+D11op*wvec(:,1);
+    solution.final.regulated=solution.final.regulated+D11op*solcoeff.w*wvec(:,1);
     end
     if (psize.nu>0)
-    solution.final.regulated=solution.final.regulated+D12op*uvec(:,1);
+    solution.final.regulated=solution.final.regulated+D12op*solcoeff.u*uvec(:,1);
     end
     end
 
     if(psize.noo>0)
     solution.final.observed=C2op*solcoeff.final;
     if (psize.nw>0)
-    solution.final.observed=solution.final.observed+D21op*wvec(:,1);
+    solution.final.observed=solution.final.observed+D21op*solcoeff.w*wvec(:,1);
     end
     if (psize.nu>0)
-    solution.final.observed=solution.final.observed+D22op*uvec(:,1);
+    solution.final.observed=solution.final.observed+D22op*solcoeff.u*uvec(:,1);
     end
     end
      
@@ -278,8 +186,6 @@ if (opts.intScheme==1&opts.tf~=0)
          
  % Reconstruction of the coefficients of the primary states
          acheb_p = Mcheb_nonsquare*solcoeff.timedep.coeff(:,ntime);
-
-   %      acheb_p=inv(Dop.Mcheb_inv)*solcoeff.timedep.coeff(:,ntime);
          
          tt=solution.timedep.dtime(ntime);
          
@@ -289,93 +195,32 @@ if (opts.intScheme==1&opts.tf~=0)
      % Define inhomogeneous contributions due to disturbances
      if (psize.nw>0)
      wvec(:,1)=double(subs(uinput.w(:),tt));
-
-      if ~isempty(Tw.Rx0) 
-     bc{1}=Tw.Rx0*wvec;
-     else
-     bc{1}=zeros(size(Tw,1));
-     end
-
-     if ~isempty(Tw.Ry0) 
-     bc{2}=Tw.Ry0*wvec;
-     else
-     bc{2}=zeros(size(Tw,1));
-     end
-
-     if ~isempty(Tw.R20) 
-     bc{3}=Tw.R20*wvec;
-     else
-     bc{3}=zeros(size(Tw,1));
-     end
-     
-     nshift=[0 nx nx+ny];
-     for k=1:3
-
-     if (isa(bc{k},'polynomial') & bc{k}.maxdeg>0)     
-     coeff=zeros(bc{k}.maxdeg+1,size(bc{k},1));
-     if(~isempty(bc{k}.degmat))
-         for nterms=1:bc{k}.nterms 
-         coeff(bc{k}.degmat(nterms)+1,:)=bc{k}.coefficient(nterms,:);
-         end
-     else
-         coeff(:)=bc{k}.coefficient(:);
-     end
-     coeff=flipud(coeff);
-     for n=1:size(coeff,2);
-     bcw_input(:,n+nshift(k))=polyval(coeff(:,n),grid.comp);
-     end
-     else
-    for n=1:length(bc{k})
-         if (k<3)
-     bcw_input{n+nshift(k)}(1:length(grid.comp),:)=double(bc{k}(n));
-         else
-     bcw_input{n+nshift(k)}(1:length(grid.comp),1:length(grid.comp))=double(bc{k}(n));
-         end
-    end % n=1:length(bc{k})
-     end % isa(bc{k},'polynomial')
-
-     end %k=1:3
-     end % psize.nw>0
+     acheb_p=acheb_p+Dop.Twcheb_nonsquare*solcoeff.w*wvec;
 
      % Add disturbances to regulated and observed outputs
      if(psize.nro>0)
-     solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D11op*wvec(:,1);
+     solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D11op*solcoeff.w*wvec(:,1);
      end
      if(psize.noo>0)
-     solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D21op*wvec(:,1);
+     solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D21op*solcoeff.w*wvec(:,1);
      end
+
+     end % psize.nw>0
 
      % Define inhomogeneous contributions due to controlled inputs
-     if (psize.nu>0)
+    if (psize.nu>0)
      uvec(:,1)=double(subs(uinput.u(:),tt));
-     bc=Tu.Q2*uvec;
-     if (isa(bc,'polynomial') & bc{k}.maxdeg>0)  
-     coeff=zeros(bc.maxdeg+1,size(bc,1));
-     if (~isempty(bc.degmat))
-     for nterms=1:bc.nterms 
-       coeff(bc.degmat(nterms)+1,:)=bc.coefficient(nterms,:);
-     end
-     else
-     coeff(:)=bc.coefficient(:);
-     end
+     acheb_p=acheb_p+Dop.Tucheb_nonsquare*solcoeff.u*uvec;
 
-     coeff=flipud(coeff);
-     for n=1:size(coeff,2);
-     bcu_input(:,n)=polyval(coeff(:,n),grid.comp);
-     end
-     else
-     for n=1:length(bc)
-     bcu_input(1:length(grid.comp),n)=bc(n);
-     end
-     end
-     % Add controled inputs to regulated and observed outputs
+      % Add control inputs to regulated and observed outputs
      if(psize.nro>0)
-     solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D12op*uvec(:,1);
+     solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D12op*solcoeff.u*uvec(:,1);
      end
      if(psize.noo>0)
-     solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D22op*uvec(:,1);
+     solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D22op*solcoeff.u*uvec(:,1);
      end
-     end % if (psize.nu>0)
+
+     end % psize.nu>0
      
 
      % Reconstruct solution using inverse Chebyshev transform 
@@ -387,15 +232,7 @@ if (opts.intScheme==1&opts.tf~=0)
          n2=no+n*(N+1);
      acheb_p_local=acheb_p(n1:n2);
      solution.timedep.pde{1}(:,n,ntime) = ifcht(acheb_p_local);
-      % Add contribution to solution due to inhomogeneous boundary inputs
-      % and disturbances 
-     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
-         solution.timedep.pde{1}(:,n,ntime)=solution.timedep.pde{1}(:,n,ntime)+bcw_input{n};
-     end % endif
-     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
-     solution.timedep.pde{1}(:,n,ntime)=solution.timedep.pde{1}(:,n,ntime)+bcu_input(:,n);
-     end % endif
-     end % ns
+     end % nx
 
      for n=1:ny
          ng=nx+n;
@@ -403,15 +240,7 @@ if (opts.intScheme==1&opts.tf~=0)
          n2=no+nx*(N+1)+n*(N+1);
      acheb_p_local=acheb_p(n1:n2);
      solution.timedep.pde{1}(:,ng,ntime) = ifcht(acheb_p_local);
-      % Add contribution to solution due to inhomogeneous boundary inputs
-      % and disturbances 
-     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0)))) 
-         solution.timedep.pde{1}(:,ng,ntime)=solution.timedep.pde{1}(:,ng,ntime)+bcw_input{ng};
-     end % endif
-     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
-     solution.timedep.pde{1}(:,ng,ntime)=solution.timedep.pde{1}(:,ng,ntime)+bcu_input(:,ng);
-     end % endif
-     end % ns
+     end % ny
 
      % Reconstruct 2D states
      for n=1:ns
@@ -421,22 +250,11 @@ if (opts.intScheme==1&opts.tf~=0)
      acheb_p_local=acheb_p(n1:n2);
      acheb_local_2D=reshape(acheb_p_local,N+1,N+1);
      solution.timedep.pde{2}(:,:,n,ntime)=fcgltran2d(acheb_local_2D,0);
-
-%     acheb_p_local=acheb_p(no+1+(n-1)*(N+1):no+n*(N+1));
-
-      % Add contribution to solution due to inhomogeneous boundary inputs
-      % and disturbances 
-     if(psize.nw>0 && ~isempty(bcw_input) && (~isdouble(bcw_input) || ~all(all(bcw_input==0))))
-         solution.timedep.pde{2}(:,:,n,ntime)=solution.timedep.pde{2}(:,:,n,ntime)+bcw_input{ng};
-     end
-     if(psize.nu>0 && ~isempty(bcu_input) && (~isdouble(bcu_input) || ~all(all(bcu_input==0))))
-     solution.timedep.pde{2}(:,:,n,ntime)=solution.timedep.pde{2}(:,:,n,ntime)+bcu_input(:,ng);
-     end
-     end
+     end % ns
 
     
- end
+     end % ntime
+
+end %  if (opts.intScheme==1&opts.tf~=0)
      
-     
-end
 %  

@@ -1,6 +1,6 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_pde_library_PIESIM_1D.m     PIETOOLS 2021b
+% examples_pde_library_PIESIM_1D.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This file contains a library of 1D examples to use with PIESIM that includes: 
 % PDE systems and coupled PDE/ODE systems. 
@@ -302,44 +302,44 @@ switch example
             visc = 0.5; 
 
 %             % Batch format
-%              PDE.n0=0; PDE.n1=0; PDE.n2=1; 
-%              PDE.nw=4; 
-%              PDE.A0=0; PDE.A1=0; PDE.A2=visc;
-%              PDE.B=[1 0 0 0;0 1 0 0];
-%              PDE.Bw=[1 0 0 0;0 1 0 0]; 
-% 
-% %            Non-polynomial in space forcing needs to be entered through
-% %            symbolic PDE.B21_nonpol matrix
-%             PDE.B21_nonpol=sx*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
-%             PDE.B21_nonpol(1,3:4)=[sin(pi*sx) visc*pi^2*sin(pi*sx)];
+             PDE.n0=0; PDE.n1=0; PDE.n2=1; 
+             PDE.nw=4; 
+             PDE.A0=0; PDE.A1=0; PDE.A2=visc;
+             PDE.B=[1 0 0 0;0 1 0 0];
+             PDE.Bw=[1 0 0 0;0 1 0 0]; 
+
+%            Non-polynomial in space forcing needs to be entered through
+%            symbolic PDE.B21_nonpol matrix
+            PDE.B21_nonpol=sx*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
+            PDE.B21_nonpol(1,3:4)=[sin(pi*sx) visc*pi^2*sin(pi*sx)];
 
             % Terms format
 
-             PDE.n.n_pde=[0,0,1];
-             PDE.n.nw=4;
-             PDE.n.nv=4;
-             PDE.PDE.A{1}.Lstate=2;
-             PDE.PDE.A{1}.Rstate=2;
-             PDE.PDE.A{1}.D=2;
-             PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=visc;
-
-             % BCs: u(x=a)       
-             PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
-             PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0;
-% % % % %  
-% % % % %    % BCs: u(x=b)
-             PDE.BC.Ebb{2}.coeff = [zeros(1);eye(1)];
-             PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1; 
-% % % % 
-% % % %      % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
-             PDE.BC.Ebv=[1 0 0 0;0 1 0 0];
-             PDE.ODE.Dvw=eye(4);
-
-            % Non-polynomial in space forcing needs to be entered through
-            % symbolic PDE.PDE.Bpw_nonpol matrix 
-            PDE.PDE.Bpw_nonpol=sx*zeros(sum(PDE.n.n_pde),PDE.n.nw);  
-            PDE.PDE.Bpw_nonpol(1,3:4)=[sin(pi*sx) visc*pi^2*sin(pi*sx)];
+%              PDE.n.n_pde=[0,0,1];
+%              PDE.n.nw=4;
+%              PDE.n.nv=4;
+%              PDE.PDE.A{1}.Lstate=2;
+%              PDE.PDE.A{1}.Rstate=2;
+%              PDE.PDE.A{1}.D=2;
+%              PDE.PDE.A{1}.I=0;
+%              PDE.PDE.A{1}.coeff=visc;
+% 
+%              % BCs: u(x=a)       
+%              PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
+%              PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0;
+% % % % % %  
+% % % % % %    % BCs: u(x=b)
+%              PDE.BC.Ebb{2}.coeff = [zeros(1);eye(1)];
+%              PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1; 
+% % % % % 
+% % % % %      % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
+%              PDE.BC.Ebv=[1 0 0 0;0 1 0 0];
+%              PDE.ODE.Dvw=eye(4);
+% 
+%             % Non-polynomial in space forcing needs to be entered through
+%             % symbolic PDE.PDE.Bpw_nonpol matrix 
+%             PDE.PDE.Bpw_nonpol=sx*zeros(sum(PDE.n.n_pde),PDE.n.nw);  
+%             PDE.PDE.Bpw_nonpol(1,3:4)=[sin(pi*sx) visc*pi^2*sin(pi*sx)];
   
 
 %           Exact solution, initial conditions and inhomogeneous inputs  

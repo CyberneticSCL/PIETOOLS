@@ -60,17 +60,17 @@ for i=1:ns_row
             R_mult=subs(Rstrip,var,1);
             if (flag==0)
             % Multiplicative operator in "dir" direction 
-            [op_mult,op_mult_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, R_mult, p(i));
+            [op_mult,op_mult_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, R_mult, p(j));
             else 
             % Integrative 3PI operator in "dir" direction 
             R_mult=R_mult*flag;
-            op_mult_nonsquare=PIESIM_3PI2Mat_cheb_opint_discretize(N, R_mult(1), R_mult(2), p(i));
+            op_mult_nonsquare=PIESIM_3PI2Mat_cheb_opint_discretize(N, R_mult(1), R_mult(2), p(j));
             op_mult=op_mult_nonsquare(1:rsize,:);
             end
             % Integrate in the other direction over the interval [-1,1]
             index = find(strcmp(Rstrip.varname, snstr));
             R_int=polynomial(1,Rstrip.degmat(1,index),Rstrip.varname(index),Rstrip.matdim);
-            op_int=PIESIM_PI2Mat_cheb_opint_discretize(N, 1, R_int, p(j));
+            op_int=PIESIM_PI2Mat_cheb_opint_discretize(N, R_int, p(j));
             if (dir=='x')
             for jrow=1:rsize
             int(jrow,:)=int(jrow,:)+kron(op_int,op_mult(jrow,:));

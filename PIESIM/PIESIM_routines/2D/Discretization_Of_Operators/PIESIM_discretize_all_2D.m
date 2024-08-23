@@ -30,15 +30,11 @@
 % of n1, n2 states (not needed outside PIESIM_discretize_all)
 
 % Discretize initial conditions and non-polynomial in space forcing matrix operator
-B1_neq0 = opvar2logical(PIE.B1,1e-16);
-[coeff, B1_nonpol]=PIESIM_discretize_icf_2D(uinput,psize,grid,gridall,B1_neq0);
+
+coeff=PIESIM_discretize_icf_2D(uinput,psize,gridall);
 
 % Discretize PIE operators
 Dop=PIESIM_discretize_ops_2D(PIE,psize);
 
-% Add B1 contrbution from non-polynomial in space forcing
+ end
 
-
-if ~isempty(B1_nonpol) 
-    Dop.B1cheb=Dop.B1cheb+B1_nonpol;
-end

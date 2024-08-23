@@ -1,11 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_Poly2Mat_cheb.m     PIETOOLS 2021b
+% PIESIM_Poly2Mat_cheb.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - discrete matrix representation of a polymonial operator
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
-% no - number of ODE states
 % Rop -  polynomial matrix operator size (n0+n1+n2) x no
 % p - scalar - a "degree of smoothness" vector
 %
@@ -26,9 +25,10 @@
 % Initial coding YP  - 6_30_2022
 % YP -  added support for an arbitary variable name - 04_16_2024
 
-function [A, A_nonsquare]=PIESIM_POLy2Mat_cheb(N, no, Rop, p)
+function [A, A_nonsquare]=PIESIM_POLy2Mat_cheb(N, Rop, p)
 pvar s var
 ns=size(p,2);
+no=size(Rop,2);
 
 if isa(Rop,'polynomial')
     deg=Rop.maxdeg;
