@@ -147,6 +147,7 @@ Minv.R22{1,1} = R22_hat;
 K = ZR_op*(Minv*ZL_op);
 K = double(K.R00);
 Hhat = opvar2d();
+Hhat.dim = [size(K,1),size(H,2);0,0;0,0;0,0];
 Hhat.var1 = Pop.var1;   Hhat.var2 = Pop.var2;   Hhat.I = Pop.I;
 Hhat.R00 = -H/(eye(size(K,1),size(H,2)) +K*H);
 

@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS_Hinf_gain_2D.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [prog, Lop, gam, Pop, solve_val] = PIETOOLS_Hinf_estimator_2D(PIE, settings, gain)
+function [prog, Lop, gam, Pop, Zop] = PIETOOLS_Hinf_estimator_2D(PIE, settings, gain)
 % This function use the KYP lemma in primal form to compute an upper bound
 % on the H-infty gain a 2D-PIE system of the form
 %
@@ -351,7 +351,7 @@ else
     end
     %disp(gam);
     %gam = Inf;
-    solve_val = 0;
+    solve_val = prog.solinfo.info.feasratio;
 end
 
 % Extract solved operator values, and construct estimator gain Lop
