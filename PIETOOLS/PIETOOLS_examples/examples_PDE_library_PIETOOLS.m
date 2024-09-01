@@ -695,8 +695,8 @@ switch index
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
     case 45
-%   PDE: x_{t} = lam*x + nu*x_{(2,0)}               | r = 8;  nu = 1;           (stable for r <= nu*pi^2*((1/4)/(b-a)^2 +(1/4)/(d-c)^2)) 
-%                       + nu*x_{(0,2)}              | a = 0;   b = 1;           
+%   PDE: x_{t} = r*x + nu*x_{(2,0)}                 | r = 8;  nu = 1;           (stable for r <= nu*pi^2*((1/4)/(b-a)^2 +(1/4)/(d-c)^2)) 
+%                      + nu*x_{(0,2)}               | a = 0;   b = 1;           
 %                        + Cw(s1,s2)*w;             | c = 0;   d = 1;
 %   OUT:    y1 = x(s2=d) + w1;                      | ne = 1 (state size)
 %           y2 = x(s1=b) + w2;                      | Cw = (s1^2-b)*(s2^2-d); 
