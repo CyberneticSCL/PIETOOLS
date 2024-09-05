@@ -73,18 +73,18 @@ dy = {1,...         % Degree of Zy^o(y) in y
       [2,2,3]};     % Degree of Zy^b(y,nu) in y, nu and (y*nu)
   
 % Monomials in both spatial variables
-d2 = {[0,2;2,4],...             % Degree of Z2^oo(x,y) in [-, y; x, x*y]
+d2 = {[0,1;1,2],...             % Degree of Z2^oo(x,y) in [-, y; x, x*y]
       [0,2,2,3;1,1,2,4],...     % Degree of Z2^oa(x,y,nu) in [-, y, nu, nu*y; x, x*y, x*nu, x*y*nu]
       [0,2,2,3;1,1,2,4];...     % Degree of Z2^ob(x,y,nu) in [-, y, nu, nu*y; x, x*y, x*nu, x*y*nu]
       [0,1;2,3;1,2;2,4],...     % Degree of Z2^ao(x,y,tt) in [-, y; x, x*y; tt, y*tt; x*tt, x*y*tt]
-      [0,2,2,3;                 % Degree of Z2^aa(x,y,tt,nu) in [-,    y,      nu,      y*nu;
-       2,4,4,5;                 %                                x,    x*y,    x*nu,    x*y*nu;
-       2,4,4,5;                 %                                tt,   y*tt,   tt*nu,   y*tt*nu;
-       3,5,5,6],...             %                                x*tt, x*y*tt, x*tt*nu, x*y*tt*nu]
-      [0,2,2,3; 2,4,4,5; 2,4,4,5; 2,4,4,5];...      % Degree of Z2^ab(x,y,tt,nu)
+      [0,2,2,4;                 % Degree of Z2^aa(x,y,tt,nu) in [-,    y,      nu,      y*nu;
+       2,2,2,4;                 %                                x,    x*y,    x*nu,    x*y*nu;
+       2,2,2,4;                 %                                tt,   y*tt,   tt*nu,   y*tt*nu;
+       4,4,4,4],...             %                                x*tt, x*y*tt, x*tt*nu, x*y*tt*nu]
+      [0,2,2,4; 2,2,2,4; 2,2,2,4; 4,4,4,4];...      % Degree of Z2^ab(x,y,tt,nu)
       [0,1;2,3;1,2;2,4],...     % Degree of Z2^bo(x,y,tt) in [-, y; x, x*y; tt, y*tt; x*tt, x*y*tt]
-      [0,2,2,3; 2,4,4,5; 2,4,4,5; 2,4,4,5],...      % Degree of Z2^ba(x,y,tt,nu)
-      [0,2,2,3; 2,4,4,5; 2,4,4,5; 2,4,4,5]};        % Degree of Z2^bb(x,y,tt,nu)
+      [0,2,2,4; 2,2,2,4; 2,2,2,4; 4,4,4,4],...      % Degree of Z2^ba(x,y,tt,nu)
+      [0,2,2,4; 2,2,2,4; 2,2,2,4; 4,4,4,4]};        % Degree of Z2^bb(x,y,tt,nu)
 
 settings.LF_deg.dx = dx;
 settings.LF_deg.dy = dy;
@@ -203,15 +203,15 @@ else
     % Start with the degrees, increasing them slightly compared to those of Q
     
     % Monomials in just the first spatial variable x
-    Dupx = 1;
+    Dupx = 3;
     eq_dx = {Dupx+dx{1};   Dupx+dx{2};   Dupx+dx{3}};
     
     % Monomials in just the second spatial variable y
-    Dupy = 1;
+    Dupy = 3;
     eq_dy = {Dupy+dy{1},   Dupy+dy{2},   Dupy+dy{3}};
     
     % Monomials in both spatial variables
-    Dup2 = 1;
+    Dup2 = 3;
     eq_d2 = {Dup2+d2{1,1},   Dup2+d2{1,2},   Dup2+d2{1,3};
              Dup2+d2{2,1},   Dup2+d2{2,2},   Dup2+d2{2,3};
              Dup2+d2{3,1},   Dup2+d2{3,2},   Dup2+d2{3,3}};

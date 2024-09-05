@@ -85,6 +85,9 @@ if ~isfield(settings,'eppos')
               1e-6];    % Positivity of Lyapunov Function with respect to 2D spatially distributed states
 else
     eppos = settings.eppos;
+    if numel(eppos)==1
+        eppos = eppos*ones(4,1);
+    end
 end
 if ~isfield(settings,'epneg')
     epneg = 0;         % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -195,16 +198,16 @@ Iwop = opvar2d(eye(nw),[nw_op,nw_op],dom,vars);
 Izop = opvar2d(eye(nz),[nz_op,nz_op],dom,vars);
 
 % Assemble the KYP operator
-if epneg==0
-    Qop = [-gam*Izop,        Dop,          (Cop*Pop)*Top;
-           Dop',              -gam*Iwop,   Bop';
-           Top'*(Cop*Pop)',   Bop,         Top*(Aop*Pop)'+(Aop*Pop)*Top'];
-else
-    % Ensure strict negativity
-    Qop = [-gam*Izop,        Dop,          (Cop*Pop)*Top;
-           Dop',              -gam*Iwop,   Bop';
-           Top'*(Cop*Pop)',   Bop,         Top*(Aop*Pop)'+(Aop*Pop)*Top' + epneg*(Top*Top')];
-end
+%if epneg==0
+Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top),...
+                     horzcat_legacy(Dop', -gam*Iwop, Bop'),...
+                     horzcat_legacy(Top'*(Cop*Pop)', Bop, Top*(Aop*Pop)'+(Aop*Pop)*Top'));
+% else
+%     % Ensure strict negativity
+%     Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top),...
+%                          horzcat_legacy(Dop', -gam*Iwop, Bop'),...
+%                          horzcat_legacy(Top'*(Cop*Pop)', Bop, Top*(Aop*Pop)'+(Aop*Pop)*Top' + epneg*(Top*Top')));
+% end
 % Get rid of terms that are below tolerance
 ztol = 1e-12;
 Qop = clean_opvar(Qop,ztol);
@@ -222,28 +225,7 @@ else
     disp('  - Using an equality constraint...');
     
     % First, check if we can exclude any monomials
-    tol = ztol*1e-1;
-    eq_opts_psatz_exclude = zeros(1,16);
-    if (isa(Qop.R22{1,1},'double') && max(max(Qop.R22{1,1}))<tol) || all(max(max(Qop.R22{1,1}.C))<tol)
-        eq_opts.exclude(8) = 1;
-        eq_opts_psatz_exclude(8) = 1;
-    end
-    if (isa(Qop.R22{2,1},'double') && max(max(Qop.R22{2,1}))<tol) || all(max(max(Qop.R22{2,1}.C))<tol)
-        eq_opts.exclude(9) = 1;
-        eq_opts_psatz_exclude(9) = 1;
-    end
-    if (isa(Qop.R22{3,1},'double') && max(max(Qop.R22{3,1}))<tol) || all(max(max(Qop.R22{3,1}.C))<tol)
-        eq_opts.exclude(10) = 1;
-        eq_opts_psatz_exclude(10) = 1;
-    end
-    if (isa(Qop.R22{1,2},'double') && max(max(Qop.R22{1,2}))<tol) || all(max(max(Qop.R22{1,2}.C))<tol)
-        eq_opts.exclude(11) = 1;
-        eq_opts_psatz_exclude(11) = 1;
-    end
-    if (isa(Qop.R22{1,3},'double') && max(max(Qop.R22{1,3}))<tol) || all(max(max(Qop.R22{1,3}.C))<tol)
-        eq_opts.exclude(12) = 1;
-        eq_opts_psatz_exclude(12) = 1;
-    end
+    eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol);
     
     % Next, build a positive operator Qeop to enforce Qop == -Qeop;
     Qdim = Qop.dim(:,1);
@@ -274,7 +256,8 @@ else
     % Introduce the psatz term.
     for j=1:length(eq_use_psatz)
         if eq_use_psatz(j)~=0
-            eq_opts_psatz{j}.exclude(8:12) = eq_opts_psatz_exclude(8:12);
+            eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
+            eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
             [prog, Qe2op] = poslpivar_2d(prog,Qdim,dom, eq_deg_psatz{j},eq_opts_psatz{j});
             Qeop = Qeop+Qe2op;
         end

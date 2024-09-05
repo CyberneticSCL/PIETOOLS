@@ -55,10 +55,22 @@
 % SS - 6/1/2021; changed to function, added settings input
 % DJ - 06/02/2021; incorporate sosineq_on option, replacd gamma with gam to
 %                   avoid conflict with MATLAB gamma function
+% DJ - 08/01/2024; add call to 2D version
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, Lop, gam, P, Z] = PIETOOLS_Hinf_estimator(PIE, settings)
+function [prog, Lop, gam, P, Z] = PIETOOLS_Hinf_estimator(PIE, settings,gain)
 
+if PIE.dim==2
+    % Call the 2D version of the executive.
+    if nargin==1
+        [prog, Lop, gam, P, Z] = PIETOOLS_Hinf_estimator_2D(PIE);
+    elseif nargin==2
+        [prog, Lop, gam, P, Z] = PIETOOLS_Hinf_estimator_2D(PIE,settings);
+    elseif nargin==3
+        [prog, Lop, gam, P, Z] = PIETOOLS_Hinf_estimator_2D(PIE, settings, gain);
+    end
+    return
+end
 if PIE.dim==2
     error('Optimal estimator design of 2D PIEs is currently not supported.')
 end

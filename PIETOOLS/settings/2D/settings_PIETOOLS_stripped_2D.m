@@ -105,9 +105,9 @@ settings.LF_opts.sep = [1;  % Set 1 to enforce Rxx{2}=Rxx{3}
 %  Zy^o; Zy^a; Zy^b; 
 %  Z2^oo; Z2^ao; Z2^bo; Z2^oa; Z2^ob; Z2^aa; Z2^ba; Z2^ab; Z2^bb];
 settings.LF_opts.exclude = [0,...
-                            0,1,1,...
-                            0,1,1,...
-                            0,1,1,1,1,1,1,1,1]; 
+                            0,0,0,...
+                            0,0,0,...
+                            0,1,1,1,1,0,0,0,0]; 
 
 % % Should we add a Psatz term to require only local feasibility?
 settings.LF_opts.psatz = 0;     % Do not enforce Psatz in initial operator P
@@ -182,7 +182,7 @@ if evalin('base','exist(''sosineq_on'',''var'')')
 elseif evalin('base','exist(''use_sosineq'',''var'')') 
     use_sosineq = evalin('base','use_sosineq');
 else
-    use_sosineq = 1;
+    use_sosineq = 0;
 end
 settings.use_sosineq = use_sosineq;
 
@@ -203,15 +203,15 @@ else
     % Start with the degrees, increasing them slightly compared to those of Q
     
     % Monomials in just the first spatial variable x
-    Dupx = 1;
+    Dupx = 2;
     eq_dx = {Dupx+dx{1};   Dupx+dx{2};   Dupx+dx{3}};
     
     % Monomials in just the second spatial variable y
-    Dupy = 1;
+    Dupy = 2;
     eq_dy = {Dupy+dy{1},   Dupy+dy{2},   Dupy+dy{3}};
     
     % Monomials in both spatial variables
-    Dup2 = 1;
+    Dup2 = 2;
     eq_d2 = {Dup2+d2{1,1},   Dup2+d2{1,2},   Dup2+d2{1,3};
              Dup2+d2{2,1},   Dup2+d2{2,2},   Dup2+d2{2,3};
              Dup2+d2{3,1},   Dup2+d2{3,2},   Dup2+d2{3,3}};
