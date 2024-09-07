@@ -1698,4 +1698,366 @@ uinput.exact(1) = ampl*sin(sx+sy)*exp(-lam*st);
 uinput.exact(2) = ampl*sin(sx)*exp(-lam*st);
 uinput.exact(3) = ampl*sin(sy)*exp(-lam*st);
 
+
+
+%----------------------------------------
+%% Example 20 - Heat Equation with Dirichlet Boundary Forcing
+%----------------------------------------
+case 20
+% % Heat equation
+% %   u_{t}(x,y,t) = visc*(u_{xx}(x,y,t) +u_{yy}(x,y,t))    (x,y) in [0,1]^2
+% % with Dirichlet BCs
+% %   u(0,y,t) = w(y,t);        u(1,y,t) = 0;
+% %   u(x,0,t) = 0;             u(x,1,t) = 0;
+% % Using forcing
+% %   w(y,t) = ampl*sin(2*pi*y)*exp(-visc*((2pi)^2+(1.5pi)^2)*t);
+% % Starting with an initial condition
+% %   u(x,y,0) = ampl*sin(2*pi*y)*cos(1.5*pi*x);
+% % we get an exact solution
+% %   u(x,y,t) = ampl*sin(2*pi*y)*cos(1.5*pi*x)*exp(-visc*((2pi)^2+(1.5pi)^2)*t);
+
+% % Set the spatial domain (exact solution is only valid for [0,1]^2 !!!)
+a=0;   b=1;
+c=0;   d=1;
+uinput.dom=[a b;c d]; 
+
+% Set the viscosity and amplitude
+visc = 0.5;       ampl = 2;
+
+% Initialize the state and forcing
+PDE.x{1}.vars = [s1;s2];    PDE.x{1}.dom = [a,b;c,d];
+PDE.w{1}.vars = s2;         PDE.w{1}.dom = [c,d];
+
+% % Declare the PDE dynamics
+% u_{t}(x,y,t) = visc*(u_xx(x,t) + u_yy(y,t))
+PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [visc,visc];
+PDE.x{1}.term{1}.D = [2,0;0,2];
+
+% % BCs
+% u(0,y,t) = w(y,t);                    u(1,y,t) = 0;
+PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 1;
+PDE.BC{1}.term{1}.loc = [a,s2];         PDE.BC{2}.term{1}.loc = [b,s2];
+PDE.BC{1}.term{2}.w = 1;
+PDE.BC{1}.term{2}.C = -1;
+
+% u(x,0,t) = 0;                         u(x,1,t) = 0;
+PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 1;
+PDE.BC{3}.term{1}.loc = [s1,c];         PDE.BC{4}.term{1}.loc = [s1,d];
+
+
+% % Set the forcing
+% %   w(y,t) = sin(2*pi*y)*exp(-visc*((2pi)^2+(1.5pi)^2)*t);
+uinput.w(1) = ampl*sin(2*sym(pi)*sy)*exp(-visc*((2*sym(pi))^2+(1.5*sym(pi))^2)*st);
+
+% % Set the initial conditions
+% %   u(x,y,0) = ampl*sin(2*pi*y)*cos(1.5*pi*x);
+u_ic = ampl*sin(2*sym(pi)*sy)*cos(1.5*sym(pi)*sx);
+uinput.ic.x(1) = u_ic;
+
+% % Set the exact solution
+% %   u(x,y,t) = ampl*sin(2*pi*y)*cos(1.5*pi*x)*exp(-visc*((2pi)^2+(1.5pi)^2)*t);
+u_ex = ampl*sin(2*sym(pi)*sy)*cos(1.5*sym(pi)*sx)*exp(-visc*((2*sym(pi))^2+(1.5*sym(pi))^2)*st);
+uinput.exact(1) = u_ex;
+
+
+
+%----------------------------------------
+%% Example 21 - Heat Equation with Neumann Boundary Forcing
+%----------------------------------------
+case 21
+% % Heat equation
+% %   u_{t}(x,y,t) = visc*(u_{xx}(x,y,t) +u_{yy}(x,y,t))    (x,y) in [0,1]^2
+% % with homogeneous Dirichlet BCs but Neumann forcing
+% %   u_{x}(0,y,t) = w(y,t);    u(1,y,t) = 0;
+% %   u(x,0,t) = 0;             u(x,1,t) = 0;
+% % Using forcing
+% %   w(y,t) = 2*pi*ampl*sin(2*pi*y)*exp(-visc*8*pi^2*t);
+% % Starting with an initial condition
+% %   u(x,y,0) = ampl*sin(2*pi*y)*sin(2*pi*x);
+% % we get an exact solution
+% %   u(x,y,t) = ampl*sin(2*pi*y)*sin(2*pi*x)*exp(-visc*8*pi^2*t);
+
+% % Set the spatial domain (exact solution is only valid for [0,1]^2 !!!)
+a=0;   b=1;
+c=0;   d=1;
+uinput.dom=[a b;c d]; 
+
+% Set the viscosity and amplitude
+visc = 0.5;       ampl = 10;
+
+% Initialize the state and forcing
+PDE.x{1}.vars = [s1;s2];    PDE.x{1}.dom = [a,b;c,d];
+PDE.w{1}.vars = s2;         PDE.w{1}.dom = [c,d];
+
+% % Declare the PDE dynamics
+% u_{t}(x,y,t) = visc*(u_xx(x,t) + u_yy(y,t))
+PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [visc,visc];
+PDE.x{1}.term{1}.D = [2,0;0,2];
+
+% % BCs
+% u_{x}(0,y,t) = w(y,t);                u(1,y,t) = 0;
+PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 1;
+PDE.BC{1}.term{1}.loc = [a,s2];         PDE.BC{2}.term{1}.loc = [b,s2];
+PDE.BC{1}.term{1}.D = [1,0];
+PDE.BC{1}.term{2}.w = 1;
+PDE.BC{1}.term{2}.C = -1;
+
+% u(x,0,t) = 0;                         u(x,1,t) = 0;
+PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 1;
+PDE.BC{3}.term{1}.loc = [s1,c];         PDE.BC{4}.term{1}.loc = [s1,d];
+
+
+% % Set the forcing
+% %   w(y,t) = 2*pi*ampl*sin(2*pi*y)*exp(-visc*8*pi^2*t);
+uinput.w(1) = 2*sym(pi)*ampl*sin(2*sym(pi)*sy)*exp(-visc*8*sym(pi)^2*st);
+
+% % Set the initial conditions
+% %   u(x,y,0) = ampl*sin(2*pi*y)*sin(2*pi*x);
+u_ic = ampl*sin(2*sym(pi)*sy)*sin(2*sym(pi)*sx);
+uinput.ic.x(1) = u_ic;
+
+% % Set the exact solution
+% %   u(x,y,t) = ampl*sin(2*pi*y)*sin(2*pi*x)*exp(-visc*8*pi^2*t);
+u_ex = ampl*sin(2*sym(pi)*sy)*sin(2*sym(pi)*sx)*exp(-visc*8*sym(pi)^2*st);
+uinput.exact(1) = u_ex;
+
+
+
+%----------------------------------------
+%% Example 22 - Heat Equation with Multiple Boundary Forcing
+%----------------------------------------
+case 22
+% % Heat equation
+% %   u_{t}(x,y,t) = u_{xx}(x,y,t) +u_{yy}(x,y,t) +(2.5*pi)^2*u(x,y,t)    (x,y) in [-1,1]x[0,1]
+% % with forcing along all boundaries
+% %   u(-1,y,t) = w1(y,t);      u(y,1,t) = w2(y,t);
+% %   u(x,0,t) = w3(x,t);       u_{y}(x,1,t) = w4(y,t);
+% % Using forcing
+% %   w1(y,t) = ampl*cos(2.5*pi*y);
+% %   w2(y,t) = 3*ampl*cos(2.5*pi*y);
+% %   w3(x,t) = ampl*(x+2);     
+% %   w4(x,t) = -2.5*pi*ampl*(x+2);
+% % Starting with an initial condition
+% %   u(x,y,0) = ampl*sin(2*pi*y)*sin(2*pi*x);
+% % we get an exact solution
+% %   u(x,y,t) = ampl*(x+2)*cos(2.5*pi*y);
+
+% % Set the spatial domain (exact solution is only valid for [-1,1]x[0,1] !!!)
+a=-1;   b=1;
+c=0;   d=1;
+uinput.dom=[a b;c d]; 
+
+% Set the amplitude
+ampl = 10;
+
+% Initialize the state and forcing
+PDE.x{1}.vars = [s1;s2];    PDE.x{1}.dom = [a,b;c,d];
+PDE.w{1}.vars = s2;         PDE.w{1}.dom = [c,d];
+PDE.w{2}.vars = s2;         PDE.w{2}.dom = [c,d];
+PDE.w{3}.vars = s1;         PDE.w{3}.dom = [a,b];
+PDE.w{4}.vars = s1;         PDE.w{4}.dom = [a,b];
+
+% % Declare the PDE dynamics
+% u_{t}(x,y,t) = u_xx(x,y,t) + u_yy(x,y,t) +u(x,y,t)
+PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [1,1,(2.5*pi)^2];
+PDE.x{1}.term{1}.D = [2,0;0,2;0,0];
+
+% % BCs
+% u(-1,y,t) = w1(y,t);                  u(1,y,t) = w2(y,t);
+PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 1;
+PDE.BC{1}.term{1}.loc = [a,s2];         PDE.BC{2}.term{1}.loc = [b,s2];
+PDE.BC{1}.term{2}.w = 1;                PDE.BC{2}.term{2}.w = 2;
+PDE.BC{1}.term{2}.C = -1;               PDE.BC{2}.term{2}.C = -1;
+
+% u(x,0,t) = w3(x,t);                   u_{y}(x,1,t) = w4(x,t);
+PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 1;
+PDE.BC{3}.term{1}.loc = [s1,c];         PDE.BC{4}.term{1}.loc = [s1,d];
+                                        PDE.BC{4}.term{1}.D = [0,1];
+PDE.BC{3}.term{2}.w = 3;                PDE.BC{4}.term{2}.w = 4;
+PDE.BC{3}.term{2}.C = -1;               PDE.BC{4}.term{2}.C = -1;
+
+
+% % Set the forcing
+% %   w1(y,t) = ampl*cos(2.5*pi*y);
+% %   w2(y,t) = 3*ampl*cos(2.5*pi*y);
+% %   w3(x,t) = ampl*(x+2);     
+% %   w4(x,t) = -2.5*pi*ampl*(x+2);
+uinput.w(1) = ampl*cos(2.5*sym(pi)*sy);
+uinput.w(2) = 3*ampl*cos(2.5*sym(pi)*sy);
+uinput.w(3) = ampl*(sx+2);
+uinput.w(4) = -2.5*sym(pi)*ampl*(sx+2);
+
+% % Set the initial conditions
+% %   u(x,y,0) = ampl*(x+2)*cos(2.5*pi*y);
+u_ic = ampl*(sx+2)*cos(2.5*sym(pi)*sy);
+uinput.ic.x(1) = u_ic;
+
+% % Set the exact solution
+% %   u(x,y,t) = ampl*(x+2)*cos(2.5*pi*y);
+u_ex = ampl*(sx+2)*cos(2.5*sym(pi)*sy);
+uinput.exact(1) = u_ex;
+
+
+
+%----------------------------------------
+%% Example 23 - Heat Equation with Boundary and Interior Forcing
+%----------------------------------------
+case 23
+% % Heat equation
+% %   u_{t}(x,y,t) = u_{xx}(x,y,t) +u_{yy}(x,y,t) +w1(x,y,t)    (x,y) in [-1,1]x[-1,1]
+% % with forcing along all boundaries
+% %   u(-1,y,t) = w2(y,t);       u(y,1,t) = w3(y,t);
+% %   u(x,-1,t) = w4(x,t);       u(x,1,t) = w5(y,t);
+% % Using forcing
+% %   w1(x,y,t) = ((1.5*pi)^2*t+1)*ampl*y*sin(1.5*pi*x)
+% %   w2(y,t) = ampl*y*t;                 w3(y,t) = -ampl*y*t;
+% %   w4(x,t) = -ampl*sin(1.5*pi*x)*t;    w5(x,t) = ampl*sin(1.5*pi*x)*t;
+% % Starting with an initial condition
+% %   u(x,y,0) = 0;
+% % we get an exact solution
+% %   u(x,y,t) = ampl*y*sin(1.5*pi*x)*t;
+
+% % Set the spatial domain (exact solution is only valid for [-1,1]x[-1,1] !!!)
+a=-1;   b=1;
+c=-1;   d=1;
+uinput.dom=[a b;c d]; 
+
+% Set the amplitude
+ampl = 1;
+
+% Initialize the state and forcing
+PDE.x{1}.vars = [s1;s2];    PDE.x{1}.dom = [a,b;c,d];
+PDE.w{1}.vars = [s1;s2];    PDE.w{1}.dom = [a,b;c,d];
+PDE.w{2}.vars = s2;         PDE.w{2}.dom = [c,d];
+PDE.w{3}.vars = s2;         PDE.w{3}.dom = [c,d];
+PDE.w{4}.vars = s1;         PDE.w{4}.dom = [a,b];
+PDE.w{5}.vars = s1;         PDE.w{5}.dom = [a,b];
+
+% % Declare the PDE dynamics
+% u_{t}(x,y,t) = u_xx(x,y,t) + u_yy(x,y,t) +w1(x,y,t)
+PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [1,1];
+PDE.x{1}.term{1}.D = [2,0;0,2];
+
+PDE.x{1}.term{2}.w = 1;
+
+% % BCs
+% u(-1,y,t) = w2(y,t);                  u(1,y,t) = w3(y,t);
+PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 1;
+PDE.BC{1}.term{1}.loc = [a,s2];         PDE.BC{2}.term{1}.loc = [b,s2];
+PDE.BC{1}.term{2}.w = 2;                PDE.BC{2}.term{2}.w = 3;
+PDE.BC{1}.term{2}.C = -1;               PDE.BC{2}.term{2}.C = -1;
+
+% u(x,-1,t) = w4(x,t);                   u_{y}(x,1,t) = w5(x,t);
+PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 1;
+PDE.BC{3}.term{1}.loc = [s1,c];         PDE.BC{4}.term{1}.loc = [s1,d];
+                                        PDE.BC{4}.term{1}.D = [0,1];
+PDE.BC{3}.term{2}.w = 4;                PDE.BC{4}.term{2}.w = 5;
+PDE.BC{3}.term{2}.C = -1;               PDE.BC{4}.term{2}.C = -1;
+
+
+% % Set the forcing
+% %   w1(x,y,t) = ((1.5*pi)^2*t+1)*ampl*y*sin(1.5*pi*x)
+% %   w2(y,t) = ampl*y*t;               w3(y,t) = -ampl*y*t;
+% %   w4(x,t) = -ampl*sin(1.5*pi*x)*t;  w5(x,t) = ampl*sin(1.5*pi*x)*t;
+uinput.w(1) = ((1.5*sym(pi))^2*st+1)*ampl*sy*sin(1.5*sym(pi)*sx);
+uinput.w(2) = ampl*sy*st;
+uinput.w(3) = -ampl*sy*st;
+uinput.w(4) = -ampl*sin(1.5*sym(pi)*sx)*st;
+uinput.w(5) = ampl*sin(1.5*sym(pi)*sx)*st;
+
+% % Set the initial conditions
+% %   u(x,y,0) = 0;
+uinput.ic.x(1) = sym(0);
+
+% % Set the exact solution
+% %   u(x,y,t) = ampl*y*sin(1.5*pi*x)*t;
+u_ex = ampl*sy*sin(1.5*sym(pi)*sx)*st;
+uinput.exact(1) = u_ex;
+
+
+
+%----------------------------------------
+%% Example 24 - 2D wave equation with Neumann boundary forcing
+%----------------------------------------
+case 24
+% % Standard 2D wave equation
+% %   u_tt=C^2*(u_xx + u_yy)                        (x,y) in [0,pi]x[-pi,pi]
+% % with forcing at the boundaries
+% %   u_{x}(0,y,t)=w(y,t); u(pi,y,t)=0; u(x,-pi,t)=0;  u(x,pi,t)=0;   
+% % Using forcing
+% %   w(y,t) = 3*pi*sin(3*pi*y)*sin(sqrt(18)*C*t)
+% % and starting with initial condition
+% %       u(x,y,0) = 0;
+% %   u_{t}(x,y,0) = sqrt(18)*C*sin(3*x)*sin(3*y);
+% % we obtain exact solution
+% %   u(x,y,t) = sin(sqrt(18)*C*t)*sin(3*x)*sin(3*y);
+
+% % Set the spatial domain 
+a=0;        b=pi;
+c=-pi;      d=pi;
+uinput.dom=[a b;c d]; 
+% NOTE: Exact solution is valid only on [0,pi]x[-pi,pi];
+
+% Set the wave velocity 
+C = 1/sqrt(18); 
+
+% % % Construct the PDE.
+% % We represent it in the form
+% %     x1_{t} = x2;
+% %     x2_{t} = C^2*(x1_{xx} +x1_{yy});
+%%% Term-based input format
+PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;   % x1 = u;
+PDE.x{2}.vars = [s1;s2];   PDE.x{2}.dom = uinput.dom;   % x2 = u_{t}
+PDE.x{2}.diff = [2,2];
+PDE.w{1}.vars = s2;        PDE.w{1}.dom = [c,d];    % w1 = w
+PDE.w{2}.vars = s2;        PDE.w{2}.dom = [c,d];    % w2 = w_{t}
+
+% x1_{t} = x2;
+PDE.x{1}.term{1}.x = 2;
+
+% x2_{t} = C^2*(x1_{xx} + x1_{yy});
+PDE.x{2}.term{1}.x = 1;
+PDE.x{2}.term{1}.D = [2,0;0,2];
+PDE.x{2}.term{1}.C = [C^2,C^2];
+
+% % Set the boundary conditions
+% x1_{x}(0,y,t) = w1(y,t);              x1(pi,y,t) = 0;
+PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 1;
+PDE.BC{1}.term{1}.loc = [a,s2];         PDE.BC{2}.term{1}.loc = [b,s2];
+PDE.BC{1}.term{1}.D = [1,0];
+PDE.BC{1}.term{2}.w = 1;
+PDE.BC{1}.term{2}.C = -1;
+
+% x1(x,-pi,t) = 0;                      x1(x,pi,t) = 0;
+PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 1;
+PDE.BC{3}.term{1}.loc = [s1,c];         PDE.BC{4}.term{1}.loc = [s1,d];
+
+% x2_{x}(0,y,t) = w2(y,t);              x2(pi,y,t) = 0;
+PDE.BC{5}.term{1}.x = 2;                PDE.BC{6}.term{1}.x = 2;
+PDE.BC{5}.term{1}.loc = [a,s2];         PDE.BC{6}.term{1}.loc = [b,s2];
+PDE.BC{5}.term{1}.D = [1,0];
+PDE.BC{5}.term{2}.w = 2;
+PDE.BC{5}.term{2}.C = -1;
+
+% x2(x,-pi,t) = 0;                      x2(x,pi,t) = 0;
+PDE.BC{7}.term{1}.x = 2;                PDE.BC{8}.term{1}.x = 2;
+PDE.BC{7}.term{1}.loc = [s1,c];         PDE.BC{8}.term{1}.loc = [s1,d];
+
+
+% % Set the forcing
+% %   w(y,t) = 3*sin(3*pi*y)*sin(sqrt(18)*C*t);
+uinput.w(1) = 3*sin(3*sy)*sin(sqrt(18)*C*st);
+uinput.w(2) = diff(uinput.w(1),st);
+
+% % Set the initial conditions
+% %       u(x,y,0) = 0;
+% %   u_{t}(x,y,0) = sqrt(18)*C*sin(3*x)*sin(3*y);
+uinput.ic.x(1) = sym(0);
+uinput.ic.x(2) = sqrt(18)*C*sin(3*sx)*sin(3*sy);
+
+% % Set the exact solution
+% %   u(x,y,t) = sin(sqrt(18)*C*t)*sin(3*x)*sin(3*y);
+uinput.exact(1) = sin(sqrt(18)*C*st)*sin(3*sx)*sin(3*sy);
+uinput.exact(2) = diff(uinput.exact(1),st);
+
 end 
