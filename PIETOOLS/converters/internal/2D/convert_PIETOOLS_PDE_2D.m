@@ -117,15 +117,25 @@ global nvars;       nvars = size(vars,1);
 %   x = [x_i; x_j; x_k] in [ L2^n_i[s2]; R^n_j; L2^n_k[s2] ], 
 % we re-order the state components x_i, x_j and x_k such that 
 %   x_new = [x_j; x_i; x_k] in [ R^n_j; L2^n_i[s2]; L2^n_k[s2] ];
-% We do this useing the "reorder_comps" subroutine.
+% We do this using the "reorder_comps" subroutine.
 [PDE,xcomp_order] = reorder_comps(PDE,'x',true);
 [PDE,ycomp_order] = reorder_comps(PDE,'y',true);
 [PDE,zcomp_order] = reorder_comps(PDE,'z',true);
 [PDE,wcomp_order] = reorder_comps(PDE,'w',true);
 [PDE,ucomp_order] = reorder_comps(PDE,'u',true);
 
+comp_order = struct();
+comp_order.x = xcomp_order;
+comp_order.y = ycomp_order;
+comp_order.z = zcomp_order;
+comp_order.w = wcomp_order;
+comp_order.u = ucomp_order;
+comp_order.BC = (1:numel(PDE.BC))';
+
 % If the PDE is not 2D, we artificially augment.
+is2D = true;
 if nvars==0
+    is2D = false;
     % Define a 2D domain with variables.
     pvar ss1 tt1 ss2 tt2
     vars = [ss1,tt1; ss2,tt2];
@@ -142,9 +152,10 @@ if nvars==0
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
 elseif nvars==1
+    is2D = false;
      % Define a 2D domain with variables.
-    pvar ss2 tt2
-    vars = [vars; [ss2,tt2]];
+    xtra_var = polynomial({[vars(1).varname{1},'_2']; [vars(2).varname{1},'_2']});
+    vars = [vars; xtra_var'];
     dom = [dom; [0,1]];
     nvars = 2;
     
@@ -157,6 +168,7 @@ elseif nvars==1
     PDE = initialize_PIETOOLS_PDE(PDE,true);
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
+    PDE.is_initialized = true;  % No need to re-initialize
 end
 
 % Extract the tables providing information on the spatial dependence (and
@@ -184,8 +196,55 @@ np_op.z = get_opdim(z_tab);
 % such that
 %    x = Tx*xf + Tu*u + Tw*w;
 % where Tx, Tu and Tw are PI operators. This map is uniquely defined by the
-% BCs (of the form 0 = F(x,u,w)), and will be constructed in three steps:
+% BCs (of the form 0 = F(x,u,w)), and we have two options for computing it:
+%
+% % % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+% % % OPTION 1:
+% % % We expand the state separately along each dimension as
+% % %   x = Tx_1*D_1*x +Tw_1*w +Tu_1*u;
+% % %   x = Tx_2*D_2*x +Tw_2*w +Tu_2*u;
+% % % where D_1 and D_2 are diagonal differential operators taking the
+% % % highest-order admissible derivative of each state component with
+% % % respect to the first and second spatial variable, respectively.
+% % % Then, we combine these expansions as either
+% % %   D_2*x = Tx_1*D_2*D_1*x +Tw_1*D_2*w +Tu_1*D_2*u
+% % %   --> x = Tx_2*Tx_1*D_12*x +Tx_2*Tw_1*D_2*w +Tw_2*w 
+% % %               +Tx_2*Tu_1*D_2*u +Tu_2*u;
+% % %   --> x = Tx*xf + Tw*D_w*w + Tu*D_u*u;
+% % % or as
+% % %   D_1*x = Tx_2*D_1*D_2*x +Tw_2*D_1*w +Tu_2*D_1*u
+% % %   --> x = Tx_1*Tx_2*D_12*x +Tx_1*Tw_2*D_1*w +Tw_1*w 
+% % %               +Tx_1*Tu_2*D_1*u +Tu_1*u;
+% % %   --> x = Tx*xf + Tw*D_w*w + Tu*D_u*u;
+% % % where xf = D_2*D_1*x.
+% % % This approach only works for "separable" boundary conditions, so that
+% % % we can separately enforce the boundary conditions along each spatial
+% % % direction. Note that this approach may also require derivatives of
+% % % the inputs to be taken.
+if (is2D && (any(any(w_tab(:,3:2+nvars))) || any(any(u_tab(:,3:2+nvars)))))
+    old_dom = dom;      old_vars = vars;        np_op_old = np_op;
+    try [Top_x,Top_w,Top_u,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order);
+        use_Tmap_opt2 = false;
+        Top = struct();
+        Top.x = Top_x;      Top.u = Top_u;      Top.w = Top_w;
+    catch
+        use_Tmap_opt2 = true;
+    end
+    % Correct values of global variables.
+    dom = old_dom;      vars = old_vars;        np_op = np_op_old;
+    nvars = size(vars,1);
+else
+    use_Tmap_opt2 = true;
+end
 
+
+% % % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+if use_Tmap_opt2
+% % % OPTION 2:
+% % % We use a more "traditional" approach, which can handle more general
+% % % boundary conditions, but is not supported for function-valued forcing
+% % % at the boundaries. This approach works in three steps:
+% % % 
 % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 % % % STEP 1: 
 % % % Express the PDE state x in terms of the fundamental state xf and a
@@ -295,6 +354,12 @@ end
 Top = struct();
 Top.x = Top_x;      Top.u = Top_u;      Top.w = Top_w;
 
+% The obtained map does not require any derivative to be taken of the
+% inputs.
+Dvals_w = zeros(numel(PDE.w),2);
+Dvals_u = zeros(numel(PDE.u),2);
+
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -391,6 +456,19 @@ y_tab(:,1) = ycomp_order;       PIE.y_tab = y_tab;
 z_tab(:,1) = zcomp_order;       PIE.z_tab = z_tab;
 u_tab(:,1) = ucomp_order;       PIE.u_tab = u_tab;
 w_tab(:,1) = wcomp_order;       PIE.w_tab = w_tab;
+
+% Also keep track of which derivatives of the inputs must be taken in the
+% PIE representation
+if size(w_tab,2)==2+2*nvars
+    PIE.w_tab(:,end-nvars+1:end) = Dvals_w;
+else
+    PIE.w_tab = [PIE.w_tab,Dvals_w];
+end
+if size(u_tab,2)==2+2*nvars
+    PIE.u_tab(:,end-nvars+1:end) = Dvals_u;
+else
+    PIE.u_tab = [PIE.u_tab,Dvals_u];
+end
 
 end
 
