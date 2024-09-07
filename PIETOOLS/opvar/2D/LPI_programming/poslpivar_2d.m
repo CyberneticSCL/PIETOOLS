@@ -137,11 +137,14 @@ switch nargin
     case 3
         fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
         use_monomials = 0;
-          options.psatz = 0;
-          options.exclude = zeros(1,16);
-          options.diag = 0;
-          options.sep = ones(1,6);
-          options.center_monomials = 0;
+        options.psatz = 0;
+        % Exclude only single integrals along 2D states by default.
+        options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
+        options.diag = 0;
+        % Use only full integral operators (no partial integrals) by
+        % default
+        options.sep = ones(1,6);
+        options.center_monomials = 0;
     case 4
         if isnumeric(d) && all(size(d)==1)
             dval = d;   d = struct();
@@ -201,9 +204,12 @@ switch nargin
             end
         end
         options.psatz = 0;
-        options.exclude = zeros(1,16);
+        % Exclude only single integrals along 2D states by default.
+        options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
         options.diag = 0;
-        options.sep = zeros(1,6);
+        % Use only full integral operators (no partial integrals) by
+        % default
+        options.sep = ones(1,6);
         options.sym_xy = 0;
         options.center_monomials = 0;
     case 5
@@ -263,14 +269,17 @@ switch nargin
             options.psatz=0;
         end
         if ~isfield(options,'exclude')
-            options.exclude = zeros(1,16);
+            % Exclude only single integrals along 2D states by default.
+            options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
         end
         if isfield(options,'diag') && options.diag==1
             fprintf(2,'Warning: ''diag'' option is not supported for 2D PDEs, ignoring this input.'); 
         end
         options.diag=0;
         if ~isfield(options,'sep')
-            options.sep = zeros(1,6);
+            % Use only full integral operators (no partial integrals) by
+            % default
+            options.sep = ones(1,6);
         end
         if ~isfield(options,'center_monomials')
             options.center_monomials = 0;
