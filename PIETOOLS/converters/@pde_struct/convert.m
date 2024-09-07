@@ -77,14 +77,14 @@ end
 % Reorder state components, inputs, and outputs, so that these may be
 % represented using PI operators.
 fprintf(['\n',' --- Reordering the state components to allow for representation as PIE ---\n']);
-[PDE] = reorder_comps(PDE,{'x','u','w','y','z'});
+[PDE,comp_order] = reorder_comps(PDE,{'x','u','w','y','z'});
 
 % Check the spatial dimension of the system, and call the corresponding 
 % converter.
 if PDE.dim<=1
     PIE = convert_PIETOOLS_PDE_terms(PDE);    
 elseif PDE.dim==2
-    PIE = convert_PIETOOLS_PDE_2D(PDE);
+    PIE = convert_PIETOOLS_PDE_2D(PDE,comp_order);
 else
     error('PIETOOLS does not currently support conversion of PDEs in more than 2 spatial variables'); 
 end

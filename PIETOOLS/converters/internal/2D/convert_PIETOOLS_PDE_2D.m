@@ -1,12 +1,18 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert_PIETOOLS_PDE_2D.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function PIE = convert_PIETOOLS_PDE_2D(PDE)
+function PIE = convert_PIETOOLS_PDE_2D(PDE,comp_order)
 % Convert a coupled ODE-1D_PDE-2D_PDE system to an equivalent PIE.
 % 
 % INPUTS:
 % - PDE:    A struct or pde_struct object defining a PDE in the terms
 %           format (see also "@pde_struct/initialize").
+% - comp_order:     Optional argument specifying the order of the state
+%                   variables, inputs, and outputs from the PDE as they 
+%                   appear in the PIE, specified as a struct. That is, e.g.
+%                   PIE.x{i} = PDE.x{comp_order.x(1)};
+%                   If not specified, the converter will reorder the
+%                   variables itself, and determine the new order.
 %
 % OUTPUTS:
 % - PIE:    A struct with fields:
@@ -118,20 +124,30 @@ global nvars;       nvars = size(vars,1);
 % we re-order the state components x_i, x_j and x_k such that 
 %   x_new = [x_j; x_i; x_k] in [ R^n_j; L2^n_i[s2]; L2^n_k[s2] ];
 % We do this using the "reorder_comps" subroutine.
-[PDE,xcomp_order] = reorder_comps(PDE,'x',true);
-[PDE,ycomp_order] = reorder_comps(PDE,'y',true);
-[PDE,zcomp_order] = reorder_comps(PDE,'z',true);
-[PDE,wcomp_order] = reorder_comps(PDE,'w',true);
-[PDE,ucomp_order] = reorder_comps(PDE,'u',true);
-
-comp_order = struct();
-comp_order.x = xcomp_order;
-comp_order.y = ycomp_order;
-comp_order.z = zcomp_order;
-comp_order.w = wcomp_order;
-comp_order.u = ucomp_order;
-comp_order.BC = (1:numel(PDE.BC))';
-
+if nargin==1 || ~isa(comp_order,'struct')
+    [PDE,xcomp_order] = reorder_comps(PDE,'x',true);
+    [PDE,ycomp_order] = reorder_comps(PDE,'y',true);
+    [PDE,zcomp_order] = reorder_comps(PDE,'z',true);
+    [PDE,wcomp_order] = reorder_comps(PDE,'w',true);
+    [PDE,ucomp_order] = reorder_comps(PDE,'u',true);
+    
+    comp_order = struct();
+    comp_order.x = xcomp_order;
+    comp_order.y = ycomp_order;
+    comp_order.z = zcomp_order;
+    comp_order.w = wcomp_order;
+    comp_order.u = ucomp_order;
+    comp_order.BC = (1:numel(PDE.BC))';
+else
+    xcomp_order = comp_order.x;
+    ycomp_order = comp_order.y;
+    zcomp_order = comp_order.z;
+    wcomp_order = comp_order.w;
+    ucomp_order = comp_order.u;
+    if ~isfield(comp_order,'BC')
+        comp_order.BC = (1:numel(PDE.BC))';
+    end
+end
 % If the PDE is not 2D, we artificially augment.
 is2D = true;
 if nvars==0
