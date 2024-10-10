@@ -52,9 +52,20 @@ end
 % Extract the operators
 a = varargin{1};    b = varargin{2};
 
-% Currently support only opvar-opvar concatenation
-if (~isa(a,'opvar') && ~isa(a,'dopvar')) || (~isa(b,'opvar') && ~isa(b,'dopvar'))
-    error('dopvar  objects can only be concatenated with opvar and dopvar objects')
+if (~isa(b,'opvar') &&~isa(b,'dopvar'))
+    error("Ambiguous concatenation [a;b] of opvars. Please explicitly define 'a' and 'b' as opvars to resolve.");
+elseif (~isa(a,'opvar')&&~isa(a,'dopvar')) && (isa(a,'double')||isa(a,'polynomial')||isa(a,'dpvar'))
+    opvar tmp; tmp.I = b.I; tmp.var1 = b.var1; tmp.var2 = b.var2;
+    if b.dim(2,2)~=0 % b from L2, so [a;b] is possible only if a is integral Q1 (or multiplier R0, but we ignore that)
+        tmp.Q1 = a;
+    elseif b.dim(1,2)~=0 && (isa(a,'double')||isempty(a.degmat)) % b maps from R, [a;b] is possible only if a is multiplier P (or Q2, but we ignore that)
+        tmp.P = a;
+    else
+        error("Ambiguous concatenation [a;b] of opvars. Explicitly define 'a' and 'b' as opvars to resolve.");
+    end
+    tmp.dim = tmp.dim; % rectify dimensions
+    a = tmp;
+    clear tmp;
 end
 % Check that domain and variables match
 if any(a.I~=b.I)|| ~strcmp(a.var1.varname,b.var1.varname) || ~strcmp(a.var2.varname,b.var2.varname)
