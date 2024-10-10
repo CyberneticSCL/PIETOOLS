@@ -29,6 +29,9 @@ switch s(1).type
         % Implement obj(indices).PropertyName(indices)
             tmp = subsref(obj,s(1));
             tmp = subsref(tmp,s(2));
+            if isa(tmp,'cell')
+                tmp = tmp{1};
+            end
             out = subsref(tmp,s(3));
         else
             % Use built-in for any other expression

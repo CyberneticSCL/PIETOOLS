@@ -1,6 +1,6 @@
 function [out, varargout] = combine(varargin)
 out = varargin{1};
-for i=2:nargin
+for i=2:nargin % find uniques and append into a single vector
     tmp = varargin{i};
     for j=1:length(tmp)
         s.type = '()'; s.subs = {j};
