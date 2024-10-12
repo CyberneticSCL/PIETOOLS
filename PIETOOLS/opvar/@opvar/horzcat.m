@@ -2,7 +2,8 @@ function [Pcat] = horzcat(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Pcat] = horzcat(varargin) takes n inputs and concatentates them horizontally,
 % provided they satisfy the following criteria:
-% 1) All inputs must of type 'opvar';
+% 1) At least one input must be of type 'opvar', remaining inputs can be of
+%    type 'double', 'polynomial', or 'opvar'.
 % 2) The output dimensions varargin{j}.dim(:,1) of all opvar objects must
 %       match;
 % 3) The spatial variables varargin{j}.var1 and varargin{j}.var2, as well 
@@ -45,6 +46,7 @@ function [Pcat] = horzcat(varargin)
 % has automatic dimension calculation
 % Adjusted so that dpvar with opvar returns dopvar, DJ 12/30/2021.
 % DJ - 09/30/23: Prohibit "ambiguous" concatenations.
+% SS - 10/09/24: Revert to allow some matrix-opvar concatenations.
 
 % Deal with single input case
 if nargin==1
@@ -70,6 +72,8 @@ elseif ~isa(a,'opvar') && (isa(a,'double')||isa(a,'polynomial')||isa(a,'dpvar'))
     tmp.dim = tmp.dim; % rectify dimensions
     a = tmp;
     clear tmp;
+elseif ~isa(a,'opvar')
+    error("Concatenation of 'opvar' objects is only supported with objects of type 'opvar', 'polynomial', or 'double'.")
 end
 
 
