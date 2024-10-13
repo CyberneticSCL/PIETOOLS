@@ -60,7 +60,14 @@ a = varargin{1};    b = varargin{2};
 
 % Currently support only some matrix-opvar concatenation
 if (~isa(b,'dopvar')&&~isa(b,'opvar'))
-    error("Ambiguous concatenation [a,b] of opvars. Please explicitly define 'a' and 'b' as opvars to resolve.");
+    % Only supported if a in fact corresponds to a matrix as well
+    if all(a.dim(2,:)==0)
+        opvar tmp; tmp.I = a.I; tmp.var1 = a.var1; tmp.var2 = a.var2;
+        tmp.P = b;
+        b = tmp;
+    else
+        error("Ambiguous concatenation [a,b] of dopvars. Please explicitly define 'a' and 'b' as dopvars to resolve.");
+    end
 elseif (~isa(a,'opvar')&&~isa(a,'dopvar')) && (isa(a,'double')||isa(a,'polynomial')||isa(a,'dpvar'))
     opvar tmp; tmp.I = b.I; tmp.var1 = b.var1; tmp.var2 = b.var2;
     if b.dim(2,1)~=0 % b maps to L2, so [a,b] is possible only if a is multiplier Q2 (or R0, but we ignore that)
