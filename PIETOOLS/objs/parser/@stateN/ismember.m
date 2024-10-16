@@ -1,4 +1,4 @@
-function [locA,idx]=ismember(objA,objB)
+function [locA, idx] = ismember(objA, objB)
 locA = zeros(length(objA),1); idx = locA;
 for i=1:length(objA)
     for j=1:length(objB)
