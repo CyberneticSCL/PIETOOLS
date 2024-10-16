@@ -4,24 +4,25 @@ if length(A)~=length(B)
     logval=0;
     return
 end
-if ~all(A.statename==B.statename)
+for i=1:length(A)
+if ~all(A(i).statename==B(i).statename)
     logval = 0;
     return
 end
-for i=1:length(A)
-if ~all(A(i).diffOrder==B(i).diffOrder)
+if ~all(isequal(A(i).diffOrder,B(i).diffOrder))
     logval=0;
     return
 end
-if ~all(A(i).maxdiff==B(i).maxdiff)
+if ~all(isequal(A(i).maxdiff,B(i).maxdiff))
     logval=0;
     return
 end
-if ~all(A(i).dom==B(i).dom)
+if ~all(isequal(A(i).dom,B(i).dom))
     logval=0;
     return
 end
-if ~isequal(A(i).var,B(i).var)
+tmpA = A(i).var; tmpB = B(i).var;
+if ~isequal(tmpA{1},tmpB{1}) % pvar objects have a weird problem
     logval = 0;
     return
 end
@@ -29,14 +30,9 @@ if ~strcmp(A(i).type,B(i).type)
     logval=0;
     return
 end
-end
-
-if ~all(A.len==B.len)
+if ~all(A(i).len==B(i).len)
     logval = 0;
     return
 end
-if ~all(A.isInfinite==B.isInfinite)
-    logval=0;
-    return
 end
 end
