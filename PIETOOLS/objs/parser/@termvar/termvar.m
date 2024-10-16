@@ -1,14 +1,13 @@
-classdef (InferiorClasses={?signals}) termvar < opvar & signals
+classdef (InferiorClasses={?signals}) termvar
     properties
-        % this does not require any properties; it is just an interface
-        % between state objects and opvar operators
+        operator; 
+        state;
     end
     methods
         function obj = termvar(operator,state)
-            obj@signals(state);
-            obj@opvar(operator);
+            obj.state = state;
+            obj.operator = operator; 
         end
-
         function val = length(obj)
             val = size(obj.operator,1);
         end

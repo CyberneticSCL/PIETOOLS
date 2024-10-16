@@ -19,7 +19,7 @@ end
 function P = findPermutation(A,B) % returns P, such that B = P*A
 blen = [B.len]; alen = [A.len];
 P = zeros(sum(blen),sum(alen));
-blen = [0;cumsum(blen)]+1; alen = [0;cumsum(alen)]+1;
+blen = [0,cumsum(blen)]+1; alen = [0,cumsum(alen)]+1;
 [~,idx] = ismember(B,A);
 for i=1:length(blen)-1
     tmp = [A.len];

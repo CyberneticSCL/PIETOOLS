@@ -11,9 +11,16 @@ classdef (InferiorClasses={?polynomial,?dpvar}) signals
         isInfinite; % N x 1 vector; 1 if the signal is infinitedimensional
         dim; % N x 1 vector; spatial dimension of signal
     end
-    properties (Hidden, Access=private)
+    properties (Hidden, SetAccess=private)
         statename; % N x 1 vector; global id for easy identification of the signal
     end
+
+    methods (Access=private)
+        function obj = setID(obj,val)
+            obj.statename = val;
+        end
+    end
+
     methods
         function obj = signals(varargin)
             % no input constructor
@@ -21,13 +28,13 @@ classdef (InferiorClasses={?polynomial,?dpvar}) signals
                 obj = odevar();
                 return
             end
-            
+
             % if input is a signals object do nothing
             if nargin==1 && isa(varargin{1},'signals')
                 obj = varargin{1};
                 return;
             end
-            
+
             % set default values
             type = ["ode"];
             len = [1];
@@ -43,7 +50,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) signals
             end
             if nargin>2
                 var = varargin{3};
-                else
+            else
                 if strcmp(type,"pde")
                     var = [pvar('t'),pvar('s1')];
                 end
@@ -77,7 +84,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) signals
             obj.diffOrder = diffOrder;
             obj.statename = stateNameGenerator();
         end
-        
+
         function val = get.isInfinite(obj)
             val = 0;
             if strcmp(obj.type,"pde") || (length(obj.var)>=2)
@@ -90,18 +97,30 @@ classdef (InferiorClasses={?polynomial,?dpvar}) signals
             val = val-1;
         end
 
-        function obj = setID(obj,val)
-            obj.statename = val;
-        end
-
-        function obj = setInfinite(obj)
-            obj.var = [pvar('t'),pvar('s1')];
-            obj.maxdiff = [inf,inf];
-            obj.diffOrder = [0,0];
-            obj.dom = [0,1];
+        function obj = setInfinite(obj,N)
+            if any(strcmp(obj.type,"ode"))
+                tmpMsg = 'Input to the method is "ode" type. Cannot be set as infinite';
+                error(tmpMsg);
+            end
+            if nargin==1
+                N = 1;
+            end
+            warning("Setting an object as ND resets the properties to default. Check metadata related to differentiability and domain.");
+            obj.var = repmat(pvar('t'),1,N+1);
+            obj.maxdiff = repmat(inf,1,N+1);
+            obj.diffOrder = repmat(0,1,N+1);
+            obj.dom = repmat([0,1],N,1);
+            for i=2:N+1
+                obj.var(i) = pvar(['s',num2str(i-1)]);
+            end
         end
 
         function obj = setFinite(obj)
+            if any(strcmp(obj.type,"pde"))
+                tmpMsg = 'Input to the method is "pde" type. Cannot be set as finite';
+                error(tmpMsg);
+            end
+            warning("Setting an object as 0D resets the properties to default. Check metadata related to differentiability and domain.");
             obj.var = [pvar('t')];
             obj.maxdiff = [inf];
             obj.diffOrder = [0];

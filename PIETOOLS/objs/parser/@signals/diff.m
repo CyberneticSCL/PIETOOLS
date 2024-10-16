@@ -20,7 +20,7 @@ for i=1:length(obj)
             msg = "Differentiation with respect to "+tmpvar.varname+" exceeds specified max derivative, "+num2str(obj(i).maxdiff(idx));
             error(msg);
         else
-            obj(i).maxdiff(idx) = obj(i).diffOrder(idx)+order(j);
+            obj(i).diffOrder(idx) = obj(i).diffOrder(idx)+order(j);
         end
     end
 end

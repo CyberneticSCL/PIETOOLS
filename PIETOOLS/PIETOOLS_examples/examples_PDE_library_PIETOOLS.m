@@ -277,11 +277,11 @@ switch index
 %   BCs: x2(0) = 0,         x1(1) + k*x2(1) = 0     |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Damped(GUI,params);
 %-----|---------------------------------------------|----------------------
+case 18
 %     | PDE: u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} | k = 1                         Datko 1986 [9] (Test 7.5c)
 %     | BCs: u(s=0) = 0                             |
 %     |      u_{s}(s=1) = -k*u_{t}(s=1)             |
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-    case 18
 %   Use states x1 = u_{t}, x2 = u.                  | k = 1
 %       =>                                          | ad = 1
 %   PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x2_{ss}      |
@@ -544,7 +544,7 @@ switch index
 %        x2_{t} = x2_{s2};                          |
 %   BCs: x1(t,s1=0)     = 0;                        |
 %        x1(t,s1=1)     = x2(t,s2=1);               |
-%        x2(t,s2=1+tay) = u(t);                     |
+%        x2(t,s2=1+tau) = u(t);                     |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
