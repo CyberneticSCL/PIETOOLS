@@ -40,6 +40,7 @@ function out = subsref(obj,s)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 6_14_2022
+% Add support for specifying indices as ':', DJ - 10/16/2024
 
 switch s(1).type
     case '.'
@@ -67,6 +68,19 @@ switch s(1).type
         indr2=[];
         indc1=[];
         indc2=[];
+
+        % Allow indices to be specified as e.g. (i,:);
+        if strcmp(indr,':') && strcmp(indc,':')
+            out = obj;
+            return
+        end
+        if strcmp(indr,':')
+            indr = (1:nr1_old+nr2_old);
+        end
+        if strcmp(indc,':')
+            indc = (1:nc1_old+nc2_old);
+        end
+
 
         for i=indr %rows
             if i<(nr1_old+1)
