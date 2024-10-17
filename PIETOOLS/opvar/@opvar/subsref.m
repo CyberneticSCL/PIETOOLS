@@ -82,7 +82,7 @@ switch s(1).type
         end
 
 
-        for i=indr %rows
+        for i=indr(:)' %rows
             if i<(nr1_old+1)
                 nr1_new=nr1_new+1;
                 indr1=[indr1 i];
@@ -95,7 +95,7 @@ switch s(1).type
                 error('index exceeds the number of rows in the original opvar')
             end
         end
-        for i=indc %columns
+        for i=indc(:)' %columns
             if i<(nc1_old+1)
                 nc1_new=nc1_new+1;
                 indc1=[indc1 i];
