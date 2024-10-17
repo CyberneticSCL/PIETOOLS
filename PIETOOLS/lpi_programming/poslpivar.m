@@ -1,4 +1,4 @@
-function [prog,Pop] = poslpivar(prog,n,I,d,options)
+function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [prog,Pop] = poslpivar(prog,n,I,d,options) declares 
 % a positive 4-PI decision operator Pop, with fields:
@@ -28,15 +28,14 @@ function [prog,Pop] = poslpivar(prog,n,I,d,options)
 %   prog: SOS program to modify.
 %   n(1): dimension of real part
 %   n(2): dimension of L2 part
-%   I = [l u] interval of integration
 %   -Optional INPUTS
 %   d{1}: degree of s in Z1(s)
 %   d{2}(1): degree of s in Z2(s,th), defaults to d(1)
 %   d{2}(2): degree of th in Z2(s,th), defaults to d(1)
-%   d{2}(3): joint degree of s,th in Z2(s,th), defaults to d(2,1)+d(2,2)
+%   d{2}(3): joint degree of s,th in Z2(s,th), defaults to max(d{2}(1),d{2}(2))
 %   d{3}(1): degree of s in Z3(s,th), defaults to d(1)
 %   d{3}(2): degree of th in Z3(s,th), defaults to d(1)
-%   d{3}(3): joint degree of s,th in Z3(s,th), defaults to d(3,1)+d(3,2)
+%   d{3}(3): joint degree of s,th in Z3(s,th), defaults to max(d{3}(1),d{3}(2))
 %   options.psatz=1 if this is a psatz term. options.psatz=0 otherwise
 %   options.exclude is a length 4 binary vector where 
 %      options.exclude(i)=1 if we want to set $T_{ij}=0$ for j=1...4
@@ -74,31 +73,38 @@ function [prog,Pop] = poslpivar(prog,n,I,d,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
+% Update to new 'lpiprogram' structure, DJ - 10/16/2024
 
-% % % Set-up % % %
+
+% % % Set-up
+
+% % First, check the spatial domain on which the program is defined.
+if ~isfield(prog,'dom') || size(prog.dom,1)==0
+    error('The program structure does not include a spatial domain -- please use ''lpiprogram'' to initialize your program');
+else
+    I = prog.dom;
+end
 
 % % Extract the input arguments
 switch nargin
-    case 2
+    case 1
         error('Not enough inputs!')
-    case 3
+    case 2
         if all(size(I)==[2,2])
             [prog,Pop] = poslpivar_2d(prog,n,I);
         end
         d = {1,[1,1,1],[1,1,1]};
         options.psatz=0;
         options.exclude=[0 0 0 0];
-        options.diag=0;
         options.sep =0;
-    case 4
+    case 3
         if all(size(I)==[2,2])
             [prog,Pop] = poslpivar_2d(prog,n,I,d);
         end
         options.psatz=0;
         options.exclude=[0 0 0 0];
-        options.diag=0;
         options.sep =0;
-    case 5
+    case 4
         if all(size(I)==[2,2])
             [prog,Pop] = poslpivar_2d(prog,n,I,d,options);
         end
@@ -108,63 +114,63 @@ switch nargin
         if ~isfield(options,'exclude')
             options.exclude=[0 0 0 0];
         end
-        if ~isfield(options,'diag')
-            options.diag=0;
-        end
         if ~isfield(options,'sep')
             options.sep=0;
         end
 end
-if length(n)~=2
-    error('n must be a length 2 vector')
+
+% % Check that the dimensions of the operator and properly specified.
+if ~isnumeric(n) || any(n<0)
+    error('Size of the operator must be specified as numeric array of positive integers.')
+end
+if numel(n)~=2
+    if all(size(n)==[2,2])
+        % Assume n(:,1) gives row dimension, and n(:,2) the column
+        % dimension
+        if any(n(:,1)~=n(:,2))
+            error('Positive operator must have equal row and column dimensions.')
+        else
+            n = n(:,1);
+        end
+    else
+        error('n must be a length 2 vector.')
+    end
+else
+    % Extract the size of the object: 
+    %   Pop: \R^n1 xL2^n2 --> \R^n1 xL2^n2
+    n = n(:);
+    n1 = n(1);  n2 = n(2);
+end
+if all(n==0)
+   % Construct an empty operator variable (for whatever reason...)
+    dopvar Pop;
+    Pop.I = I;
+    Pop.var1 = prog.vartable(1);
+    Pop.var2 = prog.vartable(2); 
 end
 
-if I(1)>=I(2)
-    error('I(1) must be less than I(2)')
-end
-
+% % Check that the degrees of the monomials have been properly specified
 if ~iscell(d)
     error('d is a 3-cell structure')
 end
-
-% Specify the degrees of the monomials
+% Fill in any gaps in the data
 if length(d(:))==1
     d{2}=[d{1},d{1},2*d{1}];
     d{3}=d{2};
-elseif length(d(:))==2
-    if length(d{2})==1
-        d{2}(2)=d{2}(1);
-        d{2}(3)=d{2}(1);
-    elseif length(d{2})==2
-        d{2}(3)=d{2}(1);
-    end
-    d{3}=d{2};
 else
     if length(d{2})==1
-        d{2}(2)=d{2}(1);
-        d{2}(3)=d{2}(1);
+        d{2} = d{2}*ones(1,3);
     elseif length(d{2})==2
-        d{2}(3)=d{2}(1);
+        d{2}(3) = max(d{2});
     end
-    if length(d{3})==1
-        d{3}(2)=d{3}(1);
-        d{3}(3)=d{3}(1);
-    elseif length(d{3})==2
-        d{3}(3)=d{3}(1);
-    end
-end
-
-% Specify the spatial domain (s,th \in [I(1),I(2)]
-if length(I)~=2
-    error('I must be a length 2 vector')
-end
-
-% Extract the size of the object: P\in R^(n1xn1), R0\in L_2^(n2xn2)
-n = reshape(n,[1,2]);
-n1 = n(1);  n2 = n(2);
-if n1==0
-    if n2==0
-        error('Error in posopvar: All dimensions are zero')
+    if numel(d)==2
+        d{3}=d{2};
+    else
+        if length(d{3})==1
+            d{3} = d{3}*ones(1,3);
+        elseif length(d{3})==2
+            d{3}(3) = max(d{3});
+        end
     end
 end
 
@@ -181,26 +187,30 @@ if options.sep ==1
 end
 
 % If there is no finite-dimensional component or infinite-dimensional
-% components, we may exclude the associated term
+% component, we may exclude the associated term
 if n1==0
     excludeL(1)=1;
 end
 if n2==0
     excludeL(2:4)=[1 1 1];
 end
-
 if all(excludeL)
-    error('You''re creating an empty dopvar! Please change options.exclude and/or options.sep and try again.')
+    error('You''re creating an empty dopvar! Please change options.exclude and/or options.sep.')
 end
 
-% % Define the variable of multiplier function
+% % This option is currently not available
+if isfield(options,'diag') && options.diag
+    disp('Poslpivar option ''diag'' is currently not available.')
+end
 
-% Define the primary variables (R0 is function of s, R1 and R2 of s,theta)
-pvar s theta;
-var1 = s; var2 = theta;
+
+% % Extract the variables defining the operator
+%   R0 is function of var1, R1 and R2 of var1 and var2
+var1 = prog.vartable(1);
+var2 = prog.vartable(2);
 
 % Define a dummy variable for integration (replaces eta)
-sss =  polynomial(1,1,{'sss'},[1 1]);
+pvar sss
 
 % Define the multiplier function to be used later
 if options.psatz==1 % use a function that is positive only on domain I
@@ -213,232 +223,145 @@ else % use a function that is positive everywhere
     geta = polynomial(1);
 end
 
-% % % Construct the monomial bases Z and positive matrix Q % % %
-
-% % Build the monomials
-% Construct Z1(s)
-nZ1 = d{1}+1;
-Z1degmat = (0:d{1})';   % maximal degree d{1}
-Z1coeff = speye(nZ1);
-Z1varname = var1.varname;
-Z1matdim = [nZ1 1];
-Z1s = polynomial(Z1coeff,Z1degmat,Z1varname,Z1matdim);
-
-% Construct Z2(s,th) and Z3(s,th)
-% In this implementation, Z2 will have degree d{2,2} in th and degree 
-% d{2,1} in s, and max degree of s+th is d{2,3}. Similarly for Z3(s,th)
-Z2degmat = [repmat((0:d{2}(1))',d{2}(2)+1,1),vec(repmat(0:d{2}(2),d{2}(1)+1,1))];
-Z2degmat(sum(Z2degmat,2)>d{2}(3),:)= [];
-nZ2=size(Z2degmat,1);
-Z2coeff = speye(nZ2);
-Z2varname = [var1.varname; var2.varname];
-Z2matdim = [nZ2 1];
-Z2sth=polynomial(Z2coeff,Z2degmat,Z2varname,Z2matdim);
-
-Z3degmat = [repmat((0:d{3}(1))',d{3}(2)+1,1),vec(repmat(0:d{3}(2),d{3}(1)+1,1))];
-Z3degmat(sum(Z3degmat,2)>d{3}(3),:)= [];
-nZ3=size(Z3degmat,1);
-Z3coeff = speye(nZ3);
-Z3varname = [var1.varname; var2.varname];
-Z3matdim = [nZ3 1];
-Z3sth=polynomial(Z3coeff,Z3degmat,Z3varname,Z3matdim);
-
-% % Build the associated block matrices
-% bZ1 = [Z1,0 ,...,0 ;]   etc.
-%       [0 ,Z1,...,0 ;]
-%       [: ,: , . ,: ;]
-%       [0 ,0 ,...,Z1 ]
-
-% The size of the matrices must be such that bZ1'*Q22*bZ1 \in L_2^(n2xn2) 
-%nBZ1 = n2*nZ1;
-%nBZ2 = n2*nZ2;
-%nBZ3 = n2*nZ3;
-
-bZ1s=[];
-for i=1:n2
-    bZ1s=blkdiag(bZ1s,Z1s);
-end
-
-bZ2sth=[];
-for i=1:n2
-    bZ2sth=blkdiag(bZ2sth,Z2sth);
-end
-
-bZ3sth=[];
-for i=1:n2
-    bZ3sth=blkdiag(bZ3sth,Z3sth);
-end
-
-% Swap the variables s and th for later purposes
-%bZ2ths = var_swap(bZ2sth,var1,var2);
-%bZ3ths = var_swap(bZ3sth,var1,var2);
 
 
-% % Declare the positive matrix variable
+% % % Construct the monomial vectors Z
 
-% We are going to compute bZL'*Q*bZR
-includeL = ~excludeL;
-ZL = cell(1,sum(includeL));
-ZR = cell(1,sum(includeL));
+% Z1(s) will have max degree d{1} in s.
+Z1s = build_monoms(var1,[0;d{1}]);
 
+% Z2(s,th) will have max degree d{2}(1) in s, d{2}(2) in th, and d{2}(3) in
+% s and th combined.
+Z2sth = build_monoms([var1;var2],reshape([0;d{2}(:)],[2,2]));
+
+% Z3(s,th) will have max degree d{3}(1) in s, d{3}(2) in th, and d{3}(3) in
+% s and th combined.
+Z3sth = build_monoms([var1;var2],reshape([0;d{3}(:)],[2,2]));
+
+
+
+% % % Build the matrix-valued function 
+%   N(s,th,et) = ZL(s,et)'*Qmat*ZR(th,et)
+% for Qmat>=0 and
+%   ZL = [eye(n1), 0,                     0,                       0                      ]
+%        [0,       kron(eye(n2), Z1(s)),  0,                       0                      ]
+%        [0,       0,                     kron(eye(n2),Z2(et,s)),  0                      ]
+%        [0,       0,                     0,                       kron(eye(n2),Z3(et,s)) ]
+%   ZR = [eye(n1), 0,                     0,                       0                      ]
+%        [0,       kron(eye(n2), Z1(th)), 0,                       0                      ]
+%        [0,       0,                     kron(eye(n2),Z2(et,th)), 0                      ]
+%        [0,       0,                     0,                       kron(eye(n2),Z3(et,th))]
+
+% Evaluate monomials at dummy variable
 Z1th = subs(Z1s,var1,var2);
 Z2etath = subs(Z2sth,var1,sss);
 Z2etas = subs(Z2etath,var2,var1);
 Z3etath = subs(Z3sth,var1,sss);
 Z3etas = subs(Z3etath,var2,var1);
 
-mdim = [];
-ndim = [];
+% Initialize ZL and ZR
+includeL = ~excludeL;
+ZL = cell(1,sum(includeL));
+ZR = cell(1,sum(includeL));
+
+% Add desired monomial vectors to the block-diagonal matrix
+mdim = [];      ndim = [];
 indx = 1;
 if includeL(1)
-    ZL{indx} = 1;
-    ZR{indx} = 1;
-    mdim = [mdim;n1];
-    ndim = [ndim;n1];
+    ZL{indx} = 1;       ZR{indx} = 1;
+    mdim = [mdim;n1];   ndim = [ndim;n1];
     indx = indx+1;
 end
 if includeL(2)
-    ZL{indx} = Z1s;
-    ZR{indx} = Z1th;
-    mdim = [mdim;n2];
-    ndim = [ndim;n2];
+    ZL{indx} = Z1s;     ZR{indx} = Z1th;
+    mdim = [mdim;n2];   ndim = [ndim;n2];
     indx = indx+1;
 end
 if includeL(3)
-    ZL{indx} = Z2etas;
-    ZR{indx} = Z2etath;
-    mdim = [mdim;n2];
-    ndim = [ndim;n2];
+    ZL{indx} = Z2etas;  ZR{indx} = Z2etath;
+    mdim = [mdim;n2];   ndim = [ndim;n2];
     indx = indx+1;
 end
 if includeL(4)
-    ZL{indx} = Z3etas;
-    ZR{indx} = Z3etath;
-    mdim = [mdim;n2];
-    ndim = [ndim;n2];
+    ZL{indx} = Z3etas;  ZR{indx} = Z3etath;
+    mdim = [mdim;n2];   ndim = [ndim;n2];
 end
-[prog,N] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
 
-include_indx = cumsum(includeL);
-    
-
-
-% % This option is currently not available
-if options.diag
-    disp('Poslpivar option ''diag'' is currently not available')
+% Declare a matrix Qmat>=0, and matrix-valued function
+%   N(s,th,et) = ZL(s,et)'*Qmat*ZR(th,et)
+if nargout<=2
+    [prog,N] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+else
+    [prog,N,Qmat] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
 end
-% This option is really only intended for time-delay systems, wherein we
-% know these terms are zero and can be omitted
-% if options.diag==1 && options.exclude(2)~=1 % if the diagonal override is used, make $Q22$ block diagonal
-%     Q22temp=Q{2,2}; %this is of dimension nBZ1=n2*nZth=K*diag*nZth
-%     K=n2/diag; % this is the number of blocks
-%     for i=1:K
-%         irange=(diag*(i-1)*nZs+1):(i*diag*nZs);    % n2/
-%         Q22temp(irange,irange)=zeros(diag*nZs); % parts of Q22 which are not Zero
-%     end
-%     for i=1:K
-%         irange=(diag*(i-1)*nZs+1):(i*diag*nZs);    % n2/
-%         for j=1:K
-%             if i~=j
-%                 jrange=(diag*(j-1)*nZs+1):(j*diag*nZs);    % n2/
-%                 Q{2,2}(irange,jrange)=zeros(length(irange),length(jrange));
-%                 % eliminate these terms so fewer variables appear in the polynomial manipulations
-%             end
-%         end
-%     end
-%     prog=sosmateq(prog,Q22temp); %constrain the off-diagonal terms to be zero
-% end
 
 
-% % % Build the positive dopvar object % % %
 
-% Since the object must be self-adjoint, we need only define Pop.P = P,
-% Pop.Q1 = QT, Pop.R.R0 = R0 and Pop.R.R1 = R1
+% % % Build the positive dopvar object
+
+% Since the object must be self-adjoint, we need only define 
+% Pop.P = P, Pop.Q1 = QT, Pop.R.R0 = R0 and Pop.R.R1 = R1
 P = dpvar(zeros(n1));
 QT = dpvar(zeros(n1,n2));
 R0 = dpvar(zeros(n2));
 R1 = R0;
 
+% Account for the fact that some components may be excluded.
+include_indx = cumsum(includeL);
+
 % Define P, Q1 = QT, and Q2 = QT'
-if excludeL(1)==0
-    %P = P+Q{1,1}*int(gs,var1,I(1),I(2));
-    %P = P + int(gs * ZQZconstruct(poly1,poly1,Q{1,1},[n1,n1],var1,var2,sss,1,0),var1,I(1),I(2));
+if includeL(1)
     i1 = include_indx(1);     j1 = include_indx(1);
     P = P + N{i1,j1} * int(gs,var1,I(1),I(2));
-    if excludeL(2)==0
-        %QT = QT + Q{1,2}*gs*bZ1s;
-        %QT = QT + gs * ZQZconstruct(poly1,Z1s,Q{1,2},[n1,n2],var1,var2,sss,0,0);
+    if includeL(2)
         i1 = include_indx(1);     j1 = include_indx(2);
         QT = QT + gs * subs(N{i1,j1},var2,var1);
     end
-    if excludeL(3)==0 && ~options.sep==1
-        %QT = QT + int(Q{1,3}*gth*bZ2ths,var2,var1,I(2));
-        %QT = QT + int(gth * ZQZconstruct(poly1,Z2sth,Q{1,3},[n1,n2],var1,var2,sss,0,0),var2,var1,I(2));
+    if includeL(3) && ~options.sep==1
         i1 = include_indx(1);     j1 = include_indx(3);
         QT = QT + int(geta * subs(N{i1,j1},var2,var1),sss,var1,I(2));
-    elseif excludeL(3)==0 && options.sep==1
-        %QT = QT + int(Q{1,3}*gth*bZ2ths,var2,I(1),I(2));
-        %QT = QT + int(gth * ZQZconstruct(poly1,Z2sth,Q{1,3},[n1,n2],var1,var2,sss,0,0),var2,I(1),I(2));
+    elseif includeL(3) && options.sep==1
         i1 = include_indx(1);     j1 = include_indx(3);
         QT = QT + int(geta * subs(N{i1,j1},var2,var1),sss,I(1),I(2));
     end
-    if excludeL(4)==0
-        %QT = QT + int(Q{1,4}*gth*bZ3ths,var2,I(1),var1);
-        %QT = QT + int(gth * ZQZconstruct(poly1,Z2sth,Q{1,4},[n1,n2],var1,var2,sss,0,0),var2,I(1),var1);
+    if includeL(4)
         i1 = include_indx(1);     j1 = include_indx(4);
         QT = QT + int(geta * subs(N{i1,j1},var2,var1),sss,I(1),var1);
     end
 end
 
-% Define terms in R0 and R1 related to the first monomial basis
-if excludeL(2)==0
-    %R0 = gs * bZ1s'*Q{2,2}*bZ1s;
-    %R0 = gs * ZQZconstruct(Z1s,Z1s,Q{2,2},[n2,n2],var1,var2,sss,1,0);
+% Define terms in R0 and R1 related to the first vector of monomials Z1
+if includeL(2)
     i1 = include_indx(2);     j1 = include_indx(2);
     R0 = R0 + gs * subs(N{i1,j1},var2,var1);
-    if excludeL(3)==0 && ~options.sep==1
-        %R1 = R1 + gs * bZ1s'*Q{2,3}*bZ2sth;
-        %R1 = R1 + gs * ZQZconstruct(Z1s,Z2sth,Q{2,3},[n2,n2],var1,var2,sss,0,0);
+    if includeL(3) && ~options.sep==1
         i1 = include_indx(2);     j1 = include_indx(3);
         R1 = R1 + gs * subs(N{i1,j1},sss,var1);
-    elseif excludeL(3)==0 && options.sep==1
-        %R1 = R1 + gs * bZ1s'*Q{2,3}*bZ2sth + gth * bZ2ths'*Q{2,3}.'*bZ1th;
-        %R1 = R1 + gs * ZQZconstruct(Z1s,Z2sth,Q{2,3},[n2,n2],var1,var2,sss,0,0) ...
-        %        + gth * ZQZconstruct(Z1s,Z2sth,Q{2,3},[n2,n2],var1,var2,sss,0,1);
+    elseif includeL(3) && options.sep==1
         i1 = include_indx(2);     j1 = include_indx(3);
         R1 = R1 + gs * subs(N{i1,j1},sss,var1) + gth * subs(N{j1,i1},sss,var2);
     end
-    if excludeL(4)==0
-        %R1 = R1 + gth * bZ3ths'*Q{2,4}.'*bZ1th;
-        %R1 = R1 + gth * ZQZconstruct(Z1s,Z2sth,Q{2,4},[n2,n2],var1,var2,sss,0,1);
+    if includeL(4)
         i1 = include_indx(4);     j1 = include_indx(2);
         R1 = R1 + gth * subs(N{i1,j1},sss,var2);
     end
 end
 
-% Define terms in R1 related to the second monomial basis
-if excludeL(3)==0 && ~options.sep==1
-        %R1 = R1 + int(geta * bZ2etas'*Q{3,3}*bZ2etath,sss,var1,I(2)); 
-        %R1 = R1 + int(geta * ZQZconstruct(Z2sth,Z2sth,Q{3,3},[n2,n2],var1,var2,sss,1,0),sss,var1,I(2));
+% Define terms in R1 related to the second vector of monomials Z2
+if includeL(3) && ~options.sep==1
         i1 = include_indx(3);     j1 = include_indx(3);
         R1 = R1 + int(geta * N{i1,j1},sss,var1,I(2));
-    if excludeL(4)==0
-        %R1 = R1 + int(geta * bZ3etas'*Q{3,4}.'*bZ2etath,sss,var2,var1); 
-        %R1 = R1 + int(geta * ZQZconstruct(Z2sth,Z3sth,Q{3,4},[n2,n2],var1,var2,sss,0,1),sss,var2,var1);
+    if includeL(4)
         i1 = include_indx(4);     j1 = include_indx(3);
         R1 = R1 + int(geta * N{i1,j1},sss,var2,var1);
     end
-elseif excludeL(3)==0 && options.sep==1
-    %R1 = R1 + int(geta * bZ2etas'*Q{3,3}*bZ2etath,sss,I(1),I(2));
-    %R1 = R1 + int(geta * ZQZconstruct(Z2sth,Z2sth,Q{3,3},[n2,n2],var1,var2,sss,1,0),sss,I(1),I(2));
+elseif includeL(3) && options.sep==1
     i1 = include_indx(3);     j1 = include_indx(3);
     R1 = R1 + int(geta * N{i1,j1},sss,I(1),I(2));
 end
 
-% Define terms in R1 related to the third monomial basis
-if excludeL(4)==0
-    %R1 = R1 + int(geta * bZ3etas'*Q{4,4}*bZ3etath,sss,I(1),var2);
-    %R1 = R1 + int(geta * ZQZconstruct(Z3sth,Z3sth,Q{4,4},[n2,n2],var1,var2,sss,1,0),sss,I(1),var2);
+% Define terms in R1 related to the third vector of monomials Z3
+if includeL(4)
     i1 = include_indx(4);     j1 = include_indx(4);
     R1 = R1 + int(geta * N{i1,j1},sss,I(1),var2);
 end
@@ -450,15 +373,92 @@ else
     R2 = varswap(R1,var1,var2).';
 end
 
-% Construct the positive dpvar Pop
+% Construct the positive decision variable operator Pop
 dopvar Pop;
 Pop.P = P;
 Pop.Q1 = QT;
-Pop.Q2 = QT.'; Pop.R.R0 = R0; Pop.R.R1 = R1; Pop.R.R2 = R2;
+Pop.Q2 = QT.'; 
+Pop.R.R0 = R0; Pop.R.R1 = R1; Pop.R.R2 = R2;
 
-Pop.dim = [n',n'];
+Pop.dim = [n,n];
 Pop.I = I;
 Pop.var1 = var1;
 Pop.var2 = var2;
+
+end
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function Z = build_monoms(vartable,maxdegs)
+% This function builds monomials in the variables "vartable" up to 
+% maximal degrees "maxdegs". 
+%
+% INPUT
+%   vartable: A (nvars x 1)-cellstr object specifying the variable names
+%   maxdegs: An array of 2^nvars elements, for nvars variables. Required to
+%            be a (reshaped version of a) 2x2x...x2 array, with each
+%            dimension corresponding to a single variable, so that e.g.
+%            element (2,1) corresponds to the degree of ss1, element (1,2)
+%            corresponds to the degree of ss2, and element (2,2)
+%            corresponds to the joint degree in ss1*ss2. Note that the
+%            standard degree object used in poslpivar, taking the form
+%
+%                 0 |         ss2 |         tt2 |         ss2*tt2
+%          ---------|-------------|-------------|-----------------
+%               ss1 |     ss1*ss2 |     ss1*tt2 |     ss1*ss2*tt2
+%          ---------|-------------|-------------|-----------------
+%               tt1 |     tt1*ss2 |     tt1*tt2 |     tt1*ss2*tt2 
+%          ---------|-------------|-------------|-----------------
+%           ss1*tt1 | ss1*tt1*ss2 | ss1*tt1*tt2 | ss1*tt1*ss2*tt2  
+%
+%            can be easily reshaped to the 2x2x2x2 form. Also note that the
+%            first element must always be zero (anything else is ignored).
+%
+% OUTPUT
+%       Z: Polynomial class object corresponding to the monomials in the 
+%           desired variables up to the desired maximal degrees
+%
+
+nvars = length(vartable);
+if numel(maxdegs)==2^nvars-1
+    maxdegs = [0;maxdegs(:)];
+elseif numel(maxdegs)~=2^nvars
+    error('The "maxdegs" input should contain 2^nvars elements')
+end
+
+Mdeg = max(maxdegs(:));
+
+% Initialize
+Z = monomials(vartable,0:Mdeg);
+if ischar(vartable)
+    Z_degmat = Z;
+    Zvarname = {vartable};
+elseif iscellstr(vartable)
+    Z_degmat = Z;
+    Zvarname = vartable;
+elseif isa(vartable,'polynomial')
+    Z_degmat = Z.degmat;
+    Zvarname = Z.varname;
+else
+    error('Variable names should be specified as a cellstr or polynomial')
+end
+
+% Loop over all specified maximal (joint) degrees, and discard monomials
+% that exceed the specified maximum
+for i=2:2^nvars
+    bindx = str2num(dec2bin(i-1,nvars)')';  
+    cindx = bindx(end:-1:1)>0;                      % Logical array indicating which columns in degmat to consider
+    retain = sum(Z_degmat(:,cindx),2)<=maxdegs(i);  % Logical array indicating rows with sufficiently small (joint) degree
+    Z_degmat = Z_degmat(retain,:);                  % Retain only those monomials
+end
+% Get rid of variables that do not contribute
+keep_var = any(Z_degmat,1);
+Z_degmat = Z_degmat(:,keep_var);
+Zvarname = Zvarname(keep_var);
+
+% Build new monomials with maximal degrees as specified
+nZ = size(Z_degmat,1);
+Z = polynomial(eye(nZ),Z_degmat,Zvarname,[nZ,1]);
 
 end

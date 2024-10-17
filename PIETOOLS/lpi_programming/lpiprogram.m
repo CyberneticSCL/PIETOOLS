@@ -71,6 +71,9 @@ elseif ~ispvar(vartable)
 elseif size(vartable,2)~=2
     error("Spatial variables should be specified as nx2 array, with first column specifying primary variables, and second column dummy variables used for integration.")
 end
+if size(vartable,1)>2
+    error('LPI programs involving more than 2 spatial variables are currently not supported.')
+end
 
 % % Check that the spatial domain is properly specified.
 if nargin<2
@@ -91,6 +94,10 @@ elseif size(dom,1)~=size(vartable,1)
     end
 end
 dom = double(dom);
+% Make sure the domain makes sense.
+if any(dom(:,2)<=dom(:,1))
+    error('Upper boundary of domain should be strictly greater than lower boundary.')
+end
 
 % % Check that the "free" variables and decision variables are 
 % % properly specified.

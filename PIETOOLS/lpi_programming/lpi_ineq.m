@@ -77,9 +77,6 @@ if dim(:,1)~=dim(:,2)
     error('Non-symmetric operators cannot be sign definite. Unable to set the inequality');
 end
 
-nx1 = dim(1,1);
-nx2 = dim(2,1);
-X = P.I;
 
 
 d2 = degbalance(P);
@@ -92,11 +89,11 @@ else
 end
 if options.psatz == 1
     options3.psatz=1;
-    [sos, Deop] = poslpivar(sos, [nx1 ,nx2],X,d2,options2);
-    [sos, De2op] = poslpivar(sos, [nx1 ,nx2],X,d2,options3);
+    [sos, Deop] = poslpivar(sos,dim,d2,options2);
+    [sos, De2op] = poslpivar(sos,dim,d2,options3);
     sos = lpi_eq(sos,Deop+De2op-P,'symmetric'); %Dop=Deop+De2op
 else
-    [sos, Deop] = poslpivar(sos, [nx1 ,nx2],X,d2,options2);
+    [sos, Deop] = poslpivar(sos,dim,d2,options2);
     sos = lpi_eq(sos,Deop-P,'symmetric'); %Dop=Deop
 end
 end
