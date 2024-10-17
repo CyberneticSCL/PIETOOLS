@@ -314,7 +314,16 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
         end
         
         % Add the dummy variables used for integration
-        varname_kk = PDE_term.loc(kk).varname{1};
+        if isfield(PDE_term,'loc')
+            varname_kk = PDE_term.loc(kk).varname{1};
+        else
+            if isfield(PDE.(Robj){tab_row},'vars')
+                var_kk = PDE.(Robj){tab_row}.vars(kk,1);
+                varname_kk = var_kk.varname{1};
+            else
+                varname_kk = ['s',num2str(kk)];
+            end            
+        end
         dtheta_trm = ['d',varname_kk,' ',dtheta_trm,]; 
     end
 end
@@ -329,6 +338,7 @@ end
 % % % Add the coefficient
 C_trm = '';
 term_sign = 1;   % Assume positive sign of coefficients.
+use_Cij = false;
 if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
     Cval = PDE_term.C;
     % Convert constant polynomial to double
