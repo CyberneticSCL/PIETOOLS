@@ -1221,7 +1221,7 @@ for eqnum=1:numel(PDE.(obj))
                 % allows for the desired substitution to be performed. That
                 % is, if substituting variable s, then variable s must be
                 % present in the combination of variables.
-                issub_op = false(2*ones(1,nvars));
+                issub_op = false([2*ones(1,nvars),1]);
                 for ll = 2:numel(issub_op)
                     use_var_list = cell(1,nvars);
                     [use_var_list{:}] = ind2sub(size(issub_op),ll);

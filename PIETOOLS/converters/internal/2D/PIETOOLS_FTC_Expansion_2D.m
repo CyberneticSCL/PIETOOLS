@@ -270,9 +270,9 @@ for comp=1:ncomps
     % e.g. if the state component is differentiable in s1 but not in s2, we
     % should look at R22{2,1}
     param_lin_sz = 3.^(0:nvars-1)';
-    param_lin_sz = param_lin_sz(1:nvars_cc);
+    param_lin_sz = param_lin_sz((1:nvars_cc)');
     Dval = diff_tab(comp,:);
-    Dval_cc = Dval(isvar);
+    Dval_cc = Dval(1,isvar);
     param_idx = (Dval_cc>0)*param_lin_sz + 1;
     
     if all(Dval_cc==0)
