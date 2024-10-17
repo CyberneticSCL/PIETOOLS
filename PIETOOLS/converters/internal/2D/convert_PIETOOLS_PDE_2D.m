@@ -1,12 +1,18 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert_PIETOOLS_PDE_2D.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function PIE = convert_PIETOOLS_PDE_2D(PDE)
+function PIE = convert_PIETOOLS_PDE_2D(PDE,comp_order)
 % Convert a coupled ODE-1D_PDE-2D_PDE system to an equivalent PIE.
 % 
 % INPUTS:
 % - PDE:    A struct or pde_struct object defining a PDE in the terms
 %           format (see also "@pde_struct/initialize").
+% - comp_order:     Optional argument specifying the order of the state
+%                   variables, inputs, and outputs from the PDE as they 
+%                   appear in the PIE, specified as a struct. That is, e.g.
+%                   PIE.x{i} = PDE.x{comp_order.x(1)};
+%                   If not specified, the converter will reorder the
+%                   variables itself, and determine the new order.
 %
 % OUTPUTS:
 % - PIE:    A struct with fields:
@@ -84,13 +90,14 @@ function PIE = convert_PIETOOLS_PDE_2D(PDE)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/09/2022
+% Add 1D conversion, DJ - 10/16/2024
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Initialization                                          % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Coefficients smaller than tol in PI operators will be discarded.
-op_clean_tol = 1e-12;   
+op_clean_tol = 1e-8;   
 
 % Initialize PDE in case this has not been done.
 PDE = pde_struct(PDE);
@@ -117,22 +124,41 @@ global nvars;       nvars = size(vars,1);
 %   x = [x_i; x_j; x_k] in [ L2^n_i[s2]; R^n_j; L2^n_k[s2] ], 
 % we re-order the state components x_i, x_j and x_k such that 
 %   x_new = [x_j; x_i; x_k] in [ R^n_j; L2^n_i[s2]; L2^n_k[s2] ];
-% We do this useing the "reorder_comps" subroutine.
-[PDE,xcomp_order] = reorder_comps(PDE,'x',true);
-[PDE,ycomp_order] = reorder_comps(PDE,'y',true);
-[PDE,zcomp_order] = reorder_comps(PDE,'z',true);
-[PDE,wcomp_order] = reorder_comps(PDE,'w',true);
-[PDE,ucomp_order] = reorder_comps(PDE,'u',true);
-
+% We do this using the "reorder_comps" subroutine.
+if nargin==1 || ~isa(comp_order,'struct')
+    [PDE,xcomp_order] = reorder_comps(PDE,'x',true);
+    [PDE,ycomp_order] = reorder_comps(PDE,'y',true);
+    [PDE,zcomp_order] = reorder_comps(PDE,'z',true);
+    [PDE,wcomp_order] = reorder_comps(PDE,'w',true);
+    [PDE,ucomp_order] = reorder_comps(PDE,'u',true);
+    
+    comp_order = struct();
+    comp_order.x = xcomp_order;
+    comp_order.y = ycomp_order;
+    comp_order.z = zcomp_order;
+    comp_order.w = wcomp_order;
+    comp_order.u = ucomp_order;
+    comp_order.BC = (1:numel(PDE.BC))';
+else
+    xcomp_order = comp_order.x;
+    ycomp_order = comp_order.y;
+    zcomp_order = comp_order.z;
+    wcomp_order = comp_order.w;
+    ucomp_order = comp_order.u;
+    if ~isfield(comp_order,'BC')
+        comp_order.BC = (1:numel(PDE.BC))';
+    end
+end
 % If the PDE is not 2D, we artificially augment.
+is2D = nvars==2;
 if nvars==0
-    % Define a 2D domain with variables.
-    pvar ss1 tt1 ss2 tt2
-    vars = [ss1,tt1; ss2,tt2];
+    % Define a 1D domain with variables.
+    pvar ss1 tt1
+    vars = [ss1,tt1];
     dom = [0,1;0,1];
-    nvars = 2;
+    nvars = 1;
     
-    % Add a temporary state variable that exists on the 2D domain.
+    % Add a temporary state variable that exists on the 1D domain.
     ncomps = numel(PDE.x);
     PDE.x{ncomps+1}.dom = dom;
     PDE.x{ncomps+1}.vars = vars;
@@ -141,22 +167,25 @@ if nvars==0
     PDE = initialize_PIETOOLS_PDE(PDE,true);
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
-elseif nvars==1
-     % Define a 2D domain with variables.
-    pvar ss2 tt2
-    vars = [vars; [ss2,tt2]];
-    dom = [dom; [0,1]];
-    nvars = 2;
-    
-    % Add a temporary state variable that exists on the 2D domain.
-    ncomps = numel(PDE.x);
-    PDE.x{ncomps+1}.dom = dom;
-    PDE.x{ncomps+1}.vars = vars;
-    PDE.x{ncomps+1}.term{1}.x = ncomps+1;
-    % Initialize the augmented system, and get rid of the temporary state.
-    PDE = initialize_PIETOOLS_PDE(PDE,true);
-    PDE.x = PDE.x((1:ncomps)');
-    PDE.x_tab = PDE.x_tab((1:ncomps)',:);
+
+% elseif nvars==1
+%     is2D = false;
+%      % Define a 2D domain with variables.
+%     xtra_var = polynomial({[vars(1).varname{1},'_2']; [vars(2).varname{1},'_2']});
+%     vars = [vars; xtra_var'];
+%     dom = [dom; [0,1]];
+%     nvars = 2;
+% 
+%     % Add a temporary state variable that exists on the 2D domain.
+%     ncomps = numel(PDE.x);
+%     PDE.x{ncomps+1}.dom = dom;
+%     PDE.x{ncomps+1}.vars = vars;
+%     PDE.x{ncomps+1}.term{1}.x = ncomps+1;
+%     % Initialize the augmented system, and get rid of the temporary state.
+%     PDE = initialize_PIETOOLS_PDE(PDE,true);
+%     PDE.x = PDE.x((1:ncomps)');
+%     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
+%     PDE.is_initialized = true;  % No need to re-initialize
 end
 
 % Extract the tables providing information on the spatial dependence (and
@@ -184,8 +213,55 @@ np_op.z = get_opdim(z_tab);
 % such that
 %    x = Tx*xf + Tu*u + Tw*w;
 % where Tx, Tu and Tw are PI operators. This map is uniquely defined by the
-% BCs (of the form 0 = F(x,u,w)), and will be constructed in three steps:
+% BCs (of the form 0 = F(x,u,w)), and we have two options for computing it:
+%
+% % % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+% % % OPTION 1:
+% % % We expand the state separately along each dimension as
+% % %   x = Tx_1*D_1*x +Tw_1*w +Tu_1*u;
+% % %   x = Tx_2*D_2*x +Tw_2*w +Tu_2*u;
+% % % where D_1 and D_2 are diagonal differential operators taking the
+% % % highest-order admissible derivative of each state component with
+% % % respect to the first and second spatial variable, respectively.
+% % % Then, we combine these expansions as either
+% % %   D_2*x = Tx_1*D_2*D_1*x +Tw_1*D_2*w +Tu_1*D_2*u
+% % %   --> x = Tx_2*Tx_1*D_12*x +Tx_2*Tw_1*D_2*w +Tw_2*w 
+% % %               +Tx_2*Tu_1*D_2*u +Tu_2*u;
+% % %   --> x = Tx*xf + Tw*D_w*w + Tu*D_u*u;
+% % % or as
+% % %   D_1*x = Tx_2*D_1*D_2*x +Tw_2*D_1*w +Tu_2*D_1*u
+% % %   --> x = Tx_1*Tx_2*D_12*x +Tx_1*Tw_2*D_1*w +Tw_1*w 
+% % %               +Tx_1*Tu_2*D_1*u +Tu_1*u;
+% % %   --> x = Tx*xf + Tw*D_w*w + Tu*D_u*u;
+% % % where xf = D_2*D_1*x.
+% % % This approach only works for "separable" boundary conditions, so that
+% % % we can separately enforce the boundary conditions along each spatial
+% % % direction. Note that this approach may also require derivatives of
+% % % the inputs to be taken.
+if (is2D && (any(any(w_tab(:,3:2+nvars))) || any(any(u_tab(:,3:2+nvars)))))
+    old_dom = dom;      old_vars = vars;        np_op_old = np_op;
+    try [Top_x,Top_w,Top_u,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order);
+        use_Tmap_opt2 = false;
+        Top = struct();
+        Top.x = Top_x;      Top.u = Top_u;      Top.w = Top_w;
+    catch
+        use_Tmap_opt2 = true;
+    end
+    % Correct values of global variables.
+    dom = old_dom;      vars = old_vars;        np_op = np_op_old;
+    nvars = size(vars,1);
+else
+    use_Tmap_opt2 = true;
+end
 
+
+% % % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+if use_Tmap_opt2
+% % % OPTION 2:
+% % % We use a more "traditional" approach, which can handle more general
+% % % boundary conditions, but is not supported for function-valued forcing
+% % % at the boundaries. This approach works in three steps:
+% % % 
 % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 % % % STEP 1: 
 % % % Express the PDE state x in terms of the fundamental state xf and a
@@ -232,14 +308,33 @@ np_op.BC = get_opdim(PDE.BC_tab);
 if Pop_f2BC==0
     % If boundary conditions are imposed only on lower boundaries, the core
     % boundary states must all be zero.
-    %Pop_f2b = opvar2d([],[nb_op,nx_op],dom,vars);
+    % --> x = P_b2x * 0 + P_f2x * xf = P_f2x * xf
     Top_x = Pop_f2x;
 else
-    % Pop_f2b = - P_b2BC\P_f2BC;
-    try Pop_f2b = -mldivide(Pop_b2BC,Pop_f2BC,1,1e-10,5);
-    catch
-        error(['The PI operator defining the boundary conditions appears not to be invertible.',...
-                ' Please make sure that your system is well-posed.'])
+    % Otherwise, compute Pop_f2b = - P_b2BC\P_f2BC;
+    if nvars==1
+        % In 1D case, boundary values are all finite-dimensional, so
+        % Pop_b2BC should be just a matrix
+        if ~all(Pop_b2BC.dim(2,:)==0)
+            error('The boundary conditions appear to be infinite-dimensional, something is going wrong...')
+        else
+            % Test for well-posedness of Boundary conditions
+            if abs(det(double(Pop_b2BC.P)))>eps
+                Pop_b2BC_inv = pinv(double(Pop_b2BC.P));
+                Pop_f2b = -Pop_b2BC_inv*Pop_f2BC;
+            else
+                error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                    ' Please make sure that your system is well-posed.'])
+            end
+        end
+    else
+        % Boundary conditions may involve infinite-dimensional parameters
+        % --> inversion becomes more tedious...
+        try Pop_f2b = -mldivide(Pop_b2BC,Pop_f2BC,1,1e-10,5);
+        catch
+            error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                    ' Please make sure that your system is well-posed.'])
+        end
     end
     % Check that the inverse is sufficiently accurate.
     if eq(Pop_b2BC * Pop_f2b + Pop_f2BC,0,op_clean_tol)
@@ -252,14 +347,24 @@ else
 end
 % Then Tu.
 if ~any(np_op.u) || Pop_u2BC==0
-    % Pop_f2b = - P_b2BC\P_u2BC;
-     % Avoid computations if inputs are not present/do not contribute to BCs.
-    Top_u = opvar2d([],[np_op.x,np_op.u],dom,vars);
+    % Avoid computations if inputs are not present/do not contribute to BCs.
+    if nvars<=1
+        opvar Top_u;
+        Top_u.dim = [np_op.x,np_op.u];  Top_u.I = dom;
+        Top_u.var1 = vars(1,1);         Top_u.var2 = vars(1,2);
+    else
+        Top_u = opvar2d([],[np_op.x,np_op.u],dom,vars);
+    end
 else
-    try Pop_u2b = -mldivide(Pop_b2BC,Pop_u2BC,1,1e-10,5);
-    catch
-        error(['The PI operator defining the boundary conditions appears not to be invertible.',...
-                ' Please make sure that your system is well-posed.'])
+    % Pop_f2b = - P_b2BC\P_u2BC;
+    if nvars<=1
+        Pop_u2b = -Pop_b2BC_inv*Pop_u2BC;
+    else
+        try Pop_u2b = -mldivide(Pop_b2BC,Pop_u2BC,1,1e-10,5);
+        catch
+            error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                    ' Please make sure that your system is well-posed.'])
+        end
     end
     if eq(Pop_b2BC * Pop_u2b + Pop_u2BC,0,op_clean_tol)
         Top_u = Pop_b2x*Pop_u2b;
@@ -272,13 +377,23 @@ end
 % Then Tw.
 if ~any(np_op.w) || Pop_w2BC==0
     % Avoid computations if inputs are not present/do not contribute to BCs.
-    Top_w = opvar2d([],[np_op.x,np_op.w],dom,vars);
+    if nvars<=1
+        opvar Top_w;
+        Top_w.dim = [np_op.x,np_op.w];  Top_w.I = dom;
+        Top_w.var1 = vars(1,1);         Top_w.var2 = vars(1,2);
+    else
+        Top_w = opvar2d([],[np_op.x,np_op.w],dom,vars);
+    end
 else
     % Pop_w2b = - P_b2BC\P_w2BC;
-    try Pop_w2b = -mldivide(Pop_b2BC,Pop_w2BC,1,1e-10,5);
-    catch
-        error(['The PI operator defining the boundary conditions appears not to be invertible.',...
-                ' Please make sure that your system is well-posed.'])
+    if nvars<=1
+        Pop_w2b = -Pop_b2BC_inv*Pop_w2BC;
+    else
+        try Pop_w2b = -mldivide(Pop_b2BC,Pop_w2BC,1,1e-10,5);
+        catch
+            error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                    ' Please make sure that your system is well-posed.'])
+        end
     end
     if eq(Pop_b2BC * Pop_w2b + Pop_w2BC,0,op_clean_tol)
         Top_w = Pop_b2x*Pop_w2b;
@@ -295,6 +410,12 @@ end
 Top = struct();
 Top.x = Top_x;      Top.u = Top_u;      Top.w = Top_w;
 
+% The obtained map does not require any derivative to be taken of the
+% inputs.
+Dvals_w = zeros(numel(PDE.w),2);
+Dvals_u = zeros(numel(PDE.u),2);
+
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -392,6 +513,19 @@ z_tab(:,1) = zcomp_order;       PIE.z_tab = z_tab;
 u_tab(:,1) = ucomp_order;       PIE.u_tab = u_tab;
 w_tab(:,1) = wcomp_order;       PIE.w_tab = w_tab;
 
+% Also keep track of which derivatives of the inputs must be taken in the
+% PIE representation
+if size(w_tab,2)==2+2*nvars
+    PIE.w_tab(:,end-nvars+1:end) = Dvals_w;
+else
+    PIE.w_tab = [PIE.w_tab,Dvals_w];
+end
+if size(u_tab,2)==2+2*nvars
+    PIE.u_tab(:,end-nvars+1:end) = Dvals_u;
+else
+    PIE.u_tab = [PIE.u_tab,Dvals_u];
+end
+
 end
 
 
@@ -434,9 +568,7 @@ elseif nvars==1
     rindcs_1 = logical(dep_tab(:,1));           % Row indices in comp_tab associated to states that vary just in s1
     
     np_op = [sum(obj_tab(rindcs_0,2));
-            sum(obj_tab(rindcs_1,2));
-            0;
-            0];
+            sum(obj_tab(rindcs_1,2))];
 elseif nvars==2
     dep_tab = obj_tab(:,3:2+nvars);
     rindcs_00 = ~any(dep_tab,2);                % Row indices in comp_tab associated to finite dimensional states
@@ -516,27 +648,73 @@ nw_op = np_op.w;                nnw_op = cumsum([0;nw_op]);
 nBC_op = np_op.BC;              nnBC_op = cumsum([0;nBC_op]);
 
 % Initialize empty operators.
-Pop_f2BC = opvar2d([],[nBC_op,nx_op],dom,vars);
-Pop_b2BC = opvar2d([],[nBC_op,nb_op],dom,vars);
-Pop_w2BC = opvar2d([],[nBC_op,nw_op],dom,vars);
-Pop_u2BC = opvar2d([],[nBC_op,nu_op],dom,vars);
+if nvars<=1
+    opvar Pop_f2BC Pop_b2BC Pop_w2BC Pop_u2BC;
+    Pop_f2BC.dim = [nBC_op,nx_op];
+    Pop_f2BC.I = dom;
+    Pop_f2BC.var1 = vars(1,1);  Pop_f2BC.var2 = vars(1,2);
 
-% For each of the operators, we first set the parameters in a cell.
-Rparams = {'R00', 'R0x', 'R0y', 'R02';
-           'Rx0', 'Rxx', 'Rxy', 'Rx2';
-           'Ry0', 'Ryx', 'Ryy', 'Ry2';
-           'R20', 'R2x', 'R2y', 'R22'};
-% Certain parameters pertain multiple elements, involving multipliers or
-% partial integrators along different spatial directions.
-iscell_Rparam = [false, false, false, false;
-                 false, true,  false, true;
-                 false, false, true,  true;
-                 false, true,  true,  true];
-       
-f2BC_params = struct(Pop_f2BC);
-b2BC_params = struct(Pop_b2BC);
-w2BC_params = struct(Pop_w2BC);
-u2BC_params = struct(Pop_u2BC);
+    Pop_b2BC.dim = [nBC_op,nb_op];
+    Pop_b2BC.I = dom;
+    Pop_b2BC.var1 = vars(1,1);  Pop_b2BC.var2 = vars(1,2);
+
+    Pop_w2BC.dim = [nBC_op,nw_op];
+    Pop_w2BC.I = dom;
+    Pop_w2BC.var1 = vars(1,1);  Pop_w2BC.var2 = vars(1,2);
+
+    Pop_u2BC.dim = [nBC_op,nu_op];
+    Pop_u2BC.I = dom;
+    Pop_u2BC.var1 = vars(1,1);  Pop_u2BC.var2 = vars(1,2);
+
+    % For each of the operators, we first set the parameters in a cell.
+    Rparams = {'P', 'Q1';
+               'Q2', 'R'};
+    % Certain parameters pertain multiple elements, involving multipliers or
+    % partial integrators along different spatial directions.
+    iscell_Rparam = [false, false;
+                     false, true];
+
+    % We set the parameters first in a struct object.
+    f2BC_params = struct();    
+    b2BC_params = struct();
+    w2BC_params = struct();
+    u2BC_params = struct();
+
+    for kk=1:numel(Rparams)-1
+        f2BC_params.(Rparams{kk}) = polynomial(Pop_f2BC.(Rparams{kk}));
+        b2BC_params.(Rparams{kk}) = polynomial(Pop_b2BC.(Rparams{kk}));
+        w2BC_params.(Rparams{kk}) = polynomial(Pop_w2BC.(Rparams{kk}));
+        u2BC_params.(Rparams{kk}) = polynomial(Pop_u2BC.(Rparams{kk}));
+    end
+    f2BC_params.R = {polynomial(Pop_f2BC.R.R0); polynomial(Pop_f2BC.R.R1); polynomial(Pop_f2BC.R.R2)};
+    b2BC_params.R = {polynomial(Pop_b2BC.R.R0); polynomial(Pop_b2BC.R.R1); polynomial(Pop_b2BC.R.R2)};
+    w2BC_params.R = {polynomial(Pop_w2BC.R.R0); polynomial(Pop_w2BC.R.R1); polynomial(Pop_w2BC.R.R2)};
+    u2BC_params.R = {polynomial(Pop_u2BC.R.R0); polynomial(Pop_u2BC.R.R1); polynomial(Pop_u2BC.R.R2)};
+else
+    Pop_f2BC = opvar2d([],[nBC_op,nx_op],dom,vars);
+    Pop_b2BC = opvar2d([],[nBC_op,nb_op],dom,vars);
+    Pop_w2BC = opvar2d([],[nBC_op,nw_op],dom,vars);
+    Pop_u2BC = opvar2d([],[nBC_op,nu_op],dom,vars);
+
+    % For each of the operators, we first set the parameters in a cell.
+    Rparams = {'R00', 'R0x', 'R0y', 'R02';
+               'Rx0', 'Rxx', 'Rxy', 'Rx2';
+               'Ry0', 'Ryx', 'Ryy', 'Ry2';
+               'R20', 'R2x', 'R2y', 'R22'};
+    % Certain parameters pertain multiple elements, involving multipliers or
+    % partial integrators along different spatial directions.
+    iscell_Rparam = [false, false, false, false;
+                     false, true,  false, true;
+                     false, false, true,  true;
+                     false, true,  true,  true];
+           
+    f2BC_params = struct(Pop_f2BC);
+    b2BC_params = struct(Pop_b2BC);
+    w2BC_params = struct(Pop_w2BC);
+    u2BC_params = struct(Pop_u2BC);
+end
+
+
 
 
 % % % Loop over all BCs.
@@ -782,11 +960,27 @@ end
 
 % Having determined values for all the parameters, now set the parameters 
 % of the operators.
-for kk=1:numel(Rparams)
-    Pop_b2BC.(Rparams{kk}) = b2BC_params.(Rparams{kk});
-    Pop_f2BC.(Rparams{kk}) = f2BC_params.(Rparams{kk});
-    Pop_w2BC.(Rparams{kk}) = w2BC_params.(Rparams{kk});
-    Pop_u2BC.(Rparams{kk}) = u2BC_params.(Rparams{kk});
+if nvars<=1
+    for kk=1:numel(Rparams)-1
+        Pop_b2BC.(Rparams{kk}) = b2BC_params.(Rparams{kk});
+        Pop_f2BC.(Rparams{kk}) = f2BC_params.(Rparams{kk});
+        Pop_w2BC.(Rparams{kk}) = w2BC_params.(Rparams{kk});
+        Pop_u2BC.(Rparams{kk}) = u2BC_params.(Rparams{kk});
+    end
+    RRparams = {'R0','R1','R2'};
+    for kk=1:numel(RRparams)
+        Pop_b2BC.R.(RRparams{kk}) = b2BC_params.R{kk};
+        Pop_f2BC.R.(RRparams{kk}) = f2BC_params.R{kk};
+        Pop_w2BC.R.(RRparams{kk}) = w2BC_params.R{kk};
+        Pop_u2BC.R.(RRparams{kk}) = u2BC_params.R{kk};
+    end
+else
+    for kk=1:numel(Rparams)
+        Pop_b2BC.(Rparams{kk}) = b2BC_params.(Rparams{kk});
+        Pop_f2BC.(Rparams{kk}) = f2BC_params.(Rparams{kk});
+        Pop_w2BC.(Rparams{kk}) = w2BC_params.(Rparams{kk});
+        Pop_u2BC.(Rparams{kk}) = u2BC_params.(Rparams{kk});
+    end
 end
 
 end
@@ -856,8 +1050,18 @@ nr_op = np_op.(obj);    nnr_op = cumsum([0;nr_op]);
 
 % Initialize empty operators.
 %Pop_x = opvar2d([],[nr_op,nx_op],dom,vars);
-Pop_u = opvar2d([],[nr_op,nu_op],dom,vars);
-Pop_w = opvar2d([],[nr_op,nw_op],dom,vars);
+if nvars<=1
+    opvar Pop_u Pop_w;
+    Pop_u.dim = [nr_op,nu_op];
+    Pop_u.I = dom;
+    Pop_u.var1 = vars(1,1);     Pop_u.var2 = vars(1,2);
+    Pop_w.dim = [nr_op,nw_op];
+    Pop_w.I = dom;
+    Pop_w.var1 = vars(1,1);     Pop_w.var2 = vars(1,2);
+else
+    Pop_u = opvar2d([],[nr_op,nu_op],dom,vars);
+    Pop_w = opvar2d([],[nr_op,nw_op],dom,vars);
+end
 % For the state components, we consider a PI operator for each combination
 % of position and derivative of the state.
 loc_diff_tab = zeros(0,2*nvars);
@@ -870,20 +1074,38 @@ if nnr_op(end)==0
 end
 
 % Otherwise for each of the operators, we set the parameters in a cell.
-Rparams = {'R00', 'R0x', 'R0y', 'R02';
-           'Rx0', 'Rxx', 'Rxy', 'Rx2';
-           'Ry0', 'Ryx', 'Ryy', 'Ry2';
-           'R20', 'R2x', 'R2y', 'R22'};
-       
-% Certain parameters pertain multiple elements, involving multipliers or
-% partial integrators along different spatial directions.
-iscell_Rparam = [false, false, false, false;
-                 false, true,  false, true;
-                 false, false, true,  true;
-                 false, true,  true,  true];
+if nvars<=1
+    Rparams = {'P', 'Q1';
+               'Q2', 'R'};
+    % Certain parameters pertain multiple elements, involving multipliers or
+    % partial integrators along different spatial directions.
+    iscell_Rparam = [false, false;
+                     false, true];
 
-params_u = struct(Pop_u);
-params_w = struct(Pop_w);
+    params_u = struct();
+    params_w = struct();
+    for kk=1:numel(Rparams)-1
+        params_u.(Rparams{kk}) = polynomial(Pop_u.(Rparams{kk}));
+        params_w.(Rparams{kk}) = polynomial(Pop_w.(Rparams{kk}));
+    end
+    params_u.R = {polynomial(Pop_u.R.R0); polynomial(Pop_u.R.R1); polynomial(Pop_u.R.R2)};
+    params_w.R = {polynomial(Pop_w.R.R0); polynomial(Pop_w.R.R1); polynomial(Pop_w.R.R2)};
+else
+    Rparams = {'R00', 'R0x', 'R0y', 'R02';
+               'Rx0', 'Rxx', 'Rxy', 'Rx2';
+               'Ry0', 'Ryx', 'Ryy', 'Ry2';
+               'R20', 'R2x', 'R2y', 'R22'};
+           
+    % Certain parameters pertain multiple elements, involving multipliers or
+    % partial integrators along different spatial directions.
+    iscell_Rparam = [false, false, false, false;
+                     false, true,  false, true;
+                     false, false, true,  true;
+                     false, true,  true,  true];
+    
+    params_u = struct(Pop_u);
+    params_w = struct(Pop_w);
+end
 
 % For each PI operator for the state components, we keep track of which
 % state components this operator maps, as certain state components may not
@@ -1011,7 +1233,7 @@ for eqnum=1:numel(PDE.(obj))
                 % of these states will therefore have to replace that
                 % of the state components that do not depend on this
                 % variable.
-                nc_op = reshape(nc_op,2*ones(1,nvars));
+                nc_op = reshape(nc_op,[2*ones(1,nvars),1]);
                 sub_indcs = find(issub_op)';
                 for ll = sub_indcs(end:-1:1)
                     % Which combination of variables are we considering?
@@ -1033,8 +1255,22 @@ for eqnum=1:numel(PDE.(obj))
                 
                 % Initalize a new operator that maps only the allowed state
                 % components, evaluated at the desired boundaries.
-                Pop_new = opvar2d([],[nr_op,nc_op],dom,vars);
-                params_new = struct(Pop_new);
+                if nvars<=1
+                    opvar Pop_new;
+                    Pop_new.dim = [nr_op,nc_op];
+                    Pop_new.I = dom;
+                    Pop_new.var1 = vars(1,1);   Pop_new.var2 = vars(1,2);
+                    
+                    params_new = struct();
+                    for kk=1:numel(Rparams)-1
+                        params_new.(Rparams{kk}) = polynomial(Pop_new.(Rparams{kk}));
+                    end
+                    params_new.R = {polynomial(Pop_new.R.R0), polynomial(Pop_new.R.R1), polynomial(Pop_new.R.R2)};
+
+                else
+                    Pop_new = opvar2d([],[nr_op,nc_op],dom,vars);
+                    params_new = struct(Pop_new);
+                end
                 
                 % Keep track of which state variables the operator maps.
                 indx_l = nnx_arr(1:end-1);      indx_u = nnx_arr(2:end);
@@ -1123,8 +1359,12 @@ for eqnum=1:numel(PDE.(obj))
             
                 % Set the parameters for each of the desired partial
                 % integrals/multipliers.
-                param_linsz = cumprod([1,param_sz_full]);
-                param_linsz = param_linsz(1:end-1);
+                if nvars<=1
+                    param_linsz = 1;
+                else
+                    param_linsz = cumprod([1,param_sz_full]);
+                    param_linsz = param_linsz(1:end-1);
+                end
                 for ll=1:size(Pop_int_indx_full,1)
                     int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
                     params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) = params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) + Cval;
@@ -1137,12 +1377,32 @@ end
 
 % Having determined values for all the parameters, now set the parameters 
 % of the operators.
-for kk=1:numel(Rparams)
+if nvars<=1
+    RRparams = {'R0','R1','R2'};
     for ll=1:numel(params_x_cell)
-        Pop_x_cell{ll}.(Rparams{kk}) = params_x_cell{ll}.(Rparams{kk});
+        for kk=1:numel(Rparams)-1
+            Pop_x_cell{ll}.(Rparams{kk}) = params_x_cell{ll}.(Rparams{kk});
+        end
+        for kk=1:numel(RRparams)
+            Pop_x_cell{ll}.R.(RRparams{kk}) = params_x_cell{ll}.R{kk};
+        end
     end
-    Pop_w.(Rparams{kk}) = params_w.(Rparams{kk});
-    Pop_u.(Rparams{kk}) = params_u.(Rparams{kk});
+    for kk=1:numel(Rparams)-1
+        Pop_w.(Rparams{kk}) = params_w.(Rparams{kk});
+        Pop_u.(Rparams{kk}) = params_u.(Rparams{kk});
+    end
+    for kk=1:numel(RRparams)
+        Pop_w.R.(RRparams{kk}) = params_w.R{kk};
+        Pop_u.R.(RRparams{kk}) = params_u.R{kk};
+    end
+else
+    for kk=1:numel(Rparams)
+        for ll=1:numel(params_x_cell)
+            Pop_x_cell{ll}.(Rparams{kk}) = params_x_cell{ll}.(Rparams{kk});
+        end
+        Pop_w.(Rparams{kk}) = params_w.(Rparams{kk});
+        Pop_u.(Rparams{kk}) = params_u.(Rparams{kk});
+    end
 end
 
 end
@@ -1201,8 +1461,14 @@ Top_w = Top.w;      Pop_w = Pop.w;
 
 
 % Initialize an operator to map the fundamental state.
-Pop_x = opvar2d([],[Pop_u.dim(:,1),Top_x.dim(:,2)],dom,vars);
-
+if nvars<=1
+    opvar Pop_x;
+    Pop_x.dim = [Pop_u.dim(:,1),Top_x.dim(:,2)];
+    Pop_x.I = dom;
+    Pop_x.var1 = vars(1,1);     Pop_x.var2 = vars(1,2);
+else
+    Pop_x = opvar2d([],[Pop_u.dim(:,1),Top_x.dim(:,2)],dom,vars);
+end
 
 for jj = 1:numel(Pop_x_cell)
     % Establish what derivative of the state component is considered.
