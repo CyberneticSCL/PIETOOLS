@@ -120,8 +120,8 @@ switch nargin
 end
 
 % % Check that the dimensions of the operator and properly specified.
-if ~isnumeric(n) || any(n<0)
-    error('Size of the operator must be specified as numeric array of positive integers.')
+if ~isnumeric(n) || any(any(n<0))
+    error('Dimension of the operator must be specified as numeric array of positive integers.')
 end
 if numel(n)~=2
     if all(size(n)==[2,2])
@@ -133,14 +133,13 @@ if numel(n)~=2
             n = n(:,1);
         end
     else
-        error('n must be a length 2 vector.')
+        error('Dimension of the operator must be specified as 2x1 array.')
     end
-else
-    % Extract the size of the object: 
-    %   Pop: \R^n1 xL2^n2 --> \R^n1 xL2^n2
-    n = n(:);
-    n1 = n(1);  n2 = n(2);
 end
+% Extract the size of the object: 
+%   Pop: \R^n1 xL2^n2 --> \R^n1 xL2^n2
+n = n(:);
+n1 = n(1);  n2 = n(2);
 if all(n==0)
    % Construct an empty operator variable (for whatever reason...)
     dopvar Pop;
@@ -151,7 +150,7 @@ end
 
 % % Check that the degrees of the monomials have been properly specified
 if ~iscell(d)
-    error('d is a 3-cell structure')
+    error('Degree must be specified as 1x3 cell')
 end
 % Fill in any gaps in the data
 if length(d(:))==1
