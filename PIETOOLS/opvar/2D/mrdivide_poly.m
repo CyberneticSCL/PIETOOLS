@@ -74,6 +74,11 @@ function Xp = mrdivide_poly(Bp,Ap,res_tol,max_deg)
 %
 % Initial coding DJ - 07/31/2024
 
+% Deal with case of empty polynomials.
+if isempty(Ap) || isempty(Bp)
+    Xp = polynomial(zeros(size(Bp,1),size(Ap,1)));
+    return
+end
 
 % Make sure inputs are polynomial
 if isa(Ap,'double')

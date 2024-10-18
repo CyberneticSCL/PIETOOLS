@@ -48,8 +48,6 @@ function [Pinv] = inv_opvar_old(P)
 % authorship, and a brief description of modifications
 %
 % Initial coding MP - 7_1_2020
-% Updated to the Nth order format, added 4th order implementation of 
-% Timoshenko beam equation. DJ - 05-24-2021
 % Assure parameters are dpvar before converting to poly, DJ - 12/30/2021
 %       <-- Not really an optimal fix...
 %
@@ -74,7 +72,7 @@ r=tau;
 if P.dim(2,2) == 0
     opvar Pinv;
     Pinv.I = I;
-    Pinv.P = inv(P.P); Pinv.Q1=[]; Pinv.Q2 = []; Pinv.R.R0= []; 
+    Pinv.P = inv(double(P.P)); Pinv.Q1=[]; Pinv.Q2 = []; Pinv.R.R0= []; 
     return
 end
 

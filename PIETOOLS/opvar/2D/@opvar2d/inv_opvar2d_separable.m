@@ -53,6 +53,10 @@ if isempty(Pop)
     return
 end
 
+if nargin<=1
+    inv_tol = 1e-10;
+end
+
 % Convert all operator parameters to class 'polynomial'
 Pop = poly_opvar2d(Pop);
 
