@@ -555,7 +555,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
         % Keep track of whether primary or dummy variable is used in
         % integral.
         use_theta_trm(kk) = true;
-        if ispvar(PDE_term.loc(kk)) && ismember(PDE_term.loc(kk).varname{1},var1_name)
+        if ~isfield(PDE_term,'loc') || (ispvar(PDE_term.loc(kk)) && ismember(PDE_term.loc(kk).varname{1},var1_name))
             % Use standard spatial variable for integration
             dtheta_trm = ['d',Rvar1_list{kk},' ',dtheta_trm,];
         else
