@@ -11,7 +11,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) signals
         isInfinite; % N x 1 vector; 1 if the signal is infinitedimensional
         dim; % N x 1 vector; spatial dimension of signal
     end
-    properties (Hidden, Access=private)
+    properties (Hidden, SetAccess=private)
         statename; % N x 1 vector; global id for easy identification of the signal
     end
     methods
