@@ -119,7 +119,7 @@ switch nargin
         end
 end
 
-% % Check that the dimensions of the operator and properly specified.
+% % Check that the dimensions of the operator are properly specified.
 if ~isnumeric(n) || any(any(n<0))
     error('Dimension of the operator must be specified as numeric array of positive integers.')
 end
