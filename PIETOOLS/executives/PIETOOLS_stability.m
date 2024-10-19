@@ -138,10 +138,10 @@ if sosineq_on
 else
     disp('  - Using an Equality constraint...');
     
-    [prog, De1op] = poslpivar(prog, PIE.T.dim(:,1),dd2,options2);
+    [prog, De1op] = poslpivar(prog,Dop.dim,dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog,PIE.T.dim(:,1),dd3,options3);
+        [prog, De2op] = poslpivar(prog,Dop.dim(:,1),dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
@@ -151,7 +151,7 @@ end
 
 disp('- Solving the LPI using the specified SDP solver...');
 %solving the sos program
-prog = sossolve(prog,sos_opts); 
+prog = lpisolve(prog,sos_opts); 
 
 % Conclusion:
 P = getsol_lpivar(prog,Pop);
