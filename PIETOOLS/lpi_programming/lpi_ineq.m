@@ -1,17 +1,20 @@
-function sos = lpi_ineq(sos,P, options)
+function prog = lpi_ineq(prog,P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sos = lpi_ineq(sos,P, options) sets up inequality constraints such that P>=0
+% PROG = LPI_INEQ(PROG,P,OPTS) takes an LPI program structure 'prog'
+% and a (PI operator) decision variable P, and adds inequality constraints 
+% enforcing P>=0.
 % 
 % INPUT
-%   prog: SOS program to modify.
-%   P: PI dopvar variable
-%   -Optional INPUTS
-%   options: determines if the operator needs to be pure or to include psatz
-%   term. If options.pure=1, then R_0 term is excluded. If options.psatz=1,
-%   then the psatz term is included
+% - prog:   'struct' specifying LPI program structure to modify;
+% - P:      Object of type 'dpvar' or 'dopvar', specifying a variable 
+%           or PI operator variable of which to enforce positivity;
+% - opts:   (optional) determines if the operator needs to be pure or 
+%           to include psatz term. If opts.pure=1, then R_0 term is 
+%           excluded. If opts.psatz=1, then a psatz term is added.
 % 
 % OUTPUT 
-%   sos: SOS program
+% - prog:   Same LPI program structure as input, but with the added
+%           constraints enforcing P==0.
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -42,35 +45,49 @@ function sos = lpi_ineq(sos,P, options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
-% DJ, 07/07/2021: Adjusted (slightly) for dpvar (dopvar) implementation
+% 07/07/2021, DJ: Adjusted (slightly) for dpvar (dopvar) implementation;
+% 10/19/2024, DJ: Add support for non-opvar decision variables;
 %
 
+% Extract the inputs
 switch nargin
     case 1
         error('Not enough inputs!')
     case 2
         if isa(P,'opvar2d') || isa(P,'dopvar2d')
-            sos = lpi_ineq_2d(sos,P);
+            prog = lpi_ineq_2d(prog,P);
             return
         end
-        options.psatz=0;
-        options.pure=0;
-        options.sep =0;
+        opts.psatz=0;
+        opts.pure=0;
+        opts.sep =0;
     case 3
         if isa(P,'opvar2d') || isa(P,'dopvar2d')
-            sos = lpi_ineq_2d(sos,P,options);
+            prog = lpi_ineq_2d(prog,P,opts);
             return
         end
-        if ~isfield(options,'psatz')
-            options.psatz=0;
+        if ~isfield(opts,'psatz')
+            opts.psatz=0;
         end
-        if ~isfield(options,'pure')
-            options.pure=0;
+        if ~isfield(opts,'pure')
+            opts.pure=0;
         end
-        if ~isfield(options,'sep')
-            options.sep=0;
+        if ~isfield(opts,'sep')
+            opts.sep=0;
         end
 end
+
+% Check that the specified (operator) variable is of appropriate type.
+if isa(P,'polynomial') || isa(P,'double')
+    error('Enforcing equality constraints on fixed values or polynomials is not supported.')
+elseif isa(P,'dpvar')
+    % If P is not an opvar, we can enforce inequality using just sosineq.
+    prog = sosineq(prog,P);
+    return
+elseif ~isa(P,'dopvar')
+    error('Variable of which to enforce positivity should be specified as object of type ''dpvar'', ''dopvar'', or ''dopvar2d''.')
+end
+
 
 dim = P.dim;
 if dim(:,1)~=dim(:,2)
@@ -78,22 +95,21 @@ if dim(:,1)~=dim(:,2)
 end
 
 
-
 d2 = degbalance(P);
-if options.pure == 1
+if opts.pure == 1
     options2.exclude= [0 1 0 0];
     options3.exclude = [0 1 0 0]; 
 else
     options2.exclude= [0 0 0 0];
     options3.exclude = [0 0 0 0]; 
 end
-if options.psatz == 1
+if opts.psatz == 1
     options3.psatz=1;
-    [sos, Deop] = poslpivar(sos,dim,d2,options2);
-    [sos, De2op] = poslpivar(sos,dim,d2,options3);
-    sos = lpi_eq(sos,Deop+De2op-P,'symmetric'); %Dop=Deop+De2op
+    [prog, Deop] = poslpivar(prog,dim,d2,options2);
+    [prog, De2op] = poslpivar(prog,dim,d2,options3);
+    prog = lpi_eq(prog,Deop+De2op-P,'symmetric'); %Dop=Deop+De2op
 else
-    [sos, Deop] = poslpivar(sos,dim,d2,options2);
-    sos = lpi_eq(sos,Deop-P,'symmetric'); %Dop=Deop
+    [prog, Deop] = poslpivar(prog,dim,d2,options2);
+    prog = lpi_eq(prog,Deop-P,'symmetric'); %Dop=Deop
 end
 end
