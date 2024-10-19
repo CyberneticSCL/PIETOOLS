@@ -45,14 +45,22 @@ function sos = lpi_eq(sos,P,opts)
 % 07/24/2023 - DJ: Add option to exploit symmetry of operators;
 %
 
-% Pass 2D operator to associated lpi_eq function.
-if isa(P,'opvar2d') || isa(P,'dopvar2d')
+% Check that the input is of appropriate type.
+if isa(P,'polynomial') || isa(P,'double')
+    error('Enforcing equality constraints on fixed values or polynomials is not supported.')
+elseif isa(P,'dpvar')
+    % If P is not an opvar, we can enforce equality using just soseq.
+    sos = soseq(sos,P);
+elseif isa(P,'opvar2d') || isa(P,'dopvar2d')
+    % Pass 2D operator to associated lpi_eq function.
     if nargin>=3
         sos = lpi_eq_2d(sos,P,opts);
     else
         sos = lpi_eq_2d(sos,P);
     end
     return
+elseif ~isa(P,'opvar') && ~isa(P,'dopvar')
+    error('Input must be of type ''dopvar'' or ''dpvar''.')
 end
 
 % Check if symmetric option is specified.
