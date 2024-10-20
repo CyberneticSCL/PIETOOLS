@@ -52,7 +52,7 @@ if isempty(prog.solinfo.info)
 end
 
 % Extract the solution.
-if isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial') || isa(dvar,'opvar')
+if isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial') || isa(dvar,'opvar') || isa(dvar,'opvar2d')
     % The variable is not really a variable at all;
     dvar_sol = dvar;
 elseif isa(dvar,'dpvar') || ischar(dvar) || isa(dvar,'cell')
