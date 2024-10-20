@@ -27,19 +27,18 @@ Top.R.R1 = 1;   Top.I = [a,b];
 
 %%% Solve the LPI Top'*Top - gam<=0
 % First, define dpvar gam and set up an optimization problem
-vars = [Top.var1;Top.var2];     % Free vars in optimization problem (no optimization over these vars)
 dpvar gam;                      % Decision var in optimization problem (we will minimize gam)
-prob = sosprogram(vars,gam);
+prob = lpiprogram(Top.vars,Top.I);
 
 % Next, set gam as objective function min{gam}
-prob = sossetobj(prob, gam);
+prob = lpisetobj(prob, gam);
 
 % Then, enforce the constraint Top'*Top-gam<=0
 opts.psatz = 1;                             % Allow Top'*Top-gam>0 outside of interval [a,b]
 prob = lpi_ineq(prob,-(Top'*Top-gam),opts); % lpi_ineq(prob,Q) enforces Q>=0
 
 % Finally, solve and retrieve the solution
-prob = sossolve(prob);
+prob = lpisolve(prob);
 operator_norm = sqrt(double(sosgetsol(prob,gam)));
 
 %%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%

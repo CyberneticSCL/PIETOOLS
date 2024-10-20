@@ -66,7 +66,7 @@ B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Compute an optimal controller gain operator K for the PIE.
 
-use_executive = true;  % <-- set to true to use predefined executive
+use_executive = false;  % <-- set to true to use predefined executive
 if use_executive
     % % Use the predefined Hinf control executive function.
     settings = lpisettings('heavy');
@@ -76,8 +76,7 @@ else
     % % controller synthesis.
 
     % Initialize the LPI program
-    vars = PIE.vars(:);
-    prog = sosprogram(vars);
+    prog = lpiprogram(PIE.vars,PIE.dom);
 
     % Declare the decision variable gamma
     dpvar gam;
@@ -85,18 +84,16 @@ else
 
     % Declare a positive semidefinite PI operator decision variable P>=0
     Pdim = T.dim(:,1);
-    Pdom = PIE.dom;
     Pdeg = {2,[1,1,2],[1,1,2]};
     opts.sep = 0;
-    [prog,P] = poslpivar(prog,Pdim,Pdom,Pdeg,opts);
+    [prog,P] = poslpivar(prog,Pdim,Pdeg,opts);
     eppos = 1e-3;
     P.R.R0 = P.R.R0 + eppos*eye(size(P.R.R0));
 
     % Declare the indefinite PI operator decision variable Z
     Zdim = B2.dim(:,[2,1]);
-    Zdom = PIE.dom;
     Zdeg = [4,0,0];
-    [prog,Z] = lpivar(prog,Zdim,Zdom,Zdeg);
+    [prog,Z] = lpivar(prog,Zdim,Zdeg);
 
     % Declare the LPI constraint Q<=0.
     opvar Iw Iz;
@@ -110,17 +107,17 @@ else
     prog = lpi_ineq(prog,-Q);
 
     % Set the objective function: minimize gam
-    prog = sossetobj(prog, gam);
+    prog = lpisetobj(prog, gam);
 
     % Solve the optimization program
     opts.solver = 'sedumi';
     opts.simplify = true;
-    prog_sol = sossolve(prog,opts);
+    prog_sol = lpisolve(prog,opts);
 
     % Extract the solved value of gam and the operators P and Z
-    gam_val = sosgetsol(prog_sol,gam);
-    Pval = getsol_lpivar(prog_sol,P);
-    Zval = getsol_lpivar(prog_sol,Z);
+    gam_val = lpigetsol(prog_sol,gam);
+    Pval = lpigetsol(prog_sol,P);
+    Zval = lpigetsol(prog_sol,Z);
 
     % Build the optimal control operator K.
     Kval = getController(Pval,Zval,1e-3);

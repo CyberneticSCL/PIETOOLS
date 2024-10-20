@@ -80,7 +80,7 @@ B1 = PIE.B1;    D11 = PIE.D11;  D21 = PIE.D21;
 %% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
 % % % Compute an optimal observer gain operator L for the PIE.
 
-use_executive = true;  % <-- set to true to use predefined executive
+use_executive = false;  % <-- set to true to use predefined executive
 if use_executive
     % % Use the predefined Hinf estimator executive function.
     % Declare settings to use: choose from
@@ -97,27 +97,24 @@ else
     % % estimator synthesis.
 
     % Initialize the LPI program
-    vars = PIE.vars(:);         % Extract the spatial variables
-    prog = sosprogram(vars);    % Initialize an LPI program structure in the considered spatial variables
+    prog = lpiprogram(PIE.vars,PIE.dom);    % Initialize an LPI program structure in the considered spatial variables
 
     % Declare the decision variable gamma
     dpvar gam;
-    prog = sosdecvar(prog, gam);
+    prog = lpidecvar(prog, gam);
 
     % Declare a positive semidefinite PI operator decision variable P>=0
     Pdim = T.dim(:,1);              % Row dimensions of the operator P
-    Pdom = PIE.dom;                 % Spatial domain of the operator P
     Pdeg = {6,[2,3,5],[2,3,5]};     % Degrees of monomials used to define P (call "help poslpivar" for more info)
     opts.sep = 1;                   % Set P.R.R1=P.R.R2 to reduce computational complexity
-    [prog,P] = poslpivar(prog,Pdim,Pdom,Pdeg,opts);
+    [prog,P] = poslpivar(prog,Pdim,Pdeg,opts);
     %eppos = 1e-6;
     %P.R.R0 = P.R.R0 + eppos*eye(size(P));
 
     % Declare the indefinite PI operator decision variable Z
     Zdim = C2.dim(:,[2,1]);         % Row and column dimensions of the operator Z
-    Zdom = PIE.dom;                 % Spatial domain of the operator Z
     Zdeg = [4,0,0];                 % Degrees of monomials defining Z (call "help lpivar" for more info)
-    [prog,Z] = lpivar(prog,Zdim,Zdom,Zdeg);
+    [prog,Z] = lpivar(prog,Zdim,Zdeg);
 
     % Declare the LPI constraint Q<=0.
     opvar Iw Iz;
@@ -131,17 +128,17 @@ else
     prog = lpi_ineq(prog,-Q);       % Add the constraint -Q>=0 to the LPI program
 
     % Set the objective function: minimize gam
-    prog = sossetobj(prog, gam);
+    prog = lpisetobj(prog, gam);
 
     % Solve the optimization program
     opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
     opts.simplify = true;           % Simplify the SDP before solving
-    prog_sol = sossolve(prog,opts);
+    prog_sol = lpisolve(prog,opts);
 
     % Extract the solved value of gam and the operators P and Z
-    gam_val = sosgetsol(prog_sol,gam);
-    Pval = getsol_lpivar(prog_sol,P);
-    Zval = getsol_lpivar(prog_sol,Z);
+    gam_val = lpigetsol(prog_sol,gam);
+    Pval = lpigetsol(prog_sol,P);
+    Zval = lpigetsol(prog_sol,Z);
     
     % Build the optimal observer operator L.
     Lval = getObserver(Pval,Zval);

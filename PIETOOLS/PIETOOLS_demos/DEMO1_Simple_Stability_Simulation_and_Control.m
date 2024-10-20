@@ -105,12 +105,12 @@ B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
 % Pick parameters for the LPI optimization problem and perform stability
 % test.
 settings = lpisettings('light');
-[prog, P] = lpisolve(PIE,settings,'stability');
+[prog, P] = lpisolve('stability',settings,PIE);
 
 % Other LPI tests:
 % Similarly, we can search for an input-to-output L2-gain bound using LPIs
 % as shown below.
-[prog, P, gamma] = lpisolve(PIE,settings,'l2gain');
+[prog, P, gamma] = lpisolve('l2gain',settings,PIE);
 
 %% Find Hinf-optimal controller
 % Next, we wish to find a controller that improves the input-to-output
@@ -118,7 +118,7 @@ settings = lpisettings('light');
 % the following code. The function, if the optimization problem is
 % successfully solved, returns the controller, Kval and the L2-gain metric
 % for the closed loop system, gam_val.
-[prog, Kval, gam_val] = lpisolve(PIE, settings,'hinf-controller');
+[prog, Kval, gam_val] = lpisolve('hinf-controller', settings, PIE);
 
 %% Constructing closed-loop system and simulation
 % Now, we construct the closed-loop system using the controller obtained by

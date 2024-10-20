@@ -55,18 +55,17 @@ H1 = PIE.A;     % H1 x_{ss} = x_{s}
 %%%%%   where (H2 x_ss) = x and (H1 x_ss) = x_s
 % % First, define dpvar gam and set up an optimization problem
 dpvar gam;
-vars = [H2.var1; H2.var2];
-prob = sosprogram(vars,gam);
+prob = lpiprogram(PIE.vars,PIE.dom,gam);
 
 % % Set gam as objective function to minimize
-prob = sossetobj(prob, gam);
+prob = lpisetobj(prob, gam);
 
 % % Set up the constraint H2'*H2-gam H1'*H1<=0
 opts.psatz = 1;     % Add psatz term to allow H2'*H2 > gam H1'*H1 outside of [a,b]
 prob = lpi_ineq(prob,-(H2'*H2-gam*H1'*H1),opts);
 
 % Solve and retrieve the solution
-prob = sossolve(prob);
+prob = lpisolve(prob);
 poincare_constant = sqrt(double(sosgetsol(prob,gam)));
 
 %%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
