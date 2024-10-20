@@ -1,4 +1,4 @@
-function [prog,Zop] = lpivar_2d(prog,dim,I,d,options)
+function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [prog,Zop] = lpivar_2d(prog,dim,I,d,options) declares an indefinite
 % 0112-PI operator,
@@ -116,6 +116,16 @@ function [prog,Zop] = lpivar_2d(prog,dim,I,d,options)
 %
 % Initial coding DJ - 07/01/2024
 
+
+% % First, check the spatial domain on which the program is defined.
+if ~isfield(prog,'dom') || size(prog.dom,1)==0
+    error('The program structure does not include a spatial domain -- please use ''lpiprogram'' to initialize your program');
+else
+    I = prog.dom;
+end
+if any(size(I)~=[2,2])
+    error('For declaring a 2D PI operator variable, the spatial domain in the LPI program structure must be of of size 2x2.')
+end
 
 % % Extract the input arguments
 switch nargin
