@@ -42,13 +42,21 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding MP,SS - 10_01_2020
-%  MP - 5_30_2021; changed to new PIE data structure
-% SS - 6/1/2021; changed to function, added settings input
-% DJ - 06/02/2021; incorporate sosineq_on option
+% MP - 05/30/2021: changed to new PIE data structure;
+% SS - 06/01/2021: changed to function, added settings input;
+% DJ - 06/02/2021: incorporate sosineq_on option;
+% DJ - 10/19/2024: Update to use new LPI programming structure;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, P] = PIETOOLS_stability_dual(PIE, settings)
 
+% Check if the PIE is properly specified.
+if ~isa(PIE,'pie_struct')
+    error('The PIE for which to run the executive should be specified as object of type ''pie_struct''.')
+else
+    PIE = initialize(PIE);
+end
+% Pass to the 2D executive if necessary.
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
@@ -58,6 +66,9 @@ if PIE.dim==2
     end
     return
 end
+% Extract PIE operators necessary for the executive.
+Top = PIE.T;        Aop = PIE.A;
+
 
 % get settings information
 if nargin<2
@@ -77,7 +88,6 @@ override1 = settings.override1;
 eppos = settings.eppos;
 epneg = settings.epneg;
 eppos2 = settings.eppos2;
-ddZ = settings.ddZ;
 sosineq_on = settings.sosineq_on;
 if sosineq_on
     opts = settings.opts;
@@ -90,36 +100,29 @@ else
 end
 
 
-% Dumping relevant 4-PI operators to the workspace -MP, 5/2021
-Aop=PIE.A;
-Top=PIE.T;
 fprintf('\n --- Executing Dual Stability Test --- \n')
 
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-varlist = [Aop.var1; Aop.var2];  % retrieving the names of the independent pvars from Aop (typically s and th)
-prog = sosprogram(varlist);      % Initialize the program structure
-X=Aop.I;                         % retrieve the domain from Aop
-nx1=Aop.dim(1,1);                % retrieve the number of ODE states from Aop
-nx2=Aop.dim(2,1);                % retrieve the number of distributed states from Aop
+prog = lpiprogram(PIE.vars,PIE.dom);      % Initialize the program structure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 1: declare the posopvar variable, Pop, which defines the Lyapunov 
 % function candidate
 disp('- Parameterizing Positive Lyapunov Operator using specified options...');
 
-[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
+[prog, P1op] = poslpivar(prog, Top.dim,dd1,options1);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1),X,dd12,options12);
+    [prog, P2op] = poslpivar(prog, Top.dim,dd12,options12);
     Pop=P1op+P2op;
 else
     Pop=P1op;
 end
 
-% enforce strict positivity on the operator
-Pop.P = Pop.P+eppos*eye(nx1);
-Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);  
+% Enforce strict positivity of the operator
+Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
+Pop = Pop +Imat;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -130,7 +133,7 @@ Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop = [Top*Pop*(Aop')+Aop*Pop*(Top')+epneg*Top*Top']; 
+Dop = Top*Pop*Aop' +Aop*Pop*Top' +epneg*Top*Pop*Top'; 
     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,10 +151,10 @@ if sosineq_on
 else
     disp('  - Using an Equality constraint...');
 
-    [prog, De1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd2,options2);
+    [prog, De1op] = poslpivar(prog,Dop.dim,dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog,PIE.T.dim(:,1),X, dd3,options3);
+        [prog, De2op] = poslpivar(prog,Dop.dim,dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
@@ -161,7 +164,7 @@ end
 
 disp('- Solving the LPI using the specified SDP solver...');
 %solving the sos program
-prog = sossolve(prog,sos_opts); 
+prog = lpisolve(prog,sos_opts); 
 % Conclusion:
 P = getsol_lpivar(prog,Pop);
 end

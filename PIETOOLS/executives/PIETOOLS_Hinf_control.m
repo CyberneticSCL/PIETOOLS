@@ -52,31 +52,39 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
+% DEVELOPER LOGS:
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
 % Initial coding MP,SS - 10_01_2020
-%  MP - 5_30_2021; changed to new PIE data structure
-% SS - 6/1/2021; changed to function added settings input
-% DJ - 06/02/2021; incorporate sosineq_on option, replacd gamma with gam to
-%                   avoid conflict with MATLAB gamma function
+% MP - 05/30/2021: changed to new PIE data structure;
+% SS - 06/01/2021: changed to function added settings input;
+% DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
+%                   avoid conflict with MATLAB gamma function;
+% DJ - 10/19/2024: Update to use new LPI programming structure;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% DEVELOPER LOGS:
-%
-% PIE - PIE data structure. Include elements T,A,B1,B2,C1,D11,D12 which are 4-PI operators, typically defined by the conversion script
-%
-% settings - a matlab structure with following fields are needed, if
-% undefined default values are used
-%
-% sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
-%
-% dd1,dd2,dd3,ddZ,opts,options1,options2,options - accuracy settings, typically defined by the settings script
+
 
 function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control(PIE, settings)
 
+% Check if the PIE is properly specified.
+if ~isa(PIE,'pie_struct')
+    error('The PIE for which to run the executive should be specified as object of type ''pie_struct''.')
+else
+    PIE = initialize(PIE);
+end
+% Pass to the 2D executive if necessary.
 if PIE.dim==2
     error('Optimal control of 2D PIEs is currently not supported.')
+end
+% Extract PIE operators necessary for the executive.
+Top = PIE.T;        Twop = PIE.Tw;      Tuop = PIE.Tu;
+Aop = PIE.A;        Bwop = PIE.B1;      Buop = PIE.Bu;
+Czop = PIE.C1;      Dzwop = PIE.D11;    Dzuop = PIE.Dzu;
+
+% Make sure thera are no disturbances or inputs at the boundary.
+if ~(Twop==0) || ~(Tuop==0)
+    error('Hinf-dual LPI cannot currently be solved for systems with disturbances or inputs at the boundary');
 end
 
 % get settings information
@@ -113,30 +121,16 @@ fprintf('\n --- Executing Search for H_infty Optimal Controller --- \n')
 
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-varlist = [PIE.A.var1; PIE.A.var2];  % retrieving the names of the independent pvars from Aop (typically s and th)
-prog = sosprogram(varlist);      % Initialize the program structure
-X=PIE.A.I;                         % retrieve the domain from Aop
-nx1=PIE.A.dim(1,1);                % retrieve the number of ODE states from Aop
-nx2=PIE.A.dim(2,1);                % retrieve the number of distributed states from Aop
-nw=PIE.B1.dim(1,2);                % retrieve the number of real-valued disturbances
-nz=PIE.C1.dim(1,1);                % retrieve the number of real-valued regulated outputs
-nu=PIE.B2.dim(1,2);                % retrieve the number of real-valued inputs
+prog = lpiprogram(PIE.vars,PIE.dom);      % Initialize the program structure
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Testing to see if there are inputs and disturbances at the boundary
-if ~(PIE.Tw==0)
-    error('Hinf-dual LPI cannot currently be solved for systems with disturbances at the boundary');
-end
-if ~(PIE.Tu==0)
-    error('Hinf-dual LPI cannot currently be solved for systems with inputs at the boundary');
-end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The most common usage of this script is to find the minimum hinf gain bound
 % In this case, we define the hinf norm variable which needs to be minimized
 dpvar gam;
-prog = sosdecvar(prog, gam); %this sets gamma as decision var
-prog = sosineq(prog, gam); %this ensures gamma is lower bounded
-prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
+prog = lpidecvar(prog, gam); % set gam = gamma as decision variable
+prog = lpi_ineq(prog, gam);  % enforce gamma>=0
+prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 %
 % Alternatively, the above 3 commands may be commented and a specific gain
 % test specified by defining a specific desired value of gamma. This
@@ -150,20 +144,20 @@ prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 % contruct the estimator gain
 disp('- Declaring Positive Storage Operator variable and indefinite Controller operator variable using specified options...');
 
-[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
+[prog, P1op] = poslpivar(prog, Top.dim, dd1, options1);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1),X,dd12,options12);
+    [prog, P2op] = poslpivar(prog, Top.dim(:,1), dd12, options12);
     Pop=P1op+P2op;
 else
     Pop=P1op;
 end
 
-% enforce strict positivity on the operator
-Pop.P = Pop.P+eppos*eye(nx1);
-Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);  
+% Enforce strict positivity of the operator
+Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
+Pop = Pop +Imat; 
 
-[prog,Zop] = lpivar(prog,[PIE.B2.dim(:,2),PIE.T.dim(:,1)],X,ddZ);
+[prog,Zop] = lpivar(prog,Buop.dim(:,[2,1]),ddZ);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -174,16 +168,12 @@ Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);
 %          D11'         -gamma*I            B1'
 %          T*(C1*P+D12*Z)      B1       (A*P+B2*Z)*T'+T*(A*P+B2*Z)']
 % adding adjustment for infinite-dimensional I/O
-opvar Iw Iz;
-Iw.dim = [PIE.B1.dim(:,2),PIE.B1.dim(:,2)];
-Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
-Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
-Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
+Iw = eye(size(Bwop,2));     Iz = eye(size(Czop,1));
 
-Dop = [-gam*Iz   PIE.D11              (PIE.C1*Pop+PIE.D12*Zop)*(PIE.T');
-        PIE.D11'                -gam*Iw  PIE.B1';
-        PIE.T*(PIE.C1*Pop+PIE.D12*Zop)'       PIE.B1         (PIE.A*Pop+PIE.B2*Zop)*(PIE.T')+PIE.T*(PIE.A*Pop+PIE.B2*Zop)']; 
+Dop = [-gam*Iz,                      Dzwop      (Czop*Pop+Dzuop*Zop)*Top';
+        Dzwop',                      -gam*Iw,   Bwop';
+        Top*(Czop*Pop+Dzuop*Zop)',   Bwop       (Aop*Pop+Buop*Zop)*(Top')+Top*(Aop*Pop+Buop*Zop)']; 
 
 disp('- Parameterize the derivative inequality...');
 
@@ -201,10 +191,10 @@ else
     disp('  - Using an Equality constraint...');
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%% The old way, where you have to specify everything
-    [prog, De1op] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
+    [prog, De1op] = poslpivar(prog, Dop.dim, dd2, options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
+        [prog, De2op] = poslpivar(prog, Dop.dim, dd3, options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
@@ -214,25 +204,23 @@ else
     prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
 end
 
-%solving the sos program
+%solving the lpi program
 disp('- Solving the LPI using the specified SDP solver...');
-prog = sossolve(prog,sos_opts); 
+prog = lpisolve(prog,sos_opts); 
 
 disp('The closed-loop H-infty norm of the given system is upper bounded by:')
 if ~isreal(gam)
-    disp(double(sosgetsol(prog,gam))); % check the Hinf norm, if the solved successfully
+    disp(double(lpigetsol(prog,gam))); % check the Hinf norm, if the solved successfully
 else 
     disp(gam);
 end
 
-gam = double(sosgetsol(prog,gam));
+gam = double(lpigetsol(prog,gam));
 
-P = getsol_lpivar(prog,Pop);
-Z = getsol_lpivar(prog,Zop);
+P = lpigetsol(prog,Pop);
+Z = lpigetsol(prog,Zop);
 
 Kop = getController(P,Z);
-% end
+
 
 end
-
-
