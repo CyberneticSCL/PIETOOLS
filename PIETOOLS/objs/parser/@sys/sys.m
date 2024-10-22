@@ -1,18 +1,21 @@
 classdef (InferiorClasses={?signals,?termvar}) sys
     properties
         equation {validateEquation(equation)} = [];
-        type char {mustBeMember(type,{'pde','dde','ddf','pie'})} = 'pde';
-        params {mustBeA(params,{'pde_struct','pie_struct'})} = pde_struct();
+        params {mustBeA(params,{'pde_struct','tds_struct','pie_struct'})} = pde_struct(); 
     end
     properties
         CInames; % statename list of controlled inputs
         OOnames; % statename list of observed outputs
     end
     properties (Dependent)
+        type;
         states;
         dom;
-        ControlledInputs;
-        ObservedOutputs;
+        ControlledInputs;  % this property is redundant, may need to be removed in later releases
+        ObservedOutputs;  % this property is redundant, may need to be removed in later releases
+    end
+    properties (Hidden, SetAccess=private)
+        tampered=0;
     end
 
     methods
@@ -23,16 +26,26 @@ classdef (InferiorClasses={?signals,?termvar}) sys
                 type = varargin{1};
             end
             obj.equation = [];
-            obj.params = pde_struct();
-            obj.type = type;
+            switch type
+                case 'pde'
+                    obj.params = pde_struct();
+                case 'pie'
+                    obj.params = pie_struct();
+                case 'tds'
+                    obj.params = tds_struct();
+                otherwise
+                    error('Unknown system type.');
+            end
             tmpMsg = ['Initialized sys() object of type ' obj.type];
             disp(tmpMsg);
 
 
             if nargin==2
                 if strcmp(obj.type,'pde')&&isa(varargin{2},'termvar')
-                    self.addequation(varargin{2});
+                    obj = addequation(obj,varargin{2});
                 elseif isa(varargin{2},'pde_struct')||isa(varargin{2},'pie_struct')
+                    obj.tampered = 1;
+                    warning('Parameters of "sys" object is being directly modified. Only "convert()" method is supported in this scenario. Data such as equations, inputs, outputs, etc., cannot be modified.');
                     obj.params = varargin{2};
                 else
                     tmpMsg = 'Unknown second input to the sys() type object.';
@@ -40,23 +53,31 @@ classdef (InferiorClasses={?signals,?termvar}) sys
                 end
             end
         end
-        function prop = get.states(obj)
-            prop = getStatesFromEquations(obj);
-        end
-        function prop = get.params(obj)
-            if isempty(obj.params.dom)
-                prop = getParams(obj);
+        function prop = get.type(obj)
+            if isempty(obj.params)||isa(obj.params,'pde_struct')
+                prop = 'pde';
+            elseif isa(obj.params,'pie_struct')
+                prop = 'pie';
             else
-                prop = obj.params;
+                prop = 'tds';
             end
         end
-        function obj = set.params(obj,params)
-            obj.params = params;
+        function prop = get.states(obj)
+            if obj.tampered
+                error('This property/method is unavailable: "sys()" object parameters were manually defined/edited.');
+            end
+            prop = getStatesFromEquations(obj);
         end
-        function obj = set.dom(obj,dom)
-            obj.dom = dom;
+        function prop = get.dom(obj,dom)
+            if obj.tampered
+                error('This property/method is unavailable: "sys()" object parameters were manually defined/edited.');
+            end
+            prop = getdomain(obj.params);
         end
         function out = get.ObservedOutputs(obj)
+            if obj.tampered
+                error('This property/method is unavailable: "sys()" object parameters were manually defined/edited.');
+            end
             statelist = obj.states;
             if ~isempty(statelist)
                 out = zeros(length(statelist.len),1);
@@ -66,6 +87,9 @@ classdef (InferiorClasses={?signals,?termvar}) sys
             out(ismember(out,obj.OOnames)) = 1;
         end
         function out = get.ControlledInputs(obj)
+            if obj.tampered
+                error('This property/method is unavailable: "sys()" object parameters were manually defined/edited.');
+            end
             statelist = obj.states;
             if ~isempty(statelist)
                 out = zeros(length(statelist.len),1);
@@ -73,6 +97,19 @@ classdef (InferiorClasses={?signals,?termvar}) sys
                 out = [];
             end
             out(ismember(out,obj.CInames)) = 1;
+        end
+        function prop = get.params(obj)
+            if ~isempty(obj.equation)
+                prop = getParams(obj);
+            else
+                prop = obj.params;
+            end
+        end
+
+        function obj = set.params(obj,params)
+            obj.tampered = 1;
+            warning('Parameters of "sys" object is being directly modified. Only "convert()" method is supported in this scenario. Data such as equations, inputs, outputs, etc., cannot be modified.');
+            obj.params = params;
         end
 
         prop = getStatesFromEquations(obj);
