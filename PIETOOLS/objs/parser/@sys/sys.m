@@ -3,12 +3,16 @@ classdef (InferiorClasses={?signals,?termvar}) sys
         equation {validateEquation(equation)} = [];
         type char {mustBeMember(type,{'pde','dde','ddf','pie'})} = 'pde';
         params {mustBeA(params,{'pde_struct','pie_struct'})} = pde_struct();
-        ControlledInputs = [];
-        ObservedOutputs = [];
+    end
+    properties
+        CInames; % statename list of controlled inputs
+        OOnames; % statename list of observed outputs
     end
     properties (Dependent)
         states;
         dom;
+        ControlledInputs;
+        ObservedOutputs;
     end
 
     methods
@@ -20,8 +24,6 @@ classdef (InferiorClasses={?signals,?termvar}) sys
             end
             obj.equation = [];
             obj.params = pde_struct();
-            obj.ControlledInputs = [];
-            obj.ObservedOutputs = [];
             obj.type = type;
             tmpMsg = ['Initialized sys() object of type ' obj.type];
             disp(tmpMsg);
@@ -55,34 +57,22 @@ classdef (InferiorClasses={?signals,?termvar}) sys
             obj.dom = dom;
         end
         function out = get.ObservedOutputs(obj)
-            if isempty(obj.ObservedOutputs)
-                statelist = obj.states;
-                if ~isempty(statelist)
-                    out = zeros(length(statelist.len),1);
-                else
-                    out = [];
-                end
+            statelist = obj.states;
+            if ~isempty(statelist)
+                out = zeros(length(statelist.len),1);
             else
-                out = obj.ObservedOutputs;
+                out = [];
             end
-        end
-        function obj = set.ObservedOutputs(obj,OO)
-            obj.ObservedOutputs = OO;
+            out(ismember(out,obj.OOnames)) = 1;
         end
         function out = get.ControlledInputs(obj)
-            if isempty(obj.ControlledInputs)
-                statelist = obj.states;
-                if ~isempty(statelist)
-                    out = zeros(length(statelist.len),1);
-                else
-                    out = [];
-                end
+            statelist = obj.states;
+            if ~isempty(statelist)
+                out = zeros(length(statelist.len),1);
             else
-                out = obj.ControlledInputs;
+                out = [];
             end
-        end
-        function obj = set.ControlledInputs(obj,CI)
-            obj.ControlledInputs = CI;
+            out(ismember(out,obj.CInames)) = 1;
         end
 
         prop = getStatesFromEquations(obj);
