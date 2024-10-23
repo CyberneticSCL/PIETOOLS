@@ -60,6 +60,10 @@ switch s(1).type
             end
             return
         end
+        if strcmp(s(1).subs,'dom')
+            % Allow spatial domain to be extracted as Pop.dom;
+            s(1).subs = 'I';
+        end
         out = builtin('subsref',obj,s);
     case '()'
         indr = s(1).subs{1};

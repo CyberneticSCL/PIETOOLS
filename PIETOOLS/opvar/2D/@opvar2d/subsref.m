@@ -64,9 +64,9 @@ switch ref(1).type
             end
             return
         end
-        if numel(ref)==1 && strcmp(ref.subs,'dom')
+        if strcmp(ref(1).subs,'dom')
             % Allow spatial domain to be extracted as Pbop.dom;
-            ref.subs = 'I';
+            ref(1).subs = 'I';
         end
         Psop = getprop(Pbop,ref);
         
