@@ -166,7 +166,8 @@ end
 
 disp('- Constructing the Negativity Constraint...');
 
-Iw = eye(size(Bwop,2));     Iz = eye(size(Czop,1));
+Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
 Dop = [-gam*Iz,          Dzwop,     Czop*Pop*Top';
         Dzwop',          -gam*Iw,   Bwop';

@@ -122,7 +122,6 @@ fprintf('\n --- Executing Search for H_infty Optimal Estimator --- \n')
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 prog = lpiprogram(PIE.vars,PIE.dom);      % Initialize the program structure
-X=Aop.I;                         % retrieve the domain from Aop
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The most common usage of this script is to find the minimum hinf gain bound
@@ -170,7 +169,8 @@ Pop = Pop +Imat;
 
 disp('- Constructing the Negativity Constraint...');
 
-Iw = eye(size(Bwop,2));     Iz = eye(size(Czop,1));
+Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
 Dop = [-gam*Iw+Twop'*(Pop*Bwop+Zop*Dywop)+(Pop*Bwop+Zop*Dywop)'*Twop,   -Dzwop',   -(Pop*Bwop+Zop*Dywop)'*Top-Twop'*(Pop*Aop+Zop*Cyop);
        -Dzwop,                                                          -gam*Iz,   Czop;

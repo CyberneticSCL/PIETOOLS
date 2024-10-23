@@ -215,13 +215,10 @@ end
 % STEP 3: Define the KYP operator
 disp('- Constructing the negativity constraint...');
 
-% Define identity PI operators
-nw_op = Bop.dim(:,2);           % Dimensions of the input w
-nz_op = Cop.dim(:,1);           % Dimensions of the output z
-nw = sum(nw_op);                % Total number of disturbance signals
-nz = sum(nz_op);                % Total number of regulated output signals
-Iwop = opvar2d(eye(nw),[nw_op,nw_op],PIE.dom,PIE.vars);
-Izop = opvar2d(eye(nz),[nz_op,nz_op],PIE.dom,PIE.vars);
+% Define identity PI operators matching dimensions of disturbance and
+% output.
+Iwop = mat2opvar(eye(size(Bop,2)), Bop.dim(:,2), PIE.vars, PIE.dom);
+Izop = mat2opvar(eye(size(Cop,1)), Cop.dim(:,1), PIE.vars, PIE.dom);
 
 % Assemble the KYP operator
 % if epneg==0
