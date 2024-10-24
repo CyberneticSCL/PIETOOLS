@@ -10,43 +10,59 @@ clear all; clc;close all;
 %  PDE :         x_{t} = x_{s} + (s-s^2)w(t)
 %  With BC     x(s=1) = 0
 %  And output  z(t) = int(x(t,s),s,0,1)
-%%
+%% First, declare the independent variables as polynomial variables
 pvar t s;
+%, creat the structures for state, input and output,
 x=state('pde');
 w=state('in');
 z=state('out');
+% initialize the pde structure,
 pde = sys();
+% declare the dynamic equation,
 eq_dyn=diff(x,t,1)==diff(x,s,1)+(s-s^2)*w;
+% declare the output equation,
 eq_out=z==int(x,s,[0,1]);
-pde = addequation(pde,[eq_dyn;eq_out]);
+% declare the boundary condition
 bc = subs(x,s,1)==0;
-pde = addequation(pde,bc);
-
-pvar theta
+% add all system equations to the pde structure,
+pde = addequation(pde,[eq_dyn;eq_out;bc]);
+% and finally converts the pde to PIE representation
 PIE = convert(pde,'pie');   
-C1=PIE.C1; A=PIE.A;B1=PIE.B1;T=PIE.T;
-
-prog = sosprogram([s; theta]); % Initialize the program structure
-
+C1=PIE.C1; 
+A=PIE.A;
+B1=PIE.B1;
+T=PIE.T;
+% Now, declare an additional polynomial variable used 
+% as indepent variable in the sosprogram
+pvar theta
+% Initialize the program structure
+prog = sosprogram([s; theta]); 
+% declare the polynomial decision variable,
 dpvar gam;
-prog = sosdecvar(prog, gam); %this sets gam as decision var
-%prog = sosineq(prog, gam); %this ensures gamma is lower bounded
-prog = sossetobj(prog, gam); %this minimizes gamma
-%options1.sep = 1; %this is to select separable case, R1=R2
-%options1.exclude=[0 0 0 0]; %don't exclude any part of the PI operator
+% sets gam as decision variable of the sosprogram,
+prog = sosdecvar(prog, gam);
+% and sets gam as the objective function of the minimization problem
+prog = sossetobj(prog, gam); 
+% Creats positive PI decision variable W : W(s) \in L_2 with
+% domain [0,1] and default polynomial degrees up to 3.
 [prog, W] = poslpivar(prog, [0,1],[0,1]);
+% Declare the LPI
 Dop =  A*W*T'+T*W*A'+B1*B1';
-%opts.psatz = 0;opts.pure = 1;
+% Impose positiviness on -Dop [1], adding the first inequality to the sosprogram.
+% By default the operators are choosen positive on any domain [a,b].
 prog = lpi_ineq(prog,-Dop);
-tempObj = C1*W*C1';
-tempMat = tempObj.P;
-traceVal=0;
-for idx = 1:size(tempMat,1)
-    traceVal = traceVal+tempMat(idx,idx);
-end
+Aux=C1*W*C1';
+traceVal= trace(Aux.P);
+% Adds the second inequality to the sosprogram
 prog = sosineq(prog, gam-traceVal);
-
+% Finally, sets the solver,
 sos_opts.solver='mosek';
+% and search for a polynomial solution
 prog = sossolve(prog,sos_opts); 
-Wc = getsol_lpivar(prog,Wop);
+% If primal and dual feasible, retrieve the controlability grammian and the
+% upper bound on the H2 norm
+Wc = getsol_lpivar(prog,W);
 gamd = sqrt(double(sosgetsol(prog,gam)));
+%% [1] M. Peet, “A partial integral equation (PIE) representation of
+% coupled linear PDEs and scalable stability analysis using LMIs,”
+% Automatica, vol. 125, p. 109473, 2021.
