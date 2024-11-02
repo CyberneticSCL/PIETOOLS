@@ -77,49 +77,85 @@ function [sos,info] = sossolve(sos,options)
 % 03/09/2022 - DJ - Add check "isempty(K.s)" for sdpt3, sdpnal, sdpnalplus
 % 08/14/2022 - DJ - Add check "phasevalue==pUNBD" and "==dUNBD" for sdpa.
 % 09/03/2022 - DJ - Add check K.q==0 and K.r==0 in call to sdpa.
+% 12/15/2022 - DJ - Remove 0x0 decision variables after psimplify.
+% 02/07/2023 - DJ - Bugfix "addextrasosvar" for matrix-valued polynomials.
+% 03/20/2023 - DJ - Add check for existence of solver on path.
+% 10/31/2024 - DJ - Bugfix for SDPT3 post-processing (smallblkdim vs
+%                                                           smblkdim)
 
 if (nargin==1)
     %Default options from old sossolve
-    options.solver = 'sedumi';
+    options.solver = 'none';
     options.params.tol = 1e-9;
     options.params.alg = 2;
-elseif ((nargin==2) & ~isnumeric('options') )%2 arguments given,
+elseif ((nargin==2) && ~isnumeric('options') )%2 arguments given,
     if ~isfield(options,'solver')
-        options.solver = 'sedumi';
+        options.solver = 'none';
     end
     if ~isfield(options,'params')
         options.params.tol = 1e-9;%default values for SeDuMi
         options.params.alg = 2;
+    elseif ~isfield(options.params,'tol')
+        options.params.tol = 1e-9;%default values for SeDuMi
+    end
+end
+
+% Check if solver is appropriately specified.
+solver_list = {'sedumi'; 'mosek'; 'sdpt3'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpa'; 'cdcs'};
+path_list = {'sedumi'; 'mosekopt'; 'sqlp'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpam'; 'cdcs'};
+if strcmp(options.solver,'none')
+    % If no solver is specified, default to first one found on path.
+    for k=1:length(solver_list)
+        if exist(path_list{k},'file')
+            options.solver = solver_list{k};
+            break
+        end
+    end
+    if strcmp(options.solver,'none')
+        error('No SDP solver detected. Please make sure the desired solver is on the Matlab path.')
+    end
+else
+    % Otherwise, check that the desired solver is indeed on Matlab path.
+    [is_solver,solver_num] = ismember(options.solver,solver_list);
+    if ~is_solver
+        error(['The desired SDP solver ''',options.solver,''' is not supported by SOSTOOLS. Please pass one of: ',...
+                '''sedumi'', ''mosek'', ''sdpt3'', ''csdp'', ''sdpnal'', ''sdpnalplus'', ''sdpa'', ''cdcs''.'])
+    elseif ~exist(path_list{solver_num},'file')
+        error(['The desired SDP solver ''',solver_list{solver_num},''' could not be found. Please make sure the function ''',path_list{solver_num},''' is on the Matlab path.'])
     end
 end
 
 
 % AT (09/25/2021) Default options for sospsimplify
-if isfield(options,'simplify') 
-    if (strcmp(options.simplify,'on') | (options.simplify == 1) | strcmp(lower(options.simplify),'1') | strcmp(options.simplify,'turn on') | strcmp(options.simplify,'simplify'))
-        options.simplify = 1;
-    elseif (strcmp(options.simplify,'off') | (options.simplify == 0) | strcmp(lower(options.simplify),'0') | strcmp(options.simplify,'turn off'))   % DJ, 12/10/2021
-        options.simplify = 0;
+if isfield(options,'simplify')
+    if (ischar(options.simplify) && (strcmpi(options.simplify,'on') || strcmpi(options.simplify,'true') || strcmpi(options.simplify,'1') || strcmpi(options.simplify,'simplify'))) ...
+            || (islogical(options.simplify) && options.simplify) ...
+                || (isnumeric(options.simplify) && options.simplify == 1)
+        options.simplify = true;
+    elseif (ischar(options.simplify) && (strcmpi(options.simplify,'off') || strcmpi(options.simplify,'false') || strcmpi(options.simplify,'0'))) ...
+            || (islogical(options.simplify) && ~options.simplify) ...
+                || (isnumeric(options.simplify) && options.simplify == 0)
+        options.simplify = false;
     else
-        warning("options.simplify should be one of the options 'on', 1, 'simplify', 'off', '0'");
+        warning("options.simplify should be set to either true or false");
         warning("Set simplify off by default");
         
         % sospsimplify is disabled if the user used an unapproved input
-        options.simplify = 0;
+        options.simplify = false;
     end
 else
     % sospsimplify off by default
-    options.simplify = 0;
+    options.simplify = false;
 end
 
 %whenever nargin>=2 options are overwritten
 if (nargin==3)
     error('Current SOSTOOLS version does not support call to sossolve with 3 arguments, see manual.');
-end;
+end
 
 if ~isempty(sos.solinfo.x)
     error('The SOS program is already solved.');
-end;
+end
 
 % Adding slack variables to inequalities
 sos.extravar.idx{1} = sos.var.idx{sos.var.num+1};
@@ -128,12 +164,12 @@ feasextrasos = 1;   % Will be set to 0 if constraints are immediately found infe
 I = [find(strcmp(sos.expr.type,'ineq')), find(strcmp(sos.expr.type,'sparse')), find(strcmp(sos.expr.type,'sparsemultipartite'))];
 if ~isempty(I)
     [sos,feasextrasos] = addextrasosvar(sos,I);
-end;
+end
 % SOS variables type II (restricted on interval)
 I = find(strcmp(sos.expr.type,'posint'));
 if ~isempty(I)
     sos = addextrasosvar2(sos,I);
-end;
+end
 
 % Processing all expressions
 
@@ -151,7 +187,7 @@ end;
 c = sparse(size(At,1),1);
 
 %% Added by PAP, for compatibility with MATLAB 6.5
-if isempty(sos.objective);
+if isempty(sos.objective)
     sos.objective = zeros(size(c(1:sos.var.idx{end}-1)));
 end
 %% End added stuff
@@ -160,12 +196,22 @@ c(1:sos.var.idx{end}-1) = c(1:sos.var.idx{end}-1) + sos.objective;       % 01/07
 c = RR'*c;
 
 pars = options.params;
+% Set tolerance for psimplify
+if isfield(options,'simplify_tol')    
+    ptol = options.simplify_tol;
+else
+    ptol = max(pars.tol*1e-3,1e-12);         
+end
 
 % AT - created interface to sospsimplify
 feassosp = 1; %09/25/21 the default value, it is used for sospsimplify
-if options.simplify==1 | (strcmp(lower(options.simplify),'on') | strcmp(lower(options.simplify),'1')  | strcmp(lower(options.simplify),'simplify'))
+if options.simplify
 
     fprintf('Running simplification process:\n')
+    if isfield(options,'frlib')
+        disp('Warning: SOSTOOLS does not support use of both "psimplify" and "frlib" to simplify program; proceeding with only "psimplify".')
+    end
+
     At_full = At';   c_full = c; %Need duplicate copy if applying facial reduction as reduced matrices overwrite these
     b_full = b;     K_full = K;
     size_At_full = size(At_full);
@@ -174,30 +220,27 @@ if options.simplify==1 | (strcmp(lower(options.simplify),'on') | strcmp(lower(op
     dv2x = 1:size_At_full(2);
     K_full.l = 0;
 
+    Zmonom = cell(1,Nsosvarc);
     for i= 1:Nsosvarc
         Zmonom{i} = (1:K.s(i))';
     end
-    if ~isfield(pars,'tol')   % DJ, 12/10/2021
-        ptol = 1e-9;
-    else
-        ptol = pars.tol;
-    end
     %A,b,K -reduced matrices
-    [A,b,K,z,dv2x,Nfv,feassosp,zrem,removed_rows] = sospsimplify(At_full,b_full,K_full,Zmonom, dv2x,Nsosvarc, ptol);
+    [A,b,K,~,dv2x,~,feassosp,~,removed_rows] = sospsimplify(At_full,b_full,K_full,Zmonom, dv2x,Nsosvarc, ptol);
 
     fprintf('Old A size: %d  %d\n', size(At));
     fprintf('New A size: %d  %d\n', size(A'));
     % 	[prg_primal] = frlib_pre(options.frlib,At',b,c,K); %interface with frlib
     At = A';  %reduced SDP matrices
-    b = b;
+    %b = b;
     chosen_idx = (dv2x ~= 0);
     c = c(chosen_idx);
-    K = K;
+    K.s(K.s==0) = [];   % Get rid of 0x0 variables, DJ - 12/15/22
     size_AT_solved = size(At);
     %if size(At,2)~=length(b) | length(b) > length(c)
     %    error('Error simplifying the problem, it may be infeasible. Try running without ''simplify''.')
     %end
-    %perform facial reduction using FP's algorithm (JA 5/1/16)
+
+% Perform facial reduction using FP's algorithm (JA 5/1/16)
 elseif isfield(options,'frlib')
     At_full = At;   c_full = c; %Need duplicate copy if applying facial reduction as reduced matrices overwrite these
     b_full = b;     K_full = K;
@@ -209,6 +252,9 @@ elseif isfield(options,'frlib')
     c = prg_primal.c';
     K = prg_primal.K;
     size_AT_solved = size(At);
+
+    fprintf('Old A size: %d  %d\n', size_At_full);
+    fprintf('New A size: %d  %d\n', size_AT_solved);
     
     if size(At,2)~=length(b) | length(b) > length(c)
         error('Error simplifying the problem, it may be infeasible. Try running without ''frlib''.')
@@ -217,9 +263,14 @@ else
     size_At_full = size(At);
 end
 
+% Check for trivially infeasible constraints b=0 with nonzero b             % DJ, 08/12/23
+if feassosp && any((sum(abs(At)>ptol,1)==0)' & (abs(b)>ptol*max(abs(b))))
+    feassosp=0;
+end
+
 % AT - 9/28/2021
 if feassosp==0 || feasextrasos==0 % if the sospsimplify or addextrasosvar return infeasible solution.
-    % If the problem is clearly infeasible, sedumi can return error
+    % If the problem is clearly infeasible, sedumi can return an error.
     % Return no solution if the problem is clearly infeasible from
     % sospsimplify or addextrasosvar.
     fprintf(2,'\n Warning: Primal program infeasible, no solution produced.\n\n')
@@ -232,6 +283,21 @@ if feassosp==0 || feasextrasos==0 % if the sospsimplify or addextrasosvar return
     info.cpusec = 0; 
     sos.solinfo.info = info;
     sos.solinfo.solverOptions = options;
+
+    % % Set the solution to NaN;
+    % if isempty(sos.extravar.idx)
+    %     nx = sos.var.idx{end}-1;
+    % else
+    %     nx = sos.extravar.idx{end}-1;
+    % end
+    % ny = 0;
+    % for j=1:numel(sos.extravar.T)
+    %     ny = ny+size(sos.extravar.T{j},2);
+    % end
+    % sos.solinfo.x = nan(nx,1);
+    % sos.solinfo.RRx = nan(nx,1);
+    % sos.solinfo.y = nan(ny,1);
+    % sos.solinfo.RRy = nan(nx,1);
     return
 end
 
@@ -273,18 +339,23 @@ elseif strcmp(lower(options.solver),'mosek')
     info.cpusec = res.info.MSK_DINF_OPTIMIZER_TIME; %OK
     info.iter = res.info.MSK_IINF_INTPNT_ITER;   %OK
     info.feasratio = res.info.MSK_DINF_INTPNT_OPT_STATUS;
-    if strcmp(res.sol.itr.prosta,'DUAL_INFEASIBLE')
+    if contains(res.sol.itr.prosta,'INFEASIBLE') && contains(res.sol.itr.prosta,'DUAL')
         info.dinf = 1;
     else
         info.dinf = 0;
     end
-    if strcmp(res.sol.itr.prosta,'PRIM_INFEASIBLE')
+    if contains(res.sol.itr.prosta,'INFEASIBLE') && contains(res.sol.itr.prosta,'PRIM')
         info.pinf = 1;
     else
         info.pinf = 0;
     end
-    
-    info.numerr = 0;
+    if contains(res.sol.itr.prosta,'UNKNOWN')
+        info.numerr = 2;
+    elseif contains(res.sol.itr.solsta,'UNKNOWN')
+        info.numerr = 1;
+    else
+        info.numerr = 0;
+    end
 elseif strcmp(lower(options.solver),'cdcs')
     % CDCS in action
     size_At = size(At);
@@ -321,9 +392,9 @@ elseif strcmp(lower(options.solver),'sdpt3')
     if ~(isempty(K.s) || K.s(1)==0)   % DJ, 03/09/2022  (do we need the K.s(1)~=0 check?)
         idxX = 1;
         idx = K.f+1;
-        smblkdim = 100;
-        deblkidx = find(K.s > smblkdim);
-        spblkidx = find(K.s <= smblkdim);
+        % smblkdim = 100;   % DJ, 10/31/2024  (is there a reason we had smblkdim~=smallblkdim?)
+        deblkidx = find(K.s > smallblkdim);
+        spblkidx = find(K.s <= smallblkdim);
         blknnz = [0 cumsum(K.s.*K.s)];
         for i = deblkidx
             dummy = X{cellidx};
@@ -767,11 +838,11 @@ if ~isfield(sos,'symvartable')
                 Atnew(:,indx_new) = sos.expr.At{i}(:,indx_old)*R1;  % Adjust At to match new monomials
                 
                 % What coefficients of S are associated to element j?
-                [rindx,cindx] = ind2sub([Fdim,Fdim],j); % Matrix element k,l
-                Crindx = rindx + Fdim*(0:1:nmons_Z-1);  % Row indices of associated coefficients of S
-                Ccindx = cindx + Fdim*(0:1:nmons_Z-1);  % Col indices of associated coefficients of S
+                [rindx,cindx] = ind2sub([Fdim,Fdim],j);     % Matrix element k,l
+                Crindx = (rindx-1)*nmons_Z + (1:nmons_Z);   % Row indices of associated coefficients of S
+                Ccindx = (cindx-1)*nmons_Z + (1:nmons_Z);   % Col indices of associated coefficients of S
                 Cindx = reshape(Crindx' + Fdim*nmons_Z*(Ccindx-1),[],1); % Linear indices of coefficients
-                
+
                 % Pair each monomial with the appropriate coefficient
                 rindx = sos.extravar.idx{var} + Cindx - 1;  % Rows in At associated to coefficients of S
                 cindx = (j-1)*nmons_new + Zindx;            % Columns in At associated to coefficients of S
@@ -784,8 +855,7 @@ if ~isfield(sos,'symvartable')
             sos.expr.At{i} = Atnew;     % Update the values of At and b
             sos.expr.b{i} = bnew;
    
-        end
-            
+        end     
     end
         
 else
