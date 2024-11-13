@@ -42,6 +42,7 @@ function [Pcat] = vertcat(varargin)
 % DJ, 09/29/2021: Small adjustment to avoid error with dopvar-opvar concatenation
 % DJ, 12/30/2021: Adjusted to assure opvar with dopvar returns dopvar
 % DJ - 09/30/23: Prohibit "ambiguous" concatenations.
+% DB - 11/13/24: "ambiguous" concatenations allowed, warnning added.
 
 % Deal with single input case
 if nargin==1
@@ -71,7 +72,7 @@ if (a.dim(2,1)~=0 && b.dim(1,1)~=0)
     % a has rows mapping to L2, but b has rows mapping to R.
     % Concatenation would place those rows of a below those of b in the
     % opvar, which we currently prohibit...
-    error('Proposed opvar concatenation is ambiguous, and currently prohibited')
+    warnning('Proposed opvar concatenation is ambiguous')
 end
 
 % Finally, let's actually concatenate
