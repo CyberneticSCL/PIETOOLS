@@ -77,7 +77,7 @@ if (a.dim(2,2)~=0 && b.dim(1,2)~=0)
     % a has columns mapping from L2, but b has columns mapping from R.
     % Concatenation would place those columns of a to the right of
     % those columns of b in the opvar, which we currently prohibit...
-    warnning('Proposed opvar concatenation is ambiguous')
+    warning('Proposed opvar concatenation is ambiguous')
 end
 
 % Finally, let's actually concatenate

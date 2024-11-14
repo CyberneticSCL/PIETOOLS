@@ -41,8 +41,6 @@ prog = sosprogram([s; theta]);
 dpvar gam;
 % sets gam as decision variable of the sosprogram,
 prog = sosdecvar(prog, gam);
-% and sets gam as the objective function of the minimization problem
-prog = sossetobj(prog, gam); 
 % Creats positive PI decision variable W : W(s) \in L_2 with
 % domain [0,1] and default polynomial degrees up to 3.
 [prog, W] = poslpivar(prog, [0,1],[0,1]);
@@ -57,6 +55,8 @@ traceVal= trace(Aux.P);
 prog = sosineq(prog, gam-traceVal);
 % Finally, sets the solver,
 sos_opts.solver='mosek';
+%sets gam as the objective function of the minimization problem
+prog = sossetobj(prog, gam); 
 % and search for a polynomial solution
 prog = sossolve(prog,sos_opts); 
 % If primal and dual feasible, retrieve the controlability grammian and the

@@ -72,7 +72,7 @@ if (a.dim(2,1)~=0 && b.dim(1,1)~=0)
     % a has rows mapping to L2, but b has rows mapping to R.
     % Concatenation would place those rows of a below those of b in the
     % opvar, which we currently prohibit...
-    warnning('Proposed opvar concatenation is ambiguous')
+    warning('Proposed opvar concatenation is ambiguous')
 end
 
 % Finally, let's actually concatenate
