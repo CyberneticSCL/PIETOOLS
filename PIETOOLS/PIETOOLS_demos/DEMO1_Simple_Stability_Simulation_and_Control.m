@@ -68,7 +68,7 @@ PIE_CL = initialize(PIE_CL);
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
 opts.tf = 10;       % Simulate up to t = 10;
-opts.dt = 1e-2;     % Use time step of 10^-2
+opts.dt = 0.03;     % Use time step of 10^-2
 opts.intScheme = 1; % Time-step using Backward Differentiation Formula (BDF)
 ndiff = [0,2,0];    % The PDE state involves 2 first order differentiable state variables   
 
