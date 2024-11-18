@@ -154,7 +154,7 @@ end
 
 % Enforce strict positivity of the operator
 Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
-Pop = Pop +Imat; 
+Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom);
 
 [prog,Zop] = lpivar(prog,Cyop.dim(:,[2,1]),ddZ);
 
