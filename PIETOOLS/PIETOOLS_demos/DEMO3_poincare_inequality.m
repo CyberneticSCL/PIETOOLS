@@ -2,73 +2,72 @@
 % See Chapter 11.3 of the manual for a description.
 %
 % This document illustrates how the Poincare constant can be found
-% using PIETOOLS
+% using PIETOOLS.
+% The Pointcare constant is the smallest value c such that
+%   ||x|| ≤ c||x_s||    for all x in {x: x_{s}\in L_2[0,1] & x(0)=x(1)=0}
+% We can pose this as an optimization program
+%   min   c,
+%   s.t.  <x, x> − c <x_s,x_s> ≤ 0
+%           x in {x: x_{s}\in L_2[0,1] & x(0)=x(1)=0}
+% To solve, we use PIETOOLS PDE to PIE converter to compute H1op and H2op
+% such that for all x satisfying x(0)=x(1)=0,
+%   x = H2op*x_{ss}     and     x_{s} = H1op*x_{s};
+% Then, we pose the Poincare inequality as an LPI
+%   min   c,
+%   s.t.  H2'*H2 -c*H1'*H1 ≤ 0
 
 % This example is also included in the paper (page 6, Demoenstration 3)
 % link: https://arxiv.org/pdf/1910.01338.pdf
 
-
-% What is Poincare Inequality?
-% Find C; such that for an function u \in H^1[0, 1]
-% ||u|| ≤ C||u_s||
-% where H^1[0,1] := {u: u_{s}\in L_2[0,1] & u(0)=u(1)=0}
-
-% Optimization Problem
-% min C, such that
-% <u, u> − C <u_s,u_s> ≤ 0
-
-%%
-clc; clear; 
+clc; clear; clear stateNameGenerator;
 echo on
-%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
 
-%%%%%   Declare the PDE
+% =============================================
+% === Declare the operators of interest
 
-% % Initialize the PDE structure and spatial variable s in [a,b]
-pvar s theta;
-pde_struct PDE;
+% Declare a PDE 
+%   d/dt x = x_{ss}
+%       z1 = x_{s}
+%   x(s=a) = x(s=b) = 0;
+pvar s;
 a = 0;      b = 1;
+x = pde_var('state',1,s,[a,b]);
+z = pde_var('out',1,s,[a,b]);
+PDE = [diff(x,'t')==diff(x,s,2);
+       z==diff(x,s);
+       subs(x,s,a)==0;
+       subs(x,s,b)==0];
 
-% % Declare the state variables x(t,s)
-PDE.x{1}.vars = s;
-PDE.x{1}.dom = [a,b];
-PDE.x{1}.diff = 2;          % Let x be second order differentiable wrt s.
+% Convert to a PIE and extract operators
+%   d/dt H2op*x_{ss} = x_{ss};
+%                 z1 = H1op*x_{ss};
+PIE = convert(PDE);
+H2op = PIE.T;       % H2op*x_{ss} = x
+H1op = PIE.C1;      % H1op*x_{ss} = x_{s}
 
-% % Declare the PDE \dot{x}(t,s) = \partial_{s} x(t,s)
-PDE.x{1}.term{1}.D = 1;     % Order of the derivative wrt s
+% =============================================
+% === Declare the LPI
 
-% % Declare the boundary conditions x(t,a) = x(t,b) = 0
-PDE.BC{1}.term{1}.loc = a;      % Evaluate x at s=a
-PDE.BC{2}.term{1}.loc = b;      % Evaluate x at s=b
+% Initialize LPI program
+prob = lpiprogram(PIE.vars,PIE.dom);
 
-% % Initialize the system
-PDE = initialize(PDE);
+% Set inequality constraints:
+%   H2'*H2-gam H1'*H1 <= 0
+dpvar gam
+prob = lpidecvar(prob,gam);
+opts.psatz = 1;                 % Allow H2'*H2 > gam H1'*H1 outside of [a,b]
+prob = lpi_ineq(prob,-(H2op'*H2op-gam*H1op'*H1op),opts);
 
-
-%%%%% Convert the PDE to a PIE
-PIE = convert(PDE,'pie');
-H2 = PIE.T;     % H2 x_{ss} = x
-H1 = PIE.A;     % H1 x_{ss} = x_{s}
-
-
-%%%%%   Solve the LPI < H2 x_ss, H2 x_ss> - gam <H1 x_ss, H1 x_ss> <=0
-%%%%%   where (H2 x_ss) = x and (H1 x_ss) = x_s
-% % First, define dpvar gam and set up an optimization problem
-dpvar gam;
-prob = lpiprogram(PIE.vars,PIE.dom,gam);
-
-% % Set gam as objective function to minimize
+% Set objective function:
+%   min gam
 prob = lpisetobj(prob, gam);
-
-% % Set up the constraint H2'*H2-gam H1'*H1<=0
-opts.psatz = 1;     % Add psatz term to allow H2'*H2 > gam H1'*H1 outside of [a,b]
-prob = lpi_ineq(prob,-(H2'*H2-gam*H1'*H1),opts);
 
 % Solve and retrieve the solution
 prob = lpisolve(prob);
 poincare_constant = sqrt(double(sosgetsol(prob,gam)));
 
-%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
 
 fprintf(['\n If successful, ',num2str(poincare_constant),' is an upper bound on Poincare''s constant for this problem.\n'])

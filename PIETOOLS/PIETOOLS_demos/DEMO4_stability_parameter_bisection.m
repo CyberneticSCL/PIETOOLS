@@ -3,67 +3,64 @@
 %
 % This document illustrates how PIETOOLS can be used to find the maximal
 % value of a parameter for which a PDE is stable, using bisection.
+% Specifically, we test stability of the reaction-diffusion PDE
+%   x_{t}(t,s) = lam*x(t,s) + x_{ss}(t,s);
+%       x(t,0) = x(t,1) = 0;
+% The PDE is stable when lam <= pi^2 = 9.8696 (Ahmadi 2015).
 
-% Reaction-diffusion PDE
-% \dot{x}(t,s) = lam*x(t,s) + x_{ss}(t,s);
-% x(t,0) = x(t,1) = 0;
-% Stable when lam <= pi^2 = 9.8696 (Ahmadi 2015).
-
-%%
-clc; clear;
+clc; clear; clear stateNameGenerator;
 echo on
-%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
+pvar s t
 
-%%% Set bisection limits for lam.
+% =============================================
+% === Declare parameters
+
+% Set bisection limits for lam.
 lam_min = 0;        lam_max = 20;
 lam = 0.5*(lam_min + lam_max);
 n_iters = 8;
 
-%%% Initialize a PDE structure.
-a = 0;  b = 1;
-pvar s
-pde_struct PDE;
-PDE.x{1}.vars = s;
-PDE.x{1}.dom = [a,b];
-
-% Set the PDE \dot{x}(t,s) = lam*x(t,s) + x_{ss}(t,s);
-PDE.x{1}.term{1}.C = lam;
-PDE.x{1}.term{2}.D = 2;
-
-% Set the BCs x(t,a) = x(t,b) = 0;
-PDE.BC{1}.term{1}.loc = a;
-PDE.BC{2}.term{1}.loc = b;
-
-%%% Initialize settings for solving the LPI
-settings = lpisettings('veryheavy');
+% Initialize settings for solving the LPI
+settings = lpisettings('heavy');
 if strcmp(settings.sos_opts.solver,'sedumi')
     settings.sos_opts.params.fid = 0;   % Suppress output in command window
 end
 
 %%% Perform bisection on the value of lam
 for iter = 1:n_iters
-    % Update the value of lam in the PDE.
-    PDE.x{1}.term{1}.C = lam;
-    
-    % Update the PIE.
+    % =============================================
+    % === Declare the operators of interest
+
+    % Declare a PDE 
+    PDE = sys();
+    x = state('pde');
+    PDE = addequation(PDE, [diff(x,t)==diff(x,s,2)+lam*x;
+                            subs(x,s,0)==0;
+                            subs(x,s,1)==0]);
+
+    % Convert to PIE.
     PIE = convert(PDE,'pie');
-    
-    % Re-run the stability test.
+
+    % =============================================
+    % === Declare the LPI
+
+    % Run pre-defined stability executive
     fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
-    prog = PIETOOLS_stability(PIE,settings);
+    prog = lpiscript(PIE,'stability',settings);
 
     % Check if the system is stable
     if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)>0.3
-        % Stability cannot be verified, decreasing the value of lam...
+        % Stability cannot be verified --> decrease value of lam...
         lam_max = lam;
         lam = 0.5*(lam_min + lam_max);
     else
-        % The system is stable, trying a larger value of lam...
+        % The system is stable --> try larger value of lam...
         lam_min = lam;
         lam = 0.5*(lam_min + lam_max);
     end    
 end
-%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
 
 fprintf(['\n Stability of the system could be verified for lam<=',num2str(lam_min),'.\n'])
