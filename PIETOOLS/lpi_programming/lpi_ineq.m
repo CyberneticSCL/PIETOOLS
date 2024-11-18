@@ -88,21 +88,43 @@ elseif ~isa(P,'dopvar')
     error('Variable of which to enforce positivity should be specified as object of type ''dpvar'', ''dopvar'', or ''dopvar2d''.')
 end
 
-
+% Establish dimension of new operator.
 dim = P.dim;
 if dim(:,1)~=dim(:,2)
     error('Non-symmetric operators cannot be sign definite. Unable to set the inequality');
 end
 
-
+% Establish degrees of new operator to match those of P.
 d2 = degbalance(P);
+
+% Check if certain parameters can be excluded.
+tol = 1e-14;
 if opts.pure == 1
-    options2.exclude= [0 1 0 0];
-    options3.exclude = [0 1 0 0]; 
+    options2.exclude = [0,1,0,0];
+    options3.exclude = [0,1,0,0];
 else
-    options2.exclude= [0 0 0 0];
-    options3.exclude = [0 0 0 0]; 
+    options2.exclude = [0,0,0,0];
+    options3.exclude = [0,0,0,0];
 end
+if (isa(P.P,'double') && max(max(abs(P.P)))<tol) || all(max(max(abs(P.P.C)))<tol)
+    options2.exclude(1) = 1;
+    options3.exclude(1) = 1;
+end
+if (isa(P.R.R0,'double') && max(max(abs(P.R.R0)))<tol) || all(max(max(abs(P.R.R0.C)))<tol)
+    options2.exclude(2) = 1;
+    options3.exclude(2) = 1;
+end
+if (isa(P.R.R1,'double') && max(max(abs(P.R.R1)))<tol) || all(max(max(abs(P.R.R1.C)))<tol)
+    options2.exclude(3) = 1;
+    options3.exclude(3) = 1;
+end
+if (isa(P.R.R2,'double') && max(max(abs(P.R.R2)))<tol) || all(max(max(abs(P.R.R2.C)))<tol)
+    options2.exclude(4) = 1;
+    options3.exclude(4) = 1;
+end
+
+
+% Declare a positive operator Deop and enforce Dop-P==0.
 if opts.psatz == 1
     options3.psatz=1;
     [prog, Deop] = poslpivar(prog,dim,d2,options2);
