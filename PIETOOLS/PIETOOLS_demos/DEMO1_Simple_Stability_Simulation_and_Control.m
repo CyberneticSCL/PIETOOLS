@@ -74,9 +74,9 @@ ndiff = [0,2,0];    % The PDE state involves 2 first order differentiable state 
 
 % Set initial conditions and disturbance for simulation
 syms st sx;
-uinput.ic.PDE = [0,0];  
+uinput.ic.PDE = [0,0]*sx;  
 uinput.ic.ODE = 0;  
-uinput.u = 0;
+uinput.u = 0*st;
 uinput.w = sin(5*st)*exp(-st); 
 
 % Simulate open-loop PDE and extract solution
