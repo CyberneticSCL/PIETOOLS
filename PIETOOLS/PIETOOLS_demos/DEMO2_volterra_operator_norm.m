@@ -44,7 +44,7 @@ prob = lpisetobj(prob, gam);
 
 % Solve and retrieve the solution
 prob = lpisolve(prob);
-operator_norm = sqrt(double(sosgetsol(prob,gam)));
+operator_norm = sqrt(double(lpigetsol(prob,gam)));
 
 %% %%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off

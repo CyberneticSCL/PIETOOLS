@@ -11,7 +11,7 @@
 %           x in {x: x_{s}\in L_2[0,1] & x(0)=x(1)=0}
 % To solve, we use PIETOOLS PDE to PIE converter to compute H1op and H2op
 % such that for all x satisfying x(0)=x(1)=0,
-%   x = H2op*x_{ss}     and     x_{s} = H1op*x_{s};
+%   x = H2op*x_{ss}     and     x_{s} = H1op*x_{ss};
 % Then, we pose the Poincare inequality as an LPI
 %   min   c,
 %   s.t.  H2'*H2 -c*H1'*H1 ≤ 0
