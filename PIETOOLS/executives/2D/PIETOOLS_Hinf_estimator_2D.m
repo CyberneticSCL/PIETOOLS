@@ -43,11 +43,28 @@ function [prog, Lop, gam, Pop, Zop] = PIETOOLS_Hinf_estimator_2D(PIE, settings, 
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 01/24/2024
+% DJ - 01/24/2024: Initial coding;
+% DJ - 10/20/2024: Update to use new LPI programming structure;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 0: Extract LPI settings and necessary PI operators
+
+% Check if the PIE is properly specified.
+if ~isa(PIE,'pie_struct')
+    error('The PIE for which to run the executive should be specified as object of type ''pie_struct''.')
+else
+    PIE = initialize(PIE);
+end
+% Extract the relevant PI operators.
+Top = PIE.T;        Twop = PIE.Tw;
+Aop = PIE.A;        Bop = PIE.B1;
+Czop = PIE.C1;      Dzop = PIE.D11;
+Cyop = PIE.C2;      Dyop = PIE.D21;
+
+if ~(Twop==0) && ~(Bop==0)
+    error('The PIE takes both the input w and its derivative dw/dt; LPI based estimator synthesis is currently not supported')
+end
 
 if nargin==1
     settings = settings_PIETOOLS_light_2D;
@@ -157,47 +174,21 @@ else
 end
 
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-% Extract the relevant PI operators
-Top = PIE.T;        Twop = PIE.Tw;    
-Aop = PIE.A;        Bop = PIE.B1;
-Czop = PIE.C1;      Dzop = PIE.D11;
-Cyop = PIE.C2;      Dyop = PIE.D21;
-if ~(Twop==0) && ~(Bop==0)
-    error('The PIE takes both the input w and its derivative dw/dt; LPI based estimator synthesis is currently not supported')
-end
-
-% Other relevant information
-vars = PIE.vars;                % Spatial variables of the PIE
-dom = PIE.dom;                  % Spatial domain of the PIE
-np_op = Aop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
-nw_op = Bop.dim(:,2);           % Dimensions of the input w
-nz_op = Czop.dim(:,1);           % Dimensions of the output z
-ny_op = Cyop.dim(:,1);
-nw = sum(nw_op);                % Total number of disturbance signal
-nz = sum(nz_op);                % Total number of regulated output signals
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 1: Initialize the SOS program in the provided spatial variables, and
 % set the Hinfty norm of the closed-loop system as objective function value 
 
-prog = sosprogram(vars(:));         % Initialize the program structure
-for kk=1:prod(size(vars))
-    % Make sure variables are in right order (pvar stores them
-    % alphabetically.
-    prog.vartable(kk) = vars(kk).varname;
-end
+prog = lpiprogram(PIE.vars,PIE.dom);         % Initialize the program structure
 if gain==0
     fprintf('\n --- Searching for an Hinf optimal estimator --- \n')
     % If no gain is provided, include the gain as a decision variable, and
     % look for a minimum
     dpvar gam;
-    prog = sosdecvar(prog, gam);    % This sets gam = gamma as decision var
-    prog = sossetobj(prog, gam);    % This minimizes gamma, comment for feasibility test
+    % prog = lpidecvar(prog, gam);        % set gam = gamma as decision variable
+    % prog = lpi_ineq(prog, gam);         % enforce gamma>=0
+    prog = lpisetobj(prog, gam);        % set gamma as objective function to minimize
 else
     fprintf(['\n --- Testing for existence of estimator with disturbance to error gain bounded by gam = ',num2str(gain),' --- \n'])
     % If a gain is provided, just check the LPI is feasible with this gain
@@ -211,27 +202,28 @@ end
 disp('- Declaring a positive Lyapunov operator variable using the specified options...');
 
 % Initialize an operator which is positive semidefinite everywhere
-[prog, Pop] = poslpivar_2d(prog,np_op,dom,LF_deg,LF_opts);
+[prog, Pop] = poslpivar_2d(prog, Top.dim, LF_deg, LF_opts);
 
 % Add an additional term with psatz multiplier if requested
 for j=1:length(LF_use_psatz)
     if LF_use_psatz(j)~=0
-        [prog, P2op] = poslpivar_2d(prog,np_op,dom,LF_deg_psatz{j},LF_opts_psatz{j});
+        [prog, P2op] = poslpivar_2d(prog, Top.dim, LF_deg_psatz{j}, LF_opts_psatz{j});
         Pop = Pop + P2op;
     end
 end
 
 % Ensure strict positivity of the operator
 if ~all(eppos==0)
+    np_op = Pop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
     Ip = blkdiag(eppos(1)*eye(np_op(1)),eppos(2)*eye(np_op(2)),eppos(3)*eye(np_op(3)),eppos(4)*eye(np_op(4)));
-    Iop = opvar2d(Ip,[np_op,np_op],dom,vars);
+    Iop = opvar2d(Ip,Pop.dim,PIE.dom,PIE.vars);
     Pop = Pop + Iop;
 end
 
 % % Also declare a sign-indefinite operator Zop, representing Pop*Lop for
 % % estimator gain operator Lop
 disp('- Declaring an indefinite operator variable parameterizing the estimator gain...');
-[prog, Zop] = lpivar_2d(prog,[np_op,ny_op],dom,Zop_deg,Zop_opts);
+[prog, Zop] = lpivar_2d(prog, Cyop.dim(:,[2,1]), Zop_deg, Zop_opts);
 
 % % Keep a copy of the program in case we want to perform bisection
 prog_0 = prog;
@@ -241,9 +233,10 @@ prog_0 = prog;
 % STEP 3: Define the KYP operator
 disp('- Constructing the negativity constraint...');
 
-% Define identity PI operators
-Iwop = opvar2d(eye(nw),[nw_op,nw_op],dom,vars);
-Izop = opvar2d(eye(nz),[nz_op,nz_op],dom,vars);
+% Define identity PI operators matching dimensions of disturbance and
+% output.
+Iwop = mat2opvar(eye(size(Bop,2)), Bop.dim(:,2), PIE.vars, PIE.dom);
+Izop = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
 % Assemble the KYP operator
 Qop = vertcat_legacy(horzcat_legacy(-gam*Iwop+Twop'*(Pop*Bop+Zop*Dyop)+(Pop*Bop+Zop*Dyop)'*Twop, -Dzop', -(Pop*Bop+Zop*Dyop)'*Top-Twop'*(Pop*Aop+Zop*Cyop)),...
@@ -270,8 +263,7 @@ else
     eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol);
     
     % Next, build a positive operator Qeop to enforce Qop == -Qeop;
-    Qdim = Qop.dim(:,1);
-    [progQ, Qeop] = poslpivar_2d(prog,Qdim,dom,eq_deg,eq_opts);
+    [progQ, Qeop] = poslpivar_2d(prog, Qop.dim, eq_deg, eq_opts);
     
     toggle = 0; % Set toggle=1 to check whether the monomials in Qeop are sufficient.
     if toggle
@@ -286,7 +278,7 @@ else
             warning('The specified options for the equality constraint do not allow sufficient freedom to enforce the inequality constraint. Additional monomials are being added.')
 
             % Construct a new positive operator Qeop with greater degrees
-            [progQ, Qeop] = poslpivar_2d(prog,Qdim,dom,eq_deg,eq_opts);
+            [progQ, Qeop] = poslpivar_2d(prog, Qop.dim, eq_deg, eq_opts);
 
             % Check that now Qeop has all the necessary monomials
             par_indx = find(~(isgood_Qpar(:)));   % Indices of parameters we still need to verify are okay
@@ -300,7 +292,7 @@ else
         if eq_use_psatz(j)~=0
             eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
             eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
-            [prog, Qe2op] = poslpivar_2d(prog,Qdim,dom, eq_deg_psatz{j},eq_opts_psatz{j});
+            [prog, Qe2op] = poslpivar_2d(prog, Qop.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
             Qeop = Qeop+Qe2op;
         end
     end
@@ -315,19 +307,19 @@ end
 disp('- Solving the LPI using the specified SDP solver...');
 
 % Solve the sos program
-prog = sossolve(prog,sos_opts); 
+prog = lpisolve(prog,sos_opts); 
 
 % Check the results
 if norm(prog.solinfo.info.feasratio-1)<=feastol && ~prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
     if gain==0
-        gam = double(sosgetsol(prog,gam));
+        gam = double(lpigetsol(prog,gam));
     end
     disp('The L2 gain from disturbance to error in the output estimate of the system is upper bounded by:')
     disp(gam); % check the Hinf norm, if the problem was solved successfully
     solve_val = 1;
 elseif norm(prog.solinfo.info.feasratio-1)<=feastol && prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
     if gain==0
-        gam = double(sosgetsol(prog,gam));
+        gam = double(lpigetsol(prog,gam));
     end
     disp('The system of equations was successfully solved. However, Double-check the precision.')
     disp('The L2 gain from disturbance to error in the output estimate of the system is upper bounded by:')
@@ -336,7 +328,7 @@ elseif norm(prog.solinfo.info.feasratio-1)<=feastol && prog.solinfo.info.numerr 
 elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf || norm(prog.solinfo.info.feasratio+1)<=.1
     disp('The system of equations was not solved.')
     if gain==0
-        try gam = double(sosgetsol(prog,gam));
+        try gam = double(lpigetsol(prog,gam));
         catch
             gam = Inf;
         end
@@ -347,7 +339,7 @@ elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf || norm(prog.solinfo.inf
 else
     disp('Unable to definitively determine feasibility.')
     if gain==0
-        gam = double(sosgetsol(prog,gam));
+        gam = double(lpigetsol(prog,gam));
     end
     %disp(gam);
     %gam = Inf;
@@ -356,8 +348,8 @@ end
 
 % Extract solved operator values, and construct estimator gain Lop
 if solve_val>0
-    Pop_sol = getsol_lpivar(prog,Pop);
-    Zop_sol = getsol_lpivar(prog,Zop);
+    Pop_sol = lpigetsol(prog,Pop);
+    Zop_sol = lpigetsol(prog,Zop);
     Lop = getObserver_2D(Pop_sol,Zop_sol);
 else
     Lop = nan;
@@ -400,7 +392,7 @@ if use_bisect
         % STEP 3b: Define the KYP operator
         disp('- Updating the negativity constraint...');
         gam_diff = gam - gam_old;
-        Oop = opvar2d([],[np_op,np_op],dom,vars);   % Zero operator
+        Oop = opvar2d([],Top.dim,PIE.dom,PIE.vars);   % Zero operator
         Qop_diff = blkdiag_legacy(-gam_diff*Iwop,-gam_diff*Izop,Oop);
         Qop = Qop + Qop_diff;
         
@@ -413,10 +405,10 @@ if use_bisect
             prog = lpi_ineq_2d(prog,-Qop,ineq_opts);
         else
             disp('  - Using an equality constraint...');
-            [prog, Qeop] = poslpivar_2d(prog,np_op+nw_op+nz_op,dom,eq_deg,eq_opts);
+            [prog, Qeop] = poslpivar_2d(prog, Qop.dim, eq_deg, eq_opts);
             for j=1:length(eq_use_psatz)
                 if eq_use_psatz(j)~=0
-                    [prog, Qe2op] = poslpivar_2d(prog,np_op+nw_op+nz_op,dom, eq_deg_psatz{j},eq_opts_psatz{j});
+                    [prog, Qe2op] = poslpivar_2d(prog, Qop.dim, eq_deg_psatz{j},eq_opts_psatz{j});
                     Qeop = Qeop+Qe2op;
                 end
             end
@@ -427,7 +419,7 @@ if use_bisect
         disp('- Solving the LPI using the specified SDP solver...');
         
         % Solve the sos program
-        prog = sossolve(prog,sos_opts);
+        prog = lpisolve(prog,sos_opts);
         
         % Check the results
         if norm(prog.solinfo.info.feasratio-1)<=feastol && ~prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
@@ -449,8 +441,8 @@ if use_bisect
         
         % Extract solved operator values, and construct estimator gain Lop
         if solve_val>0
-            Pop_sol = getsol_lpivar(prog,Pop);
-            Zop_sol = getsol_lpivar(prog,Zop);
+            Pop_sol = lpigetsol(prog,Pop);
+            Zop_sol = lpigetsol(prog,Zop);
             Lop = getObserver_2D(Pop_sol,Zop_sol);
             Lop_arr{k} = Lop;
         else

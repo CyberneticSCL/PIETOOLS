@@ -46,11 +46,27 @@ function Psop=subsref(Pbop,ref)
 % DJ, 05/24/22: Allow domain to be extracted with dom;
 % DJ, 08/07/22: Allow logical indexing;
 %               Also allow parameter indexing using '({})';
+% DJ, 10/20/2024: Add support for extracting variables as Pop.vars;
 
 switch ref(1).type
     case '.'
-        if numel(ref)==1 && strcmp(ref.subs,'dom')
-            ref.subs = 'I';
+        if strcmp(ref(1).subs,'vars')
+            % Allow spatial variables to be extracted as Pbop.vars.
+            var1 = Pbop.var1;
+            var2 = Pbop.var2;
+            vars = [var1,var2];
+            if numel(ref)==1
+                % Just Pbop.vars.
+                Psop = vars;
+            else
+                % e.g. Pbop.vars(1).
+                Psop = builtin('subsref',vars,ref(2:end));
+            end
+            return
+        end
+        if strcmp(ref(1).subs,'dom')
+            % Allow spatial domain to be extracted as Pbop.dom;
+            ref(1).subs = 'I';
         end
         Psop = getprop(Pbop,ref);
         

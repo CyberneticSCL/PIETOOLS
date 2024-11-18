@@ -55,7 +55,7 @@ for k=1:nx
 
     acheb=fcht(double(Reval));
 
-for j=1:size(acheb);
+for j=1:length(acheb)
 A(j,k,m)=acheb(j);
 end
 
