@@ -23,7 +23,6 @@
 
 clc; clear; clear stateNameGenerator;
 echo on
-%% %%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
 
 % =============================================
 % === Declare the operators of interest
@@ -39,30 +38,29 @@ Iop.Q1 = 1;         % (Iop*v) = int_{a}^{b} v(s)ds
 % =============================================
 % === Declare the LPI
 
-% Initialize LPI program
+% % Initialize LPI program
 prob = lpiprogram(Hop.vars,Hop.dom);
 
-% Declare decision variables:
-%   gam \in \R   and    Xop:L2-->\R
+% % Declare decision variables:
+% %   gam \in \R   and    Xop:L2-->\R
 dpvar gam                               % scalar decision variable
 prob = lpidecvar(prob,gam);
 [prob,Xop] = lpivar(prob,Iop.dim,5);    % operator decision variable
 
-% Set inequality constraints:
-%   Hop'*Hop -gam  +Xop'*Iop +Iop*Xop' <= 0
-opts.psatz = 1;                 % Allow Hop'*Hop > gam outside of [a,b]
+% % Set inequality constraints:
+% %   Hop'*Hop -gam  +Xop'*Iop +Iop*Xop' <= 0
+opts.psatz = 1;                 % allow Hop'*Hop > gam outside of [a,b]
 prob = lpi_ineq(prob,-(Hop'*Hop -gam +Xop'*Iop +Iop'*Xop),opts);
 
-% Set objective function:
-%   min gam
+% % Set objective function:
+% %   min gam
 prob = lpisetobj(prob, gam);
 
-% Solve and retrieve the solution
+% % Solve LPI and retrieve solution
 prob = lpisolve(prob);
 poincare_constant = sqrt(double(lpigetsol(prob,gam)));
 
 
-%% %%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
 
 fprintf(['\n If successful, ',num2str(poincare_constant,7),' is an upper bound on Poincare''s constant for this problem.\n'])

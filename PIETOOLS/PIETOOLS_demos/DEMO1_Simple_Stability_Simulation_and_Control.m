@@ -19,17 +19,17 @@ clear all; clc; close all; clear stateNameGenerator
 
 
 % =============================================
-% === Declare the operators of interest
+% === Declare the system of interest
 
-% Declare system parameters
-c=1;b=.1;
+% % Declare system as PDE
 % Declare independent variables
 pvar t s;   
 % Declare state, input, and output variables
 phi = state('pde',2);   x = state('ode');
 w = state('in');        u = state('in');
 z = state('out',2);
-% Declare the PDE
+% Declare system equations
+c=1;    b=.1;
 odepde = sys();
 eq_dyn = [diff(x,t,1)==-x+u
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
@@ -40,20 +40,20 @@ bc1 = [0 1]*subs(phi,s,0)==0;   % add the boundary conditions
 bc2 = [1 0]*subs(phi,s,1)==x;
 odepde = addequation(odepde,[bc1;bc2]);
 
-% Convert to PIE
+% % Convert to PIE
 pie = convert(odepde);
 
 
 % =============================================
 % === Declare the LPI
 
-% Run pre-defined stability executive
+% % Run pre-defined stability executive
 [prog, P] = lpiscript(pie,'stability','light');
 
-% Run pre-defined L2-gain executive
+% % Run pre-defined L2-gain executive
 [prog, P, gam] = lpiscript(pie,'l2gain','light');
 
-% Run pre-defined controller synthesis executive
+% % Run pre-defined controller synthesis executive
 [prog, Kval, gam_CL] = lpiscript(pie,'hinf-controller','light');
 % Build closed-loop PIE with optimal controller
 PIE_CL = closedLoopPIE(pie,Kval);
@@ -64,22 +64,22 @@ PIE_CL = initialize(PIE_CL);
 % =============================================
 % === Simulate the system
 
-% Set PIESIM simulation options
-opts.plot = 'no';   % Do not plot the final solution
-opts.N = 8;         % Expand using 8 Chebyshev polynomials
-opts.tf = 10;       % Simulate up to t = 10;
-opts.dt = 0.03;     % Use time step of 10^-2
-opts.intScheme = 1; % Time-step using Backward Differentiation Formula (BDF)
-ndiff = [0,2,0];    % The PDE state involves 2 first order differentiable state variables   
-
-% Set initial conditions and disturbance for simulation
+% % Declare initial values and disturbance
 syms st sx;
 uinput.ic.PDE = [0,0]*sx;  
 uinput.ic.ODE = 0;  
 uinput.u = 0*st;
 uinput.w = sin(5*st)*exp(-st); 
 
-% Simulate open-loop PDE and extract solution
+% % Set options for discretization and simulation
+opts.plot = 'no';   % don't plot final solution
+opts.N = 8;         % expand using 8 Chebyshev polynomials
+opts.tf = 10;       % simulate up to t = 10;
+opts.dt = 0.03;     % use time step of 10^-2
+opts.intScheme = 1; % time-step using Backward Differentiation Formula (BDF)
+ndiff = [0,2,0];    % PDE state involves 2 first order differentiable state variables   
+
+% % Simulate open-loop PDE and extract solution
 [solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
 tval = solution.timedep.dtime;
 phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
@@ -87,16 +87,16 @@ phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 zval = solution.timedep.regulated;
 wval = subs(uinput.w,st,tval);
 
-% Simulate closed-loop PIE and extract solution
+% % Simulate closed-loop PIE and extract solution
 [solution_CL,grids_CL] = PIESIM(PIE_CL,opts,uinput,ndiff);
 tval_CL = solution_CL.timedep.dtime;
 phi1_CL = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
 phi2_CL = reshape(solution_CL.timedep.pde(:,2,:),opts.N+1,[]);
-zval_CL =solution_CL.timedep.regulated;
+zval_CL = solution_CL.timedep.regulated;
 wval_CL = subs(uinput.w,st,tval_CL);
 
 
-% Plot open-loop state and outputs evolution
+% % Plot open-loop state and outputs evolution
 figure(1);
 surf(tval,grids.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h=colorbar ;
@@ -118,16 +118,16 @@ xlabel('$t$','FontSize',15,'Interpreter','latex');
 ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 
-% Plot closed-loop state and output evolution
+% % Plot closed-loop state and output evolution
 figure(3)
 surf(tval_CL,grids_CL.phys,phi2_CL,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h = colorbar;
 colormap jet
 box on
-ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
+ylabel(h,'$|\dot{\mathbf{x}}_{cl}(t,s)|$','interpreter', 'latex','FontSize',15)
 set(gcf, 'Color', 'w');
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
-zlabel('$\dot{\mathbf{x}}(t,s)$','FontSize',15,'Interpreter','latex');
+zlabel('$\dot{\mathbf{x}}_{cl}(t,s)$','FontSize',15,'Interpreter','latex');
 title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 
 figure(4);
@@ -135,12 +135,12 @@ plot(tval_CL,wval_CL,'k',tval_CL,zval_CL(1,:),'r',tval_CL,zval_CL(2,:),'b','Line
 grid on
 box on
 set(gcf, 'Color', 'w');
-legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','$\mathbf{u}(t)$','Interpreter','latex','FontSize',15)
+legend('$\mathbf{w}(t)$','$\mathbf{r}_{cl}(t)$','$\mathbf{u}(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
 ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 
-% Plot open- and closed-loop output
+% % Plot open- and closed-loop output
 figure(5);
 plot(tval_CL,zval(1,:),'r--',tval_CL,zval_CL(1,:),'r','LineWidth',2)
 grid on
