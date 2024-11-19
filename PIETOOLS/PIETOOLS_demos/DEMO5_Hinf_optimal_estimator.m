@@ -23,7 +23,7 @@
 % To compute an operator L that minimizes the L2 gain from
 % disturbances w to error ztilde in the output, we solve the LPI
 %   min_{gam,P,Z}   gam
-%   s.t.            P>=0
+%   s.t.            P>=0,
 %       [-gam*I,           -D11',  -(P*B1+Z*D21)'*T           ]=: Q <=0
 %       [-D11,             -gam*I, C1                         ]
 %       [-T'*(P*B1+Z*D21), C1',    (P*A+Z*C2)'*T+T'*(P*A+Z*C2)]
@@ -62,10 +62,6 @@ display_PDE(PDE);
 
 % % Convert PDE to PIE
 PIE = convert(PDE);
-% Extract the PI operators defining the PIE.
-% T * dot{v}(t) = A*v(t)  + B1*w(t)
-%         z(t)  = C1*v(t) + D11*w(t)
-%         y(t)  = C2*v(t) + D12*w(t)
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    C2 = PIE.C2;
 B1 = PIE.B1;    D11 = PIE.D11;  D21 = PIE.D21;
@@ -153,57 +149,39 @@ ndiff = [0,0,2];    % PDE state involves 2 second order differentiable state var
 
 % % Simulate and plot solution to the PIE with estimator.
 [solution,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
-grid_idcs = [1,5,7];        % Only plot at first, fifth and seventh grid points
-plot_figure_Hinf_optimal_estimator_DEMO(solution,grid,opts,grid_idcs)   
+% Extract actual and estimated state at each time step.
+tval = solution.timedep.dtime;
+x_act = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
+x_est = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 
 
 echo off
 
 
-
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-function plot_figure_Hinf_optimal_estimator_DEMO(solution,grid,opts,grid_idcs)
-% % % Plot simulated values of actual state and estimated state at several
-% % % grid points, as specified by grid_idcs.
-
-% Extract actual and estimated solution at each time step.
-x_act = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
-x_est = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
-tval = solution.timedep.dtime;
-
-% Set options for the plot
+% % Plot actual and estimated state at select positions and times
+grid_idcs = [1,5,7];        % grid points at which to plot
 plot_indcs = floor(logspace(0,log(opts.tf/opts.dt)/log(10),40)); 
-%plot_indcs = floor(linspace(1,opts.tf/opts.dt,66)); 
-tplot = tval(plot_indcs);           % Only plot at select times
-colors = {'b','g','m','r','k','c','r','y','o'};     % Colors for the plot
-
-
-% Plot evolution of actual and estimated state
-fig1 = figure(1);
+tplot = tval(plot_indcs);   % times at which to plot
+colors = {'b','g','m','r','k','c','r','y','o'};
+figure('Position',[200 150 1000 450]);
 for j=grid_idcs
-    s_pos = num2str(grid.phys(j));  % Position associated to grid index.
+    s_pos = num2str(grid.phys(j));  % position associated to grid index
     subplot(1,2,1)
     hold on
     plot(tplot,x_act(j,plot_indcs),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}(s=',s_pos,')$']);
     plot(tplot,x_est(j,plot_indcs),[colors{j},'o--'],'LineWidth',1.5,'DisplayName',['$\mathbf{\hat{x}}(s=',s_pos,')$']);
     hold off
-    
     subplot(1,2,2)
     hold on
     loglog(tplot,(x_act(j,plot_indcs)-x_est(j,plot_indcs)),[colors{j},'o-'],'LineWidth',1.5,'DisplayName',['$\mathbf{e}(s=',s_pos,')$']);
     hold off
 end
-
 % Clean up the figure
 ax1 = subplot(1,2,1);   ax1.XScale = 'log';     ax1.XTickLabels = {'0.001';'0.01';'0.1';'1'};
-lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
-lgd1.Location = 'northwest';
+legend('Interpreter','latex','Location','northwest','FontSize',10.5);
 xlabel('$t$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
 title('PDE state value $\mathbf{x}(t)$ and estimate $\mathbf{\hat{x}}(t)$','Interpreter','latex','FontSize',15);
 ax2 = subplot(1,2,2);   ax2.XScale = 'log';     ax2.XTickLabels = {'0.001';'0.01';'0.1';'1'};
-lgd2 = legend('Interpreter','latex');                lgd2.FontSize = 10.5;
+legend('Interpreter','latex','FontSize',10.5);
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{e}$','FontSize',15,'Interpreter','latex');
 title('Error $\mathbf{e}=\mathbf{\hat{x}}(t)-\mathbf{x}(t)$','Interpreter','latex','FontSize',15);
-fig1.Position = [200 150 1000 450];
-
-end
