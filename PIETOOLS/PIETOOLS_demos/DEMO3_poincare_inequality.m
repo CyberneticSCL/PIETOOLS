@@ -2,66 +2,75 @@
 % See Chapter 11.3 of the manual for a description.
 %
 % This document illustrates how the Poincare constant can be found
-% using PIETOOLS.
-% The Pointcare constant is the smallest value c such that
-%   ||x|| ≤ c||x_s||    for all x in {x: x_{s}\in L_2[0,1] & x(0)=x(1)=0}
-% We can pose this as an optimization program
-%   min_{c}     c,
-%      s.t.     <x, x> − c <x_s,x_s> ≤ 0
-%               x \in H1:={x: x_{s}\in L_2[0,1] & x(0)=x(1)=0}
-% To solve, define operators
-%   (Hop*v)(s) := int_{0}^{s} v(r) dr,
-%    Iop*v     := int_{0}^{1} v(s) ds.
-% Then, for all x \in H1, we have x = Hop*x_{s} and Iop*x_{s}=0.
-% Conversely, for all v satisfying Iop*v=0, we have Hop*v \in H1.
-% Then, using Finsler's lemma, we can pose the problem as an LPI
-%   min_{c,Xop} c,
-%      s.t.     Hop'*Hop -c +Xop'*Iop +Iop*Xop' ≤ 0.
+% using PIETOOLS
 
 % This example is also included in the paper (page 6, Demoenstration 3)
 % link: https://arxiv.org/pdf/1910.01338.pdf
 
-clc; clear; clear stateNameGenerator;
+
+% What is Poincare Inequality?
+% Find C; such that for an function u \in H^1[0, 1]
+% ||u|| ≤ C||u_s||
+% where H^1[0,1] := {u: u_{s}\in L_2[0,1] & u(0)=u(1)=0}
+
+% Optimization Problem
+% min C, such that
+% <u, u> − C <u_s,u_s> ≤ 0
+
+%%
+clc; clear; 
 echo on
+%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
 
-% =============================================
-% === Declare the operators of interest
+%%%%%   Declare the PDE
 
-% Declare Hop:L2-->L2 and Iop:L2-->R
-opvar Hop Iop;
-a = 0;  b = 1;     
-Hop.I = [a,b];  Iop.I = [a,b];
-Hop.R.R1 = 1;       % (Hop*v)(s) = int_{a}^{s} v(r)dr
-Iop.Q1 = 1;         % (Iop*v) = int_{a}^{b} v(s)ds
+% % Initialize the PDE structure and spatial variable s in [a,b]
+pvar s theta;
+pde_struct PDE;
+a = 0;      b = 1;
 
+% % Declare the state variables x(t,s)
+PDE.x{1}.vars = s;
+PDE.x{1}.dom = [a,b];
+PDE.x{1}.diff = 2;          % Let x be second order differentiable wrt s.
 
-% =============================================
-% === Declare the LPI
+% % Declare the PDE \dot{x}(t,s) = \partial_{s} x(t,s)
+PDE.x{1}.term{1}.D = 1;     % Order of the derivative wrt s
 
-% % Initialize LPI program
-prob = lpiprogram(Hop.vars,Hop.dom);
+% % Declare the boundary conditions x(t,a) = x(t,b) = 0
+PDE.BC{1}.term{1}.loc = a;      % Evaluate x at s=a
+PDE.BC{2}.term{1}.loc = b;      % Evaluate x at s=b
 
-% % Declare decision variables:
-% %   gam \in \R   and    Xop:L2-->\R
-dpvar gam                               % scalar decision variable
-prob = lpidecvar(prob,gam);
-[prob,Xop] = lpivar(prob,Iop.dim,5);    % operator decision variable
-
-% % Set inequality constraints:
-% %   Hop'*Hop -gam  +Xop'*Iop +Iop*Xop' <= 0
-opts.psatz = 1;                 % allow Hop'*Hop > gam outside of [a,b]
-prob = lpi_ineq(prob,-(Hop'*Hop -gam +Xop'*Iop +Iop'*Xop),opts);
-
-% % Set objective function:
-% %   min gam
-prob = lpisetobj(prob, gam);
-
-% % Solve LPI and retrieve solution
-prob = lpisolve(prob);
-poincare_constant = sqrt(double(lpigetsol(prob,gam)));
+% % Initialize the system
+PDE = initialize(PDE);
 
 
+%%%%% Convert the PDE to a PIE
+PIE = convert(PDE,'pie');
+H2 = PIE.T;     % H2 x_{ss} = x
+H1 = PIE.A;     % H1 x_{ss} = x_{s}
+
+
+%%%%%   Solve the LPI < H2 x_ss, H2 x_ss> - gam <H1 x_ss, H1 x_ss> <=0
+%%%%%   where (H2 x_ss) = x and (H1 x_ss) = x_s
+% % First, define dpvar gam and set up an optimization problem
+dpvar gam;
+vars = [H2.var1, H2.var2];
+prob = lpiprogram(vars,[a,b],gam);
+
+% % Set gam as objective function to minimize
+prob = sossetobj(prob, gam);
+
+% % Set up the constraint H2'*H2-gam H1'*H1<=0
+opts.psatz = 1;     % Add psatz term to allow H2'*H2 > gam H1'*H1 outside of [a,b]
+prob = lpi_ineq(prob,-(H2'*H2-gam*H1'*H1),opts);
+
+% Solve and retrieve the solution
+prob = sossolve(prob);
+poincare_constant = sqrt(double(sosgetsol(prob,gam)));
+
+%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
 
-fprintf(['\n If successful, ',num2str(poincare_constant,7),' is an upper bound on Poincare''s constant for this problem.\n'])
-fprintf([' An optimal value of Poincare''s constant on domain [0,1] is known to be 1/pi=',num2str(1/(pi),7),'.\n']);
+fprintf(['\n If successful, ',num2str(poincare_constant),' is an upper bound on Poincare''s constant for this problem.\n'])
+fprintf([' An optimal value of Poincare''s constant on domain [0,1] is known to be 1/pi=',num2str(1/(pi)),'.\n']);
