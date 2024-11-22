@@ -27,7 +27,7 @@
 % We manually declare this LPI here, but it can also be solved using the
 % "PIETOOLS_Hinf_control" executive file.
 % We simulate the open loop and closed loop response of the PDE for various
-% IC using PIESIM.
+% initial conditions using PIESIM.
 %
 
 clc; clear; close all;
@@ -42,7 +42,7 @@ pvar s t
 % Declare state, input, and output variables
 x = state('pde');       w = state('in');
 z = state('out', 2);    u = state('in');
-% Declare the sytems equations
+% Declare the sytem equations
 lam = 5;
 PDE = sys();
 eqs = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
@@ -229,9 +229,9 @@ plot(tplot,z_CL_b(1,plot_indcs),[colors{6},'-'],'LineWidth',1.5,'DisplayName','$
 plot(tplot,w_b(plot_indcs),[colors{7},'-.'],'LineWidth',1.0,'DisplayName','$w(t)$');
 hold off
 subplot(2,2,3)
-plot(tplot,u_CL_a(1,plot_indcs),[colors{8},'-'],'LineWidth',1.5,'DisplayName','$u_{cl}(t)$');
+plot(tplot,u_CL_a(1,plot_indcs),[colors{1},'-'],'LineWidth',1.5,'DisplayName','$u_{cl}(t)$');
 subplot(2,2,4)
-plot(tplot,u_CL_b(1,plot_indcs),[colors{8},'-'],'LineWidth',1.5,'DisplayName','$u_{cl}(t)$');
+plot(tplot,u_CL_b(1,plot_indcs),[colors{1},'-'],'LineWidth',1.5,'DisplayName','$u_{cl}(t)$');
 % Clean up the figure
 sgtitle('Closed-loop regulated output $z_{cl}(t)=\int_{0}^{1}\mathbf{x}_{cl}(t,s)ds+w(t)$ and input effort $u_{cl}=\mathcal{K}\mathbf{x}_{cl}(t)$','Interpreter','latex','FontSize',15)
 ax1 = subplot(2,2,1);   ax1.XScale = 'log';  ax1.XLim = [opts.dt,opts.tf];

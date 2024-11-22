@@ -47,7 +47,7 @@ pvar s t
 % Declare state, input, and output variables
 x = state('pde');   w = state('in');
 y = state('out');   z = state('out');
-% Declare the sytems equations
+% Declare the sytem equations
 lam = 4;
 PDE = sys();
 eqs = [diff(x,t) == diff(x,s,2) + lam*x + w;    % PDE

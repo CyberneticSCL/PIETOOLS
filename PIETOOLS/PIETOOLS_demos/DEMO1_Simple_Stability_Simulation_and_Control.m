@@ -15,7 +15,7 @@
 %  Output:       z = int_0^1 xi_{s} ds = xi(s=1)-xi(s=0). 
 %%
 % First, we clear the workspace of any interfering variables
-clear all; clc; close all; clear stateNameGenerator
+clear; clc; close all; clear stateNameGenerator
 
 
 % =============================================
@@ -57,8 +57,6 @@ pie = convert(odepde);
 [prog, Kval, gam_CL] = lpiscript(pie,'hinf-controller','light');
 % Build closed-loop PIE with optimal controller
 PIE_CL = closedLoopPIE(pie,Kval);
-PIE_CL = pie_struct(PIE_CL);
-PIE_CL = initialize(PIE_CL);
 
 
 % =============================================
