@@ -91,7 +91,8 @@ switch nargin
         error('Not enough inputs!')
     case 2
         if all(size(I)==[2,2])
-            [prog,Pop] = poslpivar_2d(prog,n,I);
+            [prog,Pop] = poslpivar_2d(prog,n);
+            return
         end
         d = {1,[1,1,1],[1,1,1]};
         options.psatz=0;
@@ -99,14 +100,16 @@ switch nargin
         options.sep =0;
     case 3
         if all(size(I)==[2,2])
-            [prog,Pop] = poslpivar_2d(prog,n,I,d);
+            [prog,Pop] = poslpivar_2d(prog,n,d);
+            return
         end
         options.psatz=0;
         options.exclude=[0 0 0 0];
         options.sep =0;
     case 4
         if all(size(I)==[2,2])
-            [prog,Pop] = poslpivar_2d(prog,n,I,d,options);
+            [prog,Pop] = poslpivar_2d(prog,n,d,options);
+            return
         end
         if ~isfield(options,'psatz')
             options.psatz=0;
