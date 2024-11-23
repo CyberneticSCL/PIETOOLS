@@ -1,0 +1,107 @@
+% DEMO9_L2_gain_analysis.m
+% See Chapter 11.9 of the manual for a description.
+%
+% This document illustrates how an upper bound on the L2-gain of a 2D PDE 
+% with inputs and outputs can be computed using PIETOOLS
+% Specifically, we consider the following system:
+% PDE:      d/dt x(t,s1,s2) = (d^2/ds1^2) x(t,s) +(d^2/ds2^2) x(t,s) + lam*x(t,s1,s2) + w(t),   s1,s2 in [0,1];
+% Outputs:             z(t) = int_{0}^{1} int_{0}^{1} x(t,s1,s2) ds1 ds2;
+% BCs:                    0 = x(t,0,s2) = x(t,1,s2);
+%                         0 = x(t,s1,0) = d/ds2 x(t,s1,1);
+% (unstable for lam > 5/4 pi^2)
+% First we convert the above PDE to a PIE of the form:
+%   [T \dot{v}](t,s) = [A v](t,s) + [B w](t,s);
+%               z(t) = [C v](t)  + [D w](t);
+% Then, we find gam such that any solution (w,z) satisfies
+%    ||z||_{L2[0,infty)}/||w||_{L2[0,infty)} <= gam
+% by solving the LPI
+%   min_{gam,P} gam
+%   s.t.          P>=0,
+%       [-gam*I,   -D',     -P*B'*T          ] <=0
+%       [-D,       -gam*I,  C                ]
+%       [-T'*P*B,  C',      (P*A)'*T+T'*(P*A)]
+%
+% DJ, 11/22/2024: Initial coding
+
+clc; clear; close all; clear stateNameGenerator
+echo on
+
+% =============================================
+% === Declare the system of interest
+
+% % Declare system as PDE
+% Declare independent variables (time and space)
+pvar s1 s2 t
+% Declare state, input, and output variables
+a = 0;      b = 1;
+c = 0;      d = 1;
+x = pde_var('state',1,[s1;s2],[a,b;c,d]);
+w = pde_var('in',1,[],[]);
+z = pde_var('out',1,[],[]);
+% Declare the sytem equations
+lam = 5;
+PDE = [diff(x,t) == diff(x,s1,2) +diff(x,s2,2) + lam*x + w;
+       z == int(x,[s1;s2],[a,b;c,d]);
+       subs(x,s1,a)==0;
+       subs(x,s1,b)==0;
+       subs(x,s2,c)==0;
+       subs(diff(x,s2),s2,d)==0];
+PDE = initialize(PDE);
+display_PDE(PDE);
+
+% % Convert PDE to PIE
+PIE = convert(PDE);
+T = PIE.T;
+A = PIE.A;     C = PIE.C1;
+B = PIE.B1;    D = PIE.D11;
+
+
+% =============================================
+% === Declare the LPI
+
+% % Initialize LPI program
+prog = lpiprogram(PIE.vars,PIE.dom);
+
+% % Declare decision variables:
+% %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
+% Scalar decision variable
+dpvar gam
+prog = lpidecvar(prog,gam);
+% Positive operator variable P>=0
+Pdim = T.dim(:,1);
+Pdeg = 2;
+opts_P.sep = 1;
+[prog,P] = poslpivar(prog,Pdim,Pdeg,opts_P);
+% Enforce strict positivity Pop>= eppos
+eppos = 1e-3;
+P = P +mat2opvar(eppos*eye(size(P)),P.dim,PIE.vars,PIE.dom);
+
+% % Set inequality constraints:
+% %   Q <= 0
+Iw = mat2opvar(eye(size(B,2)), B.dim(:,2), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(C,1)), C.dim(:,1), PIE.vars, PIE.dom);
+Q = [-gam*Iz,    D,         C*P*T';
+     D',         -gam*Iw,   B';
+     T*(C*P)',   B,         (A*P)*(T')+T*(A*P)'];
+opts_Q.psatz = 1;
+prog = lpi_ineq(prog,-Q,opts_Q);
+
+% % Set objective function:
+% %   min gam
+prog = lpisetobj(prog, gam);
+
+% % Solve and retrieve the solution
+opts.solver = 'mosek';         % Use SeDuMi to solve the SDP
+opts.simplify = true;           % Simplify the SDP before solving
+prog_sol = lpisolve(prog,opts);
+% Extract solved value of decision variables
+gam_val = lpigetsol(prog_sol,gam);
+Pval = lpigetsol(prog_sol,P);
+
+% % Alternatively, uncomment to use pre-defined executive
+% [prog, gam_val] = lpiscript(PIE,'l2-gain','stripped');   
+
+echo off
+
+fprintf(['\n If successful, ',num2str(gam_val,7),' is an upper bound on the L2-gain from disturbance to output for the 2D reaction-diffusion equation.\n'])
+fprintf([' The true value of the L2-gain for this system with lam=5 and on [0,1]^2 is known to be roughly 0.1110'.\n']);
