@@ -82,13 +82,6 @@ end
 % and setting P=Deop. If psatz is used, build an additional Deop2>=0, and
 % set P=Deop+Deop2.
 
-% First, extract the dimensions and domain from P
-n0 = dim(1,1);
-nx = dim(2,1);
-ny = dim(3,1);
-n2 = dim(4,1);
-dom = Pop.I;
-
 % Next, exclude certain elements from Deop (options2) and Deop2 (options3)
 % if specified
 options2.exclude = zeros(1,16);
@@ -174,7 +167,7 @@ end
 
 % Finally, we can construct the positive operators Deop and Deop2, and use
 % them to enforce positivity of P
-[sosD, Deop] = poslpivar_2d(sos, [n0, nx, ny, n2],dom,degs,options2);
+[sosD, Deop] = poslpivar_2d(sos, dim, degs, options2);
 
 % % Add aditional degrees of freedom/monomials to obtain a (hopefully)
 % % feasible problem
@@ -191,7 +184,7 @@ if toggle2==1    % Using maximal degrees
         warning('The specified options for ''lpi_ineq'' do not allow sufficient freedom to enforce the inequality constraint. Additional monomials are being added.')
 
         % Construct a new positive operator Deop with greater degrees
-        [sosD, Deop] = poslpivar_2d(sos, [n0, nx, ny, n2],dom,degs,options2);
+        [sosD, Deop] = poslpivar_2d(sos, dim, degs, options2);
 
         % Check that now Deop has all the necessary monomials
         p_indx = find(~(isgood_Dpar(:)));   % Indices of parameters we still need to verify are okay
@@ -201,15 +194,15 @@ elseif toggle2==2    % Using predefined monomials
     % % Add addtional terms with separable kernels
     if any(~options2.exclude([3,4,9,10,13,14,15,16]))
         options2.sep = [1,0,1,0,1,0];
-        [sosD, Deop_x] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oy,options2);
+        [sosD, Deop_x] = poslpivar_2d(sosD, dim, degs_oy, options2);
     end
     if any(~options2.exclude([6,7,11,12,13,14,15,16]))
         options2.sep = [0,1,0,1,0,1];
-        [sosD, Deop_y] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_xo,options2);
+        [sosD, Deop_y] = poslpivar_2d(sosD, dim, degs_xo, options2);
     end
     if any(~options2.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
         options2.sep = [1,1,1,1,1,1];
-        [sosD, Deop_xy] = poslpivar_2d(sosD, [n0, nx, ny, n2],dom,degs_oo,options2);
+        [sosD, Deop_xy] = poslpivar_2d(sosD, dim, degs_oo, options2);
     end
     Deop = Deop + Deop_x + Deop_y + Deop_xy;
 end
@@ -219,22 +212,22 @@ sos = sosD; % Make sure the SOS program contains the right operator Deop
 for j=1:length(options.psatz)
     if options.psatz(j)~=0
         options3.psatz = options.psatz(j);
-        [sos, De2op] = poslpivar_2d(sos, [n0 ,nx, ny, n2],dom,degs,options3);
+        [sos, De2op] = poslpivar_2d(sos, dim, degs, options3);
         Deop = Deop+De2op;
 
         % % Add addtional terms with separable kernels
         if toggle2==2
             if any(~options3.exclude([3,4,9,10,13,14,15,16]))
                 options3.sep = [1,0,1,0,1,0];
-                [sos, De2op_x] = poslpivar_2d(sos, [n0, nx, ny, n2],dom,degs_oy,options3);
+                [sos, De2op_x] = poslpivar_2d(sos, dim, degs_oy, options3);
             end
             if any(~options3.exclude([6,7,11,12,13,14,15,16]))
                 options3.sep = [0,1,0,1,0,1];
-                [sos, De2op_y] = poslpivar_2d(sos, [n0, nx, ny, n2],dom,degs_xo,options3);
+                [sos, De2op_y] = poslpivar_2d(sos, dim, degs_xo, options3);
             end
             if any(~options3.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
                 options3.sep = [1,1,1,1,1,1];
-                [sos, De2op_xy] = poslpivar_2d(sos, [n0, nx, ny, n2],dom,degs_oo,options3);
+                [sos, De2op_xy] = poslpivar_2d(sos, dim, degs_oo, options3);
             end
             Deop = Deop + De2op_x + De2op_y + De2op_xy;
         end

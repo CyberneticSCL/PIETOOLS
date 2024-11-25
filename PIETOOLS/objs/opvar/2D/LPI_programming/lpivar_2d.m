@@ -1,4 +1,4 @@
-function [prog,Zop] = lpivar_2d(prog,dim,I,d,options)
+function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [prog,Zop] = lpivar_2d(prog,dim,I,d,options) declares an indefinite
 % 0112-PI operator,
@@ -114,8 +114,18 @@ function [prog,Zop] = lpivar_2d(prog,dim,I,d,options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 02/20/2022
+% Initial coding DJ - 07/01/2024
 
+
+% % First, check the spatial domain on which the program is defined.
+if ~isfield(prog,'dom') || size(prog.dom,1)==0
+    error('The program structure does not include a spatial domain -- please use ''lpiprogram'' to initialize your program');
+else
+    I = prog.dom;
+end
+if any(size(I)~=[2,2])
+    error('For declaring a 2D PI operator variable, the spatial domain in the LPI program structure must be of of size 2x2.')
+end
 
 % % Extract the input arguments
 switch nargin
@@ -248,7 +258,7 @@ else
         error('d2 must be a 3x3-cell structure')
     end
     % In case insufficient degrees are provided, process the degrees
-    [dx,dy,d2] = process_degrees(dx,dy,d2);
+    %[dx,dy,d2] = process_degrees(dx,dy,d2);
 end
 
 
@@ -324,7 +334,7 @@ end
 % % structure
 
 % Parameters mapping to R^m0
-[prog,R00] = sospolymatrixvar(prog,[],[m0,n0]);
+[prog,R00] = sospolymatrixvar(prog,1,[m0,n0]);
 [prog,R0x] = sospolymatrixvar(prog,Zx{1},[m0,nx]);
 [prog,R0y] = sospolymatrixvar(prog,Zy{1},[m0,ny]);
 [prog,R02] = sospolymatrixvar(prog,Z2{1,1},[m0,n2]);
@@ -450,7 +460,9 @@ R22 = {R22_00, R22_01, R22_02;
     R22_10, R22_11, R22_12;
     R22_20, R22_21, R22_22};
 
-Zop = dopvar2d([],[m,n],I,vars);
+%Zop = dopvar2d([],[m,n],I,vars);
+Zop = dopvar2d([],[m,n]);   Zop.I = I;
+Zop.var1 = vars(:,1);       Zop.var2 = vars(:,2);
 
 Zop.R00 = R00;  Zop.R0x = R0x;  Zop.R0y = R0y;  Zop.R02 = R02;
 Zop.Rx0 = Rx0;  Zop.Rxx = Rxx;  Zop.Rxy = Rxy;  Zop.Rx2 = Rx2;
@@ -702,192 +714,54 @@ function [Zx,Zy,Z2] = build_monomials_2D(vars,dx,dy,d2)
 % A subroutine to build monomial vectors in variables "vars" of the desired
 % degrees dx, dy and d2. 
 
-var11 = vars(1,1);   var12 = vars(1,2);
-var21 = vars(2,1);   var22 = vars(2,2);
+ss1 = vars(1,1);        tt1 = vars(1,2);
+ss2 = vars(2,1);        tt2 = vars(2,2);
 
-% % Build the monomials
+% Construct the monomials based on the specified maximal degrees
+% Constructing Zxo(ss1)
+Zxo = build_monoms(ss1.varname,dx{1});
 
-    % Constructing Zxo(ss1)
-nZxo = dx{1}+1;
-Zxo_degmat = (0:dx{1})';
-Zxo_coeff = speye(nZxo);
-Zxo_varname = var11.varname;
-Zxo_matdim = [nZxo 1];
-Zxo = polynomial(Zxo_coeff,Zxo_degmat,Zxo_varname,Zxo_matdim);
-
-
-    % Constructing Zxa(ss1,tt1) and Zxb(ss1,tt1)
+% Constructing Zxa(ss1,tt1) and Zxb(ss1,tt1)
 % In this implementation, Zxa will have degree dx{2}(2) in tt1 and degree
-% d{2}(1) in ss1 and max degree of ss1+tt1 is d{2}(3). Similarly for Zxb(ss1,tt1)
-
-Zxa_degmat = [repmat((0:dx{2}(1))',dx{2}(2)+1,1),vec(repmat(0:dx{2}(2),dx{2}(1)+1,1))];
-Zxa_degmat(sum(Zxa_degmat,2)>dx{2}(3),:)= [];
-nZxa=size(Zxa_degmat,1);
-Zxa_coeff = speye(nZxa);
-Zxa_varname = [var11.varname; var12.varname];
-Zxa_matdim = [nZxa 1];
-Zxa = polynomial(Zxa_coeff,Zxa_degmat,Zxa_varname,Zxa_matdim);
-
-Zxb_degmat = [repmat((0:dx{3}(1))',dx{3}(2)+1,1),vec(repmat(0:dx{3}(2),dx{3}(1)+1,1))];
-Zxb_degmat(sum(Zxb_degmat,2)>dx{3}(3),:)= [];
-nZxb=size(Zxb_degmat,1);
-Zxb_coeff = speye(nZxb);
-Zxb_varname = [var11.varname; var12.varname];
-Zxb_matdim = [nZxb 1];
-Zxb = polynomial(Zxb_coeff,Zxb_degmat,Zxb_varname,Zxb_matdim);
-
+% dx{2}(1) in ss1 and max degree of ss1+tt1 is dx{2}(3). Similarly for Zxb(ss1,tt1)
+st_varname = [ss1.varname; tt1.varname];
+Zxa = build_monoms(st_varname,dx{2});
+Zxb = build_monoms(st_varname,dx{3});
 
 % % % % %
 
-    % Constructing Zyo(ss2)
-nZyo = dy{1}+1;
-Zyo_degmat = (0:dy{1})';
-Zyo_coeff = speye(nZyo);
-Zyo_varname = var21.varname;
-Zyo_matdim = [nZyo 1];
-Zyo = polynomial(Zyo_coeff,Zyo_degmat,Zyo_varname,Zyo_matdim);
+% Constructing Zyo(ss2)
+Zyo = build_monoms(ss2.varname,dy{1});
 
-    % Constructing Zya(ss2,tt2) and Zyb(ss2,tt2)
-% In this implementation, Zxa will have degree dx{2}(2) in tt1 and degree
-% d{2}(1) in ss1 and max degree of ss1+tt1 is d{2}(3). Similarly for Zxb(ss1,tt1)
-
-Zya_degmat = [repmat((0:dy{2}(1))',dy{2}(2)+1,1),vec(repmat(0:dy{2}(2),dy{2}(1)+1,1))];
-Zya_degmat(sum(Zya_degmat,2)>dy{2}(3),:) = [];
-nZya = size(Zya_degmat,1);
-Zya_coeff = speye(nZya);
-Zya_varname = [var21.varname; var22.varname];
-Zya_matdim = [nZya 1];
-Zya = polynomial(Zya_coeff,Zya_degmat,Zya_varname,Zya_matdim);
-
-Zyb_degmat = [repmat((0:dy{3}(1))',dy{3}(2)+1,1),vec(repmat(0:dy{3}(2),dy{3}(1)+1,1))];
-Zyb_degmat(sum(Zyb_degmat,2)>dy{3}(3),:) = [];
-nZyb = size(Zyb_degmat,1);
-Zyb_coeff = speye(nZyb);
-Zyb_varname = [var21.varname; var22.varname];
-Zyb_matdim = [nZyb 1];
-Zyb = polynomial(Zyb_coeff,Zyb_degmat,Zyb_varname,Zyb_matdim);
-
+% Constructing Zya(ss2,tt2) and Zyb(ss2,tt2)
+% In this implementation, Zya will have degree dy{2}(2) in tt2 and degree
+% dy{2}(1) in ss2 and max degree of ss2+tt2 is dy{2}(3). Similarly for Zyb(ss2,tt2)
+st_varname = [ss2.varname; tt2.varname];
+Zya = build_monoms(st_varname,dy{2});
+Zyb = build_monoms(st_varname,dy{3});
 
 % % % % %
 
-    % Constructing Z2oo(ss1,ss2)
-Z2oo_degmat = [repmat((0:d2{1}(1))',d2{1}(2)+1,1),vec(repmat(0:d2{1}(2),d2{1}(1)+1,1))];
-Z2oo_degmat(sum(Z2oo_degmat,2)>d2{1}(3),:) = [];
-nZ2oo = size(Z2oo_degmat,1);
-Z2oo_coeff = speye(nZ2oo);
-Z2oo_varname = [var11.varname; var21.varname];
-Z2oo_matdim = [nZ2oo 1];
-Z2oo = polynomial(Z2oo_coeff,Z2oo_degmat,Z2oo_varname,Z2oo_matdim);
+% Constructing Z2oo(ss1,ss2)
+ss_varname = [ss1.varname; ss2.varname];
+Z2oo = build_monoms(ss_varname,d2{1,1});
 
-% %
-    % Constructing Z2ao(ss1,ss2,tt1) and Z2bo(ss1,ss2,tt1)
-Z2ao_degmat = [repmat((0:d2{2,1}(1))',(d2{2,1}(2)+1)*(d2{2,1}(4)+1),1),...
-                repmat(vec(repmat(0:d2{2,1}(2),d2{2,1}(1)+1,1)),(d2{2,1}(4)+1),1),...
-                vec(repmat(0:d2{2,1}(4),(d2{2,1}(1)+1)*(d2{2,1}(2)+1),1))];
-Z2ao_degmat(sum(Z2ao_degmat(:,[1,2]),2)>d2{2,1}(3),:) = [];
-Z2ao_degmat(sum(Z2ao_degmat,2)>d2{2,1}(5),:) = [];
-nZ2ao = size(Z2ao_degmat,1);
-Z2ao_coeff = speye(nZ2ao);
-Z2ao_varname = [var11.varname; var12.varname; var21.varname];
-Z2ao_matdim = [nZ2ao 1];
-Z2ao = polynomial(Z2ao_coeff,Z2ao_degmat,Z2ao_varname,Z2ao_matdim);
+% Constructing Z2ao(ss1,ss2,tt1) and Z2bo(ss1,ss2,tt1)
+sst_varname = [ss1.varname; tt1.varname; ss2.varname];
+Z2ao = build_monoms(sst_varname,d2{2,1});
+Z2bo = build_monoms(sst_varname,d2{3,1});
 
-Z2bo_degmat = [repmat((0:d2{3,1}(1))',(d2{3,1}(2)+1)*(d2{3,1}(4)+1),1),...
-                repmat(vec(repmat(0:d2{3,1}(2),d2{3,1}(1)+1,1)),(d2{3,1}(4)+1),1),...
-                vec(repmat(0:d2{3,1}(4),(d2{3,1}(1)+1)*(d2{3,1}(2)+1),1))];
-Z2bo_degmat(sum(Z2bo_degmat(:,[1,2]),2)>d2{3,1}(3),:) = [];
-Z2bo_degmat(sum(Z2bo_degmat,2)>d2{3,1}(5),:) = [];
-nZ2bo = size(Z2bo_degmat,1);
-Z2bo_coeff = speye(nZ2bo);
-Z2bo_varname = [var11.varname; var12.varname; var21.varname];
-Z2bo_matdim = [nZ2bo 1];
-Z2bo = polynomial(Z2bo_coeff,Z2bo_degmat,Z2bo_varname,Z2bo_matdim);
+% Constructing Z2oa(ss1,ss2,tt2) and Z2ob(ss1,ss2,tt2)
+sst_varname = [ss1.varname; ss2.varname; tt2.varname];
+Z2oa = build_monoms(sst_varname,d2{1,2});
+Z2ob = build_monoms(sst_varname,d2{1,3});
 
-%
-    % Constructing Z2oa(ss1,ss2,tt2) and Z2ob(ss1,ss2,tt2)
-Z2oa_degmat = [repmat((0:d2{1,2}(1))',(d2{1,2}(2)+1)*(d2{1,2}(3)+1),1),...
-                repmat(vec(repmat(0:d2{1,2}(2),d2{1,2}(1)+1,1)),(d2{1,2}(3)+1),1),...
-                vec(repmat(0:d2{1,2}(3),(d2{1,2}(1)+1)*(d2{1,2}(2)+1),1))];
-Z2oa_degmat(sum(Z2oa_degmat(:,[2,3]),2)>d2{1,2}(4),:) = [];
-Z2oa_degmat(sum(Z2oa_degmat,2)>d2{1,2}(5),:) = [];
-nZ2oa = size(Z2oa_degmat,1);
-Z2oa_coeff = speye(nZ2oa);
-Z2oa_varname = [var11.varname; var21.varname; var22.varname];
-Z2oa_matdim = [nZ2oa 1];
-Z2oa = polynomial(Z2oa_coeff,Z2oa_degmat,Z2oa_varname,Z2oa_matdim);
-
-Z2ob_degmat = [repmat((0:d2{1,3}(1))',(d2{1,3}(2)+1)*(d2{1,3}(3)+1),1),...
-                repmat(vec(repmat(0:d2{1,3}(2),d2{1,3}(1)+1,1)),(d2{1,3}(3)+1),1),...
-                vec(repmat(0:d2{1,3}(3),(d2{1,3}(1)+1)*(d2{1,3}(2)+1),1))];
-Z2ob_degmat(sum(Z2ob_degmat(:,[2,3]),2)>d2{1,3}(4),:) = [];
-Z2ob_degmat(sum(Z2ob_degmat,2)>d2{1,3}(5),:) = [];
-nZ2ob = size(Z2ob_degmat,1);
-Z2ob_coeff = speye(nZ2ob);
-Z2ob_varname = [var11.varname; var21.varname; var22.varname];
-Z2ob_matdim = [nZ2ob 1];
-Z2ob = polynomial(Z2ob_coeff,Z2ob_degmat,Z2ob_varname,Z2ob_matdim);
-
-%
-    % Constructing Z2aa(ss1,ss2,tt1,tt2) ... Z2bb(ss1,ss2,tt1,tt2)
-Z2aa_degmat = [repmat((0:d2{2,2}(1,1))',(d2{2,2}(2,1)+1)*(d2{2,2}(1,2)+1)*(d2{2,2}(2,2)+1),1),...
-                repmat(vec(repmat(0:d2{2,2}(2,1),d2{2,2}(1,1)+1,1)),(d2{2,2}(1,2)+1)*(d2{2,2}(2,2)+1),1),...
-                repmat(vec(repmat(0:d2{2,2}(1,2),(d2{2,2}(1,1)+1)*(d2{2,2}(2,1)+1),1)),(d2{2,2}(2,2)+1),1),...
-                vec(repmat(0:d2{2,2}(2,2),(d2{2,2}(1,1)+1)*(d2{2,2}(2,1)+1)*(d2{2,2}(1,2)+1),1))];
-Z2aa_degmat(sum(Z2aa_degmat(:,[1,2]),2)>d2{2,2}(3,1),:) = [];
-Z2aa_degmat(sum(Z2aa_degmat(:,[3,4]),2)>d2{2,2}(3,2),:) = [];
-Z2aa_degmat(sum(Z2aa_degmat(:,[1,3]),2)>d2{2,2}(1,3),:) = [];
-Z2aa_degmat(sum(Z2aa_degmat(:,[2,4]),2)>d2{2,2}(2,3),:) = [];
-Z2aa_degmat(sum(Z2aa_degmat,2)>d2{2,2}(3,3),:) = [];
-nZ2aa = size(Z2aa_degmat,1);
-Z2aa_coeff = speye(nZ2aa);
-Z2aa_varname = [var11.varname; var12.varname; var21.varname; var22.varname];
-Z2aa_matdim = [nZ2aa 1];
-Z2aa = polynomial(Z2aa_coeff,Z2aa_degmat,Z2aa_varname,Z2aa_matdim);
-
-Z2ba_degmat = [repmat((0:d2{3,2}(1,1))',(d2{3,2}(2,1)+1)*(d2{3,2}(1,2)+1)*(d2{3,2}(2,2)+1),1),...
-                repmat(vec(repmat(0:d2{3,2}(2,1),d2{3,2}(1,1)+1,1)),(d2{3,2}(1,2)+1)*(d2{3,2}(2,2)+1),1),...
-                repmat(vec(repmat(0:d2{3,2}(1,2),(d2{3,2}(1,1)+1)*(d2{3,2}(2,1)+1),1)),(d2{3,2}(2,2)+1),1),...
-                vec(repmat(0:d2{3,2}(2,2),(d2{3,2}(1,1)+1)*(d2{3,2}(2,1)+1)*(d2{3,2}(1,2)+1),1))];
-Z2ba_degmat(sum(Z2ba_degmat(:,[1,2]),2)>d2{3,2}(3,1),:) = [];
-Z2ba_degmat(sum(Z2ba_degmat(:,[3,4]),2)>d2{3,2}(3,2),:) = [];
-Z2ba_degmat(sum(Z2ba_degmat(:,[1,3]),2)>d2{3,2}(1,3),:) = [];
-Z2ba_degmat(sum(Z2ba_degmat(:,[2,4]),2)>d2{3,2}(2,3),:) = [];
-Z2ba_degmat(sum(Z2ba_degmat,2)>d2{3,2}(3,3),:) = [];
-nZ2ba = size(Z2ba_degmat,1);
-Z2ba_coeff = speye(nZ2ba);
-Z2ba_varname = [var11.varname; var12.varname; var21.varname; var22.varname];
-Z2ba_matdim = [nZ2ba 1];
-Z2ba = polynomial(Z2ba_coeff,Z2ba_degmat,Z2ba_varname,Z2ba_matdim);
-
-Z2ab_degmat = [repmat((0:d2{2,3}(1,1))',(d2{2,3}(2,1)+1)*(d2{2,3}(1,2)+1)*(d2{2,3}(2,2)+1),1),...
-                repmat(vec(repmat(0:d2{2,3}(2,1),d2{2,3}(1,1)+1,1)),(d2{2,3}(1,2)+1)*(d2{2,3}(2,2)+1),1),...
-                repmat(vec(repmat(0:d2{2,3}(1,2),(d2{2,3}(1,1)+1)*(d2{2,3}(2,1)+1),1)),(d2{2,3}(2,2)+1),1),...
-                vec(repmat(0:d2{2,3}(2,2),(d2{2,3}(1,1)+1)*(d2{2,3}(2,1)+1)*(d2{2,3}(1,2)+1),1))];
-Z2ab_degmat(sum(Z2ab_degmat(:,[1,2]),2)>d2{2,3}(3,1),:) = [];
-Z2ab_degmat(sum(Z2ab_degmat(:,[3,4]),2)>d2{2,3}(3,2),:) = [];
-Z2ab_degmat(sum(Z2ab_degmat(:,[1,3]),2)>d2{2,3}(1,3),:) = [];
-Z2ab_degmat(sum(Z2ab_degmat(:,[2,4]),2)>d2{2,3}(2,3),:) = [];
-Z2ab_degmat(sum(Z2ab_degmat,2)>d2{2,3}(3,3),:) = [];
-nZ2ab = size(Z2ab_degmat,1);
-Z2ab_coeff = speye(nZ2ab);
-Z2ab_varname = [var11.varname; var12.varname; var21.varname; var22.varname];
-Z2ab_matdim = [nZ2ab 1];
-Z2ab = polynomial(Z2ab_coeff,Z2ab_degmat,Z2ab_varname,Z2ab_matdim);
-
-Z2bb_degmat = [repmat((0:d2{3,3}(1,1))',(d2{3,3}(2,1)+1)*(d2{3,3}(1,2)+1)*(d2{3,3}(2,2)+1),1),...
-                repmat(vec(repmat(0:d2{3,3}(2,1),d2{3,3}(1,1)+1,1)),(d2{3,3}(1,2)+1)*(d2{3,3}(2,2)+1),1),...
-                repmat(vec(repmat(0:d2{3,3}(1,2),(d2{3,3}(1,1)+1)*(d2{3,3}(2,1)+1),1)),(d2{3,3}(2,2)+1),1),...
-                vec(repmat(0:d2{3,3}(2,2),(d2{3,3}(1,1)+1)*(d2{3,3}(2,1)+1)*(d2{3,3}(1,2)+1),1))];
-Z2bb_degmat(sum(Z2bb_degmat(:,[1,2]),2)>d2{3,3}(3,1),:) = [];
-Z2bb_degmat(sum(Z2bb_degmat(:,[3,4]),2)>d2{3,3}(3,2),:) = [];
-Z2bb_degmat(sum(Z2bb_degmat(:,[1,3]),2)>d2{3,3}(1,3),:) = [];
-Z2bb_degmat(sum(Z2bb_degmat(:,[2,4]),2)>d2{3,3}(2,3),:) = [];
-Z2bb_degmat(sum(Z2bb_degmat,2)>d2{3,3}(3,3),:) = [];
-nZ2bb = size(Z2bb_degmat,1);
-Z2bb_coeff = speye(nZ2bb);
-Z2bb_varname = [var11.varname; var12.varname; var21.varname; var22.varname];
-Z2bb_matdim = [nZ2bb 1];
-Z2bb = polynomial(Z2bb_coeff,Z2bb_degmat,Z2bb_varname,Z2bb_matdim);
+% Constructing Z2aa(ss1,ss2,tt1,tt2) ... Z2bb(ss1,ss2,tt1,tt2)
+sstt_varname = [ss1.varname; tt1.varname; ss2.varname; tt2.varname];
+Z2aa = build_monoms(sstt_varname,d2{2,2});
+Z2ba = build_monoms(sstt_varname,d2{3,2});
+Z2ab = build_monoms(sstt_varname,d2{2,3});
+Z2bb = build_monoms(sstt_varname,d2{3,3});
 
 Zx = {Zxo; Zxa; Zxb};
 Zy = {Zyo; Zya; Zyb};
@@ -895,3 +769,78 @@ Z2 = {Z2oo, Z2oa, Z2ob; Z2ao, Z2aa, Z2ab; Z2bo, Z2ba, Z2bb};
 
 end
 
+
+
+%%
+function Z = build_monoms(vartable,maxdegs)
+% This function builds monomials in the variables "vartable" up to 
+% maximal degrees "maxdegs". 
+%
+% INPUT
+%   vartable: A (nvars x 1)-cellstr object specifying the variable names
+%   maxdegs: An array of 2^nvars elements, for nvars variables. Required to
+%            be a (reshaped version of a) 2x2x...x2 array, with each
+%            dimension corresponding to a single variable, so that e.g.
+%            element (2,1) corresponds to the degree of ss1, element (1,2)
+%            corresponds to the degree of ss2, and element (2,2)
+%            corresponds to the joint degree in ss1*ss2. Note that the
+%            standard degree object used in poslpivar, taking the form
+%
+%                 0 |         ss2 |         tt2 |         ss2*tt2
+%          ---------|-------------|-------------|-----------------
+%               ss1 |     ss1*ss2 |     ss1*tt2 |     ss1*ss2*tt2
+%          ---------|-------------|-------------|-----------------
+%               tt1 |     tt1*ss2 |     tt1*tt2 |     tt1*ss2*tt2 
+%          ---------|-------------|-------------|-----------------
+%           ss1*tt1 | ss1*tt1*ss2 | ss1*tt1*tt2 | ss1*tt1*ss2*tt2  
+%
+%            can be easily reshaped to the 2x2x2x2 form. Also note that the
+%            first element must always be zero (anything else is ignored).
+%
+% OUTPUT
+%       Z: Polynomial class object corresponding to the monomials in the 
+%           desired variables up to the desired maximal degrees
+%
+
+nvars = length(vartable);
+if numel(maxdegs)==2^nvars-1
+    maxdegs = [0;maxdegs(:)];
+elseif numel(maxdegs)~=2^nvars
+    error('The "maxdegs" input should contain 2^nvars elements')
+end
+
+Mdeg = max(maxdegs(:));
+
+% Initialize
+Z = monomials(vartable,0:Mdeg);
+if ischar(vartable)
+    Z_degmat = Z;
+    Zvarname = {vartable};
+elseif iscellstr(vartable)
+    Z_degmat = Z;
+    Zvarname = vartable;
+elseif isa(vartable,'polynomial')
+    Z_degmat = Z.degmat;
+    Zvarname = Z.varname;
+else
+    error('Variable names should be specified as a cellstr or polynomial')
+end
+
+% Loop over all specified maximal (joint) degrees, and discard monomials
+% that exceed the specified maximum
+for i=2:2^nvars
+    bindx = str2num(dec2bin(i-1,nvars)')';  
+    cindx = bindx(end:-1:1)>0;                      % Logical array indicating which columns in degmat to consider
+    retain = sum(Z_degmat(:,cindx),2)<=maxdegs(i);  % Logical array indicating rows with sufficiently small (joint) degree
+    Z_degmat = Z_degmat(retain,:);                  % Retain only those monomials
+end
+% Get rid of variables that do not contribute
+keep_var = any(Z_degmat,1);
+Z_degmat = Z_degmat(:,keep_var);
+Zvarname = Zvarname(keep_var);
+
+% Build new monomials with maximal degrees as specified
+nZ = size(Z_degmat,1);
+Z = polynomial(eye(nZ),Z_degmat,Zvarname,[nZ,1]);
+
+end
