@@ -97,8 +97,9 @@ else
     % % estimator synthesis.
 
     % Initialize the LPI program
-    vars = PIE.vars(:);         % Extract the spatial variables
-    prog = sosprogram(vars);    % Initialize an LPI program structure in the considered spatial variables
+    vars = PIE.vars;         % Extract the spatial variables
+    dom = PIE.dom
+    prog = lpiprogram(vars,dom);    % Initialize an LPI program structure in the considered spatial variables
 
     % Declare the decision variable gamma
     dpvar gam;

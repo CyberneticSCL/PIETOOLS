@@ -73,26 +73,26 @@ dy = {1,...         % Degree of Zy^o(y) in y
       [1,1,2]};     % Degree of Zy^b(y,nu) in y, nu and (y*nu)
   
 % Monomials in both spatial variables
-d2 = {[0,1;1,2],...             % Degree of Z2^oo(x,y) in [-, y; x, x*y]
+d2 = {[0,0;0,0],...             % Degree of Z2^oo(x,y) in [-, y; x, x*y]
       [0,1,1,2;1,1,1,2],...     % Degree of Z2^oa(x,y,nu) in [-, y, nu, nu*y; x, x*y, x*nu, x*y*nu]
       [0,1,1,2;1,1,1,2];...     % Degree of Z2^ob(x,y,nu) in [-, y, nu, nu*y; x, x*y, x*nu, x*y*nu]
       [0,1;1,1;1,1;2,2],...     % Degree of Z2^ao(x,y,tt) in [-, y; x, x*y; tt, y*tt; x*tt, x*y*tt]
       [0,1,1,2;                 % Degree of Z2^aa(x,y,tt,nu) in [-,    y,      nu,      y*nu;
-       1,2,2,2;                 %                                x,    x*y,    x*nu,    x*y*nu;
-       1,2,2,2;                 %                                tt,   y*tt,   tt*nu,   y*tt*nu;
+       1,1,1,2;                 %                                x,    x*y,    x*nu,    x*y*nu;
+       1,1,1,2;                 %                                tt,   y*tt,   tt*nu,   y*tt*nu;
        2,2,2,2],...             %                                x*tt, x*y*tt, x*tt*nu, x*y*tt*nu]
-      [0,1,1,2; 1,2,2,2; 1,2,2,2; 2,2,2,2];...      % Degree of Z2^ab(x,y,tt,nu)
+      [0,1,1,2; 1,1,1,2; 1,1,1,2; 2,2,2,2];...      % Degree of Z2^ab(x,y,tt,nu)
       [0,1;1,1;1,1;2,2],...     % Degree of Z2^bo(x,y,tt) in [-, y; x, x*y; tt, y*tt; x*tt, x*y*tt]
-      [0,1,1,2; 1,2,2,2; 1,2,2,2; 2,2,2,2],...      % Degree of Z2^ba(x,y,tt,nu)
-      [0,1,1,2; 1,2,2,2; 1,2,2,2; 2,2,2,2]};        % Degree of Z2^bb(x,y,tt,nu)
+      [0,1,1,2; 1,1,1,2; 1,1,1,2; 2,2,2,2],...      % Degree of Z2^ba(x,y,tt,nu)
+      [0,1,1,2; 1,1,1,2; 1,1,1,2; 2,2,2,2]};        % Degree of Z2^bb(x,y,tt,nu)
 
 settings.LF_deg.dx = dx;
 settings.LF_deg.dy = dy;
 settings.LF_deg.d2 = d2;
   
 % % Should we exclude any parameters (monomials), or require separability?
-settings.LF_opts.sep = [0;  % Set 1 to enforce Rxx{2}=Rxx{3}
-                        0;  % Set 1 to enforce Ryy{2}=Ryy{3}
+settings.LF_opts.sep = [1;  % Set 1 to enforce Rxx{2}=Rxx{3}
+                        1;  % Set 1 to enforce Ryy{2}=Ryy{3}
                         1;  % Set 1 to enforce R22{2,1}=R22{3,1}
                         1;  % Set 1 to enforce R22{1,2}=R22{1,2}
                         1;  % Set 1 to enforce R22{2,2}=R22{3,2}, R22{2,3}=R22{3,3}
@@ -107,7 +107,7 @@ settings.LF_opts.sep = [0;  % Set 1 to enforce Rxx{2}=Rxx{3}
 settings.LF_opts.exclude = [0,...
                             0,0,0,...
                             0,0,0,...
-                            0,0,0,0,0,1,1,1,1]; 
+                            0,1,1,1,1,0,0,0,0]; 
 
 % % Should we add a Psatz term to require only local feasibility?
 settings.LF_opts.psatz = 0;     % Do not enforce Psatz in initial operator P
@@ -182,7 +182,7 @@ if evalin('base','exist(''sosineq_on'',''var'')')
 elseif evalin('base','exist(''use_sosineq'',''var'')') 
     use_sosineq = evalin('base','use_sosineq');
 else
-    use_sosineq = 1;
+    use_sosineq = 0;
 end
 settings.use_sosineq = use_sosineq;
 
@@ -203,15 +203,15 @@ else
     % Start with the degrees, increasing them slightly compared to those of Q
     
     % Monomials in just the first spatial variable x
-    Dupx = 1;
+    Dupx = 3;
     eq_dx = {Dupx+dx{1};   Dupx+dx{2};   Dupx+dx{3}};
     
     % Monomials in just the second spatial variable y
-    Dupy = 1;
+    Dupy = 3;
     eq_dy = {Dupy+dy{1},   Dupy+dy{2},   Dupy+dy{3}};
     
     % Monomials in both spatial variables
-    Dup2 = 1;
+    Dup2 = 4;
     eq_d2 = {Dup2+d2{1,1},   Dup2+d2{1,2},   Dup2+d2{1,3};
              Dup2+d2{2,1},   Dup2+d2{2,2},   Dup2+d2{2,3};
              Dup2+d2{3,1},   Dup2+d2{3,2},   Dup2+d2{3,3}};
