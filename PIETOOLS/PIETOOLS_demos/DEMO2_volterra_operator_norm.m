@@ -27,9 +27,9 @@ Top.R.R1 = 1;   Top.I = [a,b];
 
 %%% Solve the LPI Top'*Top - gam<=0
 % First, define dpvar gam and set up an optimization problem
-vars = [Top.var1;Top.var2];     % Free vars in optimization problem (no optimization over these vars)
+vars = [Top.var1,Top.var2];     % Free vars in optimization problem (no optimization over these vars)
 dpvar gam;                      % Decision var in optimization problem (we will minimize gam)
-prob = sosprogram(vars,gam);
+prob = lpiprogram(vars,[a,b],gam);
 
 % Next, set gam as objective function min{gam}
 prob = sossetobj(prob, gam);

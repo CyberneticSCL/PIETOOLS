@@ -58,9 +58,9 @@ ndiff = [0,2,0];    % The PDE state involves 2 first order differentiable state 
 
 % To simulate the solution to the PDE system without controller we can use
 % the following code. 
-uinput.ic.PDE = [0,0];  
+uinput.ic.PDE = [0,0]*sx;  
 uinput.ic.ODE = 0;  
-uinput.u=0;
+uinput.u=0*st;
 uinput.w = sin(5*st)*exp(-st); 
 [solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
 
@@ -105,12 +105,12 @@ B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
 % Pick parameters for the LPI optimization problem and perform stability
 % test.
 settings = lpisettings('light');
-[prog, P] = lpisolve(PIE,settings,'stability');
+[prog, P] = lpiscript(PIE,'stability',settings);
 
 % Other LPI tests:
 % Similarly, we can search for an input-to-output L2-gain bound using LPIs
 % as shown below.
-[prog, P, gamma] = lpisolve(PIE,settings,'l2gain');
+[prog, P, gamma] = lpiscript(PIE,'l2gain',settings);
 
 %% Find Hinf-optimal controller
 % Next, we wish to find a controller that improves the input-to-output
@@ -118,7 +118,7 @@ settings = lpisettings('light');
 % the following code. The function, if the optimization problem is
 % successfully solved, returns the controller, Kval and the L2-gain metric
 % for the closed loop system, gam_val.
-[prog, Kval, gam_val] = lpisolve(PIE, settings,'hinf-controller');
+[prog, Kval, gam_val] = lpiscript(PIE,'hinf-controller',settings);
 
 %% Constructing closed-loop system and simulation
 % Now, we construct the closed-loop system using the controller obtained by

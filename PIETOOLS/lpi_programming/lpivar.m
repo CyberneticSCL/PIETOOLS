@@ -1,4 +1,4 @@
-function [prog,Zop] = lpivar(prog,n,I,d)
+function [prog,Zop] = lpivar(prog,n,d)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [prog,Zop] = lpivar(prog,n,I,d) declares 
 % a 4-PI operator variable of the form 
@@ -47,15 +47,20 @@ function [prog,Zop] = lpivar(prog,n,I,d)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 7_26_2019
+% DJ, 08/20/24 - Minor bugfix in case length(d)==1
+% Update to new 'lpiprogram' structure, DJ - 10/19/2024
 %
 
-if nargin<3
+% % First, check the spatial domain on which the program is defined.
+if ~isfield(prog,'dom') || size(prog.dom,1)==0
+    error('The program structure does not include a spatial domain -- please use ''lpiprogram'' to initialize your program');
+else
+    I = prog.dom;
+end
+% % Extract the inputs.
+if nargin<2
     error("Not enough input arguments");
-elseif nargin==3
-    if all(size(I)==[2,2])
-        [prog,Zop] = lpivar_2d(prog,n,I);
-        return
-    end
+elseif nargin==2
     d = [1,1,1];
 end
 if all(size(I)==[2,2])
@@ -63,35 +68,46 @@ if all(size(I)==[2,2])
     return
 end
 
-pvar s theta;
-var1 = s; var2 = theta;
+% % Check that the dimensions of the operator are properly specified.
+if ~isnumeric(n) || any(any(n<0))
+    error('Dimension of the operator must be specified as numeric array of positive integers.')
+elseif ~all(size(n)==[2,2])
+    error('Dimensions of the operator variable should be specified as 2x2 array.')
+end
+
+% % Check that the maximal monomial degrees are properly specified.
+if numel(d)==1
+    d = [d,d,d];
+elseif numel(d)==2
+    d = [d(1),d(2),d(1)];
+elseif numel(d)~=3
+    error('Monomial degrees must be specified as 1x3 array.')
+end
+
+% % Extract the variables defining the operator
+%   R0 is function of var1, R1 and R2 of var1 and var2
+var1 = prog.vartable(1);
+var2 = prog.vartable(2);
+
+% % Declare the polynomial variables representing the parameters of Zop 
 Zs = monomials(var1,0:d(1));
 [prog,P] = sospolymatrixvar(prog,monomials(var1,0),[n(1,1) n(1,2)]);
 [prog,Q1] = sospolymatrixvar(prog,Zs,[n(1,1) n(2,2)]);
 [prog,Q2] = sospolymatrixvar(prog,Zs,[n(2,1) n(1,2)]);
 [prog,R0] = sospolymatrixvar(prog,Zs,[n(2,1) n(2,2)]);
 
-if length(d)==2
-    Zsth = mpmonomials({var1,var2},{0:d(2),0:d(1)});
-elseif length(d)==1
-    Zsth=mpmonomials({var1,var2},0:d);
-elseif length(d)==3
-    Zsth=mpmonomials({var1,var2},{0:d(3),0:d(2)});
-else
-    error('degree must be a scalar or a vector of length 2 or 3')
-end
+Zsth = mpmonomials({var1,var2},{0:d(3),0:d(2)});
 [prog,R1] = sospolymatrixvar(prog,Zsth,[n(2,1) n(2,2)]);
 [prog,R2] = sospolymatrixvar(prog,Zsth,[n(2,1) n(2,2)]);
 
-opvar Zop;
-Zop.P = P;
-Zop.Q1 = Q1; 
-Zop.Q2 = Q2; 
-Zop.R.R0 = R0; 
-Zop.R.R1 = R1; 
-Zop.R.R2 = R2; 
-Zop.I = I; Zop.var1 = var1; Zop.var2 = var2;
-Zop.dim = n;
+% % Declare the indefinite operator variable.
+dopvar Zop;
+Zop.P = P;          Zop.Q1 = Q1; 
+Zop.Q2 = Q2;        Zop.R.R0 = R0; 
+Zop.R.R1 = R1;      Zop.R.R2 = R2; 
+Zop.I = I; 
+Zop.var1 = var1;    Zop.var2 = var2;
+
 
 
 

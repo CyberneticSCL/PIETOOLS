@@ -2,8 +2,8 @@ function [Pcat] = vertcat(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Pcat] = vertcat(varargin) takes n inputs and concatentates them vertically,
 % provided they satisfy the following criteria:
-% 1) At least one input must be of type 'dopvar', and all others must be of
-%       type 'opvar' or 'dopvar';
+% 1) At least one input must be of type 'dopvar', remaining inputs can be
+%    of type 'double', 'polynomial', 'opvar', or 'dopvar'.
 % 2) The input dimensions varargin{j}.dim(:,2) of all objects must match;
 % 3) The spatial variables varargin{j}.var1 and varargin{j}.var2, as well 
 %       as the domain varargin{j}.I of all objects must match;
@@ -42,7 +42,7 @@ function [Pcat] = vertcat(varargin)
 % DJ, 09/29/2021: Small adjustment to avoid error with dopvar-opvar concatenation
 % DJ, 12/30/2021: Adjusted to assure opvar with dopvar returns dopvar
 % DJ - 09/30/23: Prohibit "ambiguous" concatenations.
-% DB - 11/13/24: "ambiguous" concatenations allowed, warnning added.
+% SS - 10/09/24: Revert to allow some matrix-opvar concatenations.
 
 % Deal with single input case
 if nargin==1
@@ -53,9 +53,29 @@ end
 % Extract the operators
 a = varargin{1};    b = varargin{2};
 
-% Currently support only opvar-opvar concatenation
-if (~isa(a,'opvar') && ~isa(a,'dopvar')) || (~isa(b,'opvar') && ~isa(b,'dopvar'))
-    error('dopvar  objects can only be concatenated with opvar and dopvar objects')
+if (~isa(b,'opvar') &&~isa(b,'dopvar'))
+    % Only supported if a in fact corresponds to a matrix as well
+    if all(a.dim(2,:)==0)
+        opvar tmp; tmp.I = a.I; tmp.var1 = a.var1; tmp.var2 = a.var2;
+        tmp.P = b;
+        b = tmp;
+    else
+        error("Ambiguous concatenation [a;b] of dopvars. Please explicitly define 'a' and 'b' as dopvars to resolve.");
+    end
+elseif (~isa(a,'opvar')&&~isa(a,'dopvar')) && (isa(a,'double')||isa(a,'polynomial')||isa(a,'dpvar'))
+    opvar tmp; tmp.I = b.I; tmp.var1 = b.var1; tmp.var2 = b.var2;
+    if b.dim(2,2)~=0 % b from L2, so [a;b] is possible only if a is integral Q1 (or multiplier R0, but we ignore that)
+        tmp.Q1 = a;
+    elseif b.dim(1,2)~=0 && (isa(a,'double')||isempty(a.degmat)) % b maps from R, [a;b] is possible only if a is multiplier P (or Q2, but we ignore that)
+        tmp.P = a;
+    else
+        error("Ambiguous concatenation [a;b] of opvars. Explicitly define 'a' and 'b' as opvars to resolve.");
+    end
+    tmp.dim = tmp.dim; % rectify dimensions
+    a = tmp;
+    clear tmp;
+elseif ~isa(a,'opvar') && ~isa(a,'dopvar')
+    error("Concatenation of 'dopvar' objects is only supported with objects of type 'dopvar', 'opvar', 'polynomial', or 'double'.")
 end
 % Check that domain and variables match
 if any(a.I~=b.I)|| ~strcmp(a.var1.varname,b.var1.varname) || ~strcmp(a.var2.varname,b.var2.varname)
@@ -72,7 +92,7 @@ if (a.dim(2,1)~=0 && b.dim(1,1)~=0)
     % a has rows mapping to L2, but b has rows mapping to R.
     % Concatenation would place those rows of a below those of b in the
     % opvar, which we currently prohibit...
-    warning('Proposed opvar concatenation is ambiguous')
+    error('Proposed opvar concatenation is ambiguous, and currently prohibited')
 end
 
 % Finally, let's actually concatenate

@@ -1,4 +1,4 @@
-function [prog,Pop,Tmat] = poslpivar_2d(prog,n,I,d,options)
+function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [prog,Pop,LLL,bZ_col] = poslpivar_2d(prog,n,I,d,options) declares 
 % a positive 0112D PI operator. 
@@ -123,6 +123,17 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,I,d,options)
 % 04/14/2022, DJ: Update to account for new degree data format
 
 % % % Set-up % % %
+
+% % First, check the spatial domain on which the program is defined.
+if ~isfield(prog,'dom') || size(prog.dom,1)==0
+    error('The program structure does not include a spatial domain -- please use ''lpiprogram'' to initialize your program');
+else
+    I = prog.dom;
+end
+if any(size(I)~=[2,2])
+    error('For declaring a 2D PI operator variable, the spatial domain in the LPI program structure must be of of size 2x2.')
+end
+
 % Initialize default degrees
 use_monomials = 0;
 dx = {1;[1;1;1];[1;1;1]};
@@ -132,18 +143,25 @@ d2 = {[0,1;1,2],          [0,1,1,1;1,1,1,2], [0,1,1,1;1,1,1,2];
       [0,1,1,1;1,1,1,2]', ones(4,4),         ones(4,4)};
 % Extract the input arguments
 switch nargin
-    case 2
+    case 1
         error('Not enough inputs!')
-    case 3
+    case 2
         fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
         use_monomials = 0;
-          options.psatz = 0;
-          options.exclude = zeros(1,16);
-          options.diag = 0;
-          options.sep = ones(1,6);
-          options.center_monomials = 0;
-    case 4
-        if isfield(d,'Zx') && isfield(d,'Zy') && isfield(d,'Z2')
+        options.psatz = 0;
+        % Exclude only single integrals along 2D states by default.
+        options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
+        options.diag = 0;
+        % Use only full integral operators (no partial integrals) by
+        % default
+        options.sep = ones(1,6);
+        options.center_monomials = 0;
+    case 3
+        if isnumeric(d) && all(size(d)==1)
+            dval = d;   d = struct();
+            d.dx = {dval;[dval;dval;dval];[dval;dval;dval]};       
+            d.dy = {dval,[dval,dval,dval],[dval,dval,dval]};
+        elseif isfield(d,'Zx') && isfield(d,'Zy') && isfield(d,'Z2')
             d.use_monomials = 1;
             d.dx = d.Zx;
             d.dy = d.Zy;
@@ -153,7 +171,7 @@ switch nargin
                  isfield(d,'Z2') && (isfield(d,'dx') || isfield(d,'dy'))
             error('Specifying both monomials and maximal degrees is currently not supported')
         end
-        if (~isfield(d,'use_monomials') || ~d.use_monomials) && (~isfield(options,'use_monomials') || ~options.use_monomials) ...
+        if (~isfield(d,'use_monomials') || ~d.use_monomials) ...
                 && ~isfield(d,'dx') && ~isfield(d,'dy') && ~isfield(d,'d2')
             fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
         elseif isfield(d,'use_monomials')
@@ -197,12 +215,15 @@ switch nargin
             end
         end
         options.psatz = 0;
-        options.exclude = zeros(1,16);
+        % Exclude only single integrals along 2D states by default.
+        options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
         options.diag = 0;
-        options.sep = zeros(1,6);
+        % Use only full integral operators (no partial integrals) by
+        % default
+        options.sep = ones(1,6);
         options.sym_xy = 0;
         options.center_monomials = 0;
-    case 5
+    case 4
         if isfield(d,'Zx') && isfield(d,'Zy') && isfield(d,'Z2')
             d.use_monomials = 1;
             d.dx = d.Zx;
@@ -259,14 +280,17 @@ switch nargin
             options.psatz=0;
         end
         if ~isfield(options,'exclude')
-            options.exclude = zeros(1,16);
+            % Exclude only single integrals along 2D states by default.
+            options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
         end
         if isfield(options,'diag') && options.diag==1
             fprintf(2,'Warning: ''diag'' option is not supported for 2D PDEs, ignoring this input.'); 
         end
         options.diag=0;
         if ~isfield(options,'sep')
-            options.sep = zeros(1,6);
+            % Use only full integral operators (no partial integrals) by
+            % default
+            options.sep = ones(1,6);
         end
         if ~isfield(options,'center_monomials')
             options.center_monomials = 0;
@@ -283,30 +307,26 @@ if all(size(n)==[4,2])
     if all(n(:,1)==n(:,2))
         n = n(:,1)';
     else
-        error('A positive operator must be square; the row dimensions must match the column dimensions')
+        error('Positive operator must have equal row and column dimensions.')
     end
 elseif numel(n)>4
     error('Operator dimensions n must be specified as 4x2 or 4x1 array')
 end
+n = n(:);
 if length(n)==1
     warning('Only 1 dimension is provided, assuming this to refer to the 2D PDE state')
-    n = [0,0,0,n(1)];
+    n = [0;0;0;n(1)];
 elseif length(n)==2
     warning('Only 2 dimensions are provided, assuming these to refer to the ODE and 2D PDE states')
-    n = [n(1),0,0,n(2)];
+    n = [n(1);0;0;n(2)];
 elseif length(n)~=4
     error('Operator dimensions n must be specified as 4x2 or 4x1 array')
 end
 % Extract the size of the object: P\in R^(n0 x n0), Rxx\in L_2^(nx x nx)[x],
 % Ryy\in L_2^(ny x ny)[y], R22\in L_2^(n2 x n2)[x,y],
 n0=n(1);    nx=n(2);    ny=n(3);    n2=n(4);
-if n0==0 && nx==0 && ny==0 && n2==0
+if all(n==0)
     error('Error in poslpivar: All dimensions are zero')
-end
-
-% % Next check the domain, must be 2x2 array
-if any(size(I)~=[2,2]) || any(I(:,1)>=I(:,2))
-    error('Domain I must be a 2x2 array, where I(:,1) must be less than I(:,2)')
 end
 
 % % Next, check the monomial degrees
@@ -498,22 +518,13 @@ end
 % % Define the variables and multiplier function
 
 % Define the primary variables
-if isempty(prog.vartable)
-    pvar ss1 ss2 tt1 tt2
-    var1 = [ss1;ss2];
-    var2 = [tt1;tt2];
-elseif length(prog.vartable)==2
-    var1 = polynomial(prog.vartable);
-    ss1 = var1(1);        ss2 = var1(2);
-    pvar tt1 tt2;
-    var2 = [tt1;tt2];
-elseif length(prog.vartable)==4
-    var = polynomial(prog.vartable);
+if isempty(prog.vartable) || length(prog.vartable)<4
+    error('Insufficient spatial variables have been specified in the LPI program structure.')
+else
+    var = polynomial(prog.vartable(1:4));
     var1 = var((1:2)');     var2 = var((3:4)');
     ss1 = var1(1);        ss2 = var1(2);
     tt1 = var2(1);        tt2 = var2(2);
-else
-    error('There should be two or four spatial variables in prog.vartable in a 2D LPI problem')
 end
 
 
