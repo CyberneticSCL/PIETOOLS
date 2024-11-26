@@ -47,6 +47,7 @@ function [Pcat] = horzcat(varargin)
 % Adjusted so that dpvar with opvar returns dopvar, DJ 12/30/2021.
 % DJ - 09/30/23: Prohibit "ambiguous" concatenations.
 % SS - 10/09/24: Revert to allow some matrix-opvar concatenations.
+% DB - 11/13/24: "ambiguous" concatenations allowed, warning displayed.
 
 % Deal with single input case
 if nargin==1
@@ -99,7 +100,7 @@ if (a.dim(2,2)~=0 && b.dim(1,2)~=0)
     % a has columns mapping from L2, but b has columns mapping from R.
     % Concatenation would place those columns of a to the right of
     % those columns of b in the opvar, which we currently prohibit...
-    error('Proposed opvar concatenation is ambiguous, and currently prohibited')
+    warning('Proposed opvar concatenation is ambiguous.')
 end
 
 % Finally, let's actually concatenate
