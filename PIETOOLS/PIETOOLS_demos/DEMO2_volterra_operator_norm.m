@@ -8,8 +8,8 @@
 % link: https://arxiv.org/pdf/1910.01338.pdf
 
 % Volterra integral operator
-% T x (s) = int(x(\theta),d\theta,a,s)
-% Domain:  s,theta \in [a,b] = [0,1]
+% T x (s) = int(x(s_dum),d\theta,a,s)
+% Domain:  s, s_dum \in [a,b] = [0,1]
 
 % Optimization Problem (LPI)
 % min γ, such that
