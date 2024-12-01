@@ -9,7 +9,7 @@ if length(objA)~=length(objB)
 end
 
 tempoperator = [objA.operator objB.operator];
-tempstate = [objA.state; objB.state];
+tempstate = vertcat(objA.state, objB.state);
 
 out = termvar(tempoperator,tempstate);
 end

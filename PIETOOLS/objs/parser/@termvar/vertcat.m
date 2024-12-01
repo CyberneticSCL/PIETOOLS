@@ -1,6 +1,8 @@
 function obj = vertcat(varargin)
-if nargin==1
+if nargin==1 || isempty(varargin{2})
     obj = varargin{1};
+elseif isempty(varargin{1})
+    obj = varargin{2};
 else
     objA = varargin{1};
     objB = varargin{2};

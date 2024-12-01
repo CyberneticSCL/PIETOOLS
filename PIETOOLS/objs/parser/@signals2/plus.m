@@ -10,6 +10,6 @@ end
 [objC,permMatsA,permMatsB] = combine(objA,objB); % objA = permMats{1}*objC and objB = permMats{2}*objC
 
 % NOTE: need to replace the below with new opvar object
-T = buildopvar('multiplier',permMatsA+permMatsB,'dom',objC.dom);
+T = buildopvar('multiplier',permMatsA+permMatsB,'dom',{objC.dom},'var',{objC.var});
 sumTerms = termvar(T,objC);
 end

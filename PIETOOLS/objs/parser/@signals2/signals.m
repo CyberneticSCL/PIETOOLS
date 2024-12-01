@@ -1,17 +1,26 @@
 classdef (InferiorClasses={?polynomial,?dpvar}) signals
+    properties
+        type; % N x 1 vector of strings
+        len; % N x 1 vector; length of signal
+        var; % N x 1 cell; independent variables in the signal
+        dom; % N x 1 cell; cell elements themselves are arrays
+        maxdiff; % N x 1 cell; cell elements themselves are arrays
+        diffOrder; % N x 1 cell; cell elements themselves are arrays
+    end
+    properties (Hidden, Dependent)
+        isInfinite; % N x 1 vector; 1 if the signal is infinitedimensional
+        dim; % N x 1 vector; spatial dimension of signal
+    end
     properties (Hidden, SetAccess=private)
         statename; % N x 1 vector; global id for easy identification of the signal
     end
+
     methods (Access=private)
         function obj = setID(obj,val)
             obj.statename = val;
         end
     end
-    properties
-        prop; % a cell array with format below
-        %{type,length,variable,domain,maxDiff,diffOrder}
-    end
-    
+
     methods
         function obj = signals(varargin)
             % no input constructor
@@ -27,20 +36,31 @@ classdef (InferiorClasses={?polynomial,?dpvar}) signals
             end
 
             % set default values
-            type = ["ode"];
-            len = [1];
-            var = [pvar('t')];
-            maxdiff = [inf];
-            diffOrder = [0];
-            dom = [];
             if nargin>0
                 type = varargin{1};
+                len = [1];
+                var = [pvar('t')];
+                maxdiff = [inf];
+                diffOrder = [0];
+                dom = [];
             end
             if nargin>1
                 len = varargin{2};
+                if strcmp(type,"pde")
+                    var = [pvar('t'),pvar('s1')];
+                    dom = [0,1];
+                else
+                    var = [pvar('t')];
+                    dom = [];
+                end
+                maxdiff = inf(length(var),1);
+                diffOrder = zeros(length(var),1);
             end
             if nargin>2
                 var = varargin{3};
+                dom = repmat({[0,1]},length(var)-1,1);
+                maxdiff = inf(length(var),1);
+                diffOrder = zeros(length(var),1);
             else
                 if strcmp(type,"pde")
                     var = [pvar('t'),pvar('s1')];
@@ -67,60 +87,27 @@ classdef (InferiorClasses={?polynomial,?dpvar}) signals
                     diffOrder = [0,0];
                 end
             end
-            obj.prop = {type,len,var,dom,maxdiff,diffOrder};
+            obj.type = type;
+            obj.var = var;
+            obj.len = len;
+            obj.dom = dom;
+            obj.maxdiff = maxdiff;
+            obj.diffOrder = diffOrder;
             obj.statename = stateNameGenerator();
         end
 
-        function val = isInfinite(obj)
-            val = zeros(length(obj),1);
-            for i=1:length(val)
-                if strcmp(obj(i).prop{1},"pde") || (length(obj(i).prop{3})>=2)
-                    val(i) = 1;
-                end
+        function val = get.isInfinite(obj)
+            val = 0;
+            if strcmp(obj.type,"pde") || (length(obj.var)>=2)
+                val = 1;
             end
         end
-        function val = dim(obj)
-            val = zeros(length(obj),1);
-            for i=1:length(val)
-                val(i) = length(obj(i).prop{3})-1;
-            end
+
+        function val = get.dim(obj)
+            val = length(obj.var);
+            val = val-1;
         end
-        function val = type(obj)
-            val =cell(length(obj),1);
-            for i=1:length(val)
-                val{i} = obj(i).prop{1};
-            end
-        end
-        function val = len(obj)
-            val =zeros(length(obj),1);
-            for i=1:length(val)
-                val(i) = obj(i).prop{2};
-            end
-        end
-        function val = var(obj)
-            val =cell(length(obj),1);
-            for i=1:length(val)
-                val{i} = obj(i).prop{3};
-            end
-        end
-        function val = dom(obj)
-            val =cell(length(obj),1);
-            for i=1:length(val)
-                val{i} = obj(i).prop{4};
-            end
-        end
-        function val = maxdiff(obj)
-            val =cell(length(obj),1);
-            for i=1:length(val)
-                val{i} = obj(i).prop{5};
-            end
-        end
-        function val = diffOrder(obj)
-            val =cell(length(obj),1);
-            for i=1:length(val)
-                val{i} = obj(i).prop{6};
-            end
-        end
+
         function obj = setInfinite(obj,N)
             if any(strcmp(obj.type,"ode"))
                 tmpMsg = 'Input to the method is "ode" type. Cannot be set as infinite';
