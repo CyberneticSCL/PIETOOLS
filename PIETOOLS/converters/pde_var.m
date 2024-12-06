@@ -24,14 +24,15 @@ function out_var = pde_var(varargin)
 %           or 'sense'. If fewer than 3 input arguments are passed, this
 %           defaults to type='state';
 % - sz:     Scalar integer specifying the size of the vector-valued
-%           variable;
+%           variable. Defaults to 1;
 % - vars:   nx1 or nx2 object of type 'polynomial' or 'cellstr', specifying
 %           the (names of) the n spatial variable on which the declared PDE
 %           variable should depend. If specified as nx2 object, the second
 %           column should correspond to dummy variables associated to each
-%           spatial variable;
+%           spatial variable. Defaults to [] (no spatial dependence);
 % - dom:    nx2 array of type 'double' specifying for each of the n spatial
-%           variables the interval on which it exists.
+%           variables the interval on which it exists. Defaults to
+%           repmat([0,1],n,1) for n variables;
 %
 % OUTPUT
 % - out_var:    pde_struct object representing a PDE variable, which can be
@@ -61,6 +62,7 @@ function out_var = pde_var(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 06/23/2024
+% DJ, 12/06/2024: Set default values in case of insufficient arguments;
 
 % % % Deal with the case the function is used as e.g.
 % % %   pde_var x1 x2 x3 input w1 w2
@@ -92,24 +94,39 @@ end
 
 % % % Proceed with the case that inputs are specified as
 % % %   out_var = pde_var(type,sz,vars,dom)
-if nargin<=3 && isnumeric(varargin{1})
+% Declare default values        % DJ, 12/06/2024
+type = 'state';
+sz = 1;
+vars = [];
+dom = [];
+if nargin>0 && nargin<=3 && isnumeric(varargin{1})
     % If no type is specified, assume the object corresponds to a 
     % state variable
-    if nargin==1
-        % Assume ODE state variable
-        vars =  [];     dom = [];
-    elseif nargin==2
-        vars = varargin{2};     dom = [];
-    else
-        vars = varargin{2};     dom = varargin{3};
+    if nargin>=1
+        sz = varargin{1};
     end
-    sz = varargin{1};
-    type = 'state';
-elseif nargin==4
-    type = varargin{1};
-    sz = varargin{2};
-    vars = varargin{3};
-    dom = varargin{4};
+    if nargin>=2
+        vars = varargin{2};
+    end
+    if nargin>=3
+        dom = varargin{3};
+    end
+else
+    if nargin>=1
+        type = varargin{1};
+    end
+    if nargin>=2
+        sz = varargin{2};
+    end
+    if nargin>=3
+        vars = varargin{3};
+    end
+    if nargin>=4
+        dom = varargin{4};
+    end
+    if nargin>=5
+        error('Too many input arguments.')
+    end
 end
 
 % % % Check that the specified arguments make sense
