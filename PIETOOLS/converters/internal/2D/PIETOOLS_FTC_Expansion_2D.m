@@ -129,6 +129,7 @@ function [Pop_f2x, Pop_b2x, bc_state_tab] = PIETOOLS_FTC_Expansion_2D(PDE)
 %
 % Initial coding DJ - 08/09/2022
 % Add support for 1D case, DJ - 10/16/2024.
+% DJ, 12/06/2024: Bugfix `ind2sub` for Matlab 2024b;
 
 
 % Extract PDE information.
@@ -320,7 +321,7 @@ for comp=1:ncomps
     for kk=2:numel(bndry_fctr_cell)
         % Establish which combination of variables is associated to "kk".
         sub_indx_kk = cell(1,nvars);
-        [sub_indx_kk{:}] = ind2sub(isdiff+1,kk);
+        [sub_indx_kk{:}] = ind2sub([isdiff+1,1],kk);                        % DJ, 12/06/2024
         sub_indx_kk = cell2mat(sub_indx_kk);
         log_indx_kk = logical(sub_indx_kk-1);
         
