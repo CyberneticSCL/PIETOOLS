@@ -23,7 +23,7 @@
 %
 % Initial coding YP  - 11_27_2021
 % DJ, 12/07/2024: Remove some redundant code
-function A=PIESIM_NonPOLy2Mat_cheb(N, nx, Rop, p, gridall)
+function A=PIESIM_NonPoly2Mat_cheb(N, nx, Rop, p, gridall)
 ns=size(p,2);
 
 
