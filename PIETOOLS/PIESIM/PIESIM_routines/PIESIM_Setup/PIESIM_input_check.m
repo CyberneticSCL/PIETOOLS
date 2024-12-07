@@ -43,6 +43,7 @@ function [structure, uinput, psize]=PIESIM_input_check(varargin)
 % process batch format and old terms format, but these functions have been
 % added to separate subroutines.
 %   Also set values for ny, nz in case of type=='DDE'
+% DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 
 syms st sx;
 structure=varargin{1};
@@ -81,8 +82,8 @@ elseif strcmp(opts.type,'PDE')
         error('PIESIM is currently not supported for systems involving more than 1 spatial variable.')
     elseif PDE.dim==0
         % If the system is finite-dimensional, augment to 1D
-        pvar s theta
-        vars = [s,theta];
+        pvar s1 s1_dum                                                      % DJ, 12/07/2024
+        vars = [s1,s1_dum];
         dom = [-1,1];
 
         % Add a temporary state variable that exists on the 1D domain.
