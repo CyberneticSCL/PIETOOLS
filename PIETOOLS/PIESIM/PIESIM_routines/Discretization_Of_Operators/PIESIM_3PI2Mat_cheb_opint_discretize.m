@@ -10,6 +10,10 @@
 % R2 - integrative operator R2 of size 1x1
 % p - scalar - a "degree of smoothness" for the function on which
 % R1, R2 operators act
+% var1 - primary spatial variable used in the integral operator defined by
+%           R1 and R2;
+% var2 - dummy variable (for integration) used in the integral operator
+%           defined by R1 and R2;
 %
 % Output:
 % A - a non-square matrix of size (N+1)x(N-p+1) that represents a Chebyshev
@@ -21,9 +25,11 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 6_28_2022
-function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p)
+% DJ, 12/07/2024: Update to avoid hardcoded polynomial variable;
+function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p, var1, var2)
 
-pvar s theta;
+s = var1;                                                                   % DJ, 12/07/2024
+theta = var2;
 
 Norder=N-p;
 
@@ -52,7 +58,7 @@ if isa(R1,'polynomial')
         case 1
         % One variable present
             var=cell2mat(R1.varname);
-            if (var=='s')
+            if (var==s.varname{1})
                  Re1=subs(R1,s,chebgrid);
                  Reval1=repmat(Re1',1,maxdeg+2);
             else
@@ -62,7 +68,7 @@ if isa(R1,'polynomial')
         case 0 
             % Scalar polynomial
             Reval1=R1*ones(maxdeg+2);
-end
+    end
 else
     Reval1=R1*ones(maxdeg+2);
 end
@@ -78,7 +84,7 @@ switch(R2.nvars)
         case 1
         % One variable present
             var=cell2mat(R2.varname);
-            if (var=='s')
+            if (var==s.varname{1})
                  Re2=subs(R2,s,chebgrid);
                  Reval2=repmat(Re2',1,maxdeg+2);
             else
