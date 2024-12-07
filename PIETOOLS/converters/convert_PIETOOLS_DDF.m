@@ -44,9 +44,9 @@ function PIE=convert_PIETOOLS_DDF(DDF,out_type)
 % Initial coding MP - 10_01_2020
 %  MP - 5_30_2021; converted script to function format
 % SS - 9/28, added a dimension correction step to replace 0x0 empty
+% matrices with empty matrices of correct size
 %  DJ - 09/01/2022: Output result as "pie_struct" object.
 % DJ, 12/07/2024: Use new default vars (s1,s2) and (s1_dum,s2_dum);
-% matrices with empty matrices of correct size
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert DDF to 4-PI representation
