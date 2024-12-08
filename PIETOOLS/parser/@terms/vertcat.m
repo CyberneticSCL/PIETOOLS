@@ -30,6 +30,9 @@ function obj = vertcat(varargin)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+% SS, 2022: Initial coding;
+% DJ, 12/07/2024: Replace dummy variable theta with s_dum;
+
 if nargin==1
     obj = varargin{1};
 else
@@ -55,7 +58,10 @@ else
     zeroAB.dim = [0 0; objA.operator.dim(2,1) objB.operator.dim(2,2)]; 
     zeroBA.dim = [0 0; objB.operator.dim(2,1) objA.operator.dim(2,2)];
     
-    objA.operator.var2 = pvar('theta'); objB.operator.var2 = pvar('theta');
+    % DJ, 12/07/2024
+    objA.operator.var2 = pvar('s_dum'); objB.operator.var2 = pvar('s_dum');
+    zeroAB.var1 = objA.operator.var1;   zeroAB.var2 = objA.operator.var2;
+    zeroBA.var1 = objA.operator.var1;   zeroBA.var2 = objA.operator.var2;
 
     tempoperator = [objA.operator zeroAB; zeroBA objB.operator];
     tempstatevec = vertcat(objA.statevec, objB.statevec);
