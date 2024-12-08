@@ -58,7 +58,7 @@ if isa(R1,'polynomial')
         case 1
         % One variable present
             var=cell2mat(R1.varname);
-            if (var==s.varname{1})
+            if strcmp(var,s.varname{1})                                     % DJ, 12/07/2024
                  Re1=subs(R1,s,chebgrid);
                  Reval1=repmat(Re1',1,maxdeg+2);
             else
@@ -84,7 +84,7 @@ switch(R2.nvars)
         case 1
         % One variable present
             var=cell2mat(R2.varname);
-            if (var==s.varname{1})
+            if strcmp(var,s.varname{1})                                     % DJ, 12/07/2024
                  Re2=subs(R2,s,chebgrid);
                  Reval2=repmat(Re2',1,maxdeg+2);
             else
