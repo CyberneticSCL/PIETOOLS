@@ -40,6 +40,7 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 %
 % Initial coding SS - 5/30/2021
 % added observer closed-loop construction, SS - 1/18/2024
+% DJ, 12/07/2024: Make sure variables of output match those of input;
 
 if nargin==2
     type = 'controller';
@@ -120,6 +121,8 @@ if strcmp(type,'controller') % build controller closed-loop system
     end
 
     pie_struct PIEcl;
+    PIEcl.vars = PIE.vars;                                                  % DJ, 12/07/2024
+    PIEcl.dom = PIE.dom;
     PIEcl.T = T + Tu*K;     PIEcl.Tw = Tw;
     PIEcl.A = A + B2*K;     PIEcl.B1 = B1;
     PIEcl.C1 = C1 + D12*K;  PIEcl.D11 = D11;
@@ -143,6 +146,14 @@ C2cl.dim = [[0;0],2*nx]; D21cl.dim = [[0;0],nw]; D22cl.dim = [[0;0],nu];
 C1cl.dim = [2*nz,2*nx]; D11cl.dim = [2*nz,nw]; D12cl.dim = [2*nz,nu];
 Tcl.dim = [2*nx,2*nx]; Twcl.dim = [2*nx,nw]; Tucl.dim = [2*nx,nu];
 Acl.dim = [2*nx,2*nx]; B1cl.dim = [2*nx,nw]; B2cl.dim = [2*nx,nu];
+Tcl.var1 = T.var1;  Twcl.var1 = T.var1;     Tucl.var1 = T.var1;             % DJ, 12/07/2024
+Acl.var1 = T.var1;  B1cl.var1 = T.var1;     B2cl.var1 = T.var1;
+C1cl.var1 = T.var1; D11cl.var1 = T.var1;    D12cl.var1 = T.var1;
+C2cl.var1 = T.var1; D21cl.var1 = T.var1;    D22cl.var1 = T.var1;
+Tcl.var2 = T.var2;  Twcl.var2 = T.var2;     Tucl.var2 = T.var2;
+Acl.var2 = T.var2;  B1cl.var2 = T.var2;     B2cl.var2 = T.var2;
+C1cl.var2 = T.var2; D11cl.var2 = T.var2;    D12cl.var2 = T.var2;
+C2cl.var2 = T.var2; D21cl.var2 = T.var2;    D22cl.var2 = T.var2;
 
 % construct parameters of z-output
 C1cl.P = [C1.P zeros(nz(1),nx(1)); zeros(nz(1),nx(1)) C1.P]; 
@@ -180,6 +191,8 @@ Tucl.Q2 = [Tu.Q2; zeros(nx(2),nu(1))];
 
 % assign values to pie_struct object container
 pie_struct PIEcl;
+PIEcl.vars = PIE.vars;                                                      % DJ, 12/07/2024
+PIEcl.dom = PIE.dom;
 PIEcl.T=Tcl;    PIEcl.Tw=Twcl;      PIEcl.Tu=Tucl;
 PIEcl.A=Acl;    PIEcl.B1=B1cl;      PIEcl.B2=B2cl;
 PIEcl.C1=C1cl;  PIEcl.D11=D11cl;    PIEcl.D12=D12cl;

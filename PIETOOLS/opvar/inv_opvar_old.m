@@ -50,6 +50,7 @@ function [Pinv] = inv_opvar_old(P)
 % Initial coding MP - 7_1_2020
 % Assure parameters are dpvar before converting to poly, DJ - 12/30/2021
 %       <-- Not really an optimal fix...
+% DJ, 12/07/2024: Set vars of Pinv equal to vars of P;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -64,7 +65,7 @@ catch ME
 end
 end
 
-I = P.I; s = P.var1; theta = P.var2;
+I = P.I; s = P.var1; s_dum = P.var2;
 l=I(1);u=I(2);
 tau=u-l;
 r=tau;
@@ -72,6 +73,7 @@ r=tau;
 if P.dim(2,2) == 0
     opvar Pinv;
     Pinv.I = I;
+    Pinv.var1 = s;  Pinv.var2 = s_dum;                                      % DJ, 12/07/2024
     Pinv.P = inv(double(P.P)); Pinv.Q1=[]; Pinv.Q2 = []; Pinv.R.R0= []; 
     return
 end
@@ -158,7 +160,7 @@ interval = tau/N; % specifies the degree of the polynomial approximation and the
 ii=0;
 
 
-th = s; ksi = theta;
+th = s; ksi = s_dum;
 
 for ss=[l:interval:u]
     ii=ii+1;
@@ -215,6 +217,7 @@ Rh = Z_h_th.'*Gam_h*Z_h_ksi;  % Twice the degree of S^{-1}
 
 opvar Pinv;
 Pinv.I = I;
+Pinv.var1 = s;  Pinv.var2 = s_dum;                                          % DJ, 12/07/2024
 Pinv.P = Ph; Pinv.Q1=Qh; Pinv.Q2 = Qh'; Pinv.R.R0= Sh; Pinv.R.R1 = Rh; Pinv.R.R2 = Rh;
 end
 
