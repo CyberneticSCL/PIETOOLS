@@ -79,7 +79,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
 %
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -101,7 +101,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/09/2022
-% Add 1D conversion, DJ - 10/16/2024
+% DJ, 10/16/2024: Add 1D conversion
+% DJ, 12/10/2024: Replace default variables (ss1,tt1) --> (s1,s1_dum)
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,8 +182,8 @@ end
 is2D = nvars==2;
 if nvars==0
     % Define a 1D domain with variables.
-    pvar ss1 tt1
-    vars = [ss1,tt1];
+    pvar s1 s1_dum                                                          % DJ, 12/10/2024 
+    vars = [s1,s1_dum];
     dom = [0,1;0,1];
     nvars = 1;
     

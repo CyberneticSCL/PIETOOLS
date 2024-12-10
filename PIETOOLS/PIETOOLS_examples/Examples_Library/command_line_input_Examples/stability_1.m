@@ -1,5 +1,5 @@
 clc; clear;
-pvar s t theta; % define independent variables
+pvar s t; % define independent variables
 %% Define dependent variables and system variable
 % 	PDE: x_{t} = x_{s}                                 
 %   BCs: x(s=0) = 0 

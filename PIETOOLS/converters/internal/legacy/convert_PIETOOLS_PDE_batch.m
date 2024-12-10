@@ -47,6 +47,7 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 %    MMP - updated to new data structure and made the script a function
 % DJ 09/29/2021 - correction at the end to fill in empty parameters with
 % appropriate zeros just in case...
+% DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
 % undefined operators to empty opbjects.
@@ -54,7 +55,7 @@ PDE=initialize_PIETOOLS_PDE_batch(PDE);
 
 n0=PDE.n0;
 
-pvar s theta
+pvar s1 s1_dum                                                              % DJ, 12/07/2024
 
 X=PDE.dom;
 a=X(1); b=X(2);
@@ -179,7 +180,7 @@ Q2b=[B21 B22 E Exx];
 
 %%% At this point, we can construct the primal dynamics opvar
 opvar Apop;
-Apop.dim = [nz+ny+nx,nw+nu+nx+nrL1;np,nrL2]; Apop.var1 = s; Apop.var2 = theta; Apop.I = X;
+Apop.dim = [nz+ny+nx,nw+nu+nx+nrL1;np,nrL2]; Apop.var1 = s1; Apop.var2 = s1_dum; Apop.I = X;
 Apop.P=Pb;
 Apop.Q1=Q1b;
 Apop.Q2=Q2b;
@@ -212,7 +213,7 @@ end
 Q = [z10 z11 z12;
      z10 I1 z12;
      z20 z21 z22;
-     z20 z21 (b-s)*I2;
+     z20 z21 (b-s1)*I2;
      z20 z21 z22;
      z20 z21 I2];
  
@@ -222,16 +223,16 @@ Btemp2=BTinv*(Bxx-B*Q);
 
 K = [z01 z02 z02;
      I1 z12 z12;
-     z21 I2 (s-a)*I2];
+     z21 I2 (s1-a)*I2];
 
 Q2f=K*Btemp;
 R0f=[I0 z01 z02;
      z10 z11 z12;
      z20 z21 z22]; 
-R2f=K*var_swap(Btemp2,s,theta);
+R2f=K*var_swap(Btemp2,s1,s1_dum);
 R1f=R2f+[z00 z01 z02;
      z10 I1 z12;
-     z20 z21 (s-theta)*I2];
+     z20 z21 (s1-s1_dum)*I2];
  
  
  
@@ -250,14 +251,14 @@ Phf=[eye(nw+nu+nx);
     T*Btemp];
 Q1hf=[zeros(nw+nu+nx,np);
     Q+T*Btemp2] ;
-Q2hf=Ib1*Q2f+diff(Ib2*Q2f+diff(Ib3*Q2f,s),s);
+Q2hf=Ib1*Q2f+diff(Ib2*Q2f+diff(Ib3*Q2f,s1),s1);
 R0hf=Ib1*[I0 z01 z02;z10 z11 z12; z20 z21 z22]+Ib2*[z00 z01 z02;z10 I1 z12; z20 z21 z22]+Ib3*[z00 z01 z02;z10 z11 z12; z20 z21 I2];
-R1hf=Ib1*R1f+diff(Ib2*R1f+diff(Ib3*R1f,s),s);
-R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,s),s);
+R1hf=Ib1*R1f+diff(Ib2*R1f+diff(Ib3*R1f,s1),s1);
+R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,s1),s1);
 
 %%% We now construct the Phfop
 opvar Phfop;
-Phfop.dim = [nw+nu+nx+nrL1, nw+nu+nx;nrL2, np]; Phfop.var1 = s; Phfop.var2 = theta; Phfop.I = X;
+Phfop.dim = [nw+nu+nx+nrL1, nw+nu+nx;nrL2, np]; Phfop.var1 = s1; Phfop.var2 = s1_dum; Phfop.I = X;
 Phfop.P=Phf;
 Phfop.Q1=Q1hf;
 Phfop.Q2=Q2hf;
@@ -281,7 +282,7 @@ Ptop=Apop*Phfop;
 %%% We now construct the Tbigop (smaller construction)
 
 opvar Tbigop;
-Tbigop.dim = [nx, nw+nu+nx;np, np]; Tbigop.var1 = s; Tbigop.var2 = theta; Tbigop.I = X;
+Tbigop.dim = [nx, nw+nu+nx;np, np]; Tbigop.var1 = s1; Tbigop.var2 = s1_dum; Tbigop.I = X;
 Tbigop.P=[ zeros(nx,nw+nu) eye(nx)];
 Tbigop.Q1=zeros(nx,np);
 Tbigop.Q2=Q2f;

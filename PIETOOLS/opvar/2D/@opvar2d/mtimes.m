@@ -47,9 +47,10 @@ function [Pcomp] = mtimes(P1,P2)
 %   ^ Based heavily on "@opvar"-mtimes code by SS ^
 %
 % DJ, 02-20-2020: Added "if" statements to improve speed of algorithm
-% 02/19/2022 - DJ: Update for product of empty opvar with matrix
-% 04/06/2022 - DJ: Update to increase speed
-% 04/14/2022 - DJ: Update to use "int_simple"
+% 02/19/2022 - DJ: Update for product of empty opvar with matrix;
+% 04/06/2022 - DJ: Update to increase speed;
+% 04/14/2022 - DJ: Update to use "int_simple";
+% 11/30/2024 - DJ: Check that spatial and dummy variables match;
 
 
 if isa(P1,'opvar2d') && isa(P2,'opvar2d')
@@ -59,6 +60,14 @@ if isa(P1,'opvar2d') && isa(P2,'opvar2d')
     end
     if any(P1.I~=P2.I)
         error('Operators act on different intervals and cannot be composed');
+    end
+    if any(~isequal(P1.var1,P2.var1))                                       % (11/30/2024 - DJ)
+        % Make sure primary variables match;
+        P2 = subs_vars_op(P2,P2.var1,P1.var1);
+    end
+    if any(~isequal(P1.var2,P2.var2))                                       % (11/30/2024 - DJ)
+        % Make sure dummy variables match;
+        P1 = subs_vars_op(P1,P1.var2,P2.var2);
     end
     
     ds = P2.var1(:);

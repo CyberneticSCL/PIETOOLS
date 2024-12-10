@@ -51,8 +51,8 @@ odepde = addequation(odepde,[bc1;bc2]);
 % inputs for the simulation. 
 opts.plot = 'no';   % Do not plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
-opts.tf = 10;        % Simulate up to t = 1;
-opts.dt = 1e-2;     % Use time step of 10^-3
+opts.tf = 12;        % Simulate up to t = 12;
+opts.dt = 3*1e-2;     % Use time step of 3*10^-2
 opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
 ndiff = [0,2,0];    % The PDE state involves 2 first order differentiable state variables   
 

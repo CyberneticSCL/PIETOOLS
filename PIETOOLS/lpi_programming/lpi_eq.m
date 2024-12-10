@@ -46,9 +46,10 @@ function prog = lpi_eq(prog,P,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
-% 07/24/2023 - DJ: Add option to exploit symmetry of operators;
-% 10/19/2024 - DJ: Add support for non-opvar decision variables;
-%
+% 07/24/2023, DJ: Add option to exploit symmetry of operators;
+% 10/19/2024, DJ: Add support for non-opvar decision variables;
+% 11/29/2024, DJ: Make sure dummy variables match those in LPI program;
+
 
 % Check that the input is of appropriate type.
 if isa(P,'polynomial') || isa(P,'double')
@@ -57,16 +58,23 @@ elseif isa(P,'dpvar')
     % If P is not an opvar, we can enforce equality using just soseq.
     prog = soseq(prog,P);
     return
-elseif isa(P,'opvar2d') || isa(P,'dopvar2d')
-    % Pass 2D operator to associated lpi_eq function.
+elseif ~isa(P,'opvar') && ~isa(P,'dopvar') && ~isa(P,'opvar2d') && ~isa(P,'dopvar2d')
+    error('Input must be of type ''dopvar'', ''dopvar2d'', or ''dpvar''.')
+end
+% Make sure the opvar dummy variables match those in the LPI program.       (11/29/2024, DJ)
+n = size(prog.dom,1);
+dumvars = prog.vartable(n+1:2*n);
+if any(~ismember(P.var2.varname,dumvars.varname))
+    P = subs_vars_op(P,P.var2,dumvars);
+end
+% Pass 2D operator to associated lpi_eq function.
+if isa(P,'opvar2d') || isa(P,'dopvar2d')
     if nargin>=3
         prog = lpi_eq_2d(prog,P,opts);
     else
         prog = lpi_eq_2d(prog,P);
     end
     return
-elseif ~isa(P,'opvar') && ~isa(P,'dopvar')
-    error('Input must be of type ''dopvar'' or ''dpvar''.')
 end
 
 % Check if symmetric option is specified.

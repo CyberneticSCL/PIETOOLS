@@ -20,6 +20,8 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 6_28_2022
+% DJ, 12/07/2024: Update to avoid hardcoded polynomial variable in call to 
+%                   PIESIM_3PI2Mat_cheb_opint_discretize;
 function [A, A_nonsquare]=PIESIM_3PI2Mat_cheb(N, Rop, p)
 
 ns=size(p,2);
@@ -43,7 +45,7 @@ for i=1:ns
 % Treatment of mutliplicative operator (opmult stands for multiplicative)
         [A_opmult, A_opmult_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, R0(i,j), p(j));
  % Treatment of integrative operator (opint stands for integrative)
-         A_opint_nonsquare=PIESIM_3PI2Mat_cheb_opint_discretize(N,R1(i,j),R2(i,j),p(j)); 
+         A_opint_nonsquare=PIESIM_3PI2Mat_cheb_opint_discretize(N,R1(i,j),R2(i,j),p(j),Rop.var1,Rop.var2);  % DJ, 12/07/2024 
          A_opint=A_opint_nonsquare(1:rsize,1:csize);
 
  % Summing multiplicative and integrative together

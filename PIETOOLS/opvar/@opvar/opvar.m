@@ -46,6 +46,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
 %
 % Initial coding MMP, SS  - 7_26_2019
 % Changed var1 and var2 to be pvars instead of chars. SS - 9/6/2019
+% Changed default var1 and var2. SS -12/1/2024 
 
 
 
@@ -55,8 +56,8 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
         Q2 = polynomial([]);
         R = struct('R0',polynomial([]),'R1',polynomial([]),'R2',polynomial([]));
         I(1,2) double = [0,1];
-        var1 polynomial = pvar('s');
-        var2 polynomial = pvar('theta');
+        var1 polynomial = pvar('s1');   % change default vars
+        var2 polynomial = pvar('s1_dum');
         dim(2,2) double = [0 0; 0 0];
     end
     properties (Hidden)

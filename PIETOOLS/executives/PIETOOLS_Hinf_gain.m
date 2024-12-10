@@ -107,7 +107,7 @@ end
 fprintf('\n --- Searching for Hinf gain bound using primal KYP lemma --- \n')
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-prog = lpiprogram(PIE.vars,PIE.dom);      % Initialize the program structure
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

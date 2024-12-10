@@ -20,8 +20,8 @@ function Pop = mat2opvar(Pmat,Pdim,vars,dom)
 % - vars:       1x2 (1D) or 2x2 (2D) array of type 'polynomial', specifying
 %               the primary spatial variables (vars(:,1)=[x;y]) used by the
 %               operator, as well as the dummy variables (vars(:,2)) used
-%               for integration. Will defaults to [s,theta] in 1D, and
-%               [ss1,tt1; ss2,tt2] in 2D;
+%               for integration. Will defaults to [s1,s1_dum] in 1D, and
+%               [s1,s1_dum; s2,s2_dum] in 2D;
 % - dom:        1x2 (1D) or 2x2 (2D) array specifying for each spatial
 %               variable vars(i,1) (and corresponding dummy variable
 %               vars(i,2)) the interval [dom(i,1),dom(i,2)] on which this
@@ -49,7 +49,7 @@ function Pop = mat2opvar(Pmat,Pdim,vars,dom)
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by

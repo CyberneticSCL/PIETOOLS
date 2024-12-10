@@ -61,24 +61,24 @@ sz = 3;
 
 a1 = P.I(1,1); b1 = P.I(1,2); 
 a2 = P.I(2,1); b2 = P.I(2,2); 
-ss1 = P.var1(1); tt1 = P.var2(1);
-ss2 = P.var1(2); tt2 = P.var2(2);
+s1 = P.var1(1);
+s2 = P.var1(2);
 
 inprod = zeros(100,1);
 for i=1:100
     x_0 = 2*rand([m0,1]) - 1;       
     if mx>0
-        x_x = rndm_plnml(mx,1,{'ss1'},sz);
+        x_x = rndm_plnml(mx,1,s1.varname,sz);
     else
         x_x = zeros(0,1);
     end
     if my>0
-        x_y = rndm_plnml(my,1,{'ss2'},sz);
+        x_y = rndm_plnml(my,1,s2.varname,sz);
     else
         x_y = zeros(0,1);
     end
     if m2>0
-        x_2 = rndm_plnml(m2,1,{'ss1','ss2'},sz);
+        x_2 = rndm_plnml(m2,1,[s1.varname;s2.varname],sz);
     else
         x_2 = zeros(0,1);
     end
@@ -89,9 +89,9 @@ for i=1:100
     nval = cumsum(ndim);
 
     yP1x_0 = x(1:nval(1),1)'*P1x(1:nval(1),1);
-    yP1x_x = int(x(nval(1)+1:nval(2),1)'*P1x(nval(1)+1:nval(2),1),ss1,a1,b1);
-    yP1x_y = int(x(nval(2)+1:nval(3),1)'*P1x(nval(2)+1:nval(3),1),ss2,a2,b2);
-    yP1x_2 = int(int(x(nval(3)+1:nval(4),1)'*P1x(nval(3)+1:nval(4),1),ss1,a1,b1),ss2,a2,b2);
+    yP1x_x = int(x(nval(1)+1:nval(2),1)'*P1x(nval(1)+1:nval(2),1),s1,a1,b1);
+    yP1x_y = int(x(nval(2)+1:nval(3),1)'*P1x(nval(2)+1:nval(3),1),s2,a2,b2);
+    yP1x_2 = int(int(x(nval(3)+1:nval(4),1)'*P1x(nval(3)+1:nval(4),1),s1,a1,b1),s2,a2,b2);
 
     inprod(i) = double(yP1x_0 + yP1x_x + yP1x_y + yP1x_2);
     

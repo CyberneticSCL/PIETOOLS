@@ -89,7 +89,7 @@ else
     Pdom = PIE.dom;
     Pdeg = {2,[1,1,2],[1,1,2]};
     opts.sep = 0;
-    [prog,P] = poslpivar(prog,Pdim,Pdom,Pdeg,opts);
+    [prog,P] = poslpivar(prog,Pdim,Pdeg,opts);
     eppos = 1e-3;
     P.R.R0 = P.R.R0 + eppos*eye(size(P.R.R0));
 
@@ -97,13 +97,14 @@ else
     Zdim = B2.dim(:,[2,1]);
     Zdom = PIE.dom;
     Zdeg = [4,0,0];
-    [prog,Z] = lpivar(prog,Zdim,Zdom,Zdeg);
+    [prog,Z] = lpivar(prog,Zdim,Zdeg);
 
     % Declare the LPI constraint Q<=0.
     opvar Iw Iz;
     Iw.dim = [B1.dim(:,2),B1.dim(:,2)];     Iz.dim = [C1.dim(:,1),C1.dim(:,1)];
     Iw.P = eye(size(Iw.P));                 Iz.P = eye(size(Iz.P));
     Iw.R.R0 = eye(size(Iw.R.R0));           Iz.R.R0 = eye(size(Iz.R.R0));
+    Iw.var1 = P.var1;   Iw.var2 = P.var2;   Iz.var1 = P.var1;   Iz.var2 = P.var2;
 
     Q = [-gam*Iz        D11          (C1*P+D12*Z)*(T');
         D11'            -gam*Iw      B1';

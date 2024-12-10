@@ -125,7 +125,7 @@ end
 % STEP 1: Initialize the SOS program in the provided spatial variables, and
 % set the Hinfty norm as an objective function value 
 disp(' === Executing dual stability test === ')
-prog = lpiprogram(PIE.vars,PIE.dom);      % Initialize the program structure
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 
 
 

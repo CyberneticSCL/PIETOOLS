@@ -180,7 +180,7 @@ end
 % STEP 1: Initialize the SOS program in the provided spatial variables, and
 % set the Hinfty norm of the closed-loop system as objective function value 
 
-prog = lpiprogram(PIE.vars,PIE.dom);         % Initialize the program structure
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % Initialize the program structure
 if gain==0
     fprintf('\n --- Searching for an Hinf optimal estimator --- \n')
     % If no gain is provided, include the gain as a decision variable, and

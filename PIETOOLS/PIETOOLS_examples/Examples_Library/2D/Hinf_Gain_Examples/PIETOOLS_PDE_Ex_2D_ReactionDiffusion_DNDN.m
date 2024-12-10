@@ -36,7 +36,7 @@ root = fileparts(loc);
 
 % Initialize variables
 pde_struct PDE_t;
-pvar s theta s1 s2 theta1 theta2
+pvar s1 s2
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;');

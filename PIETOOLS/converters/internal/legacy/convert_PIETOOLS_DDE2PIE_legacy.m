@@ -63,6 +63,7 @@ function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 %  MP - 6_1_2021:  made a function. Changed name. Added warning
 %  SS - 9/28: added correction to fix 0x0 empty matrices by replacing with empty matrices of correct size 
 %  DJ - 09/01/2022: Output result as "pie_struct" object.
+% DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 
 disp('WARNING: convert_PIETOOLS_DDE2PIE is no longer supported! Direct conversion of DDE to PIE is NOT recommended and may result in very large computation times!!! Please use minimize_PIETOOLS_DDE2PIE instead!')
 
@@ -78,7 +79,7 @@ ny=size(DDE.C2,1);  % number of sensed outputs
 nK=length(DDE.tau);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-pvar s theta
+pvar s1 s1_dum                                                              % DJ, 12/07/2024
 % First we define the Single-Pipe PIE Representation of the DDE
 Itau=[];
 Tb0=[];
@@ -109,39 +110,39 @@ Db12=DDE.D12;
 Db21=DDE.D21;
 Db22=DDE.D22;
 for i = 1:nK
-  XAi=[DDE.Ai{i} DDE.B1i{i} DDE.B2i{i}]+DDE.tau(i)*int(subs([DDE.Adi{i} DDE.B1di{i} DDE.B2di{i}],s,DDE.tau(i)*s),s,-1,s);
-  XC1i=[DDE.C1i{i} DDE.D11i{i} DDE.D12i{i}]+DDE.tau(i)*int(subs([DDE.C1di{i} DDE.D11di{i} DDE.D12di{i}],s,DDE.tau(i)*s),s,-1,s);
-  XC2i=[DDE.C2i{i} DDE.D21i{i} DDE.D22i{i}]+DDE.tau(i)*int(subs([DDE.C2di{i} DDE.D21di{i} DDE.D22di{i}],s,DDE.tau(i)*s),s,-1,s);
-  Ab0 = Ab0 + DDE.Ai{i} + int(DDE.tau(i)*subs(DDE.Adi{i},s,DDE.tau(i)*s),s,-1,0);
+  XAi=[DDE.Ai{i} DDE.B1i{i} DDE.B2i{i}]+DDE.tau(i)*int(subs([DDE.Adi{i} DDE.B1di{i} DDE.B2di{i}],s1,DDE.tau(i)*s1),s1,-1,s1);
+  XC1i=[DDE.C1i{i} DDE.D11i{i} DDE.D12i{i}]+DDE.tau(i)*int(subs([DDE.C1di{i} DDE.D11di{i} DDE.D12di{i}],s1,DDE.tau(i)*s1),s1,-1,s1);
+  XC2i=[DDE.C2i{i} DDE.D21i{i} DDE.D22i{i}]+DDE.tau(i)*int(subs([DDE.C2di{i} DDE.D21di{i} DDE.D22di{i}],s1,DDE.tau(i)*s1),s1,-1,s1);
+  Ab0 = Ab0 + DDE.Ai{i} + int(DDE.tau(i)*subs(DDE.Adi{i},s1,DDE.tau(i)*s1),s1,-1,0);
   Ab=[Ab -XAi];
-  Bb1 = Bb1 + DDE.B1i{i} + int(DDE.tau(i)*subs(DDE.B1di{i},s,DDE.tau(i)*s),s,-1,0);
-  Bb2 = Bb2 + DDE.B2i{i} + int(DDE.tau(i)*subs(DDE.B2di{i},s,DDE.tau(i)*s),s,-1,0);
-  Db11 = Db11 + DDE.D11i{i} + int(DDE.tau(i)*subs(DDE.D11di{i},s,DDE.tau(i)*s),s,-1,0);
-  Db12 = Db12 + DDE.D12i{i} + int(DDE.tau(i)*subs(DDE.D12di{i},s,DDE.tau(i)*s),s,-1,0);
-  Db21 = Db21 + DDE.D21i{i} + int(DDE.tau(i)*subs(DDE.D21di{i},s,DDE.tau(i)*s),s,-1,0);
-  Db22 = Db22 + DDE.D22i{i} + int(DDE.tau(i)*subs(DDE.D22di{i},s,DDE.tau(i)*s),s,-1,0);
+  Bb1 = Bb1 + DDE.B1i{i} + int(DDE.tau(i)*subs(DDE.B1di{i},s1,DDE.tau(i)*s1),s1,-1,0);
+  Bb2 = Bb2 + DDE.B2i{i} + int(DDE.tau(i)*subs(DDE.B2di{i},s1,DDE.tau(i)*s1),s1,-1,0);
+  Db11 = Db11 + DDE.D11i{i} + int(DDE.tau(i)*subs(DDE.D11di{i},s1,DDE.tau(i)*s1),s1,-1,0);
+  Db12 = Db12 + DDE.D12i{i} + int(DDE.tau(i)*subs(DDE.D12di{i},s1,DDE.tau(i)*s1),s1,-1,0);
+  Db21 = Db21 + DDE.D21i{i} + int(DDE.tau(i)*subs(DDE.D21di{i},s1,DDE.tau(i)*s1),s1,-1,0);
+  Db22 = Db22 + DDE.D22i{i} + int(DDE.tau(i)*subs(DDE.D22di{i},s1,DDE.tau(i)*s1),s1,-1,0);
   Cb11=[Cb11 -XC1i];
   Cb21=[Cb21 -XC2i];
-  Cb10 = Cb10 + DDE.C1i{i} + int(DDE.tau(i)*subs(DDE.C1di{i},s,DDE.tau(i)*s),s,-1,0);
-  Cb20 = Cb20 + DDE.C2i{i} + int(DDE.tau(i)*subs(DDE.C2di{i},s,DDE.tau(i)*s),s,-1,0);
+  Cb10 = Cb10 + DDE.C1i{i} + int(DDE.tau(i)*subs(DDE.C1di{i},s1,DDE.tau(i)*s1),s1,-1,0);
+  Cb20 = Cb20 + DDE.C2i{i} + int(DDE.tau(i)*subs(DDE.C2di{i},s1,DDE.tau(i)*s1),s1,-1,0);
   clear XAi XC1i XC2i
 end
 nxb=(nx+nw+nu)*nK; % number of infinite-dimensional states
 
 % Initialize the system 4-PI operators
 opvar Top Aop C1op C2op B1op B2op D11op D12op D21op D22op TB1op TB2op;
-Top.I = [-1 0]; Top.dim = [nx nx; nxb nxb]; Top.var1 = s; Top.var2 = theta;
-Aop.I = [-1 0]; Aop.dim = [nx nx; nxb nxb]; Aop.var1 = s; Aop.var2 = theta;
-C1op.I = [-1 0]; C1op.dim = [nz nx; 0 nxb]; C1op.var1 = s; C1op.var2 = theta;
-C2op.I = [-1 0]; C2op.dim = [ny nx; 0 nxb]; C2op.var1 = s; C2op.var2 = theta;
-B1op.I = [-1 0]; B1op.dim=[nx nw; nxb 0]; B1op.var1 = s; B1op.var2 = theta;
-B2op.I = [-1 0]; B2op.dim = [nx nu; nxb 0]; B2op.var1 = s; B2op.var2 = theta;
-D11op.I = [-1 0]; D11op.dim = [nz nw; 0 0]; D11op.var1 = s; D11op.var2 = theta;
-D12op.I = [-1 0]; D12op.dim = [nz nw; 0 0]; D12op.var1 = s; D12op.var2 = theta;
-D21op.I = [-1 0]; D21op.dim = [nz nw; 0 0]; D21op.var1 = s; D21op.var2 = theta;
-D22op.I = [-1 0]; D22op.dim = [nz nw; 0 0]; D22op.var1 = s; D22op.var2 = theta;
-TB1op.I = [-1 0]; TB1op.dim = [nx nw; nxb 0]; TB1op.var1 = s; TB1op.var2 = theta;
-TB2op.I = [-1 0]; TB2op.dim = [nx nu; nxb 0]; TB2op.var1 = s; TB2op.var2 = theta;
+Top.I = [-1 0]; Top.dim = [nx nx; nxb nxb]; Top.var1 = s1; Top.var2 = s1_dum;
+Aop.I = [-1 0]; Aop.dim = [nx nx; nxb nxb]; Aop.var1 = s1; Aop.var2 = s1_dum;
+C1op.I = [-1 0]; C1op.dim = [nz nx; 0 nxb]; C1op.var1 = s1; C1op.var2 = s1_dum;
+C2op.I = [-1 0]; C2op.dim = [ny nx; 0 nxb]; C2op.var1 = s1; C2op.var2 = s1_dum;
+B1op.I = [-1 0]; B1op.dim=[nx nw; nxb 0]; B1op.var1 = s1; B1op.var2 = s1_dum;
+B2op.I = [-1 0]; B2op.dim = [nx nu; nxb 0]; B2op.var1 = s1; B2op.var2 = s1_dum;
+D11op.I = [-1 0]; D11op.dim = [nz nw; 0 0]; D11op.var1 = s1; D11op.var2 = s1_dum;
+D12op.I = [-1 0]; D12op.dim = [nz nw; 0 0]; D12op.var1 = s1; D12op.var2 = s1_dum;
+D21op.I = [-1 0]; D21op.dim = [nz nw; 0 0]; D21op.var1 = s1; D21op.var2 = s1_dum;
+D22op.I = [-1 0]; D22op.dim = [nz nw; 0 0]; D22op.var1 = s1; D22op.var2 = s1_dum;
+TB1op.I = [-1 0]; TB1op.dim = [nx nw; nxb 0]; TB1op.var1 = s1; TB1op.var2 = s1_dum;
+TB2op.I = [-1 0]; TB2op.dim = [nx nu; nxb 0]; TB2op.var1 = s1; TB2op.var2 = s1_dum;
 
 % We now define the 4-PI system operators
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

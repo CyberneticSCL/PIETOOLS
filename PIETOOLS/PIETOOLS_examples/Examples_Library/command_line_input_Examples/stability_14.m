@@ -1,5 +1,5 @@
 clc; clear;
-pvar s t theta; % define independent variables
+pvar s t; % define independent variables
 %% Define dependent variables and system variable
 %   PDE: x1_{t} = (1/aa) * x2_{s}                
 %        x2_{t} = k*aa*g * x1_{s} - k*aa*g * x3   

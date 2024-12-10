@@ -38,6 +38,9 @@ function T = transl(T,I)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_29_2021
+% comment A: SS, 12/1/2024 changing hardcoded pvars to input dependent
+% pvars
+
 
 
 if nargin==1
@@ -59,7 +62,9 @@ b = I_init(2);
 c = I(1);
 d = I(2);
 
-pvar s theta sbar thetabar;
+s = T.var1; theta = T.var2;  %comment A
+
+pvar sbar thetabar;
 
 T.Q1 = ((b-a)/(d-c))*subs(T.Q1, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));
 T.Q1 = subs(T.Q1, sbar, s);

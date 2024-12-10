@@ -38,6 +38,7 @@ function PIE = initialize_PIETOOLS_PIE(PIE)
 % authorship, and a brief description of modifications
 %
 % Initial coding SS - 08/01/2022
+% DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 
 if nargin==0
     PIE = pie_struct();
@@ -54,7 +55,7 @@ if ~isfield(PIE,'dom')
     PIE.dom = [0,1];
 end
 if ~isfield(PIE,'vars')
-    PIE.vars = [pvar('s'),pvar('theta')];
+    PIE.vars = [pvar('s1'),pvar('s1_dum')];                                 % DJ, 12/07/2024
 end
 
 % store dimension information in the structure

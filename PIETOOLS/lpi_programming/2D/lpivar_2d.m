@@ -1,6 +1,6 @@
 function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [prog,Zop] = lpivar_2d(prog,dim,I,d,options) declares an indefinite
+% [prog,Zop] = lpivar_2d(prog,dim,d,options) declares an indefinite
 % 0112-PI operator,
 %
 % Zop = [R00 R0x R0y R02]
@@ -24,9 +24,8 @@ function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 %
 % 
 % INPUT 
-%   prog: SOS program to modify.
+%   prog: LPI program to modify.
 %   dim:  4x2 array providing the dimensions of the PI operators
-%   I:    2x2 array [a,b;c,d] providing the domain ss1\in[a,b], ss2\in[c,d]
 %
 %   d, structure with fields dx, dy, d2, where:
 %   dx{1}: degree of s in Zx^o(s)
@@ -83,7 +82,7 @@ function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 %      options.sep(5) = 1 if R22{2,2} = R22{3,2} = R22{2,3} = R22{3,3}
 % 
 % OUTPUT 
-%   prog: modified SOS program with new variables and constraints
+%   prog: modified LPI program with new variables and constraints
 %   Zop:  dopvar2d object describing an indefinite PI operator
 % 
 % NOTES:
@@ -115,6 +114,7 @@ function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07/01/2024
+%                   (ss1,ss2,tt1,tt2) --> (s1,s2,s1_dum,s2_dum);
 
 
 % % First, check the spatial domain on which the program is defined.
@@ -303,12 +303,12 @@ end
 
 % Define the primary variables
 if isempty(prog.vartable)
-    pvar ss1 ss2 tt1 tt2
-    var1 = [ss1;ss2];       var2 = [tt1;tt2];
+    pvar s1 s2 s1_dum s2_dum
+    var1 = [s1;s2];       var2 = [s1_dum;s2_dum];
 elseif length(prog.vartable)==2
     var1 = polynomial(prog.vartable);
-    pvar tt1 tt2;
-    var2 = [tt1;tt2];
+    pvar s1_dum s2_dum;
+    var2 = [s1_dum;s2_dum];
 elseif length(prog.vartable)==4
     var = polynomial(prog.vartable);
     var1 = var((1:2)');     var2 = var((3:4)');

@@ -22,15 +22,15 @@ function [opdegs,maxdegs,mindegs] = getdeg(P)
 %           associated component in P. Maximal joint degrees in
 %           combinations of variables are also provided, ordered as
 %
-%                 0 |         ss2 |         tt2 |         ss2*tt2
-%          ---------|-------------|-------------|-----------------
-%               ss1 |     ss1*ss2 |     ss1*tt2 |     ss1*ss2*tt2
-%          ---------|-------------|-------------|-----------------
-%               tt1 |     tt1*ss2 |     tt1*tt2 |     tt1*ss2*tt2 
-%          ---------|-------------|-------------|-----------------
-%           ss1*tt1 | ss1*tt1*ss2 | ss1*tt1*tt2 | ss1*tt1*ss2*tt2  
+%                0 |           s2 |           s2_dum |           s2*s2_dum
+%       -----------|--------------|------------------|---------------------
+%               s1 |        s1*s2 |        s1*s2_dum |        s1*s2*s2_dum
+%       -----------|--------------|------------------|---------------------
+%           s1_dum |    s1_dum*s2 |    s1_dum*s2_dum |    s1_dum*s2*s2_dum 
+%       -----------|--------------|------------------|---------------------
+%        s1*s1_dum | s1*s1_dum*s2 | s1*s1_dum*s2_dum | s1*s1_dum*s2*s2_dum  
 %
-%           where ss1=P.var1(1), ss2=P.var1(2), tt1=P.var2(1), tt2=P.var2(2);
+%           where s1=P.var1(1), s2=P.var1(2), s1_dum=P.var2(1), s2_dum=P.var2(2);
 %
 %   mindegs: similar to maxdegs, only providing minimal (total) degrees
 %           instead of maximal degress in each variable
@@ -69,25 +69,25 @@ if ~isa(P,'opvar2d')
     error('Input must be a dopvar2d object.');
 end
 
-% ss1
+% s1
 if isa(P.var1(1),'polynomial')
     var11 = P.var1(1).varname;
 elseif isa(P.var1,'char')
     var11 = P.var1(1);
 end
-% tt1
+% s1_dum
 if isa(P.var2(1),'polynomial')
     var12 = P.var2(1).varname;
 elseif isa(P.var2,'char')
     var12 = P.var2(1);
 end
-% ss2
+% s2
 if isa(P.var1(2),'polynomial')
     var21 = P.var1(2).varname;
 elseif isa(P.var1,'char')
     var21 = P.var1(2);
 end
-% tt2
+% s2_dum
 if isa(P.var2(2),'polynomial')
     var22 = P.var2(2).varname;
 elseif isa(P.var2,'char')
@@ -117,10 +117,10 @@ for f=1:length(fset)
     elseif isa(PR,'polynomial')
         % Find which variable in the polynomial corresponds to each
         % variable of the opvar
-        idx1 = find(strcmp(PR.varname,var11));  % ss1
-        idx2 = find(strcmp(PR.varname,var12));  % tt1
-        idx3 = find(strcmp(PR.varname,var21));  % ss2
-        idx4 = find(strcmp(PR.varname,var22));  % tt2
+        idx1 = find(strcmp(PR.varname,var11));  % s1
+        idx2 = find(strcmp(PR.varname,var12));  % s1_dum
+        idx3 = find(strcmp(PR.varname,var21));  % s2
+        idx4 = find(strcmp(PR.varname,var22));  % s2_dum
         
         PRdegs = PR.degmat;                 % Extract degtable in current vars
         nmons = size(PRdegs,1);
@@ -130,16 +130,16 @@ for f=1:length(fset)
         
         % % For each variable, add the degrees to the appropriate column of
         % % the degmat
-        if ~isempty(idx1)   % Degrees in ss1
+        if ~isempty(idx1)   % Degrees in s1
             opdegs.(fset{f})(:,1) = PRdegs(:,idx1);
         end
-        if ~isempty(idx2)   % Degrees in tt1
+        if ~isempty(idx2)   % Degrees in s1_dum
             opdegs.(fset{f})(:,2) = PRdegs(:,idx2);
         end
-        if ~isempty(idx3)   % Degrees in ss2
+        if ~isempty(idx3)   % Degrees in s2
             opdegs.(fset{f})(:,3) = PRdegs(:,idx3);
         end
-        if ~isempty(idx4)   % Degrees in tt2
+        if ~isempty(idx4)   % Degrees in s2_dum
             opdegs.(fset{f})(:,4) = PRdegs(:,idx4);
         end
         for l = 2:2^4   % Loop over all possible combinations of variables
@@ -163,10 +163,10 @@ for f=1:length(fset)
             elseif isa(PRR,'polynomial') || isa(PRR,'dpvar')
                 % Find which variable in the polynomial corresponds to each
                 % variable of the opvar
-                idx1 = find(strcmp(PRR.varname,var11));  % ss1
-                idx2 = find(strcmp(PRR.varname,var12));  % tt1
-                idx3 = find(strcmp(PRR.varname,var21));  % ss2
-                idx4 = find(strcmp(PRR.varname,var22));  % tt2
+                idx1 = find(strcmp(PRR.varname,var11));  % s1
+                idx2 = find(strcmp(PRR.varname,var12));  % s1_dum
+                idx3 = find(strcmp(PRR.varname,var21));  % s2
+                idx4 = find(strcmp(PRR.varname,var22));  % s2_dum
                 
                 PRdegs = PRR.degmat;                 % Extract degtable in current vars
                 nmons = size(PRdegs,1);
@@ -176,16 +176,16 @@ for f=1:length(fset)
                 
                 % % For each variable, add the degrees to the appropriate column of
                 % % the degmat
-                if ~isempty(idx1)   % Degrees in ss1
+                if ~isempty(idx1)   % Degrees in s1
                     opdegs.(fset{f}){j}(:,1) = PRdegs(:,idx1);
                 end
-                if ~isempty(idx2)   % Degrees in tt1
+                if ~isempty(idx2)   % Degrees in s1_dum
                     opdegs.(fset{f}){j}(:,2) = PRdegs(:,idx2);
                 end
-                if ~isempty(idx3)   % Degrees in ss2
+                if ~isempty(idx3)   % Degrees in s2
                     opdegs.(fset{f}){j}(:,3) = PRdegs(:,idx3);
                 end
-                if ~isempty(idx4)   % Degrees in tt2
+                if ~isempty(idx4)   % Degrees in s2_dum
                     opdegs.(fset{f}){j}(:,4) = PRdegs(:,idx4);
                 end
                 for l = 2:2^4   % Loop over all possible combinations of variables

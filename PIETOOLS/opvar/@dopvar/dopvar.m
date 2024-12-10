@@ -44,6 +44,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?opvar}) dopvar
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 
+% comment A, SS - 12/1/2024, removing default values
+
 
 
 
@@ -53,8 +55,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?opvar}) dopvar
         Q2 = dpvar();
         R = struct('R0',dpvar(),'R1',dpvar(),'R2',dpvar()); 
         I(1,2) double = [0,1];
-        var1 polynomial = pvar('s');
-        var2 polynomial = pvar('theta');
+        var1 polynomial = pvar('s1'); % comment A
+        var2 polynomial = pvar('s1_dum');
         dim(2,2) double = [0 0; 0 0];
     end
     properties (Hidden)

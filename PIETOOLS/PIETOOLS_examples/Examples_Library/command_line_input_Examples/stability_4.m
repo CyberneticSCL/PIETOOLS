@@ -1,5 +1,5 @@
 clc; clear;
-pvar s t theta; % define independent variables
+pvar s t; % define independent variables
 %% Define dependent variables and system variable
 % 	PDE: x1_{t} = sig1*x2 - (1/r1)*x1_{s}           | Different parameters          Saba 2019 [3] 
 %        x2_{t} = sig2*x1 + (1/r2)*x2_{s}           | may be invoked calling  

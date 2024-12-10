@@ -19,15 +19,16 @@ function [logval, msg] = isvalid(P,type)
 %                 0 if the object is a valid dopvar2d,
 %                 1 if the object has incorrect dimensions
 %                 2 if component P.R00 is not a matrix
-%                 3.1 if R0x, Rx0 or Rxx{1,1} are not polynomials in ss1
-%                 3.2 if R0y, Ry0 or Ryy{1,1} are not polynomials in ss2
+%                 3.1 if R0x, Rx0 or Rxx{1,1} are not polynomials in s1
+%                 3.2 if R0y, Ry0 or Ryy{1,1} are not polynomials in s2
 %                 3.3 if Rxy, Ryx, Rx2{1,1}, R2x{1,1}, Ry2{1,1}, R2y{1,1}
-%                       or R22{1,1} are not polynomials in (ss1,ss2)
-%                 4.1 if Rxx{i,1} are not polynomials in (ss1, tt1)
-%                 4.2 if Ryy{1,i} are not polynomials in (ss2, tt2)
-%                 4.3 if Rx2{i,1}, R2x{i,1}, R22{i,1} are not polynomials in (ss1, ss2, tt1)
-%                 4.4 if Ry2{1,i}, R2i{1,i}, R22{1,i} are not polynomials in (ss1, ss2, tt2)
-%                 4.5 if R22{i,j} are not polynomials in (ss1, ss2, tt1, tt2)
+%                       or R22{1,1} are not polynomials in (s1,s2)
+%                 4.1 if Rxx{i,1} are not polynomials in (s1, s1_dum)
+%                 4.2 if Ryy{1,i} are not polynomials in (s2, s2_dum)
+%                 4.3 if Rx2{i,1}, R2x{i,1}, R22{i,1} are not polynomials in (s1, s2, s1_dum)
+%                 4.4 if Ry2{1,i}, R2i{1,i}, R22{1,i} are not polynomials in (s1, s2, s2_dum)
+%                 4.5 if R22{i,j} are not polynomials in (s1, s2, s1_dum, s2_dum)
+%         where s1=P.var1(1), s2=P.var1(2), s1_dum=P.var2(1), s2_dum=P.var2(2);
 % msg: type of error
 % 
 % NOTES:

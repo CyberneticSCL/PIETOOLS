@@ -1,5 +1,5 @@
 clc; clear;
-pvar s t theta; % define independent variables
+pvar s t; % define independent variables
 %% Define dependent variables and system variable
 %   ODE: xo_{t} = xo + x_{s}(s=0)               	| k = -2   
 %   PDE: x_{t} = x_{ss}                             |                            

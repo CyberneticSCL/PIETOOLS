@@ -31,6 +31,9 @@ function out = getPDEparams(pdeObj)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+% SS, 2022: Initial coding;
+% DJ, 12/07/2024: Replace dummy variable theta with s_dum;
+
 equations = pdeObj.equation;
 statelist = pdeObj.states;
 eqnNum = length(equations);
@@ -78,7 +81,7 @@ out = pde_struct();
 
 % set known global properties
 out.dom = dom;
-out.vars = [pvar('s'),pvar('theta')];
+out.vars = [pvar('s'),pvar('s_dum')];                                       % DJ, 12/07/2024
 
 % set state properties
 out.x = cell(length(xNames),1);

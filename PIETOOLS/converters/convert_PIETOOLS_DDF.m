@@ -44,8 +44,9 @@ function PIE=convert_PIETOOLS_DDF(DDF,out_type)
 % Initial coding MP - 10_01_2020
 %  MP - 5_30_2021; converted script to function format
 % SS - 9/28, added a dimension correction step to replace 0x0 empty
-%  DJ - 09/01/2022: Output result as "pie_struct" object.
 % matrices with empty matrices of correct size
+%  DJ - 09/01/2022: Output result as "pie_struct" object.
+% DJ, 12/07/2024: Use new default vars (s1,s2) and (s1_dum,s2_dum);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert DDF to 4-PI representation
@@ -66,7 +67,7 @@ DDF=initialize_PIETOOLS_DDF(DDF);
  nz=size(DDF.C1,1);  % number of regulated outputs
  ny=size(DDF.C2,1);  % number of sensed outputs
 
- pvar s theta
+ pvar s1 s1_dum                                                             % DJ, 12/07/2024
 % First we define the Single-Pipe PIE Representation of the TDS
 
 
@@ -79,7 +80,7 @@ sumDvu=zeros(nv,nu);
 
 
 for i = 1:nK
-    Chv{i}=DDF.Cv{i}+double(DDF.tau(i)*int(subs(DDF.Cvd{i},s,DDF.tau(i)*s),s,-1,0));
+    Chv{i}=DDF.Cv{i}+double(DDF.tau(i)*int(subs(DDF.Cvd{i},s1,DDF.tau(i)*s1),s1,-1,0));
     sumCvx=sumCvx+Chv{i}*DDF.Cr{i};
     sumDI=sumDI+Chv{i}*DDF.Drv{i};
     sumDvw=sumDvw+Chv{i}*DDF.Br1{i};
@@ -90,7 +91,7 @@ Cvx=DI*sumCvx;
 Dvw=DI*sumDvw;
 Dvu=DI*sumDvu;
 for i = 1:nK
-    CI{i}=-DI*(DDF.Cv{i}+DDF.tau(i)*int(subs(DDF.Cvd{i},s,theta*DDF.tau(i)),theta,-1,s));
+    CI{i}=-DI*(DDF.Cv{i}+DDF.tau(i)*int(subs(DDF.Cvd{i},s1,s1_dum*DDF.tau(i)),s1_dum,-1,s1));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -122,7 +123,7 @@ Tbas=[];
 for i = 1:nK
     Tbas=[Tbas;DDF.Drv{i}*Tbai];
 end
-Tba=subs(Tbas,s,theta);
+Tba=subs(Tbas,s1,s1_dum);
 Tbb=-eye(nxb)+Tba;
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -147,18 +148,18 @@ Cb21=DDF.D2v*Tbai;
 
 % Initialize the system 4-PI operators
 opvar Top Aop C1op C2op B1op B2op D11op D12op D21op D22op TB1op TB2op;
-Top.I = [-1 0]; Top.dim = [nx nx; nxb nxb]; Top.var1 = s; Top.var2 = theta;
-Aop.I = [-1 0]; Aop.dim = [nx nx; nxb nxb]; Aop.var1 = s; Aop.var2 = theta;
-C1op.I = [-1 0]; C1op.dim = [nz nx; 0 nxb]; C1op.var1 = s; C1op.var2 = theta;
-C2op.I = [-1 0]; C2op.dim = [ny nx; 0 nxb]; C2op.var1 = s; C2op.var2 = theta;
-B1op.I = [-1 0]; B1op.dim=[nx nw; nxb 0]; B1op.var1 = s; B1op.var2 = theta;
-B2op.I = [-1 0]; B2op.dim = [nx nu; nxb 0]; B2op.var1 = s; B2op.var2 = theta;
-D11op.I = [-1 0]; D11op.dim = [nz nw; 0 0]; D11op.var1 = s; D11op.var2 = theta;
-D12op.I = [-1 0]; D12op.dim = [nz nu; 0 0]; D12op.var1 = s; D12op.var2 = theta;
-D21op.I = [-1 0]; D21op.dim = [ny nw; 0 0]; D21op.var1 = s; D21op.var2 = theta;
-D22op.I = [-1 0]; D22op.dim = [ny nu; 0 0]; D22op.var1 = s; D22op.var2 = theta;
-TB1op.I = [-1 0]; TB1op.dim = [nx nw; nxb 0]; TB1op.var1 = s; TB1op.var2 = theta;
-TB2op.I = [-1 0]; TB2op.dim = [nx nu; nxb 0]; TB2op.var1 = s; TB2op.var2 = theta;
+Top.I = [-1 0]; Top.dim = [nx nx; nxb nxb]; Top.var1 = s1; Top.var2 = s1_dum;
+Aop.I = [-1 0]; Aop.dim = [nx nx; nxb nxb]; Aop.var1 = s1; Aop.var2 = s1_dum;
+C1op.I = [-1 0]; C1op.dim = [nz nx; 0 nxb]; C1op.var1 = s1; C1op.var2 = s1_dum;
+C2op.I = [-1 0]; C2op.dim = [ny nx; 0 nxb]; C2op.var1 = s1; C2op.var2 = s1_dum;
+B1op.I = [-1 0]; B1op.dim=[nx nw; nxb 0]; B1op.var1 = s1; B1op.var2 = s1_dum;
+B2op.I = [-1 0]; B2op.dim = [nx nu; nxb 0]; B2op.var1 = s1; B2op.var2 = s1_dum;
+D11op.I = [-1 0]; D11op.dim = [nz nw; 0 0]; D11op.var1 = s1; D11op.var2 = s1_dum;
+D12op.I = [-1 0]; D12op.dim = [nz nu; 0 0]; D12op.var1 = s1; D12op.var2 = s1_dum;
+D21op.I = [-1 0]; D21op.dim = [ny nw; 0 0]; D21op.var1 = s1; D21op.var2 = s1_dum;
+D22op.I = [-1 0]; D22op.dim = [ny nu; 0 0]; D22op.var1 = s1; D22op.var2 = s1_dum;
+TB1op.I = [-1 0]; TB1op.dim = [nx nw; nxb 0]; TB1op.var1 = s1; TB1op.var2 = s1_dum;
+TB2op.I = [-1 0]; TB2op.dim = [nx nu; nxb 0]; TB2op.var1 = s1; TB2op.var2 = s1_dum;
 
 
 % We now define the 12-opvar system representation

@@ -218,31 +218,31 @@ Rx0 = Pop.Rx0;  Rxx = Pop.Rxx{2};  Rxy = Pop.Rxy;     Rx2 = Pop.Rx2{2};
 Ry0 = Pop.Ry0;  Ryx = Pop.Ryx;     Ryy = Pop.Ryy{2};  Ry2 = Pop.Ry2{2};
 R20 = Pop.R20;  R2x = Pop.R2x{2};  R2y = Pop.R2y{2};  R22 = Pop.R22{2,2};
 
-ss1 = Pop.var1(1).varname{1};  tt1 = Pop.var2(1).varname{1};
-ss2 = Pop.var1(2).varname{1};  tt2 = Pop.var2(2).varname{1};
+s1 = Pop.var1(1).varname{1};  s1_dum = Pop.var2(1).varname{1};
+s2 = Pop.var1(2).varname{1};  s2_dum = Pop.var2(2).varname{1};
 
 nr = Pop.dim(:,1);  nc = Pop.dim(:,2);
 
 % Extract the degrees of the monomials in each variable defining the
 % different parameters R
-R0x_dmat = extract_degs(R0x,{ss1});           nZ_0x = size(R0x_dmat,1);
-R0y_dmat = extract_degs(R0y,{ss2});           nZ_0y = size(R0y_dmat,1);
-R02_dmat = extract_degs(R02,{ss1;ss2});     nZ_02 = size(R02_dmat,1);
+R0x_dmat = extract_degs(R0x,{s1});           nZ_0x = size(R0x_dmat,1);
+R0y_dmat = extract_degs(R0y,{s2});           nZ_0y = size(R0y_dmat,1);
+R02_dmat = extract_degs(R02,{s1;s2});     nZ_02 = size(R02_dmat,1);
 
-Rx0_dmat = extract_degs(Rx0,{ss1});           nZ_x0 = size(Rx0_dmat,1);
-Rxx_dmat = extract_degs(Rxx,{ss1;tt1});     nZ_xx = size(Rxx_dmat,1);
-Rxy_dmat = extract_degs(Rxy,{ss1;ss2});     nZ_xy = size(Rxy_dmat,1);
-Rx2_dmat = extract_degs(Rx2,{ss1;tt1;ss2}); nZ_x2 = size(Rx2_dmat,1);
+Rx0_dmat = extract_degs(Rx0,{s1});           nZ_x0 = size(Rx0_dmat,1);
+Rxx_dmat = extract_degs(Rxx,{s1;s1_dum});     nZ_xx = size(Rxx_dmat,1);
+Rxy_dmat = extract_degs(Rxy,{s1;s2});     nZ_xy = size(Rxy_dmat,1);
+Rx2_dmat = extract_degs(Rx2,{s1;s1_dum;s2}); nZ_x2 = size(Rx2_dmat,1);
 
-Ry0_dmat = extract_degs(Ry0,{ss2});           nZ_y0 = size(Ry0_dmat,1);
-Ryx_dmat = extract_degs(Ryx,{ss2;ss1});     nZ_yx = size(Ryx_dmat,1);
-Ryy_dmat = extract_degs(Ryy,{ss2;tt2});     nZ_yy = size(Ryy_dmat,1);
-Ry2_dmat = extract_degs(Ry2,{ss2;ss1;tt2}); nZ_y2 = size(Ry2_dmat,1);
+Ry0_dmat = extract_degs(Ry0,{s2});           nZ_y0 = size(Ry0_dmat,1);
+Ryx_dmat = extract_degs(Ryx,{s2;s1});     nZ_yx = size(Ryx_dmat,1);
+Ryy_dmat = extract_degs(Ryy,{s2;s2_dum});     nZ_yy = size(Ryy_dmat,1);
+Ry2_dmat = extract_degs(Ry2,{s2;s1;s2_dum}); nZ_y2 = size(Ry2_dmat,1);
 
-R20_dmat = extract_degs(R20,{ss1;ss2});         nZ_20 = size(R20_dmat,1);
-R2x_dmat = extract_degs(R2x,{ss1;ss2;tt1});     nZ_2x = size(R2x_dmat,1);
-R2y_dmat = extract_degs(R2y,{ss1;ss2;tt2});     nZ_2y = size(R2y_dmat,1);
-R22_dmat = extract_degs(R22,{ss1;ss2;tt1;tt2}); nZ_22 = size(R22_dmat,1);
+R20_dmat = extract_degs(R20,{s1;s2});         nZ_20 = size(R20_dmat,1);
+R2x_dmat = extract_degs(R2x,{s1;s2;s1_dum});     nZ_2x = size(R2x_dmat,1);
+R2y_dmat = extract_degs(R2y,{s1;s2;s2_dum});     nZ_2y = size(R2y_dmat,1);
+R22_dmat = extract_degs(R22,{s1;s2;s1_dum;s2_dum}); nZ_22 = size(R22_dmat,1);
 
 % Collect all degrees of monomials that we need to expand the operator in
 % the proposed quadratic form
@@ -272,12 +272,12 @@ nnZ_xy = cumsum([0;nZ_xy]);     nnZ_tn = cumsum([0;nZ_tn]);
 [Pmat_tn,Ztn_dmat] = uniquerows_integerTable(Ztn_dmat,'transpose');
 
 % Compute actual monomials associated to each degree matrix
-Zx0 = polynomial(eye(size(Zx_dmat,1)),Zx_dmat,{ss1},[size(Zx_dmat,1),1]);
-Zy0 = polynomial(eye(size(Zy_dmat,1)),Zy_dmat,{ss2},[size(Zy_dmat,1),1]);
-Z20 = polynomial(eye(size(Zxy_dmat,1)),Zxy_dmat,{ss1;ss2},[size(Zxy_dmat,1),1]);
-Z0x = polynomial(eye(size(Zth_dmat,1)),Zth_dmat,{ss1},[size(Zth_dmat,1),1]);
-Z0y = polynomial(eye(size(Znu_dmat,1)),Znu_dmat,{ss2},[size(Znu_dmat,1),1]);
-Z02 = polynomial(eye(size(Ztn_dmat,1)),Ztn_dmat,{ss1;ss2},[size(Ztn_dmat,1),1]);
+Zx0 = polynomial(eye(size(Zx_dmat,1)),Zx_dmat,{s1},[size(Zx_dmat,1),1]);
+Zy0 = polynomial(eye(size(Zy_dmat,1)),Zy_dmat,{s2},[size(Zy_dmat,1),1]);
+Z20 = polynomial(eye(size(Zxy_dmat,1)),Zxy_dmat,{s1;s2},[size(Zxy_dmat,1),1]);
+Z0x = polynomial(eye(size(Zth_dmat,1)),Zth_dmat,{s1},[size(Zth_dmat,1),1]);
+Z0y = polynomial(eye(size(Znu_dmat,1)),Znu_dmat,{s2},[size(Znu_dmat,1),1]);
+Z02 = polynomial(eye(size(Ztn_dmat,1)),Ztn_dmat,{s1;s2},[size(Ztn_dmat,1),1]);
 
 % Take kronecker products to match number of rows and columns of the input
 Zx0 = kron(eye(nr(2)),Zx0);     Z0x = kron(eye(nc(2)),Z0x);

@@ -104,7 +104,7 @@ fprintf('\n --- Executing Dual Stability Test --- \n')
 
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-prog = lpiprogram(PIE.vars,PIE.dom);      % Initialize the program structure
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 1: declare the posopvar variable, Pop, which defines the Lyapunov 
