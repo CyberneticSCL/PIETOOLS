@@ -1,5 +1,5 @@
 clc; clear;
-pvar s t theta; % define independent variables
+pvar s t; % define independent variables
 %% Define dependent variables and system variable
 % 	ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)        | a = 0    b = 1        
 %   PDE:  x_{t}  = lam * x + x_{ss} + Bpv * xo      | lam = pi^2-1          
