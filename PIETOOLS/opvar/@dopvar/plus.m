@@ -37,6 +37,9 @@ function [Pplus] = plus(P1,P2)
 % authorship, and a brief description of modifications
 %
 % Adjusted to assure sum with opvar returns dopvar, DJ 12/30/2021
+% DJ, 12/11/2024: Support addition with 'double' and 'polynomial' objects
+%                   acting as multiplier operators. Also check that
+%                   variables defining operators match.
 
 dopvar Pplus;
 if isa(P1,'dopvar')
@@ -49,36 +52,47 @@ elseif isa(P1,'dopvar')&&isa(P2,'dopvar')
     end
 end
 
-if (isa(P1,'polynomial')||isa(P1,'double')||isa(P1,'dpvar'))&&all(size(P1)==[1,1])&&all(P2.dim(:,1)==P2.dim(:,2))
-    Pplus = P2;
-    Pplus.P=Pplus.P+P1*eye(P2.dim(1,2)); Pplus.R.R0 = Pplus.R.R0+P1*eye(P2.dim(2,2));
-elseif (isa(P2,'polynomial')||isa(P2,'double')||isa(P2,'double'))&&all(size(P2)==[1,1])&&all(P1.dim(:,1)==P1.dim(:,2))
-    Pplus = P1;
-    Pplus.P=Pplus.P+P2*eye(P1.dim(1,2)); Pplus.R.R0 = Pplus.R.R0+P2*eye(P1.dim(2,2));
-elseif ~isa(P1,'dopvar')&& ~isa(P1,'opvar')
-    P2dim = P2.dim;
-    if all(P2dim(2,:)==[0,0])&&all(size(P1)==P2dim(1,:))
+if isa(P1,'polynomial') || isa(P1,'double') || isa(P1,'dpvar')
+    if all(size(P1)==[1,1])&&all(P2.dim(:,1)==P2.dim(:,2))
+        % Treat P1 as diagonal multiplier operator.
         Pplus = P2;
-        Pplus.P = P1+Pplus.P;
-    elseif all(P2dim(1,:)==[0,0])&&all(size(P1)==P2dim(2,:))
-        Pplus = P2;
-        Pplus.R.R0 = P1+Pplus.R.R0;
+        Pplus.P=Pplus.P+P1*eye(P2.dim(1,2)); Pplus.R.R0 = Pplus.R.R0+P1*eye(P2.dim(2,2));
+    elseif all(size(P1)==size(P2))                                          % DJ, 12/11/2024
+        % Treat P1 as multiplier operator, if possible.
+        try P1 = mat2opvar(P1,P2.dim,[P2.var1,P2.var2],P2.I);
+            Pplus = P1+P2;
+        catch 
+            error('Proposed addition of opvar and non-opvar objects is ambiguous, and currently not supported.')
+        end
+    else
+        error('Dimensions of objects to add do not match.')
     end
-elseif ~isa(P2,'dopvar')&&~isa(P2,'opvar')
-    P1dim = P1.dim;
-    if all(P1dim(2,:)==[0,0])&&all(size(P2)==P1dim(1,:))
+elseif isa(P2,'polynomial') || isa(P2,'double') || isa(P2,'dpvar')
+    if all(size(P2)==[1,1])&&all(P1.dim(:,1)==P1.dim(:,2))
+        % Treat P2 as diagonal multiplier operator.
         Pplus = P1;
-        Pplus.P = P2+Pplus.P;
-    elseif all(P1dim(1,:)==[0,0])&&all(size(P2)==P1dim(2,:))
-        Pplus = P1;
-        Pplus.R.R0 = P2+Pplus.R.R0;
+        Pplus.P=Pplus.P+P2*eye(P1.dim(1,2)); Pplus.R.R0 = Pplus.R.R0+P2*eye(P1.dim(2,2));
+    elseif all(size(P1)==size(P2))                                          % DJ, 12/11/2024
+        % Treat P2 as multiplier operator, if possible.
+        try P2 = mat2opvar(P2,P1.dim,[P1.var1,P1.var2],P1.I);
+            Pplus = P1+P2;
+        catch 
+            error('Proposed addition of opvar and non-opvar objects is ambiguous, and currently not supported.')
+        end
+    else
+        error('Dimensions of objects to add do not match.')
     end
+elseif (~isa(P1,'opvar') && ~isa(P1,'dopvar')) || (~isa(P2,'opvar') && ~isa(P2,'dopvar'))
+    error('Addition is only supported with objects of type ''opvar'', ''dopvar'', ''polynomial'', ''dpvar'', or ''double''.')
 else %both are PI operators
     if any(any(P1.dim~=P2.dim))
         error('Operators dimensions do not match. Check the validity of the addition operation.');
     end
     if any(P1.I~=P2.I)
         error('Operators act on different intervals and cannot be added');
+    end
+    if any(~isequal(P1.var1,P2.var1)) || any(~isequal(P1.var2,P2.var2))     % DJ, 12/11/2024
+        error('Spatial or dummy variables used in defining operators do not match.')
     end
     %Create a holder variable for the resultant operator
 %     if isa(P1,'dopvar')     % DJ, 12/30/2021
