@@ -25,25 +25,37 @@ function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
 % or less the degree of the kernel function.
 % 
 % INPUT 
-%   prog: SOS program to modify.
-%   n(1): dimension of real part
-%   n(2): dimension of L2 part
-%   -Optional INPUTS
-%   d{1}: degree of s in Z1(s)
-%   d{2}(1): degree of s in Z2(s,th), defaults to d(1)
-%   d{2}(2): degree of th in Z2(s,th), defaults to d(1)
-%   d{2}(3): joint degree of s,th in Z2(s,th), defaults to max(d{2}(1),d{2}(2))
-%   d{3}(1): degree of s in Z3(s,th), defaults to d(1)
-%   d{3}(2): degree of th in Z3(s,th), defaults to d(1)
-%   d{3}(3): joint degree of s,th in Z3(s,th), defaults to max(d{3}(1),d{3}(2))
-%   options.psatz=1 if this is a psatz term. options.psatz=0 otherwise
-%   options.exclude is a length 4 binary vector where 
-%      options.exclude(i)=1 if we want to set $T_{ij}=0$ for j=1...4
-%   options.sep=1 if the kernel is separable, i.e. R1 = R2 
+% - prog: 'struct' speicfying an LPI program to modify;
+% - n:  2x1 array of type double specifying the dimensions of the operator.
+%       Since the operator variable is symmetric, the input and output
+%       dimensions will be the same. The first element n(1) should be the
+%       dimension of the real part, and n(2) the dimension of the L2 part;
+% - d:  1x3 cell array with each element specifying a maximal degree of
+%       monomials appearing in the operator variables. Specifically:
+%           d{1}: degree of s in Z1(s),                 defaults to 1
+%           d{2}(1): degree of s in Z2(s,th),           defaults to d{1}
+%           d{2}(2): degree of th in Z2(s,th),          defaults to d{2}(1)
+%           d{2}(3): joint degree of s,th in Z2(s,th),  defaults to max(d{2}(1),d{2}(2))
+%           d{3}(1): degree of s in Z3(s,th),           defaults to d{2}(1)
+%           d{3}(2): degree of th in Z3(s,th),          defaults to d{2}(2)
+%           d{3}(3): joint degree of s,th in Z3(s,th),  defaults to max(d{3}(1),d{3}(2))
+%       If only a single degree d is specified as a scalar, a cell
+%       structure will be generated as {d, [d,d,d], [d,d,d]};
+% - options:    struct specifying other options for the operator, with
+%               fields:
+%   options.psatz   binary value, set to 1 to enforce positivity of the 
+%                   operator only on the domain [a,b], using the function
+%                   g(s) = (b-s)*(s-a) in the construction;
+%   options.exclude 1x4 binary vector, set options.exclude(i)=1 to enforce
+%                   T_{ij}=0 for j=1...4;
+%   options.sep     binary value, set to 1 to enforce R1 = R2 ;
 % 
 % OUTPUT 
-%   prog: modified SOS program with new variables and constraints
-%   Pop: operator structure
+% - prog:   struct, specifying the same LPI program as the input, but now 
+%           including the decision variables defining the operator Pop and
+%           a constraint enforcing Pop>=0;
+% - Pop:    nxn opvar representing a positive semidefinite PI operator
+%           decision variable;
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -73,7 +85,8 @@ function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
-% Update to new 'lpiprogram' structure, DJ - 10/16/2024
+% DJ, 10/16/2024: Update to new 'lpiprogram' structure;
+% DJ, 12/14/2024: Allow degrees to be specified as 'double' array;
 
 
 % % % Set-up
@@ -144,20 +157,37 @@ end
 n = n(:);
 n1 = n(1);  n2 = n(2);
 if all(n==0)
-   % Construct an empty operator variable (for whatever reason...)
+    % Construct an empty operator variable (for whatever reason...)
     dopvar Pop;
     Pop.I = I;
     Pop.var1 = prog.vartable(1);
-    Pop.var2 = prog.vartable(2); 
+    Pop.var2 = prog.vartable(2);
+    return
 end
 
 % % Check that the degrees of the monomials have been properly specified
-if ~iscell(d)
-    error('Degree must be specified as 1x3 cell')
+if isempty(d)
+    % Use default degrees if none are specified.
+    d = {1,[1,1,1],[1,1,1]};
+end
+if isnumeric(d)                                                             % DJ, 12/14/2024
+    % Construct cell structure specifying the degrees.
+    d = d(:)';
+    if isscalar(d)
+        d = {d};
+    elseif numel(d)==2
+        d = {max(d),[d,max(d)],[d,max(d)]};
+    elseif numel(d)==3
+        d = {max(d),d,d};
+    else
+        error('Degrees must be specified as 1x3 cell array.')
+    end
+elseif ~iscell(d)
+    error('Degrees must be specified as 1x3 cell array.')
 end
 % Fill in any gaps in the data
 if length(d(:))==1
-    d{2}=[d{1},d{1},2*d{1}];
+    d{2}=[d{1},d{1},d{1}];
     d{3}=d{2};
 else
     if length(d{2})==1
@@ -167,12 +197,14 @@ else
     end
     if numel(d)==2
         d{3}=d{2};
-    else
+    elseif numel(d)==3
         if length(d{3})==1
             d{3} = d{3}*ones(1,3);
         elseif length(d{3})==2
             d{3}(3) = max(d{3});
         end
+    else
+        error('Degrees must be specified as 1x3 cell array.')
     end
 end
 
