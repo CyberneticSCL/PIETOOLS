@@ -38,6 +38,7 @@ function T = transl(T,I)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_29_2021
+% DJ, 12/07/2024: Remove hardcoded PI vars.
 
 
 if nargin==1
@@ -59,7 +60,9 @@ b = I_init(2);
 c = I(1);
 d = I(2);
 
-pvar s theta sbar thetabar;
+s = T.var1;     theta = T.var2;                                             % DJ, 12/07/2024
+sbar = pvar([s.varname{1},'_bar']);
+thetabar = pvar([theta.varname{1},'_bar']);
 
 T.Q1 = ((b-a)/(d-c))*subs(T.Q1, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c));
 T.Q1 = subs(T.Q1, sbar, s);

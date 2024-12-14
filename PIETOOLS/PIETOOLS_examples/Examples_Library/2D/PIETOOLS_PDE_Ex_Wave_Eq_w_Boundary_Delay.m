@@ -47,7 +47,7 @@ loc = mfilename('fullpath');
 root = fileparts(loc);
 
 % Initialize variables
-pvar s theta s1 s2 theta1 theta2
+pvar s
 
 %%% Executive Function:
 evalin('base','stability = 1;');

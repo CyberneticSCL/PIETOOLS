@@ -84,6 +84,7 @@ function PDE_out=initialize_PIETOOLS_PDE_terms_legacy(PDE)
 % Initial coding MMP  - 5_29_2021
 % SS - 6/1/2021; modified initA, initCrp etc to allow for repeated terms
 % DJ - 12/29/2021: Added option to suppress (less important) warnings
+% DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Suppress warnings if desired
 suppress = (evalin('base','exist(''silent_initialize_pde'',''var'')') && evalin('base','silent_initialize_pde'));
@@ -298,9 +299,9 @@ end
 
 % Assuming dimensions are now known, initialize the remaining parameters to zero based on
 % the dimensions
-pvar s theta;
+pvar s1 s1_dum;                                                             % DJ, 12/07/2024;
 
-PDE.vars = [s;theta];
+PDE.vars = [s1,s1_dum];
 
 %
 % Define number of variable explicitly for further reference

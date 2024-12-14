@@ -383,7 +383,7 @@ for varnum=1:nvars
     else
         % If not, assign a new dummy variable based on the name of the
         % associated spatial variable.
-        var2_name_ii = [var1_list_unique{varnum},'_dum'];
+        var2_name_ii = [var1_list_unique{varnum},'_dum'];  % 06/03/2024 DJ
         var_list_dum(var_locs,1) = {var2_name_ii};
     end
 end

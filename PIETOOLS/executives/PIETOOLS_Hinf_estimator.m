@@ -121,7 +121,7 @@ fprintf('\n --- Executing Search for H_infty Optimal Estimator --- \n')
 
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-prog = lpiprogram(PIE.vars,PIE.dom);      % Initialize the program structure
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The most common usage of this script is to find the minimum hinf gain bound

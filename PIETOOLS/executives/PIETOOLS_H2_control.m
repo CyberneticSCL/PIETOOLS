@@ -72,6 +72,8 @@
 % sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
 %
 % dd1,dd2,dd3,ddZ,opts,options1,options2,options - accuracy settings, typically defined by the settings script
+%
+% DJ - 11/30/2024: Update to use LPI programming structure;
 
 function [prog, Kop, gam, Wo, Z,X] = PIETOOLS_H2_control(PIE, settings)
 
@@ -113,14 +115,12 @@ fprintf('\n --- Executing Search for H_2 Optimal Controller --- \n')
 
 %% Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-varlist = [PIE.A.var1; PIE.A.var2];  % retrieving the names of the independent pvars from Aop (typically s and th)
-prog = sosprogram(varlist);      % Initialize the program structure
-X=PIE.A.I;                         % retrieve the domain from Aop
-nx1=PIE.A.dim(1,1);                % retrieve the number of ODE states from Aop
-nx2=PIE.A.dim(2,1);                % retrieve the number of distributed states from Aop
-nw=PIE.B1.dim(1,2);                % retrieve the number of real-valued disturbances
-nz=PIE.C1.dim(1,1);                % retrieve the number of real-valued regulated outputs
-nu=PIE.B2.dim(1,2);                % retrieve the number of real-valued inputs
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
+nx1 = PIE.A.dim(1,1);                % retrieve the number of ODE states from Aop
+nx2 = PIE.A.dim(2,1);                % retrieve the number of distributed states from Aop
+nw = PIE.B1.dim(1,2);                % retrieve the number of real-valued disturbances
+nz = PIE.C1.dim(1,1);                % retrieve the number of real-valued regulated outputs
+nu = PIE.B2.dim(1,2);                % retrieve the number of real-valued inputs
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Testing to see if there are inputs and disturbances at the boundary
@@ -138,9 +138,9 @@ end
 % The most common usage of this script is to find the minimum hinf gain bound
 % In this case, we define the hinf norm variable which needs to be minimized
 dpvar gam;
-prog = sosdecvar(prog, gam); %this sets gamma as decision var
-prog = sosineq(prog, gam); %this ensures gamma is lower bounded
-prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
+prog = lpidecvar(prog, gam); %this sets gamma as decision var
+prog = lpi_ineq(prog, gam); %this ensures gamma is lower bounded
+prog = lpisetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 %
 % Alternatively, the above 3 commands may be commented and a specific gain
 % test specified by defining a specific desired value of gamma. This
@@ -154,10 +154,10 @@ prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 % Moreover, the indefinite operators Zop is used to contruct the controller gain
 disp('- Declaring Positive Storage Operator variables and indefinite Controller operator variable using specified options...');
 
-[prog, P1op] = poslpivar(prog, [nx1 ,nx2],X,dd1,options1);
+[prog, P1op] = poslpivar(prog, [nx1;nx2], dd1, options1);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, [nx1 ,nx2],X,dd12,options12);
+    [prog, P2op] = poslpivar(prog, [nx1;nx2], dd12, options12);
     Wop=P1op+P2op;
 else
     Wop=P1op;
@@ -167,10 +167,10 @@ end
 Wop.P = Wop.P+eppos*eye(nx1);
 Wop.R.R0 = Wop.R.R0+eppos2*eye(nx2);  
 
-[prog, P3op] = poslpivar(prog, [nz ,0],X,dd1,options1);
+[prog, P3op] = poslpivar(prog, [nz ,0], dd1, options1);
 
 if override1~=1
-    [prog, P4op] = poslpivar(prog, [nz ,0],X,dd12,options12);
+    [prog, P4op] = poslpivar(prog, [nz ,0], dd12, options12);
     Xop=P3op+P4op;
 else
     Xop=P3op;
@@ -179,7 +179,7 @@ end
 % enforce strict positivity on the operator
 Xop.P = Xop.P+eppos*eye(nz);
 
-[prog,Zop] = lpivar(prog,[nu nx1;0 nx2],X,ddZ);
+[prog,Zop] = lpivar(prog,[nu nx1;0 nx2], ddZ);
 
 M11=Xop;
 M12=PIE.C1*Wop+PIE.D12*Zop;
@@ -214,10 +214,10 @@ else
     disp('  - Using an Equality constraint...');
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%% The old way, where you have to specify everything
-    [prog, De1op] = poslpivar(prog, [M1op.dim(1,1), M1op.dim(2,1)],X,dd2,options2);
+    [prog, De1op] = poslpivar(prog, [M1op.dim(1,1), M1op.dim(2,1)], dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog, [M1op.dim(1,1), M1op.dim(2,1)],X, dd3,options3);
+        [prog, De2op] = poslpivar(prog, [M1op.dim(1,1), M1op.dim(2,1)], dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
@@ -233,10 +233,10 @@ else
     disp('  - Using an Equality constraint...');
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%% The old way, where you have to specify everything
-    [prog, De1op] = poslpivar(prog,  [M2op.dim(1,1), M2op.dim(2,1)],X,dd2,options2);
+    [prog, De1op] = poslpivar(prog,  [M2op.dim(1,1), M2op.dim(2,1)], dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog, [M2op.dim(1,1), M2op.dim(2,1)],X, dd3,options3);
+        [prog, De2op] = poslpivar(prog, [M2op.dim(1,1), M2op.dim(2,1)], dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
@@ -247,21 +247,21 @@ else
 end
 
 % ensuring scalar inequality gam>trace
-    prog = sosineq(prog, -M3op);
+    prog = lpi_ineq(prog, -M3op);
 
 
 %% solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
-prog = sossolve(prog,sos_opts); 
+prog = lpisolve(prog,sos_opts); 
 
 disp('The closed-loop H-2 norm of the given system is upper bounded by:')
 if ~isreal(gam)
-    disp(sqrt(double(sosgetsol(prog,gam)))); % check the H2 norm, if the solved successfully
+    disp(sqrt(double(lpigetsol(prog,gam)))); % check the H2 norm, if the solved successfully
 else 
     disp(sqrt(gam));
 end
 
-gam = sqrt(double(sosgetsol(prog,gam)));
+gam = sqrt(double(lpigetsol(prog,gam)));
 
 Wo = getsol_lpivar(prog,Wop);
 Z = getsol_lpivar(prog,Zop);

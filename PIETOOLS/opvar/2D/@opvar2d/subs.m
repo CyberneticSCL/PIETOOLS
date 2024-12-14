@@ -16,9 +16,9 @@ function [DP] = subs(P,invar,inval,opts)
 %   DP: opvar2d operator P so that P*u|_invar=inval = DP*[u;u(invar=inval)]
 %           - DP will be such that
 %             P*[u0;ux;uy;u2] = DP*[u0;ux(p);ux;uy;u2(p,y);u2]
-%             if invar==ss1, or
+%             if invar==s1, or
 %             P*[u0;ux;uy;u2] = DP*[u0;uy(p);ux;u2(x,p);uy;u2]
-%             if invar==ss2
+%             if invar==s2
 %           - if opts=='pure', we assume P*u|invar=inval does not depend on
 %             u(invar=inval), and DP will be such that
 %             P*[u0;ux;uy;u2] = DP*[u0;ux;uy;u2]

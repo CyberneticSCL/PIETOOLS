@@ -45,9 +45,10 @@ function [Pcomp] = mtimes(P1,P2)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07_12_2021
-% 02/19/2022 - DJ: Update for product of empty opvar with matrix
-% 04/06/2022 - DJ: Update to increase speed
-% 04/14/2022 - DJ: Update to use "int_simple"
+% 02/19/2022 - DJ: Update for product of empty opvar with matrix;
+% 04/06/2022 - DJ: Update to increase speed;
+% 04/14/2022 - DJ: Update to use "int_simple";
+% 11/30/2024 - DJ: Check that spatial and dummy variables match;
 
 
 if isa(P1,'dopvar2d') && isa(P2,'dopvar2d')
@@ -60,6 +61,24 @@ elseif (isa(P1,'dopvar2d') && isa(P2,'opvar2d')) || (isa(P1,'opvar2d') && isa(P2
     end
     if any(P1.I~=P2.I)
         error('Operators act on different intervals and cannot be composed');
+    end
+    if any(~isequal(P1.var1,P2.var1))                                       % (11/30/2024 - DJ)
+        % Make sure primary variables match;
+        if isa(P2,'dopvar2d') && ~isa(P1,'dopvar2d')
+            % Assume vars of dopvar object are correct.
+            P1 = subs_vars_op(P1,P1.var1,P2.var1);
+        else
+            P2 = subs_vars_op(P2,P2.var1,P1.var1);
+        end
+    end
+    if any(~isequal(P1.var2,P2.var2))                                       % (11/30/2024 - DJ)
+        % Make sure dummy variables match;
+        if isa(P1,'dopvar2d') && ~isa(P2,'dopvar2d')
+            % Assume vars of dopvar object are correct.
+            P2 = subs_vars_op(P2,P2.var2,P1.var2);
+        else
+            P1 = subs_vars_op(P1,P1.var2,P2.var2);
+        end
     end
     
     ds = P2.var1(:);

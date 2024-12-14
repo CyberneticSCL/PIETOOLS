@@ -39,6 +39,7 @@ function PIE = initialize(PIE)
 %
 % Initial coding SS - 08/01/2022
 % Adjust and add as class file function, DJ - 11/01/2022
+% DJ, 12/07/2024: Use new default vars (s1,s2) and (s1_dum,s2_dum);
 
 % Initialize a spatial domain for the PIE.
 if isempty(PIE.dom)
@@ -58,9 +59,9 @@ if isempty(PIE.vars)
     elseif ~isnan(PIE.dim)
         % Assume default variables s theta
         if PIE.dim==1
-            PIE.vars = polynomial({'s','theta'});
+            PIE.vars = polynomial({'s1','s1_dum'});                         % DJ, 12/07/2024
         elseif PIE.dim==2
-            PIE.vars = polynomial({'ss1','tt1';'ss2','tt2'});
+            PIE.vars = polynomial({'s1','s1_dum';'s2','s2_dum'});
         elseif PIE.dim>=3
             error('PIEs in more than 2 dimensions are currently not supported.')
         end

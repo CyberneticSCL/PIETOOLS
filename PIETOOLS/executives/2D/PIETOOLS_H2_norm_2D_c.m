@@ -116,7 +116,7 @@ fprintf('\n --- Searching for H2 norm bound using the controlability gramian ---
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-prog = lpiprogram(PIE.vars,PIE.dom);      % Initialize the program structure
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % if the user wants to calculate the norm, define objective function

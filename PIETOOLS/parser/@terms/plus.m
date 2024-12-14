@@ -30,6 +30,9 @@ function sumTerms = plus(objA,objB)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+% SS, 2022: Initial coding;
+% DJ, 12/07/2024: Replace dummy variable theta with s_dum;
+
 if isa(objA,'state')
     objA = state2terms(objA);
 elseif ~isa(objA,'terms')
@@ -45,7 +48,7 @@ if length(objA)~=length(objB)
     error('Terms of unequal length cannot be added');
 end
 
-objA.operator.var2 = pvar('theta'); objB.operator.var2 = pvar('theta');
+objA.operator.var2 = pvar('s_dum'); objB.operator.var2 = pvar('s_dum');     % DJ, 12/07/2024
 tempoperator = [objA.operator objB.operator];
 tempstatevec = vertcat(objA.statevec, objB.statevec);
 

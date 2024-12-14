@@ -701,21 +701,21 @@ function D = maxdegs_poslpivar(dx,dy,d2,D,params)
 % D.Ry0, D.Ryx, D.Ryy, D.Ry2;
 % D.R20, D.R2x, D.R2y, D.R22;
 % Each field contains a 4x4 array providing the maximal degrees of the
-% variables ss1, ss2, tt1 and tt2 as they appear in the associated
+% variables s1, s2, s1_dum and s2_dum as they appear in the associated
 % parameter of the positive operator. Maximal joint degrees in
 % combinations of variables are also provided, ordered as
 %
-%                 0 |         ss2 |         tt2 |         ss2*tt2
-%          ---------|-------------|-------------|-----------------
-%               ss1 |     ss1*ss2 |     ss1*tt2 |     ss1*ss2*tt2
-%          ---------|-------------|-------------|-----------------
-%               tt1 |     tt1*ss2 |     tt1*tt2 |     tt1*ss2*tt2 
-%          ---------|-------------|-------------|-----------------
-%           ss1*tt1 | ss1*tt1*ss2 | ss1*tt1*tt2 | ss1*tt1*ss2*tt2  
+%                0 |           s2 |           s2_dum |           s2*s2_dum
+%       -----------|--------------|------------------|---------------------
+%               s1 |        s1*s2 |        s1*s2_dum |        s1*s2*s2_dum
+%       -----------|--------------|------------------|---------------------
+%           s1_dum |    s1_dum*s2 |    s1_dum*s2_dum |    s1_dum*s2*s2_dum 
+%       -----------|--------------|------------------|---------------------
+%        s1*s1_dum | s1*s1_dum*s2 | s1*s1_dum*s2_dum | s1*s1_dum*s2*s2_dum  
 %
 % If a variable does not appear in a particular parameter, the associated
 % degrees and joint degrees will be set to zero. For example, R0x is a
-% function of only ss1, so the field D.R0x will look like
+% function of only s1, so the field D.R0x will look like
 % D.R0x = [0,0,0,0; d,0,0,0; 0,0,0,0; 0,0,0,0] for some value "d", though
 % D.R0x = [0,0,0,0; d,0,0,0; 0,0,0,0; d,0,0,0] is also accepted.
 %
@@ -1228,18 +1228,18 @@ function [maxdegs,n_updates] = reduce_joint_degs(maxdegs)
 %   maxdegs: An array of 2^nvars elements, for nvars variables. Required to
 %            be a (reshaped version of a) 2x2x...x2 array, with each
 %            dimension corresponding to a single variable, so that e.g.
-%            element (2,1) corresponds to the degree of ss1, element (1,2)
-%            corresponds to the degree of ss2, and element (2,2)
-%            corresponds to the joint degree in ss1*ss2. Note that the
+%            element (2,1) corresponds to the degree of s1, element (1,2)
+%            corresponds to the degree of s2, and element (2,2)
+%            corresponds to the joint degree in s1*s2. Note that the
 %            standard degree object used in e.g. poslpivar, taking the form
 %
-%                 0 |         ss2 |         tt2 |         ss2*tt2
-%          ---------|-------------|-------------|-----------------
-%               ss1 |     ss1*ss2 |     ss1*tt2 |     ss1*ss2*tt2
-%          ---------|-------------|-------------|-----------------
-%               tt1 |     tt1*ss2 |     tt1*tt2 |     tt1*ss2*tt2 
-%          ---------|-------------|-------------|-----------------
-%           ss1*tt1 | ss1*tt1*ss2 | ss1*tt1*tt2 | ss1*tt1*ss2*tt2  
+%                0 |           s2 |           s2_dum |           s2*s2_dum
+%       -----------|--------------|------------------|---------------------
+%               s1 |        s1*s2 |        s1*s2_dum |        s1*s2*s2_dum
+%       -----------|--------------|------------------|---------------------
+%           s1_dum |    s1_dum*s2 |    s1_dum*s2_dum |    s1_dum*s2*s2_dum 
+%       -----------|--------------|------------------|---------------------
+%        s1*s1_dum | s1*s1_dum*s2 | s1*s1_dum*s2_dum | s1*s1_dum*s2*s2_dum  
 %
 %            can be easily reshaped to the 2x2x2x2 form. Also note that the
 %            first element must always be zero (anything else is ignored).

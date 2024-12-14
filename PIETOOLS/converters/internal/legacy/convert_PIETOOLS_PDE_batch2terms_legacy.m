@@ -65,6 +65,7 @@ PDE=initialize_PIETOOLS_PDE_batch(PDE_batch);
 % authorship, and a brief description of modifications
 %
 % Initial coding SS  - 5_30_2021
+% DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Test for domain (mandatory variables)
@@ -110,9 +111,9 @@ nz = PDE_out.n.nz;  ny = PDE_out.n.ny;  nv = PDE_out.n.nv;
 
 % Assuming dimensions are now known, initialize the remaining parameters to zero based on
 % the dimensions
-pvar s theta;
+pvar s1 s1_dum;                                                             % DJ, 12/07/2024
 
-PDE.vars = [s;theta];
+PDE.vars = [s1,s1_dum];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % First place ODE related parameters in correct places

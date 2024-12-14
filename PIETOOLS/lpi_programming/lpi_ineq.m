@@ -47,25 +47,18 @@ function prog = lpi_ineq(prog,P,opts)
 % Initial coding MMP, SS, DJ  - 09/26/2021
 % 07/07/2021, DJ: Adjusted (slightly) for dpvar (dopvar) implementation;
 % 10/19/2024, DJ: Add support for non-opvar decision variables;
-%
+% 11/29/2024, DJ: Make sure dummy variables match those in LPI program;
+
 
 % Extract the inputs
 switch nargin
     case 1
         error('Not enough inputs!')
     case 2
-        if isa(P,'opvar2d') || isa(P,'dopvar2d')
-            prog = lpi_ineq_2d(prog,P);
-            return
-        end
-        opts.psatz=0;
-        opts.pure=0;
-        opts.sep =0;
+        opts.psatz = 0;
+        opts.pure = 0;
+        opts.sep = 0;
     case 3
-        if isa(P,'opvar2d') || isa(P,'dopvar2d')
-            prog = lpi_ineq_2d(prog,P,opts);
-            return
-        end
         if ~isfield(opts,'psatz')
             opts.psatz=0;
         end
@@ -84,8 +77,19 @@ elseif isa(P,'dpvar')
     % If P is not an opvar, we can enforce inequality using just sosineq.
     prog = sosineq(prog,P);
     return
-elseif ~isa(P,'dopvar')
+elseif ~isa(P,'dopvar') && ~isa(P,'dopvar2d')
     error('Variable of which to enforce positivity should be specified as object of type ''dpvar'', ''dopvar'', or ''dopvar2d''.')
+end
+% Make sure the opvar dummy variables match those in the LPI program.       (11/29/2024, DJ)
+n = size(prog.dom,1);
+dumvars = prog.vartable(n+1:2*n);
+if any(~ismember(P.var2.varname,dumvars.varname))
+    P = subs_vars_op(P,P.var2,dumvars);
+end
+% Pass 2D operator to associated lpi_ineq function.
+if isa(P,'dopvar2d')
+    prog = lpi_ineq_2d(prog,P,opts);
+    return
 end
 
 % Establish dimension of new operator.
