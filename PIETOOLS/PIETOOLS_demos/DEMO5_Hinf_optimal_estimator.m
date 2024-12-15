@@ -71,7 +71,7 @@ B1 = PIE.B1;    D11 = PIE.D11;  D21 = PIE.D21;
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram(PIE.vars,PIE.dom);
+prog = lpiprogram(s,[0,1]);
 
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
@@ -135,46 +135,27 @@ uinput.w = 2*sin(pi*st);
 % % Set options for discretization and simulation
 opts.plot = 'no';   % don't plot final solution
 opts.N = 8;         % expand using 8 Chebyshev polynomials
-opts.tf = 1;        % simulate up to t = 1;
+opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-3;     % use time step of 10^-3
-opts.intScheme = 1; % time-step using Backward Differentiation Formula (BDF) 
 ndiff = [0,0,2];    % PDE state involves 2 second order differentiable state variables
 
-% % Simulate and plot solution to the PIE with estimator.
+% % Simulate solution to the PIE with estimator.
 [solution,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
-% Extract actual and estimated state at each time step.
+% % Extract actual and estimated state and output at each time step.
 tval = solution.timedep.dtime;
 x_act = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
 x_est = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
+z_act = solution.timedep.regulated(1,:);
+z_est = solution.timedep.regulated(2,:);
 
 
 echo off
 
 
-% % Plot actual and estimated state at select positions and times
-grid_idcs = [1,5,7];        % grid points at which to plot
-plot_indcs = floor(logspace(0,log(opts.tf/opts.dt)/log(10),40)); 
-tplot = tval(plot_indcs);   % times at which to plot
-colors = {'b','g','m','r','k','c','r','y','o'};
-figure('Position',[200 150 1000 450]);
-for j=grid_idcs
-    s_pos = num2str(grid.phys(j));  % position associated to grid index
-    subplot(1,2,1)
-    hold on
-    plot(tplot,x_act(j,plot_indcs),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}(s=',s_pos,')$']);
-    plot(tplot,x_est(j,plot_indcs),[colors{j},'o--'],'LineWidth',1.5,'DisplayName',['$\mathbf{\hat{x}}(s=',s_pos,')$']);
-    hold off
-    subplot(1,2,2)
-    hold on
-    loglog(tplot,(x_act(j,plot_indcs)-x_est(j,plot_indcs)),[colors{j},'o-'],'LineWidth',1.5,'DisplayName',['$\mathbf{e}(s=',s_pos,')$']);
-    hold off
-end
-% Clean up the figure
-ax1 = subplot(1,2,1);   ax1.XScale = 'log';     ax1.XTickLabels = {'0.001';'0.01';'0.1';'1'};
-legend('Interpreter','latex','Location','northwest','FontSize',10.5);
-xlabel('$t$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
-title('PDE state value $\mathbf{x}(t)$ and estimate $\mathbf{\hat{x}}(t)$','Interpreter','latex','FontSize',15);
-ax2 = subplot(1,2,2);   ax2.XScale = 'log';     ax2.XTickLabels = {'0.001';'0.01';'0.1';'1'};
-legend('Interpreter','latex','FontSize',10.5);
-xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{e}$','FontSize',15,'Interpreter','latex');
-title('Error $\mathbf{e}=\mathbf{\hat{x}}(t)-\mathbf{x}(t)$','Interpreter','latex','FontSize',15);
+% % Plot simulated states and regulated outputs against time.
+figs = PIESIM_plotsolution(solution,grid,'tlog');
+% Change titles of plots
+fig1 = figs{1};
+fig1.Children(5).String = 'True ($x_1(t,s)$) and estimated ($x_2(t,s)$) PDE state evolution';
+fig2 = figs{2};     ax = fig2.CurrentAxes;
+title(ax,'True ($z_1(t)$) and estimated ($z_2(t)$) regulated output evolution','Interpreter','latex','FontSize',15);

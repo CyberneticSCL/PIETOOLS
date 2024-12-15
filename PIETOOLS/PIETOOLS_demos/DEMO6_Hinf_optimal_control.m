@@ -65,7 +65,7 @@ B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram(PIE.vars,PIE.dom);
+prog = lpiprogram(s,[0,1]);
 
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
@@ -118,122 +118,38 @@ PIE_CL = initialize(PIE_CL);
 
 % % Declare initial values and disturbance
 syms st sx real
-uinput1.ic.PDE = -10*sx;
-uinput1.w = exp(-st);
-uinput2.ic.PDE = sin(sx*pi/2);
-uinput2.w = sin(pi*st)./(st+eps); 
+uinput.ic.PDE = sin(sx*pi/2);
+uinput.w = sin(pi*st)./(st+eps); 
 
 % % Set options for discretization and simulation
 opts.plot = 'no';   % don't plot final solution
 opts.N = 16;        % expand using 16 Chebyshev polynomials
-opts.tf = 5;        % simulate up to t = 5;
+opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-2;     % use time step of 10^-2
 ndiff = [0,0,1];    % PDE state involves 1 second order differentiable state variable
 
 % % Perform the actual simulation
-% Simulate solution to uncontrolled PIE
-[solution_OL_a,grid] = PIESIM(PIE,opts,uinput1,ndiff);
-[solution_OL_b,~] = PIESIM(PIE,opts,uinput2,ndiff);
-% Simulate solution to controlled PIE
-[solution_CL_a,~] = PIESIM(PIE_CL,opts,uinput1,ndiff);
-[solution_CL_b,~] = PIESIM(PIE_CL,opts,uinput2,ndiff);
-% Extract state and output solution at all times
-tval = solution_OL_a.timedep.dtime;
-x_OL_a = reshape(solution_OL_a.timedep.pde(:,1,:),opts.N+1,[]);
-x_OL_b = reshape(solution_OL_b.timedep.pde(:,1,:),opts.N+1,[]);
-x_CL_a = reshape(solution_CL_a.timedep.pde(:,1,:),opts.N+1,[]);
-z_CL_a = solution_CL_a.timedep.regulated(1,:);
-u_CL_a = solution_CL_a.timedep.regulated(2,:);
-x_CL_b = reshape(solution_CL_b.timedep.pde(:,1,:),opts.N+1,[]);
-z_CL_b = solution_CL_b.timedep.regulated(1,:);
-u_CL_b = solution_CL_b.timedep.regulated(2,:);
-w_a = double(subs(uinput1.w,st,tval));
-w_b = double(subs(uinput2.w,st,tval));
+% Simulate uncontrolled PIE and extract solution
+[solution_OL,grid] = PIESIM(PIE,opts,uinput,ndiff);
+tval = solution_OL.timedep.dtime;
+x_OL = reshape(solution_OL.timedep.pde(:,1,:),opts.N+1,[]);
+z_OL = solution_OL.timedep.regulated(1,:);
+% Simulate controlled PIE and extract solution
+[solution_CL,~] = PIESIM(PIE_CL,opts,uinput,ndiff);
+x_CL = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
+z_CL = solution_CL.timedep.regulated(1,:);
+u_CL = solution_CL.timedep.regulated(2,:);
+w = double(subs(uinput.w,st,tval));
 
 
 echo off
 
-% % Plot the open-loop state at different times
-plot_indcs = [1,5,10,50,100];
-colors = {'b','g','m','r','k','c','r','y','o'};     % colors for the plot
-figure('Position',[200 150 1000 450]); 
-for j=1:length(plot_indcs)
-    plot_indx = plot_indcs(j);
-    t_pos = num2str(tval(plot_indx));
-    subplot(1,2,1)
-    hold on
-    plot(grid.phys,x_OL_a(:,plot_indx),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{ol}(t=',t_pos,')$']);
-    hold off
-    subplot(1,2,2)
-    hold on
-    plot(grid.phys,x_OL_b(:,plot_indx),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{ol}(t=',t_pos,')$']);
-    hold off
-end
-% Clean up the figure
-sgtitle('Open-loop PDE state','Interpreter','latex','FontSize',15)
-subplot(1,2,1);
-legend('Interpreter','latex','Location','northwest','FontSize',10.5);
-xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}_{ol}$','FontSize',15,'Interpreter','latex');
-title('$\mathbf{x}(0,s)=-\frac{5}{3}s^3+5s$,\quad $w(t)=e^{-t}$','Interpreter','latex','FontSize',13);
-subplot(1,2,2);
-legend('Interpreter','latex','Location','northwest','FontSize',10.5);
-xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}_{ol}$','FontSize',15,'Interpreter','latex');
-title('$\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$,\quad $w(t)=\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',13);
 
-% % Plot the closed-loop state at different times
-figure('Position',[200 150 1000 450]); 
-for j=1:length(plot_indcs)
-    plot_indx = plot_indcs(j);
-    t_pos = num2str(tval(plot_indx));
-    subplot(1,2,1)
-    hold on
-    plot(grid.phys,x_CL_a(:,plot_indx),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{cl}(t=',t_pos,')$']);
-    hold off
-    subplot(1,2,2)
-    hold on
-    plot(grid.phys,x_CL_b(:,plot_indx),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{cl}(t=',t_pos,')$']);
-    hold off
-end
-% Clean up the figure
-sgtitle('Closed-loop PDE state','Interpreter','latex','FontSize',15)
-subplot(1,2,1);
-legend('Interpreter','latex','Location','southwest','FontSize',10.5);
-xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}_{cl}$','FontSize',15,'Interpreter','latex');
-title('$\mathbf{x}(0,s)=-\frac{5}{3}s^3+5s$,\quad $w(t)=e^{-t}$','Interpreter','latex','FontSize',13);
-subplot(1,2,2);
-legend('Interpreter','latex','Location','northwest','FontSize',10.5);
-xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}_{cl}$','FontSize',15,'Interpreter','latex');
-title('$\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$,\quad $w(t)=\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',13);
-
-% % Plot the closed-loop regulated output versus time
-plot_indcs = floor(logspace(0,log(opts.tf/opts.dt)/log(10),50));
-tplot = tval(plot_indcs);
-figure('Position',[200 150 1000 450]); 
-subplot(2,2,1)
-hold on
-plot(tplot,z_CL_a(1,plot_indcs),[colors{6},'-'],'LineWidth',1.5,'DisplayName','$z_{cl}(t)$');
-plot(tplot,w_a(plot_indcs),[colors{7},'-.'],'LineWidth',1.0,'DisplayName','$w(t)$');
-hold off
-subplot(2,2,2)
-hold on
-plot(tplot,z_CL_b(1,plot_indcs),[colors{6},'-'],'LineWidth',1.5,'DisplayName','$z_{cl}(t)$');
-plot(tplot,w_b(plot_indcs),[colors{7},'-.'],'LineWidth',1.0,'DisplayName','$w(t)$');
-hold off
-subplot(2,2,3)
-plot(tplot,u_CL_a(1,plot_indcs),[colors{1},'-'],'LineWidth',1.5,'DisplayName','$u_{cl}(t)$');
-subplot(2,2,4)
-plot(tplot,u_CL_b(1,plot_indcs),[colors{1},'-'],'LineWidth',1.5,'DisplayName','$u_{cl}(t)$');
-% Clean up the figure
-sgtitle('Closed-loop regulated output $z_{cl}(t)=\int_{0}^{1}\mathbf{x}_{cl}(t,s)ds+w(t)$ and input effort $u_{cl}=\mathcal{K}\mathbf{x}_{cl}(t)$','Interpreter','latex','FontSize',15)
-ax1 = subplot(2,2,1);   ax1.XScale = 'log';  ax1.XLim = [opts.dt,opts.tf];
-legend('Interpreter','latex','Location','southwest','FontSize',10.5);
-ylabel('$z_{cl}$','FontSize',15,'Interpreter','latex');
-title('$\mathbf{x}(0,s)=-\frac{5}{3}s^3+5s$,\quad $w(t)=e^{-t}$','Interpreter','latex','FontSize',13);
-ax2 = subplot(2,2,2);   ax2.XScale = 'log';  ax2.XLim = [opts.dt,opts.tf];
-legend('Interpreter','latex','Location','northeast','FontSize',10.5);
-ylabel('$z_{cl}$','FontSize',15,'Interpreter','latex');
-title('$\mathbf{x}(0,s)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$,\quad $w(t)=\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',13);
-ax3 = subplot(2,2,3);   ax3.XScale = 'log';  ax3.XLim = [opts.dt,opts.tf];
-xlabel('$t$','FontSize',15,'Interpreter','latex');  ylabel('$u_{cl}$','FontSize',15,'Interpreter','latex');
-ax4 = subplot(2,2,4);   ax4.XScale = 'log';  ax4.XLim = [opts.dt,opts.tf];
-xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u_{cl}$','FontSize',15,'Interpreter','latex');
+% % Plot simulated states and regulated outputs against time.
+figs_OL = PIESIM_plotsolution(solution_OL,grid,'title','Open-Loop');
+figs_CL = PIESIM_plotsolution(solution_CL,grid,'title','Closed-Loop');
+% Change titles of plots
+fig2 = figs_OL{2};  ax2 = fig2.CurrentAxes;
+title(ax2,'Open-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
+fig4 = figs_CL{2};  ax4 = fig4.CurrentAxes;
+title(ax4,'Closed-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
