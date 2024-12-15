@@ -21,6 +21,31 @@
 %       [-D,       -gam*I,  C                ]
 %       [-T'*P*B,  C',      (P*A)'*T+T'*(P*A)]
 %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - DEMO8
+%
+% Copyright (C)2024  PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
 % DJ, 11/22/2024: Initial coding
 
 clc; clear; close all; clear stateNameGenerator
@@ -60,7 +85,7 @@ B = PIE.B1;    D = PIE.D11;
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram(PIE.vars,PIE.dom);
+prog = lpiprogram([s1;s2],[0,1;0,1]);
 
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
@@ -68,21 +93,16 @@ prog = lpiprogram(PIE.vars,PIE.dom);
 dpvar gam
 prog = lpidecvar(prog,gam);
 % Positive operator variable P>=0
-Pdim = T.dim(:,1);
-Pdeg = 2;
 opts_P.sep = 1;
-[prog,P] = poslpivar(prog,Pdim,Pdeg,opts_P);
+[prog,P] = poslpivar(prog,T.dim,2,opts_P);
 % Enforce strict positivity Pop>= eppos
-eppos = 1e-3;
-P = P +mat2opvar(eppos*eye(size(P)),P.dim,PIE.vars,PIE.dom);
+P = P +1e-3;
 
 % % Set inequality constraints:
 % %   Q <= 0
-Iw = mat2opvar(eye(size(B,2)), B.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(C,1)), C.dim(:,1), PIE.vars, PIE.dom);
-Q = [-gam*Iz,    D,         C*P*T';
-     D',         -gam*Iw,   B';
-     T*(C*P)',   B,         (A*P)*(T')+T*(A*P)'];
+Q = [-gam,       D,      C*P*T';
+     D',         -gam,   B';
+     T*(C*P)',   B,      (A*P)*(T')+T*(A*P)'];
 opts_Q.psatz = 1;
 prog = lpi_ineq(prog,-Q,opts_Q);
 

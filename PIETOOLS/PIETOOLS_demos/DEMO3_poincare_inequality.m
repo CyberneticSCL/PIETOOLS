@@ -17,9 +17,39 @@
 % Then, using Finsler's lemma, we can pose the problem as an LPI
 %   min_{c,Xop} c,
 %      s.t.     Hop'*Hop -c +Xop'*Iop +Iop*Xop' ≤ 0.
-
+%
 % This example is also included in the paper (page 6, Demoenstration 3)
 % link: https://arxiv.org/pdf/1910.01338.pdf
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - DEMO3
+%
+% Copyright (C)2024  PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% MP, SS, DJ, 2022: Initial coding;
+% DJ, 10/20/2024: Update to use new LPI programming functions;
+% DJ, 11/18/2024: Declare operators manually rather than through a PDE,
+%                   and use Finsler's lemma to enforce operator inequality;
+% DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 
 clc; clear; clear stateNameGenerator;
 echo on

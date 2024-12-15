@@ -8,15 +8,45 @@
 %       x(t,0) = x(t,1) = 0;
 % The PDE is stable when lam <= pi^2 = 9.8696 (Ahmadi 2015).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - DEMO4
+%
+% Copyright (C)2024  PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% MP, SS, DJ, 2022: Initial coding;
+% DJ, 10/20/2024: Update to use new LPI programming functions;
+% DJ, 11/19/2024: Simplify demo (remove lines of code where possible, use 
+%                   'sys' structure to declare PDE);
+
 clc; clear; clear stateNameGenerator;
 echo on
-%% %%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
-pvar s t
 
 % =============================================
 % === Declare parameters
 
-% Set bisection limits for lam.
+% Declare independent variables (time and space)
+pvar t s
+
+% Set bisection limits for lam
 lam_min = 0;        lam_max = 20;
 lam = 0.5*(lam_min + lam_max);
 n_iters = 8;
@@ -60,7 +90,6 @@ for iter = 1:n_iters
         lam = 0.5*(lam_min + lam_max);
     end    
 end
-%% %%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
 
 fprintf(['\n Stability of the system could be verified for lam<=',num2str(lam_min),'.\n'])

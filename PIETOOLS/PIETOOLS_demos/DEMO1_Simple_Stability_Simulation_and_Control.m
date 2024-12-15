@@ -1,5 +1,5 @@
-% DEMO1_Simple_Stability_Simulation_and_Control_Problem.m
-% See Chapter 2 of the manual for a description.
+% DEMO1_Simple_Stability_Simulation_and_Control.m
+% See Chapter 11.1 of the manual for a description.
 %
 % This document illustrates, with a simple example, how PIETOOLS can be 
 % used to simulate system dynamics, analyse stability and design optimal 
@@ -14,6 +14,35 @@
 %          X2(s=1) = x = exp(-t)x(t=0)+ int_0^t exp(-t+tau) u(tau) d tau
 %  Output:       z = int_0^1 xi_{s} ds = xi(s=1)-xi(s=0). 
 %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - DEMO1
+%
+% Copyright (C)2024  PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% MP, SS, DJ, 2022: Initial coding;
+% DJ, 10/20/2024: Update to use new LPI programming functions;
+% DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
+% DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
