@@ -70,28 +70,19 @@ prog = lpiprogram(PIE.vars,PIE.dom);
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
 % Scalar decision variable
-dpvar gam
-prog = lpidecvar(prog,gam);
+[prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-Pdim = T.dim(:,1);
-Pdeg = {2,[1,1,2],[1,1,2]};
-opts.sep = 0;
-[prog,P] = poslpivar(prog,Pdim,Pdeg,opts);
-% Enforce strict positivity Pop>= eppos
-eppos = 1e-3;
-P = P +mat2opvar(eppos*eye(size(P)),P.dim,PIE.vars,PIE.dom);
+[prog,P] = poslpivar(prog,[0,0;1,1],4);
+% Enforce strict positivity P >= 1e-3
+P = P + 1e-3;
 % Indefinite operator variable Z
-Zdim = B2.dim(:,[2,1]);
-Zdeg = [4,0,0];
-[prog,Z] = lpivar(prog,Zdim,Zdeg);
+[prog,Z] = lpivar(prog,[1,0;0,1],2);
 
 % % Set inequality constraints:
 % %   Q <= 0
-Iw = mat2opvar(eye(size(B1,2)), B1.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(C1,1)), C1.dim(:,1), PIE.vars, PIE.dom);
-Q = [-gam*Iz,           D11,       (C1*P+D12*Z)*(T');
-     D11',              -gam*Iw,   B1';
-     T*(C1*P+D12*Z)',   B1,        (A*P+B2*Z)*(T')+T*(A*P+B2*Z)'];
+Q = [-gam*eye(2),       D11,    (C1*P+D12*Z)*(T');
+     D11',              -gam,   B1';
+     T*(C1*P+D12*Z)',   B1,     (A*P+B2*Z)*(T')+T*(A*P+B2*Z)'];
 prog = lpi_ineq(prog,-Q);
 
 % % Set objective function:

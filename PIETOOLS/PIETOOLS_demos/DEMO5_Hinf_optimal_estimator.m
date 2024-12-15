@@ -76,24 +76,17 @@ prog = lpiprogram(PIE.vars,PIE.dom);
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
 % Scalar decision variable
-dpvar gam
-prog = lpidecvar(prog,gam);
+[prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-Pdim = T.dim;                   % dimensions of operator P
-Pdeg = {4,[2,3,5],[2,3,5]};     % degrees of monomials defining P
 opts.sep = 1;                   % set P.R.R1=P.R.R2
-[prog,P] = poslpivar(prog,T.dim,Pdeg,opts);
-% Indefinite operator variable Z
-Zdim = C2.dim(:,[2,1]);         % dimensions of operator Z
-Zdeg = [4,0,0];                 % degrees of monomials defining Z
-[prog,Z] = lpivar(prog,Zdim,Zdeg);
+[prog,P] = poslpivar(prog,T.dim,4,opts);
+% Indefinite operator variable Z: \R-->L2
+[prog,Z] = lpivar(prog,[0,1;1,0],4);
 
 % % Set inequality constraints:
 % %   Q <= 0
-Iw = mat2opvar(eye(size(B1,2)), B1.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(C1,1)), C1.dim(:,1), PIE.vars, PIE.dom);
-Q = [-gam*Iw,           -D11',        -(P*B1+Z*D21)'*T;
-     -D11,              -gam*Iz,      C1;
+Q = [-gam,              -D11',        -(P*B1+Z*D21)'*T;
+     -D11,              -gam,         C1;
      -T'*(P*B1+Z*D21),  C1',          (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
 prog = lpi_ineq(prog,-Q);
 
