@@ -42,7 +42,7 @@ format long;
 
 % Set up the dimenion of the problem (dim=1 for 1D problems or dim=2 for 2D problems).
 
-dim=2;
+dim=1;
 
 % Set up example to run from the examples library (additional examples can
 % be added to the library by the user).
