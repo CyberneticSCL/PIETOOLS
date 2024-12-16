@@ -24,7 +24,8 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-% DJ, 07/17/24  - bugfix in case "Rop" is not polynomial;
+% DJ, 07/17/2024: bugfix in case "Rop" is not polynomial;
+% DJ, 12/16/2024: Correct limits of for loop j=1:size(acheb);
 
 function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb_2D(N, Rop, p)
 pvar s1 s2
@@ -55,7 +56,7 @@ for k=1:size(Rop,2)
 
     acheb=reshape(fcgltran2d(double(Reval),1),[],1);
 
-for j=1:size(acheb)
+for j=1:length(acheb)                                                       % DJ, 12/16/2024
 A_block(j,k,m)=acheb(j);
 A_block_nonsquare(j,k,m)=acheb(j);
 end

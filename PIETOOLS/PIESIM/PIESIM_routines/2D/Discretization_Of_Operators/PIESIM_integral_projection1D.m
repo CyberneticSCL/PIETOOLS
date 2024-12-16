@@ -25,6 +25,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% DJ, 12/16/2024: Correct limits of for loop j=0:deg and m=0:deg;
 
 function [A,Abig]=PIESIM_integral_projection1D(N, Rcheb, csize, lim)
 pvar s theta x y nu theta;
@@ -42,8 +43,8 @@ for k=0:N
     % Finding a column vector of Chebyshev coefficient for the column k+1
     % of matrix A
 vecmult=zeros(N+1,1);
-for j=0:deg-1
-    for m=0:deg-1
+for j=0:deg(1)-1                                                            % DJ, 12/16/2024
+    for m=0:deg(2)-1
 % Integrate R (T_(k+m) and T_|k-m|) polynomials on [lim1,lim2]
 
 vecint=zeros(N+1,1);
