@@ -46,7 +46,8 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 11/22/2024: Initial coding
+% DJ, 11/22/2024: Initial coding;
+% DJ, 12/16/2024: Simplify demo;
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -61,8 +62,8 @@ pvar s1 s2 t
 a = 0;      b = 1;
 c = 0;      d = 1;
 x = pde_var('state',1,[s1;s2],[a,b;c,d]);
-w = pde_var('in',1,[],[]);
-z = pde_var('out',1,[],[]);
+w = pde_var('in',1);
+z = pde_var('out',1);
 % Declare the sytem equations
 lam = 5;
 PDE = [diff(x,t) == diff(x,s1,2) +diff(x,s2,2) + lam*x + w;
@@ -85,25 +86,21 @@ B = PIE.B1;    D = PIE.D11;
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram([s1;s2],[0,1;0,1]);
+prog = lpiprogram([s1;s2],[a,b;c,d]);
 
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
 % Scalar decision variable
-dpvar gam
-prog = lpidecvar(prog,gam);
+[prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-opts_P.sep = 1;
-[prog,P] = poslpivar(prog,T.dim,2,opts_P);
-% Enforce strict positivity Pop>= eppos
-P = P +1e-3;
+[prog,P] = poslpivar(prog,T.dim);
 
 % % Set inequality constraints:
 % %   Q <= 0
-Q = [-gam,       D,      C*P*T';
-     D',         -gam,   B';
-     T*(C*P)',   B,      (A*P)*(T')+T*(A*P)'];
-opts_Q.psatz = 1;
+Q = [-gam,       D',      (P*B)'*T;
+     D,          -gam,    C;
+     T*(P*B),    C',      (P*A)'*T+T'*(P*A)];
+opts_Q.psatz = 2;
 prog = lpi_ineq(prog,-Q,opts_Q);
 
 % % Set objective function:
@@ -111,12 +108,11 @@ prog = lpi_ineq(prog,-Q,opts_Q);
 prog = lpisetobj(prog, gam);
 
 % % Solve and retrieve the solution
-opts.solver = 'mosek';         % Use SeDuMi to solve the SDP
+opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
 opts.simplify = true;           % Simplify the SDP before solving
 prog_sol = lpisolve(prog,opts);
-% Extract solved value of decision variables
-gam_val = lpigetsol(prog_sol,gam);
-Pval = lpigetsol(prog_sol,P);
+% Extract solved value of decision variable
+gam_val = double(lpigetsol(prog_sol,gam));
 
 % % Alternatively, uncomment to use pre-defined executive
 % [prog, gam_val] = lpiscript(PIE,'l2-gain','stripped');   
@@ -124,4 +120,3 @@ Pval = lpigetsol(prog_sol,P);
 echo off
 
 fprintf(['\n If successful, ',num2str(gam_val,7),' is an upper bound on the L2-gain from disturbance to output for the 2D reaction-diffusion equation.\n'])
-fprintf([' The true value of the L2-gain for this system with lam=5 and on [0,1]^2 is known to be roughly 0.1110'.\n']);
