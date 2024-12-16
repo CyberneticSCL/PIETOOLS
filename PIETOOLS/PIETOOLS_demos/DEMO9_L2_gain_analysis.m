@@ -115,7 +115,7 @@ prog_sol = lpisolve(prog,opts);
 gam_val = double(lpigetsol(prog_sol,gam));
 
 % % Alternatively, uncomment to use pre-defined executive
-% [prog, gam_val] = lpiscript(PIE,'l2-gain','stripped');   
+% [prog, ~, gam_val] = lpiscript(PIE,'l2gain','stripped');   
 
 echo off
 
