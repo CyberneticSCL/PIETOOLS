@@ -120,3 +120,4 @@ gam_val = double(lpigetsol(prog_sol,gam));
 echo off
 
 fprintf(['\n If successful, ',num2str(gam_val,7),' is an upper bound on the L2-gain from disturbance to output for the 2D reaction-diffusion equation.\n'])
+fprintf([' The true value of the L2-gain for this system with lam=5 and on [0,1]^2 is known to be roughly 0.0939622.\n']);
