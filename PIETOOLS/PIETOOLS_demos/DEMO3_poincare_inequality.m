@@ -55,8 +55,8 @@ H1 = PIE.A;     % H1 x_{ss} = x_{s}
 %%%%%   where (H2 x_ss) = x and (H1 x_ss) = x_s
 % % First, define dpvar gam and set up an optimization problem
 dpvar gam;
-vars = [H2.var1; H2.var2];
-prob = sosprogram(vars,gam);
+vars = [H2.var1, H2.var2];
+prob = lpiprogram(vars,[a,b],gam);
 
 % % Set gam as objective function to minimize
 prob = sossetobj(prob, gam);

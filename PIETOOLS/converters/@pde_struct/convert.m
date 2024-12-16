@@ -46,6 +46,7 @@ function PIE = convert(PDE,out_type)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 10/11/2022
+% Call combines 1D-2D converter, DJ - 10/17/2024
 
 % We support only PDE to PIE conversion.
 if nargin==2 && ~strcmpi(out_type,'pie')
@@ -77,14 +78,13 @@ end
 % Reorder state components, inputs, and outputs, so that these may be
 % represented using PI operators.
 fprintf(['\n',' --- Reordering the state components to allow for representation as PIE ---\n']);
-[PDE,comp_order] = reorder_comps(PDE,{'x','u','w','y','z'});
+[PDE] = reorder_comps(PDE,{'x','u','w','y','z'});
 
 % Check the spatial dimension of the system, and call the corresponding 
 % converter.
-if PDE.dim<=1
-    PIE = convert_PIETOOLS_PDE_terms(PDE);    
-elseif PDE.dim==2
-    PIE = convert_PIETOOLS_PDE_2D(PDE,comp_order);
+if PDE.dim<=2
+    fprintf('\n --- Converting the PDE to an equivalent PIE --- \n')
+    PIE = convert_PIETOOLS_PDE(PDE);
 else
     error('PIETOOLS does not currently support conversion of PDEs in more than 2 spatial variables'); 
 end

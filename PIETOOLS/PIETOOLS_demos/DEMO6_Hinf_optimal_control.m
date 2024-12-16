@@ -76,8 +76,9 @@ else
     % % controller synthesis.
 
     % Initialize the LPI program
-    vars = PIE.vars(:);
-    prog = sosprogram(vars);
+    vars = PIE.vars;
+    dom = PIE.dom;
+    prog = lpiprogram(vars,dom);
 
     % Declare the decision variable gamma
     dpvar gam;

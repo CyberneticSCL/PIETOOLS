@@ -1,17 +1,21 @@
-function sos = lpi_eq(sos,P,opts)
+function prog = lpi_eq(prog,P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sos = lpi_eq(prog,P) sets up equality constraints for each component.
-% P.P=0
-% P.Qi =0
-% P.Ri = 0
+% PROG = LPI_EQ(PROG,P) takes an LPI optimization program structur 'prog'
+% and a (PI operator) decision variable P, and adds equality constraints 
+% enforcing P==0.
+%
 % INPUT
-%   sos:    SOS program to modify.
-%   P:      PI dopvar variable to set equal to 0.
-%   opts:   Optional input. Set opts = 'symmetric' if P is known to be
+% - prog:   'struct' specifying LPI program structure to modify;
+% - P:      'dpvar' or 'dopvar' object, representing a (PI operator) 
+%           decision variable of which to enforce P==0. If P represents a
+%           PI operator, all parameters will be enforced to be equal to 0,
+%           P.P==0, P.Qi==0, P.R.Ri==0;
+% - opts:   (optional) set opts = 'symmetric' if P is known to be
 %           symmetric, to enforce only parameters on and below the diagonal
 %           to be zero (as the rest will follow by symmetry).
 % OUTPUT 
-%   sos:    Modified SOS program
+% - prog:   Same LPI program structure as input, but with the added
+%           constraints enforcing P==0.
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -43,16 +47,26 @@ function sos = lpi_eq(sos,P,opts)
 %
 % Initial coding MMP, SS, DJ  - 09/26/2021
 % 07/24/2023 - DJ: Add option to exploit symmetry of operators;
+% 10/19/2024 - DJ: Add support for non-opvar decision variables;
 %
 
-% Pass 2D operator to associated lpi_eq function.
-if isa(P,'opvar2d') || isa(P,'dopvar2d')
+% Check that the input is of appropriate type.
+if isa(P,'polynomial') || isa(P,'double')
+    error('Enforcing equality constraints on fixed values or polynomials is not supported.')
+elseif isa(P,'dpvar')
+    % If P is not an opvar, we can enforce equality using just soseq.
+    prog = soseq(prog,P);
+    return
+elseif isa(P,'opvar2d') || isa(P,'dopvar2d')
+    % Pass 2D operator to associated lpi_eq function.
     if nargin>=3
-        sos = lpi_eq_2d(sos,P,opts);
+        prog = lpi_eq_2d(prog,P,opts);
     else
-        sos = lpi_eq_2d(sos,P);
+        prog = lpi_eq_2d(prog,P);
     end
     return
+elseif ~isa(P,'opvar') && ~isa(P,'dopvar')
+    error('Input must be of type ''dopvar'' or ''dpvar''.')
 end
 
 % Check if symmetric option is specified.
@@ -70,14 +84,14 @@ end
 % Enforce parameters in operator to be zero.
 for i = i_set1
     if ~isempty(P.(i{:}))
-        sos = soseq(sos, P.(i{:}));
+        prog = soseq(prog, P.(i{:}));
     end
 end
 for i = i_set2
     if ~isempty(P.R.(i{:}))
         C = P.R.(i{:}); 
         if ~all(all(C.C==0))
-            sos = soseq(sos, C);
+            prog = soseq(prog, C);
         end
     end
 end

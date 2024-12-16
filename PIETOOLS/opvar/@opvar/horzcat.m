@@ -2,7 +2,8 @@ function [Pcat] = horzcat(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Pcat] = horzcat(varargin) takes n inputs and concatentates them horizontally,
 % provided they satisfy the following criteria:
-% 1) All inputs must of type 'opvar';
+% 1) At least one input must be of type 'opvar', remaining inputs can be of
+%    type 'double', 'polynomial', or 'opvar'.
 % 2) The output dimensions varargin{j}.dim(:,1) of all opvar objects must
 %       match;
 % 3) The spatial variables varargin{j}.var1 and varargin{j}.var2, as well 
@@ -45,6 +46,8 @@ function [Pcat] = horzcat(varargin)
 % has automatic dimension calculation
 % Adjusted so that dpvar with opvar returns dopvar, DJ 12/30/2021.
 % DJ - 09/30/23: Prohibit "ambiguous" concatenations.
+% SS - 10/09/24: Revert to allow some matrix-opvar concatenations.
+% DB - 11/13/24: "ambiguous" concatenations allowed, warning displayed.
 
 % Deal with single input case
 if nargin==1
@@ -55,10 +58,33 @@ end
 % Extract the operators
 a = varargin{1};    b = varargin{2};
 
-% Currently support only opvar-opvar concatenation
-if ~isa(a,'opvar') || ~isa(b,'opvar')
-    error('Concatenation of opvar and non-opvar objects is ambiguous, and currently not supported')
+% Currently support some matrix-opvar concatenation
+if ~isa(b,'opvar')
+    % Only supported if a in fact corresponds to a matrix as well
+    if all(a.dim(2,:)==0)
+        opvar tmp; tmp.I = a.I; tmp.var1 = a.var1; tmp.var2 = a.var2;
+        tmp.P = b;
+        b = tmp;
+    else
+        error("Ambiguous concatenation [a,b] of opvars. Please explicitly define 'a' and 'b' as opvars to resolve.");
+    end
+elseif ~isa(a,'opvar') && (isa(a,'double')||isa(a,'polynomial')||isa(a,'dpvar'))
+    opvar tmp; tmp.I = b.I; tmp.var1 = b.var1; tmp.var2 = b.var2;
+    if b.dim(2,1)~=0 % b maps to L2, so [a,b] is possible only if a is multiplier Q2 (or R0, but we ignore that)
+        tmp.Q2 = a;
+    elseif b.dim(1,1)~=0 && (isa(a,'double')||isempty(a.degmat)) % b maps to R, [a,b] is possible only if a is multiplier P
+        tmp.P = a;
+    else
+        error("Ambiguous concatenation [a,b] of opvars. Explicitly define 'a' and 'b' as opvars to resolve.");
+    end
+    tmp.dim = tmp.dim; % rectify dimensions
+    a = tmp;
+    clear tmp;
+elseif ~isa(a,'opvar')
+    error("Concatenation of 'opvar' objects is only supported with objects of type 'opvar', 'polynomial', or 'double'.")
 end
+
+
 % Check that domain and variables match
 if any(a.I~=b.I)|| ~strcmp(a.var1.varname,b.var1.varname) || ~strcmp(a.var2.varname,b.var2.varname)
     error('Operators being concatenated have different intervals or different independent variables');
@@ -74,7 +100,7 @@ if (a.dim(2,2)~=0 && b.dim(1,2)~=0)
     % a has columns mapping from L2, but b has columns mapping from R.
     % Concatenation would place those columns of a to the right of
     % those columns of b in the opvar, which we currently prohibit...
-    error('Proposed opvar concatenation is ambiguous, and currently prohibited')
+    warning('Proposed opvar concatenation is ambiguous.')
 end
 
 % Finally, let's actually concatenate

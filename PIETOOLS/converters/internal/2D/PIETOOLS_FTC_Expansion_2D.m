@@ -128,7 +128,8 @@ function [Pop_f2x, Pop_b2x, bc_state_tab] = PIETOOLS_FTC_Expansion_2D(PDE)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/09/2022
-%
+% Add support for 1D case, DJ - 10/16/2024.
+% DJ, 12/06/2024: Bugfix `ind2sub` for Matlab 2024b;
 
 
 % Extract PDE information.
@@ -170,7 +171,11 @@ np_10 = sum(x_tab(x_tab_rindcs_10,2));
 np_01 = sum(x_tab(x_tab_rindcs_01,2));
 np_11 = sum(x_tab(x_tab_rindcs_11,2));
 
-np_op = [np_00; np_10; np_01; np_11];
+if nvars<=1
+    np_op = [np_00; np_10];
+else
+    np_op = [np_00; np_10; np_01; np_11];
+end
 nnp_op = cumsum([0;np_op]);
 
 % Establish the number of core boundary values
@@ -196,11 +201,15 @@ else
     nbc_11_01 = np_arr(x_tab_rindcs_11)'*(nbc_tab(x_tab_rindcs_11,1));          % Number of core boundary states for x_{11}(s_1,s_2) that VARY in just s_2 (so are BCs along s_1)
 end
 % Set the dimension of the core boundary state.
-nbc_op = [nbc_10_00 + nbc_01_00 + nbc_11_00;
-          nbc_11_10;
-          nbc_11_01;
-          0];
-      
+if nvars<=1
+    nbc_op = [nbc_10_00; 0];
+else
+    nbc_op = [nbc_10_00 + nbc_01_00 + nbc_11_00;
+              nbc_11_10;
+              nbc_11_01;
+              0];
+end
+
 % Initalize a table to keep track of what each column of the BC operator 
 % corresponds to.
 % First column indicates a state component
@@ -212,21 +221,36 @@ nbc_op = [nbc_10_00 + nbc_01_00 + nbc_11_00;
 bc_state_tab = zeros(sum(nbc_op),2+2*nvars);
 
 % Initalize the PI operators.
-Pop_f2x = opvar2d([],[np_op,np_op],dom,vars);
-Pop_b2x = opvar2d([],[np_op,nbc_op],dom,vars);
+if nvars<=1
+    opvar Pop_f2x Pop_b2x;
+    Pop_f2x.dim = [np_op,np_op];    Pop_f2x.I = dom;
+    Pop_f2x.var1 = vars(1);         Pop_f2x.var2 = vars(2);
+    Pop_b2x.dim = [np_op,nbc_op];  Pop_b2x.I = dom;
+    Pop_b2x.var1 = vars(1);         Pop_b2x.var2 = vars(2);
 
-intrr_params = cell(4,4);
-intrr_params{1,1} = {Pop_f2x.R00};
-intrr_params{2,2} = Pop_f2x.Rxx;
-intrr_params{3,3} = Pop_f2x.Ryy;
-intrr_params{4,4} = Pop_f2x.R22;
+    intrr_params = cell(2,2);
+    intrr_params{1,1} = {Pop_f2x.P};
+    intrr_params{2,2} = {Pop_f2x.R.R0, Pop_f2x.R.R1, Pop_f2x.R.R2};
+    
+    bndry_params = cell(2,2);
+    bndry_params{2,1} = {Pop_b2x.Q2};
+else
+    Pop_f2x = opvar2d([],[np_op,np_op],dom,vars);
+    Pop_b2x = opvar2d([],[np_op,nbc_op],dom,vars);
 
-bndry_params = cell(4,4);
-bndry_params{2,1} = {Pop_b2x.Rx0};
-bndry_params{3,1} = {Pop_b2x.Ry0};
-bndry_params{4,1} = {Pop_b2x.R20};
-bndry_params{4,2} = Pop_b2x.R2x;
-bndry_params{4,3} = Pop_b2x.R2y;
+    intrr_params = cell(4,4);
+    intrr_params{1,1} = {Pop_f2x.R00};
+    intrr_params{2,2} = Pop_f2x.Rxx;
+    intrr_params{3,3} = Pop_f2x.Ryy;
+    intrr_params{4,4} = Pop_f2x.R22;
+    
+    bndry_params = cell(4,4);
+    bndry_params{2,1} = {Pop_b2x.Rx0};
+    bndry_params{3,1} = {Pop_b2x.Ry0};
+    bndry_params{4,1} = {Pop_b2x.R20};
+    bndry_params{4,2} = Pop_b2x.R2x;
+    bndry_params{4,3} = Pop_b2x.R2y;
+end
 
 
 nBCs_arr = zeros(1,2^nvars - 1);
@@ -247,9 +271,9 @@ for comp=1:ncomps
     % e.g. if the state component is differentiable in s1 but not in s2, we
     % should look at R22{2,1}
     param_lin_sz = 3.^(0:nvars-1)';
-    param_lin_sz = param_lin_sz(1:nvars_cc);
+    param_lin_sz = param_lin_sz((1:nvars_cc)');
     Dval = diff_tab(comp,:);
-    Dval_cc = Dval(isvar);
+    Dval_cc = Dval(1,isvar);
     param_idx = (Dval_cc>0)*param_lin_sz + 1;
     
     if all(Dval_cc==0)
@@ -279,7 +303,7 @@ for comp=1:ncomps
     % order of the derivative of the state along each spatial direction.
     % For each direction, we collect these factors for each allowed
     % derivative along this direction in the "bndry_fctr_cell".
-    bndry_fctr_cell = cell(isdiff+1);
+    bndry_fctr_cell = cell([isdiff+1,1]);
     bndry_fctr_cell{1} = 1;
     deglist_cell = cell(isdiff+1);
     deglist_cell{1} = zeros(1,0);
@@ -297,7 +321,7 @@ for comp=1:ncomps
     for kk=2:numel(bndry_fctr_cell)
         % Establish which combination of variables is associated to "kk".
         sub_indx_kk = cell(1,nvars);
-        [sub_indx_kk{:}] = ind2sub(isdiff+1,kk);
+        [sub_indx_kk{:}] = ind2sub([isdiff+1,1],kk);                        % DJ, 12/06/2024
         sub_indx_kk = cell2mat(sub_indx_kk);
         log_indx_kk = logical(sub_indx_kk-1);
         
@@ -367,9 +391,13 @@ for comp=1:ncomps
         % Establish which element of the parameter we are considering: we
         % should always perform partial integration along directions in
         % which the core boundary state varies.
-        log_idx_param = (is_intrr & isdiff);
-        sz_param = size(bndry_params{Pop_rnum,Pop_cnum});
-        lin_idx_param = log_idx_param*[1;cumprod(sz_param(1:end-1))] + 1;
+        if nvars<=1
+            lin_idx_param = 1;
+        else
+            log_idx_param = (is_intrr & isdiff);
+            sz_param = size(bndry_params{Pop_rnum,Pop_cnum});
+            lin_idx_param = log_idx_param*[1;cumprod(sz_param(1:end-1))] + 1;
+        end
         %lin_idx_param = ceil(numel(bndry_params{Pop_rnum,Pop_cnum})/2); % NOT QUITE... if Dval=[0,1], should be in R2x{1} not R2x{2}
         
         % Establish which columns of the parameter our factors should be
@@ -401,17 +429,25 @@ end
 
 % Having determined values for the parameters, now assign the parameters 
 % to the pre-initialized operators.
-Pop_f2x.R00 = intrr_params{1,1}{1};
-Pop_f2x.Rxx = intrr_params{2,2};
-Pop_f2x.Ryy = intrr_params{3,3};
-Pop_f2x.R22 = intrr_params{4,4};
+if nvars<=1
+    Pop_f2x.P = intrr_params{1,1}{1};
+    Pop_f2x.R.R0 = intrr_params{2,2}{1};
+    Pop_f2x.R.R1 = intrr_params{2,2}{2};
+    Pop_f2x.R.R2 = intrr_params{2,2}{3};
 
-
-Pop_b2x.Rx0 = bndry_params{2,1}{1};
-Pop_b2x.Ry0 = bndry_params{3,1}{1};
-Pop_b2x.R20 = bndry_params{4,1}{1};
-Pop_b2x.R2x = bndry_params{4,2};
-Pop_b2x.R2y = bndry_params{4,3};
+    Pop_b2x.Q2 = bndry_params{2,1}{1};
+else
+    Pop_f2x.R00 = intrr_params{1,1}{1};
+    Pop_f2x.Rxx = intrr_params{2,2};
+    Pop_f2x.Ryy = intrr_params{3,3};
+    Pop_f2x.R22 = intrr_params{4,4};
+    
+    Pop_b2x.Rx0 = bndry_params{2,1}{1};
+    Pop_b2x.Ry0 = bndry_params{3,1}{1};
+    Pop_b2x.R20 = bndry_params{4,1}{1};
+    Pop_b2x.R2x = bndry_params{4,2};
+    Pop_b2x.R2y = bndry_params{4,3};
+end
 
 bc_state_tab = unique(bc_state_tab,'stable','rows');
 

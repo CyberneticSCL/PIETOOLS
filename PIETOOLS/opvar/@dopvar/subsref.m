@@ -40,11 +40,30 @@ function out = subsref(obj,s)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, SS  - 6_14_2022
-%
+% Initial coding MMP, SS  - 6_14_2022;
+% Add support for specifying indices as ':', DJ - 10/16/2024;
+% Add support for extracting variables as Pop.vars, DJ - 10/20/2024;
 
 switch s(1).type
     case '.'
+        if strcmp(s(1).subs,'vars')
+            % Allow spatial variables to be extracted as Pop.vars.
+            var1 = obj.var1;
+            var2 = obj.var2;
+            vars = [var1,var2];
+            if numel(s)==1
+                % Just Pop.vars.
+                out = vars;
+            else
+                % e.g. Pop.vars(1).
+                out = builtin('subsref',vars,s(2:end));
+            end
+            return
+        end
+        if strcmp(s(1).subs,'dom')
+            % Allow spatial domain to be extracted as Pop.dom;
+            s(1).subs = 'I';
+        end
         out = builtin('subsref',obj,s);
     case '()'
         indr = s(1).subs{1};
@@ -70,7 +89,19 @@ switch s(1).type
         indc1=[];
         indc2=[];
 
-        for i=indr %rows
+        % Allow indices to be specified as e.g. (i,:);
+        if strcmp(indr,':') && strcmp(indc,':')
+            out = obj;
+            return
+        end
+        if strcmp(indr,':')
+            indr = (1:nr1_old+nr2_old);
+        end
+        if strcmp(indc,':')
+            indc = (1:nc1_old+nc2_old);
+        end
+
+        for i=indr(:)' %rows
             if i<(nr1_old+1)
                 nr1_new=nr1_new+1;
                 indr1=[indr1 i];
@@ -78,10 +109,10 @@ switch s(1).type
                 nr2_new=nr2_new+1;
                 indr2=[indr2 i-nr1_old];
             else
-                error('index exceeds the number of rows in the original opvar')
+                error('index exceeds the number of rows in the original dopvar')
             end
         end
-        for i=indc %columns
+        for i=indc(:)' %columns
             if i<(nc1_old+1)
                 nc1_new=nc1_new+1;
                 indc1=[indc1 i];
@@ -89,7 +120,7 @@ switch s(1).type
                 nc2_new=nc2_new+1;
                 indc2=[indc2 i-nc1_old];
             else
-                error('index exceeds the number of columns in the original opvar')
+                error('index exceeds the number of columns in the original dopvar')
             end
         end
         % Construct the sliced opvar

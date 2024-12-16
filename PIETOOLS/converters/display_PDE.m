@@ -194,312 +194,135 @@ var_list = [var1_list, var2_list, sub_var1_list, sub_var2_list, sup_var1_list];
 % is done at all.
 use_Cij = false;
 
-% % % Display the PDEs for the observed outputs.
-if isfield(PDE,'x') || isa(PDE,'pde_struct')
-for eq_num=1:numel(PDE.x)
-    fprintf("\n  ");
-       
-    % % First construct the LHS of the PDE
-    x_comp = PDE.x{eq_num}; % Extract the info for the considered state
-    LHS_length = 2;         % Keep track of the size of the expression on the LHS
-    eq_info = PDE.x_tab(eq_num,:);
-    
-    % Set the order for the temporal derivative of the state.
-    if isfield(x_comp,'tdiff')
-        tdiff = x_comp.tdiff;
-    else
-        tdiff = 1;
-    end
-    % Establish the set of variables on which the state component depends.
-    tab_row = find(PDE.x_tab(:,1)==eq_num,1);
-    Lvar_indcs = logical(PDE.x_tab(tab_row,3:3+nvars-1));
-    if ~any(Lvar_indcs)
-        LHS_length = LHS_length + 3;
-        Lvar_str = '(t)';
-    else
-        Lvars = var1_list(Lvar_indcs);
-        LHS_length = LHS_length + 3;
-        Lvar_str = '(t';
-        for idx=1:length(Lvars)
-            LHS_length = LHS_length + 2 + length(num2str(idx));
-            Lvar_str = [Lvar_str,',',Lvars{idx}];
-        end
-        Lvar_str = [Lvar_str,')'];
-    end
-    % Establish the (subscript) index for the state component.
-    if numel(PDE.x)==1
-        % There is only one state component --> no need to give index
-        Lstate_idx = '';
-    elseif numel(PDE.x)<=9
-        % The state number consists of a single decimal
-        LHS_length = LHS_length + 1;
-        Lstate_idx = sub_num{eq_num+1};
-    else
-        % The state number consists of multiple decimals
-        Lstate_idx = cell2mat(sub_num(str2num(num2str(eq_num)')+1)');
-        LHS_length = LHS_length + length(num2str(PDE.x));
-    end
-    
-    % Construct the left-hand side of the PDE
-    if tdiff==1
-        LHS = [xdot,Lstate_idx,Lvar_str];
-        LHS_length = LHS_length + 1;
-    elseif tdiff==2
-        LHS = [xddot,Lstate_idx,Lvar_str];
-        LHS_length = LHS_length + 1;
-    elseif tdiff<=9
-        sup_tdiff = sup_num{tdiff+1};
-        LHS = [partial,sub_t,sup_tdiff,' x',Lstate_idx,Lvar_str];
-        LHS_length = LHS_length + 3;
-    else
-        % The order of the temporal derivative consists of muliple decimals
-        sup_tdiff = cell2mat(sub_num(str2num(num2str(tdiff)')+1)');
-        LHS = [partial,sub_t,sup_tdiff,' x',Lstate_idx,Lvar_str];
-        LHS_length = LHS_length + 2 + length(num2str(tdiff));
-    end
-    % Initialize a str for the PDE
-    x_eq = LHS;
-    LHS_length = LHS_length + 2;    % Account for size of ' ='.
-    
-    
-    % % Next, add the right-hand side
-    % If no terms are present, set RHS equal to 0
-    if ~isfield(x_comp,'term') || isempty(x_comp.term)
-        x_eq = [x_eq , ' = 0'];
-        fprintf(x_eq);
+% % % Display the equations of each type, starting with state equations,
+% % % observed outputs, regulated outputs, and then BCs
+eq_types = {'x';'y';'z';'BC'};
+objs_LHS = {'x';'y';'z';'0'};
+for kk=1:numel(eq_types)
+    eq_type_kk = eq_types{kk};
+    obj_LHS_kk = objs_LHS{kk};
+    if numel(PDE.(eq_type_kk))==0
+        % No equations to display.
         continue
     end
-    % Otherwise, loop over the terms, adding each to the equation.
-    for trm = 1:numel(x_comp.term)
-        [term_str,use_Cij_ii] = construct_term(PDE,x_comp,eq_num,eq_info,trm,var_list,tau_list);
-        use_Cij = use_Cij || use_Cij_ii;
-        x_eq_new = [x_eq, term_str];
+    for eq_num=1:numel(PDE.(eq_type_kk))
+        fprintf("\n  ");
+           
+        % % First construct the LHS of the PDE
+        LHS_comp = PDE.(eq_type_kk){eq_num}; % Extract the info for the considered state
+        LHS_length = 2;         % Keep track of the size of the expression on the LHS
+        eq_info = PDE.([eq_type_kk,'_tab'])(eq_num,:);
+        eq_ID = eq_info(1);
         
-        % If the size of the equation becomes too large, start a new line.
-        if trm==numel(x_comp.term)
-            fprintf([x_eq_new,';'])
-        elseif length(x_eq_new) > 4*width_max
-            fprintf(x_eq_new)
-            fprintf('\n');
-            x_eq = repmat(' ',1,LHS_length+5);
+        % Set the order for the temporal derivative of the state.
+        if isfield(LHS_comp,'tdiff')
+            tdiff = LHS_comp.tdiff;
+        elseif kk==1
+            tdiff = 1;
         else
-            x_eq = x_eq_new;
+            tdiff = 0;
         end
-    end
-end
-end
-
-
-
-% % % Display the equations for the observed outputs.
-if (isfield(PDE,'y') || isa(PDE,'pde_struct')) && ~isempty(PDE.y)
-fprintf('\n')
-for eq_num=1:numel(PDE.y)
-    fprintf("\n  ");
-       
-    % % First construct the LHS of the output equation
-    y_comp = PDE.y{eq_num}; % Extract the info for the considered output
-    LHS_length = 2;         % Keep track of the size of the expression on the LHS
-    eq_info = PDE.y_tab(eq_num,:);
-    
-    % Establish the set of variables on which the output depends.
-    tab_row = find(PDE.y_tab(:,1)==eq_num);
-    Lvar_indcs = logical(PDE.y_tab(tab_row,3:3+nvars-1));
-    if ~any(Lvar_indcs)
-        LHS_length = LHS_length + 3;
-        Lvar_str = '(t)';
-    else
-        Lvars = var1_list(Lvar_indcs);
-        LHS_length = LHS_length + 3;
-        Lvar_str = '(t';
-        for idx=1:length(Lvars)
-            LHS_length = LHS_length + 2 + length(num2str(idx));
-            Lvar_str = [Lvar_str,',',Lvars{idx}];
-        end
-        Lvar_str = [Lvar_str,')'];
-    end
-    % Establish the (subscript) index for the state component.
-    if numel(PDE.y)==1
-        % There is only one observed output --> no need to give index
-        Lstate_idx = '';
-    elseif numel(PDE.y)<=9
-        % The output number consists of a single decimal
-        LHS_length = LHS_length + 1;
-        Lstate_idx = sub_num{eq_num+1};
-    else
-        % The output number consists of multiple decimals
-        Lstate_idx = cell2mat(sub_num(str2num(num2str(eq_num)')+1)');
-        LHS_length = LHS_length + length(num2str(PDE.y));
-    end
-    
-    % Construct the left-hand side of the output equation
-    LHS = ['y',Lstate_idx,Lvar_str];
-    LHS_length = LHS_length + 1;
         
-    % Initialize a str for the output equation
-    y_eq = LHS;
-    LHS_length = LHS_length + 2;    % Account for size of ' ='.
-    
-    
-    % % Next, add the right-hand side
-    % If no terms are present, set RHS equal to 0
-    if ~isfield(y_comp,'term') || isempty(y_comp.term)
-        y_eq = [y_eq , ' = 0'];
-        fprintf(y_eq);
-        continue
-    end
-    % Otherwise, loop over the terms, adding each to the equation.
-    for trm = 1:numel(y_comp.term)
-        eq_num_full = eq_num + numel(PDE.x);
-        [term_str,use_Cij_ii] = construct_term(PDE,y_comp,eq_num_full,eq_info,trm,var_list,tau_list);
-        use_Cij = use_Cij || use_Cij_ii;
-        y_eq_new = [y_eq, term_str];
-        
-        % If the size of the equation becomes too large, start a new line.
-        if trm==numel(y_comp.term)
-            fprintf([y_eq_new,';'])
-        elseif length(y_eq_new) > 4*width_max
-            fprintf(y_eq_new)
-            fprintf('\n');
-            y_eq = repmat(' ',1,LHS_length+5);
+        if kk<=3
+            % Establish the set of variables on which the state component or
+            % output depends.
+            Lvar_indcs = eq_info(1,3:3+nvars-1);
+            if ~any(Lvar_indcs)
+                LHS_length = LHS_length + 3;
+                Lvar_str = '(t)';
+            else
+                Lvars = var1_list(logical(Lvar_indcs));
+                LHS_length = LHS_length + 3;
+                Lvar_str = '(t';
+                for idx=1:length(Lvars)
+                    LHS_length = LHS_length + 2 + length(num2str(idx));
+                    Lvar_str = [Lvar_str,',',Lvars{idx}];
+                end
+                Lvar_str = [Lvar_str,')'];
+            end
+            % Establish the (subscript) index for the state component.
+            if size(PDE.([eq_type_kk,'_tab']),1)==1
+                % There is only one state component --> no need to give index
+                Lstate_idx = '';
+            elseif max(PDE.([eq_type_kk,'_tab'])(:,1))<=9
+                % The state number consists of a single decimal
+                LHS_length = LHS_length + 1;
+                Lstate_idx = sub_num{eq_ID+1};
+            else
+                % The state number consists of multiple decimals
+                Lstate_idx = cell2mat(sub_num(str2num(num2str(eq_ID)')+1)');
+                LHS_length = LHS_length + max(PDE.([eq_type_kk,'_tab'])(:,1));
+            end
         else
-            y_eq = y_eq_new;
+            % For boundary conditions, don't display variables or index.
+            Lvar_str = '';
+            Lstate_idx = '';
         end
-    end
-end
-end
-
-
-
-% % % Display the equations for the regulated outputs.
-if (isfield(PDE,'z') || isa(PDE,'pde_struct')) && ~isempty(PDE.z)
-fprintf('\n')
-for eq_num=1:numel(PDE.z)
-    fprintf("\n  ");
-       
-    % % First construct the LHS of the output equation
-    z_comp = PDE.z{eq_num}; % Extract the info for the considered output
-    LHS_length = 2;         % Keep track of the size of the expression on the LHS
-    eq_info = PDE.z_tab(eq_num,:);
-    
-    % Establish the set of variables on which the output depends.
-    tab_row = find(PDE.z_tab(:,1)==eq_num);
-    Lvar_indcs = logical(PDE.z_tab(tab_row,3:3+nvars-1));
-    if ~any(Lvar_indcs)
-        LHS_length = LHS_length + 3;
-        Lvar_str = '(t)';
-    else
-        Lvars = var1_list(Lvar_indcs);
-        LHS_length = LHS_length + 3;
-        Lvar_str = '(t';
-        for idx=1:length(Lvars)
-            LHS_length = LHS_length + 2 + length(num2str(idx));
-            Lvar_str = [Lvar_str,',',Lvars{idx}];
-        end
-        Lvar_str = [Lvar_str,')'];
-    end
-    % Establish the (subscript) index for the state component.
-    if numel(PDE.z)==1
-        % There is only one regulated output --> no need to give index
-        Lstate_idx = '';
-    elseif numel(PDE.z)<=9
-        % The output number consists of a single decimal
-        LHS_length = LHS_length + 1;
-        Lstate_idx = sub_num{eq_num+1};
-    else
-        % The output number consists of multiple decimals
-        Lstate_idx = cell2mat(sub_num(str2num(num2str(eq_num)')+1)');
-        LHS_length = LHS_length + length(num2str(PDE.z));
-    end
-    
-    % Construct the left-hand side of the output equation
-    LHS = ['z',Lstate_idx,Lvar_str];
-    LHS_length = LHS_length + 1;
         
-    % Initialize a str for the output equation
-    z_eq = LHS;
-    LHS_length = LHS_length + 2;    % Account for size of ' ='.
-    
-    
-    % % Next, add the right-hand side
-    % If no terms are present, set RHS equal to 0
-    if ~isfield(z_comp,'term') || isempty(z_comp.term)
-        z_eq = [z_eq , ' = 0'];
-        fprintf(z_eq);
-        continue
-    end
-    % Otherwise, loop over the terms, adding each to the equation.
-    for trm = 1:numel(z_comp.term)
-        eq_num_full = eq_num + numel(PDE.x) + numel(PDE.y);
-        [term_str,use_Cij_ii] = construct_term(PDE,z_comp,eq_num_full,eq_info,trm,var_list,tau_list);
-        use_Cij = use_Cij || use_Cij_ii;
-        z_eq_new = [z_eq, term_str];
-        
-        % If the size of the equation becomes too large, start a new line.
-        if trm==numel(z_comp.term)
-            fprintf([z_eq_new,';'])
-        elseif length(z_eq_new) > 4*width_max
-            fprintf(z_eq_new)
-            fprintf('\n');
-            z_eq = repmat(' ',1,LHS_length+5);
+        % % Construct the left-hand side of the PDE
+        if kk==1
+            if tdiff==1
+                LHS = [xdot,Lstate_idx,Lvar_str];
+                LHS_length = LHS_length + 1;
+            elseif tdiff==2
+                LHS = [xddot,Lstate_idx,Lvar_str];
+                LHS_length = LHS_length + 1;
+            elseif tdiff<=9
+                sup_tdiff = sup_num{tdiff+1};
+                LHS = [partial,sub_t,sup_tdiff,' x',Lstate_idx,Lvar_str];
+                LHS_length = LHS_length + 3;
+            else
+                % The order of the temporal derivative consists of muliple decimals
+                sup_tdiff = cell2mat(sub_num(str2num(num2str(tdiff)')+1)');
+                LHS = [partial,sub_t,sup_tdiff,' x',Lstate_idx,Lvar_str];
+                LHS_length = LHS_length + 2 + length(num2str(tdiff));
+            end
         else
-            z_eq = z_eq_new;
+            % For output equations or boundary conditions, there is no
+            % temporal derivative taken.
+            LHS = [obj_LHS_kk,Lstate_idx,Lvar_str];
+            LHS_length = LHS_length + 1;
+        end
+        % Initialize a str for the PDE
+        eq_kk = LHS;
+        LHS_length = LHS_length + 2;    % Account for size of ' ='.
+        
+        
+        % % Next, add the right-hand side
+        % If no terms are present, set RHS equal to 0
+        if ~isfield(LHS_comp,'term') || isempty(LHS_comp.term)
+            eq_kk = [eq_kk , ' = 0'];
+            fprintf(eq_kk);
+            continue
+        end
+        % Otherwise, loop over the terms, adding each to the equation.
+        for trm = 1:numel(LHS_comp.term)
+            [term_str,use_Cij_ii] = construct_term(PDE,LHS_comp,eq_num,eq_info,trm,var_list,tau_list);
+            use_Cij = use_Cij || use_Cij_ii;
+            eq_kk_new = [eq_kk, term_str];
+            
+            % If the size of the equation becomes too large, start a new line.
+            if trm==numel(LHS_comp.term)
+                fprintf([eq_kk_new,';'])
+            elseif length(eq_kk_new) > 4*width_max
+                fprintf(eq_kk_new)
+                fprintf('\n');
+                eq_kk = repmat(' ',1,LHS_length+5);
+            else
+                eq_kk = eq_kk_new;
+            end
         end
     end
-end
+    % Add some space between different equation types.
+    fprintf('\n')
 end
 
-
-
-% % % Display the boundary conditions
-if (isfield(PDE,'BC') || isa(PDE,'pde_struct')) && ~isempty(PDE.BC)
-fprintf('\n')
-for eq_num=1:numel(PDE.BC)
-    fprintf("\n  ");
-       
-    % % First construct the LHS of the output equation
-    BC_comp = PDE.BC{eq_num};
-    eq_info = PDE.BC_tab(eq_num,:);
-    LHS = '0';
-    LHS_length = 3;
-        
-    % Initialize a str for the output equation
-    BC_eq = LHS;
-    LHS_length = LHS_length + 2;    % Account for size of ' ='.
-    
-    % % Next, add the right-hand side
-    % If no terms are present, set RHS equal to 0
-    if ~isfield(BC_comp,'term') || isempty(BC_comp.term)
-        BC_eq = [BC_eq , ' = 0'];
-        fprintf(BC_eq);
-        continue
-    end
-    % Otherwise, loop over the terms, adding each to the equation.
-    for trm = 1:numel(BC_comp.term)
-        eq_num_full = eq_num + numel(PDE.x) + numel(PDE.y) + numel(PDE.z);
-        [term_str,use_Cij_ii] = construct_term(PDE,BC_comp,eq_num_full,eq_info,trm,var_list,tau_list);
-        use_Cij = use_Cij || use_Cij_ii;
-        BC_eq_new = [BC_eq, term_str];
-        
-        % If the size of the equation becomes too large, start a new line.
-        if trm==numel(BC_comp.term)
-            fprintf([BC_eq_new,';'])
-        elseif length(BC_eq_new) > 4*width_max
-            fprintf(BC_eq_new)
-            fprintf('\n');
-            BC_eq = repmat(' ',1,LHS_length+5);
-        else
-            BC_eq = BC_eq_new;
-        end
-    end
-end
-end
 
 if use_Cij
-    fprintf(['\n\n Call "PDE.C{i,k}" to see the value of coefficients C',sub_i,sub_k,' as in the displayed equations.\n'])
+    fprintf(['\n Call "PDE.C{i,k}" to see the value of coefficients C',sub_i,sub_k,' as in the displayed equations.\n'])
 end
 
-fprintf('\n \n')
+fprintf('\n')
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -537,7 +360,7 @@ tau_name = cell(ndelays,1);
 for vv=1:ndelays
     tau_name{vv} = PDE.tau(vv,1).varname{1};
 end
-has_vars_eq = eq_info(3:2+nvars);
+%has_vars_eq = eq_info(3:2+nvars);
 
 % % % Define a number of symbols we'll need to display the system
 % Subscripts
@@ -565,77 +388,47 @@ sup_min = '\x207B';
 
 % Partial derivative and integral symbol
 partial = '\x2202';
-int = '\x222B';
+int_symbol = '\x222B';
 %tau = '\x1D70F';
         
 % % % Establish which state or input the term involves
+% % First check what type of object (state or input) is involved.
 if isfield(PDE_term,'x')
+    obj_RHS = 'x';
     Rstate_trm = 'x';
-    rr = PDE_term.x;
-    if numel(PDE.x)==1
-        % There is only one state component --> no need to give index
-        Rstate_idx = '';
-    elseif numel(PDE.x)<=9
-        % The state index consists of a single decimal
-        Rstate_idx = sub_num{rr+1};
-    else
-        % The state number consists of multiple decimals
-        Rstate_idx = cell2mat(sub_num(str2num(num2str(rr)')+1)');
-    end
-    tab_row = find(PDE.x_tab(:,1)==rr);
-    Rvar_indcs = logical(PDE.x_tab(tab_row,3:3+nvars-1));
-%     if isa(PDE.x{rr}.vars,'polynomial')
+elseif isfield(PDE_term,'w')
+    obj_RHS = 'w';
+    Rstate_trm = 'w';
+elseif isfield(PDE_term,'u')
+    obj_RHS = 'u';
+    Rstate_trm = 'u';
+end
+% Then determine the index and ID associated to the object.
+tab_row = PDE_term.(obj_RHS);
+rr_ID = PDE.([obj_RHS,'_tab'])(tab_row,1);
+%rr = PDE_term.(obj_RHS);
+if numel(PDE.(obj_RHS))==1
+    % There is only one component of the considered type --> no need to give index
+    Rstate_idx = '';
+elseif rr_ID<=9
+    % The state index consists of a single decimal
+    Rstate_idx = sub_num{rr_ID+1};
+else
+    % The state number consists of multiple decimals
+    Rstate_idx = cell2mat(sub_num(str2num(num2str(rr_ID)')+1)');
+end
+%tab_row = find(PDE.x_tab(:,1)==rr);
+%tab_row = rr;
+
+% % Establish which variables the state or input depends on
+Rvar_indcs = logical(PDE.([obj_RHS,'_tab'])(tab_row,3:3+nvars-1));
+%     if isa(PDE.x{tab_row}.vars,'polynomial')
 %         Rvar1_name = PDE.x{rr}.vars(:,1).varname;
 %         Rvar2_name = PDE.x{rr}.vars(:,2).varname;
 %     else
 %         Rvar1_name = cell(0,1);
 %         Rvar2_name = cell(0,1);
 %     end
-elseif isfield(PDE_term,'w')
-    Rstate_trm = 'w';
-    rr = PDE_term.w;
-    if numel(PDE.w)==1
-        % There is only one exogenous input --> no need to give index
-        Rstate_idx = '';
-    elseif numel(PDE.w)<=9
-        % The input number consists of a single decimal
-        Rstate_idx = sub_num{rr+1};
-    else
-        % The input number consists of multiple decimals
-        Rstate_idx = cell2mat(sub_num(str2num(num2str(rr)')+1)');
-    end
-    tab_row = find(PDE.w_tab(:,1)==rr);
-    Rvar_indcs = logical(PDE.w_tab(tab_row,3:3+nvars-1));
-%     if isa(PDE.w{rr}.vars,'polynomial')
-%         Rvar1_name = PDE.w{rr}.vars(:,1).varname;
-%         Rvar2_name = PDE.w{rr}.vars(:,2).varname;
-%     else
-%         Rvar1_name = cell(0,1);
-%         Rvar2_name = cell(0,1);
-%     end
-elseif isfield(PDE_term,'u')
-    Rstate_trm = 'u';
-    rr = PDE_term.u;
-    if numel(PDE.u)==1
-        % There is only one actuator input --> no need to give index
-        Rstate_idx = '';
-    elseif numel(PDE.u)<=9
-        % The input consists of a single decimal
-        Rstate_idx = sub_num{rr+1};
-    else
-        % The input number consists of multiple decimals
-        Rstate_idx = cell2mat(sub_num(str2num(num2str(rr)')+1)');
-    end
-    tab_row = find(PDE.u_tab(:,1)==rr);
-    Rvar_indcs = logical(PDE.u_tab(tab_row,3:3+nvars-1));
-%     if isa(PDE.u{rr}.vars,'polynomial')
-%         Rvar1_name = PDE.u{rr}.vars(:,1).varname;
-%         Rvar2_name = PDE.u{rr}.vars(:,2).varname;
-%     else
-%         Rvar1_name = cell(0,1);
-%         Rvar2_name = cell(0,1);
-%     end
-end
 Rstate_trm = [Rstate_trm,Rstate_idx];
 Rvar1_list = var1_list(Rvar_indcs);
 Rvar2_list = var2_list(Rvar_indcs);
@@ -643,7 +436,7 @@ sub_Rvar1_list = sub_var1_list(Rvar_indcs);
 sub_Rvar2_list = sub_var2_list(Rvar_indcs);
 %sup_Rvar1_list = sup_var1_list(Rvar_indcs);
 
-has_vars_eq = has_vars_eq(Rvar_indcs);
+%has_vars_eq = has_vars_eq(Rvar_indcs);
 
 
 % % % Display the delay
@@ -685,7 +478,7 @@ if isfield(PDE_term,'delay')
                 int_trm = [int_trm, cell2mat(sub_num(str2num(num2str(L_kk)')+1)')];
             end
         end
-        int_trm = [int_trm,int,sup_num{1}];
+        int_trm = [int_trm,int_symbol,sup_num{1}];
         % Add dtau at end of integral
         dtheta_trm = ['d',tau1{1},' ',dtheta_trm,];
     end
@@ -729,7 +522,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
         end
         
         % % Add integral symbol
-        int_trm = [int_trm,int];
+        int_trm = [int_trm,int_symbol];
         
         % % Add upper limit of integral.
         U_kk = PDE_term.I{kk}(2);
@@ -762,7 +555,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
         % Keep track of whether primary or dummy variable is used in
         % integral.
         use_theta_trm(kk) = true;
-        if ispvar(PDE_term.loc(kk)) && ismember(PDE_term.loc(kk).varname{1},var1_name)
+        if ~isfield(PDE_term,'loc') || (ispvar(PDE_term.loc(kk)) && ismember(PDE_term.loc(kk).varname{1},var1_name))
             % Use standard spatial variable for integration
             dtheta_trm = ['d',Rvar1_list{kk},' ',dtheta_trm,];
         else
