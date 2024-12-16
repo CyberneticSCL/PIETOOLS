@@ -118,7 +118,8 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 09_28_2021
-% 04/14/2022, DJ: Update to account for new degree data format
+% DJ 04/14/2022: Update to account for new degree data forma
+% DJ, 12/15/2024: Bugfix in case no degrees are specified;
 
 % % % Set-up % % %
 
@@ -136,9 +137,9 @@ end
 use_monomials = 0;      % assume monomial degrees rather than actual monomials are specified
 dx = {1;[1;1;1];[1;1;1]};
 dy = {1,[1,1,1],[1,1,1]};
-d2 = {[0,1;1,2],          [0,1,1,1;1,1,1,2], [0,1,1,1;1,1,1,2];
-      [0,1,1,1;1,1,1,2]', ones(4,4),         ones(4,4);
-      [0,1,1,1;1,1,1,2]', ones(4,4),         ones(4,4)};
+d2 = {[0,1;1,2],          [0,1,1,1;1,2,2,2], [0,1,1,1;1,2,2,2];
+      [0,1,1,1;1,2,2,2]', [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2], [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2];
+      [0,1,1,1;1,2,2,2]', [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2], [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2]};
 
 % Initialize default exclude options
 is_sep = ones(1,6);    % Use fully separable operator by default
@@ -207,6 +208,7 @@ if all(n==0)
 end
 
 % % Next, check the monomial degrees
+if nargin>=3
 if isnumeric(d) && all(size(d)==1)
     % Only 1 degree is specified, use this degree for all monomials.
     dval = d;
@@ -270,6 +272,7 @@ elseif isa(d,'struct')
         dy = d.dy;
         d2 = d.d2;
     end
+end
 end
 % At this point, dx, dy and d2 should be cells.
 if ~iscell(dx)
