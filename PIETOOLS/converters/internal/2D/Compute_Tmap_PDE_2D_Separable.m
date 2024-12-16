@@ -72,7 +72,7 @@ function [Top,Twop,Tuop,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,com
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -94,6 +94,7 @@ function [Top,Twop,Tuop,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,com
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 04/15/2024
+% DJ, 12/16/2024: Fix call to 2D converter;
 %
 
 % % % Extract the inputs
@@ -406,16 +407,16 @@ PDE_1D.BC = PDE_1D.BC(~is_altvar_BC);
 % % Compute the 1D PIE representation associated to the 1D PDE
 PDE_1D = initialize(PDE_1D,true);
 [PDE_1D,comp_order] = reorder_comps(PDE_1D,'all',true);
-try PIE_1D = convert_PIETOOLS_PDE_2D(PDE_1D);
+try PIE_1D = convert_PIETOOLS_PDE(PDE_1D);                                  % DJ, 12/16/2024
 catch
     error('The expansion of the PDE state in terms of the PIE state fails; perhaps the PDE is ill-posed, or not currently supported.')
 end
 
 % Extract the operators Top such that
 % v(x,t) = Top*d_{var_idx}^{diff} v +Twop*w +Tuop*u;
-Top_1D = opvar2d2opvar(PIE_1D.T);        % Note that these operators are only 1D opvars!
-Twop_1D = opvar2d2opvar(PIE_1D.Tw);
-Tuop_1D = opvar2d2opvar(PIE_1D.Tu);
+Top_1D = PIE_1D.T;        % Note that these operators are only 1D opvars!
+Twop_1D = PIE_1D.Tw;
+Tuop_1D = PIE_1D.Tu;
 
 
 
