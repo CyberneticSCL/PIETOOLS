@@ -102,6 +102,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 %
 % Initial coding DJ - 08/09/2022
 % Add 1D conversion, DJ - 10/16/2024
+% DJ, 12/16/2024: Bugfix for batch and terms_legacy conversion;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,9 +111,11 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 
 % Pass PDEs in legacy format to legacy converters.
 if isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
-    PIE_out = convert_PIETOOLS_PDE_batch(PDE);
+    PIE = convert_PIETOOLS_PDE_batch(PDE);                                  % DJ, 12/16/2024
+    return
 elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')
-    PIE_out = convert_PIETOOLS_PDE_terms_legacy(PDE);
+    PIE = convert_PIETOOLS_PDE_terms_legacy(PDE);                           % DJ, 12/16/2024
+    return
 elseif (isa(PDE,'struct') && isfield(PDE,'x'))
     % Convert 'struct' to 'pde_struct'.
     PDE = pde_struct(PDE);
