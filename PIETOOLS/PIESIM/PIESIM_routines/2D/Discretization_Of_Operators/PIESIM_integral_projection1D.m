@@ -25,10 +25,10 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-% DJ, 12/16/2024: Correct limits of for loop j=0:deg and m=0:deg;
+% DJ, 12/16/2024: Correct limits of for loop j=0:deg and m=0:deg.
+%                 Remove redundant variables;
 
 function [A,Abig]=PIESIM_integral_projection1D(N, Rcheb, csize, lim)
-pvar s theta x y nu theta;
 
 if(lim(1)==-1)
     sign=-1;

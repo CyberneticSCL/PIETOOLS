@@ -7,6 +7,7 @@
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
 % Rop -  polynomial matrix operator 
+% var1: 2x1 pvar array specifying the primary spatial variables (x,y)
 % p - scalar - a "degree of smoothness" vector
 %
 % Outputs:
@@ -26,9 +27,14 @@
 % Initial coding YP  - 4_16_2024
 % DJ, 07/17/2024: bugfix in case "Rop" is not polynomial;
 % DJ, 12/16/2024: Correct limits of for loop j=1:size(acheb);
+% DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
+%                   defining R as additional inputs.
 
-function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb_2D(N, Rop, p)
-pvar s1 s2
+function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb_2D(N, Rop, var1, p)
+
+% Extract spatial variables (x,y) defining the operator R                   % DJ, 12/16/2024
+s1 = var1(1);   s2 = var1(2);
+
 ns=size(p,2);
 no=size(Rop,2);
 

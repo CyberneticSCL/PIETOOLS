@@ -12,6 +12,9 @@
 % corresponding to a single solution state
 % rsize - the number of rows in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the solution state on the left-hand side of the ODE matrix system corresponding to the discrete block in question)
 % csize - the number of columns in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the right-hand side of the ODE matrix system corresponding to the discrete block in question)
+% var1: 2x1 pvar array specifying the primary spatial variables (x,y)
+% var2: 2x1 pvar array specifying the dummy variables for integration
+%           (theta,nu)
 % dir - direction of integration ('x' or 'y')
 % sign  - (-1 for [-1,x] or [-1,y] integration and 1 for [x, 1] or [y, 1] integation) 
 %
@@ -31,24 +34,27 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
+%                   defining R as additional inputs.
 
-function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_line(N, R, rsize, csize, dir, sign)
+function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_line(N, R, rsize, csize, var1, var2, dir, sign)
 
-pvar s theta s1 s2 s1_dum s2_dum;
-syms sx sy;
+% Extract spatial and dummy variables defining the operator R               % DJ, 12/16/2024
+s1 = var1(1);   s1_dum = var2(1);
+s2 = var1(2);   s2_dum = var2(2);
 
-        R_native=false;
+R_native=false;
 
 if (dir=='x')
     s=s1;
     theta=s1_dum;
     snative=s2;
-    snstr='s2';
+    snstr=s2.varname{1};
 else
     s=s2;
     theta=s2_dum;
     snative=s1;
-    snstr='s1';
+    snstr=s1.varname{1};
 end
 
 A(1:N+1,1:csize)=0;
@@ -99,7 +105,7 @@ for kcell=1:numel(Reval)
 if (R_native)
     index = find(strcmp(R.varname, snstr));
     Rop=polynomial(1,R.degmat(kcell,index),R.varname(index),R.matdim);
-    [Multop,Multop_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize_2D(N, Rop, rsize, csize);
+    [Multop,Multop_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize_2D(N, Rop, rsize, csize, var1);
 end
 
 Atran=A(1:rsize,1:csize);
