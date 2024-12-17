@@ -45,9 +45,10 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 %
 % Initial coding MMP  - 5_29_2019
 %    MMP - updated to new data structure and made the script a function
-% DJ 09/29/2021 - correction at the end to fill in empty parameters with
+% DJ, 09/29/2021: correction at the end to fill in empty parameters with
 % appropriate zeros just in case...
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
+% DJ, 12/16/2024: Output PIE as 'pie_struct' object;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
 % undefined operators to empty opbjects.
@@ -316,12 +317,12 @@ end
 
 %remove temporary opvars
 %clear Apop Phfop Tbigop; 
-PIE.dom=X; PIE.dim = 1;
-PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;
-PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
-PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
-PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
-PIE_out=pie_struct(PIE);
+pie_struct PIE_out;                                                         % DJ, 12/16/2024
+PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];
+PIE_out.T = Top;   PIE_out.Tw = TB1op;  PIE_out.Tu = TB2op;
+PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
+PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
+PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % System Definition:

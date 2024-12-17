@@ -450,6 +450,5 @@ if strcmp(PIE,'Singular B_T: A PIE representation of this PDE may not exist')
     disp('Conversion to PIE unsuccessful. B_T is singular.')
     return;
 end
-PIE.vars = PDE.vars; PIE.dim=1;
-PIE = pie_struct(PIE);
+
 end
