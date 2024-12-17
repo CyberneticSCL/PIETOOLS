@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_options_check.m     PIETOOLS 2021b
+% PIESIM_options_check.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [opts, uinput]=PIESIM_options_check(varinput)
 % Check if option and uinput fields are supplied by the user
@@ -105,7 +105,11 @@ for i=1:length(fields_opts)
         disp(X);
     end
 end
+if (opts.dt~=0)
 opts.Nsteps=floor(opts.tf/opts.dt);
+else
+opts.Nsteps=0;
+end
 % Check if opts.intScheme is defined correctly
 if (opts.intScheme~=1&opts.intScheme~=2)
     i=3;
@@ -149,17 +153,19 @@ if isa(structure,'pie_struct') || isfield(structure,'T')
 elseif isfield(structure,'tau')
     disp('Solving DDE problem');
     opts.type='DDE';
-elseif isa(structure,'pde_struct') || isa(structure,'sys')
-    disp('Solving PDE problem');
-    opts.type='PDE';
-elseif isfield(structure,'nx') || isfield(structure,'n0') || isfield(structure,'n1') || isfield(structure,'n2')
+elseif isfield(structure,'no') || isfield(structure,'n0') || isfield(structure,'n1') || isfield(structure,'n2')
     disp('Solving PDE problem in legacy batch format');
     opts.type='PDE_b';
 elseif isfield(structure,'n') || isfield(structure,'ODE')  || isfield(structure,'PDE')
     disp('Solving PDE problem in legacy terms format');
     opts.type='PDE_t';
+elseif isa(structure,'pde_struct') || isa(structure,'sys')||isfield(structure,'BC') || isfield(structure,'X')
+    disp('Solving PDE problem');
+    opts.type='PDE';
 else
     error('Data structure must be specified')
 end
+
+
     
 end

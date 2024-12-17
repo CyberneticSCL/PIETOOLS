@@ -1,13 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_icf.m     PIETOOLS 2021b
+% PIESIM_discretize_icf.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of initial conditions and forcing functions 
 %
 % Inputs:
 % 1) uinput - user-defined boundary inputs, forcing and initial conditions
-% 2) psize - size of the problem: contains the variables nu,nw,nx,nf,N,n0,n1,n2
-% 3) grid - physical and computational grid for n0 states
-% 4) gridall - cell array of size 3 containing physical grid for {1} n0, {2} n1 and
+% 2) psize - size of the problem: contains the variables nu,nw,no,nf,N,n0,n1,n2
+% 3) gridall - cell array of size 3 containing physical grid for {1} n0, {2} n1 and
 % {3} n2 states
 %
 % Outputs:
@@ -23,11 +22,11 @@
 % YP 6_16_2022 Renamed uinput.B21_nonpol to uinput.Bpw_nonpol, updated description of
 % outputs
 
-function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,grid,gridall);
+function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
 % Define local variables
 
-nx=psize.nx;
+no=psize.no;
 nw=psize.nw;
 a=uinput.a;
 b=uinput.b;
@@ -71,7 +70,7 @@ ic=uinput.ic.PDE;
  acheb_f0=cat(1, acheb_glob{:});
 
 % Add initial conditions on ODE states to the front of initial conditions
-if (nx>0)
+if (no>0)
 acheb_f0=cat(1,uinput.ic.ODE',acheb_f0);
 end
 
@@ -81,10 +80,13 @@ coeff.acheb_f0=acheb_f0;
 % Discretize matrix operator for non-polynomial in space forcing
 
 if isfield(uinput,'Bpw_nonpol') 
-B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, nw, uinput.Bpw_nonpol, p, gridall);
+B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, uinput.Bpw_nonpol, p, gridall);
 else
 B1_nonpol=[];   
 end
+
+coeff.w=1;
+coeff.u=1;
 
 
 

@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_time_integrate.m    PIETOOLS 2021b
+% PIESIM_time_integrate.m    PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE with the scheme specified
 % by "opts.intScheme"=1 or 2
@@ -8,7 +8,7 @@
 % exponential formula
 %
 % Inputs:
-% psize - size of the PIE problem: nw, nu, nf, nx 
+% psize - size of the PIE problem: nw, nu, nf, no
 % opts - options for temporal scheme parameters
 % uinput   - user-defined boundary inputs
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any

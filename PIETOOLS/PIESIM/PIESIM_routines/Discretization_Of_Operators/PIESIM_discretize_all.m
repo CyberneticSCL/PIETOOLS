@@ -1,12 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_all.m     PIETOOLS 2021b
+% PIESIM_discretize_all.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of computational grid, initial conditions, forcing functions and PIE operators 
 %
 % Inputs:
 % 1) PIE - PIE structure of the problem
 % 2) uinput - user-defined boundary inputs, forcing and initial conditions
-% 3) psize - size of the problem: contains the variables nu,nw,nx,N,n0,n1,n2
+% 3) psize - size of the problem: contains the variables nu,nw,no,N,n0,n1,n2
 %
 % Outputs:
 % 1) Dop - discrete PIE operators containing Chebyshev matrices for
@@ -29,7 +29,7 @@ function [Dop, coeff, grid]=PIESIM_discretize_all(PIE, uinput, psize);
 
 % Discretize initial conditions and non-polynomial in space forcing matrix operator
 
-[coeff, B1_nonpol]=PIESIM_discretize_icf(uinput,psize,grid,gridall);
+[coeff, B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
 % Discretize PIE operators
 Dop=PIESIM_discretize_ops(PIE,psize);

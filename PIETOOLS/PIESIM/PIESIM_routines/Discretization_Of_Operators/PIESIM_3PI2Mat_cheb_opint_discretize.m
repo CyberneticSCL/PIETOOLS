@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_3PI2Mat_cheb_opint_discretize.m     PIETOOLS 2021b
+% PIESIM_3PI2Mat_cheb_opint_discretize.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - a dicrete matrix representation of an integrative portion
 % of the 3PI operator
@@ -48,15 +48,14 @@ if isa(R1,'polynomial')
     switch(R1.nvars)
         case 2
         % Two variables present
-            Reval1=subs(subs(R1,theta,chebgrid),s,chebgrid);
+            Reval1=subs(subs(R1,R1.varname(2),chebgrid),R1.varname(1),chebgrid);
         case 1
         % One variable present
+            Re1=subs(R1,R1.varname,chebgrid);
             var=cell2mat(R1.varname);
-            if (var=='s')
-                 Re1=subs(R1,s,chebgrid);
-                 Reval1=repmat(Re1',1,maxdeg+2);
+            if (length(var)<=2)
+                Reval1=repmat(Re1',1,maxdeg+2);
             else
-                Re1=subs(R1,theta,chebgrid);
                 Reval1=repmat(Re1,maxdeg+2,1);
             end
         case 0 
@@ -74,16 +73,15 @@ if isa(R2,'polynomial')
 switch(R2.nvars)
         case 2
         % Two variables present
-            Reval2=subs(subs(R2,theta,chebgrid),s,chebgrid);
+            Reval2=subs(subs(R2,R2.varname(2),chebgrid),R2.varname(1),chebgrid);
         case 1
         % One variable present
+            Re2=subs(R2,R2.varname,chebgrid);
             var=cell2mat(R2.varname);
-            if (var=='s')
-                 Re2=subs(R2,s,chebgrid);
+            if (length(var)<=2)
                  Reval2=repmat(Re2',1,maxdeg+2);
             else
-                Re2=subs(R2,theta,chebgrid);
-                Reval2=repmat(Re2,maxdeg+2,1);
+                 Reval2=repmat(Re2,maxdeg+2,1);
             end
          case 0 
          % Scalar polynomial
