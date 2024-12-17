@@ -41,13 +41,13 @@ else
 end
 
 chebgrid=cos(pi*(0:deg+1)/(deg+1));
-if isa(Rop,'polynomial')
-    if numel(Rop.varname)~=1                                                % DJ, 12/16/2024
+if isa(Rop,'polynomial') && ~isdouble(Rop)
+    if numel(Rop.varname)>1                                                 % DJ, 12/16/2024
         error("The input polynomial depends on multiple variables; discretization not supported...")
     else
         var = polynomial(Rop.varname);
-    end
-    Reval=subs(Rop,var,chebgrid);
+        Reval = subs(Rop,var,chebgrid);
+    end    
 else
     Reval=Rop*ones(1,deg+2);
 end

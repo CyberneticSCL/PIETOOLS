@@ -50,13 +50,13 @@ for k=1:no
     else
         Rop_local=Rop(m,k);
     end
-    if isa(Rop_local,'polynomial')
-        if numel(Rop_local.varname)~=1                                      % DJ, 12/16/2024
+    if isa(Rop_local,'polynomial') && ~isdouble(Rop_local)
+        if numel(Rop_local.varname)>1                                       % DJ, 12/16/2024
             error("The input polynomial depends on multiple variables; discretization not supported...")
         else
             var = polynomial(Rop_local.varname);
-        end
-        Reval=subs(Rop_local,var,chebgrid);
+            Reval=subs(Rop_local,var,chebgrid);
+        end        
     else
         Reval=Rop_local*ones(1,deg+2);
     end
