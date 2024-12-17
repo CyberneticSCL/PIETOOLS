@@ -57,9 +57,7 @@ s1 = var1(1);   s1_dum = var2(1);
 s2 = var1(2);   s2_dum = var2(2);
 pvar sbar thetabar
 
-pvar s theta sbar thetabar s1 s1_dum s2 s2_dum theta1 theta2;
-
-if (dir=='x')
+if strcmp(dir,'x')
     s=s1;
     theta=s1_dum;
 else
