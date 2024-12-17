@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_plot_solution.m     PIETOOLS 2021b
+% PIESIM_plot_solution.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % This routine outputs and plots solution of ODE and PDE states
@@ -10,21 +10,20 @@ function PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % solution is a strucutre with the following fields
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
-% --- solution.final.ode - array of size nx - ode solution at a final time 
-% --- solution.final.observed - array of size ny  - final value of observed outputs
-% --- solution.final.regulated - array of size nz  - final value of regulated outputs
+% --- solution.final.ode - array of size no - ode solution at a final time 
+% --- solution.final.observed - array of size noo  - final value of observed outputs
+% --- solution.final.regulated - array of size nro  - final value of regulated outputs
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
-% --- solution.timedep.ode - array of size nx x Nsteps - time-dependent solution of nx ODE states
-%     solution of ns PDE (distributed) states of the primary PDE system
-% --- solution.timedep.observed - array of size ny x Nsteps -
+% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
+% --- solution.timedep.observed - array of size noo x Nsteps -
 %     time-dependent value of observed outputs
-% --- solution.timedep.regulated - array of size nz x Nsteps -
+% --- solution.timedep.regulated - array of size nro x Nsteps -
 %     time-dependent value of regulated outputs
 
-% 2) psize - size of the PIE problem: nw, nu, nf, nx 
+% 2) psize - size of the PIE problem: nw, nu, nf, no 
 % 3) uinput -  user-defined boundary inputs, forcing functions and initial conditions
 % 4) grid - physical and computational grid for n0 states
 % 5) opts - options for simulation parameters
@@ -43,9 +42,9 @@ syms sx;
    % Output solution of ODE states
 
 
-    if(psize.nx>0)
+    if(psize.no>0)
 if (~isempty(solution.final.ode))
-for i=1:psize.nx
+for i=1:psize.no
 formatSpec = 'Solution of an ODE state %s at a final time %f is %8.4f\n';
 fprintf(formatSpec,num2str(i),solution.tf, solution.final.ode(i));
 end
@@ -56,9 +55,9 @@ end
 
 % Output values for regulated outputs
 
-    if(psize.nz>0)
+    if(psize.nro>0)
 if (~isempty(solution.final.regulated))
-for i=1:psize.nz
+for i=1:psize.nro
 formatSpec = 'Value of a regulated output %s at a final time %f is %8.4f\n';
 fprintf(formatSpec,num2str(i),solution.tf, solution.final.regulated(i));
 end
@@ -69,9 +68,9 @@ end
 
 % Output values for observed outputs
 
-if(psize.ny>0)
+if(psize.noo>0)
 if (~isempty(solution.final.observed))
-for i=1:psize.ny
+for i=1:psize.noo
 formatSpec = 'Value of an observed output %s at a final time %f is %8.4f\n';
 fprintf(formatSpec,num2str(i),solution.tf, solution.final.observed(i));
 end
@@ -87,9 +86,9 @@ dtime=solution.timedep.dtime;
 
 
 % Plotting ODE solutions on the same plot
-if (psize.nx>0)
+if (psize.no>0)
 
-    for i=1:psize.nx
+    for i=1:psize.no
      labels{i} = ['State_',num2str(i)];
     end 
 
@@ -115,11 +114,11 @@ end
     
 
 % Plotting observed outputs on the same plot
-if (psize.ny>0)
+if (psize.noo>0)
     if (~isempty(solution.timedep.observed))
 y=solution.timedep.observed';
 
-    for i=1:psize.ny
+    for i=1:psize.noo
      labels{i} = ['y_',num2str(i)];
     end 
 
@@ -143,11 +142,11 @@ disp('Observed output is infinite. Unable to plot. Numerical value is not return
     end
 
 % Plotting regulated outputs on the same plot
-if (psize.nz>0)
+if (psize.nro>0)
     if (~isempty(solution.timedep.regulated))
 z=solution.timedep.regulated';
 
-    for i=1:psize.nz
+    for i=1:psize.nro
      labels{i} = ['z_',num2str(i)];
     end 
 

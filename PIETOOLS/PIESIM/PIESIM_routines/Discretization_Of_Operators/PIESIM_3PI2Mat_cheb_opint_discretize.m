@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_3PI2Mat_cheb_opint_discretize.m     PIETOOLS 2021b
+% PIESIM_3PI2Mat_cheb_opint_discretize.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - a dicrete matrix representation of an integrative portion
 % of the 3PI operator
@@ -10,10 +10,6 @@
 % R2 - integrative operator R2 of size 1x1
 % p - scalar - a "degree of smoothness" for the function on which
 % R1, R2 operators act
-% var1 - primary spatial variable used in the integral operator defined by
-%           R1 and R2;
-% var2 - dummy variable (for integration) used in the integral operator
-%           defined by R1 and R2;
 %
 % Output:
 % A - a non-square matrix of size (N+1)x(N-p+1) that represents a Chebyshev
@@ -25,11 +21,9 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 6_28_2022
-% DJ, 12/07/2024: Update to avoid hardcoded polynomial variable;
-function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p, var1, var2)
+function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p)
 
-s = var1;                                                                   % DJ, 12/07/2024
-theta = var2;
+pvar s theta;
 
 Norder=N-p;
 
@@ -54,21 +48,20 @@ if isa(R1,'polynomial')
     switch(R1.nvars)
         case 2
         % Two variables present
-            Reval1=subs(subs(R1,theta,chebgrid),s,chebgrid);
+            Reval1=subs(subs(R1,R1.varname(2),chebgrid),R1.varname(1),chebgrid);
         case 1
         % One variable present
+            Re1=subs(R1,R1.varname,chebgrid);
             var=cell2mat(R1.varname);
-            if strcmp(var,s.varname{1})                                     % DJ, 12/07/2024
-                 Re1=subs(R1,s,chebgrid);
-                 Reval1=repmat(Re1',1,maxdeg+2);
+            if (length(var)<=2)
+                Reval1=repmat(Re1',1,maxdeg+2);
             else
-                Re1=subs(R1,theta,chebgrid);
                 Reval1=repmat(Re1,maxdeg+2,1);
             end
         case 0 
             % Scalar polynomial
             Reval1=R1*ones(maxdeg+2);
-    end
+end
 else
     Reval1=R1*ones(maxdeg+2);
 end
@@ -80,16 +73,15 @@ if isa(R2,'polynomial')
 switch(R2.nvars)
         case 2
         % Two variables present
-            Reval2=subs(subs(R2,theta,chebgrid),s,chebgrid);
+            Reval2=subs(subs(R2,R2.varname(2),chebgrid),R2.varname(1),chebgrid);
         case 1
         % One variable present
+            Re2=subs(R2,R2.varname,chebgrid);
             var=cell2mat(R2.varname);
-            if strcmp(var,s.varname{1})                                     % DJ, 12/07/2024
-                 Re2=subs(R2,s,chebgrid);
+            if (length(var)<=2)
                  Reval2=repmat(Re2',1,maxdeg+2);
             else
-                Re2=subs(R2,theta,chebgrid);
-                Reval2=repmat(Re2,maxdeg+2,1);
+                 Reval2=repmat(Re2,maxdeg+2,1);
             end
          case 0 
          % Scalar polynomial

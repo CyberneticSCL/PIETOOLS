@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_PI2Mat_cheb_opmult_discretize.m     PIETOOLS 2021b
+% PIESIM_PI2Mat_cheb_opmult_discretize.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A, A_nonsquare - discrete matrix representations of a polymonial
 % multiplicative operator 
@@ -27,9 +27,10 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 06_28_2022
+% YP -  added support for an arbitary variable name - 04_16_2024
 function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rop, p)
 
-pvar s;
+pvar s var;
 
 A_nonsquare(1:N+1,1:N-p+1)=0;
 
@@ -41,7 +42,12 @@ end
 
 chebgrid=cos(pi*(0:deg+1)/(deg+1));
 if isa(Rop,'polynomial')
-    Reval=subs(Rop,s,chebgrid);
+        if (isempty(Rop.varname))
+            var=s;
+        else
+            var=Rop.varname;
+        end
+    Reval=subs(Rop,var,chebgrid);
 else
     Reval=Rop*ones(1,deg+2);
 end
@@ -61,6 +67,7 @@ for i=1:N-p+1
     end
 end
 A=A_nonsquare(1:rsize,:);
+
 
 
 

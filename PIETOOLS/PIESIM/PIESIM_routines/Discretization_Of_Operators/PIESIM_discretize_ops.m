@@ -1,11 +1,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_ops.m     PIETOOLS 2021b
+% PIESIM_discretize_ops.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of PIE operators with Chebyshev methods  
 %
 % Inputs:
 % 1) PIE - PIE structure of the problem
-% 2) psize - size of the problem: contains the variables nu,nw,nx,N,n0,n1,n2
+% 2) psize - size of the problem: contains the variables nu,nw,no,N,n0,n1,n2
 %
 % Outputs:
 % 1) Dop - discrete PIE operators containing Chebyshev matrices for
@@ -25,11 +25,6 @@ function Dop=PIESIM_discretize_ops(PIE, psize);
 
 % Define local variables
 
-nx=psize.nx;
-nw=psize.nw;
-nu=psize.nu;
-nz=psize.nz;
-ny=psize.ny;
 N=psize.N;
 
 % Define "Degree of smoothness for each PDE state". Currently we keep track of it in a discretization of PIE
@@ -51,7 +46,7 @@ p(nsump1(i):nsum(i))=i-1;
 end
 
 
-disp('Setting up Chebyshev matrices for the PIE system');
+%disp('Setting up Chebyshev matrices for the PIE system');
 
 % Discretize 4PI operators
 
@@ -63,16 +58,16 @@ disp('Setting up Chebyshev matrices for the PIE system');
 % Set the last entry to PIESIM_4PI2Mat_cheb to 2 if a structure has an
 % empty bottom row (for C1 and C2 operators)
 
- Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,nw,PIE.Tw,p,0);
- Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,nu,PIE.Tu,p,0);
- Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,nw,PIE.B1,p,0);
- Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,nu,PIE.B2,p,0);
- Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,nz,PIE.C1,p,2);
- Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,ny,PIE.C2,p,2);
- Dop.Acheb=PIESIM_4PI2Mat_cheb(N,nx,PIE.A,p,1);
- [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,nx,PIE.T,p,1);
+ Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,0);
+ Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,0);
+ Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,PIE.B1,p,0);
+ Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,0);
+ Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,PIE.C1,p,2);
+ Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,PIE.C2,p,2);
+ Dop.Acheb=PIESIM_4PI2Mat_cheb(N,PIE.A,p,1);
+ [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,1);
  if isfield(PIE,'T0') 
-     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,nx,PIE.T0,p,1);
+     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T0,p,1);
  end
 %  
   Dop.Mcheb_inv=inv(Mcheb);

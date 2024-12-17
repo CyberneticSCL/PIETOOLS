@@ -1,20 +1,29 @@
-function T = transl(T,I)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [Pcat] = transl(T,[c,d]) takes in a 4-PI operator T that acts on
+% transl_mod.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding YP - 6_1_2021
+
+function T = transl_mod(T,I)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% T = transl_mod(T,I) takes in a 4-PI operator T that acts on
 % functions in the interval [a,b] and changes it to a 4-PI operator that
-% acts of functions on the interval [c,d].
+% acts on functions on the interval [c,d].
 %
 % INPUT:
 %
 % T: a 4-PI operator
-% [c,d]: interval, default [-1,1]
+% I: new interval, default [-1,1]
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETools - transl
+% PIETools - transl_mod
 %
 % Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
 %
