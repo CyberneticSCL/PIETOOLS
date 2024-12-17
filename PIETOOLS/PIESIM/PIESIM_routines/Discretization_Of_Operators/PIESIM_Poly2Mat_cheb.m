@@ -25,7 +25,7 @@
 % Initial coding YP  - 6_30_2022
 % YP -  added support for an arbitary variable name - 04_16_2024
 
-function [A, A_nonsquare]=PIESIM_POLy2Mat_cheb(N, Rop, p)
+function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb(N, Rop, p)
 pvar s var
 ns=size(p,2);
 no=size(Rop,2);
@@ -62,8 +62,8 @@ for k=1:no
 
     acheb=fcht(double(Reval));
 
-for j=1:length(acheb);
-A(j,k,m)=acheb(j);
+for j=1:length(acheb)
+    A(j,k,m)=acheb(j);
 end
 
 end % k loop
