@@ -1,11 +1,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_domain.m     PIETOOLS 2021b
+% PIESIM_discretize_domain.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of the computational domain  
 %
 % Inputs:
 % 1) uinput - user-defined boundary inputs, forcing and initial conditions
-% 2) psize - size of the problem: contains the variables nu,nw,nx,nf,N,n0,n1,n2
+% 2) psize - size of the problem: contains the variables nu,nw,no,nf,N,n0,n1,n2
 %
 % Outputs:
 % 1) grid - contains physical and computational grid for n0 states

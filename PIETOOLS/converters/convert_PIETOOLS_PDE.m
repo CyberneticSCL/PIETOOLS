@@ -79,7 +79,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
 %
-% Copyright (C)2022  PIETOOLS Team
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -101,8 +101,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/09/2022
-% DJ, 10/16/2024: Add 1D conversion
-% DJ, 12/10/2024: Replace default variables (ss1,tt1) --> (s1,s1_dum)
+% Add 1D conversion, DJ - 10/16/2024
+% DJ, 12/16/2024: Bugfix for batch and terms_legacy conversion;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -111,9 +111,11 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 
 % Pass PDEs in legacy format to legacy converters.
 if isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
-    PIE_out = convert_PIETOOLS_PDE_batch(PDE);
+    PIE = convert_PIETOOLS_PDE_batch(PDE);                                  % DJ, 12/16/2024
+    return
 elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')
-    PIE_out = convert_PIETOOLS_PDE_terms_legacy(PDE);
+    PIE = convert_PIETOOLS_PDE_terms_legacy(PDE);                           % DJ, 12/16/2024
+    return
 elseif (isa(PDE,'struct') && isfield(PDE,'x'))
     % Convert 'struct' to 'pde_struct'.
     PDE = pde_struct(PDE);
@@ -182,8 +184,8 @@ end
 is2D = nvars==2;
 if nvars==0
     % Define a 1D domain with variables.
-    pvar s1 s1_dum                                                          % DJ, 12/10/2024 
-    vars = [s1,s1_dum];
+    pvar ss1 tt1
+    vars = [ss1,tt1];
     dom = [0,1;0,1];
     nvars = 1;
     

@@ -1,7 +1,8 @@
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_pde_library_PIESIM.m     PIETOOLS 2021b
+% examples_pde_library_PIESIM_1D.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This file contains a library of examples to use with PIESIM that includes: 
+% This file contains a library of 1D examples to use with PIESIM that includes: 
 % PDE systems and coupled PDE/ODE systems. 
 % Each example sets up the PDE structure of the system, 
 % defines initial and boundary conditions, and, if applicable, 
@@ -25,11 +26,12 @@
 % Initial coding YP  - 5_29_2021
 % YP 6/16/2022 - updated to include terms format and added more examples in
 % terms format
+% DJ 12/19/2024: Change variable s --> s1;
 
 
-function [PDE,uinput]=examples_pde_library_PIESIM(example)
+function [PDE,uinput]=examples_pde_library_PIESIM_1D(example)
 syms st sx;
-pvar s;
+pvar s1;
 
 switch example
     
@@ -70,32 +72,32 @@ switch example
 
              % Batch format
 
-%               PDE.n0=0; PDE.n1=0; PDE.n2=1; PDE.nw=2; PDE.nu=0; PDE.nx=0; 
-%               PDE.A0=0; PDE.A1=0; PDE.A2=visc;
-%               PDE.B=[1 0 0 0;0 1 0 0];
-%               PDE.Bw=[1 0;0 1];
+              PDE.n0=0; PDE.n1=0; PDE.n2=1; PDE.nw=2; PDE.nu=0; PDE.no=0; 
+              PDE.A0=0; PDE.A1=0; PDE.A2=visc;
+              PDE.B=[1 0 0 0;0 1 0 0];
+              PDE.Bw=[1 0;0 1];
 
-%    %          Terms format
-                  PDE.n.n_pde=[0,0,1];
-                  PDE.n.nw=2;
-                  PDE.n.nv=2;
-                  PDE.PDE.A{1}.Lstate=2;
-                  PDE.PDE.A{1}.Rstate=2;
-                  PDE.PDE.A{1}.D=2;
-                  PDE.PDE.A{1}.I=0;
-                  PDE.PDE.A{1}.coeff=visc;
+% %    %          Terms format
+%                   PDE.n.n_pde=[0,0,1];
+%                   PDE.n.nw=2;
+%                   PDE.n.nv=2;
+%                   PDE.PDE.A{1}.Lstate=2;
+%                   PDE.PDE.A{1}.Rstate=2;
+%                   PDE.PDE.A{1}.D=2;
+%                   PDE.PDE.A{1}.I=0;
+%                   PDE.PDE.A{1}.coeff=visc;
+% % % % % % 
+% % % % % %        % BCs: u(x=a)       
+%                  PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
+%                  PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0;
+% % % % % %  
+% % % % % %        % BCs: u(x=b)
+%                  PDE.BC.Ebb{2}.coeff = [zeros(1);eye(1)];
+%                  PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1; 
 % % % % % 
-% % % % %        % BCs: u(x=a)       
-                 PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
-                 PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0;
-% % % % %  
-% % % % %        % BCs: u(x=b)
-                 PDE.BC.Ebb{2}.coeff = [zeros(1);eye(1)];
-                 PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1; 
-% % % % 
-% % % %          % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
-                 PDE.BC.Ebv=[1 0;0 1];
-                 PDE.ODE.Dvw=[1 0;0 1];
+% % % % %          % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
+%                  PDE.BC.Ebv=[1 0;0 1];
+%                  PDE.ODE.Dvw=[1 0;0 1];
 
 %           Exact solution, initial conditions and inhomogeneous inputs   
              
@@ -126,7 +128,7 @@ switch example
 
              % Batch format
 %              PDE.n0=0; PDE.n1=0; PDE.n2=1; 
-%              PDE.nw=2; PDE.nu=0; PDE.nx=0;
+%              PDE.nw=2; PDE.nu=0; PDE.no=0;
 %              PDE.A0=0; PDE.A1=0; PDE.A2=visc;
 %              PDE.B=[1 0 0 0;0 1 0 0];
 %              PDE.Bw=[1 0;0 1];
@@ -227,7 +229,7 @@ switch example
            uinput.w(2)= sin(pi*(b-alpha))*exp(-visc*pi^2*st);
 
 %----------------------------------------
-% Example 4 - Heat Equation with Dirichlet-Dirichelt and non-constant coefficient
+% Example 4 - Heat Equation with Dirichlet-Dirichlet and non-constant coefficient
 %----------------------------------------
 
     case 4
@@ -244,7 +246,7 @@ switch example
              PDE.dom=[a b]; 
 
              % Batch format
-%              PDE.n0=0; PDE.n1=0; PDE.n2=1; PDE.nw=2; PDE.nu=0; PDE.nx=0; 
+%              PDE.n0=0; PDE.n1=0; PDE.n2=1; PDE.nw=2; PDE.nu=0; PDE.no=0; 
 %              PDE.A0=0; PDE.A1=0; PDE.A2=s;
 %              PDE.B=[1 0 0 0;0 1 0 0];
 %              PDE.Bw=[1 0;0 1];
@@ -258,7 +260,7 @@ switch example
              PDE.PDE.A{1}.Rstate=2;
              PDE.PDE.A{1}.D=2;
              PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=s;
+             PDE.PDE.A{1}.coeff=s1;
 
               % BCs: u(x=a)       
              PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
@@ -301,44 +303,44 @@ switch example
             visc = 0.5; 
 
 %             % Batch format
-%              PDE.n0=0; PDE.n1=0; PDE.n2=1; 
-%              PDE.nw=4; 
-%              PDE.A0=0; PDE.A1=0; PDE.A2=visc;
-%              PDE.B=[1 0 0 0;0 1 0 0];
-%              PDE.Bw=[1 0 0 0;0 1 0 0]; 
-% 
-% %            Non-polynomial in space forcing needs to be entered through
-% %            symbolic PDE.B21_nonpol matrix
-%             PDE.B21_nonpol=sx*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
-%             PDE.B21_nonpol(1,3:4)=[sin(pi*sx) visc*pi^2*sin(pi*sx)];
+             PDE.n0=0; PDE.n1=0; PDE.n2=1; 
+             PDE.nw=4; 
+             PDE.A0=0; PDE.A1=0; PDE.A2=visc;
+             PDE.B=[1 0 0 0;0 1 0 0];
+             PDE.Bw=[1 0 0 0;0 1 0 0]; 
+
+%            Non-polynomial in space forcing needs to be entered through
+%            symbolic PDE.B21_nonpol matrix
+            PDE.B21_nonpol=sx*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
+            PDE.B21_nonpol(1,3:4)=[sin(pi*sx) visc*pi^2*sin(pi*sx)];
 
             % Terms format
 
-             PDE.n.n_pde=[0,0,1];
-             PDE.n.nw=4;
-             PDE.n.nv=4;
-             PDE.PDE.A{1}.Lstate=2;
-             PDE.PDE.A{1}.Rstate=2;
-             PDE.PDE.A{1}.D=2;
-             PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=visc;
-
-             % BCs: u(x=a)       
-             PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
-             PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0;
-% % % % %  
-% % % % %    % BCs: u(x=b)
-             PDE.BC.Ebb{2}.coeff = [zeros(1);eye(1)];
-             PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1; 
-% % % % 
-% % % %      % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
-             PDE.BC.Ebv=[1 0 0 0;0 1 0 0];
-             PDE.ODE.Dvw=eye(4);
-
-            % Non-polynomial in space forcing needs to be entered through
-            % symbolic PDE.PDE.Bpw_nonpol matrix 
-            PDE.PDE.Bpw_nonpol=sx*zeros(sum(PDE.n.n_pde),PDE.n.nw);  
-            PDE.PDE.Bpw_nonpol(1,3:4)=[sin(pi*sx) visc*pi^2*sin(pi*sx)];
+%              PDE.n.n_pde=[0,0,1];
+%              PDE.n.nw=4;
+%              PDE.n.nv=4;
+%              PDE.PDE.A{1}.Lstate=2;
+%              PDE.PDE.A{1}.Rstate=2;
+%              PDE.PDE.A{1}.D=2;
+%              PDE.PDE.A{1}.I=0;
+%              PDE.PDE.A{1}.coeff=visc;
+% 
+%              % BCs: u(x=a)       
+%              PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
+%              PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0;
+% % % % % %  
+% % % % % %    % BCs: u(x=b)
+%              PDE.BC.Ebb{2}.coeff = [zeros(1);eye(1)];
+%              PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1; 
+% % % % % 
+% % % % %      % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
+%              PDE.BC.Ebv=[1 0 0 0;0 1 0 0];
+%              PDE.ODE.Dvw=eye(4);
+% 
+%             % Non-polynomial in space forcing needs to be entered through
+%             % symbolic PDE.PDE.Bpw_nonpol matrix 
+%             PDE.PDE.Bpw_nonpol=sx*zeros(sum(PDE.n.n_pde),PDE.n.nw);  
+%             PDE.PDE.Bpw_nonpol(1,3:4)=[sin(pi*sx) visc*pi^2*sin(pi*sx)];
   
 
 %           Exact solution, initial conditions and inhomogeneous inputs  
@@ -356,7 +358,7 @@ switch example
             uinput.w(4)=st;
          
 %----------------------------------------------------------------------
-%            Example 6 -  Dirichlet-Dirichlet with nonlienar forcing in
+%            Example 6 -  Dirichlet-Dirichlet with nonlinear forcing in
 %            time
 %----------------------------------------------------------------------
 
@@ -498,34 +500,34 @@ case 8
           visc = 0.5;    
 
           % Batch format
-%           PDE.n0=0; PDE.n1=0; PDE.n2=1; 
-%           PDE.nw=2;
-%           PDE.A0=0; PDE.A1=0; PDE.A2=visc;
-%           PDE.B=[1 0 0 0;0 0 0 1];
-%           PDE.Bw=[1 0;0 1];
+           PDE.n0=0; PDE.n1=0; PDE.n2=1; 
+           PDE.nw=2; 
+           PDE.A0=0; PDE.A1=0; PDE.A2=visc;
+           PDE.B=[1 0 0 0;0 0 0 1];
+           PDE.Bw=[1 0;0 1];
 
-          % Terms format
-             PDE.n.n_pde=[0,0,1];
-             PDE.n.nw=2;
-             PDE.n.nv=2;
-             PDE.PDE.A{1}.Lstate=2;
-             PDE.PDE.A{1}.Rstate=2;
-             PDE.PDE.A{1}.D=2;
-             PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=visc;
-
-              % BCs: u(x=a)       
-             PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
-             PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0;
-% % % % %  
-% % % % %    % BCs: u_x(x=b)
-             PDE.BC.Ebb{2}.coeff = [zeros(1);eye(1)];
-             PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1; 
-             PDE.BC.Ebb{2}.D = 1;
-% % % % 
-% % % %      % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
-             PDE.BC.Ebv=[1 0;0 1];
-             PDE.ODE.Dvw=[1 0;0 1];
+%           % Terms format
+%              PDE.n.n_pde=[0,0,1];
+%              PDE.n.nw=2;
+%              PDE.n.nv=2;
+%              PDE.PDE.A{1}.Lstate=2;
+%              PDE.PDE.A{1}.Rstate=2;
+%              PDE.PDE.A{1}.D=2;
+%              PDE.PDE.A{1}.I=0;
+%              PDE.PDE.A{1}.coeff=visc;
+% 
+%               % BCs: u(x=a)       
+%              PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
+%              PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0;
+% % % % % % %  
+% % % % % %    % BCs: u_x(x=b)
+%              PDE.BC.Ebb{2}.coeff = [zeros(1);eye(1)];
+%              PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1; 
+%              PDE.BC.Ebb{2}.D = 1;
+% % % % % % 
+% % % % %      % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
+%              PDE.BC.Ebv=[1 0;0 1];
+%              PDE.ODE.Dvw=[1 0;0 1];
 
 %           Exact solution, initial conditions and inhomogeneous inputs  
 
@@ -932,34 +934,34 @@ case 8
             a=0;b=2; PDE.dom=[a b]; 
             L=2;
             c=2;
-%             % Batch format
-%             PDE.n0=0; PDE.n1=0; PDE.n2=2; PDE.nw=0; 
-%             PDE.A0=0; PDE.A1=0; PDE.A2=[0 -c;1 0];
-%             PDE.B=[1 0 0 0 0 0 0 0;0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 0 0 1];
+            % Batch format
+            PDE.n0=0; PDE.n1=0; PDE.n2=2; PDE.nw=0; 
+            PDE.A0=0; PDE.A1=0; PDE.A2=[0 -c;1 0];
+            PDE.B=[1 0 0 0 0 0 0 0;0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 0 0 1];
 
-            % Terms format
-            PDE.n.n_pde=[0,0,2];
-            PDE.PDE.A{1}.Lstate=2;
-            PDE.PDE.A{1}.Rstate=2;
-            PDE.PDE.A{1}.I=0;
-            PDE.PDE.A{1}.coeff=[0 -c; 1 0];
-            PDE.PDE.A{1}.D=2;
+%             % Terms format
+%             PDE.n.n_pde=[0,0,2];
+%             PDE.PDE.A{1}.Lstate=2;
+%             PDE.PDE.A{1}.Rstate=2;
+%             PDE.PDE.A{1}.I=0;
+%             PDE.PDE.A{1}.coeff=[0 -c; 1 0];
+%             PDE.PDE.A{1}.D=2;
 
-            % BCs: 0 = u1(a)
-             PDE.BC.Ebb{1}.coeff = [1,0;0,0;0,0;0,0];
-             PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0; 
+%             % BCs: 0 = u1(a)
+%              PDE.BC.Ebb{1}.coeff = [1,0;0,0;0,0;0,0];
+%              PDE.BC.Ebb{1}.Rstate = 2; PDE.BC.Ebb{1}.delta = 0; 
 
-             % BCs: 0 = u2(b)
-             PDE.BC.Ebb{2}.coeff = [0,0;0,1;0,0;0,0];
-             PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1;           
+%              % BCs: 0 = u2(b)
+%              PDE.BC.Ebb{2}.coeff = [0,0;0,1;0,0;0,0];
+%              PDE.BC.Ebb{2}.Rstate = 2; PDE.BC.Ebb{2}.delta = 1;           
             
-             % BCs: 0 = u1_x(a)
-             PDE.BC.Ebb{3}.coeff = [0,0;0,0;1,0;0,0];
-             PDE.BC.Ebb{3}.Rstate = 2; PDE.BC.Ebb{3}.delta = 0; PDE.BC.Ebb{3}.D = 1;
-            
-             % BCs: 0 = u2_x(b)
-             PDE.BC.Ebb{4}.coeff = [0,0;0,0;0,0;0,1];
-             PDE.BC.Ebb{4}.Rstate = 2; PDE.BC.Ebb{4}.delta = 1; PDE.BC.Ebb{4}.D = 1;
+%              % BCs: 0 = u1_x(a)
+%              PDE.BC.Ebb{3}.coeff = [0,0;0,0;1,0;0,0];
+%              PDE.BC.Ebb{3}.Rstate = 2; PDE.BC.Ebb{3}.delta = 0; PDE.BC.Ebb{3}.D = 1;
+%             
+%              % BCs: 0 = u2_x(b)
+%              PDE.BC.Ebb{4}.coeff = [0,0;0,0;0,0;0,1];
+%              PDE.BC.Ebb{4}.Rstate = 2; PDE.BC.Ebb{4}.delta = 1; PDE.BC.Ebb{4}.D = 1;
 
 %           Exact solution, initial conditions and inhomogeneous inputs  
 % %           
@@ -1217,8 +1219,8 @@ case 8
             PDE.BC.Ebv=[1 0 0 0 0;0 1 0 0 0; 0 0 1 0 0;0 0 0 1 0];
             PDE.ODE.Dvw=eye(5);
 
-            PDE.PDE.Bpv=s*zeros(sum(PDE.n.n_pde),PDE.n.nv);  
-            PDE.PDE.Bpv(1,5)=2*s^3;
+            PDE.PDE.Bpv=s1*zeros(sum(PDE.n.n_pde),PDE.n.nv);  
+            PDE.PDE.Bpv(1,5)=2*s1^3;
 
             %  Boundary conditions
             % BCs: 0 = u1(a)
@@ -1304,8 +1306,8 @@ case 8
              PDE.BC.Ebv(1:PDE.n.nv-1,1:PDE.n.nv-1)=eye(PDE.n.nv-1);
              PDE.ODE.Dvw=eye(PDE.n.nv);
 % 
-             PDE.PDE.Bpv=s*zeros(sum(PDE.n.n_pde),PDE.n.nv);  
-             PDE.PDE.Bpv(2,PDE.n.nv)=2*s^3;
+             PDE.PDE.Bpv=s1*zeros(sum(PDE.n.n_pde),PDE.n.nv);  
+             PDE.PDE.Bpv(2,PDE.n.nv)=2*s1^3;
 
 
 %           Boundary conditions: 
@@ -1388,7 +1390,7 @@ case 8
 %--------------------------------------------
     case 19
 
-% % %       u(x,t)=sin x e^(-t) solution for u_tt=-c u_xxxx+(c+1)sinx e^(-t);
+% % %       u(x,t)=sin x e^(-t) solution for u_tt=-c u_xxxx+(c+1)sino e^(-t);
 %   Primary states are state(1)=u_t; state(2)=u_xx; Fundamental states are 
 %   state(1)_xx=u_txx, state(2)_xx=u_xxxx.
 
@@ -1597,46 +1599,46 @@ case 8
     case 21
 % u(x,t)=sin(x-ct) solution for u_t+c u_x=0;
 % % % % % 
-            c=-2;
-            a=1;b=2;   PDE.dom=[a b]; 
+            c=4;
+            a=-1;b=1;   PDE.dom=[a b]; 
 
             % Batch format
-%             PDE.n0=0; PDE.n1=1; PDE.n2=0;  PDE.nw=1;
-%             PDE.A0=0; PDE.A1=-c; PDE.A2=0;
-%             if (c>=0)
-%             xb=a;
-%             PDE.B=[1 0];
-%             else
-%             xb=b;
-%             PDE.B=[0 1];
-%             end
-%             PDE.Bw=1;
+            PDE.n0=0; PDE.n1=1; PDE.n2=0;  PDE.nw=1;
+            PDE.A0=0; PDE.A1=-c; PDE.A2=0;
+            if (c>=0)
+            xb=a;
+            PDE.B=[1 0];
+            else
+            xb=b;
+            PDE.B=[0 1];
+            end
+            PDE.Bw=1;
 
             % Terms format
-             PDE.n.n_pde=[0,1];
-             PDE.n.nw=1;
-             PDE.n.nv=1;
-             PDE.PDE.A{1}.Lstate=1;
-             PDE.PDE.A{1}.Rstate=1;
-             PDE.PDE.A{1}.D=1;
-             PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=-c;
-
-              % BCs: u(x=a or x=b depending on sign of c)       
-             PDE.BC.Ebb{1}.coeff = 1;
-             PDE.BC.Ebb{1}.Rstate = 1; 
-             if (c>=0)
-             xb=a;
-             PDE.BC.Ebb{1}.delta = 0;
-             else
-             xb=b;
-             PDE.BC.Ebb{1}.delta = 1;
-             end
+%              PDE.n.n_pde=[0,1];
+%              PDE.n.nw=1;
+%              PDE.n.nv=1;
+%              PDE.PDE.A{1}.Lstate=1;
+%              PDE.PDE.A{1}.Rstate=1;
+%              PDE.PDE.A{1}.D=1;
+%              PDE.PDE.A{1}.I=0;
+%              PDE.PDE.A{1}.coeff=-c;
+% 
+%               % BCs: u(x=a or x=b depending on sign of c)       
+%              PDE.BC.Ebb{1}.coeff = 1;
+%              PDE.BC.Ebb{1}.Rstate = 1; 
+%              if (c>=0)
+%              xb=a;
+%              PDE.BC.Ebb{1}.delta = 0;
+%              else
+%              xb=b;
+%              PDE.BC.Ebb{1}.delta = 1;
+%              end
             
 % % % % 
 % % % %      % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
-             PDE.BC.Ebv=1;
-             PDE.ODE.Dvw=1;
+%              PDE.BC.Ebv=1;
+%              PDE.ODE.Dvw=1;
                 
 
 %        Exact solution, initial conditions and inhomogeneous inputs  
@@ -1654,46 +1656,46 @@ case 8
 % % 
             sigma=0.2;
             mu=0;
-            c=-2;
-            a=-0.5;b=0.3;  PDE.dom=[a b];  
+            c=4;
+            a=-1;b=1;  PDE.dom=[a b];  
 
-            % Batch format
-%             PDE.n0=0; PDE.n1=1; PDE.n2=0; PDE.nw=1;
-%             PDE.A0=0; PDE.A1=-c; PDE.A2=0;
-%             if (c>=0)
-%             xb=a;
-%             PDE.B=[1 0];
-%             else
-%             xb=b;
-%             PDE.B=[0 1];
-%             end
-%             PDE.Bw=1;
+           % Batch format
+            PDE.n0=0; PDE.n1=1; PDE.n2=0; PDE.nw=1;
+            PDE.A0=0; PDE.A1=-c; PDE.A2=0;
+            if (c>=0)
+            xb=a;
+            PDE.B=[1 0];
+            else
+            xb=b;
+            PDE.B=[0 1];
+            end
+            PDE.Bw=1;
 
                         % Terms format
-             PDE.n.n_pde=[0,1];
-             PDE.n.nw=1;
-             PDE.n.nv=1;
-             PDE.PDE.A{1}.Lstate=1;
-             PDE.PDE.A{1}.Rstate=1;
-             PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=-c;
-             PDE.PDE.A{1}.D=1;
+%              PDE.n.n_pde=[0,1];
+%              PDE.n.nw=1;
+%              PDE.n.nv=1;
+%              PDE.PDE.A{1}.Lstate=1;
+%              PDE.PDE.A{1}.Rstate=1;
+%              PDE.PDE.A{1}.I=0;
+%              PDE.PDE.A{1}.coeff=-c;
+%              PDE.PDE.A{1}.D=1;
 
               % BCs: u(x=a or x=b depending on sign of c)       
-             PDE.BC.Ebb{1}.coeff = 1;
-             PDE.BC.Ebb{1}.Rstate = 1; 
-             if (c>=0)
-             xb=a;
-             PDE.BC.Ebb{1}.delta = 0;
-             else
-             xb=b;
-             PDE.BC.Ebb{1}.delta = 1;
-             end
+%              PDE.BC.Ebb{1}.coeff = 1;
+%              PDE.BC.Ebb{1}.Rstate = 1; 
+%              if (c>=0)
+%              xb=a;
+%              PDE.BC.Ebb{1}.delta = 0;
+%              else
+%              xb=b;
+%              PDE.BC.Ebb{1}.delta = 1;
+%              end
             
 % % % % 
 % % % %      % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
-             PDE.BC.Ebv=1;
-             PDE.ODE.Dvw=1;
+%              PDE.BC.Ebv=1;
+%              PDE.ODE.Dvw=1;
                 
 %        Exact solution, initial conditions and inhomogeneous inputs 
   uinput.exact(1) = 1/(sigma*sqrt(2*pi))*exp(-0.5*((sx-c*st-mu)/sigma).^2);
@@ -1936,10 +1938,44 @@ case 8
 % Propagating Gauss bump 1/(sigma*sqrt(2*pi))*exp(-0.5*(x-ct-mu)/sigma)^2) solution for u_tt=c^2u_xx;
 % % % 
 
-            a=-0.6;b=0.6;  PDE.dom=[a b];  
-            c=2;
+            a=-1;b=1;  PDE.dom=[a b];  
+            c=4;
 
-%             % Batch format
+        % Batch format
+% 
+            PDE.n0=0; PDE.n1=2; PDE.n2=0; PDE.nw=2;
+            PDE.A0=0; PDE.A1=[0 c^2; 1 0]; PDE.A2=0;
+            PDE.B=[1 0 0 0;0 0 0 1];
+            PDE.Bw=eye(2);
+
+%            % Terms format   
+
+
+%              PDE.n.n_pde=[0,2];
+%              PDE.n.nw=2;
+%              PDE.n.nv=2;
+%              PDE.PDE.A{1}.Lstate=1;
+%              PDE.PDE.A{1}.Rstate=1;
+%              PDE.PDE.A{1}.I=0;
+%              PDE.PDE.A{1}.coeff=[0 c^2; 1 0];
+%              PDE.PDE.A{1}.D=1;
+% 
+%                  % BCs: Dirichlet on u_t - state 1 (x=a)       
+%                  PDE.BC.Ebb{1}.coeff = [1 0;0 0];
+%                  PDE.BC.Ebb{1}.Rstate = 1; PDE.BC.Ebb{1}.delta = 0;
+% % % % % %  
+% % % % % %        % BCs: Dirichlet on u_x - state 2 (x=b)
+%                  PDE.BC.Ebb{2}.coeff = [0 0; 0 1];
+%                  PDE.BC.Ebb{2}.Rstate = 1; PDE.BC.Ebb{2}.delta = 1; 
+% % % % % 
+% % % % %          % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
+%                  PDE.BC.Ebv=[1 0;0 1];
+%                  PDE.ODE.Dvw=[1 0;0 1];
+
+
+            % Case with added regulated outputs
+
+            % Batch format
 %                PDE.n0=0; PDE.n1=2; PDE.n2=0; PDE.nw=2;
 %                PDE.A0=0; PDE.A1=[0 c^2; 1 0]; PDE.A2=0;
 %                PDE.B=[1 0 0 0;0 0 0 1];
@@ -1947,42 +1983,42 @@ case 8
 %                PDE.nz=2;
 %                PDE.Ca1=[1 2;3 4];
 %                PDE.D11=[5 6; 7 8];
-%                PDE.ny=1;
+%                PDE.nb=1;
 %                PDE.Ca2=[1 2];
 %                PDE.D21=[-1 3];
 
-           % Terms format   
-             PDE.n.n_pde=[0,2];
-             PDE.n.nw=2;
-             PDE.n.nv=2;
-             PDE.n.nz=2;
-             PDE.n.ny=1;
-             PDE.n.nr=7;
-             PDE.PDE.A{1}.Lstate=1;
-             PDE.PDE.A{1}.Rstate=1;
-             PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=[0 c^2; 1 0];
-             PDE.PDE.A{1}.D=1;
-
-             PDE.PDE.Crp{1}.Rstate=1;
-             PDE.PDE.Crp{1}.coeff=[0 0;0 0;0 0;0 0;1 2;3 4;1 2];
-
-             PDE.ODE.Dzw=[5 6; 7 8];
-             PDE.ODE.Dyw=[-1 3];
-             PDE.ODE.Dyr=[0 0 0 0 0 0 1];
-             PDE.ODE.Dzr=[0 0 0 0 1 0 0;0 0 0 0 0 1 0];
-
-                 % BCs: Dirichlet on u_t - state 1 (x=a)       
-                 PDE.BC.Ebb{1}.coeff = [1 0;0 0];
-                 PDE.BC.Ebb{1}.Rstate = 1; PDE.BC.Ebb{1}.delta = 0;
-% % % % %  
-% % % % %        % BCs: Dirichlet on u_x - state 2 (x=b)
-                 PDE.BC.Ebb{2}.coeff = [0 0; 0 1];
-                 PDE.BC.Ebb{2}.Rstate = 1; PDE.BC.Ebb{2}.delta = 1; 
-% % % % 
-% % % %          % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
-                 PDE.BC.Ebv=[1 0;0 1];
-                 PDE.ODE.Dvw=[1 0;0 1];
+%            % Terms format   
+%              PDE.n.n_pde=[0,2];
+%              PDE.n.nw=2;
+%              PDE.n.nv=2;
+%              PDE.n.nz=2;
+%              PDE.n.nb=1;
+%              PDE.n.nr=7;
+%              PDE.PDE.A{1}.Lstate=1;
+%              PDE.PDE.A{1}.Rstate=1;
+%              PDE.PDE.A{1}.I=0;
+%              PDE.PDE.A{1}.coeff=[0 c^2; 1 0];
+%              PDE.PDE.A{1}.D=1;
+% 
+%              PDE.PDE.Crp{1}.Rstate=1;
+%              PDE.PDE.Crp{1}.coeff=[0 0;0 0;0 0;0 0;1 2;3 4;1 2];
+% 
+%              PDE.ODE.Dzw=[5 6; 7 8];
+%              PDE.ODE.Dyw=[-1 3];
+%              PDE.ODE.Dyr=[0 0 0 0 0 0 1];
+%              PDE.ODE.Dzr=[0 0 0 0 1 0 0;0 0 0 0 0 1 0];
+% 
+%                  % BCs: Dirichlet on u_t - state 1 (x=a)       
+%                  PDE.BC.Ebb{1}.coeff = [1 0;0 0];
+%                  PDE.BC.Ebb{1}.Rstate = 1; PDE.BC.Ebb{1}.delta = 0;
+% % % % % %  
+% % % % % %        % BCs: Dirichlet on u_x - state 2 (x=b)
+%                  PDE.BC.Ebb{2}.coeff = [0 0; 0 1];
+%                  PDE.BC.Ebb{2}.Rstate = 1; PDE.BC.Ebb{2}.delta = 1; 
+% % % % % 
+% % % % %          % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
+%                  PDE.BC.Ebv=[1 0;0 1];
+%                  PDE.ODE.Dvw=[1 0;0 1];
 
 %        Exact solution, initial conditions and inhomogeneous inputs 
             sigma=0.2;
@@ -2016,36 +2052,36 @@ case 8
 % Propagating Gauss bump 1/(sigma*sqrt(2*pi))*exp(-0.5*(x-ct-mu)/sigma)^2) solution for u_tt=c^2u_xx;
 % % % 
 
-            a=-0.6;b=0.6;  PDE.dom=[a b];  
-            c=2;
+            a=-1;b=1;  PDE.dom=[a b];  
+            c=4;
 
-            % Batch format
-%             PDE.n0=0; PDE.n1=2; PDE.n2=0; PDE.nw=1;
-%             PDE.A0=0; PDE.A1=[0 c^2; 1 0]; PDE.A2=0;
-%             PDE.B=[1 0 0 0;0 0 1 c];
-%             PDE.Bw=[1;0];
+%            Batch format
+            PDE.n0=0; PDE.n1=2; PDE.n2=0; PDE.nw=1;
+            PDE.A0=0; PDE.A1=[0 c^2; 1 0]; PDE.A2=0;
+            PDE.B=[1 0 0 0;0 0 1 c];
+            PDE.Bw=[1;0];
 
             % Terms format
-             PDE.n.n_pde=[0,2];
-             PDE.n.nw=1;
-             PDE.n.nv=1;
-             PDE.PDE.A{1}.Lstate=1;
-             PDE.PDE.A{1}.Rstate=1;
-             PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=[0 c^2; 1 0];
-             PDE.PDE.A{1}.D=1;
-
-                 % BCs: Dirichlet on u_t - state 1 (x=a)       
-                 PDE.BC.Ebb{1}.coeff = [1 0;0 0];
-                 PDE.BC.Ebb{1}.Rstate = 1; PDE.BC.Ebb{1}.delta = 0;
-% % % % %  
-% % % % %        % BCs: u_t+c u_x =0 (x=b)
-                 PDE.BC.Ebb{2}.coeff = [0 0; 1 c];
-                 PDE.BC.Ebb{2}.Rstate = 1; PDE.BC.Ebb{2}.delta = 1; 
-% % % % 
-% % % %          % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
-                 PDE.BC.Ebv=[1;0];
-                 PDE.ODE.Dvw=1;
+%             PDE.n.n_pde=[0,2];
+%              PDE.n.nw=1;
+%              PDE.n.nv=1;
+%              PDE.PDE.A{1}.Lstate=1;
+%              PDE.PDE.A{1}.Rstate=1;
+%              PDE.PDE.A{1}.I=0;
+%              PDE.PDE.A{1}.coeff=[0 c^2; 1 0];
+%              PDE.PDE.A{1}.D=1;
+% 
+%                  % BCs: Dirichlet on u_t - state 1 (x=a)       
+%                  PDE.BC.Ebb{1}.coeff = [1 0;0 0];
+%                  PDE.BC.Ebb{1}.Rstate = 1; PDE.BC.Ebb{1}.delta = 0;
+% % % % % %  
+% % % % % %        % BCs: u_t+c u_x =0 (x=b)
+%                  PDE.BC.Ebb{2}.coeff = [0 0; 1 c];
+%                  PDE.BC.Ebb{2}.Rstate = 1; PDE.BC.Ebb{2}.delta = 1; 
+% % % % % 
+% % % % %          % BCs: inhomogeneous inputs (connect through ODE interconnected signals)
+%                  PDE.BC.Ebv=[1;0];
+%                  PDE.ODE.Dvw=1;
 
 %        Exact solution, initial conditions and inhomogeneous inputs 
             sigma=0.2;
@@ -2061,7 +2097,7 @@ case 8
           uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
           uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
     
-    uinput.w(1)=subs(uinput.exact(1),sx,a);
+    uinput.w(1)=subs(uinput.exact(1),sx,a); 
   
 %-----------------------------------------
 %  Example 29 - splitting Gauss bump
@@ -2264,7 +2300,7 @@ case 8
             % Batch format
             PDE.n0=1; PDE.n1=1; PDE.n2=2; 
             PDE.nw=11;
-            PDE.nx=0; PDE.nu=0;
+            PDE.no=0; PDE.nu=0;
             PDE.A0=[-lambda 0 0 0;0 0 0 0;0 0 0 0;0 0 0 0]; 
             PDE.A1=[0 0 0; -c 0 0;0 0 0;0 0 0]; 
             PDE.A2=[0 0; 0 0; visc(1) 0;0 visc(2)];
@@ -2273,9 +2309,9 @@ case 8
             % Polynomial in space forcing enters through
             % pvar PDE.B21 matrix
 
-            PDE.B21=s*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);
-            PDE.B21(2,6)=5*s^10;
-            PDE.B21(2,7)=10*c*s^9;
+            PDE.B21=s1*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);
+            PDE.B21(2,6)=5*s1^10;
+            PDE.B21(2,7)=10*c*s1^9;
 
              % Non-polynomial in space forcing enters through
             % symbolic PDE.B21_nonpol matrix
@@ -2354,7 +2390,7 @@ case 8
 % Forcing is done through B21 matrix
             
             a=-1;b=1; PDE.dom=[a b]; 
-            PDE.n0=0; PDE.n1=0; PDE.n2=2; PDE.nw=5; PDE.nx=2; PDE.nu=0;
+            PDE.n0=0; PDE.n1=0; PDE.n2=2; PDE.nw=5; PDE.no=2; PDE.nu=0;
             c=2;
             PDE.A0=0; PDE.A1=0; PDE.A2=[0 -c;1 0];
             PDE.B=[1 0 0 0 0 0 0 0;0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 0 0 1];
@@ -2390,8 +2426,8 @@ case 8
                uinput.w(5)=1;
                
                
-               PDE.B21=s*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
-               PDE.B21(1,5)=2*s^3;
+               PDE.B21=s1*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
+               PDE.B21(1,5)=2*s1^3;
                
 % %           Temporal dependence of force components in separated form
 %               uinput.tforce(1)= 1;
@@ -2414,7 +2450,7 @@ case 8
 
     case 33
 
- PDE.n0=0;PDE.n1=0;PDE.n2=1; PDE.nx =1;
+ PDE.n0=0;PDE.n1=0;PDE.n2=1; PDE.no =1;
  a=0; b=1; PDE.dom=[a b]; 
 %
  PDE.A0=0; PDE.A1=0; PDE.A2=1; PDE.A = 1; PDE.E =0;
@@ -2432,7 +2468,7 @@ case 8
  
 
   case 34
-  PDE.nx = 1; PDE.n0=0; PDE.n1 =1; PDE.n2 =0; 
+  PDE.no = 1; PDE.n0=0; PDE.n1 =1; PDE.n2 =0; 
   PDE.A = 0; PDE.E = 0;
   tau = pi/2 -5e-1; 
   PDE.A0 = 0; PDE.A1 = 1/tau; PDE.A2 = zeros(PDE.n2);
@@ -2450,7 +2486,7 @@ case 8
     case 35
   % % 
  a=0; b= 1; PDE.dom = [a b];
- PDE.nx = 1; PDE.n0=0; PDE.n1=0; PDE.n2 =1;
+ PDE.no = 1; PDE.n0=0; PDE.n1=0; PDE.n2 =1;
  PDE.A = -3; 
  PDE.A2 = 1; 
  PDE.B = [0, 0, 1, 0; 0, 1, 0, 0]; 
@@ -2467,7 +2503,7 @@ case 8
 
  lambda = pi^2-0.01; %(not stable here)
  a=0; b= 1; PDE.dom = [a b];
- PDE.nx = 4; PDE.n0=0; PDE.n1=0; PDE.n2 =2;
+ PDE.no = 4; PDE.n0=0; PDE.n1=0; PDE.n2 =2;
  PDE.A = [-1.2142, 1.9649, 0.2232, 0.5616;
             -1.8042, -0.7260, -0.3479, 5.4355;
             -0.2898, 0.7381, -1.7606, 0.8294;
@@ -2480,7 +2516,7 @@ case 8
  PDE.Bx = zeros(4,4);
  PDE.nz=2;
  PDE.Ca1=[1 2;3 4];
- PDE.ny=1;
+ PDE.nb=1;
  PDE.Ca2=[1 2];
  
  uinput.ic.ODE=[1 1 1 1];
@@ -2505,7 +2541,7 @@ B = [-7/2, -3/2, -1/10, 1/2, 1]';
 C = [1/10, -1/3, -4, 7/8, 7/8];
 
 
- PDE.nw = 0;   PDE.ny = 0;   PDE.nz = 0;   PDE.nx = 5;   PDE.nu = 0;
+ PDE.nw = 0;   PDE.nb = 0;   PDE.nz = 0;   PDE.no = 5;   PDE.nu = 0;
  PDE.n0 = 0;   PDE.n1 = 0;   PDE.n2 = 1;
  PDE.dom = [0,1];
 
@@ -2541,7 +2577,7 @@ B = [-5/4, 2/3, 1/6, -1/6, 0]';
 C = [-2/5, -5/4, 3/2, 1/3, 1/40];
     
 
- PDE.nw = 0;   PDE.ny = 0;   PDE.nz = 0;   PDE.nx = 5;   PDE.nu = 0;
+ PDE.nw = 0;   PDE.nb = 0;   PDE.nz = 0;   PDE.no = 5;   PDE.nu = 0;
  PDE.n0 = 0;   PDE.n1 = 0;   PDE.n2 = 1;
  PDE.dom = [0,1];
 

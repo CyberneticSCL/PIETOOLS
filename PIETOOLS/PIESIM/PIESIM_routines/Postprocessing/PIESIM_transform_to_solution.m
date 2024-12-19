@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_transform_to_solution.m     PIETOOLS 2021b
+% PIESIM_transform_to_solution.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, solcoeff, opts);
 % This routine transforms solution from the Chebyshev coefficient space of the fundamental states to
@@ -11,7 +11,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 % physical solution of the preimary states
 
 % Inputs: 
-% 1) psize - size of the PIE problem: nw, nu, nf, nx 
+% 1) psize - size of the PIE problem: nw, nu, nf, no 
 % 2) PIE structure - needed for reconstruction of non-zero boundary terms,
 %  observed and regulated outputs
 % 3) Dop- discretized PIE operators
@@ -25,18 +25,18 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 % solution is a strucutre with the following fields
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
-% --- solution.final.ode - array of size nx - ode solution at a final time 
-% --- solution.final.observed - array of size ny  - final value of observed outputs
-% --- solution.final.regulated - array of size nz  - final value of regulated outputs
+% --- solution.final.ode - array of size no - ode solution at a final time 
+% --- solution.final.observed - array of size noo  - final value of observed outputs
+% --- solution.final.regulated - array of size nro  - final value of regulated outputs
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
-% --- solution.timedep.ode - array of size nx x Nsteps - time-dependent solution of nx ODE states
+% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 %     solution of ns PDE (distributed) states of the primary PDE system
-% --- solution.timedep.observed - array of size ny x Nsteps -
+% --- solution.timedep.observed - array of size noo x Nsteps -
 %     time-dependent value of observed outputs
-% --- solution.timedep.regulated - array of size nz x Nsteps -
+% --- solution.timedep.regulated - array of size nro x Nsteps -
 %     time-dependent value of regulated outputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -57,7 +57,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 
 % Define local variables
      N=psize.N;
-     nx=psize.nx;
+     no=psize.no;
      ns=sum(psize.n);
      Mcheb_nonsquare=Dop.Mcheb_nonsquare; 
      if isfield(Dop,'Mcheb0_nonsquare') 
@@ -142,7 +142,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
      % function)
      if(~isnan(acheb_p))
      for n=1:ns
-     acheb_p_local=acheb_p(nx+1+(n-1)*(N+1):nx+n*(N+1));
+     acheb_p_local=acheb_p(no+1+(n-1)*(N+1):no+n*(N+1));
      solution.final.pde(:,n) = ifcht(acheb_p_local);
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances
@@ -154,7 +154,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
       solution.final.pde(:,n)=solution.final.pde(:,n)+bcu_input(:,n);
       end
      end
-     solution.final.ode=solcoeff.final(1:nx);
+     solution.final.ode=solcoeff.final(1:no);
      else
          solution.final.ode=[];
          if (ns>0) 
@@ -165,7 +165,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 
 %   Reconstruction of observed and regulated outputs
 
-    if(psize.nz>0)
+    if(psize.nro>0)
         % Don't execute if solution blew up
         if(~isnan(solcoeff.final)) 
     solution.final.regulated=C1op*solcoeff.final;
@@ -180,7 +180,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
         end % if
     end % psize
 
-    if(psize.ny>0)
+    if(psize.noo>0)
         % Don't execute if solution blew up
         if(~isnan(solcoeff.final)) 
     solution.final.observed=C2op*solcoeff.final;
@@ -206,14 +206,14 @@ if (opts.intScheme==1)
     % Define ODE solution and temporal stamps array
      solution.timedep.dtime=solcoeff.timedep.dtime;
      if (~isnan(solcoeff.timedep.coeff))
-     solution.timedep.ode=solcoeff.timedep.coeff(1:nx,:);
+     solution.timedep.ode=solcoeff.timedep.coeff(1:no,:);
 
 
 %   Reconstruction of observed and regulated outputs
-    if(psize.nz>0)
+    if(psize.nro>0)
     solution.timedep.regulated=C1op*solcoeff.timedep.coeff;
     end
-    if(psize.ny>0)
+    if(psize.noo>0)
     solution.timedep.observed=C2op*solcoeff.timedep.coeff;
     end
     else
@@ -262,10 +262,10 @@ if (opts.intScheme==1)
      end % if isa(bc,'polynomial')
 
      % Add disturbances to regulated and observed outputs
-     if(psize.nz>0 & ~isempty(solution.timedep.regulated))
+     if(psize.nro>0 & ~isempty(solution.timedep.regulated))
      solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D11op*wvec(:,1);
      end
-     if(psize.ny>0 & ~isempty(solution.timedep.observed))
+     if(psize.noo>0 & ~isempty(solution.timedep.observed))
      solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D21op*wvec(:,1);
      end
 
@@ -290,15 +290,15 @@ if (opts.intScheme==1)
      bcu_input(:,n)=polyval(coeff(:,n),grid.comp);
      end
      else
-     for n=1:length(bc)
+     for b=1:length(bc)
      bcu_input(1:length(grid.comp),n)=bc(n);
      end
      end
      % Add controled inputs to regulated and observed outputs
-     if(psize.nz>0 & ~isempty(solution.timedep.regulated))
+     if(psize.nro>0 & ~isempty(solution.timedep.regulated))
      solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D12op*uvec(:,1);
      end
-     if(psize.ny>0& ~isempty(solution.timedep.observed))
+     if(psize.noo>0& ~isempty(solution.timedep.observed))
      solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D22op*uvec(:,1);
      end
      end % if (psize.nu>0)
@@ -306,7 +306,7 @@ if (opts.intScheme==1)
      % Reconstruct solution using inverse Chebyshev transform (ifcht function)
      if (~isnan(acheb_p))
      for n=1:ns
-     acheb_p_local=acheb_p(nx+1+(n-1)*(N+1):nx+n*(N+1));
+     acheb_p_local=acheb_p(no+1+(n-1)*(N+1):no+n*(N+1));
      solution.timedep.pde(:,n,ntime) = ifcht(acheb_p_local);
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances 

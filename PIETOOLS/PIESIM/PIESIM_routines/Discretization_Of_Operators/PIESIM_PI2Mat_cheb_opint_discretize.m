@@ -1,29 +1,31 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_PI2Mat_cheb_opint_discretize.m     PIETOOLS 2021b
+% PIESIM_PI2Mat_cheb_opint_discretize.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - discrete matrix representation for the integrative Q1 operator  
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
-% nx - number of ODE states
-% Rop - Q1 operator of dimension nx x ns
+% Rop - Q1 operator of dimension no x ns
 % p - vector of dimension 1xns -
 % a "degree of smoothness" structure for PDE, see Peet & Peet 2021 paper
 %
 % Outputs:
 % A - discretization matrix of the Q1 operator: 
-% dimension nx x n0(N+1) n1N n2(N-1)
+% dimension no x n0(N+1) n1N n2(N-1)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding YP  - 6_30_2022
-function A=PIESIM_PI2Mat_cheb_opint_discretize(N, nx, Rop, p);
-pvar s var
+% Initial coding YP  - 6_30_2022% 
+% YP -  added support for an arbitary variable name - 04_16_2024
+
+function A=PIESIM_PI2Mat_cheb_opint_discretize(N, Rop, p);
+pvar var s
 
 ns=size(p,2);
+no=size(Rop,1);
 
 if isa(Rop,'polynomial')
     deg=Rop.maxdeg;
@@ -31,13 +33,13 @@ else
     deg=1;
 end
 
-Reval=zeros(nx,ns,deg+2);
-acheb=zeros(nx,ns,deg+2);
+Reval=zeros(no,ns,deg+2);
+acheb=zeros(no,ns,deg+2);
 
 chebgrid=cos(pi*(0:deg+1)/(deg+1));
 if isa(Rop,'polynomial')
 for j=1:ns
-    for i=1:nx  
+    for i=1:no
         if (isempty(Rop.varname))
             var=s;
         else
@@ -49,7 +51,7 @@ for j=1:ns
 end 
 else
 for j=1:ns
-for i=1:nx
+for i=1:no
     Reval(i,j,:)=Rop(i,j);
     acheb(i,j,:)=fcht(double(Reval(i,j,:)));
 end
@@ -61,10 +63,10 @@ end
   for j=1:ns
         Norder=N-p(j);
        
-  A=zeros(nx,Norder);
+  A=zeros(no,Norder);
   
         for k=0:Norder
-            for i=1:nx
+            for i=1:no
  vecint=0;
  for m=0:deg+1
 % Integrate Rop (T_(k+m) and T_|k-m|) polynomials on [-1,1]

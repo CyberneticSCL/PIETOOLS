@@ -23,8 +23,8 @@
 % The fourth and final set of commands uses a script which sets up and solves an LPI as
 % determined by the LPI settings and 
 %
-close all; clear all; %path(pathdef); 
-clc; pvar s theta;
+close all; clear; %path(pathdef); 
+clc;
 stability=0; stability_dual=0; Hinf_gain=0; Hinf_gain_dual=0; Hinf_control=0; Hinf_estimator=0;
 DDE_minimal_rep=1;
 % sosineq_on=1; 

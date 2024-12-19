@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_stability_check.m    PIETOOLS 2021b
+% PIESIM_stability_check.m    PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs check of a numerical stability of time integration and
 % outputs suggestions if unstable
@@ -23,7 +23,9 @@ function PIESIM_stability_check(opts, Atotal);
  %   Neigs = size(Atotal,1);
  %   lam = eigs(Atotal, Neigs);
 
-       tol=0.2;
+       tol=0.05;
+       tol_real=1e-3;
+       tol_angle=0.1;
 
         lam=eig(Atotal);
         Neig=length(lam);
@@ -80,13 +82,22 @@ function PIESIM_stability_check(opts, Atotal);
         lambda=lam(k)*opts.dt;
 
     diff=abs(an-angle(lambda));
-    [m,indmin]=min(diff);
-     
-    if (real(lambda)*real(z(indmin))>0 & imag(lambda)*imag(z(indmin))>0)
-    am(k)=abs(z(indmin))/abs(lambda);
+
+    m=min(diff);
+    m_max=m+tol_angle;
+
+    ind_permit=find(diff<m_max);
+    z_permit=z(ind_permit);
+
+    [zmax,indmax_inter]=max(abs(z_permit));
+    indmax=ind_permit(indmax_inter);
+
+    if (real(lambda)*real(z(indmax))>tol_real & imag(lambda)*imag(z(indmax))>=0)
+    am(k)=abs(z(indmax))/abs(lambda);
     else
     am(k)=0;
     end
+
     end
 
     ampl=max(am);
