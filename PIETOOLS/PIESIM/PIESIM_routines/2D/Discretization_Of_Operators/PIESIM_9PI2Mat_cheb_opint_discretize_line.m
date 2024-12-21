@@ -43,6 +43,8 @@ function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_line(N, R
 s1 = var1(1);   s1_dum = var2(1);
 s2 = var1(2);   s2_dum = var2(2);
 
+% snative, snstr correspond to the variable not affected by integration (not in the differential or limits) 
+% s is variable in limits, theta is the dummy variable of integration (differential)
 R_native=false;
 
 if (dir=='x')
