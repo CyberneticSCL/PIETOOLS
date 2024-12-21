@@ -7,7 +7,7 @@
 %
 % Initial coding YP - 6_1_2021
 
-function R = transl_3PI(R,a,b,c,d,dir)
+function R = transl_3PI(R,a,b,c,d,var1,var2,dir)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % R = transl_3PI(T,R,a,b,c,d,dir) takes in a 3-PI operator R that acts on
 % functions in the interval [a,b] and changes it to a 3-PI operator that
@@ -49,28 +49,20 @@ function R = transl_3PI(R,a,b,c,d,dir)
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% DJ, 12/16/2024: Remove dependence on hardcoded variables; now pass
+%                   variables defining Rop as additional inputs.
 
+% Extract primary and dummy variables defining Rop.                         % DJ, 12/16/2024
+s1 = var1(1);   s1_dum = var2(1);
+s2 = var1(2);   s2_dum = var2(2);
+pvar sbar thetabar
 
-pvar s theta sbar thetabar s1 s1_dum s2 s2_dum theta1 theta2;
-
-if (dir=='x')
+if strcmp(dir,'x')
     s=s1;
     theta=s1_dum;
-    var=R{2}.varname;
-    if length(var)==2
-    if (var{2}(1)=='t')
-        theta=theta1;
-    end
-    end
 else
     s=s2;
     theta=s2_dum;
-    var=R{2}.varname;
-    if length(var)==2
-    if (var{2}(1)=='t')
-        theta=theta2;
-    end
-    end
 end
 
 

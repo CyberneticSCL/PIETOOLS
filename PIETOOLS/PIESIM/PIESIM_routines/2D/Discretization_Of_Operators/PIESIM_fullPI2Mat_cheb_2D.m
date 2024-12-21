@@ -30,6 +30,10 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% DJ, 12/16/2024: Explicitly pass the variables Rop.var1 and Rop.var2 on
+%                   which Rop is defined to the discretization subroutines,
+%                   in case these variables are not equal to (s1,s2) and
+%                   (s1_dum,s2_dum);
 
 function [A, A_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(Rop, psize, flag)
 
@@ -114,9 +118,9 @@ if size(Rop.R00,2)>0
 
      if(sum(psize.n)>0)
      if (nargout==1)
-     R20block{1}= PIESIM_Poly2Mat_cheb_2D(N, Rop.R20, p);
+     R20block{1}= PIESIM_Poly2Mat_cheb_2D(N, Rop.R20, Rop.var1, p);
      else
-     [R20block{1}, R20block{2}]= PIESIM_Poly2Mat_cheb_2D(N,Rop.R20, p);
+     [R20block{1}, R20block{2}]= PIESIM_Poly2Mat_cheb_2D(N, Rop.R20, Rop.var1, p);
      end
      end %R20 block
 
@@ -154,18 +158,18 @@ if (mod(flag,2)==1)
       % Ryx block
  if sum(psize.ny)>0
          if(nargout==1)
- Ryxblock{1}=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, pcol, py, 'x');
+ Ryxblock{1}=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, Rop.var1, pcol, py, 'x');
          else
- [Ryxblock{1}, Ryxblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, pcol, py, 'x');
+ [Ryxblock{1}, Ryxblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, Rop.var1, pcol, py, 'x');
          end
  end
 
       % R2x block
      if sum(psize.n)>0
          if(nargout==1)
-     R2xblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, p, pcol, 'x');
+     R2xblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, Rop.var1, p, pcol, 'x');
          else
-     [R2xblock{1},R2xblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, p, pcol,'x');
+     [R2xblock{1},R2xblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, Rop.var1, p, pcol,'x');
     end
  end
 
@@ -192,9 +196,9 @@ if (size(Rop.R0y,2)>0)
       % Rxy block
      if sum(psize.nx)>0
          if(nargout==1)
-    [Rxyblock{1}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, px, pcol, 'y');
+    [Rxyblock{1}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, Rop.var1, px, pcol, 'y');
          else
-    [Rxyblock{1}, Rxyblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, px, pcol, 'y');
+    [Rxyblock{1}, Rxyblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, Rop.var1, px, pcol, 'y');
          end
     end
 
@@ -211,9 +215,9 @@ if (size(Rop.R0y,2)>0)
       % R2y block
     if sum(psize.n)>0
          if(nargout==1)
-     R2yblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, p, pcol, 'y');
+     R2yblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, Rop.var1, p, pcol, 'y');
          else
-     [R2yblock{1},R2yblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, p, pcol,'y');
+     [R2yblock{1},R2yblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, Rop.var1, p, pcol,'y');
     end
     end
 
@@ -233,7 +237,7 @@ if (size(Rop.R02,2)>0)
 
     % R02 block
     if (size(Rop.R02,1)>0)
-    R02block=PIESIM_PI2Mat_cheb_opint_discretize_2to0(N, Rop.R02, pcol);
+    R02block=PIESIM_PI2Mat_cheb_opint_discretize_2to0(N, Rop.R02, Rop.var1, pcol);
     end
 
     if (mod(flag,2)==1)
@@ -241,26 +245,26 @@ if (size(Rop.R02,2)>0)
     % Rx2 block 
     if sum(psize.nx)>0
     if(nargout==1)
-     Rx2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, pcol, px, 'x');
+     Rx2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, Rop.var1, pcol, px, 'x');
          else
-     [Rx2block{1},Rx2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, pcol, px,'x');
+     [Rx2block{1},Rx2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, Rop.var1, pcol, px,'x');
     end
     end
 
     % Ry2 block 
     if sum(psize.ny)>0 
         if(nargout==1)
-     Ry2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, pcol, py, 'y');
+     Ry2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, Rop.var1, pcol, py, 'y');
          else
-     [Ry2block{1},Ry2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, pcol, py,'y');
+     [Ry2block{1},Ry2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, Rop.var1, pcol, py,'y');
     end
     end
 
     % R22 block
      if (nargout==1) 
-     R22block{1}=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, p, pcol);
+     R22block{1}=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, Rop.var1, Rop.var2, p, pcol);
      else
-     [R22block{1}, R22block{2}]=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, p, pcol);
+     [R22block{1}, R22block{2}]=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, Rop.var1, Rop.var2, p, pcol);
      end
 
     end

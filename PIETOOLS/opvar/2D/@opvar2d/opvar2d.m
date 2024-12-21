@@ -12,28 +12,28 @@ classdef (InferiorClasses={?dpvar,?polynomial}) opvar2d
 %                                 [n2,m2]
 %
 % P.R00: a n0 x m0 matrix
-% P.R0x: a n0 x mx matrix valued polynomial in ss1
-% P.R0y: a n0 x my matrix valued polynomial in ss2
-% P.R02: a n0 x m2 matrix valued polynomial in ss1, ss2
+% P.R0x: a n0 x mx matrix valued polynomial in s1
+% P.R0y: a n0 x my matrix valued polynomial in s2
+% P.R02: a n0 x m2 matrix valued polynomial in s1, s2
 %
-% P.Rx0: a nx x m0 matrix valued polynomial in ss1
-% P.Rxx: 3x1 cell of nx x mx matrix valued polynomials in ss1, tt1
-% P.Rxy: a nx x my matrix valued polynomial in ss1, ss2
-% P.Rx2: 3x1 cell of nx x m2 matrix valued polynomials in ss1, tt1, ss2
+% P.Rx0: a nx x m0 matrix valued polynomial in s1
+% P.Rxx: 3x1 cell of nx x mx matrix valued polynomials in s1, s1_dum
+% P.Rxy: a nx x my matrix valued polynomial in s1, s2
+% P.Rx2: 3x1 cell of nx x m2 matrix valued polynomials in s1, s1_dum, s2
 %
-% P.Ry0: a ny x m0 matrix valued polynomial in ss2
-% P.Ryx: a ny x mx matrix valued polynomial in ss1, ss2
-% P.Ryy: 1x3 cell of ny x my matrix valued polynomials in ss2, tt2
-% P.Ry2: 1x3 cell ny x m2 matrix valued polynomials in ss1, ss2, tt2
+% P.Ry0: a ny x m0 matrix valued polynomial in s2
+% P.Ryx: a ny x mx matrix valued polynomial in s1, s2
+% P.Ryy: 1x3 cell of ny x my matrix valued polynomials in s2, s2_dum
+% P.Ry2: 1x3 cell ny x m2 matrix valued polynomials in s1, s2, s2_dum
 %
-% P.R20: a n2 x m0 matrix valued polynomial in ss1, ss2
-% P.R2x: 3x1 cell of n2 x mx matrix valued polynomials in ss1, tt1, ss2
-% P.R2y: 1x3 cell fo n2 x my matrix valued polynomials in ss1, ss2, tt2
-% P.R22: 3x3 cell of n2 x m2 matrix valued polynomials in ss1, tt1, ss2, tt2
+% P.R20: a n2 x m0 matrix valued polynomial in s1, s2
+% P.R2x: 3x1 cell of n2 x mx matrix valued polynomials in s1, s1_dum, s2
+% P.R2y: 1x3 cell fo n2 x my matrix valued polynomials in s1, s2, s2_dum
+% P.R22: 3x3 cell of n2 x m2 matrix valued polynomials in s1, s1_dum, s2, s2_dum
 %
 % P.I:    2x2 array specifying the domain as [a1, b1; a2, b2]   
-% P.var1: primary polynomial variables ss1 in [a1,b1], ss2 in [a2,b2]
-% P.var2: dummy polynomial variables tt1 in [a1,b1], tt2 in [a2,b2]
+% P.var1: primary polynomial variables s1 in [a1,b1], s2 in [a2,b2]
+% P.var2: dummy polynomial variables s1_dum in [a1,b1], s2_dum in [a2,b2]
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -65,6 +65,8 @@ classdef (InferiorClasses={?dpvar,?polynomial}) opvar2d
 %
 % Initial coding DJ - 01_31_2021  
 % 06/14/2022, DJ: Update with new dim function.
+% 11/30/2024, DJ: Replace default variables
+%                   (ss1,ss2,tt1,tt2) --> (s1,s2,s1_dum,s2_dum);
 
 properties
     R00 = [];
@@ -90,8 +92,8 @@ properties
         polynomial([]), polynomial([]), polynomial([])};
     
     I = [0,1;0,1];
-    var1 = [pvar('ss1'); pvar('ss2')];
-    var2 = [pvar('tt1'); pvar('tt2')];
+    var1 = [pvar('s1'); pvar('s2')];
+    var2 = [pvar('s1_dum'); pvar('s2_dum')];
     dim = zeros(4,2);
 end
 
@@ -114,9 +116,9 @@ methods
                 if ~any(size(varargin{1})==[4,2])
                     error('dimension of opvar2d must be a 4x2 integer array')
                 else
-                    pvar ss1 ss2 tt1 tt2;
+                    pvar s1 s2 s1_dum s2_dum;
                     Pdim = varargin{1};     Pdom = [0,1;0,1];
-                    var1 = [ss1;ss2];       var2 = [tt1;tt2];
+                    var1 = [s1;s2];         var2 = [s1_dum;s2_dum];
                     P = opvar2d([],Pdim,Pdom,var1,var2);
                 end
             elseif isa(varargin{1},'opvar2d') && nargout==1
@@ -151,9 +153,9 @@ methods
                     (isa(varargin{2},'double') && all(size(varargin{2})==[2,2]))
                 % Build empty opvar2d of dimension varargin{1} on
                 % domain varargin{2}
-                pvar ss1 ss2 tt1 tt2;
+                pvar s1 s2 s1_dum s2_dum;
                 Pdim = varargin{1};     Pdom = varargin{2};
-                var1 = [ss1;ss2];       var2 = [tt1;tt2];
+                var1 = [s1;s2];         var2 = [s1_dum;s2_dum];
                 P = opvar2d([],Pdim,Pdom,var1,var2);
             elseif (isa(varargin{1},'double') || isa(varargin{1},'polynomial')) && isnumeric(varargin{2})
                 % Build opvar2d from matrix varargin{1} based on
@@ -163,9 +165,9 @@ methods
                 elseif ~(all(sum(varargin{2},1)==size(varargin{1})) || isempty(varargin{1}))
                     error('Dimension of desired opvar2d should match dimension of the input matrix')
                 else
-                    pvar ss1 ss2 tt1 tt2;
+                    pvar s1 s2 s1_dum s2_dum;
                     Pdim = varargin{2};     Pdom = [0,1;0,1];
-                    var1 = [ss1;ss2];       var2 = [tt1;tt2];
+                    var1 = [s1;s2];         var2 = [s1_dum;s2_dum];
                     P = opvar2d(varargin{1},Pdim,Pdom,var1,var2);
                 end
             else
@@ -202,13 +204,13 @@ methods
                     (ispvar(varargin{3}) && ((prod(size(varargin{3}))==4) || (prod(size(varargin{3}))==2)))
                 % Build empty opvar2d of dimension varargin{1} on
                 % domain varargin{2} in variables varargin{3}
-                pvar tt1 tt2;
+                pvar s1_dum s2_dum;
                 Pdim = varargin{1};     Pdom = varargin{2};
                 var1 = [varargin{3}(1);varargin{3}(2)];
                 if prod(size(varargin{3}))==4
                     var2 = [varargin{3}(3);varargin{3}(4)];
                 else
-                    var2 = [tt1;tt2];
+                    var2 = [s1_dum;s2_dum];
                 end
                 P = opvar2d([],Pdim,Pdom,var1,var2);
             elseif (isa(varargin{1},'double') || isa(varargin{1},'polynomial')) && isnumeric(varargin{2})
@@ -221,9 +223,9 @@ methods
                 elseif ~isnumeric(varargin{3}) || ~all(size(varargin{3})==[2,2])
                     error('Domain should be specified as a 2x2 array')
                 else
-                    pvar ss1 ss2 tt1 tt2;
+                    pvar s1 s2 s1_dum s2_dum;
                     Pdim = varargin{2};     Pdom = varargin{3};
-                    var1 = [ss1;ss2];       var2 = [tt1;tt2];
+                    var1 = [s1;s2];         var2 = [s1_dum;s2_dum];
                     P = opvar2d(varargin{1},Pdim,Pdom,var1,var2);
                 end
             else
@@ -283,13 +285,13 @@ methods
                 elseif ~ispvar(varargin{4}) || (~(prod(size(varargin{4}))==4) && ~(prod(size(varargin{4}))==2))
                     error('Variables should be specified as 2x2 pvar class object')
                 else
-                    pvar tt1 tt2;
+                    pvar s1_dum s2_dum;
                     Pdim = varargin{2};     Pdom = varargin{3};
                     var1 = [varargin{4}(1);varargin{4}(2)];
                     if prod(size(varargin{4}))==4
                         var2 = [varargin{4}(3);varargin{4}(4)];
                     else
-                        var2 = [tt1;tt2];
+                        var2 = [s1_dum;s2_dum];
                     end
                     P = opvar2d(varargin{1},Pdim,Pdom,var1,var2);
                 end

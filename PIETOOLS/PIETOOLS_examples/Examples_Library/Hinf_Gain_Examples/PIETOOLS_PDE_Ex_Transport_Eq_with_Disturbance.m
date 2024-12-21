@@ -27,7 +27,7 @@ loc = mfilename('fullpath');
 root = fileparts(loc);
 
 % Initialize variables
-pvar t s theta s1 s2 theta1 theta2
+pvar s
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;')
@@ -79,6 +79,7 @@ PDE_t.z{1}.term{1}.I{1} = PDE_t.x{1}.dom;
 PDE_t.BC{1}.term{1}.x = 1;
 PDE_t.BC{1}.term{1}.loc = 0;
 % command-line parser
+% pvar t
 % x=state('pde');
 % w=state('in');
 % z=state('out');

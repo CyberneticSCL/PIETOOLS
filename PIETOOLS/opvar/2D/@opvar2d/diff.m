@@ -23,9 +23,9 @@ function [dP] = diff(P,invar,deg,opts)
 %   dP: composition of P with a spatial derivative wrt variable invar:
 %           - dP will be such that
 %             (d/d invar)*P*[u0;ux;uy;u2] = dP*[u0;ux;ux_x;uy;u2;u2_x]
-%             if invar==ss1, or
+%             if invar==s1, or
 %             (d/d invar)*P*[u0;ux;uy;u2] = dP*[u0;ux;uy;uy_y;u2;u2_y]
-%             if invar==ss2
+%             if invar==s2
 %           - if opts=='pure', we assume (d/d invar)*P*u does not depend on
 %             any derivatives of u, and dP will be such that
 %             (d/d invar)*P*[u0;ux;uy;u2] = dP*[u0;ux;uy;u2]

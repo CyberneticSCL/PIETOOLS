@@ -28,9 +28,9 @@
 %
 % Initial coding YP  - 06_28_2022
 % YP -  added support for an arbitary variable name - 04_16_2024
-function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rop, p)
+% DJ, 12/16/2024: Make sure variable to substitute matches that of Rop;
 
-pvar s var;
+function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rop, p)
 
 A_nonsquare(1:N+1,1:N-p+1)=0;
 
@@ -41,13 +41,13 @@ else
 end
 
 chebgrid=cos(pi*(0:deg+1)/(deg+1));
-if isa(Rop,'polynomial')
-        if (isempty(Rop.varname))
-            var=s;
-        else
-            var=Rop.varname;
-        end
-    Reval=subs(Rop,var,chebgrid);
+if isa(Rop,'polynomial') && ~isdouble(Rop)
+    if numel(Rop.varname)>1                                                 % DJ, 12/16/2024
+        error("The input polynomial depends on multiple variables; discretization not supported...")
+    else
+        var = polynomial(Rop.varname);
+        Reval = subs(Rop,var,chebgrid);
+    end    
 else
     Reval=Rop*ones(1,deg+2);
 end

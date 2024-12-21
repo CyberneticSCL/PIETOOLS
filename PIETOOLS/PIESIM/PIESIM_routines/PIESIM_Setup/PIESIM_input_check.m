@@ -41,6 +41,7 @@ function [structure, uinput, psize]=PIESIM_input_check(varargin)
 % process batch format and old terms format, but these functions have been
 % added to separate subroutines.
 %   Also set values for noo, nro in case of type=='DDE'
+% DJ, 12/16/2024: Change default variables to (s1,s1_dum) in ODE case;
 
 syms st sx sy;
 structure=varargin{1};
@@ -85,8 +86,8 @@ elseif strcmp(opts.type,'PDE')
 
     if PDE.dim==0
         % If the system is finite-dimensional, augment to 1D
-        pvar s theta
-        vars = [s,theta];
+        pvar s1 s1_dum                                                      % DJ, 12/16/2024
+        vars = [s1,s1_dum];
         dom = [-1,1];
 
         % Add a temporary state variable that exists on the 1D domain.

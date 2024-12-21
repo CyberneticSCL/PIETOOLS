@@ -29,7 +29,6 @@
 % current folder is at the head of the path (Troubleshooting purposes only)
 % close all; clear all; path(pathdef); clc; 
 clear;
-pvar s theta; sosineq_on=0;
 stability=0; stability_dual=0; Hinf_gain=0; Hinf_gain_dual=0; Hinf_control=0; Hinf_estimator=0; 
 DDE2DDF=0;DDF_min=1;
 %

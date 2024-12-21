@@ -12,6 +12,9 @@
 % corresponding to a single solution state
 % rsize - the number of rows in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the solution state on the left-hand side of the ODE matrix system corresponding to the discrete block in question)
 % csize - the number of columns in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the right-hand side of the ODE matrix system corresponding to the discrete block in question)
+% var1: 2x1 pvar array specifying the primary spatial variables (x,y)
+% var2: 2x1 pvar array specifying the dummy variables for integration
+%           (theta,nu)
 % lim  - limits of 2D integraton (for example, [-1 sx;-1 sy]) 
 %
 % Outputs:
@@ -30,9 +33,14 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
+%                   defining R as additional inputs.
 
-function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_area(N, R, rsize, csize, lim)
-pvar s1 s1_dum s2 s2_dum;
+function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_area(N, R, rsize, csize, var1, var2, lim)
+
+% Extract spatial and dummy variables defining the operator R               % DJ, 12/16/2024
+s1 = var1(1);   s1_dum = var2(1);
+s2 = var1(2);   s2_dum = var2(2);
 
 if isa(R,'polynomial')
     deg=R.maxdeg;
@@ -45,24 +53,24 @@ Reval=zeros(deg+2,deg+2,deg+2,deg+2);
 chebgrid=cos(pi*(0:deg+1)/(deg+1));
 
 if isa(R,'polynomial')
-if ismember('s2_dum',R.varname)
+if ismember(s2_dum.varname{1},R.varname)
     Ry=subs(R,s2_dum,chebgrid);
 else
     Ry=R*ones(1,deg+2);
 end
-if ismember('s2',R.varname)
+if ismember(s2.varname{1},R.varname)
     Rynu=subs(Ry,s2,chebgrid);
 else
     Rynu=repmat(Ry,deg+2,1);
 end
-if ismember('s1_dum',R.varname) & ismember('s1',R.varname)
+if ismember(s1_dum.varname{1},R.varname) && ismember(s1.varname{1},R.varname)
     for j=1:deg+2
         for i=1:deg+2
         Rmat=subs(subs(Rynu(i,j),s1_dum,chebgrid),s1,chebgrid);
         Reval(:,:,i,j)=Rmat(:,:);
         end
     end
-elseif ismember('s1',R.varname)
+elseif ismember(s1.varname{1},R.varname)
    for j=1:deg+2
         for i=1:deg+2
         Re=subs(Rynu(i,j),s1,chebgrid);

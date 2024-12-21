@@ -10,6 +10,7 @@
 % N   - polynomial order of Chebyshev discretization polynomial
 % R -  polymonial block (one of the components of the 3PI operator -
 % multiplicative or integraitve) of Rx2 or Ry2
+% var1: 2x1 pvar array specifying the primary spatial variables (x,y)
 % p - vector with the degrees of differentiability for the 2D states
 % p1 - vector with the degrees of differentiability for the 1D states
 % (dependent on x for Rx2 and on y for Ry2)
@@ -34,19 +35,23 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmixed_discretize_2to1(N, R, p, p1, dir, flag)
-pvar s1 s2 var
+% DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
+%                   defining R as additional inputs.
 
+function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmixed_discretize_2to1(N, R, var1, p, p1, dir, flag)
+
+% Extract spatial variables (x,y) defining the operator R                   % DJ, 12/16/2024
+s1 = var1(1);   s2 = var1(2);
 
 if dir=='x'
     var=s2;
-    snstr='s2';
+    snstr=s2.varname{1};
 else
     var=s1;
-    snstr='s1';
+    snstr=s1.varname{1};
 end
-    ns_row=size(p1,2);
-    ns_col=size(p,2);
+ns_row=size(p1,2);
+ns_col=size(p,2);
 
 for i=1:ns_row
     rsize=N-p1(i)+1;

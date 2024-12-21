@@ -26,11 +26,12 @@
 % Initial coding YP  - 5_29_2021
 % YP 6/16/2022 - updated to include terms format and added more examples in
 % terms format
+% DJ 12/19/2024: Change variable s --> s1;
 
 
-function [PDE,uinput]=examples_pde_library_PIESIM(example)
+function [PDE,uinput]=examples_pde_library_PIESIM_1D(example)
 syms st sx;
-pvar s;
+pvar s1;
 
 switch example
     
@@ -259,7 +260,7 @@ switch example
              PDE.PDE.A{1}.Rstate=2;
              PDE.PDE.A{1}.D=2;
              PDE.PDE.A{1}.I=0;
-             PDE.PDE.A{1}.coeff=s;
+             PDE.PDE.A{1}.coeff=s1;
 
               % BCs: u(x=a)       
              PDE.BC.Ebb{1}.coeff = [eye(1);zeros(1)];
@@ -1218,8 +1219,8 @@ case 8
             PDE.BC.Ebv=[1 0 0 0 0;0 1 0 0 0; 0 0 1 0 0;0 0 0 1 0];
             PDE.ODE.Dvw=eye(5);
 
-            PDE.PDE.Bpv=s*zeros(sum(PDE.n.n_pde),PDE.n.nv);  
-            PDE.PDE.Bpv(1,5)=2*s^3;
+            PDE.PDE.Bpv=s1*zeros(sum(PDE.n.n_pde),PDE.n.nv);  
+            PDE.PDE.Bpv(1,5)=2*s1^3;
 
             %  Boundary conditions
             % BCs: 0 = u1(a)
@@ -1305,8 +1306,8 @@ case 8
              PDE.BC.Ebv(1:PDE.n.nv-1,1:PDE.n.nv-1)=eye(PDE.n.nv-1);
              PDE.ODE.Dvw=eye(PDE.n.nv);
 % 
-             PDE.PDE.Bpv=s*zeros(sum(PDE.n.n_pde),PDE.n.nv);  
-             PDE.PDE.Bpv(2,PDE.n.nv)=2*s^3;
+             PDE.PDE.Bpv=s1*zeros(sum(PDE.n.n_pde),PDE.n.nv);  
+             PDE.PDE.Bpv(2,PDE.n.nv)=2*s1^3;
 
 
 %           Boundary conditions: 
@@ -2308,9 +2309,9 @@ case 8
             % Polynomial in space forcing enters through
             % pvar PDE.B21 matrix
 
-            PDE.B21=s*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);
-            PDE.B21(2,6)=5*s^10;
-            PDE.B21(2,7)=10*c*s^9;
+            PDE.B21=s1*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);
+            PDE.B21(2,6)=5*s1^10;
+            PDE.B21(2,7)=10*c*s1^9;
 
              % Non-polynomial in space forcing enters through
             % symbolic PDE.B21_nonpol matrix
@@ -2425,8 +2426,8 @@ case 8
                uinput.w(5)=1;
                
                
-               PDE.B21=s*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
-               PDE.B21(1,5)=2*s^3;
+               PDE.B21=s1*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
+               PDE.B21(1,5)=2*s1^3;
                
 % %           Temporal dependence of force components in separated form
 %               uinput.tforce(1)= 1;

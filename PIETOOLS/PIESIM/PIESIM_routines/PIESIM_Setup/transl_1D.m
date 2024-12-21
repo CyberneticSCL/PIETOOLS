@@ -7,7 +7,7 @@
 %
 % Initial coding YP - 6_1_2021
 
-function R = transl_1D(R,a,b,c,d,dir,flag)
+function R = transl_1D(R,a,b,c,d,var1,var2,dir,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,6 +20,9 @@ function R = transl_1D(R,a,b,c,d,dir,flag)
 % R: a 3-PI operator
 % [a,b]: original interal
 % [c,d]: new interval, default [-1,1]
+% var1: 2x1 pvar array specifying the primary spatial variables (x,y)
+% var2: 2x1 pvar array specifying the dummy variables for integration
+%           (theta,nu)
 % dir - 'x' or 'y' - variables on which 3-PI operator is acting 
 % flag - user-defined option: 1, 2, or 3.
 % flag = 1 - multiplicative operator in one variable R(s)
@@ -54,11 +57,15 @@ function R = transl_1D(R,a,b,c,d,dir,flag)
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% DJ, 12/16/2024: Remove dependence on hardcoded variables; now pass
+%                   variables defining Rop as additional inputs.
 
+% Extract primary and dummy variables defining Rop.                         % DJ, 12/16/2024
+s1 = var1(1);   s1_dum = var2(1);
+s2 = var1(2);   s2_dum = var2(2);
+pvar sbar thetabar
 
-pvar s sbar theta thetabar s1 s1_dum s2 s2_dum
-
-if (dir=='x')
+if strcmp(dir,'x')
     s=s1;
     theta=s1_dum;
 else

@@ -1,4 +1,4 @@
-function [PDE_t,PDE_b] = PIETOOLS_PDE_Example_Wave_Eq_Tip_Damped(GUI,params)
+function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -32,7 +32,7 @@ loc = mfilename('fullpath');
 root = fileparts(loc);
 
 % Initialize variables
-pvar s theta s1 s2 theta1 theta2
+pvar s
 
 %%% Executive Function:
 evalin('base','Hinf_gain = 1;')

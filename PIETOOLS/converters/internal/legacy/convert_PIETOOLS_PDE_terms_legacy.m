@@ -34,15 +34,15 @@ function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding SS  - 5_29_2021
-% MMP  - 5_29_2021 - made the script a function
-% SS - 6/1/2021 - initialize D and I to zero if undefined in A, Crp, Ebp,
-% Ebb, Bpb, Drb
-% DJ - 06/02/2021 - replaced X=PDE.dom(:) with X=PDE.dom, adjusted N>2
-% requirement to N>1
-% DJ 09/29/2021 - correction at the end to fill in empty parameters with
-% appropriate zeros
-
+% Initial coding SS  - 5_29_2021;
+% MMP, 5_29_2021: made the script a function;
+% SS, 6/1/2021: initialize D and I to zero if undefined in A, Crp, Ebp,
+% Ebb, Bpb, Drb;
+% DJ, 06/02/2021: replaced X=PDE.dom(:) with X=PDE.dom, adjusted N>2
+% requirement to N>1;
+% DJ, 09/29/2021: correction at the end to fill in empty parameters with
+% appropriate zeros;
+% DJ, 12/16/2024: Output PIE as 'pie_struct' object;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
@@ -59,9 +59,8 @@ fprintf('\n --- Converting ODE-PDE to PIE --- \n');
 X = PDE.dom;
 
 polyvars = PDE.vars;
-PIE.vars = PDE.vars;
-s = polyvars(1);
-theta = polyvars(2);
+s1 = polyvars(1);
+s1_dum = polyvars(2);
 n = PDE.n;
 n_pde = n.n_pde;
 N = length(n_pde)-1;
@@ -120,31 +119,31 @@ Ebv = PDE.BC.Ebv;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % first construct all opvars needed for PIE
 opvar Top Twop Tuop; %LHS opvars
-Top.dim = [no no; np np]; Top.var1 = s; Top.var2 = theta; Top.I = X;
+Top.dim = [no no; np np]; Top.var1 = s1; Top.var2 = s1_dum; Top.I = X;
 
-Twop.dim = [no nw; np 0]; Twop.var1 = s; Twop.var2 = theta; Twop.I = X;
+Twop.dim = [no nw; np 0]; Twop.var1 = s1; Twop.var2 = s1_dum; Twop.I = X;
 
-Tuop.dim = [no nu; np 0]; Tuop.var1 = s; Tuop.var2 = theta; Tuop.I = X;
+Tuop.dim = [no nu; np 0]; Tuop.var1 = s1; Tuop.var2 = s1_dum; Tuop.I = X;
 
 opvar Aop B1op B2op C1op C2op D11op D12op D21op D22op;
 
-Aop.dim = [no no; np np]; Aop.var1 = s; Aop.var2 = theta; Aop.I = X;
+Aop.dim = [no no; np np]; Aop.var1 = s1; Aop.var2 = s1_dum; Aop.I = X;
 
-B1op.dim = [no nw; np 0]; B1op.var1 = s; B1op.var2 = theta; B1op.I = X;
+B1op.dim = [no nw; np 0]; B1op.var1 = s1; B1op.var2 = s1_dum; B1op.I = X;
 
-B2op.dim = [no nu; np 0]; B2op.var1 = s; B2op.var2 = theta; B2op.I = X;
+B2op.dim = [no nu; np 0]; B2op.var1 = s1; B2op.var2 = s1_dum; B2op.I = X;
 
-C1op.dim = [nz no; 0 np]; C1op.var1 = s; C1op.var2 = theta; C1op.I = X;
+C1op.dim = [nz no; 0 np]; C1op.var1 = s1; C1op.var2 = s1_dum; C1op.I = X;
 
-C2op.dim = [ny no; 0 np]; C2op.var1 = s; C2op.var2 = theta; C2op.I = X;
+C2op.dim = [ny no; 0 np]; C2op.var1 = s1; C2op.var2 = s1_dum; C2op.I = X;
 
-D11op.dim = [nz nw; 0 0]; D11op.var1 = s; D11op.var2 = theta; D11op.I = X;
+D11op.dim = [nz nw; 0 0]; D11op.var1 = s1; D11op.var2 = s1_dum; D11op.I = X;
 
-D12op.dim = [nz nu; 0 0]; D12op.var1 = s; D12op.var2 = theta; D12op.I = X;
+D12op.dim = [nz nu; 0 0]; D12op.var1 = s1; D12op.var2 = s1_dum; D12op.I = X;
 
-D21op.dim = [ny nw; 0 0]; D21op.var1 = s; D21op.var2 = theta; D21op.I = X;
+D21op.dim = [ny nw; 0 0]; D21op.var1 = s1; D21op.var2 = s1_dum; D21op.I = X;
 
-D22op.dim = [ny nu; 0 0]; D22op.var1 = s; D22op.var2 = theta; D22op.I = X;
+D22op.dim = [ny nu; 0 0]; D22op.var1 = s1; D22op.var2 = s1_dum; D22op.I = X;
 
 
 % Next we construct T, U1, U2, Q, K, L1
@@ -169,9 +168,9 @@ for i =1:N
         if i>k
             tau{i,k} = zeros(sum(n_pde(i+1:end)),sum(n_pde(k+1:end)));
         else
-            tau{i,k} = ((s-a)^(k-i)/factorial(k-i))...
+            tau{i,k} = ((s1-a)^(k-i)/factorial(k-i))...
                 *[zeros(sum(n_pde(i+1:k)),sum(n_pde(k+1:end)));eye(sum(n_pde(k+1:end)))];
-            Qi = blkdiag(Qi,((s-theta)^(k-i)/factorial(k-i))*eye(n_pde(k+1)));
+            Qi = blkdiag(Qi,((s1-s1_dum)^(k-i)/factorial(k-i))*eye(n_pde(k+1)));
         end
         Ti = [Ti,tau{i,k}];
         
@@ -189,9 +188,9 @@ G0 = [eye(n_pde(1)) zeros(n_pde(1),np-n_pde(1)); zeros(np-n_pde(1),n_pde(1)) zer
 
 pvar eta;
 % now find E_T (B_T in paper) and Q_T (B_T*B_Q in paper)
-ET = Ebb*[subs(T,s,a);subs(T,s,b)]-int(Ebp*U1*T,s,a,b);
+ET = Ebb*[subs(T,s1,a);subs(T,s1,b)]-int(Ebp*U1*T,s1,a,b);
 ET = double(ET);
-QT = Ebb*[zeros(size(Q));subs(subs(Q,s,b),theta,s)] - Ebp*U2 - int(subs(subs(Ebp*U1*Q,s,eta),theta,s),eta,s,b);
+QT = Ebb*[zeros(size(Q));subs(subs(Q,s1,b),s1_dum,s1)] - Ebp*U2 - int(subs(subs(Ebp*U1*Q,s1,eta),s1_dum,s1),eta,s1,b);
 
 
 
@@ -212,16 +211,16 @@ if ~singularET
     % X = Thatop Xhat + Tvop v
     opvar Thatop Tvop;
     
-    Thatop.dim = [0 0; np np]; Thatop.var1 = s; Thatop.var2 = theta; Thatop.I = X;
-    Thatop.R.R0 = G0; Thatop.R.R2 = -K*ETinv*subs(QT,s,theta); Thatop.R.R1 = Thatop.R.R2+L1;
+    Thatop.dim = [0 0; np np]; Thatop.var1 = s1; Thatop.var2 = s1_dum; Thatop.I = X;
+    Thatop.R.R0 = G0; Thatop.R.R2 = -K*ETinv*subs(QT,s1,s1_dum); Thatop.R.R1 = Thatop.R.R2+L1;
     
-    Tvop.dim = [0 nv; np 0]; Tvop.var1 = s; Tvop.var2 = theta; Tvop.I = X;
+    Tvop.dim = [0 nv; np 0]; Tvop.var1 = s1; Tvop.var2 = s1_dum; Tvop.I = X;
     Tvop.Q2 = K*ETinv*Ebv;
     
     % first construct Aop_ODE for ODE subsystem, [x_t; z; y] = Aop_ODE*[x; w; u; r]
     opvar Aop_ODE;
     
-    Aop_ODE.dim = [no+nz+ny no+nw+nu+nr; 0 0]; Aop_ODE.var1 = s; Aop_ODE.var2 = theta; Aop_ODE.I = X;
+    Aop_ODE.dim = [no+nz+ny no+nw+nu+nr; 0 0]; Aop_ODE.var1 = s1; Aop_ODE.var2 = s1_dum; Aop_ODE.I = X;
     Aop_ODE.P = [PDE.ODE.A PDE.ODE.Bxw PDE.ODE.Bxu PDE.ODE.Bxr;
                  PDE.ODE.Cz PDE.ODE.Dzw PDE.ODE.Dzu PDE.ODE.Dzr;
                  PDE.ODE.Cy PDE.ODE.Dyw PDE.ODE.Dyu PDE.ODE.Dyr];
@@ -229,7 +228,7 @@ if ~singularET
     % next construct Vop_out for ODE output to PDE, v = Vop_out*[x; w; u]
     opvar Vop_out;
     
-    Vop_out.dim = [nv no+nw+nu; 0 0]; Vop_out.var1 = s; Vop_out.var2 = theta; Vop_out.I = X;
+    Vop_out.dim = [nv no+nw+nu; 0 0]; Vop_out.var1 = s1; Vop_out.var2 = s1_dum; Vop_out.I = X;
     Vop_out.P = [PDE.ODE.Cv PDE.ODE.Dvw PDE.ODE.Dvu];
     
     % now we construct Aop_PDE for PDE subsystem, [r; X_t] = Aop_PDE*[X_all_der] + Bop_PDE*[v; X_b]
@@ -237,24 +236,24 @@ if ~singularET
     % for convenience
     opvar Aop_PDE Bop_PDE;
     
-    Aop_PDE.dim = [nr 0; np np_all_der_full]; Aop_PDE.var1 = s; Aop_PDE.var2 = theta; Aop_PDE.I = X;
+    Aop_PDE.dim = [nr 0; np np_all_der_full]; Aop_PDE.var1 = s1; Aop_PDE.var2 = s1_dum; Aop_PDE.I = X;
     Aop_PDE.R.R0 = Ap0;     Aop_PDE.R.R1 = Ap1;     Aop_PDE.R.R2 = Ap2;
     Aop_PDE.Q1 = Crp;
     
-    Bop_PDE.dim = [nr nv+nBVs; np 0]; Bop_PDE.var1 = s; Bop_PDE.var2 = theta; Bop_PDE.I = X;
+    Bop_PDE.dim = [nr nv+nBVs; np 0]; Bop_PDE.var1 = s1; Bop_PDE.var2 = s1_dum; Bop_PDE.I = X;
     Bop_PDE.P = [PDE.PDE.Drv Drb]; Bop_PDE.Q2 = [PDE.PDE.Bpv Bpb];
     
     %%% We now construct TBVop: X_b = TBVop[v; X_f] (mathcal B in paper)
     opvar TBVop;
-    TBVop.dim = [nBVs nv;0 np]; TBVop.var1 = s; TBVop.var2 = theta; TBVop.I = X;
-    TBVop.P = [subs(T,s,a);subs(T,s,b)]*ETinv*Ebv; 
-    TBVop.Q1 = -[subs(T,s,a);subs(T,s,b)]*ETinv*QT + [zeros(size(Q,1),np);subs(subs(Q,s,b),theta,s)];
+    TBVop.dim = [nBVs nv;0 np]; TBVop.var1 = s1; TBVop.var2 = s1_dum; TBVop.I = X;
+    TBVop.P = [subs(T,s1,a);subs(T,s1,b)]*ETinv*Ebv; 
+    TBVop.Q1 = -[subs(T,s1,a);subs(T,s1,b)]*ETinv*QT + [zeros(size(Q,1),np);subs(subs(Q,s1,b),s1_dum,s1)];
     
     %%% We now construct TDop: X_D = TDop[v; X_f] (mathcal F in paper)
     opvar TDop;
-    TDop.dim = [0 nv; np_all_der_full np]; TDop.var1 = s; TDop.var2 = theta; TDop.I = X;
+    TDop.dim = [0 nv; np_all_der_full np]; TDop.var1 = s1; TDop.var2 = s1_dum; TDop.I = X;
     TDop.Q2 = U1*T*ETinv*Ebv; TDop.R.R0 = U2; 
-    TDop.R.R2 = -U1*T*ETinv*subs(QT,s,theta);
+    TDop.R.R2 = -U1*T*ETinv*subs(QT,s1,s1_dum);
     TDop.R.R1 = TDop.R.R2+U1*Q;
     
 
@@ -316,13 +315,12 @@ for j=1:length(opnames)
     eval([op,'.dim=',op,'.dim;'])
 end
 
-PIE.T = Top; PIE.Tw = Twop; PIE.Tu = Tuop;
-PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
-PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
-PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
-PIE.dom = PDE.dom;
-
-PIE_out=PIE;
+pie_struct PIE_out;                                                         % DJ, 12/16/2024
+PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];
+PIE_out.T = Top;   PIE_out.Tw = Twop;   PIE_out.Tu = Tuop;
+PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
+PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
+PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
 
 % %remove temporary opvars
 % clear TbigO TbigP Bop_PDE Bop_PDE_sliced Vop_out Vop_out_extended

@@ -21,9 +21,9 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 6_28_2022
-function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p)
+% DJ, 12/16/2024: Remove redundant variables.
 
-pvar s theta;
+function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p)
 
 Norder=N-p;
 
