@@ -63,6 +63,7 @@
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
+% DJ, 12/22/2024: Use piess and pielft;
 
 clc; clear; close all;
 echo on
@@ -135,17 +136,14 @@ Zval = lpigetsol(prog_sol,Z);
 Lval = getObserver(Pval,Zval);
 
 % % Construct the closed-loop PIE system
-% % T_CL * \dot{V}(t) = A_CL * V(t) + B_CL * w(t)
-%               Z(t)  = C_CL * V(t) + D_CL * w(t)
-% % where V = [v; vhat] and Z = [z; zhat].
-PIE_CL = pie_struct(); 
-PIE_CL.vars = PIE.vars;         PIE_CL.dom = PIE.dom;                       
-PIE_CL.T = [T, 0*T; 0*T, T];
-PIE_CL.A = [A, 0*A; -Lval*C2, A+Lval*C2];
-PIE_CL.B1 = [B1; Lval*D21];
-PIE_CL.C1 = [C1, 0*C1; 0*C1, C1];       
-PIE_CL.D11 = [D11; 0*D11]; 
-PIE_CL = initialize(PIE_CL);
+% Declare Luenberger estimator with input y
+%   d/dt T*vhat(t,s) = (A+L*C2)*vhat(t,s) - Ly(t,s);
+%            zhat(t) = C1*vhat(t);
+% and take LFT with PIE
+PIE_est = piess(T,A+Lval*C2,-Lval,C1(1,:));
+PIE_CL = pielft(PIE,PIE_est);
+
+
 
 % % Alternatively, uncomment to use pre-defined functions
 % [prog, Lval, gam_val] = lpiscript(PIE,'hinf-observer','heavy');   

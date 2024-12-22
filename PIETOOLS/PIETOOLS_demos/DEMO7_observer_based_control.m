@@ -67,6 +67,7 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, get 
 %                   rid of extra simulations);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
+% DJ, 12/22/2024: Use piess and pielft;
 
 clc; clear; close all;
 echo on
@@ -110,19 +111,13 @@ settings = lpisettings('heavy');
 [prog_l, Lval, gam_ob_val] = lpiscript(PIE,'hinf-observer',settings);
 
 % % Construct the closed-loop PIE system
-PIE_CL = pie_struct();
-PIE_CL.vars = PIE.vars; PIE_CL.dom = PIE.dom;
-PIE_CL.T = [T, 0*T; 0*T, T];
-PIE_CL.A = [A, B2*Kval; -Lval*C2, A+Lval*C2];   PIE_CL.B1 = [B1; Lval*D21];
-PIE_CL.C1 = [C1, D12*Kval; 0*C1(1,:), C1(1,:)]; PIE_CL.D11 = [D11(1,:); 0*D11(1,:)];
-PIE_CL = initialize(PIE_CL);
-
-% % Alternatively, uncomment to use predefined functions.
-% PIE_CL = closedLoopPIE(PIE,Lval,'observer');
-% % Build an operator K_new such that K*vhat = [0,K]*[v; vhat] = K_new*V;
-% Kval_new = [0*Kval, Kval];
-% % Impose the control law u = K_new*V in the closed-loop observer system
-% PIE_CL = closedLoopPIE(PIE_CL,Kval_new,'controller');
+% Declare Luenberger estimator with input y and output u
+%   d/dt T*vhat(t,s) = (A+L*C2)*vhat(t,s) - Ly(t,s);
+%            zhat(t) = C1*vhat(t);
+%               u(t) = K*vhat(t);
+% and take LFT with PIE
+PIE_est = piess(T,A+Lval*C2,-Lval,{C1(1,:);Kval});
+PIE_CL = pielft(PIE,PIE_est);
 
 
 % =============================================
