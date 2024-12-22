@@ -1,13 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_4PI2Mat_cheb.m     PIETOOLS 2021b
+% PIESIM_4PI2Mat_cheb.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs a discrete version of the multi-dimensional 4PI operator  
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
-% nx - number of ODE states if flag=1
-% nx - number of disturbances or control inputs if flag=0
-% nx - number of regulated or observed outputs if flag=2
 % Rop - 4PI operator 
 % p - vector of dimension 1xns -
 % a "degree of smoothness" structure for 3PI, see Peet & Peet 2021 paper
@@ -23,8 +20,6 @@
 % funamental and primary solution
 % NOTE: nonsquare matrix is only required for Mcheb matrix
 %
-% Requires: chebyshevT 
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -34,36 +29,36 @@
 % YP - added flag = 2 and corresponding discretizations - now supports
 % computing of observed and regulated outputs
 
-function [A, A_nonsquare]=PIESIM_4PI2Mat_cheb(N, nx, Rop, p, flag)
+function [A, A_nonsquare]=PIESIM_4PI2Mat_cheb(N, Rop, p, flag)
 
-% Pblock: size nx x nx
+% Pblock: size no x no
 Pblock=double(Rop.P);
 
-% Q1block: size nx x n0(N+1) n1N n2(N-1)
+% Q1block: size no x n0(N+1) n1N n2(N-1)
 
 if (flag==1)||(flag==2)
-    Q1block=PIESIM_PI2Mat_cheb_opint_discretize(N, nx, Rop.Q1, p);
+    Q1block=PIESIM_PI2Mat_cheb_opint_discretize(N, Rop.Q1, p);
 end
 
 
-% Q2block: size n0(N+1) n1N n2(N-1) x nx
+% Q2block: size n0(N+1) n1N n2(N-1) x no
 % Rblock: size  n0(N+1) n1N n2(N-1) x n0(N+1) n1N n2(N-1)
 
 if (nargout==1)
     if flag~=2
-        Q2block= PIESIM_Poly2Mat_cheb(N, nx, Rop.Q2, p);
+        Q2block= PIESIM_Poly2Mat_cheb(N, Rop.Q2, p);
     end
 if (flag==1)
-    Rblock=PIESIM_3PI2Mat_cheb(N, Rop, p);
+    Rblock=PIESIM_3PI2Mat_cheb(N, Rop.R, p);
 end
 else
-% Q2block_nonsquare: size n0n1n2(N+1)^3 x nx
+% Q2block_nonsquare: size n0n1n2(N+1)^3 x no
 % Rblock_nonsquare: size  n0n1n2(N+1)^3 x n0(N+1) n1N n2(N-1)
 if flag~=2
-[Q2block, Q2block_nonsquare]= PIESIM_Poly2Mat_cheb(N, nx, Rop.Q2, p);
+[Q2block, Q2block_nonsquare]= PIESIM_Poly2Mat_cheb(N, Rop.Q2, p);
 end
 if (flag==1)
-[Rblock, Rblock_nonsquare]=PIESIM_3PI2Mat_cheb(N, Rop, p);
+[Rblock, Rblock_nonsquare]=PIESIM_3PI2Mat_cheb(N, Rop.R, p);
 end
 end
 

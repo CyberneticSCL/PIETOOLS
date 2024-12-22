@@ -59,6 +59,7 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, get 
 %                   rid of extra simulations);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
+% DJ, 12/22/2024: Use piess;
 
 clc; clear; close all;
 echo on
@@ -131,12 +132,9 @@ Zval = lpigetsol(prog_sol,Z);
 Kval = getController(Pval,Zval,1e-3);
 
 % % Construct the closed-loop PIE system
-PIE_CL = pie_struct(); 
-PIE_CL.vars = PIE.vars;         PIE_CL.dom = PIE.dom;
-PIE_CL.T = T;
-PIE_CL.A = A + B2*Kval;         PIE_CL.B1 = B1;
-PIE_CL.C1 = C1 + D12*Kval;      PIE_CL.D11 = D11;
-PIE_CL = initialize(PIE_CL);
+%   d/dt T*v(t,s) = (A + B2*K)*v(t,s) + B1*w(t,s);
+%            z(t) = (C1 + D12*K)*v(t) + D11*w(t)
+PIE_CL = piess(T,A+B2*Kval,B1,C1+D12*Kval,D11);
 
 % % Alternatively, uncomment to use pre-defined functions
 % [prog, Kval, gam_val] = lpiscript(PIE,'hinf-controller','heavy');   

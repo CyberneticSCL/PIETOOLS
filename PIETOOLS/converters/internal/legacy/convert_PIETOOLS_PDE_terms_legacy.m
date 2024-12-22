@@ -34,15 +34,15 @@ function PIE_out=convert_PIETOOLS_PDE_terms_legacy(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding SS  - 5_29_2021
-% MMP  - 5_29_2021 - made the script a function
-% SS - 6/1/2021 - initialize D and I to zero if undefined in A, Crp, Ebp,
-% Ebb, Bpb, Drb
-% DJ - 06/02/2021 - replaced X=PDE.dom(:) with X=PDE.dom, adjusted N>2
-% requirement to N>1
-% DJ 09/29/2021 - correction at the end to fill in empty parameters with
-% appropriate zeros
-
+% Initial coding SS  - 5_29_2021;
+% MMP, 5_29_2021: made the script a function;
+% SS, 6/1/2021: initialize D and I to zero if undefined in A, Crp, Ebp,
+% Ebb, Bpb, Drb;
+% DJ, 06/02/2021: replaced X=PDE.dom(:) with X=PDE.dom, adjusted N>2
+% requirement to N>1;
+% DJ, 09/29/2021: correction at the end to fill in empty parameters with
+% appropriate zeros;
+% DJ, 12/16/2024: Output PIE as 'pie_struct' object;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
@@ -59,7 +59,6 @@ fprintf('\n --- Converting ODE-PDE to PIE --- \n');
 X = PDE.dom;
 
 polyvars = PDE.vars;
-PIE.vars = PDE.vars;
 s1 = polyvars(1);
 s1_dum = polyvars(2);
 n = PDE.n;
@@ -316,13 +315,12 @@ for j=1:length(opnames)
     eval([op,'.dim=',op,'.dim;'])
 end
 
-PIE.T = Top; PIE.Tw = Twop; PIE.Tu = Tuop;
-PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
-PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
-PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
-PIE.dom = PDE.dom;
-
-PIE_out=PIE;
+pie_struct PIE_out;                                                         % DJ, 12/16/2024
+PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];
+PIE_out.T = Top;   PIE_out.Tw = Twop;   PIE_out.Tu = Tuop;
+PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
+PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
+PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
 
 % %remove temporary opvars
 % clear TbigO TbigP Bop_PDE Bop_PDE_sliced Vop_out Vop_out_extended

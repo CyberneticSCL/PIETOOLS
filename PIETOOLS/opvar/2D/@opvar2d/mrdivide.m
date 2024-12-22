@@ -489,7 +489,7 @@ iIZRop_2.R22{3,3} = [zeros(Xdim(4,2)*(1 + 2*inZttnu_tt + 2*inZttnu_nu + 3*inZttn
 % Combine
 iIZRop = blkdiag(iIZRop_0,iIZRop_x,iIZRop_y,iIZRop_2);
 iIZRop.I = P1op.I;
-%iIZRop.var1 = P1op.var1; iIZRop.var2 = P1op.var2;
+iIZRop.var1 = P1op.var1; iIZRop.var2 = P1op.var2;
 
 % % Decomposing the inverse as Xop = iIZL(x,y)^T * iH_mat * iIZRop,
 % % we get

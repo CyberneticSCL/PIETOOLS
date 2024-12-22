@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM.m     PIETOOLS 2021b
+% PIESIM.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Please, contact Y. Peet at ypeet@asu.edu for support
 
@@ -60,17 +60,17 @@
 
 % Outputs: 
 % 1) solution 
-% solution is a strucutre with the following fields
+% solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
-% --- solution.final.ode - array of size nx - ode solution at a final time 
+% --- solution.final.ode - array of size no - ode solution at a final time 
 % --- solution.final.observed - array of size ny  - final value of observed outputs
 % --- solution.final.regulated - array of size nz  - final value of regulated outputs
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
-% --- solution.timedep.ode - array of size nx x Nsteps - time-dependent solution of nx ODE states
+% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 %     solution of ns PDE (distributed) states of the primary PDE system
 % --- solution.timedep.observed - array of size ny x Nsteps -
 %     time-dependent value of observed outputs
@@ -93,7 +93,7 @@
 % Batch format and old terms format can still be used, in which case
 % opts.type is PDE_t or PDE_b.
 
-function [solution, grid]=PIESIM(varargin)
+function [solution, grid,time]=PIESIM(varargin)
 
 % Check if options and uinput fields are defined
 [opts, uinput]=PIESIM_options_check(varargin);
@@ -101,6 +101,7 @@ function [solution, grid]=PIESIM(varargin)
 %--------------------------------------------------------------------
 % Input check and conversion to PIE (if data structure is not PIE)
 %--------------------------------------------------------------------
+
 
     if strcmp(opts.type,'PDE') || strcmp(opts.type,'PDE_t') || strcmp(opts.type,'PDE_b')
         PDE = varargin{1};
@@ -127,33 +128,55 @@ function [solution, grid]=PIESIM(varargin)
         [PIE,uinput,psize]=PIESIM_input_check(PIE,uinput,opts);
     end  
 
-    % Rescale all the PIE operators to be in domain [-1,1]
+
+    % Rescale all the PIE operators to be in domain [-1,1]^d
+    if (psize.dim==1)
     PIE = rescalePIE(PIE,[-1,1]);
+    else
+    PIE = rescalePIE_2D(PIE,[-1,1;-1,1]);
+    end
    
 %-------------------------------------------------------------------------
 % Set up initial conditions and boundary inputs for PIE from user-defined
 % functions to the format required for PIE solution
 %-------------------------------------------------------------------------
 
-uinput=PIESIM_initial_setup(uinput,psize.n,opts.type);
+uinput=PIESIM_initial_setup(uinput,psize,opts.type);
 
 
 % Setup a spatial discretization of the initial conditions and the PIE 
 % operators with the Chebyshev Galerkin method
 
+
+if (psize.dim==1)
 [Dop, coeff, grid]=PIESIM_discretize_all(PIE, uinput, psize);
+else
+[Dop, coeff, grid]=PIESIM_discretize_all_2D(PIE, uinput, psize);
+end
 % Solving in time for Chebyshev coefficients
+
 
 disp('Setup completed: integrating in time');
 
 solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, Dop);
 
+
+
 % Transform solution to physical space
 
+if (psize.dim==1)
 solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, solcoeff, opts);
+else
+solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid, solcoeff, opts);
+end
 
 
 % Output and plot results
 
-PIESIM_plot_solution(solution, psize, uinput,grid, opts)
+if (psize.dim==1)
+PIESIM_plot_solution(solution, psize, uinput,grid, opts);
+else
+PIESIM_plot_solution_2D(solution, psize, uinput,grid, opts);
+end
+
 end

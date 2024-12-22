@@ -36,6 +36,7 @@
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, use 
 %                   'sys' structure to declare PDE);
+% DJ, 12/22/2024: Explicitly construct stability LPI;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -59,10 +60,11 @@ end
 
 %%% Perform bisection on the value of lam
 for iter = 1:n_iters
+    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
     % =============================================
     % === Declare the operators of interest
 
-    % Declare a PDE 
+    % Declare system as PDE. 
     PDE = sys();
     x = state('pde');
     PDE = addequation(PDE, [diff(x,t)==diff(x,s,2)+lam*x;
@@ -71,16 +73,36 @@ for iter = 1:n_iters
 
     % Convert to PIE.
     PIE = convert(PDE,'pie');
+    T = PIE.T;      A = PIE.A;
 
     % =============================================
     % === Declare the LPI
 
-    % Run pre-defined stability executive
-    fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
-    prog = lpiscript(PIE,'stability',settings);
+    % % Initialize LPI program
+    prog = lpiprogram(s,[0,1]);
+    
+    % % Declare decision variables:
+    % %   P:L2-->L2,    P>0
+    [prog,P] = poslpivar(prog,T.dim);
+    P = P + 1e-4;                   % enforce P>=1e-4
+    
+    % % Set inequality constraints:
+    % %   A'*P*T + T'*P*A <= 0
+    Q = A'*P*T + T'*P*A;
+    opts.psatz = 1;                 % allow Q>=0 outside domain
+    prog = lpi_ineq(prog,-Q,opts);
+    
+    % % Solve and retrieve the solution
+    prog = lpisolve(prog);
+
+    % % Alternatively, uncomment to run pre-defined stability executive
+    % prog = lpiscript(PIE,'stability',settings);
 
     % Check if the system is stable
-    if prog.solinfo.info.dinf || prog.solinfo.info.pinf || abs(prog.solinfo.info.feasratio - 1)>0.3
+    is_pinf = prog.solinfo.info.pinf;       % is primal feasible?
+    is_dinf = prog.solinfo.info.dinf;       % is dual feasible?
+    feasrat = prog.solinfo.info.feasratio;  % ratio should be close to 1 
+    if is_dinf || is_pinf || abs(feasrat-1)>0.1
         % Stability cannot be verified --> decrease value of lam...
         lam_max = lam;
         lam = 0.5*(lam_min + lam_max);

@@ -1,5 +1,4 @@
 close all; clc; clear;
-pvar s theta;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS_PDE.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,9 +74,12 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 %% Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)
 % Only works for PDE examples in batch input format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if PIE.dim ~=2
+%if PIE.dim ~=2
     opts.tf=10;
-    [solution, grid] = PIESIM(PDE,opts);
+    opts.plot='yes';
+    uinput.ic.ODE=1;
+
+    [solution, grid] = PIESIM(PDE,opts,uinput);
 
     % Note: you can also specify time stepping options and user inputs, such as initial
     % conditions and non-zero boundary inputs, via
@@ -90,14 +92,30 @@ if PIE.dim ~=2
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if any(ismember(fieldnames(solution),'timedep'))
         t = solution.timedep.dtime;
-        X = repmat(grid.phys,1,length(t));
+        X = repmat(grid.phys(:,1),1,length(t));
+        n1=0;
+        if PIE.dim ~=2
         pde_sol = solution.timedep.pde;
+        else
+            if ~isempty(solution.timedep.pde{1})
+        n=size(solution.timedep.pde{1});
+        n1=n(2);
+        pde_sol = solution.timedep.pde{1};
+            end
+            if (length(solution.timedep.pde)==2)
+            if ~isempty(solution.timedep.pde{2})
+        k=floor(length(grid.phys)/2)+1;
+        n=size(solution.timedep.pde{2});
+        pde_sol(1:n(1),n1+1:n1+n(3),1:n(4)) = solution.timedep.pde{2}(1:n(1),k,1:n(3),1:n(4));
+            end
+            end
+        end
         t = repmat(t,size(pde_sol,1),1);
         figure;
         for i=1:size(pde_sol,2)
             Z = squeeze(pde_sol(:,i,:));
             ax(i)=subplot(size(pde_sol,2),1,i);
-            surf(t,grid.phys,Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+            surf(t,grid.phys(:,1),Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
             h=colorbar ;
             colormap jet
             box on
@@ -109,6 +127,3 @@ if PIE.dim ~=2
         subplot(ax(1));
         title('Time evolution of open-loop PDE states, x, plotted against space, s');
     end
-else
-    disp('PIESIM is currently not supported for systems involving more than 1 spatial variable.')
-end
