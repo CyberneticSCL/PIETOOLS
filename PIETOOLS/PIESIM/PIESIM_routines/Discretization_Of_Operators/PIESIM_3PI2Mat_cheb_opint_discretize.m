@@ -21,9 +21,9 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 6_28_2022
-% DJ, 12/16/2024: Remove redundant variables.
-
 function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p)
+
+pvar s theta;
 
 Norder=N-p;
 
@@ -43,56 +43,8 @@ end
 
 maxdeg=max(deg1,deg2);
 
-chebgrid=cos(pi*(0:maxdeg+1)/(maxdeg+1));
-if isa(R1,'polynomial')
-    switch(R1.nvars)
-        case 2
-        % Two variables present
-            Reval1=subs(subs(R1,R1.varname(2),chebgrid),R1.varname(1),chebgrid);
-        case 1
-        % One variable present
-            Re1=subs(R1,R1.varname,chebgrid);
-            var=cell2mat(R1.varname);
-            if (length(var)<=2)
-                Reval1=repmat(Re1',1,maxdeg+2);
-            else
-                Reval1=repmat(Re1,maxdeg+2,1);
-            end
-        case 0 
-            % Scalar polynomial
-            Reval1=R1*ones(maxdeg+2);
-end
-else
-    Reval1=R1*ones(maxdeg+2);
-end
-
-Reval1=double(Reval1);
-Rcheb1=fcgltran2d(Reval1,1);
-
-if isa(R2,'polynomial')
-switch(R2.nvars)
-        case 2
-        % Two variables present
-            Reval2=subs(subs(R2,R2.varname(2),chebgrid),R2.varname(1),chebgrid);
-        case 1
-        % One variable present
-            Re2=subs(R2,R2.varname,chebgrid);
-            var=cell2mat(R2.varname);
-            if (length(var)<=2)
-                 Reval2=repmat(Re2',1,maxdeg+2);
-            else
-                 Reval2=repmat(Re2,maxdeg+2,1);
-            end
-         case 0 
-         % Scalar polynomial
-         Reval2=R2*ones(maxdeg+2);
-end
-else
-    Reval2=R2*ones(maxdeg+2);
-end
-Reval2=double(Reval2);
-Rcheb2=fcgltran2d(Reval2,1);
-
+Rcheb1=PIESIM_PIop_discretize(R1,maxdeg);
+Rcheb2=PIESIM_PIop_discretize(R2,maxdeg);
 
 for k=0:Norder
     % Finding a column vector of Chebyshev coefficient for the column k+1
