@@ -77,9 +77,12 @@ PIE2 = varargin{2};
 % Make sure PIEs are properly specified.
 try PIE1 = initialize(PIE1);    PIE2 = initialize(PIE2);
 catch
-    error("One of the PIEs is not properly specified, concatenation not supported.")
+    error("One of the PIEs is not properly specified; concatenation not supported.")
 end
 % Make sure variables and domains match.
+if PIE1.dim~=PIE2.dim
+    error("PIEs are of different dimensionality; vertcat currently not supported.")
+end
 if any(any(~isequal(PIE1.vars,PIE2.vars)))
     error("Spatial variables of PIEs must match.")
 end
@@ -87,10 +90,10 @@ if any(any(PIE1.dom~=PIE2.dom))
     error("Spatial domains of PIEs must match.")
 end
 % Make sure input dimensions match.
-if any(PIE1.Bu.dim(:,2)~=PIE2.Bu.dim(:,2))
+if any(PIE1.B2.dim(:,2)~=PIE2.B2.dim(:,2))
     error("Dimensions of observed outputs are not consistent.")
 end
-if any(PIE1.Bw.dim(:,2)~=PIE2.Bw.dim(:,2))
+if any(PIE1.B1.dim(:,2)~=PIE2.B1.dim(:,2))
     error("Dimensions of regulated outputs are not consistent.")
 end
 
@@ -104,14 +107,14 @@ PIE_cat.T = blkdiag(PIE1.T,PIE2.T);
 PIE_cat.Tw = [PIE1.Tw;PIE2.Tw];
 PIE_cat.Tu = [PIE1.Tu;PIE2.Tu];
 PIE_cat.A = blkdiag(PIE1.A,PIE2.A);
-PIE_cat.Bw = [PIE1.Bw;PIE2.Bw];
-PIE_cat.Bu = [PIE1.Bu;PIE2.Bu];
-PIE_cat.Cz = blkdiag(PIE1.Cz,PIE2.Cz);
-PIE_cat.Dzw = [PIE1.Dzw;PIE2.Dzw];
-PIE_cat.Dzu = [PIE1.Dzu;PIE2.Dzu];
-PIE_cat.Cy = blkdiag(PIE1.Cy,PIE2.Cy);
-PIE_cat.Dyw = [PIE1.Dyw;PIE2.Dyw];
-PIE_cat.Dyu = [PIE1.Dyu;PIE2.Dyu];
+PIE_cat.B1 = [PIE1.B1;PIE2.B1];
+PIE_cat.B2 = [PIE1.B2;PIE2.B2];
+PIE_cat.C1 = blkdiag(PIE1.C1,PIE2.C1);
+PIE_cat.D11 = [PIE1.D11;PIE2.D11];
+PIE_cat.D12 = [PIE1.D12;PIE2.D12];
+PIE_cat.C2 = blkdiag(PIE1.C2,PIE2.C2);
+PIE_cat.D21 = [PIE1.D21;PIE2.D21];
+PIE_cat.D22 = [PIE1.D22;PIE2.D22];
 
 % Perform remaining concatenations.
 if nargin>2
