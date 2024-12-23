@@ -43,6 +43,7 @@
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
+% DJ, 12/23/2024: Only test stability, manually building the LPI;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -55,36 +56,46 @@ echo on
 pvar t s;   
 % Declare state, input, and output variables
 phi = state('pde',2);   x = state('ode');
-w = state('in');        u = state('in');
-z = state('out',2);
+w = state('in');        z = state('out');
 % Declare system equations
 c=1;    b=.01;
 odepde = sys();
-eq_dyn = [diff(x,t,1)==-x+u
+eq_dyn = [diff(x,t,1)==-x
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
-eq_out= z ==[int([1 0]*phi,s,[0,1]); u];
+eq_out= z ==int([1 0]*phi,s,[0,1]);
 bc1 = [0 1]*subs(phi,s,0)==0;   % add the boundary conditions
 bc2 = [1 0]*subs(phi,s,1)==x;
 odepde = addequation(odepde,[eq_dyn;eq_out;bc1;bc2]);
-odepde= setControl(odepde,u);   % set the control signal
 
 % % Convert to PIE
 pie = convert(odepde);
+T = pie.T;      A = pie.A;
 
 
 % =============================================
 % === Declare the LPI
 
-% % Run pre-defined stability executive
-lpiscript(pie,'stability','light');
+% % Initialize LPI program
+prog = lpiprogram(s,[0,1]);
 
-% % Run pre-defined L2-gain executive
-[~,~,gam] = lpiscript(pie,'l2gain','light');
+% % Declare decision variables:
+% %   P: R x L2^2 --> R x L2^2,    P>0
+[prog,P] = poslpivar(prog,[1;2]);
+P = P + 1e-4;                   % enforce P>=1e-4
 
-% % Run pre-defined controller synthesis executive
-[prog, Kval, gam_CL] = lpiscript(pie,'hinf-controller','light');
-% Build closed-loop PIE with optimal controller
-PIE_CL = closedLoopPIE(pie,Kval);
+% % Set inequality constraints:
+% %   A'*P*T + T'*P*A <= 0
+Q = A'*P*T + T'*P*A;
+opts.psatz = 1;                 % allow Q>=0 outside domain
+prog = lpi_ineq(prog,-Q,opts);
+
+% % Solve and retrieve the solution
+solve_opts.solver = 'sedumi';   % use SeDuMi to solve
+solve_opts.simplify = true;     % simplify SDP before solving
+prog = lpisolve(prog,solve_opts);
+
+% % Alternatively, uncomment to use pre-defined stability test
+% lpiscript(pie,'stability','light')
 
 
 % =============================================
@@ -112,23 +123,12 @@ phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 zval = solution.timedep.regulated;
 wval = subs(uinput.w,st,tval);
 
-% % Simulate closed-loop PIE and extract solution
-[solution_CL,~] = PIESIM(PIE_CL,opts,uinput,ndiff);
-tval_CL = solution_CL.timedep.dtime;
-phi1_CL = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
-phi2_CL = reshape(solution_CL.timedep.pde(:,2,:),opts.N+1,[]);
-zval_CL = solution_CL.timedep.regulated;
-wval_CL = subs(uinput.w,st,tval_CL);
-
 
 echo off
 
 
 % % Plot simulated states and regulated outputs against time.
 figs_OL = PIESIM_plotsolution(solution,grids,'title','Open-Loop');
-figs_CL = PIESIM_plotsolution(solution_CL,grids,'title','Closed-Loop');
 % Change titles of plots
 fig3 = figs_OL{3};  ax3 = fig3.CurrentAxes;
 subtitle(ax3,'Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',13);
-fig6 = figs_CL{3};  ax6 = fig6.CurrentAxes;
-subtitle(ax6,'Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',13);
