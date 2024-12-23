@@ -56,13 +56,13 @@ echo on
 pvar t s;   
 % Declare state, input, and output variables
 phi = state('pde',2);   x = state('ode');
-w = state('in');        z = state('out');
+w = state('in');        r = state('out');
 % Declare system equations
 c=1;    b=.01;
 odepde = sys();
 eq_dyn = [diff(x,t,1)==-x
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
-eq_out= z ==int([1 0]*phi,s,[0,1]);
+eq_out= r ==int([1 0]*phi,s,[0,1]);
 bc1 = [0 1]*subs(phi,s,0)==0;   % add the boundary conditions
 bc2 = [1 0]*subs(phi,s,1)==x;
 odepde = addequation(odepde,[eq_dyn;eq_out;bc1;bc2]);
@@ -103,9 +103,8 @@ prog = lpisolve(prog,solve_opts);
 
 % % Declare initial values and disturbance
 syms st sx;
-uinput.ic.PDE = [5*sin(2*pi*sx),0];  
-uinput.ic.ODE = 0.5;  
-uinput.u = 0*st;
+uinput.ic.ODE = 0.5;
+uinput.ic.PDE = [5*sin(2*pi*sx),0];
 uinput.w = sin(5*st)*exp(-st); 
 
 % % Set options for discretization and simulation
@@ -118,6 +117,7 @@ ndiff = [0,2,0];    % PDE state involves 2 first order differentiable state vari
 % % Simulate open-loop PDE and extract solution
 [solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
 tval = solution.timedep.dtime;
+x = solution.timedep.ode;
 phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
 phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 zval = solution.timedep.regulated;
