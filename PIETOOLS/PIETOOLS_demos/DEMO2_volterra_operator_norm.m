@@ -58,12 +58,14 @@ Top.R.R1 = 1;
 % % Initialize LPI program
 prob = lpiprogram(Top.vars,Top.I);
 
+% % Declare decision variables:
+% %   gam \in \R
+[prob,gam] = lpidecvar(prob,'gam');
+
 % % Set inequality constraints
 % %   Top'*Top-gam <= 0
-dpvar gam
-prob = lpidecvar(prob,gam);
 opts.psatz = 1;                             % Allow Top'*Top-gam>0 outside of [a,b]
-prob = lpi_ineq(prob,-(Top'*Top-gam),opts); % lpi_ineq(prob,Q) enforces Q>=0
+prob = lpi_ineq(prob,gam-Top'*Top,opts); % lpi_ineq(prob,Q) enforces Q>=0
 
 % % Set objective function:
 % %   min gam

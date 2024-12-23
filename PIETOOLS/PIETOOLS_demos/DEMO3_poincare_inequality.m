@@ -73,8 +73,7 @@ prob = lpiprogram(Hop.vars,Hop.dom);
 
 % % Declare decision variables:
 % %   gam \in \R   and    Xop:L2-->\R
-dpvar gam                               % scalar decision variable
-prob = lpidecvar(prob,gam);
+[prob,gam] = lpidecvar(prob,'gam');     % scalar decision variable
 [prob,Xop] = lpivar(prob,Iop.dim,5);    % operator decision variable
 
 % % Set inequality constraints:
