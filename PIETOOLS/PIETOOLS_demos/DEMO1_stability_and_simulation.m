@@ -56,13 +56,13 @@ echo on
 pvar t s;   
 % Declare state, input, and output variables
 phi = state('pde',2);   x = state('ode');
-w = state('in');        r = state('out');
+w = state('in');        z = state('out');
 % Declare system equations
 c=1;    b=.01;
 odepde = sys();
 eq_dyn = [diff(x,t,1)==-x
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
-eq_out= r ==int([1 0]*phi,s,[0,1]);
+eq_out= z ==int([1 0]*phi,s,[0,1]);
 bc1 = [0 1]*subs(phi,s,0)==0;   % add the boundary conditions
 bc2 = [1 0]*subs(phi,s,1)==x;
 odepde = addequation(odepde,[eq_dyn;eq_out;bc1;bc2]);
@@ -129,6 +129,3 @@ echo off
 
 % % Plot simulated states and regulated outputs against time.
 figs_OL = PIESIM_plotsolution(solution,grids,'title','Open-Loop');
-% Change titles of plots
-fig3 = figs_OL{3};  ax3 = fig3.CurrentAxes;
-subtitle(ax3,'Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',13);
