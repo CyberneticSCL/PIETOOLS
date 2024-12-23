@@ -52,12 +52,6 @@ lam_min = 0;        lam_max = 20;
 lam = 0.5*(lam_min + lam_max);
 n_iters = 8;
 
-% Initialize settings for solving the LPI
-settings = lpisettings('heavy');
-if strcmp(settings.sos_opts.solver,'sedumi')
-    settings.sos_opts.params.fid = 0;   % Suppress output in command window
-end
-
 %%% Perform bisection on the value of lam
 for iter = 1:n_iters
     fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
@@ -93,7 +87,9 @@ for iter = 1:n_iters
     prog = lpi_ineq(prog,-Q,opts);
     
     % % Solve and retrieve the solution
-    prog = lpisolve(prog);
+    solve_opts.solver = 'sedumi';   % use SeDuMi to solve
+    solve_opts.params.fid = 0;      % suppress output in command window
+    prog = lpisolve(prog,solve_opts);
 
     % % Alternatively, uncomment to run pre-defined stability executive
     % prog = lpiscript(PIE,'stability',settings);

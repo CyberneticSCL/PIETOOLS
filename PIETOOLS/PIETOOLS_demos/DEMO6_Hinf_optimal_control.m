@@ -121,9 +121,7 @@ prog = lpi_ineq(prog,-Q);
 prog = lpisetobj(prog, gam);
 
 % % Solve and retrieve the solution
-opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
-opts.simplify = true;           % Simplify the SDP before solving
-prog_sol = lpisolve(prog,opts);
+prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
 gam_val = lpigetsol(prog_sol,gam);
 Pval = lpigetsol(prog_sol,P);
