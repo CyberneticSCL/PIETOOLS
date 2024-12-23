@@ -1,4 +1,4 @@
-function [prog,Wo, gam]= PIETOOLS_H2_norm_o(PIE, settings,options)
+function [prog,W,R,Q, gam]= PIETOOLS_H2_norm_o(PIE, settings,options)
 % This function solves a minimization problem to obtain the H2 norm of a linear distributed parameter
 % system using the observability gramian approach and PIEs framework. For
 % the feasibility test an additional input with a assigned value to the
@@ -58,8 +58,8 @@ if PIE.dim==2
 end
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;        Twop = PIE.Tw;
-Aop = PIE.A;        Bwop = PIE.B1;
-Czop = PIE.C1;
+Aop = PIE.A;        B1op = PIE.B1;
+C1op = PIE.C1;
 
 % Make sure thera are no disturbances at the boundary.
 if ~(Twop==0)
@@ -112,25 +112,35 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 1: declare the posopvar variable, Pop, which defines the storage
 % function candidate
-disp('- Declaring Gramian using specified options...');
+disp('- Declaring PI variables of the non-coercive functional...');
 
-[prog, P1op] = poslpivar(prog, Top.dim, dd1, options1);
+[prog, R1op] = poslpivar(prog, Top.dim, dd1, options1);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, Top.dim, dd12, options12);
-    Wop=P1op+P2op;
+    [prog, R2op] = poslpivar(prog, Top.dim, dd12, options12);
+    Rop=R1op+R2op;
 else
-    Wop=P1op;
+    Rop=R1op;
 end
+dim=Top.dim;
+[prog,Qop] = lpivar(prog,dim,ddZ);
+disp('- Declaring matrix variable...');
+dimW=B1op.dim(:,2);
+[prog,Wm] = poslpivar(prog,dimW);
+disp('- Constructing the Equality Constraints...');
+prog = lpi_eq(prog,Top'*Qop-Rop);
+%prog = lpi_eq(prog,Qvar'*Top'-Rvar);
+prog = lpi_eq(prog,Qop'*Top-Top'*Qop);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 2: Using the observability gramian
-
-disp('- Constructing the Negativity Constraint...');
-
-Dop =  (Aop'*Wop)*Top+Top'*(Wop*Aop)+Czop'*Czop;
-
-
+disp('- Constructing the Inequality Constraints...');
+ny=C1op.dim(1,1);
+Dneg=[-gam*eye(ny) C1op
+            C1op' Qop'*Aop+Aop'*Qop];
+Dpos=[Wm B1op'*Qop
+            Qop'*B1op Rop];
+traceVal = trace(Wm.P);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 3: Impose Negativity Constraint. There are two methods, depending on
@@ -139,39 +149,37 @@ Dop =  (Aop'*Wop)*Top+Top'*(Wop*Aop)+Czop'*Czop;
 disp('- Enforcing the Inequalities Constraints...');
 if sosineq_on
     disp('  - Using lpi_ineq...');
-    prog = lpi_ineq(prog,-Dop,opts);
+    prog = lpi_ineq(prog,-Dneg,opts);
+    prog = lpi_ineq(prog,Dpos,opts);
 else
     disp('  - Using an Equality constraint...');
-    [prog, De1op] = poslpivar(prog, Dop.dim, dd2, options2);
-
+    [prog, De1op] = poslpivar(prog, Dneg.dim, dd2, options2);
+    [prog, De3op] = poslpivar(prog, Dpos.dim, dd2, options2);
+    
     if override2~=1
-        [prog, De2op] = poslpivar(prog, Dop.dim, dd3, options3);
+        [prog, De2op] = poslpivar(prog, Dneg.dim, dd3, options3);
         Deop=De1op+De2op;
+         [prog, De4op] = poslpivar(prog, Dpos.dim, dd3, options3);
+        Deopp=De3op+De4op;      
     else
         Deop=De1op;
+        Deopp=De3op;
     end
-    prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
-end
-
-tempObj = Bwop'*Wop*Bwop;
-tempMat = tempObj.P;
-traceVal=0;
-for idx = 1:size(tempMat,1)
-    traceVal = traceVal+tempMat(idx,idx);
+    prog = lpi_eq(prog,Deop+Dneg,'symmetric'); %Dneg=-Deop
+    prog = lpi_eq(prog,Deopp-Dpos,'symmetric'); %Dpos=Deopp
 end
 % ensuring scalar inequality gam>trace
 prog = lpi_ineq(prog, gam-traceVal);
-
 %solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
-prog = lpisolve(prog,sos_opts);
-
-Wo = lpigetsol(prog,Wop);
-
+prog_sol = lpisolve(prog,sos_opts); 
+R = lpigetsol(prog_sol,Rop);
+Q = lpigetsol(prog_sol,Qop);
+W = lpigetsol(prog_sol,Wm);
 if nargin<=2 || ~isfield(options,'h2')
-    gam = sqrt(double(lpigetsol(prog,gam)));
-    disp('The H2 norm of the given system is upper bounded by:')
-    disp(gam);
+        gam = double(lpigetsol(prog_sol,gam));
+        disp('The H2 norm of the given system is upper bounded by:')
+         disp(gam);
 end
 
 end
