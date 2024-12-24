@@ -6,17 +6,26 @@
 % The Pointcare constant is the smallest value c such that
 %   ||x|| ≤ c||x_s||    for all x in {x: x_{s}\in L_2[0,1] & x(0)=x(1)=0}
 % We can pose this as an optimization program
-%   min_{c}     c,
-%      s.t.     <x, x> − c <x_s,x_s> ≤ 0
+%   min_{c}     c^2,
+%      s.t.     <x, x> − c^2 <x_s,x_s> ≤ 0
 %               x \in H1:={x: x_{s}\in L_2[0,1] & x(0)=x(1)=0}
-% To solve, define operators
-%   (Hop*v)(s) := int_{0}^{s} v(r) dr,
-%    Iop*v     := int_{0}^{1} v(s) ds.
-% Then, for all x \in H1, we have x = Hop*x_{s} and Iop*x_{s}=0.
-% Conversely, for all v satisfying Iop*v=0, we have Hop*v \in H1.
-% Then, using Finsler's lemma, we can pose the problem as an LPI
-%   min_{c,Xop} c,
-%      s.t.     Hop'*Hop -c +Xop'*Iop +Iop*Xop' ≤ 0.
+% To solve, we suppose that x is twice-differentiable,
+%               {x: x_{ss}\in L_2[0,1] & x(0)=x(1)=0}.
+% We define an artificial PDE on x as
+%       d/dt x(t,s) = x_{ss}(t,s)
+%            z(t,s) = x_{s}(t,s)
+%            x(t,0) = x(t,1) = 0
+% For this PDE, we can obtain a PIE representation
+%       d/dt (H2op*v)(t,s) = v(t,s)
+%                   z(t,s) = (H1op*v)(t,s)
+% where now v(t) is free of boundary conditions, and H1op and H2op are s.t.
+%   (H2op*x_{ss})(s) = x(s),
+%   (H1op*x_{ss})(s) = x_{s}(s).
+% Given these operators, we can pose the Poincare optimization problem as
+% an LPI
+%   min_{gam}   gam,
+%      s.t.     H2op'*H2op -gam*H1op'*H1op ≤ 0,
+% where now c = sqrt(gam).
 %
 % This example is also included in the paper (page 6, Demoenstration 3)
 % link: https://arxiv.org/pdf/1910.01338.pdf
@@ -47,9 +56,7 @@
 %
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
-% DJ, 11/18/2024: Declare operators manually rather than through a PDE,
-%                   and use Finsler's lemma to enforce operator inequality;
-% DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
+% DJ, 12/23/2024: Simplify demo (remove lines of code where possible);
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -57,29 +64,36 @@ echo on
 % =============================================
 % === Declare the operators of interest
 
-% Declare Hop:L2-->L2 and Iop:L2-->R
-opvar Hop Iop;
-a = 0;  b = 1;     
-Hop.I = [a,b];  Iop.I = [a,b];
-Hop.R.R1 = 1;       % (Hop*v)(s) = int_{a}^{s} v(r)dr
-Iop.Q1 = 1;         % (Iop*v) = int_{a}^{b} v(s)ds
+% % Declare system as PDE
+a = 0;  b = 1;
+pvar t s
+x = pde_var(1,s,[a,b]);
+z = pde_var('output',1,s,[a,b]);
+PDE = [diff(x,t)==diff(x,s,2);
+       z==diff(x,s,1);
+       subs(x,s,a)==0;
+       subs(x,s,b)==0];
+
+% % Convert PDE to PIE
+PIE = convert(PDE);
+H2op = PIE.T;       % (H2op*x_{ss}) = x;
+H1op = PIE.C1;      % (H1op*x_{ss}) = x_{s}
 
 
 % =============================================
 % === Declare the LPI
 
 % % Initialize LPI program
-prob = lpiprogram(Hop.vars,Hop.dom);
+prob = lpiprogram(s,[a,b]);
 
 % % Declare decision variables:
-% %   gam \in \R   and    Xop:L2-->\R
+% %   gam \in \R
 [prob,gam] = lpidecvar(prob,'gam');     % scalar decision variable
-[prob,Xop] = lpivar(prob,Iop.dim,5);    % operator decision variable
 
 % % Set inequality constraints:
-% %   Hop'*Hop -gam  +Xop'*Iop +Iop*Xop' <= 0
-opts.psatz = 1;                 % allow Hop'*Hop > gam outside of [a,b]
-prob = lpi_ineq(prob,-(Hop'*Hop -gam +Xop'*Iop +Iop'*Xop),opts);
+% %   gam*H1op'*H1op' - H2op'*H2op >= 0
+opts.psatz = 1;                 % allow gam H1op'*H1op < H2op'*H2op outside of [a,b]
+prob = lpi_ineq(prob,gam*(H1op'*H1op)-H2op'*H2op,opts);
 
 % % Set objective function:
 % %   min gam
@@ -92,5 +106,5 @@ poincare_constant = sqrt(double(lpigetsol(prob,gam)));
 
 echo off
 
-fprintf(['\n If successful, ',num2str(poincare_constant,7),' is an upper bound on Poincare''s constant for this problem.\n'])
-fprintf([' An optimal value of Poincare''s constant on domain [0,1] is known to be 1/pi=',num2str(1/(pi),7),'.\n']);
+fprintf(['\n If successful, ',num2str(poincare_constant,4),' is an upper bound on Poincare''s constant for this problem.\n'])
+fprintf([' An optimal value of Poincare''s constant on domain [0,1] is known to be 1/pi=',num2str(1/(pi),4),'.\n']);
