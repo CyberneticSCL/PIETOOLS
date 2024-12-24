@@ -58,7 +58,7 @@ pvar t s;
 phi = state('pde',2);   x = state('ode');
 w = state('in');        z = state('out');
 % Declare system equations
-c=1;    b=.01;
+c=1;    b=.1;
 odepde = sys();
 eq_dyn = [diff(x,t,1)==-x
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
@@ -104,8 +104,8 @@ prog = lpisolve(prog,solve_opts);
 % % Declare initial values and disturbance
 syms st sx;
 uinput.ic.ODE = 0.5;
-uinput.ic.PDE = [5*sin(2*pi*sx),0];
-uinput.w = sin(5*st)*exp(-st); 
+uinput.ic.PDE = [sx-0.5,sin(pi*sx)];
+uinput.w = sin(2*pi*st/5)*exp(-st); 
 
 % % Set options for discretization and simulation
 opts.plot = 'no';   % don't plot final solution
@@ -128,4 +128,4 @@ echo off
 
 
 % % Plot simulated states and regulated outputs against time.
-figs_OL = PIESIM_plotsolution(solution,grids,'title','Open-Loop');
+figs = PIESIM_plotsolution(solution,grids);
