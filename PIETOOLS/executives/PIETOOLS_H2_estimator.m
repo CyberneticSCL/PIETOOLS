@@ -120,6 +120,7 @@ nx2=PIE.A.dim(2,1);                % retrieve the number of distributed states f
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The most common usage of this script is to find the minimum hinf gain bound
 % In this case, we define the hinf norm variable which needs to be minimized
+dpvar gam;
 prog = lpidecvar(prog, gam); %this sets gamma as decision var
 %prog = lpi_ineq(prog, gam); %this ensures gamma is lower bounded
 prog = lpisetobj(prog, gam); %this minimizes gamma, comment for feasibility test
