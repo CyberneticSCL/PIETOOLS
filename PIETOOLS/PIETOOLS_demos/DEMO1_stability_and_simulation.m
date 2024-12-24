@@ -104,7 +104,7 @@ prog = lpisolve(prog,solve_opts);
 % % Declare initial values and disturbance
 syms st sx;
 uinput.ic.ODE = 0.5;
-uinput.ic.PDE = [5*sin(2*pi*sx),0];
+uinput.ic.PDE = [0.5-sx,sin(pi*sx)];
 uinput.w = sin(5*st)*exp(-st); 
 
 % % Set options for discretization and simulation
