@@ -141,8 +141,6 @@ Lval = getObserver(Pval,Zval);
 PIE_est = piess(T,A+Lval*C2,-Lval,C1(1,:));
 PIE_CL = pielft(PIE,PIE_est);
 
-
-
 % % Alternatively, uncomment to use pre-defined functions
 % [prog, Lval, gam_val] = lpiscript(PIE,'hinf-observer','heavy');   
 % PIE_CL = closedLoopPIE(PIE,Lval,'observer');
