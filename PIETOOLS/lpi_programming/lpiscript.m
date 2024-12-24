@@ -46,7 +46,7 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/01/2024 - Initial coding
-
+% DB, 24/12/2024- Add H2 executives
 
 % % % There are two ways to use this function: 
 if nargin<3
@@ -103,6 +103,18 @@ switch lpi
         varargout{1} = L; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
     case 'hinf-controller'
         [prog_sol, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,opts);
+        varargout{1} = K; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
+    case 'h2norm'
+        [prog_sol, P, gamma] = PIETOOLS_H2_norm_o(PIE,opts);
+        varargout{1} = P; varargout{2} = gamma; 
+    case 'h2norm-dual'
+        [prog_sol, P, gamma] = PIETOOLS_H2_norm_c(PIE,opts);
+        varargout{1} = P; varargout{2} = gamma; 
+    case 'h2-observer'
+        [prog_sol, L, gamma, P, Z] = PIETOOLS_H2_estimator(PIE,opts);
+        varargout{1} = L; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
+    case 'h2-controller'
+        [prog_sol, K, gamma, P, Z] = PIETOOLS_H2_control(PIE,opts);
         varargout{1} = K; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
     otherwise
         [prog_sol, vout] = lpi(PIE,opts);

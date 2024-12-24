@@ -38,6 +38,7 @@ function [prog,R,Q,W, gam]= PIETOOLS_H2_norm_c(PIE, settings,options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 % DJ - 10/19/2024: Update to use new LPI programming structure;
+% DB, 24/12/2024- Update to non-coercive version
 
 
 % Check if the PIE is properly specified.
