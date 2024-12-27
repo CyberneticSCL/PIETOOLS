@@ -48,6 +48,7 @@
 %
 % DJ, 11/22/2024: Initial coding;
 % DJ, 12/16/2024: Simplify demo;
+% DJ, 12/26/2024: Add simulation;
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -83,6 +84,30 @@ B = PIE.B1;    D = PIE.D11;
 
 
 % =============================================
+% === Simulate the system
+
+% % Declare initial values and disturbance
+syms st sx sy real
+uinput.ic.PDE = sin(3*pi*(sx-a)/(b-a))*sin(0.5*pi*(sy-c)/(d-c));
+uinput.w = 10*exp(-st);
+uinput.dom = PDE.dom;
+
+% % Set options for discretization and simulation
+opts.plot = 'yes';  % plot the final solution
+opts.N = 8;         % Expand using 8x8 Chebyshev polynomials
+opts.tf = 5;        % Simulate up to t = 3
+opts.dt = 1e-2;     % Use time step of 10^-2
+ndiff = [0,0,1];    % The state involves 1 second order differentiable state variable wrt sx and sy
+
+% % Perform the actual simulation
+[solution,grid] = PIESIM(PDE,opts,uinput,ndiff);
+tval = solution.timedep.dtime;
+x = reshape(solution.timedep.pde{2}(:,:,1,:),opts.N+1,opts.N+1,[]);
+z = solution.timedep.regulated(1,:);
+w = double(subs(uinput.w,st,tval));
+
+
+% =============================================
 % === Declare the LPI
 
 % % Initialize LPI program
@@ -97,9 +122,9 @@ prog = lpiprogram([s1;s2],[a,b;c,d]);
 
 % % Set inequality constraints:
 % %   Q <= 0
-Q = [-gam,       D',      (P*B)'*T;
-     D,          -gam,    C;
-     T*(P*B),    C',      (P*A)'*T+T'*(P*A)];
+Q = [-gam,        D',      (P*B)'*T;
+     D,           -gam,    C;
+     T'*(P*B),    C',     (P*A)'*T+T'*(P*A)];
 opts_Q.psatz = 2;
 prog = lpi_ineq(prog,-Q,opts_Q);
 
@@ -116,6 +141,7 @@ gam_val = double(lpigetsol(prog_sol,gam));
 
 % % Alternatively, uncomment to use pre-defined executive
 % [prog, ~, gam_val] = lpiscript(PIE,'l2gain','stripped');   
+
 
 echo off
 
