@@ -72,7 +72,7 @@
 % DJ - 11/30/2024: Update to use LPI programming structure;
 % DB, 24/12/2024- Update to non-coercive version
 
-function [prog, Kop, gam,R,Q,W,Z] = PIETOOLS_H2_control(PIE, settings)
+function [prog, Kop, gam, R, Q, Z, W] = PIETOOLS_H2_control(PIE, settings)
 
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;         B1op = PIE.B1;

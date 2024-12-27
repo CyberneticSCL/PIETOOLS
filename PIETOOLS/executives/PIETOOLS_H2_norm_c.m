@@ -1,4 +1,4 @@
-function [prog,R,Q,W, gam]= PIETOOLS_H2_norm_c(PIE, settings,options)
+function [prog,R, gam, Q,W]= PIETOOLS_H2_norm_c(PIE, settings,options)
 % This function solves the minimization problem to obtain the H2 norm of a linear distributed parameter
 % system using the controlability gramian approach and PIE framework. For
 % the feasibility test an additional input with a assigned value to the

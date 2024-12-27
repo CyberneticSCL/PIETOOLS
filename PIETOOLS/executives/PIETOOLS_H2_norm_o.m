@@ -1,4 +1,4 @@
-function [prog,W,R,Q, gam]= PIETOOLS_H2_norm_o(PIE, settings,options)
+function [prog,W, gam, R,Q]= PIETOOLS_H2_norm_o(PIE, settings,options)
 % This function solves a minimization problem to obtain the H2 norm of a linear distributed parameter
 % system using the observability gramian approach and PIEs framework. For
 % the feasibility test an additional input with a assigned value to the
