@@ -44,16 +44,17 @@ echo on
 
 % % Declare system as PDE
 % Declare independent variables (time and space)
-pvar t s
+pvar s t
 % Declare state, input, and output variables
-x = state('pde');   w = state('in');   z = state('out');
+x = pde_var('state',1,s,[0,1]);
+w = pde_var('in',1);
+z = pde_var('out',1);
 % Declare the sytem equations
-pde = sys();
-eq_dyn = diff(x,t,1)==diff(x,s,1)+(s-s^2)*w;    % dynamics
-eq_out = z==int(x,s,[0,1]);                     % output equation
-bc = subs(x,s,1)==0;                            % boundary condition
-pde = addequation(pde,[eq_dyn;eq_out;bc]);
-
+pde = [diff(x,t,1)==diff(x,s,1)+(s-s^2)*w;    % dynamics
+                z==int(x,s,[0,1]);                     % output equation
+                subs(x,s,1)==0];;                            % boundary condition
+pde=initialize(pde);
+display_PDE(pde);
 % % Convert PDE to PIE
 PIE = convert(pde,'pie');
 T = PIE.T;      A = PIE.A;
