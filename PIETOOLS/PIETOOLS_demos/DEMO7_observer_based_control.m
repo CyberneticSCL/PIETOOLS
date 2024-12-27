@@ -129,7 +129,7 @@ uinput.ic.PDE = [-10*sx; 0];
 uinput.w = 10*exp(-st);
 
 % % Set options for discretization and simulation
-opts.plot = 'no';   % don't plot the final solution
+opts.plot = 'yes';   % don't plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
 opts.tf = 2;        % Simulate up to t = 2
 opts.dt = 1e-2;     % Use time step of 10^-2
@@ -155,13 +155,21 @@ w = double(subs(uinput.w,st,tval));
 echo off
 
 
-% % Plot simulated states and regulated outputs against time.
-figs_OL = PIESIM_plotsolution(solution_OL,grid,'title','Open-Loop');
-figs_CL = PIESIM_plotsolution(solution_CL,grid,'title','Closed-Loop');
-% Change titles of plots
-fig2 = figs_OL{2};  ax2 = fig2.CurrentAxes;
+% % Change titles of plots
+fig1 = figure(1);  ax1 = fig1.CurrentAxes;
+title(ax1,'Open-Loop Observed Output Evolution','Interpreter','latex','FontSize',14);
+fig2 = figure(2);  ax2 = fig2.CurrentAxes;
+title(ax2,'Open-Loop Regulated Output Output Evolution','Interpreter','latex','FontSize',14);
 subtitle(ax2,'Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',13);
-fig3 = figs_CL{1};
-fig3.Children(5).String = 'Closed-Loop True ($x_1(t,s)$) and Estimated ($x_2(t,s)$) PDE State Evolution';
-fig4 = figs_CL{2};  ax4 = fig4.CurrentAxes;
-subtitle(ax4,'True Output $z_1(t)$, Control Effort $u(t)=z_2(t)$, and Estimated Output $z_3(t)$','Interpreter','latex','FontSize',13);
+fig3 = figure(3); 
+fig3.Children.Title.String = ['Open-Loop Final PDE State $\mathbf{x}_{1}(t=',num2str(opts.tf),',s)$'];
+fig4 = figure(4);
+fig4.Children(2).Title.String = 'Open-Loop PDE State Evolution $\mathbf{x}_{1}(t,s)$';
+fig5 = figure(5);   ax5 = fig5.CurrentAxes;
+title(ax5,'Closed-Loop Regulated Output Output Evolution','Interpreter','latex','FontSize',14);
+subtitle(ax5,'True Output $z_1(t)$, Control Effort $u(t)=z_2(t)$, and Estimated Output $z_3(t)$','Interpreter','latex','FontSize',13);
+fig6 = figure(6);
+fig6.Children(3).String = 'Closed-Loop True ($x_1$) and Estimated ($x_2$) Final PDE State Evolution';
+fig7 = figure(7);
+fig7.Children(5).String = 'Closed-Loop True ($x_1$) and Estimated ($x_2$) PDE State Evolution';
+

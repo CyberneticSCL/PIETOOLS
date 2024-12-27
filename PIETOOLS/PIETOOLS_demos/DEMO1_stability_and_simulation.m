@@ -108,7 +108,7 @@ uinput.ic.PDE = [0.5-sx,sin(pi*sx)];
 uinput.w = sin(5*st)*exp(-st); 
 
 % % Set options for discretization and simulation
-opts.plot = 'no';   % don't plot final solution
+opts.plot = 'yes';  % plot the solution
 opts.N = 16;        % expand using 16 Chebyshev polynomials
 opts.tf = 9;        % simulate up to t = 9;
 opts.dt = 0.03;     % use time step of 3*10^-2
@@ -125,7 +125,3 @@ wval = subs(uinput.w,st,tval);
 
 
 echo off
-
-
-% % Plot simulated states and regulated outputs against time.
-figs_OL = PIESIM_plotsolution(solution,grids,'title','Open-Loop');

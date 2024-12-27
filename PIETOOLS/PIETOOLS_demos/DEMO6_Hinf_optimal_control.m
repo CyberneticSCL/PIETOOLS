@@ -148,7 +148,7 @@ uinput.ic.PDE = sin(sx*pi/2);
 uinput.w = sin(pi*st)./(st+eps); 
 
 % % Set options for discretization and simulation
-opts.plot = 'no';   % don't plot final solution
+opts.plot = 'yes';   % don't plot final solution
 opts.N = 16;        % expand using 16 Chebyshev polynomials
 opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-2;     % use time step of 10^-2
@@ -171,11 +171,16 @@ w = double(subs(uinput.w,st,tval));
 echo off
 
 
-% % Plot simulated states and regulated outputs against time.
-figs_OL = PIESIM_plotsolution(solution_OL,grid,'title','Open-Loop');
-figs_CL = PIESIM_plotsolution(solution_CL,grid,'title','Closed-Loop');
-% Change titles of plots
-fig2 = figs_OL{2};  ax2 = fig2.CurrentAxes;
-title(ax2,'Open-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
-fig4 = figs_CL{2};  ax4 = fig4.CurrentAxes;
+% % Change titles of plots
+fig1 = figure(1);       ax1 = fig1.CurrentAxes;
+title(ax1,'Open-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
+fig2 = figure(2);
+fig2.Children.Title.String = ['Open-Loop Final PDE State $\mathbf{x}(t=',num2str(opts.tf),',s)$'];
+fig3 = figure(3);
+fig3.Children(2).Title.String = 'Open-Loop PDE State Evolution $\mathbf{x}(t,s)$';
+fig4 = figure(4);       ax4 = fig4.CurrentAxes;
 title(ax4,'Closed-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
+fig5 = figure(5);
+fig5.Children.Title.String = ['Closed-Loop Final PDE State $\mathbf{x}(t=',num2str(opts.tf),',s)$'];
+fig6 = figure(6);
+fig6.Children(2).Title.String = 'Closed-Loop PDE State Evolution $\mathbf{x}(t,s)$';

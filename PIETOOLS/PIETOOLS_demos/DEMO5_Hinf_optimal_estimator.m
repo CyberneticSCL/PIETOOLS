@@ -156,7 +156,7 @@ uinput.ic.PDE = [-10*sx;    % actual initial PIE state value
 uinput.w = 2*sin(pi*st);
 
 % % Set options for discretization and simulation
-opts.plot = 'no';   % don't plot final solution
+opts.plot = 'yes';  % plot solution
 opts.N = 8;         % expand using 8 Chebyshev polynomials
 opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-3;     % use time step of 10^-3
@@ -175,10 +175,8 @@ z_est = solution.timedep.regulated(2,:);
 echo off
 
 
-% % Plot simulated states and regulated outputs against time.
-figs = PIESIM_plotsolution(solution,grid,'tlog');
-% Change titles of plots
-fig1 = figs{1};
-fig1.Children(5).String = 'True ($x_1(t,s)$) and estimated ($x_2(t,s)$) PDE state evolution';
-fig2 = figs{2};     ax = fig2.CurrentAxes;
+% % Change titles of plots
+fig3 = figure(3);
+fig3.Children(5).String = 'True ($x_1(t,s)$) and estimated ($x_2(t,s)$) PDE state evolution';
+fig2 = figure(1);     ax = fig2.CurrentAxes;
 title(ax,'True ($z_1(t)$) and estimated ($z_2(t)$) regulated output evolution','Interpreter','latex','FontSize',15);
