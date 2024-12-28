@@ -49,6 +49,7 @@
 % DJ, 11/22/2024: Initial coding;
 % DJ, 12/16/2024: Simplify demo;
 % DJ, 12/26/2024: Add simulation;
+% DJ, 12/28/2024: Change simulation conditions;
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -88,14 +89,13 @@ B = PIE.B1;    D = PIE.D11;
 
 % % Declare initial values and disturbance
 syms st sx sy real
-uinput.ic.PDE = sin(3*pi*(sx-a)/(b-a))*sin(0.5*pi*(sy-c)/(d-c));
-uinput.w = 10*exp(-st);
-uinput.dom = PDE.dom;
+uinput.ic.PDE = 0;
+uinput.w = 20*sin(pi*st)*exp(-st/2);
 
 % % Set options for discretization and simulation
 opts.plot = 'yes';  % plot the final solution
 opts.N = 8;         % Expand using 8x8 Chebyshev polynomials
-opts.tf = 5;        % Simulate up to t = 3
+opts.tf = 10;       % Simulate up to t = 10
 opts.dt = 1e-2;     % Use time step of 10^-2
 ndiff = [0,0,1];    % The state involves 1 second order differentiable state variable wrt sx and sy
 
@@ -133,8 +133,6 @@ prog = lpi_ineq(prog,-Q,opts_Q);
 prog = lpisetobj(prog, gam);
 
 % % Solve and retrieve the solution
-opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
-opts.simplify = true;           % Simplify the SDP before solving
 prog_sol = lpisolve(prog,opts);
 % Extract solved value of decision variable
 gam_val = double(lpigetsol(prog_sol,gam));
