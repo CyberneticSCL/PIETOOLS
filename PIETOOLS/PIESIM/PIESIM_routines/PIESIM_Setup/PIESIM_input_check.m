@@ -42,6 +42,7 @@ function [structure, uinput, psize]=PIESIM_input_check(varargin)
 % added to separate subroutines.
 %   Also set values for noo, nro in case of type=='DDE'
 % DJ, 12/16/2024: Change default variables to (s1,s1_dum) in ODE case;
+% DJ, 12/28/2024: Add spatial domain to "uinput" in 2D case;
 
 syms st sx sy;
 structure=varargin{1};
@@ -475,6 +476,9 @@ if PDE.dim==2
         disp('Warning: one of the domain segments is zero. Defaulting this segment to [-1, 1]');
         PDE.dom(k,:)=[-1 1];
         end
+        end
+        if ~isfield(uinput,'dom')                                           % DJ, 12/28/2024
+            uinput.dom = PDE.dom;
         end
     end
 
