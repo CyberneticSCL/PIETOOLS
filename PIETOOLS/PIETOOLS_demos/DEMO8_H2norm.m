@@ -37,7 +37,7 @@
 % DJ, 12/15/2024: Match structure to that of other demos;
 % DB, 12/27/2024: Replace sys() objects by pde_var()
 
-clc; clear; close all;
+clc; clear; close all; clear stateNameGenerator;
 echo on
 
 % =============================================
