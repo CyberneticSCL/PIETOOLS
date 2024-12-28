@@ -177,6 +177,6 @@ echo off
 
 % % Change titles of plots
 fig3 = figure(3);
-fig3.Children(5).String = 'True ($x_1(t,s)$) and estimated ($x_2(t,s)$) PDE state evolution';
+fig3.Children(5).String = 'True ($\mathbf{x}_1(t,s)$) and estimated ($\mathbf{x}_2(t,s)$) PDE state evolution';
 fig2 = figure(1);     ax = fig2.CurrentAxes;
 title(ax,'True ($z_1(t)$) and estimated ($z_2(t)$) regulated output evolution','Interpreter','latex','FontSize',15);
