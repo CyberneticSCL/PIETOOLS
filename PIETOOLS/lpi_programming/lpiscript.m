@@ -60,8 +60,8 @@ if isa(lpi,'function_handle')
     % Do nothing here...
 elseif ~(isa(lpi,'string') || isa(lpi,'char'))
     error("The input 'lpi' must be a string value or a function handle.");
-elseif ~ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','custom'})
-    error("Specified LPI type must be one of 'stability', 'stability-dual', 'l2gain', 'l2gain-dual', 'hinf-observer', or 'hinf-controller'.")
+elseif ~ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','h2norm','h2norm-dual','h2norm-observer','h2norm-controller','custom'})
+    error("Specified LPI type must be one of 'stability', 'stability-dual', 'l2gain', 'l2gain-dual', 'hinf-observer', 'hinf-controller', 'h2norm', 'h2norm-dual', 'h2norm-observer', or 'h2norm-controller'.")
 end
 
 % Check what settings to use
@@ -105,11 +105,11 @@ switch lpi
         [prog_sol, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,opts);
         varargout{1} = K; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
     case 'h2norm'
-        [prog_sol, R, gamma, R, Q] = PIETOOLS_H2_norm_o(PIE,opts);
-        varargout{1} = R; varargout{2} = gamma; varargout{3} = R;varargout{4} = Q;
+        [prog_sol, W, gamma, R, Q] = PIETOOLS_H2_norm_o(PIE,opts);
+        varargout{1} = W; varargout{2} = gamma; varargout{3} = R;varargout{4} = Q;
     case 'h2norm-dual'
-        [prog_sol, R, gamma, R, Q] = PIETOOLS_H2_norm_c(PIE,opts);
-        varargout{1} = R; varargout{2} = gamma; varargout{3} = R;varargout{4} = Q;
+        [prog_sol, W, gamma, R, Q] = PIETOOLS_H2_norm_c(PIE,opts);
+        varargout{1} = W; varargout{2} = gamma; varargout{3} = R;varargout{4} = Q;
     case 'h2-observer'
         [prog_sol, L, gamma, R,Q, Z, W] = PIETOOLS_H2_estimator(PIE,opts);
         varargout{1} = L; varargout{2} = gamma; varargout{3} = R; varargout{4} = Q;varargout{5} = W; varargout{6} = Z; 
