@@ -63,6 +63,7 @@ function out_var = pde_var(varargin)
 %
 % Initial coding DJ - 06/23/2024
 % DJ, 12/06/2024: Set default values in case of insufficient arguments;
+% DJ, 12/28/2024: Allow length to be omitted as input;
 
 % % % Deal with the case the function is used as e.g.
 % % %   pde_var x1 x2 x3 input w1 w2
@@ -111,6 +112,15 @@ if nargin>0 && nargin<=3 && isnumeric(varargin{1})
     if nargin>=3
         dom = varargin{3};
     end
+elseif nargin==2 && isa(varargin{1},'polynomial')                           % DJ, 12/28/2024
+    % If no type or length is specified, assume a state of length 1.
+    vars = varargin{1};
+    dom = varargin{2};
+elseif nargin==3 && ischar(varargin{1}) && isa(varargin{2},'polynomial')    % DJ, 12/28/2024
+    % If no length is specified, assume a scalar variable.
+    type = varargin{1};
+    vars = varargin{2};
+    dom = varargin{3};
 else
     if nargin>=1
         type = varargin{1};
