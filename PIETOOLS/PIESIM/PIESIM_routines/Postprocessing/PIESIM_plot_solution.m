@@ -153,7 +153,7 @@ if (psize.noo>0) && plot_y
     for ii=1:psize.noo
         y_ii = solution.timedep.observed(ii,t_idcs);
         if ii<=size(colors_y,1)
-            plot(tval,y_ii,'Color',colors_y(psize.noo-ii,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
         else
             plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',2);
         end
