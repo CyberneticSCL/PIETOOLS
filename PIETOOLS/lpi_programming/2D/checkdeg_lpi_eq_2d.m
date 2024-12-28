@@ -58,6 +58,7 @@ function [isgood_D,isgood_Dpar,deg] = checkdeg_lpi_eq_2d(Pop,Dop,deg,p_indx)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 03_19_2022 
+% DJ, 12/16/2024: Check maximal degrees rather than full monomial list;
 
 if nargin<3
     error('Insufficient inputs provided')
@@ -93,8 +94,11 @@ for j=1:length(p_indx)
             if isempty(PRdeg)
                 isgood_DRk = true;
             else
-                deg_dif = setdiff(PRdeg,DRdeg,'rows');  % Monomials in PRk that are not in DRk
-                isgood_DRk = isempty(deg_dif);          % 1 if the DRk has all monomial also in PRk
+                deg_dif_max = max(DRdeg,[],1)-max(PRdeg,[],1);              % DJ, 12/16/2024
+                deg_dif_max_tot = max(sum(DRdeg,2))-max(sum(PRdeg,2));
+                isgood_DRk = all(deg_dif_max>=0) && deg_dif_max_tot>=0;
+                %deg_dif = setdiff(PRdeg,DRdeg,'rows');  % Monomials in PRk that are not in DRk
+                %isgood_DRk = isempty(deg_dif);          % 1 if the DRk has all monomial also in PRk
             end
             isgood_Dpar(p) = isgood_Dpar(p) && isgood_DRk; % Is parameter p okay?
             
@@ -120,8 +124,11 @@ for j=1:length(p_indx)
         if isempty(PRdeg)
             isgood_DR = true;
         else
-            deg_dif = setdiff(PRdeg,DRdeg,'rows');      % Monomials in PR that are not in DR
-            isgood_DR = isempty(deg_dif);               % 1 if the DR has all monomial also in PR
+            deg_dif_max = max(DRdeg,[],1)-max(PRdeg,[],1);                  % DJ, 12/16/2024
+            deg_dif_max_tot = max(sum(DRdeg,2))-max(sum(PRdeg,2));
+            isgood_DR = all(deg_dif_max>=0) && deg_dif_max_tot>=0;
+            % deg_dif = setdiff(PRdeg,DRdeg,'rows');      % Monomials in PR that are not in DR
+            % isgood_DR = isempty(deg_dif);               % 1 if the DR has all monomial also in PR
         end
         isgood_Dpar(p) = isgood_Dpar(p) && isgood_DR;   % Is parameter p okay?
     end

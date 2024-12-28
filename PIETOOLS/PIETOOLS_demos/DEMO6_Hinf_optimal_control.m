@@ -3,335 +3,184 @@
 %
 % This document illustrates how an Hinfty optimal controller can be designed
 % for a PDE using the PIE/LPI framework.
-%
-% We consider the system defined by:
+% Specifically, we consider the following system:
 % PDE:      \dot{x}(t,s) = (d^2/ds^2) x(t,s) + lam x(t,s) + w(t) + u(t),   s in [0,1];
 % Outputs:       z(t)    = [int_{0}^{1} x(t,s) ds + w(t); u(t)];
 % BCs:                0  = x(t,0) = d/ds x(t,1);
 % (unstable for lam > pi^2/4)
-%
 % Letting v:=(d^2/ds^2)x, We derive an equivalent PIE of the form:
-% [T \dot{v}](t,s) = [A v](t,s) + [B1 w](t,s) + [B2 u](t,s);
-%             z(t) = [C1 v](t)  + [D11 w](t) + [D12 u](t);
-%
-% Using a state feedback control u = Kv we get the closed loop PIE
-% [T \dot{v}](t,s) = [(A + B2*K) v](t,s) + [B1 w](t,s);
-%             z(t) = [(C1 + D12*K) v](t) + [D11 w](t)
-%
-% We wish to compute an operator K that minimizes the L2 gain from
-% disturbances w to the output z. This is achieved solving
-% the LPI
-%
-% min_{gam,P,Z} gam
-% s.t.  P>=0
+%   [T \dot{v}](t,s) = [A v](t,s) + [B1 w](t,s) + [B2 u](t,s);
+%               z(t) = [C1 v](t)  + [D11 w](t) + [D12 u](t);
+% Using a state feedback control u = K*v we get the closed loop PIE
+%   [T \dot{v}](t,s) = [(A + B2*K) v](t,s) + [B1 w](t,s);
+%               z(t) = [(C1 + D12*K) v](t) + [D11 w](t)
+% To compute an operator K that minimizes the L2 gain from disturbance w to
+% the output z, we solve the LPI
+%   min_{gam,P,Z}   gam
+%   s.t.            P>=0,
 %       [ -gam*I            D11      (C1*P+D12*Z)*T'            ]
 %       [  D11'            -gam*I    B1'                        ] <= 0
 %       [  T*(C1*P+D12*Z)   B1       (A*P+B2*Z)*T'+T*(A*P+B2*Z)']
 %
-% If the above LPI is successfully solved, then for K = Z*P^{-1}, we have
-% ||z||_{L2}/||w||_{L2} <= gam
-%
+% Then, using K = Z*P^{-1}, the closed-loop system with u = K*v satisfies
+%   ||z||_{L2}/||w||_{L2} <= gam
 % We manually declare this LPI here, but it can also be solved using the
 % "PIETOOLS_Hinf_control" executive file.
 % We simulate the open loop and closed loop response of the PDE for various
-% IC using PIESIM.
+% initial conditions using PIESIM.
 %
-%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - DEMO6
+%
+% Copyright (C)2024  PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% MP, SS, DJ, 2022: Initial coding;
+% DJ, 10/20/2024: Update to use new LPI programming functions;
+% DJ, 11/19/2024: Simplify demo (remove lines of code where possible, get 
+%                   rid of extra simulations);
+% DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
+% DJ, 12/22/2024: Use piess;
+
 clc; clear; close all;
 echo on
-%%%%%%%%%%%%%%%%%% Start Code %%%%%%%%%%%%%%%%%%
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Declare the PDE, and convert it to a PIE.
-% Declare the PDE using command line parser
-pvar s t
+
+% =============================================
+% === Declare the system of interest
+
+% % Declare system as PDE
+% Declare independent variables (time and space)
+pvar t s
+% Declare state, input, and output variables
+x = state('pde');       w = state('in');
+z = state('out', 2);    u = state('in');
+% Declare the sytem equations
 lam = 5;
 PDE = sys();
-x = state('pde');   w = state('in');
-z = state('out', 2);   u = state('in');
 eqs = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
-    z == [int(x,s,[0,1]); u];
-    subs(x,s,0)==0;
-    subs(diff(x,s),s,1)==0];
+       z == [int(x,s,[0,1])+w; u];
+       subs(x,s,0)==0;
+       subs(diff(x,s),s,1)==0];
 PDE = addequation(PDE,eqs);
+% Set u as constrolled input
 PDE = setControl(PDE,u);
 display_PDE(PDE);
 
-% Compute the associated PIE, and extract the operators.
+% % Convert PDE to PIE
 PIE = convert(PDE,'pie');
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    B2 = PIE.B2;
 B1 = PIE.B1;    D11 = PIE.D11;  D12 = PIE.D12;
 
 
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Compute an optimal controller gain operator K for the PIE.
+% =============================================
+% === Declare the LPI
 
-use_executive = true;  % <-- set to true to use predefined executive
-if use_executive
-    % % Use the predefined Hinf control executive function.
-    settings = lpisettings('heavy');
-    [prog, Kval, gam_val] = PIETOOLS_Hinf_control(PIE, settings);
-else
-    % % Manually construct and solve the LPI program for optimal
-    % % controller synthesis.
+% % Initialize LPI program
+prog = lpiprogram(s,[0,1]);
 
-    % Initialize the LPI program
-    vars = PIE.vars;
-    dom = PIE.dom;
-    prog = lpiprogram(vars,dom);
+% % Declare decision variables:
+% %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
+% Scalar decision variable
+[prog,gam] = lpidecvar(prog,'gam');
+% Positive operator variable P>=0
+[prog,P] = poslpivar(prog,[0,0;1,1],4);
+% Enforce strict positivity P >= 1e-3
+P = P + 1e-3;
+% Indefinite operator variable Z
+[prog,Z] = lpivar(prog,[1,0;0,1],2);
 
-    % Declare the decision variable gamma
-    dpvar gam;
-    prog = sosdecvar(prog, gam);
+% % Set inequality constraints:
+% %   Q <= 0
+Q = [-gam*eye(2),       D11,    (C1*P+D12*Z)*(T');
+     D11',              -gam,   B1';
+     T*(C1*P+D12*Z)',   B1,     (A*P+B2*Z)*(T')+T*(A*P+B2*Z)'];
+prog = lpi_ineq(prog,-Q);
 
-    % Declare a positive semidefinite PI operator decision variable P>=0
-    Pdim = T.dim(:,1);
-    Pdom = PIE.dom;
-    Pdeg = {2,[1,1,2],[1,1,2]};
-    opts.sep = 0;
-    [prog,P] = poslpivar(prog,Pdim,Pdeg,opts);
-    eppos = 1e-3;
-    P.R.R0 = P.R.R0 + eppos*eye(size(P.R.R0));
+% % Set objective function:
+% %   min gam
+prog = lpisetobj(prog, gam);
 
-    % Declare the indefinite PI operator decision variable Z
-    Zdim = B2.dim(:,[2,1]);
-    Zdom = PIE.dom;
-    Zdeg = [4,0,0];
-    [prog,Z] = lpivar(prog,Zdim,Zdeg);
+% % Solve and retrieve the solution
+prog_sol = lpisolve(prog);
+% Extract solved value of decision variables
+gam_val = lpigetsol(prog_sol,gam);
+Pval = lpigetsol(prog_sol,P);
+Zval = lpigetsol(prog_sol,Z);
+% Build the optimal control operator K.
+Kval = getController(Pval,Zval,1e-3);
 
-    % Declare the LPI constraint Q<=0.
-    opvar Iw Iz;
-    Iw.dim = [B1.dim(:,2),B1.dim(:,2)];     Iz.dim = [C1.dim(:,1),C1.dim(:,1)];
-    Iw.P = eye(size(Iw.P));                 Iz.P = eye(size(Iz.P));
-    Iw.R.R0 = eye(size(Iw.R.R0));           Iz.R.R0 = eye(size(Iz.R.R0));
-    Iw.var1 = P.var1;   Iw.var2 = P.var2;   Iz.var1 = P.var1;   Iz.var2 = P.var2;
+% % Construct the closed-loop PIE system
+%   d/dt T*v(t,s) = (A + B2*K)*v(t,s) + B1*w(t,s);
+%            z(t) = (C1 + D12*K)*v(t) + D11*w(t)
+PIE_CL = piess(T,A+B2*Kval,B1,C1+D12*Kval,D11);
 
-    Q = [-gam*Iz        D11          (C1*P+D12*Z)*(T');
-        D11'            -gam*Iw      B1';
-        T*(C1*P+D12*Z)' B1           (A*P+B2*Z)*(T')+T*(A*P+B2*Z)'];
-    prog = lpi_ineq(prog,-Q);
-
-    % Set the objective function: minimize gam
-    prog = sossetobj(prog, gam);
-
-    % Solve the optimization program
-    opts.solver = 'sedumi';
-    opts.simplify = true;
-    prog_sol = sossolve(prog,opts);
-
-    % Extract the solved value of gam and the operators P and Z
-    gam_val = sosgetsol(prog_sol,gam);
-    Pval = getsol_lpivar(prog_sol,P);
-    Zval = getsol_lpivar(prog_sol,Z);
-
-    % Build the optimal control operator K.
-    Kval = getController(Pval,Zval,1e-3);
-end
+% % Alternatively, uncomment to use pre-defined functions
+% [prog, Kval, gam_val] = lpiscript(PIE,'hinf-controller','heavy');   
+% PIE_CL = closedLoopPIE(PIE,Kval);
 
 
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Build a closed-loop PIE model, imposing the control u=K*v:
-% [T \dot{v}](t,s) = [(A + B2*K) v](t,s) + [B1 w](t,s);
-%             z(t) = [(C1 + D12*K) v](t) + [D11 w](t)
+% =============================================
+% === Simulate the system
 
-use_CL_function = true;
-if use_CL_function
-    % % Use the built-in function to construct the closed-loop PIE
-    PIE_CL = closedLoopPIE(PIE,Kval);
-else
-    % % Manually construct the closed-loop PIE system
-    % Construct the operators defining the PIE.
-    T_CL = T;
-    A_CL = A + B2*Kval;     B_CL = B1;
-    C_CL = C1 + D12*Kval;   D_CL = D11;
-
-    % Declare the PIE.
-    PIE_CL = pie_struct();
-    PIE_CL.vars = PIE.vars;
-    PIE_CL.dom = PIE.dom;
-    PIE_CL.T = T_CL;
-    PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;
-    PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;
-    PIE_CL = initialize(PIE_CL);
-end
-
-
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Simulate and plot the actual and estimated PDE state using PIESIM
-
-% Declare initial conditions for the state components of the PIE
+% % Declare initial values and disturbance
 syms st sx real
+uinput.ic.PDE = sin(sx*pi/2);
+uinput.w = sin(pi*st)./(st+eps); 
 
-% Set options for the discretization and simulation:
-opts.plot = 'no';   % Do not plot the final solution
-opts.N = 8;         % Expand using 8 Chebyshev polynomials
-opts.tf = 10;        % Simulate up to t = 10;
-opts.dt = 1e-2;     % Use time step of 10^-2
-opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF)
-ndiff = [0,0,1];    % The PDE state involves 1 second order differentiable state variables
+% % Set options for discretization and simulation
+opts.plot = 'yes';   % don't plot final solution
+opts.N = 16;        % expand using 16 Chebyshev polynomials
+opts.tf = 2;        % simulate up to t = 2
+opts.dt = 1e-2;     % use time step of 10^-2
+ndiff = [0,0,1];    % PDE state involves 1 second order differentiable state variable
 
-% Simulate the solution to the PIE without controller for different IC.
-uinput.ic.PDE = -10*sx;    % IC PIE
-uinput.w = exp(-st); % disturbance
-[solution_OL_a,grid] = PIESIM(PIE,opts,uinput,ndiff);
-uinput.ic.PDE = sin(sx*pi/2);    % IC PIE
-[solution_OL_b,grid] = PIESIM(PIE,opts,uinput,ndiff);
+% % Perform the actual simulation
+% Simulate uncontrolled PIE and extract solution
+[solution_OL,grid] = PIESIM(PIE,opts,uinput,ndiff);
+tval = solution_OL.timedep.dtime;
+x_OL = reshape(solution_OL.timedep.pde(:,1,:),opts.N+1,[]);
+z_OL = solution_OL.timedep.regulated(1,:);
+% Simulate controlled PIE and extract solution
+[solution_CL,~] = PIESIM(PIE_CL,opts,uinput,ndiff);
+x_CL = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
+z_CL = solution_CL.timedep.regulated(1,:);
+u_CL = solution_CL.timedep.regulated(2,:);
+w = double(subs(uinput.w,st,tval));
 
 
-% Simulate the solution to the PIE with controller for different IC and disturbance.
-uinput.ic.PDE = -10*sx;    % IC PIE
-uinput.w = exp(-st);   % disturbance
-[solution_CL_a,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
-uinput.ic.PDE = sin(sx*pi/2);    % IC PIE
-uinput.w = exp(-st);   % disturbance
-[solution_CL_b,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
-
-uinput.ic.PDE = -10*sx;    % IC PIE
-uinput.w = sin(pi*st)./(st+eps);   % disturbance
-[solution_CL_aa,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
-uinput.ic.PDE = sin(sx*pi/2);    % IC PIE
-uinput.w = sin(pi*st)./(st+eps);   % disturbance
-[solution_CL_ab,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
-
-%%
-% Extract actual solution at each time step.
-tval = solution_OL_a.timedep.dtime;
-x_OL_a = reshape(solution_OL_a.timedep.pde(:,1,:),opts.N+1,[]);
-x_OL_b = reshape(solution_OL_b.timedep.pde(:,1,:),opts.N+1,[]);
-x_CL_a = reshape(solution_CL_a.timedep.pde(:,1,:),opts.N+1,[]);
-x_CL_b = reshape(solution_CL_b.timedep.pde(:,1,:),opts.N+1,[]);
-x_CL_aa = reshape(solution_CL_aa.timedep.pde(:,1,:),opts.N+1,[]);
-x_CL_ab = reshape(solution_CL_ab.timedep.pde(:,1,:),opts.N+1,[]);
-XX = linspace(0,1,20);
-%%
-% Set options for the plot
-plot_indcs = floor(logspace(0,log(opts.tf/opts.dt)/log(10),5));
-%plot_indcs = floor(linspace(1,opts.tf/opts.dt,66));
-tplot = tval(plot_indcs);           % Only plot at select times
-colors = {'b','g','m','r','k','c','r','y','o'};     % Colors for the plot
-grid_idcs = 1:2:9;                % Only plot at a few grid points
-
-% Plot open loop response for different IC
-fig1 = figure(1); 
-subplot(1,2,1); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_OL_a(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end 
-hold off;
-subplot(1,2,2); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_OL_b(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end
-hold off;
-fig1.Position = [100 100 3000 2000];
-ax1 = subplot(1,2,1);     
-set(ax1,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
-lgd1.Location = 'northwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Open loop $\mathbf{x}(t)$; $\mathbf{x}(0)=\frac{5}{4}(1-s^2)$','Interpreter','latex','FontSize',15);
-ax2 = subplot(1,2,2);
-set(ax2,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd2.FontSize = 10.5; 
-lgd1.Location = 'northeast';
-xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Open loop $\mathbf{x}(t)$; $\mathbf{x}(0)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2} s)$','Interpreter','latex','FontSize',15);
-
-%%
-% Plot closed loop response for different IC
-fig2 = figure(2); 
-fig2.Position = [50 50 3000 2000];
-subplot(2,2,1); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_CL_a(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end 
-hold off;
-subplot(2,2,2); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_CL_b(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end
-hold off;
-subplot(2,2,3); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_CL_aa(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end
-hold off;
-subplot(2,2,4); hold on;
-for j = 1:length(plot_indcs)
-    s_pos = num2str(plot_indcs(j)*opts.dt);  % Position associated to grid index.
-    [YY] = spline(grid.phys,x_CL_ab(:,plot_indcs(j)),XX);
-    plot(XX,YY,[colors{j},'--o'],'LineWidth',2,'DisplayName',['$\mathbf{x}(t=',s_pos,')$'],'MarkerIndices',1:3:length(XX));
-end
-hold off;
-
-ax1 = subplot(2,2,1);
-set(ax1,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
-lgd1.Location = 'southwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=\frac{5}{4}(1-s^2)$, $w(t)=e^{-t}$','Interpreter','latex','FontSize',15);
-ax2 = subplot(2,2,2);
-set(ax2,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd2.FontSize = 10.5; 
-lgd1.Location = 'northwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $\mathbf{x}(0)=e^{-t}$','Interpreter','latex','FontSize',15);
-ax3 = subplot(2,2,3);
-set(ax3,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
-lgd1.Location = 'southwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=\frac{5}{4}(1-s^2)$, $w(t)=\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
-ax4 = subplot(2,2,4);     
-set(ax4,'XTick',XX(1:4:end));
-lgd1 = legend('Interpreter','latex');                lgd2.FontSize = 10.5; 
-lgd1.Location = 'northwest';
-xlabel('$s$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $\mathbf{x}(t)$; $\mathbf{x}(0)=-\frac{4}{\pi^2}\sin(\frac{\pi}{2}s)$, $w(t)=\frac{\sin(\pi t)}{t}$','Interpreter','latex','FontSize',15);
-%%
-w1_tval = subs(sin(pi*st)./(st+eps),tval);
-w2_tval = subs(exp(-st),tval);
-z_quadrature = double(subs(0.5*sx^2-sx,grid.phys));
-k_quadrature = double(subs(Kval.Q1,s,grid.phys));
-ZZ1 = trapz(z_quadrature,x_CL_a)+double(w1_tval); %int wa
-ZZ2 = trapz(z_quadrature,x_CL_aa)+double(w2_tval);%int wb
-ZZ3 = trapz(k_quadrature,x_CL_a); %u wa
-ZZ4 = trapz(k_quadrature,x_CL_aa); %u wb
-fig3 = figure(3); XX = linspace(0,1,2000);
-subplot(1,2,1); hold on;
-[YY] = spline(tval,ZZ1,XX);
-plot(XX,YY,'--o','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = e^{-t}$']);
-[YY] = spline(tval,ZZ2,XX);
-plot(XX,YY,'--x','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = \frac{\sin(\pi t)}{t}$']); hold off;
-subplot(1,2,2); hold on;
-[YY] = spline(tval,ZZ3,XX);
-plot(XX,YY,'--o','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = e^{-t}$']);
-[YY] = spline(tval,ZZ4,XX);
-plot(XX,YY,'--x','MarkerIndices',1:90:length(XX),'LineWidth',2,'DisplayName',['$w(t) = \frac{\sin(\pi t)}{t}$']); hold off;
-
-ax5 = subplot(1,2,1);
-set(ax5,'XTick',tval(1:90:end),'xlim',[0,0.75]);
-lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5; 
-lgd1.Location = 'southeast';
-xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$z(t)$','FontSize',15,'Interpreter','latex');
-title('Closed loop $z(t) = \int_0^1 \mathbf{x}(t,s) ds+w(t)$','Interpreter','latex','FontSize',15);
-ax6 = subplot(1,2,2);
-set(ax6,'XTick',tval(1:90:end),'xlim',[0,0.75]);
-lgd1 = legend('Interpreter','latex'); lgd1.FontSize = 10.5; 
-lgd1.Location = 'southeast';
-xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u(t)$','FontSize',15,'Interpreter','latex');
-title('Control effort $u(t)$','Interpreter','latex','FontSize',15);
-fig3.Position = [200 150 1000 450];
-%%
-%%%%%%%%%%%%%%%%%% End Code %%%%%%%%%%%%%%%%%%
 echo off
+
+
+% % Change titles of plots
+fig1 = figure(1);       ax1 = fig1.CurrentAxes;
+title(ax1,'Open-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
+fig2 = figure(2);
+fig2.Children.Title.String = ['Open-Loop Final PDE State $\mathbf{x}(t=',num2str(opts.tf),',s)$'];
+fig3 = figure(3);
+fig3.Children(2).Title.String = 'Open-Loop PDE State Evolution $\mathbf{x}(t,s)$';
+fig4 = figure(4);       ax4 = fig4.CurrentAxes;
+title(ax4,'Closed-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
+fig5 = figure(5);
+fig5.Children.Title.String = ['Closed-Loop Final PDE State $\mathbf{x}(t=',num2str(opts.tf),',s)$'];
+fig6 = figure(6);
+fig6.Children(2).Title.String = 'Closed-Loop PDE State Evolution $\mathbf{x}(t,s)$';

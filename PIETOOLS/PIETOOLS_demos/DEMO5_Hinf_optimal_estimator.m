@@ -3,266 +3,180 @@
 %
 % This document illustrates how an Hinfty optimal estimator can be designed
 % for a PIE, and how the estimated state can be simulated.
-%
-% We consider the system defined by:
+% Specifically, we consider the following system:
 % PDE:      \dot{x}(t,s) = (d^2/ds^2) x(t,s) + lam x(t,s) + w(t),   s in [0,1];
-% Outputs:       z(t)    = int_{0}^{1} x(t,s) ds + w(t);
-%                y(t)    = x(t,1);
+% Outputs:          z(t) = int_{0}^{1} x(t,s) ds + w(t);
+%                   y(t) = x(t,1);
 % BCs:                0  = x(t,0) = x_{s}(t,1);
 % (unstable for lam > pi^2/4 = 2.4674)
-%
 % Letting v:=(d^2/ds^2)x, We derive an equivalent PIE of the form:
-% [T \dot{v}](t,s) = [A v](t,s) + [B1 w](t,s);
-%             z(t) = [C1 v](t)  + [D11 w](t);
-%             y(t) = [C2 v](t)  + [D21 w](t);
-%
+%   [T \dot{v}](t,s) = [A v](t,s) + [B1 w](t,s);
+%               z(t) = [C1 v](t)  + [D11 w](t);
+%               y(t) = [C2 v](t)  + [D21 w](t);
 % So that x = T*v. We design an estimator of the form:
-% [T \dot{vhat}](t,s) = [A vhat](t,s) + [L(yhat-y)](t,s);
-%             zhat(t) = [C1 vhat](t)
-%             yhat(t) = [C2 vhat](t)
-%
-% Using this estimator, the errors e=(vhat-v) and ztilde = (zhat-z) satisfy
-% [T \dot{e}](t,s) = [(A+L*C2) e](t,s) - [(B1+L*D21) w](t,s);
-%        ztilde(t) = [C1 e](t)         - [D11 w](t);
-%
-% We wish to compute an operator L that minimizes the L2 gain from
-% disturbances w to error ztilde in the output. This is achieved solving
-% the LPI
-%
-% min_{gam,P,Z} gam
-% s.t.  P>=0
+%   [T \dot{vhat}](t,s) = [A vhat](t,s) + [L(yhat-y)](t,s);
+%               zhat(t) = [C1 vhat](t)
+%               yhat(t) = [C2 vhat](t)
+% Then, the errors e=(vhat-v) and ztilde = (zhat-z) satisfy
+%   [T \dot{e}](t,s) = [(A+L*C2) e](t,s) - [(B1+L*D21) w](t,s);
+%          ztilde(t) = [C1 e](t)         - [D11 w](t);
+% To compute an operator L that minimizes the L2 gain from
+% disturbances w to error ztilde in the output, we solve the LPI
+%   min_{gam,P,Z}   gam
+%   s.t.            P>=0,
 %       [-gam*I,           -D11',  -(P*B1+Z*D21)'*T           ]=: Q <=0
 %       [-D11,             -gam*I, C1                         ]
 %       [-T'*(P*B1+Z*D21), C1',    (P*A+Z*C2)'*T+T'*(P*A+Z*C2)]
 %
-% Then, using L = P^{-1}*Z, the L2 gain satisfied 
-% ||ztilde||_{L2}/||w||_{L2} <= gam
-%
+% Then, using L = P^{-1}*Z, the L2 gain satisfies 
+%   ||ztilde||_{L2}/||w||_{L2} <= gam
 % We manually declare this LPI here, but it can also be solved using the
 % "PIETOOLS_Hinf_estimator" executive file.
 % We simulate the PDE state x and estimated state xhat using PIESIM.
 %
-%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - DEMO5
+%
+% Copyright (C)2024  PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% MP, SS, DJ, 2022: Initial coding;
+% DJ, 10/20/2024: Update to use new LPI programming functions;
+% DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
+% DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
+% DJ, 12/22/2024: Use piess and pielft;
+
 clc; clear; close all;
 echo on
-%%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Declare the PDE, and convert it to a PIE.
-% Declare the PDE using command line parser
-pvar s t                                        % Initialize polynomial variables t (time) and s (space)
-lam = 4;                                        % Set reaction parameter
-PDE = sys();                                    % Initialize the PDE structure
-x = state('pde');   w = state('in');            % Initialize PDE state x and disturbance w
-y = state('out');   z = state('out');           % Initialize outputs y and z
-eqs = [diff(x,t) == diff(x,s,2) + lam*x + w;    % define the PDE equation
-       z == int(x,s,[0,1]) + w;                 % define the regulated output equation
-       y == subs(x,s,1);                        % define the observed output equation
-       subs(x,s,0) == 0;                        % define the first boundary condition
-       subs(diff(x,s),s,1) == 0];               % define the second boundary condition
+
+% =============================================
+% === Declare the system of interest
+
+% % Declare system as PDE
+% Declare independent variables (time and space)
+pvar t s
+% Declare state, input, and output variables
+x = state('pde');   w = state('in');
+y = state('out');   z = state('out');
+% Declare the sytem equations
+lam = 4;
+PDE = sys();
+eqs = [diff(x,t) == diff(x,s,2) + lam*x + w;    % PDE
+       z == int(x,s,[0,1]) + w;                 % regulated output
+       y == subs(x,s,1);                        % observed output
+       subs(x,s,0) == 0;                        % first boundary condition
+       subs(diff(x,s),s,1) == 0];               % second boundary condition
 PDE = addequation(PDE,eqs);                     % Add the equations to the PDE structure
-PDE = setObserve(PDE,y);                        % Set y as an observed output
-display_PDE(PDE);                               % Display the system in the command window
+% Set y as an observed output
+PDE = setObserve(PDE,y);                        
+display_PDE(PDE);
 
-% Compute the associated PIE.
-PIE = convert(PDE,'pie');
-
-% Extract the PI operators defining the PIE.
+% % Convert PDE to PIE
+PIE = convert(PDE);
 T = PIE.T;
 A = PIE.A;      C1 = PIE.C1;    C2 = PIE.C2;
 B1 = PIE.B1;    D11 = PIE.D11;  D21 = PIE.D21;
-% A PIE with state v, disturbance w, regulated output z, and observed
-% output y, with no disturbance in the BCs, has the structure
-% T * dot{v}(t) = A*v(t)  + B1*w(t)
-%         z(t)  = C1*v(t) + D11*w(t)
-%         y(t)  = C2*v(t) + D12*w(t)
 
 
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Compute an optimal observer gain operator L for the PIE.
+% =============================================
+% === Declare the LPI
 
-use_executive = true;  % <-- set to true to use predefined executive
-if use_executive
-    % % Use the predefined Hinf estimator executive function.
-    % Declare settings to use: choose from
-    % extreme < stripped < light < heavy < veryheavy   or   custom
-    % Heavier settings may increase accuracy, but also computation time.
-    settings = lpisettings('heavy');
-    % Call the Hinf estimator executive:
-    % Returns a solved LPI program structure, an optimal observer operator
-    % Lval, and a bound gam_val on the L2-gain ||zhat-z||/||w|| for the
-    % associated estimator.
-    [prog, Lval, gam_val] = PIETOOLS_Hinf_estimator(PIE, settings);    
-else
-    % % Manually construct and solve the LPI program for optimal
-    % % estimator synthesis.
+% % Initialize LPI program
+prog = lpiprogram(s,[0,1]);
 
-    % Initialize the LPI program
-    vars = PIE.vars;         % Extract the spatial variables
-    dom = PIE.dom;
-    prog = lpiprogram(vars,dom);    % Initialize an LPI program structure in the considered spatial variables
+% % Declare decision variables:
+% %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
+% Scalar decision variable
+[prog,gam] = lpidecvar(prog,'gam');
+% Positive operator variable P>=0
+opts.sep = 1;                   % set P.R.R1=P.R.R2
+[prog,P] = poslpivar(prog,T.dim,4,opts);
+% Indefinite operator variable Z: \R-->L2
+[prog,Z] = lpivar(prog,[0,1;1,0],4);
 
-    % Declare the decision variable gamma
-    dpvar gam;
-    prog = sosdecvar(prog, gam);
+% % Set inequality constraints:
+% %   Q <= 0
+Q = [-gam,              -D11',        -(P*B1+Z*D21)'*T;
+     -D11,              -gam,         C1;
+     -T'*(P*B1+Z*D21),  C1',          (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
+prog = lpi_ineq(prog,-Q);
 
-    % Declare a positive semidefinite PI operator decision variable P>=0
-    Pdim = T.dim(:,1);              % Row dimensions of the operator P
-    Pdom = PIE.dom;                 % Spatial domain of the operator P
-    Pdeg = {6,[2,3,5],[2,3,5]};     % Degrees of monomials used to define P (call "help poslpivar" for more info)
-    opts.sep = 1;                   % Set P.R.R1=P.R.R2 to reduce computational complexity
-    [prog,P] = poslpivar(prog,Pdim,Pdeg,opts);
-    %eppos = 1e-6;
-    %P.R.R0 = P.R.R0 + eppos*eye(size(P));
+% % Set objective function:
+% %   min gam
+prog = lpisetobj(prog, gam);
 
-    % Declare the indefinite PI operator decision variable Z
-    Zdim = C2.dim(:,[2,1]);         % Row and column dimensions of the operator Z
-    Zdom = PIE.dom;                 % Spatial domain of the operator Z
-    Zdeg = [4,0,0];                 % Degrees of monomials defining Z (call "help lpivar" for more info)
-    [prog,Z] = lpivar(prog,Zdim,Zdeg);
+% % Solve and retrieve the solution
+prog_sol = lpisolve(prog);
+% Extract solved value of decision variables
+gam_val = lpigetsol(prog_sol,gam);
+Pval = lpigetsol(prog_sol,P);
+Zval = lpigetsol(prog_sol,Z);
+% Build optimal observer operator L
+Lval = getObserver(Pval,Zval);
 
-    % Declare the LPI constraint Q<=0.
-    opvar Iw Iz;
-    Iw.dim = [B1.dim(:,2),B1.dim(:,2)];     Iz.dim = [C1.dim(:,1),C1.dim(:,1)];
-    Iw.P = eye(size(Iw.P));                 Iz.P = eye(size(Iz.P));
-    Iw.R.R0 = eye(size(Iw.R.R0));           Iz.R.R0 = eye(size(Iz.R.R0));
-    Iw.var1 = P.var1;   Iw.var2 = P.var2;   Iz.var1 = P.var1;   Iz.var2 = P.var2;
+% % Construct the closed-loop PIE system
+% Declare Luenberger estimator with input y
+%   d/dt T*vhat(t,s) = (A+L*C2)*vhat(t,s) - Ly(t,s);
+%            zhat(t) = C1*vhat(t);
+% and take LFT with PIE
+PIE_est = piess(T,A+Lval*C2,-Lval,C1(1,:));
+PIE_CL = pielft(PIE,PIE_est);
 
-    Q = [-gam*Iw,           -D11',        -(P*B1+Z*D21)'*T;
-         -D11,              -gam*Iz,      C1;
-         -T'*(P*B1+Z*D21),  C1',          (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
-    prog = lpi_ineq(prog,-Q);       % Add the constraint -Q>=0 to the LPI program
-
-    % Set the objective function: minimize gam
-    prog = sossetobj(prog, gam);
-
-    % Solve the optimization program
-    opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
-    opts.simplify = true;           % Simplify the SDP before solving
-    prog_sol = sossolve(prog,opts);
-
-    % Extract the solved value of gam and the operators P and Z
-    gam_val = sosgetsol(prog_sol,gam);
-    Pval = getsol_lpivar(prog_sol,P);
-    Zval = getsol_lpivar(prog_sol,Z);
-    
-    % Build the optimal observer operator L.
-    Lval = getObserver(Pval,Zval);
-end
+% % Alternatively, uncomment to use pre-defined functions
+% [prog, Lval, gam_val] = lpiscript(PIE,'hinf-observer','heavy');   
+% PIE_CL = closedLoopPIE(PIE,Lval,'observer');
 
 
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Build a PIE modeling the actual state v, and estimated state vhat:
-% [T, 0] [\dot{v}(t)   ] = [A,     0     ] [v(t)   ] + [B1   ] w(t)
-% [0, T] [\dot{vhat}(t)]   [-L*C2, A+L*C2] [vhat(t)] + [L*D21]
-%
-%              [z(t)   ] = [C1, 0 ] [v   ]           + [D11] w(t)
-%              [zhat(t)]   [0,  C1] [vhat]             [0  ]
-%
-% This PIE has the form
-% T_CL * \dot{V}(t) = A_CL * V(t) + B_CL * w(t)
-%             Z(t)  = C_CL * V(t) + D_CL * w(t)
-%
-% where V = [v; vhat] and Z = [z; zhat].
+% =============================================
+% === Simulate the system
 
-use_CL_function = true;
-if use_CL_function
-    % % Use the built-in function to construct the closed-loop PIE
-    PIE_CL = closedLoopPIE(PIE,Lval,'observer');
-else
-    % % Manually construct the closed-loop PIE system
-    % Construct the operators defining the PIE.
-    T_CL = [T, 0*T; 0*T, T];        % use 0*T to define zero-operaotr of same dimensions as T
-    A_CL = [A, 0*A; -Lval*C2, A+Lval*C2];   B_CL = [B1; Lval*D21];
-    C_CL = [C1, 0*C1; 0*C1, C1];            D_CL = [D11; 0*D11];
-    
-    % Declare the PIE.
-    PIE_CL = pie_struct();                      % Initialize the PIE structure
-    PIE_CL.vars = PIE.vars;                     % Set the spatial variables of the PIE
-    PIE_CL.dom = PIE.dom;                       % Set the domain of the spatial variables
-    PIE_CL.T = T_CL;                            % Declare the operator T
-    PIE_CL.A = A_CL;        PIE_CL.B1 = B_CL;   % Declare the operators A and B1
-    PIE_CL.C1 = C_CL;       PIE_CL.D11 = D_CL;  % Declare the operators C1 and D11
-    PIE_CL = initialize(PIE_CL);                % Fill in all the blanks in the PIE structure
-end
-
-
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-% % % Simulate and plot the actual and estimated PDE state using PIESIM
-
-% Declare initial conditions for the state components of the PIE
-syms st sx real             % Declare symbolix variables st (time) and sx (space)
-uinput.ic.PDE = [-10*sx;    % Set the actual initial PIE state value
-                 0];        % Set the estimated initial PIE state value
- 
-% Declare the value of the disturbance w(t)
+% % Declare initial values and disturbance
+syms st sx real
+uinput.ic.PDE = [-10*sx;    % actual initial PIE state value
+                 0];        % estimated initial PIE state value
 uinput.w = 2*sin(pi*st);
 
-% Set options for the discretization and simulation:
-opts.plot = 'no';   % Do not plot the final solution
-opts.N = 8;         % Expand using 8 Chebyshev polynomials
-opts.tf = 1;        % Simulate up to t = 1;
-opts.dt = 1e-3;     % Use time step of 10^-3
-opts.intScheme=1;   % Time-step using Backward Differentiation Formula (BDF) 
-ndiff = [0,0,2];    % The PDE state involves 2 second order differentiable state variables
+% % Set options for discretization and simulation
+opts.plot = 'yes';  % plot solution
+opts.N = 8;         % expand using 8 Chebyshev polynomials
+opts.tf = 2;        % simulate up to t = 2
+opts.dt = 1e-3;     % use time step of 10^-3
+ndiff = [0,0,2];    % PDE state involves 2 second order differentiable state variables
 
-% Simulate the solution to the PIE with estimator.
+% % Simulate solution to the PIE with estimator.
 [solution,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
+% % Extract actual and estimated state and output at each time step.
+tval = solution.timedep.dtime;
+x_act = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
+x_est = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
+z_act = solution.timedep.regulated(1,:);
+z_est = solution.timedep.regulated(2,:);
 
-% Plot the solution at several grid points using the subroutine at the
-% bottom of this DEMO.
-grid_idcs = [1,5,7];        % Only plot at first, fifth and seventh grid points
-plot_figure_Hinf_optimal_estimator_DEMO(solution,grid,opts,grid_idcs)
 
-
-%%
-%%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off
 
 
-
-%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - %%
-function plot_figure_Hinf_optimal_estimator_DEMO(solution,grid,opts,grid_idcs)
-% % % Plot simulated values of actual state and estimated state at several
-% % % grid points, as specified by grid_idcs.
-
-% Extract actual and estimated solution at each time step.
-x_act = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
-x_est = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
-tval = solution.timedep.dtime;
-
-% Set options for the plot
-plot_indcs = floor(logspace(0,log(opts.tf/opts.dt)/log(10),40)); 
-%plot_indcs = floor(linspace(1,opts.tf/opts.dt,66)); 
-tplot = tval(plot_indcs);           % Only plot at select times
-colors = {'b','g','m','r','k','c','r','y','o'};     % Colors for the plot
-
-
-% Plot evolution of actual and estimated
-fig1 = figure(1);
-for j=grid_idcs
-    s_pos = num2str(grid.phys(j));  % Position associated to grid index.
-    subplot(1,2,1)
-    hold on
-    plot(tplot,x_act(j,plot_indcs),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}(s=',s_pos,')$']);
-    plot(tplot,x_est(j,plot_indcs),[colors{j},'o--'],'LineWidth',1.5,'DisplayName',['$\mathbf{\hat{x}}(s=',s_pos,')$']);
-    hold off
-    
-    subplot(1,2,2)
-    hold on
-    loglog(tplot,(x_act(j,plot_indcs)-x_est(j,plot_indcs)),[colors{j},'o-'],'LineWidth',1.5,'DisplayName',['$\mathbf{e}(s=',s_pos,')$']);
-    hold off
-end
-
-% Clean up the figure
-ax1 = subplot(1,2,1);   ax1.XScale = 'log';     ax1.XTickLabels = {'0.001';'0.01';'0.1';'1'};
-lgd1 = legend('Interpreter','latex');                lgd1.FontSize = 10.5;
-lgd1.Location = 'northwest';
-xlabel('$t$','FontSize',15,'Interpreter','latex');  ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
-title('PDE state value $\mathbf{x}(t)$ and estimate $\mathbf{\hat{x}}(t)$','Interpreter','latex','FontSize',15);
-ax2 = subplot(1,2,2);   ax2.XScale = 'log';     ax2.XTickLabels = {'0.001';'0.01';'0.1';'1'};
-lgd2 = legend('Interpreter','latex');                lgd2.FontSize = 10.5;
-xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$\mathbf{e}$','FontSize',15,'Interpreter','latex');
-title('Error $\mathbf{e}=\mathbf{\hat{x}}(t)-\mathbf{x}(t)$','Interpreter','latex','FontSize',15);
-fig1.Position = [200 150 1000 450];
-
-end
+% % Change titles of plots
+fig3 = figure(3);
+fig3.Children(5).String = 'True ($x_1(t,s)$) and estimated ($x_2(t,s)$) PDE state evolution';
+fig2 = figure(1);     ax = fig2.CurrentAxes;
+title(ax,'True ($z_1(t)$) and estimated ($z_2(t)$) regulated output evolution','Interpreter','latex','FontSize',15);

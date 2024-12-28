@@ -34,8 +34,6 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 %   n(2): dimension of L2[x] part
 %   n(3): dimension of L2[y] part
 %   n(4): dimension of L2[x,y] part
-%
-%   I = [l u] interval of integration (a=I(1,1), b=I(1,2), c=I(2,1), d=I(2,2))
 %   
 %   d: structure with fields dx, dy, d2, providing the maximal degrees of
 %      the different variables in each of the monomials. In particular:
@@ -120,7 +118,8 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 09_28_2021
-% 04/14/2022, DJ: Update to account for new degree data format
+% DJ 04/14/2022: Update to account for new degree data forma
+% DJ, 12/15/2024: Bugfix in case no degrees are specified;
 
 % % % Set-up % % %
 
@@ -135,165 +134,44 @@ if any(size(I)~=[2,2])
 end
 
 % Initialize default degrees
-use_monomials = 0;
+use_monomials = 0;      % assume monomial degrees rather than actual monomials are specified
 dx = {1;[1;1;1];[1;1;1]};
 dy = {1,[1,1,1],[1,1,1]};
-d2 = {[0,1;1,2],          [0,1,1,1;1,1,1,2], [0,1,1,1;1,1,1,2];
-      [0,1,1,1;1,1,1,2]', ones(4,4),         ones(4,4);
-      [0,1,1,1;1,1,1,2]', ones(4,4),         ones(4,4)};
+d2 = {[0,1;1,2],          [0,1,1,1;1,2,2,2], [0,1,1,1;1,2,2,2];
+      [0,1,1,1;1,2,2,2]', [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2], [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2];
+      [0,1,1,1;1,2,2,2]', [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2], [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2]};
+
+% Initialize default exclude options
+is_sep = ones(1,6);    % Use fully separable operator by default
+% Exclude only single integrals along 2D states by default.
+excludeL = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
+% Do not use psatz option by default
+psatz = 0;
+center_monomials = 0;
+
 % Extract the input arguments
 switch nargin
     case 1
         error('Not enough inputs!')
     case 2
         fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
-        use_monomials = 0;
-        options.psatz = 0;
-        % Exclude only single integrals along 2D states by default.
-        options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
-        options.diag = 0;
-        % Use only full integral operators (no partial integrals) by
-        % default
-        options.sep = ones(1,6);
-        options.center_monomials = 0;
-    case 3
-        if isnumeric(d) && all(size(d)==1)
-            dval = d;   d = struct();
-            d.dx = {dval;[dval;dval;dval];[dval;dval;dval]};       
-            d.dy = {dval,[dval,dval,dval],[dval,dval,dval]};
-        elseif isfield(d,'Zx') && isfield(d,'Zy') && isfield(d,'Z2')
-            d.use_monomials = 1;
-            d.dx = d.Zx;
-            d.dy = d.Zy;
-            d.d2 = d.Z2;
-        elseif isfield(d,'Zx') && (isfield(d,'dy') || isfield(d,'d2')) || ...
-                isfield(d,'Zy') && (isfield(d,'dx') || isfield(d,'d2')) || ...
-                 isfield(d,'Z2') && (isfield(d,'dx') || isfield(d,'dy'))
-            error('Specifying both monomials and maximal degrees is currently not supported')
-        end
-        if (~isfield(d,'use_monomials') || ~d.use_monomials) ...
-                && ~isfield(d,'dx') && ~isfield(d,'dy') && ~isfield(d,'d2')
-            fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
-        elseif isfield(d,'use_monomials')
-            use_monomials = d.use_monomials;
-            dx = d.dx;
-            dy = d.dy;
-            d2 = d.d2;
-        else
-            use_monomials = 0;
-            if isfield(d,'dx')
-                dx = d.dx;
-            elseif isfield(d,'dy')
-                dy = d.dy;
-                dx = dy;
-            else
-                d2 = d.d2;
-                dx = cell(3,1);
-                dx{1} = d2{1,1}(2,1);  dx{2} = d2{2,1}(2:4,1);  dx{3} = d2{3,1}(2:4,1);
-            end
-            if isfield(d,'dy')
-                dy = d.dy;
-            elseif isfield(d,'dx')
-                dy = dx;
-            else
-                d2 = d.d2;
-                dy = cell(1,3);
-                dy{1} = d2{1,1}(1,2);  dy{2} = d2{1,2}(1,2:4);  dy{3} = d2{1,3}(1,2:4);
-            end
-            if isfield(d,'d2')
-                d2 = d.d2;
-            else
-                d2 = {[0,dy{1}; dx{1},dx{1}+dy{1}],...
-                      [0,dy{2}(1:3); dx{1},dx{1}+dy{2}(1:3)],...
-                      [0,dy{3}(1:3); dx{1},dx{1}+dy{3}(1:3)];...
-                      [0,dy{1}; dx{2}((1:3)'),dy{1}+dx{2}((1:3)')],...
-                      [0,dy{2}(1:3);dx{2}((1:3)'),dx{2}((1:3)')+dy{2}(1:3)],...
-                      [0,dy{3}(1:3);dx{2}((1:3)'),dx{2}((1:3)')+dy{3}(1:3)];...
-                      [0,dy{1}; dx{3}((1:3)'),dy{1}+dx{3}((1:3)')],...
-                      [0,dy{2}(1:3);dx{3}((1:3)'),dx{3}((1:3)')+dy{2}(1:3)],...
-                      [0,dy{3}(1:3);dx{3}((1:3)'),dx{3}((1:3)')+dy{3}(1:3)]};
-            end
-        end
-        options.psatz = 0;
-        % Exclude only single integrals along 2D states by default.
-        options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
-        options.diag = 0;
-        % Use only full integral operators (no partial integrals) by
-        % default
-        options.sep = ones(1,6);
-        options.sym_xy = 0;
-        options.center_monomials = 0;
     case 4
-        if isfield(d,'Zx') && isfield(d,'Zy') && isfield(d,'Z2')
-            d.use_monomials = 1;
-            d.dx = d.Zx;
-            d.dy = d.Zy;
-            d.d2 = d.Z2;
-        elseif isfield(d,'Zx') && (isfield(d,'dy') || isfield(d,'d2')) || ...
-                isfield(d,'Zy') && (isfield(d,'dx') || isfield(d,'d2')) || ...
-                 isfield(d,'Z2') && (isfield(d,'dx') || isfield(d,'dy'))
-            error('Specifying both monomials and maximal degrees is currently not supported')
+        if isfield(options,'psatz')
+            psatz = abs(options.psatz);
         end
-        if (~isfield(d,'use_monomials') || ~d.use_monomials) && (~isfield(options,'use_monomials') || ~options.use_monomials) ...
-                && ~isfield(d,'dx') && ~isfield(d,'dy') && ~isfield(d,'d2')
-            fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
-        elseif isfield(d,'use_monomials')
-            use_monomials = d.use_monomials;
-            dx = d.dx;
-            dy = d.dy;
-            d2 = d.d2;
-        else
-            if isfield(d,'dx')
-                dx = d.dx;
-            elseif isfield(d,'dy')
-                dy = d.dy;
-                dx = dy;
-            else
-                d2 = d.d2;
-                dx = cell(3,1);
-                dx{1} = d2{1,1}(2,1);  dx{2} = d2{2,1}(2:4,1);  dx{3} = d2{3,1}(2:4,1);
-            end
-            if isfield(d,'dy')
-                dy = d.dy;
-            elseif isfield(d,'dx')
-                dy = dx;
-            else
-                d2 = d.d2;
-                dy = cell(1,3);
-                dy{1} = d2{1,1}(1,2);  dy{2} = d2{1,2}(1,2:4);  dy{3} = d2{1,3}(1,2:4);
-            end
-            if isfield(d,'d2')
-                d2 = d.d2;
-            else
-                d2 = {[0,dy{1}; dx{1},dx{1}+dy{1}],...
-                      [0,dy{2}(1:3); dx{1},dx{1}+dy{2}(1:3)],...
-                      [0,dy{3}(1:3); dx{1},dx{1}+dy{3}(1:3)];...
-                      [0,dy{1}; dx{2}((1:3)'),dy{1}+dx{2}((1:3)')],...
-                      [0,dy{2}(1:3);dx{2}((1:3)'),dx{2}((1:3)')+dy{2}(1:3)],...
-                      [0,dy{3}(1:3);dx{2}((1:3)'),dx{2}((1:3)')+dy{3}(1:3)];...
-                      [0,dy{1}; dx{3}((1:3)'),dy{1}+dx{3}((1:3)')],...
-                      [0,dy{2}(1:3);dx{3}((1:3)'),dx{3}((1:3)')+dy{2}(1:3)],...
-                      [0,dy{3}(1:3);dx{3}((1:3)'),dx{3}((1:3)')+dy{3}(1:3)]};
-            end
-        end
-        if ~isfield(options,'psatz')
-            options.psatz=0;
-        end
-        if ~isfield(options,'exclude')
+        if isfield(options,'exclude')
             % Exclude only single integrals along 2D states by default.
-            options.exclude = [0, 0,0,0, 0,0,0, 0,1,1,1,1,0,0,0,0];
+            excludeL = options.exclude;
         end
         if isfield(options,'diag') && options.diag==1
             fprintf(2,'Warning: ''diag'' option is not supported for 2D PDEs, ignoring this input.'); 
         end
         options.diag=0;
-        if ~isfield(options,'sep')
-            % Use only full integral operators (no partial integrals) by
-            % default
-            options.sep = ones(1,6);
+        if isfield(options,'sep')
+            is_sep = options.sep;
         end
-        if ~isfield(options,'center_monomials')
-            options.center_monomials = 0;
+        if isfield(options,'center_monomials')
+            center_monomials = options.center_monomials;
         end
 end
 
@@ -330,16 +208,82 @@ if all(n==0)
 end
 
 % % Next, check the monomial degrees
+if nargin>=3
+if isnumeric(d) && all(size(d)==1)
+    % Only 1 degree is specified, use this degree for all monomials.
+    dval = d;
+    dx = {dval;[dval;dval;dval];[dval;dval;dval]};       
+    dy = {dval,[dval,dval,dval],[dval,dval,dval]};
+    d2 = {dval*[0,1;1,2], dval*[0,1,1,1;1,1,1,2], dval*[0,1,1,1;1,1,1,2];
+          dval*[0,1,1,1;1,1,1,2]', dval*ones(4,4), dval*ones(4,4);
+          dval*[0,1,1,1;1,1,1,2]', dval*ones(4,4), dval*ones(4,4)};
+elseif isa(d,'cell') && numel(d)==3
+    % Degree is specified in 1D format.
+    % --> fill in the gaps as per 1D approach
+    if length(d(:))==1
+        d{2}=[d{1},d{1},2*d{1}];
+        d{3}=d{2};
+    else
+        if length(d{2})==1
+            d{2} = d{2}*ones(1,3);
+        elseif length(d{2})==2
+            d{2}(3) = max(d{2});
+        end
+        if numel(d)==2
+            d{3}=d{2};
+        else
+            if length(d{3})==1
+                d{3} = d{3}*ones(1,3);
+            elseif length(d{3})==2
+                d{3}(3) = max(d{3});
+            end
+        end
+    end
+    % Use specified 1D degrees along both variables.
+    dx = d';        dy = d';
+    d2{1,1} = [0,d{1};d{1},2*d{1}];
+    d2{1,2} = [0,reshape(d{2},1,[]);d{1},d{1}+reshape(d{2},1,[])];
+    d2{1,3} = d2{1,2};
+    d2{2,1} = d2{1,2}';
+    d2{3,1} = d2{1,3}';
+    d2{2,2} = [0, reshape(d{2},1,[]); reshape(d{2},[],1), reshape(d{2},1,[])+reshape(d{2},[],1)];
+elseif isa(d,'struct')
+    if isa(d,'struct') && isfield(d,'Zx') && isfield(d,'Zy') && isfield(d,'Z2')
+        % Monomials are specified directly rather than through degrees.
+        use_monomials = 1;
+        dx = d.Zx;
+        dy = d.Zy;
+        d2 = d.Z2;
+    elseif isfield(d,'Zx') && (isfield(d,'dy') || isfield(d,'d2')) || ...
+            isfield(d,'Zy') && (isfield(d,'dx') || isfield(d,'d2')) || ...
+             isfield(d,'Z2') && (isfield(d,'dx') || isfield(d,'dy'))
+        error('Specifying both monomials and maximal degrees is currently not supported')
+    elseif (~isfield(d,'use_monomials') || ~d.use_monomials) ...
+        && ~isfield(d,'dx') && ~isfield(d,'dy') && ~isfield(d,'d2')
+        fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
+    else
+        if isfield(d,'use_monomials')
+            use_monomials = d.use_monomials;
+        end
+        if ~isfield(d,'dx') || ~isfield(d,'dy') || ~isfield(d,'d2')
+            error("Degrees for 2D positive operator should be specified as struct with fields 'dx', 'dy', and 'd2'. Call 'help posplivar_2d' for more details.")
+        end
+        dx = d.dx;
+        dy = d.dy;
+        d2 = d.d2;
+    end
+end
+end
+% At this point, dx, dy and d2 should be cells.
 if ~iscell(dx)
-    error('Input d.dx must be a 3-cell structure')
+    error('Input d.dx must be a 3x1-cell structure')
 end
 if ~iscell(dy)
-    error('Input d.dy must be a 3-cell structure')
+    error('Input d.dy must be a 1x3-cell structure')
 end
 if ~iscell(d2)
     error('Input d.d2 must be a 3x3-cell structure')
 end
-
 % % Check if degrees for x monomials are properly specified
 if ~use_monomials
 if length(dx(:))==1
@@ -367,7 +311,6 @@ else
         dx{3}(3) = ceil(0.5*(dx{3}(1) + dx{3}(2)));
     end
 end
-
 % % Check if degrees for y monomials are properly specified
 if length(dy(:))==1
     dy{2}=[dy{1},dy{1},2*dy{1}];
@@ -394,7 +337,6 @@ else
         dy{3}(3) = ceil(0.5*(dy{3}(1) + dy{3}(2)));
     end
 end
-
 % % Check if degrees for 2D monomials are properly specified
 if ~all(size(d2)==[3,3])
     if numel(d2)==1 && all(size(d2{1,1})>=[2,2])
@@ -458,35 +400,49 @@ end
 
 % % To reduce complexity, allow certain terms to be excluded
 
-% Sorting
-% excludeL is a length-16 binary vector of terms to exclude
-excludeL = options.exclude;
+% Check that list of parameters to exclude is properly specified.
+excludeL = excludeL(:)';
+if numel(excludeL)==4
+    % Parameters to exclude are specified in 1D format
+    % --> augment to 2D;
+    excludeL = [excludeL(1),...
+                excludeL(2:4),...
+                excludeL(2:4),...
+                reshape((excludeL').*excludeL,1,[])];
+elseif numel(excludeL)~=16
+    error('For 2D operator, options ''exclude'' should be specified as 1x16 array of binary values.')
+end
 
-
-
+% Check that option to enforce separable operator is properly specified.
+if numel(is_sep)==1
+    % Assume only full integral operators are used.
+    is_sep = is_sep*ones(1,6);
+elseif numel(is_sep)~=6
+    error('For 2D operator, options ''sep'' should be specified as 1x6 array of binary values.')
+end
 % In separable case 1, set Ti3 = Ti4 and Zxa=Zxb (so that Rxx{2}=Rxx{3})
-if options.sep(1)==1 
+if is_sep(1)==1 
     excludeL(4) = 1;
 end
 % In separable case 2, set Ti6 = Ti7 and Zya=Zyb (so that Ryy{2}=Ryy{3})
-if options.sep(2)==1 
+if is_sep(2)==1 
     excludeL(7) = 1;
 end
 % In separable case 3, set Ti9 = Ti10 and Z2ao=Z2bo (so that R22{2,1}=R22{3,1})
-if options.sep(3)==1 
+if is_sep(3)==1 
     excludeL(10) = 1;
 end
 % In separable case 4, set Ti11 = Ti12 and Z2oa=Z2ob (so that R22{1,2}=R22{1,3})
-if options.sep(4)==1 
+if is_sep(4)==1 
     excludeL(12) = 1;
 end
 % In separable case 5, set Ti13 = Ti14 and Z2aa=Z2ba, and Ti15 = Ti14 and Z2ab=Z2bb  (so that R22{2,2}=R22{3,2} and R22{2,3}=R22{3,3})
 % In separable case 6, set Ti13 = Ti15 and Z2aa=Z2ab, and Ti14 = Ti16 and Z2ba=Z2bb  (so that R22{2,2}=R22{2,3} and R22{3,2}=R22{3,3})
-if options.sep(5)==1 && options.sep(6) 
+if is_sep(5)==1 && is_sep(6) 
     excludeL(14:16) = 1;
-elseif options.sep(5)==1
+elseif is_sep(5)==1
     excludeL([14,16]) = 1;
-elseif options.sep(6)==1
+elseif is_sep(6)==1
     excludeL([15,16]) = 1;
 end
 
@@ -507,7 +463,6 @@ if all(excludeL)
     error('You''re creating an empty dopvar! Please change options.exclude and/or options.sep and try again.')
 end
 
-center_monomials = options.center_monomials;
 %center_monomials = 0;
 if use_monomials && center_monomials
     warning(['Centering monomials that are provided by the user is not recommended. '...
@@ -534,8 +489,6 @@ rr2 = polynomial(1,1,{'rr2'},[1 1]);
 rr = [rr1;rr2];
 
 % Define the multiplier function to be used later
-
-psatz = abs(options.psatz);
 if psatz==0
     gss=polynomial(1);
 elseif psatz==1
@@ -923,9 +876,9 @@ if includeL(1)
     if includeL(2)
         Pop.R0x = Pop.R0x + gsi*subs(N{ij(1),ij(2)},tt1,ss1);
     end
-    if includeL(3) && ~options.sep(1)==1
+    if includeL(3) && ~is_sep(1)==1
         Pop.R0x = Pop.R0x + int_simple(gri*subs(N{ij(1),ij(3)},tt1,ss1),rr1,ss1,I(1,2));
-    elseif includeL(3) && options.sep(1)==1
+    elseif includeL(3) && is_sep(1)==1
         Pop.R0x = Pop.R0x + int_simple(gri*subs(N{ij(1),ij(3)},tt1,ss1),rr1,I(1,1),I(1,2));
     end
     if includeL(4)
@@ -935,9 +888,9 @@ if includeL(1)
     if includeL(5)
         Pop.R0y = Pop.R0y + gis*subs(N{ij(1),ij(5)},tt2,ss2);
     end
-    if includeL(6) && ~options.sep(2)==1
+    if includeL(6) && ~is_sep(2)==1
         Pop.R0y = Pop.R0y + int_simple(gir*subs(N{ij(1),ij(6)},tt2,ss2),rr2,ss2,I(2,2));
-    elseif includeL(6) && options.sep(2)==1
+    elseif includeL(6) && is_sep(2)==1
         Pop.R0y = Pop.R0y + int_simple(gir*subs(N{ij(1),ij(6)},tt2,ss2),rr2,I(2,1),I(2,2));
     end
     if includeL(7)
@@ -947,42 +900,42 @@ if includeL(1)
     if includeL(8)
         Pop.R02 = Pop.R02 + gss*subs(N{ij(1),ij(8)},var2,var1);
     end
-    if includeL(9) && ~options.sep(3)==1
+    if includeL(9) && ~is_sep(3)==1
         Pop.R02 = Pop.R02 + int_simple(grs*subs(N{ij(1),ij(9)},var2,var1),rr1,ss1,I(1,2));
-    elseif includeL(9) && options.sep(3)==1
+    elseif includeL(9) && is_sep(3)==1
         Pop.R02 = Pop.R02 + int_simple(grs*subs(N{ij(1),ij(9)},var2,var1),rr1,I(1,1),I(1,2));
     end
     if includeL(10)
         Pop.R02 = Pop.R02 + int_simple(grs*subs(N{ij(1),ij(10)},var2,var1),rr1,I(1,1),ss1);
     end
-    if includeL(11) && ~options.sep(4)==1
+    if includeL(11) && ~is_sep(4)==1
         Pop.R02 = Pop.R02 + int_simple(gsr*subs(N{ij(1),ij(11)},var2,var1),rr2,ss2,I(2,2));
-    elseif includeL(11) && options.sep(4)==1
+    elseif includeL(11) && is_sep(4)==1
         Pop.R02 = Pop.R02 + int_simple(gsr*subs(N{ij(1),ij(11)},var2,var1),rr2,I(2,1),I(2,2));
     end
     if includeL(12)
         Pop.R02 = Pop.R02 + int_simple(gsr*subs(N{ij(1),ij(12)},var2,var1),rr2,I(2,1),ss2);
     end
-    if includeL(13) && ~options.sep(5)==1 && ~options.sep(6)
+    if includeL(13) && ~is_sep(5)==1 && ~is_sep(6)
         Pop.R02 = Pop.R02 + int_simple(int_simple(grr*subs(N{ij(1),ij(13)},var2,var1),rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         Pop.R02 = Pop.R02 + int_simple(int_simple(grr*subs(N{ij(1),ij(13)},var2,var1),rr1,I(1,1),I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         Pop.R02 = Pop.R02 + int_simple(int_simple(grr*subs(N{ij(1),ij(13)},var2,var1),rr1,ss1,I(1,2)),rr2,I(2,1),I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.R02 = Pop.R02 + int_simple(int_simple(grr*subs(N{ij(1),ij(13)},var2,var1),rr1,I(1,1),I(1,2)),rr2,I(2,1),I(2,2));
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.R02 = Pop.R02 + int_simple(int_simple(grr*subs(N{ij(1),ij(14)},var2,var1),rr1,I(1,1),ss1),rr2,ss2,I(2,2));
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         Pop.R02 = Pop.R02 + int_simple(int_simple(grr*subs(N{ij(1),ij(14)},var2,var1),rr1,I(1,1),ss1),rr2,I(2,1),I(2,2));
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.R02 = Pop.R02 + int_simple(int_simple(grr*subs(N{ij(1),ij(15)},var2,var1),rr1,ss1,I(1,2)),rr2,I(2,1),ss2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         Pop.R02 = Pop.R02 + int_simple(int_simple(grr*subs(N{ij(1),ij(15)},var2,var1),rr1,I(1,1),I(1,2)),rr2,I(2,1),ss2);
     end
@@ -997,9 +950,9 @@ end
 % % Build Rxx, Rxy and Rx2
 if includeL(2)
     Pop.Rxx{1} = gsi * subs(N{ij(2),ij(2)},tt1,ss1); 
-    if includeL(3) && ~options.sep(1)==1
+    if includeL(3) && ~is_sep(1)==1
         Pop.Rxx{2} = Pop.Rxx{2} + gsi * subs(N{ij(2),ij(3)},rr1,ss1); 
-    elseif includeL(3) && options.sep(1)==1
+    elseif includeL(3) && is_sep(1)==1
         Pop.Rxx{2} = Pop.Rxx{2} + gsi * subs(N{ij(2),ij(3)},rr1,ss1) + gti * subs(N{ij(3),ij(2)},rr1,tt1); 
     end
     if includeL(4)
@@ -1009,9 +962,9 @@ if includeL(2)
     if includeL(5)
         Pop.Rxy = Pop.Rxy + gss * subs(N{ij(2),ij(5)},tt2,ss2);
     end
-    if includeL(6) && ~options.sep(2)==1
+    if includeL(6) && ~is_sep(2)==1
         Pop.Rxy = Pop.Rxy + int_simple(gsr * subs(N{ij(2),ij(6)},tt2,ss2),rr2,ss2,I(2,2));
-    elseif includeL(6) && options.sep(2)==1
+    elseif includeL(6) && is_sep(2)==1
         Pop.Rxy = Pop.Rxy + int_simple(gsr * subs(N{ij(2),ij(6)},tt2,ss2),rr2,I(2,1),I(2,2));
     end
     if includeL(7)
@@ -1021,38 +974,38 @@ if includeL(2)
     if includeL(8)
         Pop.Rx2{1} = Pop.Rx2{1} + gss * subs(N{ij(2),ij(8)},var2,var1);
     end
-    if includeL(11) && ~options.sep(4)==1
+    if includeL(11) && ~is_sep(4)==1
         Pop.Rx2{1} = Pop.Rx2{1} + int_simple(gsr * subs(N{ij(2),ij(11)},var2,var1),rr2,ss2,I(2,2));
-    elseif includeL(11) && options.sep(4)==1
+    elseif includeL(11) && is_sep(4)==1
         Pop.Rx2{1} = Pop.Rx2{1} + int_simple(gsr * subs(N{ij(2),ij(11)},var2,var1),rr2,I(2,1),I(2,2));
     end
     if includeL(12)
         Pop.Rx2{1} = Pop.Rx2{1} + int_simple(gsr * subs(N{ij(2),ij(12)},var2,var1),rr2,I(2,1),ss2);
     end
     
-    if includeL(9) && ~options.sep(3)
+    if includeL(9) && ~is_sep(3)
         Pop.Rx2{2} = Pop.Rx2{2} + gss * subs(N{ij(2),ij(9)},[rr1;tt2],var1);
-    elseif includeL(9) && options.sep(3)
+    elseif includeL(9) && is_sep(3)
         %
         Pop.Rx2{2} = Pop.Rx2{2} + gss * subs(N{ij(2),ij(9)},[rr1;tt2],var1);
         Pop.Rx2{3} = Pop.Rx2{3} + gss * subs(N{ij(2),ij(9)},[rr1;tt2],var1);
     end
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gsr * subs(N{ij(2),ij(13)},[rr1;tt2],var1),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gsr * subs(N{ij(2),ij(13)},[rr1;tt2],var1),rr2,ss2,I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gsr * subs(N{ij(2),ij(13)},[rr1;tt2],var1),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gsr * subs(N{ij(2),ij(13)},[rr1;tt2],var1),rr2,I(2,1),I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gsr * subs(N{ij(2),ij(13)},[rr1;tt2],var1),rr2,I(2,1),I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gsr * subs(N{ij(2),ij(13)},[rr1;tt2],var1),rr2,I(2,1),I(2,2));
     end
-    if includeL(15) && ~options.sep(6)
+    if includeL(15) && ~is_sep(6)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gsr * subs(N{ij(2),ij(15)},[rr1;tt2],var1),rr2,I(2,1),ss2);
-    elseif includeL(15) && options.sep(6)
+    elseif includeL(15) && is_sep(6)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gsr * subs(N{ij(2),ij(15)},[rr1;tt2],var1),rr2,I(2,1),ss2);
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gsr * subs(N{ij(2),ij(15)},[rr1;tt2],var1),rr2,I(2,1),ss2);
     end
@@ -1060,9 +1013,9 @@ if includeL(2)
     if includeL(10)
         Pop.Rx2{3} = Pop.Rx2{3} + gss * subs(N{ij(2),ij(10)},[rr1;tt2],var1);
     end
-    if includeL(14) && ~options.sep(5)==1
+    if includeL(14) && ~is_sep(5)==1
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gsr * subs(N{ij(2),ij(14)},[rr1;tt2],var1),rr2,ss2,I(2,2));
-    elseif includeL(14) && options.sep(5)==1
+    elseif includeL(14) && is_sep(5)==1
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gsr * subs(N{ij(2),ij(14)},[rr1;tt2],var1),rr2,I(2,1),I(2,2));
     end
     if includeL(16)
@@ -1070,7 +1023,7 @@ if includeL(2)
     end
 end
 
-if includeL(3) && ~options.sep(1)==1
+if includeL(3) && ~is_sep(1)==1
     Pop.Rxx{2} = Pop.Rxx{2} + int_simple(gri * N{ij(3),ij(3)},rr1,ss1,I(1,2));
     if includeL(4)
         Pop.Rxx{2} = Pop.Rxx{2} + int_simple(gri * N{ij(4),ij(3)},rr1,tt1,ss1);
@@ -1079,9 +1032,9 @@ if includeL(3) && ~options.sep(1)==1
     if includeL(5)
         Pop.Rxy = Pop.Rxy + int_simple(grs * subs(N{ij(3),ij(5)},tt2,ss2),rr1,ss1,I(1,2));
     end
-    if includeL(6) && ~options.sep(2)==1
+    if includeL(6) && ~is_sep(2)==1
         Pop.Rxy = Pop.Rxy + int_simple(int_simple(grr * subs(N{ij(3),ij(6)},tt2,ss2),rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(6) && options.sep(2)==1
+    elseif includeL(6) && is_sep(2)==1
         Pop.Rxy = Pop.Rxy + int_simple(int_simple(grr * subs(N{ij(3),ij(6)},tt2,ss2),rr1,ss1,I(1,2)),rr2,I(2,1),I(2,2));
     end
     if includeL(7)
@@ -1091,45 +1044,45 @@ if includeL(3) && ~options.sep(1)==1
     if includeL(8)
         Pop.Rx2{3} = Pop.Rx2{3} + gts * subs(N{ij(3),ij(8)},[rr1;tt2],[tt1;ss2]);
     end
-    if includeL(11) && ~options.sep(4)==1
+    if includeL(11) && ~is_sep(4)==1
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gtr * subs(N{ij(3),ij(11)},[rr1;tt2],[tt1;ss2]),rr2,ss2,I(2,2));
-    elseif includeL(11) && options.sep(4)==1
+    elseif includeL(11) && is_sep(4)==1
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gtr * subs(N{ij(3),ij(11)},[rr1;tt2],[tt1;ss2]),rr2,I(2,1),I(2,2));
     end
     if includeL(12)
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gtr * subs(N{ij(3),ij(12)},[rr1;tt2],[tt1;ss2]),rr2,I(2,1),ss2);
     end
     
-    if includeL(9) && ~options.sep(3)==1
+    if includeL(9) && ~is_sep(3)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,ss1,I(1,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,tt1,I(1,2));
-    elseif includeL(9) && options.sep(3)==1
+    elseif includeL(9) && is_sep(3)==1
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,ss1,I(1,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,ss1,I(1,2));
     end
-    if includeL(13) && ~options.sep(5)==1 && ~options.sep(6)
+    if includeL(13) && ~is_sep(5)==1 && ~is_sep(6)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,tt1,I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,ss1,I(1,2)),rr2,I(2,1),I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,tt1,I(1,2)),rr2,I(2,1),I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,ss1,I(1,2)),rr2,I(2,1),I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,ss1,I(1,2)),rr2,I(2,1),I(2,2));
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(15)},tt2,ss2),rr1,ss1,I(1,2)),rr2,I(2,1),ss2);
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(15)},tt2,ss2),rr1,tt1,I(1,2)),rr2,I(2,1),ss2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(15)},tt2,ss2),rr1,ss1,I(1,2)),rr2,I(2,1),ss2);
@@ -1139,23 +1092,23 @@ if includeL(3) && ~options.sep(1)==1
     if includeL(10)
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(3),ij(10)},tt2,ss2),rr1,ss1,tt1);
     end
-    if includeL(14) && ~options.sep(6)==1
+    if includeL(14) && ~is_sep(6)==1
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(14)},tt2,ss2),rr1,ss1,tt1),rr2,ss2,I(2,2));
-    elseif includeL(14) && options.sep(6)==1
+    elseif includeL(14) && is_sep(6)==1
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(14)},tt2,ss2),rr1,ss1,tt1),rr2,I(2,1),I(2,2));
     end
     if includeL(16)
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(16)},tt2,ss2),rr1,ss1,tt1),rr2,I(2,1),ss2);
     end       
     
-elseif includeL(3) && options.sep(1)==1
+elseif includeL(3) && is_sep(1)==1
     Pop.Rxx{2} = Pop.Rxx{2} + int_simple(gri * N{ij(3),ij(3)},rr1,I(1,1),I(1,2));
     if includeL(5)
         Pop.Rxy = Pop.Rxy + int_simple(grs * subs(N{ij(3),ij(5)},tt2,ss2),rr1,I(1,1),I(1,2));
     end
-    if includeL(6) && ~options.sep(2)==1
+    if includeL(6) && ~is_sep(2)==1
         Pop.Rxy = Pop.Rxy + int_simple(int_simple(grr * subs(N{ij(3),ij(6)},tt2,ss2),rr1,I(1,1),I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(6) && options.sep(2)==1
+    elseif includeL(6) && is_sep(2)==1
         Pop.Rxy = Pop.Rxy + int_simple(int_simple(grr * subs(N{ij(3),ij(6)},tt2,ss2),rr1,I(1,1),I(1,2)),rr2,I(2,1),I(2,2));
     end
     if includeL(7)
@@ -1166,10 +1119,10 @@ elseif includeL(3) && options.sep(1)==1
         Pop.Rx2{3} = Pop.Rx2{3} + gts * subs(N{ij(3),ij(8)},[rr1;tt2],[tt1;ss2]);
         Pop.Rx2{2} = Pop.Rx2{2} + gts * subs(N{ij(3),ij(8)},[rr1;tt2],[tt1;ss2]);
     end
-    if includeL(11) && ~options.sep(4)==1
+    if includeL(11) && ~is_sep(4)==1
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gtr * subs(N{ij(3),ij(11)},[rr1;tt2],[tt1;ss2]),rr2,ss2,I(2,2));
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gtr * subs(N{ij(3),ij(11)},[rr1;tt2],[tt1;ss2]),rr2,ss2,I(2,2));
-    elseif includeL(11) && options.sep(4)==1
+    elseif includeL(11) && is_sep(4)==1
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(gtr * subs(N{ij(3),ij(11)},[rr1;tt2],[tt1;ss2]),rr2,I(2,1),I(2,2));
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gtr * subs(N{ij(3),ij(11)},[rr1;tt2],[tt1;ss2]),rr2,I(2,1),I(2,2));
     end
@@ -1178,36 +1131,36 @@ elseif includeL(3) && options.sep(1)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gtr * subs(N{ij(3),ij(12)},[rr1;tt2],[tt1;ss2]),rr2,I(2,1),ss2);
     end
     
-    if includeL(9) && ~options.sep(3)
+    if includeL(9) && ~is_sep(3)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,tt1,I(1,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,tt1,I(1,2));
-    elseif includeL(9) && options.sep(3)
+    elseif includeL(9) && is_sep(3)
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,I(1,1),I(1,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(3),ij(9)},tt2,ss2),rr1,I(1,1),I(1,2));
     end
-    if includeL(13) && ~options.sep(5)==1 && ~options.sep(6)==1
+    if includeL(13) && ~is_sep(5)==1 && ~is_sep(6)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,tt1,I(1,2)),rr2,ss2,I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,tt1,I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,I(1,1),I(1,2)),rr2,ss2,I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,I(1,1),I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,tt1,I(1,2)),rr2,I(2,1),I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,tt1,I(1,2)),rr2,I(2,1),I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,I(1,1),I(1,2)),rr2,I(2,1),I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(13)},tt2,ss2),rr1,I(1,1),I(1,2)),rr2,I(2,1),I(2,2));        
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(15)},tt2,ss2),rr1,tt1,I(1,2)),rr2,I(2,1),ss2);
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(15)},tt2,ss2),rr1,tt1,I(1,2)),rr2,I(2,1),ss2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(15)},tt2,ss2),rr1,I(1,1),I(1,2)),rr2,I(2,1),ss2);
@@ -1218,10 +1171,10 @@ elseif includeL(3) && options.sep(1)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(3),ij(10)},tt2,ss2),rr1,I(1,1),tt1);
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(3),ij(10)},tt2,ss2),rr1,I(1,1),tt1);
     end
-    if includeL(14) && ~options.sep(6)==1
+    if includeL(14) && ~is_sep(6)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(14)},tt2,ss2),rr1,I(1,1),tt1),rr2,ss2,I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(14)},tt2,ss2),rr1,I(1,1),tt1),rr2,ss2,I(2,2));
-    elseif includeL(14) && options.sep(6)==1
+    elseif includeL(14) && is_sep(6)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(3),ij(14)},tt2,ss2),rr1,I(1,1),tt1),rr2,I(2,1),I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(3),ij(14)},tt2,ss2),rr1,I(1,1),tt1),rr2,I(2,1),I(2,2));
     end
@@ -1236,9 +1189,9 @@ if includeL(4)
     if includeL(5)
         Pop.Rxy = Pop.Rxy + int_simple(grs * subs(N{ij(4),ij(5)},tt2,ss2),rr1,I(1,1),ss1);
     end
-    if includeL(6) && ~options.sep(2)==1
+    if includeL(6) && ~is_sep(2)==1
         Pop.Rxy = Pop.Rxy + int_simple(int_simple(grr * subs(N{ij(4),ij(6)},tt2,ss2),rr1,I(1,1),ss1),rr2,ss2,I(2,2));
-    elseif includeL(6) && options.sep(2)==1
+    elseif includeL(6) && is_sep(2)==1
         Pop.Rxy = Pop.Rxy + int_simple(int_simple(grr * subs(N{ij(4),ij(6)},tt2,ss2),rr1,I(1,1),ss1),rr2,I(2,1),I(2,2));
     end
     if includeL(7)
@@ -1248,38 +1201,38 @@ if includeL(4)
     if includeL(8)
         Pop.Rx2{2} = Pop.Rx2{2} + gts * subs(N{ij(4),ij(8)},[rr1;tt2],[tt1;ss2]);
     end
-    if includeL(11) && ~options.sep(4)==1
+    if includeL(11) && ~is_sep(4)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gtr * subs(N{ij(4),ij(11)},[rr1;tt2],[tt1;ss2]),rr2,ss2,I(2,2));
-    elseif includeL(11) && options.sep(4)==1
+    elseif includeL(11) && is_sep(4)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gtr * subs(N{ij(4),ij(11)},[rr1;tt2],[tt1;ss2]),rr2,I(2,1),I(2,2));
     end
     if includeL(12)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(gtr * subs(N{ij(4),ij(12)},[rr1;tt2],[tt1;ss2]),rr2,I(2,1),ss2);
     end
     
-    if includeL(9) && ~options.sep(3)
+    if includeL(9) && ~is_sep(3)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(4),ij(9)},tt2,ss2),rr1,tt1,ss1);
-    elseif includeL(9) && options.sep(3)
+    elseif includeL(9) && is_sep(3)
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(4),ij(9)},tt2,ss2),rr1,I(1,1),ss1);
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(4),ij(9)},tt2,ss2),rr1,I(1,1),ss1);
     end
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(4),ij(13)},tt2,ss2),rr1,tt1,ss1),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(4),ij(13)},tt2,ss2),rr1,I(1,1),ss1),rr2,ss2,I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(4),ij(13)},tt2,ss2),rr1,I(1,1),ss1),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(4),ij(13)},tt2,ss2),rr1,tt1,ss1),rr2,I(2,1),I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(4),ij(13)},tt2,ss2),rr1,I(1,1),ss1),rr2,I(2,1),I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(4),ij(13)},tt2,ss2),rr1,I(1,1),ss1),rr2,I(2,1),I(2,2));
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(4),ij(15)},tt2,ss2),rr1,tt1,ss1),rr2,I(2,1),ss2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(4),ij(15)},tt2,ss2),rr1,I(1,1),ss1),rr2,I(2,1),ss2);
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(4),ij(15)},tt2,ss2),rr1,I(1,1),ss1),rr2,I(2,1),ss2);
     end     
@@ -1288,10 +1241,10 @@ if includeL(4)
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(grs * subs(N{ij(4),ij(10)},tt2,ss2),rr1,I(1,1),tt1);
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(grs * subs(N{ij(4),ij(10)},tt2,ss2),rr1,I(1,1),ss1);
     end
-    if includeL(14) && ~options.sep(6)==1
+    if includeL(14) && ~is_sep(6)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(4),ij(14)},tt2,ss2),rr1,I(1,1),tt1),rr2,ss2,I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(4),ij(14)},tt2,ss2),rr1,I(1,1),ss1),rr2,ss2,I(2,2));
-    elseif includeL(14) && options.sep(6)==1
+    elseif includeL(14) && is_sep(6)==1
         Pop.Rx2{2} = Pop.Rx2{2} + int_simple(int_simple(grr * subs(N{ij(4),ij(14)},tt2,ss2),rr1,I(1,1),tt1),rr2,I(2,1),I(2,2));
         Pop.Rx2{3} = Pop.Rx2{3} + int_simple(int_simple(grr * subs(N{ij(4),ij(14)},tt2,ss2),rr1,I(1,1),ss1),rr2,I(2,1),I(2,2));
     end
@@ -1302,7 +1255,7 @@ if includeL(4)
     
 end
 
-if options.sep(1)==1
+if is_sep(1)==1
     Pop.Rxx{3} = Pop.Rxx{2};
 else
     Pop.Rxx{3} = var_swap(Pop.Rxx{2},ss1,tt1).';
@@ -1314,9 +1267,9 @@ end
 % % Build Ryy and Ry2
 if includeL(5)
     Pop.Ryy{1} = gis * subs(N{ij(5),ij(5)},tt2,ss2); 
-    if includeL(6) && ~options.sep(2)==1
+    if includeL(6) && ~is_sep(2)==1
         Pop.Ryy{2} = Pop.Ryy{2} + gis * subs(N{ij(5),ij(6)},rr2,ss2); 
-    elseif includeL(6) && options.sep(1)==1
+    elseif includeL(6) && is_sep(1)==1
         Pop.Ryy{2} = Pop.Ryy{2} + gis * subs(N{ij(5),ij(6)},rr2,ss2) + git * subs(N{ij(6),ij(5)},rr2,tt2); 
     end
     if includeL(7)
@@ -1326,39 +1279,39 @@ if includeL(5)
     if includeL(8)
         Pop.Ry2{1} = Pop.Ry2{1} + gss * subs(N{ij(5),ij(8)},var2,var1); 
     end
-    if includeL(9) && ~options.sep(3)==1
+    if includeL(9) && ~is_sep(3)==1
         Pop.Ry2{1} = Pop.Ry2{1} + int_simple(grs * subs(N{ij(5),ij(9)},var2,var1),rr1,ss1,I(1,2)); 
-    elseif includeL(9) && options.sep(3)==1
+    elseif includeL(9) && is_sep(3)==1
         Pop.Ry2{1} = Pop.Ry2{1} + int_simple(grs * subs(N{ij(5),ij(9)},var2,var1),rr1,I(1,1),I(1,2)); 
     end
     if includeL(10)
         Pop.Ry2{1} = Pop.Ry2{1} + int_simple(grs * subs(N{ij(5),ij(10)},var2,var1),rr1,I(1,1),ss1); 
     end
     
-    if includeL(11) && ~options.sep(4)
+    if includeL(11) && ~is_sep(4)
         %
         Pop.Ry2{2} = Pop.Ry2{2} + gss * subs(N{ij(5),ij(11)},[tt1;rr2],var1);
-    elseif includeL(11) && options.sep(4)
+    elseif includeL(11) && is_sep(4)
         Pop.Ry2{2} = Pop.Ry2{2} + gss * subs(N{ij(5),ij(11)},[tt1;rr2],var1);
         Pop.Ry2{3} = Pop.Ry2{3} + gss * subs(N{ij(5),ij(11)},[tt1;rr2],var1);
     end
-    if includeL(13) && ~options.sep(5)==1 && ~options.sep(6)
+    if includeL(13) && ~is_sep(5)==1 && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grs * subs(N{ij(5),ij(13)},[tt1;rr2],var1),rr1,ss1,I(1,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grs * subs(N{ij(5),ij(13)},[tt1;rr2],var1),rr1,I(1,1),I(1,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grs * subs(N{ij(5),ij(13)},[tt1;rr2],var1),rr1,ss1,I(1,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grs * subs(N{ij(5),ij(13)},[tt1;rr2],var1),rr1,ss1,I(1,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grs * subs(N{ij(5),ij(13)},[tt1;rr2],var1),rr1,I(1,1),I(1,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grs * subs(N{ij(5),ij(13)},[tt1;rr2],var1),rr1,I(1,1),I(1,2));
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grs * subs(N{ij(5),ij(14)},[tt1;rr2],var1),rr1,I(1,1),ss1);
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grs * subs(N{ij(5),ij(14)},[tt1;rr2],var1),rr1,I(1,1),ss1);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grs * subs(N{ij(5),ij(14)},[tt1;rr2],var1),rr1,I(1,1),ss1);
     end
@@ -1366,9 +1319,9 @@ if includeL(5)
     if includeL(12)
         Pop.Ry2{3} = Pop.Ry2{3} + gss * subs(N{ij(5),ij(12)},[tt1;rr2],var1);
     end
-    if includeL(15) && ~options.sep(5)==1
+    if includeL(15) && ~is_sep(5)==1
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grs * subs(N{ij(5),ij(15)},[tt1;rr2],var1),rr1,ss1,I(1,2));
-    elseif includeL(15) && options.sep(5)==1
+    elseif includeL(15) && is_sep(5)==1
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grs * subs(N{ij(5),ij(15)},[tt1;rr2],var1),rr1,I(1,1),I(1,2));
     end
     if includeL(16)
@@ -1376,7 +1329,7 @@ if includeL(5)
     end 
 end
 
-if includeL(6) && ~options.sep(2)==1
+if includeL(6) && ~is_sep(2)==1
     Pop.Ryy{2} = Pop.Ryy{2} + int_simple(gir * N{ij(6),ij(6)},rr2,ss2,I(2,2));
     if includeL(7)
         Pop.Ryy{2} = Pop.Ryy{2} + int_simple(gir * N{ij(7),ij(6)},rr2,tt2,ss2);
@@ -1385,43 +1338,43 @@ if includeL(6) && ~options.sep(2)==1
     if includeL(8)
         Pop.Ry2{3} = Pop.Ry2{3} + gst * subs(N{ij(6),ij(8)},[tt1;rr2],[ss1;tt2]);
     end
-    if includeL(9) && ~options.sep(3)==1
+    if includeL(9) && ~is_sep(3)==1
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grt * subs(N{ij(6),ij(9)},[tt1;rr2],[ss1;tt2]),rr1,ss1,I(1,2));
-    elseif includeL(9) && options.sep(3)==1
+    elseif includeL(9) && is_sep(3)==1
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grt * subs(N{ij(6),ij(9)},[tt1;rr2],[ss1;tt2]),rr1,I(1,1),I(1,2));
     end
     if includeL(10)
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grt * subs(N{ij(6),ij(10)},[tt1;rr2],[ss1;tt2]),rr1,I(1,1),ss1);
     end
     
-    if includeL(11) && ~options.sep(4)==1
+    if includeL(11) && ~is_sep(4)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(gsr * subs(N{ij(6),ij(11)},tt1,ss1),rr2,ss2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(gsr * subs(N{ij(6),ij(11)},tt1,ss1),rr2,tt2,I(2,2));
-    elseif includeL(11) && options.sep(4)==1
+    elseif includeL(11) && is_sep(4)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(gsr * subs(N{ij(6),ij(11)},tt1,ss1),rr2,ss2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(gsr * subs(N{ij(6),ij(11)},tt1,ss1),rr2,ss2,I(2,2));
     end   
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,tt2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,ss2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,tt2,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,ss2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,ss2,I(2,2));
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(14)},tt1,ss1),rr1,I(1,1),ss1),rr2,ss2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(14)},tt1,ss1),rr1,I(1,1),ss1),rr2,tt2,I(2,2));
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(14)},tt1,ss1),rr1,I(1,1),ss1),rr2,ss2,I(2,2));
@@ -1431,26 +1384,26 @@ if includeL(6) && ~options.sep(2)==1
     if includeL(12)
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(gsr * subs(N{ij(6),ij(12)},tt1,ss1),rr2,ss2,tt2);
     end
-    if includeL(15) && ~options.sep(5)==1
+    if includeL(15) && ~is_sep(5)==1
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(15)},tt1,ss1),rr1,ss1,I(1,2)),rr2,ss2,tt2);
-    elseif includeL(15) && options.sep(5)==1
+    elseif includeL(15) && is_sep(5)==1
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(15)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,ss2,tt2);
     end
     if includeL(16)
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(16)},tt1,ss1),rr1,I(1,1),ss1),rr2,ss2,tt2);
     end       
    
-elseif includeL(6) && options.sep(2)==1
+elseif includeL(6) && is_sep(2)==1
     Pop.Ryy{2} = Pop.Ryy{2} + int_simple(gir * N{ij(6),ij(6)},rr2,I(2,1),I(2,2));
     
     if includeL(8)
         Pop.Ry2{2} = Pop.Ry2{2} + gst * subs(N{ij(6),ij(8)},[tt1;rr2],[ss1;tt2]);
         Pop.Ry2{3} = Pop.Ry2{3} + gst * subs(N{ij(6),ij(8)},[tt1;rr2],[ss1;tt2]);
     end
-    if includeL(9) && ~options.sep(3)==1
+    if includeL(9) && ~is_sep(3)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grt * subs(N{ij(6),ij(9)},[tt1;rr2],[ss1;tt2]),rr1,ss1,I(1,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grt * subs(N{ij(6),ij(9)},[tt1;rr2],[ss1;tt2]),rr1,ss1,I(1,2));
-    elseif includeL(9) && options.sep(3)==1
+    elseif includeL(9) && is_sep(3)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grt * subs(N{ij(6),ij(9)},[tt1;rr2],[ss1;tt2]),rr1,I(1,1),I(1,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grt * subs(N{ij(6),ij(9)},[tt1;rr2],[ss1;tt2]),rr1,I(1,1),I(1,2));
     end
@@ -1459,39 +1412,39 @@ elseif includeL(6) && options.sep(2)==1
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(grt * subs(N{ij(6),ij(10)},[tt1;rr2],[ss1;tt2]),rr1,I(1,1),ss1);
     end
     
-    if includeL(11) && ~options.sep(4)
+    if includeL(11) && ~is_sep(4)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(gsr * subs(N{ij(6),ij(11)},tt1,ss1),rr2,tt2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(gsr * subs(N{ij(6),ij(11)},tt1,ss1),rr2,tt2,I(2,2));
-    elseif includeL(11) && options.sep(4)
+    elseif includeL(11) && is_sep(4)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(gsr * subs(N{ij(6),ij(11)},tt1,ss1),rr2,I(2,1),I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(gsr * subs(N{ij(6),ij(11)},tt1,ss1),rr2,I(2,1),I(2,2));
     end  
     
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,tt2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,tt2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,tt2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,tt2,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,I(2,1),I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,I(2,1),I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,I(2,1),I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,I(2,1),I(2,2));
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(14)},tt1,ss1),rr1,I(1,1),ss1),rr2,tt2,I(2,2));
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(14)},tt1,ss1),rr1,I(1,1),ss1),rr2,tt2,I(2,2));
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(14)},tt1,ss1),rr1,I(1,1),ss1),rr2,I(2,1),I(2,2));
@@ -1502,10 +1455,10 @@ elseif includeL(6) && options.sep(2)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(gsr * subs(N{ij(6),ij(12)},tt1,ss1),rr2,I(2,1),tt2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(gsr * subs(N{ij(6),ij(12)},tt1,ss1),rr2,I(2,1),tt2);
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(15)},tt1,ss1),rr1,ss1,I(1,2)),rr2,I(2,1),tt2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(15)},tt1,ss1),rr1,ss1,I(1,2)),rr2,I(2,1),tt2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(6),ij(15)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,I(2,1),tt2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(6),ij(15)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,I(2,1),tt2);
     end
@@ -1521,40 +1474,40 @@ if includeL(7)
     if includeL(8)
         Pop.Ry2{2} = Pop.Ry2{2} + gst * subs(N{ij(7),ij(8)},[tt1;rr2],[ss1;tt2]);
     end
-    if includeL(9) && ~options.sep(3)==1
+    if includeL(9) && ~is_sep(3)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grt * subs(N{ij(7),ij(9)},[tt1;rr2],[ss1;tt2]),rr1,ss1,I(1,2));
-    elseif includeL(9) && options.sep(3)==1
+    elseif includeL(9) && is_sep(3)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grt * subs(N{ij(7),ij(9)},[tt1;rr2],[ss1;tt2]),rr1,I(1,1),I(1,2));
     end
     if includeL(10)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(grt * subs(N{ij(7),ij(10)},[tt1;rr2],[ss1;tt2]),rr1,I(1,1),ss1);
     end
     
-    if includeL(11) && ~options.sep(4)
+    if includeL(11) && ~is_sep(4)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(gsr * subs(N{ij(7),ij(11)},tt1,ss1),rr2,tt2,ss2);
-    elseif includeL(11) && options.sep(4)
+    elseif includeL(11) && is_sep(4)
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(gsr * subs(N{ij(7),ij(11)},tt1,ss1),rr2,I(1,1),ss2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(gsr * subs(N{ij(7),ij(11)},tt1,ss1),rr2,I(1,1),ss2);
     end    
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(7),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,tt2,ss2);
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(7),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,tt2,ss2);
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(7),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,I(2,1),ss2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(7),ij(13)},tt1,ss1),rr1,ss1,I(1,2)),rr2,I(2,1),ss2);
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(7),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,I(2,1),ss2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(7),ij(13)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,I(2,1),ss2);
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(7),ij(14)},tt1,ss1),rr1,I(1,1),ss1),rr2,tt2,ss2);
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         %
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(7),ij(14)},tt1,ss1),rr1,I(1,1),ss1),rr2,I(2,1),ss2);
@@ -1565,10 +1518,10 @@ if includeL(7)
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(gsr * subs(N{ij(7),ij(12)},tt1,ss1),rr2,I(2,1),tt2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(gsr * subs(N{ij(7),ij(12)},tt1,ss1),rr2,I(2,1),ss2);
     end
-    if includeL(15) && ~options.sep(5)==1
+    if includeL(15) && ~is_sep(5)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(7),ij(15)},tt1,ss1),rr1,ss1,I(1,2)),rr2,I(2,1),tt2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(7),ij(15)},tt1,ss1),rr1,ss1,I(1,2)),rr2,I(2,1),ss2);
-    elseif includeL(15) && options.sep(5)==1
+    elseif includeL(15) && is_sep(5)==1
         Pop.Ry2{2} = Pop.Ry2{2} + int_simple(int_simple(grr * subs(N{ij(7),ij(15)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,I(2,1),tt2);
         Pop.Ry2{3} = Pop.Ry2{3} + int_simple(int_simple(grr * subs(N{ij(7),ij(15)},tt1,ss1),rr1,I(1,1),I(1,2)),rr2,I(2,1),ss2);
     end
@@ -1578,7 +1531,7 @@ if includeL(7)
     end        
 end
 
-if options.sep(2)==1
+if is_sep(2)==1
     Pop.Ryy{3} = Pop.Ryy{2};
 else
     Pop.Ryy{3} = var_swap(Pop.Ryy{2},ss2,tt2).';
@@ -1591,47 +1544,47 @@ end
 if includeL(8)
     Pop.R22{1,1} = Pop.R22{1,1} + gss * subs(N{ij(8),ij(8)},var2,var1);
     
-    if includeL(9) && ~options.sep(3)
+    if includeL(9) && ~is_sep(3)
         Pop.R22{2,1} = Pop.R22{2,1} + gss * subs(N{ij(8),ij(9)},[rr1,tt2],var1);
-    elseif includeL(9) && options.sep(3)
+    elseif includeL(9) && is_sep(3)
         Pop.R22{2,1} = Pop.R22{2,1} + gss * subs(N{ij(8),ij(9)},[rr1,tt2],var1) + gts * subs(N{ij(9),ij(8)},[rr1,tt2],[tt1;ss2]);
     end
     if includeL(10)
         Pop.R22{2,1} = Pop.R22{2,1} + gts * subs(N{ij(10),ij(8)},[rr1,tt2],[tt1;ss2]);
     end
     
-    if includeL(11) && ~options.sep(4)
+    if includeL(11) && ~is_sep(4)
         Pop.R22{1,2} = Pop.R22{1,2} + gss * subs(N{ij(8),ij(11)},[tt1,rr2],var1);
-    elseif includeL(11) && options.sep(4)
+    elseif includeL(11) && is_sep(4)
         Pop.R22{1,2} = Pop.R22{1,2} + gss * subs(N{ij(8),ij(11)},[tt1,rr2],var1) + gst * subs(N{ij(11),ij(8)},[tt1,rr2],[ss1;tt2]);
     end
     if includeL(12)
         Pop.R22{1,2} = Pop.R22{1,2} + gst * subs(N{ij(12),ij(8)},[tt1,rr2],[ss1;tt2]);
     end
     
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + gss * subs(N{ij(8),ij(13)},rr,var1);
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + gss * subs(N{ij(8),ij(13)},rr,var1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + gss * subs(N{ij(8),ij(13)},rr,var1);
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + gss * subs(N{ij(8),ij(13)},rr,var1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + gtt * subs(N{ij(13),ij(8)},rr,var2);
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + gss * subs(N{ij(8),ij(13)},rr,var1) + gtt * subs(N{ij(13),ij(8)},rr,var2);
         % % Pop.R22{3,2} = Pop.R22{3,2} + gss * subs(N{ij(8),ij(13)},rr,var1) + gtt * subs(N{ij(13),ij(8)},rr,var2);
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.R22{3,2} = Pop.R22{3,2} + gss * subs(N{ij(8),ij(14)},rr,var1);
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + gtt * subs(N{ij(14),ij(8)},rr,var2);
         % % Pop.R22{3,2} = Pop.R22{3,2} + gss * subs(N{ij(8),ij(14)},rr,var1);
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.R22{3,2} = Pop.R22{3,2} + gtt * subs(N{ij(15),ij(8)},rr,var2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + gtt * subs(N{ij(15),ij(8)},rr,var2);
         % % Pop.R22{3,2} = Pop.R22{3,2} + gtt * subs(N{ij(15),ij(8)},rr,var2);
@@ -1642,15 +1595,15 @@ if includeL(8)
     
 end
 
-if includeL(9) && ~options.sep(3)
+if includeL(9) && ~is_sep(3)
     Pop.R22{2,1} = Pop.R22{2,1} + int_simple(grs * subs(N{ij(9),ij(9)},tt2,ss2),rr1,ss1,I(1,2));
     if includeL(10)
         Pop.R22{2,1} = Pop.R22{2,1} + int_simple(grs * subs(N{ij(10),ij(9)},tt2,ss2),rr1,tt1,ss1);
     end
     
-    if includeL(11) && ~options.sep(4)
+    if includeL(11) && ~is_sep(4)
         Pop.R22{3,2} = Pop.R22{3,2} + gts * subs(N{ij(9),ij(11)},rr,[tt1;ss2]);
-    elseif includeL(11) && options.sep(4)
+    elseif includeL(11) && is_sep(4)
         Pop.R22{2,2} = Pop.R22{2,2} + gst * subs(N{ij(11),ij(9)},rr,[ss1;tt2]);
         Pop.R22{3,2} = Pop.R22{3,2} + gts * subs(N{ij(9),ij(11)},rr,[tt1;ss2]);
     end
@@ -1658,38 +1611,38 @@ if includeL(9) && ~options.sep(3)
         Pop.R22{2,2} = Pop.R22{2,2} + gst * subs(N{ij(12),ij(9)},rr,[ss1;tt2]);
     end
     
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,ss1,I(1,2));
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,tt1,I(1,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,ss1,I(1,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(9),ij(13)},rr2,var21),rr1,var11,I(1,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,ss1,I(1,2))...
                                     + int_simple(grt * subs(N{ij(13),ij(9)},rr2,tt2),rr1,ss1,I(1,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(9),ij(13)},rr2,var21),rr1,var12,I(1,2))...
         % %                             + int(grt * subs(N{ij(13),ij(9)},rr2,var22),rr1,var12,I(1,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,ss1,I(1,2))...
                                     + int_simple(grt * subs(N{ij(13),ij(9)},rr2,tt2),rr1,tt1,I(1,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(9),ij(13)},rr2,var21),rr1,var11,I(1,2))...
         % %                             + int(grt * subs(N{ij(13),ij(9)},rr2,var22),rr1,var12,I(1,2));
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(grs * subs(N{ij(9),ij(14)},rr2,ss2),rr1,ss1,tt1);
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grt * subs(N{ij(14),ij(9)},rr2,tt2),rr1,tt1,ss1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(9),ij(14)},rr2,var21),rr1,var11,var12);
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grt * subs(N{ij(15),ij(9)},rr2,tt2),rr1,ss1,I(1,2));
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(grt * subs(N{ij(15),ij(9)},rr2,tt2),rr1,tt1,I(1,2));
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grt * subs(N{ij(15),ij(9)},rr2,tt2),rr1,tt1,I(1,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grt * subs(N{ij(15),ij(9)},rr2,var22),rr1,var12,I(1,2));
@@ -1698,13 +1651,13 @@ if includeL(9) && ~options.sep(3)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grt * subs(N{ij(16),ij(9)},rr2,tt2),rr1,tt1,ss1);
     end
     
-elseif includeL(9) && options.sep(3)
+elseif includeL(9) && is_sep(3)
     Pop.R22{2,1} = Pop.R22{2,1} + int_simple(grs * subs(N{ij(9),ij(9)},tt2,ss2),rr1,I(1,1),I(1,2));
     
-    if includeL(11) && ~options.sep(4)
+    if includeL(11) && ~is_sep(4)
         Pop.R22{2,2} = Pop.R22{2,2} + gts * subs(N{ij(9),ij(11)},rr,[tt1;ss2]);
         Pop.R22{3,2} = Pop.R22{3,2} + gts * subs(N{ij(9),ij(11)},rr,[tt1;ss2]);
-    elseif includeL(11) && options.sep(4)
+    elseif includeL(11) && is_sep(4)
         Pop.R22{2,2} = Pop.R22{2,2} + gst * subs(N{ij(11),ij(9)},rr,[ss1;tt2]) + gts * subs(N{ij(9),ij(11)},rr,[tt1;ss2]);
         Pop.R22{3,2} = Pop.R22{3,2} + gst * subs(N{ij(11),ij(9)},rr,[ss1;tt2]) + gts * subs(N{ij(9),ij(11)},rr,[tt1;ss2]);
     end
@@ -1713,41 +1666,41 @@ elseif includeL(9) && options.sep(3)
         Pop.R22{3,2} = Pop.R22{3,2} + gst * subs(N{ij(12),ij(9)},rr,[ss1;tt2]);
     end
     
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,tt1,I(1,2));
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,tt1,I(1,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,I(1,1),I(1,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(9),ij(13)},rr2,var21),rr1,I(1,1),I(1,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,tt1,I(1,2))...
                                     + int_simple(grt * subs(N{ij(13),ij(9)},rr2,tt2),rr1,ss1,I(1,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(9),ij(13)},rr2,var21),rr1,var12,I(1,2))...
         % %                             + int(grt * subs(N{ij(13),ij(9)},rr2,var22),rr1,var11,I(1,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(13)},rr2,ss2),rr1,I(1,1),I(1,2))...
                                     + int_simple(grt * subs(N{ij(13),ij(9)},rr2,tt2),rr1,I(1,1),I(1,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(9),ij(13)},rr2,var21),rr1,I(1,1),I(1,2))...
         % %                             + int(grt * subs(N{ij(13),ij(9)},rr2,var22),rr1,I(1,1),I(1,2));
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(14)},rr2,ss2),rr1,I(1,1),tt1);
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(grs * subs(N{ij(9),ij(14)},rr2,ss2),rr1,I(1,1),tt1);
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(9),ij(14)},rr2,ss2),rr1,I(1,1),tt1)...
                                     + int_simple(grt * subs(N{ij(14),ij(9)},rr2,tt2),rr1,I(1,1),ss1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(9),ij(14)},rr2,var21),rr1,I(1,1),var12)...
         % %                             + int(grt * subs(N{ij(14),ij(9)},rr2,var22),rr1,I(1,1),var11);
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grt * subs(N{ij(15),ij(9)},rr2,tt2),rr1,ss1,I(1,2));
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(grt * subs(N{ij(15),ij(9)},rr2,tt2),rr1,ss1,I(1,2));
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grt * subs(N{ij(15),ij(9)},rr2,tt2),rr1,I(1,1),I(1,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grt * subs(N{ij(15),ij(9)},rr2,var22),rr1,I(1,1),I(1,2));
@@ -1762,9 +1715,9 @@ end
 if includeL(10)
     Pop.R22{2,1} = Pop.R22{2,1} + int_simple(grs * subs(N{ij(10),ij(10)},tt2,ss2),rr1,I(1,1),tt1);
     
-    if includeL(11) && ~options.sep(4)
+    if includeL(11) && ~is_sep(4)
         Pop.R22{2,2} = Pop.R22{2,2} + gts * subs(N{ij(10),ij(11)},rr,[tt1;ss2]);
-    elseif includeL(11) && options.sep(4)
+    elseif includeL(11) && is_sep(4)
         Pop.R22{2,2} = Pop.R22{2,2} + gts * subs(N{ij(10),ij(11)},rr,[tt1;ss2]);
         Pop.R22{3,2} = Pop.R22{3,2} + gst * subs(N{ij(11),ij(10)},rr,[ss1;tt2]);
     end
@@ -1772,37 +1725,37 @@ if includeL(10)
         Pop.R22{3,2} = Pop.R22{3,2} + gst * subs(N{ij(12),ij(10)},rr,[ss1;tt2]);
     end
     
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(10),ij(13)},rr2,ss2),rr1,tt1,ss1);
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(10),ij(13)},rr2,ss2),rr1,I(1,1),ss1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(10),ij(13)},rr2,var21),rr1,I(1,1),var11);
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(10),ij(13)},rr2,ss2),rr1,tt1,ss1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grt * subs(N{ij(13),ij(10)},rr2,var22),rr1,var11,var12);
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(10),ij(13)},rr2,ss2),rr1,I(1,1),ss1)...
                                     + int_simple(grt * subs(N{ij(13),ij(10)},rr2,tt2),rr1,I(1,1),tt1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(10),ij(13)},rr2,var21),rr1,I(1,1),var11)...
         % %                             + int(grt * subs(N{ij(13),ij(10)},rr2,var22),rr1,I(1,1),var12);
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(10),ij(14)},rr2,ss2),rr1,I(1,1),tt1);
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(grs * subs(N{ij(10),ij(14)},rr2,ss2),rr1,I(1,1),ss1);
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grs * subs(N{ij(10),ij(14)},rr2,ss2),rr1,I(1,1),tt1)...
                                     + int_simple(grt * subs(N{ij(14),ij(10)},rr2,tt2),rr1,I(1,1),tt1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grs * subs(N{ij(10),ij(14)},rr2,var21),rr1,I(1,1),var11)...
         % %                             + int(grt * subs(N{ij(14),ij(10)},rr2,var22),rr1,I(1,1),var11);
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(grt * subs(N{ij(15),ij(10)},rr2,tt2),rr1,ss1,tt1);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(grt * subs(N{ij(15),ij(10)},rr2,tt2),rr1,I(1,1),tt1);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(grt * subs(N{ij(15),ij(10)},rr2,var22),rr1,I(1,1),var12);
@@ -1814,42 +1767,42 @@ if includeL(10)
     
 end
 
-if includeL(11) && ~options.sep(4)
+if includeL(11) && ~is_sep(4)
     Pop.R22{1,2} = Pop.R22{1,2} + int_simple(gsr * subs(N{ij(11),ij(11)},tt1,ss1),rr2,ss2,I(2,2));
     if includeL(12)
         Pop.R22{1,2} = Pop.R22{1,2} + int_simple(gsr * subs(N{ij(12),ij(11)},tt1,ss1),rr2,tt2,ss2);
     end
     
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(13)},rr1,ss1),rr2,ss2,I(2,2));
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(gtr * subs(N{ij(13),ij(11)},rr1,tt1),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(13)},rr1,ss1),rr2,ss2,I(2,2))...
                                     + int_simple(gtr * subs(N{ij(13),ij(11)},rr1,tt1),rr2,ss2,I(2,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(13),ij(11)},rr1,var12),rr2,var21,I(2,2))...
         % %                             + int(gsr * subs(N{ij(11),ij(13)},rr1,var11),rr2,var21,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(13)},rr1,ss1),rr2,ss2,I(2,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(13),ij(11)},rr1,var12),rr2,var22,I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(13)},rr1,ss1),rr2,ss2,I(2,2))...
                                     + int_simple(gtr * subs(N{ij(13),ij(11)},rr1,tt1),rr2,tt2,I(2,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(13),ij(11)},rr1,var12),rr2,var22,I(2,2))...
         % %                             + int(gsr * subs(N{ij(11),ij(13)},rr1,var11),rr2,var21,I(2,2));
     end
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gtr * subs(N{ij(14),ij(11)},rr1,tt1),rr2,ss2,I(2,2));
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(gsr * subs(N{ij(11),ij(14)},rr1,ss1),rr2,ss2,I(2,2));
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gtr * subs(N{ij(14),ij(11)},rr1,tt1),rr2,tt2,I(2,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gsr * subs(N{ij(11),ij(14)},rr1,var11),rr2,var21,I(2,2));
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(gtr * subs(N{ij(15),ij(11)},rr1,tt1),rr2,tt2,ss2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gtr * subs(N{ij(15),ij(11)},rr1,tt1),rr2,tt2,ss2);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(15),ij(11)},rr1,var12),rr2,var22,var21);
@@ -1858,40 +1811,40 @@ if includeL(11) && ~options.sep(4)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gtr * subs(N{ij(16),ij(11)},rr1,tt1),rr2,tt2,ss2);
     end
     
-elseif includeL(11) && options.sep(4)
+elseif includeL(11) && is_sep(4)
     Pop.R22{1,2} = Pop.R22{1,2} + int_simple(gsr * subs(N{ij(11),ij(11)},tt1,ss1),rr2,I(2,1),I(2,2));
     
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(13)},rr1,ss1),rr2,tt2,I(2,2));
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(gtr * subs(N{ij(13),ij(11)},rr1,tt1),rr2,ss2,I(2,2));
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(13)},rr1,ss1),rr2,tt2,I(2,2))...
                                     + int_simple(gtr * subs(N{ij(13),ij(11)},rr1,tt1),rr2,ss2,I(2,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(13),ij(11)},rr1,var12),rr2,var21,I(2,2))...
         % %                             + int(gsr * subs(N{ij(11),ij(13)},rr1,var11),rr2,var22,I(2,2));
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(13)},rr1,ss1),rr2,I(2,1),I(2,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(13),ij(11)},rr1,var12),rr2,I(2,1),I(2,2));
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(13)},rr1,ss1),rr2,I(2,1),I(2,2))...
                                     + int_simple(gtr * subs(N{ij(13),ij(11)},rr1,tt1),rr2,I(2,1),I(2,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(13),ij(11)},rr1,var12),rr2,I(2,1),I(2,2))...
         % %                             + int(gsr * subs(N{ij(11),ij(13)},rr1,var11),rr2,I(2,1),I(2,2));
     end    
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gtr * subs(N{ij(14),ij(11)},rr1,tt1),rr2,ss2,I(2,2));
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(gsr * subs(N{ij(11),ij(14)},rr1,ss1),rr2,tt2,I(2,2));
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gtr * subs(N{ij(14),ij(11)},rr1,tt1),rr2,I(2,1),I(2,2));
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gsr * subs(N{ij(11),ij(14)},rr1,var11),rr2,I(2,1),I(2,2));
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(15)},rr1,ss1),rr2,I(2,1),tt2);
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(gtr * subs(N{ij(15),ij(11)},rr1,tt1),rr2,I(2,1),ss2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(11),ij(15)},rr1,ss1),rr2,I(2,1),tt2)...
                                     + int_simple(gtr * subs(N{ij(15),ij(11)},rr1,tt1),rr2,I(2,1),ss2);
@@ -1908,34 +1861,34 @@ end
 if includeL(12)
     Pop.R22{1,2} = Pop.R22{1,2} + int_simple(gsr * subs(N{ij(12),ij(12)},tt1,ss1),rr2,I(2,1),tt2);
     
-    if includeL(13) && ~options.sep(5) && ~options.sep(6)
+    if includeL(13) && ~is_sep(5) && ~is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(12),ij(13)},rr1,ss1),rr2,tt2,ss2);
-    elseif includeL(13) && ~options.sep(6)
+    elseif includeL(13) && ~is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(12),ij(13)},rr1,ss1),rr2,tt2,ss2);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gsr * subs(N{ij(12),ij(13)},rr1,var11),rr2,var22,var21);
-    elseif includeL(13) && ~options.sep(5)
+    elseif includeL(13) && ~is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(12),ij(13)},rr1,ss1),rr2,I(2,1),ss2);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(13),ij(12)},rr1,var12),rr2,I(2,1),var22);
-    elseif includeL(13) && options.sep(5) && options.sep(6)
+    elseif includeL(13) && is_sep(5) && is_sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(12),ij(13)},rr1,ss1),rr2,I(2,1),ss2)...
                                     + int_simple(gtr * subs(N{ij(13),ij(12)},rr1,tt1),rr2,I(2,1),tt2);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gtr * subs(N{ij(13),ij(12)},rr1,var12),rr2,I(2,1),var22)...
         % %                             + int(gsr * subs(N{ij(12),ij(13)},rr1,var11),rr2,I(2,1),var21);
     end 
     
-    if includeL(14) && ~options.sep(6)
+    if includeL(14) && ~is_sep(6)
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(gsr * subs(N{ij(12),ij(14)},rr1,ss1),rr2,tt2,ss2);
-    elseif includeL(14) && options.sep(6)
+    elseif includeL(14) && is_sep(6)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gtr * subs(N{ij(14),ij(12)},rr1,tt1),rr2,I(2,1),tt2);
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(gsr * subs(N{ij(12),ij(14)},rr1,var11),rr2,I(2,1),var21);
     end
-    if includeL(15) && ~options.sep(5)
+    if includeL(15) && ~is_sep(5)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(12),ij(15)},rr1,ss1),rr2,I(2,1),tt2);
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(gtr * subs(N{ij(15),ij(12)},rr1,tt1),rr2,I(2,1),tt2);
-    elseif includeL(15) && options.sep(5)
+    elseif includeL(15) && is_sep(5)
         %
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(gsr * subs(N{ij(12),ij(15)},rr1,ss1),rr2,I(2,1),tt2)...
                                     + int_simple(gtr * subs(N{ij(15),ij(12)},rr1,tt1),rr2,I(2,1),tt2);
@@ -1948,7 +1901,7 @@ if includeL(12)
     end    
 end
 
-if includeL(13) && ~options.sep(5) && ~options.sep(6)
+if includeL(13) && ~is_sep(5) && ~is_sep(6)
     Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(13),ij(13)},rr1,ss1,I(1,2)),rr2,ss2,I(2,2));
     Pop.R22{3,2} = Pop.R22{3,2} + int_simple(int_simple(grr * N{ij(13),ij(13)},rr1,tt1,I(1,2)),rr2,ss2,I(2,2));
     
@@ -1964,7 +1917,7 @@ if includeL(13) && ~options.sep(5) && ~options.sep(6)
         Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(16),ij(13)},rr1,tt1,ss1),rr2,tt2,ss2);
     end
     
-elseif includeL(13) && ~options.sep(6)
+elseif includeL(13) && ~is_sep(6)
     %
     Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(13),ij(13)},rr1,I(1,1),I(1,2)),rr2,ss2,I(2,2));
     % % Pop.R22{3,2} = Pop.R22{3,2} + int(int(grr * N{ij(13),ij(13)},rr1,I(1,1),I(1,2)),rr2,var21,I(2,2));
@@ -1975,7 +1928,7 @@ elseif includeL(13) && ~options.sep(6)
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(int(grr * N{ij(15),ij(13)},rr1,I(1,1),I(1,2)),rr2,var22,var21);
     end
     
-elseif includeL(13) && ~options.sep(5)
+elseif includeL(13) && ~is_sep(5)
     %
     Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(13),ij(13)},rr1,ss1,I(1,2)),rr2,I(2,1),I(2,2));
     % % Pop.R22{3,2} = Pop.R22{3,2} + int(int(grr * N{ij(13),ij(13)},rr1,var12,I(1,2)),rr2,I(2,1),I(2,2));
@@ -1986,12 +1939,12 @@ elseif includeL(13) && ~options.sep(5)
         % % Pop.R22{3,2} = Pop.R22{3,2} + int(int(grr * N{ij(13),ij(14)},rr1,var11,var12),rr2,I(2,1),I(2,2));
     end
 
-elseif includeL(13) && options.sep(5) && options.sep(6)
+elseif includeL(13) && is_sep(5) && is_sep(6)
     Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(13),ij(13)},rr1,I(1,1),I(1,2)),rr2,I(2,1),I(2,2));
     % % Pop.R22{3,2} = Pop.R22{3,2} + int(int(grr * N{ij(13),ij(13)},rr1,I(1,1),I(1,2)),rr2,I(2,1),I(2,2));
 end
 
-if includeL(14) && ~options.sep(6)
+if includeL(14) && ~is_sep(6)
     Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(14),ij(14)},rr1,I(1,1),tt1),rr2,ss2,I(2,2));
     Pop.R22{3,2} = Pop.R22{3,2} + int_simple(int_simple(grr * N{ij(14),ij(14)},rr1,I(1,1),ss1),rr2,ss2,I(2,2));
     
@@ -2003,7 +1956,7 @@ if includeL(14) && ~options.sep(6)
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(int_simple(grr * N{ij(16),ij(14)},rr1,I(1,1),ss1),rr2,tt2,ss2);
     end
     
-elseif includeL(14) && options.sep(6)
+elseif includeL(14) && is_sep(6)
     %
     Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(14),ij(14)},rr1,I(1,1),tt1),rr2,I(2,1),I(2,2));
     % % Pop.R22{3,2} = Pop.R22{3,2} + int(int(grr * N{ij(14),ij(14)},rr1,I(1,1),var11),rr2,I(2,1),I(2,2));
@@ -2016,7 +1969,7 @@ elseif includeL(14) && options.sep(6)
     
 end
 
-if includeL(15) && ~options.sep(5)
+if includeL(15) && ~is_sep(5)
     Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(15),ij(15)},rr1,ss1,I(1,2)),rr2,I(2,1),tt2);
     Pop.R22{3,2} = Pop.R22{3,2} + int_simple(int_simple(grr * N{ij(15),ij(15)},rr1,tt1,I(1,2)),rr2,I(2,1),tt2);
     
@@ -2025,7 +1978,7 @@ if includeL(15) && ~options.sep(5)
         Pop.R22{3,2} = Pop.R22{3,2} + int_simple(int_simple(grr * N{ij(15),ij(16)},rr1,ss1,tt1),rr2,I(2,1),tt2);
     end
     
-elseif includeL(15) && options.sep(5)
+elseif includeL(15) && is_sep(5)
     %
     Pop.R22{2,2} = Pop.R22{2,2} + int_simple(int_simple(grr * N{ij(15),ij(15)},rr1,I(1,1),I(1,2)),rr2,I(2,1),tt2);
     % % Pop.R22{3,2} = Pop.R22{3,2} + int(int(grr * N{ij(15),ij(15)},rr1,I(1,1),I(1,2)),rr2,I(2,1),var22);
@@ -2037,25 +1990,25 @@ if includeL(16)
     Pop.R22{3,2} = Pop.R22{3,2} + int_simple(int_simple(grr * N{ij(16),ij(16)},rr1,I(1,1),ss1),rr2,I(2,1),tt2);
 end
 
-if options.sep(3)==1
+if is_sep(3)==1
     Pop.R22{3,1} = Pop.R22{2,1};
 else
     Pop.R22{3,1} = var_swap(Pop.R22{2,1},ss1,tt1).';
 end
-if options.sep(4)==1
+if is_sep(4)==1
     Pop.R22{1,3} = Pop.R22{1,2};
 else
     Pop.R22{1,3} = var_swap(Pop.R22{1,2},ss2,tt2).';
 end
-if options.sep(5) && options.sep(6)
+if is_sep(5) && is_sep(6)
     Pop.R22{3,2} = Pop.R22{2,2};
     Pop.R22{2,3} = Pop.R22{2,2};
     Pop.R22{3,3} = Pop.R22{2,2};
-elseif options.sep(5)
+elseif is_sep(5)
     Pop.R22{3,2} = Pop.R22{2,2};
     Pop.R22{2,3} = var_swap(var_swap(Pop.R22{3,2},ss1,tt1),ss2,tt2).';
     Pop.R22{3,3} = Pop.R22{2,3};
-elseif options.sep(6)
+elseif is_sep(6)
     Pop.R22{2,3} = Pop.R22{2,2};
     Pop.R22{3,2} = var_swap(var_swap(Pop.R22{2,3},ss1,tt1),ss2,tt2).';
     Pop.R22{3,3} = Pop.R22{3,2};

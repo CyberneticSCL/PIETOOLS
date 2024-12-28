@@ -1,23 +1,41 @@
-function [sos,Deop] = lpi_ineq_2d(sos,Pop, options)
+function [prog,Deop] = lpi_ineq_2d(prog,Pop,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sos = lpi_ineq_2d(sos,P, options) sets up inequality constraints such that P>=0
+% PROG = LPI_INEQ_2D(LPI,POP,OPTS) takes an LPI optimization program
+% "prog", and adds to it an inequality constraint Pop>=0sets up inequality constraints such that P>=0
 % 
-% INPUT
-%   prog: SOS program to modify.
-%   P: PI dopvar2d variable
-%   -Optional INPUTS
-%   options: determines if the operator needs to be pure or to include psatz
-%   term. 
-%   If options.pure(1)=1, then Rxx^o term is excluded. 
-%   If options.pure(2)=1, then Ryy^o term is excluded. 
-%   If options.pure(3)=1, then R22^oo term is excluded. 
-%   If options.pure(4)=1, then R22^ao and R22^bo terms are excluded. 
-%   If options.pure(5)=1, then R22^oa and R22^ob terms are excluded. 
-%   If options.psatz=1, then the psatz multiplier is included.
-% 
-% OUTPUT 
-%   sos: SOS program
-%   Dop: dopvar_2d object defining the LPI equality Pop = Dop, where Dop>=0
+% INPUTS
+% - prog:   'struct' representing an LPI optimization program. Must have
+%           been initialized using "lpiprogram".
+% - Pop:    'dopvar2d' object representing a (2D) PI operator decision
+%           variable in the optimization program specified by "prog". The
+%           operator must be symmetric for positivity to be enforced.
+% -opts:    (optional) 'struct' object specifying options for enforcing the
+%           inequality constraint Pop>=0. Specifically, using fields:
+%           opts.psatz: scalar integer, set to 1 or 2 to enforce Pop>=0
+%                       only on the spatial domain on which the operator is
+%                       defined. May decrease conservatism, but increases
+%                       computational cost. Defaults to 0.
+%           opts.tol:   scalar 'double', specifying a tolerance below which
+%                       coefficients defining Pop are assumed to be 0.
+%                       These coefficients will be ignored when enforcing
+%                       positivity. Defaults to 1e-12;
+%
+% OUTPUTS
+% - prog:   'struct' representing the same LPI optimization program as
+%           input, but now with the constraint Pop>=0 added. This
+%           constraint is enforced by introducing an additional operator
+%           Dop>=0 using "poslpivar_2d", and then enforcing the equality
+%           constraint Pop==Deop using "lpi_eq". If options.psatz is used,
+%           an additional operator Deop2>=0 is also generated using
+%           "poslpivar_2d" with the psatz option 1 (defining Deop2 using
+%           a function g(x,y)=(x-a)*(b-x)*(y-c)*(d-c)) or 2 (defining Deop2
+%           using g(x,y)=((b-a)/2-(x-(b+a)/2))^2*((d-c)/2-(y-(d+c)/2))^2),
+%           so that Deop2>=0 only for x in [a,b] and y in [c,d], and
+%           equality Pop==Deop+Deop2" is enforced.
+% - Deop:   'dopvar_2d' object of same dimensions as Pop, representing the
+%           positive semidefinite PI operator decision variables used to
+%           enforce Pop>=0 as equality constraint Pop==Deop. If
+%           options.psatz is nonzero, then Deop:=Deop+Deop2.
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -48,108 +66,58 @@ function [sos,Deop] = lpi_ineq_2d(sos,Pop, options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS, DJ - 07_21_2021 
-% 02/21/2022 - DJ: Update to allow multiple psatz terms;
-% 07/24/2023 - DJ: Update to exploit symmetry in lpi_eq;
+% DJ, 02/21/2022: Update to allow multiple psatz terms;
+% DJ, 07/24/2023: Update to exploit symmetry in lpi_eq;
+% DJ, 12/16/2024: Use "get_eq_opts_2D" to compute poslpivar_2d options.
 
 % Extract the inputs
 switch nargin
     case 1
         error(['Not enough inputs!'])
     case 2
-        % If no options are specified, use no special options
-        options.psatz = 0;
-        options.pure = zeros(1,5);
-        options.sep = zeros(1,6);
+        % If no options are specified, use defaults
+        opts.psatz = 0;      % add no psatz term;
+        opts.tol = 1e-12;    % default tolerance 1e-12
     case 3
         % If a certain option is not specified, do no use it
-        if ~isfield(options,'psatz')
-            options.psatz=0;
+        if ~isfield(opts,'psatz')
+            opts.psatz=0;
         end
-        if ~isfield(options,'pure')
-            options.pure = zeros(1,5);
-        end
-        if ~isfield(options,'sep')
-            options.sep = zeros(1,6);
+        if ~isfield(opts,'tol')
+            opts.tol = 1e-12;
         end
 end
 
-dim = Pop.dim;
-if dim(:,1)~=dim(:,2)
-    error('Non-symmetric operators cannot be sign definite. Unable to set the inequality');
-end
+% Assume coefficients below tolerance are zero.
+ztol = opts.tol;
+Pop = clean_opvar(Pop,ztol);
 
 % We're going to enforce inequality P>=0, by building an operator Deop>=0,
 % and setting P=Deop. If psatz is used, build an additional Deop2>=0, and
 % set P=Deop+Deop2.
 
-% Next, exclude certain elements from Deop (options2) and Deop2 (options3)
-% if specified
-options2.exclude = zeros(1,16);
-options3.exclude = zeros(1,16);
+% First, get the dimensions of the operator.
+dim = Pop.dim;
+if dim(:,1)~=dim(:,2)
+    error('Non-symmetric operators cannot be sign definite. Unable to set the inequality');
+end
 
-options2.exclude(2) = options.pure(1);
-options3.exclude(2) = options.pure(1); 
-
-options2.exclude(5) = options.pure(2);
-options3.exclude(5) = options.pure(2);
-
-tol = 1e-14;
-if (isa(Pop.R00,'double') && max(max(abs(Pop.R00)))<tol) || all(max(max(abs(Pop.R00.C)))<tol)
-    options2.exclude(1) = 1;
-    options3.exclude(1) = 1;
-end
-if (isa(Pop.Rxx{1},'double') && max(max(abs(Pop.Rxx{1})))<tol) || all(max(max(abs(Pop.Rxx{1}.C)))<tol)
-    options2.exclude(2) = 1;
-    options3.exclude(2) = 1;
-end
-if (isa(Pop.Ryy{1},'double') && max(max(abs(Pop.Ryy{1})))<tol) || all(max(max(abs(Pop.Ryy{1}.C)))<tol)
-    options2.exclude(5) = 1;
-    options3.exclude(5) = 1;
-end
-if (isa(Pop.R22{1,1},'double') && max(max(abs(Pop.R22{1,1})))<tol) || all(max(max(abs(Pop.R22{1,1}.C)))<tol)
-    options2.exclude(8) = 1;
-    options3.exclude(8) = 1;
-else
-    options2.exclude(8) = max([options.pure(3),options.pure(4),options.pure(5)]);
-    options3.exclude(8) = max([options.pure(3),options.pure(4),options.pure(5)]);
-end
-if (isa(Pop.R22{2,1},'double') && max(max(abs(Pop.R22{2,1})))<tol) || all(max(max(abs(Pop.R22{2,1}.C)))<tol)
-    options2.exclude(9) = 1;
-    options3.exclude(9) = 1;
-else
-    options2.exclude(9) = options.pure(4);
-    options3.exclude(9) = options.pure(4); 
-end
-if (isa(Pop.R22{3,1},'double') && max(max(abs(Pop.R22{3,1})))<tol) || all(max(max(abs(Pop.R22{3,1}.C)))<tol)
-    options2.exclude(10) = 1;
-    options3.exclude(10) = 1;
-else
-    options2.exclude(10) = options.pure(4);
-    options3.exclude(10) = options.pure(4); 
-end
-if (isa(Pop.R22{1,2},'double') && max(max(abs(Pop.R22{1,2})))<tol) || all(max(max(abs(Pop.R22{1,2}.C)))<tol)
-    options2.exclude(11) = 1;
-    options3.exclude(11) = 1;
-else
-    options2.exclude(11) = options.pure(5);
-    options3.exclude(11) = options.pure(5); 
-end
-if (isa(Pop.R22{1,3},'double') && max(max(abs(Pop.R22{1,3})))<tol) || all(max(max(abs(Pop.R22{1,3}.C)))<tol)
-    options2.exclude(12) = 1;
-    options3.exclude(12) = 1;
-else
-    options2.exclude(12) = options.pure(5);
-    options3.exclude(12) = options.pure(5); 
-end
+% Next, set options for declaring the positive operators Deop and Deop2.
+% Specifically, check whether any parameters can be excluded, and whether
+% the operator is separable.
+options_nom.psatz = 0;
+options_nom.exclude = zeros(1,16);
+options_nom.sep = zeros(1,6);
+options_nom = get_eq_opts_2D(Pop,options_nom,ztol);                         % DJ, 12/16/2024
+% Assume same options for Deop2 as for Deop
+options_psatz = options_nom;
 
 % Now, determine appropriate degrees for Deop and Deop2 to match degrees
 % for Pop. Two options:
-% 1. NOT RECOMMENDED
+% 1.
 %   Establish maximal degrees of the monomials defining Deop such that the
 %   maximal degrees of the monomials appearing in Deop matches the maximal
-%   degree of the monomials in Pop. This option does not guarantee all the
-%   necessary monomials appear, so the maximal degree may be increased
-%   later on. Slightly safer, but more expensive!
+%   degree of the monomials in Pop.
 % 2. 
 %   Establish a specific set of monomials used to define Deop. In this
 %   case, we decompose Deop into four terms: Deop = Deop_xy + Deop_oy +
@@ -158,21 +126,22 @@ end
 %   kernels in the y-integrals (e.g. Deop_xo.Ryy{2}=Deop_xo.Ryy{3}), and
 %   Deop_oo has separable kernels in both the x and y integrals (e.g. 
 %   Deop_oo.R22{2,2}=Deop_oo.R22{3,2}=Deop_oo.R22{2,3}=Deop_oo.R22{3,3}).
-toggle = 2;
+%   Generally cheaper, but often conservative...
+toggle = 1;
 if toggle==1
-    degs = degbalance(Pop,options2);
+    degs = degbalance(Pop,options_nom);
 elseif toggle==2
-    [degs,degs_oy,degs_xo,degs_oo] = getmonomials_lpi_ineq(Pop,options2);
+    [degs,degs_oy,degs_xo,degs_oo] = getmonomials_lpi_ineq(Pop,options_nom);
 end
 
 % Finally, we can construct the positive operators Deop and Deop2, and use
 % them to enforce positivity of P
-[sosD, Deop] = poslpivar_2d(sos, dim, degs, options2);
+[progD, Deop] = poslpivar_2d(prog, dim, degs, options_nom);
 
 % % Add aditional degrees of freedom/monomials to obtain a (hopefully)
 % % feasible problem
 toggle2 = 0;
-if toggle2==1    % Using maximal degrees
+if toggle==1 && toggle2==1    % Using maximal degrees
     % % Check that the parameters of Deop indeed contain all monomials that appear
     % % in the parameters of Pop
     p_indx = [2;3;4;6;7;8;11;12;16];    % Check only lower-triangular parameters
@@ -184,57 +153,57 @@ if toggle2==1    % Using maximal degrees
         warning('The specified options for ''lpi_ineq'' do not allow sufficient freedom to enforce the inequality constraint. Additional monomials are being added.')
 
         % Construct a new positive operator Deop with greater degrees
-        [sosD, Deop] = poslpivar_2d(sos, dim, degs, options2);
+        [progD, Deop] = poslpivar_2d(prog, dim, degs, options_nom);
 
         % Check that now Deop has all the necessary monomials
         p_indx = find(~(isgood_Dpar(:)));   % Indices of parameters we still need to verify are okay
         [isgood_Deop,isgood_Dpar,degs] = checkdeg_lpi_eq_2d(Pop,Deop,degs,p_indx);    
     end
-elseif toggle2==2    % Using predefined monomials
+elseif toggle==2 && toggle2==2    % Using predefined monomials
     % % Add addtional terms with separable kernels
-    if any(~options2.exclude([3,4,9,10,13,14,15,16]))
-        options2.sep = [1,0,1,0,1,0];
-        [sosD, Deop_x] = poslpivar_2d(sosD, dim, degs_oy, options2);
+    if any(~options_nom.exclude([3,4,9,10,13,14,15,16]))
+        options_nom.sep = [1,0,1,0,1,0];
+        [progD, Deop_x] = poslpivar_2d(progD, dim, degs_oy, options_nom);
     end
-    if any(~options2.exclude([6,7,11,12,13,14,15,16]))
-        options2.sep = [0,1,0,1,0,1];
-        [sosD, Deop_y] = poslpivar_2d(sosD, dim, degs_xo, options2);
+    if any(~options_nom.exclude([6,7,11,12,13,14,15,16]))
+        options_nom.sep = [0,1,0,1,0,1];
+        [progD, Deop_y] = poslpivar_2d(progD, dim, degs_xo, options_nom);
     end
-    if any(~options2.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
-        options2.sep = [1,1,1,1,1,1];
-        [sosD, Deop_xy] = poslpivar_2d(sosD, dim, degs_oo, options2);
+    if any(~options_nom.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
+        options_nom.sep = [1,1,1,1,1,1];
+        [progD, Deop_xy] = poslpivar_2d(progD, dim, degs_oo, options_nom);
     end
     Deop = Deop + Deop_x + Deop_y + Deop_xy;
 end
-sos = sosD; % Make sure the SOS program contains the right operator Deop
+prog = progD; % Make sure the SOS program contains the right operator Deop
     
 % If desired, add a Psatz term to enforce only local positivity
-for j=1:length(options.psatz)
-    if options.psatz(j)~=0
-        options3.psatz = options.psatz(j);
-        [sos, De2op] = poslpivar_2d(sos, dim, degs, options3);
+for j=1:length(opts.psatz)
+    if opts.psatz(j)~=0
+        options_psatz.psatz = opts.psatz(j);
+        [prog, De2op] = poslpivar_2d(prog, dim, degs, options_psatz);
         Deop = Deop+De2op;
 
         % % Add addtional terms with separable kernels
         if toggle2==2
-            if any(~options3.exclude([3,4,9,10,13,14,15,16]))
-                options3.sep = [1,0,1,0,1,0];
-                [sos, De2op_x] = poslpivar_2d(sos, dim, degs_oy, options3);
+            if any(~options_psatz.exclude([3,4,9,10,13,14,15,16]))
+                options_psatz.sep = [1,0,1,0,1,0];
+                [prog, De2op_x] = poslpivar_2d(prog, dim, degs_oy, options_psatz);
             end
-            if any(~options3.exclude([6,7,11,12,13,14,15,16]))
-                options3.sep = [0,1,0,1,0,1];
-                [sos, De2op_y] = poslpivar_2d(sos, dim, degs_xo, options3);
+            if any(~options_psatz.exclude([6,7,11,12,13,14,15,16]))
+                options_psatz.sep = [0,1,0,1,0,1];
+                [prog, De2op_y] = poslpivar_2d(prog, dim, degs_xo, options_psatz);
             end
-            if any(~options3.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
-                options3.sep = [1,1,1,1,1,1];
-                [sos, De2op_xy] = poslpivar_2d(sos, dim, degs_oo, options3);
+            if any(~options_psatz.exclude([3,4,6,7,9,10,11,12,13,14,15,16]))
+                options_psatz.sep = [1,1,1,1,1,1];
+                [prog, De2op_xy] = poslpivar_2d(prog, dim, degs_oo, options_psatz);
             end
             Deop = Deop + De2op_x + De2op_y + De2op_xy;
         end
     end
 end
 % Enforce the constraint, exploiting symmetry
-sos = lpi_eq_2d(sos,Deop-Pop,'symmetric');  %Pop==Deop
+prog = lpi_eq_2d(prog,Deop-Pop,'symmetric');  %Pop==Deop
 
 end
 

@@ -47,7 +47,7 @@ function PIE = convert(PDE,out_type)
 %
 % Initial coding DJ - 10/11/2022
 % Call combines 1D-2D converter, DJ - 10/17/2024
-
+% Display successful connversion message DB -12/22/24
 % We support only PDE to PIE conversion.
 if nargin==2 && ~strcmpi(out_type,'pie')
     error('Only conversion from PDE to PIE is supported. The second argument must be set to ''pie'', or be omitted.')
@@ -92,4 +92,6 @@ if isa(PIE,'struct')
     PIE = pie_struct(PIE);
 end
 
+% DB 12/22/24
+fprintf('\n --- Conversion to PIE was successful --- \n');
 end

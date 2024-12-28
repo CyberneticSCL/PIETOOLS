@@ -39,15 +39,17 @@ function logval = eq(P1,P2,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% SS, MP, 2020: Initial coding
+% DJ, 12/11/2024: Bug fix Pop==0, make sure independent variables match;
 
 if nargin<3
     tol=1e-14;
 end    
 
 if ~isa(P1,'opvar')&&(P1==0) 
-    opvar P1; P1.I = P2.I; P1.dim = P2.dim;
+    opvar P1; P1.I = P2.I; P1.dim = P2.dim;  P1.var1 = P2.var1; P1.var2 = P2.var2;  % DJ, 12/11/2024:
 elseif ~isa(P2,'opvar')&&(P2==0)
-    opvar P2; P2.I = P1.I; P2.dim= P1.dim;
+    opvar P2; P2.I = P1.I; P2.dim= P1.dim;  P2.var1 = P1.var1;  P2.var2 = P1.var2;  % DJ, 12/11/2024:
 elseif ~isa(P1,'opvar')|| ~isa(P2,'opvar')
     error('To check equality either both values must be opvar objects, or one of them have to be zero');
 end

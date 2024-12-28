@@ -41,7 +41,8 @@ function [Pcat] = vertcat(varargin)
 %
 % Initial coding DJ - 02_04_2021
 %   ^ Based heavily on "@opvar"-vertcat code by SS ^
-% DJ - 09/30/23: Prohibit "ambiguous" concatenations.
+% DJ, 09/30/2023: Prohibit "ambiguous" concatenations;
+% DJ, 12/15/2024: Allow conctanetation with matrix, polynomial, and dpvar;
 
 % Deal with single input case
 if nargin==1
@@ -52,8 +53,32 @@ end
 % Extract the operators
 a = varargin{1};    b = varargin{2};
 
-% Currently support only opvar-opvar concatenation
-if ~isa(a,'opvar2d') || ~isa(b,'opvar2d')
+% Check that inputs are of suitable type.
+if isa(a,'dpvar')                                                           % DJ, 12/15/2024
+    % Use dopvar concatenation.
+    b = opvar2dopvar2d(b);
+    Pcat = vertcat(vertcat(a,b),varargin{3:end});
+    return
+elseif isa(b,'dpvar')                                                       % DJ, 12/15/2024
+    % Use dopvar concatenation.
+    a = opvar2dopvar2d(a);
+    Pcat = vertcat(vertcat(a,b),varargin{3:end});
+    return
+elseif isa(a,'double') || isa(a,'polynomial')                               % DJ, 12/15/2024
+    if size(a,2)~=size(b,2)
+        error('Cannot concatenate vertically: Input dimensions of operators do not match')
+    end
+    % Convert a to opvar2d, assuming to map to R, and with same input
+    % dimension as b.
+    a = mat2opvar(a,[[size(a,2);0;0;0],b.dim(:,2)],[b.var1,b.var2],b.I);
+elseif isa(b,'double') || isa(b,'polynomial')                               % DJ, 12/15/2024
+    if size(a,2)~=size(b,2)
+        error('Cannot concatenate vertically: Input dimensions of operators do not match')
+    end
+    % Convert b to opvar2d, assuming to map to R, and with same input
+    % dimension as a.
+    b = mat2opvar(b,[[size(b,2);0;0;0],a.dim(:,2)],[a.var1,a.var2],a.I);
+elseif ~isa(a,'opvar2d') || ~isa(b,'opvar2d')
     error('Concatenation of opvar2d and non-opvar2d objects is ambiguous, and currently not supported')
 end
 % Check that domain and variables match
