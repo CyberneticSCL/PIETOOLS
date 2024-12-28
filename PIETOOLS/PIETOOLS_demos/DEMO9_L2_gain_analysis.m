@@ -63,9 +63,9 @@ pvar s1 s2 t
 % Declare state, input, and output variables
 a = 0;      b = 1;
 c = 0;      d = 1;
-x = pde_var('state',1,[s1;s2],[a,b;c,d]);
-w = pde_var('in',1);
-z = pde_var('out',1);
+x = pde_var('state',[s1;s2],[a,b;c,d]);
+w = pde_var('in');
+z = pde_var('out');
 % Declare the sytem equations
 lam = 5;
 PDE = [diff(x,t) == diff(x,s1,2) +diff(x,s2,2) + lam*x + w;
