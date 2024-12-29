@@ -38,9 +38,19 @@ function [PDE_out] = setControl(PDE_in,control_IDs)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 06/30/2024
+% DJ, 12/28/2024: Allow input to be declared as 'pde_var' object.
 
 % % Check that the input indices are properly specified.
-if ~isnumeric(control_IDs) || any(control_IDs~=round(control_IDs),'all') || any(control_IDs<1,'all')
+if isa(control_IDs,'pde_struct')
+    [isvar,obj] = is_pde_var(control_IDs);
+    if isvar
+        if ~strcmp(obj,'w')
+            error("Only conversion of exogenous inputs to controlled inputs is supported.")
+        else
+            control_IDs = control_IDs.w{1}.ID;
+        end
+    end
+elseif ~isnumeric(control_IDs) || any(control_IDs~=round(control_IDs),'all') || any(control_IDs<1,'all')
     error("The input names to convert to controlled inputs should be specified as nx1 array of positive integers.")
 end
 % Get rid of possible duplicates.
@@ -79,11 +89,16 @@ for ll=1:length(control_IDs)
             end
             % Loop over all terms in the equation.
             for jj=1:numel(PDE_out.(eq_types{kk}){ii}.term)
-                if isfield(PDE_out.(eq_types{kk}){ii}.term{jj},'w') &&...
-                        PDE_out.(eq_types{kk}){ii}.term{jj}.w==old_idx
-                    % Replace the exogenous input with a controlled one.
-                    PDE_out.(eq_types{kk}){ii}.term{jj} = rmfield(PDE_out.(eq_types{kk}){ii}.term{jj},'w');
-                    PDE_out.(eq_types{kk}){ii}.term{jj}.u = new_idx;
+                if isfield(PDE_out.(eq_types{kk}){ii}.term{jj},'w') 
+                    if PDE_out.(eq_types{kk}){ii}.term{jj}.w==old_idx
+                        % Replace the exogenous input with a controlled one.
+                        PDE_out.(eq_types{kk}){ii}.term{jj} = rmfield(PDE_out.(eq_types{kk}){ii}.term{jj},'w');
+                        PDE_out.(eq_types{kk}){ii}.term{jj}.u = new_idx;
+                    elseif PDE_out.(eq_types{kk}){ii}.term{jj}.w>old_idx
+                        % Account for fact that one exogenous input no
+                        % longer exists.
+                        PDE_out.(eq_types{kk}){ii}.term{jj}.w = PDE_out.(eq_types{kk}){ii}.term{jj}.w-1;
+                    end
                 end
             end
         end
