@@ -68,9 +68,11 @@
 %                   rid of extra simulations);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/22/2024: Use piess and pielft;
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
-clc; clear; close all;
+clear; clc; close all; clear stateNameGenerator
 echo on
+
 
 % =============================================
 % === Declare the system of interest
@@ -79,19 +81,17 @@ echo on
 % Declare independent variables (time and space)
 pvar t s
 % Declare state, input, and output variables
-x = state('pde');       w = state('in');    y = state('out');
-z = state('out', 2);    u = state('in');
+x= pde_var('state',1,s,[0,1]);   
+w = pde_var('input',1); u = pde_var('control',1);
+z = pde_var('output',2);          y = pde_var('sense',1);
 % Declare the sytem equations
 lam = 5;
-PDE = sys();
-eqs = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
+PDE = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
        z == [int(x,s,[0,1]); u];
        y == subs(x,s,1);
        subs(x,s,0)==0;
        subs(diff(x,s),s,1)==0];
-PDE = addequation(PDE,eqs);
-PDE = setControl(PDE,u);
-PDE = setObserve(PDE,y);
+
 display_PDE(PDE);
 
 % % Convert PDE to PIE

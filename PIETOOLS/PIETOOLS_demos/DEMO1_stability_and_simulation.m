@@ -44,7 +44,7 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/23/2024: Only test stability, manually building the LPI;
-% DB, 12/24/2024: Use pde_var objects instead of sys and state
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -56,18 +56,21 @@ echo on
 % Declare independent variables
 pvar t s;   
 % Declare state, input, and output variables
-phi = pde_var(2,s,[0,1]);   x = pde_var();
-w = pde_var('in');          z = pde_var('out');
-% Declare system equations
+phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
+w = pde_var('input',1);          z = pde_var('output',1);
+% Declare system parameters
 c=1;    b=.01;
+% declare dynamic equation
 eq_dyn = [diff(x,t,1)==-x
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
+% declare output equation
 eq_out= z ==int([1 0]*phi,s,[0,1]);
-bc1 = [0 1]*subs(phi,s,0)==0;   % add the boundary conditions
+% declare the boundary conditions
+bc1 = [0 1]*subs(phi,s,0)==0;   
 bc2 = [1 0]*subs(phi,s,1)==x;
+% create the PDE system
 odepde = [eq_dyn;eq_out;bc1;bc2];
-
-% % Convert to PIE
+% Convert to PIE representation
 pie = convert(odepde);
 T = pie.T;      A = pie.A;
 

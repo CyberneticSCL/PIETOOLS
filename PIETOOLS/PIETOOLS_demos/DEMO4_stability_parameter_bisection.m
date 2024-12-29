@@ -64,7 +64,6 @@ for iter = 1:n_iters
     PDE=[diff(x,t)==diff(x,s,2)+lam*x;
                             subs(x,s,0)==0;
                             subs(x,s,1)==0];
-    PDE=initialize(PDE)
     % Convert to PIE.
     PIE = convert(PDE,'pie');
     T = PIE.T;      A = PIE.A;

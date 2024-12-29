@@ -19,47 +19,42 @@
 %                      z2(t) = u(t)
 % where now we add an output z2(t)=u(t) so that, in constructing an optimal
 % control, we also minimize the control effort.
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
 
 %% 2.2.1 Declare the ODE-PDE model
 % Declare an ODE state variable x, a vector-valued 1D PDE state variable
 % phi with 2 elements, and a finite-dimensional exogenous input w,
 % controlled input u, and regulated output z, with z containing 2 elements. 
-x = state('ode');   phi = state('pde',2);
-w = state('in');    u = state('in');
-z = state('out',2);
-
+clc; clear; close all; clear stateNameGenerator;
 % Declare an ODE-PDE system structure 'sys' describing the system
-pvar t s                % declare temporal and spatial variable
-b = 0.1;      c = 1;    % set system parameters
-odepde = sys();         % initialize the system structure
+% Declare independent variables
+pvar t s;   
+% Declare state, input, and output variables
+phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
+w = pde_var('input',1);     u=pde_var('control',1);   
+z = pde_var('output',2);
+% Declare system parameters
+c=1;    b=.01;
 % Declare ODE-PDE equations
 %   d/dt      x(t) = -x(t) + u(t);
 %   d/dt phi1(t,s) = phi2_{ss}(t,s);
 %   d/dt phi2(t,s) = c*phi1_{ss}(t,s) + s*w(t) -b*phi2(t,s);
-eq_dyn = [diff(x,t,1) == -x+u;
+eq_dyn = [diff(x,t,1)==-x+u
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
 % Declare output equations
 %            z1(t) = int_{0}^{1} phi1(t,s)ds;
 %            z2(t) = u(t);
 eq_out= z==[int([1 0]*phi,s,[0,1]); 
             u];
-% Add equations to the system structure.
-odepde = addequation(odepde,[eq_dyn;eq_out]);
 
-
-%% 2.2.2 Set a controlled input
-% Declare u as a controlled input (rather than disturbance)
-odepde= setControl(odepde,u);
-
-
-%% 2.2.3 Declare the boundary conditions
+%% 2.2.2 Declare the boundary conditions
 bc1 = [0 1]*subs(phi,s,0) == 0;         % phi2(t,0) = 0;
 bc2 = [1 0]*subs(phi,s,1) == x;         % phi1(t,1) = x(t);
-odepde = addequation(odepde,[bc1;bc2]);
+% create the PDE system
+odepde = [eq_dyn;eq_out;bc1;bc2];
 
-
-%% 2.2.4: Simulate the ODE-PDE system
+%% 2.2.3: Simulate the ODE-PDE system
 
 % Declare simulation settings.
 opts.plot = 'no';   % don't plot final solution
@@ -112,7 +107,7 @@ ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
 title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
 
 
-%% 2.2.5: Analyse stability and construct a controller
+%% 2.2.4: Analyse stability and construct a controller
 
 % Convert the ODE-PDE to a PIE.
 PIE = convert(odepde,'pie');
