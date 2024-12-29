@@ -55,47 +55,20 @@ echo on
 % Declare independent variables
 pvar t s;   
 % Declare state, input, and output variables
-phi = state('pde',2);   x = state('ode');
-w = state('in');        z = state('out');
+phi = pde_var(2,s,[0,1]);   x = pde_var();
+w = pde_var('in');          z = pde_var('out');
 % Declare system equations
 c=1;    b=.01;
-odepde = sys();
 eq_dyn = [diff(x,t,1)==-x
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
 eq_out= z ==int([1 0]*phi,s,[0,1]);
 bc1 = [0 1]*subs(phi,s,0)==0;   % add the boundary conditions
 bc2 = [1 0]*subs(phi,s,1)==x;
-odepde = addequation(odepde,[eq_dyn;eq_out;bc1;bc2]);
+odepde = [eq_dyn;eq_out;bc1;bc2];
 
 % % Convert to PIE
 pie = convert(odepde);
 T = pie.T;      A = pie.A;
-
-
-% =============================================
-% === Declare the LPI
-
-% % Initialize LPI program
-prog = lpiprogram(s,[0,1]);
-
-% % Declare decision variables:
-% %   P: R x L2^2 --> R x L2^2,    P>0
-[prog,P] = poslpivar(prog,[1;2]);
-P = P + 1e-4;                   % enforce P>=1e-4
-
-% % Set inequality constraints:
-% %   A'*P*T + T'*P*A <= 0
-Q = A'*P*T + T'*P*A;
-opts.psatz = 1;                 % allow Q>=0 outside domain
-prog = lpi_ineq(prog,-Q,opts);
-
-% % Solve and retrieve the solution
-solve_opts.solver = 'sedumi';   % use SeDuMi to solve
-solve_opts.simplify = true;     % simplify SDP before solving
-prog = lpisolve(prog,solve_opts);
-
-% % Alternatively, uncomment to use pre-defined stability test
-% lpiscript(pie,'stability','light')
 
 
 % =============================================
@@ -122,6 +95,32 @@ phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
 phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 zval = solution.timedep.regulated;
 wval = subs(uinput.w,st,tval);
+
+
+% =============================================
+% === Declare the LPI
+
+% % Initialize LPI program
+prog = lpiprogram(s,[0,1]);
+
+% % Declare decision variables:
+% %   P: R x L2^2 --> R x L2^2,    P>0
+[prog,P] = poslpivar(prog,[1;2]);
+P = P + 1e-4;                   % enforce P>=1e-4
+
+% % Set inequality constraints:
+% %   A'*P*T + T'*P*A <= 0
+Q = A'*P*T + T'*P*A;
+opts.psatz = 1;                 % allow Q>=0 outside domain
+prog = lpi_ineq(prog,-Q,opts);
+
+% % Solve and retrieve the solution
+solve_opts.solver = 'sedumi';   % use SeDuMi to solve
+solve_opts.simplify = true;     % simplify SDP before solving
+prog = lpisolve(prog,solve_opts);
+
+% % Alternatively, uncomment to use pre-defined stability test
+% lpiscript(pie,'stability','light')
 
 
 echo off
