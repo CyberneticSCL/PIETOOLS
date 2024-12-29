@@ -8,11 +8,13 @@ function PDE_out = subs(PDE_in,vars,locs)
 %               to one or several free terms in a PDE.
 % - vars:       nx1 array of type 'polynomial' with each element speicfying
 %               a single variable (pvar object) which to evaluate at a
-%               certain position.
+%               certain position. A variable can also be set to t to
+%               specify temporal delay.
 % - locs:       nx1 array of type 'double' or 'polynomial' with each element 
 %               specifying the desired real value or variable to substitute
 %               the associated variable in "vars" with in the terms in the
-%               PDE.
+%               PDE. To specify temporal delay, set vars(ii)=t and
+%               locs(ii)=t-tau for some positive scalar tau;
 %
 % OUTPUT
 % - PDE_out:    'pde_struct' object representing the same terms as the
@@ -41,7 +43,8 @@ function PDE_out = subs(PDE_in,vars,locs)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 06/23/2024
+% Initial coding DJ - 06/23/2024;
+% DJ, 12/16/2024: Add support for temporal delay;
 
 
 % % % Process the inputs
@@ -95,22 +98,27 @@ else
     % Convert to column array.
     locs = locs(:);
 end
+% Check if substitution is performed of a temporal variable.
+is_t_subs = isequal(vars,pvar('t'));
 % Make sure that each element is either a position ('double') or variable
 % ('pvar')
 locs = polynomial(locs);
 is_fixed_loc = true(nvars,1);       % Keep track of which variables are replaced with an actual position.
 for kk=1:nvars
-    if ~isdouble(locs(kk)) && ~ispvar(locs(kk))
+    if is_t_subs(kk)                                                        % DJ, 12/16/2024
+        if ~isa(locs(kk),'polynomial') || isdouble(locs(kk)) || ~isdouble(pvar('t')-locs(kk))
+            error("Temporal delay should be specified as 'subs(x,t,t-a)' for positive scalar a.")
+        else
+            % Store the value of the delay in locs
+            locs(kk) = pvar('t')-locs(kk);
+        end
+    elseif ~isdouble(locs(kk)) && ~ispvar(locs(kk))
         error("New objects with which to substitute the variables should correspond to real values or single variables ('pvar' objects).")
     end
     if ispvar(locs(kk))
         % Variable is replaced with a new variable.
         is_fixed_loc(kk) = false;
     end
-end
-% Also check no substitution is performed of temporal variable.
-if ismember('t',vars.varname)
-    error("Temporal delay is currently not supported.")
 end
 
 
@@ -145,7 +153,7 @@ for ii=1:numel(PDE_out.free)
         elseif isfield(term_jj,'w')
             obj_jj = 'w';
         else
-            error("Integration of output signals is not supported.")
+            error("Substitution of output signals is not supported.")
         end
         % Initialize default location if no location has been specified.
         obj_vars = PDE_in.(obj_jj){term_jj.(obj_jj)}.vars(:,1);
@@ -155,6 +163,15 @@ for ii=1:numel(PDE_out.free)
 
         % Next, perform substitution for each variable separately.
         for ll=1:nvars
+            if is_t_subs(ll)
+                % Perform temporal substitution
+                if ~isfield(term_jj,'delay')
+                    term_jj.delay = double(locs(ll));
+                else
+                    term_jj.delay = term_jj.delay+double(locs(ll));
+                end
+                continue
+            end
             % Substitute the variable in the coefficients.
             term_jj.C = subs(polynomial(term_jj.C),vars(ll),locs(ll));
             % Establish which of the variables in the state should be
