@@ -38,8 +38,18 @@ function [PDE_out] = setObserve(PDE_in,observe_IDs)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 06/30/2024
+% DJ, 12/28/2024: Allow output to be declared as 'pde_var' object.
 
 % % Check that the output indices are properly specified.
+if isa(observe_IDs,'pde_struct')
+    [isvar,obj] = is_pde_var(observe_IDs);
+    if isvar
+        if ~strcmp(obj,'z')
+            error("Only conversion of regulated outputs to observed outputs is supported.")
+        else
+            observe_IDs = observe_IDs.z{1}.ID;
+        end
+    end
 if ~isnumeric(observe_IDs) || any(observe_IDs~=round(observe_IDs),'all') || any(observe_IDs<1,'all')
     error("The output names to convert to observed outputs should be specified as nx1 array of positive integers.")
 end
