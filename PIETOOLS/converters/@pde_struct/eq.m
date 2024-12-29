@@ -38,6 +38,7 @@ function PDE_out = eq(LHS,RHS)
 % Initial coding DJ - 06/23/2024
 % DJ, 12/28/2024: Add support for concatenating single vector LHS with
 %                 RHS consisting of multiple scalar-valued equations; 
+% DJ, 12/29/2024: Bugfix minus sign in case LHS has coefficients.
 
 % % % Process the inputs
 
@@ -200,7 +201,7 @@ for ii=1:numel(RHS.free)
             % Divide coefficients in each term by those on the LHS.
             for jj=1:numel(PDE_out.(obj){eq_num}.term)
                 if isfield(PDE_out.(obj){eq_num}.term{jj},'C')
-                    PDE_out.(obj){eq_num}.term{jj}.C = inv(C_LHS)*PDE_out.(obj){eq_num}.term{jj}.C;
+                    PDE_out.(obj){eq_num}.term{jj}.C = -inv(C_LHS)*PDE_out.(obj){eq_num}.term{jj}.C;    % DJ, 12/29/2024
                 else
                     PDE_out.(obj){eq_num}.term{jj}.C = -1;
                 end
