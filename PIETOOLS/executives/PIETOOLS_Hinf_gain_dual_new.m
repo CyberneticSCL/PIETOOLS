@@ -154,15 +154,17 @@ else
     Pop=P1op;
 end
 
+[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X,ddZ);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 2: Define the KYP matrix
 %
 % i.e. - Assemble the big operator
 %
-% Pheq = [ -gamma*I  D          C*P*T'
+% Pheq = [ -gamma*I  D          C*Q'
 %          D'         -gamma*I  B'
-%          T*P*C'      B        A*P*T'+T*P*A']
+%          Q*C'      B        A*Q'+Q*A']
 
 disp('- Constructing the Negativity Constraint...');
 % adding adjustment for infinite-dimensional I/O
@@ -172,12 +174,10 @@ Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
 Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
 Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
 
-% Dop = [-gam*Iz+D11op*D11op'    C1op*Pop*Top'+D11op*B1op';
-%             Top*Pop*C1op'+B1op*D11op'                 Top*Pop*Aop'+Aop*Pop*Top'+B1op*B1op'];
 
-Dop = [-gam*Iz      D11op              C1op*Pop*Top';
+Dop = [-gam*Iz      D11op              C1op*Qop';
         D11op'          -gam*Iw        B1op';
-        Top*Pop*C1op'    B1op               Top*Pop*Aop'+Aop*Pop*Top']; 
+        Qop*C1op'    B1op               Qop*Aop'+Aop*Qop']; 
     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -203,6 +203,7 @@ else
     end
     opts.symmetric = 1;
     opts.lin_rep = 1;
+    prog = lpi_eq(prog, Top*Qop-Pop,opts);
     prog = lpi_eq(prog,Deop+Dop,opts); %Dop=-Deop
 end
 
@@ -217,6 +218,6 @@ if ~isreal(gam)
 else 
     disp(gam);
 end
-P = getsol_lpivar(prog,Pop);
+P = getsol_lpivar(prog,Qop);
 gam = double(sosgetsol(prog,gam));
 end
