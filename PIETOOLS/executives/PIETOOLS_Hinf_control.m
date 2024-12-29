@@ -56,16 +56,11 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP,SS - 10_01_2020
-% MP - 05/30/2021: changed to new PIE data structure;
-% SS - 06/01/2021: changed to function added settings input;
-% DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
-%                   avoid conflict with MATLAB gamma function;
-% DJ - 10/19/2024: Update to use new LPI programming structure;
+% Initial coding SS - 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control(PIE, settings)
+function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control_new(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -154,8 +149,8 @@ else
 end
 
 % Enforce strict positivity of the operator
-Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
-Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom); 
+% Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
+% Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom); 
 
 [prog,Zop] = lpivar(prog,Buop.dim(:,[2,1]),ddZ);
 
@@ -172,9 +167,11 @@ Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom);
 Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-Dop = [-gam*Iz,                      Dzwop      (Czop*Pop+Dzuop*Zop)*Top';
+[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X,ddZ);
+
+Dop = [-gam*Iz,                      Dzwop      (Czop*Qop+Dzuop*Zop);
         Dzwop',                      -gam*Iw,   Bwop';
-        Top*(Czop*Pop+Dzuop*Zop)',   Bwop       (Aop*Pop+Buop*Zop)*(Top')+Top*(Aop*Pop+Buop*Zop)']; 
+        (Czop*Qop+Dzuop*Zop)',   Bwop       (Aop*Qop+Buop*Zop)+(Aop*Qop+Buop*Zop)']; 
 
 disp('- Parameterize the derivative inequality...');
 
@@ -202,6 +199,9 @@ else
     end
     % derivative negativity
     % constraints
+    opts.symmetric = 1;
+    opts.lin_rep = 1;
+    prog = lpi_eq(prog, Top*Qop-Pop,opts);
     prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
 end
 
@@ -218,7 +218,7 @@ end
 
 gam = double(lpigetsol(prog,gam));
 
-P = lpigetsol(prog,Pop);
+P = lpigetsol(prog,Qop);
 Z = lpigetsol(prog,Zop);
 
 Kop = getController(P,Z);

@@ -43,22 +43,14 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding MP,SS - 10_01_2020
-% MP - 05/30/2021: changed to new PIE data structure;
-% SS - 06/01/2021: changed to function, added settings input;
-% DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
-%                   avoid conflict with MATLAB gamma function;
-% DJ - 10/19/2024: Update to use new LPI programming structure;
+%  MP - 5_30_2021; changed to new PIE data structure
+% SS - 6/1/2021; changed to function, added settings input
+% DJ - 06/02/2021; incorporate sosineq_on option, replacd gamma with gam to
+%                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P, gam] = PIETOOLS_Hinf_gain(PIE, settings)
+function [prog, P, gam,Dop] = PIETOOLS_Hinf_gain(PIE, settings)
 
-% Check if the PIE is properly specified.
-if ~isa(PIE,'pie_struct')
-    error('The PIE for which to run the executive should be specified as object of type ''pie_struct''.')
-else
-    PIE = initialize(PIE);
-end
-% Pass to the 2D executive if necessary.
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
@@ -68,11 +60,6 @@ if PIE.dim==2
     end
     return
 end
-% Extract PIE operators necessary for the executive.
-Top = PIE.T;    Twop = PIE.Tw;
-Aop = PIE.A;    Bwop = PIE.Bw;    
-Czop = PIE.Cz;  Dzwop = PIE.Dzw;
-
 
 % get settings information
 if nargin<2
@@ -90,7 +77,9 @@ options1 = settings.options1;
 options12 = settings.options12;
 override1 = settings.override1;
 eppos = settings.eppos;
+epneg = settings.epneg;
 eppos2 = settings.eppos2;
+ddZ = settings.ddZ;
 sosineq_on = settings.sosineq_on;
 if sosineq_on
     opts = settings.opts;
@@ -102,22 +91,32 @@ else
     dd3 = settings.dd3;
 end
 
-
+% Dumping relevant 4-PI operators to the workspace -MP, 5/2021
+Aop=PIE.A;
+Top=PIE.T;
+B1op=PIE.B1;    TB1op = PIE.Tw;
+C1op=PIE.C1;
+D11op=PIE.D11;
 
 fprintf('\n --- Searching for Hinf gain bound using primal KYP lemma --- \n')
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
-
+varlist = [Aop.var1; Aop.var2];  % retrieving the names of the independent pvars from Aop (typically s and th)
+prog = sosprogram(varlist);      % Initialize the program structure
+X=Aop.I;                         % retrieve the domain from Aop
+nx1=Aop.dim(1,1);                % retrieve the number of ODE states from Aop
+nx2=Aop.dim(2,1);                % retrieve the number of distributed states from Aop
+nw=B1op.dim(1,2);                % retrieve the number of real-valued disturbances
+nz=C1op.dim(1,1);                % retrieve the number of real-valued regulated outputs
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The most common usage of this script is to find the minimum hinf gain bound
 % In this case, we define the hinf norm variable which needs to be minimized
 dpvar gam;
-prog = lpidecvar(prog, gam); % set gam = gamma as decision variable
-prog = lpi_ineq(prog, gam);  % enforce gamma>=0
-prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
-%
+prog = sosdecvar(prog, gam); %this sets gam = gamma as decision var
+% prog = sosineq(prog, gam); %this ensures gamma is lower bounded
+prog = sossetobj(prog, gam); %this minimizes gamma, comment for feasibility test
+% gam = 2;
 % Alternatively, the above 3 commands may be commented and a specific gain
 % test specified by defining a specific desired value of gamma. This
 % results in a feasibility test instead of an optimization problem.
@@ -130,10 +129,9 @@ prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 % function candidate
 disp('- Declaring Positive Lyapunov Operator variable using specified options...');
 
-[prog, P1op] = poslpivar(prog, Top.dim,dd1,options1);
-
+[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1),X,dd1,options1);
 if override1~=1
-    [prog, P2op] = poslpivar(prog, Top.dim,dd12,options12);
+    [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1),X,dd12,options12);
     Pop=P1op+P2op;
 else
     Pop=P1op;
@@ -147,16 +145,29 @@ end
 %          D         -gamma*I C
 %          T'*P*B      C'       T'*P*A+A'*P*T]
 
+% adding adjustment for infinite-dimensional I/O
+opvar Iw Iz; Iw.I = X; Iz.I = X;
+Iw.dim = [PIE.B1.dim(:,2),PIE.B1.dim(:,2)];
+Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
+Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
+Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
+
+
+
 disp('- Constructing the Negativity Constraint...');
 
-Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
+[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X,ddZ);
 
-Dop = [-gam*Iw+Twop'*(Pop*Bwop)+(Pop*Bwop)'*Twop,   Dzwop',    (Pop*Bwop)'*Top+Twop'*(Pop*Aop);
-        Dzwop,                                      -gam*Iz,   Czop;
-        Top'*(Pop*Bwop)+(Pop*Aop)'*Twop,            Czop'      (Pop*Aop)'*Top+Top'*(Pop*Aop)];
-    
-    
+Dop = [-gam*Iw     D11op'             B1op'*Qop;
+        D11op           -gam*Iz        C1op;
+        Qop'*B1op     C1op'          Aop'*Qop+Qop'*Aop];
+
+% dpvar tmp; prog = sosdecvar(prog,tmp); prog = sosineq(prog,tmp);
+% Dop.R.R2 = Dop.R.R2+tmp;
+% Dop.R.R1 = Dop.R.R1+tmp;
+
+% Dop = clean(Dop,1e-9);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 3: Impose Negativity Constraint. There are two methods, depending on
@@ -168,28 +179,33 @@ if sosineq_on
     prog = lpi_ineq(prog,-Dop,opts);
 else
     disp('  - Using an Equality constraint...');
-    [prog, De1op] = poslpivar(prog, Dop.dim, dd2, options2);
+    [prog, De1op] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
+%     [prog, De1op,Q_d] = poslpivar(prog, Dopnew.dim(:,2),X,dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog, Dop.dim, dd3, options3);
+%         [prog, De2op] = poslpivar(prog,Dopnew.dim(:,2),X, dd3,options3);
+        [prog, De2op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
     end
-    prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
+    opts.symmetric = 1;
+    opts.lin_rep = 1;
+    prog = lpi_eq(prog, Top'*Qop-Pop,opts);
+    prog = lpi_eq(prog,Deop+Dop,opts); %Dop=-Deop
 end
 
 
 %solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
-prog = lpisolve(prog,sos_opts); 
+prog = sossolve(prog,sos_opts); 
 
 disp('The H-infty norm of the given system is upper bounded by:')
 if ~isreal(gam)
-    disp(double(lpigetsol(prog,gam))); % check the Hinf norm, if the solved successfully
+    disp(double(sosgetsol(prog,gam))); % check the Hinf norm, if the solved successfully
 else 
     disp(gam);
 end
-P = lpigetsol(prog,Pop);
-gam = double(lpigetsol(prog,gam));
+P = getsol_lpivar(prog,Qop);
+gam = double(sosgetsol(prog,gam));
 end
