@@ -44,6 +44,7 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/23/2024: Only test stability, manually building the LPI;
+% DB, 12/24/2024: Use pde_var objects instead of sys and state
 
 clear; clc; close all; clear stateNameGenerator
 echo on
