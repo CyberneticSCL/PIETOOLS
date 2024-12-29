@@ -36,6 +36,8 @@ function PDE_out = eq(LHS,RHS)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 06/23/2024
+% DJ, 12/28/2024: Add support for concatenating single vector LHS with
+%                 RHS consisting of multiple scalar-valued equations; 
 
 % % % Process the inputs
 
@@ -90,9 +92,61 @@ elseif ~is_pde_term(RHS)
 end
 
 % % Check that the number of rows of LHS and RHS match
-if ~isnumeric(LHS)
-    if numel(LHS.free)~=numel(RHS.free)
-        error("Number of rows of terms to equate does not match.")
+if ~isnumeric(LHS) && numel(LHS.free)~=numel(RHS.free)
+    % The number of objects does not match, but maybe their sizes add
+    % up to match. Currently, we only support this if LHS describes a 
+    % single (vector-valued) object.
+    if isscalar(LHS.free)
+        sz_L = LHS.free{1}.size;
+        nR = numel(RHS.free);
+        sz_R = RHS.free{1}.size;
+        vars_R = RHS.free{1}.vars;
+
+        % Make sure the sizes and variables of all objects match.
+        for ii=2:nR
+            if isfield(RHS.free{ii},'size') && RHS.free{ii}.size~=sz_R
+                error("For equating vector-valued object with multiple terms, all terms must have same size.")
+            elseif isfield(RHS.free{ii},'vars')
+                if ~(isempty(RHS.free{ii}.vars) && isempty(vars_R)) && ...
+                    (~all(size(RHS.free{ii}.vars)==size(vars_R)) || ~all(isequal(RHS.free{ii}.vars,vars_R)))
+                    error("For equating vector-valued object with multiple terms, all terms must have same variables.")
+                end
+            end
+        end
+        if nR*sz_R~=sz_L
+            error("Number of objects to equate does not match; concatenation not supported.")
+        end
+        
+        % Initialize a new object with just 1 vector-valued
+        RHS_new = RHS;
+        RHS_new.free = RHS.free(1);
+        RHS_new.free{1}.size = sz_L;
+        % Augment all terms in RHS.free{1} to new size.
+        C_aug = [eye(sz_R);zeros((nR-1)*sz_R,sz_R)];
+        for jj=1:numel(RHS.free{1}.term)
+            if isfield(RHS_new.free{1}.term{jj},'C')
+                RHS_new.free{1}.term{jj}.C = C_aug*RHS_new.free{1}.term{jj}.C;
+            else
+                RHS_new.free{1}.term{jj}.C = C_aug;
+            end
+        end
+        % Add all other terms, augmented to new size.
+        for ii=2:nR
+            cntr = numel(RHS_new.free{1}.term);
+            RHS_new.free{1}.term = [RHS_new.free{1}.term,RHS.free{ii}.term];
+            C_aug = [zeros((ii-1)*sz_R,sz_R);eye(sz_R);zeros((nR-ii)*sz_R,sz_R)];
+            for jj=cntr+(1:numel(RHS.free{ii}.term))
+                if isfield(RHS_new.free{1}.term{jj},'C')
+                    RHS_new.free{1}.term{jj}.C = C_aug*RHS_new.free{1}.term{jj}.C;
+                else
+                    RHS_new.free{1}.term{jj}.C = C_aug;
+                end
+            end
+        end
+        % Continue with new RHS
+        RHS = RHS_new;
+    else
+        error("Number of objects to equate does not match; concatenation currently not supported.")
     end
 end
 
