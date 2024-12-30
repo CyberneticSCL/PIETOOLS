@@ -47,6 +47,7 @@ PDE = [diff(x,t) == diff(x,s,2) + 4*x + w;
              y == subs(x,s,1);
              subs(x,s,0) == 0;
              subs(diff(x,s),s,1) == 0];
+
 % Convert to PIE and extract the relevant operators.
 PIE = convert(PDE,'pie');
 T = PIE.T;
