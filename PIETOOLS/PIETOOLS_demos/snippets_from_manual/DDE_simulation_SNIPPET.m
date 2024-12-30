@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Code Snippet illustrating usage of PIESIM for simulation of DDEs.
-% See Section 6.3.2 in Manual for a description.
+% See Section 6.4.2 in Manual for a description.
 
 % This code perfoms the following functions:
 % 1) Sets up the DDE problem (either by calling an example from the library

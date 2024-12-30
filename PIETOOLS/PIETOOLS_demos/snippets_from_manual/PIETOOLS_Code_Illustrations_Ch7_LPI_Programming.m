@@ -33,22 +33,20 @@
 % Then, using L = P^{-1}*Z, the L2 gain satisfies 
 %   ||ztilde||_{L2}/||w||_{L2} <= gam
 % We show how this LPI can be solved here.
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
-
+clc; clear; close all; clear stateNameGenerator;
 %% Declare the system of interest
 % Declare the system as a PDE.
 pvar s t
-PDE = sys();
-x = state('pde'); w = state('in');
-y = state('out'); z = state('out');
-eqs = [diff(x,t) == diff(x,s,2) + 4*x + w;
-       z == int(x,s,[0,1]) + w;
-       y == subs(x,s,1);
-       subs(x,s,0) == 0;
-       subs(diff(x,s),s,1) == 0];
-PDE = addequation(PDE,eqs);
-PDE = setObserve(PDE,y);
-
+x=pde_var('state',1,s,[0 1]);
+y=pde_var('sense',1); z=pde_var('output',1);
+w=pde_var('input',1);
+PDE = [diff(x,t) == diff(x,s,2) + 4*x + w;
+             z == int(x,s,[0,1]) + w;
+             y == subs(x,s,1);
+             subs(x,s,0) == 0;
+             subs(diff(x,s),s,1) == 0];
 % Convert to PIE and extract the relevant operators.
 PIE = convert(PDE,'pie');
 T = PIE.T;
