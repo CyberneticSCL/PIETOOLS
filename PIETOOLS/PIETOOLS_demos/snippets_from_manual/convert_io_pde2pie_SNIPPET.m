@@ -25,30 +25,21 @@ a = 0;   b = 1;
 
 %%% First step: Declare the state components, inputs and outputs (if
 %%% applicable)
-PDE = sys();
-x = state('pde');
-w = state('in');    u = state('in');
-z = state('out');   y = state('out');
+x = pde_var('state',1,s,[a,b]);
+w = pde_var('in');    u = pde_var('control');
+z = pde_var('out');   y = pde_var('sense');
 
 
 %%% Second step: Declare the PDE equations and output equations
 PDE_dyn = diff(x,t) == 0.5*diff(x,s,2) + s*(2-s)*w;
 PDE_z = z == int(x,s,[a,b]);
-PDE_y = y == subs(x,s,b);
-PDE = addequation(PDE,[PDE_dyn; PDE_z; PDE_y]);
-             
+PDE_y = y == subs(x,s,b);             
                    
 %%% Third step: Declare the boundary conditions
 PDE_BCs = [subs(x,s,a) == u; 
-           subs(diff(x,s),s,b) == 0];
-PDE = addequation(PDE,PDE_BCs);
-
-
-%%% Fourth step: Set the domain of the PDE, and declare observed outputs
-%%% and controlled inputs
-PDE.dom = [a,b];
-PDE = setControl(PDE,u);  PDE = setObserve(PDE,y);
-
+                     subs(diff(x,s),s,b) == 0];
+%%% Fourth step: create the PDE system by combining the equations
+PDE =[PDE_dyn;PDE_z;PDE_y;PDE_BCs];
                    
 %%% Final step: Convert to a PIE
 % This computes the PIE operators T, Tw, Tu, A, B1, B2, C1, D11, D12, C2, 
