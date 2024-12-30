@@ -23,10 +23,12 @@
 % 4) Outputs and plots the PDE and ODE solutions at a final time and
 
 clear; clc;
+ clear stateNameGenerator;
 close all;
 format long;
 pvar s theta;
 plot_no_control = 1; % this setting is 1, first run simulation without controller for same IC
+Hinf_control=1;
 %--------------------------------------------------------------
 % Simulation Examples:Uncomment one of the following 3 examples to run the simulations
 %--------------------------------------------------------------
@@ -49,6 +51,14 @@ plot_no_control = 1; % this setting is 1, first run simulation without controlle
    DDE.C1=[1 0;0 1;0 0];
    DDE.D12=[0;0;.1];
    DDE.tau(1) = 1;DDE.tau(2)=2;
+   pvar t
+   x=pde_var('state',2,[],[]);
+   w=pde_var('in');    u=pde_var('control');
+   z=pde_var('out',3);
+   dde=[diff(x,t,1)==DDE.A0*x+DDE.Ai{1}*subs(x,t,t-DDE.tau(1))+DDE.Ai{2}*subs(x,t,t-DDE.tau(2))+DDE.B1*w+ DDE.B2*u;
+             z==DDE.C1*x+ DDE.D12*u];
+   dde=initialize(dde);
+   display_PDE(dde);
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Wind Tunnel Problem from [4], adapted from [5]
 % Hinf_control=1
