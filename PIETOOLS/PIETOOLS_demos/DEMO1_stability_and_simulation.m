@@ -94,7 +94,7 @@ ndiff = [0,2,0];    % PDE state involves 2 first order differentiable state vari
 % % Simulate open-loop PDE and extract solution
 [solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
 tval = solution.timedep.dtime;
-x = solution.timedep.ode;
+xval = solution.timedep.ode;
 phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
 phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 zval = solution.timedep.regulated;
