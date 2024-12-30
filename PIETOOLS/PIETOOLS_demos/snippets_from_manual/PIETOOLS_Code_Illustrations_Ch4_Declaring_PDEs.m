@@ -11,7 +11,7 @@ X = pde_var(s,[0,1]);
 w = pde_var('in');  
 z = pde_var('out',2);
 u = pde_var('control');
-y = pde_var('observe');
+y = pde_var('sense');
 
 out_eq = z==[int(X,s,[0,1]); u];
 eqns = [diff(x,t)==-5*x+int(diff(X,s,1),s,[0,1])+u;
@@ -35,7 +35,7 @@ x4 = pde_var([s1;s2],[a,b;c,d]);
 w = pde_var('in',s1,[a,b]);
 z = pde_var('out');
 u1 = pde_var('control');     u2 = pde_var('control');
-y = pde_var('observe',2,s2,[c,d]);
+y = pde_var('sense',2,s2,[c,d]);
 
 odepde = [diff(x1,t)==-x1+subs(x4,[s1;s2],[b;d])+u1;
          diff(x2,t)==diff(x2,s1,2)+w;
@@ -54,9 +54,8 @@ PIE = convert(odepde);
 %% 4.1.3a Transport Equation
 clear stateNameGenerator
 pvar t s;
-X = pde_var(s,[0,2]);
-u = pde_var('control');  
-y = pde_var('observe');
+pde_var state X control u sense y;
+X.vars = s;    X.dom = [0,2];
 odepde = [diff(X,t)==5*diff(X,s)+u;
           subs(X,s,0)==0; 
           y==subs(X,s,2)];
@@ -88,3 +87,10 @@ eqns = [diff(x,t)==A0*x+A1*diff(x,s);
         B*[subs(x,s,0); subs(x,s,1)]==0];
 PDE = initialize(eqns);
 PIE = convert(PDE,'pie');
+
+
+%% 4.3 Batch Input Format for DDEs
+DDE.tau = [1 2];
+DDE.Ai{1} = -1;
+DDE.C1i{2} = 1;
+DDE = initialize_PIETOOLS_DDE(DDE);
