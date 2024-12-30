@@ -4,6 +4,76 @@
 % the demo codes and Chapter 11 of the manual for more information.
 
 
+%% 11.1 DEMO 1: Stability and Simulation
+% Run the Demo
+DEMO1_stability_and_simulation
+
+% % Plot the evolution of the two PDE state variables
+plot_indcs = floor(linspace(1,size(phi1,2),100)); 
+tplot = tval(plot_indcs);           % Only plot at select times
+colors = {'b','g','m','r','k','c','r','y','o'};     % colors for the plot
+fig1 = figure('Position',[200 150 1000 400]); 
+set(gcf, 'Color', 'w');
+subplot(1,2,1);
+box on
+surf(tplot,grids.phys,phi1(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+h = colorbar;
+colormap jet    
+subplot(1,2,2);
+box on
+surf(tplot,grids.phys,phi2(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+h = colorbar;
+colormap jet
+% Clean up the figure
+sgtitle('PDE state evolution','Interpreter','latex','FontSize',16)
+ax1 = subplot(1,2,1);       ax1.TickLabelInterpreter = 'latex';
+ax1.Position = [0.06,0.1,0.33,0.75];
+box on
+title('$\phi_{1}(t,s)=\partial_{s} \mathbf{x}(t,s)$','Interpreter','latex','FontSize',14);
+xlabel('$t$','FontSize',15,'Interpreter','latex');  
+ylabel('$s$','FontSize',15,'Interpreter','latex');
+zlabel('$\phi$','FontSize',15,'Interpreter','latex');
+ax2 = subplot(1,2,2);       ax2.TickLabelInterpreter = 'latex';
+ax2.Position = [0.57,0.1,0.33,0.75];
+box on
+title('$\phi_{2}(t,s)=\partial_{t} \mathbf{x}(t,s)$','Interpreter','latex','FontSize',14);
+xlabel('$t$','FontSize',15,'Interpreter','latex');  
+ylabel('$s$','FontSize',15,'Interpreter','latex');
+zlabel('$\phi$','FontSize',15,'Interpreter','latex');
+%saveas(fig1,'DEMO1_StateEvolution_Plot','epsc');
+
+% % Plot the ODE state and regulated output versus time
+fig2 = figure('Position',[200 150 1000 350]);
+set(gcf, 'Color', 'w');
+subplot(1,2,1)
+box on
+plot([0,tplot],[0.5,xval(1,plot_indcs)],[colors{2},'-'],'LineWidth',1.5,'DisplayName','$x(t)$');
+subplot(1,2,2)
+box on
+hold on
+plot([0,tplot],[1,zval(1,plot_indcs)],[colors{1},'-'],'LineWidth',1.5,'DisplayName','$r(t)$');
+plot([0,tplot],[0,wval(plot_indcs)],[colors{4},'-.'],'LineWidth',1.0,'DisplayName','$w(t)$');
+hold off
+% Clean up the figure
+sgtitle('ODE state and regulated output evolution','Interpreter','latex','FontSize',15)
+ax1 = subplot(1,2,1);   ax1.XLim = [0,opts.tf];
+ax1.TickLabelInterpreter = 'latex';
+title('ODE state $x(t)$','Interpreter','latex','FontSize',13)
+xlabel('$t$','FontSize',15,'Interpreter','latex');
+ylabel('$x$','FontSize',15,'Interpreter','latex');
+ax2 = subplot(1,2,2);   ax2.XLim = [0,opts.tf];
+ax2.TickLabelInterpreter = 'latex';
+title('Regulated output $r(t)$ and disturbance $w(t)$','Interpreter','latex','FontSize',13)
+legend('Interpreter','latex','Location','northeast','FontSize',10.5);
+xlabel('$t$','FontSize',15,'Interpreter','latex');    
+ylabel('$r$','FontSize',15,'Interpreter','latex');
+%saveas(fig2,'DEMO1_OutputEvolution_Plot','epsc');
+
+
+
+
+
+
 %% 11.5 DEMO 5: Hinf Optimal Estimator
 % Run the Demo
 DEMO5_Hinf_optimal_estimator

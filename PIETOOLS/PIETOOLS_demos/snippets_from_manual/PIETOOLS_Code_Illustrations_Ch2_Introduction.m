@@ -19,52 +19,47 @@
 %                      z2(t) = u(t)
 % where now we add an output z2(t)=u(t) so that, in constructing an optimal
 % control, we also minimize the control effort.
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
 
 %% 2.2.1 Declare the ODE-PDE model
 % Declare an ODE state variable x, a vector-valued 1D PDE state variable
 % phi with 2 elements, and a finite-dimensional exogenous input w,
 % controlled input u, and regulated output z, with z containing 2 elements. 
-x = state('ode');   phi = state('pde',2);
-w = state('in');    u = state('in');
-z = state('out',2);
-
-% Declare an ODE-PDE system structure 'sys' describing the system
-pvar t s                % declare temporal and spatial variable
-b = 0.1;      c = 1;    % set system parameters
-odepde = sys();         % initialize the system structure
+clc; clear; close all; clear stateNameGenerator;
+% Declare independent variables
+pvar t s;   
+% Declare state, input, and output variables
+phi = pde_var(2,s,[0,1]);   x = pde_var();
+w = pde_var('in');          u = pde_var('control');   
+z = pde_var('out',2);
+% Declare system parameters
+c=1;    b=.01;
 % Declare ODE-PDE equations
 %   d/dt      x(t) = -x(t) + u(t);
 %   d/dt phi1(t,s) = phi2_{ss}(t,s);
 %   d/dt phi2(t,s) = c*phi1_{ss}(t,s) + s*w(t) -b*phi2(t,s);
-eq_dyn = [diff(x,t,1) == -x+u;
+eq_dyn = [diff(x,t,1)==-x+u
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
 % Declare output equations
 %            z1(t) = int_{0}^{1} phi1(t,s)ds;
 %            z2(t) = u(t);
 eq_out= z==[int([1 0]*phi,s,[0,1]); 
             u];
-% Add equations to the system structure.
-odepde = addequation(odepde,[eq_dyn;eq_out]);
 
-
-%% 2.2.2 Set a controlled input
-% Declare u as a controlled input (rather than disturbance)
-odepde= setControl(odepde,u);
-
-
-%% 2.2.3 Declare the boundary conditions
+%% 2.2.2 Declare the boundary conditions
 bc1 = [0 1]*subs(phi,s,0) == 0;         % phi2(t,0) = 0;
 bc2 = [1 0]*subs(phi,s,1) == x;         % phi1(t,1) = x(t);
-odepde = addequation(odepde,[bc1;bc2]);
+% create the PDE system
+odepde = [eq_dyn;eq_out;bc1;bc2];
+odepde = initialize(odepde);
 
-
-%% 2.2.4: Simulate the ODE-PDE system
+%% 2.2.3: Simulate the ODE-PDE system
 
 % Declare simulation settings.
 opts.plot = 'no';   % don't plot final solution
 opts.N = 8;         % expand solution using 8 Chebyshev polynomials
-opts.tf = 15;       % simulate up to t = 15
+opts.tf = 12;       % simulate up to t = 15
 opts.dt = 3*1e-2;   % use time step of 3*10^-2
 opts.intScheme = 1; % use backward differentiation formula for time integration
 
@@ -88,31 +83,41 @@ phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
 zval = solution.timedep.regulated;
 wval = subs(uinput.w,st,tval);
 
-% Plot evolution of the PDE states.
-figure(1);
-surf(tval,grids.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
-h=colorbar ;
-colormap jet
-box on
-ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
+% Plot evolution of the PDE state and regulated output.
+fig1 = figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
+sgtitle('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
+
+ax1 = subplot(1,2,1);
+box on
+surf(tval,grids.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+h=colorbar;     
+colormap jet
+ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\dot{\mathbf{x}}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
+title('PDE state $\dot{\mathbf{x}}(t,s)$','FontSize',15,'Interpreter','latex');
+ax1.Position = [0.08,0.12,0.33,0.73];
+ax1.TickLabelInterpreter = 'latex';
+h.Label.String = '';        h.TickLabelInterpreter = 'latex';
+ax1.ZLim = [-0.21,0.21];
 
-% Plot evolution of the disturbance and regulated output.
-figure(2);
+ax2 = subplot(1,2,2);
 plot(tval,wval,'k',tval,zval(1,:),'r','LineWidth',2)
 grid on
 box on
 set(gcf, 'Color', 'w');
-legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','Interpreter','latex','FontSize',15)
+legend('$w(t)$','$r(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
-ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
-title('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
+ylabel('$r(t)$','FontSize',15,'Interpreter','latex');
+title('Regulated output $r(t)$','Interpreter','latex','FontSize',15);
+ax2.Position = [0.63,0.12,0.33,0.73];
+ax2.TickLabelInterpreter = 'latex';
+ax2.YLim = [-0.6,0.8];
+%saveas(fig1,'Ch2_OpenLoop_Plot','epsc');
 
 
-%% 2.2.5: Analyse stability and construct a controller
+%% 2.2.4: Analyse stability and construct a controller
 
 % Convert the ODE-PDE to a PIE.
 PIE = convert(odepde,'pie');
@@ -150,41 +155,56 @@ PIE_CL = initialize(PIE_CL);
 % disturbance, we see that the effect of disturbance on this neutrally
 % stable system is reduced.
 tval = solution_CL.timedep.dtime;
-phi1 = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
-phi2 = reshape(solution_CL.timedep.pde(:,2,:),opts.N+1,[]);
+phi1_cl = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
+phi2_cl = reshape(solution_CL.timedep.pde(:,2,:),opts.N+1,[]);
 zval_cl = solution_CL.timedep.regulated;
 wval = subs(uinput.w,st,tval);
 
-% Plot closed-loop evolution of second state variable.
-figure(3)
-surf(tval,grids_CL.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
-h=colorbar ;
-colormap jet
-box on
-ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
+
+
+% Plot closed-loop evolution of the PDE state and regulated output.
+fig2 = figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
+sgtitle('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
+
+ax1 = subplot(1,2,1);
+box on
+surf(tval,grids.phys,phi2_cl,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+h=colorbar;     
+colormap jet
+ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
 zlabel('$\dot{\mathbf{x}}(t,s)$','FontSize',15,'Interpreter','latex');
-title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
+title('PDE state $\dot{\mathbf{x}}(t,s)$','FontSize',15,'Interpreter','latex');
+ax1.Position = [0.08,0.12,0.33,0.73];
+ax1.TickLabelInterpreter = 'latex';
+h.Label.String = '';    h.TickLabelInterpreter = 'latex';
+ax1.ZLim = [-0.21,0.21];
 
-% Plot closed-loop evolution of disturbance w and regulated output r(t).
-figure(4);
+ax2 = subplot(1,2,2);
 plot(tval,wval,'k',tval,zval_cl(1,:),'r',tval,zval_cl(2,:),'b','LineWidth',2)
 grid on
 box on
 set(gcf, 'Color', 'w');
-legend('$\mathbf{w}(t)$','$\mathbf{r}(t)$','$\mathbf{u}(t)$','Interpreter','latex','FontSize',15)
+legend('$w(t)$','$r(t)$','$u(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
-ylabel('$\mathbf{r}(t)$','FontSize',15,'Interpreter','latex');
-title('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
+ylabel('$r(t)$','FontSize',15,'Interpreter','latex');
+title('Regulated output $r(t)$','Interpreter','latex','FontSize',15);
+ax2.Position = [0.63,0.12,0.33,0.73];
+ax2.TickLabelInterpreter = 'latex';
+ax2.YLim = [-0.6,0.8];
+%saveas(fig2,'Ch2_ClosedLoop_Plot','epsc');
+
 
 % Compare evolution of open-loop and closed-loop regulated output r(t).
-figure(5);
-plot(tval,zval(1,:),'r--',tval,zval_cl(1,:),'r','LineWidth',2)
-grid on
-box on
+fig3 = figure('Position',[200 150 1000 350]);
 set(gcf, 'Color', 'w');
-legend('$\mathbf{r}(t)$','$\mathbf{r}_{cl}(t)$','Interpreter','latex','FontSize',15)
+box on
+plot(tval,zval(1,:),'r--',tval,zval_cl(1,:),'r','LineWidth',2)
+legend('$r(t)$','$r_{cl}(t)$','Interpreter','latex','FontSize',15)
 xlabel('$t$','FontSize',15,'Interpreter','latex');    
-ylabel('$\mathbf{z}(t)$','FontSize',15,'Interpreter','latex');
-title('Zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
+ylabel('$r(t)$','FontSize',15,'Interpreter','latex');
+title('Open- and closed-loop zero-state regulated output response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',15);
+grid on
+set(gca,'TickLabelInterpreter','latex');
+%saveas(fig3,'Ch2_RegulatedOutput_Plot','epsc');

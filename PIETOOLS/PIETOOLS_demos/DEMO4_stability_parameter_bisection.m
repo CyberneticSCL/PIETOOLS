@@ -37,6 +37,7 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, use 
 %                   'sys' structure to declare PDE);
 % DJ, 12/22/2024: Explicitly construct stability LPI;
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -59,12 +60,10 @@ for iter = 1:n_iters
     % === Declare the operators of interest
 
     % Declare system as PDE. 
-    PDE = sys();
-    x = state('pde');
-    PDE = addequation(PDE, [diff(x,t)==diff(x,s,2)+lam*x;
+    x=pde_var('state',1,s,[0,1]);
+    PDE=[diff(x,t)==diff(x,s,2)+lam*x;
                             subs(x,s,0)==0;
-                            subs(x,s,1)==0]);
-
+                            subs(x,s,1)==0];
     % Convert to PIE.
     PIE = convert(PDE,'pie');
     T = PIE.T;      A = PIE.A;

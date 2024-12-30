@@ -48,8 +48,8 @@ echo on
 pvar s t
 % Declare state, input, and output variables
 x = pde_var('state',s,[0,1]);
-w = pde_var('in');
-z = pde_var('out');
+w = pde_var('input',1);
+z = pde_var('output',1);
 % Declare the sytem equations
 pde = [diff(x,t,1)==diff(x,s,1)+(s-s^2)*w;    % dynamics
                  z==int(x,s,[0,1]);           % output equation

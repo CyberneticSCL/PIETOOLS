@@ -44,6 +44,7 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/23/2024: Only test stability, manually building the LPI;
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -55,21 +56,49 @@ echo on
 % Declare independent variables
 pvar t s;   
 % Declare state, input, and output variables
-phi = state('pde',2);   x = state('ode');
-w = state('in');        z = state('out');
-% Declare system equations
+phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
+w = pde_var('input',1);          z = pde_var('output',1);
+% Declare system parameters
 c=1;    b=.01;
-odepde = sys();
+% declare dynamic equation
 eq_dyn = [diff(x,t,1)==-x
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
+% declare output equation
 eq_out= z ==int([1 0]*phi,s,[0,1]);
-bc1 = [0 1]*subs(phi,s,0)==0;   % add the boundary conditions
+% declare the boundary conditions
+bc1 = [0 1]*subs(phi,s,0)==0;   
 bc2 = [1 0]*subs(phi,s,1)==x;
-odepde = addequation(odepde,[eq_dyn;eq_out;bc1;bc2]);
-
-% % Convert to PIE
+% create the PDE system
+odepde = [eq_dyn;eq_out;bc1;bc2];
+% Convert to PIE representation
 pie = convert(odepde);
 T = pie.T;      A = pie.A;
+
+
+% =============================================
+% === Simulate the system
+
+% % Declare initial values and disturbance
+syms st sx;
+uinput.ic.ODE = 0.5;
+uinput.ic.PDE = [0.5-sx,sin(pi*sx)];
+uinput.w = sin(5*st)*exp(-st); 
+
+% % Set options for discretization and simulation
+opts.plot = 'yes';  % plot the solution
+opts.N = 16;        % expand using 16 Chebyshev polynomials
+opts.tf = 9;        % simulate up to t = 9;
+opts.dt = 0.03;     % use time step of 3*10^-2
+ndiff = [0,2,0];    % PDE state involves 2 first order differentiable state variables   
+
+% % Simulate open-loop PDE and extract solution
+[solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
+tval = solution.timedep.dtime;
+xval = solution.timedep.ode;
+phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
+phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
+zval = solution.timedep.regulated;
+wval = subs(uinput.w,st,tval);
 
 
 % =============================================
@@ -96,32 +125,6 @@ prog = lpisolve(prog,solve_opts);
 
 % % Alternatively, uncomment to use pre-defined stability test
 % lpiscript(pie,'stability','light')
-
-
-% =============================================
-% === Simulate the system
-
-% % Declare initial values and disturbance
-syms st sx;
-uinput.ic.ODE = 0.5;
-uinput.ic.PDE = [0.5-sx,sin(pi*sx)];
-uinput.w = sin(5*st)*exp(-st); 
-
-% % Set options for discretization and simulation
-opts.plot = 'yes';  % plot the solution
-opts.N = 16;        % expand using 16 Chebyshev polynomials
-opts.tf = 9;        % simulate up to t = 9;
-opts.dt = 0.03;     % use time step of 3*10^-2
-ndiff = [0,2,0];    % PDE state involves 2 first order differentiable state variables   
-
-% % Simulate open-loop PDE and extract solution
-[solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
-tval = solution.timedep.dtime;
-x = solution.timedep.ode;
-phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
-phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
-zval = solution.timedep.regulated;
-wval = subs(uinput.w,st,tval);
 
 
 echo off
