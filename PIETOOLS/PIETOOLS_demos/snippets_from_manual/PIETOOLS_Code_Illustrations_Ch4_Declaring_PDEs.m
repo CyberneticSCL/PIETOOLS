@@ -1,6 +1,6 @@
 % This document illustrates how PIETOOLS can be used to declare ODE-PDE
 % system as 'pde_struct' objects using the function 'pde_var'.
-% We refer to Chapter 2 of the manual for more context on the codes.
+% We refer to Chapter 4 of the manual for more context on the codes.
 
 
 %% 4.1.1 Defining a coupled ODE-PDE system
