@@ -15,7 +15,7 @@ echo on
 pvar s t; 
 % % % Declare the PDE
 % Declare state variable x.
-x=pde_var('state',1,s,[0,1]);
+x = pde_var('state',1,s,[0,1]);
 % Declare the value of reaction parameter lam.
 lam = 9;
 % Declare the dynamics: d/dt x(t,s) = d^2/ds^2 x(t,s) + lam * x(t,s);
@@ -23,7 +23,7 @@ dynamics = (diff(x,t) == diff(x,s,2) + lam*x);
 % Declare the boundary conditions: x(t,s=0) = x(t,s=1) = 0;
 BC = [subs(x,s,0)==0; subs(x,s,1)==0];
 % Add the dynamics and BCs to the PDE system
-pde = [dynamics;BC];
+pde = initialize([dynamics;BC]);
 
 
 % % % Convert the PDE to a PIE
