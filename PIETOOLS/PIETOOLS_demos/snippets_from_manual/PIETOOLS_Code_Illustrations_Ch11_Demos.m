@@ -241,7 +241,7 @@ figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
 box on
 plot(tplot,u_CL(1,plot_indcs),[colors{7},'-'],'LineWidth',1.5,'DisplayName','$u_{cl}(t)$');
-title('Closed-loop control effort $u_{cl}(t)=\mathcal{K}\mathbf{x}_{cl}(t)$','Interpreter','latex','FontSize',15)
+title('Closed-loop control effort $u_{cl}(t)=\mathcal{K}\mathbf{x}_{f,cl}(t)$','Interpreter','latex','FontSize',15)
 ax3 = gca;   ax3.XScale = 'log';  ax3.XLim = [opts.dt,opts.tf];
 ax3.TickLabelInterpreter = 'latex';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u_{cl}$','FontSize',15,'Interpreter','latex');
@@ -329,7 +329,7 @@ figure('Position',[200 150 1000 350]);
 set(gcf, 'Color', 'w');
 box on
 plot(tplot,u_CL(1,plot_indcs),[colors{7},'-'],'LineWidth',1.5,'DisplayName','$u(t)$');
-title('Closed-loop control effort $u(t)=\mathcal{K}\hat{\mathbf{x}}(t)$','Interpreter','latex','FontSize',15)
+title('Closed-loop control effort $u(t)=\mathcal{K}\hat{\mathbf{x}}_{f}(t)$','Interpreter','latex','FontSize',15)
 ax3 = gca;   ax3.XScale = 'log';  ax3.XLim = [opts.dt,opts.tf];
 ax3.TickLabelInterpreter = 'latex';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u$','FontSize',15,'Interpreter','latex');
