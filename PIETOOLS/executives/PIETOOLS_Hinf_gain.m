@@ -49,7 +49,7 @@
 %                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, R,Q, gam,Dop] = PIETOOLS_Hinf_gain(PIE, settings)
+function [prog, P, gam,Dop] = PIETOOLS_Hinf_gain(PIE, settings)
 
 if PIE.dim==2
     % Call the 2D version of the executive.
@@ -209,7 +209,7 @@ if ~isreal(gam)
 else 
     disp(gam);
 end
-R = lpigetsol(prog_sol,Pop);
+P = lpigetsol(prog_sol,Pop);
 Q= lpigetsol(prog_sol,Qop);
 gam = double(lpigetsol(prog_sol,gam));
 end
