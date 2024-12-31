@@ -3,22 +3,28 @@ function PIE_lft = pielft(PIE1,PIE2)
 % two PIE systems. Specifically, if PIE1 and PIE2 are defined by
 % d/dt (Top1*v1(t)+Twop1*w1(t)+Tuop1*u1(t)) = Aop1*v1(t) +Bwop1*w1(t) +Buop1*u1(t)
 %                                     z1(t) = Czop1*v1(t)+Dzwop1*w1(t)+Dzuop1*u1(t)
-%                                     y1(t) = Cyop1*v1(t)+Dywop1*w1(t)
+%                                     y1(t) = Cyop1*v1(t)+Dywop1*w1(t)+Dyuop1*u1(t) 
 % and
 % d/dt (Top2*v2(t)+Twop2*w2(t)+Tuop2*u2(t)) = Aop2*v2(t) +Bwop2*w2(t) +Buop2*u2(t)
 %                                     z2(t) = Czop2*v2(t)+Dzwop2*w2(t)+Dzuop2*u2(t)
-%                                     y2(t) = Cyop2*v2(t)+Dywop2*w2(t)
+%                                     y2(t) = Cyop2*v2(t)+Dywop2*w2(t)+Dyuop2*u2(t) 
 % respectively, then pielft(PIE1,PIE2) is obtained by enforcing u1 = y2 and
 % u2 = y1, taking the form
 %       d/dt (Top*v(t)+Twop*w(t)) = Aop*v(t) + Bop*w(t)
 %                            z(t) = Cop*v(t) + Dop*w(t)
 % where v = [v1;v2], w = [w1;w2], and z = [z1;z2], and
-%   Top = [Top1,        Tuop1*Cyop2]      Twop = [Twop1,        Tuop1*Dywop2]
-%         [Tuop2*Cyop1, Top2       ],            [Tuop2*Dywop1, Twop2       ],
-%   Aop = [Aop1,        Buop1*Cyop2]      Bop = [Bwop1,        Buop1*Dywop2]
-%         [Buop2*Cyop1, Aop2       ],           [Buop2*Dywop1, Bwop2       ],
-%   Cop = [Czop1,        Dzuop1*Cyop2]    Dop = [Dzwop1,        Dzuop1*Dywop2]
-%         [Dzuop2*Cyop1, Czop2       ],         [Dzuop2*Dywop1, Dzwop2       ],
+%   Top = [Top1+Tuop1*Dyuop2*Cyop1, Tuop1*Cyop2            ]      
+%         [Tuop2*Cyop1,             Top2+Tuop2*Dyuop1*Cyop2], 
+%  Twop = [Twop1+Tuop1*Dyuop2*Dywop1, Tuop1*Dywop2             ]
+%         [Tuop2*Dywop1,              Twop2+Tuop2*Dyuop1*Dywop2],
+%   Aop = [Aop1+Buop1*Dyuop2*Cyop1, Buop1*Cyop2            ]      
+%         [Buop2*Cyop1,             Aop2+Buop2*Dyuop1*Cyop2],
+%   Bop = [Bwop1+Buop1*Dyuop2*Dywop1, Buop1*Dywop2             ]
+%         [Buop2*Dywop1,              Bwop2+Buop2*Dyuop1*Dywop2],
+%   Cop = [Czop1+Dzuop1*Dyuop2*Cyop1, Dzuop1*Cyop2             ] 
+%         [Dzuop2*Cyop1,              Czop2+Dzuop2*Dyuop1*Cyop2],
+%   Dop = [Dzwop1+Dzuop1*Dyuop2*Dywop1, Dzuop1*Dywop2              ]
+%         [Dzuop2*Dywop1,               Dzwop2+Dzuop2*Dyuop1*Dywop2],
 %
 % INPUT
 % - PIE1, PIE2:     'pie_struct' objects representing PIEs of which to take
@@ -84,6 +90,7 @@ function PIE_lft = pielft(PIE1,PIE2)
 % authorship, and a brief description of modifications
 %
 % DJ, 12/22/2024: Initial coding;
+% DJ, 12/30/2024: Add support for nonzero feedthrough;
 
 % % Right now, support only exactly two arguments.
 if nargin~=2
@@ -167,7 +174,7 @@ if use_z2
     Dzwop2_new = Dywop1;    Dywop2 = Dzwop2;    Dzwop2 = Dzwop2_new;
     Dzuop2_new = Dyuop1;    Dyuop2 = Dzuop2;    Dzuop2 = Dzuop2_new;
 end
-if ~(Dyuop1==0) || ~(Dyuop2==0)
+if ~(Dyuop1==0) && ~(Dyuop2==0)
     error("LFT for PIEs with feedthrough from controlled input to observed output is not supported.")
 end
 
@@ -176,18 +183,18 @@ end
 PIE_lft = pie_struct;
 PIE_lft.dom = PIE1.dom;     
 PIE_lft.vars = PIE1.vars;
-PIE_lft.T = [Top1,Tuop1*Cyop2;     
-             Tuop2*Cyop1,Top2];            
-PIE_lft.Tw = [Twop1,Tuop1*Dywop2;
-              Tuop2*Dywop1,Twop2];
-PIE_lft.A = [Aop1,Buop1*Cyop2;      
-             Buop2*Cyop1,Aop2];           
-PIE_lft.Bw = [Bwop1,Buop1*Dywop2;
-              Buop2*Dywop1,Bwop2];
-PIE_lft.Cz = [Czop1,Dzuop1*Cyop2;
-              Dzuop2*Cyop1,Czop2];
-PIE_lft.Dzw = [Dzwop1,Dzuop1*Dywop2;
-               Dzuop2*Dywop1,Dzwop2];
+PIE_lft.T = [Top1+Tuop1*Dyuop2*Cyop1,Tuop1*Cyop2;     
+             Tuop2*Cyop1,Top2+Tuop2*Dyuop1*Cyop2];            
+PIE_lft.Tw = [Twop1+Tuop1*Dyuop2*Dywop1,Tuop1*Dywop2;
+              Tuop2*Dywop1,Twop2+Tuop2*Dyuop1*Dywop2];
+PIE_lft.A = [Aop1+Buop1*Dyuop2*Cyop1,Buop1*Cyop2;      
+             Buop2*Cyop1,Aop2+Buop2*Dyuop1*Cyop2];           
+PIE_lft.Bw = [Bwop1+Buop1*Dyuop2*Dywop1,Buop1*Dywop2;
+              Buop2*Dywop1,Bwop2+Buop2*Dyuop1*Dywop2];
+PIE_lft.Cz = [Czop1+Dzuop1*Dyuop2*Cyop1,Dzuop1*Cyop2;
+              Dzuop2*Cyop1,Czop2+Dzuop2*Dyuop1*Cyop2];
+PIE_lft.Dzw = [Dzwop1+Dzuop1*Dyuop2*Dywop1,Dzuop1*Dywop2;
+               Dzuop2*Dywop1,Dzwop2+Dzuop2*Dyuop1*Dywop2];
 
 PIE_lft = initialize(PIE_lft);
 
