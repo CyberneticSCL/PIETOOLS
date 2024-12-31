@@ -136,7 +136,7 @@ if exist('PIE','var')
 elseif exist('DDE','var')
     solution=PIESIM(DDE,opts,uinput);
 else
-    PIE.solution = PIESIM(PDE,opts,uinput);
+    solution = PIESIM(PDE,opts,uinput);
 end
 
 
