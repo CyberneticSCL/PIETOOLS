@@ -48,6 +48,8 @@
 %
 % DJ, 11/22/2024: Initial coding;
 % DJ, 12/16/2024: Simplify demo;
+% DJ, 12/26/2024: Add simulation;
+% DJ, 12/28/2024: Change simulation conditions;
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -61,9 +63,9 @@ pvar s1 s2 t
 % Declare state, input, and output variables
 a = 0;      b = 1;
 c = 0;      d = 1;
-x = pde_var('state',1,[s1;s2],[a,b;c,d]);
-w = pde_var('in',1);
-z = pde_var('out',1);
+x = pde_var('state',[s1;s2],[a,b;c,d]);
+w = pde_var('in');
+z = pde_var('out');
 % Declare the sytem equations
 lam = 5;
 PDE = [diff(x,t) == diff(x,s1,2) +diff(x,s2,2) + lam*x + w;
@@ -83,6 +85,29 @@ B = PIE.B1;    D = PIE.D11;
 
 
 % =============================================
+% === Simulate the system
+
+% % Declare initial values and disturbance
+syms st sx sy real
+uinput.ic.PDE = 0;
+uinput.w = 20*sin(pi*st)*exp(-st/2);
+
+% % Set options for discretization and simulation
+opts.plot = 'yes';  % plot the final solution
+opts.N = 8;         % Expand using 8x8 Chebyshev polynomials
+opts.tf = 10;       % Simulate up to t = 10
+opts.dt = 1e-2;     % Use time step of 10^-2
+ndiff = [0,0,1];    % The state involves 1 second order differentiable state variable wrt sx and sy
+
+% % Perform the actual simulation
+[solution,grid] = PIESIM(PDE,opts,uinput,ndiff);
+tval = solution.timedep.dtime;
+x = reshape(solution.timedep.pde{2}(:,:,1,:),opts.N+1,opts.N+1,[]);
+z = solution.timedep.regulated(1,:);
+w = double(subs(uinput.w,st,tval));
+
+
+% =============================================
 % === Declare the LPI
 
 % % Initialize LPI program
@@ -97,9 +122,9 @@ prog = lpiprogram([s1;s2],[a,b;c,d]);
 
 % % Set inequality constraints:
 % %   Q <= 0
-Q = [-gam,       D',      (P*B)'*T;
-     D,          -gam,    C;
-     T*(P*B),    C',      (P*A)'*T+T'*(P*A)];
+Q = [-gam,        D',      (P*B)'*T;
+     D,           -gam,    C;
+     T'*(P*B),    C',     (P*A)'*T+T'*(P*A)];
 opts_Q.psatz = 2;
 prog = lpi_ineq(prog,-Q,opts_Q);
 
@@ -108,14 +133,13 @@ prog = lpi_ineq(prog,-Q,opts_Q);
 prog = lpisetobj(prog, gam);
 
 % % Solve and retrieve the solution
-opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
-opts.simplify = true;           % Simplify the SDP before solving
 prog_sol = lpisolve(prog,opts);
 % Extract solved value of decision variable
 gam_val = double(lpigetsol(prog_sol,gam));
 
 % % Alternatively, uncomment to use pre-defined executive
 % [prog, ~, gam_val] = lpiscript(PIE,'l2gain','stripped');   
+
 
 echo off
 

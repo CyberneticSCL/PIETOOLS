@@ -11,7 +11,7 @@
 % Domain:  a=0, b=1
 
 %%
-clc; clear;
+clc; clear; clear stateNameGenerator;
 echo on
 %%%%%%%%%%%%%%%%%% Start Code Snippet %%%%%%%%%%%%%%%%%%
 
@@ -19,27 +19,19 @@ echo on
 pvar s t
 a = 0;   b = 1;
 
-
 %%% First step: Declare the state components, inputs and outputs (if
 %%% applicable)
-PDE = sys();
-x = state('pde');
-
+x = pde_var('state',1,s,[a,b]);
 
 %%% Second step: Declare the PDE equations
-PDE_dyn = diff(x,t) == diff(x,s,2);
-PDE = addequation(PDE,PDE_dyn);
-             
+PDE_dyn=diff(x,t)==diff(x,s,2); 
                    
 %%% Third step: Declare the boundary conditions
 PDE_BCs = [subs(x,s,0) + int(x,s,[a,b]) == 0;
            subs(x,s,1) + int(x,s,[a,b]) == 0];
-PDE = addequation(PDE,PDE_BCs);
 
-
-%%% Fourth step: Set the domain of the PDE
-PDE.dom = [a,b];
-         
+%%% Fourth step: create the PDE system by combining the equations
+PDE =[PDE_dyn;PDE_BCs];         
                    
 %%% Final step: Convert to a PIE
 % This computes the PIE operators T, Tw, Tu, A, B1, B2, C1, D11, D12, C2, 

@@ -37,6 +37,7 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, use 
 %                   'sys' structure to declare PDE);
 % DJ, 12/22/2024: Explicitly construct stability LPI;
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -52,12 +53,6 @@ lam_min = 0;        lam_max = 20;
 lam = 0.5*(lam_min + lam_max);
 n_iters = 8;
 
-% Initialize settings for solving the LPI
-settings = lpisettings('heavy');
-if strcmp(settings.sos_opts.solver,'sedumi')
-    settings.sos_opts.params.fid = 0;   % Suppress output in command window
-end
-
 %%% Perform bisection on the value of lam
 for iter = 1:n_iters
     fprintf(['\n',' --- Running the stability test with lam = ',num2str(lam),' ---\n'])
@@ -65,12 +60,10 @@ for iter = 1:n_iters
     % === Declare the operators of interest
 
     % Declare system as PDE. 
-    PDE = sys();
-    x = state('pde');
-    PDE = addequation(PDE, [diff(x,t)==diff(x,s,2)+lam*x;
+    x=pde_var('state',1,s,[0,1]);
+    PDE=[diff(x,t)==diff(x,s,2)+lam*x;
                             subs(x,s,0)==0;
-                            subs(x,s,1)==0]);
-
+                            subs(x,s,1)==0];
     % Convert to PIE.
     PIE = convert(PDE,'pie');
     T = PIE.T;      A = PIE.A;
@@ -93,7 +86,9 @@ for iter = 1:n_iters
     prog = lpi_ineq(prog,-Q,opts);
     
     % % Solve and retrieve the solution
-    prog = lpisolve(prog);
+    solve_opts.solver = 'sedumi';   % use SeDuMi to solve
+    solve_opts.params.fid = 0;      % suppress output in command window
+    prog = lpisolve(prog,solve_opts);
 
     % % Alternatively, uncomment to run pre-defined stability executive
     % prog = lpiscript(PIE,'stability',settings);

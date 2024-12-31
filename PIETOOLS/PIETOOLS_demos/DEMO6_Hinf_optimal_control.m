@@ -60,8 +60,9 @@
 %                   rid of extra simulations);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/22/2024: Use piess;
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
-clc; clear; close all;
+clear; clc; close all; clear stateNameGenerator
 echo on
 
 % =============================================
@@ -71,18 +72,16 @@ echo on
 % Declare independent variables (time and space)
 pvar t s
 % Declare state, input, and output variables
-x = state('pde');       w = state('in');
-z = state('out', 2);    u = state('in');
+x = pde_var('state',1,s,[0,1]);   
+z = pde_var('output',2);
+w = pde_var('input',1);          u = pde_var('control',1);
 % Declare the sytem equations
 lam = 5;
-PDE = sys();
-eqs = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
+PDE = [diff(x,t) == diff(x,s,2) + lam*x + s*w + s*u;
        z == [int(x,s,[0,1])+w; u];
        subs(x,s,0)==0;
        subs(diff(x,s),s,1)==0];
-PDE = addequation(PDE,eqs);
-% Set u as constrolled input
-PDE = setControl(PDE,u);
+
 display_PDE(PDE);
 
 % % Convert PDE to PIE
@@ -121,9 +120,7 @@ prog = lpi_ineq(prog,-Q);
 prog = lpisetobj(prog, gam);
 
 % % Solve and retrieve the solution
-opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
-opts.simplify = true;           % Simplify the SDP before solving
-prog_sol = lpisolve(prog,opts);
+prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
 gam_val = lpigetsol(prog_sol,gam);
 Pval = lpigetsol(prog_sol,P);
@@ -150,7 +147,7 @@ uinput.ic.PDE = sin(sx*pi/2);
 uinput.w = sin(pi*st)./(st+eps); 
 
 % % Set options for discretization and simulation
-opts.plot = 'no';   % don't plot final solution
+opts.plot = 'yes';   % don't plot final solution
 opts.N = 16;        % expand using 16 Chebyshev polynomials
 opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-2;     % use time step of 10^-2
@@ -173,11 +170,16 @@ w = double(subs(uinput.w,st,tval));
 echo off
 
 
-% % Plot simulated states and regulated outputs against time.
-figs_OL = PIESIM_plotsolution(solution_OL,grid,'title','Open-Loop');
-figs_CL = PIESIM_plotsolution(solution_CL,grid,'title','Closed-Loop');
-% Change titles of plots
-fig2 = figs_OL{2};  ax2 = fig2.CurrentAxes;
-title(ax2,'Open-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
-fig4 = figs_CL{2};  ax4 = fig4.CurrentAxes;
+% % Change titles of plots
+fig1 = figure(1);       ax1 = fig1.CurrentAxes;
+title(ax1,'Open-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
+fig2 = figure(2);
+fig2.Children.Title.String = ['Open-Loop Final PDE State $\mathbf{x}(t=',num2str(opts.tf),',s)$'];
+fig3 = figure(3);
+fig3.Children(2).Title.String = 'Open-Loop PDE State Evolution $\mathbf{x}(t,s)$';
+fig4 = figure(4);       ax4 = fig4.CurrentAxes;
 title(ax4,'Closed-Loop Regulated Output $z_1(t)$ and Control Effort $u(t)=z_2(t)$','Interpreter','latex','FontSize',15);
+fig5 = figure(5);
+fig5.Children.Title.String = ['Closed-Loop Final PDE State $\mathbf{x}(t=',num2str(opts.tf),',s)$'];
+fig6 = figure(6);
+fig6.Children(2).Title.String = 'Closed-Loop PDE State Evolution $\mathbf{x}(t,s)$';

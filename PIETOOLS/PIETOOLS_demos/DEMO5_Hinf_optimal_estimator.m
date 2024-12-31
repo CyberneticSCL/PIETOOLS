@@ -64,8 +64,9 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/22/2024: Use piess and pielft;
+% DB, 12/29/2024: Use pde_var objects instead of sys and state
 
-clc; clear; close all;
+clear; clc; close all; clear stateNameGenerator
 echo on
 
 % =============================================
@@ -75,20 +76,17 @@ echo on
 % Declare independent variables (time and space)
 pvar t s
 % Declare state, input, and output variables
-x = state('pde');   w = state('in');
-y = state('out');   z = state('out');
+x= pde_var(1,s,[0,1]);   w = pde_var('in');     
+z = pde_var('out'); y=pde_var('sense');
 % Declare the sytem equations
 lam = 4;
-PDE = sys();
-eqs = [diff(x,t) == diff(x,s,2) + lam*x + w;    % PDE
+pde= [diff(x,t) == diff(x,s,2) + lam*x + w;    % PDE
        z == int(x,s,[0,1]) + w;                 % regulated output
        y == subs(x,s,1);                        % observed output
        subs(x,s,0) == 0;                        % first boundary condition
        subs(diff(x,s),s,1) == 0];               % second boundary condition
-PDE = addequation(PDE,eqs);                     % Add the equations to the PDE structure
-% Set y as an observed output
-PDE = setObserve(PDE,y);                        
-display_PDE(PDE);
+
+display_PDE(pde);
 
 % % Convert PDE to PIE
 PIE = convert(PDE);
@@ -125,9 +123,7 @@ prog = lpi_ineq(prog,-Q);
 prog = lpisetobj(prog, gam);
 
 % % Solve and retrieve the solution
-opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
-opts.simplify = true;           % Simplify the SDP before solving
-prog_sol = lpisolve(prog,opts);
+prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
 gam_val = lpigetsol(prog_sol,gam);
 Pval = lpigetsol(prog_sol,P);
@@ -142,8 +138,6 @@ Lval = getObserver(Pval,Zval);
 % and take LFT with PIE
 PIE_est = piess(T,A+Lval*C2,-Lval,C1(1,:));
 PIE_CL = pielft(PIE,PIE_est);
-
-
 
 % % Alternatively, uncomment to use pre-defined functions
 % [prog, Lval, gam_val] = lpiscript(PIE,'hinf-observer','heavy');   
@@ -160,7 +154,7 @@ uinput.ic.PDE = [-10*sx;    % actual initial PIE state value
 uinput.w = 2*sin(pi*st);
 
 % % Set options for discretization and simulation
-opts.plot = 'no';   % don't plot final solution
+opts.plot = 'yes';  % plot solution
 opts.N = 8;         % expand using 8 Chebyshev polynomials
 opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-3;     % use time step of 10^-3
@@ -179,10 +173,8 @@ z_est = solution.timedep.regulated(2,:);
 echo off
 
 
-% % Plot simulated states and regulated outputs against time.
-figs = PIESIM_plotsolution(solution,grid,'tlog');
-% Change titles of plots
-fig1 = figs{1};
-fig1.Children(5).String = 'True ($x_1(t,s)$) and estimated ($x_2(t,s)$) PDE state evolution';
-fig2 = figs{2};     ax = fig2.CurrentAxes;
+% % Change titles of plots
+fig3 = figure(3);
+fig3.Children(5).String = 'True ($\mathbf{x}_1(t,s)$) and estimated ($\mathbf{x}_2(t,s)$) PDE state evolution';
+fig2 = figure(1);     ax = fig2.CurrentAxes;
 title(ax,'True ($z_1(t)$) and estimated ($z_2(t)$) regulated output evolution','Interpreter','latex','FontSize',15);
