@@ -26,55 +26,57 @@
 %       (n_pde not used)
 % ----- if varargin(1) is PIE, then opts/uinput/n_pde are mandatory
 
+% Optional:
 % --- varargin(2): opts - options for simulation parameters. 
 %     If not provided, will be set to default values
 % ------ opts is a structure with fields: 
-%        {'N','tf','intScheme','Norder','dt','plot','type'}
+%        {'N','tf','intScheme','Norder','dt','plot','ploteig'}
 % ------ N: order of polynomials used in spectral decomposition 
 % ------ tf: final time of simulation
-% ------ intScheme: time-integration scheme (backward difference scheme if 
+% ------ intScheme: time integration scheme (backward difference scheme if 
 %        1, symbolic integration of analytical solution if 2)
-% ------ Norder: order of time-integration scheme (used only when 
+% ------ Norder: order of time integration scheme (used only when 
 %        intScheme=1, discretization order of backward difference scheme)
-% ------ dt: time steps used in numerical time-integration
-% ------ plot: returns plot if 1, no plot if 0
-% ------ type: PDE, DDE, or PIE
+% ------ dt: time steps used in numerical time integration
+% ------ plot: - option for plotting solution - returns solution plots if 'yes', no plots if 'no'
+% ------ ploteig: option for plotting discrete eigenvalues of a discretized temporal propagator - returns eigenvalue plot if 'yes', no plot if 'no'
 
 % --- varargin(3): uinput - user-defined boundary inputs, forcing and 
 %     initial conditions. If not provided, will be set to default values
 % ------ uinput is a structure with fields: {'ic','w','ifexact','exact'}
-% ------ ic: initial condition defined as a matlab symbolic object in 'sx' 
-%        for each state in object_type separated as ic.ode and ic.pde
-% ------ w: external disturbance defined as matlab symbolic object in 'st' 
-%        and 'sx'
-% ------ ifexact: if exact solution is known set to 1, else 0 (optional)
-% ------ exact: only if uinput.ifexact=1, then define exact solution as a 
-%        matlab symbolic object in 'sx' and 'st'
+% ------ ic: initial conditions defined as a MATLAB symbolic object. ic consists of the following sub-fields:
+%        ic.pde - initial conditions for the PDE states defined as symbolic functions of 'sx' (1D), or 'sx', 'sy' (2D) 
+%        ic.ode - initial conditions for the ODE states defined as scalars
+% ------ w: external disturbances defined as a MATLAB symbolic object in 'st','sx' (1D), or 'st','sx','sy' (2D)
+% ------ ifexact:  indicates whether a comparison of numerical solution with exact solution will be performed (if true) or not (if false). 
+%        If uinput.ifexact=true and opts.plot=`yes', the exact solution will be plotted against numerical solution 
+% ------ exact: only if uinput.ifexact=true, then define exact solution as a 
+%        MATLAB symbolic object in 'st','sx' (1D), or 'st','sx','sy' (2D)
 
 % --- varargin(4): n_pde (only used when varargin(1) is PIE), is a vector 
 %     of integers specifying the number of differentiable states based on
-%     index location, n_pde(i) is number of states that are (i-1) times
-%     differentiable in space
-%     For example, [1,2,3] stands for (1) continuous state, (2) continuously 
-%     differentiable, and (3) twice continuously differentiable states 
+%     the index location, such as n_pde(i) is the number of states that are (i-1) times
+%     differentiable in space.
+%     For example, [0,2,1] stands for (0) continuous, (2) continuously 
+%     differentiable, and (1) twice continuously differentiable states. 
 
-% Outputs: 
+% Outputs:
 % 1) solution 
 % solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
-% --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
+% --- solution.final.pde - array of size (N+1) x ns, ns is the total number of PDE states (including 2D and 1D states in 2D problems)- PDE (distributed state) solution at a final time
 % --- solution.final.ode - array of size no - ode solution at a final time 
-% --- solution.final.observed - array of size ny  - final value of observed outputs
-% --- solution.final.regulated - array of size nz  - final value of regulated outputs
+% --- solution.final.observed - array of size noo  - final value of observed outputs
+% --- solution.final.regulated - array of size nro  - final value of regulated outputs
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
-% --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
+% --- solution.timedep.dtime - array of size 1 x Nsteps - array of discrete time values at which the time-dependent solution is computed  
 % --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
 % --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 %     solution of ns PDE (distributed) states of the primary PDE system
-% --- solution.timedep.observed - array of size ny x Nsteps -
+% --- solution.timedep.observed - array of size noo x Nsteps -
 %     time-dependent value of observed outputs
-% --- solution.timedep.regulated - array of size nz x Nsteps -
+% --- solution.timedep.regulated - array of size nro x Nsteps -
 %     time-dependent value of regulated outputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
