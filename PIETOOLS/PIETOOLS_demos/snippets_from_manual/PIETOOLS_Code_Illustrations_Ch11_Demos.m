@@ -253,6 +253,7 @@ xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u_{cl}$','FontSiz
 
 
 %% 11.7 DEMO 7: Observer Based Control
+% Run the Demo
 DEMO7_observer_based_control
 
 % % Plot the open- and closed-loop state evolution
@@ -341,6 +342,9 @@ xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u$','FontSize',15
 
 
 %% 11.9 DEMO 9: L2-Gain Analysis and Simulation of 2D PDEs
+% Run the demo
+DEMO9_L2_gain_analysis
+
 % % Plot the regulated output versus time
 %plot_indcs = floor(logspace(0,log(opts.tf/opts.dt)/log(10),50));
 plot_indcs = round(linspace(1,size(z,2),100));
