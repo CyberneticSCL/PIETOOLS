@@ -65,9 +65,8 @@ clc; clear; close all; clear stateNameGenerator;
 %% Declare the system of interest
 % Declare the system as a PDE.
 pvar s t
-x=pde_var('state',1,s,[0 1]);
-y=pde_var('sense',1); z=pde_var('output',1);
-w=pde_var('input',1);
+pde_var state x input w output z sense y;
+x.vars = s;    x.dom = [0,1];
 PDE = [diff(x,t) == diff(x,s,2) + 4*x + w;
              z == int(x,s,[0,1]) + w;
              y == subs(x,s,1);
