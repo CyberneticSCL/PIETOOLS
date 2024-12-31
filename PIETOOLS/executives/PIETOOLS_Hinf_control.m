@@ -60,7 +60,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control_new(PIE, settings)
+function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -140,6 +140,7 @@ prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 disp('- Declaring Positive Storage Operator variable and indefinite Controller operator variable using specified options...');
 
 [prog, P1op] = poslpivar(prog, Top.dim, dd1, options1);
+[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],ddZ);
 
 if override1~=1
     [prog, P2op] = poslpivar(prog, Top.dim(:,1), dd12, options12);
@@ -167,10 +168,9 @@ end
 Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X,ddZ);
 
-Dop = [-gam*Iz,                      Dzwop      (Czop*Qop+Dzuop*Zop);
-        Dzwop',                      -gam*Iw,   Bwop';
+Dop = [-gam*Iw,                      Dzwop      (Czop*Qop+Dzuop*Zop);
+        Dzwop',                      -gam*Iz,   Bwop';
         (Czop*Qop+Dzuop*Zop)',   Bwop       (Aop*Qop+Buop*Zop)+(Aop*Qop+Buop*Zop)']; 
 
 disp('- Parameterize the derivative inequality...');

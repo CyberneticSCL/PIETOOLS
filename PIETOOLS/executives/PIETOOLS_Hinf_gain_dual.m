@@ -58,7 +58,7 @@
 %                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P, gam] = PIETOOLS_Hinf_gain_dual_new(PIE, settings)
+function [prog, P, gam] = PIETOOLS_Hinf_gain_dual(PIE, settings)
 
 if PIE.dim==2
     % Call the 2D version of the executive.
