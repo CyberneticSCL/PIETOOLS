@@ -117,6 +117,7 @@ prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the pr
 dpvar gam;
 prog = lpidecvar(prog, gam); % set gam = gamma as decision variable
 prog = lpi_ineq(prog, gam);  % enforce gamma>=0
+prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 % gam = 2;
 % Alternatively, the above 3 commands may be commented and a specific gain
 % test specified by defining a specific desired value of gamma. This
@@ -146,18 +147,14 @@ end
 %          D         -gamma*I C
 %          T'*P*B      C'       T'*P*A+A'*P*T]
 
-% adding adjustment for infinite-dimensional I/O
-opvar Iw Iz; Iw.I = PIE.dom; Iz.I = Iw.I;
-Iw.dim = [PIE.B1.dim(:,2),PIE.B1.dim(:,2)];
-Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
-Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
-Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
-
-
-
 disp('- Constructing the Negativity Constraint...');
 
 [prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],ddZ);
+prog = lpi_eq(prog, Top'*Qop-Pop,opts);
+
+Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
+
 
 Dop = [-gam*Iw     D11op'             B1op'*Qop;
         D11op           -gam*Iz        C1op;
@@ -192,7 +189,6 @@ else
     end
     opts.symmetric = 1;
     opts.lin_rep = 1;
-    prog = lpi_eq(prog, Top'*Qop-Pop,opts);
     prog = lpi_eq(prog,Deop+Dop,opts); %Dop=-Deop
 end
 
