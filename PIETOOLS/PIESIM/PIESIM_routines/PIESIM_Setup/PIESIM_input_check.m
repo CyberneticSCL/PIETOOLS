@@ -201,10 +201,10 @@ if PDE.dim==2
     end
 
     % Establish sizes of inputs and outputs
-    psize.nw = sum(PDE.w_tab(:,2));
-    psize.nu = sum(PDE.u_tab(:,2));
-    psize.nro = sum(PDE.z_tab(:,2));
-    psize.noo = sum(PDE.y_tab(:,2));
+    psize.nw = sum(PDE.w_tab(:,2)); % number of disturbances
+    psize.nu = sum(PDE.u_tab(:,2)); % number of control inputs
+    psize.nro = sum(PDE.z_tab(:,2)); % number of regulated outputs
+    psize.noo = sum(PDE.y_tab(:,2)); % number of observed outputs
 
     % Compare to the size of the user-defined input 
     if isfield(uinput,'w')
@@ -873,12 +873,12 @@ structure=PDE;
 
 % Define problem size for discretization
 
-psize.nu=PDE.nu;
-psize.nw=PDE.nw;
-psize.no=PDE.no;
-psize.nro=PDE.nro;
-psize.noo=PDE.noo;
-psize.N=opts.N;
+psize.nu=PDE.nu; % number of control inputs
+psize.nw=PDE.nw; % number of disturbances
+psize.no=PDE.no; % number of ODE states
+psize.nro=PDE.nro; % number of regulated outputs
+psize.noo=PDE.noo; % number of observed outputs
+psize.N=opts.N; % order of disceretization in space
 psize.dim=1;
 
 
