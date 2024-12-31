@@ -58,14 +58,14 @@
 %                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P, gam] = PIETOOLS_Hinf_gain_dual(PIE, settings)
+function [prog, R, gam] = PIETOOLS_Hinf_gain_dual(PIE, settings)
 
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
-        [prog, P, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE);
+        [prog, R, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE);
     else
-        [prog, P, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE,settings);
+        [prog, R, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE,settings);
     end
     return
 end
@@ -126,7 +126,6 @@ end
 dpvar gam;
 prog = lpidecvar(prog, gam); % set gam = gamma as decision variable
 prog = lpi_ineq(prog, gam);  % enforce gamma>=0
-prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 %
 % Alternatively, the above 3 commands may be commented and a specific gain
 % test specified by defining a specific desired value of gamma. This
@@ -148,8 +147,7 @@ else
     Pop=P1op;
 end
 
-[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],X,ddZ);
-prog = lpi_eq(prog, Top*Qop-Pop,opts);
+[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],ddZ);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -163,8 +161,9 @@ prog = lpi_eq(prog, Top*Qop-Pop,opts);
 
 disp('- Constructing the Negativity Constraint...');
 
-Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
+Iw = mat2opvar(eye(size(B1op,2)), B1op.dim(:,2), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(C1op,1)), C1op.dim(:,1), PIE.vars, PIE.dom);
+
 
 Dop = [-gam*Iz      D11op              C1op*Qop';
         D11op'          -gam*Iw        B1op';
@@ -183,30 +182,33 @@ if sosineq_on
 else
     disp('  - Using an Equality constraint...');
 %     [prog, De1op] = poslpivar(prog, Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
-    [prog, De1op] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X,dd2,options2);
+    [prog, De1op] = poslpivar(prog, Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),dd2,options2);
     
     if override2~=1
 %         [prog, De2op] = poslpivar(prog,Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
-        [prog, De2op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1),X, dd3,options3);
+        [prog, De2op] = poslpivar(prog,Iw.dim(:,1)+Iz.dim(:,1)+PIE.T.dim(:,1), dd3,options3);
         Deop=De1op+De2op;
     else
         Deop=De1op;
     end
     opts.symmetric = 1;
     opts.lin_rep = 1;
+    prog = lpi_eq(prog, Top*Qop-Pop,opts);
     prog = lpi_eq(prog,Deop+Dop,opts); %Dop=-Deop
 end
 
-
+% % Set objective function:
+% %   min gam
+prog = lpisetobj(prog, gam);
 disp('- Solving the LPI using the specified SDP solver...');
-prog = lpisolve(prog,sos_opts); 
+prog_sol = lpisolve(prog,sos_opts); 
 
 disp('The H-infty norm of the given system is upper bounded by:')
 if ~isreal(gam)
-    disp(double(lpigetsol(prog,gam))); % check the Hinf norm, if the solved successfully
+    disp(double(lpigetsol(prog_sol,gam))); % check the Hinf norm, if the solved successfully
 else 
     disp(gam);
 end
-P = lpigetsol(prog,Qop);
-gam = double(lpigetsol(prog,gam));
+R = lpigetsol(prog_sol,Pop);
+gam = double(lpigetsol(prog_sol,gam));
 end

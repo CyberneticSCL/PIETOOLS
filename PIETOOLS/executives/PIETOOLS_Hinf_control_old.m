@@ -65,7 +65,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_control(PIE, settings)
+function [prog, Kop, gam, P, Z] = PIETOOLS_Hinf_contro_oldl(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')

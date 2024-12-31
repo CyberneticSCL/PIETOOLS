@@ -74,8 +74,8 @@ if PIE.dim==2
 end
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;        Twop = PIE.Tw;      Tuop = PIE.Tu;
-Aop = PIE.A;        Bwop = PIE.B1;      Buop = PIE.Bu;
-Czop = PIE.C1;      Dzwop = PIE.D11;    Dzuop = PIE.Dzu;
+Aop = PIE.A;        B1op = PIE.B1;      B2op = PIE.Bu;
+C1op = PIE.C1;      D11op = PIE.D11;    D12op = PIE.D12;
 
 % Make sure thera are no disturbances or inputs at the boundary.
 if ~(Twop==0) || ~(Tuop==0)
@@ -153,7 +153,7 @@ end
 % Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
 % Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom); 
 
-[prog,Zop] = lpivar(prog,Buop.dim(:,[2,1]),ddZ);
+[prog,Zop] = lpivar(prog,B2op.dim(:,[2,1]),ddZ);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -165,13 +165,13 @@ end
 %          T*(C1*P+D12*Z)      B1       (A*P+B2*Z)*T'+T*(A*P+B2*Z)']
 % adding adjustment for infinite-dimensional I/O
 
-Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
+Iw = mat2opvar(eye(size(B1op,2)), B1op.dim(:,2), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(C1op,1)), C1op.dim(:,1), PIE.vars, PIE.dom);
 
 
-Dop = [-gam*Iw,                      Dzwop      (Czop*Qop+Dzuop*Zop);
-        Dzwop',                      -gam*Iz,   Bwop';
-        (Czop*Qop+Dzuop*Zop)',   Bwop       (Aop*Qop+Buop*Zop)+(Aop*Qop+Buop*Zop)']; 
+Dop = [-gam*Iz,                      D11op      (C1op*Qop+D12op*Zop);
+        D11op',                      -gam*Iw,   B1op';
+        (C1op*Qop+D12op*Zop)',   B1op       (Aop*Qop+B2op*Zop)+(Aop*Qop+B2op*Zop)']; 
 
 disp('- Parameterize the derivative inequality...');
 

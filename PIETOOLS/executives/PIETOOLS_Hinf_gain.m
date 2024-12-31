@@ -49,14 +49,14 @@
 %                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P, gam,Dop] = PIETOOLS_Hinf_gain(PIE, settings)
+function [prog, R, gam,Dop] = PIETOOLS_Hinf_gain(PIE, settings)
 
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
-        [prog, P, gam] = PIETOOLS_Hinf_gain_2D(PIE);
+        [prog, R, gam] = PIETOOLS_Hinf_gain_2D(PIE);
     else
-        [prog, P, gam] = PIETOOLS_Hinf_gain_2D(PIE,settings);
+        [prog, R, gam] = PIETOOLS_Hinf_gain_2D(PIE,settings);
     end
     return
 end
@@ -101,9 +101,9 @@ D11op=PIE.D11;
 if ~(Twop==0)
         fprintf('\n --- non-coercive LPIs cannot currently be solved for systems with disturbances at the boundary. Calling the coercive executives.---\n');
      if nargin==1
-         [prog, P, gam] = PIETOOLS_Hinf_gain_old(PIE);
+         [prog, R, gam] = PIETOOLS_Hinf_gain_old(PIE);
     else
-         [prog, P, gam] = PIETOOLS_Hinf_gain_old(PIE,settings);
+         [prog, R, gam] = PIETOOLS_Hinf_gain_old(PIE,settings);
      end
 end
 fprintf('\n --- Searching for Hinf gain bound using primal KYP lemma --- \n')
@@ -117,7 +117,6 @@ prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the pr
 dpvar gam;
 prog = lpidecvar(prog, gam); % set gam = gamma as decision variable
 prog = lpi_ineq(prog, gam);  % enforce gamma>=0
-prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 % gam = 2;
 % Alternatively, the above 3 commands may be commented and a specific gain
 % test specified by defining a specific desired value of gamma. This
@@ -150,10 +149,9 @@ end
 disp('- Constructing the Negativity Constraint...');
 
 [prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],ddZ);
-prog = lpi_eq(prog, Top'*Qop-Pop,opts);
 
-Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
+Iw = mat2opvar(eye(size(B1op,2)), B1op.dim(:,2), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(C1op,1)), C1op.dim(:,1), PIE.vars, PIE.dom);
 
 
 Dop = [-gam*Iw     D11op'             B1op'*Qop;
@@ -189,6 +187,7 @@ else
     end
     opts.symmetric = 1;
     opts.lin_rep = 1;
+    prog = lpi_eq(prog, Top*Qop-Pop,opts);
     prog = lpi_eq(prog,Deop+Dop,opts); %Dop=-Deop
 end
 
@@ -205,7 +204,6 @@ if ~isreal(gam)
 else 
     disp(gam);
 end
-P = lpigetsol(prog_sol,Pop);
-Q= lpigetsol(prog_sol,Qop);
+R = lpigetsol(prog_sol,Pop);
 gam = double(lpigetsol(prog_sol,gam));
 end

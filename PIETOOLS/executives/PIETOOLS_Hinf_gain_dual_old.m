@@ -59,7 +59,7 @@
 % DJ - 10/19/2024: Update to use new LPI programming structure;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P, gam] = PIETOOLS_Hinf_gain_dual(PIE, settings)
+function [prog, P, gam] = PIETOOLS_Hinf_gain_dua_oldl(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
