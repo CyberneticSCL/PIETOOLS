@@ -49,7 +49,8 @@ function [] = display_PDE(PDE,name)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 07/08/2022
+% DJ, 07/08/2022: Initial coding;
+% DJ, 12/30/2024: Bugfix for display of equation number i in C_{i,j};
 
 % Initialize the system
 if isa(PDE,'sys')
@@ -198,6 +199,7 @@ use_Cij = false;
 % % % observed outputs, regulated outputs, and then BCs
 eq_types = {'x';'y';'z';'BC'};
 objs_LHS = {'x';'y';'z';'0'};
+eq_num_strt = 0;                                                            % DJ, 12/30/2024
 for kk=1:numel(eq_types)
     eq_type_kk = eq_types{kk};
     obj_LHS_kk = objs_LHS{kk};
@@ -297,7 +299,8 @@ for kk=1:numel(eq_types)
         end
         % Otherwise, loop over the terms, adding each to the equation.
         for trm = 1:numel(LHS_comp.term)
-            [term_str,use_Cij_ii] = construct_term(PDE,LHS_comp,eq_num,eq_info,trm,var_list,tau_list);
+            C_row_idx = eq_num_strt+eq_num;
+            [term_str,use_Cij_ii] = construct_term(PDE,LHS_comp,C_row_idx,eq_info,trm,var_list,tau_list);
             use_Cij = use_Cij || use_Cij_ii;
             eq_kk_new = [eq_kk, term_str];
             
@@ -313,6 +316,9 @@ for kk=1:numel(eq_types)
             end
         end
     end
+    % Keep track of how many equations we have already had for display of
+    % coefficients;
+    eq_num_strt = eq_num_strt + numel(PDE.(eq_type_kk));                    % DJ, 12/30/2024
     % Add some space between different equation types.
     fprintf('\n')
 end
