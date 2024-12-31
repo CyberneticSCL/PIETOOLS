@@ -45,6 +45,7 @@
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/23/2024: Only test stability, manually building the LPI;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state
+% DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -57,7 +58,7 @@ echo on
 pvar t s;   
 % Declare state, input, and output variables
 phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
-w = pde_var('input',1);          z = pde_var('output',1);
+w = pde_var('input',1);             z = pde_var('output',1);
 % Declare system parameters
 c=1;    b=.01;
 % declare dynamic equation
@@ -88,11 +89,10 @@ uinput.w = sin(5*st)*exp(-st);
 opts.plot = 'yes';  % plot the solution
 opts.N = 16;        % expand using 16 Chebyshev polynomials
 opts.tf = 9;        % simulate up to t = 9;
-opts.dt = 0.03;     % use time step of 3*10^-2
-ndiff = [0,2,0];    % PDE state involves 2 first order differentiable state variables   
+opts.dt = 0.03;     % use time step of 3*10^-2  
 
 % % Simulate open-loop PDE and extract solution
-[solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
+[solution,grids] = PIESIM(odepde, opts, uinput);
 tval = solution.timedep.dtime;
 xval = solution.timedep.ode;
 phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);

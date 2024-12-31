@@ -45,7 +45,8 @@
 % authorship, and a brief description of modifications
 %
 % DJ, 12/28/2024: Initial coding;
-% DB, 12/29/2024: Use pde_var objects instead of sys and state
+% DB, 12/29/2024: Use pde_var objects instead of sys and state;
+% DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
 clear
 
 
@@ -102,7 +103,7 @@ uinput.w = sin(5*st)*exp(-st);  % value of disturbance as function of time
 ndiff = [0,2,0]; 
 
 % Simulate the ODE-PDE system using specified settings.
-[solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
+[solution,grids] = PIESIM(odepde, opts, uinput);
 
 % Extract values of the second state variables and thet output at each time step.
 tval = solution.timedep.dtime;

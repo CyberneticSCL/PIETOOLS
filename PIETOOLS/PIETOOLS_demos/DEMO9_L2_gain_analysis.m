@@ -50,6 +50,7 @@
 % DJ, 12/16/2024: Simplify demo;
 % DJ, 12/26/2024: Add simulation;
 % DJ, 12/28/2024: Change simulation conditions;
+% DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -97,10 +98,9 @@ opts.plot = 'yes';  % plot the final solution
 opts.N = 8;         % Expand using 8x8 Chebyshev polynomials
 opts.tf = 10;       % Simulate up to t = 10
 opts.dt = 1e-2;     % Use time step of 10^-2
-ndiff = [0,0,1];    % The state involves 1 second order differentiable state variable wrt sx and sy
 
 % % Perform the actual simulation
-[solution,grid] = PIESIM(PDE,opts,uinput,ndiff);
+[solution,grid] = PIESIM(PDE,opts,uinput);
 tval = solution.timedep.dtime;
 x = reshape(solution.timedep.pde{2}(:,:,1,:),opts.N+1,opts.N+1,[]);
 z = solution.timedep.regulated(1,:);
