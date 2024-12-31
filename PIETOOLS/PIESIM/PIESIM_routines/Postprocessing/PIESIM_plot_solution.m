@@ -267,9 +267,9 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         subplot(1,ns,n);
         box on
         hold on
-        plot(grid.phys,solution.final.pde(:,n),'Color',colors_PDE(n+psize.no,:),'LineWidth',2,'DisplayName','Numerical solution');
+        plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',2,'DisplayName','Numerical solution');
         if (uinput.ifexact==true)
-            plot(exact_grid,exsol_grid,'ko','DisplayName','Analytical solution'); 
+            plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution'); 
             legend('FontSize',13,'Interpreter','latex');
         end
         hold off
