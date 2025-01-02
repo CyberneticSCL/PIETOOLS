@@ -45,7 +45,8 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-% DJ, 07/17/2024    -   Bugfix for extraction of exact solutions.
+% DJ, 07/17/2024 - Bugfix for extraction of exact solutions.
+% DJ, 01/01/2025 - Change plot specifications;
 
 syms sx sy;
 
@@ -58,252 +59,420 @@ end
 
 % Output values for regulated outputs
 for i=1:psize.nro
-formatSpec = 'Value of a regulated output %s at a final time %f is %8.4f\n';
+formatSpec = 'Value of regulated output %s at a final time %f is %8.4f\n';
 fprintf(formatSpec,num2str(i),solution.tf, solution.final.regulated(i));
 end
 
 % Output values for observed outputs
 for i=1:psize.noo
-formatSpec = 'Value of an observed output %s at a final time %f is %8.4f\n';
+formatSpec = 'Value of observed output %s at a final time %f is %8.4f\n';
 fprintf(formatSpec,num2str(i),solution.tf, solution.final.observed(i));
 end
 
+% Don't plot if not requested
+if ~strcmp(opts.plot,'yes')
+    return
+end
 % Temporal evolution of solution is only available with BDF scheme
-if (opts.intScheme==1 & opts.tf~=0 & strcmp(opts.plot,'yes'))
-odesol=solution.timedep.ode';
-dtime=solution.timedep.dtime;
+if opts.intScheme~=1
+    disp("Temporal evolution of solution is only available when using the BDF scheme; only final states are plotted.")
+elseif opts.tf==0
+    disp("Final time is t=0; no plots produced.")
+    return
+else
+    dtime=solution.timedep.dtime;
+    Nplot = min(length(dtime),100);  % plot at at most 100 time points.
+    t_idcs = floor(linspace(1,length(dtime),Nplot));
+    tval = dtime(t_idcs);
+end
+figs = {};
 
-
-% Plotting ODE solutions on the same plot
-if (psize.no>0)
-
-    for i=1:psize.no
-     labels{i} = ['State_',num2str(i)];
-    end 
-
- figure;
- if(~isempty(odesol))
- plot(dtime,odesol,'-S','linewidth',2); 
- title('Time evolution of ODE states');
- xlabel('Time');
- ylabel('Value of an ODE state');
- ax = gca;
- ax.FontSize = 16;
- H=gca;
- H.LineWidth=3;
- [leg, hobj]=legend(labels);
- set(leg,'Box','off','Location','north','FontSize',16);
- hl = findobj(hobj,'type','line');
- set(hl,'LineWidth',2);  
- clear labels;
- else
-     disp('ODE solution is infinite. Unable to plot. Numerical value is not returned.')
- end
+n_pde_tot = sum([sum(psize.nx),sum(psize.ny),sum(psize.n)]);
+if opts.intScheme==1 && psize.no>0 && ~isempty(solution.timedep.ode)
+    % Plot evolution of ODE states in a single plot
+    odesol = solution.timedep.ode';
+    figure('Position',[200 150 800 400]);
+    set(gcf, 'Color', 'w');
+    box on
+    hold on
+    for ii=1:psize.no
+        X_ii = odesol(t_idcs,ii)';
+        plot(tval,X_ii,'DisplayName',['$x_',num2str(ii),'(t)$'],'LineWidth',2);
+    end
+    hold off
+    %plot(dtime,odesol','-S','LineWidth',2,'DisplayName',['$x_',num2str(i),'$(t)']); 
+    if strcmp(opts.type,'DDE')
+        title('DDE State Evolution','FontSize',16,'Interpreter','latex');
+    else
+        title('ODE State Evolution','FontSize',16,'Interpreter','latex');
+    end
+    xlabel('$t$','FontSize',15,'Interpreter','latex');
+    ylabel('$x$','FontSize',15,'Interpreter','latex');
+    set(gca,'TickLabelInterpreter','latex');
+    % ax = gca;   ax.FontSize = 16;
+    % H=gca;
+    % H.LineWidth=3;
+    if psize.no>1
+        [leg,hobj] = legend('FontSize',15,'Interpreter','latex');
+        %set(leg,'Box','off','Location','north','FontSize',16);
+        %hl = findobj(hobj,'type','line');
+        %set(hl,'LineWidth',2);  
+    end
+elseif opts.intScheme==1 && psize.no>0
+    disp('ODE solution is infinite. Unable to plot.')
 end
 
-% Plotting observed outputs on the same plot
-if (psize.noo>0)
-y=solution.timedep.observed';
+% % Plot the observed outputs evolution in a single plot.
+colors_y = [0, 0, 1;
+            0, 0.5, 0;
+            1, 0, 0;
+            0, 0.75, 0.75;
+            0.75, 0, 0.75;
+            0.75, 0.75, 0;
+            0.25, 0.25, 0.25];
+if opts.intScheme==1 && (psize.noo>0) && ~isempty(solution.timedep.observed)
+    fig2 = figure('Position',[200 150 800 400]);
+    box on
+    title('Observed Output Evolution','FontSize',16,'Interpreter','latex');
+    xlabel('$t$','FontSize',15,'Interpreter','latex');
+    ylabel('$y$','FontSize',15,'Interpreter','latex');
+    hold on
+    for ii=1:psize.noo
+        y_ii = solution.timedep.observed(ii,t_idcs);
+        if ii<=size(colors_y,1)
+            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+        else
+            plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',2);
+        end
+    end
+    hold off
+    if psize.noo>1
+        legend('FontSize',15,'Interpreter','latex');
+    end
+    set(gca,'XLim',[min(tval),max(tval)]);
+    set(gca,'TickLabelInterpreter','latex');
+    set(gcf, 'Color', 'w');
+    figs = [figs,{fig2}];
 
-    for i=1:psize.noo
-     labels{i} = ['y_',num2str(i)];
-    end 
-
- figure;
- plot(dtime,y,'-S'); 
- title('Time evolution of observed outputs');
- xlabel('Time');
- ylabel('Value of an observed output');
- ax = gca;
- ax.FontSize = 16;
- H=gca;
- H.LineWidth=3;
- [leg, hobj]=legend(labels);
- set(leg,'Box','off','Location','north','FontSize',16);
- hl = findobj(hobj,'type','line');
- set(hl,'LineWidth',2);  
- clear labels;
+    % y = solution.timedep.observed';
+    % for i=1:psize.noo
+    %     labels{i} = ['y_',num2str(i)];
+    % end            
+    % figure;
+    % plot(dtime,y,'-S','linewidth',2); 
+    % title('Time evolution of observed outputs');
+    % xlabel('Time');
+    % ylabel('Value of an observed output');
+    % ax = gca;
+    % ax.FontSize = 16;
+    % H=gca;
+    % H.LineWidth=3;
+    % [leg, hobj]=legend(labels);
+    % set(leg,'Box','off','Location','north','FontSize',16);
+    % hl = findobj(hobj,'type','line');
+    % set(hl,'LineWidth',2);  
+    % clear labels;
+elseif opts.intScheme==1 && (psize.noo>0)
+    disp('Observed output is infinite. Unable to plot.')
 end
 
-% Plotting regulated outputs on the same plot
-if (psize.nro>0)
-z=solution.timedep.regulated';
+% % Plot the regulated outputs evolution in a single plot.
+colors_z = {'b','g','m','r','k','c','r','y'};
+if opts.intScheme==1 && (psize.nro>0) && ~isempty(solution.timedep.regulated)
+    fig3 = figure('Position',[200 150 800 400]);
+    box on
+    title('Regulated Output Evolution','FontSize',16,'Interpreter','latex');
+    xlabel('$t$','FontSize',15,'Interpreter','latex');
+    ylabel('$z$','FontSize',15,'Interpreter','latex');
+    hold on
+    for ii=1:psize.nro
+        z_ii = solution.timedep.regulated(ii,t_idcs);
+        if ii<=length(colors_z)
+            plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+        else
+            plot(tval,z_ii,'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);
+        end
+    end
+    hold off
+    if psize.nro>1
+        legend('FontSize',15,'Interpreter','latex');
+    end
+    set(gca,'XLim',[min(tval),max(tval)]);
+    set(gca,'TickLabelInterpreter','latex');
+    set(gcf, 'Color', 'w');
+    figs = [figs,{fig3}];
 
-    for i=1:psize.nro
-     labels{i} = ['z_',num2str(i)];
-    end 
-
- figure;
- plot(dtime,z,'-S'); 
- title('Time evolution of regulated outputs');
- xlabel('Time');
- ylabel('Value of a regulated output');
- ax = gca;
- ax.FontSize = 16;
- H=gca;
- H.LineWidth=3;
- [leg, hobj]=legend(labels);
- set(leg,'Box','off','Location','north','FontSize',16);
- hl = findobj(hobj,'type','line');
- set(hl,'LineWidth',2);  
- clear labels;
+    % z=solution.timedep.regulated';
+    % for i=1:psize.nro
+    %     labels{i} = ['z_',num2str(i)];
+    % end 
+    %  figure;
+    %  plot(dtime,z,'-S','linewidth',2); 
+    %  title('Time evolution of regulated outputs');
+    %  xlabel('Time');
+    %  ylabel('Value of a regulated output');
+    %  ax = gca;
+    %  ax.FontSize = 16;
+    %  H=gca;
+    %  H.LineWidth=3;
+    %  [leg, hobj]=legend(labels);
+    %  set(leg,'Box','off','Location','north','FontSize',16);
+    %  hl = findobj(hobj,'type','line');
+    %  set(hl,'LineWidth',2);  
+    %  clear labels;
+elseif opts.intScheme==1 && (psize.nro>0)
+    disp('Regulated output is infinite. Unable to plot.')
 end
+
+
+% % Plot final PDE states, if possible
+if strcmp(opts.type,'DDE')
+    return
+elseif isempty(solution.final.pde) && n_pde_tot>0
+    disp("Simulated PDE solution is infinite; no plot produced.")
+    return
+end
+% Declare colors for plots
+colors_PDE = [0 0.4470 0.7410;
+            0.8500 0.3250 0.0980;
+            0.9290 0.6940 0.1250;
+            0.4940 0.1840 0.5560;
+            0.4660 0.6740 0.1880;
+            0.3010 0.7450 0.9330;
+            0.6350 0.0780 0.1840];
+if (uinput.ifexact==true)
+    a = uinput.dom(1,1);    b = uinput.dom(1,2);
+    exact_grid_x = linspace(a,b,round(Nplot));
+    c = uinput.dom(2,1);    d = uinput.dom(2,2);
+    exact_grid_y = linspace(c,d,round(Nplot));
 end
 
-% 1D states, differentiable in x
+% Keep track of total number of states for indexing
 ns_tot = psize.no;
-if (sum(psize.nx)>0)
-    if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
-        if (~isempty(solution.final.pde))
-            if (uinput.ifexact==true)
-                a=uinput.dom(1,1);
-                b=uinput.dom(1,2);
-                exact_grid=linspace(a,b,101);
-                exsol_grid=double.empty(101,0);
-            end % endif (uinput.ifexact)
-            ns=sum(psize.nx);
-            for n=1:ns
-                % Plot the exact solution if desired.
-                if (uinput.ifexact==true)
-                    exsol_grid_time=subs(uinput.exact(n+ns_tot),sx,exact_grid);
-                    exsol_grid=double(subs(exsol_grid_time,solution.tf));
-                end % endif (uinput.ifexact)
-                figure;
-                plot(grid.phys(:,1),solution.final.pde{1}(:,n),'rd','MarkerSize',12,'linewidth',2); hold on;
-                if (uinput.ifexact==true)
-                plot(exact_grid,exsol_grid,'k','linewidth',3); 
-                end % endif (uinput.ifexact)
-                xlabel('Spatial variable');
-                ylabel('Solution at a final time');
-                title('Plot of a primary state solution',num2str(n));
-                
-                if (uinput.ifexact==true)
-                legend('Numerical solution','Analytical solution');
-                else
-                legend('Numerical solution');
-                end % endif (uinput.ifexact)
-                ax = gca;
-                ax.FontSize = 24;
-                H=gca;
-                H.LineWidth=3;
-            end % for n=1:ns
-            % Keep track of total number of state variables
-            ns_tot = ns_tot + ns;
-        else
-            disp('PDE solution is infinite. Unable to plot. Numerical value is not returned.')
-        end
-    end
+
+% Plot numerical solution using only markers if exact solution is available
+if uinput.ifexact
+    line_style = 'd';
+else
+    line_style = '-d';
 end
 
-
-% 1D states, differentiable in y
-if (sum(psize.ny)>0)
-    if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
-        if (~isempty(solution.final.pde))
-            if (uinput.ifexact==true) 
-                c=uinput.dom(2,1);
-                d=uinput.dom(2,2);
-                exact_grid=linspace(c,d,101);
-                exsol_grid=double.empty(101,0);
-            end % endif (uinput.ifexact)
-            ns=sum(psize.ny);
-            for n=1:ns
-                % Plot the exact solution if desired.
-                if (uinput.ifexact==true)
-                    exsol_grid_time=subs(uinput.exact(ns_tot+n),sy,exact_grid);
-                    exsol_grid=double(subs(exsol_grid_time,solution.tf));
-                end % endif (uinput.ifexact)
-            figure;
-            ng=sum(psize.nx)+n;
-            plot(grid.phys(:,2),solution.final.pde{1}(:,ng),'rd','MarkerSize',12,'linewidth',2); hold on;
-            if (uinput.ifexact==true)
-            plot(exact_grid,exsol_grid,'k','linewidth',3); 
-            end % endif (uinput.ifexact)
-            xlabel('Spatial variable');
-            ylabel('Solution at a final time');
-            title('Plot of a primary state solution',num2str(ng));
-            
-            if (uinput.ifexact==true)
-            legend('Numerical solution','Analytical solution');
-            else
-            legend('Numerical solution');
-            end % endif (uinput.ifexact)
-            ax = gca;
-            ax.FontSize = 24;
-            H=gca;
-            H.LineWidth=3;
-            end % for n=1:ns
-            % Keep track of total number of state variables
-            ns_tot = ns_tot + ns;
-        else
-            disp('PDE solution is infinite. Unable to plot. Numerical value is not returned.')
-        end
+% Plot 1D states, differentiable in x
+if sum(psize.nx)>0
+    ns = sum(psize.nx);
+    fig_width = min(ns*600,1800);
+    fig4 = figure('Position',[200 150 fig_width 400]);
+    set(gcf, 'Color', 'w');
+    box on
+    if ns>1
+        sgtitle('Simulated Final 1D PDE State','Interpreter','latex','FontSize',16)
     end
-end
-
-
-% 2D states
-if (~strcmp(opts.type,'DDE') && strcmp(opts.plot,'yes'))
-    if (uinput.ifexact==true)
-    a=uinput.dom(1,1);
-    b=uinput.dom(1,2);
-    c=uinput.dom(2,1);
-    d=uinput.dom(2,2);
-    exact_grid_x=linspace(a,b,101);
-    exact_grid_y=linspace(c,d,101);
-    exsol_grid=double.empty(101,0);
-    end
-    ns=sum(psize.n);
     for n=1:ns
-    if (uinput.ifexact==true)
-    exsol_grid_time=subs(subs(uinput.exact(n+ns_tot),sx,exact_grid_x'),sy,exact_grid_y);
-    exsol_grid=double(subs(exsol_grid_time,solution.tf));
-    exsol_numgrid_time=subs(subs(uinput.exact(n+ns_tot),sx,grid.phys(:,1)),sy,grid.phys(:,2)');
-    exsol_numgrid=double(subs(exsol_numgrid_time,solution.tf));
+        subplot(1,ns,n);
+        box on
+        if n+ns_tot<=size(colors_PDE,1)
+            plot(grid.phys(:,1),solution.final.pde{1}(:,n),line_style,'Color',colors_PDE(n+ns_tot,:),'LineWidth',2,'DisplayName','Numerical solution');
+        else
+            plot(grid.phys(:,1),solution.final.pde{1}(:,n),line_style,'LineWidth',2,'DisplayName','Numerical solution');
+        end
+        if uinput.ifexact
+            hold on
+            exsol_grid_time = subs(uinput.exact(n+ns_tot),sx,exact_grid_x);
+            exsol_grid_x = double(subs(exsol_grid_time,solution.tf));
+            plot(exact_grid_x,exsol_grid_x,'k-','DisplayName','Analytic solution'); 
+            legend('FontSize',13,'Interpreter','latex');
+            hold off
+        end
+        xlabel('$s_{1}$','FontSize',15,'Interpreter','latex');
+        ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
+        if ns==1 && n_pde_tot==1
+            title(['Simulated Final 1D PDE State, $\mathbf{x}(t=',num2str(solution.timedep.dtime(end)),',s_{1})$'],'FontSize',15,'Interpreter','latex');
+        elseif ns==1
+            title(['Simulated Final 1D PDE State, $\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.timedep.dtime(end)),',s_{1})$'],'FontSize',15,'Interpreter','latex');
+        else
+            title(['$\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.timedep.dtime(end)),',s_{1})$'],'FontSize',15,'Interpreter','latex');
+        end
+        set(gca,'XLim',[min(grid.phys(:,1)),max(grid.phys(:,1))]);
+        set(gca,'TickLabelInterpreter','latex');
     end
-    
-    
-    % Plot isosurface for numerical solution
+    figs = [figs,{fig4}];
+    ns_tot = ns_tot+ns;
+end
+
+% Plot 1D states, differentiable in y
+if sum(psize.ny)>0
+    ns = sum(psize.ny);
+    fig_width = min(ns*600,1800);
+    fig5 = figure('Position',[200 150 fig_width 400]);
+    set(gcf, 'Color', 'w');
+    box on
+    if ns>1
+        sgtitle('Simulated Final 1D PDE State','Interpreter','latex','FontSize',16)
+    end
+    for n=1:ns
+        subplot(1,ns,n);
+        box on
+        if sum(psize.nx)+n<=size(colors_PDE,1)
+            plot(grid.phys(:,2),solution.final.pde{1}(:,sum(psize.nx)+n),line_style,'Color',colors_PDE(n+ns_tot,:),'LineWidth',2,'DisplayName','Numerical solution');
+        else
+            plot(grid.phys(:,2),solution.final.pde{1}(:,sum(psize.nx)+n),line_style,'LineWidth',2,'DisplayName','Numerical solution');
+        end
+        if uinput.ifexact
+            hold on
+            exsol_grid_time = subs(uinput.exact(n+ns_tot),sy,exact_grid_y);
+            exsol_grid_y = double(subs(exsol_grid_time,solution.tf));
+            plot(exact_grid_y,exsol_grid_y,'k-','DisplayName','Analytic solution'); 
+            legend('FontSize',13,'Interpreter','latex');
+            hold off
+        end
+        xlabel('$s_{2}$','FontSize',15,'Interpreter','latex');
+        ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
+        if ns==1 && n_pde_tot==1
+            title(['Simulated Final 1D PDE State, $\mathbf{x}(t=',num2str(solution.timedep.dtime(end)),',s_{2})$'],'FontSize',15,'Interpreter','latex');
+        elseif ns==1
+            title(['Simulated Final 1D PDE State, $\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.timedep.dtime(end)),',s_{2})$'],'FontSize',15,'Interpreter','latex');
+        else
+            title(['$\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.timedep.dtime(end)),',s_{2})$'],'FontSize',15,'Interpreter','latex');
+        end
+        set(gca,'XLim',[min(grid.phys(:,2)),max(grid.phys(:,2))]);
+        set(gca,'TickLabelInterpreter','latex');
+    end
+    figs = [figs,{fig5}];
+    ns_tot = ns_tot+ns;
+end
+
+% Plot final 2D states using isosurface
+if sum(psize.n)>0
+    ns = sum(psize.n);
 
     % PIESIM stores nD solutions by columns, i.e., e.g., for u(x,y), the
-    % entries with fixed y and varying x are stored in columnes, and the
+    % entries with fixed y and varying x are stored in columns, and the
     % entries with fixed x and varying y are stored in rows
 
     % MATLAb surf routine does the opposite, so we plot the transpose of
     % the solution vector to get a correct orienation in space 
 
-    % Solution is stored
-    figure;
-    surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n)');
-    xlabel('x'), ylabel('y'), zlabel('Numerical Solution');
-    ax = gca;
-    ax.FontSize = 24;
-    H=gca;
-    H.LineWidth=3;
-    ng=sum(psize.nx)+sum(psize.ny)+n;
-    title('Plot of primary state solution',num2str(ng));
+    % Plot the numerical value
+    fig_width = min(ns*600,1800);
+    fig6 = figure('Position',[200 150 fig_width 400]);
+    if ns>1
+        sgtitle('Simulated Final 2D PDE State','Interpreter','latex','FontSize',16)
+    end
+    set(gcf, 'Color', 'w');
+    box on
+    for n=1:ns
+        surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
+        h = colorbar;
+        %colormap jet
+        xlabel('$s_{1}$','FontSize',15,'Interpreter','latex');
+        ylabel('$s_{2}$','FontSize',15,'Interpreter','latex');
+        zlabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
+        box on
+        if ns==1 && n_pde_tot==1
+            title(['Simulated Final PDE State $\mathbf{x}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+        elseif ns==1
+            title(['Simulated Final 2D PDE State $\mathbf{x}_',num2str(n)+ns_tot,'(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+        else
+            title(['$\mathbf{x}_',num2str(n)+ns_tot,'(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+        end
+        set(gca,'XLim',[min(grid.phys(:,1)),max(grid.phys(:,1))]);
+        set(gca,'YLim',[min(grid.phys(:,2)),max(grid.phys(:,2))]);
+        set(gca,'TickLabelInterpreter','latex');
 
-    if (uinput.ifexact==true)
-    % Plot isosurface for analytical solution
-    figure;
-    surf(exact_grid_x,exact_grid_y,exsol_grid');
-    xlabel('x'), ylabel('y'), zlabel('Analytical Solution');
-    ax = gca;
-    ax.FontSize = 24;
-    H=gca;
-    H.LineWidth=3;
-    title('Exact primary state solution',num2str(ng));
-    
-    figure;
-    % Plot isosurface for the diffefence between analytical and numerical solution
-    surf(grid.phys(:,1),grid.phys(:,2),exsol_numgrid'-solution.final.pde{2}(:,:,n)');
-    xlabel('x'), ylabel('y'), zlabel('Error');
-    title('Error in primary state solution',num2str(ng));
+        % surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n)');
+        % xlabel('x'), ylabel('y'), zlabel('Numerical Solution');
+        % ax = gca;
+        % ax.FontSize = 24;
+        % H=gca;
+        % H.LineWidth=3;
+        % ng=sum(psize.nx)+sum(psize.ny)+n;
+        % title('Plot of primary state solution',num2str(ng));
+        %ax.FontSize = 24;
+        %H=gca;
+        %H.LineWidth=3;
+        %ng=sum(psize.nx)+sum(psize.ny)+n;
+        %title('Plot of primary state solution',num2str(ng));
     end
-    
-    ax = gca;
-    ax.FontSize = 24;
-    H=gca;
-    H.LineWidth=3;
+    figs = [figs,{fig6}];
+
+    % Plot the analytic PDE solution
+    if uinput.ifexact
+        fig7 = figure('Position',[200 150 fig_width 400]);
+        if ns>1
+            sgtitle('Exact Final 2D PDE State','Interpreter','latex','FontSize',16)
+        end
+        set(gcf, 'Color', 'w');
+        box on
+        fig8 = figure('Position',[200 150 fig_width 400]);
+        if ns>1
+            sgtitle('Error in Final 2D PDE State','Interpreter','latex','FontSize',16)
+        end
+        set(gcf, 'Color', 'w');
+        box on
+        for n=1:ns
+            % Compute the value of the exact solution at final time
+            exsol_grid_time = subs(subs(uinput.exact(n+ns_tot),sx,exact_grid_x'),sy,exact_grid_y);
+            exsol_grid = double(subs(exsol_grid_time,solution.tf));
+            exsol_numgrid_time = subs(subs(uinput.exact(n+ns_tot),sx,grid.phys(:,1)),sy,grid.phys(:,2)');
+            exsol_numgrid = double(subs(exsol_numgrid_time,solution.tf));
+            
+            % Plot the exact solution
+            ax1 = subplot(1,ns,n,'Parent',fig7);
+            surf(ax1,exact_grid_x,exact_grid_y,exsol_grid','FaceAlpha',0.75,'FaceColor','interp');
+            h = colorbar(ax1);
+            %colormap jet
+            xlabel(ax1,'$s_{1}$','FontSize',15,'Interpreter','latex');
+            ylabel(ax1,'$s_{2}$','FontSize',15,'Interpreter','latex');
+            zlabel(ax1,'$\mathbf{x}_{true}$','FontSize',15,'Interpreter','latex');
+            box on
+            if ns==1 && n_pde_tot==1
+                title(ax1,['Exact Final PDE State $\mathbf{x}_{true}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            elseif ns==1
+                title(ax1,['Exact Final 2D PDE State $\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            else
+                title(ax1,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            end
+            ax1.XLim = [min(grid.phys(:,1)),max(grid.phys(:,1))];
+            ax1.YLim = [min(grid.phys(:,2)),max(grid.phys(:,2))];
+            ax1.TickLabelInterpreter = 'latex';
+
+            % Also plot the error in the numerical solution
+            ax2 = subplot(1,ns,n,'Parent',fig8);
+            surf(ax2,grid.phys(:,1),grid.phys(:,2),exsol_numgrid'-solution.final.pde{2}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
+            h = colorbar(ax2);
+            %colormap jet
+            xlabel(ax2,'$s_{1}$','FontSize',15,'Interpreter','latex');
+            ylabel(ax2,'$s_{2}$','FontSize',15,'Interpreter','latex');
+            zlabel(ax2,'$\mathbf{x}_{true}-\mathbf{x}_{num}$','FontSize',15,'Interpreter','latex');
+            box on
+            if ns==1 && n_pde_tot==1
+                title(ax2,['Error in Final PDE State $\mathbf{x}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            elseif ns==1
+                title(ax2,['Error in Final 2D PDE State $\mathbf{x}_{',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            else
+                title(ax2,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})-\mathbf{x}_{',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            end
+            ax2.XLim = [min(grid.phys(:,1)),max(grid.phys(:,1))];
+            ax2.YLim = [min(grid.phys(:,2)),max(grid.phys(:,2))];
+            ax2.TickLabelInterpreter = 'latex';
+
+            figs = [figs,{fig7},{fig8}];
+
+            % surf(exact_grid_x,exact_grid_y,exsol_grid');
+            % xlabel('x'), ylabel('y'), zlabel('Analytical Solution');
+            % ax = gca;
+            % ax.FontSize = 24;
+            % H=gca;
+            % H.LineWidth=3;
+            % title('Exact primary state solution',num2str(ng));
+            % 
+            % figure;
+            % % Plot isosurface for the difference between analytical and numerical solution
+            % surf(grid.phys(:,1),grid.phys(:,2),exsol_numgrid'-solution.final.pde{2}(:,:,n)');
+            % xlabel('x'), ylabel('y'), zlabel('Error');
+            % title('Error in primary state solution',num2str(ng));
+        end            
     end
+end
+
 end
