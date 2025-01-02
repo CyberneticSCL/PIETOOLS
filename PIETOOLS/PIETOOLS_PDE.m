@@ -89,6 +89,8 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Step 4b: Plotting solution
+    % NOTE: if opts.plot='yes' is chosen for PIESIM, this will produce redundant
+    % plots 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if any(ismember(fieldnames(solution),'timedep'))
         t = solution.timedep.dtime;
