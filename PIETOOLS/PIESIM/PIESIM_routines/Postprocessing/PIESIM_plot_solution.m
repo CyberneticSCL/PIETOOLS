@@ -305,7 +305,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
     end
 
     % % Plot surface plot of state evolution at all points.
-    N = size(solution.timedep.pde,1);       % Number of grid points
+    Ngp = size(solution.timedep.pde,1);       % Number of grid points
     fig5 = figure('Position',[200 150 fig_width 450]);
     set(gcf, 'Color', 'w');
     box on
@@ -313,7 +313,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         sgtitle('PDE State Evolution','Interpreter','latex','FontSize',16)
     end
     for ii=1:ns
-        x_ii = reshape(solution.timedep.pde(:,ii,t_idcs),N,[]);
+        x_ii = reshape(solution.timedep.pde(:,ii,t_idcs),Ngp,[]);
         subplot(1,ns,ii);
         surf(tval,grid.phys,x_ii,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
         h = colorbar;
