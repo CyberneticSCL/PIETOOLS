@@ -4,7 +4,6 @@
 function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % This routine outputs and plots solution of ODE and PDE states
 
-
 % Inputs: 
 % 1) solution 
 % solution is a strucutre with the following fields
@@ -256,10 +255,11 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
 
     % Initialize grid points at which to compute exact solution.
     if (uinput.ifexact==true)
+        Nplot_space=101;
         a = uinput.a;
         b = uinput.b;
-        exact_grid = linspace(a,b,round(Nplot*3/4));
-        exsol_grid = double.empty(round(Nplot*3/4),0);
+        exact_grid = linspace(a,b,round(Nplot_space));
+        exsol_grid = double.empty(round(Nplot_space),0);
     end
     ns = sum(psize.n);
 
