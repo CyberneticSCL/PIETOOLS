@@ -241,10 +241,11 @@ colors_PDE = [0 0.4470 0.7410;
             0.3010 0.7450 0.9330;
             0.6350 0.0780 0.1840];
 if (uinput.ifexact==true)
+    Nplot_space=101;
     a = uinput.dom(1,1);    b = uinput.dom(1,2);
-    exact_grid_x = linspace(a,b,round(Nplot));
+    exact_grid_x = linspace(a,b,round(Nplot_space));
     c = uinput.dom(2,1);    d = uinput.dom(2,2);
-    exact_grid_y = linspace(c,d,round(Nplot));
+    exact_grid_y = linspace(c,d,round(Nplot_space));
 end
 
 % Keep track of total number of states for indexing
