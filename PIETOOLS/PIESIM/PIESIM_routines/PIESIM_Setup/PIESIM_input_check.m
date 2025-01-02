@@ -255,14 +255,6 @@ if PDE.dim==2
             uinput.ic.ODE = double(uinput.ic.x(1:psize.no));
         end
         uinput.ic.PDE = uinput.ic.x(psize.no+1:end);
-    else
-        % Declare empty initial conditions if none have been specified.
-        if ~isfield(uinput.ic,'PDE')
-            uinput.ic.PDE = sym([]);
-        end
-        if ~isfield(uinput.ic,'ODE')
-            uinput.ic.ODE = sym([]);
-        end
     end
 
        % Check initial conditions for ODE state variables
