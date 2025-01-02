@@ -81,11 +81,11 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 
     [solution, grid] = PIESIM(PDE,opts,uinput);
 
-    % Note: you can also specify time stepping options and user inputs, such as initial
-    % conditions and non-zero boundary inputs, via
-    % solution = executive_PIESIM(PDE, opts),
-    % solution = executive_PIESIM(PDE, [], uinput), or
-    % solution = executive_PIESIM(PDE, opts, uinput), please consult the user's manual
+    % Note: you can also specify time stepping and other options (opts) and user inputs, such as initial
+    % conditions and non-zero boundary inputs (uinput), via
+    % solution = PIESIM(PDE, opts),
+    % solution = PIESIM(PDE, uinput), or
+    % solution = PIESIM(PDE, opts, uinput), please consult the user's manual
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Step 4b: Plotting solution
