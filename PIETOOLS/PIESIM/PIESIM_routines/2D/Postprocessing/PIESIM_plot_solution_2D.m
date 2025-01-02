@@ -406,7 +406,7 @@ if sum(psize.n)>0
             
             % Plot the exact solution
             ax2 = subplot(1,ns,n,'Parent',fig7);
-            surf(ax1,exact_grid_x,exact_grid_y,exsol_grid','FaceAlpha',0.75,'FaceColor','interp');
+            surf(ax2,exact_grid_x,exact_grid_y,exsol_grid','FaceAlpha',0.75,'FaceColor','interp');
             h = colorbar(ax2);
             %colormap jet
             xlabel(ax2,'$s_{1}$','FontSize',15,'Interpreter','latex');
