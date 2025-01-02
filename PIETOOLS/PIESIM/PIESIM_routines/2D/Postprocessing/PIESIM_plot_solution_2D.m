@@ -362,37 +362,24 @@ if sum(psize.n)>0
     set(gcf, 'Color', 'w');
     box on
     for n=1:ns
-        surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
-        h = colorbar;
+        ax1 = subplot(1,ns,n,'Parent',fig6);
+        surf(ax1,grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
+        h = colorbar(ax1);
         %colormap jet
-        xlabel('$s_{1}$','FontSize',15,'Interpreter','latex');
-        ylabel('$s_{2}$','FontSize',15,'Interpreter','latex');
-        zlabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
+        xlabel(ax1,'$s_{1}$','FontSize',15,'Interpreter','latex');
+        ylabel(ax1,'$s_{2}$','FontSize',15,'Interpreter','latex');
+        zlabel(ax1,'$\mathbf{x}$','FontSize',15,'Interpreter','latex');
         box on
         if ns==1 && n_pde_tot==1
-            title(['Simulated Final PDE State $\mathbf{x}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            title(ax1,['Simulated Final PDE State $\mathbf{x}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
         elseif ns==1
-            title(['Simulated Final 2D PDE State $\mathbf{x}_',num2str(n)+ns_tot,'(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            title(ax1,['Simulated Final 2D PDE State $\mathbf{x}_',num2str(n)+ns_tot,'(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
         else
-            title(['$\mathbf{x}_',num2str(n)+ns_tot,'(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            title(ax1,['$\mathbf{x}_',num2str(n)+ns_tot,'(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
         end
-        set(gca,'XLim',[min(grid.phys(:,1)),max(grid.phys(:,1))]);
-        set(gca,'YLim',[min(grid.phys(:,2)),max(grid.phys(:,2))]);
-        set(gca,'TickLabelInterpreter','latex');
-
-        % surf(grid.phys(:,1),grid.phys(:,2),solution.final.pde{2}(:,:,n)');
-        % xlabel('x'), ylabel('y'), zlabel('Numerical Solution');
-        % ax = gca;
-        % ax.FontSize = 24;
-        % H=gca;
-        % H.LineWidth=3;
-        % ng=sum(psize.nx)+sum(psize.ny)+n;
-        % title('Plot of primary state solution',num2str(ng));
-        %ax.FontSize = 24;
-        %H=gca;
-        %H.LineWidth=3;
-        %ng=sum(psize.nx)+sum(psize.ny)+n;
-        %title('Plot of primary state solution',num2str(ng));
+        ax1.XLim = [min(grid.phys(:,1)),max(grid.phys(:,1))];
+        ax1.YLim = [min(grid.phys(:,2)),max(grid.phys(:,2))];
+        ax1.TickLabelInterpreter = 'latex';
     end
     figs = [figs,{fig6}];
 
@@ -418,60 +405,47 @@ if sum(psize.n)>0
             exsol_numgrid = double(subs(exsol_numgrid_time,solution.tf));
             
             % Plot the exact solution
-            ax1 = subplot(1,ns,n,'Parent',fig7);
+            ax2 = subplot(1,ns,n,'Parent',fig7);
             surf(ax1,exact_grid_x,exact_grid_y,exsol_grid','FaceAlpha',0.75,'FaceColor','interp');
-            h = colorbar(ax1);
-            %colormap jet
-            xlabel(ax1,'$s_{1}$','FontSize',15,'Interpreter','latex');
-            ylabel(ax1,'$s_{2}$','FontSize',15,'Interpreter','latex');
-            zlabel(ax1,'$\mathbf{x}_{true}$','FontSize',15,'Interpreter','latex');
-            box on
-            if ns==1 && n_pde_tot==1
-                title(ax1,['Exact Final PDE State $\mathbf{x}_{true}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
-            elseif ns==1
-                title(ax1,['Exact Final 2D PDE State $\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
-            else
-                title(ax1,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
-            end
-            ax1.XLim = [min(grid.phys(:,1)),max(grid.phys(:,1))];
-            ax1.YLim = [min(grid.phys(:,2)),max(grid.phys(:,2))];
-            ax1.TickLabelInterpreter = 'latex';
-
-            % Also plot the error in the numerical solution
-            ax2 = subplot(1,ns,n,'Parent',fig8);
-            surf(ax2,grid.phys(:,1),grid.phys(:,2),exsol_numgrid'-solution.final.pde{2}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
             h = colorbar(ax2);
             %colormap jet
             xlabel(ax2,'$s_{1}$','FontSize',15,'Interpreter','latex');
             ylabel(ax2,'$s_{2}$','FontSize',15,'Interpreter','latex');
-            zlabel(ax2,'$\mathbf{x}_{true}-\mathbf{x}_{num}$','FontSize',15,'Interpreter','latex');
+            zlabel(ax2,'$\mathbf{x}_{true}$','FontSize',15,'Interpreter','latex');
             box on
             if ns==1 && n_pde_tot==1
-                title(ax2,['Error in Final PDE State $\mathbf{x}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+                title(ax2,['Exact Final PDE State $\mathbf{x}_{true}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
             elseif ns==1
-                title(ax2,['Error in Final 2D PDE State $\mathbf{x}_{',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+                title(ax2,['Exact Final 2D PDE State $\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
             else
-                title(ax2,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})-\mathbf{x}_{',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+                title(ax2,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
             end
             ax2.XLim = [min(grid.phys(:,1)),max(grid.phys(:,1))];
             ax2.YLim = [min(grid.phys(:,2)),max(grid.phys(:,2))];
             ax2.TickLabelInterpreter = 'latex';
 
+            % Also plot the error in the numerical solution
+            ax3 = subplot(1,ns,n,'Parent',fig8);
+            surf(ax3,grid.phys(:,1),grid.phys(:,2),exsol_numgrid'-solution.final.pde{2}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
+            h = colorbar(ax3);
+            %colormap jet
+            xlabel(ax3,'$s_{1}$','FontSize',15,'Interpreter','latex');
+            ylabel(ax3,'$s_{2}$','FontSize',15,'Interpreter','latex');
+            zlabel(ax3,'$\mathbf{x}_{true}-\mathbf{x}_{num}$','FontSize',15,'Interpreter','latex');
+            box on
+            if ns==1 && n_pde_tot==1
+                title(ax3,['Error in Final PDE State $\mathbf{x}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            elseif ns==1
+                title(ax3,['Error in Final 2D PDE State $\mathbf{x}_{',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            else
+                title(ax3,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})-\mathbf{x}_{',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
+            end
+            ax3.XLim = [min(grid.phys(:,1)),max(grid.phys(:,1))];
+            ax3.YLim = [min(grid.phys(:,2)),max(grid.phys(:,2))];
+            ax3.TickLabelInterpreter = 'latex';
+
             figs = [figs,{fig7},{fig8}];
 
-            % surf(exact_grid_x,exact_grid_y,exsol_grid');
-            % xlabel('x'), ylabel('y'), zlabel('Analytical Solution');
-            % ax = gca;
-            % ax.FontSize = 24;
-            % H=gca;
-            % H.LineWidth=3;
-            % title('Exact primary state solution',num2str(ng));
-            % 
-            % figure;
-            % % Plot isosurface for the difference between analytical and numerical solution
-            % surf(grid.phys(:,1),grid.phys(:,2),exsol_numgrid'-solution.final.pde{2}(:,:,n)');
-            % xlabel('x'), ylabel('y'), zlabel('Error');
-            % title('Error in primary state solution',num2str(ng));
         end            
     end
 end
