@@ -40,6 +40,9 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 
 syms sx;
 
+line_width = 2.5;
+marker_size = 2*line_width;
+
    
 % % Display final value of ODE state, if possible.
 if(psize.no>0)
@@ -114,7 +117,7 @@ if (psize.no>0) && plot_ode && opts.intScheme==1
     hold on
     for ii=1:psize.no
         X_ii = odesol(t_idcs,ii)';
-        plot(tval,X_ii,'DisplayName',['$x_',num2str(ii),'(t)$'],'LineWidth',2);
+        plot(tval,X_ii,'DisplayName',['$x_',num2str(ii),'(t)$'],'LineWidth',line_width);
     end
     hold off
     %plot(dtime,odesol,'-S','linewidth',2); 
@@ -161,9 +164,9 @@ if (psize.noo>0) && plot_y && opts.intScheme==1
     for ii=1:psize.noo
         y_ii = solution.timedep.observed(ii,t_idcs);
         if ii<=size(colors_y,1)
-            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
         else
-            plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',2);
+            plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',line_width);
         end
     end
     hold off
@@ -208,9 +211,9 @@ if (psize.nro>0) && plot_z && opts.intScheme==1
     for ii=1:psize.nro
         z_ii = solution.timedep.regulated(ii,t_idcs);
         if ii<=length(colors_z)
-            plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+            plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
         else
-            plot(tval,z_ii,'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);
+            plot(tval,z_ii,'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);
         end
     end
     hold off
@@ -280,10 +283,10 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         box on
         hold on
         if ~uinput.ifexact
-            plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'LineWidth',2,'DisplayName','Numerical solution');
+            plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
         else
-            plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',2,'DisplayName','Numerical solution');
-            plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution'); 
+            plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
+            plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution','LineWidth',line_width); 
             legend('FontSize',13,'Interpreter','latex');
         end
         hold off

@@ -50,6 +50,9 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 
 syms sx sy;
 
+line_width = 2.5;
+marker_size = 2*line_width;
+
    % Output solution of ODE states
 
 for i=1:psize.no
@@ -97,7 +100,7 @@ if opts.intScheme==1 && psize.no>0 && ~isempty(solution.timedep.ode)
     hold on
     for ii=1:psize.no
         X_ii = odesol(t_idcs,ii)';
-        plot(tval,X_ii,'DisplayName',['$x_',num2str(ii),'(t)$'],'LineWidth',2);
+        plot(tval,X_ii,'DisplayName',['$x_',num2str(ii),'(t)$'],'LineWidth',line_width);
     end
     hold off
     %plot(dtime,odesol','-S','LineWidth',2,'DisplayName',['$x_',num2str(i),'$(t)']); 
@@ -140,9 +143,9 @@ if opts.intScheme==1 && (psize.noo>0) && ~isempty(solution.timedep.observed)
     for ii=1:psize.noo
         y_ii = solution.timedep.observed(ii,t_idcs);
         if ii<=size(colors_y,1)
-            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
         else
-            plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',2);
+            plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',line_width);
         end
     end
     hold off
@@ -188,9 +191,9 @@ if opts.intScheme==1 && (psize.nro>0) && ~isempty(solution.timedep.regulated)
     for ii=1:psize.nro
         z_ii = solution.timedep.regulated(ii,t_idcs);
         if ii<=length(colors_z)
-            plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+            plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
         else
-            plot(tval,z_ii,'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);
+            plot(tval,z_ii,'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);
         end
     end
     hold off
@@ -253,9 +256,9 @@ ns_tot = psize.no;
 
 % Plot numerical solution using only markers if exact solution is available
 if uinput.ifexact
-    line_style = 'd';
+    line_style = {'d','LineWidth',marker_size};
 else
-    line_style = '-d';
+    line_style = {'-d','MarkerSize',marker_size,'LineWidth',line_width};
 end
 
 % Plot 1D states, differentiable in x
@@ -272,15 +275,15 @@ if sum(psize.nx)>0
         subplot(1,ns,n);
         box on
         if n+ns_tot<=size(colors_PDE,1)
-            plot(grid.phys(:,1),solution.final.pde{1}(:,n),line_style,'Color',colors_PDE(n+ns_tot,:),'LineWidth',2,'DisplayName','Numerical solution');
+            plot(grid.phys(:,1),solution.final.pde{1}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
         else
-            plot(grid.phys(:,1),solution.final.pde{1}(:,n),line_style,'LineWidth',2,'DisplayName','Numerical solution');
+            plot(grid.phys(:,1),solution.final.pde{1}(:,n),line_style{:},'DisplayName','Numerical solution');
         end
         if uinput.ifexact
             hold on
             exsol_grid_time = subs(uinput.exact(n+ns_tot),sx,exact_grid_x);
             exsol_grid_x = double(subs(exsol_grid_time,solution.tf));
-            plot(exact_grid_x,exsol_grid_x,'k-','DisplayName','Analytic solution'); 
+            plot(exact_grid_x,exsol_grid_x,'k-','LineWidth',line_width,'DisplayName','Analytic solution'); 
             legend('FontSize',13,'Interpreter','latex');
             hold off
         end
@@ -314,15 +317,15 @@ if sum(psize.ny)>0
         subplot(1,ns,n);
         box on
         if sum(psize.nx)+n<=size(colors_PDE,1)
-            plot(grid.phys(:,2),solution.final.pde{1}(:,sum(psize.nx)+n),line_style,'Color',colors_PDE(n+ns_tot,:),'LineWidth',2,'DisplayName','Numerical solution');
+            plot(grid.phys(:,2),solution.final.pde{1}(:,sum(psize.nx)+n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
         else
-            plot(grid.phys(:,2),solution.final.pde{1}(:,sum(psize.nx)+n),line_style,'LineWidth',2,'DisplayName','Numerical solution');
+            plot(grid.phys(:,2),solution.final.pde{1}(:,sum(psize.nx)+n),line_style{:},'DisplayName','Numerical solution');
         end
         if uinput.ifexact
             hold on
             exsol_grid_time = subs(uinput.exact(n+ns_tot),sy,exact_grid_y);
             exsol_grid_y = double(subs(exsol_grid_time,solution.tf));
-            plot(exact_grid_y,exsol_grid_y,'k-','DisplayName','Analytic solution'); 
+            plot(exact_grid_y,exsol_grid_y,'k-','LineWidth',line_width,'DisplayName','Analytic solution'); 
             legend('FontSize',13,'Interpreter','latex');
             hold off
         end
