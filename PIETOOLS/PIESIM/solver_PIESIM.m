@@ -115,16 +115,7 @@ opts.intScheme=1;
 
 if (opts.intScheme==1)
     opts.Norder = 2;
-    dt=0.02;
-    % NOTE: if tf is not divisible by dt, dt will be adjusted to a closest
-    %       dt value to yield an integer number of time step
-    if (opts.tf~=0)
-    Nsteps=floor(opts.tf/dt);
-    dt=opts.tf/Nsteps;
-    opts.dt=dt;
-    else
-    opts.dt=0;
-    end
+    opts.dt=0.02;
 end
 
 %--------------------------------------------------------------------------
