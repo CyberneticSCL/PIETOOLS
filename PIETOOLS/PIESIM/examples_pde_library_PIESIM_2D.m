@@ -25,12 +25,13 @@
 % Initial coding YP  - 5_29_2021
 % YP 6/16/2022 - updated to include terms format and added more examples in
 % terms format
+% DJ, 01/04/2024: Use pde_var to declare examples, update Example 19;
 
 
 function [PDE,uinput]=examples_pde_library_PIESIM_2D(example)
+clear stateNameGenerator
 syms st sx sy real;
-pvar s1 s2 
-pde_struct PDE;
+pvar s1 s2 t
 format long;
 
 switch example
@@ -58,37 +59,32 @@ switch example
 
 % u(x,y,t)=(sin(pi*x)+sin(pi*y))*exp(-2*visc*pi^2*t) - solution for
 % u_t=visc*(uxx+uyy)
-
 % Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
-            
-   
-             a=-1;b=1;
-             c=-1;d=1;
-             uinput.dom=[a b;c d]; 
-             visc = 0.5;  
-
+        
 % Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) + f(s1,s2,t)
-
-c1 = visc; c2 = visc;  ne = 1;
+a=-1;b=1;
+c=-1;d=1;
+uinput.dom=[a b;c d]; 
+visc = 0.5;  
+c1 = visc; c2 = visc;
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;
-
-PDE.x{1}.term{1}.D = [2,0; 0,2];
-PDE.x{1}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
-
-% BC1: 0 = x(s1,c)                     % BC3: 0 = x(s1,d)
-PDE.BC{1}.term{1}.loc = [s1,c];      PDE.BC{3}.term{1}.loc = [s1,d];
-% BC2: 0 = x(a,s2)                     % BC4: 0 = x(b,s2) 
-PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{4}.term{1}.loc = [b,s2];
+% Declare the variables
+x = pde_var([s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x,t)==c1*diff(x,s1,2)+c2*diff(x,s2,2)];
+% Declare the boundary conditions
+BCs = [subs(x,s1,a)==0; subs(x,s1,b)==0;
+       subs(x,s2,c)==0; subs(x,s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % % % 
-%           Exact solution, initial conditions and inhomogeneous inputs   
-             
-              uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
-             % Initial conditions for the primary states of the PDE
-              uinput.ic.PDE=  subs(uinput.exact,st,0);
+% Exact solution, initial conditions and inhomogeneous inputs   
+uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
+% Initial conditions for the primary states of the PDE
+uinput.ic.PDE=  subs(uinput.exact,st,0);
+
 %----------------------------------------
 %% Example 2 - 2D Heat Equation with Dirichlet-Dirichlet boundary conditions
 % with non-polynomial in space forcing 
@@ -100,43 +96,36 @@ PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{4}.term{1}.loc = [b,s2];
 % with f(x,y,t)=sin(pi*x)*sin(pi*y)*(1+2*visc*pi^2*t);
 
 % Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
-            
-   
-             a=0;b=1;
-             c=0;d=1;
-             uinput.dom=[a b;c d]; 
-             visc = 0.5;  
 
 % Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) + f(s1,s2,t)
-
+a=0;b=1;
+c=0;d=1;
+uinput.dom=[a b;c d]; 
+visc = 0.5;  
 c1 = visc; c2 = visc;  ne = 1;
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;
-PDE.w{1}.vars = [s1;s2];   PDE.w{1}.dom = uinput.dom;
+% Declare the variables
+x = pde_var(ne,[s1;s2],[a,b;c,d]);      % x(t,s1,s2)
+w = pde_var('in',ne,[s1;s2],[a,b;c,d]); % w(t,s1,s2)
+% Declare the dynamics
+Dyn = [diff(x,t)==c1*diff(x,s1,2)+c2*diff(x,s2,2)+w];
+% Declare the boundary conditions
+BCs = [subs(x,s1,a)==0; subs(x,s1,b)==0;
+       subs(x,s2,c)==0; subs(x,s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
-PDE.x{1}.term{1}.D = [2,0; 0,2];
-PDE.x{1}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
-
-PDE.x{1}.term{2}.w = 1;
-
-% BC1: 0 = x(s1,c)                     % BC3: 0 = x(s1,d)
-PDE.BC{1}.term{1}.loc = [s1,c];      PDE.BC{3}.term{1}.loc = [s1,d];
-% BC2: 0 = x(a,s2)                     % BC4: 0 = x(b,s2) 
-PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{4}.term{1}.loc = [b,s2];
 
 % % % % 
-%           Exact solution, initial conditions and inhomogeneous inputs   
-             
-              uinput.exact =  sin(pi*sx)*sin(pi*sy)*st;
-             % Initial conditions for the primary states of the PDE
-              uinput.ic.PDE=  subs(uinput.exact,st,0);
+% Exact solution, initial conditions and inhomogeneous inputs          
+uinput.exact =  sin(pi*sx)*sin(pi*sy)*st;
+% Initial conditions for the primary states of the PDE
+uinput.ic.PDE=  subs(uinput.exact,st,0);
 
- % When forcing term is non-polynomial in space, both spatial and temporal
- % content of disturbance must be added through uinput.w construct
-
-             uinput.w(1)= sin(pi*sx)*sin(pi*sy)*(1+2*visc*pi^2*st);
+% When forcing term is non-polynomial in space, both spatial and temporal
+% content of disturbance must be added through uinput.w construct
+uinput.w(1)= sin(pi*sx)*sin(pi*sy)*(1+2*visc*pi^2*st);
 
 %----------------------------------------
 %% Example 3 - 2D Heat Equation with Dirichlet-Dirichlet boundary conditions
@@ -148,56 +137,44 @@ PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{4}.term{1}.loc = [b,s2];
 % u_t=nu*(uxx+uyy)+f(x,y,t), with
 % f(x,y,t)=-200*visc*((x-a)(x-b)+(y-c)(y-d))*cos(t)-100*(x-a)(x-b)(y-c)(y-d)*sin(t)
 
-% Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
-            
-   
-             a=0;b=1;
-             c=0;d=1;
-             uinput.dom=[a b;c d]; 
-             visc = 1;  
+% Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0  
+
+% When forcing term is polynomial in space, spatial 
+% content of disturbance can be added as coefficients in PDE construct while
+% temporal content must be specified through uinput.w construct 
+% (disturbance component index must match)
 
 % Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) + f(s1,s2,t)
-
-c1 = visc; c2 = visc;  ne = 1;
+a=0;b=1;
+c=0;d=1;
+uinput.dom=[a b;c d]; 
+visc = 1; 
+c1 = visc; c2 = visc;
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;
+% Declare the variables
+pde_var state x input w1 w2
+x.vars = [s1;s2];   x.dom = [a,b;c,d];
+% Declare the dynamics
+Dyn = [diff(x,t)==c1*diff(x,s1,2)+c2*diff(x,s2,2)...
+                    +200*visc*((s1-a)*(s1-b)+(s2-c)*(s2-d))*w1...
+                        +100*(s1-a)*(s1-b)*(s2-c)*(s2-d)*w2];
+% Declare the boundary conditions
+BCs = [subs(x,s1,a)==0; subs(x,s1,b)==0;
+       subs(x,s2,c)==0; subs(x,s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
-PDE.x{1}.term{1}.D = [2,0; 0,2];
-PDE.x{1}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
-
-% BC1: 0 = x(s1,c)                     % BC3: 0 = x(s1,d)
-PDE.BC{1}.term{1}.loc = [s1,c];      PDE.BC{3}.term{1}.loc = [s1,d];
-% BC2: 0 = x(a,s2)                     % BC4: 0 = x(b,s2) 
-PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{4}.term{1}.loc = [b,s2];
-
-%  Specify forcing term
-
- % When forcing term is polynomial in space, spatial 
- % content of disturbance must be added through PDE.w construct while
- % temporal content through uinput.w construct (disturbance component index must
- % match)
-
-
-PDE.w{2}.vars=[];
-
-PDE.x{1}.term{2}.w=1;
-PDE.x{1}.term{2}.C=200*visc*((s1-a)*(s1-b)+(s2-c)*(s2-d));
-
-PDE.x{1}.term{3}.w=2;
-PDE.x{1}.term{3}.C=100*(s1-a)*(s1-b)*(s2-c)*(s2-d);
 
 % % % % 
-%           Exact solution, initial conditions and inhomogeneous inputs  
+% Exact solution, initial conditions and inhomogeneous inputs  
+uinput.exact =  100*(sx-a)*(sx-b)*(sy-c)*(sy-d)*cos(st);
+% % Initial conditions for the primary states of the PDE
+uinput.ic.PDE= subs(uinput.exact,st,0);
 
-               uinput.exact =  100*(sx-a)*(sx-b)*(sy-c)*(sy-d)*cos(st);
-%              % Initial conditions for the primary states of the PDE
-               uinput.ic.PDE= subs(uinput.exact,st,0);
-
-       % Enter temporal content of disturbance here
-               uinput.w(1)= -cos(st);
-               uinput.w(2)= -sin(st);
+% Enter temporal content of disturbance here
+uinput.w(1)= -cos(st);
+uinput.w(2)= -sin(st);
 %              
 
 %----------------------------------------
@@ -207,40 +184,32 @@ PDE.x{1}.term{3}.C=100*(s1-a)*(s1-b)*(s2-c)*(s2-d);
     case 4
 
 % u(x,y,t)=(sin(pi*x)+sin(pi*y))*exp(-v2*isc*pi^2*t) - solution for u_t=visc*(uxx+uyy)
-
 % Boundary conditions: u(a,y,t)=0; u_x(b,y,t)=0; u_y(x,c,t)=0; u(x,d,t)=0
-            
-   
-             a=0;b=1.5;
-             c=-0.5;d=1;
-             uinput.dom=[a b;c d]; 
-             visc = 0.5;  
 
 % Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2})
-
-c1 = visc; c2 = visc;  ne = 1;
+a=0;b=1.5;
+c=-0.5;d=1;
+uinput.dom=[a b;c d]; 
+visc = 0.5;  
+c1 = visc; c2 = visc;
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;
-
-PDE.x{1}.term{1}.D = [2,0; 0,2];
-PDE.x{1}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
-
-% BC1: 0 = x_s2(s1,c)                   % BC3: 0 = x(s1,d)
-PDE.BC{1}.term{1}.D = [0,1];         PDE.BC{3}.term{1}.loc = [s1,d];
-PDE.BC{1}.term{1}.loc = [s1,c];      
-% BC2: 0 = x(a,s2)                      % BC4: 0 = x_s1(b,s2)
-PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{4}.term{1}.D = [1,0];        
-                                     PDE.BC{4}.term{1}.loc = [b,s2];
+% Declare the variables
+x = pde_var([s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x,t)==c1*diff(x,s1,2)+c2*diff(x,s2,2)];
+% Declare the boundary conditions
+BCs = [subs(x,s1,a)==0; subs(diff(x,s1),s1,b)==0;
+       subs(diff(x,s2),s2,c)==0; subs(x,s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % % % 
-%           Exact solution, initial conditions and inhomogeneous inputs  
-             
-              uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
+% Exact solution, initial conditions and inhomogeneous inputs 
+uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
 
-             % Initial conditions for the primary states of the PDE
-              uinput.ic.PDE=  subs(uinput.exact,st,0);
+% Initial conditions for the primary states of the PDE
+uinput.ic.PDE=  subs(uinput.exact,st,0);
 
 %----------------------------------------
 %% Example 5 - 2D KISS model
@@ -252,55 +221,42 @@ PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{4}.term{1}.D = [1,0];
 % u_t=lam*u+c1*uxx+c2*uyy+f(x,y), with
 % f(x,y)=-2*ampl*(c2*(sx-a)*(sx-b)+c1*(sy-c)*(sy-d))-lam*ampl*(x-a)(x-b)(y-c)(y-d) 
 
-
 % Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
-            
-   
-             a=0;b=1;
-             c=0;d=1;
-             uinput.dom=[a b;c d]; 
+
+% When forcing term is polynomial in space, spatial content
+% of disturbance can be added through coefficients in PDE construct while
+% temporal content must be specified through uinput.w 
+% (disturbance component index must match)
 
 % Solving PDE in the form  x_{t}   = lam*x + c1*x_{s1s1} + c2*x_{s2s2} + f(s1,s2,t)
-
-c1 = s1; c2 = s2;  ne = 1; lam=19;
-
+a=0;b=1;
+c=0;d=1;
+uinput.dom=[a b;c d]; 
+c1 = s1; c2 = s2; lam=19;
 ampl=100; 
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;
-
-
-PDE.x{1}.term{1}.D = [0,0; 2,0; 0,2];
-PDE.x{1}.term{1}.C = [lam*eye(ne), c1*eye(ne), c2*eye(ne)];
-
-% BC1: 0 = x(s1,c)                     % BC3: 0 = x(s1,d)
-PDE.BC{1}.term{1}.loc = [s1,c];      PDE.BC{3}.term{1}.loc = [s1,d];
-% BC2: 0 = x(a,s2)                     % BC4: 0 = x(b,s2) 
-PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{4}.term{1}.loc = [b,s2];
-
-
-%  Specify forcing term
-
- % When forcing term is polynomial in space, spatial 
- % content of disturbance must be added through PDE.w construct while
- % temporal content through uinput.w construct (disturbance component index must
- % match)
-PDE.w{1}.vars=[];
-
-PDE.x{1}.term{2}.w=1;
-PDE.x{1}.term{2}.C=-2*ampl*(c2*(s1-a)*(s1-b)+c1*(s2-c)*(s2-d))-lam*ampl*(s1-a)*(s1-b)*(s2-c)*(s2-d);
-
+% Declare the variables
+x = pde_var([s1;s2],[a,b;c,d]);
+w = pde_var('in');
+% Declare the dynamics
+Dyn = [diff(x,t)==c1*diff(x,s1,2)+c2*diff(x,s2,2)+lam*x...
+                    -2*ampl*(c2*(s1-a)*(s1-b)+c1*(s2-c)*(s2-d))*w...
+                        -lam*ampl*(s1-a)*(s1-b)*(s2-c)*(s2-d)*w];
+% Declare the boundary conditions
+BCs = [subs(x,s1,a)==0; subs(x,s1,b)==0;
+       subs(x,s2,c)==0; subs(x,s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % % % 
-%           Exact solution, initial conditions and inhomogeneous inputs  
-              
-               uinput.exact =  ampl*(sx-a)*(sx-b)*(sy-c)*(sy-d);
-%              % Initial conditions for the primary states of the PDE
-               uinput.ic.PDE= uinput.exact;
+% Exact solution, initial conditions and inhomogeneous inputs  
+uinput.exact =  ampl*(sx-a)*(sx-b)*(sy-c)*(sy-d);
+% % Initial conditions for the primary states of the PDE
+uinput.ic.PDE= uinput.exact;
 
-       % Enter temporal content of disturbance here
-               uinput.w(1)=1;
+% Enter temporal content of disturbance here
+uinput.w(1)=1;
 %               uinput.w(1) = -2*ampl*(sy*(sx-a)*(sx-b)+sx*(sy-c)*(sy-d))-lam*ampl*(sx-a)*(sx-b)*(sy-c)*(sy-d);
 %  
 
@@ -313,54 +269,36 @@ PDE.x{1}.term{2}.C=-2*ampl*(c2*(s1-a)*(s1-b)+c1*(s2-c)*(s2-d))-lam*ampl*(s1-a)*(
 % u_t=lam*u+c1*uxx+c2*uy+f(x,y,t)
 
 % Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0
-            
-             a=0;b=1;
-             c=0;d=1;
-             uinput.dom=[a b;c d]; 
 
-% Solving PDE in the form  x_{t}   = lam*x + c1*x_{s1s1} + c2*x_{s2} + f(s1,s2,t)
-
-c1 = 1; c2 = 2;  ne = 1; lam=19;
-
+% Solving PDE in the form  x_{t}   = lam*x + c1*x_{s1s1} + c2*x_{s2} + f(s1,s2,t)            
+a=0;b=1;
+c=0;d=1;
+uinput.dom=[a b;c d];
+c1 = 1; c2 = 2; lam=19;
 ampl=100; 
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;
-
-
-PDE.x{1}.term{1}.D = [0,0; 2,0; 0,1];
-PDE.x{1}.term{1}.C = [lam*eye(ne), c1*eye(ne), c2*eye(ne)];
-
-% BC1: 0 = x(s1,c)                     
-PDE.BC{1}.term{1}.loc = [s1,c];      
-% BC2: 0 = x(a,s2)                     % BC3: 0 = x(b,s2) 
-PDE.BC{2}.term{1}.loc = [a,s2];      PDE.BC{3}.term{1}.loc = [b,s2];
-
-            
-%  Specify forcing term
-
- % When forcing term is polynomial in space, spatial 
- % content of disturbance must be added through PDE.w construct while
- % temporal content through uinput.w construct (disturbance component index must
- % match)
-
-PDE.w{1}.vars=[];
-
-PDE.x{1}.term{2}.w=1;
-PDE.x{1}.term{2}.C=-ampl*(c2*(s1-a)*(s1-b)*(2*s2-d-c)+2*c1*(s2-c)*(s2-d))-lam*ampl*(s1-a)*(s1-b)*(s2-c)*(s2-d);
-
+% Declare the variables
+x = pde_var([s1;s2],[a,b;c,d]);
+w = pde_var('in');
+% Declare the dynamics
+Dyn = [diff(x,t)==c1*diff(x,s1,2)+c2*diff(x,s2)+lam*x...
+                    -ampl*(c2*(s1-a)*(s1-b)*(2*s2-d-c)+2*c1*(s2-c)*(s2-d))*w...
+                        -lam*ampl*(s1-a)*(s1-b)*(s2-c)*(s2-d)*w];
+% Declare the boundary conditions
+BCs = [subs(x,s1,a)==0; subs(x,s1,b)==0;
+       subs(x,s2,c)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % % % 
-%           Exact solution, initial conditions and inhomogeneous inputs  
-              
-               uinput.exact =  ampl*(sx-a)*(sx-b)*(sy-c)*(sy-d);
-%              % Initial conditions for the primary states of the PDE
+% Exact solution, initial conditions and inhomogeneous inputs      
+uinput.exact =  ampl*(sx-a)*(sx-b)*(sy-c)*(sy-d);
+% % Initial conditions for the primary states of the PDE
+uinput.ic.PDE = uinput.exact;
 
-               uinput.ic.PDE = uinput.exact;
-
-       % Enter temporal content of disturbance here
-               uinput.w(1)=1;
+% Enter temporal content of disturbance here
+uinput.w(1)=1;
 
 
 %----------------------------------------
@@ -409,50 +347,24 @@ visc = 0.5;       ampl = 2;
 % %     int_{c}^{d} u(x,y,t)dy = U1(x,t);   int_{a}^{b} u(x,y,t)dx = U2(y,t); 
 % %     u_{x}(b,y,t) = 0;   u_{y}(x,d,t) = 0;
 
-PDE.x{1}.vars = [];
-PDE.x{2}.vars = s1;         PDE.x{2}.dom = [a,b];
-PDE.x{3}.vars = s2;         PDE.x{3}.dom = [c,d];
-PDE.x{4}.vars = [s1;s2];    PDE.x{4}.dom = [a,b;c,d];
-
-% U0_{t}(t) = 0;
-PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = 0;
-
-% U1_{t}(x,t) = visc*U1_{xx}(x,t);
-PDE.x{2}.term{1}.x = 2;     PDE.x{2}.term{1}.C = visc;
-PDE.x{2}.term{1}.D = 2;
-
-% U2_{t}(y,t) = visc*U2_{yy}(y,t);
-PDE.x{3}.term{1}.x = 3;     PDE.x{3}.term{1}.C = visc;
-PDE.x{3}.term{1}.D = 2;
-
-% u_{t}(x,y,t) = visc*(u_xx(x,t) + u_yy(y,t))
-PDE.x{4}.term{1}.x = 4;     PDE.x{4}.term{1}.C = [visc,visc];
-PDE.x{4}.term{1}.D = [2,0;0,2];
-
-% % BCs
-% int_{a}^{b} U1(x,t)dx = U0(t);        U1_{x}(b,t) = 0;
-PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 2;
-PDE.BC{1}.term{1}.C = -1;
-PDE.BC{1}.term{2}.x = 2;                PDE.BC{2}.term{1}.loc = b;
-PDE.BC{1}.term{2}.I = {[a,b]};          PDE.BC{2}.term{1}.D = 1;
-
-% int_{c}^{d} U2(y,t)dy = U0(t);        U2_{y}(d,t) = 0;
-PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 3;
-PDE.BC{3}.term{1}.C = -1;
-PDE.BC{3}.term{2}.x = 3;                PDE.BC{4}.term{1}.loc = d;
-PDE.BC{3}.term{2}.I = {[c,d]};          PDE.BC{4}.term{1}.D = 1;
-
-% int_{c}^{d} u(x,y,t)dy = U1(x,t);     int_{a}^{b} u(x,y,t)dx = U2(y,t); 
-PDE.BC{5}.term{1}.x = 2;                PDE.BC{6}.term{1}.x = 3;
-PDE.BC{5}.term{1}.C = -1;               PDE.BC{6}.term{1}.C = -1;
-PDE.BC{5}.term{2}.x = 4;                PDE.BC{6}.term{2}.x = 4;
-PDE.BC{5}.term{2}.I = {[];[c,d]};       PDE.BC{6}.term{2}.I = {[a,b];[]};
-
-% u_{x}(b,y,t) = 0;                     u_{y}(x,d,t) = 0;
-PDE.BC{7}.term{1}.x = 4;                PDE.BC{8}.term{1}.x = 4;
-PDE.BC{7}.term{1}.D = [1,0];            PDE.BC{8}.term{1}.D = [0,1];
-PDE.BC{7}.term{1}.loc = [b,s2];         PDE.BC{8}.term{1}.loc = [s1,d];
-
+% % Declare the PDE
+% Declare the variables
+x1 = pde_var();
+x2 = pde_var(s1,[a,b]);
+x3 = pde_var(s2,[c,d]);
+x4 = pde_var([s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x1,t)==0;
+       diff(x2,t)==visc*diff(x2,s1,2);
+       diff(x3,t)==visc*diff(x3,s2,2);
+       diff(x4,t)==visc*(diff(x4,s1,2)+diff(x4,s2,2))];
+% Declare the boundary conditions
+BCs = [int(x2,s1,a,b)==x1;  subs(diff(x2,s1),s1,b)==0;
+       int(x3,s2,c,d)==x1;  subs(diff(x3,s2),s2,d)==0;
+       int(x4,s1,a,b)==x3;  int(x4,s2,c,d)==x2;
+       subs(diff(x4,s1),s1,b)==0;   subs(diff(x4,s2),s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % Set the initial conditions
 % %   u(x,y,0) = 1 + ampl*cos(pi*(x-a)/(b-a)) -ampl*cos(3*pi*(y-c)/(d-c));
@@ -500,46 +412,26 @@ visc = 0.1;       ampl1 = 5;   ampl2 = 10;
 % %               = 0 + visc*U1_{yy} + 0;
 % %   U1(c,t) = 0;          U1_{x}(d,t) = 0;
 % % So, we get a coupled system
-% %     U1_{t}(x,t) = visc*U1_{yy}(y,t);
+% %     U1_{t}(y,t) = visc*U1_{yy}(y,t);
 % %     u_{t}(x,y,t) = visc*(u_xx(x,t) + u_yy(y,t))
 % % with BCs
 % %     U1(c,t) = 0;        U1_{x}(d,t) = 0;
 % %     int_{a}^{b} u(x,y,t)dy = U1(x,t);   u(b,y,t) = u(a,y,t) 
 % %     u(x,c,t) = 0;       u_{y}(x,d,t) = 0;
 
-PDE.x{1}.vars = s2;         PDE.x{1}.dom = [c,d];
-PDE.x{2}.vars = [s1;s2];    PDE.x{2}.dom = [a,b;c,d];
-% PDE.w{1}.vars = [];
-
-% U1_{t}(y,t) = visc*U1_{yy}(y,t);
-PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = visc;
-PDE.x{1}.term{1}.D = 2;
-
-% u_{t}(x,y,t) = visc*(u_xx(x,t) + u_yy(y,t))
-PDE.x{2}.term{1}.x = 2;     PDE.x{2}.term{1}.C = [visc,visc];
-PDE.x{2}.term{1}.D = [2,0;0,2];
-
-% % BCs
-% U1(c,t) = (b-a)*w(t);                 U1_{y}(d,t) = 0;
-PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 1;
-PDE.BC{1}.term{1}.loc = c;              PDE.BC{2}.term{1}.loc = d;
-                                        PDE.BC{2}.term{1}.D = 1;
-% PDE.BC{1}.term{2}.w = 1;
-% PDE.BC{1}.term{2}.C = -(b-a);
-
-% int_{a}^{b} u(x,y,t)dx = U1(x,t);     u(a,y,t) = u(b,y,t); 
-PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 2;
-PDE.BC{3}.term{1}.C = -1;               PDE.BC{4}.term{1}.C = -1;
-                                        PDE.BC{4}.term{1}.loc = [a,s2];
-PDE.BC{3}.term{2}.x = 2;                PDE.BC{4}.term{2}.x = 2;
-PDE.BC{3}.term{2}.I = {[a,b];[]};       PDE.BC{4}.term{2}.loc = [b,s2];
-
-% u(x,c,t) = 0;                         u_{y}(x,d,t) = 0;
-PDE.BC{5}.term{1}.x = 2;                PDE.BC{6}.term{1}.x = 2;
-PDE.BC{5}.term{1}.loc = [s1,c];         PDE.BC{6}.term{1}.loc = [s1,d];
-                                        PDE.BC{6}.term{1}.D = [0,1];
-% PDE.BC{5}.term{2}.w = 1;
-% PDE.BC{5}.term{2}.C = -1;
+% % Declare the PDE
+% Declare the variables
+x1 = pde_var(s2,[c,d]);
+x2 = pde_var([s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x1,t)==visc*diff(x1,s2,2);
+       diff(x2,t)==visc*(diff(x2,s1,2)+diff(x2,s2,2))];
+% Declare the boundary conditions
+BCs = [subs(x1,s2,c)==0;    subs(diff(x1,s2),s2,d)==0;
+       int(x2,s1,[a,b])==x1;    subs(x2,s1,b)==subs(x2,s1,a);
+       subs(x2,s2,c)==0;        subs(diff(x2,s2),s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % Set the initial conditions
 % %   u(x,y,0) = ampl1*sin(1.5*pi*(y-c)/(d-c)) +ampl2*cos(6*pi*(x-0.5*(a+b))/(b-a))*sin(0.5*pi*(y-c)/(d-c)); 
@@ -554,10 +446,10 @@ uinput.exact(1) = int(u_ex,sx,a,b);
 uinput.exact(2) = u_ex;
 
 
-% %----------------------------------------
-% %% Example 8 - 2D heat equation with Periodic BCs in both directions
-% %----------------------------------------
-% case 8
+% % %----------------------------------------
+% % %% Example 8 - 2D heat equation with Periodic BCs in both directions
+% % %----------------------------------------
+% % case 8
 % % % Standard 2D heat equation with Periodic BCs
 % % %   u_t=visc*(u_xx + u_yy)                        (x,y) in [a,b]x[c,d]
 % % %   u(a,y,t) = u(b,y,t);    u_{x}(a,y,t) = u_{x}(b,y,t); 
@@ -602,53 +494,24 @@ uinput.exact(2) = u_ex;
 % % %     int_{c}^{d} u(x,y,t)dy = U1(x,t);   int_{a}^{b} u(x,y,t)dx = U2(y,t); 
 % % %     u(b,y,t) = u(a,y,t);        u(x,d,t) = u(x,c,t);
 % 
-% PDE.x{1}.vars = [];
-% PDE.x{2}.vars = s1;         PDE.x{2}.dom = [a,b];
-% PDE.x{3}.vars = s2;         PDE.x{3}.dom = [c,d];
-% PDE.x{4}.vars = [s1;s2];    PDE.x{4}.dom = [a,b;c,d];
-% 
-% % U0_{t}(t) = 0;
-% PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = 0;
-% 
-% % U1_{t}(x,t) = visc*U1_{xx}(x,t);
-% PDE.x{2}.term{1}.x = 2;     PDE.x{2}.term{1}.C = visc;
-% PDE.x{2}.term{1}.D = 2;
-% 
-% % U2_{t}(y,t) = visc*U2_{yy}(y,t);
-% PDE.x{3}.term{1}.x = 3;     PDE.x{3}.term{1}.C = visc;
-% PDE.x{3}.term{1}.D = 2;
-% 
-% % u_{t}(x,y,t) = visc*(u_xx(x,t) + u_yy(y,t))
-% PDE.x{4}.term{1}.x = 4;     PDE.x{4}.term{1}.C = [visc,visc];
-% PDE.x{4}.term{1}.D = [2,0;0,2];
-% 
-% % % BCs
-% % int_{a}^{b} U1(x,t)dx = U0(t);        U1(b,t) = U1(a,t);
-% PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 2;
-% PDE.BC{1}.term{1}.C = -1;               PDE.BC{2}.term{1}.C = -1;
-% PDE.BC{1}.term{2}.x = 2;                PDE.BC{2}.term{1}.loc = b;
-% PDE.BC{1}.term{2}.I = {[a,b]};          PDE.BC{2}.term{2}.x = 2;
-%                                         PDE.BC{2}.term{2}.loc = a;
-% 
-% % int_{c}^{d} U2(y,t)dy = U0(t);        U2(d,t) = U2(c,t);
-% PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 3;
-% PDE.BC{3}.term{1}.C = -1;               PDE.BC{4}.term{1}.C = -1;
-% PDE.BC{3}.term{2}.x = 3;                PDE.BC{4}.term{1}.loc = d;
-% PDE.BC{3}.term{2}.I = {[c,d]};          PDE.BC{4}.term{2}.x = 3;
-%                                         PDE.BC{4}.term{2}.loc = c;
-% 
-% % int_{c}^{d} u(x,y,t)dy = U1(x,t);     int_{a}^{b} u(x,y,t)dx = U2(y,t); 
-% PDE.BC{5}.term{1}.x = 2;                PDE.BC{6}.term{1}.x = 3;
-% PDE.BC{5}.term{1}.C = -1;               PDE.BC{6}.term{1}.C = -1;
-% PDE.BC{5}.term{2}.x = 4;                PDE.BC{6}.term{2}.x = 4;
-% PDE.BC{5}.term{2}.I = {[];[c,d]};       PDE.BC{6}.term{2}.I = {[a,b];[]};
-% 
-% % u(b,y,t) = u(a,y,t);                  u(x,d,t) = u(x,c,t);
-% PDE.BC{7}.term{1}.x = 4;                PDE.BC{8}.term{1}.x = 4;
-% PDE.BC{7}.term{1}.C = -1;               PDE.BC{8}.term{1}.C = -1;
-% PDE.BC{7}.term{1}.loc = [b,s2];         PDE.BC{8}.term{1}.loc = [s1,d];
-% PDE.BC{7}.term{2}.x = 4;                PDE.BC{8}.term{2}.x = 4;
-% PDE.BC{7}.term{2}.loc = [a,s2];         PDE.BC{8}.term{2}.loc = [s1,c];
+% % % Declare the PDE
+% % Declare the variables
+% x1 = pde_var();
+% x2 = pde_var(s1,[a,b]);
+% x3 = pde_var(s2,[c,d]);
+% x4 = pde_var([s1;s2],[a,b;c,d]);
+% % Declare the dynamics
+% Dyn = [diff(x1,t)==0;
+%        diff(x2,t)==visc*diff(x2,s1,2);
+%        diff(x3,t)==visc*diff(x3,s2,2);
+%        diff(x4,t)==visc*(diff(x4,s1,2)+diff(x4,s2,2))];
+% % Declare the boundary conditions
+% BCs = [int(x2,s1,[a,b])==x1;    subs(x2,s1,b)==subs(x2,s1,a);
+%        int(x3,s2,[c,d])==x1;    subs(x3,s2,d)==subs(x3,s2,c);
+%        int(x4,s2,[c,d])==x2;    subs(x4,s2,d)==subs(x4,s2,c);
+%        int(x4,s1,[a,b])==x3;    subs(x4,s1,b)==subs(x4,s1,a)];
+% % Initialize the PDE
+% PDE = initialize([Dyn;BCs]);
 % 
 % 
 % % % Set the initial conditions
@@ -704,50 +567,23 @@ uinput.dom=[a b;c d];
 visc = 1;       ampl = 10;
 
 % % Declare the PDE
-PDE.x{1}.vars = [];
-PDE.x{2}.vars = s1;         PDE.x{2}.dom = [a,b];
-PDE.x{3}.vars = s2;         PDE.x{3}.dom = [c,d];
-PDE.x{4}.vars = [s1;s2];    PDE.x{4}.dom = [a,b;c,d];
-
-% X_{t}(t) = -visc*X(t);
-PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = -visc;
-
-% u1_{t}(x,t)   = visc*(b-a)^2/pi^2*u1_{xx}
-PDE.x{2}.term{1}.x = 2;     PDE.x{2}.term{1}.C = visc*(b-a)^2/pi^2;
-PDE.x{2}.term{1}.D = 2;
-
-% u2_{t}(y,t)   = visc*(d-c)^2/(25*pi^2)*u2_{yy}
-PDE.x{3}.term{1}.x = 3;     PDE.x{3}.term{1}.C = visc*(d-c)^2/(25*pi^2);
-PDE.x{3}.term{1}.D = 2;
-
-% u3_{t}(x,y,t) = 0.5*visc/pi^2*((b-a)^2*u_{xx}+(d-c)^2/25 *u_{yy})
-PDE.x{4}.term{1}.x = 4;     PDE.x{4}.term{1}.C = 0.5*visc/pi^2 *[(b-a)^2,(d-c)^2/25];
-PDE.x{4}.term{1}.D = [2,0;0,2];
-
-% % BCs
-% u1(a,t) = X(t);                       u1_{x}(b,t) = 0;
-PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 2;
-PDE.BC{1}.term{1}.C = -1;
-PDE.BC{1}.term{2}.x = 2;                PDE.BC{2}.term{1}.loc = b;
-PDE.BC{1}.term{2}.loc = a;              PDE.BC{2}.term{1}.D = 1;
-
-% u2(c,t) = X(t);                       u2_{y}(d,t) = 0;
-PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 3;
-PDE.BC{3}.term{1}.C = -1;
-PDE.BC{3}.term{2}.x = 3;                PDE.BC{4}.term{1}.loc = d;
-PDE.BC{3}.term{2}.loc = c;              PDE.BC{4}.term{1}.D = 1;
-
-% u3(x,c,t) = u1(x,t);                  u3(a,y,t) = u2(y,t); 
-PDE.BC{5}.term{1}.x = 2;                PDE.BC{6}.term{1}.x = 3;
-PDE.BC{5}.term{1}.C = -1;               PDE.BC{6}.term{1}.C = -1;
-PDE.BC{5}.term{2}.x = 4;                PDE.BC{6}.term{2}.x = 4;
-PDE.BC{5}.term{2}.loc = [s1,c];         PDE.BC{6}.term{2}.loc = [a,s2];
-
-% u3_{x}(b,y,t) = 0;                    u3_{y}(x,d,t) = 0;
-PDE.BC{7}.term{1}.x = 4;                PDE.BC{8}.term{1}.x = 4;
-PDE.BC{7}.term{1}.D = [1,0];            PDE.BC{8}.term{1}.D = [0,1];
-PDE.BC{7}.term{1}.loc = [b,s2];         PDE.BC{8}.term{1}.loc = [s1,d];
-
+% Initialize variables
+x1 = pde_var();         
+x2 = pde_var(s1,[a,b]);
+x3 = pde_var(s2,[c,d]);
+x4 = pde_var([s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x1,t)==-visc*x1;
+       diff(x2,t)== visc*(b-a)^2/pi^2 *diff(x2,s1,2);
+       diff(x3,t)== visc*(d-c)^2/(25*pi^2)*diff(x3,s2,2);
+       diff(x4,t)== 0.5*visc/pi^2*((b-a)^2*diff(x4,s1,2) +(d-c)^2/25*diff(x4,s2,2))];
+% Declare the boundary conditions
+BCs = [subs(x2,s1,a)==x1;   subs(diff(x2,s1),s1,b)==0;
+       subs(x3,s2,c)==x1;   subs(diff(x3,s2),s2,d)==0;
+       subs(x4,s1,a)==x3;   subs(diff(x4,s1),s1,b)==0;
+       subs(x4,s2,c)==x2;   subs(diff(x4,s2),s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % Set the initial conditions
 % %   u(x,y,0) = ampl*cos(pi*(x-a)/(b-a))*cos(5*pi*(y-c)/(d-c));
@@ -796,7 +632,6 @@ case 10
 % %   u3(y,t) = f2*exp(-t)*cos(2*pi*(y-c)/(d-c))
 % %   u4(x,y,t) = ((x-b)/(a-b)*f1 +(x-a)/(b-a)*f2*exp(-t))*cos(2*pi*(y-c)/(d-c))
 
-
 % % Set the spatial domain 
 a=0;   b=1;
 c=0;   d=3;
@@ -806,68 +641,27 @@ uinput.dom=[a b;c d];
 f1 = 5;    f2 = -5;
 
 % % Declare the PDE
-PDE.x{1}.vars = s1;         PDE.x{1}.dom = [a,b];
-PDE.x{2}.vars = s2;         PDE.x{2}.dom = [c,d];
-PDE.x{3}.vars = s2;         PDE.x{3}.dom = [c,d];
-PDE.x{4}.vars = [s1;s2];    PDE.x{4}.dom = [a,b;c,d];
-PDE.w{1}.vars = [];         PDE.w{2}.vars = [];
-PDE.w{3}.vars = s1;         PDE.w{3}.dom = [a,b];
-PDE.w{4}.vars = [s1;s2];    PDE.w{4}.dom = [a,b;c,d];
-
-% u1_{t}(x,t)   = u1_{xx}(x,t) -u1(x,t) +w3(x,t)
-PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [1,-1];
-PDE.x{1}.term{1}.D = [2;0];
-PDE.x{1}.term{2}.w = 3;
-
-% %   u2_{t}(y,t)   = u2_{yy}(y,t) +(1.5*pi/(d-c))^2*u2
-PDE.x{2}.term{1}.x = 2;
-PDE.x{2}.term{1}.C = [1,(2*pi/(d-c))^2];
-PDE.x{2}.term{1}.D = [2;0];
-
-% %   u3_{t}(y,t)   = 1/(1.5*pi/(d-c))^2 *u3_{yy}(y,t)
-PDE.x{3}.term{1}.x = 3;
-PDE.x{3}.term{1}.C = 1/(2*pi/(d-c))^2;
-PDE.x{3}.term{1}.D = 2;
-% %   u4_{t}(x,y,t) = u4_{xx} +u4_{yy} +(1.5*pi/(d-c))^2*u4 +w4(x,y,t)
-
-% u4_{t}(x,y,t) = u4_{xx} +u4_{yy} +(1.5*pi/(d-c))^2*u4 -w4(x,y,t)
-PDE.x{4}.term{1}.x = 4;     
-PDE.x{4}.term{1}.C = [1,1,(2*pi/(d-c))^2];
-PDE.x{4}.term{1}.D = [2,0;0,2;0,0];
-PDE.x{4}.term{2}.w = 4;
-PDE.x{4}.term{2}.C = -1;
-
-% % BCs
-% u1(a,t) = w1(t);                      u1(b,t) = w2;
-PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 1;
-PDE.BC{1}.term{1}.loc = a;              PDE.BC{2}.term{1}.loc = b;
-PDE.BC{1}.term{1}.C = -1;               PDE.BC{2}.term{1}.C = -1;
-PDE.BC{1}.term{2}.w = 1;                PDE.BC{2}.term{2}.w = 2;
-
-% u2(c,t) = w1(t);                      u2_{y}(d,t) = 0;
-PDE.BC{3}.term{1}.x = 2;                PDE.BC{4}.term{1}.x = 2;
-PDE.BC{3}.term{1}.loc = c;              PDE.BC{4}.term{1}.loc = d;
-PDE.BC{3}.term{2}.w = 1;                PDE.BC{4}.term{1}.D = 1;
-PDE.BC{3}.term{2}.C = -1;
-
-% u3(c,t) = w2(t);                      u3_{y}(d,t) = 0;
-PDE.BC{5}.term{1}.x = 3;                PDE.BC{6}.term{1}.x = 3;
-PDE.BC{5}.term{1}.loc = c;              PDE.BC{6}.term{1}.loc = d;
-PDE.BC{5}.term{2}.w = 2;                PDE.BC{6}.term{1}.D = 1;
-PDE.BC{5}.term{2}.C = -1;
-
-% u4(x,c,t) = u1(x,t);                  u4_{y}(x,d,t) = 0;
-PDE.BC{7}.term{1}.x = 4;                PDE.BC{8}.term{1}.x = 4;
-PDE.BC{7}.term{1}.loc = [s1,c];         PDE.BC{8}.term{1}.loc = [s1,d];
-PDE.BC{7}.term{2}.x = 1;                PDE.BC{8}.term{1}.D = [0,1];
-PDE.BC{7}.term{2}.C = -1; 
-
-% u4(a,y,t) = u2(y,t);                  u4(b,y,t) = u3(y,t);
-PDE.BC{9}.term{1}.x = 4;                PDE.BC{10}.term{1}.x = 4;
-PDE.BC{9}.term{1}.loc = [a,s2];         PDE.BC{10}.term{1}.loc = [b,s2];
-PDE.BC{9}.term{2}.x = 2;                PDE.BC{10}.term{2}.x = 3;
-PDE.BC{9}.term{2}.C = -1;               PDE.BC{10}.term{2}.C = -1;
-
+% Declare the variables
+pde_var state x1 x2 x3 x4 input w1 w2 w3 w4
+x1.vars = s1;       x1.dom = [a,b];
+x2.vars = s2;       x2.dom = [c,d];
+x3.vars = s2;       x3.dom = [c,d];
+x4.vars = [s1;s2];  x4.dom = [a,b;c,d];
+w3.vars = s1;       w3.dom = [a,b];
+w4.vars = [s1;s2];  w4.dom = [a,b;c,d];
+% Declare the dynamics
+Dyn = [diff(x1,t)==diff(x1,s1,2)-x1+w3;
+       diff(x2,t)==diff(x2,s2,2)+(2*pi/(d-c))^2*x2;
+       diff(x3,t)==1/(2*pi/(d-c))^2*diff(x3,s2,2);
+       diff(x4,t)==diff(x4,s1,2)+diff(x4,s2,2)+(2*pi/(d-c))^2*x4-w4];
+% Declare the boundary conditions
+BCs = [subs(x1,s1,a)==w1;   subs(x1,s1,b)==w2;
+       subs(x2,s2,c)==w1;   subs(diff(x2,s2),s2,d)==0;
+       subs(x3,s2,c)==w2;   subs(diff(x3,s2),s2,d)==0;
+       subs(x4,s2,c)==x1;   subs(diff(x4,s2),s2,d)==0;
+       subs(x4,s1,a)==x2;   subs(x4,s1,b)==x3];
+% Initiliaze the PDE
+PDE = initialize([BCs;Dyn]);    % declare BCs first to get correct order of inputs w...
 
 % % Set the initial conditions
 % %   u1(x,0) = (x-b)/(a-b)*f1 +(x-a)/(b-a)*f2
@@ -926,34 +720,20 @@ C = 1;
 % % % Construct the PDE.
 % % We represent it in the form
 % %     x1_{t} = x2;
-% %     x2_{t} = C^2*(x1_{xx} +x1_{yy});
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;   % x1 = u;
-PDE.x{2}.vars = [s1;s2];   PDE.x{2}.dom = uinput.dom;   % x2 = u_{t}
-PDE.x{2}.diff = [2,2];
-
-% x1_{t} = x2;
-PDE.x{1}.term{1}.x = 2;
-
-% x2_{t} = C^2*(x1_{xx} + x1_{yy});
-PDE.x{2}.term{1}.x = 1;
-PDE.x{2}.term{1}.D = [2,0;0,2];
-PDE.x{2}.term{1}.C = [C^2,C^2];
-
-% % Set the boundary conditions
-% BC1: 0 = x1(s1,c)                 % BC3: 0 = x1(s1,d)
-PDE.BC{1}.term{1}.x = 1;            PDE.BC{3}.term{1}.x = 1;
-PDE.BC{1}.term{1}.loc = [s1,c];     PDE.BC{3}.term{1}.loc = [s1,d];
-% BC2: 0 = x1(a,s2)                 % BC4: 0 = x1(b,s2)
-PDE.BC{2}.term{1}.x = 1;            PDE.BC{4}.term{1}.x = 1;
-PDE.BC{2}.term{1}.loc = [a,s2];     PDE.BC{4}.term{1}.loc = [b,s2];
-
-% BC5: 0 = x2(s1,c)                 % BC7: 0 = x2(s1,d)
-PDE.BC{5}.term{1}.x = 2;            PDE.BC{7}.term{1}.x = 2;
-PDE.BC{5}.term{1}.loc = [s1,c];     PDE.BC{7}.term{1}.loc = [s1,d];
-% BC6: 0 = x2(a,s2)                 % BC8: 0 = x2(b,s2)
-PDE.BC{6}.term{1}.x = 2;            PDE.BC{8}.term{1}.x = 2;
-PDE.BC{6}.term{1}.loc = [a,s2];     PDE.BC{8}.term{1}.loc = [b,s2];
+% %     x2_{t} = C^2*(x1_{xx} +x1_{yy};
+% Declare the variables
+x1 = pde_var([s1;s2],[a,b;c,d]);
+x2 = pde_var([s1;s2],[a,b;c,d],[2;2]);  % make sure x2 is twice differentiable wrt s1 s2
+% Declare the dynamics
+Dyn = [diff(x1,t)==x2;
+       diff(x2,t)==C^2*(diff(x1,s1,2)+diff(x1,s2,2))];
+% Declare the boundary conditions
+BCs = [subs(x1,s1,a)==0;    subs(x1,s1,b)==0;
+       subs(x1,s2,c)==0;    subs(x1,s2,d)==0;
+       subs(x2,s1,a)==0;    subs(x2,s1,b)==0;
+       subs(x2,s2,c)==0;    subs(x2,s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % Set the initial conditions
 % % We build an initial function of the form
@@ -1005,37 +785,15 @@ C = 1;
 % % We represent it in the form
 % %     x1_{t} = x2;
 % %     x2_{t} = C^2*(x1_{xx} +x1_{yy});
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;   % x1 = u;
-PDE.x{2}.vars = [s1;s2];   PDE.x{2}.dom = uinput.dom;   % x2 = u_{t}
-PDE.x{2}.diff = [2,2];
-
-% x1_{t} = x2;
-PDE.x{1}.term{1}.x = 2;
-
-% x2_{t} = C^2*(x1_{xx} + x1_{yy});
-PDE.x{2}.term{1}.x = 1;
-PDE.x{2}.term{1}.D = [2,0;0,2];
-PDE.x{2}.term{1}.C = [C^2,C^2];
-
-% % Set the boundary conditions
-% BC1: 0 = x1(s1,c)                 % BC3: 0 = x1_{y}(s1,d)
-PDE.BC{1}.term{1}.x = 1;            PDE.BC{3}.term{1}.x = 1;
-PDE.BC{1}.term{1}.loc = [s1,c];     PDE.BC{3}.term{1}.loc = [s1,d];
-                                    PDE.BC{3}.term{1}.D = [0,1];
-% BC2: 0 = x1_{x}(a,s2)             % BC4: 0 = x1(b,s2)
-PDE.BC{2}.term{1}.x = 1;            PDE.BC{4}.term{1}.x = 1;
-PDE.BC{2}.term{1}.loc = [a,s2];     PDE.BC{4}.term{1}.loc = [b,s2];
-PDE.BC{2}.term{1}.D = [1,0];
-
-% BC5: 0 = x2(s1,c)                 % BC7: 0 = x2_{y}(s1,d)
-PDE.BC{5}.term{1}.x = 2;            PDE.BC{7}.term{1}.x = 2;
-PDE.BC{5}.term{1}.loc = [s1,c];     PDE.BC{7}.term{1}.loc = [s1,d];
-                                    PDE.BC{7}.term{1}.D = [0,1];
-% BC6: 0 = x2_{x}(a,s2)             % BC8: 0 = x2(b,s2)
-PDE.BC{6}.term{1}.x = 2;            PDE.BC{8}.term{1}.x = 2;
-PDE.BC{6}.term{1}.loc = [a,s2];     PDE.BC{8}.term{1}.loc = [b,s2];
-PDE.BC{6}.term{1}.D = [1,0];
+% Declare the variables
+x = pde_var(2,[s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x,t)==[0,1;0,0]*x+[0,0;C^2,0]*(diff(x,s1,2)+diff(x,s2,2))];
+% Declare the boundary conditions
+BCs = [subs(diff(x,s1),s1,a)==0;    subs(x,s1,b)==0;
+       subs(x,s2,c)==0;              subs(diff(x,s2),s2,d)==0];
+% Initialize the PDE
+PDE = [Dyn;BCs];
 
 % % Set the initial conditions
 % % We build an initial function of the form
@@ -1090,37 +848,16 @@ C = 1;
 % % We represent it in the form
 % %     x1_{t} = x2;
 % %     x2_{t} = C^2*(x1_{xx} +x1_{yy}) +w;
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;   % x1 = u;
-PDE.x{2}.vars = [s1;s2];   PDE.x{2}.dom = uinput.dom;   % x2 = u_{t}
-PDE.x{2}.diff = [2,2];
-PDE.w{1}.vars = [s1;s2];   PDE.w{1}.dom = uinput.dom;   % w = f;
-
-% x1_{t} = x2;
-PDE.x{1}.term{1}.x = 2;
-
-% x2_{t} = C^2*(x1_{xx} + x1_{yy}) +w;
-PDE.x{2}.term{1}.x = 1;
-PDE.x{2}.term{1}.D = [2,0;0,2];
-PDE.x{2}.term{1}.C = [C^2,C^2];
-
-PDE.x{2}.term{2}.w = 1;
-
-% % Set the boundary conditions
-% BC1: 0 = x1(s1,c)                 % BC3: 0 = x1(s1,d)
-PDE.BC{1}.term{1}.x = 1;            PDE.BC{3}.term{1}.x = 1;
-PDE.BC{1}.term{1}.loc = [s1,c];     PDE.BC{3}.term{1}.loc = [s1,d];
-% BC2: 0 = x1(a,s2)                 % BC4: 0 = x1(b,s2)
-PDE.BC{2}.term{1}.x = 1;            PDE.BC{4}.term{1}.x = 1;
-PDE.BC{2}.term{1}.loc = [a,s2];     PDE.BC{4}.term{1}.loc = [b,s2];
-
-% BC5: 0 = x2(s1,c)                 % BC7: 0 = x2(s1,d)
-PDE.BC{5}.term{1}.x = 2;            PDE.BC{7}.term{1}.x = 2;
-PDE.BC{5}.term{1}.loc = [s1,c];     PDE.BC{7}.term{1}.loc = [s1,d];
-% BC6: 0 = x2(a,s2)                 % BC8: 0 = x2(b,s2)
-PDE.BC{6}.term{1}.x = 2;            PDE.BC{8}.term{1}.x = 2;
-PDE.BC{6}.term{1}.loc = [a,s2];     PDE.BC{8}.term{1}.loc = [b,s2];
-
+% Declare the variables
+x = pde_var(2,[s1;s2],[a,b;c,d]);
+w = pde_var('in',[s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x,t)==[0,1;0,0]*x+[0,0;C^2,0]*(diff(x,s1,2)+diff(x,s2,2))+[0;1]*w];
+% Declare the boundary conditions
+BCs = [subs(x,s1,a)==0;     subs(x,s1,b)==0;
+       subs(x,s2,c)==0;     subs(x,s2,d)==0];
+% Initialize the PDE
+PDE = [Dyn;BCs];
 
 % % Set the desired exact solution
 % %     u(x,y,t) = (sin(2*pi*x/(b-a))*sin(2*pi*y/(d-c)))*(1-t)
@@ -1166,30 +903,18 @@ C = 1;
 % % We represent it in the form
 % %     x(1)_{t} = x(2);
 % %     x(2)_{t} = C^2*(x(1)_{xx} +x(1)_{yy}) +w;
-%%% Term-based input format
-PDE.x{1}.vars = [s1;s2];   PDE.x{1}.dom = uinput.dom;   % x1 = [u;u_{t}];
-PDE.x{1}.size = 2;
-PDE.w{1}.vars = [s1;s2];   PDE.w{1}.dom = uinput.dom;   % w = f;
-
-% x_{t} = [0,1,0,0,0,0;0,0,C^2,0,C^2,0]*[x; x_{xx}; x_{yy}] +[0;1]*w;
-PDE.x{1}.term{1}.x = 1;
-PDE.x{1}.term{1}.C = [0,1,0,0,0,0;
-                      0,0,C^2,0,C^2,0];
-PDE.x{1}.term{1}.D = [0,0;2,0;0,2];
-
-PDE.x{1}.term{2}.w = 1;
-PDE.x{1}.term{2}.C = [0;1];
-
-% % Set the boundary conditions
-% BC1: 0 = x1(s1,c)                 % BC3: 0 = x1_{y}(s1,d)
-PDE.BC{1}.term{1}.x = 1;            PDE.BC{3}.term{1}.x = 1;
-PDE.BC{1}.term{1}.loc = [s1,c];     PDE.BC{3}.term{1}.loc = [s1,d];
-                                    PDE.BC{3}.term{1}.D = [0,1];
-% BC2: 0 = x1(a,s2)                 % BC4: 0 = x1_{x}(b,s2)
-PDE.BC{2}.term{1}.x = 1;            PDE.BC{4}.term{1}.x = 1;
-PDE.BC{2}.term{1}.loc = [a,s2];     PDE.BC{4}.term{1}.loc = [b,s2];
-                                    PDE.BC{4}.term{1}.D = [1,0];
-
+% Declare the variables
+x1 = pde_var([s1;s2],[a,b;c,d]);
+x2 = pde_var([s1;s2],[a,b;c,d]);
+w = pde_var('input',[s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x1,t)==x2;
+       diff(x2,t)==C^2*(diff(x1,s1,2)+diff(x1,s2,2))+w];
+% Declare the boundary conditions
+BCs = [subs([x1;x2],s1,a)==0;   subs(diff([x1;x2],s1),s1,b)==0;
+       subs([x1;x2],s2,c)==0;   subs(diff([x1;x2],s2),s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % Set the desired exact solution
 % %     u(x,y,t) = sin(1.5*pi*(sx-a)/(b-a))*(sy-c)*(sy-2*d+c)
@@ -1245,57 +970,22 @@ C = 1;
 % % augment the state as u--> [u; u_{t}];
 
 %%% Declare the PDE
-PDE.x{1}.vars = s1;         PDE.x{1}.dom = [a,b];       % x1 = [U1(x,t);U1_{x}(x,t)]
-PDE.x{1}.size = 2;
-PDE.x{2}.vars = s2;         PDE.x{2}.dom = [c,d];       % x2 = [U2(y,t);U2_{y}(y,t)]
-PDE.x{2}.size = 2;
-PDE.x{3}.vars = [s1;s2];    PDE.x{3}.dom = [a,b;c,d];   % x3 = [u;u_{t}];
-PDE.x{3}.size = 2;
-
-PDE.w{1}.vars = [];
-PDE.w{1}.size = 2;
-
-% [U1_{t};U1_{tt}] = [x1(2); C^2*x1_{xx}(1)]
-PDE.x{1}.term{1}.x = 1;
-PDE.x{1}.term{1}.C = [0,1,0,0;0,0,C^2,0];
-PDE.x{1}.term{1}.D = [0;2];
-
-% [U2_{t};U2_{tt}] = [x2(2); C^2*x2_{yy}(1)]
-PDE.x{2}.term{1}.x = 2;
-PDE.x{2}.term{1}.C = [0,1,0,0;0,0,C^2,0];
-PDE.x{2}.term{1}.D = [0;2];
-
-% [u_{t};u_{tt}] = [0,1,0,0,0,0;0,0,C^2,0,C^2,0]*[x3(2); x3_{xx}(1); x3_{yy}(1)];
-PDE.x{3}.term{1}.x = 3;
-PDE.x{3}.term{1}.C = [0,1,0,0,0,0;
-                      0,0,C^2,0,C^2,0];
-PDE.x{3}.term{1}.D = [0,0;2,0;0,2];
-
-% % Set the boundary conditions
-% int_{a}^{b}U1(x,t)dx = w(t);      U1_{x}(b,t) = 0;
-PDE.BC{1}.term{1}.x = 1;            PDE.BC{2}.term{1}.x = 1;
-PDE.BC{1}.term{1}.I = {[a,b]};      PDE.BC{2}.term{1}.loc = b;
-PDE.BC{1}.term{2}.w = 1;            PDE.BC{2}.term{1}.D = 1;
-PDE.BC{1}.term{2}.C = -1*eye(2);
-
-% int_{c}^{d}U2(y,t)dy = w(t);      U1_{y}(b,t) = 0;
-PDE.BC{3}.term{1}.x = 2;            PDE.BC{4}.term{1}.x = 2;
-PDE.BC{3}.term{1}.I = {[c,d]};      PDE.BC{4}.term{1}.loc = d;
-PDE.BC{3}.term{2}.w = 1;            PDE.BC{4}.term{1}.D = 1;
-PDE.BC{3}.term{2}.C = -1*eye(2);
-
-% int_{c}^{d}u(x,y,t)dy = U1(t,x);  u_{y}(x,d,t) = 0;
-PDE.BC{5}.term{1}.x = 3;            PDE.BC{6}.term{1}.x = 3;
-PDE.BC{5}.term{1}.I = {[];[c,d]};   PDE.BC{6}.term{1}.loc = [s1,d];
-PDE.BC{5}.term{2}.x = 1;            PDE.BC{6}.term{1}.D = [0,1];
-PDE.BC{5}.term{2}.C = -1*eye(2);
-
-% int_{a}^{b}u(x,y,t)dx = U2(t,y);  u_{x}(b,y,t) = 0;
-PDE.BC{7}.term{1}.x = 3;            PDE.BC{8}.term{1}.x = 3;
-PDE.BC{7}.term{1}.I = {[a,b];[]};   PDE.BC{8}.term{1}.loc = [b,s2];
-PDE.BC{7}.term{2}.x = 2;            PDE.BC{8}.term{1}.D = [1,0];
-PDE.BC{7}.term{2}.C = -1*eye(2);
-
+% Declare the variables
+x1 = pde_var(2,s1,[a,b]);           % x1 = [U1(x,t);U1_{x}(x,t)]
+x2 = pde_var(2,s2,[c,d]);           % x2 = [U2(y,t);U2_{y}(y,t)]
+x3 = pde_var(2,[s1;s2],[a,b;c,d]);  % x3 = [u;u_{t}];
+w = pde_var('in',2);
+% Declare the dynamics
+Dyn = [diff(x1,t)==[0,1;0,0]*x1+[0,0;C^2,0]*diff(x1,s1,2);
+       diff(x2,t)==[0,1;0,0]*x2+[0,0;C^2,0]*diff(x2,s2,2);
+       diff(x3,t)==[0,1;0,0]*x3+[0,0;C^2,0]*(diff(x3,s1,2)+diff(x3,s2,2))];
+% Declare the boundary conditions
+BCs = [int(x1,s1,[a,b])==w;     subs(diff(x1,s1),s1,b)==0;
+       int(x2,s2,[c,d])==w;     subs(diff(x2,s2),s2,d)==0;
+       int(x3,s2,[c,d])==x1;    subs(diff(x3,s2),s2,d)==0;
+       int(x3,s1,[a,b])==x2;    subs(diff(x3,s1),s1,b)==0];
+% Initialize the PDE
+PDE = [Dyn;BCs];
 
 % % Set the initial conditions
 % % We build an initial function of the form
@@ -1368,40 +1058,18 @@ freq = 1;       shft = 0;
 % % augment the state as u--> [u; u_{t}];
 
 %%% Declare the PDE
-PDE.x{1}.vars = s2;         PDE.x{1}.dom = [c,d];       % x1 = [U1(y,t);U1_{y}(y,t)]
-PDE.x{1}.size = 2;
-PDE.x{2}.vars = [s1;s2];    PDE.x{2}.dom = [a,b;c,d];   % x2 = [u;u_{t}];
-PDE.x{2}.size = 2;
-
-% [U1_{t};U1_{tt}] = [x1(2); C^2*x1_{yy}(1)]
-PDE.x{1}.term{1}.x = 1;
-PDE.x{1}.term{1}.C = [0,1,0,0;0,0,C^2,0];
-PDE.x{1}.term{1}.D = [0;2];
-
-% [u_{t};u_{tt}] = [0,1,0,0,0,0;0,0,C^2,0,C^2,0]*[x3(2); x3_{xx}(1); x3_{yy}(1)];
-PDE.x{2}.term{1}.x = 2;
-PDE.x{2}.term{1}.C = [0,1,0,0,0,0;
-                      0,0,C^2,0,C^2,0];
-PDE.x{2}.term{1}.D = [0,0;2,0;0,2];
-
-% % Set the boundary conditions
-% U1(c,t) = 0;                      U1_{y}(d,t) = 0;
-PDE.BC{1}.term{1}.x = 1;            PDE.BC{2}.term{1}.x = 1;
-PDE.BC{1}.term{1}.loc = c;          PDE.BC{2}.term{1}.loc = d;
-                                    PDE.BC{2}.term{1}.D = 1;
-
-% int_{a}^{b}u(x,y,t)dx = U1(y,t);  u(a,y,t) = u(b,y,t);
-PDE.BC{3}.term{1}.x = 2;            PDE.BC{4}.term{1}.x = 2;
-PDE.BC{3}.term{1}.I = {[a,b];[]};   PDE.BC{4}.term{1}.loc = [a,s2];
-PDE.BC{3}.term{2}.x = 1;            PDE.BC{4}.term{2}.x = 2;
-PDE.BC{3}.term{2}.C = -1*eye(2);    PDE.BC{4}.term{2}.loc = [b,s2];
-                                    PDE.BC{4}.term{2}.C = -1*eye(2);
-
-% u(x,c,t) = 0;                     u_{y}(x,d,t) = 0;
-PDE.BC{5}.term{1}.x = 2;            PDE.BC{6}.term{1}.x = 2;
-PDE.BC{5}.term{1}.loc = [s1,c];     PDE.BC{6}.term{1}.loc = [s1,d];
-                                    PDE.BC{6}.term{1}.D = [0,1];
-
+% Declare the variables
+x1 = pde_var(2,s2,[c,d]);
+x2 = pde_var(2,[s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x1,t)==[0,1;0,0]*x1+[0,0;C^2,0]*diff(x1,s2,2);
+       diff(x2,t)==[0,1;0,0]*x2+[0,0;C^2,0]*(diff(x2,s1,2)+diff(x2,s2,2))];
+% Declare the boundary conditions
+BCs = [subs(x1,s2,c)==0;        subs(diff(x1,s2),s2,d)==0
+       subs(x2,s2,c)==0;        subs(diff(x2,s2),s2,d)==0;
+       int(x2,s1,[a,b])==x1;    subs(x2,s1,a)==subs(x2,s1,b)];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % Set the initial conditions
 % %     u(x,y) = ampl0*sin(0.5*pi/(d-c)*y) +ampl1*sin(freq*pi*x-shft)*sin(2.5*pi/(d-c)*y);
@@ -1462,54 +1130,25 @@ uinput.dom=[a b;c d];
 C = 0.5;       ampl = 10;
 
 % % Declare the PDE
-PDE.x{1}.vars = [];
-PDE.x{1}.size = 2;
-PDE.x{2}.vars = s1;         PDE.x{2}.dom = [a,b];
-PDE.x{2}.size = 2;
-PDE.x{3}.vars = s2;         PDE.x{3}.dom = [c,d];
-PDE.x{3}.size = 2;
-PDE.x{4}.vars = [s1;s2];    PDE.x{4}.dom = [a,b;c,d];   % x{4}=[u3;u3_{t}]
-PDE.x{4}.size = 2;
-
-% X_{tt}(t) = -C^2*X(t);
-PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [0,1;-C^2,0];
-
-% u1_{tt}(x,t)   = C^2*(b-a)^2/pi^2*u1_{xx}
-PDE.x{2}.term{1}.x = 2;     PDE.x{2}.term{1}.C = [0,1,0,0; 0,0,C^2*(b-a)^2/pi^2,0];
-PDE.x{2}.term{1}.D = [0;2];
-
-% u2_{t}(y,t)   = C^2*(d-c)^2/(25*pi^2)*u2_{yy}
-PDE.x{3}.term{1}.x = 3;     PDE.x{3}.term{1}.C = [0,1,0,0; 0,0,C^2*(d-c)^2/(25*pi^2),0];
-PDE.x{3}.term{1}.D = [0;2];
-
-% u3_{t}(x,y,t) = 0.5*C^2/pi^2*((b-a)^2*u_{xx}+(d-c)^2/25 *u_{yy})
-PDE.x{4}.term{1}.x = 4;     PDE.x{4}.term{1}.C = [0,1,0,0,0,0; 0,0,0.5*C^2/pi^2*(b-a)^2,0,0.5*C^2/pi^2*(d-c)^2/25,0];
-PDE.x{4}.term{1}.D = [0,0;2,0;0,2];
-
-% % BCs
-% u1(a,t) = X(t);                       u1_{x}(b,t) = 0;
-PDE.BC{1}.term{1}.x = 1;                PDE.BC{2}.term{1}.x = 2;
-PDE.BC{1}.term{1}.C = -1*eye(2);
-PDE.BC{1}.term{2}.x = 2;                PDE.BC{2}.term{1}.loc = b;
-PDE.BC{1}.term{2}.loc = a;              PDE.BC{2}.term{1}.D = 1;
-
-% u2(c,t) = X(t);                       u2_{y}(d,t) = 0;
-PDE.BC{3}.term{1}.x = 1;                PDE.BC{4}.term{1}.x = 3;
-PDE.BC{3}.term{1}.C = -1*eye(2);
-PDE.BC{3}.term{2}.x = 3;                PDE.BC{4}.term{1}.loc = d;
-PDE.BC{3}.term{2}.loc = c;              PDE.BC{4}.term{1}.D = 1;
-
-% u3(x,c,t) = u1(x,t);                  u3(a,y,t) = u2(y,t); 
-PDE.BC{5}.term{1}.x = 2;                PDE.BC{6}.term{1}.x = 3;
-PDE.BC{5}.term{1}.C = -1*eye(2);        PDE.BC{6}.term{1}.C = -1*eye(2);
-PDE.BC{5}.term{2}.x = 4;                PDE.BC{6}.term{2}.x = 4;
-PDE.BC{5}.term{2}.loc = [s1,c];         PDE.BC{6}.term{2}.loc = [a,s2];
-
-% u3_{x}(b,y,t) = 0;                    u3_{y}(x,d,t) = 0;
-PDE.BC{7}.term{1}.x = 4;                PDE.BC{8}.term{1}.x = 4;
-PDE.BC{7}.term{1}.D = [1,0];            PDE.BC{8}.term{1}.D = [0,1];
-PDE.BC{7}.term{1}.loc = [b,s2];         PDE.BC{8}.term{1}.loc = [s1,d];
-
+% Declare the variables
+x1 = pde_var(2);
+x2 = pde_var(2,s1,[a,b]);
+x3 = pde_var(2,s2,[c,d]);
+x4 = pde_var(2,[s1;s2],[a,b;c,d]);
+% Declare the dynamics
+Dyn = [diff(x1,t)==[0,1;-C^2,0]*x1;
+       diff(x2,t)==[0,1;0,0]*x2+[0,0;C^2*(b-a)^2/pi^2,0]*diff(x2,s1,2);
+       diff(x3,t)==[0,1;0,0]*x3+[0,0;C^2*(d-c)^2/(25*pi^2),0]*diff(x3,s2,2);
+       diff(x4,t)==[0,1;0,0]*x4...
+                        +[0,0;0.5*C^2/pi^2*(b-a)^2,0]*diff(x4,s1,2)...
+                            +[0,0;0.5*C^2/pi^2*(d-c)^2/25,0]*diff(x4,s2,2)];
+% Declare the boundary conditions
+BCs = [subs(x2,s1,a)==x1;       subs(diff(x2,s1),s1,b)==0;
+       subs(x3,s2,c)==x1;       subs(diff(x3,s2),s2,d)==0;
+       subs(x4,s2,c)==x2;       subs(diff(x4,s2),s2,d)==0;
+       subs(x4,s1,a)==x3;       subs(diff(x4,s1),s1,b)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % Set the initial conditions
 % %   u(x,y,0) = ampl*cos(pi*(x-a)/(b-a))*cos(5*pi*(y-c)/(d-c));
@@ -1557,51 +1196,30 @@ case 18
 % Set the spatial domain 
 a=0;   b=2*pi;
 c=0;   d=2*pi;
-
-
 uinput.dom=[a b;c d]; 
 
 % Set the wave velocity and amplitude
 v = 0.5;       ampl = 5;
 
 % % Declare the PDE
-PDE.x{1}.vars = [s1;s2];    PDE.x{1}.dom = [a,b;c,d];
-PDE.x{2}.vars = s1;         PDE.x{2}.dom = [a,b];
-PDE.x{3}.vars = s2;         PDE.x{3}.dom = [c,d];
-PDE.w{1}.vars = [];
-PDE.w{2}.vars = [];
-
-% u_{t}(t) = -v*(u_{x}(t) +u_{y}(t));
-PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = [-v,-v];
-PDE.x{1}.term{1}.D = [1,0;0,1];
-
-% u1_{t}(t) = -v*u1_{x}(x,y,t) -w2;  
-PDE.x{2}.term{1}.x = 2;     PDE.x{2}.term{1}.C = -v;
-PDE.x{2}.term{1}.D = 1;
-PDE.x{2}.term{2}.w = 2;     PDE.x{2}.term{2}.C = -1;
-
-% u2_{t}(t) = -v*u2_{y}(x,y,t) -w2;  
-PDE.x{3}.term{1}.x = 3;     PDE.x{3}.term{1}.C = -v;
-PDE.x{3}.term{1}.D = 1;
-PDE.x{3}.term{2}.w = 2;     PDE.x{3}.term{2}.C = -1;
-
-% % Declare the BCs
-% u(0,y,t) = u2(y,t)                u(x,0,t) = u1(x,t);
-PDE.BC{1}.term{1}.x = 1;            PDE.BC{2}.term{1}.x = 1;            
-PDE.BC{1}.term{1}.loc = [a,s2];     PDE.BC{2}.term{1}.loc = [s1,c];
-PDE.BC{1}.term{2}.x = 3;            PDE.BC{2}.term{2}.x = 2;
-PDE.BC{1}.term{2}.C = -1;           PDE.BC{2}.term{2}.C = -1;
-
-% u1(0,t) = w1(t)                   % u2(0,t) = w1(t)
-PDE.BC{3}.term{1}.x = 2;            PDE.BC{4}.term{1}.x = 3;
-PDE.BC{3}.term{1}.loc = a;          PDE.BC{4}.term{1}.loc = c;
-PDE.BC{3}.term{2}.w = 1;            PDE.BC{4}.term{2}.w = 1;
-PDE.BC{3}.term{2}.C = -1;           PDE.BC{4}.term{2}.C = -1;
+% Declare the variables
+pde_var x1 x2 x3 input w1 w2
+x1.vars = [s1;s2];      x1.dom = [a,b;c,d];
+x2.vars = s1;           x2.dom = [a,b];
+x3.vars = s2;           x3.dom = [c,d];
+% Declare the dynamics
+Dyn = [diff(x1,t)==-v*(diff(x1,s1)+diff(x1,s2));
+       diff(x2,t)==-v*diff(x2,s1)-w2;
+       diff(x3,t)==-v*diff(x3,s2)-w2];
+% Declare the boundary conditions
+BCs = [subs(x1,s2,c)==x2;   subs(x1,s1,a)==x3;
+       subs(x3,s2,c)==w1;   subs(x2,s1,a)==w1];
+% Initialize the PDE
+PDE = initialize([BCs;Dyn]);    % declare BCs first to get w in correct order...
 
 % % Set the initial conditions
 % %   u(x,y,t) = ampl*(sin(x)+sin(y));
 % %   u1(x,t) = ampl*sin(x);        u2(y,t) = ampl*sin(y);
-
 u_ic = ampl*(sin(sx) +sin(sy));
 uinput.ic.x(1) = u_ic;
 uinput.ic.x(2) = subs(u_ic,sy,c);
@@ -1630,17 +1248,25 @@ case 19
 % %   u_{t}(x,y,t) = lam*u_{xy}(x,y,t)                 (x,y) in [0,2.5*pi]x[0,2.5*pi]
 % %    u1_{t}(x,t) = lam*u1_{xx}(x,t)
 % %    u2_{t}(y,t) = lam*u2_{yy}(y,t)
+% %    u3_{t}(x,t) = lam*u3_{xx}(x,t)
+% %    u4_{t}(x,t) = lam*u4_{yy}(x,t)
 % % with Dirichlet BCs
 % %   u(0,y,t) = u2(y,t);       u(x,0,t) = u1(x,t);
+% %   u(2.5*pi,y,t) = u4(y,t);  u(x,2.5*pi,t) = u3(x,t);
 % %   u1(0,t) = 0;              u1_{x}(2.5*pi,t) = 0;
 % %   u2(0,t) = 0;              u2_{y}(2.5*pi,t) = 0;
+% %   u3(0,t) = u2(2.5*pi,t);   u3(2.5*pi,t) = 0;
+% %   u4(0,t) = u1(2.5*pi,t);   u4(2.5*pi,t) = 0;
 % % Starting with an initial condition
 % %   u(x,y,t) = ampl*sin(x+y);
 % %   u1(x,t) = ampl*sin(x);        u2(y,t) = ampl*sin(y);
+% %   u3(x,t) = ampl*cos(x);        u4(y,t) = ampl*cos(y);
 % % we get an exact solution
 % %   u(x,y,t) = ampl*sin(x+y)*exp(-lam*t);
 % %   u1(x,t) = ampl*sin(x)*exp(-lam*t);
 % %   u2(y,t) = ampl*sin(y)*exp(-lam*t);
+% %   u3(x,t) = ampl*cos(x)*exp(-lam*t);
+% %   u4(y,t) = ampl*cos(y)*exp(-lam*t);
 
 % % Set the spatial domain 
 a=0;   b=2.5*pi;
@@ -1651,44 +1277,32 @@ uinput.dom=[a b;c d];
 lam = 0.5;       ampl = 5;
 
 % % Declare the PDE
-PDE.x{1}.vars = [s1;s2];    PDE.x{1}.dom = [a,b;c,d];
-PDE.x{2}.vars = s1;         PDE.x{2}.dom = [a,b];
-PDE.x{3}.vars = s2;         PDE.x{3}.dom = [c,d];
-
-% u_{t}(t) = lam*u_{xy}(t);
-PDE.x{1}.term{1}.x = 1;     PDE.x{1}.term{1}.C = lam;
-PDE.x{1}.term{1}.D = [1,1];
-
-% u1_{t}(x,t) = lam*u1_{xx}(x,t)
-PDE.x{2}.term{1}.x = 2;     PDE.x{2}.term{1}.C = lam;
-PDE.x{2}.term{1}.D = 2;
-
-% u2_{t}(y,t) = lam*u2_{yy}(y,t)
-PDE.x{3}.term{1}.x = 3;     PDE.x{3}.term{1}.C = lam;
-PDE.x{3}.term{1}.D = 2;
-
-% % Declare the BCs
-% u(0,y,t) = u2(y,t)                u(x,0,t) = u1(x,t);
-PDE.BC{1}.term{1}.x = 1;            PDE.BC{2}.term{1}.x = 1;            
-PDE.BC{1}.term{1}.loc = [a,s2];     PDE.BC{2}.term{1}.loc = [s1,c];
-PDE.BC{1}.term{2}.x = 3;            PDE.BC{2}.term{2}.x = 2;
-PDE.BC{1}.term{2}.C = -1;           PDE.BC{2}.term{2}.C = -1;
-
-% u1(0,t) = 0;                      u1_{x}(2.5*pi,t) = 0;
-PDE.BC{3}.term{1}.x = 2;            PDE.BC{4}.term{1}.x = 2;
-PDE.BC{3}.term{1}.loc = a;          PDE.BC{4}.term{1}.loc = b;
-                                    PDE.BC{4}.term{1}.D = 1;
-
-% u2(0,t) = 0;                      u2_{y}(2.5*pi,t) = 0;
-PDE.BC{5}.term{1}.x = 3;            PDE.BC{6}.term{1}.x = 3;
-PDE.BC{5}.term{1}.loc = c;          PDE.BC{6}.term{1}.loc = d;
-                                    PDE.BC{6}.term{1}.D = 1;
+% Declare the variables
+x1 = pde_var([s1;s2],[a,b;c,d]);    x1.diff = [2,2];
+x2 = pde_var(s1,[a,b]);             x4 = pde_var(s1,[a,b]);
+x3 = pde_var(s2,[c,d]);             x5 = pde_var(s2,[c,d]);
+% Declare the dynamics
+Dyn = [diff(x1,t)==lam*diff(x1,[s1;s2]);
+       diff(x2,t)==lam*diff(x2,s1,2);
+       diff(x3,t)==lam*diff(x3,s2,2);
+       diff(x4,t)==lam*diff(x4,s1,2);
+       diff(x5,t)==lam*diff(x5,s2,2)];
+% Declare the boundary conditions
+BCs = [subs(x1,s2,c)==x2;               subs(x1,s1,a)==x3;
+       subs(x1,s2,d)==x4;               subs(x1,s1,b)==x5;
+       subs(x2,s1,a)==0;                subs(diff(x2,s1),s1,b)==0;
+       subs(x3,s2,c)==0;                subs(diff(x3,s2),s2,d)==0;
+       subs(x4,s1,a)==subs(x3,s2,d);    subs(x4,s1,b)==0;
+       subs(x5,s2,c)==subs(x2,s1,b);    subs(x5,s2,d)==0];
+% Initialize the PDE
+PDE = initialize([Dyn;BCs]);
 
 % % Set the initial conditions
 % %   u(x,y,t) = ampl*sin(x+y);
 % %   u1(x,t) = ampl*sin(x);        u2(y,t) = ampl*sin(y);
 uinput.ic.x(1) = ampl*sin(sx+sy);
 uinput.ic.x(2) = ampl*sin(sx);      uinput.ic.x(3) = ampl*sin(sy);
+uinput.ic.x(4) = ampl*cos(sx);      uinput.ic.x(5) = ampl*cos(sy);
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*sin(x+y)*exp(-lam*t);
@@ -1697,5 +1311,9 @@ uinput.ic.x(2) = ampl*sin(sx);      uinput.ic.x(3) = ampl*sin(sy);
 uinput.exact(1) = ampl*sin(sx+sy)*exp(-lam*st);
 uinput.exact(2) = ampl*sin(sx)*exp(-lam*st);
 uinput.exact(3) = ampl*sin(sy)*exp(-lam*st);
+uinput.exact(4) = ampl*cos(sx)*exp(-lam*st);
+uinput.exact(5) = ampl*cos(sy)*exp(-lam*st);
+
+
 
 end
