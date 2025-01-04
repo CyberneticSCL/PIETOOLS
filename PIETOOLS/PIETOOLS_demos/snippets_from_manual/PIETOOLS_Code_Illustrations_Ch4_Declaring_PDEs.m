@@ -99,7 +99,7 @@ X = pde_var(s,[0,1]);
 odepde = [diff(x,t)==-5*x; 
           diff(X,t)==10*X+diff(X,s,2)+subs(x,t,t-2);
           subs(X,s,0)==0;
-          subs(X,s,1)==0;];
+          subs(X,s,1)==0];
 odepde = initialize(odepde);
 PIE = convert(odepde,'pie');
 

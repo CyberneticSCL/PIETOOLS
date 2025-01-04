@@ -65,9 +65,9 @@ h = colorbar;
 %colormap jet    
 subplot(1,2,2);
 box on
-plot(grids.phys(:),x_sim(:,end),'rd','MarkerSize',5,'LineWidth',2,'DisplayName','Numerical solution');
+plot(grids.phys(:),x_sim(:,end),'rd','LineWidth',4,'DisplayName','Numerical solution');
 hold on
-plot(grids.phys(:),x_true(:,end),'k-','MarkerSize',2,'LineWidth',1.5,'DisplayName','Analytic solution');
+plot(grids.phys(:),x_true(:,end),'k-','LineWidth',2,'DisplayName','Analytic solution');
 hold off
 %colormap jet
 % Clean up the figure
@@ -134,9 +134,9 @@ sgtitle('1D PDE States at Final Time','FontSize',15,'Interpreter','latex');
 set(gcf, 'Color', 'w');
 ax1 = subplot(1,2,1);
 box on
-plot(s1_grid,x2fin,'rd','LineWidth',2,'DisplayName','Numerical solution');
+plot(s1_grid,x2fin,'rd','LineWidth',4,'DisplayName','Numerical solution');
 hold on
-plot(s1_grid_exact,x2fin_true,'k-','DisplayName','Analytic solution');
+plot(s1_grid_exact,x2fin_true,'k-','LineWidth',2,'DisplayName','Analytic solution');
 hold off
 legend('FontSize',13,'Interpreter','latex');
 xlabel('$s_{1}$','FontSize',15,'Interpreter','latex');
@@ -147,9 +147,9 @@ set(gca,'TickLabelInterpreter','latex');
 ax1.Position = [0.07,0.15,0.4,0.72];
 ax2 = subplot(1,2,2);
 box on
-plot(s2_grid,x3fin,'d','LineWidth',2,'DisplayName','Numerical solution');
+plot(s2_grid,x3fin,'d','LineWidth',4,'DisplayName','Numerical solution');
 hold on
-plot(s2_grid_exact,x3fin_true,'k-','DisplayName','Analytic solution');
+plot(s2_grid_exact,x3fin_true,'k-','LineWidth',2,'DisplayName','Analytic solution');
 hold off
 legend('FontSize',13,'Interpreter','latex');
 xlabel('$s_{2}$','FontSize',15,'Interpreter','latex');
@@ -221,7 +221,7 @@ zval = solution.timedep.regulated;
 
 % Plot simulated evolution of the DDE state
 fig1 = figure('Position',[200 50 900 350]); 
-plot(tval,xval,'-o','MarkerIndices',1:50:length(solution.timedep.dtime));
+plot(tval,xval,'-o','LineWidth',2.5,'MarkerSize',5,'MarkerIndices',1:50:length(solution.timedep.dtime));
 ax = gca;
 set(ax,'XTick',[0,solution.timedep.dtime(100:100:end)]);
 ax.TickLabelInterpreter = 'latex';
@@ -258,7 +258,7 @@ zval = solution.timedep.regulated;
 
 % Plot simulated evolution of the DDE state
 fig2 = figure('Position',[200 50 900 350]); 
-plot(tval,xval,'-o','MarkerIndices',1:50:length(solution.timedep.dtime));
+plot(tval,xval,'-o','LineWidth',2.5,'MarkerSize',5,'MarkerIndices',1:50:length(solution.timedep.dtime));
 ax = gca;
 set(ax,'XTick',[0,solution.timedep.dtime(100:100:end)]);
 ax.TickLabelInterpreter = 'latex';

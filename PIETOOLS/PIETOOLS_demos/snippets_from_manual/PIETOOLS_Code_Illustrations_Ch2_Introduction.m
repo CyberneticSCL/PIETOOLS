@@ -114,7 +114,7 @@ wval = subs(uinput.w,st,tval);
 % Plot evolution of the PDE state and regulated output.
 fig1 = figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
-sgtitle('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
+sgtitle('Open-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
 
 ax1 = subplot(1,2,1);
 box on
@@ -193,7 +193,7 @@ wval = subs(uinput.w,st,tval);
 % Plot closed-loop evolution of the PDE state and regulated output.
 fig2 = figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
-sgtitle('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
+sgtitle('Closed-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
 
 ax1 = subplot(1,2,1);
 box on
