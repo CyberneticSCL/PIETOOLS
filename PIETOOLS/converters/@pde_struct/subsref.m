@@ -51,6 +51,7 @@ function val = subsref(PDE,prop)
 % DJ, 11/29/2022: Initial coding;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
+% DJ, 01/04/2025: Allow order of differentiability of state to be extracted;
 
 
 % % % If the object is a single PDE variable, we have a separate case for
@@ -194,11 +195,16 @@ elseif strcmp(prop(1).type,'()')
 
 elseif strcmp(prop(1).type,'.')
     % % % Allow,size, variables and domain of PDE variable to be extracted.
-    if is_var && (strcmp(prop(1).subs,'size') || strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'var') || strcmp(prop(1).subs,'dom'))
+    if is_var && (strcmp(prop(1).subs,'size') || strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'var') || strcmp(prop(1).subs,'dom') || strcmp(prop(1).subs,'diff'))
         if strcmp(prop(1).subs,'var')
             prop(1).subs = 'vars';
         end
-        val = PDE.(obj){1}.(prop(1).subs);
+        if strcmp(prop(1).subs,'diff') && ~isfield(PDE.(obj){1},'diff')
+            val = zeros(1,0);
+        else
+            val = PDE.(obj){1}.(prop(1).subs);
+        end
+        
         % Perform remaining subsref.
         if numel(prop)>1
             val = builtin('subsref',val,prop(2:end));

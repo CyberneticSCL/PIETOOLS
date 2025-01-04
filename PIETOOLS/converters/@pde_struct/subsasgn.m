@@ -49,6 +49,7 @@ function PDE = subsasgn(PDE,prop,val)
 % Initial coding DJ - 10/17/2022
 % DJ, 01/03/2025: Account for fact that PDE variables are now represented
 %                   by a free term (see also the update to pde_var);
+% DJ, 01/04/2025: Allow order of differentiability of state to be set;
 %
 
 % At this point, we just use the built-in subsasgn function. Additional
@@ -60,7 +61,7 @@ end
 % If the PDE structure corresponds to a single variable (state, input, or
 % output), allow the variables, domain, and size to be set.
 [is_var,obj] = is_pde_var(PDE);
-if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'var';'dom'})
+if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'var';'dom';'diff'})
     % Allow the size of the object to be set.
     if strcmp(prop(1).subs,'size')
         if ~isnumeric(val) || numel(val)~=1 || val<=0 || round(val)~=val
@@ -128,6 +129,26 @@ if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'v
             end
         end
         PDE.(obj){1}.dom = dom;
+    elseif strcmp(prop(1).subs,'diff')                                      % DJ, 01/04/2025
+    % Allow the order of differentiability of a state wrt its spatial
+    % variables to be set.
+        if ~isnumeric(val) || any(val<0) || any(round(val)~=val)
+            error("Order of differentiability should be specified as nx1 array of nonnegative integers.")
+        elseif ~strcmp(obj,'x')
+            error("Setting order of differentiability of input or output signals is not supported.")
+        end
+        % Make sure an order of differentiability is specified for each
+        % variable.
+        if isfield(PDE.(obj){1},'vars') && numel(val)~=size(PDE.(obj){1}.vars,1)
+            if isscalar(val)
+                % Assume same order of differentiability wrt all vars
+                val = val*ones(1,size(PDE.(obj){1}.vars,1));
+            else
+                error("For a state in n spatial variables, the order of differentiability should be specified as nx1 array.")
+            end
+        end
+        val = val(:)';
+        PDE.(obj){1}.diff = val;
     end
     return
 else
