@@ -143,7 +143,7 @@ if is_pde_var_in
     % differentiate.
     if any(~ismember(vars.varname,vars_obj.varname))
         % If not, differentiating returns 0.
-        PDE_out.free{1}.vars = [];
+        PDE_out.free{1}.vars = polynomial(zeros(0,1));
         PDE_out.free{1}.size = PDE_in.([obj,'_tab'])(1,2);
         PDE_out.free{1}.term = cell(1,0);
         return;

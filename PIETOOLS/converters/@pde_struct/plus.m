@@ -41,6 +41,7 @@ function [PDE_out] = plus(PDE_1,PDE_2)
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var".
 %                   Also account for added "is_zero" field;
+% DJ, 01/04/2025: Bugfix for empty terms;
 
 
 % % % Process the inputs
@@ -155,25 +156,26 @@ if strcmp(objs_1,'free')
             error("The terms to add have different numbers of rows.")
         end
         % Keep track of which variables appear in the terms.
-        if isfield(PDE_1_out.free{ii},'vars')
+        if isfield(PDE_1_out.free{ii},'vars') && ~isempty(PDE_1_out.free{ii}.vars)
             varnames_1 = PDE_1_out.free{ii}.vars.varname;
         else
             varnames_1 = {};
         end
-        if isfield(PDE_2_out.free{ii},'vars')
+        if isfield(PDE_2_out.free{ii},'vars') && ~isempty(PDE_2_out.free{ii}.vars)
             varnames_2 = PDE_2_out.free{ii}.vars.varname;
         else
             varnames_2 = {};
         end
         PDE_out.free{ii}.vars = polynomial(unique([varnames_1;varnames_2]));
 
-        % Add the actual terms.
-        if isfield(PDE_1_out.free{ii},'term') && isfield(PDE_2_out.free{ii},'term')
+        % Add the actual terms.                                             % DJ, 01/04/2025
+        if isfield(PDE_1_out.free{ii},'term') && ~isempty(PDE_1_out.free{ii}.term) &&...
+                isfield(PDE_2_out.free{ii},'term') && ~isempty(PDE_2_out.free{ii}.term)
             PDE_out.free{ii}.term = [PDE_1_out.free{ii}.term, PDE_2_out.free{ii}.term];
-        elseif isfield(PDE_1_out.free{ii},'term')
+        elseif isfield(PDE_1_out.free{ii},'term') || isempty(PDE_1_out.free{ii}.term)
             PDE_out.free{ii}.term = PDE_1_out.free{ii}.term;
             continue
-        elseif isfield(PDE_2_out.free{ii},'term')
+        elseif isfield(PDE_2_out.free{ii},'term') || isempty(PDE_2_out.free{ii}.term)
             PDE_out.free{ii}.term = PDE_2_out.free{ii}.term;
             continue
         else
