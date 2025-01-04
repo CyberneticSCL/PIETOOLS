@@ -16,15 +16,16 @@
 %
 % Inputs:
 % varargin - variable number of arguments (between 1 and 4)
-% --- varargin has the form: {object_type, opts, uinput, n_pde}
+% --- varargin has the form: {object_type, opts, uinput, ndiff}
 % Required:
 % 1) varargin(1): data structure of the problem: PDE, DDE or PIE    
 % --- object_type: mandatory input (PDE, DDE, or PIE structure)
 % ----- PIE structure of the problem specifies PI operators, 
 %       {T,Tu,Tw, A, Bi, Ci, Dij} as fields
-% ----- if varargin(1) is PDE or DDE, then opts and uinput are optional 
-%       (n_pde not used)
-% ----- if varargin(1) is PIE, then opts/uinput/n_pde are mandatory
+% ----- For any varargin(1) value as PDE, DDE, or PIE, opts and uinput are
+%       optional fields (defalut values will be used if not provided,
+%       consult the manual)
+% ----- if varargin(1) is PIE, then ndiff field is mandatory
 
 % Optional:
 % --- varargin(2): opts - options for simulation parameters. 
@@ -53,9 +54,9 @@
 % ------ exact: only if uinput.ifexact=true, then define exact solution as a 
 %        MATLAB symbolic object in 'st','sx' (1D), or 'st','sx','sy' (2D)
 
-% --- varargin(4): n_pde (only used when varargin(1) is PIE), is a vector 
+% --- varargin(4): ndiff (only used when varargin(1) is PIE), is a vector 
 %     of integers specifying the number of differentiable states based on
-%     the index location, such as n_pde(i) is the number of states that are (i-1) times
+%     the index location, such as ndiff(i) is the number of states that are (i-1) times
 %     differentiable in space.
 %     For example, [0,2,1] stands for (0) continuous, (2) continuously 
 %     differentiable, and (1) twice continuously differentiable states. 
