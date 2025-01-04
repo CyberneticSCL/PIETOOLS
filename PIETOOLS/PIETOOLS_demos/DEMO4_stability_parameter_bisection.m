@@ -60,10 +60,10 @@ for iter = 1:n_iters
     % === Declare the operators of interest
 
     % Declare system as PDE. 
-    x=pde_var('state',1,s,[0,1]);
-    PDE=[diff(x,t)==diff(x,s,2)+lam*x;
-                            subs(x,s,0)==0;
-                            subs(x,s,1)==0];
+    x = pde_var('state',1,s,[0,1]);
+    PDE = [diff(x,t)==diff(x,s,2)+lam*x;
+                         subs(x,s,0)==0;
+                         subs(x,s,1)==0];
     % Convert to PIE.
     PIE = convert(PDE,'pie');
     T = PIE.T;      A = PIE.A;
