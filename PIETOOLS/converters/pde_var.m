@@ -64,6 +64,7 @@ function out_var = pde_var(varargin)
 % Initial coding DJ - 06/23/2024
 % DJ, 12/06/2024: Set default values in case of insufficient arguments;
 % DJ, 12/28/2024: Allow length to be omitted as input;
+% DJ, 01/03/2025: Declare a "free" term representing the output variable;
 
 % % % Deal with the case the function is used as e.g.
 % % %   pde_var x1 x2 x3 input w1 w2
@@ -220,6 +221,19 @@ out_var.(obj){1}.ID = idx;
 out_var.([obj,'_tab']) = zeros(1,2);
 out_var.([obj,'_tab'])(1,1) = idx;
 out_var.([obj,'_tab'])(1,2) = sz;
+
+% Set the variable as a free term to use for constructing an equation.      % DJ, 01/03/2025
+out_var.free{1}.size = sz;
+out_var.free{1}.vars = vars;
+out_var.free{1}.term{1}.(obj) = 1;
+out_var.free{1}.term{1}.C = eye(sz);
+if strcmp(obj,'x')
+    out_var.free{1}.term{1}.loc = vars';
+    out_var.free{1}.term{1}.D = zeros(1,size(vars,1));
+end
+if strcmp(obj,'x') || strcmp(obj,'w') || strcmp(obj,'u')
+    out_var.free{1}.term{1}.I = cell(nvars,1);
+end
 
 end
 

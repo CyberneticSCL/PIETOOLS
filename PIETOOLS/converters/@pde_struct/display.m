@@ -29,7 +29,7 @@ function display(PDE,name)
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -51,7 +51,9 @@ function display(PDE,name)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07/08/2022
-% DJ - 06/10/2024:  Allow crude display of non-initialized PDE structures.
+% DJ, 06/10/2024:  Allow crude display of non-initialized PDE structures;
+% DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
+%                   single free term, see also update to "pde_var";
 
 if nargin<2
     name = '';
@@ -60,9 +62,6 @@ end
 if PDE.is_initialized
     display_PDE(PDE,name);
 else
-    if is_pde_var(PDE)
-        PDE = var2term(PDE);
-    end
     display_PDE_crude(PDE);
 % else
 %     try PDE = initialize(PDE,true);

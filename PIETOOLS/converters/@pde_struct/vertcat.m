@@ -16,7 +16,7 @@ function [PDE_out] = vertcat(varargin)
 %                   appear second, etc..
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -37,7 +37,9 @@ function [PDE_out] = vertcat(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 06/23/2024
+% DJ, 06/23/2024: Initial coding;
+% DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
+%                   single free term, see also update to "pde_var";
 
 
 % % % Process the inputs
@@ -81,28 +83,14 @@ if ~isa(PDE_2,'pde_struct') && (~isnumeric(PDE_2) || ~all(all(PDE_2==0)))
     error("Concatenation of 'pde_struct' objects with non-'pde_struct' objects is not supported.")
 end
 
-% % Convert single PDE variables (states, inputs, outputs) to PDE terms.
-is_pde_term_1 = false;      % Keep track of whether PDE_2 is a free term.
+% % Keep track of whether each PDE represents a free term or an equation.
 if ~isnumeric(PDE_1)
-    [is_pde_var_1,obj] = is_pde_var(PDE_1);
-    if is_pde_var_1
-        PDE_1 = var2term(PDE_1,obj);
-        is_pde_term_1 = true;
-    else
-        is_pde_term_1 = is_pde_term(PDE_1);
-    end
+    is_pde_term_1 = is_pde_term(PDE_1);
 else
     is_pde_term_1 = true;   % Treat 0 as a term.
 end
-is_pde_term_2 = false;      % Keep track of whether PDE_2 is a free term.
 if ~isnumeric(PDE_2)
-    [is_pde_var_2,obj] = is_pde_var(PDE_2);
-    if is_pde_var_2
-        PDE_2 = var2term(PDE_2,obj);
-        is_pde_term_2 = true;
-    else
-        is_pde_term_2 = is_pde_term(PDE_2);
-    end
+    is_pde_term_2 = is_pde_term(PDE_2);
 else
     is_pde_term_2 = true;   % Treat 0 as a term.
 end

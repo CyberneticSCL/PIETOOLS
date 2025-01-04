@@ -14,7 +14,7 @@ function PDE_out = eq(LHS,RHS)
 %               LHS=RHS;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ function PDE_out = eq(LHS,RHS)
 % DJ, 12/28/2024: Add support for concatenating single vector LHS with
 %                 RHS consisting of multiple scalar-valued equations; 
 % DJ, 12/29/2024: Bugfix minus sign in case LHS has coefficients.
+% DJ, 01/03/2025: Use "is_zero" to indicate zero equations (e.g. y==0);
 
 % % % Process the inputs
 
@@ -58,11 +59,7 @@ if isnumeric(LHS) && ~all(all(LHS==0))
 elseif ~isnumeric(LHS) && ~isa(LHS,'pde_struct')
     error("Equating 'pde_struct' objects with non-'pde_struct' objects is not supported.")
 elseif isa(LHS,'pde_struct') && ~is_pde_term(LHS)
-    if is_pde_var(LHS)
-        LHS = var2term(LHS);
-    else
-        error("For declaring an equation, the left-hand side should correspond to the temporal derivative of a state, or to an output signal.")
-    end
+    error("For declaring an equation, the left-hand side should correspond to the temporal derivative of a state, or to an output signal.")
 end
 
 % % Check that the second input makes sense
@@ -85,11 +82,7 @@ elseif isnumeric(RHS)
 elseif ~isa(RHS,'pde_struct')
     error("Equating 'pde_struct' objects with non-'pde_struct' objects is not supported.")
 elseif ~is_pde_term(RHS)
-    if is_pde_var(RHS)
-        RHS = var2term(RHS);
-    else
-        error("Right-hand side in equation of 'pde_struct' objects should consist solely of PDE terms.")
-    end
+    error("Right-hand side in equation of 'pde_struct' objects should consist solely of PDE terms.")
 end
 
 % % Check that the number of rows of LHS and RHS match
@@ -216,6 +209,10 @@ for ii=1:numel(RHS.free)
                     PDE_out.(obj){eq_num}.term{jj}.C = -1;
                 end
             end
+        end
+        % If there are no other terms, we must have e.g. d/dt x = 0.
+        if isscalar(RHS.free{ii}.term)                                      % DJ, 01/03/2025
+            PDE_out.(obj){eq_num}.is_zero = true;
         end
     else
         % % The equation corresponds to a boundary condition.

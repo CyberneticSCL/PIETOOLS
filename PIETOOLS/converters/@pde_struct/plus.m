@@ -16,7 +16,7 @@ function [PDE_out] = plus(PDE_1,PDE_2)
 %               corresponding to the sum of the terms in PDE_1 and PDE_2;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -37,7 +37,10 @@ function [PDE_out] = plus(PDE_1,PDE_2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 06/23/2024
+% DJ, 06/23/2024: Initial coding
+% DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
+%                   single free term, see also update to "pde_var".
+%                   Also account for added "is_zero" field;
 
 
 % % % Process the inputs
@@ -77,16 +80,6 @@ if ~isa(PDE_2,'pde_struct')
     else
         error("Summation of 'pde_struct' objects with non-'pde_struct' objects is not supported.")
     end
-end
-
-% % Convert single PDE variables (states, inputs, outputs) to PDE terms.
-[is_pde_var_1,obj] = is_pde_var(PDE_1);
-if is_pde_var_1
-    PDE_1 = var2term(PDE_1,obj);
-end
-[is_pde_var_2,obj] = is_pde_var(PDE_2);
-if is_pde_var_2
-    PDE_2 = var2term(PDE_2,obj);
 end
 
 % % Make sure at least one of the inputs correspond to loose terms (we
@@ -258,6 +251,11 @@ else
 
         % Finally, add the terms to the already specified equation.
         PDE_out.(obj_1){eq_num}.term = [PDE_1_out.(obj_1){eq_num}.term, PDE_2_out.free{ii}.term];
+        % If PDE_out.(obj_1) previously specified a zero equation, it no
+        % longer does now
+        if isfield(PDE_out.(obj_1){eq_num},'is_zero')                       % DJ, 01/03/2025;
+            PDE_out.(obj_1){eq_num}.is_zero = false;
+        end
     end
 
 end

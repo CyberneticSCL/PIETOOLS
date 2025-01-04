@@ -16,7 +16,7 @@ function PDE_out = mtimes(C,PDE_in)
 %               PDE, corresponding to the product C*PDE_in;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -37,7 +37,9 @@ function PDE_out = mtimes(C,PDE_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 06/23/2024
+% DJ, 06/23/2024: Initial coding;
+% DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
+%                   single free term, see also update to "pde_var";
 
 % % % Process the inputs
 
@@ -67,10 +69,6 @@ PDE_out = PDE_in;
 % % % Deal with the case that the coefficients are specified as 'opvar'
 % % % object, requiring (partial) integrals to be taken.
 if isa(C,'opvar')
-    % % Convert separate PDE variables to free terms.
-    if is_pde_var_in
-        PDE_in = var2term(PDE_in);
-    end
     % % Check that the size makes sense.
     n_eqs = size(PDE_in,'free','vec_size_tot');
     if sum(C.dim(:,2))~=n_eqs

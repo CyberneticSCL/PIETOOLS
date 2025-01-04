@@ -24,7 +24,7 @@ function PDE_out = diff(PDE_in,vars,dval)
 %               order with respect to the desired variables.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ if ~isa(PDE_in,'pde_struct')
 end
 % Make sure the PDE corresponds to a single state or set of terms.
 [is_pde_var_in,obj] = is_pde_var(PDE_in);
-if ~is_pde_var(PDE_in) && ~is_pde_term(PDE_in)
+if ~is_pde_term(PDE_in)
     error("The input PDE structure should correspond to a free term to be used in a PDE.")
 elseif is_pde_var_in && ~strcmp(obj,'x')
     error("Differentiation of inputs or outputs is not supported.")
@@ -316,8 +316,8 @@ function dval_obj = compute_d_obj(vars_obj,vars,dval)
 % given the desired order of the derivatives "dval" of the variables
 % "vars".
 
-dval_obj = zeros(1,length(vars_obj));
-for jj=1:length(vars_obj)
+dval_obj = zeros(1,size(vars_obj,1));
+for jj=1:size(vars_obj,1)
     % Find variable "vars_obj(jj)" in "vars".
     idx = isequal(vars_obj(jj),vars);
     % Set the associated order of differentiability.

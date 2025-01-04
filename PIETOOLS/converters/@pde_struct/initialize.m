@@ -192,7 +192,7 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - initialize_PIETOOLS_PDE
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2021 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -214,8 +214,9 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07/07/2022
-% DJ, 06/03/2024 - Adjust declaration of dummy variables for integration
-% DJ, 06/23/2024 - Add support (or lack thereoff) for free terms.
+% DJ, 06/03/2024: Adjust declaration of dummy variables for integration;
+% DJ, 06/23/2024: Add support (or lack thereoff) for free terms;
+% DJ, 01/03/2025: Account for "is_zero" field;
 
 
 % % % --------------------------------------------------------------- % % %
@@ -651,6 +652,9 @@ for kk = 1:numel(objs)
         if isfield(PDE.(obj){ii},'var_order')
             % The field var_order was only for internal use...
             PDE.(obj){ii} = rmfield(PDE.(obj){ii},'var_order');
+        end
+        if isfield(PDE.(obj){ii},'is_zero')                                 % DJ, 01/03/2025
+            PDE.(obj){ii} = rmfield(PDE.(obj){ii},'is_zero');
         end
         % Also order the fields of the LHS component.
         if strcmp(obj,'x')

@@ -25,7 +25,7 @@ function PDE = subsasgn(PDE,prop,val)
 % PDE.x{1}.dom(2) = b.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -47,6 +47,8 @@ function PDE = subsasgn(PDE,prop,val)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 10/17/2022
+% DJ, 01/03/2025: Account for fact that PDE variables are now represented
+%                   by a free term (see also the update to pde_var);
 %
 
 % At this point, we just use the built-in subsasgn function. Additional
@@ -66,6 +68,8 @@ if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'v
         else
             PDE.(obj){1}.size = val;
             PDE.([obj,'_tab'])(1,2) = val;
+            PDE.free{1}.size = val;                                         % DJ, 01/03/2025
+            PDE.free{1}.term{1}.C = eye(val);
         end
     elseif strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'var')
     % Allow the spatial variables on which the object depends to be set.
@@ -93,6 +97,10 @@ if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'v
             vars = vars(~isequal(vars,polynomial({'t'})));
         end
         PDE.(obj){1}.vars = vars;
+        PDE.free{1}.vars = vars;                                            % DJ, 01/03/2025
+        PDE.free{1}.term{1}.loc = vars';
+        PDE.free{1}.term{1}.D = zeros(1,size(vars,1));
+        PDE.free{1}.term{1}.I = cell(size(vars,1),1);
         % Also set a domain for the variables.
         PDE.(obj){1}.dom = [zeros(size(vars,1),1),ones(size(vars,1),1)];
     elseif strcmp(prop(1).subs,'dom')
