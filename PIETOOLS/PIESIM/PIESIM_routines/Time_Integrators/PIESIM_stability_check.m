@@ -125,7 +125,7 @@ function PIESIM_stability_check(opts, Atotal);
         disp('Time integration scheme is numerically stable for the given problem.');
         disp('Any observed instabilities must be physical.');
         end
-    else
+   else
         if (closeflag)
         disp('Time integration scheme is on the border of instability.');
         disp('Numerical simulations may be unstable.');
@@ -133,10 +133,14 @@ function PIESIM_stability_check(opts, Atotal);
         fprintf(formatSpec, opts.dt*(ampl+tol));
         else
         disp('Time integration scheme is numerically unstable for the given problem.');
+        if opts.dt*(ampl+tol)<1
         formatSpec= 'Try increasing time step to %10.8f\n';
         fprintf(formatSpec, opts.dt*(ampl+tol));
         if (opts.Norder~=1)
         disp('or decreasing an order of the scheme (opts.Norder).');
+        end
+        else
+        disp('This is likely beacuse underlying physical problem is unstable.');
         end
         end
      end
