@@ -21,8 +21,7 @@ function out_var = pde_var(varargin)
 % INPUT
 % - type:   Object of type 'char', specifying what type of PDE variable is
 %           desired. Can be one of 'state', 'input', 'control', 'output',
-%           or 'sense'. If fewer than 3 input arguments are passed, this
-%           defaults to type='state';
+%           or 'sense'. Defaults to type='state';
 % - sz:     Scalar integer specifying the size of the vector-valued
 %           variable. Defaults to 1;
 % - vars:   nx1 or nx2 object of type 'polynomial' or 'cellstr', specifying
@@ -44,7 +43,7 @@ function out_var = pde_var(varargin)
 %               subs(), diff(), int(), and ==.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
