@@ -40,7 +40,7 @@ switch example
     %       uinput.w, uinput.u signifies inhomogeneous inputs (either through
     %       boundary conditions or distributed)
     
-    % In the following examples: spatial variables are denoted as x, y
+    % In the following examples: spatial variables are denoted as x, y (interchangeably, s1, s2)
     % Temporal variable is denoted as t
     % Symbolic variabls for x is sx, for y is sy, and a symbolic variable for t is st
     % Domain boundaries are specified as x\in[a,b]x[c,d]
