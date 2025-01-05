@@ -47,8 +47,9 @@ function [prog,Zop] = lpivar(prog,n,d)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 7_26_2019
-% DJ, 08/20/24 - Minor bugfix in case length(d)==1
-% Update to new 'lpiprogram' structure, DJ - 10/19/2024
+% DJ, 08/20/2024: Minor bugfix in case length(d)==1
+% DJ. 10/19/2024: Update to new 'lpiprogram' structure;
+% DJ, 01/04/2025: Update in passing to 2d version;
 %
 
 % % First, check the spatial domain on which the program is defined.
@@ -64,7 +65,7 @@ elseif nargin==2
     d = [1,1,1];
 end
 if all(size(I)==[2,2])
-    [prog,Zop] = lpivar_2d(prog,n,I,d);
+    [prog,Zop] = lpivar_2d(prog,n,d);
     return
 end
 
