@@ -1,4 +1,4 @@
-function [prog,Zop] = lpivar(prog,n,d)
+function [prog,Zop] = lpivar(prog,n,d,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [prog,Zop] = lpivar(prog,n,I,d) declares 
 % a 4-PI operator variable of the form 
@@ -14,6 +14,8 @@ function [prog,Zop] = lpivar(prog,n,d)
 %   d(1): degree of s in Z(s), translates to degree of var1 in Q1,Q2 and R0
 %   d(2): degree of t in R1 and R2, defaults to d(1) if length of d=2,
 %   d(3): degree of s in R1 and R2, defaults to d(2) if length of d=2,
+%   opts: struct specifying options for e.g. enforcing separability,
+%           currently only supported for 2D variables.
 %
 % OUTPUT 
 %   Zop: operator structure
@@ -65,8 +67,16 @@ elseif nargin==2
     d = [1,1,1];
 end
 if all(size(I)==[2,2])
-    [prog,Zop] = lpivar_2d(prog,n,d);
-    return
+    if nargin==2
+        [prog,Zop] = lpivar_2d(prog,n);
+        return
+    elseif nargin==3
+        [prog,Zop] = lpivar_2d(prog,n,d);
+        return
+    elseif nargin==4
+        [prog,Zop] = lpivar_2d(prog,n,d,opts);
+        return
+    end
 end
 
 % % Check that the dimensions of the operator are properly specified.

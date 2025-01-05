@@ -67,12 +67,13 @@ function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 %   options.ismultiplier: Binary value set to 1 if the PI operator should
 %                       not include any integrator terms
 %
-%   options.sep: Length 5 binary vector to enforce separability:
-%      options.sep(1) = 1 if Rxx{2} = Rxx{3}, Rx2{2} = Rx2{3}, R2x{2} = Rx2{3},
-%      options.sep(2) = 1 if Ryy{2} = Ryy{3}, Ry2{2} = Ry2{3}, R2y{2} = Ry2{3},
+%   options.sep is a length 6 binary vector where
+%      options.sep(1) = 1 if Rxx{2} = Rxx{3}
+%      options.sep(2) = 1 if Ryy{2} = Ryy{3}
 %      options.sep(3) = 1 if R22{2,1} = R22{3,1}
 %      options.sep(4) = 1 if R22{1,2} = R22{1,3}
-%      options.sep(5) = 1 if R22{2,2} = R22{3,2} = R22{2,3} = R22{3,3}
+%      options.sep(5) = 1 if R22{2,2} = R22{3,2} and R22{2,3} = R22{3,3}
+%      options.sep(6) = 1 if R22{2,2} = R22{2,3} and R22{3,2} = R22{3,3}
 % 
 % OUTPUT 
 %   prog: modified LPI program with new variables and constraints
@@ -128,7 +129,7 @@ d2 = {[0,1;1,2],          [0,1,1,1;1,2,2,2], [0,1,1,1;1,2,2,2];
       [0,1,1,1;1,2,2,2]', [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2], [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2]};
 
 % Initialize default exclusiong options
-use_sep = zeros(1,5);
+use_sep = zeros(1,6);
 use_multiplier = false;
 
 % % Extract the input arguments
@@ -138,88 +139,14 @@ switch nargin
     case 2
         fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
     case 3
-        if isnumeric(d)
-            dx = {d;d*[1;1;1];d*[1;1;1]};
-            dy = {d,d*[1;1;1],d*[1;1;1]};
-            d2 = {d*[1;1;2],d*[1;1;1;1;2],d*[1;1;1;1;2];
-                  d*[1;1;1;1;2],d*[1,1,1;1,1,1;1,1,1],d*[1,1,1;1,1,1;1,1,1];
-                  d*[1;1;1;1;2],d*[1,1,1;1,1,1;1,1,1],d*[1,1,1;1,1,1;1,1,1]};
-        elseif isa(d,'struct')
-            if ~isfield(d,'dx') && ~isfield(d,'dy') && ~isfield(d,'d2')
-                error("Degres should be specified through fields 'dx', 'dy', and 'd2'.")
-            else
-                if isfield(d,'dx')
-                    dx = d.dx;
-                elseif isfield(d,'dy')
-                    dy = d.dy;
-                    dx = dy;
-                else
-                    d2 = d.d2;
-                    dx = cell(3,1);
-                    dx{1} = d2{1,1}(1);  dx{2} = d2{2,1}(1:3);  dx{3} = d2{3,1}(1:3);
-                end
-                if isfield(d,'dy')
-                    dy = d.dy;
-                elseif isfield(d,'dx')
-                    dy = dx;
-                else
-                    d2 = d.d2;
-                    dy = cell(1,3);
-                    dy{1} = d2{1,1}(2);  dy{2} = d2{1,2}(2:4);  dy{3} = d2{1,3}(2:4);
-                end
-                if isfield(d,'d2')
-                    d2 = d.d2;
-                else
-                    d2 = {[dx{1};dy{1}],[dx{1};dy{2}(:);ceil(0.5*(dx{1}+dy{2}(end)))],[dx{1};dy{3}(:);ceil(0.5*(dx{1}+dy{3}(end)))];
-                        [dx{2}(:);dy{1};ceil(0.5*(dx{2}(end)+dy{1}))],[dx{2};dy{2};ceil(0.5*(dx{2}+dy{2}))],[dx{2};dy{3};ceil(0.5*(dx{2}+dy{3}))];
-                        [dx{3}(:);dy{1};ceil(0.5*(dx{2}(end)+dy{1}))],[dx{3};dy{2};ceil(0.5*(dx{3}+dy{2}))],[dx{3};dy{3};ceil(0.5*(dx{3}+dy{3}))]};
-                end
-            end
-        else
-            error("Degrees should be specified as struct with field 'dx', 'dy', and 'd2'.")
-        end
+        
     case 4
-        if ~isfield(d,'dx') && ~isfield(d,'dy') && ~isfield(d,'d2')
-            fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
-            dx = {1;[1;1;1];[1;1;1]};
-            dy = {1,[1;1;1],[1;1;1]};
-            d2 = {[1;1;2],[1;1;1;1;2],[1;1;1;1;2];
-                [1;1;1;1;2],[1,1,1;1,1,1;1,1,1],[1,1,1;1,1,1;1,1,1];
-                [1;1;1;1;2],[1,1,1;1,1,1;1,1,1],[1,1,1;1,1,1;1,1,1]};
-        else
-            if isfield(d,'dx')
-                dx = d.dx;
-            elseif isfield(d,'dy')
-                dy = d.dy;
-                dx = dy;
-            else
-                d2 = d.d2;
-                dx = cell(3,1);
-                dx{1} = d2{1,1}(1);  dx{2} = d2{2,1}(1:3);  dx{3} = d2{3,1}(1:3);
-            end
-            if isfield(d,'dy')
-                dy = d.dy;
-            elseif isfield(d,'dx')
-                dy = dx;
-            else
-                d2 = d.d2;
-                dy = cell(1,3);
-                dy{1} = d2{1,1}(2);  dy{2} = d2{1,2}(2:4);  dy{3} = d2{1,3}(2:4);
-            end
-            if isfield(d,'d2')
-                d2 = d.d2;
-            else
-                d2 = {[dx{1};dy{1}],[dx{1};dy{2}(:);ceil(0.5*(dx{1}+dy{2}(end)))],[dx{1};dy{3}(:);ceil(0.5*(dx{1}+dy{3}(end)))];
-                    [dx{2}(:);dy{1};ceil(0.5*(dx{2}(end)+dy{1}))],[dx{2};dy{2};ceil(0.5*(dx{2}+dy{2}))],[dx{2};dy{3};ceil(0.5*(dx{2}+dy{3}))];
-                    [dx{3}(:);dy{1};ceil(0.5*(dx{2}(end)+dy{1}))],[dx{3};dy{2};ceil(0.5*(dx{3}+dy{2}))],[dx{3};dy{3};ceil(0.5*(dx{3}+dy{3}))]};
-            end
-        end
         if isfield(options,'psatz')
             warning('There is no psatz option for indefinite PI operators.')
         end
         if isfield(options,'sep')
             if isscalar(options.sep)
-                use_sep = options.sep*ones(1,5);
+                use_sep = options.sep*ones(1,6);
             else
                 use_sep = options.sep;
             end
@@ -228,7 +155,7 @@ switch nargin
             use_multiplier = options.ismultiplier;
             % If we want a multiplier operator, the upper and lower 
             % diagonal integrals will both be zero
-            use_sep = ones(1,5);
+            use_sep = ones(1,6);
         end
 end
 
@@ -579,10 +506,18 @@ if use_multiplier
 else
     [prog,R22_11] = sospolymatrixvar(prog,Z2{2,2},[m2,n2]);
 end
-if use_sep(5)
+if use_sep(5) && use_sep(6)
     R22_12 = R22_11;
     R22_21 = R22_11;
     R22_22 = R22_11;
+elseif use_sep(5)
+    [prog,R22_12] = sospolymatrixvar(prog,Z2{2,3},[m2,n2]);
+    R22_21 = R22_11;
+    R22_22 = R22_12;
+elseif use_sep(6)
+    [prog,R22_21] = sospolymatrixvar(prog,Z2{3,2},[m2,n2]);
+    R22_12 = R22_11;
+    R22_22 = R22_21;
 else
     [prog,R22_12] = sospolymatrixvar(prog,Z2{2,3},[m2,n2]);
     [prog,R22_21] = sospolymatrixvar(prog,Z2{3,2},[m2,n2]);
