@@ -26,10 +26,10 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.pde{1,2} - array containing all pde solutions at a final time
 % --- solution.final.pde{1} - array containing the solution for states that are only the functions of one variable - 
-% it is array of size (N+1) x (nx+ny), nx - number of states dependending on only x, 
-%                                      ny - number of states dependending on only y 
+% it is array of size (N+1) x (nx+ny), nx - number of states depending only on s1, 
+%                                      ny - number of states depending only on s2 
 % --- solution.final.pde{2} - array containing the solution for states that are the functions of two variables - 
-% it is array of size (N+1) x (N+1) x ns, ns - number of states dependending on both x and y
+% it is array of size (N+1) x (N+1) x ns, ns - number of states depending on both s1 and s2
 % --- solution.final.ode - array of size no - ode solution at a final time 
 % --- solution.final.observed - array of size noo  - final value of observed outputs
 % --- solution.final.regulated - array of size nro  - final value of regulated outputs
@@ -38,10 +38,10 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.pde{1,2} - array containing all time-dependent pde solutions 
 % --- solution.timedep.pde{1} - array containing the solution for states that are only the functions of one variable - 
-% it is array of size (N+1) x (nx+ny) x Nsteps, nx - number of states dependending on only x, 
-%                                      ny - number of states dependending on only y 
+% it is array of size (N+1) x (nx+ny) x Nsteps, nx - number of states depending only on s1, 
+%                                      ny - number of states depending only on s2 
 % --- solution.timedep.pde{2} - array containing the solution for states that are the functions of two variables - 
-% it is array of size (N+1) x (N+1) x ns x Nsteps, ns - number of states dependending on both x and y
+% it is array of size (N+1) x (N+1) x ns x Nsteps, ns - number of states depending on both s1 and s2
 % --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 % --- solution.timedep.observed - array of size noo x Nsteps -
 %     time-dependent value of observed outputs
