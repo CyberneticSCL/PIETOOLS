@@ -18,7 +18,7 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params)
 % % vE=[vE1; vE2] = [s2;0] (Antonelli, 2021 [17])
 % % PDE         p_{t}  = -s2*p_{s1} - v1_{s1} - v2_{s2}
 % %             v1_{t} = -s2*v1_{s1} - v2 - (1/M^2)*p_{s1} + nu*(v1_{s1s1} + v1_{s2s2}) + lam*(v1_{s1s1} + v2_{s2s1})
-% %             v2_{t} = -s2*v2_{s1}      - (1/M^2)*p_{s1} + nu*(v2_{s1s1} + v2_{s2s2}) + lam*(v1_{s1s2} + v2_{s2s2})
+% %             v2_{t} = -s2*v2_{s1}      - (1/M^2)*p_{s2} + nu*(v2_{s1s1} + v2_{s2s2}) + lam*(v1_{s1s2} + v2_{s2s2})
 % % With BCs    p(s1=0) = 0;          p(s2=0) = 0;
 % %             v(s1=0) = 0;          v(s2=0) = 0;
 % %             v(s1=1) = 0;          v(s2=1) = 0;
@@ -53,9 +53,9 @@ clear stateNameGenerator
 x1 = pde_var([s1;s2],[0,1;0,1]);
 x2 = pde_var([s1;s2],[0,1;0,1]);
 x3 = pde_var([s1;s2],[0,1;0,1]);
-PDE_t = [diff(x1,'t')==-s2*diff(x1,s1)-x2-(1/M^2)*x3+nu*(diff(x1,s1,2)+diff(x1,s2,2))+lam*(diff(x1,s1,2)+diff(x2,[s1;s2]));
-         diff(x2,'t')==-s2*diff(x2,s1)-(1/M^2)*x3+nu*(diff(x1,s1,2)+diff(x1,s2,2))+lam*(diff(x1,[s1;s2])+diff(x2,s2,2));
-         diff(x3,'t')==-s2*x3-diff(x1,s1)-diff(x2,s2);
+PDE_t = [diff(x1,'t')==-s2*diff(x1,s1)-x2-(1/M^2)*diff(x3,s1)+nu*(diff(x1,s1,2)+diff(x1,s2,2))+lam*(diff(x1,s1,2)+diff(x2,[s1;s2]));
+         diff(x2,'t')==-s2*diff(x2,s1)-(1/M^2)*diff(x3,s2)+nu*(diff(x2,s1,2)+diff(x2,s2,2))+lam*(diff(x1,[s1;s2])+diff(x2,s2,2));
+         diff(x3,'t')==-s2*diff(x3,s1)-diff(x1,s1)-diff(x2,s2);
          subs([x1;x2],s1,0)==0;  subs([x1;x2],s1,1)==0;
          subs([x1;x2],s2,0)==0;  subs([x1;x2],s2,1)==0;
          subs(x3,s1,0)==0;       subs(x3,s2,0)==0];
