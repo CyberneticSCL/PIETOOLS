@@ -69,7 +69,7 @@ BC2=subs(x,s2,-1)==subs(u1,t,t-0.5);
 BC3=subs(x,s1,0)==u2;
 
 %%% Fourth step: create the PDE system by combining the equations
-PDE =[PDE_dyn;PDE_z;PDE_y1;PDE_y2;BC1;BV+];
+PDE =[PDE_dyn;PDE_z;PDE_y1;PDE_y2;BC1;BC2;BC3];
 
 %%%%%   Step 5: initialize the PDE, and display                       %%%%%
 PDE = initialize(PDE);
