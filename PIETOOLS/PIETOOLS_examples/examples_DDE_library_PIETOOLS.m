@@ -139,14 +139,14 @@
 % %%%% answer - 25.907 @ tau=1.5
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % Example A.1 from [3]
-   Hinf_gain=1
-   Hinf_gain_dual=1
-    DDE.A0=[-2 0;0 -.9];%
-    DDE.Ai{1}=[-1 0; -1 -1];%
-    DDE.B1=[-.5;1];
-    DDE.C1=[1 0];
-% %   DDE.D12=[0;.1];
-    DDE.tau(1) = .846;
+%    Hinf_gain=1
+%    Hinf_gain_dual=1
+%     DDE.A0=[-2 0;0 -.9];%
+%     DDE.Ai{1}=[-1 0; -1 -1];%
+%     DDE.B1=[-.5;1];
+%     DDE.C1=[1 0];
+% % %   DDE.D12=[0;.1];
+%     DDE.tau(1) = .846;
 % % %%%% answer - .2364 (tau=.846)
 % %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -398,6 +398,38 @@
 %    DDE.D21=[1 1];
 %    DDE.tau(1)=.3; DDE.tau(2)=.5;
 % % %
+% %% H2_norm examples
+% % Example 1 from [13]
+% H2_norm=1;
+% H2_norm_dual=1;
+%  a=1;
+%  b=2;
+%  c=2;
+%  tau=0.5;
+% DDE.Ai{1}=-a;
+% DDE.B1=b;
+% DDE.C1=c;
+% DDE.tau = tau;
+% %% Example 2b from [13]
+H2_norm=1;
+H2_norm_dual=1;
+DDE.A0=[-1 1 2
+                1 -3 2
+                0 0 -1];
+nx=size(DDE.A0,1);
+DDE.Ai{1}=(1/5).*[-3 0 1
+                              1 -2 0
+                              0 2 -2];
+DDE.Ai{2}=(1/5).*[-4 1 0
+                              0 -2 1
+                              2 1 -3];
+DDE.B1=[1
+                1
+                1];
+DDE.C1=[1 1 1];
+DDE.tau=[pi/10 1];
+%%
+
 % % % %%%% answer - 1.0448
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RANDOM EXAMPLE GENERATOR %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -603,5 +635,13 @@
 %   year={2001},
 %   publisher={IEEE}
 % }
-
+% [13]
+% @inproceedings{gumussoy2009computing,
+%   title={Computing ℋ∞ norms of time-delay systems},
+%   author={Gumussoy, Suat and Michiels, Wim},
+%   booktitle={Proceedings of the 48h IEEE Conference on Decision and Control (CDC) held jointly with 2009 28th Chinese Control Conference},
+%   pages={263--268},
+%   year={2009},
+%   organization={IEEE}
+% }
 
