@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Code Snippet illustrating usage of PIESIM for simulation of PIEs.
-% See Section 6.3.3 in Manual for a description.
+% See Section 6.4.3 in Manual for a description.
 % See also "DDE_simulation_SNIPPET.m".
 
 %% Defining DDE and finding an optimal controller

@@ -1,5 +1,5 @@
 % Code Snippet illustrating usage of convert.m
-% See Section 5.2 in Manual for a description.
+% See Section 5.4 in Manual for a description.
 %
 % This document illustrates the process of declaring a PDE with inputs and
 % outputs, and converting it to a PIE.
