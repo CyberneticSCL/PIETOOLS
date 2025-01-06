@@ -172,10 +172,10 @@ if strcmp(objs_1,'free')
         if isfield(PDE_1_out.free{ii},'term') && ~isempty(PDE_1_out.free{ii}.term) &&...
                 isfield(PDE_2_out.free{ii},'term') && ~isempty(PDE_2_out.free{ii}.term)
             PDE_out.free{ii}.term = [PDE_1_out.free{ii}.term, PDE_2_out.free{ii}.term];
-        elseif isfield(PDE_1_out.free{ii},'term') || isempty(PDE_1_out.free{ii}.term)
+        elseif isfield(PDE_1_out.free{ii},'term') && ~isempty(PDE_1_out.free{ii}.term)
             PDE_out.free{ii}.term = PDE_1_out.free{ii}.term;
             continue
-        elseif isfield(PDE_2_out.free{ii},'term') || isempty(PDE_2_out.free{ii}.term)
+        elseif isfield(PDE_2_out.free{ii},'term') && ~isempty(PDE_2_out.free{ii}.term)
             PDE_out.free{ii}.term = PDE_2_out.free{ii}.term;
             continue
         else
