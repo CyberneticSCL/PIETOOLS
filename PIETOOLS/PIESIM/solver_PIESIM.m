@@ -62,7 +62,7 @@ dim=1;
     end
     [PDE,uinput]=examples_pde_library_PIESIM_1D(example);
     else   % dim=2
-    if (example<1|example>24)
+    if (example<1|example>19)
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
         example=1;
     end
@@ -115,16 +115,7 @@ opts.intScheme=1;
 
 if (opts.intScheme==1)
     opts.Norder = 2;
-    dt=0.02;
-    % NOTE: if tf is not divisible by dt, dt will be adjusted to a closest
-    %       dt value to yield an integer number of time step
-    if (opts.tf~=0)
-    Nsteps=floor(opts.tf/dt);
-    dt=opts.tf/Nsteps;
-    opts.dt=dt;
-    else
-    opts.dt=0;
-    end
+    opts.dt=0.02;
 end
 
 %--------------------------------------------------------------------------
@@ -136,7 +127,7 @@ if exist('PIE','var')
 elseif exist('DDE','var')
     solution=PIESIM(DDE,opts,uinput);
 else
-    PIE.solution = PIESIM(PDE,opts,uinput);
+    solution = PIESIM(PDE,opts,uinput);
 end
 
 

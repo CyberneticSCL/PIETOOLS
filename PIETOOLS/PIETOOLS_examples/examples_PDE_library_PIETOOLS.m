@@ -729,6 +729,24 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params);
 % 
 %==========================================================================
+%       H2 estimator
+%==========================================================================
+%--------------------------------------------------------------------------
+%       Unstable Reaction-Diffusion Type Systems
+%--------------------------------------------------------------------------
+    case 47
+%  PDE :        x_{t} = 3x+(s^2+0.2)x_{ss} -(s^2)/2w(t)
+%  With BC     x(s=0) = 0, x_{s}(s=1)=0
+%  And outputs  z(t) = int(x(t,s),s,0,1)
+%                       y(t)=x(s=1)+w
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion(GUI,params);
+% 
+%==========================================================================
 %       Additional Examples (Undocumented)
 %==========================================================================
 case 100
@@ -1125,7 +1143,7 @@ function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % Subroutine to process the user inputs for the 
 % examples_PDE_library_PIETOOLS function.
 
-n_examples = 46;
+n_examples = 47;
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
@@ -1145,13 +1163,13 @@ params = {};
 
 % Collect the inputs
 if nargin1==0 %<-- If there is no input, pause the script and let the user specify an example
-    userinp = input('\n Select an example (1 through 46) to convert \n ---> ','s');
+    userinp = input('\n Select an example (1 through 47) to convert \n ---> ','s');
     varargin0 = split(userinp,[" ",","]);
     index = str2double(varargin0{1});
     if ~isnan(index) && (index>=0 && index<=n_examples)
         varargin0{1} = index;
     else
-        userinp = input('\n No existing example specified... Please input an integer value 1 through 46 to extract the example \n ---> ','s');
+        userinp = input('\n No existing example specified... Please input an integer value 1 through 47 to extract the example \n ---> ','s');
         varargin0 = split(userinp,[" ",","]);
         index = str2double(varargin0{1});
         if isnan(index)

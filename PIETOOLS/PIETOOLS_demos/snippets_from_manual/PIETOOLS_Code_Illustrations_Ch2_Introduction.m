@@ -1,4 +1,3 @@
-
 % This document illustrates how PIETOOLS can be used to simulate system
 % dynamics, analyse stability and design optimal controllers.
 % We refer to Chapter 2 of the manual for more context on the codes.
@@ -19,7 +18,36 @@
 %                      z2(t) = u(t)
 % where now we add an output z2(t)=u(t) so that, in constructing an optimal
 % control, we also minimize the control effort.
-% DB, 12/29/2024: Use pde_var objects instead of sys and state
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - Code Illustrations
+%
+% Copyright (C)2024  PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, make sure to change the code in the manual as
+% well, and vice versa. Document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% DJ, 12/28/2024: Initial coding;
+% DB, 12/29/2024: Use pde_var objects instead of sys and state;
+% DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
+clear
 
 
 %% 2.2.1 Declare the ODE-PDE model
@@ -75,7 +103,7 @@ uinput.w = sin(5*st)*exp(-st);  % value of disturbance as function of time
 ndiff = [0,2,0]; 
 
 % Simulate the ODE-PDE system using specified settings.
-[solution,grids] = PIESIM(odepde, opts, uinput, ndiff);
+[solution,grids] = PIESIM(odepde, opts, uinput);
 
 % Extract values of the second state variables and thet output at each time step.
 tval = solution.timedep.dtime;
@@ -86,7 +114,7 @@ wval = subs(uinput.w,st,tval);
 % Plot evolution of the PDE state and regulated output.
 fig1 = figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
-sgtitle('Open loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
+sgtitle('Open-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
 
 ax1 = subplot(1,2,1);
 box on
@@ -165,7 +193,7 @@ wval = subs(uinput.w,st,tval);
 % Plot closed-loop evolution of the PDE state and regulated output.
 fig2 = figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
-sgtitle('Closed loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
+sgtitle('Closed-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter','latex','FontSize',16);
 
 ax1 = subplot(1,2,1);
 box on

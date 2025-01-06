@@ -141,7 +141,7 @@ for kk=1:numel(eq_types)
     eq_type_kk = eq_types{kk};
     % % Loop over all equations in each object
     for ii=1:numel(PDE.(eq_type_kk))
-        if ~isfield(PDE.(eq_type_kk){ii},'term')
+        if ~isfield(PDE.(eq_type_kk){ii},'term') || isempty(PDE.(eq_type_kk){ii}.term)
             % No adjusting of terms if there are no terms...
             continue
         end

@@ -1,0 +1,35 @@
+NOTE: PIETOOLS 2024 is available on MATLAB toolbox repository and GitHub.
+
+Major Updates:
+
+1. PIETOOLS and PIESIM now include native support for 2D PDEs defined on a hyper-rectangle.
+-- 2D PDEs can be declared using the command line interface
+-- 2D PDEs can be simulated in PIESIM (See Chap 6)
+-- 2D opvars and decision variables can be created using lpivar, poslpivar, etc
+-- function-valued inputs and boundary conditions can be declared (See Chap 4)
+-- the gain analysis and estimator design scripts now support 2D PDEs and PIEs
+-- Demo 9 now illustrates L2-gain analysis for a 2D PDE
+
+2. Support for H2 analysis, estimation, and control are now supported (See Chap 13)
+-- New scripts include `lpiscript(pie,h2norm)' and `lpiscript(pie,h2-observer)'
+-- Demo 8 now illustrated H2 gain analysis
+
+3. Scripts now allow for non-coercive Lyapunov function candidates, improving the accuracy of gain analysis and performance of optimal controller/observer synthesis. 
+
+4. All Demos have been streamlined and shortened to better illustrate functionality and workflow. 
+-- Two new demos have been added illustrating analysis of 2D PDEs and H2 norm bounding.
+
+Minor Updates
+
+1. Improved operator inversion routines have been incorporated in getobserver/getcontroller to allow for more numerically reliable controller/observer gains.
+
+2. Several routines in declaring and solving LPIs have been updated and renamed.
+-- sosprogram is now lpiprogram and updated to require that the spatial domain must be specified at instantiation
+-- sosdecvar is now lpidecvar and sossetobj is now lpisetobj
+-- soseq is now lpi_eq and sosineq is now lpi_ineq. Furthermore, these routines have been updated to allow for scalar equality/inequality constraints 
+-- sossolve is now lpisolve
+-- sosgetsol is now lpigetsol and allows one to access operator-valued variables directly.
+
+3. the function `piess' now allows one to construct a PIE object directly, using similar state-space syntax to the Matlab command `ss' -- e.g. piess(T,A,B,C,D) where T,A,B,C,D are opvar objects.
+
+4. The function `pielft' allows for the closed-loop interconnection (LFT) of two PIE objects. e.g. pielft(pie1,pie2)

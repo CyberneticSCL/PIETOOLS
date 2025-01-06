@@ -43,17 +43,24 @@ end
 
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
+%%% pde_var input
+clear stateNameGenerator
+x = pde_var(ne,[s1;s2],[0,1;0,1]);
+PDE_t = [diff(x,'t')==c1*diff(x,s1)+c2*diff(x,s2);
+         subs(x,s1,0)==0;       subs(x,s2,0)==0];
 
-% PDE: x_{t} = [c1, c2] * [x_{s1}; x_{s2}]
-PDE_t.x{1}.term{1}.D = [1,0; 0,1];
-PDE_t.x{1}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
 
-% BC1: 0 = x(s1,0)
-PDE_t.BC{1}.term{1}.loc = [s1,0];
-% BC2: 0 = x(0,s2)
-PDE_t.BC{2}.term{1}.loc = [0,s2];
+% %%% Term-based input format
+% PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
+% 
+% % PDE: x_{t} = [c1, c2] * [x_{s1}; x_{s2}]
+% PDE_t.x{1}.term{1}.D = [1,0; 0,1];
+% PDE_t.x{1}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
+% 
+% % BC1: 0 = x(s1,0)
+% PDE_t.BC{1}.term{1}.loc = [s1,0];
+% % BC2: 0 = x(0,s2)
+% PDE_t.BC{2}.term{1}.loc = [0,s2];
 
 
 if GUI~=0

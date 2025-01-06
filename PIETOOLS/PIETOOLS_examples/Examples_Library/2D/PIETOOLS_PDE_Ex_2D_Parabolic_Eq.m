@@ -46,30 +46,38 @@ end
 
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
+%%% pde_var input
+clear stateNameGenerator
+x = pde_var([s1;s2],[0,1;0,1]);
+PDE_t = [diff(x,'t')==a*x +b1*diff(x,s1) +b2*diff(x,s2) +c1*diff(x,s1,2) +c2*diff(x,s2,2);
+         subs(x,s1,0)==0;   subs(diff(x,s1),s1,1)==0;
+         subs(x,s2,0)==0;   subs(diff(x,s2),s2,1)==0];
 
-% PDE: x_{t} = a * x
-PDE_t.x{1}.term{1}.C = a*eye(ne);
 
-% PDE: x_{t} = ... + [b1, b2] * [x_{(1,0)}; x_{(0,1)}]
-PDE_t.x{1}.term{2}.D = [1,0; 0,1];
-PDE_t.x{1}.term{2}.C = [b1*eye(ne), b2*eye(ne)];
-
-% PDE: x_{t} = ... + [c1, c2] * [x_{(2,0)}; x_{(0,2)}]
-PDE_t.x{1}.term{3}.D = [2,0; 0,2];
-PDE_t.x{1}.term{3}.C = [c1*eye(ne), c2*eye(ne)];
-
-% BC1: 0 = x(s1,0)
-PDE_t.BC{1}.term{1}.loc = [s1,0];
-% BC2: 0 = x(0,s2)
-PDE_t.BC{2}.term{1}.loc = [0,s2];
-% BC3: 0 = x_{(0,1)}(s1,1)
-PDE_t.BC{3}.term{1}.D = [0,1];
-PDE_t.BC{3}.term{1}.loc = [s1,1];
-% BC4: 0 = x_{(1,0)}(1,s2)
-PDE_t.BC{4}.term{1}.D = [1,0];
-PDE_t.BC{4}.term{1}.loc = [1,s2];
+% %%% Term-based input format
+% PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [0,1;0,1];
+% 
+% % PDE: x_{t} = a * x
+% PDE_t.x{1}.term{1}.C = a*eye(ne);
+% 
+% % PDE: x_{t} = ... + [b1, b2] * [x_{(1,0)}; x_{(0,1)}]
+% PDE_t.x{1}.term{2}.D = [1,0; 0,1];
+% PDE_t.x{1}.term{2}.C = [b1*eye(ne), b2*eye(ne)];
+% 
+% % PDE: x_{t} = ... + [c1, c2] * [x_{(2,0)}; x_{(0,2)}]
+% PDE_t.x{1}.term{3}.D = [2,0; 0,2];
+% PDE_t.x{1}.term{3}.C = [c1*eye(ne), c2*eye(ne)];
+% 
+% % BC1: 0 = x(s1,0)
+% PDE_t.BC{1}.term{1}.loc = [s1,0];
+% % BC2: 0 = x(0,s2)
+% PDE_t.BC{2}.term{1}.loc = [0,s2];
+% % BC3: 0 = x_{(0,1)}(s1,1)
+% PDE_t.BC{3}.term{1}.D = [0,1];
+% PDE_t.BC{3}.term{1}.loc = [s1,1];
+% % BC4: 0 = x_{(1,0)}(1,s2)
+% PDE_t.BC{4}.term{1}.D = [1,0];
+% PDE_t.BC{4}.term{1}.loc = [1,s2];
 
 
 if GUI~=0

@@ -1,8 +1,34 @@
-
 % This document provides the codes used to plot the simulation results from
 % the various demos, as they appear in Chapter 11 the manual. We refer to 
 % the demo codes and Chapter 11 of the manual for more information.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - Code Illustrations
+%
+% Copyright (C)2024  PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, make sure to change the code in the manual as
+% well, and vice versa. Document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% DJ, 12/30/2024: Initial coding;
+clear
 
 %% 11.1 DEMO 1: Stability and Simulation
 % Run the Demo
@@ -215,7 +241,7 @@ figure('Position',[200 150 1000 450]);
 set(gcf, 'Color', 'w');
 box on
 plot(tplot,u_CL(1,plot_indcs),[colors{7},'-'],'LineWidth',1.5,'DisplayName','$u_{cl}(t)$');
-title('Closed-loop control effort $u_{cl}(t)=\mathcal{K}\mathbf{x}_{cl}(t)$','Interpreter','latex','FontSize',15)
+title('Closed-loop control effort $u_{cl}(t)=\mathcal{K}\mathbf{x}_{f,cl}(t)$','Interpreter','latex','FontSize',15)
 ax3 = gca;   ax3.XScale = 'log';  ax3.XLim = [opts.dt,opts.tf];
 ax3.TickLabelInterpreter = 'latex';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u_{cl}$','FontSize',15,'Interpreter','latex');
@@ -227,6 +253,7 @@ xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u_{cl}$','FontSiz
 
 
 %% 11.7 DEMO 7: Observer Based Control
+% Run the Demo
 DEMO7_observer_based_control
 
 % % Plot the open- and closed-loop state evolution
@@ -303,7 +330,7 @@ figure('Position',[200 150 1000 350]);
 set(gcf, 'Color', 'w');
 box on
 plot(tplot,u_CL(1,plot_indcs),[colors{7},'-'],'LineWidth',1.5,'DisplayName','$u(t)$');
-title('Closed-loop control effort $u(t)=\mathcal{K}\hat{\mathbf{x}}(t)$','Interpreter','latex','FontSize',15)
+title('Closed-loop control effort $u(t)=\mathcal{K}\hat{\mathbf{x}}_{f}(t)$','Interpreter','latex','FontSize',15)
 ax3 = gca;   ax3.XScale = 'log';  ax3.XLim = [opts.dt,opts.tf];
 ax3.TickLabelInterpreter = 'latex';
 xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u$','FontSize',15,'Interpreter','latex');
@@ -315,6 +342,9 @@ xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$u$','FontSize',15
 
 
 %% 11.9 DEMO 9: L2-Gain Analysis and Simulation of 2D PDEs
+% Run the demo
+DEMO9_L2_gain_analysis
+
 % % Plot the regulated output versus time
 %plot_indcs = floor(logspace(0,log(opts.tf/opts.dt)/log(10),50));
 plot_indcs = round(linspace(1,size(z,2),100));

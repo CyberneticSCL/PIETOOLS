@@ -23,7 +23,7 @@ function PDE_out = int(PDE_in,vars,L,U)
 %               upper limits "U".
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -44,7 +44,9 @@ function PDE_out = int(PDE_in,vars,L,U)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 06/23/2024
+% DJ, 06/23/2024: Initial coding;
+% DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
+%                   single free term, see also update to "pde_var";
 
 
 % % % Process the inputs
@@ -56,7 +58,7 @@ if ~isa(PDE_in,'pde_struct')
 end
 % Make sure the PDE corresponds to a single state or set of terms.
 [is_pde_var_in,obj] = is_pde_var(PDE_in);
-if ~is_pde_var(PDE_in) && ~is_pde_term(PDE_in)
+if ~is_pde_term(PDE_in)
     error("The input PDE structure should correspond to a free term to be used in a PDE.")
 elseif is_pde_var_in && ~strcmp(obj,'x') && ~strcmp(obj,'u') && ~strcmp(obj,'w')
     error("Integration of outputs is currently not supported.")
@@ -125,10 +127,6 @@ if ismember('t',vars.varname)
 end
 
 % % % Perform the actual integration.
-% Convert single PDE variable (state, input) to a term.
-if is_pde_var_in
-    PDE_in = var2term(PDE_in);
-end
 
 % % Loop over all equations in the PDE, and take the integral of all terms.
 PDE_out = PDE_in;

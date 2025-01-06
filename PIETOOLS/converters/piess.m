@@ -93,6 +93,7 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 % authorship, and a brief description of modifications
 %
 % DJ, 12/20/2024: Initial coding;
+% DJ, 12/30/2024: Suppress feedthrough warning if Dop is empty;
 
 
 % % % Process the inputs
@@ -233,18 +234,18 @@ elseif isa(Dop,'opvar') || isa(Dop,'opvar2d') || isa(Dop,'double') || isa(Dop,'p
         if isempty(Czop) && ~isempty(Cyop)
             Dyuop = Dop;    Dzwop = [];
         else
-            if ~isempty(Cyop)
+            if ~isempty(Cyop) && ~isempty(Dop)                              % DJ, 12/30/2024
                 warning("Assuming feedthrough operator maps to regulated output y.")
             end
             Dzuop = Dop;    Dzwop = [];
         end
     else 
-        if ~isempty(Buop)
+        if ~isempty(Buop) && ~isempty(Dop)                                  % DJ, 12/30/2024
             warning("Assuming feedthrough operator maps disturbance w.")
         end
         if isempty(Czop) && ~isempty(Cyop)
             Dywop = Dop;    Dzwop = [];
-        elseif ~isempty(Cyop)
+        elseif ~isempty(Cyop) && ~isempty(Dop)                              % DJ, 12/30/2024
             warning("Assuming feedthrough operator maps to regulated output y.")
         end
     end

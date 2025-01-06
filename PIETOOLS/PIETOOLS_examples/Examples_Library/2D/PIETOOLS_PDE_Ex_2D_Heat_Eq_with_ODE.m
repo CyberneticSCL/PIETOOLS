@@ -50,40 +50,50 @@ end
 % % % Construct the PDE.
 ne = size(K,1);
 
-%%% Term-based input format
-% Initialize an ODE state component.
-PDE_t.x{1}.vars = [];
-% Initialize a 2D PDE state component.
-PDE_t.x{2}.vars = [s1;s2];   PDE_t.x{2}.dom = [0,1;0,1];
+%%% pde_var input
+clear stateNameGenerator
+pde_var x1 x2
+x1.size = ne;
+x2.vars = [s1;s2];      x2.dom = [0,1;0,1];     x2.size = ne;
+PDE_t = [diff(x1,'t')==(A+B*K)*x1 +B*subs(x2,[s1;s2],[0;0]);
+         diff(x2,'t')==c1*diff(x2,s1,2)+c2*diff(x2,s2,2);
+         subs(diff(x2,s2),s2,0)==0;     subs(x2,s2,1)==0;
+         subs(diff(x2,s1),s1,0)==0;     subs(x2,s1,1)==0];
 
-% ODE: x1_{t} = (A+B*K)*x1
-PDE_t.x{1}.term{1}.x = 1;
-PDE_t.x{1}.term{1}.C = A+B*K;
-
-% ODE: x1_{t} = ... + B*x2(s1=0,s2=0)
-PDE_t.x{1}.term{2}.x =2;
-PDE_t.x{1}.term{2}.loc = [0,0];
-PDE_t.x{1}.term{2}.C = B;
-
-% PDE: x2_{t} = [c1, c2] * [x2_{s1s1}; x2_{s2s2}]
-PDE_t.x{2}.term{1}.x = 2;
-PDE_t.x{2}.term{1}.D = [2,0; 0,2];
-PDE_t.x{2}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
-
-% BC1: 0 = x2_{s2}(s1,0)
-PDE_t.BC{1}.term{1}.x = 2;
-PDE_t.BC{1}.term{1}.D = [0,1];
-PDE_t.BC{1}.term{1}.loc = [s1,0];
-% BC2: 0 = x2_{s1}(0,s2)
-PDE_t.BC{2}.term{1}.x = 2;
-PDE_t.BC{2}.term{1}.D = [1,0];
-PDE_t.BC{2}.term{1}.loc = [0,s2];
-% BC3: 0 = x2(s1,1)
-PDE_t.BC{3}.term{1}.x = 2;
-PDE_t.BC{3}.term{1}.loc = [s1,1];
-% BC4: 0 = x2(1,s2)
-PDE_t.BC{4}.term{1}.x = 2;
-PDE_t.BC{4}.term{1}.loc = [1,s2];
+% %%% Term-based input format
+% % Initialize an ODE state component.
+% PDE_t.x{1}.vars = [];
+% % Initialize a 2D PDE state component.
+% PDE_t.x{2}.vars = [s1;s2];   PDE_t.x{2}.dom = [0,1;0,1];
+% 
+% % ODE: x1_{t} = (A+B*K)*x1
+% PDE_t.x{1}.term{1}.x = 1;
+% PDE_t.x{1}.term{1}.C = A+B*K;
+% 
+% % ODE: x1_{t} = ... + B*x2(s1=0,s2=0)
+% PDE_t.x{1}.term{2}.x =2;
+% PDE_t.x{1}.term{2}.loc = [0,0];
+% PDE_t.x{1}.term{2}.C = B;
+% 
+% % PDE: x2_{t} = [c1, c2] * [x2_{s1s1}; x2_{s2s2}]
+% PDE_t.x{2}.term{1}.x = 2;
+% PDE_t.x{2}.term{1}.D = [2,0; 0,2];
+% PDE_t.x{2}.term{1}.C = [c1*eye(ne), c2*eye(ne)];
+% 
+% % BC1: 0 = x2_{s2}(s1,0)
+% PDE_t.BC{1}.term{1}.x = 2;
+% PDE_t.BC{1}.term{1}.D = [0,1];
+% PDE_t.BC{1}.term{1}.loc = [s1,0];
+% % BC2: 0 = x2_{s1}(0,s2)
+% PDE_t.BC{2}.term{1}.x = 2;
+% PDE_t.BC{2}.term{1}.D = [1,0];
+% PDE_t.BC{2}.term{1}.loc = [0,s2];
+% % BC3: 0 = x2(s1,1)
+% PDE_t.BC{3}.term{1}.x = 2;
+% PDE_t.BC{3}.term{1}.loc = [s1,1];
+% % BC4: 0 = x2(1,s2)
+% PDE_t.BC{4}.term{1}.x = 2;
+% PDE_t.BC{4}.term{1}.loc = [1,s2];
 
 
 if GUI~=0

@@ -21,8 +21,7 @@ function out_var = pde_var(varargin)
 % INPUT
 % - type:   Object of type 'char', specifying what type of PDE variable is
 %           desired. Can be one of 'state', 'input', 'control', 'output',
-%           or 'sense'. If fewer than 3 input arguments are passed, this
-%           defaults to type='state';
+%           or 'sense'. Defaults to type='state';
 % - sz:     Scalar integer specifying the size of the vector-valued
 %           variable. Defaults to 1;
 % - vars:   nx1 or nx2 object of type 'polynomial' or 'cellstr', specifying
@@ -33,6 +32,10 @@ function out_var = pde_var(varargin)
 % - dom:    nx2 array of type 'double' specifying for each of the n spatial
 %           variables the interval on which it exists. Defaults to
 %           repmat([0,1],n,1) for n variables;
+% - D_order: nx1 array of nonnegative integers, specifying for each of the
+%            spatial variables on which the state depends the order of
+%            differentiability of the state with respect to that variable.
+%            Only supported if 'type' is 'state';
 %
 % OUTPUT
 % - out_var:    pde_struct object representing a PDE variable, which can be
@@ -40,7 +43,7 @@ function out_var = pde_var(varargin)
 %               subs(), diff(), int(), and ==.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -64,6 +67,8 @@ function out_var = pde_var(varargin)
 % Initial coding DJ - 06/23/2024
 % DJ, 12/06/2024: Set default values in case of insufficient arguments;
 % DJ, 12/28/2024: Allow length to be omitted as input;
+% DJ, 01/03/2025: Declare a "free" term representing the output variable;
+% DJ, 01/04/2025: Allow order of differentiability to be set for states;
 
 % % % Deal with the case the function is used as e.g.
 % % %   pde_var x1 x2 x3 input w1 w2
@@ -100,7 +105,8 @@ type = 'state';
 sz = 1;
 vars = [];
 dom = [];
-if nargin>0 && nargin<=3 && isnumeric(varargin{1})
+D_order = [];
+if nargin>0 && nargin<=4 && isnumeric(varargin{1})
     % If no type is specified, assume the object corresponds to a 
     % state variable
     if nargin>=1
@@ -112,15 +118,28 @@ if nargin>0 && nargin<=3 && isnumeric(varargin{1})
     if nargin>=3
         dom = varargin{3};
     end
-elseif nargin==2 && isa(varargin{1},'polynomial')                           % DJ, 12/28/2024
+    if nargin>=4
+        D_order = varargin{4};
+    end
+elseif nargin>=1 && nargin<=3 && isa(varargin{1},'polynomial')                           % DJ, 12/28/2024
     % If no type or length is specified, assume a state of length 1.
     vars = varargin{1};
-    dom = varargin{2};
-elseif nargin==3 && ischar(varargin{1}) && isa(varargin{2},'polynomial')    % DJ, 12/28/2024
+    if nargin>=2
+        dom = varargin{2};
+    end
+    if nargin==3                                                            % DJ, 01/04/2024
+        D_order = varargin{3};
+    end
+elseif nargin>=2 && nargin<=4 && ischar(varargin{1}) && isa(varargin{2},'polynomial')    % DJ, 12/28/2024
     % If no length is specified, assume a scalar variable.
     type = varargin{1};
     vars = varargin{2};
-    dom = varargin{3};
+    if nargin>=3
+        dom = varargin{3};
+    end
+    if nargin>=4                                                            % DJ, 01/04/2024
+        D_order = varargin{4};
+    end
 else
     if nargin>=1
         type = varargin{1};
@@ -135,6 +154,9 @@ else
         dom = varargin{4};
     end
     if nargin>=5
+        D_order = varargin{5};
+    end
+    if nargin>=6
         error('Too many input arguments.')
     end
 end
@@ -169,7 +191,7 @@ else
 end
 nvars = size(vars,1);
 
-% % And finally the domain of each variable.
+% % Next the domain of each variable.
 if isempty(dom)
     % If no domain is specified, assume [0,1]
     dom = [zeros(nvars,1),ones(nvars,1)];
@@ -186,6 +208,22 @@ elseif isa(dom,'double')
     end
 else
     error("The domain of the spatial variables should be specified as nx2 array of type 'double', for n variables.")
+end
+
+% % And finally, the order of differentiability with respect to each
+% % variable.
+if ~isempty(D_order)
+    if ~strcmpi(type,'state') || nvars==0
+        error("Order of differentiability can only be specified for PDE state variables.")
+    elseif ~isnumeric(D_order) || any(any(D_order<0)) || any(any(round(D_order)~=D_order))
+        error("Order of differentiability should be specified as nx1 array of nonnegative integers.")
+    end
+    D_order = D_order(:)';
+    if isscalar(D_order)
+        D_order = D_order*ones(1,nvars);
+    elseif numel(D_order)~=nvars
+        error("For PDE state depending on n variables, order of differentiability must be specified as nx1 array.")
+    end
 end
 
 % % % Next, check which object in the PDE structure is actually declared
@@ -215,11 +253,27 @@ out_var.(obj){1}.size = sz;
 out_var.(obj){1}.vars = vars;
 out_var.(obj){1}.dom = dom;
 out_var.(obj){1}.ID = idx;
+if ~isempty(D_order)
+    out_var.(obj){1}.diff = D_order;
+end
 
 % Set the object table.
 out_var.([obj,'_tab']) = zeros(1,2);
 out_var.([obj,'_tab'])(1,1) = idx;
 out_var.([obj,'_tab'])(1,2) = sz;
+
+% Set the variable as a free term to use for constructing an equation.      % DJ, 01/03/2025
+out_var.free{1}.size = sz;
+out_var.free{1}.vars = vars;
+out_var.free{1}.term{1}.(obj) = 1;
+out_var.free{1}.term{1}.C = eye(sz);
+if strcmp(obj,'x')
+    out_var.free{1}.term{1}.loc = vars';
+    out_var.free{1}.term{1}.D = zeros(1,size(vars,1));
+end
+if strcmp(obj,'x') || strcmp(obj,'w') || strcmp(obj,'u')
+    out_var.free{1}.term{1}.I = cell(nvars,1);
+end
 
 end
 

@@ -27,7 +27,7 @@ function val = subsref(PDE,prop)
 % PDE.C{i,j}.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -48,8 +48,11 @@ function val = subsref(PDE,prop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 11/29/2022
-%
+% DJ, 11/29/2022: Initial coding;
+% DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
+%                   single free term, see also update to "pde_var";
+% DJ, 01/04/2025: Allow order of differentiability of state to be extracted;
+
 
 % % % If the object is a single PDE variable, we have a separate case for
 % % % extracting information.
@@ -61,9 +64,6 @@ if strcmp(prop(1).type,'{}')
     error(['''{}'' type subsref is currently not supported for "pde_struct" class objects.'])
 elseif strcmp(prop(1).type,'()')
     % % Allow terms to be retrieved by calling PDE(i,j);
-    if is_var
-        PDE = var2term(PDE);
-    end
     % % Process the inputs
     sz_PDE = size(PDE);
     if numel(prop(1).subs)==1 && sz_PDE(1)==1
@@ -195,11 +195,16 @@ elseif strcmp(prop(1).type,'()')
 
 elseif strcmp(prop(1).type,'.')
     % % % Allow,size, variables and domain of PDE variable to be extracted.
-    if is_var && (strcmp(prop(1).subs,'size') || strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'var') || strcmp(prop(1).subs,'dom'))
+    if is_var && (strcmp(prop(1).subs,'size') || strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'var') || strcmp(prop(1).subs,'dom') || strcmp(prop(1).subs,'diff'))
         if strcmp(prop(1).subs,'var')
             prop(1).subs = 'vars';
         end
-        val = PDE.(obj){1}.(prop(1).subs);
+        if strcmp(prop(1).subs,'diff') && ~isfield(PDE.(obj){1},'diff')
+            val = zeros(1,0);
+        else
+            val = PDE.(obj){1}.(prop(1).subs);
+        end
+        
         % Perform remaining subsref.
         if numel(prop)>1
             val = builtin('subsref',val,prop(2:end));
@@ -235,8 +240,8 @@ elseif strcmp(prop(1).type,'.')
             error('Equation number i must be specified as real, nonnegative integer when extracting coefficients "PDE.C{i,j}".')
         elseif jj <= 0 || jj~=round(jj) || jj~=real(jj)
             error('Term number j must be specified as real, nonnegative integer when extracting coefficients "PDE.C{i,j}".')
-        elseif ii>sz_PDE(1)
-            error("Equation number i cannot exceed number of equations in the PDE, when extracting coefficients 'PDE.C{i,j}'.")
+        % elseif ii>sz_PDE(1)
+        %     error("Equation number i cannot exceed number of equations in the PDE, when extracting coefficients 'PDE.C{i,j}'.")
         elseif jj>sz_PDE(2)
             error("Term number j cannot exceed maximum number of terms in each equation, when extracting coefficients 'PDE.C{i,j}'.")
         end

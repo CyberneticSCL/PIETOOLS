@@ -25,7 +25,7 @@ function PDE = subsasgn(PDE,prop,val)
 % PDE.x{1}.dom(2) = b.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2022 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -47,6 +47,9 @@ function PDE = subsasgn(PDE,prop,val)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 10/17/2022
+% DJ, 01/03/2025: Account for fact that PDE variables are now represented
+%                   by a free term (see also the update to pde_var);
+% DJ, 01/04/2025: Allow order of differentiability of state to be set;
 %
 
 % At this point, we just use the built-in subsasgn function. Additional
@@ -58,7 +61,7 @@ end
 % If the PDE structure corresponds to a single variable (state, input, or
 % output), allow the variables, domain, and size to be set.
 [is_var,obj] = is_pde_var(PDE);
-if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'var';'dom'})
+if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'var';'dom';'diff'})
     % Allow the size of the object to be set.
     if strcmp(prop(1).subs,'size')
         if ~isnumeric(val) || numel(val)~=1 || val<=0 || round(val)~=val
@@ -66,6 +69,8 @@ if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'v
         else
             PDE.(obj){1}.size = val;
             PDE.([obj,'_tab'])(1,2) = val;
+            PDE.free{1}.size = val;                                         % DJ, 01/03/2025
+            PDE.free{1}.term{1}.C = eye(val);
         end
     elseif strcmp(prop(1).subs,'vars') || strcmp(prop(1).subs,'var')
     % Allow the spatial variables on which the object depends to be set.
@@ -93,6 +98,10 @@ if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'v
             vars = vars(~isequal(vars,polynomial({'t'})));
         end
         PDE.(obj){1}.vars = vars;
+        PDE.free{1}.vars = vars;                                            % DJ, 01/03/2025
+        PDE.free{1}.term{1}.loc = vars';
+        PDE.free{1}.term{1}.D = zeros(1,size(vars,1));
+        PDE.free{1}.term{1}.I = cell(size(vars,1),1);
         % Also set a domain for the variables.
         PDE.(obj){1}.dom = [zeros(size(vars,1),1),ones(size(vars,1),1)];
     elseif strcmp(prop(1).subs,'dom')
@@ -120,6 +129,26 @@ if is_var && strcmp(prop(1).type,'.') && ismember(prop(1).subs,{'size';'vars';'v
             end
         end
         PDE.(obj){1}.dom = dom;
+    elseif strcmp(prop(1).subs,'diff')                                      % DJ, 01/04/2025
+    % Allow the order of differentiability of a state wrt its spatial
+    % variables to be set.
+        if ~isnumeric(val) || any(val<0) || any(round(val)~=val)
+            error("Order of differentiability should be specified as nx1 array of nonnegative integers.")
+        elseif ~strcmp(obj,'x')
+            error("Setting order of differentiability of input or output signals is not supported.")
+        end
+        % Make sure an order of differentiability is specified for each
+        % variable.
+        if isfield(PDE.(obj){1},'vars') && numel(val)~=size(PDE.(obj){1}.vars,1)
+            if isscalar(val)
+                % Assume same order of differentiability wrt all vars
+                val = val*ones(1,size(PDE.(obj){1}.vars,1));
+            else
+                error("For a state in n spatial variables, the order of differentiability should be specified as nx1 array.")
+            end
+        end
+        val = val(:)';
+        PDE.(obj){1}.diff = val;
     end
     return
 else

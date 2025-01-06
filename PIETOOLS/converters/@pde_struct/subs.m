@@ -22,7 +22,7 @@ function PDE_out = subs(PDE_in,vars,locs)
 %               substituted by the values in "locs".
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -45,6 +45,8 @@ function PDE_out = subs(PDE_in,vars,locs)
 %
 % Initial coding DJ - 06/23/2024;
 % DJ, 12/16/2024: Add support for temporal delay;
+% DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
+%                   single free term, see also update to "pde_var";
 
 
 % % % Process the inputs
@@ -56,7 +58,7 @@ if ~isa(PDE_in,'pde_struct')
 end
 % Make sure the PDE corresponds to a single state or set of terms.
 [is_pde_var_in,obj] = is_pde_var(PDE_in);
-if ~is_pde_var(PDE_in) && ~is_pde_term(PDE_in)
+if ~is_pde_term(PDE_in)
     error("The input PDE structure should correspond to a free term to be used in a PDE.")
 elseif is_pde_var_in && ~(strcmp(obj,'x') || strcmp(obj,'u') || strcmp(obj,'w'))
     error("Substitution of outputs is currently not supported.")
@@ -123,11 +125,6 @@ end
 
 
 % % % Perform the actual substitution.
-% Convert single PDE variable (state, input, output) to a single term.
-if is_pde_var_in
-    PDE_in = var2term(PDE_in);
-end
-
 PDE_out = PDE_in;
 for ii=1:numel(PDE_out.free)
     if ~isfield(PDE_out.free{ii},'term') || isempty(PDE_out.free{ii}.term)

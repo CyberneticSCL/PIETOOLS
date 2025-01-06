@@ -10,7 +10,7 @@ function [] = display_PDE_crude(PDE)
 %           Equations will be printed in the Command Window.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -31,7 +31,9 @@ function [] = display_PDE_crude(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 06/23/2024
+% DJ, 06/23/2024: Initial coding;
+% DJ, 01/03/2025: Display zero equation for x, y, or z as well, but only if
+%                   explicitly declared using 'is_zero' field;
 
 % % % Declare some UNICODE char symbols to display temporal derivatives of
 % % % state components for the left-hand side of the equation.
@@ -60,6 +62,10 @@ sup_min = '\x207B';
 % % % line.
 use_C = false;
 eq_types = {'free';'x';'y';'z';'BC'};
+% If free terms are available, assume there are actual full equations
+if numel(PDE.free)>0
+    eq_types = {'free'};
+end
 n_eqs_tot = 0; 
 for kk=1:numel(eq_types)
     eq_type = eq_types{kk};    
@@ -94,7 +100,9 @@ for kk=1:numel(eq_types)
                 % For free terms, print a zero.
                 fprintf('\n    0')
                 continue
-            else
+            elseif ~isfield(eq_struct,'is_zero') || ~eq_struct.is_zero      % DJ, 01/03/2025
+                % For equations not explicitly declared as zero equations, 
+                % print nothing.
                 continue
             end
         end
@@ -147,6 +155,11 @@ for kk=1:numel(eq_types)
         fprintf(['\n ',Lstate_trm,eq_sign])
     
         % % Print the first term
+        if ~isfield(eq_struct,'term') || isempty(eq_struct.term)            % DJ, 01/03/2025
+            % If there is no term, the RHS is just zero.
+            fprintf('0;');
+            continue
+        end
         [term_str,term_sign] = display_term(PDE,eq_struct.term{1},[ii+n_eqs_tot,1],use_ID);
         if term_sign==-1
             fprintf(['- ',term_str]);

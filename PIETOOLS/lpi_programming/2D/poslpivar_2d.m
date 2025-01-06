@@ -75,7 +75,7 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 %   options.psatz=1 if this is a psatz term. options.psatz=0 otherwise
 %   options.exclude is a length 16 binary vector where 
 %      options.exclude(i)=1 if we want to set $T_{ij}=0$ for j=1...16
-%   options.sep is a length 5 binary vector where
+%   options.sep is a length 6 binary vector where
 %      options.sep(1) = 1 if Rxx{2} = Rxx{3}
 %      options.sep(2) = 1 if Ryy{2} = Ryy{3}
 %      options.sep(3) = 1 if R22{2,1} = R22{3,1}
@@ -392,7 +392,7 @@ else
 end
 for k=1:9
     [d2{k},n_updates_k] = reduce_joint_degs(d2{k});
-    if n_updates_k>=1
+    if n_updates_k>=5
         warning(['At least one of the (joint) degrees in d.d2{',num2str(k),'} is either too large or too small to make sense with all the joint degrees; reducing degrees to a sensible value'])
     end
 end

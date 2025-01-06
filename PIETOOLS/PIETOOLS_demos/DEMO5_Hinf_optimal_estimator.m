@@ -76,11 +76,11 @@ echo on
 % Declare independent variables (time and space)
 pvar t s
 % Declare state, input, and output variables
-x= pde_var(1,s,[0,1]);   w = pde_var('in');     
-z = pde_var('out'); y=pde_var('sense');
+x = pde_var(1,s,[0,1]);   w = pde_var('in');     
+z = pde_var('out');       y = pde_var('sense');
 % Declare the sytem equations
 lam = 4;
-PDE= [diff(x,t) == diff(x,s,2) + lam*x + w;    % PDE
+PDE = [diff(x,t) == diff(x,s,2) + lam*x + w;    % PDE
        z == int(x,s,[0,1]) + w;                 % regulated output
        y == subs(x,s,1);                        % observed output
        subs(x,s,0) == 0;                        % first boundary condition

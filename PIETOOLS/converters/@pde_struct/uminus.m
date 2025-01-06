@@ -14,7 +14,7 @@ function PDE_out = uminus(PDE_in)
 %               sign-swapped.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -35,17 +35,14 @@ function PDE_out = uminus(PDE_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 06/23/2024
+% DJ, 06/23/2024: Initial coding;
+% DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
+%                   single free term, see also update to "pde_var";
 
 % % Process the input.
 % Check that the input is indeed of suitable type.
 if ~isa(PDE_in,'pde_struct')
     error("This function should only be called for 'pde_struct'-type objects...")
-end
-% If the PDE represent a single state, input, or output variable, convert
-% it to a term.
-if is_pde_var(PDE_in)
-    PDE_in = var2term(PDE_in);
 end
 
 % % Change the sign of all the coefficients of all the terms in all of the

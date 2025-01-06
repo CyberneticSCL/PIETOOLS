@@ -10,13 +10,14 @@ function [structure, uinput, psize]=PIESIM_input_check(varargin)
 % 1) varargin(1): data structure of the proglem: PDE, DDE or PIE
 % PIE structure of the problem specifies PI operators, T,Tu,Tw, A, Bi, Ci, Dij as fields
 % if varargin(1) is PDE or DDE, the rest of the inputs are optional
-% if varargin(1) is PIE, the rest of the inputs are requires
+% if varargin(1) is PIE, ndiff input is required, while other inputs are
+% optional
 % 2) varargin(2): opts - options for simulation parameters. If empty or incomplete, will be
 % set to default values
 % 3) varargin(3): uinput - user-defined boundary inputs, forcing and initial
 % conditions. If empty or incomplete, will be set to default values
 % Not used for PDE/DDE, required for PIE
-% 4) varargin(4): n_pde - number of states with increasing differentiability, for example
+% 4) varargin(4): ndiff - number of states with increasing differentiability, for example
 % [1,2,3] stands for (1) continuous state, (2) continuously differentiable,
 % and (3) twice continuously differentiable states - only used it data structure is PIE
 
@@ -201,10 +202,10 @@ if PDE.dim==2
     end
 
     % Establish sizes of inputs and outputs
-    psize.nw = sum(PDE.w_tab(:,2));
-    psize.nu = sum(PDE.u_tab(:,2));
-    psize.nro = sum(PDE.z_tab(:,2));
-    psize.noo = sum(PDE.y_tab(:,2));
+    psize.nw = sum(PDE.w_tab(:,2)); % number of disturbances
+    psize.nu = sum(PDE.u_tab(:,2)); % number of control inputs
+    psize.nro = sum(PDE.z_tab(:,2)); % number of regulated outputs
+    psize.noo = sum(PDE.y_tab(:,2)); % number of observed outputs
 
     % Compare to the size of the user-defined input 
     if isfield(uinput,'w')
@@ -255,14 +256,6 @@ if PDE.dim==2
             uinput.ic.ODE = double(uinput.ic.x(1:psize.no));
         end
         uinput.ic.PDE = uinput.ic.x(psize.no+1:end);
-    else
-        % Declare empty initial conditions if none have been specified.
-        if ~isfield(uinput.ic,'PDE')
-            uinput.ic.PDE = sym([]);
-        end
-        if ~isfield(uinput.ic,'ODE')
-            uinput.ic.ODE = sym([]);
-        end
     end
 
        % Check initial conditions for ODE state variables
@@ -873,12 +866,12 @@ structure=PDE;
 
 % Define problem size for discretization
 
-psize.nu=PDE.nu;
-psize.nw=PDE.nw;
-psize.no=PDE.no;
-psize.nro=PDE.nro;
-psize.noo=PDE.noo;
-psize.N=opts.N;
+psize.nu=PDE.nu; % number of control inputs
+psize.nw=PDE.nw; % number of disturbances
+psize.no=PDE.no; % number of ODE states
+psize.nro=PDE.nro; % number of regulated outputs
+psize.noo=PDE.noo; % number of observed outputs
+psize.N=opts.N; % order of disceretization in space
 psize.dim=1;
 
 

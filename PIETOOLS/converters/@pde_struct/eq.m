@@ -14,7 +14,7 @@ function PDE_out = eq(LHS,RHS)
 %               LHS=RHS;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -39,6 +39,9 @@ function PDE_out = eq(LHS,RHS)
 % DJ, 12/28/2024: Add support for concatenating single vector LHS with
 %                 RHS consisting of multiple scalar-valued equations; 
 % DJ, 12/29/2024: Bugfix minus sign in case LHS has coefficients.
+% DJ, 01/03/2025: Use "is_zero" to indicate zero equations (e.g. y==0);
+% DJ, 01/05/2025: Bugfix, replace {eq_num} with {eq_num,1};
+% DJ, 01/06/2025: Expand support for equating vector-valued terms;
 
 % % % Process the inputs
 
@@ -58,11 +61,7 @@ if isnumeric(LHS) && ~all(all(LHS==0))
 elseif ~isnumeric(LHS) && ~isa(LHS,'pde_struct')
     error("Equating 'pde_struct' objects with non-'pde_struct' objects is not supported.")
 elseif isa(LHS,'pde_struct') && ~is_pde_term(LHS)
-    if is_pde_var(LHS)
-        LHS = var2term(LHS);
-    else
-        error("For declaring an equation, the left-hand side should correspond to the temporal derivative of a state, or to an output signal.")
-    end
+    error("For declaring an equation, the left-hand side should correspond to the temporal derivative of a state, or to an output signal.")
 end
 
 % % Check that the second input makes sense
@@ -85,70 +84,31 @@ elseif isnumeric(RHS)
 elseif ~isa(RHS,'pde_struct')
     error("Equating 'pde_struct' objects with non-'pde_struct' objects is not supported.")
 elseif ~is_pde_term(RHS)
-    if is_pde_var(RHS)
-        RHS = var2term(RHS);
-    else
-        error("Right-hand side in equation of 'pde_struct' objects should consist solely of PDE terms.")
-    end
+    error("Right-hand side in equation of 'pde_struct' objects should consist solely of PDE terms.")
 end
 
 % % Check that the number of rows of LHS and RHS match
-if ~isnumeric(LHS) && numel(LHS.free)~=numel(RHS.free)
-    % The number of objects does not match, but maybe their sizes add
-    % up to match. Currently, we only support this if LHS describes a 
-    % single (vector-valued) object.
-    if isscalar(LHS.free)
-        sz_L = LHS.free{1}.size;
-        nR = numel(RHS.free);
-        sz_R = RHS.free{1}.size;
-        vars_R = RHS.free{1}.vars;
-
-        % Make sure the sizes and variables of all objects match.
-        for ii=2:nR
-            if isfield(RHS.free{ii},'size') && RHS.free{ii}.size~=sz_R
-                error("For equating vector-valued object with multiple terms, all terms must have same size.")
-            elseif isfield(RHS.free{ii},'vars')
-                if ~(isempty(RHS.free{ii}.vars) && isempty(vars_R)) && ...
-                    (~all(size(RHS.free{ii}.vars)==size(vars_R)) || ~all(isequal(RHS.free{ii}.vars,vars_R)))
-                    error("For equating vector-valued object with multiple terms, all terms must have same variables.")
-                end
-            end
-        end
-        if nR*sz_R~=sz_L
-            error("Number of objects to equate does not match; concatenation not supported.")
-        end
-        
-        % Initialize a new object with just 1 vector-valued
-        RHS_new = RHS;
-        RHS_new.free = RHS.free(1);
-        RHS_new.free{1}.size = sz_L;
-        % Augment all terms in RHS.free{1} to new size.
-        C_aug = [eye(sz_R);zeros((nR-1)*sz_R,sz_R)];
-        for jj=1:numel(RHS.free{1}.term)
-            if isfield(RHS_new.free{1}.term{jj},'C')
-                RHS_new.free{1}.term{jj}.C = C_aug*RHS_new.free{1}.term{jj}.C;
-            else
-                RHS_new.free{1}.term{jj}.C = C_aug;
-            end
-        end
-        % Add all other terms, augmented to new size.
-        for ii=2:nR
-            cntr = numel(RHS_new.free{1}.term);
-            RHS_new.free{1}.term = [RHS_new.free{1}.term,RHS.free{ii}.term];
-            C_aug = [zeros((ii-1)*sz_R,sz_R);eye(sz_R);zeros((nR-ii)*sz_R,sz_R)];
-            for jj=cntr+(1:numel(RHS.free{ii}.term))
-                if isfield(RHS_new.free{1}.term{jj},'C')
-                    RHS_new.free{1}.term{jj}.C = C_aug*RHS_new.free{1}.term{jj}.C;
-                else
-                    RHS_new.free{1}.term{jj}.C = C_aug;
-                end
-            end
-        end
-        % Continue with new RHS
-        RHS = RHS_new;
-    else
-        error("Number of objects to equate does not match; concatenation currently not supported.")
+if ~isnumeric(LHS)                                                          % DJ, 01/06/2025
+    % Make sure that the vector-valued size of each row of terms in LHS
+    % matches that in RHS
+    sz_L = zeros(numel(LHS.free),1);
+    for ii=1:numel(LHS.free)
+        sz_L(ii) = LHS.free{ii}.size;
     end
+    sz_R = zeros(numel(RHS.free),1);
+    for ii=1:numel(RHS.free)
+        sz_R(ii) = RHS.free{ii}.size;
+    end
+    if sum(sz_L)~=sum(sz_R)
+        error("Number of rows of terms to equate does not match; equality cannot be enforced.")
+    elseif numel(sz_L)~=numel(sz_R) || ~all(sz_L==sz_R)
+        % It seems we cannot just set each row of terms in LHS equal to a
+        % corresponding row of terms in RHS. Instead, we will combine all
+        % rows of terms in both LHS and RHS into a single vector-valued row
+        % of terms, and enforce only a single vector-value equality.
+        LHS = squash_eqs(LHS,sz_L);
+        RHS = squash_eqs(RHS,sz_R);
+    end    
 end
 
 
@@ -170,7 +130,7 @@ for ii=1:numel(RHS.free)
         % % In particular, equation "eq_num" of type "obj".
         % Add the remaining terms to this equation.
         if ~isfield(PDE_out.(obj){eq_num},'term') || isempty(PDE_out.(obj){eq_num}.term)
-            PDE_out.(obj){eq_num}.term = RHS.free{ii}.term(2:end);
+            PDE_out.(obj){eq_num,1}.term = RHS.free{ii}.term(2:end);
         else
             error("Multiple equations are specified for the same state or output variable; this is not supported.")
         end
@@ -188,7 +148,7 @@ for ii=1:numel(RHS.free)
         % For state variables, include the order of the temporal
         % derivaitve.
         if strcmp(obj,'x')
-            PDE_out.(obj){eq_num}.tdiff = tdiff;
+            PDE_out.(obj){eq_num,1}.tdiff = tdiff;
         end
         % Check if coefficients have been specified for the left-hand side
         if isfield(RHS.free{ii}.term{1},'C') && ~all(all(RHS.free{ii}.term{1}.C==eye(PDE_out.(obj){eq_num}.size)))
@@ -201,9 +161,9 @@ for ii=1:numel(RHS.free)
             % Divide coefficients in each term by those on the LHS.
             for jj=1:numel(PDE_out.(obj){eq_num}.term)
                 if isfield(PDE_out.(obj){eq_num}.term{jj},'C')
-                    PDE_out.(obj){eq_num}.term{jj}.C = -inv(C_LHS)*PDE_out.(obj){eq_num}.term{jj}.C;    % DJ, 12/29/2024
+                    PDE_out.(obj){eq_num,1}.term{jj}.C = -inv(C_LHS)*PDE_out.(obj){eq_num}.term{jj}.C;    % DJ, 12/29/2024
                 else
-                    PDE_out.(obj){eq_num}.term{jj}.C = -1;
+                    PDE_out.(obj){eq_num,1}.term{jj}.C = -1;
                 end
             end
         else
@@ -211,19 +171,100 @@ for ii=1:numel(RHS.free)
             % have been moved
             for jj=1:numel(PDE_out.(obj){eq_num}.term)
                 if isfield(PDE_out.(obj){eq_num}.term{jj},'C')
-                    PDE_out.(obj){eq_num}.term{jj}.C = -PDE_out.(obj){eq_num}.term{jj}.C;
+                    PDE_out.(obj){eq_num,1}.term{jj}.C = -PDE_out.(obj){eq_num}.term{jj}.C;
                 else
-                    PDE_out.(obj){eq_num}.term{jj}.C = -1;
+                    PDE_out.(obj){eq_num,1}.term{jj}.C = -1;
                 end
             end
+        end
+        % If there are no other terms, we must have e.g. d/dt x = 0.
+        if isscalar(RHS.free{ii}.term)                                      % DJ, 01/03/2025
+            PDE_out.(obj){eq_num,1}.is_zero = true;
         end
     else
         % % The equation corresponds to a boundary condition.
         BC_num = numel(PDE_out.BC)+1;
-        PDE_out.BC{BC_num}.term = RHS.free{ii}.term(1:end);
+        PDE_out.BC{BC_num,1}.term = RHS.free{ii}.term(1:end);
     end
     % Get rid of loose PDE terms.
     PDE_out.free = {};
 end
+
+end
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
+function PDE_new = squash_eqs(PDE,sz_eqs)
+% PDE_NEW = SQUASH_EQS(PDE) takes a PDE structure describing free terms (no
+% completed equations), and squashes all rows of terms (each row to be
+% added to a separate equation) into a single vector-valued row of terms.
+%
+% INPUT
+% - PDE:        'pde_struct' object representing a set of n rows of free
+%               terms to be used to define equations, specified through the
+%               fields PDE.free{ii}.term, for ii=1:n;
+% - sz_eqs:     nx1 array specifying for each row of terms the vector size
+%               of those terms, sz_eqs(ii) = PDE.free{ii}.size;
+%
+% OUTPUT
+% - PDE_new:    'pde_struct' object representing the same equations, but
+%               now with PDE_new.free only containing a single element,
+%               with PDE_new.free{1}.term including all terms from all
+%               elements PDE.free{ii}, premultiplied with a suitable
+%               permutation matrix;
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% DJ, 01/06/2025: Initial coding;
+%
+
+% Initialize a new object with just 1 vector-valued equation
+PDE_new = PDE;
+PDE_new.free = PDE.free(1);
+% Augment all terms in first row to new size by premultiplying coefficients.
+C_aug = [eye(sz_eqs(1));zeros(sum(sz_eqs(2:end)),sz_eqs(1))];
+for jj=1:numel(PDE.free{1}.term)
+    if isfield(PDE_new.free{1}.term{jj},'C')
+        PDE_new.free{1}.term{jj}.C = C_aug*PDE_new.free{1}.term{jj}.C;
+    else
+        PDE_new.free{1}.term{jj}.C = C_aug;
+    end
+end
+% Keep track of the variables that appear in the first row;
+var_list = cell(size(PDE.free{1}.vars,1),1);
+for kk=1:numel(var_list)
+    var_list{kk} = PDE.free{1}.vars(kk).varname{1};
+end
+% Add all other terms, augmented to new size.
+for ii=2:numel(sz_eqs)
+    trm_cntr = numel(PDE_new.free{1}.term);
+    PDE_new.free{1}.term = [PDE_new.free{1}.term,PDE.free{ii}.term];
+    C_aug = [zeros(sum(sz_eqs(1:ii-1)),sz_eqs(ii));
+             eye(sz_eqs(ii));
+             zeros(sum(sz_eqs(ii+1:end)),sz_eqs(ii))];
+    for jj=trm_cntr+(1:numel(PDE.free{ii}.term))
+        if isfield(PDE_new.free{1}.term{jj},'C')
+            PDE_new.free{1}.term{jj}.C = C_aug*PDE_new.free{1}.term{jj}.C;
+        else
+            PDE_new.free{1}.term{jj}.C = C_aug;
+        end
+    end
+    % Keep track of the variables that appear in all rows.
+    for kk=1:size(PDE.free{ii}.vars,1)
+        varname_kk = PDE.free{ii}.vars(kk).varname{1};
+        if ~ismember(varname_kk,var_list)
+            var_list = [var_list;{varname_kk}];
+        end
+    end
+end
+% Set the variables and size of the new squashed row of terms
+PDE_new.free{1}.size = sum(sz_eqs);
+PDE_new.free{1}.vars = polynomial(var_list);
+% Continue with new RHS
+PDE = PDE_new;
 
 end

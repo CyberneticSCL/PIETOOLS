@@ -14,13 +14,14 @@ function [opts, uinput]=PIESIM_options_check(varinput)
 % 1) varinput(1): data structure of the proglem: PDE, DDE or PIE
 % PIE structure of the problem specifies PI operators, T,Tu,Tw, A, Bi, Ci, Dij as fields
 % if varargin(1) is PDE or DDE, the rest of the inputs are optional
-% if varargin(1) is PIE, the rest of the inputs are requires
+% if varargin(1) is PIE, ndiff input is required, while other inputs are
+% optional
 % 2) varargin(2): opts - options for simulation parameters. If empty or incomplete, will be
 % set to default values
 % 3) varargin(3): uinput - user-defined boundary inputs, forcing and initial
 % conditions. If empty or incomplete, will be set to default values
 % Not used for PDE/DDE, required for PIE
-% 4) varargin(4): n_pde - number of states with increasing differentiability, for example
+% 4) varargin(4): ndiff - number of states with increasing differentiability, for example
 % [1,2,3] stands for (1) continuous state, (2) continuously differentiable,
 % and (3) twice continuously differentiable states - only used it data structure is PIE 
 
@@ -142,7 +143,7 @@ if isa(structure,'pie_struct') || isfield(structure,'T')
     ksize = kargs(find(kargs~=kopt));
     ksize = ksize(find(ksize~=kuopt));
     if (isempty(ksize))
-        error("If input object type is PIE, then number of differentiable states should be specified, for example 'executive_PIESIM(PIE,opts,uinput,n_pde)'");
+        error("If input object type is PIE, then number of differentiable states should be specified, for example 'PIESIM(PIE,opts,uinput,ndiff)' or 'PIESIM(PIE,ndiff)' ");
     else
         opts.piesize=varinput{ksize};
         % If piesize is not found, default to last argument

@@ -4,7 +4,6 @@
 function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % This routine outputs and plots solution of ODE and PDE states
 
-
 % Inputs: 
 % 1) solution 
 % solution is a strucutre with the following fields
@@ -37,8 +36,12 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % Initial coding YP  - 9_19_2021
 % YP 6/16/2022 - added outputs for observed and regulated outputs 
 % DJ, 12/26/2024 - Plot PDE state evolution using surf;
+% DJ, 01/01/2025 - Change plot specifications;
 
 syms sx;
+
+line_width = 2.5;
+marker_size = 2*line_width;
 
    
 % % Display final value of ODE state, if possible.
@@ -83,25 +86,28 @@ if(psize.noo>0)
     end
 end
 
-% % Temporal evolution of solution is only available with BDF scheme
-if opts.intScheme~=1 || ~strcmp(opts.plot,'yes')
-    if strcmp(opts.plot,'yes')
-        disp("Temporal evolution of solution is only available when using the BDF scheme; no plots are produced.")
-    end
+% Don't plot if not requested
+if ~strcmp(opts.plot,'yes')
     return
 end
-
-
-% Determine time indices at which to plot solution.
-tval = solution.timedep.dtime;
-Nplot = min(length(tval),100);  % plot at at most 100 time points.
-t_idcs = floor(linspace(1,length(tval),Nplot));
-tval = tval(t_idcs);
+% Temporal evolution of solution is only available with BDF scheme
+if opts.intScheme~=1
+    disp("Temporal evolution of solution is only available when using the BDF scheme; only final states are plotted.")
+elseif opts.tf==0
+    disp("Final time is t=0; no plots produced.")
+    return
+else
+    % Determine time indices at which to plot solution.
+    dtime = solution.timedep.dtime;
+    Nplot = min(length(dtime),100);  % plot at at most 100 time points.
+    t_idcs = floor(linspace(1,length(dtime),Nplot));
+    tval = dtime(t_idcs);
+end
 figs = {};
 
 
 % % Plot the ODE states evolution in a single plot
-if (psize.no>0) && plot_ode
+if (psize.no>0) && plot_ode && opts.intScheme==1
     odesol = solution.timedep.ode';
 
     fig1 = figure('Position',[200 150 800 450]);
@@ -111,16 +117,21 @@ if (psize.no>0) && plot_ode
     hold on
     for ii=1:psize.no
         X_ii = odesol(t_idcs,ii)';
-        plot(tval,X_ii,'DisplayName',['$X_',num2str(ii),'(t)$'],'LineWidth',2);
+        plot(tval,X_ii,'DisplayName',['$x_',num2str(ii),'(t)$'],'LineWidth',line_width);
     end
     hold off
     %plot(dtime,odesol,'-S','linewidth',2); 
-    title('ODE State Evolution','FontSize',16,'Interpreter','latex');
+    if strcmp(opts.type,'DDE')
+        title('DDE State Evolution','FontSize',16,'Interpreter','latex');
+    else
+        title('ODE State Evolution','FontSize',16,'Interpreter','latex');
+    end
     xlabel('$t$','FontSize',15,'Interpreter','latex');
-    ylabel('$X$','FontSize',15,'Interpreter','latex');
-    if psize.noo>1
+    ylabel('$x$','FontSize',15,'Interpreter','latex');
+    if psize.no>1
         legend('FontSize',15,'Interpreter','latex');
     end
+    set(gca,'TickLabelInterpreter','latex');
     %ax = gca;
     %ax.FontSize = 16;
     %H = gca;
@@ -142,7 +153,7 @@ colors_y = [0, 0, 1;
             0.75, 0, 0.75;
             0.75, 0.75, 0;
             0.25, 0.25, 0.25];
-if (psize.noo>0) && plot_y
+if (psize.noo>0) && plot_y && opts.intScheme==1
 
     fig2 = figure('Position',[200 150 800 450]);
     box on
@@ -153,9 +164,9 @@ if (psize.noo>0) && plot_y
     for ii=1:psize.noo
         y_ii = solution.timedep.observed(ii,t_idcs);
         if ii<=size(colors_y,1)
-            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
         else
-            plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',2);
+            plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',line_width);
         end
     end
     hold off
@@ -163,6 +174,7 @@ if (psize.noo>0) && plot_y
         legend('FontSize',15,'Interpreter','latex');
     end
     set(gca,'XLim',[min(tval),max(tval)]);
+    set(gca,'TickLabelInterpreter','latex');
     set(gcf, 'Color', 'w');
     figs = [figs,{fig2}];
 
@@ -188,7 +200,7 @@ end
 
 % % Plot the regulated outputs evolution in a single plot.
 colors_z = {'b','g','m','r','k','c','r','y'};
-if (psize.nro>0) && plot_z
+if (psize.nro>0) && plot_z && opts.intScheme==1
 
     fig3 = figure('Position',[200 150 800 450]);
     box on
@@ -199,9 +211,9 @@ if (psize.nro>0) && plot_z
     for ii=1:psize.nro
         z_ii = solution.timedep.regulated(ii,t_idcs);
         if ii<=length(colors_z)
-            plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);   
+            plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
         else
-            plot(tval,z_ii,'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',2);
+            plot(tval,z_ii,'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);
         end
     end
     hold off
@@ -209,6 +221,7 @@ if (psize.nro>0) && plot_z
         legend('FontSize',15,'Interpreter','latex');
     end
     set(gca,'XLim',[min(tval),max(tval)]);
+    set(gca,'TickLabelInterpreter','latex');
     set(gcf, 'Color', 'w');
     figs = [figs,{fig3}];
 
@@ -232,6 +245,7 @@ if (psize.nro>0) && plot_z
     %  clear labels;
 end
 
+% % Plot the PDE states
 if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
 
     colors_PDE = [0 0.4470 0.7410;
@@ -244,10 +258,11 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
 
     % Initialize grid points at which to compute exact solution.
     if (uinput.ifexact==true)
+        Nplot_space=101;
         a = uinput.a;
         b = uinput.b;
-        exact_grid = linspace(a,b,round(Nplot*3/4));
-        exsol_grid = double.empty(round(Nplot*3/4),0);
+        exact_grid = linspace(a,b,round(Nplot_space));
+        exsol_grid = double.empty(round(Nplot_space),0);
     end
     ns = sum(psize.n);
 
@@ -267,9 +282,11 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         subplot(1,ns,n);
         box on
         hold on
-        plot(grid.phys,solution.final.pde(:,n),'Color',colors_PDE(n+psize.no,:),'LineWidth',2,'DisplayName','Numerical solution');
-        if (uinput.ifexact==true)
-            plot(exact_grid,exsol_grid,'ko','DisplayName','Analytical solution'); 
+        if ~uinput.ifexact
+            plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
+        else
+            plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
+            plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution','LineWidth',line_width); 
             legend('FontSize',13,'Interpreter','latex');
         end
         hold off
@@ -278,13 +295,20 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         if ns==1
             title(['PDE State at Final Time, $\mathbf{x}(t=',num2str(solution.timedep.dtime(end)),',s)$'],'FontSize',15,'Interpreter','latex');
         else
-            title(['$\mathbf{x}_',num2str(n),'(t=',num2str(solution.timedep.dtime(end)),',s)$'],'FontSize',15,'Interpreter','latex');
+            title(['$\mathbf{x}_',num2str(n+psize.no),'(t=',num2str(solution.timedep.dtime(end)),',s)$'],'FontSize',15,'Interpreter','latex');
         end
         set(gca,'XLim',[min(grid.phys),max(grid.phys)]);
+        set(gca,'TickLabelInterpreter','latex');
+    end
+    figs = [figs,{fig4}];
+
+    if opts.intScheme~=1
+        % Can't plot simulated state evolution
+        return
     end
 
     % % Plot surface plot of state evolution at all points.
-    N = size(solution.timedep.pde,1);       % Number of grid points
+    Ngp = size(solution.timedep.pde,1);       % Number of grid points
     fig5 = figure('Position',[200 150 fig_width 450]);
     set(gcf, 'Color', 'w');
     box on
@@ -292,7 +316,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         sgtitle('PDE State Evolution','Interpreter','latex','FontSize',16)
     end
     for ii=1:ns
-        x_ii = reshape(solution.timedep.pde(:,ii,t_idcs),N,[]);
+        x_ii = reshape(solution.timedep.pde(:,ii,t_idcs),Ngp,[]);
         subplot(1,ns,ii);
         surf(tval,grid.phys,x_ii,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
         h = colorbar;
@@ -301,14 +325,15 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         if ns==1
             title('PDE State Evolution $\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
         else
-            title(['$\mathbf{x}_',num2str(ii),'(t,s)$'],'FontSize',15,'Interpreter','latex');
+            title(['$\mathbf{x}_',num2str(ii)+psize.no,'(t,s)$'],'FontSize',15,'Interpreter','latex');
         end
         xlabel('$t$','FontSize',15,'Interpreter','latex');
         ylabel('$s$','FontSize',15,'Interpreter','latex');
         zlabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
         set(gca,'XLim',[min(tval),max(tval)]);
+        set(gca,'TickLabelInterpreter','latex');
     end
-    figs = [figs,{fig4},{fig5}];
+    figs = [figs,{fig5}];
 
 elseif ~strcmp(opts.type,'DDE')
     disp('PDE solution is infinite. Unable to plot. Numerical value is not returned.')
