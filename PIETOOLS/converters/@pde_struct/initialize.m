@@ -1285,14 +1285,15 @@ for ii=1:numel(PDE.(obj))
         elseif isfield(term_jj,'loc')
             % The term involves an input --> no spatial position may be 
             % specified.
-            if  (length(term_jj.loc)~=nvars && size(term_jj.loc,2)~=nvars_Rcomp) || ...
+            if  ~isempty(term_jj.loc) &&...
+                ((length(term_jj.loc)~=nvars && size(term_jj.loc,2)~=nvars_Rcomp) || ...
                 (length(term_jj.loc)==nvars && ~all(isequal(polynomial(term_jj.loc(Gvar_order)),PDE.vars(:,1)') | isequal(polynomial(term_jj.loc(Gvar_order)),PDE.vars(:,2)'))) || ...
-                (length(term_jj.loc)==nvars_Rcomp && ~all(isequal(polynomial(term_jj.loc(Rvar_order)),PDE.vars(has_vars_Rcomp,1)') | isequal(polynomial(term_jj.loc(Rvar_order)),PDE.vars(has_vars_Rcomp,2)')))
+                (length(term_jj.loc)==nvars_Rcomp && ~all(isequal(polynomial(term_jj.loc(Rvar_order)),PDE.vars(has_vars_Rcomp,1)') | isequal(polynomial(term_jj.loc(Rvar_order)),PDE.vars(has_vars_Rcomp,2)'))))
                 % A spatial position has been provided which is not on the
                 % interior of the domain.
                 error(['Term "',term_name,'" is not appropriate;',...
                         ' a spatial position ".loc" cannot be specified for terms involving an input.'])
-            elseif isfield(term_jj,'loc')
+            else
                 PDE.(obj){ii}.term{jj} = rmfield(PDE.(obj){ii}.term{jj},'loc');
                 continue
             end
