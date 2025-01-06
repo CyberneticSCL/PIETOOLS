@@ -6,11 +6,13 @@
 %
 % For the example, we consider the following unstable reaction-diffusion
 % equation
-%  PDEs:            x_{t}(t) = x_{ss}(t,s) + 4x(t,s) + w(t);
-%  With BCs           x(t,0) = 0;      x_{s}(t,1) = 0;
-%  and outputs          z(t) = int_{0}^{1} x(t,s) ds + w(t);
-%                       y(t) = x(t,1);
-% Letting v:=(d^2/ds^2)x, We derive an equivalent PIE of the form:
+%  PDEs:     x_{t}(t,s1,s2) = x_{s1s1}(t,s1,s2) +x_{s2s2}(t,s1,s2) + 4x(t,s1,s2) 
+%                                   + s1*(1-s1)*(s2+1)*(3-s2)*w(t);
+%  With BCs        x(t,0,s2) = 0;      x(t,1,s2) = 0;
+%                 x(t,s1,-1) = 0;      x_{s2}(t,s1,1) = 0; 
+%  and outputs          z(t) = int_{0}^{1} int_{-1}^{1} x(t,s1,s2) ds1 ds2 + w(t);
+%                    y(t,s1) = x(t,s1,1);
+% Letting v:=(d^2/ds1^2)(d^2/ds2^2)x, we derive an equivalent PIE of the form:
 %   [T \dot{v}](t,s) = [A v](t,s) + [B1 w](t,s);
 %               z(t) = [C1 v](t)  + [D11 w](t);
 %               y(t) = [C2 v](t)  + [D21 w](t);
@@ -59,19 +61,21 @@
 % authorship, and a brief description of modifications
 %
 % DJ, 12/28/2024: Initial coding;
-% DB, 12/29/2024: Use pde_var objects instead of sys and state
+% DB, 12/29/2024: Use pde_var objects instead of sys and state;
+% DJ, 01/05/2025: Use 2D example;
 
 clc; clear; close all; clear stateNameGenerator;
 %% Declare the system of interest
 % Declare the system as a PDE.
-pvar s t
+pvar s1 s2 t
 pde_var state x input w output z sense y;
-x.vars = s;    x.dom = [0,1];
-PDE = [diff(x,t) == diff(x,s,2) + 4*x + w;
-             z == int(x,s,[0,1]) + w;
-             y == subs(x,s,1);
-             subs(x,s,0) == 0;
-             subs(diff(x,s),s,1) == 0];
+x.vars = [s1;s2];   x.dom = [0,1;-1,1];
+y.vars = s1;        y.dom = [0,1];
+PDE = [diff(x,t) == diff(x,s1,2) +diff(x,s2,2) + 4*x + s1*(1-s1)*(s2+1)*(3-s2)*w;
+               z == int(x,[s1;s2],[0,1;-1,1]) + w;
+               y == subs(x,s2,1);
+               subs(x,s1,0)==0;    subs(x,s1,1)==0;
+               subs(x,s2,-1)==0;   subs(diff(x,s2),s2,1)==0];
 
 % Convert to PIE and extract the relevant operators.
 PIE = convert(PDE,'pie');
@@ -90,7 +94,7 @@ B1 = PIE.B1;  D11 = PIE.D11;  D21 = PIE.D21;
 %dpvar d1 d2;                           % Initialize decision variables
 %prog = lpiprogram([s1;s2], dom, [d1;d2]);  
 % In our case
-prog = lpiprogram(s,[0,1]);
+prog = lpiprogram([s1;s2],[0,1;-1,1]);
 prog.vartable
 PIE.vars
 
@@ -116,9 +120,12 @@ PIE.vars
 % degrees specified by Pdeg, and using additional options opts. Only the
 % field "Pdim" is mandatory.
 Pdim = T.dim(:,1);
-Pdeg = {4,[2,3,4],[2,3,4]};
-opts.sep = 1;
-[prog,P] = poslpivar(prog,Pdim,Pdeg,opts);
+Pdeg = 0;
+P_opts.exclude = [1;
+                  1;1;1;
+                  1;1;1;
+                  0;1;1;1;1;1;1;1;1];
+[prog,P] = poslpivar(prog,Pdim,Pdeg,P_opts);
 % NOTE: "poslpivar" only generates positive semidefinite operators. To
 % ensure strict positivity, add a positive operator eppos*I:
 eppos = 1e-4;
@@ -130,7 +137,7 @@ P = P +eppos*eye(size(P));
 % degrees specified by Pdeg, and using additional options opts. Only the
 % field "Pdim" is mandatory.
 Zdim = C2.dim(:,[2,1]);
-Zdeg = [4,0,0];
+Zdeg = 2;
 [prog,Z] = lpivar(prog,Zdim,Zdeg);
 
 
@@ -141,13 +148,17 @@ Iw = eye(size(B1,2));       Iz = eye(size(C1,1));
 Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21)'*T;
      -D11,              -gam*Iz,  C1;
      -T'*(P*B1+Z*D21),  C1',      (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
-prog = lpi_ineq(prog,-Q);
+clear Q_opts
+Q_opts.psatz = 1;
+prog = lpi_ineq(prog,-Q,Q_opts);
 
 % % lpi_eq
 % Alternatively, we could impose negativity Q<=0 manually using lpi_eq:
-Rdeg =  {6,[4,5,6],[4,5,6]};
-[prog_alt,R] = poslpivar(prog,Q.dim(:,1),Rdeg);
-prog_alt = lpi_eq(prog_alt,Q+R,'symmetric');
+Rdeg = 3;
+[prog_alt,R1] = poslpivar(prog,Q.dim(:,1),Rdeg);
+R_opts.psatz = 1;
+[prog_alt,R2] = poslpivar(prog_alt,Q.dim(:,1),Rdeg-1,R_opts);
+prog_alt = lpi_eq(prog_alt,Q+R1+R2,'symmetric');
 
 
 %% 7.4 Defining an Objective Function
@@ -159,9 +170,9 @@ end
 
 %% 7.5 Solving the Optimization Program
 % Declare solve options and solve
-opts.solver = 'sedumi';         % use SeDuMi to solve the SDP
-opts.simplify = true;           % try to simplify the SDP before solving
-prog_sol = lpisolve(prog,opts);
+solve_opts.solver = 'sedumi';         % use SeDuMi to solve the SDP
+solve_opts.simplify = true;           % try to simplify the SDP before solving
+prog_sol = lpisolve(prog,solve_opts);
 
 
 %% 7.6 Extracting the Solution
@@ -176,7 +187,7 @@ Zval = lpigetsol(prog_sol,Z);
 Lval = getObserver(Pval,Zval);
 
 % % 7.6.2 getController
-% Compute the (optimal) controler gain operator K=Z*P^{-1} 
+% Compute the (optimal) controller gain operator K=Z*P^{-1} 
 % (not relevant here)
 %Kval = getController(Pval,Zval);
 
