@@ -711,6 +711,24 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DNDN_EdgeObserve(GUI,params);
 % 
 %==========================================================================
+%       H2 gain
+%==========================================================================
+%--------------------------------------------------------------------------
+%       Transport Equation Type Systems
+%--------------------------------------------------------------------------
+    case 46
+%  PDE :        x_{t} = x_{s} + (s-s^2)w(t)
+%  With BC     x(s=1) = 0
+%  And output  z(t) = int(x(t,s),s,0,1)
+% H2 norm computed by numerical integration of the definition: 0.1016
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params);
+% 
+%==========================================================================
 %       Additional Examples (Undocumented)
 %==========================================================================
 case 100
@@ -859,8 +877,8 @@ if TERM~=0
 end
 
 % Warn user that executives for 2D examples may take a lot of time.
-if index>=30 && index<=42
-    fprintf('\n Examples 30 through 40 correspond to 2D PDEs, that take significant computational time and memory.\n');
+if index>=30 && index<=45
+    fprintf('\n Examples 30 through 45 correspond to 2D PDEs, that take significant computational time and memory.\n');
 end
 
 % Check if the user wants to run the executive
@@ -1107,7 +1125,7 @@ function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % Subroutine to process the user inputs for the 
 % examples_PDE_library_PIETOOLS function.
 
-n_examples = 45;
+n_examples = 46;
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
@@ -1127,13 +1145,13 @@ params = {};
 
 % Collect the inputs
 if nargin1==0 %<-- If there is no input, pause the script and let the user specify an example
-    userinp = input('\n Select an example (1 through 40) to convert \n ---> ','s');
+    userinp = input('\n Select an example (1 through 46) to convert \n ---> ','s');
     varargin0 = split(userinp,[" ",","]);
     index = str2double(varargin0{1});
     if ~isnan(index) && (index>=0 && index<=n_examples)
         varargin0{1} = index;
     else
-        userinp = input('\n No existing example specified... Please input an integer value 1 through 29 to extract the example \n ---> ','s');
+        userinp = input('\n No existing example specified... Please input an integer value 1 through 46 to extract the example \n ---> ','s');
         varargin0 = split(userinp,[" ",","]);
         index = str2double(varargin0{1});
         if isnan(index)

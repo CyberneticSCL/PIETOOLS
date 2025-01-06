@@ -46,7 +46,8 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/01/2024 - Initial coding
-
+% DB, 24/12/2024- Add H2 executives
+% DB, 5/01/2025- Revert to non-coercive estimator and controllers
 
 % % % There are two ways to use this function: 
 if nargin<3
@@ -60,8 +61,8 @@ if isa(lpi,'function_handle')
     % Do nothing here...
 elseif ~(isa(lpi,'string') || isa(lpi,'char'))
     error("The input 'lpi' must be a string value or a function handle.");
-elseif ~ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','custom'})
-    error("Specified LPI type must be one of 'stability', 'stability-dual', 'l2gain', 'l2gain-dual', 'hinf-observer', or 'hinf-controller'.")
+elseif ~ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','h2norm','h2norm-dual','h2-observer','h2-controller','custom'})
+    error("Specified LPI type must be one of 'stability', 'stability-dual', 'l2gain', 'l2gain-dual', 'hinf-observer', 'hinf-controller', 'h2norm', 'h2norm-dual', 'h2-observer', or 'h2-controller'.")
 end
 
 % Check what settings to use
@@ -104,6 +105,18 @@ switch lpi
     case 'hinf-controller'
         [prog_sol, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,opts);
         varargout{1} = K; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
+    case 'h2norm'
+        [prog_sol, W, gamma, R, Q] = PIETOOLS_H2_norm_o(PIE,opts);
+        varargout{1} = W; varargout{2} = gamma; varargout{3} = R;varargout{4} = Q;
+    case 'h2norm-dual'
+        [prog_sol, W, gamma, R, Q] = PIETOOLS_H2_norm_c(PIE,opts);
+        varargout{1} = W; varargout{2} = gamma; varargout{3} = R;varargout{4} = Q;
+    case 'h2-observer'
+        [prog_sol, L, gamma, P, Z, W] = PIETOOLS_H2_estimator(PIE,opts);
+        varargout{1} = L; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z;varargout{5} = W;
+    case 'h2-controller'
+        [prog_sol, K, gamma, P, Z, W] = PIETOOLS_H2_control(PIE,opts);
+        varargout{1} = K;  varargout{2} = gamma; varargout{3} = P; varargout{4} = Z;varargout{5} = W;  
     otherwise
         [prog_sol, vout] = lpi(PIE,opts);
         varargout = cell(1,length(vout));

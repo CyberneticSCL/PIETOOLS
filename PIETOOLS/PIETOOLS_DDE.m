@@ -26,6 +26,7 @@
 close all; clear; %path(pathdef); 
 clc;
 stability=0; stability_dual=0; Hinf_gain=0; Hinf_gain_dual=0; Hinf_control=0; Hinf_estimator=0;
+H2_norm=0;H2_norm_dual=0;H2_estimator=0;H2_control=0;
 DDE_minimal_rep=1;
 % sosineq_on=1; 
 %
@@ -261,5 +262,16 @@ end
 if Hinf_estimator==1
     [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
 end
-
+if H2_norm==1
+    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_o(PIE,settings);
+end
+if H2_norm_dual==1
+    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_c(PIE,settings);
+end
+if H2_control==1
+    [prog, K, gamma, P, Z, W] = PIETOOLS_H2_controller(PIE,settings);
+end
+if H2_estimator==1
+    [prog, L, gamma, P, Z,W] = PIETOOLS_H2_estimator(PIE,settings);
+end
 

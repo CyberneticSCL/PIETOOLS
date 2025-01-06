@@ -71,7 +71,13 @@
 %
 % DJ - 11/30/2024: Update to use LPI programming structure;
 
-function [prog, Lop, gam, P, Z] = PIETOOLS_H2_observe(PIE, settings)
+function [prog, Lop, gam, P, Z, W] = PIETOOLS_H2_estimator(PIE, settings)
+
+% Extract PIE operators necessary for the executive.
+Top = PIE.T;        
+Aop = PIE.A;        B1op = PIE.B1;
+C1op = PIE.C1;   
+C2op = PIE.C2;   D21op = PIE.D21;
 
 if PIE.dim==2
     error('Optimal Estimation of 2D PIEs is currently not supported.')
@@ -111,17 +117,13 @@ fprintf('\n --- Executing Search for H_2 Optimal Estimator --- \n')
 
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2).PIE.dom);      % Initialize the program structure
-X=PIE.A.I;                         % retrieve the domain from Aop
-nx1=PIE.A.dim(1,1);                % retrieve the number of ODE states from Aop
-nx2=PIE.A.dim(2,1);                % retrieve the number of distributed states from Aop
-
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The most common usage of this script is to find the minimum hinf gain bound
 % In this case, we define the hinf norm variable which needs to be minimized
 dpvar gam;
 prog = lpidecvar(prog, gam); %this sets gamma as decision var
-%prog = lpi_ineq(prog, gam); %this ensures gamma is lower bounded
+prog = lpi_ineq(prog, gam); %this ensures gamma is lower bounded
 prog = lpisetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,31 +142,23 @@ if override1~=1
 else
     Pop=P1op;
 end
-
 % enforce strict positivity on the operator
-Pop.P = Pop.P+eppos*eye(nx1);
-Pop.R.R0 = Pop.R.R0+eppos*eye(nx2);  
+Pop=Pop+eppos;
 
-[prog,Zop] = lpivar(prog,[PIE.T.dim(:,1),PIE.C2.dim(:,1)], ddZ);
-[prog,Wop] = lpivar(prog,[PIE.B1.dim(:,2),PIE.B1.dim(:,2)], ddZ);
-
+[prog,Zop] = lpivar(prog,[PIE.T.dim(:,1),PIE.C2.dim(:,1)],ddZ);
+dimW=B1op.dim(:,2);
+[prog,Wm] = poslpivar(prog,dimW);
+Wm=Wm+1e-2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% opvar Iw Iz;
-% Iw.dim = [PIE.B1.dim(:,2),PIE.B1.dim(:,2)];
-% Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
-% Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
-% Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
-
-
-Dop = [(Pop*PIE.A+Zop*PIE.C2)'*(PIE.T)+PIE.T'*(Pop*PIE.A+Zop*PIE.C2)+PIE.C1'*PIE.C1+epneg*PIE.T'*PIE.T]; 
-
-Dop2 = [Wop -(PIE.B1'*Pop+PIE.D21'*Zop'); -(PIE.B1'*Pop+PIE.D21'*Zop')' Pop];
-
-traceVal = trace(Wop.P);
-% ensuring scalar inequality gam>trace
-prog = lpi_ineq(prog, gam-traceVal);
+% STEP 2: Using the observability gramian
+disp('- Constructing the Inequality Constraints...');
+Dneg=[-gam          C1op
+            C1op' Top'*Pop*Aop+Aop'*Pop*Top+Top'*Zop*C2op+C2op'*Zop'*Top];
+D12=B1op'*Pop+D21op'*Zop';
+Dpos=[Wm -D12
+            -D12' Pop];
+traceVal = trace(Wm.P);
 
 disp('- Parameterize the derivative inequality...');
 
@@ -173,38 +167,41 @@ disp('- Parameterize the derivative inequality...');
 % STEP 3: Impose Negativity Constraint. There are two methods, depending on
 % the options chosen
 %
-disp('- Enforcing the Negativity Constraint...');
+disp('- Enforcing the Inequalities Constraints...');
+if sosineq_on
+    disp('  - Using lpi_ineq...');
+    prog = lpi_ineq(prog,-Dneg,opts);
+    prog = lpi_ineq(prog,Dpos,opts);
+else
     disp('  - Using an Equality constraint...');
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%% The old way, where you have to specify everything
-    [prog, De1op] = poslpivar(prog, PIE.T.dim(:,1), dd2, options2);
-    [prog, De3op] = poslpivar(prog, Dop2.dim(:,1), dd2, options2);
-   [prog, De2op] = poslpivar(prog,PIE.T.dim(:,1), dd3, options3);
-   [prog, De4op] = poslpivar(prog, Dop2.dim(:,1), dd3, options3);
-   Deop=De1op+De2op;
-   Deop2=De3op+De4op;
-    % derivative negativity
-    % constraints
-    prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
-    prog = lpi_eq(prog,Deop2-Dop2,'symmetric'); %Dop2=Deop2
-
-
+    [prog, De1op] = poslpivar(prog, Dneg.dim, dd2, options2);
+    [prog, De3op] = poslpivar(prog, Dpos.dim, dd2, options2);
+    
+    if override2~=1
+        [prog, De2op] = poslpivar(prog, Dneg.dim, dd3, options3);
+        Deop=De1op+De2op;
+         [prog, De4op] = poslpivar(prog, Dpos.dim, dd3, options3);
+        Deopp=De3op+De4op;      
+    else
+        Deop=De1op;
+        Deopp=De3op;
+    end
+    prog = lpi_eq(prog,Deop+Dneg,'symmetric'); %Dneg=-Deop
+    prog = lpi_eq(prog,Deopp-Dpos,'symmetric'); %Dpos=Deopp
+end
+% ensuring scalar inequality gam>trace
+prog = lpi_ineq(prog, gam-traceVal);
 %solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
-prog = lpisolve(prog,sos_opts); 
-
-disp('The closed-loop H-2 norm of the given system is upper bounded by:')
-if ~isreal(gam)
-    disp(sqrt(double(lpigetsol(prog,gam)))); % check the H2 norm, if solved successfully
-else 
-    disp(gam);
+prog_sol = lpisolve(prog,sos_opts); 
+P = lpigetsol(prog_sol,Pop);
+W = lpigetsol(prog_sol,Wm);
+Z = lpigetsol(prog_sol,Zop);
+if nargin<=2 || ~isfield(options,'h2')
+        gam = double(lpigetsol(prog_sol,gam));
+        disp('The H2 norm of the given system is upper bounded by:')
+         disp(gam);
 end
-
-gam = sqrt(double(lpigetsol(prog,gam)));
-
-P = getsol_lpivar(prog,Pop);
-Z = getsol_lpivar(prog,Zop);
-
 Lop = getObserver(P,Z);
 % end
 
