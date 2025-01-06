@@ -53,28 +53,39 @@ end
 
 
 % % % Construct the PDE.
-%%% Term-based input format
-PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [a,b;c,d];
-PDE_t.x{1}.size = ne;
-PDE_t.w{1}.vars = [s1;s2];   PDE_t.w{1}.dom = [a,b;c,d];
-PDE_t.w{1}.size = ne;
-PDE_t.z{1}.vars = [];
-PDE_t.z{1}.size = ne;
+%%% pde_var input format
+clear stateNameGenerator
+x = pde_var(ne,[s1;s2],[a,b;c,d]);
+w = pde_var('in',ne,[s1;s2],[a,b;c,d]);
+z = pde_var('out',ne);
+PDE_t = [diff(x,'t')==r*x+nu*(diff(x,s1,2)+diff(x,s2,2))+w;
+         z==int(x,[s1;s2],[a,b;c,d]);
+         subs(x,s1,a)==0;       subs(x,s1,b)==0;
+         subs(x,s2,c)==0;       subs(x,s2,d)==0];
 
-% PDE: x_{t} = [r, c1, c2] * [x; x_{s1s1}; x_{s2s2}] + w
-PDE_t.x{1}.term{1}.D = [0,0; 2,0; 0,2];
-PDE_t.x{1}.term{1}.C = [r*eye(ne), nu*eye(ne), nu*eye(ne)];
 
-PDE_t.x{1}.term{2}.w = 1;
-
-% OUT: z(t) = int_{a}^{b} int_{c}^{d} x(t,s1,s2) ds2 ds1
-PDE_t.z{1}.term{1}.x = 1;
-PDE_t.z{1}.term{1}.I = {[a,b];[c,d]};
-
-% BC1: 0 = x(s1,c)                     % BC3: 0 = x(s1,d)
-PDE_t.BC{1}.term{1}.loc = [s1,c];      PDE_t.BC{3}.term{1}.loc = [s1,d];
-% BC2: 0 = x(a,s2)                     % BC4: 0 = x(b,s2)
-PDE_t.BC{2}.term{1}.loc = [a,s2];      PDE_t.BC{4}.term{1}.loc = [b,s2];
+% %%% Term-based input format
+% PDE_t.x{1}.vars = [s1;s2];   PDE_t.x{1}.dom = [a,b;c,d];
+% PDE_t.x{1}.size = ne;
+% PDE_t.w{1}.vars = [s1;s2];   PDE_t.w{1}.dom = [a,b;c,d];
+% PDE_t.w{1}.size = ne;
+% PDE_t.z{1}.vars = [];
+% PDE_t.z{1}.size = ne;
+% 
+% % PDE: x_{t} = [r, c1, c2] * [x; x_{s1s1}; x_{s2s2}] + w
+% PDE_t.x{1}.term{1}.D = [0,0; 2,0; 0,2];
+% PDE_t.x{1}.term{1}.C = [r*eye(ne), nu*eye(ne), nu*eye(ne)];
+% 
+% PDE_t.x{1}.term{2}.w = 1;
+% 
+% % OUT: z(t) = int_{a}^{b} int_{c}^{d} x(t,s1,s2) ds2 ds1
+% PDE_t.z{1}.term{1}.x = 1;
+% PDE_t.z{1}.term{1}.I = {[a,b];[c,d]};
+% 
+% % BC1: 0 = x(s1,c)                     % BC3: 0 = x(s1,d)
+% PDE_t.BC{1}.term{1}.loc = [s1,c];      PDE_t.BC{3}.term{1}.loc = [s1,d];
+% % BC2: 0 = x(a,s2)                     % BC4: 0 = x(b,s2)
+% PDE_t.BC{2}.term{1}.loc = [a,s2];      PDE_t.BC{4}.term{1}.loc = [b,s2];
 
 
 if GUI~=0
