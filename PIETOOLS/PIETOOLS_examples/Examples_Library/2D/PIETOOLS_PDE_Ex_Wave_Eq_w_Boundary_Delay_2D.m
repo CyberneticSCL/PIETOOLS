@@ -66,62 +66,81 @@ end
 
 
 % % % Construct the PDE.
-%%% Term-based input format
-% Initialize the state variables and input.
-pde_struct PDE_t;
-PDE_t.x{1}.vars = [];
-PDE_t.x{2}.vars = s1;       PDE_t.x{2}.dom = [a,b];
-PDE_t.x{3}.vars = s1;       PDE_t.x{3}.dom = [a,b];
-PDE_t.x{3}.diff = 2;    % x3 must be 2nd order differentiable wrt s1
-PDE_t.x{4}.vars = s2;       PDE_t.x{4}.dom = [0,1];
-PDE_t.x{5}.vars = s2;       PDE_t.x{5}.dom = [0,1];
-
-% PDE: x1_{t}(t) = x2_{s1}(t,1)
-PDE_t.x{1}.term{1}.x = 2;
-PDE_t.x{1}.term{1}.D = 1;
-PDE_t.x{1}.term{1}.loc = b;
-
-% PDE: x2_{t}(t,s1) = x3(t,s1)
-PDE_t.x{2}.term{1}.x = 3;
-
-% PDE: x3_{t}(t,s1) = x2_{s1s1}(t,s1);
-PDE_t.x{3}.term{1}.x = 2;
-PDE_t.x{3}.term{1}.D = 2;
-
-% PDE: x4_{t}(t,s2) = -(1/tau)*x4_{s2}(t,s2);
-PDE_t.x{4}.term{1}.x = 4;
-PDE_t.x{4}.term{1}.D = 1;
-PDE_t.x{4}.term{1}.C = -1/tau;
-
-% PDE: x5_{t}(t,s2) = -(1/tau)*x5_{s2}(t,s2);
-PDE_t.x{5}.term{1}.x = 5;
-PDE_t.x{5}.term{1}.D = 1;
-PDE_t.x{5}.term{1}.C = -1/tau;
+%%% pde_var input format
+clear stateNameGenerator
+x1 = pde_var();
+x2 = pde_var(s1,[a,b]);
+x3 = pde_var(s1,[a,b],2);       % x3 must be 2nd order differentiable wrt s1
+x4 = pde_var(s2,[0,1]);
+x5 = pde_var(s2,[0,1]);
+PDE_t = [diff(x1,'t')==subs(diff(x2,s1),s1,b);
+         diff(x2,'t')==x3;
+         diff(x3,'t')==diff(x2,s1,2);
+         diff(x4,'t')==-(1/tau)*diff(x4,s2);
+         diff(x5,'t')==-(1/tau)*diff(x5,s2);
+         subs([x2;x3],s1,a)==0;
+         x1==-k*(1-mu)*subs(x2,s1,1)-k*mu*subs(x4,s2,1);
+         subs(diff(x2,s1),s1,b)==-k*(1-mu)*subs(x3,s1,1)-k*mu*subs(x5,s2,1);
+         subs(x4,s2,0)==subs(x2,s1,b);
+         subs(x5,s2,0)==subs(x3,s1,b)];
 
 
-% BC1: x2(t,s1=a) = 0;              BC4: x3(t,s1=a) = 0;
-PDE_t.BC{1}.term{1}.x = 2;          PDE_t.BC{4}.term{1}.x = 3;
-PDE_t.BC{1}.term{1}.loc = a;        PDE_t.BC{4}.term{1}.loc = a;
-
-% BC2: x1(t) = -k*(1-mu)*x2(t,s1=b) - k*mu*x4(t,s2=1)
-PDE_t.BC{2}.term{1}.x = 1;  PDE_t.BC{2}.term{2}.x = 2;        PDE_t.BC{2}.term{3}.x = 4;
-                            PDE_t.BC{2}.term{2}.C = k*(1-mu); PDE_t.BC{2}.term{3}.C = k*mu;
-                            PDE_t.BC{2}.term{2}.loc = b;      PDE_t.BC{2}.term{3}.loc = 1;
-
-% BC3: x2_{s1}(t,s1=b) = -k*(1-mu)*x3(t,s1=b) - k*mu*x5(t,s2=1)
-PDE_t.BC{3}.term{1}.x = 2;    PDE_t.BC{3}.term{2}.x = 3;        PDE_t.BC{3}.term{3}.x = 5;
-PDE_t.BC{3}.term{1}.D = 1;    PDE_t.BC{3}.term{2}.C = k*(1-mu); PDE_t.BC{3}.term{3}.C = k*mu;
-PDE_t.BC{3}.term{1}.loc = b;  PDE_t.BC{3}.term{2}.loc = b;      PDE_t.BC{3}.term{3}.loc = 1;
-
-% BC5: (Sewing condition) x4(t,s2=0) = x2(t,s1=b);
-PDE_t.BC{5}.term{1}.x = 4;      PDE_t.BC{5}.term{2}.x = 2;
-PDE_t.BC{5}.term{1}.loc = 0;    PDE_t.BC{5}.term{2}.loc = b;
-                                PDE_t.BC{5}.term{2}.C = -1;
-
-% BC6: (Sewing condition) x5(t,s2=0) = x3(t,s1=b);
-PDE_t.BC{6}.term{1}.x = 5;      PDE_t.BC{6}.term{2}.x = 3;
-PDE_t.BC{6}.term{1}.loc = 0;    PDE_t.BC{6}.term{2}.loc = b;
-                                PDE_t.BC{6}.term{2}.C = -1;
+% %%% Term-based input format
+% % Initialize the state variables and input.
+% pde_struct PDE_t;
+% PDE_t.x{1}.vars = [];
+% PDE_t.x{2}.vars = s1;       PDE_t.x{2}.dom = [a,b];
+% PDE_t.x{3}.vars = s1;       PDE_t.x{3}.dom = [a,b];
+% PDE_t.x{3}.diff = 2;    % x3 must be 2nd order differentiable wrt s1
+% PDE_t.x{4}.vars = s2;       PDE_t.x{4}.dom = [0,1];
+% PDE_t.x{5}.vars = s2;       PDE_t.x{5}.dom = [0,1];
+% 
+% % PDE: x1_{t}(t) = x2_{s1}(t,1)
+% PDE_t.x{1}.term{1}.x = 2;
+% PDE_t.x{1}.term{1}.D = 1;
+% PDE_t.x{1}.term{1}.loc = b;
+% 
+% % PDE: x2_{t}(t,s1) = x3(t,s1)
+% PDE_t.x{2}.term{1}.x = 3;
+% 
+% % PDE: x3_{t}(t,s1) = x2_{s1s1}(t,s1);
+% PDE_t.x{3}.term{1}.x = 2;
+% PDE_t.x{3}.term{1}.D = 2;
+% 
+% % PDE: x4_{t}(t,s2) = -(1/tau)*x4_{s2}(t,s2);
+% PDE_t.x{4}.term{1}.x = 4;
+% PDE_t.x{4}.term{1}.D = 1;
+% PDE_t.x{4}.term{1}.C = -1/tau;
+% 
+% % PDE: x5_{t}(t,s2) = -(1/tau)*x5_{s2}(t,s2);
+% PDE_t.x{5}.term{1}.x = 5;
+% PDE_t.x{5}.term{1}.D = 1;
+% PDE_t.x{5}.term{1}.C = -1/tau;
+% 
+% 
+% % BC1: x2(t,s1=a) = 0;              BC4: x3(t,s1=a) = 0;
+% PDE_t.BC{1}.term{1}.x = 2;          PDE_t.BC{4}.term{1}.x = 3;
+% PDE_t.BC{1}.term{1}.loc = a;        PDE_t.BC{4}.term{1}.loc = a;
+% 
+% % BC2: x1(t) = -k*(1-mu)*x2(t,s1=b) - k*mu*x4(t,s2=1)
+% PDE_t.BC{2}.term{1}.x = 1;  PDE_t.BC{2}.term{2}.x = 2;        PDE_t.BC{2}.term{3}.x = 4;
+%                             PDE_t.BC{2}.term{2}.C = k*(1-mu); PDE_t.BC{2}.term{3}.C = k*mu;
+%                             PDE_t.BC{2}.term{2}.loc = b;      PDE_t.BC{2}.term{3}.loc = 1;
+% 
+% % BC3: x2_{s1}(t,s1=b) = -k*(1-mu)*x3(t,s1=b) - k*mu*x5(t,s2=1)
+% PDE_t.BC{3}.term{1}.x = 2;    PDE_t.BC{3}.term{2}.x = 3;        PDE_t.BC{3}.term{3}.x = 5;
+% PDE_t.BC{3}.term{1}.D = 1;    PDE_t.BC{3}.term{2}.C = k*(1-mu); PDE_t.BC{3}.term{3}.C = k*mu;
+% PDE_t.BC{3}.term{1}.loc = b;  PDE_t.BC{3}.term{2}.loc = b;      PDE_t.BC{3}.term{3}.loc = 1;
+% 
+% % BC5: (Sewing condition) x4(t,s2=0) = x2(t,s1=b);
+% PDE_t.BC{5}.term{1}.x = 4;      PDE_t.BC{5}.term{2}.x = 2;
+% PDE_t.BC{5}.term{1}.loc = 0;    PDE_t.BC{5}.term{2}.loc = b;
+%                                 PDE_t.BC{5}.term{2}.C = -1;
+% 
+% % BC6: (Sewing condition) x5(t,s2=0) = x3(t,s1=b);
+% PDE_t.BC{6}.term{1}.x = 5;      PDE_t.BC{6}.term{2}.x = 3;
+% PDE_t.BC{6}.term{1}.loc = 0;    PDE_t.BC{6}.term{2}.loc = b;
+%                                 PDE_t.BC{6}.term{2}.C = -1;
 
                                 
 if GUI~=0

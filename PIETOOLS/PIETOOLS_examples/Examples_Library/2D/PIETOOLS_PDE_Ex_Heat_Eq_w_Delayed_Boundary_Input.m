@@ -37,7 +37,7 @@ loc = mfilename('fullpath');
 root = fileparts(loc);
 
 % Initialize variables
-pvar s1 s2
+pvar s1 s2 t
 
 %%% Executive Function:
 evalin('base','stability = 1;');
@@ -56,49 +56,69 @@ end
 % % % Construct the PDE.
 expand_delays = false;
 if ~expand_delays
-    %%% Term-baed input format with delay.
-    PDE_t.x{1}.vars = s1;       PDE_t.x{1}.dom = [0,1];
-    PDE_t.u{1}.vars = [];   % Input does not vary in space.
-    
-    % PDE: x1_{t} = x1_{s1s1} + lam * x1;
-    PDE_t.x{1}.term{1}.x = [1;1];
-    PDE_t.x{1}.term{1}.D = [2; 0];
-    PDE_t.x{1}.term{1}.C = [eye(ne), lam*eye(ne)];
-    
-    % BC1: 0 = x1(t,s1=0)
-    PDE_t.BC{1}.term{1}.x = 1;
-    PDE_t.BC{1}.term{1}.loc = 0;
-    % BC2: 0 = x1(t,s1=1) - u(t-tau)
-    PDE_t.BC{2}.term{1}.x = 1;          PDE_t.BC{2}.term{2}.u = 1;
-    PDE_t.BC{2}.term{1}.loc = 1;        PDE_t.BC{2}.term{2}.delay = tau;
-                                        PDE_t.BC{2}.term{2}.C = -1;
+    %%% pde_var input format with delay
+    clear stateNameGenerator
+    pde_var x control u
+    x.vars = s1;        x.dom = [0,1];
+    PDE_t = [diff(x,t)==diff(x,s1,2)+lam*x;
+             subs(x,s1,0)==0;
+             subs(x,s1,1)==subs(u,t,t-tau)];
+
+
+    % %%% Term-based input format with delay.
+    % PDE_t.x{1}.vars = s1;       PDE_t.x{1}.dom = [0,1];
+    % PDE_t.u{1}.vars = [];   % Input does not vary in space.
+    % 
+    % % PDE: x1_{t} = x1_{s1s1} + lam * x1;
+    % PDE_t.x{1}.term{1}.x = [1;1];
+    % PDE_t.x{1}.term{1}.D = [2; 0];
+    % PDE_t.x{1}.term{1}.C = [eye(ne), lam*eye(ne)];
+    % 
+    % % BC1: 0 = x1(t,s1=0)
+    % PDE_t.BC{1}.term{1}.x = 1;
+    % PDE_t.BC{1}.term{1}.loc = 0;
+    % % BC2: 0 = x1(t,s1=1) - u(t-tau)
+    % PDE_t.BC{2}.term{1}.x = 1;          PDE_t.BC{2}.term{2}.u = 1;
+    % PDE_t.BC{2}.term{1}.loc = 1;        PDE_t.BC{2}.term{2}.delay = tau;
+    %                                     PDE_t.BC{2}.term{2}.C = -1;
     
 else
-    %%% Term-based input format
-    % Initialize the state variables and input.
-    PDE_t.x{1}.vars = s1;       PDE_t.x{1}.dom = [0,1];
-    PDE_t.x{2}.vars = s2;       PDE_t.x{2}.dom = [1,1+tau];
-    PDE_t.u{1}.vars = [];   % Input does not vary in space.
+    %%% pde_var input format
+    clear stateNameGenerator
+    pde_var x1 x2 control u
+    x1.vars = s1;       x1.dom = [0,1];
+    x2.vars = s2;       x2.dom = [1,1+tau];
+    PDE_t = [diff(x1,t)==diff(x1,s1,2)+lam*x1;
+             diff(x2,t)==diff(x2,s2);
+             subs(x1,s1,0)==0;  subs(x1,s1,1)==subs(x2,s2,1);
+             subs(x2,s2,1+tau)==u];
 
-    % PDE: x1_{t} = x1_{s1s1} + lam * x1;
-    PDE_t.x{1}.term{1}.x = [1;1];
-    PDE_t.x{1}.term{1}.D = [2; 0];
-    PDE_t.x{1}.term{1}.C = [eye(ne), lam*eye(ne)];
 
-    % PDE: x2_{t} = x2_{s2}
-    PDE_t.x{2}.term{1}.x = 2;
-    PDE_t.x{2}.term{1}.D = 1;
-
-    % BC1: 0 = x1(s1=0)
-    PDE_t.BC{1}.term{1}.x = 1;
-    PDE_t.BC{1}.term{1}.loc = 0;
-    % BC2: 0 = x1(s1=1) - x2(s2=1)
-    PDE_t.BC{2}.term{1}.x = 1;          PDE_t.BC{2}.term{2}.x = 2;
-    PDE_t.BC{2}.term{1}.loc = 1;        PDE_t.BC{2}.term{2}.loc = 1;
-                                        PDE_t.BC{2}.term{2}.C = -1;
-    % BC3: 0 = x2(s2=1+D) - u;
-    PDE_t.BC{3}.term{1}.x = 2;          PDE_t.BC{3}.term{2}.u = 1;
-    PDE_t.BC{3}.term{1}.loc = 1+tau;      PDE_t.BC{3}.term{2}.C = -1;
+    % %%% Term-based input format
+    % % Initialize the state variables and input.
+    % PDE_t.x{1}.vars = s1;       PDE_t.x{1}.dom = [0,1];
+    % PDE_t.x{2}.vars = s2;       PDE_t.x{2}.dom = [1,1+tau];
+    % PDE_t.u{1}.vars = [];   % Input does not vary in space.
+    % 
+    % % PDE: x1_{t} = x1_{s1s1} + lam * x1;
+    % PDE_t.x{1}.term{1}.x = [1;1];
+    % PDE_t.x{1}.term{1}.D = [2; 0];
+    % PDE_t.x{1}.term{1}.C = [eye(ne), lam*eye(ne)];
+    % 
+    % % PDE: x2_{t} = x2_{s2}
+    % PDE_t.x{2}.term{1}.x = 2;
+    % PDE_t.x{2}.term{1}.D = 1;
+    % 
+    % % BC1: 0 = x1(s1=0)
+    % PDE_t.BC{1}.term{1}.x = 1;
+    % PDE_t.BC{1}.term{1}.loc = 0;
+    % % BC2: 0 = x1(s1=1) - x2(s2=1)
+    % PDE_t.BC{2}.term{1}.x = 1;          PDE_t.BC{2}.term{2}.x = 2;
+    % PDE_t.BC{2}.term{1}.loc = 1;        PDE_t.BC{2}.term{2}.loc = 1;
+    %                                     PDE_t.BC{2}.term{2}.C = -1;
+    % % BC3: 0 = x2(s2=1+D) - u;
+    % PDE_t.BC{3}.term{1}.x = 2;          PDE_t.BC{3}.term{2}.u = 1;
+    % PDE_t.BC{3}.term{1}.loc = 1+tau;      PDE_t.BC{3}.term{2}.C = -1;
 end
 
 if GUI~=0
