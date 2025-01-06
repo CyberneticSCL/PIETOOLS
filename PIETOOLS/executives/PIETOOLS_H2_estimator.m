@@ -71,7 +71,7 @@
 %
 % DJ - 11/30/2024: Update to use LPI programming structure;
 
-function [prog, Lop, gam, R, Q, Z, W] = PIETOOLS_H2_estimator(PIE, settings)
+function [prog, Lop, gam, P, Z, W] = PIETOOLS_H2_estimator(PIE, settings)
 
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;        
@@ -138,16 +138,14 @@ disp('- Declaring Positive Storage Operator variable and indefinite Estimator op
 
 if override1~=1
     [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1), dd12, options12);
-    Rop=P1op+P2op;
+    Pop=P1op+P2op;
 else
-    Rop=P1op;
+    Pop=P1op;
 end
 % enforce strict positivity on the operator
-Rop=Rop+eppos;
+Pop=Pop+eppos;
 
 [prog,Zop] = lpivar(prog,[PIE.T.dim(:,1),PIE.C2.dim(:,1)],ddZ);
-dim=Top.dim;
-[prog,Qop] = lpivar(prog,dim,ddZ);
 dimW=B1op.dim(:,2);
 [prog,Wm] = poslpivar(prog,dimW);
 Wm=Wm+1e-2;
@@ -156,10 +154,10 @@ Wm=Wm+1e-2;
 % STEP 2: Using the observability gramian
 disp('- Constructing the Inequality Constraints...');
 Dneg=[-gam          C1op
-            C1op' Qop'*Aop+Aop'*Qop+Zop*C2op+C2op'*Zop'];
-D12=B1op'*Qop+D21op'*Zop';
-Dpos=[Wm D12
-            D12' Rop];
+            C1op' Top'*Pop*Aop+Aop'*Pop*Top+Top'*Zop*C2op+C2op'*Zop'*Top];
+D12=B1op'*Pop+D21op'*Zop';
+Dpos=[Wm -D12
+            -D12' Pop];
 traceVal = trace(Wm.P);
 
 disp('- Parameterize the derivative inequality...');
@@ -196,8 +194,7 @@ prog = lpi_ineq(prog, gam-traceVal);
 %solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
 prog_sol = lpisolve(prog,sos_opts); 
-R = lpigetsol(prog_sol,Rop);
-Q = lpigetsol(prog_sol,Qop);
+P = lpigetsol(prog_sol,Pop);
 W = lpigetsol(prog_sol,Wm);
 Z = lpigetsol(prog_sol,Zop);
 if nargin<=2 || ~isfield(options,'h2')
@@ -205,7 +202,7 @@ if nargin<=2 || ~isfield(options,'h2')
         disp('The H2 norm of the given system is upper bounded by:')
          disp(gam);
 end
-Lop = getObserver(Q,Z);
+Lop = getObserver(P,Z);
 % end
 
 end

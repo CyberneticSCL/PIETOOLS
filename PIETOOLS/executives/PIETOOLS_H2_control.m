@@ -72,7 +72,7 @@
 % DJ - 11/30/2024: Update to use LPI programming structure;
 % DB, 24/12/2024- Update to non-coercive version
 
-function [prog, Kop, gam, R, Q, Z, W] = PIETOOLS_H2_control(PIE, settings)
+function [prog, Kop, gam, P, Z, W] = PIETOOLS_H2_control(PIE, settings)
 
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;         B1op = PIE.B1;
@@ -138,16 +138,16 @@ disp('- Declaring Positive Storage Operator variable and indefinite Estimator op
 
 if override1~=1
     [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1), dd12, options12);
-    Rop=P1op+P2op;
+    Pop=P1op+P2op;
 else
-    Rop=P1op;
+    Pop=P1op;
 end
 
-% enforce strict positivity on the operator
-Rop=Rop+eppos;
-dim=Top.dim;
-[prog,Zop] = lpivar(prog,[PIE.B2.dim(:,2),dim(:,2)], ddZ);
-[prog,Qop] = lpivar(prog,dim,ddZ);
+% Enforce strict positivity of the operator
+Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
+Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom); 
+
+[prog,Zop] = lpivar(prog,[PIE.B2.dim(:,2),PIE.T.dim(:,1)], ddZ);
 dimW=C1op.dim(:,1);
 [prog,Wm] = poslpivar(prog,dimW);
 Wm=Wm+1e-2;
@@ -156,13 +156,11 @@ Wm=Wm+1e-2;
 % STEP 2: Using the observability gramian
 disp('- Constructing the Inequality Constraints...');
 Dneg=[-gam          B1op'
-            B1op Qop'*Aop'+Aop*Qop+B2op*Zop+Zop'*B2op'];
-Dp12=C1op*Qop+D12op*Zop;
+            B1op     Top*Pop*Aop'+Aop*Pop*Top+B2op*Zop+Zop'*B2op'];
+Dp12=C1op*Pop+D12op*Zop;
 Dpos=[Wm Dp12
-            Dp12' Rop];
+            Dp12' Pop];
 traceVal = trace(Wm.P);
-% ensuring scalar inequality gam>trace
-prog = lpi_ineq(prog, gam-traceVal);
 
 disp('- Parameterize the derivative inequality...');
 
@@ -198,8 +196,7 @@ prog = lpi_ineq(prog, gam-traceVal);
 %solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
 prog_sol = lpisolve(prog,sos_opts); 
-R = lpigetsol(prog_sol,Rop);
-Q = lpigetsol(prog_sol,Qop);
+P = lpigetsol(prog_sol,Pop);
 W = lpigetsol(prog_sol,Wm);
 Z =  lpigetsol(prog_sol,Zop);
 if nargin<=2 || ~isfield(options,'h2')
@@ -207,7 +204,7 @@ if nargin<=2 || ~isfield(options,'h2')
         disp('The H2 norm of the given system is upper bounded by:')
          disp(gam);
 end
-Kop = getController(Q,Z);
+Kop = getController(P,Z);
 % end
 
 end
