@@ -56,7 +56,12 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding SS - 2024
+% Initial coding MP,SS - 10_01_2020
+% MP - 05/30/2021: changed to new PIE data structure;
+% SS - 06/01/2021: changed to function added settings input;
+% DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
+%                   avoid conflict with MATLAB gamma function;
+% DJ - 10/19/2024: Update to use new LPI programming structure;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -74,8 +79,8 @@ if PIE.dim==2
 end
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;        Twop = PIE.Tw;      Tuop = PIE.Tu;
-Aop = PIE.A;        B1op = PIE.B1;      B2op = PIE.Bu;
-C1op = PIE.C1;      D11op = PIE.D11;    D12op = PIE.D12;
+Aop = PIE.A;        Bwop = PIE.B1;      Buop = PIE.Bu;
+Czop = PIE.C1;      Dzwop = PIE.D11;    Dzuop = PIE.Dzu;
 
 % Make sure thera are no disturbances or inputs at the boundary.
 if ~(Twop==0) || ~(Tuop==0)
@@ -140,7 +145,6 @@ prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 disp('- Declaring Positive Storage Operator variable and indefinite Controller operator variable using specified options...');
 
 [prog, P1op] = poslpivar(prog, Top.dim, dd1, options1);
-[prog, Qop] = lpivar(prog,[PIE.T.dim(:,1),PIE.T.dim(:,1)],ddZ);
 
 if override1~=1
     [prog, P2op] = poslpivar(prog, Top.dim(:,1), dd12, options12);
@@ -150,10 +154,10 @@ else
 end
 
 % Enforce strict positivity of the operator
-% Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
-% Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom); 
+Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
+Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom); 
 
-[prog,Zop] = lpivar(prog,B2op.dim(:,[2,1]),ddZ);
+[prog,Zop] = lpivar(prog,Buop.dim(:,[2,1]),ddZ);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -165,13 +169,12 @@ end
 %          T*(C1*P+D12*Z)      B1       (A*P+B2*Z)*T'+T*(A*P+B2*Z)']
 % adding adjustment for infinite-dimensional I/O
 
-Iw = mat2opvar(eye(size(B1op,2)), B1op.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(C1op,1)), C1op.dim(:,1), PIE.vars, PIE.dom);
+Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-
-Dop = [-gam*Iz,                      D11op      (C1op*Qop+D12op*Zop);
-        D11op',                      -gam*Iw,   B1op';
-        (C1op*Qop+D12op*Zop)',   B1op       (Aop*Qop+B2op*Zop)+(Aop*Qop+B2op*Zop)']; 
+Dop = [-gam*Iz,                      Dzwop      (Czop*Pop+Dzuop*Zop)*Top';
+        Dzwop',                      -gam*Iw,   Bwop';
+        Top*(Czop*Pop+Dzuop*Zop)',   Bwop       (Aop*Pop+Buop*Zop)*(Top')+Top*(Aop*Pop+Buop*Zop)']; 
 
 disp('- Parameterize the derivative inequality...');
 
@@ -199,9 +202,6 @@ else
     end
     % derivative negativity
     % constraints
-    opts.symmetric = 1;
-    opts.lin_rep = 1;
-    prog = lpi_eq(prog, Top*Qop-Pop,opts);
     prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
 end
 
@@ -218,7 +218,7 @@ end
 
 gam = double(lpigetsol(prog,gam));
 
-P = lpigetsol(prog,Qop);
+P = lpigetsol(prog,Pop);
 Z = lpigetsol(prog,Zop);
 
 Kop = getController(P,Z);
