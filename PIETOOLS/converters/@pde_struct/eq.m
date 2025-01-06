@@ -40,6 +40,7 @@ function PDE_out = eq(LHS,RHS)
 %                 RHS consisting of multiple scalar-valued equations; 
 % DJ, 12/29/2024: Bugfix minus sign in case LHS has coefficients.
 % DJ, 01/03/2025: Use "is_zero" to indicate zero equations (e.g. y==0);
+% DJ, 01/05/2025: Bugfix, replace {eq_num} with {eq_num,1};
 
 % % % Process the inputs
 
@@ -163,7 +164,7 @@ for ii=1:numel(RHS.free)
         % % In particular, equation "eq_num" of type "obj".
         % Add the remaining terms to this equation.
         if ~isfield(PDE_out.(obj){eq_num},'term') || isempty(PDE_out.(obj){eq_num}.term)
-            PDE_out.(obj){eq_num}.term = RHS.free{ii}.term(2:end);
+            PDE_out.(obj){eq_num,1}.term = RHS.free{ii}.term(2:end);
         else
             error("Multiple equations are specified for the same state or output variable; this is not supported.")
         end
@@ -181,7 +182,7 @@ for ii=1:numel(RHS.free)
         % For state variables, include the order of the temporal
         % derivaitve.
         if strcmp(obj,'x')
-            PDE_out.(obj){eq_num}.tdiff = tdiff;
+            PDE_out.(obj){eq_num,1}.tdiff = tdiff;
         end
         % Check if coefficients have been specified for the left-hand side
         if isfield(RHS.free{ii}.term{1},'C') && ~all(all(RHS.free{ii}.term{1}.C==eye(PDE_out.(obj){eq_num}.size)))
@@ -194,9 +195,9 @@ for ii=1:numel(RHS.free)
             % Divide coefficients in each term by those on the LHS.
             for jj=1:numel(PDE_out.(obj){eq_num}.term)
                 if isfield(PDE_out.(obj){eq_num}.term{jj},'C')
-                    PDE_out.(obj){eq_num}.term{jj}.C = -inv(C_LHS)*PDE_out.(obj){eq_num}.term{jj}.C;    % DJ, 12/29/2024
+                    PDE_out.(obj){eq_num,1}.term{jj}.C = -inv(C_LHS)*PDE_out.(obj){eq_num}.term{jj}.C;    % DJ, 12/29/2024
                 else
-                    PDE_out.(obj){eq_num}.term{jj}.C = -1;
+                    PDE_out.(obj){eq_num,1}.term{jj}.C = -1;
                 end
             end
         else
@@ -204,20 +205,20 @@ for ii=1:numel(RHS.free)
             % have been moved
             for jj=1:numel(PDE_out.(obj){eq_num}.term)
                 if isfield(PDE_out.(obj){eq_num}.term{jj},'C')
-                    PDE_out.(obj){eq_num}.term{jj}.C = -PDE_out.(obj){eq_num}.term{jj}.C;
+                    PDE_out.(obj){eq_num,1}.term{jj}.C = -PDE_out.(obj){eq_num}.term{jj}.C;
                 else
-                    PDE_out.(obj){eq_num}.term{jj}.C = -1;
+                    PDE_out.(obj){eq_num,1}.term{jj}.C = -1;
                 end
             end
         end
         % If there are no other terms, we must have e.g. d/dt x = 0.
         if isscalar(RHS.free{ii}.term)                                      % DJ, 01/03/2025
-            PDE_out.(obj){eq_num}.is_zero = true;
+            PDE_out.(obj){eq_num,1}.is_zero = true;
         end
     else
         % % The equation corresponds to a boundary condition.
         BC_num = numel(PDE_out.BC)+1;
-        PDE_out.BC{BC_num}.term = RHS.free{ii}.term(1:end);
+        PDE_out.BC{BC_num,1}.term = RHS.free{ii}.term(1:end);
     end
     % Get rid of loose PDE terms.
     PDE_out.free = {};
