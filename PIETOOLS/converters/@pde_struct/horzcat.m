@@ -17,7 +17,7 @@ function [PDE_out] = horzcat(varargin)
 %                   all other input PDE structures.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ function [PDE_out] = horzcat(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 06/23/2024
+% DJ, 01/05/2025: Perform multiple concatenations using for loop.
 
 
 % % % Process the inputs
@@ -47,16 +48,9 @@ if nargin==1
     % Vertcat of a single object is just the object;
     PDE_out = varargin{1};
     return
-elseif nargin==2
-    % Vertcat of two objects we process below;
-    PDE_1 = varargin{1};    PDE_2 = varargin{2};
-else
-    % Vertcat of more than two objects we just keep repeating;
-    PDE_1 = varargin{1};    PDE_2 = varargin{2};
-    PDE_rem = varargin{3:end};
 end
-
-% % Check that the inputs are appropriate.
+% % Otherwise, check that the first input is appropriate.
+PDE_1 = varargin{1};
 if isa(PDE_1,'state')
     PDE_1 = state2pde_struct(PDE_1);
 elseif isa(PDE_1,'terms')
@@ -65,11 +59,21 @@ end
 if ~isa(PDE_1,'pde_struct')
     error("Concatenation of 'pde_struct' objects with non-pde struct objects is not supported.")
 end
-
-% % Perform the concatenation: just use plus to add the terms.
-PDE_out = plus(PDE_1,PDE_2);
-if nargin>=3
-    PDE_out = horzcat(PDE_out,PDE_rem);
+PDE_out = PDE_1;
+% % Concatenate all remaining inputs 1 by 1.
+for jj=2:nargin
+    % Check that the input is appropriate.
+    PDE_jj = varargin{jj};
+    if isa(PDE_jj,'state')
+        PDE_jj = state2pde_struct(PDE_jj);
+    elseif isa(PDE_1,'terms')
+        PDE_jj = terms2pde_struct(PDE_jj);
+    end
+    if ~isa(PDE_jj,'pde_struct')
+        error("Concatenation of 'pde_struct' objects with non-pde struct objects is not supported.")
+    end
+    % Perform the concatenation: just use plus to add the terms.
+    PDE_out = plus(PDE_out,PDE_jj);
 end
 
 end
