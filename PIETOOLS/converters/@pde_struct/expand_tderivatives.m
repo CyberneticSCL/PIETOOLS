@@ -60,6 +60,7 @@ function [PDE,tdiff_state_tab] = expand_tderivatives(PDE,suppress_summary)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 10/14/2022
+% DJ, 01/05/2025: Account for field "ID" in object specifications.
 
 % % % Check the inputs, and initialize.
 if nargin==1
@@ -156,7 +157,7 @@ for ii=1:nx
     if isfield(PDE.x{ii},'eq_num')
         PDE.x{ii} = rmfield(PDE.x{ii},'eq_num');
     end
-    PDE.x{ii} = orderfields(PDE.x{ii},{'size','vars','dom','diff','tdiff','term'});
+    PDE.x{ii} = orderfields(PDE.x{ii},{'ID','size','vars','dom','diff','tdiff','term'});        % DJ, 01/05/2025
 
     % Update the number of state components.
     nx_new = nx_new + tdiff-1;    
