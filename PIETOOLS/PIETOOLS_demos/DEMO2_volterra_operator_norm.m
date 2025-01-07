@@ -48,9 +48,9 @@ echo on
 
 % % Define Volterra operator
 % %  (Top*x)(s) = int_{a}^{s} x(r) dr    s in [a,b]
+a=0;    b=1; 
 opvar Top;
-a=0;    b=1;    Top.I = [a,b];
-Top.R.R1 = 1;                   
+Top.R.R1 = 1; Top.I = [a,b];                   
 
 % =============================================
 % === Declare the LPI

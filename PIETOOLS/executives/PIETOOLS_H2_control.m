@@ -156,7 +156,7 @@ Wm=Wm+1e-2;
 % STEP 2: Using the observability gramian
 disp('- Constructing the Inequality Constraints...');
 Dneg=[-gam          B1op'
-            B1op     Top*Pop*Aop'+Aop*Pop*Top+B2op*Zop+Zop'*B2op'];
+            B1op     Top*Pop*Aop'+Aop*Pop*Top'+B2op*Zop+Zop'*B2op'];
 Dp12=C1op*Pop+D12op*Zop;
 Dpos=[Wm Dp12
             Dp12' Pop];

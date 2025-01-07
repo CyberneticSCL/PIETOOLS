@@ -58,14 +58,14 @@ echo on
 pvar t s;   
 % Declare state, input, and output variables
 phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
-w = pde_var('input',1);             z = pde_var('output',1);
+w = pde_var('input',1);             r = pde_var('output',1);
 % Declare system parameters
 c=1;    b=.01;
 % declare dynamic equation
 eq_dyn = [diff(x,t,1)==-x
           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s]*w+[0 0;0 -b]*phi];
 % declare output equation
-eq_out= z ==int([1 0]*phi,s,[0,1]);
+eq_out= r ==int([1 0]*phi,s,[0,1]);
 % declare the boundary conditions
 bc1 = [0 1]*subs(phi,s,0)==0;   
 bc2 = [1 0]*subs(phi,s,1)==x;

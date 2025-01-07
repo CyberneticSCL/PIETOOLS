@@ -148,7 +148,7 @@ Pop=Pop+eppos;
 [prog,Zop] = lpivar(prog,[PIE.T.dim(:,1),PIE.C2.dim(:,1)],ddZ);
 dimW=B1op.dim(:,2);
 [prog,Wm] = poslpivar(prog,dimW);
-Wm=Wm+1e-2;
+%Wm=Wm+1e-2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 2: Using the observability gramian
