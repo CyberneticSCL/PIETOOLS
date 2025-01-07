@@ -1,7 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_H2_observe.m     PIETOOLS 2024
+% PIETOOLS_H2_control.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This function executes a synthesis code for H-2 optimal observer design (w/o control at the boundary) for a 4-PIE 
+% This function executes a synthesis code for H-2 optimal full-state 
+% feedback controller design (w/o control at the boundary) for a 4-PIE 
 % System defined by the 7 4-PI operator representation
 % Top \dot x(t)=Aop  x(t) +  B1op w(t) +  B2op u(t)
 %          z(t)=C1op x(t) + D11op w(t) + D12op u(t)
@@ -12,13 +13,13 @@
 % 
 % OUTPUT:
 % prog - a solved sosprogram structure from SOSTOOLS
-% L - controller gains that stabilize the system has Hinf performance 
+% K - controller gains that stabilize the system has Hinf performance 
 % gam - Hinf norm for the obtained controller
-% P - Lyapunov function parameter that proves stability
-% Z - Controller variable used to linearize the Bilinearity in the Hinf LPI
+% Wo - Lyapunov function parameter that proves stability
+% Z - Controller variable used to linearize the Bilinearity in the H2 LPI
 % 
 % NOTE: The resulting controller has the form
-% u(t) = Zop*(Pop)^{-1} x(t)
+% u(t) = Zop*(Wop)^{-1} x(t)
 %
 % NOTE: At present, there is an implicit assumption that TB2op=0;
 %
@@ -56,7 +57,10 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding MP,SS - 10_01_2020
-% 
+%  MP - 5_30_2021; changed to new PIE data structure
+% SS - 6/1/2021; changed to function added settings input
+% DJ - 06/02/2021; incorporate sosineq_on option, replacd gamma with gam to
+%                   avoid conflict with MATLAB gamma function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DEVELOPER LOGS:
 %
@@ -70,20 +74,14 @@
 % dd1,dd2,dd3,ddZ,opts,options1,options2,options - accuracy settings, typically defined by the settings script
 %
 % DJ - 11/30/2024: Update to use LPI programming structure;
-% DB, 24/12/2024- Update to non-coercive version
 
-function [prog, Kop, gam, P, Z, W] = PIETOOLS_H2_control(PIE, settings)
-
-% Extract PIE operators necessary for the executive.
-Top = PIE.T;         B1op = PIE.B1;
-Aop = PIE.A;        B2op = PIE.B2;
-C1op = PIE.C1;      D12op = PIE.D12;
+function [prog, Kop, gam, Wo, Z,X] = PIETOOLS_H2_control(PIE, settings)
 
 if PIE.dim==2
-    error('Optimal Estimation of 2D PIEs is currently not supported.')
+    error('Optimal control of 2D PIEs is currently not supported.')
 end
 
-% get settings information
+%% get settings information
 if nargin<2
     settings_PIETOOLS_light;
     settings.sos_opts.simplify = 1; % Use psimplify
@@ -113,11 +111,29 @@ else
     dd3 = settings.dd3;
 end
 
-fprintf('\n --- Executing Search for H_2 Optimal Estimator --- \n')
+fprintf('\n --- Executing Search for H_2 Optimal Controller --- \n')
 
-% Declare an SOS program and initialize domain and opvar spaces
+%% Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
+nx1 = PIE.A.dim(1,1);                % retrieve the number of ODE states from Aop
+nx2 = PIE.A.dim(2,1);                % retrieve the number of distributed states from Aop
+nw = PIE.B1.dim(1,2);                % retrieve the number of real-valued disturbances
+nz = PIE.C1.dim(1,1);                % retrieve the number of real-valued regulated outputs
+nu = PIE.B2.dim(1,2);                % retrieve the number of real-valued inputs
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Testing to see if there are inputs and disturbances at the boundary
+if ~(PIE.Tw==0)
+    error('H2-dual LPI cannot currently be solved for systems with disturbances at the boundary');
+end
+if ~(PIE.Tu==0)
+    error('H2-dual LPI cannot currently be solved for systems with inputs at the boundary');
+end
+
+if ~(PIE.D11==0)
+    error('H2 LPI requires no feedthrought term');
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The most common usage of this script is to find the minimum hinf gain bound
 % In this case, we define the hinf norm variable which needs to be minimized
@@ -126,33 +142,54 @@ prog = lpidecvar(prog, gam); %this sets gamma as decision var
 prog = lpi_ineq(prog, gam); %this ensures gamma is lower bounded
 prog = lpisetobj(prog, gam); %this minimizes gamma, comment for feasibility test
 %
+% Alternatively, the above 3 commands may be commented and a specific gain
+% test specified by defining a specific desired value of gamma. This
+% results in a feasibility test instead of an optimization problem.
+% gamma = 1000;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 1: declare the posopvar variable, Pop, which defines the storage 
-% function candidate and the indefinite operator Zop, which is used to
-% contruct the estimator gain
-disp('- Declaring Positive Storage Operator variable and indefinite Estimator operator variable using specified options...');
+%% STEP 1: declare the posopvar variables, Wop and Xop, which defines the storage 
+% function candidate and an auxiliare operator used to get rid off the nonlinearity on the LPIs.
+% Moreover, the indefinite operators Zop is used to contruct the controller gain
+disp('- Declaring Positive Storage Operator variables and indefinite Controller operator variable using specified options...');
 
-[prog, P1op] = poslpivar(prog, PIE.T.dim(:,1), dd1, options1);
+[prog, P1op] = poslpivar(prog, [nx1;nx2], dd1, options1);
 
 if override1~=1
-    [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1), dd12, options12);
-    Pop=P1op+P2op;
+    [prog, P2op] = poslpivar(prog, [nx1;nx2], dd12, options12);
+    Wop=P1op+P2op;
 else
-    Pop=P1op;
+    Wop=P1op;
 end
 
-% Enforce strict positivity of the operator
-Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
-Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom); 
+% enforce strict positivity on the operator
+Wop.P = Wop.P+eppos*eye(nx1);
+Wop.R.R0 = Wop.R.R0+eppos2*eye(nx2);  
 
-[prog,Zop] = lpivar(prog,[PIE.B2.dim(:,2),PIE.T.dim(:,1)], ddZ);
-dimW=C1op.dim(:,1);
-[prog,Wm] = poslpivar(prog,dimW);
-Wm=Wm+1e-2;
+[prog, P3op] = poslpivar(prog, [nz ,0], dd1, options1);
+
+if override1~=1
+    [prog, P4op] = poslpivar(prog, [nz ,0], dd12, options12);
+    Xop=P3op+P4op;
+else
+    Xop=P3op;
+end
+
+% enforce strict positivity on the operator
+Xop.P = Xop.P+eppos*eye(nz);
+
+[prog,Zop] = lpivar(prog,[nu nx1;0 nx2], ddZ);
+
+M11=Xop;
+M12=PIE.C1*Wop+PIE.D12*Zop;
+M22=Wop;
+M1op = [M11      M12
+            M12'     M22];
+M1op=-M1op;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<<<<<< Updated upstream
 % STEP 2: Using the observability gramian
 disp('- Constructing the Inequality Constraints...');
 Dneg=[-gam          B1op'
@@ -161,50 +198,87 @@ Dp12=C1op*Pop+D12op*Zop;
 Dpos=[Wm Dp12
             Dp12' Pop];
 traceVal = trace(Wm.P);
+=======
+%% STEP 2: Define the negativity constraints
+disp('- Parameterizing the negativity inequality...');
+>>>>>>> Stashed changes
 
-disp('- Parameterize the derivative inequality...');
+M2op=(PIE.A*Wop+PIE.B2*Zop)*PIE.T'+PIE.T*(PIE.A*Wop+PIE.B2*Zop)'+PIE.B1*PIE.B1';
+
+    tempMat = Xop.P;
+    traceVal=0;
+    for idx = 1:size(tempMat,1)
+        traceVal = traceVal+tempMat(idx,idx);
+    end
+M3op=traceVal-gam;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 3: Impose Negativity Constraint. There are two methods, depending on
+%% STEP 3: Impose Negativity Constraint. There are two methods, depending on
 % the options chosen
 %
-disp('- Enforcing the Inequalities Constraints...');
+disp('- Enforcing the Negativity Constraints...');
 if sosineq_on
     disp('  - Using lpi_ineq...');
-    prog = lpi_ineq(prog,-Dneg,opts);
-    prog = lpi_ineq(prog,Dpos,opts);
+    prog = lpi_ineq(prog,-M1op,opts);
 else
     disp('  - Using an Equality constraint...');
-    [prog, De1op] = poslpivar(prog, Dneg.dim, dd2, options2);
-    [prog, De3op] = poslpivar(prog, Dpos.dim, dd2, options2);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%% The old way, where you have to specify everything
+    [prog, De1op] = poslpivar(prog, [M1op.dim(1,1), M1op.dim(2,1)], dd2,options2);
     
     if override2~=1
-        [prog, De2op] = poslpivar(prog, Dneg.dim, dd3, options3);
+        [prog, De2op] = poslpivar(prog, [M1op.dim(1,1), M1op.dim(2,1)], dd3,options3);
         Deop=De1op+De2op;
-         [prog, De4op] = poslpivar(prog, Dpos.dim, dd3, options3);
-        Deopp=De3op+De4op;      
     else
         Deop=De1op;
-        Deopp=De3op;
     end
-    prog = lpi_eq(prog,Deop+Dneg,'symmetric'); %Dneg=-Deop
-    prog = lpi_eq(prog,Deopp-Dpos,'symmetric'); %Dpos=Deopp
+    % derivative negativity
+    % constraints
+    prog = lpi_eq(prog,Deop+M1op); %M1op=-Deop<0
 end
+if sosineq_on
+    disp('  - Using lpi_ineq...');
+    prog = lpi_ineq(prog,-M2op,opts);
+else
+    disp('  - Using an Equality constraint...');
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%% The old way, where you have to specify everything
+    [prog, De1op] = poslpivar(prog,  [M2op.dim(1,1), M2op.dim(2,1)], dd2,options2);
+    
+    if override2~=1
+        [prog, De2op] = poslpivar(prog, [M2op.dim(1,1), M2op.dim(2,1)], dd3,options3);
+        Deop=De1op+De2op;
+    else
+        Deop=De1op;
+    end
+    % derivative negativity
+    % constraints
+    prog = lpi_eq(prog,Deop+M2op); %M2op=-Deop<0
+end
+
 % ensuring scalar inequality gam>trace
-prog = lpi_ineq(prog, gam-traceVal);
-%solving the sos program
+    prog = lpi_ineq(prog, -M3op);
+
+
+%% solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
-prog_sol = lpisolve(prog,sos_opts); 
-P = lpigetsol(prog_sol,Pop);
-W = lpigetsol(prog_sol,Wm);
-Z =  lpigetsol(prog_sol,Zop);
-if nargin<=2 || ~isfield(options,'h2')
-        gam = double(lpigetsol(prog_sol,gam));
-        disp('The H2 norm of the given system is upper bounded by:')
-         disp(gam);
+prog = lpisolve(prog,sos_opts); 
+
+disp('The closed-loop H-2 norm of the given system is upper bounded by:')
+if ~isreal(gam)
+    disp(sqrt(double(lpigetsol(prog,gam)))); % check the H2 norm, if the solved successfully
+else 
+    disp(sqrt(gam));
 end
-Kop = getController(P,Z);
+
+gam = sqrt(double(lpigetsol(prog,gam)));
+
+Wo = getsol_lpivar(prog,Wop);
+Z = getsol_lpivar(prog,Zop);
+X= getsol_lpivar(prog,Xop);
+
+Kop = getController(Wo,Z);
 % end
 
 end

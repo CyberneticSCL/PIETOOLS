@@ -64,10 +64,6 @@ end
 % Hinf_gain_dual=1;        % Find a minimal bound on the Hing gain of the system using an alternative duality theorem
 % Hinf_control=1;          % Find a minimal bound on the Hinf optimal control problem
 % Hinf_estimator=1;        % Find a minimal bound on the Hinf optimal observer problem
-% H2_norm=1;              % Find a minimal bound on the H2 norm of the system
-% H2_norm_dual=1;        % Find a minimal bound on the H2 gain of the system using an alternative duality theorem
-% H2_estimator=1;        % Find a minimal bound on the H2 optimal observer problem
-% H2_control=1;        % Find a minimal bound on the H2 optimal control problem
 
 % % Check if an executive has been specified
 exec = cell(0,0);
@@ -89,22 +85,11 @@ end
 if exist('Hinf_control','var') && Hinf_control==1
     exec = [exec;'Hinf_control'];
 end
-if exist('H2_norm','var') && H2_norm==1
-    exec = [exec;'H2_norm_o'];
-end
-if exist('H2_norm_dual','var') && H2_norm_dual==1
-    exec = [exec;'H2_norm_c'];
-end
-if exist('H2_estimator','var') && H2_estimator==1
-    exec = [exec;'H2_estimator'];
-end
-if exist('H2_control','var') && H2_control==1
-    exec = [exec;'H2_control'];
-end
+
 % % If no executive has been specified, let the user choose one
 if isempty(exec)
     fprintf('\n What would you like to analyze/control? \n');
-    msg = ['   Please input ''stability'', ''stability_dual'', ''Hinf_gain'', ''Hinf_gain_dual'', ''Hinf_estimator'', ''Hinf_control'', "H2_norm", "H2_norm_dual", or "H2_estimator","H2_control" \n ---> '];
+    msg = ['   Please input ''stability'', ''stability_dual'', ''Hinf_gain'', ''Hinf_gain_dual'', ''Hinf_estimator'', or ''Hinf_control'' \n ---> '];
     exec = input(msg,'s');
     exec = strrep(exec,'''','');
     exec = split(exec,[" ",","]);
@@ -139,23 +124,11 @@ elseif strcmp(exec{j},'Hinf_gain')          % Hinf_gain
 elseif strcmp(exec{j},'Hinf_gain_dual')     % Hinf_gain_dual
     outval = '[prog_Hinf_gain_d, P_Hinf_gain_d, Hinf_gain_dual]';
     msg_out = ['The upper bound on the (dual) H-infty norm has been saved as "Hinf_gain_dual".'];
-elseif contains(exec{j},'Hinf_control')          % Hinf_control
+elseif contains(exec{j},'control')          % Hinf_control
     outval = '[prog_control, K_control, Hinf_gain_control, P_control, Z_control]';
     msg_out = ['The (optimal) feedback control gain operator has been saved as "K_control".'];
-elseif contains(exec{j},'Hinf_estimator')        % Hinf_estimator
+elseif contains(exec{j},'estimator')        % Hinf_estimator
     outval = '[prog_estimator, L_estimator, Hinf_gain_estimator, P_estimator, Z_estimator]';
-    msg_out = ['The (optimal) estimator operator has been saved as "L_estimator".'];
-elseif strcmp(exec{j},'H2_norm_o')          % H2_norm
-    outval = '[prog_H2_norm, W_H2_gain, H2_gain, R_H2_gain,Q_H2_gain]';
-    msg_out = ['The upper bound on the H-2 norm has been saved as "H2_gain".'];
-elseif strcmp(exec{j},'H2_norm_c')     % H2_norm_dual
-    outval = '[prog_H2_norm_d, W_H2_gain_d, H2_gain_dual, R_H2_gain_d,Q_H2_gain_d]';
-    msg_out = ['The upper bound on the (dual) H-2 norm has been saved as "H2_gain_dual".'];
-elseif contains(exec{j},'H2_control')          % H2_control
-    outval = '[prog_control, K_control, Hinf_gain_control, P_control, Z_control, W_control]';
-    msg_out = ['The (optimal) feedback control gain operator has been saved as "K_control".'];
-elseif contains(exec{j},'H2_estimator')        % H2_estimator
-    outval = '[prog_estimator, L_estimator, Hinf_gain_estimator, P_estimator, Z_estimator, W_control]';
     msg_out = ['The (optimal) estimator operator has been saved as "L_estimator".'];
 end
 infun = ['PIETOOLS_',exec{j},'(PIE,settings)'];
