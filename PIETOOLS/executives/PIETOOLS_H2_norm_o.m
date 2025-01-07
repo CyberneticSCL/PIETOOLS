@@ -40,8 +40,9 @@ function [prog,W,gam,R,Q]= PIETOOLS_H2_norm_o(PIE, settings,options)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
-% DJ - 10/19/2024: Update to use new LPI programming structure;
-% DJ - 01/06/2024: Update to non-coercive version;
+% DJ, 10/19/2024: Update to use new LPI programming structure;
+% DJ, 01/06/2024: Update to non-coercive version;
+% DJ, 01/07/2025: Correction to output gam, should not take square root;
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -189,7 +190,7 @@ R = lpigetsol(prog,Rop);
 Q = lpigetsol(prog,Qop);
 
 if nargin<=2 || ~isfield(options,'h2')
-    gam = sqrt(double(lpigetsol(prog,gam)));
+    gam = double(lpigetsol(prog,gam));                                      % DJ, 01/07/2025
     disp('The H2 norm of the given system is upper bounded by:')
     disp(gam);
 end
