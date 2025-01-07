@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_H2_observe.m     PIETOOLS 2024
+% PIETOOLS_H2_estimator.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function executes a synthesis code for H-2 optimal observer design (w/o control at the boundary) for a 4-PIE 
 % System defined by the 7 4-PI operator representation
@@ -34,7 +34,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -55,24 +55,19 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP,SS - 10_01_2020
-% 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% DEVELOPER LOGS:
-%
-% PIE - PIE data structure. Include elements T,A,B1,B2,C1,D11,D12 which are 4-PI operators, typically defined by the conversion script
-%
-% settings - a matlab structure with following fields are needed, if
-% undefined default values are used
-%
-% sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
-%
-% dd1,dd2,dd3,ddZ,opts,options1,options2,options - accuracy settings, typically defined by the settings script
-%
-% DJ - 11/30/2024: Update to use LPI programming structure;
+% DB, 2024: Initial coding;
+% DJ, 11/30/2024: Update to use LPI programming structure;
+% DJ, 01/06/2025: Rename to "estimator";
 
-function [prog, Lop, gam, P, Z] = PIETOOLS_H2_observe(PIE, settings)
+function [prog, Lop, gam, P, Z] = PIETOOLS_H2_estimator(PIE, settings)
 
+% Check if the PIE is properly specified.
+if ~isa(PIE,'pie_struct')
+    error('The PIE for which to run the executive should be specified as object of type ''pie_struct''.')
+else
+    PIE = initialize(PIE);
+end
+% Pass to the 2D executive if necessary.
 if PIE.dim==2
     error('Optimal Estimation of 2D PIEs is currently not supported.')
 end
@@ -140,13 +135,6 @@ if override1~=1
 else
     Pop=P1op;
 end
-
-<<<<<<< Updated upstream:PIETOOLS/executives/PIETOOLS_H2_estimator.m
-[prog,Zop] = lpivar(prog,[PIE.T.dim(:,1),PIE.C2.dim(:,1)],ddZ);
-dimW=B1op.dim(:,2);
-[prog,Wm] = poslpivar(prog,dimW);
-%Wm=Wm+1e-2;
-=======
 % enforce strict positivity on the operator
 Pop.P = Pop.P+eppos*eye(nx1);
 Pop.R.R0 = Pop.R.R0+eppos*eye(nx2);  
@@ -154,7 +142,6 @@ Pop.R.R0 = Pop.R.R0+eppos*eye(nx2);
 [prog,Zop] = lpivar(prog,[PIE.T.dim(:,1),PIE.C2.dim(:,1)], ddZ);
 [prog,Wop] = lpivar(prog,[PIE.B1.dim(:,2),PIE.B1.dim(:,2)], ddZ);
 
->>>>>>> Stashed changes:PIETOOLS/executives/PIETOOLS_H2_observe.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
