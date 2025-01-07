@@ -7,7 +7,8 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 % - lpi:        A 'char' or 'string' specifying one of the executives to 
 %               call, namely one of:
 %               'stability', 'stability-dual','l2gain','l2gain-dual',
-%                   'hinf-observer','hinf-controller';
+%                 'h2norm','h2norm-dual','hinf-observer','hinf-controller',
+%                   'h2-observer','h2-controller';
 % - opts:       A 'struct' specifying settings to use in declaring and 
 %               solving the desired pre-defined LPI. Alternatively,
 %               this field can also be a 'char' or 'string' specifying
@@ -24,7 +25,7 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -45,7 +46,8 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 11/01/2024 - Initial coding
+% DJ, 11/01/2024: Initial coding;
+% DJ, 01/06/2025: Add support for call to H2 executives; 
 
 
 % % % There are two ways to use this function: 
@@ -60,8 +62,12 @@ if isa(lpi,'function_handle')
     % Do nothing here...
 elseif ~(isa(lpi,'string') || isa(lpi,'char'))
     error("The input 'lpi' must be a string value or a function handle.");
-elseif ~ismember(lpi,{'stability','stability-dual','l2gain','l2gain-dual','hinf-observer','hinf-controller','custom'})
-    error("Specified LPI type must be one of 'stability', 'stability-dual', 'l2gain', 'l2gain-dual', 'hinf-observer', or 'hinf-controller'.")
+elseif ~ismember(lpi,{'stability','stability-dual',...
+                        'l2gain','l2gain-dual','h2norm','h2norm-dual',...
+                        'hinf-observer','hinf-controller','h2-observer','h2-controller','custom'})
+    error("Specified LPI type must be one of 'stability', 'stability-dual'," + ...
+            " 'l2gain', 'l2gain-dual', 'h2norm', 'h2norm-dual',"+...
+             " 'hinf-observer', 'hinf-controller', 'h2-observer', or 'h2-controller'.")
 end
 
 % Check what settings to use
@@ -93,17 +99,29 @@ switch lpi
         [prog_sol, P] = PIETOOLS_stability_dual(PIE,opts);
         varargout{1} = P;
     case 'l2gain'
-        [prog_sol, P, gamma] = PIETOOLS_Hinf_gain(PIE,opts);
-        varargout{1} = P; varargout{2} = gamma;
+        [prog_sol, P, gam] = PIETOOLS_Hinf_gain(PIE,opts);
+        varargout{1} = P; varargout{2} = gam;
     case 'l2gain-dual'
-        [prog_sol, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,opts);
-        varargout{1} = P; varargout{2} = gamma;
+        [prog_sol, P, gam] = PIETOOLS_Hinf_gain_dual(PIE,opts);
+        varargout{1} = P; varargout{2} = gam;
+    case 'h2norm'
+        [prog_sol, W, gam, R, Q]= PIETOOLS_H2_norm_o(PIE,opts);
+        varargout{1} = W; varargout{2} = gam; varargout{3} = R; varargout{4} = Q;
+    case 'h2norm-dual'
+        [prog_sol, W, gam, R, Q] = PIETOOLS_H2_norm_c(PIE,opts);
+        varargout{1} = W; varargout{2} = gam; varargout{3} = R; varargout{4} = Q;
     case 'hinf-observer'
-        [prog_sol, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,opts);
-        varargout{1} = L; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
+        [prog_sol, L, gam, P, Z] = PIETOOLS_Hinf_estimator(PIE,opts);
+        varargout{1} = L; varargout{2} = gam; varargout{3} = P; varargout{4} = Z; 
     case 'hinf-controller'
-        [prog_sol, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,opts);
-        varargout{1} = K; varargout{2} = gamma; varargout{3} = P; varargout{4} = Z; 
+        [prog_sol, K, gam, P, Z] = PIETOOLS_Hinf_control(PIE,opts);
+        varargout{1} = K; varargout{2} = gam; varargout{3} = P; varargout{4} = Z; 
+    case 'h2-observer'
+        [prog_sol, L, gam, P, Z] = PIETOOLS_H2_estimator(PIE,opts);
+        varargout{1} = L; varargout{2} = gam; varargout{3} = P; varargout{4} = Z;
+    case 'h2-controller'
+        [prog_sol, K, gam, P, Z] = PIETOOLS_H2_control(PIE,opts);
+        varargout{1} = K;  varargout{2} = gam; varargout{3} = P; varargout{4} = Z;
     otherwise
         [prog_sol, vout] = lpi(PIE,opts);
         varargout = cell(1,length(vout));
