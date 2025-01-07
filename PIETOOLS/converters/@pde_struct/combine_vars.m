@@ -31,7 +31,7 @@ function [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -52,7 +52,8 @@ function [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 10/11/2022
+% DJ, 10/11/2022: Initialize
+% DJ, 01/07/2025: Set new default dummy variable name si_dum;
 
 
 % % % Check the inputs
@@ -141,7 +142,7 @@ nvars_new = length(var_indcs_retain);
 new_varnames = cell(nvars_new,2);
 for jj=1:nvars_new
     new_varnames{jj,1} = ['s',num2str(jj)];
-    new_varnames{jj,2} = ['th',num2str(jj)];
+    new_varnames{jj,2} = ['s',num2str(jj),'_dum'];                          % DJ, 01/07/2025
 end
 new_vars = polynomial(new_varnames);
 new_dom = repmat(dom,[nvars_new,1]);
