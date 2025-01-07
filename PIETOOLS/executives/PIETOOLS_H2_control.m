@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_H2_control.m     PIETOOLS 2022
+% PIETOOLS_H2_control.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function executes a synthesis code for H-2 optimal full-state 
 % feedback controller design (w/o control at the boundary) for a 4-PIE 
@@ -35,7 +35,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -56,27 +56,18 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP,SS - 10_01_2020
-%  MP - 5_30_2021; changed to new PIE data structure
-% SS - 6/1/2021; changed to function added settings input
-% DJ - 06/02/2021; incorporate sosineq_on option, replacd gamma with gam to
-%                   avoid conflict with MATLAB gamma function
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% DEVELOPER LOGS:
-%
-% PIE - PIE data structure. Include elements T,A,B1,B2,C1,D11,D12 which are 4-PI operators, typically defined by the conversion script
-%
-% settings - a matlab structure with following fields are needed, if
-% undefined default values are used
-%
-% sos_opts - options for the SOSSOLVER (e.g. sdp solver), typically defined by the solver script
-%
-% dd1,dd2,dd3,ddZ,opts,options1,options2,options - accuracy settings, typically defined by the settings script
-%
-% DJ - 11/30/2024: Update to use LPI programming structure;
+% DB, 2024: Initial coding;
+% DJ, 11/30/2024: Update to use LPI programming structure;
 
 function [prog, Kop, gam, Wo, Z,X] = PIETOOLS_H2_control(PIE, settings)
 
+% Check if the PIE is properly specified.
+if ~isa(PIE,'pie_struct')
+    error('The PIE for which to run the executive should be specified as object of type ''pie_struct''.')
+else
+    PIE = initialize(PIE);
+end
+% Pass to the 2D executive if necessary.
 if PIE.dim==2
     error('Optimal control of 2D PIEs is currently not supported.')
 end
@@ -189,19 +180,8 @@ M1op = [M11      M12
 M1op=-M1op;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<<<<<< Updated upstream
-% STEP 2: Using the observability gramian
-disp('- Constructing the Inequality Constraints...');
-Dneg=[-gam          B1op'
-            B1op     Top*Pop*Aop'+Aop*Pop*Top'+B2op*Zop+Zop'*B2op'];
-Dp12=C1op*Pop+D12op*Zop;
-Dpos=[Wm Dp12
-            Dp12' Pop];
-traceVal = trace(Wm.P);
-=======
 %% STEP 2: Define the negativity constraints
 disp('- Parameterizing the negativity inequality...');
->>>>>>> Stashed changes
 
 M2op=(PIE.A*Wop+PIE.B2*Zop)*PIE.T'+PIE.T*(PIE.A*Wop+PIE.B2*Zop)'+PIE.B1*PIE.B1';
 
