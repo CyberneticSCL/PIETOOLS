@@ -22,7 +22,7 @@
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -48,10 +48,9 @@
 % DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
 %                   avoid conflict with MATLAB gamma function;
 % DJ - 10/19/2024: Update to use new LPI programming structure;
-% DJ - 01/06/2024: Update to non-coercive version;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, R, gam] = PIETOOLS_Hinf_gain(PIE, settings)
+function [prog, P, gam] = PIETOOLS_Hinf_gain(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -63,9 +62,9 @@ end
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
-        [prog, R, gam] = PIETOOLS_Hinf_gain_2D(PIE);
+        [prog, P, gam] = PIETOOLS_Hinf_gain_2D(PIE);
     else
-        [prog, R, gam] = PIETOOLS_Hinf_gain_2D(PIE,settings);
+        [prog, P, gam] = PIETOOLS_Hinf_gain_2D(PIE,settings);
     end
     return
 end
@@ -73,16 +72,6 @@ end
 Top = PIE.T;    Twop = PIE.Tw;
 Aop = PIE.A;    Bwop = PIE.Bw;    
 Czop = PIE.Cz;  Dzwop = PIE.Dzw;
-
-% Don't support boundary disturbances
-if ~(Twop==0)
-        fprintf('\n --- Non-coercive LPIs cannot currently be solved for systems with disturbances at the boundary. Calling the coercive version.---\n');
-     if nargin==1
-         [prog, R, gam] = PIETOOLS_Hinf_gain_coercive(PIE);
-    else
-         [prog, R, gam] = PIETOOLS_Hinf_gain_coercive(PIE,settings);
-     end
-end
 
 
 % get settings information
@@ -137,24 +126,18 @@ prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 1: declare the posopvar variable, Rop, which defines the storage 
-% function candidate V(v)=<v,Rop*v>=<Top*v,Pop*Top*v>
+% STEP 1: declare the posopvar variable, Pop, which defines the storage 
+% function candidate
 disp('- Declaring Positive Lyapunov Operator variable using specified options...');
 
-[prog, R1op] = poslpivar(prog, Top.dim,dd1,options1);
+[prog, P1op] = poslpivar(prog, Top.dim,dd1,options1);
 
 if override1~=1
     [prog, P2op] = poslpivar(prog, Top.dim,dd12,options12);
-    Rop=R1op+P2op;
+    Pop=P1op+P2op;
 else
-    Rop=R1op;
+    Pop=P1op;
 end
-
-% Also declare an indefinite operator Qop=Pop*Top so that Rop = Top'*Qop.   % DJ, 01/06/2025
-Qdeg = get_lpivar_degs(Rop,Top);
-[prog, Qop] = lpivar(prog,Top.dim,Qdeg);
-prog = lpi_eq(prog, Top'*Qop-Rop);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 2: Define the KYP matrix
@@ -169,9 +152,9 @@ disp('- Constructing the Negativity Constraint...');
 Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-Dop = [-gam*Iw,       Dzwop',     Bwop'*Qop;
-        Dzwop,        -gam*Iz,    Czop;
-        Qop'*Bwop,    Czop'       Aop'*Qop+Qop'*Aop];
+Dop = [-gam*Iw+Twop'*(Pop*Bwop)+(Pop*Bwop)'*Twop,   Dzwop',    (Pop*Bwop)'*Top+Twop'*(Pop*Aop);
+        Dzwop,                                      -gam*Iz,   Czop;
+        Top'*(Pop*Bwop)+(Pop*Aop)'*Twop,            Czop'      (Pop*Aop)'*Top+Top'*(Pop*Aop)];
     
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -203,10 +186,10 @@ prog = lpisolve(prog,sos_opts);
 
 disp('The H-infty norm of the given system is upper bounded by:')
 if ~isreal(gam)
-    disp(double(lpigetsol(prog,gam))); % check the Hinf norm, if solved successfully
+    disp(double(lpigetsol(prog,gam))); % check the Hinf norm, if the solved successfully
 else 
     disp(gam);
 end
-R = lpigetsol(prog,Rop);
+P = lpigetsol(prog,Pop);
 gam = double(lpigetsol(prog,gam));
 end
