@@ -106,7 +106,7 @@ fprintf('\n --- Executing Search for H_2 Optimal Estimator --- \n')
 
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2).PIE.dom);      % Initialize the program structure
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 X=PIE.A.I;                         % retrieve the domain from Aop
 nx1=PIE.A.dim(1,1);                % retrieve the number of ODE states from Aop
 nx2=PIE.A.dim(2,1);                % retrieve the number of distributed states from Aop
