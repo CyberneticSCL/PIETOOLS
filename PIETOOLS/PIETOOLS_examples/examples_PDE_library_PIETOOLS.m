@@ -304,17 +304,15 @@ switch index
 %       Hyperbolic/Transport/Balance Type Systems
 %--------------------------------------------------------------------------
     case 20
-%   PDE: x_{t} = -x_{s} + w(t)                      |                       (gamma = 0.5)
-%   BCs: x(s=0) = 0                                 |
-%   Out: z(t) = int(x(t,s),s,0,1)                   |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params);
-    % stripped - 15.0321
-    % light - .5104
+%   PDE: x_{t} = -x_{s} + w(t)                      |                       (gamma = 0.5000 (0.5000) using 'veryheavy', 
+%   BCs: x(s=0) = 0                                 |                           gamma = 0.5011 (0.5058) using 'heavy',     
+%   Out: z(t) = int(x(t,s),s,0,1)                   |                              gamma = 0.5162 (0.5204) using 'light' settings)  
+    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance(GUI,params);  
 %--------------------------------------------------------------------------
     case 21
-%   PDE: phi_{tt} = phi_{ss} + w(t)                 | k = 0.5               (gamma = 2 for k = 0.5)  
-%   BCs: phi(s=0) = 0                               |
-%        phi_{s}(s=1) = -k*phi_{t}(s=1)             |
+%   PDE: phi_{tt} = phi_{ss} + w(t)                 | k = 0.5               (for k=0.5: gamma = 0.8419 (0.8419) using 'veryheavy',  
+%   BCs: phi(s=0) = 0                               |                                   gamma = 0.8419 (0.8552) using 'heavy',  
+%        phi_{s}(s=1) = -k*phi_{t}(s=1)             |                                   gamma = 0.8424 (0.8722) using 'light' settings)  
 %   Out: z(t) = int(phi_{t}(t,s),s,0,1)             |
 %   Use states x1 = phi_{s},    x2 = phi_{t}        |
 %       =>                                          |
@@ -322,33 +320,25 @@ switch index
 %        x2_{t} = x1_{s} + w(t)                     |
 %   BCs: x2(0) = 0,     x1(1) + k*x2(1) = 0         |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Tip_Damped(GUI,params);
-%   stripped -- 6.6074/24.3873
-%   light -- .8421
-%   heavy -- .8419
-
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
     case 22
-%   PDE: x_{t} = x_{ss} + s*w(t)                    |                       (gamma = 0.3333)
-%   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |
-%   Out: z(t) = int(x(t,s),s,0,1)                   |
+%   PDE: x_{t} = x_{ss} + s*w(t)                    |                       (gamma = 0.2083 using 'veryheavy', 
+%   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |                           gamma = 0.2083 using 'heavy',  
+%   Out: z(t) = int(x(t,s),s,0,1)                   |                              gamma = 0.2085 using 'light' settings)  
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance(GUI,params);
-% stripped - 6.2875
-% light - 0.2097
-% heavy - 0.2083
-% veryheavy - 0.2083
 %--------------------------------------------------------------------------
     case 23
-%   PDE: x_{t} = A2(s)*x_{ss}                       | A2 = s^3 - s^2 + 2;   (gamma = 15.147 for lamb = 4.6)       
-%                + A1(s)*x_{s}                      | A1 = 3*s^2 - 2*s;             Shivakumar 2019 [12] (Example 1)
-%                + A0(s)*x + w(t)                   | A0 =-0.5*s^3 +1.3*s^2   (gamma = 23.7-57 using "veryheavy" settings)                
-%   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |     -1.5*s +0.7 +lam
+%   PDE: x_{t} = A2(s)*x_{ss}                       | A2 = s^3 - s^2 + 2;   (for lamb = 4.6: gamma = 25.249 using 'light',       
+%                + A1(s)*x_{s}                      | A1 = 3*s^2 - 2*s;                      gamma = 23.706 using 'heavy',      
+%                + A0(s)*x + w(t)                   | A0 =-0.5*s^3 +1.3*s^2                  gamma = 23.622 using 'veryheavy' settings)                
+%   BCs: x(s=0) = 0,        x_{s}(s=1) = 0          |     -1.5*s +0.7 +lam          Shivakumar 2019 [12] (Example 1)
 %   Out: z(t) = x(t,1)                              | lam = 4.6;  
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_with_Disturbance(GUI,params);
 %--------------------------------------------------------------------------
     case 24
-%   PDE: xi_{t} = w(t) + lamb*xi        i=1:ne      | lam = (1-1e-2)*pi^2   (gamma = 8.1069 for lamb = (1-1e-2)*pi^2)         
+%   PDE: xi_{t} = w(t) + lamb*xi        i=1:ne      | lam = (1-1e-2)*pi^2   (gamma = 8.2136 for lamb = (1-1e-2)*pi^2)         
 %                 + sum(xk_{ss},k=1,i)              | ne = 1 (state size)           Shivakumar 2019 [12] (Example 3)
 %   BCs: x(s=0) = 0,        x(s=1) = 0              |   
 %   Out: z(t) = int(x(t,s),s,0,1)                   |
@@ -361,13 +351,12 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance(GUI,params);
 %--------------------------------------------------------------------------
     case 26
-%   PDE: x_{t} = Cm(s)*x + (1/R)*x_{ss} + s*w(t)    | R = (21-1e-3)         (gamma =  4.23, for R = 21-1e-3)
+%   PDE: x_{t} = Cm(s)*x + (1/R)*x_{ss} + s*w(t)    | R = (21-1e-3)         (gamma =  2.1457, for R = 21-1e-3)
 %   BCs: x(s=0) = 0,        x(s=1) = 0              | Cm = [0,0,0;                  Shivakumar 2019 [12] (Example 2)
 %   Out: z(t) = int(x(t,s),s,0,1)                   |       s,0,0;
 %                                                   |       s^2,-s^3,0]
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diffusive_Eq_with_Distributed_Disturbance_2(GUI,params);
-%     light -- 147.3174
-%     heavy -- 125.0233
+%
 %==========================================================================
 %       Hinf-optimal observer
 %==========================================================================
@@ -375,7 +364,7 @@ switch index
 %       Hyperbolic Transport, Balance Laws, Conservation Equations
 %--------------------------------------------------------------------------
     case 27
-%   PDE: x_{t} = x_{s} + w(t)                       |                       (Answer: 1.0012)
+%   PDE: x_{t} = x_{s} + w(t)                       |                       (gain: 1.0004)
 %   BCs: x(s=1) = 0                                 |
 %   Out: z(t) = int(x(t,s),s,0,1) + w(t)            |
 %        y(t) = int(x(t,s),s,0,1)                   |
@@ -384,7 +373,7 @@ switch index
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
     case 28
-%   PDE: x_{t} = x_{ss} + w(t)                      | ne = 1 (state size)   (Answer: 1.0045) 
+%   PDE: x_{t} = x_{ss} + w(t)                      | ne = 1 (state size)   (gain: 1.0005) 
 %   BCs: x(s=0) = 0,        x(s=1) = 0              |
 %   Out: z(t) = int(x(t,s),s,0,1) + w(t)            |
 %        y(t) = x_{s}(s=1)                          |
@@ -397,7 +386,7 @@ switch index
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
     case 29
-% % PDE: x_{t} = lam*x + x_{ss} + (s-s^2)u(t) + (s-s^2)w    | lam = 10;
+% % PDE: x_{t} = lam*x + x_{ss} + (s-s^2)u(t) + (s-s^2)w    | lam = 10;     (gain: 1.0000)  
 % % BCs: x(s=0) = 0,        x(s=1) = 0
 % % Out: z1(t) = int(x(s,t),s,0,1)
 % %      z2(t) = u(t)
@@ -717,10 +706,10 @@ switch index
 %       Transport Equation Type Systems
 %--------------------------------------------------------------------------
     case 46
-%  PDE :        x_{t} = x_{s} + (s-s^2)w(t)
-%  With BC     x(s=1) = 0
-%  And output  z(t) = int(x(t,s),s,0,1)
-% H2 norm computed by numerical integration of the definition: 0.1016
+%  PDE :        x_{t} = x_{s} + (s-s^2)*w(t)        |                           (H2 norm 0.1016 obtained through numerical integration,  
+%  With BC:     x(s=1) = 0                          |                               0.1016 (0.1016) using 'veryheavy' settings
+%  And output:  z(t) = int(x(t,s),s,0,1)            |                               0.1017 (0.1162) using 'heavy' settings,    
+%                                                   |                               0.1043 (0.1362),  using 'light' settings)  
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -735,10 +724,11 @@ switch index
 %       Unstable Reaction-Diffusion Type Systems
 %--------------------------------------------------------------------------
     case 47
-%  PDE :        x_{t} = 3x+(s^2+0.2)x_{ss} -(s^2)/2w(t)
-%  With BC     x(s=0) = 0, x_{s}(s=1)=0
-%  And outputs  z(t) = int(x(t,s),s,0,1)
-%                       y(t)=x(s=1)+w
+%  PDE:         x_{t} = 3x+(s^2+0.2)x_{ss}          |                           (closed-loop H2 norm of 1.3121 using 'heavy' settings)  
+%                                   -(s^2)/2w(t)    |
+%  With BC:    x(s=0) = 0, x_{s}(s=1)=0             |
+%  And outputs:  z(t) = int(x(t,s),s,0,1)           |
+%                y(t) = x(s=1) + w                  |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -1158,6 +1148,10 @@ evalin('base','Hinf_gain = 0;')
 evalin('base','Hinf_gain_dual = 0;')
 evalin('base','Hinf_estimator = 0;')
 evalin('base','Hinf_control = 0;')
+evalin('base','H2_norm = 0;')
+evalin('base','H2_norm_dual = 0;')
+evalin('base','H2_estimator = 0;')
+evalin('base','H2_control = 0;')
 
 params = {};
 
