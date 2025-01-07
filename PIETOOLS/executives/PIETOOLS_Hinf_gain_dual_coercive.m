@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_Hinf_gain_dual.m     PIETOOLS 2024
+% PIETOOLS_Hinf_gain_dual.m     PIETOOLS 2022a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script executes an alternative `dual' H-infty gain analysis for the 4-PIE System defined
 % by the 5 4-PI operator representation
@@ -30,7 +30,7 @@
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -57,10 +57,9 @@
 % DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
 %                   avoid conflict with MATLAB gamma function;
 % DJ - 10/19/2024: Update to use new LPI programming structure;
-% DJ - 01/06/2024: Update to non-coercive version;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, R, gam] = PIETOOLS_Hinf_gain_dual(PIE, settings)
+function [prog, P, gam] = PIETOOLS_Hinf_gain_dual(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -71,9 +70,9 @@ end
 % Pass to the 2D executive if necessary.
 if PIE.dim==2
     if nargin==1
-        [prog, R, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE);
+        [prog, P, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE);
     else
-        [prog, R, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE,settings);
+        [prog, P, gam] = PIETOOLS_Hinf_gain_dual_2D(PIE,settings);
     end
     return
 end
@@ -142,23 +141,18 @@ prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 1: declare the posopvar variable, Rop, which defines the storage 
-% function candidate V(v)=<v,Rop*v>=<Top'*v,Pop*Top'*v>
+% STEP 1: declare the posopvar variable, Pop, which defines the storage 
+% function candidate
 disp('- Declaring Positive Lyapunov Operator variable using specified options...');
 
-[prog, R1op] = poslpivar(prog, Top.dim, dd1, options1);
+[prog, P1op] = poslpivar(prog, Top.dim, dd1, options1);
 
 if override1~=1
     [prog, P2op] = poslpivar(prog, Top.dim, dd12, options12);
-    Rop=R1op+P2op;
+    Pop=P1op+P2op;
 else
-    Rop=R1op;
+    Pop=P1op;
 end
-
-% Also declare an indefinite operator Qop=Pop*Top' so that Rop = Top*Qop.   % DJ, 01/06/2025
-Qdeg = get_lpivar_degs(Rop,Top);
-[prog, Qop] = lpivar(prog,Top.dim,Qdeg);
-prog = lpi_eq(prog, Top*Qop-Rop);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -175,9 +169,9 @@ disp('- Constructing the Negativity Constraint...');
 Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-Dop = [-gam*Iz,       Dzwop,     Czop*Qop;
-        Dzwop',       -gam*Iw,   Bwop';
-        Qop'*Czop',   Bwop,      Qop'*Aop'+Aop*Qop]; 
+Dop = [-gam*Iz,          Dzwop,     Czop*Pop*Top';
+        Dzwop',          -gam*Iw,   Bwop';
+        Top*Pop*Czop',   Bwop,      Top*Pop*Aop'+Aop*Pop*Top']; 
     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -213,6 +207,6 @@ if ~isreal(gam)
 else 
     disp(gam);
 end
-R = lpigetsol(prog,Rop);
+P = lpigetsol(prog,Pop);
 gam = double(lpigetsol(prog,gam));
 end
