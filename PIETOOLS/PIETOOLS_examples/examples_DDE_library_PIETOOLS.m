@@ -139,14 +139,14 @@
 % %%%% answer - 25.907 @ tau=1.5
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % Example A.1 from [3]
-   Hinf_gain=1
-   Hinf_gain_dual=1
-    DDE.A0=[-2 0;0 -.9];%
-    DDE.Ai{1}=[-1 0; -1 -1];%
-    DDE.B1=[-.5;1];
-    DDE.C1=[1 0];
-% %   DDE.D12=[0;.1];
-    DDE.tau(1) = .846;
+%    Hinf_gain=1
+%    Hinf_gain_dual=1
+%     DDE.A0=[-2 0;0 -.9];%
+%     DDE.Ai{1}=[-1 0; -1 -1];%
+%     DDE.B1=[-.5;1];
+%     DDE.C1=[1 0];
+% % %   DDE.D12=[0;.1];
+%     DDE.tau(1) = .846;
 % % %%%% answer - .2364 (tau=.846)
 % %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -402,39 +402,32 @@
 % % Example 1 from [13]
 % H2_norm=1;
 % H2_norm_dual=1;
-% pvar t 
 %  a=1;
 %  b=2;
 %  c=2;
 %  tau=0.5;
-% x=pde_var('state',1,[],[]);
-% w=pde_var('input',1);
-% z=pde_var('output',1);
-% dde=[diff(x,t,1)==-a*subs(x,t,t-tau)+b*w;
-%             z==c*x];
+% DDE.Ai{1}=-a;
+% DDE.B1=b;
+% DDE.C1=c;
+% DDE.tau = tau;
 % %% Example 2b from [13]
-% H2_norm=1;
-% H2_norm_dual=1;
-% DDE2.A0=[-1 1 2
-%                 1 -3 2
-%                 0 0 -1];
-% nx=size(DDE2.A0,1);
-% DDE2.Ai{1}=(1/5).*[-3 0 1
-%                               1 -2 0
-%                               0 2 -2];
-% DDE2.Ai{2}=(1/5).*[-4 1 0
-%                               0 -2 1
-%                               2 1 -3];
-% DDE2.B1=[1
-%                 1
-%                 1];
-% DDE2.C1=[1 1 1];
-% DDE2.tau=[pi/10 1];
-% x=pde_var('state',3,[],[]);
-% w=pde_var('input',1);
-% z=pde_var('output',1);
-% dde2=[diff(x,t,1)==DDE2.A0*x+DDE2.Ai{1}*subs(x,t,t-DDE2.tau(1))+DDE2.Ai{2}*subs(x,t,t-DDE2.tau(2))+DDE2.B1*w;
-%             z==DDE2.C1*x];
+H2_norm=1;
+H2_norm_dual=1;
+DDE.A0=[-1 1 2
+                1 -3 2
+                0 0 -1];
+nx=size(DDE.A0,1);
+DDE.Ai{1}=(1/5).*[-3 0 1
+                              1 -2 0
+                              0 2 -2];
+DDE.Ai{2}=(1/5).*[-4 1 0
+                              0 -2 1
+                              2 1 -3];
+DDE.B1=[1
+                1
+                1];
+DDE.C1=[1 1 1];
+DDE.tau=[pi/10 1];
 %%
 
 % % % %%%% answer - 1.0448
