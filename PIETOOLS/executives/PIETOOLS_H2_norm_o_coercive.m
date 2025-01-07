@@ -1,4 +1,4 @@
-function [prog,W,gam,R,Q]= PIETOOLS_H2_norm_o(PIE, settings,options)
+function [prog,Wo, gam]= PIETOOLS_H2_norm_o(PIE, settings,options)
 % This function solves a minimization problem to obtain the H2 norm of a linear distributed parameter
 % system using the observability gramian approach and PIEs framework. For
 % the feasibility test an additional input with a assigned value to the
@@ -8,11 +8,8 @@ function [prog,W,gam,R,Q]= PIETOOLS_H2_norm_o(PIE, settings,options)
 %   settings : options related to PIETOOLS
 % outputs:
 %   gam = computed H2 norm for SDP problem or optional input value for feasibility tests;
-%   W = Observability gramian, a positive PI operator;
+%   Wo= Observability gramian, a positive PI operator;
 %  prog= sum of squares program information;
-%   R = positive PI operator parameterizing the non-coercive Lyapunov 
-%       functional V(v)=<v,R*v>;
-%   Q = indefinite PI operator such that R=PIE.T'*Q=Q'*PIE.T;
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -20,7 +17,7 @@ function [prog,W,gam,R,Q]= PIETOOLS_H2_norm_o(PIE, settings,options)
 % Braghini d166353@dac.unicamp.br.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt, D. Braghini
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -41,7 +38,6 @@ function [prog,W,gam,R,Q]= PIETOOLS_H2_norm_o(PIE, settings,options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 % DJ - 10/19/2024: Update to use new LPI programming structure;
-% DJ - 01/06/2024: Update to non-coercive version;
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -52,11 +48,11 @@ end
 % Pass to the 2D executive if necessary.
 if PIE.dim==2
     if nargin==1
-        [prog,W, gam] = PIETOOLS_H2_norm_2D_o(PIE);
+        [prog,Wo, gam] = PIETOOLS_H2_norm_2D_o(PIE);
     elseif nargin==2
-        [prog,W, gam] = PIETOOLS_H2_norm_2D_o(PIE,settings);
+        [prog,Wo, gam] = PIETOOLS_H2_norm_2D_o(PIE,settings);
     else
-        [prog,W, gam]= PIETOOLS_H2_norm_2D_o(PIE,settings,options);
+        [prog,Wo, gam]= PIETOOLS_H2_norm_2D_o(PIE,settings,options);
     end
     return
 end
@@ -114,39 +110,26 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 1: declare the posopvar variable, Rop, which defines the storage 
-% function candidate V(v)=<v,Rop*v>=<Top*v,Wop*Top*v>
+% STEP 1: declare the posopvar variable, Pop, which defines the storage
+% function candidate
 disp('- Declaring Gramian using specified options...');
 
-[prog, R1op] = poslpivar(prog, Top.dim, dd1, options1);
+[prog, P1op] = poslpivar(prog, Top.dim, dd1, options1);
 
 if override1~=1
     [prog, P2op] = poslpivar(prog, Top.dim, dd12, options12);
-    Rop=R1op+P2op;
+    Wop=P1op+P2op;
 else
-    Rop=R1op;
+    Wop=P1op;
 end
-
-% Also declare an indefinite operator Qop=Wop*Top so that Rop = Top'*Qop.   % DJ, 01/06/2025
-Qdeg = get_lpivar_degs(Rop,Top);
-[prog, Qop] = lpivar(prog,Top.dim,Qdeg);
-prog = lpi_eq(prog, Top'*Qop-Rop);
-
-% Finally, declare a positive operator (matrix) Wm representing the
-% observability Gramian
-[prog,Wm] = poslpivar(prog,Bwop.dim(:,2));
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 2: Using the observability gramian
 
 disp('- Constructing the Negativity Constraint...');
-Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-Dneg = [-gam*Iz   Czop
-        Czop'     Qop'*Aop+Aop'*Qop];
-Dpos = [Wm          Bwop'*Qop
-        Qop'*Bwop   Rop];
+Dop =  (Aop'*Wop)*Top+Top'*(Wop*Aop)+Czop'*Czop;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -156,37 +139,34 @@ Dpos = [Wm          Bwop'*Qop
 disp('- Enforcing the Inequalities Constraints...');
 if sosineq_on
     disp('  - Using lpi_ineq...');
-    prog = lpi_ineq(prog,-Dneg,opts);
-    prog = lpi_ineq(prog,Dpos,opts);
+    prog = lpi_ineq(prog,-Dop,opts);
 else
     disp('  - Using an Equality constraint...');
-    [prog, De1op] = poslpivar(prog, Dneg.dim, dd2, options2);
-    [prog, De3op] = poslpivar(prog, Dpos.dim, dd2, options2);
-    
+    [prog, De1op] = poslpivar(prog, Dop.dim, dd2, options2);
+
     if override2~=1
-        [prog, De2op] = poslpivar(prog, Dneg.dim, dd3, options3);
+        [prog, De2op] = poslpivar(prog, Dop.dim, dd3, options3);
         Deop=De1op+De2op;
-         [prog, De4op] = poslpivar(prog, Dpos.dim, dd3, options3);
-        Deopp=De3op+De4op;      
     else
         Deop=De1op;
-        Deopp=De3op;
     end
-    prog = lpi_eq(prog,Deop+Dneg,'symmetric'); %Dneg=-Deop
-    prog = lpi_eq(prog,Deopp-Dpos,'symmetric'); %Dpos=Deopp
+    prog = lpi_eq(prog,Deop+Dop,'symmetric'); %Dop=-Deop
 end
 
+tempObj = Bwop'*Wop*Bwop;
+tempMat = tempObj.P;
+traceVal=0;
+for idx = 1:size(tempMat,1)
+    traceVal = traceVal+tempMat(idx,idx);
+end
 % ensuring scalar inequality gam>trace
-traceVal = trace(Wm.P);
 prog = lpi_ineq(prog, gam-traceVal);
 
 %solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
 prog = lpisolve(prog,sos_opts);
 
-W = lpigetsol(prog,Wm);
-R = lpigetsol(prog,Rop);
-Q = lpigetsol(prog,Qop);
+Wo = lpigetsol(prog,Wop);
 
 if nargin<=2 || ~isfield(options,'h2')
     gam = sqrt(double(lpigetsol(prog,gam)));
