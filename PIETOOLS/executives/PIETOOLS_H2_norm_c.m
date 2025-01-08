@@ -64,7 +64,7 @@ if PIE.dim==2
 end
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;        Twop = PIE.Tw;
-Aop = PIE.A;        Bwop = PIE.B1;
+Aop = PIE.A;        B1op = PIE.B1;
 Czop = PIE.C1;
 
 % Make sure thera are no disturbances at the boundary.
@@ -143,10 +143,10 @@ prog = lpi_eq(prog, Top*Qop-Rop);
 % STEP 2: Using the controlability gramian
 
 disp('- Constructing the Negativity Constraint...');
-Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
+Iw = mat2opvar(eye(size(B1op,2)), B1op.dim(:,2), PIE.vars, PIE.dom);
 
-Dneg = [-gam*Iw   Bwop'
-        Bwop      Qop'*Aop'+Aop*Qop];
+Dneg = [-gam*Iw   B1op'
+        B1op      Qop'*Aop'+Aop*Qop];
 Dpos = [Wm           Czop*Qop
         Qop'*Czop'   Rop];
     
