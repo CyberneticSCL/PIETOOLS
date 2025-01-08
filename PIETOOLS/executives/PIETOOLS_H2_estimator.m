@@ -151,7 +151,9 @@ dimW=[B1op.dim(:,2),B1op.dim(:,2)];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% STEP 2: Using the observability gramian
 disp('- Constructing the Inequality Constraints...');
-Dneg=[-gam          C1op
+Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
+
+Dneg=[-gam*Iz          C1op
             C1op' Top'*Pop*Aop+Aop'*Pop*Top+Top'*Zop*C2op+C2op'*Zop'*Top];
 D12=B1op'*Pop+D21op'*Zop';
 Dpos=[Wop -D12

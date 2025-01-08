@@ -157,7 +157,9 @@ dimW=[C1op.dim(:,1),C1op.dim(:,1)];
 [prog,Wop] = lpivar(prog, dimW, ddZ);
 %% STEP 2: Using the controlability gramian
 disp('- Constructing the Inequality Constraints...');
-Dneg=[-gam          B1op'
+Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
+
+Dneg=[-gam*Iw          B1op'
             B1op     Top*Pop*Aop'+Aop*Pop*Top'+B2op*Zop*Top'+Top*Zop'*B2op'];
 Dp12=C1op*Pop+D12op*Zop;
 Dpos=[Wop Dp12
