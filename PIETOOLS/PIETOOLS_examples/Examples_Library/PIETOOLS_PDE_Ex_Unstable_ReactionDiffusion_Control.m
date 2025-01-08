@@ -1,4 +1,4 @@
-function       [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params)
+function [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% PIETOOLS PDE Examples
 % INPUT
@@ -14,9 +14,9 @@ function       [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,
 %               format.
 %
 % %---------------------------------------------------------------------% %
-%  PDE :        x_{t} = 3x+(s^2+0.2)x_{ss} +s^2w(t)
-%  With BC     x(s=0) = 0, x_{s}(s=1)=0
-%  And outputs  z(t) = [int(x(t,s),s,0,1)
+%  PDE:          x_{t} = 3x+(s^2+0.2)x_{ss} +s^2w(t)
+%  With BC:     x(s=0) = 0, x_{s}(s=1)=0
+%  And outputs:   z(t) = [int(x(t,s),s,0,1)
 %                                            u]
 % % 
 % % Parameter c can be set.
@@ -34,17 +34,16 @@ evalin('base','H2_control = 1;');
 
 % Construct the PDE.
 pvar s t;
-x=pde_var('state',1,s,[0,1]);
-z=pde_var('output',2);
-w=pde_var('input',1);
-u=pde_var('control',1);
+x = pde_var('state',1,s,[0,1]);
+z = pde_var('output',2);
+w = pde_var('input',1);
+u = pde_var('control',1);
 %y=pde_var('sense',1);
-pde = [diff(x,t)==3*x+(s^2+0.2)*diff(x,s,2)+s*u+s^2*w; 
-    subs(x,s,0)==0; 
-    subs(diff(x,s),s,1)==0;
+PDE_t = [diff(x,t)==3*x+(s^2+0.2)*diff(x,s,2)+s*u+s^2*w; 
+         subs(x,s,0)==0; 
+         subs(diff(x,s),s,1)==0;
          z==[int(x,s,[0,1]); u]];
 %y==subs(x,s,1)
-pie = convert(pde,'pie');
 if GUI
     %%% Associated GUI save file
         error("No GUI file associated with this example");
