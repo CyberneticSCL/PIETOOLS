@@ -143,9 +143,9 @@ prog = lpi_eq(prog, Top*Qop-Rop);
 % STEP 2: Using the controlability gramian
 
 disp('- Constructing the Negativity Constraint...');
-Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
+%Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 
-Dneg = [-gam*Iw   Bwop'
+Dneg = [-gam   Bwop'
         Bwop      Qop'*Aop'+Aop*Qop];
 Dpos = [Wm           Czop*Qop
         Qop'*Czop'   Rop];

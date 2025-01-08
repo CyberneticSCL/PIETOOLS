@@ -62,22 +62,30 @@
 % boundary
  
 function [prog, Lop, gam, P, Z, W] = PIETOOLS_H2_estimator(PIE, settings)
-
-% Check if the PIE is properly specified.
+%% Extract PIE operators necessary for the executive.
+Top = PIE.T;         B1op = PIE.B1;
+Aop = PIE.A;        C2op = PIE.C2;
+C1op = PIE.C1;      D21op = PIE.D21;
+Twop=PIE.Tw;
+%% Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
     error('The PIE for which to run the executive should be specified as object of type ''pie_struct''.')
 else
     PIE = initialize(PIE);
 end
-%  2D case
+%%  2D case
 if PIE.dim==2
     error('Optimal Estimation of 2D PIEs is currently not supported.')
 end
-% Distirbances at the boundaries
+%% Disturbances at the boundaries
 if ~(Twop==0)
     error('H2 estimator LPIs cannot currently be solved for systems with disturbances at the boundary');
 end
-% get settings information
+%% Feedthrought terms
+if ~(PIE.D11==0)
+    error('H2 LPIs requires no feedthrought term');
+end
+%% get settings information
 if nargin<2
     settings_PIETOOLS_light;
     settings.sos_opts.simplify = 1; % Use psimplify
@@ -85,7 +93,6 @@ if nargin<2
     settings.eppos2 = 1*1e-6;   % Positivity of Lyapunov Function with respect to spatially distributed states
     settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 end  
-
 dd1 = settings.dd1;
 dd12 = settings.dd12;
 sos_opts = settings.sos_opts;
@@ -106,68 +113,53 @@ else
     dd2 = settings.dd2;
     dd3 = settings.dd3;
 end
-
-fprintf('\n --- Executing Search for H_2 Optimal Estimator --- \n')
-
-% Declare an SOS program and initialize domain and opvar spaces
+%% Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fprintf('\n --- Executing Search for H_2 Optimal Estimator --- \n')
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 nx1=PIE.A.dim(1,1);                % retrieve the number of ODE states from Aop
 nx2=PIE.A.dim(2,1);                % retrieve the number of distributed states from Aop
-
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The most common usage of this script is to find the minimum hinf gain bound
 % In this case, we define the hinf norm variable which needs to be minimized
 dpvar gam;
 prog = lpidecvar(prog, gam); %this sets gamma as decision var
-prog = lpi_ineq(prog, gam); %this ensures gamma is lower bounded
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 1: declare the posopvar variable, Pop, which defines the storage 
+%% STEP 1: declare the posopvar variable, Pop, which defines the storage 
 % function candidate and the indefinite operator Zop, which is used to
 % contruct the estimator gain
 disp('- Declaring Positive Storage Operator variable and indefinite Estimator operator variable using specified options...');
-
 [prog, P1op] = poslpivar(prog, PIE.T.dim(:,1), dd1, options1);
-
 if override1~=1
     [prog, P2op] = poslpivar(prog, PIE.T.dim(:,1), dd12, options12);
     Pop=P1op+P2op;
 else
     Pop=P1op;
 end
-% enforce strict positivity on the operator
+%% enforce strict positivity on the Lyapunov operator
 Pop.P = Pop.P+eppos*eye(nx1);
 Pop.R.R0 = Pop.R.R0+eppos2*eye(nx2);  
-dimZ=[PIE.T.dim(:,1),PIE.C2.dim(:,1)];
+%% declare indefinite auxiliary operator Z
+dimZ=[Top.dim(:,1),C2op.dim(:,1)];
 [prog,Zop] = lpivar(prog,dimZ, ddZ);
-dimW=[PIE.B1.dim(:,2),PIE.B1.dim(:,2)];
+%% declare positive auxiliary operator W
+dimW=[B1op.dim(:,2),B1op.dim(:,2)];
 [prog,Wop] = lpivar(prog,dimW, ddZ);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% opvar Iw Iz;
-% Iw.dim = [PIE.B1.dim(:,2),PIE.B1.dim(:,2)];
-% Iz.dim = [PIE.C1.dim(:,1),PIE.C1.dim(:,1)];
-% Iw.P = eye(size(Iw.P)); Iz.P = eye(size(Iz.P));
-% Iw.R.R0 = eye(size(Iw.R.R0)); Iz.R.R0 = eye(size(Iz.R.R0));
+%% STEP 2: Using the observability gramian
 disp('- Constructing the Inequality Constraints...');
-
 Dneg=[-gam          C1op
             C1op' Top'*Pop*Aop+Aop'*Pop*Top+Top'*Zop*C2op+C2op'*Zop'*Top];
 D12=B1op'*Pop+D21op'*Zop';
-Dpos=[Wm -D12
+Dpos=[Wop -D12
             -D12' Pop];
 traceVal = trace(Wop.P);
-
-disp('- Parameterize the derivative inequality...');
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 3: Impose Negativity Constraint. There are two methods, depending on
+%% STEP 3: Impose Negativity Constraint. There are two methods, depending on
 % the options chosen
 %
 disp('- Enforcing the Inequalities Constraints...');
@@ -192,28 +184,26 @@ else
     prog = lpi_eq(prog,Deop+Dneg,'symmetric'); %Dneg=-Deop
     prog = lpi_eq(prog,Deopp-Dpos,'symmetric'); %Dpos=Deopp
 end
-% ensuring scalar inequality gam>trace
+%% ensuring scalar inequality gam>trace
 prog = lpi_ineq(prog, gam-traceVal);
-
+prog = lpi_ineq(prog, gam); %this ensures gamma is lower bounded
+%% Objective function
 % min gam
 % sj LPIs
 prog = lpisetobj(prog, gam); %this minimizes gamma, comment for feasibility test
-
-%solving the sos program
+%% STEP 4: solving the sos program
 disp('- Solving the LPI using the specified SDP solver...');
 prog = lpisolve(prog,sos_opts); 
-
-P = lpigetsol(prog_sol,Pop);
-W = lpigetsol(prog_sol,Wop);
-Z = lpigetsol(prog_sol,Zop);
-if nargin<=2 || ~isfield(options,'h2')
-        gam = double(lpigetsol(prog_sol,gam));
-        disp('The closed-loop H2 norm of the given system is upper bounded by:')
-         disp(gam);
-end
+%% Evaluating decision variables
+P = lpigetsol(prog,Pop);
+W = lpigetsol(prog,Wop);
+Z = lpigetsol(prog,Zop);
+gam = double(lpigetsol(prog,gam));
+%% Display closed-loop H2 norm
+disp('The closed-loop H-2 norm of the given system is upper bounded by:')
+disp(gam);
+%% Observer Reconstruction
 Lop = getObserver(P,Z);
-% end
-
 end
 
 

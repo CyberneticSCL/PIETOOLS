@@ -35,7 +35,7 @@
 % Initial coding DJ - 12/22/2021
 % SS/DJ, 01/13/2022: Enforce separability for control/estimator;
 % DJ, 01/06/2025: Add support for call to H2 norm executives;
-%
+% DB 01/07/2025: Fix output of H2 executives
 
 
 % % % 1. Check if a PIE has been specified
@@ -158,10 +158,10 @@ elseif contains(exec{j},'H2_norm_c') || strcmp(exec{j},'H2_norm_dual')     % H2_
     outval = '[prog_H2_norm_d, W_H2_norm_d, H2_norm_dual, R_H2_norm_d,Q_H2_norm_d]';
     msg_out = ['The upper bound on the (dual) H-2 norm has been saved as "H2_norm_dual".'];
 elseif contains(exec{j},'H2_control')          % H2_control
-    outval = '[prog_control, K_control, H2_norm_control, P_control, Z_control]';
+    outval = '[prog_control, K_control, H2_norm_control, P_control, Z_control, W_control]';
     msg_out = ['The (optimal) feedback control gain operator has been saved as "K_control".'];
 elseif contains(exec{j},'H2_estimator')        % H2_estimator
-    outval = '[prog_estimator, L_estimator, H2_norm_estimator, P_estimator, Z_estimator]';
+    outval = '[prog_estimator, L_estimator, H2_norm_estimator, P_estimator, Z_estimator, W_estimator]';
     msg_out = ['The (optimal) estimator operator has been saved as "L_estimator".'];
 end
 infun = ['PIETOOLS_',exec{j},'(PIE,settings)'];

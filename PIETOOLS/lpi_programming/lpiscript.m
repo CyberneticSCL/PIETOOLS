@@ -48,7 +48,7 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 %
 % DJ, 11/01/2024: Initial coding;
 % DJ, 01/06/2025: Add support for call to H2 executives; 
-
+% DB 01/07/2025: Fix output of H2 executives
 
 % % % There are two ways to use this function: 
 if nargin<3
@@ -117,11 +117,11 @@ switch lpi
         [prog_sol, K, gam, P, Z] = PIETOOLS_Hinf_control(PIE,opts);
         varargout{1} = K; varargout{2} = gam; varargout{3} = P; varargout{4} = Z; 
     case 'h2-observer'
-        [prog_sol, L, gam, P, Z] = PIETOOLS_H2_estimator(PIE,opts);
-        varargout{1} = L; varargout{2} = gam; varargout{3} = P; varargout{4} = Z;
+        [prog_sol, L, gam, P, Z,W] = PIETOOLS_H2_estimator(PIE,opts);
+        varargout{1} = L; varargout{2} = gam; varargout{3} = P; varargout{4} = Z;varargout{5} = W;
     case 'h2-controller'
-        [prog_sol, K, gam, P, Z] = PIETOOLS_H2_control(PIE,opts);
-        varargout{1} = K;  varargout{2} = gam; varargout{3} = P; varargout{4} = Z;
+        [prog_sol, K, gam, P, Z,W] = PIETOOLS_H2_control(PIE,opts);
+        varargout{1} = K;  varargout{2} = gam; varargout{3} = P; varargout{4} = Z;varargout{5} = W;
     otherwise
         [prog_sol, vout] = lpi(PIE,opts);
         varargout = cell(1,length(vout));

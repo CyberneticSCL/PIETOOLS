@@ -28,9 +28,6 @@ pvar s1 s2
 evalin('base','H2_norm = 1;');
 evalin('base','H2_norm_dual = 1;');
 
-nu = 1;     r = 8;   ne = 1;
-a = 0;  b=1;        c = 0;       d = 1;
-Cw = (s1^2-b)*(s2^2-d);
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters

@@ -142,9 +142,9 @@ prog = lpi_eq(prog, Top'*Qop-Rop);
 % STEP 2: Using the observability gramian
 
 disp('- Constructing the Negativity Constraint...');
-Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
+%Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-Dneg = [-gam*Iz   Czop
+Dneg = [-gam   Czop
         Czop'     Qop'*Aop+Aop'*Qop];
 Dpos = [Wm          Bwop'*Qop
         Qop'*Bwop   Rop];
