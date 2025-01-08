@@ -30,9 +30,14 @@
 % authorship, and a brief description of modifications
 %
 % DJ, 12/30/2024: Initial coding;
+% DJ, 01/07/2025: Add some commenting;
 clear
 
 %% 5.2 Converting a PDE to a PIE
+% Equations
+% PDE:     \dot(x)(t,s) = x_ss(t,s),         0<s<1
+% BCs:     x(t,0) + int(x,s,[0,1]) = 0,   
+%          x(t,1) + int(x,s,[0,1]) = 0.
 clear stateNameGenerator
 pvar s t
 x = pde_var(s,[0,1]);
@@ -46,14 +51,23 @@ PIE.dom
 
 
 %% 5.3 Converting a DDE to a PIE
+% Equations
+% DDE:  \dot{x}(t) = [-1.5,  0] x(t) + int_{-1}^{0} [3, 2.25] x(t+s) ds + int_{-2}^{0} [-1,  0] x(t+s) ds    
+%                    [ 0.5, -1]                     [0, 0.5 ]                          [ 0, -1]  
 clear DDE
-DDE.A0 = [-1.5, 0; 0.5, -1];
-DDE.Adi{1} = [3, 2.25; 0, 0.5]; DDE.tau(1) = 1;
-DDE.Adi{2} = [-1, 0; 0, -1];    DDE.tau(2) = 2;
+DDE.A0 = [-1.5, 0; 0.5, -1];                        % Non-delayed term  A0*x(t)
+DDE.Adi{1} = [3, 2.25; 0, 0.5]; DDE.tau(1) = 1;     % Distributed delay int_{-1}^{0} Ad1*x(t+s) ds
+DDE.Adi{2} = [-1, 0; 0, -1];    DDE.tau(2) = 2;     % Distributed delay int_{-2}^{0} Ad1*x(t+s) ds
 PIE = convert_PIETOOLS_DDE(DDE,'pie')
 
 
 %% 5.4 Converting an Input-Output system to a PIE
+% Equations
+% PDE:     \dot(x)(t,s) = 0.5*x_ss(t,s) + s*(2-s)*w(t),         0<s<1
+% Outputs: z(t) = int_{0}^{1} x(t,s) ds,
+%          y(t) = x(t,1),
+% BCs:     x(t,0) = u(t),   
+%          x_{s}(t,1) = 0.
 clear stateNameGenerator
 pvar s t
 pde_var state x input w output z control u sense y

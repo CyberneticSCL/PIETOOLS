@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_DDF.m     PIETOOLS 2022
+% PIETOOLS_DDF.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Getting Started: This file is meant to be run from the Matlab editor 
 % window and combines many of the scripts and functions in 
@@ -28,9 +28,12 @@
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
 % close all; clear all; path(pathdef); clc; 
-clear;
-stability=0; stability_dual=0; Hinf_gain=0; Hinf_gain_dual=0; Hinf_control=0; Hinf_estimator=0; 
-DDE2DDF=0;DDF_min=1;
+close all; clear; %path(pathdef); 
+clc;
+stability=0; stability_dual=0; 
+Hinf_gain=0; Hinf_gain_dual=0; H2_norm=0; H2_norm_dual=0;
+Hinf_control=0; Hinf_estimator=0; H2_control=0; H2_estimator=0;
+DDE2DDF=0;      DDF_min=1;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % BEGIN: USER INPUT: Define the DDE
@@ -180,17 +183,17 @@ examples_NDSDDF_library_PIETOOLS
 % settings_PIETOOLS_stripped sacrifices accuracy
 %
 % settings_PIETOOLS_extreme is often infeasible
-settings = lpisettings('light');
 sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
+settings = lpisettings('light');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Specify Solver
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Default Setttings: %%%%%%
-%settings.sos_opts.solver='sedumi';
+settings.sos_opts.solver='sedumi';
 % Other optional SDP solvers supported by PIETOOLS
- settings.sos_opts.solver ='mosek';
+%settings.sos_opts.solver ='mosek';
 % settings.sos_opts.solver='sdpnalplus';
 % settings.sos_opts.solver='sdpt3';
 
