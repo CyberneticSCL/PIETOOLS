@@ -151,7 +151,7 @@ for ii=1:numel(RHS.free)
             PDE_out.(obj){eq_num,1}.tdiff = tdiff;
         end
         % Check if coefficients have been specified for the left-hand side
-        if isfield(RHS.free{ii}.term{1},'C') && ~all(all(RHS.free{ii}.term{1}.C==eye(PDE_out.(obj){eq_num}.size)))
+        if isfield(RHS.free{ii}.term{1},'C') && ~all(all(isequal(RHS.free{ii}.term{1}.C,eye(PDE_out.(obj){eq_num}.size))))
             C_LHS = RHS.free{ii}.term{1}.C;
             if isa(C_LHS,'polynomial') && ~isdouble(C_LHS)
                 error("Equation cannot be set: an output signal or a temporal derivative of a state has been multiplied with a polynomial")
