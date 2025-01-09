@@ -45,7 +45,9 @@ function PDE_out = diff(PDE_in,vars,dval)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 06/23/2024
+% DJ, 06/23/2024: Initial coding;
+% DJ, 01/09/2025: Add support for temporal differentiation of vectors of
+%                   state variables;
 
 % % % Process the inputs
 
@@ -117,17 +119,54 @@ if ismember('t',vars.varname)
     if nvars>1
         error("Differentiation with respect to temporal and spatial variable simultaneously is not supported.")
     elseif ~is_pde_var_in
-        error('Differentiation of PDE terms with respect to temporal variable is not supported');
+        % Check that the input corresponds to a column of PDE state
+        % variables
+        for ii=1:numel(PDE_out.free)                                        % DJ, 01/09/2025
+            if isfield(PDE_out.free{ii},'term') && ~isempty(PDE_out.free{ii}.term)
+                if numel(PDE_out.free{ii}.term)>1
+                    error('Temporal differentiation of multiple PDE terms is not supported');
+                end
+                trm = PDE_out.free{ii}.term{1};
+                if ~isfield(trm,'x')
+                    % Term must involve a state variable
+                    error('Temporal differentiation of input or output signals is not supported.');
+                % elseif isfield(trm,'C') && (~isdouble(trm.C) ||...
+                %         (~isequal(double(trm.C),1) && ~isequal(double(trm.C),eye(PDE_in.x{1}.size))))
+                %     % Variable cannot be multiplied with anything.
+                %     error('Temporal differentiation of states multiplied with coefficients is not supported.');
+                elseif isfield(trm,'D') && any(trm.D)
+                    % Variable cannot be differentiated.
+                    error('Simultaneous differentiation with respect to time and space is not supported.');
+                elseif isfield(trm,'loc') && ~isempty(trm.loc) ...
+                        && (any(size(trm.loc)~=size(PDE_in.x{trm.x}.vars'))...
+                            || any(~isequal(polynomial(trm.loc),polynomial(PDE_in.x{trm.x}.vars'))))
+                    % Variable cannot be evaluated at a particular position.
+                    error('Evaluating temporal derivatives of states at a spatial position is not supported.');
+                elseif isfield(trm,'delay') && (~isdouble(trm.delay) || ~double(trm.delay)==0)
+                    % Variable cannot be delayed in time.
+                    error('Temporal differentiation of delayed states is not supported.');
+                elseif isfield(trm,'I') 
+                    % Variable cannot be integrated.
+                    for jj=1:numel(trm.I)
+                        if ~isempty(trm.I{jj})
+                            error('Temporal differentiation of integrals of states is not supported.');
+                        end
+                    end
+                end
+            end
+        end
     end
-    % Initialize a new term with temporal derivative of state variable
-    % equal to dval
-    for ii=1:numel(PDE_out.x)
-        PDE_out.free{1}.size = PDE_in.x{ii}.size;
-        PDE_out.free{1}.vars = PDE_in.x{ii}.vars;
 
-        PDE_out.free{1}.term{1}.(obj) = ii;      % Index of state variable in the structure, not its ID!
-        PDE_out.free{1}.term{1}.tdiff = dval;
-        PDE_out.free{1}.term{1}.C = 1;
+    % Initialize a new term with temporal derivative of state variable
+    % increased by dval
+    for ii=1:numel(PDE_out.free)
+        if isfield(PDE_out.free{ii},'term') && ~isempty(PDE_out.free{ii}.term)
+            if isfield(PDE_out.free{ii}.term{1},'tdiff')
+                PDE_out.free{ii}.term{1}.tdiff = PDE_out.free{ii}.term{1}.tdiff + dval;
+            else
+                PDE_out.free{ii}.term{1}.tdiff = dval;
+            end
+        end
     end
     return
 end
