@@ -724,7 +724,7 @@ switch index
 %       Unstable Reaction-Diffusion Type Systems
 %--------------------------------------------------------------------------
     case 47
-%  PDE:         x_{t} = 3x+(s^2+0.2)x_{ss}          |                           (closed-loop H2 norm of 1.3121 using 'heavy' settings)  
+%  PDE:         x_{t} = 3x+(s^2+0.2)x_{ss}          |                           (closed-loop H2 norm of 1.2683 using 'veryheavy' settings)  
 %                                   -(s^2)/2w(t)    |
 %  With BC:    x(s=0) = 0, x_{s}(s=1)=0             |
 %  And outputs:  z(t) = int(x(t,s),s,0,1)           |
