@@ -63,8 +63,8 @@ if PIE.dim==2
 end
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;        Twop = PIE.Tw;
-Aop = PIE.A;        Bwop = PIE.B1;
-Czop = PIE.C1;
+Aop = PIE.A;        B1op = PIE.B1;
+C1op = PIE.C1;
 
 % Make sure thera are no disturbances at the boundary.
 if ~(Twop==0)
@@ -135,19 +135,19 @@ prog = lpi_eq(prog, Top'*Qop-Rop);
 
 % Finally, declare a positive operator (matrix) Wm representing the
 % observability Gramian
-[prog,Wm] = poslpivar(prog,Bwop.dim(:,2));
+[prog,Wm] = poslpivar(prog,B1op.dim(:,2));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 2: Using the observability gramian
 
 disp('- Constructing the Negativity Constraint...');
-Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
+Iz = mat2opvar(eye(size(C1op,1)), C1op.dim(:,1), PIE.vars, PIE.dom);
 
-Dneg = [-gam*Iz   Czop
-        Czop'     Qop'*Aop+Aop'*Qop];
-Dpos = [Wm          Bwop'*Qop
-        Qop'*Bwop   Rop];
+Dneg = [-gam*Iz   C1op
+        C1op'     Qop'*Aop+Aop'*Qop];
+Dpos = [Wm          B1op'*Qop
+        Qop'*B1op   Rop];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
