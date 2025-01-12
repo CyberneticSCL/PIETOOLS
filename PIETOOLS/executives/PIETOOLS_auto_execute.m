@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_AUTO_EXECUTE.m     PIETOOLS 2022
+% PIETOOLS_AUTO_EXECUTE.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % A script to aid users in analyzing and controlling PIEs using PIETOOLS
 % If a desired executive has been specified (e.g. 'Hinf_gain=1'), and a
@@ -11,7 +11,7 @@
 % setting they want to use.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -35,7 +35,8 @@
 % Initial coding DJ - 12/22/2021
 % SS/DJ, 01/13/2022: Enforce separability for control/estimator;
 % DJ, 01/06/2025: Add support for call to H2 norm executives;
-% DB 01/07/2025: Fix output of H2 executives
+% DB 01/07/2025: Fix output of H2 executives;
+% DJ, 01/12/2025: Use 'light' settings by default;
 
 
 % % % 1. Check if a PIE has been specified
@@ -120,9 +121,19 @@ end
 % % If no settings have been specified, allow the user to specify them
 if ~exist('settings','var')
     fprintf('\n How hard should the solver work? \n');
-    msg = ['   Please input ''extreme'', ''stripped'', ''light'', ''heavy'', ''veryheavy'', or ''custom'' \n ---> '];
+    msg = ['   Please input ''extreme'', ''stripped'', ''light'' (default), ''heavy'', ''veryheavy'', or ''custom''\n ---> '];
     sttngs = input(msg,'s');
     sttngs = strrep(sttngs,'''','');    % Get rid of potential apostrophes
+    if isempty(sttngs)                                                      % DJ, 01/12/2025
+        disp(' ')
+        disp(" Proceeding with 'light' settings.")
+        sttngs = 'light';
+    elseif ~strcmp(sttngs,'extreme') && ~strcmp(sttngs,'stripped') && ~strcmp(sttngs,'light')...
+            && ~strcmp(sttngs,'heavy') && ~strcmp(sttngs,'veryheavy') && ~strcmp(sttngs,'custom')
+        fprintf(2,"\n Unknown settings specified; proceeding with 'light' settings.\n")
+        sttngs = 'light';
+        %error("Settings should be specified as one of 'extreme', 'stripped', 'light', 'heavy', 'veryheavy', or 'custom'; execution of executive aborted. ")
+    end
     settings = lpisettings(sttngs);     % Construct the settings
 end
 
