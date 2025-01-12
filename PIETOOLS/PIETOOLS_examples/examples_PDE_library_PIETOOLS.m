@@ -914,6 +914,8 @@ if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
     PIE = convert_PIETOOLS_PDE(varargout{1});
     assignin('base','PIE',PIE);
     evalin('base','PIETOOLS_auto_execute');
+else
+    error('Please answer y (yes) or n (n).')
 end
 
 end
