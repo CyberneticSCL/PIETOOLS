@@ -42,6 +42,7 @@ function out_var = pde_var(varargin)
 %               used to construct a PDE using standard operations of +, *, 
 %               subs(), diff(), int(), and ==.
 %
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C)2024  PIETOOLS Team
 %
