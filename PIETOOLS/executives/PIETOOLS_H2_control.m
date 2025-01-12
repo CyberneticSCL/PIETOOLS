@@ -84,9 +84,9 @@ end
 if ~(PIE.Tu==0)
     error('H2-dual LPI cannot currently be solved for systems with inputs at the boundary');
 end
-%% Feedthrought terms
+%% Feedthrough terms
 if ~(PIE.D11==0)
-    error('H2 LPIs requires no feedthrought term');
+    error('H2 LPIs requires no feedthrough term');
 end
 %% get settings information
 if nargin<2

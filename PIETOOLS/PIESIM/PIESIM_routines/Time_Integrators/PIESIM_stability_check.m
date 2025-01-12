@@ -140,7 +140,7 @@ function PIESIM_stability_check(opts, Atotal);
         disp('or decreasing an order of the scheme (opts.Norder).');
         end
         else
-        disp('This is likely beacuse underlying physical problem is unstable.');
+        disp('This is likely because the underlying physical problem is unstable.');
         end
         end
      end
