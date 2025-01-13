@@ -1,7 +1,7 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_PDE_2D.m     PIETOOLS 2022
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% convert_PIETOOLS_PDE_2D.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert a coupled ODE-1D_PDE-2D system to an equivalent PIE.
 % 
 % INPUTS:
@@ -79,7 +79,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
 %
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -103,6 +103,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 % Initial coding DJ - 08/09/2022
 % Add 1D conversion, DJ - 10/16/2024
 % DJ, 12/16/2024: Bugfix for batch and terms_legacy conversion;
+% DJ, 01/12/2025: Add check if sufficient boundary conditions are specified
+%                   in 1D case;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -349,7 +351,10 @@ else
         if ~all(Pop_b2BC.dim(2,:)==0)
             error('The boundary conditions appear to be infinite-dimensional, something is going wrong...')
         else
-            % Test for well-posedness of Boundary conditions
+            % Test for well-posedness of boundary conditions
+            if size(Pop_b2BC.P,1)~=size(Pop_b2BC.P,2)                       % DJ, 01/12/2025
+                error('It appears insufficient boundary conditions have been specified; conversion to PIE is not supported.')
+            end    
             if abs(det(double(Pop_b2BC.P)))>eps
                 Pop_b2BC_inv = pinv(double(Pop_b2BC.P));
                 Pop_f2b = -Pop_b2BC_inv*Pop_f2BC;
