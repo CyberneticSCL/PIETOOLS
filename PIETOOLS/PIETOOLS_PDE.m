@@ -1,4 +1,4 @@
-close all; clc; clear;
+close all; clc; clear; clear stateNameGenerator
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS_PDE.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,25 +25,21 @@ close all; clc; clear;
 % each with an associated default executive to run. Call the library with
 % an index 1 through 48 as argument to extract that example, and run the
 % associated executive, if desired.
- PDE = examples_PDE_library_PIETOOLS(1);
-%PDE = examples_PDE_library_PIETOOLS(15,'batch');
-% PDE = examples_PDE_library_PIETOOLS(15,'terms');
+PDE = examples_PDE_library_PIETOOLS(1);
 
 %% --- Manual Declaration Option --- 
-% To use this example, comment lines 43
-% and 45 and uncomment line 44
+% % To use this example, comment line 28, and
+% % uncomment line 63
 % pvar s t
-%   A1=[0 1; 2 0]; A0=[0 0; 0 -2];
-% PDE =sys();
-% x1=state('pde');x2=state('pde');x=[x1;x2];
-% eq_dyn=diff(x,t)==A0*x+A1*diff(x,s);
-% eq_bc=[subs(x2,s,0)==0;subs(x1,s,1)==0];
-% PDE=addequation(PDE,[eq_dyn;eq_bc]);
+% A1 = [0 1; 2 0];        A0 = [0 0; 0 -2];
+% x1 = pde_var(s,[0,1]);  x2 = pde_var(s,[0,1]);    x = [x1;x2];
+% eq_dyn = diff(x,t)==A0*x+A1*diff(x,s);
+% eq_bc = [subs(x2,s,0)==0; subs(x1,s,1)==0];
+% PDE = initialize([eq_dyn;eq_bc]);
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PDE= initialize_PIETOOLS_PDE(PDE);
 %PIE=convert(PDE,'pie');
 PIE = convert_PIETOOLS_PDE(PDE);
 
@@ -61,7 +57,7 @@ settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with res
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
-%  PIETOOLS_auto_execute
+% PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
 % [prog,P] = lpisolve(PIE,settings,'hinf-observer');
