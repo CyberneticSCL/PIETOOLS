@@ -8,8 +8,9 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 %               specified as a cell of strings e.g. {'lam=1;','dom=[0,1]'}.
 %
 % OUTPUT
-% - PDE_t:      PDE structure defining the example system in the term-based 
-%               format.
+% - PDE_t:      PDE structure defining the example system using the pde_var
+%structure
+%   
 %
 % %---------------------------------------------------------------------% %
 %  PDE :        x_{t} = x_{s} + (s-s^2)w(t)
@@ -19,7 +20,7 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params)
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
 root = fileparts(loc);
-
+ clear stateNameGenerator
 % Initialize variables
 pde_struct PDE_t;
 pvar s1 s2

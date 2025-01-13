@@ -392,6 +392,21 @@ switch index
 % %      z2(t) = u(t)
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input(GUI,params);
 %
+    case 30
+% % ODE                             xo_{t}= u
+% % PDE                             x_{t} = 5*x + x_{ss} + w
+% % BCs                         x(s=0) = 0
+% %                                 x_{s}(s=1) = xo
+% % Out z =[ int(x(s,t),s,0,1);xo]
+    [PDE_t] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_Control(GUI,params);
+    case 31
+% % ODE                             xo_{t}= u
+% % PDE                             x_{t} = [0 1;0 0]x +  [0 0;1 0] x_{ss}+ [0;1]w
+% % With BCs                         [1 0]x(s=0) = 0
+% %                                         [1 0]x_{s}(s=1) = xo
+% % and regulated output  z =[ xo; [1 0]int(x(s,t),s,0,1)]
+ [PDE_t] =PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Control(GUI,params)
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %       2D Examples
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -401,7 +416,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Advection Equation
 %--------------------------------------------------------------------------
-    case 30
+    case 32
 %   PDE: x_{t} = c1*x_{s1} + c2*x_{s2}              | c1 = 1; c2 = 1;
 %   BCs: x(s1=0) = 0,   x(s2=0) = 0;                |   ne = 1 (state size)
     if BATCH~=0
@@ -413,7 +428,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-    case 31
+    case 33
 %   PDE: x_{t} = lam*x + c1*x_{(2,0)}               | lam = 19;             (stable for lam <= 2*pi^2) 
 %                           + c2*x_{(0,2)}          | c1 = 1;   c2 = 1;             Holmes, 1994 [14] Eq. (14)   
 %   BCs: x(s1=0) = 0,   x(s2=0) = 0,                | ne = 1 (state size)
@@ -425,7 +440,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_KISS_Model(GUI,params);
 %--------------------------------------------------------------------------
-    case 32
+    case 34
 %   PDE: x_{t} = C*(x_{(2,0} + x_{(0,2)})           | C = 1;
 %                 - b1*x_{(1,0)} - b2*x_{(0,1)}     | b1 = 0.5; b2 = 2;             Holmes, 1994 [14] Eq. (2)
 %   BCs: x(s1=0) = 0,   x(s2=0) = 0,                | ne = 1 (state size)
@@ -437,7 +452,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Reaction_Diffusion_Eq(GUI,params);
 %--------------------------------------------------------------------------
-    case 33
+    case 35
 %   PDE: x_{t} = -1/(2*lam) * x_{tt}                | lam = 1;
 %                 +(C^2/2*lam)*(x_{(2,0}            | C = 1;                        Holmes, 1994 [14] Eq. (3)
 %                                 + x_{(0,2)})      | ne = 1 (state size) 
@@ -459,7 +474,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Telegraph_Eq(GUI,params);
 %--------------------------------------------------------------------------
-    case 34
+    case 36
 %   PDE: x_{t} = a*x                                | a = 4.0;              (stable for a <= 0.5*pi^2) 
 %                 + b1*x_{(1,0)} + b2*x_{(0,1)}     | b1 = 0;   b2 = 0;             Demetriou, 2019 [17]   
 %                  + c1*x_{(2,0)} + c2*x_{(0,2)}    | c1 = 1;   c2 = 1;
@@ -472,7 +487,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Parabolic_Eq(GUI,params);
 %--------------------------------------------------------------------------
-    case 35
+    case 37
 %   PDE: x_{tt} = c1*x_{(2,0)} + c2*x_{(0,2)}       | c1 = 1;   c2 = 1;
 %   BCs: x(s1=0) = 0;       x(s2=0) = 0;            | ne = 1; (state size)
 %        x(s1=1) = 0;       x(s2=1) = 0;            |
@@ -491,7 +506,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Wave_Eq(GUI,params);
 %--------------------------------------------------------------------------
-    case 36
+    case 38
 %   PDE: p_{t}  = -s2*p_{s1} - v1_{s1} - v2_{s2}    | M = 0.1;
 %        v1_{t} = -s2*v1_{s1} -v2 -(1/M^2)*p_{s1}   | lam = 1; nu = 1;              Antonelli, 2021 [17]
 %                  +nu*(v1_{s1s1} + v1_{s2s2})      |
@@ -509,7 +524,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_NS_Antonelli(GUI,params);
 %--------------------------------------------------------------------------
-    case 37
+    case 39
 %   ODE: x1_{t} = (A+BK)*x1 + B*x2(s1=0,s2=0)       | A = I; B = I;
 %   PDE: x2_{t} = c1*x_{(2,0)} + c2*x_{(0,2)}       | K = -2*I;
 %   BCs: x2_{(1,0)}(s1=0) = 0;  x2(s1=1) = 0;       |
@@ -521,7 +536,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_2D_Heat_Eq_with_ODE(GUI,params);
 %--------------------------------------------------------------------------
-    case 38
+    case 40
 %   PDE: x_{t} = x_{s1s1} + lam * x;    s1 in [0,1] | tau = 1;
 %   BCs: x(t,s1=0) = 0;                             | lam = 1;                      Kristic, 2009 [18] 
 %        x(t,s1=1) = u(t-tau);                      |
@@ -541,7 +556,7 @@ switch index
     end
     [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Delayed_Boundary_Input(GUI,params);
 %--------------------------------------------------------------------------
-    case 39
+    case 41
 %   ODE: X_{t} = A*X(t) + A1*X(t-tau) + B*x(t,s1=0) | tau = 1;
 %   PDE: x_{t} = x_{s1s1} + a*x + a2*x(t-tau);      | A = -1;    A1 = 0.5;          Kang, 2017 [19] 
 %   BCs: x_{s1}(t,s1=0) = 0;                        | B = -1;
@@ -572,7 +587,7 @@ switch index
     end    
     [PDE_t] = PIETOOLS_PDE_Ex_Coupled_ODE_Heat_Eq_w_Delay(GUI,params);
 %--------------------------------------------------------------------------
-    case 40
+    case 42
 %   PDE:    x_{t}  = c*x_{s1s1}(t,s1) + a0*x(t,s1)  | tau = 1;
 %                       - a1*x(t-tau,s1);           | c = 1;
 %   BCs:    x(t,s1=0) = 0;                          | a0 = 1.9;
@@ -597,7 +612,7 @@ switch index
     end    
     [PDE_t] = PIETOOLS_PDE_Ex_Heat_Eq_w_Interior_Delay(GUI,params);
 %--------------------------------------------------------------------------
-    case 41 
+    case 43
 %   PDE:    x_{tt}  = x_{ss}(t,s);   s in [0,1]     | tau = 1;  
 %   BCs:    x(t,0) = 0;                             | k = 1;
 %           x_{s}(t,1) = -k*(1-mu)*x_{t}(t,1)       | mu = 0.4;
@@ -636,7 +651,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-    case 42
+    case 44
 %   PDE: x_{t} = lam*x + nu*x_{(2,0)}               | r = 5;  nu = 1;           (stable for r <= nu*pi^2*(1/(b-a)^2 +(1/4)/(d-c)^2)) 
 %                           + nu*x_{(0,2)} + w      | a = 0;   b = 1;           (Exact L2 gain gam = 0.11101 for default params) 
 %   OUT:     z = int(int(x,s1,a,b),s2,c,d)          | c = 0;   d = 1;
@@ -650,7 +665,7 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDN(GUI,params);
 %
 %--------------------------------------------------------------------------
-    case 43
+    case 45
 %   PDE: x_{t} = lam*x + nu*x_{(2,0)}               | r = 15;  nu = 1;          (stable for r <= nu*pi^2*(1/(b-a)^2 +1/(d-c)^2)) 
 %                           + nu*x_{(0,2)} + w      | a = 0;   b = 1;           (Exact L2 gain gam = 0.17110 for default params) 
 %   OUT:     z = int(int(x,s1,a,b),s2,c,d)          | c = 0;   d = 1;
@@ -664,7 +679,7 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDD(GUI,params);
 %
 %--------------------------------------------------------------------------
-    case 44
+    case 46
 %   PDE: x_{t} = lam*x + nu*x_{(2,0)}               | r = 1;  nu = 1;           (stable for r <= nu*pi^2*((1/4)/(b-a)^2 +(1/4)/(d-c)^2)) 
 %                           + nu*x_{(0,2)} + w      | a = 0;   b = 1;           (Exact L2 gain gam = 0.20668 for default params) 
 %   OUT:     z = int(int(x,s1,a,b),s2,c,d)          | c = 0;   d = 1;
@@ -683,7 +698,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Diffusive/Heat Equation Type Systems
 %--------------------------------------------------------------------------
-    case 45
+    case 47
 %   PDE: x_{t} = r*x + nu*x_{(2,0)}                 | r = 8;  nu = 1;           (stable for r <= nu*pi^2*((1/4)/(b-a)^2 +(1/4)/(d-c)^2)) 
 %                      + nu*x_{(0,2)}               | a = 0;   b = 1;           
 %                        + Cw(s1,s2)*w;             | c = 0;   d = 1;
@@ -705,7 +720,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Transport Equation Type Systems
 %--------------------------------------------------------------------------
-    case 46
+    case 48
 %  PDE :        x_{t} = x_{s} + (s-s^2)*w(t)        |                           (H2 norm 0.1016 obtained through numerical integration,  
 %  With BC:     x(s=1) = 0                          |                               0.1016 (0.1016) using 'veryheavy' settings
 %  And output:  z(t) = int(x(t,s),s,0,1)            |                               0.1017 (0.1162) using 'heavy' settings,    
@@ -723,7 +738,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Unstable Reaction-Diffusion Type Systems
 %--------------------------------------------------------------------------
-    case 47
+    case 49
 %  PDE:         x_{t} = 3x+(s^2+0.2)x_{ss}          |                           (closed-loop H2 norm of 1.2683 using 'veryheavy' settings)  
 %                                   -(s^2)/2w(t)    |
 %  With BC:    x(s=0) = 0, x_{s}(s=1)=0             |
@@ -742,7 +757,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Unstable Reaction-Diffusion Type Systems
 %--------------------------------------------------------------------------
-    case 48
+    case 50
 %  PDE :        x_{t} = 3x+(s^2+0.2)x_{ss} +s^2w(t)
 %  With BC     x(s=0) = 0, x_{s}(s=1)=0
 %  And outputs  z(t) = [int(x(t,s),s,0,1)
@@ -905,7 +920,7 @@ end
 
 % Warn user that executives for 2D examples may take a lot of time.
 if index>=30 && index<=45
-    fprintf('\n Examples 30 through 45 correspond to 2D PDEs, that take significant computational time and memory (use ''stripped'' settings).\n');
+    fprintf('\n Examples 32 through 47 correspond to 2D PDEs, that take significant computational time and memory (use ''stripped'' settings).\n');
 end
 
 % Check if the user wants to run the executive
@@ -1156,7 +1171,7 @@ function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % Subroutine to process the user inputs for the 
 % examples_PDE_library_PIETOOLS function.
 
-n_examples = 48;
+n_examples = 49;
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
