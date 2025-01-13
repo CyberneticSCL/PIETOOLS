@@ -97,14 +97,19 @@ else
     uinput.ic.PDE = [uinput.ic.PDE,ones(1,size(PIE.T.R22{1},1))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];
 end
 
-% Get the number of PDE states differentiable up to each order
-ndiff = zeros(1,max(PIE.x_tab(:,end))+1);
-for jj=0:max(PIE.x_tab(:,end))
-    ndiff(jj+1) = sum(PIE.x_tab(PIE.x_tab(:,end)==jj,1));
+if ~exist('PIE_CL','var')
+    % Simulate the open-loop PDE solution in PDE representation
+    [solution, grid] = PIESIM(PDE,opts,uinput);
+else
+    % Get the number of PDE states differentiable up to each order
+    ndiff = zeros(1,max(PIE.x_tab(:,end))+1);
+    for jj=0:max(PIE.x_tab(:,end))
+        ndiff(jj+1) = sum(PIE.x_tab(PIE.x_tab(:,end)==jj & PIE.x_tab(:,3),2));
+    end
+    
+    % Simulate open-loop PDE solution in PIE representation
+    [solution, grid] = PIESIM(PIE,opts,uinput,ndiff);
 end
-
-% Simulate open-loop PDE solution in PIE representation
-[solution, grid] = PIESIM(PIE,opts,uinput,ndiff);
 
 
 % Note: you can also specify time stepping and other options (opts) and user inputs, such as initial
