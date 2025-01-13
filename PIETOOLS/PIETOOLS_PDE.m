@@ -1,6 +1,6 @@
 close all; clc; clear;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_PDE.m     PIETOOLS 2022
+% PIETOOLS_PDE.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Getting Started:
 %
@@ -21,7 +21,11 @@ close all; clc; clear;
 % PIETOOLS_PDE_GUI
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
- PDE = examples_PDE_library_PIETOOLS;
+% The example library contains 48 examples of 1D and 2D ODE-PDE systems,
+% each with an associated default executive to run. Call the library with
+% an index 1 through 48 as argument to extract that example, and run the
+% associated executive, if desired.
+ PDE = examples_PDE_library_PIETOOLS(1);
 %PDE = examples_PDE_library_PIETOOLS(15,'batch');
 % PDE = examples_PDE_library_PIETOOLS(15,'terms');
 
@@ -65,67 +69,141 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 % [prog, P] = PIETOOLS_stability_dual(PIE,settings);
 %[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
-% [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
-% [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
+% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
+% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
 % [prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);
 % [prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);
 
+% % Construct the closed-loop PIE representation, if applicable
+if exist('K_control','var')
+    PIE_CL = closedLoopPIE(PIE,K_control);
+elseif exist('L_estimator','var')
+    PIE_CL = closedLoopPIE(PIE,L_estimator,'observer');
+end
+
+    
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Step 4: Simulation (See User Manual, Chapter 16 or xPIESIM/solver_PIESIM.m for more examples)
-% Only works for PDE examples in batch input format
+%% Step 4: Simulation (See User Manual, Chapter 6 or xPIESIM/solver_PIESIM.m for more examples)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%if PIE.dim ~=2
-    opts.tf=10;
-    opts.plot='yes';
-    uinput.ic.ODE=1;
+opts.tf=10;
+opts.plot='yes';
+% Declare initial conditions for PIE state
+if PIE.dim<=1
+    syms sx
+    uinput.ic.ODE = ones(1,size(PIE.T.P,1));
+    uinput.ic.PDE = ones(1,size(PIE.T.R.R0,1))*sin(sym(pi)*sx);
+else
+    syms sx sy
+    uinput.ic.ODE = ones(1,size(PIE.T.R00,1));
+    uinput.ic.PDE = ones(1,size(PIE.T.Rxx{1},1))*sin(sym(pi)*sx);
+    uinput.ic.PDE = [uinput.ic.PDE,ones(1,size(PIE.T.Ryy{1},1))*sin(sym(pi)*sy)];
+    uinput.ic.PDE = [uinput.ic.PDE,ones(1,size(PIE.T.R22{1},1))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];
+end
 
-    [solution, grid] = PIESIM(PDE,opts,uinput);
+% Get the number of PDE states differentiable up to each order
+ndiff = zeros(1,max(PIE.x_tab(:,end))+1);
+for jj=0:max(PIE.x_tab(:,end))
+    ndiff(jj+1) = sum(PIE.x_tab(PIE.x_tab(:,end)==jj,1));
+end
 
-    % Note: you can also specify time stepping and other options (opts) and user inputs, such as initial
-    % conditions and non-zero boundary inputs (uinput), via
-    % solution = PIESIM(PDE, opts),
-    % solution = PIESIM(PDE, uinput), or
-    % solution = PIESIM(PDE, opts, uinput), please consult the user's manual
+% Simulate open-loop PDE solution in PIE representation
+[solution, grid] = PIESIM(PIE,opts,uinput,ndiff);
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Step 4b: Plotting solution
-    % NOTE: if opts.plot='yes' is chosen for PIESIM, this will produce redundant
-    % plots 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if any(ismember(fieldnames(solution),'timedep'))
-        t = solution.timedep.dtime;
-        X = repmat(grid.phys(:,1),1,length(t));
-        n1=0;
-        if PIE.dim ~=2
-        pde_sol = solution.timedep.pde;
-        else
-            if ~isempty(solution.timedep.pde{1})
-        n=size(solution.timedep.pde{1});
-        n1=n(2);
-        pde_sol = solution.timedep.pde{1};
-            end
-            if (length(solution.timedep.pde)==2)
-            if ~isempty(solution.timedep.pde{2})
-        k=floor(length(grid.phys)/2)+1;
-        n=size(solution.timedep.pde{2});
-        pde_sol(1:n(1),n1+1:n1+n(3),1:n(4)) = solution.timedep.pde{2}(1:n(1),k,1:n(3),1:n(4));
-            end
-            end
+
+% Note: you can also specify time stepping and other options (opts) and user inputs, such as initial
+% conditions and non-zero boundary inputs (uinput), via
+% solution = PIESIM(PDE, opts),
+% solution = PIESIM(PDE, uinput), or
+% solution = PIESIM(PDE, opts, uinput), please consult the user's manual
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Step 4b: Plotting solution
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
+    t = solution.timedep.dtime;
+    X = repmat(grid.phys(:,1),1,length(t));
+    n1=0;
+    if PIE.dim ~=2
+    pde_sol = solution.timedep.pde;
+    else
+        if ~isempty(solution.timedep.pde{1})
+    n=size(solution.timedep.pde{1});
+    n1=n(2);
+    pde_sol = solution.timedep.pde{1};
         end
-        t = repmat(t,size(pde_sol,1),1);
-        figure;
-        for i=1:size(pde_sol,2)
-            Z = squeeze(pde_sol(:,i,:));
-            ax(i)=subplot(size(pde_sol,2),1,i);
-            surf(t,grid.phys(:,1),Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
-            h=colorbar ;
-            colormap jet
-            box on
-            ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
-            set(gcf, 'Color', 'w');
-            xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
-            zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
+        if (length(solution.timedep.pde)==2)
+        if ~isempty(solution.timedep.pde{2})
+    k=floor(length(grid.phys)/2)+1;
+    n=size(solution.timedep.pde{2});
+    pde_sol(1:n(1),n1+1:n1+n(3),1:n(4)) = solution.timedep.pde{2}(1:n(1),k,1:n(3),1:n(4));
         end
-        subplot(ax(1));
-        title('Time evolution of open-loop PDE states, x, plotted against space, s');
+        end
     end
+    t = repmat(t,size(pde_sol,1),1);
+    figure;
+    for i=1:size(pde_sol,2)
+        Z = squeeze(pde_sol(:,i,:));
+        ax(i)=subplot(size(pde_sol,2),1,i);
+        surf(t,grid.phys(:,1),Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+        h=colorbar ;
+        colormap jet
+        box on
+        ylabel(h,'$|\mathbf{x}(t,s)|$','interpreter', 'latex','FontSize',15)
+        set(gcf, 'Color', 'w');
+        xlabel('$t$','FontSize',15,'Interpreter','latex');    ylabel('$s$','FontSize',15,'Interpreter','latex');
+        zlabel('$\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
+    end
+    subplot(ax(1));
+    title('Time evolution of open-loop PDE states, $x$, plotted against space, s','Interpreter','latex');
+end
+
+% % Also simulate closed-loop response, if applicable
+if exist('PIE_CL','var')
+    % First, clarify that the current figures represent the open-loop
+    % response
+    if strcmp(opts.plot,'yes')
+        figHandles_OL = findobj('Type', 'figure');
+        nfigs_OL = numel(figHandles_OL);
+        for jj=1:nfigs_OL
+            fig_jj = figHandles_OL(jj);
+            if isgraphics(fig_jj.Children(end),'Axes')
+                fig_jj.Children(end).Title.String = ['Open-Loop ', fig_jj.Children(end).Title.String];
+            else        %elseif isgraphics(fig_jj.Children(end),'Text')
+                fig_jj.Children(end).String = ['Open-Loop ', fig_jj.Children(end).String];
+            end
+        end
+    end
+
+    % Update the number of states differentiable up to each order, if
+    % applicable
+    if exist('L_estimator','var')
+        ndiff = 2*ndiff;        % closed-loop system includes state estimate as well as state
+    end
+
+    % Simulate the closed-loop response
+    opts.plot = 'yes';
+    uinput.ic.ODE = [uinput.ic.ODE,0*uinput.ic.ODE];
+    uinput.ic.PDE = [uinput.ic.PDE,0*uinput.ic.PDE];
+    [solution_CL, ~] = PIESIM(PIE_CL,opts,uinput,ndiff);
+
+    % Clarify that the new plots represent the closed-loop response
+    figHandles_all = findobj('Type', 'figure');
+    for jj=1:numel(figHandles_all)-nfigs_OL
+        fig_jj = figHandles_all(jj);
+        if exist('L_estimator','var')
+            if isgraphics(fig_jj.Children(end),'Axes')
+                fig_jj.Children(end).Title.String = ['True (left) and Estimated (right) ', fig_jj.Children(end).Title.String];
+            else    %elseif isgraphics(fig_jj.Children(end),'Text')
+                fig_jj.Children(end).String = ['True (left) and Estimated (right) ', fig_jj.Children(end).String];
+            end
+        else
+            if isgraphics(fig_jj.Children(end),'Axes')
+                fig_jj.Children(end).Title.String = ['Closed-Loop ', fig_jj.Children(end).Title.String];
+            else    %elseif isgraphics(fig_jj.Children(end),'Text')
+                fig_jj.Children(end).String = ['Closed-Loop ', fig_jj.Children(end).String];
+            end
+        end
+    end
+
+end
