@@ -1,7 +1,7 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_PDE_library_PIETOOLS.m     PIETOOLS 2022
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function varargout = examples_PDE_library_PIETOOLS(varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% examples_PDE_library_PIETOOLS.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This library file contains the definition of some common ODE-PDE systems
 % drawn from the literature. To use one of the examples, call this function
 % with as FIRST input the index of the example you wish to use. Please
@@ -910,6 +910,7 @@ end
 
 % Check if the user wants to run the executive
 userinp = input('\n Would you like to run the executive associated to this problem? (y/n) \n ---> ','s');
+userinp = strrep(userinp,'''','');    % Get rid of potential apostrophes
 if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
     PIE = convert_PIETOOLS_PDE(varargout{1});
     assignin('base','PIE',PIE);
@@ -917,7 +918,17 @@ if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
 elseif strcmpi(userinp,'n') || strcmpi(userinp,'no')
     return
 else
-    error('Please answer y (yes) or n (n).')
+    userinp = input(' Please answer y (yes) or n (n). \n ---> ','s');
+    userinp = strrep(userinp,'''','');    % Get rid of potential apostrophes
+    if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
+        PIE = convert_PIETOOLS_PDE(varargout{1});
+        assignin('base','PIE',PIE);
+        evalin('base','PIETOOLS_auto_execute');
+    elseif strcmpi(userinp,'n') || strcmpi(userinp,'no')
+        return
+    else
+       error("Response not recognized; execution of executive aborted.")
+    end
 end
 
 end
