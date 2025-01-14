@@ -408,7 +408,7 @@ switch index
 %        Beam Type Equations 
 %--------------------------------------------------------------------------
     case 31
-% % PDE: v1_{t}(t,s) = -0.1*v2_{ss}(t,s) +w(t) +u(t);       |
+% % PDE: v1_{t}(t,s) = -c*v2_{ss}(t,s) +w(t) +u(t);         | c = 0.1;
 % %      v2_{t}(t,s) = v1_{ss}(t,s)                         |                       Shivakumar 2022 [11] (Example 21)  
 % % BCs: v1(t,s=0) = v1_{s}(t,s=0) = 0;                     |
 % %      v2(t,s=1) = v2_{s}(t,s=1) = 0;                     |
