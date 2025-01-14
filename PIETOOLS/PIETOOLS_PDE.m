@@ -25,7 +25,7 @@ close all; clc; clear; clear stateNameGenerator
 % each with an associated default executive to run. Call the library with
 % an index 1 through 50 as argument to extract that example, and run the
 % associated executive, if desired.
-PDE = examples_PDE_library_PIETOOLS(30);
+PDE = examples_PDE_library_PIETOOLS(1);
 
 %% --- Manual Declaration Option --- 
 % % To use this example, comment line 28, and
@@ -179,13 +179,15 @@ if exist('PIE_CL','var')
     % Update the number of states differentiable up to each order, if
     % applicable
     if exist('L_estimator','var')
-        ndiff = 2*ndiff;        % closed-loop system includes state estimate as well as state
+        % Closed-loop system includes state estimate as well as state
+        ndiff = 2*ndiff;        
+        % Set initial estimate of state to 0.
+        uinput.ic.ODE = [uinput.ic.ODE,0*uinput.ic.ODE];
+        uinput.ic.PDE = [uinput.ic.PDE,0*uinput.ic.PDE];
     end
 
     % Simulate the closed-loop response
     opts.plot = 'yes';
-    uinput.ic.ODE = [uinput.ic.ODE,0*uinput.ic.ODE];
-    uinput.ic.PDE = [uinput.ic.PDE,0*uinput.ic.PDE];
     [solution_CL, ~] = PIESIM(PIE_CL,opts,uinput,ndiff);
 
     % Clarify that the new plots represent the closed-loop response
