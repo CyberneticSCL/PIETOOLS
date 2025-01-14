@@ -401,11 +401,11 @@ switch index
     [PDE_t] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_Control(GUI,params);
     case 31
 % % ODE                             xo_{t}= u
-% % PDE                             x_{t} = [0 1;0 0]x +  [0 0;1 0] x_{ss}+ [0;1]w
-% % With BCs                         [1 0]x(s=0) = 0
-% %                                         [1 0]x_{s}(s=1) = xo
+% % PDE                             x_{t} = [0 1;c 0]x_{s}+ [0;1]w
+% % With BCs                         [0 1]x(s=0) = 0
+% %                                         [1 0]x(s=1) = xo
 % % and regulated output  z =[ xo; [1 0]int(x(s,t),s,0,1)]
- [PDE_t] =PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Control(GUI,params)
+ [PDE_t] =PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Control(GUI,params);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %       2D Examples
@@ -1182,7 +1182,7 @@ function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % Subroutine to process the user inputs for the 
 % examples_PDE_library_PIETOOLS function.
 
-n_examples = 49;
+n_examples = 50;
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
@@ -1206,7 +1206,7 @@ params = {};
 
 % Collect the inputs
 if nargin1==0 %<-- If there is no input, pause the script and let the user specify an example
-    userinp = input('\n Select an example (1 through 48) to convert \n ---> ','s');
+    userinp = input('\n Select an example (1 through 50) to convert \n ---> ','s');
     varargin0 = split(userinp,[" ",","]);
     index = str2double(varargin0{1});
     if ~isnan(index) && (index>=0 && index<=n_examples)

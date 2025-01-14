@@ -21,11 +21,11 @@ close all; clc; clear; clear stateNameGenerator
 % PIETOOLS_PDE_GUI
 %%
 % % --- Example Library Option (See User Manual, Section 14) ---
-% The example library contains 48 examples of 1D and 2D ODE-PDE systems,
+% The example library contains 50 examples of 1D and 2D ODE-PDE systems,
 % each with an associated default executive to run. Call the library with
-% an index 1 through 48 as argument to extract that example, and run the
+% an index 1 through 50 as argument to extract that example, and run the
 % associated executive, if desired.
-PDE = examples_PDE_library_PIETOOLS(1);
+PDE = examples_PDE_library_PIETOOLS(30);
 
 %% --- Manual Declaration Option --- 
 % % To use this example, comment line 28, and
