@@ -217,6 +217,7 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % DJ, 06/03/2024: Adjust declaration of dummy variables for integration;
 % DJ, 06/23/2024: Add support (or lack thereoff) for free terms;
 % DJ, 01/03/2025: Account for "is_zero" field;
+% DJ, 01/15/2025: Allow for field 'loc' in terms with input as well;
 
 
 % % % --------------------------------------------------------------- % % %
@@ -1784,12 +1785,12 @@ while ii<=n_eqs
                 is_int_var(kk) = true;  % Indicate that we are integrating along this spatial direction.
                 % Replace dummy variable with primary variable for full
                 % integral.
-                if must_int_var(kk)
+                if must_int_var(kk)                                         % DJ, 01/15/2025: Re-introduces field 'loc' when integrating inputs...
                     PDE.(obj){ii}.term{jj}.loc(kk) = Rvars(kk,1);
                 end
                 % Conversely, replace primary variable with dummy variable
                 % for partial integral.
-                if ~all(isequal(Ival_kk,Rdom(kk,:))) && ~use_dummy_var(kk)
+                if ~all(isequal(Ival_kk,Rdom(kk,:))) && ~use_dummy_var(kk)  % DJ, 01/15/2025: Re-introduces field 'loc' when integrating inputs...
                     PDE.(obj){ii}.term{jj}.loc(kk) = Rvars(kk,2);
                 end
             end
@@ -1907,6 +1908,8 @@ while ii<=n_eqs
         end
         if is_x_Robj
             PDE.(obj){ii}.term{jj} = orderfields(PDE.(obj){ii}.term{jj},{Robj,'D','loc','C','I','delay'});
+        elseif isfield(PDE.(obj){ii}.term{jj},'loc')                        % DJ, 01/15/2025
+            PDE.(obj){ii}.term{jj} = orderfields(PDE.(obj){ii}.term{jj},{Robj,'loc','C','I','delay'});
         else
             PDE.(obj){ii}.term{jj} = orderfields(PDE.(obj){ii}.term{jj},{Robj,'C','I','delay'});
         end
