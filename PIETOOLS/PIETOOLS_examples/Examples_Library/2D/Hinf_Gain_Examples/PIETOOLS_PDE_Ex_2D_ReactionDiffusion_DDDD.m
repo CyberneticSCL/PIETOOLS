@@ -26,7 +26,7 @@ function [PDE_t] = PIETOOLS_PDE_Ex_2D_ReactionDiffusion_DDDD(GUI,params)
 % % gam = 8*sqrt((b-a)*(d-c))/pi^2 
 % %             *sqrt(sum_{m=1}^{infty}sum_{n=1}^{infty} 1/((mu_{2m-1,2n-1}-r)*(2m-1)*(2n-1))^2
 % %
-% % For nu = 1, r = 15, [a,b]=[c,d]=[0,1], we have gam = 0.11101;
+% % For nu = 1, r = 15, [a,b]=[c,d]=[0,1], we have gam = 0.1711;
 % %---------------------------------------------------------------------% %
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
