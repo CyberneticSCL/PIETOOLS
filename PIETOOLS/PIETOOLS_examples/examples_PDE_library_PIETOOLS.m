@@ -393,11 +393,12 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq_with_Controlled_Input(GUI,params);
 %--------------------------------------------------------------------------
     case 30
-% % ODE: x_{t}(t) = u(t);                                   | lam = 5;
-% % PDE: v_{t}(t,s) = lam*v(t,s) + v_{ss}(t,s) + w(t)       |                       Shivakumar 2022 [11] (Example 22)
+% % ODE: x_{t}(t) = u(t);                                   | lam = 5;      (gain 0.6594 using Mosek with heavy settings, though numerr=2...)
+% % PDE: v_{t}(t,s) = lam*v(t,s) +v_{ss}(t,s) +s*(2-s)*w(t) |                       Shivakumar 2022 [11] (Example 22)
 % % BCs: v(t,s=0) = 0                                       |
 % %      v_{s}(t,s=1) = x(t)                                |
-% % Out: z(t) = [x(t); int_{0}^{1}v(t,s)ds]                 |
+% % Out: z1(t) = x(t)                                       |
+% %      z2(t) = int_{0}^{1}v(t,s)ds                        |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;
@@ -408,11 +409,11 @@ switch index
 %        Beam Type Equations 
 %--------------------------------------------------------------------------
     case 31
-% % PDE: v1_{t}(t,s) = -0.1*v2_{ss}(t,s) +w(t) +u(t);       |
+% % PDE: v1_{t}(t,s) = -c*v2_{ss}(t,s) +s^2*w(t) +u(t,s);   | c = 0.1;      (gain 2.7407e-04 using Mosek with light settings, though numerr=2...)
 % %      v2_{t}(t,s) = v1_{ss}(t,s)                         |                       Shivakumar 2022 [11] (Example 21)  
 % % BCs: v1(t,s=0) = v1_{s}(t,s=0) = 0;                     |
 % %      v2(t,s=1) = v2_{s}(t,s=1) = 0;                     |
-% % Out: z(t) = [u(t); int_{0}^{1}0.5*(1-s)^2*v2(t,s)ds];   |
+% % Out: z(t) = int_{0}^{1}(1-s)*v2(t,s)ds;                 |
     if BATCH~=0
         disp('No batch input format available for this system, using terms-based format instead.')
         TERM = 1;

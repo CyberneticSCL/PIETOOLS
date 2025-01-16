@@ -13,12 +13,13 @@ function PDE_t = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_with_Control(GUI,params)
 %
 % %---------------------------------------------------------------------% %
 % % Euler-Bernoulli Beam Equation with in-domain control
-% % PDE        v1_{t}(t,s) = -0.1*v2_{ss}(t,s) +w(t) +u(t);
+% % PDE        v1_{t}(t,s) = -c*v2_{ss}(t,s) +s^2*w(t) +u(t,s);
 % %            v2_{t}(t,s) = v1_{ss}(t,s)
 % % With BCs     v1(t,s=0) = v1_{s}(t,s=0) = 0;
 % %              v2(t,s=1) = v2_{s}(t,s=1) = 0;
 % % Output            z(t) = [u(t); int_{0}^{1}0.5*(1-s)^2*v2(t,s)ds];
-% % Example 21 from Shivakumar, 2022 (see bottom of file).
+% % Parameter c can be set, defaults to 0.1;
+% % Adapted from Example 21 from Shivakumar, 2022 (see bottom of file).
 % %---------------------------------------------------------------------% %
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -31,6 +32,7 @@ pvar s
 %%% Executive Function:
 evalin('base','Hinf_control = 1;')
 
+c = 0.1;
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -44,11 +46,11 @@ end
 %%% pde_var input format
 clear stateNameGenerator
 v1 = pde_var(s,[0,1]);      v2 = pde_var(s,[0,1]);
-w = pde_var('in');          z = pde_var('out',2);
-u = pde_var('control');
-PDE_t = [diff(v1,'t')==-0.1*diff(v2,s,2)+w+u;
+u = pde_var('control',s,[0,1]);
+w = pde_var('in');          z = pde_var('out');
+PDE_t = [diff(v1,'t')==-c*diff(v2,s,2)+u+s^2*w;
          diff(v2,'t')==diff(v1,s,2);
-         z==[u; int(0.5*(1-s)^2*v2,s,[0,1])];
+         z==int((1-s)*v2,s,[0,1]);
          subs(v1,s,0)==0;   subs(diff(v1,s),s,0)==0;
          subs(v2,s,1)==0;   subs(diff(v2,s),s,1)==0];
 

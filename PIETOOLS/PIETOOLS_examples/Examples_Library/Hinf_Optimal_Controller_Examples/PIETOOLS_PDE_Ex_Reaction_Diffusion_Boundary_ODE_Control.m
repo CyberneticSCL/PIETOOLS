@@ -14,13 +14,13 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Boundary_ODE_Control(GUI,p
 % %---------------------------------------------------------------------% %
 % % Example reaction-diffusion equation with boundary control through ODE
 % % ODE         x_{t}(t) = u(t);
-% % PDE       v_{t}(t,s) = lam*v(t,s) + v_{ss}(t,s) + w(t)
+% % PDE       v_{t}(t,s) = lam*v(t,s) + v_{ss}(t,s) + s*(2-s)*w(t)
 % % With BCs    v(t,s=0) = 0
 % %             v_{s}(t,s=1) = x(t)
 % % Output      z(t) = [x(t); int_{0}^{1}v(t,s)ds]
 % % Parameter lam can be set, defaults to 5.
 % % Optimal state feedback can achieve L2 gain bound of 4.99
-% % Example 22 from Shivakumar, 2022 (see bottom of file).
+% % Adapted from Example 22 from Shivakumar, 2022 (see bottom of file).
 % %---------------------------------------------------------------------% %
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -46,12 +46,12 @@ end
 % % % Construct the PDE.
 %%% pde_var input format
 clear stateNameGenerator
-x = pde_var();      v = pde_var(s,[0,1]);
-w = pde_var('in');  z = pde_var('out',2);
-u = pde_var('control');
+pde_var state x v  input w  output z1 z2  control u
+v.vars = s;     v.dom = [0,1];
 PDE_t = [diff(x,'t')==u;
-         diff(v,'t')==lam*v+diff(v,s,2)+w;
-         z==[x;int(v,s,[0,1])];
+         diff(v,'t')==lam*v+diff(v,s,2)+s*(2-s)*w;
+         z1==x;
+         z2==int(v,s,[0,1]);
          subs(v,s,0)==0;
          subs(diff(v,s),s,1)==x];
 

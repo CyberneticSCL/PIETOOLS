@@ -72,7 +72,7 @@ function [Xop,eps,deg_fctr_final] = mrdivide(P2op,P1op,deg_fctr,tol,deg_fctr_max
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -95,6 +95,7 @@ function [Xop,eps,deg_fctr_final] = mrdivide(P2op,P1op,deg_fctr,tol,deg_fctr_max
 %
 % Initial coding DJ - 07/11/2022
 % 08/03/2022, DJ: Call exact inverse function if P1op is separable.
+% DJ, 01/14/2025: Bugfix dimensions of intermediate operator;
 
 
 % % % Extract the inputs
@@ -460,22 +461,26 @@ iZttnu_nu = polynomial(speye(inZttnu_nu),iZttnu_nu_dmat,nu.varname,[inZttnu_nu,1
 % % % Pop_inv = iIZL(x,y)^T * iHmat * iIZRop
 % Rows mapping to R^m
 iIZRop_0 = opvar2d();
+iIZRop_0.dim = [Xdim(1,2), Xdim(1,2); 0,0; 0,0; 0,0];                       % DJ, 01/14/2025
 iIZRop_0.R00 = eye(Xdim(1,2));
 
 % Rows mapping to L2[x]
 iIZRop_x = opvar2d();
+iIZRop_x.dim = [0,0; (Xdim(2,2)+2*Xdim(2,2)*inZtt), Xdim(2,2); 0,0; 0,0];   % DJ, 01/14/2025
 iIZRop_x.Rxx{1} = [eye(Xdim(2,2)); zeros(2*Xdim(2,2)*inZtt,Xdim(2,2))];
 iIZRop_x.Rxx{2} = [zeros(Xdim(2,2)); kron(eye(Xdim(2,2)),iZtt); zeros(Xdim(2,2)*inZtt,Xdim(2,2))];
 iIZRop_x.Rxx{3} = [zeros(Xdim(2,2)*(1+inZtt),Xdim(2,2)); kron(eye(Xdim(2,2)),iZtt)];
 
 % Rows mapping to L2[y]
 iIZRop_y = opvar2d();
+iIZRop_y.dim = [0,0; 0,0; (Xdim(3,2)+2*Xdim(3,2)*inZnu), Xdim(3,2); 0,0];   % DJ, 01/14/2025
 iIZRop_y.Ryy{1} = [eye(Xdim(3,2)); zeros(2*Xdim(3,2)*inZnu,Xdim(3,2))];
 iIZRop_y.Ryy{2} = [zeros(Xdim(3,2)); kron(eye(Xdim(3,2)),iZnu); zeros(Xdim(3,2)*inZnu,Xdim(3,2))];
 iIZRop_y.Ryy{3} = [zeros(Xdim(3,2)*(1+inZnu),Xdim(3,2)); kron(eye(Xdim(3,2)),iZnu)];
 
 % Rows mapping to L2[x,y]
 iIZRop_2 = opvar2d();
+iIZRop_2.dim = [0,0; 0,0; 0,0; Xdim(4,2)*(1+2*inZttnu_tt + 2*inZttnu_nu + 4*inZttnu), Xdim(4,2)];   % DJ, 01/14/2025
 iIZRop_2.R22{1,1} = [eye(Xdim(4,2)); zeros(Xdim(4,2)*(2*inZttnu_tt + 2*inZttnu_nu + 4*inZttnu),Xdim(4,2))];
 iIZRop_2.R22{2,1} = [zeros(Xdim(4,2)); kron(eye(Xdim(4,2)),iZttnu_tt); zeros(Xdim(4,2)*(inZttnu_tt + 2*inZttnu_nu + 4*inZttnu),Xdim(4,2))];
 iIZRop_2.R22{3,1} = [zeros(Xdim(4,2)*(1 + inZttnu_tt),Xdim(4,2)); kron(eye(Xdim(4,2)),iZttnu_tt); zeros(Xdim(4,2)*(2*inZttnu_nu + 4*inZttnu),Xdim(4,2))];
