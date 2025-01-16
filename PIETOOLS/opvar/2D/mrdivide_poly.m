@@ -51,7 +51,7 @@ function Xp = mrdivide_poly(Bp,Ap,res_tol,max_deg)
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -72,7 +72,8 @@ function Xp = mrdivide_poly(Bp,Ap,res_tol,max_deg)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 07/31/2024
+% Initial coding DJ - 07/31/2024;
+% DJ, 01/16/2025: Bugfix in case Ap is not polynomial, but Bp is;
 
 % Deal with case of empty polynomials.
 if isempty(Ap) || isempty(Bp)
@@ -101,9 +102,9 @@ if nargin<=2
     max_deg = 10*max(max(sum(Ap.degmat,2)),max(sum(Bp.degmat,2))-max(sum(Ap.degmat,2)));
 end
 
-% Deal with case that denominator is just a matrix
-if isdouble(Ap)
-    Xp = polynomial(Bp/double(Ap));
+% Deal with case that polynomials are just matrices
+if isdouble(Ap) && isdouble(Bp)                                             % DJ, 01/16/2025
+    Xp = polynomial(double(Bp)/double(Ap));
     return
 end
 

@@ -4,8 +4,6 @@ function [Phat] = inv_opvar2d_separable(Pop,inv_tol)
 % P: R^m0 x L2^mx x L2^my x L2^m2 --> R^n0 x L2^nx x L2^ny x L2^n2
 % It returns the (left) inverse Pinv: 
 % Phat: R^n0 x L2^nx x L2^ny x L2^n2 --> R^m0 x L2^mx x L2^my x L2^m2
-% Version 1.0
-% Date: 01/28/24
 % 
 % INPUT
 % P: opvar2d class object representing a separable PI operator mapping 
@@ -24,7 +22,7 @@ function [Phat] = inv_opvar2d_separable(Pop,inv_tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - inv_opvar2d_separable
 %
-% Copyright (C)2022  M. Peet, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -46,6 +44,7 @@ function [Phat] = inv_opvar2d_separable(Pop,inv_tol)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 01/28/2024
+% DJ, 01/16/2025: Bugfix in "expand_opvar2d_quadratic"
 
 % Deal with empty operator...
 if isempty(Pop)
@@ -150,10 +149,11 @@ Minv.R22{1,1} = R22_hat;
 % Construct the full inverse Hhat = -H\(I+K*H)
 K = ZR_op*(Minv*ZL_op);
 K = double(K.R00);
+Hhat_R00 = -H/(eye(size(K,1),size(H,2)) +K*H);
 Hhat = opvar2d();
-Hhat.dim = [size(K,1),size(H,2);0,0;0,0;0,0];
+Hhat.dim = [size(Hhat_R00,1),size(Hhat_R00,2);0,0;0,0;0,0];
 Hhat.var1 = Pop.var1;   Hhat.var2 = Pop.var2;   Hhat.I = Pop.I;
-Hhat.R00 = -H/(eye(size(K,1),size(H,2)) +K*H);
+Hhat.R00 = Hhat_R00;
 
 % Finally, build the inverse Phat = Minv + Minv*ZL_op*Hhat*ZR_op*Minv;
 Phat = (Minv*ZL_op)*Hhat*(ZR_op*Minv);
@@ -181,8 +181,6 @@ function [H,ZL_op,ZR_op] = expand_opvar2d_quadratic(Pop)
 %
 % Here matrices Z.. each comprise a basis of vector-valued polynomials in
 % (s1,s2,t1,t2)
-%
-% Date: 01/28/24
 % 
 % INPUT
 %  - Pop:   mxn 'opvar2d' class object representing a separable 2D PI operator.
@@ -203,12 +201,15 @@ function [H,ZL_op,ZR_op] = expand_opvar2d_quadratic(Pop)
 % - ZR_op:  nZ_R x n 'opvar2d' class object, representing an integral
 %           operator    [\R;L2[x];L2[y];L2[x,y]] --> \R
 %
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 01/28/2024  
+% DJ, 01/16/2025: Bugfix expanding multiplier terms, dimensions of Pmat_R
+%                   in call to "expand_polynomial_quadratic" now match;
 
 % Extract the involved parameters from the operator
 % Note that we assume full integral operator, so that e.g. Pop.Rxx{1}=0 and
@@ -294,17 +295,17 @@ H0x = expand_polynomial_quadratic(R0x,1,Pmat_th(:,nnZ_th(1)+1:nnZ_th(2)));
 H0y = expand_polynomial_quadratic(R0y,1,Pmat_nu(:,nnZ_nu(1)+1:nnZ_nu(2)));
 H02 = expand_polynomial_quadratic(R02,1,Pmat_tn(:,nnZ_tn(1)+1:nnZ_tn(2)));
 
-Hx0 = expand_polynomial_quadratic(Rx0,Pmat_x(:,nnZ_x(1)+1:nnZ_x(2)),1);
+Hx0 = expand_polynomial_quadratic(Rx0,Pmat_x(:,nnZ_x(1)+1:nnZ_x(2)),ones(1,size(Rx0.degmat,1)));        % DJ, 01/16/2025: 1 --> ones(1,size(Rx0.degmat,1))
 Hxx = expand_polynomial_quadratic(Rxx,Pmat_x(:,nnZ_x(2)+1:nnZ_x(3)),Pmat_th(:,nnZ_th(2)+1:nnZ_th(3)));
 Hxy = expand_polynomial_quadratic(Rxy,Pmat_x(:,nnZ_x(3)+1:nnZ_x(4)),Pmat_nu(:,nnZ_nu(2)+1:nnZ_nu(3)));
 Hx2 = expand_polynomial_quadratic(Rx2,Pmat_x(:,nnZ_x(4)+1:nnZ_x(5)),Pmat_tn(:,nnZ_tn(2)+1:nnZ_tn(3)));
 
-Hy0 = expand_polynomial_quadratic(Ry0,Pmat_y(:,nnZ_y(1)+1:nnZ_y(2)),1);
+Hy0 = expand_polynomial_quadratic(Ry0,Pmat_y(:,nnZ_y(1)+1:nnZ_y(2)),ones(1,size(Ry0.degmat,1)));        % DJ, 01/16/2025
 Hyx = expand_polynomial_quadratic(Ryx,Pmat_y(:,nnZ_y(2)+1:nnZ_y(3)),Pmat_th(:,nnZ_th(3)+1:nnZ_th(4)));
 Hyy = expand_polynomial_quadratic(Ryy,Pmat_y(:,nnZ_y(3)+1:nnZ_y(4)),Pmat_nu(:,nnZ_nu(3)+1:nnZ_nu(4)));
 Hy2 = expand_polynomial_quadratic(Ry2,Pmat_y(:,nnZ_y(4)+1:nnZ_y(5)),Pmat_tn(:,nnZ_tn(3)+1:nnZ_tn(4)));
 
-H20 = expand_polynomial_quadratic(R20,Pmat_xy(:,nnZ_xy(1)+1:nnZ_xy(2)),1);
+H20 = expand_polynomial_quadratic(R20,Pmat_xy(:,nnZ_xy(1)+1:nnZ_xy(2)),ones(1,size(R20.degmat,1)));     % DJ, 01/16/2025
 H2x = expand_polynomial_quadratic(R2x,Pmat_xy(:,nnZ_xy(2)+1:nnZ_xy(3)),Pmat_th(:,nnZ_th(4)+1:nnZ_th(5)));
 H2y = expand_polynomial_quadratic(R2y,Pmat_xy(:,nnZ_xy(3)+1:nnZ_xy(4)),Pmat_nu(:,nnZ_nu(4)+1:nnZ_nu(5)));
 H22 = expand_polynomial_quadratic(R22,Pmat_xy(:,nnZ_xy(4)+1:nnZ_xy(5)),Pmat_tn(:,nnZ_tn(4)+1:nnZ_tn(5)));
@@ -361,7 +362,7 @@ end
 
 %%
 function C = expand_polynomial_quadratic(R,Pmat_L,Pmat_R)
-% Decompose the 'polynomial' class object "R" in the forn
+% Decompose the 'polynomial' class object "R" in the form
 % R = kron(eye(nr),Z_L)' * C * kron(eye(nc),Z_R);
 % Here, if "R.degmat" defines a monomial vector "Z_F", we require
 % Pmat_L'*Z_L = Z_F and Pmat_R'*Z_R = Z_F;
