@@ -31,9 +31,9 @@ function settings = settings_PIETOOLS_custom()
 % internal variables:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-n_order1 = 6; 
-n_order2 = 4; % This is supposed to be an accuracy/non-balancing degree
-n_order3 = 4;
+n_order1 = 5; %6
+n_order2 = 5; %4 % This is supposed to be an accuracy/non-balancing degree
+n_order3 = 5; % 4
 n_order4 = max([n_order2,n_order3]); 
 
 
@@ -59,7 +59,8 @@ settings.dd12 = {n_order1, [n_order2, n_order3, n_order4],[n_order2, n_order3, n
 % Options for the indeterminate variable, Z
 % This is the degree choices for the indefinite variable Z used in
 % controller and estimator synthesis
-settings.ddZ=[2*n_order1 2*n_order2 2*n_order3];
+settings.ddZ=[n_order1+3 n_order2+3 n_order3+3];%settings.ddZ=[2*n_order1 2*n_order2 2*n_order3];
+
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -82,7 +83,7 @@ if sosineq_on
     % if sosineq is used, then options2, options3 defined here are unused
 else
     % These options are NOT passed to sosineq
-    Dup=10;
+    Dup=0;%Dup=10;
     settings.override2=0;   % =0 to include Psatz in Derv
     % when not using sosineq, options 2 is for the nominal part of the derv,
     % options3 is for the Psatz part of the derv

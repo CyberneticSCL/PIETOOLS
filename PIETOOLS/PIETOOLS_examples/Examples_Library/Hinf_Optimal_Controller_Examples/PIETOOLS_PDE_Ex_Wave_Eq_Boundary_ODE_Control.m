@@ -43,25 +43,38 @@ if npars~=0
 end
 
 % % % Construct the PDE.
-%%% pde_var input format
-clear stateNameGenerator
-xo = pde_var('state',1,[],[]);
-x1 = pde_var(s,[0,1]);          x2 = pde_var(s,[0,1]);
+%using phi = [x;x_{t}-x_{s}]
+ xo = pde_var('state',1,[],[]);
+eta = pde_var('state',1,s,[0,1]);  
+v = pde_var('state',1,s,[0,1]);  
 z = pde_var('output',2);        w = pde_var('input',1);
 u = pde_var('control',1);
-PDE_t = [diff(xo,t)==u;
-         diff(x1,t)==x2
-         diff(x2,t)==c*diff(x1,s,2)+w; 
-         subs(x1,s,0)==0; 
-         subs(diff(x1,s),s,1)==xo;
-         z==[int(x1,s,[0,1]); xo]];
+PDE_t=[diff(xo,t)==u;
+              diff(eta,t)==diff(eta,s)+v;
+             diff(v,t)==-diff(v,s)+s*(s-1)*w;
+              z==[xo;int(eta,s,[0,1])];
+             subs(diff(eta,s),s,1)==xo;
+             subs(eta,s,0)==0;
+             subs(v,s,0)==-subs(diff(eta,s),s,0)];
 
-% % Alternative implementation, using phi = [x_{t}; x_{s}]
+% Alternative implementation using phi = [x;x_{t}]
+% xo = pde_var('state',1,[],[]);
+% x1 = pde_var(s,[0,1]);          x2 = pde_var(s,[0,1]);
+% z = pde_var('output',2);        w = pde_var('input',1);
+% u = pde_var('control',1);
+% PDE_t = [diff(xo,t)==u;
+%          diff(x1,t)==x2
+%          diff(x2,t)==c*diff(x1,s,2)+w; 
+%          subs(x1,s,0)==0; 
+%          subs(diff(x1,s),s,1)==xo;
+%          z==[int(x1,s,[0,1]); xo]];
+
+% % Alternative implementation, using phi = [x_{s}; x_{t}]
 % phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
 % w = pde_var('input',1);             r = pde_var('output',1);
 % u = pde_var('control');   
 % eq_dyn = [diff(x,t,1)==u
-%           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;1]*w];
+%           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s*(s-1)]*w];
 % eq_out= r ==int([1 0]*phi,s,[0,1]);
 % bc1 = [0 1]*subs(phi,s,0)==0;   
 % bc2 = [1 0]*subs(phi,s,1)==x;
