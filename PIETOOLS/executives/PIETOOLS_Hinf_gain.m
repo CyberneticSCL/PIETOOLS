@@ -82,6 +82,7 @@ if ~(Twop==0)
     else
          [prog, R, gam] = PIETOOLS_Hinf_gain_coercive(PIE,settings);
      end
+     return
 end
 
 
