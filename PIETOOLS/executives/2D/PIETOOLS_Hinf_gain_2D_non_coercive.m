@@ -1,0 +1,473 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS_Hinf_gain_2D.m     PIETOOLS 2024
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [prog, Rop, gam, solve_val] = PIETOOLS_Hinf_gain_2D_non_coercive(PIE, settings, gain)
+% This function use the KYP lemma in primal form to compute an upper bound
+% on the H-infty gain a 2D-PIE system of the form
+%
+% T_op \dot{v}(t) = A_op  v(t) + Bw_op  w(t)
+%            z(t) = Cz_op v(t) + Dzw_op w(t)
+%
+% If any other parts of the PIE are present, these are ignored. T_op, A_op,
+% Bw_op, Cz_op, and Dzw_op must be properly defined for the script to function.
+%
+% INPUTS:
+%   PIE:        A structure defining the PIE for which to estimate the
+%               H_infty gain. Must contain at least opvar2d objects T, Tw,
+%               A, Bw, Cz, Dzw, as well as a 2x2 array "dom" defining the
+%               domain, and a 2x2 pvar object "vars" describing the spatial
+%               variables. All other fields will be ignored.
+%   settings:   A structure specifying accuracy/complexity conditions of
+%               the LPI; see the "settings" files for a full list of
+%               included settings. 
+%   gain:       (optional) An upper bound on the H_infty gain to verify
+%               If no gain is provided, the solver will look for a smallest
+%               upper bound on this gain.
+%
+% OUTPUTS:
+%   prog:       SOS program structure associated to the (solved) LPI
+%   Rop:        dopvar2d object defining the LF V(v)=<v,Rop*v>, where v is 
+%               the fundamental state. Use "sosgetsol_lpivar_2d(prog,Rop)" 
+%               to get the solved operator.
+%   gam:        Upper bound on the H_infty gain found by the solver.
+%   solve_val:  Value specifying whether the problem is feasible, based on
+%               outputs of SOS program. Value is 1 if the a feasible
+%               solution is found, 0.5 if it a feasible solution is only
+%               found up to reduced accuracy, and 0 if no feasible solution 
+%               is found.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DEVELOPER LOGS:
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% DJ - 02/21/2022: Initial coding;
+% DJ - 10/20/2024: Update to use new LPI programming structure;
+% DJ - 01/17/2025: Update to non-coercive version;
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STEP 0: Extract LPI settings and necessary PI operators
+
+% Check if the PIE is properly specified.
+if ~isa(PIE,'pie_struct')
+    error('The PIE for which to run the executive should be specified as object of type ''pie_struct''.')
+else
+    PIE = initialize(PIE);
+end
+% Extract the relevant PI operators.
+Top = PIE.T;        Twop = PIE.Tw;
+Aop = PIE.A;        Bop = PIE.B1;
+Cop = PIE.C1;       Dop = PIE.D11;
+if ~(Twop==0) && ~(Bop==0)
+    error('The PIE takes both the input w and its derivative dw/dt; LPI based H_infty gain analysis is currently not supported.')
+end
+
+% Don't support boundary disturbances
+if ~(Twop==0)
+        fprintf('\n --- Non-coercive LPIs cannot currently be solved for systems with disturbances at the boundary. Calling the coercive version.---\n');
+     if nargin==1
+         [prog, Rop, gam, solve_val] = PIETOOLS_Hinf_gain_2D(PIE);
+     elseif nargin==2
+         [prog, Rop, gam, solve_val] = PIETOOLS_Hinf_gain_2D(PIE, settings);
+     else
+        [prog, Rop, gam, solve_val] = PIETOOLS_Hinf_gain_2D(PIE, settings, gain);
+     end
+     return
+end
+
+if nargin==1
+    settings = settings_PIETOOLS_light_2D;
+    settings.sos_opts.simplify = 1;         % Use psimplify
+    settings.eppos = [1e-4; 1e-6; 1e-6; 1e-6];    % Positivity of Lyapunov Function
+    settings.epneg = 0*1e-5;                % Negativity of derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+elseif nargin==2 
+    gain = 0;
+end
+if ~isfield(settings,'is2D') || ~settings.is2D
+    % Extract 2D settings.
+    sos_opts = settings.sos_opts;
+    settings = settings.settings_2d;
+    settings.sos_opts = sos_opts;
+end
+
+% Extract options for sossolve
+if ~isfield(settings,'sos_opts')
+    sos_opts.simplify = 1;         % Use psimplify
+    sos_opts.solver = 'sedumi';
+    % % Other optional SDP solvers supported by PIETOOLS
+    % settings.sos_opts.solver ='mosek';
+    % settings.sos_opts.solver='sdpnalplus';
+    % settings.sos_opts.solver='sdpt3';
+else
+   sos_opts = settings.sos_opts; 
+end
+
+% Extract settings defining operator R parameterizing LF V=<v,Rv>
+LF_deg = settings.LF_deg;
+LF_opts = settings.LF_opts;
+
+% Does P include a psatz term? If so, what degrees and options?
+LF_use_psatz = settings.LF_use_psatz;
+LF_deg_psatz = extract_psatz_deg(settings.LF_deg_psatz,LF_use_psatz);
+LF_opts_psatz = extract_psatz_opts(settings.LF_opts_psatz,LF_use_psatz);
+
+% Do we use lpi_ineq or not? Extract the appropriate options
+use_lpi_ineq = settings.use_sosineq;
+if use_lpi_ineq
+    ineq_opts = settings.ineq_opts;
+else
+    eq_opts = settings.eq_opts;
+    eq_deg = settings.eq_deg;
+    
+    eq_use_psatz = settings.eq_use_psatz;
+    eq_deg_psatz = extract_psatz_deg(settings.eq_deg_psatz,eq_use_psatz);
+    eq_opts_psatz = extract_psatz_opts(settings.eq_opts_psatz,eq_use_psatz);
+end
+
+% Set the tolerance in the difference between the feasratio and 1 that will
+% be accepted as a successful solution.
+feastol = 0.3;
+
+% Do we use bisection to estimate the Hinf norm?
+if isfield(settings,'use_bisect')
+    use_bisect = settings.use_bisect;
+    if use_bisect
+        if isfield(settings.bisect_opts,'Nruns')
+            Nruns = settings.bisect_opts.Nruns; % Number of times to bisect
+        else
+            Nruns = 10;
+        end
+        if isfield(settings.bisect_opts,'min')
+            gam_min = settings.bisect_opts.min; % Smallest gain to test
+        else
+            gam_min = 0;
+        end
+        if isfield(settings.bisect_opts,'max')
+            gam_max = settings.bisect_opts.max; % Largest gain to test
+        else
+            gam_max = 1000;
+        end
+        if isfield(settings.bisect_opts,'start') && gain==0
+            gain = settings.bisect_opts.start;  % Starting gain
+        else
+            gain = 0.5*gam_min + 0.5*gam_max;
+        end
+        if isfield(settings.bisect_opts,'feastol')
+            feastol = settings.bisect_opts.feastol;
+        end
+    end
+else
+    use_bisect = false;
+end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STEP 1: Initialize the SOS program in the provided spatial variables, and
+% set the Hinfty norm as an objective function value 
+
+prog_0 = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % Initialize the program structure
+if gain==0
+    fprintf('\n --- Searching for an Hinf gain bound using the primal KYP lemma --- \n')
+    % If no gain is provided, include the gain as a decision variable, and
+    % look for a minimum
+    [prog_0,gam] = lpidecvar(prog_0, 'gam');    % set gam = gamma as decision variable
+    prog_0 = lpisetobj(prog_0, gam);    % set gamma as objective function to minimize
+else
+    fprintf(['\n --- Testing the Hinf gain bound gam = ',num2str(gain),' using the primal KYP lemma --- \n'])
+    % If a gain is provided, just check the LPI is feasible with this gain
+    gam = gain;
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STEP 2: declare the posopvar variable, Rop, which defines the storage 
+% function candidate V(v)=<v,Rop*v>=<Top*v,Pop*Top*v>
+disp('- Declaring a positive Lyapunov operator variable using the specified options...');
+
+% Initialize an operator which is positive semidefinite everywhere
+[prog_0, Rop] = poslpivar_2d(prog_0, Top.dim, LF_deg, LF_opts);
+
+% Add an additional term with psatz multiplier if requested
+for j=1:length(LF_use_psatz)
+    if LF_use_psatz(j)~=0
+        [prog_0, P2op] = poslpivar_2d(prog_0, Top.dim, LF_deg_psatz{j}, LF_opts_psatz{j});
+        Rop = Rop + P2op;
+    end
+end
+
+% Also declare an indefinite operator PTop=Pop*Top so that Rop = Top'*PTop.   % DJ, 01/17/2025
+PTdeg = get_lpivar_degs(Rop,Top);
+[prog_0, PTop] = lpivar(prog_0,Top.dim,PTdeg);
+prog_0 = lpi_eq(prog_0, Top'*PTop-Rop);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STEP 3: Define the KYP operator
+disp('- Constructing the negativity constraint...');
+
+% Define identity PI operators matching dimensions of disturbance and
+% output.
+Iwop = mat2opvar(eye(size(Bop,2)), Bop.dim(:,2), PIE.vars, PIE.dom);
+Izop = mat2opvar(eye(size(Cop,1)), Cop.dim(:,1), PIE.vars, PIE.dom);
+
+% Assemble the KYP operator
+Qop = vertcat_legacy(horzcat_legacy(-gam*Iwop, Dop', Bop'*PTop),...
+                     horzcat_legacy(Dop, -gam*Izop, Cop),...
+                     horzcat_legacy(PTop'*Bop, Cop', Aop'*PTop+PTop'*Aop));
+
+ztol = 1e-12;
+Qop = clean_opvar(Qop,ztol);
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STEP 4: Impose Negativity Constraint. There are two methods, depending on
+% the options chosen
+disp('- Enforcing the negativity constraint...');
+
+if use_lpi_ineq
+    disp('  - Using lpi_ineq...');
+    prog = lpi_ineq_2d(prog_0,-Qop,ineq_opts);
+else
+    disp('  - Using an equality constraint...');
+    
+    % First, check if we can exclude any monomials
+    eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol);
+    
+    % Next, build a positive operator Qeop to enforce Qop == -Qeop;
+    [progQ, Qeop] = poslpivar_2d(prog_0, Qop.dim, eq_deg, eq_opts);
+    
+    toggle = 0; % Set toggle=1 to check whether the monomials in Qeop are sufficient.
+    if toggle
+        % Check that the parameters of Qeop indeed contain all monomials that
+        % appear in the parameters of Qop
+        par_indx = [2;3;4;6;7;8;11;12;16];    % Check only lower-triangular parameters
+        [isgood_Qeop,isgood_Qpar,eq_deg] = checkdeg_lpi_eq_2d(Qop,Qeop,eq_deg,par_indx);
+
+        % If Qeop is missing monomials, keep increasing the degrees until Qeop
+        % has all the necessary monomials
+        while ~isgood_Qeop
+            warning('The specified options for the equality constraint do not allow sufficient freedom to enforce the inequality constraint. Additional monomials are being added.')
+
+            % Construct a new positive operator Qeop with greater degrees
+            [progQ, Qeop] = poslpivar_2d(prog, Qop.dim, eq_deg, eq_opts);
+
+            % Check that now Qeop has all the necessary monomials
+            par_indx = find(~(isgood_Qpar(:)));   % Indices of parameters we still need to verify are okay
+            [isgood_Qeop,isgood_Qpar,eq_deg] = checkdeg_lpi_eq_2d(Qop,Qeop,eq_deg,par_indx);
+        end
+    end
+    prog = progQ;    % Make sure the SOS program contains the right operator Qeop
+    
+    % Introduce the psatz term.
+    for j=1:length(eq_use_psatz)
+        if eq_use_psatz(j)~=0
+            eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
+            eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
+            [prog, Qe2op] = poslpivar_2d(prog, Qop.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
+            Qeop = Qeop+Qe2op;
+        end
+    end
+    
+    % Enforce the equality constraint.
+    prog = lpi_eq_2d(prog,Qeop+Qop,'symmetric');
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STEP 5: Solve the problem, and check the solution
+disp('- Solving the LPI using the specified SDP solver...');
+
+% Solve the sos program
+prog = lpisolve(prog,sos_opts); 
+
+% Check the results
+if norm(prog.solinfo.info.feasratio-1)<=feastol && ~prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
+    if gain==0
+        gam = double(lpigetsol(prog,gam));
+    end
+    disp('The H-infty norm of the given system is upper bounded by:')
+    disp(gam); % check the Hinf norm, if the problem was solved successfully
+    solve_val = 1;
+elseif norm(prog.solinfo.info.feasratio-1)<=feastol && prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
+    if gain==0
+        gam = double(lpigetsol(prog,gam));
+    end
+    disp('The system of equations was successfully solved. However, Double-check the precision.')
+    disp('The H-infty norm of the given system is upper bounded by:')
+    disp(gam);
+    solve_val = 0.5;
+elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf || norm(prog.solinfo.info.feasratio+1)<=.1
+    disp('The system of equations was not solved.')
+    if gain==0
+        gam = double(lpigetsol(prog,gam));
+    end
+    disp(gam);
+    %gam = Inf;
+    solve_val = 0;
+else
+    disp('Unable to definitively determine feasibility.')
+    if gain==0
+        gam = double(lpigetsol(prog,gam));
+    end
+    disp(gam);
+    %gam = Inf;
+    solve_val = 0;
+end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STEP 6: Repeat?
+% If we're bisecting, continue with a new value of gamma
+if use_bisect
+    % Store the results as arrays
+    gam_arr = nan*ones(1,Nruns);
+    gam_arr(1) = gam;
+    solve_arr = nan*ones(1,Nruns);
+    solve_arr(1) = solve_val;
+    gam_old = gain;
+    
+    
+    % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+    for k=2:Nruns
+        % Update the value of gam
+        if solve_val==1
+            gam_max = gam_old;
+            gam = 0.5*(gam_min+gam_max);
+        elseif solve_val==0.5
+            gam_max = gam_old;
+            gam = 0.25*gam_min + 0.75*gam_max;
+        elseif solve_val==0
+            gam_min = gam_old;
+            gam = 0.5*(gam_min+gam_max);
+        end
+        
+        fprintf(['\n -- Testing the Hinf gain bound gam = ',num2str(gam),' -- \n'])
+        
+        % STEP 3b: Define the KYP operator
+        disp('- Updating the negativity constraint...');
+        gam_diff = gam - gam_old;
+        Oop = opvar2d([],Top.dim,PIE.dom,PIE.vars);   % Zero operator
+        Qop_diff = blkdiag_legacy(-gam_diff*Iwop,-gam_diff*Izop,Oop);
+        Qop = Qop + Qop_diff;
+        
+        % STEP 4b: Impose Negativity Constraint. There are two methods,
+        %  depending on the options chosen
+        disp('- Enforcing the new negativity constraint...');
+        
+        if use_lpi_ineq
+            disp('  - Using lpi_ineq...');
+            prog = lpi_ineq_2d(prog_0,-Qop,ineq_opts);
+        else
+            disp('  - Using an equality constraint...');
+            [prog, Qeop] = poslpivar_2d(prog_0, Qop.dim, eq_deg, eq_opts);
+            for j=1:length(eq_use_psatz)
+                if eq_use_psatz(j)~=0
+                    [prog, Qe2op] = poslpivar_2d(prog, Qop.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
+                    Qeop = Qeop+Qe2op;
+                end
+            end
+            prog = lpi_eq_2d(prog,Qeop+Qop); %Dop=-Deop
+        end
+        
+        % STEP 5b: Solve the problem, and check the solution
+        disp('- Solving the LPI using the specified SDP solver...');
+        
+        % Solve the sos program
+        prog = lpisolve(prog,sos_opts);
+        
+        % Check the results
+        if norm(prog.solinfo.info.feasratio-1)<=feastol && ~prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
+            disp('The H-infty norm of the given system is upper bounded by:')
+            disp(gam); % check the Hinf norm, if the problem was solved successfully
+            solve_val = 1;
+        elseif norm(prog.solinfo.info.feasratio-1)<=feastol && prog.solinfo.info.numerr && ~prog.solinfo.info.pinf && ~prog.solinfo.info.dinf
+            disp('The system of equations was successfully solved. However, Double-check the precision.')
+            disp('The H-infty norm of the given system is upper bounded by:')
+            disp(gam);
+            solve_val = 0.5;
+        elseif prog.solinfo.info.pinf || prog.solinfo.info.dinf || norm(prog.solinfo.info.feasratio+1)<=.1
+            disp('The system of equations was not solved.')
+            solve_val = 0;
+        else
+            disp('Unable to definitively determine feasibility.')
+            solve_val = 0;
+        end
+        
+        % Store the results
+        gam_arr(k) = gam;
+        solve_arr(k) = solve_val;
+        gam_old = gam;
+        
+    end
+    
+    % Return the full arrays as output
+    gam = gam_arr;
+    solve_val = solve_arr;
+    
+end
+
+end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function outcell = extract_psatz_deg(incell,use_psatz)
+% Check the number of elements of incell against those of use_psatz to
+% determine if a cell element has been defined for each psatz term.
+
+if all(use_psatz==0)
+    outcell = {};
+    return
+end
+if isa(incell,'struct')
+    for j=1:length(use_psatz)
+        outcell{j} = incell;
+    end
+elseif numel(incell)==1
+    for j=1:length(use_psatz)
+        outcell{j} = incell{1};
+    end
+elseif numel(incell)==length(use_psatz)
+    outcell = incell;
+elseif numel(incell)>=max(use_psatz)
+    outcell = incell(use_psatz);
+else
+    error('For each element of ''use_psatz'', a ''deg'' field should be defined.')
+end
+
+end
+
+
+
+%%
+function outcell = extract_psatz_opts(incell,use_psatz)
+% Check the number of elements of incell against those of use_psatz to
+% determine if a cell element has been defined for each psatz term.
+
+if all(use_psatz==0)
+    outcell = {};
+    return
+end
+if isa(incell,'struct')
+    for j=1:length(use_psatz)
+        outcell{j} = incell;
+    end
+elseif numel(incell)==1
+    for j=1:length(use_psatz)
+        outcell{j} = incell{1};
+    end
+elseif numel(incell)==length(use_psatz)
+    outcell = incell;
+elseif numel(incell)>=max(use_psatz)
+    outcell = incell(use_psatz);
+else
+    error('For each element of ''use_psatz'', an ''opts'' field should be defined.')
+end
+
+end
