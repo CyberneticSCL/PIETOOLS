@@ -38,6 +38,7 @@ function [prog,Wc, gam] = PIETOOLS_H2_norm_2D_c(PIE, settings,options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 % DJ - 10/20/2024: Update to use new LPI programming structure;
+% DJ, 01/17/2025: Bugfix Pop --> Wop;
 
 % STEP 0: Extract LPI settings and necessary PI operators
 
@@ -143,23 +144,23 @@ end
 disp('- Declaring Gramian using specified options...');
 
 % Initialize an operator which is positive semidefinite everywhere
-[prog, Pop] = poslpivar_2d(prog, Top.dim, LF_deg, LF_opts);
+[prog, Wop] = poslpivar_2d(prog, Top.dim, LF_deg, LF_opts);                 % DJ, 01/17/2025: Pop --> Wop;
 %[prog, P1op] = poslpivar(prog, [nx1 ,nx2],X,dd1,options1);
 
 % Add an additional term with psatz multiplier if requested
 for j=1:length(LF_use_psatz)
     if LF_use_psatz(j)~=0
-        [prog, P2op] = poslpivar_2d(prog,Pop.dim, LF_deg_psatz{j}, LF_opts_psatz{j});
-        Wop = Pop + P2op;
+        [prog, P2op] = poslpivar_2d(prog,Wop.dim, LF_deg_psatz{j}, LF_opts_psatz{j});
+        Wop = Wop + P2op;
     end
 end
 
 % Ensure strict positivity of the operator
 if ~all(eppos==0)
-    np_op = Pop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
+    np_op = Wop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
     Ip = blkdiag(eppos(1)*eye(np_op(1)),zeros(np_op(2)),zeros(np_op(3)),eppos(4)*eye(np_op(4)));
-    Iop = opvar2d(Ip, Pop.dim, PIE.dom, PIE.vars);
-    Wop = Pop + Iop;
+    Iop = opvar2d(Ip, Wop.dim, PIE.dom, PIE.vars);
+    Wop = Wop + Iop;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
