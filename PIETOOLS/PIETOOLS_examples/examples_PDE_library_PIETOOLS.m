@@ -1240,7 +1240,7 @@ function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % examples_PDE_library_PIETOOLS function.
 
 
-n_examples = 51;
+n_examples = 52;
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
