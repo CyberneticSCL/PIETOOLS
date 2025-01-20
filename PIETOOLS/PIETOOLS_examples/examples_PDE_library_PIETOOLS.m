@@ -761,6 +761,24 @@ switch index
         BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_Transport_Eq_with_Disturbance2(GUI,params);
+    %%
+    case 50
+% Original 1D PDE: x1_{t}(t,s1) = x1_{s1s1}(t,s1) - 20 x1(t,s1) - 4 x4(t,s1,-1) - 0.1x5(t,s1,-1) + s1(s1-\pi)w(t);
+% 2D Transport Equation resulting from delay 1: x4_{t}(t,s1,s2) = 4 x4_{s2}((t,s1,s2);
+%  2D Transport Equation resulting from delay 2: x5_{t}(t,s1,s2) = 3.3333 x5_{s2}(t,s1,s2);
+%  output z(t) = int_0^1 x1(t,s1) ds1;
+%  BC1 0 = x1(t,0);
+%  BC2 0 = x1(t,3.1416);
+% BC3 0 = x4(t,s1,0) - x1(t,s1);
+% BC4  0 = x5(t,s1,0) - x1(t,s1);
+% H2 norm upper-bounds computed bwith custom settings and
+% settings.settings_2d.ineq_opts.psatz=1: 0.8502(primal) and 0.8398(dual)
+if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] =  PIETOOLS_PDDE_Ex(GUI,params);
 % 
 %==========================================================================
 %       H2 estimator
@@ -768,7 +786,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Unstable Reaction-Diffusion Type Systems
 %--------------------------------------------------------------------------
-    case 50
+    case 51
 %  PDE:         x_{t} = 3x+(s^2+0.2)x_{ss}          |                           (closed-loop H2 norm of 1.2683 using 'veryheavy' settings)  
 %                                   -(s^2)/2w(t)    |
 %  With BC:    x(s=0) = 0, x_{s}(s=1)=0             |
@@ -787,7 +805,7 @@ switch index
 %--------------------------------------------------------------------------
 %       Unstable Reaction-Diffusion Type Systems
 %--------------------------------------------------------------------------
-    case 51
+    case 52
 %  PDE :        x_{t} = 3x+(s^2+0.2)x_{ss} +s^2w(t)
 %  With BC     x(s=0) = 0, x_{s}(s=1)=0
 %  And outputs  z(t) = [int(x(t,s),s,0,1)

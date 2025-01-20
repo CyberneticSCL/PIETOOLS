@@ -104,9 +104,7 @@ prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the pr
 % otherwise, the norm is input to the function.
 if nargin<=2 || ~isfield(options,'h2')
     dpvar gam;
-    prog = lpidecvar(prog, gam); % set gam = gamma as decision variable
-    prog = lpi_ineq(prog, gam);  % enforce gamma>=0
-    prog = lpisetobj(prog, gam); % set gamma as objective function to minimize
+    prog = lpisetobj(prog, gam);% set gamma as objective function to minimize. This automatically set gam as a decision variable.  
 else
     gam = options.h2;
 end
@@ -115,7 +113,7 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 1: declare the posopvar variable, Rop, which defines the storage 
+% STEP 1: declare the non-coercive posopvar variable, Rop, which defines the storage 
 % function candidate V(v)=<v,Rop*v>=<Top*v,Wop*Top*v>
 disp('- Declaring Gramian using specified options...');
 

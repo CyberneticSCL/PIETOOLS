@@ -65,7 +65,7 @@ end
 % Extract PIE operators necessary for the executive.
 Top = PIE.T;        Twop = PIE.Tw;
 Aop = PIE.A;        B1op = PIE.B1;
-Czop = PIE.C1;
+C1op = PIE.C1;
 
 % Make sure thera are no disturbances at the boundary.
 if ~(Twop==0)
@@ -136,7 +136,7 @@ prog = lpi_eq(prog, Top*Qop-Rop);
 
 % Finally, declare a positive operator (matrix) Wm representing the
 % controllability Gramian
-[prog, Wm] = poslpivar(prog,Czop.dim(:,1));
+[prog, Wm] = poslpivar(prog,C1op.dim(:,1));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -147,8 +147,8 @@ Iw = mat2opvar(eye(size(B1op,2)), B1op.dim(:,2), PIE.vars, PIE.dom);
 
 Dneg = [-gam*Iw   B1op'
         B1op      Qop'*Aop'+Aop*Qop];
-Dpos = [Wm           Czop*Qop
-        Qop'*Czop'   Rop];
+Dpos = [Wm           C1op*Qop
+        Qop'*C1op'   Rop];
     
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

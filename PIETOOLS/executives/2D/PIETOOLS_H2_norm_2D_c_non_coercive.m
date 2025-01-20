@@ -1,6 +1,6 @@
-function [prog,Wo, gam] = PIETOOLS_H2_norm_2D_o(PIE, settings,options)
+function [prog,W, gam, R, Q] = PIETOOLS_H2_norm_2D_c_non_coercive(PIE, settings,options)
 % This function solves a minimization problem to obtain the H2 norm of a linear distributed parameter
-% system using the observability gramian approach and PIEs framework. For
+% system using the controlability gramian approach and PIEs framework. For
 % the feasibility test an additional input with a assigned value to the
 % norm is required.
 % inputs: (mandatory)
@@ -8,8 +8,11 @@ function [prog,Wo, gam] = PIETOOLS_H2_norm_2D_o(PIE, settings,options)
 %   settings : options related to PIETOOLS
 % outputs:
 %   gam = computed H2 norm for SDP problem or optional input value for feasibility tests;
-%   Wo= Observability gramian, a positive PI operator;
+%   W = Observability gramian, a positive PI operator;
 %  prog= sum of squares program information;
+%   R = positive PI operator parameterizing the non-coercive Lyapunov 
+%       functional V(v)=<v,R*v>;
+%   Q = indefinite PI operator such that R=PIE.T'*Q=Q'*PIE.T;
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -17,7 +20,7 @@ function [prog,Wo, gam] = PIETOOLS_H2_norm_2D_o(PIE, settings,options)
 % Braghini d166353@dac.unicamp.br.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt, D. Braghini
+% Copyright (C)2024  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -37,8 +40,7 @@ function [prog,Wo, gam] = PIETOOLS_H2_norm_2D_o(PIE, settings,options)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
-% DJ - 10/20/2024: Update to use new LPI programming structure;
-% DJ, 01/17/2025: Bugfix Pop --> Wop;
+% DB, 01/17/2025: initial code
 
 % STEP 0: Extract LPI settings and necessary PI operators
 %     if nargin==1
@@ -120,7 +122,7 @@ end
 
 
 
-fprintf('\n --- Searching for H2 norm bound using the observability gramian --- \n')
+fprintf('\n --- Searching for H2 norm bound using the controlability gramian --- \n')
 % Declare an SOS program and initialize domain and opvar spaces
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -131,11 +133,9 @@ prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the pr
 % otherwise, the norm is input to the function.
 if nargin<=2 || ~isfield(options,'h2')
     dpvar gam;
-    % prog = lpidecvar(prog, gam);        % set gam = gamma as decision variable
-    % prog = lpi_ineq(prog, gam);         % enforce gamma>=0
-    prog = lpisetobj(prog, gam);        % set gamma as objective function to minimize
+    prog = lpisetobj(prog, gam);        % set gamma as objective function to minimize. This automatically set gam as a decision variable.  
 else
-    gam = options.h2^2;
+    gam = options.h2;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -145,31 +145,39 @@ end
 % function candidate
 disp('- Declaring Gramian using specified options...');
 
-% Initialize an operator which is positive semidefinite everywhere
-[prog, Wop] = poslpivar_2d(prog, Top.dim, LF_deg, LF_opts);                 % DJ, 01/17/2025: Pop --> Wop;
-
+% Initialize the non-coercive operator 
+[prog, Rop] = poslpivar_2d(prog, Top.dim, LF_deg, LF_opts);  
 % Add an additional term with psatz multiplier if requested
 for j=1:length(LF_use_psatz)
     if LF_use_psatz(j)~=0
-        [prog, P2op] = poslpivar_2d(prog, Wop.dim, LF_deg_psatz{j}, LF_opts_psatz{j});
-        Wop = Wop + P2op;
+                [prog, R2op] = poslpivar_2d(prog, Rop.dim, LF_deg_psatz{j}, LF_opts_psatz{j});
+                 Rop = Rop + R2op;
     end
 end
 
-% Ensure strict positivity of the operator
-if ~all(eppos==0)
-    np_op = Wop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
-    Ip = blkdiag(eppos(1)*eye(np_op(1)),zeros(np_op(2)),zeros(np_op(3)),eppos(4)*eye(np_op(4)));
-    Iop = opvar2d(Ip,Wop.dim,PIE.dom,PIE.vars);
-    Wop = Wop + Iop;
-end
+disp('- Constructing the Negativity Constraint...');
+
+% Also declare an indefinite operator Qop so that Rop = Top*Qop.  
+Qdeg = get_lpivar_degs(Rop,Top);
+[prog, Qop] = lpivar_2d(prog,Top.dim,Qdeg);
+prog = lpi_eq_2d(prog, Top*Qop-Rop);
+    
+% Finally, declare a positive operator (matrix) Wm representing the
+% controllability Gramian
+[prog, Wm] = poslpivar_2d(prog,C1op.dim(:,1));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % STEP 2: Using the observability gramian
 
 disp('- Constructing the Negativity Constraint...');
+Iw = mat2opvar(eye(size(B1op,2)), B1op.dim(:,2), PIE.vars, PIE.dom);
 
-Dop =  (Aop'*Wop)*Top+Top'*(Wop*Aop)+C1op'*C1op;
+Dneg = [-gam*Iw   B1op'
+        B1op      Qop'*Aop'+Aop*Qop];
+Dpos = [Wm           C1op*Qop
+        Qop'*C1op'   Rop];
+
     
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,40 +189,49 @@ disp('- Enforcing the Inequality Constraints...');
 
  if use_lpi_ineq
     disp('   - Using lpi_ineq...');
-    prog = lpi_ineq_2d(prog,-Dop,ineq_opts);
+    prog = lpi_ineq_2d(prog,-Dneg,ineq_opts);
+    prog = lpi_ineq_2d(prog,Dpos,ineq_opts);
+
 else
     disp('   - Using an equality constraint...');
-    [prog, Deop] = poslpivar_2d(prog, Dop.dim, eq_deg, eq_opts);
+     [prog, De1op] = poslpivar_2d(prog, Dneg.dim, eq_deg, eq_opts);
+     [prog, De3op] = poslpivar_2d(prog, Dpos.dim, eq_deg, eq_opts);
     
     % Introduce the psatz term.
     for j=1:length(eq_use_psatz)
         if eq_use_psatz(j)~=0
             eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
             eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
-            [prog, De2op] = poslpivar_2d(prog, Dop.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
-            Deop = Deop+De2op;
+             [prog, De2op] = poslpivar_2d(prog, Dneg.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
+             [prog, De4op] = poslpivar_2d(prog, Dneg.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
+
+            Deop = De1op+De2op;
+            Deopp = De3op+De4op;
         end
+
     end
-    prog = lpi_eq_2d(prog,Deop+Dop,'symmetric'); %Dop=-Deop
+    prog = lpi_eq_2d(prog,Deop+Dneg,'symmetric'); %Dneg=-Deop
+    prog = lpi_eq_2d(prog,Deopp-Dpos,'symmetric'); %Dpos=-Deopp
  end
-
-tempObj = B1op'*Wop*B1op;
-tempMat = tempObj.R00;
-traceVal=trace(tempMat);
-% gam>=traceVal
+ 
+% ensuring scalar inequality gam>trace
+traceVal = trace(Wm.R00);
 prog = lpi_ineq(prog, gam-traceVal);
-
 
 % solving the lpi program
 disp('- Solving the LPI using the specified SDP solver...');
 prog = lpisolve(prog,sos_opts); 
 
-Wo = lpigetsol(prog,Wop);
+W = lpigetsol(prog,Wm);
+R = lpigetsol(prog,Rop);
+Q = lpigetsol(prog,Qop);
+
 if nargin<=2 || ~isfield(options,'h2')
-    gam = sqrt(double(lpigetsol(prog,gam)));
+    gam = double(lpigetsol(prog,gam));
     disp('The H2 norm of the given system is upper bounded by:')
     disp(gam);
 end
+
 end
 
 function outcell = extract_psatz_deg(incell,use_psatz)

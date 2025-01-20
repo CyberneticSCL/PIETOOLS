@@ -41,7 +41,12 @@ function [prog,Wc, gam] = PIETOOLS_H2_norm_2D_c(PIE, settings,options)
 % DJ, 01/17/2025: Bugfix Pop --> Wop;
 
 % STEP 0: Extract LPI settings and necessary PI operators
-
+%     if nargin==1
+%         settings = settings_PIETOOLS_light_2D;
+%         settings.sos_opts.simplify = 1;         % Use psimplify
+%         settings.eppos = [1e-4; 1e-6; 1e-6; 1e-6];    % Positivity of Lyapunov Function
+%         settings.epneg = 0*1e-5;                % Negativity of derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+%     elseif ~isfield(settings,'is2D') || ~settings.is2D
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -51,8 +56,8 @@ else
 end
 % Extract the relevant PI operators.
 Top = PIE.T;        Twop = PIE.Tw;
-Aop = PIE.A;        Bwop = PIE.B1;
-Czop = PIE.C1;
+Aop = PIE.A;        B1op = PIE.B1;
+C1op = PIE.C1;
 
 % Make sure thera are no disturbances at the boundary.
 if ~(Twop==0)
@@ -128,13 +133,8 @@ if nargin<=2 || ~isfield(options,'h2')
     % prog = lpi_ineq(prog, gam);         % enforce gamma>=0
     prog = lpisetobj(prog, gam);        % set gamma as objective function to minimize
 else
-    gam = options.h2;
+    gam = options.h2^2;
 end
-%
-% Alternatively, the above 3 commands may be commented and a specific gain
-% test specified by defining a specific desired value of gamma. This
-% results in a feasibility test instead of an optimization problem.
-% gamma = 1000;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -145,7 +145,6 @@ disp('- Declaring Gramian using specified options...');
 
 % Initialize an operator which is positive semidefinite everywhere
 [prog, Wop] = poslpivar_2d(prog, Top.dim, LF_deg, LF_opts);                 % DJ, 01/17/2025: Pop --> Wop;
-%[prog, P1op] = poslpivar(prog, [nx1 ,nx2],X,dd1,options1);
 
 % Add an additional term with psatz multiplier if requested
 for j=1:length(LF_use_psatz)
@@ -168,7 +167,7 @@ end
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop =  (Aop*Wop)*Top'+Top*(Wop*Aop')+Bwop*Bwop';
+Dop =  (Aop*Wop)*Top'+Top*(Wop*Aop')+B1op*B1op';
     
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -197,32 +196,23 @@ else
     prog = lpi_eq_2d(prog,Deop+Dop,'symmetric'); %Dop=-Deop
  end
 
-tempObj = Czop*Wop*Czop';
+tempObj = C1op*Wop*C1op';
 tempMat = tempObj.R00;
-traceVal=0;
-for idx = 1:size(tempMat,1)
-    traceVal = traceVal+tempMat(idx,idx);
-end
-% traceVal>=gam
+traceVal=trace(tempMat);
+% gam>=traceVal
 prog = lpi_ineq(prog, gam-traceVal);
 
 
-%solving the sos program
+%solving the lpi program
 disp('- Solving the LPI using the specified SDP solver...');
 prog = lpisolve(prog,sos_opts); 
 
 Wc = lpigetsol(prog,Wop);
-
 if nargin<=2 || ~isfield(options,'h2')
     gam = sqrt(double(lpigetsol(prog,gam)));
     disp('The H2 norm of the given system is upper bounded by:')
     disp(gam);
 end
-%% set outputs
-%     output.h2=gam;
-%     output.W=P;
-%     output.prog=prog;
-
 end
 
 function outcell = extract_psatz_deg(incell,use_psatz)
