@@ -394,7 +394,7 @@ switch index
 %--------------------------------------------------------------------------
     case 30
 % % ODE: x_{t}(t) = u(t);                                   | lam = 5;      (gain 0.6594 using Mosek with heavy settings, though numerr=2...)
-% % PDE: v_{t}(t,s) = lam*v(t,s) +v_{ss}(t,s) +s*(2-s)*w(t) |                       Shivakumar 2022 [11] (Example 22)
+% % PDE: v_{t}(t,s) = lam*v(t,s) +v_{ss}(t,s) +s*(2-s)*w(t) |                       adapted from Shivakumar 2022 [11] (Example 22)
 % % BCs: v(t,s=0) = 0                                       |
 % %      v_{s}(t,s=1) = x(t)                                |
 % % Out: z1(t) = x(t)                                       |
@@ -410,7 +410,7 @@ switch index
 %--------------------------------------------------------------------------
     case 31
 % % PDE: v1_{t}(t,s) = -c*v2_{ss}(t,s) +s^2*w(t) +u(t,s);   | c = 0.1;      (gain 2.7407e-04 using Mosek with light settings, though numerr=2...)
-% %      v2_{t}(t,s) = v1_{ss}(t,s)                         |                       Shivakumar 2022 [11] (Example 21)  
+% %      v2_{t}(t,s) = v1_{ss}(t,s)                         |                       adapted from Shivakumar 2022 [11] (Example 21)  
 % % BCs: v1(t,s=0) = v1_{s}(t,s=0) = 0;                     |
 % %      v2(t,s=1) = v2_{s}(t,s=1) = 0;                     |
 % % Out: z(t) = int_{0}^{1}(1-s)*v2(t,s)ds;                 |
@@ -423,11 +423,12 @@ switch index
 %--------------------------------------------------------------------------
 %       Wave Equations
 %--------------------------------------------------------------------------
-% % ODE: xo_{t}(t) = u(t);                                  | c = 1;
-% % PDE: x1_{t}(t,s) = x2(t,s);                             |
-% %      x2_{t}(t,s) = c*x1_{ss}(t,s) + w;                  |
-% % BCs: x1(t,s=0) = 0                                      |
-% %      x1_{s}(t,s=1) = xo(t)                              |
+% % ODE: xo_{t}(t) = u(t);                                  | c = 1;        (gain 0.5971 using Mosek with heavy settings, though numerr=2...)
+% % PDE: x1_{t}(t,s) = x2(t,s);                             |                       adapted from Shivakumar 2022 [11] (Example 23) 
+% %      x2_{t}(t,s) = c*x1_{ss}(t,s) + s*(2-s)*w;          |
+% % BCs: x1(t,s=0) = 0;                                     |
+% %      x2(t,s=0) = 0;                                     |
+% %      x1_{s}(t,s=1) = xo(t);                             |
 % % Out: z(t) = [xo(t); int(x1(t,s),s,0,1)]                 |
     case 32
     if BATCH~=0

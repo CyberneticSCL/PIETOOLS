@@ -15,12 +15,13 @@ function [PDE_t] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_ODE_Control(GUI,params)
 % % Wave Equation with boundary control through ODE
 % % ODE          xo_{t}(t) = u(t);
 % % PDE        x1_{t}(t,s) = x2(t,s);
-%              x2_{t}(t,s) = c*x1_{ss}(t,s) + w;
-% % With BCs     x1(t,s=0) = 0
-% %          x1_{s}(t,s=1) = xo(t)
+%              x2_{t}(t,s) = c*x1_{ss}(t,s) + s*(2-s)*w;
+% % With BCs     x1(t,s=0) = 0;
+% %              x2(t,s=0) = 0;
+% %          x1_{s}(t,s=1) = xo(t);
 % % and regulated output  z(t) = [xo(t); int(x1(t,s),s,0,1)].
 % % Parameter c can be set, defaults to 1.
-% % Example 23 from Shivakumar, 2022 (see bottom of file).
+% % Adapted from Example 23 from Shivakumar, 2022 (see bottom of file).
 % %---------------------------------------------------------------------% %
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
@@ -43,42 +44,43 @@ if npars~=0
 end
 
 % % % Construct the PDE.
-%using phi = [x;x_{t}-x_{s}]
+% Standard implementation using phi = [x;x_{t}]
+xo = pde_var('state',1,[],[]);
+x1 = pde_var(s,[0,1]);          x2 = pde_var(s,[0,1]);
+z = pde_var('output',2);        w = pde_var('input',1);
+u = pde_var('control',1);
+PDE_t = [diff(xo,t)==u;
+         diff(x1,t)==x2
+         diff(x2,t)==c*diff(x1,s,2)+s*(2-s)*w; 
+         subs(x1,s,0)==0; 
+         subs(x2,s,0)==0;
+         subs(diff(x1,s),s,1)==xo;
+         z==[int(x1,s,[0,1]); xo]];
+
+%Alternative implementation using phi = [x;x_{t}-x_{s}]
 %  xo = pde_var('state',1,[],[]);
 % eta = pde_var('state',1,s,[0,1]);  
 % v = pde_var('state',1,s,[0,1]);  
 % z = pde_var('output',2);        w = pde_var('input',1);
 % u = pde_var('control',1);
 % PDE_t=[diff(xo,t)==u;
-%               diff(eta,t)==diff(eta,s)+v;
-%              diff(v,t)==-diff(v,s)+s*(s-1)*w;
-%               z==[xo;int(eta,s,[0,1])];
-%              subs(diff(eta,s),s,1)==xo;
-%              subs(eta,s,0)==0;
-%              subs(v,s,0)==-subs(diff(eta,s),s,0)];
-
-% Alternative implementation using phi = [x;x_{t}]
-% xo = pde_var('state',1,[],[]);
-% x1 = pde_var(s,[0,1]);          x2 = pde_var(s,[0,1]);
-% z = pde_var('output',2);        w = pde_var('input',1);
-% u = pde_var('control',1);
-% PDE_t = [diff(xo,t)==u;
-%          diff(x1,t)==x2
-%          diff(x2,t)==c*diff(x1,s,2)+w; 
-%          subs(x1,s,0)==0; 
-%          subs(diff(x1,s),s,1)==xo;
-%          z==[int(x1,s,[0,1]); xo]];
+%        diff(eta,t)==diff(eta,s)+v;
+%        diff(v,t)==-diff(v,s)+s*(2-s)*w;
+%        z==[xo;int(eta,s,[0,1])];
+%        subs(diff(eta,s),s,1)==xo;
+%        subs(eta,s,0)==0;
+%        subs(v,s,0)==-subs(diff(eta,s),s,0)];
 
 % % Alternative implementation, using phi = [x_{s}; x_{t}]
-phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
-w = pde_var('input',1);             r = pde_var('output',1);
-u = pde_var('control');   
-eq_dyn = [diff(x,t,1)==u
-          diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s*(s-1)]*w];
-eq_out= r ==int([1 0]*phi,s,[0,1]);
-bc1 = [0 1]*subs(phi,s,0)==0;   
-bc2 = [1 0]*subs(phi,s,1)==x;
-PDE_t = [eq_dyn;eq_out;bc1;bc2];
+% phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
+% w = pde_var('input',1);             r = pde_var('output',1);
+% u = pde_var('control');   
+% eq_dyn = [diff(x,t,1)==u
+%           diff(phi,t,1)==[0 1; c 0]*diff(phi,s,1)+[0;s*(s-1)]*w];
+% eq_out= r ==int([1 0]*phi,s,[0,1]);
+% bc1 = [0 1]*subs(phi,s,0)==0;   
+% bc2 = [1 0]*subs(phi,s,1)==x;
+% PDE_t = [eq_dyn;eq_out;bc1;bc2];
 
 
 if GUI
