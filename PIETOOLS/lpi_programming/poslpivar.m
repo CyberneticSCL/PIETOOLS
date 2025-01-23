@@ -87,6 +87,7 @@ function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
 % Initial coding MMP, SS, DJ  - 09/26/2021
 % DJ, 10/16/2024: Update to new 'lpiprogram' structure;
 % DJ, 12/14/2024: Allow degrees to be specified as 'double' array;
+% DJ, 01/23/2025: Check that 'options' are specified as struct;
 
 
 % % % Set-up
@@ -123,6 +124,9 @@ switch nargin
         if all(size(I)==[2,2])
             [prog,Pop] = poslpivar_2d(prog,n,d,options);
             return
+        end
+        if ~isa(options,'struct')                                           % DJ, 01/23/2025
+            error("Options for positive operator should be specified as struct with fields 'psatz', 'exclude', and 'sep'.")
         end
         if ~isfield(options,'psatz')
             options.psatz=0;

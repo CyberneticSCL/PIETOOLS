@@ -118,8 +118,9 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 09_28_2021
-% DJ 04/14/2022: Update to account for new degree data forma
+% DJ, 04/14/2022: Update to account for new degree data forma
 % DJ, 12/15/2024: Bugfix in case no degrees are specified;
+% DJ, 01/23/2025: Check that 'options' are specified as struct;
 
 % % % Set-up % % %
 
@@ -156,6 +157,9 @@ switch nargin
     case 2
         fprintf('\n Warning: No degrees are specified. Continuing with default values. \n')
     case 4
+        if ~isa(options,'struct')                                           % DJ, 01/23/2025
+            error("Options for positive operator should be specified as struct with fields 'psatz', 'exclude', and 'sep'.")
+        end
         if isfield(options,'psatz')
             psatz = abs(options.psatz);
         end
