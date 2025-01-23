@@ -23,7 +23,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?opvar}) dopvar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - dopvar
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar
+% Copyright (C)2024 PIETOOLS
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?opvar}) dopvar
 % authorship, and a brief description of modifications
 
 % comment A, SS - 12/1/2024, removing default values
+% DJ, 01/23/2025: Add default spatial variables (s1,s1_dum) to workspace;
 
 
 
@@ -76,6 +77,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?opvar}) dopvar
                     error("Input must be strings");
                 end
             end
+            % Also add spatial variables to workspace;
+            evalin("caller", 'pvar s1 s1_dum;');                            % DJ, 01/23/2025;
         end
         function [obj] = set.P(obj,P) 
             obj.P = P;

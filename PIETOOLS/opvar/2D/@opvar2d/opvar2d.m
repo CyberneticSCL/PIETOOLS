@@ -42,7 +42,7 @@ classdef (InferiorClasses={?dpvar,?polynomial}) opvar2d
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - opvar2d
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -67,6 +67,8 @@ classdef (InferiorClasses={?dpvar,?polynomial}) opvar2d
 % 06/14/2022, DJ: Update with new dim function.
 % 11/30/2024, DJ: Replace default variables
 %                   (ss1,ss2,tt1,tt2) --> (s1,s2,s1_dum,s2_dum);
+% DJ, 01/23/2025: Add default spatial variables (s1,s2,s1_dum,s2_dum) to
+%                   workspace.;
 
 properties
     R00 = [];
@@ -133,6 +135,8 @@ methods
             else
                 error("Single input must be string, integer double, or dopvar2d object");
             end
+            % Also add spatial variables to workspace;
+            evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');                  % DJ, 01/23/2025;
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         elseif nargin==2
             if isa(varargin{1},'opvar2d') && isnumeric(varargin{2})
@@ -181,6 +185,8 @@ methods
                     end
                 end
             end
+            % Also add spatial variables to workspace;
+            evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');                  % DJ, 01/23/2025;
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         elseif nargin==3
             if isa(varargin{1},'opvar2d') && isnumeric(varargin{2})
@@ -199,20 +205,24 @@ methods
                         error(['The input is not a valid opvar2d object: ',msg]);
                     end
                 end
+                % Also add spatial variables to workspace;
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
             elseif (isa(varargin{1},'double') && all(size(varargin{1})==[4,2])) && ...
                     (isa(varargin{2},'double') && all(size(varargin{2})==[2,2])) && ...
                     (ispvar(varargin{3}) && ((prod(size(varargin{3}))==4) || (prod(size(varargin{3}))==2)))
                 % Build empty opvar2d of dimension varargin{1} on
                 % domain varargin{2} in variables varargin{3}
-                pvar s1_dum s2_dum;
                 Pdim = varargin{1};     Pdom = varargin{2};
                 var1 = [varargin{3}(1);varargin{3}(2)];
                 if prod(size(varargin{3}))==4
                     var2 = [varargin{3}(3);varargin{3}(4)];
                 else
-                    var2 = [s1_dum;s2_dum];
+                    var2 = [pvar([varargin{3}(1).varname{1},'_dum']);       % DJ, 01/23/2025
+                            pvar([varargin{3}(2).varname{1},'_dum'])];
                 end
                 P = opvar2d([],Pdim,Pdom,var1,var2);
+                % Also add spatial variables to workspace;
+                evalin("caller", ['pvar ',var2(1).varname{1},' ',var2(2).varname{1},';']);      % DJ, 01/23/2025;
             elseif (isa(varargin{1},'double') || isa(varargin{1},'polynomial')) && isnumeric(varargin{2})
                 % Build opvar2d from matrix varargin{1} based on
                 % dimensions varargin{2}, and with domain varargin{3}.
@@ -228,6 +238,8 @@ methods
                     var1 = [s1;s2];         var2 = [s1_dum;s2_dum];
                     P = opvar2d(varargin{1},Pdim,Pdom,var1,var2);
                 end
+                % Also add spatial variables to workspace;
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
             else
                 for i=1:nargin
                     if ischar(varargin{i})
@@ -238,6 +250,8 @@ methods
                         error("Input must be strings");
                     end
                 end
+                % Also add spatial variables to workspace;
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         elseif nargin==4
@@ -263,6 +277,8 @@ methods
                         error(['The input is not a valid opvar2d object: ',msg]);
                     end
                 end
+                % Also add spatial variables to workspace;
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
             elseif (isa(varargin{1},'double') && all(size(varargin{1})==[4,2])) && ...
                     (isa(varargin{2},'double') && all(size(varargin{2})==[2,2])) && ...
                     (ispvar(varargin{3}) && (prod(size(varargin{3}))==2)) && ...
@@ -285,16 +301,18 @@ methods
                 elseif ~ispvar(varargin{4}) || (~(prod(size(varargin{4}))==4) && ~(prod(size(varargin{4}))==2))
                     error('Variables should be specified as 2x2 pvar class object')
                 else
-                    pvar s1_dum s2_dum;
                     Pdim = varargin{2};     Pdom = varargin{3};
                     var1 = [varargin{4}(1);varargin{4}(2)];
                     if prod(size(varargin{4}))==4
                         var2 = [varargin{4}(3);varargin{4}(4)];
                     else
-                        var2 = [s1_dum;s2_dum];
+                        var2 = [pvar([varargin{4}(1).varname{1},'_dum']);   % DJ, 01/23/2025
+                                pvar([varargin{4}(2).varname{1},'_dum'])];
                     end
                     P = opvar2d(varargin{1},Pdim,Pdom,var1,var2);
                 end
+                % Also add spatial variables to workspace;
+                evalin("caller", ['pvar ',var2(1).varname{1},' ',var2(2).varname{1},';']);      % DJ, 01/23/2025;
             else
                 for i=1:nargin
                     if ischar(varargin{i})
@@ -305,6 +323,8 @@ methods
                         error("Input must be strings");
                     end
                 end
+                % Also add spatial variables to workspace;
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         elseif nargin==5
@@ -330,6 +350,8 @@ methods
                         error(['The input is not a valid opvar2d object: ',msg]);
                     end
                 end
+                % Also add spatial variables to workspace;
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
             elseif (isa(varargin{1},'double') || isa(varargin{1},'polynomial')) && isnumeric(varargin{2})
                 % Build opvar2d from matrix varargin{1} based on
                 % dimensions varargin{2}, and with domain varargin{3}.
@@ -402,6 +424,8 @@ methods
                         error("Input must be strings");
                     end
                 end
+                % Also add spatial variables to workspace;
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         else
@@ -414,6 +438,8 @@ methods
                     error("Input must be strings");
                 end
             end
+            % Also add spatial variables to workspace;
+            evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');                  % DJ, 01/23/2025;
         end
     end
     % % % =========================================================== % % %

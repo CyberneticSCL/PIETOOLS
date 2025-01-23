@@ -23,7 +23,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - opvar
 %
-% Copyright (C)2019  M. Peet, S. Shivakumar
+% Copyright (C) 2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
 % Initial coding MMP, SS  - 7_26_2019
 % Changed var1 and var2 to be pvars instead of chars. SS - 9/6/2019
 % Changed default var1 and var2. SS -12/1/2024 
-
+% DJ, 01/23/2025: Add default spatial variables (s1,s1_dum) to workspace;
 
 
     properties
@@ -77,6 +77,8 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
                     error("Input must be strings");
                 end
             end
+            % Also add spatial variables to workspace;
+            evalin("caller", 'pvar s1 s1_dum;');                            % DJ, 01/23/2025
         end
         function [obj] = set.P(obj,P) 
             obj.P = P;
