@@ -91,6 +91,8 @@ end
 % Assume coefficients below tolerance are zero.
 ztol = opts.tol;
 Pop = clean_opvar(Pop,ztol);
+% Convert opvar to dopvar object
+Pop = opvar2dopvar2d(Pop);
 
 % We're going to enforce inequality P>=0, by building an operator Deop>=0,
 % and setting P=Deop. If psatz is used, build an additional Deop2>=0, and

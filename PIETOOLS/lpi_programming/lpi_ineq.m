@@ -48,6 +48,7 @@ function prog = lpi_ineq(prog,P,opts)
 % 07/07/2021, DJ: Adjusted (slightly) for dpvar (dopvar) implementation;
 % 10/19/2024, DJ: Add support for non-opvar decision variables;
 % 11/29/2024, DJ: Make sure dummy variables match those in LPI program;
+% 01/23/2025, DJ: Allow P to be 'opvar';
 
 
 % Extract the inputs
@@ -71,14 +72,14 @@ switch nargin
 end
 
 % Check that the specified (operator) variable is of appropriate type.
-if isa(P,'polynomial') || isa(P,'double')
-    error('Enforcing equality constraints on fixed values or polynomials is not supported.')
-elseif isa(P,'dpvar')
+if isa(P,'double')
+    error('Enforcing equality constraints on fixed values is not supported.')
+elseif isa(P,'dpvar') || isa(P,'polynomial')
     % If P is not an opvar, we can enforce inequality using just sosineq.
     prog = sosineq(prog,P);
     return
-elseif ~isa(P,'dopvar') && ~isa(P,'dopvar2d')
-    error('Variable of which to enforce positivity should be specified as object of type ''dpvar'', ''dopvar'', or ''dopvar2d''.')
+elseif ~isa(P,'dopvar') && ~isa(P,'dopvar2d') && ~isa(P,'opvar') && ~isa(P,'opvar2d')   % 01/23/2024, DJ
+    error('Variable of which to enforce positivity should be specified as object of type ''polynomial'', ''dpvar'', ''opvar'', ''dopvar'', ''opvar2d'', ''dopvar2d''.')
 end
 % Make sure the opvar dummy variables match those in the LPI program.       (11/29/2024, DJ)
 n = size(prog.dom,1);
@@ -87,7 +88,7 @@ if any(~ismember(P.var2.varname,dumvars.varname))
     P = subs_vars_op(P,P.var2,dumvars);
 end
 % Pass 2D operator to associated lpi_ineq function.
-if isa(P,'dopvar2d')
+if isa(P,'dopvar2d') || isa(P,'opvar2d')                                    % 01/23/2024, DJ
     prog = lpi_ineq_2d(prog,P,opts);
     return
 end
@@ -110,19 +111,19 @@ else
     options2.exclude = [0,0,0,0];
     options3.exclude = [0,0,0,0];
 end
-if (isa(P.P,'double') && max(max(abs(P.P)))<tol) || all(max(max(abs(P.P.C)))<tol)
+if ~isempty(P.P) && ((isa(P.P,'double') && max(max(abs(P.P)))<tol) || all(max(max(abs(P.P.C)))<tol))
     options2.exclude(1) = 1;
     options3.exclude(1) = 1;
 end
-if (isa(P.R.R0,'double') && max(max(abs(P.R.R0)))<tol) || all(max(max(abs(P.R.R0.C)))<tol)
+if ~isempty(P.R.R0) && ((isa(P.R.R0,'double') && max(max(abs(P.R.R0)))<tol) || all(max(max(abs(P.R.R0.C)))<tol))
     options2.exclude(2) = 1;
     options3.exclude(2) = 1;
 end
-if (isa(P.R.R1,'double') && max(max(abs(P.R.R1)))<tol) || all(max(max(abs(P.R.R1.C)))<tol)
+if ~isempty(P.R.R1) && ((isa(P.R.R1,'double') && max(max(abs(P.R.R1)))<tol) || all(max(max(abs(P.R.R1.C)))<tol))
     options2.exclude(3) = 1;
     options3.exclude(3) = 1;
 end
-if (isa(P.R.R2,'double') && max(max(abs(P.R.R2)))<tol) || all(max(max(abs(P.R.R2.C)))<tol)
+if ~isempty(P.R.R2) && ((isa(P.R.R2,'double') && max(max(abs(P.R.R2)))<tol) || all(max(max(abs(P.R.R2.C)))<tol))
     options2.exclude(4) = 1;
     options3.exclude(4) = 1;
 end
