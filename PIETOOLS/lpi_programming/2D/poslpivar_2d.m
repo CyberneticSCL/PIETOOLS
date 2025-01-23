@@ -1,6 +1,6 @@
 function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [prog,Pop,LLL,bZ_col] = poslpivar_2d(prog,n,I,d,options) declares 
+% [prog,Pop,LLL,bZ_col] = poslpivar_2d(prog,n,d,options) declares 
 % a positive 0112D PI operator. 
 %
 % Pop = Z' * T * Z
@@ -96,7 +96,7 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - poslpivar_2d
 %
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by

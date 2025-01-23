@@ -1,6 +1,6 @@
 function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [prog,Pop] = poslpivar(prog,n,I,d,options) declares 
+% [prog,Pop] = poslpivar(prog,n,d,options) declares 
 % a positive 4-PI decision operator Pop, with fields:
 %
 % P = Q11 int(gs,s,a,b)
@@ -63,7 +63,7 @@ function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - poslpivar
 %
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
