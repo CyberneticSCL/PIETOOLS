@@ -10,9 +10,9 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 %               spatial variables in the LPI;
 % - dumvartab:  (optional) nx1 array of type 'polynomial', specifying dummy
 %               variables associated with each of the specified spatial
-%               variables. If not specified, default dummy variables will
-%               be generated, so that if vartab(i)=si, then 
-%               dumvartab(i) = si_dum;
+%               variables. If not specified, or declared as [], default 
+%               dummy variables will be generated, so that if vartab(i)=si, 
+%               then  dumvartab(i) = si_dum;
 % - dom:        nx2 array of type 'double', with each row dom(i,:)=[1,b]
 %               specifying the interval on which the independent variable
 %               vartab(i) (and corresponding dummy variable) is defined.
@@ -61,7 +61,8 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 10/13/2024
-% DJ, 11/30/2024: Introduce separate input for dummy variables.
+% DJ, 11/30/2024: Introduce separate input for dummy variables;
+% DJ, 01/23/2025: Allow dummy variables to be specified as empty array;
 
 
 % % % Process the inputs
@@ -69,43 +70,41 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 % % domain.
 if nargin==1
     error("No domain has been specified for the spatial variables.")
+elseif nargin>=3 && isnumeric(dom)
+    % Third argument is numeric
+    % --> second argument must correspond to dummy variables.
 elseif nargin>=2 && nargin<=4 && isnumeric(dumvartab)
-    if size(vartab,1)==size(dumvartab,1) && size(vartab,2)==2
-        % Second column of vartab corresponds to dummy vars.
-        dumvartab_tmp = vartab(:,2);
-        vartab = vartab(:,1);
-    elseif prod(size(vartab))==max(size(vartab))
-        % No dummy variables have been specified
-        % --> generate default dummy variables.
-        vartab = vartab(:);
-        dum_vars = cell(length(vartab),1);
-        for ii=1:size(vartab,1)
-            dum_vars{ii} = [vartab(ii).varname{1},'_dum'];
+    % Second argument is numeric, likely specifies the domain.
+    if nargin==2 || ~isnumeric(dom)
+        % Assume second argument corresponds to domain.
+        if size(vartab,1)==size(dumvartab,1) && size(vartab,2)==2
+            % Second column of vartab corresponds to dummy vars.
+            dumvartab_tmp = vartab(:,2);
+            vartab = vartab(:,1);
+        else
+            dumvartab_tmp = [];
         end
-        dumvartab_tmp = polynomial(dum_vars);
-    else
-        error("Spatial variables in the LPI optimization program should be specified as nx1 array.")
+        % Call the function with correct order of input arguments.
+        if nargin==4
+            freevartab = decvartab;
+            decvartab = dom;
+            dom = dumvartab;
+            prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab,freevartab);
+        elseif nargin==3
+            decvartab = dom;
+            dom = dumvartab;
+            prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab);
+        else
+            dom = dumvartab;
+            prog = lpiprogram(vartab,dumvartab_tmp,dom);
+        end
+        return
     end
-    % Call the function with default dummy variables.
-    if nargin==4
-        freevartab = decvartab;
-        decvartab = dom;
-        dom = dumvartab;
-        prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab,freevartab);
-    elseif nargin==3
-        decvartab = dom;
-        dom = dumvartab;
-        prog = lpiprogram(vartab,dumvartab_tmp,dom,decvartab);
-    else
-        dom = dumvartab;
-        prog = lpiprogram(vartab,dumvartab_tmp,dom);
-    end
-    return
 end
 
 % % Check that the spatial variables are properly specified.
 if isempty(vartab)
-    vartab = polynomial(zeros(0,2));
+    vartab = polynomial(zeros(0,1));
 elseif ~isa(vartab,'polynomial')
     error("Spatial variables in the LPI optimization program should be specified as nx1 array of type 'polynomial'.")
 elseif ~ispvar(vartab)
@@ -120,14 +119,29 @@ if size(vartab,1)>2
 end
 
 % % Check that the dummy varaibles are properly specified.
-if ~isa(dumvartab,'polynomial')
-    error("Dummy variables in the LPI optimization program should be specified as nx1 array of type 'polynomial'.")
-elseif ~ispvar(vartab)
-    error("Each element of the array of dummy variables should correspond to a single polynomial variable.")
-end
-dumvartab = dumvartab(:);
-if length(dumvartab)~=length(vartab)
-    error('Number of dummy variables should match the number of primary spatial variables.')
+if isempty(dumvartab)                                                       % DJ, 01/23/2025
+    % No dummy variables have been specified
+    % --> generate default dummy variables.
+    if isempty(vartab)
+        dumvartab = polynomial(zeros(0,1));
+    else
+        % For each variable si, generate dummy variable si_dum.
+        dum_vars = cell(size(vartab));
+        for ii=1:size(vartab,1)
+            dum_vars{ii} = [vartab(ii).varname{1},'_dum'];
+        end
+        dumvartab = polynomial(dum_vars);
+    end
+else
+    if ~isa(dumvartab,'polynomial')
+        error("Dummy variables in the LPI optimization program should be specified as nx1 array of type 'polynomial'.")
+    elseif ~ispvar(vartab)
+        error("Each element of the array of dummy variables should correspond to a single polynomial variable.")
+    end
+    dumvartab = dumvartab(:);
+    if length(dumvartab)~=length(vartab)
+        error('Number of dummy variables should match the number of primary spatial variables.')
+    end
 end
 
 % % Check that the spatial domain is properly specified.
