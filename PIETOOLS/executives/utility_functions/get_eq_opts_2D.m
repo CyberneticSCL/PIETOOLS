@@ -63,22 +63,22 @@ eq_opts_sep = eq_opts.sep;
 % First check the map R-->R
 if Qdim(1)
     % Check if Qop.R00 is zero.
-    if (isdouble(Qop.R00) && all(all(Qop.R00==0))) || all(all(Qop.R00.C==0))
+    if isempty(Qop.R00) || (isdouble(Qop.R00) && all(all(double(Qop.R00)==0))) || all(all(Qop.R00.C==0))
         eq_opts_exc(1) = 1;
     end
 end
 % Then the map L2[x] --> L2[x]
 if Qdim(2)
     % Check if Qop.Rxx{1} is zero.
-    if (isdouble(Qop.Rxx{1}) && all(all(Qop.Rxx{1}==0))) || all(all(Qop.Rxx{1}.C==0))
+    if isempty(Qop.Rxx{1}) || (isdouble(Qop.Rxx{1}) && all(all(double(Qop.Rxx{1})==0))) || all(all(Qop.Rxx{1}.C==0))
         eq_opts_exc(2) = 1;
     end
     % Check if Qop.Rxx{2} is zero.
-    if (isdouble(Qop.Rxx{2}) && all(all(Qop.Rxx{2}==0))) || all(all(Qop.Rxx{2}.C==0))
+    if isempty(Qop.Rxx{1}) || (isdouble(Qop.Rxx{2}) && all(all(double(Qop.Rxx{2})==0))) || all(all(Qop.Rxx{2}.C==0))
         eq_opts_exc(3) = 1;
     end
     % Check if Qop.Rxx{3} is zero.
-    if (isdouble(Qop.Rxx{3}) && all(all(Qop.Rxx{3}==0))) || all(all(Qop.Rxx{3}.C==0))
+    if isempty(Qop.Rxx{1}) || (isdouble(Qop.Rxx{3}) && all(all(double(Qop.Rxx{3})==0))) || all(all(Qop.Rxx{3}.C==0))
         eq_opts_exc(4) = 1;
     elseif ~eq_opts_exc(3)
         % Check if Qop.Rxx{2}=Qop.Rxx{3}.
@@ -91,15 +91,15 @@ end
 % Then the map L2[y] --> L2[y]
 if Qdim(3)
     % Check if Qop.Ryy{1} is zero.
-    if (isdouble(Qop.Ryy{1}) && all(all(Qop.Ryy{1}==0))) || all(all(Qop.Ryy{1}.C==0))
+    if isempty(Qop.Ryy{1}) || (isdouble(Qop.Ryy{1}) && all(all(double(Qop.Ryy{1})==0))) || all(all(Qop.Ryy{1}.C==0))
         eq_opts_exc(5) = 1;
     end
     % Check if Qop.Ryy{2} is zero.
-    if (isdouble(Qop.Ryy{2}) && all(all(Qop.Ryy{2}==0))) || all(all(Qop.Ryy{2}.C==0))
+    if isempty(Qop.Ryy{2}) || (isdouble(Qop.Ryy{2}) && all(all(double(Qop.Ryy{2})==0))) || all(all(Qop.Ryy{2}.C==0))
         eq_opts_exc(6) = 1;
     end
     % Check if Qop.Ryy{3} is zero.
-    if (isdouble(Qop.Ryy{3}) && all(all(Qop.Ryy{3}==0))) || all(all(Qop.Ryy{3}.C==0))
+    if isempty(Qop.Ryy{3}) || (isdouble(Qop.Ryy{3}) && all(all(double(Qop.Ryy{3})==0))) || all(all(Qop.Ryy{3}.C==0))
         eq_opts_exc(7) = 1;
     elseif ~eq_opts_exc(6)
         % Check if Qop.Rxx{2}=Qop.Rxx{3}.
@@ -114,7 +114,7 @@ if Qdim(4)
     % Loop over all parameters, checking if they are zero.
     param_idcs = [8,9,10,11,13,14,12,15,16];
     for ii=1:9
-        if (isdouble(Qop.R22{ii}) && all(all(Qop.R22{ii}==0))) || all(all(Qop.R22{ii}.C==0))
+        if isempty(Qop.R22{ii}) || (isdouble(Qop.R22{ii}) && all(all(double(Qop.R22{ii})==0))) || all(all(Qop.R22{ii}.C==0))
             eq_opts_exc(param_idcs(ii)) = 1;
         end
     end
