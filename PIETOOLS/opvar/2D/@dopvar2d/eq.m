@@ -40,6 +40,7 @@ function logval = eq(P1,P2,tol)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07_12_2021
+% DJ, 01/25/2025: Bugfix, DPcompress --> compress;
 
 if nargin<3
     tol=1e-14;
@@ -108,42 +109,42 @@ end
 % Check whether all components are zero
 try
     Req = 1;
-    diff.R00 = double(DPcompress(diff.R00));
+    diff.R00 = double(compress(diff.R00));                                  % DJ, 01/25/2025
     Req = all(all(diff.R00==0)) && Req;
-    diff.R0x = double(DPcompress(diff.R0x));
+    diff.R0x = double(compress(diff.R0x));
     Req = all(all(diff.R0x==0)) && Req;
-    diff.R0y = double(DPcompress(diff.R0y));
+    diff.R0y = double(compress(diff.R0y));
     Req = all(all(diff.R0y==0)) && Req;
-    diff.R02 = double(DPcompress(diff.R02));
+    diff.R02 = double(compress(diff.R02));
     Req = all(all(diff.R02==0)) && Req;
-    diff.Rx0 = double(DPcompress(diff.Rx0));
+    diff.Rx0 = double(compress(diff.Rx0));
     Req = all(all(diff.Rx0==0)) && Req;
-    diff.Rxy = double(DPcompress(diff.Rxy));
+    diff.Rxy = double(compress(diff.Rxy));
     Req = all(all(diff.Rxy==0)) && Req;
-    diff.Ry0 = double(DPcompress(diff.Ry0));
+    diff.Ry0 = double(compress(diff.Ry0));
     Req = all(all(diff.Ry0==0)) && Req;
-    diff.Ryx = double(DPcompress(diff.Ryx));
+    diff.Ryx = double(compress(diff.Ryx));
     Req = all(all(diff.Ryx==0)) && Req;
-    diff.R20 = double(DPcompress(diff.R20));
+    diff.R20 = double(compress(diff.R20));
     Req = all(all(diff.R20==0)) && Req;
 
     for i=1:3
-        diff.Rxx{i,1} = double(DPcompress(diff.Rxx{i,1}));
+        diff.Rxx{i,1} = double(compress(diff.Rxx{i,1}));
         Req = all(all(diff.Rxx{i,1}==0)) && Req;
-        diff.Rx2{i,1} = double(DPcompress(diff.Rx2{i,1}));
+        diff.Rx2{i,1} = double(compress(diff.Rx2{i,1}));
         Req = all(all(diff.Rx2{i,1}==0)) && Req;
-        diff.R2x{i,1} = double(DPcompress(diff.R2x{i,1}));
+        diff.R2x{i,1} = double(compress(diff.R2x{i,1}));
         Req = all(all(diff.R2x{i,1}==0)) && Req;
 
-        diff.Ryy{1,i} = double(DPcompress(diff.Ryy{1,i}));
+        diff.Ryy{1,i} = double(compress(diff.Ryy{1,i}));
         Req = all(all(diff.Ryy{1,i}==0)) && Req;
-        diff.Ry2{1,i} = double(DPcompress(diff.Ry2{1,i}));
+        diff.Ry2{1,i} = double(compress(diff.Ry2{1,i}));
         Req = all(all(diff.Ry2{1,i}==0)) && Req;
-        diff.R2y{1,i} = double(DPcompress(diff.R2y{1,i}));
+        diff.R2y{1,i} = double(compress(diff.R2y{1,i}));
         Req = all(all(diff.R2y{1,i}==0)) && Req;
 
         for j=1:3
-            diff.R22{i,j} = double(DPcompress(diff.R22{i,j}));
+            diff.R22{i,j} = double(compress(diff.R22{i,j}));
             Req = all(all(diff.R22{i,j}==0)) && Req;
         end
     end
