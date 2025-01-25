@@ -44,40 +44,41 @@ function [Pcomp] = mtimes(P1,P2)
 % Initial coding MMP, SS  - 7_26_2019
 % Changed dummy polynomials names from s, theta to ds, dtheta - SS 6/29/20
 % Adjusted so that dpvar times opvar returns dopvar.
+% DJ, 01/25/2025: Bugfix matrix-opvar multiplication + error check;
 
 
 
 if isa(P1,'opvar') && isa(P2,'opvar')
     P1.dim = P1.dim; P2.dim = P2.dim;
-if any(P1.dim(:,2)~=P2.dim(:,1))
-    error("Composition requires inner dimensions of the operators to match");
-    return
-end
-if any(P1.I~=P2.I)
-    error('Operators act on different intervals and cannot be composed');
-end
-a=P1.I(1);
-b=P1.I(2);
-ds = P1.var1;
-dtheta = P1.var2;
-I = P1.I;
-
-opvar Pcomp; Pcomp.I = I; Pcomp.var1 = ds; Pcomp.var2 = dtheta;
-
-Pcomp.P = P1.P*P2.P + int(P1.Q1*P2.Q2,ds,a,b);
-Pcomp.Q1 = P1.P*P2.Q1 + P1.Q1*P2.R.R0+ int(var_swap(P1.Q1*P2.R.R1,ds,dtheta),dtheta,ds,b)+...
-            int(var_swap(P1.Q1*P2.R.R2,ds,dtheta),dtheta,a,ds);
-Pcomp.Q2 = P1.Q2*P2.P + P1.R.R0*P2.Q2 + int(P1.R.R1*subs(P2.Q2,ds,dtheta),dtheta,a,ds)+...
-                    int(P1.R.R2*subs(P2.Q2,ds,dtheta),dtheta,ds,b);
-Ptemp = PL2L_compose(P1,P2);
-Pcomp.R.R0 = Ptemp.R.R0;
-Pcomp.R.R1 = P1.Q2*subs(P2.Q1,ds,dtheta)+Ptemp.R.R1;
-Pcomp.R.R2 = P1.Q2*subs(P2.Q1,ds,dtheta)+Ptemp.R.R2;
+    if any(P1.dim(:,2)~=P2.dim(:,1))
+        error("Composition requires inner dimensions of the operators to match");
+        return
+    end
+    if any(P1.I~=P2.I)
+        error('Operators act on different intervals and cannot be composed');
+    end
+    a=P1.I(1);
+    b=P1.I(2);
+    ds = P1.var1;
+    dtheta = P1.var2;
+    I = P1.I;
+    
+    opvar Pcomp; Pcomp.I = I; Pcomp.var1 = ds; Pcomp.var2 = dtheta;
+    
+    Pcomp.P = P1.P*P2.P + int(P1.Q1*P2.Q2,ds,a,b);
+    Pcomp.Q1 = P1.P*P2.Q1 + P1.Q1*P2.R.R0+ int(var_swap(P1.Q1*P2.R.R1,ds,dtheta),dtheta,ds,b)+...
+                int(var_swap(P1.Q1*P2.R.R2,ds,dtheta),dtheta,a,ds);
+    Pcomp.Q2 = P1.Q2*P2.P + P1.R.R0*P2.Q2 + int(P1.R.R1*subs(P2.Q2,ds,dtheta),dtheta,a,ds)+...
+                        int(P1.R.R2*subs(P2.Q2,ds,dtheta),dtheta,ds,b);
+    Ptemp = PL2L_compose(P1,P2);
+    Pcomp.R.R0 = Ptemp.R.R0;
+    Pcomp.R.R1 = P1.Q2*subs(P2.Q1,ds,dtheta)+Ptemp.R.R1;
+    Pcomp.R.R2 = P1.Q2*subs(P2.Q1,ds,dtheta)+Ptemp.R.R2;
 
 elseif ~isa(P2,'opvar') %multiplication of operator times matrix
-    ds = P2.var1;
-    dtheta = P2.var2;
-    I = P2.I;
+    ds = P1.var1;
+    dtheta = P1.var2;
+    I = P1.I;
     opvar Pcomp; Pcomp.I = I; Pcomp.var1 = ds; Pcomp.var2 = dtheta;
     if all(size(P2)==[1,1]) %scalar multiplication
         Pcomp.P = P2*P1.P;
@@ -89,12 +90,19 @@ elseif ~isa(P2,'opvar') %multiplication of operator times matrix
     else
         if size(P2,1)~=sum(P1.dim(:,2))
             error("Multiplication requires inner dimensions of the operators to match");
-            return
+        elseif nnz(P1.dim(:,2))>1                                           % DJ, 01/25/2025
+            error("Proposed opvar-matrix multiplication is ambiguous, and currently not supported.")
         end
 
         r = P1.dim(1,2); p = P1.dim(2,2);
         idxr = 1:r; idxp = r+1:r+p;
         P2r = P2(idxr,:); P2p = P2(idxp,:);
+        if isempty(P2r)                                                     % DJ, 01/25/2025
+            P2r = zeros(r,0);
+        end
+        if isempty(P2p)
+            P2p = zeros(p,0);
+        end
         
         Pcomp.P = P1.P*P2r;
         Pcomp.Q2 = P1.Q2*P2r;
@@ -122,7 +130,8 @@ else %multiplication of matrix times the operator
     else
         if size(P1,2)~=sum(P2.dim(:,1))
             error('Multiplication requires inner dimensions of the operators to match');
-            return
+        elseif nnz(P2.dim(:,1))>1                                           % DJ, 01/25/2025
+            error("Proposed matrix-opvar multiplication is ambiguous, and currently not supported.")
         end
         r = P2.dim(1,1); p = P2.dim(2,1);
         idxr = 1:r; idxp = r+1:r+p;

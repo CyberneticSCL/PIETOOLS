@@ -51,6 +51,7 @@ function [Pcomp] = mtimes(P1,P2)
 % 04/06/2022 - DJ: Update to increase speed;
 % 04/14/2022 - DJ: Update to use "int_simple";
 % 11/30/2024 - DJ: Check that spatial and dummy variables match;
+% DJ, 01/25/2025: Bugfix matrix-opvar multiplication + error check;
 
 
 if isa(P1,'opvar2d') && isa(P2,'opvar2d')
@@ -442,12 +443,27 @@ elseif ~isa(P2,'opvar2d') %multiplication of operator times matrix
                         ' The product has ambiguous dimensions; returning the input matrix M.'])
             Pcomp = P2;
             return
+        elseif nnz(P1.dim(:,2))>1                                           % DJ, 01/25/2025
+            error("Proposed opvar-matrix multiplication is ambiguous, and currently not supported.")
         end
 
         mindx = cumsum(P1.dim(:,2));
         P2_0 = P2(1:mindx(1),:);            P2_x = P2(mindx(1)+1:mindx(2),:);
         P2_y = P2(mindx(2)+1:mindx(3),:);   P2_2 = P2(mindx(3)+1:end,:);
         
+        if isempty(P2_0)                                                    % DJ, 01/25/2025
+            P2_0 = zeros(P1.dim(1,2),0);
+        end
+        if isempty(P2_x)
+            P2_x = zeros(P1.dim(2,2),0);
+        end
+        if isempty(P2_y)
+            P2_y = zeros(P1.dim(3,2),0);
+        end
+        if isempty(P2_2)
+            P2_2 = zeros(P1.dim(4,2),0);
+        end
+
         Pcomp.R00 = P1.R00*P2_0;
         Pcomp.R0x = P1.R0x*P2_x;
         Pcomp.R0y = P1.R0y*P2_y;
@@ -516,25 +532,27 @@ else %multiplication of matrix times the operator
                         ' The product has ambiguous dimensions; returning the input matrix M.'])
             Pcomp = P1;
             return
+        elseif nnz(P2.dim(:,1))>1                                           % DJ, 01/25/2025
+            error("Proposed matrix-opvar multiplication is ambiguous, and currently not supported.")
         end
 
         nindx = cumsum(P2.dim(:,1));
         P1_0 = P1(:,1:nindx(1));            P1_x = P1(:,nindx(1)+1:nindx(2));
         P1_y = P1(:,nindx(2)+1:nindx(3));   P1_2 = P1(:,nindx(3)+1:end);
         if isempty(P1_0)
-            n1 = size(P1,1) * (P2.dim(1,2)>0);
+            n1 = 0;                                                         % DJ, 01/25/2025
             P1_0 = zeros(n1,P2.dim(1,1));
         end
         if isempty(P1_x)
-            n2 = size(P1,1) * (P2.dim(2,2)>0);
+            n2 = 0;
             P1_x = zeros(n2,P2.dim(2,1));
         end
         if isempty(P1_y)
-            n3 = size(P1,1) * (P2.dim(3,2)>0);
+            n3 = 0;
             P1_y = zeros(n3,P2.dim(3,1));
         end
         if isempty(P1_2)
-            n4 = size(P1,1) * (P2.dim(4,2)>0);
+            n4 = 0;
             P1_2 = zeros(n4,P2.dim(4,1));
         end
         

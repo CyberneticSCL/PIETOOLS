@@ -40,7 +40,7 @@ function [Pcomp] = mtimes(P1,P2)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
-%
+% DJ, 01/25/2025: Check if opvar-matrix multiplication is supported;
 
 
 
@@ -89,12 +89,19 @@ elseif ~isa(P2,'dopvar') %multiplication of operator times matrix
     else
         if size(P2,1)~=sum(P1.dim(:,2))
             error("Multiplication requires inner dimensions of the operators to match");
-            return
+        elseif nnz(P1.dim(:,2))>1                                           % DJ, 01/25/2025
+            error("Proposed opvar-matrix multiplication is ambiguous, and currently not supported.")
         end
 
         r = P1.dim(1,2); p = P1.dim(2,2);
         idxr = 1:r; idxp = r+1:r+p;
         P2r = P2(idxr,:); P2p = P2(idxp,:);
+        if isempty(P2r)                                                     % DJ, 01/25/2025
+            P2r = zeros(r,0);
+        end
+        if isempty(P2p)
+            P2p = zeros(p,0);
+        end
         
         Pcomp.P = P1.P*P2r;
         Pcomp.Q2 = P1.Q2*P2r;
@@ -120,7 +127,8 @@ else %multiplication of matrix times the operator
     else
         if size(P1,2)~=sum(P2.dim(:,1))
             error('Multiplication requires inner dimensions of the operators to match');
-            return
+        elseif nnz(P2.dim(:,1))>1                                           % DJ, 01/25/2025
+            error("Proposed matrix-opvar multiplication is ambiguous, and currently not supported.")
         end
         r = P2.dim(1,1); p = P2.dim(2,1);
         idxr = 1:r; idxp = r+1:r+p;
