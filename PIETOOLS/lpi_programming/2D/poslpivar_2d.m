@@ -1,12 +1,17 @@
-function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
+function [prog,Pop,Qmat,Zop,gss] = poslpivar_2d(prog,n,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [prog,Pop,LLL,bZ_col] = poslpivar_2d(prog,n,d,options) declares 
-% a positive 0112D PI operator. 
+% [prog,Pop,Qmat,Zop,gss] = poslpivar_2d(prog,n,d,options) declares 
+% a positive semidefinite 2D PI operator, 
 %
-% Pop = Z' * T * Z
-% T = [ T_{00,00} T_{00,x1} T_{00,x2} T_{00,x3} T_{00,y1} T_{00,y2} T_{00,y3} T_{00,21} ... T_{00,29}]
-%     [      :         :         :         :         :         :         :         :             :   ] > 0
-%     [ T_{29,00} T_{29,x1} T_{29,x2} T_{29,x3} T_{29,y1} T_{29,y2} T_{29,y3} T_{29,21} ... T_{29,29}]
+%   Pop = Zop'*((Qmat*gss)*Zop)
+%
+% where
+%
+% Qmat = [ Q_{00,00} Q_{00,x1} Q_{00,x2} Q_{00,x3} Q_{00,y1} Q_{00,y2} Q_{00,y3} Q_{00,21} ... Q_{00,29}]
+%        [      :         :         :         :         :         :         :         :             :   ] >= 0
+%        [ Q_{29,00} Q_{29,x1} Q_{29,x2} Q_{29,x3} Q_{29,y1} Q_{29,y2} Q_{29,y3} Q_{29,21} ... Q_{29,29}]
+%
+% and
 %
 % Z*u = [                                 u0                ]
 %       [                          Zxo(x)*ux(x)             ]
@@ -25,7 +30,7 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 %       [ int_x^b int_c^y Z2ba(x,y,tt,nu)*u2(tt,nu) dnu dtt ]
 %       [ int_x^b int_y^d Z2bb(x,y,tt,nu)*u2(tt,nu) dnu dtt ]
 %
-% where each function Z.. =  Z_d(x,y,tt,nu) \otimes I_n.. with Z_d(x) a 
+% where each function Z.. =  Z_d(x,y,tt,nu) \otimes I_n.. with Z_d(x) is a 
 % vector of monomials in variables x,y,tt,ss of total degree d or less. 
 % 
 % INPUT 
@@ -84,10 +89,22 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 %      options.sep(6) = 1 if R22{2,2} = R22{2,3} and R22{3,2} = R22{3,3}
 % 
 % OUTPUT 
-%   prog: modified SOS program with new variables and constraints
-%   Pop: operator structure
-%   Tmat: cell or array providing the coefficients defining the positive
-%         operator Pop.
+%   prog:   struct, specifying the same LPI program as the input, but now 
+%           including the decision variables defining the operator Pop and
+%           a constraint enforcing Pop>=0;
+%   Pop:    nxn 'opvar2d' object representing the positive semidefinite
+%           PI operator decision variable;
+% - Qmat:   mxm object of type 'dpvar' representing the positive
+%           semidefinite matrix-valued decision variable parameterizing
+%           Qmat;
+% - Zop:    mxn opvar object with all parameters given by monomial vectors,
+%           representing the monomial operator;
+% - gss:    scalar object of type 'polynomial', representing the function
+%           g(s) used to enforce positivity only on bounded domain. If
+%           options.psatz = 1, gss(x,y)=(x-a)*(b-x)*(y-c)*(d-y). If
+%           options.psatz = 2, gss(x,y)=(R^2 - (x-x_0)^2 - (y-y_0)^2),
+%           where x_0=(b+a)/2, y_0=(d+c)/2, and R=norm([x-x_0;y-y_0]);
+%           Otherwise, gss(x,y)=1;
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -121,6 +138,7 @@ function [prog,Pop,Tmat] = poslpivar_2d(prog,n,d,options)
 % DJ, 04/14/2022: Update to account for new degree data forma
 % DJ, 12/15/2024: Bugfix in case no degrees are specified;
 % DJ, 01/23/2025: Check that 'options' are specified as struct;
+% DJ, 01/25/2025: Return the monomial operator Zop and function gs;
 
 % % % Set-up % % %
 
@@ -179,8 +197,8 @@ switch nargin
         end
 end
 
-if nargout>3
-    error('At most 3 outputs are produced');
+if nargout>5
+    error('At most 5 outputs are produced');
 end
 
 % % % Check if inputs are properly specified
@@ -742,6 +760,7 @@ ZR = cell(1,sum(includeL));
 
 mdim = [];
 ndim = [];
+Zdim = zeros(16,1);
 indx = 1;
 if includeL(1)
     ZL{indx} = 1;
@@ -749,6 +768,7 @@ if includeL(1)
     mdim = [mdim;n0];
     ndim = [ndim;n0];
     indx = indx+1;
+    Zdim(1) = n0;
 end
 if includeL(2)
     ZL{indx} = Zxo_s;
@@ -756,6 +776,7 @@ if includeL(2)
     mdim = [mdim;nx];
     ndim = [ndim;nx];
     indx = indx+1;
+    Zdim(2) = nx*size(Zxo_s,1);
 end
 if includeL(3)
     ZL{indx} = Zxa_rs;
@@ -763,6 +784,7 @@ if includeL(3)
     mdim = [mdim;nx];
     ndim = [ndim;nx];
     indx = indx+1;
+    Zdim(3) = nx*size(Zxa_st,1);
 end
 if includeL(4)
     ZL{indx} = Zxb_rs;
@@ -770,6 +792,7 @@ if includeL(4)
     mdim = [mdim;nx];
     ndim = [ndim;nx];
     indx = indx+1;
+    Zdim(4) = nx*size(Zxb_st,1);
 end
 if includeL(5)
     ZL{indx} = Zyo_s;
@@ -777,6 +800,7 @@ if includeL(5)
     mdim = [mdim;ny];
     ndim = [ndim;ny];
     indx = indx+1;
+    Zdim(5) = ny*size(Zyo_s,1);
 end
 if includeL(6)
     ZL{indx} = Zya_rs;
@@ -784,6 +808,7 @@ if includeL(6)
     mdim = [mdim;ny];
     ndim = [ndim;ny];
     indx = indx+1;
+    Zdim(6) = ny*size(Zya_st,1);
 end
 if includeL(7)
     ZL{indx} = Zyb_rs;
@@ -791,6 +816,7 @@ if includeL(7)
     mdim = [mdim;ny];
     ndim = [ndim;ny];
     indx = indx+1;
+    Zdim(7) = ny*size(Zyb_st,1);
 end
 if includeL(8)
     ZL{indx} = Z2oo_ss;
@@ -798,6 +824,7 @@ if includeL(8)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(8) = n2*size(Z2oo_ss,1);
 end
 if includeL(9)
     ZL{indx} = Z2ao_rss;
@@ -805,6 +832,7 @@ if includeL(9)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(9) = n2*size(Z2ao_sst,1);
 end
 if includeL(10)
     ZL{indx} = Z2bo_rss;
@@ -812,6 +840,7 @@ if includeL(10)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(10) = n2*size(Z2bo_sst,1);
 end
 if includeL(11)
     ZL{indx} = Z2oa_srs;
@@ -819,6 +848,7 @@ if includeL(11)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(11) = n2*size(Z2oa_sst,1);
 end
 if includeL(12)
     ZL{indx} = Z2ob_srs;
@@ -826,6 +856,7 @@ if includeL(12)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(12) = n2*size(Z2ob_sst,1);
 end
 if includeL(13)
     ZL{indx} = Z2aa_rrss;
@@ -833,6 +864,7 @@ if includeL(13)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(13) = n2*size(Z2aa_sstt,1);
 end
 if includeL(14)
     ZL{indx} = Z2ba_rrss;
@@ -840,6 +872,7 @@ if includeL(14)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(14) = n2*size(Z2ba_sstt,1);
 end
 if includeL(15)
     ZL{indx} = Z2ab_rrss;
@@ -847,20 +880,83 @@ if includeL(15)
     mdim = [mdim;n2];
     ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(15) = n2*size(Z2ab_sstt,1);
 end
 if includeL(16)
     ZL{indx} = Z2bb_rrss;
     ZR{indx} = Z2bb_rrtt;
     mdim = [mdim;n2];
     ndim = [ndim;n2];
+    Zdim(16) = n2*size(Z2bb_sstt,1);
     %indx = indx+1;
 end
 
-% Compute the product N = ZL'*T*ZR for positive decision matrix T
-if nargout==3
-    [prog,N,Tmat] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
-else
+% Declare the monomial operator Zop.
+if nargout>=4
+    Zop = opvar2d([0,n0;0,nx;0,ny;sum(Zdim),n2],I,var1,var2);
+    Zop.R20 = [eye(n0*includeL(1),n0); zeros(sum(Zdim(2:end)),n0)];
+    Zop.R2x{1} = [zeros(Zdim(1),nx); kron(eye(nx*includeL(2)),Zxo_s); zeros(sum(Zdim(3:end)),nx)];
+    Zop.R2x{2} = [zeros(sum(Zdim(1:2)),nx); kron(eye(nx*includeL(3)),Zxa_st); zeros(sum(Zdim(4:end)),nx)];
+    if is_sep(1)
+        Zop.R2x{3} = Zop.R2x{2};
+    else
+        Zop.R2x{3} = [zeros(sum(Zdim(1:3)),nx); kron(eye(nx*includeL(4)),Zxb_st); zeros(sum(Zdim(5:end)),nx)];
+    end
+    Zop.R2y{1} = [zeros(sum(Zdim(1:4)),ny); kron(eye(ny*includeL(5)),Zyo_s); zeros(sum(Zdim(6:end)),ny)];
+    Zop.R2y{2} = [zeros(sum(Zdim(1:5)),ny); kron(eye(ny*includeL(6)),Zya_st); zeros(sum(Zdim(7:end)),ny)];
+    if is_sep(2)
+        Zop.R2y{3} = Zop.R2y{2};
+    else
+        Zop.R2y{3} = [zeros(sum(Zdim(1:6)),ny); kron(eye(ny*includeL(7)),Zyb_st); zeros(sum(Zdim(8:end)),ny)];
+    end
+    Zop.R22{1,1} = [zeros(sum(Zdim(1:7)),n2); kron(eye(n2*includeL(8)),Z2oo_ss); zeros(sum(Zdim(9:end)),n2)];
+    Zop.R22{2,1} = [zeros(sum(Zdim(1:8)),n2); kron(eye(n2*includeL(9)),Z2ao_sst); zeros(sum(Zdim(10:end)),n2)];
+    if is_sep(3)
+        Zop.R22{3,1} = Zop.R22{2,1};
+    else
+        Zop.R22{3,1} = [zeros(sum(Zdim(1:9)),n2); kron(eye(n2*includeL(10)),Z2bo_sst); zeros(sum(Zdim(11:end)),n2)];
+    end
+    Zop.R22{1,2} = [zeros(sum(Zdim(1:10)),n2); kron(eye(n2*includeL(11)),Z2oa_sst); zeros(sum(Zdim(12:end)),n2)];
+    if is_sep(4)
+        Zop.R22{1,3} = Zop.R22{1,2};
+    else
+        Zop.R22{1,3} = [zeros(sum(Zdim(1:11)),n2); kron(eye(n2*includeL(12)),Z2ob_sst); zeros(sum(Zdim(13:end)),n2)];
+    end
+    Zop.R22{2,2} = [zeros(sum(Zdim(1:12)),n2); kron(eye(n2*includeL(13)),Z2aa_sstt); zeros(sum(Zdim(14:end)),n2)];
+    if is_sep(5)
+        Zop.R22{3,2} = Zop.R22{2,2};
+    else
+        Zop.R22{3,2} = [zeros(sum(Zdim(1:13)),n2); kron(eye(n2*includeL(14)),Z2ba_sstt); zeros(sum(Zdim(15:end)),n2)];
+    end
+    if is_sep(6)
+        Zop.R22{2,3} = Zop.R22{2,2};
+        Zop.R22{3,3} = Zop.R22{3,2};
+    else
+        Zop.R22{2,3} = [zeros(sum(Zdim(1:14)),n2); kron(eye(n2*includeL(15)),Z2ab_sstt); zeros(sum(Zdim(16:end)),n2)];
+        if is_sep(5)
+            Zop.R22{3,3} = Zop.R22{2,3};
+        else
+            Zop.R22{3,3} = [zeros(sum(Zdim(1:15)),n2); kron(eye(n2*includeL(15)),Z2bb_sstt)];
+        end
+    end
+end
+
+
+% Declare a decision matrix Qmat>=0, and compute the matrix-valued function
+%   N = ZL'*Qmat*ZR
+if nargout<=2
     [prog,N] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+else
+    [prog,N,Qcell] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+    % Convert cell to 'dpvar' object.
+    Qmat = dpvar([]);
+    for ii=1:size(Qcell,1)
+        Qmat_ii = dpvar([]);
+        for jj=1:size(Qcell,2)
+            Qmat_ii = [Qmat_ii,dpvar(Qcell{ii,jj})];
+        end
+        Qmat = [Qmat;Qmat_ii];
+    end
 end
 
 
@@ -2109,6 +2205,9 @@ Zvarname = Zvarname(keep_var);
 
 % Build new monomials with maximal degrees as specified
 nZ = size(Z_degmat,1);
+degmat_sort = [sum(Z_degmat,2),fliplr(Z_degmat)];
+degmat_sort = sortrows_integerTable(degmat_sort);   % sort monomials from low to high degree
+Z_degmat = fliplr(degmat_sort(:,2:end));
 Z = polynomial(eye(nZ),Z_degmat,Zvarname,[nZ,1]);
 
 end

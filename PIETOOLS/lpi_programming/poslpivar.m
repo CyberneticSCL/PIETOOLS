@@ -1,24 +1,35 @@
-function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
+function [prog,Pop,Qmat,Zop,gs] = poslpivar(prog,n,d,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [prog,Pop] = poslpivar(prog,n,d,options) declares 
-% a positive 4-PI decision operator Pop, with fields:
+% [prog,Pop,Qmat,Zop,gs] = poslpivar(prog,n,d,options) declares 
+% a positive 4-PI decision operator Pop, taking the form
 %
-% P = Q11 int(gs,s,a,b)
-% Q(s) = g(s) Q12 Z1(s) + int( gth Q13 Z2(th,s) dth, s, b) + int( gth Q14 Z3(th,s) dth, a, s)
-% R0(s) = gs Z1(s) Q22 Z1(s)
-% R1(s,th) = gs Z1(s) Q23 Z2(s,th) + gth Z3(th,s) Q42 Z1(th) + 
-%            int(geta Z2(eta,s)' Q33 Z2(eta,th) deta,s,b)+int(geta Z3(eta,s) Q43 Z2(eta,th) deta,th,s)
-%           +int(geta Z3(eta,s) Q44 Z3(eta,th) deta,a,th)
-% R2(s,th) = R1(th,s)',
-%
+%       Pop = Zop'*((gs*Qmat)*Zop)
+% 
 % where
 %
-% Q = [ Q_{11}  Q_{12} Q_{13} Q_{14}]
-%     [ Q_{21}  Q_{22} Q_{23} Q_{24}] >0
-%     [ Q_{31}  Q_{32} Q_{33} Q_{34}]
-%     [ Q_{41}  Q_{42} Q_{43} Q_{44}]
-% 
-% where Z(x)= Z_d1(x) \otimes I_n and Z_d(x) is the vector of monomials in
+%   Qmat = [ Q_{11}  Q_{12} Q_{13} Q_{14}]
+%          [ Q_{21}  Q_{22} Q_{23} Q_{24}] >=0
+%          [ Q_{31}  Q_{32} Q_{33} Q_{34}]
+%          [ Q_{41}  Q_{42} Q_{43} Q_{44}]
+%
+% and
+%
+% (Zop*[u0;u1])(s) = [u1; 
+%                     Z1(s)*u2(s); 
+%                     int_{a}^{s} Z2(s,th)*u2(th) dth
+%                     int_{s}^{b} Z3(s,th)*u2(th) dth]
+%                      
+% so that, in particular,
+%
+%   Pop.P = Q11 int(gs,s,a,b)
+%   Pop.Q(s) = g(s) Q12 Z1(s) + int( gth Q13 Z2(th,s) dth, s, b) + int( gth Q14 Z3(th,s) dth, a, s)
+%   Pop.R0(s) = gs Z1(s) Q22 Z1(s)
+%   Pop.R1(s,th) = gs Z1(s) Q23 Z2(s,th) + gth Z3(th,s) Q42 Z1(th) + 
+%            int(geta Z2(eta,s)' Q33 Z2(eta,th) deta,s,b)+int(geta Z3(eta,s) Q43 Z2(eta,th) deta,th,s)
+%           +int(geta Z3(eta,s) Q44 Z3(eta,th) deta,a,th)
+%   Pop.R2(s,th) = R1(th,s)',
+%
+% where Zi(x)= Z_d1(x) \otimes I_n and Z_d(x) is the vector of monomials in
 % variables x of degree d1 or less. Z(x,y) = Z_{d1}(x) \otimes Z_{d2}(y)
 % \otimes I_n. If the application is stability of time-delay systems, d1
 % will eventually be more or less the degree of the multiplier and d2 more
@@ -55,9 +66,21 @@ function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
 %           including the decision variables defining the operator Pop and
 %           a constraint enforcing Pop>=0;
 % - Pop:    nxn opvar representing a positive semidefinite PI operator
-%           decision variable;
+%           decision variable Pop = Zop'*(Qmat*gs)*Zop);
+% - Qmat:   mxm object of type 'dpvar' representing the positive
+%           semidefinite matrix-valued decision variable parameterizing
+%           Qmat;
+% - Zop:    mxn opvar object with all parameters given by monomial vectors,
+%           representing the monomial operator;
+% - gs:     scalar object of type 'polynomial', representing the function
+%           g(s) used to enforce positivity only on the interval [a,b]. If
+%           options.psatz = 1, g(s)=(s-a)*(b-s). Otherwise, g(s)=1;
 % 
 % NOTES:
+% If the input optimization program structure "prog" corresponds to a 2D
+% problem, the 2D version will be called automatically, and the returned
+% operator will be an 'opvar2d' object. Call 'help poslpivar_2d' for more
+% information on how to specify degrees and options for the 2D version.
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,6 +111,7 @@ function [prog,Pop,Qmat] = poslpivar(prog,n,d,options)
 % DJ, 10/16/2024: Update to new 'lpiprogram' structure;
 % DJ, 12/14/2024: Allow degrees to be specified as 'double' array;
 % DJ, 01/23/2025: Check that 'options' are specified as struct;
+% DJ, 01/25/2025: Return the monomial operator Zop and function gs;
 
 
 % % % Set-up
@@ -105,7 +129,15 @@ switch nargin
         error('Not enough inputs!')
     case 2
         if all(size(I)==[2,2])
-            [prog,Pop] = poslpivar_2d(prog,n);
+            if nargout<=2
+                [prog,Pop] = poslpivar_2d(prog,n);
+            elseif nargout==3
+                [prog,Pop,Qmat] = poslpivar_2d(prog,n);
+            elseif nargout==4
+                [prog,Pop,Qmat,Zop] = poslpivar_2d(prog,n);
+            else
+                [prog,Pop,Qmat,Zop,gs] = poslpivar_2d(prog,n);
+            end
             return
         end
         d = {1,[1,1,1],[1,1,1]};
@@ -114,7 +146,15 @@ switch nargin
         options.sep =0;
     case 3
         if all(size(I)==[2,2])
-            [prog,Pop] = poslpivar_2d(prog,n,d);
+            if nargout<=2
+                [prog,Pop] = poslpivar_2d(prog,n,d);
+            elseif nargout==3
+                [prog,Pop,Qmat] = poslpivar_2d(prog,n,d);
+            elseif nargout==4
+                [prog,Pop,Qmat,Zop] = poslpivar_2d(prog,n,d);
+            else
+                [prog,Pop,Qmat,Zop,gs] = poslpivar_2d(prog,n,d);
+            end
             return
         end
         options.psatz=0;
@@ -122,7 +162,15 @@ switch nargin
         options.sep =0;
     case 4
         if all(size(I)==[2,2])
-            [prog,Pop] = poslpivar_2d(prog,n,d,options);
+            if nargout<=2
+                [prog,Pop] = poslpivar_2d(prog,n,d,options);
+            elseif nargout==3
+                [prog,Pop,Qmat] = poslpivar_2d(prog,n,d,options);
+            elseif nargout==4
+                [prog,Pop,Qmat,Zop] = poslpivar_2d(prog,n,d,options);
+            else
+                [prog,Pop,Qmat,Zop,gs] = poslpivar_2d(prog,n,d,options);
+            end
             return
         end
         if ~isa(options,'struct')                                           % DJ, 01/23/2025
@@ -304,33 +352,64 @@ ZR = cell(1,sum(includeL));
 
 % Add desired monomial vectors to the block-diagonal matrix
 mdim = [];      ndim = [];
+Zdim = zeros(4,1);
 indx = 1;
 if includeL(1)
     ZL{indx} = 1;       ZR{indx} = 1;
     mdim = [mdim;n1];   ndim = [ndim;n1];
     indx = indx+1;
+    Zdim(1) = n1;
 end
 if includeL(2)
     ZL{indx} = Z1s;     ZR{indx} = Z1th;
     mdim = [mdim;n2];   ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(2) = n2*size(Z1s,1);
 end
 if includeL(3)
     ZL{indx} = Z2etas;  ZR{indx} = Z2etath;
     mdim = [mdim;n2];   ndim = [ndim;n2];
     indx = indx+1;
+    Zdim(3) = n2*size(Z2etas,1);
 end
 if includeL(4)
     ZL{indx} = Z3etas;  ZR{indx} = Z3etath;
     mdim = [mdim;n2];   ndim = [ndim;n2];
+    Zdim(4) = n2*size(Z3etas,1);
 end
+
+% Declare the monomial operator Zop.
+if nargout>=4
+    opvar Zop;                                                              % DJ, 01/25/2025
+    Zop.var1 = var1;    Zop.var2 = var2;
+    Zop.I = I;
+    Zop.dim = [0,n1;sum(Zdim),n2];
+    Zop.Q2 = [eye(n1*includeL(1),n1); zeros(sum(Zdim(2:4)),n1)];
+    Zop.R.R0 = [zeros(Zdim(1),n2); kron(eye(n2*includeL(2)),Z1s); zeros(sum(Zdim(3:4)),n2)];
+    Zop.R.R1 = [zeros(sum(Zdim(1:2)),n2); kron(eye(n2*includeL(3)),Z2sth); zeros(Zdim(4),n2)];
+    if options.sep
+        Zop.R.R2 = [zeros(sum(Zdim(1:2)),n2); kron(eye(n2*includeL(3)),Z2sth)];
+    else
+        Zop.R.R2 = [zeros(sum(Zdim(1:3)),n2); kron(eye(n2*includeL(4)),Z3sth)];
+    end
+end
+
 
 % Declare a matrix Qmat>=0, and matrix-valued function
 %   N(s,th,et) = ZL(s,et)'*Qmat*ZR(th,et)
 if nargout<=2
     [prog,N] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
 else
-    [prog,N,Qmat] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+    [prog,N,Qcell] = sosquadvar(prog,ZL,ZR,mdim,ndim,'pos');
+    % Convert cell to 'dpvar' object.
+    Qmat = dpvar([]);
+    for ii=1:size(Qcell,1)
+        Qmat_ii = dpvar([]);
+        for jj=1:size(Qcell,2)
+            Qmat_ii = [Qmat_ii,dpvar(Qcell{ii,jj})];
+        end
+        Qmat = [Qmat;Qmat_ii];
+    end
 end
 
 
@@ -497,6 +576,9 @@ Zvarname = Zvarname(keep_var);
 
 % Build new monomials with maximal degrees as specified
 nZ = size(Z_degmat,1);
+degmat_sort = [sum(Z_degmat,2),fliplr(Z_degmat)];
+degmat_sort = sortrows_integerTable(degmat_sort);       % sort monomials from low to high degree
+Z_degmat = fliplr(degmat_sort(:,2:end));
 Z = polynomial(eye(nZ),Z_degmat,Zvarname,[nZ,1]);
 
 end
