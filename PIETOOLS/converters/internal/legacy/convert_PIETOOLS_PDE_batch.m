@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_PDE_batch.m     PIETOOLS 2022
+% convert_PIETOOLS_PDE_batch.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 % convert_PIETOOLS_PDE_batch is an alternative version of the PDE converter 
@@ -22,7 +22,7 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 % PI operators {BT1op,BT2op,Top,Aop,B1op,B2op,C1op,D11op,D12op,C2op,D21op,D22op} 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 % appropriate zeros just in case...
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 % DJ, 12/16/2024: Output PIE as 'pie_struct' object;
+% DJ, 02/21/2025: Allow spatial variables to be declared in PDE structure;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
 % undefined operators to empty opbjects.
@@ -56,7 +57,14 @@ PDE=initialize_PIETOOLS_PDE_batch(PDE);
 
 n0=PDE.n0;
 
-pvar s1 s1_dum                                                              % DJ, 12/07/2024
+if ~isfield(PDE,'vars')
+    pvar s1 s1_dum                                                          % DJ, 12/07/2024
+    var1 = s1;
+    var2 = s1_dum;
+else
+    var1 = PDE.vars(1);                                                     % DJ, 02/21/2025
+    var2 = PDE.vars(2);
+end
 
 X=PDE.dom;
 a=X(1); b=X(2);
@@ -181,7 +189,7 @@ Q2b=[B21 B22 E Exx];
 
 %%% At this point, we can construct the primal dynamics opvar
 opvar Apop;
-Apop.dim = [nz+ny+nx,nw+nu+nx+nrL1;np,nrL2]; Apop.var1 = s1; Apop.var2 = s1_dum; Apop.I = X;
+Apop.dim = [nz+ny+nx,nw+nu+nx+nrL1;np,nrL2]; Apop.var1 = var1; Apop.var2 = var2; Apop.I = X;
 Apop.P=Pb;
 Apop.Q1=Q1b;
 Apop.Q2=Q2b;
@@ -214,7 +222,7 @@ end
 Q = [z10 z11 z12;
      z10 I1 z12;
      z20 z21 z22;
-     z20 z21 (b-s1)*I2;
+     z20 z21 (b-var1)*I2;
      z20 z21 z22;
      z20 z21 I2];
  
@@ -224,16 +232,16 @@ Btemp2=BTinv*(Bxx-B*Q);
 
 K = [z01 z02 z02;
      I1 z12 z12;
-     z21 I2 (s1-a)*I2];
+     z21 I2 (var1-a)*I2];
 
 Q2f=K*Btemp;
 R0f=[I0 z01 z02;
      z10 z11 z12;
      z20 z21 z22]; 
-R2f=K*var_swap(Btemp2,s1,s1_dum);
+R2f=K*var_swap(Btemp2,var1,var2);
 R1f=R2f+[z00 z01 z02;
      z10 I1 z12;
-     z20 z21 (s1-s1_dum)*I2];
+     z20 z21 (var1-var2)*I2];
  
  
  
@@ -252,14 +260,14 @@ Phf=[eye(nw+nu+nx);
     T*Btemp];
 Q1hf=[zeros(nw+nu+nx,np);
     Q+T*Btemp2] ;
-Q2hf=Ib1*Q2f+diff(Ib2*Q2f+diff(Ib3*Q2f,s1),s1);
+Q2hf=Ib1*Q2f+diff(Ib2*Q2f+diff(Ib3*Q2f,var1),var1);
 R0hf=Ib1*[I0 z01 z02;z10 z11 z12; z20 z21 z22]+Ib2*[z00 z01 z02;z10 I1 z12; z20 z21 z22]+Ib3*[z00 z01 z02;z10 z11 z12; z20 z21 I2];
-R1hf=Ib1*R1f+diff(Ib2*R1f+diff(Ib3*R1f,s1),s1);
-R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,s1),s1);
+R1hf=Ib1*R1f+diff(Ib2*R1f+diff(Ib3*R1f,var1),var1);
+R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,var1),var1);
 
 %%% We now construct the Phfop
 opvar Phfop;
-Phfop.dim = [nw+nu+nx+nrL1, nw+nu+nx;nrL2, np]; Phfop.var1 = s1; Phfop.var2 = s1_dum; Phfop.I = X;
+Phfop.dim = [nw+nu+nx+nrL1, nw+nu+nx;nrL2, np]; Phfop.var1 = var1; Phfop.var2 = var2; Phfop.I = X;
 Phfop.P=Phf;
 Phfop.Q1=Q1hf;
 Phfop.Q2=Q2hf;
@@ -283,7 +291,7 @@ Ptop=Apop*Phfop;
 %%% We now construct the Tbigop (smaller construction)
 
 opvar Tbigop;
-Tbigop.dim = [nx, nw+nu+nx;np, np]; Tbigop.var1 = s1; Tbigop.var2 = s1_dum; Tbigop.I = X;
+Tbigop.dim = [nx, nw+nu+nx;np, np]; Tbigop.var1 = var1; Tbigop.var2 = var2; Tbigop.I = X;
 Tbigop.P=[ zeros(nx,nw+nu) eye(nx)];
 Tbigop.Q1=zeros(nx,np);
 Tbigop.Q2=Q2f;

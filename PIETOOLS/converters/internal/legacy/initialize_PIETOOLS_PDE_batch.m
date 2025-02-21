@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% initialize_PIETOOLS_PDE_batch.m     PIETOOLS 2022
+% initialize_PIETOOLS_PDE_batch.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PDE_out=initialize_PIETOOLS_PDE_batch(PDE)
 % initializes and checks the PDE formulation using the batch input format. 
@@ -15,6 +15,7 @@ function PDE_out=initialize_PIETOOLS_PDE_batch(PDE)
 %  SS - 5_29_2019 - changed all 'exist' conditional statements to 'isfield' or
 %  'isdefined' 
 % DJ - 12/29/2021: Added option to suppress (less important) warnings
+% DJ, 02/21/2025: Check spatial variables that appear in PDE parameters;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Suppress warnings if desired
 suppress = (evalin('base','exist(''silent_initialize_pde'',''var'')') && evalin('base','silent_initialize_pde'));
@@ -487,7 +488,78 @@ elseif any(size(PDE.D22)~=[ny,nu])
     disp('D22 has incorrect dimension. Defaulting to zero')
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Finally, check which variables (if any) appear in the dynamics          % DJ, 02/21/2025
+if isfield(PDE,'vars') && ~isempty(PDE.vars)
+    % If variables have already been declared, use those.
+    var1 = PDE.vars(1);
+    var1_name = var1.varname{1};
+    % Set the dummy variable, if not declared
+    if length(PDE.vars)>2
+        error("At most two variables can be declared for 1D PDEs (spatial variable and dummy variable).")
+    elseif length(PDE.vars)==2
+        var2 = PDE.vars(2);
+    else
+        var2_name = [var1_name,'_dum'];
+        var2 = pvar(var2_name);
+    end
+    % Make sure integral terms are expressed in terms of var1 (not var2)
+    fnames = {'Ea','Eb','Ec','Ca1','Cb1','Cc1','Ca2','Cb2','Cc2'};
+    for fname=fnames
+        obj = polynomial(PDE.(fname{1}));
+        obj = subs(obj,var2,var1);
+        PDE.(fname{1}) = obj;
+    end
+else
+    % Otherwise, check which variables appear in the multiplier terms.
+    PDE.A0 = polynomial(PDE.A0);
+    PDE.A1 = polynomial(PDE.A1);
+    PDE.A2 = polynomial(PDE.A2);
+    PDE.E = polynomial(PDE.E);
+    PDE.B21 = polynomial(PDE.B21);
+    PDE.B22 = polynomial(PDE.B22);
+    varlist_mult = unique([PDE.A0.varname;PDE.A1.varname;PDE.A2.varname; ...
+                        PDE.E.varname;PDE.B21.varname;PDE.B22.varname]);
+    if isempty(varlist_mult)
+        % Use default variable 's1'.
+        var1_name = 's1';
+    elseif isscalar(varlist_mult)
+        % Use only available variable
+        var1_name = varlist_mult{1};
+    else
+        % Check if any variable contains `s`
+        idx = find(contains(varlist_mult,'s'),1,'first');
+        if ~isempty(idx)
+            var1_name = varlist_mult{idx};
+        else
+            var1_name = varlist_mult{1};
+        end
+        disp(['WARNING: It is unclear which variable acts as spatial variable in the PDE dynamics; assuming variable ''',var1_name,'''.'])
+    end
+    var1 = pvar(var1_name);
+    var2_name = [var1_name,'_dum'];
+    var2 = pvar(var2_name);
+
+    % Make sure integral terms are also expressed in terms of var1
+    fnames = {'Ea','Eb','Ec','Ca1','Cb1','Cc1','Ca2','Cb2','Cc2'};
+    for fname=fnames
+        obj = polynomial(PDE.(fname{1}));
+        if isscalar(obj.varname)
+            obj.varname{1} = var1_name;
+        elseif ~isempty(obj.varname) && ~ismember(var1_name,obj.varname)
+            disp(['WARNING: It is unclear which variable in parameter "',fname{1},'" acts as dummy variable for integration; assuming "',obj.varname{1},'" to act as dummy variable.'])
+            obj.varname{1} = var1_name;
+        end
+        PDE.(fname{1}) = obj;
+    end
+end
+
+% Set the spatial variables
+PDE.vars = [var1,var2];
+
+% Return the intialized PDE.
 PDE_out=PDE;
+
 end 
 function logicalVal = isdefined(defined_list, test_list)
 %this function tests if the terms in test_list are present in the
