@@ -11,8 +11,8 @@ function [prog,Zop] = lpivar(prog,n,d,opts)
 %   n=[n11 n12; n21 n22]: dimension of the operator
 %   -Optional INPUTS
 %   d(1): degree of s in Z(s), translates to degree of var1 in Q1,Q2 and R0
-%   d(2): degree of t in R1 and R2, defaults to d(1) if length of d=2,
-%   d(3): degree of s in R1 and R2, defaults to d(2) if length of d=2,
+%   d(2): degree of t in R1 and R2, defaults to d(1) if length of d is 1,
+%   d(3): degree of s in R1 and R2, defaults to d(2) if length of d is 2,
 %   opts: struct specifying options for e.g. enforcing separability,
 %           currently only supported for 2D variables.
 %
@@ -26,7 +26,7 @@ function [prog,Zop] = lpivar(prog,n,d,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - lpivar
 %
-% Copyright (C)2022  M. Peet, S. Shivakumar
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
