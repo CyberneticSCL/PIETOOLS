@@ -1,15 +1,14 @@
 function [prog,Zop] = lpivar(prog,n,d,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [prog,Zop] = lpivar(prog,n,I,d) declares 
+% [prog,Zop] = lpivar(prog,n,d) declares 
 % a 4-PI operator variable of the form 
 %
 % P_{PQRS}[x] = [Px + \int_{I(1)}^(I(2))Q_1(s)y(s)ds
 %         [y]   [Q_2(s)^T x + R_0(s)y(s)+\int_{I(1)}^(s) R_{1}(s,t)y(t)dt+\int_{s}^(I(2)) R_{2}(s,t)y(t)dt
-% 
+% where the domain I is inherited from the prog structure
 % INPUT 
 %   prog: SOS program to modify.
 %   n=[n11 n12; n21 n22]: dimension of the operator
-%   I = [l u] spatial domain
 %   -Optional INPUTS
 %   d(1): degree of s in Z(s), translates to degree of var1 in Q1,Q2 and R0
 %   d(2): degree of t in R1 and R2, defaults to d(1) if length of d=2,
