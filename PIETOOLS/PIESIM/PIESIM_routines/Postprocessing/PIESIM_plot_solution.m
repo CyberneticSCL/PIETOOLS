@@ -37,6 +37,7 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % YP 6/16/2022 - added outputs for observed and regulated outputs 
 % DJ, 12/26/2024 - Plot PDE state evolution using surf;
 % DJ, 01/01/2025 - Change plot specifications;
+% DJ, 02/26/2025 - Bugfix insufficient colors for large number of states;
 
 syms sx;
 
@@ -283,9 +284,21 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         box on
         hold on
         if ~uinput.ifexact
-            plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
+            if n+psize.no<=size(colors_PDE,1)                               % DJ, 02/26/2025
+                % Plot using specified colors
+                plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
+            else
+                % Plot using Matlab default colors
+                plot(grid.phys,solution.final.pde(:,n),'-d','MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
+            end
         else
-            plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
+            if n+psize.no<=size(colors_PDE,1)                               % DJ, 02/26/2025
+                % Plot using specified colors
+                plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
+            else
+                % Plot using Matlab default colors
+                plot(grid.phys,solution.final.pde(:,n),'d','LineWidth',marker_size,'DisplayName','Numerical solution');
+            end
             plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution','LineWidth',line_width); 
             legend('FontSize',13,'Interpreter','latex');
         end
