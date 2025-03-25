@@ -105,6 +105,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 % DJ, 12/16/2024: Bugfix for batch and terms_legacy conversion;
 % DJ, 01/12/2025: Add check if sufficient boundary conditions are specified
 %                   in 1D case;
+% DJ, 03/24/2025: Add check if too many boundary conditions are specified
+%                   in 1D case;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -352,8 +354,10 @@ else
             error('The boundary conditions appear to be infinite-dimensional, something is going wrong...')
         else
             % Test for well-posedness of boundary conditions
-            if size(Pop_b2BC.P,1)~=size(Pop_b2BC.P,2)                       % DJ, 01/12/2025
+            if size(Pop_b2BC.P,1)<size(Pop_b2BC.P,2)                        % DJ, 01/12/2025
                 error('It appears insufficient boundary conditions have been specified; conversion to PIE is not supported.')
+            elseif size(Pop_b2BC.P,1)>size(Pop_b2BC.P,2)                    % DJ, 03/24/2025
+                error('It appears too many boundary conditions have been specified; either declare a higher order of differentiability of the PDE state, or reduce the number of boundary conditions.')
             end    
             if abs(det(double(Pop_b2BC.P)))>eps
                 Pop_b2BC_inv = pinv(double(Pop_b2BC.P));
