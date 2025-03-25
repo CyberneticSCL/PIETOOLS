@@ -1,21 +1,21 @@
-function [dP] = diff_opvar(P)
+function dP = diff_opvar(P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [[dP] = diff_opvar(P) calculates spatial derivative of (Px)(s) with respect to
-% s
+% DP = DIFF_OPVAR(P) computes the composition DP of a differential operator
+% d/ds with a PI operator P, so that d/ds (P*x)(s) = (dP*[x;dx/ds])(s).
 % 
 % INPUT 
 %   P: opvar object
 % 
 % OUTPUT 
-%   dP: derivative of P with respect to pvar s
+%   dP: derivative of P with respect to variable P.var1
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETools - diff_opvar
+% PIETOOLS - diff_opvar
 %
-% Copyright (C)2019  M. Peet, S. Shivakumar
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ function [dP] = diff_opvar(P)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 7_7_2020
+% DJ, 03/24/2025: Make sure parameters are indeed polynomial.
 
 if ~isa(P,'opvar')
     error("Input diff function must be an opvar object");
@@ -45,10 +46,28 @@ end
 opvar dP;
 dP.I = P.I;
 dP.dim = [P.dim(1,1) P.dim(1,2); P.dim(2,1) 2*P.dim(2,2)];
-ss = P.var1; st = P.var2;
+ss = P.var1;    st = P.var2;
+dP.var1 = ss;   dP.var2 = st;                                               % DJ, 03/24/2025
+
 dP.P = zeros(size(P.P)); 
-dP.Q1 = zeros(dP.dim(1,1),dP.dim(2,2));
-dP.Q2 = diff(P.Q2,ss); 
-dP.R.R0 = [diff(P.R.R0,ss)+subs(P.R.R1-P.R.R2,st,ss) P.R.R0];
-dP.R.R1 = [diff(P.R.R1,ss) zeros(size(P.R.R1))];
-dP.R.R2 = [diff(P.R.R2,ss) zeros(size(P.R.R2))];
+dP.Q1 = polynomial(zeros(dP.dim(1,1),dP.dim(2,2)));
+if isa(P.Q2,'polynomial') && ~isempty(P.Q2)                                 % DJ, 03/24/2025
+    dP.Q2 = diff(P.Q2,ss); 
+else
+    dP.Q2 = polynomial(zeros(size(P.Q2)));
+end
+if isa(P.R.R0,'polynomial') && ~isempty(P.R.R0)                             % DJ, 03/24/2025
+    dP.R.R0 = [diff(P.R.R0,ss)+subs(P.R.R1-P.R.R2,st,ss) P.R.R0];
+else
+    dP.R.R0 = polynomial(zeros(size(P.R.R0,1),2*size(P.R.R0,2)));
+end
+if isa(P.R.R1,'polynomial') && ~isempty(P.R.R1)                             % DJ, 03/24/2025
+    dP.R.R1 = [diff(P.R.R1,ss) zeros(size(P.R.R1))];
+else
+    dP.R.R1 = polynomial(zeros(size(P.R.R1,1),2*size(P.R.R1,2)));
+end
+if isa(P.R.R2,'polynomial') && ~isempty(P.R.R2)                             % DJ, 03/24/2025
+    dP.R.R2 = [diff(P.R.R2,ss) zeros(size(P.R.R2))];
+else
+    dP.R.R2 = polynomial(zeros(size(P.R.R2,1),2*size(P.R.R2,2)));
+end
