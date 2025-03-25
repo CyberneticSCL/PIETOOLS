@@ -59,7 +59,7 @@ end
 if isa(P.R.R0,'polynomial') && ~isempty(P.R.R0)                             % DJ, 03/24/2025
     dP.R.R0 = [diff(P.R.R0,ss)+subs(P.R.R1-P.R.R2,st,ss) P.R.R0];
 else
-    dP.R.R0 = polynomial(zeros(size(P.R.R0,1),2*size(P.R.R0,2)));
+    dP.R.R0 = [subs(polynomial(P.R.R1-P.R.R2),st,ss),polynomial(zeros(size(P.R.R0)))];
 end
 if isa(P.R.R1,'polynomial') && ~isempty(P.R.R1)                             % DJ, 03/24/2025
     dP.R.R1 = [diff(P.R.R1,ss) zeros(size(P.R.R1))];
