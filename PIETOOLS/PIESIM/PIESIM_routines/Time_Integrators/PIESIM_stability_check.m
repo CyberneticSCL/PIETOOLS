@@ -24,7 +24,7 @@ function PIESIM_stability_check(opts, Atotal);
  %   lam = eigs(Atotal, Neigs);
 
        tol=0.05;
-       tol_real=1e-4;
+       tol_real=1e-5;
        tol_angle=0.1;
 
         lam=eig(Atotal);
