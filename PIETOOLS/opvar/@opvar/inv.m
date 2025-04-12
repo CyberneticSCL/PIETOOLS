@@ -16,7 +16,7 @@ function inv_pi_op = inv(pi_op,tol)
 % or S. Shivakumar at sshivak8@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2024 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -36,6 +36,12 @@ function inv_pi_op = inv(pi_op,tol)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+% DJ, 03/25/2025: Allow call without tolerance, in which case default from
+%                   "inv_opvar" is used;
 %
+if nargin>=2
     inv_pi_op = inv_opvar(pi_op,tol);
+else
+    inv_pi_op = inv_opvar(pi_op);
+end
 end
