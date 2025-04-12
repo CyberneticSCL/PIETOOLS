@@ -100,6 +100,8 @@ end
 if nargin<=2
     res_tol = 1e-8;
     max_deg = 10*max(max(sum(Ap.degmat,2)),max(sum(Bp.degmat,2))-max(sum(Ap.degmat,2)));
+elseif nargin<=3
+    max_deg = 10*max(max(sum(Ap.degmat,2)),max(sum(Bp.degmat,2))-max(sum(Ap.degmat,2)));
 end
 
 % Deal with case that polynomials are just matrices
