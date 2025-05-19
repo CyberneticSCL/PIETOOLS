@@ -2,7 +2,7 @@
 % examples_pde_library_PIESIM_2D.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This file contains a library of 2D examples to use with PIESIM that includes: 
-% PDE sys+++tems and coupled PDE/ODE systems. 
+% PDE systems and coupled PDE/ODE systems. 
 % Each example sets up the PDE structure of the system, 
 % defines initial and boundary conditions, and, if applicable, 
 % an exact PDE solution for verification (exact solution for PDE/ODE systems
