@@ -191,11 +191,11 @@ settings = lpisettings('light');
 % Specify Solver
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Default Setttings: %%%%%%
-settings.sos_opts.solver='sedumi';
-% Other optional SDP solvers supported by PIETOOLS
-%settings.sos_opts.solver ='mosek';
-% settings.sos_opts.solver='sdpnalplus';
-% settings.sos_opts.solver='sdpt3';
+% % OPTIONAL: Uncomment to declare SDP solver to use (defaults to solver on path)
+% settings.sos_opts.solver = 'sedumi';
+% settings.sos_opts.solver = 'mosek';
+% settings.sos_opts.solver = 'sdpnalplus';
+% settings.sos_opts.solver = 'sdpt3';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Strictness of Inequalities:

@@ -46,6 +46,7 @@
 % DJ, 12/23/2024: Only test stability, manually building the LPI;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state
 % DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
+% DJ, 05/18/2025: Declare no particular SDP solver by default;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -119,7 +120,7 @@ opts.psatz = 1;                 % allow Q>=0 outside domain
 prog = lpi_ineq(prog,-Q,opts);
 
 % % Solve and retrieve the solution
-solve_opts.solver = 'sedumi';   % use SeDuMi to solve
+% solve_opts.solver = 'sedumi';   % uncomment to declare SDP solver         % DJ, 05/18/2025
 solve_opts.simplify = true;     % simplify SDP before solving
 prog = lpisolve(prog,solve_opts);
 

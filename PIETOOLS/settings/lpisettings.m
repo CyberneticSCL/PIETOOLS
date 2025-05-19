@@ -24,9 +24,11 @@ function sttngs = lpisettings(type,derivative_strictness,simplify,solver)
 %               executives, before it is solved.
 %               Defaults to ''.
 %   solver:     One of {'sedumi','mosek','sdpnalplus','sdpt3'}, specifying
-%               which SOS solver to use to solve the SOS program produced
+%               which SDP solver to use to solve the SOS program produced
 %               by the executives. 
-%               Defaults to 'sedumi'.
+%               If no solver is specified, 'sossolve' will use the first
+%               SDP solver it encounters on the Matlab path, or throw an
+%               error if no solver is encountered.
 %
 % OUTPUTS
 %   sttngs: A struct specifying settings for the PIETOOLS executive
@@ -62,12 +64,13 @@ function sttngs = lpisettings(type,derivative_strictness,simplify,solver)
 % authorship, and a brief description of modifications
 %
 % Initial coding SS - 15_07_2022
+% DJ, 05/18/2025: Specify no solver by default;
 
 arguments
     type {mustBeMember(type,{'light','heavy','veryheavy','stripped','extreme','custom'})}='light';
     derivative_strictness {mustBeNonnegative}= 0;
     simplify {mustBeMember(simplify,{'','psimplify'})}= '';
-    solver {mustBeMember(solver,{'sedumi','mosek','sdpnalplus','sdpt3'})} = 'sedumi';
+    solver {mustBeMember(solver,{'sedumi','mosek','sdpnalplus','sdpt3',''})} = '';      % DJ, 05/18/2025
 end
 
 switch type
@@ -109,6 +112,8 @@ sttngs.settings_2d.epneg = derivative_strictness;       % Negativity of Derivati
 
 % Set the SOS solve settings (independent of dimension).
 sttngs.sos_opts.simplify = strcmp(simplify,'psimplify');    % Use psimplify in solving the SOS?
-sttngs.sos_opts.solver = solver;    % Use psimplify in solving the SOS?
+if ~isempty(solver)                                                         % DJ, 05/18/2025
+    sttngs.sos_opts.solver = solver;    % specify SDP solver to use
+end
 
 end

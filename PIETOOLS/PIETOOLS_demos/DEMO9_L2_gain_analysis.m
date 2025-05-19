@@ -133,7 +133,7 @@ prog = lpi_ineq(prog,-Q,opts_Q);
 prog = lpisetobj(prog, gam);
 
 % % Solve and retrieve the solution
-prog_sol = lpisolve(prog,opts);
+prog_sol = lpisolve(prog);
 % Extract solved value of decision variable
 gam_val = double(lpigetsol(prog_sol,gam));
 

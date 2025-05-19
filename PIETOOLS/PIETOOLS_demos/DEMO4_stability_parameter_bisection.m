@@ -37,7 +37,8 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible, use 
 %                   'sys' structure to declare PDE);
 % DJ, 12/22/2024: Explicitly construct stability LPI;
-% DB, 12/29/2024: Use pde_var objects instead of sys and state
+% DB, 12/29/2024: Use pde_var objects instead of sys and state;
+% DJ, 05/18/2025: Declare no particular SDP solver by default;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -86,8 +87,9 @@ for iter = 1:n_iters
     prog = lpi_ineq(prog,-Q,opts);
     
     % % Solve and retrieve the solution
-    solve_opts.solver = 'sedumi';   % use SeDuMi to solve
-    solve_opts.params.fid = 0;      % suppress output in command window
+    % solve_opts.solver = 'sedumi';   % uncomment to declare SDP solver     % DJ, 05/18/2025
+    % solve_opts.params.fid = 0;      % suppress SeDuMi output in command window
+    solve_opts.simplify = false;
     prog = lpisolve(prog,solve_opts);
 
     % % Alternatively, uncomment to run pre-defined stability executive

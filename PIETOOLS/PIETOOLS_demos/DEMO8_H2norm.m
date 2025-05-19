@@ -35,7 +35,9 @@
 % DB, 08/16/2024: Initial coding;
 % DJ, 12/26/2024: Update to use new LPI programming functions;
 % DJ, 12/15/2024: Match structure to that of other demos;
-% DB, 12/27/2024: Replace sys() objects by pde_var()
+% DB, 12/27/2024: Replace sys() objects by pde_var();
+% DJ, 05/18/2025: Declare no particular SDP solver by default;
+
 
 clc; clear; close all; clear stateNameGenerator;
 echo on
@@ -91,8 +93,7 @@ prog = lpi_ineq(prog, gam-traceVal);
 prog = lpisetobj(prog, gam);
 
 % % Solve and retrieve the solution
-opts.solver = 'sedumi';         % Use SeDuMi to solve the SDP
-prog_sol = lpisolve(prog,opts);
+prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
 gamd = sqrt(double(lpigetsol(prog_sol,gam)));
 Wc = lpigetsol(prog_sol,W);
