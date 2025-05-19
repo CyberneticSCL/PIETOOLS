@@ -59,6 +59,8 @@ function p = sosgetsol(sos,V,digit)
 % 06/25/20 - Sachin -- fixed bug related constant polynomials
 % 04/19/22 - DJ -- Update to allow cellstr inputs
 % 07/02/24 - DJ -- Add check if program has been solved.
+% 01/26/25 - DJ -- Bugfix dpvar to polynomial conversion, avoid duplicate
+%                   varnames.
 
 if nargin == 2
     digit = 5;   % Default
@@ -75,7 +77,7 @@ if isfield(sos,'symvartable')
 
 else
     if isa(V,'dpvar')
-        V = dpvar2poly(V);
+        V = combine(dpvar2poly(V));                                         % 01/26/25 - DJ
     elseif ischar(V)    % DJ - 04/19/22
         V = polynomial({V});
     elseif iscellstr(V)

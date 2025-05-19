@@ -66,6 +66,7 @@ classdef (InferiorClasses={?polynomial})dpvar
     % Initial coding DJ, MP, SS - 07/12/2021
     % 12/15/21 - DJ -- Add single input single output case (y=dpvar('x'))
     % 02/14/22 - DJ -- Add option to input cell of strings (y=dpvar({'x1','x2'}))
+    % 01/26/25 - DJ -- Combine decision variable names for cell to dpvar;
     
     
     
@@ -125,15 +126,16 @@ classdef (InferiorClasses={?polynomial})dpvar
                 elseif iscellstr(varargin{1})
                     [nd1,nd2] = size(varargin{1});
                     nd = nd1*nd2;
-                    if nargout==1   
+                    if nargout<=1   
                         Cf = sparse(reshape([repmat([0;1;zeros(nd,1)],nd-1,1);0;1],nd1*(nd+1),nd2));
                         dmat = zeros(1,0);
                         vname = {};
                         dvname = varargin{1}(:);
+                        [newCf,newdvname] = DPVuniquedvar(Cf,dvname);       % 01/26/25 - DJ
                         matdim = [nd1,nd2];
-                        obj = dpvar(Cf,dmat,vname,dvname,matdim);
+                        obj = dpvar(newCf,dmat,vname,newdvname,matdim);   
                     else
-                        error('For cellstr input, number of outputs should be 1')
+                        error('For cellstr input, number of outputs should be at most 1')
                     end
                 else
                     error(['For single input, argument must be a dpvar, '...

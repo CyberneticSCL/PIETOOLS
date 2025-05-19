@@ -110,6 +110,8 @@ function [sos,P,Q] = sosquadvar(sos,Z1c,Z2c,mdim_in,ndim_in,option)
 % 07/14/21, DJ: Adjusted specification of dvars to use fastint2str function
 % 04/19/22, DJ: Update to output decision variable matrix (if desired),
 %               and allow general polynomial basis functions Z1 and Z2;
+% 01/26/25, DJ: Make sure dimensions of coefficients in Q match dimensions
+%               in matrix decision variable;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -416,7 +418,7 @@ for cell_idx=1:(nZ1c*nZ2c)
         % If desired, also output the names of the decision variables
         % in Q{i,j} parameterizing P{i,j}
         if nargout>=3
-            Q{i,j} = dvars_new(lindT_mat);
+            Q{i,j} = reshape(dvars_new(lindT_mat),size(lindT_mat));         % 01/26/25, DJ
         end
         
     else
