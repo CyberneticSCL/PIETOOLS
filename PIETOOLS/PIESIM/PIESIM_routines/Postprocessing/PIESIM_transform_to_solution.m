@@ -105,9 +105,13 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
      bcw_input(:,n)=polyval(coeff(:,n),grid.comp);
      end
      else
+     if (length(bc)>0)
      for n=1:length(bc)
      bcw_input(1:length(grid.comp),n)=bc(n);
      end
+     else
+     bcw_input=[];
+     end % length(bc)>0
      end % isa(bc,'polynomial')
      end % psize.nw>0
      
@@ -132,11 +136,15 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
      bcu_input(:,n)=polyval(coeff(:,n),grid.comp);
      end
      else
+     if (length(bc)>0)
      for n=1:length(bc)
      bcu_input(1:length(grid.comp),n)=bc(n);
      end
-     end
-     end %psize.nu>0
+     else
+     bcu_input=[];
+     end % length(bc)>0
+     end % isa(bc,'polynomial')
+     end % psize.nu>0
      
      % Reconstruct solution using inverse Chebyshev transform (ifcht
      % function)
