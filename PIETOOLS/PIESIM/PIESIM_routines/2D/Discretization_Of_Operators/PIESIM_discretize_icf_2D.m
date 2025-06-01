@@ -162,8 +162,8 @@ coeff.w=1;
  end
 
  if isfield(uinput,'uspace')
-     Nforce=psize.nu0+N*(psize.nux+psize.nuy)+N^2^psize.nu2;
-     coeff.w=zeros(Nforce,nu);
+     Nforce=psize.nu0+(N+1)*(psize.nux+psize.nuy)+(N+1)^2^psize.nu2;
+     coeff.u=zeros(Nforce,nu);
          k=0;
          index=1;
          for kk=1:psize.nu0
