@@ -20,6 +20,8 @@
 % YP - 6/16/2022 - added discretization of C1, C2 operators to allow for
 % computation of observed and regulated outputs. Separated T from T0 (LHS
 % PDE from map operator).
+% YP - added functionality to support infinite-dimensional disturbances
+% through parser - 6_1_2025
 
 function Dop=PIESIM_discretize_ops(PIE, psize);
 
@@ -50,24 +52,25 @@ end
 
 % Discretize 4PI operators
 
-% Set the last entry to PIESIM_4PI2Mat_cheb to 1 if a structure is a full 4PI operator (for A and T)
-
-% Set the last entry to PIESIM_4PI2Mat_cheb to 0 if a structure has an empty right side (for Tw, Tu, B1 and B2
+ % The rightmost entry to PIESIM_4PI2Mat_cheb is a flag.
+% flag = 0 if a structure has only the first row and is acting on disturbances or control inputs (for D11, D12,
+% D21, D22 operators)
+% flag = 1 if a structure is a full operator acting on disturbances or control inputs (for Tw, Tu, B1 and B2
 % operators)
+% flag = 2 if a structure has only the first row and acts on the PDE + ODE states (for C1, C2 operators)
+% flag = 3 if a structure is a full operator acting on the PDE+ODE states (for A and T)
+%
 
-% Set the last entry to PIESIM_4PI2Mat_cheb to 2 if a structure has an
-% empty bottom row (for C1 and C2 operators)
-
- Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,0);
- Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,0);
- Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,PIE.B1,p,0);
- Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,0);
+ Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,1);
+ Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,1);
+ Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,PIE.B1,p,1);
+ Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,1);
  Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,PIE.C1,p,2);
  Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,PIE.C2,p,2);
- Dop.Acheb=PIESIM_4PI2Mat_cheb(N,PIE.A,p,1);
- [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,1);
+ Dop.Acheb=PIESIM_4PI2Mat_cheb(N,PIE.A,p,3);
+ [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,3);
  if isfield(PIE,'T0') 
-     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T0,p,1);
+     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T0,p,3);
  end
 %  
   Dop.Mcheb_inv=inv(Mcheb);
