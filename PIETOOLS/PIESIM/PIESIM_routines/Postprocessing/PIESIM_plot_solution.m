@@ -37,7 +37,8 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % YP 6/16/2022 - added outputs for observed and regulated outputs 
 % DJ, 12/26/2024 - Plot PDE state evolution using surf;
 % DJ, 01/01/2025 - Change plot specifications;
-% DJ, 02/26/2025 - Bugfix insufficient colors for large number of states;
+% YP, 06/02/2025 - Made modifications so that final plots are produced at a
+% zero final time (tf=0)
 
 syms sx;
 
@@ -95,8 +96,7 @@ end
 if opts.intScheme~=1
     disp("Temporal evolution of solution is only available when using the BDF scheme; only final states are plotted.")
 elseif opts.tf==0
-    disp("Final time is t=0; no plots produced.")
-    return
+    disp("Temporal evolution of solution is only available when final time is not equal to zero; only final states are plotted.")
 else
     % Determine time indices at which to plot solution.
     dtime = solution.timedep.dtime;
@@ -284,21 +284,9 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         box on
         hold on
         if ~uinput.ifexact
-            if n+psize.no<=size(colors_PDE,1)                               % DJ, 02/26/2025
-                % Plot using specified colors
-                plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
-            else
-                % Plot using Matlab default colors
-                plot(grid.phys,solution.final.pde(:,n),'-d','MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
-            end
+            plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
         else
-            if n+psize.no<=size(colors_PDE,1)                               % DJ, 02/26/2025
-                % Plot using specified colors
-                plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
-            else
-                % Plot using Matlab default colors
-                plot(grid.phys,solution.final.pde(:,n),'d','LineWidth',marker_size,'DisplayName','Numerical solution');
-            end
+            plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
             plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution','LineWidth',line_width); 
             legend('FontSize',13,'Interpreter','latex');
         end
@@ -306,17 +294,17 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         xlabel('$s$','FontSize',15,'Interpreter','latex');
         ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
         if ns==1
-            title(['PDE State at Final Time, $\mathbf{x}(t=',num2str(solution.timedep.dtime(end)),',s)$'],'FontSize',15,'Interpreter','latex');
+            title(['PDE State at Final Time, $\mathbf{x}(t=',num2str(solution.tf),',s)$'],'FontSize',15,'Interpreter','latex');
         else
-            title(['$\mathbf{x}_',num2str(n+psize.no),'(t=',num2str(solution.timedep.dtime(end)),',s)$'],'FontSize',15,'Interpreter','latex');
+            title(['$\mathbf{x}_',num2str(n+psize.no),'(t=',num2str(solution.tf),',s)$'],'FontSize',15,'Interpreter','latex');
         end
         set(gca,'XLim',[min(grid.phys),max(grid.phys)]);
         set(gca,'TickLabelInterpreter','latex');
     end
     figs = [figs,{fig4}];
 
-    if opts.intScheme~=1
-        % Can't plot simulated state evolution
+    if opts.intScheme~=1 | solution.tf==0 | solution.tf==opts.dt
+        % Can't plot simulated state evolution in a surf plot
         return
     end
 
