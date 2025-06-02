@@ -392,9 +392,7 @@ if PDE.dim==2
             elseif ~isa(uinput.w,'sym')
                 error('Inputs w should be specified as object of type ''double'' or ''sym''.')
             end
-            if ~isempty(symvar(uinput.w')) && any(~ismember(symvar(uinput.w'),{'st'})) && PDE.dim<2
-                error('Disturbance inputs must be symbolic expressions in st');
-            else
+      
                 if (size(uinput.w,2)<psize.nw)
                     disp('Warning: Number of provided w inputs is less than nw');
                     disp('Defaulting the rest of w inputs and their time derivatives to zero');
@@ -406,7 +404,6 @@ if PDE.dim==2
                     disp('Defaulting PDE.nw to zero');
                     psize.nw=0;
                 end
-            end
         end
     end
 
@@ -425,7 +422,11 @@ if PDE.dim==2
         uinput.w(k)=temp;
         end
     else
+        if (isempty(PDE.w{1,1}.dom))
         uinput.wspace(k)=sym(0);
+        else
+        uinput.wspace(k)=sym(1);
+        end
     end 
     end
     end
@@ -441,16 +442,18 @@ if PDE.dim==2
      for k=1:psize.nw
          if (uinput.wspace(k)==0)
              psize.nw0=psize.nw0+1;
-         else
-             if has(uinput.wspace(k),'sx') & has(uinput.wspace(k),'sy')
+         elseif (uinput.wspace(k)==1)
+             if (size(PDE.w{1,1}.dom,1)==1)
+             psize.nwx=psize.nwx+1;
+             elseif (size(PDE.w{1,1}.dom,1)==2)
              psize.nw2=psize.nw2+1;
-             else 
-                 if has(uinput.wspace(k),'sx')
-                 psize.nwx=psize.nwx+1; 
-                 else
-                 psize.nwy=psize.nwy+1; 
-                 end
              end
+         elseif has(uinput.wspace(k),'sx') & has(uinput.wspace(k),'sy')
+             psize.nw2=psize.nw2+1;
+         elseif has(uinput.wspace(k),'sx')
+                 psize.nwx=psize.nwx+1; 
+         else
+                 psize.nwy=psize.nwy+1; 
          end
      end
  end
