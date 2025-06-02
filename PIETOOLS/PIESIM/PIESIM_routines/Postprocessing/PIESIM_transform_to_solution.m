@@ -105,13 +105,13 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
      bcw_input(:,n)=polyval(coeff(:,n),grid.comp);
      end
      else
-     if (length(bc)>0)
+         if (length(bc)>0)
      for n=1:length(bc)
      bcw_input(1:length(grid.comp),n)=bc(n);
      end
-     else
-     bcw_input=[];
-     end % length(bc)>0
+         else
+             bcw_input=[];
+         end % length(bc)
      end % isa(bc,'polynomial')
      end % psize.nw>0
      
@@ -136,15 +136,15 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
      bcu_input(:,n)=polyval(coeff(:,n),grid.comp);
      end
      else
-     if (length(bc)>0)
+         if (length(bc)>0)
      for n=1:length(bc)
      bcu_input(1:length(grid.comp),n)=bc(n);
      end
-     else
-     bcu_input=[];
-     end % length(bc)>0
-     end % isa(bc,'polynomial')
-     end % psize.nu>0
+         else
+             bcu_input=[];
+         end % length(bc)
+     end
+     end %psize.nu>0
      
      % Reconstruct solution using inverse Chebyshev transform (ifcht
      % function)
@@ -206,10 +206,10 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
      
 %----------------------------------------   
 % We now transform time-dependent solution, which is available for BDF
-% scheme only (opts.IntScheme=1)
+% scheme only (opts.IntScheme=1) and at final time not equal to 0
 %----------------------------------------
           
-if (opts.intScheme==1)
+if (opts.intScheme==1 & solution.tf~=0)
     
     % Define ODE solution and temporal stamps array
      solution.timedep.dtime=solcoeff.timedep.dtime;
