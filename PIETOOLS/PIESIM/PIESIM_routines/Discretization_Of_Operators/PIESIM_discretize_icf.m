@@ -21,6 +21,9 @@
 % Initial coding YP  11_05_2021
 % YP 6_16_2022 Renamed uinput.B21_nonpol to uinput.Bpw_nonpol, updated description of
 % outputs
+% YP - added functionality to support infinite-dimensional disturbances
+% through parser - 6_1_2025
+
 
 function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
@@ -87,6 +90,52 @@ end
 
 coeff.w=1;
 coeff.u=1;
+
+% Discretize spatial contribution of u and w disturbances entered in parser
+% format as spatially-varying disturbances
+
+if isfield(uinput,'wspace')
+     Nforce=psize.nw0+(N+1)*psize.nwx;
+     coeff.w=zeros(Nforce,nw);
+         k=0;
+         index=1;
+         for kk=1:psize.nw0
+         k=k+1;
+             coeff.w(index,k)=1;
+             index=index+1;
+         end
+         for kk=1:psize.nwx
+             k=k+1;
+             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace(k), 0, gridall);
+             index=index+N+1;
+         end 
+ end
+
+ if isfield(uinput,'uspace')
+     Nforce=psize.nu0+(N+1)*psize.nux;
+     coeff.u=zeros(Nforce,nu);
+         k=0;
+         index=1;
+         for kk=1:psize.nu0
+         k=k+1;
+             coeff.u(index,k)=1;
+             index=index+1;
+         end
+         for kk=1:psize.nux
+             k=k+1;
+             coeff.u(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.uspace(k), 0, gridall);
+             index=index+N+1;
+         end 
+ end
+
+
+
+
+
+
+
+
+
 
 
 
