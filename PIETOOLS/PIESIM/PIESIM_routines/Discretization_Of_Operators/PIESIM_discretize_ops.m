@@ -53,20 +53,25 @@ end
 % Discretize 4PI operators
 
  % The rightmost entry to PIESIM_4PI2Mat_cheb is a flag.
-% flag = 0 if a structure has only the first row and is acting on disturbances or control inputs (for D11, D12,
+% flag = 0 if a structure maps disturbances or control inputs to regulated or observed outputs (for D11, D12,
 % D21, D22 operators)
-% flag = 1 if a structure is a full operator acting on disturbances or control inputs (for Tw, Tu, B1 and B2
+% flag = 1 if a structure maps solution states (ODE+PDE) to regulated or observed outputs (for C1, C2 operators)
+% flag = 2 if a structure maps disturbances or control inputs to solution states (ODE+PDE) (for Tw, Tu, B1 and B2
 % operators)
-% flag = 2 if a structure has only the first row and acts on the PDE + ODE states (for C1, C2 operators)
-% flag = 3 if a structure is a full operator acting on the PDE+ODE states (for A and T)
+% flag = 3 if a structure maps solution states (ODE+PDE) to solution states (ODE+PDE) (for A and T)
 %
 
- Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,1);
- Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,1);
- Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,PIE.B1,p,1);
- Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,1);
- Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,PIE.C1,p,2);
- Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,PIE.C2,p,2);
+
+ Dop.D11cheb=PIESIM_4PI2Mat_cheb(N,PIE.D11,p,0);
+ Dop.D12cheb=PIESIM_4PI2Mat_cheb(N,PIE.D12,p,0);
+ Dop.D21cheb=PIESIM_4PI2Mat_cheb(N,PIE.D21,p,0);
+ Dop.D22cheb=PIESIM_4PI2Mat_cheb(N,PIE.D22,p,0);
+ Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,PIE.C1,p,1);
+ Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,PIE.C2,p,1);
+ Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,2);
+ Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,2);
+ Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,PIE.B1,p,2);
+ Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,2);
  Dop.Acheb=PIESIM_4PI2Mat_cheb(N,PIE.A,p,3);
  [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,3);
  if isfield(PIE,'T0') 
