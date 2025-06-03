@@ -498,11 +498,9 @@ elseif (opts.type=='DDE')
     psize.N=opts.N;
     psize.n=[0 ns];
 
-    %  This is not checked. Need to change later
     %------------------------
-    % assuming only finite-dimensional outputs
-    psize.nro=PIE.C1.dim(1,1);
-    psize.noo = sum(PIE.C2.dim(1,1));  
+    psize.nro = size(PIE.C1,1);
+    psize.noo = size(PIE.C2,1);  
     %------------------------
 
     % Checking of the DDE inputs begins
