@@ -65,10 +65,10 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
      end
      C1op=Dop.C1cheb;
      C2op=Dop.C2cheb;
-     D11op=PIE.D11.P;
-     D12op=PIE.D12.P;
-     D21op=PIE.D21.P;
-     D22op=PIE.D22.P;
+     D11op=Dop.D11cheb;
+     D12op=Dop.D12cheb;
+     D21op=Dop.D21cheb;
+     D22op=Dop.D22cheb;
      Tu=PIE.Tu;
      Tw=PIE.Tw;
    
@@ -178,10 +178,10 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
         if(~isnan(solcoeff.final)) 
     solution.final.regulated=C1op*solcoeff.final;
     if (psize.nw>0)
-    solution.final.regulated=solution.final.regulated+D11op*wvec(:,1);
+    solution.final.regulated=solution.final.regulated+D11op*solcoeff.w*wvec(:,1);
     end
     if (psize.nu>0)
-    solution.final.regulated=solution.final.regulated+D12op*uvec(:,1);
+    solution.final.regulated=solution.final.regulated+D12op*solcoeff.u*uvec(:,1);
     end
         else
         solution.final.regulated=[];
@@ -193,10 +193,10 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
         if(~isnan(solcoeff.final)) 
     solution.final.observed=C2op*solcoeff.final;
     if (psize.nw>0)
-    solution.final.observed=solution.final.observed+D21op*wvec(:,1);
+    solution.final.observed=solution.final.observed+D21op*solcoeff.w*wvec(:,1);
     end
     if (psize.nu>0)
-    solution.final.observed=solution.final.observed+D22op*uvec(:,1);
+    solution.final.observed=solution.final.observed+D22op*solcoeff.u*uvec(:,1);
     end
     else
         solution.final.observed=[];
@@ -271,10 +271,10 @@ if (opts.intScheme==1 & solution.tf~=0)
 
      % Add disturbances to regulated and observed outputs
      if(psize.nro>0 & ~isempty(solution.timedep.regulated))
-     solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D11op*wvec(:,1);
+     solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D11op*solcoeff.w*wvec(:,1);
      end
      if(psize.noo>0 & ~isempty(solution.timedep.observed))
-     solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D21op*wvec(:,1);
+     solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D21op*solcoeff.w*wvec(:,1);
      end
 
      end % if (psize.nw>0)
@@ -304,10 +304,10 @@ if (opts.intScheme==1 & solution.tf~=0)
      end
      % Add controled inputs to regulated and observed outputs
      if(psize.nro>0 & ~isempty(solution.timedep.regulated))
-     solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D12op*uvec(:,1);
+     solution.timedep.regulated(:,ntime)=solution.timedep.regulated(:,ntime)+D12op*solcoeff.u*uvec(:,1);
      end
      if(psize.noo>0& ~isempty(solution.timedep.observed))
-     solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D22op*uvec(:,1);
+     solution.timedep.observed(:,ntime)=solution.timedep.observed(:,ntime)+D22op*solcoeff.u*uvec(:,1);
      end
      end % if (psize.nu>0)
      
