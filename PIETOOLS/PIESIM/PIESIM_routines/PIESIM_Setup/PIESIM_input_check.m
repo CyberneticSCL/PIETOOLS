@@ -44,6 +44,7 @@ function [structure, uinput, psize]=PIESIM_input_check(varargin)
 %   Also set values for noo, nro in case of type=='DDE'
 % DJ, 12/16/2024: Change default variables to (s1,s1_dum) in ODE case;
 % DJ, 12/28/2024: Add spatial domain to "uinput" in 2D case;
+% YP, 06/03/2025: Fixed sensing of observed and regulated outputs during coupling with PIE
 
 syms st sx sy;
 structure=varargin{1};
@@ -490,8 +491,8 @@ elseif (opts.type=='DDE')
 
     % Define problem size for discretization
     psize.dim = 1;      % DDE is 1D
-    psize.nu=PIE.Tu.dim(1,2);
-    psize.nw=PIE.Tw.dim(1,2);
+    psize.nu=size(PIE.Tu,2);
+    psize.nw=size(PIE.Tw,2);
     psize.no=PIE.T.dim(1,1);
     ns=PIE.T.dim(2,1);
     psize.N=opts.N;
@@ -584,14 +585,14 @@ elseif (opts.type=='PIE')
     end
 
     % Define problem size for discretization
-    psize.nu=PIE.Tu.dim(1,2);
-    psize.nw=PIE.Tw.dim(1,2);
+    psize.nu=size(PIE.Tu,2);
+    psize.nw=size(PIE.Tw,2);
     psize.no=PIE.T.dim(1,1);
     ns=PIE.T.dim(2,1);
-    %  This is not checked. Need to change later
+
     %------------------------
-    psize.nro=PIE.C1.dim(1,1);
-    psize.noo = sum(PIE.C2.dim(1,1));  
+    psize.nro = size(PIE.C1,1);
+    psize.noo = size(PIE.C2,1);  
     %------------------------
 
     psize.N=opts.N;
