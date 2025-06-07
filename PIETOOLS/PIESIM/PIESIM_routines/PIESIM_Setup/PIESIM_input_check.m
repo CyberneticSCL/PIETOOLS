@@ -332,8 +332,7 @@ if PDE.dim==2
         if ~isfield(uinput,'exact')
             disp('Warning: exact solution is not provided. Defaulting uinput.ifexact to false');
             uinput.ifexact=false;
-        end
-        if (size(uinput.exact,2)~=psize.no+ns)
+        elseif (size(uinput.exact,2)~=psize.no+ns)
             disp('Warning: number of exact solutions provided does not match the number of PDE states');
             disp('Defaulting uinput.ifexact to false');
             uinput.ifexact=false;
@@ -497,8 +496,8 @@ elseif (opts.type=='DDE')
     ns=PIE.T.dim(2,1);
     psize.N=opts.N;
     psize.n=[0 ns];
-
     %------------------------
+    % assuming only finite-dimensional outputs
     psize.nro = size(PIE.C1,1);
     psize.noo = size(PIE.C2,1);  
     %------------------------
