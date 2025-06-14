@@ -1,25 +1,22 @@
 function b = subsasgn(a,L,RHS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% b = subsasgn(a,L,RHS) assigns values RHS to field/slice L of an opvar2d 
+% b = subsasgn(a,L,RHS) assigns values RHS to field/slice L of an opvar 
 % object a
-%
-% Version 1.0
-% Date: 07/06/21
 % 
 % INPUT
-% a:    opvar2d class object
+% a:    opvar class object
 % L:    a struct specifying the component to be adjusted/assigned
 % RHS:  a value to be assigned to the component
 %
 % OUTPUT
-% b:    opvar2d object with desired component value
+% b:    opvar object with desired component value
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022 M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2025 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -40,50 +37,44 @@ function b = subsasgn(a,L,RHS)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ, 07/06/2021
-% DJ, 08/07/2022: Allow '()'-type subsref;
-%                 Also allow parameter indexing using '({})';
-% DJ, 06/14/2025: Bugfix column indexing, add support for RHS of type
-%                   'double' or 'polynomial', or RHS = [];
+% Initial coding DJ, 06/14/2025;
 
-%a = opvar2d(a);
-%sza = size(a);
 switch L(1).type
     case '.'
-        if isscalar(L)
-            temp = RHS;
-        else
-            % Peform all subsasgn but L(1)
-            temp = subsref(a,L(1));
-            switch L(2).type
-                case '{}'
-                    if isscalar(L(2).subs)
-                        [nr,nc] = size(temp);
-                        [rindx,cindx] = ind2sub([nr,nc],L(2).subs{1});
-                    elseif length(L(2).subs)>=2
-                        rindx = L(2).subs{1};   cindx = L(2).subs{2};
-                    end
-                    if length(L)==2
-                        temp{rindx,cindx} = RHS;
-                    else
-                        temp{rindx,cindx} = subsasgn(temp{rindx,cindx},L(3:end),RHS);
-                    end
-                otherwise
-                    temp = subsasgn(temp,L(2:end),RHS);
-            end
-        end
-        b = set(a,L(1).subs,temp);
-        
+        b = builtin('subsasgn',a,L,RHS);
+        % if isscalar(L)
+        %     temp = RHS;
+        % else
+        %     Peform all subsasgn but L(1)
+        %     temp = subsref(a,L(1));
+        %     switch L(2).type
+        %         case '{}'
+        %             if isscalar(L(2).subs)
+        %                 [nr,nc] = size(temp);
+        %                 [rindx,cindx] = ind2sub([nr,nc],L(2).subs{1});
+        %             elseif length(L(2).subs)>=2
+        %                 rindx = L(2).subs{1};   cindx = L(2).subs{2};
+        %             end
+        %             if length(L)==2
+        %                 temp{rindx,cindx} = RHS;
+        %             else
+        %                 temp{rindx,cindx} = subsasgn(temp{rindx,cindx},L(3:end),RHS);
+        %             end
+        %         otherwise
+        %             temp = subsasgn(temp,L(2:end),RHS);
+        %     end
+        % end
+        % b = set(a,L(1).subs,temp);        
     case '()'
         % Check if the indices are supported.
         if isscalar(L(1).subs)
             error('Type ''()'' subsasgn using linear indices is not supported.')
         elseif length(L(1).subs)>=3
-            error('opvar2d objects take at most two subscripts.')
+            error('opvar objects take at most two subscripts.')
         end
 
         % Check if the RHS is of appropriate type.
-        if isempty(RHS)                                                     % DJ, 06/14/2025
+        if isempty(RHS)
             % Remove rows or columns of a using e.g. a(i,:) = [];
             r_idcs = 1:size(a,1);   c_idcs = 1:size(a,2);
             if islogical(L(1).subs{1})
@@ -129,24 +120,24 @@ switch L(1).type
                 error("A null assignment can have only one non-colon index.")
             end
             return
-        elseif isa(RHS,'double') || isa(RHS,'polynomial')                   % DJ, 06/14/2025
+        elseif isa(RHS,'double') || isa(RHS,'polynomial')
             a_slice = subsref(a,L);
             if isscalar(RHS) && RHS==0
                 RHS = zeros(size(a_slice));
             end
             try RHS = mat2opvar(RHS,a_slice.dim,[a.var1,a.var2],a.I);
             catch
-                error("Could not convert right-hand side to 'opvar2d'; subsasgn is not supported.")
+                error("Could not convert right-hand side to 'opvar'; subsasgn is not supported.")
             end
-        elseif isa(RHS,'opvar')
-            try RHS = opvar2opvar2d(RHS,a.dom,a.var1,a.var2);
+        elseif isa(RHS,'opvar2d')
+            try RHS = opvar2d2opvar(RHS);
             catch
-                error("Could not convert right-hand side to 'opvar2d'; subsasgn is not supported.")
+                error("Could not convert right-hand side to 'opvar'; subsasgn is not supported.")
             end
-        elseif ~isa(RHS,'opvar2d')
-            error('Type ''()'' subsasgn requires the right-hand side to be an opvar2d object')
+        elseif ~isa(RHS,'opvar')
+            error("Type '()' subsasgn requires the right-hand side to be an opvar object.")
         end
-
+        
         % Make sure we can work with the inputs.
         if ~isequal(a.I,RHS.I) || ~all(isequal(a.var1,RHS.var1)) || ~all(isequal(a.var2,RHS.var2))
             error('The spatial domain and variables of the right-hand side operator should match those of the old operator.')
@@ -162,12 +153,11 @@ switch L(1).type
         
         % Initialize the desired row indices in a.
         indr = L(1).subs{1};
-        indr_param = 1:4;  % Assume all parameters are adjusted for now.
+        indr_param = 1:2;  % Assume all parameters are adjusted for now.
         if strcmp(indr,':')
             indr = 1:nr_a;
         elseif isa(indr,'cell')
-            % Parameter indexing: adjust parameters
-            % R0., Rx., Ry., and/or R2..
+            % Parameter indexing: adjust parameters P or Q2, or Q1 or R
             indr_param = cell2mat(L(1).subs{1});
             if islogical(indr_param)
                 % Convert logical indices to standard indices.
@@ -177,15 +167,15 @@ switch L(1).type
                 indr_param_new = 1:nr_a;
                 indr_param = indr_param_new(indr_param);
             else
-                if max(indr_param)>4
-                    error('The proposed parameter row-indices exceed the number of output spaces (4).');
+                if max(indr_param)>2
+                    error('The proposed parameter row-indices exceed the number of output spaces (2).');
                 elseif length(unique(indr_param))~=length(indr_param)
                     error('The parameter row indices should be unique');
                 end
                 indr_param = sort(indr_param);  % the order of the parameters is fixed.
             end
             % Convert the parameter indices to standard row indices.
-            nr_indcs = mat2cell([nnr_op_a(1:end-1),nnr_op_a(2:end)],ones(4,1));
+            nr_indcs = mat2cell([nnr_op_a(1:end-1),nnr_op_a(2:end)],ones(2,1));
             nr_indcs = cellfun(@(x) (x(1)+1:x(2))', nr_indcs, 'UniformOutput',false);
             nr_indcs = nr_indcs(indr_param);
             indr = cell2mat(nr_indcs)';
@@ -210,23 +200,22 @@ switch L(1).type
         
         % Initialize the desired column indices in RHS.
         indc = L(1).subs{2};
-        indc_param = 1:4;  % Assume all parameters are adjusted for now.    % DJ, 06/14/2025
+        indc_param = 1:2;  % Assume all parameters are adjusted for now.
         if strcmp(indc,':')
             indc = 1:nc_a;
         elseif isa(indc,'cell')
-            % Parameter indexing: adjust parameters
-            % R.0, R.x, R.y, and/or R.2.
+            % Parameter indexing: adjust parameters P or Q1, or Q2 or R
             indc_param = cell2mat(L(1).subs{2});
             if islogical(indc_param)
                 % Convert logical indices to standard indices.
-                if length(indc_param)~=4
-                    error('Logical parameter indexing requires 4 row indices.')
+                if length(indc_param)~=2
+                    error('Logical parameter indexing requires 2 row indices.')
                 end
                 indc_param_new = 1:nc_a;
                 indc_param = indc_param_new(indc_param);
             else
                 if max(indc_param)>4
-                    error('The proposed parameter column-indices exceed the number of input spaces (4).');
+                    error('The proposed parameter column-indices exceed the number of input spaces (2).');
                 elseif length(unique(indc_param))~=length(indc_param)
                     error('The parameter column-indices should be unique.');
                 end
@@ -269,10 +258,8 @@ switch L(1).type
         % Loop over each of the parameters in the operator, adjusting the
         % appropriate elements of each parameter to match those of the
         % parameters in the RHS operator.
-        Rparams = {'R00', 'R0x', 'R0y', 'R02';
-                   'Rx0', 'Rxx', 'Rxy', 'Rx2';
-                   'Ry0', 'Ryx', 'Ryy', 'Ry2';
-                   'R20', 'R2x', 'R2y', 'R22'};
+        Rparams = {'P', 'Q1';
+                   'Q2', 'R'};
         Rparams = Rparams(indr_param,indc_param);   % exclude pararmeters we know are not adjusted.
         for ll=1:numel(Rparams)
             % Establish which of the proposed rows and columns of the
@@ -304,10 +291,10 @@ switch L(1).type
             a_rindcs = a_rindcs - nnr_op_a(r_param);
             a_cindcs = a_cindcs - nnc_op_a(c_param);
             
-            if isa(a.(Rparams{ll}),'cell')
-                for kk=1:numel(a.(Rparams{ll}))
-                    a.(Rparams{ll}){kk}(a_rindcs,a_cindcs) = RHS.(Rparams{ll}){kk}(RHS_rindcs,RHS_cindcs);
-                end                       
+            if isa(a.(Rparams{ll}),'struct')
+                a.(Rparams{ll}).R0(a_rindcs,a_cindcs) = RHS.(Rparams{ll}).R0(RHS_rindcs,RHS_cindcs);
+                a.(Rparams{ll}).R1(a_rindcs,a_cindcs) = RHS.(Rparams{ll}).R1(RHS_rindcs,RHS_cindcs);
+                a.(Rparams{ll}).R2(a_rindcs,a_cindcs) = RHS.(Rparams{ll}).R2(RHS_rindcs,RHS_cindcs);                      
             else
                 a.(Rparams{ll})(a_rindcs,a_cindcs) = RHS.(Rparams{ll})(RHS_rindcs,RHS_cindcs);
             end
@@ -316,7 +303,7 @@ switch L(1).type
         b = a;
         
     case '{}'
-        error('{}- like subsassign is not supported for opvar2d objects.');
+        error('{}- like subsassign is not supported for opvar objects.');
 end
 
 end

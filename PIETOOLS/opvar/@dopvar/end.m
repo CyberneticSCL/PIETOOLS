@@ -1,13 +1,10 @@
 function out = end(a,k,n)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% out = end(a,k,n) is used to establish the size of opvar2d object a
-% associated with index k out of n
-%
-% Version 1.0
-% Date: 07/06/21
+% out = end(a,k,n) is used to establish the size of dopvar object a
+% associated with index k out of n (used in subsref, e.g. a(i:end,j:end))
 % 
 % INPUT
-% a:    opvar2d class object
+% a:    dopvar class object
 % k,n:  natural numbers
 %
 % OUTPUT
@@ -18,7 +15,7 @@ function out = end(a,k,n)
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2021  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2025 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -39,7 +36,7 @@ function out = end(a,k,n)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 07_06_2021
+% Initial coding DJ, 06/14/2025
 
 if n ==1
     sza = size(a);

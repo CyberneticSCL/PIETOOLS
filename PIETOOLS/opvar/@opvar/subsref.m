@@ -1,6 +1,7 @@
 function out = subsref(obj,s)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% out=subsref(Pbop,s) used for subscripted indexing of the operator P: R^p x L2^q to R^m x L2^n
+% out=subsref(Pbop,s) used for subscripted indexing of the operator 
+% P: R^p x L2^q to R^m x L2^n
 % 
 % INPUT
 % obj: opvar class object to slice
@@ -18,7 +19,7 @@ function out = subsref(obj,s)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - subsref
 %
-% Copyright (C)2019  M. Peet, S. Shivakumar
+% Copyright (C)2025  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -42,6 +43,7 @@ function out = subsref(obj,s)
 % Initial coding MMP, SS  - 6_14_2022;
 % Add support for specifying indices as ':', DJ - 10/16/2024;
 % Add support for extracting variables as Pop.vars, DJ - 10/20/2024;
+% DJ, 06/14/2025: Add support for logical indices;
 
 switch s(1).type
     case '.'
@@ -98,6 +100,22 @@ switch s(1).type
         end
         if strcmp(indc,':')
             indc = (1:nc1_old+nc2_old);
+        end
+
+        % Allow logical indices to be specified                             % DJ, 06/14/2025
+        if islogical(indr)
+            indr_full = 1:size(obj,1);
+            if numel(indr)~=numel(indr_full)
+                error("The number of logical indices in position 1 should match the number of rows in the object.")
+            end
+            indr = indr_full(indr(:));
+        end
+        if islogical(indc)
+            indc_full = 1:size(obj,2);
+            if numel(indc)~=numel(indc_full)
+                error("The number of logical indices in position 2 should match the number of columns of the object.")
+            end
+            indc = indc_full(indc(:));
         end
 
 
