@@ -38,6 +38,7 @@ function b = subsasgn(a,L,RHS)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ, 06/14/2025;
+% DJ, 06/15/2025: Allow "a([],[]) = []", returning "b=a";
 
 switch L(1).type
     case '.'
@@ -116,6 +117,9 @@ switch L(1).type
             elseif isempty(c_rtn)
                 % Get rid of all elements along particular rows;
                 b = op_slice(a,r_rtn,c_idcs);
+            elseif all(r_rtn==r_idcs) && all(c_rtn==c_idcs)                 % DJ, 06/15/2025
+                % We're setting a([],[]) = [], just return b
+                b = a;
             else
                 error("A null assignment can have only one non-colon index.")
             end
@@ -292,10 +296,14 @@ switch L(1).type
             a_cindcs = a_cindcs - nnc_op_a(c_param);
             
             if isa(a.(Rparams{ll}),'struct')
+                a.(Rparams{ll}).R0 = polynomial(a.(Rparams{ll}).R0);
                 a.(Rparams{ll}).R0(a_rindcs,a_cindcs) = RHS.(Rparams{ll}).R0(RHS_rindcs,RHS_cindcs);
+                a.(Rparams{ll}).R1 = polynomial(a.(Rparams{ll}).R1);
                 a.(Rparams{ll}).R1(a_rindcs,a_cindcs) = RHS.(Rparams{ll}).R1(RHS_rindcs,RHS_cindcs);
+                a.(Rparams{ll}).R2 = polynomial(a.(Rparams{ll}).R2);
                 a.(Rparams{ll}).R2(a_rindcs,a_cindcs) = RHS.(Rparams{ll}).R2(RHS_rindcs,RHS_cindcs);                      
             else
+                a.(Rparams{ll}) = polynomial(a.(Rparams{ll}));
                 a.(Rparams{ll})(a_rindcs,a_cindcs) = RHS.(Rparams{ll})(RHS_rindcs,RHS_cindcs);
             end
         end

@@ -45,6 +45,7 @@ function b = subsasgn(a,L,RHS)
 %                 Also allow parameter indexing using '({})';
 % DJ, 06/14/2025: Bugfix column indexing, add support for RHS of type
 %                   'double' or 'polynomial', or RHS = [];
+% DJ, 06/15/2025: Allow "a([],[]) = []", returning "b=a";
 
 %a = opvar2d(a);
 %sza = size(a);
@@ -125,6 +126,9 @@ switch L(1).type
             elseif isempty(c_rtn)
                 % Get rid of all elements along particular rows;
                 b = op_slice(a,r_rtn,c_idcs);
+            elseif all(r_rtn==r_idcs) && all(c_rtn==c_idcs)                 % DJ, 06/15/2025
+                % We're setting a([],[]) = [], just return b
+                b = a;
             else
                 error("A null assignment can have only one non-colon index.")
             end
@@ -306,9 +310,11 @@ switch L(1).type
             
             if isa(a.(Rparams{ll}),'cell')
                 for kk=1:numel(a.(Rparams{ll}))
+                    a.(Rparams{ll}){kk} = polynomial(a.(Rparams{ll}){kk});
                     a.(Rparams{ll}){kk}(a_rindcs,a_cindcs) = RHS.(Rparams{ll}){kk}(RHS_rindcs,RHS_cindcs);
                 end                       
             else
+                a.(Rparams{ll}) = polynomial(a.(Rparams{ll}));
                 a.(Rparams{ll})(a_rindcs,a_cindcs) = RHS.(Rparams{ll})(RHS_rindcs,RHS_cindcs);
             end
         end
