@@ -211,7 +211,7 @@ else
     eq_dy = {Dupy+dy{1},   Dupy+dy{2},   Dupy+dy{3}};
     
     % Monomials in both spatial variables
-    Dup2 = 2;
+    Dup2 = 3;
     eq_d2 = {Dup2+d2{1,1},   Dup2+d2{1,2},   Dup2+d2{1,3};
              Dup2+d2{2,1},   Dup2+d2{2,2},   Dup2+d2{2,3};
              Dup2+d2{3,1},   Dup2+d2{3,2},   Dup2+d2{3,3}};
@@ -226,7 +226,7 @@ else
     settings.eq_opts.exclude = zeros(1,16);    
     
     % Will we add a Psatz term?
-    settings.eq_use_psatz = [0;2];          	% Set to 1 or 2 or [1;2] to use psatz
+    settings.eq_use_psatz = [0;0];          	% Set to 1 or 2 or [1;2] to use psatz
     for j=1:length(settings.eq_use_psatz)
         settings.eq_opts_psatz{j}.psatz = settings.eq_use_psatz(j);       
         settings.eq_opts_psatz{j}.sep = zeros(1,6);

@@ -182,7 +182,7 @@ if evalin('base','exist(''sosineq_on'',''var'')')
 elseif evalin('base','exist(''use_sosineq'',''var'')') 
     use_sosineq = evalin('base','use_sosineq');
 else
-    use_sosineq = 1;
+    use_sosineq = 0;
 end
 settings.use_sosineq = use_sosineq;
 
