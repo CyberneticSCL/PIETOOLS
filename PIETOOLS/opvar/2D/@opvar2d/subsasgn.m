@@ -126,7 +126,7 @@ switch L(1).type
             elseif isempty(c_rtn)
                 % Get rid of all elements along particular rows;
                 b = op_slice(a,r_rtn,c_idcs);
-            elseif all(r_rtn==r_idcs) && all(c_rtn==c_idcs)                 % DJ, 06/15/2025
+            elseif all(r_rtn==r_idcs) || all(c_rtn==c_idcs)                 % DJ, 06/15/2025
                 % We're setting a([],[]) = [], just return b
                 b = a;
             else
