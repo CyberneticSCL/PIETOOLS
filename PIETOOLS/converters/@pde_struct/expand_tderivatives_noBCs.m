@@ -1,4 +1,4 @@
-function [PDE,tdiff_state_tab] = expand_tderivatives(PDE,suppress_summary)
+function [PDE,tdiff_state_tab] = expand_tderivatives_noBCs(PDE,suppress_summary)
 % PDE = expand_delays(PDE) takes a pde_struct and retruns a PDE with no
 % time delays, using new state variables to represent the delayed terms.
 %
@@ -23,22 +23,22 @@ function [PDE,tdiff_state_tab] = expand_tderivatives(PDE,suppress_summary)
 %                       x_j = d/dt x_{tdiff_tab(j)}.
 %
 % NOTES:
-% For each added PDE state x_new = (d/dt)^k x_j, boundary conditions are
-% imposed matching those enforced on x_j. For example, if x_j(s=0)=0, then
-% also d/dt x_j(s=0)=0. Inputs in these boundary conditions are currently
-% not supported, as e.g. x_j(s=0)=w would imply d/dt x_j(s=0)=d/dt w,
-% requiring introduction of an input d/dt w. Boundary conditions involving
-% multiple states are supported ONLY IF we have evolution equations for the
-% temporal derivatives of these states as well. For example, if
-% x_j(s=0)=x_i(s=0), then also d/dt x_j(s=0) = d/dt x_i(s=0), but we can
-% only enforce this if we know the dynamics of d/dt x_i, i.e. if x_i is
-% also constrained by a higher-order in time PDE).
+% No boundary conditions are enforced upon the newly added state
+% components. Even though the new state components are temporal derivatives
+% of already present components, for which BCs are given, we do not know
+% how these BCs on the original states translate into BCs on the new state.
+% Therefore, we will not explicitly enforce any additional BCs, instead
+% letting these be implicitly enforced through the relation 
+%   (d/dt) x_j = x_n.
+% Nevertheless, this may introduce conservatism in e.g. stability tests.
+% An updated version adding BCs may be incorporated in a later version of 
+% PIETOOLS.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2025  PIETOOLS Team
+% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -61,7 +61,6 @@ function [PDE,tdiff_state_tab] = expand_tderivatives(PDE,suppress_summary)
 %
 % Initial coding DJ - 10/14/2022
 % DJ, 01/05/2025: Account for field "ID" in object specifications.
-% DJ, 06/13/2025: Update to impose BCs on newly introduced state variables;
 
 % % % Check the inputs, and initialize.
 if nargin==1
@@ -79,10 +78,9 @@ if ~PDE.has_hotd
 end
 
 % Extract parameters.
+nvars = size(PDE.vars,1);   % Number of spatial variables.
 nx = numel(PDE.x);          % Original number of state components.
 nx_new = nx;                % Updated number of state components.
-BC_idcs = 1:numel(PDE.BC);  % List of BCs to check.
-nBCs = numel(PDE.BC);       % Original number of BCs.
 
 % For each new state component, keep track of which of the (original) state
 % components it is a temporal derivative.
@@ -109,8 +107,9 @@ for ii=1:nx
     nvars_ii = numel(vars_ii);
     PDE.x = [PDE.x(:); cell(tdiff-2,1); PDE.x(ii)];
     % The added state components will have the same size and
-    % variables, and be assumed to be differentiable up to the same order.
-    PDE.x_tab = [PDE.x_tab; [repmat(PDE.x_tab(ii,1:end),[tdiff-1,1])]];
+    % variables, but will not be explicitly required to be
+    % differentiable in space (this would require adding BCs).
+    PDE.x_tab = [PDE.x_tab; [repmat(PDE.x_tab(ii,1:2+nvars),[tdiff-1,1]), zeros(tdiff-1,nvars)]];
     PDE.x_tab(nx_new+1:end,1) = (nx_new+1 : nx_new+tdiff-1)';
     
     % Set the equation associated to component ii to
@@ -152,80 +151,6 @@ for ii=1:nx
     % temporal derivative.
     tdiff_state_tab = [tdiff_state_tab; [ii; nx_new+(1:tdiff-2)']];
 
-    % Declare boundary conditions for newly introduced state variables
-    for BC_num = BC_idcs                                                    % DJ, 06/13/2025
-        % Check whether any of the terms involve state variable ii
-        x_idcs = zeros(1,numel(PDE.BC{BC_num}.term));
-        for jj=1:numel(PDE.BC{BC_num}.term)
-            if isfield(PDE.BC{BC_num}.term{jj},'x')
-                x_idcs(jj) = PDE.BC{BC_num}.term{jj}.x;
-            end
-        end
-        if ~any(x_idcs==ii)
-            continue
-        end
-        % Check if boundary condition already correponds to temporal
-        % derivative of other state
-        if ~isfield(PDE.BC{BC_num},'tdiff')
-            % The BC is one already specified by the user
-            % --> impose the same boundary condition on the temporal
-            % derivative of the state variable
-            BC_idcs = setdiff(BC_idcs,BC_num);
-            
-            % Make sure the BC doesn't involves any other inputs
-            if ~all(x_idcs)
-                error("Expansion of temporal derivatives for states with boundary inputs is currently not supported.")
-            end
-            % Impose same boundary condition on each state diff(x,'t',kk)
-            BCs_tmp = repmat(PDE.BC(BC_num),[tdiff-1,1]);
-            BC_tab_tmp = [PDE.BC_tab(end,1)+(1:tdiff-1)',repmat(PDE.BC_tab(BC_num,2:end),[tdiff-1,1])];
-            for kk=1:tdiff-1
-                for jj=find(x_idcs==ii)
-                    % Replace state index with that of diff(x_{ii},'t',kk)
-                    BCs_tmp{kk}.term{jj}.x = nx_new+kk;
-                end
-            end
-            % Keep track of any other state components the BC involves
-            if any(x_idcs~=ii)
-                % BC involves other state x_{jj}
-                % --> BC on temporal derivative of x_{ii} will involve temporal
-                %       derivative of x_{jj}
-                % We will need to modify the BC to account for this
-                BC_idcs = [BC_idcs,numel(PDE.BC)+(1:tdiff-1)];
-                for kk=1:tdiff-1
-                    BCs_tmp{kk}.tdiff = kk;
-                    BCs_tmp{kk}.tdiff_idcs = find(x_idcs~=ii);
-                end
-            end        
-            PDE.BC = [PDE.BC; BCs_tmp];
-            PDE.BC_tab = [PDE.BC_tab; BC_tab_tmp];
-        else
-            % The BC already corresponds to a temporal derivative of an 
-            % earlier state component.
-            % --> modify index of current state component to match this
-            % temporal derivative.
-
-            % We can't take a higher-order temporal derivative than tdiff
-            if PDE.BC{BC_num}.tdiff>tdiff-1
-                error("Expansion of temporal derivatives is not supported: boundary conditions on temporal derivative of PDE state are ambiguous.")
-            end
-            trm_idcs = PDE.BC{BC_num}.tdiff_idcs;
-            for jj=trm_idcs(x_idcs(trm_idcs)==ii)
-                PDE.BC{BC_num}.term{jj}.x = nx_new + PDE.BC{BC_num}.tdiff;
-            end
-            % Remove state ii from list of indices that need to be updated.
-            trm_idcs = trm_idcs(x_idcs(trm_idcs)~=ii);
-            if isempty(trm_idcs)
-                % All state indices in the BC have been updated.
-                BC_idcs = setdiff(BC_idcs,BC_num);
-                PDE.BC{BC_num} = rmfield(PDE.BC{BC_num},{'tdiff','tdiff_idcs'});
-            else
-                % There are still state indices that need to be updated.
-                PDE.BC{BC_num}.tdiff_idcs = trm_idcs;
-            end
-        end
-    end
-
     % Since the current equation \dot{x}_{ii} = x_{n_eq+1} is
     % already properly specified, we just need to clean up a bit,
     % and we can move on to the next equation.
@@ -239,16 +164,6 @@ for ii=1:nx
     
 end
 
-% Check if there are any "unfinished" BCs (e.g. x_j(s=0) = x_i(s=0) implies
-% d/dt x_j(s=0) = d/dt x_i(s=0) but we have no state variable representing 
-% d/dt x_i)
-if any(BC_idcs>nBCs)
-    warning("Boundary conditions on temporal derivative of certain PDE state are ambiguous; returned system may not be well-posed.")
-end
-% Get rid of BCs on auxiliary variables which cannot be completed.
-PDE.BC(BC_idcs(BC_idcs>nBCs)) = [];
-PDE.BC_tab(BC_idcs(BC_idcs>nBCs),:) = [];
-
 % Finally, display a summary, unless otherwise indicated, and return.
 PDE.has_hotd = false;
 % All fields of the returned PDE should still be appropriately specified.
@@ -256,6 +171,10 @@ PDE.is_initialized = true;
 
 if ~suppress_summary
     print_tdiff_expansion_summary(PDE,tdiff_state_tab)
+end
+if nx_new>nx && any(any(PDE.x_tab(nx+1:end,3:2+nvars)))
+    fprintf(2,['\n Warning: No BCs have been imposed on the newly added state components representing the higher order temporal derivatives. \n',...
+                 '          Results of e.g. stability tests may be very conservative.\n'])
 end
 
 end
@@ -351,7 +270,7 @@ for ii=1:nx_new
     
     % Establish the (subscript) index for the component.
     LHS_length = length(varnames_ii_t);
-    if isscalar(PDE.x)
+    if numel(PDE.x)==1
         % There is only one state component --> no need to give index
         Lcomp_idx = '';
     elseif numel(PDE.x)<=9
@@ -372,7 +291,7 @@ for ii=1:nx_new
     % they are the temporal derivative.
     Rstate_num = tdiff_state_tab(ii);
     Rcomp_idx = cell2mat(sub_num(str2num(num2str(Rstate_num)')+1)');
-    RHS = [' :=  ',xdot,Rcomp_idx,'(',varnames_ii_t,')'];
+    RHS = [' := ',xdot,Rcomp_idx,'(',varnames_ii_t,')'];
     
     % % % Finally, display
     MT_space = max(LHS_length_max-LHS_length,1);
