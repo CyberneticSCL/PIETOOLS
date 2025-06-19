@@ -407,7 +407,7 @@ PDE_1D.BC = PDE_1D.BC(~is_altvar_BC);
 % % Compute the 1D PIE representation associated to the 1D PDE
 PDE_1D = initialize(PDE_1D,true);
 [PDE_1D,comp_order] = reorder_comps(PDE_1D,'all',true);
-try PIE_1D = convert_PIETOOLS_PDE(PDE_1D);                                  % DJ, 12/16/2024
+try PIE_1D = convert_PIETOOLS_PDE(PDE_1D,[],{'silent','Top'});                      % DJ, 12/16/2024
 catch
     error('The expansion of the PDE state in terms of the PIE state fails; perhaps the PDE is ill-posed, or not currently supported.')
 end

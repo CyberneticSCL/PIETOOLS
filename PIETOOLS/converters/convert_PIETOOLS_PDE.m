@@ -1,4 +1,4 @@
-function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
+function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert_PIETOOLS_PDE_2D.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -13,6 +13,11 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 %                   PIE.x{i} = PDE.x{comp_order.x(1)};
 %                   If not specified, the converter will reorder the
 %                   variables itself, and determine the new order.
+% - flag:           (optional) 'char' object which can be set to 'silent'
+%                   to suppress display window messages informing the user
+%                   on the progress, or 'Top' to stop conversion after the
+%                   T operators (from PIE to PDE state) have been computed,
+%                   returning only those.
 %
 % OUTPUTS:
 % - PIE:    A struct with fields:
@@ -79,7 +84,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
 %
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2025 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -109,6 +114,10 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order)
 %                   in 1D case;
 % DJ, 06/01/2025: Pre-process PDE to get rid of higher-order temporal 
 %                   derivatives and delays;
+% DJ, 06/18/2025: Expand higher-order temporal derivatives only after
+%                   conversion. Also, display summary of how PIE variables
+%                   relate to PDE variables, and add an optional argument
+%                   to suppress this summary.
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,6 +142,33 @@ elseif ~isa(PDE,'pde_struct')
     error('The input PDE is not appropriately specified. Please define your PDE as a "pde_struct" class object, and consult the manual and examples for illustration of the structure.')
 end
 
+% % Check the optional input arguments                                      % DJ, 06/18/2025
+suppress_summary = false;       % set to true to suppress display of conversion summary
+return_Top = false;             % set to true to ONLY return the fundamental to PDE state map
+if nargin==1
+    comp_order = [];
+    flag = {};
+elseif nargin==2
+    % Allow flag to be specified as second argument as well.
+    if ischar(comp_order)
+        flag = {comp_order};
+        comp_order = [];
+    elseif iscellstr(comp_order)
+        flag = comp_order;
+        comp_order = [];
+    else
+        flag = {};
+    end
+elseif nargin>3
+    error("Too many input arguments.")
+end 
+if ismember('silent',flag)
+    suppress_summary = true;
+end
+if ismember('Top',flag) || ismember('return_Top',flag)
+    return_Top = true;
+end
+
 % Coefficients smaller than tol in PI operators will be discarded.
 op_clean_tol = 1e-8;   
 
@@ -144,11 +180,11 @@ end
 
 % % % Get rid of any higher-order temporal derivatives and delays in the
 % % % system, and try to reduce the number of spatial variables.
-if PDE.has_hotd                                                             % DJ, 06/01/2025
-    fprintf(['\n','Higher-order temporal derivatives were encounterd:\n']);
-    fprintf([' --- Running "expand_tderivatives" to reduce to first-order temporal derivatives ---\n']);
-    PDE = expand_tderivatives(PDE);
-end
+% if PDE.has_hotd                                                             % DJ, 06/18/2025
+%     fprintf(['\n','Higher-order temporal derivatives were encounterd:\n']);
+%     fprintf([' --- Running "expand_tderivatives" to reduce to first-order temporal derivatives ---\n']);
+%     PDE = expand_tderivatives(PDE);
+% end
 if PDE.has_delay
     fprintf(['\n','Delayed states on inputs were encounterd:\n']);
     fprintf([' --- Running "expand_delays" to remove the delays --- \n']);
@@ -162,14 +198,6 @@ if PDE.dim>2
         error('The number of spatial variables could not be reduced to 2 or fewer; conversion to PIE is not currently supported.')
     end
 end
-
-% Reorder state components, inputs, and outputs, so that these may be
-% represented using PI operators.
-fprintf(['\n',' --- Reordering the state components to allow for representation as PIE ---\n']);
-[PDE] = reorder_comps(PDE,{'x','u','w','y','z'});
-
-
-fprintf('\n --- Converting the PDE to an equivalent PIE --- \n')
 
 % Extract spatial variables, and their domain (these will be used in
 % multiple subroutines).
@@ -190,6 +218,9 @@ global nvars;       nvars = size(vars,1);
 %   x_new = [x_j; x_i; x_k] in [ R^n_j; L2^n_i[s2]; L2^n_k[s2] ];
 % We do this using the "reorder_comps" subroutine.
 if nargin==1 || ~isa(comp_order,'struct')
+    if ~suppress_summary
+        fprintf(['\n',' --- Reordering the state components to allow for representation as PIE ---\n']);
+    end
     [PDE,xcomp_order] = reorder_comps(PDE,'x',true);
     [PDE,ycomp_order] = reorder_comps(PDE,'y',true);
     [PDE,zcomp_order] = reorder_comps(PDE,'z',true);
@@ -269,7 +300,9 @@ np_op.y = get_opdim(y_tab);
 np_op.z = get_opdim(z_tab);
 
 
-
+if ~suppress_summary
+    fprintf('\n --- Converting the PDE to an equivalent PIE --- \n')
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Deriving a map from fundamental to PDE state            % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -486,6 +519,14 @@ Dvals_u = zeros(numel(PDE.u),2);
 
 end
 
+if return_Top
+    % If only the T operators are requested, we stop here.
+    PIE = pie_struct();
+    PIE.dom = dom;  PIE.vars = vars;
+    PIE.T = Top_x;  PIE.Tw = Top_w;     PIE.Tu = Top_u;
+    return
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Deriving an equivalent PIE representation               % % % % %
@@ -498,9 +539,9 @@ end
 % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 % % % STEP 1: 
 % % % Write the PDE using PI operators, so that
-% % %   x = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j)* x + P_u2x* u + P_w2x* w; 
-% % %   y = sum_j=1^n2 (P_x2y{j} * Delta_j * D_j)* x + P_u2y* u + P_w2y* w; 
-% % %   z = sum_j=1^n3 (P_x2z{j} * Delta_j * D_j)* x + P_u2z* u + P_w2z* w; 
+% % % (d/dt)^k x = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j)* x + P_u2x* u + P_w2x* w; 
+% % %          y = sum_j=1^n2 (P_x2y{j} * Delta_j * D_j)* x + P_u2y* u + P_w2y* w; 
+% % %          z = sum_j=1^n3 (P_x2z{j} * Delta_j * D_j)* x + P_u2z* u + P_w2z* w; 
 % % % where the P_ are all PI operators, D_j are differential operators,
 % % % Delta_j are delta operators, evaluating the state x(s) at s=s, or
 % % % s=a or s=b for s\in[a,b].
@@ -525,11 +566,11 @@ end
 % % % Impose the relation
 % % %   x = Tx * xf + Tu * u + Tw * w;
 % % % so that e.g.
-% % %   x = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j)* x + P_u2x*u + P_w2x*w; 
-% % %     = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tx)* xf
-% % %       + (P_u2x + sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tu)* u
-% % %         + (P_w2x + sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tw)* w
-% % %     = A * xf + Bu * u + Bw * w;
+% % %  (d/dt)^k x = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j)* x + P_u2x*u + P_w2x*w; 
+% % %             = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tx)* xf
+% % %                 + (P_u2x + sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tu)* u
+% % %                   + (P_w2x + sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tw)* w
+% % %             = A * xf + Bu * u + Bw * w;
 % % % where the composition of the differential operators and the Delta
 % % % operators with the PI operators T is a PI operator.
 Pop = struct();
@@ -540,12 +581,20 @@ Pop.x = Pop_x2y_cell;   Pop.u = Pop_u2y;    Pop.w = Pop_w2y;
 Pop.x = Pop_x2z_cell;   Pop.u = Pop_u2z;    Pop.w = Pop_w2z;
 [Cop_x2z, Dop_u2z, Dop_w2z] = impose_fundamental_map(Top,Pop,loc_diff_tab_z,retain_xvars_z);
 
+
 % % % With that, we can equivalently represent the PDE as a PIE:
-% % %   Tw * w_{t} + Tu * u_{t} + Tx * xf_{t} = A  * xf + Bu  * u + Bw  * w ;
-% % %                                  y      = Cy * xf + Dyu * u + Dyw * w ;
-% % %                                  z      = Cz * xf + Dzu * u + Dzw * w ;
-
-
+% % %   D_{t} * (Tw * w + Tu * u + Tx * xf) = A  * xf + Bu  * u + Bw  * w ;
+% % %                                    y  = Cy * xf + Dyu * u + Dyw * w ;
+% % %                                    z  = Cz * xf + Dzu * u + Dzw * w ;
+% % % where D_{t} is a diagonal temporal differential operator,
+% % %   D_{t} = diag([(d/dt)^tdiff(1) , ... , (d/dt)^tdiff(nx)])
+% % % We determine the orders of the temporal derivatives here
+tdiff_list = ones(numel(PDE.x),1);
+for ii=1:numel(PDE.x)
+    if isfield(PDE.x{ii},'tdiff')
+        tdiff_list(ii) = PDE.x{ii}.tdiff;
+    end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Defining the PIE structure                              % % % % %
@@ -574,7 +623,7 @@ PIE.D12 = clean_opvar(Dop_u2z,op_clean_tol);
 PIE.D21 = clean_opvar(Dop_w2y,op_clean_tol);
 PIE.D22 = clean_opvar(Dop_u2y,op_clean_tol);
 
-% Finally, keep track of how the state components in the original PDE are
+% Keep track of how the state components in the original PDE are
 % now ordered in the PIE.
 x_tab(:,1) = xcomp_order;       PIE.x_tab = x_tab;
 y_tab(:,1) = ycomp_order;       PIE.y_tab = y_tab;
@@ -583,7 +632,7 @@ u_tab(:,1) = ucomp_order;       PIE.u_tab = u_tab;
 w_tab(:,1) = wcomp_order;       PIE.w_tab = w_tab;
 
 % Also keep track of which derivatives of the inputs must be taken in the
-% PIE representation
+% PIE representation.
 if size(w_tab,2)==2+2*nvars
     PIE.w_tab(:,end-nvars+1:end) = Dvals_w;
 else
@@ -593,6 +642,25 @@ if size(u_tab,2)==2+2*nvars
     PIE.u_tab(:,end-nvars+1:end) = Dvals_u;
 else
     PIE.u_tab = [PIE.u_tab,Dvals_u];
+end
+
+% Get rid of any higher-order temporal derivatives in the PIE.              % DJ, 06/18/2025
+if any(tdiff_list>1)
+    [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,true);
+else
+    tdiff_tab = [(1:numel(PDE.x))',zeros(numel(PDE.x),1)];
+end
+
+% Finally, provide an overview of how the new state variables relate to the
+% PDE variables.                                                            % DJ, 06/18/2025
+if ~suppress_summary
+    objs = {'x';'u';'w';'y';'z'};
+    for idx = 1:5
+        obj = objs{idx};
+        if size(PIE.([obj,'_tab']),1)>=1
+            print_convert_summary(PIE,obj,tdiff_tab(:,2));
+        end
+    end
 end
 
 end
@@ -1583,3 +1651,194 @@ for jj = 1:numel(Pop_x_cell)
 end
 
 end
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function print_convert_summary(PIE,obj,tdiff_list)
+% print_reorder_summary(PIE,obj,ncomps_x)
+% prints information in the command window on how the state variables,
+% inputs, and outputs in the computed PIE structure relate to those in the
+% original PDE.
+%
+% INPUTS:
+% - PIE:    A "pie_struct" class object defining a PIE.
+% - obj:    Char 'x', 'u', 'w', 'y', or 'z', indicating for which
+%           object to display how they relate to the associated object in 
+%           the PDE.
+% - tdiff_list: If 'obj' = 'x', this should be an nx x 1 array indicating
+%               for each of the nx (vector-valued_ fundamental state 
+%               components what temporal derivative of the corresponding
+%               PDE state component they correspond to.
+%
+% OUTPUTS:
+% Displays information in the command window on how the state components,
+% inputs, and outputs in the PIE relate to those in the PDE.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Set a name associated to each object.
+if strcmp(obj,'x')
+    object_name = 'fundamental state component';
+elseif strcmp(obj,'y')
+    object_name = 'observed output';
+elseif strcmp(obj,'z')
+    object_name = 'regulated output';
+elseif strcmp(obj,'u')
+    object_name = 'actuator input';
+elseif strcmp(obj,'w')
+    object_name = 'exogenous input';
+end
+obj_tab = PIE.([obj,'_tab']);
+ncomps = size(obj_tab,1);
+nvars = size(PIE.vars,1);
+has_diffs = false;
+if all(obj_tab(:,1)==(1:ncomps)') && (size(obj_tab,2)<=2+nvars || ~any(any(obj_tab(:,3+nvars:2+2*nvars))))
+    % The components in the PIE correspond exactly to the components in the
+    % PDE.
+    return
+elseif size(obj_tab,2)<=2+nvars || ~any(any(obj_tab(:,3+nvars:2+2*nvars)))
+    % Otherwise, we list the new order of the components.
+    fprintf(['\n','The ',object_name,'s have been reindexed as:\n']);
+else
+    % Indicate how the new components relate to those in the PDE
+    has_diffs = true;
+    fprintf(['\n','The following ',object_name,'s have been introduced:\n']);  
+end
+
+% Use UNICODE to add subscript indices to different components.
+thin_space = char(8201);
+sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
+partial = '\x2202';
+sub_t = '\x209C';
+%sub_s = '\x209B';
+%int = '\x222B';
+%xdot = '\x1E8B';
+%xdot = [partial,sub_t,' x'];
+% Also use UNICODE for superscript orders of the temporal derivative
+sup_num = cell(10,1);    % Superscripts
+sup_num{1} = '\x2070';  % Superscript 0
+sup_num{2} = '\xB9';
+sup_num{3} = '\xB2';
+sup_num{4} = '\xB3';
+sup_num{5} = '\x2074';
+sup_num{6} = '\x2075';
+sup_num{7} = '\x2076';
+sup_num{8} = '\x2077';
+sup_num{9} = '\x2078';
+sup_num{10} = '\x2079';
+
+% Determine how many subscripts will be needed.
+n_digits = 1+floor(log(ncomps)/log(10));
+
+
+% % For the purpose of clearer display, we make an estimate of how long the
+% % display will be. 
+% First, determine which variables appear in the different state variables.
+global_vars_obj = PIE.vars(any(PIE.([obj,'_tab'])(:,3:2+nvars),1),:);
+lngth_varnames = 3;      % just three characters: (t)
+if ~isempty(global_vars_obj)
+    varname_cell = cell(nvars,1);
+    if nvars==1
+        varname_cell{1} = 's';
+        lngth_varnames = lngth_varnames+2;    % add two characters: ,s
+    else
+        varname_cell{1} = ['s',sub_num{2}];
+        lngth_varnames = lngth_varnames+2;    % add three characters: ,s1
+        for kk=2:nvars
+            varname_cell{kk} = ['s',cell2mat(sub_num(str2num(num2str(kk)')+1)')];
+            lngth_varnames = lngth_varnames+2;    % add three characters: ,sj
+        end
+    end
+end
+% Then, estimate the size of the string of characters denoting the components
+% "PDE.x{ii}".
+nvars_max = max(sum(PIE.([obj,'_tab'])(:,3:2+nvars),2));
+lngth_varnames_mean = ceil(lngth_varnames*nvars_max/nvars);
+LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+3; % e.g. ' x13(t,s1,s2,s3)', 
+
+
+% % For each of the components, display its size, and which variables it
+% % depends on.
+for ii=1:ncomps
+    old_ID = obj_tab(ii,1);
+
+    % Establish the names of the variables on which the component depends.
+    varnames_ii_t = 't';
+    LHS_length = 1;
+    var_idcs = find(obj_tab(ii,3:2+PIE.dim));
+    for kk=var_idcs
+        varnames_ii_t = [varnames_ii_t,',',varname_cell{kk}];
+        LHS_length = LHS_length+3;  % add 3 characters: ,s1
+    end
+    
+    % Establish the (subscript) index for the new component.
+    new_idx = ii;
+    if ncomps==1
+        Lcomp_idx = '';
+    elseif ii<=9
+        % The component number consists of a single decimal.
+        Lcomp_idx = sub_num{new_idx+1};
+        LHS_length = LHS_length + 1;
+    else
+        % The component number consists of multiple decimals.
+        Lcomp_idx = cell2mat(sub_num(str2num(num2str(new_idx)')+1)');
+        LHS_length = LHS_length + length(num2str(new_idx));
+    end
+    % Set the name of the component, including its dependence on spatial
+    % variables.
+    LHS_name = [' ',obj,Lcomp_idx,'(',varnames_ii_t,')'];
+    LHS_length = 1 + LHS_length + 3;
+        
+    % Establish the index for the old component
+    if ncomps==1
+        Rcomp_idx = '';
+    elseif old_ID<=9
+        % The component number consists of a single decimal.
+        Rcomp_idx = sub_num{old_ID+1};
+    else
+        % The component number consists of multiple decimals.
+        Rcomp_idx = cell2mat(sub_num(str2num(num2str(old_ID)')+1)');
+    end
+    % Set the name of the component, including its dependence on spatial
+    % variables.
+    RHS_name = [thin_space,obj,Rcomp_idx,'(',varnames_ii_t,')'];
+    % For state components, also indicate what spatial/temporal derivative
+    % of the PDE state they correspond to.
+    if strcmp(obj,'x') && any(tdiff_list)
+        tdiff = tdiff_list(ii);
+        if tdiff==0
+            diff_str = ['       ',thin_space];
+        elseif tdiff==1
+            diff_str = [' (',partial,'/',partial,'t)',thin_space];
+        else
+            t_sup = cell2mat(sup_num(str2num(num2str(tdiff)')+1)');
+            diff_str = ['(',partial,'/',partial,'t)',t_sup,thin_space];
+        end
+    else
+        diff_str = '';
+    end
+    if has_diffs
+        Dvals = obj_tab(ii,2+nvars+1:2+2*nvars);
+        for jj=1:nvars
+            sdiff = Dvals(jj);
+            if sdiff==0
+                diff_str = ['        ',diff_str,thin_space];
+            elseif sdiff==1
+                diff_str = [diff_str,'(',partial,'/',partial,varname_cell{jj},')',thin_space];
+            else
+                s_sup = cell2mat(sup_num(str2num(num2str(sdiff)')+1)');
+                diff_str = [diff_str,'(',partial,'/',partial,varname_cell{jj},')',s_sup,thin_space];
+            end
+        end
+        RHS_name = [diff_str,RHS_name];
+    end
+    
+    % % % Finally, display:
+    MT_space = max(LHS_length_max-LHS_length,1);
+    fprintf(['  ',LHS_name,repmat(' ',[1,MT_space]),' <--  ',RHS_name,'\n']);
+end
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
