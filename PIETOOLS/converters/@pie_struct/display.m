@@ -19,7 +19,7 @@ function display(PIE,name)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - disp_pie
 %
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2025 PIETOOLS TEAM
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ function display(PIE,name)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/30/2022
+% DJ, 06/25/2025: Add display of 'misc' field;
 
 % % % Set up a list of characters that we need for the display
 % Name of the PIE structure.
@@ -144,6 +145,30 @@ fprintf(['\n      C1: [',nz,ttimes,nx,' ',op,'];    ',...
 fprintf(['\n      C2: [',ny,ttimes,nx,' ',op,'];    ',...
                 'D21: [',ny,ttimes,nw,' ',op,'];    ',...
                 'D22: [',ny,ttimes,nu,' ',op,']; ']);
+
+fprintf('\n');
+
+if ~isempty(PIE.misc)
+    if isa(PIE.misc,'struct')
+        fprintf('\n    misc\n');
+        fnames = fieldnames(PIE.misc);
+        for jj=1:numel(fnames)
+            fprintf(['     .',fnames{jj},': ']);
+            obj = PIE.misc.(fnames{jj});
+            obj_class = class(obj);
+            nr = cell2mat(num_list(str2num(num2str(size(obj,1))')+1)');
+            nc = cell2mat(num_list(str2num(num2str(size(obj,2))')+1)');
+            fprintf(['[',nr,ttimes,nc,' ',obj_class,'];\n'])
+        end
+    else
+        fprintf('\n    misc: ')
+        obj = PIE.misc;
+        obj_class = class(obj);
+        nr = cell2mat(num_list(str2num(num2str(size(obj,1))')+1)');
+        nc = cell2mat(num_list(str2num(num2str(size(obj,2))')+1)');
+        fprintf(['[',nr,ttimes,nc,' ',obj_class,'];\n'])
+    end
+end
 
 fprintf('\n');
 

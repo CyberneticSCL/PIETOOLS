@@ -1,6 +1,6 @@
 classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 % pie_struct is a class of objects used to describe PIE systems in
-% PIETOOLS 2022. It has the following fields:
+% PIETOOLS. It has the following fields:
 %
 % - PDE.dim:    Integer "p" specifying the dimension of the
 %               spatial domain of the system. Currently, only p<=2 is
@@ -52,9 +52,14 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %               state compopnent is differentiated wrt this variable in
 %               defining the associated fundamental state component in the
 %               PIE.
+%
+% PIE.misc:    A hidden struct in which you can deposit any other objects
+%               you deem relevant to the PIE, using e.g. 
+%                   PIE.misc.obj_name1 = obj1;
+%                   PIE.misc.obj_name2 = obj2;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2025 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -76,6 +81,7 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 % authorship, and a brief description of modifications
 %
 % Initial coding SS, DJ - 08/12/2022
+% DJ, 06/25/2025: Add "misc" field for additional data.
     
     properties
         dom = zeros(0,2);
@@ -92,6 +98,8 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
         C2;
         D21;
         D22;
+        % "misc" field to add any other stuff relevant to the PIE.
+        misc;
     end
     
     properties (Hidden)
