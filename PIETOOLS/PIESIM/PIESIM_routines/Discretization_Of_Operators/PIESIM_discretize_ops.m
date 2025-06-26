@@ -22,6 +22,7 @@
 % PDE from map operator).
 % YP - added functionality to support infinite-dimensional disturbances
 % through parser - 6_1_2025
+% YP 06/26/2025 - modified support for T0 operator with new pie_struct
 
 function Dop=PIESIM_discretize_ops(PIE, psize);
 
@@ -74,8 +75,8 @@ end
  Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,2);
  Dop.Acheb=PIESIM_4PI2Mat_cheb(N,PIE.A,p,3);
  [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,3);
- if isfield(PIE,'T0') 
-     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T0,p,3);
+ if isfield(PIE.misc,'T0') 
+     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.T0,p,3);
  end
 %  
   Dop.Mcheb_inv=inv(Mcheb);
