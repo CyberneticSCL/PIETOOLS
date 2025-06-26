@@ -46,6 +46,8 @@ function PIE = rescalePIE_2D(PIE,I)
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 06_23_2022
+% YP 6/26/2025 - modified support for T0 operator with new pie_struct
+
 
 if nargin<3
     I = [-1,1;-1,1];
@@ -56,8 +58,8 @@ end
 PIE.T = transl_2D(PIE.T,I);
 PIE.A = transl_2D(PIE.A,I);
 
-if isfield(PIE,'T0')
-PIE.T0 = transl_2D(PIE.T0,I);
+if isfield(PIE.misc,'T0')
+PIE.misc.T0 = transl_2D(PIE.misc.T0,I);
 end
 PIE.Tw = transl_2D(PIE.Tw,I);
 PIE.Tu = transl_2D(PIE.Tu,I);
