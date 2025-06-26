@@ -48,14 +48,15 @@ function PIE = rescalePIE(PIE,I)
 % Initial coding YP  - 10_06_2021
 % YP 6/16/2022 - Separated PDE LHS operator (T) from the state map operator
 % (T0)
+% YP 6/26/2025 - modified support for T0 operator with new pie_struct
 
 if nargin==1
     I = [-1,1];
 end
 
 PIE.T = transl_mod(PIE.T,I);
-if isfield(PIE,'T0')
-PIE.T0 = transl_mod(PIE.T0,I);
+if isfield(PIE.misc,'T0')
+PIE.misc.T0 = transl_mod(PIE.misc.T0,I);
 end
 PIE.Tw = transl_mod(PIE.Tw,I);
 PIE.Tu = transl_mod(PIE.Tu,I);
