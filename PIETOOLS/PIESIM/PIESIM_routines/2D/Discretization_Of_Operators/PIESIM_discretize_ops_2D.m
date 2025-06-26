@@ -18,6 +18,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 04_16_2024
+% YP 06/26/2025 - modified support for T0 operator with new pie_struct
 
 function Dop=PIESIM_discretize_ops_2D(PIE, psize);
 
@@ -35,8 +36,8 @@ function Dop=PIESIM_discretize_ops_2D(PIE, psize);
  Dop.C2cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.C2,psize,2);
  Dop.Acheb=PIESIM_fullPI2Mat_cheb_2D(PIE.A,psize,3);
  [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.T,psize,3);
- if isfield(PIE,'T0') 
-     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.T0,psize,3);
+ if isfield(PIE.misc,'T0') 
+     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.misc.T0,psize,3);
  end
 %  
   Dop.Mcheb_inv=inv(Mcheb);
