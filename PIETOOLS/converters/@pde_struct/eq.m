@@ -42,6 +42,8 @@ function PDE_out = eq(LHS,RHS)
 % DJ, 01/03/2025: Use "is_zero" to indicate zero equations (e.g. y==0);
 % DJ, 01/05/2025: Bugfix, replace {eq_num} with {eq_num,1};
 % DJ, 01/06/2025: Expand support for equating vector-valued terms;
+% DJ, 08/22/2025: Allow equations x==0 or 0==x to be set, adjusting size of
+%                   0 to match that of x;
 
 % % % Process the inputs
 
@@ -93,11 +95,39 @@ if ~isnumeric(LHS)                                                          % DJ
     % matches that in RHS
     sz_L = zeros(numel(LHS.free),1);
     for ii=1:numel(LHS.free)
-        sz_L(ii) = LHS.free{ii}.size;
+        if isempty(LHS.free{ii})                                            % DJ, 08/22/2025
+            % Assume LHS.free{ii} = zeros(sz_R(ii));
+            sz_L(ii) = nan;
+        else
+            sz_L(ii) = LHS.free{ii}.size;
+        end
     end
     sz_R = zeros(numel(RHS.free),1);
     for ii=1:numel(RHS.free)
-        sz_R(ii) = RHS.free{ii}.size;
+        if isempty(RHS.free{ii})                                            % DJ, 08/22/2025
+            % Assume RHS.free{ii} = zeros(sz_L(ii));
+            sz_R(ii) = nan;
+        else
+            sz_R(ii) = RHS.free{ii}.size;
+        end
+    end
+    if any(isnan(sz_L)) || any(isnan(sz_R))                                 % DJ, 08/22/2025
+        % If there is only one uncertain size, match the LHS and RHS
+        % dimensions
+        if sum(isnan(sz_L))==1 && ~any(isnan(sz_R)) && (sum(sz_R)-sum(sz_L(~isnan(sz_L))))>=0
+            sz_L(isnan(sz_L)) = sum(sz_R) - sum(sz_L(~isnan(sz_L)));
+        elseif sum(isnan(sz_R))==1 && ~any(isnan(sz_L)) && (sum(sz_L) - sum(sz_R(~isnan(sz_R))))>=0
+            sz_R(isnan(sz_R)) = sum(sz_L) - sum(sz_R(~isnan(sz_R)));
+        else
+            % Otherwise, if the number of equations match, get size of LHS 
+            % from that of RHS, and vice versa
+            if numel(sz_L)==numel(sz_R) && ~any(isnan(sz_L) & isnan(sz_R))
+                sz_L(isnan(sz_L)) = sz_R(isnan(sz_L));
+                sz_R(isnan(sz_R)) = sz_L(isnan(sz_R));
+            else
+                error("Equality cannot be set: size of zeros on LHS or RHS is ambiguous.")
+            end
+        end
     end
     if sum(sz_L)~=sum(sz_R)
         error("Number of rows of terms to equate does not match; equality cannot be enforced.")
@@ -121,6 +151,10 @@ end
 % % % Loop over all equations
 PDE_out = RHS;
 for ii=1:numel(RHS.free)
+    if isempty(RHS.free{ii})                                                % DJ, 08/22/2025
+        % Remove equations 0==0
+        continue
+    end
     % % Check if the first term corresponds to a "left-hand side object",
     % % so the temporal derivative of a state component, or an output.
     [is_LHS_ii,obj,eq_num,tdiff] = is_LHS_term(RHS.free{ii}.term{1});

@@ -40,6 +40,7 @@ function [PDE_out] = vertcat(varargin)
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
+% DJ, 08/22/2025: Allow concatenation with multiple zeros, [0;0;x];
 
 
 % % % Process the inputs
@@ -114,8 +115,10 @@ if ~isnumeric(PDE_1) && ~isnumeric(PDE_2)
     [PDE_1,PDE_2] = pde_common_basis(PDE_1,PDE_2);
 end
 
-% % Consider four cases:
-if isnumeric(PDE_1)
+% % Consider five cases:
+if isnumeric(PDE_1) && isnumeric(PDE_2)                                     % DJ, 08/22/2025
+    PDE_out = PDE_2;
+elseif isnumeric(PDE_1)
     % % Case 1: Concatenate zeros with PDE_2;
     PDE_out = PDE_2;
     PDE_out.free = [cell(size(PDE_1,1),1); PDE_2.free];
