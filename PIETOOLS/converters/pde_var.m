@@ -182,8 +182,10 @@ elseif iscellstr(vars)
 elseif isempty(vars)
     % Set empty list of variables.
     vars = polynomial(zeros(0,1));
-elseif ~isempty(vars) && ~ispvar(vars)
+elseif ~isempty(vars) && ~isa(vars,'polynomial')
     error('Spatial variables for the desired object should be specified as an object of type ''polynomial'' or as a cell of variable names.' )
+elseif ~isempty(vars) && ~ispvar(vars)
+    error('Spatial variables for the desired object should be specified as array of individual polynomial variables (''pvar'' objects).' )
 end
 if ~isempty(vars) && ~any(size(vars)==1)
     error('Spatial variables for the desired object should be specified as array of size nx1.')
