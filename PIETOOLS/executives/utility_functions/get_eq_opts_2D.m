@@ -53,6 +53,10 @@ function eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol)
 %
 % Initial coding DJ - 07/31/2024
 
+if nargin<=2
+    ztol = 1e-12;
+end
+
 % Determine the required dimension of the operator Qeop in the equality
 %       Qop==Qeop;
 Qdim = Qop.dim(:,1);
