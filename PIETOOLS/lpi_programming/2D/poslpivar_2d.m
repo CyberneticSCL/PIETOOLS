@@ -430,7 +430,7 @@ if numel(excludeL)==4
     excludeL = [excludeL(1),...
                 excludeL(2:4),...
                 excludeL(2:4),...
-                reshape((excludeL').*excludeL,1,[])];
+                reshape((excludeL(2:4)').*excludeL(2:4),1,[])];
 elseif numel(excludeL)~=16
     error('For 2D operator, options ''exclude'' should be specified as 1x16 array of binary values.')
 end
@@ -2277,7 +2277,7 @@ dsize_prod = 2.^(0:nvars-1);    % Vector translating step 1 increase in dimensio
 % end
 
 % % To be safe, we perform several cycles of updates to the degrees, though
-% % 1 should be sufficient (in general)
+% % one should be sufficient (in general)
 maxdegs_old = maxdegs;
 max_updates = 5;
 n_updates = max_updates;
