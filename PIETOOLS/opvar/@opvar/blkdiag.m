@@ -1,6 +1,6 @@
 function Fdiag = blkdiag(varargin)
-% F = blkdiag(varargin) generates a block diagonal opvar2d object using
-% varargs as the diag blocks
+% F = blkdiag(varargin) generates a block diagonal opvar object using
+% varargs as the blocks on the diagonal
 % 
 % INPUTS
 % - varargin:   'opvar' class objects.
