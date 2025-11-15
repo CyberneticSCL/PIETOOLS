@@ -447,9 +447,9 @@ uinput.exact(2) = u_ex;
 
 
 % % %----------------------------------------
-% % %% Example 8 - 2D heat equation with Periodic BCs in both directions
+% % %% Example 8.5 - 2D heat equation with Periodic BCs in both directions
 % % %----------------------------------------
-% % case 8
+% case 8.5
 % % % Standard 2D heat equation with Periodic BCs
 % % %   u_t=visc*(u_xx + u_yy)                        (x,y) in [a,b]x[c,d]
 % % %   u(a,y,t) = u(b,y,t);    u_{x}(a,y,t) = u_{x}(b,y,t); 
@@ -513,6 +513,25 @@ uinput.exact(2) = u_ex;
 % % Initialize the PDE
 % PDE = initialize([Dyn;BCs]);
 % 
+% % % Alternative implementation, including u_{x}(t,b,y)=u_{x}(t,a,y)
+% % % conditions
+% % x1 = pde_var();
+% % x2 = pde_var(s1,[a,b],3);
+% % x3 = pde_var(s2,[c,d],3);
+% % x4 = pde_var([s1;s2],[a,b;c,d],[3;3]);
+% % % Declare the dynamics
+% % Dyn = [diff(x1,t)==0;
+% %        diff(x2,t)==visc*diff(x2,s1,2);
+% %        diff(x3,t)==visc*diff(x3,s2,2);
+% %        diff(x4,t)==visc*(diff(x4,s1,2)+diff(x4,s2,2))];
+% % % Declare the boundary conditions
+% % BCs = [int(x2,s1,[a,b])==x1;    subs(x2,s1,b)==subs(x2,s1,a);   subs(diff(x2,s1),s1,b)==subs(diff(x2,s1),s1,a);
+% %        int(x3,s2,[c,d])==x1;    subs(x3,s2,d)==subs(x3,s2,c);   subs(diff(x3,s2),s2,d)==subs(diff(x3,s2),s2,c);
+% %        int(x4,s2,[c,d])==x2;    subs(x4,s2,d)==subs(x4,s2,c);   subs(diff(x4,s2),s2,d)==subs(diff(x4,s2),s2,c);
+% %        int(x4,s1,[a,b])==x3;    subs(x4,s1,b)==subs(x4,s1,a);   subs(diff(x4,s1),s1,b)==subs(diff(x4,s1),s1,a)];
+% % % Initialize the PDE
+% % PDE = initialize([Dyn;BCs]);
+% 
 % 
 % % % Set the initial conditions
 % % %   u(x,y,0) = -1 + ampl*cos(2*pi*(x-0.5*(a+b))/(b-a))*sin(6*pi*(y-0.5*(c+d))/(d-c));
@@ -524,7 +543,7 @@ uinput.exact(2) = u_ex;
 % 
 % % % Set the exact solution
 % % %   u(x,y,t) = -1 + ampl*cos(2*pi*(x-0.5*(a+b))/(b-a))*sin(6*pi*(y-0.5*(c+d))/(d-c))*exp(-visc*4*pi^2*t/(b-a)^2 -visc*36*pi^2*t/(d-c)^2)
-% u_ex = -1 + ampl*cos(2*sym(pi)*(sx-0.5*(a+b))/(b-a))*sin(6*sym(pi)*(sy-0.5*(c+d))/(d-c))*exp(-visc*st*sym(pi)^2*(4/(b-a)^2 -36/(d-c)^2));
+% u_ex = -1 + ampl*cos(2*sym(pi)*(sx-0.5*(a+b))/(b-a))*sin(6*sym(pi)*(sy-0.5*(c+d))/(d-c))*exp(-visc*st*sym(pi)^2*(4/(b-a)^2 +36/(d-c)^2));
 % uinput.exact(1) = int(int(u_ex,sy,c,d),sx,a,b);
 % uinput.exact(2) = int(u_ex,sy,c,d);
 % uinput.exact(3) = int(u_ex,sx,a,b);
