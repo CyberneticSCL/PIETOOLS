@@ -78,6 +78,14 @@ end
  if isfield(PIE.misc,'T0') 
      [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.T0,p,3);
  end
+
+ if isfield(PIE.misc,'Tu') 
+     [Dop.Tucheb0]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tu,p,2);
+ end
+
+ if isfield(PIE.misc,'Tw') 
+     [Dop.Twcheb0]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tw,p,2);
+ end
 %  
   Dop.Mcheb_inv=inv(Mcheb);
   Dop.Atotal=Dop.Mcheb_inv*Dop.Acheb;
