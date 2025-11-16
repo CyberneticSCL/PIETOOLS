@@ -2595,6 +2595,100 @@ C = [-2/5, -5/4, 3/2, 1/3, 1/40];
  uinput.ic.ODE=[-1 1 -2 2 -1];
  uinput.ic.PDE=5*sx*(1-sx)^2*cos(3*pi*sx);
 
+%----------------------------------------
+% Cylindrical Coordinates: Variable Substitution Examples
+%----------------------------------------
 
+% Examples 39–40 use the substitution r = s^2 to remove the 1/r singularity
+% in axisymmetric PDEs. After substitution, all terms become regular in s.
+
+%----------------------------------------
+% Example 39 - Axisymmetric Diffusion
+% Neumann(left) and Dirichlet(right)
+%----------------------------------------
+
+% Original PDE in r: u_t = alpha[(1/r)*u_r + u_rr] 
+% Original BCs:
+%     r = 0:  u_r(0,t) = 0          (Neumann)
+%     r = 1:  u(1,t)   = 0          (Dirichlet)
+
+% Variable substitution:  r = s^2,  s ∈ [0,1] 
+% Transformed PDE in s: u_t = 4*alpha*(u_s + s*u_ss) 
+% Transformed BCs:
+%     s = 1:  u(1,t) = 0
+%     s = 0:  u_s(0,t) = -(j01^2 / 4) * exp(-j01^2 * t)
+%             (this is the transformed Neumann condition at r=0)
+% Exact solution: u(s,t) = J0(j01 * sqrt(s)) * exp(-j01^2 * t)
+% where J0 is the Bessel function of the first kind (order 0) and j01 is
+% its first zero.    
+
+case 39
+   
+    a = 0.0001; b = 1;         
+    PDE.dom = [a b];
+    alpha = 1;  
+    j01 = 2.4048;
+
+    x1 = pde_var(s1, [a, b]);    
+    x = x1;
+    w = pde_var('in');
+    
+    Dyn = diff(x, t) == 4*alpha*(diff(x, s1) + s1 * diff(x, s1, 2));
+
+    BCs = [subs(diff(x1, s1), s1, a) == w;   
+               subs(x1, s1, b) == 0];                                    
+
+    PDE = initialize([Dyn; BCs]);
+    
+%   Exact solution, initial conditions, and inhomogeneous inputs
+    uinput.exact(1) = besselj(0, j01 * sqrt(sx)) * exp(-j01^2* st);
+    uinput.ic.PDE = besselj(0, j01 * sqrt(sx));
+    uinput.w(1) = -j01^2/4 * exp(-j01^2* st);
+
+%----------------------------------------
+% Example 40 - Axisymmetric Diffusion Reaction
+% Neumann(left) and Dirichlet(right)
+%----------------------------------------
+
+% Original PDE in r: u_t = alpha[lambda*u + (1/r)*u_r + u_rr] 
+% Original BCs:
+%     r = 0:  u_r(0,t) = 0          (Neumann)
+%     r = 1:  u(1,t)   = 0          (Dirichlet)
+
+% Variable substitution:  r = s^2,  s ∈ [0,1] 
+% Transformed PDE in s: u_t = lambda*u + 4*alpha*(u_s + s*u_ss) 
+% Transformed BCs:
+%     s = 1:  u(1,t) = 0
+%     s = 0:  u_s(0,t) = -(j01^2 / 4) * exp(-(j01^2-lambda)*t)
+%             (this is the transformed Neumann condition at r=0)
+% Exact solution: u(s,t) = J0(j01 * sqrt(s)) * exp(-(j01^2-lambda)*t)
+% where J0 is the Bessel function of the first kind (order 0) and j01 is
+% its first zero.    
+
+case 40
+
+    a = 0.0001; b = 1;        
+    PDE.dom = [a b];
+    alpha = 1;
+    lambda = 1;
+    j01 = 2.4048;
+
+    x1 = pde_var(s1, [a, b]);    
+    x = x1;
+    w = pde_var('in');
+    
+    Dyn = diff(x, t) == lambda * x + 4 * alpha * (diff(x, s1) + s1 * diff(x, s1, 2));
+
+    BCs = [subs(diff(x1, s1), s1, a) == w;   
+               subs(x1, s1, b) == 0];                                    
+
+    PDE = initialize([Dyn; BCs]);
+    
+%   Exact solution, initial conditions, and inhomogeneous inputs
+    uinput.exact(1) = besselj(0, j01 * sqrt(sx)) * exp(-(j01^2 - lambda) * st);
+    uinput.ic.PDE = besselj(0, j01 * sqrt(sx));
+    uinput.w(1) = -j01^2/4 * exp(-(j01^2 - lambda) * st);
+
+    
 end % cases
 % %            
