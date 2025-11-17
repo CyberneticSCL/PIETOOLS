@@ -2698,6 +2698,8 @@ case 40
 % such as (1/r)*u_r or (1/r^2)*u. The weighted formulation avoids
 % singularities by multiplying the entire PDE by the highest
 % power of r that clears all singular terms.
+% Additionally, set opts.dt = 0.001 in solver_PIESIM.m for the 
+% following examples
 
 %----------------------------------------
 % Example 41 - Axisymmetric Diffusion
