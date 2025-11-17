@@ -58,6 +58,13 @@ PIE.T = transl_mod(PIE.T,I);
 if isfield(PIE.misc,'T0')
 PIE.misc.T0 = transl_mod(PIE.misc.T0,I);
 end
+if isfield(PIE.misc,'Tu')
+PIE.misc.Tu = transl_mod(PIE.misc.Tu,I);
+end
+if isfield(PIE.misc,'Tw')
+PIE.misc.Tw = transl_mod(PIE.misc.Tw,I);
+end
+
 PIE.Tw = transl_mod(PIE.Tw,I);
 PIE.Tu = transl_mod(PIE.Tu,I);
 PIE.A = transl_mod(PIE.A,I);
