@@ -31,7 +31,7 @@
 
 function [PDE,uinput]=examples_pde_library_PIESIM_1D(example)
 syms st sx;
-pvar s1;
+pvar s1 t;
 
 switch example
     
