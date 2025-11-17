@@ -2689,6 +2689,136 @@ case 40
     uinput.ic.PDE = besselj(0, j01 * sqrt(sx));
     uinput.w(1) = -j01^2/4 * exp(-(j01^2 - lambda) * st);
 
+%----------------------------------------
+% Cylindrical Coordinates: Weighted Formulation Examples
+%----------------------------------------
+
+% Examples 41–43 illustrate the "weighted formulation" approach. 
+% In cylindrical coordinates, many PDEs contain singular terms
+% such as (1/r)*u_r or (1/r^2)*u. The weighted formulation avoids
+% singularities by multiplying the entire PDE by the highest
+% power of r that clears all singular terms.
+
+%----------------------------------------
+% Example 41 - Axisymmetric Diffusion
+% Neumann(left) and Dirichlet(right)
+%----------------------------------------
+
+% Original PDE: u_t = alpha*( (1/r)u_r + u_rr)
+% Weighted PDE: r*u_t = alpha*(u_r + r*u_rr) 
+% BCs:
+%     r = 0:  u_r(0,t) = 0          (Neumann)
+%     r = 1:  u(1,t)   = 0          (Dirichlet)
+% Exact solution: u(r,t) = J0(j01*r)*exp(-alpha*j01^2*t)
+% Initial condition: u(r, 0) = J0(j01*r)
+
+% IMPORTANT: Since the PDE contains r*u_t, the operator M must also be
+% multiplied by r. To do this, uncomment lines 140-157 in PIESIM.m and
+% ensure M.R.R0 = s1*eye(m)
+case 41
+
+    a = 0.0001; b = 1;
+    PDE.dom = [a b];
+    alpha = 4;
+    j01 = 2.4048;
+
+    x1 = pde_var(s1, [a, b]);    
+    x = x1;
+
+    Dyn = diff(x, t) == alpha*(diff(x, s1) + s1 * diff(x, s1, 2));
+
+    BCs = [subs(diff(x1, s1), s1, a) == 0;   
+               subs(x1, s1, b) == 0];                                    
+
+    PDE = initialize([Dyn; BCs]); 
+
+    uinput.exact = besselj(0, j01*sx)*exp(-alpha*j01^2* st);
+    uinput.ic.PDE = besselj(0, j01*sx);
+
+%----------------------------------------
+% Example 42 - Axisymmetric Diffusion Reaction
+% Neumann(left) and Dirichlet(right)
+%----------------------------------------
+
+% Original PDE: u_t = alpha*(lambda*u + (1/r)u_r + u_rr)
+% PDE in r: r*u_t = alpha*(r*lambda*u + u_r + r*u_rr) 
+% BCs:
+%     r = 0:  u_r(0,t) = 0          (Neumann)
+%     r = 1:  u(1,t)   = 0          (Dirichlet)
+% Exact solution: u(r,t) = J0(j01*r)*exp(-alpha*(j01^2-lambda)*t) 
+% Initial condition: u(r, 0) = J0(j01*r)
+
+% IMPORTANT: Since the PDE contains r*u_t, the operator M must also be
+% multiplied by r. To do this, uncomment lines 140-157 in PIESIM.m and
+% ensure M.R.R0 = s1*eye(m)
+
+case 42
+
+    a = 0.0001; b = 1;
+    PDE.dom = [a b];
+    alpha = 1;
+    lambda = 1;
+    j01 = 2.4048;
+
+    x1 = pde_var(s1, [a, b]);    
+    x = x1;
+
+    Dyn = diff(x, t) == alpha*(diff(x, s1) + s1*diff(x, s1, 2) + s1*lambda*x);
+
+    BCs = [subs(diff(x1, s1), s1, a) == 0;   
+               subs(x1, s1, b) == 0];                                    
+
+    PDE = initialize([Dyn; BCs]); 
+
+    uinput.exact = besselj(0, j01*sx)*exp(-alpha*(j01^2 - lambda)*st);
+    uinput.ic.PDE = besselj(0, j01*sx);
+
+%----------------------------------------
+% Example 43 - Poloidal Magnetic Flux Gradient(Tokamak)
+% This example is inspired by the model(PDE) presented in A.Gahlawat et al., 
+% "Bootstrap Current Optimization in Tokamaks Using Sum-Of-Squares Polynomials"
+%----------------------------------------
+
+% Case I - Ramp-up Plasma Current I(t) = I0*(1 - exp(-t/tau))
+% Original PDE: u_t = D(u_rr + (1/r)u_r - (1/r^2)u) + f(r,t)
+% where f(r,t) = (I0/tau)*r*exp(-t/tau);
+% Weighted PDE: r^2*u_t = D(r^2*u_rr + r*u_r - u) + r^2*f(r,t)
+% BCs:
+%     r = 0:  u(0,t) = 0          
+%     r = 1:  u(1,t)   = I(t)
+% IC: u(r,0) = r*I0
+% Exact Solution: u(r, t) = r*I0*(1 - exp(-t/tau))
+
+% IMPORTANT: In this case, since the highest singularity in the PDE is of the 
+% order 1/r^2, we multiply the PDE throughout by r^2. To ensure the time 
+% derivative is multiplied appropriately, we will need to modify the M 
+% operator. To do this, uncomment the lines 140-157 and ensure
+% that M.R.R0 = s1^2 * eye(m)
+
+case 43
+
+    a = 0; b = 1;
+    PDE.dom = [a b];
+    D = 0.04;
+    I0 = 0.37;    % flat-top plasma current amplitude 
+    tau = 15;     % ramp-up time constant 
+    
+    x1 = pde_var(s1, [a, b]);
+    x = x1;
+    w1 = pde_var('in', 1, s1, [a, b]);
+    w2 = pde_var('in');
+    
+    Dyn = diff(x, t) == D*(s1^2*diff(x, s1, 2) + s1*diff(x, s1) - x) + s1^2*w1;
+    
+    BCs = [ subs(x1, s1, a) == 0;
+            subs(x1, s1, b) == w2 ];
+    
+    PDE = initialize([Dyn; BCs]);
+    
+    uinput.exact = sx*I0*(1 - exp(-st/tau));
+    uinput.ic.PDE = sx*I0;
+    uinput.w(1) = (I0/tau)*sx*exp(-st/tau); % Forcing term
+    uinput.w(2) = I0 * (1 - exp(-st/tau));  % Boundary input
     
 end % cases
 % %            
