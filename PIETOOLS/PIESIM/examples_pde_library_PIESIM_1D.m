@@ -2698,8 +2698,6 @@ case 40
 % such as (1/r)*u_r or (1/r^2)*u. The weighted formulation avoids
 % singularities by multiplying the entire PDE by the highest
 % power of r that clears all singular terms.
-% Additionally, set opts.dt = 0.001 in solver_PIESIM.m for the 
-% following examples
 
 %----------------------------------------
 % Example 41 - Axisymmetric Diffusion
@@ -2714,9 +2712,6 @@ case 40
 % Exact solution: u(r,t) = J0(j01*r)*exp(-alpha*j01^2*t)
 % Initial condition: u(r, 0) = J0(j01*r)
 
-% IMPORTANT: Since the PDE contains r*u_t, the operator M must also be
-% multiplied by r. To do this, uncomment lines 140-157 in PIESIM.m and
-% ensure M.R.R0 = s1*eye(m)
 case 41
 
     a = 0.0001; b = 1;
@@ -2728,11 +2723,18 @@ case 41
     x = x1;
 
     Dyn = diff(x, t) == alpha*(diff(x, s1) + s1 * diff(x, s1, 2));
-
+    
     BCs = [subs(diff(x1, s1), s1, a) == 0;   
                subs(x1, s1, b) == 0];                                    
 
     PDE = initialize([Dyn; BCs]); 
+
+    % Enable weighted formulation
+    uinput.weighted = true;
+
+    % Specify the polynomial weight. Since the PDE has the
+    % highest singularity of order 1, we use weight = 1.
+    uinput.weight = 1;
 
     uinput.exact = besselj(0, j01*sx)*exp(-alpha*j01^2* st);
     uinput.ic.PDE = besselj(0, j01*sx);
@@ -2750,10 +2752,6 @@ case 41
 % Exact solution: u(r,t) = J0(j01*r)*exp(-alpha*(j01^2-lambda)*t) 
 % Initial condition: u(r, 0) = J0(j01*r)
 
-% IMPORTANT: Since the PDE contains r*u_t, the operator M must also be
-% multiplied by r. To do this, uncomment lines 140-157 in PIESIM.m and
-% ensure M.R.R0 = s1*eye(m)
-
 case 42
 
     a = 0.0001; b = 1;
@@ -2766,12 +2764,19 @@ case 42
     x = x1;
 
     Dyn = diff(x, t) == alpha*(diff(x, s1) + s1*diff(x, s1, 2) + s1*lambda*x);
-
+    
     BCs = [subs(diff(x1, s1), s1, a) == 0;   
-               subs(x1, s1, b) == 0];                                    
+               subs(x1, s1, b) == 0];  
 
     PDE = initialize([Dyn; BCs]); 
 
+    % Enable weighted formulation
+    uinput.weighted = true;
+
+    % Specify the polynomial weight. Since the PDE has the
+    % highest singularity of order 1, we use weight = 1.
+    uinput.weight = 1;
+    
     uinput.exact = besselj(0, j01*sx)*exp(-alpha*(j01^2 - lambda)*st);
     uinput.ic.PDE = besselj(0, j01*sx);
 
@@ -2816,6 +2821,13 @@ case 43
             subs(x1, s1, b) == w2 ];
     
     PDE = initialize([Dyn; BCs]);
+
+    % Enable weighted formulation
+    uinput.weighted = true;
+
+    % Specify the polynomial weight. Since the PDE has the
+    % highest singularity of order 2, we use weight = 2.
+    uinput.weight = 2;
     
     uinput.exact = sx*I0*(1 - exp(-st/tau));
     uinput.ic.PDE = sx*I0;
