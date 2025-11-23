@@ -135,27 +135,27 @@ function [solution, grid,time]=PIESIM(varargin)
     % Rescale all the PIE operators to be in domain [-1,1]^d
     if (psize.dim==1)
 
-    % Uncomment this block only if you need to run Examples 41-43 
-    % in examples_pde_library_PIESIM_1D.m
-    %{
-    PIE.misc.T0 = PIE.T;
-    PIE.misc.Tu = PIE.Tu;
-    PIE.misc.Tw = PIE.Tw;
+    % Weighted Formulation for cylindrical PDE examples
+    if isfield(uinput, 'weighted') && uinput.weighted
+        k = uinput.weight;
+
+        PIE.misc.T0 = PIE.T;
+        PIE.misc.Tu = PIE.Tu;
+        PIE.misc.Tw = PIE.Tw;
     
-    opvar M
-    [m, n] = size(PIE.T.R.R0);
-    M.dim = [0 0; m n];
-    M.I = PIE.T.I;
-    M.var1 = s1;
-    % replace this with s1^2 only for Example 43 
-    M.R.R0 = s1 * eye(m); 
-    M.R.R1 = 0;
-    M.R.R2 = 0;
-    
-    PIE.T = M * PIE.T;
-    PIE.B2   = M * PIE.B2;  
-    PIE.Tw = M * PIE.Tw;
-    %}
+        opvar M
+        [m, n] = size(PIE.T.R.R0);
+        M.dim = [0 0; m n];
+        M.I = PIE.T.I;
+        M.var1 = s1;
+        M.R.R0 = s1^k * eye(m);
+        M.R.R1 = 0;
+        M.R.R2 = 0;
+        
+        PIE.T = M * PIE.T;
+        PIE.B2   = M * PIE.B2;
+        PIE.Tw = M * PIE.Tw;
+    end
     
     PIE = rescalePIE(PIE,[-1,1]);
     else
