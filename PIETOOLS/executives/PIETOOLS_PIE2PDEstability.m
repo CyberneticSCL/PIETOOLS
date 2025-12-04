@@ -1,12 +1,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_stability.m     PIETOOLS 2022
+% PIETOOLS_PIE2PDEstability.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This script executes a stability analysis for a 4-PIE System defined
+% This script executes a PIE2PDE stability analysis for 4-PIE System defined
 % by the 2 4-PI operator representation
 % Top \dot x(t)=Aop x(t)
 %
 % If any other parts of the PIE are present, these are ignored. Both Top
 % and Aop must be properly defined for the script to function.
+%
+% Stability implies existence of a C>0 such that |Tx(t)|\le C|x(0)|, which
+% is a weaker notion of stability than PDE stability. However, this script
+% is slightly more computationally intensive than PIETOOLS_PDEstability.
+%
+% If settings.epneg>0, this test implies |Tx(t)|\le Ce^{-\alpha t}|x(0)|
+% for some \alpha>0
 %
 % INPUT: 
 % PIE - A pie_struct class object with the above listed PI operators as fields
@@ -38,14 +45,10 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP,SS - 10_01_2020
-% MP - 05/30/2021: changed to new PIE data structure;
-% SS - 06/01/2021: changed to function, added settings input;
-% DJ - 06/02/2021: incorporate sosineq_on option;
-% DJ - 10/19/2024: Update to use new LPI programming structure;
+% Initial coding MP - 07_05_2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P] = PIETOOLS_stability(PIE, settings)
+function [prog, P] = PIETOOLS_PIE2PDEstability(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -114,10 +117,13 @@ if override1~=1
 else
     Pop=P1op;
 end
+Pop = Pop + eppos2*Top'*Top;
 
-% enforce strict positivity of the operator
-Imat = blkdiag(eppos*eye(Pop.dim(1,:)),eppos2*eye(Pop.dim(2,:)));
-Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom);
+% Also declare an indefinite operator Qop=Pop*Top so that Rop = Top'*Qop.   % DJ, 01/06/2025
+Qdeg = get_lpivar_degs(Pop,Top);
+[prog, Qop] = lpivar(prog,Top.dim,Qdeg);
+prog = lpi_eq(prog, Top'*Qop-Pop);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,7 +134,7 @@ Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom);
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop = Top'*Pop*Aop + Aop'*Pop*Top +epneg*Top'*Pop*Top; 
+Dop = Aop'*Qop+Qop'*Aop +epneg*Pop; 
     
 
 

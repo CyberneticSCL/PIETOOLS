@@ -93,10 +93,10 @@ end
 % Run the desired executive for the specified system.
 switch lpi
     case 'stability'
-        [prog_sol, P] = PIETOOLS_stability_PIE2PDE(PIE,opts);
+        [prog_sol, P] = PIETOOLS_PIE2PDEstability(PIE,opts);
         varargout{1} = P;
     case 'stability-dual'
-        [prog_sol, P] = PIETOOLS_stability_dual(PIE,opts);
+        [prog_sol, P] = PIETOOLS_PIE2PDEstability_dual(PIE,opts);
         varargout{1} = P;
     case 'l2gain'
         [prog_sol, P, gam] = PIETOOLS_Hinf_gain(PIE,opts);
