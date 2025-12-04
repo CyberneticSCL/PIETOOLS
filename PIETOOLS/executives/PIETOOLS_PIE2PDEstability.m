@@ -130,7 +130,7 @@ prog = lpi_eq(prog, Top'*Qop-Pop);
 % STEP 2: Define the Lyapunov Inequality
 %
 % i.e. - Assemble the big operator
-% Pheq = [ A'*P*T+T'*P*A]
+% Pheq = [ A'*Q+Q*A]
 
 disp('- Constructing the Negativity Constraint...');
 

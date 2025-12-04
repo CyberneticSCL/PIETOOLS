@@ -1,17 +1,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_stability_PIE2PDE.m     PIETOOLS 2022
+% PIETOOLS_PIE2PDEstability_dual.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This script executes a PIE2PDE stability analysis for 4-PIE System defined
+% This script executes a PIE2PDE stability analysis for dual PIE System defined
 % by the 2 4-PI operator representation
-% Top \dot x(t)=Aop x(t)
+% Top^* \dot x(t)=Aop^* x(t)
 %
 % If any other parts of the PIE are present, these are ignored. Both Top
 % and Aop must be properly defined for the script to function.
 %
-% Stability implies existence of a C>0 such that |Tx(t)|\le C|x(0)|, which
+% NOTE: Asymptotic and Exponential PIE2PDE Stability of the dual system is 
+% known to be equivalent to Asymptotic and Exponential PIE2PDE stability of
+% the primal system. 
+%
+% Stability implies existence of a C>0 such that |T^*x(t)|\le C|x(0)|, which
 % is a weaker notion of stability than PDE stability.
 %
-% If settings.epneg>0, this test implies |Tx(t)|\le Ce^{-\alpha t}|x(0)|
+% If settings.epneg>0, this test implies |T^*x(t)|\le Ce^{-\alpha t}|x(0)|
 % for some \alpha>0
 %
 % INPUT: 
@@ -47,7 +51,7 @@
 % Initial coding MP - 07_05_2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P] = PIETOOLS_stability_PIE2PDE(PIE, settings)
+function [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -59,9 +63,9 @@ end
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
-        [prog, P] = PIETOOLS_stability_2D(PIE);
+        [prog, P] = PIETOOLS_stability_dual_2D(PIE);
     else
-        [prog, P] = PIETOOLS_stability_2D(PIE,settings);
+        [prog, P] = PIETOOLS_stability_dual_2D(PIE,settings);
     end
     return
 end
@@ -116,12 +120,14 @@ if override1~=1
 else
     Pop=P1op;
 end
-Pop = Pop + eppos2*Top'*Top;
+
+Top2=Top';
+Pop = Pop + eppos2*Top*Top2;
 
 % Also declare an indefinite operator Qop=Pop*Top so that Rop = Top'*Qop.   % DJ, 01/06/2025
-Qdeg = get_lpivar_degs(Pop,Top);
-[prog, Qop] = lpivar(prog,Top.dim,Qdeg);
-prog = lpi_eq(prog, Top'*Qop-Pop);
+Qdeg = get_lpivar_degs(Pop,Top2);
+[prog, Qop] = lpivar(prog,Top2.dim,Qdeg);
+prog = lpi_eq(prog, Top*Qop-Pop);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -129,11 +135,11 @@ prog = lpi_eq(prog, Top'*Qop-Pop);
 % STEP 2: Define the Lyapunov Inequality
 %
 % i.e. - Assemble the big operator
-% Pheq = [ A'*P*T+T'*P*A]
+% Pheq = [ A*Q+Q*A']
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop = Aop'*Qop+Qop'*Aop +epneg*Pop; 
+Dop = Aop*Qop+Qop'*Aop' +epneg*Pop; 
     
 
 

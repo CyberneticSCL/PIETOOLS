@@ -1,12 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS_stability_dual.m     PIETOOLS 2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This function executes a stability analysis for the dual PIE System defined
+% This function executes a PDE stability analysis for the dual PIE System defined
 % by the 4-PI operator representation
 % Top^* \dot x(t)=Aop^* x(t)
 %
-% NOTE: Stability of the dual system is known to be equivalent to stability of
-% the primal system.
+% NOTE: Asymptotic and Exponential PIE2PDE Stability of the dual system is 
+% known to be equivalent to Asymptotic and Exponential PIE2PDE stability of
+% the primal system. However, this has not been established for PDE
+% stability.
 %
 % If any other parts of the PIE are present, these are ignored. Both Top
 % and Aop must be properly defined for the script to function.
@@ -48,7 +50,7 @@
 % DJ - 10/19/2024: Update to use new LPI programming structure;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P] = PIETOOLS_stability_dual(PIE, settings)
+function [prog, P] = PIETOOLS_PDEstability_dual(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
