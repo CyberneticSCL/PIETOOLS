@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_AUTO_EXECUTE.m     PIETOOLS 2024
+% PIETOOLS_AUTO_EXECUTE.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % A script to aid users in analyzing and controlling PIEs using PIETOOLS
 % If a desired executive has been specified (e.g. 'Hinf_gain=1'), and a
@@ -11,7 +11,7 @@
 % setting they want to use.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2025 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 % DJ, 01/06/2025: Add support for call to H2 norm executives;
 % DB 01/07/2025: Fix output of H2 executives;
 % DJ, 01/12/2025: Use 'light' settings by default;
+% DJ, 12/11/2025: Add well-posedness test;
 
 
 % % % 1. Check if a PIE has been specified
@@ -70,14 +71,15 @@ end
 % H2_norm_dual=1;          % Find a lowest upper bound on the H2 gain of the system using an alternative duality theorem
 % H2_estimator=1;          % Find a lowest upper bound on the H2 optimal observer problem
 % H2_control=1;            % Find a lowest upper bound on the H2 optimal control problem
+% well_posedness=1;        % Test well-posedness of the PIE
 
 % % Check if an executive has been specified
 exec = cell(0,0);
 if exist('stability','var') && stability==1
-    exec = [exec;'stability'];
+    exec = [exec;'PIE2PDEstability'];
 end
 if exist('stability_dual','var') && stability_dual==1
-    exec = [exec;'stability_dual'];
+    exec = [exec;'PIE2PDEstability_dual'];
 end
 if exist('Hinf_gain','var') && Hinf_gain==1
     exec = [exec;'Hinf_gain'];
@@ -103,13 +105,16 @@ end
 if exist('H2_control','var') && H2_control==1
     exec = [exec;'H2_control'];
 end
+if exist('well_posedness','var') && well_posedness==1
+    exec = [exec;'well_posedness'];
+end
 
 % % If no executive has been specified, let the user choose one
 if isempty(exec)
     fprintf('\n What would you like to analyze/control? \n');
     msg = ['   Please input ''stability'', ''stability_dual'', ''Hinf_gain'', ''Hinf_gain_dual'','...
             ' ''Hinf_estimator'', ''Hinf_control'', ''H2_norm'', ''H2_norm_dual'','...
-            ' ''H2_estimator'', or ''H2_control'' \n ---> '];
+            ' ''H2_estimator'', ''H2_control'', or ''well_posedness'' \n ---> '];
     exec = input(msg,'s');
     exec = strrep(exec,'''','');
     exec = split(exec,[" ",","]);
@@ -174,6 +179,9 @@ elseif contains(exec{j},'H2_control')          % H2_control
 elseif contains(exec{j},'H2_estimator')        % H2_estimator
     outval = '[prog_estimator, L_estimator, H2_norm_estimator, P_estimator, Z_estimator, W_estimator]';
     msg_out = ['The (optimal) estimator operator has been saved as "L_estimator".'];
+elseif strcmpi(exec{j},'well_posedness')
+    outval = '[prog_well_posedness, P_well_posedness, R_well_posedness, omega_well_posedness]';
+    msg_out = '';
 end
 infun = ['PIETOOLS_',exec{j},'(PIE,settings)'];
 evalin('base',[outval,'=',infun,';']);  % Run the executive

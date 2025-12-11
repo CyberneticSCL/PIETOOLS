@@ -8,7 +8,7 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 %               call, namely one of:
 %               'stability', 'stability-dual','l2gain','l2gain-dual',
 %                 'h2norm','h2norm-dual','hinf-observer','hinf-controller',
-%                   'h2-observer','h2-controller';
+%                   'h2-observer','h2-controller','well-posedness';
 % - opts:       A 'struct' specifying settings to use in declaring and 
 %               solving the desired pre-defined LPI. Alternatively,
 %               this field can also be a 'char' or 'string' specifying
@@ -25,7 +25,7 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 % S. Shivakumar at sshivak8@asu.edu, or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2025 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -48,9 +48,9 @@ function [prog_sol, varargout] = lpiscript(PIE,lpi,opts)
 %
 % DJ, 11/01/2024: Initial coding;
 % DJ, 01/06/2025: Add support for call to H2 executives; 
-% DB 01/07/2025: Fix output of H2 executives
+% DB 01/07/2025: Fix output of H2 executives;
+% DJ, 12/11/2025: Add well-posedness test;
 
-% % % There are two ways to use this function: 
 if nargin<3
     error('Insufficient number of arguments. Correct syntax: lpisolve(PIE,lpi,settings)');
 end
@@ -62,10 +62,10 @@ if isa(lpi,'function_handle')
     % Do nothing here...
 elseif ~(isa(lpi,'string') || isa(lpi,'char'))
     error("The input 'lpi' must be a string value or a function handle.");
-elseif ~ismember(lpi,{'stability','stability-dual',...
+elseif ~ismember(lpi,{'stability','stability-dual','well-posedness',...
                         'l2gain','l2gain-dual','h2norm','h2norm-dual',...
                         'hinf-observer','hinf-controller','h2-observer','h2-controller','custom'})
-    error("Specified LPI type must be one of 'stability', 'stability-dual'," + ...
+    error("Specified LPI type must be one of 'stability', 'stability-dual', 'well-posedness'," + ...
             " 'l2gain', 'l2gain-dual', 'h2norm', 'h2norm-dual',"+...
              " 'hinf-observer', 'hinf-controller', 'h2-observer', or 'h2-controller'.")
 end
@@ -98,6 +98,9 @@ switch lpi
     case 'stability-dual'
         [prog_sol, P] = PIETOOLS_PIE2PDEstability_dual(PIE,opts);
         varargout{1} = P;
+    case 'well-posedness'
+        [prog_sol, P, R,omega] = PIETOOLS_well_posedness(PIE,opts);
+        varargout{1} = P;   varargout{2} = R;   varargout{3} = omega;
     case 'l2gain'
         [prog_sol, P, gam] = PIETOOLS_Hinf_gain(PIE,opts);
         varargout{1} = P; varargout{2} = gam;
