@@ -95,6 +95,7 @@
 % DJ 10/10/2022 - Update for new terms format and command line parser.
 % Batch format and old terms format can still be used, in which case
 % opts.type is PDE_t or PDE_b.
+% VJ 11/16/2025 - added support for cylindrical coordinate examples
 
 function [solution, grid,time]=PIESIM(varargin)
 

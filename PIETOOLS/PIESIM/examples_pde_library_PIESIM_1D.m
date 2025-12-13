@@ -27,6 +27,7 @@
 % YP 6/16/2022 - updated to include terms format and added more examples in
 % terms format
 % DJ 12/19/2024: Change variable s --> s1;
+% VJ 11/22/2025: added cylindrical coordinates examples
 
 
 function [PDE,uinput]=examples_pde_library_PIESIM_1D(example)
