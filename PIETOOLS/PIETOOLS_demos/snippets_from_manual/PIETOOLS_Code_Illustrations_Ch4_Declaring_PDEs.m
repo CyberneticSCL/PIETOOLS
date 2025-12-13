@@ -5,7 +5,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
 %
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2025  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 % authorship, and a brief description of modifications
 %
 % DJ, 12/30/2024: Initial coding;
+% DJ, 12/11/2025: Add wave equation example;
 clear
 
 
@@ -104,7 +105,17 @@ odepde = initialize(odepde);
 PIE = convert(odepde,'pie');
 
 
-%% 4.1.3c Beam Equation
+%% 4.1.3c Wave Equation
+clear stateNameGenerator
+pvar s t
+x = pde_var(s,[0,1]);
+eqns = [diff(x,t,2)==diff(x,s,2); 
+        subs(x,s,0)==0;    subs(diff(x,s),s,1)==0];
+PDE = initialize(eqns);
+PIE = convert(PDE,'pie');
+
+
+%% 4.1.3d Beam Equation
 clear stateNameGenerator
 pvar s t
 x = pde_var(4,s,[0,1]);

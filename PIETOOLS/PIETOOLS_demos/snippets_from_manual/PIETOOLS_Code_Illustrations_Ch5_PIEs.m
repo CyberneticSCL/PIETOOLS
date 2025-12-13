@@ -7,7 +7,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Code Illustrations
 %
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2025  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 %
 % DJ, 12/30/2024: Initial coding;
 % DJ, 01/07/2025: Add some commenting;
+% DJ, 12/11/2025: Add wave equation;
 clear
 
 %% 5.2 Converting a PDE to a PIE
@@ -48,6 +49,12 @@ PDE = [PDE_dyn; PDE_BCs];
 PIE = convert(PDE,'pie')
 PIE.vars
 PIE.dom
+
+% % Wave equation example:
+% PDE:     \ddot(x)(t,s) = x_ss(t,s),         0<s<1
+PDE_dyn = diff(x,t,2) == diff(x,s,2);
+PDE = [PDE_dyn; PDE_BCs];
+PIE = convert(PDE,'pie')
 
 
 %% 5.3 Converting a DDE to a PIE
