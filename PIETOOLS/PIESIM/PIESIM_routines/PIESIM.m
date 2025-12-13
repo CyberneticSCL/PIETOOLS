@@ -130,7 +130,17 @@ function [solution, grid,time]=PIESIM(varargin)
         % Check the inputs and define problem size
         [PIE,uinput,psize]=PIESIM_input_check(PIE,uinput,opts);
     end  
+    
+    % throw error if inputs/outputs are infinitedimensional
+    if isa(PIE.T,'opvar')
+        isinf = PIE.C1.dim(2,1) || PIE.C2.dim(2,1) || PIE.B1.dim(2,2) || PIE.B2.dim(2,2);
+    else isa(PIE.T, 'opvar2d')
+        isinf = any(PIE.C1.dim(2:end,1)) || any(PIE.C2.dim(2:end,1)) || any(PIE.B1.dim(2:end,2)) || any(PIE.B2.dim(2:end,2));
+    end
 
+    if isinf
+        error("PIESIM does not currently support Infinite-dimensional inputs and outputs.");
+    end
 
     % Rescale all the PIE operators to be in domain [-1,1]^d
     if (psize.dim==1)

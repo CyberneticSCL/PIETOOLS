@@ -74,10 +74,10 @@ end
 % % Check if an executive has been specified
 exec = cell(0,0);
 if exist('stability','var') && stability==1
-    exec = [exec;'stability'];
+    exec = [exec;'PIE2PDEstability'];
 end
 if exist('stability_dual','var') && stability_dual==1
-    exec = [exec;'stability_dual'];
+    exec = [exec;'PIE2PDEstability_dual'];
 end
 if exist('Hinf_gain','var') && Hinf_gain==1
     exec = [exec;'Hinf_gain'];
@@ -142,10 +142,10 @@ end
 
 % % For each of the desired executives, define appropriate outputs, and run
 for j=1:length(exec)
-if strcmpi(exec{j},'stability')             % stability
+if strcmpi(exec{j},'PIE2PDEstability')             % stability
     outval = '[prog_stability, P_stability]';
     msg_out = '';
-elseif strcmpi(exec{j},'stability_dual')    % stability_dual
+elseif strcmpi(exec{j},'PIE2PDEstability_dual')    % stability_dual
     outval = '[prog_stability_d, P_stability_d]';
     msg_out = '';
 elseif strcmp(exec{j},'Hinf_gain')          % Hinf_gain
