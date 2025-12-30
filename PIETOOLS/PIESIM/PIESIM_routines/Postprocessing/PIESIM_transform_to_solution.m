@@ -49,6 +49,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 % YP 6/16/2022. Added reconstruction of observed and regulated outputs.
 % Added a support of case when LHS PDE operator is not the same as the
 % state map operator. Note: input arguments changed.
+% VJ 12/29/2025: Added support to use PIE.misc.Tu and PIE.misc.Tw when present
 
 %----------------------------------------   
 % We first transform the final solution, since it is available for all
@@ -71,7 +72,15 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
      D22op=Dop.D22cheb;
      Tu=PIE.Tu;
      Tw=PIE.Tw;
-   
+
+     if isfield(PIE.misc,'Tu') 
+         Tu = PIE.misc.Tu;
+     end
+
+     if isfield(PIE.misc,'Tw') 
+         Tw = PIE.misc.Tw;
+     end
+     
      if (solcoeff.tf~=opts.tf) 
      disp('Warning: solution final time does not match user input final time');
      disp('Defaulting to solution final time');
