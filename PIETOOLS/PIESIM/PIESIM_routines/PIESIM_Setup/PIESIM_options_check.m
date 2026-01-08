@@ -44,9 +44,9 @@ function [opts, uinput]=PIESIM_options_check(varinput)
 nargin=length(varinput);
 
 % required fields for options and uinputs
-fields_opts = {'N','tf','intScheme','Norder','dt','plot','ploteig'};
-default_opts = {8, 1, 1, 2, 0.01,'no','no'};
-fields_uinput = {'ic','w','ifexact','exact'};
+fields_opts = {'N','tf','intScheme','Norder','dt','plot','ploteig','ifexact'};
+default_opts = {8, 1, 1, 2, 0.01,'no','no',false};
+fields_uinput = {'ic','w','exact'};
 
 kopt=0;
 kuopt=0;
@@ -143,7 +143,7 @@ if isa(structure,'pie_struct') || isfield(structure,'T')
     ksize = kargs(find(kargs~=kopt));
     ksize = ksize(find(ksize~=kuopt));
     if (isempty(ksize))
-        error("If input object type is PIE, then number of differentiable states should be specified, for example 'PIESIM(PIE,opts,uinput,ndiff)' or 'PIESIM(PIE,ndiff)' ");
+        opts.piesize=[];
     else
         opts.piesize=varinput{ksize};
         % If piesize is not found, default to last argument
@@ -166,7 +166,6 @@ elseif isa(structure,'pde_struct') || isa(structure,'sys')||isfield(structure,'B
 else
     error('Data structure must be specified')
 end
-
 
     
 end
