@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM.m     PIETOOLS 2024
+% PIESIM.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Please, contact Y. Peet at ypeet@asu.edu for support
 
@@ -22,10 +22,9 @@
 % --- object_type: mandatory input (PDE, DDE, or PIE structure)
 % ----- PIE structure of the problem specifies PI operators, 
 %       {T,Tu,Tw, A, Bi, Ci, Dij} as fields
-% ----- For any varargin(1) value as PDE, DDE, or PIE, opts and uinput are
+% ----- For any input structyre, opts, uinput and ndiff are
 %       optional fields (defalut values will be used if not provided,
 %       consult the manual)
-% ----- if varargin(1) is PIE, then ndiff field is mandatory
 
 % Optional:
 % --- varargin(2): opts - options for simulation parameters. 
@@ -110,7 +109,7 @@ function [solution, grid,time]=PIESIM(varargin)
     if strcmp(opts.type,'PDE') || strcmp(opts.type,'PDE_t') || strcmp(opts.type,'PDE_b')
         PDE = varargin{1};
         % Check the inputs and define problem size
-        [PDE, uinput, psize] = PIESIM_input_check(PDE, uinput, opts);
+        [PDE, uinput, opts, psize] = PIESIM_input_check(PDE, uinput, opts);
         
         % Convert PDE to PIE
         PIE = convert_PIETOOLS_PDE(PDE,'pie');
@@ -124,38 +123,20 @@ function [solution, grid,time]=PIESIM(varargin)
         PIE = convert_PIETOOLS_DDF(DDF,'pie');
 
         % Check the inputs and define problem size
-        [PIE,uinput,psize]=PIESIM_input_check(PIE,uinput,opts);
+        [PIE,uinput,opts,psize]=PIESIM_input_check(PIE,uinput,opts);
    
     elseif strcmp(opts.type,'PIE')
         PIE=varargin{1};
         % Check the inputs and define problem size
-        [PIE,uinput,psize]=PIESIM_input_check(PIE,uinput,opts);
+        [PIE,uinput,opts,psize]=PIESIM_input_check(PIE,uinput,opts);
     end  
-
-
+    
     % Rescale all the PIE operators to be in domain [-1,1]^d
     if (psize.dim==1)
 
     % Weighted Formulation for cylindrical PDE examples
-    if isfield(uinput, 'weighted') && uinput.weighted
-        k = uinput.weight;
-
-        PIE.misc.T0 = PIE.T;
-        PIE.misc.Tu = PIE.Tu;
-        PIE.misc.Tw = PIE.Tw;
-    
-        opvar M
-        [m, n] = size(PIE.T.R.R0);
-        M.dim = [0 0; m n];
-        M.I = PIE.T.I;
-        M.var1 = s1;
-        M.R.R0 = s1^k * eye(m);
-        M.R.R1 = 0;
-        M.R.R2 = 0;
-        
-        PIE.T = M * PIE.T;
-        PIE.B2   = M * PIE.B2;
-        PIE.Tw = M * PIE.Tw;
+    if isfield(uinput, 'weight') 
+        PIE=weightPIE(PIE,uinput.weight);
     end
     
     PIE = rescalePIE(PIE,[-1,1]);
