@@ -9,8 +9,10 @@
 %
 % Outputs:
 % 1) Dop - discrete PIE operators containing Chebyshev matrices for
-% T,Tu,Tw,A,Bi,Ci
-%
+% T,Tu,Tw,A,Bi,Ci, Dij
+% Optional operators (when PIE.misc exists) are Dop.Tmap, Dop.Tumap and Dop. Twmap (all with cheb extensions) 
+% In this case, T, Tu, Tw signify LHS dynamics, and Tmap, Tumap, Twmap are the
+% mapping operators
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -18,11 +20,15 @@
 %
 % Initial coding YP  - 11_05_2021
 % YP - 6/16/2022 - added discretization of C1, C2 operators to allow for
-% computation of observed and regulated outputs. Separated T from T0 (LHS
-% PDE from map operator).
+% computation of observed and regulated outputs. Separated T (PIE operator that enters the LHS of the dynamics) 
+% from Tmap (fundamental-state to PDE-state mapping operator). Needed if the operator
+% in the LHS of the time propagator is different from the mapping operator
+% (e.g. in weighted formulation for cylindrical coordinates when PDE is multipled by a power of r).
 % YP - added functionality to support infinite-dimensional disturbances
 % through parser - 6_1_2025
 % YP 06/26/2025 - modified support for T0 operator with new pie_struct
+% YP 1/6/2026 - modified Tu, Tw operators to allow reconstruction of disturbance-to-state
+% maps, added support for Tumap and Twmap operators (needed for cylindrical coordinates) 
 
 function Dop=PIESIM_discretize_ops(PIE, psize);
 
@@ -69,26 +75,26 @@ end
  Dop.D22cheb=PIESIM_4PI2Mat_cheb(N,PIE.D22,p,0);
  Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,PIE.C1,p,1);
  Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,PIE.C2,p,1);
- Dop.Twcheb=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,2);
- Dop.Tucheb=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,2);
+ [Dop.Tucheb,Dop.Tucheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,2);
+ [Dop.Twcheb,Dop.Twcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,2);
  Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,PIE.B1,p,2);
  Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,2);
  Dop.Acheb=PIESIM_4PI2Mat_cheb(N,PIE.A,p,3);
- [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,3);
- if isfield(PIE.misc,'T0') 
-     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.T0,p,3);
+ [Tcheb, Dop.Tcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,3);
+ if isfield(PIE.misc,'Tmap') 
+     [Tchebmap, Dop.Tchebmap_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tmap,p,3);
  end
 
- if isfield(PIE.misc,'Tu') 
-     [Dop.Tucheb0]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tu,p,2);
+ if isfield(PIE.misc,'Tumap') 
+     [Tuchebmap,Dop.Tuchebmap_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tumap,p,2);
  end
 
- if isfield(PIE.misc,'Tw') 
-     [Dop.Twcheb0]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tw,p,2);
+ if isfield(PIE.misc,'Twmap') 
+     [Twchebmap,Dop.Twchebmap_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Twmap,p,2);
  end
 %  
-  Dop.Mcheb_inv=inv(Mcheb);
-  Dop.Atotal=Dop.Mcheb_inv*Dop.Acheb;
+  Dop.Tcheb_inv=inv(Tcheb);
+  Dop.Atotal=Dop.Tcheb_inv*Dop.Acheb;
 
 
 
