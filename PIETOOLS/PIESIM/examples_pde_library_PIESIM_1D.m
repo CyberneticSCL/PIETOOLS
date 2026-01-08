@@ -1,6 +1,6 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_pde_library_PIESIM_1D.m     PIETOOLS 2024
+% examples_pde_library_PIESIM_1D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This file contains a library of 1D examples to use with PIESIM that includes: 
 % PDE systems and coupled PDE/ODE systems. 
@@ -27,10 +27,12 @@
 % YP 6/16/2022 - updated to include terms format and added more examples in
 % terms format
 % DJ 12/19/2024: Change variable s --> s1;
-% VJ 11/22/2025: added cylindrical coordinates examples
+% VJ 11/22/2025: added cylindrical coordinates examples (examples 39-41)
+% YP 12/29/2025 Changed distirbance format to cell array to accommodate
+% disturbances in a symbolic and a double array format
 
 
-function [PDE,uinput]=examples_pde_library_PIESIM_1D(example)
+function [PDE,uinput]=examples_pde_library_PIESIM_1D(example,opts)
 syms st sx;
 pvar s1 t;
 
@@ -67,7 +69,7 @@ switch example
 % Non-zero boundary conditions are treated as disturbances in PIE framework
             
    
-             a=-1;b=1; 
+             a=0.2;b=0.9; 
              PDE.dom=[a b]; 
              visc = 0.5;  
 
@@ -108,8 +110,17 @@ switch example
 
              % Input n1+2*n2 boundary conditions in the order corresponding
              % to the rows of matrix B
+
+             % Symbolic disturbance
              uinput.w(1)= sin(pi*a)*exp(-visc*pi^2*st);
-             uinput.w(2)= sin(pi*b)*exp(-visc*pi^2*st);                    
+             uinput.w(2)= sin(pi*b)*exp(-visc*pi^2*st);
+
+             % Disturbance as a data array (double)
+              % timegrid1=0:opts.dt:opts.tf/10;
+              % timegrid2=0:2*opts.dt:opts.tf;
+              % uinput.w{1}=[timegrid1;sin(pi*a)*exp(-visc*pi^2*timegrid1)];
+              % uinput.w{2}=[timegrid2;sin(pi*b)*exp(-visc*pi^2*timegrid2)];
+
 %  
 %---------------------------------------------------        
 % Example 2 - second example of heat equation with Dirichlet-Dirichlet boundary conditions
@@ -166,8 +177,14 @@ switch example
              % Initial conditions for the primary states of the PDE
           uinput.ic.PDE= sin(5*pi/4*sx+alpha);
 
-          uinput.w(1)=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
-          uinput.w(2)=sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);     
+             % Symbolic disturbance
+          uinput.w{1}=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
+          uinput.w{2}=sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);     
+
+             %  % Disturbance as a data array (double)
+             % timegrid=0:opts.dt:opts.tf;
+             % uinput.w{1}=[timegrid;sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
+             % uinput.w{2}=[timegrid;sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
 
 
 
@@ -226,9 +243,15 @@ switch example
 
            % Initial conditions for the primary states of the PDE
            uinput.ic.PDE= sin(pi*(sx-alpha));
-           uinput.w(1)= sin(pi*(a-alpha))*exp(-visc*pi^2*st);
-           uinput.w(2)= sin(pi*(b-alpha))*exp(-visc*pi^2*st);
 
+           % Symbolic disturbance
+           uinput.w{1}= sin(pi*(a-alpha))*exp(-visc*pi^2*st);
+           uinput.w{2}= sin(pi*(b-alpha))*exp(-visc*pi^2*st);
+
+             % % Disturbance as a data array (double)
+             % timegrid=0:opts.dt:opts.tf;
+             % uinput.w{1}=[timegrid;sin(pi*(a-alpha))*exp(-visc*pi^2*timegrid)];
+             % uinput.w{2}=[timegrid;sin(pi*(b-alpha))*exp(-visc*pi^2*timegrid)];
 %----------------------------------------
 % Example 4 - Heat Equation with Dirichlet-Dirichlet and non-constant coefficient
 %----------------------------------------
@@ -283,8 +306,15 @@ switch example
 
              % Input n1+2*n2 boundary conditions in the order corresponding
              % to the rows of matrix B
-             uinput.w(1)= -2*a*st-a^2;
-             uinput.w(2)= -2*b*st-b^2;
+
+             % Symbolic disturbance
+              uinput.w{1}= -2*a*st-a^2;
+              uinput.w{2}= -2*b*st-b^2;
+
+             % % Disturbance as a data array (double)
+             % timegrid=0:opts.dt:opts.tf;
+             % uinput.w{1}=[timegrid;-2*a*timegrid-a^2];
+             % uinput.w{2}=[timegrid;-2*b*timegrid-b^2];
                    
 
            
@@ -353,10 +383,22 @@ switch example
 
             % Disturbances - both boundary disturbances (1,2) and forcing
             % (3,4)
-            uinput.w(1)= sin(pi*a)*st;
-            uinput.w(2)=sin(pi*b)*st;
-            uinput.w(3)=1;
-            uinput.w(4)=st;
+
+            % Symbolic disturbance
+             uinput.w(1)= sin(pi*a)*st;
+             uinput.w(2)= sin(pi*b)*st;
+             uinput.w(3)= 1;
+             uinput.w(4)= st;
+
+             % Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;sin(pi*a)*timegrid];
+               % uinput.w{2}=[timegrid;sin(pi*b)*timegrid];
+               % uinput.w{3}=[timegrid;ones(1,length(timegrid))];
+               % uinput.w{4}=[timegrid;timegrid];
+               % 
+               % 
+               % 
          
 %----------------------------------------------------------------------
 %            Example 6 -  Dirichlet-Dirichlet with nonlinear forcing in
@@ -421,11 +463,20 @@ switch example
          uinput.exact(1) = sin(pi*sx)*sqrt(st+1);
            % Initial conditions for the primary states of the PDE
            uinput.ic.PDE(1)=  sin(pi*sx);
-           uinput.w(1)= sin(pi*a)*sqrt(st+1);
-           uinput.w(2)= sin(pi*b)*sqrt(st+1);
-           uinput.w(3)=0.5/sqrt(st+1);
-           uinput.w(4)=sqrt(st+1);
-           
+
+           % Symbolic disturbance
+           uinput.w{1}= sin(pi*a)*sqrt(st+1);
+           uinput.w{2}= sin(pi*b)*sqrt(st+1);
+           uinput.w{3}=0.5/sqrt(st+1);
+           uinput.w{4}=sqrt(st+1);
+
+              % Disturbance as a data array (double)
+              % timegrid=0:opts.dt:opts.tf;
+              % uinput.w{1}=[timegrid;sin(pi*a)*sqrt(timegrid+1)];
+              % uinput.w{2}=[timegrid;sin(pi*b)*sqrt(timegrid+1)];
+              % uinput.w{3}=[timegrid;0.5./sqrt(timegrid+1)];
+              % uinput.w{4}=[timegrid;sqrt(timegrid+1)];
+              % 
 %            
 
 %----------------------------------------
@@ -481,9 +532,16 @@ case 7
          uinput.exact(1) = sin(pi*sx)*exp(-visc*pi^2*st);
            % Initial conditions for the primary states of the PDE
           uinput.ic.PDE(1)= sin(pi*sx);
-          uinput.w(1)= sin(pi*a)*exp(-visc*pi^2*st);
-          uinput.w(2)= pi*cos(pi*b)*exp(-visc*pi^2*st);
 
+          % Symbolic disturbance
+           uinput.w{1}= sin(pi*a)*exp(-visc*pi^2*st);
+           uinput.w{2}= pi*cos(pi*b)*exp(-visc*pi^2*st);
+
+                    % Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;sin(pi*a)*exp(-visc*pi^2*timegrid)];
+               % uinput.w{2}=[timegrid;pi*cos(pi*b)*exp(-visc*pi^2*timegrid)];
+               % 
 
 %-------------------------------------------------------      
 % Example 8 - inhomogeneous Dirichlet-Neumann boundary conditions
@@ -535,8 +593,15 @@ case 8
           uinput.exact(1) = sin(5*pi/4*sx+alpha)*exp(-visc*(5*pi/4)^2*st);
            % Initial conditions for the primary states of the PDE
           uinput.ic.PDE(1)=  sin(5*pi/4*sx+alpha);
-          uinput.w(1)= sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
-          uinput.w(2)= 5*pi/4*cos(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);
+          % Symbolic disturbance
+           uinput.w{1}= sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
+           uinput.w{2}= 5*pi/4*cos(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);
+
+               %         % Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
+               % uinput.w{2}=[timegrid;5*pi/4*cos(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
+               % 
 
 
 %----------------------------------------------------------------------------
@@ -602,10 +667,18 @@ case 8
 
            % Initial conditions for the primary states of the PDE
            uinput.ic.PDE(1)=  sin(pi*sx);
-           uinput.w(1)= sin(pi*a)*sqrt(st+1);
-           uinput.w(2)= pi*cos(pi*b)*sqrt(st+1);
-           uinput.w(3)=0.5/sqrt(st+1);
-           uinput.w(4)=sqrt(st+1);
+  %        Symbolic disturbance
+           uinput.w{1}= sin(pi*a)*sqrt(st+1);
+           uinput.w{2}= pi*cos(pi*b)*sqrt(st+1);
+           uinput.w{3}=0.5/sqrt(st+1);
+           uinput.w{4}=sqrt(st+1);
+
+           % Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;sin(pi*a)*sqrt(timegrid+1)];
+               % uinput.w{2}=[timegrid;pi*cos(pi*b)*sqrt(timegrid+1)];
+               % uinput.w{3}=[timegrid;0.5./sqrt(timegrid+1)];
+               % uinput.w{4}=[timegrid;sqrt(timegrid+1)];
 
           % Exact solution (optional)
           uinput.exact(1) = sin(pi*sx)*sqrt(st+1);
@@ -663,8 +736,14 @@ case 8
 %           Exact solution, initial conditions and inhomogeneous inputs  
            % Initial conditions for the primary states of the PDE
           uinput.ic.PDE(1)= sin(pi*sx);
-          uinput.w(1)= sin(pi*(a-c*st))*exp(-visc*pi^2*st);
-          uinput.w(2)= sin(pi*(b-c*st))*exp(-visc*pi^2*st);
+          % Symbolic disturbance
+          uinput.w{1}= sin(pi*(a-c*st))*exp(-visc*pi^2*st);
+          uinput.w{2}= sin(pi*(b-c*st))*exp(-visc*pi^2*st);
+
+       %        Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;sin(pi*(a-c*timegrid)).*exp(-visc*pi^2*timegrid)];
+               % uinput.w{2}=[timegrid;sin(pi*(b-c*timegrid)).*exp(-visc*pi^2*timegrid)];
 
           % Exact solution (optional)
           uinput.exact(1) = sin(pi*(sx-c*st))*exp(-visc*pi^2*st);
@@ -742,11 +821,21 @@ case 8
 %           Exact solution, initial conditions and inhomogeneous inputs  
            % Initial conditions for the primary states of the PDE
              uinput.ic.PDE(1)=  0;
-             uinput.w(1)= st*sin(pi*a);
-             uinput.w(2)= st*sin(pi*b);
-             uinput.w(3)=1+0*st;
-             uinput.w(4)=st;
-                                   
+
+    %      Symbolic disturbance
+             uinput.w{1}= st*sin(pi*a);
+             uinput.w{2}= st*sin(pi*b);
+             uinput.w{3}=1+0*st;
+             uinput.w{4}=st;
+
+
+               % Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;timegrid*sin(pi*a)];
+               % uinput.w{2}=[timegrid;timegrid*sin(pi*b)];
+               % uinput.w{3}=[timegrid;ones(1,length(timegrid))];
+               % uinput.w{4}=[timegrid;timegrid];
+               % 
             % Exact solution (optional)
            uinput.exact(1) = st*sin(pi*sx);
              
@@ -821,11 +910,20 @@ case 8
 %           Exact solution, initial conditions and inhomogeneous inputs  
            % Initial conditions for the primary states of the PDE
              uinput.ic.PDE(1)= 0;
-             uinput.w(1)= st*pi*cos(pi*a);
-             uinput.w(2)= st*sin(pi*b);
-             uinput.w(3)=1+0*st;
-             uinput.w(4)=st;
- 
+
+             % Symbolic disturbance
+             uinput.w{1}= st*pi*cos(pi*a);
+             uinput.w{2}= st*sin(pi*b);
+             uinput.w{3}=1+0*st;
+             uinput.w{4}=st;
+
+                   % Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;timegrid*pi*cos(pi*a)];
+               % uinput.w{2}=[timegrid;timegrid*sin(pi*b)];
+               % uinput.w{3}=[timegrid;ones(1,length(timegrid))];
+               % uinput.w{4}=[timegrid;timegrid];
+               % 
             % Exact solution (optional)
            uinput.exact(1) = st*sin(pi*sx);
 
@@ -899,11 +997,20 @@ case 8
              uinput.ic.PDE(1)= sin(pi*sx);
 
              % Forcing
-             uinput.w(1)= (st+1)^0.5*pi*cos(pi*a);
-             uinput.w(2)= (st+1)^0.5*sin(pi*b);
-             uinput.w(3)=0.5*(st+1)^(-0.5);
-             uinput.w(4)=(st+1)^0.5;
-             
+
+         %    Symbolic disturbance
+             uinput.w{1}= (st+1)^0.5*pi*cos(pi*a);
+             uinput.w{2}= (st+1)^0.5*sin(pi*b);
+             uinput.w{3}=0.5*(st+1)^(-0.5);
+             uinput.w{4}=(st+1)^0.5;
+
+              % % Disturbance as a data array (double)
+              %  timegrid=0:opts.dt:opts.tf;
+              %  uinput.w{1}=[timegrid;(timegrid+1).^0.5*pi*cos(pi*a)];
+              %  uinput.w{2}=[timegrid;(timegrid+1).^0.5*sin(pi*b)];
+              %  uinput.w{3}=[timegrid;0.5*(timegrid+1).^(-0.5)];
+              %  uinput.w{4}=[timegrid;(timegrid+1).^0.5;];
+
             % Exact solution (optional)
 
             uinput.exact(1) = (st+1)^0.5*sin(pi*sx);
@@ -1257,17 +1364,26 @@ case 8
                
                % Boundary conditions: need four boundary conditions on primary states 
 % %           
-               uinput.w(1)= 2*a^3*st;       % Dirichlet: state(1): u_t at x=a
-               uinput.w(2)= 6*b*st^2;       % Dirichlet: state(2): u_xx at x=b
-               uinput.w(3)= 6*a^2*st;       % Neumann:   state(1)_x: u_tx at x=a
-               uinput.w(4)= 6*st^2;         % Neumann:   state(2)_x: u_xxx at x=b
 
+              % Symbolic disturbance
+               uinput.w{1}= 2*a^3*st;       % Dirichlet: state(1): u_t at x=a
+               uinput.w{2}= 6*b*st^2;       % Dirichlet: state(2): u_xx at x=b
+               uinput.w{3}= 6*a^2*st;       % Neumann:   state(1)_x: u_tx at x=a
+               uinput.w{4}= 6*st^2;         % Neumann:   state(2)_x: u_xxx at x=b
                 % If forcing is polynomial in space, it is done through B21
                 % matrix (in batch format) or through PDE.PDE.Bpv (in terms
                 % format)
                 % 5th input is distributed forcing
-               uinput.w(5)=1;
-% %            
+               uinput.w{5}=1;
+% % %            
+
+      % Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;2*a^3*timegrid];
+               % uinput.w{2}=[timegrid;6*b*timegrid.^2];
+               % uinput.w{3}=[timegrid;6*a^2*timegrid];
+               % uinput.w{4}=[timegrid;6*timegrid.^2];
+               % uinput.w{5}=[timegrid;ones(1,length(timegrid))];
 
 
 %-------------------------------------------------------------
@@ -1371,20 +1487,22 @@ case 8
                
                % Boundary conditions: need four boundary conditions on primary states 
 % %           
-               uinput.w(1)=subs(u,sx,a); 
-               uinput.w(2)=subs(u_t,sx,a); 
-               uinput.w(3)=subs(diff(u,sx),sx,a); 
-               uinput.w(4)= subs(diff(u_t,sx),sx,a);  
-               uinput.w(5)=subs(diff(u,sx,2),sx,b); 
-               uinput.w(6)= subs(diff(u_t,sx,2),sx,b);   
-               uinput.w(7)=subs(diff(u,sx,3),sx,b); 
-               uinput.w(8)= subs(diff(u_t,sx,3),sx,b);        
+            % Symbolic disturbance
+               uinput.w{1}=subs(u,sx,a); 
+               uinput.w{2}=subs(u_t,sx,a); 
+               uinput.w{3}=subs(diff(u,sx),sx,a); 
+               uinput.w{4}= subs(diff(u_t,sx),sx,a);  
+               uinput.w{5}=subs(diff(u,sx,2),sx,b); 
+               uinput.w{6}= subs(diff(u_t,sx,2),sx,b);   
+               uinput.w{7}=subs(diff(u,sx,3),sx,b); 
+               uinput.w{8}= subs(diff(u_t,sx,3),sx,b);        
 
                 % If forcing is polynomial in space, it is done through B21
                 % matrix (in batch format) or through PDE.PDE.Bpv (in terms
                 % format)
-                % Last input is distributed forcing
-               uinput.w(PDE.n.nv)=1;
+                % Last input is distributed forcing - needs to be in
+                % a symbolic format unless it is a data array 
+               uinput.w{PDE.n.nv}=1+0*sx;
 
 %--------------------------------------------
 % Example 19 - exact solution with forcing, solution is exponentially decaying in time
@@ -1467,11 +1585,22 @@ case 8
           
                % Boundary conditions: need four boundary conditions on primary states 
 % %           
-               uinput.w(1)= -sin(a)*exp(-st);  % Dirichlet: state(1): u_t at x=a
-               uinput.w(2)= -sin(b)*exp(-st);  % Dirichlet: state(2): u_xx at x=b
-               uinput.w(3)= -cos(a)*exp(-st); % Neumann:   state(1)_x: u_tx at x=a
-               uinput.w(4)= -cos(b)*exp(-st);  % Neumann:   state(2)_x: u_xxx at x=b
-               uinput.w(5)= exp(-st);
+
+                % Symbolic disturbance
+               uinput.w{1}= -sin(a)*exp(-st);  % Dirichlet: state(1): u_t at x=a
+               uinput.w{2}= -sin(b)*exp(-st);  % Dirichlet: state(2): u_xx at x=b
+               uinput.w{3}= -cos(a)*exp(-st); % Neumann:   state(1)_x: u_tx at x=a
+               uinput.w{4}= -cos(b)*exp(-st);  % Neumann:   state(2)_x: u_xxx at x=b
+               uinput.w{5}= exp(-st);
+
+                 % Disturbance as a data array (double)
+               % timegrid=0:opts.dt:opts.tf;
+               % uinput.w{1}=[timegrid;-sin(a)*exp(-timegrid)];
+               % uinput.w{2}=[timegrid;-sin(b)*exp(-timegrid)];
+               % uinput.w{3}=[timegrid;-cos(a)*exp(-timegrid)];
+               % uinput.w{4}=[timegrid; -cos(b)*exp(-timegrid)];
+               % uinput.w{5}=[timegrid;exp(-timegrid)];
+
 
 
 %--------------------------------------------
@@ -1575,18 +1704,17 @@ case 8
 
                % First 8 inputs are inhomogeneous boundary conditions
 
-               uinput.w(1)=subs(u,sx,a); 
-               uinput.w(2)=subs(u_t,sx,a); 
-               uinput.w(3)=subs(diff(u,sx),sx,a); 
-               uinput.w(4)= subs(diff(u_t,sx),sx,a);  
-               uinput.w(5)=subs(diff(u,sx,2),sx,b); 
-               uinput.w(6)= subs(diff(u_t,sx,2),sx,b);   
-               uinput.w(7)=subs(diff(u,sx,3),sx,b); 
-               uinput.w(8)= subs(diff(u_t,sx,3),sx,b);   
-                % Last input is distributed forcing
-               uinput.w(PDE.n.nv)=exp(-st);
-
-
+               % Symbolic disturbance
+                uinput.w{1}=subs(u,sx,a); 
+                uinput.w{2}=subs(u_t,sx,a); 
+                uinput.w{3}=subs(diff(u,sx),sx,a); 
+                uinput.w{4}= subs(diff(u_t,sx),sx,a);  
+                uinput.w{5}=subs(diff(u,sx,2),sx,b); 
+                uinput.w{6}= subs(diff(u_t,sx,2),sx,b);   
+                uinput.w{7}=subs(diff(u,sx,3),sx,b); 
+                uinput.w{8}= subs(diff(u_t,sx,3),sx,b);   
+               %  % Last input is distributed forcing
+                uinput.w{PDE.n.nv}=exp(-st);
               
 %---------------------------------------
 % Hyperbolic.PDE equation examples
@@ -1646,7 +1774,13 @@ case 8
          uinput.exact(1) = sin(sx-c*st);
 % % % %  Initial conditions are on primary state;
          uinput.ic.PDE(1)=  sin(sx);
-         uinput.w(1)= sin(xb-c*st);
+
+         % Symbolic disturbance
+         uinput.w{1}= sin(xb-c*st);
+
+         %       % Disturbance as a data array (double)
+         % timegrid=0:opts.dt:opts.tf;
+         % uinput.w{1}=[timegrid;sin(xb-c*timegrid)];
 % %       
 %    
 %--------------------------------------------
@@ -1703,9 +1837,14 @@ case 8
 % % % %  Initial conditions are on primary state;
   uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
 
-  uinput.w(1)=1/(sigma*sqrt(2*pi))*exp(-0.5*((xb-c*st-mu)/sigma)^2);
-% % % %  
-% % 
+  % Symbolic disturbance
+  uinput.w{1}=1/(sigma*sqrt(2*pi))*exp(-0.5*((xb-c*st-mu)/sigma)^2);
+
+   % Disturbance as a data array (double)
+%          timegrid=0:opts.dt:opts.tf;
+%          uinput.w{1}=[timegrid;1/(sigma*sqrt(2*pi))*exp(-0.5*((xb-c*timegrid-mu)/sigma).^2)];
+% % % % %  
+% % % 
 
 %---------------------------------------
 % Wave equation u_tt=c^2 u_xx
@@ -1762,8 +1901,16 @@ case 8
 %       Initial conditions are on the primary states
           uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
           uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
-          uinput.w(1)= -c*pi*sin(pi*a)*sin(c*pi*st);
-          uinput.w(2)= pi*cos(pi*b)*cos(c*pi*st);
+
+          % Symbolic disturbance
+           uinput.w{1}= -c*pi*sin(pi*a)*sin(c*pi*st);
+           uinput.w{2}= pi*cos(pi*b)*cos(c*pi*st);
+
+         %     % Disturbance as a data array (double)
+         % timegrid=0:opts.dt:opts.tf;
+         % uinput.w{1}=[timegrid;-c*pi*sin(pi*a)*sin(c*pi*timegrid)];
+         % uinput.w{2}=[timegrid;pi*cos(pi*b)*cos(c*pi*timegrid)];
+% % % %  
 
 %------------------------------------------
 
@@ -1817,8 +1964,16 @@ case 8
 %         Initial conditions are on the primary states
           uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
           uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
-          uinput.w(1)= c*pi*sin(pi*a)*cos(c*pi*st);
-          uinput.w(2)= pi*cos(pi*b)*sin(c*pi*st);
+
+          % Symbolic disturbance
+           uinput.w{1}= c*pi*sin(pi*a)*cos(c*pi*st);
+           uinput.w{2}= pi*cos(pi*b)*sin(c*pi*st);
+
+          % Disturbance as a data array (double)
+%          timegrid=0:opts.dt:opts.tf;
+%          uinput.w{1}=[timegrid;c*pi*sin(pi*a)*cos(c*pi*timegrid)];
+%          uinput.w{2}=[timegrid;pi*cos(pi*b)*sin(c*pi*timegrid)];
+% % % % %  
 
 %-----------------------------------------
 % Example 25 - traveling wave solution
@@ -1870,8 +2025,16 @@ case 8
 % %       Initial conditions are on the primary states
           uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
           uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
-          uinput.w(1)= -c*cos(a-c*st);
-          uinput.w(2)=  cos(b-c*st);
+
+ %         Symbolic disturbance
+          uinput.w{1}= -c*cos(a-c*st);
+          uinput.w{2}=  cos(b-c*st);
+
+           % Disturbance as a data array (double)
+          % timegrid=0:opts.dt:opts.tf;
+          % uinput.w{1}=[timegrid;-c*cos(a-c*timegrid)];
+          % uinput.w{2}=[timegrid;cos(b-c*timegrid)];
+% % % % %  
 
 %-----------------------------------------
 % Example 26 - traveling wave solution with characteristic boundary
@@ -1925,7 +2088,13 @@ case 8
 %        Initial conditions are on the primary states
           uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
           uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
-          uinput.w(1)= -c*cos(a-c*st);
+
+    %      Symbolic disturbance
+          uinput.w{1}= -c*cos(a-c*st);
+
+          % % Disturbance as a data array (double)
+          % timegrid=0:opts.dt:opts.tf;
+          % uinput.w{1}=[timegrid;-c*cos(a-c*timegrid)];
 
 
 %-----------------------------------------
@@ -1943,7 +2112,7 @@ case 8
             c=4;
 
         % Batch format
-% 
+% % 
             PDE.n0=0; PDE.n1=2; PDE.n2=0; PDE.nw=2;
             PDE.A0=0; PDE.A1=[0 c^2; 1 0]; PDE.A2=0;
             PDE.B=[1 0 0 0;0 0 0 1];
@@ -1977,16 +2146,16 @@ case 8
             % Case with added regulated outputs
 
             % Batch format
-%                PDE.n0=0; PDE.n1=2; PDE.n2=0; PDE.nw=2;
-%                PDE.A0=0; PDE.A1=[0 c^2; 1 0]; PDE.A2=0;
-%                PDE.B=[1 0 0 0;0 0 0 1];
-%                PDE.Bw=eye(2);
-%                PDE.nz=2;
-%                PDE.Ca1=[1 2;3 4];
-%                PDE.D11=[5 6; 7 8];
-%                PDE.nb=1;
-%                PDE.Ca2=[1 2];
-%                PDE.D21=[-1 3];
+               % PDE.n0=0; PDE.n1=2; PDE.n2=0; PDE.nw=2;
+               % PDE.A0=0; PDE.A1=[0 c^2; 1 0]; PDE.A2=0;
+               % PDE.B=[1 0 0 0;0 0 0 1];
+               % PDE.Bw=eye(2);
+               % PDE.nz=2;
+               % PDE.Ca1=[1 2;3 4];
+               % PDE.D11=[5 6; 7 8];
+               % PDE.nb=1;
+               % PDE.Ca2=[1 2];
+               % PDE.D21=[-1 3];
 
 %            % Terms format   
 %              PDE.n.n_pde=[0,2];
@@ -2035,8 +2204,16 @@ case 8
           uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
           uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
     
-    uinput.w(1)=subs(uinput.exact(1),sx,a);
-    uinput.w(2)=subs(uinput.exact(2),sx,b);
+          % Symbolic disturbance
+     uinput.w{1}=subs(uinput.exact(1),sx,a);
+     uinput.w{2}=subs(uinput.exact(2),sx,b);
+
+       % Disturbance as a data array (double)
+          % timegrid=0:opts.dt:opts.tf;
+          % uinput.w{1}=[timegrid;c*(a-c*timegrid-mu)/sigma^2/(sigma*sqrt(2*pi)).*exp(-0.5*((a-c*timegrid-mu)/sigma).^2)];
+          % uinput.w{2}=[timegrid;-1*(b-c*timegrid-mu)/sigma^2/(sigma*sqrt(2*pi)).*exp(-0.5*((b-c*timegrid-mu)/sigma).^2)];
+
+    
 
 
     
@@ -2098,7 +2275,13 @@ case 8
           uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
           uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
     
-    uinput.w(1)=subs(uinput.exact(1),sx,a); 
+          % Symbolic disturbance
+     uinput.w{1}=subs(uinput.exact(1),sx,a); 
+
+     % Disturbance as a data array (double)
+    % timegrid=0:opts.dt:opts.tf;
+    % uinput.w{1}=[timegrid;c*(a-c*timegrid-mu)/sigma^2/(sigma*sqrt(2*pi)).*exp(-0.5*((a-c*timegrid-mu)/sigma).^2)];
+
   
 %-----------------------------------------
 %  Example 29 - splitting Gauss bump
@@ -2156,10 +2339,11 @@ case 8
 %       Initial conditions are on the primary states
           uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
           uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
-    uinput.w(1)=subs(uinput.exact(1),sx,a);
-    uinput.w(2)=subs(uinput.exact(2),sx,b);    
-    
 
+          % Symbolic disturbance
+    uinput.w{1}=subs(uinput.exact(1),sx,a);
+    uinput.w{2}=subs(uinput.exact(2),sx,b);   
+    
 %-----------------------------------------
 %  Example 30 - This example is added to document a solution of PDEs in a system form. 
 %  NOTE: PDEs in this example are uncoupled and are simply solved together to test a matrix implementation.  
@@ -2258,7 +2442,12 @@ case 8
             end
          uinput.exact(2) = sin(sx-c*st);
          uinput.ic.PDE(2)=  sin(sx);
-         uinput.w(1)= sin(xb-c*st);
+         % Symbolic disturbance
+         uinput.w{1}= sin(xb-c*st);
+         % Disturbance as a data array (double)   
+       %  timegrid=0:opts.dt:opts.tf;
+        % uinput.w{1}=[timegrid;sin(xb-c*timegrid)];
+
 % %       
 
  % State 3: n2 state. Two boundary conditions required on this state
@@ -2274,8 +2463,14 @@ case 8
            alpha=pi/8;
            uinput.exact(3) =  sin(5*pi/4*sx+alpha)*exp(-visc*(5*pi/4)^2*st);
            uinput.ic.PDE(3)= subs(uinput.exact(3),st,0);
-           uinput.w(2)=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
-           uinput.w(3)=sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);
+
+         % Symbolic disturbance
+           uinput.w{2}=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
+           uinput.w{3}=sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);
+
+         % Disturbance as a data array (double)  
+        % uinput.w{2}=[timegrid;sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
+         %uinput.w{3}=[timegrid;sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
 
            PDE.BC.Ebv=eye(PDE.n.nw);
            PDE.ODE.Dvw=eye(PDE.n.nw);
@@ -2337,7 +2532,12 @@ case 8
          uinput.exact(2) = sx^10*st^5;
          uinput.ic.PDE(2)=  0;
          
-         uinput.w(1)= xb^10*st^5;
+         % Symbolic disturbance
+         uinput.w{1}= xb^10*st^5;
+
+         % % Disturbance as a data array (double)   
+         % timegrid=0:opts.dt:opts.tf;
+         % uinput.w{1}=[timegrid;xb^10*timegrid.^5];
 % %       
 
  % State 3: n2 state. Two boundary conditions required on this state
@@ -2348,19 +2548,29 @@ case 8
            uinput.exact(4) =  sin(pi*sx)*sqrt(st+t0);
            uinput.ic.PDE(4)= subs(uinput.exact(4),st,0);;
            
-           uinput.w(2)=sin(pi*a)*sqrt(st+t0);
-           uinput.w(3)=sin(pi*b)*sqrt(st+t0);
-           
-           uinput.w(4)=sin(pi*a)*sqrt(st+t0);
-           uinput.w(5)=sin(pi*b)*sqrt(st+t0);
-
-
+                 % Symbolic disturbance
+           uinput.w{2}=sin(pi*a)*sqrt(st+t0);
+           uinput.w{3}=sin(pi*b)*sqrt(st+t0);
+           uinput.w{4}=sin(pi*a)*sqrt(st+t0);
+           uinput.w{5}=sin(pi*b)*sqrt(st+t0);
             uinput.w(6)=st^4;
             uinput.w(7)=st^5;
             uinput.w(8)=0.5/sqrt(st+t0);
             uinput.w(9)=sqrt(st+t0);
             uinput.w(10)=cos(st);
             uinput.w(11)=sin(st);
+
+                 % Disturbance as a data array (double)   
+         % uinput.w{2}=[timegrid;sin(pi*a)*sqrt(timegrid+t0)];
+         % uinput.w{3}=[timegrid;sin(pi*b)*sqrt(timegrid+t0)];
+         % uinput.w{4}=[timegrid;sin(pi*a)*sqrt(timegrid+t0)];
+         % uinput.w{5}=[timegrid;sin(pi*b)*sqrt(timegrid+t0)];
+         % uinput.w{6}=[timegrid;timegrid.^4];
+         % uinput.w{7}=[timegrid;timegrid.^5];
+         % uinput.w{8}=[timegrid;0.5./sqrt(timegrid+t0)];
+         % uinput.w{9}=[timegrid;sqrt(timegrid+t0)];
+         % uinput.w{10}=[timegrid;cos(timegrid)];
+         % uinput.w{11}=[timegrid;sin(timegrid)];
             
 %----------------------------------------------------------------------------
 % Examples of PDE/ODE coupling
@@ -2416,29 +2626,30 @@ case 8
                
                % Boundary conditions: need four boundary conditions on primary states 
 % %           
-               uinput.w(1)= 2*a^3*st;       % Dirichlet: state(1): u_t at x=a
-               uinput.w(2)= 6*b*st^2;       % Dirichlet: state(2): u_xx at x=b
-               uinput.w(3)= 6*a^2*st;       % Neumann:   state(1)_x: u_tx at x=a
-               uinput.w(4)= 6*st^2;         % Neumann:   state(2)_x: u_xxx at x=b
-               
+
+           % Symbolic disturbance
+                uinput.w{1}= 2*a^3*st;       % Dirichlet: state(1): u_t at x=a
+                uinput.w{2}= 6*b*st^2;       % Dirichlet: state(2): u_xx at x=b
+                uinput.w{3}= 6*a^2*st;       % Neumann:   state(1)_x: u_tx at x=a
+                uinput.w{4}= 6*st^2;         % Neumann:   state(2)_x: u_xxx at x=b
+               % 
 
                % If forcing is polynomial in space, it is done through B21 matrix
                % 5th input is distributed forcing
-               uinput.w(5)=1;
-               
+               uinput.w{5}=1+0*st;
+
+                    % Disturbance as a data array (double)   
+%                 timegrid=0:opts.dt:opts.tf;
+%                 uinput.w{1}=[timegrid;2*a^3*timegrid];
+%                 uinput.w{2}=[timegrid;6*b*timegrid.^2];
+%                 uinput.w{3}=[timegrid;6*a^2*timegrid];
+%                 uinput.w{4}=[timegrid;6*timegrid.^2];
+%                 uinput.w{5}=[timegrid;ones(1,length(timegrid))];
+% % %       
+% 
                
                PDE.B21=s1*zeros(PDE.n0+PDE.n1+PDE.n2,PDE.nw);  
                PDE.B21(1,5)=2*s1^3;
-               
-% %           Temporal dependence of force components in separated form
-%               uinput.tforce(1)= 1;
-%              
-% %             Spatial dependence of force components in separated form.
-% %             Needs to be input for every state for every force component.
-% %             Index numbder of state is first, index number of force
-% %             component (1:nf) is second
-%               uinput.force(1,1) = 2*sx.^3; 
-%               uinput.force(2,1) = 0;
 
 
 %----------------------------------------------------------------------------
@@ -2597,111 +2808,17 @@ C = [-2/5, -5/4, 3/2, 1/3, 1/40];
  uinput.ic.PDE=5*sx*(1-sx)^2*cos(3*pi*sx);
 
 %----------------------------------------
-% Cylindrical Coordinates: Variable Substitution Examples
+% Cylindrical Coordinates Examples: Weighted Formulation Approach
 %----------------------------------------
 
-% Examples 39–40 use the substitution r = s^2 to remove the 1/r singularity
-% in axisymmetric PDEs. After substitution, all terms become regular in s.
-
-%----------------------------------------
-% Example 39 - Axisymmetric Diffusion
-% Neumann(left) and Dirichlet(right)
-%----------------------------------------
-
-% Original PDE in r: u_t = alpha[(1/r)*u_r + u_rr] 
-% Original BCs:
-%     r = 0:  u_r(0,t) = 0          (Neumann)
-%     r = 1:  u(1,t)   = 0          (Dirichlet)
-
-% Variable substitution:  r = s^2,  s ∈ [0,1] 
-% Transformed PDE in s: u_t = 4*alpha*(u_s + s*u_ss) 
-% Transformed BCs:
-%     s = 1:  u(1,t) = 0
-%     s = 0:  u_s(0,t) = -(j01^2 / 4) * exp(-j01^2 * t)
-%             (this is the transformed Neumann condition at r=0)
-% Exact solution: u(s,t) = J0(j01 * sqrt(s)) * exp(-j01^2 * t)
-% where J0 is the Bessel function of the first kind (order 0) and j01 is
-% its first zero.    
-
-case 39
-   
-    a = 0.0001; b = 1;         
-    PDE.dom = [a b];
-    alpha = 1;  
-    j01 = 2.4048;
-
-    x1 = pde_var(s1, [a, b]);    
-    x = x1;
-    w = pde_var('in');
-    
-    Dyn = diff(x, t) == 4*alpha*(diff(x, s1) + s1 * diff(x, s1, 2));
-
-    BCs = [subs(diff(x1, s1), s1, a) == w;   
-               subs(x1, s1, b) == 0];                                    
-
-    PDE = initialize([Dyn; BCs]);
-    
-%   Exact solution, initial conditions, and inhomogeneous inputs
-    uinput.exact(1) = besselj(0, j01 * sqrt(sx)) * exp(-j01^2* st);
-    uinput.ic.PDE = besselj(0, j01 * sqrt(sx));
-    uinput.w(1) = -j01^2/4 * exp(-j01^2* st);
-
-%----------------------------------------
-% Example 40 - Axisymmetric Diffusion Reaction
-% Neumann(left) and Dirichlet(right)
-%----------------------------------------
-
-% Original PDE in r: u_t = alpha[lambda*u + (1/r)*u_r + u_rr] 
-% Original BCs:
-%     r = 0:  u_r(0,t) = 0          (Neumann)
-%     r = 1:  u(1,t)   = 0          (Dirichlet)
-
-% Variable substitution:  r = s^2,  s ∈ [0,1] 
-% Transformed PDE in s: u_t = lambda*u + 4*alpha*(u_s + s*u_ss) 
-% Transformed BCs:
-%     s = 1:  u(1,t) = 0
-%     s = 0:  u_s(0,t) = -(j01^2 / 4) * exp(-(j01^2-lambda)*t)
-%             (this is the transformed Neumann condition at r=0)
-% Exact solution: u(s,t) = J0(j01 * sqrt(s)) * exp(-(j01^2-lambda)*t)
-% where J0 is the Bessel function of the first kind (order 0) and j01 is
-% its first zero.    
-
-case 40
-
-    a = 0.0001; b = 1;        
-    PDE.dom = [a b];
-    alpha = 1;
-    lambda = 1;
-    j01 = 2.4048;
-
-    x1 = pde_var(s1, [a, b]);    
-    x = x1;
-    w = pde_var('in');
-    
-    Dyn = diff(x, t) == lambda * x + 4 * alpha * (diff(x, s1) + s1 * diff(x, s1, 2));
-
-    BCs = [subs(diff(x1, s1), s1, a) == w;   
-               subs(x1, s1, b) == 0];                                    
-
-    PDE = initialize([Dyn; BCs]);
-    
-%   Exact solution, initial conditions, and inhomogeneous inputs
-    uinput.exact(1) = besselj(0, j01 * sqrt(sx)) * exp(-(j01^2 - lambda) * st);
-    uinput.ic.PDE = besselj(0, j01 * sqrt(sx));
-    uinput.w(1) = -j01^2/4 * exp(-(j01^2 - lambda) * st);
-
-%----------------------------------------
-% Cylindrical Coordinates: Weighted Formulation Examples
-%----------------------------------------
-
-% Examples 41–43 illustrate the "weighted formulation" approach. 
+% Examples 39–41 illustrate the "weighted formulation" approach. 
 % In cylindrical coordinates, many PDEs contain singular terms
 % such as (1/r)*u_r or (1/r^2)*u. The weighted formulation avoids
 % singularities by multiplying the entire PDE by the highest
 % power of r that clears all singular terms.
 
 %----------------------------------------
-% Example 41 - Axisymmetric Diffusion
+% Example 39 - Axisymmetric Diffusion
 % Neumann(left) and Dirichlet(right)
 %----------------------------------------
 
@@ -2713,7 +2830,16 @@ case 40
 % Exact solution: u(r,t) = J0(j01*r)*exp(-alpha*j01^2*t)
 % Initial condition: u(r, 0) = J0(j01*r)
 
-case 41
+% IMPORTANT: In this case, since the highest singularity in the PDE is of the 
+% order 1/r, we multiply the PDE throughout by r. The right-hand side
+% of the PDE is entered into the PDE construct in the weighted form.
+% However, the left-hand side of the PDE can not be entered in the weighted
+% form. Instead, the left-hand side operators acting on the derivatives of
+% x_f, u and w need to be weighted. This is accomplished intrinsically in
+% PIESIM via weigthPIE routine. The user needs to specify the weight under the uinput.weight
+% (power of the r term, here weight=1)
+
+case 39
 
     a = 0.0001; b = 1;
     PDE.dom = [a b];
@@ -2730,9 +2856,6 @@ case 41
 
     PDE = initialize([Dyn; BCs]); 
 
-    % Enable weighted formulation
-    uinput.weighted = true;
-
     % Specify the polynomial weight. Since the PDE has the
     % highest singularity of order 1, we use weight = 1.
     uinput.weight = 1;
@@ -2741,7 +2864,7 @@ case 41
     uinput.ic.PDE = besselj(0, j01*sx);
 
 %----------------------------------------
-% Example 42 - Axisymmetric Diffusion Reaction
+% Example 40 - Axisymmetric Diffusion Reaction
 % Neumann(left) and Dirichlet(right)
 %----------------------------------------
 
@@ -2753,7 +2876,16 @@ case 41
 % Exact solution: u(r,t) = J0(j01*r)*exp(-alpha*(j01^2-lambda)*t) 
 % Initial condition: u(r, 0) = J0(j01*r)
 
-case 42
+% IMPORTANT: In this case, since the highest singularity in the PDE is of the 
+% order 1/r, we multiply the PDE throughout by r. The right-hand side
+% of the PDE is entered into the PDE construct in the weighted form.
+% However, the left-hand side of the PDE can not be entered in the weighted
+% form. Instead, the left-hand side operators acting on the derivatives of
+% x_f, u and w need to be weighted. This is accomplished intrinsically in
+% PIESIM via weigthPIE routine. The user needs to specify the weight under the uinput.weight
+% (power of the r term, here weight=1)
+
+case 40
 
     a = 0.0001; b = 1;
     PDE.dom = [a b];
@@ -2771,9 +2903,6 @@ case 42
 
     PDE = initialize([Dyn; BCs]); 
 
-    % Enable weighted formulation
-    uinput.weighted = true;
-
     % Specify the polynomial weight. Since the PDE has the
     % highest singularity of order 1, we use weight = 1.
     uinput.weight = 1;
@@ -2782,7 +2911,7 @@ case 42
     uinput.ic.PDE = besselj(0, j01*sx);
 
 %----------------------------------------
-% Example 43 - Poloidal Magnetic Flux Gradient(Tokamak)
+% Example 41 - Poloidal Magnetic Flux Gradient(Tokamak)
 % This example is inspired by the model(PDE) presented in A.Gahlawat et al., 
 % "Bootstrap Current Optimization in Tokamaks Using Sum-Of-Squares Polynomials"
 %----------------------------------------
@@ -2798,12 +2927,15 @@ case 42
 % Exact Solution: u(r, t) = r*I0*(1 - exp(-t/tau))
 
 % IMPORTANT: In this case, since the highest singularity in the PDE is of the 
-% order 1/r^2, we multiply the PDE throughout by r^2. To ensure the time 
-% derivative is multiplied appropriately, we will need to modify the M 
-% operator. To do this, uncomment the lines 140-157 and ensure
-% that M.R.R0 = s1^2 * eye(m)
+% order 1/r^2, we multiply the PDE throughout by r^2. The right-hand side
+% of the PDE is entered into the PDE construct in the weighted form.
+% However, the left-hand side of the PDE can not be entered in the weighted
+% form. Instead, the left-hand side operators acting on the derivatives of
+% x_f, u and w need to be weighted. This is accomplished intrinsically in
+% PIESIM via weigthPIE routine. The user needs to specify the weight under the uinput.weight
+% (power of the r term, here weight=2)
 
-case 43
+case 41
 
     a = 0; b = 1;
     PDE.dom = [a b];
@@ -2823,17 +2955,21 @@ case 43
     
     PDE = initialize([Dyn; BCs]);
 
-    % Enable weighted formulation
-    uinput.weighted = true;
-
-    % Specify the polynomial weight. Since the PDE has the
+    % Specify the polynomial weight for the weighted formulation. Since the PDE has the
     % highest singularity of order 2, we use weight = 2.
     uinput.weight = 2;
     
     uinput.exact = sx*I0*(1 - exp(-st/tau));
     uinput.ic.PDE = sx*I0;
-    uinput.w(1) = (I0/tau)*sx*exp(-st/tau); % Forcing term
-    uinput.w(2) = I0 * (1 - exp(-st/tau));  % Boundary input
+
+    % Symbolic disturbance
+    uinput.w{1} = (I0/tau)*sx*exp(-st/tau); % Forcing term
+    uinput.w{2} = I0 * (1 - exp(-st/tau));  % Boundary input
+
+     % % Disturbance as a data array (double)   
+     %  timegrid=0:opts.dt:opts.tf;
+     %  uinput.w{2}=[timegrid;  I0 * (1 - exp(-timegrid/tau))];
+
     
 end % cases
 % %            

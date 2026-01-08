@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_pde_library_PIESIM_2D.m     PIETOOLS 2024
+% examples_pde_library_PIESIM_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This file contains a library of 2D examples to use with PIESIM that includes: 
 % PDE systems and coupled PDE/ODE systems. 
@@ -173,9 +173,9 @@ uinput.exact =  100*(sx-a)*(sx-b)*(sy-c)*(sy-d)*cos(st);
 uinput.ic.PDE= subs(uinput.exact,st,0);
 
 % Enter temporal content of disturbance here
-uinput.w(1)= -cos(st);
-uinput.w(2)= -sin(st);
-%              
+ uinput.w(1)= -cos(st);
+ uinput.w(2)= -sin(st);
+% %              
 
 %----------------------------------------
 %% Example 4 - 2D Heat Equation with Dirichlet-Neumann boundary conditions
