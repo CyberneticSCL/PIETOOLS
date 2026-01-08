@@ -42,7 +42,7 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
         B1cheb=Dop.B1cheb;
         B2cheb=Dop.B2cheb;
         Acheb=Dop.Acheb;
-        Mcheb_inv=Dop.Mcheb_inv;
+        Tcheb_inv=Dop.Tcheb_inv;
         Atotal=Dop.Atotal;
         V=Dop.V;
         D=Dop.D;
@@ -117,7 +117,7 @@ function solcoeff=PIESIM_int_symbolic(psize, opts, uinput, coeff, Dop)
            C=unique(col);
        for k=1:size(C,1)
         i=C(k);
-       addition_symbolic=addition_symbolic+diag(inhom(:,i))*inv(V)*Mcheb_inv(:,i);
+       addition_symbolic=addition_symbolic+diag(inhom(:,i))*inv(V)*Tcheb_inv(:,i);
        end
        end
 
