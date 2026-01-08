@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% solver_PIESIM.m     PIETOOLS 2024
+% solver_PIESIM.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % PIESIM Version of PIETOOLS for 1D and 2D problems: 
@@ -26,12 +26,14 @@
 % Initial coding YP  - 5_29_2021
 % YP - Added 2D functionality - 4_16_2024
 
+% YP 12/21/2025 - (1) moved options before example setup, (2) pass options to examples for
+% generating data array disturbance, (3) moved uinput.ifexact to
+% opts.ifexact
+
 clear all;
 clc;
 close all;
 format long;
-
-% Set up the dimension of the problem 
 
 %--------------------------------------------------------------
 % SETUP OF THE SIMULATIONS USER INPUT BEGINS
@@ -44,38 +46,14 @@ format long;
 
 dim=1;
 
-% Set up example to run from the examples library (additional examples can
-% be added to the library by the user).
-%------------------------------------------------------------------------------
-% For 1D problems: example = xxx (between 1 and 38) to correspond to an Example number in
-% the 'examples_pde_library_PIESIM_1D.m'
-% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
-% the 'examples_pde_library_PIESIM_2D.m'
-%------------------------------------------------------------------------------
-
-    example=1;
-
-    if (dim==1)
-    if (example<1|example>38)
-        disp('Warning: Example number is outside of the range. Defaulting to example=1');
-        example=1;
-    end
-    [PDE,uinput]=examples_pde_library_PIESIM_1D(example);
-    else   % dim=2
-    if (example<1|example>19)
-        disp('Warning: Example number is outside of the range. Defaulting to example=1');
-        example=1;
-    end
-    [PDE,uinput]=examples_pde_library_PIESIM_2D(example);
-    end
-
+% Set up options for the simulations
 
 % If exact solution is known (see examles) and is desired to be provided for testing,
-% select uinput.ifexact=true.
-% NOTE: Only choose uinput.ifexact=true if exact solution for all the states is
-%       available, Otherwise, choose ifexact=false.
+% select opts.ifexact=true.
+% NOTE: Only choose opts.ifexact=true if exact solution for all the states is
+%       available. Otherwise, choose opts.ifexact=false.
 
-uinput.ifexact=true;
+opts.ifexact=true;
 %-----------------------------------------------------------
 opts.plot='yes';
 opts.ploteig='yes';
@@ -107,9 +85,9 @@ opts.tf=1.6;
 % if opts.intScheme = 1
 %  Choose the order of numerical time integration scheme (Norder). A time
 %  integration scheme available is Backward Differentiation Formula (BDF).
-%  Norder = 1, 2, 3 or 4 can be chosen. Lower order yield more robust
+%  opts.Norder = 1, 2, 3 or 4 can be chosen. Lower order yield more robust
 %  schemes, and higher order more accurate schemes. Also input the desired
-%  time step (dt)
+%  time step (opts.dt)
 
 opts.intScheme=1;
 
@@ -117,6 +95,32 @@ if (opts.intScheme==1)
     opts.Norder = 2;
     opts.dt=0.02;
 end
+
+
+% Set up example to run from the examples library (additional examples can
+% be added to the library by the user).
+%------------------------------------------------------------------------------
+% For 1D problems: example = xxx (between 1 and 41) to correspond to an Example number in
+% the 'examples_pde_library_PIESIM_1D.m'
+% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
+% the 'examples_pde_library_PIESIM_2D.m'
+%------------------------------------------------------------------------------
+
+    example=7;
+
+    if (dim==1)
+    if (example<1|example>41)
+        disp('Warning: Example number is outside of the range. Defaulting to example=1');
+        example=1;
+    end
+    [PDE,uinput]=examples_pde_library_PIESIM_1D(example,opts);
+    else   % dim=2
+    if (example<1|example>19)
+        disp('Warning: Example number is outside of the range. Defaulting to example=1');
+        example=1;
+    end
+    [PDE,uinput]=examples_pde_library_PIESIM_2D(example);
+    end
 
 %--------------------------------------------------------------------------
 %   USER INPUT ENDS
