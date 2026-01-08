@@ -116,10 +116,9 @@ switch example
              uinput.w(2)= sin(pi*b)*exp(-visc*pi^2*st);
 
              % Disturbance as a data array (double)
-              % timegrid1=0:opts.dt:opts.tf/10;
-              % timegrid2=0:2*opts.dt:opts.tf;
-              % uinput.w{1}=[timegrid1;sin(pi*a)*exp(-visc*pi^2*timegrid1)];
-              % uinput.w{2}=[timegrid2;sin(pi*b)*exp(-visc*pi^2*timegrid2)];
+             % timegrid=0:opts.dt:opts.tf;
+             % uinput.w{1}=[timegrid;sin(pi*a)*exp(-visc*pi^2*timegrid)];
+             % uinput.w{2}=[timegrid;sin(pi*b)*exp(-visc*pi^2*timegrid)];
 
 %  
 %---------------------------------------------------        
@@ -2973,3 +2972,4 @@ case 41
     
 end % cases
 % %            
+
