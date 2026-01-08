@@ -35,13 +35,13 @@ function Dop=PIESIM_discretize_ops_2D(PIE, psize);
  Dop.C1cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.C1,psize,2);
  Dop.C2cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.C2,psize,2);
  Dop.Acheb=PIESIM_fullPI2Mat_cheb_2D(PIE.A,psize,3);
- [Mcheb, Dop.Mcheb_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.T,psize,3);
- if isfield(PIE.misc,'T0') 
-     [Mcheb0, Dop.Mcheb0_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.misc.T0,psize,3);
+ [Tcheb, Dop.Tcheb_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.T,psize,3);
+ if isfield(PIE.misc,'Tmap') 
+     [Tchebmap, Dop.Tchebmap_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.misc.Tmap,psize,3);
  end
 %  
-  Dop.Mcheb_inv=inv(Mcheb);
-  Dop.Atotal=Dop.Mcheb_inv*Dop.Acheb;
+  Dop.Tcheb_inv=inv(Tcheb);
+  Dop.Atotal=Dop.Tcheb_inv*Dop.Acheb;
 
 
 
