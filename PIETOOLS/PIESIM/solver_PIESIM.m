@@ -74,7 +74,7 @@ opts.tf=1.6;
 %  opts.intScheme = 2 - Analytical integration in symbolic form 
 % Note: opts.intScheme=2 will only work if the boundary and forcing inputs
 %       are simple integrable functions of time, and the matrix 
-%       Atotal=inv(M)*A is diagonalizable. An error will be issued if 
+%       Atotal=inv(T)*A is diagonalizable. An error will be issued if 
 %       matrix is not diagonalizable, and a default integration scheme 
 %       given by opts.intScheme = 1 (BDF) of order 2 (opts.Norder=2) will 
 %       be executed.
@@ -133,6 +133,7 @@ elseif exist('DDE','var')
 else
     solution = PIESIM(PDE,opts,uinput);
 end
+
 
 
 
