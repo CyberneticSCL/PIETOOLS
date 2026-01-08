@@ -138,9 +138,6 @@ end
                         [uinput.w{1:nw}]=deal(sin(st));
                     case 'sinc'
                         [uinput.w{1:nw}]=deal(sinc(st));
-                    case 'rand'
-                        randomfun=@rand;
-                        [uinput.w{1:nw}]=deal(randomfun);
                     otherwise
                         disp('The specified signal type for disturbances is not supported. Defaulting to a sinusoidal type');
                        [uinput.w{1:nw}]=deal(sin(st));
@@ -170,8 +167,8 @@ end
 
     for k=1:nw
      % Check that the disturbance is of appropriate type 
-        if ~isdouble(uinput.w{k}) & ~isa(uinput.w{k}, 'sym') 
-            fprintf('Warning: uinput.w for the input %d is neither ''double'' nor ''sym''. Defaulting to zero.\n', k);
+        if ~isdouble(uinput.w{k}) & ~isa(uinput.w{k}, 'sym')
+            fprintf('Warning: uinput.w for the input %d is not of the allowed type (''double'', ''sym'', or ``rand''). Defaulting to zero.\n', k);
             uinput.w{k}=0;
         end
         % Check size for double

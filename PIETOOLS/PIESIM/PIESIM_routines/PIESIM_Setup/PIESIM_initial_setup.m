@@ -31,8 +31,6 @@ syms st sx sy;
 
  if isfield(uinput,'w')
      for k = 1:numel(uinput.w)
-         % Function handles
-          if ~isa(uinput.w{k}, 'function handle')
          % Symbolic disturbances
         if isa(uinput.w{k}, 'sym')
         uinput.w{k}=matlabFunction(uinput.w{k},'Vars', st);
@@ -53,7 +51,6 @@ syms st sx sy;
             end
         end
 
-          end
 
         end % for k
      end % isfield(uinput,'w')
