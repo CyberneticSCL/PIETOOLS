@@ -25,23 +25,30 @@ close all; clc; clear; clear stateNameGenerator
 % each with an associated default executive to run. Call the library with
 % an index 1 through 52 as argument to extract that example, and run the
 % associated executive, if desired.
-PDE = examples_PDE_library_PIETOOLS(1);
+PDE = examples_PDE_library_PIETOOLS(42);
 
 %% --- Manual Declaration Option --- 
 % % To use this example, comment line 28, and
 % % uncomment line 65
 % pvar s t
-% A1 = [0 1; 2 0];        A0 = [0 0; 0 -2];
-% x1 = pde_var(s,[0,1]);  x2 = pde_var(s,[0,1]);    x = [x1;x2];
-% eq_dyn = diff(x,t)==A0*x+A1*diff(x,s);
-% eq_bc = [subs(x2,s,0)==0; subs(x1,s,1)==0];
-% PDE = initialize([eq_dyn;eq_bc]);
+% x = pde_var(s,[0,1]);  
+% u = pde_var('control');
+% z = pde_var('output',2);
+% y = pde_var('sense');
+% w = pde_var('input');
+% eq_dyn = diff(x,t)==0*x+diff(x,s,2)+u+w;
+% eq_out = z==[int(x,s,0,1);u];
+% eq_obv = y==int(x,s,0,1);
+% eq_bc = [subs(x,s,0)==0; subs(x,s,1)==0];
+% PDE = initialize([eq_dyn;eq_out;eq_bc;eq_obv]);
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 2: Convert to a PIE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PIE=convert(PDE,'pie');
 PIE = convert_PIETOOLS_PDE(PDE);
+
+
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,21 +58,21 @@ PIE = convert_PIETOOLS_PDE(PDE);
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_heavy;
 settings = lpisettings('heavy');
-settings.eppos = 1e-4;                % Positivity of Lyapunov Function with respect to real-valued states
+settings.eppos = 1e-2;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 
 % % OPTIONAL: uncomment to declare SDP solver to use (defaults to solver on path)
-% settings.sos_opts.solver='sedumi';  % one of 'sedumi', 'mosek', 'sdpnalplus', or 'sdpt3'
+settings.sos_opts.solver='sedumi';  % one of 'sedumi', 'mosek', 'sdpnalplus', or 'sdpt3'
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
 % PIETOOLS_auto_execute
 
 % % --- Manually run desired executives ---
 % [prog,P] = lpiscript(PIE,'hinf-observer',settings);
-% [prog, P] = PIETOOLS_stability(PIE,settings);
-% [prog, P] = PIETOOLS_stability_dual(PIE,settings);
-%[prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
+% [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);
+% [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);
+% [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
 % [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
 % [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
 % [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
