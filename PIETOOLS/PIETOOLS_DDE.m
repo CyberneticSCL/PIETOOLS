@@ -247,10 +247,10 @@ end
 
 %%% Construct and solve the LPI corresponding to the problem you specified earlier
 if stability==1
-    [prog, P] = PIETOOLS_stability(PIE,settings);
+    [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);
 end
 if stability_dual==1
-    [prog, P] = PIETOOLS_stability_dual(PIE,settings);
+    [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);
 end
 if Hinf_gain==1
     [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
