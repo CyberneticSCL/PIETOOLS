@@ -31,7 +31,7 @@
 %
 % Initial coding YP  - 5_31_2021
 % YP - added functionality to support infinite-dimensional disturbances and
-% regulated/observe outputs - 6_2_2025
+% regulated/observed outputs - 6_2_2025
 
 function [A, A_nonsquare]=PIESIM_4PI2Mat_cheb(N, Rop, p, flag)
 

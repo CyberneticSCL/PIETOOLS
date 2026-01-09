@@ -47,6 +47,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % Initial coding YP  - 4_16_2024
 % DJ, 07/17/2024 - Bugfix for extraction of exact solutions.
 % DJ, 01/01/2025 - Change plot specifications;
+% YP 01/07/2026 - Enable plotting at time=0
 
 syms sx sy;
 
@@ -80,8 +81,7 @@ end
 if opts.intScheme~=1
     disp("Temporal evolution of solution is only available when using the BDF scheme; only final states are plotted.")
 elseif opts.tf==0
-    disp("Final time is t=0; no plots produced.")
-    return
+    disp("Temporal evolution of solution is only available when final time is not equal to zero; only final states are plotted.")
 else
     dtime=solution.timedep.dtime;
     Nplot = min(length(dtime),100);  % plot at at most 100 time points.
@@ -243,7 +243,7 @@ colors_PDE = [0 0.4470 0.7410;
             0.4660 0.6740 0.1880;
             0.3010 0.7450 0.9330;
             0.6350 0.0780 0.1840];
-if (uinput.ifexact==true)
+if (opts.ifexact==true)
     Nplot_space=101;
     a = uinput.dom(1,1);    b = uinput.dom(1,2);
     exact_grid_x = linspace(a,b,round(Nplot_space));
@@ -255,7 +255,7 @@ end
 ns_tot = psize.no;
 
 % Plot numerical solution using only markers if exact solution is available
-if uinput.ifexact
+if opts.ifexact
     line_style = {'d','LineWidth',marker_size};
 else
     line_style = {'-d','MarkerSize',marker_size,'LineWidth',line_width};
@@ -279,7 +279,7 @@ if sum(psize.nx)>0
         else
             plot(grid.phys(:,1),solution.final.pde{1}(:,n),line_style{:},'DisplayName','Numerical solution');
         end
-        if uinput.ifexact
+        if opts.ifexact
             hold on
             exsol_grid_time = subs(uinput.exact(n+ns_tot),sx,exact_grid_x);
             exsol_grid_x = double(subs(exsol_grid_time,solution.tf));
@@ -321,7 +321,7 @@ if sum(psize.ny)>0
         else
             plot(grid.phys(:,2),solution.final.pde{1}(:,sum(psize.nx)+n),line_style{:},'DisplayName','Numerical solution');
         end
-        if uinput.ifexact
+        if opts.ifexact
             hold on
             exsol_grid_time = subs(uinput.exact(n+ns_tot),sy,exact_grid_y);
             exsol_grid_y = double(subs(exsol_grid_time,solution.tf));
@@ -332,11 +332,11 @@ if sum(psize.ny)>0
         xlabel('$s_{2}$','FontSize',15,'Interpreter','latex');
         ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
         if ns==1 && n_pde_tot==1
-            title(['Simulated Final 1D PDE State, $\mathbf{x}(t=',num2str(solution.timedep.dtime(end)),',s_{2})$'],'FontSize',15,'Interpreter','latex');
+            title(['Simulated Final 1D PDE State, $\mathbf{x}(t=',num2str(solution.tf),',s_{2})$'],'FontSize',15,'Interpreter','latex');
         elseif ns==1
-            title(['Simulated Final 1D PDE State, $\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.timedep.dtime(end)),',s_{2})$'],'FontSize',15,'Interpreter','latex');
+            title(['Simulated Final 1D PDE State, $\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.tf),',s_{2})$'],'FontSize',15,'Interpreter','latex');
         else
-            title(['$\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.timedep.dtime(end)),',s_{2})$'],'FontSize',15,'Interpreter','latex');
+            title(['$\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.tf),',s_{2})$'],'FontSize',15,'Interpreter','latex');
         end
         set(gca,'XLim',[min(grid.phys(:,2)),max(grid.phys(:,2))]);
         set(gca,'TickLabelInterpreter','latex');
@@ -387,7 +387,7 @@ if sum(psize.n)>0
     figs = [figs,{fig6}];
 
     % Plot the analytic PDE solution
-    if uinput.ifexact
+    if opts.ifexact
         fig7 = figure('Position',[200 150 fig_width 400]);
         if ns>1
             sgtitle('Exact Final 2D PDE State','Interpreter','latex','FontSize',16)

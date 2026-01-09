@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_3PI2Mat_cheb.m     PIETOOLS 2024
+% PIESIM_3PI2Mat_cheb.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A and A_nonsquare matrices for the entire multi-dimensional 3PI operator  
 %
@@ -38,8 +38,8 @@ else
     pcol=p;
 end
 
-ns_row=size(p,2);
-ns_col=size(pcol,2);
+ns_row=length(p);
+ns_col=length(pcol);
 
 
   R0=Rop.R0;

@@ -10,17 +10,24 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
 % --- solution.final.ode - array of size no - ode solution at a final time 
-% --- solution.final.observed - array of size noo  - final value of observed outputs
-% --- solution.final.regulated - array of size nro  - final value of regulated outputs
+% --- solution.final.observed - array of size noo  - final value of FINITE-DIMENSIONAL observed outputs
+% --- solution.final.observed_infd - array of size (N+1) x noox - final value of INFINITE-DIMENSIONAL observed outputs
+% --- solution.final.regulated - array of size nro  - final value of FINITE-DIMENSIONAL regulated outputs
+% --- solution.final.regulated_infd - array of size (N+1) x nrox - final value of INFINITE-DIMENSIONAL regulated outputs
+
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
 % --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 % --- solution.timedep.observed - array of size noo x Nsteps -
-%     time-dependent value of observed outputs
+%     time-dependent value of FINITE-DIMENSIONAL observed outputs
+% --- solution.timedep.observed_infd - array of size (N+1) x noox x Nsteps -
+%     time-dependent value of INFINITE-DIMENSIONAL observed outputs
 % --- solution.timedep.regulated - array of size nro x Nsteps -
-%     time-dependent value of regulated outputs
+%     time-dependent value of FINITE-DIMENSIONAL regulated outputs
+% --- solution.timedep.regulated_infd - array of size (N+1) x nrox x Nsteps -
+%     time-dependent value of INFINITE-DIMENSIONAL regulated outputs
 
 % 2) psize - size of the PIE problem: nw, nu, nf, no 
 % 3) uinput -  user-defined boundary inputs, forcing functions and initial conditions
@@ -39,6 +46,8 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % DJ, 01/01/2025 - Change plot specifications;
 % YP, 06/02/2025 - Made modifications so that final plots are produced at a
 % zero final time (tf=0)
+% YP, 01/02/2026 - updated plotting to distinguish between finite- and
+% infinite-dimensinal outputs
 
 syms sx;
 
@@ -64,7 +73,7 @@ end
 if(psize.nro>0)
     if (~isempty(solution.final.regulated))
         for i=1:psize.nro
-            formatSpec = 'Value of regulated output %s at a final time %f is %8.4f\n';
+            formatSpec = 'Value of regulated finite-dimensional output %s at a final time %f is %8.4f\n';
             fprintf(formatSpec,num2str(i),solution.tf, solution.final.regulated(i));
         end
         plot_z = true;
@@ -78,7 +87,7 @@ end
 if(psize.noo>0)
     if (~isempty(solution.final.observed))
         for i=1:psize.noo
-            formatSpec = 'Value of observed output %s at a final time %f is %8.4f\n';
+            formatSpec = 'Value of observed finite-dimensional output %s at a final time %f is %8.4f\n';
             fprintf(formatSpec,num2str(i),solution.tf, solution.final.observed(i));
         end
         plot_y = true;
@@ -258,7 +267,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
             0.6350 0.0780 0.1840];
 
     % Initialize grid points at which to compute exact solution.
-    if (uinput.ifexact==true)
+    if (opts.ifexact==true)
         Nplot_space=101;
         a = uinput.a;
         b = uinput.b;
@@ -276,14 +285,14 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         sgtitle('PDE State at Final Time','Interpreter','latex','FontSize',16)
     end
     for n=1:ns
-        if (uinput.ifexact==true)
+        if (opts.ifexact==true)
             exsol_grid_time = subs(uinput.exact(n),sx,exact_grid);
             exsol_grid = double(subs(exsol_grid_time,solution.tf));
         end
         subplot(1,ns,n);
         box on
         hold on
-        if ~uinput.ifexact
+        if ~opts.ifexact
             plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
         else
             plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');

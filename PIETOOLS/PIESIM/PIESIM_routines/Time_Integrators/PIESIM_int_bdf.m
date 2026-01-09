@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_int_bdf.m    PIETOOLS 2024
+% PIESIM_int_bdf.m    PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE with implicit
 % backward-difference formula (BDF) - unconditionally stable for diffusive
@@ -39,6 +39,8 @@
 % YP 8_18_2024 - added support for spatially-variant multiple disturbances
 % across multiple states (thrugh coeff.u, coeff.w)
 % Added solcoeff,u, solcoeff.w to solcoeff structure
+% YP 12/31/2025 - modified the treatment of disturbances and control inputs via functon
+% handles
 
 function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, Dop)
 nw=psize.nw;
@@ -53,7 +55,7 @@ Tucheb=Dop.Tucheb;
 B1cheb=Dop.B1cheb;
 B2cheb=Dop.B2cheb;
 Acheb=Dop.Acheb;
-Mcheb_inv=Dop.Mcheb_inv;
+Tcheb_inv=Dop.Tcheb_inv;
 Atotal=Dop.Atotal;
 
 
@@ -105,26 +107,34 @@ t=0;
      if (nw>0)
     % Contribution to inhomogeneous term due to boundary disturbances 
      if (isempty(B1cheb)==0&any(B1cheb,'all')~=0)
-     wvec(:,1)=double(subs(uinput.w(:),t));
-     inhom=inhom+Mcheb_inv*B1cheb*coeff.w*wvec;
+         for k = 1:numel(uinput.w)
+        wvec(k,1)=uinput.w{k}(t);
+        end
+     inhom=inhom+Tcheb_inv*B1cheb*coeff.w*wvec;
      end
     % Contribution to inhomogeneous term due to time derivative of boundary disturbances  
      if (isempty(Twcheb)==0&any(Twcheb,'all')~=0)
-     wdotvec(:,1)=double(subs(uinput.wdot(:),t));
-     inhom=inhom-Mcheb_inv*Twcheb*coeff.w*wdotvec;
+          for k = 1:numel(uinput.w)
+          wdotvec(k,1)=uinput.wdot{k}(t);
+          end
+     inhom=inhom-Tcheb_inv*Twcheb*coeff.w*wdotvec;
      end
      end
      
      if (nu>0)
     % Contribution to inhomogeneous term due to boundary inputs  
-     if (isempty(B2cheb)==0&any(B2cheb,'all')~=0)
-     uvec(:,1)=double(subs(uinput.u(:),t));
-     inhom=inhom+Mcheb_inv*B2cheb*coeff.u*uvec;
+     if (isempty(B2cheb)==0&any(B2cheb,'all')~=0) 
+          for k = 1:numel(uinput.u)
+          uvec(k,1)=uinput.u{k}(t);
+          end
+     inhom=inhom+Tcheb_inv*B2cheb*coeff.u*uvec;
      end
     % Contribution to inhomogeneous term due to time derivative of boundary inputs  
      if (isempty(Tucheb)==0&any(Tucheb,'all')~=0)
-     udotvec(:,1)=double(subs(uinput.udot(:),t));
-     inhom=inhom-Mcheb_inv*Tucheb*coeff.u*udotvec;
+          for k = 1:numel(uinput.u)
+          udotvec(k,1)=uinput.udot{k}(t);
+          end
+     inhom=inhom-Tcheb_inv*Tucheb*coeff.u*udotvec;
      end
      end
     

@@ -28,7 +28,7 @@
 
 function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb(N, Rop, p)
 
-ns=size(p,2);
+ns=length(p);
 no=size(Rop,2);
 
 if isa(Rop,'polynomial')
