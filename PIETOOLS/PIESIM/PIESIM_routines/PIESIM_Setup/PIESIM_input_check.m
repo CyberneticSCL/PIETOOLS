@@ -576,7 +576,7 @@ elseif (opts.type=='PIE')
         end
         if ~isfield(uinput.ic,'PIE')
             if isfield(uinput.ic,'PDE')
-            disp('Initial conditions are provided as uinput.ic.PDE and not uinput.ic.PIE. They will be used for the PIE states as given, without differentiation.');
+            disp('Initial conditions are provided as uinput.ic.PDE and not uinput.ic.PIE. They will be used for the PIE states as given.');
             uinput.ic.PIE=uinput.ic.PDE;
         else
             disp('Initial conditions on PIE states are not defined. Defaulting to 1');
@@ -951,3 +951,4 @@ psize.dim=1;
     end % opts.ifexact
 
 end
+

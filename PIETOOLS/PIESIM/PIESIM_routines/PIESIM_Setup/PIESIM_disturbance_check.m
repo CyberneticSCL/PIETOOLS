@@ -128,8 +128,8 @@ end
     if (nw>0 & ~isfield(uinput,'w') )
             disp('Disturbances are not defined. Defaulting to a user-specified signal type');
             if ~isfield(uinput,'dist')
-                disp('Signal type for disturbances is not defined. Defaulting to a sinusoidal type');
-                [uinput.w{1:nw}]=deal(sin(st));
+                disp('Signal type for disturbances is not defined. Defaulting to zero');
+                uinput.w{1:nw}=0;
             else
                 switch uinput.dist
                     case 'constant'
@@ -139,8 +139,8 @@ end
                     case 'sinc'
                         [uinput.w{1:nw}]=deal(sinc(st));
                     otherwise
-                        disp('The specified signal type for disturbances is not supported. Defaulting to a sinusoidal type');
-                       [uinput.w{1:nw}]=deal(sin(st));
+                        disp('The specified signal type for disturbances is not supported. Defaulting to zero');
+                      uinput.w{1:nw}=0;
                 end
             end
     end
