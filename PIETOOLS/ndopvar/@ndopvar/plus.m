@@ -13,8 +13,11 @@ end
 
 if any(Aop.deg~=Bop.deg)
     error("Addition of operators with different monomial degrees is currently not supported.")
-elseif ~isempty(Aop.dvarname) || ~isempty(Bop.dvarname)
-    error("Addition of operators with decision variables is currently not supported.")
+elseif numel(Aop.dvarname) ~= numel(Bop.dvarname)
+    error("Addition of fixed operators with decision variable operator is currently not supported.")
+end
+if ~isequal(Aop.dvarname,Bop.dvarname)
+    error("Addition of decision variable operators is only supported if all variables match.")
 end
 
 % Declare the sum

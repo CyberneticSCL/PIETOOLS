@@ -11,9 +11,9 @@ function P_out = kronI(P_in,k)
 % OUTPUTS
 % - P_out:  'ndopvar' object representing the operator (Pop o I_{k});
 
-if ~isempty(P_in.dvarname)
-    error("Decision variable operators are currently not supported.")
-end
+% if ~isempty(P_in.dvarname)
+%     error("Decision variable operators are currently not supported.")
+% end
 
 
 % Construct the permutation matrices (I_{m(d+1)} o P)^T and 
@@ -24,12 +24,30 @@ N = numel(deg);
 d = prod(deg+1);
 m = P_in.dim(1);   n = P_in.dim(2);
 
-r_idcs = 1:k*d;
-c_idcs = (0:k-1)'*d + (1:d);
+%r_idcs = 1:k*d;
+%c_idcs = (0:k-1)'*d + (1:d);
 %P = sparse(r_idcs,c_idcs,1,q*d,q*d);
-Pt = sparse(c_idcs,r_idcs,1,k*d,k*d);
-IP_m = spIkron(m,Pt);
+%Pt = sparse(c_idcs,r_idcs,1,k*d,k*d);
+%IP_m = spIkron(m,Pt);
 %IP_n = spIkron(n,P);
+
+% Declare the (k,d) commutation matrix, so that
+%   Z_{d}(s)' o I_{k} = (I_{k} o Z_{d}(s)')P_{k,d}'
+Pt = commat(k,d,'transpose');
+
+% In case of decision variables, we get an extra factor
+if isempty(P_in.dvarname)
+    IP_q = 1;
+    IP_m = spIkron(m,Pt);
+else
+    q = numel(P_in.dvarname);
+    Pt2 = commat(k,q+1,'transpose');
+    IP_q = spIkron(d,Pt2);
+    IP_m1 = kron(Pt,speye(q+1));
+    IP_m = spIkron(m,IP_m1*IP_q);
+    % [(I_{m} o Zd(s))' (I_{md} o [1;dvars])' o I_{k}]
+    %   = (I_{mk} o Zd(s))' (I_{mdk} o [1;dvars])' IP_m
+end
 
 % Construct the coefficients representing C_str o I_{q}
 C_cell = P_in.C;

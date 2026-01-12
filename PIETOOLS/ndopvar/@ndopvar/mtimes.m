@@ -248,14 +248,15 @@ function Cop = mat_times_coeffs(Amat,Bop)
 % representing the composition of the matrix AMAT with the operator defined 
 % by BOP;
 
-if ~isempty(Bop.dvarname)
-    error("Composition with decision variable operators is currently not supported.")
-end
+% if ~isempty(Bop.dvarname)
+%     error("Composition with decision variable operators is currently not supported.")
+% end
+q = numel(Bop.dvarname);
 d = prod(Bop.deg+1);
 
 % Compute the coefficients defining the product
 Cop = Bop;
-fctrA = kron(Amat,speye(d));
+fctrA = kron(Amat,speye(d*(q+1)));
 for ii=1:numel(Cop.C)
     Cop.C{ii} = fctrA*Bop.C{ii};
 end
