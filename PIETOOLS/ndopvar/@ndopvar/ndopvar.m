@@ -172,8 +172,8 @@ methods
             [idcs{:}] = ind2sub(sz_C,ii);
             idcs = cell2mat(idcs);
             nZ_t = prod(degs(logical(idcs-1))+1);
-            n_min = min(n_min,n/(nZ_t*(q+1)));
-            n_max = max(n_min,n/(nZ_t*(q+1)));
+            n_min = min(n_min,n/(nZ_t));
+            n_max = max(n_min,n/(nZ_t));
         end
         
         % Set the dimensions
