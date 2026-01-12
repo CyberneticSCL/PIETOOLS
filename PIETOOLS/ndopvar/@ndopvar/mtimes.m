@@ -1,4 +1,4 @@
-function P_out = mtimes(Qop,Rop)
+function Pop = mtimes(Qop,Rop)
 % POP = MTIMES(QOP,ROP) returns the 'ndopvar' object representing the
 % composition of the PI operators defined by QOP and ROP.
 %
@@ -10,16 +10,18 @@ function P_out = mtimes(Qop,Rop)
 % - Pop:    m x n 'ndopvar' object representing the composition of the
 %           operators defined by Aop and Bop;
 
+
+
 % Separately deal with the cases of matrix x operator or operator x matrix
 % composition
 if isa(Qop,'double')
-    P_out = mat_times_coeffs(Qop,Rop);
+    Pop = mat_times_coeffs(Qop,Rop);
     return
 elseif ~isa(Qop,'ndopvar')
     error("Only composition of 'ndopvar' objects with other 'ndopvar' objects is currently supported.")
 end
 if isa(Rop,'double')
-    P_out = ndopvar_times_mat(Qop,Rop);
+    Pop = ndopvar_times_mat(Qop,Rop);
     return
 elseif ~isa(Rop,'ndopvar')
     error("Only composition of 'ndopvar' objects with other 'ndopvar' objects is currently supported.")
@@ -37,8 +39,8 @@ if any(deg1~=deg2)
     error("Degrees of the opvar2d objects must match.")
 end
 
-if ~isempty(Qop.dvarname) || ~isempty(Rop.dvarname)
-    error("Composition of decision variable operators is currently not supported.")
+if ~isempty(Rop.dvarname)
+    error("Composition of known operator with decision variable operator is currently not supported.")
 end
 
 
@@ -117,6 +119,22 @@ E1t = spIkron(m,(1:d+1),(1:d+1),1,3*d+2,d+1);
 
 % % Deal with the base case: N=1
 if N==1
+    ndvars = numel(Qop.dvarname);
+    if ndvars>0
+        % Upscale the matrices to account for the decision variables
+        E1t = spIkron(ndvars+1,E1t);
+        Fdt = spIkron(ndvars+1,Fdt);
+        Edt = spIkron(ndvars+1,Edt);
+
+        % Pre- and post-multiply with appropriate commutation matrices to
+        % factor out the decision variables
+        Pmat1 = commat(m*(3*d+2),ndvars+1,'transpose');
+        Pmat2 = commat(ndvars+1,m*(d+1),'transpose');
+        E1t = Pmat1*E1t*Pmat2;
+        Fdt = Pmat1*Fdt*kron(Pmat2,speye(d+1));
+        Edt = Pmat1*Edt*kron(Pmat2,speye(2*d+2));
+    end
+
     fctrC0 = Fdt*kron(Qop.C{1},eye(d+1));
     fctrD0 = Hd*kron(Rop.C{1},eye(3*d+2));
     trm1 = E1t*sparse(Qop.C{3}*Bmat*Rop.C{2}-Qop.C{2}*Amat*Rop.C{3})*E1;
@@ -127,12 +145,12 @@ if N==1
     P1 = trm1 + E1t*(Qop.C{2}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{2})*E1;
     P2 = trm1 + E1t*(Qop.C{3}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{3})*E1;
 
-    P_out = ndopvar();
-    P_out.C = {P0;P1;P2};
-    P_out.dom = [a,b];
-    P_out.deg = 3*d+1;
-    P_out.dvarname = {};
-    P_out.vars = [Qop.vars(:,1),Rop.vars(:,2)];
+    Pop = ndopvar();
+    Pop.C = {P0;P1;P2};
+    Pop.dom = [a,b];
+    Pop.deg = 3*d+1;
+    Pop.dvarname = Qop.dvarname;
+    Pop.vars = [Qop.vars(:,1),Rop.vars(:,2)];
     return
 end
 
@@ -174,15 +192,16 @@ P1 = trm1+trm12+trm13;
 P2 = trm1+trm22+trm23;
 
 
-P_out = ndopvar();
+Pop = ndopvar();
 sz_C = size(P0.C);
-P_out.C = [reshape(P0.C,[1,sz_C]); 
+Pop.C = [reshape(P0.C,[1,sz_C]); 
            reshape(P1.C,[1,sz_C]);
            reshape(P2.C,[1,sz_C])];
 %P_out.dim = [m,n];
-P_out.dom = dom1;
-P_out.deg = 3*deg1+1;
-P_out.vars = [Qop.vars(:,1),Rop.vars(:,2)];
+Pop.dom = dom1;
+Pop.deg = 3*deg1+1;
+Pop.vars = [Qop.vars(:,1),Rop.vars(:,2)];
+Pop.dvarname = [Qop.dvarname; Rop.dvarname];
 
 end
 
