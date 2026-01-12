@@ -37,7 +37,7 @@ Z1t = kron(eye(m),Z1t);
 dvarname = P_in.dvarname;       q = numel(dvarname);
 if q>0
     k = size(Z1t,2);    
-    Zdec = dpvar(eye(k*(q+1)),zeros(1,0),{},dvarname,[k,k*(q+1)]);
+    Zdec = dpvar(speye(k*(q+1)),zeros(1,0),{},dvarname,[k,k*(q+1)]);
     Z1t = Z1t*Zdec;
 end
 
