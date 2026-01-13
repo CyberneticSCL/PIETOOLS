@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_PI2Mat_cheb_opint_discretize.m     PIETOOLS 2024
+% PIESIM_PI2Mat_cheb_opint_discretize.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - discrete matrix representation for the integrative Q1 operator  
 %
@@ -24,7 +24,7 @@
 function A=PIESIM_PI2Mat_cheb_opint_discretize(N, Rop, p);
 pvar var s
 
-ns=size(p,2);
+ns=length(p);
 no=size(Rop,1);
 
 if isa(Rop,'polynomial')

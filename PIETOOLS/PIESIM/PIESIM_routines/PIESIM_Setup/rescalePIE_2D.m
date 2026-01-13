@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% rescalePIE_2D.m     PIETOOLS 2024
+% rescalePIE_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -46,7 +46,8 @@ function PIE = rescalePIE_2D(PIE,I)
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 06_23_2022
-% YP 6/26/2025 - modified support for T0 operator with new pie_struct
+% YP 6/26/2025 - modified support for Tmap operator with new pie_struct
+% YP 1/6/2026 - Added rescaling for Tmap, Tumap and Twmap operators
 
 
 if nargin<3
@@ -58,8 +59,14 @@ end
 PIE.T = transl_2D(PIE.T,I);
 PIE.A = transl_2D(PIE.A,I);
 
-if isfield(PIE.misc,'T0')
-PIE.misc.T0 = transl_2D(PIE.misc.T0,I);
+if isfield(PIE.misc,'Tmap')
+PIE.misc.Tmap = transl_2D(PIE.misc.Tmap,I);
+end
+if isfield(PIE.misc,'Tumap')
+PIE.misc.Tumap = transl_2D(PIE.misc.Tumap,I);
+end
+if isfield(PIE.misc,'Twmap')
+PIE.misc.Twmap = transl_2D(PIE.misc.Twmap,I);
 end
 PIE.Tw = transl_2D(PIE.Tw,I);
 PIE.Tu = transl_2D(PIE.Tu,I);

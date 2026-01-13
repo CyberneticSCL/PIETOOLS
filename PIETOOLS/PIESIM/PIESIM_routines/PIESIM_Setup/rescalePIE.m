@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% rescalePIE.m     PIETOOLS 2024
+% rescalePIE.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -47,24 +47,25 @@ function PIE = rescalePIE(PIE,I)
 %
 % Initial coding YP  - 10_06_2021
 % YP 6/16/2022 - Separated PDE LHS operator (T) from the state map operator
-% (T0)
-% YP 6/26/2025 - modified support for T0 operator with new pie_struct
+% (Tmap)
+% YP 6/26/2025 - modified support for Tmap operator with new pie_struct.
+% YP 1/6/2026 - Added rescaling for Tmap, Tumap and Twmap operators
 
 if nargin==1
     I = [-1,1];
 end
 
-PIE.T = transl_mod(PIE.T,I);
-if isfield(PIE.misc,'T0')
-PIE.misc.T0 = transl_mod(PIE.misc.T0,I);
+if isfield(PIE.misc,'Tmap')
+PIE.misc.Tmap = transl_mod(PIE.misc.Tmap,I);
 end
-if isfield(PIE.misc,'Tu')
-PIE.misc.Tu = transl_mod(PIE.misc.Tu,I);
+if isfield(PIE.misc,'Tumap')
+PIE.misc.Tumap = transl_mod(PIE.misc.Tumap,I);
 end
-if isfield(PIE.misc,'Tw')
-PIE.misc.Tw = transl_mod(PIE.misc.Tw,I);
+if isfield(PIE.misc,'Twmap')
+PIE.misc.Twmap = transl_mod(PIE.misc.Twmap,I);
 end
 
+PIE.T = transl_mod(PIE.T,I);
 PIE.Tw = transl_mod(PIE.Tw,I);
 PIE.Tu = transl_mod(PIE.Tu,I);
 PIE.A = transl_mod(PIE.A,I);

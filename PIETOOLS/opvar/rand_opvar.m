@@ -64,7 +64,7 @@ for i=1:pvar_deg
     L.Q2=L.Q2+rand([n3,n2])*var1^i;
     L.R.R0=L.R.R0+rand([n3,n4])*var1^i;
     for j=1:pvar_deg
-        L.R.R1=L.R.R1+rand([n3,n4])*var1^i*var2*j;
-        L.R.R2=L.R.R2+rand([n3,n4])*var1^i*var2*j;
+        L.R.R1=L.R.R1+rand([n3,n4])*var1^i*var2^j;
+        L.R.R2=L.R.R2+rand([n3,n4])*var1^i*var2^j;
     end
 end

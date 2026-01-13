@@ -1,11 +1,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_transform_to_solution.m     PIETOOLS 2024
+% PIESIM_transform_to_solution.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid, solcoeff, opts);
 % This routine transforms solution from the Chebyshev coefficient space of the fundamental states to
 % the physical solution of the primary states in 2D
 % It first performs a transform of Chebshev coefficients of fundamental
-% states to Chebyshev coefficients of primary states using Mcheb_nonsaquare
+% states to Chebyshev coefficients of primary states using Tcheb_nonsaquare
 % operator
 % It then transforms Chebysehv coefficients of the primary states to the
 % physical solution of the preimary states
@@ -55,6 +55,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
+% YP 12/31/2025 - modified treatment of disturbances and control inputs
 
 %----------------------------------------   
 % We first transform the final solution, since it is available for all
@@ -67,9 +68,17 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      nx=sum(psize.nx);
      ny=sum(psize.ny);
      ns=sum(psize.n);
-     Mcheb_nonsquare=Dop.Mcheb_nonsquare; 
-     if isfield(Dop,'Mcheb0_nonsquare') 
-         Mcheb_nonsquare=Dop.Mcheb0_nonsquare;
+     Tcheb_nonsquare=Dop.Tcheb_nonsquare; 
+     Tucheb_nonsquare=Dop.Tucheb_nonsquare;
+     Twcheb_nonsquare=Dop.Twcheb_nonsquare;
+     if isfield(Dop,'Tchebmap_nonsquare') 
+         Tcheb_nonsquare=Dop.Tchebmap_nonsquare;
+     end
+     if isfield(Dop,'Tuchebmap_nonsquare') 
+         Tucheb_nonsquare=Dop.Tuchebmap_nonsquare;
+     end
+      if isfield(Dop,'Twchebmap_nonsquare') 
+         Twcheb_nonsquare=Dop.Twchebmap_nonsquare;
      end
      C1op=Dop.C1cheb;
      C2op=Dop.C2cheb;
@@ -87,21 +96,25 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 %      
 
  % Reconstruction of the coefficients of the primary states
-   acheb_p = Mcheb_nonsquare*solcoeff.final;
+   acheb_p = Tcheb_nonsquare*solcoeff.final;
           
  % Reconstuctution of primary states in the physical space    
      
      % Define inhomogeneous contributions due to boundary disturbances 
      if (psize.nw>0)
-     wvec(:,1)=double(subs(uinput.w(:),tf));
-     acheb_p=acheb_p+Dop.Twcheb_nonsquare*solcoeff.w*wvec;
+      for k = 1:numel(uinput.w)
+        wvec(k,1)=uinput.w{k}(tf); 
+      end
+     acheb_p=acheb_p+Twcheb_nonsquare*solcoeff.w*wvec;
      end % psize.nw>0
 
 
      % Define inhomogeneous contributions due to boundary inputs
      if (psize.nu>0)
-     uvec(:,1)=double(subs(uinput.u(:),tf));
-     acheb_p=acheb_p+Dop.Tucheb_nonsquare*solcoeff.u*uvec;
+        for k = 1:numel(uinput.u)
+        uvec(k,1)=uinput.u{k}(tf); 
+        end
+     acheb_p=acheb_p+Tucheb_nonsquare*solcoeff.u*uvec;
      end % psize.nu>0
      
      
@@ -185,7 +198,7 @@ if (opts.intScheme==1&opts.tf~=0)
      for ntime=1:size(solution.timedep.dtime,2);
          
  % Reconstruction of the coefficients of the primary states
-         acheb_p = Mcheb_nonsquare*solcoeff.timedep.coeff(:,ntime);
+         acheb_p = Tcheb_nonsquare*solcoeff.timedep.coeff(:,ntime);
          
          tt=solution.timedep.dtime(ntime);
          
@@ -194,8 +207,10 @@ if (opts.intScheme==1&opts.tf~=0)
      
      % Define inhomogeneous contributions due to disturbances
      if (psize.nw>0)
-     wvec(:,1)=double(subs(uinput.w(:),tt));
-     acheb_p=acheb_p+Dop.Twcheb_nonsquare*solcoeff.w*wvec;
+        for k = 1:numel(uinput.w)
+        wvec(k,1)=uinput.w{k}(tt); 
+     end
+     acheb_p=acheb_p+Twcheb_nonsquare*solcoeff.w*wvec;
 
      % Add disturbances to regulated and observed outputs
      if(psize.nro>0)
@@ -209,8 +224,10 @@ if (opts.intScheme==1&opts.tf~=0)
 
      % Define inhomogeneous contributions due to controlled inputs
     if (psize.nu>0)
-     uvec(:,1)=double(subs(uinput.u(:),tt));
-     acheb_p=acheb_p+Dop.Tucheb_nonsquare*solcoeff.u*uvec;
+    for k = 1:numel(uinput.u)
+    uvec(k,1)=uinput.u{k}(tt); 
+    end
+     acheb_p=acheb_p+Tucheb_nonsquare*solcoeff.u*uvec;
 
       % Add control inputs to regulated and observed outputs
      if(psize.nro>0)

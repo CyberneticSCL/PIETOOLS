@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_icf.m     PIETOOLS 2024
+% PIESIM_discretize_icf.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of initial conditions and forcing functions 
 %
@@ -23,6 +23,7 @@
 % outputs
 % YP - added functionality to support infinite-dimensional disturbances
 % through parser - 6_1_2025
+% YP 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
 
 
 function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
@@ -31,6 +32,7 @@ function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
 no=psize.no;
 nw=psize.nw;
+nu=psize.nu;
 a=uinput.a;
 b=uinput.b;
 N=psize.N;
@@ -55,7 +57,7 @@ end
 % Each state vector array coefficients are arranged into a global column
 % vector
 
-ic=uinput.ic.PDE;
+ic=uinput.ic.PIE;
 
  for i=1:length(psize.n)
  acheb=double.empty(N-i+2,0);

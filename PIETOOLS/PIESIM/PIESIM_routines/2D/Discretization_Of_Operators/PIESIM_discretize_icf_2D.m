@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_icf_2D.m     PIETOOLS 2024
+% PIESIM_discretize_icf_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of initial conditions and forcing functions in 2D
 %
@@ -21,6 +21,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  04_16_2024
+% YP 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
 
 function coeff=PIESIM_discretize_icf_2D(uinput,psize,gridall)
 
@@ -75,7 +76,7 @@ end
 % Each state vector array coefficients are arranged into a global column
 % vector
 
-ic=uinput.ic.PDE;
+ic=uinput.ic.PIE;
 
 acheb_glob_x{1}=[];
 acheb_glob_y{1}=[];
@@ -146,17 +147,17 @@ coeff.w=1;
          end
          for kk=1:psize.nwx
              k=k+1;
-             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace(k), 0, gridall.x);
+             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace{k}, 0, gridall.x);
              index=index+N+1;
          end 
          for kk=1:psize.nwy
              k=k+1;
-             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace(k), 0, gridall.y);
+             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace{k}, 0, gridall.y);
              index=index+N+1;
          end
          for kk=1:psize.nw2
              k=k+1;
-             coeff.w(index:index+(N+1)^2-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace(k), 0, gridall);
+             coeff.w(index:index+(N+1)^2-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, gridall);
              index=index+(N+1)^2;
          end
  end
