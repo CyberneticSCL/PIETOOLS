@@ -224,7 +224,7 @@ vars = P.vars;
 P_tmp = ndopvar();
 P_tmp.deg = deg(2:end);
 P_tmp.dim = (deg(1)+1)*dim;
-P_tmp.dom = P.dom(2,:);
+P_tmp.dom = P.dom(2:end,:);
 P_tmp.vars = vars(2:end,:);
 P_tmp.dvarname = P.dvarname;
 
