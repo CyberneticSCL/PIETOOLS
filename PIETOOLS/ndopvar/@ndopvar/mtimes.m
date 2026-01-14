@@ -168,7 +168,7 @@ D21_I = kronI(D21,2*d+2);
 
 
 % Finally, compute the coefficients defining the composition of the
-% operators associated with Aop and Bop
+% operators associated with Qop and Rop
 fctrC0 = Fdt*C0_I;
 fctrD0 = Hd*D0_I;
 CBD = C2*(Bmat*D1);
@@ -233,8 +233,6 @@ sz_C = [size(P.C),1];
 P0 = P_tmp;         P0.C = reshape(P.C(1,:),sz_C(2:end));
 P1 = P_tmp;         P1.C = reshape(P.C(2,:),sz_C(2:end));
 P2 = P_tmp;         P2.C = reshape(P.C(3,:),sz_C(2:end));
-
-P0.dim = [(deg(1)+1)*dim(1),dim(2)];
 
 end
 
