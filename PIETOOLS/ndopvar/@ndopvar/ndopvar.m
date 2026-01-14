@@ -159,10 +159,10 @@ methods
         % Check the dimensions of the coefficient matrices
         m_min = inf;    n_min = inf;
         m_max = 0;      n_max = 0;
-        sz_C = size(obj.C);
-        if sz_C(2)==1
-            sz_C = sz_C(1);
-        end
+        sz_C = [size(obj.C),1];
+        % if sz_C(2)==1
+        %     sz_C = sz_C(1);
+        % end
         for ii=1:numel(obj.C)
             [m,n] = size(obj.C{ii});
             m_min = min(m_min,m/(nZ*(q+1)));
