@@ -8,6 +8,9 @@ if numel(dim)~=2
 end
 m = dim(1);     n = dim(2);
 N = size(dom,1);
+if nargin<=5
+    dvarname = {};
+end
 q = numel(dvarname);
 if isscalar(deg)
     deg = deg*ones(N,1);
@@ -15,11 +18,15 @@ end
 d = prod(deg+1);
 
 % Initialize an empty operator
-Pop = ndopvar();
+if q==0
+    Pop = nopvar();
+else
+    Pop = ndopvar();
+    Pop.dvarname = dvarname;
+end
 Pop.deg = deg;
 Pop.dom = dom;
 Pop.vars = [var1,var2];
-Pop.dvarname = dvarname;
 
 % Generate random coefficients
 Pop.C = cell([3*ones(1,N),1]);

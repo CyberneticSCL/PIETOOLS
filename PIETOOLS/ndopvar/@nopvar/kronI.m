@@ -1,15 +1,15 @@
 function P_out = kronI(P_in,k)
-% P_OUT = KRONI(P_IN,K) returns the 'ndopvar' object representing the
-% Kronecker product of the operator defined by 'ndopvar' object P_IN and
+% P_OUT = KRONI(P_IN,K) returns the 'nopvar' object representing the
+% Kronecker product of the operator defined by 'nopvar' object P_IN and
 % an identity matrix of dimension K x K
 %
 % INPUTS
-% - P_in:   m  x n 'ndopvar' object representing a PI operator Pop;
+% - P_in:   m  x n 'nopvar' object representing a PI operator Pop;
 % - k:      scalar integer specifying the dimension of the identity
 %           matrix;
 %
 % OUTPUTS
-% - P_out:  m*k x n*k 'ndopvar' object representing the operator 
+% - P_out:  m*k x n*k 'nopvar' object representing the operator 
 %           (Pop o I_{k});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,21 +50,10 @@ m = P_in.dim(1);   n = P_in.dim(2);
 % Declare the (k,d) commutation matrix, so that
 %   Z_{d}(s)' o I_{k} = (I_{k} o Z_{d}(s)')P_{k,d}'
 Pt = commat(k,d,'transpose');
+IP_m = spIkron(m,Pt);
 
-% In case of decision variables, we get an extra factor
-if isempty(P_in.dvarname)
-    IP_m = spIkron(m,Pt);
-else
-    q = numel(P_in.dvarname);
-    Pt2 = commat(k,q+1,'transpose');
-    IP_q = spIkron(d,Pt2);
-    IP_m1 = kron(Pt,speye(q+1));
-    IP_m = spIkron(m,IP_m1*IP_q);
-    % [(I_{m} o Zd(s))' (I_{md} o [1;dvars])' o I_{k}]
-    %   = (I_{mk} o Zd(s))' (I_{mdk} o [1;dvars])' IP_m
-end
 
-% Construct the coefficients representing C_str o I_{q}
+% Construct the coefficients representing P_in o I_{q}
 C_cell = P_in.C;
 D_cell = cell(size(C_cell));
 sz_C = size(C_cell);
@@ -88,3 +77,4 @@ P_out = P_in;
 P_out.C = D_cell;
 
 end
+

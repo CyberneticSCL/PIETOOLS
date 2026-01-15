@@ -1,12 +1,12 @@
-function Pop = uminus(Pop)
-% POP = UMINUS(POP) returns the 'ndopvar' object representing the scalar
-% product (-1)*P for the PI operator P defined by POP.
+function Pop_out = uminus(Pop_in)
+% POP_OUT = UMINUS(POP_IN) returns the 'ndopvar' object representing the
+% scalar product (-1)*P for the PI operator P defined by POP_IN.
 %
 % INPUTS
-% - Pop_in:     m x n 'ndopvar' object;
+% - Pop_in:     m x n 'nopvar' object;
 %
 % OUTPUTS
-% - Pop_out:    m x n 'ndopvar' object representing the operator defined by
+% - Pop_out:    m x n 'nopvar' object representing the operator defined by
 %               (-1)*Pop_in;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,9 +36,10 @@ function Pop = uminus(Pop)
 % DJ, 01/15/2026: Initial coding
 
 % The coefficients defining (-1)*P are just (-1) times the coefficients 
-% defining P;
-for ii=1:numel(Pop.C)
-    Pop.C{ii} = -Pop.C{ii};
+% defining P; 
+Pop_out = Pop_in;
+for ii=1:numel(Pop_in.C)
+    Pop_out.C{ii} = -Pop_in.C{ii};
 end
 
 end

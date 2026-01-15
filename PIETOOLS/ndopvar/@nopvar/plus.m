@@ -1,13 +1,13 @@
 function Cop = plus(Aop,Bop)
-% COP = PLUS(AOP,BOP) returns the 'ndopvar' object COP representing the sum
-% of the PI operators defined by 'ndopvar' objects AOP and BOP
+% COP = PLUS(AOP,BOP) returns the 'nopvar' object COP representing the sum
+% of the PI operators defined by 'nopvar' objects AOP and BOP
 %
 % INPUTS
-% - Aop:    m x n 'ndopvar' object
-% - Bop:    m x n 'ndopvar' object
+% - Aop:    m x n 'nopvar' object
+% - Bop:    m x n 'nopvar' object
 %
 % OUTPUS
-% - Cop:    m x n 'ndopvar' object representing the sum of the operators
+% - Cop:    m x n 'nopvar' object representing the sum of the operators
 %           defined by Aop and Bop
 %
 % NOTES
@@ -41,6 +41,7 @@ function Cop = plus(Aop,Bop)
 % DJ, 01/15/2026: Initial coding
 
 
+
 % Check that the operators can indeed be added
 if any(Aop.dim~=Bop.dim)
     error("Dimensions of the operators must match.")
@@ -50,16 +51,13 @@ if size(Aop.dom,1)~=size(Bop.dom,1) || any(any(Aop.dom~=Bop.dom))
 end
 
 % Exclude more complicated addition operations
-% --> these will need to be supported as well
+% --> will need to be included later!
 if any(Aop.deg~=Bop.deg)
     error("Addition of operators with different monomial degrees is currently not supported.")
 end
-if numel(Aop.dvarname) ~= numel(Bop.dvarname) || ~isequal(Aop.dvarname,Bop.dvarname)
-    error("Addition of operators with different decision variables is currently not supported.")
-end
 
-% Assuming the same monomial degrees and decision variables, the sum of the 
-% operators is just defined by the sum of the coefficients.
+% Assuming the same monomial degrees, the sum of the operators is just
+% defined by the sum of the coefficients.
 Cop = Aop;
 for ii=1:numel(Cop.C)
     Cop.C{ii} = Aop.C{ii} + Bop.C{ii};

@@ -1,4 +1,8 @@
 
+% This script is to test that composition of 'nopvar' or 'ndopvar' objects
+% in 2D produces the same result as using the 'opvar2d' and 'dopvar2d'
+% composition functions.
+clear
 pvar s1 s1_dum s2 s2_dum
 dom = [0,1;-1,1];
 d = 3;
@@ -37,11 +41,22 @@ tic
 Pop_nd = Qop_nd*Rop_nd;
 t_coeffs = toc;
 
-% Also compute composition using standard routing
+% Also compute composition using standard routine
 tic
 Pop_alt = Qop*Rop;
 t_opvar = toc;
 
-% Check that composition is correct
-Pop = ndopvar2dopvar(Pop_nd);
-Pop_err = clean_opvar(Pop-Pop_alt,1e-10);
+% Check that results are the same
+if use_dpvar
+    Pop_alt_nd = dopvar2ndopvar(Pop_alt,Pop_nd.deg,Pop_nd.dvarname);
+else
+    Pop_alt_nd = dopvar2ndopvar(Pop_alt,Pop_nd.deg);
+end
+Pop_nd_err = Pop_alt_nd-Pop_nd;
+C_err = zeros(size(Pop_nd_err.C));
+for ii=1:numel(Pop_nd_err.C)
+    C_err(ii) = max(max(abs(Pop_nd_err.C{ii})));
+end
+C_err
+%Pop = ndopvar2dopvar(Pop_nd);
+%Pop_err = clean_opvar(Pop-Pop_alt,1e-10);
