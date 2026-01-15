@@ -136,14 +136,14 @@ methods
         for ii=1:numel(obj.C)
             [m,n] = size(obj.C{ii});
             m_min = min(m_min,m/(nZ*(q+1)));
-            m_max = max(m_min,m/(nZ*(q+1)));
+            m_max = max(m_max,m/(nZ*(q+1)));
             % Get the number of monomials and decision variables
             idcs = cell(1,N);
             [idcs{:}] = ind2sub(sz_C,ii);
             idcs = cell2mat(idcs);
             nZ_t = prod(degs(logical(idcs-1))+1);
             n_min = min(n_min,n/(nZ_t));
-            n_max = max(n_min,n/(nZ_t));
+            n_max = max(n_max,n/(nZ_t));
         end
         
         % Set the dimensions
