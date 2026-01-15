@@ -71,10 +71,6 @@ if dim1(2)~=dim2(1)
 end
 m = dim1(1);    p = dim1(2);    n = dim2(2);
 
-if ~isempty(Rop.dvarname)
-    error("Composition of known operator with decision variable operator is currently not supported.")
-end
-
 % Check that the domain is appropriately specified
 dom1 = Qop.dom;       dom2 = Rop.dom;
 if ~isa(dom1,'double') || ~numel(dom1)==2
@@ -238,7 +234,7 @@ Pop.C = [reshape(P0.C,[1,sz_C]);
 Pop.dom = dom1;
 Pop.deg = 3*deg1+1;
 Pop.vars = [Qop.vars(:,1),Rop.vars(:,2)];
-Pop.dvarname = [Qop.dvarname; Rop.dvarname];
+Pop.dvarname = Qop.dvarname;
 
 end
 
@@ -258,12 +254,17 @@ dim = P.dim;
 deg = P.deg;
 vars = P.vars;
 
-P_tmp = ndopvar();
+if isa(P,'ndopvar')
+    P_tmp = ndopvar();
+    P_tmp.dvarname = P.dvarname;
+else
+    P_tmp = nopvar();
+end
 P_tmp.deg = deg(2:end);
 P_tmp.dim = (deg(1)+1)*dim;
 P_tmp.dom = P.dom(2:end,:);
 P_tmp.vars = vars(2:end,:);
-P_tmp.dvarname = P.dvarname;
+
 
 sz_C = [size(P.C),1];
 
