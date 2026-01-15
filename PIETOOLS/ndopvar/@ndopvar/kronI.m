@@ -4,16 +4,39 @@ function P_out = kronI(P_in,k)
 % an identity matrix of dimension K x K
 %
 % INPUTS
-% - P_in:   'ndopvar' object representing a PI operator Pop;
+% - P_in:   m  x n 'ndopvar' object representing a PI operator Pop;
 % - k:      scalar integer specifying the dimension of the identity
 %           matrix;
 %
 % OUTPUTS
-% - P_out:  'ndopvar' object representing the operator (Pop o I_{k});
+% - P_out:  m*k x n*k 'ndopvar' object representing the operator 
+%           (Pop o I_{k});
 
-% if ~isempty(P_in.dvarname)
-%     error("Decision variable operators are currently not supported.")
-% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - kronI
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% DJ, 01/15/2026: Initial coding
 
 
 % Construct the permutation matrices (I_{m(d+1)} o P)^T and 
@@ -24,20 +47,12 @@ N = numel(deg);
 d = prod(deg+1);
 m = P_in.dim(1);   n = P_in.dim(2);
 
-%r_idcs = 1:k*d;
-%c_idcs = (0:k-1)'*d + (1:d);
-%P = sparse(r_idcs,c_idcs,1,q*d,q*d);
-%Pt = sparse(c_idcs,r_idcs,1,k*d,k*d);
-%IP_m = spIkron(m,Pt);
-%IP_n = spIkron(n,P);
-
 % Declare the (k,d) commutation matrix, so that
 %   Z_{d}(s)' o I_{k} = (I_{k} o Z_{d}(s)')P_{k,d}'
 Pt = commat(k,d,'transpose');
 
 % In case of decision variables, we get an extra factor
 if isempty(P_in.dvarname)
-    IP_q = 1;
     IP_m = spIkron(m,Pt);
 else
     q = numel(P_in.dvarname);
@@ -70,8 +85,6 @@ for ii=1:numel(D_cell)
     D_cell{ii} = IP_m*kron(C_cell{ii},speye(k))*IP_n;
 end
 P_out = P_in;
-%P_out.dim = k*P_in.dim;
 P_out.C = D_cell;
 
 end
-
