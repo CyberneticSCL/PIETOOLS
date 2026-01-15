@@ -8,8 +8,8 @@ function P_out = ndopvar2dopvar(P_in)
 % and [m,n] = P_IN.dim;
 
 % Check the inputs
-if ~isa(P_in,'ndopvar')
-    error("Input must be of type 'ndopvar'.")
+if ~isa(P_in,'ndopvar') && ~isa(P_in,'nopvar')
+    error("Input must be of type 'ndopvar' or 'nopvar'.")
 end
 
 % Establish the number of variables
@@ -34,11 +34,15 @@ end
 Z1t = kron(eye(m),Z1t);
 
 % Include the decision variables
+if isa(P_in,'ndopvar')
 dvarname = P_in.dvarname;       q = numel(dvarname);
 if q>0
     k = size(Z1t,2);    
     Zdec = dpvar(speye(k*(q+1)),zeros(1,0),{},dvarname,[k,k*(q+1)]);
     Z1t = Z1t*Zdec;
+end
+else
+    q=0;
 end
 
 % Compute the parameters associated with each coefficient matrix
@@ -48,7 +52,7 @@ sz_C = sz_C(1:N);
 for ii=1:numel(C)
     % Determine the index of element ii along each dimension of the cell C
     idcs = cell(1,N);
-    [idcs{:}] = ind2sub(sz_C,ii);
+    [idcs{:}] = ind2sub([sz_C,1],ii);
     idcs = cell2mat(idcs);
     % If element ii corresponds to an integral, we need to include the
     % monomial basis in the associated dummy variable
