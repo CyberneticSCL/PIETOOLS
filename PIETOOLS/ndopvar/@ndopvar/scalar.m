@@ -1,21 +1,19 @@
 function Pop = scalar(alpha,Pop) 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Pop = scalar(alpha,Pop) returns the 'ndopvar' object representing 
+% Pop = scalar(alpha,Pop) returns the 'nopvar' object representing 
 % the scalar product alpha*Pop for the PI operator defined by Pop.
 % Date: 1/15/26
 % Version: 1.0
 % 
 % INPUT
 % alpha: double
-% Pop:   ndopvar object
+% Pop:   nopvar object
 % 
 % OUTPUT
-% Pop:   ndopvar object
+% Pop:   nopvar object
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for ii=1:numel(Pop.C)
-    Pop.C{ii} = alpha*Pop.C{ii};
-end
+Pop.C = alpha*Pop.C;
+
 end
