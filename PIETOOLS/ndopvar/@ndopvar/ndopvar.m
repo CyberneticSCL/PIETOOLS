@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?dpvar}) ndopvar
+classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) ndopvar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This defines the class of PI operator variables,
 %
@@ -80,12 +80,6 @@ properties
     dvarname = {};
     vars = polynomial(zeros(0,2));
 end
-properties (Hidden)
-    internal_call = 0;
-end
-properties (Dependent)
-    dimdependent;
-end
 
 methods
     function [P] = ndopvar(varargin) %constructor
@@ -101,30 +95,6 @@ methods
                     error("Input must be strings");
                 end
             end
-        elseif nargout==1
-            % Declare zero operator of specified dimensions
-            if nargin==0
-                return
-            elseif nargin>=3
-                error("Too many input arguments");
-            elseif nargin==1
-                if ~isa(varargin{1},'double') || numel(varargin{1})>2
-                    error("Dimensions of the operator should be specified as 1x2 array of integers.")
-                end
-                if isscalar(varargin{1})
-                    P.dim = [varargin{1},varargin{1}];
-                else
-                    P.dim = varargin{1}(:)';
-                end
-             elseif nargin==2
-                if ~isa(varargin{1},'double') || ~isscalar(varargin{1}) ...
-                        || ~isa(varargin{1},'double') || ~isscalar(varargin{1})
-                    error("Row and column dimensions of the operator should be specified as scalar integers.")
-                end
-                P.dim = [varargin{1},varargin{2}];
-            end
-        else
-            error("Too many output arguments.")
         end
     end
     function [obj] = set.C(obj,C) 
@@ -142,7 +112,7 @@ methods
     function [obj] = set.dvarname(obj,dvarname)
         obj.dvarname = dvarname;
     end
-    function [dim] = get.dimdependent(obj)
+    function [dim] = get.dim(obj)
         % % Determine the dimensions of the operator, m x n, from the
         % % dimensions of the coefficient matrices,
         % %     m*prod(deg+1)*(q+1) x n*prod(deg+1).
@@ -185,38 +155,6 @@ methods
             dim(2) = n_min;
         end
     end
-    function [val] = get.dim(obj)
-        val = obj.dimdependent;
-    end
-    function [obj] = set.dim(obj,val)
-        % % Declare zero coefficient matrices matching the specified
-        % % dimensions of the operator
-        obj.dim = val;
-        % Establish the dimensionality of the spatial domain.
-        N = size(obj.dom,1);
-        
-        % Get the number of monomials and decision variables.
-        nZ = prod(obj.deg+1);
-        if isempty(nZ)
-            nZ = 1;
-        end
-        q = numel(obj.dvarname);
-        % Initialize zero coefficients of appropriate dimension
-        Cdim = [val(1)*nZ*(q+1), val(2)*nZ];
-        if isempty(obj.C)
-            obj.C = cell(3*ones(1,N));
-        end
-        for ii=1:numel(obj.C)
-            if isempty(obj.C{ii}) || all(all(obj.C{ii}==0))
-                obj.C{ii} = sparse(Cdim);
-            elseif size(obj.C{ii})~=Cdim
-                error("Specified dimensions do not match size of the specified parameters.")
-            end
-        end
-    end
-    % function obj = ndopvar_autofill(obj)
-    %     obj.dim = obj.dim;
-    % end
 end
 
 end
