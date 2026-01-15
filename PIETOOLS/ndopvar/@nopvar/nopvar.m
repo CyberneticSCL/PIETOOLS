@@ -106,9 +106,6 @@ methods
     function [obj] = set.vars(obj,vars)
         obj.vars = vars;
     end
-    function [obj] = set.dvarname(obj,dvarname)
-        obj.dvarname = dvarname;
-    end
     function [dim] = get.dim(obj)
         % % Determine the dimensions of the operator, m x n, from the
         % % dimensions of the coefficient matrices,
