@@ -1,19 +1,25 @@
-function Pop = scalar(alpha,Pop) 
+function Pop = scalar(alpha,Pop)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Pop = scalar(alpha,Pop) returns the 'nopvar' object representing 
+% Pop = scalar(alpha,Pop) returns the 'nopvar' object Pop representing 
 % the scalar product alpha*Pop for the PI operator defined by Pop.
-% Date: 1/15/26
 % Version: 1.0
 % 
 % INPUT
-% alpha: double
-% Pop:   nopvar object
+% alpha: double to scale coefficients in Pop.C;
+% Pop:   nopvar object;
 % 
 % OUTPUT
-% Pop:   nopvar object
+% Pop:   scaled nopvar object;
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
+% Initial coding CR - 1/15/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Pop.C = alpha*Pop.C;
+for ii=1:numel(Pop.C)
+    Pop.C{ii} = alpha*Pop.C{ii};
+end
 
 end
