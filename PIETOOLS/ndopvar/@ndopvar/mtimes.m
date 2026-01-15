@@ -9,40 +9,71 @@ function Pop = mtimes(Qop,Rop)
 % OUTPUTS
 % - Pop:    m x n 'ndopvar' object representing the composition of the
 %           operators defined by Aop and Bop;
+%
+% NOTES
+% The spatial domains on which the operators defined by Qop and Rop exist
+% must match, i.e. Qop.dom=Rop.dom.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - mtimes
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% DJ, 01/15/2026: Initial coding
 
 
 
 % Separately deal with the cases of matrix x operator or operator x matrix
 % composition
 if isa(Qop,'double')
-    Pop = mat_times_coeffs(Qop,Rop);
+    Pop = mat_times_ndopvar(Qop,Rop);
     return
-elseif ~isa(Qop,'ndopvar')
-    error("Only composition of 'ndopvar' objects with other 'ndopvar' objects is currently supported.")
+elseif ~isa(Qop,'ndopvar') && ~isa(Qop,'nopvar')
+    error("Only composition of 'ndopvar' objects with 'nopvar' objects is currently supported.")
 end
 if isa(Rop,'double')
     Pop = ndopvar_times_mat(Qop,Rop);
     return
-elseif ~isa(Rop,'ndopvar')
-    error("Only composition of 'ndopvar' objects with other 'ndopvar' objects is currently supported.")
+elseif ~isa(Rop,'ndopvar') && ~isa(Rop,'nopvar')
+    error("Only composition of 'ndopvar' objects with 'nopvar' objects is currently supported.")
+end
+if isa(Qop,'ndopvar') && isa(Rop,'ndopvar')
+    error("Composition of two decision variable operators is not supported.")
+elseif isa(Rop,'ndopvar')
+    % Support for this case will need to be added
+    error("Composition of 'nopvar' x 'ndopvar' is currently not supported.")
 end
 
 
-% Check that coefficients are appropriately specified
+% Check that the inner dimensions of the operators match.
 dim1 = Qop.dim;   dim2 = Rop.dim;
 if dim1(2)~=dim2(1)
     error("Inner dimensions of operators to compose should match.")
 end
 m = dim1(1);    p = dim1(2);    n = dim2(2);
-deg1 = Qop.deg;     deg2 = Rop.deg;
-if any(deg1~=deg2)
-    error("Degrees of the opvar2d objects must match.")
-end
 
 if ~isempty(Rop.dvarname)
     error("Composition of known operator with decision variable operator is currently not supported.")
 end
-
 
 % Check that the domain is appropriately specified
 dom1 = Qop.dom;       dom2 = Rop.dom;
@@ -54,6 +85,12 @@ if any(dom1~=dom2)
 end
 N = size(dom1,1);
 
+% Prohibit cases where the operators are of different monomial degrees
+% --> support for such cases will have to be included as well!
+deg1 = Qop.deg;     deg2 = Rop.deg;
+if any(deg1~=deg2)
+    error("Degrees of the opvar2d objects must match.")
+end
 
 % Proceed with composition just along the first dimension
 d = deg1(1);
@@ -241,7 +278,7 @@ end
 
 
 %% Function for multiplying matrix with operator
-function Cop = mat_times_coeffs(Amat,Bop)
+function Cop = mat_times_ndopvar(Amat,Bop)
 % COP = MAT_TIMES_NDOPVAR(AMAT,BOP) returns an 'ndopvar' object
 % representing the composition of the matrix AMAT with the operator defined 
 % by BOP;
