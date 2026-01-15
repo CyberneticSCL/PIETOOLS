@@ -54,7 +54,7 @@ end
 if isa(Rop,'double')
     Pop = nopvar_times_mat(Qop,Rop);
     return
-elseif ~isa(Rop,'ndopvar')
+elseif ~isa(Rop,'nopvar')
     error("Only composition of 'ndopvar' objects with other 'ndopvar' objects is currently supported.")
 end
 
@@ -155,7 +155,7 @@ if N==1
     P1 = trm1 + E1t*(Qop.C{2}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{2})*E1;
     P2 = trm1 + E1t*(Qop.C{3}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{3})*E1;
 
-    Pop = ndopvar();
+    Pop = nopvar();
     Pop.C = {P0;P1;P2};
     Pop.dom = [a,b];
     Pop.deg = 3*d+1;
@@ -201,7 +201,7 @@ P1 = trm1+trm12+trm13;
 P2 = trm1+trm22+trm23;
 
 
-Pop = ndopvar();
+Pop = nopvar();
 sz_C = size(P0.C);
 Pop.C = [reshape(P0.C,[1,sz_C]); 
            reshape(P1.C,[1,sz_C]);
@@ -229,7 +229,7 @@ dim = P.dim;
 deg = P.deg;
 vars = P.vars;
 
-P_tmp = ndopvar();
+P_tmp = nopvar();
 P_tmp.deg = deg(2:end);
 P_tmp.dim = (deg(1)+1)*dim;
 P_tmp.dom = P.dom(2:end,:);
