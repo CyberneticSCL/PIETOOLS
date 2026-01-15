@@ -134,6 +134,9 @@ methods
         %     sz_C = sz_C(1);
         % end
         for ii=1:numel(obj.C)
+            if isempty(obj.C{ii})
+                continue
+            end
             [m,n] = size(obj.C{ii});
             m_min = min(m_min,m/(nZ*(q+1)));
             m_max = max(m_max,m/(nZ*(q+1)));
