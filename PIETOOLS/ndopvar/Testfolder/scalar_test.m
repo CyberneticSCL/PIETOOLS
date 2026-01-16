@@ -1,5 +1,4 @@
-function [Pop_test, Pop_base, Pop] = scalar_test()
-% dim, deg, dom, alpha, decs
+function [Pop_test, Pop_base, Pop] = scalar_test(dim, deg, dom, alpha, decs)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Pop_scalar, Pop_base, Pop] = scalar_test(...) returns 3 nopvar objects - the 
 % randomly generated nopvar (Pop), its scaled version (Pop_base.C = alpha*Pop_base.C)
@@ -30,16 +29,16 @@ function [Pop_test, Pop_base, Pop] = scalar_test()
 % Initial coding CR - 1/15/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Set the size of the operators (m,n), spatial dimension (N), domain (dom),
-% maximal monomial degree (deg), and multiplier (alpha)
-m = 1;
-n = 1;
-dim = [m n];
-N = 2;
-dom = [zeros(N,1),ones(N,1)];
-deg = 2;
-alpha = 2.0;
-decs = true;
+% % Set the size of the operators (m,n), spatial dimension (N), domain (dom),
+% % maximal monomial degree (deg), and multiplier (alpha)
+% m = 1;
+% n = 1;
+% dim = [m n];
+% N = 2;
+% dom = [zeros(N,1),ones(N,1)];
+% deg = 2;
+% alpha = 2.0;
+% decs = true;
 
 % Declare N variables
 [N, ~] = size(dom);
