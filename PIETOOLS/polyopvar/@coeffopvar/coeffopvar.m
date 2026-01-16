@@ -4,20 +4,20 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})coeffopvar
 % distributed polynomials.
 %
 % CLASS properties
-% - C.ops:  m x n*nZ cell
-% - P.C:        1 x nZ cell specifying the coefficients acting on the
-%               different distributed monomials, so that
-%                   P = C{1}*[Z(x)]_{1} + ... + C{nZ}*[Z(x)]_{nZ}
-%               If [Z(x)]_{i} = xk for some k in 1,...,p, then C{i} can
-%               just be an 'nopvar' or 'ndopvar' object, representing an
-%               operator acting on the state xk. Otherwise, if
-%                   [Z(x)]_{i} = x1^d1 o ... o xp^dp,
-%               then C{i} is itself a m x d cell for d=d1+...+dp, with each
-%               element an 'nopvar' or 'ndopvar' object
+% - C.ops:  1 x nZ cell (for nZ the number of distributed monomials) 
+%           specfiying the operators acting on the different distributed
+%           monomials. Each element is itself a m x d cell of 'nopvar' 
+%           objects, where m is the number of terms, and d the number of 
+%           factors in the monomial. In particular, if 
+%               Z_{i}(x)=x1^d1 o ... o xp^dp
+%           where o denotes the tensor product and d = d1+...+dp,
+%           and C.ops{ii} = P, we have
+%               (C(i)*Z_{i}(x))(s) = 
+%                       (P{1}x1)(s)*(P{2}x1)(s)*...*(P{d}xp)(s)
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - polyopvar
+% PIETOOLS - coeffopvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
