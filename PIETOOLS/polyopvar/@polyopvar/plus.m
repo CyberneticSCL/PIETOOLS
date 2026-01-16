@@ -44,19 +44,6 @@ function C = plus(A,B)
 % Then, the coefficients defining the sum are given by the sum of the
 % coefficients
 C = A;
-for ii=1:size(C.degmat,1)
-    if sum(C.degmat(ii,:))==1
-        % If the monomial is just linear, Z_{i}(x) = xk for some k,
-        % then we can use the 'nopvar' plus routine to compute the sum of
-        % the operators
-        %   Ai*xk + Bi*xk = (Ai+Bi)*xk;
-        C.C{ii} = A.C{ii} + B.C{ii};
-    else
-        % If the monomial is more complicated, e.g. Z_{i}(x) = xk*yl,
-        % we cannot simply add the coefficient
-        %   (Ai{1}*xk)(Ai{2}*yk) + (Bi{1}*xk)(Bi{2}*yk)
-        C.C{ii} = [A.C{ii}; B.C{ii}];
-    end
-end
+C.C = A.C + B.C;
 
 end
