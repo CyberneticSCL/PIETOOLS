@@ -1,4 +1,5 @@
-function [Pop_test, Pop_base, Pop] = scalar_test(dim, deg, dom, alpha)
+function [Pop_test, Pop_base, Pop] = scalar_test()
+% dim, deg, dom, alpha, decs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Pop_scalar, Pop_base, Pop] = scalar_test(...) returns 3 nopvar objects - the 
 % randomly generated nopvar (Pop), its scaled version (Pop_base.C = alpha*Pop_base.C)
@@ -14,6 +15,8 @@ function [Pop_test, Pop_base, Pop] = scalar_test(dim, deg, dom, alpha)
 %           spatial interval along the ith direction on which the operator
 %           is defined;
 % alpha:    double for multiplying the randomly generated nopvar object;
+% decs:     logic variable set to true for generating ndopvar and false 
+%           for nopvar;
 %
 % OUTPUT
 % Pop:      nopvar object;
@@ -27,15 +30,16 @@ function [Pop_test, Pop_base, Pop] = scalar_test(dim, deg, dom, alpha)
 % Initial coding CR - 1/15/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% % Set the size of the operators (m,n), spatial dimension (N), domain (dom),
-% % maximal monomial degree (deg), and multiplier (alpha)
-% m = 1;
-% n = 1;
-% dim = [m n];
-% N = 2;
-% dom = [zeros(N,1),ones(N,1)];
-% deg = 2;
-% alpha = 2.0;
+% Set the size of the operators (m,n), spatial dimension (N), domain (dom),
+% maximal monomial degree (deg), and multiplier (alpha)
+m = 1;
+n = 1;
+dim = [m n];
+N = 2;
+dom = [zeros(N,1),ones(N,1)];
+deg = 2;
+alpha = 2.0;
+decs = true;
 
 % Declare N variables
 [N, ~] = size(dom);
@@ -44,10 +48,14 @@ var2_name = [var1_name,repmat('_dum',[N,1])];
 vars = polynomial(mat2cell(var1_name,ones(N,1),size(var1_name,2)));
 dvars = polynomial(mat2cell(var2_name,ones(N,1),size(var2_name,2)));
 
-% Declare no decision variables
-dvarname = cell(0,1); 
+% Declare if decs==true decision variables
+if decs
+    dvarname = {'q1', 'q2', 'q3'};
+else
+    dvarname = cell(0,1);
+end
 
-% Declare random ndopvar objects
+% Declare random nopvar / ndopvar object
 Pop = rand_ndopvar(dim,deg,dom,vars,dvars,dvarname);
 
 % create ndopvar placeholder

@@ -1,15 +1,15 @@
 function Pop = scalar(alpha,Pop)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Pop = scalar(alpha,Pop) returns the 'ndopvar' object Pop representing 
+% Pop = scalar(alpha,Pop) returns the 'nopvar' object Pop representing 
 % the scalar product alpha*Pop for the PI operator defined by Pop.
 % Version: 1.0
 % 
 % INPUT
 % alpha: double to scale coefficients in Pop.C;
-% Pop:   ndopvar object;
+% Pop:   nopvar object;
 % 
 % OUTPUT
-% Pop:   scaled ndopvar object;
+% Pop:   scaled nopvar object;
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % If you modify this code, document all changes carefully and include date
