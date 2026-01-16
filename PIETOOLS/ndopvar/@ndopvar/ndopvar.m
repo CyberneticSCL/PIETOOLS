@@ -39,7 +39,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) ndopvar
 % - P.dom:  Nx2 array with each row dom(i,:) = [ai,bi] representing the
 %           spatial interval along the ith direction on which the operator
 %           is defined;
-% - P.vars: kx2 'polynomial' array, specifying the primary variables s
+% - P.vars: Nx2 'polynomial' array, specifying the primary variables s
 %           (first column) and dummy variables t (second column) defining
 %           the parameters R(s,t), as pvar objects.
 % - P.dvarnames: qx1 cell of strings, specifying the names of the decision
