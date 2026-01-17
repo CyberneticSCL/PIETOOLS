@@ -1,15 +1,15 @@
 function out = subsasgn(obj,s,RHS)
 % OUT = SUBSASGN(OBJ,S,RHS) assigns values RHS to field/slice S of a
-% coeffopvar object OBJ
+% tensopvar object OBJ
 % 
 % INPUT
-% - obj:    'coeffopvar' object of which to assign elements;
+% - obj:    'tensopvar' object of which to assign elements;
 % - s:      'struct' specifying which elements of obj to adjust;
-% - RHS:    'coeffopvar' object specifying the new values of the specified
+% - RHS:    'tensopvar' object specifying the new values of the specified
 %           elements;
 %
 % OUTPUT
-% out:      'coeffopvar' object with desired component value
+% out:      'tensopvar' object with desired component value
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,8 +41,8 @@ switch s(1).type
     case '.'
         out = builtin('subsasgn',obj,s,RHS);
     case '()'
-        if ~isa(RHS,'coeffopvar')
-            error("For setting elements of a 'coeffopvar', the new value must be specified as 'coeffopvar' object as well.")
+        if ~isa(RHS,'tensopvar')
+            error("For setting elements of a 'tensopvar', the new value must be specified as 'tensopvar' object as well.")
         end
         % When setting C(i,j), just set C.ops(i,j);
         ops = builtin('subsasgn',obj.ops,s,RHS.ops);

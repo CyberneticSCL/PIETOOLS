@@ -1,5 +1,5 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})coeffopvar
-% This function defines the class of 'coeffopvarr' objects, representing
+classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar
+% This function defines the class of 'tensopvar' objects, representing
 % coefficient operators acting on distributed monomials to defined 
 % distributed polynomials.
 %
@@ -17,7 +17,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})coeffopvar
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - coeffopvar
+% PIETOOLS - tensopvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -49,7 +49,7 @@ end
 
 methods
 
-    function [C] = coeffopvar(varargin) %constructor
+    function [C] = tensopvar(varargin) %constructor
         if nargout==0
             % Declare state variables as
             %   polyopvar x1 x2 x3
@@ -64,7 +64,7 @@ methods
             end
         elseif nargout==1
             % Declare state variable as
-            %   C = coeffopvar(Pop);
+            %   C = tensopvar(Pop);
             if nargin==0
                 return
             end

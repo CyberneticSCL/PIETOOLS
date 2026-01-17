@@ -56,7 +56,7 @@ degs_full = [degs1;degs2];
 [Pmat,degs_new] = uniquerows_integerTable(degs_full);   % Pmat*Znew = Z_full
 nZ = size(degs_new,1);
 [r_idcs,new2old_Cdcs] = find(Pmat);
-C1 = coeffopvar(1,nZ);      C2 = coeffopvar(1,nZ);
+C1 = tensopvar(1,nZ);      C2 = tensopvar(1,nZ);
 is_C1 = r_idcs<=nZ1;        is_C2 = r_idcs>nZ1;
 C1(new2old_Cdcs(is_C1)) = C_A(r_idcs(is_C1));
 C2(new2old_Cdcs(is_C2)) = C_B(r_idcs(is_C2)-nZ1);
