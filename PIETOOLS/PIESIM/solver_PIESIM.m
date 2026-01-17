@@ -113,7 +113,7 @@ end
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
         example=1;
     end
-    [PDE,uinput]=examples_pde_library_PIESIM_1D(example,opts);
+    [PDE,uinput]=examples_pde_library_PIESIM_1D(example);
     else   % dim=2
     if (example<1|example>19)
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
@@ -133,6 +133,7 @@ elseif exist('DDE','var')
 else
     solution = PIESIM(PDE,opts,uinput);
 end
+
 
 
 
