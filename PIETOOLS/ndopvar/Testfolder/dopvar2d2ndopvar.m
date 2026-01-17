@@ -1,12 +1,15 @@
-function [P_out] = opvar2d2ndopvar(P_in,d)
-% [P_OUT] = OPVAR2COEFSS2D(P_IN,D) takes an opvar2d object P_IN and returns
-% a ndopvar object P_OUT representing the same 2D PI operator.
+function [P_out] = dopvar2d2ndopvar(P_in,d,dvarname)
+% [P_OUT] = DOPVAR2D2NDOPVAR(P_IN,D) takes an opvar2d or dopvar2d object 
+% P_IN and returns a ndopvar object P_OUT representing the same 2D PI 
+% operator (variable).
 %
 % INPUTS
-% - P_in:   mxn 'opvar2d' object representing a 9-PI operator
+% - P_in:   mxn 'opvar2d' or 'dopvard' object representing a 9-PI operator;
 % - d:      (optional) scalar 'double' specifiying a desired degree of the
 %           monomial basis. Defaults to the maximal degree of the monomials
 %           appearing in Pop.R.R1 and Pop.R.R2.
+% - dvarname:   (optional) q x 1 cellstr including the names of the
+%               decision variables appearing in P_in
 % 
 % OUTPUTS
 % - P_out:  m x n 'ndopvar' object representing the same 9-PI operator as 
@@ -39,15 +42,17 @@ function [P_out] = opvar2d2ndopvar(P_in,d)
 %
 % DJ, 01/06/2206: Initial coding
 
-if ~isa(P_in,'opvar2d')
+if ~isa(P_in,'opvar2d') && ~isa(P_in,'dopvar2d')
     error("Input  must be of type 'opvar2d'.")
 end
-P_in = poly_opvar2d(P_in);
 if any(any(P_in.dim(1:3,:)))
     error("Only operators from L2 to L2 are supported.")
 end
 if nargin==1
     d = inf;
+end
+if nargin<=2
+    dvarname = {};
 end
 
 % Extract the relevant information
@@ -55,10 +60,19 @@ dim = P_in.dim(4,:);
 var1 = P_in.var1;
 var2 = P_in.var2;
 
-% Determine the maximal monomial degree in both var1 and var2
+% Determine the decision variables and
+% maximal monomial degree in var1 and var2
 dmax = 0;
+P_in = opvar2dopvar2d(P_in);
+dvarname_P = {};
 for ii=1:numel(P_in.R22)
+    dvarname_P = [dvarname_P; P_in.R22{ii}.dvarname];
     dmax = max(dmax,max(max(P_in.R22{ii}.degmat)));
+end
+if isempty(dvarname)
+    dvarname = dvarname_P;
+elseif ~isempty(setdiff(dvarname,dvarname_P))
+    error("Specified decision variable list does not include all variables appearing in the operator.")
 end
 if nargin==1
     d = dmax;
@@ -73,21 +87,29 @@ end
 %   Rij(s,t) = (Im o Zd(s))^T Cij (In o Zd(t))
 % for i,j in {1,2};
 C_cell = cell(size(P_in.R22));
-C_cell{1} = get_quadratic_form(P_in.R22{1,1},var1,[],d);
-C_cell{2,1} = get_quadratic_form(P_in.R22{2,1},var1,var2(1),d);
-C_cell{3,1} = get_quadratic_form(P_in.R22{3,1},var1,var2(1),d);
-C_cell{1,2} = get_quadratic_form(P_in.R22{1,2},var1,var2(2),d);
-C_cell{1,3} = get_quadratic_form(P_in.R22{1,3},var1,var2(2),d);
+C_cell{1} = get_quadratic_form(P_in.R22{1,1},var1,[],dvarname,d);
+C_cell{2,1} = get_quadratic_form(P_in.R22{2,1},var1,var2(1),dvarname,d);
+C_cell{3,1} = get_quadratic_form(P_in.R22{3,1},var1,var2(1),dvarname,d);
+C_cell{1,2} = get_quadratic_form(P_in.R22{1,2},var1,var2(2),dvarname,d);
+C_cell{1,3} = get_quadratic_form(P_in.R22{1,3},var1,var2(2),dvarname,d);
 for ii=[5,6,8,9]
-    C_cell{ii} = get_quadratic_form(P_in.R22{ii},var1,var2,d);
+    C_cell{ii} = get_quadratic_form(P_in.R22{ii},var1,var2,dvarname,d);
 end
 
-% Collect parameters representing the operator in a struct
-P_out = ndopvar();
+% Collect parameters representing the operator
+if isempty(dvarname)
+    P_out = nopvar();
+else
+    P_out = ndopvar();
+    P_out.dvarname = dvarname;
+end
 P_out.C = C_cell;
-%P_out.dim = dim;
 P_out.dom = P_in.I;
-P_out.deg = [d;d];
+if isscalar(d)
+    P_out.deg = [d;d];
+else
+    P_out.deg = d;
+end
 P_out.vars = [P_in.var1,P_in.var2];
 
 end

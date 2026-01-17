@@ -1,16 +1,18 @@
-function Pop = uminus(Pop)
-% POP = UMINUS(POP) returns the 'ndopvar' object representing the scalar
-% product (-1)*P for the PI operator P defined by POP.
+function C = plus(A,B)
+% C = PLUS(A,B) returns the 'polyopvar' object C representing the sum
+% of the distributed polynomials by the 'polyopvar' objects A and B
 %
 % INPUTS
-% - Pop_in:     m x n 'ndopvar' object;
+% - A:      m x n 'polyopvar' object
+% - B:      m x n 'polyopvar' object
 %
-% OUTPUTS
-% - Pop_out:    m x n 'ndopvar' object representing the operator defined by
-%               (-1)*Pop_in;
+% OUTPUS
+% - C:      m x n 'polyopvar' object representing the sum of the
+%           distributed polynomials defined by A and B
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - uminus
+% PIETOOLS - plus
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -35,10 +37,13 @@ function Pop = uminus(Pop)
 %
 % DJ, 01/15/2026: Initial coding
 
-% The coefficients defining (-1)*P are just (-1) times the coefficients 
-% defining P;
-for ii=1:numel(Pop.C)
-    Pop.C{ii} = -Pop.C{ii};
-end
+% Make sure the two distributed polynomials are expressed in terms of the
+% same basis of distributed monomials.
+[A,B] = common_basis(A,B);
+
+% Then, the coefficients defining the sum are given by the sum of the
+% coefficients
+C = A;
+C.C = A.C + B.C;
 
 end

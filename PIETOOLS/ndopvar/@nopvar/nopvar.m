@@ -1,12 +1,12 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) ndopvar
+classdef (InferiorClasses={?polynomial,?dpvar}) nopvar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This defines the class of PI operator variables,
+% This defines the class of PI operators,
 %
 %   Pop(r): L2^n[[a1,b1]x...x[aN,bN]] --> L2^m[[a1,b1]x...x[aN,bN]],
 %
 % taking the form
 %
-% (Pop(r) x)(s) = sum_{j in {0,1,2}^N} int_{[a,b]} I_j(s,t)*R(s,t;r)*x(t) dt 
+% (Pop x)(s) = sum_{j in {0,1,2}^N} int_{[a,b]} I_j(s,t)*R(s,t)*x(t) dt 
 %
 % for s=(s1,...,sN) in [a,b]=[a1,b1]x...x[aN,bN], where
 %
@@ -18,10 +18,10 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) ndopvar
 %   int_{ai}^{bi} I_k(si,ti)*f(ti) dti ={ int_{ai}^{si} f(ti) dti,  k=1;
 %                                       { int_{si}^{bi} f(ti) dti,  k=2;
 %
-% and parameterized by polynomial variables Rj(s,t;r), defined by decision
-% variables r. We represent the parameters in a quadratic form as
+% and parameterized by polynomial functions Rj(s,t). We represent the 
+% parameters in a quadratic form as
 %
-%   Rj(s,t;r) = (Im o Zd(s))^T (Ik o [1;d])^T Cj (In o Zd(t)),
+%   Rj(s,t) = (Im o Zd(s))^T Cj (In o Zd(t)),
 %
 % where o denotes the Kronecker product, and where
 %
@@ -32,7 +32,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) ndopvar
 %
 % CLASS properties
 % - P.C:    3^N cell, with element {i1,i2,...,iN} a sparse matrix of
-%           dimension m*prod(deg+1)*(q+1) x n*prod(deg+1), representing
+%           dimension m*prod(deg+1) x n*prod(deg+1), representing
 %           the coefficient matrix Cj for (j1,...,jN)=(i1+1,...,iN+1);
 % - P.deg:  Nx1 array specifying the maximal monomial degrees d1,...,dN;
 % - P.dim:  1x2 array specifying the dimensions [m,n] of the operator;
@@ -42,12 +42,10 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) ndopvar
 % - P.vars: Nx2 'polynomial' array, specifying the primary variables s
 %           (first column) and dummy variables t (second column) defining
 %           the parameters R(s,t), as pvar objects.
-% - P.dvarnames: qx1 cell of strings, specifying the names of the decision
-%                variables, r, parameterizing the operator;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - ndopvar
+% PIETOOLS - nopvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -70,14 +68,13 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) ndopvar
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/06/2206: Initial coding
+% DJ, 01/15/2026: Initial coding
 
 properties
     C = {};
     deg = zeros(0,1);
     dom = zeros(0,2);
     dim = [0,0];
-    dvarname = {};
     vars = polynomial(zeros(0,2));
 end
 
@@ -109,13 +106,10 @@ methods
     function [obj] = set.vars(obj,vars)
         obj.vars = vars;
     end
-    function [obj] = set.dvarname(obj,dvarname)
-        obj.dvarname = dvarname;
-    end
     function [dim] = get.dim(obj)
         % % Determine the dimensions of the operator, m x n, from the
         % % dimensions of the coefficient matrices,
-        % %     m*prod(deg+1)*(q+1) x n*prod(deg+1).
+        % %     m*prod(deg+1) x n*prod(deg+1).
 
         % Get the number of monomials and decision variables
         degs = obj.deg;
@@ -124,7 +118,6 @@ methods
         end
         nZ = prod(obj.deg+1);
         N = numel(obj.deg);
-        q = numel(obj.dvarname);
 
         % Check the dimensions of the coefficient matrices
         m_min = inf;    n_min = inf;
@@ -138,8 +131,8 @@ methods
                 continue
             end
             [m,n] = size(obj.C{ii});
-            m_min = min(m_min,m/(nZ*(q+1)));
-            m_max = max(m_max,m/(nZ*(q+1)));
+            m_min = min(m_min,m/nZ);
+            m_max = max(m_max,m/nZ);
             % Get the number of monomials and decision variables
             idcs = cell(1,N);
             [idcs{:}] = ind2sub(sz_C,ii);

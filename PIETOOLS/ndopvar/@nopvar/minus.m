@@ -1,16 +1,21 @@
-function Pop = uminus(Pop)
-% POP = UMINUS(POP) returns the 'ndopvar' object representing the scalar
-% product (-1)*P for the PI operator P defined by POP.
+function Cop = minus(Aop,Bop)
+% COP = MINUS(AOP,BOP) returns the nopvar object representing the
+% difference of the PI operators defined by AOP and BOP.
 %
 % INPUTS
-% - Pop_in:     m x n 'ndopvar' object;
+% - Aop:    m x n 'nopvar' object
+% - Bop:    m x n 'nopvar' object
 %
-% OUTPUTS
-% - Pop_out:    m x n 'ndopvar' object representing the operator defined by
-%               (-1)*Pop_in;
+% OUTPUS
+% - Cop:    m x n 'nopvar' object representing the sum of the operators
+%           defined by Aop and Bop
+%
+% NOTES
+% The operators defined by Aop and Bop must act on functions on the same
+% spatial domain, i.e. Aop.dom = Bop.dom.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - uminus
+% PIETOOLS - minus
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -35,10 +40,6 @@ function Pop = uminus(Pop)
 %
 % DJ, 01/15/2026: Initial coding
 
-% The coefficients defining (-1)*P are just (-1) times the coefficients 
-% defining P;
-for ii=1:numel(Pop.C)
-    Pop.C{ii} = -Pop.C{ii};
-end
+Cop = plus(Aop,uminus(Bop));
 
 end

@@ -1,9 +1,9 @@
-function [P_out] = opvar2ndopvar(P_in,d)
-% [P_OUT] = OPVAR2COEFSS(P_IN) takes an opvar object P_IN and returns a
-% ndopvar object P_OUT representing the same 3-PI operator.
+function [P_out] = dopvar2ndopvar(P_in,d,dvarname)
+% [P_OUT] = DOPVAR2NDOPVAR(P_IN) takes an opvar object P_IN and returns a
+% 'nopvar' or 'ndopvar' object P_OUT representing the same 3-PI operator.
 %
 % INPUTS
-% - P_in:   mxn 'opvar' object representing a 3-PI operator
+% - P_in:   mxn 'opvar' or 'dopvar' object representing a 3-PI operator
 % - d:      (optional) scalar 'double' specifiying a desired degree of the
 %           monomial basis. Defaults to the maximal degree of the monomials
 %           appearing in Pop.R.R0, Pop.R.R1 and Pop.R.R2.
@@ -39,14 +39,16 @@ function [P_out] = opvar2ndopvar(P_in,d)
 %
 % DJ, 01/06/2206: Initial coding
 
-if isa(P_in,'opvar2d')
+if isa(P_in,'opvar2d') || isa(P_in,'dopvar2d')
     if nargin==1
-        P_out = opvar2d2ndopvar(P_in);
+        P_out = dopvar2d2ndopvar(P_in);
     elseif nargin==2
-        P_out = opvar2d2ndopvar(P_in,d);
+        P_out = dopvar2d2ndopvar(P_in,d);
+    elseif nargin==3
+        P_out = dopvar2d2ndopvar(P_in,d,dvarname);
     end
     return
-elseif ~isa(P_in,'opvar')
+elseif ~isa(P_in,'opvar') && ~isa(P_in,'dopvar')
     error("Input  must be of type 'opvar'.")
 end
 if any(P_in.dim(1,:))
@@ -55,14 +57,25 @@ end
 if nargin==1
     d = inf;
 end
+if nargin<=2
+    dvarname = {};
+end
 
 % Extract the relevant information
 dim = P_in.dim(2,:);
 var1 = P_in.var1;
 var2 = P_in.var2;
-R0 = polynomial(P_in.R.R0);
-R1 = polynomial(P_in.R.R1);
-R2 = polynomial(P_in.R.R2);
+R0 = dpvar(P_in.R.R0);
+R1 = dpvar(P_in.R.R1);
+R2 = dpvar(P_in.R.R2);
+
+% Determine which decision variables appear in the operator
+dvarname_P = unique([R0.dvarname; R1.dvarname; R2.dvarname]);
+if isempty(dvarname)
+    dvarname = dvarname_P;
+elseif ~isempty(setdiff(dvarname,dvarname_P))
+    error("Specified decision variable list does not include all variables appearing in the operator.")
+end
 
 % Determine the maximal monomial degree in both var1 and var2
 dmax = max([max(R1.degmat,[],"all"),max(R2.degmat,[],"all")]);
@@ -75,15 +88,19 @@ end
 % Get coefficients representing parameters in the quadratic form,
 %   R0(s,t) = (Im o Zd(s))^T C0;
 %   Ri(s,t) = (Im o Zd(s))^T Ci (In o Zd(t);
-C0 = get_quadratic_form(R0,var1,[],d);
-C1 = get_quadratic_form(R1,var1,var2,d);
-C2 = get_quadratic_form(R2,var1,var2,d);
+C0 = get_quadratic_form(R0,var1,[],dvarname,d);
+C1 = get_quadratic_form(R1,var1,var2,dvarname,d);
+C2 = get_quadratic_form(R2,var1,var2,dvarname,d);
 C_cell = {C0;C1;C2};
 
-% Collect parameters representing the operator in a struct
-P_out = ndopvar();
+% Collect parameters representing the operator
+if isempty(dvarname)
+    P_out = nopvar();
+else
+    P_out = ndopvar();
+    P_out.dvarname = dvarname;
+end
 P_out.C = C_cell;
-%P_out.dim = dim;
 P_out.dom = P_in.I;
 P_out.deg = d;
 P_out.vars = [var1,var2];

@@ -1,14 +1,14 @@
 function Pop = mtimes(Qop,Rop)
-% POP = MTIMES(QOP,ROP) returns the 'ndopvar' object representing the
+% POP = MTIMES(QOP,ROP) returns the 'nopvar' object representing the
 % composition of the PI operators defined by QOP and ROP.
 %
 % INPUTS
-% - Qop:    m x p 'ndopvar' object;
-% - Rop:    p x n 'ndopvar' object;
+% - Qop:    m x p 'nopvar' object;
+% - Rop:    p x n 'nopvar' object;
 %
 % OUTPUTS
-% - Pop:    m x n 'ndopvar' object representing the composition of the
-%           operators defined by Aop and Bop;
+% - Pop:    m x n 'nopvar' object representing the composition of the
+%           operators defined by Qop and Rop;
 %
 % NOTES
 % The spatial domains on which the operators defined by Qop and Rop exist
@@ -41,57 +41,51 @@ function Pop = mtimes(Qop,Rop)
 % DJ, 01/15/2026: Initial coding
 
 
+% % % Check the inputs
 
 % Separately deal with the cases of matrix x operator or operator x matrix
 % composition
 if isa(Qop,'double')
-    Pop = mat_times_ndopvar(Qop,Rop);
+    Pop = mat_times_nopvar(Qop,Rop);
     return
-elseif ~isa(Qop,'ndopvar') && ~isa(Qop,'nopvar')
-    error("Only composition of 'ndopvar' objects with 'nopvar' objects is currently supported.")
+elseif ~isa(Qop,'nopvar')
+    error("Only composition of 'nopvar' objects with other 'nopvar' objects is currently supported.")
 end
 if isa(Rop,'double')
-    Pop = ndopvar_times_mat(Qop,Rop);
+    Pop = nopvar_times_mat(Qop,Rop);
     return
-elseif ~isa(Rop,'ndopvar') && ~isa(Rop,'nopvar')
-    error("Only composition of 'ndopvar' objects with 'nopvar' objects is currently supported.")
-end
-if isa(Qop,'ndopvar') && isa(Rop,'ndopvar')
-    error("Composition of two decision variable operators is not supported.")
-elseif isa(Rop,'ndopvar')
-    % Support for this case will need to be added
-    error("Composition of 'nopvar' x 'ndopvar' is currently not supported.")
+elseif ~isa(Rop,'nopvar')
+    error("Only composition of 'ndopvar' objects with other 'ndopvar' objects is currently supported.")
 end
 
-
-% Check that the inner dimensions of the operators match.
+% Check that the inner dimensions of the operators match
 dim1 = Qop.dim;   dim2 = Rop.dim;
 if dim1(2)~=dim2(1)
     error("Inner dimensions of operators to compose should match.")
 end
 m = dim1(1);    p = dim1(2);    n = dim2(2);
 
-% Check that the domain is appropriately specified
+% Check that the domains of the operators match
 dom1 = Qop.dom;       dom2 = Rop.dom;
-if ~isa(dom1,'double') || ~numel(dom1)==2
-    error("Spatial domain should be specified as 1x2 array")
-end
 if any(dom1~=dom2)
     error("Spatial domains of the operators should match.")
 end
 N = size(dom1,1);
 
-% Prohibit cases where the operators are of different monomial degrees
-% --> support for such cases will have to be included as well!
+% Prohibit case with different monomial degrees
+% --> this will need to be implemented as well!
 deg1 = Qop.deg;     deg2 = Rop.deg;
 if any(deg1~=deg2)
-    error("Degrees of the opvar2d objects must match.")
+    error("Degrees of the nopvar objects must match.")
 end
+
+
+
+% % % Perform the actual composition
 
 % Proceed with composition just along the first dimension
 d = deg1(1);
 a = dom1(1,1);       b = dom1(1,2);
-
 
 % Declare the matrices (Iq o A) and (Iq o B), where
 % B-A = int_{a}^{b} Zd(s)*Zd(s)^T ds 
@@ -149,25 +143,8 @@ Hd = spIkron(p,r_idcs(:),c_idcs(:),Hd_vals,(d+1),(d+1)*(3*d+2));
 E1 = spIkron(n,(1:d+1),(1:d+1),1,d+1,3*d+2);
 E1t = spIkron(m,(1:d+1),(1:d+1),1,3*d+2,d+1);
 
-
 % % Deal with the base case: N=1
 if N==1
-    ndvars = numel(Qop.dvarname);
-    if ndvars>0
-        % Upscale the matrices to account for the decision variables
-        E1t = spIkron(ndvars+1,E1t);
-        Fdt = spIkron(ndvars+1,Fdt);
-        Edt = spIkron(ndvars+1,Edt);
-
-        % Pre- and post-multiply with appropriate commutation matrices to
-        % factor out the decision variables
-        Pmat1 = commat(m*(3*d+2),ndvars+1,'transpose');
-        Pmat2 = commat(ndvars+1,m*(d+1),'transpose');
-        E1t = Pmat1*E1t*Pmat2;
-        Fdt = Pmat1*Fdt*kron(Pmat2,speye(d+1));
-        Edt = Pmat1*Edt*kron(Pmat2,speye(2*d+2));
-    end
-
     fctrC0 = Fdt*kron(Qop.C{1},eye(d+1));
     fctrD0 = Hd*kron(Rop.C{1},eye(3*d+2));
     trm1 = E1t*sparse(Qop.C{3}*Bmat*Rop.C{2}-Qop.C{2}*Amat*Rop.C{3})*E1;
@@ -178,11 +155,10 @@ if N==1
     P1 = trm1 + E1t*(Qop.C{2}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{2})*E1;
     P2 = trm1 + E1t*(Qop.C{3}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{3})*E1;
 
-    Pop = ndopvar();
+    Pop = nopvar();
     Pop.C = {P0;P1;P2};
     Pop.dom = [a,b];
     Pop.deg = 3*d+1;
-    Pop.dvarname = Qop.dvarname;
     Pop.vars = [Qop.vars(:,1),Rop.vars(:,2)];
     return
 end
@@ -225,7 +201,7 @@ P1 = trm1+trm12+trm13;
 P2 = trm1+trm22+trm23;
 
 
-Pop = ndopvar();
+Pop = nopvar();
 sz_C = size(P0.C);
 Pop.C = [reshape(P0.C,[1,sz_C]); 
            reshape(P1.C,[1,sz_C]);
@@ -234,7 +210,6 @@ Pop.C = [reshape(P0.C,[1,sz_C]);
 Pop.dom = dom1;
 Pop.deg = 3*deg1+1;
 Pop.vars = [Qop.vars(:,1),Rop.vars(:,2)];
-Pop.dvarname = Qop.dvarname;
 
 end
 
@@ -254,17 +229,11 @@ dim = P.dim;
 deg = P.deg;
 vars = P.vars;
 
-if isa(P,'ndopvar')
-    P_tmp = ndopvar();
-    P_tmp.dvarname = P.dvarname;
-else
-    P_tmp = nopvar();
-end
+P_tmp = nopvar();
 P_tmp.deg = deg(2:end);
 P_tmp.dim = (deg(1)+1)*dim;
 P_tmp.dom = P.dom(2:end,:);
 P_tmp.vars = vars(2:end,:);
-
 
 sz_C = [size(P.C),1];
 
@@ -279,20 +248,16 @@ end
 
 
 %% Function for multiplying matrix with operator
-function Cop = mat_times_ndopvar(Amat,Bop)
-% COP = MAT_TIMES_NDOPVAR(AMAT,BOP) returns an 'ndopvar' object
+function Cop = mat_times_nopvar(Amat,Bop)
+% COP = MAT_TIMES_NOPVAR(AMAT,BOP) returns an 'nopvar' object
 % representing the composition of the matrix AMAT with the operator defined 
 % by BOP;
 
-% if ~isempty(Bop.dvarname)
-%     error("Composition with decision variable operators is currently not supported.")
-% end
-q = numel(Bop.dvarname);
 d = prod(Bop.deg+1);
 
 % Compute the coefficients defining the product
 Cop = Bop;
-fctrA = kron(Amat,speye(d*(q+1)));
+fctrA = kron(Amat,speye(d));
 for ii=1:numel(Cop.C)
     Cop.C{ii} = fctrA*Bop.C{ii};
 end
@@ -301,8 +266,8 @@ end
 
 
 %% Function for multiplying operator with matrix
-function Cop = ndopvar_times_mat(Aop,Bmat)
-% COP = NDOPVAR_TIMES_MAT(AOP,BMAT) returns an 'ndopvar' object
+function Cop = nopvar_times_mat(Aop,Bmat)
+% COP = NOPVAR_TIMES_MAT(AOP,BMAT) returns an 'nopvar' object
 % representing the composition of the operator defined by AOP with the
 % matrix BMAT;
 

@@ -1,16 +1,20 @@
-function Pop = uminus(Pop)
-% POP = UMINUS(POP) returns the 'ndopvar' object representing the scalar
-% product (-1)*P for the PI operator P defined by POP.
+function out = subsref(obj,s)
+% OUT = SUBSREF(OBJ,S) extracts the elements of 'coeffopvar' object OBJ
+% specified by S. This function is automatically called 
+% 
+% INPUT
+% - obj:    'coeffopvar' object of which to extract certain elements;
+% - s:      struct indicating which element/fields of obj to extract;
+% 
+% OUTPUT
+% - out:    object representing the elements of 'obj' specified by 's'. If
+%           s.type='.', this will be out=obj.(s.subs). If s.type.'()', the
+%           output will be a coeffopvar object including the elements in
+%           the indices specified by s.subs;
 %
-% INPUTS
-% - Pop_in:     m x n 'ndopvar' object;
-%
-% OUTPUTS
-% - Pop_out:    m x n 'ndopvar' object representing the operator defined by
-%               (-1)*Pop_in;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - uminus
+% PIEOOLS - subsref
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -33,12 +37,20 @@ function Pop = uminus(Pop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/15/2026: Initial coding
+% DJ, 01/16/2026: Initial coding
 
-% The coefficients defining (-1)*P are just (-1) times the coefficients 
-% defining P;
-for ii=1:numel(Pop.C)
-    Pop.C{ii} = -Pop.C{ii};
+switch s(1).type
+    case '.'
+        % Just use the built-in function
+        out = builtin('subsref',obj,s);
+        
+    case '()'
+        % When calling C(i,j), just extract C.ops(i,j);
+        ops = builtin('subsref',obj.ops,s);
+        out = obj;
+        out.ops = ops;
+        
+    case '{}'
+        error("'{}' type indexing of 'coeffopvar' objects is not supported.")
 end
-
 end
