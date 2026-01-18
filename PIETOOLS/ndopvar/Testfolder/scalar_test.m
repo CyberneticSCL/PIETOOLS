@@ -1,4 +1,4 @@
-function [Pop_test, Pop_base, Pop] = scalar_test(dim, deg, dom, alpha, decs)
+function [Pop_test, Pop_base, Pop] = scalar_test(dim, N, deg, alpha, decs)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Pop_scalar, Pop_base, Pop] = scalar_test(...) returns 3 nopvar objects - the 
 % randomly generated nopvar (Pop), its scaled version (Pop_base.C = alpha*Pop_base.C)
@@ -9,10 +9,8 @@ function [Pop_test, Pop_base, Pop] = scalar_test(dim, deg, dom, alpha, decs)
 % 
 % INPUT
 % dim:      1x2 array specifying the dimensions [m,n] of the operator;
+% N:        Number of spatial variables;
 % deg:      Nx1 array specifying the maximal monomial degrees d1,...,dN;
-% dom:      Nx2 array with each row dom(i,:) = [ai,bi] representing the
-%           spatial interval along the ith direction on which the operator
-%           is defined;
 % alpha:    double for multiplying the randomly generated nopvar object;
 % decs:     logic variable set to true for generating ndopvar and false 
 %           for nopvar;
@@ -29,19 +27,8 @@ function [Pop_test, Pop_base, Pop] = scalar_test(dim, deg, dom, alpha, decs)
 % Initial coding CR - 1/15/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% % Set the size of the operators (m,n), spatial dimension (N), domain (dom),
-% % maximal monomial degree (deg), and multiplier (alpha)
-% m = 1;
-% n = 1;
-% dim = [m n];
-% N = 2;
-% dom = [zeros(N,1),ones(N,1)];
-% deg = 2;
-% alpha = 2.0;
-% decs = true;
-
-% Declare N variables
-[N, ~] = size(dom);
+% Declare domain and N variables
+dom = [zeros(N,1),ones(N,1)];
 var1_name = [repmat('s',[N,1]),num2str((1:N)')];
 var2_name = [var1_name,repmat('_dum',[N,1])];
 vars = polynomial(mat2cell(var1_name,ones(N,1),size(var1_name,2)));
