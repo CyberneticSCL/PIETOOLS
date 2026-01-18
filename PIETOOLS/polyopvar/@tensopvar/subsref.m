@@ -1,18 +1,20 @@
-function C = plus(A,B)
-% C = PLUS(A,B) returns the 'polyopvar' object C representing the sum
-% of the distributed polynomials by the 'polyopvar' objects A and B
-%
-% INPUTS
-% - A:      m x n 'polyopvar' object
-% - B:      m x n 'polyopvar' object
-%
-% OUTPUS
-% - C:      m x n 'polyopvar' object representing the sum of the
-%           distributed polynomials defined by A and B
+function out = subsref(obj,s)
+% OUT = SUBSREF(OBJ,S) extracts the elements of 'tensopvar' object OBJ
+% specified by S. This function is automatically called 
+% 
+% INPUT
+% - obj:    'tensopvar' object of which to extract certain elements;
+% - s:      struct indicating which element/fields of obj to extract;
+% 
+% OUTPUT
+% - out:    object representing the elements of 'obj' specified by 's'. If
+%           s.type='.', this will be out=obj.(s.subs). If s.type.'()', the
+%           output will be a tensopvar object including the elements in
+%           the indices specified by s.subs;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - plus
+% PIEOOLS - subsref
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -35,15 +37,20 @@ function C = plus(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/15/2026: Initial coding
+% DJ, 01/16/2026: Initial coding
 
-% Make sure the two distributed polynomials are expressed in terms of the
-% same basis of distributed monomials.
-[A,B] = common_basis(A,B);
-
-% Then, the coefficients defining the sum are given by the sum of the
-% coefficients
-C = A;
-C.C = A.C + B.C;
-
+switch s(1).type
+    case '.'
+        % Just use the built-in function
+        out = builtin('subsref',obj,s);
+        
+    case '()'
+        % When calling C(i,j), just extract C.ops(i,j);
+        ops = builtin('subsref',obj.ops,s);
+        out = obj;
+        out.ops = ops;
+        
+    case '{}'
+        error("'{}' type indexing of 'tensopvar' objects is not supported.")
+end
 end
