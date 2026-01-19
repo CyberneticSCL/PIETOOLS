@@ -14,6 +14,11 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar
 %           and C.ops{ii} = P, we have
 %               (C(i)*Z_{i}(x))(s) = 
 %                       (P{1}x1)(s)*(P{2}x1)(s)*...*(P{d}xp)(s)
+%           Note that Z_{i}(x) will always be scalar-valued, but each of
+%           the operators P{j} may be matrix-valued, in which case the
+%           products such as (P{1}x1)(s)*(P{2}x1)(s) will be elementwise;
+% - C.dim:  1x2 array of integers, specifying the dimensions of the
+%           matrix-valued distributed polynomial defined by C;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,7 +93,37 @@ methods
 
     function [dim] = get.dim(obj)
         % % Determine the dimensions of the matrix-valued operator
-        dim = [1,1];
+        % % Determine the dimensions of the matrix-valued operator, m x n, 
+        % % from the individual operators
+
+        % Check the dimensions of the individual operators
+        m_min = inf;    n_min = inf;
+        m_max = 0;      n_max = 0;
+        for ii=1:numel(obj.ops)
+            if isempty(obj.C{ii})
+                continue
+            end
+            if isa(obj.ops{ii},'nopvar')
+                [m,n] = size(obj.ops{ii});
+                m_min = min(m_min,m);   n_min = min(n_min,n);
+                m_max = max(m_max,m);   n_max = max(n_max,n);
+            elseif isa(obj.ops{ii},'cell')
+                for jj=1:numel(obj.ops{ii})
+                    [m,n] = size(obj.ops{ii}{jj});
+                    m_min = min(m_min,m);   n_min = min(n_min,n);
+                    m_max = max(m_max,m);   n_max = max(n_max,n);
+                end
+            end
+        end
+        
+        % Set the dimensions
+        dim = [nan,nan];
+        if m_min==m_max && round(m_min)==m_min
+            dim(1) = m_min;
+        end
+        if n_min==n_max && round(n_min)==n_min
+            dim(2) = n_min;
+        end
     end
 
 end

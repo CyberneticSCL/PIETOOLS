@@ -13,7 +13,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
 %                   [Z(x)]_{i} = x1^d1 o ... o xp^dp,
 %               where o denotes the tensor product, and where
 %                   xi^di = xi o xi o ... o xi } <-- di products
-% - P.C:        m x n*nZ 'tensopvar' object, representing the coefficient
+% - P.C:        m x n 'tensopvar' object, representing the coefficient
 %               operators acting on the distributed monomial basis, so that
 %                   P(x) = C*(Z(x) o I_{n})
 %               where I_{n} is the n x n identity matrix;
@@ -135,8 +135,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
 
         function [dim] = get.dim(obj)
             % % Determine the dimensions of the matrix-valued distributed
-            % polynomial
-            dim = [1,1];
+            % % polynomial
+            dim = obj.C.dim;
         end
 
     end
