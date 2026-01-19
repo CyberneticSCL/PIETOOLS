@@ -152,48 +152,21 @@ E1t = spIkron(m,(1:d+1),(1:d+1),1,3*d+2,d+1);
 
 % % Deal with the base case: N=1
 if N==1
-    ndvars = numel(Qop.dvarname);
-    if ndvars>0
-        % Upscale the matrices to account for the decision variables
-        E1t = spIkron(ndvars+1,E1t);
-        Fdt = spIkron(ndvars+1,Fdt);
-        Edt = spIkron(ndvars+1,Edt);
+    Pop = mtimes_ndopvar_1d(Qop, Rop, E1, E1t, Fdt, Ed, Edt, Hd, Sd, Sdt, Amat, Bmat);
 
-        % Pre- and post-multiply with appropriate commutation matrices to
-        % factor out the decision variables
-        Pmat1 = commat(m*(3*d+2),ndvars+1,'transpose');
-        Pmat2 = commat(ndvars+1,m*(d+1),'transpose');
-        E1t = Pmat1*E1t*Pmat2;
-        Fdt = Pmat1*Fdt*kron(Pmat2,speye(d+1));
-        Edt = Pmat1*Edt*kron(Pmat2,speye(2*d+2));
-    end
-
-    fctrC0 = Fdt*kron(Qop.C{1},eye(d+1));
-    fctrD0 = Hd*kron(Rop.C{1},eye(3*d+2));
-    trm1 = E1t*sparse(Qop.C{3}*Bmat*Rop.C{2}-Qop.C{2}*Amat*Rop.C{3})*E1;
-    fctrD = Sd*(kron(Rop.C{3}-Rop.C{2},speye(2*d+2))*Ed);
-    fctrC = (Edt*kron(Qop.C{2}-Qop.C{3},speye(2*d+2)))*Sdt;
-    
-    P0 = fctrC0*Rop.C{1};
-    P1 = trm1 + E1t*(Qop.C{2}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{2})*E1;
-    P2 = trm1 + E1t*(Qop.C{3}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{3})*E1;
-
-    Pop = ndopvar();
-    Pop.C = {P0;P1;P2};
-    Pop.dom = [a,b];
-    Pop.deg = 3*d+1;
-    Pop.dvarname = Qop.dvarname;
-    Pop.vars = [Qop.vars(:,1),Rop.vars(:,2)];
     return
 end
 
 % % Otherwise, decompose the ND operator into 3 (N-1)D operators
+% C0, D0 is a multiplier for dimension d
+% C1, D1 is an integral a to s for dimension d
+% C2, D2 is an integral s to b for dimension d
 [C0,C1,C2] = splitNDop(Qop);
 [D0,D1,D2] = splitNDop(Rop);
 
 % Perform composition only along the first dimension
-C0_I = kronI(C0,d+1);
-D0_I = kronI(D0,3*d+2);
+C0_I = kronI(C0,d+1);  %kron product of ndopvar and I_{d+1} 
+D0_I = kronI(D0,3*d+2);%kron product of ndopvar and I_{d+1}
 C12 = C1-C2;
 D21 = D2-D1;
 C12_I = kronI(C12,2*d+2);
@@ -202,23 +175,25 @@ D21_I = kronI(D21,2*d+2);
 
 % Finally, compute the coefficients defining the composition of the
 % operators associated with Qop and Rop
+% Prop 9/10 Results
 fctrC0 = Fdt*C0_I;
 fctrD0 = Hd*D0_I;
 CBD = C2*(Bmat*D1);
 CAD = C1*(Amat*D2);
 AB_diff = CBD-CAD;
-trm1 = E1t*(AB_diff*E1);
+% represents int_a^b in d dimension
+trm1 = E1t*(AB_diff*E1); % Part 1 for int_a^s and int_s^b in d dimension
 fctrD = Sd*(D21_I*Ed);
 fctrC = (Edt*C12_I)*Sdt;
 
 fctrC_new = fctrC0+fctrC;
 fctrD_new = fctrD0+fctrD;
 
-trm12 = E1t*(C1*fctrD_new);
-trm22 = E1t*(C2*fctrD_new);
+trm12 = E1t*(C1*fctrD_new); % Part 2 for int_a^s in d dimension
+trm22 = E1t*(C2*fctrD_new); % Part 2 for int_s^b in d dimension
 
-trm13 = (fctrC_new*D1)*E1;
-trm23 = (fctrC_new*D2)*E1;
+trm13 = (fctrC_new*D1)*E1; % Part 3 for int_a^s in d dimension
+trm23 = (fctrC_new*D2)*E1; % Part 3 for int_s^b in d dimension
 
 P0 = fctrC0*D0;
 P1 = trm1+trm12+trm13;
@@ -319,5 +294,50 @@ for ii=1:numel(Aop.C)
     fctrB = kron(Bmat,speye(nZ));
     Cop.C{ii} = Aop.C{ii}*fctrB;
 end
+
+end
+
+
+function [Pop] = mtimes_ndopvar_1d(Qop, Rop, E1, E1t, Fdt, Ed, Edt, Hd, Sd, Sdt, Amat, Bmat)
+
+    dim1 = Qop.dim;   
+    deg1 = Qop.deg;
+    m = dim1(1);   
+    dom1 = Qop.dom;   
+    d = deg1(1);
+    a = dom1(1,1);       b = dom1(1,2);
+
+    ndvars = numel(Qop.dvarname);
+    if ndvars>0
+        % Upscale the matrices to account for the decision variables
+        E1t = spIkron(ndvars+1,E1t);
+        Fdt = spIkron(ndvars+1,Fdt);
+        Edt = spIkron(ndvars+1,Edt);
+
+        % Pre- and post-multiply with appropriate commutation matrices to
+        % factor out the decision variables
+        Pmat1 = commat(m*(3*d+2),ndvars+1,'transpose');
+        Pmat2 = commat(ndvars+1,m*(d+1),'transpose');
+        E1t = Pmat1*E1t*Pmat2;
+        Fdt = Pmat1*Fdt*kron(Pmat2,speye(d+1));
+        Edt = Pmat1*Edt*kron(Pmat2,speye(2*d+2));
+    end
+
+    fctrC0 = Fdt*kron(Qop.C{1},eye(d+1));
+    fctrD0 = Hd*kron(Rop.C{1},eye(3*d+2));
+    trm1 = E1t*sparse(Qop.C{3}*Bmat*Rop.C{2}-Qop.C{2}*Amat*Rop.C{3})*E1;
+    fctrD = Sd*(kron(Rop.C{3}-Rop.C{2},speye(2*d+2))*Ed);
+    fctrC = (Edt*kron(Qop.C{2}-Qop.C{3},speye(2*d+2)))*Sdt;
+    
+    P0 = fctrC0*Rop.C{1};
+    P1 = trm1 + E1t*(Qop.C{2}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{2})*E1;
+    P2 = trm1 + E1t*(Qop.C{3}*(fctrD0+fctrD)) + ((fctrC0+fctrC)*Rop.C{3})*E1;
+
+    Pop = ndopvar();
+    Pop.C = {P0;P1;P2};
+    Pop.dom = [a,b];
+    Pop.deg = 3*d+1;
+    Pop.dvarname = Qop.dvarname;
+    Pop.vars = [Qop.vars(:,1),Rop.vars(:,2)];
 
 end
