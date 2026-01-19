@@ -97,32 +97,39 @@ methods
         % % from the individual operators
 
         % Check the dimensions of the individual operators
-        m_min = inf;    n_min = inf;
-        m_max = 0;      n_max = 0;
-        for ii=1:numel(obj.ops)
-            if isempty(obj.C{ii})
+        nr = size(obj.ops,1);
+        m_min = inf*ones(nr,1);     n_min = inf*ones(nr,1);
+        m_max = zeros(nr,1);        n_max = zeros(nr,1);
+        for ii = 1:size(obj.ops,1)
+        for jj=1:numel(obj.ops(ii,:))
+            if isempty(obj.ops{ii,jj})
                 continue
             end
-            if isa(obj.ops{ii},'nopvar')
-                [m,n] = size(obj.ops{ii});
-                m_min = min(m_min,m);   n_min = min(n_min,n);
-                m_max = max(m_max,m);   n_max = max(n_max,n);
-            elseif isa(obj.ops{ii},'cell')
-                for jj=1:numel(obj.ops{ii})
-                    [m,n] = size(obj.ops{ii}{jj});
-                    m_min = min(m_min,m);   n_min = min(n_min,n);
-                    m_max = max(m_max,m);   n_max = max(n_max,n);
+            if isa(obj.ops{ii,jj},'nopvar')
+                m = obj.ops{ii,jj}.dim(1);
+                n = obj.ops{ii,jj}.dim(2);
+                m_min(ii) = min(m_min(ii),m);   n_min(ii) = min(n_min(ii),n);
+                m_max(ii) = max(m_max(ii),m);   n_max(ii) = max(n_max(ii),n);
+            elseif isa(obj.ops{ii,jj},'cell')
+                for kk=1:numel(obj.ops{ii,jj})
+                    m = obj.ops{ii,jj}{kk}.dim(1);
+                    n = obj.ops{ii,jj}{kk}.dim(2);
+                    m_min(ii) = min(m_min(ii),m);   n_min(ii) = min(n_min(ii),n);
+                    m_max(ii) = max(m_max(ii),m);   n_max(ii) = max(n_max(ii),n);
                 end
             end
+        end
         end
         
         % Set the dimensions
         dim = [nan,nan];
-        if m_min==m_max && round(m_min)==m_min
-            dim(1) = m_min;
+        if all(m_min==m_max) && all(round(m_min)==m_min)
+            dim(1) = sum(m_min);
         end
-        if n_min==n_max && round(n_min)==n_min
-            dim(2) = n_min;
+        if all(n_min==n_max) && all(round(n_min)==n_min)
+            if all(n_min==n_min(1)*ones(size(n_min)))
+                dim(2) = n_min(1);
+            end
         end
     end
 
