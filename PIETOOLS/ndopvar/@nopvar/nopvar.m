@@ -79,7 +79,7 @@ properties
 end
 
 methods
-    function [P] = ndopvar(varargin) %constructor
+    function [P] = nopvar(varargin) %constructor
         if nargout==0
             % Declare operators as
             %   ndopvar P1 P2 P3
