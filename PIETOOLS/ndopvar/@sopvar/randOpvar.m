@@ -27,7 +27,7 @@ end
 
 var_t = strrep(var_t,'s','t');
 
-params{i} = quadPoly.randquadPoly(dim,nMons,var_s,var_t,[degree,degree],density);
+params{i} = reduce(quadPoly.randquadPoly(dim,nMons,var_s,var_t,[degree,degree],density));
 end
 out = sopvar(vars_in,vars_out,dim,params);
 end

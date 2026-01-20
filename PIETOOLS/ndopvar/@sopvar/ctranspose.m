@@ -9,12 +9,14 @@ At.dims = A.dims';       % matrix dimension is transposed
 % collect all vars
 varsMain = union(A.vars_in,A.vars_out); 
 % create dummy vars corresponding to vars
-varsDummy = cellfun(@(x) [x,'_dum'], varsMain,UniformOutput=false);
+varsDummy = strrep(varsMain,'s','t');
 
 % total vars
 nvars = numel(varsMain);
 % parameter cell dimension
-cellsize = size(A.params);
+cellsize = ones(1,nvars);
+tmpsize = size(A.params);
+cellsize(1:length(tmpsize)) = tmpsize;
 
 % for each parameter in cell structure repeat
 for i=1:numel(A.params)
@@ -47,6 +49,6 @@ for i=1:numel(A.params)
         end
     end
     % place the parameter in the transposed location
-    At.param{Atidx{:}} = tmp;
+    At.params{Atidx{:}} = tmp;
 end
 end
