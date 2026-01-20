@@ -2841,8 +2841,8 @@ C = [-2/5, -5/4, 3/2, 1/3, 1/40];
 
 % Examples 39–41 illustrate the "weighted formulation" approach. 
 % In cylindrical coordinates, many PDEs contain singular terms
-% such as (1/r)*u_r or (1/r^2)*u. The weighted formulation avoids
-% singularities by multiplying the entire PDE by the highest
+% such as (1/r)*u_r or (1/r^2)*u. With the weighted formulation, 
+% singularities are avoided by multiplying the entire PDE by the highest
 % power of r that clears all singular terms.
 
 %----------------------------------------
@@ -2860,7 +2860,7 @@ C = [-2/5, -5/4, 3/2, 1/3, 1/40];
 
 % IMPORTANT: In this case, since the highest singularity in the PDE is of the 
 % order 1/r, we multiply the PDE throughout by r. The right-hand side
-% of the PDE is entered into the PDE construct in the weighted form.
+% of the PDE must be entered into the PDE construct in the weighted form.
 % However, the left-hand side of the PDE can not be entered in the weighted
 % form. Instead, the left-hand side operators acting on the derivatives of
 % x_f, u and w need to be weighted. This is accomplished intrinsically in
@@ -2906,7 +2906,7 @@ case 39
 
 % IMPORTANT: In this case, since the highest singularity in the PDE is of the 
 % order 1/r, we multiply the PDE throughout by r. The right-hand side
-% of the PDE is entered into the PDE construct in the weighted form.
+% of the PDE must be entered into the PDE construct in the weighted form.
 % However, the left-hand side of the PDE can not be entered in the weighted
 % form. Instead, the left-hand side operators acting on the derivatives of
 % x_f, u and w need to be weighted. This is accomplished intrinsically in
@@ -2956,7 +2956,7 @@ case 40
 
 % IMPORTANT: In this case, since the highest singularity in the PDE is of the 
 % order 1/r^2, we multiply the PDE throughout by r^2. The right-hand side
-% of the PDE is entered into the PDE construct in the weighted form.
+% of the PDE must be entered into the PDE construct in the weighted form.
 % However, the left-hand side of the PDE can not be entered in the weighted
 % form. Instead, the left-hand side operators acting on the derivatives of
 % x_f, u and w need to be weighted. This is accomplished intrinsically in
@@ -3002,4 +3002,5 @@ case 41
     
 end % cases
 % %            
+
 
