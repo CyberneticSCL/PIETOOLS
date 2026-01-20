@@ -1,47 +1,20 @@
-classdef (InferiorClasses={?polynomial,?dpvar}) nopvar
+classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) mopvar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This defines the class of PI operators,
+% This defines the class of mixed-domain PI operators, each element of
+% which is a nopvar object
 %
-%   Pop(r): L2^n[[a1,b1]x...x[aN,bN]] --> L2^m[[a1,b1]x...x[aN,bN]],
-%
-% taking the form
-%
-% (Pop x)(s) = sum_{j in {0,1,2}^N} int_{[a,b]} I_j(s,t)*R(s,t)*x(t) dt 
-%
-% for s=(s1,...,sN) in [a,b]=[a1,b1]x...x[aN,bN], where
-%
-%   I_j(s,t) = I_j1(s1,t1)*...*I_jN(sN,tN)
-%
-% for I_k(si,thi) indicator functions such that
-%
-%                                       { f(si),                    k=0;
-%   int_{ai}^{bi} I_k(si,ti)*f(ti) dti ={ int_{ai}^{si} f(ti) dti,  k=1;
-%                                       { int_{si}^{bi} f(ti) dti,  k=2;
-%
-% and parameterized by polynomial functions Rj(s,t). We represent the 
-% parameters in a quadratic form as
-%
-%   Rj(s,t) = (Im o Zd(s))^T Cj (In o Zd(t)),
-%
-% where o denotes the Kronecker product, and where
-%
-%   Zd(s) = Zd1(s1) o ... o ZdN(sN),
-%
-% for Zdi(si) the vector of monomials of degree at most di in variable si.
-%
+%   Pop(r): [   L2^d_1^n_1   ] -->  [ L2^d_1^n_1    ],
+                    ...         
+%               L2^d_N^n_N   ]      [ L2^d_M^n_M    ]
 %
 % CLASS properties
-% - P.C:    3^N cell, with element {i1,i2,...,iN} a sparse matrix of
-%           dimension m*prod(deg+1) x n*prod(deg+1), representing
-%           the coefficient matrix Cj for (j1,...,jN)=(i1+1,...,iN+1);
-% - P.deg:  Nx1 array specifying the maximal monomial degrees d1,...,dN;
-% - P.dim:  1x2 array specifying the dimensions [m,n] of the operator;
+% - P.C:    MxN matrix of nopvar objects;
+% - P.in.vars:  Nx1 array specifying the number of spatial variables (n_i) in L2^d_i^n_i; -- Note: n_i can be 0
+% - P.in.dim:   Nx1 array specifying the number of components (d_i) in L2^d_i^n_i;
+% - P.in.dom:   Nx1 array specifying the domains of the spatial variables ;
 % - P.dom:  Nx2 array with each row dom(i,:) = [ai,bi] representing the
 %           spatial interval along the ith direction on which the operator
 %           is defined;
-% - P.vars: Nx2 'polynomial' array, specifying the primary variables s
-%           (first column) and dummy variables t (second column) defining
-%           the parameters R(s,t), as pvar objects.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -79,7 +52,7 @@ properties
 end
 
 methods
-    function [P] = nopvar(varargin) %constructor
+    function [P] = ndopvar(varargin) %constructor
         if nargout==0
             % Declare operators as
             %   ndopvar P1 P2 P3

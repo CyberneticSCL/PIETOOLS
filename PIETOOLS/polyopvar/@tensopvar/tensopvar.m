@@ -1,5 +1,5 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})coeffopvar
-% This function defines the class of 'coeffopvarr' objects, representing
+classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar
+% This function defines the class of 'tensopvar' objects, representing
 % coefficient operators acting on distributed monomials to defined 
 % distributed polynomials.
 %
@@ -14,10 +14,15 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})coeffopvar
 %           and C.ops{ii} = P, we have
 %               (C(i)*Z_{i}(x))(s) = 
 %                       (P{1}x1)(s)*(P{2}x1)(s)*...*(P{d}xp)(s)
+%           Note that Z_{i}(x) will always be scalar-valued, but each of
+%           the operators P{j} may be matrix-valued, in which case the
+%           products such as (P{1}x1)(s)*(P{2}x1)(s) will be elementwise;
+% - C.dim:  1x2 array of integers, specifying the dimensions of the
+%           matrix-valued distributed polynomial defined by C;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - coeffopvar
+% PIETOOLS - tensopvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -49,7 +54,7 @@ end
 
 methods
 
-    function [C] = coeffopvar(varargin) %constructor
+    function [C] = tensopvar(varargin) %constructor
         if nargout==0
             % Declare state variables as
             %   polyopvar x1 x2 x3
@@ -64,7 +69,7 @@ methods
             end
         elseif nargout==1
             % Declare state variable as
-            %   C = coeffopvar(Pop);
+            %   C = tensopvar(Pop);
             if nargin==0
                 return
             end
@@ -88,7 +93,44 @@ methods
 
     function [dim] = get.dim(obj)
         % % Determine the dimensions of the matrix-valued operator
-        dim = [1,1];
+        % % Determine the dimensions of the matrix-valued operator, m x n, 
+        % % from the individual operators
+
+        % Check the dimensions of the individual operators
+        nr = size(obj.ops,1);
+        m_min = inf*ones(nr,1);     n_min = inf*ones(nr,1);
+        m_max = zeros(nr,1);        n_max = zeros(nr,1);
+        for ii = 1:size(obj.ops,1)
+        for jj=1:numel(obj.ops(ii,:))
+            if isempty(obj.ops{ii,jj})
+                continue
+            end
+            if isa(obj.ops{ii,jj},'nopvar')
+                m = obj.ops{ii,jj}.dim(1);
+                n = obj.ops{ii,jj}.dim(2);
+                m_min(ii) = min(m_min(ii),m);   n_min(ii) = min(n_min(ii),n);
+                m_max(ii) = max(m_max(ii),m);   n_max(ii) = max(n_max(ii),n);
+            elseif isa(obj.ops{ii,jj},'cell')
+                for kk=1:numel(obj.ops{ii,jj})
+                    m = obj.ops{ii,jj}{kk}.dim(1);
+                    n = obj.ops{ii,jj}{kk}.dim(2);
+                    m_min(ii) = min(m_min(ii),m);   n_min(ii) = min(n_min(ii),n);
+                    m_max(ii) = max(m_max(ii),m);   n_max(ii) = max(n_max(ii),n);
+                end
+            end
+        end
+        end
+        
+        % Set the dimensions
+        dim = [nan,nan];
+        if all(m_min==m_max) && all(round(m_min)==m_min)
+            dim(1) = sum(m_min);
+        end
+        if all(n_min==n_max) && all(round(n_min)==n_min)
+            if all(n_min==n_min(1)*ones(size(n_min)))
+                dim(2) = n_min(1);
+            end
+        end
     end
 
 end

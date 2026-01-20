@@ -25,13 +25,20 @@ var1 = P_in.vars(:,1);
 var2 = P_in.vars(:,2);
 
 % Declare the monomial bases in each variable
-Z1t = 1;
+%Z1t = 1;
 Z2_cell = cell(N,1);
+degmat = zeros(1,0);
+varname = cell(numel(var1),1);
 for ii=1:N
-    Z1t = kron(Z1t,polynomial(eye(d(ii)+1),(0:d(ii))',var1(ii).varname,[1,d(ii)+1]));
-    Z2_cell{ii} = polynomial(eye(d(ii)+1),(0:d(ii))',var2(ii).varname,[d(ii)+1,1]);
+    degmat = [kron(degmat,ones(d(ii)+1,1)), repmat((0:d(ii))',[size(degmat,1),1])];
+    varname(ii) = var1(ii).varname;
+    %Z1t = kron(Z1t,polynomial(speye(d(ii)+1),(0:d(ii))',var1(ii).varname,[1,d(ii)+1]));
+    Z2_cell{ii} = polynomial(speye(d(ii)+1),(0:d(ii))',var2(ii).varname,[d(ii)+1,1]);
 end
-Z1t = kron(eye(m),Z1t);
+nZ = size(degmat,1);
+Imat = sparse(repmat((1:nZ)',[m,1]),m*(0:nZ-1)'+(0:m-1)*m*nZ+(1:m),1,nZ,m*nZ*m);
+Z1t = polynomial(Imat,degmat,varname,[m,nZ*m]);
+%Z1t = kron(eye(m),Z1t);
 
 % Include the decision variables
 if isa(P_in,'ndopvar')
@@ -50,6 +57,10 @@ C = P_in.C;
 sz_C = size(C);
 sz_C = sz_C(1:N);
 for ii=1:numel(C)
+    if isempty(C{ii}) || all(all(C{ii}==0))
+        C{ii} = polynomial(zeros(m,n));
+        continue
+    end
     % Determine the index of element ii along each dimension of the cell C
     idcs = cell(1,N);
     [idcs{:}] = ind2sub([sz_C,1],ii);

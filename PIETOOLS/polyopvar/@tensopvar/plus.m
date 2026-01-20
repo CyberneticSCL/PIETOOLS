@@ -1,13 +1,13 @@
 function C = plus(A,B)
-% C = PLUS(A,B) returns the 'coeffopvar' object C representing the sum
-% of the coefficient operators defined by the 'coeffopvar' objects A and B
+% C = PLUS(A,B) returns the 'tensopvar' object C representing the sum
+% of the coefficient operators defined by the 'tensopvar' objects A and B
 %
 % INPUTS
-% - A:      m x n 'coeffopvar' object
-% - B:      m x n 'coeffopvar' object
+% - A:      m x n 'tensopvar' object
+% - B:      m x n 'tensopvar' object
 %
 % OUTPUS
-% - C:      m x n 'coeffopvar' object representing the sum of the
+% - C:      m x n 'tensopvar' object representing the sum of the
 %           coefficient operators defined by A and B
 %
 

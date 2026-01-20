@@ -1,15 +1,15 @@
 function out = subsref(obj,s)
-% OUT = SUBSREF(OBJ,S) extracts the elements of 'coeffopvar' object OBJ
+% OUT = SUBSREF(OBJ,S) extracts the elements of 'tensopvar' object OBJ
 % specified by S. This function is automatically called 
 % 
 % INPUT
-% - obj:    'coeffopvar' object of which to extract certain elements;
+% - obj:    'tensopvar' object of which to extract certain elements;
 % - s:      struct indicating which element/fields of obj to extract;
 % 
 % OUTPUT
 % - out:    object representing the elements of 'obj' specified by 's'. If
 %           s.type='.', this will be out=obj.(s.subs). If s.type.'()', the
-%           output will be a coeffopvar object including the elements in
+%           output will be a tensopvar object including the elements in
 %           the indices specified by s.subs;
 %
 
@@ -51,6 +51,6 @@ switch s(1).type
         out.ops = ops;
         
     case '{}'
-        error("'{}' type indexing of 'coeffopvar' objects is not supported.")
+        error("'{}' type indexing of 'tensopvar' objects is not supported.")
 end
 end

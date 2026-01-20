@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?coeffopvar})polyopvar
+classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyopvar
 % This function defines the class of 'polyopvar' objects, representing
 % polynomial functions on distributed states.
 %
@@ -13,7 +13,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?coeffopvar})poly
 %                   [Z(x)]_{i} = x1^d1 o ... o xp^dp,
 %               where o denotes the tensor product, and where
 %                   xi^di = xi o xi o ... o xi } <-- di products
-% - P.C:        m x n*nZ 'coeffopvar' object, representing the coefficient
+% - P.C:        m x n 'tensopvar' object, representing the coefficient
 %               operators acting on the distributed monomial basis, so that
 %                   P(x) = C*(Z(x) o I_{n})
 %               where I_{n} is the n x n identity matrix;
@@ -25,15 +25,6 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?coeffopvar})poly
 % - P.varmat:   p x N boolean array, with the element in row i and column j
 %               indicating whether state variable xi depends on independent
 %               variable sj
-% - P.C:        1 x nZ cell specifying the coefficients acting on the
-%               different distributed monomials, so that
-%                   P = C{1}*[Z(x)]_{1} + ... + C{nZ}*[Z(x)]_{nZ}
-%               If [Z(x)]_{i} = xk for some k in 1,...,p, then C{i} can
-%               just be an 'nopvar' or 'ndopvar' object, representing an
-%               operator acting on the state xk. Otherwise, if
-%                   [Z(x)]_{i} = x1^d1 o ... o xp^dp,
-%               then C{i} is itself a m x d cell for d=d1+...+dp, with each
-%               element an 'nopvar' or 'ndopvar' object
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,7 +54,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?coeffopvar})poly
 % DJ, 01/15/2026: Initial coding
 
     properties
-        C = coeffopvar();
+        C = tensopvar();
         degmat = zeros(0,0);
         varname = cell(0,1);
         pvarname = cell(0,1);
@@ -133,7 +124,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?coeffopvar})poly
                 C.C = cell([3*ones(1,N),1]);
                 C.C{1} = 1;
                 % Declare the distributed polynomial variable
-                P.C = coeffopvar(C);
+                P.C = tensopvar(C);
                 P.degmat = 1;
                 P.varname = varname;
                 P.pvarname = pvarname;
@@ -144,8 +135,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?coeffopvar})poly
 
         function [dim] = get.dim(obj)
             % % Determine the dimensions of the matrix-valued distributed
-            % polynomial
-            dim = [1,1];
+            % % polynomial
+            dim = obj.C.dim;
         end
 
     end
