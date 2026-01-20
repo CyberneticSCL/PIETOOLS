@@ -8,7 +8,7 @@ function H = mtimes(A,B)
 %   quadPoly * constant double matrix
 %   quadPoly * quadPoly
 
-% ---------- scalar double scaling ----------
+% ---------- scalar double multiply ----------
 if isa(A,'quadPoly') && isa(B,'double') && isscalar(B)
     H = quadPoly(A.C * B, A.Zs, A.Zt, A.dim, A.ns, A.nt);
     return;
