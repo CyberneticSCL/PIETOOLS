@@ -16,7 +16,9 @@ nvars = numel(varsMain);
 % parameter cell dimension
 cellsize = ones(1,nvars);
 tmpsize = size(A.params);
-cellsize(1:length(tmpsize)) = tmpsize;
+cellsize(1:length(tmpsize)) = tmpsize;  
+% matlab size(A.params) function drops trailing 1s, i.e, 1x3x1 is truncated to 1x3. 
+% In the above cellsize, we explicitly append them back for transpose logic.
 
 % for each parameter in cell structure repeat
 for i=1:numel(A.params)
@@ -25,7 +27,7 @@ for i=1:numel(A.params)
     [Aidx{:}] = ind2sub(cellsize,i);
     
     % create transposed index to place in correct location
-    % 2 and 3 are swapped
+    % 2 and 3 are swapped; 1 is multiplier, 2 is lower int, 3 is upper int
     Atidx = cellfun(@(x) x+(x==2)-(x==3), Aidx, UniformOutput=false);
     % note, if x==1, then x + (x==2) - (x==3) = 1
     %          x==2, then x + (x==2) - (x==3) = 3

@@ -19,7 +19,7 @@ pvars_dum_in = polynomial(speye(nvars_in),speye(nvars_in),vars_dum_in,[nvars_in,
 pvars_dum_out = polynomial(speye(nvars_out),speye(nvars_out),vars_dum_out,[nvars_out,1]);
 
 %%
-dim = [1,3];
+dim = [1,2];
 P = sopvar.randOpvar(vars_in,vars_out,dim,1,0.05);
 Q = sopvar.randOpvar(vars_in,vars_out,dim,1,0.05);
 %% Addition
