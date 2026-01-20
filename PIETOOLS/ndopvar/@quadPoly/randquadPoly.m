@@ -1,22 +1,20 @@
-function F = randquadPoly(dim,nMons,vars,maxdeg,density)
-% F = quadPoly.randquadPoly(m,n,ds,dt,nsVar,ntVar,density,degS,degT)
-% degS,degT: scalar max degree or 1xnsVar / 1xntVar vectors (default 3)
+function F = randquadPoly(dim,nMons,var_s,var_t,maxdeg,density)
+% F = quadPoly.randquadPoly([m,n],[ds,dt],var_s,var_t,density,degS,degT)
 
 m = dim(1); n = dim(2);
 
-nsVar = vars(1); ntVar = vars(2);
 ds = nMons(1);
 dt = nMons(2);
 degS = maxdeg(1);
 degT = maxdeg(2);
 
-Zs = randExps(ds, vars(1), degS);
-Zt = randExps(dt, vars(2), degT);
+Zs = randExps(ds, numel(var_s), degS);
+Zt = randExps(dt, numel(var_t), degT);
 
 C  = sprand(m*ds, n*dt, density);
 
-ns = arrayfun(@(i) sprintf('s%d',i), 1:nsVar, 'UniformOutput', false);
-nt = arrayfun(@(i) sprintf('t%d',i), 1:ntVar, 'UniformOutput', false);
+ns = var_s;
+nt = var_t;
 
 F = quadPoly(C, Zs, Zt, [m n], ns, nt);
 end

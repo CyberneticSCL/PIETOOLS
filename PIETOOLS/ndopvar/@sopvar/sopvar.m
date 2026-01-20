@@ -33,4 +33,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
             end
         end
     end
+
+    methods(Static)
+        out = randOpvar(varin,varout,dim,deg,den);
+    end
 end
