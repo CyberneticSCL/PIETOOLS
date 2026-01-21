@@ -64,6 +64,7 @@ dtot = numel(Pops);
 % Convert the coefficients defining each parameter to a 'nopvar' object
 Pop_params = cell(size(Pops));
 var2 = polynomial(zeros(dtot,1));
+has_multiplier = zeros(dtot,1);
 for kk=1:dtot
     % Extract the kth operator
     Pop_kk = Pops{kk};
@@ -98,7 +99,8 @@ for kk=1:dtot
     % Check that we have no multiplier term
     Pop_kk_params = Pop_kk.C;
     if ~isempty(Pop_kk.C{1}) && any(any(Pop_kk.C{1}))
-        error("Operators with multiplier terms are currently not supported.")
+        has_multiplier(kk) = 1;
+        Pop_kk_params{1} = coeff2poly(Pop_kk.C{1},dim_kk,[deg_kk,0],[var2_kk,var1]);  % <-- substitute R0(s=t_k)
     else
         Pop_kk_params{1} = zeros(dim_kk);
     end
@@ -108,6 +110,12 @@ for kk=1:dtot
         Pop_kk_params{ii} = coeff2poly(Pop_kk.C{ii},dim_kk,deg_kk,[var1,var2_kk]);
     end
     Pop_params{kk} = Pop_kk_params;
+end
+if sum(has_multiplier)>1
+    error("At most one of the operators may include a multiplier component.")
+else
+    m_num = find(has_multiplier);
+    var_m = var2(m_num);
 end
 
 
@@ -137,8 +145,8 @@ for ii=1:n_ords
         % position jj
         idx_jj = [idx_ii(1,1:jj-1),dtot+1,idx_ii(1,jj:end)];
         % For each variable ti, determine whether s<= ti or s>=ti
-        [~,idcs] = sort(idx_jj);
-        is_geq_s = idcs(1:dtot)>=idcs(end);
+        [~,ord] = sort(idx_jj);
+        is_geq_s = ord(1:dtot)>=ord(end);
         % Extract the associated parameter from each operator Pop_kk
         Rjj = 1;
         for kk=1:dtot
@@ -157,10 +165,23 @@ for ii=1:n_ords
         end
         Pvec_ii = Pvec_ii + int(Rjj,var1,L,U);
     end
+    % Also account for possible multiplier term: tj = s
+    if any(has_multiplier)
+        R_tmp = 1;
+        m_idx = find(idx_ii==m_num,1,'first');
+        for kk=idx_ii(1:m_idx-1)
+            % Loop over all variables k for which t_k <= t_m = s
+            R_tmp = R_tmp.*subs(Pop_params{kk}{2},var1,var_m);
+        end
+        % Deal with the operator which has a multiplier
+        R_tmp = R_tmp.*Pop_params{m_num}{1};
+        for kk=idx_ii(m_idx+1:end)
+            % Loop over all variables k for which t_k >= t_m = s
+            R_tmp = R_tmp.*subs(Pop_params{kk}{3},var1,var_m);
+        end
+        Pvec_ii = Pvec_ii + R_tmp;
+    end
     Pvec{ii} = Pvec_ii;
-    % % Also store the order of the variables:
-    % %   ord_mat(ii,j) = k means tj is the kth biggest variable
-    % ord_mat(ii,:) = sort(idx_ii);
 end
 
 end
