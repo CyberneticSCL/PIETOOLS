@@ -22,7 +22,7 @@ end
 if nargin>=5
     Pop.var2 = var2;
 else
-    var2 = Pop.var5;
+    var2 = Pop.var2;
 end
 s1 = var1(1);       s1_dum = var2(1);
 s2 = var1(2);       s2_dum = var2(2);
@@ -35,7 +35,7 @@ for ii=2:3
     Pop.R22{1,ii} = rand_poly([m,n],[s1;s2;s2_dum],deg);
     Rop.R22{1,ii} = rand_poly([n,n],[s1;s2;s2_dum],deg);
     for jj=2:3
-        Pop.R22{ii,jj} = rand_poly([m,n],[s1;s2;s1_dum;s2_dum],deg);
+        Pop.R22{ii,jj} = rand_poly([m,n],[s1 s2 s1_dum s2_dum],deg);
         Rop.R22{ii,jj} = rand_poly([n,n],[s1;s2;s1_dum;s2_dum],deg);
     end
 end
