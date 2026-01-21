@@ -83,6 +83,16 @@
 %     time-dependent value of observed outputs
 % --- solution.timedep.regulated - array of size nro x Nsteps -
 %     time-dependent value of regulated outputs
+%
+%  2) grid - field containing two sub-fields
+%  --- grid.phys 
+%      a) In 1D - grid.phys is an array of size (N+1) x 1 containing spatial coordinates of the physical grid for
+%  the primary solution
+ %     b) In 2D - grid.phys is an array of size (N+1) x 2, with the first column containing spatial coordinates of the physical grid for
+%  the primary solution along x direction, and the second column containing spatial coordinates of the physical grid for
+%  the primary solution along y direction
+%  --- grid.comp - in both 1D and 2D - array of size (N+1) x 1 containing spatial coordinates of the computaitonal grid along a single axis (mapped into [-1,1] domain) for
+%  the primary solution
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,7 +111,7 @@
 % opts.type is PDE_t or PDE_b.
 % VJ 11/16/2025 - added support for cylindrical coordinate examples
 
-function [solution, grid,time]=PIESIM(varargin)
+function [solution, grid]=PIESIM(varargin)
 
 % Check if options and uinput fields are defined
 [opts, uinput]=PIESIM_options_check(varargin);
