@@ -89,7 +89,7 @@ for i=1:numel(A.params)
     % si and si_dum 
     for j=1:nvars
         % dimension along si is 1, 
-        % must be multiplier or full integral, swap (si,si_dum)
+        % must be multiplier or full integral between different spaces, swap (si,si_dum)
         if cellsize(j)==1   
             tmp = var_swap(tmp,varsMain{j},varsDummy{j});
         elseif any(Atidx{j}==[2,3]) % must be semisep term, swap (si,si_dum)

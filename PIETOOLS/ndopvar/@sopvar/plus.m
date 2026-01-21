@@ -53,7 +53,7 @@ end
 if any(~strcmp(A.vars_in,B.vars_in)) ||any(~strcmp(A.vars_out,B.vars_out))
     error('Summands A and B map between different spaces');
 end
-if any(A.dom_in~=B.dom_in) || any(A.dom_out~=B.dom_out)
+if any(any(A.dom_in~=B.dom_in)) || any(any(A.dom_out~=B.dom_out))
     error('input or output variables in summands A and B have different domains');
 end
 

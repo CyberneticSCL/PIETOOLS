@@ -66,10 +66,10 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
             P.vars_in = varsin(:).';
             P.vars_out = varsout(:).';
             P.dims = dims;
-
+            P.dom_in=dom_in;
+            P.dom_out=dom_out;
             if nargin==5                                                    % create a 0-valued operator with specified domains
-                P.dom_in=dom_in;
-                P.dom_in=dom_out;
+
                 vars = union(P.vars_out, P.vars_in);                        % list of unique spatial variables
                 n= numel(vars);                                             % total number of unique spatial variables
                 celldim = repmat(3,1,n);
@@ -85,4 +85,9 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
             end
         end
     end
+    
+    methods(Static)
+        out = randOpvar(varsin,varsout,dim,degree,density);
+    end
+
 end
