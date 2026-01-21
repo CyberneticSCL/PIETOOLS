@@ -54,7 +54,7 @@ Z1t = polynomial(Imat1,degmat1,varname1,[m,nZ1*m]);
 % Build the monomial basis
 %   Z2 = (In o Z2(t))
 nZ2 = size(degmat2,1);
-Imat2 = sparse(repmat((1:nZ2)',[n,1]),(1:nZ2)'+(0:n-1)*nZ2,1,nZ2,n*nZ1*n);
+Imat2 = sparse(repmat((1:nZ2)',[n,1]),(1:nZ2)'+(0:n-1)*nZ2,1,nZ2,n*nZ2*n);
 Z2 = polynomial(Imat2,degmat2,varname2,[nZ2*n,n]);
 
 % Declare the polynomial function
