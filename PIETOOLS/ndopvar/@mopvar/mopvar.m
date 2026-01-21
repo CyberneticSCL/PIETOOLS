@@ -41,7 +41,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) mopvar
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/15/2026: Initial coding
+% MP, 01/15/2026: Initial coding
 
 properties
     C = {};

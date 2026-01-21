@@ -1,6 +1,9 @@
 classdef quadPoly
     % Polynomial of the form
     % F(s,t) = (I \otimes Z(s)^T) * C * (I \otimes Z(t)) \in R^{m\times n}
+
+    %
+    % DJ, 01/21/2026: allow conversion from matrix to quadpoly
     properties
         C; % sparse coefficent size: dim(1)*d_s x dim(2)*d_t
         Zs; % exponent matrix, size: d_s x length(ns)
@@ -13,11 +16,20 @@ classdef quadPoly
     methods
         function obj = quadPoly(C, Zs, Zt, dim, ns, nt)
             obj.C = sparse(C);
-            obj.Zs = double(Zs);
-            obj.Zt = double(Zt);
-            obj.dim = double(dim(:).'); 
-            obj.ns = ns;
-            obj.nt = nt;
+            if nargin==1
+                % Convert matrix to quadPoly
+                obj.Zs = zeros(1,0);
+                obj.Zt = zeros(1,0);
+                obj.dim = size(C);
+                obj.ns = {};
+                obj.nt = {};
+            else
+                obj.Zs = double(Zs);
+                obj.Zt = double(Zt);
+                obj.dim = double(dim(:).'); 
+                obj.ns = ns;
+                obj.nt = nt;
+            end
         end
     end
 

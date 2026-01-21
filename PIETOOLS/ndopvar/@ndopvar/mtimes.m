@@ -259,6 +259,10 @@ function Cop = mat_times_ndopvar(Amat,Bop)
 % representing the composition of the matrix AMAT with the operator defined 
 % by BOP;
 
+if isscalar(Amat)
+    Cop = scalar(Amat, Bop);
+    return
+end
 % if ~isempty(Bop.dvarname)
 %     error("Composition with decision variable operators is currently not supported.")
 % end
@@ -280,6 +284,12 @@ function Cop = ndopvar_times_mat(Aop,Bmat)
 % COP = NDOPVAR_TIMES_MAT(AOP,BMAT) returns an 'ndopvar' object
 % representing the composition of the operator defined by AOP with the
 % matrix BMAT;
+
+
+if isscalar(Bmat)
+    Cop = scalar(Bmat, Aop);
+    return
+end
 
 if Aop.dim(2)~=size(Bmat,1)
     error("Inner dimensions of operators to compose should match.")
