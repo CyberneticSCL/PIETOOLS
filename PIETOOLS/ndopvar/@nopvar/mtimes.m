@@ -245,6 +245,10 @@ function Cop = mat_times_nopvar(Amat,Bop)
 % representing the composition of the matrix AMAT with the operator defined 
 % by BOP;
 
+if isscalar(Amat)
+    Cop = scalar(Amat, Bop);
+    return
+end
 d = prod(Bop.deg+1);
 
 % Compute the coefficients defining the product
@@ -262,6 +266,11 @@ function Cop = nopvar_times_mat(Aop,Bmat)
 % COP = NOPVAR_TIMES_MAT(AOP,BMAT) returns an 'nopvar' object
 % representing the composition of the operator defined by AOP with the
 % matrix BMAT;
+
+if isscalar(Bmat)
+    Cop = scalar(Bmat, Aop);
+    return
+end
 
 if Aop.dim(2)~=size(Bmat,1)
     error("Inner dimensions of operators to compose should match.")
