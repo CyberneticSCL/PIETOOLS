@@ -70,6 +70,9 @@ classdef (InferiorClasses={?polynomial,?dpvar}) nopvar
 %
 % DJ, 01/15/2026: Initial coding
 
+% Note: From M dimensions to N dimensions, 
+% if M>N, 
+
 properties
     C = {};
     deg = zeros(0,1);

@@ -22,6 +22,6 @@ classdef quadPoly
     end
 
     methods(Static)
-        obj = randquadPoly(dim,nmons,nvars,deg,density);
+        obj = randquadPoly(dim,nmons,var_s,var_t,deg,density);
     end
 end
