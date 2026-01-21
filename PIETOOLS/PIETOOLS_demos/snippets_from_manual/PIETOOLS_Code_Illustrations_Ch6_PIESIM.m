@@ -46,28 +46,28 @@ opts.N = 8;
 opts.tf = 1;
 opts.Norder = 2;
 opts.dt = 1e-3;
-[solution,grids] = PIESIM(PDE,opts,uinput);
+[solution,grid] = PIESIM(PDE,opts,uinput);
 tval = solution.timedep.dtime;
 xval = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
 % % Extract the solution
 plot_indcs = floor(linspace(1,opts.tf/opts.dt,100));
 tplot = tval(plot_indcs);
 x_sim = xval(:,plot_indcs);
-x_true = double(subs(subs(uinput.exact(1),st,tplot),sx,grids.phys(:)));
+x_true = double(subs(subs(uinput.exact(1),st,tplot),sx,grid.phys(:)));
 
 % Plot the evolution of the PDE state, as well as the final value.
 fig1 = figure('Position',[200 50 900 350]); 
 set(gcf, 'Color', 'w');
 subplot(1,2,1);
 box on
-surf(grids.phys,tplot,x_sim','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','column');
+surf(grid.phys,tplot,x_sim','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','column');
 h = colorbar;
 %colormap jet    
 subplot(1,2,2);
 box on
-plot(grids.phys(:),x_sim(:,end),'rd','LineWidth',4,'DisplayName','Numerical solution');
+plot(grid.phys(:),x_sim(:,end),'rd','LineWidth',4,'DisplayName','Numerical solution');
 hold on
-plot(grids.phys(:),x_true(:,end),'k-','LineWidth',2,'DisplayName','Analytic solution');
+plot(grid.phys(:),x_true(:,end),'k-','LineWidth',2,'DisplayName','Analytic solution');
 hold off
 %colormap jet
 % Clean up the figure
@@ -113,15 +113,15 @@ opts.N = 16;
 opts.tf = 1;
 opts.intScheme = 1;
 opts.dt = 1e-3;
-[solution,grids] = PIESIM(PDE,opts,uinput);
+[solution,grid] = PIESIM(PDE,opts,uinput);
 % Extract numerical solution at final time
 x1val = solution.timedep.ode;         % x1(t)
 x2fin = solution.final.pde{1}(:,1);   % x2(t=tf,s1);
 x3fin = solution.final.pde{1}(:,2);   % x3(t=tf,s2);
 x4fin = solution.final.pde{2};        % x4(t=tf,s1,s2);
 % Extract grid points and exact solution
-s1_grid = grids.phys(:,1);
-s2_grid = grids.phys(:,2);
+s1_grid = grid.phys(:,1);
+s2_grid = grid.phys(:,2);
 s1_grid_exact = linspace(0,1,round(100));
 s2_grid_exact = linspace(0,5,round(100));
 x2fin_true = double(subs(subs(uinput.exact(2),st,opts.tf),sx,s1_grid_exact));
