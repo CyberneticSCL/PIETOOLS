@@ -10,6 +10,10 @@ function At = ctranspose(A)
 % OUTPUT
 % At: transpose of the input opvar with the same matlab structure as
 %   At: L_2^q[Sj,...,Sm] to L_2^p[Si,...Sn]
+%
+% If A has the form sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C Z_d(S_3dum,S_1)
+% Then As has the form sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C Z_d(S_3dum,S_1)
+
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -46,11 +50,13 @@ function At = ctranspose(A)
 At = A;  
 At.vars_out = A.vars_in;  % input vars become output vars
 At.vars_in = A.vars_out;  % output vars become input vars
+At.dom_in = A.dom_out;  % output doms become input doms
 
 At.dims = A.dims';       % matrix dimension is transposed
 
 % collect all vars
 varsMain = union(A.vars_in,A.vars_out); 
+
 % create dummy vars corresponding to vars
 varsDummy = strrep(varsMain,'s','t');
 

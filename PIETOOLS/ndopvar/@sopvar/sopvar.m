@@ -20,7 +20,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
 % CLASS properties
 % - P.C:   3^N x 1 Cell array of Quadpoly objects, where N is the number of variables which appear in both the input and output space;
 %           Each quadpoly has the structure (I X Z_d(S_2,S_3)) C (I X Z_d(S_3dum,S_1))
-% - P.dim:   2x1 vector specifying the rows and columns of the operator i.e. [p,q];
+%           NOTE: Wouldnt it be better to make this a NxNxN array so we don't have to figure out where everything is? Not as fast maybe, but the bottleneck will be quadvar operations anyway. 
+% - P.dims:   2x1 vector specifying the rows and columns of the operator i.e. [p,q];
 % - P.vars_in: nx1 cell array specifying the unique names of the spatial variables which appear in the input space
 % - P.vars_out: mx1 cell array specifying the unique names of the spatial variables which appear in the output space
 % - P.dom_in: nx2 array specifying the spatial domain of each variable in input space, so that dom_in(i,:) = [ai,bi]
