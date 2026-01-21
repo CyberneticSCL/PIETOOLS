@@ -1,16 +1,22 @@
-
+clear
 pvar s1 s1_dum
 var1 = s1;
 var2 = s1_dum;
 dom = [0,1];
-deg = 2;
+deg = 2;        % maximal monomial degree in independent variables
 m = 3;      n = 1;
+d = 4;          % number of state variables in distributed monomial
+m_idx = randi(d);   % index for which operator may include a multiplier
 
 % Declare d random 2-PI operators
-d = 3;
+Pops_opvar = cell(1,d);
+Pops = cell(1,d);
 for ii=1:d
     Pop_ii = rand_opvar([0,0;m,n],deg,var1,var2,dom);
-    Pop_ii.R.R0 = zeros([m,n]);
+    if ii~=m_idx
+        % Allow only one operator with a nonzero multiplier
+        Pop_ii.R.R0 = zeros([m,n]);
+    end
     Pops_opvar{ii} = Pop_ii;
     Pops{ii} = dopvar2ndopvar(Pop_ii);
 end
