@@ -40,7 +40,8 @@ function [P_out] = dopvar2d2ndopvar(P_in,d,dvarname)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/06/2206: Initial coding
+% DJ, 01/06/2026: Initial coding
+% CR, 01/20/2026: Fixed incorrect coefficient dimensions bug
 
 if ~isa(P_in,'opvar2d') && ~isa(P_in,'dopvar2d')
     error("Input  must be of type 'opvar2d'.")
@@ -87,13 +88,13 @@ end
 %   Rij(s,t) = (Im o Zd(s))^T Cij (In o Zd(t))
 % for i,j in {1,2};
 C_cell = cell(size(P_in.R22));
-C_cell{1} = get_quadratic_form(P_in.R22{1,1},var1,[],dvarname,d);
-C_cell{2,1} = get_quadratic_form(P_in.R22{2,1},var1,var2(1),dvarname,d);
-C_cell{3,1} = get_quadratic_form(P_in.R22{3,1},var1,var2(1),dvarname,d);
-C_cell{1,2} = get_quadratic_form(P_in.R22{1,2},var1,var2(2),dvarname,d);
-C_cell{1,3} = get_quadratic_form(P_in.R22{1,3},var1,var2(2),dvarname,d);
+C_cell{1} = get_quadratic_form(P_in.R22{1,1},var1,[],dvarname,d,d); % CR 01/20/2026 - added second d argument to get_quadratic_form
+C_cell{2,1} = get_quadratic_form(P_in.R22{2,1},var1,var2(1),dvarname,d,d);
+C_cell{3,1} = get_quadratic_form(P_in.R22{3,1},var1,var2(1),dvarname,d,d);
+C_cell{1,2} = get_quadratic_form(P_in.R22{1,2},var1,var2(2),dvarname,d,d);
+C_cell{1,3} = get_quadratic_form(P_in.R22{1,3},var1,var2(2),dvarname,d,d);
 for ii=[5,6,8,9]
-    C_cell{ii} = get_quadratic_form(P_in.R22{ii},var1,var2,dvarname,d);
+    C_cell{ii} = get_quadratic_form(P_in.R22{ii},var1,var2,dvarname,d,d);
 end
 
 % Collect parameters representing the operator
