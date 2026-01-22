@@ -205,6 +205,7 @@ if (size(Rop.R0y,2)>0)
     end
 
       % Ryy block
+      if sum(psize.ny)>0
       Rn.R0=Rop.Ryy{1};
       Rn.R1=Rop.Ryy{2};
       Rn.R2=Rop.Ryy{3};
@@ -212,6 +213,7 @@ if (size(Rop.R0y,2)>0)
       Ryyblock{1}=PIESIM_3PI2Mat_cheb(N, Rn, py, pcol);
       else
       [Ryyblock{1},Ryyblock{2}]=PIESIM_3PI2Mat_cheb(N, Rn, py, pcol);
+      end
       end
 
       % R2y block
