@@ -63,6 +63,13 @@ elseif ~isa(P1,'ndopvar')|| ~isa(P2,'ndopvar')
 end
 
 
+logval = true;
+if any(P1.dim~=P2.dim)
+    disp('Dopvars have different dimensions and hence cannot be equal');
+    logval = false;
+    return
+end
+
 % if the degrees are different convert to the same
 if any(P1.deg(:)~=P2.deg(:))
     max_degree = max(P1.deg, P2.deg);
@@ -72,12 +79,21 @@ if any(P1.deg(:)~=P2.deg(:))
     P2 = P2p;
 end
 
-logval = true;
-if any(P1.dim~=P2.dim)
-    disp('Dopvars have different dimensions and hence cannot be equal');
-    logval = false;
-    return
+
+if numel(P1.dvarname) ~= numel(P2.dvarname) || ~isequal(P1.dvarname,P2.dvarname)
+    dvars1 = string(P1.dvarname); % convert array to char array
+    dvars2 = string(P2.dvarname);
+    numberOfCharacters = max(size(dvars1, 2), size(dvars2, 2));
+    dvars1 = pad(dvars1, numberOfCharacters); % pad with ' ' if needed
+    dvars2 = pad(dvars2, numberOfCharacters); % pad with ' ' if needed 
+
+    common_dvar = intersect(dvars1, dvars2, 'rows');
+    new_dvars   = setdiff(dvars2, common_dvar, 'rows');
+    full_dvars = [dvars1; new_dvars];
+    P1 = change_dec_var(P1, full_dvars);
+    P2 = change_dec_var(P2, full_dvars);
 end
+
 
 if logval
     for ii=1:numel(P1.C)

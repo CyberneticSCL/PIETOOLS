@@ -58,9 +58,36 @@ if any(Aop.deg~=Bop.deg)
     Bop = Bop_new;
     % error("Addition of operators with different monomial degrees is currently not supported.")
 end
-if numel(Aop.dvarname) ~= numel(Bop.dvarname) || ~isequal(Aop.dvarname,Bop.dvarname)
-    error("Addition of operators with different decision variables is currently not supported.")
+
+if isa(Aop, 'ndopvar')
+    Aop_dvarname = Aop.dvarname;
+else
+    Aop_dvarname = {};
 end
+if isa(Bop, 'ndopvar')
+    Bop_dvarname = Bop.dvarname;
+else
+    Bop_dvarname = {};
+end
+if numel(Aop_dvarname) ~= numel(Bop_dvarname) || ~isequal(Aop_dvarname,Bop_dvarname)
+    dvars1 = string(Aop_dvarname); % convert array to char array
+    dvars2 = string(Bop_dvarname);
+    numberOfCharacters = max(size(dvars1, 2), size(dvars2, 2));
+    dvars1 = pad(dvars1, numberOfCharacters); % pad with ' ' if needed
+    dvars2 = pad(dvars2, numberOfCharacters); % pad with ' ' if needed 
+
+    if isempty(dvars1) || isempty(dvars2)
+        common_dvar = [];
+        full_dvars = [dvars1; dvars2];
+    else
+        common_dvar = intersect(dvars1, dvars2, 'rows');
+        new_dvars   = setdiff(dvars2, common_dvar, 'rows');
+        full_dvars = char([dvars1; new_dvars]);
+    end
+    Aop = change_dec_var(Aop, full_dvars);
+    Bop = change_dec_var(Bop, full_dvars);
+end
+    
 
 % Assuming the same monomial degrees and decision variables, the sum of the 
 % operators is just defined by the sum of the coefficients.
