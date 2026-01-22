@@ -41,7 +41,7 @@ function p = mtimes(T,v)
 % Check v is a polyopvar with size(v.degmat) = [1 1].
 [nz, p] = size(v.degmat);
 if ~isequal([1, 1], [nz, p])
-    error("size of v does not match expected size [1, 1].");
+    error("size of v.degmat does not match expected size [1, 1].");
 end
 
 % check v.degmat=1.
@@ -49,8 +49,7 @@ if ~isequal(1, v.degmat)
     error("v.degmat != 1.");
 end
 
-% check v.varmat is all ones - otherwise no point including the unused 
-% spatial term.
+% check v.varmat is all ones - no reason to include unused spatial terms.
 Nv = numel(v.pvarname);
 if ~isequal(ones(p,Nv), v.varmat)
     error("v includes unused spatial variables.");
@@ -60,11 +59,6 @@ end
 [mv, nv] = size(v.C.ops);
 if mv ~= nv
     error("v.C.dim does not have equal dimensions.")
-end
-
-% check v.C = I_nv.
-if ~isequal(eye(nv), v.C.ops)
-    error("v.C is not equal to the identity.");
 end
 
 % check n is same for T and v.
@@ -95,7 +89,7 @@ p = polyopvar();
 p.varname = v.varname;
 p.degmat = v.degmat;
 p.C = tensopvar();
-p.C.ops = T;
+p.C.ops(1) = T;
 p.pvarname = v.pvarname;
 p.dom = v.dom;
 p.varmat = v.varmat;

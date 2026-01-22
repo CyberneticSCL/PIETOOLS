@@ -1,6 +1,6 @@
 classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar
 % This function defines the class of 'tensopvar' objects, representing
-% coefficient operators acting on distributed monomials to defined 
+% coefficient operators acting on distributed monomials to define 
 % distributed polynomials.
 %
 % CLASS properties
