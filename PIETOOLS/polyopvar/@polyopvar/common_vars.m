@@ -1,0 +1,137 @@
+function [A_out,B_out] = common_vars(A_in,B_in)
+% [A_OUT,B_OUT] = COMMON_VARS(A_IN,B_IN) takes two distributed polynomials
+% and expresses them in terms of the same state variables
+%
+% INPUTS
+% - A_in, B_in:     m x n 'polyopvar' objects
+%
+% OUTPUTS
+% - A_out, B_out:   m x n 'polyopvar' objects representing the same
+%                   distributed polynomials as A_in, B_in, respectively,
+%                   but now expressed in terms of the same variables, so
+%                   that
+%                   A_out.varname = B_out.varname;
+%                   A_out.pvarname = B_out.pvarname;
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - common_vars
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% DJ, 01/22/2026: Initial coding
+
+
+% Extract the parameters representing each polynomial
+var_A = A_in.varname;       var_B = B_in.varname;
+pvar_A = A_in.pvarname;     pvar_B = B_in.pvarname;
+dom_A = A_in.dom;           dom_B = B_in.dom;
+degs_A = A_in.degmat;       degs_B = B_in.degmat;
+vmat_A = A_in.varmat;       vmat_B = B_in.varmat;
+C_A = A_in.C;               C_B = B_in.C;
+
+% First, combine the list of state variables
+p1 = numel(var_A);      p2 = numel(var_B);
+var_full = [var_A;var_B];
+[var_new,~,new2old_vdcs] = unique(var_full);   % var_new = var_full(old2new_vdcs);
+p = numel(var_new);
+
+% Also combine the list of spatial variables
+N1 = numel(pvar_A);     N2 = numel(pvar_B);
+pvar_full = [pvar_A; pvar_B];
+[pvar_new,old2new_pdcs,new2old_pdcs] = unique(pvar_full);   % pvar_full = pvar_new(new2old_pdcs);
+dom_full = [dom_A; dom_B];
+dom_new = dom_full(old2new_pdcs,:);
+N = numel(pvar_new);
+
+% Build a varmat indicating for each of the new state variables on which
+% spatial variable it depends.
+varmat = false(p,N);
+varmat(new2old_vdcs(1:p1),new2old_pdcs(1:N1)) = vmat_A;
+varmat(new2old_vdcs(p1+(1:p2)),new2old_pdcs(N1+(1:N2))) = vmat_B;
+
+% Reorder tensor products of PI operators in C to match new order of vars
+for lidx=1:numel(C_A.ops)
+    [~,cidx] = ind2sub(size(C_A.ops),lidx);
+    deg_l = degs_A(cidx,:);
+    if sum(deg_l)==1
+        continue
+    end
+    % Establish which elements of C1.ops{lidx} correspond to each variable
+    deg_idcs = mat2cell([[0,cumsum(deg_l(1:end-1))];cumsum(deg_l)],2,ones(1,numel(deg_l)));
+    deg_idcs = cellfun(@(a)(a(1)+1:a(2)),deg_idcs,'UniformOutput',false);
+    old_deg_idcs = cell(1,p);
+    old_deg_idcs(new2old_vdcs(1:p1)) = deg_idcs;
+    % Reorder to match the new order of the variables
+    C_l = C_A.ops{lidx};
+    Cnew_l = cell(size(C_l));
+    strt_idx = 0;
+    for jj=1:p
+        if ~isempty(old_deg_idcs{jj})
+            end_idx = strt_idx+numel(old_deg_idcs{jj});
+            Cnew_l(:,strt_idx+1:end_idx) = C_l(:,old_deg_idcs{jj});
+            strt_idx = end_idx;
+        end
+    end
+    C_A.ops{lidx} = Cnew_l;
+end
+for lidx=1:numel(C_B.ops)
+    [~,cidx] = ind2sub(size(C_B.ops),lidx);
+    deg_l = degs_B(cidx,:);
+    if sum(deg_l)==1
+        continue
+    end
+    % Establish which elements of C1.ops{lidx} correspond to each variable
+    deg_idcs = mat2cell([[0,cumsum(deg_l(1:end-1))];cumsum(deg_l)],2,ones(1,numel(deg_l)));
+    deg_idcs = cellfun(@(a)(a(1)+1:a(2)),deg_idcs,'UniformOutput',false);
+    old_deg_idcs = cell(1,p);
+    old_deg_idcs(new2old_vdcs(p1+(1:p2))) = deg_idcs;
+    % Reorder to match the new order of the variables
+    C_l = C_B.ops{lidx};
+    Cnew_l = cell(size(C_l));
+    strt_idx = 0;
+    for jj=1:p
+        if ~isempty(old_deg_idcs{jj})
+            end_idx = strt_idx+numel(old_deg_idcs{jj});
+            Cnew_l(:,strt_idx+1:end_idx) = C_l(:,old_deg_idcs{jj});
+            strt_idx = end_idx;
+        end
+    end
+    C_B.ops{lidx} = Cnew_l;
+end
+
+% Augment the monomial basis to incorporate the full list of variables
+degs1 = zeros(size(degs_A,1),p);
+degs2 = zeros(size(degs_B,1),p);
+degs1(:,new2old_vdcs(1:p1)) = degs_A;
+degs2(:,new2old_vdcs(p1+(1:p2))) = degs_B;
+
+% Build polynomials in terms of the shared variable names
+A_out = polyopvar();            B_out = polyopvar();
+A_out.C = C_A;                  B_out.C = C_B;
+A_out.degmat = degs1;           B_out.degmat = degs2;
+A_out.varname = var_new;        B_out.varname = var_new;
+A_out.pvarname = pvar_new;      B_out.pvarname = pvar_new;
+A_out.dom = dom_new;            B_out.dom = dom_new;
+A_out.varmat = varmat;          B_out.varmat = varmat;
+
+end
