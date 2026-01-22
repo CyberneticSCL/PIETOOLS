@@ -23,6 +23,8 @@
 % Initial coding YP  - 9_18_2021
 % YP 12/31/2025 - changed disturbance and control inputs specifications to function handles (for
 % both symbolic and double)
+% YP 1/22/2026 - added differentiation of disturbances and control inputs
+% to support inhomogeneous boudnary inputs in 2D
 
 function uinput=PIESIM_initial_setup(uinput,psize,type)
 syms st sx sy;
@@ -137,3 +139,4 @@ end
 
 
 end
+
