@@ -1,18 +1,15 @@
 function Cop = change_degree(Aop,degree)
-% COP = change_degree(Aop,degree) returns the 'nopvar' object Cop with basis of degree d
+% COP = change_degree(Aop,degree) returns the 'nopvar/ndopvar' object Cop with basis of degree d
 %
 % INPUTS
-% - Aop:     'nopvar' object
+% - Aop:     'nopvar/ndopvar' object
 % --degree:  new degree
 %
 % OUTPUS
-% - Cop:    'nopvar' copy of Aop with new monomial basis
+% - Cop:    'nopvar/ndopvar' copy of Aop with new monomial basis
 %
 %
-% NOTES
-% The operators defined by Aop and Bop must act on functions on the same
-% spatial domain, i.e. Aop.dom = Bop.dom.
-
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - change_degree
 %
@@ -82,9 +79,6 @@ Cop.vars = Aop.vars;
 N = size(Aop.dom,1);
 Cop.C = cell([3*ones(1,N),1]);
 binStr = dec2base(0:(3^N-1), 3);
-
-% [~,Zd_new_out,~,~] = get_quadratic_form(0,Aop.vars(:, 1),{},{},degree, 0);
-% [~,Zd_old_out,~,~] = get_quadratic_form(0,Aop.vars(:, 1),{},{},Aop.deg, 0);
 % construct degmat for common basis of monomials
 for dim = 1:N
     Zd_old_out{dim} = (0:Aop.deg(dim))';
@@ -94,8 +88,6 @@ for dim = 1:N
 end
 
 % % % consturct monomial basis for nopvar with new degree
-% monom_basis_old_left = eye(Aop.dim(1));
-% monom_basis_new_left = eye(Aop.dim(1));
 degmat_old_out = Zd_old_out{1};
 degmat_new_out = Zd_new_out{1};
 
@@ -107,7 +99,6 @@ end
 % find location of new monomials in the old monomials
 size_left = length(degmat_new_out);
 [~, Loc_temp] =ismember(degmat_old_out,  degmat_new_out, 'rows');
-% [~, Loc_temp] =ismember(monom_basis_old_left.degmat,  monom_basis_new_left.degmat, 'rows');
 for iter_idx = 1:Aop.dim(1)
     % shift m times if (I_m otimes Z(s))^T
     if iter_idx == 1
@@ -158,15 +149,7 @@ for iter_idx = 1:size(binStr, 1)
     end
 
     % construct monomial basis for right multiplier (depends on iter_idx)
-    
-    % [~,~,Zd_new_in,~] = get_quadratic_form(0,{},Aop.vars(:, 2),{},0,subdegree1);
-    % [~,~,Zd_old_in,~] = get_quadratic_form(0,{},Aop.vars(:, 2),{},0,subdegree2);
-    % 
-    % if isa(Zd_new_in, 'double')
-    %     Loc_temp = 1;
-    % else
-    %     [~, Loc_temp] =ismember(Zd_old_in.degmat,  Zd_new_in.degmat, 'rows');
-    % end
+
     [~, Loc_temp] =ismember(degmat_old_in,  degmat_new_in, 'rows');
     size_right = length(degmat_new_in);
     for iter_idx = 1:Aop.dim(2)  % shift n times if I_n otimes Z(theta)

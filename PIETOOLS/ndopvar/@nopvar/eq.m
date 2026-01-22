@@ -58,8 +58,6 @@ elseif ~isa(P1,'nopvar')|| ~isa(P2,'nopvar')
     error('To check equality either both values must be nopvar objects, or one of them have to be zero');
 end
 
-
-
 logval = true;
 if any(P1.dim~=P2.dim)|| any(any(P1.dom~= P2.dom))
     disp('nopvars have different dimensions or domain and hence cannot be equal');
@@ -73,7 +71,6 @@ if ~all(strcmp(P1.vars(:, 1).varname, cell2mat(P2.vars(:, 1).varname)))
     return
 end
 
-
 % if the degrees are different convert to the same
 if any(P1.deg(:)~=P2.deg(:))
     max_degree = max(P1.deg, P2.deg);
@@ -83,7 +80,6 @@ else
     P1p = P1;
     P2p = P2;
 end
-
 
 if logval % check only if Dopvar have the same dimensions
     for ii=1:numel(P1p.C)

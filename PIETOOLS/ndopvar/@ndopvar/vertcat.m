@@ -2,7 +2,7 @@ function [Pcat] = vertcat(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Pcat] = vertcat(varargin) takes n inputs and concatentates them vertically,
 % provided they satisfy the following criteria:
-% 1) All input must be of type 'nopvar' 
+% 1) All input must be of type 'ndopvar' 
 % 2) The input dimensions varargin{j}.dim(:,2) of all opvar objects must
 %       match;
 % 3) The spatial variables varargin{j}.var1 and varargin{j}.var2, as well 
@@ -39,7 +39,7 @@ function [Pcat] = vertcat(varargin)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial AT 01/21/2026
+% AT 01/21/2026: initial coding
 
 % Deal with single input case
 if nargin==1
@@ -51,7 +51,7 @@ end
 a = varargin{1};    b = varargin{2};
 
 % Currently support some matrix-opvar concatenation
-if ~isa(b,'nopvar') || ~isa(a, 'nopvar')
+if ~isa(b,'ndopvar') && ~isa(a, 'ndopvar')
     error("Currently supported only for ndopvar or nopvar");
     % Only supported if a in fact corresponds to a matrix as well
 end
@@ -60,6 +60,11 @@ end
 if any(any(a.dom~=b.dom))|| any(~strcmp(a.vars(:, 1).varname,b.vars(:, 1).varname)) || any(~strcmp(a.vars(:, 2).varname,b.vars(:, 2).varname))
     error('Operators being concatenated have different intervals or different independent variables');
 end
+% Check that the output dimensions match
+a.dim = a.dim;  b.dim = b.dim;  % correction to make components have consistent dimensions 8/27-ss
+if any(a.dim(2)~=b.dim(2))
+    error('Cannot concatenate vertically: Input dimensions of opvar objects do not match')
+end  
 
 % convert to the same degree
 if any(a.deg~=b.deg)
@@ -70,17 +75,43 @@ if any(a.deg~=b.deg)
     b = Bop_new;
 end
 
-% Check that the output dimensions match
-a.dim = a.dim;  b.dim = b.dim;  % correction to make components have consistent dimensions 8/27-ss
-if any(a.dim(2)~=b.dim(2))
-    error('Cannot concatenate vertically: Input dimensions of opvar objects do not match')
-end  
+% if operators have different decvar, convert to the same decvar
+if isa(a, 'ndopvar')
+    Aop_dvarname = a.dvarname;
+else
+    Aop_dvarname = {};
+end
+if isa(b, 'ndopvar')
+    Bop_dvarname = b.dvarname;
+else
+    Bop_dvarname = {};
+end
+if numel(Aop_dvarname) ~= numel(Bop_dvarname) || ~isequal(Aop_dvarname,Bop_dvarname)
+    % choose common dvar
+    dvars1 = string(Aop_dvarname); % convert array to char array
+    dvars2 = string(Bop_dvarname);
+    numberOfCharacters = max(size(dvars1, 2), size(dvars2, 2));
+    dvars1 = pad(dvars1, numberOfCharacters); % pad with ' ' if needed
+    dvars2 = pad(dvars2, numberOfCharacters); % pad with ' ' if needed 
+
+    if isempty(dvars1) || isempty(dvars2)
+        common_dvar = [];
+        full_dvars = [dvars1; dvars2];
+    else
+        common_dvar = intersect(dvars1, dvars2, 'rows');
+        new_dvars   = setdiff(dvars2, common_dvar, 'rows');
+        full_dvars = char([dvars1; new_dvars]);
+    end
+    a = change_dec_var(a, full_dvars); % convert to the same dec var
+    b = change_dec_var(b, full_dvars); % convert to the same dec var
+end
 
 % Finally, let's actually concatenate
-Pcat = nopvar(); % empty nopvar
+Pcat = ndopvar(); % empty nopvar
 Pcat.dom = a.dom;
 Pcat.deg = a.deg;
 Pcat.vars = a.vars;
+Pcat.dvarname = a.dvarname;
 N = size(a.dom,1);
 Pcat.C = cell([3*ones(1,N),1]);
 for ii=1:numel(a.C)
@@ -90,11 +121,11 @@ end
 % Pcat.dim = [a.dim(1), a.dim(2)+b.dim(2)];
 
 
-
 % For concatenation of more than two objects, just repeat
 if nargin>2 
     Pcat = vertcat(Pcat, varargin{3:end});
 end
+
 
 end
 
