@@ -39,7 +39,7 @@ function Pop = mtimes(Qop,Rop)
 % authorship, and a brief description of modifications
 %
 % DJ, 01/15/2026: Initial coding
-
+% AT, 01/22/2026: allow operators with different degree
 
 
 % Separately deal with the cases of matrix x operator or operator x matrix
@@ -85,7 +85,13 @@ N = size(dom1,1);
 % --> support for such cases will have to be included as well!
 deg1 = Qop.deg;     deg2 = Rop.deg;
 if any(deg1~=deg2)
-    error("Degrees of the opvar2d objects must match.")
+    max_degree = max(Qop.deg, Rop.deg);
+
+    Qop_new = change_degree(Qop, max_degree);
+    Rop_new = change_degree(Rop, max_degree);
+
+    Qop = Qop_new;
+    Rop = Rop_new;
 end
 
 % Proceed with composition just along the first dimension

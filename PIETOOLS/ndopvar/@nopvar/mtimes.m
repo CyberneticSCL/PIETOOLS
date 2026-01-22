@@ -39,7 +39,7 @@ function Pop = mtimes(Qop,Rop)
 % authorship, and a brief description of modifications
 %
 % DJ, 01/15/2026: Initial coding
-
+% AT, 01/21/2026: allow operators with different degree
 
 % % % Check the inputs
 
@@ -72,11 +72,17 @@ if any(dom1~=dom2)
 end
 N = size(dom1,1);
 
-% Prohibit case with different monomial degrees
-% --> this will need to be implemented as well!
+% convert to the same degree
 deg1 = Qop.deg;     deg2 = Rop.deg;
 if any(deg1~=deg2)
-    error("Degrees of the nopvar objects must match.")
+    max_degree = max(Qop.deg, Rop.deg);
+
+    Qop_new = change_degree(Qop, max_degree);
+    Rop_new = change_degree(Rop, max_degree);
+
+    Qop = Qop_new;
+    Rop = Rop_new;
+    % error("Degrees of the nopvar objects must match.")
 end
 
 

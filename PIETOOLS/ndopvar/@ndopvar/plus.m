@@ -39,7 +39,7 @@ function Cop = plus(Aop,Bop)
 % authorship, and a brief description of modifications
 %
 % DJ, 01/15/2026: Initial coding
-
+% AT, 01/21/2026: allow operators with different degree
 
 % Check that the operators can indeed be added
 if any(Aop.dim~=Bop.dim)
@@ -49,10 +49,14 @@ if size(Aop.dom,1)~=size(Bop.dom,1) || any(any(Aop.dom~=Bop.dom))
     error("Spatial domains on which operators are defined should match.")
 end
 
-% Exclude more complicated addition operations
-% --> these will need to be supported as well
+% convert to the same degree
 if any(Aop.deg~=Bop.deg)
-    error("Addition of operators with different monomial degrees is currently not supported.")
+    max_degree = max(Aop.deg, Bop.deg);
+    Aop_new = change_degree(Aop, max_degree);
+    Bop_new = change_degree(Bop, max_degree);
+    Aop = Aop_new;
+    Bop = Bop_new;
+    % error("Addition of operators with different monomial degrees is currently not supported.")
 end
 if numel(Aop.dvarname) ~= numel(Bop.dvarname) || ~isequal(Aop.dvarname,Bop.dvarname)
     error("Addition of operators with different decision variables is currently not supported.")

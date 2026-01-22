@@ -61,8 +61,13 @@ if any(any(a.dom~=b.dom))|| any(~strcmp(a.vars(:, 1).varname,b.vars(:, 1).varnam
     error('Operators being concatenated have different intervals or different independent variables');
 end
 
+% convert to the same degree
 if any(a.deg~=b.deg)
-    error('Operators must have the same degree.');
+    max_degree = max(a.deg, b.deg);
+    Aop_new = change_degree(a, max_degree);
+    Bop_new = change_degree(b, max_degree);
+    a = Aop_new;
+    b = Bop_new;
 end
 
 % Check that the output dimensions match

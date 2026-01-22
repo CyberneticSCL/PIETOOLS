@@ -62,10 +62,14 @@ elseif ~isa(P1,'ndopvar')|| ~isa(P2,'ndopvar')
     error('To check equality either both values must be ndopvar objects, or one of them have to be zero');
 end
 
+
+% if the degrees are different convert to the same
 if any(P1.deg(:)~=P2.deg(:))
-    error("ndopvars have different monomial degrees. It is currently not supported.")
-    logval = false;
-    return
+    max_degree = max(P1.deg, P2.deg);
+    P1p = change_degree(P1, max_degree);
+    P2p = change_degree(P2, max_degree);
+    P1 = P1p;
+    P2 = P2p;
 end
 
 logval = true;
