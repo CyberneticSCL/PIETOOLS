@@ -110,6 +110,7 @@
 % Batch format and old terms format can still be used, in which case
 % opts.type is PDE_t or PDE_b.
 % VJ 11/16/2025 - added support for cylindrical coordinate examples
+% YP 1/22/2026 - passing u_tab, w_tab to initial setup
 
 function [solution, grid]=PIESIM(varargin)
 
@@ -167,6 +168,9 @@ function [solution, grid]=PIESIM(varargin)
 % functions to the format required for PIE solution
 %-------------------------------------------------------------------------
 
+% Append u_tab and w_tab to psize for future use
+psize.w_tab=PIE.w_tab;
+psize.u_tab=PIE.u_tab;
 uinput=PIESIM_initial_setup(uinput,psize,opts.type);
 
 
