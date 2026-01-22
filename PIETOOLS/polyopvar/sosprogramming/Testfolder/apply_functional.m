@@ -28,7 +28,7 @@ function fval = apply_functional(Kcell,xvals,degmat,idx_mat,vars,dom)
 % - fval:   The value of the function f(x) for the specified K and x;
 
 
-d = size(idx_mat,2);
+d = sum(degmat);
 nstates = size(degmat,2);
 if numel(xvals)~=nstates
     error("Distributed monomial must be specified as 1 x d array")
@@ -56,9 +56,30 @@ for ii=1:d
     end
 end
 
+if isempty(idx_mat)
+    % List all possible orders of the variables t1 through td
+    %   idx_mat(l,:) = [i,j,k] means a <= ti <= tj <= tk <= b in term l
+    idx_mat = 1;
+    for ii=2:d
+        n_ords = size(idx_mat,1);
+        idx_mat_new = zeros(ii*n_ords,ii);
+        for jj=1:ii
+            % Place variable t_ii in position jj
+            idx_mat_new(jj:ii:end,:) = [idx_mat(:,1:jj-1),ii*ones(n_ords,1),idx_mat(:,jj:end)];
+        end
+        idx_mat = idx_mat_new;
+    end
+end
+
 
 fval = zeros(size(Kcell{1}));
-for ii=1:numel(Kcell)
+if d>2 && numel(Kcell)>factorial(d)
+    error("Number of operators should be d! for monomial degree d.")
+end
+for ii=1:min(numel(Kcell),factorial(d))
+    if isempty(Kcell{ii})
+        continue
+    end
     % Check the order of the variables:
     %   idx_ii = [i,j,k] implies a <= ti <= tj <= tk <= b
     idx_ii = idx_mat(ii,:);
@@ -78,7 +99,13 @@ for ii=1:numel(Kcell)
     var_num = idx_ii(1); 
     fval_ii = fval_ii*xvals_full(var_num);
     fval_ii = int(fval_ii,vars(var_num),dom(1),dom(2));
-    fval = fval + double(fval_ii);
+    fval = fval + fval_ii;
+end
+
+if d==2 && numel(Kcell)==3
+    % Third term corresponds to the multiplier
+    %   int_{a}^{b} P(s)*x(s)^2 ds
+    fval = fval + int(Kcell{3}*xvals_full(1)*subs(xvals_full(2),vars(2),vars(1)),vars(1),dom(1),dom(2));
 end
 
 

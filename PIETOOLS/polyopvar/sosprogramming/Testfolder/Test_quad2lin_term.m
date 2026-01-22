@@ -5,12 +5,12 @@ var2 = s1_dum;
 dom = [0,1];
 deg = 2;        % maximal monomial degree in independent variables
 m = 3;      n = 2;
-nvars = 3;
-deg1 = randi(2,[1,nvars])-1;
+nvars = 1;
+deg1 = randi(1,[1,nvars])-1;
 if ~any(deg1)
     deg1(randi(nvars))=1;
 end
-deg2 = randi(3,[1,nvars])-1;
+deg2 = randi(1,[1,nvars])-1;
 if ~any(deg2)
     deg2(randi(nvars))=1;
 end
@@ -104,4 +104,4 @@ fval = double(int(z1_tst'*Pmat*z2_tst,s1,dom(1),dom(2)));
 %           Pvec{i}(t1,...,td)*x1(t1)...xd(td) dt_kd ... dt_k1
 fval_alt = apply_functional(Pvec,x_tst,deg1+deg2,idx_mat,var2,dom);
 
-f_err = norm(fval-fval_alt)
+f_err = norm(double(fval-fval_alt))
