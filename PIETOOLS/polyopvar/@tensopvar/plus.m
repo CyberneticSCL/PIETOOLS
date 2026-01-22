@@ -46,7 +46,11 @@ end
 % operators
 C = A;
 for ii=1:numel(A.ops)
-    if isa(A.ops{ii},'nopvar') || isa(A.ops{ii},'ndopvar')
+    if isempty(A.ops{ii})
+        C.ops{ii} = B.ops{ii};
+    elseif isempty(B.ops{ii})
+        C.ops{ii} = A.ops{ii};
+    elseif isa(A.ops{ii},'nopvar') || isa(A.ops{ii},'ndopvar')
         % If the monomial is just linear, Z_{i}(x) = xk for some k,
         % then we can use the 'nopvar' plus routine to compute the sum of
         % the operators

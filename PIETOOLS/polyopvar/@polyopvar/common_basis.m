@@ -28,7 +28,7 @@ C_A = A_in.C;               C_B = B_in.C;
 p1 = numel(var_A);      p2 = numel(var_B);
 var_full = [var_A;var_B];
 [var_new,~,new2old_vdcs] = unique(var_full);   % var_new = var_full(old2new_vdcs);
-p = numel(var_full);
+p = numel(var_new);
 
 % Also combine the list of spatial variables
 N1 = numel(pvar_A);     N2 = numel(pvar_B);
@@ -36,13 +36,64 @@ pvar_full = [pvar_A; pvar_B];
 [pvar_new,old2new_pdcs,new2old_pdcs] = unique(pvar_full);   % pvar_full = pvar_new(new2old_pdcs);
 dom_full = [dom_A; dom_B];
 dom_new = dom_full(old2new_pdcs,:);
-N = numel(pvar_full);
+N = numel(pvar_new);
 
 % Build a varmat indicating for each of the new state variables on which
 % spatial variable it depends.
-varmat = logical(zeros(p,N));
+varmat = false(p,N);
 varmat(new2old_vdcs(1:p1),new2old_pdcs(1:N1)) = vmat_A;
 varmat(new2old_vdcs(p1+(1:p2)),new2old_pdcs(N1+(1:N2))) = vmat_B;
+
+% Reorder tensor products of PI operators in C to match new order of vars
+for lidx=1:numel(C_A.ops)
+    [~,cidx] = ind2sub(size(C_A.ops),lidx);
+    deg_l = degs_A(cidx,:);
+    if sum(deg_l)==1
+        continue
+    end
+    % Establish which elements of C1.ops{lidx} correspond to each variable
+    deg_idcs = mat2cell([[0,cumsum(deg_l(1:end-1))];cumsum(deg_l)],2,ones(1,numel(deg_l)));
+    deg_idcs = cellfun(@(a)(a(1)+1:a(2)),deg_idcs,'UniformOutput',false);
+    old_deg_idcs = cell(1,p);
+    old_deg_idcs(new2old_vdcs(1:p1)) = deg_idcs;
+    % Reorder to match the new order of the variables
+    C_l = C_A.ops{lidx};
+    Cnew_l = cell(size(C_l));
+    strt_idx = 0;
+    for jj=1:p
+        if ~isempty(old_deg_idcs{jj})
+            end_idx = strt_idx+numel(old_deg_idcs{jj});
+            Cnew_l(:,strt_idx+1:end_idx) = C_l(:,old_deg_idcs{jj});
+            strt_idx = end_idx;
+        end
+    end
+    C_A.ops{lidx} = Cnew_l;
+end
+for lidx=1:numel(C_B.ops)
+    [~,cidx] = ind2sub(size(C_B.ops),lidx);
+    deg_l = degs_B(cidx,:);
+    if sum(deg_l)==1
+        continue
+    end
+    % Establish which elements of C1.ops{lidx} correspond to each variable
+    deg_idcs = mat2cell([[0,cumsum(deg_l(1:end-1))];cumsum(deg_l)],2,ones(1,numel(deg_l)));
+    deg_idcs = cellfun(@(a)(a(1)+1:a(2)),deg_idcs,'UniformOutput',false);
+    old_deg_idcs = cell(1,p);
+    old_deg_idcs(new2old_vdcs(p1+(1:p2))) = deg_idcs;
+    % Reorder to match the new order of the variables
+    C_l = C_B.ops{lidx};
+    Cnew_l = cell(size(C_l));
+    strt_idx = 0;
+    for jj=1:p
+        if ~isempty(old_deg_idcs{jj})
+            end_idx = strt_idx+numel(old_deg_idcs{jj});
+            Cnew_l(:,strt_idx+1:end_idx) = C_l(:,old_deg_idcs{jj});
+            strt_idx = end_idx;
+        end
+    end
+    C_B.ops{lidx} = Cnew_l;
+end
+        
 
 % Augment the monomial basis to incorporate the full list of variables
 degs1 = zeros(size(degs_A,1),p);
@@ -60,6 +111,8 @@ C1 = tensopvar(1,nZ);      C2 = tensopvar(1,nZ);
 is_C1 = r_idcs<=nZ1;        is_C2 = r_idcs>nZ1;
 C1(new2old_Cdcs(is_C1)) = C_A(r_idcs(is_C1));
 C2(new2old_Cdcs(is_C2)) = C_B(r_idcs(is_C2)-nZ1);
+
+
 
 % Build polynomials in terms of the shared basis
 A_out = polyopvar();            B_out = polyopvar();
