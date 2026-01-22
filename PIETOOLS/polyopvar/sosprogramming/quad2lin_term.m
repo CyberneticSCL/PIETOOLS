@@ -186,8 +186,8 @@ end
 if sum(has_multiplier)>1 && (d1~=1 || d2~=1)
     error("At most one of the operators may include a multiplier component.")
 else
-    m_num = find(has_multiplier,1,'first');
-    var_m = var2(var_order(m_num));
+    m_nums = find(has_multiplier);
+    vars_m = var2(var_order(m_nums));
 end
 
 
@@ -242,33 +242,33 @@ for ii=1:n_ords
         Pvec_ii = Pvec_ii + int(Ljj*Pmat*Rjj,var1,L,U);
     end
     % Also account for possible multiplier term: tj = s
-    if any(has_multiplier)
+    for jj=1:numel(m_nums)
         [~,ord_ii] = sort(idx_ii);
-        ord_m = ord_ii(var_order(m_num));
+        ord_m = ord_ii(var_order(m_nums(jj)));
         L_tmp = 1;
         for kk=1:d1
             if ord_ii(var_order(kk))<ord_m
                 % t_k <= t_m = s
-                L_tmp = L_tmp.*subs(Pop_params{kk}{2},var1,var_m);
+                L_tmp = L_tmp.*subs(Pop_params{kk}{2},var1,vars_m(jj));
             elseif ord_ii(var_order(kk))==ord_m
                 % t_k == t_m = s
-                L_tmp = L_tmp.*Pop_params{m_num}{1};
+                L_tmp = L_tmp.*Pop_params{m_nums(jj)}{1};
             else
                 % t_k >= t_m = s
-                L_tmp = L_tmp.*subs(Pop_params{kk}{3},var1,var_m);
+                L_tmp = L_tmp.*subs(Pop_params{kk}{3},var1,vars_m(jj));
             end
         end
         R_tmp = 1;
         for kk=d1+(1:d2)
             if ord_ii(var_order(kk))<ord_m
                 % t_k <= t_m = s
-                R_tmp = R_tmp.*subs(Pop_params{kk}{2},var1,var_m);
+                R_tmp = R_tmp.*subs(Pop_params{kk}{2},var1,vars_m(jj));
             elseif ord_ii(var_order(kk))==ord_m
                 % t_k == t_m = s
-                R_tmp = R_tmp.*Pop_params{m_num}{1};
+                R_tmp = R_tmp.*Pop_params{m_nums(jj)}{1};
             else
                 % t_k >= t_m = s
-                R_tmp = R_tmp.*subs(Pop_params{kk}{3},var1,var_m);
+                R_tmp = R_tmp.*subs(Pop_params{kk}{3},var1,vars_m(jj));
             end
         end
         Pvec_ii = Pvec_ii + L_tmp*Pmat*R_tmp;
