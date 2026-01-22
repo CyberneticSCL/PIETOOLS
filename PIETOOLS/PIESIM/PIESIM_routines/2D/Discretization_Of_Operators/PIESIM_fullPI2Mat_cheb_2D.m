@@ -146,6 +146,7 @@ if (size(Rop.R0x,2)>0)
 
 if (mod(flag,2)==1)
       % Rxx block
+      if sum(psize.nx)>0 
       Rn.R0=Rop.Rxx{1};
       Rn.R1=Rop.Rxx{2};
       Rn.R2=Rop.Rxx{3};
@@ -153,6 +154,7 @@ if (mod(flag,2)==1)
         Rxxblock{1}=PIESIM_3PI2Mat_cheb(N, Rn, px, pcol);
      else
         [Rxxblock{1},Rxxblock{2}]=PIESIM_3PI2Mat_cheb(N, Rn, px, pcol);
+     end
      end
 
       % Ryx block
