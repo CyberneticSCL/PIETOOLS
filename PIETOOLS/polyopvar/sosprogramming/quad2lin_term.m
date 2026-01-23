@@ -1,23 +1,25 @@
-function [Kcell,idx_mat,var2] = quad2lin_term(Lop,Pmat,Rop)
-% [KCELL,IDX_MAT,VAR2] = QUAD2LIN_TERM(ZOPL,PMAT,ZOPR) takes a distributed
+function [Kcell,idx_mat,var2] = quad2lin_term(Pmat,Lmon,Rmon)
+% [KCELL,IDX_MAT,VAR2] = QUAD2LIN_TERM(PMAT,LMON,RMON) takes a distributed
 % polynomial in quadratic form
-%   p(x) = <Lop*Z1(x) , Pmat*Rop*Z2(x)>_{L2}
-% and converts it to the linear form, computing a call 
-% takes a cell of 'nopvar' objects
-% POPS representing 2-PI operators POPS{i} and computes a cell KCELL of
+%   V(x) = <LMON(x) , PMAT*RMON(x))>_{L2},
+% for 
+%   LMON(x) = C1*(x1^d1*...*xm^dm)(s)  and  RMON = C2*(x1^p1*...*xm^pm)
+% and converts it to the linear form, computing a cell KCELL of
 % kernels such that
-%  p(x) = sum_{i=1}^{m} int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b} 
-%           Kcell{i}(t1,...,td)*Z1(x)(t_{1},...,t_{d1})*Z2(x)(t_{d1+1},...,t_{d1+d2}) dt_kd ... dt_k1 
+%  V(x) = sum_{i=1}^{m} int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b} 
+%           Kcell{i}(t1,...,td)*
+%           x1(t1)*...*x1(t_{d1+p1})*...*xm(t_{d-dm-pm+1})*...*xm(t_{d})
+%                                                       dt_kd ... dt_k1 
 % where kj = IDX_MAT(i,j) for j=1,...,d and i=1,...,m for m=d!, with 
-% d=d1+d2.
+% d=d1...+dm+p1+...+pm.
 %
 % INPUTS
-% - Lop:    m x 1 'tensopvar' object representing an operator acting on a
-%           scalar distributed monomial Z1(x) of degree d1;
 % - Pmat:   m x n 'double' or 'dpvar' object parameterizing the inner
 %           product;
-% - Rop:    n x 1 'tensopvar' object representing an operator acting on a
-%           scalar distributed monomial Z2(x) of degree d2;
+% - Lmon:   m x 1 'polyopvar' object representing an distributed monomial
+%           involving a single (scalar) distributed monomial Z1(x);
+% - Rmon:   n x 1 'polyopvar' object representing an distributed monomial
+%           involving a single (scalar) distributed monomial Z1(x);
 %
 % OUTPUTS
 % - Kcell:  d! x 1 cell of 'quadpoly' objects, with the ith element
@@ -33,9 +35,6 @@ function [Kcell,idx_mat,var2] = quad2lin_term(Lop,Pmat,Rop)
 %           names of the variables t_{j} used in the definition of the
 %           kernels in Pvec;
 %
-% NOTES
-% The products of the operators are assumed to be elementwise, so that
-%   (Lop{1}*x1)(s).*(Lop{2}*x2)(s).*...*(Lop{d1}*xd1)(s)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - quad2lin_term
@@ -63,24 +62,66 @@ function [Kcell,idx_mat,var2] = quad2lin_term(Lop,Pmat,Rop)
 %
 % DJ, 01/21/2026: Initial coding
 
-if ~isa(Lop,'tensopvar') || ~isa(Rop,'tensopvar')
-    error("Operators parameterizing the inner product should be specified as 'tensopvar' objects.")
+if ~isa(Lmon,'polyopvar') || ~isa(Rmon,'polyopvar')
+    error("Monomials terms in the inner product should be specified as 'polyopvar' objects.")
 end
-if isa(Lop.ops{1},'nopvar')
-    d1 = 1;
-    Lops = {Lop.ops{1}};
-else
-    Lops = Lop.ops{1};
-    d1 = numel(Lops);
+
+% Make sure the two factors are expressed in terms of the same variables
+[Lmon,Rmon] = common_vars(Lmon,Rmon);
+
+degL = Lmon.degmat;
+degR = Rmon.degmat;
+if size(degL,1)~=1 || size(degR,1)~=1
+    error("The left and right polynomial in the inner product must be defined by exactly one monomial.")
 end
-if isa(Rop.ops{1},'nopvar')
-    d2 = 1;
-    Rops = {Rop.ops{1}};
-else
-    Rops = Rop.ops{1};
-    d2 = numel(Rops);
-end
+
+% Add the monomial degrees of the left and right monomials:
+%   [x1^d1*...*xm^dm] * [x1^p1*...*xm^pm] = x1^(d1+p1)*...*xm^(dm+pm)
+deg_new = degL+degR;
+d1 = sum(degL);
+d2 = sum(degR);
 dtot = d1+d2;
+nvars = size(deg_new,2);
+% % Establish the new order of the independent variables:
+% If we have e.g. the product of a monomial in 5 factors with a monomial in 
+% 4 factors,
+%   [x1(t1)*x1(t2)*x2(t3)*x2(t4)*x2(t5)] * [x1(t6)*x1(t7)*x2(t8)*x2(t9)]
+% we need to re-index the independent variables (t1,...,t9) to get
+%    x1(t1)*x1(t2)*x1(t3)*x1(t4) * x2(t5)*x2(t6)*x2(t7)*x2(t8)*x2(t9);
+% First, assign each factor k in Lmon(x) an index j=p1_idcs(k)=k, meaning 
+% that factor k depends on variable t_{j}=t_{k}
+p1_idcs = [[0,cumsum(degL(1:end-1))];cumsum(degL)];
+p1_idcs = mat2cell(p1_idcs,2,ones(1,nvars));
+p1_idcs = cellfun(@(a)(a(1)+1:a(2))',p1_idcs,'UniformOutput',false);
+% Similarly, assign each factor k in Rmon(x) an index j=p2_idcs(k)=k+d1,
+% meaning that factor k depends on variable t_{j}=t_{k+d1}
+p2_idcs = d1+[[0,cumsum(degR(1:end-1))];cumsum(degR)];
+p2_idcs = mat2cell(p2_idcs,2,ones(1,nvars));
+p2_idcs = cellfun(@(a)(a(1)+1:a(2))',p2_idcs,'UniformOutput',false);
+% Assign each factor in the product Lmon(x)*Rmon(x) an index
+p_idcs = [p1_idcs;p2_idcs];
+quad_var_order = cell2mat(p_idcs(:))';     % quad_var_order(i) = k means that factor i in the linear representation corresponds to factor k in the quadratic one
+% Reorder so that factor k in the product again depends on variable t_{k}
+[~,var_order] = sort(quad_var_order);      % var_order(k) = i means that factor k in the old monomials is assigned variable t_{i}
+
+
+% Extract the operators acting on the left and right monomials
+if isa(Lmon.C.ops{1},'nopvar')
+    Lops = Lmon.C.ops;
+else
+    Lops = Lmon.C.ops{1};
+end
+if isa(Rmon.C.ops{1},'nopvar')
+    Rops = Rmon.C.ops;
+else
+    Rops = Rmon.C.ops{1};
+end
+if size(Lops,1)>1 || size(Rops,1)>1
+    error("Conversion of polynomials with multiple terms is not supported.")
+end
+if numel(Lops)~=d1 || numel(Rops)~=d2
+    error("Number of factors in coefficient operator should match the power of the monomial.")
+end
 
 % Convert the coefficients defining each parameter to a 'nopvar' object
 Pop_params = cell(1,d1+d2);
@@ -114,9 +155,9 @@ for kk=1:dtot
         error("Spatial domains of the operators must match.")
     end
     % Set the kth dummy variable
-    var2_kk_name = [var2_name,'_',num2str(kk)];
+    var2_kk_name = [var2_name,'_',num2str(var_order(kk))];
     var2_kk = polynomial({var2_kk_name});
-    var2(kk) = var2_kk;
+    var2(var_order(kk)) = var2_kk;
     % % Build monomial vectors in primary and dummy variables
     deg_kk = Pop_kk.deg;
     % Z1 = var1.^(0:Pop_kk.deg(1))';
@@ -145,8 +186,8 @@ end
 if sum(has_multiplier)>1 && (d1~=1 || d2~=1)
     error("At most one of the operators may include a multiplier component.")
 else
-    m_num = find(has_multiplier,1,'first');
-    var_m = var2(m_num);
+    m_nums = find(has_multiplier);
+    vars_m = var2(var_order(m_nums));
 end
 
 
@@ -181,11 +222,11 @@ for ii=1:n_ords
         % Extract the associated parameter from each operator Pop_kk
         Ljj = 1;
         for kk=1:d1
-            Ljj = Ljj.*Pop_params{kk}{is_geq_s(kk)+2};
+            Ljj = Ljj.*Pop_params{kk}{is_geq_s(var_order(kk))+2};
         end
         Rjj = 1;
         for kk=d1+(1:d2)
-            Rjj = Rjj.*Pop_params{kk}{is_geq_s(kk)+2};
+            Rjj = Rjj.*Pop_params{kk}{is_geq_s(var_order(kk))+2};
         end
         % Integrate the product of the parameters over the interval
         if jj==1
@@ -201,33 +242,33 @@ for ii=1:n_ords
         Pvec_ii = Pvec_ii + int(Ljj*Pmat*Rjj,var1,L,U);
     end
     % Also account for possible multiplier term: tj = s
-    if any(has_multiplier)
+    for jj=1:numel(m_nums)
         [~,ord_ii] = sort(idx_ii);
-        ord_m = ord_ii(m_num);
+        ord_m = ord_ii(var_order(m_nums(jj)));
         L_tmp = 1;
         for kk=1:d1
-            if ord_ii(kk)<ord_m
+            if ord_ii(var_order(kk))<ord_m
                 % t_k <= t_m = s
-                L_tmp = L_tmp.*subs(Pop_params{kk}{2},var1,var_m);
-            elseif ord_ii(kk)==ord_m
+                L_tmp = L_tmp.*subs(Pop_params{kk}{2},var1,vars_m(jj));
+            elseif ord_ii(var_order(kk))==ord_m
                 % t_k == t_m = s
-                L_tmp = L_tmp.*Pop_params{m_num}{1};
+                L_tmp = L_tmp.*Pop_params{m_nums(jj)}{1};
             else
                 % t_k >= t_m = s
-                L_tmp = L_tmp.*subs(Pop_params{kk}{3},var1,var_m);
+                L_tmp = L_tmp.*subs(Pop_params{kk}{3},var1,vars_m(jj));
             end
         end
         R_tmp = 1;
         for kk=d1+(1:d2)
-            if ord_ii(kk)<ord_m
+            if ord_ii(var_order(kk))<ord_m
                 % t_k <= t_m = s
-                R_tmp = R_tmp.*subs(Pop_params{kk}{2},var1,var_m);
-            elseif ord_ii(kk)==ord_m
+                R_tmp = R_tmp.*subs(Pop_params{kk}{2},var1,vars_m(jj));
+            elseif ord_ii(var_order(kk))==ord_m
                 % t_k == t_m = s
-                R_tmp = R_tmp.*Pop_params{m_num}{1};
+                R_tmp = R_tmp.*Pop_params{m_nums(jj)}{1};
             else
                 % t_k >= t_m = s
-                R_tmp = R_tmp.*subs(Pop_params{kk}{3},var1,var_m);
+                R_tmp = R_tmp.*subs(Pop_params{kk}{3},var1,vars_m(jj));
             end
         end
         Pvec_ii = Pvec_ii + L_tmp*Pmat*R_tmp;

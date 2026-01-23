@@ -23,6 +23,7 @@ function Vx = quad2lin(Pmat,ZopL,ZxL,ZopR,ZxR)
 %               V(x) = <ZopL*ZL(x), Pmat*ZopR*ZR(x)>_{L2}
 %           in the linear format;
 %
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - quad2lin
 %
@@ -51,9 +52,11 @@ function Vx = quad2lin(Pmat,ZopL,ZxL,ZopR,ZxR)
 
 
 % Assume a symmetric operator if only one half is specified.
+is_symmetric = false;
 if nargin<=3 && size(Pmat,1)==size(Pmat,2)
     ZopR = ZopL;
     ZxR = ZxL;
+    is_symmetric = true;
 elseif nargin<=3
     error("Insufficient input arguments.")
 end
@@ -91,16 +94,21 @@ Kop.ops = cell(1,nZ_lin);
 for ii=1:nZL
     % Extract the monomial operators acting on the ith distributed
     % monomials
-    Zop_ii = ZopL(ii,ii);
-    for jj=1:nZR
+    Zop_ii = ZxL;
+    Zop_ii.degmat = degmatL(ii,:);
+    Zop_ii.C = ZopL(ii,ii);
+    for jj=(ii-1)*is_symmetric+1:nZR
         % Extract the monomial operators acting on the jth distributed
         % monomial
-        Zop_jj = ZopR(jj,jj);
+        Zop_jj = ZxR;
+        Zop_jj.degmat = degmatL(jj,:);
+        Zop_jj.C = ZopR(jj,jj);
+        %Zop_jj = ZopR(jj,jj);
         % Extract the block of decision variables acting on monomials Zi
         % and Zj
         Pij = Pmat(blkdimL_cum(ii)+1:blkdimL_cum(ii+1), blkdimR_cum(jj)+1:blkdimR_cum(jj+1));
         % Convert to the linear format
-        Kij = quad2lin_term(Zop_ii,Pij,Zop_jj);
+        Kij = quad2lin_term(Pij,Zop_ii,Zop_jj);
         % We need to re-order variables to account for the orderof the 
         % state variables in the distributed monomials
         %   i.e. degmat=[2,2] indicates x(s1)*x(s2)*v(s3)*v(s4)
@@ -109,10 +117,17 @@ for ii=1:nZL
         % Match the obtained kernels with the correct distributed monomial
         lidx = old2new_idcs((ii-1)*nZL+jj);
         if isempty(Kop.ops{lidx})
-            Kop.ops{lidx} = Kij;
+            Kop.ops{lidx} = cell(size(Kij));
+            if is_symmetric && ii~=jj
+                for kk=1:numel(Kij)
+                    Kop.ops{lidx}{kk} = 2*Kij{kk};
+                end
+            else
+                Kop.ops{lidx} = Kij;
+            end
         else
-            for kk=1:numel(Kop.ops{lidx})
-                Kop.ops{lidx}{kk} = Kij{kk};
+            for kk=1:numel(Kij)
+                Kop.ops{lidx}{kk} = Kop.ops{lidx}{kk} + (1+is_symmetric)*Kij{kk};
             end
         end
     end
