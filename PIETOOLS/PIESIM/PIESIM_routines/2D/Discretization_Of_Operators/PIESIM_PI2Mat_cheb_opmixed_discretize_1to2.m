@@ -51,8 +51,8 @@ else
     var=s1;
     snstr=s1.varname{1};
 end
-ns_row=size(p,2);
-ns_col=size(p1,2);
+ns_row=length(p);
+ns_col=length(p1);
 
 for i=1:ns_row
     rsize=N-p(i)+1;
