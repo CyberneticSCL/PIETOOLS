@@ -85,6 +85,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                     return
                 end
                 varname = varargin{1};
+                p = numel(varname);
                 % Check which spatial variables x depends on
                 if nargin<=1
                     pvarname = {};
@@ -95,7 +96,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                         if ~ispvar(varargin{2})
                             error("Spatial variables must be specified as array of 'pvar' objects.")
                         end
-                        pvarname = cell(numel(varargin{2}));
+                        pvarname = cell(numel(varargin{2}),1);
                         for jj=1:numel(pvarname)
                             pvarname(jj) = varargin{2}(jj).varname;
                         end
@@ -128,7 +129,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                 P.degmat = 1;
                 P.varname = varname;
                 P.pvarname = pvarname;
-                P.varmat = true(1,N);
+                P.varmat = true(p,N);
                 P.dom = dom;
             end
         end

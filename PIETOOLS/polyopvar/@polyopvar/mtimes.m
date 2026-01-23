@@ -1,4 +1,4 @@
-function p = mtimes(T,v)
+function p = mtimes_old(T,v)
 % p = mtimes(T,v) returns the 'polyopvar' object p representing the 'nopvar'
 % operator T acting on the 'polyopvar' object v, representing a single state 
 % variable of degree 1.
