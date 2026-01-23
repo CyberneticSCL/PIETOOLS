@@ -50,8 +50,8 @@ else
     snstr=s1.varname{1};
 end
 
-    ns_row=size(prow,2);
-    ns_col=size(pint,2);
+    ns_row=length(prow);
+    ns_col=length(pint);
 
 for i=1:ns_row
     rsize=N-prow(i)+1;
