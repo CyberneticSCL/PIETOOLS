@@ -1,5 +1,5 @@
-function [Kcell,idx_mat,var2] = quad2lin_term(Pmat,Lmon,Rmon)
-% [KCELL,IDX_MAT,VAR2] = QUAD2LIN_TERM(PMAT,LMON,RMON) takes a distributed
+function [Kop] = quad2lin_term(Pmat,Lmon,Rmon,dom,var1,var2)
+% [KOP] = QUAD2LIN_TERM(PMAT,LMON,RMON) takes a distributed
 % polynomial in quadratic form
 %   V(x) = <LMON(x) , PMAT*RMON(x))>_{L2},
 % for 
@@ -7,7 +7,7 @@ function [Kcell,idx_mat,var2] = quad2lin_term(Pmat,Lmon,Rmon)
 % and converts it to the linear form, computing a cell KCELL of
 % kernels such that
 %  V(x) = sum_{i=1}^{m} int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b} 
-%           Kcell{i}(t1,...,td)*
+%           K_{k}(t1,...,td)*
 %           x1(t1)*...*x1(t_{d1+p1})*...*xm(t_{d-dm-pm+1})*...*xm(t_{d})
 %                                                       dt_kd ... dt_k1 
 % where kj = IDX_MAT(i,j) for j=1,...,d and i=1,...,m for m=d!, with 
@@ -20,20 +20,29 @@ function [Kcell,idx_mat,var2] = quad2lin_term(Pmat,Lmon,Rmon)
 %           involving a single (scalar) distributed monomial Z1(x);
 % - Rmon:   n x 1 'polyopvar' object representing an distributed monomial
 %           involving a single (scalar) distributed monomial Z1(x);
+% - dom:    (optional) 1x2 array specifing the interval, [a,b], over which
+%           integration is performed.
+% - var1:   (optional) 1x1 'pvar' object specifying the variable used in
+%           the integral defining the inner product;
+% - var2:   (optional) dx1 'pvar' object specifying the variables used in
+%           the multi-integral defining the inner product in linear format;
 %
 % OUTPUTS
-% - Kcell:  d! x 1 cell of 'quadpoly' objects, with the ith element
-%           representing the kernel in the ith term in the integral
-%           operator acting on x1 o ... o xd (for o the tensor product);
-% - idx_mat:    d! x d array, with each row specifying the order of the
-%               variables in the associated term in the integral operator.
-%               In particular, if idx_mat(i,:) = [k1,k2,...,kd], then term
-%               i is defined by the integral
-%                   int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b}
-%               so that a <= t_{k1} <= t_{k2} <= ... <= t_{kd} <= b;
-% - var2:   d x 1 'polynomial' array of 'pvar' objects, specifying the
-%           names of the variables t_{j} used in the definition of the
-%           kernels in Pvec;
+% - Kop:    struct with fields
+%               params: q x 1 cell of 'polynomial' or 'dpvar' objects,
+%                       corresponding to the kernels K_{k} representing the
+%                       functional in linear format
+%               omat:   q x p array of integers, where p is the number of
+%                       dummy variables for integration, with row i
+%                       specifying the order of the variables in the
+%                       integral associated with the ith kernel.
+%                       Specifically, if omat(i,:) = [k1,k2,...,kd], 
+%                       then term i is defined by the integral
+%                           int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b};
+%               vars:   p x 1 'polynomial' array specifying the names of
+%                       the dummy variables used in definition of the
+%                       kernels in Kop.params;
+%               dom:    interval [a,b] over which to integrate;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,18 +71,34 @@ function [Kcell,idx_mat,var2] = quad2lin_term(Pmat,Lmon,Rmon)
 %
 % DJ, 01/21/2026: Initial coding
 
-if ~isa(Lmon,'polyopvar') || ~isa(Rmon,'polyopvar')
+% Process the left and right factors
+if isa(Lmon,'polyopvar') && isa(Rmon,'polyopvar')
+    % Make sure the two factors are expressed in terms of the same variables
+    [Lmon,Rmon] = common_vars(Lmon,Rmon);
+    degL = Lmon.degmat;
+    degR = Rmon.degmat;
+elseif (isa(Lmon,'polynomial') || isa(Lmon,'dpvar')) || isempty(Lmon) && isa(Rmon,'polyopvar')
+    degL = 0;
+    degR = Rmon.degmat;
+else
     error("Monomials terms in the inner product should be specified as 'polyopvar' objects.")
 end
-
-% Make sure the two factors are expressed in terms of the same variables
-[Lmon,Rmon] = common_vars(Lmon,Rmon);
-
-degL = Lmon.degmat;
-degR = Rmon.degmat;
 if size(degL,1)~=1 || size(degR,1)~=1
     error("The left and right polynomial in the inner product must be defined by exactly one monomial.")
 end
+
+% Check that the other arguments are properly specified
+if isempty(Pmat)
+    Pmat = 1;
+end
+if nargin<=3
+    dom = [];
+end
+if nargin<=4
+    var1 = [];
+end
+
+
 
 % Add the monomial degrees of the left and right monomials:
 %   [x1^d1*...*xm^dm] * [x1^p1*...*xm^pm] = x1^(d1+p1)*...*xm^(dm+pm)
@@ -82,6 +107,12 @@ d1 = sum(degL);
 d2 = sum(degR);
 dtot = d1+d2;
 nvars = size(deg_new,2);
+if nargin<=5
+    var2 = polynomial(zeros(dtot,1));
+elseif numel(var2)~=dtot
+    error("Number of dummy variables must match the cumulative degree of the monomials.")
+end
+if any(d1>0)
 % % Establish the new order of the independent variables:
 % If we have e.g. the product of a monomial in 5 factors with a monomial in 
 % 4 factors,
@@ -103,13 +134,25 @@ p_idcs = [p1_idcs;p2_idcs];
 quad_var_order = cell2mat(p_idcs(:))';     % quad_var_order(i) = k means that factor i in the linear representation corresponds to factor k in the quadratic one
 % Reorder so that factor k in the product again depends on variable t_{k}
 [~,var_order] = sort(quad_var_order);      % var_order(k) = i means that factor k in the old monomials is assigned variable t_{i}
+else
+    var_order = 1:nvars;
+end
 
 
 % Extract the operators acting on the left and right monomials
-if isa(Lmon.C.ops{1},'nopvar')
-    Lops = Lmon.C.ops;
+if isa(Lmon,'polyopvar')
+    if isa(Lmon.C.ops{1},'nopvar')
+        Lops = Lmon.C.ops;
+    else
+        Lops = Lmon.C.ops{1};
+    end
 else
-    Lops = Lmon.C.ops{1};
+    if isempty(Lmon)
+        Lfctr = 1;
+    else
+        Lfctr = Lmon;
+    end
+    Lops = {};
 end
 if isa(Rmon.C.ops{1},'nopvar')
     Rops = Rmon.C.ops;
@@ -144,20 +187,27 @@ for kk=1:dtot
     % Extract the dimension of the operator
     dim_kk = Pop_kk.dim;
     if kk==1
-        % Extract primary and dummy variable
-        var1 = Pop_kk.vars(1);
-        var2_name = Pop_kk.vars(2).varname{1};
-        % Extract the domain
-        dom = Pop_kk.dom;
+        if isempty(var1)
+            % Set the variable of integration
+            var1 = Pop_kk.vars(1);
+        end
+        if isempty(dom)
+            % Extract the domain
+            dom = Pop_kk.dom;
+        end        
     end
-    % Check that the domains match
-    if any(Pop_kk.dom~=dom)
-        error("Spatial domains of the operators must match.")
-    end
+    % % Check that the domains match
+    % if any(Pop_kk.dom~=dom)
+    %     error("Spatial domains of the operators must match.")
+    % end
     % Set the kth dummy variable
-    var2_kk_name = [var2_name,'_',num2str(var_order(kk))];
-    var2_kk = polynomial({var2_kk_name});
-    var2(var_order(kk)) = var2_kk;
+    if isequal(var2(var_order(kk)),0)
+        var2_kk_name = [var1.varname{1},'_',num2str(var_order(kk))];
+        var2_kk = polynomial({var2_kk_name});
+        var2(var_order(kk)) = var2_kk;
+    else
+        var2_kk = var2(var_order(kk));
+    end
     % % Build monomial vectors in primary and dummy variables
     deg_kk = Pop_kk.deg;
     % Z1 = var1.^(0:Pop_kk.deg(1))';
@@ -239,7 +289,11 @@ for ii=1:n_ords
         else
             U = var2(idx_ii(1,jj));
         end
-        Pvec_ii = Pvec_ii + int(Ljj*Pmat*Rjj,var1,L,U);
+        if d1==0
+            Pvec_ii = Pvec_ii + int(Lfctr*Pmat*Rjj,var1,L,U);
+        else
+            Pvec_ii = Pvec_ii + int(Ljj*Pmat*Rjj,var1,L,U);
+        end
     end
     % Also account for possible multiplier term: tj = s
     for jj=1:numel(m_nums)
@@ -257,6 +311,9 @@ for ii=1:n_ords
                 % t_k >= t_m = s
                 L_tmp = L_tmp.*subs(Pop_params{kk}{3},var1,vars_m(jj));
             end
+        end
+        if d1==0
+            L_tmp = subs(Lfctr,var1,vars_m(jj));
         end
         R_tmp = 1;
         for kk=d1+(1:d2)
@@ -297,5 +354,11 @@ end
 if d1==1 && d2==1 && sum(has_multiplier)==2
     Kcell = [Kcell; {Pop_params{1}{1}*Pmat*subs(Pop_params{2}{1},var2(2),var2(1))}];
 end
+
+Kop = struct();
+Kop.params = Kcell;
+Kop.omat = idx_mat;
+Kop.vars = var2;
+Kop.dom = dom;
 
 end

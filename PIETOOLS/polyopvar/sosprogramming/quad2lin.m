@@ -117,17 +117,15 @@ for ii=1:nZL
         % Match the obtained kernels with the correct distributed monomial
         lidx = old2new_idcs((ii-1)*nZL+jj);
         if isempty(Kop.ops{lidx})
-            Kop.ops{lidx} = cell(size(Kij));
+            Kop.ops{lidx} = Kij;
             if is_symmetric && ii~=jj
-                for kk=1:numel(Kij)
-                    Kop.ops{lidx}{kk} = 2*Kij{kk};
+                for kk=1:numel(Kij.params)
+                    Kop.ops{lidx}.params{kk} = 2*Kij.params{kk};
                 end
-            else
-                Kop.ops{lidx} = Kij;
             end
         else
-            for kk=1:numel(Kij)
-                Kop.ops{lidx}{kk} = Kop.ops{lidx}{kk} + (1+is_symmetric)*Kij{kk};
+            for kk=1:numel(Kij.params)
+                Kop.ops{lidx}.params{kk} = Kop.ops{lidx}{kk} + (1+is_symmetric)*Kij{kk};
             end
         end
     end

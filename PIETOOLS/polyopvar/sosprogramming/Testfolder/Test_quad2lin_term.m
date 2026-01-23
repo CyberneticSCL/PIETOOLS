@@ -5,12 +5,12 @@ var2 = s1_dum;
 dom = [0,1];
 deg = 2;        % maximal monomial degree in independent variables
 m = 3;      n = 2;
-nvars = 1;
-deg1 = randi(1,[1,nvars])-1;
+nvars = 2;
+deg1 = randi(3,[1,nvars])-1;
 if ~any(deg1)
     deg1(randi(nvars))=1;
 end
-deg2 = randi(1,[1,nvars])-1;
+deg2 = randi(3,[1,nvars])-1;
 if ~any(deg2)
     deg2(randi(nvars))=1;
 end
@@ -70,7 +70,10 @@ Rmon.C = Rops;
 Pmat = rand([m,n]);
 
 % Convert to linear form
-[Pvec,idx_mat,var2] = quad2lin_term(Pmat,Lmon,Rmon);
+[Kop] = quad2lin_term(Pmat,Lmon,Rmon);
+Pvec = Kop.params;
+idx_mat = Kop.omat;
+var2 = Kop.vars;
 
 % Generate random functions xi(s)
 x_tst = polynomial(zeros(1,nvars));

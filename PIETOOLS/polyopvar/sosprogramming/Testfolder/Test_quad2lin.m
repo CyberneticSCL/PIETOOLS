@@ -41,9 +41,18 @@ fval12 = int(z1_tst'*P12*z2_tst,s1,dom(1),dom(2));
 fval21 = int(z2_tst'*P21*z1_tst,s1,dom(1),dom(2));
 fval22 = int(z2_tst'*P22*z2_tst,s1,dom(1),dom(2));
 
-fval_alt11 = apply_functional(Vx.C.ops{1},x_tst,Vx.degmat(1,:),[],[s1_dum_1;s1_dum_2],dom);
-fval_alt12 = apply_functional(Vx.C.ops{2},x_tst,Vx.degmat(2,:),[],[s1_dum_1;s1_dum_2;s1_dum_3],dom);
-fval_alt22 = apply_functional(Vx.C.ops{3},x_tst,Vx.degmat(3,:),[],[s1_dum_1;s1_dum_2;s1_dum_3;s1_dum_4],dom);
+K1 = Vx.C.ops{1}.params;    
+idx1 = Vx.C.ops{1}.omat;
+vars1 = Vx.C.ops{1}.vars;
+fval_alt11 = apply_functional(K1,x_tst,Vx.degmat(1,:),idx1,vars1,dom);
+K2 = Vx.C.ops{2}.params;    
+idx2 = Vx.C.ops{2}.omat;
+vars2 = Vx.C.ops{2}.vars;
+fval_alt12 = apply_functional(K2,x_tst,Vx.degmat(2,:),idx2,vars2,dom);
+K3 = Vx.C.ops{3}.params;    
+idx3 = Vx.C.ops{3}.omat;
+vars3 = Vx.C.ops{3}.vars;
+fval_alt22 = apply_functional(K3,x_tst,Vx.degmat(3,:),idx3,vars3,dom);
   
 err_11 = fval11 - fval_alt11;
 err_12 = fval12 + fval21 - fval_alt12;
