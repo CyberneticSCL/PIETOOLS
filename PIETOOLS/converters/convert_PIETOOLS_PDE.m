@@ -117,7 +117,9 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ, 06/18/2025: Expand higher-order temporal derivatives only after
 %                   conversion. Also, display summary of how PIE variables
 %                   relate to PDE variables, and add an optional argument
-%                   to suppress this summary.
+%                   to suppress this summary
+% DJ, 01/24/2026: Additional check to avoid cases where derivative is taken
+%                   of input signals (in 2D);
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1636,15 +1638,23 @@ for jj = 1:numel(Pop_x_cell)
     % Repeat for the input signals.
     if any(Top_u.dim(:,2))
         Top_u_jj = Top_u(retain_xvars,:);
-        Top_u_jj = diff(Top_u_jj,vars(:,1),Dval','pure');
-        Top_u_jj = subs(Top_u_jj,vars(:,1),Rloc','pure');
+        try                                                                 % DJ, 01/24/2026
+            Top_u_jj = diff(Top_u_jj,vars(:,1),Dval','pure');
+            Top_u_jj = subs(Top_u_jj,vars(:,1),Rloc','pure');
+        catch
+            error("Conversion to PIE currently not supported: PIE involves (additional) derivatives or boundary values of actuator input.")
+        end
         PTop = Pop_jj * Top_u_jj;
         Pop_u = Pop_u + PTop;
     end
     if any(Top_w.dim(:,2))
         Top_w_jj = Top_w(retain_xvars,:);
-        Top_w_jj = diff(Top_w_jj,vars(:,1),Dval','pure');
-        Top_w_jj = subs(Top_w_jj,vars(:,1),Rloc','pure');
+        try                                                                 % DJ, 01/24/2026
+            Top_w_jj = diff(Top_w_jj,vars(:,1),Dval','pure');
+            Top_w_jj = subs(Top_w_jj,vars(:,1),Rloc','pure');
+        catch
+            error("Conversion to PIE currently not supported: PIE involves (additional) derivatives or boundary values of exogenous input.")
+        end
         PTop = Pop_jj * Top_w_jj;
         Pop_w = Pop_w + PTop;
     end    
