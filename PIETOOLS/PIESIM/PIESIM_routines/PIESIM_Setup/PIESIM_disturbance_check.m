@@ -41,37 +41,9 @@ end
 if (type=='PDE')
     nw = sum(PDE.w_tab(:,2)); % number of disturbances
     nu = sum(PDE.u_tab(:,2)); % number of control inputs
-
-    % Initialize the sizes
-
-   nu2=0;
-   nux=0;
-   nuy=0;
-   nu0=0;
-
-   nw2=0;
-   nwx=0;
-   nwy=0;
-   nw0=0;
-
 else
     nu=size(PIE.Tu,2); % number of disturbances
     nw=size(PIE.Tw,2); % number of control inputs
-
-      % Define the sizes of FD versus INFD inputs (disturbances and control inputs must be provided in the correct
-      % order - first FD and then INFD - as no sorting as available)
-
-          % 2D INFD disturbances are not yet supported with PIE format
-    nu2=0;
-    nuy=0;
-    nw2=0;
-    nwy=0;
-
-    nu0=size(PIE.Tu.P,2);
-    nux=size(PIE.Tu.Q1,2);
-
-    nw0=size(PIE.Tw.P,2);
-    nwx=size(PIE.Tw.Q1,2);
 end
 
   if (nu>0 & ~isfield(uinput,'u') )
@@ -373,44 +345,5 @@ end
         end
     end % (~isdouble(uinput.w{k}))
     end % for k
-
-    % Count number of disturbances according to their spatial structure (if
-    % in PDE format)
-
-
-     if (type=='PDE')
-     for k=1:nw
-        dom=PDE.w{k,1}.dom;
-         if (uinput.wspace{k}==0)
-             nw0=nw0+1;
-         elseif (uinput.wspace{k}==1)
-             if (size(dom,1)==1)
-             nwx=nwx+1;
-             elseif (size(dom,1)==2)
-             nw2=nw2+1;
-             end
-         elseif has(uinput.wspace{k},'sx') & has(uinput.wspace{k},'sy')
-             nw2=nw2+1;
-         elseif has(uinput.wspace{k},'sx')
-                 nwx=nwx+1; 
-         else
-                 nwy=nwy+1; 
-         end
-     end % for k
-
-     end % if PDE
-
-         % Append sizes to uinput
-         uinput.nu=nu;
-         uinput.nu0=nu0;
-         uinput.nux=nux;
-         uinput.nuy=nuy;
-         uinput.nu2=nu2;
-
-         uinput.nw=nw;
-         uinput.nw0=nw0;
-         uinput.nwx=nwx;
-         uinput.nwy=nwy;
-         uinput.nw2=nw2;
 
 end
