@@ -126,6 +126,14 @@ end
 %   USER INPUT ENDS
 %--------------------------------------------------------------------------
 
+% If disturbances are used while supplying PIE input to PIESIM, 
+% user needs to ensure that finite-dimensional distubrances are
+% entered before infinite-dimensional disturbances for a proper
+% functionality. Disturbances are not reordered automatically with the PIE
+% structure as they are with the PDE structure.
+
+% PIE = convert_PIETOOLS_PDE(PDE,'pie');
+
 if exist('PIE','var')
     solution = PIESIM(PIE,opts,uinput,PDE.n.n_pde);
 elseif exist('DDE','var')
@@ -133,6 +141,7 @@ elseif exist('DDE','var')
 else
     solution = PIESIM(PDE,opts,uinput);
 end
+
 
 
 
