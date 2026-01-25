@@ -198,7 +198,7 @@ if PDE.dim==2
     ns = sum(psize.n,'all');
     else
         nsx=sum(psize.nx,'all');
-        nsy=sum(psize.nfy,'all');
+        nsy=sum(psize.ny,'all');
         ns2d=sum(psize.n,'all');
     ns = nsx+nsy+ns2d;
     end
@@ -1106,3 +1106,4 @@ end
 
 
 end
+
