@@ -120,6 +120,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %                   to suppress this summary
 % DJ, 01/24/2026: Additional check to avoid cases where derivative is taken
 %                   of input signals (in 2D);
+% DJ, 01/25/2026: Bugfix in case BCs only involve lower boundary values;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -404,7 +405,7 @@ np_op.BC = get_opdim(PDE.BC_tab);
 % % %     = (P_b2x*Pf2b + P_f2x) * xf + (P_b2x*P_u2b) * u + (P_b2x*P_w2b) * w
 % % %     = Tx * xf + Tu * u + Tw * w;
 % Start with Tx.
-if Pop_f2BC==0
+if Pop_f2BC==0 && (~any(np_op.u) || Pop_u2BC==0) && (~any(np_op.w) || Pop_w2BC==0)      % DJ, 01/25/2026
     % If boundary conditions are imposed only on lower boundaries, the core
     % boundary states must all be zero.
     % --> x = P_b2x * 0 + P_f2x * xf = P_f2x * xf
