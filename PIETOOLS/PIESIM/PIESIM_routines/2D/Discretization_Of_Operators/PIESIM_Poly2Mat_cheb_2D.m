@@ -29,6 +29,8 @@
 % DJ, 12/16/2024: Correct limits of for loop j=1:size(acheb);
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
 %                   defining R as additional inputs.
+% YP, 1/25/2026: Fixed construction of a non-squre matrix for the 2D state
+% reconstruction
 
 function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb_2D(N, Rop, var1, p)
 
@@ -62,10 +64,18 @@ for k=1:size(Rop,2)
 
     acheb=reshape(fcgltran2d(double(Reval),1),[],1);
 
-for j=1:length(acheb)                                                       % DJ, 12/16/2024
+for j=1:length(acheb)                                                     
 A_block(j,k,m)=acheb(j);
-A_block_nonsquare(j,k,m)=acheb(j);
 end
+
+% YP 1/25/2026
+
+% Indices in the new matrix where original rows go
+origRows = 1:rsize^2;
+% Compute target indices in A_block_nonsquare
+newRows = origRows + floor((origRows-1)/rsize)*p(m);
+% Fill original rows
+A_block_nonsquare(newRows, :) = A_block;
 
 end % k loop
 
