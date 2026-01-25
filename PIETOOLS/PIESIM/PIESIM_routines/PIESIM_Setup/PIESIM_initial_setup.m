@@ -124,19 +124,18 @@ end
 % Differentiate disturbances and control inputs if needed
 
 for i=1:psize.nw
-    ii=psize.nw0+i;
-    w_xder =  diff(uinput.wspace{i},sx,psize.w_tab(ii,end-1));
-    uinput.wspace{i} =  diff(w_xder,sy,psize.w_tab(ii,end));
+    w_xder =  diff(uinput.wspace{i},sx,psize.w_tab(i,end-1));
+    uinput.wspace{i} =  diff(w_xder,sy,psize.w_tab(i,end));
 end
 
 for i=1:psize.nu
-    ii=psize.nu0+i;
-    u_xder =  diff(uinput.uspace{i},sx,psize.u_tab(ii,end-1));
-    uinput.uspace{i} =  diff(u_xder,sy,psize.u_tab(ii,end));
+    u_xder =  diff(uinput.uspace{i},sx,psize.u_tab(i,end-1));
+    uinput.uspace{i} =  diff(u_xder,sy,psize.u_tab(i,end));
 end
 
 end
 
 
 end
+
 
