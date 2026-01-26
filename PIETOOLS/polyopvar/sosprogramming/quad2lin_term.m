@@ -14,11 +14,11 @@ function [Kop] = quad2lin_term(Pmat,Lmon,Rmon,dom,var1,var2)
 % d=d1...+dm+p1+...+pm.
 %
 % INPUTS
-% - Pmat:   m x n 'double' or 'dpvar' object parameterizing the inner
+% - Pmat:   m1 x n1 'double' or 'dpvar' object parameterizing the inner
 %           product;
-% - Lmon:   m x 1 'polyopvar' object representing an distributed monomial
+% - Lmon:   m1 x m 'polyopvar' object representing an distributed monomial
 %           involving a single (scalar) distributed monomial Z1(x);
-% - Rmon:   n x 1 'polyopvar' object representing an distributed monomial
+% - Rmon:   n1 x n 'polyopvar' object representing an distributed monomial
 %           involving a single (scalar) distributed monomial Z1(x);
 % - dom:    (optional) 1x2 array specifing the interval, [a,b], over which
 %           integration is performed.
@@ -29,9 +29,10 @@ function [Kop] = quad2lin_term(Pmat,Lmon,Rmon,dom,var1,var2)
 %
 % OUTPUTS
 % - Kop:    struct with fields
-%               params: q x 1 cell of 'polynomial' or 'dpvar' objects,
-%                       corresponding to the kernels K_{k} representing the
-%                       functional in linear format
+%               params: m x q*n 'polynomial' or 'dpvar' object,
+%                       with elements (1:m,(i-1)*n+1:i*n) corresponding to 
+%                       the kernels in the ith term of the functional
+%                       in linear format
 %               omat:   q x p array of integers, where p is the number of
 %                       dummy variables for integration, with row i
 %                       specifying the order of the variables in the
@@ -39,6 +40,8 @@ function [Kop] = quad2lin_term(Pmat,Lmon,Rmon,dom,var1,var2)
 %                       Specifically, if omat(i,:) = [k1,k2,...,kd], 
 %                       then term i is defined by the integral
 %                           int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b};
+%               matdim: 1 x 2 array specifying the dimensions of the
+%                       kernels K{i};
 %               vars:   p x 1 'polynomial' array specifying the names of
 %                       the dummy variables used in definition of the
 %                       kernels in Kop.params;
@@ -135,7 +138,7 @@ quad_var_order = cell2mat(p_idcs(:))';     % quad_var_order(i) = k means that fa
 % Reorder so that factor k in the product again depends on variable t_{k}
 [~,var_order] = sort(quad_var_order);      % var_order(k) = i means that factor k in the old monomials is assigned variable t_{i}
 else
-    var_order = 1:nvars;
+    var_order = 1:dtot;
 end
 
 
@@ -146,6 +149,7 @@ if isa(Lmon,'polyopvar')
     else
         Lops = Lmon.C.ops{1};
     end
+    mdim = Lops{1}.dim(2);
 else
     if isempty(Lmon)
         Lfctr = 1;
@@ -153,12 +157,14 @@ else
         Lfctr = Lmon;
     end
     Lops = {};
+    mdim = size(Lfctr,1);
 end
 if isa(Rmon.C.ops{1},'nopvar')
     Rops = Rmon.C.ops;
 else
     Rops = Rmon.C.ops{1};
 end
+ndim = Rops{1}.dim(2);
 if size(Lops,1)>1 || size(Rops,1)>1
     error("Conversion of polynomials with multiple terms is not supported.")
 end
@@ -167,10 +173,9 @@ if numel(Lops)~=d1 || numel(Rops)~=d2
 end
 
 % Convert the coefficients defining each parameter to a 'nopvar' object
-Pop_params = cell(1,d1+d2);
-var2 = polynomial(zeros(dtot,1));
-has_multiplier = zeros(dtot,1);
-for kk=1:dtot
+Pop_params = cell(1,dtot);
+has_multiplier = zeros(1,dtot);
+for kk=1:numel(Pop_params)
     % Extract the kth operator
     if kk<=d1
         Pop_kk = Lops{kk};
@@ -197,9 +202,9 @@ for kk=1:dtot
         end        
     end
     % % Check that the domains match
-    % if any(Pop_kk.dom~=dom)
-    %     error("Spatial domains of the operators must match.")
-    % end
+    if any(~isequal(Pop_kk.dom,dom))
+        error("Spatial domains of the operators must match.")
+    end
     % Set the kth dummy variable
     if isequal(var2(var_order(kk)),0)
         var2_kk_name = [var1.varname{1},'_',num2str(var_order(kk))];
@@ -258,7 +263,11 @@ end
 % kernel
 n_ords = size(idx_mat,1);
 % ord_mat = zeros(n_ords,dtot);
-Kcell = cell(n_ords,1);
+if isa(Pmat,'dpvar')
+    Kparams = dpvar(zeros(mdim,ndim*n_ords));
+else
+    Kparams = polynomial(zeros(mdim,ndim*n_ords));
+end
 for ii=1:n_ords
     Pvec_ii = 0;
     idx_ii = idx_mat(ii,:);
@@ -276,7 +285,7 @@ for ii=1:n_ords
         end
         Rjj = 1;
         for kk=d1+(1:d2)
-            Rjj = Rjj.*Pop_params{kk}{is_geq_s(var_order(kk))+2};
+            Rjj = Rjj.*Pop_params{1,kk}{is_geq_s(var_order(kk))+2};
         end
         % Integrate the product of the parameters over the interval
         if jj==1
@@ -319,31 +328,18 @@ for ii=1:n_ords
         for kk=d1+(1:d2)
             if ord_ii(var_order(kk))<ord_m
                 % t_k <= t_m = s
-                R_tmp = R_tmp.*subs(Pop_params{kk}{2},var1,vars_m(jj));
+                R_tmp = R_tmp.*subs(Pop_params{1,kk}{2},var1,vars_m(jj));
             elseif ord_ii(var_order(kk))==ord_m
                 % t_k == t_m = s
-                R_tmp = R_tmp.*Pop_params{m_nums(jj)}{1};
+                R_tmp = R_tmp.*Pop_params{1,m_nums(jj)}{1};
             else
                 % t_k >= t_m = s
-                R_tmp = R_tmp.*subs(Pop_params{kk}{3},var1,vars_m(jj));
+                R_tmp = R_tmp.*subs(Pop_params{1,kk}{3},var1,vars_m(jj));
             end
         end
         Pvec_ii = Pvec_ii + L_tmp*Pmat*R_tmp;
-
-        % m_idx = find(idx_ii==m_num,1,'first');
-        % for kk=idx_ii(1:m_idx-1)
-        %     % Loop over all variables k for which t_k <= t_m = s
-        %     R_tmp = R_tmp.*subs(Pop_params{kk}{2},var1,var_m);
-        % end
-        % % Deal with the operator which has a multiplier
-        % R_tmp = R_tmp.*Pop_params{m_num}{1};
-        % for kk=idx_ii(m_idx+1:end)
-        %     % Loop over all variables k for which t_k >= t_m = s
-        %     R_tmp = R_tmp.*subs(Pop_params{kk}{3},var1,var_m);
-        % end
-        % Pvec_ii = Pvec_ii + R_tmp;
     end
-    Kcell{ii} = Pvec_ii;
+    Kparams(:,(ii-1)*ndim+1:ii*ndim) = Pvec_ii;
 end
 % In the case of a quadratic function
 %   < Zop*x , P*Zop*x>
@@ -352,13 +348,14 @@ end
 % We store the parameter Z0(s)^T*Pmat*Z0(s) as an extra element of the
 % cell.
 if d1==1 && d2==1 && sum(has_multiplier)==2
-    Kcell = [Kcell; {Pop_params{1}{1}*Pmat*subs(Pop_params{2}{1},var2(2),var2(1))}];
+    Kparams = [Kparams, Pop_params{1}{1}*Pmat*subs(Pop_params{2}{1},var2(2),var2(1))];
 end
 
 Kop = struct();
-Kop.params = Kcell;
+Kop.params = Kparams;
 Kop.omat = idx_mat;
 Kop.vars = var2;
 Kop.dom = dom;
+Kop.matdim = [mdim,ndim];
 
 end
