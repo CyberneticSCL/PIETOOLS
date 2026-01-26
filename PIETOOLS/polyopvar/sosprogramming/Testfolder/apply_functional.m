@@ -1,4 +1,4 @@
-function fval = apply_functional(Kcell,xvals,degmat,idx_mat,vars,dom)
+function fval = apply_functional(Kop,xvals,degmat)
 % FVAL = APPLY_FUNCTIONAL(KCELL,XVALS,IDX_MAT,VARS,DOM) computes the value
 % of the integral
 % f(x) = sum_{i=1}^{m} int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b} 
@@ -7,22 +7,27 @@ function fval = apply_functional(Kcell,xvals,degmat,idx_mat,vars,dom)
 % given values of the polynomial functions xi;
 %
 % INPUTS
-% - Kcell:  m x 1 cell with the ith element a polynomial of d variables,
-%           specifying the kernel to be used in term i of the integral 
-%           (functional) operator;
-% - xvals:  n x 1 array of type 'polynomial' 
-% - degmat: 1 x n array of integers, specifying the degrees of the
+% - Kop:    struct with fields
+%               params: m x q*n 'polynomial' or 'dpvar' object,
+%                       with elements (1:m,(i-1)*n+1:i*n) corresponding to 
+%                       the kernels in the ith term of the functional
+%                       in linear format
+%               omat:   q x p array of integers, where p is the number of
+%                       dummy variables for integration, with row i
+%                       specifying the order of the variables in the
+%                       integral associated with the ith kernel.
+%                       Specifically, if omat(i,:) = [k1,k2,...,kd], 
+%                       then term i is defined by the integral
+%                           int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b};
+%               matdim: 1 x 2 array specifying the dimensions of the
+%                       kernels K{i};
+%               vars:   p x 1 'polynomial' array specifying the names of
+%                       the dummy variables used in definition of the
+%                       kernels in Kop.params;
+%               dom:    interval [a,b] over which to integrate;
+% - xvals:  d x 1 array of type 'polynomial' 
+% - degmat: 1 x d array of integers, specifying the degrees of the
 %           state variables appearing in the distributed monomials;
-% - idx_mat:    m x d array specifying for each of the kernels the
-%               associated order of the variables of integration, so that
-%               if idx_mat(l,:) = [i,j,k], then a <= ti <= tj <= tk <= b
-%               and therfore the lth term has integral
-%                   int_{a}^{b} int_{ti}^{b} int_{tj}^{b} ... dtk dtj dti
-%               where d=sum(degmat)
-% - vars:   d x 1 array of type 'polynomial' specifying the dummy variables
-%           for integration, (t1,...,td). These must be the same as the
-%           variables that appear in the polynomials in Kcell!
-% - dom:    1 x 2 array, [a,b], specifying the spatial domain
 %
 % OUTPUTS
 % - fval:   The value of the function f(x) for the specified K and x;
@@ -36,6 +41,14 @@ end
 if size(degmat,1)~=1
     error("Polynomials involving multiple monomials are not supported.")
 end
+
+Kparams = Kop.params;
+idx_mat = Kop.omat;
+vars = Kop.vars;
+dom = Kop.dom;
+mdim = Kop.matdim(1);
+ndim = Kop.matdim(2);
+
 % Establish for each factor in the monomial which state variable is
 % considered
 state_idcs = [];
@@ -72,14 +85,12 @@ if isempty(idx_mat)
 end
 
 
-fval = zeros(size(Kcell{1}));
-if d>2 && numel(Kcell)>factorial(d)
+fval = zeros(mdim,ndim);
+n_terms = size(Kparams,2)/ndim;
+if d>2 && n_terms>factorial(d)
     error("Number of operators should be d! for monomial degree d.")
 end
-for ii=1:min(numel(Kcell),factorial(d))
-    if isempty(Kcell{ii})
-        continue
-    end
+for ii=1:min(n_terms,factorial(d))
     % Check the order of the variables:
     %   idx_ii = [i,j,k] implies a <= ti <= tj <= tk <= b
     idx_ii = idx_mat(ii,:);
@@ -88,7 +99,7 @@ for ii=1:min(numel(Kcell),factorial(d))
     %   int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b} 
     %           Kcell{i}(t1,...,td)*x1(t1)...xd(td) dt_kd ... dt_k1 
     % where kj = idx_ii(i,j) for j=1,...,d and i=1,...,m for m=d!.
-    fval_ii = Kcell{ii};
+    fval_ii = Kparams(:,(ii-1)*ndim+1:ii*ndim);
     for jj=d:-1:2
         var_num = idx_ii(jj);   % integrating over the jth biggest variable
         L = vars(idx_ii(jj-1)); % integrating from the j-1th biggest variable up to b
@@ -102,10 +113,10 @@ for ii=1:min(numel(Kcell),factorial(d))
     fval = fval + fval_ii;
 end
 
-if d==2 && numel(Kcell)==3
+if d==2 && n_terms==3
     % Third term corresponds to the multiplier
     %   int_{a}^{b} P(s)*x(s)^2 ds
-    fval = fval + int(Kcell{3}*xvals_full(1)*subs(xvals_full(2),vars(2),vars(1)),vars(1),dom(1),dom(2));
+    fval = fval + int(Kparams(:,2*ndim+1:3*ndim)*xvals_full(1)*subs(xvals_full(2),vars(2),vars(1)),vars(1),dom(1),dom(2));
 end
 
 

@@ -1,12 +1,12 @@
 clear
-pvar s1 s1_dum
+pvar s1 s1_dum s2 s2_dum
 var1 = s1;
 var2 = s1_dum;
 dom = [0,1];
 deg = 2;        % maximal monomial degree in independent variables
 m = 3;      n = 2;
-nvars = 2;
-deg1 = randi(3,[1,nvars])-1;
+nvars = 3;
+deg1 = randi(2,[1,nvars])-1;
 if ~any(deg1)
     deg1(randi(nvars))=1;
 end
@@ -70,7 +70,8 @@ Rmon.C = Rops;
 Pmat = rand([m,n]);
 
 % Convert to linear form
-[Kop] = quad2lin_term(Pmat,Lmon,Rmon);
+%[Kop] = quad2lin_term(Pmat,Lmon,Rmon);
+[Kop] = quad2lin_term(Pmat,Lmon,Rmon,dom,s1);
 Pvec = Kop.params;
 idx_mat = Kop.omat;
 var2 = Kop.vars;
@@ -105,6 +106,6 @@ fval = double(int(z1_tst'*Pmat*z2_tst,s1,dom(1),dom(2)));
 % Compute the integral
 % sum_{i=1}^{m} int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b} 
 %           Pvec{i}(t1,...,td)*x1(t1)...xd(td) dt_kd ... dt_k1
-fval_alt = apply_functional(Pvec,x_tst,deg1+deg2,idx_mat,var2,dom);
+fval_alt = apply_functional(Kop,x_tst,deg1+deg2);
 
 f_err = norm(double(fval-fval_alt))
