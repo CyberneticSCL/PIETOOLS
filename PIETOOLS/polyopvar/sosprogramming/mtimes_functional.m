@@ -215,9 +215,11 @@ end
 %       int_{a}^{b} Kop{3}(s)*(Rop1*u)(s)*(Rop2*u)(s) ds
 if numel(Kparams)>size(idx_mat,1)
     if numel(Fx)~=2
-        var1 = polynomial(Kparams(end).varname);
-        C_mult = quad2lin_term(Kparams(end),Fx{1},Fx{2},dom_ii,var1,Kvars);
+        error("Multiplier terms may appear only for quadratic monomial.")
     end
+    Ktmp = Kparams(1,end);
+    var1 = polynomial(Ktmp.varname);
+    C_mult = quad2lin_term(Ktmp,Fx{1},Fx{2},Kop.dom,var1,Cop.vars);
 
     % Combine parameters involving the same integral
     omat = [Cop.omat;C_mult.omat];
