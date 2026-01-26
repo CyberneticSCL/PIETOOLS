@@ -3,9 +3,9 @@ pvar s1 s1_dum
 var1 = s1;
 var2 = s1_dum;
 dom = [0,1];
-deg = 2;        % maximal monomial degree in independent variables
+pdeg = 2;        % maximal monomial degree in independent variables
 m = 2;      n = 2;
-nvars = 1;
+nvars = 2;
 deg1 = randi(2,[1,nvars])-1;
 if ~any(deg1)
     deg1(randi(nvars))=1;
@@ -17,6 +17,7 @@ end
 d1 = sum(deg1);
 d2 = sum(deg2);
 m_idx = randi(d1+d2);   % index for which operator may include a multiplier
+%m_idx = 0;
 %m_idx = 2;
 
 % Declare state variable names
@@ -27,7 +28,7 @@ Lops_opvar = cell(1,d1);
 Lops = tensopvar();
 Lops.ops{1} = cell(1,d1);
 for ii=1:d1
-    Lop_ii = rand_opvar([0,0;m,1],deg,var1,var2,dom);
+    Lop_ii = rand_opvar([0,0;m,1],pdeg,var1,var2,dom);
     if ii~=m_idx
         % Allow only one operator with a nonzero multiplier
         Lop_ii.R.R0 = zeros([m,1]);
@@ -51,7 +52,7 @@ Rops_opvar = cell(1,d2);
 Rops = tensopvar();
 Rops.ops{1} = cell(1,d2);
 for ii=1:d2
-    Rop_ii = rand_opvar([0,0;n,1],deg,var1,var2,dom);
+    Rop_ii = rand_opvar([0,0;n,1],pdeg,var1,var2,dom);
     if ii+d1~=m_idx
         % Allow only one operator with a nonzero multiplier
         Rop_ii.R.R0 = zeros([n,1]);
@@ -78,22 +79,27 @@ Kvar2 = Kop.vars;
 
 
 % Generate random operators to represent RHS of the PI
-nfctrs = [1;1];
+%nfctrs = [3;1];
+nfctrs = randi(2,[d1+d2,nvars])-1;
+nfctrs(sum(nfctrs,2)==0,1) = 1;
+nterms = randi(1,[d1+d2,1]);
+nterms(sum(nfctrs,2)==1) = 1;
 Fx = cell(1,size(nfctrs,1));
 Fops = cell(1,size(nfctrs,1));
 m_idx2 = randi(numel(Fx));      % allow only one operator with multiplier terms
+%m_idx2 = 0;
 for ii=1:numel(Fx)
     Fx{ii} = Rmon;
     Fx{ii}.degmat = nfctrs(ii,:);
-    Fx{ii}.C.ops = cell(1,sum(nfctrs(ii,:)));
-    Fops{ii} = cell(1,sum(nfctrs(ii)));
+    Fx{ii}.C.ops = {cell(nterms(ii),sum(nfctrs(ii,:)))};
+    Fops{ii} = cell(nterms(ii),sum(nfctrs(ii,:)));
     for jj=1:numel(Fops{ii})
-        Fops{ii}{jj} = rand_opvar([0,0;1,1],deg,var1,var2,dom);
-        if ~isscalar(Fx{ii}) || ii~=m_idx2
+        Fops{ii}{jj} = rand_opvar([0,0;1,1],pdeg,var1,var2,dom);
+        if ~isscalar(Fops{ii}) || ii~=m_idx2
             % Do not allow tensor product of multiplier operators
             Fops{ii}{jj}.R.R0 = 0;
         end
-        if sum(nfctrs(ii))==1
+        if sum(nfctrs(ii,:))==1
             Fx{ii}.C.ops{jj} = dopvar2ndopvar(Fops{ii}{jj});
         else
             Fx{ii}.C.ops{1}{jj} = dopvar2ndopvar(Fops{ii}{jj});
@@ -103,7 +109,9 @@ end
 
 
 % Compute the composition of Kop with the factors Fx
-Cop = mtimes_functional(Kop,Fx);
+Cfun = mtimes_functional(Kop,Fx);
+Cop = Cfun.C.ops{1};
+Cdeg = Cfun.degmat;
 
 
 
@@ -115,22 +123,31 @@ end
 ycell = cell(1,numel(Fx));
 zval = polynomial(zeros(1,numel(Fx)));
 for ii=1:numel(Fx)
-    ycell{ii}=cell(1,numel(Fops{ii}));
-    zval(ii) = 1;
+    ycell{ii}=cell(size(Fops{ii}));
     strt_idcs = cumsum(nfctrs(ii,:));
-    for jj=1:numel(Fops{ii})
-        x_idx = find(jj<=strt_idcs,1,'first');
-        ycell{ii}{jj} = apply_opvar(Fops{ii}{jj},x_tst(x_idx));
-        zval(ii) = zval(ii).*ycell{ii}{jj};
+    for ll=1:size(Fops{ii},1)
+        zval_ll = 1;
+        for jj=1:size(Fops{ii},2)
+            x_idx = find(jj<=strt_idcs,1,'first');
+            ycell{ii}{ll,jj} = apply_opvar(Fops{ii}{ll,jj},x_tst(x_idx));
+            zval_ll = zval_ll.*ycell{ii}{ll,jj};
+        end
+        zval(1,ii) = zval(1,ii) + zval_ll;
     end
 end
 
 % Apply Kop to the product (Rop{1}*x)*(Rop{2}*x)...
-fval_true = apply_functional(Kop.params,zval,ones(1,numel(Fx)),Kop.omat,Kop.vars,Kop.dom);
+fval_true = apply_functional(Kop,zval,ones(1,numel(Fx)));
 
 % Apply Cop directly to x*x
-fval_alt = apply_functional(Cop.params,x_tst,sum(nfctrs,1),Cop.omat,Cop.vars,dom);
+fval_alt = apply_functional(Cop,x_tst,Cdeg);
 
 
 
 f_err = norm(double(fval_true-fval_alt))
+
+
+% int_{a}^{b} int_{a}^{t1} int_{a}^{t2} K(t1,t2,t3)*y(t1)*x(t2)*x(t3) dt3 dt2 dt1
+% = int_{a}^{b} int_{a}^{s3} int_{a}^{s1} K(s3,s1,s2)*y(s3)*x(s1)*x(s2) ds2 ds1 ds3
+% a <= t3 <= t2 <= t1 <= b
+% a <= s2 <= s1 <= s3 <= b
