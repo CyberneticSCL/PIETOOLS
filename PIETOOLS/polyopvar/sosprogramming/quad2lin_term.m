@@ -263,7 +263,7 @@ end
 % kernel
 n_ords = size(idx_mat,1);
 % ord_mat = zeros(n_ords,dtot);
-if isa(Pmat,'dpvar')
+if isa(Pmat,'dpvar') || isa(Lmon,'dpvar')
     Kparams = dpvar(zeros(mdim,ndim*n_ords));
 else
     Kparams = polynomial(zeros(mdim,ndim*n_ords));
@@ -337,7 +337,7 @@ for ii=1:n_ords
                 R_tmp = R_tmp.*subs(Pop_params{1,kk}{3},var1,vars_m(jj));
             end
         end
-        Pvec_ii = Pvec_ii + L_tmp*Pmat*R_tmp;
+        Pvec_ii = Pvec_ii + subs(L_tmp*Pmat*R_tmp,var1,vars_m(jj));
     end
     Kparams(:,(ii-1)*ndim+1:ii*ndim) = Pvec_ii;
 end
