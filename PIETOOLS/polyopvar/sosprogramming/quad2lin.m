@@ -109,7 +109,7 @@ for ii=1:nZL
         Pij = Pmat(blkdimL_cum(ii)+1:blkdimL_cum(ii+1), blkdimR_cum(jj)+1:blkdimR_cum(jj+1));
         % Convert to the linear format
         Kij = quad2lin_term(Pij,Zop_ii,Zop_jj);
-        % We need to re-order variables to account for the orderof the 
+        % We need to re-order variables to account for the order of the 
         % state variables in the distributed monomials
         %   i.e. degmat=[2,2] indicates x(s1)*x(s2)*v(s3)*v(s4)
         % but quad2lin_term returns
@@ -120,12 +120,12 @@ for ii=1:nZL
             Kop.ops{lidx} = Kij;
             if is_symmetric && ii~=jj
                 for kk=1:numel(Kij.params)
-                    Kop.ops{lidx}.params{kk} = 2*Kij.params{kk};
+                    Kop.ops{lidx}.params(kk) = 2*Kij.params(kk);
                 end
             end
         else
             for kk=1:numel(Kij.params)
-                Kop.ops{lidx}.params{kk} = Kop.ops{lidx}{kk} + (1+is_symmetric)*Kij{kk};
+                Kop.ops{lidx}.params(kk) = Kop.ops{lidx}.params(kk) + (1+is_symmetric)*Kij.params(kk);
             end
         end
     end
