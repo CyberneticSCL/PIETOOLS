@@ -50,17 +50,39 @@ for ii=1:numel(A.ops)
         C.ops{ii} = B.ops{ii};
     elseif isempty(B.ops{ii})
         C.ops{ii} = A.ops{ii};
+    elseif isa(A.ops{ii},'struct') && isfield(A.ops{ii},'params')
+        % The operator acts as a functional (map to R)
+        % Establish a unique set of integrals appearing in the functionals
+        omat_full = [A.ops{ii}.omat; B.ops{ii}.omat];
+        params_full = [A.ops{ii}.params(:,1:size(A.ops{ii}.omat,1)),...
+                        B.ops{ii}.params(:,1:size(B.ops{ii}.omat,1))];
+        [P,omat] = uniquerows_integerTable(omat_full);
+        Ktmp = A.ops{ii};
+        Ktmp.omat = omat;
+        Ktmp.params = params_full*P;
+        % Account for possible multiplier term
+        % if size(A.ops{ii}.params,2)>size(A.ops{ii}.omat,1) &&...
+        %         size(B.ops{ii}.params,2)>size(B.ops{ii}.omat,1)
+        %     Ktmp.params = [Ktmp.params, A.ops{ii}.params(:,end)+B.ops{ii}.params(:,end)];
+        % elseif size(A.ops{ii}.params,2)>size(A.ops{ii}.omat,1)
+        %     Ktmp.params = [Ktmp.params, A.ops{ii}.params(:,end)];
+        % elseif size(B.ops{ii}.params,2)>size(B.ops{ii}.omat,1)
+        %     Ktmp.params = [Ktmp.params, B.ops{ii}.params(:,end)];
+        % end
+        C.ops{ii} = Ktmp;
     elseif isa(A.ops{ii},'nopvar') || isa(A.ops{ii},'ndopvar')
         % If the monomial is just linear, Z_{i}(x) = xk for some k,
         % then we can use the 'nopvar' plus routine to compute the sum of
         % the operators
         %   Ai*xk + Bi*xk = (Ai+Bi)*xk;
         C.ops{ii} = A.ops{ii} + B.ops{ii};
-    else
+    elseif isa(A,'cell') && isa(B,'cell')
         % If the monomial is more complicated, e.g. Z_{i}(x) = xk*yl,
         % we cannot simply add the coefficient
         %   (Ai{1}*xk)(Ai{2}*yk) + (Bi{1}*xk)(Bi{2}*yk)
         C.ops{ii} = [A.ops{ii}; B.ops{ii}];
+    else
+        error("One of the operators in the polynomial is not properly specified.")
     end
 end
 

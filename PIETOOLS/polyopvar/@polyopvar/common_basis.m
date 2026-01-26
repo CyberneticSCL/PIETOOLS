@@ -53,11 +53,11 @@ nZ1 = size(degs1,1);
 degs_full = [degs1;degs2];
 [Pmat,degs_new] = uniquerows_integerTable(degs_full);   % Pmat*Znew = Z_full
 nZ = size(degs_new,1);
-[r_idcs,new2old_Cdcs] = find(Pmat);
+new2old_Cdcs1 = Pmat(1:nZ1,:)*(1:nZ)';
+new2old_Cdcs2 = Pmat(nZ1+1:end,:)*(1:nZ)';
 C1 = tensopvar(1,nZ);      C2 = tensopvar(1,nZ);
-is_C1 = r_idcs<=nZ1;        is_C2 = r_idcs>nZ1;
-C1(new2old_Cdcs(is_C1)) = C_A(r_idcs(is_C1));
-C2(new2old_Cdcs(is_C2)) = C_B(r_idcs(is_C2)-nZ1);
+C1(1,new2old_Cdcs1) = C_A;
+C2(1,new2old_Cdcs2) = C_B;
 
 % Build polynomials in terms of the shared basis
 A_out = A;                      B_out = B;
