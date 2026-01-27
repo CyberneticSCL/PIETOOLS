@@ -26,10 +26,10 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
 % --- solution.final.ode - array of size no - ode solution at a final time 
-% --- solution.final.observed - array of size noo  - final value of FINITE-DIMENSIONAL observed outputs
-% --- solution.final.observed_infd - array of size (N+1) x noox - final value of INFINITE-DIMENSIONAL observed outputs
-% --- solution.final.regulated - array of size nro  - final value of FINITE-DIMENSIONAL regulated outputs
-% --- solution.final.regulated_infd - array of size (N+1) x nrox - final value of INFINITE-DIMENSIONAL regulated outputs
+% --- solution.final.observed - array of size noo  - final value of finite-dimensional observed outputs
+% --- solution.final.observed_infd - array of size (N+1) x noox - final value of infinite-dimensional observed outputs
+% --- solution.final.regulated - array of size nro  - final value of finite-dimensional regulated outputs
+% --- solution.final.regulated_infd - array of size (N+1) x nrox - final value of infinite-dimensional regulated outputs
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
@@ -37,13 +37,13 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 % --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 %     solution of ns PDE (distributed) states of the primary PDE system
 % --- solution.timedep.observed - array of size noo x Nsteps -
-%     time-dependent value of FINITE-DIMENSIONAL observed outputs
+%     time-dependent value of finite-dimensional observed outputs
 % --- solution.timedep.observed_infd - array of size (N+1) x noox x Nsteps -
-%     time-dependent value of INFINITE-DIMENSIONAL observed outputs
+%     time-dependent value of infinite-dimensional observed outputs
 % --- solution.timedep.regulated - array of size nro x Nsteps -
-%     time-dependent value of FINITE-DIMENSIONAL regulated outputs
+%     time-dependent value of finite-dimensional regulated outputs
 % --- solution.timedep.regulated_infd - array of size (N+1) x nrox x Nsteps -
-%     time-dependent value of INFINITE-DIMENSIONAL regulated outputs
+%     time-dependent value of infinite-dimensional regulated outputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Requires: ifcht (inverse Chebyshev transform)
@@ -173,11 +173,9 @@ if (psize.nro+psize.nrox>0)
     solution.final.regulated=coeff_final_regulated(1:psize.nro);
    end 
 % Infinite-dimensional outputs
-    if(psize.nrox>0)
     for n=1:psize.nrox
      coeff_final_regulated_local=coeff_final_regulated(psize.nro+1+(n-1)*(N+1):psize.nro+n*(N+1));
      solution.final.regulated_infd(:,n) = ifcht(coeff_final_regulated_local);
-    end
     end
 
 end % if (psize.nro+psize.nrox>0)
@@ -204,11 +202,9 @@ end % if (psize.nro+psize.nrox>0)
     solution.final.observed=coeff_final_observed(1:psize.noo);
    end 
 % Infinite-dimensional outputs
-    if(psize.noox>0)
     for n=1:psize.noox
      coeff_final_observed_local=coeff_final_observed(psize.noo+1+(n-1)*(N+1):psize.noo+n*(N+1));
      solution.final.observed_infd(:,n) = ifcht(coeff_final_observed_local);
-    end
     end
 
 end % if (psize.noo+psize.noox>0)
@@ -299,11 +295,9 @@ if (opts.intScheme==1 & solution.tf~=0)
     solution.timedep.regulated(:,ntime)=coeff_timedep_regulated(1:psize.nro);
    end 
 % Infinite-dimensional outputs
-    if(psize.nrox>0)
     for n=1:psize.nrox
      coeff_timedep_regulated_local=coeff_timedep_regulated(psize.nro+1+(n-1)*(N+1):psize.nro+n*(N+1));
      solution.timedep.regulated_infd(:,n,ntime) = ifcht(coeff_timedep_regulated_local);
-    end
     end
 
     end %   if (psize.nro+psize.nrox>0)
@@ -330,11 +324,9 @@ if (opts.intScheme==1 & solution.tf~=0)
     solution.timedep.observed(:,ntime)=coeff_timedep_observed(1:psize.noo);
    end 
 % Infinite-dimensional outputs
-    if(psize.noox>0)
     for n=1:psize.noox
      coeff_timedep_observed_local=coeff_timedep_observed(psize.noo+1+(n-1)*(N+1):psize.noo+n*(N+1));
      solution.timedep.observed_infd(:,n,ntime) = ifcht(coeff_timedep_observed_local);
-    end
     end
 
      end % if (psize.nro+psize.nrox>0)
