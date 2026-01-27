@@ -339,7 +339,9 @@ for ii=1:n_ords
         end
         Pvec_ii = Pvec_ii + subs(L_tmp*Pmat*R_tmp,var1,vars_m(jj));
     end
-    Kparams(:,(ii-1)*ndim+1:ii*ndim) = Pvec_ii;
+    if ~isempty(Pvec_ii)
+        Kparams(:,(ii-1)*ndim+1:ii*ndim) = Pvec_ii;
+    end
 end
 % In the case of a quadratic function
 %   < Zop*x , P*Zop*x>
