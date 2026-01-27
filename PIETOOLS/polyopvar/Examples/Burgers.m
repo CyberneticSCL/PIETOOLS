@@ -54,14 +54,20 @@ id.deg = 0;
 id.dom = dom;
 id.vars = [s, t];
 
-% Declare PIE as polyopvar.
-C1 = {id,  id;
-      id, r*T;
-      -T,   R};
+% Declare rihgt-hand side of the PIE as polyopvar.
+C1 = {id+r*T, {-T,R}};
 C = tensopvar();
-C.ops = {C1};
-f = polyopvar('v',s,dom);
+C.ops = C1;
+f = polyopvar('x',s,dom);
 f.C = C;
+f.degmat = [1;2];
+
+% Declare the PIE as a struct
+PIE = struct();
+PIE.T = T;
+PIE.f = f;
+PIE.vars = [s,t];
+PIE.dom = dom;
 
 
 %%%% 2. Setting up LPI for stability analysis using a SOS Lyapunov functional
@@ -71,20 +77,36 @@ f.C = C;
 prog = lpiprogram(s,t,dom);
 
 % Declare monomial basis of SOS Lyapunov functional.
-d = 2;
-Z = polyopvar('v',s,dom); % Z_d(v).
+d = 1;                  % degree of distributed monomial basis, will be doubled in LF
+Z = polyopvar('x',s,dom); % Z_d(v).
 Z.degmat = (1:d).';
 
 % Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
 % opts = ;
 pdegs = 1; % maximal monomial degree of Zop. 
-[prog,Pmat,Zop] = soslpivar(prog,Z,pdegs);
+Popts.exclude = [0;0;0];
+[prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,Popts);
+Vx = quad2lin(Pmat,Zop,Z);
 
 % Add PD constraint to LPI program.
-eps = 1e-4;
-prog = lpi_ineq(prog, Pmat - eps*eye(size(Pmat)) );
+eppos = 1e-4;
+Vx.C.ops{1}.params(1,end) = Vx.C.ops{1}.params(end) + eppos;  % can be done more elegantly once polyopvar is better developed
 
+% Evaluate the derivative of V along the PIE
+dV = Liediff(Vx,PIE);
 
-% Add ND constraint from Lyapunov time derivative....
+% Declare a nonnegative distributed polynomial functional W
+qdegs = pdegs+2;
+ZQ_degmat = unique(floor(dV.degmat./2),'rows');
+ZQ = polyopvar('x',s,dom);
+ZQ.degmat = ZQ_degmat;
+Q_opts.exclude = [1,0,0]';
+[prog,Qmat,ZQop] = soslpivar(prog,ZQ,qdegs,Q_opts);
+W = quad2lin(Qmat,ZQop,ZQ);
 
+% Enforce dV = -W <= 0
+prog = soslpi_eq(prog,dV+W);
+
+% Solve the optimization program
+prog_sol = lpisolve(prog);
 
