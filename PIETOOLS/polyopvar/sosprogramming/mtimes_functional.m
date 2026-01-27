@@ -252,14 +252,17 @@ else
     [varname,old2new_idcs,new2old_idcs] = unique(varname_full);  % var_full = var_unique(new2old_idcs);
     degmat = deg_full*sparse((1:numel(new2old_idcs)),new2old_idcs,1);
     % Reorder variables in Cop to match new ordering of states
+    var_idcs = mat2cell([[0,cumsum(deg_full(1:end-1))];cumsum(deg_full)],2,ones(1,numel(deg_full)));
+    var_idcs = cellfun(@(a)(a(1)+1:a(2)),var_idcs,'UniformOutput',false);
     Cvars_new = Cop.vars;
     strt_idx = 0;
     Cvar_order = zeros(numel(Cop.vars),1);
     for jj=1:numel(varname)
-        isvar_jj = new2old_idcs(deg_full>0)==jj;
-        nvars_jj = sum(isvar_jj);
-        Cvars_new(strt_idx+(1:nvars_jj)) = Cop.vars(isvar_jj);
-        Cvar_order(isvar_jj) = strt_idx+(1:nvars_jj);
+        isvar_jj = new2old_idcs(deg_full>0)'==jj;
+        var_idcs_jj = cell2mat(var_idcs(isvar_jj));
+        nvars_jj = numel(var_idcs_jj);
+        Cvars_new(strt_idx+(1:nvars_jj)) = Cop.vars(var_idcs_jj);
+        Cvar_order(var_idcs_jj) = strt_idx+(1:nvars_jj);
         strt_idx = strt_idx + nvars_jj;
     end
     Cop.vars = Cvars_new;
