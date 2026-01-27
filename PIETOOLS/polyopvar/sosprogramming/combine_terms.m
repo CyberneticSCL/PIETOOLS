@@ -147,6 +147,12 @@ end
 % Return the functional operator with combined terms
 Kop.omat = omat;
 Kop.params = [Kparams1, Kparams2];
+ztol  = 1e-12;
+if isa(Kop.params,'double')
+    Kop.params(abs(Kop.params)<ztol) = 0;
+else
+    Kop.params.C(abs(Kop.params.C)<ztol) = 0;
+end
 if nargin==1
     % If the input was a 'polyopvar' object, we return a 'polyopvar' object
     % representing the same polynomial.
