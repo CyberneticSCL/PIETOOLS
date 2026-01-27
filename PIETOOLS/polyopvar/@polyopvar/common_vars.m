@@ -70,7 +70,17 @@ varmat(new2old_vdcs(1:p1),new2old_pdcs(1:N1)) = vmat_A;
 varmat(new2old_vdcs(p1+(1:p2)),new2old_pdcs(N1+(1:N2))) = vmat_B;
 
 % Reorder tensor products of PI operators in C to match new order of vars
-dumvar_cell = cell(1,max(max(sum(degs_A,2)),max(sum(degs_B,2))));
+if isempty(degs_A)
+    d1 = 0;
+else
+    d1 = max(max(sum(degs_A,2)));
+end
+if isempty(degs_B)
+    d2 = 0;
+else
+    d2 = max(max(sum(degs_B,2)));
+end
+dumvar_cell = cell(1,max(d1,d2));
 for lidx=1:numel(C_A.ops)
     [~,cidx] = ind2sub(size(C_A.ops),lidx);
     deg_l = degs_A(cidx,:);
