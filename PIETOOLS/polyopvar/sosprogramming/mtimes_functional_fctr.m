@@ -152,7 +152,7 @@ end
 % Add the terms associated with the integral over [a,t1]
 if ~all(all(isequal(Fjj_1,0)))
     if isempty(var2_rem)
-        Cfun1 = int(Kfun*Fjj_1,var1,dom(1),dom(2));
+        Cfun1 = int_simple(Kfun*Fjj_1,var1,dom(1),dom(2));
         Cop.params = [Cop.params, Cfun1];
         Cop.omat = [Cop.omat; -1];     % use -jj to indicate integral [a,t1]
     else
@@ -172,7 +172,7 @@ end
 % Add the terms associated with the integral over [t2,b]
 if ~all(all(isequal(Fjj_2,0)))
     if isempty(var2_rem)
-        Cfun2 = int(Kfun*Fjj_2,var1,dom(1),dom(2));
+        Cfun2 = int_simple(Kfun*Fjj_2,var1,dom(1),dom(2));
         Cop.params = [Cop.params, Cfun2];
         Cop.omat = [Cop.omat; 1i];     % use jj*1i to indicate integral [t2,b]
     else
