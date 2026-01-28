@@ -107,7 +107,7 @@ for lidx=1:numel(C_A.ops)
             end
         else
             Cparams = Cnew_l.params;
-            varname_new = cell(size(Cnew_l.vars));
+            varname_new = cell(size(Cparams.varname));
             for kk=1:numel(Cparams.varname)
                 old_var = polynomial(Cparams.varname(kk));
                 var_idx = isequal(Cnew_l.vars,old_var);
@@ -161,7 +161,7 @@ for lidx=1:numel(C_B.ops)
             end
         else
             Cparams = Cnew_l.params;
-            varname_new = cell(size(Cnew_l.vars));
+            varname_new = cell(size(Cparams.varname));
             for kk=1:numel(Cparams.varname)
                 old_var = polynomial(Cparams.varname(kk));
                 var_idx = isequal(Cnew_l.vars,old_var);
