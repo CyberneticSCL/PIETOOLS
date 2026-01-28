@@ -187,6 +187,11 @@ for ii=1:size(idx_mat,1)
     Cii.vars = vars_full;
     Cii.dom = Kdom;
 
+    % % Remove duplicate terms from the functional operator
+    state_idcs_m = midx+(0:numel(Fii.degmat)-1);
+    state_idcs_m = repelem(state_idcs_m,Fii.degmat);
+    state_idcs = [1:midx-1,state_idcs_m,state_idcs_m(end)+(1:numel(Kvars)-midx)];
+    Cii = combine_terms(Cii,state_idcs);
 
     % Apply the augmented functional to the remaining factors
     if cntr>1
@@ -234,8 +239,7 @@ end
 %   [x1(s1)*x1(s2)*x2(s3)*x2(s4)]*[x1(s5)*x2(s6)]
 %       --> [x1(s1)*x1(s2)*x1(s3)]*[x2(s4)*x2(s5)*x2(s6)]
 if cntr<numel(Fx)
-    %Cfun = Fx{cntr};
-    %Cfun.C.ops{1} = Cop;
+    % If we're not done, return the operator rather than a polynomial
     Cfun = Cop;
 else
     varname_full = {};
