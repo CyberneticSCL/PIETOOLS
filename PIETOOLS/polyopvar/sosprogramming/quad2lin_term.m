@@ -151,13 +151,11 @@ if isa(Lmon,'polyopvar')
     end
     mdim = Lops{1}.dim(2);
 else
-    if isempty(Lmon)
-        Lfctr = 1;
-    else
-        Lfctr = Lmon;
+    if ~isempty(Lmon)
+        Pmat = Lmon*Pmat;
     end
     Lops = {};
-    mdim = size(Lfctr,1);
+    mdim = size(Lmon,1);
 end
 if isa(Rmon.C.ops{1},'nopvar')
     Rops = Rmon.C.ops;
@@ -298,11 +296,7 @@ for ii=1:n_ords
         else
             U = var2(idx_ii(1,jj));
         end
-        if d1==0
-            Pvec_ii = Pvec_ii + int(Lfctr*Pmat*Rjj,var1,L,U);
-        else
-            Pvec_ii = Pvec_ii + int(Ljj*Pmat*Rjj,var1,L,U);
-        end
+        Pvec_ii = Pvec_ii + int_simple(Ljj*Pmat*Rjj,var1,L,U);
     end
     % Also account for possible multiplier term: tj = s
     for jj=1:numel(m_nums)
@@ -320,9 +314,6 @@ for ii=1:n_ords
                 % t_k >= t_m = s
                 L_tmp = L_tmp.*subs(Pop_params{kk}{3},var1,vars_m(jj));
             end
-        end
-        if d1==0
-            L_tmp = subs(Lfctr,var1,vars_m(jj));
         end
         R_tmp = 1;
         for kk=d1+(1:d2)
