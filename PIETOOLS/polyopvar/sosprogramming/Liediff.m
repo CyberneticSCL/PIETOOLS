@@ -104,7 +104,7 @@ tmp_poly = RHS;
 tmp_poly.C.ops = {};
 tmp_poly.degmat = zeros(0,nvars);
 dV = tmp_poly;
-for ii=1:size(Vdegs,1)
+for ii=1:size(new_state_arr,1)
     % Loop over each of the monomials in V, replacing x by T*x, and
     % evaluating the derivative d/dt T*x = f(x)
     degs_ii = Vdegs(old_monnum(ii),:);
@@ -123,19 +123,32 @@ for ii=1:size(Vdegs,1)
         % Build the product (T*x)*...*(T*x)*(A*x)*(T*x*...*T*x) for A in 
         % factor j
         Fx_jj = cell(1,dtot_ii);
+        skip_jj = false;
         for state_num = 1:nvars
             Fx_tmp = tmp_poly;
             Fx_tmp.degmat = [zeros(1,state_num-1),1,zeros(1,nvars-state_num)];
             Fx_tmp.C.ops{1} = Top_cell{old_state_idcs(jj),state_num};
+            if Top_cell{old_state_idcs(jj),state_num}==0
+                skip_jj = true;
+                break
+            end
             is_state_num = state_idcs_jj==state_num;
             Fx_jj(is_state_num) = {Fx_tmp};
+        end
+        if skip_jj
+            continue
         end
         % Set factor jj as the right-hand side of the PIE
         dV_jj = tmp_poly;
         for ll=1:size(fdegs,1)
             % Loop over all terms in the PIE
             Fx_ll = RHS;
-            Fx_ll.C.ops = Fx_ll.C.ops(old_state_idcs(jj),ll);
+            op_ll = Fx_ll.C.ops{old_state_idcs(jj),ll};
+            if isempty(op_ll) || (isa(op_ll,'nopvar') && op_ll==0)
+                continue
+            else
+                Fx_ll.C.ops = Fx_ll.C.ops(old_state_idcs(jj),ll);
+            end
             Fx_ll.degmat = Fx_ll.degmat(ll,:);
             Fx_jj{jj} = Fx_ll;
             % Take the composition of the functional operator with this
