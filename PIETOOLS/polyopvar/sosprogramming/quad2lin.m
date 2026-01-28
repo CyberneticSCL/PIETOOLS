@@ -59,6 +59,8 @@ if nargin<=3 && size(Pmat,1)==size(Pmat,2)
     is_symmetric = true;
 elseif nargin<=3
     error("Insufficient input arguments.")
+else
+    [ZxL,ZxR] = common_vars(ZxL,ZxR);
 end
 
 % Extract the degrees of the distributed monomials
@@ -67,13 +69,11 @@ nZL = size(degmatL,1);
 degmatR = ZxR.degmat;
 nZR = size(degmatR,1);
 
-
-
 % Compute the list of monomials that appear in the distributed polynomial.
 degmat_full = repmat(degmatL,[nZR,1]) + kron(degmatR,ones(nZR,1));
 [M,degmat_lin] = uniquerows_integerTable(degmat_full);  % degmat_full = M*degmat_lin
 old2new_idcs = M*(1:size(degmat_lin,1))';               % degmat_full = degmat_lin(old2new_idcs,:);
-nZ_lin = size(degmat_lin,1);
+%nZ_lin = size(degmat_lin,1);
 
 % Get the dimensions of the different operators
 blkdimL = zeros(nZL,1);
@@ -89,8 +89,11 @@ for ii=1:nZR
 end
 blkdimR_cum = [0;cumsum(blkdimR)];
 
-Kop = tensopvar();
-Kop.ops = cell(1,nZ_lin);
+% Initialize an empty polynomial in the same variables as ZxL
+tmp_poly = ZxL;
+tmp_poly.C = tensopvar();
+tmp_poly.degmat = zeros(0,numel(ZxL.varname));
+Vx = tmp_poly;
 for ii=1:nZL
     % Extract the monomial operators acting on the ith distributed
     % monomials
@@ -109,31 +112,19 @@ for ii=1:nZL
         Pij = Pmat(blkdimL_cum(ii)+1:blkdimL_cum(ii+1), blkdimR_cum(jj)+1:blkdimR_cum(jj+1));
         % Convert to the linear format
         Kij = quad2lin_term(Pij,Zop_ii,Zop_jj);
-        % We need to re-order variables to account for the order of the 
-        % state variables in the distributed monomials
-        %   i.e. degmat=[2,2] indicates x(s1)*x(s2)*v(s3)*v(s4)
-        % but quad2lin_term returns
-        %  int x(t1)*v(t2)*x(t3)*v(t4)
+        % Account for symmetry
+        if is_symmetric && ii~=jj
+            Kij.params = 2*Kij.params;
+        end
         % Match the obtained kernels with the correct distributed monomial
         lidx = old2new_idcs((ii-1)*nZL+jj);
-        if isempty(Kop.ops{lidx})
-            Kop.ops{lidx} = Kij;
-            if is_symmetric && ii~=jj
-                for kk=1:numel(Kij.params)
-                    Kop.ops{lidx}.params(kk) = 2*Kij.params(kk);
-                end
-            end
-        else
-            for kk=1:numel(Kij.params)
-                Kop.ops{lidx}.params(kk) = Kop.ops{lidx}.params(kk) + (1+is_symmetric)*Kij.params(kk);
-            end
-        end
+        Kpoly_ij = tmp_poly;
+        Kpoly_ij.C.ops{1} = Kij;
+        Kpoly_ij.degmat = degmat_lin(lidx,:);
+        % Get rid of duplicate terms in the functional, and add to Vx
+        Kpoly_ij = combine_terms(Kpoly_ij);
+        Vx = Vx + Kpoly_ij;
     end
 end
-
-Vx = ZxL;
-Vx.degmat = degmat_lin;
-Vx.C = Kop;
-
 
 end
