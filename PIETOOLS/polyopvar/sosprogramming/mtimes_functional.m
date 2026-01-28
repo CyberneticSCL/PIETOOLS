@@ -262,7 +262,7 @@ else
     strt_idx = 0;
     Cvar_order = zeros(numel(Cop.vars),1);
     for jj=1:numel(varname)
-        isvar_jj = new2old_idcs(deg_full>0)'==jj;
+        isvar_jj = new2old_idcs'==jj;
         var_idcs_jj = cell2mat(var_idcs(isvar_jj));
         nvars_jj = numel(var_idcs_jj);
         Cvars_new(strt_idx+(1:nvars_jj)) = Cop.vars(var_idcs_jj);
