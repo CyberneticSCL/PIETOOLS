@@ -72,7 +72,7 @@ function Cop = mtimes_functional_fctr(Kfun,Ffctr,dom,var1,var2,cntr)
 % Extract the tensor-PI operator which to compose with the integral defined
 % by Kfun
 if isa(Ffctr.C.ops{1},'nopvar')
-    Ffctr.C.ops{1} = {Ffctr.C.ops{1}};
+    Ffctr.C.ops{1} = Ffctr.C.ops(1);
 end
 
 if size(Ffctr.C.ops{1},1)~=1
