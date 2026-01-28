@@ -46,6 +46,7 @@ function Eint = int_simple(E,ivar,x1,x2)
 %
 % Initial coding DJ, MP, SS - 04/14/2022
 % DJ, 05/23/22 - Allow inputs of class 'double'
+% DJ, 01/28/26 - Convert constants specified as 'polynomial' to 'double';
 
 if nargin<4
     error('At least 4 input arguments are required')
@@ -56,6 +57,12 @@ end
 % Conver inputs of class 'double' to 'polynomial'
 if isa(E,'double')
     E = polynomial(E);
+end
+if isa(x1,'polynomial') && isdouble(x1)
+    x1 = double(x1);
+end
+if isa(x2,'polynomial') && isdouble(x2)
+    x2 = double(x2);
 end
 
 % Correction for zero dimension case
