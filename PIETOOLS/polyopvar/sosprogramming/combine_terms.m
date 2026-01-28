@@ -86,12 +86,8 @@ if nargin==1 && isa(Kop,'polyopvar')
         error("Polynomial must be defined in terms of a single monomial.")
     end
     Kfun = Kop;
-    state_idcs = zeros(1,sum(Kop.degmat));
-    strt_idx = 0;
-    for jj=1:numel(Kop.degmat)
-        state_idcs(strt_idx+(1:Kop.degmat(jj))) = jj;
-        strt_idx = strt_idx + Kop.degmat(jj);
-    end
+    state_idcs = 1:size(Kop.degmat,2);
+    state_idcs = repelem(state_idcs,Kop.degmat);
     Kop = Kop.C.ops{1};
 end
 
