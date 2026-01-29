@@ -11,7 +11,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar
 %           factors in the monomial. In particular, if 
 %               Z_{i}(x)=x1^d1 o ... o xp^dp
 %           where o denotes the tensor product and d = d1+...+dp,
-%           and C.ops{ii} = P, we have
+%           and C.ops{i} = P, we have
 %               (C(i)*Z_{i}(x))(s) = 
 %                       (P{1}x1)(s)*(P{2}x1)(s)*...*(P{d}xp)(s)
 %           Note that Z_{i}(x) will always be scalar-valued, but each of

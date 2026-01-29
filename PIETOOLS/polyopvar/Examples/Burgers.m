@@ -86,14 +86,14 @@ Z.degmat = (1:d).';
 pdegs = 1; % maximal monomial degree of Zop. 
 Popts.exclude = [0;0;0];
 [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,Popts);
-Vx = quad2lin(Pmat,Zop,Z);
+Vx = quad2lin(Pmat,Zop,Z); % output is in polyopvar
 
 % Add PD constraint to LPI program.
 eppos = 1e-4;
 Vx.C.ops{1}.params(1,end) = Vx.C.ops{1}.params(end) + eppos;  % can be done more elegantly once polyopvar is better developed
-
+                                                % Vx.C is a tensopvar
 % Evaluate the derivative of V along the PIE
-dV = Liediff(Vx,PIE);
+dV = Liediff(Vx,PIE); % output is in polyopvar 
 
 % Declare a nonnegative distributed polynomial functional W
 qdegs = pdegs+2;
