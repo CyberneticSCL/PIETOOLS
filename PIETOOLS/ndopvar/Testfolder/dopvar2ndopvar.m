@@ -84,6 +84,9 @@ if nargin==1
 elseif d<dmax
     error("Specified degree is smaller than maximal monomial degree of parameters.")
 end
+if isempty(d)
+    d = 0;
+end
 
 % Get coefficients representing parameters in the quadratic form,
 %   R0(s,t) = (Im o Zd(s))^T C0;
