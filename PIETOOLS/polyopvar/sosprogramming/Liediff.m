@@ -128,11 +128,11 @@ for ii=1:size(new_state_arr,1)
             Fx_tmp = tmp_poly;
             Fx_tmp.degmat = [zeros(1,state_num-1),1,zeros(1,nvars-state_num)];
             Fx_tmp.C.ops{1} = Top_cell{old_state_idcs(jj),state_num};
-            if Top_cell{old_state_idcs(jj),state_num}==0
+            is_state_num = state_idcs_jj==state_num;
+            if any(is_state_num) && Top_cell{old_state_idcs(jj),state_num}==0
                 skip_jj = true;
                 break
             end
-            is_state_num = state_idcs_jj==state_num;
             Fx_jj(is_state_num) = {Fx_tmp};
         end
         if skip_jj
