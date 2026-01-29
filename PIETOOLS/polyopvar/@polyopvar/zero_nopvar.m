@@ -1,13 +1,13 @@
-function C = mtimes(A,B)
-% C = mtimes(A,B) returns the 'polyopvar' object C representing the product
-% of two polyopvar objects.
+function C = zero_nopvar(A)
+% O = zero_nopvar(A) returns a nopvar object with the same dom, and
+% vars as A, but with all degree 0 monomials and zero scalar coeffients.
+% Used for filling in empty cells when multiplying two polyopvars.
 %
 % INPUTS
 % - A:     polyopvar object; 
-% - B:     polyopvar object;
 %
 % OUTPUS
-% - C:     polyopvar object representing A*B.
+% - O:     nopvar object with zero coefficients and same dom as A.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - plus
@@ -33,18 +33,38 @@ function C = mtimes(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% CR, 01/28/2026: Initial coding
-%
+% CR, 01/28/2026: Initial coding.
+% CR,01/29/2026: Updated to just returning coefficients when N=1.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% express A, B in terms of a common monomial basis.
-[A,B] = common_basis(A,B);
-C = polyopvar();
-C.varname = A.varname;
-C.pvarname = A.pvarname;
-C.dom = A.dom; % assumes function spaces of A and B are the same.
-C.varmat = A.varmat;
-C.degmat = repelem(A.degmat, size(B.degmat,1), 1) + repmat(B.degmat,size(A.degmat,1), 1); % REMOVE DUPLICATE MONOMIALS? Assumed to be present for tensopvar_mtimes.
-C.C = tensopvar_mtimes(A,B);
+% % Define N variables and dummy variables.
+% N=size(A.dom,1);
+% var1_name=char(A.pvarname);
+% var2_name=[var1_name,repmat('_dum',[N,1])];
+% vars=polynomial(mat2cell(var1_name,ones(N,1),size(var1_name,2)));
+% dvars=polynomial(mat2cell(var2_name,ones(N,1),size(var2_name,2)));
+
+% Generate cell of 3x1 or 3^N dimensions.
+N=1; % 01/29/2026.
+if N==1
+    C=cell(3,1);
+else
+    dims=3*ones(1,N);
+    C=cell(dims);
+end
+
+% Fill C with zeros.
+% m=1; n=1;
+Z = 0.0;
+[C{:}] = deal(Z);
+
+% % create nopvar.
+% O=nopvar();
+% O.C=C;
+% O.deg=0;
+% O.dom=A.dom;
+% O.dim=[m,n];
+% O.vars=[vars,dvars];
 
 end
+

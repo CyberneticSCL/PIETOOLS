@@ -32,7 +32,7 @@ Pop.vars = [var1,var2];
 Pop.C = cell([3*ones(1,N),1]);
 rdim = m*d*(q+1);
 sz_C = size(Pop.C);
-for ii=1:numel(Pop.C);
+for ii=1:numel(Pop.C)
     % Determine the index of element ii along each dimension of the cell C
     idcs = cell(1,N);
     [idcs{:}] = ind2sub(sz_C,ii);

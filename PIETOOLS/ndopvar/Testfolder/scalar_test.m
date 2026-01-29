@@ -29,7 +29,7 @@ function [Pop_test, Pop_base, Pop] = scalar_test(dim, N, deg, alpha, decs)
 
 % Declare domain and N variables
 dom = [zeros(N,1),ones(N,1)];
-var1_name = [repmat('s',[N,1]),num2str((1:N)')]
+var1_name = [repmat('s',[N,1]),num2str((1:N)')];
 var2_name = [var1_name,repmat('_dum',[N,1])];
 vars = polynomial(mat2cell(var1_name,ones(N,1),size(var1_name,2)));
 dvars = polynomial(mat2cell(var2_name,ones(N,1),size(var2_name,2)));
