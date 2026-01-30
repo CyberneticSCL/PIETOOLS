@@ -1,36 +1,43 @@
 function H = plus(F, G)
-% Fast path: identical bases -> just add sparse matrices
-if isequal(F.Zs, G.Zs) && isequal(F.Zt, G.Zt)
+%PLUS Add two quadPoly objects under convention Z_old = P * Z_union.
+%
+% unionBasis signature:
+%   [nU, ZU, PA, PB, mapA, mapB, unionIsA, unionIsB, dU] = unionBasis(nA, ZA, nB, ZB)
+%
+% We use the returned maps (old->union) for fast lifting.
+
+% Fast path: identical representation
+if isequal(F.ns,G.ns) && isequal(F.nt,G.nt) && isequal(F.Zs,G.Zs) && isequal(F.Zt,G.Zt)
     H = quadPoly(F.C + G.C, F.Zs, F.Zt, F.dim, F.ns, F.nt);
     return;
 end
 
-% Union bases + maps
-[ZsU, mapSF, mapSG] = unionBasis(F.Zs, G.Zs);
-[ZtU, mapTF, mapTG] = unionBasis(F.Zt, G.Zt);
+% --- s-side union ---
+[nsU, ZsU, ~, ~, mapSF, mapSG, sIsF, sIsG, dsU] = unionBasis(F.ns, F.Zs, G.ns, G.Zs);
 
-m = F.dim(1); n = F.dim(2);
-dsF = size(F.Zs,1); dtF = size(F.Zt,1);
-dsG = size(G.Zs,1); dtG = size(G.Zt,1);
-dsU = size(ZsU,1); dtU = size(ZtU,1);
+% --- t-side union ---
+[ntU, ZtU, ~, ~, mapTF, mapTG, tIsF, tIsG, dtU] = unionBasis(F.nt, F.Zt, G.nt, G.Zt);
 
-% If the union is exactly F's basis, only lift G once
-if dsU==dsF && dtU==dtF && isequal(mapSF,(1:dsF)') && isequal(mapTF,(1:dtF)')
-    CG = lift(G.C, m, n, dsG, dtG, dsU, dtU, mapSG, mapTG);
-    H  = quadPoly(F.C + CG, ZsU, ZtU, F.dim, F.ns, F.nt);
+m = F.dim(1);
+n = F.dim(2);
+
+% If union equals F on both sides, lift only G
+if sIsF && tIsF
+    CG = liftIndexMaps(G.C, m, n, mapSG, mapTG, dsU, dtU);
+    H  = quadPoly(F.C + CG, ZsU, ZtU, F.dim, nsU, ntU);
     return;
 end
 
-% If the union is exactly G's basis, only lift F once
-if dsU==dsG && dtU==dtG && isequal(mapSG,(1:dsG)') && isequal(mapTG,(1:dtG)')
-    CF = lift(F.C, m, n, dsF, dtF, dsU, dtU, mapSF, mapTF);
-    H  = quadPoly(CF + G.C, ZsU, ZtU, F.dim, F.ns, F.nt);
+% If union equals G on both sides, lift only F
+if sIsG && tIsG
+    CF = liftIndexMaps(F.C, m, n, mapSF, mapTF, dsU, dtU);
+    H  = quadPoly(CF + G.C, ZsU, ZtU, F.dim, nsU, ntU);
     return;
 end
 
-% Default: lift both and add (typically fastest/most stable in MATLAB)
-CF = lift(F.C, m, n, dsF, dtF, dsU, dtU, mapSF, mapTF);
-CG = lift(G.C, m, n, dsG, dtG, dsU, dtU, mapSG, mapTG);
-H  = quadPoly(CF + CG, ZsU, ZtU, F.dim, F.ns, F.nt);
-end
+% Default: lift both
+CF = liftIndex(F.C, m, n, mapSF, mapTF, dsU, dtU);
+CG = liftIndex(G.C, m, n, mapSG, mapTG, dsU, dtU);
 
+H  = quadPoly(CF + CG, ZsU, ZtU, F.dim, nsU, ntU);
+end

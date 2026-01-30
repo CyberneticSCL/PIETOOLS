@@ -1,354 +1,285 @@
-function H = mtimes(A,B)
-%MTIMES Multiplication for quadPoly.
+function H = mtimes(F, G)
+%MTIMES Matrix product of quadPoly objects (and/or numeric matrices).
 %
-% Supports:
-%   quadPoly * scalar double
-%   scalar double * quadPoly
-%   constant double matrix * quadPoly
-%   quadPoly * constant double matrix
-%   quadPoly * quadPoly
+% Convention for basis selection matrices throughout the codebase:
+%   Z_old = P * Z_union
+%
+% For quadPoly * quadPoly:
+%   - we first align (union + lift) the s- and t- bases so both operands share them
+%   - then we multiply coefficients with exponent-addition (Minkowski sum) on each
+%     tensor-decomposed variable, i.e., exponents add under multiplication.
+%   - IMPORTANT: left variables stay left (ns/Zs), right variables stay right (nt/Zt).
+%
+% Numeric cases:
+%   A*quadPoly or quadPoly*B are supported (A,B numeric matrices).
 
-% ---------- scalar double multiply ----------
-if isa(A,'quadPoly') && isa(B,'double') && isscalar(B)
-    H = quadPoly(A.C * B, A.Zs, A.Zt, A.dim, A.ns, A.nt);
+% ---------- numeric dispatch ----------
+if isnumeric(F) && isa(G,'quadPoly')
+    H = leftNumericTimes(F, G);
     return;
-elseif isa(A,'double') && isscalar(A) && isa(B,'quadPoly')
-    H = quadPoly(A * B.C, B.Zs, B.Zt, B.dim, B.ns, B.nt);
+elseif isa(F,'quadPoly') && isnumeric(G)
+    H = rightNumericTimes(F, G);
     return;
-end
-
-% ---------- constant matrix multiply ----------
-if isa(A,'double') && isa(B,'quadPoly')
-    H = leftConstTimesPoly(A, B);
-    return;
-elseif isa(A,'quadPoly') && isa(B,'double')
-    H = rightConstTimesPoly(A, B);
-    return;
+elseif ~(isa(F,'quadPoly') && isa(G,'quadPoly'))
+    error('quadPoly:mtimes:badType', 'mtimes requires quadPoly or numeric.');
 end
 
 % ---------- quadPoly * quadPoly ----------
-if ~(isa(A,'quadPoly') && isa(B,'quadPoly'))
-    error('quadPoly:mtimes','Unsupported operands for mtimes.');
+m = F.dim(1);
+n = F.dim(2);
+n2 = G.dim(1);
+p = G.dim(2);
+if n ~= n2
+    error('quadPoly:mtimes:dimMismatch', 'Inner dimensions must match.');
 end
 
-F = A; 
-G = B;
+% --- 1) Align variable sets + bases (s-side and t-side) ---
+[nsU, ZsU, ~, ~, mapSF, mapSG, sIsF, sIsG, dsU] = unionBasis(F.ns, F.Zs, G.ns, G.Zs);
+[ntU, ZtU, ~, ~, mapTF, mapTG, tIsF, tIsG, dtU] = unionBasis(F.nt, F.Zt, G.nt, G.Zt);
 
-% scalar-poly scaling (matrix * scalar poly)
-if all(G.dim == [1 1])
-    H = scalarPolyScale(F, G); % F .* G (entrywise poly multiply)
-    return;
-elseif all(F.dim == [1 1])
-    H = scalarPolyScale(G, F); % (scalar) .* G
-    return;
+if ~(isequal(nsU, nsU) && isequal(ntU, ntU)) %#ok<*ISEQ>
+    % kept for clarity; nsU/ntU are the aligned variable lists
 end
 
-% dimension checks
-m = F.dim(1); n = F.dim(2); p = G.dim(2);
-if n ~= G.dim(1)
-    error('quadPoly:mtimes','Inner dimensions must match.');
-end
-
-nsF = size(F.Zs,2); nsG = size(G.Zs,2);
-ntF = size(F.Zt,2); ntG = size(G.Zt,2);
-if nsF ~= nsG || ntF ~= ntG
-    error('quadPoly:mtimes','Left/right variable counts must match for multiplication.');
-end
-
-% decode sparse coefficient matrices
-dsF = size(F.Zs,1); dtF = size(F.Zt,1);
-dsG = size(G.Zs,1); dtG = size(G.Zt,1);
-
-[iF,aF,jF,bF,vF] = decodeCoeff(F.C, dsF, dtF);
-if isempty(vF)
-    H = zeroQuadPoly([m p], nsF, ntF, F.ns, F.nt);
-    return;
-end
-
-[jG,cG,kG,dG,vG] = decodeCoeff(G.C, dsG, dtG); % note: row-block is "j"
-if isempty(vG)
-    H = zeroQuadPoly([m p], nsF, ntF, F.ns, F.nt);
-    return;
-end
-
-% ---------- group by shared index j ----------
-[jF_sorted, ordF] = sort(jF);
-iF = iF(ordF); aF = aF(ordF); bF = bF(ordF); vF = vF(ordF);
-
-[jG_sorted, ordG] = sort(jG);
-cG = cG(ordG); kG = kG(ordG); dG = dG(ordG); vG = vG(ordG);
-
-ptrF = groupPtrFromSorted(jF_sorted, n);
-ptrG = groupPtrFromSorted(jG_sorted, n);
-
-% ---------- build output bases + coefficient triplets ----------
-ZsH = zeros(0, nsF);
-ZtH = zeros(0, ntF);
-
-expMapS = containers.Map('KeyType','char','ValueType','double');
-expMapT = containers.Map('KeyType','char','ValueType','double');
-
-% cache basis indices for (a,c) pairs and (b,d) pairs
-pairS = containers.Map('KeyType','uint64','ValueType','double');
-pairT = containers.Map('KeyType','uint64','ValueType','double');
-
-% triplet blocks (collected by chunks to avoid constant realloc)
-Iblk = {}; Jblk = {}; Vblk = {};
-tcount = 0;
-
-dsKeyStride = uint64(dsF);
-dtKeyStride = uint64(dtF);
-
-for j = 1:n
-    f0 = ptrF(j);    f1 = ptrF(j+1)-1;
-    g0 = ptrG(j);    g1 = ptrG(j+1)-1;
-    if f0 > f1 || g0 > g1
-        continue;
-    end
-
-    % F terms for this j: (i,a,b,v)
-    iFj = iF(f0:f1);
-    aFj = aF(f0:f1);
-    bFj = bF(f0:f1);
-    vFj = vF(f0:f1);
-
-    % G terms for this j: (c,k,d,v)
-    cGj = cG(g0:g1);
-    kGj = kG(g0:g1);
-    dGj = dG(g0:g1);
-    vGj = vG(g0:g1);
-
-    ng = numel(vGj);
-
-    for u = 1:numel(vFj)
-        ii = iFj(u);
-        aa = aFj(u);
-        bb = bFj(u);
-        vv = vFj(u);
-
-        % compute/lookup all needed s-basis indices for (aa, cGj(:))
-        isVec = zeros(ng,1);
-        keyS = uint64(aa) + (uint64(cGj(:))-1)*dsKeyStride;
-        for t = 1:ng
-            ks = keyS(t);
-            if isKey(pairS, ks)
-                isVec(t) = pairS(ks);
-            else
-                e = F.Zs(aa,:) + G.Zs(cGj(t),:);
-                [idx, ZsH] = getOrAddExp(expMapS, e, ZsH);
-                pairS(ks) = idx;
-                isVec(t) = idx;
-            end
-        end
-
-        % compute/lookup all needed t-basis indices for (bb, dGj(:))
-        itVec = zeros(ng,1);
-        keyT = uint64(bb) + (uint64(dGj(:))-1)*dtKeyStride;
-        for t = 1:ng
-            kt = keyT(t);
-            if isKey(pairT, kt)
-                itVec(t) = pairT(kt);
-            else
-                e = F.Zt(bb,:) + G.Zt(dGj(t),:);
-                [idx, ZtH] = getOrAddExp(expMapT, e, ZtH);
-                pairT(kt) = idx;
-                itVec(t) = idx;
-            end
-        end
-
-        % append triplets for this (F-term) x (all G-terms)
-        tcount = tcount + 1;
-
-        dsHtmp = max(1, size(ZsH,1));
-        dtHtmp = max(1, size(ZtH,1));
-
-        Iblk{tcount,1} = (ii-1)*dsHtmp + isVec;
-        Jblk{tcount,1} = (kGj(:)-1)*dtHtmp + itVec;
-        Vblk{tcount,1} = vv .* vGj(:);
-    end
-end
-
-% finalize basis (ensure at least one monomial)
-if isempty(ZsH), ZsH = zeros(1,nsF); end
-if isempty(ZtH), ZtH = zeros(1,ntF); end
-
-dsH = size(ZsH,1);
-dtH = size(ZtH,1);
-
-if tcount == 0
-    CH = sparse(m*dsH, p*dtH);
+% Lift coefficients into the aligned (union) bases
+if sIsF && tIsF
+    CF = F.C;
 else
-    I = vertcat(Iblk{:});
-    J = vertcat(Jblk{:});
-    V = vertcat(Vblk{:});
-    CH = sparse(I, J, V, m*dsH, p*dtH); % sums duplicates automatically
+    CF = liftIndexMaps(F.C, m, n, mapSF, mapTF, dsU, dtU);
 end
-
-H = quadPoly(CH, ZsH, ZtH, [m p], F.ns, F.nt);
-
-end
-
-% ===================== helpers =====================
-
-function H = leftConstTimesPoly(L, F)
-% (double) * (quadPoly)
-ds = size(F.Zs,1);
-Cnew = kron(sparse(L), speye(ds)) * F.C;
-H = quadPoly(Cnew, F.Zs, F.Zt, [size(L,1) F.dim(2)], F.ns, F.nt);
-end
-
-function H = rightConstTimesPoly(F, R)
-% (quadPoly) * (double)
-dt = size(F.Zt,1);
-Cnew = F.C * kron(sparse(R), speye(dt));
-H = quadPoly(Cnew, F.Zs, F.Zt, [F.dim(1) size(R,2)], F.ns, F.nt);
-end
-
-function H = zeroQuadPoly(dim, ns, nt, namesS, namesT)
-% canonical zero polynomial with 1 monomial in each basis
-Zs = zeros(1, ns);
-Zt = zeros(1, nt);
-C  = sparse(dim(1), dim(2)); % since ds=dt=1
-H  = quadPoly(C, Zs, Zt, dim, namesS, namesT);
-end
-
-function [i,a,j,b,v] = decodeCoeff(C, ds, dt)
-% Decode sparse C into block indices:
-% row = (i-1)*ds + a, col = (j-1)*dt + b
-[I,J,v] = find(C);
-if isempty(v)
-    i=[]; a=[]; j=[]; b=[]; return;
-end
-i = floor((I-1)/ds) + 1;
-a = I - (i-1)*ds;
-j = floor((J-1)/dt) + 1;
-b = J - (j-1)*dt;
-end
-
-function ptr = groupPtrFromSorted(js_sorted, n)
-% js_sorted is sorted and in 1..n
-ptr = ones(n+1,1);
-if isempty(js_sorted)
-    ptr(:) = 1;
-    return;
-end
-counts = accumarray(js_sorted, 1, [n 1]);
-ptr(1) = 1;
-for k = 1:n
-    ptr(k+1) = ptr(k) + counts(k);
-end
-end
-
-function [idx, Z] = getOrAddExp(mp, e, Z)
-% Store exponent row e in Z (if new) and return its 1-based row index.
-% Key as comma-separated ints (simple + robust).
-key = sprintf('%d,', e);
-if isKey(mp, key)
-    idx = mp(key);
+if sIsG && tIsG
+    CG = G.C;
 else
-    Z(end+1,:) = e;
-    idx = size(Z,1);
-    mp(key) = idx;
-end
+    CG = liftIndexMaps(G.C, n, p, mapSG, mapTG, dsU, dtU);
 end
 
-function H = scalarPolyScale(F, S)
-% Entrywise polynomial multiplication of matrix poly F by scalar poly S (1x1).
-% Result has same dim as F.
-m = F.dim(1); n = F.dim(2);
+% After lifting:
+%   CF is (m*dsU) × (n*dtU)
+%   CG is (n*dsU) × (p*dtU)
 
-ns = size(F.Zs,2); nt = size(F.Zt,2);
-if size(S.Zs,2) ~= ns || size(S.Zt,2) ~= nt
-    error('quadPoly:mtimes','Scalar poly variable counts must match.');
-end
+% --- 2) Build product bases (exponents add under multiplication) ---
+% For each variable, product exponents are the sorted-unique Minkowski sum.
+[ZsP, sMapMats, dsP, sStrideP] = productBasis1D(ZsU, ZsU);  % left variables: add exponents
+[ZtP, tMapMats, dtP, tStrideP] = productBasis1D(ZtU, ZtU);  % right variables
 
-dsF = size(F.Zs,1); dtF = size(F.Zt,1);
-dsS = size(S.Zs,1); dtS = size(S.Zt,1);
+% --- 3) Multiply blocks with exponent-addition mapping ---
+% H will be (m*dsP) × (p*dtP)
+CH = spalloc(m*dsP, p*dtP, nnz(CF) + nnz(CG));  % rough initial guess
 
-[iF,aF,jF,bF,vF] = decodeCoeff(F.C, dsF, dtF);
-if isempty(vF)
-    H = zeroQuadPoly([m n], ns, nt, F.ns, F.nt);
-    return;
-end
+% Precompute sizes per variable for index decomposition
+sSizes = cellfun(@numel, ZsU);  % same for both operands after union
+tSizes = cellfun(@numel, ZtU);
 
-% S is 1x1, so indices are directly (aS,bS) in its dsS x dtS C matrix
-[aS,bS,vS] = find(S.C);
-if isempty(vS)
-    H = zeroQuadPoly([m n], ns, nt, F.ns, F.nt);
-    return;
-end
+for i = 1:m
+    rF = (i-1)*dsU + (1:dsU);               % rows for block-row i in CF
 
-ZsH = zeros(0, ns);
-ZtH = zeros(0, nt);
-expMapS = containers.Map('KeyType','char','ValueType','double');
-expMapT = containers.Map('KeyType','char','ValueType','double');
+    for j = 1:p
+        % We will accumulate the dsP×dtP block for (i,j)
+        blockRows = (i-1)*dsP;
+        blockCols = (j-1)*dtP;
 
-pairS = containers.Map('KeyType','uint64','ValueType','double');
-pairT = containers.Map('KeyType','uint64','ValueType','double');
+        % Accumulate contributions over k
+        Iacc = [];
+        Jacc = [];
+        Vacc = [];
 
-dsKeyStride = uint64(dsF);
-dtKeyStride = uint64(dtF);
+        for k = 1:n
+            cF = (k-1)*dtU + (1:dtU);
+            rG = (k-1)*dsU + (1:dsU);
+            cG = (j-1)*dtU + (1:dtU);
 
-Iblk = {}; Jblk = {}; Vblk = {};
-tcount = 0;
+            BF = CF(rF, cF);  % dsU×dtU
+            BG = CG(rG, cG);  % dsU×dtU
 
-for u = 1:numel(vF)
-    ii = iF(u);
-    jj = jF(u);
-    aa = aF(u);
-    bb = bF(u);
-    vv = vF(u);
+            if nnz(BF) == 0 || nnz(BG) == 0
+                continue;
+            end
 
-    nsTerms = numel(vS);
-    isVec = zeros(nsTerms,1);
-    itVec = zeros(nsTerms,1);
+            [a, b, v1] = find(BF);   % indices in 1..dsU and 1..dtU
+            [c, d, v2] = find(BG);
 
-    keyS = uint64(aa) + (uint64(aS)-1)*dsKeyStride;
-    keyT = uint64(bb) + (uint64(bS)-1)*dtKeyStride;
+            % Form all pairs of terms BF(a,b)*BG(c,d)
+            % Pair arrays length = nnz(BF)*nnz(BG)
+            na = numel(v1); nc = numel(v2);
 
-    for t = 1:nsTerms
-        ks = keyS(t);
-        if isKey(pairS, ks)
-            isVec(t) = pairS(ks);
-        else
-            e = F.Zs(aa,:) + S.Zs(aS(t),:);
-            [idx, ZsH] = getOrAddExp(expMapS, e, ZsH);
-            pairS(ks) = idx;
-            isVec(t) = idx;
+            aP = repelem(a, nc);
+            bP = repelem(b, nc);
+            vP = repelem(v1, nc) .* repmat(v2, na, 1);
+
+            cP = repmat(c, na, 1);
+            dP = repmat(d, na, 1);
+
+            % Map (a,c) -> s-basis product index, (b,d) -> t-basis product index
+            sIdx = pairToProdIndex(aP, cP, sSizes, sMapMats, sStrideP, dsP);
+            tIdx = pairToProdIndex(bP, dP, tSizes, tMapMats, tStrideP, dtP);
+
+            Iacc = [Iacc; blockRows + sIdx]; %#ok<AGROW>
+            Jacc = [Jacc; blockCols + tIdx]; %#ok<AGROW>
+            Vacc = [Vacc; vP];               %#ok<AGROW>
         end
 
-        kt = keyT(t);
-        if isKey(pairT, kt)
-            itVec(t) = pairT(kt);
-        else
-            e = F.Zt(bb,:) + S.Zt(bS(t),:);
-            [idx, ZtH] = getOrAddExp(expMapT, e, ZtH);
-            pairT(kt) = idx;
-            itVec(t) = idx;
+        if ~isempty(Vacc)
+            CH = CH + sparse(Iacc, Jacc, Vacc, m*dsP, p*dtP);
         end
     end
-
-    % append triplets
-    tcount = tcount + 1;
-
-    dsHtmp = max(1, size(ZsH,1));
-    dtHtmp = max(1, size(ZtH,1));
-
-    Iblk{tcount,1} = (ii-1)*dsHtmp + isVec;
-    Jblk{tcount,1} = (jj-1)*dtHtmp + itVec;
-    Vblk{tcount,1} = vv .* vS(:);
 end
 
-if isempty(ZsH), ZsH = zeros(1,ns); end
-if isempty(ZtH), ZtH = zeros(1,nt); end
+H = quadPoly(CH, ZsP, ZtP, [m p], nsU, ntU);
 
-dsH = size(ZsH,1);
-dtH = size(ZtH,1);
+end
 
-I = vertcat(Iblk{:});
-J = vertcat(Jblk{:});
-V = vertcat(Vblk{:});
+% =========================================================================
+% Numeric helpers
+% =========================================================================
+function H = leftNumericTimes(A, F)
+% A is (q×m), F is (m×n) quadPoly -> H is (q×n) quadPoly
+[q, m] = size(A);
+if m ~= F.dim(1)
+    error('quadPoly:mtimes:leftNumericDimMismatch', 'Left numeric matrix has wrong size.');
+end
 
-CH = sparse(I, J, V, m*dsH, n*dtH);
-H  = quadPoly(CH, ZsH, ZtH, [m n], F.ns, F.nt);
+ds = prod(cellfun(@numel, F.Zs));
+dt = prod(cellfun(@numel, F.Zt));
+
+% Left multiplication: (A*F)(s,t) = A * F(s,t)
+% Coeff update: Cnew = (kron(A, I_ds)) * C
+L = kron(sparse(A), speye(ds));
+Cnew = L * sparse(F.C);
+
+H = quadPoly(Cnew, F.Zs, F.Zt, [q, F.dim(2)], F.ns, F.nt);
+end
+
+function H = rightNumericTimes(F, B)
+% F is (m×n) quadPoly, B is (n×p) numeric -> H is (m×p) quadPoly
+[n, p] = size(B);
+if n ~= F.dim(2)
+    error('quadPoly:mtimes:rightNumericDimMismatch', 'Right numeric matrix has wrong size.');
+end
+
+ds = prod(cellfun(@numel, F.Zs));
+dt = prod(cellfun(@numel, F.Zt));
+
+% Right multiplication: (F*B)(s,t) = F(s,t) * B
+% Coeff update: Cnew = C * kron(B, I_dt)
+R = kron(sparse(B), speye(dt));
+Cnew = sparse(F.C) * R;
+
+H = quadPoly(Cnew, F.Zs, F.Zt, [F.dim(1), p], F.ns, F.nt);
+end
+
+% =========================================================================
+% Basis product helpers (tensor-decomposed)
+% =========================================================================
+function [ZP, mapMats, dP, strideP] = productBasis1D(ZA, ZB)
+%PRODUCTBASIS1D Per-variable Minkowski sums and lookup maps for tensor basis product.
+%
+% Inputs:
+%   ZA, ZB : 1×k cells, sorted-unique exponent vectors per variable
+% Outputs:
+%   ZP      : 1×k cells, sorted-unique sums per variable
+%   mapMats : 1×k cells, mapMats{i} is (nAi×nBi) matrix giving index in ZP{i}
+%   dP      : total tensor basis size prod_i numel(ZP{i})
+%   strideP : 1×k strides for linear indexing in kron order (last varies fastest)
+
+k = numel(ZA);
+ZP = cell(1,k);
+mapMats = cell(1,k);
+
+sizesP = zeros(1,k);
+
+for i = 1:k
+    a = ZA{i}(:);
+    b = ZB{i}(:);
+
+    % All pairwise sums in this variable
+    S = a + b.';                         % nAi × nBi
+    z = unique(S(:), 'sorted');          % sorted-unique sums
+    ZP{i} = z;
+    sizesP(i) = numel(z);
+
+    % Map each sum back to its index in z
+    [~, pos] = ismember(S(:), z);
+    mapMats{i} = reshape(pos, size(S,1), size(S,2));
+end
+
+dP = prod(sizesP);
+
+% Strides for kron order (last variable varies fastest)
+strideP = ones(1,k);
+for i = 1:k-1
+    strideP(i) = prod(sizesP(i+1:end));
+end
+strideP(k) = 1;
+end
+
+function idxP = pairToProdIndex(idxA, idxB, sizes, mapMats, strideP, dP)
+%PAIRTOPRODINDEX Map pairs of tensor indices (idxA,idxB) -> product tensor index.
+%
+% idxA, idxB are vectors (same length L) with values in 1..prod(sizes).
+% sizes   : 1×k sizes of the aligned tensor basis per variable
+% mapMats : 1×k, mapMats{i}(a_i,b_i) gives per-variable index in product basis
+% strideP : 1×k strides for linear index in product basis (kron order)
+%
+% Returns idxP in 1..dP.
+
+L = numel(idxA);
+k = numel(sizes);
+
+subsA = tensorDecomp(idxA, sizes);  % L×k (each entry 1..sizes(i))
+subsB = tensorDecomp(idxB, sizes);
+
+idx0 = zeros(L,1);
+for i = 1:k
+    map_i = mapMats{i};
+    si = map_i(subsA(:,i), subsB(:,i));  % L×1 indices in 1..numel(ZP{i})
+    idx0 = idx0 + (si - 1) * strideP(i);
+end
+
+idxP = idx0 + 1;
+% (Optional) trust invariants; idxP should be within 1..dP
+end
+
+function subs = tensorDecomp(idx, sizes)
+%TENSORDECOMP Convert linear tensor index -> per-variable subscripts (kron order).
+%
+% Ordering matches MATLAB kron: last variable varies fastest.
+% idx is 1-based vector.
+
+idx = idx(:) - 1;   % 0-based
+k = numel(sizes);
+subs = zeros(numel(idx), k);
+
+for i = k:-1:1
+    si = sizes(i);
+    subs(:,i) = mod(idx, si) + 1;
+    idx = floor(idx / si);
+end
+end
+
+% =========================================================================
+% Requires: liftIndexMaps (from earlier)
+% =========================================================================
+function Cup = liftIndexMaps(C, m, n, mapS, mapT, dsU, dtU)
+%LIFTINDEXMAPS Lift coefficient matrix by reindexing nnz entries using maps.
+%
+% mapS: dsOld×1 old->union map (values in 1..dsU)
+% mapT: dtOld×1 old->union map (values in 1..dtU)
+
+C = sparse(C);
+
+dsOld = numel(mapS);
+dtOld = numel(mapT);
+
+[i, j, v] = find(C);
+
+a  = mod(i-1, dsOld) + 1;
+ib = floor((i-1) / dsOld);
+
+b  = mod(j-1, dtOld) + 1;
+jb = floor((j-1) / dtOld);
+
+i2 = ib * dsU + mapS(a);
+j2 = jb * dtU + mapT(b);
+
+Cup = sparse(i2, j2, v, m*dsU, n*dtU);
 end

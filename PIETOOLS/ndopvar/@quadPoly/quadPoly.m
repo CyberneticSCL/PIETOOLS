@@ -1,31 +1,39 @@
 classdef quadPoly
-    % Polynomial of the form
-    % F(s,t) = (I \otimes Z(s)^T) * C * (I \otimes Z(t)) \in R^{m\times n}
-
+    % This class represents polynomials in a quadratic form described
+    % below.
+    % For F(s,t) \in R^{m\times n}, in variables
+    % s = {s1, ..., sk} and t = {t1, ..., tl}, we have the form
+    % F(s,t) = (I_m \otimes Z(s)^T) * C * (I_n \otimes Z(t)) 
+    % here Z(s) = Zs1(s1) \otimes ... \otimes Zsk(sk)
+    %      Z(t) = Zt1(t1) \otimes ... \otimes Ztl(sl)
+    % where Zsi, Zti are column vectors of monomial degrees.
     %
     % DJ, 01/21/2026: allow conversion from matrix to quadpoly
     properties
-        C; % sparse coefficent size: dim(1)*d_s x dim(2)*d_t
-        Zs; % exponent matrix, size: d_s x length(ns)
-        Zt; % exponent matrix, size: d_t x length(nt)
+        C; % sparse coefficent matrix,  size: dim(1)*d_s x dim(2)*d_t
+        Zs; % cell of exponent vectors, size: 1 x length(ns)
+            % each element of cell is a column vector of size n_si
+        Zt; % cell of exponent vectors, size: 1 x length(nt)
+            % each element of cell is a column vector of size n_ti
         dim; % matrix dimension [m,n]
-        ns; % cell of strings with variable names
-        nt; % cell of strings with variable names
+        ns; % cell of strings with variable names, size: 1 x ns
+        nt; % cell of strings with variable names, size: 1 x nt
     end
 
     methods
         function obj = quadPoly(C, Zs, Zt, dim, ns, nt)
+            % A simple constructor using all properties
             obj.C = sparse(C);
             if nargin==1
                 % Convert matrix to quadPoly
-                obj.Zs = zeros(1,0);
-                obj.Zt = zeros(1,0);
+                obj.Zs = {zeros(1,0)};
+                obj.Zt = {zeros(1,0)};
                 obj.dim = size(C);
                 obj.ns = {};
                 obj.nt = {};
             else
-                obj.Zs = double(Zs);
-                obj.Zt = double(Zt);
+                obj.Zs = Zs;
+                obj.Zt = Zt;
                 obj.dim = double(dim(:).'); 
                 obj.ns = ns;
                 obj.nt = nt;
@@ -34,6 +42,10 @@ classdef quadPoly
     end
 
     methods(Static)
+
+        % this creates a randquadPoly of size `dim', with `nmons' number of monomials,
+        % in variables `var_s, var_t'. Monomials are restricted to degree
+        % `deg' or lower and coefficient matrix C has sparsity `density'.
         obj = randquadPoly(dim,nmons,var_s,var_t,deg,density);
     end
 end

@@ -20,8 +20,8 @@ disp(H1);
 disp(H2);
 %% transpose
 clc;
+disp(F);
 disp(F');
-disp(F.');
 
 %% mtimes
 clc;

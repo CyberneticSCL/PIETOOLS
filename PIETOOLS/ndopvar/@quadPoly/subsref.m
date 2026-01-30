@@ -1,80 +1,101 @@
-function out = subsref(F,S)
+function out = subsref(obj, S)
+%SUBSREF Indexing for quadPoly.
+%
+% Supports:
+%   - obj(i,j)   : returns a quadPoly submatrix with same bases/variables
+%   - obj(k)     : linear indexing into the m×n matrix of entries (column-major)
+%   - obj.field / obj.method(...) : delegated to builtin subsref
+%
+% Not supported:
+%   - {} indexing
 
-if ~strcmp(S(1).type,'()')
-    out = builtin('subsref',F,S);
-    return;
+switch S(1).type
+    case '.'
+        % Delegate dot access (properties/methods) to MATLAB
+        out = builtin('subsref', obj, S);
+        return;
+
+    case '{}'
+        error('quadPoly:subsref:braceNotSupported', '{} indexing is not supported for quadPoly.');
+
+    case '()'
+        % Matrix indexing
+        m = obj.dim(1);
+        n = obj.dim(2);
+
+        ds = prod(cellfun(@numel, obj.Zs));  % =1 if empty
+        dt = prod(cellfun(@numel, obj.Zt));  % =1 if empty
+
+        idx = S(1).subs;
+
+        if numel(idx) == 1
+            % Linear indexing into m×n (MATLAB column-major)
+            lin = idx{1};
+            [I,J] = ind2sub([m n], lin);
+
+        elseif numel(idx) == 2
+            I = idx{1};
+            J = idx{2};
+
+        else
+            error('quadPoly:subsref:badSubscripts', 'Use obj(i,j) or obj(k).');
+        end
+
+        % Normalize ':' etc. by letting MATLAB do the indexing on 1:m,1:n
+        I = (1:m); J = (1:n);  %#ok<NASGU>
+        if numel(idx) == 1
+            lin = idx{1};
+            [I,J] = ind2sub([m n], lin);
+        else
+            I = idx{1};
+            J = idx{2};
+            I = (1:m); J = (1:n); %#ok<NASGU>
+            I = idx{1}; J = idx{2};
+        end
+
+        % Expand ':' and logical indexing safely via MATLAB
+        I = (1:m);
+        J = (1:n);
+        if numel(idx) == 1
+            lin = idx{1};
+            [I,J] = ind2sub([m n], lin);
+        else
+            I = (1:m); J = (1:n);
+            I = I(idx{1});
+            J = J(idx{2});
+        end
+
+        mi = numel(I);
+        nj = numel(J);
+
+        % Build row/col indices into coefficient matrix C
+        % Rows correspond to blocks of size ds for each matrix row
+        if mi == 0
+            rowIdx = zeros(0,1);
+        else
+            rowIdx = bsxfun(@plus, (I(:).'-1)*ds, (1:ds)');  % ds × mi
+            rowIdx = rowIdx(:);
+        end
+
+        % Columns correspond to blocks of size dt for each matrix column
+        if nj == 0
+            colIdx = zeros(0,1);
+        else
+            colIdx = bsxfun(@plus, (J(:).'-1)*dt, (1:dt)');  % dt × nj
+            colIdx = colIdx(:);
+        end
+
+        Csub = obj.C(rowIdx, colIdx);
+
+        out = quadPoly(Csub, obj.Zs, obj.Zt, [mi nj], obj.ns, obj.nt);
+
+        % If there are further subsref operations, apply them
+        if numel(S) > 1
+            out = subsref(out, S(2:end));
+        end
+        return;
+
+    otherwise
+        error('quadPoly:subsref:unknownType', 'Unknown subsref type: %s', S(1).type);
 end
-
-m  = F.dim(1); n  = F.dim(2);
-ds = size(F.Zs,1);
-dt = size(F.Zt,1);
-
-subs = S(1).subs;
-
-if numel(subs) == 2
-    r = expandIdx(subs{1}, m);
-    c = expandIdx(subs{2}, n);
-
-    rIdx = reshape(((r(:)-1)*ds + (1:ds)).', [], 1);
-    cIdx = reshape(((c(:)-1)*dt + (1:dt)).', [], 1);
-
-    Csub = F.C(rIdx, cIdx);
-    out  = quadPoly(Csub, F.Zs, F.Zt, [numel(r) numel(c)], F.ns, F.nt);
-elseif numel(subs) == 1
-    idxRaw = subs{1};
-
-    % F(:) should behave like MATLAB: column vector output
-    if ischar(idxRaw) && strcmp(idxRaw,':')
-        idx = (1:m*n).';
-        outSz = [m*n 1];
-    else
-        idx = expandIdx(idxRaw, m*n);     % includes end already resolved
-        outSz = size(idx);
-        idx = idx(:);
-    end
-
-    [rb, cb] = ind2sub([m n], idx);
-    K = numel(idx);
-    [ro, co] = ind2sub(outSz, (1:K).');
-
-    Icell = cell(K,1); Jcell = cell(K,1); Vcell = cell(K,1);
-
-    for t = 1:K
-        rSrc = (rb(t)-1)*ds + (1:ds);
-        cSrc = (cb(t)-1)*dt + (1:dt);
-
-        [ib,jb,vb] = find(F.C(rSrc, cSrc));
-        if isempty(vb), continue; end
-
-        Icell{t} = (ro(t)-1)*ds + ib;
-        Jcell{t} = (co(t)-1)*dt + jb;
-        Vcell{t} = vb;
-    end
-
-    I = vertcat(Icell{:});
-    J = vertcat(Jcell{:});
-    V = vertcat(Vcell{:});
-
-    Cnew = sparse(I, J, V, outSz(1)*ds, outSz(2)*dt);
-    out  = quadPoly(Cnew, F.Zs, F.Zt, outSz, F.ns, F.nt);
-
-else
-    error('quadPoly:subsref','Use F(r,c) or F(k).');
-end
-
-if numel(S) > 1
-    out = subsref(out, S(2:end));
-end
-
-end
-
-function idx = expandIdx(idx, N)
-if ischar(idx) && strcmp(idx,':')
-    idx = 1:N;
-elseif isstring(idx) && isscalar(idx) && idx==":"
-    idx = 1:N;
-elseif islogical(idx)
-    idx = find(idx);
-end
-idx = double(idx);
 end

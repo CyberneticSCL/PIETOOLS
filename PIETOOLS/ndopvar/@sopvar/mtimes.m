@@ -50,18 +50,20 @@ end
 if any(~strcmp(A.vars_in,B.vars_out))
     error('names of B output variables differ from names of A input variables');
 end
-if any(A.dom_out~=B.dom_in)
+if any(any(A.dom_out~=B.dom_in))
     error('output domain of B differs from input domain of A');
 end
 
-if numel(A.params)~=numel(B.params)
+if numel(A.params)~=numel(B.params)   % why does this have to be true? -Sachin
     error('number of terms in summands is not equal -- one of them is probably malformed');
 end
 
-C=A;                % begin with A -- creates correct output vars, dim, dom
-C.dims(1)=B.dims(1); 
-C.vars_in=B.vars_in;  
-C.dom_in=B.dom_in;
+
+C = sopvar(B.vars_in,A.vars_out,[B.dims(1),A.dims(2)],B.dom_in,A.dom_out);
+% C=A;                % begin with A -- creates correct output vars, dim, dom
+% C.dims(1)=B.dims(1); 
+% C.vars_in=B.vars_in;  
+% C.dom_in=B.dom_in;
 
 % Now, just need to compute the parameters!
 
@@ -75,6 +77,8 @@ end
 
 
 
+% old code below, not useful for now - Sachin
+if 0
 Aparams = A.params;
 Bparams = B.params;
 keyA = keys(Aparams);
@@ -247,6 +251,7 @@ end
 % truncate
 keys   = keys(1:l-1);
 params = params(1:l-1);
+end
 
 % dedupe: group identical keys and sum corresponding params
 % if numel(keys) > 1

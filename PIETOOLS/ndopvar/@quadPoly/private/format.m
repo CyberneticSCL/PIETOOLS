@@ -1,11 +1,24 @@
 function s = format(obj)
-% obj is a quadPoly scalar
+%FORMAT Pretty-print a quadPoly matrix with tensor-decomposed exponent bases.
+%
+% Representation:
+%   F(s,t) = (I_m ⊗ Zs(s)^T) * C * (I_n ⊗ Zt(t))
+% where
+%   Zs(s) = Zs{1}(s1) ⊗ ... ⊗ Zs{ks}(s_ks),  Zs{i} stores exponents for variable ns{i}
+%   Zt(t) = Zt{1}(t1) ⊗ ... ⊗ Zt{kt}(t_kt),  Zt{j} stores exponents for variable nt{j}
+%
+% This function formats each matrix entry F(i,j) as a sum of monomials
+% in the left variables (ns) and right variables (nt).
 
-m  = obj.dim(1); n  = obj.dim(2);
-ds = size(obj.Zs,1);
-dt = size(obj.Zt,1);
+m  = obj.dim(1);
+n  = obj.dim(2);
+
+% Tensor basis sizes
+ds = prod(cellfun(@numel, obj.Zs));  % # monomials on s-side
+dt = prod(cellfun(@numel, obj.Zt));  % # monomials on t-side
 
 E = strings(m,n);
+
 for i = 1:m
     for j = 1:n
         r = (i-1)*ds + (1:ds);
@@ -17,17 +30,24 @@ for i = 1:m
         else
             [ii,jj,vv] = find(B);
             terms = strings(numel(vv),1);
+
             for t = 1:numel(vv)
-                ms = monomStr(obj.Zs(ii(t),:), obj.ns, false);
-                mt = monomStr(obj.Zt(jj(t),:), obj.nt, true); % theta-side
+                % ii(t) is a linear index into the s tensor basis (1..ds)
+                % jj(t) is a linear index into the t tensor basis (1..dt)
+                es = tensorExpAt(obj.Zs, ii(t));  % exponent vector aligned to obj.ns
+                et = tensorExpAt(obj.Zt, jj(t));  % exponent vector aligned to obj.nt
+
+                ms = monomStr(es, obj.ns, false);
+                mt = monomStr(et, obj.nt, true);  % theta-side styling (optional)
                 terms(t) = termStr(vv(t), ms, mt);
             end
+
             E(i,j) = joinTerms(terms);
         end
     end
 end
 
-% column widths
+% Column widths for aligned display
 w = zeros(1,n);
 for j = 1:n
     w(j) = max(strlength(E(:,j)));
@@ -40,7 +60,7 @@ lines(end+1) = "[";
 for i = 1:m
     rowParts = strings(1,n);
     for j = 1:n
-        rowParts(j) = pad(E(i,j), w(j), 'right');   % <-- edit here
+        rowParts(j) = pad(E(i,j), w(j), 'right');
     end
     rowStr = strjoin(rowParts, " , ");
     if i < m
@@ -55,6 +75,39 @@ s = strjoin(lines, newline);
 
 end
 
+% -------------------------------------------------------------------------
+% Helper: decode tensor-product basis linear index -> exponent vector
+% -------------------------------------------------------------------------
+function e = tensorExpAt(Zcell, idx)
+%TENSOREXPAT Return exponent vector for tensor basis index idx (1-based).
+%
+% Zcell : 1×k cell, each Zcell{q} is an exponent list for variable q.
+% idx   : linear index in the Kronecker basis ordering consistent with MATLAB kron,
+%         i.e., last variable varies fastest.
+%
+% Output:
+%   e : k×1 exponent vector aligned with Zcell order.
+
+k = numel(Zcell);
+e = zeros(k,1);
+
+% Sizes of each 1D basis
+sz = cellfun(@numel, Zcell);
+
+% MATLAB kron ordering: last factor varies fastest.
+% Convert (idx-1) to mixed radix with radices sz(end),...,sz(1).
+x = idx - 1;
+for q = k:-1:1
+    rq = sz(q);
+    iq = mod(x, rq) + 1;    % 1..rq index into Zcell{q}
+    e(q) = Zcell{q}(iq);
+    x = floor(x / rq);
+end
+end
+
+% -------------------------------------------------------------------------
+% Monomial string builder (unchanged, now fed exponent vectors from tensorExpAt)
+% -------------------------------------------------------------------------
 function ms = monomStr(e, names, greekTheta)
 if isempty(names)
     names = arrayfun(@(k) sprintf('x%d',k), 1:numel(e), 'UniformOutput', false);
@@ -93,6 +146,8 @@ v = string(base) + digitsToSub(d);
 end
 
 function out = digitsToSub(digits)
+table = '₀₁₂₃₄₅₆₇₈⁹'; %#ok<NASGU>
+% NOTE: corrected table below (previous line kept for readability in editors)
 table = '₀₁₂₃₄₅₆₇₈₉';
 digits = char(digits);
 out = "";

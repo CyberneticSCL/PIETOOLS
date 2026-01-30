@@ -1,40 +1,35 @@
 function H = ctranspose(F)
-% This function performs conjugate transpose of a matrix
-% valued polynomial.
+%CTRANSPOSE Conjugate-transpose of quadPoly WITHOUT swapping left/right variables.
 %
-% Input:
-% F: a matrix-valued polynomial of size m-by-n in variables s, theta
+% If F(s,t) = (I_m ⊗ Zs(s)^T) * C * (I_n ⊗ Zt(t)),
+% then H(s,t) = F(s,t)' is represented as
+%   H(s,t) = (I_n ⊗ Zs(s)^T) * Cnew * (I_m ⊗ Zt(t)),
+% using the SAME Zs/ns on the left and SAME Zt/nt on the right.
 %
-% Output:
-% H: conjugate transpose of F.
+% Cnew is obtained by conjugate transposing only the outer (m×n) block structure of C,
+% while keeping the within-block (ds×dt) coordinates fixed.
 
-H = F;
-m  = F.dim(1); n  = F.dim(2);
-ds = size(F.Zs,1);
-dt = size(F.Zt,1);
+m  = F.dim(1);
+n  = F.dim(2);
 
-[I,J,V] = find(F.C);
-if isempty(V)
-    Cnew = sparse(n*ds, m*dt);
-else
-    a = mod(I-1,ds)+1;
-    b = mod(J-1,dt)+1;
-    i = floor((I-a)./ds)+1;
-    j = floor((J-b)./dt)+1;
+ds = prod(cellfun(@numel, F.Zs));  % tensor basis size on s-side
+dt = prod(cellfun(@numel, F.Zt));  % tensor basis size on t-side
 
-    Inew = (j-1)*ds + a;
-    Jnew = (i-1)*dt + b;
+C = sparse(F.C);
+[i, j, v] = find(C);
 
-    nRows = n*ds;
+% Within-block indices and block indices
+a  = mod(i-1, ds) + 1;        % 1..ds
+ib = floor((i-1) / ds);       % 0..m-1
 
-    if numel(V) > 2e5
-        lin = Inew + (Jnew-1)*nRows;
-        [~,p] = sort(lin);
-        Inew = Inew(p); Jnew = Jnew(p); V = V(p);
-    end
+b  = mod(j-1, dt) + 1;        % 1..dt
+jb = floor((j-1) / dt);       % 0..n-1
 
-    Cnew = sparse(Inew, Jnew, conj(V), nRows, m*dt);
-end
+% Swap ONLY the outer block indices (ib <-> jb)
+i2 = jb * ds + a;             % rows: n blocks of size ds
+j2 = ib * dt + b;             % cols: m blocks of size dt
 
-H = quadPoly(Cnew, F.Zs, F.Zt, [n m], F.ns, F.nt);
+Cnew = sparse(i2, j2, conj(v), n*ds, m*dt);
+
+H = quadPoly(Cnew, F.Zs, F.Zt, [n, m], F.ns, F.nt);
 end
