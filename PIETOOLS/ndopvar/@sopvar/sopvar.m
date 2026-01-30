@@ -10,7 +10,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
 % Elements of this class are intended to be included in a container object.
 % 
 %   The operator has the form 
-%         sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C Z_d(S_3dum,S_1)
+%         sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C{\alpha} Z_d(S_3dum,S_1)
+%                         alpha \in \{0,1,-1\}^{n_3}
 %
 %   where S_1 is the variables in S_i (output) not in S_j (input)
 %         S_2 is the variables in S_j (input) not in S_i (output)
@@ -18,8 +19,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
 %         S_3dum are dummy versions of the variables in S_3
 %
 % CLASS properties
-% - P.C:   3^N x 1 Cell array of Quadpoly objects, where N is the number of variables which appear in both the input and output space;
-%           Each quadpoly has the structure (I X Z_d(S_2,S_3)) C (I X Z_d(S_3dum,S_1))
+% - P.C:   3x3x3x3...x3 Cell array of Quadpoly objects, where n_3 is the number of variables in S_3;
+%           Each quadpoly has the structure (I X Z_d(S_2,S_3)) C{alpha} (I X Z_d(S_3dum,S_1))
 %           NOTE: Wouldnt it be better to make this a NxNxN array so we don't have to figure out where everything is? Not as fast maybe, but the bottleneck will be quadvar operations anyway. 
 %                Sachin: It is not (3^N x 1) cell, it is 3x3x...x3 where
 %                        some of the 3's are replaced by 1's when that particular
