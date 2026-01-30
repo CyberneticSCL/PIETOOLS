@@ -1,36 +1,18 @@
 function At = ctranspose(A)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Pt = ctranspose(P) transposes a sopvar operator P: L_2^p[S1,S3] to L_2^q[S2,S3]
+% Pt = ctranspose(P) transposes a sopvar operator P: L_2^p[Si,...Sn] to L_2^q[Sj,...,Sm]
 % Date: 1/16/26
 % Version: 1.0
 % 
 % INPUT
 % A: sopvar class object
-%   of the form 
-%         sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C{\alpha} Z_d(S_3dum,S_1)
-%                         alpha \in \{0,1,-1\}^{n_3}
-%
-%   where S_1 is the variables in S_i (output) not in S_j (input)
-%         S_2 is the variables in S_j (input) not in S_i (output)
-%         S_3 is the variables common to S_j (input) and S_i (output)
-%         S_3dum are dummy versions of the variables in S_3% 
+% 
 % OUTPUT
 % At: transpose of the input opvar with the same matlab structure as
-%   At: L_2^q[S_2,S_3] to L_2^p[S1,...Sn]
-%   of the form 
-%         sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C{\alpha} Z_d(S_3dum,S_1)
-%                         alpha \in \{0,1,-1\}^{n_3}
+%   At: L_2^q[Sj,...,Sm] to L_2^p[Si,...Sn]
 %
-%   where S_1 is the variables in S_i (output) not in S_j (input)
-%         S_2 is the variables in S_j (input) not in S_i (output)
-%         S_3 is the variables common to S_j (input) and S_i (output)
-%         S_3dum are dummy versions of the variables in S_3% 
-
-%
-
-% If A has the form sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum)
-% Z_d(S_2,S_3) C Z_d(S_3dum,S_1) where alpha \in {0,1,-1}^n3
-% Then At has the form sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C Z_d(S_3dum,S_1)
+% If A has the form sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C Z_d(S_3dum,S_1)
+% Then As has the form sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3) C Z_d(S_3dum,S_1)
 
 % 
 % NOTES:
@@ -66,32 +48,26 @@ function At = ctranspose(A)
 
 % initialize the transpose object
 At = A;  
-At.vars_S2 = A.vars_S1;  % input S1 vars become output vars S2
-At.vars_S1 = A.vars_S2;  % output S2 vars become input vars S1
-At.dom_2 = A.dom_1;  % input S1 doms become output S2 doms
-At.dom_1 = A.dom_2;  % output S2 doms become input S1 doms
+At.vars_out = A.vars_in;  % input vars become output vars
+At.vars_in = A.vars_out;  % output vars become input vars
+At.dom_in = A.dom_out;  % output doms become input doms
 
 At.dims = A.dims';       % matrix dimension is transposed
 
 % collect all vars
-%varsMain = union(A.vars_in,A.vars_out); 
+varsMain = union(A.vars_in,A.vars_out); 
 
 % create dummy vars corresponding to vars
 varsDummy = strrep(varsMain,'s','t');
 
-% NOTE, need verification that A is in correct format
-
-% total vars in old S1,S2,S3 
-nvars1 = numel(A.vars_S1);
-nvars2 = numel(A.vars_S2);
-nvars3 = numel(A.vars_S3);
-
-% parameter cell dimension should not change
-
-%cellsize = ones(1,nvars);
+% total vars
+nvars = numel(varsMain);
+% parameter cell dimension
+cellsize = ones(1,nvars);
 tmpsize = size(A.params);
-%cellsize(1:length(tmpsize)) = tmpsize;  
-
+cellsize(1:length(tmpsize)) = tmpsize;  
+% matlab size(A.params) function drops trailing 1s, i.e, 1x3x1 is truncated to 1x3. 
+% In the above cellsize, we explicitly append them back for transpose logic.
 
 % for each parameter in cell structure repeat
 for i=1:numel(A.params)
@@ -109,9 +85,9 @@ for i=1:numel(A.params)
     % transpose Parameter
     tmp = A.params{i}';
     
-    % for each spatial variable si in S3, check if we need to swap
+    % for each spatial variable si, check if we need to swap
     % si and si_dum 
-    for j=1:nvars3
+    for j=1:nvars
         % dimension along si is 1, 
         % must be multiplier or full integral between different spaces, swap (si,si_dum)
         if cellsize(j)==1   
