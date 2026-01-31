@@ -117,16 +117,16 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                         error("The spatial domain should be specified as px2 array for 'p' variables.")
                     end
                 end
-                % Declare an identity operator mapping x to x
-                C = nopvar();
-                C.dom = dom;
-                C.vars = polynomial(pvarname);
-                C.deg = zeros(N,1);
-                C.C = cell([3*ones(1,N),1]);
-                C.C{1} = 1;
+                % % Declare an identity operator mapping x to x
+                % C = nopvar();
+                % C.dom = dom;
+                % C.vars = polynomial(pvarname);
+                % C.deg = zeros(N,1);
+                % C.C = cell([3*ones(1,N),1]);
+                % C.C{1} = 1;
                 % Declare the distributed polynomial variable
-                P.C = tensopvar(C);
-                P.degmat = 1;
+                %P.C = tensopvar(C);
+                P.degmat = eye(p);
                 P.varname = varname;
                 P.pvarname = pvarname;
                 P.varmat = true(p,N);
