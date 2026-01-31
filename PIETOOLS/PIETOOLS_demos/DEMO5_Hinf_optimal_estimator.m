@@ -166,8 +166,8 @@ ndiff = [0,0,2];    % PDE state involves 2 second order differentiable state var
 tval = solution.timedep.dtime;
 x_act = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
 x_est = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
-z_act = solution.timedep.regulated(1,:);
-z_est = solution.timedep.regulated(2,:);
+z_act = solution.timedep.regulated{1}(1,:);
+z_est = solution.timedep.regulated{1}(2,:);
 
 
 echo off
