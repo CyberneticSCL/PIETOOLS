@@ -69,20 +69,57 @@
 % 1) solution 
 % solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
-% --- solution.final.pde - array of size (N+1) x ns, ns is the total number of PDE states (including 2D and 1D states in 2D problems)- PDE (distributed state) solution at a final time
+% --- solution.final.pde{1,2} - cell array containing all pde solutions at a final time
+% --- solution.final.pde{1} - array containing the solution for states that are only the functions of one variable - 
+% it is array of size (N+1) x (nx+ny), nx - number of states depending only on s1, 
+%                                      ny - number of states depending only on s2 
+% --- solution.final.pde{2} - array containing the solution for states that are the functions of two variables - 
+% it is array of size (N+1) x (N+1) x ns, ns - number of states depending on both s1 and s2
 % --- solution.final.ode - array of size no - ode solution at a final time 
-% --- solution.final.observed - array of size noo  - final value of observed outputs
-% --- solution.final.regulated - array of size nro  - final value of regulated outputs
+% --- solution.final.observed{1,2,3} - cell array containing final value of observed outputs 
+% --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
+% --- solution.final.observed{2} - array containing final value of infinite-dimnesional 
+%      observed outputs that are only the functions of one variable - 
+% It is array of size (N+1) x (noox+nooy), noox - number of outputs depending only on s1, 
+%                                      nooy - number of outputs depending only on s2 
+% --- solution.final.observed{3} - array containing final value of observed outputs that are the functions of two variables - 
+% It is array of size (N+1) x (N+1) x noo2, noo2 - number of outputs depending on both s1 and s2
+% --- solution.final.regulated{1,2,3} - cell array containing final value of regulatedd outputs 
+% --- solution.final.regulated{1} - array of size nro  - final value of finite-dimensional regulated outputs
+% --- solution.final.regulated{2} - array containing final value of infinite-dimnesional 
+%      regulated outputs that are only the functions of one variable - 
+% It is array of size (N+1) x (nrox+nroy), nrox - number of outputs depending only on s1, 
+%                                      nroy - number of outputs depending only on s2 
+% --- solution.final.regulated{3} - array containing final value of regulated outputs that are the functions of two variables - 
+% It is array of size (N+1) x (N+1) x nro2, nro2 - number of outputs depending on both s1 and s2
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
-% --- solution.timedep.dtime - array of size 1 x Nsteps - array of discrete time values at which the time-dependent solution is computed  
-% --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
+% --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
+% --- solution.timedep.pde{1,2} - cell array containing all time-dependent pde solutions 
+% --- solution.timedep.pde{1} - array containing the solution for states that are only the functions of one variable - 
+% It is array of size (N+1) x (nx+ny) x Nsteps, nx - number of states depending only on s1, 
+%                                      ny - number of states depending only on s2 
+% --- solution.timedep.pde{2} - array containing the solution for states that are the functions of two variables - 
+% It is array of size (N+1) x (N+1) x ns x Nsteps, ns - number of states depending on both s1 and s2
 % --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
-%     solution of ns PDE (distributed) states of the primary PDE system
-% --- solution.timedep.observed - array of size noo x Nsteps -
-%     time-dependent value of observed outputs
-% --- solution.timedep.regulated - array of size nro x Nsteps -
-%     time-dependent value of regulated outputs
+% --- solution.timedep.observed{1,2,3} - cell array containing time-dependent 
+%      observed outputs 
+% --- solution.timedep.observed[1} - array of size noo x Nsteps -
+%     time-dependent value of finite-dimensional observed outputs
+% --- solution.timedep.observed{2} - array containing observed outputs that are only the functions of one variable - 
+% It is array of size (N+1) x (noox+nooy) x Nsteps, noox - number of observed outputs depending only on s1, 
+%                                      nooy - number of observed states depending only on s2 
+% --- solution.timedep.observed{3} - array containing observed outputs that are the functions of two variables - 
+% It is array of size (N+1) x (N+1) x noo2 x Nsteps, noo2 - number of outputs depending on both s1 and s2
+% --- solution.timedep.regulated{1,2,3} - array containing time-dependent infinite-dimnesional 
+%      regulated outputs 
+% --- solution.timedep.regulated{1} - array of size nro x Nsteps -
+%     time-dependent value of finite-dimensional regulated outputs
+% --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of one variable - 
+% It is array of size (N+1) x (nrox+nroy) x Nsteps, nrox - number of regulated outputs depending only on s1, 
+%                                      nroy - number of regulated outputs depending only on s2 
+% --- solution.timedep.regulated{3} - array containing regulated outputs that are the functions of two variables - 
+% It is array of size (N+1) x (N+1) x nro2 x Nsteps, nro2 - number of outptus depending on both s1 and s2
 %
 %  2) grid - field containing two sub-fields
 %  --- grid.phys 
