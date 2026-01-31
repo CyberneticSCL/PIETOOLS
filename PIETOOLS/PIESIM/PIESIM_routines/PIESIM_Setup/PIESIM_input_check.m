@@ -485,7 +485,7 @@ elseif (opts.type=='DDE')
         end
         if ns>0
         disp('Initial conditions on history are not defined. Defaulting to 1');
-        uinput.ic.PDE(1:ns)=1;
+        uinput.ic.DDE(1:ns)=1;
         end
     else
         if ~isfield(uinput.ic,'ODE')
@@ -1106,4 +1106,5 @@ end
 
 
 end
+
 
