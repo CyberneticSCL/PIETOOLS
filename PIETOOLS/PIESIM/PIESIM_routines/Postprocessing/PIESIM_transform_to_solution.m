@@ -87,18 +87,18 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
        psize.noox=0;
     end
 
-     Tcheb_nonsquare=Dop.Tcheb_nonsquare; 
-     Tucheb_nonsquare=Dop.Tucheb_nonsquare;
-     Twcheb_nonsquare=Dop.Twcheb_nonsquare;
+     Tcheb_2PDEstate=Dop.Tcheb_2PDEstate; 
+     Tucheb_2PDEstate=Dop.Tucheb_2PDEstate;
+     Twcheb_2PDEstate=Dop.Twcheb_2PDEstate;
 
-      if isfield(Dop,'Tchebmap_nonsquare') 
-          Tcheb_nonsquare=Dop.Tchebmap_nonsquare;
+      if isfield(Dop,'Tchebmap_2PDEstate') 
+          Tcheb_2PDEstate=Dop.Tchebmap_2PDEstate;
       end
-      if isfield(Dop,'Tuchebmap_nonsquare') 
-          Tucheb_nonsquare=Dop.Tuchebmap_nonsquare;
+      if isfield(Dop,'Tuchebmap_2PDEstate') 
+          Tucheb_2PDEstate=Dop.Tuchebmap_2PDEstate;
       end
-       if isfield(Dop,'Twchebmap_nonsquare') 
-          Twcheb_nonsquare=Dop.Twchebmap_nonsquare;
+       if isfield(Dop,'Twchebmap_2PDEstate') 
+          Twcheb_2PDEstate=Dop.Twchebmap_2PDEstate;
       end
 
      C1op=Dop.C1cheb;
@@ -117,7 +117,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 %      
 
  % Reconstruction of the coefficients of the primary states
-     acheb_p = Tcheb_nonsquare*solcoeff.final;
+     acheb_p = Tcheb_2PDEstate*solcoeff.final;
           
  % Reconstuctution of primary states in the physical space    
      
@@ -126,7 +126,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
         for k = 1:numel(uinput.w)
         wvec(k,1)=uinput.w{k}(tf); 
         end
-        acheb_p=acheb_p+Twcheb_nonsquare*solcoeff.w*wvec;
+        acheb_p=acheb_p+Twcheb_2PDEstate*solcoeff.w*wvec;
      end % psize.nw>0
      
      
@@ -135,7 +135,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
         for k = 1:numel(uinput.u)
         uvec(k,1)=uinput.u{k}(tf); 
         end
-     acheb_p=acheb_p+Tucheb_nonsquare*solcoeff.u*uvec;
+     acheb_p=acheb_p+Tucheb_2PDEstate*solcoeff.u*uvec;
      end %psize.nu>0
      
      % Reconstruct solution using inverse Chebyshev transform (ifcht
@@ -245,7 +245,7 @@ if (opts.intScheme==1 & solution.tf~=0)
      for ntime=1:size(solution.timedep.dtime,2);
 
  % Reconstruction of the coefficients of the primary states
-         acheb_p = Tcheb_nonsquare*solcoeff.timedep.coeff(:,ntime);
+         acheb_p = Tcheb_2PDEstate*solcoeff.timedep.coeff(:,ntime);
          
          tt=solution.timedep.dtime(ntime);
          
@@ -258,7 +258,7 @@ if (opts.intScheme==1 & solution.tf~=0)
        for k = 1:numel(uinput.w)
          wvec(k,1)= uinput.w{k}(tt);
        end
-     acheb_p=acheb_p+Twcheb_nonsquare*solcoeff.w*wvec;
+     acheb_p=acheb_p+Twcheb_2PDEstate*solcoeff.w*wvec;
      end % if (psize.nw>0)
 
      % Define inhomogeneous contributions due to controlled inputs
@@ -267,7 +267,7 @@ if (opts.intScheme==1 & solution.tf~=0)
      for k = 1:numel(uinput.u)
      uvec(k,1)=uinput.u{k}(tt); 
      end
-     acheb_p=acheb_p+Tucheb_nonsquare*solcoeff.u*uvec;
+     acheb_p=acheb_p+Tucheb_2PDEstate*solcoeff.u*uvec;
      end % if (psize.nu>0)
   
      % Reconstruct solution using inverse Chebyshev transform (ifcht function)
