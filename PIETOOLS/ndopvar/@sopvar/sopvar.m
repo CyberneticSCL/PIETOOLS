@@ -111,11 +111,11 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
             P.params = params;                                          % parameters specified
             if nargin>=6                                                    % parameters specified, copy S1
                 P.vars_S1 = vars1(:).';
-                P.dom_1=dom1;
+                P.dom_1=dom_1;
             end
             if nargin==8                                                % parameters specified, but no S2
                 P.vars_S2 = vars2(:).';
-                P.dom_2=dom2;
+                P.dom_2=dom_2;
 
             end
             % NOTE: need error checking to ensure quadpolys in params have
@@ -123,8 +123,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
         end
     end
 
-    methods(Static)
-        out = randOpvar(varsin,varsout,dim,degree,density);
-    end
+    % methods(Static)
+    %     out = randsopvar(vars_S1,vars_S2,vars_S3,out,dim,degree,density);
+    % end
 
 end

@@ -88,10 +88,18 @@ nvars3 = numel(A.vars_S3);
 
 % parameter cell dimension should not change
 
-%cellsize = ones(1,nvars);
+cellsize = ones(1,nvars3);
 tmpsize = size(A.params);
 %cellsize(1:length(tmpsize)) = tmpsize;  
 
+
+% For the adjoint, the parameters in P.params(alpha) are swapped to
+% positions  P.params(-alpha) using indexing alpha \in {0,1,-1}^n3. However,
+% the actual indexing is \alpha \in {1,2,3}^n3
+% so, position [1 2 3 3] is swapped with [1 3 2 2]
+
+idx = repmat({[1 3 2]}, 1, nvars3);
+C = C(idx{:});
 
 % for each parameter in cell structure repeat
 for i=1:numel(A.params)
