@@ -7,7 +7,7 @@ vars_S3 = {'s3a','s3b'};
 dim=[2 3];
 degree =1;
 density = .05;
-randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density)
+out=sopvar.randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density)
 
 
 % nvars_total = 5;

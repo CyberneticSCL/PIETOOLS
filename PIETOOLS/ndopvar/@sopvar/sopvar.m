@@ -123,8 +123,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
         end
     end
 
-    % methods(Static)
-    %     out = randsopvar(vars_S1,vars_S2,vars_S3,out,dim,degree,density);
-    % end
+    methods(Static)
+        out = randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density);
+    end
 
 end

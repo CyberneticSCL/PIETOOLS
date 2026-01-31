@@ -13,8 +13,8 @@ dom_1 = repmat([0,1],numel(vars_S1),1);
 dom_2 = repmat([0,1],numel(vars_S2),1);
 dom_3 = repmat([0,1],numel(vars_S3),1);
 % find unique variables
-n1= numel(vars_S1);
-n2= numel(vars_S2);
+% n1= numel(vars_S1);
+% n2= numel(vars_S2);
 n3= numel(vars_S3);
 
 % cell dimensions for Pout.params. Initialize an empty cell
@@ -50,8 +50,8 @@ for i=1:numel(params)
     % variables corresponding to sj if there is no sj in output, and if sj is
     % in input then only sj_dum appears making sure that sj is integrated out,
     % etc.
-    params{Aidx} = reduce(quadPoly.randquadPoly(dim,nMons,var_s,var_t,[degree,degree],density));
+    params{i} = quadPoly.randquadPoly(dim,nMons,var_s,var_t,[degree,degree],density);
+%    params{Aidx} = reduce(quadPoly.randquadPoly(dim,nMons,var_s,var_t,[degree,degree],density));
 end
 %out = sopvar(vars_S1,vars_out,dim,dom_in, dom_out,params);
-out = sopvar(vars_S3,dom_3,dims,params,vars_S1,dom_1,vars_S2,dom_2)
-end
+out = sopvar(vars_S3,dom_3,dim,params,vars_S1,dom_1,vars_S2,dom_2);
