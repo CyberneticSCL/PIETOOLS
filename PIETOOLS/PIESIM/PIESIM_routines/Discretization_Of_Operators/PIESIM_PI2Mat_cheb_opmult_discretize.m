@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_PI2Mat_cheb_opmult_discretize.m     PIETOOLS 2024
+% PIESIM_PI2Mat_cheb_opmult_discretize.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Constructs A, A_nonsquare - discrete matrix representations of a polymonial
+% Constructs A, A_2PDEstate - discrete matrix representations of a polymonial
 % multiplicative operator 
 %
 % Inputs:
@@ -15,10 +15,10 @@
 % Outputs:
 % A - matrix of size N+1 x rsize that represents a Chebyshev
 % discretizaiton of the polynomial multiplicative matrix operator. Represents a block of a
-% square total matrix operator for PIE solution
-% A_nonsquare - matrix of size N+1 x N-p+1 that represents a Chebyshev
+% total matrix operator for PIE solution
+% A_2PDEstate - matrix of size N+1 x N-p+1 that represents a Chebyshev
 % discretizaiton of the polynomial multiplicative matrix operator. Represents a block of a
-% non-square total matrix operator for reconstruction of the primary
+% total matrix operator for reconstruction of the primary
 % solution
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -30,9 +30,9 @@
 % YP -  added support for an arbitary variable name - 04_16_2024
 % DJ, 12/16/2024: Make sure variable to substitute matches that of Rop;
 
-function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rop, p)
+function [A, A_2PDEstate]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, Rop, p)
 
-A_nonsquare(1:N+1,1:N-p+1)=0;
+A_2PDEstate(1:N+1,1:N-p+1)=0;
 
 if isa(Rop,'polynomial')
     deg=Rop.maxdeg;
@@ -59,14 +59,14 @@ for i=1:N-p+1
     for j=1:length(acheb)
         jd=j-1;
         if (jd+id<=N)
-        A_nonsquare(jd+id+1,i)=A_nonsquare(jd+id+1,i)+0.5*acheb(j);
+        A_2PDEstate(jd+id+1,i)=A_2PDEstate(jd+id+1,i)+0.5*acheb(j);
         end
         if (abs(jd-id)<=N)
-        A_nonsquare(abs(jd-id)+1,i)=A_nonsquare(abs(jd-id)+1,i)+0.5*acheb(j);
+        A_2PDEstate(abs(jd-id)+1,i)=A_2PDEstate(abs(jd-id)+1,i)+0.5*acheb(j);
         end
     end
 end
-A=A_nonsquare(1:rsize,:);
+A=A_2PDEstate(1:rsize,:);
 
 
 
