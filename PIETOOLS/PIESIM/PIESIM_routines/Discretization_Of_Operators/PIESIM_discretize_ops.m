@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_ops.m     PIETOOLS 2024
+% PIESIM_discretize_ops.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of PIE operators with Chebyshev methods  
 %
@@ -75,26 +75,27 @@ end
  Dop.D22cheb=PIESIM_4PI2Mat_cheb(N,PIE.D22,p,0);
  Dop.C1cheb=PIESIM_4PI2Mat_cheb(N,PIE.C1,p,1);
  Dop.C2cheb=PIESIM_4PI2Mat_cheb(N,PIE.C2,p,1);
- [Dop.Tucheb,Dop.Tucheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,2);
- [Dop.Twcheb,Dop.Twcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,2);
+ [Dop.Tucheb,Dop.Tucheb_2PDEstate]=PIESIM_4PI2Mat_cheb(N,PIE.Tu,p,2);
+ [Dop.Twcheb,Dop.Twcheb_2PDEstate]=PIESIM_4PI2Mat_cheb(N,PIE.Tw,p,2);
  Dop.B1cheb=PIESIM_4PI2Mat_cheb(N,PIE.B1,p,2);
  Dop.B2cheb=PIESIM_4PI2Mat_cheb(N,PIE.B2,p,2);
  Dop.Acheb=PIESIM_4PI2Mat_cheb(N,PIE.A,p,3);
- [Tcheb, Dop.Tcheb_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,3);
+ [Tcheb, Dop.Tcheb_2PDEstate]=PIESIM_4PI2Mat_cheb(N,PIE.T,p,3);
  if isfield(PIE.misc,'Tmap') 
-     [Tchebmap, Dop.Tchebmap_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tmap,p,3);
+     [Tchebmap, Dop.Tchebmap_2PDEstate]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tmap,p,3);
  end
 
  if isfield(PIE.misc,'Tumap') 
-     [Tuchebmap,Dop.Tuchebmap_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tumap,p,2);
+     [Tuchebmap,Dop.Tuchebmap_2PDEstate]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Tumap,p,2);
  end
 
  if isfield(PIE.misc,'Twmap') 
-     [Twchebmap,Dop.Twchebmap_nonsquare]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Twmap,p,2);
+     [Twchebmap,Dop.Twchebmap_2PDEstate]=PIESIM_4PI2Mat_cheb(N,PIE.misc.Twmap,p,2);
  end
 %  
   Dop.Tcheb_inv=inv(Tcheb);
   Dop.Atotal=Dop.Tcheb_inv*Dop.Acheb;
+
 
 
 
