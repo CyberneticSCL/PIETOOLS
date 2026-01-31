@@ -84,6 +84,9 @@ dumvar_cell = cell(1,max(d1,d2));
 for lidx=1:numel(C_A.ops)
     [~,cidx] = ind2sub(size(C_A.ops),lidx);
     deg_l = degs_A(cidx,:);
+    if sum(deg_l)==1
+        continue
+    end
     % Establish which elements of C1.ops{lidx} correspond to each variable
     deg_idcs = mat2cell([[0,cumsum(deg_l(1:end-1))];cumsum(deg_l)],2,ones(1,numel(deg_l)));
     deg_idcs = cellfun(@(a)(a(1)+1:a(2)),deg_idcs,'UniformOutput',false);
