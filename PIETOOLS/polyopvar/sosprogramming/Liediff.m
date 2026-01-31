@@ -78,6 +78,7 @@ end
 old_state_arr = [];
 new_state_arr = [];
 old_monnum = [];
+diff_idx = [];
 dtot = max(sum(Vdegs,2));
 for ii=1:size(Vdegs,1)
     degs_ii = Vdegs(ii,:);
@@ -87,16 +88,26 @@ for ii=1:size(Vdegs,1)
     state_idcs_ii = repelem(state_idcs_ii,degs_ii);
     % Apply the map ui = T(i,:)*v = sum_{j=1}^{n} T(i,j)*vj
     % splitting the monomial into j^dtot terms
-    new_state_idcs_jj = state_idcs_ii;
     for jj=1:numel(state_idcs_ii)
-        nr = size(new_state_idcs_jj,1);
-        new_state_idcs_jj = repmat(new_state_idcs_jj,[nvars,1]);
-        new_state_idcs_jj(:,jj) = kron((1:nvars)',ones(nr,1));
+        % Keep factor uj
+        new_state_idcs_jj = state_idcs_ii;
+        for kk=setdiff(1:numel(state_idcs_ii),jj)
+            % Replace factor uk by uk = sum_{l=1}^{n{ T(k,l)*vl;
+            nr = size(new_state_idcs_jj,1);
+            new_state_idcs_jj = repmat(new_state_idcs_jj,[nvars,1]);
+            new_state_idcs_jj(:,kk) = repelem((1:nvars)',nr);
+        end
+        [nr,nc] = size(new_state_idcs_jj);
+        state_idcs_jj(:,jj) = state_idcs_ii(jj)*ones(nr,1);
+        new_state_arr = [new_state_arr; [new_state_idcs_jj, zeros(nr,dtot-nc)]];
+        old_state_arr = [old_state_arr; [repmat(state_idcs_ii,[nr,1]), zeros(nr,dtot-nc)]];
+        old_monnum = [old_monnum; ii*ones(nr,1)];
+        diff_idx = [diff_idx; jj*ones(nr,1)];
     end
-    [nr,nc] = size(new_state_idcs_jj);
-    new_state_arr = [new_state_arr; [new_state_idcs_jj, zeros(nr,dtot-nc)]];
-    old_state_arr = [old_state_arr; [repmat(state_idcs_ii,[nr,1]), zeros(nr,dtot-nc)]];
-    old_monnum = [old_monnum; ii*ones(nr,1)];
+    % [nr,nc] = size(new_state_idcs_jj);
+    % new_state_arr = [new_state_arr; [new_state_idcs_jj, zeros(nr,dtot-nc)]];
+    % old_state_arr = [old_state_arr; [repmat(state_idcs_ii,[nr,1]), zeros(nr,dtot-nc)]];
+    % old_monnum = [old_monnum; ii*ones(nr,1)];
 end
 
 % Declare an empty polynomial 
@@ -105,62 +116,66 @@ tmp_poly.C.ops = {};
 tmp_poly.degmat = zeros(0,nvars);
 dV = tmp_poly;
 for ii=1:size(new_state_arr,1)
-    % Loop over each of the monomials in V, replacing x by T*x, and
-    % evaluating the derivative d/dt T*x = f(x)
+    % Loop over each of the possible monomials in the PIE state variables,
+    % replacing the PDE states by PIE states, and taking the temporal
+    % derivative of just one of the factors in the monomial
     degs_ii = Vdegs(old_monnum(ii),:);
     Kop_ii = V.C.ops{old_monnum(ii)};
     dtot_ii = sum(degs_ii);
-    old_state_idcs = old_state_arr(ii,1:dtot_ii);
-    state_idcs = new_state_arr(ii,1:dtot_ii);
-    % Apply the product rule, d/dt(Tx*Tx) = Ax*Tx + Tx*Ax, looping over
-    % each factor in the monomial and taking the temporal derivative only
-    % along this factor
-    dV_ii = tmp_poly;
-    for jj=1:dtot_ii
-        % Indicate the state variable for which to take the derivative by 0
-        state_idcs_jj = state_idcs;
-        state_idcs_jj(jj) = 0;
-        % Build the product (T*x)*...*(T*x)*(A*x)*(T*x*...*T*x) for A in 
-        % factor j
-        Fx_jj = cell(1,dtot_ii);
-        skip_jj = false;
-        for state_num = 1:nvars
-            Fx_tmp = tmp_poly;
-            Fx_tmp.degmat = [zeros(1,state_num-1),1,zeros(1,nvars-state_num)];
-            Fx_tmp.C.ops{1} = Top_cell{old_state_idcs(jj),state_num};
-            is_state_num = state_idcs_jj==state_num;
-            if any(is_state_num) && Top_cell{old_state_idcs(jj),state_num}==0
-                skip_jj = true;
-                break
-            end
-            Fx_jj(is_state_num) = {Fx_tmp};
+    old_state_idcs_ii = old_state_arr(ii,1:dtot_ii);
+    state_idcs_ii = new_state_arr(ii,1:dtot_ii);
+
+    % Establish which of the factors in the monomial still corresponds to a
+    % PDE state variable, for which we will evaluate the derivative
+    diff_idx_i = diff_idx(ii);
+    % For all other state variables, replace the PDE state by the PIE state
+    % listed in "state_idcs_ii", multiplied with the appropriate element of
+    % the T operator
+    Fx_ii = cell(1,dtot_ii);
+    skip_ii = false;
+    for fctr_num=setdiff(1:dtot_ii,diff_idx_i)
+        % Check which PIE state variable appears in the current factor
+        state_num = state_idcs_ii(fctr_num);
+        % Check which PDE state variable corresponds to this factor
+        old_state_num = old_state_idcs_ii(fctr_num);
+        % Extract the appropriate map Tij
+        Top_ij = Top_cell{old_state_num,state_num};
+        if Top_ij==0
+            skip_ii = true;
+            break
         end
-        if skip_jj
-            continue
-        end
-        % Set factor jj as the right-hand side of the PIE
-        dV_jj = tmp_poly;
-        for ll=1:size(fdegs,1)
-            % Loop over all terms in the PIE
-            Fx_ll = RHS;
-            op_ll = Fx_ll.C.ops{old_state_idcs(jj),ll};
-            if isempty(op_ll) || (isa(op_ll,'nopvar') && op_ll==0)
-                continue
-            else
-                Fx_ll.C.ops = Fx_ll.C.ops(old_state_idcs(jj),ll);
-            end
-            Fx_ll.degmat = Fx_ll.degmat(ll,:);
-            Fx_jj{jj} = Fx_ll;
-            % Take the composition of the functional operator with this
-            % particular term
-            dV_ll = mtimes_functional(Kop_ii,Fx_jj);
-            dV_ll = combine_terms(dV_ll);
-            dV_jj = dV_jj + dV_ll;
-        end
-        % Add the derivative for this particular factor to the full
-        % derivative
-        dV_ii = dV_ii + dV_jj;
+        % Declare the linear polynomial Tij*x_{state_num}
+        Fx_tmp = tmp_poly;
+        Fx_tmp.degmat = [zeros(1,state_num-1),1,zeros(1,nvars-state_num)];
+        Fx_tmp.C.ops{1} = Top_ij;
+        Fx_ii{fctr_num} = Fx_tmp;
     end
+    if skip_ii
+        % If any factor is zero, the whole term is zero
+        continue
+    end
+    % Finally, replace factor diff_idx_i by the right-hand side of the PIE,
+    % and perform the composition
+    dV_ii = tmp_poly;
+    for ll=1:size(fdegs,1)
+        % Loop over all terms in the PIE
+        Fx_ll = RHS;
+        op_ll = Fx_ll.C.ops{old_state_idcs_ii(diff_idx_i),ll};
+        if isempty(op_ll) || (isa(op_ll,'nopvar') && op_ll==0)
+            continue
+        else
+            Fx_ll.C.ops = {op_ll};
+        end
+        Fx_ll.degmat = Fx_ll.degmat(ll,:);
+        Fx_ii{diff_idx_i} = Fx_ll;
+        % Take the composition of the functional operator with this
+        % particular term
+        dV_ll = mtimes_functional(Kop_ii,Fx_ii);
+        dV_ll = combine_terms(dV_ll);
+        dV_ii = dV_ii + dV_ll;
+    end
+    % Add the derivative for this particular factor to the full
+    % derivative
     dV = dV + dV_ii;
 end
 
