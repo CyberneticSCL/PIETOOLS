@@ -102,7 +102,7 @@ idx = repmat({[1 3 2]}, 1, nvars3);
 C = A.params;  % assuming params is indexed by alpha in {1,2,3]^n3
 C = C(idx{:});  % swap the parameters along 2 and 3. 
 
-%At.params = cellfun(@(X) X.', C, 'UniformOutput', false);  % transpose each element
+At.params = cellfun(@(X) X.', C, 'UniformOutput', false);  % transpose each element
 
 
 % for each parameter in cell structure repeat
@@ -113,13 +113,13 @@ for i=1:numel(A.params)
     
     % create transposed index to place in correct location
     % 2 and 3 are swapped; 1 is multiplier, 2 is lower int, 3 is upper int
-    Atidx = cellfun(@(x) x+(x==2)-(x==3), Aidx, UniformOutput=false);
+    % Atidx = cellfun(@(x) x+(x==2)-(x==3), Aidx, UniformOutput=false);
     % note, if x==1, then x + (x==2) - (x==3) = 1
     %          x==2, then x + (x==2) - (x==3) = 3
     %          x==3, then x + (x==2) - (x==3) = 2
     
     % transpose Parameter
-    tmp = A.params{i}';
+    tmp = At.params{i}';
     
     % for each spatial variable si in S3, check if we need to swap
     % si and si_dum 
@@ -136,6 +136,6 @@ for i=1:numel(A.params)
         end
     end
     % place the parameter in the transposed location
-    At.params{Atidx{:}} = tmp;
+    At.params{i} = tmp;
 end
 end
