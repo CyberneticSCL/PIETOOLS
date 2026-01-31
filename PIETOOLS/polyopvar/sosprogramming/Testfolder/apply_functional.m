@@ -116,7 +116,7 @@ n_terms = size(Kparams,2)/ndim;
 if d>2 && n_terms>factorial(d)
     error("Number of operators should be d! for monomial degree d.")
 end
-for ii=1:min(n_terms,factorial(d))
+for ii=1:size(idx_mat,1)
     % Check the order of the variables:
     %   idx_ii = [i,j,k] implies a <= ti <= tj <= tk <= b
     idx_ii = idx_mat(ii,:);
@@ -139,10 +139,10 @@ for ii=1:min(n_terms,factorial(d))
     fval = fval + fval_ii;
 end
 
-if d==2 && n_terms==3
+if d==2 && n_terms==size(idx_mat,1)+1
     % Third term corresponds to the multiplier
     %   int_{a}^{b} P(s)*x(s)^2 ds
-    fval = fval + int(Kparams(:,2*ndim+1:3*ndim)*xvals_full(1)*subs(xvals_full(2),vars(2),vars(1)),vars(1),dom(1),dom(2));
+    fval = fval + int(Kparams(:,end-ndim+1:end)*xvals_full(1)*subs(xvals_full(2),vars(2),vars(1)),vars(1),dom(1),dom(2));
 end
 
 
