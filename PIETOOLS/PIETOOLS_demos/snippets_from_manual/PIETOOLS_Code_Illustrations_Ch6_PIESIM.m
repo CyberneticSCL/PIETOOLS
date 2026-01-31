@@ -36,8 +36,8 @@ clc; clear; close all; clear stateNameGenerator
 % Declare initial conditions and disturbance
 syms sx st;
 uinput.exact(1) = -2*sx*st-sx^2;
-uinput.w(1) = 0;        % disturbance at lower boundary
-uinput.w(2) = -4*st-4;  % disturbance at upper boundary
+uinput.w{1} = 0;        % disturbance at lower boundary
+uinput.w{2} = -4*st-4;  % disturbance at upper boundary
 uinput.ic.PDE = -sx^2;
 % Declare discretization and temporal integration options
 opts.ifexact = true;
