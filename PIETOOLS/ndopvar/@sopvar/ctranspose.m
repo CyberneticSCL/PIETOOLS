@@ -96,10 +96,14 @@ tmpsize = size(A.params);
 % For the adjoint, the parameters in P.params(alpha) are swapped to
 % positions  P.params(-alpha) using indexing alpha \in {0,1,-1}^n3. However,
 % the actual indexing is \alpha \in {1,2,3}^n3
-% so, position [1 2 3 3] is swapped with [1 3 2 2]
+% so, position [1 2 3] is swapped with [1 3 2]
 
 idx = repmat({[1 3 2]}, 1, nvars3);
-C = C(idx{:});
+C = A.params;  % assuming params is indexed by alpha in {1,2,3]^n3
+C = C(idx{:});  % swap the parameters along 2 and 3. 
+
+%At.params = cellfun(@(X) X.', C, 'UniformOutput', false);  % transpose each element
+
 
 % for each parameter in cell structure repeat
 for i=1:numel(A.params)

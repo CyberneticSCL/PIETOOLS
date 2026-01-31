@@ -65,14 +65,14 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %
     % SS,MP, 01/15/2026: Initial coding
     properties
-        vars_S1 = {};
-        vars_S2 = {};
-        vars_S3 = {};
-        dom_1 = zeros(0, 2);
-        dom_2 = zeros(0, 2);
-        dom_3 = zeros(0, 2);
-        dims = [1,1];
-        params = {quadPoly(0,[],[],[1,1],{},{})};
+        vars_S1 = {};   % these variables are integrated out (full integral only)
+        vars_S2 = {};   % these variables are introduced (multiplier only)
+        vars_S3 = {};   % these variables pass through (3 PI operators)
+        dom_1 = zeros(0, 2);   % domain of s1
+        dom_2 = zeros(0, 2);   % domain of s2
+        dom_3 = zeros(0, 2);   % domain of s3
+        dims = [1,1];          % dimension of function spaces
+        params = {quadPoly(0,[],[],[1,1],{},{})};  % parameters
         % each value in the cell is a quadPoly
         % for maps to and from \R spaces, add an extra dimension?
     end

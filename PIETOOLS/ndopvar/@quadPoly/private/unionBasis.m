@@ -94,6 +94,8 @@ dB = prod(nB_sizes);
 PA = sparse(1:dA, mapA, 1, dA, dU);
 PB = sparse(1:dB, mapB, 1, dB, dU);
 
+
+% maybe we do not need PA and PB, ever?
 end
 
 % ---------------- local helpers ----------------

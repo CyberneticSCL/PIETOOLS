@@ -1,8 +1,14 @@
 function Cup = liftIndex(C, m, n, mapS, mapT, dsU, dtU)
 %LIFTINDEXMAPS Lift coefficient matrix by reindexing nnz entries using maps.
-%
+% Lifts C such that 
+%       (I_m\otimes Zs_old')*C*(I_n\otimes Zt_old) 
+%               = (I_m \otimes Zs_union')*Cup*(I_n \otimes Zt_union)
 % mapS: dsOld×1 old->union map (values in 1..dsU)
+% i.e., matrix(mapS)*Zs_old = Zs_union
 % mapT: dtOld×1 old->union map (values in 1..dtU)
+% i.e., matrix(mapT)*Zt_old = Zt_union
+%
+
 
 C = sparse(C);
 

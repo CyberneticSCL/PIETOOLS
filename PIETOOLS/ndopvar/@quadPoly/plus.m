@@ -23,14 +23,14 @@ n = F.dim(2);
 
 % If union equals F on both sides, lift only G
 if sIsF && tIsF
-    CG = liftIndexMaps(G.C, m, n, mapSG, mapTG, dsU, dtU);
+    CG = liftIndex(G.C, m, n, mapSG, mapTG, dsU, dtU);
     H  = quadPoly(F.C + CG, ZsU, ZtU, F.dim, nsU, ntU);
     return;
 end
 
 % If union equals G on both sides, lift only F
 if sIsG && tIsG
-    CF = liftIndexMaps(F.C, m, n, mapSF, mapTF, dsU, dtU);
+    CF = liftIndex(F.C, m, n, mapSF, mapTF, dsU, dtU);
     H  = quadPoly(CF + G.C, ZsU, ZtU, F.dim, nsU, ntU);
     return;
 end
