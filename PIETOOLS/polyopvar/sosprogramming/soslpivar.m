@@ -11,11 +11,17 @@ function [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,opts)
 % - pdegs:  scalar integer specifying the maximal monomial degree of the
 %           independent variables in the definition of the monomial basis
 %           operator Zop;
-% - opts:   struct with field 'exclude', which is a 3x1 boolean array
-%           indicating whether to exclude the multiplier term
-%           (exclude(1)=1), lower integral (exclude(2)=1), or upper
-%           integral (exclude(3)=1) from the definition of basis operator
-%           Zop;
+% - opts:   struct with fields
+%           - 'exclude': 3x1 boolean array indicating whether to exclude 
+%               the multiplier term (exclude(1)=1), lower integral 
+%               (exclude(2)=1), or upper integral (exclude(3)=1) from the 
+%               definition of basis operator Zop;
+%           - 'psatz': 1xp array of integers specifying whether to use a
+%               psatz multiplier to enforce positivity only on the interval
+%               over which the operator integrates. If psatz=0, no such
+%               multiplier is used. If psatz=1, the matrix Pmat will be
+%               multiplied by (s-a)*(b-s), where [a,b]=Z.dom. If
+%               psatz=[0,1], we have Pmat = Pmat1 + (s-a)*(b-s)*Pmat2;
 %
 % OUTPUTS
 % - prog:   lpiprogram structure representing the same LPI optimization
@@ -66,6 +72,7 @@ function [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,opts)
 xdegs = Z.degmat;
 nZ = size(xdegs,1);
 pvars = polynomial(Z.pvarname);
+dom = Z.dom;
 N = numel(pvars);
 if N>=2
     error("Multivariate case is currently not supported.")
@@ -79,10 +86,13 @@ end
 vars = [var1(1:N),var1(N+1:2*N)];
 dom = prog.dom;
 
-if nargin<=3
-    excludeL = zeros([3*ones(1,N),1]);
-else
+excludeL = zeros([3*ones(1,N),1]);
+psatz = 0;
+if nargin>=3 && isfield(opts,'exclude')
     excludeL = opts.exclude;
+end
+if nargin>=3 && isfield(opts,'psatz')
+    psatz = reshape(opts.psatz,1,[]);
 end
 
 % For each distributed monomial, generate a basis of operators acting on
@@ -166,7 +176,11 @@ for ii=1:nZ
 end
 
 % Declare the positive semidefinite matrix variable
-[prog,Pmat] = sosposmatr(prog,Pdim);
+Pmat = 0;
+for j=psatz
+    [prog,Pmat_j] = sosposmatr(prog,Pdim);
+    Pmat = Pmat + ((var1(1)-dom(1))*(dom(2)-var1(1))).^j*Pmat_j;
+end
 
 
 
