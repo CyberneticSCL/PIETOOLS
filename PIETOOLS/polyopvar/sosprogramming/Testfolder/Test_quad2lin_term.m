@@ -10,13 +10,18 @@ deg1 = randi(2,[1,nvars])-1;
 if ~any(deg1)
     deg1(randi(nvars))=1;
 end
-deg2 = randi(3,[1,nvars])-1;
+deg2 = randi(2,[1,nvars])-1;
 if ~any(deg2)
     deg2(randi(nvars))=1;
 end
 d1 = sum(deg1);
 d2 = sum(deg2);
 m_idx = randi(d1+d2);   % index for which operator may include a multiplier
+if d1==1 && d2==1
+    m_idx2 = randi(d1+d2);
+else
+    m_idx2 = 0;
+end
 %m_idx = 2;
 
 % Declare state variable names
@@ -28,7 +33,7 @@ Lops = tensopvar();
 Lops.ops{1} = cell(1,d1);
 for ii=1:d1
     Lop_ii = rand_opvar([0,0;m,1],deg,var1,var2,dom);
-    if ii~=m_idx
+    if ii~=m_idx && ii~=m_idx2
         % Allow only one operator with a nonzero multiplier
         Lop_ii.R.R0 = zeros([m,1]);
     end
@@ -52,7 +57,7 @@ Rops = tensopvar();
 Rops.ops{1} = cell(1,d2);
 for ii=1:d2
     Rop_ii = rand_opvar([0,0;n,1],deg,var1,var2,dom);
-    if ii+d1~=m_idx
+    if ii+d1~=m_idx && ii+d1~=m_idx2
         % Allow only one operator with a nonzero multiplier
         Rop_ii.R.R0 = zeros([n,1]);
     end
