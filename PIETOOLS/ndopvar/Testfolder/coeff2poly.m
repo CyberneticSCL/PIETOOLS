@@ -22,6 +22,12 @@ function P = coeff2poly(C,dim,deg,vars)
 % Determine the dimensions of the matrix-valued polynomial
 m = dim(1);    n = dim(2);
 
+if isempty(C)
+    % Allow for empty coefficients
+    P = polynomial(zeros(m,n));
+    return
+end
+
 % Extract the polynomial variables
 var1 = vars(:,1);
 var2 = vars(:,2);
