@@ -158,12 +158,12 @@ ndiff = [0,0,1];    % PDE state involves 1 second order differentiable state var
 [solution_OL,grid] = PIESIM(PIE,opts,uinput,ndiff);
 tval = solution_OL.timedep.dtime;
 x_OL = reshape(solution_OL.timedep.pde(:,1,:),opts.N+1,[]);
-z_OL = solution_OL.timedep.regulated(1,:);
+z_OL = solution_OL.timedep.regulated{1}(1,:);
 % Simulate controlled PIE and extract solution
 [solution_CL,~] = PIESIM(PIE_CL,opts,uinput,ndiff);
 x_CL = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
-z_CL = solution_CL.timedep.regulated(1,:);
-u_CL = solution_CL.timedep.regulated(2,:);
+z_CL = solution_CL.timedep.regulated{1}(1,:);
+u_CL = solution_CL.timedep.regulated{1}(2,:);
 w = double(subs(uinput.w,st,tval));
 
 
