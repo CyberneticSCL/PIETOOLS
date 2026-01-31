@@ -12,7 +12,7 @@
 % A - matrix of size n0(N+1) n1N n2(N-1) x no that represents a Chebyshev
 % discretizaiton of the polynomial matrix operator. Represents a block of a
 % total matrix operator for PIE solution
-% A_2PDE state - matrix of size n0n1n2(N+1)^3 x no that represents a Chebyshev
+% A_2PDEstate - matrix of size n0n1n2(N+1)^3 x no that represents a Chebyshev
 % discretizaiton of the polynomial matrix operator. Represents a block of a
 % total matrix operator for reconstruction of the primary
 % solution
@@ -26,7 +26,7 @@
 % YP -  added support for an arbitary variable name - 04_16_2024
 % DJ, 12/16/2024: Make sure variable to substitute matches that of Rop;
 
-function [A, A_2PDE state]=PIESIM_Poly2Mat_cheb(N, Rop, p)
+function [A, A_2PDEstate]=PIESIM_Poly2Mat_cheb(N, Rop, p)
 
 ns=length(p);
 no=size(Rop,2);
@@ -69,19 +69,20 @@ end
 
 end % k loop
 
-A_block_2PDE state(1:N+1,1:no,m)=double(A(1:N+1,1:no,m));
+A_block_2PDEstate(1:N+1,1:no,m)=double(A(1:N+1,1:no,m));
 
 rsize=N-p(m)+1;
 
-A_block(1:rsize,1:no,m)=A_block_2PDE state(1:rsize,1:no,m);
+A_block(1:rsize,1:no,m)=A_block_2PDEstate(1:rsize,1:no,m);
 
 A_cell{m,1}=A_block(1:rsize,1:no,m);
-A_cell_2PDE state{m,1}=A_block_2PDE state(1:N+1,1:no,m);
+A_cell_2PDEstate{m,1}=A_block_2PDEstate(1:N+1,1:no,m);
 
 
 end % m loop
 
 
-A_2PDE state=cell2mat(A_cell_2PDE state);
+A_2PDEstate=cell2mat(A_cell_2PDEstate);
 A=cell2mat(A_cell);
+
 
