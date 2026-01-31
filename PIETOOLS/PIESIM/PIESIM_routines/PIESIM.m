@@ -66,16 +66,19 @@
 %     states 
 
 % Outputs:
+% Outputs: 
 % 1) solution 
 % solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
-% --- solution.final.pde{1,2} - cell array containing all pde solutions at a final time
+% --- solution.final.ode - array of size no - ode solution at a final time 
+% --- solution.final.pde
+% --- In 1D: array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
+% --- In 2D: solution.final.pde{1,2} - cell array containing all pde solutions at a final time
 % --- solution.final.pde{1} - array containing the solution for states that are only the functions of one variable - 
 % it is array of size (N+1) x (nx+ny), nx - number of states depending only on s1, 
 %                                      ny - number of states depending only on s2 
 % --- solution.final.pde{2} - array containing the solution for states that are the functions of two variables - 
 % it is array of size (N+1) x (N+1) x ns, ns - number of states depending on both s1 and s2
-% --- solution.final.ode - array of size no - ode solution at a final time 
 % --- solution.final.observed{1,2,3} - cell array containing final value of observed outputs 
 % --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
 % --- solution.final.observed{2} - array containing final value of infinite-dimnesional 
@@ -95,13 +98,15 @@
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
-% --- solution.timedep.pde{1,2} - cell array containing all time-dependent pde solutions 
+% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states 
+% --- solution.timedep.pde
+% --- In 1D: array of size (N+1) x ns x Nsteps - time-dependent solution of PDE states
+% --- In 2D: solution.timedep.pde{1,2} - cell array containing all time-dependent PDE solutions 
 % --- solution.timedep.pde{1} - array containing the solution for states that are only the functions of one variable - 
 % It is array of size (N+1) x (nx+ny) x Nsteps, nx - number of states depending only on s1, 
 %                                      ny - number of states depending only on s2 
 % --- solution.timedep.pde{2} - array containing the solution for states that are the functions of two variables - 
 % It is array of size (N+1) x (N+1) x ns x Nsteps, ns - number of states depending on both s1 and s2
-% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 % --- solution.timedep.observed{1,2,3} - cell array containing time-dependent 
 %      observed outputs 
 % --- solution.timedep.observed[1} - array of size noo x Nsteps -
