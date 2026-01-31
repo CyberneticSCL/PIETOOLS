@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_4PI2Mat_cheb.m     PIETOOLS 2024
+% PIESIM_4PI2Mat_cheb.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs a discrete version of the multi-dimensional 4PI operator  
 %
@@ -19,10 +19,9 @@
 %
 %
 % Outputs:
-% A - square discretization matrix for PIE solution
-% A_nonsquare -non-square discretization matrix for transform between
-% funamental and primary solution
-% NOTE: nonsquare matrix is only required for Mcheb matrix
+% A - discretization matrix of the time-dependent PIE propagator
+% A_2PDEstate -discretization matrix for transform between
+% fundamental and primary solution
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -33,7 +32,7 @@
 % YP - added functionality to support infinite-dimensional disturbances and
 % regulated/observed outputs - 6_2_2025
 
-function [A, A_nonsquare]=PIESIM_4PI2Mat_cheb(N, Rop, p, flag)
+function [A, A_2PDEstate]=PIESIM_4PI2Mat_cheb(N, Rop, p, flag)
 
 % Iniatilize the matrix blocks of the full PI operator as empty
  Pblock=[];
@@ -41,8 +40,8 @@ function [A, A_nonsquare]=PIESIM_4PI2Mat_cheb(N, Rop, p, flag)
  Q2block=[];
  Rblock=[];
 
- Q2block_nonsquare=[];
- Rblock_nonsquare=[];
+ Q2block_2PDEstate=[];
+ Rblock_2PDEstate=[];
 
 % Pblock: size nscalar1 x nscalar2
 Pblock=double(Rop.P);
@@ -64,7 +63,7 @@ end
 
 % Q2block: size nspat1 x nscalr2
 
-% Q2block_nonsquare: nspat1_full x nscalar2
+% Q2block_2PDEstate: nspat1_full x nscalar2
 
 
 if (size(Rop.Q2)~=0)
@@ -79,7 +78,7 @@ if (size(Rop.Q2)~=0)
 if (nargout==1)
  Q2block= PIESIM_Poly2Mat_cheb(N, Rop.Q2, prow);
 else
-[Q2block, Q2block_nonsquare]= PIESIM_Poly2Mat_cheb(N, Rop.Q2, prow);
+[Q2block, Q2block_2PDEstate]= PIESIM_Poly2Mat_cheb(N, Rop.Q2, prow);
 end
 
 end % size(Rop.Q2)~=0
@@ -110,7 +109,7 @@ end
 if (nargout==1)
 Rblock=PIESIM_3PI2Mat_cheb(N, Rop.R, prow, pcol);
 else
-[Rblock, Rblock_nonsquare]=PIESIM_3PI2Mat_cheb(N, Rop.R, prow, pcol);
+[Rblock, Rblock_2PDEstate]=PIESIM_3PI2Mat_cheb(N, Rop.R, prow, pcol);
 end
 
 end % size(Rop.R.R0,2)~=0
@@ -118,8 +117,9 @@ end % size(Rop.R.R0,2)~=0
 
 A=[Pblock Q1block; Q2block Rblock];
 if (nargout>1)
-    A_nonsquare=[Pblock Q1block; Q2block_nonsquare Rblock_nonsquare];
+    A_2PDEstate=[Pblock Q1block; Q2block_2PDEstate Rblock_2PDEstate];
 end
+
 
 
 
