@@ -2,9 +2,9 @@ clear
 pvar s1 s1_dum
 var1 = s1;
 var2 = s1_dum;
-dom = [0,1];
+dom = [0,0.5];
 pdeg = 2;        % maximal monomial degree in independent variables
-m = 2;      n = 2;
+m = 3;      n = 3;
 nvars = 2;
 deg1 = randi(2,[1,nvars])-1;
 if ~any(deg1)
@@ -16,7 +16,12 @@ if ~any(deg2)
 end
 d1 = sum(deg1);
 d2 = sum(deg2);
-m_idx = randi(d1+d2);   % index for which operator may include a multiplier
+m_idx = randi(d1);   % index for which operator may include a multiplier
+if d1==1 && d2==1
+m_idx2 = d1+randi(d2);   % index for which operator may include a multiplier
+else
+    m_idx2 = 0;
+end
 %m_idx = 0;
 %m_idx = 2;
 
@@ -29,7 +34,7 @@ Lops = tensopvar();
 Lops.ops{1} = cell(1,d1);
 for ii=1:d1
     Lop_ii = rand_opvar([0,0;m,1],pdeg,var1,var2,dom);
-    if ii~=m_idx
+    if ii~=m_idx && ii~=m_idx2
         % Allow only one operator with a nonzero multiplier
         Lop_ii.R.R0 = zeros([m,1]);
     end
@@ -53,7 +58,7 @@ Rops = tensopvar();
 Rops.ops{1} = cell(1,d2);
 for ii=1:d2
     Rop_ii = rand_opvar([0,0;n,1],pdeg,var1,var2,dom);
-    if ii+d1~=m_idx
+    if ii+d1~=m_idx && ii+d1~=m_idx2
         % Allow only one operator with a nonzero multiplier
         Rop_ii.R.R0 = zeros([n,1]);
     end
@@ -80,13 +85,13 @@ Kvar2 = Kop.vars;
 
 % Generate random operators to represent RHS of the PI
 %nfctrs = [3;1];
-nfctrs = randi(2,[d1+d2,nvars])-1;
+nfctrs = randi(3,[d1+d2,nvars])-1;
 nfctrs(sum(nfctrs,2)==0,1) = 1;
 nterms = randi(1,[d1+d2,1]);
 nterms(sum(nfctrs,2)==1) = 1;
 Fx = cell(1,size(nfctrs,1));
 Fops = cell(1,size(nfctrs,1));
-m_idx2 = randi(numel(Fx));      % allow only one operator with multiplier terms
+m_idx3 = randi(numel(Fx));      % allow only one operator with multiplier terms
 %m_idx2 = 0;
 for ii=1:numel(Fx)
     Fx{ii} = Rmon;
@@ -95,7 +100,7 @@ for ii=1:numel(Fx)
     Fops{ii} = cell(nterms(ii),sum(nfctrs(ii,:)));
     for jj=1:numel(Fops{ii})
         Fops{ii}{jj} = rand_opvar([0,0;1,1],pdeg,var1,var2,dom);
-        if ~isscalar(Fops{ii}) || ii~=m_idx2
+        if ~isscalar(Fops{ii}) || ii~=m_idx3
             % Do not allow tensor product of multiplier operators
             Fops{ii}{jj}.R.R0 = 0;
         end

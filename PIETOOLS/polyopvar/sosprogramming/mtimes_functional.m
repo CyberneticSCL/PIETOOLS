@@ -216,32 +216,13 @@ for ii=1:size(idx_mat,1)
     end
 end
 
-% Also deal with possible multiplier term,
-%       int_{a}^{b} Kop{3}(s)*(Rop1*u)(s)*(Rop2*u)(s) ds
-if numel(Kparams)>size(idx_mat,1)
-    if numel(Fx)~=2
-        error("Multiplier terms may appear only for quadratic monomial.")
-    end
-    Ktmp = Kparams(1,end);
-    var1 = polynomial(Ktmp.varname);
-    C_mult = quad2lin_term(Ktmp,Fx{1},Fx{2},Kop.dom,var1,Cop.vars);
 
-    % Combine parameters involving the same integral
-    omat = [Cop.omat;C_mult.omat];
-    params_full = [Cop.params,C_mult.params];
-    [P,omat_unique] = uniquerows_integerTable(omat);    % P*omat_unique = omat
-    Cop.params = params_full*P;
-    Cop.omat = omat_unique;
-end
 
-% Finally, reorder the spatial variables to account for a possible
+% Reorder the spatial variables to account for a possible
 % reordering of the state variables,
 %   [x1(s1)*x1(s2)*x2(s3)*x2(s4)]*[x1(s5)*x2(s6)]
 %       --> [x1(s1)*x1(s2)*x1(s3)]*[x2(s4)*x2(s5)*x2(s6)]
-if cntr<numel(Fx)
-    % If we're not done, return the operator rather than a polynomial
-    Cfun = Cop;
-else
+if cntr==numel(Fx)
     varname_full = {};
     deg_full = [];
     varmat_full = [];
@@ -279,7 +260,46 @@ else
     % Establish a unique set of independent variables
     [pvarname_unique,old2new_idcs_p] = unique(pvarname_full);
     varmat_unique = varmat_full(old2new_idcs,old2new_idcs_p);
+end
+
+
+% Also deal with possible multiplier term,
+%       int_{a}^{b} Kop{3}(s)*(Rop1*u)(s)*(Rop2*u)(s) ds
+% Note that quad2lin already accounts for possible reordering of the state
+% variables
+if numel(Kparams)>size(idx_mat,1)
+    if numel(Fx)~=2
+        error("Multiplier terms may appear only for quadratic monomial.")
+    end
+    Ktmp = Kparams(1,end);
+    var1 = polynomial(Ktmp.varname);
+    C_mult = quad2lin_term(Ktmp,Fx{1},Fx{2},Kop.dom,var1,Cop.vars);
     
+    % % Match the variable names in C_mult with those used in Cop
+    % varname_old = C_mult.params.varname;
+    % varname_new = varname_old;
+    % for jj=1:numel(C_mult.vars)
+    %     old_var_idx = isequal(C_mult.vars(jj),polynomial(varname_old));
+    %     if ~any(old_var_idx)
+    %         continue
+    %     end
+    %     varname_new(old_var_idx) = Cop.vars(jj).varname;
+    % end
+    % C_mult.params.varname = varname_new;
+
+
+    % Combine parameters involving the same integral
+    omat = [Cop.omat;C_mult.omat];
+    params_full = [Cop.params,C_mult.params];
+    [P,omat_unique] = uniquerows_integerTable(omat);    % P*omat_unique = omat
+    Cop.params = params_full*P;
+    Cop.omat = omat_unique;
+end
+
+if cntr<numel(Fx)
+    % If we're not done, return the operator rather than a polynomial
+    Cfun = Cop;
+else
     % Return a 'polyopvar' object representing the polynomial functional
     Cfun = polyopvar();
     Cfun.degmat = degmat;
