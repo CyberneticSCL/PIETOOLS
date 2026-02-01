@@ -41,7 +41,7 @@ chebgrid=cos(pi*(0:deg+1)/(deg+1));
 
 for m=1:ns
         
-A(1:N+1,1:no)=0;
+Alocal(1:N+1,1:no)=0;
 
 
 for k=1:no
@@ -64,12 +64,12 @@ for k=1:no
     acheb=fcht(double(Reval));
 
 for j=1:length(acheb)
-    A(j,k)=acheb(j);
+    Alocal(j,k)=acheb(j);
 end
 
 end % k loop
 
-A_block_2PDEstate(1:N+1,1:no,m)=double(A(1:N+1,1:no));
+A_block_2PDEstate(1:N+1,1:no,m)=double(Alocal(1:N+1,1:no));
 
 rsize=N-p(m)+1;
 
@@ -84,6 +84,7 @@ end % m loop
 
 A_2PDEstate=cell2mat(A_cell_2PDEstate);
 A=cell2mat(A_cell);
+
 
 
 
