@@ -26,7 +26,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-function A=PIESIM_NonPOLy2Mat_cheb_2D(N, Rop, p, gridall)
+function A=PIESIM_NonPoly2Mat_cheb_2D(N, Rop, p, gridall)
 syms sx sy
 ns=size(p,2);
 no=size(Rop,2);
