@@ -46,6 +46,7 @@ function b = subsasgn(a,L,RHS)
 % DJ, 06/14/2025: Bugfix column indexing, add support for RHS of type
 %                   'double' or 'polynomial', or RHS = [];
 % DJ, 06/15/2025: Allow "a([],[]) = []", returning "b=a";
+% DJ, 02/02/2026: Bugfix in case of scalar RHS;
 
 %a = opvar2d(a);
 %sza = size(a);
@@ -135,7 +136,7 @@ switch L(1).type
             return
         elseif isa(RHS,'double') || isa(RHS,'polynomial')                   % DJ, 06/14/2025
             a_slice = subsref(a,L);
-            if isscalar(RHS) && RHS==0
+            if isscalar(RHS) && isequal(RHS,0)                              % DJ, 02/02/2026
                 RHS = zeros(size(a_slice));
             end
             try RHS = mat2opvar(RHS,a_slice.dim,[a.var1,a.var2],a.I);
