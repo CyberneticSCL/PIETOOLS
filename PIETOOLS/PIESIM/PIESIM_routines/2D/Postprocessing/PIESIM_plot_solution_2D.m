@@ -290,11 +290,11 @@ if sum(psize.nx)>0
         xlabel('$s_{1}$','FontSize',15,'Interpreter','latex');
         ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
         if ns==1 && n_pde_tot==1
-            title(['Simulated Final 1D PDE State, $\mathbf{x}(t=',num2str(solution.timedep.dtime(end)),',s_{1})$'],'FontSize',15,'Interpreter','latex');
+            title(['Simulated Final 1D PDE State, $\mathbf{x}(t=',num2str(solution.tf),',s_{1})$'],'FontSize',15,'Interpreter','latex');
         elseif ns==1
-            title(['Simulated Final 1D PDE State, $\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.timedep.dtime(end)),',s_{1})$'],'FontSize',15,'Interpreter','latex');
+            title(['Simulated Final 1D PDE State, $\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.tf),',s_{1})$'],'FontSize',15,'Interpreter','latex');
         else
-            title(['$\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.timedep.dtime(end)),',s_{1})$'],'FontSize',15,'Interpreter','latex');
+            title(['$\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.tf),',s_{1})$'],'FontSize',15,'Interpreter','latex');
         end
         set(gca,'XLim',[min(grid.phys(:,1)),max(grid.phys(:,1))]);
         set(gca,'TickLabelInterpreter','latex');
@@ -454,3 +454,4 @@ if sum(psize.n)>0
 end
 
 end
+
