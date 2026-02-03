@@ -16,7 +16,7 @@
 % declare spatial variables, domain, and r.
 pvar s s_dum t
 dom = [0,1];
-r = 0;
+r = 0.1;           % should be [−0.6500, 0.7202]
 
 % Declare a PDE and convert to PIE to get the relevant maps from PIE state
 % to PDE state
@@ -59,7 +59,7 @@ f.dom = dom;
 f.varmat = 1;
 f.degmat = [1;2];
 C = tensopvar();
-C.ops = {-id-R2, {-r*T,T; -T,R}};
+C.ops = {-id-R2, {-T,R; -r*T,T}};
 % f.degmat = [1,0; 0,1];
 % C = tensopvar();
 % C.ops = {id+r*T11, r*T12;
@@ -104,13 +104,13 @@ end
 dV = Liediff(Vx,PIE);
 
 % Declare a nonnegative distributed polynomial functional W
-qdegs = pdegs+2;
+qdegs = pdegs+4;
 ZQ_degmat = unique(floor(dV.degmat./2),'rows');
 ZQ_degmat = ZQ_degmat(sum(ZQ_degmat,2)>0,:);
 ZQ = vartab;
 ZQ.degmat = ZQ_degmat;
 Q_opts.exclude = [1,0,0]';
-Q_opts.psatz = 0:1;
+Q_opts.psatz = 0;
 [prog,Qmat,ZQop] = soslpivar(prog,ZQ,qdegs,Q_opts);
 W = quad2lin(Qmat,ZQop,ZQ);
 
