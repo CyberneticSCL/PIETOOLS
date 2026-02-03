@@ -51,7 +51,7 @@ if nargout<=1 && nargin==1
 varargout = {sum(matdim,1)};
 return
 elseif nargin==1
-dim = 1:4;
+dim = 1:2;
 end
 % 
 varargout{1} = sum(matdim(:,1));
