@@ -74,6 +74,12 @@ switch s(1).type
             indc = indc';
         end
 
+        if max(indr) > obj.dim(1)
+            error('index exceeds the number of rows in the original ndopvar')
+        end
+        if max(indc) > obj.dim(2)
+            error('index exceeds the number of columns in the original ndopvar')
+        end
 
         % Construct the sliced opvar
         Psop = ndopvar();
@@ -124,6 +130,7 @@ switch s(1).type
         else
             out = Psop;
         end
+        % out = clean_ndopvar(out);
     case '{}'
         error('Not a valid indexing expression')
 end

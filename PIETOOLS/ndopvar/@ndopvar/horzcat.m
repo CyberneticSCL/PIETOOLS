@@ -92,9 +92,9 @@ end
 if numel(Aop_dvarname) ~= numel(Bop_dvarname) || ~isequal(Aop_dvarname,Bop_dvarname)
     dvars1 = string(Aop_dvarname); % convert array to char array
     dvars2 = string(Bop_dvarname);
-    numberOfCharacters = max(size(dvars1, 2), size(dvars2, 2));
-    dvars1 = pad(dvars1, numberOfCharacters); % pad with ' ' if needed
-    dvars2 = pad(dvars2, numberOfCharacters); % pad with ' ' if needed 
+    % numberOfCharacters = max(size(dvars1, 2), size(dvars2, 2));
+    % dvars1 = pad(dvars1, numberOfCharacters); % pad with ' ' if needed
+    % dvars2 = pad(dvars2, numberOfCharacters); % pad with ' ' if needed 
 
     if isempty(dvars1) || isempty(dvars2)
         common_dvar = [];

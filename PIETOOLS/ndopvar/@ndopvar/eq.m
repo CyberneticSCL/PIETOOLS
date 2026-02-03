@@ -79,17 +79,33 @@ if any(P1.deg(:)~=P2.deg(:))
     P2 = P2p;
 end
 
+if isa(P1, 'ndopvar')
+    Aop_dvarname = string(P1.dvarname);
+    Aop_dvarname = strtrim(Aop_dvarname);
+else
+    Aop_dvarname = {};
+end
+if isa(P2, 'ndopvar')
+    Bop_dvarname = string(P2.dvarname);
+    Bop_dvarname = strtrim(Bop_dvarname);
+else
+    Bop_dvarname = {};
+end
 
-if numel(P1.dvarname) ~= numel(P2.dvarname) || ~isequal(P1.dvarname,P2.dvarname)
-    dvars1 = string(P1.dvarname); % convert array to char array
-    dvars2 = string(P2.dvarname);
-    numberOfCharacters = max(size(dvars1, 2), size(dvars2, 2));
-    dvars1 = pad(dvars1, numberOfCharacters); % pad with ' ' if needed
-    dvars2 = pad(dvars2, numberOfCharacters); % pad with ' ' if needed 
-
-    common_dvar = intersect(dvars1, dvars2, 'rows');
-    new_dvars   = setdiff(dvars2, common_dvar, 'rows');
-    full_dvars = [dvars1; new_dvars];
+if numel(Aop_dvarname) ~= numel(Bop_dvarname) || ~isequal(Aop_dvarname,Bop_dvarname)
+    dvars1 = Aop_dvarname; % convert array to char array
+    dvars2 = Bop_dvarname;
+    % numberOfCharacters = max(size(dvars1, 2), size(dvars2, 2));
+    % dvars1 = pad(dvars1, numberOfCharacters); % pad with ' ' if needed
+    % dvars2 = pad(dvars2, numberOfCharacters); % pad with ' ' if needed 
+    if isempty(dvars1) || isempty(dvars2)
+        common_dvar = [];
+        full_dvars = [dvars1; dvars2];
+    else
+        common_dvar = intersect(dvars1, dvars2, 'rows');
+        new_dvars   = setdiff(dvars2, common_dvar, 'rows');
+        full_dvars = [dvars1; new_dvars];
+    end
     P1 = change_dec_var(P1, full_dvars);
     P2 = change_dec_var(P2, full_dvars);
 end
