@@ -79,7 +79,6 @@ Pmat = rand([m,n]);
 [Kop] = quad2lin_term(Pmat,Lmon,Rmon,dom,s1);
 Pvec = Kop.params;
 idx_mat = Kop.omat;
-var2 = Kop.vars;
 
 % Generate random functions xi(s)
 x_tst = polynomial(zeros(1,nvars));
@@ -92,13 +91,13 @@ for ii=1:nvars
     x_tst(ii) = rand_poly([1,1],s1,3);
     for jj=1:deg1(ii)
         lnum = lnum+1;
-        y1_tst{jj} = apply_opvar(Lops_opvar{lnum},x_tst(ii));
-        z1_tst = z1_tst.*y1_tst{jj};
+        y1_tst{lnum} = apply_opvar(Lops_opvar{lnum},x_tst(ii));
+        z1_tst = z1_tst.*y1_tst{lnum};
     end
     for jj=1:deg2(ii)
         rnum = rnum+1;
-        y2_tst{jj} = apply_opvar(Rops_opvar{rnum},x_tst(ii));
-        z2_tst = z2_tst.*y2_tst{jj};
+        y2_tst{rnum} = apply_opvar(Rops_opvar{rnum},x_tst(ii));
+        z2_tst = z2_tst.*y2_tst{rnum};
     end
     %z1_tst = z1_tst.*(y1_tst{ii}.^deg1(ii));
     %z2_tst = z2_tst.*(y2_tst{ii}.^deg2(ii));
