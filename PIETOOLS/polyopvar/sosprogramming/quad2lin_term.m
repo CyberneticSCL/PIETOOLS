@@ -115,31 +115,49 @@ if nargin<=5
 elseif numel(var2)~=dtot
     error("Number of dummy variables must match the cumulative degree of the monomials.")
 end
-if any(d1>0)
-% % Establish the new order of the independent variables:
-% If we have e.g. the product of a monomial in 5 factors with a monomial in 
-% 4 factors,
-%   [x1(t1)*x1(t2)*x2(t3)*x2(t4)*x2(t5)] * [x1(t6)*x1(t7)*x2(t8)*x2(t9)]
-% we need to re-index the independent variables (t1,...,t9) to get
-%    x1(t1)*x1(t2)*x1(t3)*x1(t4) * x2(t5)*x2(t6)*x2(t7)*x2(t8)*x2(t9);
-% First, assign each factor k in Lmon(x) an index j=p1_idcs(k)=k, meaning 
-% that factor k depends on variable t_{j}=t_{k}
-p1_idcs = [[0,cumsum(degL(1:end-1))];cumsum(degL)];
-p1_idcs = mat2cell(p1_idcs,2,ones(1,nvars));
-p1_idcs = cellfun(@(a)(a(1)+1:a(2))',p1_idcs,'UniformOutput',false);
-% Similarly, assign each factor k in Rmon(x) an index j=p2_idcs(k)=k+d1,
-% meaning that factor k depends on variable t_{j}=t_{k+d1}
-p2_idcs = d1+[[0,cumsum(degR(1:end-1))];cumsum(degR)];
-p2_idcs = mat2cell(p2_idcs,2,ones(1,nvars));
-p2_idcs = cellfun(@(a)(a(1)+1:a(2))',p2_idcs,'UniformOutput',false);
-% Assign each factor in the product Lmon(x)*Rmon(x) an index
-p_idcs = [p1_idcs;p2_idcs];
-quad_var_order = cell2mat(p_idcs(:))';     % quad_var_order(i) = k means that factor i in the linear representation corresponds to factor k in the quadratic one
-% Reorder so that factor k in the product again depends on variable t_{k}
-[~,var_order] = sort(quad_var_order);      % var_order(k) = i means that factor k in the old monomials is assigned variable t_{i}
+if d1>0
+    % % Establish the new order of the independent variables:
+    % If we have e.g. the product of a monomial in 5 factors with a monomial in 
+    % 4 factors,
+    %   [x1(t1)*x1(t2)*x2(t3)*x2(t4)*x2(t5)] * [x1(t6)*x1(t7)*x2(t8)*x2(t9)]
+    % we need to re-index the independent variables (t1,...,t9) to get
+    %    x1(t1)*x1(t2)*x1(t3)*x1(t4) * x2(t5)*x2(t6)*x2(t7)*x2(t8)*x2(t9);
+    % First, assign each factor k in Lmon(x) an index j=p1_idcs(k)=k, meaning 
+    % that factor k depends on variable t_{j}=t_{k}
+    p1_idcs = [[0,cumsum(degL(1:end-1))];cumsum(degL)];
+    p1_idcs = mat2cell(p1_idcs,2,ones(1,nvars));
+    p1_idcs = cellfun(@(a)(a(1)+1:a(2))',p1_idcs,'UniformOutput',false);
+    % Similarly, assign each factor k in Rmon(x) an index j=p2_idcs(k)=k+d1,
+    % meaning that factor k depends on variable t_{j}=t_{k+d1}
+    p2_idcs = d1+[[0,cumsum(degR(1:end-1))];cumsum(degR)];
+    p2_idcs = mat2cell(p2_idcs,2,ones(1,nvars));
+    p2_idcs = cellfun(@(a)(a(1)+1:a(2))',p2_idcs,'UniformOutput',false);
+    % Assign each factor in the product Lmon(x)*Rmon(x) an index
+    p_idcs = [p1_idcs;p2_idcs];
+    quad_var_order = cell2mat(p_idcs(:))';     % quad_var_order(i) = k means that factor i in the linear representation corresponds to factor k in the quadratic one
+    % Reorder so that factor k in the product again depends on variable t_{k}
+    [~,var_order] = sort(quad_var_order);      % var_order(k) = i means that factor k in the old monomials is assigned variable t_{i}
+    
+    % Also set the variable of integration
+    if isempty(var1)
+        var1 = polynomial(Lmon.pvarname(1));
+    end
+    if isempty(dom)
+        % Extract the domain
+        dom = Lmon.dom(1,:);
+    end   
 else
     var_order = 1:dtot;
+    if isempty(var1)
+        % Set the variable of integration
+        var1 = polynomial(Rmon.pvarname(1));
+    end
+    if isempty(dom)
+        % Extract the domain
+        dom = Rmon.dom(1,:);
+    end   
 end
+
 
 
 % Extract the operators acting on the left and right monomials
@@ -149,12 +167,14 @@ if isa(Lmon,'polyopvar')
     else
         Lops = Lmon.C.ops{1};
     end
+    ntrms_L = size(Lops,1);
     mdim = Lops{1}.dim(2);
 else
     if ~isempty(Lmon)
         Pmat = Lmon*Pmat;
     end
     Lops = {};
+    ntrms_L = 1;
     mdim = size(Lmon,1);
 end
 if isa(Rmon.C.ops{1},'nopvar')
@@ -162,176 +182,129 @@ if isa(Rmon.C.ops{1},'nopvar')
 else
     Rops = Rmon.C.ops{1};
 end
+ntrms_R = size(Rops,1);
 ndim = Rops{1}.dim(2);
-if size(Lops,1)>1 || size(Rops,1)>1
-    error("Conversion of polynomials with multiple terms is not supported.")
-end
-if numel(Lops)~=d1 || numel(Rops)~=d2
+
+% if size(Lops,1)>1 || size(Rops,1)>1
+%     error("Conversion of polynomials with multiple terms is not supported.")
+% end
+if size(Lops,2)~=d1 || size(Rops,2)~=d2
     error("Number of factors in coefficient operator should match the power of the monomial.")
 end
 
-% Convert the coefficients defining each parameter to a 'nopvar' object
-Pop_params = cell(1,dtot);
-has_multiplier = zeros(1,dtot);
-for kk=1:numel(Pop_params)
-    % Extract the kth operator
-    if kk<=d1
-        Pop_kk = Lops{kk};
-    else
-        Pop_kk = Rops{kk-d1};
-    end
-    if ~isa(Pop_kk,'nopvar')
-        error("Operators must be specified as a cell of 'nopvar' objects.")
-    end
-    N = size(Pop_kk.vars,1);
-    if N>1
-        error("Multivariate operators are currently not supported.")
-    end
-    % Extract the dimension of the operator
-    dim_kk = Pop_kk.dim;
-    if kk==1
-        if isempty(var1)
-            % Set the variable of integration
-            var1 = Pop_kk.vars(1);
-        end
-        if isempty(dom)
-            % Extract the domain
-            dom = Pop_kk.dom;
-        end        
-    end
-    % % Check that the domains match
-    if any(~isequal(Pop_kk.dom,dom))
-        error("Spatial domains of the operators must match.")
-    end
-    % Set the kth dummy variable
-    if isequal(var2(var_order(kk)),0)
-        var2_kk_name = [var1.varname{1},'_',num2str(var_order(kk))];
-        var2_kk = polynomial({var2_kk_name});
-        var2(var_order(kk)) = var2_kk;
-    else
-        var2_kk = var2(var_order(kk));
-    end
-    % % Build monomial vectors in primary and dummy variables
-    deg_kk = Pop_kk.deg;
-    % Z1 = var1.^(0:Pop_kk.deg(1))';
-    % Z2 = var2_kk.^(0:Pop_kk.deg(1))';
-    % Check that we have no multiplier term
-    Pop_kk_params = Pop_kk.C;
-    if ~isempty(Pop_kk.C{1}) && any(any(Pop_kk.C{1}))
-        has_multiplier(kk) = 1;
-        Pop_kk_params{1} = coeff2poly(Pop_kk.C{1},dim_kk,[deg_kk,0],[var2_kk,var1]);  % <-- substitute R0(s=t_k)
-        if kk<=d1
-            Pop_kk_params{1} = Pop_kk_params{1}';
-        end
-    else
-        Pop_kk_params{1} = zeros(dim_kk);
-    end
-    % Convert integral terms to polynomial
-    for ii=2:3
-        %Pop_kk_params.C{ii} = quadPoly(Pop_kk.C{ii},Z1,Z2,dim_kk,1,1);
-        Pop_kk_params{ii} = coeff2poly(Pop_kk.C{ii},dim_kk,deg_kk,[var1,var2_kk]);
-        if kk<=d1
-            Pop_kk_params{ii} = Pop_kk_params{ii}';     % Lop operators get transposed in inner product
-        end
-    end
-    Pop_params{kk} = Pop_kk_params;
-end
-if sum(has_multiplier)>1 && (d1~=1 || d2~=1)
-    error("At most one of the operators may include a multiplier component.")
+% Extract the parameters defining each operator
+[Lop_params,has_multiplier_L,var2] = compute_params(Lops,var1,var2,var_order(1:d1),true);
+[Rop_params,has_multiplier_R,var2] = compute_params(Rops,var1,var2,var_order(d1+1:end),false);
+% Allow only multipliers acting on linear monomials
+if sum(has_multiplier_L)>1 || sum(has_multiplier_R)>1
+    error("There can be at most one multiplier term in each of the left and right factors.")
+elseif sum(has_multiplier_L)+sum(has_multiplier_R)>1 && (d1>1 || d2>1)
+    error("The presence of multiplie multiplier terms is supported only for quadratic polynomials.")
 else
-    m_nums = find(has_multiplier);
+    m_nums = find([has_multiplier_L,has_multiplier_R]);
     vars_m = var2(var_order(m_nums));
 end
-
 
 % List all possible orders of the variables t1 through td
 %   idx_mat(l,:) = [i,j,k] means a <= ti <= tj <= tk <= b in term l
 idx_mat = 1;
-for ii=2:dtot
+for i=2:dtot
     n_ords = size(idx_mat,1);
-    idx_mat_new = zeros(ii*n_ords,ii);
-    for jj=1:ii
+    idx_mat_new = zeros(i*n_ords,i);
+    for j=1:i
         % Place variable t_ii in position jj
-        idx_mat_new(jj:ii:end,:) = [idx_mat(:,1:jj-1),ii*ones(n_ords,1),idx_mat(:,jj:end)];
+        idx_mat_new(j:i:end,:) = [idx_mat(:,1:j-1),i*ones(n_ords,1),idx_mat(:,j:end)];
     end
     idx_mat = idx_mat_new;
 end
 
+% Add the boundaries of the domain to the list of variables.
+var2_f = [dom(1);var2;dom(2)];
+
 % For each possible ordering of the variables ti, compute the associated
 % kernel
 n_ords = size(idx_mat,1);
-% ord_mat = zeros(n_ords,dtot);
 if isa(Pmat,'dpvar') || isa(Lmon,'dpvar')
     Kparams = dpvar(zeros(mdim,ndim*n_ords));
 else
     Kparams = polynomial(zeros(mdim,ndim*n_ords));
 end
-for ii=1:n_ords
-    Pvec_ii = 0;
-    idx_ii = idx_mat(ii,:);
-    for jj=1:dtot+1
+for i=1:n_ords
+    param_i = 0;
+    idx_i = idx_mat(i,:);
+    idx_f = [1,idx_i+1,dtot+2];
+    for j=1:dtot+1
         % For the considered order of the variables ti, place variable s in
-        % position jj
-        idx_jj = [idx_ii(1,1:jj-1),dtot+1,idx_ii(1,jj:end)];
+        % position j
+        idx_j = [idx_i(1,1:j-1),dtot+1,idx_i(1,j:end)];
         % For each variable ti, determine whether s<= ti or s>=ti
-        [~,ord] = sort(idx_jj);
+        [~,ord] = sort(idx_j);
         is_geq_s = ord(1:dtot)>=ord(end);
-        % Extract the associated parameter from each operator Pop_kk
-        Ljj = 1;
-        for kk=1:d1
-            Ljj = Ljj.*Pop_params{kk}{is_geq_s(var_order(kk))+2};
+        % Extract the associated parameter from each operator Lop_k
+        Lj = 0;
+        for trm=1:ntrms_L
+            Ltmp = 1;
+            for k=1:d1
+                Ltmp = Ltmp.*Lop_params{trm,k}{is_geq_s(var_order(k))+2};
+            end
+            Lj = Lj+Ltmp;
         end
-        Rjj = 1;
-        for kk=d1+(1:d2)
-            Rjj = Rjj.*Pop_params{1,kk}{is_geq_s(var_order(kk))+2};
+        % Extract the associated parameter from each operator Rop_k
+        Rj = 0;
+        for trm=1:ntrms_R
+            Rtmp = 1;
+            for k=1:d2
+                Rtmp = Rtmp.*Rop_params{trm,k}{is_geq_s(var_order(k+d1))+2};
+            end
+            Rj = Rj+Rtmp;
         end
         % Integrate the product of the parameters over the interval
-        if jj==1
-            L = dom(1);
-        else
-            L = var2(idx_ii(1,jj-1));
-        end
-        if jj==dtot+1
-            U = dom(2);
-        else
-            U = var2(idx_ii(1,jj));
-        end
-        Pvec_ii = Pvec_ii + int_simple(Ljj*Pmat*Rjj,var1,L,U);
+        L = var2_f(idx_f(1,j));     % will be dom(1) if j==1
+        U = var2_f(idx_f(1,j+1));   % will be dom(2) if j==dtot+1
+        param_i = param_i + int_simple(Lj*Pmat*Rj,var1,L,U);
     end
     % Also account for possible multiplier term: tj = s
-    for jj=1:numel(m_nums)
-        [~,ord_ii] = sort(idx_ii);
-        ord_m = ord_ii(var_order(m_nums(jj)));
-        L_tmp = 1;
-        for kk=1:d1
-            if ord_ii(var_order(kk))<ord_m
-                % t_k <= t_m = s
-                L_tmp = L_tmp.*subs(Pop_params{kk}{2},var1,vars_m(jj));
-            elseif ord_ii(var_order(kk))==ord_m
-                % t_k == t_m = s
-                L_tmp = L_tmp.*Pop_params{m_nums(jj)}{1};
-            else
-                % t_k >= t_m = s
-                L_tmp = L_tmp.*subs(Pop_params{kk}{3},var1,vars_m(jj));
+    for j=1:numel(m_nums)
+        [~,ord_ii] = sort(idx_i);
+        ord_m = ord_ii(var_order(m_nums(j)));
+        Lj = 0;
+        for trm=1:ntrms_L
+            Ltmp = 1;
+            for k=1:d1
+                if ord_ii(var_order(k))<ord_m
+                    % t_k <= t_m = s
+                    Ltmp = Ltmp.*subs(Lop_params{trm,k}{2},var1,vars_m(j));
+                elseif ord_ii(var_order(k))==ord_m
+                    % t_k == t_m = s
+                    Ltmp = Ltmp.*Lop_params{trm,m_nums(j)}{1};
+                else
+                    % t_k >= t_m = s
+                    Ltmp = Ltmp.*subs(Lop_params{trm,k}{3},var1,vars_m(j));
+                end
             end
+            Lj = Lj+Ltmp;
         end
-        R_tmp = 1;
-        for kk=d1+(1:d2)
-            if ord_ii(var_order(kk))<ord_m
-                % t_k <= t_m = s
-                R_tmp = R_tmp.*subs(Pop_params{1,kk}{2},var1,vars_m(jj));
-            elseif ord_ii(var_order(kk))==ord_m
-                % t_k == t_m = s
-                R_tmp = R_tmp.*Pop_params{1,m_nums(jj)}{1};
-            else
-                % t_k >= t_m = s
-                R_tmp = R_tmp.*subs(Pop_params{1,kk}{3},var1,vars_m(jj));
+        Rj = 0;
+        for trm=1:ntrms_R
+            Rtmp = 1;
+            for k=1:d2
+                if ord_ii(var_order(k+d1))<ord_m
+                    % t_k <= t_m = s
+                    Rtmp = Rtmp.*subs(Rop_params{trm,k}{2},var1,vars_m(j));
+                elseif ord_ii(var_order(k+d1))==ord_m
+                    % t_k == t_m = s
+                    Rtmp = Rtmp.*Rop_params{trm,m_nums(j)-d1}{1};
+                else
+                    % t_k >= t_m = s
+                    Rtmp = Rtmp.*subs(Rop_params{trm,k}{3},var1,vars_m(j));
+                end
             end
+            Rj = Rj+Rtmp;
         end
-        Pvec_ii = Pvec_ii + subs(L_tmp*Pmat*R_tmp,var1,vars_m(jj));
+        param_i = param_i + subs(Lj*Pmat*Rj,var1,vars_m(j));
     end
-    if ~isempty(Pvec_ii)
-        Kparams(:,(ii-1)*ndim+1:ii*ndim) = Pvec_ii;
+    if ~isempty(param_i)
+        Kparams(:,(i-1)*ndim+1:i*ndim) = param_i;
     end
 end
 % In the case of a quadratic function
@@ -340,8 +313,8 @@ end
 %   < Zop_0*x, P*Zop_0*x> = int_{a}^{b} Z0(s)^T*Pmat*Z0(s)*x(s)*x(s) ds
 % We store the parameter Z0(s)^T*Pmat*Z0(s) as an extra element of the
 % cell.
-if d1==1 && d2==1 && sum(has_multiplier)==2
-    Kparams = [Kparams, Pop_params{1}{1}*Pmat*subs(Pop_params{2}{1},var2(2),var2(1))];
+if d1==1 && d2==1 && sum([has_multiplier_L,has_multiplier_R])==2
+    Kparams = [Kparams, Lop_params{1}{1}*Pmat*subs(Rop_params{1}{1},var2(2),var2(1))];
 end
 
 Kop = struct();
@@ -350,5 +323,69 @@ Kop.omat = idx_mat;
 Kop.vars = var2;
 Kop.dom = dom;
 Kop.matdim = [mdim,ndim];
+
+end
+
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
+function [Pop_params,has_multiplier,var2] = compute_params(Pops,var1,var2,var_order,use_transpose)
+% For a cell of 1D nopvar objects Pops, return the parameters defining
+% the associated operators
+
+Pop_params = cell(size(Pops));
+has_multiplier = false(1,size(Pops,2));
+
+for k=1:numel(Pop_params)
+    % Determine the row and column index in Pop
+    [ridx,cidx] = ind2sub(size(Pops),k);
+    % Extract the kth operator
+    Pop_k = Pops{k};
+    if ~isa(Pop_k,'nopvar')
+        error("Operators must be specified as a cell of 'nopvar' objects.")
+    end
+    N = size(Pop_k.vars,1);
+    if N>1
+        error("Multivariate operators are currently not supported.")
+    end
+    % Extract the dimension of the operator
+    dim_k = Pop_k.dim;
+    % % % Check that the domains match
+    % if any(~isequal(Pop_k.dom,dom))
+    %     error("Spatial domains of the operators must match.")
+    % end
+    % Set the kth dummy variable
+    if ridx==1 && isequal(var2(var_order(cidx)),0)
+        var2_k_name = [var1.varname{1},'_',num2str(var_order(cidx))];
+        var2_k = polynomial({var2_k_name});
+        var2(var_order(cidx)) = var2_k;
+    else
+        var2_k = var2(var_order(cidx));
+    end
+    % % Build monomial vectors in primary and dummy variables
+    deg_k = Pop_k.deg;
+    % Check that we have no multiplier term
+    Pop_k_params = Pop_k.C;
+    if ~isempty(Pop_k.C{1}) && any(any(Pop_k.C{1}))
+        has_multiplier(cidx) = true;
+        Pop_k_params{1} = coeff2poly(Pop_k.C{1},dim_k,[deg_k,0],[var2_k,var1]);  % <-- substitute R0(s=t_k)
+        if use_transpose
+            Pop_k_params{1} = Pop_k_params{1}';
+        end
+    else
+        Pop_k_params{1} = zeros(dim_k);
+    end
+    % Convert integral terms to polynomial
+    for i=2:3
+        %Pop_kk_params.C{ii} = quadPoly(Pop_kk.C{ii},Z1,Z2,dim_kk,1,1);
+        Pop_k_params{i} = coeff2poly(Pop_k.C{i},dim_k,deg_k,[var1,var2_k]);
+        if use_transpose
+            Pop_k_params{i} = Pop_k_params{i}';     % Lop operators get transposed in inner product
+        end
+    end
+    Pop_params{k} = Pop_k_params;
+end
+
 
 end
