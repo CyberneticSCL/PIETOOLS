@@ -18,7 +18,7 @@
 % declare spatial variables, domain, and r.
 pvar s s_dum t
 dom = [0,0.5];
-r = 1;
+r = pi^2-0.1;
 
 % Declare a PDE and convert to PIE to get the relevant maps from PIE state
 % to PDE state
@@ -67,6 +67,10 @@ f.degmat = [1,0; 0,1; 2,0; 1,1; 0,2];
 C = tensopvar();
 C.ops = {id+r*T11, r*T12, {-T11,R11}, {-T11,R12; R11,-T12}, {-T12,R12};
        r*T21, id+r*T22, {-T21,R21}, {-T21,R22; R21,-T22}, {-T22,R22}};
+% f.degmat = [2,0; 1,1; 0,2];
+% C = tensopvar();
+% C.ops = {{-T11,R11}, {-T11,R12; R11,-T12}, {-T12,R12};
+%          {-T21,R21}, {-T21,R22; R21,-T22}, {-T22,R22}};
 % f.degmat = [1,0; 0,1];
 % C = tensopvar();
 % C.ops = {id+r*T11, r*T12;
@@ -95,8 +99,8 @@ Z = dmonomials(vartab,(1:d));
 
 % Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
 % opts = ;
-pdegs = 0; % maximal monomial degree of Zop. 
-Popts.exclude = [0;1;1];
+pdegs = 3; % maximal monomial degree of Zop. 
+Popts.exclude = [0;0;0];
 [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,Popts);
 Vx = quad2lin(Pmat,Zop,Z);          
 
