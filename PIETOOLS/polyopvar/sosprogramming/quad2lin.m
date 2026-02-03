@@ -79,13 +79,13 @@ old2new_idcs = M*(1:size(degmat_lin,1))';               % degmat_full = degmat_l
 blkdimL = zeros(nZL,1);
 for ii=1:nZL
     tmp = ZopL(ii,ii);
-    blkdimL(ii) = tmp.dim(1);
+    blkdimL(ii) = tmp.matdim(1);
 end
 blkdimL_cum = [0;cumsum(blkdimL)];
 blkdimR = zeros(nZR,1);
 for ii=1:nZR
     tmp = ZopR(ii,ii);
-    blkdimR(ii) = tmp.dim(1);
+    blkdimR(ii) = tmp.matdim(1);
 end
 blkdimR_cum = [0;cumsum(blkdimR)];
 
