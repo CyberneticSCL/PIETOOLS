@@ -6,7 +6,7 @@ function C = plus(A,B)
 % - A:      m x n 'polyopvar' object
 % - B:      m x n 'polyopvar' object
 %
-% OUTPUS
+% OUTPUTS
 % - C:      m x n 'polyopvar' object representing the sum of the
 %           distributed polynomials defined by A and B
 %

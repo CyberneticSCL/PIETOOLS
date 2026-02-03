@@ -6,11 +6,12 @@ function C = mtimes(A,B)
 % - A:     polyopvar object; 
 % - B:     polyopvar object;
 %
-% OUTPUS
+% OUTPUTS
 % - C:     polyopvar object representing A*B.
 %
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - plus
+% PIETOOLS - mtimes
 %
 % Copyright (C) 2026 PIETOOLS Team
 %

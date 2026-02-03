@@ -7,7 +7,7 @@ function C = minus(A,B)
 % - A:      m x n 'tensopvar' object
 % - B:      m x n 'tensopvar' object
 %
-% OUTPUS
+% OUTPUTS
 % - C:      m x n 'tensopvar' object representing the difference between
 %           the coefficient operators defined by A and B
 %

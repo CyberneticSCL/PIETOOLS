@@ -7,7 +7,7 @@ function C = minus(A,B)
 % - A:      m x n 'polyopvar' object
 % - B:      m x n 'polyopvar' object
 %
-% OUTPUS
+% OUTPUTS
 % - C:      m x n 'polyopvar' object representing the difference between
 %           the distributed polynomials defined by A and B
 %

@@ -6,7 +6,7 @@ function P_out = uminus(P_in)
 % INPUTS
 % - P_in:   'polyopvar' object;
 %
-% OUTPUS
+% OUTPUTS
 % - P_out:  'polyopvar' object representing the negative complement of the
 %           input polynomial;
 %

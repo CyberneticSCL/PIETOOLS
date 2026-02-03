@@ -6,7 +6,7 @@ function C = plus(A,B)
 % - A:      m x n 'tensopvar' object
 % - B:      m x n 'tensopvar' object
 %
-% OUTPUS
+% OUTPUTS
 % - C:      m x n 'tensopvar' object representing the sum of the
 %           coefficient operators defined by A and B
 %

@@ -6,9 +6,10 @@ function AB = tensopvar_mtimes(A,B)
 % - A:     polyopvar object; 
 % - B:     polyopvar object;
 %
-% OUTPUS
+% OUTPUTS
 % - AB:    tensopvar object representing coefficients of A*B.
 %
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - tensopvar_mtimes
 %

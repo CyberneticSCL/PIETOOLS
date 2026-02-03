@@ -6,11 +6,12 @@ function C = zero_nopvar(A)
 % INPUTS
 % - A:     polyopvar object; 
 %
-% OUTPUS
+% OUTPUTS
 % - O:     nopvar object with zero coefficients and same dom as A.
 %
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - plus
+% PIETOOLS - zero_nopvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %

@@ -6,7 +6,7 @@ function C_out = uminus(C_in)
 % INPUTS
 % - C_in:   'tensopvar' object;
 %
-% OUTPUS
+% OUTPUTS
 % - C_out:  'tensopvar' object representing the negative complement of the
 %           input operator;
 %
