@@ -121,17 +121,7 @@ for lidx=1:numel(C_A.ops)
             Cnew_l.vars = polynomial(dumvar_cell{sum(deg_l)});
         end
     else
-        Cnew_l = C_A.ops{lidx}(new_deg_idcs);
-        % C_l = C_A.ops{lidx};
-        % Cnew_l = cell(size(C_l));
-        % strt_idx = 0;
-        % for jj=1:p
-        %     if ~isempty(old_deg_idcs{jj})
-        %         end_idx = strt_idx+numel(old_deg_idcs{jj});
-        %         Cnew_l(:,strt_idx+1:end_idx) = C_l(:,old_deg_idcs{jj});
-        %         strt_idx = end_idx;
-        %     end
-        % end
+        Cnew_l = C_A.ops{lidx}(:,new_deg_idcs);
     end
     C_A.ops{lidx} = Cnew_l;
 end
@@ -175,17 +165,7 @@ for lidx=1:numel(C_B.ops)
             Cnew_l.vars = polynomial(dumvar_cell{sum(deg_l)});
         end
     else
-        Cnew_l = C_B.ops{lidx}(new_deg_idcs);
-        % C_l = C_B.ops{lidx};
-        % Cnew_l = cell(size(C_l));
-        % strt_idx = 0;
-        % for jj=1:p
-        %     if ~isempty(old_deg_idcs{jj})
-        %         end_idx = strt_idx+numel(old_deg_idcs{jj});
-        %         Cnew_l(:,strt_idx+1:end_idx) = C_l(:,old_deg_idcs{jj});
-        %         strt_idx = end_idx;
-        %     end
-        % end
+        Cnew_l = C_B.ops{lidx}(:,new_deg_idcs);
     end
     C_B.ops{lidx} = Cnew_l;
 end
