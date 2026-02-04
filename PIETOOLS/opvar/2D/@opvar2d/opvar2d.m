@@ -136,7 +136,9 @@ methods
                 error("Single input must be string, integer double, or dopvar2d object");
             end
             % Also add spatial variables to workspace;
-            evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');                  % DJ, 01/23/2025;
+            if isscalar(dbstack)
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+            end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         elseif nargin==2
             if isa(varargin{1},'opvar2d') && isnumeric(varargin{2})
@@ -186,7 +188,9 @@ methods
                 end
             end
             % Also add spatial variables to workspace;
-            evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');                  % DJ, 01/23/2025;
+            if isscalar(dbstack)
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+            end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         elseif nargin==3
             if isa(varargin{1},'opvar2d') && isnumeric(varargin{2})
@@ -206,7 +210,9 @@ methods
                     end
                 end
                 % Also add spatial variables to workspace;
-                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+                if isscalar(dbstack)
+                    evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');          % DJ, 01/23/2025;
+                end
             elseif (isa(varargin{1},'double') && all(size(varargin{1})==[4,2])) && ...
                     (isa(varargin{2},'double') && all(size(varargin{2})==[2,2])) && ...
                     (ispvar(varargin{3}) && ((prod(size(varargin{3}))==4) || (prod(size(varargin{3}))==2)))
@@ -222,7 +228,9 @@ methods
                 end
                 P = opvar2d([],Pdim,Pdom,var1,var2);
                 % Also add spatial variables to workspace;
-                evalin("caller", ['pvar ',var2(1).varname{1},' ',var2(2).varname{1},';']);      % DJ, 01/23/2025;
+                if isscalar(dbstack)
+                    evalin("caller", ['pvar ',var2(1).varname{1},' ',var2(2).varname{1},';']);      % DJ, 01/23/2025;
+                end
             elseif (isa(varargin{1},'double') || isa(varargin{1},'polynomial')) && isnumeric(varargin{2})
                 % Build opvar2d from matrix varargin{1} based on
                 % dimensions varargin{2}, and with domain varargin{3}.
@@ -251,7 +259,9 @@ methods
                     end
                 end
                 % Also add spatial variables to workspace;
-                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+                if isscalar(dbstack)
+                    evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');          % DJ, 01/23/2025;
+                end
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         elseif nargin==4
@@ -278,7 +288,9 @@ methods
                     end
                 end
                 % Also add spatial variables to workspace;
-                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+                if isscalar(dbstack)
+                    evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');          % DJ, 01/23/2025;
+                end
             elseif (isa(varargin{1},'double') && all(size(varargin{1})==[4,2])) && ...
                     (isa(varargin{2},'double') && all(size(varargin{2})==[2,2])) && ...
                     (ispvar(varargin{3}) && (prod(size(varargin{3}))==2)) && ...
@@ -312,7 +324,9 @@ methods
                     P = opvar2d(varargin{1},Pdim,Pdom,var1,var2);
                 end
                 % Also add spatial variables to workspace;
-                evalin("caller", ['pvar ',var2(1).varname{1},' ',var2(2).varname{1},';']);      % DJ, 01/23/2025;
+                if isscalar(dbstack)
+                    evalin("caller", ['pvar ',var2(1).varname{1},' ',var2(2).varname{1},';']);      % DJ, 01/23/2025;
+                end
             else
                 for i=1:nargin
                     if ischar(varargin{i})
@@ -324,7 +338,9 @@ methods
                     end
                 end
                 % Also add spatial variables to workspace;
-                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+                if isscalar(dbstack)
+                    evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');          % DJ, 01/23/2025;
+                end
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         elseif nargin==5
@@ -351,7 +367,9 @@ methods
                     end
                 end
                 % Also add spatial variables to workspace;
-                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+                if isscalar(dbstack)
+                    evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');          % DJ, 01/23/2025;
+                end
             elseif (isa(varargin{1},'double') || isa(varargin{1},'polynomial')) && isnumeric(varargin{2})
                 % Build opvar2d from matrix varargin{1} based on
                 % dimensions varargin{2}, and with domain varargin{3}.
@@ -425,7 +443,9 @@ methods
                     end
                 end
                 % Also add spatial variables to workspace;
-                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+                if isscalar(dbstack)
+                    evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');          % DJ, 01/23/2025;
+                end
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         else
@@ -439,7 +459,9 @@ methods
                 end
             end
             % Also add spatial variables to workspace;
-            evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');                  % DJ, 01/23/2025;
+            if isscalar(dbstack)
+                evalin("caller", 'pvar s1 s2 s1_dum s2_dum;');              % DJ, 01/23/2025;
+            end
         end
     end
     % % % =========================================================== % % %
