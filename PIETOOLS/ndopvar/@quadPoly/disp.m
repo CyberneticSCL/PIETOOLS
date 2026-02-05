@@ -1,11 +1,4 @@
-function disp(obj, type)
-if nargin==2 && strcmp(type,"latex")
-    latex(obj,"show");
-else
-    fprintf('%s\n', char(obj));
-end
-end
-
-function s = char(obj)
-    s = format(obj);
+function disp(obj)
+% This attempts to display quadPoly objects in a pretty and legible format.
+fprintf('%s\n', format(obj));
 end

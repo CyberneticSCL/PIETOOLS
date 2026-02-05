@@ -37,10 +37,6 @@ end
 [nsU, ZsU, ~, ~, mapSF, mapSG, sIsF, sIsG, dsU] = unionBasis(F.ns, F.Zs, G.ns, G.Zs);
 [ntU, ZtU, ~, ~, mapTF, mapTG, tIsF, tIsG, dtU] = unionBasis(F.nt, F.Zt, G.nt, G.Zt);
 
-if ~(isequal(nsU, nsU) && isequal(ntU, ntU)) %#ok<*ISEQ>
-    % kept for clarity; nsU/ntU are the aligned variable lists
-end
-
 % Lift coefficients into the aligned (union) bases
 if sIsF && tIsF
     CF = F.C;

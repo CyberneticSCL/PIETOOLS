@@ -3,9 +3,9 @@ classdef quadPoly
     % below.
     % For F(s,t) \in R^{m\times n}, in variables
     % s = {s1, ..., sk} and t = {t1, ..., tl}, we have the form
-    % F(s,t) = (I_m \otimes Z(s)^T) * C * (I_n \otimes Z(t)) 
-    % here Z(s) = Zs1(s1) \otimes ... \otimes Zsk(sk)
-    %      Z(t) = Zt1(t1) \otimes ... \otimes Ztl(sl)
+    % F(s,t) = (I_m ⊗ Z(s)^T) * C * (I_n ⊗ Z(t)) 
+    % here Z(s) = Zs1(s1) ⊗ ... ⊗ Zsk(sk)
+    %      Z(t) = Zt1(t1) ⊗ ... ⊗ Ztl(sl)
     % where Zsi, Zti are column vectors of monomial degrees.
     %
     % DJ, 01/21/2026: allow conversion from matrix to quadpoly

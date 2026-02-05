@@ -123,6 +123,21 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
         end
     end
 
+    methods
+        function out = vars_in(A)
+            out = union(A.vars_S1,A.vars_S3);
+        end
+        function out = vars_out(A)
+            out = union(A.vars_S2,A.vars_S3);
+        end
+        function out = dom_in(A)
+            out = [A.dom_1;A.dom_3];
+        end
+        function out = dom_out(A)
+            out = [A.dom_2;A.dom_3];
+        end
+    end
+
     methods(Static)
         out = randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density);
     end
