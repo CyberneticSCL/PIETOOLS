@@ -2559,7 +2559,7 @@ case 8
          uinput.ic.PDE(2)=  0;
          
          % Symbolic disturbance
-         uinput.w{1}= xb^10*st^5;
+         uinput.w(1)= xb^10*st^5;
 
          % % Disturbance as a data array (double)  
          % dt=0.01; tf=2; 
@@ -2576,10 +2576,10 @@ case 8
            uinput.ic.PDE(4)= subs(uinput.exact(4),st,0);;
            
                  % Symbolic disturbance
-           uinput.w{2}=sin(pi*a)*sqrt(st+t0);
-           uinput.w{3}=sin(pi*b)*sqrt(st+t0);
-           uinput.w{4}=sin(pi*a)*sqrt(st+t0);
-           uinput.w{5}=sin(pi*b)*sqrt(st+t0);
+            uinput.w(2)=sin(pi*a)*sqrt(st+t0);
+            uinput.w(3)=sin(pi*b)*sqrt(st+t0);
+            uinput.w(4)=sin(pi*a)*sqrt(st+t0);
+            uinput.w(5)=sin(pi*b)*sqrt(st+t0);
             uinput.w(6)=st^4;
             uinput.w(7)=st^5;
             uinput.w(8)=0.5/sqrt(st+t0);
@@ -3002,5 +3002,6 @@ case 41
     
 end % cases
 % %            
+
 
 
