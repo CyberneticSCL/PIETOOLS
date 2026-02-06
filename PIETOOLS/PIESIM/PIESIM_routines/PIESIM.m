@@ -210,11 +210,12 @@ function [solution, grid]=PIESIM(varargin)
 % functions to the format required for PIE solution
 %-------------------------------------------------------------------------
 
-% Append u_tab and w_tab to psize for future use
-psize.w_tab=PIE.w_tab;
-psize.u_tab=PIE.u_tab;
-uinput=PIESIM_initial_setup(uinput,psize,opts.type);
+% Append u_tab and w_tab to psize for future use, accounting for possible
+% multiplicity of entered disturbances
 
+psize.w_tab = repelem(PIE.w_tab, PIE.w_tab(:,2), 1);
+psize.u_tab = repelem(PIE.u_tab, PIE.u_tab(:,2), 1);
+uinput=PIESIM_initial_setup(uinput,psize,opts.type);
 
 % Setup a spatial discretization of the initial conditions and the PIE 
 % operators with the Chebyshev Galerkin method
