@@ -61,8 +61,11 @@ function fval = apply_functional(Kop,xvals,degmat)
 
 d = sum(degmat);
 nstates = size(degmat,2);
-if numel(xvals)~=nstates
+if size(xvals,2)~=nstates
     error("Distributed monomial must be specified as 1 x d array")
+end
+if size(xvals,1)~=1
+    error("Vector-valued state variables are currently not supported.")
 end
 if size(degmat,1)~=1
     error("Polynomials involving multiple monomials are not supported.")
@@ -81,15 +84,15 @@ state_idcs = [];
 for ii=1:nstates
     state_idcs = [state_idcs; ii*ones(degmat(ii),1)];
 end
-xvals_full = polynomial(zeros(d,1));
+xvals_full = polynomial(zeros(ndim,d));
 for ii=1:d
     state_num = state_idcs(ii);
-    var_ii = xvals(state_num).varname;
+    var_ii = xvals(:,state_num).varname;
     if isscalar(var_ii)
-        xvals_full(ii) = xvals(state_num);
-        xvals_full(ii).varname = vars(ii).varname;
+        xvals_full(:,ii) = xvals(:,state_num);
+        xvals_full(:,ii).varname = vars(ii).varname;
     elseif isempty(var_ii)
-        xvals_full(ii) = xvals(state_num);
+        xvals_full(:,ii) = xvals(state_num);
     elseif numel(var_ii)>1
         error("Each state variable can depend on at most one independent variable")
     end
@@ -116,6 +119,7 @@ n_terms = size(Kparams,2)/ndim;
 if d>2 && n_terms>factorial(d)
     error("Number of operators should be d! for monomial degree d.")
 end
+%Kf = Kparams*prod(xvals_full(1,:),2);   % requires state variables to be scalar!
 for ii=1:size(idx_mat,1)
     % Check the order of the variables:
     %   idx_ii = [i,j,k] implies a <= ti <= tj <= tk <= b
@@ -129,20 +133,20 @@ for ii=1:size(idx_mat,1)
     for jj=d:-1:2
         var_num = idx_ii(jj);   % integrating over the jth biggest variable
         L = vars(idx_ii(jj-1)); % integrating from the j-1th biggest variable up to b
-        fval_ii = fval_ii*xvals_full(var_num);
-        fval_ii = int(fval_ii,vars(var_num),L,dom(2));
+        fval_ii = fval_ii*xvals_full(:,var_num);
+        fval_ii = int_simple(fval_ii,vars(var_num),L,dom(2));
     end
     % Finally, perform the integral from a to b in the smallest variable
     var_num = idx_ii(1); 
-    fval_ii = fval_ii*xvals_full(var_num);
-    fval_ii = int(fval_ii,vars(var_num),dom(1),dom(2));
+    fval_ii = fval_ii*xvals_full(:,var_num);
+    fval_ii = int_simple(fval_ii,vars(var_num),dom(1),dom(2));
     fval = fval + fval_ii;
 end
 
 if d==2 && n_terms==size(idx_mat,1)+1
     % Third term corresponds to the multiplier
     %   int_{a}^{b} P(s)*x(s)^2 ds
-    fval = fval + int(Kparams(:,end-ndim+1:end)*xvals_full(1)*subs(xvals_full(2),vars(2),vars(1)),vars(1),dom(1),dom(2));
+    fval = fval + int(Kparams(:,end-ndim+1:end)*xvals_full(:,1).*subs(xvals_full(:,2),vars(2),vars(1)),vars(1),dom(1),dom(2));
 end
 
 
