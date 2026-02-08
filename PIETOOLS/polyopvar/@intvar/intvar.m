@@ -72,12 +72,16 @@ properties
 end
 properties (Dependent)
     matdim;
+    vars;
 end
 
 methods
     function Kop = intvar(params,omat,pvarname,dom)
         % KOP = INTVAR(PARAMS,OMAT,PVARNAME,DOM) constructs an 
         % instance of the intvar class with specified values;
+        if nargin==0
+            return
+        end
         Kop.params = params;
         Kop.omat = omat;
         Kop.pvarname = pvarname;
@@ -93,6 +97,11 @@ methods
             n = nan;
         end
         matdim = [m,n];
+    end
+
+    function vars = get.vars(Kop)
+        % Extract the variables defining the kernel as 'pvar' objects
+        vars = polynomial(Kop.pvarname);
     end
 
 end
