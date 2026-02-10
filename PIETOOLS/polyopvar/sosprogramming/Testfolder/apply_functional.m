@@ -81,18 +81,18 @@ ndim = Kop.matdim(2);
 % Establish for each factor in the monomial which state variable is
 % considered
 state_idcs = [];
-for ii=1:nstates
-    state_idcs = [state_idcs; ii*ones(degmat(ii),1)];
+for i=1:nstates
+    state_idcs = [state_idcs; i*ones(degmat(i),1)];
 end
 xvals_full = polynomial(zeros(ndim,d));
-for ii=1:d
-    state_num = state_idcs(ii);
+for i=1:d
+    state_num = state_idcs(i);
     var_ii = xvals(:,state_num).varname;
     if isscalar(var_ii)
-        xvals_full(:,ii) = xvals(:,state_num);
-        xvals_full(:,ii).varname = vars(ii).varname;
+        xvals_full(:,i) = xvals(:,state_num);
+        xvals_full(:,i).varname = vars(i).varname;
     elseif isempty(var_ii)
-        xvals_full(:,ii) = xvals(state_num);
+        xvals_full(:,i) = xvals(state_num);
     elseif numel(var_ii)>1
         error("Each state variable can depend on at most one independent variable")
     end
@@ -102,12 +102,12 @@ if isempty(idx_mat)
     % List all possible orders of the variables t1 through td
     %   idx_mat(l,:) = [i,j,k] means a <= ti <= tj <= tk <= b in term l
     idx_mat = 1;
-    for ii=2:d
+    for i=2:d
         n_ords = size(idx_mat,1);
-        idx_mat_new = zeros(ii*n_ords,ii);
-        for jj=1:ii
+        idx_mat_new = zeros(i*n_ords,i);
+        for j=1:i
             % Place variable t_ii in position jj
-            idx_mat_new(jj:ii:end,:) = [idx_mat(:,1:jj-1),ii*ones(n_ords,1),idx_mat(:,jj:end)];
+            idx_mat_new(j:i:end,:) = [idx_mat(:,1:j-1),i*ones(n_ords,1),idx_mat(:,j:end)];
         end
         idx_mat = idx_mat_new;
     end
@@ -120,27 +120,39 @@ if d>2 && n_terms>factorial(d)
     error("Number of operators should be d! for monomial degree d.")
 end
 %Kf = Kparams*prod(xvals_full(1,:),2);   % requires state variables to be scalar!
-for ii=1:size(idx_mat,1)
+if all(idx_mat(1,:)==0)
+    % Account for multiplier term
+    has_multiplier = true;
+    fval_i = Kparams(:,1:ndim);
+    for j=2:d
+        fval_i = fval_i.*subs(xvals_full(:,j),vars(j),vars(1));
+    end
+    fval_i = int_simple(fval_i.*xvals_full(:,1),vars(1),dom(1),dom(2));
+    fval = fval + fval_i;
+else
+    has_multiplier = false;
+end
+for i=has_multiplier+1:size(idx_mat,1)
     % Check the order of the variables:
     %   idx_ii = [i,j,k] implies a <= ti <= tj <= tk <= b
-    idx_ii = idx_mat(ii,:);
+    idx_ii = idx_mat(i,:);
     
     % Perform the appropriate integrals
     %   int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b} 
     %           Kcell{i}(t1,...,td)*x1(t1)...xd(td) dt_kd ... dt_k1 
     % where kj = idx_ii(i,j) for j=1,...,d and i=1,...,m for m=d!.
-    fval_ii = Kparams(:,(ii-1)*ndim+1:ii*ndim);
-    for jj=d:-1:2
-        var_num = idx_ii(jj);   % integrating over the jth biggest variable
-        L = vars(idx_ii(jj-1)); % integrating from the j-1th biggest variable up to b
-        fval_ii = fval_ii*xvals_full(:,var_num);
-        fval_ii = int_simple(fval_ii,vars(var_num),L,dom(2));
+    fval_i = Kparams(:,(i-1)*ndim+1:i*ndim);
+    for j=d:-1:2
+        var_num = idx_ii(j);   % integrating over the jth biggest variable
+        L = vars(idx_ii(j-1)); % integrating from the j-1th biggest variable up to b
+        fval_i = fval_i*xvals_full(:,var_num);
+        fval_i = int_simple(fval_i,vars(var_num),L,dom(2));
     end
     % Finally, perform the integral from a to b in the smallest variable
     var_num = idx_ii(1); 
-    fval_ii = fval_ii*xvals_full(:,var_num);
-    fval_ii = int_simple(fval_ii,vars(var_num),dom(1),dom(2));
-    fval = fval + fval_ii;
+    fval_i = fval_i*xvals_full(:,var_num);
+    fval_i = int_simple(fval_i,vars(var_num),dom(1),dom(2));
+    fval = fval + fval_i;
 end
 
 if d==2 && n_terms==size(idx_mat,1)+1
