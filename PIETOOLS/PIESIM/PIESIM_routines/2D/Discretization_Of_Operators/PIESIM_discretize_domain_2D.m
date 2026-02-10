@@ -43,10 +43,10 @@ N=psize.N;
 
 
 for i=1:max([length(psize.n),length(psize.nx),length(psize.ny)])
-grid_comp{i} = cos(pi*(0:N(1)-i+1)/(N(1)-i+1))';
-grid_comp{i+1} = cos(pi*(0:N(2)-i+1)/(N(2)-i+1))';
-gridall.x{i}=0.5*(b-a)*grid_comp{i}+0.5*(b+a);
-gridall.y{i}=0.5*(d-c)*grid_comp{i+1}+0.5*(d+c);
+grid_comp_x = cos(pi*(0:N(1)-i+1)/(N(1)-i+1))';
+grid_comp_y = cos(pi*(0:N(2)-i+1)/(N(2)-i+1))';
+gridall.x{i}=0.5*(b-a)*grid_comp_x+0.5*(b+a);
+gridall.y{i}=0.5*(d-c)*grid_comp_y+0.5*(d+c);
 end
 
 grid.phys={gridall.x{1};gridall.y{1}};
