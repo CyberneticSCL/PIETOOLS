@@ -185,7 +185,7 @@ dom = opdom;
 
 % List all possible orders of the variables (r1,t1,...,td,r2)
 %   idx_mat(l,:) = [i,j,k] means a <= ti <= tj <= tk <= b in term l
-omat = [ones(1,is_vardom1),df*ones(1,is_vardom2)];   % r1<=r2 must always hold
+omat = [ones(1,is_vardom1),(d+1+is_vardom1)*ones(1,is_vardom2)];   % r1<=r2 must always hold
 for i=1:d
     n_ords = size(omat,1);
     n_pos = size(omat,2)+1;
