@@ -84,7 +84,7 @@ dumvar_cell = cell(1,max(d1,d2));
 for lidx=1:numel(C_A.ops)
     [~,cidx] = ind2sub(size(C_A.ops),lidx);
     deg_l = degs_A(cidx,:);
-    if sum(deg_l)==1
+    if sum(deg_l)==1 || isempty(C_A.ops{lidx})
         continue
     end
     % Establish which elements of C1.ops{lidx} correspond to each variable
@@ -95,7 +95,29 @@ for lidx=1:numel(C_A.ops)
     %old_deg_idcs(new2old_vdcs(1:p1)) = deg_idcs;
 
     % Reorder to match the new order of the variables
-    if isa(C_A.ops{lidx},'struct') && isfield(C_A.ops{lidx},'params')
+    if isa(C_A.ops{lidx},'intvar')
+        Cnew_l = C_A.ops{lidx};
+        Cnew_l.pvarname = C_A.ops{lidx}.pvarname(new_deg_idcs);
+        % Reorder columns of omat to match new ordering of variables
+        for jj=1:numel(new_deg_idcs)
+            Cnew_l.omat(C_A.ops{lidx}.omat==new_deg_idcs(jj)) = jj;
+        end
+        % Use the same dummy variables for monomials of same degree
+        if isempty(dumvar_cell{sum(deg_l)})
+            dumvar_cell{sum(deg_l)} = Cnew_l.pvarname;
+        else
+            Cparams = Cnew_l.params;
+            varname_new = cell(size(Cparams.varname));
+            for kk=1:numel(Cparams.varname)
+                old_var = Cparams.varname(kk);
+                var_idx = strcmp(Cnew_l.pvarname,old_var);
+                varname_new(kk) = dumvar_cell{sum(deg_l)}(var_idx);
+            end
+            Cparams.varname = varname_new;
+            Cnew_l.params = Cparams;
+            Cnew_l.pvarname = dumvar_cell{sum(deg_l)};
+        end        
+    elseif isa(C_A.ops{lidx},'struct') && isfield(C_A.ops{lidx},'params')
         Cnew_l = C_A.ops{lidx};
         Cnew_l.vars = C_A.ops{lidx}.vars(new_deg_idcs);
         % Reorder columns of omat to match new ordering of variables
@@ -128,7 +150,7 @@ end
 for lidx=1:numel(C_B.ops)
     [~,cidx] = ind2sub(size(C_B.ops),lidx);
     deg_l = degs_B(cidx,:);
-    if sum(deg_l)==1
+    if sum(deg_l)==1 || isempty(C_B.ops{lidx})
         continue
     end
     % Establish which elements of C1.ops{lidx} correspond to each variable
@@ -139,7 +161,29 @@ for lidx=1:numel(C_B.ops)
     % old_deg_idcs(new2old_vdcs(p1+(1:p2))) = deg_idcs;
 
     % Reorder to match the new order of the variables
-    if isa(C_B.ops{lidx},'struct') && isfield(C_B.ops{lidx},'params')
+    if isa(C_B.ops{lidx},'intvar')
+        Cnew_l = C_B.ops{lidx};
+        Cnew_l.pvarname = C_B.ops{lidx}.pvarname(new_deg_idcs);
+        % Reorder columns of omat to match new ordering of variables
+        for jj=1:numel(new_deg_idcs)
+            Cnew_l.omat(C_B.ops{lidx}.omat==new_deg_idcs(jj)) = jj;
+        end
+        % Use the same dummy variables for monomials of same degree
+        if isempty(dumvar_cell{sum(deg_l)})
+            dumvar_cell{sum(deg_l)} = Cnew_l.pvarname;
+        else
+            Cparams = Cnew_l.params;
+            varname_new = cell(size(Cparams.varname));
+            for kk=1:numel(Cparams.varname)
+                old_var = Cparams.varname(kk);
+                var_idx = strcmp(Cnew_l.pvarname,old_var);
+                varname_new(kk) = dumvar_cell{sum(deg_l)}(var_idx);
+            end
+            Cparams.varname = varname_new;
+            Cnew_l.params = Cparams;
+            Cnew_l.pvarname = dumvar_cell{sum(deg_l)};
+        end 
+    elseif isa(C_B.ops{lidx},'struct') && isfield(C_B.ops{lidx},'params')
         Cnew_l = C_B.ops{lidx};
         Cnew_l.vars = C_B.ops{lidx}.vars(new_deg_idcs);
         % Reorder columns of omat to match new ordering of variables
