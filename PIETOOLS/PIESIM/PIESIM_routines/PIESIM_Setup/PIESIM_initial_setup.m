@@ -65,7 +65,8 @@ u_tab = repelem(PIE.u_tab, PIE.u_tab(:,2), 1);
      end % isfield(uinput,'u')
 
 % Compute initial conditions on the fundamental states from initial
-% condition on the primary states - only for PDE and DDE problems
+% condition on the primary states and update disturbances to account for corner values and differentiation - 
+% - only for PDE and DDE problems
 
 if ~strcmp(type,'PIE') 
 
@@ -157,6 +158,8 @@ end
 
 end % 2D case
 
+end % if not PIE
+
 % Setup function handles to boundary inputs and their temporal derivatives
 
  if isfield(uinput,'w')
@@ -185,7 +188,5 @@ end % 2D case
         end % for k
      end % isfield(uinput,'w')
 
-
-end
 
 
