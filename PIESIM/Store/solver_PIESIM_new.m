@@ -35,7 +35,11 @@ clear all;
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 clc
+=======
+clc;
+>>>>>>> Stashed changes
 =======
 clc;
 >>>>>>> Stashed changes
@@ -78,6 +82,7 @@ opts.ploteig='yes';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 % Further custom-made post-processing options
 opts.movie='no';
 opts.error='no';
@@ -101,6 +106,8 @@ opts.error='no';
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 % Here we define parameters related to simulation.
 
 % Input N - the Chebyshev polynomial discretization order of the
@@ -108,6 +115,9 @@ opts.error='no';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -124,11 +134,15 @@ opts.N=16;
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
 opts.tf=1;
 ========
 opts.tf=0.1;
 >>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+opts.tf=1;
+>>>>>>> Stashed changes
 =======
 opts.tf=1;
 >>>>>>> Stashed changes
@@ -171,11 +185,15 @@ if (opts.intScheme==1)
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
     opts.dt=1e-3;
 ========
     opts.dt=0.02;
 >>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+    opts.dt=1e-3;
+>>>>>>> Stashed changes
 =======
     opts.dt=1e-3;
 >>>>>>> Stashed changes
@@ -200,11 +218,15 @@ end
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
 % For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
 ========
 % For 2D problems: example = xxx (between 1 and 31) to correspond to an Example number in
 >>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
+>>>>>>> Stashed changes
 =======
 % For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
 >>>>>>> Stashed changes
@@ -233,11 +255,15 @@ end
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
     if (example<1|example>31)
 ========
     if (example<1|example>32)
 >>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+    if (example<1|example>31)
+>>>>>>> Stashed changes
 =======
     if (example<1|example>31)
 >>>>>>> Stashed changes
@@ -277,6 +303,7 @@ else
 end
 
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -446,6 +473,9 @@ end % opts.error
 
 end
 >>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+% Compute L2 and H_infty errors and plot their time evolution
+>>>>>>> Stashed changes
 =======
 % Compute L2 and H_infty errors and plot their time evolution
 >>>>>>> Stashed changes

@@ -26,6 +26,7 @@
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
+<<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
 function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p)
 
 Norder=N-p;
@@ -38,6 +39,13 @@ function A=PIESIM_3PI_opint_discretize(N, R1, R2)
 
 A(1:N+1,1:N+1)=0;
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
+========
+% YP, 2/1/2026: changed to square operator, truncation done on assembled
+% operator
+function A=PIESIM_3PI_opint_discretize(N, R1, R2)
+
+A(1:N+1,1:N+1)=0;
+>>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 ========
 % YP, 2/1/2026: changed to square operator, truncation done on assembled
 % operator
@@ -70,11 +78,14 @@ maxdeg=max(deg1,deg2);
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
+<<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
 Rcheb1=PIESIM_PIop_discretize(R1,maxdeg);
 Rcheb2=PIESIM_PIop_discretize(R2,maxdeg);
 
 for k=0:Norder
 ========
+========
+>>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 ========
 >>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 ========
@@ -85,7 +96,10 @@ Rcheb2=PIESIM_PI_discretize(R2,maxdeg);
 for k=0:N
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
+<<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI2Mat_cheb_opint_discretize.m
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
+========
+>>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 ========
 >>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 ========
