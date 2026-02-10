@@ -39,31 +39,6 @@ sym_array=[sx,sy];
 w_tab = repelem(PIE.w_tab, PIE.w_tab(:,2), 1);
 u_tab = repelem(PIE.u_tab, PIE.u_tab(:,2), 1);
 
-      if isfield(uinput,'u')
-     for k = 1:numel(uinput.u)
-         % Symbolic disturbances
-        if isa(uinput.u{k}, 'sym')
-        uinput.u{k}=matlabFunction(uinput.u{k},'Vars', st);
-        uinput.udot{k}=matlabFunction(diff(uinput.u{k},st),'Vars', st);
-        else
-            % Double type distubrances of size 1 (constant in time) 
-            if (length(uinput.u{k})==1)
-                uinput.u{k}=@(t) uinput.u{k};
-                uinput.udot{k}=@(t) 0;
-            else
-            %  Double type distubrances of size other than 1-
-           %   Build a cubic spline from the disturbance data
-        pp=spline(uinput.u{k}(1,:),uinput.u{k}(2,:));
-        tmin=min(uinput.u{k}(1,:));
-        tmax=max(uinput.u{k}(1,:));
-        uinput.u{k} = @(t) ppval(pp,t).* (t >= tmin & t<= tmax);
-        uinput.udot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
-            end
-        end
-
-        end % for
-     end % isfield(uinput,'u')
-
 % Compute initial conditions on the fundamental states from initial
 % condition on the primary states and update disturbances to account for corner values and differentiation - 
 % - only for PDE and DDE problems
@@ -126,7 +101,7 @@ end
   psize.nw0=psize.nw0+idx_shift;
 
  
-% Differentiate disturbances if needed (2D only)
+% Differentiate disturbances if needed 
 
 for i=1:psize.nw
     w_xder =  diff(uinput.wspace{i},sx,w_tab(i,end-1));
@@ -150,6 +125,33 @@ for i=1:idx_shift
 end
 
 % Dealing with control inputs 
+
+% Compare the size of control inputs after PIE conversion to original size
+% and renumber if needed
+
+  nu_PDE=psize.nu;
+  nu_PIE = sum(u_tab(:,2));
+  idx_shift=nu_PIE-nu_PDE;
+
+  if (nu_PIE>nu_PDE)
+  uinput.wspace = [cell(1, idx_shift), uinput.uspace];
+  uinput.w = [cell(1, idx_shift), uinput.u];
+
+  % We also have to fill the first idx_shift rows with the corresponding
+  % corner values
+  for i=1:idx_shift
+  pos_in_reordered_array = find(uinput.u_order == u_tab(i,1)); % w_tab corresponds to original PDE ordering
+  idx_parent=pos_in_reordered_array+idx_shift;
+  uinput.u{i}=uinput.u{idx_parent};
+  uinput.uspace{i}=uinput.uspace{idx_parent};
+  end
+  end % if
+
+  psize.nu=nu_PIE;
+  psize.nu0=psize.nu0+idx_shift;
+
+
+% Differentiate control inputs if needed 
 
 for i=1:psize.nu
     u_xder =  diff(uinput.uspace{i},sx,psize.u_tab(i,end-1));
@@ -184,9 +186,30 @@ end % if not PIE
             end
         end
 
-
         end % for k
      end % isfield(uinput,'w')
 
+       if isfield(uinput,'u')
+     for k = 1:numel(uinput.u)
+         % Symbolic disturbances
+        if isa(uinput.u{k}, 'sym')
+        uinput.u{k}=matlabFunction(uinput.u{k},'Vars', st);
+        uinput.udot{k}=matlabFunction(diff(uinput.u{k},st),'Vars', st);
+        else
+            % Double type distubrances of size 1 (constant in time) 
+            if (length(uinput.u{k})==1)
+                uinput.u{k}=@(t) uinput.u{k};
+                uinput.udot{k}=@(t) 0;
+            else
+            %  Double type distubrances of size other than 1-
+           %   Build a cubic spline from the disturbance data
+        pp=spline(uinput.u{k}(1,:),uinput.u{k}(2,:));
+        tmin=min(uinput.u{k}(1,:));
+        tmax=max(uinput.u{k}(1,:));
+        uinput.u{k} = @(t) ppval(pp,t).* (t >= tmin & t<= tmax);
+        uinput.udot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
+            end
+        end
 
-
+        end % for k
+     end % isfield(uinput,'u')
