@@ -36,8 +36,8 @@ syms st sx sy sym_array;
 sym_array=[sx,sy];
 
 % Account for multiplicity of disturbances
-w_tab = repelem(PIE.w_tab, PIE.w_tab(:,2), 1);
-u_tab = repelem(PIE.u_tab, PIE.u_tab(:,2), 1);
+w_tab = subsasgn(repelem(PIE.w_tab, PIE.w_tab(:,2), 1), struct('type','()','subs',{{':',2}}), 1);
+u_tab = subsasgn(repelem(PIE.u_tab, PIE.u_tab(:,2), 1), struct('type','()','subs',{{':',2}}), 1);
 
 % Compute initial conditions on the fundamental states from initial
 % condition on the primary states and update disturbances to account for corner values and differentiation - 
