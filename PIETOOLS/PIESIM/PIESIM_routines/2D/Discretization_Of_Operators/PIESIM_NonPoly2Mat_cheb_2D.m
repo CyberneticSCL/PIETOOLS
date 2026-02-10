@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_NonPoly2Mat_cheb.m     PIETOOLS 2024
+% PIESIM_NonPoly2Mat_cheb.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - discrete matrix representation of a non-polymonial
 % operator in 2D
@@ -32,15 +32,15 @@ ns=size(p,2);
 no=size(Rop,2);
 
 for m=ns:-1:1
-    rsize=N-p(m)+1;
 
-    A(1:rsize^2,1:no)=0;
+    Alocal(1:prod(N-p(m)+1),1:no)=0;
+
     for i=1:no 
     var_force=double(subs(subs(Rop(m,i),sx,gridall.x{p(m)+1}),sy,gridall.y{p(m)+1}'));
-    A(:,i)=reshape(fcgltran2d(var_force,1),[],1);
+    Alocal(:,i)=reshape(fcgltran2d(var_force,1),[],1);
     end % i loop
 
-    A_cell{m,1}=A;
+    A_cell{m,1}=Alocal;
 
 end % m loop
 

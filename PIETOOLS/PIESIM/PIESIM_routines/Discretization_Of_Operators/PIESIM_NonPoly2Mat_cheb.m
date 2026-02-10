@@ -1,7 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_NonPoly2Mat_cheb.m     PIETOOLS 2024
+% PIESIM_NonPoly2Mat_cheb.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - discrete matrix representation of a non-polymonial operator
+% Discretizes FULL OPERATOR but does not provide a PIE-2-PDE state map 
 %
 % Inputs:
 % 1) N   - polynomial order of Chebyshev discretization polynomial
@@ -31,13 +32,17 @@ no=size(Rop,2);
 for m=ns:-1:1
     rsize=N-p(m)+1;
 
-    A(1:rsize,1:no)=0;
+    Alocal(1:rsize,1:no)=0;
     for i=1:no 
         var_force=double(subs(Rop(m,i),gridall{p(m)+1}));
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
         A(:,i)=fcht(var_force);
+=======
+        Alocal(:,i)=fcht(var_force);
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
     end % i loop
 
-    A_cell{m,1}=A;
+    A_cell{m,1}=Alocal;
 
 end % m loop
 

@@ -26,8 +26,6 @@
 
 % Discretize computational domain
 [grid,gridall]=PIESIM_discretize_domain_2D(uinput,psize);
-% n1grid, n2grid are local variables denoting auxiliary computational grid
-% of n1, n2 states (not needed outside PIESIM_discretize_all)
 
 % Discretize initial conditions and non-polynomial in space forcing matrix operator
 

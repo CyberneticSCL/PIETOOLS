@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIESIM_integral_projection1D.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Constructs A, Abig - a dicrete matrix representation corresponding to a
+% Constructs A - a dicrete matrix representation corresponding to a
 % 1D integration (over [-1 sx], [sx 1], [-1 sy] or [sy 1]) of a polynomial operator already discretized in a
 % Chebyshev space
 %
@@ -10,13 +10,10 @@
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
 % Rcheb -  Chebyshev discretization of an operator to be integrated
-% csize - the number of columns in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the right-hand side of the ODE matrix system corresponding to the discrete block in question)
 % lim  - limits of 1D integraton ([-1 sx], [sx 1], [-1 sy] or [sy 1]) 
 %
 % Output:
-% A - a non-square matrix of size (N+1)xcsize that represents a Chebyshev
-% discretizaiton of the integration of the operator representated by Rcheb over lim
-% Abig - a square matrix of size (N+1)x(N+1) that represents a Chebyshev
+% A - a square matrix of size (N+1)x(N+1) that represents a Chebyshev
 % discretizaiton of the integration of the operator representated by Rcheb over lim
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -27,8 +24,14 @@
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Correct limits of for loop j=0:deg and m=0:deg.
 %                 Remove redundant variables;
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_integral_projection1D.m
 
 function [A,Abig]=PIESIM_integral_projection1D(N, Rcheb, csize, lim)
+=======
+% YP 1/31/2026: Made if for square operators, truncation is done on assembled operators
+
+function A=PIESIM_integral_projection1D(N, Rcheb, lim)
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_integral_projection1D.m
 
 if(lim(1)==-1)
     sign=-1;
@@ -36,7 +39,7 @@ else
     sign=1;
 end
 
-Abig(1:N+1,1:N+1)=0;
+A(1:N+1,1:N+1)=0;
 deg=size(Rcheb);
 
 for k=0:N
@@ -86,8 +89,6 @@ end % for kk=i
     end % j
     end % m
 end % j
-Abig(:,k+1)=vecmult(:);
+A(:,k+1)=vecmult(:);
 end % k
-
-A=Abig(1:N+1,1:csize);
 

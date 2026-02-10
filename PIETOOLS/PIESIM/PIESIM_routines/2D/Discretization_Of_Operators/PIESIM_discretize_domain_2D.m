@@ -34,7 +34,7 @@ d=uinput.dom(2,2);
 N=psize.N;
 
 % Assume for now that state differentiability is the same in x and y. Seems
-% like what it's done in Declan't paper
+% like what it's done in Declan's paper
 % Define grids in the physical space as vector arrays. Spatial grid points
 % are colocated with the Chebyshev nodes.
 
@@ -43,10 +43,11 @@ N=psize.N;
 
 
 for i=1:max([length(psize.n),length(psize.nx),length(psize.ny)])
-grid_comp{i} = cos(pi*(0:N-i+1)/(N-i+1))';
+grid_comp{i} = cos(pi*(0:N(1)-i+1)/(N(1)-i+1))';
+grid_comp{i+1} = cos(pi*(0:N(2)-i+1)/(N(2)-i+1))';
 gridall.x{i}=0.5*(b-a)*grid_comp{i}+0.5*(b+a);
-gridall.y{i}=0.5*(d-c)*grid_comp{i}+0.5*(d+c);
+gridall.y{i}=0.5*(d-c)*grid_comp{i+1}+0.5*(d+c);
 end
 
-grid.phys=[gridall.x{1},gridall.y{1}];
-grid.comp=grid_comp{1};
+grid.phys={gridall.x{1};gridall.y{1}};
+
