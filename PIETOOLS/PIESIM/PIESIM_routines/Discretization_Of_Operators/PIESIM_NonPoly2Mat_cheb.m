@@ -37,7 +37,11 @@ for m=ns:-1:1
         var_force=double(subs(Rop(m,i),gridall{p(m)+1}));
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
         A(:,i)=fcht(var_force);
+=======
+        Alocal(:,i)=fcht(var_force);
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
 =======
         Alocal(:,i)=fcht(var_force);
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
