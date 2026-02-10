@@ -32,21 +32,28 @@
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
 %                   defining R as additional inputs.
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opint_discretize_1to1_line.m
 
 function [A, A_nonsquare]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, R, var1, px, py, dir)
 ========
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
 % YP, 2/1/2026: rewrote for square operators, truncation made on assembled
 % operators
 
 function [A, A_2PDEstate]=PIESIM_1Dto1D2Mat_cheb_2D(N, R, var1, prow, pcol, dir)
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
 
 % Extract spatial variables (x,y) defining the operator R                   % DJ, 12/16/2024
 s1 = var1(1); s2 = var1(2);
 
 if dir=='x'
     var=s2;
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opint_discretize_1to1_line.m
     pint=px;
     prow=py;
@@ -61,6 +68,8 @@ end
     ns_row=length(prow);
     ns_col=length(pint);
 ========
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
     snstr=s2.varname{1};
     Nrow=N(2);
     Ncol=N(1);
@@ -73,7 +82,10 @@ end
 
     ns_row=size(prow,2);
     ns_col=size(pcol,2);
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_1Dto1D2Mat_cheb_2D.m
 
 for i=1:ns_row
     rsize=Nrow-prow(i)+1;

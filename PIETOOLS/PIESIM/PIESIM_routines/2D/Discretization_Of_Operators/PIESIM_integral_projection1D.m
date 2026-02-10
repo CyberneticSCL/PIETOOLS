@@ -25,8 +25,14 @@
 % DJ, 12/16/2024: Correct limits of for loop j=0:deg and m=0:deg.
 %                 Remove redundant variables;
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_integral_projection1D.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_integral_projection1D.m
 
 function [A,Abig]=PIESIM_integral_projection1D(N, Rcheb, csize, lim)
+=======
+% YP 1/31/2026: Made if for square operators, truncation is done on assembled operators
+
+function A=PIESIM_integral_projection1D(N, Rcheb, lim)
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_integral_projection1D.m
 =======
 % YP 1/31/2026: Made if for square operators, truncation is done on assembled operators
 
