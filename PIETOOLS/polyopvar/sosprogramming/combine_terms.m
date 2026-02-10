@@ -123,6 +123,9 @@ for ii=1:numel(state_nums)
             var1_order = var_orders(:,var1_idx);
             var2_order = var_orders(:,var2_idx);
             is_greater = var2_order>var1_order;
+            if ~any(is_greater)
+                continue
+            end
             % Reorder such that var2 <= var1
             lindcs1 = sub2ind(size(omat),find(is_greater),var1_order(is_greater));
             lindcs2 = sub2ind(size(omat),find(is_greater),var2_order(is_greater));
