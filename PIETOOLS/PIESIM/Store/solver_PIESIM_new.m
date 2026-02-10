@@ -31,7 +31,23 @@
 % opts.ifexact
 
 clear all;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 clc
+=======
+clc;
+>>>>>>> Stashed changes
+=======
+clc;
+>>>>>>> Stashed changes
+=======
+clc;
+>>>>>>> Stashed changes
+=======
+clc;
+>>>>>>> Stashed changes
 close all;
 format long;
 
@@ -58,23 +74,73 @@ opts.ifexact=true;
 opts.plot='yes';
 opts.ploteig='yes';
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 % Further custom-made post-processing options
 opts.movie='no';
 opts.error='no';
 
 % Here we define parameters related to simulation.
 
+<<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
+% Input N - the Chebyshev polynomial discretization order of the
+%            distributed states
+========
 % Input opts.N - the Chebyshev polynomial discretization order of the
 %            distributed states 
 
 % For 2D: if different order of discretization is required in different directions,
 % enter opts.N as an array, such as opts.N=[16,32]
+>>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+% Here we define parameters related to simulation.
+
+% Input N - the Chebyshev polynomial discretization order of the
+%            distributed states
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 
 opts.N=16;
 
 %-----------------------------------------------------------
 % Input the desired final time of the solution
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
+opts.tf=1;
+========
 opts.tf=0.1;
+>>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+opts.tf=1;
+>>>>>>> Stashed changes
+=======
+opts.tf=1;
+>>>>>>> Stashed changes
+=======
+opts.tf=1;
+>>>>>>> Stashed changes
+=======
+opts.tf=1;
+>>>>>>> Stashed changes
 
 %-----------------------------------------------------------
 % Choose temporal integration scheme 
@@ -101,7 +167,27 @@ opts.intScheme=1;
 
 if (opts.intScheme==1)
     opts.Norder = 2;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
+    opts.dt=1e-3;
+========
     opts.dt=0.02;
+>>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+    opts.dt=1e-3;
+>>>>>>> Stashed changes
+=======
+    opts.dt=1e-3;
+>>>>>>> Stashed changes
+=======
+    opts.dt=1e-3;
+>>>>>>> Stashed changes
+=======
+    opts.dt=1e-3;
+>>>>>>> Stashed changes
 end
 
 
@@ -110,7 +196,27 @@ end
 %------------------------------------------------------------------------------
 % For 1D problems: example = xxx (between 1 and 41) to correspond to an Example number in
 % the 'examples_pde_library_PIESIM_1D.m'
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
+% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
+========
 % For 2D problems: example = xxx (between 1 and 31) to correspond to an Example number in
+>>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
+>>>>>>> Stashed changes
+=======
+% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
+>>>>>>> Stashed changes
+=======
+% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
+>>>>>>> Stashed changes
+=======
+% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
+>>>>>>> Stashed changes
 % the 'examples_pde_library_PIESIM_2D.m'
 %------------------------------------------------------------------------------
 
@@ -123,7 +229,27 @@ end
     end
     [PDE,uinput]=examples_pde_library_PIESIM_1D(example);
     else   % dim=2
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
+    if (example<1|example>31)
+========
     if (example<1|example>32)
+>>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+    if (example<1|example>31)
+>>>>>>> Stashed changes
+=======
+    if (example<1|example>31)
+>>>>>>> Stashed changes
+=======
+    if (example<1|example>31)
+>>>>>>> Stashed changes
+=======
+    if (example<1|example>31)
+>>>>>>> Stashed changes
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
         example=1;
     end
@@ -151,6 +277,13 @@ else
 end
 
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<<< Updated upstream:PIESIM/Store/solver_PIESIM_new.m
+% Compute L2 and H_infty errors and plot their time evolution
+========
 % 
 % % Make a movie for a 2D case (if opts.movie='yes')
 % 
@@ -312,4 +445,78 @@ for n=1:1
 end % opts.error
 
 end
+>>>>>>>> Stashed changes:PIESIM/solver_PIESIM.m
+=======
+% Compute L2 and H_infty errors and plot their time evolution
+>>>>>>> Stashed changes
+=======
+% Compute L2 and H_infty errors and plot their time evolution
+>>>>>>> Stashed changes
+=======
+% Compute L2 and H_infty errors and plot their time evolution
+>>>>>>> Stashed changes
+=======
+% Compute L2 and H_infty errors and plot their time evolution
+>>>>>>> Stashed changes
 
+syms sx sy;
+
+ns=size(uinput.exact,1);
+Nsteps=size(solution.timedep.dtime,2);
+for n=1:ns
+       for ntime=1:Nsteps;
+         tt=solution.timedep.dtime(ntime);
+    
+         % Evaluate exact solution
+            exsol_numgrid_time = subs(subs(uinput.exact(n),sx,grid.phys(:,1)),sy,grid.phys(:,2)');
+            exsol_numgrid = double(subs(exsol_numgrid_time,tt));
+
+         % Evaluate error
+            error=exsol_numgrid-solution.timedep.pde{2}(:,:,n,ntime);
+
+            % L2 error
+            L2_error(ntime)=sqrt(sum(error.^2,'all'))/(opts.N+1);
+            Hinfty_error(ntime)=max(abs(error),[],'all');
+       end % for ntime
+
+       figure;
+       plot(solution.timedep.dtime,L2_error,'b','Linewidth',2);
+      % hold on;
+      % plot(solution.timedep.dtime,Hinfty_error,'r','Linewidth',2);
+       xlabel('t');ylabel('error');  
+       title('Plot of errors versus time');
+       ax = gca;   ax.FontSize = 22;
+end
+
+
+% 
+% % Make a movie for a 2D case (if opts.plot='yes')
+% 
+if strcmp(opts.plot,'yes') && isfield(solution,'timedep') && dim==2
+figure;
+X=grid.phys(:,1);
+Y=grid.phys(:,2);
+t=solution.timedep.dtime;
+Z= solution.timedep.pde{2}(:,:,1,1)';
+h = imagesc(X, Y, Z);  % initial frame
+%set(h,'Interpolation','bilinear') 
+%h=contour(X, Y, Z, 1000);
+%h = surf(X, Y, Z);  % initial frame
+axis xy 
+axis([min(X) max(X) min(Y) max(Y)])
+axis equal
+shading interp;  % smooth colors
+%view(2)          % top-down view
+colormap(jet)
+colorbar
+
+for k = 1:length(t)
+    Z= solution.timedep.pde{2}(:,:,1,k)';
+%    set(h, 'ZData', Z);  % update surface
+     set(h, 'CData', Z);  % update image
+%    h=contour(X, Y, Z, 1000);
+    title(['t = ', num2str(t(k))])
+    drawnow
+end
+
+end % movie

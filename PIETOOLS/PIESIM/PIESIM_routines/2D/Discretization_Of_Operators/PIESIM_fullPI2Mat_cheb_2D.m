@@ -26,19 +26,12 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-% Initial coding YP  - 4_16_2024
-=======
 % Initial coding YP  -  4/16/2024
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
 % DJ, 12/16/2024: Explicitly pass the variables Rop.var1 and Rop.var2 on
 %                   which Rop is defined to the discretization subroutines,
 %                   in case these variables are not equal to (s1,s2) and
 %                   (s1_dum,s2_dum);
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-=======
 % YP, 1/27/2026: Added suport for infinite-dimensional outputs
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
 
 function [A, A_2PDEstate]=PIESIM_fullPI2Mat_cheb_2D(Rop, psize, flag)
 
@@ -127,15 +120,9 @@ if size(Rop.R00,2)>0
 
 
      if (nargout==1)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-     R20block{1}= PIESIM_Poly2Mat_cheb_2D(N, Rop.R20, Rop.var1, p);
-     else
-     [R20block{1}, R20block{2}]= PIESIM_Poly2Mat_cheb_2D(N, Rop.R20, Rop.var1, p);
-=======
      R20block{1}= PIESIM_Poly2Mat_cheb_2D(N, Rop.R20, Rop.var1, prow);
      else
      [R20block{1}, R20block{2}]= PIESIM_Poly2Mat_cheb_2D(N, Rop.R20, Rop.var1, prow);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
      end
      end %R20 block
 
@@ -158,9 +145,6 @@ if (size(Rop.R0x,2)>0)
     end % R0x block
 
       % Rxx block
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-      if sum(psize.nx)>0 
-=======
       if min(size(Rop.Rxx{1}))>0 
 
     if (flag<=1)
@@ -169,7 +153,6 @@ if (size(Rop.R0x,2)>0)
         prow=px;
     end
 
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
       Rn.R0=Rop.Rxx{1};
       Rn.R1=Rop.Rxx{2};
       Rn.R2=Rop.Rxx{3};
@@ -177,7 +160,6 @@ if (size(Rop.R0x,2)>0)
         Rxxblock{1}=PIESIM_3PI2Mat_cheb(N(1), Rn, prow, pcol);
      else
         [Rxxblock{1},Rxxblock{2}]=PIESIM_3PI2Mat_cheb(N(1), Rn, prow, pcol);
-     end
      end
      end
 
@@ -190,15 +172,9 @@ if (size(Rop.R0x,2)>0)
     end
 
          if(nargout==1)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
- Ryxblock{1}=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, Rop.var1, pcol, py, 'x');
-         else
- [Ryxblock{1}, Ryxblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Ryx, Rop.var1, pcol, py, 'x');
-=======
  Ryxblock{1}=PIESIM_1Dto1D2Mat_cheb_2D(N, Rop.Ryx, Rop.var1, prow, pcol, 'x');
          else
  [Ryxblock{1}, Ryxblock{2}]=PIESIM_1Dto1D2Mat_cheb_2D(N, Rop.Ryx, Rop.var1, prow, pcol, 'x');
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
          end
  end
 
@@ -210,15 +186,9 @@ if (size(Rop.R0x,2)>0)
         prow=p;
     end
          if(nargout==1)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-     R2xblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, Rop.var1, p, pcol, 'x');
-         else
-     [R2xblock{1},R2xblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2x, Rop.var1, p, pcol,'x');
-=======
      R2xblock{1}=PIESIM_1Dto2D2Mat_cheb_2D(N, Rop.R2x, Rop.var1, prow, pcol, 'x');
          else
      [R2xblock{1},R2xblock{2}]=PIESIM_1Dto2D2Mat_cheb_2D(N, Rop.R2x, Rop.var1, prow, pcol,'x');
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
     end
  end
 
@@ -248,29 +218,19 @@ if (size(Rop.R0y,2)>0)
         prow=px;
     end
          if(nargout==1)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-    [Rxyblock{1}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, Rop.var1, px, pcol, 'y');
-         else
-    [Rxyblock{1}, Rxyblock{2}]=PIESIM_PI2Mat_cheb_opint_discretize_1to1_line(N, Rop.Rxy, Rop.var1, px, pcol, 'y');
-=======
     [Rxyblock{1}]=PIESIM_1Dto1D2Mat_cheb_2D(N, Rop.Rxy, Rop.var1, prow, pcol, 'y');
          else
     [Rxyblock{1}, Rxyblock{2}]=PIESIM_1Dto1D2Mat_cheb_2D(N, Rop.Rxy, Rop.var1, prow, pcol, 'y');
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
          end
     end
 
       % Ryy block
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-      if sum(psize.ny)>0
-=======
       if min(size(Rop.Ryy{1}))>0
     if (flag<=1)
         prow=zeros(1,size(Rop.Ryy{1},1));
     else
         prow=py;
     end
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
       Rn.R0=Rop.Ryy{1};
       Rn.R1=Rop.Ryy{2};
       Rn.R2=Rop.Ryy{3};
@@ -278,7 +238,6 @@ if (size(Rop.R0y,2)>0)
       Ryyblock{1}=PIESIM_3PI2Mat_cheb(N(2), Rn, prow, pcol);
       else
       [Ryyblock{1},Ryyblock{2}]=PIESIM_3PI2Mat_cheb(N(2), Rn, prow, pcol);
-      end
       end
       end
 
@@ -290,15 +249,9 @@ if (size(Rop.R0y,2)>0)
         prow=p;
     end
          if(nargout==1)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-     R2yblock{1}=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, Rop.var1, p, pcol, 'y');
-         else
-     [R2yblock{1},R2yblock{2}]=PIESIM_1Dto2D2Mat_cheb(N, Rop.R2y, Rop.var1, p, pcol,'y');
-=======
      R2yblock{1}=PIESIM_1Dto2D2Mat_cheb_2D(N, Rop.R2y, Rop.var1, prow, pcol, 'y');
          else
      [R2yblock{1},R2yblock{2}]=PIESIM_1Dto2D2Mat_cheb_2D(N, Rop.R2y, Rop.var1, prow, pcol,'y');
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
     end
     end
 
@@ -316,11 +269,7 @@ if (size(Rop.R02,2)>0)
 
     % R02 block
     if (size(Rop.R02,1)>0)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-    R02block=PIESIM_PI2Mat_cheb_opint_discretize_2to0(N, Rop.R02, Rop.var1, pcol);
-=======
     R02block=PIESIM_2Dto0D2Mat_cheb_2D(N, Rop.R02, Rop.var1, pcol);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
     end
 
     % Rx2 block 
@@ -331,15 +280,9 @@ if (size(Rop.R02,2)>0)
         prow=px;
     end
     if(nargout==1)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-     Rx2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, Rop.var1, pcol, px, 'x');
-         else
-     [Rx2block{1},Rx2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Rx2, Rop.var1, pcol, px,'x');
-=======
      Rx2block{1}=PIESIM_2Dto1D2Mat_cheb_2D(N, Rop.Rx2, Rop.var1, prow, pcol, 'x');
          else
      [Rx2block{1},Rx2block{2}]=PIESIM_2Dto1D2Mat_cheb_2D(N, Rop.Rx2, Rop.var1, prow, pcol,'x');
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
     end
     end
 
@@ -351,33 +294,18 @@ if (size(Rop.R02,2)>0)
         prow=py;
     end
         if(nargout==1)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-     Ry2block{1}=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, Rop.var1, pcol, py, 'y');
-         else
-     [Ry2block{1},Ry2block{2}]=PIESIM_2Dto1D2Mat_cheb(N, Rop.Ry2, Rop.var1, pcol, py,'y');
-=======
      Ry2block{1}=PIESIM_2Dto1D2Mat_cheb_2D(N, Rop.Ry2, Rop.var1, prow, pcol, 'y');
          else
      [Ry2block{1},Ry2block{2}]=PIESIM_2Dto1D2Mat_cheb_2D(N, Rop.Ry2, Rop.var1, prow, pcol,'y');
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
     end
     end
 
     % R22 block
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
-     if (nargout==1) 
-     R22block{1}=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, Rop.var1, Rop.var2, p, pcol);
-     else
-     [R22block{1}, R22block{2}]=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, Rop.var1, Rop.var2, p, pcol);
-     end
-
-=======
      if min(size(Rop.R22{1,1}))>0   
     if (flag<=1)
         prow=zeros(2,size(Rop.R22{1,1},1));
     else
         prow=p;
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_fullPI2Mat_cheb_2D.m
     end
      if (nargout==1) 
      R22block{1}=PIESIM_9PI2Mat_cheb_2D(N, Rop.R22, Rop.var1, Rop.var2, prow, pcol);

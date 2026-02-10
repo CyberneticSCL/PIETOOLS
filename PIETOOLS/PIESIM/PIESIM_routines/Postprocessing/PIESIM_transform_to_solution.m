@@ -5,7 +5,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 % This routine transforms solution from the Chebyshev coefficient space of the fundamental states to
 % the physical solution of the primary states
 % It first performs a transform of Chebshev coefficients of fundamental
-% states to Chebyshev coefficients of primary states using Tcheb_nonsaquare
+% states to Chebyshev coefficients of primary states using Tcheb_2PDEstate
 % operator
 % It then transforms Chebysehv coefficients of the primary states to the
 % physical solution of the preimary states

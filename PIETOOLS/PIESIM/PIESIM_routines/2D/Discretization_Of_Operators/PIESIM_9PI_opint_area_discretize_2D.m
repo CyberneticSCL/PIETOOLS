@@ -10,23 +10,6 @@
 % N   - polynomial order of Chebyshev discretization polynomial
 % R -  polymonial block (R11, R12, R21 or R22) of 9PI operator in 2D
 % corresponding to a single solution state
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-<<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_area.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-=======
-<<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_area.m
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-% rsize - the number of rows in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the solution state on the left-hand side of the ODE matrix system corresponding to the discrete block in question)
-% csize - the number of columns in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the right-hand side of the ODE matrix system corresponding to the discrete block in question)
-========
->>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-=======
-========
->>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-=======
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
 % var1: 2x1 pvar array specifying the primary spatial variables (x,y)
 % var2: 2x1 pvar array specifying the dummy variables for integration
 %           (theta,nu)
@@ -46,34 +29,10 @@
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
 %                   defining R as additional inputs.
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-<<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_area.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-=======
-<<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_area.m
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-
-function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_area(N, R, rsize, csize, var1, var2, lim)
-========
-=======
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
 % YP, 1/31/2026 - changed to square consturction, truncation is done on
 % assembled operators
 
 function A=PIESIM_9PI_opint_area_discretize_2D(N, R, var1, var2, lim)
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
->>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-=======
-========
-% YP, 1/31/2026 - changed to square consturction, truncation is done on
-% assembled operators
-
-function A=PIESIM_9PI_opint_area_discretize_2D(N, R, var1, var2, lim)
->>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
-=======
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_area_discretize_2D.m
 
 % Extract spatial and dummy variables defining the operator R               % DJ, 12/16/2024
 s1 = var1(1);   s1_dum = var2(1);

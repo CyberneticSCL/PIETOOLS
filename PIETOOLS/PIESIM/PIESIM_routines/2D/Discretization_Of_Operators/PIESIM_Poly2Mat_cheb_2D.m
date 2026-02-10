@@ -32,19 +32,12 @@
 % YP, 1/25/2026: Fixed construction of a non-squre matrix for the 2D state
 % reconstruction
 
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_Poly2Mat_cheb_2D.m
-function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb_2D(N, Rop, var1, p)
-
-% Extract spatial variables (x,y) defining the operator R                   % DJ, 12/16/2024
-s1 = var1(1);   s2 = var1(2);
-=======
 function [A, A_2PDEstate]=PIESIM_Poly2Mat_cheb_2D(N, Rop, var1, p)
 
 % Extract spatial variables (x,y) defining the operator R                   % DJ, 12/16/2024
 s1 = var1(1);   s2 = var1(2);
 
 % Evaluate everything on maximum grid and then compress
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_Poly2Mat_cheb_2D.m
 
 ns=size(p,2);
 no=size(Rop,2);
@@ -77,29 +70,14 @@ for k=1:no
     acheb2D=fcgltran2d(double(Reval),1);
     acheb2D_all(1:deg+2, 1:deg+2) = acheb2D;
 
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_Poly2Mat_cheb_2D.m
-for j=1:length(acheb)                                                     
-A_block(j,k,m)=acheb(j);
-=======
     acheb=reshape(acheb2D_all,[],1);
 
 for j=1:length(acheb)                                                     
 Alocal(j,k)=acheb(j);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_Poly2Mat_cheb_2D.m
 end
 
 % YP 1/25/2026
 
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_Poly2Mat_cheb_2D.m
-% Indices in the new matrix where original rows go
-origRows = 1:rsize^2;
-% Compute target indices in A_block_nonsquare
-newRows = origRows + floor((origRows-1)/rsize)*p(m);
-% Fill original rows
-A_block_nonsquare(newRows, :) = A_block;
-
-=======
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_Poly2Mat_cheb_2D.m
 end % k loop
 
 % Truncate time propagator matrix to the correct dimensions

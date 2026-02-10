@@ -8,7 +8,7 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % 1) solution 
 % solution is a strucutre with the following fields
 % --- solution.tf - scalar - actual final time of the solution
-% --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
+% --- solution.final.pde - array of size (N+1) x ns, ns number of pde (distributed state) solutions at a final time
 % --- solution.final.ode - array of size no - ode solution at a final time 
 % --- solution.final.observed{1,2} - cell array containing final value of observed outputs 
 % --- solution.final.observed[1} - array of size noo containing final

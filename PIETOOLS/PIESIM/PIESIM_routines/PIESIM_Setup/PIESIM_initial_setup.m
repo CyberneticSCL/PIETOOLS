@@ -9,12 +9,15 @@
 %
 % Input:
 % 1) uinput - user-defined boundary inputs and disturbances
-% 2) psize - size of the problem. Includes nu, nw, no, nf, N and n
-% 3) type - of class ``char'' - type of the problem: 'PDE', 'DDE' or 'PIE'
+% 2) psize - size of the problem
+% 3) PIE - PIE structure of the problem to redefine disturbances due to
+% corner values if needed
+% 4) type - of class ``char'' - type of the problem: 'PDE', 'DDE' or 'PIE'
 %
 % Output:
 % 1) uinput - temporal derivatives of the user-defined boundary inputs and disturbances are added to the 
 % field 'input' - these are needed for temporal integration of PIE equations
+% 2) psize - can be modified to account for corner values of disturbances
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -25,37 +28,16 @@
 % both symbolic and double)
 % YP 1/22/2026 - added differentiation of disturbances and control inputs
 % to support inhomogeneous boudnary inputs in 2D
+% YP 2/6/2026 - added corner values for inhomogeneous boudnary inputs in 2D
 
-function uinput=PIESIM_initial_setup(uinput,psize,type)
-syms st sx sy;
+function [uinput,psize]=PIESIM_initial_setup(uinput,psize,PIE,type)
+syms st sx sy sym_array;
 
-% Setup function handles to boundary inputs and their temporal derivatives
+sym_array=[sx,sy];
 
- if isfield(uinput,'w')
-     for k = 1:numel(uinput.w)
-         % Symbolic disturbances
-        if isa(uinput.w{k}, 'sym')
-        uinput.w{k}=matlabFunction(uinput.w{k},'Vars', st);
-        uinput.wdot{k}=matlabFunction(diff(uinput.w{k},st),'Vars', st);
-        else
-            % Double type distubrances of size 1 (constant in time) 
-            if (length(uinput.w{k})==1)
-                uinput.w{k}=@(t) uinput.w{k};
-                uinput.wdot{k}=@(t) 0;
-            else
-            %  Double type distubrances of size other than 1-
-           %   Build a cubic spline from the disturbance data
-        pp=spline(uinput.w{k}(1,:),uinput.w{k}(2,:));
-        tmin=min(uinput.w{k}(1,:));
-        tmax=max(uinput.w{k}(1,:));
-        uinput.w{k} = @(t) ppval(pp,t).* (t >= tmin & t<= tmax);
-        uinput.wdot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
-            end
-        end
-
-
-        end % for k
-     end % isfield(uinput,'w')
+% Account for multiplicity of disturbances
+w_tab = repelem(PIE.w_tab, PIE.w_tab(:,2), 1);
+u_tab = repelem(PIE.u_tab, PIE.u_tab(:,2), 1);
 
       if isfield(uinput,'u')
      for k = 1:numel(uinput.u)
@@ -110,10 +92,7 @@ else
 
     % 2D case
 % Use x_tab rather than psize to determine degree of smootness
-        nsx=sum(psize.nx,'all');
-        nsy=sum(psize.ny,'all');
-        ns2d=sum(psize.n,'all');
-        ns = nsx+nsy+ns2d;
+    ns = sum(psize.nx,'all')+sum(psize.ny,'all')+sum(psize.n,'all');
 
 for i=1:ns
     ii=psize.no+i;
@@ -121,19 +100,90 @@ for i=1:ns
     uinput.ic.PIE(i) =  diff(ic_PDE_xder,sy,psize.x_tab(ii,end));
 end
 
-% Differentiate disturbances and control inputs if needed
+% Compare the size of disturbances after PIE conversion to original size
+% and renumber if needed
+
+  nw_PDE=psize.nw;
+  nw_PIE = sum(w_tab(:,2));
+  idx_shift=nw_PIE-nw_PDE;
+
+  if (nw_PIE>nw_PDE)
+  uinput.wspace = [cell(1, idx_shift), uinput.wspace];
+  uinput.w = [cell(1, idx_shift), uinput.w];
+
+  % We also have to fill the first idx_shift rows with the corresponding
+  % corner values
+  for i=1:idx_shift
+  pos_in_reordered_array = find(uinput.w_order == w_tab(i,1)); % w_tab corresponds to original PDE ordering
+  idx_parent=pos_in_reordered_array+idx_shift;
+  uinput.w{i}=uinput.w{idx_parent};
+  uinput.wspace{i}=uinput.wspace{idx_parent};
+  end
+  end % if
+
+  psize.nw=nw_PIE;
+  psize.nw0=psize.nw0+idx_shift;
+
+ 
+% Differentiate disturbances if needed (2D only)
 
 for i=1:psize.nw
-    w_xder =  diff(uinput.wspace{i},sx,psize.w_tab(i,end-1));
-    uinput.wspace{i} =  diff(w_xder,sy,psize.w_tab(i,end));
+    w_xder =  diff(uinput.wspace{i},sx,w_tab(i,end-1));
+    uinput.wspace{i} =  diff(w_xder,sy,w_tab(i,end));
 end
+
+
+for i=1:idx_shift
+    % Do the substitution for corner values
+  % If idx is not equal to i, input i must correspond to a corner value
+  idx = find(w_tab(:,1)==w_tab(i,1),1,'last');
+  % Determine which variables to use for corner values
+  is_bval = logical(w_tab(idx,3:4)-w_tab(i,3:4));
+  corner_value=double(subs(uinput.wspace{i},sym_array(is_bval),PIE.dom(is_bval,1)));
+  uinput.wspace{i}=[];
+  if (length(uinput.w{i}==1))
+  uinput.w{i}=corner_value*uinput.w{i};
+  else
+  uinput.w{i}(1,:)=corner_value*uinput.w{i}(1,:);
+  end
+end
+
+% Dealing with control inputs 
 
 for i=1:psize.nu
     u_xder =  diff(uinput.uspace{i},sx,psize.u_tab(i,end-1));
     uinput.uspace{i} =  diff(u_xder,sy,psize.u_tab(i,end));
 end
 
-end
+end % 2D case
+
+% Setup function handles to boundary inputs and their temporal derivatives
+
+ if isfield(uinput,'w')
+     for k = 1:numel(uinput.w)
+         % Symbolic disturbances
+        if isa(uinput.w{k}, 'sym')
+        uinput.w{k}=matlabFunction(uinput.w{k},'Vars', st);
+        uinput.wdot{k}=matlabFunction(diff(uinput.w{k},st),'Vars', st);
+        else
+            % Double type distubrances of size 1 (constant in time) 
+            if (length(uinput.w{k})==1)
+                uinput.w{k}=@(t) uinput.w{k};
+                uinput.wdot{k}=@(t) 0;
+            else
+            %  Double type disturbances of size other than 1-
+           %   Build a cubic spline from the disturbance data
+        pp=spline(uinput.w{k}(1,:),uinput.w{k}(2,:));
+        tmin=min(uinput.w{k}(1,:));
+        tmax=max(uinput.w{k}(1,:));
+        uinput.w{k} = @(t) ppval(pp,t).* (t >= tmin & t<= tmax);
+        uinput.wdot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
+            end
+        end
+
+
+        end % for k
+     end % isfield(uinput,'w')
 
 
 end

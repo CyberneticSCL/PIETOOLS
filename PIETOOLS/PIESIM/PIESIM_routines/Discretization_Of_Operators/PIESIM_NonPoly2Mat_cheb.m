@@ -35,19 +35,7 @@ for m=ns:-1:1
     Alocal(1:rsize,1:no)=0;
     for i=1:no 
         var_force=double(subs(Rop(m,i),gridall{p(m)+1}));
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
-        A(:,i)=fcht(var_force);
-=======
         Alocal(:,i)=fcht(var_force);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
-=======
-        Alocal(:,i)=fcht(var_force);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
-=======
-        Alocal(:,i)=fcht(var_force);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_NonPoly2Mat_cheb.m
     end % i loop
 
     A_cell{m,1}=Alocal;

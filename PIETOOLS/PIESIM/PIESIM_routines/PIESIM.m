@@ -65,14 +65,13 @@
 %     not specified, the value of of 0 will be assumed for all
 %     states 
 
-% Outputs:
 % Outputs: 
 % 1) solution 
 % solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.ode - array of size no - ode solution at a final time 
 % --- solution.final.pde
-% --- In 1D: array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
+% --- In 1D: array of size (N+1) x ns, ns  solution at a final time
 % --- In 2D: solution.final.pde{1,2} - cell array containing all pde solutions at a final time
 % --- solution.final.pde{1} - array containing the solution for states that are only the functions of one variable - 
 % it is array of size (N+1) x (nx+ny), nx - number of states depending only on s1, 
@@ -125,7 +124,7 @@
 %                                      nroy - number of regulated outputs depending only on s2 
 % --- solution.timedep.regulated{3} - array containing regulated outputs that are the functions of two variables - 
 % It is array of size (N+1) x (N+1) x nro2 x Nsteps, nro2 - number of outptus depending on both s1 and s2
-%
+
 %  2) grid - field containing two sub-fields
 %  --- grid.phys 
 %      a) In 1D - grid.phys is an array of size (N+1) x 1 containing spatial coordinates of the physical grid for
@@ -210,12 +209,7 @@ function [solution, grid]=PIESIM(varargin)
 % functions to the format required for PIE solution
 %-------------------------------------------------------------------------
 
-% Append u_tab and w_tab to psize for future use, accounting for possible
-% multiplicity of entered disturbances
-
-psize.w_tab = repelem(PIE.w_tab, PIE.w_tab(:,2), 1);
-psize.u_tab = repelem(PIE.u_tab, PIE.u_tab(:,2), 1);
-uinput=PIESIM_initial_setup(uinput,psize,opts.type);
+[uinput,psize]=PIESIM_initial_setup(uinput,psize,PIE,opts.type);
 
 % Setup a spatial discretization of the initial conditions and the PIE 
 % operators with the Chebyshev Galerkin method

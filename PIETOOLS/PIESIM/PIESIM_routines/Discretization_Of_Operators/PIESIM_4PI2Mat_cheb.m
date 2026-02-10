@@ -1,7 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIESIM_4PI2Mat_cheb.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Constructs a discrete version of the multi-dimensional 4PI operator  
+% Constructs a discrete version of the multi-dimensional 4PI operator 
+% Discretizes FULL ASSEMLED OPERATOR
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
@@ -22,7 +23,6 @@
 % A - discretization matrix of the time-dependent PIE propagator
 % A_2PDEstate -discretization matrix for transform between
 % fundamental and primary solution
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -57,11 +57,11 @@ else
 pcol=p;
 end
 
-Q1block=PIESIM_PI2Mat_cheb_opint_discretize(N, Rop.Q1, pcol);
+Q1block=PIESIM_PI2Mat_opint_cheb(N, Rop.Q1, pcol);
 end
 
 
-% Q2block: size nspat1 x nscalr2
+% Q2block: size nspat1 x nscalar2
 
 % Q2block_2PDEstate: nspat1_full x nscalar2
 
@@ -119,7 +119,6 @@ A=[Pblock Q1block; Q2block Rblock];
 if (nargout>1)
     A_2PDEstate=[Pblock Q1block; Q2block_2PDEstate Rblock_2PDEstate];
 end
-
 
 
 

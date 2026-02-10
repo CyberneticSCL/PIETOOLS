@@ -108,15 +108,7 @@ nu0=psize.nu0;
     if (nw>0 & ~isfield(uinput,'w') )
             if ~isfield(uinput,'dist')
                 disp('Signal type for disturbances is not defined. Defaulting to zero');
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-                       uinput.w{1:nw}=0;
-=======
                        [uinput.w{1:nw}] = deal(0);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-=======
-                       [uinput.w{1:nw}] = deal(0);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
             else
             disp('Disturbances are not defined. Defaulting to a user-specified signal type');
                 switch uinput.dist
@@ -128,15 +120,7 @@ nu0=psize.nu0;
                         [uinput.w{1:nw}]=deal(sinc(st));
                     otherwise
                         disp('The specified signal type for disturbances is not supported. Defaulting to zero');
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-                       uinput.w{1:nw}=0;
-=======
                        [uinput.w{1:nw}] = deal(0);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-=======
-                       [uinput.w{1:nw}] = deal(0);
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
                 end
             end
     end
@@ -189,19 +173,10 @@ nu0=psize.nu0;
         [PDE,w_order] = reorder_comps(PDE,'w'); % Reorder disturbances in increasing order of differentiability
         [PDE,u_order] = reorder_comps(PDE,'u'); % Reorder control inputs in increasing order of differentiability 
              
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-=======
-=======
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
          % Append this to uinput for future use
          uinput.w_order=w_order;
          uinput.u_order=u_order;
 
-<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
-=======
->>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/PIESIM_disturbance_check.m
          if~issorted(u_order)
          uinput.u = uinput.u(u_order); % Reorder control inputs if needed
          end
