@@ -23,6 +23,7 @@
 %
 % Initial coding YP  - 6_28_2022
 % DJ, 12/28/2024: Remove redundant variables s, theta;
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
@@ -33,11 +34,14 @@ Norder=N-p;
 
 A(1:N+1,1:Norder+1)=0;
 ========
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 % YP, 2/1/2026: changed to square operator, truncation done on assembled
 % operator
 function A=PIESIM_3PI_opint_discretize(N, R1, R2)
 
 A(1:N+1,1:N+1)=0;
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 ========
 % YP, 2/1/2026: changed to square operator, truncation done on assembled
@@ -60,6 +64,8 @@ function A=PIESIM_3PI_opint_discretize(N, R1, R2)
 
 A(1:N+1,1:N+1)=0;
 >>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 
 if isa(R1,'polynomial')
     deg1=R1.maxdeg;
@@ -75,6 +81,7 @@ end
 
 maxdeg=max(deg1,deg2);
 
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
@@ -90,10 +97,13 @@ for k=0:Norder
 >>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 ========
 >>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 Rcheb1=PIESIM_PI_discretize(R1,maxdeg);
 Rcheb2=PIESIM_PI_discretize(R2,maxdeg);
 
 for k=0:N
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
@@ -104,6 +114,8 @@ for k=0:N
 >>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
 ========
 >>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_3PI_opint_discretize.m
     % Finding a column vector of Chebyshev coefficient for the column k+1
     % of matrix A
 vecmult1=zeros(N+1,1);

@@ -24,6 +24,7 @@
 %
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opint_discretize_2to0.m
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 =======
@@ -33,10 +34,13 @@
 
 function A=PIESIM_PI2Mat_cheb_opint_discretize_2to0(N, R, var1, p)
 ========
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 %                   defining R as additional inputs
 
 
 function A=PIESIM_2Dto0D2Mat_cheb_2D(N, R, var1, p)
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 =======
@@ -46,6 +50,8 @@ function A=PIESIM_2Dto0D2Mat_cheb_2D(N, R, var1, p)
 
 function A=PIESIM_2Dto0D2Mat_cheb_2D(N, R, var1, p)
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
+=======
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 
 % Extract second spatial variable (y) defining the operator R               % DJ, 12/16/2024
@@ -63,6 +69,7 @@ for i=1:no
         Rstrip=polynomial(Rloc.coeff(k),Rloc.degmat(k,:),Rloc.varname,Rloc.matdim);
             Rs1=subs(Rstrip,s2,1);
             % Integrate in s1 direction over the interval [-1,1]
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opint_discretize_2to0.m
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
 =======
@@ -77,6 +84,9 @@ for i=1:no
 ========
             int_s1=PIESIM_PI2Mat_opint_cheb(N(1), Rs1, p(j));
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
+=======
+            int_s1=PIESIM_PI2Mat_opint_cheb(N(1), Rs1, p(j));
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_2Dto0D2Mat_cheb_2D.m
             index = find(strcmp(Rstrip.varname, s2.varname{1}));
             Rs2=polynomial(1,Rstrip.degmat(1,index),Rstrip.varname(index),Rstrip.matdim);

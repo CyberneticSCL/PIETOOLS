@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_opint_cheb.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_cheb_opint_discretize.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIESIM_PI2Mat_cheb_opint_discretize.m     PIETOOLS 2025
@@ -99,6 +100,8 @@ end % for m
 
 
 ========
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_opint_cheb.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIESIM_PI2Mat_opint_cheb.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -199,4 +202,7 @@ end % for m
 
 
 
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_opint_cheb.m
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_opint_cheb.m
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/Discretization_Of_Operators/PIESIM_PI2Mat_opint_cheb.m

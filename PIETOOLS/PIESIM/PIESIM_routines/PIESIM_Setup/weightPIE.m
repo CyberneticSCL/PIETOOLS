@@ -20,8 +20,11 @@ function PIE = weightPIE(PIE,k)
 % Initial coding: YP 1/7/2026
 
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m
 pvar s1;
 
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m
 =======
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m
         % Initialize mapping operators to be unmodified PIE operators
@@ -46,7 +49,11 @@ pvar s1;
         PIE.Tu = W * PIE.Tu;
         PIE.Tw = W* PIE.Tw;
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m
 end
+=======
+end
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m
 =======
 end
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/PIESIM_Setup/weightPIE.m

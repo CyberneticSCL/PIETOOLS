@@ -11,11 +11,14 @@
 % R -  polymonial multiplicative block (R01, R02, R10 or R20) of 9PI operator in 2D
 % corresponding to a single solution state
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_line.m
 % rsize - the number of rows in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the solution state on the left-hand side of the ODE matrix system corresponding to the discrete block in question)
 % csize - the number of columns in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the right-hand side of the ODE matrix system corresponding to the discrete block in question)
 ========
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 =======
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 % var1: 2x1 pvar array specifying the primary spatial variables (x,y)
@@ -41,10 +44,13 @@
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
 %                   defining R as additional inputs.
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_line.m
 
 function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_line(N, R, rsize, csize, var1, var2, dir, sign)
 ========
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 =======
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 % YP, 1/31/2026 - restructured matrix conversion, made it for square
@@ -52,7 +58,10 @@ function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_line(N, R
 
 function A=PIESIM_9PI_opint_line_discretize_2D(N, R, var1, var2, dir, sign)
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+=======
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 =======
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 
@@ -70,10 +79,14 @@ if (dir=='x')
     snative=s2;
     snstr=s2.varname{1};
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_line.m
 ========
     idir=1;
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+=======
+    idir=1;
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 =======
     idir=1;
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
@@ -83,10 +96,14 @@ else
     snative=s1;
     snstr=s1.varname{1};
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_line.m
 ========
     idir=2;
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+=======
+    idir=2;
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 =======
     idir=2;
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
@@ -136,11 +153,15 @@ if (R_native)
     index = find(strcmp(R.varname, snstr));
     Rop=polynomial(1,R.degmat(kcell,index),R.varname(index),R.matdim);
 <<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 <<<<<<<< Updated upstream:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI2Mat_cheb_opint_discretize_line.m
     [Multop,Multop_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize_2D(N, Rop, rsize, csize, var1);
 ========
     Multop=PIESIM_9PI_opmult_discretize_2D(N, Rop, var1);
 >>>>>>>> Stashed changes:PIETOOLS/PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
+=======
+    Multop=PIESIM_9PI_opmult_discretize_2D(N, Rop, var1);
+>>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
 =======
     Multop=PIESIM_9PI_opmult_discretize_2D(N, Rop, var1);
 >>>>>>> Stashed changes:PIESIM/PIESIM_routines/2D/Discretization_Of_Operators/PIESIM_9PI_opint_line_discretize_2D.m
