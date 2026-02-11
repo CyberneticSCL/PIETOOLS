@@ -84,14 +84,14 @@ end
 [f,val] = common_vars(f,val);
 % Extract the monomial defining f
 degs1 = f.degmat;
-var_num = find(var<=cumsum(degs1),1,'first');
-degs1(var_num) = degs1(var_num)-1;
+xvar = find(var<=cumsum(degs1),1,'first');
+degs1(xvar) = degs1(xvar)-1;
 d1 = sum(degs1);
 % Extract the operator acting on the monomial defining f
 Kop = f.C.ops{1};
 omat = Kop.omat;
 var2 = Kop.pvarname;
-var1 = var2(var_num);
+var1 = var2(var);
 Kdom = Kop.dom;
 pvar2 = polynomial(var2);
 ndim = Kop.matdim(2);
@@ -118,7 +118,7 @@ for i=1:size(val.degmat,1)
     % Declare a full list of dummy variables used for integration of the 
     % monomial after substitution
     var2_full = cell(1,d1+d2);
-    var2_full(1:d1) = var2(setdiff((1:d1+1),var_num));
+    var2_full(1:d1) = var2(setdiff((1:d1+1),var));
     for k=1:d2
         var2_full{d1+k} = [var1{1},'_',num2str(k)];
     end
@@ -170,7 +170,7 @@ for i=1:size(val.degmat,1)
         Kfun = Kop.params(:,cidcs);
         % Establish the interval over which factor specified by "var" is
         % integrated
-        [~,pos] = find(omat(j,:)==var_num);
+        [~,pos] = find(omat(j,:)==var);
         dom = polynomial(Kdom);
         if pos>1
             dom(1) = pvar2(omat(j,pos-1));
@@ -183,7 +183,7 @@ for i=1:size(val.degmat,1)
         [KCfun,omat_tmp] = int(Cop,Kfun,var1,dom,var2_full(d1+1:end));
         % Change index of variables to match that in var2_new
         omat_j = omat(j,:);
-        omat_j(omat_j>var_num) = omat_j(omat_j>var_num)-1;
+        omat_j(omat_j>var) = omat_j(omat_j>var)-1;
         omat_new = omat_tmp+d1-(pos>1);
         if pos>1
             % Change index of variable pos-1 to match that in var2_new

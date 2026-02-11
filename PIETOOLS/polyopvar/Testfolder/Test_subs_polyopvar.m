@@ -29,6 +29,16 @@ end
 % Declare state variable names
 xvarname = mat2cell([repmat('x',[nvars,1]),num2str((1:nvars)')],ones(nvars,1));
 xvarname2 = mat2cell([repmat('xf',[nvars2,1]),num2str((1:nvars2)')],ones(nvars2,1));
+nshare = 1;
+share_idx1 = randi(nvars,[1,nshare]);
+share_idx1 = unique(share_idx1);
+nshare = numel(share_idx1);
+share_idx2 = randi(nvars2,[1,nshare]);
+share_idx2 = unique(share_idx2);
+nshare = numel(share_idx2);
+share_idx1 = share_idx1(1:nshare);
+xvarname2(share_idx2) = xvarname(share_idx1);
+
 
 % Declare d1 random 2-PI operators
 Lops_opvar = cell(1,d1);
@@ -92,7 +102,7 @@ Vx.C.ops = {Kop};
 %nfctrs = [3;1];
 nfctrs = randi(3,[d1+d2,nvars2])-1;
 nfctrs(sum(nfctrs,2)==0,1) = 1;
-nterms = randi(1,[d1+d2,1]);
+nterms = randi(2,[d1+d2,1]);
 nterms(sum(nfctrs,2)==1) = 1;
 Fx = cell(1,size(nfctrs,1));
 Fops = cell(1,size(nfctrs,1));
@@ -138,6 +148,7 @@ x_tst2 = polynomial(zeros(1,nvars2));
 for ii=1:nvars2
     x_tst2(ii) = rand_poly([1,1],s1,2);
 end
+x_tst2(share_idx2) = x_tst(share_idx1);
 ycell = cell(1,numel(Fx));
 zval = polynomial(zeros(1,numel(Fx)));
 for ii=1:numel(Fx)
@@ -151,13 +162,19 @@ for ii=1:numel(Fx)
         zval_ll = 1;
         for jj=1:size(Fops{ii},2)
             x_idx = find(jj<=strt_idcs,1,'first');
-            ycell{ii}{ll,jj} = apply_opvar(Fops{ii}{ll,jj},x_tst2(x_idx));
+            % if ismember(x_idx,share_idx2)
+            %     [~,idx] = find(x_idx==share_idx2,1);
+            %     x_idx = share_idx1(idx);
+            %     ycell{ii}{ll,jj} = apply_opvar(Fops{ii}{ll,jj},x_tst(x_idx));
+            % else
+                ycell{ii}{ll,jj} = apply_opvar(Fops{ii}{ll,jj},x_tst2(x_idx));
+            % end
             zval_ll = zval_ll.*ycell{ii}{ll,jj};
         end
         zval(1,ii) = zval(1,ii) + zval_ll;
     end
 end
-x_tstf = [x_tst,x_tst2];
+x_tstf = [x_tst,x_tst2(setdiff(1:nvars2,share_idx2))];
 
 % Apply Kop to the product (Rop{1}*x)*(Rop{2}*x)...
 fval_true = apply_functional(Kop,zval,ones(1,numel(Fx)));
