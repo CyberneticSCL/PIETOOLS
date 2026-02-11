@@ -1,4 +1,4 @@
-function [S,Sd,Z3deg] = int_outer(Z1deg,Z2deg)
+function [S,Sd,Z3deg] = monomial_outer(Z1deg,Z2deg)
 % Given degmats of Z1 = length(m) and Z2 = length(n)
 % we compute int(Z1*Z2^T, t) = S(I_n\otimes Z3) = (I_m\otimes Z3^T)Sd.
 % S is size m x (n*length(Z3))

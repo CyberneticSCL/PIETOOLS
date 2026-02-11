@@ -1,6 +1,11 @@
 function H = horzcat(varargin)
-%HORZCAT Horizontal concatenation [A B C ...] for quadPoly.
+%horzcat Horizontal concatenation [A B C ...] for quadPoly.
 %
+% Inputs:
+%   varargin: cell structure of polynomials to be concatenated {A,B,C...}
+%
+% Outputs:
+%   H: quadPoly object representing [A,B,C...]
 % Rules:
 %   - All inputs must have the same number of rows (matrix dimension m).
 %   - Left variables (ns/Zs) stay on the left; right variables (nt/Zt) stay on the right.
@@ -9,15 +14,18 @@ function H = horzcat(varargin)
 %
 % Supports mixing numeric matrices with quadPoly (numeric treated as constant quadPoly).
 
-if nargin == 0
-    H = quadPoly(sparse([]), {}, {}, [0 0], {}, {});
-    return;
-end
 
 % ---- Convert all inputs to quadPoly ----
 Q = cell(size(varargin));
 for k = 1:nargin
-    Q{k} = toQuadPoly(varargin{k});
+    if isa(varargin{k},'quadPoly')
+        Q{k} = varargin{k}
+    elseif isnumeric(X)
+        A = sparse(varargin{k});
+        Q{k} = quadPoly(A, {}, {}, size(A), {}, {});
+    else
+        error('quadPoly:horzcat:badType', 'horzcat supports quadPoly and numeric inputs.');
+    end
 end
 
 % ---- Dimension check (same #rows) ----
@@ -31,9 +39,6 @@ end
 % ---- Initialize accumulator with first block ----
 nsU = Q{1}.ns;  ZsU = Q{1}.Zs;
 ntU = Q{1}.nt;  ZtU = Q{1}.Zt;
-
-dsU = prod(cellfun(@numel, ZsU));
-dtU = prod(cellfun(@numel, ZtU));
 
 Ccat = sparse(Q{1}.C);
 nCat = Q{1}.dim(2);
@@ -51,7 +56,7 @@ for k = 2:numel(Q)
 
     % If union changed, lift current concatenated coefficients to new union basis
     if ~(sIsCat && tIsCat)
-        Ccat = liftIndexMaps(Ccat, m, nCat, mapS_cat, mapT_cat, dsNew, dtNew);
+        Ccat = liftIndex(Ccat, m, nCat, mapS_cat, mapT_cat, dsNew, dtNew);
         nsU = nsNew; ZsU = ZsNew; dsU = dsNew;
         ntU = ntNew; ZtU = ZtNew; dtU = dtNew;
     else
@@ -64,7 +69,7 @@ for k = 2:numel(Q)
     if sIsP && tIsP
         CP = sparse(P.C);
     else
-        CP = liftIndexMaps(P.C, m, nP, mapS_P, mapT_P, dsU, dtU);
+        CP = liftIndex(P.C, m, nP, mapS_P, mapT_P, dsU, dtU);
     end
 
     % Concatenate along columns (same m, same dsU/dtU after lifting)
@@ -73,41 +78,4 @@ for k = 2:numel(Q)
 end
 
 H = quadPoly(Ccat, ZsU, ZtU, [m, nCat], nsU, ntU);
-
-end
-
-% =========================================================================
-% Local helpers
-% =========================================================================
-function Q = toQuadPoly(X)
-% Convert numeric to constant quadPoly; pass-through quadPoly.
-if isa(X,'quadPoly')
-    Q = X;
-elseif isnumeric(X)
-    A = sparse(X);
-    Q = quadPoly(A, {}, {}, size(A), {}, {});
-else
-    error('quadPoly:horzcat:badType', 'horzcat supports quadPoly and numeric inputs.');
-end
-end
-
-function Cup = liftIndexMaps(C, m, n, mapS, mapT, dsU, dtU)
-% Lift coefficient matrix by reindexing nnz entries using old->union maps.
-C = sparse(C);
-
-dsOld = numel(mapS);
-dtOld = numel(mapT);
-
-[i, j, v] = find(C);
-
-a  = mod(i-1, dsOld) + 1;
-ib = floor((i-1) / dsOld);
-
-b  = mod(j-1, dtOld) + 1;
-jb = floor((j-1) / dtOld);
-
-i2 = ib * dsU + mapS(a);
-j2 = jb * dtU + mapT(b);
-
-Cup = sparse(i2, j2, v, m*dsU, n*dtU);
 end

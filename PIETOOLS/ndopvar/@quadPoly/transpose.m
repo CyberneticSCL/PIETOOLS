@@ -1,5 +1,5 @@
 function H = transpose(F)
-% TRANSPOSE Transpose of quadPoly WITHOUT swapping left/right variables.
+%transpose Transpose of quadPoly WITHOUT swapping left/right variables.
 %
 % If F(s,t) = (I_m ⊗ Zs(s)^T) * C * (I_n ⊗ Zt(t)),
 % then H(s,t) = F(s,t)' is represented as

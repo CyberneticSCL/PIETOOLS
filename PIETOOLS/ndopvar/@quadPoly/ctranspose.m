@@ -12,11 +12,11 @@ function H = ctranspose(F)
 m  = F.dim(1);
 n  = F.dim(2);
 
-ds = prod(cellfun(@numel, F.Zs));  % tensor basis size on s-side
-dt = prod(cellfun(@numel, F.Zt));  % tensor basis size on t-side
+ds = prod(cellfun(@numel, F.Zs));  % tensor basis size on s-side, length(Zs)
+dt = prod(cellfun(@numel, F.Zt));  % tensor basis size on t-side, length(Zt)
 
 C = sparse(F.C);
-[i, j, v] = find(C);
+[i, j, v] = find(C);   % find nonzero entries
 
 % Within-block indices and block indices
 a  = mod(i-1, ds) + 1;        % 1..ds

@@ -140,6 +140,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
 
     methods(Static)
         out = randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density);
+        [Minv, R1Minv, R2Minv, info] = inv_1D(M, K1, K2, interval, opts);
     end
 
 end

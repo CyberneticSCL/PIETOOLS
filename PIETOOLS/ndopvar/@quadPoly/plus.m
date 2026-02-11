@@ -1,21 +1,22 @@
 function H = plus(F, G)
-%PLUS Add two quadPoly objects under convention Z_old = P * Z_union.
+%plus Add two quadPoly objects
 %
-% unionBasis signature:
-%   [nU, ZU, PA, PB, mapA, mapB, unionIsA, unionIsB, dU] = unionBasis(nA, ZA, nB, ZB)
+% Inputs:
+%   F,G: quadPoly objects of same matrix dimension
 %
-% We use the returned maps (old->union) for fast lifting.
+% Outputs:
+%   H = F+G a quadPoly object
 
-% Fast path: identical representation
+% Fast path: if the monomials are same, just add coefficients
 if isequal(F.ns,G.ns) && isequal(F.nt,G.nt) && isequal(F.Zs,G.Zs) && isequal(F.Zt,G.Zt)
     H = quadPoly(F.C + G.C, F.Zs, F.Zt, F.dim, F.ns, F.nt);
     return;
 end
 
-% --- s-side union ---
+% --- left-monomial union ---
 [nsU, ZsU, ~, ~, mapSF, mapSG, sIsF, sIsG, dsU] = unionBasis(F.ns, F.Zs, G.ns, G.Zs);
 
-% --- t-side union ---
+% --- right-monomial union ---
 [ntU, ZtU, ~, ~, mapTF, mapTG, tIsF, tIsG, dtU] = unionBasis(F.nt, F.Zt, G.nt, G.Zt);
 
 m = F.dim(1);

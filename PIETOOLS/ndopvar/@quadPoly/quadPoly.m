@@ -38,6 +38,7 @@ classdef quadPoly
                 obj.ns = ns;
                 obj.nt = nt;
             end
+            obj = combine(obj);
         end
     end
 
@@ -47,5 +48,6 @@ classdef quadPoly
         % in variables `var_s, var_t'. Monomials are restricted to degree
         % `deg' or lower and coefficient matrix C has sparsity `density'.
         obj = randquadPoly(dim,nmons,var_s,var_t,deg,density);
+        obj = Sym2quadPoly(Fsym, sVars, tVars)
     end
 end

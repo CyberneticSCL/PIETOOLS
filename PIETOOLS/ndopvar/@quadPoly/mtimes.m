@@ -178,6 +178,13 @@ function [ZP, mapMats, dP, strideP] = productBasis1D(ZA, ZB)
 %   strideP : 1×k strides for linear indexing in kron order (last varies fastest)
 
 k = numel(ZA);
+if k == 0
+    ZP = {};
+    mapMats = {};
+    dP = 1;
+    strideP = [];
+    return;
+end
 ZP = cell(1,k);
 mapMats = cell(1,k);
 
