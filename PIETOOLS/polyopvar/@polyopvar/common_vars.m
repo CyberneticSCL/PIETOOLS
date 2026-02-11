@@ -69,12 +69,6 @@ varmat = false(p,N);
 varmat(new2old_vdcs(1:p1),new2old_pdcs(1:N1)) = vmat_A;
 varmat(new2old_vdcs(p1+(1:p2)),new2old_pdcs(N1+(1:N2))) = vmat_B;
 
-% Augment the monomial basis to incorporate the full list of variables
-degs1 = zeros(size(degs_A,1),p);
-degs2 = zeros(size(degs_B,1),p);
-degs1(:,new2old_vdcs(1:p1)) = degs_A;
-degs2(:,new2old_vdcs(p1+(1:p2))) = degs_B;
-
 % Reorder tensor products of PI operators in C to match new order of vars
 if isempty(degs_A)
     d1 = 0;
@@ -89,16 +83,16 @@ end
 dumvar_cell = cell(1,max(d1,d2));
 for lidx=1:numel(C_A.ops)
     [~,cidx] = ind2sub(size(C_A.ops),lidx);
-    deg_l = degs1(cidx,:);
+    deg_l = degs_A(cidx,:);
     if sum(deg_l)==1 || isempty(C_A.ops{lidx})
         continue
     end
     % Establish which elements of C1.ops{lidx} correspond to each variable
     deg_idcs = mat2cell([[0,cumsum(deg_l(1:end-1))];cumsum(deg_l)],2,ones(1,numel(deg_l)));
     deg_idcs = cellfun(@(a)(a(1)+1:a(2)),deg_idcs,'UniformOutput',false);
-    new_deg_idcs = cell2mat(deg_idcs(new2old_vdcs(1:p1)));
-    %old_deg_idcs = cell(1,p);
-    %old_deg_idcs(new2old_vdcs(1:p1)) = deg_idcs;
+    old_deg_idcs = cell(1,p);
+    old_deg_idcs(new2old_vdcs(1:p1)) = deg_idcs;
+    new_deg_idcs = cell2mat(old_deg_idcs);
 
     % Reorder to match the new order of the variables
     if isa(C_A.ops{lidx},'intvar')
@@ -155,17 +149,17 @@ for lidx=1:numel(C_A.ops)
 end
 for lidx=1:numel(C_B.ops)
     [~,cidx] = ind2sub(size(C_B.ops),lidx);
-    deg_l = degs2(cidx,:);
+    deg_l = degs_B(cidx,:);
     if sum(deg_l)==1 || isempty(C_B.ops{lidx})
         continue
     end
     % Establish which elements of C1.ops{lidx} correspond to each variable
     deg_idcs = mat2cell([[0,cumsum(deg_l(1:end-1))];cumsum(deg_l)],2,ones(1,numel(deg_l)));
     deg_idcs = cellfun(@(a)(a(1)+1:a(2)),deg_idcs,'UniformOutput',false);
-    new_deg_idcs = cell2mat(deg_idcs(new2old_vdcs(p1+1:end)));
-    % old_deg_idcs = cell(1,p);
-    % old_deg_idcs(new2old_vdcs(p1+(1:p2))) = deg_idcs;
-
+    old_deg_idcs = cell(1,p);
+    old_deg_idcs(new2old_vdcs(p1+(1:p2))) = deg_idcs;
+    new_deg_idcs = cell2mat(old_deg_idcs);
+    
     % Reorder to match the new order of the variables
     if isa(C_B.ops{lidx},'intvar')
         Cnew_l = C_B.ops{lidx};
@@ -219,6 +213,12 @@ for lidx=1:numel(C_B.ops)
     end
     C_B.ops{lidx} = Cnew_l;
 end
+
+% Augment the monomial basis to incorporate the full list of variables
+degs1 = zeros(size(degs_A,1),p);
+degs2 = zeros(size(degs_B,1),p);
+degs1(:,new2old_vdcs(1:p1)) = degs_A;
+degs2(:,new2old_vdcs(p1+(1:p2))) = degs_B;
 
 % Build polynomials in terms of the shared variable names
 A_out = polyopvar();            B_out = polyopvar();
