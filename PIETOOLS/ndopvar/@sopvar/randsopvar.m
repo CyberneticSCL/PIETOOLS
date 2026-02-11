@@ -30,21 +30,11 @@ end
 % number of monomials on each side in quadPoly. Arbitrarily fixed at 10
 nMons = [10,10];
 
-var_s = {vars_S2, vars_S3};   % left monomials use S2 and S3 -- common to all terms
-
+var_s = [vars_S2, vars_S3];   % left monomials use S2 and S3 -- common to all terms
+vars_dum = strrep(vars_S3,'s','t');
+var_t = [vars_dum, vars_S1];   % right monomials use S1 and S3_dum
 % for each parameter, repeat
 for i=1:numel(params)
-    %linear to multi index
-    Aidx = cell(1,numel(celldim));
-    [Aidx{:}] = ind2sub(celldim,i); % position of element i
-    vars_dum=vars_S3;
-    for j=1:n3
-        if Aidx{j}~=1
-            vars_dum{j} = [vars_dum{j},'_dum'];    %create list of dummy variables, but only if alpha_j neq 1
-        end
-    end
-    var_t = {vars_dum, vars_S1};   % right monomials use S1 and S3_dum
-
     % crreate a randquadPoly with the monomials chosen; ideally this should
     % create parameters leading to well-defined opvars. For example, no
     % variables corresponding to sj if there is no sj in output, and if sj is
