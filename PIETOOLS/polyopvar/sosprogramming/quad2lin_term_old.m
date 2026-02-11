@@ -28,8 +28,24 @@ function [Kop] = quad2lin_term(Pmat,Lmon,Rmon,dom,var1,var2)
 %           the multi-integral defining the inner product in linear format;
 %
 % OUTPUTS
-% - Kop:    'intvar' object representing the functional operator defining
-%           distributed monomial functional
+% - Kop:    struct with fields
+%               params: m x q*n 'polynomial' or 'dpvar' object,
+%                       with elements (1:m,(i-1)*n+1:i*n) corresponding to 
+%                       the kernels in the ith term of the functional
+%                       in linear format
+%               omat:   q x p array of integers, where p is the number of
+%                       dummy variables for integration, with row i
+%                       specifying the order of the variables in the
+%                       integral associated with the ith kernel.
+%                       Specifically, if omat(i,:) = [k1,k2,...,kd], 
+%                       then term i is defined by the integral
+%                           int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b};
+%               matdim: 1 x 2 array specifying the dimensions of the
+%                       kernels K{i};
+%               vars:   p x 1 'polynomial' array specifying the names of
+%                       the dummy variables used in definition of the
+%                       kernels in Kop.params;
+%               dom:    interval [a,b] over which to integrate;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -298,15 +314,15 @@ end
 % We store the parameter Z0(s)^T*Pmat*Z0(s) as an extra element of the
 % cell.
 if d1==1 && d2==1 && sum([has_multiplier_L,has_multiplier_R])==2
-    idx_mat = [zeros(1,dtot);idx_mat];
-    Kparams = [Lop_params{1}{1}*Pmat*subs(Rop_params{1}{1},var2(2),var2(1)),Kparams];
+    Kparams = [Kparams, Lop_params{1}{1}*Pmat*subs(Rop_params{1}{1},var2(2),var2(1))];
 end
 
-var2name = cell(1,numel(var2));
-for j=1:numel(var2name)
-    var2name(j) = var2(j).varname;
-end
-Kop = intvar(Kparams,idx_mat,var2name,dom);
+Kop = struct();
+Kop.params = Kparams;
+Kop.omat = idx_mat;
+Kop.vars = var2;
+Kop.dom = dom;
+Kop.matdim = [mdim,ndim];
 
 end
 
