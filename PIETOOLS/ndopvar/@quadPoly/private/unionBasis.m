@@ -44,14 +44,14 @@ for k = 1:nv
     v = nU{k};
 
     % exponents for v in A (or [0] if missing)
-    if iA <= nNA && strcmp(nA{iA}, v)
+    if iA <= nNA && all(strcmp(nA{iA}, v))
         zA = ZA{iA}(:); iA = iA + 1;
     else
         zA = 0;
     end
 
     % exponents for v in B (or [0] if missing)
-    if iB <= nNB && strcmp(nB{iB}, v)
+    if iB <= nNB && all(strcmp(nB{iB}, v))
         zB = ZB{iB}(:); iB = iB + 1;
     else
         zB = 0;
