@@ -62,10 +62,14 @@ end
 C = sopvar(B.vars_in,A.vars_out,[B.dims(1),A.dims(2)],B.dom_in,A.dom_out);
 
 % Now, just need to compute the parameters!
+alphaIdx = cell(1,ndims(A.params));
+betaIdx = cell(1,ndims(B.params));
 for i=1:numel(A.params)
     for j=1:numel(B.params)
-        [paramsloc,Cparamstemp] = compose(A.params{i},B.params{j},B.vars_in,A.vars_out);
-        C.params{paramsloc} = C.params{paramsloc}+Cparamstemp;
+        [alphaIdx{:}] = ind2sub(size(A.params),i);
+        [betaIdx{:}] = ind2sub(size(B.params),j);
+        [gammaIdx,Cparamstemp] = termCompose(A.params{i},B.params{j},alphaIdx,betaIdx,B.vars_in,A.vars_out,A.vars_in);
+        C.params{gammaIdx} = C.params{gammaIdx}+Cparamstemp;
     end
 end
 end
