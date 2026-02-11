@@ -98,8 +98,10 @@ if nargin<=2
     % If not specified, use the spatial variable of the tensor-PI operator
     % as dummy variable for integration.
     pvar1 = Cops{1}.var1;
+    var1 = pvar1.varname;
 elseif isa(var1,'polynomial')
     pvar1 = var1;
+    var1 = pvar1.varname;
 elseif iscellstr(var1)
     pvar1 = polynomial(var1);
 end
@@ -138,7 +140,7 @@ end
 if sum(has_multiplier)>1 || (sum(has_multiplier)==1 && d>1)
     error("Multiplier terms in tensor producs of PI operators are not supported.")
 end
-var2 = [var1.varname,var2];
+var2 = [var1,var2];
 
 % List all possible orders of the variables (r1,t1,...,td,r2)
 %   idx_mat(l,:) = [i,j,k] means a <= ti <= tj <= tk <= b in term l
