@@ -69,6 +69,12 @@ varmat = false(p,N);
 varmat(new2old_vdcs(1:p1),new2old_pdcs(1:N1)) = vmat_A;
 varmat(new2old_vdcs(p1+(1:p2)),new2old_pdcs(N1+(1:N2))) = vmat_B;
 
+% Augment the monomial basis to incorporate the full list of variables
+degs1 = zeros(size(degs_A,1),p);
+degs2 = zeros(size(degs_B,1),p);
+degs1(:,new2old_vdcs(1:p1)) = degs_A;
+degs2(:,new2old_vdcs(p1+(1:p2))) = degs_B;
+
 % Reorder tensor products of PI operators in C to match new order of vars
 if isempty(degs_A)
     d1 = 0;
@@ -83,7 +89,7 @@ end
 dumvar_cell = cell(1,max(d1,d2));
 for lidx=1:numel(C_A.ops)
     [~,cidx] = ind2sub(size(C_A.ops),lidx);
-    deg_l = degs_A(cidx,:);
+    deg_l = degs1(cidx,:);
     if sum(deg_l)==1 || isempty(C_A.ops{lidx})
         continue
     end
@@ -149,7 +155,7 @@ for lidx=1:numel(C_A.ops)
 end
 for lidx=1:numel(C_B.ops)
     [~,cidx] = ind2sub(size(C_B.ops),lidx);
-    deg_l = degs_B(cidx,:);
+    deg_l = degs2(cidx,:);
     if sum(deg_l)==1 || isempty(C_B.ops{lidx})
         continue
     end
@@ -213,12 +219,6 @@ for lidx=1:numel(C_B.ops)
     end
     C_B.ops{lidx} = Cnew_l;
 end
-
-% Augment the monomial basis to incorporate the full list of variables
-degs1 = zeros(size(degs_A,1),p);
-degs2 = zeros(size(degs_B,1),p);
-degs1(:,new2old_vdcs(1:p1)) = degs_A;
-degs2(:,new2old_vdcs(p1+(1:p2))) = degs_B;
 
 % Build polynomials in terms of the shared variable names
 A_out = polyopvar();            B_out = polyopvar();
