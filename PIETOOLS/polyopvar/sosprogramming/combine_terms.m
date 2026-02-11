@@ -97,8 +97,12 @@ vars = Kop.vars;
 Kparams = Kop.params;
 ndim = Kop.matdim(2);
 % Account for possible multiplier term in case of monomial of degree 2
-Kparams1 = Kparams(:,1:size(omat,1)*ndim);
+is_zero = all(omat(1,:)==0,2);
+Kparams0 = Kparams(:,1:is_zero*ndim);
+Kparams1 = Kparams(:,is_zero*ndim+(1:(size(omat,1)-is_zero)*ndim));
 Kparams2 = Kparams(:,size(omat,1)*ndim+1:end);
+omat = omat(is_zero+1:end,:);
+
 
 % Establish the order of the independent variables in each term
 state_nums = unique(state_idcs);
@@ -144,8 +148,8 @@ for ii=1:numel(state_nums)
 end
 
 % Return the functional operator with combined terms
-Kop.omat = omat;
-Kop.params = [Kparams1, Kparams2];
+Kop.omat = [zeros(is_zero,size(omat,2));omat];
+Kop.params = [Kparams0, Kparams1, Kparams2];
 ztol  = 1e-12;
 if isa(Kop.params,'double')
     Kop.params(abs(Kop.params)<ztol) = 0;

@@ -1,5 +1,6 @@
 function C = mtimes(A,B)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % C = mtimes(A,B) composes two sopvar operators C=AB where the output
 % domain of B must be the input domain of A
 % 
@@ -7,15 +8,20 @@ function C = mtimes(A,B)
 % Version: 1.0
 % 
 % INPUT
-% A: sopvar class object L_2^q[Sj,...Sn] to L_2^r[Sk,...,Sm]
-% B: sopvar class object L_2^p[Si,...Sn] to L_2^q[Sj,...Sn]
+% A: sopvar class object L_2^q[S4,S5] to L_2^r[S6,S5]
+% B: sopvar class object L_2^p[S1,S3] to L_2^q[S2,S3]
 %
 % OUTPUT
-% C = AB:  L_2^p[Si,...,Sm] to L_2^r[Sk,...Sn]
+% C = AB:  L_2^p[S7,S8] to L_2^r[S9,S8]
 % 
+% Where S7= S1, S3 cap S4                   %S1=S1, S3b= S3 cap S4 
+%       S8= S3 cap S5                       %S3a= S3 cap S5 
+%       S9= S6, S2 cap S5                   %S4=S6 ,S2a= S2 cap S5 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETools - mtimes
