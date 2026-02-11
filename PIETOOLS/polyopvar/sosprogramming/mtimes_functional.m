@@ -273,7 +273,7 @@ if numel(Kparams)>size(idx_mat,1)
     end
     Ktmp = Kparams(1,end);
     var1 = polynomial(Ktmp.varname);
-    C_mult = quad2lin_term(Ktmp,Fx{1},Fx{2},Kop.dom,var1,Cop.vars);
+    C_mult = quad2lin_term_old(Ktmp,Fx{1},Fx{2},Kop.dom,var1,Cop.vars);
     
     % % Match the variable names in C_mult with those used in Cop
     % varname_old = C_mult.params.varname;

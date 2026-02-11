@@ -131,7 +131,7 @@ end
 Fop.dom = dom;
 Ffctr.C.ops{1}{cntr} = Fop;
 if cntr==1
-    Cop = quad2lin_term(1,Kfun,Ffctr,dom,var1,var2);
+    Cop = quad2lin_term_old(1,Kfun,Ffctr,dom,var1,var2);
 else
     Cop = mtimes_functional_fctr(Kfun,Ffctr,dom,var1,var2,cntr-1);
 end
@@ -157,7 +157,7 @@ if ~all(all(isequal(Fjj_1,0)))
         Cop.omat = [Cop.omat; -1];     % use -jj to indicate integral [a,t1]
     else
         if cntr==1
-            Cop_1 = quad2lin_term(1,Kfun*Fjj_1,Ffctr_rem,dom,var1,var2_rem);
+            Cop_1 = quad2lin_term_old(1,Kfun*Fjj_1,Ffctr_rem,dom,var1,var2_rem);
         else
             Cop_1 = mtimes_functional_fctr(Kfun*Fjj_1,Ffctr_rem,dom,var1,var2_rem,cntr-1);
         end
@@ -177,7 +177,7 @@ if ~all(all(isequal(Fjj_2,0)))
         Cop.omat = [Cop.omat; 1i];     % use jj*1i to indicate integral [t2,b]
     else
         if cntr==1
-            Cop_2 = quad2lin_term(1,Kfun*Fjj_2,Ffctr_rem,dom,var1,var2_rem);
+            Cop_2 = quad2lin_term_old(1,Kfun*Fjj_2,Ffctr_rem,dom,var1,var2_rem);
         else
             Cop_2 = mtimes_functional_fctr(Kfun*Fjj_2,Ffctr_rem,dom,var1,var2_rem,cntr-1);
         end
