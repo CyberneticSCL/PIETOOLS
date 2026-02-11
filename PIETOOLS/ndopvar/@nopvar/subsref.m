@@ -73,6 +73,12 @@ switch s(1).type
             indc = indc';
         end
 
+        if max(indr) > obj.dim(1)
+            error('index exceeds the number of rows in the original nopvar')
+        end
+        if max(indc) > obj.dim(2)
+            error('index exceeds the number of columns in the original nopvar')
+        end
 
         % Construct the sliced opvar
         Psop = nopvar();
