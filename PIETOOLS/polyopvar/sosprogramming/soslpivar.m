@@ -22,6 +22,8 @@ function [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,opts)
 %               multiplier is used. If psatz=1, the matrix Pmat will be
 %               multiplied by (s-a)*(b-s), where [a,b]=Z.dom. If
 %               psatz=[0,1], we have Pmat = Pmat1 + (s-a)*(b-s)*Pmat2;
+%           - 'sep': scalar boolean specifying whether to enforce
+%               separability of the operator;
 %
 % OUTPUTS
 % - prog:   lpiprogram structure representing the same LPI optimization
@@ -88,11 +90,15 @@ dom = prog.dom;
 
 excludeL = zeros([3*ones(1,N),1]);
 psatz = 0;
+use_sep = 0;
 if nargin>=3 && isfield(opts,'exclude')
     excludeL = opts.exclude;
 end
 if nargin>=3 && isfield(opts,'psatz')
     psatz = reshape(opts.psatz,1,[]);
+end
+if nargin>=3 && isfield(opts,'sep')
+    use_sep = opts.sep;
 end
 
 % For each distributed monomial, generate a basis of operators acting on
@@ -128,8 +134,11 @@ for ii=1:nZ
             r_idcs = kron((1:d1)',ones(d1,1)) + d1*(0:d1^2-1)';
             Ccell{2} = sparse(r_idcs+r_shft,c_idcs,1,m_tot,d1);
             r_shft = r_shft + d1^3;
+            if use_sep
+                Ccell{3} = Ccell{2};
+            end
         end
-        if ~excludeL(3)
+        if ~excludeL(3) && ~use_sep
             c_idcs = repmat((1:d1)',[d1,1]);
             r_idcs = kron((1:d1)',ones(d1,1)) + d1*(0:d1^2-1)';
             Ccell{3} = sparse(r_idcs+r_shft,c_idcs,1,m_tot,d1);
@@ -158,8 +167,11 @@ for ii=1:nZ
                 r_idcs = r_idcs + d1*(0:d1^2*prod(m_arr(jj+1:end))-1)';     % account for location in vector-valued object, (Im o Zd(s))
                 r_idcs = r_idcs + d1*prod(m_arr(jj:end))*(0:prod(m_arr(1:jj-1))-1); % account for Kronecker product with other bases
                 Ccell{2} = sparse(r_idcs(:),c_idcs,1,m_tot,d1);
+                if use_sep
+                    Ccell{3} = Ccell{2};
+                end
             end
-            if ~excludeL(3)
+            if ~excludeL(3) && ~use_sep
                 c_idcs = kron((1:d1)',ones(prod(m_arr(jj+1:end)),1));
                 c_idcs = repmat(c_idcs,[d1*prod(m_arr(1:jj-1)),1]);
                 r_idcs = kron((1:d1)',ones(d1*prod(m_arr(jj+1:end)),1));
