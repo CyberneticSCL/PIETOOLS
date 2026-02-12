@@ -1697,7 +1697,7 @@ w = pde_var('in',s2,[c,d]);
 Dyn = [diff(x,t)==-vx*diff(x,s1)-vy*diff(x,s2)];
 
 % Declare the boundary conditions
-BCs = [subs(x,s1,a)==w1;   subs(x,s2,c)==0];
+BCs = [subs(x,s1,a)==w;   subs(x,s2,c)==0];
 % Initialize the PDE
 
 PDE = initialize([Dyn;BCs]); 
@@ -1708,11 +1708,7 @@ uinput.ic.PDE = A*exp(-(sx^2+sy^2)/(2*sigma^2));
 
 uinput.exact = A*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
 
-%uinput.w(1)=A*exp(-(a-vx*st)^2/(2*sigma^2))*exp(-sy^2/(2*sigma^2))*exp((vy*st)^2/(2*sigma^2));
-%uinput.w(2)=subs(uinput.exact,sy,c);
-
-% 
-% uinput.w(1)=subs(uinput.exact,sx,a);
+uinput.w(1)=subs(uinput.exact,sx,a);
 % uinput.w(2)=subs(uinput.exact,sy,c);
 
 
@@ -1770,15 +1766,6 @@ uinput.ic.PDE(2) =  A*sx/sigma^2*exp(-(sx^2+sy^2)/(2*sigma^2));
 
 uinput.exact(1) = -A*(sy-vy*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
 uinput.exact(2) =  A*(sx-vx*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
-
-%uinput.w(1)=-A*sy/sigma^2*exp(-(a-vx*st)^2/(2*sigma^2))*exp(-sy^2/(2*sigma^2));
-%uinput.w(2) =  A*(a-vx*st)/sigma^2*exp(-(a-vx*st)^2/(2*sigma^2))*exp(-sy^2/(2*sigma^2));
-
-% 
-% 
-% uinput.w(1)=subs(uinput.exact,sx,a);
-% uinput.w(2)=subs(uinput.exact,sy,c);
-
 
 %----------------------------------------
 %% Example 28 - Advection of vorticity
