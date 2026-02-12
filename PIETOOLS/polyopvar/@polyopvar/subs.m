@@ -170,7 +170,7 @@ for i=1:size(val.degmat,1)
         Kfun = Kop.params(:,cidcs);
         % Establish the interval over which factor specified by "var" is
         % integrated
-        [~,pos] = find(omat(j,:)==var);
+        pos = find(omat(j,:)==var);
         dom = polynomial(Kdom);
         if pos>1
             dom(1) = pvar2(omat(j,pos-1));

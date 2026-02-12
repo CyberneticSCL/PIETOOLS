@@ -213,8 +213,8 @@ for i=1:n_ords
     % Establish the order of the variables in the integral in term i
     ord_f = omat_f(i,:);
     % Check which variables ti are actually in the domain dom = [r1,r2]
-    [~,r1_pos] = find(ord_f==1,1,'first');
-    [~,r2_pos] = find(ord_f==df,1,'last');
+    r1_pos = find(ord_f==1,1,'first');
+    r2_pos = find(ord_f==df,1,'last');
     rtn_idcs = setdiff(1:df,[r1_pos,r2_pos]);
     ord_i = ord_f(rtn_idcs)-1;
     % For all variables ti<=r1, we have ti <= r1 <= s
@@ -272,7 +272,7 @@ for i=1:n_ords
     vars_m_rtn = vars_m(is_indom);
     for j=1:numel(m_nums_rtn)
         % Establish in which position variable tm is, ignoring r1 and r2
-        [~,pos_m] = find(ord_i==m_nums_rtn(j),1,'first');
+        pos_m = find(ord_i==m_nums_rtn(j),1,'first');
         % Determine which variables are smaller and greater than t_m = s
         leq_vars = ord_i(1:pos_m-1);
         geq_vars = ord_i(pos_m+1:end);
