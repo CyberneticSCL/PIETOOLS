@@ -161,10 +161,16 @@ end % i=1:idx_shift
   idx_shift=nu_PIE-nu_PDE;
 
   if (nu_PIE>nu_PDE)
+<<<<<<< HEAD
   uinput.uspace = [cell(1, idx_shift), uinput.uspace];
   uinput.u = [cell(1, idx_shift), uinput.u];
   uinput.usep = [cell(1, idx_shift), uinput.usep];
  
+=======
+  uinput.wspace = [cell(1, idx_shift), uinput.uspace];
+  uinput.w = [cell(1, idx_shift), uinput.u];
+
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
   % We also have to fill the first idx_shift rows with the corresponding
   % corner values
   for i=1:idx_shift
@@ -172,13 +178,22 @@ end % i=1:idx_shift
   idx_parent=pos_in_reordered_array+idx_shift;
   uinput.u{i}=uinput.u{idx_parent};
   uinput.uspace{i}=uinput.uspace{idx_parent};
+<<<<<<< HEAD
   uinput.usep{i}=true; % Corner value is only a function of time (thus separable)
   end
    end % if
+=======
+  end
+  end % if
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
 
   psize.nu=nu_PIE;
   psize.nu0=psize.nu0+idx_shift;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
 % Differentiate control inputs if needed 
 
 for i=1:psize.nu
@@ -245,19 +260,27 @@ end % if not PIE
         uinput.wdot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
             end
         end
+<<<<<<< HEAD
          else
              % Non-separable disturbances, symbolic by default
              % Leave uinput.w, uinput.wdot symbolic
         uinput.wdot{k}=diff(uinput.w{k},st);
          end % uinput.wsep{k}
+=======
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
 
         end % for k
      end % isfield(uinput,'w')
 
+<<<<<<< HEAD
  if isfield(uinput,'u')
      for k = 1:numel(uinput.u)
          % Separable disturbances
          if uinput.usep{k}
+=======
+       if isfield(uinput,'u')
+     for k = 1:numel(uinput.u)
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
          % Symbolic disturbances
         if isa(uinput.u{k}, 'sym')
         uinput.u{k}=matlabFunction(uinput.u{k},'Vars', st);
@@ -268,7 +291,11 @@ end % if not PIE
                 uinput.u{k}=@(t) uinput.u{k};
                 uinput.udot{k}=@(t) 0;
             else
+<<<<<<< HEAD
             %  Double type disturbances of size other than 1-
+=======
+            %  Double type distubrances of size other than 1-
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
            %   Build a cubic spline from the disturbance data
         pp=spline(uinput.u{k}(1,:),uinput.u{k}(2,:));
         tmin=min(uinput.u{k}(1,:));
@@ -277,6 +304,7 @@ end % if not PIE
         uinput.udot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
             end
         end
+<<<<<<< HEAD
          else
              % Non-separable disturbances, symbolic by default
              % Leave uinput.w, uinput.wdot symbolic
@@ -285,3 +313,8 @@ end % if not PIE
 
         end % for k
      end % isfield(uinput,'u')
+=======
+
+        end % for k
+     end % isfield(uinput,'u')
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61

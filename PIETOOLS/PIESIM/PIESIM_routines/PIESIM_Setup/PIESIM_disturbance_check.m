@@ -199,16 +199,26 @@ nu0=psize.nu0;
         dom=PIE.dom;
             end
          end % if k<=nw0
+
     if(~isdouble(uinput.w{k}))
+
   entry=uinput.w{k};
+
     if(has(entry,sx)|has(entry,sy))
+
         split = cell2sym(children(entry));
         temp=split(has(split,st));
         temp=prod(temp);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
         if (isempty(temp))
+
         uinput.wspace{k}=uinput.w{k};
         uinput.w{k}=1+0*st;
+<<<<<<< HEAD
         elseif(has(temp,sx)|has(temp,sy)) % temp non-empty but split unsuccessful
                  uinput.wsep{k}=false;
                  uinput.wspace{k}=sym(0);
@@ -218,6 +228,32 @@ nu0=psize.nu0;
          uinput.w{k}=temp;
         end % if (isempty(temp))
         
+=======
+
+        elseif(has(temp,sx)|has(temp,sy)) % temp non-empty but split unsuccessful
+             disp('Warning: each disturbance needs to be in a separable form as f(t)g(x) etc. Defaulting non-separable disturbances to zero.');
+             disp('For a desired functionality: split non-separable disturbances into separable contributions in the PDE construct.')
+            
+             if has(entry,sx) & has(entry,sy)
+             uinput.wspace{k}=sx*sy;
+             elseif has(entry,sx)
+                  uinput.wspace{k}=sx;
+             elseif has(entry,sy)
+                 uinput.wspace{k}=sy;
+             else
+                 uinput.wspace{k}=sym(0);
+             end % if has(entry,sx) & has(entry,sy)
+          
+             uinput.w{k}=0;
+             entry=0;
+         
+        else % temp non-empty but split successful
+        uinput.wspace{k}=uinput.w{k}/temp;
+        uinput.w{k}=temp;
+
+        end % isempty(temp)
+
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
         % Check if disturbance is in a separable form
         if has(uinput.wspace{k},st)
                   uinput.wsep{k}=false;
@@ -231,17 +267,25 @@ nu0=psize.nu0;
             uinput.w{k}=entry*temp;
             else
             uinput.w{k}=coeffs(entry)*temp;
-            end
+            end % (isdouble(entry))
             uinput.wspace{k}=sym(0);
-        end
+        end %  (isempty(dom))
        
+<<<<<<< HEAD
     else % entry does not have sx or sy - disturbance is symbolic but space-independent
+=======
+    else % entry does not have sx or sy - disturbance is space-independent
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
       if (isempty(dom))
         uinput.wspace{k}=sym(0);
         else
         uinput.wspace{k}=sym(1);
         end
+<<<<<<< HEAD
     end %  (has(entry,sx)|has(entry,sy)) 
+=======
+    end % (has(entry,sx)|has(entry,sy)) 
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
 
     else % uinput.w{k} is double
         % Double
@@ -250,6 +294,7 @@ nu0=psize.nu0;
         else
         uinput.wspace{k}=sym(1);  
         end
+
     end % (~isdouble(uinput.w{k}))
 
     end % for k

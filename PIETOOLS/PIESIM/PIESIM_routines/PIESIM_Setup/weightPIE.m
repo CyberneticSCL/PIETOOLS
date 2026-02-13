@@ -19,6 +19,8 @@ function PIE = weightPIE(PIE,k)
 
 % Initial coding: YP 1/7/2026
 
+pvar s1;
+
         % Initialize mapping operators to be unmodified PIE operators
 
         pvar s1;

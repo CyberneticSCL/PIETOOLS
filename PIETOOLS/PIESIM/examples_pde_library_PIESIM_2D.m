@@ -1735,7 +1735,11 @@ w2 = pde_var('in',s1,[a,b]);
 Dyn = [diff(x,t)==-vx*diff(x,s1)-vy*diff(x,s2)];
 
 % Declare the boundary conditions
+<<<<<<< HEAD
 BCs = [subs(x,s1,a)==w1;   subs(x,s2,c)==w2];
+=======
+BCs = [subs(x,s1,a)==w;   subs(x,s2,c)==0];
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
 % Initialize the PDE
 
 PDE = initialize([Dyn;BCs]); 
@@ -1747,7 +1751,12 @@ uinput.ic.PDE = A*exp(-(sx^2+sy^2)/(2*sigma^2));
 uinput.exact = A*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
 
 uinput.w(1)=subs(uinput.exact,sx,a);
+<<<<<<< HEAD
 uinput.w(2)=subs(uinput.exact,sy,c);
+=======
+% uinput.w(2)=subs(uinput.exact,sy,c);
+
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
 
 %----------------------------------------
 %% Example 27 - Transported vortex by constant velocity fields
@@ -1802,6 +1811,7 @@ uinput.ic.PDE(2) =  A*sx/sigma^2*exp(-(sx^2+sy^2)/(2*sigma^2));
 uinput.exact(1) = -A*(sy-vy*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
 uinput.exact(2) =  A*(sx-vx*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
 
+<<<<<<< HEAD
 
  uinput.w(1)=subs(uinput.exact(1),sx,a);
  uinput.w(2)=subs(uinput.exact(2),sx,a);
@@ -1810,6 +1820,8 @@ uinput.exact(2) =  A*(sx-vx*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigm
 % % 
 
 
+=======
+>>>>>>> e5f7b8c94688f4b02e0f00f92dfa09490ed2bb61
 %----------------------------------------
 %% Example 29 - Advection of vorticity by non-uniform velocity fields
 %----------------------------------------
