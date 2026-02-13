@@ -37,6 +37,15 @@ function C = plus(A,B)
 %
 % DJ, 01/15/2026: Initial coding
 
+% Allow addition of polynomial with 0
+if isnumeric(A) && isequal(A,0)
+    C = B;
+    return
+elseif isnumeric(B) && isequal(B,0)
+    C = A;
+    return
+end
+
 % Make sure the two distributed polynomials are expressed in terms of the
 % same basis of distributed monomials.
 [A,B] = common_basis(A,B);
