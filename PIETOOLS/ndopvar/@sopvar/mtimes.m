@@ -74,7 +74,8 @@ for i=1:numel(A.params)
     for j=1:numel(B.params)
         [alphaIdx{:}] = ind2sub(size(A.params),i);
         [betaIdx{:}] = ind2sub(size(B.params),j);
-        [gammaIdx,Cparamstemp] = termCompose(A.params{i},B.params{j},alphaIdx,betaIdx,B.vars_in,A.vars_out,A.vars_in);
+        [gammaIdx,Cparamstemp] = ...
+            termCompose(A.params{i},B.params{j},alphaIdx,betaIdx,B.vars_in,A.vars_out,A.vars_in);
         C.params{gammaIdx} = C.params{gammaIdx}+Cparamstemp;
     end
 end

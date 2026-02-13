@@ -19,7 +19,7 @@ function H = horzcat(varargin)
 Q = cell(size(varargin));
 for k = 1:nargin
     if isa(varargin{k},'quadPoly')
-        Q{k} = varargin{k}
+        Q{k} = varargin{k};
     elseif isnumeric(X)
         A = sparse(varargin{k});
         Q{k} = quadPoly(A, {}, {}, size(A), {}, {});

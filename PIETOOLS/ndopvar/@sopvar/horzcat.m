@@ -71,7 +71,7 @@ end
 
 
 % For concatenation of more than two objects, just repeat
-vars_S1 = union(a.vars_S1, b.vars_S1);
+vars_S1 = union(a.vars_S1, b.vars_S1, 'stable');
 vars_S2 = union(a.vars_S2, b.vars_S2);
 vars_S3 = union(a.vars_S3, b.vars_S3);
 dom_3 = a.dom_3;
