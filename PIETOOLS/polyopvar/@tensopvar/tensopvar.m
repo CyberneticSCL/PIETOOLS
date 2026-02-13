@@ -107,7 +107,7 @@ methods
                 if isempty(obj.ops{i,j})
                     continue
                 end
-                if isa(obj.ops{i,j},'nopvar') || isa(obj.ops{i,j},'intvar')
+                if isa(obj.ops{i,j},'nopvar') || isa(obj.ops{i,j},'intop')
                     [m,n] = size(obj.ops{i,j});
                     m_min(i) = min(m_min(i),m);   n_min(i) = min(n_min(i),n);
                     m_max(i) = max(m_max(i),m);   n_max(i) = max(n_max(i),n);
@@ -138,7 +138,7 @@ methods
         % % the coefficient operator acts
         degmat = zeros(size(obj.ops,2));
         for j=1:size(obj.ops,2)
-            if isa(obj.ops{j},'intvar')
+            if isa(obj.ops{j},'intop')
                 degmat(j) = numel(obj.ops{j}.pvarname);
             elseif isa(obj.ops{j},'nopvar') || isa(obj.ops{j},'ndopvar')
                 degmat(j) = 1;

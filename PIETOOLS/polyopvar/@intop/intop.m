@@ -1,5 +1,5 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intvar
-% INTVAR is a class used to represent functionals acting on distributed
+classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intop
+% INTOP is a class used to represent functionals acting on distributed
 % monomials, taking the form
 %
 % Kop*(x1^{d1} o ... o xp^{dp})
@@ -38,7 +38,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intvar
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - intvar
+% PIETOOLS - intop
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -76,9 +76,9 @@ properties (Dependent)
 end
 
 methods
-    function Kop = intvar(params,omat,pvarname,dom)
-        % KOP = INTVAR(PARAMS,OMAT,PVARNAME,DOM) constructs an 
-        % instance of the intvar class with specified values;
+    function Kop = intop(params,omat,pvarname,dom)
+        % KOP = INTOP(PARAMS,OMAT,PVARNAME,DOM) constructs an 
+        % instance of the intop class with specified values;
         if nargin==0
             return
         end

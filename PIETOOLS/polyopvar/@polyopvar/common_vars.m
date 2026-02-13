@@ -100,7 +100,7 @@ for lidx=1:numel(C_A.ops)
     new_deg_idcs = cell2mat(old_deg_idcs);
 
     % Reorder to match the new order of the variables
-    if isa(C_A.ops{lidx},'intvar')
+    if isa(C_A.ops{lidx},'intop')
         Cnew_l = C_A.ops{lidx};
         Cnew_l.pvarname = C_A.ops{lidx}.pvarname(new_deg_idcs);
         % Reorder columns of omat to match new ordering of variables
@@ -166,7 +166,7 @@ for lidx=1:numel(C_B.ops)
     new_deg_idcs = cell2mat(old_deg_idcs);
     
     % Reorder to match the new order of the variables
-    if isa(C_B.ops{lidx},'intvar')
+    if isa(C_B.ops{lidx},'intop')
         Cnew_l = C_B.ops{lidx};
         Cnew_l.pvarname = C_B.ops{lidx}.pvarname(new_deg_idcs);
         % Reorder columns of omat to match new ordering of variables

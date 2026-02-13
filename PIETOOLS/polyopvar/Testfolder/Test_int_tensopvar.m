@@ -104,7 +104,7 @@ if use_Udom
     xf_tst = [xf_tst,xr2_tst];
     degf = [degf,1];
 end
-Kop = intvar(KCfun,omat,vars2f_name,dom);
+Kop = intop(KCfun,omat,vars2f_name,dom);
 % Get rid of duplicate terms
 state_idcs = 1:size(degf,2);
 state_idcs = repelem(state_idcs,degf);

@@ -1,12 +1,12 @@
 function C_out = uminus(C_in)
-% C_OUT = UMINUS(C_IN) takes an 'intvar' object C_IN representing a
-% functional C and returns an 'intvar' object C_OUT representing -C.
+% C_OUT = UMINUS(C_IN) takes an 'intop' object C_IN representing a
+% functional C and returns an 'intop' object C_OUT representing -C.
 %
 % INPUTS
-% - C_in:   'intvar' object;
+% - C_in:   'intop' object;
 %
 % OUTPUS
-% - C_out:  'intvar' object representing the negative complement of the
+% - C_out:  'intop' object representing the negative complement of the
 %           input functional;
 %
 

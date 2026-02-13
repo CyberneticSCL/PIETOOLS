@@ -1,15 +1,15 @@
 function C = plus(A,B)
-% C = PLUS(A,B) returns the 'intvar' object C representing the sum of the
-% functionals defined by the 'intvar' objects A and B
+% C = PLUS(A,B) returns the 'intop' object C representing the sum of the
+% functionals defined by the 'intop' objects A and B
 %
 % INPUTS
-% - A:      m x n 'intvar' object acting on a degree-d distributed
+% - A:      m x n 'intop' object acting on a degree-d distributed
 %           monomial;
-% - B:      m x n 'intvar' object acting on the same degree-d distributed 
+% - B:      m x n 'intop' object acting on the same degree-d distributed 
 %           monomial as A;
 %
 % OUTPUTS
-% - C:      m x n 'intvar' object representing the sum of the functionals
+% - C:      m x n 'intop' object representing the sum of the functionals
 %           defined by A and B;
 %
 

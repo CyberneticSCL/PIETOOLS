@@ -1,16 +1,16 @@
 function C = minus(A,B)
-% C = MINUS(A,B) returns the 'intvar' object C representing the
-% difference betweeen the functionals defined by the 'intvar' objects A and 
+% C = MINUS(A,B) returns the 'intop' object C representing the
+% difference betweeen the functionals defined by the 'intop' objects A and 
 % B
 %
 % INPUTS
-% - A:      m x n 'intvar' object acting on a degree-d distributed
+% - A:      m x n 'intop' object acting on a degree-d distributed
 %           monomial;
-% - B:      m x n 'intvar' object acting on the same degree-d distributed 
+% - B:      m x n 'intop' object acting on the same degree-d distributed 
 %           monomial as A;
 %
 % OUTPUTS
-% - C:      m x n 'intvar' object representing the difference between the 
+% - C:      m x n 'intop' object representing the difference between the 
 %           functionals defined by A and B;
 %
 

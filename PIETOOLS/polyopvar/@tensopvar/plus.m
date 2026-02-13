@@ -70,7 +70,7 @@ for ii=1:numel(A.ops)
         %     Ktmp.params = [Ktmp.params, B.ops{ii}.params(:,end)];
         % end
         C.ops{ii} = Ktmp;
-    elseif isa(A.ops{ii},'nopvar') || isa(A.ops{ii},'ndopvar') || isa(A.ops{ii},'intvar')
+    elseif isa(A.ops{ii},'nopvar') || isa(A.ops{ii},'ndopvar') || isa(A.ops{ii},'intop')
         % If the monomial is just linear, Z_{i}(x) = xk for some k,
         % then we can use the 'nopvar' plus routine to compute the sum of
         % the operators

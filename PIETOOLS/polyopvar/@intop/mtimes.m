@@ -1,15 +1,15 @@
 function C = mtimes(A,B)
-% C = MTIMES(A,B) returns the 'intvar' object C representing the product of
+% C = MTIMES(A,B) returns the 'intop' object C representing the product of
 % the multiplier operator defined by A with the functional defined by B.
 %
 % INPUTS
 % - A:      m x p 'double', 'polynomial', or 'dpvar' object representing 
 %           some multiplier operator to multiply with B;
-% - B:      p x n 'intvar' object acting on some degree-d distributed 
+% - B:      p x n 'intop' object acting on some degree-d distributed 
 %           monomial;
 %
 % OUTPUTS
-% - C:      m x n 'intvar' object representing the product of the
+% - C:      m x n 'intop' object representing the product of the
 %           multiplier A with the functional defined by B;
 %
 
@@ -40,10 +40,10 @@ function C = mtimes(A,B)
 % DJ, 02/03/2026: Initial coding
 
 % Check that multiplication is supported
-if isa(A,'intvar')
-    error("Left-multiplication with 'intvar' objects is not supported.")
+if isa(A,'intop')
+    error("Left-multiplication with 'intop' objects is not supported.")
 elseif ~isa(A,'dobule') && ~isa(A,'polynomial') && ~isa(A,'dpvar')
-    error("'intvar' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
+    error("'intop' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
 end
 
 % Check that the inner dimensions of the objects match

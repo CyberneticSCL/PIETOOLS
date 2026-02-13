@@ -7,7 +7,7 @@ function fnew = subs(f,var,val)
 % - f:      'polyopvar' object representing a distributed polynomial
 %           functional defined by a single distributed monomial, 
 %               Z(x)=x1^{\otimes d1} \otimes ... \otimes xp^{\otimes dp},
-%           taking the form f(x) = Kop*Z(z) for functional (intvar) Kop;
+%           taking the form f(x) = Kop*Z(z) for functional (intop) Kop;
 % - var:    integer value between 1 and d=d1+...+dp, specyfing which of the
 %           factors in the monomial defining f to substitute;
 % - val:    'polyopvar' object representing the polynomial function,
@@ -25,7 +25,7 @@ function fnew = subs(f,var,val)
 % - The functional f can only be defined by a single monomial,
 %   size(f.degmat,1) = 1;
 % - f must be a functional, not a function, meaning that f.C.ops{1} must be
-%   an 'intvar' object
+%   an 'intop' object
 % - val  must be a polynomial function
 %
 
@@ -70,14 +70,14 @@ if var>sum(f.degmat)
     error("Index of factor to substitute cannot exceed cumulative degree of monomial.")
 end
 % Only support substitution of polynomial functionals for now
-if ~isa(f.C.ops{1},'intvar')
+if ~isa(f.C.ops{1},'intop')
     error("Only substitution of polynomial functionals is currently suppoted.")
 end
 % Only support substitution with polynomial functions for now
 if ~isa(val,'polyopvar')
     error("Substitution of variables with non-'polyopvar' objects is currently not supported.")
 end
-if isa(val.C.ops{1},'intvar')
+if isa(val.C.ops{1},'intop')
     error("The new value cannot be a polynomial functional")
 end
 % Express the functional and new value in terms of the same variables
@@ -160,7 +160,7 @@ for i=1:size(val.degmat,1)
         omat_new = [omat_tmp(iszero_trm,:); new2old_nums(omat_tmp(~iszero_trm,:))];
         % Declare a functional defined by the kernels KCfun acting on the
         % monomial i
-        fi.C.ops{1} = intvar(KCfun,omat_new,var2_new,Kdom);
+        fi.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
         fi = combine_terms(fi);
     end
 
@@ -203,7 +203,7 @@ for i=1:size(val.degmat,1)
         % Declare a functional defined by the kernels KCfun acting on the
         % monomial i
         fj = fi;
-        fj.C.ops{1} = intvar(KCfun,omat_new,var2_new,Kdom);
+        fj.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
         fj = combine_terms(fj);
         % Add to the other polynomial
         fi = fi+fj;

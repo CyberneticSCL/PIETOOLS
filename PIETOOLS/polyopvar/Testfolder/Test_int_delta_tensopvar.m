@@ -81,7 +81,7 @@ fval = double(fval);
 %           Pvec{i}(t1,...,td)*x1(t1)...xd(td) dt_kd ... dt_k1
 xf_tst = [x0_tst,x_tst];
 degf = [1,deg1];
-Kop = intvar(KCfun,omat,vars2f_name,dom);
+Kop = intop(KCfun,omat,vars2f_name,dom);
 % Get rid of duplicate terms
 state_idcs = 1:size(degf,2);
 state_idcs = repelem(state_idcs,degf);

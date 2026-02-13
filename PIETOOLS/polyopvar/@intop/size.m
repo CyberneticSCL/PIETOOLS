@@ -1,9 +1,9 @@
 function varargout = size(A,dim)
 % VARARGOUT = SIZE(A,DIM) returns the size of the matrix-valued functional
-% defined by 'intvar' object A along dimension DIM
+% defined by 'intop' object A along dimension DIM
 % 
 % INPUTS:
-% - A:      'intvar' object;
+% - A:      'intop' object;
 % - dim:    scalar value 1 or 2 (optional input):
 %           - if 1, number of rows of A is returned as output;
 %           - if 2, number of columns of A is returned as output;

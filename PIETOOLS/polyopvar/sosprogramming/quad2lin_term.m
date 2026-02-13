@@ -28,7 +28,7 @@ function [Kop] = quad2lin_term(Pmat,Lmon,Rmon,dom,var1,var2)
 %           the multi-integral defining the inner product in linear format;
 %
 % OUTPUTS
-% - Kop:    'intvar' object representing the functional operator defining
+% - Kop:    'intop' object representing the functional operator defining
 %           distributed monomial functional
 %
 
@@ -306,7 +306,7 @@ var2name = cell(1,numel(var2));
 for j=1:numel(var2name)
     var2name(j) = var2(j).varname;
 end
-Kop = intvar(Kparams,idx_mat,var2name,dom);
+Kop = intop(Kparams,idx_mat,var2name,dom);
 
 end
 
