@@ -56,8 +56,8 @@ nZ = size(degs_new,1);
 new2old_Cdcs1 = Pmat(1:nZ1,:)*(1:nZ)';
 new2old_Cdcs2 = Pmat(nZ1+1:end,:)*(1:nZ)';
 C1 = tensopvar(1,nZ);      C2 = tensopvar(1,nZ);
-C1(1,new2old_Cdcs1) = C_A;
-C2(1,new2old_Cdcs2) = C_B;
+C1{1,new2old_Cdcs1} = C_A;
+C2{1,new2old_Cdcs2} = C_B;
 
 % Build polynomials in terms of the shared basis
 A_out = A;                      B_out = B;

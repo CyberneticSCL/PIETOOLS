@@ -60,7 +60,10 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
         pvarname = cell(0,1);
         varmat = zeros(0,0);
         dom = zeros(0,2);
-        dim = [0,0];
+    end
+
+    properties(Dependent)
+        matdim;
     end
 
     methods
@@ -165,10 +168,10 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
             end
         end
 
-        function [dim] = get.dim(obj)
+        function matdim = get.matdim(obj)
             % % Determine the dimensions of the matrix-valued distributed
             % % polynomial
-            dim = obj.C.dim;
+            matdim = obj.C.matdim;
         end
 
     end

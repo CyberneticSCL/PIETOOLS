@@ -78,13 +78,13 @@ old2new_idcs = M*(1:size(degmat_lin,1))';               % degmat_full = degmat_l
 % Get the dimensions of the different operators
 blkdimL = zeros(nZL,1);
 for ii=1:nZL
-    tmp = ZopL(ii,ii);
+    tmp = ZopL{ii,ii};
     blkdimL(ii) = tmp.matdim(1);
 end
 blkdimL_cum = [0;cumsum(blkdimL)];
 blkdimR = zeros(nZR,1);
 for ii=1:nZR
-    tmp = ZopR(ii,ii);
+    tmp = ZopR{ii,ii};
     blkdimR(ii) = tmp.matdim(1);
 end
 blkdimR_cum = [0;cumsum(blkdimR)];
@@ -99,13 +99,13 @@ for ii=1:nZL
     % monomials
     Zop_ii = ZxL;
     Zop_ii.degmat = degmatL(ii,:);
-    Zop_ii.C = ZopL(ii,ii);
+    Zop_ii.C = ZopL{ii,ii};
     for jj=(ii-1)*is_symmetric+1:nZR
         % Extract the monomial operators acting on the jth distributed
         % monomial
         Zop_jj = ZxR;
         Zop_jj.degmat = degmatL(jj,:);
-        Zop_jj.C = ZopR(jj,jj);
+        Zop_jj.C = ZopR{jj,jj};
         %Zop_jj = ZopR(jj,jj);
         % Extract the block of decision variables acting on monomials Zi
         % and Zj

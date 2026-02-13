@@ -1,10 +1,10 @@
-function out = subsasgn(obj,s,RHS)
-% OUT = SUBSASGN(OBJ,S,RHS) assigns values RHS to field/slice S of a
+function out = subsasgn(obj,ref,RHS)
+% OUT = SUBSASGN(OBJ,REF,RHS) assigns values RHS to field/slice REF of a
 % tensopvar object OBJ
 % 
 % INPUT
 % - obj:    'tensopvar' object of which to assign elements;
-% - s:      'struct' specifying which elements of obj to adjust;
+% - ref:    'struct' specifying which elements of obj to adjust;
 % - RHS:    'tensopvar' object specifying the new values of the specified
 %           elements;
 %
@@ -37,19 +37,20 @@ function out = subsasgn(obj,s,RHS)
 % DJ, 01/16/2026: Initial coding
 
 
-switch s(1).type
+switch ref(1).type
     case '.'
-        out = builtin('subsasgn',obj,s,RHS);
+        out = builtin('subsasgn',obj,ref,RHS);
     case '()'
+        error("'()'-type subsassign is not supported for opvar objects.");
+    case '{}'
         if ~isa(RHS,'tensopvar')
             error("For setting elements of a 'tensopvar', the new value must be specified as 'tensopvar' object as well.")
         end
-        % When setting C(i,j), just set C.ops(i,j);
-        ops = builtin('subsasgn',obj.ops,s,RHS.ops);
+        % When setting C{i,j}, just set C.ops(i,j);
+        ref(1).type = '()';
+        ops = builtin('subsasgn',obj.ops,ref,RHS.ops);
         out = obj;
-        out.ops = ops;        
-    case '{}'
-        error("'{}'-type subsassign is not supported for opvar objects.");
+        out.ops = ops;
 end
 
 end
