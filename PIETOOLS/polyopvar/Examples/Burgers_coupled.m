@@ -19,6 +19,7 @@
 pvar s s_dum t
 dom = [0,0.5];
 r = pi^2-0.1;
+r = 1;
 
 % Declare a PDE and convert to PIE to get the relevant maps from PIE state
 % to PDE state
@@ -65,8 +66,10 @@ f.dom = dom;
 f.varmat = [1;1];
 f.degmat = [1,0; 0,1; 2,0; 1,1; 0,2];
 C = tensopvar();
-C.ops = {id+r*T11, r*T12, {-T11,R11}, {-T11,R12; R11,-T12}, {-T12,R12};
-       r*T21, id+r*T22, {-T21,R21}, {-T21,R22; R21,-T22}, {-T22,R22}};
+%C.ops = {id+r*T11, r*T12, {-T11,R11}, {-T11,R12; R11,-T12}, {-T12,R12};
+%       r*T21, id+r*T22, {-T21,R21}, {-T21,R22; R21,-T22}, {-T22,R22}};
+C.ops = {[id+r*T11;r*T21], [r*T12; id+r*T22], {-[T11;T21],[R11;R21]},...
+            {-[T11;T21],[R12;R22]; [R11;R21],-[T12;T22]}, {-[T12;T22],[R12;R22]}};
 % f.degmat = [2,0; 1,1; 0,2];
 % C = tensopvar();
 % C.ops = {{-T11,R11}, {-T11,R12; R11,-T12}, {-T12,R12};

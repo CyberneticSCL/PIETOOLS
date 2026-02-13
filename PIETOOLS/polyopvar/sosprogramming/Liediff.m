@@ -83,7 +83,7 @@ end
 
 % Split the left- and right-hand side of the PIE into a separate equation 
 % for each state variable
-if size(RHS.C.ops,1)~=nvars
+if RHS.matdim(1)~=nvars
     error("Number of equations should match number of state variables.")
 end
 RHS_arr = cell(nvars,1);
@@ -92,8 +92,7 @@ for i=1:nvars
     % For each PDE state variable x_i, define a polynomial expressing the
     % dynamics of this variable in terms of fundamental state variables,
     %       d/dt x_i = RHS_{i}(xf)
-    RHS_arr{i} = RHS;
-    RHS_arr{i}.C.ops = RHS.C.ops(i,:);
+    RHS_arr{i} = RHS(i,:);
     RHS_arr{i}.varname = [varname_pde; varname_pie];
     RHS_arr{i}.degmat = [zeros(size(RHS.degmat,1),nvars),RHS.degmat];
     RHS_arr{i}.varmat = [RHS.varmat; RHS.varmat];
