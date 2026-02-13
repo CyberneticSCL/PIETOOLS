@@ -90,6 +90,7 @@ Z = dmonomials(vartab,(1:d));
 % opts = ;
 pdegs = 4; % maximal monomial degree of Zop. 
 Popts.exclude = [0;0;0];
+Popts.sep = true;
 [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,Popts);
 Vx = quad2lin(Pmat,Zop,Z);          
 
@@ -97,7 +98,8 @@ Vx = quad2lin(Pmat,Zop,Z);
 eppos = 1e-4;
 is_diag_term = sum(Vx.degmat,2)==2 & max(Vx.degmat,[],2)==2;
 for i=find(is_diag_term')
-    Vx.C.ops{i}.params(end) = Vx.C.ops{i}.params(end) + eppos;  % can be done more elegantly once polyopvar is better developed
+    idx = find(Vx.C.ops{i}.omat(1,1)==0);
+    Vx.C.ops{i}.params(idx) = Vx.C.ops{i}.params(idx) + eppos;  % can be done more elegantly once polyopvar is better developed
 end
 
 % Evaluate the derivative of V along the PIE

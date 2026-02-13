@@ -26,7 +26,7 @@
 % declare spatial variables, domain, and r.
 pvar s t
 dom = [0,1];
-r = 1.0;
+r = pi^2-0.1;
 
 % Declare T as an opvar.
 opvar T;
@@ -58,7 +58,7 @@ id.vars = [s, t];
 C1 = {id+r*T, {-T,R}};
 C = tensopvar();
 C.ops = C1;
-f = polyopvar('x',s,dom);
+f = polyopvar({'x'},s,dom);
 f.C = C;
 f.degmat = [1;2];
 
@@ -78,19 +78,20 @@ prog = lpiprogram(s,t,dom);
 
 % Declare monomial basis of SOS Lyapunov functional.
 d = 1;                  % degree of distributed monomial basis, will be doubled in LF
-Z = polyopvar('x',s,dom); % Z_d(v).
+Z = polyopvar({'x'},s,dom); % Z_d(v).
 Z.degmat = (1:d).';
 
 % Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
 % opts = ;
-pdegs = 1; % maximal monomial degree of Zop. 
+pdegs = 3; % maximal monomial degree of Zop. 
 Popts.exclude = [0;0;0];
+Popts.sep = 1;
 [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,Popts);
 Vx = quad2lin(Pmat,Zop,Z); % output is in polyopvar
 
 % Add PD constraint to LPI program.
 eppos = 1e-4;
-Vx.C.ops{1}.params(1,end) = Vx.C.ops{1}.params(end) + eppos;  % can be done more elegantly once polyopvar is better developed
+Vx.C.ops{1}.params(1,1) = Vx.C.ops{1}.params(1,1) + eppos;  % can be done more elegantly once polyopvar is better developed
                                                 % Vx.C is a tensopvar
 % Evaluate the derivative of V along the PIE
 dV = Liediff(Vx,PIE); % output is in polyopvar 
@@ -98,7 +99,7 @@ dV = Liediff(Vx,PIE); % output is in polyopvar
 % Declare a nonnegative distributed polynomial functional W
 qdegs = pdegs+2;
 ZQ_degmat = unique(floor(dV.degmat./2),'rows');
-ZQ = polyopvar('x',s,dom);
+ZQ = polyopvar({'x'},s,dom);
 ZQ.degmat = ZQ_degmat;
 Q_opts.exclude = [1,0,0]';
 [prog,Qmat,ZQop] = soslpivar(prog,ZQ,qdegs,Q_opts);
