@@ -10,7 +10,8 @@
 % opts - options for temporal scheme parameters
 % uinput   - user-defined boundary inputs
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
-% grid - physical grids of solution states
+% gridall - physical grids for solution states of different degree of
+% differentiability
 % Dop - discretized PIE operators
 %
 % % Output:
@@ -44,7 +45,7 @@
 % handles
 % YP 2/12/2026 - added handling of non-separable disturbances
 
-function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, grid, Dop)
+function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, gridall, Dop)
 syms st;
 nw=psize.nw;
 if (psize.dim==2)
@@ -135,11 +136,11 @@ t=0;
         index=cum_nwp(group-1) +(k-cum_nwg(group-1)-1)*Np(group)+1;  
              switch group
              case 2
-        coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
+        coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, gridall.x);
              case 3
-        coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
+        coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, gridall.y);
              case 4
-        coeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
+        coeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, gridall);
              end
         wvec(k,1)=1;
              end % if uinput.wsep{k}
@@ -159,11 +160,11 @@ t=0;
         index=cum_nwp(group-1) +(k-cum_nwg(group-1)-1)*Np(group)+1;  
              switch group
              case 2
-        coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
+        coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, gridall.x);
              case 3
-        coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
+        coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, gridall.y);
              case 4
-        coeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
+        coeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, gridall);
              end
           wdotvec(k,1)=1;
                 end % (uinput.wsep{k})
@@ -184,11 +185,11 @@ t=0;
         index=cum_nup(group-1) +(k-cum_nug(group-1)-1)*Np(group)+1;  
              switch group
              case 2
-        coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, grid.x);
+        coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, gridall.x);
              case 3
-        coeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, grid.y);
+        coeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, gridall.y);
              case 4
-        coeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, grid);
+        coeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, gridall);
              end
         uvec(k,1)=1;
              end % if uinput.usep{k}
@@ -207,11 +208,11 @@ t=0;
         index=cum_nup(group-1) +(k-cum_nug(group-1)-1)*Np(group)+1;  
              switch group
              case 2
-        coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, grid.x);
+        coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, gridall.x);
              case 3
-        coeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, grid.y);
+        coeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, gridall.y);
              case 4
-        coeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, grid);
+        coeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, gridall);
              end
           udotvec(k,1)=1;
                 end % (uinput.usep{k})

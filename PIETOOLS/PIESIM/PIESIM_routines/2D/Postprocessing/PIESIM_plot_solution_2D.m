@@ -72,7 +72,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 
 % 2) psize - all variables defining the size of the PIE problem
 % 3) uinput -  user-defined boundary inputs, forcing functions and initial conditions
-% 4) grid - physical and computational grid for states differentiable up to order zero (corresponding to a orimary = PDE state discretization)
+% 4) grid - physical grid for states differentiable up to order zero (corresponding to a orimary = PDE state discretization)
 % 5) opts - options for simulation parameters
 % 
 % Outputs: none
@@ -276,9 +276,9 @@ if sum(psize.nx)>0
         subplot(1,ns,n);
         box on
         if n+ns_tot<=size(colors_PDE,1)
-            plot(grid.phys{1},solution.final.pde{1}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
+            plot(grid{1},solution.final.pde{1}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
         else
-            plot(grid.phys{1},solution.final.pde{1}(:,n),line_style{:},'DisplayName','Numerical solution');
+            plot(grid{1},solution.final.pde{1}(:,n),line_style{:},'DisplayName','Numerical solution');
         end
         if opts.ifexact
             hold on
@@ -297,7 +297,7 @@ if sum(psize.nx)>0
         else
             title(['$\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.tf),',s_{1})$'],'FontSize',15,'Interpreter','latex');
         end
-        set(gca,'XLim',[min(grid.phys{1}),max(grid.phys{1})]);
+        set(gca,'XLim',[min(grid{1}),max(grid{1})]);
         set(gca,'TickLabelInterpreter','latex');
     end
     figs = [figs,{fig4}];
@@ -318,9 +318,9 @@ if sum(psize.ny)>0
         subplot(1,ns,n);
         box on
         if sum(psize.nx)+n<=size(colors_PDE,1)
-            plot(grid.phys{2},solution.final.pde{2}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
+            plot(grid{2},solution.final.pde{2}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
         else
-            plot(grid.phys{2},solution.final.pde{2}(:,n),line_style{:},'DisplayName','Numerical solution');
+            plot(grid{2},solution.final.pde{2}(:,n),line_style{:},'DisplayName','Numerical solution');
         end
         if opts.ifexact
             hold on
@@ -339,7 +339,7 @@ if sum(psize.ny)>0
         else
             title(['$\mathbf{x}_',num2str(n+ns_tot),'(t=',num2str(solution.tf),',s_{2})$'],'FontSize',15,'Interpreter','latex');
         end
-        set(gca,'XLim',[min(grid.phys{2}),max(grid.phys{2})]);
+        set(gca,'XLim',[min(grid{2}),max(grid{2})]);
         set(gca,'TickLabelInterpreter','latex');
     end
     figs = [figs,{fig5}];
@@ -367,7 +367,7 @@ if sum(psize.n,'all')>0
     box on
     for n=1:ns
         ax1 = subplot(1,ns,n,'Parent',fig6);
-        surf(ax1,grid.phys{1},grid.phys{2},solution.final.pde{3}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
+        surf(ax1,grid{1},grid{2},solution.final.pde{3}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
         h = colorbar(ax1);
         %colormap jet
         xlabel(ax1,'$s_{1}$','FontSize',15,'Interpreter','latex');
@@ -381,8 +381,8 @@ if sum(psize.n,'all')>0
         else
             title(ax1,['$\mathbf{x}_',num2str(n)+ns_tot,'(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
         end
-        ax1.XLim = [min(grid.phys{1}),max(grid.phys{1})];
-        ax1.YLim = [min(grid.phys{2}),max(grid.phys{2})];
+        ax1.XLim = [min(grid{1}),max(grid{1})];
+        ax1.YLim = [min(grid{2}),max(grid{2})];
         ax1.TickLabelInterpreter = 'latex';
     end
     figs = [figs,{fig6}];
@@ -405,7 +405,7 @@ if sum(psize.n,'all')>0
             % Compute the value of the exact solution at final time
             exsol_grid_time = subs(subs(uinput.exact(n+ns_tot),sx,exact_grid_x'),sy,exact_grid_y);
             exsol_grid = double(subs(exsol_grid_time,solution.tf));
-            exsol_numgrid_time = subs(subs(uinput.exact(n+ns_tot),sx,grid.phys{1}),sy,grid.phys{2}');
+            exsol_numgrid_time = subs(subs(uinput.exact(n+ns_tot),sx,grid{1}),sy,grid{2}');
             exsol_numgrid = double(subs(exsol_numgrid_time,solution.tf));
             
             % Plot the exact solution
@@ -424,13 +424,13 @@ if sum(psize.n,'all')>0
             else
                 title(ax2,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',15,'Interpreter','latex');
             end
-            ax2.XLim = [min(grid.phys{1}),max(grid.phys{1})];
-            ax2.YLim = [min(grid.phys{2}),max(grid.phys{2})];
+            ax2.XLim = [min(grid{1}),max(grid{1})];
+            ax2.YLim = [min(grid{2}),max(grid{2})];
             ax2.TickLabelInterpreter = 'latex';
 
             % Also plot the error in the numerical solution
             ax3 = subplot(1,ns,n,'Parent',fig8);
-            surf(ax3,grid.phys{1},grid.phys{2},exsol_numgrid'-solution.final.pde{3}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
+            surf(ax3,grid{1},grid{2},exsol_numgrid'-solution.final.pde{3}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
             h = colorbar(ax3);
             %colormap jet
             xlabel(ax3,'$s_{1}$','FontSize',22,'Interpreter','latex');
@@ -444,8 +444,8 @@ if sum(psize.n,'all')>0
             else
                 title(ax3,['$\mathbf{x}_{true,',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})-\mathbf{x}_{',num2str(n)+ns_tot,'}(',num2str(opts.tf),',s_{1},s_{2})$'],'FontSize',22,'Interpreter','latex');
             end
-            ax3.XLim = [min(grid.phys{1}),max(grid.phys{1})];
-            ax3.YLim = [min(grid.phys{2}),max(grid.phys{2})];
+            ax3.XLim = [min(grid{1}),max(grid{1})];
+            ax3.YLim = [min(grid{2}),max(grid{2})];
             ax3.TickLabelInterpreter = 'latex';
             ax3.XAxis.FontSize=22;
             ax3.YAxis.FontSize=22;

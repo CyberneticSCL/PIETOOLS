@@ -12,7 +12,8 @@
 % opts - options for temporal scheme parameters
 % uinput   - user-defined boundary inputs
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
-% grid - physical grids for solution states
+% gridall - physical grids for solution states of different degree of
+% differentiability
 % Dop - discretized PIE operators
 %
 % Output:
@@ -45,14 +46,14 @@
 % YP 6/16/2022 - added stability check
 % YP 2/12/2026 - passing grid for general non-separable distrubances
 
-function solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, grid, Dop)
+function solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, gridall, Dop)
 N=psize.N;
 
 PIESIM_stability_check(opts, Dop.Atotal);
     
 switch opts.intScheme 
      case 1    
-     solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, grid, Dop);
+     solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, gridall, Dop);
      case 2
          [Dop.V,Dop.D] = eig(Dop.Atotal);
          Nsize=size(Dop.Atotal,1);

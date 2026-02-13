@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIESIM_transform_to_solution.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid, solcoeff, opts);
+function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, gridall, solcoeff, opts);
 % This routine transforms solution from the Chebyshev coefficient space of the fundamental states to
 % the physical solution of the primary states in 2D
 % It first performs a transform of Chebshev coefficients of fundamental
@@ -16,7 +16,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 %  observed and regulated outputs
 % 3) Dop- discretized PIE operators
 % 4) uinput -  user-defined boundary inputs, forcing functions and initial conditions
-% 5) grid - physical and computational grid for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
+% 5) gridall - physical and computational gridall for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
 % 6) solcoeff - Chebyshev coefficients of the time-dependent PDE solution
 % 7) opts - options for simulation parameters
 % 
@@ -167,11 +167,11 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
         index=cum_nwp(group-1) +(k-cum_nwg(group-1)-1)*Np(group)+1;  
              switch group
              case 2
-        solcoeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
+        solcoeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, gridall.x);
              case 3
-        solcoeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
+        solcoeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, gridall.y);
              case 4
-        solcoeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
+        solcoeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, gridall);
              end
         wvec(k,1)=1;
              end
@@ -191,11 +191,11 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
         index=cum_nup(group-1) +(k-cum_nug(group-1)-1)*Np(group)+1;  
              switch group
              case 2
-        solcoeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, grid.x);
+        solcoeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, gridall.x);
              case 3
-        solcoeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, grid.y);
+        solcoeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, gridall.y);
              case 4
-        solcoeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, grid);
+        solcoeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, gridall);
              end
         uvec(k,1)=1;
              end
@@ -372,11 +372,11 @@ if (opts.intScheme==1&opts.tf~=0)
         index=cum_nwp(group-1) +(k-cum_nwg(group-1)-1)*Np(group)+1;  
              switch group
              case 2
-        solcoeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
+        solcoeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, gridall.x);
              case 3
-        solcoeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
+        solcoeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, gridall.y);
              case 4
-        solcoeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
+        solcoeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, gridall);
              end % swtich group
         wvec(k,1)=1;
              end %  if (uinput.wsep{k})
@@ -396,11 +396,11 @@ if (opts.intScheme==1&opts.tf~=0)
         index=cum_nup(group-1) +(k-cum_nug(group-1)-1)*Np(group)+1;  
              switch group
              case 2
-        solcoeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, grid.x);
+        solcoeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, gridall.x);
              case 3
-        solcoeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, grid.y);
+        solcoeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, gridall.y);
              case 4
-        solcoeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, grid);
+        solcoeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, gridall);
              end % swtich group
         uvec(k,1)=1;
              end %  if (uinput.usep{k})

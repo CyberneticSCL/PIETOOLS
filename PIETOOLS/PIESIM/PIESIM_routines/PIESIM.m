@@ -66,74 +66,75 @@
 %     states 
 
 % Outputs: 
-% 1) solution 
 % solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
+% --- solution.final.pde{1,2,3} - cell array containing all pde solutions at a final time
+% --- solution.final.pde{1} - array containing the solution for states that are only the functions of s1 - 
+%      array of size (N(1)+1) x nx, nx - number of states depending only on s1
+% --- solution.final.pde{2} - array containing the solution for states that are only the functions of s2 - 
+%      array of size (N(2)+1) x ny, ny - number of states depending only on s2
+% --- solution.final.pde{3} - array containing the solution for states that are the functions of two variables - 
+% it is array of size (N(1)+1) x (N(2)+1) x n2d, n2d - number of states depending on both s1 and s2
 % --- solution.final.ode - array of size no - ode solution at a final time 
-% --- solution.final.pde
-% --- In 1D: array of size (N+1) x ns, ns  solution at a final time
-% --- In 2D: solution.final.pde{1,2} - cell array containing all pde solutions at a final time
-% --- solution.final.pde{1} - array containing the solution for states that are only the functions of one variable - 
-% it is array of size (N+1) x (nx+ny), nx - number of states depending only on s1, 
-%                                      ny - number of states depending only on s2 
-% --- solution.final.pde{2} - array containing the solution for states that are the functions of two variables - 
-% it is array of size (N+1) x (N+1) x ns, ns - number of states depending on both s1 and s2
-% --- solution.final.observed{1,2,3} - cell array containing final value of observed outputs 
+% --- solution.final.observed{1,2,3,4} - cell array containing final value of observed outputs 
 % --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
 % --- solution.final.observed{2} - array containing final value of infinite-dimnesional 
-%      observed outputs that are only the functions of one variable - 
-% It is array of size (N+1) x (noox+nooy), noox - number of outputs depending only on s1, 
-%                                      nooy - number of outputs depending only on s2 
-% --- solution.final.observed{3} - array containing final value of observed outputs that are the functions of two variables - 
-% It is array of size (N+1) x (N+1) x noo2, noo2 - number of outputs depending on both s1 and s2
-% --- solution.final.regulated{1,2,3} - cell array containing final value of regulatedd outputs 
+%      observed outputs that are only the functions of s1 - 
+%      array of size (N(1)+1) x noox, noox - number of outputs depending only on s1
+% --- solution.final.observed{3} - array containing final value of infinite-dimnesional 
+%      observed outputs that are only the functions of s2 - 
+%      array of size (N(2)+1) x nooy, nooy - number of outputs depending
+%      only on s2
+% --- solution.final.observed{4} - array containing final value of observed outputs that are the functions of two variables - 
+%      array of size (N(1)+1) x (N(2)+1) x noo2, noo2 - number of outputs depending on both s1 and s2
+% --- solution.final.regulated{1,2,3,4} - cell array containing final value of regulatedd outputs 
 % --- solution.final.regulated{1} - array of size nro  - final value of finite-dimensional regulated outputs
-% --- solution.final.regulated{2} - array containing final value of infinite-dimnesional 
-%      regulated outputs that are only the functions of one variable - 
-% It is array of size (N+1) x (nrox+nroy), nrox - number of outputs depending only on s1, 
-%                                      nroy - number of outputs depending only on s2 
-% --- solution.final.regulated{3} - array containing final value of regulated outputs that are the functions of two variables - 
-% It is array of size (N+1) x (N+1) x nro2, nro2 - number of outputs depending on both s1 and s2
+% --- solution.final.regulated{2} - array containing final value of infinite-dimensional 
+%      regulated outputs that are only the functions of s1 - 
+%      array of size (N(1)+1) x nrox, nrox - number of outputs depending only on s1  
+%      solution.final.regulated{3} - array containing final value of infinite-dimensional 
+%      regulated outputs that are only the functions of s2 - 
+%      array of size (N(2)+1) x nroy, nroy - number of outputs depending only on s2 
+% --- solution.final.regulated{4} - array containing final value of regulated outputs that are the functions of two variables - 
+% It is array of size (N(1)+1) x (N(2)+1) x nro2, nro2 - number of outputs depending on both s1 and s2
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
-% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states 
-% --- solution.timedep.pde
-% --- In 1D: array of size (N+1) x ns x Nsteps - time-dependent solution of PDE states
-% --- In 2D: solution.timedep.pde{1,2} - cell array containing all time-dependent PDE solutions 
-% --- solution.timedep.pde{1} - array containing the solution for states that are only the functions of one variable - 
-% It is array of size (N+1) x (nx+ny) x Nsteps, nx - number of states depending only on s1, 
-%                                      ny - number of states depending only on s2 
-% --- solution.timedep.pde{2} - array containing the solution for states that are the functions of two variables - 
-% It is array of size (N+1) x (N+1) x ns x Nsteps, ns - number of states depending on both s1 and s2
-% --- solution.timedep.observed{1,2,3} - cell array containing time-dependent 
+% --- solution.timedep.pde{1,2,3} - cell array containing all time-dependent pde solutions 
+% --- solution.timedep.pde{1} - array containing the solution for states that are only the functions of s1 - 
+%      array of size (N(1)+1) x nx x Nsteps, nx - number of states depending only on s1
+% --- solution.timedep.pde{2} - array containing the solution for states that are only the functions of s2 - 
+%      array of size (N(2)+1) x ny x Nsteps, ny - number of states depending only on s2
+% --- solution.timedep.pde{3} - array containing the solution for states that are the functions of two variables - 
+%      array of size (N(1)+1) x (N(2)+1) x n2d x Nsteps, n2d - number of states depending on both s1 and s2
+% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
+% --- solution.timedep.observed{1,2,3,4} - cell array containing time-dependent 
 %      observed outputs 
 % --- solution.timedep.observed[1} - array of size noo x Nsteps -
 %     time-dependent value of finite-dimensional observed outputs
-% --- solution.timedep.observed{2} - array containing observed outputs that are only the functions of one variable - 
-% It is array of size (N+1) x (noox+nooy) x Nsteps, noox - number of observed outputs depending only on s1, 
-%                                      nooy - number of observed states depending only on s2 
-% --- solution.timedep.observed{3} - array containing observed outputs that are the functions of two variables - 
-% It is array of size (N+1) x (N+1) x noo2 x Nsteps, noo2 - number of outputs depending on both s1 and s2
-% --- solution.timedep.regulated{1,2,3} - array containing time-dependent infinite-dimnesional 
+% --- solution.timedep.observed{2} - array containing observed outputs that are only the functions of s1 - 
+%     array of size (N(1)+1) x noox x Nsteps, noox - number of observed outputs depending only on s1
+% --- solution.timedep.observed{3} - array containing observed outputs that are only the functions of s2 - 
+%     array of size (N(2)+1) x nooy x Nsteps, nooy - number of observed outputs depending only on s2
+% --- solution.timedep.observed{4} - array containing observed outputs that are the functions of two variables - 
+%      array of size (N(1)+1) x (N(2)+1) x noo2 x Nsteps, noo2 - number of outputs depending on both s1 and s2
+% --- solution.timedep.regulated{1,2,3,4} - array containing time-dependent infinite-dimnesional 
 %      regulated outputs 
 % --- solution.timedep.regulated{1} - array of size nro x Nsteps -
 %     time-dependent value of finite-dimensional regulated outputs
-% --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of one variable - 
-% It is array of size (N+1) x (nrox+nroy) x Nsteps, nrox - number of regulated outputs depending only on s1, 
-%                                      nroy - number of regulated outputs depending only on s2 
+% --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s1 - 
+%     array of size (N(1)+1) x nrox x Nsteps, nrox - number of regulated outputs depending only on s1
+% --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s2 - 
+%     array of size (N(2)+1) x nroy x Nsteps, nroy - number of regulated outputs depending only on s2
 % --- solution.timedep.regulated{3} - array containing regulated outputs that are the functions of two variables - 
-% It is array of size (N+1) x (N+1) x nro2 x Nsteps, nro2 - number of outptus depending on both s1 and s2
+%     array of size (N(1)+1) x (N(2)+1) x nro2 x Nsteps, nro2 - number of outptus depending on both s1 and s2
 
-%  2) grid - field containing two sub-fields
-%  --- grid.phys 
-%      a) In 1D - grid.phys is an array of size (N+1) x 1 containing spatial coordinates of the physical grid for
+%  2) grid - physical grid of a primary state for plotting and post-processing
+%      a) In 1D - grid is an array of size (N+1) x 1 containing spatial coordinates of the physical grid for
 %  the primary solution
- %     b) In 2D - grid.phys is an array of size (N+1) x 2, with the first column containing spatial coordinates of the physical grid for
-%  the primary solution along x direction, and the second column containing spatial coordinates of the physical grid for
-%  the primary solution along y direction
-%  --- grid.comp - in both 1D and 2D - array of size (N+1) x 1 containing spatial coordinates of the computaitonal grid along a single axis (mapped into [-1,1] domain) for
-%  the primary solution
+ %     b) In 2D - grid is a cell array of size, with the grid{1} containing spatial coordinates of the physical grid for
+%  the primary solution along x direction (size N(1)+1), and grid{2} containing spatial coordinates of the physical grid for
+%  the primary solution along y direction (size N(2)+1)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -216,34 +217,41 @@ function [solution, grid]=PIESIM(varargin)
 
 
 if (psize.dim==1)
-[Dop, coeff, grid]=PIESIM_discretize_all(PIE, uinput, psize);
+[Dop, coeff, gridall]=PIESIM_discretize_all(PIE, uinput, psize);
 else
-[Dop, coeff, grid]=PIESIM_discretize_all_2D(PIE, uinput, psize);
+[Dop, coeff, gridall]=PIESIM_discretize_all_2D(PIE, uinput, psize);
 end
 % Solving in time for Chebyshev coefficients
 
 
 disp('Setup completed: integrating in time');
 
-solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, grid, Dop);
+solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, gridall, Dop);
 
 
 
 % Transform solution to physical space
 
 if (psize.dim==1)
-solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, solcoeff, opts);
+solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff, opts);
 else
-solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid, solcoeff, opts);
+solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, gridall, solcoeff, opts);
 end
 
+% Define physical grids for plotting and output
+
+if (psize.dim==1)
+grid=gridall{1};
+else
+grid={gridall.x{1};gridall.y{1}};
+end
 
 % Output and plot results
 
 if (psize.dim==1)
-PIESIM_plot_solution(solution, psize, uinput,grid, opts);
+PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 else
-PIESIM_plot_solution_2D(solution, psize, uinput,grid, opts);
+PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 end
 
 end

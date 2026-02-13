@@ -66,7 +66,7 @@ opts.ploteig='yes';
 % For 2D: if different order of discretization is required in different directions,
 % enter opts.N as an array, such as opts.N=[16,32]
 
-opts.N=16;
+opts.N=[16,32];
 
 %-----------------------------------------------------------
 % Input the desired final time of the solution
@@ -110,7 +110,7 @@ end
 % the 'examples_pde_library_PIESIM_2D.m'
 %------------------------------------------------------------------------------
 
-    example=25;
+    example=32;
 
     if (dim==1)
     if (example<1|example>41)

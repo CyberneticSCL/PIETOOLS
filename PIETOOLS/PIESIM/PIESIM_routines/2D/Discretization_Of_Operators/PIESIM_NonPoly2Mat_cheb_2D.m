@@ -8,11 +8,11 @@
 % 1) N   - polynomial order of Chebyshev discretization polynomial
 % 2) Rop -  non-polynomial matrix operator 
 % 3) p - scalar (non-polynomial) - a "degree of smoothness" vector
-% 4) grid - cell array of size dmax containing physical grid for all states
+% 4) gridall - cell array of size dmax containing physical grid for all states
 % depending on their degree of differentiability; dmax corresponds to the
 % maximum degree of differentiability among all the states
-%  grid.x - grids in x direction
-%  grid.y - grids in y direction
+%  gridall.x - grids in x direction
+%  gridall.y - grids in y direction
 %
 %
 % Outputs:
@@ -26,7 +26,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-function A=PIESIM_NonPoly2Mat_cheb_2D(N, Rop, p, grid)
+function A=PIESIM_NonPoly2Mat_cheb_2D(N, Rop, p, gridall)
 syms sx sy
 ns=size(p,2);
 no=size(Rop,2);
@@ -36,7 +36,7 @@ for m=ns:-1:1
     Alocal(1:prod(N-p(m)+1),1:no)=0;
 
     for i=1:no 
-    var_force=double(subs(subs(Rop(m,i),sx,grid.x{p(m)+1}),sy,grid.y{p(m)+1}'));
+    var_force=double(subs(subs(Rop(m,i),sx,gridall.x{p(m)+1}),sy,gridall.y{p(m)+1}'));
     Alocal(:,i)=reshape(fcgltran2d(var_force,1),[],1);
     end % i loop
 

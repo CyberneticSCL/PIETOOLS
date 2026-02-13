@@ -39,7 +39,7 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 
 % 2) psize - size of the PIE problem: nw, nu, nf, no 
 % 3) uinput -  user-defined boundary inputs, forcing functions and initial conditions
-% 4) grid - physical and computational grid for n0 states
+% 4) grid - physical grid for primary states
 % 5) opts - options for simulation parameters
 % 
 % Outputs: none
@@ -263,9 +263,9 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         box on
         hold on
         if ~opts.ifexact
-            plot(grid.phys,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
+            plot(grid,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
         else
-            plot(grid.phys,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
+            plot(grid,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
             plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution','LineWidth',line_width); 
             legend('FontSize',13,'Interpreter','latex');
         end
@@ -277,7 +277,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         else
             title(['$\mathbf{x}_',num2str(n+psize.no),'(t=',num2str(solution.tf),',s)$'],'FontSize',15,'Interpreter','latex');
         end
-        set(gca,'XLim',[min(grid.phys),max(grid.phys)]);
+        set(gca,'XLim',[min(grid),max(grid)]);
         set(gca,'TickLabelInterpreter','latex');
     end
     figs = [figs,{fig4}];
@@ -298,7 +298,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
     for ii=1:ns
         x_ii = reshape(solution.timedep.pde(:,ii,t_idcs),Ngp,[]);
         subplot(1,ns,ii);
-        surf(tval,grid.phys,x_ii,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+        surf(tval,grid,x_ii,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
         h = colorbar;
         colormap jet
         box on

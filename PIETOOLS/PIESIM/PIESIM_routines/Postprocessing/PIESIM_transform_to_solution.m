@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIESIM_transform_to_solution.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, solcoeff, opts);
+function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff, opts);
 % This routine transforms solution from the Chebyshev coefficient space of the fundamental states to
 % the physical solution of the primary states
 % It first performs a transform of Chebshev coefficients of fundamental
@@ -16,7 +16,6 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, grid, so
 %  observed and regulated outputs
 % 3) Dop- discretized PIE operators
 % 4) uinput -  user-defined boundary inputs, forcing functions and initial conditions
-% 5) grid - physical and computational grid for n0 states
 % 6) solcoeff - Chebyshev coefficients of the time-dependent PDE solution
 % 7) opts - options for simulation parameters
 % 
