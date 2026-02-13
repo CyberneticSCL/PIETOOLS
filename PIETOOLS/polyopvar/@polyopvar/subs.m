@@ -81,7 +81,9 @@ if isa(val.C.ops{1},'intvar')
     error("The new value cannot be a polynomial functional")
 end
 % Express the functional and new value in terms of the same variables
-[f,val] = common_vars(f,val);
+if ~isequal(f.varname,val.varname)
+    [f,val] = common_vars(f,val);
+end
 % Extract the monomial defining f
 degs1 = f.degmat;
 xvar = find(var<=cumsum(degs1),1,'first');

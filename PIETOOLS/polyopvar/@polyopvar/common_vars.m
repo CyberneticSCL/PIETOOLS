@@ -51,8 +51,13 @@ C_A = A_in.C;               C_B = B_in.C;
 
 % First, combine the list of state variables
 p1 = numel(var_A);      p2 = numel(var_B);
-var_full = [var_A;var_B];
-[var_new,~,new2old_vdcs] = unique(var_full);   % var_new = var_full(old2new_vdcs);
+if isequal(var_A,var_B)
+    var_new = var_A;
+    new2old_vdcs = [1:p1,1:p1]';
+else
+    var_full = [var_A;var_B];
+    [var_new,~,new2old_vdcs] = unique(var_full);   % var_full = var_new(new2old_vdcs);
+end
 p = numel(var_new);
 
 % Also combine the list of spatial variables
