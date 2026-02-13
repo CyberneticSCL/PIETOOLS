@@ -58,11 +58,12 @@ nvars = numel(V.varname);
 if ~isequal(RHS.varname,V.varname)
     error("State variables in PIE and functional must match.")
 end
-xvarname = V.varname;
+varname_pde = V.varname;
+varname_pie = varname_pde;
 for i=1:nvars
-    xvarname{i} = [xvarname{i},'_f'];
+    varname_pie{i} = [varname_pie{i},'_f'];
 end
-if any(ismember(xvarname,V.varname))
+if any(ismember(varname_pie,V.varname))
     error("Proposed fundamental state variable names match PDE state variable names...")
 end
 
@@ -82,29 +83,34 @@ end
 
 % Split the left- and right-hand side of the PIE into a separate equation 
 % for each state variable
-if size(RHS.C,1)~=nvars
+if size(RHS.C.ops,1)~=nvars
     error("Number of equations should match number of state variables.")
 end
 RHS_arr = cell(nvars,1);
 LHS_arr = cell(nvars,1);
 for i=1:nvars
+    % For each PDE state variable x_i, define a polynomial expressing the
+    % dynamics of this variable in terms of fundamental state variables,
+    %       d/dt x_i = RHS_{i}(xf)
     RHS_arr{i} = RHS;
     RHS_arr{i}.C.ops = RHS.C.ops(i,:);
-    RHS_arr{i}.varname = xvarname;
+    RHS_arr{i}.varname = [varname_pde; varname_pie];
+    RHS_arr{i}.degmat = [zeros(size(RHS.degmat,1),nvars),RHS.degmat];
+    RHS_arr{i}.varmat = [RHS.varmat; RHS.varmat];
 
     % For each PDE state variable x_i, define a polynomial expressing this
     % state variable in terms of fundamental state variables,
     %       x_i = sum_{j=1}^{n} Top(i,j)*xf_{j}
     LHS_arr{i} = RHS_arr{i};
-    LHS_arr{i}.degmat = eye(nvars);
-    LHS_arr{i}.C.ops = Top_cell(1,:);
+    LHS_arr{i}.degmat = [zeros(nvars),eye(nvars)];
+    LHS_arr{i}.C.ops = Top_cell(i,:);
 end
 
 % Declare an empty polynomial 
 tmp_poly = RHS;
 tmp_poly.C.ops = {};
 tmp_poly.degmat = zeros(0,nvars);
-tmp_poly.varname = xvarname;
+tmp_poly.varname = varname_pie;
 dV = tmp_poly;
 
 % For each of the monomials in V, take the Lie derivative along the PIE
@@ -115,7 +121,7 @@ for i=1:size(Vdegs,1)
     dVi_tmp = tmp_poly;
     dVi_tmp.C.ops = V.C.ops(i);
     dVi_tmp.degmat = [degi,zeros(1,nvars)];
-    dVi_tmp.varname = [V.varname; xvarname];
+    dVi_tmp.varname = [varname_pde; varname_pie];
     dVi_tmp.varmat = [V.varmat;V.varmat];
     % For each factor in the monomial, replace only that factor by the
     % right-hand side of the PIE, replacing all other factors by T*xf
@@ -128,7 +134,15 @@ for i=1:size(Vdegs,1)
             % Determine which PDE state variable appears in factor j-1
             state_idx = find(j-1<=nfctrs,1,'first');
             % Express this PDE state in terms of the PIE state
-            dVi_tmp = subs(dVi_tmp,1,LHS_arr{state_idx});
+            dV0 = 0;
+            for trm_num=1:size(dVi_tmp.degmat,1)
+                dVk = dVi_tmp;
+                dVk.degmat = dVk.degmat(trm_num,:);
+                dVk.C.ops = dVk.C.ops(:,trm_num);
+                dVk = subs(dVk,1,LHS_arr{state_idx});
+                dV0 = dV0 + dVk;
+            end
+            dVi_tmp = dV0;
         end
         dVj = dVi_tmp;
         % Replace remaining factors by T*xf
@@ -136,16 +150,32 @@ for i=1:size(Vdegs,1)
             % Determine which PDE state variable appears in factor j-1
             state_idx = find(k<=nfctrs,1,'first');
             % Express this PDE state in terms of the PIE state
-            dVj = subs(dVj,2,LHS_arr{state_idx});
+            dV0 = 0;
+            for trm_num=1:size(dVj.degmat,1)
+                dVk = dVj;
+                dVk.degmat = dVk.degmat(trm_num,:);
+                dVk.C.ops = dVk.C.ops(:,trm_num);
+                dVk = subs(dVk,2,LHS_arr{state_idx});
+                dV0 = dV0 + dVk;
+            end
+            dVj = dV0;
         end
         % Determine which PDE state variable appears in factor j
         state_idx = find(j<=nfctrs,1,'first');
         % Substitute for right-hand side of the corresponding PIE 
-        dVj = subs(dVj,1,RHS_arr{state_idx});
+        dV0 = 0;
+        for trm_num=1:size(dVj.degmat,1)
+            dVk = dVj;
+            dVk.degmat = dVk.degmat(trm_num,:);
+            dVk.C.ops = dVk.C.ops(:,trm_num);
+            dVk = subs(dVk,1,RHS_arr{state_idx});
+            dV0 = dV0 + dVk;
+        end
+        dVj = dV0;
         % Remove the PDE state variable names, and add to the full
         % derivative
         dVj.degmat = dVj.degmat(:,nvars+1:end);
-        dVj.varname = xvarname;
+        dVj.varname = varname_pie;
         dVj.varmat = dVj.varmat(1:nvars,:);
         dVi = dVi + dVj;
     end
