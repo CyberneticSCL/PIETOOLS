@@ -111,7 +111,7 @@ for ii=1:nZL
         % and Zj
         Pij = Pmat(blkdimL_cum(ii)+1:blkdimL_cum(ii+1), blkdimR_cum(jj)+1:blkdimR_cum(jj+1));
         % Convert to the linear format
-        Kij = quad2lin_term_old(Pij,Zop_ii,Zop_jj);
+        Kij = quad2lin_term(Pij,Zop_ii,Zop_jj);
         % Account for symmetry
         if is_symmetric && ii~=jj
             Kij.params = 2*Kij.params;

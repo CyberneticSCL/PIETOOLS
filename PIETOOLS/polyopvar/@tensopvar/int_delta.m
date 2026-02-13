@@ -159,15 +159,11 @@ end
 % For each possible ordering of the variables (r1,t1,...,td,r2), compute 
 % the kernel in the associated term in the functional
 n_ords = size(omat,1);
-if isa(Kfun,'dpvar')
-    Cfun = dpvar(zeros(pdim,ndim*n_ords));
-else
-    Cfun = polynomial(zeros(pdim,ndim*n_ords));
-end
+Cfun = polynomial(zeros(pdim,ndim*n_ords));
 for i=1:n_ords
     param_i = 0;
     % Establish in which position the variable s is placed
-    [~,pos_i] = find(omat(i,:)==0,1);
+    pos_i = find(omat(i,:)==0,1);
     leq_vars = omat(i,1:pos_i-1);
     geq_vars = omat(i,pos_i+1:end);
     for trm=1:ntrms

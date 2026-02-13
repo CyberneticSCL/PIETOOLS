@@ -68,11 +68,37 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
         function [P] = polyopvar(varargin) %constructor
             if nargout==0
                 % Declare state variables as
-                %   polyopvar x1 x2 x3
+                %   polyopvar x1(s1,s2) x2(s1) x3(s3)
                 for i=1:nargin
                     if ischar(varargin{i})
-                        if nargout==0
-                            assignin('caller', varargin{i}, ndopvar());
+                        obj = varargin{i};
+                        % Split "x1(s1,s2)" into "x1" and "(s1,s2)"
+                        is_bracket = ismember(obj,'(');
+                        if any(is_bracket)
+                            if sum(is_bracket)>1 || ~strcmp(obj(end),')')
+                                error("Distributed polynomial variables must be specified as e.g. 'x1(s1,s2)'")
+                            end
+                            % Determine the name of the state variable
+                            xname = obj(1:find(is_bracket,1)-1);
+                            % Determine the names of the indepdnent
+                            % variables
+                            pnames = obj(find(is_bracket,1)+1:end-1);
+                            pnames = strsplit(pnames,{',',' '});
+                            % Declare the independent variables as pvar
+                            % objects in the workspace
+                            for j=1:numel(pnames)
+                                pname = pnames{j};
+                                if ~isnan(str2double(pname))
+                                    error("Independent variable names must include a letter.")
+                                else
+                                    assignin('caller',pname,pvar(pname));
+                                end
+                            end
+                            % Declare the state variable as polyopvar
+                            % object in the workspace
+                            assignin('caller', xname, polyopvar(xname,pnames'));
+                        else
+                            assignin('caller', obj, polyopvar(obj));
                         end
                     else
                         error("Input must be strings");
@@ -85,12 +111,17 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                     return
                 end
                 varname = varargin{1};
+                if ischar(varname) && size(varname,1)==1
+                    varname = {varname};
+                elseif ~iscellstr(varname)
+                    error("Variable names must be specified as string of char objects.")
+                end
                 p = numel(varname);
                 % Check which spatial variables x depends on
                 if nargin<=1
                     pvarname = {};
                 else
-                    if isa(varargin{2},'cellstr')
+                    if iscellstr(varargin{2})
                         pvarname = varargin{2};
                     elseif isa(varargin{2},'polynomial')
                         if ~ispvar(varargin{2})
@@ -111,7 +142,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                 else
                     if all(size(varargin{3})==[1,2])
                         dom = repmat(varargin{3},[N,1]);
-                    elseif all(size(varargin{3}==[N,2]))
+                    elseif all(size(varargin{3})==[N,2])
                         dom = varargin{3};
                     else
                         error("The spatial domain should be specified as px2 array for 'p' variables.")

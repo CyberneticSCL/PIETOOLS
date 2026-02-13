@@ -52,12 +52,20 @@ function dV = Liediff(V,PIE)
 Top = PIE.T;
 RHS = PIE.f;
 Vdegs = V.degmat;
-fdegs = RHS.degmat;
 nvars = numel(V.varname);
 
+% Declare a fundamental state variable for each PDE state variable
 if ~isequal(RHS.varname,V.varname)
     error("State variables in PIE and functional must match.")
 end
+xvarname = V.varname;
+for i=1:nvars
+    xvarname{i} = [xvarname{i},'_f'];
+end
+if any(ismember(xvarname,V.varname))
+    error("Proposed fundamental state variable names match PDE state variable names...")
+end
+
 
 % Decompose the T operator into individual operators acting on each state
 % variable (this is really not ideal, but the only option for now...)
@@ -72,111 +80,81 @@ for lindx=1:numel(Top_cell)
     Top_cell{lindx} = dopvar2ndopvar(Top_tmp(ridx,cidx));
 end
 
-% Replace the variable x by T*x in each of the monomials defining V. Since
-% the monomials are expressed in terms of elements x_{i}, but T(i,:)*x may
-% involve all variables again, this is somewhat cumbersome
-old_state_arr = [];
-new_state_arr = [];
-old_monnum = [];
-diff_idx = [];
-dtot = max(sum(Vdegs,2));
-for ii=1:size(Vdegs,1)
-    degs_ii = Vdegs(ii,:);
-    % For each factor in the monomial, establish which PDE state variable
-    % it corresponds to
-    state_idcs_ii = (1:numel(degs_ii));
-    state_idcs_ii = repelem(state_idcs_ii,degs_ii);
-    % Apply the map ui = T(i,:)*v = sum_{j=1}^{n} T(i,j)*vj
-    % splitting the monomial into j^dtot terms
-    for jj=1:numel(state_idcs_ii)
-        % Keep factor uj
-        new_state_idcs_jj = state_idcs_ii;
-        for kk=setdiff(1:numel(state_idcs_ii),jj)
-            % Replace factor uk by uk = sum_{l=1}^{n{ T(k,l)*vl;
-            nr = size(new_state_idcs_jj,1);
-            new_state_idcs_jj = repmat(new_state_idcs_jj,[nvars,1]);
-            new_state_idcs_jj(:,kk) = repelem((1:nvars)',nr);
-        end
-        [nr,nc] = size(new_state_idcs_jj);
-        state_idcs_jj(:,jj) = state_idcs_ii(jj)*ones(nr,1);
-        new_state_arr = [new_state_arr; [new_state_idcs_jj, zeros(nr,dtot-nc)]];
-        old_state_arr = [old_state_arr; [repmat(state_idcs_ii,[nr,1]), zeros(nr,dtot-nc)]];
-        old_monnum = [old_monnum; ii*ones(nr,1)];
-        diff_idx = [diff_idx; jj*ones(nr,1)];
-    end
-    % [nr,nc] = size(new_state_idcs_jj);
-    % new_state_arr = [new_state_arr; [new_state_idcs_jj, zeros(nr,dtot-nc)]];
-    % old_state_arr = [old_state_arr; [repmat(state_idcs_ii,[nr,1]), zeros(nr,dtot-nc)]];
-    % old_monnum = [old_monnum; ii*ones(nr,1)];
+% Split the left- and right-hand side of the PIE into a separate equation 
+% for each state variable
+if size(RHS.C,1)~=nvars
+    error("Number of equations should match number of state variables.")
+end
+RHS_arr = cell(nvars,1);
+LHS_arr = cell(nvars,1);
+for i=1:nvars
+    RHS_arr{i} = RHS;
+    RHS_arr{i}.C.ops = RHS.C.ops(i,:);
+    RHS_arr{i}.varname = xvarname;
+
+    % For each PDE state variable x_i, define a polynomial expressing this
+    % state variable in terms of fundamental state variables,
+    %       x_i = sum_{j=1}^{n} Top(i,j)*xf_{j}
+    LHS_arr{i} = RHS_arr{i};
+    LHS_arr{i}.degmat = eye(nvars);
+    LHS_arr{i}.C.ops = Top_cell(1,:);
 end
 
 % Declare an empty polynomial 
 tmp_poly = RHS;
 tmp_poly.C.ops = {};
 tmp_poly.degmat = zeros(0,nvars);
+tmp_poly.varname = xvarname;
 dV = tmp_poly;
-for ii=1:size(new_state_arr,1)
-    % Loop over each of the possible monomials in the PIE state variables,
-    % replacing the PDE states by PIE states, and taking the temporal
-    % derivative of just one of the factors in the monomial
-    degs_ii = Vdegs(old_monnum(ii),:);
-    Kop_ii = V.C.ops{old_monnum(ii)};
-    dtot_ii = sum(degs_ii);
-    old_state_idcs_ii = old_state_arr(ii,1:dtot_ii);
-    state_idcs_ii = new_state_arr(ii,1:dtot_ii);
 
-    % Establish which of the factors in the monomial still corresponds to a
-    % PDE state variable, for which we will evaluate the derivative
-    diff_idx_i = diff_idx(ii);
-    % For all other state variables, replace the PDE state by the PIE state
-    % listed in "state_idcs_ii", multiplied with the appropriate element of
-    % the T operator
-    Fx_ii = cell(1,dtot_ii);
-    skip_ii = false;
-    for fctr_num=setdiff(1:dtot_ii,diff_idx_i)
-        % Check which PIE state variable appears in the current factor
-        state_num = state_idcs_ii(fctr_num);
-        % Check which PDE state variable corresponds to this factor
-        old_state_num = old_state_idcs_ii(fctr_num);
-        % Extract the appropriate map Tij
-        Top_ij = Top_cell{old_state_num,state_num};
-        if Top_ij==0
-            skip_ii = true;
-            break
+% For each of the monomials in V, take the Lie derivative along the PIE
+for i=1:size(Vdegs,1)
+    % Extract the ith term from the function V, expressing it in terms of
+    % both the PDE and PIE state variables
+    degi = Vdegs(i,:);
+    dVi_tmp = tmp_poly;
+    dVi_tmp.C.ops = V.C.ops(i);
+    dVi_tmp.degmat = [degi,zeros(1,nvars)];
+    dVi_tmp.varname = [V.varname; xvarname];
+    dVi_tmp.varmat = [V.varmat;V.varmat];
+    % For each factor in the monomial, replace only that factor by the
+    % right-hand side of the PIE, replacing all other factors by T*xf
+    dVi = tmp_poly;
+    nfctrs = cumsum(degi);
+    di = nfctrs(end);
+    for j=1:di
+        % Replace factor j-1 by T*xf
+        if j>1
+            % Determine which PDE state variable appears in factor j-1
+            state_idx = find(j-1<=nfctrs,1,'first');
+            % Express this PDE state in terms of the PIE state
+            dVi_tmp = subs(dVi_tmp,1,LHS_arr{state_idx});
         end
-        % Declare the linear polynomial Tij*x_{state_num}
-        Fx_tmp = tmp_poly;
-        Fx_tmp.degmat = [zeros(1,state_num-1),1,zeros(1,nvars-state_num)];
-        Fx_tmp.C.ops{1} = Top_ij;
-        Fx_ii{fctr_num} = Fx_tmp;
-    end
-    if skip_ii
-        % If any factor is zero, the whole term is zero
-        continue
-    end
-    % Finally, replace factor diff_idx_i by the right-hand side of the PIE,
-    % and perform the composition
-    dV_ii = tmp_poly;
-    for ll=1:size(fdegs,1)
-        % Loop over all terms in the PIE
-        Fx_ll = RHS;
-        op_ll = Fx_ll.C.ops{old_state_idcs_ii(diff_idx_i),ll};
-        if isempty(op_ll) || (isa(op_ll,'nopvar') && op_ll==0)
-            continue
-        else
-            Fx_ll.C.ops = {op_ll};
+        dVj = dVi_tmp;
+        % Replace remaining factors by T*xf
+        for k=j+1:di
+            % Determine which PDE state variable appears in factor j-1
+            state_idx = find(k<=nfctrs,1,'first');
+            % Express this PDE state in terms of the PIE state
+            dVj = subs(dVj,2,LHS_arr{state_idx});
         end
-        Fx_ll.degmat = Fx_ll.degmat(ll,:);
-        Fx_ii{diff_idx_i} = Fx_ll;
-        % Take the composition of the functional operator with this
-        % particular term
-        dV_ll = mtimes_functional(Kop_ii,Fx_ii);
-        dV_ll = combine_terms(dV_ll);
-        dV_ii = dV_ii + dV_ll;
+        % Determine which PDE state variable appears in factor j
+        state_idx = find(j<=nfctrs,1,'first');
+        % Substitute for right-hand side of the corresponding PIE 
+        dVj = subs(dVj,1,RHS_arr{state_idx});
+        % Remove the PDE state variable names, and add to the full
+        % derivative
+        dVj.degmat = dVj.degmat(:,nvars+1:end);
+        dVj.varname = xvarname;
+        dVj.varmat = dVj.varmat(1:nvars,:);
+        dVi = dVi + dVj;
     end
-    % Add the derivative for this particular factor to the full
-    % derivative
-    dV = dV + dV_ii;
+    % Add to the full Lie derivative
+    dV = dV+dVi;
 end
+
+% Replace the PIE variable names with the PDE variable names for
+% consistency with the input
+dV.varname = V.varname;
 
 end
