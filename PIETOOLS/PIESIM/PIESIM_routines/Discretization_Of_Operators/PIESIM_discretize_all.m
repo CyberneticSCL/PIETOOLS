@@ -23,13 +23,11 @@
 function [Dop, coeff, grid]=PIESIM_discretize_all(PIE, uinput, psize);
 
 % Discretize computational domain
-[grid,gridall]=PIESIM_discretize_domain(uinput,psize);
-% n1grid, n2grid are local variables denoting auxiliary computational grid
-% of n1, n2 states (not needed outside PIESIM_discretize_all)
+grid=PIESIM_discretize_domain(uinput,psize);
 
 % Discretize initial conditions and non-polynomial in space forcing matrix operator
 
-[coeff, B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
+[coeff, B1_nonpol]=PIESIM_discretize_icf(uinput,psize,grid);
 
 % Discretize PIE operators
 Dop=PIESIM_discretize_ops(PIE,psize);

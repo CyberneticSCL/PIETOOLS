@@ -36,36 +36,12 @@ syms st sx sy sym_array;
 sym_array=[sx,sy];
 
 % Account for multiplicity of disturbances
-w_tab = repelem(PIE.w_tab, PIE.w_tab(:,2), 1);
-u_tab = repelem(PIE.u_tab, PIE.u_tab(:,2), 1);
-
-      if isfield(uinput,'u')
-     for k = 1:numel(uinput.u)
-         % Symbolic disturbances
-        if isa(uinput.u{k}, 'sym')
-        uinput.u{k}=matlabFunction(uinput.u{k},'Vars', st);
-        uinput.udot{k}=matlabFunction(diff(uinput.u{k},st),'Vars', st);
-        else
-            % Double type distubrances of size 1 (constant in time) 
-            if (length(uinput.u{k})==1)
-                uinput.u{k}=@(t) uinput.u{k};
-                uinput.udot{k}=@(t) 0;
-            else
-            %  Double type distubrances of size other than 1-
-           %   Build a cubic spline from the disturbance data
-        pp=spline(uinput.u{k}(1,:),uinput.u{k}(2,:));
-        tmin=min(uinput.u{k}(1,:));
-        tmax=max(uinput.u{k}(1,:));
-        uinput.u{k} = @(t) ppval(pp,t).* (t >= tmin & t<= tmax);
-        uinput.udot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
-            end
-        end
-
-        end % for
-     end % isfield(uinput,'u')
+w_tab = subsasgn(repelem(PIE.w_tab, PIE.w_tab(:,2), 1), struct('type','()','subs',{{':',2}}), 1);
+u_tab = subsasgn(repelem(PIE.u_tab, PIE.u_tab(:,2), 1), struct('type','()','subs',{{':',2}}), 1);
 
 % Compute initial conditions on the fundamental states from initial
-% condition on the primary states - only for PDE and DDE problems
+% condition on the primary states and update disturbances to account for corner values and differentiation - 
+% - only for PDE and DDE problems
 
 if ~strcmp(type,'PIE') 
 
@@ -77,6 +53,17 @@ ns=sum(psize.n,'all');
 psize_aux=[1 psize.n];
 nsum=cumsum(psize.n);
 nsump1=cumsum(psize_aux);
+
+if (psize.nw>0)
+uinput.wsep = cell(size(uinput.w));
+uinput.wsep(:)={true};
+end
+
+if (psize.nu>0)
+uinput.usep = cell(size(uinput.u));
+uinput.usep(:)={true};
+end
+
 
 % Degree of smoothness 
 
@@ -110,28 +97,37 @@ end
   if (nw_PIE>nw_PDE)
   uinput.wspace = [cell(1, idx_shift), uinput.wspace];
   uinput.w = [cell(1, idx_shift), uinput.w];
-
+  uinput.wsep = [cell(1, idx_shift), uinput.wsep];
+ 
   % We also have to fill the first idx_shift rows with the corresponding
   % corner values
+
   for i=1:idx_shift
   pos_in_reordered_array = find(uinput.w_order == w_tab(i,1)); % w_tab corresponds to original PDE ordering
   idx_parent=pos_in_reordered_array+idx_shift;
   uinput.w{i}=uinput.w{idx_parent};
   uinput.wspace{i}=uinput.wspace{idx_parent};
+  uinput.wsep{i}=true; % Corner value is only a function of time (thus separable)
   end
-  end % if
+   end % if
 
   psize.nw=nw_PIE;
   psize.nw0=psize.nw0+idx_shift;
 
  
-% Differentiate disturbances if needed (2D only)
+% Differentiate disturbances if needed 
 
 for i=1:psize.nw
+    if uinput.wsep{i}
+        % Differentiate the separated spatial component of disturbance
     w_xder =  diff(uinput.wspace{i},sx,w_tab(i,end-1));
     uinput.wspace{i} =  diff(w_xder,sy,w_tab(i,end));
-end
-
+    else
+        % Differentiate the entire non-separable disturbance
+    w_xder =  diff(uinput.w{i},sx,w_tab(i,end-1));
+    uinput.w{i} =  diff(w_xder,sy,w_tab(i,end));
+    end %  if uinput.wsep{i}
+end % for i=1:psize.nw
 
 for i=1:idx_shift
     % Do the substitution for corner values
@@ -139,6 +135,9 @@ for i=1:idx_shift
   idx = find(w_tab(:,1)==w_tab(i,1),1,'last');
   % Determine which variables to use for corner values
   is_bval = logical(w_tab(idx,3:4)-w_tab(i,3:4));
+  pos_in_reordered_array = find(uinput.w_order == w_tab(i,1)); % w_tab corresponds to original PDE ordering
+  idx_parent=pos_in_reordered_array+idx_shift;
+  if (uinput.wsep{idx_parent}) % corner value correponds to a separable disturbance
   corner_value=double(subs(uinput.wspace{i},sym_array(is_bval),PIE.dom(is_bval,1)));
   uinput.wspace{i}=[];
   if (length(uinput.w{i}==1))
@@ -146,21 +145,87 @@ for i=1:idx_shift
   else
   uinput.w{i}(1,:)=corner_value*uinput.w{i}(1,:);
   end
-end
+  else %corner value correponds to a non-separable disturbance
+  uinput.w{i}=subs(uinput.w{i},sym_array(is_bval),PIE.dom(is_bval,1));
+  end % if (uinput.wsep(idx_parent))
+end % i=1:idx_shift
+
 
 % Dealing with control inputs 
 
+% Compare the size of control inputs after PIE conversion to original size
+% and renumber if needed
+
+  nu_PDE=psize.nu;
+  nu_PIE = sum(u_tab(:,2));
+  idx_shift=nu_PIE-nu_PDE;
+
+  if (nu_PIE>nu_PDE)
+  uinput.uspace = [cell(1, idx_shift), uinput.uspace];
+  uinput.u = [cell(1, idx_shift), uinput.u];
+  uinput.usep = [cell(1, idx_shift), uinput.usep];
+ 
+  % We also have to fill the first idx_shift rows with the corresponding
+  % corner values
+  for i=1:idx_shift
+  pos_in_reordered_array = find(uinput.u_order == u_tab(i,1)); % w_tab corresponds to original PDE ordering
+  idx_parent=pos_in_reordered_array+idx_shift;
+  uinput.u{i}=uinput.u{idx_parent};
+  uinput.uspace{i}=uinput.uspace{idx_parent};
+  uinput.usep{i}=true; % Corner value is only a function of time (thus separable)
+  end
+   end % if
+
+  psize.nu=nu_PIE;
+  psize.nu0=psize.nu0+idx_shift;
+
+% Differentiate control inputs if needed 
+
 for i=1:psize.nu
-    u_xder =  diff(uinput.uspace{i},sx,psize.u_tab(i,end-1));
-    uinput.uspace{i} =  diff(u_xder,sy,psize.u_tab(i,end));
-end
+    if uinput.usep{i}
+        % Differentiate the separated spatial component of disturbance
+    u_xder =  diff(uinput.uspace{i},sx,u_tab(i,end-1));
+    uinput.uspace{i} =  diff(u_xder,sy,u_tab(i,end));
+    else
+        % Differentiate the entire non-separable disturbance
+    u_xder =  diff(uinput.u{i},sx,u_tab(i,end-1));
+    uinput.u{i} =  diff(u_xder,sy,u_tab(i,end));
+    end %  if uinput.usep{i}
+end % for i=1:psize.nu
+
+
+for i=1:idx_shift
+    % Do the substitution for corner values
+  % If idx is not equal to i, input i must correspond to a corner value
+  idx = find(u_tab(:,1)==u_tab(i,1),1,'last');
+  % Determine which variables to use for corner values
+  is_bval = logical(u_tab(idx,3:4)-u_tab(i,3:4));
+  pos_in_reordered_array = find(uinput.u_order == u_tab(i,1)); % w_tab corresponds to original PDE ordering
+  idx_parent=pos_in_reordered_array+idx_shift;
+  if (uinput.usep{idx_parent}) % corner value correponds to a separable disturbance
+  corner_value=double(subs(uinput.uspace{i},sym_array(is_bval),PIE.dom(is_bval,1)));
+  uinput.uspace{i}=[];
+  if (length(uinput.u{i}==1))
+  uinput.u{i}=corner_value*uinput.u{i};
+  else
+  uinput.u{i}(1,:)=corner_value*uinput.u{i}(1,:);
+  end
+  else %corner value correponds to a non-separable disturbance
+  uinput.u{i}=subs(uinput.u{i},sym_array(is_bval),PIE.dom(is_bval,1));
+  end % if (uinput.wsep(idx_parent))
+end % i=1:idx_shift
+
 
 end % 2D case
+
+end % if not PIE
 
 % Setup function handles to boundary inputs and their temporal derivatives
 
  if isfield(uinput,'w')
      for k = 1:numel(uinput.w)
+         % Separable disturbances
+         if uinput.wsep{k}
          % Symbolic disturbances
         if isa(uinput.w{k}, 'sym')
         uinput.w{k}=matlabFunction(uinput.w{k},'Vars', st);
@@ -180,12 +245,43 @@ end % 2D case
         uinput.wdot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
             end
         end
-
+         else
+             % Non-separable disturbances, symbolic by default
+             % Leave uinput.w, uinput.wdot symbolic
+        uinput.wdot{k}=diff(uinput.w{k},st);
+         end % uinput.wsep{k}
 
         end % for k
      end % isfield(uinput,'w')
 
+ if isfield(uinput,'u')
+     for k = 1:numel(uinput.u)
+         % Separable disturbances
+         if uinput.usep{k}
+         % Symbolic disturbances
+        if isa(uinput.u{k}, 'sym')
+        uinput.u{k}=matlabFunction(uinput.u{k},'Vars', st);
+        uinput.udot{k}=matlabFunction(diff(uinput.u{k},st),'Vars', st);
+        else
+            % Double type distubrances of size 1 (constant in time) 
+            if (length(uinput.u{k})==1)
+                uinput.u{k}=@(t) uinput.u{k};
+                uinput.udot{k}=@(t) 0;
+            else
+            %  Double type disturbances of size other than 1-
+           %   Build a cubic spline from the disturbance data
+        pp=spline(uinput.u{k}(1,:),uinput.u{k}(2,:));
+        tmin=min(uinput.u{k}(1,:));
+        tmax=max(uinput.u{k}(1,:));
+        uinput.u{k} = @(t) ppval(pp,t).* (t >= tmin & t<= tmax);
+        uinput.udot{k} = @(t) ppval(fnder(pp),t).*(t >= tmin & t<= tmax);
+            end
+        end
+         else
+             % Non-separable disturbances, symbolic by default
+             % Leave uinput.w, uinput.wdot symbolic
+        uinput.udot{k}=diff(uinput.u{k},st);
+         end % uinput.wsep{k}
 
-end
-
-
+        end % for k
+     end % isfield(uinput,'u')

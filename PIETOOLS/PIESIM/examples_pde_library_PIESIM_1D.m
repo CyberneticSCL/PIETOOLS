@@ -178,15 +178,15 @@ switch example
              % Initial conditions for the primary states of the PDE
           uinput.ic.PDE= sin(5*pi/4*sx+alpha);
 
-             % Symbolic disturbance
-          uinput.w{1}=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
-          uinput.w{2}=sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);     
+          %    % Symbolic disturbance
+          % uinput.w{1}=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
+          % uinput.w{2}=sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);     
 
-             %  % Disturbance as a data array (double)
-             % dt=0.01; tf=2;
-             % timegrid=0:dt:tf;
-             % uinput.w{1}=[timegrid;sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
-             % uinput.w{2}=[timegrid;sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
+              % Disturbance as a data array (double)
+             dt=0.01; tf=2;
+             timegrid=0:dt:tf;
+             uinput.w{1}=[timegrid;sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
+             uinput.w{2}=[timegrid;sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*timegrid)];
 
 
 
@@ -2998,8 +2998,7 @@ case 41
      %  dt=0.01; tf=2;
      %  timegrid=0:dt:tf;
      %  uinput.w{2}=[timegrid;  I0 * (1 - exp(-timegrid/tau))];
-
-    
+     
 end % cases
 % %            
 

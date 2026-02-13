@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_domain_2D.m     PIETOOLS 2024
+% PIESIM_discretize_domain_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of the computational domain in 2D  
 %
@@ -8,12 +8,10 @@
 % 2) psize - size of the PIE problem: all variables defining the size of the PIE problem
 %
 % Outputs:
-% 1) grid - physical and computational grid for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
-% 2) gridall - cell array of size dmax containing physical grid for all states
-% depending on their degree of differentiability; dmax corresponds to the
-% maximum degree of differentiability among all the states
-%  gridall.x - grids in x direction
-%  gridall.y - grids in y direction
+% 1) grid - field containing the following sub-fields:
+% grid.phys - physical grid for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
+%  grid.x - cell array containing grids in x direction of different degrees of differentiability
+%  grid.y - cell array containing grids in y direction of different degrees of differentiability
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -22,8 +20,9 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 16_04_2024
+% 2/12/2026: YP - modified grids handling
 
-function [grid,gridall]=PIESIM_discretize_domain_2D(uinput,psize);
+function grid=PIESIM_discretize_domain_2D(uinput,psize);
 
 % Define local variables
 
@@ -43,11 +42,11 @@ N=psize.N;
 
 
 for i=1:max([length(psize.n),length(psize.nx),length(psize.ny)])
-grid_comp{i} = cos(pi*(0:N(1)-i+1)/(N(1)-i+1))';
-grid_comp{i+1} = cos(pi*(0:N(2)-i+1)/(N(2)-i+1))';
-gridall.x{i}=0.5*(b-a)*grid_comp{i}+0.5*(b+a);
-gridall.y{i}=0.5*(d-c)*grid_comp{i+1}+0.5*(d+c);
+grid_comp_x = cos(pi*(0:N(1)-i+1)/(N(1)-i+1))';
+grid_comp_y = cos(pi*(0:N(2)-i+1)/(N(2)-i+1))';
+grid.x{i}=0.5*(b-a)*grid_comp_x+0.5*(b+a);
+grid.y{i}=0.5*(d-c)*grid_comp_y+0.5*(d+c);
 end
 
-grid.phys={gridall.x{1};gridall.y{1}};
+grid.phys={grid.x{1};grid.y{1}};
 

@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_time_integrate.m    PIETOOLS 2024
+% PIESIM_time_integrate.m    PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE with the scheme specified
 % by "opts.intScheme"=1 or 2
@@ -12,6 +12,7 @@
 % opts - options for temporal scheme parameters
 % uinput   - user-defined boundary inputs
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
+% grid - physical grids for solution states
 % Dop - discretized PIE operators
 %
 % Output:
@@ -42,15 +43,16 @@
 %
 % Initial coding YP  - 9_18_2021
 % YP 6/16/2022 - added stability check
+% YP 2/12/2026 - passing grid for general non-separable distrubances
 
-function solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, Dop)
+function solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, grid, Dop)
 N=psize.N;
 
 PIESIM_stability_check(opts, Dop.Atotal);
     
 switch opts.intScheme 
      case 1    
-     solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, Dop);
+     solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, grid, Dop);
      case 2
          [Dop.V,Dop.D] = eig(Dop.Atotal);
          Nsize=size(Dop.Atotal,1);

@@ -68,7 +68,7 @@ elseif strcmp(opts.type,'PDE_t')
     % Input check for PDEs in legacy terms format
     %-----------------------------------------------------------
     [structure, uinput, opts, psize] = PIESIM_input_check_PDE_terms_legacy(varargin{:});
-    psize.dim = 1
+    psize.dim = 1;
 
 elseif strcmp(opts.type,'PDE')
     %-----------------------------------------------------------
@@ -436,6 +436,12 @@ elseif (opts.type=='DDE')
     psize.nu=size(PIE.Tu,2); % number of disturbances
     psize.nw=size(PIE.Tw,2); % number of control inputs
 
+    % Check if the problem size is defined correctly
+     if length(opts.N>1)
+         disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
+         opts.N=opts.N(1);
+     end
+
     % Determine which disturbances vary in either x, y, or both
 
     if ~isempty(PIE.w_tab)
@@ -586,6 +592,12 @@ elseif (opts.type=='PIE')
     % Determine which disturbances vary in either x, y, or both
 
      if (psize.dim==1)
+
+            % Check if the problem size is defined correctly
+     if length(opts.N>1)
+         disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
+         opts.N=opts.N(1);
+     end
     
     if ~isempty(PIE.w_tab)     
     psize.nwx = sum(PIE.w_tab(:,3) == 1);

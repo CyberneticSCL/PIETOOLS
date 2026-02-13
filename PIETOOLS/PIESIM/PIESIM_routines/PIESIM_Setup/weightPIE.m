@@ -21,6 +21,8 @@ function PIE = weightPIE(PIE,k)
 
         % Initialize mapping operators to be unmodified PIE operators
 
+        pvar s1;
+
         PIE.misc.Tmap = PIE.T;
         PIE.misc.Tumap = PIE.Tu;
         PIE.misc.Twmap = PIE.Tw;

@@ -10,6 +10,7 @@
 % opts - options for temporal scheme parameters
 % uinput   - user-defined boundary inputs
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
+% grid - physical grids of solution states
 % Dop - discretized PIE operators
 %
 % % Output:
@@ -41,9 +42,26 @@
 % Added solcoeff,u, solcoeff.w to solcoeff structure
 % YP 12/31/2025 - modified the treatment of disturbances and control inputs via functon
 % handles
+% YP 2/12/2026 - added handling of non-separable disturbances
 
-function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, Dop)
+function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, grid, Dop)
+syms st;
 nw=psize.nw;
+if (psize.dim==2)
+N=opts.N;
+Np=[1, N(1)+1, N(2)+1, prod(N+1)];
+
+nw_groups=[psize.nw0, psize.nwx, psize.nwy, psize.nw2];
+nw_points=nw_groups.*Np;
+cum_nwg = cumsum(nw_groups);
+cum_nwp = cumsum(nw_points);
+
+nu_groups=[psize.nu0, psize.nux, psize.nuy, psize.nu2];
+nu_points=nu_groups.*Np;
+cum_nug = cumsum(nu_groups);
+cum_nup = cumsum(nu_points);
+end
+
 nu=psize.nu;
 no=psize.no;
 dt=opts.dt;
@@ -108,15 +126,48 @@ t=0;
     % Contribution to inhomogeneous term due to boundary disturbances 
      if (isempty(B1cheb)==0&any(B1cheb,'all')~=0)
          for k = 1:numel(uinput.w)
+             if (uinput.wsep{k})
         wvec(k,1)=uinput.w{k}(t);
-        end
+             else
+        uinput.wspace{k}=subs(uinput.w{k},st,t);
+        % Relate the disturbance index to its type
+        group = find(k <= cum_nwg, 1);
+        index=cum_nwp(group-1) +(k-cum_nwg(group-1)-1)*Np(group)+1;  
+             switch group
+             case 2
+        coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
+             case 3
+        coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
+             case 4
+        coeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
+             end
+        wvec(k,1)=1;
+             end % if uinput.wsep{k}
+         end % k 
      inhom=inhom+Tcheb_inv*B1cheb*coeff.w*wvec;
      end
+
     % Contribution to inhomogeneous term due to time derivative of boundary disturbances  
      if (isempty(Twcheb)==0&any(Twcheb,'all')~=0)
           for k = 1:numel(uinput.w)
+                if (uinput.wsep{k})
           wdotvec(k,1)=uinput.wdot{k}(t);
-          end
+                else
+        uinput.wspace{k}=subs(uinput.wdot{k},st,t);
+        % Relate the disturbance index to its type
+        group = find(k <= cum_nwg, 1);
+        index=cum_nwp(group-1) +(k-cum_nwg(group-1)-1)*Np(group)+1;  
+             switch group
+             case 2
+        coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
+             case 3
+        coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
+             case 4
+        coeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
+             end
+          wdotvec(k,1)=1;
+                end % (uinput.wsep{k})
+          end % k 
      inhom=inhom-Tcheb_inv*Twcheb*coeff.w*wdotvec;
      end
      end
@@ -125,15 +176,46 @@ t=0;
     % Contribution to inhomogeneous term due to boundary inputs  
      if (isempty(B2cheb)==0&any(B2cheb,'all')~=0) 
           for k = 1:numel(uinput.u)
+                if (uinput.usep{k})
           uvec(k,1)=uinput.u{k}(t);
-          end
+                else  uinput.uspace{k}=subs(uinput.u{k},st,t);
+        % Relate the control input index to its type
+        group = find(k <= cum_nug, 1);
+        index=cum_nup(group-1) +(k-cum_nug(group-1)-1)*Np(group)+1;  
+             switch group
+             case 2
+        coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, grid.x);
+             case 3
+        coeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, grid.y);
+             case 4
+        coeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, grid);
+             end
+        uvec(k,1)=1;
+             end % if uinput.usep{k}
+         end % k 
      inhom=inhom+Tcheb_inv*B2cheb*coeff.u*uvec;
      end
     % Contribution to inhomogeneous term due to time derivative of boundary inputs  
      if (isempty(Tucheb)==0&any(Tucheb,'all')~=0)
           for k = 1:numel(uinput.u)
+                if (uinput.usep{k})
           udotvec(k,1)=uinput.udot{k}(t);
-          end
+                else
+ uinput.uspace{k}=subs(uinput.udot{k},st,t);
+        % Relate the disturbance index to its type
+        group = find(k <= cum_nug, 1);
+        index=cum_nup(group-1) +(k-cum_nug(group-1)-1)*Np(group)+1;  
+             switch group
+             case 2
+        coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, grid.x);
+             case 3
+        coeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, grid.y);
+             case 4
+        coeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, grid);
+             end
+          udotvec(k,1)=1;
+                end % (uinput.usep{k})
+          end % k 
      inhom=inhom-Tcheb_inv*Tucheb*coeff.u*udotvec;
      end
      end

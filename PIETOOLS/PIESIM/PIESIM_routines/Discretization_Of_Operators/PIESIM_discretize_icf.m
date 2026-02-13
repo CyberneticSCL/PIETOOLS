@@ -6,8 +6,11 @@
 % Inputs:
 % 1) uinput - user-defined boundary inputs, forcing and initial conditions
 % 2) psize - size of the problem
-% 3) gridall - cell array containing physical grid for states with 0th,
-% 1st, 2nd etc. degress of differentiability
+% 3) grid.x - field containing the following sub-fields:
+% grid.x.phys - physical grid.x for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
+% grid.x- cell array containing grid.xs of different degrees of differentiability
+%
+%
 %
 % Outputs:
 % 1) coeff - Chebyshev coefficients for initial conditions and forcing functions
@@ -26,7 +29,7 @@
 % YP 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
 
 
-function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
+function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,grid);
 
 % Define local variables
 
@@ -42,7 +45,7 @@ N=psize.N;
 
 p = repelem(0:length(psize.n)-1, psize.n);
 
-% Define initial conditions on states on the physcal grid for states.
+% Define initial conditions on states on the physcal grid.x for states.
 % var_f denotes the value of the solution variable of the fundamental
 % states.
 % Define Chebyshev coefficients of initial conditions in the same loop
@@ -53,7 +56,7 @@ p = repelem(0:length(psize.n)-1, psize.n);
 ic=uinput.ic.PIE;
 
 for i=1:ns
-     acheb=fcht(double(subs(ic(i),gridall{p(i)+1})));
+     acheb=fcht(double(subs(ic(i),grid.x{p(i)+1})));
      acheb_glob{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
@@ -74,7 +77,7 @@ coeff.acheb_f0=acheb_f0;
 % Discretize matrix operator for non-polynomial in space forcing
 
 if isfield(uinput,'Bpw_nonpol') 
-B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, uinput.Bpw_nonpol, p, gridall);
+B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, uinput.Bpw_nonpol, p, grid.x);
 else
 B1_nonpol=[];   
 end
@@ -97,7 +100,7 @@ if isfield(uinput,'wspace')
          end
          for kk=1:psize.nwx
              k=k+1;
-             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace(k), 0, gridall);
+             coeff.w(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.wspace(k), 0, grid.x);
              index=index+N+1;
          end 
  end
@@ -114,7 +117,7 @@ if isfield(uinput,'wspace')
          end
          for kk=1:psize.nux
              k=k+1;
-             coeff.u(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.uspace(k), 0, gridall);
+             coeff.u(index:index+N,k)=PIESIM_NonPoly2Mat_cheb(N, uinput.uspace(k), 0, grid.x);
              index=index+N+1;
          end 
  end

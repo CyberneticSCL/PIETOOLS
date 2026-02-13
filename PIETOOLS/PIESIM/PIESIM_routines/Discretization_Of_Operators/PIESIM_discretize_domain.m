@@ -1,24 +1,23 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_domain.m     PIETOOLS 2024
+% PIESIM_discretize_domain.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of the computational domain  
 %
 % Inputs:
 % 1) uinput - user-defined boundary inputs, forcing and initial conditions
-% 2) psize - size of the problem: contains the variables nu,nw,no,nf,N,n0,n1,n2
+% 2) psize - size of the problem
 %
 % Outputs:
-% 1) grid - contains physical and computational grid for n0 states
-% 2) gridall - cell array of size 3 containing physical grid for n0, n1 and
-% n2 states
-%
+% grid - field containing the following sub-fields:
+% grid.phys - physical grid for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
+% grid.x - cell array containing grids of different degrees of differentiability
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 11_05_2021
-function [grid,gridall]=PIESIM_discretize_domain(uinput,psize);
+function grid=PIESIM_discretize_domain(uinput,psize);
 
 % Define local variables
 
@@ -34,9 +33,8 @@ N=psize.N;
 % Then convert it to physical domain
 
 for i=1:length(psize.n)
-grid_comp{i} = cos(pi*(0:N-i+1)/(N-i+1))';
-gridall{i}=0.5*(b-a)*grid_comp{i}+0.5*(b+a);
+grid_comp = cos(pi*(0:N-i+1)/(N-i+1))';
+grid.x{i}=0.5*(b-a)*grid_comp+0.5*(b+a);
 end
 
-grid.phys=gridall{1};
-grid.comp=grid_comp{1};
+grid.phys=grid.x{1};

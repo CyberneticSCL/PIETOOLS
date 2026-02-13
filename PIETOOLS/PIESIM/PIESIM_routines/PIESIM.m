@@ -225,7 +225,7 @@ end
 
 disp('Setup completed: integrating in time');
 
-solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, Dop);
+solcoeff=PIESIM_time_integrate(psize, opts, uinput, coeff, grid, Dop);
 
 
 

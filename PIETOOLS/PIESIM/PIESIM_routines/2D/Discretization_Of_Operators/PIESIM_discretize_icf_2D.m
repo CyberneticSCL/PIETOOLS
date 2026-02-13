@@ -6,11 +6,12 @@
 % Inputs:
 % 1) uinput - user-defined boundary inputs, forcing and initial conditions
 % 2) psize - size of the PIE problem: all variables defining the size of the PIE problem
-% 3) gridall - cell array of size dmax containing physical grid for all states
-% depending on their degree of differentiability; dmax corresponds to the
-% maximum degree of differentiability among all the states
-%  gridall.x - grids in x direction
-%  gridall.y - grids in y direction
+% 3) grid - fields containing the following sub-fields:
+%  grid.phys - physical grid for states differentiable up to order zero (corresponding to a primary = PDE state discretization)
+%  grid.x - cell array containing grids in x direction of different degrees of differentiability
+%  grid.y - cell array containing grids in y direction of different degrees of differentiability
+%
+%
 %
 % Output:
 % coeff - Chebyshev coefficients for initial conditions and forcing functions
@@ -23,7 +24,7 @@
 % Initial coding YP  04_16_2024
 % YP 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
 
-function coeff=PIESIM_discretize_icf_2D(uinput,psize,gridall)
+function coeff=PIESIM_discretize_icf_2D(uinput,psize,grid)
 
 syms sx sy st;
 
@@ -39,7 +40,7 @@ N=psize.N;
 
         nx=sum(psize.nx,'all');
         ny=sum(psize.ny,'all');
-        n2=sum(psize.n,'all');
+        n2d=sum(psize.n,'all');
 
 % Define degree of smoothness p of 2D-1var states
 
@@ -66,21 +67,21 @@ acheb_glob{1}=[];
 
 % x states only 
 for i=1:nx
-     acheb=fcht(double(subs(ic(i),gridall.x{px(i)+1})));
+     acheb=fcht(double(subs(ic(i),grid.x{px(i)+1})));
      acheb_glob_x{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
 
 % y states only 
 for i=1:ny
-     acheb=fcht(double(subs(ic(nx+i),gridall.y{py(i)+1})));
+     acheb=fcht(double(subs(ic(nx+i),grid.y{py(i)+1})));
      acheb_glob_y{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
 
 % 2D states (x,y)
-for i=1:n2
-     acheb=fcgltran2d(double(subs(subs(ic(nx+ny+i),sx,gridall.x{p(1,i)+1}),sy,gridall.y{p(2,i)+1}')),1);
+for i=1:n2d
+     acheb=fcgltran2d(double(subs(subs(ic(nx+ny+i),sx,grid.x{p(1,i)+1}),sy,grid.y{p(2,i)+1}')),1);
      acheb_glob{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
@@ -114,17 +115,26 @@ coeff.w=1;
          end
          for kk=1:psize.nwx
              k=k+1;
-             coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, gridall.x);
+             if (~uinput.wsep{k})
+                 uinput.wspace{k}=subs(uinput.w{k},st,0);
+             end
+             coeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
              index=index+N(1)+1;
          end 
          for kk=1:psize.nwy
              k=k+1;
-             coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, gridall.y);
+              if (~uinput.wsep{k})
+                 uinput.wspace{k}=subs(uinput.w{k},st,0);
+             end
+             coeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
              index=index+N(2)+1;
          end
          for kk=1:psize.nw2
              k=k+1;
-             coeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, gridall);
+              if (~uinput.wsep{k})
+                 uinput.wspace{k}=subs(uinput.w{k},st,0);
+             end
+             coeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
              index=index+prod(N+1);
          end
  end
@@ -141,17 +151,17 @@ coeff.w=1;
          end
          for kk=1:psize.nux
              k=k+1;
-             coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace(k), 0, gridall.x);
+             coeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace(k), 0, grid.x);
              index=index+N(1)+1;
          end 
          for kk=1:psize.nuy
              k=k+1;
-             coeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace(k), 0, gridall.y);
+             coeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace(k), 0, grid.y);
              index=index+N(2)+1;
          end
          for kk=1:psize.nu2
              k=k+1;
-             coeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace(k), 0, gridall);
+             coeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace(k), 0, grid);
              index=index+prod(N+1);
          end
  end

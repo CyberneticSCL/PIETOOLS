@@ -30,7 +30,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 % --- solution.final.pde{2} - array containing the solution for states that are only the functions of s2 - 
 %      array of size (N(2)+1) x ny, ny - number of states depending only on s2
 % --- solution.final.pde{3} - array containing the solution for states that are the functions of two variables - 
-% it is array of size (N(1)+1) x (N(2)+1) x n2, n2 - number of states depending on both s1 and s2
+% it is array of size (N(1)+1) x (N(2)+1) x n2d, n2d - number of states depending on both s1 and s2
 % --- solution.final.ode - array of size no - ode solution at a final time 
 % --- solution.final.observed{1,2,3,4} - cell array containing final value of observed outputs 
 % --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
@@ -62,7 +62,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 % --- solution.timedep.pde{2} - array containing the solution for states that are only the functions of s2 - 
 %      array of size (N(2)+1) x ny x Nsteps, ny - number of states depending only on s2
 % --- solution.timedep.pde{3} - array containing the solution for states that are the functions of two variables - 
-%      array of size (N(1)+1) x (N(2)+1) x n2 x Nsteps, n2 - number of states depending on both s1 and s2
+%      array of size (N(1)+1) x (N(2)+1) x n2d x Nsteps, n2d - number of states depending on both s1 and s2
 % --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 % --- solution.timedep.observed{1,2,3,4} - cell array containing time-dependent 
 %      observed outputs 
@@ -101,12 +101,26 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
 % integration schemes
 %----------------------------------------
 
+    syms st;
+
 % Define local variables
-     N=psize.N;
+    N=psize.N;
+    Np=[1, N(1)+1, N(2)+1, prod(N+1)];
+
+    nw_groups=[psize.nw0, psize.nwx, psize.nwy, psize.nw2];
+    nw_points=nw_groups.*Np;
+    cum_nwg = cumsum(nw_groups);
+    cum_nwp = cumsum(nw_points);
+
+    nu_groups=[psize.nu0, psize.nux, psize.nuy, psize.nu2];
+    nu_points=nu_groups.*Np;
+    cum_nug = cumsum(nu_groups);
+    cum_nup = cumsum(nu_points);
+
      no=psize.no;
      nx=sum(psize.nx,'all');
      ny=sum(psize.ny,'all');
-     n2=sum(psize.n,'all');
+     n2d=sum(psize.n,'all');
      nro_sum=psize.nro+psize.nrox+psize.nroy+psize.nro2;
      noo_sum=psize.noo+psize.noox+psize.nooy+psize.noo2;
      Tcheb_2PDEstate=Dop.Tcheb_2PDEstate; 
@@ -144,7 +158,23 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      % Define inhomogeneous contributions due to boundary disturbances 
      if (psize.nw>0)
       for k = 1:numel(uinput.w)
+             if (uinput.wsep{k})
         wvec(k,1)=uinput.w{k}(tf); 
+             else
+        uinput.wspace{k}=subs(uinput.w{k},st,tf);
+        % Relate the disturbance index to its type
+        group = find(k <= cum_nwg, 1);
+        index=cum_nwp(group-1) +(k-cum_nwg(group-1)-1)*Np(group)+1;  
+             switch group
+             case 2
+        solcoeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
+             case 3
+        solcoeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
+             case 4
+        solcoeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
+             end
+        wvec(k,1)=1;
+             end
       end
      acheb_p=acheb_p+Twcheb_2PDEstate*solcoeff.w*wvec;
      end % psize.nw>0
@@ -153,8 +183,23 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      % Define inhomogeneous contributions due to boundary inputs
      if (psize.nu>0)
         for k = 1:numel(uinput.u)
+             if (uinput.usep{k})
         uvec(k,1)=uinput.u{k}(tf); 
-        end
+             else uinput.uspace{k}=subs(uinput.u{k},st,tf);
+        % Relate the control input index to its type
+        group = find(k <= cum_nug, 1);
+        index=cum_nup(group-1) +(k-cum_nug(group-1)-1)*Np(group)+1;  
+             switch group
+             case 2
+        solcoeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, grid.x);
+             case 3
+        solcoeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, grid.y);
+             case 4
+        solcoeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, grid);
+             end
+        uvec(k,1)=1;
+             end
+      end
      acheb_p=acheb_p+Tucheb_2PDEstate*solcoeff.u*uvec;
      end % psize.nu>0
      
@@ -179,7 +224,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grid,
      end % ny
 
      % Reconstruct 2D states
-     for n=1:n2
+     for n=1:n2d
          nprev=no+(N+1)*[nx;ny];
      ni=nprev+1+(n-1)*prod(N+1);
      nii=nprev+n*prod(N+1);
@@ -318,16 +363,48 @@ if (opts.intScheme==1&opts.tf~=0)
      % Define inhomogeneous contributions due to disturbances
      if (psize.nw>0)
         for k = 1:numel(uinput.w)
+             if (uinput.wsep{k})
         wvec(k,1)=uinput.w{k}(tt); 
-     end
+         else
+        uinput.wspace{k}=subs(uinput.w{k},st,tt);
+        % Relate the disturbance index to its type
+        group = find(k <= cum_nwg, 1);
+        index=cum_nwp(group-1) +(k-cum_nwg(group-1)-1)*Np(group)+1;  
+             switch group
+             case 2
+        solcoeff.w(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.wspace{k}, 0, grid.x);
+             case 3
+        solcoeff.w(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.wspace{k}, 0, grid.y);
+             case 4
+        solcoeff.w(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.wspace{k}, 0, grid);
+             end % swtich group
+        wvec(k,1)=1;
+             end %  if (uinput.wsep{k})
+             end %  for k = 1:numel(uinput.w)
      acheb_p=acheb_p+Twcheb_2PDEstate*solcoeff.w*wvec;
      end % psize.nw>0
 
      % Define inhomogeneous contributions due to controlled inputs
     if (psize.nu>0)
     for k = 1:numel(uinput.u)
+             if (uinput.usep{k})
     uvec(k,1)=uinput.u{k}(tt); 
-    end
+             else
+                  uinput.uspace{k}=subs(uinput.u{k},st,tt);
+        % Relate the control input index to its type
+        group = find(k <= cum_nug, 1);
+        index=cum_nup(group-1) +(k-cum_nug(group-1)-1)*Np(group)+1;  
+             switch group
+             case 2
+        solcoeff.u(index:index+N(1),k)=PIESIM_NonPoly2Mat_cheb(N(1), uinput.uspace{k}, 0, grid.x);
+             case 3
+        solcoeff.u(index:index+N(2),k)=PIESIM_NonPoly2Mat_cheb(N(2), uinput.uspace{k}, 0, grid.y);
+             case 4
+        solcoeff.u(index:index+prod(N+1)-1,k)=PIESIM_NonPoly2Mat_cheb_2D(N, uinput.uspace{k}, 0, grid);
+             end % swtich group
+        uvec(k,1)=1;
+             end %  if (uinput.usep{k})
+             end %  for k = 1:numel(uinput.u)
      acheb_p=acheb_p+Tucheb_2PDEstate*solcoeff.u*uvec;
  end % psize.nu>0
      
@@ -352,7 +429,7 @@ if (opts.intScheme==1&opts.tf~=0)
      end % ny
 
      % Reconstruct 2D states
-     for n=1:n2
+     for n=1:n2d
          nprev=no+(N+1)*[nx;ny];
          ni=nprev+1+(n-1)*prod(N+1);
          nii=nprev+n*prod(N+1);

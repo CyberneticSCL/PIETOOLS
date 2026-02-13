@@ -127,6 +127,13 @@ if (~ismember(opts.Norder,[1,2,3,4]))
     disp(X);
 end
 
+% Check if time step and final time are defined correctly
+
+if (opts.tf<opts.dt)
+    disp('Warning: final time is less than the time step. Defaulting final time to zero');
+    opts.tf=0;
+end
+
 
 %-------------------------------------
 % Determine the type of the problem
