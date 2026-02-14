@@ -15,7 +15,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % --- solution.final.pde{2} - array containing the solution for states that are only the functions of s2 - 
 %      array of size (N(2)+1) x ny, ny - number of states depending only on s2
 % --- solution.final.pde{3} - array containing the solution for states that are the functions of two variables - 
-% it is array of size (N(1)+1) x (N(2)+1) x n2d, n2d - number of states depending on both s1 and s2
+% it is array of size (N(1)+1) x (N(2)+1) x n2, n2 - number of states depending on both s1 and s2
 % --- solution.final.ode - array of size no - ode solution at a final time 
 % --- solution.final.observed{1,2,3,4} - cell array containing final value of observed outputs 
 % --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
@@ -47,7 +47,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % --- solution.timedep.pde{2} - array containing the solution for states that are only the functions of s2 - 
 %      array of size (N(2)+1) x ny x Nsteps, ny - number of states depending only on s2
 % --- solution.timedep.pde{3} - array containing the solution for states that are the functions of two variables - 
-%      array of size (N(1)+1) x (N(2)+1) x n2d x Nsteps, n2d - number of states depending on both s1 and s2
+%      array of size (N(1)+1) x (N(2)+1) x n2 x Nsteps, n2 - number of states depending on both s1 and s2
 % --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 % --- solution.timedep.observed{1,2,3,4} - cell array containing time-dependent 
 %      observed outputs 
