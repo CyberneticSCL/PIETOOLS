@@ -30,7 +30,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
 % --- solution.final.pde{2} - array containing the solution for states that are only the functions of s2 - 
 %      array of size (N(2)+1) x ny, ny - number of states depending only on s2
 % --- solution.final.pde{3} - array containing the solution for states that are the functions of two variables - 
-% it is array of size (N(1)+1) x (N(2)+1) x n2d, n2d - number of states depending on both s1 and s2
+% it is array of size (N(1)+1) x (N(2)+1) x n2, n2 - number of states depending on both s1 and s2
 % --- solution.final.ode - array of size no - ode solution at a final time 
 % --- solution.final.observed{1,2,3,4} - cell array containing final value of observed outputs 
 % --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
@@ -62,7 +62,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
 % --- solution.timedep.pde{2} - array containing the solution for states that are only the functions of s2 - 
 %      array of size (N(2)+1) x ny x Nsteps, ny - number of states depending only on s2
 % --- solution.timedep.pde{3} - array containing the solution for states that are the functions of two variables - 
-%      array of size (N(1)+1) x (N(2)+1) x n2d x Nsteps, n2d - number of states depending on both s1 and s2
+%      array of size (N(1)+1) x (N(2)+1) x n2 x Nsteps, n2 - number of states depending on both s1 and s2
 % --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
 % --- solution.timedep.observed{1,2,3,4} - cell array containing time-dependent 
 %      observed outputs 
@@ -120,7 +120,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
      no=psize.no;
      nx=sum(psize.nx,'all');
      ny=sum(psize.ny,'all');
-     n2d=sum(psize.n,'all');
+     n2=sum(psize.n,'all');
      nro_sum=psize.nro+psize.nrox+psize.nroy+psize.nro2;
      noo_sum=psize.noo+psize.noox+psize.nooy+psize.noo2;
      Tcheb_2PDEstate=Dop.Tcheb_2PDEstate; 
@@ -224,13 +224,13 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
      end % ny
 
      % Reconstruct 2D states
-     for n=1:n2d
+     for n=1:n2
          nprev=no+(N+1)*[nx;ny];
      ni=nprev+1+(n-1)*prod(N+1);
      nii=nprev+n*prod(N+1);
      acheb_p_local_2D=acheb_p(ni:nii);
      acheb_local_2D=reshape(acheb_p_local_2D,N(1)+1,N(2)+1);
-     solution.final.pde{3}(:,:,n)=fcgltran2d(acheb_local_2D,0);
+     solution.final.pde{3}(:,:,n)=fcgltran2(acheb_local_2D,0);
      end % ns
      solution.final.ode=solcoeff.final(1:no);
 
@@ -279,7 +279,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
      nii=nprev+n*prod(N+1);
      coeff_final_regulated_local=coeff_final_regulated(ni:nii);
      coeff_final_regulated_local_2D=reshape(coeff_final_regulated_local,N(1)+1,N(2)+1);
-     solution.final.regulated{4}(:,:,n)=fcgltran2d(coeff_final_regulated_local_2D,0);
+     solution.final.regulated{4}(:,:,n)=fcgltran2(coeff_final_regulated_local_2D,0);
      end % nro2
   
     end % nro_sum>0
@@ -325,7 +325,7 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
      nii=nprev+n*prod(N+1);
      coeff_final_observed_local=coeff_final_observed(ni:nii);
      coeff_final_observed_local_2D=reshape(coeff_final_observed_local,N(1)+1,N(2)+1);
-     solution.final.observed{4}(:,:,n)=fcgltran2d(coeff_final_observed_local_2D,0);
+     solution.final.observed{4}(:,:,n)=fcgltran2(coeff_final_observed_local_2D,0);
      end % nro2
 
     end  % noo_sum
@@ -429,13 +429,13 @@ if (opts.intScheme==1&opts.tf~=0)
      end % ny
 
      % Reconstruct 2D states
-     for n=1:n2d
+     for n=1:n2
          nprev=no+(N+1)*[nx;ny];
          ni=nprev+1+(n-1)*prod(N+1);
          nii=nprev+n*prod(N+1);
      acheb_p_local=acheb_p(ni:nii);
      acheb_local_2D=reshape(acheb_p_local,N(1)+1,N(2)+1);
-     solution.timedep.pde{3}(:,:,n,ntime)=fcgltran2d(acheb_local_2D,0);
+     solution.timedep.pde{3}(:,:,n,ntime)=fcgltran2(acheb_local_2D,0);
      end % ns
 
 
@@ -479,7 +479,7 @@ if (opts.intScheme==1&opts.tf~=0)
      nii=nprev+n*prod(N+1);
      coeff_timedep_regulated_local=coeff_timedep_regulated(ni:nii);
      coeff_timedep_regulated_local_2D=reshape(coeff_timedep_regulated_local,N(1)+1,N(2)+1);
-     solution.timedep.regulated{4}(:,:,n,ntime)=fcgltran2d(coeff_timedep_regulated_local_2D,0);
+     solution.timedep.regulated{4}(:,:,n,ntime)=fcgltran2(coeff_timedep_regulated_local_2D,0);
      end % nro2
   
     end % nro_sum>0
@@ -525,7 +525,7 @@ if (opts.intScheme==1&opts.tf~=0)
      nii=nprev+n*prod(N+1);
      coeff_timedep_observed_local=coeff_timedep_observed(ni:nii);
      coeff_timedep_observed_local_2D=reshape(coeff_timedep_observed_local,N(1)+1,N(2)+1);
-     solution.timedep.observed{4}(:,:,n,ntime)=fcgltran2d(coeff_timedep_observed_local_2D,0);
+     solution.timedep.observed{4}(:,:,n,ntime)=fcgltran2(coeff_timedep_observed_local_2D,0);
      end % nro2
 
     end  % noo_sum
