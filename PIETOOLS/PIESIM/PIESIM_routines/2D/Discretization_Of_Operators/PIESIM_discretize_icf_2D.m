@@ -78,7 +78,7 @@ end
 
 % 2D states (x,y)
 for i=1:n2
-     acheb=fcgltran2(double(subs(subs(ic(nx+ny+i),sx,gridall.x{p(1,i)+1}),sy,gridall.y{p(2,i)+1}')),1);
+     acheb=fcgltran2d(double(subs(subs(ic(nx+ny+i),sx,gridall.x{p(1,i)+1}),sy,gridall.y{p(2,i)+1}')),1);
      acheb_glob{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
