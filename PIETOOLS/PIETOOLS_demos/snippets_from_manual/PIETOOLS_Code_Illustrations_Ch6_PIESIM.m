@@ -28,6 +28,8 @@
 % authorship, and a brief description of modifications
 %
 % DJ, 01/01/2025: Initial coding;
+% VJ, 02/14/2026: Added Section 6.4.2 (1D Cylindrical PDE example);
+% updated section numbering accordingly.
 clc; clear; close all; clear stateNameGenerator
 
 %% 6.4.1: 1D PDE Example
@@ -36,8 +38,8 @@ clc; clear; close all; clear stateNameGenerator
 % Declare initial conditions and disturbance
 syms sx st;
 uinput.exact(1) = -2*sx*st-sx^2;
-uinput.w{1} = 0;        % disturbance at lower boundary
-uinput.w{2} = -4*st-4;  % disturbance at upper boundary
+uinput.w(1) = 0;        % disturbance at lower boundary
+uinput.w(2) = -4*st-4;  % disturbance at upper boundary
 uinput.ic.PDE = -sx^2;
 % Declare discretization and temporal integration options
 opts.ifexact = true;
@@ -90,7 +92,90 @@ ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
 
 
 
-%% 6.4.2: 2D PDE Example
+%% 6.4.2: 1D Cylindrical PDE Example
+clear PDE uinput
+% Declare the PDE to simulate
+[PDE,uinput] = examples_pde_library_PIESIM_1D(39);
+
+syms sx st;
+alpha = 4;
+j01 = 2.4048;
+% Set the exact solution
+% u(r,t) = J0(j01*r)*exp(-alpha*j01^2*t)
+uinput.exact(1) = besselj(0,j01*sx)*exp(-alpha*j01^2*st);
+
+% Set initial condition
+uinput.ic.PDE = besselj(0,j01*sx);
+
+% Declare discretization and time-integration options
+opts.ifexact = true;
+opts.plot = 'yes';
+opts.N = 16;
+opts.tf = 1;
+opts.Norder = 2;
+opts.dt = 1e-3;
+[solution,grid] = PIESIM(PDE,opts,uinput);
+tval = solution.timedep.dtime;
+xval = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
+
+% Extract the solution
+plot_indcs = floor(linspace(1,length(tval),100));
+tplot = tval(plot_indcs);
+x_sim = xval(:,plot_indcs);
+x_true = double(subs(subs(uinput.exact(1),st,tplot),sx,grid.phys(:)));
+
+% Plot the evolution and final state
+fig1 = figure('Position',[200 50 900 350]); 
+set(gcf,'Color','w');
+subplot(1,2,1);
+box on
+surf(grid.phys,tplot,x_sim',...
+    'FaceAlpha',0.75,...
+    'Linestyle','--',...
+    'FaceColor','interp',...
+    'MeshStyle','column');
+colormap jet;
+colorbar;
+
+subplot(1,2,2);
+box on
+plot(grid.phys(:),x_sim(:,end),'rd',...
+    'LineWidth',4,...
+    'DisplayName','Numerical solution');
+hold on
+plot(grid.phys(:),x_true(:,end),'k-',...
+    'LineWidth',2,...
+    'DisplayName','Analytic solution');
+hold off
+sgtitle('Simulated PDE State Evolution',...
+    'Interpreter','latex','FontSize',17)
+
+ax1 = subplot(1,2,1);
+ax1.TickLabelInterpreter = 'latex';
+ax1.Position = [0.08,0.12,0.33,0.68];
+box on
+title('Evolution of PDE state $\mathbf{x}(t,r)$',...
+    'Interpreter','latex','FontSize',15);
+xlabel('$r$','FontSize',15,'Interpreter','latex');  
+ylabel('$t$','FontSize',15,'Interpreter','latex');
+zlabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
+
+ax2 = subplot(1,2,2);
+ax2.TickLabelInterpreter = 'latex';
+ax2.Position = [0.6,0.15,0.33,0.65];
+legend('Location','northeast',...
+       'Interpreter','latex','FontSize',15);
+box on
+title(['Final PDE state $\mathbf{x}(t=',...
+       num2str(opts.tf),',r)$'],...
+       'Interpreter','latex','FontSize',15);
+xlabel('$r$','FontSize',15,'Interpreter','latex');  
+ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
+%saveas(fig1,'Ch6_ExB_1D_Cylindrical','epsc');
+
+
+
+%% 6.4.3: 2D PDE Example
 clear PDE uinput
 % Declare the desired 2D PDE
 [PDE,~] = examples_pde_library_PIESIM_2D(9);
@@ -194,7 +279,7 @@ ax2.Position = [0.57,0.11,0.3,0.72];
 
 
 
-%% 6.4.3: DDE Simulation
+%% 6.4.4: DDE Simulation
 clear DDE uinput; close all
 % Declare the DDE to simulate
 DDE.A0 = [-1 2;0 1];      DDE.Ai{1} = [.6 -.4; 0 0];
@@ -234,7 +319,7 @@ xlabel('$t$','FontSize',14,'Interpreter','latex');
 
 
 
-%% 6.4.4 PIE Simulation
+%% 6.4.5 PIE Simulation
 % Synthesize an optimal controller for the DDE in PIE representation
 PIE = convert_PIETOOLS_DDE(DDE,'pie');
 [~, K, gam] = lpiscript(PIE,'hinf-controller','light');
