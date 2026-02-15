@@ -154,9 +154,9 @@ ax1 = subplot(1,2,1);
 ax1.TickLabelInterpreter = 'latex';
 ax1.Position = [0.08,0.12,0.33,0.68];
 box on
-title('Evolution of PDE state $\mathbf{x}(t,r)$',...
+title('Evolution of PDE state $\mathbf{x}(t,s)$',...
     'Interpreter','latex','FontSize',15);
-xlabel('$r$','FontSize',15,'Interpreter','latex');  
+xlabel('$s$','FontSize',15,'Interpreter','latex');  
 ylabel('$t$','FontSize',15,'Interpreter','latex');
 zlabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
 
@@ -167,9 +167,9 @@ legend('Location','northeast',...
        'Interpreter','latex','FontSize',15);
 box on
 title(['Final PDE state $\mathbf{x}(t=',...
-       num2str(opts.tf),',r)$'],...
+       num2str(opts.tf),',s)$'],...
        'Interpreter','latex','FontSize',15);
-xlabel('$r$','FontSize',15,'Interpreter','latex');  
+xlabel('$s$','FontSize',15,'Interpreter','latex');  
 ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
 %saveas(fig1,'Ch6_ExB_1D_Cylindrical','epsc');
 
