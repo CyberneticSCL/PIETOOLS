@@ -1818,9 +1818,9 @@ uinput.exact(2) =  A*(sx-vx*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigm
 
 
 %----------------------------------------
-%% Example 29 - Advection of vorticity by non-uniform velocity fields
+%% Example 28 - Advection of vorticity by non-uniform velocity fields
 %----------------------------------------
-case 29
+case 28
 % Transport equation 
     % %   u_{t}(x,y,t) = -(alpha x + beta y)*u_{x}(x,y,t)-(-beta x - alpha y)*u_{y}(x,y,t) 
 
@@ -1872,9 +1872,9 @@ uinput.w(1)=subs(uinput.exact,sx,a);
 uinput.w(2)=subs(uinput.exact,sy,d);
 
 %----------------------------------------
-%% Example 30 - Advection of vorticity with added mean flow
+%% Example 29 - Advection of vorticity with added mean flow
 %----------------------------------------
-case 30
+case 29
     % Transport equation 
     % %   u_{t}(x,y,t) = -(U0+alpha x + beta y)*u_{x}(x,y,t)-(V0-beta x - alpha y)*u_{y}(x,y,t) 
 
@@ -1926,9 +1926,9 @@ uinput.w(1)=subs(uinput.exact,sx,a);
 uinput.w(2)=subs(uinput.exact,sy,c);
 
 %----------------------------------------
-%% Example 31 - Advection of vorticity with quadratic fields
+%% Example 30 - Advection of vorticity with quadratic fields
 %----------------------------------------
-case 31
+case 30
 
     % %   u_{t}(x,y,t) = -alpha x^2*u_{x}(x,y,t)-beta y*u_{y}(x,y,t) 
 
@@ -1976,9 +1976,9 @@ uinput.ic.PDE=subs(uinput.exact,st,0);
 
 
 %----------------------------------------
-%% Example 32 - Advection of vorticity with quadratic plus mean field
+%% Example 31 - Advection of vorticity with quadratic plus mean field
 %----------------------------------------
-case 32
+case 31
 
     % %   u_{t}(x,y,t) = -(U0+alpha x)*u_{x}(x,y,t)-beta y^2*u_{y}(x,y,t) 
 
