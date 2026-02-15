@@ -67,11 +67,11 @@ end
             Rint=polynomial(1,Rstrip.degmat(1,index),Rstrip.varname(index),Rstrip.matdim);
             op_int=PIESIM_PI2Mat_opint_cheb(Ncol, Rint, 0);
             if (dir=='x')
-            for jrow=1:N+1
+            for jrow=1:Nrow+1
             A(jrow,:)=A(jrow,:)+kron(op_int,op_comp(jrow,:));
             end
             else
-            for jrow=1:N+1
+            for jrow=1:Nrow+1
             A(jrow,:)=A(jrow,:)+kron(op_comp(jrow,:),op_int);
             end
             end
