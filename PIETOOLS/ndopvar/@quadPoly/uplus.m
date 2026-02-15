@@ -1,3 +1,3 @@
 function A = uplus(A)
-% do nothing.
+% Trivial. Do nothing. Given A, returns +A
 end

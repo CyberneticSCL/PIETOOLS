@@ -1,5 +1,5 @@
 function H = transpose(F)
-%transpose Transpose of quadPoly WITHOUT swapping left/right variables.
+%transpose Transpose of quadPoly.
 %
 % If F(s,t) = (I_m ⊗ Zs(s)^T) * C * (I_n ⊗ Zt(t)),
 % then H(s,t) = F(s,t)' is represented as
@@ -26,8 +26,8 @@ b  = mod(j-1, dt) + 1;        % 1..dt
 jb = floor((j-1) / dt);       % 0..n-1
 
 % Swap ONLY the outer block indices (ib <-> jb)
-i2 = jb * ds + a;             % rows: n blocks of size ds
-j2 = ib * dt + b;             % cols: m blocks of size dt
+i2 = jb*ds + a;             % rows: n blocks of size ds
+j2 = ib*dt + b;             % cols: m blocks of size dt
 
 Cnew = sparse(i2, j2, v, n*ds, m*dt);
 

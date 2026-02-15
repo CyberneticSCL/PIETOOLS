@@ -1,0 +1,21 @@
+@quadPoly/
+    private/
+        liftIndex   (done)
+        unionBasis    (done)
+    ctranspose, transpose   (done)
+    plus, minus, uplus, uminus  (done)
+    mtimes (done), kron, times
+    diff, jacobian, hessian
+    int
+    subs, var_swap   (done)
+    subsref, subsasgn, end   (done)
+    numel, size   (done)
+    horzcat, vertcat   (done)
+    blkdiag, 
+    randquadPoly, sym2quadPoly, polynomial2quadPoly, quadPoly2polynomial   (done)
+    clean, combine
+    lr (done), svd
+    repmat, reshape
+    trace, det
+    eq, isempty  (done)
+    disp    (done)

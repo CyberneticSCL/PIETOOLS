@@ -8,7 +8,8 @@ function H = plus(F, G)
 %   H = F+G a quadPoly object
 
 % Fast path: if the monomials are same, just add coefficients
-if isequal(F.ns,G.ns) && isequal(F.nt,G.nt) && isequal(F.Zs,G.Zs) && isequal(F.Zt,G.Zt)
+if isequal(F.ns,G.ns) && isequal(F.nt,G.nt) ...
+        && isequal(F.Zs,G.Zs) && isequal(F.Zt,G.Zt)
     H = quadPoly(F.C + G.C, F.Zs, F.Zt, F.dim, F.ns, F.nt);
     return;
 end
