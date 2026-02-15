@@ -47,6 +47,9 @@ function [PDE_1_out,PDE_2_out,new_obnums_1,new_obnums_2] = pde_common_basis(PDE_
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 06/23/2024
+% DJ, 02/15/2026: Reorder state, input, and output variables based on the
+%                   value of their IDs, i.e. in the order in which they are
+%                   generated;
 
 % % Since state variables and inputs may appear both in PDE_1 and PDE_2, we
 % % will have to be careful to combine them in the structure.
@@ -59,7 +62,7 @@ for kk=1:n_objs
     obj = objs{kk};
     tab_1 = PDE_1.([obj,'_tab']);     tab_2 = PDE_2.([obj,'_tab']);
     tab_full = [tab_1;tab_2];
-    [new_IDs,idcs1,idcs2] = unique(tab_full(:,1),'stable');   % new_IDs = tab_full(idcs1,1);      tab_full(:,1) = new_IDs(idcs2);
+    [new_IDs,idcs1,idcs2] = unique(tab_full(:,1));   % new_IDs = tab_full(idcs1,1);      tab_full(:,1) = new_IDs(idcs2);
     % Output PDE structures both have the combined table
     PDE_1_out.([obj,'_tab']) = tab_full(idcs1,:);
     PDE_2_out.([obj,'_tab']) = tab_full(idcs1,:);
