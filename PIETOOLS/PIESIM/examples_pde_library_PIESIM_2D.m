@@ -1557,7 +1557,7 @@ case 24
 % %   u_{t}(x,y,t) = u_{xx}(x,y,t) +u_{yy}(x,y,t) +w1(x,y,t)    (x,y) in [-1,1]x[-1,1]
 % % with forcing along all boundaries
 % %   u(-1,y,t) = w2(y,t);       u(1,y,t) = w3(y,t);
-% %   u(x,-1,t) = w4(x,t);       u(x,1,t) = w5(y,t);
+% %   u(x,-1,t) = w4(x,t);       u(x,1,t) = w5(x,t);
 % % Using forcing
 % %   w1(x,y,t) = ((1.5*pi)^2*t+1)*ampl*y*sin(1.5*pi*x)
 % %   w2(y,t) = ampl*y*t;                 w3(y,t) = -ampl*y*t;
@@ -1579,8 +1579,10 @@ ampl = 1;
 % Declare the variables
 x = pde_var([s1;s2],[a,b;c,d]);
 w1 = pde_var('input',[s1;s2],[a,b;c,d]);
-w2 = pde_var('input',s2,[c,d]);     w4 = pde_var('input',s1,[a,b]);
-w3 = pde_var('input',s2,[c,d]);     w5 = pde_var('input',s1,[a,b]);
+w2 = pde_var('input',s2,[c,d]);    
+w3 = pde_var('input',s2,[c,d]);     
+w4 = pde_var('input',s1,[a,b]);
+w5 = pde_var('input',s1,[a,b]);
 % Declare the dynamics
 Dyn = [diff(x,t)==diff(x,s1,2)+diff(x,s2,2)+w1];
 % Declare the boundary conditions
