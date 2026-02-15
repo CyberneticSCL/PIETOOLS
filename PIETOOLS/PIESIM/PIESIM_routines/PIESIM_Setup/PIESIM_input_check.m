@@ -195,7 +195,7 @@ end
 
      if (PDE.dim==1)
     % Check if the problem size is defined correctly
-     if length(opts.N>1)
+     if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
@@ -274,8 +274,12 @@ end
         end
         if ~isempty(symvar(sym(uinput.ic.x))) && any(~ismember(symvar(uinput.ic.x),{'sx';'sy'}))
             error('Initial conditions for PDE must be symbolic expressions in sx (and sy for 2D PDEs)');
-        elseif size(uinput.ic.x,2)~=(psize.no + ns)
-            error('Number of initial conditions should match the number of state variables')
+        elseif size(uinput.ic.x,2)>(psize.no + ns)
+        disp('Warning: Number of initial conditions is greater than the number of states. Extra initial conditions will be ignored.');
+        uinput.ic.x(psize.no+ns+1:size(uinput.ic.x,2))=[];
+        elseif size(uinput.ic.x,2)<(psize.no + ns)
+        disp('Warning: Number of initial conditions is less than the number of states. Defaulting the rest to zer.');
+        uinput.ic.x(size(uinput.ic.x,2)+1:psize.no+ns)=sym(0);
         end
         if ~issorted(x_order)
         uinput.ic.x = uinput.ic.x(x_order); % Reorder initial conditions to match new ordering of state components.
@@ -317,12 +321,11 @@ end
     if(size(uinput.ic.PDE,2)<ns)
         disp('Warning: Number of initial conditions on PDE states is less than the number of PDE states');
         disp('Defaulting the rest to zero');
-        uinput.ic.PDE(1,size(uinput.ic.PDE,2)+1:ns)=sym(0);
+        uinput.ic.PDE(size(uinput.ic.PDE,2)+1:ns)=sym(0);
     elseif(size(uinput.ic.PDE,2)>ns)
         disp('Warning: Number of initial conditions on PDE states is greater than the number of PDE states');
-        disp('Defaulting all initial conditions to zero');
-        uinput.ic=rmfield(uinput.ic,'PDE');
-        uinput.ic.PDE(1:ns)=sym(0);
+        disp('Extra conditions will be ignored');
+        uinput.ic.PDE(ns+1:size(uinput.ic.PDE,2))=[];
     end
     % Reorder initial conditions only if it has bot been reordered already
         if ~issorted(x_order) & ~ireorder
@@ -437,7 +440,7 @@ elseif (opts.type=='DDE')
     psize.nw=size(PIE.Tw,2); % number of control inputs
 
     % Check if the problem size is defined correctly
-     if length(opts.N>1)
+    if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
@@ -594,7 +597,7 @@ elseif (opts.type=='PIE')
      if (psize.dim==1)
 
             % Check if the problem size is defined correctly
-     if length(opts.N>1)
+    if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
@@ -736,7 +739,7 @@ opts=varargin{3};
 PDE=structure;
 % Checking of the PDE inputs begins
 
-if length(opts.N>1)
+if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
@@ -962,7 +965,7 @@ psize.dim=1;
 
 % Define problem size for discretization
 
-if length(opts.N>1)
+if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
 end
