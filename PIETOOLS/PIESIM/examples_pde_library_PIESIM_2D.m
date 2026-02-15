@@ -25,7 +25,8 @@
 % Initial coding YP  - 5_29_2021
 % YP 6/16/2022 - updated to include terms format and added more examples in
 % terms format
-% DJ, 01/04/2024: Use pde_var to declare examples, update Example 19;
+% DJ, 01/04/2024: Use pde_var to declare examples;
+% YP, 2/15/2026: Added examples with inhomogeneous boundary conditions
 
 
 function [PDE,uinput]=examples_pde_library_PIESIM_2D(example)
@@ -1516,8 +1517,10 @@ ampl = 10;
 % % Declare the PDE
 % Declare the variables
 x = pde_var([s1;s2],[a,b;c,d]);
-w1 = pde_var('input',s2,[c,d]);     w3 = pde_var('input',s1,[a,b]);
-w2 = pde_var('input',s2,[c,d]);     w4 = pde_var('input',s1,[a,b]);
+w1 = pde_var('input',s2,[c,d]);     
+w2 = pde_var('input',s2,[c,d]);    
+w3 = pde_var('input',s1,[a,b]);
+w4 = pde_var('input',s1,[a,b]);
 % Declare the dynamics
 Dyn = [diff(x,t)==diff(x,s1,2)+diff(x,s2,2)+(2.5*pi)^2*x];
 % Declare the boundary conditions
