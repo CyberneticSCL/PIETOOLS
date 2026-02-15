@@ -58,7 +58,7 @@ echo on
 % Declare independent variables
 pvar t s;   
 % Declare state, input, and output variables
-phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
+x = pde_var('state',1,[],[]);       phi = pde_var('state',2,s,[0,1]);
 w = pde_var('input',1);             r = pde_var('output',1);
 % Declare system parameters
 c=1;    b=.01;
