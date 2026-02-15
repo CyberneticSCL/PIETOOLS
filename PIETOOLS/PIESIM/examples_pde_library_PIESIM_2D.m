@@ -1345,8 +1345,10 @@ lam = 0.5;       ampl = 5;
 % % Declare the PDE
 % Declare the variables
 x1 = pde_var([s1;s2],[a,b;c,d]);    x1.diff = [2,2];
-x2 = pde_var(s1,[a,b]);             x4 = pde_var(s1,[a,b]);
-x3 = pde_var(s2,[c,d]);             x5 = pde_var(s2,[c,d]);
+x2 = pde_var(s1,[a,b]);             
+x3 = pde_var(s2,[c,d]);             
+x4 = pde_var(s1,[a,b]);
+x5 = pde_var(s2,[c,d]);
 % Declare the dynamics
 Dyn = [diff(x1,t)==lam*diff(x1,[s1;s2]);
        diff(x2,t)==lam*diff(x2,s1,2);
