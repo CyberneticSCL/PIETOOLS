@@ -106,11 +106,11 @@ end
 %------------------------------------------------------------------------------
 % For 1D problems: example = xxx (between 1 and 41) to correspond to an Example number in
 % the 'examples_pde_library_PIESIM_1D.m'
-% For 2D problems: example = xxx (between 1 and 31) to correspond to an Example number in
+% For 2D problems: example = xxx (between 1 and 32) to correspond to an Example number in
 % the 'examples_pde_library_PIESIM_2D.m'
 %------------------------------------------------------------------------------
 
-    example=31;
+    example=32;
 
     if (dim==1)
     if (example<1|example>41)
@@ -119,7 +119,7 @@ end
     end
     [PDE,uinput]=examples_pde_library_PIESIM_1D(example);
     else   % dim=2
-    if (example<1|example>31)
+    if (example<1|example>32)
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
         example=1;
     end
