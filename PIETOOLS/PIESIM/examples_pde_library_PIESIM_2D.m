@@ -94,9 +94,8 @@ uinput.ic.PDE=  subs(uinput.exact,st,0);
 
 % u(x,y,t)=(sin(pi*x)+sin(pi*y))*exp(-2*visc*pi^2*t) - solution for
 % u_t=visc*(uxx+uyy)
-% Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
         
-% Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) + f(s1,s2,t)
+% Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) 
 a=-1.1;b=0.8;
 c=-0.9;d=0.7;
 uinput.dom=[a b;c d]; 
@@ -114,7 +113,7 @@ x = pde_var([s1;s2],[a,b;c,d]);
 % Declare the dynamics
 Dyn = [diff(x,t)==c1*diff(x,s1,2)+c2*diff(x,s2,2)];
 % Declare the boundary conditions
-BCs = [subs(diff(x,s1),s1,a)==w1; subs(x,s2,c)==w2;  subs(x,s1,b)==w3;  subs(diff(x,s2),s2,d)==w4];
+BCs = [subs(x1,s1,a)==w1; subs(x,s2,c)==w2;  subs(x,s1,b)==w3;  subs(x,s2,d)==w4];
 % Initialize the PDE
 PDE = initialize([Dyn;BCs]);
 
@@ -123,10 +122,10 @@ PDE = initialize([Dyn;BCs]);
 uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
 % Initial conditions for the primary states of the PDE
 uinput.ic.PDE=  subs(uinput.exact,st,0);
- uinput.w(1)=subs(diff(uinput.exact,sx),sx,a);
+ uinput.w(1)=subs(uinput.exact,sx,a);
  uinput.w(2)=subs(uinput.exact,sy,c);
  uinput.w(3)=subs(uinput.exact,sx,b);
- uinput.w(4)=subs(diff(uinput.exact,sy),sy,d);
+ uinput.w(4)=subs(uinput.exact,sy,d);
 
 %----------------------------------------
 %% Example 3 - 2D Heat Equation with homogeneous Dirichlet-Dirichlet boundary conditions
@@ -220,8 +219,6 @@ uinput.ic.PDE=  subs(uinput.exact,st,0);
 % u(x,y,t)=(sin(pi*x)+sin(pi*y))*t - solution for
 % u_t=visc*(uxx+uyy)+f(x,y,t),
 % with f(x,y,t)=sin(pi*x)*sin(pi*y)*(1+2*visc*pi^2*t);
-
-% Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
 
 % Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) + f(s1,s2,t)
 a=0.2;b=1.1;
@@ -1668,9 +1665,9 @@ uinput.exact(1) = sin(sqrt(18)*C*st)*sin(3*sx)*sin(3*sy);
 uinput.exact(2) = diff(uinput.exact(1),st);
 
 %----------------------------------------
-%% Example 25 - simple 2D transport with sine waves and inhomogeneous boundary forcing on all boundaries
+%% Example 26 - simple 2D transport with sine waves and inhomogeneous boundary forcing on all boundaries
 %----------------------------------------
-case 25
+case 26
 % % Transport equation 
 % %   u_{t}(x,y,t) = -vx*u_{x}(x,y,t)-vy*u_{y}(x,y,t)       (x,y) in [a,b]x[c,d]
 
@@ -1717,9 +1714,9 @@ uinput.exact = sin(kx*(sx-vx*st))*sin(ky*(sy-vy*st));
  uinput.w(2)=subs(uinput.exact,sy,c);
 
 %----------------------------------------
-%% Example 26 - Translating Gaussian blob
+%% Example 27 - Translating Gaussian blob
 %----------------------------------------
-case 26
+case 27
     % %  Transport equation
     % %   u_{t}(x,y,t) = -vx*u_{x}(x,y,t)-vy*u_{y}(x,y,t) 
 
@@ -1757,9 +1754,9 @@ uinput.w(1)=subs(uinput.exact,sx,a);
 uinput.w(2)=subs(uinput.exact,sy,c);
 
 %----------------------------------------
-%% Example 27 - Transported vortex by constant velocity fields
+%% Example 28 - Transported vortex by constant velocity fields
 %----------------------------------------
-case 27
+case 28
     % %  Transport equation for two fields (uncoupled)
     % %   u1_{t}(x,y,t) = -vx*u1_{x}(x,y,t)-vy*u1_{y}(x,y,t) 
     % %   u2_{t}(x,y,t) = -vx*u2_{x}(x,y,t)-vy*u2_{y}(x,y,t) 
@@ -1818,9 +1815,9 @@ uinput.exact(2) =  A*(sx-vx*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigm
 
 
 %----------------------------------------
-%% Example 28 - Advection of vorticity by non-uniform velocity fields
+%% Example 29 - Advection of vorticity by non-uniform velocity fields
 %----------------------------------------
-case 28
+case 29
 % Transport equation 
     % %   u_{t}(x,y,t) = -(alpha x + beta y)*u_{x}(x,y,t)-(-beta x - alpha y)*u_{y}(x,y,t) 
 
@@ -1872,9 +1869,9 @@ uinput.w(1)=subs(uinput.exact,sx,a);
 uinput.w(2)=subs(uinput.exact,sy,d);
 
 %----------------------------------------
-%% Example 29 - Advection of vorticity with added mean flow
+%% Example 30 - Advection of vorticity with added mean flow
 %----------------------------------------
-case 29
+case 30
     % Transport equation 
     % %   u_{t}(x,y,t) = -(U0+alpha x + beta y)*u_{x}(x,y,t)-(V0-beta x - alpha y)*u_{y}(x,y,t) 
 
@@ -1926,9 +1923,9 @@ uinput.w(1)=subs(uinput.exact,sx,a);
 uinput.w(2)=subs(uinput.exact,sy,c);
 
 %----------------------------------------
-%% Example 30 - Advection of vorticity with quadratic fields
+%% Example 31 - Advection of vorticity with quadratic fields
 %----------------------------------------
-case 30
+case 31
 
     % %   u_{t}(x,y,t) = -alpha x^2*u_{x}(x,y,t)-beta y*u_{y}(x,y,t) 
 
@@ -1976,9 +1973,9 @@ uinput.ic.PDE=subs(uinput.exact,st,0);
 
 
 %----------------------------------------
-%% Example 31 - Advection of vorticity with quadratic plus mean field
+%% Example 32 - Advection of vorticity with quadratic plus mean field
 %----------------------------------------
-case 31
+case 32
 
     % %   u_{t}(x,y,t) = -(U0+alpha x)*u_{x}(x,y,t)-beta y^2*u_{y}(x,y,t) 
 
