@@ -40,21 +40,30 @@ function PDE_out = mtimes(C,PDE_in)
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
+% DJ, 02/17/2025: Add support for multiplication of PDE terms;
 
 % % % Process the inputs
-
-% % Check that the first input makes sense.
-if ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'opvar')
-    error("The first factor in the product should be of type 'double' or 'polynomial'.")
-elseif ~isa(C,'opvar')
-    C = polynomial(C);
-end
 
 % % Check that the second input makes sense.
 % Make sure the input is a pde_struct object.
 if ~isa(PDE_in,'pde_struct')
     error("The second factor in the product should correspond to a single term in the PDE.")
 end
+
+% % Check that the first input makes sense.
+if isa(C,'pde_struct')
+    % Use separate function for multiplication of PDE terms
+    if size(C,1,'vec_size_tot')>1 && size(PDE_in,1,'vec_size_tot')>1
+        error("Multiplication of vector-valued PDE terms is not supported. Use '.* instead for elementwise multiplication.")
+    end
+    PDE_out = times_pdes(C,PDE_in);
+    return
+elseif ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'opvar')
+    error("The first factor in the product should be of type 'pde_struct', 'double' or 'polynomial'.")
+elseif ~isa(C,'opvar')
+    C = polynomial(C);
+end
+
 % Make sure the input corresponds to a single state/input/output
 % or set of terms.
 [is_pde_var_in,obj] = is_pde_var(PDE_in);
