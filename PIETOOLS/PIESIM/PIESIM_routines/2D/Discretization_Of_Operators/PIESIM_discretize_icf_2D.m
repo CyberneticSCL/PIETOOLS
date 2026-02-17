@@ -90,7 +90,7 @@ end
 
 % Add initial conditions on ODE states to the front of initial conditions
 if (no>0)
-acheb_f0=cat(1,uinput.ic.ODE',acheb_f0);
+acheb_f0=cat(1,double(uinput.ic.ODE)',acheb_f0);
 end
 
 coeff.acheb_f0=acheb_f0;
