@@ -50,6 +50,7 @@ function [PDE_1_out,PDE_2_out,new_obnums_1,new_obnums_2] = pde_common_basis(PDE_
 % DJ, 02/15/2026: Reorder state, input, and output variables based on the
 %                   value of their IDs, i.e. in the order in which they are
 %                   generated;
+% DJ, 02/17/2026: Allow for nonlinear terms
 
 % % Since state variables and inputs may appear both in PDE_1 and PDE_2, we
 % % will have to be careful to combine them in the structure.
@@ -119,7 +120,11 @@ PDE_1_out = update_obnums(PDE_1_out,new_obnums_1);
 PDE_2_out = update_obnums(PDE_2_out,new_obnums_2);
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function PDE = update_obnums(PDE,new_obnums)
 % Update the indices associated to the objects 'x', 'y', 'z', 'u', and 'w'
 % in the PDE structure, based on the new list of indices "new_obnums".
@@ -179,18 +184,22 @@ for kk=1:numel(eq_types)
         % % For the remaining terms, update the index for either the state
         % % or input component.
         for jj=start_idx:numel(PDE.(eq_type_kk){ii}.term)
-            if isfield(PDE.(eq_type_kk){ii}.term{jj},'x')
-                new_obnums_jj = new_obnums{1};
-                PDE.(eq_type_kk){ii}.term{jj}.x = new_obnums_jj(PDE.(eq_type_kk){ii}.term{jj}.x);
-            elseif isfield(PDE.(eq_type_kk){ii}.term{jj},'u')
-                new_obnums_jj = new_obnums{4};
-                PDE.(eq_type_kk){ii}.term{jj}.u = new_obnums_jj(PDE.(eq_type_kk){ii}.term{jj}.u);
-            else 
-                new_obnums_jj = new_obnums{5};
-                PDE.(eq_type_kk){ii}.term{jj}.w = new_obnums_jj(PDE.(eq_type_kk){ii}.term{jj}.w);
+            term_jj = PDE.(eq_type_kk){ii}.term{jj};
+            for l=1:numel(term_jj)                                          % DJ, 02/17/2026
+                if isfield(term_jj(l),'x') && ~isempty(term_jj(l).x)
+                    new_obnums_jj = new_obnums{1};
+                    PDE.(eq_type_kk){ii}.term{jj}(l).x = new_obnums_jj(term_jj(l).x);
+                elseif isfield(term_jj(l),'u') && ~isempty(term_jj(l).u)
+                    new_obnums_jj = new_obnums{4};
+                    PDE.(eq_type_kk){ii}.term{jj}(l).u = new_obnums_jj(term_jj(l).u);
+                else 
+                    new_obnums_jj = new_obnums{5};
+                    PDE.(eq_type_kk){ii}.term{jj}(l).w = new_obnums_jj(term_jj(l).w);
+                end
             end
         end
     end
 end
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
