@@ -19,8 +19,9 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding YP  - 16_04_2024
-% 2/12/2026: YP - modified grids handling
+% Initial coding YP  - 04/16/2024
+% 2/12/2026: YP - modified grids handling to account for different degree
+% of differentiability and number of grid points
 
 function gridall=PIESIM_discretize_domain_2D(uinput,psize);
 
@@ -32,8 +33,6 @@ c=uinput.dom(2,1);
 d=uinput.dom(2,2);
 N=psize.N;
 
-% Assume for now that state differentiability is the same in x and y. Seems
-% like what it's done in Declan's paper
 % Define grids in the physical space as vector arrays. Spatial grid points
 % are colocated with the Chebyshev nodes.
 
