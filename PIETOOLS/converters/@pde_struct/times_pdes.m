@@ -47,7 +47,7 @@ end
 [is_pde_var1,obj1] = is_pde_var(PDE1);
 [is_pde_var2,obj2] = is_pde_var(PDE2);
 if (~is_pde_var1 && ~is_pde_term(PDE1)) || (~is_pde_var2 && ~is_pde_term(PDE2))
-    error("The factors to multiple should correspond to individual terms in the PDE.")
+    error("The factors to multiply should correspond to individual terms in the PDE.")
 end
 % Convert the PDE variables to terms
 if is_pde_var1
