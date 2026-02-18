@@ -3,10 +3,10 @@ function Fdiag = blkdiag(varargin)
 % varargs as the blocks on the diagonal
 % 
 % INPUTS
-% - varargin:   'nopvar' class objects.
+% - varargin:   'ndopvar' class objects.
 % 
 % OUTPUTS
-% - Fdiag:      'nopvar' object with each of the parameters definined as the
+% - Fdiag:      'ndopvar' object with each of the parameters definined as the
 %               block diagonal concatenation of the input operators,  
 % 
 % NOTES:

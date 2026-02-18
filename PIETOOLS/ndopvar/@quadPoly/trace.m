@@ -16,7 +16,7 @@ if ~isa(P1, 'quadPoly')
 end
 
 
-sz = P1.size;
+sz = P1.dim;
 if sz(1) ~= sz(2)
     error('quadPoly:trace:dimMismatch', 'quadPoly must be square.');
 end
@@ -46,7 +46,7 @@ for idx = 2:sz(1)
     C_tr = C_tr + C(left_idx:(left_idx + n_Zs-1), right_idx:(right_idx+n_Zt-1));
 end
 
-% define trace operator 
+% define trace quadpoly 
 P_tr = quadPoly(C_tr, Zs, Zt, [1, 1], ns, nt);
 
 end
