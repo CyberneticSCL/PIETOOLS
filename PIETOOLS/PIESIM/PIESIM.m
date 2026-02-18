@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Please, contact Y. Peet at ypeet@asu.edu for support
 
-% This is PIESIM main driver
+% This function is PIESIM main driver
 
 % This matlab function performs the following operations:
 % 1) Checks if all inputs are defined and (if not) setting up default
