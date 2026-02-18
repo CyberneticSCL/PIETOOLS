@@ -16,7 +16,7 @@ function PDE_out = mtimes(C,PDE_in)
 %               PDE, corresponding to the product C*PDE_in;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ function PDE_out = mtimes(C,PDE_in)
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
 % DJ, 02/17/2025: Add support for multiplication of PDE terms;
+% DJ, 02/18/2026: Prohibit matrix-multiplication with nonlinear terms;
 
 % % % Process the inputs
 
@@ -186,7 +187,7 @@ end
 if is_pde_var_in
     % Check that the number of columns in C matches the number of rows of
     % the PDE variable.
-    if prod(size(C))~=1 && size(C,2)~=PDE_in.([obj,'_tab'])(1,2)
+    if numel(C)~=1 && size(C,2)~=PDE_in.([obj,'_tab'])(1,2)
         error("Column dimension of the factor should match row dimension of PDE object.")
     end
     
@@ -258,7 +259,7 @@ elseif numel(eq_size_list)==size(C,2)
     if length(unique(eq_size_list))~=1
         error("For addition of equations with a scalar factor, the size of the terms in the equation should match.")
     end
-    if size(C,1)==1 && length(unique(eq_size_list))==1
+    if size(C,1)==1 && isscalar(unique(eq_size_list))
         % Single output equation, assume the same size as all inputs.
         eq_size_cell_out = num2cell(sum(eq_size_list(1))*ones(1,size(C,2)));
     elseif size(C,1)==size(C,2)
@@ -331,10 +332,17 @@ for ii=1:numel(PDE_out.free)
             else
                 % Add a standard term, with coefficients multiplied with
                 % Cik;
+                if numel(eq_kk.term{jj})>1 && ~isscalar(Cik)                % DJ, 02/18/2026
+                    % Multiplication of coefficient with nonlinear term
+                    % only works for scalar coefficient
+                    if any(any(~isequal(Cik-Cik(1,1)*eye(size(Cik,1)),0)))
+                        error("Matrix multiplication of coefficient with nonlinear term is not supported.")
+                    end
+                end
                 if isfield(eq_kk.term{jj},'C')
-                    PDE_out.free{ii}.term{term_num}.C = Cik*eq_kk.term{jj}.C;
+                    PDE_out.free{ii}.term{term_num}(1).C = Cik*eq_kk.term{jj}(1).C;
                 else
-                    PDE_out.free{ii}.term{term_num}.C = Cik;
+                    PDE_out.free{ii}.term{term_num}(1).C = Cik;
                 end
             end
             % Move to the next term;
