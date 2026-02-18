@@ -28,7 +28,7 @@ function [] = display_PDE(PDE,name)
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ function [] = display_PDE(PDE,name)
 %
 % DJ, 07/08/2022: Initial coding;
 % DJ, 12/30/2024: Bugfix for display of equation number i in C_{i,j};
+% DJ, 02/17/2026: Add support for nonlinear terms;
 
 % Initialize the system
 if isa(PDE,'sys')
@@ -62,10 +63,12 @@ if isa(PDE,'sys')
 elseif isa(PDE,'struct')
     PDE = pde_struct(PDE);
 end
-try PDE = initialize(PDE,true);
-catch
-    error(['The presented PDE is not finished, or not appropriate.',...
-            ' Please check that the PDE is properly specified, and run "initialize_PIETOOLS_PDE" to check for any errors.'])
+if ~PDE.is_initialized
+    try PDE = initialize(PDE,true);
+    catch
+        error(['The presented PDE is not finished, or not appropriate.',...
+                ' Please check that the PDE is properly specified, and run "initialize_PIETOOLS_PDE" to check for any errors.'])
+    end
 end
 
 %fprintf([name,' = \n']);
@@ -88,7 +91,7 @@ sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 % sub_min = '\x208B';
 % sub_a = '\x2090';
 sub_i = '\x1D62';
-%sub_j = '\x2C7C';
+sub_j = '\x2C7C';
 sub_k = '\x2096';
 sub_s = '\x209B';
 sub_t = '\x209C';
@@ -300,7 +303,12 @@ for kk=1:numel(eq_types)
         % Otherwise, loop over the terms, adding each to the equation.
         for trm = 1:numel(LHS_comp.term)
             C_row_idx = eq_num_strt+eq_num;
-            [term_str,use_Cij_ii] = construct_term(PDE,LHS_comp,C_row_idx,eq_info,trm,var_list,tau_list);
+            term_str = '';
+            for fctr = 1:numel(LHS_comp.term{trm})
+                [term_str_ii,use_Cij_ii] = construct_term(PDE,LHS_comp,C_row_idx,eq_info,trm,fctr,var_list,tau_list);
+                use_Cij = use_Cij || use_Cij_ii;
+                term_str = [term_str,term_str_ii];
+            end
             use_Cij = use_Cij || use_Cij_ii;
             eq_kk_new = [eq_kk, term_str];
             
@@ -325,7 +333,11 @@ end
 
 
 if use_Cij
-    fprintf(['\n Call "PDE.C{i,k}" to see the value of coefficients C',sub_i,sub_k,' as in the displayed equations.\n'])
+    if PDE.is_nonlinear
+        fprintf(['\n Call "PDE.C{i,j,k}" to see the value of coefficients C',sub_i,sub_j,sub_k,' as in the displayed equations.\n'])
+    else
+        fprintf(['\n Call "PDE.C{i,k}" to see the value of coefficients C',sub_i,sub_k,' as in the displayed equations.\n'])
+    end
 end
 
 fprintf('\n')
@@ -340,11 +352,12 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function [term_str,use_Cij] = construct_term(PDE,eq,eq_num,eq_info,term_num,var_list,tau_list)
+function [term_str,use_Cij] = construct_term(PDE,eq,eq_num,eq_info,term_num,fctr_num,var_list,tau_list)
 % Build a str to represent term number "trm" in the equation "eq" of the
 % PDE structure "PDE".
 
-PDE_term = eq.term{term_num};
+nfctrs = numel(eq.term{term_num});
+PDE_term = eq.term{term_num}(fctr_num);
 
 var1_list = var_list(:,1);
 var2_list = var_list(:,2);
@@ -375,8 +388,8 @@ sub_min = '\x208B';
 sub_a = '\x2090';
 sup_b = '\x1D47';
 sub_T = '\x1D1B';
-sub_lp = '\x208D';
-sub_rp = '\x208E';
+sub_lp = '\x208D';          % left parenthesis
+sub_rp = '\x208E';          % right parenthesis
 
 % Superscripts
 sup_num = cell(10,1);    % Superscripts
@@ -413,7 +426,7 @@ end
 tab_row = PDE_term.(obj_RHS);
 rr_ID = PDE.([obj_RHS,'_tab'])(tab_row,1);
 %rr = PDE_term.(obj_RHS);
-if numel(PDE.(obj_RHS))==1
+if isscalar(PDE.(obj_RHS))
     % There is only one component of the considered type --> no need to give index
     Rstate_idx = '';
 elseif rr_ID<=9
@@ -581,11 +594,36 @@ end
 
 % % % Add the coefficient
 C_trm = '';
-if term_num==1
+if term_num==1 && fctr_num==1
     sign_trm = ' = ';
-else
+elseif fctr_num==1
     sign_trm = ' + ';
+else
+    sign_trm = '*';
 end
+% Declare subscripts for the equation, term, and factor number
+if eq_num<=9
+    % The equation number consists of a single decimal
+    eq_indx = sub_num{eq_num+1};
+else
+    % The equation number consists of multiple decimals
+    eq_indx = cell2mat(sub_num(str2num(num2str(eq_num)')+1)');
+end
+if term_num<=9
+    % The equation number consists of a single decimal
+    trm_indx = sub_num{term_num+1};
+else
+    % The equation number consists of multiple decimals
+    trm_indx = cell2mat(sub_num(str2num(num2str(term_num)')+1)');
+end
+if fctr_num<=9
+    % The equation number consists of a single decimal
+    fctr_indx = sub_num{fctr_num+1};
+else
+    % The equation number consists of multiple decimals
+    fctr_indx = cell2mat(sub_num(str2num(num2str(fctr_num)')+1)');
+end
+
 if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
     Cval = PDE_term.C;
     % Convert constant polynomial to double
@@ -597,10 +635,10 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
         % % Constant scalar factor
         use_Cij = false;
         Cval = Cval(1,1);
-        if Cval<0 && term_num==1
+        if Cval<0 && term_num==1 && fctr_num==1
             sign_trm = ' = - ';
             Cval = abs(Cval);
-        elseif Cval<0
+        elseif Cval<0 && fctr_num==1
             sign_trm = ' - ';
             Cval = abs(Cval);
         end
@@ -611,24 +649,18 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
         % % Constant matrix-valued factor   
         use_Cij = true;
         % Add subscripts indicating the equation and term number.
-        if eq_num<=9
-            % The equation number consists of a single decimal
-            eq_indx = sub_num{eq_num+1};
+        if eq_num>9 || term_num>9 || fctr_num>9
+            if nfctrs>1
+                C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,',',fctr_indx,sub_rp,' * '];
+            else
+                C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,sub_rp,' * '];
+            end
         else
-            % The equation number consists of multiple decimals
-            eq_indx = cell2mat(sub_num(str2num(num2str(eq_num)')+1)');
-        end
-        if term_num<=9
-            % The equation number consists of a single decimal
-            trm_indx = sub_num{term_num+1};
-        else
-            % The equation number consists of multiple decimals
-            trm_indx = cell2mat(sub_num(str2num(num2str(term_num)')+1)');
-        end
-        if eq_num>9 || term_num>9
-            C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,sub_rp,' * '];
-        else
-            C_trm = [C_trm,'C',eq_indx,'',trm_indx,' * '];
+            if nfctrs>1
+                C_trm = [C_trm,'C',eq_indx,'',trm_indx,'',fctr_indx,' * '];
+            else
+                C_trm = [C_trm,'C',eq_indx,'',trm_indx,' * '];
+            end
         end
     else
         % % Polynomial function.
@@ -665,24 +697,18 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
             Cvar_str = [Cvar_str,')'];
         end
         % Add subscripts indicating the equation and term number.
-        if eq_num<=9
-            % The equation number consists of a single decimal
-            eq_indx = sub_num{eq_num+1};
+        if eq_num>9 || term_num>9 || fctr_num>9
+            if nfctrs>1
+                C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,',',fctr_indx,sub_rp,Cvar_str,' * '];
+            else
+                C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,sub_rp,Cvar_str,' * '];
+            end
         else
-            % The equation number consists of multiple decimals
-            eq_indx = cell2mat(sub_num(str2num(num2str(eq_num)')+1)');
-        end
-        if term_num<=9
-            % The equation number consists of a single decimal
-            trm_indx = sub_num{term_num+1};
-        else
-            % The equation number consists of multiple decimals
-            trm_indx = cell2mat(sub_num(str2num(num2str(term_num)')+1)');
-        end
-        if eq_num>9 || term_num>9
-            C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,sub_rp,Cvar_str,' * '];
-        else
-            C_trm = [C_trm,'C',eq_indx,'',trm_indx,Cvar_str,' * '];
+            if nfctrs>1
+                C_trm = [C_trm,'C',eq_indx,'',trm_indx,'',fctr_indx,Cvar_str,' * '];
+            else
+                C_trm = [C_trm,'C',eq_indx,'',trm_indx,Cvar_str,' * '];
+            end
         end
     end
 %     if ~isempty(C_trm)
@@ -733,7 +759,11 @@ end
 Rvar1_str = [Rvar1_str,')'];
 
     % % % Finally, add the term
-    term_str = [sign_trm,int_trm,C_trm,D_trm,Rstate_trm,Rvar1_str,dtheta_trm];
+    if nfctrs==1
+        term_str = [sign_trm,int_trm,C_trm,D_trm,Rstate_trm,Rvar1_str,dtheta_trm];
+    else
+        term_str = [sign_trm,'[',int_trm,C_trm,D_trm,Rstate_trm,Rvar1_str,dtheta_trm,']'];
+    end
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
