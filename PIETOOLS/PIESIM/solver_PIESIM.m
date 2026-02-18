@@ -5,7 +5,7 @@
 % PIESIM Version of PIETOOLS for 1D and 2D problems: 
 % For support, contact Y. Peet, Arizona State University at ypeet@asu.edu
 
-% This is the main driver for the PIESIM code if a numerical solution of PDE/ODE problem is the only task required.
+% This is the wrapper for the PIESIM code if a numerical solution of PDE/ODE problem is the only task required.
 % It can be called instead of PIETOOLS_PDE in this case. 
 % Examples can be drawn from 'examples_pde_library_PIESIM.m' for 1D or
 % 'examples_pde_library_PIESIM_2D.m' for 2D.
