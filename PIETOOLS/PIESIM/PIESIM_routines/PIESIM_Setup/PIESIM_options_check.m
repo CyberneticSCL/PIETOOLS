@@ -129,7 +129,7 @@ end
 
 % Check if time step and final time are defined correctly
 
-if (opts.tf<opts.dt)
+if (opts.tf<opts.dt & opts.tf~=0)
     disp('Warning: final time is less than the time step. Defaulting final time to zero');
     opts.tf=0;
 end
