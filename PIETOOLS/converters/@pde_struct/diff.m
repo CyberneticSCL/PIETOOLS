@@ -48,6 +48,7 @@ function PDE_out = diff(PDE_in,vars,dval)
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/09/2025: Add support for temporal differentiation of vectors of
 %                   state variables;
+% DJ, 02/18/2026: Add support for nonlinear terms;
 
 % % % Process the inputs
 
@@ -96,7 +97,7 @@ else
     % Check the dimensions of the third input
     if all(size(dval)>1)
         error('The order of the derivative should be specified as nx1 array of nonnegative integer values.')
-    elseif numel(dval)==1
+    elseif isscalar(dval)
         % Assume same order derivative with respect to all variables.
         dval = dval*ones(nvars,1);
     elseif length(dval)~=nvars
@@ -127,6 +128,9 @@ if ismember('t',vars.varname)
                     error('Temporal differentiation of multiple PDE terms is not supported');
                 end
                 trm = PDE_out.free{ii}.term{1};
+                if numel(PDE_out.free{ii}.term{1})>1
+                    error("Temporal differentiation of nonlinear terms is not supported.")
+                end
                 if ~isfield(trm,'x')
                     % Term must involve a state variable
                     error('Temporal differentiation of input or output signals is not supported.');
@@ -213,134 +217,202 @@ end
 for ii=1:numel(PDE_out.free)
     PDE_out.free{ii}.term = {};
     n_trms = numel(PDE_in.free{ii}.term);
-    trm_num = 1;
     % % Loop over all the terms, taking the desired derivative.
     for jj=1:n_trms
         % Make sure no derivative is taken of an output, or the temporal
         % derivative of a state.
-        if is_LHS_term(PDE_in.free{ii}.term{jj})
+        term_jj = PDE_in.free{ii}.term{jj};
+        if is_LHS_term(term_jj)
             error("Differentiation of an output object or temporal derivative of a state is not supported.")
         end
-        % Make sure derivative is only take of state variables, not inputs.
-        if isfield(PDE_in.free{ii}.term{jj},'x')
-            Robj = 'x';
-        else
-            error('Differentiation of input signals is currently not supported.')
+        % Make sure the term has a coefficient
+        if ~isfield(term_jj,'C')
+            term_jj(1).C = 1;
         end
-        % Determine which state variable is involved in the term.
-        %Ridx = PDE_out.([obj,'_tab'])(:,1)==PDE_out.free{ii}.term{jj}.obj;
-        Ridx = PDE_in.free{ii}.term{jj}.(obj);
-        % Determine which variables the state depends on.
-        vars_obj = PDE_in.(obj){Ridx}.vars;
-
-        % Check if the coefficients depend on the variables with which to
-        % differentiate.
-        Cjj = polynomial(PDE_in.free{ii}.term{jj}.C);
-        if ~any(ismember(vars.varname,Cjj.varname))
-            % The coefficients need not be differentiated
-            % --> just take derivative of the state.
-            if any(~ismember(vars.varname,vars_obj.varname))
-                % The state does not depend on one of the variables
-                % --> differentiation will return zero.
+        % In nonlinear case, we have to use the product rule.
+        % Compute all orders of derivatives of the factors with respect to
+        % each of the variables that add up to specified order
+        n_fctrs = numel(term_jj);
+        dval_fctr = zeros(1,0);
+        nreps_fctr = 1;
+        for var_num=1:nvars
+            d = dval(var_num);
+            dval_tmp = (0:d)';
+            for j=2:n_fctrs
+                dval_tmp = [repmat(dval_tmp,d+1,1),repelem((0:d)',size(dval_tmp,1),1)];
+                dval_tmp = dval_tmp(sum(dval_tmp,2)<=d,:);
+            end
+            dval_tmp = dval_tmp(sum(dval_tmp,2)==d,:);            
+            dval_fctr = [repmat(dval_fctr,size(dval_tmp,1),1),repelem(dval_tmp,size(dval_fctr,1),1)];
+            % Determine how many times each product of terms appears
+            % (based on multinomial theorem)
+            nreps_tmp = factorial(d)./prod(factorial(dval_tmp),2);
+            nreps_fctr = repmat(nreps_fctr,size(nreps_tmp,1),1).*repelem(nreps_tmp,size(nreps_fctr,1),1);
+        end
+        new_terms = cell(1,0);
+        trm_num = 1;
+        fctr_strt = ones(size(dval_fctr,1),1);
+        d_idx = 1;
+        vars_ii = [];
+        while d_idx<=size(dval_fctr,1)
+            % Loop over each of the obtained derivatives of the different
+            % factors
+            rm_term = false;
+            if d_idx>numel(new_terms)
+                new_terms = [new_terms,{term_jj}];
+            end
+            % Multiply the derivative with the number of times it appears
+            new_terms{d_idx}(1).C = nreps_fctr(d_idx)*new_terms{d_idx}(1).C;
+            % Loop over the different factors in the term, taking the
+            % derivative of order dval_fctr(k,l) of the lth factor
+            term_k = new_terms{d_idx};
+            vars_k = [];
+            for fctr_num = fctr_strt(d_idx):n_fctrs
+                % Extract the factor and order of derivative to be taken
+                fctr = term_k(fctr_num);
+                dval_jj = dval_fctr(d_idx,fctr_num:n_fctrs:end);
+                if all(dval_jj==0)
+                    continue
+                end
+                % Make sure derivative is only taken of state variables, not inputs.
+                if (isfield(fctr,'u') && ~isempty(fctr.u)) ||...
+                    (isfield(fctr,'w') && ~isempty(fctr.w))
+                    error('Differentiation of input signals is currently not supported.')
+                end
+                % Determine which state variable is involved in the factor.
+                Ridx = fctr.x;
+                % Determine which variables the state depends on.
+                vars_obj = PDE_in.x{Ridx}.vars;
+        
+                % Check if the coefficients depend on the variables with which to
+                % differentiate.
+                Cjj = polynomial(fctr.C);
+                if ~any(ismember(vars.varname,Cjj.varname))
+                    % The coefficients need not be differentiated
+                    % --> just take derivative of the state.
+                    if any(~ismember(vars.varname,vars_obj.varname))
+                        % The state does not depend on one of the variables
+                        % --> differentiation will return zero.
+                        rm_term = true;
+                        break
+                    else
+                        % Otherwise, add order of derivative to current order of
+                        % derivative.
+                        dval_obj = compute_d_obj(vars_obj,vars,dval_jj);
+                        new_terms{trm_num}(fctr_num) = fctr;
+                        new_terms{trm_num}(fctr_num).D = fctr.D +dval_obj;
+                        vars_k = unique([vars_k; vars_obj.varname]);
+                    end
+                else
+                    % The coefficients need to be differentiated as well...
+                    % --> use product rule.
+        
+                    % First, get rid of variables on which the state does not
+                    % depend:
+                    vars_jj = vars;
+                    if any(~ismember(vars.varname,vars_obj.varname))
+                        % If the state does not depend on certain variables,
+                        % but C does, only the derivative of C wrt this 
+                        % variable will be nonzero in the product rule.
+                        for kk=1:nvars
+                            if ~any(isequal(vars(kk),vars_obj))
+                                % The object does not depend on variable kk
+                                for ll=1:dval_jj(kk)
+                                    % Have to perform differentiation of
+                                    % 'polynomial' object one order at a time...
+                                    Cjj = diff(Cjj,vars_jj(kk));
+                                end
+                                dval_jj(kk) = 0;
+                            end
+                        end
+                        if all(isequal(Cjj,0))
+                            % Don't add zero term.
+                            rm_term = true;
+                            break
+                        else
+                            % Replace coefficients with their derivative.
+                            fctr.C = Cjj;
+                            % Keep track of which variables the term depends on.
+                            tmp_vars_ii_jj = addvars(vars_obj,Cjj);     
+                            vars_k = unique([vars_k;tmp_vars_ii_jj.varname]);
+                        end
+                        % Get rid of zero-order derivatives.
+                        vars_jj = vars_jj(dval_jj~=0);
+                        dval_jj = dval_jj(dval_jj~=0);
+                    end
+                    
+                    % % For the rest, we need a repeated product rule:
+                    % (d/ds1)^k1 ... (d/dsn)^kn (C*x)
+                    % = sum_{i1=0}^k1 nchoosek(k1,i1)
+                    %    * sum_{i2=0}^{k2} nchoosek(k2,i2)
+                    %      ...
+                    %       * sum_{in=0}^{kn} nchoose(kn,in)
+                    %         * (d/ds1)^i1 ... (d/dsn)^in C
+                    %         * (d/ds1)^(k1-i1) ... (d/dsn)^(kn-in) x
+                    % % Add each of these terms to the PDE
+        
+                    % First account for term C*D^(dval)x
+                    dval_obj = compute_d_obj(vars_obj,vars_jj,dval_jj);
+                    new_terms{trm_num}(fctr_num) = fctr;
+                    new_terms{trm_num}(fctr_num).D = fctr.D +dval_obj;
+        
+                    % Then, add all other terms D^(i)C *D^(dval-i)x            
+                    n_prods = prod(dval_obj+1);
+                    trm_num_ll = trm_num+1;
+                    for ll=2:n_prods
+                        % Determine which order derivative is taken of C
+                        dval_C = cell(1,length(dval_obj)+1);
+                        [dval_C{:}] = ind2sub([dval_obj+1,1],ll);
+                        dval_C = cell2mat(dval_C(1:end-1)) - 1;
+        
+                        % Differentiate coefficients with the variable.
+                        Cll = polydiff(Cjj,vars_obj,dval_C);
+                        if all(isequal(Cll,0))
+                            % Don't add a zero term to the PDE...
+                            continue
+                        end
+                        % Multiply to match how many times this combination of
+                        % derivative of C and of x appears.
+                        Cfctr = prod(factorial(dval_obj)./(factorial(dval_obj-dval_C).*factorial(dval_C)));
+                        Cll = Cfctr*Cll;
+        
+                        % Set a new term with the differentiated coefficients, and 
+                        % lower-order derivative of state.
+                        new_terms{trm_num_ll} = new_terms{d_idx};
+                        new_terms{trm_num_ll}(fctr_num) = fctr;
+                        new_terms{trm_num_ll}(fctr_num).D = fctr.D +(dval_obj-dval_C);
+                        new_terms{trm_num_ll}(fctr_num).C = Cll;
+        
+                        % Keep track of which variables the term depends on
+                        tmp_vars_ii_jj = addvars(vars_obj,Cll);     
+                        vars_k = unique([vars_k;tmp_vars_ii_jj.varname]);
+                    
+                        % Proceed to the next term.
+                        dval_fctr = [dval_fctr(1:d_idx,:); dval_fctr(d_idx,:); dval_fctr(d_idx+1:end,:)];
+                        nreps_fctr = [nreps_fctr(1:d_idx); 1; nreps_fctr(d_idx+1:end)];
+                        fctr_strt = [fctr_strt(1:d_idx); fctr_num+1; fctr_strt(d_idx+1:end)];
+                        trm_num_ll = trm_num_ll+1;
+                    end
+                    
+                end
+            end
+            if rm_term
+                % The current derivative produces 0, move on to the next
+                dval_fctr(d_idx,:) = [];
+                nreps_fctr(d_idx) = [];
+                new_terms(d_idx) = [];
                 continue
             else
-                % Otherwise, add order of derivative to current order of
-                % derivative.
-                dval_obj = compute_d_obj(vars_obj,vars,dval);
-                PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term{jj};
-                PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term{jj}.D +dval_obj;
+                % Move on to the next derivative
+                d_idx = d_idx+1;
                 trm_num = trm_num+1;
+                vars_ii = unique([vars_ii; vars_k]);
             end
-        else
-            % The coefficients need to be differentiated as well...
-            % --> use product rule.
-
-            % First, get rid of variables on which the state does not
-            % depend:
-            vars_jj = vars;     dval_jj = dval;
-            tmp_vars_ii = [];
-            if any(~ismember(vars.varname,vars_obj.varname))
-                % If the state does not depend on certain variables, but C
-                % does, only the derivative of C wrt this variable will be
-                % nonzero in the product rule.
-                for kk=1:nvars
-                    if ~any(isequal(vars(kk),vars_obj))
-                        % The object does not depend on variable kk
-                        for ll=1:dval_jj(kk)
-                            % Have to perform differentiation of
-                            % 'polynomial' object one order at a time...
-                            Cjj = diff(Cjj,vars_jj(kk));
-                        end
-                        dval_jj(kk) = 0;
-                    end
-                end
-                if all(isequal(Cjj,0))
-                    % Don't add zero term.
-                    continue
-                else
-                    % Replace coefficients with their derivative.
-                    PDE_in.free{ii}.term{jj}.C = Cjj;
-                    % Keep track of which variables the term depends on.
-                    tmp_vars_ii_jj = addvars(vars_obj,Cjj);     
-                    tmp_vars_ii = unique([tmp_vars_ii;tmp_vars_ii_jj.varname]);
-                end
-                % Get rid of zero-order derivatives.
-                vars_jj = vars_jj(dval_jj~=0);
-                dval_jj = dval_jj(dval_jj~=0);
-            end
-            
-            % % For the rest, we need a repeated product rule:
-            % (d/ds1)^k1 ... (d/dsn)^kn (C*x)
-            % = sum_{i1=0}^k1 nchoosek(k1,i1)
-            %    * sum_{i2=0}^{k2} nchoosek(k2,i2)
-            %      ...
-            %       * sum_{in=0}^{kn} nchoose(kn,in)
-            %         * (d/ds1)^i1 ... (d/dsn)^in C
-            %         * (d/ds1)^(k1-i1) ... (d/dsn)^(kn-in) x
-            % % Add each of these terms to the PDE
-
-            % First account for term C*D^(dval)x
-            dval_obj = compute_d_obj(vars_obj,vars_jj,dval_jj);
-            PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term{jj};
-            PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term{jj}.D +dval_obj;
-            trm_num = trm_num+1;
-
-            % Then, add all other terms D^(i)C *D^(dval-i)x            
-            n_prods = prod(dval_obj+1);
-            for ll=2:n_prods
-                % Determine which order derivative is taken of C
-                dval_C = cell(1,length(dval_obj));
-                [dval_C{:}] = ind2sub(dval_obj+1,ll);
-                dval_C = cell2mat(dval_C) - 1;
-
-                % Differentiate coefficients with the variable.
-                Cll = polydiff(Cjj,vars_obj,dval_C);
-                if all(isequal(Cll,0))
-                    % Don't add a zero term to the PDE...
-                    continue
-                end
-                % Multiply to match how many times this combination of
-                % derivative of C and of x appears.
-                fctr = prod(factorial(dval_obj)./(factorial(dval_obj-dval_C).*factorial(dval_C)));
-                Cll = fctr*Cll;
-
-                % Set a new term with the differentiated coefficients, and 
-                % lower-order derivative of state.
-                PDE_out.free{ii}.term{trm_num} = PDE_in.free{ii}.term{jj};
-                PDE_out.free{ii}.term{trm_num}.D = PDE_in.free{ii}.term{jj}.D +(dval_obj-dval_C);
-                PDE_out.free{ii}.term{trm_num}.C = Cll;
-
-                % Keep track of which variables the term depends on
-                tmp_vars_ii_jj = addvars(vars_obj,Cll);     
-                tmp_vars_ii = unique([tmp_vars_ii;tmp_vars_ii_jj.varname]);
-            
-                % Proceed to the next term.
-                trm_num = trm_num+1;
-            end
-            % Keep track of which variables the equation depends on.
-            PDE_out.free{ii}.vars = polynomial(tmp_vars_ii);
         end
+        PDE_out.free{ii}.term = [PDE_out.free{ii}.term, new_terms];
     end
+    % Keep track of which variables the equation depends on.
+    PDE_out.free{ii}.vars = polynomial(vars_ii);
 end
 
 end
