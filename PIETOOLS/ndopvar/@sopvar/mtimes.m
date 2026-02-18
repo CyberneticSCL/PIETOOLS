@@ -67,6 +67,16 @@ end
 
 C = sopvar(B.vars_in,A.vars_out,[B.dims(1),A.dims(2)],B.dom_in,A.dom_out);
 
+
+% Outline
+% 1. Extract A_\alpha parameters from A and B_\beta parameters from B 
+% 2. Extract Monomials and Coefficients from each set of parameters: C^A_\alpha and C^B_\beta
+% 3a. Compute the D_{\alpha_a,\beta_b} 
+% 3b. Compute the G_\alpha,\beta terms and express as Z C_{\alpha,\beta}^G Z 
+% 4. Redistribute C^A_\alpha G_\alpha,\beta C^B_\beta as Z C^C_{\alpha,\beta} Z
+% 5. Map \sum_{\alpha,\beta} C^C_{\alpha,\beta} to \sum_\gamma C^C_\gamma
+% End: construct quadpolys from Z1,Z2, C^C_\gamma
+
 % Now, just need to compute the parameters!
 alphaIdx = cell(1,ndims(A.params));
 betaIdx = cell(1,ndims(B.params));
