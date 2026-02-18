@@ -212,7 +212,11 @@ function solution=PIESIM_transform_to_solution_2D(psize, PIE, Dop, uinput, grida
 
      % Reconstruct 0D states
 
+     if (no>0)
      solution.final.primary{1}=solcoeff.final(1:no);
+     else
+     solution.final.primary{1}=[];
+     end
 
      % Reconstruct 1D states
 
@@ -347,7 +351,11 @@ if (opts.intScheme==1&opts.tf~=0)
     
     % Define ODE solution and temporal stamps array
      solution.timedep.dtime=solcoeff.timedep.dtime;
+     if (no>0)
      solution.timedep.primary{1}=solcoeff.timedep.coeff(1:no,:);
+     else
+     solution.timedep.primary{1}=[];
+     end
 
 
  %---------------------------------------------    
