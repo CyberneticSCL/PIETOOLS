@@ -123,6 +123,7 @@ PDE = initialize([Dyn;BCs]);
 uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
 % Initial conditions for the primary states of the PDE
 uinput.ic =  subs(uinput.exact,st,0);
+
  uinput.w(1)=subs(uinput.exact,sx,a);
  uinput.w(2)=subs(uinput.exact,sy,c);
  uinput.w(3)=subs(uinput.exact,sx,b);
@@ -1344,8 +1345,8 @@ lam = 0.5;       ampl = 5;
 % % Declare the PDE
 % Declare the variables
 x1 = pde_var([s1;s2],[a,b;c,d]);    x1.diff = [2,2];
-x2 = pde_var(s1,[a,b]);             
-x3 = pde_var(s2,[c,d]);    
+x2 = pde_var(s1,[a,b]);
+x3 = pde_var(s2,[c,d]); 
 x4 = pde_var(s1,[a,b]);
 x5 = pde_var(s2,[c,d]);
 % Declare the dynamics
@@ -1515,8 +1516,8 @@ ampl = 10;
 % % Declare the PDE
 % Declare the variables
 x = pde_var([s1;s2],[a,b;c,d]);
-w1 = pde_var('input',s2,[c,d]);     
-w2 = pde_var('input',s2,[c,d]);   
+w1 = pde_var('input',s2,[c,d]); 
+w2 = pde_var('input',s2,[c,d]); 
 w3 = pde_var('input',s1,[a,b]);
 w4 = pde_var('input',s1,[a,b]);
 % Declare the dynamics

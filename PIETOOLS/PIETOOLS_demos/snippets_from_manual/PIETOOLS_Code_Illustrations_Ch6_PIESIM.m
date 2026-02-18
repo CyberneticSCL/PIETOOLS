@@ -207,6 +207,7 @@ x1val = solution.timedep.primary{1};         % x1(t)
 x2fin = solution.final.primary{2};           % x2(t=tf,s1);
 x3fin = solution.final.primary{3};           % x3(t=tf,s2);
 x4fin = solution.final.primary{4};           % x4(t=tf,s1,s2);
+
 % Extract grid points and exact solution
 s1_grid = grid{1};
 s2_grid = grid{2};

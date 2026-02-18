@@ -279,7 +279,7 @@ end
         uinput.ic(no+ns+1:length(uinput.ic))=[];
         elseif length(uinput.ic)<(no + ns)
         disp('Warning: Number of initial conditions is less than the number of states. Defaulting the rest to zer.');
-        uinput.ic.x(length(uinput.ic)+1:no+ns)=sym(0);
+        uinput.ic(length(uinput.ic)+1:no+ns)=sym(0);
         end
         if ~issorted(x_order)
         uinput.ic = uinput.ic(x_order); % Reorder initial conditions to match new ordering of state components.
@@ -294,7 +294,6 @@ end
         end
         end
     end % ~isfield(uinput,'ic')
-
 
     if (opts.ifexact)
         if ~isfield(uinput,'exact')
