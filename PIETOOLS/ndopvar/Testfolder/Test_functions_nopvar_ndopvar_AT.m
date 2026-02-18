@@ -71,6 +71,18 @@ else
     fprintf('vertcat nopvar test failed\n')
 end
 
+
+%blkdiag nopvar ndopvar
+RRop = blkdiag(Rop, Rop2);
+RRop_nd = blkdiag(Rop_nd, Rop_nd2);
+RRop_nd_exact = dopvar2d2ndopvar(RRop,d);
+if RRop_nd_exact == RRop_nd
+    fprintf('blkdiag nopvar test passed\n')
+else
+    fprintf('blkdiag nopvar test failed\n')
+end
+
+
 %vertcat nopvar ndopvar
 RRop = [Rop; Qop3];
 RRop_nd = [Rop_nd; Qop_nd3];
@@ -79,6 +91,26 @@ if RRop_nd_exact == RRop_nd
     fprintf('horzcat [nopvar; ndopvar] test passed\n')
 else
     fprintf('horzcat [nopvar; ndopvar] test failed\n')
+end
+
+%blkdiag nopvar ndopvar
+RRop = blkdiag(Rop, Qop3);
+RRop_nd = blkdiag(Rop_nd, Qop_nd3);
+RRop_nd_exact = dopvar2d2ndopvar(RRop,d);
+if RRop_nd_exact == RRop_nd
+    fprintf('blkdiag [nopvar; ndopvar] test passed\n')
+else
+    fprintf('blkdiag [nopvar; ndopvar] test failed\n')
+end
+
+%blkdiag ndopvar nopvar
+RRop = blkdiag(Qop3, Rop);
+RRop_nd = blkdiag(Qop_nd3, Rop_nd);
+RRop_nd_exact = dopvar2d2ndopvar(RRop,d);
+if RRop_nd_exact == RRop_nd
+    fprintf('blkdiag [ndopvar; nopvar] test passed\n')
+else
+    fprintf('blkdiag [ndopvar; nopvar] test failed\n')
 end
 
 %subsref nopvar
@@ -124,6 +156,19 @@ if QQop_nd_exact == QQop_nd
 else
     fprintf('vertcat ndopvar test failed\n')
 end
+
+%blkdiag ndopvar 
+QQop = blkdiag(Qop, Qop2);
+QQop_nd = blkdiag(Qop_nd, Qop_nd2);
+QQop_nd_exact = dopvar2d2ndopvar(QQop,d);
+if QQop_nd_exact == QQop_nd
+    fprintf('blkdiag ndopvar test passed\n')
+else
+    fprintf('blkdiag ndopvar test failed\n')
+end
+
+
+
 
 %subsref ndopvar
 QQop = Qop(1:2, 2:3); 
@@ -222,3 +267,4 @@ else
 end
 
  
+

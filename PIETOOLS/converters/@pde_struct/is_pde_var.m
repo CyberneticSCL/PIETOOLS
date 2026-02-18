@@ -12,7 +12,7 @@ function [logval,obj] = is_pde_var(PDE)
 %           object is, either 'x', 'y', 'z', 'u', or 'w';
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ function [logval,obj] = is_pde_var(PDE)
 % DJ, 06/23/2024: Initial coding;
 % DJ, 06/23/2025: Update to assume variable is specified as single term,
 %                   see also update to "pde_var";
+% DJ, 02/17/2026: Update in case of nonlinear terms;
 
 % Check that the input is indeed a 'pde_struct' object;
 if ~isa(PDE,'pde_struct')
@@ -85,7 +86,11 @@ if isscalar(PDE.free) && isfield(PDE.free{1},'term')
         return
     end
     trm = PDE.free{1}.term{1};
-    if ~isfield(trm,obj) || trm.(obj)~=1
+    if ~isscalar(trm)                                                       % DJ, 02/17/2026
+        % There can be only one factor in the term.
+        logval = false;
+        return
+    elseif ~isfield(trm,obj) || trm.(obj)~=1
         % Term must involve the current variable.
         logval = false;
         return

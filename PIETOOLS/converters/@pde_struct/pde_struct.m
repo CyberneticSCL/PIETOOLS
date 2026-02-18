@@ -58,7 +58,7 @@ classdef (InferiorClasses={?state,?terms,?opvar,?opvar2d,?dpvar,?polynomial}) pd
 % x_tab(ii,2+p+j)=0 if x_tab(ii,2+j)=0.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -80,6 +80,7 @@ classdef (InferiorClasses={?state,?terms,?opvar,?opvar2d,?dpvar,?polynomial}) pd
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07/08/2022
+% DJ, 02/17/2026: Add "is_nonlinear" field;
 
     
 properties
@@ -114,6 +115,7 @@ properties (Hidden)
     is_initialized = false; % Has the system already been initialized.
     has_delay = false;      % Does the system involve any delayed states/inputs?
     has_hotd = false;       % Does the system involve any higher-order temporal derivatives?
+    is_nonlinear = false;   % Is the PDE nonlinear?
 end
 properties (Dependent)
     % Dimension of the system

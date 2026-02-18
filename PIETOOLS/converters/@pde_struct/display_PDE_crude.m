@@ -10,7 +10,7 @@ function [] = display_PDE_crude(PDE)
 %           Equations will be printed in the Command Window.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -160,7 +160,23 @@ for kk=1:numel(eq_types)
             fprintf('0;');
             continue
         end
-        [term_str,term_sign] = display_term(PDE,eq_struct.term{1},[ii+n_eqs_tot,1],use_ID);
+        % Extract the first factor of the term
+        if isscalar(eq_struct.term{1})
+            C_idx = [ii+n_eqs_tot,1];
+        else
+            C_idx = [ii+n_eqs_tot,1,1];
+        end
+        if isfield(eq_struct,'size') && eq_struct.size==1
+            prod_str = '*';
+        else
+            prod_str = '.*';
+        end
+        [term_str,term_sign] = display_term(PDE,eq_struct.term{1}(1),C_idx,use_ID);
+        for k=2:numel(eq_struct.term{1})
+            [term_str_k,term_sign_k] = display_term(PDE,eq_struct.term{1}(k),[ii+n_eqs_tot,1,k],use_ID);
+            term_sign = term_sign*term_sign_k;
+            term_str = [term_str,prod_str,term_str_k];
+        end
         if term_sign==-1
             fprintf(['- ',term_str]);
         else
@@ -168,7 +184,18 @@ for kk=1:numel(eq_types)
         end
         % % Print the remaining terms.
         for jj=2:numel(eq_struct.term)
-            [term_str,term_sign,use_Cjj] = display_term(PDE,eq_struct.term{jj},[ii+n_eqs_tot,jj],use_ID);
+            % Extract the first factor of the term
+            if isscalar(eq_struct.term{jj})
+                C_idx = [ii+n_eqs_tot,jj];
+            else
+                C_idx = [ii+n_eqs_tot,jj,1];
+            end
+            [term_str,term_sign,use_Cjj] = display_term(PDE,eq_struct.term{jj}(1),C_idx,use_ID);
+            for k=2:numel(eq_struct.term{jj})
+                [term_str_k,term_sign_k] = display_term(PDE,eq_struct.term{jj}(k),[ii+n_eqs_tot,jj,k],use_ID);
+                term_sign = term_sign*term_sign_k;
+                term_str = [term_str,prod_str,term_str_k];
+            end
             if term_sign==-1
                 fprintf([' - ',term_str]);
             else

@@ -61,16 +61,16 @@ function val = subsref(PDE,prop)
 % At this point, we just use the built-in subsasgn function. Additional
 % features such as '()' type subsasgn may be introduced in later updates.
 if strcmp(prop(1).type,'{}')
-    error(['''{}'' type subsref is currently not supported for "pde_struct" class objects.'])
+    error("''{}'' type subsref is currently not supported for 'pde_struct' class objects.")
 elseif strcmp(prop(1).type,'()')
     % % Allow terms to be retrieved by calling PDE(i,j);
     % % Process the inputs
     sz_PDE = size(PDE);
-    if numel(prop(1).subs)==1 && sz_PDE(1)==1
+    if isscalar(prop(1).subs) && sz_PDE(1)==1
         % For single input case, if there is only one equation, 
         % extract the desired term.
         prop(1).subs = {1,prop(1).subs{1}};
-    elseif numel(prop(1).subs)==1
+    elseif isscalar(prop(1).subs)
         % In single input case for multiple equations, 
         % assume full equations are desired.
         prop(1).subs = {prop(1).subs{1},':'};
@@ -215,25 +215,30 @@ elseif strcmp(prop(1).type,'.')
     if strcmpi(prop(1).subs,'C')
         % Deal with case that the PDE corresponds to a single term.
         sz_PDE = size(PDE);
-        if all(sz_PDE==1) && (numel(prop)==1 || strcmp(prop(2).type,'()'))
+        if all(sz_PDE==1) && (isscalar(prop) || strcmp(prop(2).type,'()'))
             % Allow coefficient C to be extracted in case of a single term.
             prop_new = prop(1);
             prop_new(2).type = '{}';        % Extract coefficients {1,1};
             prop_new(2).subs = {1,1};
             prop_new = [prop_new,prop(2:end)];
             prop = prop_new;
-        elseif numel(prop)==1
+        elseif isscalar(prop)
             error('To extract the coefficients C_{ij} appearing in term j of equation i, call "PDE.C{i,j}".')
         end
         if ~strcmp(prop(2).type,'{}')
             error('To extract the coefficients C_{ij} appearing in term j of equation i, call "PDE.C{i,j}".')
         elseif numel(prop(2).subs)<2
             error('Both an equation number i and term number j must be specified to extract coefficients "PDE.C{i,j}".')
-        elseif numel(prop(2).subs)>2
-            error('Only an equation number i and term number j can be specified when extracting coefficients "PDE.C{i,j}".')
+        elseif numel(prop(2).subs)>3
+            error('Only an equation number i, term number j, and factor number k can be specified when extracting coefficients "PDE.C{i,j,k}".')
         else
             ii = prop(2).subs{1};
             jj = prop(2).subs{2};
+            if numel(prop(2).subs)==3
+                kk = prop(2).subs{3};
+            else
+                kk = 1;
+            end
         end
         % Check that the equation and term number make sense.
         if ii <= 0 || ii~=round(ii) || ii~=real(ii)
@@ -244,6 +249,8 @@ elseif strcmp(prop(1).type,'.')
         %     error("Equation number i cannot exceed number of equations in the PDE, when extracting coefficients 'PDE.C{i,j}'.")
         elseif jj>sz_PDE(2)
             error("Term number j cannot exceed maximum number of terms in each equation, when extracting coefficients 'PDE.C{i,j}'.")
+        elseif kk <= 0 || kk~=round(kk) || kk~=real(kk)
+            error('Term number j must be specified as real, nonnegative integer when extracting coefficients "PDE.C{i,j}".')
         end
         % Distinguish between free equation, dynamics, outputs, or BCs
         if ~isempty(PDE.free)
@@ -277,7 +284,12 @@ elseif strcmp(prop(1).type,'.')
         elseif jj>numel(eq.term)
             error(['The proposed term index exceeds the number of terms in the equation "PDE.',eqname,'".'])
         else
-            val = eq.term{jj}.C;
+            trm = eq.term{jj};
+        end
+        if kk>numel(trm)
+            error("Factor number k cannot exceed the number of factors in the desired term.")
+        else
+            val = trm(kk).C;
         end
         % Perform remaining subsref.
         if numel(prop)>2

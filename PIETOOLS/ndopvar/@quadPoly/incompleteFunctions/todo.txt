@@ -11,11 +11,11 @@
     subsref, subsasgn, end   (done)
     numel, size   (done)
     horzcat, vertcat   (done)
-    blkdiag, 
+    blkdiag (done), 
     randquadPoly, sym2quadPoly, polynomial2quadPoly, quadPoly2polynomial   (done)
     clean, combine
     lr (done), svd
-    repmat, reshape
-    trace, det
+    repmat, reshape (done)
+    trace (done), det
     eq, isempty  (done)
     disp    (done)

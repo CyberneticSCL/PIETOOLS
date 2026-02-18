@@ -14,7 +14,7 @@ function PDE_out = eq(LHS,RHS)
 %               LHS=RHS;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ function PDE_out = eq(LHS,RHS)
 % DJ, 01/06/2025: Expand support for equating vector-valued terms;
 % DJ, 08/22/2025: Allow equations x==0 or 0==x to be set, adjusting size of
 %                   0 to match that of x;
+% DJ, 02/17/2026: Add support for nonlinear terms;
 
 % % % Process the inputs
 
@@ -194,10 +195,13 @@ for ii=1:numel(RHS.free)
             end
             % Divide coefficients in each term by those on the LHS.
             for jj=1:numel(PDE_out.(obj){eq_num}.term)
-                if isfield(PDE_out.(obj){eq_num}.term{jj},'C')
-                    PDE_out.(obj){eq_num,1}.term{jj}.C = -inv(C_LHS)*PDE_out.(obj){eq_num}.term{jj}.C;    % DJ, 12/29/2024
+                if ~isscalar(PDE_out.(obj){eq_num}.term{jj}) && ~isscalar(C_LHS)
+                    error("Factors on the left-hand side of the PDE are not supported in nonlinear case.")
+                end
+                if isfield(PDE_out.(obj){eq_num}.term{jj}(1),'C')
+                    PDE_out.(obj){eq_num,1}.term{jj}(1).C = -inv(C_LHS)*PDE_out.(obj){eq_num}.term{jj}(1).C;    % DJ, 12/29/2024
                 else
-                    PDE_out.(obj){eq_num,1}.term{jj}.C = -1;
+                    PDE_out.(obj){eq_num,1}.term{jj}(1).C = -1;
                 end
             end
         else
@@ -205,9 +209,9 @@ for ii=1:numel(RHS.free)
             % have been moved
             for jj=1:numel(PDE_out.(obj){eq_num}.term)
                 if isfield(PDE_out.(obj){eq_num}.term{jj},'C')
-                    PDE_out.(obj){eq_num,1}.term{jj}.C = -PDE_out.(obj){eq_num}.term{jj}.C;
+                    PDE_out.(obj){eq_num,1}.term{jj}(1).C = -PDE_out.(obj){eq_num}.term{jj}(1).C;
                 else
-                    PDE_out.(obj){eq_num,1}.term{jj}.C = -1;
+                    PDE_out.(obj){eq_num,1}.term{jj}(1).C = -1;
                 end
             end
         end

@@ -16,7 +16,7 @@ function PDE_out = mtimes(C,PDE_in)
 %               PDE, corresponding to the product C*PDE_in;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -40,21 +40,31 @@ function PDE_out = mtimes(C,PDE_in)
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
+% DJ, 02/17/2025: Add support for multiplication of PDE terms;
+% DJ, 02/18/2026: Prohibit matrix-multiplication with nonlinear terms;
 
 % % % Process the inputs
-
-% % Check that the first input makes sense.
-if ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'opvar')
-    error("The first factor in the product should be of type 'double' or 'polynomial'.")
-elseif ~isa(C,'opvar')
-    C = polynomial(C);
-end
 
 % % Check that the second input makes sense.
 % Make sure the input is a pde_struct object.
 if ~isa(PDE_in,'pde_struct')
     error("The second factor in the product should correspond to a single term in the PDE.")
 end
+
+% % Check that the first input makes sense.
+if isa(C,'pde_struct')
+    % Use separate function for multiplication of PDE terms
+    if size(C,1,'vec_size_tot')>1 && size(PDE_in,1,'vec_size_tot')>1
+        error("Multiplication of vector-valued PDE terms is not supported. Use '.* instead for elementwise multiplication.")
+    end
+    PDE_out = times_pdes(C,PDE_in);
+    return
+elseif ~isa(C,'double') && ~isa(C,'polynomial') && ~isa(C,'opvar')
+    error("The first factor in the product should be of type 'pde_struct', 'double' or 'polynomial'.")
+elseif ~isa(C,'opvar')
+    C = polynomial(C);
+end
+
 % Make sure the input corresponds to a single state/input/output
 % or set of terms.
 [is_pde_var_in,obj] = is_pde_var(PDE_in);
@@ -177,7 +187,7 @@ end
 if is_pde_var_in
     % Check that the number of columns in C matches the number of rows of
     % the PDE variable.
-    if prod(size(C))~=1 && size(C,2)~=PDE_in.([obj,'_tab'])(1,2)
+    if numel(C)~=1 && size(C,2)~=PDE_in.([obj,'_tab'])(1,2)
         error("Column dimension of the factor should match row dimension of PDE object.")
     end
     
@@ -249,7 +259,7 @@ elseif numel(eq_size_list)==size(C,2)
     if length(unique(eq_size_list))~=1
         error("For addition of equations with a scalar factor, the size of the terms in the equation should match.")
     end
-    if size(C,1)==1 && length(unique(eq_size_list))==1
+    if size(C,1)==1 && isscalar(unique(eq_size_list))
         % Single output equation, assume the same size as all inputs.
         eq_size_cell_out = num2cell(sum(eq_size_list(1))*ones(1,size(C,2)));
     elseif size(C,1)==size(C,2)
@@ -322,10 +332,17 @@ for ii=1:numel(PDE_out.free)
             else
                 % Add a standard term, with coefficients multiplied with
                 % Cik;
+                if numel(eq_kk.term{jj})>1 && ~isscalar(Cik)                % DJ, 02/18/2026
+                    % Multiplication of coefficient with nonlinear term
+                    % only works for scalar coefficient
+                    if any(any(~isequal(Cik-Cik(1,1)*eye(size(Cik,1)),0)))
+                        error("Matrix multiplication of coefficient with nonlinear term is not supported.")
+                    end
+                end
                 if isfield(eq_kk.term{jj},'C')
-                    PDE_out.free{ii}.term{term_num}.C = Cik*eq_kk.term{jj}.C;
+                    PDE_out.free{ii}.term{term_num}(1).C = Cik*eq_kk.term{jj}(1).C;
                 else
-                    PDE_out.free{ii}.term{term_num}.C = Cik;
+                    PDE_out.free{ii}.term{term_num}(1).C = Cik;
                 end
             end
             % Move to the next term;

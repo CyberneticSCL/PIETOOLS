@@ -14,7 +14,7 @@ function PDE_out = uminus(PDE_in)
 %               sign-swapped.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ function PDE_out = uminus(PDE_in)
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
+% DJ, 02/17/2026: Allow for nonlinear terms;
 
 % % Process the input.
 % Check that the input is indeed of suitable type.
@@ -58,9 +59,9 @@ for kk=1:numel(eq_types)
         else
             for jj=1:numel(PDE_out.(eq_type){ii}.term)
                 if isfield(PDE_out.(eq_type){ii}.term{jj},'C')
-                    PDE_out.(eq_type){ii}.term{jj}.C = -PDE_in.(eq_type){ii}.term{jj}.C;
+                    PDE_out.(eq_type){ii}.term{jj}(1).C = -PDE_in.(eq_type){ii}.term{jj}(1).C;
                 else
-                    PDE_out.(eq_type){ii}.term{jj}.C = -1;
+                    PDE_out.(eq_type){ii}.term{jj}(1).C = -1;
                 end
             end
         end
