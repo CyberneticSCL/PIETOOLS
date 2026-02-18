@@ -114,6 +114,9 @@ if opts.intScheme~=1
     disp("Temporal evolution of solution is only available when using the BDF scheme; only final states are plotted.")
 elseif opts.tf==0
     disp("Temporal evolution of solution is only available when final time is not equal to zero; only final states are plotted.")
+    plot_ode=false;
+    plot_y=false;
+    plot_z=false;
 else
     % Determine time indices at which to plot solution.
     dtime = solution.timedep.dtime;
