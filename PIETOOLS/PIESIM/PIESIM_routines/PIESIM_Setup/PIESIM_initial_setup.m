@@ -29,6 +29,7 @@
 % YP 1/22/2026 - added differentiation of disturbances and control inputs
 % to support inhomogeneous boudnary inputs in 2D
 % YP 2/6/2026 - added corner values for inhomogeneous boudnary inputs in 2D
+% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
 
 function [uinput,psize]=PIESIM_initial_setup(uinput,psize,PIE,type)
 syms st sx sy sym_array;
@@ -72,19 +73,19 @@ end
  end
 
      for i=1:ns
-      uinput.ic.PIE(i) =  diff(uinput.ic.PDE(i),sx,p(i));
+      uinput.ic(psize.no+i) =  diff(uinput.ic(psize.no+i),sx,p(i));
      end
 
 else
 
     % 2D case
-% Use x_tab rather than psize to determine degree of smootness
+% Use x_tab rather than psize to determine degree of smoothness
     ns = sum(psize.nx,'all')+sum(psize.ny,'all')+sum(psize.n,'all');
 
 for i=1:ns
     ii=psize.no+i;
-    ic_PDE_xder =  diff(uinput.ic.PDE(i),sx,psize.x_tab(ii,end-1));
-    uinput.ic.PIE(i) =  diff(ic_PDE_xder,sy,psize.x_tab(ii,end));
+    ic_PDE_xder =  diff(uinput.ic(ii),sx,psize.x_tab(ii,end-1));
+    uinput.ic(ii) =  diff(ic_PDE_xder,sy,psize.x_tab(ii,end));
 end
 
 % Compare the size of disturbances after PIE conversion to original size
@@ -231,7 +232,7 @@ end % if not PIE
         uinput.w{k}=matlabFunction(uinput.w{k},'Vars', st);
         uinput.wdot{k}=matlabFunction(diff(uinput.w{k},st),'Vars', st);
         else
-            % Double type distubrances of size 1 (constant in time) 
+            % Double type disturbances of size 1 (constant in time) 
             if (length(uinput.w{k})==1)
                 uinput.w{k}=@(t) uinput.w{k};
                 uinput.wdot{k}=@(t) 0;

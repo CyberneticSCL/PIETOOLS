@@ -94,8 +94,8 @@ for q=1:deg+2
     end
 end
 
- for k=1:N+1
-     for i=1:N+1
+ for k=1:N(1)+1
+     for i=1:N(1)+1
          Rycheb(:,:)=A(i,k,:,:);
          A2D(i,k,1:N(2)+1,1:N(2)+1)=PIESIM_integral_projection1D(N(2), Rycheb, lim(2,:));
      end

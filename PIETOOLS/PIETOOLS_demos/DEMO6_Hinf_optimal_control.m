@@ -60,7 +60,10 @@
 %                   rid of extra simulations);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/22/2024: Use piess;
-% DB, 12/29/2024: Use pde_var objects instead of sys and state
+% DB, 12/29/2024: Use pde_var objects instead of sys and state;
+% YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde into
+% solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
+% solution.timedep.primary{1,2}
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -143,7 +146,7 @@ PIE_CL = piess(T,A+B2*Kval,B1,C1+D12*Kval,D11);
 
 % % Declare initial values and disturbance
 syms st sx real
-uinput.ic.PDE = sin(sx*pi/2);
+uinput.ic = sin(sx*pi/2);
 uinput.w = sin(pi*st)./(st+eps); 
 
 % % Set options for discretization and simulation
@@ -151,17 +154,16 @@ opts.plot = 'yes';   % don't plot final solution
 opts.N = 16;        % expand using 16 Chebyshev polynomials
 opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-2;     % use time step of 10^-2
-ndiff = [0,0,1];    % PDE state involves 1 second order differentiable state variable
 
 % % Perform the actual simulation
 % Simulate uncontrolled PIE and extract solution
-[solution_OL,grid] = PIESIM(PIE,opts,uinput,ndiff);
+[solution_OL,grid] = PIESIM(PIE,opts,uinput);
 tval = solution_OL.timedep.dtime;
-x_OL = reshape(solution_OL.timedep.pde(:,1,:),opts.N+1,[]);
+x_OL = reshape(solution_OL.timedep.primary{2}(:,1,:),opts.N+1,[]);
 z_OL = solution_OL.timedep.regulated{1}(1,:);
 % Simulate controlled PIE and extract solution
-[solution_CL,~] = PIESIM(PIE_CL,opts,uinput,ndiff);
-x_CL = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
+[solution_CL,~] = PIESIM(PIE_CL,opts,uinput);
+x_CL = reshape(solution_CL.timedep.primary{2}(:,1,:),opts.N+1,[]);
 z_CL = solution_CL.timedep.regulated{1}(1,:);
 u_CL = solution_CL.timedep.regulated{1}(2,:);
 w = double(subs(uinput.w,st,tval));

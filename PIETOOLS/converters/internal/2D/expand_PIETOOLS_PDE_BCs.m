@@ -232,8 +232,9 @@ for ii=1:numel(PDE.BC)
         % infinite-dimensional inputs.
         if (strcmp(Robj,'w') && any(PDE.w_tab(Rindx,3:2+nvars))) || ...
                 (strcmp(Robj,'u') && any(PDE.u_tab(Rindx,3:2+nvars)))
-            error(['Term "BC{',num2str(ii),'}.term{',num2str(jj),'}" is not appropriate: ',...
-                    ' boundary conditions involving infinite-dimenstional inputs are currently not supported.'])            
+            error("Conversion to PIE is not supported for the proposed PDE.")
+            % error(['Term "BC{',num2str(ii),'}.term{',num2str(jj),'}" is not appropriate: ',...
+                    % ' boundary conditions involving infinite-dimenstional inputs are currently not supported.'])            
         elseif ~is_x_Robj
             % If the term involves an input, we add it's contribution to
             % each of the new boundary conditions, and move on to the next

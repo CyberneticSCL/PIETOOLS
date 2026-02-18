@@ -64,7 +64,10 @@
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/22/2024: Use piess and pielft;
-% DB, 12/29/2024: Use pde_var objects instead of sys and state
+% DB, 12/29/2024: Use pde_var objects instead of sys and state;
+% YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde into
+% solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
+% solution.timedep.primary{1,2}
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -149,7 +152,7 @@ PIE_CL = pielft(PIE,PIE_est);
 
 % % Declare initial values and disturbance
 syms st sx real
-uinput.ic.PDE = [-10*sx;    % actual initial PIE state value
+uinput.ic = [-10*sx;    % actual initial PIE state value
                  0];        % estimated initial PIE state value
 uinput.w = 2*sin(pi*st);
 
@@ -158,14 +161,13 @@ opts.plot = 'yes';  % plot solution
 opts.N = 8;         % expand using 8 Chebyshev polynomials
 opts.tf = 2;        % simulate up to t = 2
 opts.dt = 1e-3;     % use time step of 10^-3
-ndiff = [0,0,2];    % PDE state involves 2 second order differentiable state variables
 
 % % Simulate solution to the PIE with estimator.
-[solution,grid] = PIESIM(PIE_CL,opts,uinput,ndiff);
+[solution,grid] = PIESIM(PIE_CL,opts,uinput);
 % % Extract actual and estimated state and output at each time step.
 tval = solution.timedep.dtime;
-x_act = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
-x_est = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
+x_act = reshape(solution.timedep.primary{2}(:,1,:),opts.N+1,[]);
+x_est = reshape(solution.timedep.primary{2}(:,2,:),opts.N+1,[]);
 z_act = solution.timedep.regulated{1}(1,:);
 z_est = solution.timedep.regulated{1}(2,:);
 

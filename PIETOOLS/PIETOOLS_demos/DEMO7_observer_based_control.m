@@ -140,12 +140,12 @@ ndiff_CL = [0,0,2]; % The closed-loop system involves 2 state variables
 % Simulate uncontrolled PIE and extract solution
 [solution_OL,grid] = PIESIM(PIE,opts,uinput,ndiff);
 tval = solution_OL.timedep.dtime;
-x_OL = reshape(solution_OL.timedep.pde(:,1,:),opts.N+1,[]);
+x_OL = reshape(solution_OL.timedep.primary{2}(:,1,:),opts.N+1,[]);
 z_OL = solution_OL.timedep.regulated{1}(1,:);
 % Simulate controlled PIE and extract solution
 [solution_CL,~] = PIESIM(PIE_CL,opts,uinput,ndiff_CL);
-x_CL = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
-xhat_CL = reshape(solution_CL.timedep.pde(:,2,:),opts.N+1,[]);
+x_CL = reshape(solution_CL.timedep.primary{2}(:,1,:),opts.N+1,[]);
+xhat_CL = reshape(solution_CL.timedep.primary{2}(:,2,:),opts.N+1,[]);
 z_CL = solution_CL.timedep.regulated{1}(1,:);
 zhat_CL = solution_CL.timedep.regulated{1}(3,:);
 u_CL = solution_CL.timedep.regulated{1}(2,:);

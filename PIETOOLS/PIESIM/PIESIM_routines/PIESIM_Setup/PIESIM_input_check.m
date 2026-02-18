@@ -49,6 +49,7 @@ function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 % YP, 06/03/2025: Fixed sensing of observed and regulated outputs during coupling with PIE
 % YP, 12/29/2025: Updated disturbance and control input check
 % YP, 1/27/2026: Added support for infinite-dimensional outputs in 2D
+% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
 
 syms st sx sy;
 structure=varargin{1};
@@ -177,6 +178,7 @@ end
     psize.dim=PDE.dim;
 
 %    x_order_PDE = x_order(psize.no+1:end);
+    no=psize.no;
     if PDE.dim==1   
     ns = sum(psize.n,'all');
     else
@@ -195,7 +197,7 @@ end
 
      if (PDE.dim==1)
     % Check if the problem size is defined correctly
-     if length(opts.N>1)
+     if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
@@ -243,123 +245,56 @@ end
     psize.nooy = sum(PDE.y_tab(:,3) == 0 & PDE.y_tab(:,2+PDE.dim) == 1);
     psize.noo2 = sum(PDE.y_tab(:,3) == 1 & PDE.y_tab(:,2+PDE.dim) == 1);
     psize.noo = sum(PDE.y_tab(:,2))-(psize.noox+psize.nooy+psize.noo2);
-     end
+     end % PDE.dim
 
     % Define problem size for discretization
     
     psize.N = opts.N;
 
     if ~isfield(uinput,'ic')
-        if psize.no>0
+        if no>0
             disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
         end
         if ns>0
-            disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
+            disp('Warning: PDE initial conditions are not defined. Defaulting to zero');
         end
-        uinput.ic.ODE(1:psize.no)=0;
+        uinput.ic(1:no)=0;
         if (PDE.dim==1)
-        uinput.ic.PDE(1:ns)=sin(pi*sx);
+        uinput.ic(no+1:no+ns)=0;
         elseif (PDE.dim==2)
-            uinput.ic.PDE(1:nsx)=sin(pi*sx);
-            uinput.ic.PDE(nsx+1:nsx+nsy)=sin(pi*sy);
-            uinput.ic.PDE(nsx+nsy+1:ns)=sin(pi*sx)*sin(pi*sy);
+            uinput.ic(no+1:no+nsx)=0;
+            uinput.ic(no+nsx+1:no+nsx+nsy)=0;
+            uinput.ic(no+nsx+nsy+1:no+ns)=0;
         end
-    end
+   
+    else
 
     ireorder=0;
 
-    if isfield(uinput.ic,'x')
-        if (isfield(uinput.ic,'ODE') || isfield(uinput.ic,'PDE'))
-            disp('Initial conditions have been specified using both "ic.x" and "ic.ODE", "ic.PDE". Continuing with the initial conditions "ic.x".')
-        end
-        if ~isempty(symvar(sym(uinput.ic.x))) && any(~ismember(symvar(uinput.ic.x),{'sx';'sy'}))
+  
+        if ~isempty(symvar(sym(uinput.ic))) && any(~ismember(symvar(uinput.ic),{'sx';'sy'}))
             error('Initial conditions for PDE must be symbolic expressions in sx (and sy for 2D PDEs)');
-        elseif size(uinput.ic.x,2)~=(psize.no + ns)
-            error('Number of initial conditions should match the number of state variables')
+        elseif length(uinput.ic)>(no + ns)
+        disp('Warning: Number of initial conditions is greater than the number of states. Extra initial conditions will be ignored.');
+        uinput.ic(no+ns+1:length(uinput.ic))=[];
+        elseif length(uinput.ic)<(no + ns)
+        disp('Warning: Number of initial conditions is less than the number of states. Defaulting the rest to zer.');
+        uinput.ic.x(length(uinput.ic)+1:no+ns)=sym(0);
         end
         if ~issorted(x_order)
-        uinput.ic.x = uinput.ic.x(x_order); % Reorder initial conditions to match new ordering of state components.
+        uinput.ic = uinput.ic(x_order); % Reorder initial conditions to match new ordering of state components.
         ireorder=1;
         disp('Initial conditions have been reordered to correspond to new ordering');
         end
-        if hasSymType(uinput.ic.x(1:psize.no),'variable')
+        if (no>0)
+        if hasSymType(uinput.ic(1:no),'variable')
             error('Initial conditions for ODE must be scalar constants');
         else
-            uinput.ic.ODE = double(uinput.ic.x(1:psize.no));
+            uinput.ic(1:no) = double(uinput.ic(1:no));
         end
-        uinput.ic.PDE = uinput.ic.x(psize.no+1:end);
-    end
+        end
+    end % ~isfield(uinput,'ic')
 
-       % Check initial conditions for ODE state variables
-    if (psize.no>0)
-        if ~isfield(uinput.ic,'ODE') || isempty(uinput.ic.ODE)
-            disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
-            uinput.ic.ODE(1:psize.no)=0;
-        elseif any(~isdouble(uinput.ic.ODE))
-            error('Initial conditions for ODE must be scalar constants');
-        end
-        if(size(uinput.ic.ODE,2)<psize.no)
-            disp('Warning: Number of initial conditions on ODE states is less than the number of ODE states');
-            disp('Defalting the rest to zero');
-            uinput.ic.ODE(size(uinput.ic.ODE,2)+1:psize.no)=0;
-        elseif(size(uinput.ic.ODE,2)>psize.no)
-            disp('Warning: Number of initial conditions on ODE states is greater than the number of ODE states');
-            disp('Defaulting all ODE initial conditions to zero');
-            clear uinput.ic.ODE;
-            uinput.ic=rmfield(uinput.ic,'ODE');
-            uinput.ic.ODE(1:psize.no)=0;
-        end
-    end
-    
-    % Check initial conditions for PDE state variables
-
-    if isfield(uinput.ic,'PDE')
-    if(size(uinput.ic.PDE,2)<ns)
-        disp('Warning: Number of initial conditions on PDE states is less than the number of PDE states');
-        disp('Defaulting the rest to zero');
-        uinput.ic.PDE(1,size(uinput.ic.PDE,2)+1:ns)=sym(0);
-    elseif(size(uinput.ic.PDE,2)>ns)
-        disp('Warning: Number of initial conditions on PDE states is greater than the number of PDE states');
-        disp('Defaulting all initial conditions to zero');
-        uinput.ic=rmfield(uinput.ic,'PDE');
-        uinput.ic.PDE(1:ns)=sym(0);
-    end
-    % Reorder initial conditions only if it has bot been reordered already
-        if ~issorted(x_order) & ~ireorder
-            uinput.ic.x = sym(zeros(1,psize.no+ns));
-            uinput.ic.x(1:psize.no)=sym(uinput.ic.ODE);
-            uinput.ic.x(psize.no+1:psize.no+ns)=sym(uinput.ic.PDE); 
-            uinput.ic.x = uinput.ic.x(x_order); % Reorder initial conditions to match new ordering of state components.
-            uinput.ic.ODE = uinput.ic.x(1:psize.no);
-            uinput.ic.PDE = uinput.ic.x(psize.no+1:end);
-            disp('Initial conditions have been reordered to correspond to new ordering');
-        end
-    end
-
-    if (PDE.dim==1)
-    if ns>0
-        if ~isfield(uinput.ic,'PDE')
-            if isfield(uinput.ic,'PIE')
-            disp('Initial conditions are provided as uinput.ic.PIE and not uinput.ic.PDE. They will be used for the PDE states as given.')
-            uinput.ic.PDE=uinput.ic.PIE;
-            else
-            disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
-            uinput.ic.PDE(1:ns)=sin(pi*sx);
-            end
-        elseif ~isempty(symvar(sym(uinput.ic.PDE))) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
-            error('Initial conditions for PDE must be symbolic expressions in sx');
-        end
-    end
-    elseif(PDE.dim==2)
-        if ns>0
-        if ~isfield(uinput.ic,'PDE')
-            disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
-            uinput.ic.PDE(1:nsx)=sin(pi*sx);
-            uinput.ic.PDE(nsx+1:nsx+nsy)=sin(pi*sy);
-            uinput.ic.PDE(nsx+nsy+1:ns)=sin(pi*sx)*sin(pi*sy);
-        end
-        end
-    end % PDE.dim
 
     if (opts.ifexact)
         if ~isfield(uinput,'exact')
@@ -437,7 +372,7 @@ elseif (opts.type=='DDE')
     psize.nw=size(PIE.Tw,2); % number of control inputs
 
     % Check if the problem size is defined correctly
-     if length(opts.N>1)
+    if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
@@ -484,62 +419,26 @@ elseif (opts.type=='DDE')
 
     uinput = PIESIM_disturbance_check(PIE,uinput,psize);
 
-
+    no=psize.no;
     if ~isfield(uinput,'ic')
-        if (psize.no>0)
-        disp('Initial conditions on ODE states are not defined. Defaulting to 1');
-        uinput.ic.ODE(1:psize.no)=1;
+        if (no>0)
+        disp('Initial conditions on ODE states are not defined. Defaulting to zero');
+        uinput.ic(1:no)=0;
         end
         if ns>0
-        disp('Initial conditions on history are not defined. Defaulting to 1');
-        uinput.ic.DDE(1:ns)=1;
+        disp('Initial conditions on history are not defined. Defaulting to zero');
+        uinput.ic(no+1:no+ns)=0;
         end
-    else
-        if ~isfield(uinput.ic,'ODE')
-            if psize.no>0
-            disp('Initial conditions on ODE states are not defined. Defaulting to 1');
-            uinput.ic.ODE(1:psize.no)=1;
-            end
-        end
-        if ~isfield(uinput.ic,'DDE')
-            if isfield(uinput.ic,'PDE') 
-                disp('Initial conditions are provided as uinput.ic.PDE and not uinput.ic.DDE. They will be used for the DDE states as given.');
-            uinput.ic.DDE=uinput.ic.PDE;
-            else
-            disp('Initial conditions on history are not defined. Defaulting to 1');
-            uinput.ic.DDE(1:ns)=1;
-            end
-
-        end
-
-        if(size(uinput.ic.DDE,2)<ns)
-         disp('Warning: Number of initial conditions on DDE states is less than the number of DDE states');
+    elseif(length(uinput.ic)<no+ns)
+         disp('Warning: Number of initial conditions is less than the number of states');
          disp('Defalting the rest to zero');
-         uinput.ic.DDE(1,size(uinput.ic.DDE,2)+1:ns)=0;
-      end
-
-if(size(uinput.ic.DDE,2)>ns)
-    disp('Warning: Number of initial conditions on DDE states is greater than the number of DDE states');
-    disp('Defaulting all initial conditions to zero');
-    uinput.ic=rmfield(uinput.ic,'DDE');
-    uinput.ic.DDE(1:ns)=0.;
-end
-
-
-        if size(uinput.ic.ODE,1)>1
-            uinput.ic.ODE=uinput.ic.ODE';
-        end
-        if max(size(uinput.ic.ODE))<psize.no
-            disp('Not enought number of ODE initial conditions is defined. Defaulting the rest to 1');
-            uinput.ic.ODE(max(size(uinput.ic.ODE)):psize.no)=1;
-        elseif max(size(uinput.ic.ODE))>psize.no
-            disp('Too many ODE initial conditions are defined. Ignoring extra conditions');
-            new_ic(1:psize.no)=uinput.ic.ODE(1:psize.no);
-            uinput.ic.ODE=new_ic;
-        end
-
-
+         uinput.ic(length(uinput.ic)+1:no+ns)=0;
+    elseif(length(uinput.ic)>no+ns)
+         disp('Warning: Number of initial conditions on DDE states is greater than the number of DDE states');
+         disp('Extra initial conditions will be ignored');
+         uinput.ic(no+ns+1:length(uinput.ic))=[];
     end
+
 
      if (opts.ifexact)
         if ~isfield(uinput,'exact')
@@ -552,9 +451,6 @@ end
         end % ~isfield(uinput,'exact')
     end % opts.ifexact
 
-% Reassign uinput.ic.DDE to uinput.ic.PDE
-
-uinput.ic.PDE=uinput.ic.DDE;
 
     % Checking of the DDE inputs ends
 
@@ -594,7 +490,7 @@ elseif (opts.type=='PIE')
      if (psize.dim==1)
 
             % Check if the problem size is defined correctly
-     if length(opts.N>1)
+    if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
@@ -664,47 +560,28 @@ elseif (opts.type=='PIE')
      end  
 
     uinput = PIESIM_disturbance_check(PIE,uinput,psize);
+
+    no=psize.no;
     
     if ~isfield(uinput,'ic')
-        if (psize.no>0)
-        disp('Initial conditions on ODE states are not defined. Defaulting to 1');
-        uinput.ic.ODE(1:psize.no)=1;
+        if (no>0)
+        disp('Initial conditions on ODE states are not defined. Defaulting to zero');
+        uinput.ic(1:no)=0;
         end
         if (ns>0)
-        disp('Initial conditions on PIE states  are not defined. Defaulting to 1');
-        uinput.ic.PIE(1:ns)=1;
+        disp('Initial conditions on PIE states  are not defined. Defaulting to zero');
+        uinput.ic(no+1:no+ns)=0;
         end
-    else
-        if ~isfield(uinput.ic,'ODE')
-            if (psize.no>0)
-            disp('Initial conditions on ODE states are not defined. Defaulting to 1');
-            uinput.ic.ODE(1:psize.no)=1;
-            end
-        end
-        if ~isfield(uinput.ic,'PIE')
-            if isfield(uinput.ic,'PDE')
-            disp('Initial conditions are provided as uinput.ic.PDE and not uinput.ic.PIE. They will be used for the PIE states as given.');
-            uinput.ic.PIE=uinput.ic.PDE;
-        else
-            disp('Initial conditions on PIE states are not defined. Defaulting to 1');
-            uinput.ic.PIE(1:ns)=1;
-        end
+    elseif(length(uinput.ic)<no+ns)
+         disp('Warning: Number of initial conditions is less than the number of states');
+         disp('Defalting the rest to zero');
+         uinput.ic(length(uinput.ic)+1:no+ns)=0;
+    elseif(length(uinput.ic)>no+ns)
+         disp('Warning: Number of initial conditions on DDE states is greater than the number of DDE states');
+         disp('Extra initial conditions will be ignored');
+         uinput.ic(no+ns+1:length(uinput.ic))=[];
     end
 
-        if isfield(uinput.ic,'ODE')
-        if size(uinput.ic.ODE,1)>1
-            uinput.ic.ODE=uinput.ic.ODE';
-        end
-        if max(size(uinput.ic.ODE))<psize.no
-            disp('Not enought number of ODE initial conditions is defined. Defaulting the rest to 1');
-            uinput.ic.ODE(max(size(uinput.ic.ODE)):psize.no)=1;
-        elseif max(size(uinput.ic.ODE))>psize.no
-            disp('Too many ODE initial conditions are defined. Ignoring extra conditions');
-            new_ic(1:psize.no)=uinput.ic.ODE(1:psize.no);
-            uinput.ic.ODE=new_ic;
-        end
-        end
-    end
 
  if (opts.ifexact)
         if ~isfield(uinput,'exact')
@@ -736,7 +613,7 @@ opts=varargin{3};
 PDE=structure;
 % Checking of the PDE inputs begins
 
-if length(opts.N>1)
+if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
      end
@@ -782,57 +659,33 @@ if ~isfield(PDE,'noo')
     PDE.noo=0;
 end
 
-if ~isfield(uinput,'ic')
-    disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
-    disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
-    uinput.ic.PDE(1:ns)=sin(pi*sx);
-    uinput.ic.ODE(1:PDE.no)=0;
-end
+no=PDE.no;
 
-if ~isfield(uinput.ic,'PDE')
-    disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
-    uinput.ic.PDE(1:ns)=sin(pi*sx);
-elseif ~isempty(symvar(sym(uinput.ic.PDE))) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
+if ~isfield(uinput,'ic')
+    if (no>0)
+    disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
+    uinput.ic(1:no)=0;
+    end
+ if (ns>0)
+    disp('Warning: PDE initial conditions are not defined. Defaulting to zero');
+    uinput.ic(no+1:no+ns)=0;
+ end
+elseif ~isempty(symvar(sym(uinput.ic))) && any(~ismember(symvar(uinput.ic),{'sx'}))
     error('Initial conditions for PDE must be symbolic expressions in sx');
 end
 
-if (PDE.no>0)
-    if ~isfield(uinput.ic,'ODE')
-        disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
-        uinput.ic.ODE(1:PDE.no)=0;
-    elseif any(~isdouble(uinput.ic.ODE))
-        error('Initial conditions for ODE must be scalar constants');
-    end
-end
-
-if(size(uinput.ic.PDE,2)<ns)
-    disp('Warning: Number of initial conditions on PDE states is less than the number of PDE states');
+if(length(uinput.ic)<no+ns)
+    disp('Warning: Number of initial conditions is less than the number of states');
     disp('Defalting the rest to zero');
-    uinput.ic.PDE(1,size(uinput.ic.PDE,2)+1:ns)=0;
+    uinput.ic(length(uinput.ic)+1:no+ns)=0;
 end
 
-if(size(uinput.ic.PDE,2)>ns)
-    disp('Warning: Number of initial conditions on PDE states is greater than the number of PDE states');
-    disp('Defaulting all initial conditions to zero');
-    uinput.ic=rmfield(uinput.ic,'PDE');
-    uinput.ic.PDE(1:ns)=0.;
+if(length(uinput.ic)>no+ns)
+    disp('Warning: Number of initial conditions is greater than the number of states');
+    disp('Extra initial conditions will be ignored');
+    uinput.ic(no+ns+1:length(uinput.ic))=[];
 end
 
-if (PDE.no>0)
-    if(size(uinput.ic.ODE,2)<PDE.no)
-        disp('Warning: Number of initial conditions on ODE states is less than the number of ODE states');
-        disp('Defalting the rest to zero');
-        uinput.ic.ODE(size(uinput.ic.PDE,2)+1:PDE.no)=0;
-    end
-
-    if(size(uinput.ic.ODE,2)>PDE.no)
-        disp('Warning: Number of initial conditions on ODE states is greater than the number of ODE states');
-        disp('Defaulting all ODE initial conditions to zero');
-        clear uinput.ic.ODE;
-        uinput.ic=rmfield(uinput.ic,'ODE');
-        uinput.ic.ODE(1:PDE.no)=0.;
-    end
-end
 
 % Check control inputs setup
 if (PDE.nu>0)
@@ -962,7 +815,7 @@ psize.dim=1;
 
 % Define problem size for discretization
 
-if length(opts.N>1)
+if length(opts.N)>1
          disp('Warning: opts.N was defined with more than one entry. The second entry will be ignored.');
          opts.N=opts.N(1);
 end
@@ -1073,57 +926,33 @@ ns = sum(psize.n);
 
     % Check initial conditions
 
-    if ~isfield(uinput,'ic')
-    disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
-    disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
-    uinput.ic.PDE(1:ns)=sin(pi*sx);
-    uinput.ic.ODE(1:psize.no)=0;
-end
+    no=psize.no;
 
-if ~isfield(uinput.ic,'PDE')
-    disp('Warning: PDE initial conditions are not defined. Defaulting to sinusoidal');
-    uinput.ic.PDE(1:ns)=sin(pi*sx);
-elseif ~isempty(symvar(sym(uinput.ic.PDE))) && any(~ismember(symvar(uinput.ic.PDE),{'sx'}))
+  if ~isfield(uinput,'ic')
+    if (no>0)
+    disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
+    uinput.ic(1:no)=0;
+    end
+ if (ns>0)
+    disp('Warning: PDE initial conditions are not defined. Defaulting to zero');
+    uinput.ic(no+1:no+ns)=0;
+ end
+elseif ~isempty(symvar(sym(uinput.ic))) && any(~ismember(symvar(uinput.ic),{'sx'}))
     error('Initial conditions for PDE must be symbolic expressions in sx');
 end
 
-if (psize.no>0)
-    if ~isfield(uinput.ic,'ODE')
-        disp('Warning: ODE initial conditions are not defined. Defaulting to zero');
-        uinput.ic.ODE(1:psize.no)=0;
-    elseif any(~isdouble(uinput.ic.ODE))
-        error('Initial conditions for ODE must be scalar constants');
-    end
-end
-
-if(size(uinput.ic.PDE,2)<ns)
-    disp('Warning: Number of initial conditions on PDE states is less than the number of PDE states');
+if(length(uinput.ic)<no+ns)
+    disp('Warning: Number of initial conditions is less than the number of states');
     disp('Defalting the rest to zero');
-    uinput.ic.PDE(1,size(uinput.ic.PDE,2)+1:ns)=0;
+    uinput.ic(length(uinput.ic)+1:no+ns)=0;
 end
 
-if(size(uinput.ic.PDE,2)>ns)
-    disp('Warning: Number of initial conditions on PDE states is greater than the number of PDE states');
-    disp('Defaulting all initial conditions to zero');
-    uinput.ic=rmfield(uinput.ic,'PDE');
-    uinput.ic.PDE(1:ns)=0.;
+if(length(uinput.ic)>no+ns)
+    disp('Warning: Number of initial conditions is greater than the number of states');
+    disp('Extra initial conditions will be ignored');
+    uinput.ic(no+ns+1:length(uinput.ic))=[];
 end
 
-if (psize.no>0)
-    if(size(uinput.ic.ODE,2)<psize.no)
-        disp('Warning: Number of initial conditions on ODE states is less than the number of ODE states');
-        disp('Defalting the rest to zero');
-        uinput.ic.ODE(size(uinput.ic.PDE,2)+1:psize.no)=0;
-    end
-
-    if(size(uinput.ic.ODE,2)>psize.no)
-        disp('Warning: Number of initial conditions on ODE states is greater than the number of ODE states');
-        disp('Defaulting all ODE initial conditions to zero');
-        clear uinput.ic.ODE;
-        uinput.ic=rmfield(uinput.ic,'ODE');
-        uinput.ic.ODE(1:psize.no)=0.;
-    end
-end
 
 
 end

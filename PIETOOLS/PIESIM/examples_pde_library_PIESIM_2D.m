@@ -23,9 +23,11 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 5_29_2021
-% YP 6/16/2022 - updated to include terms format and added more examples in
+% YP, 6/16/2022 - updated to include terms format and added more examples in
 % terms format
-% DJ, 01/04/2024: Use pde_var to declare examples, update Example 19;
+% DJ, 01/04/2024: Use pde_var to declare examples
+% YP, 2/15/2026: Added examples with inhomogeneous boundary conditions
+% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
 
 
 function [PDE,uinput]=examples_pde_library_PIESIM_2D(example)
@@ -61,7 +63,7 @@ switch example
 % u_t=visc*(uxx+uyy)
 % Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
         
-% Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) + f(s1,s2,t)
+% Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) 
 a=-1;b=1;
 c=-1;d=1;
 uinput.dom=[a b;c d]; 
@@ -84,7 +86,7 @@ PDE = initialize([Dyn;BCs]);
 % Exact solution, initial conditions and inhomogeneous inputs   
 uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
 % Initial conditions for the primary states of the PDE
-uinput.ic.PDE=  subs(uinput.exact,st,0);
+uinput.ic =  subs(uinput.exact,st,0);
 
 %----------------------------------------
 %% Example 2 - 2D Heat Equation with inhomogeneous Dirichlet-Dirichlet boundary conditions
@@ -93,9 +95,8 @@ uinput.ic.PDE=  subs(uinput.exact,st,0);
 
 % u(x,y,t)=(sin(pi*x)+sin(pi*y))*exp(-2*visc*pi^2*t) - solution for
 % u_t=visc*(uxx+uyy)
-% Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
         
-% Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) + f(s1,s2,t)
+% Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) 
 a=-1.1;b=0.8;
 c=-0.9;d=0.7;
 uinput.dom=[a b;c d]; 
@@ -113,7 +114,7 @@ x = pde_var([s1;s2],[a,b;c,d]);
 % Declare the dynamics
 Dyn = [diff(x,t)==c1*diff(x,s1,2)+c2*diff(x,s2,2)];
 % Declare the boundary conditions
-BCs = [subs(diff(x,s1),s1,a)==w1; subs(x,s2,c)==w2;  subs(x,s1,b)==w3;  subs(diff(x,s2),s2,d)==w4];
+BCs = [subs(x,s1,a)==w1; subs(x,s2,c)==w2;  subs(x,s1,b)==w3;  subs(x,s2,d)==w4];
 % Initialize the PDE
 PDE = initialize([Dyn;BCs]);
 
@@ -121,11 +122,11 @@ PDE = initialize([Dyn;BCs]);
 % Exact solution, initial conditions and inhomogeneous inputs   
 uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
 % Initial conditions for the primary states of the PDE
-uinput.ic.PDE=  subs(uinput.exact,st,0);
- uinput.w(1)=subs(diff(uinput.exact,sx),sx,a);
+uinput.ic =  subs(uinput.exact,st,0);
+ uinput.w(1)=subs(uinput.exact,sx,a);
  uinput.w(2)=subs(uinput.exact,sy,c);
  uinput.w(3)=subs(uinput.exact,sx,b);
- uinput.w(4)=subs(diff(uinput.exact,sy),sy,d);
+ uinput.w(4)=subs(uinput.exact,sy,d);
 
 %----------------------------------------
 %% Example 3 - 2D Heat Equation with homogeneous Dirichlet-Dirichlet boundary conditions
@@ -170,7 +171,7 @@ PDE = initialize([Dyn;BCs]);
 % Exact solution, initial conditions and inhomogeneous inputs  
 uinput.exact =  100*(sx-a)*(sx-b)*(sy-c)*(sy-d)*cos(st);
 % % Initial conditions for the primary states of the PDE
-uinput.ic.PDE= subs(uinput.exact,st,0);
+uinput.ic = subs(uinput.exact,st,0);
 
 % Enter temporally-varying disturbance here
  uinput.w(1)= -cos(st);
@@ -208,7 +209,7 @@ PDE = initialize([Dyn;BCs]);
 uinput.exact =  sin(pi*sx)*sin(pi*sy)*exp(-2*visc*pi^2*st);
 
 % Initial conditions for the primary states of the PDE
-uinput.ic.PDE=  subs(uinput.exact,st,0);
+uinput.ic =  subs(uinput.exact,st,0);
 
 %----------------------------------------
 %% Example 5 - 2D Heat Equation with inhomogeneous Dirichlet-Neumann boundary conditions
@@ -219,8 +220,6 @@ uinput.ic.PDE=  subs(uinput.exact,st,0);
 % u(x,y,t)=(sin(pi*x)+sin(pi*y))*t - solution for
 % u_t=visc*(uxx+uyy)+f(x,y,t),
 % with f(x,y,t)=sin(pi*x)*sin(pi*y)*(1+2*visc*pi^2*t);
-
-% Boundary conditions: u(a,y,t)=0; u(b,y,t)=0; u(x,c,t)=0; u(x,d,t)=0
 
 % Solving PDE in the form  x_{t}   = visc*(x_{s1s1} + x_{s2s2}) + f(s1,s2,t)
 a=0.2;b=1.1;
@@ -249,7 +248,7 @@ PDE = initialize([BCs;Dyn]);
 % Exact solution, initial conditions and inhomogeneous inputs          
 uinput.exact =  sin(pi*sx)*sin(pi*sy)*st;
 % Initial conditions for the primary states of the PDE
-uinput.ic.PDE=  subs(uinput.exact,st,0);
+uinput.ic =  subs(uinput.exact,st,0);
 
 % When forcing term is non-polynomial in space, both spatial and temporal
 % content of disturbance must be added through uinput.w construct
@@ -302,7 +301,7 @@ PDE = initialize([Dyn;BCs]);
 % Exact solution, initial conditions and inhomogeneous inputs  
 uinput.exact =  ampl*(sx-a)*(sx-b)*(sy-c)*(sy-d);
 % % Initial conditions for the primary states of the PDE
-uinput.ic.PDE= uinput.exact;
+uinput.ic = uinput.exact;
 
 % Enter temporal content of disturbance here
 uinput.w(1)=1;
@@ -344,7 +343,7 @@ PDE = initialize([Dyn;BCs]);
 % Exact solution, initial conditions and inhomogeneous inputs      
 uinput.exact =  ampl*(sx-a)*(sx-b)*(sy-c)*(sy-d);
 % % Initial conditions for the primary states of the PDE
-uinput.ic.PDE = uinput.exact;
+uinput.ic = uinput.exact;
 
 % Enter temporal content of disturbance here
 uinput.w(1)=1;
@@ -418,10 +417,10 @@ PDE = initialize([Dyn;BCs]);
 % % Set the initial conditions
 % %   u(x,y,0) = 1 + ampl*cos(pi*(x-a)/(b-a)) -ampl*cos(3*pi*(y-c)/(d-c));
 u_ic = 1 +ampl*cos(sym(pi)*(sx-a)/(b-a)) -ampl*cos(3*sym(pi)*(sy-c)/(d-c));
-uinput.ic.x(1) = int(int(u_ic,sy,c,d),sx,a,b);
-uinput.ic.x(2) = int(u_ic,sy,c,d);
-uinput.ic.x(3) = int(u_ic,sx,a,b);
-uinput.ic.x(4) = u_ic;
+uinput.ic(1) = int(int(u_ic,sy,c,d),sx,a,b);
+uinput.ic(2) = int(u_ic,sy,c,d);
+uinput.ic(3) = int(u_ic,sx,a,b);
+uinput.ic(4) = u_ic;
 
 % % Set the exact solution
 % %   u(x,y,t) = 1 + ampl*cos(pi*(x-a)/(b-a))*exp(-visc*pi^2*t/(b-a)^2) -ampl*cos(3*pi*(y-c)/(d-c))*exp(-visc*9*pi^2*t/(d-c)^2)
@@ -485,8 +484,8 @@ PDE = initialize([Dyn;BCs]);
 % % Set the initial conditions
 % %   u(x,y,0) = ampl1*sin(1.5*pi*(y-c)/(d-c)) +ampl2*cos(6*pi*(x-0.5*(a+b))/(b-a))*sin(0.5*pi*(y-c)/(d-c)); 
 u_ic = ampl1*sin(1.5*sym(pi)*(sy-c)/(d-c)) +ampl2*cos(6*sym(pi)*(sx-0.5*(a+b))/(b-a))*sin(0.5*sym(pi)*(sy-c)/(d-c));
-uinput.ic.x(1) = int(u_ic,sx,a,b);
-uinput.ic.x(2) = u_ic;
+uinput.ic(1) = int(u_ic,sx,a,b);
+uinput.ic(2) = u_ic;
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl1*sin(1.5*pi*(y-c)/(d-c))*exp(-visc*pi^2*t*(1.5^2/(d-c)^2)) +ampl2*cos(6*pi*(x-0.5*(a+b))/(b-a))*sin(0.5*pi*(y-c)/(d-c))*exp(-visc*pi^2*t*(36/(b-a)^2 +0.25/(d-c)^2)); 
@@ -585,10 +584,10 @@ uinput.exact(2) = u_ex;
 % % % Set the initial conditions
 % % %   u(x,y,0) = -1 + ampl*cos(2*pi*(x-0.5*(a+b))/(b-a))*sin(6*pi*(y-0.5*(c+d))/(d-c));
 % u_ic = -1 + ampl*cos(2*sym(pi)*(sx-0.5*(a+b))/(b-a))*sin(6*sym(pi)*(sy-0.5*(c+d))/(d-c));
-% uinput.ic.x(1) = int(int(u_ic,sy,c,d),sx,a,b);
-% uinput.ic.x(2) = int(u_ic,sy,c,d);
-% uinput.ic.x(3) = int(u_ic,sx,a,b);
-% uinput.ic.x(4) = u_ic;
+% uinput.ic(1) = int(int(u_ic,sy,c,d),sx,a,b);
+% uinput.ic(2) = int(u_ic,sy,c,d);
+% uinput.ic(3) = int(u_ic,sx,a,b);
+% uinput.ic(4) = u_ic;
 % 
 % % % Set the exact solution
 % % %   u(x,y,t) = -1 + ampl*cos(2*pi*(x-0.5*(a+b))/(b-a))*sin(6*pi*(y-0.5*(c+d))/(d-c))*exp(-visc*4*pi^2*t/(b-a)^2 -visc*36*pi^2*t/(d-c)^2)
@@ -656,10 +655,10 @@ PDE = initialize([Dyn;BCs]);
 % % Set the initial conditions
 % %   u(x,y,0) = ampl*cos(pi*(x-a)/(b-a))*cos(5*pi*(y-c)/(d-c));
 u_ic = ampl*cos(sym(pi)*(sx-a)/(b-a))*cos(5*sym(pi)*(sy-c)/(d-c));
-uinput.ic.x(1) = subs(subs(u_ic,sy,c),sx,a);
-uinput.ic.x(2) = subs(u_ic,sy,c);
-uinput.ic.x(3) = subs(u_ic,sx,a);
-uinput.ic.x(4) = u_ic;
+uinput.ic(1) = subs(subs(u_ic,sy,c),sx,a);
+uinput.ic(2) = subs(u_ic,sy,c);
+uinput.ic(3) = subs(u_ic,sx,a);
+uinput.ic(4) = u_ic;
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*cos(pi*(x-a)/(b-a))*cos(5*pi*(y-c)/(d-c))*exp(-visc*t)
@@ -736,10 +735,10 @@ PDE = initialize([BCs;Dyn]);    % declare BCs first to get correct order of inpu
 % %   u3(y,0) = f2*cos(2*pi*(y-c)/(d-c))
 % %   u4(x,y,0) = ((x-b)/(a-b)*f1 +(x-a)/(b-a)*f2)*cos(2*pi*(y-c)/(d-c))
 u_ic = ((sx-b)/(a-b)*f1 +(sx-a)/(b-a)*f2)*cos(2*sym(pi)*(sy-c)/(d-c));
-uinput.ic.x(1) = subs(u_ic,sy,c);
-uinput.ic.x(2) = subs(u_ic,sx,a);
-uinput.ic.x(3) = subs(u_ic,sx,b);
-uinput.ic.x(4) = u_ic;
+uinput.ic(1) = subs(u_ic,sy,c);
+uinput.ic(2) = subs(u_ic,sx,a);
+uinput.ic(3) = subs(u_ic,sx,b);
+uinput.ic(4) = u_ic;
 
 % % Set the forcing
 % %   w1(t)   = f1;     w2(t) = f2*exp(-t);
@@ -816,8 +815,8 @@ lam_mn = C*sqrt(((1:size(C_mn,1))'*sym(pi)/(b-a)).^2 +((1:size(C_mn,2))*sym(pi)/
 % Set the spatial basis functions
 basis_funs = sin(((1:size(B_mn,1))'*pi/(b-a))*sx)*sin(((1:size(B_mn,2))*pi/(d-c))*sy);
 % Finally, set the initial function.
-uinput.ic.PDE(1) = sum(sum(B_mn.*basis_funs));
-uinput.ic.PDE(2) = sum(sum(C_mn.*lam_mn.*basis_funs));
+uinput.ic(1) = sum(sum(B_mn.*basis_funs));
+uinput.ic(2) = sum(sum(C_mn.*lam_mn.*basis_funs));
 
 % % Given this initial function, the exact solution is given by
 % %     u(x,y) = sum_{m=1}^{infty} sum_{n=1}^{infty} sin(m*pi/(b-a)*x)*sin(n*pi/(d-c)*y)*(B_{mn}*cos(lam_{mn}*t)+C_{mn}*sin(lam_{mn}*t));
@@ -876,8 +875,8 @@ lam_mn = C*sqrt((((1:size(C_mn,1))-0.5)'*sym(pi)/(b-a)).^2 +(((1:size(C_mn,2))-0
 % Set the spatial basis functions
 basis_funs = cos((((1:size(B_mn,1))-0.5)'*pi/(b-a))*sx)*sin((((1:size(B_mn,2))-0.5)*pi/(d-c))*sy);
 % Finally, set the initial function.
-uinput.ic.PDE(1) = sum(sum(B_mn.*basis_funs));
-uinput.ic.PDE(2) = sum(sum(C_mn.*lam_mn.*basis_funs));
+uinput.ic(1) = sum(sum(B_mn.*basis_funs));
+uinput.ic(2) = sum(sum(C_mn.*lam_mn.*basis_funs));
 
 % % Given this initial function, the exact solution is given by
 % %     u(x,y) = sum_{m=1}^{infty} sum_{n=1}^{infty} sin(m*pi/(b-a)*x)*sin(n*pi/(d-c)*y)*(B_{mn}*cos(lam_{mn}*t)+C_{mn}*sin(lam_{mn}*t));
@@ -933,7 +932,7 @@ uinput.exact(1) = u_exact;
 uinput.exact(2) = diff(u_exact,st);
 
 % % Set the associated initial conditions
-uinput.ic.PDE = subs(uinput.exact,st,0);
+uinput.ic = subs(uinput.exact,st,0);
 
 % % Set the associated forcing in the PDE
 % %     f(x,y,t) = u_tt-C^2*(u_xx + u_yy)
@@ -990,7 +989,7 @@ uinput.exact(1) = u_exact;
 uinput.exact(2) = diff(u_exact,st);
 
 % % Set the associated initial conditions
-uinput.ic.PDE = subs(uinput.exact,st,0);
+uinput.ic = subs(uinput.exact,st,0);
 
 % % Set the associated forcing in the PDE
 % %     f(x,y,t) = u_tt-C^2*(u_xx + u_yy)
@@ -1069,9 +1068,9 @@ lam_mn = C*sqrt(((0:size(C_mn,1)-1)'*sym(pi)/(b-a)).^2 +((0:size(C_mn,2)-1)*sym(
 basis_funs = cos(((0:size(B_mn,1)-1)'*sym(pi)/(b-a))*(sx-a))*cos(((0:size(B_mn,2)-1)*sym(pi)/(d-c))*(sy-c));
 % Finally, set the initial function.
 u_ic = [sum(sum(B_mn.*basis_funs)), sum(sum(C_mn.*lam_mn.*basis_funs))];
-uinput.ic.PDE([1,2]) = int(u_ic,sy,c,d);
-uinput.ic.PDE([3,4]) = int(u_ic,sx,a,b);
-uinput.ic.PDE([5,6]) = u_ic;
+uinput.ic([1,2]) = int(u_ic,sy,c,d);
+uinput.ic([3,4]) = int(u_ic,sx,a,b);
+uinput.ic([5,6]) = u_ic;
 
 % % Set the "forcing" U0(t) = [w1+w2*t; w2];
 w_params = int(int(u_ic,sx,a,b),sy,c,d);
@@ -1146,8 +1145,8 @@ lam = C*sqrt((freq*pi)^2 +(2.5*pi/(d-c))^2);
 u_ic1 = ampl0*sin(0.5*sym(pi)/(d-c)*sy) +ampl1*sin(freq*sym(pi)*sx-shft)*sin(2.5*sym(pi)/(d-c)*sy);
 u_ic2 = ampl2*lam*sin(freq*sym(pi)*sx-shft)*sin(2.5*sym(pi)/(d-c)*sy);
 u_ic = [u_ic1, u_ic2];
-uinput.ic.PDE([1,2]) = int(u_ic,sx,a,b);
-uinput.ic.PDE([3,4]) = u_ic;
+uinput.ic([1,2]) = int(u_ic,sx,a,b);
+uinput.ic([3,4]) = u_ic;
 
 % % Given this initial function, the exact solution is given by
 % %     u(x,y) = ampl0*sin(0.5*pi/(d-c)*y)*cos(C*0.5*pi/(d-c)*t) +sin(freq*pi*x-shft)*sin(2.5*pi/(d-c)*y)*(ampl1*cos(lam*t)+ampl2*sin(lam*t));
@@ -1222,10 +1221,10 @@ PDE = initialize([Dyn;BCs]);
 u_ic1 = ampl*cos(sym(pi)*(sx-a)/(b-a))*cos(5*sym(pi)*(sy-c)/(d-c));
 u_ic2 = 0;
 u_ic = [u_ic1,u_ic2];
-uinput.ic.x([1,2]) = subs(subs(u_ic,sy,c),sx,a);
-uinput.ic.x([3,4]) = subs(u_ic,sy,c);
-uinput.ic.x([5,6]) = subs(u_ic,sx,a);
-uinput.ic.x([7,8]) = u_ic;
+uinput.ic([1,2]) = subs(subs(u_ic,sy,c),sx,a);
+uinput.ic([3,4]) = subs(u_ic,sy,c);
+uinput.ic([5,6]) = subs(u_ic,sx,a);
+uinput.ic([7,8]) = u_ic;
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*cos(pi*(x-a)/(b-a))*cos(5*pi*(y-c)/(d-c))*cos(C*t)
@@ -1287,9 +1286,9 @@ PDE = initialize([BCs;Dyn]);    % declare BCs first to get w in correct order...
 % %   u(x,y,t) = ampl*(sin(x)+sin(y));
 % %   u1(x,t) = ampl*sin(x);        u2(y,t) = ampl*sin(y);
 u_ic = ampl*(sin(sx) +sin(sy));
-uinput.ic.x(1) = u_ic;
-uinput.ic.x(2) = subs(u_ic,sy,c);
-uinput.ic.x(3) = subs(u_ic,sx,a);
+uinput.ic(1) = u_ic;
+uinput.ic(2) = subs(u_ic,sy,c);
+uinput.ic(3) = subs(u_ic,sx,a);
 
 % % Set the forcing
 % %   w1(t) = 2*ampl*sin(-v*t);     w2 = ampl*v*cos(-v*t)
@@ -1345,8 +1344,10 @@ lam = 0.5;       ampl = 5;
 % % Declare the PDE
 % Declare the variables
 x1 = pde_var([s1;s2],[a,b;c,d]);    x1.diff = [2,2];
-x2 = pde_var(s1,[a,b]);             x4 = pde_var(s1,[a,b]);
-x3 = pde_var(s2,[c,d]);             x5 = pde_var(s2,[c,d]);
+x2 = pde_var(s1,[a,b]);             
+x3 = pde_var(s2,[c,d]);    
+x4 = pde_var(s1,[a,b]);
+x5 = pde_var(s2,[c,d]);
 % Declare the dynamics
 Dyn = [diff(x1,t)==lam*diff(x1,[s1;s2]);
        diff(x2,t)==lam*diff(x2,s1,2);
@@ -1366,9 +1367,9 @@ PDE = initialize([Dyn;BCs]);
 % % Set the initial conditions
 % %   u(x,y,t) = ampl*sin(x+y);
 % %   u1(x,t) = ampl*sin(x);        u2(y,t) = ampl*sin(y);
-uinput.ic.x(1) = ampl*sin(sx+sy);
-uinput.ic.x(2) = ampl*sin(sx);      uinput.ic.x(3) = ampl*sin(sy);
-uinput.ic.x(4) = ampl*cos(sx);      uinput.ic.x(5) = ampl*cos(sy);
+uinput.ic(1) = ampl*sin(sx+sy);
+uinput.ic(2) = ampl*sin(sx);      uinput.ic(3) = ampl*sin(sy);
+uinput.ic(4) = ampl*cos(sx);      uinput.ic(5) = ampl*cos(sy);
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*sin(x+y)*exp(-lam*t);
@@ -1424,7 +1425,7 @@ uinput.w(1) = ampl*sin(2*sym(pi)*sy)*exp(-visc*((2*sym(pi))^2+(1.5*sym(pi))^2)*s
 % % Set the initial conditions
 % %   u(x,y,0) = ampl*sin(2*pi*y)*cos(1.5*pi*x);
 u_ic = ampl*sin(2*sym(pi)*sy)*cos(1.5*sym(pi)*sx);
-uinput.ic.x(1) = u_ic;
+uinput.ic(1) = u_ic;
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*sin(2*pi*y)*cos(1.5*pi*x)*exp(-visc*((2pi)^2+(1.5pi)^2)*t);
@@ -1475,7 +1476,7 @@ uinput.w(1) = 2*sym(pi)*ampl*sin(2*sym(pi)*sy)*exp(-visc*8*sym(pi)^2*st);
 % % Set the initial conditions
 % %   u(x,y,0) = ampl*sin(2*pi*y)*sin(2*pi*x);
 u_ic = ampl*sin(2*sym(pi)*sy)*sin(2*sym(pi)*sx);
-uinput.ic.x(1) = u_ic;
+uinput.ic(1) = u_ic;
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*sin(2*pi*y)*sin(2*pi*x)*exp(-visc*8*pi^2*t);
@@ -1514,8 +1515,10 @@ ampl = 10;
 % % Declare the PDE
 % Declare the variables
 x = pde_var([s1;s2],[a,b;c,d]);
-w1 = pde_var('input',s2,[c,d]);     w3 = pde_var('input',s1,[a,b]);
-w2 = pde_var('input',s2,[c,d]);     w4 = pde_var('input',s1,[a,b]);
+w1 = pde_var('input',s2,[c,d]);     
+w2 = pde_var('input',s2,[c,d]);   
+w3 = pde_var('input',s1,[a,b]);
+w4 = pde_var('input',s1,[a,b]);
 % Declare the dynamics
 Dyn = [diff(x,t)==diff(x,s1,2)+diff(x,s2,2)+(2.5*pi)^2*x];
 % Declare the boundary conditions
@@ -1537,7 +1540,7 @@ uinput.w(4) = -2.5*sym(pi)*ampl*(sx+2);
 % % Set the initial conditions
 % %   u(x,y,0) = ampl*(x+2)*cos(2.5*pi*y);
 u_ic = ampl*(sx+2)*cos(2.5*sym(pi)*sy);
-uinput.ic.x(1) = u_ic;
+uinput.ic(1) = u_ic;
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*(x+2)*cos(2.5*pi*y);
@@ -1552,7 +1555,7 @@ case 24
 % %   u_{t}(x,y,t) = u_{xx}(x,y,t) +u_{yy}(x,y,t) +w1(x,y,t)    (x,y) in [-1,1]x[-1,1]
 % % with forcing along all boundaries
 % %   u(-1,y,t) = w2(y,t);       u(1,y,t) = w3(y,t);
-% %   u(x,-1,t) = w4(x,t);       u(x,1,t) = w5(y,t);
+% %   u(x,-1,t) = w4(x,t);       u(x,1,t) = w5(x,t);
 % % Using forcing
 % %   w1(x,y,t) = ((1.5*pi)^2*t+1)*ampl*y*sin(1.5*pi*x)
 % %   w2(y,t) = ampl*y*t;                 w3(y,t) = -ampl*y*t;
@@ -1573,14 +1576,16 @@ ampl = 1;
 % % Declare the PDE
 % Declare the variables
 x = pde_var([s1;s2],[a,b;c,d]);
-w1 = pde_var('input',[s1;s2],[a,b;c,d]);
-w2 = pde_var('input',s2,[c,d]);     w4 = pde_var('input',s1,[a,b]);
-w3 = pde_var('input',s2,[c,d]);     w5 = pde_var('input',s1,[a,b]);
+w1 = pde_var('input',s2,[c,d]);     
+w2 = pde_var('input',s2,[c,d]);   
+w3 = pde_var('input',s1,[a,b]);
+w4 = pde_var('input',s1,[a,b]);
+w5 = pde_var('input',[s1;s2],[a,b;c,d]);
 % Declare the dynamics
-Dyn = [diff(x,t)==diff(x,s1,2)+diff(x,s2,2)+w1];
+Dyn = [diff(x,t)==diff(x,s1,2)+diff(x,s2,2)+w5];
 % Declare the boundary conditions
-BCs = [subs(x,s1,a)==w2;    subs(x,s1,b)==w3;
-       subs(x,s2,c)==w4;    subs(x,s2,d)==w5];
+BCs = [subs(x,s1,a)==w1;    subs(x,s1,b)==w2;
+       subs(x,s2,c)==w3;    subs(x,s2,d)==w4];
 % Initialize the PDE
 PDE = initialize([Dyn;BCs]);
 
@@ -1588,15 +1593,15 @@ PDE = initialize([Dyn;BCs]);
 % %   w1(x,y,t) = ((1.5*pi)^2*t+1)*ampl*y*sin(1.5*pi*x)
 % %   w2(y,t) = ampl*y*t;               w3(y,t) = -ampl*y*t;
 % %   w4(x,t) = -ampl*sin(1.5*pi*x)*t;  w5(x,t) = ampl*sin(1.5*pi*x)*t;
-uinput.w(1) = ((1.5*sym(pi))^2*st+1)*ampl*sy*sin(1.5*sym(pi)*sx);
-uinput.w(2) = ampl*sy*st;
-uinput.w(3) = -ampl*sy*st;
-uinput.w(4) = -ampl*sin(1.5*sym(pi)*sx)*st;
-uinput.w(5) = ampl*sin(1.5*sym(pi)*sx)*st;
+uinput.w(1) = ampl*sy*st;
+uinput.w(2) = -ampl*sy*st;
+uinput.w(3) = -ampl*sin(1.5*sym(pi)*sx)*st;
+uinput.w(4) = ampl*sin(1.5*sym(pi)*sx)*st;
+uinput.w(5) = ((1.5*sym(pi))^2*st+1)*ampl*sy*sin(1.5*sym(pi)*sx);
 
 % % Set the initial conditions
 % %   u(x,y,0) = 0;
-uinput.ic.x(1) = sym(0);
+uinput.ic(1) = sym(0);
 
 % % Set the exact solution
 % %   u(x,y,t) = ampl*y*sin(1.5*pi*x)*t;
@@ -1652,8 +1657,8 @@ uinput.w(2) = diff(uinput.w(1),st);
 % % Set the initial conditions
 % %       u(x,y,0) = 0;
 % %   u_{t}(x,y,0) = sqrt(18)*C*sin(3*x)*sin(3*y);
-uinput.ic.x(1) = sym(0);
-uinput.ic.x(2) = sqrt(18)*C*sin(3*sx)*sin(3*sy);
+uinput.ic(1) = sym(0);
+uinput.ic(2) = sqrt(18)*C*sin(3*sx)*sin(3*sy);
 
 % % Set the exact solution
 % %   u(x,y,t) = sin(sqrt(18)*C*t)*sin(3*x)*sin(3*y);
@@ -1661,9 +1666,9 @@ uinput.exact(1) = sin(sqrt(18)*C*st)*sin(3*sx)*sin(3*sy);
 uinput.exact(2) = diff(uinput.exact(1),st);
 
 %----------------------------------------
-%% Example 25 - simple 2D transport with sine waves and inhomogeneous boundary forcing on all boundaries
+%% Example 26 - simple 2D transport with sine waves and inhomogeneous boundary forcing on all boundaries
 %----------------------------------------
-case 25
+case 26
 % % Transport equation 
 % %   u_{t}(x,y,t) = -vx*u_{x}(x,y,t)-vy*u_{y}(x,y,t)       (x,y) in [a,b]x[c,d]
 
@@ -1695,7 +1700,7 @@ PDE = initialize([Dyn;BCs]);
 % % Set the initial conditions
 kx=2;
 ky=2;
-uinput.ic.PDE = sin(kx*sx)*sin(ky*sy);
+uinput.ic = sin(kx*sx)*sin(ky*sy);
 
 uinput.exact = sin(kx*(sx-vx*st))*sin(ky*(sy-vy*st));
 
@@ -1710,9 +1715,9 @@ uinput.exact = sin(kx*(sx-vx*st))*sin(ky*(sy-vy*st));
  uinput.w(2)=subs(uinput.exact,sy,c);
 
 %----------------------------------------
-%% Example 26 - Translating Gaussian blob
+%% Example 27 - Translating Gaussian blob
 %----------------------------------------
-case 26
+case 27
     % %  Transport equation
     % %   u_{t}(x,y,t) = -vx*u_{x}(x,y,t)-vy*u_{y}(x,y,t) 
 
@@ -1742,7 +1747,7 @@ PDE = initialize([Dyn;BCs]);
 
 A=1;
 sigma=0.5;
-uinput.ic.PDE = A*exp(-(sx^2+sy^2)/(2*sigma^2));
+uinput.ic = A*exp(-(sx^2+sy^2)/(2*sigma^2));
 
 uinput.exact = A*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
 
@@ -1750,9 +1755,9 @@ uinput.w(1)=subs(uinput.exact,sx,a);
 uinput.w(2)=subs(uinput.exact,sy,c);
 
 %----------------------------------------
-%% Example 27 - Transported vortex by constant velocity fields
+%% Example 28 - Transported vortex by constant velocity fields
 %----------------------------------------
-case 27
+case 28
     % %  Transport equation for two fields (uncoupled)
     % %   u1_{t}(x,y,t) = -vx*u1_{x}(x,y,t)-vy*u1_{y}(x,y,t) 
     % %   u2_{t}(x,y,t) = -vx*u2_{x}(x,y,t)-vy*u2_{y}(x,y,t) 
@@ -1796,8 +1801,8 @@ PDE = initialize([Dyn;BCs]);
 A=1;
 sigma=0.5;
 
-uinput.ic.PDE(1) = -A*sy/sigma^2*exp(-(sx^2+sy^2)/(2*sigma^2));
-uinput.ic.PDE(2) =  A*sx/sigma^2*exp(-(sx^2+sy^2)/(2*sigma^2));
+uinput.ic(1) = -A*sy/sigma^2*exp(-(sx^2+sy^2)/(2*sigma^2));
+uinput.ic(2) =  A*sx/sigma^2*exp(-(sx^2+sy^2)/(2*sigma^2));
 
 uinput.exact(1) = -A*(sy-vy*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
 uinput.exact(2) =  A*(sx-vx*st)/sigma^2*exp(-((sx-vx*st)^2+(sy-vy*st)^2)/(2*sigma^2));
@@ -1850,7 +1855,7 @@ x0=(b+a)/2;
 y0=(d+c)/2;
 
 
-uinput.ic.PDE = A*exp(-((sx-x0)^2+(sy-y0)^2)/(2*sigma^2));
+uinput.ic = A*exp(-((sx-x0)^2+(sy-y0)^2)/(2*sigma^2));
 
 M=[alpha, beta;-beta, -alpha];
 
@@ -1905,7 +1910,7 @@ x0=(b+a)/2;
 y0=(d+c)/2;
 
 
-uinput.ic.PDE = A*exp(-((sx-x0)^2+(sy-y0)^2)/(2*sigma^2));
+uinput.ic = A*exp(-((sx-x0)^2+(sy-y0)^2)/(2*sigma^2));
 
 M=[alpha, beta;-beta, -alpha];
 I  = eye(2);
@@ -1962,7 +1967,7 @@ yv = sy*exp(-beta*st);
 
 uinput.exact= A*exp(-((xv-x0)^2 + (yv-y0)^2)/(2*sigma^2));
 
-uinput.ic.PDE=subs(uinput.exact,st,0);
+uinput.ic=subs(uinput.exact,st,0);
 
  uinput.w(1)=subs(uinput.exact,sx,a);
  uinput.w(2)=subs(uinput.exact,sy,c);
@@ -2011,7 +2016,7 @@ yv = sy/(1 + beta*st*sy);
 
 uinput.exact= A*exp(-(xv^2 + yv^2)/(2*sigma^2));
 
-uinput.ic.PDE=subs(uinput.exact,st,0);
+uinput.ic=subs(uinput.exact,st,0);
 
 
  uinput.w(1)=subs(uinput.exact,sx,a);

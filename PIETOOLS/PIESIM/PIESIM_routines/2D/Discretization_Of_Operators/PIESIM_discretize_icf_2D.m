@@ -19,7 +19,8 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  04_16_2024
-% YP 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
+% YP, 1/7/2026: Changed the notaiton of ic.PDE to ic.PIE for PIE simulation
+% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
 
 function coeff=PIESIM_discretize_icf_2D(uinput,psize,gridall)
 
@@ -37,7 +38,7 @@ N=psize.N;
 
         nx=sum(psize.nx,'all');
         ny=sum(psize.ny,'all');
-        n2d=sum(psize.n,'all');
+        n2=sum(psize.n,'all');
 
 % Define degree of smoothness p of 2D-1var states
 
@@ -56,7 +57,7 @@ p = [repelem(cols(:), psize.n(:))'; repelem(rows(:), psize.n(:))'];
 % Each state vector array coefficients are arranged into a global column
 % vector
 
-ic=uinput.ic.PIE;
+ic=uinput.ic;
 
 acheb_glob_x{1}=[];
 acheb_glob_y{1}=[];
@@ -64,21 +65,21 @@ acheb_glob{1}=[];
 
 % x states only 
 for i=1:nx
-     acheb=fcht(double(subs(ic(i),gridall.x{px(i)+1})));
+     acheb=fcht(double(subs(ic(no+i),gridall.x{px(i)+1})));
      acheb_glob_x{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
 
 % y states only 
 for i=1:ny
-     acheb=fcht(double(subs(ic(nx+i),gridall.y{py(i)+1})));
+     acheb=fcht(double(subs(ic(no+nx+i),gridall.y{py(i)+1})));
      acheb_glob_y{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
 
 % 2D states (x,y)
-for i=1:n2d
-     acheb=fcgltran2d(double(subs(subs(ic(nx+ny+i),sx,gridall.x{p(1,i)+1}),sy,gridall.y{p(2,i)+1}')),1);
+for i=1:n2
+     acheb=fcgltran2d(double(subs(subs(ic(no+nx+ny+i),sx,gridall.x{p(1,i)+1}),sy,gridall.y{p(2,i)+1}')),1);
      acheb_glob{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
@@ -90,7 +91,10 @@ end
 
 % Add initial conditions on ODE states to the front of initial conditions
 if (no>0)
-acheb_f0=cat(1,uinput.ic.ODE',acheb_f0);
+    if (size(ic,1)>1) 
+        ic=ic';
+    end
+acheb_f0=cat(1,double(ic(1:no))',acheb_f0);
 end
 
 coeff.acheb_f0=acheb_f0;

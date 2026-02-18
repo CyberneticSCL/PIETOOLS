@@ -58,7 +58,7 @@ clc; clear; close all; clear stateNameGenerator;
 % Declare independent variables
 pvar t s;   
 % Declare state, input, and output variables
-phi = pde_var(2,s,[0,1]);   x = pde_var();
+x = pde_var();              phi = pde_var(2,s,[0,1]);   
 w = pde_var('in');          u = pde_var('control');   
 z = pde_var('out',2);
 % Declare system parameters

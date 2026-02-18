@@ -136,23 +136,13 @@ if strcmp(simulate,'on')
  opts.tf=10;
  opts.dist='constant';
  opts.plot='yes';
- uinput.ic.ODE=[5,5,5];
+ uinput.ic=[5,5,5];
  solution=PIESIM(DDE,opts,uinput);
  end
  
 %------------------------------------------------
-% Description of solution field - output of the simulations
+% Description of solution field - see the header of PIESIM/PIESIM.m or PIETOOLS User's manual
 %------------------------------------------------
-% solution.tf - final time of the solution 
-% solution.final.pde - distributed state solution at a final time tf: matrix of
-% dimension (N+1) x ns, ns - total number of distributed states
-% solution.final.ode - ode solution at a final time tf: array of dimensions
-% nx x 1, nx - total numer of ODE states
-% solution.timedep.ode - array of size nx x Nsteps - time-dependent solution of nx ODE states
-% solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
-% solution of ns distributed states
-% solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
-%---------------------------------------------------
 
     
 % NOTE!!!: By default, PIETOOLS will convert the DDE to a minimum dimension

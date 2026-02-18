@@ -18,12 +18,12 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  11_05_2021
-% YP 6_16_2022 Renamed uinput.B21_nonpol to uinput.Bpw_nonpol, updated description of
+% YP, 6/16/2022: Renamed uinput.B21_nonpol to uinput.Bpw_nonpol, updated description of
 % outputs
-% YP - added functionality to support infinite-dimensional disturbances
-% through parser - 6_1_2025
-% YP 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
-
+% YP, 6/1/2025: Added functionality to support infinite-dimensional disturbances
+% through parser 
+% YP, 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
+% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
 
 function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
@@ -49,10 +49,10 @@ p = repelem(0:length(psize.n)-1, psize.n);
 % Each state vector array coefficients are arranged into a global column
 % vector
 
-ic=uinput.ic.PIE;
+ic=uinput.ic;
 
 for i=1:ns
-     acheb=fcht(double(subs(ic(i),gridall{p(i)+1})));
+     acheb=fcht(double(subs(ic(no+i),gridall{p(i)+1})));
      acheb_glob{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
@@ -64,7 +64,10 @@ end
 
 % Add initial conditions on ODE states to the front of initial conditions
 if (no>0)
-acheb_f0=cat(1,uinput.ic.ODE',acheb_f0);
+    if (size(ic,1)>1) 
+        ic=ic';
+    end
+acheb_f0=cat(1,double(ic(1:no))',acheb_f0);
 end
 
 coeff.acheb_f0=acheb_f0;

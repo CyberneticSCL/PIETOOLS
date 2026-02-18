@@ -6,8 +6,8 @@
 % PDE systems and coupled PDE/ODE systems. 
 % Each examplxe sets up the PDE structure of the system, 
 % defines initial and boundary conditions, and, if applicable, 
-% an exact PDE solution for verification (exact solution for PDE/ODE systems
-% are not yet available
+% an exact PDE solution for verification (exact solutions for PDE/ODE systems
+% are not yet available)
 
 % Inputs:
 % example - the index number of example from the library to be used (see
@@ -24,12 +24,13 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 5_29_2021
-% YP 6/16/2022 - updated to include terms format and added more examples in
+% YP, 6/16/2022 - updated to include terms format and added more examples in
 % terms format
-% DJ 12/19/2024: Change variable s --> s1;
-% VJ 11/22/2025: added cylindrical coordinates examples (examples 39-41)
-% YP 12/29/2025 Changed distirbance format to cell array to accommodate
+% DJ, 12/19/2024: Change variable s --> s1;
+% VJ, 11/22/2025: added cylindrical coordinates examples (examples 39-41)
+% YP, 12/29/2025: Changed distirbance format to cell array to accommodate
 % disturbances in a symbolic and a double array format
+% YP, 2/17/2026: Changed all initial conditions to uinput.ic format
 
 
 function [PDE,uinput]=examples_pde_library_PIESIM_1D(example)
@@ -106,7 +107,7 @@ switch example
              
               uinput.exact =  sin(pi*sx)*exp(-visc*pi^2*st);
              % Initial conditions for the primary states of the PDE
-              uinput.ic.PDE=  sin(pi*sx);
+              uinput.ic =  sin(pi*sx);
 
              % Input n1+2*n2 boundary conditions in the order corresponding
              % to the rows of matrix B
@@ -176,7 +177,7 @@ switch example
 % % % % %  2nd spatial derivative of u (=uxx) is ic for p=2;
 
              % Initial conditions for the primary states of the PDE
-          uinput.ic.PDE= sin(5*pi/4*sx+alpha);
+          uinput.ic = sin(5*pi/4*sx+alpha);
 
           %    % Symbolic disturbance
           % uinput.w{1}=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
@@ -244,7 +245,7 @@ switch example
            uinput.exact = sin(pi*(sx-alpha))*exp(-visc*pi^2*st);
 
            % Initial conditions for the primary states of the PDE
-           uinput.ic.PDE= sin(pi*(sx-alpha));
+           uinput.ic = sin(pi*(sx-alpha));
 
            % Symbolic disturbance
            uinput.w{1}= sin(pi*(a-alpha))*exp(-visc*pi^2*st);
@@ -305,7 +306,7 @@ switch example
              
               uinput.exact =  -2*sx*st-sx^2;
              % Initial conditions for the primary states of the PDE
-              uinput.ic.PDE=  -sx^2;
+              uinput.ic =  -sx^2;
 
              % Input n1+2*n2 boundary conditions in the order corresponding
              % to the rows of matrix B
@@ -383,7 +384,7 @@ switch example
             uinput.exact(1) = sin(pi*sx)*st;
     
            % Initial conditions for the primary states of the PDE
-            uinput.ic.PDE=  0;
+            uinput.ic =  0;
 
             % Disturbances - both boundary disturbances (1,2) and forcing
             % (3,4)
@@ -467,7 +468,7 @@ switch example
             
          uinput.exact(1) = sin(pi*sx)*sqrt(st+1);
            % Initial conditions for the primary states of the PDE
-           uinput.ic.PDE(1)=  sin(pi*sx);
+           uinput.ic(1)=  sin(pi*sx);
 
            % Symbolic disturbance
            uinput.w{1}= sin(pi*a)*sqrt(st+1);
@@ -537,7 +538,7 @@ case 7
  
          uinput.exact(1) = sin(pi*sx)*exp(-visc*pi^2*st);
            % Initial conditions for the primary states of the PDE
-          uinput.ic.PDE(1)= sin(pi*sx);
+          uinput.ic(1)= sin(pi*sx);
 
           % Symbolic disturbance
            uinput.w{1}= sin(pi*a)*exp(-visc*pi^2*st);
@@ -599,7 +600,7 @@ case 8
 
           uinput.exact(1) = sin(5*pi/4*sx+alpha)*exp(-visc*(5*pi/4)^2*st);
            % Initial conditions for the primary states of the PDE
-          uinput.ic.PDE(1)=  sin(5*pi/4*sx+alpha);
+          uinput.ic(1)=  sin(5*pi/4*sx+alpha);
           % Symbolic disturbance
            uinput.w{1}= sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
            uinput.w{2}= 5*pi/4*cos(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);
@@ -675,7 +676,7 @@ case 8
 %           Exact solution, initial conditions and inhomogeneous inputs  
 
            % Initial conditions for the primary states of the PDE
-           uinput.ic.PDE(1)=  sin(pi*sx);
+           uinput.ic(1)=  sin(pi*sx);
   %        Symbolic disturbance
            uinput.w{1}= sin(pi*a)*sqrt(st+1);
            uinput.w{2}= pi*cos(pi*b)*sqrt(st+1);
@@ -745,7 +746,7 @@ case 8
 
 %           Exact solution, initial conditions and inhomogeneous inputs  
            % Initial conditions for the primary states of the PDE
-          uinput.ic.PDE(1)= sin(pi*sx);
+          uinput.ic(1)= sin(pi*sx);
           % Symbolic disturbance
           uinput.w{1}= sin(pi*(a-c*st))*exp(-visc*pi^2*st);
           uinput.w{2}= sin(pi*(b-c*st))*exp(-visc*pi^2*st);
@@ -831,7 +832,7 @@ case 8
 
 %           Exact solution, initial conditions and inhomogeneous inputs  
            % Initial conditions for the primary states of the PDE
-             uinput.ic.PDE(1)=  0;
+             uinput.ic(1)=  0;
 
     %      Symbolic disturbance
              uinput.w{1}= st*sin(pi*a);
@@ -921,7 +922,7 @@ case 8
 
 %           Exact solution, initial conditions and inhomogeneous inputs  
            % Initial conditions for the primary states of the PDE
-             uinput.ic.PDE(1)= 0;
+             uinput.ic(1)= 0;
 
              % Symbolic disturbance
              uinput.w{1}= st*pi*cos(pi*a);
@@ -1007,7 +1008,7 @@ case 8
             
 %           Exact solution, initial conditions and inhomogeneous inputs  
             % Initial conditions for the primary states of the PDE
-             uinput.ic.PDE(1)= sin(pi*sx);
+             uinput.ic(1)= sin(pi*sx);
 
              % Forcing
 
@@ -1106,8 +1107,8 @@ case 8
 % % % % % % % Initial conditions are on primary states u_t and u_xx, which are exact solutions
 % % % % % % % evaluated at time t=0;
 
-               uinput.ic.PDE(1) =  subs(uinput.exact(1),st,0);
-               uinput.ic.PDE(2) =  subs(uinput.exact(2),st,0);
+               uinput.ic(1) =  subs(uinput.exact(1),st,0);
+               uinput.ic(2) =  subs(uinput.exact(2),st,0);
 
 
 %-------------------------------------------------------------
@@ -1193,8 +1194,8 @@ case 8
 % % % % % % % Initial conditions are on primary states u_t and u_xxxx, which are exact solutions
 % % % % % % % evaluated at time t=0;
 
-               uinput.ic.PDE(1) =  subs(uinput.exact(1),st,0);
-               uinput.ic.PDE(2) =  subs(uinput.exact(2),st,0);
+               uinput.ic(1) =  subs(uinput.exact(1),st,0);
+               uinput.ic(2) =  subs(uinput.exact(2),st,0);
 
 %-------------------------------------------------------------
 % Example 16 - exact eigenmodes of a cantilever beam vibration
@@ -1298,8 +1299,8 @@ case 8
 % % % % % % % Initial conditions are on primary states u_t and u_xxxx, which are exact solutions
 % % % % % % % evaluated at time t=0;
 
-               uinput.ic.PDE(1) =  subs(uinput.exact(1),st,0);
-               uinput.ic.PDE(2) =  subs(uinput.exact(2),st,0);
+               uinput.ic(1) =  subs(uinput.exact(1),st,0);
+               uinput.ic(2) =  subs(uinput.exact(2),st,0);
 
 
 
@@ -1373,8 +1374,8 @@ case 8
 % % % % % % % Initial conditions on primary states are exact solutions
 % % % % % % % for primary states u_t and u_xx evaluated at time t=0;
 
-               uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-               uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+               uinput.ic(1)= subs(uinput.exact(1),st,0);
+               uinput.ic(2)= subs(uinput.exact(2),st,0);
                
                % Boundary conditions: need four boundary conditions on primary states 
 % %           
@@ -1497,8 +1498,8 @@ case 8
 % % % % % % % Initial conditions on primary states are exact solutions
 % % % % % % % for primary states u_t and u_xx evaluated at time t=0;
 
-               uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-               uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+               uinput.ic(1)= subs(uinput.exact(1),st,0);
+               uinput.ic(2)= subs(uinput.exact(2),st,0);
                
                % Boundary conditions: need four boundary conditions on primary states 
 % %           
@@ -1594,8 +1595,8 @@ case 8
 % % % % % % % Initial conditions on primary states are exact solutions
 % % % % % % % for primary states u_t and u_xx evaluated at time t=0;
                
-               uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-               uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+               uinput.ic(1)= subs(uinput.exact(1),st,0);
+               uinput.ic(2)= subs(uinput.exact(2),st,0);
                
           
                % Boundary conditions: need four boundary conditions on primary states 
@@ -1715,8 +1716,8 @@ case 8
 % % % % % % % Initial conditions on primary states are exact solutions
 % % % % % % % for primary states u_t and u_xx evaluated at time t=0;
                
-               uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-               uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+               uinput.ic(1)= subs(uinput.exact(1),st,0);
+               uinput.ic(2)= subs(uinput.exact(2),st,0);
 
                % First 8 inputs are inhomogeneous boundary conditions
 
@@ -1789,7 +1790,7 @@ case 8
 %        Exact solution, initial conditions and inhomogeneous inputs  
          uinput.exact(1) = sin(sx-c*st);
 % % % %  Initial conditions are on primary state;
-         uinput.ic.PDE(1)=  sin(sx);
+         uinput.ic(1)=  sin(sx);
 
          % Symbolic disturbance
          uinput.w{1}= sin(xb-c*st);
@@ -1852,7 +1853,7 @@ case 8
 %        Exact solution, initial conditions and inhomogeneous inputs 
   uinput.exact(1) = 1/(sigma*sqrt(2*pi))*exp(-0.5*((sx-c*st-mu)/sigma).^2);
 % % % %  Initial conditions are on primary state;
-  uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
+  uinput.ic(1)= subs(uinput.exact(1),st,0);
 
   % Symbolic disturbance
   uinput.w{1}=1/(sigma*sqrt(2*pi))*exp(-0.5*((xb-c*st-mu)/sigma)^2);
@@ -1917,8 +1918,8 @@ case 8
           uinput.exact(2) = pi*cos(pi*sx)*cos(c*pi*st);
           
 %       Initial conditions are on the primary states
-          uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-          uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+          uinput.ic(1)= subs(uinput.exact(1),st,0);
+          uinput.ic(2)= subs(uinput.exact(2),st,0);
 
           % Symbolic disturbance
            uinput.w{1}= -c*pi*sin(pi*a)*sin(c*pi*st);
@@ -1981,8 +1982,8 @@ case 8
           uinput.exact(2) = pi*cos(pi*sx)*sin(c*pi*st);
 
 %         Initial conditions are on the primary states
-          uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-          uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+          uinput.ic(1)= subs(uinput.exact(1),st,0);
+          uinput.ic(2)= subs(uinput.exact(2),st,0);
 
           % Symbolic disturbance
            uinput.w{1}= c*pi*sin(pi*a)*cos(c*pi*st);
@@ -2043,8 +2044,8 @@ case 8
           uinput.exact(2) = cos(sx-c*st);
 %           
 % %       Initial conditions are on the primary states
-          uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-          uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+          uinput.ic(1)= subs(uinput.exact(1),st,0);
+          uinput.ic(2)= subs(uinput.exact(2),st,0);
 
  %         Symbolic disturbance
           uinput.w{1}= -c*cos(a-c*st);
@@ -2107,8 +2108,8 @@ case 8
           uinput.exact(2) = cos(sx-c*st);
 %           
 %        Initial conditions are on the primary states
-          uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-          uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+          uinput.ic(1)= subs(uinput.exact(1),st,0);
+          uinput.ic(2)= subs(uinput.exact(2),st,0);
 
     %      Symbolic disturbance
           uinput.w{1}= -c*cos(a-c*st);
@@ -2223,8 +2224,8 @@ case 8
     uinput.exact(2) =-1*(sx-c*st-mu)/sigma^2.*u;
   
 %         Initial conditions are on the primary states
-          uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-          uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+          uinput.ic(1)= subs(uinput.exact(1),st,0);
+          uinput.ic(2)= subs(uinput.exact(2),st,0);
     
           % Symbolic disturbance
      uinput.w{1}=subs(uinput.exact(1),sx,a);
@@ -2295,8 +2296,8 @@ case 8
     uinput.exact(2) =-1*(sx-c*st-mu)/sigma^2.*u;
 
 %       Initial conditions are on the primary states
-          uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-          uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+          uinput.ic(1)= subs(uinput.exact(1),st,0);
+          uinput.ic(2)= subs(uinput.exact(2),st,0);
     
           % Symbolic disturbance
      uinput.w{1}=subs(uinput.exact(1),sx,a); 
@@ -2361,8 +2362,8 @@ case 8
     uinput.exact(2) = -(sx-c*st-mu)/sigma^2.*uminus-(sx+c*st-mu)/sigma^2.*uplus;
     
 %       Initial conditions are on the primary states
-          uinput.ic.PDE(1)= subs(uinput.exact(1),st,0);
-          uinput.ic.PDE(2)= subs(uinput.exact(2),st,0);
+          uinput.ic(1)= subs(uinput.exact(1),st,0);
+          uinput.ic(2)= subs(uinput.exact(2),st,0);
 
           % Symbolic disturbance
     uinput.w{1}=subs(uinput.exact(1),sx,a);
@@ -2451,8 +2452,8 @@ case 8
 %        Exact solution, initial conditions and inhomogeneous inputs 
            
   % State 1: n0 state. No boundary conditions required on this state
-            uinput.ic.PDE(1)=cos(sx);
-            uinput.exact(1)=uinput.ic.PDE(1)*exp(-lambda*st);
+            uinput.ic(1)=cos(sx);
+            uinput.exact(1)=uinput.ic(1)*exp(-lambda*st);
               
   % State 2: n1 state. One boundary condition required on this state     
             PDE.BC.Ebb{1}.coeff = [1;0;0];
@@ -2465,7 +2466,7 @@ case 8
             PDE.BC.Ebb{1}.delta = 1;
             end
          uinput.exact(2) = sin(sx-c*st);
-         uinput.ic.PDE(2)=  sin(sx);
+         uinput.ic(2)=  sin(sx);
          % Symbolic disturbance
          uinput.w{1}= sin(xb-c*st);
          % Disturbance as a data array (double)   
@@ -2486,7 +2487,7 @@ case 8
 
            alpha=pi/8;
            uinput.exact(3) =  sin(5*pi/4*sx+alpha)*exp(-visc*(5*pi/4)^2*st);
-           uinput.ic.PDE(3)= subs(uinput.exact(3),st,0);
+           uinput.ic(3)= subs(uinput.exact(3),st,0);
 
          % Symbolic disturbance
            uinput.w{2}=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
@@ -2546,8 +2547,8 @@ case 8
 
           
   % State 1: n0 state. No boundary conditions required on this state
-            uinput.ic.PDE(1)=cos(sx);
-            uinput.exact(1)=uinput.ic.PDE(1)*cos(st);
+            uinput.ic(1)=cos(sx);
+            uinput.exact(1)=uinput.ic(1)*cos(st);
             
   % State 2: n1 state. One boundary condition required on this state  
             
@@ -2556,7 +2557,7 @@ case 8
            
  
          uinput.exact(2) = sx^10*st^5;
-         uinput.ic.PDE(2)=  0;
+         uinput.ic(2)=  0;
          
          % Symbolic disturbance
          uinput.w(1)= xb^10*st^5;
@@ -2571,9 +2572,9 @@ case 8
              PDE.B(2:5,:)=[0 0 1 0 0 0 0 0 0 0;0 0 0 0 1 0 0 0 0 0;0 0 0 1 0 0 0 0 0 0;0 0 0 0 0 1 0 0 0 0];
              
            uinput.exact(3) =  sin(pi*sx)*sqrt(st+t0);
-           uinput.ic.PDE(3)=  subs(uinput.exact(3),st,0);;
+           uinput.ic(3)=  subs(uinput.exact(3),st,0);;
            uinput.exact(4) =  sin(pi*sx)*sqrt(st+t0);
-           uinput.ic.PDE(4)= subs(uinput.exact(4),st,0);;
+           uinput.ic(4)= subs(uinput.exact(4),st,0);;
            
                  % Symbolic disturbance
            uinput.w(2)=sin(pi*a)*sqrt(st+t0);
@@ -2634,7 +2635,7 @@ case 8
             PDE.B=[1 0 0 0 0 0 0 0;0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 0 0 1];
             PDE.Bw=[1 0 0 0 0;0 1 0 0 0; 0 0 1 0 0;0 0 0 1 0];
             
-            uinput.ic.ODE=[1 2];
+            uinput.ic=[1 2];
             
             % exact solution of the PDE
             
@@ -2648,8 +2649,8 @@ case 8
 % % % % % % % Initial conditions on fundamental states are exact solutions
 % % % % % % % for fundamental states u_txx and u_xxxx evaluated at time t=0;
 
-               uinput.ic.PDE(1)= 0;
-               uinput.ic.PDE(2)= 0;
+               uinput.ic(3)= 0;
+               uinput.ic(4)= 0;
                
                % Boundary conditions: need four boundary conditions on primary states 
 % %           
@@ -2698,8 +2699,8 @@ case 8
 %%% % x(a)=0, x(b)=0   - Unstable always (this line should remain commented)
  PDE.B = [1 0 0 0; 0 1 0 0]; PDE.Bx = [0;1];
  
- uinput.ic.ODE=2;
- uinput.ic.PDE=0;
+ uinput.ic(1)=2;
+ uinput.ic(2)=0;
  
  
 %----------------------------------------
@@ -2716,8 +2717,8 @@ case 8
   PDE.B=[0 1];
   PDE.Bx = [1];
   a = -1; b =0; PDE.dom = [-1 0];
-  uinput.ic.ODE=[1];
-  uinput.ic.PDE=[0];
+  uinput.ic(1)=[1];
+  uinput.ic(2)=[0];
   
   
 %----------------------------------------
@@ -2731,8 +2732,7 @@ case 8
  PDE.A2 = 1; 
  PDE.B = [0, 0, 1, 0; 0, 1, 0, 0]; 
  PDE.Bx = [0; 0];
- uinput.ic.ODE=[1];
- uinput.ic.PDE=[0];
+ uinput.ic=[1 0];
  
  
 %----------------------------------------
@@ -2759,8 +2759,7 @@ case 8
  PDE.nb=1;
  PDE.Ca2=[1 2];
  
- uinput.ic.ODE=[1 1 1 1];
- uinput.ic.PDE=[0 0];
+ uinput.ic=[1 1 1 1 0 0];
  
   
 %----------------------------------------
@@ -2795,8 +2794,7 @@ C = [1/10, -1/3, -4, 7/8, 7/8];
             0 1 0 0];
  PDE.Bx = [zeros(1,5);C];
  
- uinput.ic.ODE=[1 1 1 1 1];
- uinput.ic.PDE=[0];
+ uinput.ic=[1; 1; 1; 1; 1; 0];
 
 %----------------------------------------
 % Example 38 - example 2 from  Lhachemi & Prieur 2021 -
@@ -2832,8 +2830,7 @@ C = [-2/5, -5/4, 3/2, 1/3, 1/40];
  PDE.Bx = [zeros(1,5);C];
  
   
- uinput.ic.ODE=[-1 1 -2 2 -1];
- uinput.ic.PDE=5*sx*(1-sx)^2*cos(3*pi*sx);
+ uinput.ic=[-1, 1, -2, 2, -1, 5*sx*(1-sx)^2*cos(3*pi*sx)];
 
 %----------------------------------------
 % Cylindrical Coordinates Examples: Weighted Formulation Approach
@@ -2889,7 +2886,7 @@ case 39
     uinput.weight = 1;
 
     uinput.exact = besselj(0, j01*sx)*exp(-alpha*j01^2* st);
-    uinput.ic.PDE = besselj(0, j01*sx);
+    uinput.ic = besselj(0, j01*sx);
 
 %----------------------------------------
 % Example 40 - Axisymmetric Diffusion Reaction
@@ -2936,7 +2933,7 @@ case 40
     uinput.weight = 1;
     
     uinput.exact = besselj(0, j01*sx)*exp(-alpha*(j01^2 - lambda)*st);
-    uinput.ic.PDE = besselj(0, j01*sx);
+    uinput.ic = besselj(0, j01*sx);
 
 %----------------------------------------
 % Example 41 - Poloidal Magnetic Flux Gradient(Tokamak)
@@ -2988,7 +2985,7 @@ case 41
     uinput.weight = 2;
     
     uinput.exact = sx*I0*(1 - exp(-st/tau));
-    uinput.ic.PDE = sx*I0;
+    uinput.ic = sx*I0;
 
     % Symbolic disturbance
     uinput.w{1} = (I0/tau)*sx*exp(-st/tau); % Forcing term

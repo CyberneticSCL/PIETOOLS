@@ -9,14 +9,14 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % 1) solution
 % solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
-% --- solution.final.pde{1,2,3} - cell array containing all pde solutions at a final time
-% --- solution.final.pde{1} - array containing the solution for states that are only the functions of s1 - 
+% --- solution.final.primary{1,2,3,4} - cell array containing all primary state solutions (ode and pde) at a final time
+% --- solution.final.primary{1} - array of size no - ode (finite-dimensional) solutions at a final time 
+% --- solution.final.primary{2} - array containing the solution for states that are only the functions of s1 - 
 %      array of size (N(1)+1) x nx, nx - number of states depending only on s1
-% --- solution.final.pde{2} - array containing the solution for states that are only the functions of s2 - 
+% --- solution.final.primary{3} - array containing the solution for states that are only the functions of s2 - 
 %      array of size (N(2)+1) x ny, ny - number of states depending only on s2
-% --- solution.final.pde{3} - array containing the solution for states that are the functions of two variables - 
-% it is array of size (N(1)+1) x (N(2)+1) x n2d, n2d - number of states depending on both s1 and s2
-% --- solution.final.ode - array of size no - ode solution at a final time 
+% --- solution.final.primary{4} - array containing the solution for states that are the functions of two variables - 
+% it is array of size (N(1)+1) x (N(2)+1) x n2, n2 - number of states depending on both s1 and s2
 % --- solution.final.observed{1,2,3,4} - cell array containing final value of observed outputs 
 % --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
 % --- solution.final.observed{2} - array containing final value of infinite-dimnesional 
@@ -41,14 +41,15 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
-% --- solution.timedep.pde{1,2,3} - cell array containing all time-dependent pde solutions 
-% --- solution.timedep.pde{1} - array containing the solution for states that are only the functions of s1 - 
+% --- solution.timedep.primary{1,2,3,4} - cell array containing all
+% time-dependent primary state solutions (ode and pde)
+% --- solution.timedep.primary{1} - array of size no x Nsteps - time-dependent solution of no ODE (finite-dimensional) states
+% --- solution.timedep.primary{2} - array containing the solution for states that are only the functions of s1 - 
 %      array of size (N(1)+1) x nx x Nsteps, nx - number of states depending only on s1
-% --- solution.timedep.pde{2} - array containing the solution for states that are only the functions of s2 - 
+% --- solution.timedep.primary{3} - array containing the solution for states that are only the functions of s2 - 
 %      array of size (N(2)+1) x ny x Nsteps, ny - number of states depending only on s2
-% --- solution.timedep.pde{3} - array containing the solution for states that are the functions of two variables - 
-%      array of size (N(1)+1) x (N(2)+1) x n2d x Nsteps, n2d - number of states depending on both s1 and s2
-% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
+% --- solution.timedep.primary{4} - array containing the solution for states that are the functions of two variables - 
+%      array of size (N(1)+1) x (N(2)+1) x n2 x Nsteps, n2 - number of states depending on both s1 and s2
 % --- solution.timedep.observed{1,2,3,4} - cell array containing time-dependent 
 %      observed outputs 
 % --- solution.timedep.observed[1} - array of size noo x Nsteps -
@@ -82,9 +83,12 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 4_16_2024
-% DJ, 07/17/2024 - Bugfix for extraction of exact solutions.
+% DJ, 07/17/2024 - Bugfix for extraction of exact solutions;
 % DJ, 01/01/2025 - Change plot specifications;
-% YP 01/07/2026 - Enable plotting at time=0
+% YP, 01/07/2026 - Enable plotting at time=0;
+% YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde{1,2,3} into
+% solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
+% solution.timedep.primary{1,2,3,4}
 
 syms sx sy;
 
@@ -95,7 +99,7 @@ marker_size = 2*line_width;
 
 for i=1:psize.no
 formatSpec = 'Solution of an ODE state %s at a final time %f is %8.4f\n';
-fprintf(formatSpec,num2str(i),solution.tf, solution.final.ode(i));
+fprintf(formatSpec,num2str(i),solution.tf, solution.final.primary{1}(i));
 end
 
 % Output values for regulated outputs
@@ -128,9 +132,9 @@ end
 figs = {};
 
 n_pde_tot = sum([sum(psize.nx),sum(psize.ny),sum(psize.n,'all')]);
-if opts.intScheme==1 && psize.no>0 && ~isempty(solution.timedep.ode)
+if opts.intScheme==1 && psize.no>0 && ~isempty(solution.timedep.primary{1})
     % Plot evolution of ODE states in a single plot
-    odesol = solution.timedep.ode';
+    odesol = solution.timedep.primary{1}';
     figure('Position',[200 150 800 400]);
     set(gcf, 'Color', 'w');
     box on
@@ -232,7 +236,7 @@ end
 % % Plot final PDE states, if possible
 if strcmp(opts.type,'DDE')
     return
-elseif isempty(solution.final.pde) && n_pde_tot>0
+elseif isempty(solution.final.primary) && n_pde_tot>0
     disp("Simulated PDE solution is infinite; no plot produced.")
     return
 end
@@ -276,9 +280,9 @@ if sum(psize.nx)>0
         subplot(1,ns,n);
         box on
         if n+ns_tot<=size(colors_PDE,1)
-            plot(grid{1},solution.final.pde{1}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
+            plot(grid{1},solution.final.primary{2}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
         else
-            plot(grid{1},solution.final.pde{1}(:,n),line_style{:},'DisplayName','Numerical solution');
+            plot(grid{1},solution.final.primary{2}(:,n),line_style{:},'DisplayName','Numerical solution');
         end
         if opts.ifexact
             hold on
@@ -318,9 +322,9 @@ if sum(psize.ny)>0
         subplot(1,ns,n);
         box on
         if sum(psize.nx)+n<=size(colors_PDE,1)
-            plot(grid{2},solution.final.pde{2}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
+            plot(grid{2},solution.final.primary{3}(:,n),line_style{:},'Color',colors_PDE(n+ns_tot,:),'DisplayName','Numerical solution');
         else
-            plot(grid{2},solution.final.pde{2}(:,n),line_style{:},'DisplayName','Numerical solution');
+            plot(grid{2},solution.final.primary{3}(:,n),line_style{:},'DisplayName','Numerical solution');
         end
         if opts.ifexact
             hold on
@@ -367,7 +371,7 @@ if sum(psize.n,'all')>0
     box on
     for n=1:ns
         ax1 = subplot(1,ns,n,'Parent',fig6);
-        surf(ax1,grid{1},grid{2},solution.final.pde{3}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
+        surf(ax1,grid{1},grid{2},solution.final.primary{4}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
         h = colorbar(ax1);
         %colormap jet
         xlabel(ax1,'$s_{1}$','FontSize',15,'Interpreter','latex');
@@ -430,7 +434,7 @@ if sum(psize.n,'all')>0
 
             % Also plot the error in the numerical solution
             ax3 = subplot(1,ns,n,'Parent',fig8);
-            surf(ax3,grid{1},grid{2},exsol_numgrid'-solution.final.pde{3}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
+            surf(ax3,grid{1},grid{2},exsol_numgrid'-solution.final.primary{4}(:,:,n)','FaceAlpha',0.75,'Linestyle','--','FaceColor','interp');
             h = colorbar(ax3);
             %colormap jet
             xlabel(ax3,'$s_{1}$','FontSize',22,'Interpreter','latex');

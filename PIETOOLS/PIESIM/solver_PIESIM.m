@@ -44,7 +44,7 @@ format long;
 
 % Set up the dimenion of the problem (dim=1 for 1D problems or dim=2 for 2D problems).
 
-dim=2;
+dim=1;
 
 % Set up options for the simulations
 
@@ -66,7 +66,7 @@ opts.ploteig='yes';
 % For 2D: if different order of discretization is required in different directions,
 % enter opts.N as an array, such as opts.N=[16,32]
 
-opts.N=[16,32];
+opts.N=16;
 
 %-----------------------------------------------------------
 % Input the desired final time of the solution
@@ -110,7 +110,7 @@ end
 % the 'examples_pde_library_PIESIM_2D.m'
 %------------------------------------------------------------------------------
 
-    example=32;
+    example=37;
 
     if (dim==1)
     if (example<1|example>41)

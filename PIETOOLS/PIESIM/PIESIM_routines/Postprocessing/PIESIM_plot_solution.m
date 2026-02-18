@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_plot_solution.m     PIETOOLS 2024
+% PIESIM_plot_solution.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % This routine outputs and plots solution of ODE and PDE states
@@ -8,8 +8,10 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % 1) solution 
 % solution is a strucutre with the following fields
 % --- solution.tf - scalar - actual final time of the solution
-% --- solution.final.pde - array of size (N+1) x ns, ns number of pde (distributed state) solutions at a final time
-% --- solution.final.ode - array of size no - ode solution at a final time 
+% --- solution.final.primary{1,2} - cell array containing final value of
+% solution states
+% --- solution.final.primary{1} - array of size no - ode (finite-dimensional) solutions at a final time 
+% --- solution.final.primary{2} - array of size (N+1) x ns - pde (distributed state) solutions at a final time
 % --- solution.final.observed{1,2} - cell array containing final value of observed outputs 
 % --- solution.final.observed[1} - array of size noo containing final
 %      value of finite-dimensional observed outputs
@@ -24,8 +26,11 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
-% --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
-% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
+% --- solution.timedep.primary{1,2} - cell array containing final value of
+% solution states
+% --- solution.timedep.primary{1} - array of size no x Nsteps - time-dependent solutions of no ODE (finite-dimensional) states
+% --- solution.timedep.primary{2} - array of size (N+1) x ns x Nsteps - time-dependent
+%     solution of ns PDE (distributed) states of the primary PDE system
 % --- solution.timedep.observed{1,2} - cell array containing time-dependent observed outputs 
 % --- solution.timedep.observed[1} - array of size noo x Nsteps -
 %     time-dependent value of finite-dimensional observed outputs
@@ -49,13 +54,16 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 9_19_2021
-% YP 6/16/2022 - added outputs for observed and regulated outputs 
+% YP, 6/16/2022 - added outputs for observed and regulated outputs; 
 % DJ, 12/26/2024 - Plot PDE state evolution using surf;
 % DJ, 01/01/2025 - Change plot specifications;
 % YP, 06/02/2025 - Made modifications so that final plots are produced at a
-% zero final time (tf=0)
-% YP, 01/02/2026 - updated plotting to distinguish between finite- and
-% infinite-dimensinal outputs
+% zero final time (tf=0);
+% YP, 01/02/2026 - Updated plotting to distinguish between finite- and
+% infinite-dimensinal outputs;
+% YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde into
+% solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
+% solution.timedep.primary{1,2}
 
 syms sx;
 
@@ -65,10 +73,10 @@ marker_size = 2*line_width;
    
 % % Display final value of ODE state, if possible.
 if(psize.no>0)
-    if (~isempty(solution.final.ode))
+    if (~isempty(solution.final.primary{1}))
         for i=1:psize.no
             formatSpec = 'Solution of ODE state %s at a final time %f is %8.4f\n';
-            fprintf(formatSpec,num2str(i),solution.tf, solution.final.ode(i));
+            fprintf(formatSpec,num2str(i),solution.tf, solution.final.primary{1}(i));
         end
         plot_ode = true;
     else
@@ -114,6 +122,9 @@ if opts.intScheme~=1
     disp("Temporal evolution of solution is only available when using the BDF scheme; only final states are plotted.")
 elseif opts.tf==0
     disp("Temporal evolution of solution is only available when final time is not equal to zero; only final states are plotted.")
+    plot_ode=false;
+    plot_y=false;
+    plot_z=false;
 else
     % Determine time indices at which to plot solution.
     dtime = solution.timedep.dtime;
@@ -126,7 +137,7 @@ figs = {};
 
 % % Plot the ODE states evolution in a single plot
 if (psize.no>0) && plot_ode && opts.intScheme==1
-    odesol = solution.timedep.ode';
+    odesol = solution.timedep.primary{1}';
 
     fig1 = figure('Position',[200 150 800 450]);
     set(gcf, 'Color', 'w');
@@ -226,7 +237,7 @@ if (psize.nro>0) && plot_z && opts.intScheme==1
 end
 
 % % Plot the PDE states
-if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
+if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.primary{2})
 
     colors_PDE = [0 0.4470 0.7410;
             0.8500 0.3250 0.0980;
@@ -263,9 +274,9 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         box on
         hold on
         if ~opts.ifexact
-            plot(grid,solution.final.pde(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
+            plot(grid,solution.final.primary{2}(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
         else
-            plot(grid,solution.final.pde(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
+            plot(grid,solution.final.primary{2}(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
             plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution','LineWidth',line_width); 
             legend('FontSize',13,'Interpreter','latex');
         end
@@ -288,7 +299,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
     end
 
     % % Plot surface plot of state evolution at all points.
-    Ngp = size(solution.timedep.pde,1);       % Number of grid points
+    Ngp = size(solution.timedep.primary{2},1);       % Number of grid points
     fig5 = figure('Position',[200 150 fig_width 450]);
     set(gcf, 'Color', 'w');
     box on
@@ -296,7 +307,7 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.pde)
         sgtitle('PDE State Evolution','Interpreter','latex','FontSize',16)
     end
     for ii=1:ns
-        x_ii = reshape(solution.timedep.pde(:,ii,t_idcs),Ngp,[]);
+        x_ii = reshape(solution.timedep.primary{2}(:,ii,t_idcs),Ngp,[]);
         subplot(1,ns,ii);
         surf(tval,grid,x_ii,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
         h = colorbar;

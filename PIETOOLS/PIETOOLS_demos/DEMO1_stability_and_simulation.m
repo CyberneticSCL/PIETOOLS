@@ -47,6 +47,9 @@
 % DB, 12/29/2024: Use pde_var objects instead of sys and state
 % DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
 % DJ, 05/18/2025: Declare no particular SDP solver by default;
+% YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde into
+% solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
+% solution.timedep.primary{1,2}
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -58,7 +61,7 @@ echo on
 % Declare independent variables
 pvar t s;   
 % Declare state, input, and output variables
-phi = pde_var('state',2,s,[0,1]);   x = pde_var('state',1,[],[]);
+x = pde_var('state',1,[],[]);       phi = pde_var('state',2,s,[0,1]);
 w = pde_var('input',1);             r = pde_var('output',1);
 % Declare system parameters
 c=1;    b=.01;
@@ -82,8 +85,8 @@ T = pie.T;      A = pie.A;
 
 % % Declare initial values and disturbance
 syms st sx;
-uinput.ic.ODE = 0.5;
-uinput.ic.PDE = [0.5-sx,sin(pi*sx)];
+uinput.ic(1) = sym(0.5);
+uinput.ic([2,3]) = [0.5-sx,sin(pi*sx)];
 uinput.w = sin(5*st)*exp(-st); 
 
 % % Set options for discretization and simulation
@@ -95,9 +98,9 @@ opts.dt = 0.03;     % use time step of 3*10^-2
 % % Simulate open-loop PDE and extract solution
 [solution,grids] = PIESIM(odepde, opts, uinput);
 tval = solution.timedep.dtime;
-xval = solution.timedep.ode;
-phi1 = reshape(solution.timedep.pde(:,1,:),opts.N+1,[]);
-phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
+xval = solution.timedep.primary{1};
+phi1 = reshape(solution.timedep.primary{2}(:,1,:),opts.N+1,[]);
+phi2 = reshape(solution.timedep.primary{2}(:,2,:),opts.N+1,[]);
 zval = solution.timedep.regulated;
 wval = subs(uinput.w,st,tval);
 

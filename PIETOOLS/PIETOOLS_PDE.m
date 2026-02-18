@@ -25,7 +25,7 @@ close all; clc; clear; clear stateNameGenerator
 % each with an associated default executive to run. Call the library with
 % an index 1 through 52 as argument to extract that example, and run the
 % associated executive, if desired.
-PDE = examples_PDE_library_PIETOOLS(42);
+PDE = examples_PDE_library_PIETOOLS(8);
 
 %% --- Manual Declaration Option --- 
 % % To use this example, comment line 28, and
@@ -99,28 +99,21 @@ opts.plot='yes';
 % Declare initial conditions for PIE state
 if PIE.dim<=1
     syms sx
-    uinput.ic.ODE = ones(1,size(PIE.T.P,1));
-    uinput.ic.PDE = ones(1,size(PIE.T.R.R0,1))*sin(sym(pi)*sx);
+    uinput.ic = [ones(1,size(PIE.T.P,1)),ones(1,size(PIE.T.R.R0,1))*sin(sym(pi)*sx)];
 else
     syms sx sy
-    uinput.ic.ODE = ones(1,size(PIE.T.R00,1));
-    uinput.ic.PDE = ones(1,size(PIE.T.Rxx{1},1))*sin(sym(pi)*sx);
-    uinput.ic.PDE = [uinput.ic.PDE,ones(1,size(PIE.T.Ryy{1},1))*sin(sym(pi)*sy)];
-    uinput.ic.PDE = [uinput.ic.PDE,ones(1,size(PIE.T.R22{1},1))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];
+    uinput.ic = ones(1,size(PIE.T.R00,1));
+    uinput.ic = [uinput.ic,ones(1,size(PIE.T.Rxx{1},1))*sin(sym(pi)*sx)];
+    uinput.ic = [uinput.ic,ones(1,size(PIE.T.Ryy{1},1))*sin(sym(pi)*sy)];
+    uinput.ic = [uinput.ic,ones(1,size(PIE.T.R22{1},1))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];
 end
 
 if ~exist('PIE_CL','var')
     % Simulate the open-loop PDE solution in PDE representation
     [solution, grid] = PIESIM(PDE,opts,uinput);
 else
-    % Get the number of PDE states differentiable up to each order
-    ndiff = zeros(1,max(PIE.x_tab(:,end))+1);
-    for jj=0:max(PIE.x_tab(:,end))
-        ndiff(jj+1) = sum(PIE.x_tab(PIE.x_tab(:,end)==jj & PIE.x_tab(:,3),2));
-    end
-    
     % Simulate open-loop PDE solution in PIE representation
-    [solution, grid] = PIESIM(PIE,opts,uinput,ndiff);
+    [solution, grid] = PIESIM(PIE,opts,uinput);
 end
 
 
@@ -135,11 +128,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
     t = solution.timedep.dtime;
-    X = repmat(grid.phys(:,1),1,length(t));
+    X = repmat(grid(:,1),1,length(t));
     n1=0;
     if PIE.dim ~=2
-    pde_sol = solution.timedep.pde;
+    pde_sol = solution.timedep.primary{2};
     else
+        solution.timedep.pde{1,2,3}=solution.timedep.primary{2,3,4};
         if ~isempty(solution.timedep.pde{1})
     n=size(solution.timedep.pde{1});
     n1=n(2);
@@ -147,7 +141,7 @@ if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
         end
         if (length(solution.timedep.pde)==2)
         if ~isempty(solution.timedep.pde{2})
-    k=floor(length(grid.phys)/2)+1;
+    k=floor(length(grid)/2)+1;
     n=size(solution.timedep.pde{2});
     pde_sol(1:n(1),n1+1:n1+n(3),1:n(4)) = solution.timedep.pde{2}(1:n(1),k,1:n(3),1:n(4));
         end
@@ -158,7 +152,7 @@ if ~strcmp(opts.plot,'yes') && any(ismember(fieldnames(solution),'timedep'))
     for i=1:size(pde_sol,2)
         Z = squeeze(pde_sol(:,i,:));
         ax(i)=subplot(size(pde_sol,2),1,i);
-        surf(t,grid.phys(:,1),Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+        surf(t,grid(:,1),Z,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
         h=colorbar ;
         colormap jet
         box on
@@ -191,8 +185,6 @@ if exist('PIE_CL','var')
     % Update the number of states differentiable up to each order, if
     % applicable
     if exist('L_estimator','var')
-        % Closed-loop system includes state estimate as well as state
-        ndiff = 2*ndiff;        
         % Set initial estimate of state to 0.
         uinput.ic.ODE = [uinput.ic.ODE,0*uinput.ic.ODE];
         uinput.ic.PDE = [uinput.ic.PDE,0*uinput.ic.PDE];
@@ -200,7 +192,7 @@ if exist('PIE_CL','var')
 
     % Simulate the closed-loop response
     opts.plot = 'yes';
-    [solution_CL, ~] = PIESIM(PIE_CL,opts,uinput,ndiff);
+    [solution_CL, ~] = PIESIM(PIE_CL,opts,uinput);
 
     % Clarify that the new plots represent the closed-loop response
     figHandles_all = findobj('Type', 'figure');

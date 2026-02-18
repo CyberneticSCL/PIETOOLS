@@ -51,6 +51,9 @@
 % DJ, 12/26/2024: Add simulation;
 % DJ, 12/28/2024: Change simulation conditions;
 % DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
+% YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde{1,2,3} into
+% solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
+% solution.timedep.primary{1,2,3,4}
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -90,7 +93,7 @@ B = PIE.B1;    D = PIE.D11;
 
 % % Declare initial values and disturbance
 syms st sx sy real
-uinput.ic.PDE = 0;
+uinput.ic = 0;
 uinput.w = 20*sin(pi*st)*exp(-st/2);
 
 % % Set options for discretization and simulation
@@ -102,7 +105,7 @@ opts.dt = 1e-2;     % Use time step of 10^-2
 % % Perform the actual simulation
 [solution,grid] = PIESIM(PDE,opts,uinput);
 tval = solution.timedep.dtime;
-x = reshape(solution.timedep.pde{2}(:,:,1,:),opts.N+1,opts.N+1,[]);
+x = reshape(solution.timedep.primary{4}(:,:,1,:),opts.N+1,opts.N+1,[]);
 z = solution.timedep.regulated(1,:);
 w = double(subs(uinput.w,st,tval));
 

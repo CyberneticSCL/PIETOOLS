@@ -1,6 +1,6 @@
 function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_PDE_2D.m     PIETOOLS 2024
+% convert_PIETOOLS_PDE_2D.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert a coupled ODE-1D_PDE-2D system to an equivalent PIE.
 % 
@@ -71,20 +71,33 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   re-arranged.
 %
 % - If the PDE is 2D and involves boundary conditions with inputs u or
-% disturbances w that vary in space, the inputs and disturbance may be
-% differentiated with respect to the spatial variables as well in the PIE
-% representation. The function will warn the user of this fact, and the
-% order of the derivative taken with respect to each spatial is stored in
-% the outputs PIE.u_tab and PIE.w_tab, with e.g. the element
-% PIE.u_tab(i,5) indicating the order of derivative taken of the ith input
-% with respect to the first spatial variable, and
-% PIE.u_tab(i,6) indicating the order of derivative taken of the ith input
-% with respect to the second spatial variable.
+%   disturbances w that vary in space, the inputs and disturbance may be
+%   differentiated with respect to the spatial variables as well in the PIE
+%   representation. The function will warn the user of this fact, and the
+%   order of the derivative taken with respect to each spatial is stored in
+%   the outputs PIE.u_tab and PIE.w_tab, with e.g. the element
+%   PIE.u_tab(i,5) indicating the order of derivative taken of the ith
+%   input with respect to the first spatial variable, and
+%   PIE.u_tab(i,6) indicating the order of derivative taken of the ith
+%   input with respect to the second spatial variable.
+%   It is also possible that boundary values of the input are used as
+%   inputs in the PIE. In this case, multiple elements of PIE.w_tab(:,1)
+%   (or PIE.u_tab(:,1)) will have the same value, indicating that they
+%   correspond to the same input variable. To check if the ith input in
+%   the PIE corresponds to a boundary value, compute
+%       idx = find(PIE.w_tab(:,1)==PIE.w_tab(i,1),1,'last');
+%   If idx~=i, then row i in PIE.w_tab corresponds to a boundary value of
+%   the same input as specified by PDE.w_tab(idx,:). To check at what
+%   boundary this input is evaluated, compute
+%       is_bval = PIE.w_tab(idx,3:2+nvars) - PIE.w_tab(i,3:2+nvars);
+%   where nvars = PIE.dim. For each j in 1 to nvars, if is_bval(j)=1, then
+%   the input is evaluated at the lower-boundary PIE.dom(j,1) in the
+%   spatial variable PIE.vars(j,1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
 %
-% Copyright (C)2025 PIETOOLS Team
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -121,6 +134,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ, 01/24/2026: Additional check to avoid cases where derivative is taken
 %                   of input signals (in 2D);
 % DJ, 01/25/2026: Bugfix in case BCs only involve lower boundary values;
+% DJ, 02/15/2026: Include boundary values of inputs in 2D case with
+%                   inhomogeneous BCs;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -265,25 +280,6 @@ if nvars==0
     PDE = initialize_PIETOOLS_PDE(PDE,true);
     PDE.x = PDE.x((1:ncomps)');
     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
-
-% elseif nvars==1
-%     is2D = false;
-%      % Define a 2D domain with variables.
-%     xtra_var = polynomial({[vars(1).varname{1},'_2']; [vars(2).varname{1},'_2']});
-%     vars = [vars; xtra_var'];
-%     dom = [dom; [0,1]];
-%     nvars = 2;
-% 
-%     % Add a temporary state variable that exists on the 2D domain.
-%     ncomps = numel(PDE.x);
-%     PDE.x{ncomps+1}.dom = dom;
-%     PDE.x{ncomps+1}.vars = vars;
-%     PDE.x{ncomps+1}.term{1}.x = ncomps+1;
-%     % Initialize the augmented system, and get rid of the temporary state.
-%     PDE = initialize_PIETOOLS_PDE(PDE,true);
-%     PDE.x = PDE.x((1:ncomps)');
-%     PDE.x_tab = PDE.x_tab((1:ncomps)',:);
-%     PDE.is_initialized = true;  % No need to re-initialize
 end
 
 % Extract the tables providing information on the spatial dependence (and
@@ -336,17 +332,16 @@ end
 % % % where xf = D_2*D_1*x.
 % % % This approach only works for "separable" boundary conditions, so that
 % % % we can separately enforce the boundary conditions along each spatial
-% % % direction. Note that this approach may also require derivatives of
-% % % the inputs to be taken.
+% % % direction. Note that this approach may also require derivatives and
+% % % boundary values of the inputs to be taken.
 if (is2D && (any(any(w_tab(:,3:2+nvars))) || any(any(u_tab(:,3:2+nvars)))))
     old_dom = dom;      old_vars = vars;        np_op_old = np_op;
-    try [Top_x,Top_w,Top_u,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order);
-        use_Tmap_opt2 = false;
-        Top = struct();
-        Top.x = Top_x;      Top.u = Top_u;      Top.w = Top_w;
-    catch
-        use_Tmap_opt2 = true;
-    end
+    [Top,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,true);
+    use_Tmap_opt2 = false;
+    Dvals_w = Dvals.w;      Dvals_u = Dvals.u;
+    Wop = Top.wmap;         Uop = Top.umap;                                 % DJ, 02/15/2026
+    w_idcs = Dvals.w_idcs;  u_idcs = Dvals.u_idcs;
+
     % Correct values of global variables.
     dom = old_dom;      vars = old_vars;        np_op = np_op_old;
     nvars = size(vars,1);
@@ -516,9 +511,13 @@ Top = struct();
 Top.x = Top_x;      Top.u = Top_u;      Top.w = Top_w;
 
 % The obtained map does not require any derivative to be taken of the
-% inputs.
+% inputs, nor does it take any boundary values of the inputs
 Dvals_w = zeros(numel(PDE.w),2);
 Dvals_u = zeros(numel(PDE.u),2);
+Wop = 1;         
+Uop = 1;
+w_idcs = (1:numel(PDE.w));  
+u_idcs = (1:numel(PDE.u));
 
 end
 
@@ -526,7 +525,7 @@ if return_Top
     % If only the T operators are requested, we stop here.
     PIE = pie_struct();
     PIE.dom = dom;  PIE.vars = vars;
-    PIE.T = Top_x;  PIE.Tw = Top_w;     PIE.Tu = Top_u;
+    PIE.T = Top.x;  PIE.Tw = Top.w;     PIE.Tu = Top.u;
     return
 end
 
@@ -563,6 +562,68 @@ end
 % Each element of the cell retain_xvars provides indices of the state
 % variables that can be differentiated up to the desired order.
 
+% For each of the inputs that appear as derivative in the PIE, make sure
+% the PIE does not involve the non-differentiated input as well
+diff_idcs_w = find(any(Dvals_w,2));
+nnw_old = cumsum([0;PDE.w_tab(wcomp_order,2)]);
+nnw_new = cumsum([0;PDE.w_tab(wcomp_order(w_idcs),2)]);
+for j = diff_idcs_w'
+    % Check if the input appears in an evolution or output equation
+    r_idcs = (nnw_old(w_idcs(j))+1:nnw_old(w_idcs(j)+1));
+    if all(all(Pop_w2x(:,r_idcs)==0)) && all(all(Pop_w2y(:,r_idcs)==0)) &&...
+            all(all(Pop_w2z(:,r_idcs)==0))
+        % The input does not appear in the equations, there should be no
+        % conflict
+        continue
+    end
+    % Check if the operator Wop maps the PIE input back to the PDE intput
+    if isscalar(Wop) && isequal(Wop,1)
+        error("An exogenous input appears both in the boundary conditions and a PDE or output equation: this is currently not supported.")
+    end
+    c_idcs = (nnw_new(j)+1:nnw_new(j+1));
+    Wop_j = Wop(r_idcs,c_idcs);
+    if ~all(Wop_j.dim(:,1)==Wop_j.dim(:,2))
+        % We have a map from the PIE input to the PDE input
+        % --> we can include represent the PDE input in the PIE
+        continue
+    end
+    Iop = mat2opvar(eye(size(Wop_j)),Wop_j.dim,[Wop_j.var1,Wop_j.var2],Wop_j.I);
+    if all(all(Wop_j==Iop))
+        % Wop does not map the derivative of the PDE input back to the PDE
+        % inputs
+        error("An exogenous input appears both in the boundary conditions and a PDE or output equation: this is currently not supported.")
+    end
+end
+diff_idcs_u = find(any(Dvals_u,2));
+nnu_old = cumsum([0;PDE.u_tab(ucomp_order,2)]);
+nnu_new = cumsum([0;PDE.u_tab(ucomp_order(u_idcs),2)]);
+for j = diff_idcs_u'
+    % Check if the input appears in an evolution or output equation
+    r_idcs = (nnu_old(w_idcs(j))+1:nnu_old(w_idcs(j)+1));
+    if all(all(Pop_u2x(:,r_idcs)==0)) && all(all(Pop_u2y(:,r_idcs)==0)) &&...
+            all(all(Pop_u2z(:,r_idcs)==0))
+        % The input does not appear in the equations, there should be no
+        % conflict
+        continue
+    end
+    % Check if the operator Uop maps the PIE input back to the PDE intput
+    if isscalar(Uop) && isequal(Uop,1)
+        error("An actuator input appears both in the boundary conditions and a PDE or output equation: this is currently not supported.")
+    end
+    c_idcs = (nnu_new(j)+1:nnu_new(j+1));
+    Uop_j = Uop(r_idcs,c_idcs);
+    if ~all(Uop_j.dim(:,1)==Uop_j.dim(:,2))
+        % We have a map from the PIE input to the PDE input
+        % --> we can include represent the PDE input in the PIE
+        continue
+    end
+    Iop = mat2opvar(eye(size(Uop_j)),Uop_j.dim,[Uop_j.var1,Uop_j.var2],Uop_j.I);
+    if all(all(Uop_j==Iop))
+        % Uop does not map the derivative of the PDE input back to the PDE
+        % inputs
+        error("An actuator input appears both in the boundary conditions and a PDE or output equation: this is currently not supported.")
+    end
+end
 
 % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 % % % STEP 2:
@@ -577,11 +638,11 @@ end
 % % % where the composition of the differential operators and the Delta
 % % % operators with the PI operators T is a PI operator.
 Pop = struct();
-Pop.x = Pop_x2x_cell;   Pop.u = Pop_u2x;    Pop.w = Pop_w2x;
+Pop.x = Pop_x2x_cell;   Pop.u = Pop_u2x*Uop;    Pop.w = Pop_w2x*Wop;
 [Aop_x2x, Bop_u2x, Bop_w2x] = impose_fundamental_map(Top,Pop,loc_diff_tab_x,retain_xvars_x);
-Pop.x = Pop_x2y_cell;   Pop.u = Pop_u2y;    Pop.w = Pop_w2y;
+Pop.x = Pop_x2y_cell;   Pop.u = Pop_u2y*Uop;    Pop.w = Pop_w2y*Wop;
 [Cop_x2y, Dop_u2y, Dop_w2y] = impose_fundamental_map(Top,Pop,loc_diff_tab_y,retain_xvars_y);
-Pop.x = Pop_x2z_cell;   Pop.u = Pop_u2z;    Pop.w = Pop_w2z;
+Pop.x = Pop_x2z_cell;   Pop.u = Pop_u2z*Uop;    Pop.w = Pop_w2z*Wop;
 [Cop_x2z, Dop_u2z, Dop_w2z] = impose_fundamental_map(Top,Pop,loc_diff_tab_z,retain_xvars_z);
 
 
@@ -611,9 +672,9 @@ PIE.dom = dom;
 PIE.vars = vars;
 
 % Store the PI operators defining the fundamental to PDE state map.
-PIE.T = Top_x;
-PIE.Tw = Top_w;
-PIE.Tu = Top_u;
+PIE.T = Top.x;
+PIE.Tw = Top.w;
+PIE.Tu = Top.u;
 
 % Store the PI operators defining the PIE.
 PIE.A = clean_opvar(Aop_x2x,op_clean_tol);
@@ -633,6 +694,13 @@ y_tab(:,1) = ycomp_order;       PIE.y_tab = y_tab;
 z_tab(:,1) = zcomp_order;       PIE.z_tab = z_tab;
 u_tab(:,1) = ucomp_order;       PIE.u_tab = u_tab;
 w_tab(:,1) = wcomp_order;       PIE.w_tab = w_tab;
+
+% Account for the introduction of boundary values of the inputs
+PIE.w_tab = PIE.w_tab(w_idcs,:);
+PIE.u_tab = PIE.u_tab(u_idcs,:);
+% Indicate that the introduced boundary values do not vary in space
+PIE.w_tab(1:numel(w_idcs)-numel(wcomp_order),3:2+nvars) = 0;
+PIE.u_tab(1:numel(u_idcs)-numel(ucomp_order),3:2+nvars) = 0;
 
 % Also keep track of which derivatives of the inputs must be taken in the
 % PIE representation.
@@ -1774,14 +1842,36 @@ LHS_length_max = 1+1 + n_digits + lngth_varnames_mean+3; % e.g. ' x13(t,s1,s2,s3
 % % depends on.
 for ii=1:ncomps
     old_ID = obj_tab(ii,1);
+    % Check if this component is derived from some higher-dimensional
+    % component in the original PDE (e.g. a boundary value of some input)
+    comp_idx = find(obj_tab(:,1)==old_ID,1,'last');
 
     % Establish the names of the variables on which the component depends.
-    varnames_ii_t = 't';
+    varnames_LHS_t = 't';
     LHS_length = 1;
     var_idcs = find(obj_tab(ii,3:2+PIE.dim));
     for kk=var_idcs
-        varnames_ii_t = [varnames_ii_t,',',varname_cell{kk}];
+        varnames_LHS_t = [varnames_LHS_t,',',varname_cell{kk}];
         LHS_length = LHS_length+3;  % add 3 characters: ,s1
+    end
+    if ii~=comp_idx
+        % In case the current component is derived from some other
+        % component, it may not depend on the same variables
+        var_idcs_RHS = find(obj_tab(comp_idx,3:2+PIE.dim));
+        varnames_RHS_t = 't';
+        for kk=var_idcs_RHS
+            is_var = ismember(kk,var_idcs);
+            if is_var
+                % The new component still depends on this variable
+                varnames_RHS_t = [varnames_RHS_t,',',varname_cell{kk}];
+            else
+                % The component is evaluated at the lower boundary w/r to
+                % this spatial variable
+                varnames_RHS_t = [varnames_RHS_t,',',num2str(PIE.dom(kk,1))];
+            end
+        end
+    else
+        varnames_RHS_t = varnames_LHS_t;
     end
     
     % Establish the (subscript) index for the new component.
@@ -1799,7 +1889,7 @@ for ii=1:ncomps
     end
     % Set the name of the component, including its dependence on spatial
     % variables.
-    LHS_name = [' ',obj,Lcomp_idx,'(',varnames_ii_t,')'];
+    LHS_name = [' ',obj,Lcomp_idx,'(',varnames_LHS_t,')'];
     LHS_length = 1 + LHS_length + 3;
         
     % Establish the index for the old component
@@ -1814,7 +1904,7 @@ for ii=1:ncomps
     end
     % Set the name of the component, including its dependence on spatial
     % variables.
-    RHS_name = [thin_space,obj,Rcomp_idx,'(',varnames_ii_t,')'];
+    RHS_name = [thin_space,obj,Rcomp_idx,'(',varnames_RHS_t,')'];
     % For state components, also indicate what spatial/temporal derivative
     % of the PDE state they correspond to.
     if strcmp(obj,'x') && any(tdiff_list)

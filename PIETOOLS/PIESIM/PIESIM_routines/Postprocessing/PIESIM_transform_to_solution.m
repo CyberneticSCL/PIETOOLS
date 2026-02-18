@@ -23,8 +23,10 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % 1) solution 
 % solution is a strucutre with the following fields
 % --- solution.tf - scalar - actual final time of the solution
-% --- solution.final.pde - array of size (N+1) x ns, ns=n0+n1+n2 - pde (distributed state) solution at a final time
-% --- solution.final.ode - array of size no - ode solution at a final time 
+% --- solution.final.primary{1,2} - cell array containing final value of
+% solution states
+% --- solution.final.primary{1} - array of size no - ode (finite-dimensional) solutions at a final time 
+% --- solution.final.primary{2} - array of size (N+1) x ns - pde (distributed state) solutions at a final time
 % --- solution.final.observed{1,2} - cell array containing final value of observed outputs 
 % --- solution.final.observed[1} - array of size noo containing final
 %      value of finite-dimensional observed outputs
@@ -38,8 +40,10 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
-% --- solution.timedep.pde - array of size (N+1) x ns x Nsteps - time-dependent
-% --- solution.timedep.ode - array of size no x Nsteps - time-dependent solution of no ODE states
+% --- solution.timedep.primary{1,2} - cell array containing final value of
+% solution states
+% --- solution.timedep.primary{1} - array of size no x Nsteps - time-dependent solutions of no ODE (finite-dimensional) states
+% --- solution.timedep.primary{2} - array of size (N+1) x ns x Nsteps - time-dependent
 %     solution of ns PDE (distributed) states of the primary PDE system
 % --- solution.timedep.observed{1,2} - cell array containing time-dependent observed outputs 
 % --- solution.timedep.observed[1} - array of size noo x Nsteps -
@@ -60,12 +64,15 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 9_19_2021
-% YP 6/16/2022. Added reconstruction of observed and regulated outputs.
+% YP, 6/16/2022 - Added reconstruction of observed and regulated outputs.
 % Added a support of case when LHS PDE operator is not the same as the
 % state map operator. Note: input arguments changed.
-% YP 12/31/2025 - modified treatment of disturbances and control inputs, added support for
+% YP, 12/31/2025 - Modified treatment of disturbances and control inputs, added support for
 % cylindrical coordinates (weighted method), added support for
-% infinite-dimensional outputs
+% infinite-dimensional outputs;
+% YP, 02/17/2026 - Renamed solution.final.ode/solution.final.pde into
+% solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
+% solution.timedep.primary{1,2}
 %----------------------------------------   
 % We first transform the final solution, since it is available for all
 % integration schemes
@@ -142,13 +149,13 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
      if(~isnan(acheb_p))
      for n=1:ns
      acheb_p_local=acheb_p(no+1+(n-1)*(N+1):no+n*(N+1));
-     solution.final.pde(:,n) = ifcht(acheb_p_local);
+     solution.final.primary{2}(:,n) = ifcht(acheb_p_local);
      end
-     solution.final.ode=solcoeff.final(1:no);
+     solution.final.primary{1}=solcoeff.final(1:no);
      else
-         solution.final.ode=[];
+         solution.final.primary{1}=[];
          if (ns>0) 
-             solution.final.pde=[];
+             solution.final.primary{2}=[];
          end
      end
 
@@ -229,9 +236,9 @@ if (opts.intScheme==1 & solution.tf~=0)
     % Define ODE solution and temporal stamps array
      solution.timedep.dtime=solcoeff.timedep.dtime;
      if (~isnan(solcoeff.timedep.coeff))
-     solution.timedep.ode=solcoeff.timedep.coeff(1:no,:);
+     solution.timedep.primary{1}=solcoeff.timedep.coeff(1:no,:);
     else
-    solution.timedep.ode=[];
+    solution.timedep.primary{1}=[];
      end % ~isnan(solcoeff.timedep.coeff)
          
  %---------------------------------------------    
@@ -273,7 +280,7 @@ if (opts.intScheme==1 & solution.tf~=0)
      if (~isnan(acheb_p))
      for n=1:ns
      acheb_p_local=acheb_p(no+1+(n-1)*(N+1):no+n*(N+1));
-     solution.timedep.pde(:,n,ntime) = ifcht(acheb_p_local);
+     solution.timedep.primary{2}(:,n,ntime) = ifcht(acheb_p_local);
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances 
      end % for n=1:ns
