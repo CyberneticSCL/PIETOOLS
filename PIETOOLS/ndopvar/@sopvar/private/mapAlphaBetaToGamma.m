@@ -34,12 +34,13 @@ function G = mapAlphaBetaToGamma(alpha, beta)
     % Cartesian product across dimensions to form all gamma multi-indices
     grids = cell(1, d);
     [grids{:}] = ndgrid(opts{:});   % each grids{i} is an array of size |opts1|x...x|optsd|
-
+    
     N = numel(grids{1});
     G = zeros(N, d);
     for i = 1:d
         G(:, i) = grids{i}(:);
     end
+    G = num2cell(G);
 end
 
 function gi = gammaOptions(a, b)

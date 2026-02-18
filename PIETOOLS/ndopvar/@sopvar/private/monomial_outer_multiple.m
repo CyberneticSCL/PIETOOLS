@@ -1,4 +1,4 @@
-function [S,Sd,Z3] = monomial_outer_multiple(Z1,Z2,n1,n2)
+function [S,Sd,Z3,nu] = monomial_outer_multiple(Z1,Z2,n1,n2)
 %monomial_outer_multiple This function perform Z1(n1)*Z2(n2)^T
 % Inputs:
 %   Z1: cell array representing tensor monomial product,

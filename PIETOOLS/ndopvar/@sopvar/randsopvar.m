@@ -19,12 +19,17 @@ n3= numel(vars_S3);
 
 % cell dimensions for Pout.params. Initialize an empty cell
 celldim = repmat(3,1,n3);
+if isscalar(celldim)
+    celldim = {1,3};
+else
+    celldim = num2cell(celldim);
+end
 %[~,idx] = ismember(vars, intersect(vars_in,vars_out));
 %celldim(~idx) = 1;
 if n3 == 0
     params = repmat({zeros(dim(1),dim(2))},1,1);
 else
-    params = repmat({zeros(dim(1),dim(2))},celldim);
+    params = repmat({zeros(dim(1),dim(2))},celldim{:});
 end
 
 % number of monomials on each side in quadPoly. Arbitrarily fixed at 10
@@ -32,7 +37,10 @@ nMons = [10,10];
 
 var_s = [vars_S2, vars_S3];   % left monomials use S2 and S3 -- common to all terms
 vars_dum = strrep(vars_S3,'s','t');
-var_t = [vars_dum, vars_S1];   % right monomials use S1 and S3_dum
+vars_dumS1 = strrep(vars_S1,'s','t');
+var_t = [vars_dum, vars_dumS1];   % right monomials use S1 and S3_dum
+var_s = sort(var_s);
+var_t = sort(var_t);
 % for each parameter, repeat
 for i=1:numel(params)
     % crreate a randquadPoly with the monomials chosen; ideally this should

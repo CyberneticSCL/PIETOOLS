@@ -99,14 +99,14 @@ for i=1:numel(C)
     rightVar = C{i}.nt;
     dim = C{i}.dim;
     
-    newrightVar = leftVar;
-    newleftVar = rightVar;
+    newrightVar = strrep(leftVar,'s','t');
+    newleftVar = strrep(rightVar,'t','s');
 
-    % we need form Z_2(S_1,S_3) C^T Z_1(S_2,S_3dum)
-    [tf,loc]=ismember(newrightVar,S3Var); 
-    newrightVar(tf)=S3Vardummy(loc(tf)); % changes (S_2,S_3) to (S_2,S_3dum)
-    [tf,loc]=ismember(newleftVar,S3Vardummy); 
-    newleftVar(tf) = S3Var(loc(tf)); % changes (S_1,S_3dum) to (S_1,S_3)
+    % % we need form Z_2(S_1,S_3) C^T Z_1(S_2,S_3dum)
+    % [tf,loc]=ismember(newrightVar,S3Var); 
+    % newrightVar(tf)=S3Vardummy(loc(tf)); % changes (S_2,S_3) to (S_2,S_3dum)
+    % [tf,loc]=ismember(newleftVar,S3Vardummy); 
+    % newleftVar(tf) = S3Var(loc(tf)); % changes (S_1,S_3dum) to (S_1,S_3)
 
     C{i} = quadPoly(matC',rightZ,leftZ,dim',newleftVar,newrightVar);
 end

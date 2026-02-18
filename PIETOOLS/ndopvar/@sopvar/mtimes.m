@@ -1,6 +1,5 @@
 function C = mtimes(A,B)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % C = mtimes(A,B) composes two sopvar operators C=AB where the output
 % domain of B must be the input domain of A
 % 
@@ -64,19 +63,41 @@ if numel(A.params)~=numel(B.params)   % why does this have to be true? -Sachin
     error('number of terms in summands is not equal -- one of them is probably malformed');
 end
 
+[vars_S3C,idxA] = intersect(A.vars_S3,B.vars_S3);
+vars_S1C = B.vars_S1;
+vars_S2C = A.vars_S2;
+dom_1C = B.dom_2;
+dom_2C = A.dom_1;
+dom_3C = A.dom_3(idxA,:);
+Cparams = repmat({zeros(B.dims(1),A.dims(2))},3*ones(1,numel(vars_S3C)));
+C = sopvar(vars_S3C,dom_3C,[B.dims(1),A.dims(2)],Cparams,vars_S1C,dom_1C,vars_S2C,dom_2C);
 
-C = sopvar(B.vars_in,A.vars_out,[B.dims(1),A.dims(2)],B.dom_in,A.dom_out);
+domMapA = buildDomMap(A);
+domMapB = buildDomMap(B);
+% merge (A and B domains are already checked compatible)
+domMap = domMapA;  % or merge keys if you want
 
 % Now, just need to compute the parameters!
 alphaIdx = cell(1,ndims(A.params));
 betaIdx = cell(1,ndims(B.params));
+paramsSize = size(A.params);
 for i=1:numel(A.params)
     for j=1:numel(B.params)
         [alphaIdx{:}] = ind2sub(size(A.params),i);
         [betaIdx{:}] = ind2sub(size(B.params),j);
-        [gammaIdx,Cparamstemp] = ...
-            termCompose(A.params{i},B.params{j},alphaIdx,betaIdx,B.vars_in,A.vars_out,A.vars_in);
-        C.params{gammaIdx} = C.params{gammaIdx}+Cparamstemp;
+        [gammaLinIdx, CparamCells] = termCompose( ...
+                    A.params{i}, B.params{j}, alphaIdx, betaIdx, ...
+                    B.vars_in, A.vars_out, A.vars_in, domMap, size(A.params), A.vars_S3 );
+        for kk = 1:numel(gammaLinIdx)
+            C.params{gammaLinIdx(kk)} = quadPoly(C.params{gammaLinIdx(kk)}) + CparamCells{kk};   % probably faster than cellfun()
+        end
+        % C.params{gammaLinIdx} = C.params{gammaLinIdx}+CparamCells;
     end
 end
+end
+function domMap = buildDomMap(P)
+    domMap = containers.Map('KeyType','char','ValueType','any');
+    for i = 1:numel(P.vars_S1), domMap(P.vars_S1{i}) = P.dom_1(i,:); end
+    for i = 1:numel(P.vars_S2), domMap(P.vars_S2{i}) = P.dom_2(i,:); end
+    for i = 1:numel(P.vars_S3), domMap(P.vars_S3{i}) = P.dom_3(i,:); end
 end

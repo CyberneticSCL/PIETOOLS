@@ -26,13 +26,18 @@ classdef quadPoly
         function obj = quadPoly(C, Zs, Zt, dim, ns, nt, presorted)
             % A simple constructor using all properties
             if nargin==1
-                % Convert matrix to quadPoly
-                Zs = {};
-                Zt = {};
-                dim = size(C);
-                ns = {};
-                nt = {};
-                presorted = 1;
+                if isa(C,'quadPoly')
+                    obj = C;
+                    return
+                else
+                    % Convert matrix to quadPoly
+                    Zs = {};
+                    Zt = {};
+                    dim = size(C);
+                    ns = {};
+                    nt = {};
+                    presorted = 1;
+                end
             elseif nargin<6 || nargin>7
                 error("quadPoly must have 1 or 6 inputs, nothing else.");
             elseif nargin==6
@@ -45,7 +50,7 @@ classdef quadPoly
             obj.ns = ns;
             obj.nt = nt;
 
-            if ~presorted
+            if ~presorted && 0
                 obj = clean(obj);
                 obj = combine(obj);
             end
