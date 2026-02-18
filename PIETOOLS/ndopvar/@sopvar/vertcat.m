@@ -52,7 +52,7 @@ a = varargin{1};    b = varargin{2};
 
 % Currently support some matrix-opvar concatenation
 if ~isa(b,'sopvar') || ~isa(a, 'sopvar')
-    error("Currently supported only for ndopvar or sopvar");
+    error("Currently supported only for sopvar");
     % Only supported if a in fact corresponds to a matrix as well
 end
 

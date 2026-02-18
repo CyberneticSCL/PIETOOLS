@@ -1,4 +1,4 @@
-function [Pcat] = horzcat(varargin)
+function [Pblkdiag] = blkdiag(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [Pcat] = horzcat(varargin) takes n inputs and concatentates them vertically,
 % provided they satisfy the following criteria:
@@ -36,7 +36,7 @@ function [Pcat] = horzcat(varargin)
 
 % Deal with single input case
 if nargin==1
-    Pcat = varargin{1};
+    Pblkdiag = varargin{1};
     return
 end
 
@@ -63,7 +63,7 @@ end
 % Finally, let's actually concatenate
 params = a.params;
 for ii=1:numel(a.params)
-    params{ii} = [a.params{ii}  b.params{ii}]; % concatenation of quadpoly
+    params{ii} = blkdiag(a.params{ii}, b.params{ii}); % concatenation of quadpoly
 end
 
 % Pcat.dim = [a.dim(1), a.dim(2)+b.dim(2)];
@@ -80,13 +80,12 @@ dom_3 = a.dom_3;
 dom_2 = a.dom_2;
 dom_1 = a.dom_1;
 
-dims = a.dims;
-dims(2) = dims(2) + b.dims(2);
+dims = a.dims + b.dims;
 
-Pcat = sopvar(vars_S3,dom_3,dims,params,vars_S1,dom_1,vars_S2,dom_2);
+Pblkdiag = sopvar(vars_S3,dom_3,dims,params,vars_S1,dom_1,vars_S2,dom_2);
 
 if nargin>2 
-    Pcat = horzcat(Pcat, varargin{3:end});
+    Pblkdiag = blkdiag(Pblkdiag, varargin{3:end});
 end
 
 end
