@@ -78,6 +78,9 @@ C = sopvar(B.vars_in,A.vars_out,[B.dims(1),A.dims(2)],B.dom_in,A.dom_out);
 % End: construct quadpolys from Z1,Z2, C^C_\gamma
 
 % Now, just need to compute the parameters!
+% I would suggest looping over the gammas and creating a set of terms to
+% add for each gamma, since for some alpha,betas they get added to two of
+% the gammas
 alphaIdx = cell(1,ndims(A.params));
 betaIdx = cell(1,ndims(B.params));
 for i=1:numel(A.params)
