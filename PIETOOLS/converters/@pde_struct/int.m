@@ -22,8 +22,9 @@ function PDE_out = int(PDE_in,vars,L,U)
 %               respect to variables "vars", from lower limits "L up to
 %               upper limits "U".
 %
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -47,6 +48,7 @@ function PDE_out = int(PDE_in,vars,L,U)
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
+% DJ, 02/28/2026: Prohibit integration of nonlinear terms;
 
 
 % % % Process the inputs
@@ -141,6 +143,10 @@ for ii=1:numel(PDE_out.free)
         % object (a temporal derivative of state, or an output)
         if is_LHS_term(term_jj)
             error("Integration of outputs or temporal derivatives of state variables is not supported.")
+        end
+        % Also check that the term is not nonlinear
+        if numel(term_jj)>1                                                 % DJ, 02/28/2026
+            error("Integration of nonlinear terms is not supported.")
         end
         % Check what kind of object the term does correspond to.
         if isfield(term_jj,'x')
