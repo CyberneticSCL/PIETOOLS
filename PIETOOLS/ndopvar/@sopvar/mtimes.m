@@ -55,7 +55,7 @@ end
 if any(~strcmp(A.vars_in,B.vars_out))
     error('names of B output variables differ from names of A input variables');
 end
-if any(any(A.dom_out~=B.dom_in))
+if any(any(A.dom_in~=B.dom_out))
     error('output domain of B differs from input domain of A');
 end
 
@@ -69,7 +69,15 @@ vars_S2C = A.vars_S2;
 dom_1C = B.dom_2;
 dom_2C = A.dom_1;
 dom_3C = A.dom_3(idxA,:);
-Cparams = repmat({zeros(B.dims(1),A.dims(2))},3*ones(1,numel(vars_S3C)));
+n3 = numel(vars_S3C);
+
+if n3 == 0
+    Cparams = {zeros(B.dims(1), A.dims(2))};
+elseif n3 == 1
+    Cparams = repmat({zeros(B.dims(1), A.dims(2))}, 3, 1);   % <-- key change
+else
+    Cparams = repmat({zeros(B.dims(1), A.dims(2))}, 3*ones(1,n3));
+end
 C = sopvar(vars_S3C,dom_3C,[B.dims(1),A.dims(2)],Cparams,vars_S1C,dom_1C,vars_S2C,dom_2C);
 
 domMapA = buildDomMap(A);
@@ -93,7 +101,7 @@ domMap = domMapA;  % or merge keys if you want
 % the gammas
 alphaIdx = cell(1,ndims(A.params));
 betaIdx = cell(1,ndims(B.params));
-paramsSize = size(A.params);
+
 for i=1:numel(A.params)
     for j=1:numel(B.params)
         [alphaIdx{:}] = ind2sub(size(A.params),i);

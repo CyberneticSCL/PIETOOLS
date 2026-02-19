@@ -36,7 +36,7 @@ function [gammaLinIdx, CparamCells] = termCompose(Aqp, Bqp, alphaIdx, betaIdx, v
 %                   *Z(eta2a,eta2b,eta3a,eta3b)') *CB[beta] * Z(t1,t3a,t3b)
 % L2[s1,s3b,s3a] -> L2[s4,s2a,s3a]
 
-        if nargin < 8 || isempty(domMap)
+    if nargin < 8 || isempty(domMap)
         domMap = [];
     end
 
