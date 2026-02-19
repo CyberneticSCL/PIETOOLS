@@ -399,7 +399,11 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
                 C_trm = [C_trm,'C',sub_lp,eq_indx,',',trm_indx,',',fctr_indx,sub_rp,' * '];
             end
         else
-            C_trm = [C_trm,'C',eq_indx,'',trm_indx,'',fctr_indx,' * '];
+            if fctr_num==0
+                C_trm = [C_trm,'C',eq_indx,'',trm_indx,' * '];
+            else
+                C_trm = [C_trm,'C',eq_indx,'',trm_indx,'',fctr_indx,' * '];
+            end
         end
     else
         % % Polynomial function.
