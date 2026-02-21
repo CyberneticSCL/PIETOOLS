@@ -50,7 +50,7 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@ function [PDE,del_state_tab] = expand_delays(PDE,suppress_summary)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 10/13/2022
+% DJ, 02/21/2026: Check for nonlinear terms;
 
 if nargin==1
     suppress_summary = false;
@@ -224,7 +225,10 @@ for ii=1:ncomps
     % % Loop over all terms and replace delays with new state.
     for jj=1:nterms
         term_jj = PDE.(Lobj){ii}.term{jj};
-        
+        if numel(term_jj)>1                                                 % DJ, 02/21/2026
+            error("Delays are not supported in nonlinear terms.")
+        end
+
         % % Extract the delay.
         delay = term_jj.delay;
         if (isa(delay,'double') || isdouble(delay)) && double(delay)==0
