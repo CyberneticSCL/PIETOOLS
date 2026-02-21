@@ -41,7 +41,7 @@ function [PDE,comp_order] = reorder_comps(PDE,obj,suppress_summary)
 % structure.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -63,6 +63,7 @@ function [PDE,comp_order] = reorder_comps(PDE,obj,suppress_summary)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/09/2022
+% DJ, 02/21/2026: Allow for nonlinear terms, also reordering the factors
 %
 
 % % % Check the input arguments
@@ -102,7 +103,7 @@ end
 if numel(PDE.(obj))==0
     comp_order = zeros(0,1);
     return
-elseif numel(PDE.(obj))==1
+elseif isscalar(PDE.(obj))
     % Assign new indices 1:ncomps to the components.
     obj_tab_new = PDE.([obj,'_tab']);
     comp_order = obj_tab_new(:,1);
@@ -155,31 +156,27 @@ if strcmp(obj,'x') || strcmp(obj,'u') || strcmp(obj,'w')
     % Adjust the terms in each equation to match the new order of the
     % components.
     [~,new2old_idcs] = sort(old2new_idcs);    % comp_tab_new(new_order,:) = comp_tab_old
-    for ii=1:numel(PDE.x)
-        for jj=1:numel(PDE.x{ii}.term)
-            if isfield(PDE.x{ii}.term{jj},obj)
-                PDE.x{ii}.term{jj}.(obj) = new2old_idcs(PDE.x{ii}.term{jj}.(obj));
-            end
-        end
-    end
-    for ii=1:numel(PDE.y)
-        for jj=1:numel(PDE.y{ii}.term)
-            if isfield(PDE.y{ii}.term{jj},obj)
-                PDE.y{ii}.term{jj}.(obj) = new2old_idcs(PDE.y{ii}.term{jj}.(obj));
-            end
-        end
-    end
-    for ii=1:numel(PDE.z)
-        for jj=1:numel(PDE.z{ii}.term)
-            if isfield(PDE.z{ii}.term{jj},obj)
-                PDE.z{ii}.term{jj}.(obj) = new2old_idcs(PDE.z{ii}.term{jj}.(obj));
-            end
-        end
-    end
-    for ii=1:numel(PDE.BC)
-        for jj=1:numel(PDE.BC{ii}.term)
-            if isfield(PDE.BC{ii}.term{jj},obj)
-                PDE.BC{ii}.term{jj}.(obj) = new2old_idcs(PDE.BC{ii}.term{jj}.(obj));
+    for LHS_obj = {'x','y','z','BC'}
+        for ii=1:numel(PDE.(LHS_obj{1}))
+            for jj=1:numel(PDE.(LHS_obj{1}){ii}.term)
+                if isfield(PDE.(LHS_obj{1}){ii}.term{jj},obj)
+                    % Establish the old state/input index in each factor
+                    n_fctrs = numel(PDE.(LHS_obj{1}){ii}.term{jj});
+                    obj_nums_old = cell(1,n_fctrs);
+                    [obj_nums_old{1:n_fctrs}] = PDE.(LHS_obj{1}){ii}.term{jj}.(obj);
+                    obj_nums_old = cell2mat(obj_nums_old);
+                    if numel(obj_nums_old)~=n_fctrs
+                        error("Nonlinear terms involving inputs are not supported.")
+                    end
+                    % Establish the new state/input index in each factor
+                    obj_nums_new = new2old_idcs(obj_nums_old);
+                    % Reorder factors based on the state/input index
+                    [obj_nums_new,fctr_num] = sort(obj_nums_new);
+                    PDE.(LHS_obj{1}){ii}.term{jj} = PDE.(LHS_obj{1}){ii}.term{jj}(fctr_num);
+                    for ll=1:n_fctrs
+                        PDE.(LHS_obj{1}){ii}.term{jj}(ll).(obj) = obj_nums_new(ll);
+                    end
+                end
             end
         end
     end
