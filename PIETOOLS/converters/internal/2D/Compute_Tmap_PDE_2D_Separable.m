@@ -1,11 +1,12 @@
-function [Top,Twop,Tuop,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order)
+function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_summary)
 % Compute opvar2d objects Top, Twop, Tuop defining the map from the
 % fundamental state to the PDE state
-%   v = Top*Dop*v + Twop*Dwop*w + Twop*Duop*u
-% where v is the PDE state, Dop*v the fundamental state, w the exogenous
-% input, and u the actuator input. Operators Dwop and Duop are diagonal
-% differential operators, with the order of the derivative specified by
-% Dvals_w and Dvals_u.
+%   v = Top*vf + Twop*wf + Twop*uf
+% where v is the PDE state, vf the fundamental state, wf the fundamental
+% exogenous input, and uf the fundamental actuator input. The fundamental
+% state will be given by the highest-order mixed spatial derivative of the
+% PDE state, and the fundamental input signals may be given by derivatives
+% or boundary values of the PDE input signals.
 % 
 % INPUTS:
 % - PDE:        A struct or pde_struct object defining a PDE in the terms
@@ -18,35 +19,67 @@ function [Top,Twop,Tuop,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,com
 %               no argument "comp_order" is passed, the function assumes no
 %               re-ordering has been perform, and will perform re-ordering
 %               itself.
+% - suppress_summary:   (optional) set to true to suppress the display of
+%               an overview of the introduced input signals as they will
+%               appear in the PIE.
 %
 % OUTPUTS:
-% - Top:        opvar2d object mapping fundamental state to PDE state.
-% - Twop:       opvar2d object mapping exogenous inputs to PDE state.
-% - Tuop:       opvar2d object mapping actuator inputs to PDE state.
-% - Dvals_w:    nw x 2 array of type 'double' specifying for each of the nw
-%               exogenous inputs that appear in the (reordered) PDE to what
-%               order they are differentiated with respect to each spatial
-%               variable in the map back to the PDE state.
-% - Dvals_u:    nu x 2 array of type 'double' specifying for each of the nu
-%               actuator inputs that appear in the (reordered) PDE to what
-%               order they are differentiated with respect to each spatial
-%               variable in the map back to the PDE state.
+% - Top_f:      struct with fields:
+%               - x:  opvar2d object representing the operator Top mapping 
+%                       the fundamental state to PDE state;
+%               - w:  opvar2d object representing the operator Twop mapping 
+%                       the fundamental exogenous inputs to PDE state;
+%               - u:  opvar2d object representing the operator Tuop mapping 
+%                       the fundamental actuator inputs to PDE state;
+%               - wmap: opvar2d object representing the operator Wop
+%                       mapping the set of fundamental exogenous inputs to
+%                       a set of derivatives of the PDE exogenous inputs,
+%                       Dw*w = Wop*wf, where the order of the derivatives
+%                       is specified by Dvals.w; 
+%               - umap: opvar2d object representing the operator Uop
+%                       mapping the set of fundamental actuator inputs to a
+%                       set of derivatives of the PDE actuator inputs,
+%                       Du*u = Uop*uf, where the order of the derivatives
+%                       is specified by Dvals.u;
+% - Dvals:      struct with fields:
+%               - w_idcs: nwf x 1 arrray of integers, where nwf is the
+%                   number of fundamental exogenous inputs, specifying for
+%                   each of these inputs which input in the (reordered) PDE
+%                   it corresponds to. The number of fundamental inputs,
+%                   nwf, may exceed the number of PDE inputs, nw, in which
+%                   case the first nwf-nw fundamental inputs correspond to
+%                   boundary values of certain PDE inputs, with the first
+%                   nwf-nw elements of w_idcs specifying which;
+%               - u_idcs: nuf x 1 array of integers, specifying the same
+%                   information as w_idcs, but for the actuator inputs;
+%               - x:    nx 2 array of integers, specifying for each of
+%                   the fundamental states what order derivative is taken
+%                   with respect to x (column 1) and y (column 2) in
+%                   computing this fundamental state from the PDE input;
+%               - w:    nwf x 2 array of integers, specifying for each of
+%                   the fundamental exogenous inputs what order derivative
+%                   is taken with respect to x (column 1) and y (column 2)
+%                   in computing this fundamental input from the PDE input;
+%               - u:    nuf x 2 array of integers, specifying the same
+%                   information as w but for the actuator inputs;
 %
 % NOTES:
 % - This routine only works for PDEs with "separable" boundary conditions.
 %   That is, there must be no ambiguity whether a boundary condiiton
 %   corresponds to a condition along the x-direction or the y-direction,
 %   and we should be able to (easily) separate these conditions. 
-%   For example, standard Robin-type boundary conditions are accepted:
-%       v(a,y)=0, v_{x}(b,y)=0, v(x,c)=w1(x), v_{y}(x,d)+v(x,d)=w2(x)
+%   For example, standard Robin-type boundary conditions are accepted,
+%       v(a,y)=0, v_{x}(b,y)=0, v(x,c)=w1(x), v_{y}(x,d)+v(x,d)=w2(x),
+%   but something with mixed boundary values is not, e.g.
+%       v(a,y)+v(x,c)=0
 %
 % - The routine DOES NOT warn for potential conflicts in the  boundary
-%   conditions the produced relation 
-%       v = Top*D_xy*v + Twop*D_w*w + Tuop*D_u*u
+%   conditions. The produced relation 
+%       v = Top*vf + Twop*wf + Twop*uf
 %   holds only if the boundary conditions do not conflict. For example,
 %   if we enforce
 %       v(a,y)=0,   v(x,c)=w1(x),
-%   then we must have w1(a)=0 to avoid a conflict v(a,c)=0\neq w1(a).
+%   then we must have w1(a)=0 to avoid a conflict v(a,c) = 0 ~= w1(a).
 %
 % - For a state variable v differentiable up to order i in x and order j in 
 %   y, we must have i boundary conditions along the x-direction, and j
@@ -56,23 +89,42 @@ function [Top,Twop,Tuop,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,com
 %   dimension separately, as
 %       v = Top_x*D_x*v +Twop_x*w +Tuop_x*u;
 %       v = Top_y*D_y*v +Twop_y*w +Tuop_y*u;
-%   Then, we combine these expressions to expand v in terms of its
-%   highest-order derivative with respect to both spatial variables as
-%       D_y*v = Top_x*D_xy*v +Twop_x*D_y*w +Tuop_x*D_y*u
-%   --> v = Top_y*Top_x*D_xy*v +Top_y*Twop_x*D_y*w +Twop_y*w 
-%               +Top_y*Tuop_x*D_y*u +Tuop_y*u;
-%   --> v = Top*D_xy*v + Twop*D_w*w + Tuop*D_u*u;
+%   If Twop_x=0 and Tuop_x=0, we can then expand v in terms of its
+%   highest-order derivative with respect to both spatial variableas as
+%       v = Top_x*D_x*v
+%         = Top_x*D_x*Top_y*D_y*v +Top_x*D_x*Twop_y*w +Top_x*D_x*Tuop_y*u
+%         = Top_x*Top_y*D_xy*v + Top_x*Twop_y*D_x*w + Top_x*Tuop_y*D_x*u
+%         = Top*vf + Twop*wf + Tuop*uf
+%   where now vf=D_xy*v, wf=D_x*w, and uf=D_x*u. In this case,
+%   Dvals.w_idcs=(1:nw), and Dvals.w will specify the order of the
+%   derivative defining D_x. Similarly for the case that Twop_y=0 and
+%   Tuop_y=0.
+%   If Twop_x~=0 and Twop_y~=0, we also expand w in terms of boundary
+%   values and the highest-order derivative using Taylor's theorem with
+%   integral form of the remainder, so that if y in [c,d],
+%       w(x,y) = w(x,c) + (y-c)*(d/dy)w(x,c) + ... 
+%                   + (y-c)^n/n!*(d/dy)^n w(x,c) 
+%                   + int_{c}^{y}(y-z)^n/n!*(d/dz)^{n+1} w(x,z) dz
+%              = Wop*wb
+%   where wb = [w(x,c); (d/dy)w(x,c); .; (d/dy)^n w(x,c); (d/dy)^n w(x,.)].
+%   Then, (letting u=0 for simplicity) we expand
+%       v = Top_x*D_x*v + Twop_x*w
+%         = Top_x*D_x*Top_y*D_y*v +Top_x*D_x*Twop_y*w + Twop*Wop*wb
+%         = Top*vf + Twop*wf,
+%   where now wf is a re-ordered combination of [D_x*w; wb] that places the
+%   boundary values from wb in the first nwf-nw positions.
 %
-% - Certain inputs w and u may appear as derivatives in the map from the
-%   fundamental state to the PDE state. The routine should provide a
-%   warning of which inputs have been differentiated and reordered, and the
-%   outputs "Dvals_w" and "Dvals_u" specify the orders of the derivatives
-%   taken of each input IN THE NEW ORDER with respect to each spatial
-%   variable.
+% - The fundamental inputs wf and uf may corresponds to boundary values
+%   or derivatives of the PDE input signals. Boundary values are always
+%   evaluated at the lower boundary of the interval of the respective
+%   spatial variable, and are always listed as the first nwf-nw elements of
+%   w_idcs (similarly for u_idcs). The routine provides a warning of which
+%   inputs have been differentiated and reordered, and what boundary values
+%   have been taken.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -95,6 +147,8 @@ function [Top,Twop,Tuop,Dvals_w,Dvals_u] = Compute_Tmap_PDE_2D_Separable(PDE,com
 %
 % Initial coding DJ - 04/15/2024
 % DJ, 12/16/2024: Fix call to 2D converter;
+% DJ, 02/15/2026: Take derivative of all boundary inputs, introducing
+%                   boundary values of inputs if necessary;
 %
 
 % % % Extract the inputs
@@ -108,6 +162,9 @@ if nargin==1
     % If no re-ordering of the components in the PDE has been performed
     % yet, perform this re-ordering and keep track of the new order.
     [PDE,comp_order] = reorder_comps(PDE,'all',false);
+end
+if nargin<=2
+    suppress_summary = false;
 end
 
 % % % Check that the BCs of the PDE can be separated
@@ -225,12 +282,8 @@ end
 if ~use_Dx && ~use_Dy
     if nnz(Dvals_w(:,1))+nnz(Dvals_u(:,1))<nnz(Dvals_w(:,2))+nnz(Dvals_u(:,2))
         use_Dx = false;
-        Dvals_w = [0,1].*Dvals_w;
-        Dvals_u = [0,1].*Dvals_u;
     else
         use_Dx = true;
-        Dvals_w = [1,0].*Dvals_w;
-        Dvals_u = [1,0].*Dvals_u;
     end
 end
 
@@ -242,15 +295,31 @@ if use_Dx
     Top = Top_x*Tnop_y;
     if numel(PDE.w)>=1
         Twop = Top_x*Twop_y +Twop_x;
-        print_reorder_diff_summary(PDE,'w',comp_order.w,Dvals_w);
+        % Expand the inputs of which a y-derivative should be taken in      % DJ, 02/15/2026
+        % terms of boundary values and higher-order y-derivative
+        [Wop,Dvals_w,w_idcs] = expand_input(PDE,'w',Dvals_w,2);
+        Twop = Twop*Wop;
+        if ~suppress_summary
+            print_reorder_diff_summary(PDE,'w',comp_order.w,Dvals_w,w_idcs);
+        end
     else
         Twop = Twop_x;
+        Wop = 1;
+        w_idcs = 1:size(Dvals_w,1);
     end
     if numel(PDE.u)>=1
         Tuop = Top_x*Tuop_y +Tuop_x;
-        print_reorder_diff_summary(PDE,'u',comp_order.u,Dvals_u);
+        % Expand the inputs of which a y-derivative should be taken in      % DJ, 02/15/2026
+        % terms of boundary values and higher-order y-derivative
+        [Uop,Dvals_u,u_idcs] = expand_input(PDE,'u',Dvals_u,2);
+        Tuop = Tuop*Uop;
+        if ~suppress_summary
+            print_reorder_diff_summary(PDE,'u',comp_order.u,Dvals_u,u_idcs);
+        end
     else
         Tuop = Tuop_x;
+        Uop = 1;
+        u_idcs = 1:size(Dvals_u,1);
     end
 else
     % % Proceed with the expansion
@@ -258,17 +327,44 @@ else
     Top = Top_y*Tnop_x;
     if numel(PDE.w)>=1
         Twop = Top_y*Twop_x +Twop_y;
-        print_reorder_diff_summary(PDE,'w',comp_order.w,Dvals_w);
+        % Expand the inputs of which a x-derivative should be taken in      % DJ, 02/15/2026
+        % terms of boundary values and higher-order x-derivative
+        [Wop,Dvals_w,w_idcs] = expand_input(PDE,'w',Dvals_w,1);
+        Twop = Twop*Wop;
+        if ~suppress_summary
+            print_reorder_diff_summary(PDE,'w',comp_order.w,Dvals_w,w_idcs);
+        end
     else
         Twop = Twop_y;
+        Wop = 1;
+        w_idcs = 1:size(Dvals_w,1);
     end
     if numel(PDE.u)>=1
         Tuop = Top_y*Tuop_x +Tuop_y;
-        print_reorder_diff_summary(PDE,'u',comp_order.u,Dvals_u);
+        % Expand the inputs of which a x-derivative should be taken in      % DJ, 02/01/2026
+        % terms of boundary values and higher-order x-derivative
+        [Uop,Dvals_u,u_idcs] = expand_input(PDE,'u',Dvals_u,1);
+        Tuop = Tuop*Uop;
+        if ~suppress_summary
+            print_reorder_diff_summary(PDE,'u',comp_order.u,Dvals_u,u_idcs);
+        end
     else
         Tuop = Tuop_y;
+        Uop = 1;
+        u_idcs = 1:size(Dvals_u,1);
     end
 end
+
+% Collect the operators defining the map from fundamental state to PDE
+% state in a struct
+Top_f = struct();
+Top_f.x = Top;              Top_f.u = Tuop;      Top_f.w = Twop;
+Top_f.umap = Uop;           Top_f.wmap = Wop;
+% Collect the parameters defining the map from PDE state to fundamental
+% state in a struct
+Dvals = struct();
+Dvals.x = Dvals_xy;         Dvals.u = Dvals_u;          Dvals.w = Dvals_w;
+Dvals.u_idcs = u_idcs;      Dvals.w_idcs = w_idcs;
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -998,7 +1094,143 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function print_reorder_diff_summary(PDE,obj,comp_order,Dvals)
+function [Pop,Dvals_full,obj_idcs] = expand_input(PDE,obj,Dvals,dir)
+% Expand the input signal specified by 'obj' (exogenous or actuator input)
+% in terms of its highest-order spatial derivative and lower-boundary
+% values along direction "dir"
+%
+% INPUTS
+% - PDE:    'pde_struct' object specifying the PDE for which to expand the
+%           inputs;
+% - obj:    one of 'w' or 'u', specifying whether to consider the exogenous
+%           inputs or actuator inputs;
+% - Dvals:  n_obj x 2 array specifying for each element of PDE.(obj) what
+%           order derivative is taken of this element in computing the
+%           associated input in the PIE, along the first (column 1) and
+%           second (column 2) spatial variable;
+% - dir:    one of {1,2}, specifying whether to expand the input along the
+%           first spatial variable or the second;
+%
+% OUTPUTS
+% - Pop:    n_obj x n_objf 'opvar2d' object, representing the 2D PI
+%           operator mapping the set of fundamental input signals back to
+%           the original input. If the input is not differentiated along
+%           direction 'dir', a value of Pop = 1 is returned, representing 
+%           the identity operator;
+% - Dvals_full: n_objf x 2 array of integers, specifying for each of the
+%           fundamental input variables what order derivative is taken
+%           along each of the spatial directions in computing this
+%           variable;
+% - obj_idcs:   n_objf x 1 array of integers specifying for each of the
+%           fundamental input variables which element of PDE.(obj) they
+%           correspond to. If n_objf > n_obj, the first n_objf-n_obj
+%           elements always correspond to lower-boundary values of the
+%           input signals specified in PDE.(obj)(obj_idcs);
+%
+% EXAMPLE
+% Suppose dir = 1, and we have PDE.vars(1,1)=x with PDE.dom(1,:)=[a,b].
+% Suppose that Dvals(:,dir)=Dvals(:,1) = [0;0;2;0], and obj = 'w'. Then, we
+% expand the third exogenous input in terms of its 2nd-order derivative as
+%   w3(x) = w3(a) + (x-a)*w3_{x}(a) + int_{a}^{x} (x-z)*w3_{xx}(z) dz   (*)
+% We introduce the fundamental state vector
+%   wf = [w3(a); w3_{x}(a); w1; w2; w3; w4]
+% and use relation (*) to define the operator Pop such that w = Pop*wf. The
+% function returns
+%   Dvals_full = [ [0;1;Dvals(:,1)], [0;0;Dvals(:,2)]];
+%   obj_idcs = [3;3;1;2;3;4];
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding DJ - 02/01/2026
+%
+
+% Extract necessary information from the PDE
+var1 = PDE.vars(dir,1);     var2 = PDE.vars(dir,2);
+dom = PDE.dom(dir,:);       nvars = PDE.dim;
+obj_tab = PDE.([obj,'_tab']);
+nobj_op = get_opdim(obj_tab);
+
+% Establish which inputs have to be expanded in terms of boundary values
+% and highest-order derivative
+expand_idcs = find(Dvals(:,dir));
+if isempty(expand_idcs)
+    Pop = 1;
+    Dvals_full = Dvals;
+    obj_idcs = 1:size(obj_tab,1);
+    return
+end
+
+% Establish the number of boundary values that need to be defined
+nobj_arr = obj_tab(:,2);
+nobj_arr_cum = cumsum([0;nobj_arr]);
+nbval_arr = Dvals(expand_idcs,dir).*nobj_arr(expand_idcs);
+nbval_arr_cum = cumsum([0;nbval_arr]);
+nbvals = nbval_arr_cum(end);
+
+% Keep track of which boundary value corresponds to which input
+obj_idcs = (1:size(Dvals,1))';
+obj_idcs = [repelem(obj_idcs(expand_idcs),Dvals(expand_idcs,dir),1); obj_idcs];
+
+% Keep track of what derivative is taken of the boundary value
+Dvals_B = zeros(size(nbval_arr,1),nvars);
+
+% Initialize operators Bop and Cop mapping the expanded input back to the 
+% original:
+%   w(x) = Bop*[w(a); w_{x}(a)] + Cop*w_{xx}(.)
+%        = [1, (x-a)]*[w(a);w_{x}(a)] + int_{a}^{x}(x-z) w_{xx}(z) dz
+tmp_opvar = opvar2d();
+tmp_opvar.var1 = PDE.vars(:,1);      
+tmp_opvar.var2 = PDE.vars(:,2);
+tmp_opvar.I = PDE.dom;
+Bop = tmp_opvar;
+Bop.dim = [nobj_op, [nbvals;0;0;0]];
+% Initialize Cop as identity operator
+Cop = mat2opvar(eye(sum(nobj_arr)),[nobj_op,nobj_op],PDE.vars,PDE.dom);
+
+% For each of the inputs to expand, set the appropriate elements of Bop and
+% Cop to express this input in terms the full input vector
+if dir==1
+    param_name = 'Rxx';
+else
+    param_name = 'Ryy';
+end
+strt_idx = 0;
+for i=1:numel(expand_idcs)
+    % Set the factors multiplying each boundary value based on Taylor's Thm
+    idx = expand_idcs(i);
+    dval = Dvals(idx,dir);
+    fctrs = (var1-dom(1)).^(0:dval-1)./factorial(0:dval-1);
+    % Account for the size of the input vectors
+    Ri = kron(fctrs,eye(nobj_arr(idx)));
+    % Determine which element of the original vector belong to this input
+    ridcs = nobj_arr_cum(idx)+1:nobj_arr_cum(idx+1);
+    cidcs = nbval_arr_cum(i)+1:nbval_arr_cum(i+1);
+    % Set the new parameter
+    Bop(ridcs,cidcs) = Ri;
+    Dvals_B(strt_idx+(1:dval),dir) = 0:dval-1;
+    strt_idx = strt_idx + dval;
+
+    % Also replace the identity operator in Pop by the appropriate integral
+    Pop_i = tmp_opvar;
+    Pop_i.(param_name){2} = kron((var1-var2)^(dval-1)./factorial(dval-1),eye(nobj_arr(idx)));
+    Cop(ridcs,ridcs) = Pop_i;
+end
+
+% Return the full operator from fundamental input to original input
+Pop = [Bop,Cop];
+Dvals_full = [Dvals_B; Dvals];
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function print_reorder_diff_summary(PDE,obj,comp_order,Dvals,obj_idcs)
 % print_reorder_summary(PDE,obj,ncomps_x)
 % prints in the command window some information concerning the new order of
 % the components "obj" from the PDE structure as they will appear in the
@@ -1010,14 +1242,27 @@ function print_reorder_diff_summary(PDE,obj,comp_order,Dvals)
 %           object to display the new order of the variables.
 % - comp_order: comp_order(j) provides the index of the component in the
 %               original PDE associated to component j in the new PDE.
-% - Dvals:  A nobj x nvars object of 'type' double specifying for each
-%           element PDE.obj(ii) the order of the derivative taken with
+% - Dvals:  A m x nvars object of 'type' double specifying for each
+%           element PDE.obj(i) the order of the derivative taken with
 %           respect to each of the nvars global variables in PDE.vars, as
-%           the object appears in the PIE representation
+%           the object appears in the PIE representation. If the value of m
+%           exceeds the number of elements of PDE.obj, the first elements
+%           of Dvals are taken to correspond to boundary values of some
+%           object;
+% - obj_idcs:   A m x 1 array of integers specifying for each row of Dvals
+%               to which element of PDE.obj it corresponds, which is
+%               necessary in case boundary values of the object have been
+%               introduced;
 %
 % OUTPUTS:
 % Displays information in the command window concerning the new order of
-% the components in PDE.obj, compared to the original PDE.
+% the components in PDE.obj, as well as the derivatives taken of those
+% components.
+%
+% NOTES
+% If any boundary values are taken, these are assumed to be specified by
+% the first m-ncomps rows of Dvals and obj_idcs, where ncomps =
+% numel(PDE.(obj)), and where m = size(Dvals,1);
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1035,19 +1280,20 @@ elseif strcmp(obj,'w')
 elseif strcmp(obj,'BC')
     obj_name = 'boundary conditions';
 end
-ncomps = numel(PDE.(obj));
-if ~any(any(Dvals)) %all(comp_order == (1:ncomps)')
-    % No derivative of the components is takenThe order of the components has not changed.
+obj_tab = PDE.([obj,'_tab']);
+ncomps = size(Dvals,1);
+if ~any(any(Dvals)) && ncomps==numel(PDE.(obj))
+    % No derivative of the components is taken
     %fprintf(['\n','The order of the ',object_name,'s ',obj,' has not changed.\n']);
     return
 else
     % Otherwise, we list the new order of the components.
     %fprintf(['\n','The ',object_name,'s have been reordered as:\n']);
-    fprintf(['\n','WARNING: Some ',obj_name,' from the PDE will appear as derivatives in the PIE representation:\n']);
+    fprintf(['\n','WARNING: Some ',obj_name,' from the PDE will appear as derivatives (and boundary values) in the PIE representation:\n']);
 end
 
 % Use UNICODE to add subscript indices to different components.
-sub_s = '\x209B';
+%sub_s = '\x209B';
 partial = '\x2202';
 sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 sup_num = cell(10,1);       
@@ -1093,13 +1339,28 @@ LHS_length_max = diff_length + 1+1 + n_digits + lngth_varnames_mean+3; % e.g. 'd
 % % For each of the components, display its size, and which variables it
 % % depends on.
 for ii=1:ncomps
-    old_idx = comp_order(ii);
-    comp_ii = PDE.(obj){ii};
+    new_idx = obj_idcs(ii);
+    old_idx = comp_order(new_idx);
+    
+    % Check if the component corresponds to a boundary value of an input
+    % signal
+    is_bval = ii<=ncomps-numel(PDE.(obj));
+    if is_bval
+        % Check if the boundary value is along x- or y-direction
+        dir = logical(obj_tab(new_idx,3:2+nvars));
+        % Set the actual boundary value: always the lower boundary
+        Lval = PDE.dom(dir,1);
+    end
+    comp_ii = PDE.(obj){new_idx};
     
     % Establish the names of the variables on which the component depends.
-    if isempty(comp_ii.vars)
-        varnames_ii = '';
-        varnames_ii_t = 't';    % All components may vary in time
+    if is_bval
+        varnames_ii = num2str(Lval);
+        varnames_LHS_t = ['t,',varnames_ii]; % the boundary values still vary in time
+        varnames_RHS_t = 't';
+    elseif isempty(comp_ii.vars)
+        varnames_LHS_t = 't';    % All components may vary in time
+        varnames_RHS_t = varname_LHS_t;
     else
         % Set a comma separated list.
         varnames_ii = comp_ii.vars(1,1).varname{1};
@@ -1107,11 +1368,13 @@ for ii=1:ncomps
             varnames_ii = [varnames_ii,',',comp_ii.vars(kk,1).varname{1}];
         end
         varnames_ii_t = ['t,',varnames_ii]; % All components may vary in time
+        varnames_LHS_t = varnames_ii_t;
+        varnames_RHS_t = varnames_ii_t;
     end
     
     % Establish the (subscript) index for the component.
-    LHS_length = length(varnames_ii_t);
-    if numel(PDE.(obj))==1
+    LHS_length = length(varnames_LHS_t);
+    if isscalar(PDE.(obj))
         % There is only one component --> no need to give index
         Lcomp_idx = '';
     elseif numel(PDE.(obj))<=9
@@ -1124,24 +1387,8 @@ for ii=1:ncomps
         LHS_length = LHS_length + length(num2str(old_idx));
     end
 
-    % Establish which derivaitve of the component is taken.
+    % Establish which derivative of the component is taken.
     dval = Dvals(ii,:);
-    %dtot = sum(dval);
-    % Write d^{k}obj/
-    % if dtot==0
-    %     Ldiff = [obj,Lcomp_idx];
-    % elseif dtot==1
-    %     Ldiff = [partial,obj,Lcomp_idx,'/'];
-    %     LHS_length = LHS_length+1;
-    % elseif dtot<=9
-    %     sup_diff = sup_num{dtot+1};
-    %     Ldiff = [partial,sup_diff,obj,Lcomp_idx,'/'];
-    %     LHS_length = LHS_length+2;
-    % else
-    %     sup_diff = cell2mat(sup_num(str2num(num2str(dtot)')+1)');
-    %     Ldiff = [partial,sup_diff,obj,Lcomp_idx,'/'];
-    %     LHS_length = LHS_length+1+length(sup_diff);
-    % end
     Ldiff = [];
     for jj=1:nvars
         if dval(jj)==0
@@ -1159,36 +1406,17 @@ for ii=1:ncomps
             Ldiff = [Ldiff,sup_diff];
             LHS_length = LHS_length + ceil(log(dval(jj)/log(10)));
         end
-        % if dval(jj)==1
-        %     % The order of the derivative is 1
-        %     Ldiff = ['(',partial,'/',partial,PDE.vars(jj,1).varname{1},')'];
-        %     %Ldiff = [Ldiff,diff_str];
-        %     LHS_length = LHS_length +5+length(PDE.vars(jj,1).varname{1});
-        % elseif dval(jj)<=9
-        %     % The order of the derivative consists of a single decimal
-        %     sup_diff = sup_num{dval(jj)+1};
-        %     Ldiff = ['(',partial,'/',partial,PDE.vars(jj,1).varname{1},')',sup_diff];
-        %     %Ldiff = [Ldiff,diff_str];
-        %     LHS_length = LHS_length +6+length(PDE.vars(jj,1).varname{1});
-        % else
-        %     % The order of the derivative consists of muliple decimals
-        %     sup_diff = cell2mat(sup_num(str2num(num2str(dval(jj))')+1)');
-        %     diff_str = ['(',partial,'/',partial,PDE.vars(jj,1).varname{1},')',sup_diff];
-        %     Ldiff = [Ldiff,diff_str];
-        %     LHS_length = LHS_length +1+length(PDE.vars(jj,1).varname{1})+length(sup_diff);
-        % end
     end
 
     % Set the name of the component, including its depdence on spatial
     % variables.
-    LHS_name = [' ',Ldiff,obj,Lcomp_idx,'(',varnames_ii_t,')'];
+    LHS_name = [' ',Ldiff,obj,Lcomp_idx,'(',varnames_LHS_t,')'];
     LHS_length = 1 + LHS_length + 3;
         
     % For the added state components, indicate of which state component
     % they are the temporal derivative.
-    new_idx = ii;
-    Rcomp_idx = cell2mat(sub_num(str2num(num2str(new_idx)')+1)');
-    RHS = [' -->   ',obj,Rcomp_idx,'(',varnames_ii_t,')'];
+    Rcomp_idx = cell2mat(sub_num(str2num(num2str(ii)')+1)');
+    RHS = [' -->   ',obj,Rcomp_idx,'(',varnames_RHS_t,')'];
 %    RHS = '';
     
     % % % Finally, display:
@@ -1198,535 +1426,3 @@ end
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-
-
-%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function print_input_diff_summary(obj,comp_order,var_num,Dvals)
-% print_reorder_summary(PDE,obj,ncomps_x)
-% prints in the command window some information concerning the new order of
-% the components "obj" in the PDE structure.
-%
-% INPUTS:
-% - obj:    'u' or 'w', indicating for which object to display how it
-%           appears in the PIE.
-% - comp_order: comp_order(j) provides the index of the component in the
-%               original PDE associated to component j in the new PDE.
-% - Dvals:  ncompsx1 'double' array of integer values, specifying what
-%           order derivative is taken of component j w/r tp variable varnum
-%
-% OUTPUTS:
-% Displays information in the command window concerning the new order of
-% the components in PDE.obj, compared to the original PDE.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Set a name associated to each object.
-if strcmp(obj,'x')
-    obj_name = 'state components';
-elseif strcmp(obj,'y')
-    obj_name = 'observed outputs';
-elseif strcmp(obj,'z')
-    obj_name = 'regulated outputs';
-elseif strcmp(obj,'u')
-    obj_name = 'actuator inputs';
-elseif strcmp(obj,'w')
-    obj_name = 'exogenous inputs';
-elseif strcmp(obj,'BC')
-    obj_name = 'boundary conditions';
-end
-ncomps = length(comp_order);
-if all(comp_order == (1:ncomps)')
-    % The order of the components has not changed.
-    fprintf(['\n','The order of the ',obj_name,'s ',obj,' has not changed.\n']);
-    return
-else
-    % Otherwise, we list the new order of the components.
-    fprintf(['\n','The ',obj_name,'s have been reordered as:\n']);
-end
-
-% Use UNICODE to add subscript indices to different components.
-sub_s = '\x209B';
-partial = '\x2202';
-sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
-sup_num = cell(10,1);       
-sup_num{1} = '\x2070';      % Superscript 0
-sup_num{2} = '\xB9';        % Superscript 1
-sup_num{3} = '\xB2';        % etc.
-sup_num{4} = '\xB3';
-sup_num{5} = '\x2074';
-sup_num{6} = '\x2075';
-sup_num{7} = '\x2076';
-sup_num{8} = '\x2077';
-sup_num{9} = '\x2078';
-sup_num{10} = '\x2079';
-sub_var_num = sub_num{var_num+1};
-% Determine how many subscripts will be needed.
-n_digits = 1+floor(log(ncomps)/log(10));
-
-
-fprintf(['\n','WARNING: The following ',obj_name,' from the original PDE will appear as derivatives in the PIE representation:\n']);
-for ii=1:ncomps
-    if Dvals(ii)==0
-        % No need to list components that are unchanged
-        continue
-    end
-    old_idx = comp_order(ii);   new_idx = ii;
-
-    % % % Display the component as it appears in the PDE
-    %LHS_length = 0;
-    if ncomps==1
-        % There is only one component --> no need to give index
-        Lcomp_idx = '';
-    elseif ncomps<=9
-        % The component number consists of a single decimal.
-        Lcomp_idx = sub_num{old_idx+1};
-        %LHS_length = LHS_length + 1;
-    else
-        % The component number consists of multiple decimals.
-        Lcomp_idx = cell2mat(sub_num(str2num(num2str(old_idx)')+1)');
-        %LHS_length = LHS_length + length(num2str(old_idx));
-    end
-    % Set the name of the component.
-    LHS_name = [' ',obj,Lcomp_idx];
-    %LHS_length = 2 + LHS_length;
-
-    % % % Display the component as it appears in the PIE
-    % Establish the (subscript) index for the component.
-    %RHS_length = 0;
-    if ncomps==1
-        % There is only one component --> no need to give index
-        Rcomp_idx = '';
-    elseif ncomps<=9
-        % The component number consists of a single decimal.
-        Rcomp_idx = sub_num{new_idx+1};
-        %RHS_length = RHS_length + 1;
-    else
-        % The component number consists of multiple decimals.
-        Rcomp_idx = cell2mat(sub_num(str2num(num2str(new_idx)')+1)');
-        %RHS_length = RHS_length + length(num2str(new_idx));
-    end
-    % Set the derivative
-    if Dvals(ii)==1
-        % The order of the derivative is 1
-        RHS = [partial,sub_s,sub_var_num,' ',obj,Rcomp_idx];
-        %RHS_length = RHS_length + 6;
-    elseif Dvals(ii)<=9
-        % The order of the derivative consists of a single decimal
-        sup_diff = sup_num{Dvals(ii)+1};
-        RHS = [partial,sub_s,sub_var_num,sup_diff,' ',obj,Rcomp_idx];
-    else
-        % The order of the derivative consists of muliple decimals
-        sup_diff = cell2mat(sup_num(str2num(num2str(Dvals(ii))')+1)');
-        RHS = [partial,sub_s,sub_var_num,sup_diff,' ',obj,Rcomp_idx];
-        %RHS_length = RHS_length + 5 + length(num2str(tdiff));
-    end
-    RHS = [' -->   ',RHS];
-    
-    % % % Finally, display:
-    %MT_space = max(LHS_length_max-LHS_length,1);
-%    fprintf(['  ',LHS_name,repmat(' ',[1,MT_space]),RHS,'\n']);
-    fprintf(['  ',LHS_name,RHS,'\n'])
-end
-
-end
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%      OLD STUFF    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% function Top = build_2D_Top(Top,Top_x,Top_y,comp_order_x,comp_order_y)
-% 
-% % % Extract the appropriate spatial variables
-% xx_n = [Top.var1(1); Top.var2(1)];      xx_o = [Top_x.var1; Top_x.var2];
-% yy_n = [Top.var1(2); Top.var2(2)];      yy_o = [Top_y.var1; Top_y.var2];
-% 
-% 
-% % % Extract dimensions of the different operators
-% % (should have sum(n_op)=sum(n_op_x)=sum(n_op_y))
-% n_op = Top.dim(:,1);
-% nn_op = [0;cumsum(n_op)];
-% n_op_x = Top_x.dim(:,1);    n_op_y = Top_y.dim(:,1);
-% 
-% % Determine which elements of Top correspond to which element of Top_x and
-% % Top_y: Row k in Top corresponds to row idcs_x(k) in Top_x
-% [~,idcs_x] = sort(comp_order_x.x);
-% [~,idcs_y] = sort(comp_order_y.x);
-% 
-% % Adjust for splitting of parameters in the opvar structure
-% idcs_x(idcs_x>n_op_x(1)) = idcs_x(idcs_x>n_op_x(1)) - n_op_x(1);
-% idcs_y(idcs_y>n_op_y(1)) = idcs_y(idcs_y>n_op_y(1)) - n_op_y(1);
-% 
-% % % Determine which state elements are treated as finite-dimensional in the
-% % % operators Top_x and Top_y;
-% % is_0D_x = idcs_x <= n_op_x(1);      is_1D_x = idcs_x > n_op_x(1);
-% % is_0D_y = idcs_y <= n_op_y(1);      is_1D_y = idcs_y > n_op_y(1);
-% % 
-% % % Extract indices of Top_x and Top_y associated to ODE and 1D variables
-% % idcs_x0 = idcs_x(is_0D_x);          idcs_x1 = idcs_x(is_1D_x);
-% % idcs_y0 = idcs_y(is_0D_y);          idcs_y1 = idcs_y(is_1D_y);
-% % %NO, have to separate more carefully into 0D, 1D, etc.
-% 
-% % Declare which parameters in Top correspond to which parameters in Top_x
-% % and Top_y
-% fnames_2D = {'R00','R0x','R0y','R02';
-%              'Rx0','Rxx','Rxy','Rx2';
-%              'Ry0','Ryx','Ryy','Ry2';
-%              'R20','R2x','R2y','R22'};
-% 
-% fnames_x = {'P','Q1','P','Q1';
-%             'Q2','R','Q2','R';
-%             'P','Q1','P','Q1';
-%             'Q2','R','Q2','R'};
-% 
-% fnames_y = {'P','P','Q1','Q1';
-%             'P','P','Q1','Q1';
-%             'Q2','Q2','R','R';
-%             'Q2','Q2','R','R'};
-% 
-% % Set the value of each of the parameters in Top
-% for k=1:numel(fnames_2D)
-%     % Determine which rows and columns of Top the parameter corresponds to
-%     [rnum,cnum] = ind2sub(size(fnames_2D),k);
-%     r_idcs = nn_op(rnum)+1:nn_op(rnum+1);     
-%     c_idcs = nn_op(cnum)+1:nn_op(cnum+1);
-% 
-%     % If the parameter is empty, move on to the next one
-%     if ~any(r_idcs) || ~any(c_idcs)
-%         continue
-%     end
-% 
-%     % Extract parameter in Top_x associated to current parameter in Top
-%     x_param = Top_x.(fnames_x{k});
-%     % Determine row and column indices in parameter in Top_x corresponding 
-%     % to current parameter in Top
-%     r_idcs_x = idcs_x(r_idcs);      c_idcs_x = idcs_x(c_idcs);
-% 
-%     % Extract parameter in Top_y associated to current parameter in Top
-%     y_param = Top_y.(fnames_y{k});
-%     % Determine row and column indices in parameter in Top_x corresponding 
-%     % to current parameter in Top
-%     r_idcs_y = idcs_y(r_idcs);      c_idcs_y = idcs_y(c_idcs);
-% 
-%     % Compute the value of the current parameter in Top as product of
-%     % parameters in Top_x and Top_y
-%     if ~strcmp(fnames_x{k},'R') && ~strcmp(fnames_y{k},'R')
-%         T_param = subs(polynomial(x_param(r_idcs_x,c_idcs_x)),xx_o,xx_n).*...
-%                     subs(polynomial(y_param(r_idcs_y,c_idcs_y)),yy_o,yy_n);
-%     elseif strcmp(fnames_x{k},'R') && ~strcmp(fnames_y{k},'R')
-%         T_param = cell(3,1);
-%         for ii=1:3
-%             T_param{ii} = subs(x_param.(['R',num2str(ii-1)])(r_idcs_x,c_idcs_x),xx_o,xx_n).*...
-%                         subs(polynomial(y_param(r_idcs_y,c_idcs_y)),yy_o,yy_n);
-%         end
-%     elseif ~strcmp(fnames_x{k},'R') && strcmp(fnames_y{k},'R')
-%         T_param = cell(1,3);
-%         for ii=1:3
-%             T_param{ii} = subs(polynomial(x_param(r_idcs_x,c_idcs_x)),xx_o,xx_n).*...
-%                         subs(y_param.(['R',num2str(ii-1)])(r_idcs_y,c_idcs_y),yy_o,yy_n);
-%         end
-%     else
-%         T_param = cell(3,3);
-%         for ii=1:3
-%         for jj=1:3
-%             T_param{ii,jj} = subs(x_param.(['R',num2str(ii-1)])(r_idcs_x,c_idcs_x),xx_o,xx_n).*...
-%                                 subs(y_param.(['R',num2str(jj-1)])(r_idcs_y,c_idcs_y),yy_o,yy_n);
-%         end
-%         end
-%     end
-% 
-%     % Set the parameter value
-%     Top.(fnames_2D{k}) = T_param;
-% end
-% 
-% 
-% 
-% % Top.R22{1,1} = subs(Top_x.R.R0,xx_o,xx_n).*subs(Top_y.R.R0,yy_o,yy_n);
-% % Top.R22{2,1} = subs(Top_x.R.R1,xx_o,xx_n).*subs(Top_y.R.R0,yy_o,yy_n);
-% % Top.R22{3,1} = subs(Top_x.R.R2,xx_o,xx_n).*subs(Top_y.R.R0,yy_o,yy_n);
-% % Top.R22{1,2} = subs(Top_x.R.R0,xx_o,xx_n).*subs(Top_y.R.R1,yy_o,yy_n);
-% % Top.R22{2,2} = subs(Top_x.R.R1,xx_o,xx_n).*subs(Top_y.R.R1,yy_o,yy_n);
-% % Top.R22{3,2} = subs(Top_x.R.R2,xx_o,xx_n).*subs(Top_y.R.R1,yy_o,yy_n);
-% % Top.R22{1,3} = subs(Top_x.R.R0,xx_o,xx_n).*subs(Top_y.R.R2,yy_o,yy_n);
-% % Top.R22{2,3} = subs(Top_x.R.R1,xx_o,xx_n).*subs(Top_y.R.R2,yy_o,yy_n);
-% % Top.R22{3,3} = subs(Top_x.R.R2,xx_o,xx_n).*subs(Top_y.R.R2,yy_o,yy_n);
-% 
-% end
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-% % Finally, set the values of the parameters defining Qop:
-% fnames_2D = {'R00','R0x','R0y','R02';
-%              'Rx0','Rxx','Rxy','Rx2';
-%              'Ry0','Ryx','Ryy','Ry2';
-%              'R20','R2x','R2y','R22'};
-% 
-% fnames_x = {'P','Q1','P','Q1';
-%             'Q2','R','Q2','R';
-%             'P','Q1','P','Q1';
-%             'Q2','R','Q2','R'};
-% 
-% fnames_y = {'P','P','Q1','Q1';
-%             'P','P','Q1','Q1';
-%             'Q2','Q2','R','R';
-%             'Q2','Q2','R','R'};
-% 
-% % Set the value of each of the parameters in Qop
-% if use_Dx
-% % % % Proceed with the expansion
-% % % % v = Top_x*Top_y*Dop_xy*v +Top_x*Qop_y*Dop_x*w +Qop_x*w
-% for k=1:numel(fnames_2D)
-%     % Determine which rows and columns of Qop the parameter corresponds to
-%     [rnum,cnum] = ind2sub(size(fnames_2D),k);
-%     r_idcs = nnr_op(rnum)+1:nnr_op(rnum+1);     
-%     c_idcs = nnc_op(cnum)+1:nnc_op(cnum+1);
-% 
-%     % If the parameter is empty, move on to the next one
-%     if ~any(r_idcs) || ~any(c_idcs)
-%         continue
-%     end
-% 
-%     % Extract parameter in Qop_x associated to current parameter in Qop
-%     x_param = Qop_x.(fnames_x{k});
-%     % Determine row and column indices in parameter in Qop_x corresponding 
-%     % to current parameter in Qop
-%     r_idcs_x = idcs_vx(r_idcs);      c_idcs_x = idcs_wx_op(c_idcs);
-% 
-%     % Extract parameter in Top_x and Qop_y associated to parameter in Qop
-%     vx_param = Top_x.(fnames_x{k});      wy_param = Qop_y.(fnames_y{k});
-%     % Determine column indices in parameter in Qop_y associated to current
-%     % parameter in Qop  
-%     c_idcs_y = idcs_wy_op(c_idcs);
-% 
-%     % Compute the value of the current parameter in Qop as 
-%     %   Top_x*Qop_y +Qop_x
-%     if ~strcmp(fnames_x{k},'R') && ~strcmp(fnames_y{k},'R')
-%         Q_param = subs(polynomial(x_param(r_idcs_x,c_idcs_x)),xx_o,xx_n) +...
-%                    subs(polynomial(vx_param(r_idcs_x,:)),xx_o,xx_n)*...
-%                     subs(polynomial(wy_param(:,c_idcs_y)),yy_o,yy_n);
-%     elseif strcmp(fnames_x{k},'R') && ~strcmp(fnames_y{k},'R')
-%         Q_param = cell(3,1);
-%         for ii=1:3
-%             Q_param{ii} = subs(x_param.(['R',num2str(ii-1)])(r_idcs_x,c_idcs_x),xx_o,xx_n) +...
-%                            subs(vx_param.(['R',num2str(ii-1)])(r_idcs_x,:),xx_o,xx_n)*...
-%                             subs(polynomial(wy_param(:,c_idcs_y)),yy_o,yy_n);
-%         end
-%     elseif ~strcmp(fnames_x{k},'R') && strcmp(fnames_y{k},'R')
-%         Q_param = cell(1,3);
-%         for ii=1:3
-%             Q_param{ii} = subs(polynomial(x_param(r_idcs_x,c_idcs_x)),xx_o,xx_n) +...
-%                            subs(polynomial(vx_param(r_idcs_x,:)),xx_o,xx_n)*...
-%                             subs(wy_param.(['R',num2str(ii-1)])(:,c_idcs_y),yy_o,yy_n);
-%         end
-%     else
-%         Q_param = cell(3,3);
-%         for ii=1:3
-%         for jj=1:3
-%             Q_param{ii,jj} = subs(x_param.(['R',num2str(ii-1)])(r_idcs_x,c_idcs_x),xx_o,xx_n) +...
-%                               subs(vx_param.(['R',num2str(ii-1)])(r_idcs_x,:),xx_o,xx_n)*...
-%                                subs(wy_param.(['R',num2str(jj-1)])(:,c_idcs_y),yy_o,yy_n);
-%         end
-%         end
-%     end
-%     % Set the parameter value
-%     Qop.(fnames_2D{k}) = Q_param;
-% end
-% else
-% % % % Proceed with the expansion
-% % % % v = Top_x*Top_y*Dop_xy*v +Top_y*Qop_x*Dop_y*w +Qop_y*w
-% for k=1:numel(fnames_2D)
-%     % Determine which rows and columns of Qop the parameter corresponds to
-%     [rnum,cnum] = ind2sub(size(fnames_2D),k);
-%     r_idcs = nnr_op(rnum)+1:nnr_op(rnum+1);     
-%     c_idcs = nnc_op(cnum)+1:nnc_op(cnum+1);
-% 
-%     % If the parameter is empty, move on to the next one
-%     if ~any(r_idcs) || ~any(c_idcs)
-%         continue
-%     end
-% 
-%     % Extract parameter in Qop_y associated to current parameter in Qop
-%     y_param = Qop_y.(fnames_y{k});
-%     % Determine row and column indices in parameter in Qop_y corresponding 
-%     % to current parameter in Qop
-%     r_idcs_y = idcs_vy(r_idcs);      c_idcs_y = idcs_wy_op(c_idcs);
-%     % NO! still need to adjust r_idcs_y for the parameter!!!
-% 
-%     % Compute the contribution of Qop_y to the current parameter in Qop 
-%     % Note that     Qop = Top_y*Qop_x +Qop_y
-%     if ~strcmp(fnames_x{k},'R') && ~strcmp(fnames_y{k},'R')
-%         Q_param = subs(polynomial(y_param(r_idcs_y,c_idcs_y)),yy_o,yy_n);
-%     elseif strcmp(fnames_x{k},'R') && ~strcmp(fnames_y{k},'R')
-%         Q_param = cell(3,1);
-%         Q_param{1} = subs(polynomial(y_param(r_idcs_y,c_idcs_y)),yy_o,yy_n);
-%         Q_param{2} = polynomial(zeros(size(Q_param{1})));
-%         Q_param{3} = polynomial(zeros(size(Q_param{1})));
-%     elseif ~strcmp(fnames_x{k},'R') && strcmp(fnames_y{k},'R')
-%         Q_param = cell(1,3);
-%         for ii=1:3
-%             Q_param{ii} = subs(y_param.(['R',num2str(ii-1)])(r_idcs_y,c_idcs_y),yy_o,yy_n);
-%         end
-%     else
-%         Q_param = cell(3,3);
-%         for jj=1:3
-%             Q_param{1,jj} = subs(y_param.(['R',num2str(jj-1)])(r_idcs_y,c_idcs_y),yy_o,yy_n);
-%             Q_param{2,jj} = polynomial(zeros(size(Q_param{1,jj})));
-%             Q_param{3,jj} = polynomial(zeros(size(Q_param{1,jj})));
-%         end
-%     end
-% 
-%     % % This leaves the contribution of Top_x*Qop_y, which is more
-%     % complicated...
-%     c_idcs_x = idcs_wx_op(c_idcs);
-%     if rnum==1 || rnum==2
-%         % State components do not vary in y
-%         vy_param1 = Top_y.P(r_idcs_y,:);        % NO, must extract certain columns!!!    
-%         vy_param2 = subs(Top_y.Q1(r_idcs_y,:),yy_o,yy_n);
-%     else
-%         vy_param1 = subs(Top_y.Q2(r_idcs_y,:),yy_o,yy_n);    
-%         vy_param2 = cell(1,3);
-%         vy_param2{1} = subs(Top_y.R.R0(r_idcs_y,:),yy_o,yy_n);
-%         vy_param2{2} = subs(Top_y.R.R1(r_idcs_y,:),yy_o,yy_n);
-%         vy_param2{3} = subs(Top_y.R.R2(r_idcs_y,:),yy_o,yy_n);
-%     end
-%     if cnum==1 || cnum==3
-%         % Inputs do not vary in x
-%         wx_param1 = Qop_x.P(:,c_idcs_x);    
-%         wx_param2 = subs(Qop_x.Q2(:,c_idcs_x,:),xx_o,xx_n);
-%     else
-%         wx_param1 = subs(Qop_x.Q1(:,c_idcs_x),xx_o,xx_n);    
-%         wx_param2 = cell(1,3);
-%         wx_param2{1} = subs(Qop_x.R.R0(:,c_idcs_x),xx_o,xx_n);
-%         wx_param2{2} = subs(Qop_x.R.R1(:,c_idcs_x),xx_o,xx_n);
-%         wx_param2{3} = subs(Qop_x.R.R2(:,c_idcs_x),xx_o,xx_n);
-%     end
-%     if ~isa(vy_param2,'cell') && ~isa(wx_param2,'cell')
-% 
-%     end
-% 
-%     % Extract parameter in Top_y and Qop_x associated to parameter in Qop
-%     vy_param = Top_y.(fnames_y{k});      wx_param = Qop_x.(fnames_x{k});
-%     % Determine column indices in parameter in Qop_y associated to current
-%     % parameter in Qop  
-%     c_idcs_x = idcs_wx_op(c_idcs);
-% 
-% 
-%     % Consider element R2x
-%     % Suppose that Qop_x has columns Q1_w_x(:,c) mapping w(x) to [v0;v2(y)] 
-%     % and R_w_x(:,c) mapping w(x) to [v1(x);v3(x,y)]
-%     % Suppose that Top_y has rows Q2_v_y(r,:) mapping [v0;v1(x)] to v3(x,y)
-%     % and rows R_v_y(r,:) mapping [v2(y);v3(x,y)] to v3(x,y);
-%     % Then these combine into a contribution
-%     % R0 = Q2_v_y(r,0)*Q1_w_x(0,c) +R0_v_y(r,2)*Q1_w_x(2,c)
-%     %       +Q2_v_y(r,1)*R0_w_x(1,c) +R0_v_y(r,3)*R0_w_x(3,c)
-%     %      +int_{c}^{y} R1_v_y(r,2)(y,nu)*Q1_w_x(2,c)(nu) dnu
-%     %       +int_{c}^{y} R1_v_y(r,3)(y,nu)*R0_w_x(3,c)(x,nu) dnu
-%     %      +int_{y}^{d} R2_v_y(r,2)(y,nu)*Q1_w_x(2,c)(nu) dnu
-%     %       +int_{y}^{d} R2_v_y(r,3)(y,nu)*R0_w_x(3,c)(x,nu) dnu
-%     % R1 = 
-% 
-%     % Compute the value of the current parameter in Qop as 
-%     %   Top_x*Qop_y +Qop_x
-%     if ~strcmp(fnames_x{k},'R') && ~strcmp(fnames_y{k},'R')
-%         Q_param = subs(polynomial(y_param(r_idcs_y,c_idcs_y)),yy_o,yy_n) +...
-%                    subs(polynomial(vy_param(r_idcs_y,:)),yy_o,yy_n)*...
-%                     subs(polynomial(wx_param(:,c_idcs_x)),xx_o,xx_n);
-%     elseif strcmp(fnames_x{k},'R') && ~strcmp(fnames_y{k},'R')
-%         Q_param = cell(3,1);
-%         for ii=1:3
-%             Q_param{ii} = subs(polynomial(y_param(r_idcs_y,c_idcs_y)),yy_o,yy_n) +...
-%                            subs(polynomial(vy_param(r_idcs_y,:)),yy_o,yy_n)*...
-%                             subs(wx_param.(['R',num2str(ii-1)])(:,c_idcs_x),xx_o,xx_n);
-%         end
-%     elseif ~strcmp(fnames_x{k},'R') && strcmp(fnames_y{k},'R')
-%         Q_param = cell(1,3);
-%         for ii=1:3
-%             Q_param{ii} = subs(y_param.(['R',num2str(ii-1)])(r_idcs_y,c_idcs_y),yy_o,yy_n) +...
-%                            subs(vy_param.(['R',num2str(ii-1)])(r_idcs_y,:),yy_o,yy_n)*...
-%                             subs(polynomial(wx_param(:,c_idcs_x)),xx_o,xx_n);
-%         end
-%     else
-%         Q_param = cell(3,3);
-%         for ii=1:3
-%         for jj=1:3
-%             Q_param{ii,jj} = subs(y_param.(['R',num2str(ii-1)])(r_idcs_y,c_idcs_y),yy_o,yy_n) +...
-%                               subs(vy_param.(['R',num2str(ii-1)])(r_idcs_y,:),yy_o,yy_n)*...
-%                                subs(wx_param.(['R',num2str(jj-1)])(:,c_idcs_x),xx_o,xx_n);
-%         end
-%         end
-%     end
-%     % Set the parameter value
-%     Qop.(fnames_2D{k}) = Q_param;
-%end
-%
-%end
-
-
-
-% % % % OLD Stuff
-% 
-% % % Check which of the inputs must be differentiated in the map
-% xx_idcs = any(~isequal(Qop_y.Q2,0),1);      % Elements of sgnl on which Qop_y acts
-% yy_idcs = any(~isequal(Qop_x.Q2,0),1);      % Elements of sgnl on which Qop_x acts
-% if ~any(xx_idcs) && ~any(yy_idcs)
-%     % Neither operator acts on sgnl --> contribution of sgnl is just 0
-%     return
-% elseif ~any(xx_idcs)
-%     % No nonzero columns in Qop_y means we can expand
-%     %   v(x,y) = Top_x*Top_y*v_{xxyy} +Qop_x*sgnl;
-%     % not requiring any derivatives of sgnl
-%     % --> only need to morph opvar Qop_x into opvar2d Qop
-%     Qop.R2y{1} = subs(Qop_x.Q2(:,find(yy_idcs)),xx_o,xx_n);
-%     return
-% elseif ~any(yy_idcs)
-%     % No nonzero columns in Qop_x means we can expand
-%     %   v(x,y) = Top_y*Top_x*v_{xxyy} +Qop_y*sgnl;
-%     % not requiring any derivatives of sgnl
-%     % --> only need to morph opvar Qop_y into opvar2d Qop
-%     Qop.R2x{1} = subs(Qop_y.Q2(:,find(xx_idcs)),yy_o,yy_n);
-%     return
-% end
-% 
-% % % If the input sgnl contributes to both the x and y BCs, default to case
-% % %     v(x,y) = Top_y*Top_x*v_{xxyy} +Top_y*Qop_x*sgnl_{yy} +Qop_y*sgnl;
-% 
-% % If a particular element of "sgnl" is acted on by both Qop_x and Qop_y,
-% % then both sgnl(k) and sgnl_{yy}(k) would need to appear in the expression
-% % for v. This is not supported.
-% if any(xx_idcs & yy_idcs)
-%     error(['It seems some input appears as both ',obj,'(k) and ',obj,'_{yy}(k) in the PIE; this case is not yet supported.'])
-% end
-% xx_idcs = find(xx_idcs);    yy_idcs = find(yy_idcs);
-% 
-% fprintf(['\n','WARNING: The following inputs ',obj,' from the original PDE will appear as derivatives in the PIE representation:\n']);
-% for j=1:length(yy_idcs)
-%     idx = yy_idcs(j);
-%     sgnl_idx_o = num2str(PDE.([obj,'_tab'])(idx,1));
-%     sgnl_idx_n = num2str(idx);
-% 
-%     fprintf(['  ',obj,'(',sgnl_idx_o,') --> ',obj,'_{yy}(',sgnl_idx_n,')','\n']);
-% end
-% 
-% % fprintf(['\n WARNING: Disturbances ',sgnl,'(k) with k in {']);
-% % fprintf('%g, ', yy_idcs(1:end-1));
-% % fprintf('%g}', yy_idcs(end));
-% % fprintf([' will appear as ',sgnl,'(k) --> ',sgnl,'_{yy}(k) in the PIE representation.\n'])
-% 
-% % Set the parameters of the operator
-% Qop.R2x{1} = subs(Qop_y.Q2(:,xx_idcs),yy_o,yy_n);
-% Qop.R2y{1} = subs(Qop_x.Q2(:,yy_idcs),xx_o,xx_n).*subs(Top_y.R.R0,yy_o,yy_n);
-% Qop.R2y{2} = subs(Qop_x.Q2(:,yy_idcs),xx_o,xx_n).*subs(Top_y.R.R1,yy_o,yy_n);
-% Qop.R2y{3} = subs(Qop_x.Q2(:,yy_idcs),xx_o,xx_n).*subs(Top_y.R.R2,yy_o,yy_n);
