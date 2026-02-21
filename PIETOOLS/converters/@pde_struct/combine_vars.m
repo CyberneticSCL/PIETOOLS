@@ -31,7 +31,7 @@ function [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
 % or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024 PIETOOLS Team
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@ function [PDE_new,old_ito_new] = combine_vars(PDE,dom,silent_merge)
 %
 % DJ, 10/11/2022: Initialize
 % DJ, 01/07/2025: Set new default dummy variable name si_dum;
+% DJ, 02/21/2026: Update to allow for nonlinear terms;
 
 
 % % % Check the inputs
@@ -247,119 +248,126 @@ for ii=1:ncomps
     end
     nterms = numel(PDE.(Lobj){ii}.term);
     for jj=1:nterms
-        % Extract the term;
+        %  For each factor in the term, update the independent variables.
         term_jj = PDE.(Lobj){ii}.term{jj};
-        
-        % Establish whether the term involves an input or state.
-        if isfield(term_jj,'x')
-            Robj = 'x';
-            is_x_Rcomp = true;            
-        elseif isfield(term_jj,'w')
-            Robj = 'w';
-            is_x_Rcomp = false;
-        else
-            Robj = 'u';
-            is_x_Rcomp = false;
-        end
-        Rindx = term_jj.(Robj);
-        % Determine on which global variables the RHS component depends.
-        has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx,3:2+nvars));
-        nvars_Rcomp = sum(has_vars_Rcomp);
-        
-        % Determine the old and new vars associated to the RHS component.
-        old_vars_Rcomp = old_vars(has_vars_Rcomp,:);    % old vars [s,theta]
-        new_vars_Rcomp = new_vars(has_vars_Rcomp,:);    % new vars [t,nu];
-        old_dom_Rcomp = old_dom(has_vars_Rcomp,:);      % old domains
-        new_dom_Rcomp = new_dom(has_vars_Rcomp,:);      % new domains
-        new2old_Rcomp = new2old(has_vars_Rcomp,:);      % map s(t) = var_fctr*t + b;
-        var_fctr_Rcomp = fctr_new2old(has_vars_Rcomp);  % factor var_fctr;
-        
-        
-        % % Update the derivative: dR/ds = dR/dt * dt/ds = (1/var_fctr)*dR/dt
-        if is_x_Rcomp
-            Dval = term_jj.D;
-            fctr = prod((1./var_fctr_Rcomp').^Dval);
-        else
-            fctr = 1;
-        end
-        
-        % % Update the spatial position: x(s) --> x(t), x(L(s)) --> x(L(t))
-        if is_x_Rcomp
-            locval = term_jj.loc;
-            for kk=1:nvars_Rcomp
-                if isa(locval(kk),'double') || isdouble(locval(kk))
-                    locval_kk = double(locval(kk));
-                    if locval_kk == old_dom_Rcomp(kk,1)
-                        locval(kk) = new_dom_Rcomp(kk,1);
-                    elseif locval_kk == old_dom_Rcomp(kk,2)
-                        locval(kk) = new_dom_Rcomp(kk,2);
-                    else
-                        error(['The position "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}.loc" is not properly specified...']);
-                    end
-                elseif strcmp(locval(kk).varname{1},old_vars_Rcomp(kk,1).varname{1})
-                    locval(kk) = new_vars_Rcomp(kk,1);
-                elseif strcmp(locval(kk).varname{1},old_vars_Rcomp(kk,2).varname{1})
-                    locval(kk) = new_vars_Rcomp(kk,2);
-                else
-                    error(['The position "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}.loc" is not properly specified...']);
-                end                
+        nfctrs = numel(term_jj);
+        for ll=1:nfctrs                                                     % DJ, 02/21/2026
+            % Extract the factor
+            factor_ll = term_jj(ll);
+            % Establish whether the factor involves an input or state.
+            if isfield(factor_ll,'x') && ~isempty(factor_ll.x)
+                Robj = 'x';
+                is_x_Rcomp = true;            
+            elseif isfield(factor_ll,'w') && ~isempty(factor_ll.w)
+                Robj = 'w';
+                is_x_Rcomp = false;
+            else
+                Robj = 'u';
+                is_x_Rcomp = false;
             end
-            term_jj.loc = locval;
-        end
-        
-        % % Update the integral: 
-        % % int_{L(s)}^{U(s)} ... ds = int_{L(t)}^{U(t)} ...*(ds/dt) dt
-        is_partial_int = false(1,nvars_Rcomp);
-        for kk=1:nvars_Rcomp
-            Idom_kk = term_jj.I{kk};
-            if ~isempty(Idom_kk)
-                is_partial_int(kk) = any(ismember(new_vars_Rcomp(kk,1).varname{1},new_vars_Lcomp(:,1).varname));
-                %is_partial_int(kk) = is_partial_int(kk) && replace_var_Rcomp(kk);
-                if isa(Idom_kk,'double') || isdouble(Idom_kk)
-                    % Full integral: just have to replace with new domain.
-                    Idom_kk = new_dom_Rcomp(kk,:);
-                else
-                    % Partial integral: will have to change the variable.
-                    if isdouble(Idom_kk(1))
-                        Idom_kk(1) = new_dom_Rcomp(kk,1);
-                    elseif strcmp(Idom_kk(1).varname{1},old_vars_Rcomp(kk,1).varname{1})
-                        Idom_kk(1) = new_vars_Rcomp(kk,1);
-                    elseif strcmp(Idom_kk(1).varname{1},old_vars_Rcomp(kk,2).varname{1})
-                        Idom_kk(1) = new_vars_Rcomp(kk,2);
-                    else
-                        error(['The integral "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}.I" is not properly specified...']);
-                    end
-                    if isdouble(Idom_kk(2))
-                        Idom_kk(2) = new_dom_Rcomp(kk,2);
-                    elseif strcmp(Idom_kk(2).varname{1},old_vars_Rcomp(kk,1).varname{1})
-                        Idom_kk(2) = new_vars_Rcomp(kk,1);
-                    elseif strcmp(Idom_kk(2).varname{1},old_vars_Rcomp(kk,2).varname{1})
-                        Idom_kk(2) = new_vars_Rcomp(kk,2);
-                    else
-                        error(['The integral "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}.I" is not properly specified...']);
-                    end
-                end                        
-                term_jj.I{kk} = Idom_kk;  
-                fctr = fctr * var_fctr_Rcomp(kk);
-            end
-        end
+            Rindx = factor_ll.(Robj);
+            % Determine on which global variables the RHS component depends.
+            has_vars_Rcomp = logical(PDE.([Robj,'_tab'])(Rindx,3:2+nvars));
+            nvars_Rcomp = sum(has_vars_Rcomp);
             
-        % % Finally, update the coefficients: C(s) --> C(t)*fctr        
-        Cval = term_jj.C;
-        if isa(Cval,'polynomial')
-            % Substitute in expression for s in terms of t
-            if size(old_vars_Lcomp,1)>0
-                Cval = subs(Cval,old_vars_Lcomp(:,1),new2old_Lcomp(:,1));
+            % Determine the old and new vars associated to the RHS component.
+            old_vars_Rcomp = old_vars(has_vars_Rcomp,:);    % old vars [s,theta]
+            new_vars_Rcomp = new_vars(has_vars_Rcomp,:);    % new vars [t,nu];
+            old_dom_Rcomp = old_dom(has_vars_Rcomp,:);      % old domains
+            new_dom_Rcomp = new_dom(has_vars_Rcomp,:);      % new domains
+            new2old_Rcomp = new2old(has_vars_Rcomp,:);      % map s(t) = var_fctr*t + b;
+            var_fctr_Rcomp = fctr_new2old(has_vars_Rcomp);  % factor var_fctr;
+            
+            
+            % % Update the derivative: dR/ds = dR/dt * dt/ds = (1/var_fctr)*dR/dt
+            if is_x_Rcomp
+                Dval = factor_ll.D;
+                fctr = prod((1./var_fctr_Rcomp').^Dval);
+            else
+                fctr = 1;
             end
-            if any(is_partial_int)
-                new2old_Rcomp = subs(new2old_Rcomp,new_vars_Rcomp(is_partial_int,1),new_vars_Rcomp(is_partial_int,2));
+            
+            % % Update the spatial position: x(s) --> x(t), x(L(s)) --> x(L(t))
+            if is_x_Rcomp
+                locval = factor_ll.loc;
+                for kk=1:nvars_Rcomp
+                    if isa(locval(kk),'double') || isdouble(locval(kk))
+                        locval_kk = double(locval(kk));
+                        if locval_kk == old_dom_Rcomp(kk,1)
+                            locval(kk) = new_dom_Rcomp(kk,1);
+                        elseif locval_kk == old_dom_Rcomp(kk,2)
+                            locval(kk) = new_dom_Rcomp(kk,2);
+                        else
+                            error(['The position "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}(',num2str(ll),').loc" is not properly specified...']);
+                        end
+                    elseif strcmp(locval(kk).varname{1},old_vars_Rcomp(kk,1).varname{1})
+                        locval(kk) = new_vars_Rcomp(kk,1);
+                    elseif strcmp(locval(kk).varname{1},old_vars_Rcomp(kk,2).varname{1})
+                        locval(kk) = new_vars_Rcomp(kk,2);
+                    else
+                        error(['The position "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}(',num2str(ll),').loc" is not properly specified...']);
+                    end                
+                end
+                factor_ll.loc = locval;
             end
-            if size(old_vars_Rcomp,1)>0
-                Cval = subs(Cval,old_vars_Rcomp(:),new2old_Rcomp(:));
+            
+            % % Update the integral: 
+            % % int_{L(s)}^{U(s)} ... ds = int_{L(t)}^{U(t)} ...*(ds/dt) dt
+            is_partial_int = false(1,nvars_Rcomp);
+            for kk=1:nvars_Rcomp
+                Idom_kk = factor_ll.I{kk};
+                if ~isempty(Idom_kk)
+                    is_partial_int(kk) = any(ismember(new_vars_Rcomp(kk,1).varname{1},new_vars_Lcomp(:,1).varname));
+                    %is_partial_int(kk) = is_partial_int(kk) && replace_var_Rcomp(kk);
+                    if isa(Idom_kk,'double') || isdouble(Idom_kk)
+                        % Full integral: just have to replace with new domain.
+                        Idom_kk = new_dom_Rcomp(kk,:);
+                    else
+                        % Partial integral: will have to change the variable.
+                        if isdouble(Idom_kk(1))
+                            Idom_kk(1) = new_dom_Rcomp(kk,1);
+                        elseif strcmp(Idom_kk(1).varname{1},old_vars_Rcomp(kk,1).varname{1})
+                            Idom_kk(1) = new_vars_Rcomp(kk,1);
+                        elseif strcmp(Idom_kk(1).varname{1},old_vars_Rcomp(kk,2).varname{1})
+                            Idom_kk(1) = new_vars_Rcomp(kk,2);
+                        else
+                            error(['The integral "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}(',num2str(ll),').I" is not properly specified...']);
+                        end
+                        if isdouble(Idom_kk(2))
+                            Idom_kk(2) = new_dom_Rcomp(kk,2);
+                        elseif strcmp(Idom_kk(2).varname{1},old_vars_Rcomp(kk,1).varname{1})
+                            Idom_kk(2) = new_vars_Rcomp(kk,1);
+                        elseif strcmp(Idom_kk(2).varname{1},old_vars_Rcomp(kk,2).varname{1})
+                            Idom_kk(2) = new_vars_Rcomp(kk,2);
+                        else
+                            error(['The integral "',Lobj,'{',num2str(ii),'}.term{',num2str(jj),'}(',num2str(ll),').I" is not properly specified...']);
+                        end
+                    end                        
+                    factor_ll.I{kk} = Idom_kk;  
+                    fctr = fctr * var_fctr_Rcomp(kk);
+                end
             end
+                
+            % % Finally, update the coefficients: C(s) --> C(t)*fctr        
+            Cval = factor_ll.C;
+            if isa(Cval,'polynomial')
+                % Substitute in expression for s in terms of t
+                if size(old_vars_Lcomp,1)>0
+                    Cval = subs(Cval,old_vars_Lcomp(:,1),new2old_Lcomp(:,1));
+                end
+                if any(is_partial_int)
+                    new2old_Rcomp = subs(new2old_Rcomp,new_vars_Rcomp(is_partial_int,1),new_vars_Rcomp(is_partial_int,2));
+                end
+                if size(old_vars_Rcomp,1)>0
+                    Cval = subs(Cval,old_vars_Rcomp(:),new2old_Rcomp(:));
+                end
+            end
+            % Multiply with scaling due to integration/differentiation.
+            factor_ll.C = Cval*fctr;
+        
+            % Update the factor in term jj
+            term_jj(ll) = factor_ll;
         end
-        % Multiply with scaling due to integration/differentiation.
-        term_jj.C = Cval*fctr;
         
         % % Update the term in the new PDE, and continue to the next term.
         PDE_new.(Lobj){ii}.term{jj} = term_jj;
