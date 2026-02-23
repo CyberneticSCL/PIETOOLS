@@ -141,7 +141,7 @@ if strcmp(simulate,'on')
  end
  
 %------------------------------------------------
-% Description of solution field - see the header of PIESIM/PIESIM.m or PIETOOLS User's manual
+% Description of solution field - see the header of PIESIM/PIESIM_routines/PIESIM.m or PIETOOLS User's manual
 %------------------------------------------------
 
     
