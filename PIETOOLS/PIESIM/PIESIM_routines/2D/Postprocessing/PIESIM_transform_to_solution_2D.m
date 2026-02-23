@@ -356,7 +356,6 @@ if (opts.intScheme==1&opts.tf~=0)
      else
      solution.timedep.primary{1}=[];
      end
-
  %---------------------------------------------    
  % Reconstruct PDE and output solutions for every time step
  %--------------------------------------------

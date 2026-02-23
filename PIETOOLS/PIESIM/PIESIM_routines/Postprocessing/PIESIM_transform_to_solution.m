@@ -157,6 +157,9 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
      solution.final.primary{1}=[]; 
      end
      else
+     solution.final.primary{1}=[]; 
+     end
+     else
          solution.final.primary{1}=[];
          if (ns>0) 
              solution.final.primary{2}=[];
