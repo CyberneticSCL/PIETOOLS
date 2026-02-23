@@ -89,7 +89,7 @@ end
     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Step 4: Simulation (See User Manual, Chapter 6 or xPIESIM/solver_PIESIM.m for more examples)
+%% Step 4: Simulation (See User Manual, Chapter 6 or PIESIM/solver_PIESIM.m for more examples)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 opts.tf=10;
 opts.dt = 0.05;
