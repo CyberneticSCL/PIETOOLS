@@ -3,6 +3,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Please, contact Y. Peet at ypeet@asu.edu for support
 
+% This function is PIESIM main driver
+
 % This matlab function performs the following operations:
 % 1) Checks if all inputs are defined and (if not) setting up default
 % options
@@ -15,14 +17,14 @@
 %    (if opts.intScheme=1) - plots the ODE solutions versus time
 %
 % Inputs:
-% varargin - variable number of arguments (between 1 and 4)
-% --- varargin has the form: {object_type, opts, uinput, ndiff}
+% varargin - variable number of arguments (between 1 and 3)
+% --- varargin has the form: {object_type, opts, uinput}
 % Required:
 % 1) varargin(1): data structure of the problem: PDE, DDE or PIE    
 % --- object_type: mandatory input (PDE, DDE, or PIE structure)
 % ----- PIE structure of the problem specifies PI operators, 
 %       {T,Tu,Tw, A, Bi, Ci, Dij} as fields
-% ----- For any input structyre, opts, uinput and ndiff are
+% ----- For any input structure, opts and uinput are
 %       optional fields (defalut values will be used if not provided,
 %       consult the manual)
 
@@ -56,21 +58,12 @@
 % ------ exact: only if uinput.ifexact=true, then define exact solution as a 
 %        MATLAB symbolic object in 'st','sx' (1D), or 'st','sx','sy' (2D)
 
-% --- varargin(4): ndiff (only used when varargin(1) is PIE), is a vector 
-%     of integers specifying the number of differentiable states based on
-%     the index location, such as ndiff(i) is the number of states that are (i-1) times
-%     differentiable in space.
-%     For example, [0,2,1] stands for (0) continuous, (2) continuously 
-%     differentiable, and (1) twice continuously differentiable states. If
-%     not specified, the value of of 0 will be assumed for all
-%     states 
-
 % Outputs: 
 % 1) solution
 % solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.primary{1,2,3,4} - cell array containing all primary state solutions (ode and pde) at a final time
-% --- solution.final.primary{1} - array of size no - ode (finite-dimensional) solutions at a final time 
+% --- solution.final.primary{1} - array of size n0 - ode (finite-dimensional) solutions at a final time 
 % --- solution.final.primary{2} - array containing the solution for states that are only the functions of s1 - 
 %      array of size (N(1)+1) x nx, nx - number of states depending only on s1
 % --- solution.final.primary{3} - array containing the solution for states that are only the functions of s2 - 
@@ -78,32 +71,32 @@
 % --- solution.final.primary{4} - array containing the solution for states that are the functions of two variables - 
 % it is array of size (N(1)+1) x (N(2)+1) x n2, n2 - number of states depending on both s1 and s2
 % --- solution.final.observed{1,2,3,4} - cell array containing final value of observed outputs 
-% --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
+% --- solution.final.observed{1} - array of size no0  - final value of finite-dimensional observed outputs
 % --- solution.final.observed{2} - array containing final value of infinite-dimnesional 
 %      observed outputs that are only the functions of s1 - 
-%      array of size (N(1)+1) x noox, noox - number of outputs depending only on s1
+%      array of size (N(1)+1) x nox, nox - number of outputs depending only on s1
 % --- solution.final.observed{3} - array containing final value of infinite-dimnesional 
 %      observed outputs that are only the functions of s2 - 
-%      array of size (N(2)+1) x nooy, nooy - number of outputs depending
+%      array of size (N(2)+1) x noy, noy - number of outputs depending
 %      only on s2
 % --- solution.final.observed{4} - array containing final value of observed outputs that are the functions of two variables - 
-%      array of size (N(1)+1) x (N(2)+1) x noo2, noo2 - number of outputs depending on both s1 and s2
+%      array of size (N(1)+1) x (N(2)+1) x no2, no2 - number of outputs depending on both s1 and s2
 % --- solution.final.regulated{1,2,3,4} - cell array containing final value of regulatedd outputs 
-% --- solution.final.regulated{1} - array of size nro  - final value of finite-dimensional regulated outputs
+% --- solution.final.regulated{1} - array of size nr0  - final value of finite-dimensional regulated outputs
 % --- solution.final.regulated{2} - array containing final value of infinite-dimensional 
 %      regulated outputs that are only the functions of s1 - 
-%      array of size (N(1)+1) x nrox, nrox - number of outputs depending only on s1  
+%      array of size (N(1)+1) x nrx, nrx - number of outputs depending only on s1  
 %      solution.final.regulated{3} - array containing final value of infinite-dimensional 
 %      regulated outputs that are only the functions of s2 - 
-%      array of size (N(2)+1) x nroy, nroy - number of outputs depending only on s2 
+%      array of size (N(2)+1) x nry, nry - number of outputs depending only on s2 
 % --- solution.final.regulated{4} - array containing final value of regulated outputs that are the functions of two variables - 
-% It is array of size (N(1)+1) x (N(2)+1) x nro2, nro2 - number of outputs depending on both s1 and s2
+% It is array of size (N(1)+1) x (N(2)+1) x nr2, nr2 - number of outputs depending on both s1 and s2
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.primary{1,2,3,4} - cell array containing all
 % time-dependent primary state solutions (ode and pde)
-% --- solution.timedep.primary{1} - array of size no x Nsteps - time-dependent solution of no ODE (finite-dimensional) states
+% --- solution.timedep.primary{1} - array of size n0 x Nsteps - time-dependent solution of no ODE (finite-dimensional) states
 % --- solution.timedep.primary{2} - array containing the solution for states that are only the functions of s1 - 
 %      array of size (N(1)+1) x nx x Nsteps, nx - number of states depending only on s1
 % --- solution.timedep.primary{3} - array containing the solution for states that are only the functions of s2 - 
@@ -112,24 +105,24 @@
 %      array of size (N(1)+1) x (N(2)+1) x n2 x Nsteps, n2 - number of states depending on both s1 and s2
 % --- solution.timedep.observed{1,2,3,4} - cell array containing time-dependent 
 %      observed outputs 
-% --- solution.timedep.observed[1} - array of size noo x Nsteps -
+% --- solution.timedep.observed[1} - array of size no0 x Nsteps -
 %     time-dependent value of finite-dimensional observed outputs
 % --- solution.timedep.observed{2} - array containing observed outputs that are only the functions of s1 - 
-%     array of size (N(1)+1) x noox x Nsteps, noox - number of observed outputs depending only on s1
+%     array of size (N(1)+1) x nox x Nsteps, nox - number of observed outputs depending only on s1
 % --- solution.timedep.observed{3} - array containing observed outputs that are only the functions of s2 - 
-%     array of size (N(2)+1) x nooy x Nsteps, nooy - number of observed outputs depending only on s2
+%     array of size (N(2)+1) x noy x Nsteps, noy - number of observed outputs depending only on s2
 % --- solution.timedep.observed{4} - array containing observed outputs that are the functions of two variables - 
-%      array of size (N(1)+1) x (N(2)+1) x noo2 x Nsteps, noo2 - number of outputs depending on both s1 and s2
+%      array of size (N(1)+1) x (N(2)+1) x no2 x Nsteps, no2 - number of outputs depending on both s1 and s2
 % --- solution.timedep.regulated{1,2,3,4} - array containing time-dependent infinite-dimnesional 
 %      regulated outputs 
-% --- solution.timedep.regulated{1} - array of size nro x Nsteps -
+% --- solution.timedep.regulated{1} - array of size nr0 x Nsteps -
 %     time-dependent value of finite-dimensional regulated outputs
 % --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s1 - 
-%     array of size (N(1)+1) x nrox x Nsteps, nrox - number of regulated outputs depending only on s1
+%     array of size (N(1)+1) x nrx x Nsteps, nrx - number of regulated outputs depending only on s1
 % --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s2 - 
-%     array of size (N(2)+1) x nroy x Nsteps, nroy - number of regulated outputs depending only on s2
+%     array of size (N(2)+1) x nry x Nsteps, nry - number of regulated outputs depending only on s2
 % --- solution.timedep.regulated{3} - array containing regulated outputs that are the functions of two variables - 
-%     array of size (N(1)+1) x (N(2)+1) x nro2 x Nsteps, nro2 - number of outptus depending on both s1 and s2
+%     array of size (N(1)+1) x (N(2)+1) x nr2 x Nsteps, nr2 - number of outptus depending on both s1 and s2
 
 %  2) grid - physical grid of a primary state for plotting and post-processing
 %      a) In 1D - grid is an array of size (N+1) x 1 containing spatial coordinates of the physical grid for

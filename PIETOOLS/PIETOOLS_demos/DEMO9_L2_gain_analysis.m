@@ -106,7 +106,7 @@ opts.dt = 1e-2;     % Use time step of 10^-2
 [solution,grid] = PIESIM(PDE,opts,uinput);
 tval = solution.timedep.dtime;
 x = reshape(solution.timedep.primary{4}(:,:,1,:),opts.N+1,opts.N+1,[]);
-z = solution.timedep.regulated(1,:);
+z = solution.timedep.regulated{1}(1,:);
 w = double(subs(uinput.w,st,tval));
 
 

@@ -10,17 +10,17 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.primary{1,2} - cell array containing final value of
 % solution states
-% --- solution.final.primary{1} - array of size no - ode (finite-dimensional) solutions at a final time 
-% --- solution.final.primary{2} - array of size (N+1) x ns - pde (distributed state) solutions at a final time
+% --- solution.final.primary{1} - array of size n0 - ode (finite-dimensional) solutions at a final time 
+% --- solution.final.primary{2} - array of size (N+1) x nx - pde (distributed state) solutions at a final time
 % --- solution.final.observed{1,2} - cell array containing final value of observed outputs 
-% --- solution.final.observed[1} - array of size noo containing final
+% --- solution.final.observed[1} - array of size no0 containing final
 %      value of finite-dimensional observed outputs
-% --- solution.final.observed{2} - array of size (N+1) x noox 
+% --- solution.final.observed{2} - array of size (N+1) x nox 
 %      containing final value of infinite-dimensional observed outputs
 % --- solution.final.regulated{1,2} - cell array containing final value of regulated outputs 
-% --- solution.final.regulated[1} - array of size nro containing
+% --- solution.final.regulated[1} - array of size nr0 containing
 %     final value of finite-dimensional regulated outputs
-% --- solution.final.regulated{2} - array of size (N+1) x nrox 
+% --- solution.final.regulated{2} - array of size (N+1) x nrx 
 %      containing final value of infinite-dimensional regulated ooutputs
 
 
@@ -32,17 +32,17 @@ function figs = PIESIM_plot_solution(solution, psize, uinput, grid, opts);
 % --- solution.timedep.primary{2} - array of size (N+1) x ns x Nsteps - time-dependent
 %     solution of ns PDE (distributed) states of the primary PDE system
 % --- solution.timedep.observed{1,2} - cell array containing time-dependent observed outputs 
-% --- solution.timedep.observed[1} - array of size noo x Nsteps -
+% --- solution.timedep.observed[1} - array of size no0 x Nsteps -
 %     time-dependent value of finite-dimensional observed outputs
-% --- solution.timedep.observed{2} - array of size (N+1) x noox x Nsteps
+% --- solution.timedep.observed{2} - array of size (N+1) x nox x Nsteps
 %      containing infinite-dimensional observed outputs
 % --- solution.timedep.regulated{1,2} - cell array containing time-dependent regulated outputs 
-% --- solution.timedep.regulated[1} - array of size nro x Nsteps -
+% --- solution.timedep.regulated[1} - array of size nr0 x Nsteps -
 %     time-dependent value of finite-dimensional regulated outputs
-% --- solution.timedep.regulated{2} - array of size (N+1) x nrox x Nsteps
+% --- solution.timedep.regulated{2} - array of size (N+1) x nrx x Nsteps
 % containing infinite-dimensional regulated ooutputs
 
-% 2) psize - size of the PIE problem: nw, nu, nf, no 
+% 2) psize - size of the PIE problem: nw, nu, nf, n0
 % 3) uinput -  user-defined boundary inputs, forcing functions and initial conditions
 % 4) grid - physical grid for primary states
 % 5) opts - options for simulation parameters
@@ -72,9 +72,9 @@ marker_size = 2*line_width;
 
    
 % % Display final value of ODE state, if possible.
-if(psize.no>0)
+if(psize.n0>0)
     if (~isempty(solution.final.primary{1}))
-        for i=1:psize.no
+        for i=1:psize.n0
             formatSpec = 'Solution of ODE state %s at a final time %f is %8.4f\n';
             fprintf(formatSpec,num2str(i),solution.tf, solution.final.primary{1}(i));
         end
@@ -86,9 +86,9 @@ if(psize.no>0)
 end
 
 % % Display final value of regulated output, if possible.
-if(psize.nro>0)
+if(psize.nr0>0)
     if (~isempty(solution.final.regulated{1}))
-        for i=1:psize.nro
+        for i=1:psize.nr0
             formatSpec = 'Value of regulated finite-dimensional output %s at a final time %f is %8.4f\n';
             fprintf(formatSpec,num2str(i),solution.tf, solution.final.regulated{1}(i));
         end
@@ -100,9 +100,9 @@ if(psize.nro>0)
 end
 
 % % Display final value of observed output, if possible.
-if(psize.noo>0)
+if(psize.no0>0)
     if (~isempty(solution.final.observed{1}))
-        for i=1:psize.noo
+        for i=1:psize.no0
             formatSpec = 'Value of observed finite-dimensional output %s at a final time %f is %8.4f\n';
             fprintf(formatSpec,num2str(i),solution.tf, solution.final.observed{1}(i));
         end
@@ -136,7 +136,7 @@ figs = {};
 
 
 % % Plot the ODE states evolution in a single plot
-if (psize.no>0) && plot_ode && opts.intScheme==1
+if (psize.n0>0) && plot_ode && opts.intScheme==1
     odesol = solution.timedep.primary{1}';
 
     fig1 = figure('Position',[200 150 800 450]);
@@ -144,7 +144,7 @@ if (psize.no>0) && plot_ode && opts.intScheme==1
     box on
     
     hold on
-    for ii=1:psize.no
+    for ii=1:psize.n0
         X_ii = odesol(t_idcs,ii)';
         plot(tval,X_ii,'DisplayName',['$x_',num2str(ii),'(t)$'],'LineWidth',line_width);
     end
@@ -157,7 +157,7 @@ if (psize.no>0) && plot_ode && opts.intScheme==1
     end
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$x$','FontSize',15,'Interpreter','latex');
-    if psize.no>1
+    if psize.n0>1
         legend('FontSize',15,'Interpreter','latex');
     end
     set(gca,'TickLabelInterpreter','latex');
@@ -182,7 +182,7 @@ colors_y = [0, 0, 1;
             0.75, 0, 0.75;
             0.75, 0.75, 0;
             0.25, 0.25, 0.25];
-if (psize.noo>0) && plot_y && opts.intScheme==1
+if (psize.no0>0) && plot_y && opts.intScheme==1
 
     fig2 = figure('Position',[200 150 800 450]);
     box on
@@ -190,16 +190,16 @@ if (psize.noo>0) && plot_y && opts.intScheme==1
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$y$','FontSize',15,'Interpreter','latex');
     hold on
-    for ii=1:psize.noo
+    for ii=1:psize.no0
         y_ii = solution.timedep.observed{1}(ii,t_idcs);
         if ii<=size(colors_y,1)
-            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
+            plot(tval,y_ii,'Color',colors_y(psize.no0-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
         else
             plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',line_width);
         end
     end
     hold off
-    if psize.noo>1
+    if psize.no0>1
         legend('FontSize',15,'Interpreter','latex');
     end
     set(gca,'XLim',[min(tval),max(tval)]);
@@ -210,7 +210,7 @@ end
 
 % % Plot the regulated outputs evolution in a single plot.
 colors_z = {'b','g','m','r','k','c','r','y'};
-if (psize.nro>0) && plot_z && opts.intScheme==1
+if (psize.nr0>0) && plot_z && opts.intScheme==1
 
     fig3 = figure('Position',[200 150 800 450]);
     box on
@@ -218,7 +218,7 @@ if (psize.nro>0) && plot_z && opts.intScheme==1
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$z$','FontSize',15,'Interpreter','latex');
     hold on
-    for ii=1:psize.nro
+    for ii=1:psize.nr0
         z_ii = solution.timedep.regulated{1}(ii,t_idcs);
         if ii<=length(colors_z)
             plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
@@ -227,7 +227,7 @@ if (psize.nro>0) && plot_z && opts.intScheme==1
         end
     end
     hold off
-    if psize.nro>1
+    if psize.nr0>1
         legend('FontSize',15,'Interpreter','latex');
     end
     set(gca,'XLim',[min(tval),max(tval)]);
@@ -255,38 +255,38 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.primary{2})
         exact_grid = linspace(a,b,round(Nplot_space));
         exsol_grid = double.empty(round(Nplot_space),0);
     end
-    ns = sum(psize.n);
+    nx = sum(psize.n);
 
     % Plot the PDE states at the final time
-    fig_width = min(ns*600,1800);
+    fig_width = min(nx*600,1800);
     fig4 = figure('Position',[200 150 fig_width 450]);
     set(gcf, 'Color', 'w');
     box on
-    if ns>1
+    if nx>1
         sgtitle('PDE State at Final Time','Interpreter','latex','FontSize',16)
     end
-    for n=1:ns
+    for n=1:nx
         if (opts.ifexact==true)
             exsol_grid_time = subs(uinput.exact(n),sx,exact_grid);
             exsol_grid = double(subs(exsol_grid_time,solution.tf));
         end
-        subplot(1,ns,n);
+        subplot(1,nx,n);
         box on
         hold on
         if ~opts.ifexact
-            plot(grid,solution.final.primary{2}(:,n),'-d','Color',colors_PDE(n+psize.no,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
+            plot(grid,solution.final.primary{2}(:,n),'-d','Color',colors_PDE(n+psize.n0,:),'MarkerSize',marker_size,'LineWidth',line_width,'DisplayName','Numerical solution');
         else
-            plot(grid,solution.final.primary{2}(:,n),'d','Color',colors_PDE(n+psize.no,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
+            plot(grid,solution.final.primary{2}(:,n),'d','Color',colors_PDE(n+psize.n0,:),'LineWidth',marker_size,'DisplayName','Numerical solution');
             plot(exact_grid,exsol_grid,'k-','DisplayName','Analytical solution','LineWidth',line_width); 
             legend('FontSize',13,'Interpreter','latex');
         end
         hold off
         xlabel('$s$','FontSize',15,'Interpreter','latex');
         ylabel('$\mathbf{x}$','FontSize',15,'Interpreter','latex');
-        if ns==1
+        if nx==1
             title(['PDE State at Final Time, $\mathbf{x}(t=',num2str(solution.tf),',s)$'],'FontSize',15,'Interpreter','latex');
         else
-            title(['$\mathbf{x}_',num2str(n+psize.no),'(t=',num2str(solution.tf),',s)$'],'FontSize',15,'Interpreter','latex');
+            title(['$\mathbf{x}_',num2str(n+psize.n0),'(t=',num2str(solution.tf),',s)$'],'FontSize',15,'Interpreter','latex');
         end
         set(gca,'XLim',[min(grid),max(grid)]);
         set(gca,'TickLabelInterpreter','latex');
@@ -303,20 +303,20 @@ if ~strcmp(opts.type,'DDE') && ~isempty(solution.final.primary{2})
     fig5 = figure('Position',[200 150 fig_width 450]);
     set(gcf, 'Color', 'w');
     box on
-    if ns>1
+    if nx>1
         sgtitle('PDE State Evolution','Interpreter','latex','FontSize',16)
     end
-    for ii=1:ns
+    for ii=1:nx
         x_ii = reshape(solution.timedep.primary{2}(:,ii,t_idcs),Ngp,[]);
-        subplot(1,ns,ii);
+        subplot(1,nx,ii);
         surf(tval,grid,x_ii,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
         h = colorbar;
         colormap jet
         box on
-        if ns==1
+        if nx==1
             title('PDE State Evolution $\mathbf{x}(t,s)$','FontSize',15,'Interpreter','latex');
         else
-            title(['$\mathbf{x}_',num2str(ii)+psize.no,'(t,s)$'],'FontSize',15,'Interpreter','latex');
+            title(['$\mathbf{x}_',num2str(ii)+psize.n0,'(t,s)$'],'FontSize',15,'Interpreter','latex');
         end
         xlabel('$t$','FontSize',15,'Interpreter','latex');
         ylabel('$s$','FontSize',15,'Interpreter','latex');

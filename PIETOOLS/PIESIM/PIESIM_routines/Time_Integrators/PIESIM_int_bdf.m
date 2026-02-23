@@ -3,10 +3,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Performs time-advancement of a discretized PIE with implicit
 % backward-difference formula (BDF) - unconditionally stable for diffusive
-% problems, occasionally not stable for hyperbolic problems
+% problems, occasionally n0t stable for hyperbolic problems
 %
 % Inputs:
-% psize - size of the PIE problem: nw, nu, no 
+% psize - size of the PIE problem: nw, nu, n0 
 % opts - options for temporal scheme parameters
 % uinput   - user-defined boundary inputs
 % coeff - Chebyshev coefficients of initial conditions and forcing terms, if any
@@ -25,7 +25,7 @@
 % 4) solcoeff.timedep.ode -
 % time-dependent Chebyshev coefficients of the ODE states of PIE system for
 % output (for ODE states, Chebyshev coefficients are equal to the solution
-% of the states, since the ODE states are not spatially dependent)
+% of the states, since the ODE states are n0t spatially dependent)
 % 5) solcoeff.timedep.pde -
 % time-dependent Chebyshev coefficients of the PDE states of PIE system for output 
 % (for PDE states, an inverse Fourier transform needs to be performed to recover physical solution from its )
@@ -43,7 +43,7 @@
 % Added solcoeff,u, solcoeff.w to solcoeff structure
 % YP 12/31/2025 - modified the treatment of disturbances and control inputs via functon
 % handles
-% YP 2/12/2026 - added handling of non-separable disturbances
+% YP 2/12/2026 - added handling of Non-separable disturbances
 
 function solcoeff=PIESIM_int_bdf(psize, opts, uinput, coeff, gridall, Dop)
 syms st;
@@ -64,7 +64,7 @@ cum_nup = cumsum(nu_points);
 end
 
 nu=psize.nu;
-no=psize.no;
+n0=psize.n0;
 dt=opts.dt;
 Nsteps=opts.Nsteps;
 Norder=opts.Norder;
@@ -105,7 +105,7 @@ A_impl_4=eye(Nsize)*bdf4(1)-dt*Atotal;
 A_inv_impl_4=inv(A_impl_4);
 end
 
-% achebi denotes Chebyshev coefficients on the fundamental states computed with
+% achebi den0tes Chebyshev coefficients on the fundamental states computed with
 % (implicit) BDF method
 
 achebi=acheb_f0;
@@ -222,7 +222,7 @@ t=0;
      end
     
     % Time advancement for first several time steps needs to be done with
-    % lower order schemes since not enough previous solutions are yet
+    % lower order schemes since n0t en0ugh previous solutions are yet
     % available
     
     
@@ -277,13 +277,13 @@ t=0;
     
             
     % Save temporal evolution of ODE states for plotting
-    if (no>0)
-    solcoeff.timedep.ode(n,:)=achebi(1:no);
+    if (n0>0)
+    solcoeff.timedep.ode(n,:)=achebi(1:n0);
     end
     
     % Save temporal evolution of PDE states for plotting
     
-    solcoeff.timedep.pde(n,:) = achebi(no+1:end);
+    solcoeff.timedep.pde(n,:) = achebi(n0+1:end);
     
     solcoeff.timedep.dtime(n)=t;
     

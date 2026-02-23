@@ -11,7 +11,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % physical solution of the preimary states
 
 % Inputs: 
-% 1) psize - size of the PIE problem: nw, nu, nf, no 
+% 1) psize - size of the PIE problem: nw, nu, nf, n0 
 % 2) PIE structure - needed for reconstruction of non-zero boundary terms,
 %  observed and regulated outputs
 % 3) Dop- discretized PIE operators
@@ -25,35 +25,35 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.primary{1,2} - cell array containing final value of
 % solution states
-% --- solution.final.primary{1} - array of size no - ode (finite-dimensional) solutions at a final time 
-% --- solution.final.primary{2} - array of size (N+1) x ns - pde (distributed state) solutions at a final time
+% --- solution.final.primary{1} - array of size n0 - ode (finite-dimensional) solutions at a final time 
+% --- solution.final.primary{2} - array of size (N+1) x nx - pde (distributed state) solutions at a final time
 % --- solution.final.observed{1,2} - cell array containing final value of observed outputs 
-% --- solution.final.observed[1} - array of size noo containing final
+% --- solution.final.observed[1} - array of size no0 containing final
 %      value of finite-dimensional observed outputs
-% --- solution.final.observed{2} - array of size (N+1) x noox 
+% --- solution.final.observed{2} - array of size (N+1) x nox 
 %      containing final value of infinite-dimensional observed outputs
 % --- solution.final.regulated{1,2} - cell array containing final value of regulated outputs 
-% --- solution.final.regulated[1} - array of size nro containing
+% --- solution.final.regulated[1} - array of size nr0 containing
 %     final value of finite-dimensional regulated outputs
-% --- solution.final.regulated{2} - array of size (N+1) x nrox 
+% --- solution.final.regulated{2} - array of size (N+1) x nrx 
 %      containing final value of infinite-dimensional regulated ooutputs
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.primary{1,2} - cell array containing final value of
 % solution states
-% --- solution.timedep.primary{1} - array of size no x Nsteps - time-dependent solutions of no ODE (finite-dimensional) states
-% --- solution.timedep.primary{2} - array of size (N+1) x ns x Nsteps - time-dependent
+% --- solution.timedep.primary{1} - array of size n0 x Nsteps - time-dependent solutions of n0 ODE (finite-dimensional) states
+% --- solution.timedep.primary{2} - array of size (N+1) x nx x Nsteps - time-dependent
 %     solution of ns PDE (distributed) states of the primary PDE system
 % --- solution.timedep.observed{1,2} - cell array containing time-dependent observed outputs 
-% --- solution.timedep.observed[1} - array of size noo x Nsteps -
+% --- solution.timedep.observed[1} - array of size no0 x Nsteps -
 %     time-dependent value of finite-dimensional observed outputs
-% --- solution.timedep.observed{2} - array of size (N+1) x noox x Nsteps
+% --- solution.timedep.observed{2} - array of size (N+1) x nox x Nsteps
 %      containing infinite-dimensional observed outputs
 % --- solution.timedep.regulated{1,2} - cell array containing time-dependent regulated outputs 
-% --- solution.timedep.regulated[1} - array of size nro x Nsteps -
+% --- solution.timedep.regulated[1} - array of size nr0 x Nsteps -
 %     time-dependent value of finite-dimensional regulated outputs
-% --- solution.timedep.regulated{2} - array of size (N+1) x nrox x Nsteps
+% --- solution.timedep.regulated{2} - array of size (N+1) x nrx x Nsteps
 % containing infinite-dimensional regulated ooutputs
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,8 +65,8 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 %
 % Initial coding YP  - 9_19_2021
 % YP, 6/16/2022 - Added reconstruction of observed and regulated outputs.
-% Added a support of case when LHS PDE operator is not the same as the
-% state map operator. Note: input arguments changed.
+% Added a support of case when LHS PDE operator is n0t the same as the
+% state map operator. n0te: input arguments changed.
 % YP, 12/31/2025 - Modified treatment of disturbances and control inputs, added support for
 % cylindrical coordinates (weighted method), added support for
 % infinite-dimensional outputs;
@@ -81,16 +81,16 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
 % Define local variables
 
      N=psize.N;
-     no=psize.no;
-     ns=sum(psize.n);
+     n0=psize.n0;
+     nx=sum(psize.n);
 
 % Determine number of observed and regulated outputs
 
-    if ~isfield(psize,'nrox')
-        psize.nrox=0;
+    if ~isfield(psize,'nrx')
+        psize.nrx=0;
     end 
-    if ~isfield(psize,'noox')
-       psize.noox=0;
+    if ~isfield(psize,'nox')
+       psize.nox=0;
     end
 
      Tcheb_2PDEstate=Dop.Tcheb_2PDEstate; 
@@ -115,7 +115,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
      D22op=Dop.D22cheb;
 
      if (solcoeff.tf~=opts.tf) 
-     disp('Warning: solution final time does not match user input final time');
+     disp('Warning: solution final time does n0t match user input final time');
      disp('Defaulting to solution final time');
      end
      tf=solcoeff.tf;
@@ -147,11 +147,15 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
      % Reconstruct solution using inverse Chebyshev transform (ifcht
      % function)
      if(~isnan(acheb_p))
-     for n=1:ns
-     acheb_p_local=acheb_p(no+1+(n-1)*(N+1):no+n*(N+1));
+     for n=1:nx
+     acheb_p_local=acheb_p(n0+1+(n-1)*(N+1):n0+n*(N+1));
      solution.final.primary{2}(:,n) = ifcht(acheb_p_local);
      end
-     solution.final.primary{1}=solcoeff.final(1:no);
+     if (n0>0)
+     solution.final.primary{1}=solcoeff.final(1:n0);
+     else
+     solution.final.primary{1}=[]; 
+     end
      else
          solution.final.primary{1}=[];
          if (ns>0) 
@@ -167,7 +171,7 @@ function solution=PIESIM_transform_to_solution(psize, PIE, Dop, uinput, solcoeff
         % Don't execute if solution blew up
         if(~isnan(solcoeff.final)) 
 
-if (psize.nro+psize.nrox>0)
+if (psize.nr0+psize.nrx>0)
 %   Reconstruction of regulated outputs
 
 %    Chebyshev coefficients of state-to-output portion
@@ -184,20 +188,20 @@ if (psize.nro+psize.nrox>0)
 % Transform to physical space
 
 % Finite-dimensional outputs
-   if(psize.nro>0)
-    solution.final.regulated{1}=coeff_final_regulated(1:psize.nro);
+   if(psize.nr0>0)
+    solution.final.regulated{1}=coeff_final_regulated(1:psize.nr0);
    end 
 % Infinite-dimensional outputs
-    for n=1:psize.nrox
-     coeff_final_regulated_local=coeff_final_regulated(psize.nro+1+(n-1)*(N+1):psize.nro+n*(N+1));
+    for n=1:psize.nrx
+     coeff_final_regulated_local=coeff_final_regulated(psize.nr0+1+(n-1)*(N+1):psize.nr0+n*(N+1));
      solution.final.regulated{2}(:,n) = ifcht(coeff_final_regulated_local);
     end
 
-end % if (psize.nro+psize.nrox>0)
+end % if (psize.nr+psize.nrx>0)
 
      %   Reconstruction of observed outputs
 
-     if (psize.noo+psize.noox>0)
+     if (psize.no0+psize.nox>0)
 
 %    Chebyshev coefficients of state-to-output portion
         coeff_final_observed=C2op*solcoeff.final;
@@ -213,30 +217,30 @@ end % if (psize.nro+psize.nrox>0)
 % Transform to physical space
 
 % Finite-dimensional outputs
-   if(psize.noo>0)
-    solution.final.observed{1}=coeff_final_observed(1:psize.noo);
+   if(psize.no0>0)
+    solution.final.observed{1}=coeff_final_observed(1:psize.no0);
    end 
 % Infinite-dimensional outputs
-    for n=1:psize.noox
-     coeff_final_observed_local=coeff_final_observed(psize.noo+1+(n-1)*(N+1):psize.noo+n*(N+1));
+    for n=1:psize.nox
+     coeff_final_observed_local=coeff_final_observed(psize.no0+1+(n-1)*(N+1):psize.no0+n*(N+1));
      solution.final.observed{2}(:,n) = ifcht(coeff_final_observed_local);
     end
 
-end % if (psize.noo+psize.noox>0)
+end % if (psize.no0+psize.nox>0)
      
         end % if (~isnaan)
      
 %----------------------------------------   
-% We now transform time-dependent solution, which is available for BDF
-% scheme only (opts.IntScheme=1) and at final time not equal to 0
+% We n0w transform time-dependent solution, which is available for BDF
+% scheme only (opts.IntScheme=1) and at final time n0t equal to 0
 %----------------------------------------
           
 if (opts.intScheme==1 & solution.tf~=0)
     
     % Define ODE solution and temporal stamps array
      solution.timedep.dtime=solcoeff.timedep.dtime;
-     if (~isnan(solcoeff.timedep.coeff))
-     solution.timedep.primary{1}=solcoeff.timedep.coeff(1:no,:);
+     if (~isnan(solcoeff.timedep.coeff) & n0>0)
+     solution.timedep.primary{1}=solcoeff.timedep.coeff(1:n0,:);
     else
     solution.timedep.primary{1}=[];
      end % ~isnan(solcoeff.timedep.coeff)
@@ -278,8 +282,8 @@ if (opts.intScheme==1 & solution.tf~=0)
   
      % Reconstruct solution using inverse Chebyshev transform (ifcht function)
      if (~isnan(acheb_p))
-     for n=1:ns
-     acheb_p_local=acheb_p(no+1+(n-1)*(N+1):no+n*(N+1));
+     for n=1:nx
+     acheb_p_local=acheb_p(n0+1+(n-1)*(N+1):n0+n*(N+1));
      solution.timedep.primary{2}(:,n,ntime) = ifcht(acheb_p_local);
       % Add contribution to solution due to inhomogeneous boundary inputs
       % and disturbances 
@@ -290,7 +294,7 @@ if (opts.intScheme==1 & solution.tf~=0)
 
 %   Reconstruction of regulated outputs
 
-    if (psize.nro+psize.nrox>0)
+    if (psize.nr0+psize.nrx>0)
 
 %    Chebyshev coefficients of state-to-output portion
         coeff_timedep_regulated=C1op*solcoeff.timedep.coeff(:,ntime);
@@ -306,20 +310,20 @@ if (opts.intScheme==1 & solution.tf~=0)
 % Transform to physical space
 
 % Finite-dimensional outputs
-   if(psize.nro>0)
-    solution.timedep.regulated{1}(:,ntime)=coeff_timedep_regulated(1:psize.nro);
+   if(psize.nr0>0)
+    solution.timedep.regulated{1}(:,ntime)=coeff_timedep_regulated(1:psize.nr0);
    end 
 % Infinite-dimensional outputs
-    for n=1:psize.nrox
-     coeff_timedep_regulated_local=coeff_timedep_regulated(psize.nro+1+(n-1)*(N+1):psize.nro+n*(N+1));
+    for n=1:psize.nrx
+     coeff_timedep_regulated_local=coeff_timedep_regulated(psize.nr0+1+(n-1)*(N+1):psize.nr0+n*(N+1));
      solution.timedep.regulated{2}(:,n,ntime) = ifcht(coeff_timedep_regulated_local);
     end
 
-    end %   if (psize.nro+psize.nrox>0)
+    end %   if (psize.nr+psize.nrx>0)
 
      %   Reconstruction of observed outputs
 
-     if (psize.noo+psize.noox>0)
+     if (psize.no0+psize.nox>0)
 
 %    Chebyshev coefficients of state-to-output portion
         coeff_timedep_observed=C2op*solcoeff.timedep.coeff(:,ntime);
@@ -335,16 +339,16 @@ if (opts.intScheme==1 & solution.tf~=0)
 % Transform to physical space
 
 % Finite-dimensional outputs
-   if(psize.noo>0)
-    solution.timedep.observed{1}(:,ntime)=coeff_timedep_observed(1:psize.noo);
+   if(psize.no0>0)
+    solution.timedep.observed{1}(:,ntime)=coeff_timedep_observed(1:psize.no0);
    end 
 % Infinite-dimensional outputs
-    for n=1:psize.noox
-     coeff_timedep_observed_local=coeff_timedep_observed(psize.noo+1+(n-1)*(N+1):psize.noo+n*(N+1));
+    for n=1:psize.nox
+     coeff_timedep_observed_local=coeff_timedep_observed(psize.no0+1+(n-1)*(N+1):psize.no0+n*(N+1));
      solution.timedep.observed{2}(:,n,ntime) = ifcht(coeff_timedep_observed_local);
     end
 
-     end % if (psize.nro+psize.nrox>0)
+     end % if (psize.no0+psize.nox>0)
      
      end % for ntime
 

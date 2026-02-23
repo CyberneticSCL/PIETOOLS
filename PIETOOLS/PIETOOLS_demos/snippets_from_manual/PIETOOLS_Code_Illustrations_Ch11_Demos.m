@@ -42,12 +42,12 @@ fig1 = figure('Position',[200 150 1000 400]);
 set(gcf, 'Color', 'w');
 subplot(1,2,1);
 box on
-surf(tplot,grids.phys,phi1(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tplot,grids,phi1(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h = colorbar;
 colormap jet    
 subplot(1,2,2);
 box on
-surf(tplot,grids.phys,phi2(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tplot,grids,phi2(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h = colorbar;
 colormap jet
 % Clean up the figure
@@ -96,10 +96,6 @@ ylabel('$r$','FontSize',15,'Interpreter','latex');
 %saveas(fig2,'DEMO1_OutputEvolution_Plot','epsc');
 
 
-
-
-
-
 %% 11.5 DEMO 5: Hinf Optimal Estimator
 % Run the Demo
 DEMO5_Hinf_optimal_estimator
@@ -119,14 +115,14 @@ fig1 = figure();
 set(gcf, 'Color', 'w');
 box on
 for j=grid_idcs
-    s_pos = num2str(grid.phys(j));  % Position associated to grid index.
+    s_pos = num2str(grid(j));  % Position associated to grid index.
     subplot(1,2,1)
     box on
     hold on
     plot(tplot,x_act(j,plot_indcs),[colors{j},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}(s=',s_pos,')$']);
     plot(tplot,x_est(j,plot_indcs),[colors{j},'o--'],'LineWidth',1.5,'DisplayName',['$\mathbf{\hat{x}}(s=',s_pos,')$']);
     hold off
-    
+
     subplot(1,2,2)
     box on
     hold on
@@ -170,22 +166,22 @@ set(gcf, 'Color', 'w');
 box on
 % Plot initial state value
 subplot(1,2,1);
-plot(grid.phys,subs(x0_sym,sx,grid.phys),[colors{1},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{ol}(t=0)$']);
+plot(grid,subs(x0_sym,sx,grid),[colors{1},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{ol}(t=0)$']);
 subplot(1,2,2);
-plot(grid.phys,subs(x0_sym,sx,grid.phys),[colors{1},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{cl}(t=0)$']);
+plot(grid,subs(x0_sym,sx,grid),[colors{1},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{cl}(t=0)$']);
 % Plot state at later times
 for j=1:length(plot_indcs)
     plot_indx = plot_indcs(j);
     t_pos = num2str(tval(plot_indx));
-    
+
     subplot(1,2,1);
     hold on
-    plot(grid.phys,x_OL(:,plot_indx),[colors{j+1},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{ol}(t=',t_pos,')$']);
+    plot(grid,x_OL(:,plot_indx),[colors{j+1},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{ol}(t=',t_pos,')$']);
     hold off
-    
+
     subplot(1,2,2);
     hold on
-    plot(grid.phys,x_CL(:,plot_indx),[colors{j+1},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{cl}(t=',t_pos,')$']);
+    plot(grid,x_CL(:,plot_indx),[colors{j+1},'-'],'LineWidth',2,'DisplayName',['$\mathbf{x}_{cl}(t=',t_pos,')$']);
     hold off
 end
 % Clean up the figure
@@ -264,12 +260,12 @@ figure('Position',[200 150 1000 400]);
 set(gcf, 'Color', 'w');
 subplot(1,2,1);
 box on
-surf(tplot,grid.phys,x_OL(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tplot,grid,x_OL(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h = colorbar;
 colormap jet    
 subplot(1,2,2);
 box on
-surf(tplot,grid.phys,x_CL(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tplot,grid,x_CL(:,plot_indcs),'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h = colorbar;
 colormap jet
 % Clean up the figure

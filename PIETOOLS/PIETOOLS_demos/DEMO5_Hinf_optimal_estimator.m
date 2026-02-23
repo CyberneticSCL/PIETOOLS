@@ -152,7 +152,7 @@ PIE_CL = pielft(PIE,PIE_est);
 
 % % Declare initial values and disturbance
 syms st sx real
-uinput.ic = [-10*sx;    % actual initial PIE state value
+uinput.ic = [-10*sx;        % actual initial PIE state value
                  0];        % estimated initial PIE state value
 uinput.w = 2*sin(pi*st);
 

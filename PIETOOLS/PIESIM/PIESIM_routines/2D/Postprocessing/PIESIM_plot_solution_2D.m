@@ -10,7 +10,7 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % solution is a structure with the following fields
 % --- solution.tf - scalar - actual final time of the solution
 % --- solution.final.primary{1,2,3,4} - cell array containing all primary state solutions (ode and pde) at a final time
-% --- solution.final.primary{1} - array of size no - ode (finite-dimensional) solutions at a final time 
+% --- solution.final.primary{1} - array of size n0 - ode (finite-dimensional) solutions at a final time 
 % --- solution.final.primary{2} - array containing the solution for states that are only the functions of s1 - 
 %      array of size (N(1)+1) x nx, nx - number of states depending only on s1
 % --- solution.final.primary{3} - array containing the solution for states that are only the functions of s2 - 
@@ -18,32 +18,32 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 % --- solution.final.primary{4} - array containing the solution for states that are the functions of two variables - 
 % it is array of size (N(1)+1) x (N(2)+1) x n2, n2 - number of states depending on both s1 and s2
 % --- solution.final.observed{1,2,3,4} - cell array containing final value of observed outputs 
-% --- solution.final.observed{1} - array of size noo  - final value of finite-dimensional observed outputs
+% --- solution.final.observed{1} - array of size no0  - final value of finite-dimensional observed outputs
 % --- solution.final.observed{2} - array containing final value of infinite-dimnesional 
 %      observed outputs that are only the functions of s1 - 
-%      array of size (N(1)+1) x noox, noox - number of outputs depending only on s1
+%      array of size (N(1)+1) x nox, nox - number of outputs depending only on s1
 % --- solution.final.observed{3} - array containing final value of infinite-dimnesional 
 %      observed outputs that are only the functions of s2 - 
-%      array of size (N(2)+1) x nooy, nooy - number of outputs depending
+%      array of size (N(2)+1) x noy, noy - number of outputs depending
 %      only on s2
 % --- solution.final.observed{4} - array containing final value of observed outputs that are the functions of two variables - 
-%      array of size (N(1)+1) x (N(2)+1) x noo2, noo2 - number of outputs depending on both s1 and s2
+%      array of size (N(1)+1) x (N(2)+1) x no2, no2 - number of outputs depending on both s1 and s2
 % --- solution.final.regulated{1,2,3,4} - cell array containing final value of regulatedd outputs 
-% --- solution.final.regulated{1} - array of size nro  - final value of finite-dimensional regulated outputs
+% --- solution.final.regulated{1} - array of size nr0  - final value of finite-dimensional regulated outputs
 % --- solution.final.regulated{2} - array containing final value of infinite-dimensional 
 %      regulated outputs that are only the functions of s1 - 
-%      array of size (N(1)+1) x nrox, nrox - number of outputs depending only on s1  
+%      array of size (N(1)+1) x nrx, nrx - number of outputs depending only on s1  
 %      solution.final.regulated{3} - array containing final value of infinite-dimensional 
 %      regulated outputs that are only the functions of s2 - 
-%      array of size (N(2)+1) x nroy, nroy - number of outputs depending only on s2 
+%      array of size (N(2)+1) x nry, nry - number of outputs depending only on s2 
 % --- solution.final.regulated{4} - array containing final value of regulated outputs that are the functions of two variables - 
-% It is array of size (N(1)+1) x (N(2)+1) x nro2, nro2 - number of outputs depending on both s1 and s2
+% It is array of size (N(1)+1) x (N(2)+1) x nr2, nr2 - number of outputs depending on both s1 and s2
 
 % IF OPTS.INTSCHEME=1 (BDF) OPTION, there are additional outputs
 % --- solution.timedep.dtime - array of size 1 x Nsteps - array of temporal stamps (discrete time values) of the time-dependent solution
 % --- solution.timedep.primary{1,2,3,4} - cell array containing all
 % time-dependent primary state solutions (ode and pde)
-% --- solution.timedep.primary{1} - array of size no x Nsteps - time-dependent solution of no ODE (finite-dimensional) states
+% --- solution.timedep.primary{1} - array of size n0 x Nsteps - time-dependent solution of no ODE (finite-dimensional) states
 % --- solution.timedep.primary{2} - array containing the solution for states that are only the functions of s1 - 
 %      array of size (N(1)+1) x nx x Nsteps, nx - number of states depending only on s1
 % --- solution.timedep.primary{3} - array containing the solution for states that are only the functions of s2 - 
@@ -52,24 +52,24 @@ function PIESIM_plot_solution_2D(solution, psize, uinput, grid, opts);
 %      array of size (N(1)+1) x (N(2)+1) x n2 x Nsteps, n2 - number of states depending on both s1 and s2
 % --- solution.timedep.observed{1,2,3,4} - cell array containing time-dependent 
 %      observed outputs 
-% --- solution.timedep.observed[1} - array of size noo x Nsteps -
+% --- solution.timedep.observed[1} - array of size n0 x Nsteps -
 %     time-dependent value of finite-dimensional observed outputs
 % --- solution.timedep.observed{2} - array containing observed outputs that are only the functions of s1 - 
-%     array of size (N(1)+1) x noox x Nsteps, noox - number of observed outputs depending only on s1
+%     array of size (N(1)+1) x nox x Nsteps, nox - number of observed outputs depending only on s1
 % --- solution.timedep.observed{3} - array containing observed outputs that are only the functions of s2 - 
-%     array of size (N(2)+1) x nooy x Nsteps, nooy - number of observed outputs depending only on s2
+%     array of size (N(2)+1) x noy x Nsteps, noy - number of observed outputs depending only on s2
 % --- solution.timedep.observed{4} - array containing observed outputs that are the functions of two variables - 
-%      array of size (N(1)+1) x (N(2)+1) x noo2 x Nsteps, noo2 - number of outputs depending on both s1 and s2
+%      array of size (N(1)+1) x (N(2)+1) x no2 x Nsteps, no2 - number of outputs depending on both s1 and s2
 % --- solution.timedep.regulated{1,2,3,4} - array containing time-dependent infinite-dimnesional 
 %      regulated outputs 
-% --- solution.timedep.regulated{1} - array of size nro x Nsteps -
+% --- solution.timedep.regulated{1} - array of size nr0 x Nsteps -
 %     time-dependent value of finite-dimensional regulated outputs
 % --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s1 - 
-%     array of size (N(1)+1) x nrox x Nsteps, nrox - number of regulated outputs depending only on s1
+%     array of size (N(1)+1) x nrx x Nsteps, nrx - number of regulated outputs depending only on s1
 % --- solution.timedep.regulated{2} - array containing regulated outputs that are only the functions of s2 - 
-%     array of size (N(2)+1) x nroy x Nsteps, nroy - number of regulated outputs depending only on s2
+%     array of size (N(2)+1) x nry x Nsteps, nry - number of regulated outputs depending only on s2
 % --- solution.timedep.regulated{3} - array containing regulated outputs that are the functions of two variables - 
-%     array of size (N(1)+1) x (N(2)+1) x nro2 x Nsteps, nro2 - number of outptus depending on both s1 and s2
+%     array of size (N(1)+1) x (N(2)+1) x nr2 x Nsteps, nr2 - number of outptus depending on both s1 and s2
 
 % 2) psize - all variables defining the size of the PIE problem
 % 3) uinput -  user-defined boundary inputs, forcing functions and initial conditions
@@ -97,19 +97,19 @@ marker_size = 2*line_width;
 
    % Output solution of ODE states
 
-for i=1:psize.no
+for i=1:psize.n0
 formatSpec = 'Solution of an ODE state %s at a final time %f is %8.4f\n';
 fprintf(formatSpec,num2str(i),solution.tf, solution.final.primary{1}(i));
 end
 
 % Output values for regulated outputs
-for i=1:psize.nro
+for i=1:psize.nr0
 formatSpec = 'Value of regulated output %s at a final time %f is %8.4f\n';
 fprintf(formatSpec,num2str(i),solution.tf, solution.final.regulated{1}(i));
 end
 
 % Output values for observed outputs
-for i=1:psize.noo
+for i=1:psize.no0
 formatSpec = 'Value of observed output %s at a final time %f is %8.4f\n';
 fprintf(formatSpec,num2str(i),solution.tf, solution.final.observed{1}(i));
 end
@@ -132,14 +132,14 @@ end
 figs = {};
 
 n_pde_tot = sum([sum(psize.nx),sum(psize.ny),sum(psize.n,'all')]);
-if opts.intScheme==1 && psize.no>0 && ~isempty(solution.timedep.primary{1})
+if opts.intScheme==1 && psize.n0>0 && ~isempty(solution.timedep.primary{1})
     % Plot evolution of ODE states in a single plot
     odesol = solution.timedep.primary{1}';
     figure('Position',[200 150 800 400]);
     set(gcf, 'Color', 'w');
     box on
     hold on
-    for ii=1:psize.no
+    for ii=1:psize.n0
         X_ii = odesol(t_idcs,ii)';
         plot(tval,X_ii,'DisplayName',['$x_',num2str(ii),'(t)$'],'LineWidth',line_width);
     end
@@ -156,13 +156,13 @@ if opts.intScheme==1 && psize.no>0 && ~isempty(solution.timedep.primary{1})
     % ax = gca;   ax.FontSize = 16;
     % H=gca;
     % H.LineWidth=3;
-    if psize.no>1
+    if psize.n0>1
         [leg,hobj] = legend('FontSize',15,'Interpreter','latex');
         %set(leg,'Box','off','Location','north','FontSize',16);
         %hl = findobj(hobj,'type','line');
         %set(hl,'LineWidth',2);  
     end
-elseif opts.intScheme==1 && psize.no>0
+elseif opts.intScheme==1 && psize.n0>0
     disp('ODE solution is infinite. Unable to plot.')
 end
 
@@ -174,23 +174,23 @@ colors_y = [0, 0, 1;
             0.75, 0, 0.75;
             0.75, 0.75, 0;
             0.25, 0.25, 0.25];
-if opts.intScheme==1 && (psize.noo>0) && ~isempty(solution.timedep.observed{1})
+if opts.intScheme==1 && (psize.no0>0) && ~isempty(solution.timedep.observed{1})
     fig2 = figure('Position',[200 150 800 400]);
     box on
     title('Observed Output Evolution','FontSize',16,'Interpreter','latex');
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$y$','FontSize',15,'Interpreter','latex');
     hold on
-    for ii=1:psize.noo
+    for ii=1:psize.no0
         y_ii = solution.timedep.observed{1}(ii,t_idcs);
         if ii<=size(colors_y,1)
-            plot(tval,y_ii,'Color',colors_y(psize.noo-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
+            plot(tval,y_ii,'Color',colors_y(psize.no0-ii+1,:),'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
         else
             plot(tval,y_ii,'DisplayName',['$y_',num2str(ii),'(t)$'],'LineWidth',line_width);
         end
     end
     hold off
-    if psize.noo>1
+    if psize.no0>1
         legend('FontSize',15,'Interpreter','latex');
     end
     set(gca,'XLim',[min(tval),max(tval)]);
@@ -198,20 +198,20 @@ if opts.intScheme==1 && (psize.noo>0) && ~isempty(solution.timedep.observed{1})
     set(gcf, 'Color', 'w');
     figs = [figs,{fig2}];
 
-elseif opts.intScheme==1 && (psize.noo>0)
+elseif opts.intScheme==1 && (psize.no0>0)
     disp('Observed output is infinite. Unable to plot.')
 end
 
 % % Plot the regulated outputs evolution in a single plot.
 colors_z = {'b','g','m','r','k','c','r','y'};
-if opts.intScheme==1 && (psize.nro>0) && ~isempty(solution.timedep.regulated{1})
+if opts.intScheme==1 && (psize.nr0>0) && ~isempty(solution.timedep.regulated{1})
     fig3 = figure('Position',[200 150 800 400]);
     box on
     title('Regulated Output Evolution','FontSize',16,'Interpreter','latex');
     xlabel('$t$','FontSize',15,'Interpreter','latex');
     ylabel('$z$','FontSize',15,'Interpreter','latex');
     hold on
-    for ii=1:psize.nro
+    for ii=1:psize.nr0
         z_ii = solution.timedep.regulated{1}(ii,t_idcs);
         if ii<=length(colors_z)
             plot(tval,z_ii,[colors_z{ii},'-'],'DisplayName',['$z_',num2str(ii),'(t)$'],'LineWidth',line_width);   
@@ -220,7 +220,7 @@ if opts.intScheme==1 && (psize.nro>0) && ~isempty(solution.timedep.regulated{1})
         end
     end
     hold off
-    if psize.nro>1
+    if psize.nr0>1
         legend('FontSize',15,'Interpreter','latex');
     end
     set(gca,'XLim',[min(tval),max(tval)]);
@@ -228,7 +228,7 @@ if opts.intScheme==1 && (psize.nro>0) && ~isempty(solution.timedep.regulated{1})
     set(gcf, 'Color', 'w');
     figs = [figs,{fig3}];
 
-elseif opts.intScheme==1 && (psize.nro>0)
+elseif opts.intScheme==1 && (psize.nr0>0)
     disp('Regulated output is infinite. Unable to plot.')
 end
 
@@ -257,7 +257,7 @@ if (opts.ifexact==true)
 end
 
 % Keep track of total number of states for indexing
-ns_tot = psize.no;
+ns_tot = psize.n0;
 
 % Plot numerical solution using only markers if exact solution is available
 if opts.ifexact

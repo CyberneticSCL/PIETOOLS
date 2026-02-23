@@ -85,8 +85,7 @@ T = pie.T;      A = pie.A;
 
 % % Declare initial values and disturbance
 syms st sx;
-uinput.ic(1) = sym(0.5);
-uinput.ic([2,3]) = [0.5-sx,sin(pi*sx)];
+uinput.ic = [0.5,0.5-sx,sin(pi*sx)];
 uinput.w = sin(5*st)*exp(-st); 
 
 % % Set options for discretization and simulation
@@ -101,7 +100,7 @@ tval = solution.timedep.dtime;
 xval = solution.timedep.primary{1};
 phi1 = reshape(solution.timedep.primary{2}(:,1,:),opts.N+1,[]);
 phi2 = reshape(solution.timedep.primary{2}(:,2,:),opts.N+1,[]);
-zval = solution.timedep.regulated;
+zval = solution.timedep.regulated{1};
 wval = subs(uinput.w,st,tval);
 
 

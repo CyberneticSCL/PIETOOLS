@@ -293,7 +293,7 @@ DDE.D12=[0;0;.1];         DDE.tau = [1,2];
 
 % Declare initial conditions and disturbance
 syms sx st sy
-uinput.ic = [0,0];
+uinput.ic = [1,1];
 uinput.w(1) = -4*st-4;
 uinput.u(1) = 0;
 % Declare discretization and temporal integration options
@@ -306,7 +306,7 @@ opts.dt = 1e-3;
 solution = PIESIM(DDE,opts,uinput);
 tval = solution.timedep.dtime;
 xval = solution.timedep.primary{1};
-zval = solution.timedep.regulated;
+zval = solution.timedep.regulated{1};
 
 % Plot simulated evolution of the DDE state
 fig1 = figure('Position',[200 50 900 350]); 
@@ -320,7 +320,6 @@ title('Simulated evolution of DDE states, $x$, without state feedback control','
 ylabel('$x_{1}(t)$, $x_{2}(t)$','Interpreter','latex','FontSize',14);
 xlabel('$t$','FontSize',14,'Interpreter','latex');
 %saveas(fig1,'Ch6_ExC_DDE_State','epsc');
-
 
 
 %% 6.4.5 PIE Simulation
@@ -337,11 +336,12 @@ opts.dt = 1e-3;
 % Declare initial conditions and disturbance
 clear uinput;    syms st
 uinput.w(1) = -4*st-4;
+uinput.ic=[1,1];
 % Simulate and extract solution
 solution = PIESIM(PIE_CL,opts,uinput);
 tval = solution.timedep.dtime;
 xval = solution.timedep.primary{1};
-zval = solution.timedep.regulated;
+zval = solution.timedep.regulated{1};
 
 % Plot simulated evolution of the DDE state
 fig2 = figure('Position',[200 50 900 350]); 
@@ -354,4 +354,5 @@ lgd2.Location = 'northeast';
 title('Simulated evolution of DDE states, $x$, with fundamental state feedback control','Interpreter','latex','FontSize',14);
 ylabel('$x_{1}(t)$, $x_{2}(t)$','Interpreter','latex','FontSize',14);
 xlabel('$t$','FontSize',14,'Interpreter','latex');
+ax.FontSize = 14
 %saveas(fig2,'Ch6_ExD_DDE_State','epsc');

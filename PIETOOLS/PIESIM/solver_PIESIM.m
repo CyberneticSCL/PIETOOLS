@@ -5,7 +5,7 @@
 % PIESIM Version of PIETOOLS for 1D and 2D problems: 
 % For support, contact Y. Peet, Arizona State University at ypeet@asu.edu
 
-% This is the main driver for the PIESIM code if a numerical solution of PDE/ODE problem is the only task required.
+% This is the wrapper for the PIESIM code if a numerical solution of PDE/ODE problem is the only task required.
 % It can be called instead of PIETOOLS_PDE in this case. 
 % Examples can be drawn from 'examples_pde_library_PIESIM.m' for 1D or
 % 'examples_pde_library_PIESIM_2D.m' for 2D.
@@ -110,7 +110,7 @@ end
 % the 'examples_pde_library_PIESIM_2D.m'
 %------------------------------------------------------------------------------
 
-    example=37;
+    example=41;
 
     if (dim==1)
     if (example<1|example>41)
@@ -136,10 +136,8 @@ end
 % functionality. Disturbances are not reordered automatically with the PIE
 % structure as they are with the PDE structure.
 
-% PIE = convert_PIETOOLS_PDE(PDE,'pie');
-
 if exist('PIE','var')
-    solution = PIESIM(PIE,opts,uinput,PDE.n.n_pde);
+    solution = PIESIM(PIE,opts,uinput);
 elseif exist('DDE','var')
     solution=PIESIM(DDE,opts,uinput);
 else

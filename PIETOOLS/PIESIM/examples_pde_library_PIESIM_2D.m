@@ -38,7 +38,7 @@ format long;
 
 switch example
     
-    % NOTE: uinput.ic.PDE signifies initial conditions
+    % NOTE: uinput.ic signifies initial conditions
     %       uinput.w, uinput.u signifies inhomogeneous inputs (either through
     %       boundary conditions or distributed)
     

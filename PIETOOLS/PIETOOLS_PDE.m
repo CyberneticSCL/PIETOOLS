@@ -25,7 +25,7 @@ close all; clc; clear; clear stateNameGenerator
 % each with an associated default executive to run. Call the library with
 % an index 1 through 52 as argument to extract that example, and run the
 % associated executive, if desired.
-PDE = examples_PDE_library_PIETOOLS(8);
+PDE = examples_PDE_library_PIETOOLS(32);
 
 %% --- Manual Declaration Option --- 
 % % To use this example, comment line 28, and
@@ -47,8 +47,6 @@ PDE = examples_PDE_library_PIETOOLS(8);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PIE=convert(PDE,'pie');
 PIE = convert_PIETOOLS_PDE(PDE);
-
-
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

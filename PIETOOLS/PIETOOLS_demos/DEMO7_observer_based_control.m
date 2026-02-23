@@ -125,7 +125,7 @@ PIE_CL = pielft(PIE,PIE_est);
 
 % % Declare initial values and disturbance
 syms st sx real
-uinput.ic.PDE = [-10*sx; 0];
+uinput.ic = [-10*sx; 0];
 uinput.w = 10*exp(-st);
 
 % % Set options for discretization and simulation
@@ -133,17 +133,15 @@ opts.plot = 'yes';   % don't plot the final solution
 opts.N = 8;         % Expand using 8 Chebyshev polynomials
 opts.tf = 2;        % Simulate up to t = 2
 opts.dt = 1e-2;     % Use time step of 10^-2
-ndiff = [0,0,1];    % The state involves 1 second order differentiable state variables
-ndiff_CL = [0,0,2]; % The closed-loop system involves 2 state variables
 
 % % Perform the actual simulation
 % Simulate uncontrolled PIE and extract solution
-[solution_OL,grid] = PIESIM(PIE,opts,uinput,ndiff);
+[solution_OL,grid] = PIESIM(PIE,opts,uinput);
 tval = solution_OL.timedep.dtime;
 x_OL = reshape(solution_OL.timedep.primary{2}(:,1,:),opts.N+1,[]);
 z_OL = solution_OL.timedep.regulated{1}(1,:);
 % Simulate controlled PIE and extract solution
-[solution_CL,~] = PIESIM(PIE_CL,opts,uinput,ndiff_CL);
+[solution_CL,~] = PIESIM(PIE_CL,opts,uinput);
 x_CL = reshape(solution_CL.timedep.primary{2}(:,1,:),opts.N+1,[]);
 xhat_CL = reshape(solution_CL.timedep.primary{2}(:,2,:),opts.N+1,[]);
 z_CL = solution_CL.timedep.regulated{1}(1,:);

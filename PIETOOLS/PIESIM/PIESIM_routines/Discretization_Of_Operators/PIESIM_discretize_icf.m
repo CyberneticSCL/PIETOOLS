@@ -10,7 +10,7 @@
 %
 % Outputs:
 % 1) coeff - Chebyshev coefficients for initial conditions and forcing functions
-% 2) B1_nonpol - contribution to PIE B1 operator arising from non-polynomial forcing
+% 2) B1_nonpol - contribution to PIE B1 operator arising from non-polyn0mial forcing
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -29,10 +29,10 @@ function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
 % Define local variables
 
-no=psize.no;
+n0=psize.n0;
 nw=psize.nw;
 nu=psize.nu;
-ns=sum(psize.n);
+nx=sum(psize.n);
 a=uinput.a;
 b=uinput.b;
 N=psize.N;
@@ -45,14 +45,14 @@ p = repelem(0:length(psize.n)-1, psize.n);
 % var_f denotes the value of the solution variable of the fundamental
 % states.
 % Define Chebyshev coefficients of initial conditions in the same loop
-% acheb_f denotes the Chebyshev coefficients of the fundamental states
+% acheb_f den0tes the Chebyshev coefficients of the fundamental states
 % Each state vector array coefficients are arranged into a global column
 % vector
 
 ic=uinput.ic;
 
-for i=1:ns
-     acheb=fcht(double(subs(ic(no+i),gridall{p(i)+1})));
+for i=1:nx
+     acheb=fcht(double(subs(ic(n0+i),gridall{p(i)+1})));
      acheb_glob{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
@@ -63,17 +63,17 @@ end
  acheb_f0=cat(1, acheb_glob{:});
 
 % Add initial conditions on ODE states to the front of initial conditions
-if (no>0)
+if (n0>0)
     if (size(ic,1)>1) 
         ic=ic';
     end
-acheb_f0=cat(1,double(ic(1:no))',acheb_f0);
+acheb_f0=cat(1,double(ic(1:n0))',acheb_f0);
 end
 
 coeff.acheb_f0=acheb_f0;
 
 
-% Discretize matrix operator for non-polynomial in space forcing
+% Discretize matrix operator for non-polyn0mial in space forcing
 
 if isfield(uinput,'Bpw_nonpol') 
 B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, uinput.Bpw_nonpol, p, gridall);

@@ -39,7 +39,7 @@ pvar s1 t;
 
 switch example
     
-    % NOTE: uinput.ic.PDE signifies initial conditions
+    % NOTE: uinput.ic signifies initial conditions
     %       uinput.w, uinput.u signifies inhomogeneous inputs (either through
     %       boundary conditions or disctibuted)
     
@@ -330,7 +330,7 @@ switch example
     case 5
 
 % u(x,t)=sin(pi*x)*t - solution for u_t=visc*uxx+f(x,t), f(x,t)=sin(pi*x)+visc*pi^2*sin(pi*x)*t
-% uinput.ic.PDE=0 
+% uinput.ic=0 
 % This is for Dirichlet-Dirichlet test
 
 % Boundary conditions: u(a,t)=sin(pi*a)t, u(b,t)=sin(pi*b)*t
@@ -2400,8 +2400,8 @@ case 8
 %             PDE.Bw=eye(3);
 %            
 %   % State 1: n0 state. No boundary conditions required on this state
-%             uinput.ic.PDE(1)=cos(sx);
-%             uinput.exact(1)=uinput.ic.PDE(1)*exp(-lambda*st);
+%             uinput.ic(1)=cos(sx);
+%             uinput.exact(1)=uinput.ic(1)*exp(-lambda*st);
 %               
 %   % State 2: n1 state. One boundary condition required on this state
 %             if (c>=0)
@@ -2412,7 +2412,7 @@ case 8
 %             PDE.B(1,:)=[0 1 0 0 0 0];
 %             end
 %             uinput.exact(2) = sin(sx-c*st);
-%             uinput.ic.PDE(2)=  sin(sx);
+%             uinput.ic(2)=  sin(sx);
 %             uinput.w(1)= sin(xb-c*st);
 % % %       
 % 
@@ -2420,7 +2420,7 @@ case 8
 %            PDE.B(2:3,:)=[0 0 1 0 0 0;0 0 0 1 0 0];
 %            alpha=pi/8;
 %            uinput.exact(3) =  sin(5*pi/4*sx+alpha)*exp(-visc*(5*pi/4)^2*st);
-%            uinput.ic.PDE(3)= subs(uinput.exact(3),st,0);
+%            uinput.ic(3)= subs(uinput.exact(3),st,0);
 %            uinput.w(2)=sin(5*pi/4*a+alpha)*exp(-visc*(5*pi/4)^2*st);
 %            uinput.w(3)=sin(5*pi/4*b+alpha)*exp(-visc*(5*pi/4)^2*st);
 

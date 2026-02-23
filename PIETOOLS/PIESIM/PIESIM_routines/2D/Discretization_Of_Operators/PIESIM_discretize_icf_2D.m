@@ -28,7 +28,7 @@ syms sx sy st;
 
 % Define local variables
 
-no=psize.no;
+n0=psize.n0;
 nw=psize.nw;
 a=uinput.dom(1,1);
 b=uinput.dom(1,2);
@@ -65,21 +65,21 @@ acheb_glob{1}=[];
 
 % x states only 
 for i=1:nx
-     acheb=fcht(double(subs(ic(no+i),gridall.x{px(i)+1})));
+     acheb=fcht(double(subs(ic(n0+i),gridall.x{px(i)+1})));
      acheb_glob_x{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
 
 % y states only 
 for i=1:ny
-     acheb=fcht(double(subs(ic(no+nx+i),gridall.y{py(i)+1})));
+     acheb=fcht(double(subs(ic(n0+nx+i),gridall.y{py(i)+1})));
      acheb_glob_y{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
 
 % 2D states (x,y)
 for i=1:n2
-     acheb=fcgltran2d(double(subs(subs(ic(no+nx+ny+i),sx,gridall.x{p(1,i)+1}),sy,gridall.y{p(2,i)+1}')),1);
+     acheb=fcgltran2d(double(subs(subs(ic(n0+nx+ny+i),sx,gridall.x{p(1,i)+1}),sy,gridall.y{p(2,i)+1}')),1);
      acheb_glob{i}=reshape(acheb, [], 1);
      clear('acheb');
 end
@@ -90,11 +90,11 @@ end
  acheb_f0=cat(1, acheb_glob_x{:}, acheb_glob_y{:}, acheb_glob{:});
 
 % Add initial conditions on ODE states to the front of initial conditions
-if (no>0)
+if (n0>0)
     if (size(ic,1)>1) 
         ic=ic';
     end
-acheb_f0=cat(1,double(ic(1:no))',acheb_f0);
+acheb_f0=cat(1,double(ic(1:n0))',acheb_f0);
 end
 
 coeff.acheb_f0=acheb_f0;

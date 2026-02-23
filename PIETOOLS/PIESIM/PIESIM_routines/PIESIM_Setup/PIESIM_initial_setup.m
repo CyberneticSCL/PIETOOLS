@@ -73,7 +73,7 @@ end
  end
 
      for i=1:ns
-      uinput.ic(psize.no+i) =  diff(uinput.ic(psize.no+i),sx,p(i));
+      uinput.ic(psize.n0+i) =  diff(uinput.ic(psize.n0+i),sx,p(i));
      end
 
 else
@@ -83,7 +83,7 @@ else
     ns = sum(psize.nx,'all')+sum(psize.ny,'all')+sum(psize.n,'all');
 
 for i=1:ns
-    ii=psize.no+i;
+    ii=psize.n0+i;
     ic_PDE_xder =  diff(uinput.ic(ii),sx,psize.x_tab(ii,end-1));
     uinput.ic(ii) =  diff(ic_PDE_xder,sy,psize.x_tab(ii,end));
 end
@@ -132,7 +132,7 @@ end % for i=1:psize.nw
 
 for i=1:idx_shift
     % Do the substitution for corner values
-  % If idx is not equal to i, input i must correspond to a corner value
+  % If idx is n0t equal to i, input i must correspond to a corner value
   idx = find(w_tab(:,1)==w_tab(i,1),1,'last');
   % Determine which variables to use for corner values
   is_bval = logical(w_tab(idx,3:4)-w_tab(i,3:4));
@@ -197,7 +197,7 @@ end % for i=1:psize.nu
 
 for i=1:idx_shift
     % Do the substitution for corner values
-  % If idx is not equal to i, input i must correspond to a corner value
+  % If idx is n0t equal to i, input i must correspond to a corner value
   idx = find(u_tab(:,1)==u_tab(i,1),1,'last');
   % Determine which variables to use for corner values
   is_bval = logical(u_tab(idx,3:4)-u_tab(i,3:4));
@@ -219,7 +219,7 @@ end % i=1:idx_shift
 
 end % 2D case
 
-end % if not PIE
+end % if n0t PIE
 
 % Setup function handles to boundary inputs and their temporal derivatives
 
@@ -247,7 +247,7 @@ end % if not PIE
             end
         end
          else
-             % Non-separable disturbances, symbolic by default
+             % non-separable disturbances, symbolic by default
              % Leave uinput.w, uinput.wdot symbolic
         uinput.wdot{k}=diff(uinput.w{k},st);
          end % uinput.wsep{k}
@@ -279,7 +279,7 @@ end % if not PIE
             end
         end
          else
-             % Non-separable disturbances, symbolic by default
+             % non-separable disturbances, symbolic by default
              % Leave uinput.w, uinput.wdot symbolic
         uinput.udot{k}=diff(uinput.u{k},st);
          end % uinput.wsep{k}
