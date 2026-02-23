@@ -48,7 +48,7 @@ dim=1;
 
 % Set up options for the simulations
 
-% If exact solution is known (see examles) and is desired to be provided for testing,
+% If exact solution is known (see examples) and is desired to be provided for testing,
 % select opts.ifexact=true.
 % NOTE: Only choose opts.ifexact=true if exact solution for all the states is
 %       available. Otherwise, choose opts.ifexact=false.
