@@ -249,8 +249,8 @@ B.Q1 = P.Q1;
 C.Q2 = P.Q2;
 D.R  = P.R;
 
-[Ainv, infoFinite] = inv_opvar_new(A, opts);
-[TB, infoInfinite]   = inv_opvar_new(D - C*Ainv*B, opts);
+[Ainv, infoFinite] = inv_opvar_2(A, opts);
+[TB, infoInfinite]   = inv_opvar_2(D - C*Ainv*B, opts);
 
 Pinv = [Ainv + Ainv*B*TB*C*Ainv,  -Ainv*B*TB;
         -TB*C*Ainv,                TB];
