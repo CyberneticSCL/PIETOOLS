@@ -30,7 +30,7 @@ pvar s1;
         PIE.misc.Twmap = PIE.Tw;
 
         % Modify PIE operators that describe dynamics due to the multiplication
-        % of th PDE by r^k (k=weight)
+        % of the PDE by r^k (k=weight)
     
         opvar W;
         [m, n] = size(PIE.T.R.R0);
