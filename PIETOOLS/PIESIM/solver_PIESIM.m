@@ -46,6 +46,10 @@ format long;
 
 dim=1;
 
+if (dim~=1&dim~=2)
+    error('Dimension must be specified as 1 or 2');
+end
+
 % Set up options for the simulations
 
 % If exact solution is known (see examples) and is desired to be provided for testing,
@@ -118,7 +122,7 @@ end
         example=1;
     end
     [PDE,uinput]=examples_pde_library_PIESIM_1D(example);
-    else   % dim=2
+    else   % dim==2
     if (example<1|example>32)
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
         example=1;
