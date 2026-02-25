@@ -1177,26 +1177,26 @@ if nvars<=1
     Pop_tmp.dim = [nr_op,nx_op];
     Pop_tmp.I = dom;
     Pop_tmp.var1 = vars(1,1);     Pop_tmp.var2 = vars(1,2);
-    Pop_u.dim = [nr_op,nu_op];
-    Pop_u.I = dom;
-    Pop_u.var1 = vars(1,1);     Pop_u.var2 = vars(1,2);
-    Pop_w.dim = [nr_op,nw_op];
-    Pop_w.I = dom;
-    Pop_w.var1 = vars(1,1);     Pop_w.var2 = vars(1,2);
+    Pop_u_tmp.dim = [nr_op,nu_op];
+    Pop_u_tmp.I = dom;
+    Pop_u_tmp.var1 = vars(1,1);     Pop_u_tmp.var2 = vars(1,2);
+    Pop_w_tmp.dim = [nr_op,nw_op];
+    Pop_w_tmp.I = dom;
+    Pop_w_tmp.var1 = vars(1,1);     Pop_w_tmp.var2 = vars(1,2);
 else
     Pop_tmp = opvar2d([],[nr_op,nx_op],dom,vars);
-    Pop_u = opvar2d([],[nr_op,nu_op],dom,vars);
-    Pop_w = opvar2d([],[nr_op,nw_op],dom,vars);
+    Pop_u_tmp = opvar2d([],[nr_op,nu_op],dom,vars);
+    Pop_w_tmp = opvar2d([],[nr_op,nw_op],dom,vars);
 end
 if isa(Uop,'double')
-    Pop_u2x = Pop_u;
+    Pop_u = Pop_u_tmp;
 else
-    Pop_u2x = Pop_u;    Pop_u2x.dim(:,2) = Uop.dim(:,2);
+    Pop_u = Pop_u_tmp;    Pop_u.dim(:,2) = Uop.dim(:,2);
 end
 if isa(Wop,'double')
-    Pop_w2x = Pop_w;
+    Pop_w = Pop_w_tmp;
 else
-    Pop_w2x = Pop_w;    Pop_w2x.dim(:,2) = Wop.dim(:,2);
+    Pop_w = Pop_w_tmp;    Pop_w.dim(:,2) = Wop.dim(:,2);
 end
 
 % If the "obj" has no components, there is nothing to do
@@ -1247,7 +1247,7 @@ for eqnum=1:numel(PDE.(obj))
             Cop_jj = clean_opvar(Cop_jj,ztol);
             
             % Add the coefficients to the appropriate parameter.
-            Pop_w(rindcs,cindcs) = Pop_w(rindcs,cindcs) + Cop_jj;
+            Pop_w_tmp(rindcs,cindcs) = Pop_w_tmp(rindcs,cindcs) + Cop_jj;
             
         elseif isfield(term_jj,'u')
             % Determine which input component is involved in the term.
@@ -1268,7 +1268,7 @@ for eqnum=1:numel(PDE.(obj))
             Cop_jj = clean_opvar(Cop_jj,ztol);
             
             % Add the coefficients to the appropriate parameter.
-            Pop_u(rindcs,cindcs) = Pop_u(rindcs,cindcs) + Cop_jj;
+            Pop_u_tmp(rindcs,cindcs) = Pop_u_tmp(rindcs,cindcs) + Cop_jj;
             
         else
             % % The component involves a state variable, which may appear
@@ -1345,8 +1345,8 @@ for eqnum=1:numel(PDE.(obj))
                 if nfctrs>1 && (~all(all(Pop_u2x_ll==0)) || ~all(all(Pop_w2x_ll==0)))
                     error("An input signal appears nonlinearly in the PIE; this is not supported.")
                 end
-                Pop_u2x(rindcs,:) = Pop_u2x(rindcs,:) + Pop_u2x_ll;
-                Pop_w2x(rindcs,:) = Pop_w2x(rindcs,:) + Pop_w2x_ll;
+                Pop_u(rindcs,:) = Pop_u(rindcs,:) + Pop_u2x_ll;
+                Pop_w(rindcs,:) = Pop_w(rindcs,:) + Pop_w2x_ll;
 
                 % Augment x operator to map to all equations
                 Pop_x2x_ll = [Pop_tmp(1:rindcs(1)-1,:); Pop_x2x_ll; Pop_tmp(rindcs(end)+1:end,:)];
@@ -1436,8 +1436,8 @@ Cop.ops = op_cell_full(1,deg_order);
 fx.C = Cop;
 
 % Add the contribution of the inputs
-Pop_u = Pop_u2x + Pop_u*Uop;
-Pop_w = Pop_w2x + Pop_w*Uop;
+Pop_u = Pop_u + Pop_u_tmp*Uop;
+Pop_w = Pop_w + Pop_w_tmp*Wop;
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
