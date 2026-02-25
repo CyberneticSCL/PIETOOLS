@@ -1,4 +1,4 @@
-function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
+function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert_PIETOOLS_PDE_2D.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,14 +26,15 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %           fundamental state x_f, exogenous input w, and actuator input u 
 %           to the PDE state x.
 %
-%           A, Bw, Bu: opvar or opvar objects describing the PIE dynamics
-%           for fundamental state x_f.
+%           f, g, h: 'polyopvar' objects representing distributed
+%           polynomials defining the right-hand side of the PIE for the
+%           state, observed output, and regulated output, respectively.
 %
-%           Cz, Dzw, Dzu: opvar or opvar2d objects describing the PIE for
-%           the regulated output z.
+%           Bu, Dyu, Dzu: opvar or opvar2d objects representing the
+%           contribution of actuator inputs to the PIE and outputs.
 %
-%           Cy, Dyw, Dyu: opvar or opvar2d objects describing the PIE for
-%           the observed output y.
+%           Bw, Dyw, Dzw: opvar or opvar2d objects representing the
+%           contribution of exogenous inputs to the PIE and outputs.
 %
 %           dim, dom, vars,: The dimension of the spatial domain for the
 %           PIE, the domain of the spatial variables, and the spatial
@@ -61,9 +62,9 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   This function constructs these operators {T, Tx Tw}. Using these 
 %   operators, it then constructs the PI operators A through Dzw such that 
 %   the PDE may be equivalently represented by the PIE
-%       Tw*w(t) + Tu*u + T*xf(t) = A  * xf(t) + Bu  * u(t) + Bw  * w(t);
-%                           y(t) = Cy * xf(t) + Dyu * u(t) + Dyw * w(t);
-%                           z(t) = Cz * xf(t) + Dzu * u(t) + Dzw * w(t);
+%       Tw*w(t) + Tu*u + T*xf(t) = f(xf(t)) + Bu  * u(t) + Bw  * w(t);
+%                           y(t) = g(xf(t)) + Dyu * u(t) + Dyw * w(t);
+%                           z(t) = h(xf(t)) + Dzu * u(t) + Dzw * w(t);
 %
 % - The order of the state, input, and output components in the PIE
 %   structure may not be the same as that in the PDE structure. Check e.g.
@@ -95,7 +96,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   spatial variable PIE.vars(j,1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - convert_PIETOOLS_PDE
+% PIETOOLS - convert_PIETOOLS_PDE_nonlinear
 %
 % Copyright (C)2026 PIETOOLS Team
 %
@@ -118,24 +119,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 08/09/2022
-% Add 1D conversion, DJ - 10/16/2024
-% DJ, 12/16/2024: Bugfix for batch and terms_legacy conversion;
-% DJ, 01/12/2025: Add check if sufficient boundary conditions are specified
-%                   in 1D case;
-% DJ, 03/24/2025: Add check if too many boundary conditions are specified
-%                   in 1D case;
-% DJ, 06/01/2025: Pre-process PDE to get rid of higher-order temporal 
-%                   derivatives and delays;
-% DJ, 06/18/2025: Expand higher-order temporal derivatives only after
-%                   conversion. Also, display summary of how PIE variables
-%                   relate to PDE variables, and add an optional argument
-%                   to suppress this summary
-% DJ, 01/24/2026: Additional check to avoid cases where derivative is taken
-%                   of input signals (in 2D);
-% DJ, 01/25/2026: Bugfix in case BCs only involve lower boundary values;
-% DJ, 02/15/2026: Include boundary values of inputs in 2D case with
-%                   inhomogeneous BCs;
+% DJ, 02/24/2026: Initial coding;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -143,20 +127,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Pass PDEs in legacy format to legacy converters.
-if isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
-    PIE = convert_PIETOOLS_PDE_batch(PDE);                                  % DJ, 12/16/2024
-    return
-elseif isfield(PDE,'n') || isfield(PDE,'ODE')  || isfield(PDE,'PDE')
-    PIE = convert_PIETOOLS_PDE_terms_legacy(PDE);                           % DJ, 12/16/2024
-    return
-elseif (isa(PDE,'struct') && isfield(PDE,'x'))
-    % Convert 'struct' to 'pde_struct'.
-    PDE = pde_struct(PDE);
-    PDE = initialize(PDE,true);
-elseif isa(PDE,'sys')
-    % Extract PDE terms from 'sys' structure.
-    PDE = PDE.params;
-elseif ~isa(PDE,'pde_struct')
+if ~isa(PDE,'pde_struct')
     error('The input PDE is not appropriately specified. Please define your PDE as a "pde_struct" class object, and consult the manual and examples for illustration of the structure.')
 end
 
@@ -194,12 +165,6 @@ op_clean_tol = 1e-8;
 PDE = pde_struct(PDE);
 if ~PDE.is_initialized 
     PDE = initialize(PDE,true);
-end
-
-% Pass to nonlinear converter if appropriate
-if PDE.is_nonlinear
-    PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag);
-    return
 end
 
 % % % Get rid of any higher-order temporal derivatives and delays in the
@@ -268,7 +233,7 @@ else
         comp_order.BC = (1:numel(PDE.BC))';
     end
 end
-% If the PDE is not 2D, we artificially augment.
+% If the PDE is just an ODE, we artificially augment.
 is2D = nvars==2;
 if nvars==0
     % Define a 1D domain with variables.
@@ -537,125 +502,50 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % % % % Deriving an equivalent PIE representation               % % % % %
+% % % % % Building the PIE                                        % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% We now derive an equivalent PIE representation of the PDE, describing the
-% dynamics of our fundamental state xf, which is free of the BCs and
-% continuity constraints imposed upon the PDE state x. We do this in two
-% steps:
-
-% % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-% % % STEP 1: 
-% % % Write the PDE using PI operators, so that
+% % % Having derived the map from fundamental to PDE state,
+% % %   x = Top.x*xf + Top.w*wf + Top.u*uf
+% % % we now substitute this relation into the PDE,
 % % % (d/dt)^k x = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j)* x + P_u2x* u + P_w2x* w; 
 % % %          y = sum_j=1^n2 (P_x2y{j} * Delta_j * D_j)* x + P_u2y* u + P_w2y* w; 
 % % %          z = sum_j=1^n3 (P_x2z{j} * Delta_j * D_j)* x + P_u2z* u + P_w2z* w; 
-% % % where the P_ are all PI operators, D_j are differential operators,
-% % % Delta_j are delta operators, evaluating the state x(s) at s=s, or
-% % % s=a or s=b for s\in[a,b].
+% % % to obtain an equivalent PIE representation,
+% % % (d/dt)^k x = fx(xf) + Bwop*w + Buop*u;
+% % %          y = fy(xf) + Dywop*w + Dyuop*u;
+% % %          z = fz(xf) + Dzwop*w + Dzuop*u;
 
-% We construct the different operators using a subroutine:
-[Pop_x2x_cell, Pop_u2x, Pop_w2x, loc_diff_tab_x, retain_xvars_x] = construct_PI_ops_PDE(PDE,'x');
-[Pop_x2y_cell, Pop_u2y, Pop_w2y, loc_diff_tab_y, retain_xvars_y] = construct_PI_ops_PDE(PDE,'y');
-[Pop_x2z_cell, Pop_u2z, Pop_w2z, loc_diff_tab_z, retain_xvars_z] = construct_PI_ops_PDE(PDE,'z');
-% Here, loc_diff_tab is a table in which each row has 2*nvars columns, the
-% first nvars of which indicate whether the state is evaluated at the lower
-% boundary (-1), interior (0), or upper boundary (1) for each spatial
-% variable, and the remaining nvars columns indicate the order up to which
-% the state component is differentiated wrt each variable.
-% For each row j of the table, Pop_._cell{j} provides the associated
-% opvar2d object.
-% Each element of the cell retain_xvars provides indices of the state
-% variables that can be differentiated up to the desired order.
-
-% For each of the inputs that appear as derivative in the PIE, make sure
-% the PIE does not involve the non-differentiated input as well
+% First, check which input signals appear as spatial derivatives in the PIE
+% --> those cannot also appear without derivative
 diff_idcs_w = find(any(Dvals_w,2));
-nnw_old = cumsum([0;PDE.w_tab(wcomp_order,2)]);
-nnw_new = cumsum([0;PDE.w_tab(wcomp_order(w_idcs),2)]);
-for j = diff_idcs_w'
-    % Check if the input appears in an evolution or output equation
-    r_idcs = (nnw_old(w_idcs(j))+1:nnw_old(w_idcs(j)+1));
-    if all(all(Pop_w2x(:,r_idcs)==0)) && all(all(Pop_w2y(:,r_idcs)==0)) &&...
-            all(all(Pop_w2z(:,r_idcs)==0))
-        % The input does not appear in the equations, there should be no
-        % conflict
-        continue
-    end
-    % Check if the operator Wop maps the PIE input back to the PDE intput
-    if isscalar(Wop) && isequal(Wop,1)
-        error("An exogenous input appears both in the boundary conditions and a PDE or output equation: this is currently not supported.")
-    end
-    c_idcs = (nnw_new(j)+1:nnw_new(j+1));
-    Wop_j = Wop(r_idcs,c_idcs);
-    if ~all(Wop_j.dim(:,1)==Wop_j.dim(:,2))
-        % We have a map from the PIE input to the PDE input
-        % --> we can include represent the PDE input in the PIE
-        continue
-    end
-    Iop = mat2opvar(eye(size(Wop_j)),Wop_j.dim,[Wop_j.var1,Wop_j.var2],Wop_j.I);
-    if all(all(Wop_j==Iop))
-        % Wop does not map the derivative of the PDE input back to the PDE
-        % inputs
-        error("An exogenous input appears both in the boundary conditions and a PDE or output equation: this is currently not supported.")
+is_diff_w = false(size(w_tab,1),1);
+for j=1:size(w_tab,1)
+    % Check if the input appears ONLY as derivative
+    idx = find(w_idcs==j);
+    if isscalar(idx) && any(Dvals_w(idx,:))
+        is_diff_w(j) = true;
     end
 end
 diff_idcs_u = find(any(Dvals_u,2));
-nnu_old = cumsum([0;PDE.u_tab(ucomp_order,2)]);
-nnu_new = cumsum([0;PDE.u_tab(ucomp_order(u_idcs),2)]);
-for j = diff_idcs_u'
-    % Check if the input appears in an evolution or output equation
-    r_idcs = (nnu_old(w_idcs(j))+1:nnu_old(w_idcs(j)+1));
-    if all(all(Pop_u2x(:,r_idcs)==0)) && all(all(Pop_u2y(:,r_idcs)==0)) &&...
-            all(all(Pop_u2z(:,r_idcs)==0))
-        % The input does not appear in the equations, there should be no
-        % conflict
-        continue
-    end
-    % Check if the operator Uop maps the PIE input back to the PDE intput
-    if isscalar(Uop) && isequal(Uop,1)
-        error("An actuator input appears both in the boundary conditions and a PDE or output equation: this is currently not supported.")
-    end
-    c_idcs = (nnu_new(j)+1:nnu_new(j+1));
-    Uop_j = Uop(r_idcs,c_idcs);
-    if ~all(Uop_j.dim(:,1)==Uop_j.dim(:,2))
-        % We have a map from the PIE input to the PDE input
-        % --> we can include represent the PDE input in the PIE
-        continue
-    end
-    Iop = mat2opvar(eye(size(Uop_j)),Uop_j.dim,[Uop_j.var1,Uop_j.var2],Uop_j.I);
-    if all(all(Uop_j==Iop))
-        % Uop does not map the derivative of the PDE input back to the PDE
-        % inputs
-        error("An actuator input appears both in the boundary conditions and a PDE or output equation: this is currently not supported.")
+is_diff_u = false(size(u_tab,1),1);
+for j=1:size(u_tab,1)
+    % Check if the input appears ONLY as derivative
+    idx = find(u_idcs==j);
+    if isscalar(idx) && any(Dvals_u(idx,:))
+        is_diff_u(j) = true;
     end
 end
 
-% % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-% % % STEP 2:
-% % % Impose the relation
-% % %   x = Tx * xf + Tu * u + Tw * w;
-% % % so that e.g.
-% % %  (d/dt)^k x = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j)* x + P_u2x*u + P_w2x*w; 
-% % %             = sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tx)* xf
-% % %                 + (P_u2x + sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tu)* u
-% % %                   + (P_w2x + sum_j=1^n1 (P_x2x{j} * Delta_j * D_j * Tw)* w
-% % %             = A * xf + Bu * u + Bw * w;
-% % % where the composition of the differential operators and the Delta
-% % % operators with the PI operators T is a PI operator.
-Pop = struct();
-Pop.x = Pop_x2x_cell;   Pop.u = Pop_u2x*Uop;    Pop.w = Pop_w2x*Wop;
-[Aop_x2x, Bop_u2x, Bop_w2x] = impose_fundamental_map(Top,Pop,loc_diff_tab_x,retain_xvars_x);
-Pop.x = Pop_x2y_cell;   Pop.u = Pop_u2y*Uop;    Pop.w = Pop_w2y*Wop;
-[Cop_x2y, Dop_u2y, Dop_w2y] = impose_fundamental_map(Top,Pop,loc_diff_tab_y,retain_xvars_y);
-Pop.x = Pop_x2z_cell;   Pop.u = Pop_u2z*Uop;    Pop.w = Pop_w2z*Wop;
-[Cop_x2z, Dop_u2z, Dop_w2z] = impose_fundamental_map(Top,Pop,loc_diff_tab_z,retain_xvars_z);
-
+% Substitute the map from the fundamental to PDE state into the PDE and
+% output equations
+[fx, Bop_u2x, Bop_w2x] = compute_RHS_PIE(PDE,'x',Top,Wop,Uop,is_diff_w,is_diff_u,op_clean_tol);
+[fy, Dop_u2y, Dop_w2y] = compute_RHS_PIE(PDE,'y',Top,Wop,Uop,is_diff_w,is_diff_u,op_clean_tol);
+[fz, Dop_u2z, Dop_w2z] = compute_RHS_PIE(PDE,'z',Top,Wop,Uop,is_diff_w,is_diff_u,op_clean_tol);
 
 % % % With that, we can equivalently represent the PDE as a PIE:
-% % %   D_{t} * (Tw * w + Tu * u + Tx * xf) = A  * xf + Bu  * u + Bw  * w ;
-% % %                                    y  = Cy * xf + Dyu * u + Dyw * w ;
-% % %                                    z  = Cz * xf + Dzu * u + Dzw * w ;
+% % %   D_{t} * (Tw * w + Tu * u + Tx * xf) = fx(xf) + Bu  * u + Bw  * w ;
+% % %                                    y  = fy(xf) + Dyu * u + Dyw * w ;
+% % %                                    z  = fx(xf) + Dzu * u + Dzw * w ;
 % % % where D_{t} is a diagonal temporal differential operator,
 % % %   D_{t} = diag([(d/dt)^tdiff(1) , ... , (d/dt)^tdiff(nx)])
 % % % We determine the orders of the temporal derivatives here
@@ -666,32 +556,24 @@ for ii=1:numel(PDE.x)
     end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % % % % Defining the PIE structure                              % % % % %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Finally, we define the PIE structure, collecting the PI operators that
 % define our PIE.
 
 % Keep track of the variables and domain of the system.
-PIE = pie_struct();
+PIE = struct();
 PIE.dom = dom;
 PIE.vars = vars;
+PIE.dim = size(PIE.vars,1);
 
 % Store the PI operators defining the fundamental to PDE state map.
-PIE.T = Top.x;
-PIE.Tw = Top.w;
-PIE.Tu = Top.u;
+PIE.T = clean_opvar(Top.x,op_clean_tol);
+PIE.Tw = clean_opvar(Top.w,op_clean_tol);
+PIE.Tu = clean_opvar(Top.u,op_clean_tol);
 
 % Store the PI operators defining the PIE.
-PIE.A = clean_opvar(Aop_x2x,op_clean_tol);
-PIE.B1 = clean_opvar(Bop_w2x,op_clean_tol);
-PIE.B2 = clean_opvar(Bop_u2x,op_clean_tol);
-PIE.C1 = clean_opvar(Cop_x2z,op_clean_tol);
-PIE.C2 = clean_opvar(Cop_x2y,op_clean_tol);
-PIE.D11 = clean_opvar(Dop_w2z,op_clean_tol);
-PIE.D12 = clean_opvar(Dop_u2z,op_clean_tol);
-PIE.D21 = clean_opvar(Dop_w2y,op_clean_tol);
-PIE.D22 = clean_opvar(Dop_u2y,op_clean_tol);
+PIE.f = fx;     PIE.B1 = Bop_w2x;       PIE.B2 = Bop_u2x;
+PIE.g = fy;     PIE.D11 = Dop_w2z;      PIE.D12 = Dop_u2z;
+PIE.h = fz;     PIE.D21 = Dop_w2y;      PIE.D22 = Dop_u2y;
 
 % Keep track of how the state components in the original PDE are
 % now ordered in the PIE.
@@ -721,15 +603,16 @@ else
     PIE.u_tab = [PIE.u_tab,Dvals_u];
 end
 
-% Get rid of any higher-order temporal derivatives in the PIE.              % DJ, 06/18/2025
+% Get rid of any higher-order temporal derivatives in the PIE.
 if any(tdiff_list>1)
-    [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,true);
+    error("Higher-order termporal derivatives in nonlinear PDEs are currently not supported.")
+    %[PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,true);
 else
     tdiff_tab = [(1:numel(PDE.x))',zeros(numel(PDE.x),1)];
 end
 
 % Finally, provide an overview of how the new state variables relate to the
-% PDE variables.                                                            % DJ, 06/18/2025
+% PDE variables.
 if ~suppress_summary
     objs = {'x';'u';'w';'y';'z'};
     for idx = 1:5
@@ -741,10 +624,12 @@ if ~suppress_summary
 end
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 function np_op = get_opdim(obj_tab)
 % Establish dimensions of the space R^n0 x L2^n1[s1] x L2^n2[s2] x
 % L2^n3[s1,s2] in which the full state, input, or output associated to
@@ -799,10 +684,12 @@ else
 end
     
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 function [Pop_b2BC, Pop_f2BC, Pop_u2BC, Pop_w2BC] = construct_PI_ops_BCs(PDE,bc_state_tab)
 % Define opvar2d objects to represent the BCs of the PDE in terms of the
 % fundamental state xf and a set of core boundary states xb (as defined by
@@ -927,8 +814,6 @@ else
     w2BC_params = struct(Pop_w2BC);
     u2BC_params = struct(Pop_u2BC);
 end
-
-
 
 
 % % % Loop over all BCs.
@@ -1198,74 +1083,100 @@ else
 end
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
-function [Pop_x_cell, Pop_u, Pop_w, loc_diff_tab, retain_xvars_cell] = construct_PI_ops_PDE(PDE,obj)
-% Construct PI operators such that the presented PDE for obj can be wirtten
-% as
-%   obj = sum_j=1^n1 (P_x2obj{j} * Delta_j * D_j)* x + P_u2obj* u + P_w2obj* w;
-% where Delta_j is a Delta operator, evaluating the PDE state at a
-% particular spatial position, and D_j is a differential operator.
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function [fx, Pop_u, Pop_w] = compute_RHS_PIE(PDE,obj,Top,Wop,Uop,is_diff_w,is_diff_u,ztol)
+% Construct distributed polynomial FX and PI operators POP_U, POP_W such 
+% that the PDE corresponding to operators Pop,
+%   obj = sum_j=1^n1 (Cop_x{j} * Delta_j * D_j)* x + Cop_u{j}* u + Cop_w{j}* w;
+% can be represented in terms of the fundamental state as
+%   obj = FX(xf) + POP_U * u + POP_W * w;
 %
 % INPUTS:
 % - PDE:    A struct or pde_struct type object, defining a PDE in the terms
 %           format (see also the "@pde_struct/initialize" function).
 % - obj:    'x', 'y', or 'z', indicating which equations to be represented
 %           using PI operators.
+% - Top:    Struct with field 'x', 'u' and 'w', containing PI operators Tx,
+%           Tu and Tw such that the PDE state x can be expressed in terms
+%           of the fundamental state xf and inputs u and w as
+%               x = Tx * xf + Tu * uf + Tw * w;
+% - Wop:    'opvar' or 'opvar2d' object representing the map from the
+%           fundamental input to the fundamental input to the PDE input;
+% - Uop:    'opvar' or 'opvar2d' object representing the map from the
+%           fundamental input to the fundamental input to the PDE input;
+% - is_diff_w:  nw x 1 boolean array specifying for each of the exogenous
+%               inputs in the PDE whether the PIE is expressed in terms of
+%               a spatial derivative of this input. Currently, we do not
+%               support inputs that appear both as the PDE input and as a
+%               derivative in the PIE;
+% - is_diff_u:  nu x 1 boolean array, specifying the same information as
+%               'is_diff_w' but for actuator inputs;
 %
 % OUTPUTS:
-% - Pop_x_cell: Nx1 cell of opvar2d objects. Each object corresponds to a
-%               PI operator describing the contribution of a particular
-%               spatial derivative of the PDE state, evaluated at a
-%               particular spatial position, to the PDE of "obj".
+% - fx: 'polyopvar' object representing the equations for "obj" in the PDE
+%       in terms of the fundamental state variables (in the absence of
+%       input signals);
 % - Pop_u, Pop_w:   opvar2d objects describing the contributions of the
 %                   inputs u and w to the PDE of "obj".
-% - loc_diff_tab:   Nx2*nvars array, of which each row is linked to an 
-%                   element of Pop_x_cell, where
-%                   (j,1:nvars) are indices in {-1,0,1}, indicating whether
-%                   the state is evaluated at the lower boundary s=a (-1),
-%                   interior s=s (0) or upper boundary s=b (+1) of the
-%                   domain, for each of the nvars variables s\in[a,b];
-%                   (j,nvars+1:end) are integer values indicating the order
-%                   of the derivative of the PDE state wrt each of the
-%                   nvars variables.
-% - retain_xvars_cell:  Nx1 cell of integer arrays, indicating for each of
-%                       the operators Pop_x_cell{j} which state components
-%                       they map i.e. which state components are
-%                       differentiable up to the required degree as
-%                       specified in loc_diff_tab(j,:).
 %
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding DJ - 08/09/2022
+% Initial coding DJ - 02/24/2026
 %
 
 % Extract some necessary information from the PDE.
 global dom vars nvars np_op
 x_tab = PDE.x_tab;
+obj_tab = PDE.([obj,'_tab']);
+
+% Extract the pre-defined PI operators.
+Top_x = Top.x;
+Top_u = Top.u;
+Top_w = Top.w;
 
 % Establish indices associated to the variables in each state component,
 % input component, and output component.    
-nnx_arr = cumsum([0;PDE.x_tab(:,2)]);
+nx_arr = PDE.x_tab(:,2);    nnx_arr = cumsum([0;nx_arr]);
 nnu_arr = cumsum([0;PDE.u_tab(:,2)]);
 nnw_arr = cumsum([0;PDE.w_tab(:,2)]);
-nnr_arr = cumsum([0;PDE.([obj,'_tab'])(:,2)]);
+nnr_arr = cumsum([0;obj_tab(:,2)]);
 
 % Establish input and output dimensions of the operators.
-%nx_op = np_op.x;        %nnx_op = cumsum([0;nx_op]);
+nx_op = np_op.x;        %nnx_op = cumsum([0;nx_op]);
 nu_op = np_op.u;        nnu_op = cumsum([0;nu_op]);
 nw_op = np_op.w;        nnw_op = cumsum([0;nw_op]);
 nr_op = np_op.(obj);    nnr_op = cumsum([0;nr_op]);
 
+% Initialize an empty distributed polynomial
+fx = polyopvar();
+varname = cell(size(x_tab,1),1);
+pvarname = cell(nvars,1);
+for j=1:size(x_tab,1)
+    varname{j} = ['x',num2str(j)];
+end
+for j=1:nvars
+    pvarname(j) = vars(j,1).varname;
+end
+fx.varname = varname;
+fx.pvarname = pvarname;
+fx.varmat = logical(x_tab(:,3:2+nvars));
+fx.dom = dom;
+
 % Initialize empty operators.
-%Pop_x = opvar2d([],[nr_op,nx_op],dom,vars);
 if nvars<=1
-    opvar Pop_u Pop_w;
+    opvar Pop_tmp Pop_u Pop_w;
+    Pop_tmp.dim = [nr_op,nx_op];
+    Pop_tmp.I = dom;
+    Pop_tmp.var1 = vars(1,1);     Pop_tmp.var2 = vars(1,2);
     Pop_u.dim = [nr_op,nu_op];
     Pop_u.I = dom;
     Pop_u.var1 = vars(1,1);     Pop_u.var2 = vars(1,2);
@@ -1273,469 +1184,403 @@ if nvars<=1
     Pop_w.I = dom;
     Pop_w.var1 = vars(1,1);     Pop_w.var2 = vars(1,2);
 else
+    Pop_tmp = opvar2d([],[nr_op,nx_op],dom,vars);
     Pop_u = opvar2d([],[nr_op,nu_op],dom,vars);
     Pop_w = opvar2d([],[nr_op,nw_op],dom,vars);
 end
-% For the state components, we consider a PI operator for each combination
-% of position and derivative of the state.
-loc_diff_tab = zeros(0,2*nvars);
-Pop_x_cell = cell(0,1);
-retain_xvars_cell = cell(0,1);
+if isa(Uop,'double')
+    Pop_u2x = Pop_u;
+else
+    Pop_u2x = Pop_u;    Pop_u2x.dim(:,2) = Uop.dim(:,2);
+end
+if isa(Wop,'double')
+    Pop_w2x = Pop_w;
+else
+    Pop_w2x = Pop_w;    Pop_w2x.dim(:,2) = Wop.dim(:,2);
+end
 
-% If the "obj" has no components, we are done.
+% If the "obj" has no components, there is nothing to do
 if nnr_op(end)==0    
     return
 end
 
-% Otherwise for each of the operators, we set the parameters in a cell.
-if nvars<=1
-    Rparams = {'P', 'Q1';
-               'Q2', 'R'};
-    % Certain parameters pertain multiple elements, involving multipliers or
-    % partial integrators along different spatial directions.
-    iscell_Rparam = [false, false;
-                     false, true];
-
-    params_u = struct();
-    params_w = struct();
-    for kk=1:numel(Rparams)-1
-        params_u.(Rparams{kk}) = polynomial(Pop_u.(Rparams{kk}));
-        params_w.(Rparams{kk}) = polynomial(Pop_w.(Rparams{kk}));
-    end
-    params_u.R = {polynomial(Pop_u.R.R0); polynomial(Pop_u.R.R1); polynomial(Pop_u.R.R2)};
-    params_w.R = {polynomial(Pop_w.R.R0); polynomial(Pop_w.R.R1); polynomial(Pop_w.R.R2)};
-else
-    Rparams = {'R00', 'R0x', 'R0y', 'R02';
-               'Rx0', 'Rxx', 'Rxy', 'Rx2';
-               'Ry0', 'Ryx', 'Ryy', 'Ry2';
-               'R20', 'R2x', 'R2y', 'R22'};
-           
-    % Certain parameters pertain multiple elements, involving multipliers or
-    % partial integrators along different spatial directions.
-    iscell_Rparam = [false, false, false, false;
-                     false, true,  false, true;
-                     false, false, true,  true;
-                     false, true,  true,  true];
-    
-    params_u = struct(Pop_u);
-    params_w = struct(Pop_w);
-end
-
-% For each PI operator for the state components, we keep track of which
-% state components this operator maps, as certain state components may not
-% be differentiable up to the desired degree.
-params_x_cell = cell(0,1);
-nnx_op_cell = cell(0,1);
-nnx_arr_cell = cell(0,1);
-
+% Declare a matrix of degrees of monomials that appear in the PIE, and
+% associated cell of operators
+degmat = zeros(0,size(x_tab,1));
+op_cell_full = cell(1,0);
 
 % % % Loop over all equations of the considered "obj" (PDEs or outputs)
 % % % For each equation, loop over all the terms, and add the coefficients
 % % % that appear in each term to the appropriate parameter in the
-% % % appropriate operator to represent the equation as
-% % %   obj = sum_j=1^n1 (P_x2obj{j} * Delta_j * D_j)* x
-% % %               + P_u2obj* u + P_w2obj* w;
-% % % where Delta_j and D_j are differential and Delta operators,
-% % % corresponding to the jth row of loc_diff_tab.
+% % % appropriate operator
 for eqnum=1:numel(PDE.(obj))
         
     % Establish which row indices in the operators are linked to this 
     % equation.
     rindcs = nnr_arr(eqnum)+1:nnr_arr(eqnum+1);
-    Pop_rnum = (rindcs(1)>nnr_op(1:end-1) & rindcs(1)<=nnr_op(2:end));
-    rindcs = rindcs - nnr_op(Pop_rnum);     % Row indices in the actual parameters, associated to the current component
+    Cop_rnum = find((rindcs(1)>nnr_op(1:end-1) & rindcs(1)<=nnr_op(2:end)),1);
+
+    % For each monomial, keep track of which term involving this monomial
+    % we are considering for this equation.
+    trm_cntr = ones(size(degmat,1),1);
     
     for jj=1:numel(PDE.(obj){eqnum}.term)
+        % Extract the jth term
         term_jj = PDE.(obj){eqnum}.term{jj};
         
         if isfield(term_jj,'w')
             % Determine which input component is involved in the term.
             comp_indx = term_jj.w;
+            if is_diff_w(comp_indx)
+                error("An exogenous input will appear as both itself and as its own derivative in the PIE; this is currently not supported.")
+            end
             % Establish the column numbers in the operator associated to
             % this input component.
             cindcs = nnw_arr(comp_indx)+1:nnw_arr(comp_indx+1);
-            Pop_cnum = (cindcs(1)>nnw_op(1:end-1) & cindcs(1)<=nnw_op(2:end));
-            cindcs = cindcs - nnw_op(Pop_cnum);
+            Cop_cnum = find((cindcs(1)>nnw_op(1:end-1) & cindcs(1)<=nnw_op(2:end)));
+            
+            % Build the coefficient operator acting on this term
+            Idoms = term_jj.I;
+            Cval = polynomial(term_jj.C);
+            parnum = [Cop_rnum,Cop_cnum];
+            Cop_jj = coeff2op(Cval,Idoms,parnum,vars,dom);
+            Cop_jj = clean_opvar(Cop_jj,ztol);
             
             % Add the coefficients to the appropriate parameter.
-            Rparam = Rparams{Pop_rnum,Pop_cnum};
-            if iscell_Rparam(Pop_rnum,Pop_cnum)
-                params_w.(Rparam){1}(rindcs,cindcs) = params_w.(Rparam){1}(rindcs,cindcs) + term_jj.C;
-            else
-                params_w.(Rparam)(rindcs,cindcs) = params_w.(Rparam)(rindcs,cindcs) + term_jj.C;
-            end
+            Pop_w(rindcs,cindcs) = Pop_w(rindcs,cindcs) + Cop_jj;
             
         elseif isfield(term_jj,'u')
             % Determine which input component is involved in the term.
             comp_indx = term_jj.u;
+            if is_diff_u(comp_indx)
+                error("An actuator input will appear as both itself and as its own derivative in the PIE; this is currently not supported.")
+            end
             % Establish the column numbers in the operator associated to
             % this input component.
             cindcs = nnu_arr(comp_indx)+1:nnu_arr(comp_indx+1);
-            Pop_cnum = (cindcs(1)>nnu_op(1:end-1) & cindcs(1)<=nnu_op(2:end));
-            cindcs = cindcs - nnu_op(Pop_cnum);
+            Cop_cnum = find((cindcs(1)>nnu_op(1:end-1) & cindcs(1)<=nnu_op(2:end)));
+
+            % Build the coefficient operator acting on this term
+            Idoms = term_jj.I;
+            Cval = polynomial(term_jj.C);
+            parnum = [Cop_rnum,Cop_cnum];
+            Cop_jj = coeff2op(Cval,Idoms,parnum,vars,dom);
+            Cop_jj = clean_opvar(Cop_jj,ztol);
             
             % Add the coefficients to the appropriate parameter.
-            Rparam = Rparams{Pop_rnum,Pop_cnum};
-            if iscell_Rparam(Pop_rnum,Pop_cnum)
-                params_u.(Rparam){1}(rindcs,cindcs) = params_u.(Rparam){1}(rindcs,cindcs) + term_jj.C;
-            else
-                params_u.(Rparam)(rindcs,cindcs) = params_u.(Rparam)(rindcs,cindcs) + term_jj.C;
-            end
+            Pop_u(rindcs,cindcs) = Pop_u(rindcs,cindcs) + Cop_jj;
             
         else
-            % Determine which PDE state component is involved in this term.
-            comp_indx = term_jj.x;
-            
-            % Determine which variables the state component depends on.
-            has_vars_xcomp = logical(PDE.x_tab(comp_indx,3:2+nvars));
-            nvars_xcomp = sum(has_vars_xcomp);
-            
-            % Establish what derivative of the state is considered.
-            Dval = term_jj.D;
-            Dval_full = zeros(1,nvars);
-            Dval_full(has_vars_xcomp) = Dval;
-            
-            % Establish at what position the state is evaluated.
-            loc_val_full = zeros(1,nvars);
-            loc_val = zeros(1,nvars_xcomp); % -1 for lower boundary, 0 for interior, 1 for upper boundary
-            Rloc = term_jj.loc;
-            Rdom = PDE.dom(has_vars_xcomp,:);
-            if ~isa(Rloc,'double') && ~isdouble(Rloc)
-                for kk=1:nvars_xcomp
-                    if isdouble(Rloc(kk)) && double(Rloc(kk))==Rdom(kk,1)
-                        loc_val(kk) = -1;
-                    elseif isdouble(Rloc(kk)) && double(Rloc(kk))==Rdom(kk,2)
-                        loc_val(kk) = 1;
-                    end
-                end
-                loc_val_full(has_vars_xcomp) = loc_val;
-            elseif ~isempty(Rloc)
-                % If the state is evaluated at a corner, we can avoid a for
-                % loop.
-                is_lower_bndry = double(Rloc)==Rdom(:,1)';
-                loc_val(is_lower_bndry) = -1;
-                loc_val(~is_lower_bndry) = 1;
-                loc_val_full(has_vars_xcomp) = loc_val;
-            end
-            
-            % Check whether the desired combination of location and
-            % derivative is already accounted for in our set of parameters.
-            Pop_op_indx = ismember(loc_diff_tab,[loc_val_full,Dval_full],'rows');
-            if ~any(Pop_op_indx)
-                % Establish which state components are differentiable up to
-                % the necessary degree.
-                use_loc = abs(loc_val_full);
-                retain_rows = all(x_tab(:,3+nvars:2+2*nvars)>=Dval_full+use_loc,2);
-                nx_arr_new = x_tab(:,2);
-                nx_arr_new(~retain_rows) = 0;
-                nnx_arr_new = cumsum([0; nx_arr_new]);
-                nc_op = get_opdim([x_tab(:,1),nx_arr_new,x_tab(:,3:end)]);
-                
-                % Determine for each combination of variables whether it
-                % allows for the desired substitution to be performed. That
-                % is, if substituting variable s, then variable s must be
-                % present in the combination of variables.
-                issub_op = false([2*ones(1,nvars),1]);
-                for ll = 2:numel(issub_op)
-                    use_var_list = cell(1,nvars);
-                    [use_var_list{:}] = ind2sub(size(issub_op),ll);
-                    use_var_list = logical(cell2mat(use_var_list)-1);
-                    issub_op(ll) = any(use_loc(use_var_list));                    
-                end
-                % After substitution, states that depend on the substituted
-                % variable will no longer depend on this variable. The size
-                % of these states will therefore have to replace that
-                % of the state components that do not depend on this
-                % variable.
-                nc_op = reshape(nc_op,[2*ones(1,nvars),1]);
-                sub_indcs = find(issub_op)';
-                for ll = sub_indcs(end:-1:1)
-                    % Which combination of variables are we considering?
-                    use_var_list = cell(1,nvars);
-                    [use_var_list{:}] = ind2sub(size(issub_op),ll);
-                    use_var_list = cell2mat(use_var_list)-1;
-                    % Remove the last variable from the combination.
-                    use_var_sub_list = use_var_list & use_loc;
-                    last_var = find(use_var_sub_list,1,'last');
-                    use_var_list(last_var) = 0;
-                    % Add the size of state components that depend on the
-                    % considered combination to that of components that
-                    % depend on the combination excluding the last var.
-                    new_idx = use_var_list*(2.^(0:nvars-1))' + 1;
-                    nc_op(new_idx) = nc_op(ll); % Note that the old nc_op(ll) will be overwritten, as it does not depend on all required variables
-                    nc_op(ll) = 0;
-                end
-                nc_op = nc_op(:);
-                
-                % Initalize a new operator that maps only the allowed state
-                % components, evaluated at the desired boundaries.
-                if nvars<=1
-                    opvar Pop_new;
-                    Pop_new.dim = [nr_op,nc_op];
-                    Pop_new.I = dom;
-                    Pop_new.var1 = vars(1,1);   Pop_new.var2 = vars(1,2);
-                    
-                    params_new = struct();
-                    for kk=1:numel(Rparams)-1
-                        params_new.(Rparams{kk}) = polynomial(Pop_new.(Rparams{kk}));
-                    end
-                    params_new.R = {polynomial(Pop_new.R.R0), polynomial(Pop_new.R.R1), polynomial(Pop_new.R.R2)};
+            % % The component involves a state variable, which may appear
+            % % in a nonlinear manner
 
-                else
-                    Pop_new = opvar2d([],[nr_op,nc_op],dom,vars);
-                    params_new = struct(Pop_new);
-                end
-                
-                % Keep track of which state variables the operator maps.
-                indx_l = nnx_arr(1:end-1);      indx_u = nnx_arr(2:end);
-                retain_xvars = mat2cell([indx_l(retain_rows),indx_u(retain_rows)],ones(sum(retain_rows),1));
-                retain_xvars = cellfun(@(x) (x(1)+1:x(2))',retain_xvars,'UniformOutput',false);
-                retain_xvars = cell2mat(retain_xvars);
-                retain_xvars_cell = [retain_xvars_cell; retain_xvars];
-                
-                % Also keep track of the dimensions of the new operator.
-                nnx_op_cell = [nnx_op_cell; cumsum([0;nc_op])];
-                nnx_arr_cell = [nnx_arr_cell; nnx_arr_new];
-                
-                % Add the new combination to the list of combinations.
-                loc_diff_tab = [loc_diff_tab;
-                                [loc_val_full, Dval_full]];
-                % Add a new operator to the cell.
-                params_x_cell = [params_x_cell;
-                                 {params_new}];
-                Pop_x_cell = [Pop_x_cell;
-                              {Pop_new}];
-                
-                % We will modify the parameters of the new element.
-                Pop_op_indx = length(params_x_cell);
-            end
-            
-            % Establish which parameter in the operator correspond to the
-            % desired state component, and which column indices in this
-            % parameter.
-            cindcs = nnx_arr_cell{Pop_op_indx}(comp_indx)+1:nnx_arr_cell{Pop_op_indx}(comp_indx+1);
-            Pop_cnum = (cindcs(1)>nnx_op_cell{Pop_op_indx}(1:end-1) & cindcs(1)<=nnx_op_cell{Pop_op_indx}(2:end));
-            cindcs = cindcs - nnx_op_cell{Pop_op_indx}(Pop_cnum);
-            Rparam = Rparams{Pop_rnum, Pop_cnum};
+            % Determine the number of factors in the term
+            nfctrs = numel(term_jj);
+            state_nums_jj = zeros(1,0);
+            op_cell_jj = cell(1,0);
 
-            % % Establish which elements of the parameter must be set;
-            % % are we performing integration?
-            Cval = polynomial(term_jj.C);
-            if ~iscell_Rparam(Pop_rnum,Pop_cnum)
-                % If the involved parameter does not involve partial
-                % integration, just set the term.
-                Cval = subs(Cval,vars(:,2),vars(:,1));
-                params_x_cell{Pop_op_indx}.(Rparam)(rindcs,cindcs) = params_x_cell{Pop_op_indx}.(Rparam)(rindcs,cindcs) + Cval;
-            else
-                Idoms = term_jj.I;
-                % First, estbalish along which directions integration is
-                % allowed, by checking the dimensions of the parameter.
-                param_sz_full = cell(1,nvars);
-                [param_sz_full{:}] = size(params_x_cell{Pop_op_indx}.(Rparam));
-                param_sz_full = cell2mat(param_sz_full);
-                param_sz = param_sz_full(has_vars_xcomp);
-                % For each direction along which integration is possible,
-                % establish whether an integral on _a^s, _s^b or _a^b is
-                % desired
-                Pop_int_indx = ones(1,nvars_xcomp);
-                for ll=1:nvars_xcomp
-                    if param_sz(ll)==1
-                        % An integral is taken over the full domain
-                        % anyway --> replace dummy vars in the
-                        % kernel with primary vars.
-                        vars_ll = PDE.vars(has_vars_xcomp,:);
-                        vars_ll = vars_ll(ll,:);
-                        Cval = subs(Cval,vars_ll(2),vars_ll(1));
-                    elseif ~isempty(term_jj.I{ll})
-                        if isa(Idoms{ll},'double') || isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll})
-                            % Integrating over full spatial domain.
-                            % A full integral has to be constructed
-                            % using two partial integrals.
-                                Pop_int_indx1 = Pop_int_indx;
-                                Pop_int_indx2 = Pop_int_indx;
-                                Pop_int_indx1(:,ll) = 2;
-                                Pop_int_indx2(:,ll) = 3;
-                                Pop_int_indx = [Pop_int_indx1; Pop_int_indx2];
-                        elseif isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll}(1))
-                            % Integrating over lower "half" of domain.
-                            Pop_int_indx(:,ll) = 2;
-                        elseif isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll}(2))
-                            % Integrating over upper "half" of domain.
-                            Pop_int_indx(:,ll) = 3;
+            for fctr_num=1:nfctrs
+                % Extract the factor from the term
+                fctr_jj = term_jj(fctr_num);
+
+                % Determine which PDE state component is involved in this 
+                % factor, and associated rows of the T operator
+                comp_indx = fctr_jj.x;
+                r_idcs_tmp = nnx_arr(comp_indx)+1:nnx_arr(comp_indx+1);
+
+                % Determine which variables the state component depends on.
+                has_vars_xcomp = logical(PDE.x_tab(comp_indx,3:2+nvars));
+                nvars_xcomp = sum(has_vars_xcomp);
+                xvars = vars(has_vars_xcomp,1);
+               
+                % Establish what derivative of the state is considered.
+                Dval = fctr_jj.D;
+                
+                % Establish at what position the state is evaluated.
+                is_sub = false(1,nvars_xcomp); % 1 for substitution at boundary, 0 else
+                Rloc = fctr_jj.loc;
+                if ~isa(Rloc,'double') && ~isdouble(Rloc)
+                    for kk=1:nvars_xcomp
+                        if isdouble(Rloc(kk))
+                            is_sub(kk) = true;
                         end
                     end
+                elseif ~isempty(Rloc)
+                    % If the state is evaluated at a corner, we can avoid a for
+                    % loop.
+                    is_sub = true(1,nvars_xcomp);
                 end
-                % Each colum in "Pop_int_indx_full" corresponds to one of
-                % the global variables in the PDE. Each row corresponds to
-                % an integral that the user has specified for this term. 
-                Pop_int_indx_full = ones(size(Pop_int_indx,1),nvars);
-                Pop_int_indx_full(:,has_vars_xcomp) = Pop_int_indx;
-            
-                % Set the parameters for each of the desired partial
-                % integrals/multipliers.
-                if nvars<=1
-                    param_linsz = 1;
+                
+                % Perform the desired differentiation/substitution of the
+                % T operators mapping the fundamental state to PDE state
+                Top_x_jj = Top_x(r_idcs_tmp,:);
+                Top_w_jj = Top_w(r_idcs_tmp,:);
+                Top_u_jj = Top_u(r_idcs_tmp,:);
+
+                Top_x_jj = diff(Top_x_jj,xvars,Dval','pure');
+                Top_w_jj = diff(Top_w_jj,xvars,Dval','pure');
+                Top_u_jj = diff(Top_u_jj,xvars,Dval','pure');
+
+                if any(is_sub)
+                    Top_x_jj = subs(Top_x_jj,xvars(is_sub),Rloc(is_sub)','pure');
+                    Top_w_jj = subs(Top_w_jj,xvars(is_sub),Rloc(is_sub)','pure');                
+                    Top_u_jj = subs(Top_u_jj,xvars(is_sub),Rloc(is_sub)','pure');
+                end
+
+                % Declare the PI operator that is acting on this PDE state
+                % variable
+                Cop_cnum = find(Top_x_jj.dim(:,1)>0,1);
+                Idoms = fctr_jj.I(~is_sub);
+                Cval = polynomial(fctr_jj.C);
+                parnum = [Cop_rnum,Cop_cnum];
+                Cop_jj = coeff2op(Cval,Idoms,parnum,vars,dom);
+
+                % Multiply coefficients with map from fundamental to PDE
+                % state
+                Pop_x2x_ll = clean_opvar(Cop_jj*Top_x_jj,ztol);
+                Pop_u2x_ll = clean_opvar(Cop_jj*Top_u_jj,ztol);
+                Pop_w2x_ll = clean_opvar(Cop_jj*Top_w_jj,ztol);
+
+                % Add the input operators to the full operator
+                if nfctrs>1 && (~all(all(Pop_u2x_ll==0)) || ~all(all(Pop_w2x_ll==0)))
+                    error("An input signal appears nonlinearly in the PIE; this is not supported.")
+                end
+                Pop_u2x(rindcs,:) = Pop_u2x(rindcs,:) + Pop_u2x_ll;
+                Pop_w2x(rindcs,:) = Pop_w2x(rindcs,:) + Pop_w2x_ll;
+
+                % Augment x operator to map to all equations
+                Pop_x2x_ll = [Pop_tmp(1:rindcs(1)-1,:); Pop_x2x_ll; Pop_tmp(rindcs(end)+1:end,:)];
+
+                % Split the operator into columns associated with each
+                % fundamental state variable
+                state_nums_tmp = state_nums_jj;
+                op_cell_tmp = op_cell_jj;
+                nreps = size(state_nums_tmp,1);
+                state_nums_jj = zeros(0,size(state_nums_tmp,2)+1);
+                op_cell_jj = cell(0,size(op_cell_tmp,2)+1);
+                for state_num=1:numel(nx_arr)
+                    % Extract columns of the operator associated with
+                    % fundamental state variable state_num
+                    c_idcs = nnx_arr(state_num)+1:nnx_arr(state_num+1);
+                    Pop_x_tmp = Pop_x2x_ll(:,c_idcs);
+                    %Pop_x_tmp = dopvar2ndopvar(Pop_x2x_tmp(:,c_idcs));
+                    if all(all(Pop_x_tmp==0))
+                        % The current fundamental state variable does not
+                        % contribute to this equation
+                        continue
+                    end
+                    % Add the state number to the list of variables that
+                    % contribute to this particular PDE term
+                    state_nums_jj = [state_nums_jj; [state_nums_tmp,state_num*ones(nreps,1)]];
+                    op_cell_jj = [op_cell_jj; [op_cell_tmp,repmat({Pop_x_tmp},nreps,1)]];
+                end
+            end
+            % Add the terms to the PIE
+            for ll=1:size(state_nums_jj,1)
+                % Reorder factors based on order of states
+                [state_nums_ll,new_order] = sort(state_nums_jj(ll,:));
+                op_cell_ll = op_cell_jj(ll,new_order);
+                % Determine the degree of the monomial in each state
+                [~,strt_idx] = unique(state_nums_ll);
+                degs_part = [strt_idx(2:end); numel(state_nums_ll)+1] - strt_idx;
+                degs_ll = zeros(1,size(x_tab,1));
+                degs_ll(state_nums_ll) = degs_part;
+                % Determine whether the monomial already appears
+                deg_idx = find(ismember(degmat,degs_ll,'rows'));
+                if isempty(deg_idx)
+                    % The monomial does not appear yet
+                    % --> add it to the list
+                    degmat = [degmat; degs_ll];
+                    if sum(degs_ll)==1
+                        op_cell_full = [op_cell_full,op_cell_ll];
+                    else
+                        op_cell_full = [op_cell_full,{op_cell_ll}];
+                    end
+                    trm_cntr = [trm_cntr; 2];
                 else
-                    param_linsz = cumprod([1,param_sz_full]);
-                    param_linsz = param_linsz(1:end-1);
+                    % The monomial already appears
+                    % --> add the new operator to the old one
+                    if sum(degs_ll)==1
+                        op_cell_full{deg_idx} = op_cell_full{deg_idx}+op_cell_ll{1};
+                    else
+                        trm_cntr_ll = trm_cntr(deg_idx);
+                        nterms_ll = size(op_cell_full{deg_idx},1);
+                        if trm_cntr_ll<=nterms_ll
+                            % For terms belonging to a new equation, we can
+                            % just add to terms already declared for
+                            % previous equations
+                            for fctr_num=1:size(op_cell_ll,2)
+                                op_cell_full{deg_idx}{trm_cntr_ll,fctr_num} = op_cell_full{deg_idx}{trm_cntr_ll,fctr_num}+op_cell_ll{fctr_num};
+                            end
+                        else
+                            % Otherwise, we concatenate to represent the
+                            % newly added term
+                            op_cell_full{deg_idx} = [op_cell_full{deg_idx};op_cell_ll];
+                        end
+                        trm_cntr(deg_idx) = trm_cntr_ll + 1;
+                    end
                 end
-                for ll=1:size(Pop_int_indx_full,1)
-                    int_lindx = (Pop_int_indx_full(ll,:)-1)*param_linsz' + 1;
-                    params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) = params_x_cell{Pop_op_indx}.(Rparam){int_lindx}(rindcs,cindcs) + Cval;
-                end
-            end               
+            end
         end
     end
 end
 
+% % Finally, declare the distributed polynomial based on the encountered
+% % monomials and associated operators
+% Declare the degrees of the monomials appearing in f
+[degmat_f,deg_order] = sortrows_integerTable([sum(degmat,2),degmat(:,end:-1:1)]);
+fx.degmat = degmat_f(:,end:-1:2);
+% Declare the coefficients acting on these monomials
+Cop = fx.C;
+Cop.ops = op_cell_full(1,deg_order);
+fx.C = Cop;
 
-% Having determined values for all the parameters, now set the parameters 
-% of the operators.
-if nvars<=1
-    RRparams = {'R0','R1','R2'};
-    for ll=1:numel(params_x_cell)
-        for kk=1:numel(Rparams)-1
-            Pop_x_cell{ll}.(Rparams{kk}) = params_x_cell{ll}.(Rparams{kk});
-        end
-        for kk=1:numel(RRparams)
-            Pop_x_cell{ll}.R.(RRparams{kk}) = params_x_cell{ll}.R{kk};
+% Add the contribution of the inputs
+Pop_u = Pop_u2x + Pop_u*Uop;
+Pop_w = Pop_w2x + Pop_w*Uop;
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function Cop = coeff2op(Cval,Idoms,parnum,vars,dom)
+% COP = COEFF2OP(CVAL,IDOMS,PARNUM,VARS,DOM) constructs an operator 
+% COP representing the integral over the domains IDOMS with kernel CVAL
+%
+% INPUTS
+% - Cval:   m x n 'double' or polynomial object representing a multiplier
+%           or a kernel in an integral operator acting on x;
+% - Idoms:  q x 1 cell specifying the domains over which to integrate x
+%           with respect to each of the q variables on which x depends. If
+%           Idoms{i} = [], then no integration is performed along the ith
+%           variable;
+% - parnum: 1 x 2 array of integers specifying which parameter in the
+%           operator Cop will need to be set. This depends on what function
+%           space Cop maps between: 
+%               parnum(1) = 1 implies a map to R
+%               parnum(1) = 2 implies a map to L2[s1]
+%               parnum(1) = 3 implies a map to L2[s2]
+%               parnum(1) = 4 implies a map to L2[s1,s2]
+%           and similarly, parnum(2) specifies what space Cop maps from;
+% - vars:   N x 2 'pvar' array specifying the primary and dummy variables
+%           in the operator;
+% - dom:    N x 2 array specifying for each of the N primary variables on
+%           what interval it is defined;
+%
+% OUTPUTS
+% - Cop:    'opvar' or 'opvar2d' object specifying the map defined by the
+%           coefficients 'Cval' and domains of integration 'Idoms';
+
+% Initialize an operator of desired dimensions
+nvars = size(vars,1);
+if nvars==1
+    Cop = opvar();
+    Rparams = {'P', 'Q1';
+               'Q2', 'R'};
+else
+    Cop = opvar2d();
+    Rparams = {'R00', 'R0x', 'R0y', 'R02';
+               'Rx0', 'Rxx', 'Rxy', 'Rx2';
+               'Ry0', 'Ryx', 'Ryy', 'Ry2';
+               'R20', 'R2x', 'R2y', 'R22'};
+end
+Cop.dim(parnum(1),1) = size(Cval,1);
+Cop.dim(parnum(2),2) = size(Cval,2);
+Cop.var1 = vars(:,1);
+Cop.var2 = vars(:,2);
+Cop.I = dom;
+
+% Establish between what function spaces the operator maps
+Rname = Rparams{parnum(1),parnum(2)};
+[has_vars_Lcomp{1:nvars+1}] = ind2sub([2*ones(1,nvars),1],parnum(1));
+has_vars_Lcomp = logical(cell2mat(has_vars_Lcomp(1:nvars))-1);
+[has_vars_Rcomp{1:nvars+1}] = ind2sub([2*ones(1,nvars),1],parnum(2));
+has_vars_Rcomp = logical(cell2mat(has_vars_Rcomp(1:nvars))-1);
+nvars_Rcomp = sum(has_vars_Rcomp);
+
+% Check whether the coefficients act as multiplier or as
+% kernel of some integral
+Cop_int_indx = ones(1,nvars);
+if isempty(Idoms)
+    % The coefficients act as just a multiplier operator
+    Cval = subs(Cval,vars(:,2),vars(:,1));
+else
+    % The coefficients may represent kernels
+    % Check first along which directions we can have
+    % partial integrals
+    param_sz_full = 3.^(has_vars_Lcomp & has_vars_Rcomp);
+    param_sz = param_sz_full(has_vars_Rcomp);
+    % For each direction along which integration is possible,
+    % establish whether an integral over _a^s, _s^b or _a^b is taken
+    Cop_int_indx_tmp = ones(1,nvars_Rcomp);
+    for ll=1:numel(Idoms)
+        if param_sz(ll)==1
+            % An integral is taken over the full domain
+            % anyway --> replace dummy vars in the
+            % kernel with primary vars.
+            vars_ll = vars(has_vars_Rcomp,:);
+            vars_ll = vars_ll(ll,:);
+            Cval = subs(Cval,vars_ll(2),vars_ll(1));
+        elseif ~isempty(Idoms{ll})
+            if isa(Idoms{ll},'double') || isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll})
+                % Integrating over full spatial domain.
+                % A full integral has to be constructed
+                % using two partial integrals.
+                Cop_int_indx1 = Cop_int_indx_tmp;
+                Cop_int_indx2 = Cop_int_indx_tmp;
+                Cop_int_indx1(:,ll) = 2;
+                Cop_int_indx2(:,ll) = 3;
+                Cop_int_indx_tmp = [Cop_int_indx1; Cop_int_indx2];
+            elseif isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll}(1))
+                % Integrating over lower "half" of domain.
+                Cop_int_indx_tmp(:,ll) = 2;
+            elseif isa(Idoms{ll},'polynomial') && isdouble(Idoms{ll}(2))
+                % Integrating over upper "half" of domain.
+                Cop_int_indx_tmp(:,ll) = 3;
+            end
         end
     end
-    for kk=1:numel(Rparams)-1
-        Pop_w.(Rparams{kk}) = params_w.(Rparams{kk});
-        Pop_u.(Rparams{kk}) = params_u.(Rparams{kk});
-    end
-    for kk=1:numel(RRparams)
-        Pop_w.R.(RRparams{kk}) = params_w.R{kk};
-        Pop_u.R.(RRparams{kk}) = params_u.R{kk};
+    Cop_int_indx(:,has_vars_Rcomp) = Cop_int_indx_tmp;
+end
+
+% Declare coefficients in appropriate element of Cop
+if nvars==1
+    % Set elements of 4-PI operator.
+    if parnum(1)==1 || parnum(2)==1
+        % Map to or from R, no need to account for partial integrals
+        Cop.(Rname) = Cval;
+    else
+        % Map L2-->L2, set appropriate element depending on integral
+        for ll=1:size(Cop_int_indx,1)
+            switch Cop_int_indx(ll)
+                case 1
+                    Cop.R.R0 = Cval;
+                case 2
+                    Cop.R.R1 = Cval;
+                case 3
+                    Cop.R.R2 = Cval;
+            end
+        end
     end
 else
-    for kk=1:numel(Rparams)
-        for ll=1:numel(params_x_cell)
-            Pop_x_cell{ll}.(Rparams{kk}) = params_x_cell{ll}.(Rparams{kk});
+    % Set elements of 2D PI operator
+    Cparam = Cop.(Rname);
+    if ~isa(Cparam,'cell')
+        Cparam = polynomial(Cval);
+    else
+        sz_param = size(Cparam);
+        for ll=1:size(Cop_int_indx,1)
+            lindx = cumprod([1,sz_param(1:end-1)])*(Cop_int_indx(ll,:)-1)' + 1;
+            Cparam{lindx} = polynomial(Cval);
         end
-        Pop_w.(Rparams{kk}) = params_w.(Rparams{kk});
-        Pop_u.(Rparams{kk}) = params_u.(Rparams{kk});
     end
+    Cop.(Rname) = Cparam;
 end
-
 end
-
-
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
-function [Pop_x, Pop_u, Pop_w] = impose_fundamental_map(Top,Pop,loc_diff_tab,retain_xvars_cell)
-% Construct PI operators such that the PDE corresponding to operators Pop,
-%   obj = sum_j=1^n1 (P_x2obj{j} * Delta_j * D_j)* x + P_u2obj* u + P_w2obj* w;
-% can be represented in terms of the fundamental state as
-%   obj = Pop_x * xf + Pop_u * u + Pop_w;
-%
-% INPUTS:
-% - Top:    Struct with field 'x', 'u' and 'w', containing PI operators Tx,
-%           Tu and Tw such that the PDE state x can be expressed in terms
-%           of the fundamental state xf as
-%               x = Tx * xf + Tu * u + Tw * w;
-% - Pop:    Struct with field 'x', 'u' and 'w'
-%           Pop.x should be an Nx1 cell of opvar2d objects, and Pop_u and
-%           Pop_w should be opvar2d objects, defining a PDE as in
-%           "construct_PI_ops_PDE".
-% - loc_diff_tab:   Nx2*nvars array that comes with Pop.x, see the outputs
-%                   of "construct_PI_ops_PDE".
-% - retain_xvars_cell:  Nx1 cell providing indices of the state components
-%                       that each element Pop.x{j} maps, see the outputs
-%                       of "construct_PI_ops_PDE".
-%
-% OUTPUTS:
-% - Pop_x, Pop_u, Pop_w:    opvar2d objects describing the PIE associated
-%                           to the input operators:
-%       Pop_x = sum_j=1^n1 (Pop.x{j} * Delta_j * D_j * Top.x);
-%       Pop_u = sum_j=1^n1 (Pop.x{j} * Delta_j * D_j * Top.u);
-%       Pop_w = sum_j=1^n1 (Pop.x{j} * Delta_j * D_j * Top.w);
-% where the composition of the differential and Delta operators with the
-% operators Top are PI operators, guaranteeing that Pop_x, Pop_u and Pop_w
-% are also PI operators.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% If you modify this code, document all changes carefully and include date
-% authorship, and a brief description of modifications
-%
-% Initial coding DJ - 08/09/2022
-%
-
-% Construct an array indicating for each spatial direction the lower
-% boundary, spatial variable, and upper boundary.
-global dom vars nvars
-all_locs = [dom(:,1)'; vars(:,1)'; dom(:,2)'];
-
-% Extract the pre-defined PI operators.
-Top_x = Top.x;      Pop_x_cell = Pop.x;
-Top_u = Top.u;      Pop_u = Pop.u;
-Top_w = Top.w;      Pop_w = Pop.w;
-
-
-% Initialize an operator to map the fundamental state.
-if nvars<=1
-    opvar Pop_x;
-    Pop_x.dim = [Pop_u.dim(:,1),Top_x.dim(:,2)];
-    Pop_x.I = dom;
-    Pop_x.var1 = vars(1,1);     Pop_x.var2 = vars(1,2);
-else
-    Pop_x = opvar2d([],[Pop_u.dim(:,1),Top_x.dim(:,2)],dom,vars);
-end
-
-for jj = 1:numel(Pop_x_cell)
-    % Establish what derivative of the state component is considered.
-    Dval = loc_diff_tab(jj,nvars+1:2*nvars);
-    
-    % Establish at what position the state is evaluated.
-    loc_val = loc_diff_tab(jj,1:nvars);
-    loc_val_lin = loc_val+2+(0:nvars-1)*3;
-    Rloc = all_locs(loc_val_lin);
-
-    % If the state is differentiated wrt some variable s, the state must be
-    % differentiable wrt this variable up to the desired order. We extract
-    % only the PDE state variables (rows of Tx) satisfying this condition.
-    retain_xvars = retain_xvars_cell{jj};
-                 
-    % Take the composition of the desired differential and Delta operator
-    % with the PI operators T.
-    Top_x_jj = Top_x(retain_xvars,:);
-    Top_x_jj = diff(Top_x_jj,vars(:,1),Dval','pure');
-    Top_x_jj = subs(Top_x_jj,vars(:,1),Rloc','pure');
-    
-    % Take the composition of the resulting operator with the coefficient
-    % operator, and add to the PIE.
-    Pop_jj = Pop_x_cell{jj};
-    PTop = Pop_jj * Top_x_jj;
-    Pop_x = Pop_x + PTop;
-    
-    % Repeat for the input signals.
-    if any(Top_u.dim(:,2))
-        Top_u_jj = Top_u(retain_xvars,:);
-        try                                                                 % DJ, 01/24/2026
-            Top_u_jj = diff(Top_u_jj,vars(:,1),Dval','pure');
-            Top_u_jj = subs(Top_u_jj,vars(:,1),Rloc','pure');
-        catch
-            error("Conversion to PIE currently not supported: PIE involves (additional) derivatives or boundary values of actuator input.")
-        end
-        PTop = Pop_jj * Top_u_jj;
-        Pop_u = Pop_u + PTop;
-    end
-    if any(Top_w.dim(:,2))
-        Top_w_jj = Top_w(retain_xvars,:);
-        try                                                                 % DJ, 01/24/2026
-            Top_w_jj = diff(Top_w_jj,vars(:,1),Dval','pure');
-            Top_w_jj = subs(Top_w_jj,vars(:,1),Rloc','pure');
-        catch
-            error("Conversion to PIE currently not supported: PIE involves (additional) derivatives or boundary values of exogenous input.")
-        end
-        PTop = Pop_jj * Top_w_jj;
-        Pop_w = Pop_w + PTop;
-    end    
-end
-
-end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
 
