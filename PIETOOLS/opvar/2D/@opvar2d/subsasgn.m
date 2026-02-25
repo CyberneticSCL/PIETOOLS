@@ -46,6 +46,7 @@ function b = subsasgn(a,L,RHS)
 % DJ, 06/14/2025: Bugfix column indexing, add support for RHS of type
 %                   'double' or 'polynomial', or RHS = [];
 % DJ, 06/15/2025: Allow "a([],[]) = []", returning "b=a";
+% DJ, 02/24/2026: Bugfix in case a and RHS are both empty;
 
 %a = opvar2d(a);
 %sza = size(a);
@@ -84,7 +85,7 @@ switch L(1).type
         end
 
         % Check if the RHS is of appropriate type.
-        if isempty(RHS)                                                     % DJ, 06/14/2025
+        if isempty(RHS) && ~isempty(a)                                      % DJ, 06/14/2025, 02/24/2026
             % Remove rows or columns of a using e.g. a(i,:) = [];
             r_idcs = 1:size(a,1);   c_idcs = 1:size(a,2);
             if islogical(L(1).subs{1})
@@ -117,7 +118,7 @@ switch L(1).type
                 % Get rid of all elements along particular columns;
                 if isempty(c_rtn)
                     % Set the entire object to empty: a(:,:) = [];
-                    b = opvar();
+                    b = opvar2d();
                     b.I = a.I;  b.var1 = a.var1;    b.var2 = a.var2;
                 else
                     % Retain only columns not in L(1).subs{2}
