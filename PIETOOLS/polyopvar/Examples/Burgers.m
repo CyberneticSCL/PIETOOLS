@@ -24,50 +24,20 @@
 %%%% 1. Modelling PIE.
 
 % declare spatial variables, domain, and r.
+clear;  clear stateNameGenerator
 pvar s t
 dom = [0,1];
 r = pi^2-0.1;
 
-% Declare T as an opvar.
-opvar T;
-T1 = (s-1)*t; T.R.R1 = T1;
-T2 = s*(t-1); T.R.R2 = T2;
-T.I = dom;
-T.var1 = s; T.var2 = t;
+% Declare the nonlinear PDE
+x = pde_var(s,dom);
+PDE = [diff(x,t)==diff(x,s,2)+r*x-x*diff(x,s);
+       subs(x,s,dom(1))==0;  subs(x,s,dom(2))==0];
 
-% Declare R as an opvar.
-opvar R;
-R1 = t;   R.R.R1 = R1;
-R2 = t-1; R.R.R2 = R2;
-R.I = dom;
-R.var1 = s; R.var2 = t;
-
-% Convert T, R to nopvar operators.
-T = dopvar2ndopvar(T);
-R = dopvar2ndopvar(R);
-
-% Declare identity nopvar for identity operators present in polyopvar 
-% representation of PIE.
-id = nopvar();
-id.C = {1, 0, 0};
-id.deg = 0;
-id.dom = dom;
-id.vars = [s, t];
-
-% Declare rihgt-hand side of the PIE as polyopvar.
-C1 = {id+r*T, {-T,R}};
-C = tensopvar();
-C.ops = C1;
-f = polyopvar({'x'},s,dom);
-f.C = C;
-f.degmat = [1;2];
-
-% Declare the PIE as a struct
-PIE = struct();
-PIE.T = T;
-PIE.f = f;
-PIE.vars = [s,t];
-PIE.dom = dom;
+% Convert ot a PIE
+PIE = convert(PDE);
+Top = PIE.T;
+f = PIE.f;
 
 
 %%%% 2. Setting up LPI for stability analysis using a SOS Lyapunov functional
@@ -78,7 +48,7 @@ prog = lpiprogram(s,t,dom);
 
 % Declare monomial basis of SOS Lyapunov functional.
 d = 1;                  % degree of distributed monomial basis, will be doubled in LF
-Z = polyopvar({'x'},s,dom); % Z_d(v).
+Z = polyopvar(f.varname,s,dom); % Z_d(v).
 Z.degmat = (1:d).';
 
 % Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
@@ -99,7 +69,7 @@ dV = Liediff(Vx,PIE); % output is in polyopvar
 % Declare a nonnegative distributed polynomial functional W
 qdegs = pdegs+2;
 ZQ_degmat = unique(floor(dV.degmat./2),'rows');
-ZQ = polyopvar({'x'},s,dom);
+ZQ = polyopvar(f.varname,s,dom);
 ZQ.degmat = ZQ_degmat;
 Q_opts.exclude = [1,0,0]';
 [prog,Qmat,ZQop] = soslpivar(prog,ZQ,qdegs,Q_opts);

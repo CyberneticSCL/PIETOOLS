@@ -566,7 +566,7 @@ PIE.vars = vars;
 PIE.dim = size(PIE.vars,1);
 
 % Store the PI operators defining the fundamental to PDE state map.
-PIE.T = clean_opvar(Top.x,op_clean_tol);
+PIE.T = dopvar2ndopvar(clean_opvar(Top.x,op_clean_tol));
 PIE.Tw = clean_opvar(Top.w,op_clean_tol);
 PIE.Tu = clean_opvar(Top.u,op_clean_tol);
 
@@ -1173,7 +1173,7 @@ fx.dom = dom;
 
 % Initialize empty operators.
 if nvars<=1
-    opvar Pop_tmp Pop_u Pop_w;
+    opvar Pop_tmp Pop_u_tmp Pop_w_tmp;
     Pop_tmp.dim = [nr_op,nx_op];
     Pop_tmp.I = dom;
     Pop_tmp.var1 = vars(1,1);     Pop_tmp.var2 = vars(1,2);
@@ -1362,8 +1362,8 @@ for eqnum=1:numel(PDE.(obj))
                     % Extract columns of the operator associated with
                     % fundamental state variable state_num
                     c_idcs = nnx_arr(state_num)+1:nnx_arr(state_num+1);
-                    Pop_x_tmp = Pop_x2x_ll(:,c_idcs);
-                    %Pop_x_tmp = dopvar2ndopvar(Pop_x2x_tmp(:,c_idcs));
+                    %Pop_x_tmp = Pop_x2x_ll(:,c_idcs);
+                    Pop_x_tmp = dopvar2ndopvar(Pop_x2x_ll(:,c_idcs));
                     if all(all(Pop_x_tmp==0))
                         % The current fundamental state variable does not
                         % contribute to this equation
