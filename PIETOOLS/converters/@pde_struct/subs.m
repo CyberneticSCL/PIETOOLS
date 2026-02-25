@@ -162,6 +162,7 @@ for ii=1:numel(PDE_out.free)
             obj_vars = PDE_in.(obj_jj){fctr_jj.(obj_jj)}.vars(:,1);
             if ~isfield(fctr_jj,'loc')
                 fctr_jj.loc = obj_vars';
+                term_jj.loc = [];
             end
     
             % Next, perform substitution for each variable separately.
@@ -170,6 +171,7 @@ for ii=1:numel(PDE_out.free)
                     % Perform temporal substitution
                     if ~isfield(fctr_jj,'delay')
                         fctr_jj.delay = double(locs(ll));
+                        term_jj.delay = [];
                     else
                         fctr_jj.delay = fctr_jj.delay+double(locs(ll));
                     end
