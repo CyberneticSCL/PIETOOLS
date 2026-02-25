@@ -1,12 +1,15 @@
-function [P_subs] = subs(P1, vars, vals)
-%SUBS Substitute variables in a quadPoly with tensor-decomposed exponent bases.
+function [P_int] = int(P1, vars, low_limit, high_limit)
+%int integrate variables in a quadPoly
 %
-% % INPUTS
-% - P1:   nx1 or 1xn 'quadpoly' class object.
+% 
+% INPUTS
+% - P1:   'quadpoly' class object.
 % - vars:  cell array of names of vars
-% - vals:  cell array of 'double'
-% % OUTPUTS
-% - P_subs:      'quadpoly' object differentiated with respect all vars
+% - low_limit (optional) : 'double' array
+% - high_limit (optional): 'double' array
+%
+% OUTPUTS
+% - P_int:      'quadpoly' object integrated with respect all vars
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -35,10 +38,11 @@ function [P_subs] = subs(P1, vars, vals)
 % authorship, and a brief description of modifications
 %
 % AT, 02/18/2026: Initial coding;
- 
+
+
 
 if ~isa(P1, 'quadPoly')
-    error('quadPoly:subs:badType', 'subs supports only quadPoly ');
+    error('quadPoly:int:badType', 'int supports only quadPoly');
 end
 
 if isa(vars, 'char')
@@ -49,18 +53,20 @@ if ~isa(vars, 'cell')
     vars = num2cell(vars);
 end
 
-if ~isa(vals, 'cell')
 
-    if isa(vals, 'double')
-        vals = num2cell(vals);
-    else
-        error('quadPoly:subs:badType', 'subs supports cell array or double as vals input')
+if nargin > 2
+    if nargin < 4
+        high_limit = low_limit;
+        low_limit = 0*high_limit;
     end
+
+    P_int = int(P1, vars);
+    P_int = subs(P_int, vars, high_limit) - subs(P_int, vars, low_limit);
+    return
 end
 
-if size(vars) ~= size(vals)
-    error('quadPoly:subs:badType', 'number of vars and vals should be the same');
-end
+  
+
 % extract monomials and coefficients.
 Zt = P1.Zt;
 Zs = P1.Zs;
@@ -81,33 +87,32 @@ for vars_ind = 1:length(vars)
     ind_in_ns = strcmp(ns, vars{vars_ind});
     if sum(ind_in_ns) > 0
         location_vars_ind = find(ind_in_ns);
-        vals_in_ns{location_vars_ind} = vals{vars_ind};
+        vals_in_ns{location_vars_ind} = 1;
     else
         ind_in_nt = strcmp(nt, vars{vars_ind});
-
+        
         if sum(ind_in_nt) > 0
             location_vars_ind = find(ind_in_nt);
-            vals_in_nt{location_vars_ind} = vals{vars_ind};
+            vals_in_nt{location_vars_ind} = 1;
         else
-            warning(['quadPoly:subs:NotFound ', char(vars{vars_ind}), ' is not in quadPoly'])
+            warning(['quadPoly:diff:NotFound ', char(vars{vars_ind}), ' is not in quadPoly'])
         end
     end
-    
 end
+
 
 left_multiplier = 1;
 hatZs = {};
-hatns = {};
 for left_index = 1:length(ns)
     if isempty(vals_in_ns{left_index})
         n_mon = length(Zs{left_index});
         mon = speye(n_mon, n_mon);
 
         hatZs{end + 1} = Zs{left_index};
-        hatns{end + 1} = ns{left_index};
-    else
-        value_to_subs = vals_in_ns{left_index};
-        mon = value_to_subs.^(Zs{left_index});
+    else 
+        mon = diag(1./(Zs{left_index} + 1));  
+        hatZs{end + 1} = Zs{left_index} + 1; 
+        
     end
     left_multiplier = kron(left_multiplier, mon);
 end
@@ -115,7 +120,6 @@ left_multiplier = kron(speye(dim(1)), left_multiplier);
 
 
 hatZt = {};
-hatnt = {};
 right_multiplier = 1;
 for right_index = 1:length(nt)
     if isempty(vals_in_nt{right_index})
@@ -123,19 +127,20 @@ for right_index = 1:length(nt)
         mon = speye(n_mon, n_mon);
 
         hatZt{end + 1} = Zt{right_index};
-        hatnt{end + 1} = nt{right_index};
     else
-        value_to_subs = vals_in_nt{right_index};
-        mon = value_to_subs.^(Zt{right_index});
+        mon = diag(Zt{right_index} + 1);  
+
+        hatZt{end + 1} = Zt{right_index} + 1; 
     end
     right_multiplier = kron(right_multiplier, mon);
 end
 right_multiplier = kron(speye(dim(2)), right_multiplier);
 
+
+
+
 hatC = left_multiplier'*C*right_multiplier;
 
-
-
-P_subs = quadPoly(hatC, hatZs, hatZt, dim, hatns, hatnt);
-
+P_int = quadPoly(hatC, hatZs, hatZt, dim, ns, nt);
+% we need to call clean quadpoly after diff
 end
