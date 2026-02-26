@@ -27,7 +27,7 @@ if ~all(all(PIE_lin.B1==PIE_poly.B1)) || ~all(all(PIE_lin.B2==PIE_poly.B2))
     error("One of the B operators does not match")
 end
 % Check the C operators
-if size(PIE_lin.C1)>0
+if size(PIE_lin.C1,1)>0
     C1op_poly = 0*PIE_lin.C1;
     C1op_poly = C1op_poly(:,end+1:end);
     for j=1:numel(PIE_poly.h.C.ops)
@@ -37,7 +37,7 @@ if size(PIE_lin.C1)>0
         error("C1 operator does not match")
     end
 end
-if size(PIE_lin.C2)>0
+if size(PIE_lin.C2,1)>0
     C2op_poly = 0*PIE_lin.C2;
     C2op_poly = C2op_poly(:,end+1:end);
     for j=1:numel(PIE_poly.g.C.ops)
