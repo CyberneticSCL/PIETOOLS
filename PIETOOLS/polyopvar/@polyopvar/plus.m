@@ -46,6 +46,23 @@ elseif isnumeric(B) && isequal(B,0)
     return
 end
 
+% Convert constant values to 'polyopbar' class
+if isa(A,'double') || isa(A,'polynomial') || isa(A,'dpvar')
+    A = constant2polyopvar(A);
+elseif ~isa(A,'polyopvar')
+    error("Addition of 'polyopvar' objects with non-'polyopvar' objects is not supported.")
+end
+if isa(B,'double') || isa(B,'polynomial') || isa(B,'dpvar')
+    B = constant2polyopvar(B);
+elseif ~isa(B,'polyopvar')
+    error("Addition of 'polyopvar' objects with non-'polyopvar' objects is not supported.")
+end
+
+% Make sure the sizes of the polynomials match
+if any(A.matdim~=B.matdim)
+    error("Dimensions of the polynomials to add must match.")
+end
+
 % Make sure the two distributed polynomials are expressed in terms of the
 % same basis of distributed monomials.
 [A,B] = common_basis(A,B);

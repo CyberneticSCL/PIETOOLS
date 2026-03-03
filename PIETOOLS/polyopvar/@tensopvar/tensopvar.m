@@ -107,11 +107,18 @@ methods
                 if isempty(obj.ops{i,j})
                     continue
                 end
-                if isa(obj.ops{i,j},'nopvar') || isa(obj.ops{i,j},'intop')
+                if isa(obj.ops{i,j},'double') || isa(obj.ops{i,j},'polynomial') || isa(obj.ops{i,j},'dpvar')
+                    % Constant term acting on degree-0 monomial
+                    [m,n] = size(obj.ops{i,j});
+                    m_min(i) = min(m_min(i),m);   n_min(i) = min(n_min(i),n);
+                    m_max(i) = max(m_max(i),m);   n_max(i) = max(n_max(i),n);
+                elseif isa(obj.ops{i,j},'nopvar') || isa(obj.ops{i,j},'intop')
+                    % A single operator acting on degree-1 monomial
                     [m,n] = size(obj.ops{i,j});
                     m_min(i) = min(m_min(i),m);   n_min(i) = min(n_min(i),n);
                     m_max(i) = max(m_max(i),m);   n_max(i) = max(n_max(i),n);
                 elseif isa(obj.ops{i,j},'cell')
+                    % Product of multiple factors on degree-d monomial
                     for k=1:numel(obj.ops{i,j})
                         [m,n] = size(obj.ops{i,j}{k});
                         m_min(i) = min(m_min(i),m);   n_min(i) = min(n_min(i),n);
@@ -145,7 +152,7 @@ methods
             elseif isa(obj.ops{j},'cell')
                 degmat(j) = size(obj.ops{j},2);
             else
-                error("The tensopvar object is not properly defined")
+                degmat(j) = 0;
             end
         end
     end

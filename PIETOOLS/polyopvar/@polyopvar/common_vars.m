@@ -89,7 +89,7 @@ dumvar_cell = cell(1,max(d1,d2));
 for lidx=1:numel(C_A.ops)
     [~,cidx] = ind2sub(size(C_A.ops),lidx);
     deg_l = degs_A(cidx,:);
-    if sum(deg_l)==1 || isempty(C_A.ops{lidx})
+    if sum(deg_l)<=1 || isempty(C_A.ops{lidx})
         continue
     end
     % Establish which elements of C1.ops{lidx} correspond to each variable
@@ -155,7 +155,7 @@ end
 for lidx=1:numel(C_B.ops)
     [~,cidx] = ind2sub(size(C_B.ops),lidx);
     deg_l = degs_B(cidx,:);
-    if sum(deg_l)==1 || isempty(C_B.ops{lidx})
+    if sum(deg_l)<=1 || isempty(C_B.ops{lidx})
         continue
     end
     % Establish which elements of C1.ops{lidx} correspond to each variable
