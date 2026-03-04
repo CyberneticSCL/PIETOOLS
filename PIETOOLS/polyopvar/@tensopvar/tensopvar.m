@@ -98,6 +98,12 @@ methods
         % % Determine the dimensions of the matrix-valued operator, m x n, 
         % % from the individual operators
 
+        % Return 0 dimension for empty operator
+        if isempty(obj.ops)
+            matdim = [0,0];
+            return
+        end
+
         % Check the dimensions of the individual operators
         nr = size(obj.ops,1);
         m_min = inf*ones(nr,1);     n_min = inf*ones(nr,1);
