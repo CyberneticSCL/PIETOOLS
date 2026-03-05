@@ -140,8 +140,8 @@ for i=1:size(val.degmat,1)
     var2_new = var2_full(varnums(:)');
     % Declare an empty polynomial in the new monomial
     fi = f;
-    fi.degmat = degs1+degs2;
-    fi.C.ops = cell(1,1);
+    fi.degmat = zeros(0,size(fi.degmat,2));
+    fi.C.ops = cell(1,0);
 
     % Compute the composition of the delta-function integral with the
     % tensor-PI operator Cop
@@ -161,6 +161,7 @@ for i=1:size(val.degmat,1)
         % Declare a functional defined by the kernels KCfun acting on the
         % monomial i
         fi.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
+        fi.degmat = degs1+degs2;
         fi = combine_terms(fi);
     end
 
@@ -204,6 +205,7 @@ for i=1:size(val.degmat,1)
         % monomial i
         fj = fi;
         fj.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
+        fj.degmat = degs1+degs2;
         fj = combine_terms(fj);
         % Add to the other polynomial
         fi = fi+fj;

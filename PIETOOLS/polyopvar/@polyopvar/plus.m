@@ -59,7 +59,13 @@ elseif ~isa(B,'polyopvar')
 end
 
 % Make sure the sizes of the polynomials match
-if any(A.matdim~=B.matdim)
+if all(A.matdim==0)
+    C = B;
+    return
+elseif all(B.matdim==0)
+    C = A;
+    return
+elseif any(A.matdim~=B.matdim)
     error("Dimensions of the polynomials to add must match.")
 end
 
