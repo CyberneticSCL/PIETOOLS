@@ -40,19 +40,21 @@ function C = mtimes(A,B)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% % express A, B in terms of a common monomial basis.
-% [A,B] = common_basis(A,B);
-% C = polyopvar();
-% C.varname = A.varname;
-% C.pvarname = A.pvarname;
-% C.dom = A.dom; % assumes function spaces of A and B are the same.
-% C.varmat = A.varmat;
-% C.degmat = repelem(A.degmat, size(B.degmat,1), 1) + repmat(B.degmat,size(A.degmat,1), 1); % REMOVE DUPLICATE MONOMIALS? Assumed to be present for tensopvar_mtimes.
-% C.C = tensopvar_mtimes(A,B);
+% Make sure the inner dimensions match
+if size(A,2)~=size(B,2) && ~all(size(A)==1) && ~all(size(B)==1)
+    error("Incorrect dimensions for matrix multiplication.")
+end
 
-
-% Account for case where one object is not a distributed polynomial
-if ~isa(A,'polyopvar')
+% Distinguish three cases
+if isa(A,'polyopvar') && isa(B,'polyopvar')
+    % Support multiplication of polynomials only if one is scalar for now
+    if all(size(A)==1) || all(size(B)==1)
+        C = A.*B;
+        return
+    else
+        error("Multiplication of matrix-valued distributed polynomials is currently not supported.")
+    end
+elseif ~isa(A,'polyopvar')
     % Multiplication of constant with polynomial
     C = B;
     C.C = A*B.C;
@@ -62,74 +64,6 @@ elseif ~isa(B,'polyopvar')
     C = A;
     C.C = A.C*B;
     return
-end
-
-% Express A and B in terms of the same variables
-[A,B] = common_vars(A,B);
-C = A;
-
-% Declare the full list of monomials appearing in the product of A and B
-degmat_full = repmat(A.degmat, size(B.degmat,1), 1) + repelem(B.degmat,size(A.degmat,1), 1);
-
-% Declare the coefficients acting on the full vector of monomials
-params_full = otimes(A.C,B.C);
-% Reorder factors to account for order of state variables in monomial
-
-d1 = size(A.degmat,1);
-d2 = size(B.degmat,1);
-nvars = numel(A.varname);
-for k = 1:size(degmat_full,1)
-    % For monomials of degree 1, no reordering needs to be done
-    if sum(degmat_full(k,:))<=1
-        continue
-    end
-    [k1,k2] = ind2sub([d1,d2],k);
-    deg1 = A.degmat(k1,:);
-    deg2 = B.degmat(k2,:);
-    Ck = params_full.ops{k};
-
-    % Determine in which order the states appear in the old monomials
-    state_idcs = [repelem(1:nvars,deg1),repelem(1:nvars,deg2)];
-    % Set the order of the states in the combined monomial
-    [~,var_order] = sort(state_idcs);
-    if isa(Ck,'cell')
-        % For cell of factors, we need only reorder the factors
-        Ck = Ck(var_order);
-    elseif isa(Ck,'intop')
-        % For functional operator, we need to update the order of the dummy
-        % variables used for integration
-        Ck.pvarname = Ck.pvarname(var_order);
-        % This also requires updating the order of the integrals
-        [~,old_order] = sort(var_order);
-        zero_idcs = all(Ck.omat==0,2);
-        omat1 = Ck.omat(~zero_idcs,:);
-        omat1 = old_order(omat1);
-        Ck.omat(~zero_idcs,:) = omat1;
-        % Combine terms
-    end
-    params_full.ops{k} = Ck;
-end
-
-% Finally, combine terms involving the same monomial
-[Pmat,degmat_new] = uniquerows_integerTable(degmat_full);   % deg_full = Pmat*deg_new
-C.degmat = degmat_new;
-C.C = tensopvar();
-for j=1:size(degmat_new,1)
-    % Establish which parameters act on the jth monomial
-    param_idcs = find(Pmat(:,j));
-    % Add the different operators acting on this monomial
-    Ctmp = params_full.ops{param_idcs(1)};
-    for k=2:numel(param_idcs)
-        if isa(Ctmp,'cell')
-            % For terms involvin multiple factors, we store the sum using
-            % different rows in a cell
-            Ctmp = [Ctmp; params_full.ops{param_idcs(k)}];
-        else
-            Ctmp = Ctmp + params_full.ops{param_idcs(k)};
-        end
-    end
-    % Set the operator acting on the jth monomial
-    C.C.ops{j} = Ctmp;
 end
 
 end

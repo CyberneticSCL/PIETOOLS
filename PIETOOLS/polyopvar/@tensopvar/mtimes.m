@@ -49,8 +49,6 @@ elseif isa(A,'tensopvar') && all(size(B)==1)
     return
 elseif isa(A,'tensopvar')
     error("Left-multiplication with 'tensopvar' objects is not supported.")
-elseif ~isa(A,'double') && ~isa(A,'polynomial') && ~isa(A,'dpvar')
-    error("'tensopvar' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
 end
 
 % Check that the inner dimensions of the objects match
@@ -60,10 +58,33 @@ if Adim(2)~=Bdim(1) && ~all(Adim==1)
     error("Inner dimensions of the objects to multiply must match.")
 end
 
+% Allow for multiplcation with operator
+if isa(A,'intop')
+    deg = numel(A.pvarname);
+    if any(sum(A.degmat,2)~=deg)
+        error("Degree of monomials does not match input domain of functional.")
+    end
+    C = B;
+    for j=1:numel(B.ops)
+        if ~isempty(B.ops{j})
+            error("Multiplication of functional with nontrivial polynomial is not currently supported.")
+        else
+            C.ops{j} = A;
+        end
+    end
+    return
+elseif isa(A,'nopvar')
+    if any(sum(B.degmat,2)~=1)
+        error("Multiplication with operators is only supported for linear monomials.")
+    end
+elseif ~isa(A,'double') && ~isa(A,'polynomial') && ~isa(A,'dpvar')
+    error("'tensopvar' objects can only be multiplied with objects of type 'double', 'polynomial', or 'dpvar'.")
+end
+
 % Prohibit matrix-multiplication with actual tensor products of PI
 % operators for now, since this is not quite trivial
 %   (note that  A*(B1*x)(s)*(B2*x)(s) ~= (A*B1*x)(s)*(B2*x)(s))
-if ~all(Adim==1) && any(C1.degmat>1)
+if ~all(Adim==1) && any(sum(B.degmat,2)>1)
     error("Matrix-multiplication with tensor-products of PI operators is currently not supported. Use '.*' for elementwise multiplication instead.")
 end
 

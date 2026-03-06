@@ -65,7 +65,7 @@ for k=1:numel(Ccell)
     if isa(Ak,'cell') && isa(Bk,'cell')
         % Multiplication of multiple factors in polynomial vector field
         % --> just concatenate the operators
-        Ck = [Ak,Bk];
+        Ck = [repmat(Ak,size(Bk,1),1),repelem(Bk,size(Ak,1),1)];
     elseif isa(Ak,'cell')
         % Multiplication of multiple factors with single factor
         if isa(Bk,'intop')
@@ -73,7 +73,7 @@ for k=1:numel(Ccell)
         elseif ~isa(Bk,'nopvar')
             Bk = nopvar(Bk);
         end
-        Ck = [Ak,{Bk}];
+        Ck = [Ak,repmat({Bk},size(Ak,1),1)];
     elseif isa(Bk,'cell')
         % Multiplication of single factor with multiple factors
         if isa(Ak,'intop')
@@ -81,7 +81,7 @@ for k=1:numel(Ccell)
         elseif ~isa(Ak,'nopvar')
             Ak = nopvar(Ak);
         end
-        Ck = [{Ak},Bk];
+        Ck = [repmat({Ak},size(Bk,1),1),Bk];
     else
         if isa(Ak,'intop') || isa(Bk,'intop')
             Ck = otimes(Ak,Bk);
