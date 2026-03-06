@@ -68,6 +68,8 @@ tic;
 Q1sopvar = P1sopvar*P2sopvar;
 tmulsopvar = toc;
 
+Q1opvar = sopvar2opvar(Q1sopvar);
+
 res=0;
 for i=1:3
     sopvarParam = Q1sopvar.params{i};

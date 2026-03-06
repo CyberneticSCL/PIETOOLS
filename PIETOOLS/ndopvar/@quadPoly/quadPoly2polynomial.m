@@ -1,10 +1,13 @@
 function P = quadPoly2polynomial(Q)
 %quadPoly2polynomial Convert quadPoly to polynomial object.
 
-    m = Q.dim(1);
-    n = Q.dim(2);
-    
-    if isempty(Q.C) || nnz(Q.C) == 0
+    [m,n] = size(Q);
+    % m = Q.dim(1);
+    % n = Q.dim(2);
+    if isdouble(Q)
+        P = polynomial(Q);
+        return
+    elseif isempty(Q.C) || nnz(Q.C) == 0
         coeff  = sparse(1, m*n);   % 1 term, coefficients all zero
         degmat = sparse(1, 0);     % 1 term, 0 variables
         varname = {};              % no variables
