@@ -89,10 +89,12 @@ Z = dmonomials(vartab,(1:d));
 % Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
 % opts = ;
 pdegs = 4; % maximal monomial degree of Zop. 
+Popts.deg = pdegs;
 Popts.exclude = [0;0;0];
 Popts.sep = true;
-[prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,Popts);
-Vx = quad2lin(Pmat,Zop,Z);          
+[prog,Vx,Pmat,Zop] = piesos_sosvar(prog,Z,Popts);
+% [prog,Pmat,Zop] = piesos_poslpivar(prog,Z,pdegs,Popts);
+% Vx = quad2lin(Pmat,Zop,Z);          
 
 % Add PD constraint to LPI program.
 eppos = 1e-4;
@@ -111,13 +113,15 @@ ZQ_degmat = unique(floor(dV.degmat./2),'rows');
 ZQ_degmat = ZQ_degmat(sum(ZQ_degmat,2)>0,:);
 ZQ = vartab;
 ZQ.degmat = ZQ_degmat;
+Q_opts.deg = qdegs;
 Q_opts.exclude = [1,0,0]';
 Q_opts.psatz = 0;
-[prog,Qmat,ZQop] = soslpivar(prog,ZQ,qdegs,Q_opts);
-W = quad2lin(Qmat,ZQop,ZQ);
+[prog,W,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,Q_opts);
+% [prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
+% W = quad2lin(Qmat,ZQop,ZQ);
 
 % Enforce dV = -W <= 0
-prog = soslpi_eq(prog,dV+W);
+prog = piesos_eq(prog,dV+W);
 
 % Solve the optimization program
 prog_sol = lpisolve(prog);

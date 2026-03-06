@@ -14,7 +14,7 @@ prog = lpiprogram(s1,dom);
 
 % Declare the positive operator variable
 pdeg = 1;
-[prog,Pmat,Zop] = soslpivar(prog,Z,pdeg);
+[prog,Pmat,Zop] = piesos_poslpivar(prog,Z,pdeg);
 
 %Zop1 = ndopvar2dopvar(Zop{1});
 %Zop21 = ndopvar2dopvar(Zop{2}{1});

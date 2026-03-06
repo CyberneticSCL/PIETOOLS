@@ -47,36 +47,38 @@ f = PIE.f;
 prog = lpiprogram(s,t,dom);
 
 % Declare monomial basis of SOS Lyapunov functional.
+x = polyopvar(f.varname,s,dom);
 d = 1;                  % degree of distributed monomial basis, will be doubled in LF
-Z = polyopvar(f.varname,s,dom); % Z_d(v).
-Z.degmat = (1:d).';
+Z = dmonomials(x,(1:d)); % Z_d(v).
 
 % Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
 % opts = ;
-pdegs = 3; % maximal monomial degree of Zop. 
-Popts.exclude = [0;0;0];
-Popts.sep = 1;
-[prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,Popts);
-Vx = quad2lin(Pmat,Zop,Z); % output is in polyopvar
+P_opts.deg = 3; % maximal monomial degree of Zop. 
+P_opts.exclude = [0;0;0];
+P_opts.sep = 1;
+[prog,Vx,Pmat,Zop] = piesos_sosvar(prog,Z,P_opts);
+%Vx = quad2lin(Pmat,Zop,Z); % output is in polyopvar
 
-% Add PD constraint to LPI program.
+% Ensure strict positivity of the Lyapunov functional.
 eppos = 1e-4;
-Vx.C.ops{1}.params(1,1) = Vx.C.ops{1}.params(1,1) + eppos;  % can be done more elegantly once polyopvar is better developed
-                                                % Vx.C is a tensopvar
+Vx = Vx + eppos*innerprod(x,x);
+                                                
 % Evaluate the derivative of V along the PIE
 dV = Liediff(Vx,PIE); % output is in polyopvar 
 
 % Declare a nonnegative distributed polynomial functional W
-qdegs = pdegs+2;
+Q_opts.deg = P_opts.deg+2;
 ZQ_degmat = unique(floor(dV.degmat./2),'rows');
 ZQ = polyopvar(f.varname,s,dom);
 ZQ.degmat = ZQ_degmat;
 Q_opts.exclude = [1,0,0]';
-[prog,Qmat,ZQop] = soslpivar(prog,ZQ,qdegs,Q_opts);
-W = quad2lin(Qmat,ZQop,ZQ);
+%[prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
+%W = quad2lin(Qmat,ZQop,ZQ);
+[prog,W,Qmat,ZQop] = piesos_sosvar(prog,ZQ,Q_opts);
+
 
 % Enforce dV = -W <= 0
-prog = soslpi_eq(prog,dV+W);
+prog = piesos_eq(prog,dV+W);
 
 % Solve the optimization program
 prog_sol = lpisolve(prog);

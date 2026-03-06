@@ -3,7 +3,7 @@
 %%%% 1. Declare the PIE
 
 clear
-example_num = 5;
+example_num = 15;
 PDE = examples_PDE_library_PIETOOLS_nouinput(example_num);
 PIE_lin = convert(PDE);
 PIE = PIE2polyPIE(PIE_lin);
@@ -31,7 +31,7 @@ Zvec = dmonomials(x,(1:d));
 % opts = ;
 pdegs = 2; % maximal monomial degree of Zop. 
 Popts.exclude = [0;0;0];
-[prog,Pmat,Zop] = soslpivar(prog,Zvec,pdegs,Popts);
+[prog,Pmat,Zop] = piesos_poslpivar(prog,Zvec,pdegs,Popts);
 Vx = quad2lin(Pmat,Zop,Zvec); % output is in polyopvar
 
 % Add PD constraint to LPI program.
@@ -52,11 +52,11 @@ ZQ = polyopvar(xname,var1,dom);
 ZQ.degmat = ZQ_degmat;
 Q_opts.exclude = [1,0,0]';
 Q_opts.psatz = 0:1;
-[prog,Qmat,ZQop] = soslpivar(prog,ZQ,qdegs,Q_opts);
+[prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
 W = quad2lin(Qmat,ZQop,ZQ);
 
 % Enforce dV = -W <= 0
-prog = soslpi_eq(prog,dV+W);
+prog = piesos_eq(prog,dV+W);
 
 % Solve the optimization program
 prog_sol = lpisolve(prog);

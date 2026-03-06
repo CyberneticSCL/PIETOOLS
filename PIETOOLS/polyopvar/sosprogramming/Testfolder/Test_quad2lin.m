@@ -16,7 +16,7 @@ prog = lpiprogram(s1,dom);
 
 % Declare the positive operator variable
 pdeg = 1;
-[prog,Pmat,Zop] = soslpivar(prog,Zx,pdeg);
+[prog,Pmat,Zop] = piesos_poslpivar(prog,Zx,pdeg);
 
 % Construct the associated polynomial functional
 Vx = quad2lin(Pmat,Zop,Zx);

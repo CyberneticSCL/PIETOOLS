@@ -1,7 +1,7 @@
-function [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,opts)
-% [PROG,CMAT,ZOP] = SOSLPIVAR(PROG,Z,PDEGS,OPTS) generates a positive
-% semidefinite matrix CMAT of decision variables and a basis of PI
-% operators ZOP representing a positive semidefinite PI operator
+function [prog,Pmat,Zop] = piesos_poslpivar(prog,Z,pdegs,opts)
+% [PROG,CMAT,ZOP] = PIESOS_POSLPIVAR(PROG,Z,PDEGS,OPTS) generates a
+% posisitve semidefinite matrix PMAT of decision variables and a basis of
+% PI operators ZOP representing a positive semidefinite PI operator
 %   Pop = ZOP' PMAT ZOP
 %
 % INPUTS
@@ -73,20 +73,28 @@ function [prog,Pmat,Zop] = soslpivar(prog,Z,pdegs,opts)
 % Extract the degrees of the distributed monomials
 xdegs = Z.degmat;
 nZ = size(xdegs,1);
-pvars = polynomial(Z.pvarname);
+pvarname = Z.pvarname;
+pvarname_full = [pvarname,cellfun(@(a)[a,'_dum'],pvarname,'UniformOutput',false)];
+pvars = polynomial(pvarname_full);
 dom = Z.dom;
-N = numel(pvars);
+N = size(pvars,1);
 if N>=2
     error("Multivariate case is currently not supported.")
 end
 
 % Check that the independent variables match
-var1 = prog.vartable;
-if any(~ismember(pvars.varname,var1.varname))
+vartab = prog.vartable;
+if any(~ismember(pvars.varname,vartab.varname))
     error("Independent variables in the distributed polynomial must match those in the LPI program.")
 end
-vars = [var1(1:N),var1(N+1:2*N)];
+%pvars = [pvar1(1:N,1),pvars(:,2)];
+var1 = pvars(:,1);
 dom = prog.dom;
+
+% Set default degree if not specified
+if nargin<=2
+    pdegs = 0;
+end
 
 excludeL = zeros([3*ones(1,N),1]);
 psatz = 0;
@@ -111,12 +119,14 @@ for ii=1:nZ
     xdeg_ii = xdegs(ii,:);
     dtot = sum(xdeg_ii);
     if dtot==0
-        error("Degree-0 monomials are currently not supported.")
+        % For constant monomial, just multiply with vector in s
+        Zop.ops{ii,ii} = var1.^(0:d1)';
+        Pdim = Pdim + d1+1;
     elseif dtot==1
         % Include the basis of 3-PI operators acting on the single state
         % Zd(s) o Zd(t)
         Zii = nopvar();
-        Zii.vars = vars;
+        Zii.vars = pvars;
         Zii.dom = dom;
         Zii.deg = pdegs;
         Ccell = cell(3,1);
@@ -156,7 +166,7 @@ for ii=1:nZ
         m_tot = prod(m_arr)*d1;
         for jj=1:dtot
             Zjj = nopvar();
-            Zjj.vars = vars;
+            Zjj.vars = pvars;
             Zjj.dom = dom;
             Zjj.deg = pdegs;
             Ccell = cell(3,1);

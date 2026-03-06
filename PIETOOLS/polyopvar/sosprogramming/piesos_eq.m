@@ -1,5 +1,5 @@
-function prog = soslpi_eq(prog,f)
-% PROG = SOSLPI_EQ(PROG,F) takes an LPI program PROG with distributed
+function prog = piesos_eq(prog,f)
+% PROG = PIESOS_EQ(PROG,F) takes an PIESOS program PROG with distributed
 % polynomial variable F and adds the constraint F=0 to the program.
 %
 % INPUTS
