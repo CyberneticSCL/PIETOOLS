@@ -99,14 +99,22 @@ domMap = domMapA;  % or merge keys if you want
 % I would suggest looping over the gammas and creating a set of terms to
 % add for each gamma, since for some alpha,betas they get added to two of
 % the gammas
-alphaIdx = cell(1,ndims(A.params));
-betaIdx = cell(1,ndims(B.params));
+if numel(A.params)==length(A.params)
+    alphaIdx = cell(1,1);
+else
+    alphaIdx = cell(1,ndims(A.params));
+end
+if numel(B.params)==length(B.params)
+    betaIdx = cell(1,1);
+else
+    betaIdx = cell(1,ndims(B.params));
+end
 
 for i=1:numel(A.params)
     for j=1:numel(B.params)
         [alphaIdx{:}] = ind2sub(size(A.params),i);
         [betaIdx{:}] = ind2sub(size(B.params),j);
-        [gammaLinIdx, CparamCells] = termCompose( ...
+        [gammaLinIdx, CparamCells] = termCompose_new( ...
                     A.params{i}, B.params{j}, alphaIdx, betaIdx, ...
                     B.vars_in, A.vars_out, A.vars_in, domMap, size(A.params), A.vars_S3 );
         for kk = 1:numel(gammaLinIdx)

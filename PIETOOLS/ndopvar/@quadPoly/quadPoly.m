@@ -72,5 +72,6 @@ classdef quadPoly
         obj = randquadPoly(dim,nmons,var_s,var_t,deg,density);
         obj = Sym2quadPoly(Fsym, sVars, tVars);
         obj = polynomial2quadPoly(Fpoly,sVars,tVars);
+        obj = quadPoly2polynomial(Fquadpoly);
     end
 end

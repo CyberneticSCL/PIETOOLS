@@ -54,7 +54,8 @@ function P = quadPoly2polynomial(Q)
         for i = 1:m
             rowBlock = (i-1)*ds + (1:ds); % rows in Q.C per ks for this i
             Bij = Q.C(rowBlock, colBlock); % ds×dt
-            v = Bij(:);                    % (ds*dt)×1, kt varies fastest (MATLAB)
+            v = Bij.';                    % (ds*dt)×1, kt varies fastest (MATLAB)
+            v = v(:);
             idxCol = i + m*(j-1);
             coeff(:, idxCol) = sparse(v);
         end

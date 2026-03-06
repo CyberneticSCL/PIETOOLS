@@ -24,24 +24,32 @@ function Q = polynomial2quadPoly(P, sNames, tNames)
     [tfS, posS] = ismember(sNames(:), var);
     [tfT, posT] = ismember(tNames(:), var);
 
-    if any(~tfS)
-        error('polynomial_to_quadPoly:missingVar', 'Some sNames not present in P.varname.');
-    end
-    if any(~tfT)
-        error('polynomial_to_quadPoly:missingVar', 'Some tNames not present in P.varname.');
-    end
+    % if any(~tfS)
+    %     error('polynomial_to_quadPoly:missingVar', 'Some sNames not present in P.varname.');
+    % end
+    % if any(~tfT)
+    %     error('polynomial_to_quadPoly:missingVar', 'Some tNames not present in P.varname.');
+    % end
 
     % Build Zs/Zt degree lists (unique degrees seen per variable)
     Zs = cell(1, numel(sNames));
     for i = 1:numel(sNames)
-        Zs{i} = unique(deg(:, posS(i)), 'sorted');
-        if isempty(Zs{i}), Zs{i} = 0; end
+        if posS(i) == 0
+            Zs{i} = 0; % missing variable -> only degree 0
+        else
+            Zs{i} = unique(deg(:, posS(i)), 'sorted');
+            if isempty(Zs{i}), Zs{i} = 0; end
+        end
     end
 
     Zt = cell(1, numel(tNames));
     for i = 1:numel(tNames)
-        Zt{i} = unique(deg(:, posT(i)), 'sorted');
-        if isempty(Zt{i}), Zt{i} = 0; end
+        if posT(i) == 0
+            Zt{i} = 0; % missing variable -> only degree 0
+        else
+            Zt{i} = unique(deg(:, posT(i)), 'sorted');
+            if isempty(Zt{i}), Zt{i} = 0; end
+        end
     end
 
     ds = basisSize(Zs);
@@ -60,12 +68,19 @@ function Q = polynomial2quadPoly(P, sNames, tNames)
     kt = ones(T,1);
 
     for i = 1:numel(sNames)
+        if posS(i) == 0
+            % missing variable -> degree is implicitly 0 -> loc is always 1 -> add nothing
+            continue;
+        end
         [ok, loc] = ismember(deg(:, posS(i)), Zs{i});
         if any(~ok), error('polynomial_to_quadPoly:degreeMissingS','Degree missing in Zs at %s', sNames{i}); end
         ks = ks + (loc-1) * sStride(i);
     end
 
     for i = 1:numel(tNames)
+        if posT(i) == 0
+            continue;
+        end
         [ok, loc] = ismember(deg(:, posT(i)), Zt{i});
         if any(~ok), error('polynomial_to_quadPoly:degreeMissingT','Degree missing in Zt at %s', tNames{i}); end
         kt = kt + (loc-1) * tStride(i);
@@ -89,13 +104,7 @@ function Q = polynomial2quadPoly(P, sNames, tNames)
     C = sparse(row, col, val, m*ds, n*dt);
 
     % Construct quadPoly (property assignment is fine if no custom ctor)
-    Q = quadPoly();
-    Q.C = C;
-    Q.Zs = Zs;
-    Q.Zt = Zt;
-    Q.dim = [m n];
-    Q.ns = sNames(:).';
-    Q.nt = tNames(:).';
+    Q = quadPoly(C,Zs,Zt,[m,n],sNames(:).', tNames(:).');
 end
 
 % ---------------- helpers ----------------

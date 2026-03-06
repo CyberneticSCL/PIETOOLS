@@ -81,7 +81,8 @@ end
 % ----- Pure integral-part operator (no finite-dimensional blocks) -----
 if all(P.dim(1,:)==0)
 
-    R0 = P.R.R0;  R1 = P.R.R1;  R2 = P.R.R2;
+    R0 = polynomial(P.R.R0);  R1 = polynomial(P.R.R1);  
+    R2 = polynomial(P.R.R2);
     
     % Grid for RK4 on [a,b]   
     N = opts.N;
@@ -606,33 +607,37 @@ end
 
 %cheaper subs function for polynomial class objects
 function F = F_eval(tt, terms, m)
+if isempty(terms)
+    F = zeros(m,0);        % no columns if no terms
+    return
+end
 T = numel(terms);
 F = zeros(m, m*T);
 for k=1:T
     cols = (k-1)*m + (1:m);
-    F(:,cols) = (tt.^terms(k).p) * terms(k).C;
+    p = terms(k).p; if isempty(p), p = 0; end
+    F(:,cols) = (tt.^p) * terms(k).C;
 end
 end
 
 function G = G_eval(ss, terms, m)
+if isempty(terms)
+    G = zeros(0,m);        % no rows if no terms
+    return
+end
 T = numel(terms);
 G = zeros(m*T, m);
 Im = eye(m);
 for k=1:T
     rows = (k-1)*m + (1:m);
-    G(rows,:) = (ss.^terms(k).q) * Im;
+    q = terms(k).q; if isempty(q), q = 0; end
+    G(rows,:) = (ss.^q) * Im;
 end
 end
 
 function terms = poly_terms_2D(P, tname, sname)
-V = numel(P.varname);
-if V ~= 2, error('Expected a 2-variable polynomial.'); end
-
 idxT = find(strcmp(P.varname, tname), 1);
 idxS = find(strcmp(P.varname, sname), 1);
-if isempty(idxT) || isempty(idxS)
-    error('Variables not found in P.varname.');
-end
 
 T = size(P.degmat,1);
 m = P.matdim(1); n = P.matdim(2);
