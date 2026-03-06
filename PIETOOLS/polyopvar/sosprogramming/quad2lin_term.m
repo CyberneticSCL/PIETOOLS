@@ -144,30 +144,46 @@ end
 
 
 
-% Extract the operators acting on the left and right monomials
+% Extract the operators acting on the left monomials
 if isa(Lmon,'polyopvar')
-    if isa(Lmon.C.ops{1},'nopvar')
-        Lops = Lmon.C.ops;
-    else
+    if isa(Lmon.C.ops{1},'cell')
         Lops = Lmon.C.ops{1};
+    else
+        Lops = Lmon.C.ops;
     end
     ntrms_L = size(Lops,1);
-    mdim = Lops{1}.dim(2);
+    mdim = size(Lops{1},2);
 else
     if ~isempty(Lmon)
-        Pmat = Lmon*Pmat;
+        Pmat = Lmon'*Pmat;
     end
     Lops = {};
     ntrms_L = 1;
     mdim = size(Lmon,1);
 end
-if isa(Rmon.C.ops{1},'nopvar')
-    Rops = Rmon.C.ops;
-else
+% Account for case of constant polynomial
+if ntrms_L==1 && ~isa(Lops{1},'nopvar')
+    Pmat = Lops{1}'*Pmat;
+    Lops = {};
+end
+% Extract the operators acting on the right monomials
+if isa(Rmon.C.ops{1},'cell')
     Rops = Rmon.C.ops{1};
+else
+    Rops = Rmon.C.ops;
 end
 ntrms_R = size(Rops,1);
-ndim = Rops{1}.dim(2);
+ndim = size(Rops{1},2);
+% Account for case of constant polynomial
+if ntrms_R==1 && ~isa(Rops{1},'nopvar')
+    Pmat = Pmat*Rops{1};
+    Rops = {};
+end
+% If both Lmon and Rmon are of degree 0, we return a constant polynomial
+if isempty(Rops) && isempty(Lops)
+    Kop = int(Pmat,var1,dom(1),dom(2));
+    return
+end
 
 % if size(Lops,1)>1 || size(Rops,1)>1
 %     error("Conversion of polynomials with multiple terms is not supported.")

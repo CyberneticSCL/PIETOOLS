@@ -81,14 +81,23 @@ function Kop = combine_terms(Kop,state_idcs)
 
 
 % Allow functional to be specified as 'polyopvar' object.
-if nargin==1 && isa(Kop,'polyopvar')
+if nargin==1
+    if ~isa(Kop,'polyopvar')
+        error("In single input case, input must be of type 'polyopvar'.")
+    end
     if size(Kop.degmat,1)>1
         error("Polynomial must be defined in terms of a single monomial.")
+    elseif all(Kop.degmat<=1)
+        % If each state appears only once, there is no combining to be done
+        return
     end
-    Kfun = Kop;
+    Kfun = Kop;    
     state_idcs = 1:size(Kop.degmat,2);
     state_idcs = repelem(state_idcs,Kop.degmat);
     Kop = Kop.C.ops{1};
+elseif numel(state_idcs)==numel(unique(state_idcs))
+    % If each state appears only once, there is no combining to be done
+    return
 end
 
 % Extract pararmeters defining the functional operator
