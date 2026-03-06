@@ -44,7 +44,7 @@ f = PIE.f;
 %%%%  V(v) = <Z_d(v), Pop*Z_d(v)>; Z_d(v) = [v ... v^d]'; Pop = Zop^* Pmat Zop.
 
 % Set up LPI program structure.
-prog = lpiprogram(s,t,dom);
+prog = lpiprogram(s,dom);
 
 % Declare monomial basis of SOS Lyapunov functional.
 x = polyopvar(f.varname,s,dom);
@@ -67,10 +67,10 @@ Vx = Vx + eppos*innerprod(x,x);
 dV = Liediff(Vx,PIE); % output is in polyopvar 
 
 % Declare a nonnegative distributed polynomial functional W
-Q_opts.deg = P_opts.deg+2;
 ZQ_degmat = unique(floor(dV.degmat./2),'rows');
 ZQ = polyopvar(f.varname,s,dom);
 ZQ.degmat = ZQ_degmat;
+Q_opts.deg = P_opts.deg+2;
 Q_opts.exclude = [1,0,0]';
 %[prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
 %W = quad2lin(Qmat,ZQop,ZQ);
