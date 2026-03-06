@@ -152,14 +152,18 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                     end
                 end
                 % % Declare an identity operator mapping x to x
-                % C = nopvar();
-                % C.dom = dom;
-                % C.vars = polynomial(pvarname);
-                % C.deg = zeros(N,1);
-                % C.C = cell([3*ones(1,N),1]);
-                % C.C{1} = 1;
+                C = nopvar();
+                C.dom = dom;
+                pvarname_full = [pvarname,cellfun(@(a)[a,'_dum'],pvarname,'UniformOutput',false)];
+                C.vars = polynomial(pvarname_full);
+                C.deg = zeros(N,1);
+                C.C = cell([3*ones(1,N),1]);
+                C.C{1} = 1;
                 % Declare the distributed polynomial variable
-                %P.C = tensopvar(C);
+                P.C = tensopvar();
+                for j=1:p
+                    P.C.ops{j,j} = C;
+                end
                 P.degmat = eye(p);
                 P.varname = varname;
                 P.pvarname = pvarname;

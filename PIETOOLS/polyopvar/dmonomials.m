@@ -67,6 +67,20 @@ end
 
 % Declare the distributed monomial basis
 Z = vartab;
-Z.degmat = degmat;       
+Z.degmat = degmat;
+
+% Set identity operators to act on this basis
+for i=1:size(degmat,1)
+    Z.C.ops{i,i} = cell(1,sum(degmat(i,:)));
+    idx = 0;
+    for j=1:size(degmat,2)
+        d = degmat(i,j);
+        if d==0
+            continue
+        end
+        Z.C.ops{i,i}(idx+(1:d)) = repmat(vartab.C.ops(j,j),1,d);
+        idx = idx+d;
+    end
+end
 
 end
