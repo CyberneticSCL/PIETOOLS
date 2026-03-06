@@ -53,6 +53,10 @@ if ~isa(vals, 'cell')
 
     if isa(vals, 'double')
         vals = num2cell(vals);
+    elseif isa(vals, 'string')
+        vals = {vals};
+    elseif isa(vals, 'char')
+        vals = {string(vals)};
     else
         error('quadPoly:subs:badType', 'subs supports cell array or double as vals input')
     end
@@ -61,6 +65,8 @@ end
 if size(vars) ~= size(vals)
     error('quadPoly:subs:badType', 'number of vars and vals should be the same');
 end
+
+
 % extract monomials and coefficients.
 Zt = P1.Zt;
 Zs = P1.Zs;
@@ -70,6 +76,42 @@ ns = P1.ns;
 ns = string(ns);
 C = P1.C;
 dim = P1.dim;
+
+
+% check vals for symbolic variables 
+isa_symb_var = cellfun(@isa_char_or_string, vals);
+if sum(isa_symb_var) > 0
+    sym_to_sym_vars = vars(isa_symb_var);
+    sym_to_sym_vals = vals(isa_symb_var);
+    sym_to_num_vars = vars(~isa_symb_var);
+    sym_to_num_vals = vals(~isa_symb_var);
+    
+    sym_to_sym_vals = cellfun(@char, sym_to_sym_vals, 'UniformOutput',false);
+
+    is_a_ns = cellfun(@(name) find(strcmp(ns, name)), sym_to_sym_vars, 'UniformOutput', false);
+    is_a_nt = cellfun(@(name) find(strcmp(nt, name)), sym_to_sym_vars, 'UniformOutput', false);
+
+    chosen_vals_ns = ~cellfun(@isempty, is_a_ns);
+    chosen_vals_nt = ~cellfun(@isempty, is_a_nt);
+
+    is_a_ns = cell2mat(is_a_ns);
+    is_a_nt = cell2mat(is_a_nt);
+
+    ns_new = ns;
+    ns_new(is_a_ns) = sym_to_sym_vals(chosen_vals_ns);
+    nt_new = nt;
+    nt_new(is_a_nt) = sym_to_sym_vals(chosen_vals_nt);
+
+
+    P_sub1 = quadPoly(C, Zs, Zt, dim, ns_new, nt_new, 0);
+    
+    if sum(isa_symb_var) < length(vars)
+        P_subs = subs(P_sub1, sym_to_num_vars, sym_to_num_vals);
+    else
+        P_subs = P_sub1;
+    end
+    return
+end
 
 % locate var names in ns or nt
 % subs_in_ns = {};
@@ -137,5 +179,13 @@ hatC = left_multiplier'*C*right_multiplier;
 
 
 P_subs = quadPoly(hatC, hatZs, hatZt, dim, hatns, hatnt);
+end
 
+
+function [ans] = isa_char_or_string(val)
+    if isa(val, 'char') || isa(val, 'string')
+        ans = true;
+    else
+        ans = false;
+    end
 end
