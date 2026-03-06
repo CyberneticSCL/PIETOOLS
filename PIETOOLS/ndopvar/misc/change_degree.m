@@ -35,6 +35,7 @@ function Cop = change_degree(Aop,degree)
 % authorship, and a brief description of modifications
 %
 % AT, 01/21/2026: Initial coding
+% DJ, 03/05/2026: Allow for empty parameters, asssumed to be zero
 
 
 
@@ -161,7 +162,9 @@ for iter_idx = 1:size(binStr, 1)
     end
     % change Cop values
     full_matrix = sparse(size_left*Aop.dim(1)*(length(dec_var) + 1), size_right*Aop.dim(2));
-    full_matrix(Loc_L_C, Loc_r) = Aop.C{Qindx_cell{:}};
+    if ~isempty(Aop.C{Qindx_cell{:}})                                       % DJ, 03/05/2026
+        full_matrix(Loc_L_C, Loc_r) = Aop.C{Qindx_cell{:}};
+    end
     Cop.C{Qindx_cell{:}} = full_matrix;
 end
 
