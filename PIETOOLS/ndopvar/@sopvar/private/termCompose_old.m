@@ -1,4 +1,4 @@
-function [gammaLinIdx, CparamCells] = termCompose_new(...
+function [gammaLinIdx, CparamCells] = termCompose_old(...
                 Aqp, Bqp, alphaIdx, betaIdx, varsInB, varsOutA, varsInA, domMap, paramsSize, varsS3A)
 % Input quadPoly parameters have the form:
 % A = Z(s4,s2a,s3a)' * CA[alpha] * Z(t2a,t2b,t3a,t3b) : 
@@ -75,19 +75,59 @@ function [gammaLinIdx, CparamCells] = termCompose_new(...
     % --------- 2) Multiply kernels in polynomial form ----------
     poly = polyMtimes(qpToPoly(A2), qpToPoly(B2));
 
-    % --------- 3) Fully integrate out A-only input variables ----------
+    % --------- 3) Eliminate A-only input variables (FULL integrals), but respect PI modes ----------
     fullS = setdiff(varsInA, varsOutA, 'stable');  % input-only vars of A
+    
     if ~isempty(fullS)
-        [tfFull, locFull] = ismember(fullS, midS);
-        if any(~tfFull)
-            error('termCompose_new: fullS must be subset of varsInA.');
-        end
-
+    
+        % S3 variables are exactly those that appear in BOTH A-input and B-input (same spatial name).
+        % These are the ones where B may have L/U structure with moving limits in that coord.
+        varsS3B = intersect(varsInA, varsInB, 'stable');     % e.g. {s3a,s3b}
+        nS3B    = numel(varsS3B);
+        s3BDimPos = mapS3Dims(paramsSize, nS3B);             % param-dim for each S3 coord
+    
         for i = 1:numel(fullS)
-            sVar  = fullS{i};
-            etaVar = midEta{locFull(i)};
-            [a,b] = getDom(domMap, sVar);
-            poly  = polyIntegrate(poly, etaVar, a, b);
+            sVar = fullS{i};
+    
+            % eta variable corresponding to this intermediate spatial var
+            [tfMid, locMid] = ismember(sVar, midS);
+            if ~tfMid
+                error('termCompose_new: fullS must be subset of varsInA.');
+            end
+            etaVar = midEta{locMid};
+    
+            [aDom, bDom] = getDom(domMap, sVar);
+    
+            % If this eliminated variable is NOT an S3 coord, it is safe to fully integrate [a,b]
+            jS3 = find(strcmp(varsS3B, sVar), 1);
+            if isempty(jS3)
+                poly = polyIntegrate(poly, etaVar, aDom, bDom);
+                continue;
+            end
+    
+            % It IS an S3 coord. Then B's mode in this coord determines how full-integration must be done.
+            dB  = s3BDimPos(jS3);
+            bOp = bSub(dB);                % 1=M, 2=L, 3=U
+            thVar = s2t(sVar);
+    
+            switch bOp
+                case 1
+                    % B is multiplier (delta): ∫ f(eta) δ(eta-theta) d eta = f(theta) (domain indicator ignored here)
+                    poly = polySubstitute(poly, etaVar, thVar);
+    
+                case 2
+                    % B is L:  ∫_a^b ( ∫_a^eta ... dt ) d eta  =>  ∫_a^b ( ∫_t^b ... d eta ) dt
+                    % So eliminate eta via eta ∈ [theta, b]
+                    poly = polyIntegrate(poly, etaVar, thVar, bDom);
+    
+                case 3
+                    % B is U:  ∫_a^b ( ∫_eta^b ... dt ) d eta  =>  ∫_a^b ( ∫_a^t ... d eta ) dt
+                    % So eliminate eta via eta ∈ [a, theta]
+                    poly = polyIntegrate(poly, etaVar, aDom, thVar);
+    
+                otherwise
+                    error('termCompose_new: unexpected bOp=%d for %s.', bOp, sVar);
+            end
         end
     end
 

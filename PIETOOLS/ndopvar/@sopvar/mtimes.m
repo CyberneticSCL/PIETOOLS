@@ -114,7 +114,8 @@ for i=1:numel(A.params)
     for j=1:numel(B.params)
         [alphaIdx{:}] = ind2sub(size(A.params),i);
         [betaIdx{:}] = ind2sub(size(B.params),j);
-        [gammaLinIdx, CparamCells] = termCompose_new( ...
+       % [gammaLinIdx, CparamCells] = termCompose(A.params{i}, B.params{j}, alphaIdx, betaIdx,s2a,s2b,s3a,s3b); 
+        [gammaLinIdx, CparamCells] = termCompose_old( ...
                     A.params{i}, B.params{j}, alphaIdx, betaIdx, ...
                     B.vars_in, A.vars_out, A.vars_in, domMap, size(A.params), A.vars_S3 );
         for kk = 1:numel(gammaLinIdx)
