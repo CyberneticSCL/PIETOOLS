@@ -228,9 +228,11 @@ var2_f = [dom(1);var2;dom(2)];
 % kernel
 n_ords = size(idx_mat,1);
 if isa(Pmat,'dpvar') || isa(Lmon,'dpvar')
-    Kparams = dpvar(zeros(mdim,ndim*n_ords));
+    %Kparams = dpvar(zeros(mdim,ndim*n_ords));
+    Kparams = dpvar(zeros(mdim,0));
 else
-    Kparams = polynomial(zeros(mdim,ndim*n_ords));
+    %Kparams = polynomial(zeros(mdim,ndim*n_ords));
+    Kparams = polynomial(zeros(mdim,0));
 end
 for i=1:n_ords
     param_i = 0;
@@ -307,7 +309,8 @@ for i=1:n_ords
         param_i = param_i + subs(Lj*Pmat*Rj,var1,vars_m(j));
     end
     if ~isempty(param_i)
-        Kparams(:,(i-1)*ndim+1:i*ndim) = param_i;
+        %Kparams(:,(i-1)*ndim+1:i*ndim) = param_i;
+        Kparams = [Kparams, param_i];       % faster than subsref for dpvar
     end
 end
 % In the case of a quadratic function
