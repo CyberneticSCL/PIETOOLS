@@ -146,10 +146,13 @@ for ii=1:numel(state_nums)
             omat(lindcs2) = var1_idx;
             var_orders(is_greater,[var1_idx,var2_idx]) = var_orders(is_greater,[var2_idx,var1_idx]);
             is_greater_params = find(logical(kron(is_greater,ones(1,ndim))));
-            Kparams1(:,is_greater_params) = var_swap(Kparams1(:,is_greater_params),var1,var2);
+            is_smaller_params = find(logical(kron(~is_greater,ones(1,ndim))));
+            Kparams_leq = Kparams1(:,is_smaller_params);
+            Kparams_geq = var_swap(Kparams1(:,is_greater_params),var1,var2);
             % Combine terms involving the same integral
             [P,omat] = uniquerows_integerTable(omat);
-            Kparams1 = Kparams1*kron(P,speye(ndim));
+            Kparams1 = Kparams_leq*kron(P(is_smaller_params,:),speye(ndim))+...
+                        Kparams_geq*kron(P(is_greater_params,:),speye(ndim));
             P = P.*(1./sum(P,1));
             var_orders = P'*var_orders;
         end
