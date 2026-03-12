@@ -69,7 +69,24 @@ if isempty(Z2)
     if size(P,2)~=size(Z1,1)
         error("Dimension of weight must match that of the vectors to multiply.")
     end
-    V = quad2lin(P,ZopL,ZxL);
+    if size(ZopL.ops,1)==size(ZxL.degmat,1)
+        V = quad2lin(P,ZopL,ZxL);
+    else
+        V = 0;
+        for i=1:size(ZopL.ops,2)
+            ZopL_i = ZopL;
+            ZopL_i.ops = ZopL_i.ops(1);
+            ZxL_i = ZxL;
+            ZxL_i.degmat = ZxL_i.degmat(1,:);
+            for j=1:size(ZopL.ops,2)
+                ZopR_j = ZopL;
+                ZopR_j.ops = ZopR_j.ops(j);
+                ZxR_j = ZxL;
+                ZxR_j.degmat = ZxR_j.degmat(j,:);
+                V = V + quad2lin(P,ZopL_i,ZxL_i,ZopR_j,ZxR_j);
+            end
+        end
+    end
     return
 elseif isa(Z2,'double') || isa(Z2,'polynomial') || isa(Z2,'dpvar')
     % Convert to polyopvar
@@ -92,7 +109,42 @@ if size(P,2)~=size(Z2,1)
         error("Dimension of weight must match that of the vectors to multiply.")
     end
 end
-V = quad2lin(P,ZopL,ZxL,ZopR,ZxR);
+if size(ZopL.ops,1)==size(ZxL.degmat,1) && size(ZopR.ops,1)==size(ZxR.degmat,1)
+    V = quad2lin(P,ZopL,ZxL,ZopR,ZxR);
+elseif size(ZopR.ops,1)==size(ZxR.degmat,1)
+    V = 0;
+    for j=1:size(ZopL.ops,2)
+        ZopL_j = ZopL;
+        ZopL_j.ops = ZopL_j.ops(j);
+        ZxL_j = ZxL;
+        ZxL_j.degmat = ZxL_j.degmat(j,:);
+        V = V + quad2lin(P,ZopL_j,ZxL_j,ZopR,ZxR);
+    end
+elseif size(ZopL.ops,1)==size(ZxL.degmat,1)
+    V = 0;
+    for j=1:size(ZopR.ops,2)
+        ZopR_j = ZopR;
+        ZopR_j.ops = ZopR_j.ops(j);
+        ZxR_j = ZxR;
+        ZxR_j.degmat = ZxR_j.degmat(j,:);
+        V = V + quad2lin(P,ZopL,ZxL,ZopR_j,ZxR_j);
+    end
+else
+    V = 0;
+    for i=1:size(ZopL.ops,2)
+        ZopL_i = ZopL;
+        ZopL_i.ops = ZopL_i.ops(j);
+        ZxL_i = ZxL;
+        ZxL_i.degmat = ZxL_i.degmat(j,:);
+        for j=1:size(ZopR.ops,2)
+            ZopR_j = ZopR;
+            ZopR_j.ops = ZopR_j.ops(j);
+            ZxR_j = ZxR;
+            ZxR_j.degmat = ZxR_j.degmat(j,:);
+            V = V + quad2lin(P,ZopL_i,ZxL_i,ZopR_j,ZxR_j);
+        end
+    end
+end
 
 
 end
