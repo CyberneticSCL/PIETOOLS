@@ -16,6 +16,10 @@ function obj = combine(obj)
     m = obj.dim(1);
     n = obj.dim(2);
 
+    Zs = obj.Zs;
+    Zt = obj.Zt;
+    ds = basisSize(Zs);
+    dt = basisSize(Zt);
     % ---------- build maps for left (s) and right (t) sides ----------
     [Zs_new, ns_new, mapS, ds_new] = combine_one_side(obj.Zs, obj.ns);
     [Zt_new, nt_new, mapT, dt_new] = combine_one_side(obj.Zt, obj.nt);
@@ -32,18 +36,25 @@ function obj = combine(obj)
     [r, c, v] = find(C);
 
     % row block (matrix row), and monomial index in s-basis
-    rIn    = mod(r-1, m) + 1;
-    sMon   = ceil(r / m);
+    rIn  = ceil(r / ds);     % 1..m
+    % rIn    = mod(r-1, m) + 1;
+    sMon = mod(r - 1, ds) + 1;           % 1..ds (old full s-monomial)
+    % sMon   = ceil(r / m);
     sMon2  = mapS(sMon);
 
     % col block (matrix col), and monomial index in t-basis
-    cIn    = mod(c-1, n) + 1;
-    tMon   = ceil(c / n);
+    cIn  = ceil(c / dt);      % 1..n
+    % cIn    = mod(c-1, n) + 1;
+    tMon = mod(c - 1, dt) + 1;           % 1..dt (old full t-monomial)
+    % tMon   = ceil(c / n);
     tMon2  = mapT(tMon);
 
     % New global row/col indices in coefficient matrix
-    r2 = (sMon2 - 1) * m + rIn;
-    c2 = (tMon2 - 1) * n + cIn;
+    % r2 = (sMon2 - 1) * m + rIn;
+    % c2 = (tMon2 - 1) * n + cIn;
+
+    r2 = sMon2 + (rIn - 1)*ds_new;
+    c2 = tMon2 + (cIn - 1)*dt_new;
 
     % Sparse constructor sums duplicates automatically
     C2 = sparse(r2, c2, v, m*ds_new, n*dt_new);
@@ -192,4 +203,14 @@ function idx = subv2lin(subs, dims)
         idx = idx + (subs(i)-1)*stride;
     end
     idx = idx + (subs(k)-1);
+end
+
+function d = basisSize(Zcell)
+    if isempty(Zcell), d = 1; return; end
+    d = 1;
+    for i = 1:numel(Zcell)
+        zi = Zcell{i};
+        if isempty(zi), zi = 0; end
+        d = d * numel(zi);
+    end
 end

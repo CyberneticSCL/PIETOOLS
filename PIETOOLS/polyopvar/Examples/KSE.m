@@ -20,59 +20,17 @@ r = 0.1;           % should be [−0.6500, 0.7202]
 
 % Declare a PDE and convert to PIE to get the relevant maps from PIE state
 % to PDE state
-x = pde_var(s,dom);       z1 = pde_var('out',s,dom);
-x2 = pde_var(s,dom);       z2 = pde_var('out',s,dom);
-Dyn = [diff(x,t)==diff(x,s,4);
-       z1==diff(x,s);
-       z2==diff(x,s,2)];
-% BCs = [subs(x1,s,dom(1))==0;       subs(x2,s,dom(2))==0;
-%        subs(x1,s,dom(2))==0;       subs(x2,s,dom(1))==0];
-BCs = [subs(x,s,dom(1))==0;       subs(x,s,dom(2))==0;
-       subs(diff(x,s),s,dom(1))==0;
-       subs(diff(x,s),s,dom(2))==0];
-PIE_lin = convert([Dyn;BCs]);
-Top = PIE_lin.T;      
-Rop = PIE_lin.C1(1,:);     
-R2op = PIE_lin.C1(2,:);
-T = dopvar2ndopvar(Top);
-R = dopvar2ndopvar(Rop);
-R2 = dopvar2ndopvar(R2op);
+x = pde_var(s,dom);
+PDE = [diff(x,t)==-diff(x,s,4)-diff(x,s,2)-r*x^2-x*diff(x,s);
+        subs(x,s,0)==0;     subs(diff(x,s),s,0)==0;
+        subs(x,s,1)==0;     subs(diff(x,s),s,1)==0];
+
+% Convert to PIE
+PIE = convert(PDE);
+Top = PIE.T;
+f = PIE.f;
 
 
-% Declare identity nopvar for identity operators present in polyopvar 
-% representation of PIE.
-id = nopvar();
-id.C = {1, 0, 0};
-id.deg = 0;
-id.dom = dom;
-id.vars = [s, s_dum];
-
-% Declare the right-hand side of the PIE associated with the PDE
-%   x1_{t} = x1_{ss} + r*x1 - x1*x1_{s} 
-%          = id*x1_f + r*T11*x1_f + r*T12*x2_f - (T11*x1_f)*(R11*x1_f)
-%                       - (T12*x2_f)*(R11*x1_f) - (T11*x1_f)*(R12*x2_f)
-%                           - (T12*x2_f)*(R12*x2_f)
-f = polyopvar();
-f.varname = {'x'};
-f.pvarname = {'s'};
-f.dom = dom;
-f.varmat = 1;
-f.degmat = [1;2];
-C = tensopvar();
-C.ops = {-id-R2, {-T,R; -r*T,T}};
-% f.degmat = [1,0; 0,1];
-% C = tensopvar();
-% C.ops = {id+r*T11, r*T12;
-%        r*T21, id+r*T22};
-f.C = C;
-
-
-% Declare the PIE as a struct
-PIE = struct();
-PIE.T = T;
-PIE.f = f;
-%PIE.vars = [T.var1, T.var2];
-%PIE.dom = dom;
 
 
 %%%% 2. Setting up LPI for stability analysis using a SOS Lyapunov functional
@@ -83,14 +41,14 @@ prog = lpiprogram([s,s_dum],dom);
 
 % Declare monomial basis of SOS Lyapunov functional.
 d = 1;                  % degree of distributed monomial basis, will be doubled in LF
-vartab = polyopvar({'x'},s,dom); % Z_d(v).
+vartab = polyopvar(f.varname,s,dom); % Z_d(v).
 Z = dmonomials(vartab,(1:d));
 
 % Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
 % opts = ;
 pdegs = 4; % maximal monomial degree of Zop. 
 Popts.deg = pdegs;
-Popts.exclude = [0;0;0];
+Popts.exclude = [0;1;1];
 Popts.sep = true;
 [prog,Vx,Pmat,Zop] = piesos_sosvar(prog,Z,Popts);
 % [prog,Pmat,Zop] = piesos_poslpivar(prog,Z,pdegs,Popts);
@@ -116,7 +74,7 @@ ZQ.degmat = ZQ_degmat;
 Q_opts.deg = qdegs;
 Q_opts.exclude = [1,0,0]';
 Q_opts.psatz = 0;
-[prog,W,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,Q_opts);
+[prog,W,Qmat,ZQop] = piesos_sosvar(prog,ZQ,Q_opts);
 % [prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
 % W = quad2lin(Qmat,ZQop,ZQ);
 

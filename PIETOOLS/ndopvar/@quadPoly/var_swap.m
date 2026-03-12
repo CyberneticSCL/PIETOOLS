@@ -57,10 +57,15 @@ function P = var_swap(P, var1, var2)
     [r_idx, c_idx, val] = find(C);
 
     % Decode matrix row/col and full monomial indices
-    rIn  = mod(r_idx - 1, m) + 1;     % 1..m
-    cIn  = mod(c_idx - 1, n) + 1;     % 1..n
-    kOld = ceil(r_idx / m);           % 1..ds (old full s-monomial)
-    lOld = ceil(c_idx / n);           % 1..dt (old full t-monomial)
+    % Decode matrix row/col and full monomial indices
+    rIn  = ceil(r_idx / ds);     % 1..m
+    cIn  = ceil(c_idx / dt);      % 1..n
+    kOld = mod(r_idx - 1, ds) + 1;           % 1..ds (old full s-monomial)
+    lOld = mod(c_idx - 1, dt) + 1;           % 1..dt (old full t-monomial)
+    % rIn  = mod(r_idx - 1, m) + 1;     % 1..m
+    % cIn  = mod(c_idx - 1, n) + 1;     % 1..n
+    % kOld = ceil(r_idx / m);           % 1..ds (old full s-monomial)
+    % lOld = ceil(c_idx / n);           % 1..dt (old full t-monomial)
 
     % Unique (k,l) pairs
     pairKey = kOld + ds*(lOld-1);
@@ -104,8 +109,11 @@ function P = var_swap(P, var1, var2)
     lNew_nz = lNew_u(loc);
 
     % ---- rebuild C (sparse sums duplicates automatically) ----
-    r_new = (kNew_nz - 1) * m + rIn;
-    c_new = (lNew_nz - 1) * n + cIn;
+    % r_new = (kNew_nz - 1) * m + rIn;
+    % c_new = (lNew_nz - 1) * n + cIn;
+
+    r_new = kNew_nz + (rIn - 1)*ds_new;
+    c_new = lNew_nz + (cIn - 1)*dt_new;
 
     C_new = sparse(r_new, c_new, val, m*ds_new, n*dt_new);
 

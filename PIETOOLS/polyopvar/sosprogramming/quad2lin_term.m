@@ -78,6 +78,9 @@ end
 if isempty(Pmat)
     Pmat = 1;
 end
+if isa(Pmat,"double")
+    Pmat = polynomial(Pmat);
+end
 if nargin<=3
     dom = [];
 end
@@ -315,7 +318,7 @@ end
 % cell.
 if d1==1 && d2==1 && sum([has_multiplier_L,has_multiplier_R])==2
     idx_mat = [zeros(1,dtot);idx_mat];
-    Kparams = [Lop_params{1}{1}*Pmat*subs(Rop_params{1}{1},var2(2),var2(1)),Kparams];
+    Kparams = [Lop_params{1}{1}*subs(Pmat,var1,var2(1))*subs(Rop_params{1}{1},var2(2),var2(1)),Kparams];
 end
 
 var2name = cell(1,numel(var2));

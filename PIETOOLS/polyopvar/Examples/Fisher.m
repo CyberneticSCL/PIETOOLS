@@ -1,25 +1,15 @@
 %
-% Burgers eq.
+% Fishers eq.
 %
-% PDE: u_t = u_ss + r*u - u*u_s;
+% PDE: u_t = u_ss + alp*u - bet*u^2;
 % BCs: u(t,0) = u(t,1) = 0;
 %
 % fundamental state: v = u_ss \in L_2[0,1];
 %
-% maps from fundamental state to PDE states
-% u   = (Tv) = \int_0^s T_1(s,t)v(t)dt + \int_s^1 T_2(s,t)v(t)dt;
-% u_s = (Rv) = \int_0^s R_1(s,t)v(t)dt + \int_s^1 R_2(s,t)v(t)dt;
-% T_1(s,t)=(s-1)*t; T_2(s,t) = s*(t-1);
-% R_1(s,t)=t;       R_2(s,t) = t-1;
 %
-% PIE: (Tv_t) = f(v) = v + (r*Tv) - (Tv)(Rv);
+% PIE: (Tv_t) = f(v) = v + (alp*Tv) - bet*(Tv)^2;
 %
-% PIE as a polyopvar: Z_1(v) = v; C = C_1 = [[C_111, C_112] 
-%                                            [C_121, C_122]
-%                                            [C_131, C_132]]
 %
-% C_111 = 1; C_112 = 1; C_121 = 1; C_122 = r*T; C_131 = -T; C_132 = R
-% where nz = 1; m_1 = 3; d_1 = d_11 = 2; size(C_1) = (3,2)
 
 %%%% 1. Modelling PIE.
 
@@ -27,11 +17,13 @@
 clear;  clear stateNameGenerator
 pvar s t
 dom = [0,1];
-r = pi^2-0.1;
+alp = -0.1;
+bet = 0.15;
+R = 1;          % Radius of ball in which to test stability
 
 % Declare the nonlinear PDE
 x = pde_var(s,dom);
-PDE = [diff(x,t)==diff(x,s,2)+r*x-x*diff(x,s);
+PDE = [diff(x,t)==diff(x,s,2)+alp*x-bet*x^2;
        subs(x,s,dom(1))==0;  subs(x,s,dom(2))==0];
 
 % Convert ot a PIE
@@ -48,16 +40,15 @@ prog = lpiprogram(s,dom);
 
 % Declare monomial basis of SOS Lyapunov functional.
 x = polyopvar(f.varname,s,dom);
-d = 1;                  % degree of distributed monomial basis, will be doubled in LF
+d = 2;                  % degree of distributed monomial basis, will be doubled in LF
 Z = dmonomials(x,(1:d)); % Z_d(v).
 
 % Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
 % opts = ;
-P_opts.deg = 3; % maximal monomial degree of Zop. 
+P_opts.deg = 0; % maximal monomial degree of Zop. 
 P_opts.exclude = [0;0;0];
 P_opts.sep = 1;
 [prog,Vx,Pmat,Zop] = piesos_sosvar(prog,Z,P_opts);
-%Vx = quad2lin(Pmat,Zop,Z); % output is in polyopvar
 
 % Ensure strict positivity of the Lyapunov functional.
 eppos = 1e-4;
@@ -72,10 +63,20 @@ ZQ = polyopvar(f.varname,s,dom);
 ZQ.degmat = ZQ_degmat;
 Q_opts.deg = P_opts.deg+2;
 Q_opts.exclude = [1,0,0]';
-%[prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
-%W = quad2lin(Qmat,ZQop,ZQ);
 [prog,W,Qmat,ZQop] = piesos_sosvar(prog,ZQ,Q_opts);
 
+% Allow W<=0 when g = R-<Tx,Tx> <=0
+g = R-innerprod(Top*x,Top*x);
+Wg_opts = Q_opts;
+Zg_degmat = unique(floor((W.degmat-max(g.degmat,[],1))./2),'rows');
+Zg_degmat = Zg_degmat(~any(Zg_degmat<0,2),:);
+Zg = ZQ;
+if any(Zg_degmat>0)
+    Zg_degmat = Zg_degmat(~all(Zg_degmat,2)==0,:);
+end
+Zg.degmat = Zg_degmat;
+[prog,Wg] = piesos_sosvar(prog,Zg,Wg_opts);
+W = W + Wg*g;
 
 % Enforce dV = -W <= 0
 prog = piesos_eq(prog,dV+W);

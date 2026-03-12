@@ -50,14 +50,21 @@ for ii=1:size(f.degmat,1)
     Kfun_ii.C.ops = f.C.ops(ii);
     % Make sure to enforce uniqueness of the monomials
     Kfun_ii = combine_terms(Kfun_ii);
-    % Add the independent variables to the optimization program
-    Kop_vars = Kfun_ii.C.ops{1}.vars;
-    Kop_varname = Kop_vars.varname;
-    is_missing = ~ismember(Kop_varname,prog.vartable.varname);
-    prog.vartable = [prog.vartable; polynomial(Kop_varname(is_missing))];
-    % Require the coefficient operator acting on the monomial to be zero
-    Kop_ii = Kfun_ii.C.ops{1};
-    prog = soseq(prog,Kop_ii.params);
+    if isa(Kfun_ii.C.ops{1},'dpvar')
+        % Require coefficients to be zero
+        prog = soseq(prog,Kfun_ii.C.ops{1});
+    elseif isa(Kfun_ii.C.ops{1},'intop')
+        % Add the independent variables to the optimization program
+        Kop_vars = Kfun_ii.C.ops{1}.vars;
+        Kop_varname = Kop_vars.varname;
+        is_missing = ~ismember(Kop_varname,prog.vartable.varname);
+        prog.vartable = [prog.vartable; polynomial(Kop_varname(is_missing))];
+        % Require the coefficient operator acting on the monomial to be zero
+        Kop_ii = Kfun_ii.C.ops{1};
+        prog = soseq(prog,Kop_ii.params);
+    else
+        error("Coefficients acting on monomials should be specified as 'dpvar' or 'intop' objects.")
+    end
 end
 
 end

@@ -108,6 +108,9 @@ end
 if nargin>=3 && isfield(opts,'sep')
     use_sep = opts.sep;
 end
+if use_sep
+    excludeL(3) = 1;
+end
 
 % For each distributed monomial, generate a basis of operators acting on
 % that distributed monomial
@@ -120,8 +123,8 @@ for ii=1:nZ
     dtot = sum(xdeg_ii);
     if dtot==0
         % For constant monomial, just multiply with vector in s
-        Zop.ops{ii,ii} = var1.^(0:d1)';
-        Pdim = Pdim + d1+1;
+        Zop.ops{ii,ii} = 1;
+        Pdim = Pdim + 1;
     elseif dtot==1
         % Include the basis of 3-PI operators acting on the single state
         % Zd(s) o Zd(t)
@@ -130,27 +133,30 @@ for ii=1:nZ
         Zii.dom = dom;
         Zii.deg = pdegs;
         Ccell = cell(3,1);
-        m_arr = [d1^2; d1^3; d1^3].*(~excludeL(:));
+        m_arr = [d1; d1^2; d1^2].*(~excludeL(:));
         m_tot = sum(m_arr);
         r_shft = 0;
         if ~excludeL(1)
-            c_idcs = ones(d1,1);
-            r_idcs = (1:d1)' + d1*(0:d1-1)';
+            % Set coefficients defining multiplier operator 1
+            c_idcs = 1;
+            r_idcs = 1;     % Only first term is nonzero
             Ccell{1} = sparse(r_idcs+r_shft,c_idcs,1,m_tot,1);
-            r_shft = r_shft + d1^2;
+            r_shft = r_shft + d1;
         end
         if ~excludeL(2)
-            c_idcs = repmat((1:d1)',[d1,1]);
-            r_idcs = kron((1:d1)',ones(d1,1)) + d1*(0:d1^2-1)';
+            % Set coefficients defining integral int_{0}^{s} dt Zd(t)
+            c_idcs = (1:d1)';
+            r_idcs = (1:d1:d1^2)';
             Ccell{2} = sparse(r_idcs+r_shft,c_idcs,1,m_tot,d1);
-            r_shft = r_shft + d1^3;
+            r_shft = r_shft + d1^2;
             if use_sep
                 Ccell{3} = Ccell{2};
             end
         end
         if ~excludeL(3) && ~use_sep
-            c_idcs = repmat((1:d1)',[d1,1]);
-            r_idcs = kron((1:d1)',ones(d1,1)) + d1*(0:d1^2-1)';
+            % Set coefficients defining integral int_{s}^{1} dt Zd(t)
+            c_idcs = (1:d1)';
+            r_idcs = (1:d1:d1^2)';
             Ccell{3} = sparse(r_idcs+r_shft,c_idcs,1,m_tot,d1);
         end
         Zii.C = Ccell;
@@ -162,7 +168,7 @@ for ii=1:nZ
         % variable,
         %   (Z{1}*x1)(s)*(Z{2}*x2)(s)
         Zii = cell(1,dtot);
-        m_arr = d1^2*(~excludeL(2)+~excludeL(3))*ones(1,dtot);
+        m_arr = d1*(~excludeL(2)+~excludeL(3))*ones(1,dtot);
         m_tot = prod(m_arr)*d1;
         for jj=1:dtot
             Zjj = nopvar();
@@ -172,22 +178,26 @@ for ii=1:nZ
             Ccell = cell(3,1);
             if ~excludeL(2)
                 c_idcs = kron((1:d1)',ones(prod(m_arr(jj+1:end)),1));       % index of monomial in dummy var
-                c_idcs = repmat(c_idcs,[d1*prod(m_arr(1:jj-1)),1]);         % account for Kronecker product with other bases
-                r_idcs = kron((1:d1)',ones(d1*prod(m_arr(jj+1:end)),1));    % index of monomial in primary var
-                r_idcs = r_idcs + d1*(0:d1^2*prod(m_arr(jj+1:end))-1)';     % account for location in vector-valued object, (Im o Zd(s))
+                c_idcs = repmat(c_idcs,[prod(m_arr(1:jj-1)),1]);         % account for Kronecker product with other bases
+                r_idcs = kron(1,ones(d1*prod(m_arr(jj+1:end)),1));    % index of monomial in primary var
+                r_idcs = r_idcs + d1*(0:d1*prod(m_arr(jj+1:end))-1)';     % account for location in vector-valued object, (Im o Zd(s))
                 r_idcs = r_idcs + d1*prod(m_arr(jj:end))*(0:prod(m_arr(1:jj-1))-1); % account for Kronecker product with other bases
                 Ccell{2} = sparse(r_idcs(:),c_idcs,1,m_tot,d1);
                 if use_sep
                     Ccell{3} = Ccell{2};
                 end
+            else
+                Ccell{2} = sparse(m_tot,d1);
             end
             if ~excludeL(3) && ~use_sep
                 c_idcs = kron((1:d1)',ones(prod(m_arr(jj+1:end)),1));
-                c_idcs = repmat(c_idcs,[d1*prod(m_arr(1:jj-1)),1]);
-                r_idcs = kron((1:d1)',ones(d1*prod(m_arr(jj+1:end)),1));
-                r_idcs = r_idcs + d1*(0:d1^2*prod(m_arr(jj+1:end))-1)'+~excludeL(2)*prod(m_arr(jj+1:end))*d1^3;
+                c_idcs = repmat(c_idcs,[prod(m_arr(1:jj-1)),1]);
+                r_idcs = kron(1,ones(d1*prod(m_arr(jj+1:end)),1));
+                r_idcs = r_idcs + d1*(0:d1*prod(m_arr(jj+1:end))-1)'+~excludeL(2)*prod(m_arr(jj+1:end))*d1^2;
                 r_idcs = r_idcs + d1*prod(m_arr(jj:end))*(0:prod(m_arr(1:jj-1))-1);
                 Ccell{3} = sparse(r_idcs(:),c_idcs,1,m_tot,d1);
+            else
+                Ccell{3} = sparse(m_tot,d1);
             end
             Zjj.C = Ccell;
             Zii{jj} = Zjj;
@@ -199,10 +209,19 @@ end
 
 % Declare the positive semidefinite matrix variable
 Pmat = 0;
+Zs = var1(1).^(0:pdegs(1));
+for j=2:N
+    Zs = kron(Zs,var1(j).^(0:pdegs(j))');
+end
 for j=psatz
-    [prog,Pmat_j] = sosposmatr(prog,Pdim);
+    [prog,Pmat_j] = sosquadvar(prog,Zs,Zs,Pdim,Pdim,'pos');
     Pmat = Pmat + ((var1(1)-dom(1))*(dom(2)-var1(1))).^j*Pmat_j;
 end
+% for j=0:2*pdegs(1)
+%     % Build matrix which is positive definite only on the domain
+%     [prog,Pmat_j] = sosposmatr(prog,Pdim);
+%     Pmat = Pmat + ((var1(1)-dom(1))^(2*pdegs(1)-j))*((dom(2)-var1(1)).^j)*Pmat_j;
+% end
 
 
 
