@@ -104,12 +104,16 @@ for ii=1:nZL
         % Extract the monomial operators acting on the jth distributed
         % monomial
         Zop_jj = ZxR;
-        Zop_jj.degmat = degmatL(jj,:);
+        Zop_jj.degmat = degmatR(jj,:);
         Zop_jj.C = ZopR{jj,jj};
         %Zop_jj = ZopR(jj,jj);
         % Extract the block of decision variables acting on monomials Zi
         % and Zj
-        Pij = Pmat(blkdimL_cum(ii)+1:blkdimL_cum(ii+1), blkdimR_cum(jj)+1:blkdimR_cum(jj+1));
+        if isa(Pmat,'cell')
+            Pij = Pmat{ii,jj};
+        else
+            Pij = Pmat(blkdimL_cum(ii)+1:blkdimL_cum(ii+1), blkdimR_cum(jj)+1:blkdimR_cum(jj+1));
+        end
         % Convert to the linear format
         Kij = quad2lin_term(Pij,Zop_ii,Zop_jj);
         % Account for symmetry

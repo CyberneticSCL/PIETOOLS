@@ -115,6 +115,7 @@ end
 % For each distributed monomial, generate a basis of operators acting on
 % that distributed monomial
 Pdim = 0;
+Pdim_arr = zeros(nZ,1);
 d1 = prod(pdegs+1);
 %Zop = cell(nZ,1);
 Zop = tensopvar();
@@ -125,6 +126,7 @@ for ii=1:nZ
         % For constant monomial, just multiply with vector in s
         Zop.ops{ii,ii} = 1;
         Pdim = Pdim + 1;
+        Pdim_arr(ii) = 1;
     elseif dtot==1
         % Include the basis of 3-PI operators acting on the single state
         % Zd(s) o Zd(t)
@@ -162,67 +164,73 @@ for ii=1:nZ
         Zii.C = Ccell;
         Zop.ops{ii,ii} = Zii;
         Pdim = Pdim + Zii.dim(1);
+        Pdim_arr(ii) = Zii.dim(1);
     else
         % The distributed monomial involves multiple state variables
         % --> include a basis of 2-PI operators acting on each state
         % variable,
         %   (Z{1}*x1)(s)*(Z{2}*x2)(s)
         Zii = cell(1,dtot);
-        m_arr = d1*(~excludeL(2)+~excludeL(3))*ones(1,dtot);
-        m_tot = prod(m_arr)*d1;
+        dj = ceil(d1/dtot);
+        m_arr = dj*(~excludeL(2)+~excludeL(3))*ones(1,dtot);
+        m_tot = prod(m_arr)*dj;
         for jj=1:dtot
             Zjj = nopvar();
             Zjj.vars = pvars;
             Zjj.dom = dom;
-            Zjj.deg = pdegs;
+            Zjj.deg = dj-1;
             Ccell = cell(3,1);
             if ~excludeL(2)
-                c_idcs = kron((1:d1)',ones(prod(m_arr(jj+1:end)),1));       % index of monomial in dummy var
+                c_idcs = kron((1:dj)',ones(prod(m_arr(jj+1:end)),1));       % index of monomial in dummy var
                 c_idcs = repmat(c_idcs,[prod(m_arr(1:jj-1)),1]);         % account for Kronecker product with other bases
-                r_idcs = kron(1,ones(d1*prod(m_arr(jj+1:end)),1));    % index of monomial in primary var
-                r_idcs = r_idcs + d1*(0:d1*prod(m_arr(jj+1:end))-1)';     % account for location in vector-valued object, (Im o Zd(s))
-                r_idcs = r_idcs + d1*prod(m_arr(jj:end))*(0:prod(m_arr(1:jj-1))-1); % account for Kronecker product with other bases
-                Ccell{2} = sparse(r_idcs(:),c_idcs,1,m_tot,d1);
+                r_idcs = kron(1,ones(dj*prod(m_arr(jj+1:end)),1));    % index of monomial in primary var
+                r_idcs = r_idcs + dj*(0:dj*prod(m_arr(jj+1:end))-1)';     % account for location in vector-valued object, (Im o Zd(s))
+                r_idcs = r_idcs + dj*prod(m_arr(jj:end))*(0:prod(m_arr(1:jj-1))-1); % account for Kronecker product with other bases
+                Ccell{2} = sparse(r_idcs(:),c_idcs,1,m_tot,dj);
                 if use_sep
                     Ccell{3} = Ccell{2};
                 end
             else
-                Ccell{2} = sparse(m_tot,d1);
+                Ccell{2} = sparse(m_tot,dj);
             end
             if ~excludeL(3) && ~use_sep
-                c_idcs = kron((1:d1)',ones(prod(m_arr(jj+1:end)),1));
+                c_idcs = kron((1:dj)',ones(prod(m_arr(jj+1:end)),1));
                 c_idcs = repmat(c_idcs,[prod(m_arr(1:jj-1)),1]);
-                r_idcs = kron(1,ones(d1*prod(m_arr(jj+1:end)),1));
-                r_idcs = r_idcs + d1*(0:d1*prod(m_arr(jj+1:end))-1)'+~excludeL(2)*prod(m_arr(jj+1:end))*d1^2;
-                r_idcs = r_idcs + d1*prod(m_arr(jj:end))*(0:prod(m_arr(1:jj-1))-1);
-                Ccell{3} = sparse(r_idcs(:),c_idcs,1,m_tot,d1);
+                r_idcs = kron(1,ones(dj*prod(m_arr(jj+1:end)),1));
+                r_idcs = r_idcs + dj*(0:dj*prod(m_arr(jj+1:end))-1)'+~excludeL(2)*prod(m_arr(jj+1:end))*dj^2;
+                r_idcs = r_idcs + dj*prod(m_arr(jj:end))*(0:prod(m_arr(1:jj-1))-1);
+                Ccell{3} = sparse(r_idcs(:),c_idcs,1,m_tot,dj);
             else
-                Ccell{3} = sparse(m_tot,d1);
+                Ccell{3} = sparse(m_tot,dj);
             end
             Zjj.C = Ccell;
             Zii{jj} = Zjj;
         end
         Zop.ops{ii,ii} = Zii;
         Pdim = Pdim + prod(m_arr);
+        Pdim_arr(ii) = prod(m_arr);
     end
 end
 
 % Declare the positive semidefinite matrix variable
-Pmat = 0;
-Zs = var1(1).^(0:pdegs(1));
-for j=2:N
-    Zs = kron(Zs,var1(j).^(0:pdegs(j))');
+Pmat = num2cell(zeros(nZ,nZ));
+for p=psatz
+    % Declare the monomial basis
+    Zs = cell(nZ,1);
+    for i=1:nZ
+        dtot = sum(xdegs(i,:));
+        dtot = 1;
+        Zs{i} = var1(1).^(0:max(pdegs(1)*dtot-p,0));
+        for k=2:N
+            Zs{i} = kron(Zs{i},var1(k).^(0:max(pdegs(k)*dtot-p,0))');
+        end
+    end
+    % Declare an SOS matrix in terms of this basis
+    [prog,Pmat_j] = sosquadvar(prog,Zs,Zs,Pdim_arr,Pdim_arr,'pos');
+    for k=1:numel(Pmat)
+        Pmat{k} = Pmat{k} + ((var1(1)-dom(1))*(dom(2)-var1(1))).^p*Pmat_j{k};
+    end
 end
-for j=psatz
-    [prog,Pmat_j] = sosquadvar(prog,Zs,Zs,Pdim,Pdim,'pos');
-    Pmat = Pmat + ((var1(1)-dom(1))*(dom(2)-var1(1))).^j*Pmat_j;
-end
-% for j=0:2*pdegs(1)
-%     % Build matrix which is positive definite only on the domain
-%     [prog,Pmat_j] = sosposmatr(prog,Pdim);
-%     Pmat = Pmat + ((var1(1)-dom(1))^(2*pdegs(1)-j))*((dom(2)-var1(1)).^j)*Pmat_j;
-% end
-
 
 
 end
