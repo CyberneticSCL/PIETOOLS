@@ -62,79 +62,42 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %
     % SS,MP, 01/15/2026: Initial coding
     properties
-        vars_S1 = {};   % these variables are integrated out (full integral only)
-        vars_S2 = {};   % these variables are introduced (multiplier only)
-        vars_S3 = {};   % these variables pass through (3 PI operators)
-        dom_1 = zeros(0, 2);   % domain of s1
-        dom_2 = zeros(0, 2);   % domain of s2
-        dom_3 = zeros(0, 2);   % domain of s3
-        dims = [1,1];          % dimension of function spaces
-        params = {quadPoly(0,[],[],[1,1],{},{})};  % parameters
-        % each value in the cell is a quadPoly
-        % for maps to and from \R spaces, add an extra dimension?
+        vars = struct('in',{},'out',{});
+        dom = struct('in',zeros(0,2),'out',zeros(0,2));
+        dims = [1,1];
+        ZL = {};
+        ZR = {};
+        params = {0};
+    end
+    properties(Access=protected)
+        vars_S1;   % these variables are integrated out (full integral only)
+        vars_S2;   % these variables are introduced (multiplier only)
+        vars_S3;   % these variables pass through (3 PI operators)
+        dom_1;   % domain of s1
+        dom_2;   % domain of s2
+        dom_3;   % domain of s3
     end
 
     methods
-        function P = sopvar(vars3,dom3,dims,params,vars1,dom_1,vars2,dom_2)
-            if nargin<=2                                                    % error handling
-                error('insufficient information provided to form sopvar')
-            end
-            if nargin==5
-                error('insufficient information provided on dom of S1')
-            end
-            if nargin==7
-                error('insufficient information provided on dom of S2')
-            end
-            P.vars_S3 = vars3(:).';
+        function P = sopvar(params,vars,ZR,ZL,dom,dims)
+            P.params = params;
+            P.vars = vars;
+            P.dom = dom;
             P.dims = dims;
-            P.dom_3=dom3;
-            if nargin<=6                                                    % S2 is empty
-                P.vars_S2 = {};
-                P.dom_2 = zeros(0, 2);
-            end
-            if nargin<=4                                                    % S1 is also empty
-                P.vars_S1 = {};
-                P.dom_1 = zeros(0, 2);
-            end
-            if nargin==3                                                    % no params specified -- create a 0-valued operator with specified domains and no S1,S2
-                n= numel(vars2);                                             % total number of unique spatial variables
-                if n == 0
-                    P.params = {zeros(dims(1),dims(2))};
-                else
-                    sz=3*ones(1,n);
-                    P.params = repmat({zeros(dims(1),dims(2))},sz);
-                end
-            end
-            P.params = params;                                          % parameters specified
-            if nargin>=6                                                    % parameters specified, copy S1
-                P.vars_S1 = vars1(:).';
-                P.dom_1=dom_1;
-            end
-            if nargin==8                                                % parameters specified, but no S2
-                P.vars_S2 = vars2(:).';
-                P.dom_2=dom_2;
+            P.ZR = ZR; 
+            P.ZL = ZL;
 
-            end
-            % NOTE: need error checking to ensure quadpolys in params have
-            % the correct format!!!!
+            P.vars_S1 = setdiff(vars.in,vars.out);
+            P.vars_S2 = setdiff(vars.out,vars.in);
+            P.vars_S3 = intersect(vars.in,vars.out);
+            [~,idx] = ismember(P.vars_S1,vars.in);
+            P.dom_1 = dom.in(idx,:);
+            [~,idx] = ismember(P.vars_S2,vars.out);
+            P.dom_2 = dom.out(idx,:);
+            [~,idx] = ismember(P.vars_S3,vars.in);
+            P.dom_3 = dom.in(idx,:);
         end
     end
-
-    methods
-        function out = vars_in(A)
-            out = union(A.vars_S1,A.vars_S3);
-        end
-        function out = vars_out(A)
-            out = union(A.vars_S2,A.vars_S3);
-        end
-        function out = dom_in(A)
-            out = [A.dom_1;A.dom_3];
-        end
-        function out = dom_out(A)
-            out = [A.dom_2;A.dom_3];
-        end
-    end
-
     methods(Static)
         out = randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density);
         [Minv, R1Minv, R2Minv, info] = inv_1D(M, K1, K2, interval, opts);
