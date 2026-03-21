@@ -39,18 +39,15 @@ function C_out = uminus(C_in)
 
 C_out = C_in;
 for kk=1:numel(C_out.ops)
-    if isa(C_out.ops{kk},'nopvar') || isa(C_out.ops{kk},'ndopvar')
-        % Single PI operator, Top*x
-        C_out.ops{kk} = -C_out.ops{kk};
-    elseif isa(C_out.ops{kk},'cell')
+    if isa(C_out.ops{kk},'cell')
         % Tensor product of PI operators, (T1*x)*(T2*x)
         % --> multiply only the first factor in each term with -1
         for ii=1:size(C_out.ops{kk},1)
             C_out.ops{kk}{ii,1} = -C_out.ops{kk}{ii,1};
         end
-    elseif isa(C_out.ops{kk},'struct') && isfield(C_out.ops{kk},'params')
-        % Functional operator
-        C_out.ops{kk}.params = -C_out.ops{kk}.params;
+    else
+        % Single PI operator, Top*x
+        C_out.ops{kk} = -C_out.ops{kk};
     end
 end
 
