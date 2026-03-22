@@ -28,6 +28,7 @@ clear;  clear stateNameGenerator
 pvar s t
 dom = [0,1];
 r = pi^2-0.1;
+%r = 1;
 
 % Declare the nonlinear PDE
 x = pde_var(s,dom);
@@ -38,48 +39,56 @@ PDE = [diff(x,t)==diff(x,s,2)+r*x-x*diff(x,s);
 PIE = convert(PDE);
 Top = PIE.T;
 f = PIE.f;
+x = polyopvar(f.varname,s,dom);
 
 
 %%%% 2. Setting up LPI for stability analysis using a SOS Lyapunov functional
 %%%%  V(v) = <Z_d(v), Pop*Z_d(v)>; Z_d(v) = [v ... v^d]'; Pop = Zop^* Pmat Zop.
 
 % Set up LPI program structure.
-prog = lpiprogram(s,dom);
+prog = piesos_program(x);
 
 % Declare monomial basis of SOS Lyapunov functional.
-x = polyopvar(f.varname,s,dom);
 d = 1;                  % degree of distributed monomial basis, will be doubled in LF
-Z = dmonomials(x,(1:d)); % Z_d(v).
+Z = dmonomials(x,(1:d)'); % Z_d(v).
 
-% Declare PSD operator acting on degree d monomial basis and add variables to LPI program.
-% opts = ;
+% Declare distributed SOS polynomial Vx
+% NOTE: Vx is expressed in terms of PDE state
 P_opts.deg = 3; % maximal monomial degree of Zop. 
 P_opts.exclude = [0;0;0];
 P_opts.sep = 1;
-[prog,Vx,Pmat,Zop] = piesos_sosvar(prog,Z,P_opts);
+[prog,Vx_PDE,Pmat,Zop] = piesos_sosvar(prog,Z,P_opts);
 %Vx = quad2lin(Pmat,Zop,Z); % output is in polyopvar
 
 % Ensure strict positivity of the Lyapunov functional.
 eppos = 1e-4;
-Vx = Vx + eppos*innerprod(x,x);
+Vx_PDE = Vx_PDE + eppos*innerprod(x,x);
                                                 
 % Evaluate the derivative of V along the PIE
-dV = Liediff(Vx,PIE); % output is in polyopvar 
+% NOTEL dV is expressed in terms of PIE state
+dV = Liediff(Vx_PDE,PIE); % output is in polyopvar 
 
-% Declare a nonnegative distributed polynomial functional W
-ZQ_degmat = unique(floor(dV.degmat./2),'rows');
-ZQ = polyopvar(f.varname,s,dom);
-ZQ.degmat = ZQ_degmat;
-Q_opts.deg = P_opts.deg+2;
-Q_opts.exclude = [1,0,0]';
-%[prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
-%W = quad2lin(Qmat,ZQop,ZQ);
-[prog,W,Qmat,ZQop] = piesos_sosvar(prog,ZQ,Q_opts);
+% Enforce negativity of the derivative
+use_ineq = true;
+if use_ineq
+    % Use piesos_ineq to enforce negativity
+    ineq_opts.psatz = 0:1;
+    [prog,W,Qmat,ZQop] = piesos_ineq(prog,-dV,ineq_opts);
+else
+    % Manually declare distributed SOS polynomial W>=0
+    ZQ_degmat = unique(floor(dV.degmat./2),'rows');
+    ZQ = polyopvar(f.varname,s,dom);
+    ZQ.degmat = ZQ_degmat;
+    Q_opts.deg = P_opts.deg+2;
+    Q_opts.exclude = [1,0,0]';
+    [prog,W,Qmat,ZQop] = piesos_sosvar(prog,ZQ,Q_opts);
 
+    % Enforce dV = -W <= 0
+    prog = piesos_eq(prog,dV+W);
+end
 
-% Enforce dV = -W <= 0
-prog = piesos_eq(prog,dV+W);
 
 % Solve the optimization program
-prog_sol = lpisolve(prog);
+prog_sol = piesos_solve(prog);
+
 
