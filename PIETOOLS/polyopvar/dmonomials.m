@@ -44,25 +44,33 @@ if ~isa(vartab,'polyopvar')
 end
 
 % Check that the degrees make sense
-if any(degs<0) || any(round(degs)~=degs)
+if any(any(degs<0)) || any(any(round(degs)~=degs))
     error("Monomial degrees must be specified as nonnegative integers");
 end
 
-% Build the matrix of cumulative degrees at most degs in the variables
+% Build the matrix specifying the degrees of the monomials in each variable
 nvars = numel(vartab.varname);
-degmat = zeros(0,nvars);
-for ii=1:numel(degs)
-    d = degs(ii);
-    degmat_ii = sparse(1,nvars);
-    for jj = 1:nvars
-        nZ = size(degmat_ii,1);
-        degmat_ii = sprepmat(degmat_ii,d+1,1);
-        for kk = 0:d
-            degmat_ii(nZ*kk+(1:nZ),jj) = kk;
+if size(degs,2)==nvars
+    % Assume monomial degrees are already specified for all variables
+    degmat = degs;
+elseif size(degs,2)==1 || size(degs,1)==1
+    % Assume cumulative monomial degrees are specified
+    degmat = zeros(0,nvars);
+    for ii=1:numel(degs)
+        d = degs(ii);
+        degmat_ii = sparse(1,nvars);
+        for jj = 1:nvars
+            nZ = size(degmat_ii,1);
+            degmat_ii = sprepmat(degmat_ii,d+1,1);
+            for kk = 0:d
+                degmat_ii(nZ*kk+(1:nZ),jj) = kk;
+            end
+            degmat_ii = degmat_ii(sum(degmat_ii,2)<=d,:);   % Throw away invalid monomials
         end
-        degmat_ii = degmat_ii(sum(degmat_ii,2)<=d,:);   % Throw away invalid monomials
+        degmat = [degmat;degmat_ii(sum(degmat_ii,2)==d,:)];
     end
-    degmat = [degmat;degmat_ii(sum(degmat_ii,2)==d,:)];
+else
+    error("Degrees must be specified as n x 1 array or n x q array for q variables.")
 end
 
 % Declare the distributed monomial basis
