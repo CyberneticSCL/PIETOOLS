@@ -8,9 +8,9 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 % - Z:      n x 1 'polyopvar' object representing a basis of distributed
 %           monomials;
 % - opts:   (optional) struct with fields:
-%           - 'deg': scalar integer specifying the degrees of the monomials
+%           - 'deg': cell or array specifying the degrees of the monomials
 %               to use in the parameterization of the operators Zop.
-%               Defaults to 0
+%               See `piesos_poslpivar` for more details;
 %           - 'exclude': 3x1 boolean array indicating whether to exclude 
 %               the multiplier term (exclude(1)=1), lower integral 
 %               (exclude(2)=1), or upper integral (exclude(3)=1) from the 

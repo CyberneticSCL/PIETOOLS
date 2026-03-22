@@ -1,5 +1,5 @@
 function prog = piesos_eq(prog,f)
-% PROG = PIESOS_EQ(PROG,F) takes an PIESOS program PROG with distributed
+% PROG = PIESOS_EQ(PROG,F) takes a PIESOS program PROG with distributed
 % polynomial variable F and adds the constraint F=0 to the program.
 %
 % INPUTS
@@ -13,7 +13,7 @@ function prog = piesos_eq(prog,f)
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - soslpi_eq
+% PIETOOLS - piesos_eq
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -57,8 +57,13 @@ for ii=1:size(f.degmat,1)
         % Add the independent variables to the optimization program
         Kop_vars = Kfun_ii.C.ops{1}.vars;
         Kop_varname = Kop_vars.varname;
-        is_missing = ~ismember(Kop_varname,prog.vartable.varname);
-        prog.vartable = [prog.vartable; polynomial(Kop_varname(is_missing))];
+        if isa(prog.vartable,'polynomial')
+            is_missing = ~ismember(Kop_varname,prog.vartable.varname);
+            prog.vartable = [prog.vartable; polynomial(Kop_varname(is_missing))];
+        else
+            is_missing = ~ismember(Kop_varname,prog.vartable);
+            prog.vartable = [prog.vartable; Kop_varname(is_missing)];
+        end
         % Require the coefficient operator acting on the monomial to be zero
         Kop_ii = Kfun_ii.C.ops{1};
         prog = soseq(prog,Kop_ii.params);
