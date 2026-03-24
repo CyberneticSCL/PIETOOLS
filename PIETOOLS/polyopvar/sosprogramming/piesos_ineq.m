@@ -137,11 +137,11 @@ for i=1:size(f_degmat,1)
         else
             pdegs_full{i} = [max(max(C_degmat)),max(sum(C_degmat,2))];
         end
-        d = sum(f_degmat(i,:));
+        % d = sum(f_degmat(i,:));
         % pdeg2 = ceil(pdegs_full{i}(2)/(4*d));       % degree of dummy variables
         % pdeg1 = ceil((pdegs_full{i}(1)-pdeg2)/2);   % degree of primary variable
         % pdegs = max(pdegs,[pdeg1,pdeg2]);
-        pdegs = max(pdegs,ceil(pdegs_full{i}(2)/(4)));
+        pdegs = max(pdegs,ceil(pdegs_full{i}(2)/4));
     else
         error("Coefficients acting on distributed must be specified as 'intop' objects.")
     end

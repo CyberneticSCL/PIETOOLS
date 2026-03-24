@@ -116,7 +116,11 @@ for i=1:numel(pdegs)
     if size(pdegs{i},2)==1
         % Assume pdegs{i} is cummulative degree in all dummy variables
         dtot = sum(xdegs(i,:));
-        pdegs{i} = [pdegs{i},ceil(pdegs{i}/dtot)];
+        if dtot==0
+            pdegs{i} = [0,0];
+        else
+            pdegs{i} = [pdegs{i},round(pdegs{i}/dtot)];
+        end
     end
     if size(pdegs{i},1)==1
         % Assume same degree in all spatial variables
