@@ -166,7 +166,12 @@ ztol  = 1e-12;
 if isa(Kop.params,'double')
     Kop.params(abs(Kop.params)<ztol) = 0;
 else
-    Kop.params.C(abs(Kop.params.C)<ztol) = 0;
+    [ridcs,cidcs,Cvals] = find(Kop.params.C);
+    rtn_idcs = abs(Cvals)>=ztol;
+    ridcs = ridcs(rtn_idcs);
+    cidcs = cidcs(rtn_idcs);
+    Cvals = Cvals(rtn_idcs);
+    Kop.params.C = sparse(ridcs,cidcs,Cvals,size(Kop.params.C,1),size(Kop.params.C,2));
 end
 if nargin==1
     % If the input was a 'polyopvar' object, we return a 'polyopvar' object
