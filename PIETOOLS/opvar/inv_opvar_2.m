@@ -60,6 +60,8 @@ end
 if ~isfield(opts,'N'),        opts.N = 100; end
 if ~isfield(opts,'mulDeg'),  opts.mulDeg = 6; end
 if ~isfield(opts,'kerDeg'), opts.kerDeg = [6 6]; end
+if ~isfield(opts,'outIsPoly'), opts.outIsPoly = 1; end
+if ~isfield(opts,'fitKernelEverywhere'), opts.fitKernelEverywhere= 1; end
 
 info = struct();
 
@@ -178,38 +180,62 @@ if all(P.dim(1,:)==0)
     S1_num = zeros(m,m,N,N);   % S1 = C*U*(I-P)*V*B*R0^{-1}
     S2_num = zeros(m,m,N,N);   % S2 = -C*U*(P)*V*B*R0^{-1}
     
-    if exist('pagemtimes','file') == 2
+    if exist('pagemtimes') == 5
         % Vectorized over j for each i
-        for i=1:N
-            Mi = M(:,:,i);
-
-            % lower: gamma = Mi*ImP*Nmat(:,:,j), j<=i
-            Glo = pagemtimes(Mi*ImP, Nmat);            % m x m x N
-            % upper: gamma = -Mi*Pmat*Nmat(:,:,j), j>i
-            Gup = pagemtimes(-Mi*Pmat, Nmat);          % m x m x N
-
-            % Multiply by R0inv(s)^{-1} on each page j:
-            Slo = pagemtimes(Glo, R0inv_nodes);        % m x m x N
-            Sup = pagemtimes(Gup, R0inv_nodes);        % m x m x N
-
-            % Assign triangular parts
-            if i >= 1
-                S1_num(:,:,i,1:i) = reshape(Slo(:,:,1:i), m,m,1,i);
+        if opts.fitKernelEverywhere
+            for i=1:N
+                Mi = M(:,:,i);
+    
+                G1 = pagemtimes(Mi*ImP, Nmat);      % m x m x N
+                G2 = pagemtimes(-Mi*Pmat, Nmat);    % m x m x N
+            
+                S1_full = pagemtimes(G1, R0inv_nodes);   % m x m x N
+                S2_full = pagemtimes(G2, R0inv_nodes);   % m x m x N
+            
+                S1_num(:,:,i,:) = reshape(S1_full, m, m, 1, N);
+                S2_num(:,:,i,:) = reshape(S2_full, m, m, 1, N);
             end
-            if i < N
-                S2_num(:,:,i,i+1:N) = reshape(Sup(:,:,i+1:N), m,m,1,N-i);
+        else
+            for i=1:N
+                % compute only on the triangle
+                Mi = M(:,:,i);
+    
+                % lower: gamma = Mi*ImP*Nmat(:,:,j), j<=i
+                Glo = pagemtimes(Mi*ImP, Nmat);            % m x m x N
+                % upper: gamma = -Mi*Pmat*Nmat(:,:,j), j>i
+                Gup = pagemtimes(-Mi*Pmat, Nmat);          % m x m x N
+    
+                % Multiply by R0inv(s)^{-1} on each page j:
+                Slo = pagemtimes(Glo, R0inv_nodes);        % m x m x N
+                Sup = pagemtimes(Gup, R0inv_nodes);        % m x m x N
+    
+                % Assign triangular parts
+                if i >= 1
+                    S1_num(:,:,i,1:i) = reshape(Slo(:,:,1:i), m,m,1,i);
+                end
+                if i < N
+                    S2_num(:,:,i,i+1:N) = reshape(Sup(:,:,i+1:N), m,m,1,N-i);
+                end
             end
         end
     else
         % Fallback loops (slower)
         for i=1:N
-            for j=1:N
-                if t(j) <= t(i)
-                    gamma_ij = M(:,:,i)*ImP*Nmat(:,:,j);
-                    S1_num(:,:,i,j) = gamma_ij*R0inv_nodes(:,:,j);
-                else
-                    gamma_ij = -M(:,:,i)*Pmat*Nmat(:,:,j);
-                    S2_num(:,:,i,j) = gamma_ij * R0inv_nodes(:,:,j);
+            if  opts.fitKernelEverywhere
+                for j=1:N
+                    S1_num(:,:,i,j) = M(:,:,i)*ImP*Nmat(:,:,j)*R0inv_nodes(:,:,j);
+                    S2_num(:,:,i,j) = -M(:,:,i)*Pmat*Nmat(:,:,j)*R0inv_nodes(:,:,j);
+                end
+            else
+                for j=1:N
+                    % compute kernels only on triangle 
+                    if t(j) <= t(i)
+                        gamma_ij = M(:,:,i)*ImP*Nmat(:,:,j);
+                        S1_num(:,:,i,j) = gamma_ij*R0inv_nodes(:,:,j);
+                    else
+                        gamma_ij = -M(:,:,i)*Pmat*Nmat(:,:,j);
+                        S2_num(:,:,i,j) = gamma_ij * R0inv_nodes(:,:,j);
+                    end
                 end
             end
         end
@@ -217,13 +243,19 @@ if all(P.dim(1,:)==0)
 
     % ---- Fit polynomials at the end ----
     [S0_poly, fitS0] = fitpoly_1D_cheb(t, S0_num, opts.mulDeg, var1.varname, [a b]); % convert (m,m,N) matrix of points to (m,m) polynomial in var1
-    [S1_poly, fitS1] = fitpoly_2D_cheb(t, t, S1_num, opts.kerDeg, var1.varname, var2.varname, 'lower', [a b], [a b]); % convert (m,m,N,N) matrix of points to (m,m) polynomial in (var1,var2)
-    [S2_poly, fitS2] = fitpoly_2D_cheb(t, t, S2_num, opts.kerDeg, var1.varname, var2.varname, 'upper', [a b], [a b]); % convert (m,m,N,N) matrix of points to (m,m) polynomial in (var1,var2)
+    [S1_poly, fitS1] = fitpoly_2D_cheb(t, t, S1_num, opts.kerDeg, var1.varname, var2.varname, 'all', [a b], [a b]); % convert (m,m,N,N) matrix of points to (m,m) polynomial in (var1,var2)
+    [S2_poly, fitS2] = fitpoly_2D_cheb(t, t, S2_num, opts.kerDeg, var1.varname, var2.varname, 'all', [a b], [a b]); % convert (m,m,N,N) matrix of points to (m,m) polynomial in (var1,var2)
     
     Pinv = P;
     Pinv.R.R0 = S0_poly;
     Pinv.R.R1 = S1_poly;
     Pinv.R.R2 = S2_poly;
+
+    if ~opts.outIsPoly
+        Pinv.R.R0 = S0_num;
+        Pinv.R.R1 = S1_num;
+        Pinv.R.R2 = S2_num;
+    end
     
     if nargout>1
         infoL2.condR0.max = max([condR0_nodes(:);condR0_mid(:)]);

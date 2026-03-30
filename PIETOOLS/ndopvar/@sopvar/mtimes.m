@@ -151,7 +151,7 @@ end
 
 function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar, s2a,s2b,s3a,s3b,lims)
 % This performs the factorization
-% int(ZL*ZR',s2b,0,1) = (Im\otimes Z2a') G3a (In\otimes Z3b)
+% int(ZL*ZR',s2b,0,1) = (Im\otimes Z2a') G(s3a) (In\otimes Z3b)
 % where m = length(kron(ZL)) and n = length(kron(ZR))
 
 % note that
@@ -219,7 +219,7 @@ end
 C2b = 1; a = lims(:,1); b = lims(:,2);
 for i=1:length(s2b)
     E = Z2b{i};
-    Ci = (b(i).^(E+1) - a(i).^(E+1)) ./ (E+1);
+    Ci = (b(i).^(E+1)-a(i).^(E+1))./(E+1);
     C2b = kron(C2b,Ci);
 end
 
