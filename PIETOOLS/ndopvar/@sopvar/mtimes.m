@@ -135,19 +135,187 @@ alpha_b = alphaIdx(:,~idx3a);
 
 [idx2b,~] = ismember(B.vars_S2,v2b);
 dom2b = B.dom_2(idx2b,:);
+dom2a = A.dom_3(idx2a,:);
+dom3a = B.dom_3(idx3a,:);
+dom3b = B.dom_3(~idx3a,:);
 
 % do int(ZL*ZR', s2b) = (I⊗Zhat_s2a')*G_s3a(s3a)*(I⊗Zhat_s3b)
 [Zhat_s2a,G_s3a,Zhat_s3b] = ...
         int_2b(A.ZR,B.ZL,strrep(A.nt,'t','s'),B.ns, vs2a,vs2b,vs3a,vs3b, dom2b);
 
-[Cs2a, KZhat_betaa_s2a] = int_monomial(Zhat_s2a,beta_a);
-[Cs3b, KZhat_alphab_s3b] = int_monomial(Zhat_s3b,alpha_b);
+[Cs2a_betaa, KZhat_s2a] = int_monomial(Zhat_s2a,beta_a,dom2a);   % note that KZhat_s2a has been expanded to ensure independence of beta_a
+[Cs3b_alphab, KZhat_s3b] = int_monomial(Zhat_s3b,alpha_b,dom3b);  % same for KZhat_s3b
+% Cs2a_betaa, Cs3b_alphab are cell with different coefficients for
+% different beta_a/alpha_b stored in same order as beta_a and alpha_b variables
 
-[CZL, CZR, Cparams] = termCompose(A,B,alphaIdx,betaIdx);
+
+% now, we have
+% int(ZL*ZR', s2a,s2b,s3a,s3b) 
+% = (I⊗KZhat_betaa_s2a(s2a)'*Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I⊗Cs3b_alphab*KZhat_alphab_s3b(s3b))
+% = (I⊗KZhat_betaa_s2a(s2a)')*(I⊗Cs2a_betaa)*int(G_s3a(s3a),s3a)*(I⊗Cs3b_alphab)*(I⊗KZhat_alphab_s3b(s3b))
+% next we need to perform int(G_s3a(s3a),s3a) = (I⊗barZ_3aL')*C_(gam,beta,alp)*(I⊗barZ_3aR)
+[C_gam_alp_beta,barZ_3aL,barZ_3aR] = int_semisep(G_s3a,beta_b,alpha_a,dom3a); 
+
+
+[CZL, CZR, Cparams] = termCompose(A, B, ...   
+                                    Cs2a_betaa, Cs3b_alphab, C_gam_alp_beta, ...
+                                      KZhat_s2a, KZhat_s3b, barZ_3aL, barZ_3aR, ...
+                                       alphaIdx,betaIdx,alpha_a,alpha_b,beta_a,beta_b);
 
 C = sopvar(Cparams,Cvars,CZR,CZL,Cdom,Cdims);
 end
 
+function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims)
+% this performs
+% int(G(s3a), s3a, lims) = sum_{g,a,b} (I⊗ZL(s3a)') C_{g,a,b} (I ⊗ ZR(s3a'))
+% G is structure storing ZG and CG where G(s3a)=(I⊗ZG(s3a)')*CG
+
+CG = G.C; ZG = G.Z;
+
+Zint = cellfun(@(x) [0; x+1], ZG, UniformOutput=false);
+ZL = Zint; ZR = Zint;
+
+n = size(idxbeta,2);
+a = lims(:,1); b = lims(:,2);
+C_gam_alp_beta = cell(3^n,size(idxbeta,1),size(idxalpha,1));
+if n==0 
+    Csize=[1,1]; 
+elseif n==1
+    Csize=[1,3]; 
+else 
+    Csize = repmat(3,1,n); 
+end
+
+for i=1:size(C_gam_alp_beta,2)
+    C=1;
+    idxB = idxbeta(i,:)';
+    for j=1:size(C_gam_alp_beta,3)
+        idxA = idxalpha(j,:)';
+        gam = mapBetaAlpha2Gamma(idxB,idxA);
+
+        shiftMonomial = zeros(size(idxB));
+        for k=1:length(idxA)
+            E = ZG{k}; nE = length(E);
+            Ci = zeros(nE+1,nE+1);
+            key = 100*gam(k)+10*idxB(k)+idxA(k);
+            switch key
+                case 111 % G(s_3a_i)
+                    Ci(1:nE,1:nE) = eye(nE);
+                case 211  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 311  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 121  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 221  % G(t_3a_i);
+                    Ci(1:nE,1:nE) = eye(nE);
+                    shiftMonomial(k) = 1;
+                case 321  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 131  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 231  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 331  % G(t_3a_i);
+                    Ci(1:nE,1:nE) = eye(nE);
+                    shiftMonomial(k) = 1;
+                case 112 % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 212  % G(s_3a_i)
+                    Ci(1:nE,1:nE) = eye(nE);
+                case 312 % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 122 % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 222  % int_{s_3a_i}^{t_3a,i} eta_3a_i^E deta_3a_i = t_3a_i^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1); % THIS may need to change
+                    Ci(1:nE,2:end) = diag(1./(E+1));
+                    shiftMonomial(k) = 2;
+                case 322  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 132 % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 232  % int_{s_3a_i}^{b(i)} eta_3a_i^E deta_3a_i = b(i)^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1);
+                    Ci(:,1) = b(i).^(E+1)./(E+1);
+                    Ci(:,2:end) = -diag(1./(E+1));
+                case 332  % int_{t_3a_i}^{b(i)} eta_3a_i^E deta_3a_i = b(i)^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);
+                    Ci(:,1) = b(i).^(E+1)./(E+1);
+                    Ci(:,2:end) = -diag(1./(E+1));
+                    shiftMonomial(k) = 1;
+                case 113  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 213  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 313  % G(s_3a_i)
+                    Ci(1:nE,1:nE) = eye(nE);
+                case 123  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 223  % int_{a(i)}^{t_3a_i} eta_3a_i^E deta_3a_i = t_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
+                    Ci(:,1) = -a(i).^(E+1)./(E+1);
+                    Ci(:,2:end) = diag(1./(E+1));
+                    shiftMonomial(k) = 1;
+                case 323  % int_{a(i)}^{s_3a_i} eta_3a_i^E deta_3a_i = s_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
+                    Ci(:,1) = -a(i).^(E+1)./(E+1);
+                    Ci(:,2:end) = diag(1./(E+1));
+                case 133  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 233  % 0
+                    Ci = zeros(nE+1,nE+1);
+                case 333  % int_{t_3a_i}^{s_3a,i} eta_3a_i^E deta_3a_i = s_3a_i^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);  % THIS may need to change
+                    Ci(1:nE,2:end) = diag(1./(E+1));
+                    shiftMonomial(k) = 2;
+            end
+            C = kron(C,Ci);
+        end
+        Cnew = rearrangeCoef(CG,C,shiftMonomial);  % convert (I⊗Zint(s,s_dum)'*C')*CG = (I⊗Zint(s)')Cnew(I⊗Zint(s_dum))
+    end
+
+    gam = mat2cell(gam);
+    gamlin = sub2ind(Csize,gam{:});
+    C_gam_alp_beta(gamlin,i,j) = Cnew;
+end
+end
+
+function Cout = rearrangeCoef(Cmul,C,shiftmonomial)
+Cout = 0;
+end
+
+function [Cidx, Zint] = int_monomial(Z,idxAll,lims)
+% this performs 
+% no integration if idx(i) = 1
+% int(si^Z{i}, si, a(i), si) if idx(i) = 2
+% int(si^Z{i}, si, si, b(i)) if idx(i) = 3
+% returns C*Zint = int(Z,idx,lims)
+
+Cidx = cell(1,size(idxAll,1));  % storing C_betaa for all beta_a (or C_alphab for all alpha_b)
+
+Zint = cellfun(@(x) [0; x+1], Z, UniformOutput=false);
+a = lims(:,1); b = lims(:,2);
+
+for k = 1:length(Cidx)
+idx = idxAll(k,:)';   % extract a specify beta_a or alpha_b
+C = 1;                % this is C corresponding to that beta_a/alpha_b
+for i=1:length(idx)
+    E = Z{i};
+    nE = length(E);
+    Ci = zeros(nE,nE+1);
+    switch idx(i)
+        case 1
+            % no integration along si
+            Ci(:,1:end-1) = eye(nE);
+        case 2
+            % int_a^si si^E dsi = si^(E+1)/(E+1) - a^(E+1)/(E+1);
+            Ci(:,1) = -a(i).^(E+1)./(E+1);  % constant of integration
+            Ci(:,2:end) = diag(1./(E+1));   % si^(E+1)/(E+1) terms
+        case 3
+            % int_si^b si^E dsi = b^(E+1)/(E+1)-si^(E+1)/(E+1);
+            Ci(:,1) = b(i).^(E+1)./(E+1);  % constant of integration
+            Ci(:,2:end) = -diag(1./(E+1));   % -si^(E+1)/(E+1) terms
+    end
+    C = kron(C,Ci);
+end
+Cidx{i} = C;
+end
+end
 
 function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar, s2a,s2b,s3a,s3b,lims)
 % This performs the factorization
