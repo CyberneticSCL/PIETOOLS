@@ -59,6 +59,7 @@ end
 % Pass to the 2D executive if necessary.
 if PIE.dim==2
     % Call the 2D version of the executive.
+    warning('PIE2PDE stability test currently not supported for 2D PDEs. Running PDE stability instead.')
     if nargin==1
         [prog, P] = PIETOOLS_stability_2D(PIE);
     else
