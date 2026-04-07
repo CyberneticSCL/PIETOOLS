@@ -50,6 +50,7 @@ function PIE = rescalePIE(PIE,I)
 % (Tmap)
 % YP 6/26/2025 - modified support for Tmap operator with new pie_struct.
 % YP 1/6/2026 - Added rescaling for Tmap, Tumap and Twmap operators
+% YP 4/7/2026 - Redefined rescaled domain
 
 if nargin==1
     I = [-1,1];
@@ -84,4 +85,6 @@ end
 if isfield(PIE,'K')
 PIE.K = transl_mod(PIE.K,I);
 end
+
+PIE.dom=I;
 end
