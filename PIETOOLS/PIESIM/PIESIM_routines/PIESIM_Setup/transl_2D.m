@@ -48,6 +48,7 @@ function T = transl_2D(T,I)
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove dependence on hardcoded variables in call to
 %                   "transl_1D" and "transl_3PI".
+% YP, 4/7/2026 - redefined rescaled operator domain
 
 I_init = T.I;
 ax = I_init(1,1);
@@ -191,4 +192,6 @@ for n=2:3
 
     end
 end
+
+T.I=I;
 
