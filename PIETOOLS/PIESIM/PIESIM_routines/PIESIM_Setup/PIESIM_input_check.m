@@ -725,7 +725,7 @@ if (PDE.nu>0)
 
     % Make sure uinput.u is a cell array
          if ~iscell(uinput.u)
-                if (size(uinput.u,2)==1)
+                if (size(uinput.u,1)==1)
                     uinput.u=num2cell(uinput.u);
                 else
                     uinput.u={uinput.u};
@@ -890,7 +890,7 @@ if (psize.n.nw>0)
     else
     % Make sure uinput.w is a cell array
      if ~iscell(uinput.w)
-                if (size(uinput.w,2)==1)
+                if (size(uinput.w,1)==1)
                     uinput.w=num2cell(uinput.w);
                 else
                     uinput.w={uinput.w};
@@ -912,7 +912,7 @@ if (psize.n.nu>0)
     else
     % Make sure uinput.u is a cell array
      if ~iscell(uinput.u)
-                if (size(uinput.u,2)==1)
+                if (size(uinput.u,1)==1)
                     uinput.u=num2cell(uinput.u);
                 else
                     uinput.u={uinput.u};
