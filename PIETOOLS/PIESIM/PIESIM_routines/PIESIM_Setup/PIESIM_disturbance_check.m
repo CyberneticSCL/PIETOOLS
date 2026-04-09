@@ -67,7 +67,7 @@ nu0=psize.nu0;
 
          % Make sure uinput.u is a cell array
           if ~iscell(uinput.u)
-                if (size(uinput.u,2)==1)
+                if (size(uinput.u,1)==1)
                     uinput.u=num2cell(uinput.u);
                 else
                     uinput.u={uinput.u};
