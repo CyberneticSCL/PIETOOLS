@@ -139,7 +139,7 @@ dom2a = A.dom_3(idx2a,:);
 dom3a = B.dom_3(idx3a,:);
 dom3b = B.dom_3(~idx3a,:);
 
-% do int(ZL*ZR', s2b) = (I⊗Zhat_s2a')*G_s3a(s3a)*(I⊗Zhat_s3b)
+% do int(A.ZR*B.ZL', s2b) = (I⊗Zhat_s2a')*G_s3a(s3a)*(I⊗Zhat_s3b)
 [Zhat_s2a,G_s3a,Zhat_s3b] = ...
         int_2b(A.ZR,B.ZL,strrep(A.nt,'t','s'),B.ns, vs2a,vs2b,vs3a,vs3b, dom2b);
 
@@ -149,13 +149,32 @@ dom3b = B.dom_3(~idx3a,:);
 % different beta_a/alpha_b stored in same order as beta_a and alpha_b variables
 
 
+
 % now, we have
-% int(ZL*ZR', s2a,s2b,s3a,s3b) 
-% = (I⊗KZhat_betaa_s2a(s2a)'*Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I⊗Cs3b_alphab*KZhat_alphab_s3b(s3b))
-% = (I⊗KZhat_betaa_s2a(s2a)')*(I⊗Cs2a_betaa)*int(G_s3a(s3a),s3a)*(I⊗Cs3b_alphab)*(I⊗KZhat_alphab_s3b(s3b))
+% int(A.ZR*B.ZL', s2a,s2b,s3a,s3b) 
+% = (I⊗KZhat_s2a(s2a)'*Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I⊗Cs3b_alphab*KZhat_s3b(s3b))
+% = (I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))
 % next we need to perform int(G_s3a(s3a),s3a) = (I⊗barZ_3aL')*C_(gam,beta,alp)*(I⊗barZ_3aR)
 [C_gam_alp_beta,barZ_3aL,barZ_3aR] = int_semisep(G_s3a,beta_b,alpha_a,dom3a); 
 
+
+% looking at the original composition, we have  K^C_gamma = 
+% sum_{betaa,betab,alphaa,alphab) (I⊗A.ZL')CA(betaa,betab)*int((I⊗A.ZR)*(I⊗B.ZL'),s2a,s2b,s3a,s3b)*CB(alphaa,alphab)(I⊗B.ZR)
+% = sum (I⊗A.ZL')CA(betaa,betab)*(I⊗int(A.ZR*B.ZL',s2a,s2b,s3a,s3b))*CB(alphaa,alphab)(I⊗B.ZR)
+% = sum (I⊗A.ZL')CA(betaa,betab)
+%          *(I⊗((I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')*(I⊗barZ_3aL')*C_(gam,betab,alphaa)*(I⊗barZ_3aR)*(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))
+%             *CB(alphaa,alphab)(I⊗B.ZR)
+
+% split (I⊗ABCDE) as (I⊗A)(I⊗B)(I⊗C)....Then
+% sum (I⊗A.ZL')CA(betaa,betab)
+%       *(I⊗((I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')*(I⊗barZ_3aL')*C_(gam,betab,alphaa)*(I⊗barZ_3aR)*(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))
+%          *CB(alphaa,alphab)(I⊗B.ZR)
+% = sum (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
+%         *(I⊗barZ_3aL')*(I⊗C_(gam,betab,alphaa))*(I⊗barZ_3aR)
+%          *(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*CB(alphaa,alphab)(I⊗B.ZR)
+% since none of the monomials depend on betas and alphas, there must be a
+% template permutation operation that repeats for all indices to compute
+% resulting composition in the quadPoly form (I⊗C.ZL') CC[gamma] (I⊗C.ZR) 
 
 [CZL, CZR, Cparams] = termCompose(A, B, ...   
                                     Cs2a_betaa, Cs3b_alphab, C_gam_alp_beta, ...
@@ -201,39 +220,18 @@ for i=1:size(C_gam_alp_beta,2)
             switch key
                 case 111 % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
-                case 211  % 0
-                    Ci = zeros(nE+1,nE+1);
-                case 311  % 0
-                    Ci = zeros(nE+1,nE+1);
-                case 121  % 0
-                    Ci = zeros(nE+1,nE+1);
                 case 221  % G(t_3a_i);
                     Ci(1:nE,1:nE) = eye(nE);
                     shiftMonomial(k) = 1;
-                case 321  % 0
-                    Ci = zeros(nE+1,nE+1);
-                case 131  % 0
-                    Ci = zeros(nE+1,nE+1);
-                case 231  % 0
-                    Ci = zeros(nE+1,nE+1);
                 case 331  % G(t_3a_i);
                     Ci(1:nE,1:nE) = eye(nE);
                     shiftMonomial(k) = 1;
-                case 112 % 0
-                    Ci = zeros(nE+1,nE+1);
                 case 212  % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
-                case 312 % 0
-                    Ci = zeros(nE+1,nE+1);
-                case 122 % 0
-                    Ci = zeros(nE+1,nE+1);
                 case 222  % int_{s_3a_i}^{t_3a,i} eta_3a_i^E deta_3a_i = t_3a_i^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1); % THIS may need to change
                     Ci(1:nE,2:end) = diag(1./(E+1));
+                    Ci =blkdiag(-Ci, Ci);
                     shiftMonomial(k) = 2;
-                case 322  % 0
-                    Ci = zeros(nE+1,nE+1);
-                case 132 % 0
-                    Ci = zeros(nE+1,nE+1);
                 case 232  % int_{s_3a_i}^{b(i)} eta_3a_i^E deta_3a_i = b(i)^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1);
                     Ci(:,1) = b(i).^(E+1)./(E+1);
                     Ci(:,2:end) = -diag(1./(E+1));
@@ -241,14 +239,8 @@ for i=1:size(C_gam_alp_beta,2)
                     Ci(:,1) = b(i).^(E+1)./(E+1);
                     Ci(:,2:end) = -diag(1./(E+1));
                     shiftMonomial(k) = 1;
-                case 113  % 0
-                    Ci = zeros(nE+1,nE+1);
-                case 213  % 0
-                    Ci = zeros(nE+1,nE+1);
                 case 313  % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
-                case 123  % 0
-                    Ci = zeros(nE+1,nE+1);
                 case 223  % int_{a(i)}^{t_3a_i} eta_3a_i^E deta_3a_i = t_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
                     Ci(:,1) = -a(i).^(E+1)./(E+1);
                     Ci(:,2:end) = diag(1./(E+1));
@@ -256,15 +248,20 @@ for i=1:size(C_gam_alp_beta,2)
                 case 323  % int_{a(i)}^{s_3a_i} eta_3a_i^E deta_3a_i = s_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
                     Ci(:,1) = -a(i).^(E+1)./(E+1);
                     Ci(:,2:end) = diag(1./(E+1));
-                case 133  % 0
-                    Ci = zeros(nE+1,nE+1);
-                case 233  % 0
-                    Ci = zeros(nE+1,nE+1);
                 case 333  % int_{t_3a_i}^{s_3a,i} eta_3a_i^E deta_3a_i = s_3a_i^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);  % THIS may need to change
                     Ci(1:nE,2:end) = diag(1./(E+1));
+                    Ci =blkdiag(Ci, -Ci);
                     shiftMonomial(k) = 2;
+                otherwise % cases 211,311,121,321,131,231,112,312,122,322,132,113,213,123,133,233  Ci=0
+                    breakflag = 1;
             end
-            C = kron(C,Ci);
+            if breakflag
+                lenZG = prod(cellfun(@(x) length(x)+1, ZG));
+                C = zeros(lenZG,lenZG);
+                break;  % if one of the Ci is zero, kron is zero so exit loop
+            else
+                C = kron(C,Ci);
+            end
         end
         Cnew = rearrangeCoef(CG,C,shiftMonomial);  % convert (I⊗Zint(s,s_dum)'*C')*CG = (I⊗Zint(s)')Cnew(I⊗Zint(s_dum))
     end
