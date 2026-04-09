@@ -44,6 +44,7 @@ function [Pcat] = vertcat(varargin)
 % DJ, 09/30/2023: Prohibit "ambiguous" concatenations;
 % DJ, 12/15/2024: Allow conctanetation with matrix, polynomial, and dpvar;
 % DB - 03/31/2026: "ambiguous" concatenations allowed, warning displayed.
+% DJ, 04/08/2026: Bugfix concatenation off-diagonal components;
 
 % Deal with single input case
 if nargin==1
@@ -134,15 +135,15 @@ end
 for i=1:3
     if perform_cat(2)
         Pcat.Rxx{i,1} = [a.Rxx{i,1}; b.Rxx{i,1}];
-        Pcat.Rx2{i,1} = [a.Rx2{i,1}; b.Rx2{i,1}];
+        Pcat.R2x{i,1} = [a.R2x{i,1}; b.R2x{i,1}];
     end
     if perform_cat(3)
         Pcat.Ryy{1,i} = [a.Ryy{1,i}; b.Ryy{1,i}];
-        Pcat.Ry2{1,i} = [a.Ry2{1,i}; b.Ry2{1,i}];
+        Pcat.R2y{1,i} = [a.R2y{1,i}; b.R2y{1,i}];
     end
     if perform_cat(4)
-        Pcat.R2x{i,1} = [a.R2x{i,1}; b.R2x{i,1}];
-        Pcat.R2y{1,i} = [a.R2y{1,i}; b.R2y{1,i}];
+        Pcat.Rx2{i,1} = [a.Rx2{i,1}; b.Rx2{i,1}];
+        Pcat.Ry2{1,i} = [a.Ry2{1,i}; b.Ry2{1,i}];
         for j=1:3
             Pcat.R22{i,j} = [a.R22{i,j}; b.R22{i,j}];
         end
