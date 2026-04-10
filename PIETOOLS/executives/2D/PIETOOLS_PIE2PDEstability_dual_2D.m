@@ -1,12 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_stability_dual_2D.m     PIETOOLS 2022a
+% PIETOOLS_PIE2PDEstability_2D.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [prog, Pop, Qop, solve_val] = PIETOOLS_stability_dual_2D(PIE,settings)
-% This script executes a stability analysis for a 2D-PIE System defined
-% by the PI operator representation
-%   Top \dot{x}(t) = Aop x(t)
-% by testing stability of the dual system
-%   Top' \dot{x}(t) = Aop' x(t)
+function [prog, Qop, Dop, solve_val] = PIETOOLS_PIE2PDEstability_dual_2D(PIE,settings)
+% This script executes a PIE to PDE stability analysis for a 2D-PIE System
+% defined by the PI operator representation
+%       Top \dot{x}(t)=Aop x(t)
+% testing whether solutions satisfy
+%       ||Top*x(t)||_{L2} <= M*e^{-epneg t} ||x(0)||_{L2}
+% The stability test is based on the dual of the PIE representaion, defined
+% by {Top',Aop'}.
 %
 % If any other parts of the PIE are present, these are ignored. Both Top
 % and Aop must be properly defined for the script to function.
@@ -23,11 +25,11 @@ function [prog, Pop, Qop, solve_val] = PIETOOLS_stability_dual_2D(PIE,settings)
 %
 % OUTPUTS:
 %   prog:       SOS program structure associated to the (solved) LPI.
-%   Pop:        dopvar2d object defining the LF V(x)=<x,Pop*x>. Use
+%   Qop:        dopvar2d object defining the LF V(x)=<x,Pop*x>. Use
 %               "sosgetsol_lpivar_2d(prog,Pop)" to get the solved operator.
-%   Qop:        dopvar2d object defining the right-hand side of the
+%   Dop:        dopvar2d object defining the right-hand side of the
 %               stability LPI,
-%               Qop = Top'*Pop*Aop + Aop'*Pop*Top + epneg*(Top'*Top).
+%               Dop = Qop'*Aop + Aop'*Qop + epneg*(Top'*Qop).
 %   solve_val:  Value specifying whether the problem is feasible, based on
 %               outputs of SOS program. Value is 1 if the a feasible
 %               solution is found, 0.5 if it a feasible solution is only
@@ -39,8 +41,7 @@ function [prog, Pop, Qop, solve_val] = PIETOOLS_stability_dual_2D(PIE,settings)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ - 02/21/2022: Initial coding;
-% DJ - 10/20/2024: Update to use new LPI programming structure;
+% DJ - 04/05/2026: Initial coding;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,7 +59,7 @@ Aop = PIE.A;    Top = PIE.T;
 if nargin==1
     settings = settings_PIETOOLS_light_2D;
     settings.sos_opts.simplify = 1;         % Use psimplify
-    settings.eppos = 1e-2*ones(4,1);        % Positivity of Lyapunov Function
+    settings.eppos = 1e-2*ones(4,1);    % Positivity of Lyapunov Function
     settings.epneg = 0*1e-5;                % Negativity of derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 elseif ~isfield(settings,'is2D') || ~settings.is2D
     % Extract 2D settings.
@@ -67,10 +68,13 @@ elseif ~isfield(settings,'is2D') || ~settings.is2D
     settings.sos_opts = sos_opts;
 end
 
+% Set tolerance below which coefficients are assumed to be zero
+ztol = 1e-12;
+
 % Extract options for sossolve
 if ~isfield(settings,'sos_opts')
     sos_opts.simplify = 1;         % Use psimplify
-    sos_opts.solver = 'sedumi';
+    %sos_opts.solver = 'sedumi';
     % % Other optional SDP solvers supported by PIETOOLS
     % settings.sos_opts.solver = 'mosek';
     % settings.sos_opts.solver = 'sdpnalplus';
@@ -81,12 +85,10 @@ end
 
 % Extract LF positivity and negativity conditions
 if ~isfield(settings,'eppos')
-    eppos = [1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
-              1e-6;1e-6;
-              1e-6];    % Positivity of Lyapunov Function with respect to 2D spatially distributed states
+    eppos = 1e-2*ones(4,1);      % Positivity of Lyapunov Function
 else
     eppos = settings.eppos;
-    if numel(eppos)==1
+    if isscalar(eppos)
         eppos = eppos*ones(4,1);
     end
 end
@@ -96,27 +98,21 @@ else
     epneg = settings.epneg;
 end
 
-% Extract settings defining operator P parameterizing LF V=<x,Px>
-LF_deg = settings.LF_deg;
-LF_opts = settings.LF_opts;
+% Extract settings defining operator Q parameterizing LF V=<x,Rx>
+Qop_deg = settings.LF_deg;
+Qop_opts = rmfield(settings.LF_opts,'psatz');
+Rop_deg = Qop_deg;
 
-% Does P include a psatz term? If so, what degrees and options?
-LF_use_psatz = settings.LF_use_psatz;
-LF_deg_psatz = extract_psatz_deg(settings.LF_deg_psatz,LF_use_psatz);
-LF_opts_psatz = extract_psatz_opts(settings.LF_opts_psatz,LF_use_psatz);
+% Do we enforce R>=0 using lpi_ineq, or using manual construction?
+Rop_use_ineq = settings.use_sosineq;
+
+% Does R include a psatz term? If so, what degrees and options?
+Rop_use_psatz = settings.LF_use_psatz;
+Rop_deg_psatz = extract_psatz_deg(settings.LF_deg_psatz,Rop_use_psatz);
+Rop_opts_psatz = extract_psatz_opts(settings.LF_opts_psatz,Rop_use_psatz);
 
 % Do we use lpi_ineq or not? Extract the appropriate options
 use_lpi_ineq = settings.use_sosineq;
-if use_lpi_ineq
-    ineq_opts = settings.ineq_opts;
-else
-    eq_opts = settings.eq_opts;
-    eq_deg = settings.eq_deg;
-    
-    eq_use_psatz = settings.eq_use_psatz;
-    eq_deg_psatz = extract_psatz_deg(settings.eq_deg_psatz,eq_use_psatz);
-    eq_opts_psatz = extract_psatz_opts(settings.eq_opts_psatz,eq_use_psatz);
-end
 
 
 
@@ -131,49 +127,70 @@ prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the pr
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 2: declare the posopvar variable, Pop, which defines the Lyapunov 
+% STEP 2: declare the posopvar variable, Rop, which defines the Lyapunov 
 % function candidate
-disp(' - Parameterizing a positive Lyapunov operator using the specified options');
+disp(' - Parameterizing a coercive Lyapunov functional with respect to the PDE state');
 
-% Initialize an operator which is positive semidefinite everywhere
-[prog, Pop] = poslpivar_2d(prog, Top.dim, LF_deg, LF_opts);
 
-% Add an additional term with psatz multiplier if requested
-for j=1:length(LF_use_psatz)
-    if LF_use_psatz(j)~=0
-        [prog, P2op] = poslpivar_2d(prog, Top.dim, LF_deg_psatz{j}, LF_opts_psatz{j});
-        Pop = Pop + P2op;
-    end
-end
+% % First, declare an indefinite operator Qop, representing Qop=Pop*Top'.
+[prog, Qop] = lpivar_2d(prog, Top.dim, Qop_deg, Qop_opts);
+TQop = Top*Qop;
 
-% Ensure strict positivity of the operator
-if ~all(eppos==0)
-    np_op = Pop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
-    Ip = blkdiag(eppos(1)*eye(np_op(1)),eppos(2)*eye(np_op(2)),eppos(3)*eye(np_op(3)),eppos(4)*eye(np_op(4)));
-    Iop = opvar2d(Ip, Pop.dim, PIE.dom, PIE.vars);
-    Pop = Pop + Iop;
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% STEP 3: Define the Lyapunov Inequality
-%
-% i.e. - Assemble the big operator
-% Pheq = [ A*P*T' + T*P*A']
-
-disp(' - Constructing the Negativity Constraint');
-
-TPop = Top*Pop;
-TPAop = TPop*Aop';
-if epneg==0
-    Qop = TPAop' + TPAop; 
+% % Then, enforce Top*Qop >= 0.
+if Rop_use_ineq
+    % Use 'lpi_ineq' to generate Rop
+    Rop_opts.psatz = Rop_use_psatz;
+    [prog, ~] = lpi_ineq_2d(prog, TQop, Rop_opts);
 else
+    % Manually generate Rop
+    Rop_opts.psatz = 0;
+    Rop_opts.exclude = zeros(1,16);
+    Rop_opts.sep = zeros(6,1);
+    Rop_opts = get_eq_opts_2D(TQop,Rop_opts,ztol);
+    [prog, Rop] = poslpivar_2d(prog,Top.dim, Rop_deg, Rop_opts);
+
+    % Introduce the psatz term.
+    for j=1:length(Rop_use_psatz)
+        if Rop_use_psatz(j)~=0
+            Rop_deg_j = Rop_deg_psatz{j};
+            Rop_opts_j = Rop_opts_psatz{j};
+            Rop_opts_j.psatz = Rop_use_psatz(j);
+            [prog, R2op] = poslpivar_2d(prog, Rop.dim, Rop_deg_j, Rop_opts_j);
+            Rop = Rop+R2op;
+        end
+    end
+
+    % Enforce the equality constraint Top'*Qop = Rop.
+    prog = lpi_eq_2d(prog, TQop-Rop);
+end
+
+% % Finally, ensure Top'*Qop >= eppos*Top*Top' by setting
+% %     Qop --> Qop + eppos*Top'
+np_op = Top.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
+Ip = blkdiag(eppos(1)*eye(np_op(1)),eppos(2)*eye(np_op(2)),eppos(3)*eye(np_op(3)),eppos(4)*eye(np_op(4)));
+Iop = mat2opvar(Ip,Top.dim,[Top.var1,Top.var2],Top.I);
+Qop = Qop + Iop*Top';
+TQop = Top*Qop;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STEP 3: Compute the Lie derivative of the Lyapunov functional along the
+% PIE
+%
+%   d/dt V(v(t)) = d/dt < v(t), Qop'*Top'*v(t)> 
+%                = < v(t), [Qop'*Aop' + Aop*Qop]*v(t)>
+
+disp(' - Computing the Lie derivative of the Lyapunov functional along the PIE');
+
+AQop = Aop*Qop;
+Dop = AQop' + AQop; 
+if epneg~=0
     % Enforce strict negativity
-    Qop = TPAop' + TPAop + 2*epneg*(TPop*Top');
+    Dop = Dop + 2*epneg*TQop; 
 end
 % Get rid of terms that are below tolerance
-ztol = 1e-12;
-Qop = clean_opvar(Qop,ztol);
+Dop = clean_opvar(Dop,ztol);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -185,48 +202,32 @@ disp(' - Enforcing the Negativity Constraint');
 
 if use_lpi_ineq
     disp('   - Using lpi_ineq...');
-    prog = lpi_ineq_2d(prog,-Qop,ineq_opts);
+    prog = lpi_ineq_2d(prog,-Dop,settings.ineq_opts);
 else
     disp('   - Using an equality constraint...');
     
-    % Next, build a positive operator Qeop to enforce Qop == -Qeop;
-    eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol);
-    [progQ, Qeop] = poslpivar_2d(prog, Qop.dim, eq_deg, eq_opts);
+    % % Next, build a positive operator Qeop to enforce Qop == -Qeop;
+    eq_deg = settings.eq_deg;
+    eq_opts.psatz = 0;
+    eq_opts.sep = zeros(6,1);
+    eq_opts.exclude = zeros(1,16);
+    eq_opts = get_eq_opts_2D(Dop,eq_opts,ztol);
+    [prog, Deop] = poslpivar_2d(prog,Dop.dim,eq_deg,eq_opts);
     
-    toggle = 0; % Set toggle=1 to check whether the monomials in Qeop are sufficient.
-    if toggle
-        % Check that the parameters of Qeop indeed contain all monomials that
-        % appear in the parameters of Qop
-        par_indx = [2;3;4;6;7;8;11;12;16];    % Check only lower-triangular parameters
-        [isgood_Qeop,isgood_Qpar,eq_deg] = checkdeg_lpi_eq_2d(Qop,Qeop,eq_deg,par_indx);
-
-        % If Qeop is missing monomials, keep increasing the degrees until Qeop
-        % has all the necessary monomials
-        while ~isgood_Qeop
-            warning('The specified options for the equality constraint do not allow sufficient freedom to enforce the inequality constraint. Additional monomials are being added.')
-
-            % Construct a new positive operator Qeop with greater degrees
-            [progQ, Qeop] = poslpivar_2d(prog, Qop.dim, eq_deg, eq_opts);
-
-            % Check that now Qeop has all the necessary monomials
-            par_indx = find(~(isgood_Qpar(:)));   % Indices of parameters we still need to verify are okay
-            [isgood_Qeop,isgood_Qpar,eq_deg] = checkdeg_lpi_eq_2d(Qop,Qeop,eq_deg,par_indx);
-        end
-    end
-    prog = progQ;   % Make sure the SOS program contains the right operator Qeop
-
     % Introduce the psatz term.
-    for j=1:length(eq_use_psatz)
-        if eq_use_psatz(j)~=0
-            eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
-            eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
-            [prog, Qe2op] = poslpivar_2d(prog, Qop.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
-            Qeop = Qeop+Qe2op;
+    diff_use_psatz = settings.eq_use_psatz;
+    for j=1:length(diff_use_psatz)
+        if diff_use_psatz(j)~=0
+            eq_deg_j = settings.eq_deg_psatz{j};
+            eq_opts_j = eq_opts;
+            eq_opts_j.psatz = diff_use_psatz(j);
+            [prog, De2op] = poslpivar_2d(prog, Dop.dim, eq_deg_j, eq_opts_j);
+            Deop = Deop+De2op;
         end
     end
     
     % Enforce the equality constraint Qop=-Qeop.
-    prog = lpi_eq_2d(prog,Qeop+Qop,'symmetric');
+    prog = lpi_eq_2d(prog,Deop+Dop,'symmetric');
 end
 
 
@@ -256,7 +257,6 @@ end
 
 
 
-%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function outcell = extract_psatz_deg(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to
@@ -270,7 +270,7 @@ if isa(incell,'struct')
     for j=1:length(use_psatz)
         outcell{j} = incell;
     end
-elseif numel(incell)==1
+elseif isscalar(incell)
     for j=1:length(use_psatz)
         outcell{j} = incell{1};
     end
@@ -283,6 +283,9 @@ else
 end
 
 end
+
+
+%%
 function outcell = extract_psatz_opts(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to
 % determine if a cell element has been defined for each psatz term.
@@ -295,7 +298,7 @@ if isa(incell,'struct')
     for j=1:length(use_psatz)
         outcell{j} = incell;
     end
-elseif numel(incell)==1
+elseif isscalar(incell)
     for j=1:length(use_psatz)
         outcell{j} = incell{1};
     end

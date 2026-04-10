@@ -65,9 +65,9 @@ end
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
-        [prog, P] = PIETOOLS_stability_2D(PIE);
+        [prog, P] = PIETOOLS_PDEstability_2D(PIE);
     else
-        [prog, P] = PIETOOLS_stability_2D(PIE,settings);
+        [prog, P] = PIETOOLS_PDEstability_2D(PIE,settings);
     end
     return
 end

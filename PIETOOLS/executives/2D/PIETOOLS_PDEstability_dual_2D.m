@@ -1,10 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_stability_2D.m     PIETOOLS 2022a
+% PIETOOLS_PDEstability_dual_2D.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [prog, Pop, Qop, solve_val] = PIETOOLS_stability_2D(PIE,settings)
+function [prog, Pop, Qop, solve_val] = PIETOOLS_PDEstability_dual_2D(PIE,settings)
 % This script executes a stability analysis for a 2D-PIE System defined
 % by the PI operator representation
-% Top \dot{x}(t)=Aop x(t)
+%   Top \dot{x}(t) = Aop x(t)
+% by testing stability of the dual system
+%   Top' \dot{x}(t) = Aop' x(t)
 %
 % If any other parts of the PIE are present, these are ignored. Both Top
 % and Aop must be properly defined for the script to function.
@@ -56,7 +58,7 @@ Aop = PIE.A;    Top = PIE.T;
 if nargin==1
     settings = settings_PIETOOLS_light_2D;
     settings.sos_opts.simplify = 1;         % Use psimplify
-    settings.eppos = 1e-2*ones(4,1);    % Positivity of Lyapunov Function
+    settings.eppos = 1e-2*ones(4,1);        % Positivity of Lyapunov Function
     settings.epneg = 0*1e-5;                % Negativity of derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 elseif ~isfield(settings,'is2D') || ~settings.is2D
     % Extract 2D settings.
@@ -122,7 +124,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 1: Initialize the SOS program in the provided spatial variables, and
 % set the Hinfty norm as an objective function value 
-disp(' === Executing primal stability test === ')
+disp(' === Executing dual stability test === ')
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);      % Initialize the program structure
 
 
@@ -148,7 +150,7 @@ end
 if ~all(eppos==0)
     np_op = Pop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
     Ip = blkdiag(eppos(1)*eye(np_op(1)),eppos(2)*eye(np_op(2)),eppos(3)*eye(np_op(3)),eppos(4)*eye(np_op(4)));
-    Iop = opvar2d(Ip,Pop.dim,PIE.dom,PIE.vars);
+    Iop = opvar2d(Ip, Pop.dim, PIE.dom, PIE.vars);
     Pop = Pop + Iop;
 end
 
@@ -157,17 +159,17 @@ end
 % STEP 3: Define the Lyapunov Inequality
 %
 % i.e. - Assemble the big operator
-% Pheq = [ A'*P*T+T'*P*A]
+% Pheq = [ A*P*T' + T*P*A']
 
 disp(' - Constructing the Negativity Constraint');
 
-PTop = Pop*Top;
-APTop = Aop'*PTop;
+TPop = Top*Pop;
+TPAop = TPop*Aop';
 if epneg==0
-    Qop = APTop' + APTop; 
+    Qop = TPAop' + TPAop; 
 else
     % Enforce strict negativity
-    Qop = APTop' + APTop + 2*epneg*(Top'*PTop); 
+    Qop = TPAop' + TPAop + 2*epneg*(TPop*Top');
 end
 % Get rid of terms that are below tolerance
 ztol = 1e-12;
@@ -187,9 +189,9 @@ if use_lpi_ineq
 else
     disp('   - Using an equality constraint...');
     
-    % % Next, build a positive operator Qeop to enforce Qop == -Qeop;
+    % Next, build a positive operator Qeop to enforce Qop == -Qeop;
     eq_opts = get_eq_opts_2D(Qop,eq_opts,ztol);
-    [progQ, Qeop] = poslpivar_2d(prog,Qop.dim,eq_deg,eq_opts);
+    [progQ, Qeop] = poslpivar_2d(prog, Qop.dim, eq_deg, eq_opts);
     
     toggle = 0; % Set toggle=1 to check whether the monomials in Qeop are sufficient.
     if toggle
@@ -204,7 +206,7 @@ else
             warning('The specified options for the equality constraint do not allow sufficient freedom to enforce the inequality constraint. Additional monomials are being added.')
 
             % Construct a new positive operator Qeop with greater degrees
-            [progQ, Qeop] = poslpivar_2d(prog,np_op,dom,eq_deg,eq_opts);
+            [progQ, Qeop] = poslpivar_2d(prog, Qop.dim, eq_deg, eq_opts);
 
             % Check that now Qeop has all the necessary monomials
             par_indx = find(~(isgood_Qpar(:)));   % Indices of parameters we still need to verify are okay
@@ -212,7 +214,7 @@ else
         end
     end
     prog = progQ;   % Make sure the SOS program contains the right operator Qeop
-    
+
     % Introduce the psatz term.
     for j=1:length(eq_use_psatz)
         if eq_use_psatz(j)~=0
@@ -254,6 +256,7 @@ end
 
 
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function outcell = extract_psatz_deg(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to
@@ -280,9 +283,6 @@ else
 end
 
 end
-
-
-%%
 function outcell = extract_psatz_opts(incell,use_psatz)
 % Check the number of elements of incell against those of use_psatz to
 % determine if a cell element has been defined for each psatz term.
