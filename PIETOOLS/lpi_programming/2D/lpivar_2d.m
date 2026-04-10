@@ -74,6 +74,13 @@ function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 %      options.sep(4) = 1 if R22{1,2} = R22{1,3}
 %      options.sep(5) = 1 if R22{2,2} = R22{3,2} and R22{2,3} = R22{3,3}
 %      options.sep(6) = 1 if R22{2,2} = R22{2,3} and R22{3,2} = R22{3,3}
+%
+%   options.exclude is a 4x4 array of logical values specifying whether to
+%       exclude and of the maps R00 through R22 in the operator Zop.
+%       Can also be specified as 4x4 cell, where now elements {2,2}, {3,3},
+%       {2,4}, {4,2}, {3,4} and {4,3} are 1x3 cells and element {4,4} is a
+%       3x3 cell, specifying whether to exclude particular components of
+%       the maps Rxx, Ryy, Rx2, R2x, Ry2, R2y, and R22, respectively.
 % 
 % OUTPUT 
 %   prog: modified LPI program with new variables and constraints
@@ -109,6 +116,7 @@ function [prog,Zop] = lpivar_2d(prog,dim,d,options)
 %
 % Initial coding DJ - 07/01/2024
 %                   (ss1,ss2,tt1,tt2) --> (s1,s2,s1_dum,s2_dum);
+% DJ, 04/09/2026: Add 'options.exclude' to exclude certain maps;
 
 
 % % First, check the spatial domain on which the program is defined.
@@ -129,8 +137,12 @@ d2 = {[0,1;1,2],          [0,1,1,1;1,2,2,2], [0,1,1,1;1,2,2,2];
       [0,1,1,1;1,2,2,2]', [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2], [0,1,1,1;1,2,2,2;1,2,2,2;1,2,2,2]};
 
 % Initialize default exclusiong options
-use_sep = zeros(1,6);
-use_multiplier = false;
+use_sep  = zeros(1,6);
+use_sym = false;
+excludeL = {0,0,0,0; 
+            0,[0,0,0],0,[0,0,0];
+            0,0,[0,0,0],[0,0,0];
+            0,[0,0,0],[0,0,0],[0,0,0;0,0,0;0,0,0]};
 
 % % Extract the input arguments
 switch nargin
@@ -151,11 +163,11 @@ switch nargin
                 use_sep = options.sep;
             end
         end
-        if isfield(options,'ismultiplier')
-            use_multiplier = options.ismultiplier;
-            % If we want a multiplier operator, the upper and lower 
-            % diagonal integrals will both be zero
-            use_sep = ones(1,6);
+        if isfield(options,'sym')
+            use_sym = options.sym;
+        end
+        if isfield(options,'exclude')
+            excludeL = options.exclude;
         end
 end
 
@@ -191,192 +203,86 @@ if m0==0 && mx==0 && my==0 && m2==0
     error('All output dimensions are zero')
 end
 
-
 % Check that degrees are properly specified
-% % Next, check the monomial degrees
 if nargin>=3
-if isnumeric(d) && all(size(d)==1)
-    % Only 1 degree is specified, use this degree for all monomials.
-    dval = d;
-    dx = {dval;[dval;dval;dval];[dval;dval;dval]};       
-    dy = {dval,[dval,dval,dval],[dval,dval,dval]};
-    d2 = {dval*[0,1;1,2], dval*[0,1,1,1;1,1,1,2], dval*[0,1,1,1;1,1,1,2];
-          dval*[0,1,1,1;1,1,1,2]', dval*ones(4,4), dval*ones(4,4);
-          dval*[0,1,1,1;1,1,1,2]', dval*ones(4,4), dval*ones(4,4)};
-elseif isa(d,'cell') && numel(d)==3
-    % Degree is specified in 1D format.
-    % --> fill in the gaps as per 1D approach
-    if length(d(:))==1
-        d{2}=[d{1},d{1},2*d{1}];
-        d{3}=d{2};
+    [dx,dy,d2] = check_degs(d);
+end
+
+% Check that the options are appropriately specified
+% % Check if any parameters are to be excluded (set to 0)
+if isnumeric(excludeL)
+    if numel(excludeL)==16
+        % Assume parameters to exclude are specified as per poslpivar2d
+        % format
+        exclude_diag = [excludeL(1);
+                        all(excludeL(2:4));
+                        all(excludeL(5:7));
+                        all(excludeL(8:end))];
+        excludeL_new = num2cell(exclude_diag | exclude_diag');
+        excludeL_new{2,2} = reshape(excludeL(2:4),1,[]);
+        excludeL_new{3,3} = reshape(excludeL(5:7),1,[]);
+        excludeL_new{4,4} = [excludeL(8),excludeL(11),excludeL(12);
+                         excludeL(9),excludeL(13),excludeL(15);
+                         excludeL(10),excludeL(14),excludeL(16)];
+        excludeL_new{2,4} = excludeL_new{2,2} | excludeL_new{4,4}(:,1)';
+        excludeL_new{4,2} = excludeL_new{2,4};
+        excludeL_new{3,4} = excludeL_new{3,2} | excludeL_new{4,4}(1,:);
+        excludeL_new{4,3} = excludeL_new{3,4};
+        excludeL = excludeL_new;
+    elseif any(size(excludeL)~=[4,4])
+        error("List of parameters to exclude should be specified as 4x4 binary array or 4x4 cell.")
     else
-        if length(d{2})==1
-            d{2} = d{2}*ones(1,3);
-        elseif length(d{2})==2
-            d{2}(3) = max(d{2});
-        end
-        if numel(d)==2
-            d{3}=d{2};
-        else
-            if length(d{3})==1
-                d{3} = d{3}*ones(1,3);
-            elseif length(d{3})==2
-                d{3}(3) = max(d{3});
-            end
-        end
+    excludeL = {excludeL(1,1),excludeL(1,2),excludeL(1,3),excludeL(1,4);
+        excludeL(2,1),excludeL(2,2)*ones(1,3),excludeL(2,3),excludeL(2,4)*ones(1,3);
+        excludeL(3,1),excludeL(3,2),excludeL(3,3)*ones(1,3),excludeL(3,4)*ones(1,3);
+        excludeL(4,1),excludeL(4,2)*ones(1,3),excludeL(4,3)*ones(1,3),...
+        excludeL(4,4)*ones(3,3)};
     end
-    % Use specified 1D degrees along both variables.
-    dx = d';        dy = d';
-    d2{1,1} = [0,d{1};d{1},2*d{1}];
-    d2{1,2} = [0,reshape(d{2},1,[]);d{1},d{1}+reshape(d{2},1,[])];
-    d2{1,3} = d2{1,2};
-    d2{2,1} = d2{1,2}';
-    d2{3,1} = d2{1,3}';
-    d2{2,2} = [0, reshape(d{2},1,[]); reshape(d{2},[],1), reshape(d{2},1,[])+reshape(d{2},[],1)];
-elseif isa(d,'struct')
-    if ~isfield(d,'dx') || ~isfield(d,'dy') || ~isfield(d,'d2')
-        error("Degrees for 2D positive operator should be specified as struct with fields 'dx', 'dy', and 'd2'. Call 'help lpivar_2d' for more details.")
-    else
-        dx = d.dx;
-        dy = d.dy;
-        d2 = d.d2;
+elseif isa(excludeL,'cell')
+    if any(size(excludeL)~=[4,4])
+        error("List of parameters to exclude should be specified as 4x4 cell.")
     end
 end
+% Exclude empty parameters
+if m(1)==0
+    excludeL(1,:) = repmat({true},1,4);
 end
-% At this point, dx, dy and d2 should be cells.
-if ~iscell(dx)
-    error('Input d.dx must be a 3x1-cell structure')
+if n(1)==0
+    excludeL(:,1) = repmat({true},4,1);
 end
-if ~iscell(dy)
-    error('Input d.dy must be a 1x3-cell structure')
+if m(2)==0
+    excludeL(2,:) = {true,true(1,3),true,true(1,3)};
 end
-if ~iscell(d2)
-    error('Input d.d2 must be a 3x3-cell structure')
+if n(2)==0
+    excludeL(:,2) = {true;true(1,3);true;true(1,3)};
 end
-% % Check if degrees for x monomials are properly specified
-if length(dx(:))==1
-    dx{2}=[dx{1};dx{1};2*dx{1}];
-    dx{3}=dx{2};
-elseif length(dx(:))==2
-    if length(dx{2})==1
-        dx{2}(2)=dx{2}(1);
-        dx{2}(3)=dx{2}(1);
-    elseif length(dx{2})==2
-        dx{2}(3) = ceil(0.5*(dx{2}(1) + dx{2}(2)));
+if m(3)==0
+    excludeL(3,:) = {true,true,true(1,3),true(1,3)};
+end
+if n(3)==0
+    excludeL(:,3) = {true;true;true(1,3);true(1,3)};
+end
+if m(4)==0
+    excludeL(4,:) = {true,true(1,3),true(1,3),true(3,3)};
+end
+if n(4)==0
+    excludeL(:,4) = {true;true(1,3);true(1,3);true(3,3)};
+end
+
+% % Check whether the operator should be symmetric
+if use_sym
+    if any(n(:,1)~=n(:,2))
+        error('Row and column dimensions must match for symmetric operators.')
     end
-    dx{3}=dx{2};
+    matrixstr = 'symmetric';
+    excludeL{[2;3;4;7]} = true;
+    excludeL{[8;12]} = true(1,3);
+    excludeL{2,2}(3) = true;
+    excludeL{3,3}(3) = true;
+    excludeL{4,4}([3;6;7;9]) = true;
 else
-    if length(dx{2})==1
-        dx{2}(2)=dx{2}(1);
-        dx{2}(3)=dx{2}(1);
-    elseif length(dx{2})==2
-        dx{2}(3) = ceil(0.5*(dx{2}(1) + dx{2}(2)));
-    end
-    if length(dx{3})==1
-        dx{3}(2)=dx{3}(1);
-        dx{3}(3)=dx{3}(1);
-    elseif length(dx{3})==2
-        dx{3}(3) = ceil(0.5*(dx{3}(1) + dx{3}(2)));
-    end
+    matrixstr = '';
 end
-% % Check if degrees for y monomials are properly specified
-if length(dy(:))==1
-    dy{2}=[dy{1},dy{1},2*dy{1}];
-    dy{3}=dy{2};
-elseif length(dy(:))==2
-    if length(dy{2})==1
-        dy{2}(2)=dy{2}(1);
-        dy{2}(3)=dy{2}(1);
-    elseif length(dy{2})==2
-        dy{2}(3) = ceil(0.5*(dy{2}(1) + dy{2}(2)));
-    end
-    dy{3}=dy{2};
-else
-    if length(dy{2})==1
-        dy{2}(2)=dy{2}(1);
-        dy{2}(3)=dy{2}(1);
-    elseif length(dy{2})==2
-        dy{2}(3) = ceil(0.5*(dy{2}(1) + dy{2}(2)));
-    end
-    if length(dy{3})==1
-        dy{3}(2)=dy{3}(1);
-        dy{3}(3)=dy{3}(1);
-    elseif length(dy{3})==2
-        dy{3}(3) = ceil(0.5*(dy{3}(1) + dy{3}(2)));
-    end
-end
-% % Check if degrees for 2D monomials are properly specified
-if ~all(size(d2)==[3,3])
-    if numel(d2)==1 && all(size(d2{1,1})>=[2,2])
-        d2 = repmat(d2,[3,3]);
-    elseif all(size(d2)==[2,2]) && all(size(d2{2,1})>=[2,2]) && all(size(d2{1,2})>=[2,2]) && all(size(d2{2,2})>=[2,2])
-        d2 = [d2,d2(:,2); d2(2,:),d2(2,2)];
-    else
-        error('Input ''d.d2'' must be a 3x3 cell');
-    end
-else
-    % Check if sufficient degrees for R22oo(x,y) are specified
-    if ~all(size(d2{1,1})>=[2,2])    % degrees in x and y
-        error('Maximal degrees ''d.d2{1,1}'' must be specified using a 2x2 or 4x4 array');
-    end
-    % Check if sufficient degrees for R22ao(x,y,tt), R22bo(x,y,tt) are specified
-    if ~all(size(d2{2,1})>=[4,2]) || ~all(size(d2{3,1})>=[4,2])
-        for i=2:3
-            if all(size(d2{i,1})==[2,2])    % only x and y degrees are specified
-                d2{i,1} = [d2{i,1};d2{i,1}(2,:);d2{i,1}(2,:)];
-            elseif all(size(d2{i,1})==[3,2]) % no joint degrees are specified
-                d2{i,1} = [d2{i,1};sum(d2{i,1}(2:3,:),1)];
-            else
-                error(['Maximal degrees ''d.d2{',num2str(i),',1}'' must be specified using a 4x2 or 4x4 array']);
-            end
-        end
-    end
-    % Check if sufficient degrees for R22oa(x,y,nu), R22ob(x,y,nu) are specified
-    if ~all(size(d2{2,1})>=[4,2]) || ~all(size(d2{3,1})>=[4,2])
-        for j=2:3
-            if all(size(d2{1,j})==[2,2])    % only x and y degrees are specified
-                d2{1,j} = [d2{1,j},d2{1,j}(:,2),d2{1,j}(:,2)];
-            elseif all(size(d2{1,j})==[2,3]) % no joint degrees are specified
-                d2{1,j} = [d2{1,j},sum(d2{1,j}(:,2:3),2)];
-            else
-                error(['Maximal degrees ''d.d2{1,',num2str(j),'}'' must be specified using a 2x4 or 4x4 array']);
-            end
-        end
-    end
-    % Check if sufficient degrees for R22oa(x,y,nu), R22ob(x,y,nu) are specified
-    if ~all(size(d2{2,1})>=[4,2]) || ~all(size(d2{3,1})>=[4,2])
-        for i=2:3
-          for j=2:3
-            if all(size(d2{i,j})==[2,2])    % only x and y degrees are specified
-                d2{i,j} = [d2{i,j},repmat(d2{i,j}(:,2),[1,2]);repmat(d2{i,j}(2,:),[2,1]),repmat(d2{i,j}(2,2),[2,2])];
-            elseif all(size(d2{i,j})==[3,3]) % no joint degrees with secondary vars are specified
-                d2{i,j} = [d2{i,j},sum(d2{i,j}(:,2:3),2);sum(d2{i,j}(2:3,:),1),d2{i,j}(3,3)];
-            else
-                error(['Maximal degrees ''d.d2{',num2str(i),',',num2str(j),'}'' must be specified using a 2x4 or 4x4 array']);
-            end
-          end
-        end
-    end
-end
-for k=1:9
-    [d2{k},n_updates_k] = reduce_joint_degs(d2{k});
-    if n_updates_k>=1
-        warning(['At least one of the (joint) degrees in d.d2{',num2str(k),'} is either too large or too small to make sense with all the joint degrees; reducing degrees to a sensible value'])
-    end
-end
-% In case insufficient degrees are provided, process the degrees
-%[dx,dy,d2] = process_degrees(dx,dy,d2);
-
-
-
-% Specify the spatial domain (s,th \in [I(1),I(2)]
-if any(size(I)~=[2,2])
-    error('I must be a 2x2 array')
-end
-if any(I(:,1)>=I(:,2))
-    error('I(:,1) must be less than I(:,2)')
-end
-
 
 % Define the primary variables
 if isempty(prog.vartable) || length(prog.vartable)<4
@@ -395,152 +301,216 @@ vars = [var1,var2];
 [Zx,Zy,Z2] = build_monomials_2D(vars,dx,dy,d2);
 
 
+% % Initialize the indefinite operator variable.
+dopvar2d Zop;
+Zop.dim = [m,n];
+Zop.I = I; 
+Zop.var1 = var1;    Zop.var2 = var2;
+
 % % Define the parameters and add the decision variables to the program
 % % structure
 
 % Parameters mapping to R^m0
-[prog,R00] = sospolymatrixvar(prog,1,[m0,n0]);
-[prog,R0x] = sospolymatrixvar(prog,Zx{1},[m0,nx]);
-[prog,R0y] = sospolymatrixvar(prog,Zy{1},[m0,ny]);
-[prog,R02] = sospolymatrixvar(prog,Z2{1,1},[m0,n2]);
+if ~excludeL{1,1}
+    [prog,R00] = sospolymatrixvar(prog,monomials(var1,0),[m0,n0],matrixstr);
+    Zop.R00 = R00;
+end
+if ~excludeL{1,2}
+    [prog,R0x] = sospolymatrixvar(prog,Zx{1},[m0,nx]);
+    Zop.R0x = R0x;
+end
+if ~excludeL{1,3}
+    [prog,R0y] = sospolymatrixvar(prog,Zy{1},[m0,ny]);
+    Zop.R0y = R0y;
+end
+if ~excludeL{1,4}
+    [prog,R02] = sospolymatrixvar(prog,Z2{1,1},[m0,n2]);
+    Zop.R02 = R02;
+end
 
 % Parameters mapping to L_2^mx[x]
-[prog,Rx0] = sospolymatrixvar(prog,Zx{1},[mx,n0]);
-[prog,Rxx_0] = sospolymatrixvar(prog,Zx{1},[mx,nx]);
-if use_multiplier
-    Rxx_1 = zeros([mx,nx]);
-else
+if use_sym
+    Zop.Rx0 = Zop.R0x';
+elseif ~excludeL{2,1}
+    [prog,Rx0] = sospolymatrixvar(prog,Zx{1},[mx,n0]);
+    Zop.Rx0 = Rx0;
+end
+if ~excludeL{2,2}(1)
+    [prog,Rxx_0] = sospolymatrixvar(prog,Zx{1},[mx,nx],matrixstr);
+    Zop.Rxx{1} = Rxx_0;
+end
+if ~excludeL{2,2}(2)
     [prog,Rxx_1] = sospolymatrixvar(prog,Zx{2},[mx,nx]);
+    Zop.Rxx{2} = Rxx_1;
 end
 if use_sep(1)
-    Rxx_2 = Rxx_1;
-else
+    Zop.Rxx{3} = Zop.Rxx{2};
+elseif use_sym
+    Zop.Rxx{3} = var_swap(Zop.Rxx{2}',var1(1),var2(1));
+elseif ~excludeL{2,2}(3)
     [prog,Rxx_2] = sospolymatrixvar(prog,Zx{3},[mx,nx]);
+    Zop.Rxx{3} = Rxx_2;
 end
-[prog,Rxy] = sospolymatrixvar(prog,Z2{1,1},[mx,ny]);
-[prog,Rx2_0] = sospolymatrixvar(prog,Z2{1,1},[mx,n2]);
-if use_multiplier
-    Rx2_1 = zeros([mx,n2]);
-else
+if ~excludeL{2,3}
+    [prog,Rxy] = sospolymatrixvar(prog,Z2{1,1},[mx,ny]);
+    Zop.Rxy = Rxy;
+end
+if ~excludeL{2,4}(1)
+    [prog,Rx2_0] = sospolymatrixvar(prog,Z2{1,1},[mx,n2]);
+    Zop.Rx2{1} = Rx2_0;
+end
+if ~excludeL{2,4}(2)
     [prog,Rx2_1] = sospolymatrixvar(prog,Z2{2,1},[mx,n2]);
+    Zop.Rx2{2} = Rx2_1;
 end
 if use_sep(3)
-    Rx2_2 = Rx2_1;
-else
+    Zop.Rx2{3} = Zop.Rx2{2};
+elseif ~excludeL{2,4}(3)
     [prog,Rx2_2] = sospolymatrixvar(prog,Z2{3,1},[mx,n2]);
+    Zop.Rx2{3} = Rx2_2;
 end
 
 % Parameters mapping to L_2^my[y]
-[prog,Ry0] = sospolymatrixvar(prog,Zy{1},[my,n0]);
-[prog,Ryx] = sospolymatrixvar(prog,Z2{1,1},[my,nx]);
-[prog,Ryy_0] = sospolymatrixvar(prog,Zy{1},[my,ny]);
-if use_multiplier
-    Ryy_1 = zeros([my,ny]);
-else
+if use_sym
+    Zop.Ry0 = Zop.R0y';
+elseif ~excludeL{3,1}
+    [prog,Ry0] = sospolymatrixvar(prog,Zy{1},[my,n0]);
+    Zop.Ry0 = Ry0;
+end
+if use_sym
+    Zop.Ryx = Zop.Rxy';
+elseif ~excludeL{3,2}
+    [prog,Ryx] = sospolymatrixvar(prog,Z2{1,1},[my,nx]);
+    Zop.Ryx = Ryx;
+end
+if ~excludeL{3,3}(1)
+    [prog,Ryy_0] = sospolymatrixvar(prog,Zy{1},[my,ny]);
+    Zop.Ryy{1} = Ryy_0;
+end
+if ~excludeL{3,3}(2)
     [prog,Ryy_1] = sospolymatrixvar(prog,Zy{2},[my,ny]);
+    Zop.Ryy{2} = Ryy_1;
 end
 if use_sep(2)
-    Ryy_2 = Ryy_1;
-else
+    Zop.Ryy{3} = Zop.Ryy{2};
+elseif use_sym
+    Zop.Ryy{3} = var_swap(Zop.Ryy{2}',var1(2),var2(2));
+elseif ~excludeL{3,3}(3)
     [prog,Ryy_2] = sospolymatrixvar(prog,Zy{3},[my,ny]);
+    Zop.Ryy{3} = Ryy_2;
 end
-[prog,Ry2_0] = sospolymatrixvar(prog,Z2{1,1},[my,n2]);
-if use_multiplier
-    Ry2_1 = zeros([my,n2]);
-else
+if ~excludeL{3,4}(1)
+    [prog,Ry2_0] = sospolymatrixvar(prog,Z2{1,1},[my,n2]);
+    Zop.Ry2{1} = Ry2_0;
+end
+if ~excludeL{3,4}(2)
     [prog,Ry2_1] = sospolymatrixvar(prog,Z2{1,2},[my,n2]);
+    Zop.Ry2{2} = Ry2_1;
 end
 if use_sep(4)
-    Ry2_2 = Ry2_1;
-else
+    Zop.Ry2{3} = Zop.Ry2{2};
+elseif ~excludeL{3,4}(3)
     [prog,Ry2_2] = sospolymatrixvar(prog,Z2{1,3},[my,n2]);
+    Zop.Ry2{3} = Ry2_2;
 end
 
 % Parameters mapping to L_2^m2[x,y]
-[prog,R20] = sospolymatrixvar(prog,Z2{1,1},[m2,n0]);
-[prog,R2x_0] = sospolymatrixvar(prog,Z2{1,1},[m2,nx]);
-if use_multiplier
-    R2x_1 = zeros([m2,nx]);
+if use_sym
+    Zop.R20 = Zop.R02';
+    Zop.R2x{1} = Zop.Rx2{1}';
+    Zop.R2x{2} = var_swap(Zop.Rx2{3}',var1(1),var2(1));
+    Zop.R2x{3} = var_swap(Zop.Rx2{2}',var1(1),var2(1));
+    Zop.R2y{1} = Zop.Ry2{1}';
+    Zop.R2y{2} = var_swap(Zop.Ry2{3}',var1(1),var2(1));
+    Zop.R2y{3} = var_swap(Zop.Ry2{2}',var1(1),var2(1));
 else
-    [prog,R2x_1] = sospolymatrixvar(prog,Z2{2,1},[m2,nx]);
+    if ~excludeL{4,1}
+        [prog,R20] = sospolymatrixvar(prog,Z2{1,1},[m2,n0]);
+        Zop.R20 = R20;
+    end
+    if ~excludeL{4,2}(1)
+        [prog,R2x_0] = sospolymatrixvar(prog,Z2{1,1},[m2,nx]);
+        Zop.R2x{1} = R2x_0;
+    end
+    if ~excludeL{4,2}(2)
+        [prog,R2x_1] = sospolymatrixvar(prog,Z2{2,1},[m2,nx]);
+        Zop.R2x{2} = R2x_1;
+    end
+    if use_sep(3)
+        Zop.R2x{3} = Zop.R2x{2};
+    elseif ~excludeL{4,2}(3)
+        [prog,R2x_2] = sospolymatrixvar(prog,Z2{3,1},[m2,nx]);
+        Zop.R2x{3} = R2x_2;
+    end
+    if ~excludeL{4,3}(1)
+        [prog,R2y_0] = sospolymatrixvar(prog,Z2{1,1},[m2,ny]);
+        Zop.R2y{1} = R2y_0;
+    end
+    if ~excludeL{4,3}(2)
+        [prog,R2y_1] = sospolymatrixvar(prog,Z2{1,2},[m2,ny]);
+        Zop.R2y{2} = R2y_1;
+    end
+    if use_sep(4)
+        Zop.R2y{3} = Zop.R2y{2};
+    elseif ~excludeL{4,3}(3)
+        [prog,R2y_2] = sospolymatrixvar(prog,Z2{1,3},[m2,ny]);
+        Zop.R2y{3} = R2y_2;
+    end
 end
-if use_sep(3)
-    R2x_2 = R2x_1;
-else
-    [prog,R2x_2] = sospolymatrixvar(prog,Z2{3,1},[m2,nx]);
+if ~excludeL{4,4}(1,1)
+    [prog,R22_00] = sospolymatrixvar(prog,Z2{1,1},[m2,n2],matrixstr);
+    Zop.R22{1,1} = R22_00;
 end
-[prog,R2y_0] = sospolymatrixvar(prog,Z2{1,1},[m2,ny]);
-if use_multiplier
-    R2y_1 = zeros([m2,ny]);
-else
-    [prog,R2y_1] = sospolymatrixvar(prog,Z2{1,2},[m2,ny]);
-end
-if use_sep(4)
-    R2y_2 = R2y_1;
-else
-    [prog,R2y_2] = sospolymatrixvar(prog,Z2{1,3},[m2,ny]);
-end
-[prog,R22_00] = sospolymatrixvar(prog,Z2{1,1},[m2,n2]);
-if use_multiplier
-    R22_10 = zeros([m2,n2]);
-else
+if ~excludeL{4,4}(2,1)
     [prog,R22_10] = sospolymatrixvar(prog,Z2{2,1},[m2,n2]);
+    Zop.R22{2,1} = R22_10;
 end
-if use_sep(3)
-    R22_20 = R22_10;
-else
-    [prog,R22_20] = sospolymatrixvar(prog,Z2{3,1},[m2,n2]);
-end
-if use_multiplier
-    R22_01 = zeros([m2,n2]);
-else
+if ~excludeL{4,4}(1,2)
     [prog,R22_01] = sospolymatrixvar(prog,Z2{1,2},[m2,n2]);
+    Zop.R22{1,2} = R22_01;
 end
-if use_sep(4)
-    R22_02 = R22_01;
-else
-    [prog,R22_02] = sospolymatrixvar(prog,Z2{1,3},[m2,n2]);
-end
-if use_multiplier
-    R22_11 = zeros([m2,n2]);
-else
+if ~excludeL{4,4}(2,2)
     [prog,R22_11] = sospolymatrixvar(prog,Z2{2,2},[m2,n2]);
+    Zop.R22{2,2} = R22_11;
 end
-if use_sep(5) && use_sep(6)
-    R22_12 = R22_11;
-    R22_21 = R22_11;
-    R22_22 = R22_11;
-elseif use_sep(5)
+if use_sep(6)
+    Zop.R22{2,3} = Zop.R22{2,2};
+elseif ~excludeL{4,4}(2,3)
     [prog,R22_12] = sospolymatrixvar(prog,Z2{2,3},[m2,n2]);
-    R22_21 = R22_11;
-    R22_22 = R22_12;
-elseif use_sep(6)
-    [prog,R22_21] = sospolymatrixvar(prog,Z2{3,2},[m2,n2]);
-    R22_12 = R22_11;
-    R22_22 = R22_21;
+    Zop.R22{2,3} = R22_12;
+end
+if use_sym
+    Zop.R22{3,1} = var_swap(Zop.R22{2,1}',var1(1),var2(1));
+    Zop.R22{1,3} = var_swap(Zop.R22{1,2}',var1(2),var2(2));
+    Zop.R22{3,3} = var_swap(var_swap(Zop.R22{2,2}',var1(1),var2(1)),var1(2),var2(2));
+    Zop.R22{3,2} = var_swap(var_swap(Zop.R22{2,3}',var1(1),var2(1)),var1(2),var2(2));
 else
-    [prog,R22_12] = sospolymatrixvar(prog,Z2{2,3},[m2,n2]);
-    [prog,R22_21] = sospolymatrixvar(prog,Z2{3,2},[m2,n2]);
-    [prog,R22_22] = sospolymatrixvar(prog,Z2{3,3},[m2,n2]);
+    if use_sep(3)
+        Zop.R22{3,1} = Zop.R22{2,1};
+    elseif ~excludeL{4,4}(3,1)
+        [prog,R22_20] = sospolymatrixvar(prog,Z2{3,1},[m2,n2]);
+        Zop.R22{3,1} = R22_20;
+    end
+    if use_sep(4)
+        Zop.R22{1,3} = Zop.R22{1,2};
+    elseif ~excludeL{4,4}(1,3)
+        [prog,R22_02] = sospolymatrixvar(prog,Z2{1,3},[m2,n2]);
+        Zop.R22{1,3} = R22_02;
+    end
+    if use_sep(5)
+        Zop.R22{3,2} = Zop.R22{2,2};
+        Zop.R22{3,3} = Zop.R22{2,3};
+    else
+        if ~excludeL{4,4}(3,2)
+            [prog,R22_21] = sospolymatrixvar(prog,Z2{3,2},[m2,n2]);
+            Zop.R22{3,2} = R22_21;
+        end
+        if ~excludeL{4,4}(3,3)
+            [prog,R22_22] = sospolymatrixvar(prog,Z2{3,3},[m2,n2]);
+            Zop.R22{3,3} = R22_22;
+        end
+    end
 end
-
-
-% Construct the decision opvar2d object
-Rxx = {Rxx_0; Rxx_1; Rxx_2};    Ryy = {Ryy_0, Ryy_1, Ryy_2};
-Rx2 = {Rx2_0; Rx2_1; Rx2_2};    Ry2 = {Ry2_0, Ry2_1, Ry2_2};
-R2x = {R2x_0; R2x_1; R2x_2};    R2y = {R2y_0, R2y_1, R2y_2};
-R22 = {R22_00, R22_01, R22_02;
-    R22_10, R22_11, R22_12;
-    R22_20, R22_21, R22_22};
-
-%Zop = dopvar2d([],[m,n],I,vars);
-Zop = dopvar2d([],[m,n]);   Zop.I = I;
-Zop.var1 = vars(:,1);       Zop.var2 = vars(:,2);
-
-Zop.R00 = R00;  Zop.R0x = R0x;  Zop.R0y = R0y;  Zop.R02 = R02;
-Zop.Rx0 = Rx0;  Zop.Rxx = Rxx;  Zop.Rxy = Rxy;  Zop.Rx2 = Rx2;
-Zop.Ry0 = Ry0;  Zop.Ryx = Ryx;  Zop.Ryy = Ryy;  Zop.Ry2 = Ry2;
-Zop.R20 = R20;  Zop.R2x = R2x;  Zop.R2y = R2y;  Zop.R22 = R22;
 
 end
 
@@ -787,15 +757,74 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
-function [dx,dy,d2] = process_degrees(dx,dy,d2)
-% A subroutine to process the degrees d of the monomials specified by the
-% user.
+function [dx,dy,d2] = check_degs(d)
+% A subroutine to check that the degrees d of the monomials are
+% appropriately specified.
 
-if length(dx(:))==1
-    dx{2}=[dx{1},dx{1},2*dx{1}];
+if isnumeric(d) && all(size(d)==1)
+    % Only 1 degree is specified, use this degree for all monomials.
+    dval = d;
+    dx = {dval;[dval;dval;dval];[dval;dval;dval]};       
+    dy = {dval,[dval,dval,dval],[dval,dval,dval]};
+    d2 = {dval*[0,1;1,2], dval*[0,1,1,1;1,1,1,2], dval*[0,1,1,1;1,1,1,2];
+          dval*[0,1,1,1;1,1,1,2]', dval*ones(4,4), dval*ones(4,4);
+          dval*[0,1,1,1;1,1,1,2]', dval*ones(4,4), dval*ones(4,4)};
+elseif isa(d,'cell') && numel(d)==3
+    % Degree is specified in 1D format.
+    % --> fill in the gaps as per 1D approach
+    if isscalar(d(:))
+        d{2}=[d{1},d{1},2*d{1}];
+        d{3}=d{2};
+    else
+        if isscalar(d{2})
+            d{2} = d{2}*ones(1,3);
+        elseif length(d{2})==2
+            d{2}(3) = max(d{2});
+        end
+        if numel(d)==2
+            d{3}=d{2};
+        else
+            if isscalar(d{3})
+                d{3} = d{3}*ones(1,3);
+            elseif length(d{3})==2
+                d{3}(3) = max(d{3});
+            end
+        end
+    end
+    % Use specified 1D degrees along both variables.
+    dx = d';        dy = d';
+    d2{1,1} = [0,d{1};d{1},2*d{1}];
+    d2{1,2} = [0,reshape(d{2},1,[]);d{1},d{1}+reshape(d{2},1,[])];
+    d2{1,3} = d2{1,2};
+    d2{2,1} = d2{1,2}';
+    d2{3,1} = d2{1,3}';
+    d2{2,2} = [0, reshape(d{2},1,[]); reshape(d{2},[],1), reshape(d{2},1,[])+reshape(d{2},[],1)];
+elseif isa(d,'struct')
+    if ~isfield(d,'dx') || ~isfield(d,'dy') || ~isfield(d,'d2')
+        error("Degrees for 2D positive operator should be specified as struct with fields 'dx', 'dy', and 'd2'. Call 'help lpivar_2d' for more details.")
+    else
+        dx = d.dx;
+        dy = d.dy;
+        d2 = d.d2;
+    end
+end
+
+% At this point, dx, dy and d2 should be cells.
+if ~iscell(dx)
+    error('Input d.dx must be a 3x1-cell structure')
+end
+if ~iscell(dy)
+    error('Input d.dy must be a 1x3-cell structure')
+end
+if ~iscell(d2)
+    error('Input d.d2 must be a 3x3-cell structure')
+end
+% % Check if degrees for x monomials are properly specified
+if isscalar(dx(:))
+    dx{2}=[dx{1};dx{1};2*dx{1}];
     dx{3}=dx{2};
 elseif length(dx(:))==2
-    if length(dx{2})==1
+    if isscalar(dx{2})
         dx{2}(2)=dx{2}(1);
         dx{2}(3)=dx{2}(1);
     elseif length(dx{2})==2
@@ -803,25 +832,25 @@ elseif length(dx(:))==2
     end
     dx{3}=dx{2};
 else
-    if length(dx{2})==1
+    if isscalar(dx{2})
         dx{2}(2)=dx{2}(1);
         dx{2}(3)=dx{2}(1);
     elseif length(dx{2})==2
         dx{2}(3) = ceil(0.5*(dx{2}(1) + dx{2}(2)));
     end
-    if length(dx{3})==1
+    if isscalar(dx{3})
         dx{3}(2)=dx{3}(1);
         dx{3}(3)=dx{3}(1);
     elseif length(dx{3})==2
         dx{3}(3) = ceil(0.5*(dx{3}(1) + dx{3}(2)));
     end
 end
-
-if length(dy(:))==1
+% % Check if degrees for y monomials are properly specified
+if isscalar(dy(:))
     dy{2}=[dy{1},dy{1},2*dy{1}];
     dy{3}=dy{2};
 elseif length(dy(:))==2
-    if length(dy{2})==1
+    if isscalar(dy{2})
         dy{2}(2)=dy{2}(1);
         dy{2}(3)=dy{2}(1);
     elseif length(dy{2})==2
@@ -829,193 +858,79 @@ elseif length(dy(:))==2
     end
     dy{3}=dy{2};
 else
-    if length(dy{2})==1
+    if isscalar(dy{2})
         dy{2}(2)=dy{2}(1);
         dy{2}(3)=dy{2}(1);
     elseif length(dy{2})==2
         dy{2}(3) = ceil(0.5*(dy{2}(1) + dy{2}(2)));
     end
-    if length(dy{3})==1
+    if isscalar(dy{3})
         dy{3}(2)=dy{3}(1);
         dy{3}(3)=dy{3}(1);
     elseif length(dy{3})==2
         dy{3}(3) = ceil(0.5*(dy{3}(1) + dy{3}(2)));
     end
 end
-
-if size(d2,1)==1
-    if length(d2{1,1})==1
-        d2{1,1} = [d2{1,1};d2{1,1};d2{1,1}];
-    elseif length(d2{1,1})==2
-        d2{1,1} = [d2{1,1}(1);d2{1,1}(2);d2{1,1}(1)+d2{1,1}(2)];
-    end
-    
-    d2{2,1} = [d2{1,1}(1);d2{1,1}(1);d2{1,1}(1);d2{1,1}(2);d2{1,1}(3)];
-    d2{3,1} = d2{2,1};
-        
-    if size(d2,2)==1
-        d2{1,2} = [d2{1,1}(1);d2{1,1}(2);d2{1,1}(2);d2{1,1}(2);d2{1,1}(3)];
-        d2{1,3} = d2{1,2};
-    elseif size(d2,2)==2
-        if length(d2{1,2})==1
-            d2{1,2}=[d2{1,1}(1);d2{1,2};d2{1,2};d2{1,2};ceil((d2{1,1}(1)+2*d2{1,2})/3)];
-        elseif length(d2{1,2})==2
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(2);d2{1,2}(2);ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==3
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(3);ceil(0.5*(d2{1,2}(2)+d2{1,2}(3)));ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==4
-            d2{1,2}=[d2{1,2}(1:4);ceil((d2{1,2}(1)+2*d2{1,2}(4))/3)];
-        end
-        d2{1,3} = d2{1,2};
+% % Check if degrees for 2D monomials are properly specified
+if ~all(size(d2)==[3,3])
+    if isscalar(d2) && all(size(d2{1,1})>=[2,2])
+        d2 = repmat(d2,[3,3]);
+    elseif all(size(d2)==[2,2]) && all(size(d2{2,1})>=[2,2]) && all(size(d2{1,2})>=[2,2]) && all(size(d2{2,2})>=[2,2])
+        d2 = [d2,d2(:,2); d2(2,:),d2(2,2)];
     else
-        if length(d2{1,2})==1
-            d2{1,2}=[d2{1,1}(1);d2{1,2};d2{1,2};d2{1,2};ceil((d2{1,1}(1)+2*d2{1,2})/3)];
-        elseif length(d2{1,2})==2
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(2);d2{1,2}(2);ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==3
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(3);ceil(0.5*(d2{1,2}(2)+d2{1,2}(3)));ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==4
-            d2{1,2}=[d2{1,2}(1:4);ceil((d2{1,2}(1)+2*d2{1,2}(4))/3)];
-        end
-        if length(d2{1,3})==1
-            d2{1,3}=[d2{1,1}(1);d2{1,3};d2{1,3};d2{1,3};ceil((d2{1,1}(1)+2*d2{1,3})/3)];
-        elseif length(d2{1,3})==2
-            d2{1,3}=[d2{1,3}(1);d2{1,3}(2);d2{1,3}(2);d2{1,3}(2);ceil(mean(d2{1,3}))];
-        elseif length(d2{1,3})==3
-            d2{1,3}=[d2{1,3}(1);d2{1,3}(2);d2{1,3}(3);ceil(0.5*(d2{1,3}(2)+d2{1,3}(3)));ceil(mean(d2{1,3}))];
-        elseif length(d2{1,3})==4
-            d2{1,3}=[d2{1,3}(1:4);ceil((d2{1,3}(1)+2*d2{1,3}(4))/3)];
-        end
-        
+        error('Input ''d.d2'' must be a 3x3 cell');
     end
-    d2{2,2} = [d2{2,1}(1:3,1),d2{1,2}(2:4,1),ceil(0.5*(d2{2,1}(1:3,1)+d2{1,2}(2:4,1)))];
-    d2{3,2} = [d2{3,1}(1:3,1),d2{1,2}(2:4,1),ceil(0.5*(d2{3,1}(1:3,1)+d2{1,2}(2:4,1)))];
-    d2{2,3} = [d2{2,1}(1:3,1),d2{1,3}(2:4,1),ceil(0.5*(d2{2,1}(1:3,1)+d2{1,3}(2:4,1)))];
-    d2{3,3} = [d2{3,1}(1:3,1),d2{1,3}(2:4,1),ceil(0.5*(d2{3,1}(1:3,1)+d2{1,3}(2:4,1)))];
-    
-    
-elseif size(d2,1)==2
-    if length(d2{1,1})==1
-        d2{1,1}=[d2{1,1};d2{1,1};d2{1,1}];
-    elseif length(d2{1,1})==2
-        d2{1,1} = [d2{1,1}(1);d2{1,1}(2);d2{1,1}(1)+d2{1,1}(2)];
-    end
-    
-    if length(d2{2,1})==1
-        d2{2,1}=[d2{2,1};d2{2,1};d2{2,1};d2{2,1};ceil((2*d2{2,1}+d2{1,1}(2))/3)];
-    elseif length(d2{2,1})==2
-        d2{2,1}=[d2{2,1}(1);d2{2,1}(1);d2{2,1}(1);d2{2,1}(2);ceil(mean(d2{2,1}))];
-    elseif length(d2{2,1})==3
-        d2{2,1}=[d2{2,1}(1);d2{2,1}(2);ceil(0.5*(d2{2,1}(1)+d2{2,1}(2)));d2{2,1}(3);ceil(mean(d2{2,1}))];
-    elseif length(d2{2,1})==4
-        d2{2,1}=[d2{2,1}(1:4);ceil((d2{2,1}(4)+2*d2{2,1}(3))/3)];
-    end
-    d2{3,1} = d2{2,1};
-    
-    if size(d2,2)==1
-        d2{1,2} = [d2{1,1}(1);d2{1,1}(2);d2{1,1}(2);d2{1,1}(2);d2{1,1}(3)];
-        d2{1,3} = d2{1,2};
-    elseif size(d2,2)==2
-        if length(d2{1,2})==1
-            d2{1,2}=[d2{1,1}(1);d2{1,2};d2{1,2};d2{1,2};ceil((d2{1,1}(1)+2*d2{1,2})/3)];
-        elseif length(d2{1,2})==2
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(2);d2{1,2}(2);ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==3
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(3);ceil(0.5*(d2{1,2}(2)+d2{1,2}(3)));ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==4
-            d2{1,2}=[d2{1,2}(1:4);ceil((d2{1,2}(1)+2*d2{1,2}(4))/3)];
-        end
-        d2{1,3} = d2{1,2};
-    else
-        if length(d2{1,2})==1
-            d2{1,2}=[d2{1,1}(1);d2{1,2};d2{1,2};d2{1,2};ceil((d2{1,1}(1)+2*d2{1,2})/3)];
-        elseif length(d2{1,2})==2
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(2);d2{1,2}(2);ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==3
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(3);ceil(0.5*(d2{1,2}(2)+d2{1,2}(3)));ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==4
-            d2{1,2}=[d2{1,2}(1:4);ceil((d2{1,2}(1)+2*d2{1,2}(4))/3)];
-        end
-        if length(d2{1,3})==1
-            d2{1,3}=[d2{1,1}(1);d2{1,3};d2{1,3};d2{1,3};ceil((d2{1,1}(1)+2*d2{1,3})/3)];
-        elseif length(d2{1,3})==2
-            d2{1,3}=[d2{1,3}(1);d2{1,3}(2);d2{1,3}(2);d2{1,3}(2);ceil(mean(d2{1,3}))];
-        elseif length(d2{1,3})==3
-            d2{1,3}=[d2{1,3}(1);d2{1,3}(2);d2{1,3}(3);ceil(0.5*(d2{1,3}(2)+d2{1,3}(3)));ceil(mean(d2{1,3}))];
-        elseif length(d2{1,3})==4
-            d2{1,3}=[d2{1,3}(1:4);ceil((d2{1,3}(1)+2*d2{1,3}(4))/3)];
-        end
-    end
-        
-    %d2{2,2} = [d2{2,1}(1:3,1),d2{1,2}(2:4,1),ceil(0.5*(d2{2,1}(1:3,1)+d2{1,2}(2:4,1)))];
-    d2{3,2} = [d2{3,1}(1:3,1),d2{1,2}(2:4,1),ceil(0.5*(d2{3,1}(1:3,1)+d2{1,2}(2:4,1)))];
-    %d2{2,3} = [d2{2,1}(1:3,1),d2{1,3}(2:4,1),ceil(0.5*(d2{2,1}(1:3,1)+d2{1,3}(2:4,1)))];
-    d2{3,3} = [d2{3,1}(1:3,1),d2{1,3}(2:4,1),ceil(0.5*(d2{3,1}(1:3,1)+d2{1,3}(2:4,1)))];
-    
 else
-    if length(d2{1,1})==1
-        d2{1,1}=[d2{1,1};d2{1,1};d2{1,1}];
-    elseif length(d2{1,1})==2
-        d2{1,1} = [d2{1,1}(1);d2{1,1}(2);d2{1,1}(1)+d2{1,1}(2)];
+    % Check if sufficient degrees for R22oo(x,y) are specified
+    if ~all(size(d2{1,1})>=[2,2])    % degrees in x and y
+        error('Maximal degrees ''d.d2{1,1}'' must be specified using a 2x2 or 4x4 array');
     end
-    
-    if length(d2{2,1})==1
-        d2{2,1}=[d2{2,1};d2{2,1};d2{2,1};d2{2,1};ceil((2*d2{2,1}+d2{1,1}(2))/3)];
-    elseif length(d2{2,1})==2
-        d2{2,1}=[d2{2,1}(1);d2{2,1}(1);d2{2,1}(1);d2{2,1}(2);ceil(mean(d2{2,1}))];
-    elseif length(d2{2,1})==3
-        d2{2,1}=[d2{2,1}(1);d2{2,1}(2);ceil(0.5*(d2{2,1}(1)+d2{2,1}(2)));d2{2,1}(3);ceil(mean(d2{2,1}))];
-    elseif length(d2{2,1})==4
-        d2{2,1}=[d2{2,1}(1:4);ceil((d2{2,1}(4)+2*d2{2,1}(3))/3)];
+    % Check if sufficient degrees for R22ao(x,y,tt), R22bo(x,y,tt) are specified
+    if ~all(size(d2{2,1})>=[4,2]) || ~all(size(d2{3,1})>=[4,2])
+        for i=2:3
+            if all(size(d2{i,1})==[2,2])    % only x and y degrees are specified
+                d2{i,1} = [d2{i,1};d2{i,1}(2,:);d2{i,1}(2,:)];
+            elseif all(size(d2{i,1})==[3,2]) % no joint degrees are specified
+                d2{i,1} = [d2{i,1};sum(d2{i,1}(2:3,:),1)];
+            else
+                error(['Maximal degrees ''d.d2{',num2str(i),',1}'' must be specified using a 4x2 or 4x4 array']);
+            end
+        end
     end
-    if length(d2{3,1})==1
-        d2{3,1}=[d2{3,1};d2{3,1};d2{3,1};d2{3,1};ceil((2*d2{3,1}+d2{1,1}(2))/3)];
-    elseif length(d2{3,1})==2
-        d2{3,1}=[d2{3,1}(1);d2{3,1}(1);d2{3,1}(1);d2{3,1}(2);ceil(mean(d2{3,1}))];
-    elseif length(d2{3,1})==3
-        d2{3,1}=[d2{3,1}(1);d2{3,1}(2);ceil(0.5*(d2{3,1}(1)+d2{3,1}(2)));d2{3,1}(3);ceil(mean(d2{3,1}))];
-    elseif length(d2{3,1})==4
-        d2{3,1}=[d2{3,1}(1:4);ceil((d2{3,1}(4)+2*d2{3,1}(3))/3)];
+    % Check if sufficient degrees for R22oa(x,y,nu), R22ob(x,y,nu) are specified
+    if ~all(size(d2{2,1})>=[4,2]) || ~all(size(d2{3,1})>=[4,2])
+        for j=2:3
+            if all(size(d2{1,j})==[2,2])    % only x and y degrees are specified
+                d2{1,j} = [d2{1,j},d2{1,j}(:,2),d2{1,j}(:,2)];
+            elseif all(size(d2{1,j})==[2,3]) % no joint degrees are specified
+                d2{1,j} = [d2{1,j},sum(d2{1,j}(:,2:3),2)];
+            else
+                error(['Maximal degrees ''d.d2{1,',num2str(j),'}'' must be specified using a 2x4 or 4x4 array']);
+            end
+        end
     end
-    
-    if size(d2,2)==1
-        d2{1,2} = [d2{1,1}(1);d2{1,1}(2);d2{1,1}(2);d2{1,1}(2);d2{1,1}(3)];
-        d2{1,3} = d2{1,2};
-    elseif size(d2,2)==2
-        if length(d2{1,2})==1
-            d2{1,2}=[d2{1,1}(1);d2{1,2};d2{1,2};d2{1,2};ceil((d2{1,1}(1)+2*d2{1,2})/3)];
-        elseif length(d2{1,2})==2
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(2);d2{1,2}(2);ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==3
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(3);ceil(0.5*(d2{1,2}(2)+d2{1,2}(3)));ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==4
-            d2{1,2}=[d2{1,2}(1:4);ceil((d2{1,2}(1)+2*d2{1,2}(4))/3)];
+    % Check if sufficient degrees for R22oa(x,y,nu), R22ob(x,y,nu) are specified
+    if ~all(size(d2{2,1})>=[4,2]) || ~all(size(d2{3,1})>=[4,2])
+        for i=2:3
+          for j=2:3
+            if all(size(d2{i,j})==[2,2])    % only x and y degrees are specified
+                d2{i,j} = [d2{i,j},repmat(d2{i,j}(:,2),[1,2]);repmat(d2{i,j}(2,:),[2,1]),repmat(d2{i,j}(2,2),[2,2])];
+            elseif all(size(d2{i,j})==[3,3]) % no joint degrees with secondary vars are specified
+                d2{i,j} = [d2{i,j},sum(d2{i,j}(:,2:3),2);sum(d2{i,j}(2:3,:),1),d2{i,j}(3,3)];
+            else
+                error(['Maximal degrees ''d.d2{',num2str(i),',',num2str(j),'}'' must be specified using a 2x4 or 4x4 array']);
+            end
+          end
         end
-        d2{1,3} = d2{1,2};
-    else
-        if length(d2{1,2})==1
-            d2{1,2}=[d2{1,1}(1);d2{1,2};d2{1,2};d2{1,2};ceil((d2{1,1}(1)+2*d2{1,2})/3)];
-        elseif length(d2{1,2})==2
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(2);d2{1,2}(2);ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==3
-            d2{1,2}=[d2{1,2}(1);d2{1,2}(2);d2{1,2}(3);ceil(0.5*(d2{1,2}(2)+d2{1,2}(3)));ceil(mean(d2{1,2}))];
-        elseif length(d2{1,2})==4
-            d2{1,2}=[d2{1,2}(1:4);ceil((d2{1,2}(1)+2*d2{1,2}(4))/3)];
-        end
-        if length(d2{1,3})==1
-            d2{1,3}=[d2{1,1}(1);d2{1,3};d2{1,3};d2{1,3};ceil((d2{1,1}(1)+2*d2{1,3})/3)];
-        elseif length(d2{1,3})==2
-            d2{1,3}=[d2{1,3}(1);d2{1,3}(2);d2{1,3}(2);d2{1,3}(2);ceil(mean(d2{1,3}))];
-        elseif length(d2{1,3})==3
-            d2{1,3}=[d2{1,3}(1);d2{1,3}(2);d2{1,3}(3);ceil(0.5*(d2{1,3}(2)+d2{1,3}(3)));ceil(mean(d2{1,3}))];
-        elseif length(d2{1,3})==4
-            d2{1,3}=[d2{1,3}(1:4);ceil((d2{1,3}(1)+2*d2{1,3}(4))/3)];
-        end
-    end    
-    %d2{2,2} = [d2{2,1}(1:3,1),d2{1,2}(2:4,1),ceil(0.5*(d2{2,1}(1:3,1)+d2{1,2}(2:4,1)))];
-    %d2{3,2} = [d2{3,1}(1:3,1),d2{1,2}(2:4,1),ceil(0.5*(d2{3,1}(1:3,1)+d2{1,2}(2:4,1)))];
-    %d2{2,3} = [d2{2,1}(1:3,1),d2{1,3}(2:4,1),ceil(0.5*(d2{2,1}(1:3,1)+d2{1,3}(2:4,1)))];
-    %d2{3,3} = [d2{3,1}(1:3,1),d2{1,3}(2:4,1),ceil(0.5*(d2{3,1}(1:3,1)+d2{1,3}(2:4,1)))];
+    end
 end
+for k=1:9
+    [d2{k},n_updates_k] = reduce_joint_degs(d2{k});
+    % if n_updates_k>=1
+    %     warning(['At least one of the (joint) degrees in d.d2{',num2str(k),'} is either too large or too small to make sense with all the joint degrees; reducing degrees to a sensible value'])
+    % end
+end
+% In case insufficient degrees are provided, process the degrees
+%[dx,dy,d2] = process_degrees(dx,dy,d2);
 
 end
