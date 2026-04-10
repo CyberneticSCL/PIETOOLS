@@ -182,8 +182,17 @@ prog = progD; % Make sure the SOS program contains the right operator Deop
 % If desired, add a Psatz term to enforce only local positivity
 for j=1:length(opts.psatz)
     if opts.psatz(j)~=0
+        % Use lower degree to compensate psatz multiplier
+        degs_psatz = degs;
+        for k=1:numel(degs.dx)
+            degs_psatz.dx{k} = max(degs.dx{k}-1,0*degs.dx{k});
+            degs_psatz.dy{k} = max(degs.dy{k}-1,0*degs.dy{k});
+        end
+        for k=1:numel(degs.d2)
+            degs_psatz.d2{k} = max(degs.d2{k}-1,0*degs.d2{k});
+        end
         options_psatz.psatz = opts.psatz(j);
-        [prog, De2op] = poslpivar_2d(prog, dim, degs, options_psatz);
+        [prog, De2op] = poslpivar_2d(prog, dim, degs_psatz, options_psatz);
         Deop = Deop+De2op;
 
         % % Add addtional terms with separable kernels
