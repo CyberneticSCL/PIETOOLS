@@ -41,7 +41,7 @@ function C = mtimes(A,B)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Make sure the inner dimensions match
-if size(A,2)~=size(B,2) && ~all(size(A)==1) && ~all(size(B)==1)
+if size(A,2)~=size(B,1) && ~all(size(A)==1) && ~all(size(B)==1)
     error("Incorrect dimensions for matrix multiplication.")
 end
 
