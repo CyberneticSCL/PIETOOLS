@@ -81,6 +81,11 @@ properties
     vars = polynomial(zeros(0,2));
 end
 
+properties (Dependent,Hidden)
+    var1
+    var2
+end
+
 methods
     function [P] = nopvar(varargin) %constructor
         if nargout==0
@@ -153,6 +158,15 @@ methods
         if n_min==n_max && round(n_min)==n_min
             dim(2) = n_min;
         end
+    end
+
+    function var1 = get.var1(obj)
+        % Get primary spatial variables of operator
+        var1 = obj.vars(:,1);
+    end
+    function var2 = get.var2(obj)
+        % Get dummy variables of operator
+        var2 = obj.vars(:,2);
     end
 end
 
