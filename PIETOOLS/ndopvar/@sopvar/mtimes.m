@@ -253,9 +253,10 @@ end
 function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims)
 % this performs
 % int(G(s3a), s3a, lims) = sum_{g,a,b} (I⊗ZL(s3a)') C_{g,a,b} (I ⊗ ZR(s3a'))
-% G is structure storing ZG and CG where G(s3a)=(I⊗ZG(s3a)')*CG
+% G is structure storing ZG and CG where G(s3a)=(I_q⊗ZG(s3a)')*CG
 
 CG = G.C; ZG = G.Z;
+q = size(CG,1)/prod(cellfun(@numel,ZG));
 
 Zint = cellfun(@(x) [0; x+1], ZG, UniformOutput=false);
 ZL = Zint; ZR = Zint;
@@ -325,7 +326,7 @@ for i=1:size(C_gam_alp_beta,2)
                 C = kron(C,Ci);
             end
         end
-        Cnew = rearrangeCoef(CG,C);  % convert (I⊗Zint(s,s_dum)'*C')*CG = (I⊗Zint(s)')Cnew(I⊗Zint(s_dum))
+        Cnew = rearrangeCoef(kron(eye(q),CG'),C,q);  % convert (I_q⊗Zint(s,s_dum)'*C')*CG =(I_q⊗Zint(s,s_dum)')(I_q⊗C')*CG= (I_q⊗Zint(s)')Cnew(I⊗Zint(s_dum))
     end
 
     gam = mat2cell(gam);
@@ -334,8 +335,36 @@ for i=1:size(C_gam_alp_beta,2)
 end
 end
 
-function Cout = rearrangeCoef(Cmul,C)
-Cout = 0;
+function Cout = rearrangeCoef(Cmul,C,q)
+% convert (I_q⊗Zint(s,s_dum)'*C')*CG =(I_q⊗Zint(s,s_dum)')(I_q⊗C')*CG= (I_q⊗Zint(s)')Cnew(I⊗Zint(s_dum))
+Cout = Cmul*C;
+[nrows, N] = size(Cout);
+nz = nrows/q;
+nA = (nz-1)/2;
+Cnew = zeros(q*(nA+1), N*(nA+1));
+for iq = 1:q
+    rows_old = (iq-1)*nz + (1:nz);
+    rows_new = (iq-1)*(nA+1) + (1:(nA+1));
+
+    for j = 1:N
+        cols_new = (j-1)*(nA+1) + (1:(nA+1));
+
+        cvec = Cout(rows_old, j);
+
+        c0 = cvec(1);
+        cs = cvec(2:nA+1);
+        cd = cvec(nA+2:end);
+
+        % Matrix such that:
+        % [1;ZA(s)]' * M * [1;ZA(s_dum)]
+        % = c0 + cs'*ZA(s) + cd'*ZA(s_dum)
+        M = [c0,  cd.';
+             cs,  zeros(nA,nA)];
+
+        Cnew(rows_new, cols_new) = M;
+    end
+end
+
 end
 
 function [Cidx, Zint] = int_monomial(Z,idxAll,lims)
