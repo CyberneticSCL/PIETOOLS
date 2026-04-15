@@ -133,6 +133,10 @@ beta_b = betaIdx(:,~idx2a);
 alpha_a = alphaIdx(:,idx3a);
 alpha_b = alphaIdx(:,~idx3a);
 
+% REMEMBER beta_a, beta_b, alpha_a, alpha_b no longer have unique rows
+% above. Need to revisit functions below to ensure this is handled
+% appropriately!!!
+
 [idx2b,~] = ismember(B.vars_S2,v2b);
 dom2b = B.dom_2(idx2b,:);
 dom2a = A.dom_3(idx2a,:);
@@ -177,20 +181,43 @@ dom3b = B.dom_3(~idx3a,:);
 % resulting composition in the quadPoly form (I⊗C.ZL') CC[gamma] (I⊗C.ZR) 
 
 
-% first we do 
+% first we build CA and CB indexed as CA{betaa}{betab} and
+% CB{alphaa}{alphab}
+colsbetaa = find(idx2a); colsbetab = find(~idx2a);
+CA = reshape(permute(A.params, [colsbetaa,colsbetab]), 3^numel(colsbetaa), 3^numel(colsbetab)); % this is a cell 
+colsalphaa = find(idx3a); colsalphab = find(~idx3a);
+CB = reshape(permute(B.params, [colsalphaa,colsalphab]), 3^numel(colsalphaa), 3^numel(colsalphab));
+
+
 % sum_betaa (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
-[varLtemp,ZLtemp,CLtempbetaa_betab]=leftShiftMonomials_SS( ...
-    A.vars.out,A.ZL,A.params,vs2a,KZhat_s2a,kron(eye(A.dim(2)),Cs2a_betaa));
-for i=betab
-    CLtemp{i} = sum(CLtempbetaa_betab,betaa);
+% = sum_betaa (I⊗ZLtemp(varLtemp)')CLtemp_betaab
+[varLtemp,ZLtemp,CLtemp_betaab]=leftShiftMonomials_SS( ...
+    A.vars.out,A.ZL,CA,vs2a,KZhat_s2a,kron(eye(A.dim(2)),Cs2a_betaa));
+CLtemp = cell(1,size(CLtemp_betaab,2));
+for j=size(CLtemp_betaab,2)
+    CLtemp{j} = CLtemp_betaab{1,j};
+    for i=2:size(CLtemp_betaab,1)
+        CLtemp{j} = CLtemp{j} + CLtemp_betaab{i,j};   % adding along beta_a
+    end
 end
+
+
 % same for right side
 % sum_alphab (I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*CB(alphaa,alphab)(I⊗B.ZR)
-[varRtemp,ZRtemp,CRtempalphaa_alphab]=leftShiftMonomials_SS( ...
-    B.vars.in,B.ZR,B.params',vs3b,KZhat_s3b,kron(eye(B.dim(1)),Cs3b_alphab)');
-for i=alphaa
-    CRtemp{i} = sum(CRtempalphaa_alphab',alphab);
+% = sum_alphab (I⊗CRtemp_alphaab)*(I⊗ZRtemp(varRtemp))
+[varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
+    B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b,kron(eye(B.dim(1)),Cs3b_alphab)');  % verify that CB.' not just transposes cell rows/columns but also matrix rows/columns
+% note above that since we used leftShiftMonomials function by transposing
+% everything the output is not CRtemp(alpha_a,alpha_b) but CRtemp(alpha_b,alpha_a)
+% so to sum along alpha_b we will again sum along first index and not 2nd.
+CRtemp = cell(1,size(CRtemp_alphaba,2));
+for j=size(CRtemp_alphaba,2)
+    CRtemp{j} = CRtemp_alphaba{1,j};
+    for i=2:size(CRtemp_alphaba,1)
+        CRtemp{j} = CRtemp{j}+CRtemp_alphaba{i,j};  % adding along alpha_b
+    end
 end
+% now CLtemp is function of beta_b, and CRtemp is function of alpha_a
 
 % now we have
 % sum (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
@@ -203,15 +230,20 @@ end
 % now shift barZ_3aL too
 % (I⊗ZLtemp(varLtemp)')*CLtemp(betab)*(I⊗barZ_3aL')
 [Cvarsout,CZL,CLtemp_betab]=leftShiftMonomials_SS( ...
-    varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,eye(size(C_gam_alp_beta,1)));
+    varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,eye(A.dim(2)*prod(cellfun(@numel,barZ_3aL))));
 
 % likewise for right side
 [Cvarsin,CZR,CRtemp_alphaa]=leftShiftMonomials_SS( ...
-    varRtemp,ZRtemp,CRtemp',vs3a,barZ_3aR,eye(size(C_gam_alp_beta,2)));
+    varRtemp,ZRtemp,CRtemp.',vs3a,barZ_3aR,eye(B.dim(1)*prod(cellfun(@numel,barZ_3aR))));
 
 
-for i=gam
-    Cparams{gam} = sum(CLtemp_betab*C_gam_alp_beta*CRtemp_alphaa', betab, alphaa);
+for i=1:length(Cparams)
+    Cparams{i} = 0;
+    for j=1:size(beta_b,1)
+        for k=1:size(alpha_a,1)
+            Cparams{i} = Cparams{i} + CLtemp_betab{j}*C_gam_alp_beta{i,j,k}*CRtemp_alphaa{k}';
+        end
+    end
 end
 
 Cvars = struct('in', Cvarsin, 'out', Cvarsout);
@@ -249,43 +281,39 @@ for i=1:size(C_gam_alp_beta,2)
         shiftMonomial = zeros(size(idxB));
         for k=1:length(idxA)
             E = ZG{k}; nE = length(E);
-            Ci = zeros(nE+1,nE+1);
+            Ci = zeros(2*nE+1,2*nE+1);
             key = 100*gam(k)+10*idxB(k)+idxA(k);
             switch key
                 case 111 % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
                 case 221  % G(t_3a_i);
-                    Ci(1:nE,1:nE) = eye(nE);
-                    shiftMonomial(k) = 1;
+                    Ci(1:nE,[1,nE+2:2*nE+1]) = eye(nE);
                 case 331  % G(t_3a_i);
-                    Ci(1:nE,1:nE) = eye(nE);
-                    shiftMonomial(k) = 1;
+                    Ci(1:nE,[1,nE+2:2*nE+1]) = eye(nE);
                 case 212  % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
                 case 222  % int_{s_3a_i}^{t_3a,i} eta_3a_i^E deta_3a_i = t_3a_i^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1); % THIS may need to change
-                    Ci(1:nE,2:end) = diag(1./(E+1));
-                    Ci =blkdiag(-Ci, Ci);
-                    shiftMonomial(k) = 2;
+                    Ci(1:nE,nE+2:2*nE+1) = diag(1./(E+1));
+                    Ci(1:nE,2:nE+1) = -diag(1./(E+1));
                 case 232  % int_{s_3a_i}^{b(i)} eta_3a_i^E deta_3a_i = b(i)^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1);
-                    Ci(:,1) = b(i).^(E+1)./(E+1);
-                    Ci(:,2:end) = -diag(1./(E+1));
+                    Ci(1:nE,1) = b(i).^(E+1)./(E+1);
+                    Ci(1:nE,2:nE+1) = -diag(1./(E+1));
                 case 332  % int_{t_3a_i}^{b(i)} eta_3a_i^E deta_3a_i = b(i)^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);
-                    Ci(:,1) = b(i).^(E+1)./(E+1);
-                    Ci(:,2:end) = -diag(1./(E+1));
+                    Ci(1:nE,1) = b(i).^(E+1)./(E+1);
+                    Ci(1:nE,nE+2:2*nE+1) = -diag(1./(E+1));
                     shiftMonomial(k) = 1;
                 case 313  % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
                 case 223  % int_{a(i)}^{t_3a_i} eta_3a_i^E deta_3a_i = t_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
                     Ci(:,1) = -a(i).^(E+1)./(E+1);
-                    Ci(:,2:end) = diag(1./(E+1));
+                    Ci(:,nE+2:2*nE+1) = diag(1./(E+1));
                     shiftMonomial(k) = 1;
                 case 323  % int_{a(i)}^{s_3a_i} eta_3a_i^E deta_3a_i = s_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
                     Ci(:,1) = -a(i).^(E+1)./(E+1);
-                    Ci(:,2:end) = diag(1./(E+1));
+                    Ci(:,2:nE+1) = diag(1./(E+1));
                 case 333  % int_{t_3a_i}^{s_3a,i} eta_3a_i^E deta_3a_i = s_3a_i^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);  % THIS may need to change
-                    Ci(1:nE,2:end) = diag(1./(E+1));
-                    Ci =blkdiag(Ci, -Ci);
-                    shiftMonomial(k) = 2;
+                    Ci(1:nE,2:nE+1) = diag(1./(E+1));
+                    Ci(1:nE,nE+2:2*nE+1) = -diag(1./(E+1));
                 otherwise % cases 211,311,121,321,131,231,112,312,122,322,132,113,213,123,133,233  Ci=0
                     breakflag = 1;
             end
@@ -297,7 +325,7 @@ for i=1:size(C_gam_alp_beta,2)
                 C = kron(C,Ci);
             end
         end
-        Cnew = rearrangeCoef(CG,C,shiftMonomial);  % convert (I⊗Zint(s,s_dum)'*C')*CG = (I⊗Zint(s)')Cnew(I⊗Zint(s_dum))
+        Cnew = rearrangeCoef(CG,C);  % convert (I⊗Zint(s,s_dum)'*C')*CG = (I⊗Zint(s)')Cnew(I⊗Zint(s_dum))
     end
 
     gam = mat2cell(gam);
@@ -306,7 +334,7 @@ for i=1:size(C_gam_alp_beta,2)
 end
 end
 
-function Cout = rearrangeCoef(Cmul,C,shiftmonomial)
+function Cout = rearrangeCoef(Cmul,C)
 Cout = 0;
 end
 

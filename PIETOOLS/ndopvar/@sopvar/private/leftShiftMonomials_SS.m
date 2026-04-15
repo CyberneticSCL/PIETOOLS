@@ -83,8 +83,13 @@ end
 % Reshape coefficients
 % CA: (p*NA) x q -> A: p x q x NA
 % CB: (q*NB) x r -> B: q x r x NB
-A = permute(reshape(CA, [NA, p, q]), [2 3 1]);
-B = permute(reshape(CB, [NB, q, r]), [2 3 1]);
+
+idxA = size(CA,1); 
+idxB = size(CA,2);
+for i=1:idxA
+    for j=1:idxB
+A = permute(reshape(CA{i}{j}, [NA, p, q]), [2 3 1]);
+B = permute(reshape(CB{i}, [NB, q, r]), [2 3 1]);
 
 % Accumulate output coefficients
 G = zeros(p, r, NC);
@@ -99,5 +104,7 @@ for i = 1:NA
 end
 
 % Pack back to (p*NC) x r
-CC = reshape(permute(G, [3 1 2]), [NC*p, r]);
+CC{i}{j} = reshape(permute(G, [3 1 2]), [NC*p, r]);
+    end
+end
 end
