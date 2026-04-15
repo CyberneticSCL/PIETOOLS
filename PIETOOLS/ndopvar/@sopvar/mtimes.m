@@ -68,7 +68,7 @@ vs4 = A.vars_S2;
 vs2a = setdiff(A.vars_S3,vs3a);
 vs2b = setdiff(A.vars_S1,vs3b);
 
-Cvars = struct('in',B.vars.in,'out',A.vars.out);
+
 Cdom = struct('in',B.dom.in,'out',A.dom.out);
 Cdims = [A.dims(1),B.dims(2)];
 
@@ -176,11 +176,45 @@ dom3b = B.dom_3(~idx3a,:);
 % template permutation operation that repeats for all indices to compute
 % resulting composition in the quadPoly form (I⊗C.ZL') CC[gamma] (I⊗C.ZR) 
 
-[CZL, CZR, Cparams] = termCompose(A, B, ...   
-                                    Cs2a_betaa, Cs3b_alphab, C_gam_alp_beta, ...
-                                      KZhat_s2a, KZhat_s3b, barZ_3aL, barZ_3aR, ...
-                                       alphaIdx,betaIdx,alpha_a,alpha_b,beta_a,beta_b);
 
+% first we do 
+% sum_betaa (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
+[varLtemp,ZLtemp,CLtempbetaa_betab]=leftShiftMonomials_SS( ...
+    A.vars.out,A.ZL,A.params,vs2a,KZhat_s2a,kron(eye(A.dim(2)),Cs2a_betaa));
+for i=betab
+    CLtemp{i} = sum(CLtempbetaa_betab,betaa);
+end
+% same for right side
+% sum_alphab (I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*CB(alphaa,alphab)(I⊗B.ZR)
+[varRtemp,ZRtemp,CRtempalphaa_alphab]=leftShiftMonomials_SS( ...
+    B.vars.in,B.ZR,B.params',vs3b,KZhat_s3b,kron(eye(B.dim(1)),Cs3b_alphab)');
+for i=alphaa
+    CRtemp{i} = sum(CRtempalphaa_alphab',alphab);
+end
+
+% now we have
+% sum (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
+%         *(I⊗barZ_3aL')*(I⊗C_(gam,betab,alphaa))*(I⊗barZ_3aR)
+%          *(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*CB(alphaa,alphab)(I⊗B.ZR)
+% = sum (I⊗ZLtemp(varLtemp)')*CLtemp(betab)*
+%         *(I⊗barZ_3aL')*(I⊗C_(gam,betab,alphaa))*(I⊗barZ_3aR)
+%          *CRtemp(alphaa)*(I⊗ZRtemp(varRtemp))
+
+% now shift barZ_3aL too
+% (I⊗ZLtemp(varLtemp)')*CLtemp(betab)*(I⊗barZ_3aL')
+[Cvarsout,CZL,CLtemp_betab]=leftShiftMonomials_SS( ...
+    varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,eye(size(C_gam_alp_beta,1)));
+
+% likewise for right side
+[Cvarsin,CZR,CRtemp_alphaa]=leftShiftMonomials_SS( ...
+    varRtemp,ZRtemp,CRtemp',vs3a,barZ_3aR,eye(size(C_gam_alp_beta,2)));
+
+
+for i=gam
+    Cparams{gam} = sum(CLtemp_betab*C_gam_alp_beta*CRtemp_alphaa', betab, alphaa);
+end
+
+Cvars = struct('in', Cvarsin, 'out', Cvarsout);
 C = sopvar(Cparams,Cvars,CZR,CZL,Cdom,Cdims);
 end
 
