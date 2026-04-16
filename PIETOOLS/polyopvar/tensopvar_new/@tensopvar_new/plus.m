@@ -35,15 +35,34 @@ function C = plus(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 04/14/2026: Initial coding
+% DJ, 04/15/2026: Initial coding
+
+% Check that the inputs are appropriate
+if ~isa(A,'tensopvar_new')
+    if ~isa(A,'nopvar') && ~isa(A,'ndopvar')
+        error("Addition of 'tensopvar' objects with non-'tensopvar' objects is not supported.")
+    else
+        A = ndopvar2tensopvar_new(A);
+    end
+elseif ~isa(B,'tensopvar_new')
+    if ~isa(B,'nopvar') && ~isa(B,'ndopvar')
+        error("Addition of 'tensopvar' objects with non-'tensopvar' objects is not supported.")
+    else
+        B = ndopvar2tensopvar_new(B);
+    end
+end
 
 % Make sure the matrix dimensions of the operators match
-if ~isequal(A.dims,B.dims) || any(A.use_kron~=B.use_kron)
+if ~isequal(A.dims,B.dims) || any(A.type~=B.type)
     error("Matrix dimensions of each factor in the tensopvar objects must match.")
 end
 % Make sure the input and output variables match
-if ~isequal(A.varnames,B.varnames) || ~isequal(A.doms,B.doms)
+if ~isequal(pvar2varname(A.vars),pvar2varname(B.vars)) || ~isequal(A.dom,B.dom)
     error("Spatial variables and domains of operators must match.")
+end
+% Make sure the individual operators depend on the same variables
+if ~isequal(A.depmat1,B.depmat1) || ~isequal(A.depmat2,B.depmat2)
+    error("Spatial variables in each factor in the tensopvar objects must match.")
 end
 
 % The operators defining the sum are given by the sum of the

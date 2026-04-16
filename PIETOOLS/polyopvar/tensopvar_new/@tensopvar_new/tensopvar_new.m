@@ -2,10 +2,9 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar_new
 % This function defines the class of 'tensopvar' objects, representing
 % linear combinations of tensor products of PI operators,
 %
-%   (C*(x1 o ... o xd))(s) = sum_{i=1}^{m} (Ri1*x1)(s1) kron ... kron (Rid*xd)(sd)
+%   C = sum_{i=1}^{m} Ri1 \otimes ... \otimes Rid
 %
-% where the variables s1 through sd may overlap, and where o denotes the
-% tensor product, and kron the Kronecker product
+% where \otimes denotes the tensor product
 %
 % CLASS properties
 % - C.ops:  m x d cell with each element {i,j} a 'nopvar' or 'dopvar'
@@ -13,28 +12,33 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar_new
 %           factor. Note that this operator can map between different
 %           function spaces, and can also be specified as a tensopvar
 %           object itself;
-% - C.var1: M x p 'pvar' array specifying the spatial variables s on which
-%           the output of the operator depends. Here, variables in the same
-%           row are defined on the same interval, as occurs when taking the
-%           tensor product of a state variable with itself,
-%               v^{o n}(s1,...,sn)=v(s1)*...*v(sn)
-%           Variables in different rows may exist on different intervals,
-%           as may be the case for multivariate PDEs;
-% - C.var2: N x q 'pvar' array specifying the dummy variables used in the
-%           definition of the operator; 
-% - C.dom1: M x 2 array of type 'double', specifying for each of the
-%           spatial variables the interval on which it is defined;
-% - C.dom2: N x 2 array of type 'double', specifying for each of the
-%           dummy variables the interval on which it is defined;
-% - C.dim:  1 x 2 array specifying the matrix dimension of the operator;
-% - C.use_kron: 1 x 2 binary array specifying whether the products of the
-%               different are computed pointwise (false) or using the
-%               Kronecker product (true) along the row and column
-%               dimensions. If use_kron(1)==false, then the row dimensions
-%               of all the operators Rij must match. If use_kron(2)==false,
-%               then the column dimensions of all the operators Rij must
-%               match;
-
+% - C.dim:  1 x 2 array specifying the matrix dimensions of the operator;
+% - C.vars: N x 2 'pvar' array specifying the spatial variables (first 
+%           column) and dummy variables (second column) in terms of which
+%           the operator is defined;
+% - C.dom:  N x 2 'double' array specifying the intervals on which each of
+%           the spatial variables are defined;
+% - C.depmat1:  N x d 'double' array with element (i,j) specifying whether
+%               the operators in factor j map to spatial variable i. If
+%               factor j is a tensopvar object, element (i,j) may be bigger
+%               than 1, to indicate the operator maps to a higher-degree
+%               monomial in the spatial variable;
+% - C.depmat2:  N x d 'double' array with element (i,j) specifying whether
+%               the operators in factor j maps from spatial variable i. If
+%               factor j is a tensopvar object, element (i,j) may be bigger
+%               than 1, to indicate the operator maps from a higher-degree
+%               monomial in the spatial variable;
+% - C.type: 1 x 2 logical array specifying what type of tensor product is
+%           taken, set to true to indicate that a proper tensor product is
+%           taken along the row and column dimensions, or false to indicate
+%           that a pointwise product is taken. For example, if Rop is
+%           defined by Pop1,Pop2:L2^n[0,1] --> L2^m[0,1], then different
+%           values of "type" imply
+%               - (1,1):    Rop: L2^{n^2}[[0,1]^2] --> L2^{m^2}[[0,1]^2]
+%               - (0,1):    Rop: L2^{n^2}[[0,1]^2] --> L2^{m}[0,1]
+%               - (1,0):    Rop: L2^{n}[0,1] --> L2^{m^2}[[0,1]^2]
+%               - (0,0):    Rop: L2^{n}[0,1] --> L2^{m}[0,1]
+%
 % DEPENDENT properties
 % - C.varnames: d x 2 cell of which each row j specifies the primary (first
 %               column and dummy (second column) variables in which the
@@ -69,16 +73,18 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar_new
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 04/14/2026: Initial coding
+% DJ, 04/15/2026: Initial coding
 
 properties
     ops = {};
-    var1 = polynomial(zeros(0,0));
-    var2 = polynomial(zeros(0,0));
-    dom1 = zeros(0,0);
-    dom2 = zeros(0,0);
-    dim = zeros(1,2);
-    use_kron = true(1,2);
+    vars = polynomial(zeros(0,2));
+    dom = zeros(0,2);
+    depmat1 = zeros(0,0);
+    depmat2 = zeros(0,0);
+    type = [true,true];
+end
+properties (Dependent)
+    dim
 end
 properties (Dependent,Hidden)
     varnames
@@ -109,19 +115,38 @@ methods
             end
             if nargin==1
                 if isa(varargin{1},'nopvar') || isa(varargin{1},'ndopvar')
-                    C.ops{1} = varargin{1};
-                elseif isa(varargin{1},'double') && all(size(varargin{1})==[1,2])
-                    C.ops = cell(varargin{1});
+                    C = ndopvar2tensopvar_new(varargin{1});
                 else
                     error("Input must be 'nopvar' or 'ndopvar' object.")
-                end
-            elseif nargin==2
-                if isa(varargin{1},'double') && isa(varargin{2},'double')
-                    C.ops = cell(varargin{1},varargin{2});
                 end
             else
                 error("Too many input arguments")
             end
+        end
+    end
+
+    function dim = get.dim(obj)
+        % Determine the matrix dimensions of the operator
+        if isempty(obj.ops)
+            dim = [0,0];
+            return
+        end
+        % Establish the dimensions based on those of each factor
+        dim = [nan,nan];
+        dim_arr = obj.dims;
+        if obj.type(1) 
+            % Kronecker product
+            dim(1) = prod(dim_arr(:,1));
+        elseif max(dim_arr(:,1))==min(dim_arr(:,1))
+            % Elementwise product
+            dim(1) = dim_arr(1,1);
+        end
+        if obj.type(2) 
+            % Kronecker product
+            dim(2) = prod(dim_arr(:,2));
+        elseif max(dim_arr(:,2))==min(dim_arr(:,2))
+            % Elementwise product
+            dim(2) = dim_arr(1,2);
         end
     end
 

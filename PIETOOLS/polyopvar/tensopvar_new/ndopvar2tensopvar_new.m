@@ -45,13 +45,11 @@ end
 % Declare a tensor-PI operator involving just a single factor
 Top = tensopvar_new();
 Top.ops = {Pop};
-% Set spatial variables of output and input
-Top.var1 = Pop.var1;
-Top.var2 = Pop.var2;
-% Set spatial domains of output and input variables
-Top.dom1 = Pop.dom;
-Top.dom2 = Pop.dom;
-% Set the dimension of the operator
-Top.dim = Pop.dim;
+Top.type = false(1,2);
+% Set spatial variables and domain
+Top.vars = Pop.vars;
+Top.dom = Pop.dom;
+Top.depmat1 = ones(size(Top.vars,1),1);
+Top.depmat2 = ones(size(Top.vars,1),1);
 
 end
