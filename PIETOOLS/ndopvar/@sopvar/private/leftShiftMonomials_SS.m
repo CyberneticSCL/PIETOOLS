@@ -5,10 +5,10 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 % INPUTS
 %   varsA : cell array of variable names for ZA
 %   ZA    : cell array of exponent vectors for ZA
-%   CA    : (p*NA) x q coefficient matrix
+%   CA    : mxn cell of (p*NA) x q coefficient matrices
 %   varsB : cell array of variable names for ZB
 %   ZB    : cell array of exponent vectors for ZB
-%   CB    : (q*NB) x r coefficient matrix
+%   CB    : 1xn cell of (q*NB) x r coefficient matrices
 %
 % OUTPUTS
 %   varsC : output variable list
@@ -21,7 +21,6 @@ NB = prod(cellfun(@numel, ZB));  % length of ZB
 [mB,r] = size(CB); %as above
 
 p  = mA/NA;  % must be integer by default
-qB = mB/NB;
 
 varsC = union(varsA, varsB, 'stable');  % just merge the vars
 nC = numel(varsC);
@@ -46,11 +45,13 @@ end
 NC = prod(cellfun('length', ZC));
 
 % Expand ZA into exponent table aligned to varsC
+% ith row of EAc is the ith monomial in ZA but padded with varsC exponents 
+% i.e., varsA^{ZA} = varsC^EAc
 EAc = zeros(NA, nC);
 if ~isempty(varsA)
-    lenA = cellfun(@numel, ZA);
+    lenA = cellfun(@numel, ZA); % number of exponents in each varsA
     for t = 1:numel(varsA)
-        k = find(strcmp(varsC, varsA{t}), 1);
+        k = find(strcmp(varsC, varsA{t}), 1); % find location of varsA in varsC
         left  = prod(lenA(1:t-1));
         right = prod(lenA(t+1:end));
         EAc(:,k) = kron(ones(left,1), kron(ZA{t}(:), ones(right,1)));
@@ -88,23 +89,29 @@ idxA = size(CA,1);
 idxB = size(CA,2);
 for i=1:idxA
     for j=1:idxB
-A = permute(reshape(CA{i}{j}, [NA, p, q]), [2 3 1]);
+% A(:,:,i) = coefficient matrix of i-th monomial in A
+% B(:,:,j) = coefficient matrix of j-th monomial in B
+% in other words, 
+% (I\otimes ZA')*CA = sum_i A(:,:,i)*varsC{i}^EAc(i,:)
+% (I\otimes ZB')*CA = sum_i B(:,:,i)*varsC{i}^EBc(i,:)
+A = permute(reshape(CA{i,j}, [NA, p, q]), [2 3 1]);
 B = permute(reshape(CB{i}, [NB, q, r]), [2 3 1]);
 
 % Accumulate output coefficients
-G = zeros(p, r, NC);
-for i = 1:NA
+G = zeros(p, r, NC); % G(:,:,k) = coefficient matrix of k-th monomial in C
+% (I\otimes ZC')*CC = sum_i G(:,:,i)*varsC{i}^EC(i,:)
+for i = 1:NA  % now multiply each monomial of left polynomial with monomial of right polynomial
     Ai = A(:,:,i);
     ei = EAc(i,:);
     for j = 1:NB
-        e = ei+EBc(j,:);
-        k = find(all(EC==e,2),1);
+        e = ei+EBc(j,:); % we can add since all exponents are aligned to varsC
+        k = find(all(EC==e,2),1); % find where in ZC these should go
         G(:,:,k) = G(:,:,k)+Ai*B(:,:,j);
     end
 end
 
 % Pack back to (p*NC) x r
-CC{i}{j} = reshape(permute(G, [3 1 2]), [NC*p, r]);
+CC{i,j} = reshape(permute(G, [3 1 2]), [NC*p, r]);
     end
 end
 end
