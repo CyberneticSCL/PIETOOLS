@@ -8,7 +8,7 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 %   CA    : mxn cell of (p*NA) x q coefficient matrices
 %   varsB : cell array of variable names for ZB
 %   ZB    : cell array of exponent vectors for ZB
-%   CB    : 1xn cell of (q*NB) x r coefficient matrices
+%   CB    : 1xm cell of (q*NB) x r coefficient matrices
 %
 % OUTPUTS
 %   varsC : output variable list
@@ -17,8 +17,8 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 NA = prod(cellfun(@numel, ZA));  % length of ZA monomial vec
 NB = prod(cellfun(@numel, ZB));  % length of ZB
 
-[mA,q] = size(CA); %must be length(NA)*p x q   if (I\otimes ZA')*CA is pxq
-[mB,r] = size(CB); %as above
+[mA,q] = size(CA{1}); %must be length(NA)*p x q   if (I\otimes ZA')*CA is pxq
+[mB,r] = size(CB{1}); %as above
 
 p  = mA/NA;  % must be integer by default
 
@@ -38,7 +38,7 @@ for t = 1:nC
     else  % if present in both, multiply as kronecker product
         va = ZA{ia}(:);
         vb = ZB{ib}(:);
-        ZC{t} = unique(reshape(va + vb.', [], 1), 'stable');
+        ZC{t} = unique(reshape(va + vb.', [], 1));
     end
 end
 
@@ -87,15 +87,15 @@ end
 
 idxA = size(CA,1); 
 idxB = size(CA,2);
-for i=1:idxA
-    for j=1:idxB
+for I=1:idxA
+    for J=1:idxB
 % A(:,:,i) = coefficient matrix of i-th monomial in A
 % B(:,:,j) = coefficient matrix of j-th monomial in B
 % in other words, 
 % (I\otimes ZA')*CA = sum_i A(:,:,i)*varsC{i}^EAc(i,:)
 % (I\otimes ZB')*CA = sum_i B(:,:,i)*varsC{i}^EBc(i,:)
-A = permute(reshape(CA{i,j}, [NA, p, q]), [2 3 1]);
-B = permute(reshape(CB{i}, [NB, q, r]), [2 3 1]);
+A = permute(reshape(CA{I,J}, [NA, p, q]), [2 3 1]);
+B = permute(reshape(CB{I}, [NB, q, r]), [2 3 1]);
 
 % Accumulate output coefficients
 G = zeros(p, r, NC); % G(:,:,k) = coefficient matrix of k-th monomial in C
@@ -111,7 +111,7 @@ for i = 1:NA  % now multiply each monomial of left polynomial with monomial of r
 end
 
 % Pack back to (p*NC) x r
-CC{i,j} = reshape(permute(G, [3 1 2]), [NC*p, r]);
+CC{I,J} = reshape(permute(G, [3 1 2]), [NC*p, r]);
     end
 end
 end
