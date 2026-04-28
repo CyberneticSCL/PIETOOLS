@@ -17,6 +17,20 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 NA = prod(cellfun(@numel, ZA));  % length of ZA monomial vec
 NB = prod(cellfun(@numel, ZB));  % length of ZB
 
+
+% if varsA or varsB is empty, we include a dummy variable
+if NA == 0
+    varsA = {'<dummy_varA>'};
+    ZA = {[0]};
+    NA = 1;
+end
+
+if NB == 0
+    varsB = {'<dummy_varB>'};
+    ZB = {[0]};
+    NB = 1;
+end
+
 [mA,q] = size(CA{1}); %must be length(NA)*p x q   if (I\otimes ZA')*CA is pxq
 [~,r] = size(CB{1}); %as above
 
@@ -114,4 +128,13 @@ end
 CC{I,J} = reshape(permute(G, [3 1 2]), [NC*p, r]);
     end
 end
+
+% now we remove dummy variable if they exist
+var_names_removed = cellfun( ...
+    @(name) ~isempty(char(eraseBetween(string(name), "<", ">",'Boundaries','inclusive'))),...
+    varsC, 'UniformOutput',false); % names to rename
+var_names_removed = cell2mat(var_names_removed)
+varsC = varsC(var_names_removed);
+ZC = ZC(var_names_removed);
+
 end
