@@ -18,7 +18,7 @@ NA = prod(cellfun(@numel, ZA));  % length of ZA monomial vec
 NB = prod(cellfun(@numel, ZB));  % length of ZB
 
 [mA,q] = size(CA{1}); %must be length(NA)*p x q   if (I\otimes ZA')*CA is pxq
-[mB,r] = size(CB{1}); %as above
+[~,r] = size(CB{1}); %as above
 
 p  = mA/NA;  % must be integer by default
 
