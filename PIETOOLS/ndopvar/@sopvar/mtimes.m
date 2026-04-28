@@ -184,15 +184,22 @@ dom3b = B.dom_3(~idx3a,:);
 % first we build CA and CB indexed as CA{betaa}{betab} and
 % CB{alphaa}{alphab}
 colsbetaa = find(idx2a); colsbetab = find(~idx2a);
+if isempty(colsbetaa)
+CA = A.params;
+else
 CA = reshape(permute(A.params, [colsbetaa,colsbetab]), 3^numel(colsbetaa), 3^numel(colsbetab)); % this is a cell 
+end
 colsalphaa = find(idx3a); colsalphab = find(~idx3a);
+if isempty(colsalphab)
+    CB = B.params;
+else
 CB = reshape(permute(B.params, [colsalphaa,colsalphab]), 3^numel(colsalphaa), 3^numel(colsalphab));
-
+end
 
 % sum_betaa (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
 % = sum_betaa (I⊗ZLtemp(varLtemp)')CLtemp_betaab
 [varLtemp,ZLtemp,CLtemp_betaab]=leftShiftMonomials_SS( ...
-    A.vars.out,A.ZL,CA,vs2a,KZhat_s2a,kron(eye(A.dim(2)),Cs2a_betaa));
+    A.vars.out,A.ZL,CA,vs2a,KZhat_s2a,cellfun(@(x) kron(eye(A.dims(2)),x), Cs2a_betaa, UniformOutput=false));
 CLtemp = cell(1,size(CLtemp_betaab,2));
 for j=size(CLtemp_betaab,2)
     CLtemp{j} = CLtemp_betaab{1,j};
@@ -377,7 +384,7 @@ function [Cidx, Zint] = int_monomial(Z,idxAll,lims)
 % returns C*Zint = int(Z,idx,lims)
 if isempty(Z)
     Cidx{1} = 1;
-    Zint = [];
+    Zint = {[]};
     return;
 end
 
