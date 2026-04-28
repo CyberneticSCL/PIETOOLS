@@ -273,12 +273,11 @@ else
 end
 
 for i=1:size(C_gam_alp_beta,2)
-    C=1;
     idxB = idxbeta(i,:)';
     for j=1:size(C_gam_alp_beta,3)
         idxA = idxalpha(j,:)';
         gam = mapBetaAlpha2Gamma(idxB,idxA);
-
+        C=1;
         shiftMonomial = zeros(size(idxB));
         for k=1:length(idxA)
             E = ZG{k}; nE = length(E);
@@ -289,30 +288,28 @@ for i=1:size(C_gam_alp_beta,2)
                 case 111 % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
                 case 221  % G(t_3a_i);
-                    Ci(1:nE,[1,nE+2:2*nE+1]) = eye(nE);
+                    Ci(1:nE,[1,nE+2:2*nE]) = eye(nE);
                 case 331  % G(t_3a_i);
-                    Ci(1:nE,[1,nE+2:2*nE+1]) = eye(nE);
+                    Ci(1:nE,[1,nE+2:2*nE]) = eye(nE);
                 case 212  % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
                 case 222  % int_{s_3a_i}^{t_3a,i} eta_3a_i^E deta_3a_i = t_3a_i^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1); % THIS may need to change
                     Ci(1:nE,nE+2:2*nE+1) = diag(1./(E+1));
                     Ci(1:nE,2:nE+1) = -diag(1./(E+1));
                 case 232  % int_{s_3a_i}^{b(i)} eta_3a_i^E deta_3a_i = b(i)^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1);
-                    Ci(1:nE,1) = b(i).^(E+1)./(E+1);
+                    Ci(1:nE,1) = b(k).^(E+1)./(E+1);
                     Ci(1:nE,2:nE+1) = -diag(1./(E+1));
                 case 332  % int_{t_3a_i}^{b(i)} eta_3a_i^E deta_3a_i = b(i)^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);
-                    Ci(1:nE,1) = b(i).^(E+1)./(E+1);
+                    Ci(1:nE,1) = b(k).^(E+1)./(E+1);
                     Ci(1:nE,nE+2:2*nE+1) = -diag(1./(E+1));
-                    shiftMonomial(k) = 1;
                 case 313  % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
                 case 223  % int_{a(i)}^{t_3a_i} eta_3a_i^E deta_3a_i = t_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
-                    Ci(:,1) = -a(i).^(E+1)./(E+1);
-                    Ci(:,nE+2:2*nE+1) = diag(1./(E+1));
-                    shiftMonomial(k) = 1;
+                    Ci(1:nE,1) = -a(k).^(E+1)./(E+1);
+                    Ci(1:nE,nE+2:2*nE+1) = diag(1./(E+1));
                 case 323  % int_{a(i)}^{s_3a_i} eta_3a_i^E deta_3a_i = s_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
-                    Ci(:,1) = -a(i).^(E+1)./(E+1);
-                    Ci(:,2:nE+1) = diag(1./(E+1));
+                    Ci(1:nE,1) = -a(k).^(E+1)./(E+1);
+                    Ci(1:nE,2:nE+1) = diag(1./(E+1));
                 case 333  % int_{t_3a_i}^{s_3a,i} eta_3a_i^E deta_3a_i = s_3a_i^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);  % THIS may need to change
                     Ci(1:nE,2:nE+1) = diag(1./(E+1));
                     Ci(1:nE,nE+2:2*nE+1) = -diag(1./(E+1));
@@ -321,19 +318,20 @@ for i=1:size(C_gam_alp_beta,2)
             end
             if breakflag
                 lenZG = prod(cellfun(@(x) length(x)+1, ZG));
-                C = zeros(lenZG,lenZG);
+                C = zeros(2*lenZG-1,2*lenZG-1);
                 break;  % if one of the Ci is zero, kron is zero so exit loop
             else
                 C = kron(C,Ci);
             end
         end
-        CG = blkdiag(0,CG,CG);
-        Cnew = rearrangeCoef(kron(eye(q),C'),CG,q);  % convert (I_q⊗Zint(s,s_dum)'*C')*CG =(I_q⊗Zint(s,s_dum)')(I_q⊗C')*CG= (I_q⊗Zint(s)')Cnew(I⊗Zint(s_dum))
+        Cnew = rearrangeCoef(kron(eye(q),C'),blkdiag(0,CG,CG),q);  % convert (I_q⊗Zint(s,s_dum)'*C')*CG =(I_q⊗Zint(s,s_dum)')(I_q⊗C')*CG= (I_q⊗Zint(s)')Cnew(I⊗Zint(s_dum))
     end
-
-    gam = mat2cell(gam);
-    gamlin = sub2ind(Csize,gam{:});
-    C_gam_alp_beta(gamlin,i,j) = Cnew;
+    
+    gam = num2cell(gam);
+    for gidx = 1:numel(gam)
+        gamlin = sub2ind(Csize,gam{gidx,:});
+        C_gam_alp_beta{gamlin,i,j} = Cnew;
+    end
 end
 end
 
