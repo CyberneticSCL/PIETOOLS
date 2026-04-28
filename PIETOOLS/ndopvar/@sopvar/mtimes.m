@@ -126,10 +126,10 @@ for i=1:numel(A.params)
 end
 
 % split alpha and beta as [alpha_a, alpha_b] and [beta_a, beta_b]
-[idx2a,~] = ismember(A.vars_S3,v2a);
+[idx2a,~] = ismember(A.vars_S3,vs2a);
 beta_a = betaIdx(:,idx2a);
 beta_b = betaIdx(:,~idx2a);
-[idx3a,~] = ismember(B.vars_S3,v3a);
+[idx3a,~] = ismember(B.vars_S3,vs3a);
 alpha_a = alphaIdx(:,idx3a);
 alpha_b = alphaIdx(:,~idx3a);
 
@@ -137,7 +137,7 @@ alpha_b = alphaIdx(:,~idx3a);
 % above. Need to revisit functions below to ensure this is handled
 % appropriately!!!
 
-[idx2b,~] = ismember(B.vars_S2,v2b);
+[idx2b,~] = ismember(B.vars_S2,vs2b);
 dom2b = B.dom_2(idx2b,:);
 dom2a = A.dom_3(idx2a,:);
 dom3a = B.dom_3(idx3a,:);
@@ -145,7 +145,7 @@ dom3b = B.dom_3(~idx3a,:);
 
 % do int(A.ZR*B.ZL', s2b) = (I⊗Zhat_s2a')*G_s3a(s3a)*(I⊗Zhat_s3b)
 [Zhat_s2a,G_s3a,Zhat_s3b] = ...
-        int_2b(A.ZR,B.ZL,strrep(A.nt,'t','s'),B.ns, vs2a,vs2b,vs3a,vs3b, dom2b);
+        int_2b(A.ZR,B.ZL,strrep(A.vars.in,'t','s'),B.vars.out, vs2a,vs2b,vs3a,vs3b, dom2b);
 
 [Cs2a_betaa, KZhat_s2a] = int_monomial(Zhat_s2a,beta_a,dom2a);   % note that KZhat_s2a has been expanded to ensure independence of beta_a
 [Cs3b_alphab, KZhat_s3b] = int_monomial(Zhat_s3b,alpha_b,dom3b);  % same for KZhat_s3b
@@ -284,6 +284,7 @@ for i=1:size(C_gam_alp_beta,2)
             E = ZG{k}; nE = length(E);
             Ci = zeros(2*nE+1,2*nE+1);
             key = 100*gam(k)+10*idxB(k)+idxA(k);
+            breakflag =0;
             switch key
                 case 111 % G(s_3a_i)
                     Ci(1:nE,1:nE) = eye(nE);
@@ -326,7 +327,8 @@ for i=1:size(C_gam_alp_beta,2)
                 C = kron(C,Ci);
             end
         end
-        Cnew = rearrangeCoef(kron(eye(q),CG'),C,q);  % convert (I_q⊗Zint(s,s_dum)'*C')*CG =(I_q⊗Zint(s,s_dum)')(I_q⊗C')*CG= (I_q⊗Zint(s)')Cnew(I⊗Zint(s_dum))
+        CG = blkdiag(0,CG,CG);
+        Cnew = rearrangeCoef(kron(eye(q),C'),CG,q);  % convert (I_q⊗Zint(s,s_dum)'*C')*CG =(I_q⊗Zint(s,s_dum)')(I_q⊗C')*CG= (I_q⊗Zint(s)')Cnew(I⊗Zint(s_dum))
     end
 
     gam = mat2cell(gam);
@@ -336,7 +338,9 @@ end
 end
 
 function Cout = rearrangeCoef(Cmul,C,q)
-% convert (I_q⊗Zint(s,s_dum)'*C')*CG =(I_q⊗Zint(s,s_dum)')(I_q⊗C')*CG= (I_q⊗Zint(s)')Cnew(I⊗Zint(s_dum))
+% convert (I_q⊗Zint(s,s_dum)'*C1')*CG =(I_q⊗Zint(s,s_dum)')(I_q⊗C1')*CG=
+% (I_q⊗Zint(s)')Cnew(I⊗Zint(s_dum))  
+% Cmul = (I_q⊗C1') and C = CG
 Cout = Cmul*C;
 [nrows, N] = size(Cout);
 nz = nrows/q;
@@ -373,6 +377,11 @@ function [Cidx, Zint] = int_monomial(Z,idxAll,lims)
 % int(si^Z{i}, si, a(i), si) if idx(i) = 2
 % int(si^Z{i}, si, si, b(i)) if idx(i) = 3
 % returns C*Zint = int(Z,idx,lims)
+if isempty(Z)
+    Cidx{1} = 1;
+    Zint = [];
+    return;
+end
 
 Cidx = cell(1,size(idxAll,1));  % storing C_betaa for all beta_a (or C_alphab for all alpha_b)
 
@@ -523,15 +532,15 @@ end
 
 % now we have 
 % (Z2a*Zp2a')⊗C2b⊗(Z3a*Zp3a')⊗(Z3b*Zp3b')
-%  = ((I2a \otimes Z2anew')*K2a)
+%  = ((I2a \otimes Z2ap')*K2a)
 %      ⊗C2b
 %        ⊗(I3a0 ⊗ Z3anew')*K3a
-%          ⊗(K3b*(I3b \otimes Z3bnew))
+%          ⊗(K3b*(I3b \otimes Z3bp))
 
 % let us focus on finding
 % K2a⊗C2b⊗((I3a0 ⊗ Z3anew')*K3a)⊗K3b
-tempA = kron(K2a,C2b);
-tempB = K3b;
+A = kron(K2a,C2b);
+B = K3b;
 r3a  = prod(cellfun(@length,ZL3a));
 c3a  = prod(cellfun(@length,ZR3a));
 nz3a = prod(cellfun(@length,Z3anew));
@@ -564,7 +573,7 @@ C3a = kron(kron(kron(A,speye(r3a)),speye(mB)),speye(nz3a)) ...
 % ((I2a⊗Z2anew')⊗I⊗I⊗I) = (Im⊗ Z2anew')*P2a
 % (I⊗I⊗I⊗Z3bnew) does not need any permutation
 % sizes
-n2a = prod(cellfun(@length,Z2anew));   % size of Z2anew block
+n2a = prod(cellfun(@length,Z2ap));   % size of Z2anew block
 n3a = prod(cellfun(@length,Z3anew));   % size of Z3anew block
 nI3a = size(C3a,1) / n3a;              % row identity size in (I3a ⊗ Z3anew')*C3a
 nrest = nI3a;                          % same block that sits to the right of Z2anew
@@ -600,7 +609,64 @@ C3a = Q2a*C3a;
 
 %finally, we have 
 % (Im⊗ Z2anew')*(I3anew⊗Z3anew')*C3a*(In⊗Z3bnew)
-Z2aout = Z2anew;
-Z3bout = Z3bnew;
-G3aout = struct('C', C3a, 'Z', Z3anew);
+Z2aout = Z2ap;
+Z3bout = Z3bp;
+G3aout = struct('C', C3a, 'Z', {Z3anew});
+end
+
+function G = mapBetaAlpha2Gamma(alpha, beta)
+% mapAlphaBetaToGamma  Map multi-indices alpha,beta (values in {1,2,3})
+% to all possible gamma multi-indices under the specified per-component rule.
+%
+% Inputs:
+%   alpha, beta : 1xd or d x 1 integer vectors with entries in {1,2,3}
+%
+% Output:
+%   G : N x d integer matrix. Each row is one gamma multi-index.
+%       N = product over i of number of possible gamma_i values.
+
+    % Ensure row vectors
+    if iscell(alpha)
+        alpha = cell2mat(alpha);
+    end
+    if iscell(beta)
+        beta = cell2mat(beta);
+    end
+
+    alpha = alpha(:).';
+    beta  = beta(:).';
+    d = numel(alpha);
+
+    if numel(beta) ~= d
+        error('alpha and beta must have the same length.');
+    end
+
+    % Build per-dimension option lists for gamma_i
+    opts = cell(1, d);
+    for i = 1:d
+        opts{i} = gammaOptions(alpha(i), beta(i));
+    end
+
+    % Cartesian product across dimensions to form all gamma multi-indices
+    grids = cell(1, d);
+    [grids{:}] = ndgrid(opts{:});   % each grids{i} is an array of size |opts1|x...x|optsd|
+    
+    N = numel(grids{1});
+    G = zeros(N, d);
+    for i = 1:d
+        G(:, i) = grids{i}(:);
+    end
+end
+
+function gi = gammaOptions(a, b)
+% gammaOptions  Return the vector of possible gamma values for one component.
+
+    % Mapping table as cell array: row=a, col=b
+    T = { ...
+        1,   2,    3; ...
+        2,   2,   [2 3]; ...
+        3,  [2 3], 2 ...
+    };
+
+    gi = T{a, b};
 end
