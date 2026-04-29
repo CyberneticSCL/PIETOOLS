@@ -207,7 +207,7 @@ end
     A.vars.out,A.ZL,CA,vs2a,KZhat_s2a, ...
     cellfun(@(x) kron(eye(Gs3adim(1)),x), Cs2a_betaa, UniformOutput=false));
 CLtemp = cell(1,size(CLtemp_betaab,2));
-for j=size(CLtemp_betaab,2)
+for j=1:size(CLtemp_betaab,2)
     CLtemp{j} = CLtemp_betaab{1,j};
     for i=2:size(CLtemp_betaab,1)
         CLtemp{j} = CLtemp{j} + CLtemp_betaab{i,j};   % adding along beta_a
@@ -226,8 +226,8 @@ end
 % note above that since we used leftShiftMonomials function by transposing
 % everything the output is not CRtemp(alpha_a,alpha_b) but CRtemp(alpha_b,alpha_a)
 % so to sum along alpha_b we will again sum along first index and not 2nd.
-CRtemp = cell(1,size(CRtemp_alphaba,2));
-for j=size(CRtemp_alphaba,2)
+CRtemp = cell(size(CRtemp_alphaba,2),1);
+for j=1:size(CRtemp_alphaba,2)
     CRtemp{j} = CRtemp_alphaba{1,j};
     for i=2:size(CRtemp_alphaba,1)
         CRtemp{j} = CRtemp{j}+CRtemp_alphaba{i,j};  % adding along alpha_b
@@ -246,11 +246,11 @@ end
 % now shift barZ_3aL too
 % (I⊗ZLtemp(varLtemp)')*CLtemp(betab)*(I⊗barZ_3aL')
 [Cvarsout,CZL,CLtemp_betab]=leftShiftMonomials_SS( ...
-    varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,eye(A.dims(2)*prod(cellfun(@numel,barZ_3aL))));
+    varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,{eye(Gs3adim(1)*prod(cellfun(@numel,barZ_3aL)))});
 
 % likewise for right side
 [Cvarsin,CZR,CRtemp_alphaa]=leftShiftMonomials_SS( ...
-    varRtemp,ZRtemp,CRtemp.',vs3a,barZ_3aR,eye(B.dims(1)*prod(cellfun(@numel,barZ_3aR))));
+    varRtemp,ZRtemp,CRtemp.',vs3a,barZ_3aR,{eye(Gs3adim(2)*prod(cellfun(@numel,barZ_3aR)))});
 
 
 for i=1:length(Cparams)
