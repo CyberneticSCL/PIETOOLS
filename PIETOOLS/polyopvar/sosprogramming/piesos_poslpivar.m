@@ -135,13 +135,13 @@ end
 excludeL = zeros([3*ones(1,N),1]);
 psatz = 0;
 use_sep = 0;
-if nargin>=3 && isfield(opts,'exclude')
+if nargin>=4 && isfield(opts,'exclude')
     excludeL = opts.exclude;
 end
-if nargin>=3 && isfield(opts,'psatz')
+if nargin>=4 && isfield(opts,'psatz')
     psatz = reshape(opts.psatz,1,[]);
 end
-if nargin>=3 && isfield(opts,'sep')
+if nargin>=4 && isfield(opts,'sep')
     use_sep = opts.sep;
 end
 if use_sep
@@ -153,7 +153,9 @@ end
 Pdim = 0;
 Pdim_arr = zeros(nZ,1);
 %d_ii = prod(pdegs+1);
-Zop = tensopvar();
+Zop = tensopmat();
+Zop.vars = pvars;
+Zop.dom = dom;
 for ii=1:nZ
     xdeg_ii = xdegs(ii,:);
     dtot = sum(xdeg_ii);
@@ -161,6 +163,8 @@ for ii=1:nZ
     if dtot==0
         % For constant monomial, just multiply with vector in s
         Zop.ops{ii,ii} = 1;
+        Zop.depmat1 = [Zop.depmat1; ones(1,size(pvars,1))];
+        Zop.depmat2 = [Zop.depmat2; zeros(1,size(pvars,1))];
         Pdim = Pdim + 1;
         Pdim_arr(ii) = 1;
     elseif dtot==1
@@ -198,7 +202,9 @@ for ii=1:nZ
             Ccell{3} = sparse(r_idcs+r_shft,c_idcs,1,m_tot,d_ii);
         end
         Z_ii.C = Ccell;
-        Zop.ops{ii,ii} = Z_ii;
+        Zop.ops{ii,ii} = ndopvar2tensopvar(Z_ii);
+        Zop.depmat1 = [Zop.depmat1; ones(1,size(pvars,1))];
+        Zop.depmat2 = [Zop.depmat2; ones(1,size(pvars,1))];
         Pdim = Pdim + Z_ii.dim(1);
         Pdim_arr(ii) = Z_ii.dim(1);
     else
@@ -206,7 +212,14 @@ for ii=1:nZ
         % --> include a basis of 2-PI operators acting on each state
         % variable,
         %   (Z{1}*x1)(s)*(Z{2}*x2)(s)
-        Z_ii = cell(1,dtot);
+        Z_ii = tensopvar();
+        Z_ii.ops = cell(1,dtot);
+        Z_ii.type = [false,true];
+        Z_ii.vars = pvars;
+        Z_ii.dom = dom;
+        Z_ii.depmat1 = ones(1,size(pvars,1));
+        Z_ii.depmat2 = ones(1,size(pvars,1));
+
         degs_ii = pdegs{ii}(:,2);
         d_ii = prod(degs_ii+1);
         m_arr = d_ii*(~excludeL(2)+~excludeL(3))*ones(1,dtot);
@@ -245,10 +258,12 @@ for ii=1:nZ
                 Ccell{3} = sparse(m_tot,d_ii);
             end
             Zjj.C = Ccell;
-            Z_ii{jj} = Zjj;
+            Z_ii.ops{jj} = Zjj;
         end
         % Store the operators as a diagonal
         Zop.ops{ii,ii} = Z_ii;
+        Zop.depmat1 = [Zop.depmat1; ones(1,size(pvars,1))];
+        Zop.depmat2 = [Zop.depmat2; dtot*ones(1,size(pvars,1))];
         Pdim = Pdim + prod(m_arr);
         Pdim_arr(ii) = prod(m_arr);
     end

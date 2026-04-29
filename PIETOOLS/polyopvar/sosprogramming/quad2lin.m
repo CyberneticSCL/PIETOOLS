@@ -8,11 +8,11 @@ function Vx = quad2lin(Pmat,ZopL,ZxL,ZopR,ZxR)
 % INPUTS
 % - Pmat:   m x n 'double' or 'dpvar' object representing the coefficients
 %           parameterizing V(x) in the quadratic format;
-% - ZopL:   m x d1 'tensopvar' object representing the coefficient
+% - ZopL:   m x d1 'tensopmat' object representing the coefficient
 %           operators acting on the distributed monomials ZxL;
 % - ZxL:    d1 x 1 'polyopovar' object representing a basis of distributed
 %           monomials;
-% - ZopR:   n x d2 'tensopvar' object representing the coefficient
+% - ZopR:   n x d2 'tensopmat' object representing the coefficient
 %           operators acting on the distributed monomials ZxR. Defaults to
 %           ZopL if not specified;
 % - ZxR:    d2 x 1 'polyopovar' object representing a basis of distributed
@@ -78,34 +78,34 @@ old2new_idcs = M*(1:size(degmat_lin,1))';               % degmat_full = degmat_l
 % Get the dimensions of the different operators
 blkdimL = zeros(nZL,1);
 for ii=1:nZL
-    tmp = ZopL{ii,ii};
-    blkdimL(ii) = tmp.matdim(1);
+    tmp = ZopL.ops{ii,ii};
+    blkdimL(ii) = tmp.dim(1);
 end
 blkdimL_cum = [0;cumsum(blkdimL)];
 blkdimR = zeros(nZR,1);
 for ii=1:nZR
-    tmp = ZopR{ii,ii};
-    blkdimR(ii) = tmp.matdim(1);
+    tmp = ZopR.ops{ii,ii};
+    blkdimR(ii) = tmp.dim(1);
 end
 blkdimR_cum = [0;cumsum(blkdimR)];
 
 % Initialize an empty polynomial in the same variables as ZxL
 tmp_poly = ZxL;
-tmp_poly.C = tensopvar();
+tmp_poly.C = ZopL;
 tmp_poly.degmat = zeros(0,numel(ZxL.varname));
-Vx = tmp_poly;
+Vx = 0;
 for ii=1:nZL
     % Extract the monomial operators acting on the ith distributed
     % monomials
     Zop_ii = ZxL;
     Zop_ii.degmat = degmatL(ii,:);
-    Zop_ii.C = ZopL{ii,ii};
+    Zop_ii.C.ops = ZopL.ops(ii,ii);
     for jj=(ii-1)*is_symmetric+1:nZR
         % Extract the monomial operators acting on the jth distributed
         % monomial
         Zop_jj = ZxR;
         Zop_jj.degmat = degmatR(jj,:);
-        Zop_jj.C = ZopR{jj,jj};
+        Zop_jj.C.ops = ZopR.ops(jj,jj);
         %Zop_jj = ZopR(jj,jj);
         % Extract the block of decision variables acting on monomials Zi
         % and Zj
@@ -123,7 +123,9 @@ for ii=1:nZL
         % Match the obtained kernels with the correct distributed monomial
         lidx = old2new_idcs((ii-1)*nZL+jj);
         Kpoly_ij = tmp_poly;
-        Kpoly_ij.C.ops{1} = Kij;
+        Kpoly_ij.C.ops = {Kij};
+        Kpoly_ij.C.depmat1 = 0;
+        Kpoly_ij.C.depmat2 = sum(degmat_lin(lidx,:));
         Kpoly_ij.degmat = degmat_lin(lidx,:);
         % Get rid of duplicate terms in the functional, and add to Vx
         Kpoly_ij = combine_terms(Kpoly_ij);
