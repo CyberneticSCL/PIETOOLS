@@ -36,7 +36,7 @@ end
 
 p  = mA/NA;  % must be integer by default
 
-varsC = union(varsA, varsB, 'stable');  % just merge the vars
+varsC = union(varsA, varsB);  % just merge the vars
 nC = numel(varsC);
 
 % Build output basis per variable

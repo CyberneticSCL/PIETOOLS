@@ -148,6 +148,7 @@ dom3b = B.dom_3(~idx3a,:);
 % do int(A.ZR*B.ZL', s2b) = (I⊗Zhat_s2a')*G_s3a(s3a)*(I⊗Zhat_s3b)
 [Zhat_s2a,G_s3a,Zhat_s3b] = ...
         int_2b(A.ZR,B.ZL,A.vars.in,B.vars.out,vs2a,vs2b,vs3a,vs3b,dom2b);
+Gs3adim = [size(G_s3a.C,1)/prod(cellfun(@numel,G_s3a.Z)),size(G_s3a.C,2)];
 
 [Cs2a_betaa, KZhat_s2a] = int_monomial(Zhat_s2a,beta_a,dom2a);   % note that KZhat_s2a has been expanded to ensure independence of beta_a
 [Cs3b_alphab, KZhat_s3b] = int_monomial(Zhat_s3b,alpha_b,dom3b);  % same for KZhat_s3b
@@ -162,6 +163,8 @@ dom3b = B.dom_3(~idx3a,:);
 % = (I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))
 % next we need to perform int(G_s3a(s3a),s3a) = (I⊗barZ_3aL')*C_(gam,beta,alp)*(I⊗barZ_3aR)
 [C_gam_alp_beta,barZ_3aL,barZ_3aR] = int_semisep(G_s3a,beta_b,alpha_a,dom3a); 
+
+
 
 
 % looking at the original composition, we have  K^C_gamma = 
@@ -193,7 +196,7 @@ CA = reshape(permute(A.params, [colsbetaa,colsbetab]), 3^numel(colsbetaa), 3^num
 end
 colsalphaa = find(idx3a); colsalphab = find(~idx3a);
 if isempty(colsalphab)
-    CB = B.params;
+    CB = B.params';
 else
 CB = reshape(permute(B.params, [colsalphaa,colsalphab]), 3^numel(colsalphaa), 3^numel(colsalphab));
 end
@@ -202,7 +205,7 @@ end
 % = sum_betaa (I⊗ZLtemp(varLtemp)')CLtemp_betaab
 [varLtemp,ZLtemp,CLtemp_betaab]=leftShiftMonomials_SS( ...
     A.vars.out,A.ZL,CA,vs2a,KZhat_s2a, ...
-    cellfun(@(x) kron(eye(A.dims(2)),x), Cs2a_betaa, UniformOutput=false));
+    cellfun(@(x) kron(eye(Gs3adim(1)),x), Cs2a_betaa, UniformOutput=false));
 CLtemp = cell(1,size(CLtemp_betaab,2));
 for j=size(CLtemp_betaab,2)
     CLtemp{j} = CLtemp_betaab{1,j};
@@ -217,7 +220,7 @@ end
 % = sum_alphab (I⊗CRtemp_alphaab)*(I⊗ZRtemp(varRtemp))
 [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
     B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b, ...
-    cellfun(@(x) kron(eye(B.dims(1)),x), Cs3b_alphab, UniformOutput=false).');
+    cellfun(@(x) kron(eye(Gs3adim(2)),x), Cs3b_alphab, UniformOutput=false).');
 % [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
 %     B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b, kron(eye(B.dim(1)),Cs3b_alphab)');  % verify that CB.' not just transposes cell rows/columns but also matrix rows/columns
 % note above that since we used leftShiftMonomials function by transposing
@@ -243,11 +246,11 @@ end
 % now shift barZ_3aL too
 % (I⊗ZLtemp(varLtemp)')*CLtemp(betab)*(I⊗barZ_3aL')
 [Cvarsout,CZL,CLtemp_betab]=leftShiftMonomials_SS( ...
-    varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,eye(A.dim(2)*prod(cellfun(@numel,barZ_3aL))));
+    varLtemp,ZLtemp,CLtemp,vs3a,barZ_3aL,eye(A.dims(2)*prod(cellfun(@numel,barZ_3aL))));
 
 % likewise for right side
 [Cvarsin,CZR,CRtemp_alphaa]=leftShiftMonomials_SS( ...
-    varRtemp,ZRtemp,CRtemp.',vs3a,barZ_3aR,eye(B.dim(1)*prod(cellfun(@numel,barZ_3aR))));
+    varRtemp,ZRtemp,CRtemp.',vs3a,barZ_3aR,eye(B.dims(1)*prod(cellfun(@numel,barZ_3aR))));
 
 
 for i=1:length(Cparams)
@@ -291,7 +294,6 @@ for i=1:size(C_gam_alp_beta,2)
         idxA = idxalpha(j,:)';
         gam = mapBetaAlpha2Gamma(idxB,idxA);
         C=1;
-        shiftMonomial = zeros(size(idxB));
         for k=1:length(idxA)
             E = ZG{k}; nE = length(E);
             Ci = zeros(2*nE+1,2*nE+1);
@@ -425,13 +427,9 @@ Cidx{i} = C;
 end
 end
 
-<<<<<<< HEAD
-function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar,s2a,s2b,s3a,s3b,lims)
-=======
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar, s2a,s2b,s3a,s3b,lims)
->>>>>>> 091796003159514d05a24a16bb99c5dccbac2651
 % This performs the factorization
 % int(ZL*ZR',s2b,0,1) = (Im\otimes Z2a') G(s3a) (In\otimes Z3b)
 % where m = length(kron(ZL)) and n = length(kron(ZR))
@@ -544,9 +542,9 @@ end
 %      ⊗C2b
 %        ⊗(I3a ⊗ Z3anew')*K3a
 %          ⊗(K3b*(I3b ⊗ Z3bnew))
-
+% = ((I2a ⊗ Z2anew')⊗I⊗I⊗I) (K2a⊗C2b⊗((I3a ⊗ Z3anew')*K3a)⊗K3b) (I⊗I⊗I⊗(I3b ⊗ Z3bnew))
 % let us focus on finding
-% K2a⊗C2b⊗((I3a ⊗ Z3anew')*K3a)⊗K3b
+% K2a⊗C2b⊗((I3a ⊗ Z3anew')*K3a)⊗K3b = G(s3a)
 A = kron(K2a,C2b);
 B = K3b;
 r3a  = prod(cellfun(@length,ZL3a));
@@ -581,7 +579,7 @@ C3a = kron(kron(kron(A,speye(r3a)),speye(mB)),speye(nz3a)) ...
 % ((I2a⊗Z2anew')⊗I⊗I⊗I) = (Im⊗ Z2anew')*P2a
 % (I⊗I⊗I⊗Z3bnew) does not need any permutation
 % sizes
-n2a = prod(cellfun(@length,Z2ap));   % size of Z2anew block
+n2a = prod(cellfun(@length,Z2anew));   % size of Z2anew block
 n3a = prod(cellfun(@length,Z3anew));   % size of Z3anew block
 nI3a = size(C3a,1) / n3a;              % row identity size in (I3a ⊗ Z3anew')*C3a
 nrest = nI3a;                          % same block that sits to the right of Z2anew
@@ -617,8 +615,8 @@ C3a = Q2a*C3a;
 
 %finally, we have 
 % (Im⊗ Z2anew')*(I3anew⊗Z3anew')*C3a*(In⊗Z3bnew)
-Z2aout = Z2ap;
-Z3bout = Z3bp;
+Z2aout = Z2anew;
+Z3bout = Z3bnew;
 G3aout = struct('C', C3a, 'Z', {Z3anew});
 end
 
