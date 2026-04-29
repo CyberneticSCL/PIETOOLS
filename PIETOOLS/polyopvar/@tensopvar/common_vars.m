@@ -9,8 +9,7 @@ function [A_out,B_out] = common_vars(A_in,B_in)
 % - A_out, B_out:   'tensopvar' objects representing the same tensor-PI
 %                   operators as A_in, B_in, respectively, but now 
 %                   expressed in terms of the same variables, so that
-%                       A_out.var1 = B_out.var1;    A_out.dom1 = B_out.dom1;
-%                       A_out.var2 = B_out.var2;    A_out.dom2 = B_out.dom2;
+%                       A_out.vars = B_out.vars;    A_out.dom = B_out.dom;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,14 +59,14 @@ dom_AB = [dom_A; dom_B];
 dom_AB = dom_AB(old2new_idcs,:);
 
 % Augment depmats to account for merging of variables
-depmat1_A_new = zeros(nvar,size(depmat1_A,2));
-depmat1_A_new(var_idcs_A,:) = depmat1_A;
-depmat2_A_new = zeros(nvar,size(depmat2_A,2));
-depmat2_A_new(var_idcs_A,:) = depmat2_A;
-depmat1_B_new = zeros(nvar,size(depmat1_B,2));
-depmat1_B_new(var_idcs_B,:) = depmat1_B;
-depmat2_B_new = zeros(nvar,size(depmat2_B,2));
-depmat2_B_new(var_idcs_B,:) = depmat2_B;
+depmat1_A_new = zeros(size(depmat1_A,1),nvar);
+depmat1_A_new(:,var_idcs_A) = depmat1_A;
+depmat2_A_new = zeros(size(depmat2_A,1),nvar);
+depmat2_A_new(:,var_idcs_A) = depmat2_A;
+depmat1_B_new = zeros(size(depmat1_B,1),nvar);
+depmat1_B_new(:,var_idcs_B) = depmat1_B;
+depmat2_B_new = zeros(size(depmat2_B,1),nvar);
+depmat2_B_new(:,var_idcs_B) = depmat2_B;
 
 % Declare the tensor-PI operators in terms of the same variables
 A_out = A_in;                   B_out = B_in;

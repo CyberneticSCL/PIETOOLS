@@ -34,7 +34,7 @@ function out = subsasgn(obj,ref,RHS)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/16/2026: Initial coding
+% DJ, 04/28/2026: Initial coding
 
 
 switch ref(1).type

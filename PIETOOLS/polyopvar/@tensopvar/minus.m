@@ -1,6 +1,6 @@
 function C = minus(A,B)
 % C = MINUS(A,B) returns the 'tensopvar' object C representing the
-% difference betweeen the coefficient operators defined by the 'tensopvar' 
+% difference betweeen the tensor-PI operators defined by the 'tensopvar' 
 % objects A and B
 %
 % INPUTS
@@ -9,7 +9,7 @@ function C = minus(A,B)
 %
 % OUTPUTS
 % - C:      m x n 'tensopvar' object representing the difference between
-%           the coefficient operators defined by A and B
+%           the tensor-PI operators defined by A and B
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,7 +36,7 @@ function C = minus(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/26/2026: Initial coding
+% DJ, 04/24/2026: Initial coding
 
 C = plus(A,uminus(B));
 

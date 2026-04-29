@@ -38,7 +38,7 @@ function out = subsref(obj,ref)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/16/2026: Initial coding
+% DJ, 04/29/2026: Initial coding
 
 if isempty(ref)
     return
@@ -51,7 +51,10 @@ switch ref(1).type
         
     case '()'
         % When calling C(i,j), just extract C.ops(i,j);
-        matdim = obj.matdim;
+        if (obj.type(1) && size(obj,1)>1) || (obj.type(2) && size(obj,2)>1)
+            error("'()'-type subsref is currently not supported for Kronecker products in 'tensopvar' objects.")
+        end
+        matdim = obj.dim;
         if isscalar(ref(1).subs)
             % % Distinguish case of linear indexing
             error("Linear indexing of 'tensopvar' objects is not supported.")
@@ -82,18 +85,10 @@ switch ref(1).type
             % Extract elements of the PI or integral operators
             % corresponding to the desired row and column numbers
             out = obj;
-            for j=1:size(out.ops,2)
-                if isa(obj.ops{1,j},'cell')
-                    for k=1:numel(obj.ops{1,j})
-                        op_k = obj.ops{1,j}{k};
-                        op_k = op_k(indr,indc);
-                        out.ops{1,j}{k} = op_k;
-                    end
-                else
-                    op_j = obj.ops{1,j};
-                    op_j = op_j(indr,indc);
-                    out.ops{1,j} = op_j;
-                end
+            for j=1:numel(out.ops)
+                op_j = obj.ops{j};
+                op_j = op_j(indr,indc);
+                out.ops{j} = op_j;
             end
 
             % Perform remaining subsref

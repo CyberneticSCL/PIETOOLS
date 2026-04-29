@@ -35,20 +35,13 @@ function C_out = uminus(C_in)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/26/2026: Initial coding
+% DJ, 04/14/2026: Initial coding
 
 C_out = C_in;
-for kk=1:numel(C_out.ops)
-    if isa(C_out.ops{kk},'cell')
-        % Tensor product of PI operators, (T1*x)*(T2*x)
-        % --> multiply only the first factor in each term with -1
-        for ii=1:size(C_out.ops{kk},1)
-            C_out.ops{kk}{ii,1} = -C_out.ops{kk}{ii,1};
-        end
-    else
-        % Single PI operator, Top*x
-        C_out.ops{kk} = -C_out.ops{kk};
-    end
+for i=1:size(C_out.ops,1)
+    % Mutliply only the first factor in each term in the tensor-PI operator
+    % with -1
+    C_out.ops{i,1} = -C_out.ops{i,1};
 end
 
 end

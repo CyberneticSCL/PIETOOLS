@@ -56,18 +56,9 @@ end
 Adim = size(A);     Bdim = size(B);
 if all(Adim==1)    
     C = B;
-    for j=1:numel(C.ops)
-        Cj = C.ops{j};
-        if isa(Cj,'cell')
-            % Multiply the first factor of each term with A
-            for i=1:size(Cj,1)
-                Cj{i,1} = A*Cj{i,1};
-            end
-        else
-            % Multiply the operator acting on the jth monomial with A
-            Cj = A*Cj;
-        end
-        C.ops{j} = Cj;
+    for i=1:size(C.ops,1)
+        % Multiply the first factor of each term with A
+        C.ops{i,1} = A*B.ops{i,1};
     end
     return
 end
@@ -94,34 +85,24 @@ if Adim(2)~=Bdim(2)
     end
 end
 
-% Multiply each of the operators stored in B by A
+% Update dimensions of operator to account for dimensions of B
 C = B;
-for j=1:numel(C.ops)
-    Cj = C.ops{j};
-    if isa(Cj,'cell')
-        % Update dimensions of operator to account for dimensions of B
-        if isdim1(1) && isdim1(2)
-            for l=1:numel(Cj)
-                Cj{l} = ones(Adim(1),Adim(2)).*Cj{l};
-            end
-        elseif isdim1(1)
-            for l=1:numel(Cj)
-                Cj{l} = ones(Adim(1),1).*Cj{l};
-            end
-        elseif isdim1(2)
-            for l=1:numel(Cj)
-                Cj{l} = ones(1,Adim(2)).*Cj{l};
-            end
-        end
-        % Multiply the first factor of each term with A
-        for i=1:size(Cj,1)
-            Cj{i,1} = A.*Cj{i,1};
-        end
-    else
-        % Multiply the operator acting on the jth monomial with A
-        Cj = A.*Cj;
+if isdim1(1) && isdim1(2)
+    for l=1:numel(C.ops)
+        C.ops{l} = ones(Adim(1),Adim(2)).*C.ops{l};
     end
-    C.ops{j} = Cj;
+elseif isdim1(1)
+    for l=1:numel(C.ops)
+        C.ops{l} = ones(Adim(1),1).*C.ops{l};
+    end
+elseif isdim1(2)
+    for l=1:numel(C)
+        C.ops{l} = ones(1,Adim(2)).*C.ops{l};
+    end
+end
+% Multiply the first factor of each term with A
+for i=1:size(C.ops,1)
+    C.ops{i,1} = A.*C.ops{i,1};
 end
 
 end

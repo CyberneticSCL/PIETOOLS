@@ -38,7 +38,7 @@ function C = mtimes(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 03/03/2026: Initial coding
+% DJ, 04/22/2026: Initial coding
 
 % Check that multiplication is supported
 if isa(A,'tensopvar') && isa(B,'tensopvar')
@@ -59,21 +59,7 @@ if Adim(2)~=Bdim(1) && ~all(Adim==1)
 end
 
 % Allow for multiplcation with operator
-if isa(A,'intop')
-    deg = numel(A.pvarname);
-    if any(sum(A.degmat,2)~=deg)
-        error("Degree of monomials does not match input domain of functional.")
-    end
-    C = B;
-    for j=1:numel(B.ops)
-        if ~isempty(B.ops{j})
-            error("Multiplication of functional with nontrivial polynomial is not currently supported.")
-        else
-            C.ops{j} = A;
-        end
-    end
-    return
-elseif isa(A,'nopvar')
+if isa(A,'nopvar')
     if any(sum(B.degmat,2)~=1)
         error("Multiplication with operators is only supported for linear monomials.")
     end
@@ -90,18 +76,9 @@ end
 
 % Multiply each of the operators stored in B by A
 C = B;
-for j=1:numel(C.ops)
-    Cj = C.ops{j};
-    if isa(Cj,'cell')
-        % Multiply the first factor of each term with A
-        for i=1:size(Cj,1)
-            Cj{i,1} = A*Cj{i,1};
-        end
-    else
-        % Multiply the operator acting on the jth monomial with A
-        Cj = A*Cj;
-    end
-    C.ops{j} = Cj;
+for i=1:size(C.ops,1)
+    % Multiply the first factor of each term with A
+    C.ops{i,1} = A*B.ops{i,1};
 end
 
 end
