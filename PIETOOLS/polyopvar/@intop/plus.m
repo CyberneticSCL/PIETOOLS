@@ -62,7 +62,7 @@ if ~isequal(Avars,Bvars)
     p = size(Bvars,2);
     [Bvar_new,idx1,idx2] = unique([Bvars(1,:)'; Bparams.varname]);
     Bvar_new(idx1(idx1<=p)) = Avars(1,idx1(idx1<=p));        % replace Bvars by Avars
-    Bparams.varname = Bvar_new(1,idx2(p+1:end));
+    Bparams.varname = Bvar_new(idx2(p+1:end));
 end
 
 % Concatenate the list of parameters and associated limits of integration

@@ -61,11 +61,10 @@ end
 p = numel(var_new);
 
 % Also combine the list of spatial variables
+[C_A,C_B,~,new2old_pdcs] = common_vars(C_A,C_B);
 N1 = numel(pvar_A);     N2 = numel(pvar_B);
-pvar_full = [pvar_A; pvar_B];
-[pvar_new,old2new_pdcs,new2old_pdcs] = unique(pvar_full);   % pvar_full = pvar_new(new2old_pdcs);
-dom_full = [dom_A; dom_B];
-dom_new = dom_full(old2new_pdcs,:);
+pvar_new = C_A.vars(:,1);
+dom_new = C_A.dom;
 N = numel(pvar_new);
 
 % Build a varmat indicating for each of the new state variables on which
@@ -75,17 +74,6 @@ varmat(new2old_vdcs(1:p1),new2old_pdcs(1:N1)) = vmat_A;
 varmat(new2old_vdcs(p1+(1:p2)),new2old_pdcs(N1+(1:N2))) = vmat_B;
 
 % Reorder tensor products of PI operators in C to match new order of vars
-if isempty(degs_A)
-    d1 = 0;
-else
-    d1 = max(max(sum(degs_A,2)));
-end
-if isempty(degs_B)
-    d2 = 0;
-else
-    d2 = max(max(sum(degs_B,2)));
-end
-dumvar_cell = cell(1,max(d1,d2));
 for lidx=1:numel(C_A.ops)
     [~,cidx] = ind2sub(size(C_A.ops),lidx);
     deg_l = degs_A(cidx,:);
@@ -100,57 +88,7 @@ for lidx=1:numel(C_A.ops)
     new_deg_idcs = cell2mat(old_deg_idcs);
 
     % Reorder to match the new order of the variables
-    if isa(C_A.ops{lidx},'intop')
-        Cnew_l = C_A.ops{lidx};
-        Cnew_l.pvarname = C_A.ops{lidx}.pvarname(new_deg_idcs);
-        % Reorder columns of omat to match new ordering of variables
-        for jj=1:numel(new_deg_idcs)
-            Cnew_l.omat(C_A.ops{lidx}.omat==new_deg_idcs(jj)) = jj;
-        end
-        % Use the same dummy variables for monomials of same degree
-        if isempty(dumvar_cell{sum(deg_l)})
-            dumvar_cell{sum(deg_l)} = Cnew_l.pvarname;
-        else
-            Cparams = Cnew_l.params;
-            varname_new = cell(size(Cparams.varname));
-            for kk=1:numel(Cparams.varname)
-                old_var = Cparams.varname(kk);
-                var_idx = strcmp(Cnew_l.pvarname,old_var);
-                varname_new(kk) = dumvar_cell{sum(deg_l)}(var_idx);
-            end
-            Cparams.varname = varname_new;
-            Cnew_l.params = Cparams;
-            Cnew_l.pvarname = dumvar_cell{sum(deg_l)};
-        end        
-    elseif isa(C_A.ops{lidx},'struct') && isfield(C_A.ops{lidx},'params')
-        Cnew_l = C_A.ops{lidx};
-        Cnew_l.vars = C_A.ops{lidx}.vars(new_deg_idcs);
-        % Reorder columns of omat to match new ordering of variables
-        for jj=1:numel(new_deg_idcs)
-            Cnew_l.omat(C_A.ops{lidx}.omat==new_deg_idcs(jj)) = jj;
-        end
-        % Use the same dummy variables for monomials of same degree
-        if isempty(dumvar_cell{sum(deg_l)})
-            dumvar_cell{sum(deg_l)} = cell(size(Cnew_l.vars));
-            for kk=1:numel(Cnew_l.vars)
-                dumvar_cell{sum(deg_l)}(kk) = Cnew_l.vars(kk).varname;
-            end
-        else
-            Cparams = Cnew_l.params;
-            varname_new = cell(size(Cparams.varname));
-            for kk=1:numel(Cparams.varname)
-                old_var = polynomial(Cparams.varname(kk));
-                var_idx = isequal(Cnew_l.vars,old_var);
-                varname_new(kk) = dumvar_cell{sum(deg_l)}(var_idx);
-            end
-            Cparams.varname = varname_new;
-            Cnew_l.params = Cparams;
-            Cnew_l.vars = polynomial(dumvar_cell{sum(deg_l)});
-        end
-    else
-        Cnew_l = C_A.ops{lidx}(:,new_deg_idcs);
-    end
-    C_A.ops{lidx} = Cnew_l;
+    C_A.ops{lidx} = reorder_vars(C_A.ops{lidx},new_deg_idcs);
 end
 for lidx=1:numel(C_B.ops)
     [~,cidx] = ind2sub(size(C_B.ops),lidx);
@@ -166,57 +104,7 @@ for lidx=1:numel(C_B.ops)
     new_deg_idcs = cell2mat(old_deg_idcs);
     
     % Reorder to match the new order of the variables
-    if isa(C_B.ops{lidx},'intop')
-        Cnew_l = C_B.ops{lidx};
-        Cnew_l.pvarname = C_B.ops{lidx}.pvarname(new_deg_idcs);
-        % Reorder columns of omat to match new ordering of variables
-        for jj=1:numel(new_deg_idcs)
-            Cnew_l.omat(C_B.ops{lidx}.omat==new_deg_idcs(jj)) = jj;
-        end
-        % Use the same dummy variables for monomials of same degree
-        if isempty(dumvar_cell{sum(deg_l)})
-            dumvar_cell{sum(deg_l)} = Cnew_l.pvarname;
-        else
-            Cparams = Cnew_l.params;
-            varname_new = cell(size(Cparams.varname));
-            for kk=1:numel(Cparams.varname)
-                old_var = Cparams.varname(kk);
-                var_idx = strcmp(Cnew_l.pvarname,old_var);
-                varname_new(kk) = dumvar_cell{sum(deg_l)}(var_idx);
-            end
-            Cparams.varname = varname_new;
-            Cnew_l.params = Cparams;
-            Cnew_l.pvarname = dumvar_cell{sum(deg_l)};
-        end 
-    elseif isa(C_B.ops{lidx},'struct') && isfield(C_B.ops{lidx},'params')
-        Cnew_l = C_B.ops{lidx};
-        Cnew_l.vars = C_B.ops{lidx}.vars(new_deg_idcs);
-        % Reorder columns of omat to match new ordering of variables
-        for jj=1:numel(new_deg_idcs)
-            Cnew_l.omat(C_B.ops{lidx}.omat==new_deg_idcs(jj)) = jj;
-        end
-        % Use the same dummy variables for monomials of same degree
-        if isempty(dumvar_cell{sum(deg_l)})
-            dumvar_cell{sum(deg_l)} = cell(size(Cnew_l.vars));
-            for kk=1:numel(Cnew_l.vars)
-                dumvar_cell{sum(deg_l)}(kk) = Cnew_l.vars(kk).varname;
-            end
-        else
-            Cparams = Cnew_l.params;
-            varname_new = cell(size(Cparams.varname));
-            for kk=1:numel(Cparams.varname)
-                old_var = polynomial(Cparams.varname(kk));
-                var_idx = isequal(Cnew_l.vars,old_var);
-                varname_new(kk) = dumvar_cell{sum(deg_l)}(var_idx);
-            end
-            Cparams.varname = varname_new;
-            Cnew_l.params = Cparams;
-            Cnew_l.vars = polynomial(dumvar_cell{sum(deg_l)});
-        end
-    else
-        Cnew_l = C_B.ops{lidx}(:,new_deg_idcs);
-    end
-    C_B.ops{lidx} = Cnew_l;
+    C_B.ops{lidx} = reorder_vars(C_B.ops{lidx},new_deg_idcs);
 end
 
 % Augment the monomial basis to incorporate the full list of variables

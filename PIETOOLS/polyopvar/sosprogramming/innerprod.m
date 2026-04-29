@@ -50,7 +50,7 @@ elseif ~isa(Z1,'polyopvar')
 end
 ZopL = Z1.C;
 ZxL = Z1;
-ZxL.C = tensopvar();
+ZxL.C.ops = {};
 
 % Set the weight of the inner product
 if nargin<=2
@@ -99,7 +99,7 @@ elseif ~isa(Z2,'polyopvar')
 end
 ZopR = Z2.C;
 ZxR = Z2;
-ZxR.C = tensopvar();
+ZxR.C.ops = {};
 
 % Take the inner product
 if size(P,2)~=size(Z2,1)

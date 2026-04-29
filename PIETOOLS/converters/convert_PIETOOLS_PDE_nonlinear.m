@@ -1170,6 +1170,7 @@ fx.varname = varname;
 fx.pvarname = pvarname;
 fx.varmat = logical(x_tab(:,3:2+nvars));
 fx.dom = dom;
+fx.varsize = x_tab(:,2);
 
 % Initialize empty operators.
 if nvars<=1
@@ -1431,8 +1432,7 @@ end
 [degmat_f,deg_order] = sortrows_integerTable([sum(degmat,2),degmat(:,end:-1:1)]);
 fx.degmat = degmat_f(:,end:-1:2);
 % Declare the coefficients acting on these monomials
-Cop = fx.C;
-Cop.ops = op_cell_full(1,deg_order);
+Cop = tensopmat(op_cell_full(1,deg_order));
 fx.C = Cop;
 
 % Add the contribution of the inputs

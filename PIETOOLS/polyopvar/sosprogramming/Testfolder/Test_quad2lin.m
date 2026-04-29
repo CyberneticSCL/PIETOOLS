@@ -4,37 +4,42 @@ dom = [0,1];
 nvars = 1;
 
 % Declare the monomial basis in distributed state x1
-Zx = polyopvar();
-Zx.varname = {'x1'};
-Zx.pvarname = s1.varname;
-Zx.dom = dom;
-Zx.degmat = [1;2];
-Zx.varmat = 1;
+% Zx = polyopvar();
+% Zx.varname = {'x1'};
+% Zx.pvarname = s1.varname;
+% Zx.dom = dom;
+% Zx.degmat = [1;2];
+% Zx.varmat = 1;
+% Zx.C.vars = [s1,s1_dum];
+vartab = polyopvar('x1',s1,dom);
+Zx = dmonomials(vartab,1:2);
 
 % Declare an LPI optimization program
 prog = lpiprogram(s1,dom);
 
 % Declare the positive operator variable
-pdeg = 1;
+pdeg = 3;
 [prog,Pmat,Zop] = piesos_poslpivar(prog,Zx,pdeg);
 
 % Construct the associated polynomial functional
 Vx = quad2lin(Pmat,Zop,Zx);
 
 % Convert Zop to opvar objects
-Zop1 = ndopvar2dopvar(Zop.ops{1});
+Zop1 = ndopvar2dopvar(Zop.ops{1}.ops{1});
 Zop2 = cell(1,2);
-Zop2{1} = ndopvar2dopvar(Zop.ops{2,2}{1});
-Zop2{2} = ndopvar2dopvar(Zop.ops{2,2}{2});
+Zop2{1} = ndopvar2dopvar(Zop.ops{2,2}.ops{1});
+Zop2{2} = ndopvar2dopvar(Zop.ops{2,2}.ops{2});
 
 % Generate random functions xi(s)
 x_tst = rand_poly([1,1],s1,3);
 z1_tst = apply_opvar(Zop1,x_tst);
 z2_tst = apply_opvar(Zop2{1},x_tst).*apply_opvar(Zop2{2},x_tst);
-P11 = Pmat(1:numel(z1_tst),1:numel(z1_tst));
-P12 = Pmat(1:numel(z1_tst),numel(z1_tst)+1:end);
-P21 = Pmat(numel(z1_tst)+1:end,1:numel(z1_tst));
-P22 = Pmat(numel(z1_tst)+1:end,numel(z1_tst)+1:end);
+P11 = Pmat{1,1};    P12 = Pmat{1,2};
+P21 = Pmat{2,1};    P22 = Pmat{2,2};
+% P11 = Pmat(1:numel(z1_tst),1:numel(z1_tst));
+% P12 = Pmat(1:numel(z1_tst),numel(z1_tst)+1:end);
+% P21 = Pmat(numel(z1_tst)+1:end,1:numel(z1_tst));
+% P22 = Pmat(numel(z1_tst)+1:end,numel(z1_tst)+1:end);
 
 fval11 = int(z1_tst'*P11*z1_tst,s1,dom(1),dom(2));
 fval12 = int(z1_tst'*P12*z2_tst,s1,dom(1),dom(2));

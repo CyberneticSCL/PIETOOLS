@@ -70,7 +70,7 @@ function [KCfun,omat,var2,dom] = int(Cop,Kfun,var1,dom,var2)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 02/03/2026: Initial coding
+% DJ, 04/29/2026: Initial coding
 
 % Allow for just integration with kernel 1:
 %   int(Cop,var1,dom)
@@ -90,22 +90,16 @@ function [KCfun,omat,var2,dom] = int(Cop,Kfun,var1,dom,var2)
 % Extract the PI operators defining the tensor-PI operator
 if ~isa(Cop,'tensopvar')
     error("Tensor-PI operator to integrate must be specified as 'tensopvar' object.")
-elseif numel(Cop.ops)>1
-    error("Tensor-PI operator must act on a single monomial.")
-end
-Cops = Cop.ops{1};
-if isa(Cops,'nopvar')
-    Cops = {Cops};
 end
 
 % Check that the dimensions of the kernel and tensor-PI operator match
-if size(Kfun,2)~=size(Cops{1},1) && ~all(size(Kfun)==1)
+if size(Kfun,2)~=size(Cop.ops{1},1) && ~all(size(Kfun)==1)
     error("Column dimension of the kernel must match row dimension of the tensor-PI operator.")
 end
 mdim = size(Kfun,1);
-ndim = size(Cops{1},2);
-d = size(Cops,2);
-ntrms = size(Cops,1);
+ndim = size(Cop.ops{1},2);
+d = size(Cop.ops,2);
+ntrms = size(Cop.ops,1);
 
 % Check that the other arguments are properly specified
 if isempty(Kfun)
@@ -114,7 +108,7 @@ end
 if nargin<=2
     % If not specified, use the spatial variable of the tensor-PI operator
     % as dummy variable for integration.
-    pvar1 = Cops{1}.var1;
+    pvar1 = Cop.vars(:,1);
 elseif isa(var1,'polynomial')
     pvar1 = var1;
 elseif iscellstr(var1)
@@ -126,7 +120,7 @@ end
 if nargin<=3
     % If not specified, assume we integrate over the entire domain on which
     % the tensor-PI operator is defined.
-    dom = Cops{1}.dom;
+    dom = Cop.dom;
 end
 if nargin<=4
     % If no variables are specifeid
@@ -147,7 +141,7 @@ end
 
 % Extract the parameters defining each of the PI operators in the tensor-PI
 % operator
-[Cparams,has_multiplier,var2,opdom] = compute_params(Cops,pvar1,var2);
+[Cparams,has_multiplier,var2,opdom] = compute_params(Cop.ops,pvar1,var2);
 pvars2 = polynomial(var2)';
 % Allow only multipliers acting on linear monomials
 if sum(has_multiplier)>1 %|| (sum(has_multiplier)==1 && d>1)

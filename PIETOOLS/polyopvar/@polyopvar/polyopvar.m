@@ -6,6 +6,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
 % - P.varname:  p x 1 cellstr, specifying the names of the p distributed
 %               state variables on which the polynomial is defined,
 %                   (x1,x2,...,xp);
+% - P.varsize:  p x 1 array of integers, specifying the vector-dimension of
+%               each of the state variables;
 % - P.degmat:   nZ x p array of integers, representing the basis of
 %               distributed monomials in terms of which the polynomial is
 %               defined. If P.degmat(i,:) = [d1,...,dp], then the ith
@@ -13,10 +15,10 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
 %                   [Z(x)]_{i} = x1^d1 o ... o xp^dp,
 %               where o denotes the tensor product, and where
 %                   xi^di = xi o xi o ... o xi } <-- di products
-% - P.C:        m x n 'tensopvar' object, representing the coefficient
-%               operators acting on the distributed monomial basis, so that
-%                   P(x) = C*(Z(x) o I_{n})
-%               where I_{n} is the n x n identity matrix;
+% - P.C:        m x n 'tensopmat' object, representing the
+%               tensor-PI operators acting on the distributed monomial 
+%               basis, so that
+%                   P(x) = C*((x);
 % - P.pvarname: N x 1 cellstr, specifying the names of the N independent
 %               variables (s1,...,sN) in which the distributed state 
 %               variables are defined;
@@ -54,11 +56,12 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
 % DJ, 01/15/2026: Initial coding
 
     properties
-        C = tensopvar();
+        C = tensopmat();
         degmat = zeros(0,0);
         varname = cell(0,1);
         pvarname = cell(0,1);
         varmat = zeros(0,0);
+        varsize = zeros(0,1);
         dom = zeros(0,2);
     end
 
@@ -152,22 +155,25 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                     end
                 end
                 % % Declare an identity operator mapping x to x
-                C = nopvar();
-                C.dom = dom;
-                pvarname_full = [pvarname,cellfun(@(a)[a,'_dum'],pvarname,'UniformOutput',false)];
-                C.vars = polynomial(pvarname_full);
-                C.deg = zeros(N,1);
-                C.C = cell([3*ones(1,N),1]);
-                C.C{1} = 1;
-                % Declare the distributed polynomial variable
-                P.C = tensopvar();
-                for j=1:p
-                    P.C.ops{j,j} = C;
+                Ccell = cell(numel(varname),numel(varname));
+                for j=1:numel(varname)
+                    Cj = nopvar();
+                    Cj.dom = dom;
+                    pvarname_full = [pvarname,cellfun(@(a)[a,'_dum'],pvarname,'UniformOutput',false)];
+                    Cj.vars = polynomial(pvarname_full);
+                    Cj.deg = zeros(N,1);
+                    Cj.C = cell([3*ones(1,N),1]);
+                    Cj.C{1} = 1;
+                    Ccell{j,j} = ndopvar2tensopvar(Cj);
                 end
+                Cop = tensopmat(Ccell);
+                % Declare the distributed polynomial variable
+                P.C = Cop;
                 P.degmat = eye(p);
                 P.varname = varname;
                 P.pvarname = pvarname;
                 P.varmat = true(p,N);
+                P.varsize = ones(p,1);
                 P.dom = dom;
             end
         end
@@ -175,7 +181,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
         function matdim = get.matdim(obj)
             % % Determine the dimensions of the matrix-valued distributed
             % % polynomial
-            matdim = obj.C.matdim;
+            matdim = [sum(obj.C.dim{1}),1];
         end
 
     end

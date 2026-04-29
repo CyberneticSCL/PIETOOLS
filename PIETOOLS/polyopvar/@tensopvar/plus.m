@@ -1,6 +1,6 @@
 function C = plus(A,B)
 % C = PLUS(A,B) returns the 'tensopvar' object C representing the sum
-% of the coefficient operators defined by the 'tensopvar' objects A and B
+% of the tensor-PI operators defined by the 'tensopvar' objects A and B
 %
 % INPUTS
 % - A:      m x n 'tensopvar' object
@@ -8,7 +8,7 @@ function C = plus(A,B)
 %
 % OUTPUTS
 % - C:      m x n 'tensopvar' object representing the sum of the
-%           coefficient operators defined by A and B
+%           tensor-PI operators defined by A and B
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -35,33 +35,56 @@ function C = plus(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/16/2026: Initial coding
+% DJ, 04/15/2026: Initial coding
 
-% Make sure the size of the coefficients match
-if any(size(A.ops)~=size(B.ops))
-    error("Coefficient operators must be of same dimension for addition.")
+% Check that the inputs are appropriate
+if isempty(A)
+    C = B;
+    return
+elseif isempty(B)
+    C = A;
+    return
+end
+if ~isa(A,'tensopvar')
+    if ~isa(A,'nopvar') && ~isa(A,'ndopvar')
+        error("Addition of 'tensopvar' objects with non-'tensopvar' objects is not supported.")
+    else
+        A = ndopvar2tensopvar_new(A);
+    end
+elseif ~isa(B,'tensopvar')
+    if ~isa(B,'nopvar') && ~isa(B,'ndopvar')
+        error("Addition of 'tensopvar' objects with non-'tensopvar' objects is not supported.")
+    else
+        B = ndopvar2tensopvar_new(B);
+    end
+end
+
+% Make sure the matrix dimensions of the operators match
+if ~isequal(A.dims,B.dims) || any(A.type~=B.type)
+    error("Matrix dimensions of each factor in the tensopvar objects must match.")
+end
+% Make sure the input and output variables match
+if ~isequal(pvar2varname(A.vars),pvar2varname(B.vars)) || ~isequal(A.dom,B.dom)
+    error("Spatial variables and domains of operators must match.")
+end
+% Make sure the individual operators depend on the same variables
+if ~isequal(A.depmat1,B.depmat1) || ~isequal(A.depmat2,B.depmat2)
+    error("Spatial variables in each factor in the tensopvar objects must match.")
 end
 
 % The operators defining the sum are given by the sum of the
 % operators
 C = A;
-for ii=1:numel(A.ops)
-    if isempty(A.ops{ii})
-        C.ops{ii} = B.ops{ii};
-    elseif isempty(B.ops{ii})
-        C.ops{ii} = A.ops{ii};
-    elseif isa(A,'cell') && isa(B,'cell')
-        % If the monomial involves multiple factors, e.g. Z_{i}(x) = xk*yl,
-        % we cannot simply add the coefficients
-        %   (Ai{1}*xk)(Ai{2}*yk) + (Bi{1}*xk)(Bi{2}*yk)
-        C.ops{ii} = [A.ops{ii}; B.ops{ii}];
-    else
-        % If the monomial is just linear, Z_{i}(x) = xk for some k,
-        % then we can use the standard addition routine to compute the sum
-        % of the operators
-        %   Ai*xk + Bi*xk = (Ai+Bi)*xk;
-        C.ops{ii} = A.ops{ii} + B.ops{ii};
-    end
+if isscalar(A.ops)
+    % The tensor-PI operator is really just a PI operator
+    % --> we can use the PI addition routine
+    C.ops{1} = A.ops{1}+B.ops{1};
+else
+    % The tensor-PI operator is defined by multiple factors
+    % --> we have no closed-form expression for the sum (since the sum of 
+    %       the product does not equal product of sum)
+    % Instead, we concatenate the operators to represent their sum
+    C.ops = [A.ops; B.ops];
 end
 
 end

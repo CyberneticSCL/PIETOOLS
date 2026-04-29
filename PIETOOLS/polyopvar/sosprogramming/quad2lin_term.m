@@ -149,11 +149,10 @@ end
 
 % Extract the operators acting on the left monomials
 if isa(Lmon,'polyopvar')
-    if isa(Lmon.C.ops{1},'cell')
-        Lops = Lmon.C.ops{1};
-    else
-        Lops = Lmon.C.ops;
+    if ~all(Lmon.C.ops{1}.type==[false,true])
+        error("Tensor-PI operators of alternative type are not currently supported.")
     end
+    Lops = Lmon.C.ops{1}.ops;
     ntrms_L = size(Lops,1);
     mdim = size(Lops{1},2);
 else
@@ -170,13 +169,12 @@ if ntrms_L==1 && ~isa(Lops{1},'nopvar')
     Lops = {};
 end
 % Extract the operators acting on the right monomials
-if isa(Rmon.C.ops{1},'cell')
-    Rops = Rmon.C.ops{1};
-else
-    Rops = Rmon.C.ops;
+Rops = Rmon.C.ops{1}.ops;
+if ~all(Rmon.C.ops{1}.type==[false,true])
+    error("Tensor-PI operators of alternative type are not currently supported.")
 end
 ntrms_R = size(Rops,1);
-ndim = size(Rops{1},2);
+%ndim = size(Rops{1},2);
 % Account for case of constant polynomial
 if ntrms_R==1 && ~isa(Rops{1},'nopvar')
     Pmat = Pmat*Rops{1};

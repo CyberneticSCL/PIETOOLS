@@ -1,19 +1,18 @@
-function C = minus(A,B)
-% C = MINUS(A,B) returns the 'tensopvar' object C representing the
-% difference betweeen the tensor-PI operators defined by the 'tensopvar' 
-% objects A and B
+function C_out = uminus(C_in)
+% C_OUT = UMINUS(C_IN) takes a 'tensopmat' object C_IN representing a
+% matrix of tensor-PI operator C and returns a 'tensopmat' object C_OUT 
+% representing -C.
 %
 % INPUTS
-% - A:      m x n 'tensopvar' object
-% - B:      m x n 'tensopvar' object
+% - C_in:   'tensopmat' object;
 %
 % OUTPUTS
-% - C:      m x n 'tensopvar' object representing the difference between
-%           the tensor-PI operators defined by A and B
+% - C_out:  'tensopmat' object representing the negative complement of the
+%           input operator;
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - minus
+% PIETOOLS - uminus
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -36,8 +35,14 @@ function C = minus(A,B)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 04/24/2026: Initial coding
+% DJ, 04/21/2026: Initial coding
 
-C = plus(A,uminus(B));
+C_out = C_in;
+for i=1:numel(C_out.ops,1)
+    % Mutliply each of the tensor-PI operators in the matrix with -1
+    if ~isempty(C_in.ops{i})
+        C_out.ops{i} = -C_out.ops{i};
+    end
+end
 
 end

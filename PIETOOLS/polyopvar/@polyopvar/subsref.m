@@ -65,7 +65,7 @@ switch ref(1).type
     case '{}'
         % When calling f{i,j}, extract the term associated to the jth
         % monomial in the ith function
-        [ncomps,ntrms] = size(obj.C.ops);
+        [ncomps,ntrms] = size(obj.C);
         if isscalar(ref(1).subs)
             % Support only a single linear index
             if ~isnumeric(ref(1).subs{1}) || ~isscalar(ref(1).subs{1})

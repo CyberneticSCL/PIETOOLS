@@ -38,23 +38,20 @@ function C = plus(A,B)
 % DJ, 04/15/2026: Initial coding
 
 % Check that the inputs are appropriate
-if ~isa(A,'tensopvar_new')
-    if ~isa(A,'nopvar') && ~isa(A,'ndopvar')
-        error("Addition of 'tensopvar' objects with non-'tensopvar' objects is not supported.")
-    else
-        A = ndopvar2tensopvar_new(A);
-    end
-elseif ~isa(B,'tensopvar_new')
-    if ~isa(B,'nopvar') && ~isa(B,'ndopvar')
-        error("Addition of 'tensopvar' objects with non-'tensopvar' objects is not supported.")
-    else
-        B = ndopvar2tensopvar_new(B);
-    end
+if isempty(A)
+    C = B;
+    return
+elseif isempty(B)
+    C = A;
+    return
+end
+if ~isa(A,'tensopmat') || ~isa(B,'tensopmat')
+    error("Addition of 'tensopmat' objects with non-'tensopmat' objects is not supported.")
 end
 
 % Make sure the matrix dimensions of the operators match
-if ~isequal(A.dims,B.dims) || any(A.type~=B.type)
-    error("Matrix dimensions of each factor in the tensopvar objects must match.")
+if ~isequal(size(A.dim),size(B.dim))
+    error("Matrix dimensions of the operators must match.")
 end
 % Make sure the input and output variables match
 if ~isequal(pvar2varname(A.vars),pvar2varname(B.vars)) || ~isequal(A.dom,B.dom)
@@ -62,22 +59,19 @@ if ~isequal(pvar2varname(A.vars),pvar2varname(B.vars)) || ~isequal(A.dom,B.dom)
 end
 % Make sure the individual operators depend on the same variables
 if ~isequal(A.depmat1,B.depmat1) || ~isequal(A.depmat2,B.depmat2)
-    error("Spatial variables in each factor in the tensopvar objects must match.")
+    error("Input and output function spaces of the operator in each block must match.")
 end
 
 % The operators defining the sum are given by the sum of the
 % operators
 C = A;
-if isscalar(A.ops)
-    % The tensor-PI operator is really just a PI operator
-    % --> we can use the PI addition routine
-    C.ops{1} = A.ops{1}+B.ops{1};
-else
-    % The tensor-PI operator is defined by multiple factors
-    % --> we have no closed-form expression for the sum (since the sum of 
-    %       the product does not equal product of sum)
-    % Instead, we concatenate the operators to represent their sum
-    C.ops = [A.ops; B.ops];
+for j=1:numel(A.ops)
+    if isempty(A.ops{j})
+        % Assume empty operator is 0
+        C.ops{j} = B.ops{j};
+    elseif ~isempty(B.ops{j})
+        C.ops{j} = A.ops{j} + B.ops{j};
+    end
 end
 
 end

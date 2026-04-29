@@ -70,8 +70,10 @@ if var>sum(f.degmat)
     error("Index of factor to substitute cannot exceed cumulative degree of monomial.")
 end
 % Only support substitution of polynomial functionals for now
-if ~isa(f.C.ops{1},'intop')
+if ~all(all(f.C.depmat1==0))
     error("Only substitution of polynomial functionals is currently suppoted.")
+elseif size(f.C.ops,1)>1
+    error("Substitution for multiple rows of polynomial functionals is currently not suppoted.")
 end
 % Only support substitution with polynomial functions for now
 if ~isa(val,'polyopvar')
@@ -108,14 +110,15 @@ end
 
 fnew = f;
 fnew.degmat = degs1+val.degmat;
-fnew.C.ops = {};
+fnew.C.ops = cell(1,size(val.degmat,1));
+fnew.C.depmat2 = zeros(size(val.degmat,1),size(fnew.C.vars,1));
 for i=1:size(val.degmat,1)
     % Extract the ith monomial defining val
     degs2 = val.degmat(i,:);
     d2 = sum(degs2);
     % Extract the tensor-PI operator acting on the ith monomial
-    Cop = val.C;
-    Cop.ops = Cop.ops(i);
+    Cop = val.C.ops{1,i};
+    %Cop.ops = Cop.ops(:,i);
     
     % Declare a full list of dummy variables used for integration of the 
     % monomial after substitution
@@ -141,7 +144,7 @@ for i=1:size(val.degmat,1)
     % Declare an empty polynomial in the new monomial
     fi = f;
     fi.degmat = zeros(0,size(fi.degmat,2));
-    fi.C.ops = cell(1,0);
+    fi.C.ops = {};
 
     % Compute the composition of the delta-function integral with the
     % tensor-PI operator Cop
@@ -160,9 +163,13 @@ for i=1:size(val.degmat,1)
         omat_new = [omat_tmp(iszero_trm,:); new2old_nums(omat_tmp(~iszero_trm,:))];
         % Declare a functional defined by the kernels KCfun acting on the
         % monomial i
-        fi.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
-        fi.degmat = degs1+degs2;
-        fi = combine_terms(fi);
+        fnew_i = fi;
+        fnew_i.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
+        fnew_i.C.depmat2 = (degs1+degs2)*fnew_i.varmat;
+        fnew_i.degmat = degs1+degs2;
+        fnew_i = combine_terms(fnew_i);
+    else
+        fnew_i = 0;
     end
 
     % Compute the composition of the remaining integrals with the tensor-PI
@@ -205,13 +212,15 @@ for i=1:size(val.degmat,1)
         % monomial i
         fj = fi;
         fj.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
+        fj.C.depmat2 = (degs1+degs2)*fj.varmat;
         fj.degmat = degs1+degs2;
         fj = combine_terms(fj);
         % Add to the other polynomial
-        fi = fi+fj;
+        fnew_i = fnew_i+fj;
     end
     % Set the functional acting on the ith monomial
-    fnew.C.ops{i} = fi.C.ops{1};
+    fnew.C.ops{1,i} = fnew_i.C.ops{1};
+    fnew.C.depmat2(i) = fnew_i.C.depmat2(1,:);
 end
 
 end

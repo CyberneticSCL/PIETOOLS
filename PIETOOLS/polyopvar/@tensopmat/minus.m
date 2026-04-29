@@ -1,18 +1,19 @@
-function Top = ndopvar2tensopvar_new(Pop)
-% TOP = NDOPVAR2TENSOPVAR(POP) returns a 'tensopvar_new' object TOP
-% representing the same operator as the input 'nopvar' or 'ndopvar' object
-% POP
+function C = minus(A,B)
+% C = MINUS(A,B) returns the 'tensopmat' object C representing the
+% difference betweeen the tensor-PI operators defined by the 'tensopmat' 
+% objects A and B
 %
 % INPUTS
-% - Pop:    m x n 'nopvar' or 'ndopvar' object representing a PI operator;
+% - A:      m x n 'tensopmat' object
+% - B:      m x n 'tensopmat' object
 %
 % OUTPUTS
-% - Top:    m x n 'tensopvar' object representing the same operator as the
-%           input;
+% - C:      m x n 'tensopmat' object representing the difference between
+%           the tensor-PI operators defined by A and B
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - ndopvar2tensopvar
+% PIETOOLS - minus
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -35,21 +36,8 @@ function Top = ndopvar2tensopvar_new(Pop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 04/14/2026: Initial coding
+% DJ, 04/24/2026: Initial coding
 
-% Check the input
-if ~isa(Pop,'nopvar') && ~isa(Pop,'ndopvar')
-    error("Operator must be specified as object of type 'nopvar' or 'ndopvar'.")
-end
-
-% Declare a tensor-PI operator involving just a single factor
-Top = tensopvar_new();
-Top.ops = {Pop};
-Top.type = false(1,2);
-% Set spatial variables and domain
-Top.vars = Pop.vars;
-Top.dom = Pop.dom;
-Top.depmat1 = ones(size(Top.vars,1),1);
-Top.depmat2 = ones(size(Top.vars,1),1);
+C = plus(A,uminus(B));
 
 end

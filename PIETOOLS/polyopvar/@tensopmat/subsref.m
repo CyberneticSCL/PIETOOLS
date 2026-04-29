@@ -1,10 +1,10 @@
 function out = subsref(obj,ref)
-% OUT = SUBSREF(OBJ,REF) extracts the elements of 'tensopvar' object OBJ
+% OUT = SUBSREF(OBJ,REF) extracts the elements of 'tensopmat' object OBJ
 % specified by REF. This function is automatically called when calling e.g.
-% C(i,j) or C.ops for a 'tensopvar' object C.
+% C(i,j) or C.ops for a 'tensopmat' object C.
 % 
 % INPUT
-% - obj:    'tensopvar' object of which to extract certain elements;
+% - obj:    'tensopmat' object of which to extract certain elements;
 % - ref:    struct indicating which element/fields of obj to extract;
 % 
 % OUTPUT
@@ -38,7 +38,7 @@ function out = subsref(obj,ref)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 04/29/2026: Initial coding
+% DJ, 01/16/2026: Initial coding
 
 if isempty(ref)
     return
@@ -51,10 +51,7 @@ switch ref(1).type
         
     case '()'
         % When calling C(i,j), just extract C.ops(i,j);
-        if (obj.type(1) && size(obj,1)>1) || (obj.type(2) && size(obj,2)>1)
-            error("'()'-type subsref is currently not supported for Kronecker products in 'tensopvar' objects.")
-        end
-        matdim = obj.dim;
+        matdim = size(obj);
         if isscalar(ref(1).subs)
             % % Distinguish case of linear indexing
             error("Linear indexing of 'tensopvar' objects is not supported.")
@@ -66,10 +63,10 @@ switch ref(1).type
             
             % Allow for ':' for extracting all rows/columns
             if strcmp(indr,':')
-                indr = 1:size(matdim(1),1);
+                indr = 1:matdim(1);
             end
             if strcmp(indc,':')
-                indc = 1:size(matdim(2),1);
+                indc = 1:matdim(2);
             end            
 
             % Error checking
@@ -82,13 +79,39 @@ switch ref(1).type
                 error("Subsindexing for distributed polynomials consisting of multiple components is not supported.")
             end
 
-            % Extract elements of the PI or integral operators
+            % Establish to which operator each row/column index belongs
+            nr_arr = obj.dim{1};        nc_arr = obj.dim{2};
+            nR = numel(nr_arr);         nC = numel(nc_arr);
+            nnr_arr = cumsum([0;nr_arr(:)]);   
+            nnc_arr = cumsum([0;nc_arr(:)]);
+            rblcks = (indr(:)>nnr_arr(1:end-1)' & indr(:)<=nnr_arr(2:end)')*(1:nR)';
+            cblcks = (indc(:)>nnc_arr(1:end-1)' & indc(:)<=nnc_arr(2:end)')*(1:nC)';
+            
+            % Split the indices per block in the new operator
+            r_strt = find([true; rblcks(2:end)~=rblcks(1:end-1); true]);
+            c_strt = find([true; cblcks(2:end)~=cblcks(1:end-1); true]);
+            blck_nums_r = rblcks(r_strt(1:end-1));
+            blck_nums_c = cblcks(c_strt(1:end-1));
+            nR_new = numel(blck_nums_r);
+            nC_new = numel(blck_nums_c);
+
+            % Extract elements of the tensor-PI or integral operators
             % corresponding to the desired row and column numbers
             out = obj;
-            for j=1:numel(out.ops)
-                op_j = obj.ops{j};
-                op_j = op_j(indr,indc);
-                out.ops{j} = op_j;
+            out.ops = cell(nR_new,nC_new);
+            out.depmat1 = out.depmat1(blck_nums_r);
+            out.depmat2 = out.depmat2(blck_nums_c);
+            for i=1:nR_new
+                rblck_i = rblcks(r_strt(i));
+                ridcs_i = indr(r_strt(i):r_strt(i+1)-1)-nnr_arr(rblck_i);
+                for j=1:nC_new
+                    cblck_j = cblcks(c_strt(j));
+                    if ~isempty(obj.ops{rblck_i,cblck_j})
+                        out.ops{i,j} = zeros(0,0);
+                        cidcs_j = indc(c_strt(j):c_strt(j+1)-1)-nnc_arr(cblck_j);
+                        out.ops{i,j} = obj.ops{rblck_i,cblck_j}(ridcs_i,cidcs_j);
+                    end
+                end
             end
 
             % Perform remaining subsref

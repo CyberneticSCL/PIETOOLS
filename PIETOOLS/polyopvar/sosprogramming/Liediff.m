@@ -102,15 +102,20 @@ for i=1:nvars
     %       x_i = sum_{j=1}^{n} Top(i,j)*xf_{j}
     LHS_arr{i} = RHS_arr{i};
     LHS_arr{i}.degmat = [zeros(nvars),eye(nvars)];
-    LHS_arr{i}.C.ops = Top_cell(i,:);
+    LHS_arr{i}.C.ops = cellfun(@(a)ndopvar2tensopvar(a),Top_cell(i,:),'UniformOutput',false);
+    [deps1,deps2] = get_deps(LHS_arr{i}.C);
+    LHS_arr{i}.C.depmat1 = deps1;
+    LHS_arr{i}.C.depmat2 = deps2;
 end
 
 % Declare an empty polynomial 
 tmp_poly = RHS;
 tmp_poly.C.ops = {};
+tmp_poly.C.depmat1 = zeros(0,1);
+tmp_poly.C.depmat2 = zeros(0,1);
 tmp_poly.degmat = zeros(0,nvars);
 tmp_poly.varname = varname_pie;
-dV = tmp_poly;
+dV = 0;
 
 % For each of the monomials in V, take the Lie derivative along the PIE
 for i=1:size(Vdegs,1)
@@ -119,12 +124,14 @@ for i=1:size(Vdegs,1)
     degi = Vdegs(i,:);
     dVi_tmp = tmp_poly;
     dVi_tmp.C.ops = V.C.ops(i);
+    dVi_tmp.C.depmat1 = zeros(1,size(dVi_tmp.C.vars,1));
+    dVi_tmp.C.depmat2 = V.C.depmat2(i);
     dVi_tmp.degmat = [degi,zeros(1,nvars)];
     dVi_tmp.varname = [varname_pde; varname_pie];
     dVi_tmp.varmat = [V.varmat;V.varmat];
     % For each factor in the monomial, replace only that factor by the
     % right-hand side of the PIE, replacing all other factors by T*xf
-    dVi = tmp_poly;
+    dVi = 0;
     nfctrs = cumsum(degi);
     di = nfctrs(end);
     for j=1:di
@@ -138,6 +145,7 @@ for i=1:size(Vdegs,1)
                 dVk = dVi_tmp;
                 dVk.degmat = dVk.degmat(trm_num,:);
                 dVk.C.ops = dVk.C.ops(:,trm_num);
+                dVk.C.depmat2 = dVk.C.depmat2(trm_num,:);
                 dVk = subs(dVk,1,LHS_arr{state_idx});
                 dV0 = dV0 + dVk;
             end
@@ -146,7 +154,7 @@ for i=1:size(Vdegs,1)
         dVj = dVi_tmp;
         % Replace remaining factors by T*xf
         for k=j+1:di
-            % Determine which PDE state variable appears in factor j-1
+            % Determine which PDE state variable appears in factor k
             state_idx = find(k<=nfctrs,1,'first');
             % Express this PDE state in terms of the PIE state
             dV0 = 0;
@@ -154,6 +162,7 @@ for i=1:size(Vdegs,1)
                 dVk = dVj;
                 dVk.degmat = dVk.degmat(trm_num,:);
                 dVk.C.ops = dVk.C.ops(:,trm_num);
+                dVk.C.depmat2 = dVk.C.depmat2(trm_num,:);
                 dVk = subs(dVk,2,LHS_arr{state_idx});
                 dV0 = dV0 + dVk;
             end
@@ -167,6 +176,7 @@ for i=1:size(Vdegs,1)
             dVk = dVj;
             dVk.degmat = dVk.degmat(trm_num,:);
             dVk.C.ops = dVk.C.ops(:,trm_num);
+            dVk.C.depmat2 = dVk.C.depmat2(trm_num);
             dVk = subs(dVk,1,RHS_arr{state_idx});
             dV0 = dV0 + dVk;
         end

@@ -1,10 +1,23 @@
-function C = otimes(A,B)
-% C = OTIMES(A,B) returns the tensor product of coefficient operators A and
+function C = otimes(A,B,type)
+% C = OTIMES(A,B) returns the tensor product of functional operators A and
 % B, so that (A*Zd(x)).*(B*Zd(y)) = C*(Zd(x) o Zd(y))
 %
 % INPUTS
 % - A:  m x n1 'intop' object
 % - B:  m x n2 'intop' object
+% - type:   1 x 2 logical array indicating what type of product is taken
+%           along the row and column dimensions. 
+%               If type(1)=0, then a pointwise product is taken along the 
+%               row dimension, requiring m1=m2. In this case, if 
+%               A.vars(:,1) and B.vars(:,2) share any variable, then a 
+%               pointwise product is taken along this variable, i.e. 
+%                   (Cop*v^2) = (Aop*v)(s)*(Bop*v)(s).
+%               If type(1)=1, then a Kronecker product is taken along the
+%               row dimension. In this case, if A.vars(:,1) and B.vars(:,2) 
+%               share any variable, then a tensor product is taken along
+%               this spatial direction, i.e.
+%                   (Cop*v^2) = (Aop*v)(s1)o(Bop*v)(s2).
+%           ONLY type=[0,1] is currently supported!
 %
 % OUTPUTS
 % - C:  m x n1*n2 'intop' object representing the tensor product of A
@@ -37,6 +50,20 @@ function C = otimes(A,B)
 %
 % DJ, 03/01/2026: Initial coding
 
+
+% By default, perform Kronecker product along columns but pointwise product
+% along rows
+if nargin<2
+    error("Not enough inputs")
+elseif nargin<=2
+    type = [false,true];
+elseif isscalar(type)
+    % Assume only type of row product is specified
+    type = [type,true];
+end
+if ~isequal(type,[false,true])
+    error("Alternative tensor products are not supported for 'intop' objects.")
+end
 
 % Make sure the row dimensions of the functionals match
 [m1,n1] = size(A);

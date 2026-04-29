@@ -43,10 +43,11 @@ function varargout = size(A,dim)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 04/14/2026: Initial coding
+% DJ, 04/22/2026: Initial coding
 
 if nargin ==1 % if no dim is specified, return both row and column numbers 
-    out = A.dim;
+    dim = A.dim;
+    out = [sum(dim{1}),sum(dim{2})];
     if nargout==0 || nargout==1
         varargout{1}=out;
     elseif nargout==2   % allow row and column numbers to be output separately
@@ -55,7 +56,7 @@ if nargin ==1 % if no dim is specified, return both row and column numbers
     end 
 elseif nargin == 2
     if dim==1 || dim==2
-        out = A.dim(dim);
+        out = sum(A.dim{dim});
     else
         error('Dimension must be 1 or 2');
     end

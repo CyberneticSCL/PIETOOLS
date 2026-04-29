@@ -1,25 +1,58 @@
 classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar
 % This function defines the class of 'tensopvar' objects, representing
-% coefficient operators acting on distributed monomials to define 
-% distributed polynomials.
+% linear combinations of tensor products of PI operators,
+%
+%   C = sum_{i=1}^{m} Ri1 \otimes ... \otimes Rid
+%
+% where \otimes denotes the tensor product
 %
 % CLASS properties
-% - C.ops:  1 x nZ cell (for nZ the number of distributed monomials) 
-%           specfiying the operators acting on the different distributed
-%           monomials. Each element is itself a m x d cell of 'nopvar' 
-%           objects, where m is the number of terms, and d the number of 
-%           factors in the monomial. In particular, if 
-%               Z_{i}(x)=x1^d1 o ... o xp^dp
-%           where o denotes the tensor product and d = d1+...+dp,
-%           and C.ops{i} = P, we have
-%               (C(i)*Z_{i}(x))(s) = 
-%                       (P{1}x1)(s)*(P{2}x1)(s)*...*(P{d}xp)(s)
-%           Note that Z_{i}(x) will always be scalar-valued, but each of
-%           the operators P{j} may be matrix-valued, in which case the
-%           products such as (P{1}x1)(s)*(P{2}x1)(s) will be elementwise;
-% - C.matdim:  1x2 array of integers, specifying the dimensions of the
-%           matrix-valued distributed polynomial defined by C;
+% - C.ops:  m x d cell with each element {i,j} a 'nopvar' or 'dopvar'
+%           object representing the operator Rij, in the ith term and jth
+%           factor. Note that this operator can map between different
+%           function spaces, and can also be specified as a tensopvar
+%           object itself;
+% - C.dim:  1 x 2 array specifying the matrix dimensions of the operator;
+% - C.vars: N x 2 'pvar' array specifying the spatial variables (first 
+%           column) and dummy variables (second column) in terms of which
+%           the operator is defined;
+% - C.dom:  N x 2 'double' array specifying the intervals on which each of
+%           the spatial variables are defined;
+% - C.depmat1:  d x N 'double' array with element (i,j) specifying whether
+%               the operators in factor i map to spatial variable j. If
+%               factor i is a tensopvar object, element (i,j) may be bigger
+%               than 1, to indicate the operator maps to a higher-degree
+%               monomial in the spatial variable;
+% - C.depmat2:  d x N 'double' array with element (i,j) specifying whether
+%               the operators in factor i map from spatial variable j. If
+%               factor i is a tensopvar object, element (i,j) may be bigger
+%               than 1, to indicate the operator maps from a higher-degree
+%               monomial in the spatial variable;
+% - C.type: 1 x 2 logical array specifying what type of tensor product is
+%           taken, set to true to indicate that a proper tensor product is
+%           taken along the row and column dimensions, or false to indicate
+%           that a pointwise product is taken. For example, if Rop is
+%           defined by Pop1,Pop2:L2^n[0,1] --> L2^m[0,1], then different
+%           values of "type" imply
+%               - (1,1):    Rop: L2^{n^2}[[0,1]^2] --> L2^{m^2}[[0,1]^2]
+%               - (0,1):    Rop: L2^{n^2}[[0,1]^2] --> L2^{m}[0,1]
+%               - (1,0):    Rop: L2^{n}[0,1] --> L2^{m^2}[[0,1]^2]
+%               - (0,0):    Rop: L2^{n}[0,1] --> L2^{m}[0,1]
+% - C.order:    1 x d array of integers specifying the order in which the 
+%               tensor product of the operator is taken, so that if 
+%               order = [k1,...,kd], then
+%                   C*(x1 o ... o xd)(s1,...,sd)
+%                       = (R_{k1}*x_{k1})(s1) o ... o (R_{kd}*x_{kd})(sd)
 %
+% DEPENDENT properties
+% - C.varnames: d x 2 cell of which each row j specifies the primary (first
+%               column and dummy (second column) variables in which the
+%               operators Rij for i=1:m are defined. Each element is a
+%               cellstr object of variable names.
+% - C.doms:     d x 2 cell of which each row j specifies the domains on
+%               which the primary (first column) and dummy (second column)
+%               variables appearing in Rij are defined;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - tensopvar
@@ -45,14 +78,25 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 01/16/2026: Initial coding
+% DJ, 04/15/2026: Initial coding
 
 properties
     ops = {};
+    vars = polynomial(zeros(0,2));
+    dom = zeros(0,2);
+    depmat1 = zeros(0,0);
+    depmat2 = zeros(0,0);
+    type = [true,true];
+    order = zeros(1,0);
 end
 properties (Dependent)
-    matdim
-    degmat
+    dim
+end
+properties (Dependent,Hidden)
+    varnames
+    doms
+    dims
+    dep
 end
 
 methods
@@ -78,15 +122,9 @@ methods
             end
             if nargin==1
                 if isa(varargin{1},'nopvar') || isa(varargin{1},'ndopvar')
-                    C.ops{1} = varargin{1};
-                elseif isa(varargin{1},'double') && all(size(varargin{1})==[1,2])
-                    C.ops = cell(varargin{1});
+                    C = ndopvar2tensopvar_new(varargin{1});
                 else
                     error("Input must be 'nopvar' or 'ndopvar' object.")
-                end
-            elseif nargin==2
-                if isa(varargin{1},'double') && isa(varargin{2},'double')
-                    C.ops = cell(varargin{1},varargin{2});
                 end
             else
                 error("Too many input arguments")
@@ -94,75 +132,98 @@ methods
         end
     end
 
-    function matdim = get.matdim(obj)
-        % % Determine the dimensions of the matrix-valued operator, m x n, 
-        % % from the individual operators
-
-        % Return 0 dimension for empty operator
+    function dim = get.dim(obj)
+        % Determine the matrix dimensions of the operator
         if isempty(obj.ops)
-            matdim = [0,0];
+            dim = [0,0];
             return
         end
-
-        % Check the dimensions of the individual operators
-        nr = size(obj.ops,1);
-        m_min = inf*ones(nr,1);     n_min = inf*ones(nr,1);
-        m_max = zeros(nr,1);        n_max = zeros(nr,1);
-        for i = 1:size(obj.ops,1)
-            for j=1:numel(obj.ops(i,:))
-                if isempty(obj.ops{i,j})
-                    continue
-                end
-                if isa(obj.ops{i,j},'double') || isa(obj.ops{i,j},'polynomial') || isa(obj.ops{i,j},'dpvar')
-                    % Constant term acting on degree-0 monomial
-                    [m,n] = size(obj.ops{i,j});
-                    m_min(i) = min(m_min(i),m);   n_min(i) = min(n_min(i),n);
-                    m_max(i) = max(m_max(i),m);   n_max(i) = max(n_max(i),n);
-                elseif isa(obj.ops{i,j},'nopvar') || isa(obj.ops{i,j},'intop')
-                    % A single operator acting on degree-1 monomial
-                    [m,n] = size(obj.ops{i,j});
-                    m_min(i) = min(m_min(i),m);   n_min(i) = min(n_min(i),n);
-                    m_max(i) = max(m_max(i),m);   n_max(i) = max(n_max(i),n);
-                elseif isa(obj.ops{i,j},'cell')
-                    % Product of multiple factors on degree-d monomial
-                    for k=1:numel(obj.ops{i,j})
-                        [m,n] = size(obj.ops{i,j}{k});
-                        m_min(i) = min(m_min(i),m);   n_min(i) = min(n_min(i),n);
-                        m_max(i) = max(m_max(i),m);   n_max(i) = max(n_max(i),n);
-                    end
-                end
-            end
+        % Establish the dimensions based on those of each factor
+        dim = [nan,nan];
+        dim_arr = obj.dims;
+        if obj.type(1) 
+            % Kronecker product
+            dim(1) = prod(dim_arr(:,1));
+        elseif max(dim_arr(:,1))==min(dim_arr(:,1))
+            % Elementwise product
+            dim(1) = dim_arr(1,1);
         end
-        
-        % Set the dimensions
-        matdim = [nan,nan];
-        if all(m_min==m_max) && all(round(m_min)==m_min)
-            matdim(1) = sum(m_min);
-        end
-        if all(n_min==n_max) && all(round(n_min)==n_min)
-            if all(n_min==n_min(1)*ones(size(n_min)))
-                matdim(2) = n_min(1);
-            end
+        if obj.type(2) 
+            % Kronecker product
+            dim(2) = prod(dim_arr(:,2));
+        elseif max(dim_arr(:,2))==min(dim_arr(:,2))
+            % Elementwise product
+            dim(2) = dim_arr(1,2);
         end
     end
 
-    function degmat = get.degmat(obj)
-        % % Determine the cumulative degree of the distributed monomials on
-        % % the coefficient operator acts
-        degmat = zeros(size(obj.ops,2));
-        for j=1:size(obj.ops,2)
-            if isa(obj.ops{j},'intop')
-                degmat(j) = numel(obj.ops{j}.pvarname);
-            elseif isa(obj.ops{j},'nopvar') || isa(obj.ops{j},'ndopvar')
-                degmat(j) = 1;
-            elseif isa(obj.ops{j},'cell')
-                degmat(j) = size(obj.ops{j},2);
-            else
-                degmat(j) = 0;
-            end
+
+    function varnames = get.varnames(obj)
+        % Determine the spatial and dummy variables on which each factor
+        % in the tensor-PI operator depends
+        d = size(obj.ops,2);
+        varnames = cell(d,2);
+        for j=1:d
+            op = obj.ops{1,j};
+            varnames{j,1} = pvar2varname(op.var1);
+            varnames{j,2} = pvar2varname(op.var2);
         end
     end
 
+    function doms = get.doms(obj)
+        % Determine the spatial domains of the variables on which each
+        % factor in the tensor-PI operator depends
+        d = size(obj.ops,2);
+        doms = cell(d,2);
+        for j=1:d
+            op = obj.ops{1,j};
+            % Input and output domain of 'nopvar' objects is the same
+            doms{j,1} = op.dom;
+            doms{j,2} = op.dom;
+        end
+    end
+
+    function dims = get.dims(obj)
+        % Determine the matrix dimensions of the operators in each factor
+        % of the tensor-PI operator
+        d = size(obj.ops,2);
+        dims = zeros(d,2);
+        for j=1:d
+            op = obj.ops{1,j};
+            dims(j,:) = op.dim;
+        end
+    end
+
+    function order = get.order(obj)
+        % Set the order of the tensor products in the operator
+        if isempty(obj.order)
+            % By default, assume the operators are already ordered
+            order = 1:size(obj.ops,2);
+        else
+            order = obj.order;
+        end
+    end
+
+    function dep = get.dep(obj)
+        % Determine the degrees of the monomial in each of the variables
+        % which the operator produces (first row) and on which the operator
+        % acts (second row)
+        dep = zeros(2,size(obj.vars,1));
+        if obj.type(1)
+            % Tensor product along primary variable
+            dep(1,:) = sum(obj.depmat1,1);
+        else
+            % Pointwise product along primary variable
+            dep(1,:) = max(obj.depmat1,[],1);
+        end
+        if obj.type(2)
+            % Tensor product along primary variable
+            dep(2,:) = sum(obj.depmat2,1);
+        else
+            % Pointwise product along primary variable
+            dep(2,:) = max(obj.depmat2,[],1);
+        end
+    end
 end
 
 end
