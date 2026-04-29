@@ -44,7 +44,9 @@ function varname = pvar2varname(var)
 % DJ, 04/14/2026: Initial coding
 
 % Check the input
-if ~ispvar(var)
+if isempty(var)
+    varname = cell(size(var));
+elseif ~ispvar(var)
     error("Input must be a 'polynomial' array of 'pvar' objects.")
 end
 
