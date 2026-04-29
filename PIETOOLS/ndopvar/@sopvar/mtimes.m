@@ -77,7 +77,7 @@ n3 = numel(vs3a);
 if n3 == 0  % params is 1x1 cell
     Cparams = {zeros(A.dims(1), B.dims(2))};
 elseif n3 == 1  % params is 3x1 cell
-    Cparams = repmat({zeros(A.dims(1), B.dims(2))}, 3, 1);   % <-- key change
+    Cparams = repmat({zeros(A.dims(1), B.dims(2))}, 3, 1);   
 else % params is 3x3x...x3 cell
     Cparams = repmat({zeros(A.dims(1), B.dims(2))}, 3*ones(1,n3));
 end
@@ -114,11 +114,13 @@ elseif nbeta==1
 else
     Asize = repmat(3,1,nbeta);
 end
+% convert linear index to multi-index for B parameters
 for i=1:numel(B.params)
     tmp = cell(1,nalpha);
     [tmp{:}] = ind2sub(Bsize(:),i);
     alphaIdx(i,:) = [tmp{:}];
 end
+% convert linear index to multi-index for A parameters
 for i=1:numel(A.params)
     tmp = cell(1,nbeta);
     [tmp{:}] = ind2sub(Asize(:),i);
@@ -145,7 +147,7 @@ dom3b = B.dom_3(~idx3a,:);
 
 % do int(A.ZR*B.ZL', s2b) = (I⊗Zhat_s2a')*G_s3a(s3a)*(I⊗Zhat_s3b)
 [Zhat_s2a,G_s3a,Zhat_s3b] = ...
-        int_2b(A.ZR,B.ZL,strrep(A.vars.in,'t','s'),B.vars.out, vs2a,vs2b,vs3a,vs3b, dom2b);
+        int_2b(A.ZR,B.ZL,A.vars.in,B.vars.out,vs2a,vs2b,vs3a,vs3b,dom2b);
 
 [Cs2a_betaa, KZhat_s2a] = int_monomial(Zhat_s2a,beta_a,dom2a);   % note that KZhat_s2a has been expanded to ensure independence of beta_a
 [Cs3b_alphab, KZhat_s3b] = int_monomial(Zhat_s3b,alpha_b,dom3b);  % same for KZhat_s3b
@@ -419,18 +421,18 @@ Cidx{i} = C;
 end
 end
 
-function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar, s2a,s2b,s3a,s3b,lims)
+function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar,s2a,s2b,s3a,s3b,lims)
 % This performs the factorization
 % int(ZL*ZR',s2b,0,1) = (Im\otimes Z2a') G(s3a) (In\otimes Z3b)
 % where m = length(kron(ZL)) and n = length(kron(ZR))
 
 % note that
-% int_0^1 (Z2a⊗Z2b⊗Z3a⊗Z3b)(Zp2a⊗Zp2b⊗Zp3a⊗Zp3b)' d2b
-% = int_0^1 (Z2a*Zp2a')⊗(Z2b*Zp2b')⊗(Z3a*Zp3a')⊗(Z3b*Zp3b') d2b
-% = (Z2a*Zp2a')⊗C2b⊗(Z3a*Zp3a')⊗(Z3b*Zp3b')
+% int_0^1 (ZL2a⊗ZL2b⊗ZL3a⊗ZL3b)(ZR2a⊗ZR2b⊗ZR3a⊗ZR3b)' d2b
+% = int_0^1 (ZL2a*ZR2a')⊗(ZL2b*ZR2b')⊗(ZL3a*ZR3a')⊗(ZL3b*ZR3b') d2b
+% = (ZL2a*ZR2a')⊗C2b⊗(ZL3a*ZR3a')⊗(ZL3b*ZR3b')
 % for some constant matrix C2b
 
-% first separate ZL and ZR into 2a,2b,3a,3b
+% first separate ZL and ZR into Z2a,Z2b,Z3a,Z3b
 ZL2a = cell(1,length(s2a));
 ZR2a = cell(1,length(s2a));
 ZL2b = cell(1,length(s2b));
@@ -493,57 +495,48 @@ for i=1:length(s2b)
     C2b = kron(C2b,Ci);
 end
 
-% condense Z2a matrix into (I2a \otimes Z2ap')*K2a
-Z2ap = cell(1,length(s2a));
+% condense Z2a matrix into (I2a \otimes Z2anew')*K2a
+Z2anew = cell(1,length(s2a));
 K2a = 1;
 for i=1:length(s2a)
     E = Z2a{i};
-    u = unique(E(:),'stable');
-    Z2ap{i} = u;
-    Ki = sparse(length(u), numel(E));
-    for j=1:numel(E)
-        Ki(find(u==E(j),1), j) = 1;
-    end
+    [u,~,idx] = unique(E(:));
+    Z2anew{i} = u;
+    Ki = sparse(idx,1:numel(E), 1, numel(u),numel(E));  % len(u)xlen(E) sparse matrix 
     K2a = kron(K2a,Ki);
 end
 
-% condense Z3b matrix into K3b*(I3b \otimes Z3bp)
-Z3bp = cell(1,length(s3b));
+% condense Z3b matrix into K3b*(I3b \otimes Z3bnew)
+Z3bnew = cell(1,length(s3b));
 K3b = 1;
 for i=1:length(s3b)
     E = Z3b{i};
-    u = unique(E(:),'stable');
-    Z3bp{i} = u;
-    Ki = sparse(numel(E), length(u));
-    for j=1:numel(E)
-        Ki(j,find(u==E(j),1)) = 1;
-    end
+    [u,~,idx] = unique(E(:));
+    Z3bnew{i} = u;
+    Ki = sparse(1:numel(E),idx,1,numel(E),numel(u));
     K3b = kron(K3b,Ki);
 end
 
-% condense Z3a matrix into (I3a0 ⊗ Z3anew')*K3a
+% condense Z3a matrix into (I3a ⊗ Z3anew')*K3a
 Z3anew = cell(1,length(s3a));
 K3a = 1;
 for i=1:length(s3a)
     E = Z3a{i};
-    u = unique(E(:),'stable');
+    [u,~,idx] = unique(E(:));
     Z3anew{i} = u;
-    Ki = sparse(length(u), numel(E));
-    for j=1:numel(E)
-        Ki(find(u==E(j),1), j) = 1;
-    end
+    Ki = sparse(idx,1:numel(E),1,length(u), numel(E));
     K3a = kron(K3a,Ki);
 end
 
 % now we have 
 % (Z2a*Zp2a')⊗C2b⊗(Z3a*Zp3a')⊗(Z3b*Zp3b')
-%  = ((I2a \otimes Z2ap')*K2a)
+%  = ((I2a ⊗ Z2anew')*K2a)
 %      ⊗C2b
-%        ⊗(I3a0 ⊗ Z3anew')*K3a
-%          ⊗(K3b*(I3b \otimes Z3bp))
+%        ⊗(I3a ⊗ Z3anew')*K3a
+%          ⊗(K3b*(I3b ⊗ Z3bnew))
 
 % let us focus on finding
-% K2a⊗C2b⊗((I3a0 ⊗ Z3anew')*K3a)⊗K3b
+% K2a⊗C2b⊗((I3a ⊗ Z3anew')*K3a)⊗K3b
 A = kron(K2a,C2b);
 B = K3b;
 r3a  = prod(cellfun(@length,ZL3a));
