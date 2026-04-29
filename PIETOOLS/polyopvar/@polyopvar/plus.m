@@ -46,7 +46,7 @@ elseif isnumeric(B) && isequal(B,0)
     return
 end
 
-% Convert constant values to 'polyopbar' class
+% Convert constant values to 'polyopvar' class
 if isa(A,'double') || isa(A,'polynomial') || isa(A,'dpvar')
     A = constant2polyopvar(A);
 elseif ~isa(A,'polyopvar')

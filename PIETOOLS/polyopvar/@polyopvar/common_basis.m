@@ -51,13 +51,21 @@ C_A = A.C;              C_B = B.C;
 % Combine the monomial bases into a unique basis
 nZ1 = size(degs1,1);
 degs_full = [degs1;degs2];
-[Pmat,degs_new] = uniquerows_integerTable(degs_full);   % Pmat*Znew = Z_full
+dep2_full = [C_A.depmat2; C_B.depmat2];
+% [Pmat,degs_new] = uniquerows_integerTable(degs_full);   % Pmat*Znew = Z_full
+[degs_new,old2new_Cdcs,new2old_Cdcs] = unique(degs_full,'rows');
 nZ = size(degs_new,1);
-new2old_Cdcs1 = Pmat(1:nZ1,:)*(1:nZ)';
-new2old_Cdcs2 = Pmat(nZ1+1:end,:)*(1:nZ)';
-C1 = tensopvar(1,nZ);      C2 = tensopvar(1,nZ);
-C1{1,new2old_Cdcs1} = C_A;
-C2{1,new2old_Cdcs2} = C_B;
+% new2old_Cdcs1 = Pmat(1:nZ1,:)*(1:nZ)';
+% new2old_Cdcs2 = Pmat(nZ1+1:end,:)*(1:nZ)';
+new2old_Cdcs1 = new2old_Cdcs(1:nZ1);
+new2old_Cdcs2 = new2old_Cdcs(nZ1+1:end);
+C1 = A.C;               C2 = B.C;
+C1.ops = cell(1,nZ);    C2.ops = cell(1,nZ);
+C1.ops(1,new2old_Cdcs1) = C_A.ops;
+C2.ops(1,new2old_Cdcs2) = C_B.ops;
+C1.depmat2 = dep2_full(old2new_Cdcs,:);
+%C1.depmat2 = Pmat'*dep2_full;   
+C2.depmat2 = C1.depmat2;
 
 % Build polynomials in terms of the shared basis
 A_out = A;                      B_out = B;

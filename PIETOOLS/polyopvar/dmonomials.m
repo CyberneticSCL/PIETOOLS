@@ -78,17 +78,20 @@ Z = vartab;
 Z.degmat = degmat;
 
 % Set identity operators to act on this basis
+Z.C.ops = cell(size(degmat,1));
 for i=1:size(degmat,1)
-    Z.C.ops{i,i} = cell(1,sum(degmat(i,:)));
-    idx = 0;
+    Cop_i = 1;
     for j=1:size(degmat,2)
+        % Take tensor product with identity operator
         d = degmat(i,j);
-        if d==0
-            continue
+        for k=1:d
+            Cop_i = otimes(Cop_i,vartab.C.ops{j,j},[true,true]);
         end
-        Z.C.ops{i,i}(idx+(1:d)) = repmat(vartab.C.ops(j,j),1,d);
-        idx = idx+d;
     end
+    Z.C.ops{i,i} = Cop_i;
 end
+[depmat1,depmat2] = get_deps(Z.C);
+Z.C.depmat1 = depmat1;
+Z.C.depmat2 = depmat2;
 
 end
