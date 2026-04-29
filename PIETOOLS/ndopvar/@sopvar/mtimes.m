@@ -201,7 +201,8 @@ end
 % sum_betaa (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
 % = sum_betaa (I⊗ZLtemp(varLtemp)')CLtemp_betaab
 [varLtemp,ZLtemp,CLtemp_betaab]=leftShiftMonomials_SS( ...
-    A.vars.out,A.ZL,CA,vs2a,KZhat_s2a,cellfun(@(x) kron(eye(A.dims(2)),x), Cs2a_betaa, UniformOutput=false));
+    A.vars.out,A.ZL,CA,vs2a,KZhat_s2a, ...
+    cellfun(@(x) kron(eye(A.dims(2)),x), Cs2a_betaa, UniformOutput=false));
 CLtemp = cell(1,size(CLtemp_betaab,2));
 for j=size(CLtemp_betaab,2)
     CLtemp{j} = CLtemp_betaab{1,j};
@@ -215,7 +216,10 @@ end
 % sum_alphab (I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*CB(alphaa,alphab)(I⊗B.ZR)
 % = sum_alphab (I⊗CRtemp_alphaab)*(I⊗ZRtemp(varRtemp))
 [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
-    B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b,kron(eye(B.dim(1)),Cs3b_alphab)');  % verify that CB.' not just transposes cell rows/columns but also matrix rows/columns
+    B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b, ...
+    cellfun(@(x) kron(eye(B.dims(1)),x), Cs3b_alphab, UniformOutput=false).');
+% [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
+%     B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b, kron(eye(B.dim(1)),Cs3b_alphab)');  % verify that CB.' not just transposes cell rows/columns but also matrix rows/columns
 % note above that since we used leftShiftMonomials function by transposing
 % everything the output is not CRtemp(alpha_a,alpha_b) but CRtemp(alpha_b,alpha_a)
 % so to sum along alpha_b we will again sum along first index and not 2nd.
@@ -421,7 +425,13 @@ Cidx{i} = C;
 end
 end
 
+<<<<<<< HEAD
 function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar,s2a,s2b,s3a,s3b,lims)
+=======
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar, s2a,s2b,s3a,s3b,lims)
+>>>>>>> 091796003159514d05a24a16bb99c5dccbac2651
 % This performs the factorization
 % int(ZL*ZR',s2b,0,1) = (Im\otimes Z2a') G(s3a) (In\otimes Z3b)
 % where m = length(kron(ZL)) and n = length(kron(ZR))
@@ -612,6 +622,9 @@ Z3bout = Z3bp;
 G3aout = struct('C', C3a, 'Z', {Z3anew});
 end
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function G = mapBetaAlpha2Gamma(alpha, beta)
 % mapAlphaBetaToGamma  Map multi-indices alpha,beta (values in {1,2,3})
 % to all possible gamma multi-indices under the specified per-component rule.
