@@ -86,5 +86,4 @@ if isfield(PIE,'K')
 PIE.K = transl_mod(PIE.K,I);
 end
 
-PIE.dom=I;
 end
