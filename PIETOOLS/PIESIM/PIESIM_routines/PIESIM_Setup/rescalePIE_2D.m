@@ -87,6 +87,4 @@ if isfield(PIE,'K')
 PIE.K =transl_2D(PIE.K,I);
 end
 
-PIE.dom=I;
-
 end
