@@ -193,5 +193,4 @@ for n=2:3
     end
 end
 
-T.I=I;
 
