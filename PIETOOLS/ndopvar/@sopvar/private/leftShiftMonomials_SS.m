@@ -18,6 +18,7 @@ NA = prod(cellfun(@numel, ZA));  % length of ZA monomial vec
 NB = prod(cellfun(@numel, ZB));  % length of ZB
 
 
+
 % if varsA or varsB is empty, we include a dummy variable
 if NA == 0
     varsA = {'<dummy_varA>'};
