@@ -1382,10 +1382,10 @@ for eqnum=1:numel(PDE.(obj))
                 [state_nums_ll,new_order] = sort(state_nums_jj(ll,:));
                 op_cell_ll = op_cell_jj(ll,new_order);
                 % Determine the degree of the monomial in each state
-                [~,strt_idx] = unique(state_nums_ll);
+                [state_nums_unique,strt_idx] = unique(state_nums_ll);
                 degs_part = [strt_idx(2:end); numel(state_nums_ll)+1] - strt_idx;
                 degs_ll = zeros(1,size(x_tab,1));
-                degs_ll(state_nums_ll) = degs_part;
+                degs_ll(state_nums_unique) = degs_part;
                 % Determine whether the monomial already appears
                 deg_idx = find(ismember(degmat,degs_ll,'rows'));
                 if isempty(deg_idx)
