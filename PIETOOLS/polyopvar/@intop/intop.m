@@ -74,6 +74,9 @@ properties (Dependent)
     matdim;
     vars;
 end
+properties (Dependent,Hidden)
+    dim;
+end
 
 methods
     function Kop = intop(params,omat,pvarname,dom)
@@ -102,6 +105,10 @@ methods
     function vars = get.vars(Kop)
         % Extract the variables defining the kernel as 'pvar' objects
         vars = polynomial(Kop.pvarname);
+    end
+
+    function dim = get.dim(Kop)
+        dim = Kop.matdim;
     end
 
 end
