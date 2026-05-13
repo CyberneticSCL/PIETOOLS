@@ -56,10 +56,18 @@ depmat1 = -1*ones(nr,nvars);
 depmat2 = -1*ones(nc,nvars);
 for lidx=1:numel(Cop.ops)
     % Loop over all tensor-PI operators in the structure
+    [ridx,cidx] = ind2sub(size(Cop.ops),lidx);
     if isempty(Cop.ops{lidx})
         continue
+    elseif isa(Cop.ops{lidx},'double') || isa(Cop.ops{lidx},'polynomial') || isa(Cop.ops{lidx},'dpvar')
+        depmat1(ridx,:) = 0;
+        depmat2(cidx,:) = 0;
+        continue
+    elseif isa(Cop.ops{lidx},'intop')
+        depmat1(ridx,:) = 0;
+        depmat2(cidx,:) = size(Cop.ops{lidx}.omat,2);
+        continue
     end
-    [ridx,cidx] = ind2sub(size(Cop.ops),lidx);
     var1_j = pvar2varname(Cop.ops{lidx}.vars(:,1));
     deps = Cop.ops{lidx}.dep;
     % For each of the variables appearing in the tensor-PI operator,
