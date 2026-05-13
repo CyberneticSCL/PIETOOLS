@@ -132,7 +132,7 @@ if any(opdom~=dom)
 end
 % Allow only multipliers acting on linear monomials
 if sum(has_multiplier)>1 || (sum(has_multiplier)==1 && d>1)
-    error("Multiplier terms in tensor producs of PI operators are not supported.")
+    error("Multiplier terms in tensor products of PI operators are not supported.")
 end
 var2 = [var1,var2];
 

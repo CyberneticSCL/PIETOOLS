@@ -122,7 +122,7 @@ for i=1:size(Vdegs,1)
     % Extract the ith term from the function V, expressing it in terms of
     % both the PDE and PIE state variables
     degi = Vdegs(i,:);
-    dVi_tmp = tmp_poly;
+    dVi_tmp = tmp_poly;     % dVi_tmp has invoked u=T*v for all factors up to j-1
     dVi_tmp.C.ops = V.C.ops(i);
     dVi_tmp.C.depmat1 = zeros(1,size(dVi_tmp.C.vars,1));
     dVi_tmp.C.depmat2 = V.C.depmat2(i);
@@ -142,7 +142,7 @@ for i=1:size(Vdegs,1)
             % Express this PDE state in terms of the PIE state
             dV0 = 0;
             for trm_num=1:size(dVi_tmp.degmat,1)
-                dVk = dVi_tmp;
+                dVk = dVi_tmp;   % dVi_tmp has already invoked u=T*v for all factors up to j-2
                 dVk.degmat = dVk.degmat(trm_num,:);
                 dVk.C.ops = dVk.C.ops(:,trm_num);
                 dVk.C.depmat2 = dVk.C.depmat2(trm_num,:);
@@ -151,8 +151,8 @@ for i=1:size(Vdegs,1)
             end
             dVi_tmp = dV0;
         end
-        dVj = dVi_tmp;
-        % Replace remaining factors by T*xf
+        dVj = dVi_tmp;   % dVi_j has invoked u=T*v for all factors up to j-1
+        % Replace factors j+1 up to di by T*xf
         for k=j+1:di
             % Determine which PDE state variable appears in factor k
             state_idx = find(k<=nfctrs,1,'first');

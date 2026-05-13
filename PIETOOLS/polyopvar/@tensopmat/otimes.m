@@ -153,7 +153,4 @@ C.dom = dom_C(idcs,:);
 C.depmat1 = depmat1;
 C.depmat2 = depmat2;
 
-
-   
-
 end
