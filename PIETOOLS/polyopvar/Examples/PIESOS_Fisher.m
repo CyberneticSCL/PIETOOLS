@@ -26,7 +26,17 @@ pvar s t
 dom = [0,1];
 alp = 5;
 bet = -1;
-R = 0.5;          % Radius of ball in which to test stability
+R = 4.0479;       % Radius of ball in which to test stability
+k = 0;            % Rate of decay of the functional
+
+R = 1.6;
+k = 2.948;
+
+R = 0.8;
+k = 3.904;
+
+R = 4.01;   % feasible up to R~4.0479 
+k = 0;
 
 % Declare the nonlinear PDE
 x = pde_var(s,dom);
@@ -50,22 +60,24 @@ x = polyopvar(f.varname,s,dom);
 d = 1;                  % degree of distributed monomial basis, will be doubled in LF
 Z = dmonomials(x,(1:d)); % Z_d(v).
 % Set distributed monomial basis for psatz multiplier
-d_psatz = 1;
-Zg = dmonomials(x,(1:d_psatz));
+d_psatz1 = 0;
+Zg1 = dmonomials(x,(1:d_psatz1));
+d_psatz2 = 1;
+Zg2 = dmonomials(x,(1:d_psatz2));
 % Monomial degree in independent variables, used to parameter Pop
-pdeg = 3;
+pdeg = 4;
 % Coercivity of Pop
-eppos = 1e-2;
+eppos = 1;
 % Enforce positivity using piesos_ineq
-use_ineq1 = true;
-use_ineq2 = true;
+use_ineq1 = false;
+use_ineq2 = false;
 
 
 % % Initialize PIESOS program structure.
 dpvar gam
 prog = piesos_program(x,gam);
 % Minimize the upper bound gamma on the Lyapunov function
-%prog = lpisetobj(prog,gam);
+prog = lpisetobj(prog,gam);
 %prog = piesos_ineq(prog,gam);
 
 
@@ -108,6 +120,7 @@ else
     Pdim_arr = ones(d,1);
     for i=1:d
         Zs{i} = s.^(0:max(pdeg*i,0));
+        %Zs{i} = 1;
     end
     [prog,Pcell] = sosquadvar(prog,Zs,Zs,Pdim_arr,Pdim_arr,'pos');
     % Ensure strict positivity of the Lyapunov functional
@@ -155,17 +168,21 @@ if R>0
     %g = R^2-(innerprod(Top*x,Top*x) +innerprod(Rop*x,Rop*x));   % sphere in Sobolev norm, doesn't really work...
     
     % Declare the multiplier for the upper bound
-    lam1_opts.exclude = [1,0,0]';
-    lam1_opts.deg = pdeg;
-    lam1_opts.psatz = 0;
-    [prog,lam1] = piesos_sosvar(prog,Zg,lam1_opts);
-    V_bnd = gam*innerprod(Tx,Tx)-Vx-lam1*g;
+    if d_psatz1>1
+        lam1_opts.exclude = [1,0,0]';
+        lam1_opts.deg = pdeg;
+        lam1_opts.psatz = 0;
+        [prog,lam1] = piesos_sosvar(prog,Zg1,lam1_opts);
+        V_bnd = gam*innerprod(Tx,Tx)-Vx-lam1*g;  %(gam*||Tx||^2 - Vx) >= lam1*g >= 0
+    else
+        V_bnd = gam*innerprod(Tx,Tx)-Vx;
+    end
 
     % Declare the multiplier for the derivative
     lam2_opts.exclude = [1,0,0]';
     lam2_opts.deg = pdeg;
     lam2_opts.psatz = 0;
-    [prog,lam2] = piesos_sosvar(prog,Zg,lam2_opts);
+    [prog,lam2] = piesos_sosvar(prog,Zg2,lam2_opts);
     Wgg = lam2*g;
     dV_g = dV+Wgg;
 else
@@ -184,7 +201,7 @@ else
     % Declare W >= 0
     disp("  --  manually declaring a distributed SOS functional")
     % Determine monomials to balance those of dV
-    Z_bnd_degmat = unique(floor(dV_g.degmat./2),'rows');
+    Z_bnd_degmat = unique(floor(V_bnd.degmat./2),'rows');
     Z_bnd = polyopvar(f.varname,s,dom);
     Z_bnd.degmat = Z_bnd_degmat;
     % Declare distributed SOS functional in terms of these monomials
@@ -204,7 +221,7 @@ disp(" --- Enforcing negativity of the derivative ---")
 if use_ineq2
     disp("  --  using piesos_ineq")
     ineq2_opts.psatz = 0;
-    [prog,W2,Q2mat,ZQ2op] = piesos_ineq(prog,-dV_g,ineq2_opts);
+    [prog,W2,Q2mat,ZQ2op] = piesos_ineq(prog,-dV_g-2*k*Vx,ineq2_opts);
 else
     % Declare W >= 0
     disp("  --  manually declaring a distributed SOS functional")
@@ -213,7 +230,13 @@ else
     ZQ = polyopvar(f.varname,s,dom);
     ZQ.degmat = ZQ_degmat;
     % Declare distributed SOS functional in terms of these monomials
-    Q2_opts.deg = pdeg+1;
+    qdeg = pdeg+1;
+    if d_psatz2==2
+        Q2_opts.deg = {[qdeg,qdeg]; [qdeg,round(qdeg/2)]; [qdeg-2,round(qdeg/4)]};
+    else
+        Q2_opts.deg = qdeg;
+    end    
+    % Q2_opts.deg = pdeg+1;
     Q2_opts.exclude = [1,0,0]';
     Q2_opts.psatz = 0:1;
     [prog,W2,Q2mat,ZQ2op] = piesos_sosvar(prog,ZQ,Q2_opts);
@@ -262,3 +285,18 @@ end
 % In our case, however, we have
 %   V(u) = <[u;u^2],Pop*[u;u^2]> <= ||Pop||*||[u;u^2]||_{L2}^2
 % Thus, we need to bound ||u^2||_{L2}^2 by ||u||_{L2}...
+
+
+% Using energy functional, and the following settings,
+% d = 1;                  % degree of distributed monomial basis, will be doubled in LF
+% Z = dmonomials(x,(1:d)); % Z_d(v).
+% d_psatz1 = 0;
+% Zg1 = dmonomials(x,(1:d_psatz1));
+% d_psatz2 = 1;
+% Zg2 = dmonomials(x,(1:d_psatz2));
+% pdeg = 3;
+% eppos = 1e-2;
+% use_ineq1 = false;
+% use_ineq2 = false;
+%
+% We can verify stability up to R=4.119, with k=0;
