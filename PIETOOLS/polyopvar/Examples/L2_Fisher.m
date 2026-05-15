@@ -88,7 +88,7 @@ Z = dopvar2ndopvar(Zop);
 % Construct LF (up to degree 3).
 Tx = Top*x;
 Zx = Z*x;
-Vx = innerprod(Zx,Tx,Pcell{1});
+Vx = innerprod(Tx,Zx,Pcell{1}');
 % if d>=2
 %     TTx = Tx*Tx;
 %     Vx = Vx + 2*innerprod(Tx,TTx,Pcell{1,2});

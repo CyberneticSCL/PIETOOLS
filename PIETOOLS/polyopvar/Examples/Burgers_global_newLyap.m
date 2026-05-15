@@ -22,7 +22,7 @@ PDE = [diff(x,t)==diff(x,s,2)-bet*x*diff(x,s);
 
 % Script parameters
 R = 1.0; % Radius of ball in which to test stability - feasible up to R~4.0479. - REDUNDANT IN THIS TEST DUE TO d_psatz1=d_psatz2=0
-k = pi^2+0.1; % Rate of decay of the functional. THEORETICAL MAX K=pi^2 FOR BURGERS.
+k = pi^2-0.1; % Rate of decay of the functional. THEORETICAL MAX K=pi^2 FOR BURGERS.
 d = 1;    % degree of LF distributed monomial basis (will be doubled in LF).
 pdeg = 6; % degree of Zs monomials of positive P operator.
 BALL = true; % local test on L2 ball (if TRUE) or Sobolev ball (if false) of radius R.
@@ -81,7 +81,8 @@ Z = dopvar2ndopvar(Zop);
 % Construct LF (up to degree 3).
 Tx = Top*x;
 Zx = Z*x;
-Vx = innerprod(Zx,Tx,Pcell{1});
+% Vx = innerprod(Zx,Tx,Pcell{1});
+Vx = innerprod(Tx,Zx,Pcell{1}');
 % if d>=2
 %     TTx = Tx*Tx;
 %     Vx = Vx + 2*innerprod(Tx,TTx,Pcell{1,2});
@@ -186,13 +187,13 @@ Q2_opts.psatz = 0:1;
 disp("  --  enforcing upper bound equality")
 prog = piesos_eq(prog,V_up-W2);
 
-%% 8. Enforce symmetry condition (currently only works for d=1!)
-
-Pop = Pcell{1}'*Zop;
-prog.dom = dom;
-prog.vartable = [s;s_dum];
-prog = lpi_eq(prog,Pop'*Top_opvar-Top_opvar'*Pop);
-prog.vartable = {'s'};
+% %% 8. Enforce symmetry condition (currently only works for d=1!)
+% 
+% Pop = Pcell{1}'*Zop;
+% prog.dom = dom;
+% prog.vartable = [s;s_dum];
+% prog = lpi_eq(prog,Pop'*Top_opvar-Top_opvar'*Pop);
+% prog.vartable = {'s'};
 
 %% 9. Define the upper bound on the LF derivative over the specified ball and enforce constraint.
 
