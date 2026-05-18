@@ -36,7 +36,7 @@ pdeg = 4; % degree of Zs monomials of positive P operator.
 BALL = false; % local test on L2 ball (if TRUE) or Sobolev ball (if false) of radius R.
 d_psatz1 = 0; % degree of distributed monomial in upper bound condition of LF.
 d_psatz2 = 1; % degree of distributed monomial in upper bound condition of LF derivative.
-eppos = 1.0; % coefficient in LF lower bound condition.
+eppos = 0.1; % coefficient in LF lower bound condition.
 q1_deg = 4; % degree of monomials (not distributed) used to define the operator W1
 q2_deg = 4; % degree of monomials (not distributed) used to define the operator W2
 q3_deg = 4; % degree of monomials (not distributed) used to define the operator W3
@@ -210,7 +210,7 @@ prog = piesos_eq(prog,V_low-W1);
 % Declare the SOS multiplier, lam2, then define bound.
 Zg2 = dmonomials(x,(1:d_psatz2));
 if d_psatz2>=1
-    lam2_opts.exclude = [1,0,0]';
+    lam2_opts.exclude = [0,0,0]';
     lam2_opts.deg = lam2_deg; % degree of monomials (not distributed) used to define the operator lam2
     lam2_opts.psatz = 0;
     [prog,lam2] = piesos_sosvar(prog,Zg2,lam2_opts);
@@ -227,7 +227,7 @@ ZQ_degmat = unique(floor(dV_up.degmat./2),'rows');
 ZQ = polyopvar(f.varname,s,dom);
 ZQ.degmat = ZQ_degmat;
 Q3_opts.deg = q3_deg; % degree of monomials (not distributed) used to define the operator W3
-Q3_opts.exclude = [1,0,0]';
+Q3_opts.exclude = [0,0,0]';
 Q3_opts.psatz = 0:1;
 [prog,W3,Q3mat,ZQ3op] = piesos_sosvar(prog,ZQ,Q3_opts); % DO WE NEED Q3MAT AND ZQ3OP??????????????????
 
@@ -239,7 +239,7 @@ prog = piesos_eq(prog,dV_up-W3);
 %% 10. Solve the optimization program
 disp(" --- Solving the optimization program ---")
 sol_opts.simplify = true;
-prog_sol = lpisolve(prog,sol_opts);
+prog_sol = piesos_solve(prog,sol_opts);
 
 
 % % Extract the solution
