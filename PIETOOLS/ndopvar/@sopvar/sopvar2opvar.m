@@ -3,13 +3,22 @@ function obj = sopvar2opvar(objSopvar)
 pvar s1 t1 s1_dum;
 
 opvar obj;
-obj.dim = [0,0; fliplr(objSopvar.dims)];
-obj.I = objSopvar.dom_3;
-R0 = quadPoly.quadPoly2polynomial(objSopvar.params{1});
-R1 = quadPoly.quadPoly2polynomial(objSopvar.params{2});
-R2 = quadPoly.quadPoly2polynomial(objSopvar.params{3});
+obj.I = objSopvar.dom.in;
+obj.dim = [0, 0; objSopvar.dims];
+dims = objSopvar.dims;
+R0 = quadPoly(objSopvar.params{1}, objSopvar.ZL, objSopvar.ZR,  dims, {'s1'}, {'s1'}, 0)   ;
+R1 = quadPoly(objSopvar.params{2}, objSopvar.ZL, objSopvar.ZR,  dims, {'s1'}, {'t1'}, 0)   ;
+R2 = quadPoly(objSopvar.params{3}, objSopvar.ZL, objSopvar.ZR,  dims, {'s1'}, {'t1'}, 0)   ;
 
-obj.R = struct('R0',subs(R0,t1,s1_dum), ...
-                 'R1',subs(R1,t1,s1_dum), ... 
-                  'R2',subs(R2,t1,s1_dum));
+R0 = combine(R0);
+R1 = combine(R1);
+R2 = combine(R2);
+
+obj.R.R0 = quadPoly.quadPoly2polynomial(R0);
+obj.R.R1 = quadPoly.quadPoly2polynomial(R1);
+obj.R.R2 = quadPoly.quadPoly2polynomial(R2); 
+
+% obj.R = struct('R0',subs(R0,t1,s1_dum), ...
+%                  'R1',subs(R1,t1,s1_dum), ... 
+%                   'R2',subs(R2,t1,s1_dum));
 end
