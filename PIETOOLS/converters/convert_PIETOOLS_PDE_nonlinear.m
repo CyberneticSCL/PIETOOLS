@@ -1503,9 +1503,9 @@ nvars_Rcomp = sum(has_vars_Rcomp);
 
 % Check whether the coefficients act as multiplier or as
 % kernel of some integral
-Cop_int_indx = ones(1,nvars);
 if isempty(Idoms)
     % The coefficients act as just a multiplier operator
+    Cop_int_indx = ones(1,nvars);
     Cval = subs(Cval,vars(:,2),vars(:,1));
 else
     % The coefficients may represent kernels
@@ -1543,6 +1543,7 @@ else
             end
         end
     end
+    Cop_int_indx = ones(size(Cop_int_indx_tmp,1),nvars);
     Cop_int_indx(:,has_vars_Rcomp) = Cop_int_indx_tmp;
 end
 
