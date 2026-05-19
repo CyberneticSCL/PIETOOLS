@@ -74,8 +74,12 @@ ZR2 = b.ZR;
 
 [ZR, C1R, C2R] = UnionBasisMonomials(ZR1, ZR2);
 [ZL, C1L, C2L] = UnionBasisMonomials(ZL1, ZL2);
-% Finally, let's actually concatenate
 
+
+C1L = kron(eye(a.dims(1)), C1L);
+C2L = kron(eye(b.dims(1)), C2L);
+C1R = kron(eye(a.dims(2)), C1R);
+C2R = kron(eye(b.dims(2)), C2R);
 
 % Finally, let's actually concatenate
 params = a.params;
