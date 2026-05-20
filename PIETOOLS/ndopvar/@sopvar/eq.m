@@ -74,8 +74,8 @@ end
  
 logval = true;
 for ii = 1:numel(P1.params)
-    temp_log_val = eq(P1.params{ii}, P2.params{ii}, tol);
-    logval = logval*temp_log_val;
+    temp_log_val = max(abs(P1.params{ii} - P2.params{ii}), [], "all") < tol;
+    logval = logval & temp_log_val;
 end
 
 end

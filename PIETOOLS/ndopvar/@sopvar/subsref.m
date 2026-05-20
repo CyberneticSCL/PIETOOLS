@@ -41,6 +41,7 @@ function out = subsref(obj,s)
 % authorship, and a brief description of modifications
 %
 % Initial coding AT 01/26/2026
+% updated to new sopvar AT 05/18/26
 
 switch s(1).type
     case '.'
@@ -81,21 +82,37 @@ switch s(1).type
         end
 
         % Construct the sliced opvar
-        vars_S1 = obj.vars_S1;
-        vars_S2 = obj.vars_S2;
-        vars_S3 = obj.vars_S3;
-        dom_3 = obj.dom_3;
-        dom_2 = obj.dom_2;
-        dom_1 = obj.dom_1;
+        vars = obj.vars;
+        dom  = obj.dom;
+        dims = obj.dims;
+        ZL   = obj.ZL;
+        ZR   = obj.ZR;
+        deg_r = cellfun(@(x) length(x), ZL, 'UniformOutput',true); % rows
+        deg_c = cellfun(@(x) length(x), ZR, 'UniformOutput',true); % columns
+
+        n_mon_r = prod(deg_r);
+        n_mon_c = prod(deg_c);
+
+
         dims = [length(indr), length(indc)];
         
         subsref_params = obj.params; 
+        
+        % rows
+        Loc_L_R = n_mon_r*(indr - 1) + 1; % starting location of C rows
+        Loc_L_R= [kron(Loc_L_R, ones(n_mon_r, 1)), kron( ones(length(Loc_L_R), 1), (0:(n_mon_r-1))' )];
+        Loc_L_R = sum(Loc_L_R, 2);
+        
+        %columns
+        Loc_L_C = n_mon_c*(indc - 1) + 1; % starting location of C columns
+        Loc_L_C= [kron(Loc_L_C, ones(n_mon_c, 1)), kron( ones(length(Loc_L_C), 1), (0:(n_mon_c-1))' )];
+        Loc_L_C = sum(Loc_L_C, 2);
 
         for ii = 1:numel(subsref_params)
-            subsref_params{ii} = subsref_params{ii}(indr, indc);
+            subsref_params{ii} = subsref_params{ii}(Loc_L_R, Loc_L_C);
         end
 
-        out = sopvar(vars_S3,dom_3,dims,subsref_params,vars_S1,dom_1,vars_S2,dom_2);
+        out = sopvar(subsref_params, obj.vars, obj.ZL, obj.ZR, obj.dom, dims); 
 
 
     case '{}'

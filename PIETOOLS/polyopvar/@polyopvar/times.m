@@ -85,9 +85,9 @@ for k = 1:size(degmat_full,1)
     state_idcs = [repelem(1:nvars,deg1),repelem(1:nvars,deg2)];
     % Set the order of the states in the combined monomial
     [~,var_order] = sort(state_idcs);
-    if isa(Ck,'cell')
+    if isa(Ck,'tensopvar')
         % For cell of factors, we need only reorder the factors
-        Ck = Ck(var_order);
+        Ck.ops = Ck.ops(:,var_order);
     elseif isa(Ck,'intop')
         % For functional operator, we need to update the order of the dummy
         % variables used for integration
@@ -98,7 +98,6 @@ for k = 1:size(degmat_full,1)
         omat1 = Ck.omat(~zero_idcs,:);
         omat1 = old_order(omat1);
         Ck.omat(~zero_idcs,:) = omat1;
-        % Combine terms
     end
     params_full.ops{k} = Ck;
 end
@@ -106,20 +105,16 @@ end
 % Finally, combine terms involving the same monomial
 [Pmat,degmat_new] = uniquerows_integerTable(degmat_full);   % deg_full = Pmat*deg_new
 C.degmat = degmat_new;
-C.C = tensopvar();
+C.C = params_full;
+C.C.depmat2 = zeros(size(degmat_new,1),nvars);
 for j=1:size(degmat_new,1)
     % Establish which parameters act on the jth monomial
     param_idcs = find(Pmat(:,j));
+    C.C.depmat2(j,:) = params_full.depmat2(param_idcs(1),:);
     % Add the different operators acting on this monomial
     Ctmp = params_full.ops{param_idcs(1)};
     for k=2:numel(param_idcs)
-        if isa(Ctmp,'cell')
-            % For terms involvin multiple factors, we store the sum using
-            % different rows in a cell
-            Ctmp = [Ctmp; params_full.ops{param_idcs(k)}];
-        else
-            Ctmp = Ctmp + params_full.ops{param_idcs(k)};
-        end
+        Ctmp = Ctmp + params_full.ops{param_idcs(k)};
     end
     % Set the operator acting on the jth monomial
     C.C.ops{j} = Ctmp;

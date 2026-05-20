@@ -40,6 +40,8 @@ function [Pcat] = vertcat(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial AT 01/21/2026
+% Update to new sopvar AT 05/18/26
+
 
 % Deal with single input case
 if nargin==1
@@ -57,8 +59,13 @@ if ~isa(b,'sopvar') || ~isa(a, 'sopvar')
 end
 
 % Check that domain and variables match
-if any(any(a.dom_1~=b.dom_1))|| any(any(a.dom_2~=b.dom_2)) || any(any(a.dom_3~=b.dom_3))
+if any(any(a.dom.in~=b.dom.in)) || any(any(a.dom.out~=b.dom.out))
     error('Operators being concatenated have different intervals');
+end
+
+% Check that domain and variables match
+if any(~strcmp(a.vars.in, b.vars.in))|| any(~strcmp(a.vars.out, b.vars.out))
+    error('Operators being concatenated have input/output variables');
 end
  
 
@@ -67,26 +74,31 @@ if any(a.dims(2)~=b.dims(2))
     error('Cannot concatenate vertically: Input dimensions of sopvar objects do not match')
 end  
 
+ZL1 = a.ZL;
+ZL2 = b.ZL;
+ZR1 = a.ZR;
+ZR2 = b.ZR;
+
+[ZR, C1R, C2R] = UnionBasisMonomials(ZR1, ZR2);
+[ZL, C1L, C2L] = UnionBasisMonomials(ZL1, ZL2);
+
+
+C1L = kron(eye(a.dims(1)), C1L);
+C2L = kron(eye(b.dims(1)), C2L);
+C1R = kron(eye(a.dims(2)), C1R);
+C2R = kron(eye(b.dims(2)), C2R);
 % Finally, let's actually concatenate
 params = a.params;
 for ii=1:numel(a.params)
-    params{ii} = [a.params{ii}; b.params{ii}]; % concatenation of quadpoly
+    params{ii} = [C1L'*a.params{ii}*C1R; C2L'*b.params{ii}*C2R]; % concatenation of quadpoly
 end
 
 % Pcat.dim = [a.dim(1), a.dim(2)+b.dim(2)];
 
-
-% it is assumed that vars_S1, S2, S3 are sorted arrays.
-vars_S1 = mergeSortedCellstr(a.vars_S1, b.vars_S1); 
-vars_S2 = mergeSortedCellstr(a.vars_S2, b.vars_S2);
-vars_S3 = mergeSortedCellstr(a.vars_S3, b.vars_S3);
-dom_3 = a.dom_3;
-dom_2 = a.dom_2;
-dom_1 = a.dom_1;
 dims = a.dims;
 dims(1) = dims(1) + b.dims(1);
 
-Pcat = sopvar(vars_S3,dom_3,dims,params,vars_S1,dom_1,vars_S2,dom_2);
+Pcat = sopvar(params, a.vars, ZL, ZR, a.dom, dims);
 
 
 if nargin>2 
@@ -98,43 +110,42 @@ end
 
 
 % ---------------- local helpers ----------------
+function [Z, C1, C2] = UnionBasisMonomials(Z1, Z2)
+% computes monomial basis for to monomial vectors
+% and transformation matrix
+% such that for any matrix A we have 
+% A*Z1 = A*C1*Z and A*Z2 = A*C2*Z
+%
+% input Z1, Z2 -- cell arrays
+% output C1 -- (n1, n_new) sparse matrix
+% output C2 -- (n2, n_new) sparse matrix
+% output Z -- new basis (cell array)
+N = length(Z1);
+Z = cell(1:N);
 
-function u = mergeSortedCellstr(a, b)
-% Sorted union of two sorted-unique cellstr arrays.
-i = 1; j = 1;
-na = numel(a); nb = numel(b);
-u = cell(1, na+nb);
-k = 0;
-
-while i <= na && j <= nb
-    ai = a{i}; bj = b{j};
-    if strcmp(ai, bj)
-        k=k+1; u{k} = ai; i=i+1; j=j+1;
-    elseif lexLessChar(ai, bj)
-        k=k+1; u{k} = ai; i=i+1;
-    else
-        k=k+1; u{k} = bj; j=j+1;
-    end
-end
-while i <= na, k=k+1; u{k} = a{i}; i=i+1; end
-while j <= nb, k=k+1; u{k} = b{j}; j=j+1; end
-
-u = u(1:k);
+% construct union basis
+for i = 1:N
+    Z{i} = union(Z1{i}, Z2{i});
 end
 
-function tf = lexLessChar(s1, s2)
-% Lexicographic compare without string allocations.
-s1 = char(s1); s2 = char(s2);
-L1 = numel(s1); L2 = numel(s2);
-L  = min(L1, L2);
+degmat_1   = Z1{1};
+degmat_2   = Z2{1};
+degmat_new = Z{1};
 
-d = s1(1:L) - s2(1:L);
-idx = find(d ~= 0, 1, 'first');
-if isempty(idx)
-    tf = (L1 < L2);
-else
-    tf = (d(idx) < 0);
-end
+% construct full monomial basis
+for dim = 2:N
+    degmat_new = [kron(degmat_new, ones(length(Z{dim}), 1)),  kron(ones(length(degmat_new), 1), Z{dim})];
+    degmat_1 = [kron(degmat_1, ones(length(Z1{dim}), 1)),  kron(ones(length(degmat_1), 1), Z1{dim})];
+    degmat_2 = [kron(degmat_2, ones(length(Z2{dim}), 1)),  kron(ones(length(degmat_2), 1), Z2{dim})];
 end
 
- 
+% find identical rows 
+[~, C1_index] =ismember(degmat_1,  degmat_new, 'rows');
+[~, C2_index] =ismember(degmat_2,  degmat_new, 'rows');
+
+n1 = length(degmat_1);
+n2 = length(degmat_2);
+n_new = length(degmat_new);
+C1 = sparse(1:n1, C1_index, ones(n1, 1), n1, n_new);
+C2 = sparse(1:n2, C2_index, ones(n2, 1), n2, n_new);
+end

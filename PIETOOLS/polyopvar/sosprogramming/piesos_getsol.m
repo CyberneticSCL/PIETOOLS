@@ -56,6 +56,11 @@ if isa(dvar,'polyopvar')
     % --> only the coefficients will be variable
     dvar_sol = dvar;
     dvar_sol.C = piesos_getsol(prog,dvar.C);
+elseif isa(dvar,'tensopmat')
+    dvar_sol = dvar;
+    for j=1:numel(dvar.ops)
+        dvar_sol.ops{j} = piesos_getsol(prog,dvar.ops{j});
+    end
 elseif isa(dvar,'tensopvar')
     % The variable defines coefficients acting on distributed monomials
     dvar_sol = dvar;

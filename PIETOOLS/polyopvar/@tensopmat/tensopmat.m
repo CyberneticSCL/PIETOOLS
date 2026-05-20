@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?tensopvar})tensopmat
+classdef (InferiorClasses={?tensopvar,?ndopvar,?nopvar,?dpvar,?polynomial})tensopmat
 % This function defines the class of 'tensopmat' objects, representing
 % a matrix structure wherein each element is a tensor-PI operator
 %   Cop = [C11, ..., C1d]

@@ -57,7 +57,9 @@ F = polyopvar();
 F.pvarname = pvarname;
 F.varmat = false(0,numel(pvarname));
 F.degmat = zeros(1,numel(pvarname));
-F.C = {C};
+F.C.ops = {C};
+F.C.depmat1 = zeros(1,0);
+F.C.depmat2 = zeros(1,0);
 
 
 

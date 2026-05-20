@@ -19,7 +19,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})tensopvar
 % - C.dom:  N x 2 'double' array specifying the intervals on which each of
 %           the spatial variables are defined;
 % - C.depmat1:  d x N 'double' array with element (i,j) specifying whether
-%               the operators in factor i map to spatial variable j. If
+%               the operators in factor i maps to spatial variable j. If
 %               factor i is a tensopvar object, element (i,j) may be bigger
 %               than 1, to indicate the operator maps to a higher-degree
 %               monomial in the spatial variable;

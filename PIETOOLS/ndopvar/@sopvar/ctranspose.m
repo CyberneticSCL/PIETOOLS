@@ -62,7 +62,7 @@ function At = ctranspose(A)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
-%
+% Update to new sopvar class AT - 05/18/2026
 
 % initialize the transpose object
 At = A;  
@@ -89,26 +89,44 @@ idx = repmat({[1 3 2]}, 1, nvars3);
 C = A.params;  % assuming params is indexed by alpha in {1,2,3]^n3
 C = C(idx{:});  % swap the parameters along 2 and 3. 
 
-% for each parameter in cell structure repeat
-for i=1:numel(C)
-    % C{i} has form Z_1(S_2,S_3) C Z_2(S_1, S_3dum) 
-    matC = C{i}.C;
-    leftZ = C{i}.Zs;
-    rightZ = C{i}.Zt;
-    leftVar = C{i}.ns;
-    rightVar = C{i}.nt;
-    dim = C{i}.dim;
-    
-    newrightVar = strrep(leftVar,'s','t');
-    newleftVar = strrep(rightVar,'t','s');
 
-    % % we need form Z_2(S_1,S_3) C^T Z_1(S_2,S_3dum)
-    % [tf,loc]=ismember(newrightVar,S3Var); 
-    % newrightVar(tf)=S3Vardummy(loc(tf)); % changes (S_2,S_3) to (S_2,S_3dum)
-    % [tf,loc]=ismember(newleftVar,S3Vardummy); 
-    % newleftVar(tf) = S3Var(loc(tf)); % changes (S_1,S_3dum) to (S_1,S_3)
+leftZ = A.ZL;
+rightZ =A.ZR;
+Ct = cellfun(@(x) transpose(x), C, 'UniformOutput', false);
 
-    C{i} = quadPoly(matC',rightZ,leftZ,dim',newleftVar,newrightVar);
+At_vars = struct('in',A.vars.out,'out',A.vars.in);
+
+if ~isa(At_vars.in, 'cell')
+    At_vars.in = {At_vars.in};
 end
-At.params = C;
+if ~isa(At_vars.out, 'cell')
+    At_vars.out = {At_vars.out};
+end
+At_dom  = struct('in',A.dom.out, 'out',A.dom.in);
+At_dim = [A.dims(2), A.dims(1)];
+At = sopvar(Ct, At_vars, rightZ, leftZ, At_dom, At_dim);
+% for each parameter in cell structure repeat
+ 
+
+% for i=1:numel(C)
+%     % C{i} has form Z_1(S_2,S_3) C Z_2(S_1, S_3dum) 
+%     matC = C{i}.C;
+%     leftZ = C{i}.Zs;
+%     rightZ = C{i}.Zt;
+%     leftVar = C{i}.ns;
+%     rightVar = C{i}.nt;
+%     dim = C{i}.dim;
+% 
+%     newrightVar = strrep(leftVar,'s','t');
+%     newleftVar = strrep(rightVar,'t','s');
+% 
+%     % % we need form Z_2(S_1,S_3) C^T Z_1(S_2,S_3dum)
+%     % [tf,loc]=ismember(newrightVar,S3Var); 
+%     % newrightVar(tf)=S3Vardummy(loc(tf)); % changes (S_2,S_3) to (S_2,S_3dum)
+%     % [tf,loc]=ismember(newleftVar,S3Vardummy); 
+%     % newleftVar(tf) = S3Var(loc(tf)); % changes (S_1,S_3dum) to (S_1,S_3)
+% 
+%     C{i} = quadPoly(matC',rightZ,leftZ,dim',newleftVar,newrightVar);
+% end
+% At.params = C;
 end

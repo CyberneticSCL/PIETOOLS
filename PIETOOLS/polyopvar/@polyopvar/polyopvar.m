@@ -69,6 +69,10 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
         matdim;
     end
 
+    properties(Dependent,Hidden)
+        vartab;
+    end
+    
     methods
 
         function [P] = polyopvar(varargin) %constructor
@@ -181,7 +185,14 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
         function matdim = get.matdim(obj)
             % % Determine the dimensions of the matrix-valued distributed
             % % polynomial
-            matdim = [sum(obj.C.dim{1}),1];
+            matdim = [size(obj.C,1),1];
+        end
+
+        function vartab = get.vartab(obj)
+            % % Return a polyopvar object specifying the variables that
+            % % appear in the distributed polynomial
+            vartab = polyopvar(obj.varname,obj.pvarname,obj.dom);
+            vartab.varmat = obj.varmat;
         end
 
     end
