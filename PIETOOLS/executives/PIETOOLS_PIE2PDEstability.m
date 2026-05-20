@@ -15,6 +15,8 @@
 % If settings.epneg>0, this test implies |Tx(t)|\le Ce^{-\alpha t}|x(0)|
 % for some \alpha>0
 %
+% This script implements the LPI in Lemma 8, 1) of [1].
+%
 % INPUT: 
 % PIE - A pie_struct class object with the above listed PI operators as fields
 % settings - An lpisettings() structure with relevant optimization parameters defined
@@ -46,6 +48,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding MP - 07_05_2025
+% DB - 05_20_2026: added reference paper for the LPI
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, P] = PIETOOLS_PIE2PDEstability(PIE, settings)
@@ -181,3 +184,11 @@ for i=1:length(prog.expr.At)
     prog.expr.Z{i} = unique(prog.expr.Z{i},'rows');
 end
 end
+% References:
+% [1]-
+% @article{peet2026hierarchical,
+%   title={Hierarchical Stability Notions and Lyapunov Functions for PDEs},
+%   author={Peet, Matthew M},
+%   journal={arXiv preprint arXiv:2603.17536},
+%   year={2026}
+% }
