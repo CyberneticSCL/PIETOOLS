@@ -72,7 +72,14 @@ ZR2 = B.ZR;
 %find common basis
 [ZR, C1R, C2R] = UnionBasisMonomials(ZR1, ZR2);
 [ZL, C1L, C2L] = UnionBasisMonomials(ZL1, ZL2);
-% Finally, let's actually concatenate
+
+
+C1L = kron(eye(A.dims(1)), C1L);
+C2L = kron(eye(B.dims(1)), C2L);
+C1R = kron(eye(A.dims(2)), C1R);
+C2R = kron(eye(B.dims(2)), C2R);
+
+
 
 params = A.params;
 for i=1:numel(A.params)  % linear indexing of multi-dimensional cell array
