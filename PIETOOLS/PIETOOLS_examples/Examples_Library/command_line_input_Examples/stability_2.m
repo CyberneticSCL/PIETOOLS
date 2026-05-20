@@ -12,11 +12,11 @@ eq_PDE = diff(x,t)==Fm*x-Lm*diff(x,s); % 	PDE: x_{t} = Fm*x - Lm*x_{s}
 eq_BC = [[1,0]*subs(x,s,1); [0,1]*subs(x,s,0)]==[Gm1,Gm2;Gm3,Gm4]*[[1,0]*subs(x,s,0);[0,1]*subs(x,s,1)];    
 %   BCs: [x_-(s=1)] = [Gm1, Gm2] [x_-(s=0)], [x_+(s=0)] = [Gm3, Gm4] [x_+(s=1)]
 %% initialize pde system;
-pde = initialize([eq_PDE;eq_BC]);
+PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie
-display(pde);
-pie = convert(pde,'pie');
-display(pie);
+display(PDE);
+PIE = convert(PDE,'pie');
+display(PIE);
 
 
 

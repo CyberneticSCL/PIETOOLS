@@ -22,11 +22,11 @@ eq_PDE = [diff(x1,t)==(1/aa)*diff(x2,s);
 eq_BC = [subs(x1,s,0)==0;subs(x3,s,0)==0;
          subs(x2,s,1)==0;subs(x4,s,1)==0]; %   BCs:BCs: x1(0) = 0, x2(1) = 0, x3(0) = 0, x4(1) = 0 
 %% initialize pde system;
-pde = initialize([eq_PDE;eq_BC]);
+PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie
-display(pde);
-pie = convert(pde,'pie');
-display(pie);
+display(PDE);
+PIE = convert(PDE,'pie');
+display(PIE);
 
 
 

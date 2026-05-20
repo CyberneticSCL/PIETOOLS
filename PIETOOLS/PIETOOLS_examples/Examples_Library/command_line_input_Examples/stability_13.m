@@ -1,4 +1,4 @@
-clc; clear; clear stateNameGenerator
+%clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 %% Define dependent variables and system variable
 %   PDE: u_{tt} = -c*u_{ssss}                       | c = 0.1
@@ -11,11 +11,11 @@ eq_PDE = diff(x,t,2)==-c*diff(x,s,4); % 	PDE: u_{tt} = -c*u_{ssss}
 eq_BC = [subs(x,s,0)==0;subs(diff(x,s),s,0)==0;
          subs(diff(x,s,2),s,1)==0;subs(diff(x,s,3),s,1)==0]; %   BCs: u(s=0) = 0, u_{ss}(s=1) = 0, u_{s}(s=0) = 0, u_{sss}(s=1) = 0
 %% initialize pde system;
-pde = initialize([eq_PDE;eq_BC]);
+PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie
-display(pde);
-pie = convert(pde,'pie');
-display(pie);
+display(PDE);
+PIE = convert(PDE,'pie');
+display(PIE);
 
 
 

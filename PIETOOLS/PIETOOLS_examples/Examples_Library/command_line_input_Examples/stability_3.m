@@ -32,14 +32,20 @@ x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
 
 %% Define equations
 eq_PDE = diff(x,t)==Mm*x-Lm*diff(x,s); % 	PDE: x_{t} = Mm*x - Lm*x_{s}
-eq_BC = [[1,0,0]*subs(x,s,0); [0,1,0;0,0,1]*subs(x,s,1)]==[K00,K01;K10,K11]*[[1,0,0;0,1,0]*subs(x,s,1);[0,0,1]*subs(x,s,0)];    
+B1=[[1,0,0]*subs(x,s,0); 
+    [0,1,0;
+    0,0,1]*subs(x,s,1)];
+B2=[[1,0,0]*subs(x,s,1);
+    [0,1,0;
+    0,0,1]*subs(x,s,0)];    
+eq_BC = B1==[K00,K01;K10,K11]*B2;   
 %   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)], [x_-(s=1)] = [K10, K11] [x_-(s=0)]
 %% addequations to pde system; set control inputs/observed inputs, if any
-pde = initialize([eq_PDE;eq_BC]);
+PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie
-display(pde);
-pie = convert(pde,'pie');
-display(pie);
+display(PDE);
+PIE = convert(PDE,'pie');
+display(PIE);
 
 
 
