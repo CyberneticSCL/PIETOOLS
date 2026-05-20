@@ -35,7 +35,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_dual = 1;')
 
 % Specify the parameters
-Cm = [1, 1.5; 5, 0.2];      R = 2.9; % [2.93 2.94]
+Cm = [1, 1.5; 5, 0.2];      R = 2.7; % [2.93 2.94]
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -75,6 +75,7 @@ PDE_t.BC{1}.term{1}.loc = 0;
 
 % BCs: 0 = x_{s}(1)
 PDE_t.BC{2}.term{1}.loc = 1;
+PDE_t.BC{2}.term{1}.D = 1;
 
 
 if GUI

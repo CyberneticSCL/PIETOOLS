@@ -158,7 +158,7 @@ switch index
 %                 + b(s)*x_{s}                      | b = 3*s^2 - 2*s               Gahlawat 2017 [4]
 %                 + c(s,lam)*x                      | c =-0.5*s^3 + 1.3*s^2 
 %   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            |    - 1.5*s + 0.7 +lam
-%                                                   | lam = 4.66                 
+%                                                   | lam = 4.65                 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params);
 %--------------------------------------------------------------------------
     case 8
@@ -185,7 +185,7 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params);
 %--------------------------------------------------------------------------
     case 12
-%   PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = (21+9)            (stable for R<21 (not tight))
+%   PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 30            (stable for R<21 (not tight))
 %   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            | Cm = [0 0 0;                  Ahmadi 2015 [5] Adapted Example B
 %                                                   |       s 0 0;
 %                                                   |       -s^2 0 0]
