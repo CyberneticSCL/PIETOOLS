@@ -73,7 +73,7 @@ if ~isa(A,'tensopvar')
     elseif ~isa(A,'nopvar') && ~isa(A,'ndopvar')
         error("Inputs must be of type 'tensopvar' or 'nopvar'.")
     else
-        A = ndopvar2tensopvar_new(A);
+        A = ndopvar2tensopvar(A);
     end
 elseif ~isa(B,'tensopvar')
     if isequal(B,1)
@@ -82,7 +82,7 @@ elseif ~isa(B,'tensopvar')
     elseif ~isa(B,'nopvar') && ~isa(B,'ndopvar')
         error("Inputs must be of type 'tensopvar' or 'nopvar'.")
     else
-        B = ndopvar2tensopvar_new(B);
+        B = ndopvar2tensopvar(B);
     end
 end
 
