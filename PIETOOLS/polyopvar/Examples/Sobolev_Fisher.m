@@ -29,17 +29,18 @@ PDE = [diff(x,t)==diff(x,s,2)+alp*x-bet*x^2;
 
 
 % Script parameters
-R = sqrt(0.1); % Radius of ball in which to test stability - feasible up to R~4.0479.
+R = 0.05; % Radius of ball in which to test stability - feasible up to R~4.0479.
 k = 0;    % Rate of decay of the functional.
 d = 1;    % degree of LF distributed monomial basis (will be doubled in LF).
 pdeg = 4; % degree of Zs monomials of positive P operator.
+use_L2_bnd = true;
 BALL = false; % local test on L2 ball (if TRUE) or Sobolev ball (if false) of radius R.
 d_psatz1 = 0; % degree of distributed monomial in upper bound condition of LF.
 d_psatz2 = 1; % degree of distributed monomial in upper bound condition of LF derivative.
 eppos = 0.1; % coefficient in LF lower bound condition.
 q1_deg = 4; % degree of monomials (not distributed) used to define the operator W1
 q2_deg = 4; % degree of monomials (not distributed) used to define the operator W2
-q3_deg = 4; % degree of monomials (not distributed) used to define the operator W3
+q3_deg = 5; % degree of monomials (not distributed) used to define the operator W3
 lam1_deg = 4; % degree of monomials (not distributed) used to define the operator lam1
 lam2_deg = 4; % degree of monomials (not distributed) used to define the operator lam2
 
@@ -137,9 +138,11 @@ end
 
 %% 6. Define the lower bound on the LF (holds globally) and enforce constraint.
 
-if BALL % LF upper bound dependent on ball.
+if use_L2_bnd
+    % Lower bound by L2 norm of PDE state
     V_low = Vx - eppos*innerprod(Tx,Tx);
 else
+    % Lower bound by Sobolev norm of PDE state
     Rx = Rop*x;
     V_low = Vx - eppos*innerprod(Rx,Rx);
 end
@@ -210,7 +213,7 @@ prog = piesos_eq(prog,V_low-W1);
 % Declare the SOS multiplier, lam2, then define bound.
 Zg2 = dmonomials(x,(1:d_psatz2));
 if d_psatz2>=1
-    lam2_opts.exclude = [0,0,0]';
+    lam2_opts.exclude = [1,0,0]';
     lam2_opts.deg = lam2_deg; % degree of monomials (not distributed) used to define the operator lam2
     lam2_opts.psatz = 0;
     [prog,lam2] = piesos_sosvar(prog,Zg2,lam2_opts);

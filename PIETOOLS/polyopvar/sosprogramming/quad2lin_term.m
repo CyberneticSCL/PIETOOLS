@@ -200,7 +200,7 @@ end
 if sum(has_multiplier_L)>1 || sum(has_multiplier_R)>1
     error("There can be at most one multiplier term in each of the left and right factors.")
 elseif sum(has_multiplier_L)+sum(has_multiplier_R)>1 && (d1>1 || d2>1)
-    error("The presence of multiplie multiplier terms is supported only for quadratic polynomials.")
+    error("The presence of multiple multiplier terms is supported only for quadratic polynomials.")
 else
     m_nums = find([has_multiplier_L,has_multiplier_R]);
     vars_m = var2(var_order(m_nums));
@@ -319,13 +319,11 @@ end
 % cell.
 if d1==1 && d2==1 && sum([has_multiplier_L,has_multiplier_R])==2
     idx_mat = [zeros(1,dtot);idx_mat];
-    Kparams = [Lop_params{1}{1}*subs(Pmat,var1,var2(1))*subs(Rop_params{1}{1},var2(2),var2(1)),Kparams];
+    Kparams0 = subs(Lop_params{1}{1}*subs(Pmat,var1,var2(var_order(1)))*subs(Rop_params{1}{1},var2(var_order(2)),var2(var_order(1))),var2(2),var2(1));
+    Kparams = [Kparams0,Kparams];
 end
 
-var2name = cell(1,numel(var2));
-for j=1:numel(var2name)
-    var2name(j) = var2(j).varname;
-end
+var2name = pvar2varname(var2)';
 Kop = intop(Kparams,idx_mat,var2name,dom);
 
 end

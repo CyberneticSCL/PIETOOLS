@@ -1479,7 +1479,7 @@ for eqnum=1:numel(PDE.(obj))
                     for kk=1:numel(Rparams)-1
                         params_new.(Rparams{kk}) = polynomial(Pop_new.(Rparams{kk}));
                     end
-                    params_new.R = {polynomial(Pop_new.R.R0), polynomial(Pop_new.R.R1), polynomial(Pop_new.R.R2)};
+                    params_new.R = {polynomial(Pop_new.R.R0); polynomial(Pop_new.R.R1); polynomial(Pop_new.R.R2)};
 
                 else
                     Pop_new = opvar2d([],[nr_op,nc_op],dom,vars);
