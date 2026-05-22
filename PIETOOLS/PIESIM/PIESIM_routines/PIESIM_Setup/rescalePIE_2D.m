@@ -51,10 +51,10 @@ function PIE = rescalePIE_2D(PIE,I)
 % YP 4/7/2026 - redefined rescaled domain 
 
 
-if nargin<3
+if nargin<2
     I = [-1,1;-1,1];
-elseif nargin>3
-    error("Incorrect number of inputs; only 3 inputs are allowed");
+elseif nargin>2
+    error("Incorrect number of inputs; only 2 inputs are allowed");
 end
 
 PIE.T = transl_2D(PIE.T,I);
