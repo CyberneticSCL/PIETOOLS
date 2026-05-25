@@ -17,7 +17,7 @@ clear;  clear stateNameGenerator
 pvar   s t s_dum
 L = 1;
 a = 1;
-k = a*pi^2/(4*L^2);
+k = 2*a*pi^2/L^2;
 dom = [0,L];
 x = pde_var(s,dom);
 
@@ -27,13 +27,14 @@ PDE = [diff(x,t) == a*diff(x,s,2) +x^2- (k/L)*int(x,s,dom(1),dom(2));
 
 
 % Script parameters
-sigma = sqrt(0.1); % Radius of ball in which to test stability
-sigma = 1.1*a*pi^2/(2*L^3);
-d = 1;    % degree of LF distributed monomial basis (will be doubled in LF).
-pdeg = 4; % degree of Zs monomials of positive P operator.
+q = 3.5*a*pi^2/L^2;     % For k=2*a*pi^2/L^2, stability can be verified with energy functional when |u|<q=a*pi^2/L^2
+q_sobolev = q/L;     % by Sobolev inequality, |u|^2 <= L*||u_{x}||_{L2}^2
+d = 1;               % degree of LF distributed monomial basis (will be doubled in LF).
+pdeg = 4;            % degree of Zs monomials of positive P operator.
 use_L2_LF = false;   % Express the Lyapunov function in terms of an L2 norm of the PDE state
-use_L2_bnd = true;  % Enforce a lower bound on the LF in terms of the L2 norm of the PDE state
-use_L2_ball = false; % local test on L2 ball (if TRUE) or Sobolev ball (if false) of radius R.
+use_L2_pos = true;   % Enforce a lower bound on the LF in terms of the L2 norm of the PDE state
+use_L2_bnd = false;  % Enforce an upper bound on the LF in terms of the L2 norm of the PDE state
+use_L2_ball = false; % Enforce bounds on the LF and derivative locally on an L2 ball (if TRUE) or Sobolev ball (if false) of radius R.
 d_psatz1 = 1;
 d_psatz2 = 1; % degree of distributed monomial in upper bound condition of LF derivative.
 eppos = 0.1; % coefficient in LF lower bound condition.
@@ -42,6 +43,9 @@ q2_deg = 4; % degree of monomials (not distributed) used to define the operator 
 q3_deg = 5; % degree of monomials (not distributed) used to define the operator W3
 lam1_deg = 4; % degree of monomials (not distributed) used to define the operator lam1
 lam2_deg = 4; % degree of monomials (not distributed) used to define the operator lam2
+
+% Stability can be verified with energy functional if Phi<=0, where
+Phi = [q_sobolev-k, k/2;k/2, -a*pi^2/(L^2)];
 
 %% 1. Modelling PIE.
 
@@ -120,16 +124,16 @@ end
 %% 5. Define the specified local ball as a semialgebraic set.
 disp(" --- Declaring the local ball ---")
 if use_L2_ball
-    g = sigma^2 - innerprod(Tx,Tx); % L2 ball of radius R.
+    g = q_sobolev^2 - innerprod(Tx,Tx); % L2 ball of radius R.
 else
     Rx = Rop*x;
-    g = sigma^2 - innerprod(Rx,Rx); % Sobolev ball of radius R. - innerprod(Tx,Tx) 
+    g = q_sobolev^2 - innerprod(Rx,Rx); % Sobolev ball of radius R. - innerprod(Tx,Tx) 
 end
 
 
 %% 6. Define the lower bound on the LF (holds globally) and enforce constraint.
 
-if use_L2_bnd % LF upper bound dependent on ball.
+if use_L2_pos % LF lower bound dependent on ball.
     V_low = Vx - eppos*innerprod(Tx,Tx);
 else
     Rx = Rop*x;
@@ -238,3 +242,5 @@ else
 end
 
 
+% Compute the level set
+%gam_sol = GetLevelSet(Vsol,g);
