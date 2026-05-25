@@ -149,12 +149,18 @@ end
 
 % Extract the operators acting on the left monomials
 if isa(Lmon,'polyopvar')
-    if ~all(Lmon.C.ops{1}.type==[false,true])
-        error("Tensor-PI operators of alternative type are not currently supported.")
+    if isa(Lmon.C.ops{1},'double') 
+        Lops = Lmon.C.ops(1);
+        ntrms_L = 1;
+        mdim = size(Lops{1},2);
+    else
+        if ~all(Lmon.C.ops{1}.type==[false,true])
+            error("Tensor-PI operators of alternative type are not currently supported.")
+        end
+        Lops = Lmon.C.ops{1}.ops;
+        ntrms_L = size(Lops,1);
+        mdim = size(Lops{1},2);
     end
-    Lops = Lmon.C.ops{1}.ops;
-    ntrms_L = size(Lops,1);
-    mdim = size(Lops{1},2);
 else
     if ~isempty(Lmon)
         Pmat = Lmon'*Pmat;
@@ -169,11 +175,16 @@ if ntrms_L==1 && ~isa(Lops{1},'nopvar')
     Lops = {};
 end
 % Extract the operators acting on the right monomials
-Rops = Rmon.C.ops{1}.ops;
-if ~all(Rmon.C.ops{1}.type==[false,true])
-    error("Tensor-PI operators of alternative type are not currently supported.")
+if isa(Rmon.C.ops{1},'double') 
+    Rops = Rmon.C.ops(1);
+    ntrms_R = 1;
+else
+    if  ~isa(Rmon.C.ops{1},'double') && ~all(Rmon.C.ops{1}.type==[false,true])
+        error("Tensor-PI operators of alternative type are not currently supported.")
+    end
+    Rops = Rmon.C.ops{1}.ops;
+    ntrms_R = size(Rops,1);
 end
-ntrms_R = size(Rops,1);
 %ndim = size(Rops{1},2);
 % Account for case of constant polynomial
 if ntrms_R==1 && ~isa(Rops{1},'nopvar')
