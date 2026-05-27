@@ -11,15 +11,14 @@
 % PIE: (T*v_t) = f1(v) = -v -R2*v - r*(T*v)*(T*v) -(T*v)*(R*v);
 %
 
-%%%% 1. Modelling PIE.
+%%%% 1. Declare the PIE for which to verify stability
 
-% declare spatial variables, domain, and r.
+% Declare spatial variables, domain, and parameters.
 pvar s s_dum t
 dom = [0,1];
 r = 0.5;           % should be [−0.6500, 0.7202]
 
-% Declare a PDE and convert to PIE to get the relevant maps from PIE state
-% to PDE state
+% Declare the PDE
 x = pde_var(s,dom);
 PDE = [diff(x,t)==-diff(x,s,4)-diff(x,s,2)-r*x^2-x*diff(x,s);
         subs(x,s,0)==0;     subs(diff(x,s),s,0)==0;
@@ -31,13 +30,10 @@ Top = PIE.T;
 f = PIE.f;
 
 
+%%%% 2. Solve distributed SOS program for stability
 
-
-%%%% 2. Setting up LPI for stability analysis using a SOS Lyapunov functional
-%%%%  V(v) = <Z_d(v), Pop*Z_d(v)>; Z_d(v) = [v ... v^d]'; Pop = Zop^* Pmat Zop.
-
-% Set up LPI program structure.
-vartab = polyopvar(f.varname,s,dom); % Z_d(v).
+% Set up PIESOS program structure.
+vartab = f.vartab; % Z_d(v).
 prog = piesos_program(vartab);
 
 % Declare monomial basis of SOS Lyapunov functional.
@@ -50,9 +46,7 @@ pdegs = 7; % maximal monomial degree of Zop.
 Popts.deg = pdegs;
 Popts.exclude = [0;1;1];
 Popts.sep = true;
-[prog,Vx_PDE,Pmat,Zop] = piesos_sosvar(prog,Z,Popts);
-% [prog,Pmat,Zop] = piesos_poslpivar(prog,Z,pdegs,Popts);
-% Vx = quad2lin(Pmat,Zop,Z);          
+[prog,Vx_PDE,Pmat,Zop] = piesos_sosvar(prog,Z,Popts);       
 
 % Ensure strict positivity of the Lyapunov functional.
 eppos = 1e-4;
@@ -78,13 +72,10 @@ else
     Q_opts.exclude = [1,0,0]';
     Q_opts.psatz = 0;
     [prog,W,Qmat,ZQop] = piesos_sosvar(prog,ZQ,Q_opts);
-    % [prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
-    % W = quad2lin(Qmat,ZQop,ZQ);
 
     % Enforce dV = -W <= 0
     prog = piesos_eq(prog,dV+W);
 end
-
 
 % Solve the optimization program
 solve_opts.simplify = true;
