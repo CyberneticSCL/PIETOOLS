@@ -44,7 +44,6 @@ function [A_out,B_out] = common_vars(A_in,B_in)
 % Extract the parameters representing each polynomial
 var_A = A_in.varname;       var_B = B_in.varname;
 pvar_A = A_in.pvarname;     pvar_B = B_in.pvarname;
-dom_A = A_in.dom;           dom_B = B_in.dom;
 degs_A = A_in.degmat;       degs_B = B_in.degmat;
 vmat_A = A_in.varmat;       vmat_B = B_in.varmat;
 C_A = A_in.C;               C_B = B_in.C;
