@@ -18,20 +18,26 @@ m_idx = 0;
 xvarname = mat2cell([repmat('x',[nvars,1]),num2str((1:nvars)')],ones(nvars,1));
 
 % Declare d1 random 2-PI operators
-Cops_opvar = cell(1,d1);
-Cops = tensopvar();
-Cops.ops{1} = cell(1,d1);
-for ii=1:d1
-    Lop_ii = rand_opvar([0,0;p,n],pdeg,var1,var2,dom);
-    if ii~=m_idx
-        % Allow only one operator with a nonzero multiplier
-        Lop_ii.R.R0 = zeros([p,n]);
+n_trms = 2;
+Cops_opvar = cell(n_trms,d1);
+for kk=1:n_trms
+    for ii=1:d1
+        Lop_ii = rand_opvar([0,0;p,n],pdeg,var1,var2,dom);
+        if ii~=m_idx
+            % Allow only one operator with a nonzero multiplier
+            Lop_ii.R.R0 = zeros([p,n]);
+        end
+        Cops_opvar{kk,ii} = Lop_ii;
+        if ii==1
+            Cops_ii = ndopvar2tensopvar(dopvar2ndopvar(Lop_ii));
+        else
+            Cops_ii = otimes(Cops_ii,dopvar2ndopvar(Lop_ii));
+        end
     end
-    Cops_opvar{ii} = Lop_ii;
-    if d1==1
-        Cops.ops{1} = dopvar2ndopvar(Lop_ii);
+    if kk==1
+        Cops = Cops_ii;
     else
-        Cops.ops{1}{ii} = dopvar2ndopvar(Lop_ii);
+        Cops = Cops + Cops_ii;
     end
 end
 Cmon = polyopvar();
@@ -40,11 +46,13 @@ Cmon.pvarname = s1.varname;
 Cmon.dom = dom;
 Cmon.varmat = ones(nvars,1);
 Cmon.degmat = deg1;
-Cmon.C = Cops;
+Cmon.C = tensopmat(Cops);
 
 % Set the domain over which to integrate
 use_Ldom = logical(randi(2)-1);
+%use_Ldom = false;
 use_Udom = logical(randi(2)-1);
+%use_Udom = true;
 int_dom = polynomial(dom);
 if use_Ldom
     int_dom(1) = r1;
@@ -66,16 +74,22 @@ Kfun = rand_poly([m,p],[var1;vars_r],pdeg);
 
 % Generate random functions xi(s)
 x_tst = polynomial(zeros(n,nvars));
-y1_tst = cell(d1,1);
-z1_tst = 1;
-lnum = 0;
 for ii=1:nvars
     x_tst(:,ii) = rand_poly([n,1],s1,3);
-    for jj=1:deg1(ii)
-        lnum = lnum+1;
-        y1_tst{lnum} = apply_opvar(Cops_opvar{lnum},x_tst(:,ii));
-        z1_tst = z1_tst.*y1_tst{lnum};
+end
+y1_tst = cell(n_trms,d1);
+z1_tst = 0;
+for kk=1:n_trms
+    z1_tmp = 1;
+    lnum = 0;
+    for ii=1:nvars
+        for jj=1:deg1(ii)
+            lnum = lnum+1;
+            y1_tst{kk,lnum} = apply_opvar(Cops_opvar{kk,lnum},x_tst(:,ii));
+            z1_tmp = z1_tmp.*y1_tst{kk,lnum};
+        end
     end
+    z1_tst = z1_tst + z1_tmp;
 end
 
 % Compute the integral

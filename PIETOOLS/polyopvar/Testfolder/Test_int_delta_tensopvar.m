@@ -22,8 +22,6 @@ xvarname = mat2cell([repmat('x',[nvars,1]),num2str((1:nvars)')],ones(nvars,1));
 
 % Declare d1 random 2-PI operators
 Cops_opvar = cell(1,d1);
-Cops = tensopvar();
-Cops.ops{1} = cell(1,d1);
 for ii=1:d1
     Lop_ii = rand_opvar([0,0;p,n],pdeg,var1,var2,dom);
     if ii~=m_idx
@@ -31,10 +29,10 @@ for ii=1:d1
         Lop_ii.R.R0 = zeros([p,n]);
     end
     Cops_opvar{ii} = Lop_ii;
-    if d1==1
-        Cops.ops{1} = dopvar2ndopvar(Lop_ii);
+    if ii==1
+        Cops = ndopvar2tensopvar(dopvar2ndopvar(Lop_ii));
     else
-        Cops.ops{1}{ii} = dopvar2ndopvar(Lop_ii);
+        Cops = otimes(Cops,dopvar2ndopvar(Lop_ii));
     end
 end
 Cmon = polyopvar();
@@ -43,7 +41,7 @@ Cmon.pvarname = s1.varname;
 Cmon.dom = dom;
 Cmon.varmat = ones(nvars,1);
 Cmon.degmat = deg1;
-Cmon.C = Cops;
+Cmon.C = tensopmat(Cops);
 
 
 % Generate a random kernel function

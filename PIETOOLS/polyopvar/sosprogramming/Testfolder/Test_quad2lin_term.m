@@ -29,8 +29,6 @@ xvarname = mat2cell([repmat('x',[nvars,1]),num2str((1:nvars)')],ones(nvars,1));
 
 % Declare d1 random 2-PI operators
 Lops_opvar = cell(1,d1);
-Lops = tensopvar();
-Lops.ops{1} = cell(1,d1);
 for ii=1:d1
     Lop_ii = rand_opvar([0,0;m,1],deg,var1,var2,dom);
     if ii~=m_idx && ii~=m_idx2
@@ -38,10 +36,10 @@ for ii=1:d1
         Lop_ii.R.R0 = zeros([m,1]);
     end
     Lops_opvar{ii} = Lop_ii;
-    if d1==1
-        Lops.ops{1} = dopvar2ndopvar(Lop_ii);
+    if ii==1
+        Lops = ndopvar2tensopvar(dopvar2ndopvar(Lop_ii));
     else
-        Lops.ops{1}{ii} = dopvar2ndopvar(Lop_ii);
+        Lops = otimes(Lops,dopvar2ndopvar(Lop_ii));
     end
 end
 Lmon = polyopvar();
@@ -50,11 +48,9 @@ Lmon.pvarname = s1.varname;
 Lmon.dom = dom;
 Lmon.varmat = ones(nvars,1);
 Lmon.degmat = deg1;
-Lmon.C = Lops;
+Lmon.C = tensopmat(Lops);
 
 Rops_opvar = cell(1,d2);
-Rops = tensopvar();
-Rops.ops{1} = cell(1,d2);
 for ii=1:d2
     Rop_ii = rand_opvar([0,0;n,1],deg,var1,var2,dom);
     if ii+d1~=m_idx && ii+d1~=m_idx2
@@ -62,15 +58,15 @@ for ii=1:d2
         Rop_ii.R.R0 = zeros([n,1]);
     end
     Rops_opvar{ii} = Rop_ii;
-    if d2==1
-        Rops.ops{1} = dopvar2ndopvar(Rop_ii);
+    if ii==1
+        Rops = ndopvar2tensopvar(dopvar2ndopvar(Rop_ii));
     else
-        Rops.ops{1}{ii} = dopvar2ndopvar(Rop_ii);
+        Rops = otimes(Rops,dopvar2ndopvar(Rop_ii));
     end
 end
 Rmon = Lmon;
 Rmon.degmat = deg2;
-Rmon.C = Rops;
+Rmon.C = tensopmat(Rops);
 
 Pmat = rand([m,n]);
 

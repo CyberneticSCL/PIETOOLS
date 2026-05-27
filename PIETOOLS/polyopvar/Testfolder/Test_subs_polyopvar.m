@@ -5,7 +5,7 @@ var2 = s1_dum;
 dom = [0,0.5];
 pdeg = 2;        % maximal monomial degree in independent variables
 m = 3;      n = 3;
-nvars = 1;
+nvars = 2;
 nvars2 = 2;
 deg1 = randi(2,[1,nvars])-1;
 if ~any(deg1)
@@ -23,8 +23,9 @@ if d1==1 && d2==1
 else
     m_idx2 = 0;
 end
-%m_idx = 0;
-%m_idx = 2;
+% m_idx = 0;
+% m_idx2 = 0;
+% %m_idx = 2;
 
 % Declare state variable names
 xvarname = mat2cell([repmat('x',[nvars,1]),num2str((1:nvars)')],ones(nvars,1));
@@ -43,7 +44,12 @@ xvarname2(share_idx2) = xvarname(share_idx1);
 % Declare d1 random 2-PI operators
 Lops_opvar = cell(1,d1);
 Lops = tensopvar();
-Lops.ops{1} = cell(1,d1);
+Lops.dom = dom;
+Lops.vars = [s1,s1_dum];
+Lops.type = [0,1];
+Lops.depmat1 = ones(d1,1);
+Lops.depmat2 = ones(d1,1);
+Lops.ops = cell(1,d1);
 for ii=1:d1
     Lop_ii = rand_opvar([0,0;m,1],pdeg,var1,var2,dom);
     if ii~=m_idx && ii~=m_idx2
@@ -51,11 +57,7 @@ for ii=1:d1
         Lop_ii.R.R0 = zeros([m,1]);
     end
     Lops_opvar{ii} = Lop_ii;
-    if d1==1
-        Lops.ops{1} = dopvar2ndopvar(Lop_ii);
-    else
-        Lops.ops{1}{ii} = dopvar2ndopvar(Lop_ii);
-    end
+    Lops.ops{ii} = dopvar2ndopvar(Lop_ii);
 end
 Lmon = polyopvar();
 Lmon.varname = xvarname;
@@ -63,11 +65,16 @@ Lmon.pvarname = s1.varname;
 Lmon.dom = dom;
 Lmon.varmat = ones(nvars,1);
 Lmon.degmat = deg1;
-Lmon.C = Lops;
+Lmon.C = tensopmat(Lops);
 
 Rops_opvar = cell(1,d2);
 Rops = tensopvar();
-Rops.ops{1} = cell(1,d2);
+Rops.dom = dom;
+Rops.vars = [s1,s1_dum];
+Rops.type = [0,1];
+Rops.depmat1 = ones(d1,1);
+Rops.depmat2 = ones(d1,1);
+Rops.ops = cell(1,d2);
 for ii=1:d2
     Rop_ii = rand_opvar([0,0;n,1],pdeg,var1,var2,dom);
     if ii+d1~=m_idx && ii+d1~=m_idx2
@@ -75,15 +82,11 @@ for ii=1:d2
         Rop_ii.R.R0 = zeros([n,1]);
     end
     Rops_opvar{ii} = Rop_ii;
-    if d2==1
-        Rops.ops{1} = dopvar2ndopvar(Rop_ii);
-    else
-        Rops.ops{1}{ii} = dopvar2ndopvar(Rop_ii);
-    end
+    Rops.ops{ii} = dopvar2ndopvar(Rop_ii);
 end
 Rmon = Lmon;
 Rmon.degmat = deg2;
-Rmon.C = Rops;
+Rmon.C = tensopmat(Rops);
 
 Pmat = rand([m,n]);
 
@@ -94,7 +97,13 @@ idx_mat = Kop.omat;
 Kvar2 = Kop.vars;
 Vx = Lmon;
 Vx.degmat = Lmon.degmat + Rmon.degmat;
+Vx.C = tensopmat();
 Vx.C.ops = {Kop};
+Vx.C.depmat1 = 0;
+Vx.C.depmat2 = sum(Vx.degmat,2);
+Vx.C.vars = [s1,s1_dum];
+Vx.C.dom = dom;
+
 
 
 
@@ -103,6 +112,7 @@ Vx.C.ops = {Kop};
 nfctrs = randi(3,[d1+d2,nvars2])-1;
 nfctrs(sum(nfctrs,2)==0,1) = 1;
 nterms = randi(2,[d1+d2,1]);
+%nterms = ones(d1+d2,1);
 nterms(sum(nfctrs,2)==1) = 1;
 Fx = cell(1,size(nfctrs,1));
 Fops = cell(1,size(nfctrs,1));
@@ -111,20 +121,28 @@ m_idx3 = randi(numel(Fx));      % allow only one operator with multiplier terms
 for ii=1:numel(Fx)
     Fx{ii} = Rmon;
     Fx{ii}.varname = xvarname2;
-    Fx{ii}.varmat = ones(nvars,1);
+    Fx{ii}.varmat = ones(nvars2,1);
     Fx{ii}.degmat = nfctrs(ii,:);
-    Fx{ii}.C.ops = {cell(nterms(ii),sum(nfctrs(ii,:)))};
+    Fx{ii}.C.ops = cell(nterms(ii),sum(nfctrs(ii,:)));
     Fops{ii} = cell(nterms(ii),sum(nfctrs(ii,:)));
-    for jj=1:numel(Fops{ii})
-        Fops{ii}{jj} = rand_opvar([0,0;1,1],pdeg,var1,var2,dom);
-        if ~isscalar(Fops{ii}) || ii~=m_idx3
-            % Do not allow tensor product of multiplier operators
-            Fops{ii}{jj}.R.R0 = 0;
+    for kk=1:size(Fops{ii},1)
+        for jj=1:size(Fops{ii},2)
+            Fops{ii}{kk,jj} = rand_opvar([0,0;1,1],pdeg,var1,var2,dom);
+            if ~isscalar(Fops{ii}) || ii~=m_idx3
+                % Do not allow tensor product of multiplier operators
+                Fops{ii}{kk,jj}.R.R0 = 0;
+            end
+
+            if jj==1
+                Fx_kj = ndopvar2tensopvar(dopvar2ndopvar(Fops{ii}{kk,jj}));
+            else
+                Fx_kj = otimes(Fx_kj,ndopvar2tensopvar(dopvar2ndopvar(Fops{ii}{kk,jj})));
+            end
         end
-        if sum(nfctrs(ii,:))==1
-            Fx{ii}.C.ops{jj} = dopvar2ndopvar(Fops{ii}{jj});
+        if kk==1
+            Fx{ii}.C = tensopmat(Fx_kj);
         else
-            Fx{ii}.C.ops{1}{jj} = dopvar2ndopvar(Fops{ii}{jj});
+            Fx{ii}.C = Fx{ii}.C + tensopmat(Fx_kj);
         end
     end
 end
