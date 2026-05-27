@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyopvar
+classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar,?tensopmat})polyopvar
 % This function defines the class of 'polyopvar' objects, representing
 % polynomial functions on distributed states.
 %
@@ -168,6 +168,9 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?tensopvar})polyo
                     Cj.deg = zeros(N,1);
                     Cj.C = cell([3*ones(1,N),1]);
                     Cj.C{1} = 1;
+                    for k=2:numel(Cj.C)
+                        Cj.C{k} = 0;
+                    end
                     Ccell{j,j} = ndopvar2tensopvar(Cj);
                 end
                 Cop = tensopmat(Ccell);
