@@ -2,6 +2,12 @@ function P = rand_poly(dim,var,deg)
 % P = RAND_POLY(DIM,VAR,DEG) randomly generates a matrix-valued polynomial
 % of dimensions DIM, and of degree at most DEG in variables VAR
 
+% Deal with case of empty polynomial
+if any(dim==0)
+    P = polynomial(zeros(dim));
+    return
+end
+
 % Check that the variables are properly specified
 if isa(var,'char')
     var = {var};
@@ -9,11 +15,7 @@ elseif isa(var,'polynomial')
     if ~ispvar(var)
         error("Variables must be specified as 'pvar' objects or 'cellstr'.")
     end
-    var_name = cell(numel(var),1);
-    for ii=1:numel(var)
-        var_name(ii) = var(ii).varname;
-    end
-    var = var_name;
+    var = pvar2varname(var);
 end
 var = var(:);
 nvars = numel(var);
