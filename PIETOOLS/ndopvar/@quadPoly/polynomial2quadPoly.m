@@ -13,6 +13,12 @@ function Q = polynomial2quadPoly(P, sNames, tNames)
 %   - Builds Zs/Zt as unique degrees per variable seen in P.degmat.
 %   - Requires that P.varname contains only sNames∪tNames (constants allowed).
 
+if isa(P,'double')
+    P = polynomial(P);
+elseif ~isa(P,'polynomial')
+    error("Input must be of type 'polynomial'.")
+end
+
     m = P.matdim(1);
     n = P.matdim(2);
 
@@ -119,11 +125,13 @@ function d = basisSize(Zcell)
 end
 
 function stride = kronStrides(sizes)
-% last variable varies fastest
-    k = numel(sizes);
-    stride = ones(1,k);
-    for i = 1:k-1
-        stride(i) = prod(sizes(i+1:end));
-    end
-    stride(k) = 1;
+    % last variable varies fastest
+    stride = cumprod(sizes,2,"reverse");
+    stride = [stride(2:end),1];
+    % k = numel(sizes);
+    % stride = ones(1,k);
+    % for i = 1:k-1
+    %     stride(i) = prod(sizes(i+1:end));
+    % end
+    % stride(k) = 1;
 end
