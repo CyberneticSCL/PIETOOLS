@@ -87,7 +87,6 @@ else
     prog = piesos_eq(prog,dV+W);
 end
 
-
 % Solve the optimization program
 prog_sol = piesos_solve(prog);
 

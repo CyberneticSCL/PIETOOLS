@@ -55,6 +55,9 @@ depmat2_A = A_in.depmat2;   depmat2_B = B_in.depmat2;
 % Combine the variable names into a list of unique variables
 varname_A = pvar2varname(vars_A(:,1));    nvar_A = numel(varname_A);
 varname_B = pvar2varname(vars_B(:,1));
+if ~isempty(A_in.ops) && isa(A_in.ops{1},'intop') && ~isequal(varname_A,varname_B)
+    error("The variables defining the different 'intop' objects do not match, this may lead to errors.")
+end
 [varname_AB,old2new_idcs,new2old_idcs] = unique([varname_A;varname_B]);
 var_idcs_A = new2old_idcs(1:nvar_A);
 var_idcs_B = new2old_idcs(nvar_A+1:end);

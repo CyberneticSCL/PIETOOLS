@@ -29,10 +29,10 @@ PDE = [diff(x,t)==diff(x,s,2)+alp*x-bet*x^2;
 
 
 % Script parameters
-R = 0.05; % Radius of ball in which to test stability - feasible up to R~4.0479.
+R = 0.1; % Radius of ball in which to test stability - feasible up to R~4.0479.
 k = 0;    % Rate of decay of the functional.
 d = 1;    % degree of LF distributed monomial basis (will be doubled in LF).
-pdeg = 4; % degree of Zs monomials of positive P operator.
+pdeg = 6; % degree of Zs monomials of positive P operator.
 use_L2_bnd = true;
 BALL = false; % local test on L2 ball (if TRUE) or Sobolev ball (if false) of radius R.
 d_psatz1 = 0; % degree of distributed monomial in upper bound condition of LF.
@@ -42,7 +42,7 @@ q1_deg = 4; % degree of monomials (not distributed) used to define the operator 
 q2_deg = 4; % degree of monomials (not distributed) used to define the operator W2
 q3_deg = 5; % degree of monomials (not distributed) used to define the operator W3
 lam1_deg = 4; % degree of monomials (not distributed) used to define the operator lam1
-lam2_deg = 4; % degree of monomials (not distributed) used to define the operator lam2
+lam2_deg = 6; % degree of monomials (not distributed) used to define the operator lam2
 
 %% 1. Modelling PIE.
 
@@ -58,12 +58,12 @@ x = polyopvar(f.varname,s,dom);
 %% 2. Setting up PIESOS program
 
 % Initialize PIESOS program structure.
-% dpvar gam
-prog = piesos_program(x); % gam
+dpvar gam
+prog = piesos_program(x,gam); % gam
 
 % % Define as a minimization problem on the upper bound (gamma) of the LF 
 % % over the domain L_{2,R}.
-% prog = lpisetobj(prog,gam);
+prog = lpisetobj(prog,gam);
 
 %% 3. Construct LF
 % V(v) = <Z_d(v), Pop*Z_d(Tv)>; Z_d(v) = [v ... v^d]'; Pop = Zop^* Pmat Zop.
@@ -162,51 +162,51 @@ Q1_opts.psatz = 0:1;
 disp("  --  enforcing lower bound equality")
 prog = piesos_eq(prog,V_low-W1);
 
-% %% 7. Define the upper bound on the LF over the specified ball and enforce constraint.
-% 
-% % Declare the SOS multiplier, lam1, then define bound.
-% Zg1 = dmonomials(x,(1:d_psatz1));
-% if d_psatz1>=1
-%     lam1_opts.exclude = [1,0,0]';
-%     lam1_opts.deg = lam1_deg; % degree of monomials (not distributed) used to define the operator lam1
-%     lam1_opts.psatz = 0;
-%     [prog,lam1] = piesos_sosvar(prog,Zg1,lam1_opts);
-% 
-%     if BALL % LF upper bound dependent on ball.
-%         V_up = gam*innerprod(Tx,Tx)-Vx-lam1*g;
-%     else
-%         V_up = gam*innerprod(Rx,Rx)-Vx-lam1*g;
-%     end
-% else
-%     if BALL % LF upper bound dependent on ball.
-%         V_up = gam*innerprod(Tx,Tx)-Vx;
-%     else
-%         V_up = gam*innerprod(Rx,Rx)-Vx;
-%     end
-% end
-% 
-% % Enforce upper bound by defining a SOS distributed monomial
-% disp(" --- Enforcing the bound on the Lyapunov functional ---")
-% 
-% % Declare W2 >= 0
-% Z_bnd_degmat = unique(floor(V_up.degmat./2),'rows');
-% Z_bnd = polyopvar(f.varname,s,dom);
-% Z_bnd.degmat = Z_bnd_degmat;
-% Q2_opts.deg = q2_deg; % degree of monomials (not distributed) used to define the operator W2
-% Q2_opts.exclude = [1,0,0]';
-% Q2_opts.psatz = 0:1;
-% [prog,W2,Q2mat,ZQ2op] = piesos_sosvar(prog,Z_bnd,Q2_opts); % DO WE NEED Q2MAT AND ZQ2OP??????????????????
-% 
-% disp("  --  enforcing upper bound equality")
-% prog = piesos_eq(prog,V_up-W2);
+%% 7. Define the upper bound on the LF over the specified ball and enforce constraint.
 
-% %% 8. Enforce symmetry condition (currently only works for d=1!)
-% 
-% Pop = Pcell{1}'*Zop;
-% prog.dom = dom;
-% prog.vartable = [s;s_dum];
-% prog = lpi_eq(prog,Pop'*Top_opvar-Top_opvar'*Pop);
-% prog.vartable = {'s'};
+% Declare the SOS multiplier, lam1, then define bound.
+Zg1 = dmonomials(x,(1:d_psatz1));
+if d_psatz1>=1
+    lam1_opts.exclude = [1,0,0]';
+    lam1_opts.deg = lam1_deg; % degree of monomials (not distributed) used to define the operator lam1
+    lam1_opts.psatz = 0;
+    [prog,lam1] = piesos_sosvar(prog,Zg1,lam1_opts);
+
+    if use_L2_bnd % LF upper bound dependent on ball.
+        V_up = gam*innerprod(Tx,Tx)-Vx-lam1*g;
+    else
+        V_up = gam*innerprod(Rx,Rx)-Vx-lam1*g;
+    end
+else
+    if use_L2_bnd % LF upper bound dependent on ball.
+        V_up = gam*innerprod(Tx,Tx)-Vx;
+    else
+        V_up = gam*innerprod(Rx,Rx)-Vx;
+    end
+end
+
+% Enforce upper bound by defining a SOS distributed monomial
+disp(" --- Enforcing the bound on the Lyapunov functional ---")
+
+% Declare W2 >= 0
+Z_bnd_degmat = unique(floor(V_up.degmat./2),'rows');
+Z_bnd = polyopvar(f.varname,s,dom);
+Z_bnd.degmat = Z_bnd_degmat;
+Q2_opts.deg = q2_deg; % degree of monomials (not distributed) used to define the operator W2
+Q2_opts.exclude = [1,0,0]';
+Q2_opts.psatz = 0:1;
+[prog,W2,Q2mat,ZQ2op] = piesos_sosvar(prog,Z_bnd,Q2_opts); % DO WE NEED Q2MAT AND ZQ2OP??????????????????
+
+disp("  --  enforcing upper bound equality")
+prog = piesos_eq(prog,V_up-W2);
+
+%% 8. Enforce symmetry condition (currently only works for d=1!)
+
+Pop = Pcell{1}'*Zop;
+prog.dom = dom;
+prog.vartable = [s;s_dum];
+prog = lpi_eq(prog,Pop'*Top_opvar-Top_opvar'*Pop);
+prog.vartable = {'s'};
 
 %% 9. Define the upper bound on the LF derivative over the specified ball and enforce constraint.
 

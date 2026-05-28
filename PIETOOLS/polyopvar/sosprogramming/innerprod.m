@@ -133,9 +133,9 @@ else
     V = 0;
     for i=1:size(ZopL.ops,2)
         ZopL_i = ZopL;
-        ZopL_i.ops = ZopL_i.ops(j);
+        ZopL_i.ops = ZopL_i.ops(i);
         ZxL_i = ZxL;
-        ZxL_i.degmat = ZxL_i.degmat(j,:);
+        ZxL_i.degmat = ZxL_i.degmat(i,:);
         for j=1:size(ZopR.ops,2)
             ZopR_j = ZopR;
             ZopR_j.ops = ZopR_j.ops(j);

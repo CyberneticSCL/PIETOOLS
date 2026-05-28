@@ -87,8 +87,17 @@ classdef (InferiorClasses={?tensopvar,?ndopvar,?nopvar,?dpvar,?polynomial})tenso
                 obj.depmat1 = Cop.dep(1,:);
                 obj.depmat2 = Cop.dep(2,:);
             elseif isa(Cop,'intop')
+                % Rename variables to s1_i
+                pvarname = Cop.pvarname;
+                for i=1:size(pvarname,1)
+                    for j=1:size(pvarname,2)
+                        pvarname{i,j} = ['s',num2str(i),'_',num2str(j)];
+                    end
+                end
+                Cop = rename_vars(Cop,pvarname);
+                % Set the coefficient operator equal to the functional
                 obj.ops = {Cop};
-                obj.vars = polynomial([Cop.pvarname(1,1),[Cop.pvarname(1,1),'_dum']]);
+                obj.vars = polynomial({'s1','s1_dum'});
                 obj.dom = Cop.dom;
                 obj.depmat1 = 0;
                 obj.depmat2 = size(Cop.pvarname,2);

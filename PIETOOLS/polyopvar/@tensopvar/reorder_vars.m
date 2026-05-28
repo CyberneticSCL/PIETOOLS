@@ -59,12 +59,12 @@ end
 
 % % Reorder the factors in the tensor-PI operator
 Cop_out = Cop;
-if Cop.type(2)
+if Cop.type(2) && size(Cop,2)>1
     % For Kronecker products, we cannot simply change the order of
     % the operators
     Cop_out.order = var_order;
 else
-    Cop_out.ops = Cop.ops{:,var_order};
+    Cop_out.ops = Cop.ops(:,var_order);
 end
 
 end

@@ -63,6 +63,7 @@ function At = ctranspose(A)
 %
 % Initial coding MMP, SS  - 1_16_2026
 % Update to new sopvar class AT - 05/18/2026
+% Bufix to switch monomial bases, DJ - 05/27/2026
 
 % initialize the transpose object
 At = A;  
@@ -89,12 +90,15 @@ idx = repmat({[1 3 2]}, 1, nvars3);
 C = A.params;  % assuming params is indexed by alpha in {1,2,3]^n3
 C = C(idx{:});  % swap the parameters along 2 and 3. 
 
-
-leftZ = A.ZL;
-rightZ =A.ZR;
+% Take adjoint of each of the individual coefficient matrices
 Ct = cellfun(@(x) transpose(x), C, 'UniformOutput', false);
 
-At_vars = struct('in',A.vars.out,'out',A.vars.in);
+% Switch the left and right monomial bases
+leftZ = A.ZL;
+rightZ = A.ZR;
+At_vars = struct();
+At_vars.in = A.vars.out;
+At_vars.out = A.vars.in;
 
 if ~isa(At_vars.in, 'cell')
     At_vars.in = {At_vars.in};
@@ -102,9 +106,15 @@ end
 if ~isa(At_vars.out, 'cell')
     At_vars.out = {At_vars.out};
 end
+
+% Switch output and input domains/dimensions
 At_dom  = struct('in',A.dom.out, 'out',A.dom.in);
 At_dim = [A.dims(2), A.dims(1)];
-At = sopvar(Ct, At_vars, rightZ, leftZ, At_dom, At_dim);
+
+% Declare the adjoint operator
+At = sopvar(Ct, At_vars, leftZ, rightZ, At_dom, At_dim);
+
+
 % for each parameter in cell structure repeat
  
 

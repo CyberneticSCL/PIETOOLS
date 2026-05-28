@@ -161,11 +161,20 @@ for i=1:size(val.degmat,1)
         % Account for the reordering of the variables
         iszero_trm = all(omat_tmp==0,2);
         omat_new = [omat_tmp(iszero_trm,:); new2old_nums(omat_tmp(~iszero_trm,:))];
+        Kparam0 = KCfun(1,find(iszero_trm));
+        Kparam_rem = KCfun(1,find(~iszero_trm));
+        if isa(Kparam0,'dpvar') || isa(Kparam0,'polynomial')
+            if isscalar(Kparam0.varname)
+                Kparam0.varname = var2_new(1);
+            elseif numel(Kparam0.varname)>1
+                error("Something is wrong, the delta term depends on multiple variables.")
+            end
+        end
+        KCfun = [Kparam0,Kparam_rem];
         % Declare a functional defined by the kernels KCfun acting on the
         % monomial i
         fnew_i = fi;
-        fnew_i.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
-        fnew_i.C.depmat2 = (degs1+degs2)*fnew_i.varmat;
+        fnew_i.C = tensopmat(intop(KCfun,omat_new,var2_new,Kdom));
         fnew_i.degmat = degs1+degs2;
         fnew_i = combine_terms(fnew_i);
     else
@@ -203,16 +212,30 @@ for i=1:size(val.degmat,1)
             % Change index of variable pos+1 to match that in var2_new
             omat_new(omat_tmp==size(omat_tmp,2)) = omat_j(pos+1);
         end
-        % Set the order of the variables var2_new in the integral
-        nr = size(omat_new,1);
-        omat_new = [repmat(omat_j(1:pos-2),[nr,1]),omat_new,repmat(omat_j(pos+2:end),[nr,1])];
+
+        % Add variables to omat that are smaller than dom(1)
+        if pos>1
+            max_idcs = (omat_new==omat_j(pos-1))*(1:size(omat_new,2))';
+            [omat_new,idcs] = combine_omats(omat_j(1:pos-2),omat_new,max_idcs);
+            idcs_cell = mat2cell([idcs'-1*ndim;idcs'*ndim],2,ones(1,numel(idcs)));
+            idcs_cell = cellfun(@(a) (a(1)+1:a(end)),idcs_cell,'UniformOutput',false);
+            KCfun = KCfun(:,cell2mat(idcs_cell));
+        end
+        % Add variables to omat that are greater than dom(2)
+        if pos<d1+1
+            min_idcs = (omat_new==omat_j(pos+1))*(1:size(omat_new,2))';
+            [omat_new,idcs] = combine_omats(omat_j(pos+2:end),omat_new,[],min_idcs);
+            idcs_cell = mat2cell([idcs'-1*ndim;idcs'*ndim],2,ones(1,numel(idcs)));
+            idcs_cell = cellfun(@(a) (a(1)+1:a(end)),idcs_cell,'UniformOutput',false);
+            KCfun = KCfun(:,cell2mat(idcs_cell));
+        end
+
         % Account for the reordering of the variables
         omat_new = new2old_nums(omat_new);
         % Declare a functional defined by the kernels KCfun acting on the
         % monomial i
         fj = fi;
-        fj.C.ops{1} = intop(KCfun,omat_new,var2_new,Kdom);
-        fj.C.depmat2 = (degs1+degs2)*fj.varmat;
+        fj.C = tensopmat(intop(KCfun,omat_new,var2_new,Kdom));
         fj.degmat = degs1+degs2;
         fj = combine_terms(fj);
         % Add to the other polynomial
@@ -221,6 +244,99 @@ for i=1:size(val.degmat,1)
     % Set the functional acting on the ith monomial
     fnew.C.ops{1,i} = fnew_i.C.ops{1};
     fnew.C.depmat2(i) = fnew_i.C.depmat2(1,:);
+end
+
+end
+
+
+function [omat,idcs] = combine_omats(omat1,omat2,max_idcs,min_idcs)
+% Returns all possible orderings of the variables appearing in omat1 and 
+% omat2, that preserves the ordering specified by omat1 and omat2
+%
+% INPUTS
+% - omat1:  1 x d1 array of integers specifying some order of variables;
+% - omat2:  m x d2 array of integers specifying the order of variables
+%           distinct from the variables listed in omat1;
+% - max_idcs:   m x 1 array specifying for each of the rows of omat2 the
+%               maximal position in which the variables of omat1 can be
+%               placed, enforcing an ordering
+%               omat1(i)<omat2(j,max_idcs(j)) for each element i and j;
+% - min_idcs:   m x 1 array specifying for each of the rows of omat2 the
+%               minimal position in which the variables of omat1 can be
+%               placed, enforcing an ordering
+%               omat1(i)>omat2(j,min_idcs(j)) for each element i and j;
+%
+% OUTPUTS
+% - omat:   n x d1+d2 array specifying all possible orderings of the
+%           variables that preserve the orderings from omat1 and omat2.
+%           That is, if omat(i,j1)=omat2(l,k1) and omat(i,j2)=omat2(l,k2) 
+%           for some row i and l, columns j1, j2, k1, and k2, then k1<=k2 
+%           implies j1<=j2, and similarly ofr omat1. 
+% - idcs:   n x 1 array speciyfing for each of the rows of omat which row
+%           of omat2 it is based on.
+
+% Check the first input
+if size(omat1,1)~=1
+    error("First order matrix must contain at most one element.")
+end
+nvars1 = size(omat1,2);
+
+% Initialize the new order matrix as omat2
+omat = omat2;
+nvars = size(omat,2);
+
+% Keep track of which row in omat2 each row in omat corresponds to
+idcs = (1:size(omat2,1))';
+
+% Keep track of the maximal position each variable in omat1 can be placed
+if nargin<=2 || isempty(max_idcs)
+    max_idcs = (nvars+1)*ones(size(omat,1),1);
+elseif numel(max_idcs)~=size(omat,1)
+    error("Number of indices must match number of rows of omat2.")
+end
+% Keep track of the lowest position each variable in omat2 can be placed
+if nargin<=3 || isempty(min_idcs)
+    min_idcs = zeros(size(omat,1),1);
+elseif numel(min_idcs)~=size(omat,1)
+    error("Number of indices must match number of rows of omat2.")
+end
+
+for j=1:nvars1
+    % Initialize empty omat including variables omat1(1:j)
+    nvars = nvars+1;
+    omat_full = zeros(0,nvars);
+    min_idcs_full = [];
+    max_idcs_full = [];
+    idcs_full = [];
+    % Extract variable from omat1 to add to omat
+    var_num = omat1(j);
+    for i=1:size(omat,1)
+        % Extract the ith row of the order matrix
+        omat_i = omat(i,:);
+        min_idx = min_idcs(i);
+        max_idx = max_idcs(i);
+        if min_idx>=max_idx
+            continue
+        end
+
+        % Place variable var_num in each position in ith row of omat below 
+        % the max_idx
+        Dmat = var_num*diag(ones(1,nvars));
+        Dmat = Dmat(min_idx+1:max_idx,:);
+        omat_i = repmat(omat_i,max_idx-min_idx,1);
+        omat_i = tril([omat_i,zeros(max_idx-min_idx,1)],-1+min_idx)+Dmat+triu([zeros(max_idx-min_idx,1),omat_i],1+min_idx);
+        omat_full = [omat_full; omat_i];
+
+        % Keep track of position in which var_num is placed
+        max_idcs_full = [max_idcs_full; max_idx+ones(max_idx-min_idx,1)];
+        min_idcs_full = [min_idcs_full; min_idx+(1:max_idx-min_idx)'];
+        % Keep track of which row of omat2 each row of omat corresponds to
+        idcs_full = [idcs_full; idcs(i)*ones(max_idx-min_idx,1)];
+    end
+    omat = omat_full;
+    min_idcs = min_idcs_full;
+    max_idcs = max_idcs_full;
+    idcs = idcs_full;
 end
 
 end

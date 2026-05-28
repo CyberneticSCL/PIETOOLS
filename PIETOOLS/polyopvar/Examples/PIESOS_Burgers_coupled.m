@@ -30,7 +30,7 @@ PDE = [diff(x1,t)==diff(x1,s,2)+r*x1-x1*diff(x1,s);
        subs(diff(x1,s),s,dom(2))==subs(diff(x2,s),s,dom(1));
        subs(x2,s,dom(2))==0];
 
-% Convert ot a PIE
+% Convert to a PIE
 PIE = convert(PDE);
 Top = PIE.T;
 f = PIE.f;
@@ -39,7 +39,7 @@ f = PIE.f;
 %%%%  V(v) = <Z_d(v), Pop*Z_d(v)>; Z_d(v) = [v ... v^d]'; Pop = Zop^* Pmat Zop.
 
 % Set up LPI program structure.
-vartab = polyopvar(f.varname,s,dom); % Z_d(v).
+vartab = f.vartab; % Z_d(v).
 prog = piesos_program(vartab);
 
 % Declare monomial basis of SOS Lyapunov functional.
@@ -48,12 +48,10 @@ Z = dmonomials(vartab,(1:d)');
 
 % Declare distributed SOS polynomial Vx
 % NOTE: Vx is expressed in terms of PDE state
-Popts.deg = 1; % maximal monomial degree of Zop. 
+Popts.deg = 2; % maximal monomial degree of Zop. 
 Popts.exclude = [0;0;0];
 Popts.sep = true;
-[prog,Vx_PDE,Pmat,Zop] = piesos_sosvar(prog,Z,Popts);
-%[prog,Pmat,Zop] = piesos_poslpivar(prog,Z,pdegs,Popts);
-%Vx = quad2lin(Pmat,Zop,Z);          
+[prog,Vx_PDE,Pmat,Zop] = piesos_sosvar(prog,Z,Popts);        
 
 % Ensure strict positivity of the Lyapunov functional
 eppos = 1e-4;
@@ -63,9 +61,9 @@ Vx_PDE = Vx_PDE + eppos*innerprod(vartab,vartab);
 % NOTEL dV is expressed in terms of PIE state
 dV = Liediff(Vx_PDE,PIE); % output is in polyopvar 
 
-use_ineq = true;
+use_ineq = false;
 if use_ineq
-    % Use piesos_ineq to enfor
+    % Use piesos_ineq to enforce
     ineq_opts.psatz = 0:1;
     [prog,W,Qmat,ZQop] = piesos_ineq(prog,-dV,ineq_opts);
 else
@@ -76,14 +74,12 @@ else
     ZQ = vartab;
     ZQ.degmat = ZQ_degmat;
     Q_opts.exclude = [1,0,0]';
-    Q_opts.psatz = 0;
+    Q_opts.psatz = 0:1;
     [prog,W,Qmat,ZQop] = piesos_sosvar(prog,ZQ,Q_opts);
-    % [prog,Qmat,ZQop] = piesos_poslpivar(prog,ZQ,qdegs,Q_opts);
-    % W = quad2lin(Qmat,ZQop,ZQ);
     
     % Enforce dV = -W <= 0
     prog = piesos_eq(prog,dV+W);
 end
 
 % Solve the optimization program
-prog_sol = lpisolve(prog);
+prog_sol = piesos_solve(prog);

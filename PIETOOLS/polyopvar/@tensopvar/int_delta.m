@@ -73,6 +73,8 @@ function [KCfun,omat,var2,dom] = int_delta(Cop,Kfun,var1,dom,var2)
 % Extract the PI operators defining the tensor-PI operator
 if ~isa(Cop,'tensopvar')
     error("Tensor-PI operator to integrate must be specified as 'tensopvar' object.")
+elseif ~all(Cop.type==[0,1])
+    error("Integration of tensor products of alternative type is not supported.")
 end
 
 % Check that the dimensions of the kernel and tensor-PI operator match
@@ -83,6 +85,11 @@ end
 ndim = size(Cop.ops{1},2);
 d = size(Cop.ops,2);
 ntrms = size(Cop.ops,1);
+
+op_order = Cop.order;
+if ~all(op_order==1:numel(op_order))
+    error("Integration of tensor-PI operators in non-standard order is not supported.")
+end
 
 % Check that the other arguments are properly specified
 if isempty(Kfun)
