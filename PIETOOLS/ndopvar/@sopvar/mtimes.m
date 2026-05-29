@@ -141,10 +141,11 @@ dom3a = B.dom_3(idx3a,:);
 dom3b = B.dom_3(~idx3a,:);
 
 % let len(A.ZR) = p, len(B.ZL) = q.
-% do int(A.ZR*B.ZL', s2b) = (I_p⊗Zhat_s2a')*G_s3a(s3a)*(I_q⊗Zhat_s3b)
+% do int(A.ZR*B.ZL', s2b) =
+% (I_p⊗PL')(I_p⊗Zhat_s2a')*G_s3a(s3a)*(I_q⊗Zhat_s3b)(I_q⊗PR)
 % where G_s3a is size len(Zhat_s2a)*p x len(Zhat_s3b)*q = g1 x g2
-[Zhat_s2a,G_s3a,Zhat_s3b] = ...
-        int_2b(A.ZR,B.ZL,A.vars.in,B.vars.out,vs2a,vs2b,vs3a,vs3b,dom2b);
+[Zhat_s2a,G_s3a,Zhat_s3b, PL, PR] = ...
+        int_2b(A.ZR,B.ZL,A.vars.in,vs2a,vs2b,vs3a,vs3b,dom2b);
 Gs3adim = [size(G_s3a.C,1)/prod(cellfun(@numel,G_s3a.Z)),size(G_s3a.C,2)];
 
 [Cs2a_betaa, KZhat_s2a] = int_monomial(Zhat_s2a,beta_a,dom2a);   % note that KZhat_s2a has been expanded to ensure independence of beta_a
@@ -156,8 +157,8 @@ Gs3adim = [size(G_s3a.C,1)/prod(cellfun(@numel,G_s3a.Z)),size(G_s3a.C,2)];
 
 % now, we have
 % int(A.ZR*B.ZL', s2a,s2b,s3a,s3b) 
-% = (I_p⊗KZhat_s2a(s2a)'*Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I_q⊗Cs3b_alphab*KZhat_s3b(s3b))
-% = (I_p⊗KZhat_s2a(s2a)')*(I_p⊗Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I_q⊗Cs3b_alphab)*(I_q⊗KZhat_s3b(s3b))
+% = (I_p⊗PL')(I_p⊗KZhat_s2a(s2a)'*Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I_q⊗Cs3b_alphab*KZhat_s3b(s3b))(I_q⊗PR)
+% = (I_p⊗PL')(I_p⊗KZhat_s2a(s2a)')*(I_p⊗Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I_q⊗Cs3b_alphab)*(I_q⊗KZhat_s3b(s3b))(I_q⊗PR)
 % next we need to perform int(G_s3a(s3a),s3a) = (I_g1⊗barZ_3aL')*C_(gam,beta,alp)*(I_g2⊗barZ_3aR)
 [C_gam_alp_beta,barZ_3aL,barZ_3aR] = int_semisep(G_s3a,beta_b,alpha_a,dom3a, Csize); 
 
@@ -168,16 +169,16 @@ Gs3adim = [size(G_s3a.C,1)/prod(cellfun(@numel,G_s3a.Z)),size(G_s3a.C,2)];
 % sum_{betaa,betab,alphaa,alphab) (I⊗A.ZL')CA(betaa,betab)*int((I⊗A.ZR)*(I⊗B.ZL'),s2a,s2b,s3a,s3b)*CB(alphaa,alphab)(I⊗B.ZR)
 % = sum (I⊗A.ZL')CA(betaa,betab)*(I⊗int(A.ZR*B.ZL',s2a,s2b,s3a,s3b))*CB(alphaa,alphab)(I⊗B.ZR)
 % = sum (I⊗A.ZL')CA(betaa,betab)
-%          *(I⊗((I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')*(I⊗barZ_3aL')*C_(gam,betab,alphaa)*(I⊗barZ_3aR)*(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))
+%          *(I⊗((I_p⊗PL')(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')*(I⊗barZ_3aL')*C_(gam,betab,alphaa)*(I⊗barZ_3aR)*(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))(I_q⊗PR)))
 %             *CB(alphaa,alphab)(I⊗B.ZR)
 
 % split (I⊗ABCDE) as (I⊗A)(I⊗B)(I⊗C)....Then
 % sum (I⊗A.ZL')CA(betaa,betab)
 %       *(I⊗((I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')*(I⊗barZ_3aL')*C_(gam,betab,alphaa)*(I⊗barZ_3aR)*(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))
 %          *CB(alphaa,alphab)(I⊗B.ZR)
-% = sum (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
+% = sum (I⊗A.ZL')CA(betaa,betab)*(I⊗PL')*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
 %         *(I⊗barZ_3aL')*(I⊗C_(gam,betab,alphaa))*(I⊗barZ_3aR)
-%          *(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*CB(alphaa,alphab)(I⊗B.ZR)
+%          *(I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*(I⊗PR)*CB(alphaa,alphab)(I⊗B.ZR)
 % since none of the monomials depend on betas and alphas, there must be a
 % template permutation operation that repeats for all indices to compute
 % resulting composition in the quadPoly form (I⊗C.ZL') CC[gamma] (I⊗C.ZR) 
@@ -198,10 +199,10 @@ else
 CB = reshape(permute(B.params, [colsalphaa,colsalphab]), 3^numel(colsalphaa), 3^numel(colsalphab));
 end
 
-% sum_betaa (I⊗A.ZL')CA(betaa,betab)*(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
+% sum_betaa (I⊗A.ZL')CA(betaa,betab)*((I⊗PL'))(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
 % = sum_betaa (I⊗ZLtemp(varLtemp)')CLtemp_betaab
 [varLtemp,ZLtemp,CLtemp_betaab]=leftShiftMonomials_SS( ...
-    A.vars.out,A.ZL,CA,vs2a,KZhat_s2a, ...
+    A.vars.out,A.ZL,CA*kron(eye(size(CA{1},2)/size(PL,2)),PL'),vs2a,KZhat_s2a, ...
     cellfun(@(x) kron(eye(Gs3adim(1)),x), Cs2a_betaa, UniformOutput=false));
 CLtemp = cell(1,size(CLtemp_betaab,2));
 for j=1:size(CLtemp_betaab,2)
@@ -213,10 +214,10 @@ end
 
 
 % same for right side
-% sum_alphab (I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*CB(alphaa,alphab)(I⊗B.ZR)
+% sum_alphab (I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*(I⊗PR)*CB(alphaa,alphab)(I⊗B.ZR)
 % = sum_alphab (I⊗CRtemp_alphaab)*(I⊗ZRtemp(varRtemp))
 [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
-    B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b, ...
+    B.vars.in,B.ZR,CB.'*kron(eye(size(CB{1},1)/size(PR,2)),PR'),vs3b,KZhat_s3b, ...
     cellfun(@(x) kron(eye(Gs3adim(2)),x), Cs3b_alphab, UniformOutput=false).');
 % [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
 %     B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b, kron(eye(B.dim(1)),Cs3b_alphab)');  % verify that CB.' not just transposes cell rows/columns but also matrix rows/columns
@@ -440,7 +441,7 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar, s2a,s2b,s3a,s3b,lims)
+function [Z2aout, G3aout, Z3bout, PL, PR] = int_2b(ZL, ZR, Zvar, s2a,s2b,s3a,s3b,lims)
 % This performs the factorization
 % int(ZL*ZR',s2b,0,1) = (Im\otimes Z2a') G(s3a) (In\otimes Z3b)
 % where m = length(kron(ZL)) and n = length(kron(ZR))
@@ -451,44 +452,65 @@ function [Z2aout, G3aout, Z3bout] = int_2b(ZL, ZR, ZLvar, ZRvar, s2a,s2b,s3a,s3b
 % = (ZL2a*ZR2a')⊗C2b⊗(ZL3a*ZR3a')⊗(ZL3b*ZR3b')
 % for some constant matrix C2b
 
-% first separate ZL and ZR into Z2a,Z2b,Z3a,Z3b
-ZL2a = cell(1,length(s2a));
-ZR2a = cell(1,length(s2a));
-ZL2b = cell(1,length(s2b));
-ZR2b = cell(1,length(s2b));
-ZL3a = cell(1,length(s3a));
-ZR3a = cell(1,length(s3a));
-ZL3b = cell(1,length(s3b));
-ZR3b = cell(1,length(s3b));
+% Zvar must appear in both for composition to be well-defined, but may not
+% be ordered as [[s2a,s2b,s3a,s3b]
 
-for i=1:length(s2a)
-    [idx,loc] = ismember(s2a(i),ZLvar);
-    if ~idx, ZL2a{i} = 0; else, ZL2a{i} = ZL{loc}; end
-    [idx,loc] = ismember(s2a(i),ZRvar);
-    if ~idx, ZR2a{i} = 0; else, ZR2a{i} = ZR{loc};
-    end
-end
-for i=1:length(s2b)
-    [idx,loc] = ismember(s2b(i),ZLvar);
-    if ~idx, ZL2b{i} = 0; else, ZL2b{i} = ZL{loc}; end
-    [idx,loc] = ismember(s2b(i),ZRvar);
-    if ~idx, ZR2b{i} = 0; else, ZR2b{i} = ZR{loc};
-    end
-end
-for i=1:length(s3a)
-    [idx,loc] = ismember(s3a(i),ZLvar);
-    if ~idx, ZL3a{i} = 0; else, ZL3a{i} = ZL{loc}; end
-    [idx,loc] = ismember(s3a(i),ZRvar);
-    if ~idx, ZR3a{i} = 0; else, ZR3a{i} = ZR{loc};
-    end
-end
-for i=1:length(s3b)
-    [idx,loc] = ismember(s3b(i),ZLvar);
-    if ~idx, ZL3b{i} = 0; else, ZL3b{i} = ZL{loc}; end
-    [idx,loc] = ismember(s3b(i),ZRvar);
-    if ~idx, ZR3b{i} = 0; else, ZR3b{i} = ZR{loc};
-    end
-end
+Zvar_ordered = [s2a,s2b,s3a,s3b];
+[~, idx] = ismember(Zvar, Zvar_ordered);
+
+dims = cellfun(@numel, ZL); n = numel(dims); N = prod(dims);
+dims_ordered = dims(idx);
+
+% Original Kronecker multi-indices, in kron ordering
+r = cell(1,n);
+[r{:}] = ind2sub(fliplr(dims),1:N);
+I = flipud(vertcat(r{:})).';   % rows are [i1 i2 ... in]
+
+% Same monomial, but indexed in the permuted Kronecker basis
+Ip = I(:,idx);
+
+% Convert permuted multi-indices back to linear kron indices
+rp = num2cell(fliplr(Ip),1);
+p = sub2ind(fliplr(dimsp),rp{:}).';
+
+% Permutation matrix satisfying P*Zp = Z
+PL = speye(N);
+PL = P(p,:);
+
+dims = cellfun(@numel, ZR); n = numel(dims); N = prod(dims);
+dims_ordered = dims(idx);
+
+% Original Kronecker multi-indices, in kron ordering
+r = cell(1,n);
+[r{:}] = ind2sub(fliplr(dims),1:N);
+I = flipud(vertcat(r{:})).';   % rows are [i1 i2 ... in]
+
+% Same monomial, but indexed in the permuted Kronecker basis
+Ip = I(:,idx);
+
+% Convert permuted multi-indices back to linear kron indices
+rp = num2cell(fliplr(Ip),1);
+p = sub2ind(fliplr(dimsp),rp{:}).';
+
+% Permutation matrix satisfying P*Zp = Z
+PR = speye(N);
+PR = P(p,:);
+
+
+
+% first separate ZL and ZR into Z2a,Z2b,Z3a,Z3b
+[~,loc] = ismember(s2a,Zvar);
+ZL2a = ZL(loc);
+ZR2a = ZR(loc);
+[~,loc] = ismember(s2b,Zvar);
+ZL2b = ZL(loc);
+ZR2b = ZR(loc);
+[~,loc] = ismember(s3a,Zvar);
+ZL3a = ZL(loc);
+ZR3a = ZR(loc);
+[~,loc] = ismember(s3b,Zvar);
+ZL3b = ZL(loc);
+ZR3b = ZR(loc);
 
 % perform ZL*ZR' for each variable group 2a,2b,3a,3b
 for i=1:length(s2a)
@@ -629,64 +651,4 @@ C3a = Q2a*C3a;
 Z2aout = Z2anew;
 Z3bout = Z3bnew;
 G3aout = struct('C', C3a, 'Z', {Z3anew});
-end
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function G = mapBetaAlpha2Gamma(alpha, beta)
-% mapAlphaBetaToGamma  Map multi-indices alpha,beta (values in {1,2,3})
-% to all possible gamma multi-indices under the specified per-component rule.
-%
-% Inputs:
-%   alpha, beta : 1xd or d x 1 integer vectors with entries in {1,2,3}
-%
-% Output:
-%   G : N x d integer matrix. Each row is one gamma multi-index.
-%       N = product over i of number of possible gamma_i values.
-
-    % Ensure row vectors
-    if iscell(alpha)
-        alpha = cell2mat(alpha);
-    end
-    if iscell(beta)
-        beta = cell2mat(beta);
-    end
-
-    alpha = alpha(:).';
-    beta  = beta(:).';
-    d = numel(alpha);
-
-    if numel(beta) ~= d
-        error('alpha and beta must have the same length.');
-    end
-
-    % Build per-dimension option lists for gamma_i
-    opts = cell(1, d);
-    for i = 1:d
-        opts{i} = gammaOptions(alpha(i), beta(i));
-    end
-
-    % Cartesian product across dimensions to form all gamma multi-indices
-    grids = cell(1, d);
-    [grids{:}] = ndgrid(opts{:});   % each grids{i} is an array of size |opts1|x...x|optsd|
-    
-    N = numel(grids{1});
-    G = zeros(N, d);
-    for i = 1:d
-        G(:, i) = grids{i}(:);
-    end
-end
-
-function gi = gammaOptions(a, b)
-% gammaOptions  Return the vector of possible gamma values for one component.
-
-    % Mapping table as cell array: row=a, col=b
-    T = { ...
-        1,   2,    3; ...
-        2,   2,   [2 3]; ...
-        3,  [2 3], 2 ...
-    };
-
-    gi = T{a, b};
 end

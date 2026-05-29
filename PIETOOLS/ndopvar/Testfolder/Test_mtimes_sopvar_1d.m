@@ -26,7 +26,7 @@ Bsop = opvar2sopvar(Bop);
 
 % Compute the sopvar composition
 Csop = Asop*Bsop;
-
+%%
 % Compare
 Cop_alt = sopvar2opvar(Csop);
 Cop_diff = clean_opvar(Cop - Cop_alt);
