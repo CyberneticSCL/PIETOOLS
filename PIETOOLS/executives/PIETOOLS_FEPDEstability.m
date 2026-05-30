@@ -1,21 +1,20 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_PIE2PDEstability.m     PIETOOLS 2025
+% PIETOOLS_FEPDEstability.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This script executes a PIE2PDE stability analysis for 4-PIE System defined
+% This script executes a finete energy FE PDE stability analysis for 4-PIE System defined
 % by the 2 4-PI operator representation
 % Top \dot x(t)=Aop x(t)
 %
 % If any other parts of the PIE are present, these are ignored. Both Top
 % and Aop must be properly defined for the script to function.
 %
-% Stability implies existence of a C>0 such that |Tx(t)|\le C|x(0)|, which
-% is a weaker notion of stability than PDE stability. However, this script
-% is slightly more computationally intensive than PIETOOLS_PDEstability.
+% Stability implies existence of a C>0 such that \int_0^\infty|Tx(t)|^2dt
+% \le C|Tx(0)|
 %
-% If settings.epneg>0, this test implies |Tx(t)|\le Ce^{-\alpha t}|x(0)|
+% If settings.epneg>0, this test implies \int_0^\infty|Tx(t)|^2dt\le Ce^{-\alpha t}|Tx(0)|
 % for some \alpha>0
 %
-% This script implements the LPI in Lemma 8, 1) of [1].
+% This script implements the LPI in Lemma 10, 3) of [1].
 %
 % INPUT: 
 % PIE - A pie_struct class object with the above listed PI operators as fields
@@ -47,12 +46,10 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP - 07_05_2025
-% DB - 05_20_2026: added reference paper for the LPI
-% DB - 05_21_2026: change Qop to Qop' to match the reference paper
+% Initial coding DB - 05_21_2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [prog, P] = PIETOOLS_PIE2PDEstability(PIE, settings)
+function [prog, P] = PIETOOLS_FEPDEstability(PIE, settings)
 
 % Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
@@ -64,9 +61,9 @@ end
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
-        [prog, P] = PIETOOLS_PIE2PDEstability_2D(PIE);
+        [prog, P] = PIETOOLS_FEPDEstability_2D(PIE);
     else
-        [prog, P] = PIETOOLS_PIE2PDEstability_2D(PIE,settings);
+        [prog, P] = PIETOOLS_FEPDEstability_2D(PIE,settings);
     end
     return
 end
@@ -79,7 +76,7 @@ if nargin<2
     settings.sos_opts.simplify = 1; % Use psimplify
     settings.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
     settings.eppos2 = 1*1e-6;   % Positivity of Lyapunov Function with respect to spatially distributed states
-    settings.epneg = 0*1e-5;    % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+    settings.epneg = 1e-5;    % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
 end  
 
 dd1 = settings.dd1;
@@ -101,7 +98,9 @@ else
     dd2 = settings.dd2;
     dd3 = settings.dd3;
 end
-
+if epneg==0
+    error('Finite energy stability check requires settings.epneg >0. Please change your settings. ')
+end
 
 fprintf('\n --- Executing Primal Stability Test --- \n')
 % Declare an SOS program and initialize domain and opvar spaces
@@ -121,24 +120,17 @@ if override1~=1
 else
     Pop=P1op;
 end
-Pop = Pop + eppos2*Top'*Top;
-
-% Also declare an indefinite operator Qop such that Pop=QopTop=(QopTop)'
-Qdeg = get_lpivar_degs(Pop,Top);
-[prog, Qop] = lpivar(prog,Top.dim,Qdeg);
-prog = lpi_eq(prog, Top'*Qop'-Pop);
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 2: Define the Lyapunov Inequality
 %
 % i.e. - Assemble the big operator
-% Pheq = [ A'*Q+Q*A]
+% Pheq = [ A'*Q+Q*A+alphaT'*T]
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop = Qop*Aop+Aop'*Qop' +epneg*Pop; 
+Dop = Top'*Pop*Aop+Aop'*Pop*Top +epneg*(Top'*Top); 
     
 
 
