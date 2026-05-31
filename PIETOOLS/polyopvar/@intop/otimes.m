@@ -137,7 +137,7 @@ Bparams.varname = Bpar_varname;
 % Update variable indices
 omat2 = omat2 + numel(var1);
 
-omat_new = zeros(0,2*numel(var_new)+1);
+omat_new = zeros(0,numel(var_new));
 params_new = zeros(size(Bparams,1),0);
 for i=1:size(omat1,1)
     % Establish all orders of integration in the new variable list based on

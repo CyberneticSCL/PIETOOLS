@@ -46,22 +46,21 @@ end
 % Determine which independent variables the term depends on
 if isa(C,'double')
     pvarname = {};
+    C = polynomial(C);
 elseif isa(C,'polynomial') || isa(C,'dpvar')
     pvarname = C.varname;
 else
     error("Input must be of type 'double', 'polynomial', or 'dpvar'.")
 end
 
+% Convert coefficient to intop
+Cop = intop(C,zeros(1,0),{},zeros(0,2));
+
 % Declare a polyopvar representation of the term
 F = polyopvar();
 F.pvarname = pvarname;
 F.varmat = false(0,numel(pvarname));
 F.degmat = zeros(1,numel(pvarname));
-F.C.ops = {C};
-F.C.depmat1 = zeros(1,0);
-F.C.depmat2 = zeros(1,0);
-
-
-
+F.C = tensopmat(Cop);
 
 end
