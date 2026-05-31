@@ -39,6 +39,15 @@ function C = plus(A,B)
 %
 % DJ, 02/03/2026: Initial coding
 
+% Allow for addition with zero
+if isequal(A,0)
+    C = B;
+    return
+elseif isequal(B,0)
+    C = A;
+    return
+end
+
 % Check that the operators are of the same dimension
 Adim = A.matdim;    Bdim = B.matdim;
 if any(Adim~=Bdim)
