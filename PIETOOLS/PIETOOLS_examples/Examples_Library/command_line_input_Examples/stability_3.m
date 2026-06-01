@@ -1,4 +1,4 @@
-clc; clear; clear stateNameGenerator
+%clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 %% Define dependent variables and system variable
 %   PDE: x_{t} = Mm*x - Lm*x_{s}                	| Mm, Lm, K00, K01,             Diagne 2012 [2] 
@@ -21,7 +21,7 @@ x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
  c21 = (lm3/g) * (lm1 - lm2);
  c32 = (lm1/g) * (lm2 - lm3);
  c13 = (lm2/g) * (lm3 - lm1);
- k1 = 1;       k2 = 2;
+ k1 = -.5;       k2 = -4.5;
  pi2 = (a21 - c21*k1)/(a32 - c32*k1);
  pi3 = (a13 - c13*k1)/(a32 - c32*k1);
  chi2 = ((lm2 - Vs)/(lm1 - Vs)) * ((g + (lm2-Vs)*k2)/(g + (lm1-Vs)*k2));
@@ -32,14 +32,19 @@ x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
 
 %% Define equations
 eq_PDE = diff(x,t)==Mm*x-Lm*diff(x,s); % 	PDE: x_{t} = Mm*x - Lm*x_{s}
-B1=[[1,0,0]*subs(x,s,0); 
-    [0,1,0;
-    0,0,1]*subs(x,s,1)];
-B2=[[1,0,0]*subs(x,s,1);
-    [0,1,0;
-    0,0,1]*subs(x,s,0)];    
-eq_BC = B1==[K00,K01;K10,K11]*B2;   
-%   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)], [x_-(s=1)] = [K10, K11] [x_-(s=0)]
+%   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)],
+%            [x_-(s=1)]     [K10, K11] [x_-(s=0)]
+% in the reference order lambda1 > lambda2 > 0 > lambda3
+% Exemple order: lambda1 < 0 < lambda2 < lambda3
+% Incoming traces:  [x1(1); x2(0); x3(0)]
+% Outgoing traces:  [x1(0); x2(1); x3(1)]
+B1 = [[1,0,0]*subs(x,s,1);
+      [0,1,0;
+       0,0,1]*subs(x,s,0)];
+B2 = [[1,0,0]*subs(x,s,0);
+      [0,1,0;
+       0,0,1]*subs(x,s,1)];
+eq_BC = B1 == [K00,K01; K10,K11]*B2;
 %% addequations to pde system; set control inputs/observed inputs, if any
 PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie

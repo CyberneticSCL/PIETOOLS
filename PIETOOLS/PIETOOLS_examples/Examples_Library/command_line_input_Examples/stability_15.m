@@ -1,6 +1,17 @@
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
+%
+%   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                               Peet 2019 [8] (Example 8.1.0.2)
+%        r*II * phi_{tt} = E*II * phi_{ss}  + k*aa*g * (w_{s} - phi) 
+%   BCs: phi(s=0) = 0,      phi_{s}(s=1) = 0    
+%        w(s=0) = 0,        w_{s}(s=1) - phi(s=1) = 0           
+% 
+% Specify the parameters 
+k = 1;    aa = 1;    II = 1;    g = 1;   
 %% Define dependent variables and system variable
+% use PDE states:  (unstable Hyperbolic/diffusive implementation)
+%        x1 = w_{t},    x2 = w_{s},                 |
+%        x3 = phi_{t},  x4 = phi.                   |
 %   PDE: x1_{t} = x2_{s} - x4_{s}                   |
 %        x2_{t} = x1_{s}                            |
 %        x3_{t} = x2 - x4                           |

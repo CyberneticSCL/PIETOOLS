@@ -132,6 +132,8 @@ switch index
 %   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)]         | K10 and K11 may be
 %        [x_-(s=1)] = [K10, K11] [x_-(s=0)]         | specified
 %   The implementation is based on a Linearized Saint–Venant–Exner Model
+%   The dissipativity condition of Diagne 2012 [2] fails for default
+%   parameters  k1 = -.5;       k2 = -4.5;
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diagne(GUI,params);
 %--------------------------------------------------------------------------
     case {4.0,4.1,4.2,4.4,4.3,4.5}
@@ -144,17 +146,20 @@ switch index
 %        Diffusion and Heat-Equation Type Systems
 %--------------------------------------------------------------------------
     case 5
-%   PDE: x_{t} = lam*x + x_{ss}                     | lam = 9.86            (stable for lam < pi^2 = 9.8696)  
+%   PDE: x_{t} = lam*x + x_{ss}                     | lam = 9.86   (unstable for lam > pi^2/4,
+%                                                                                          exponentially stable for lam < pi^2 = 9.8696)  
 %   BCs: x(s=0) = 0,      x(s=1) = 0                |                               Ahmadi 2015 [5] 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params);
 %--------------------------------------------------------------------------
     case 6
-%   | PDE: x_{t} = lam*x + x_{ss}                   | lam = 2.466           (unstable for lam > pi^2/4 = 2.467)        
+%   | PDE: x_{t} = lam*x + x_{ss}                   | lam = 2.466           (unstable for lam > pi^2/4 \approx 2.467,  
+%                                                                                                     exponentially stable for lam < pi^2/4)
 %   | BCs: x(s=0) = 0,      x_{s}(s=1) = 0          |                               Gahlawat 2017 [4]
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat(GUI,params);
 %--------------------------------------------------------------------------
     case 7
-%   PDE:  x_{t} = a(s)*x_{ss}                       | a = s^3 - s^2 + 2     (unstable for lam > 4.66)            
+%   PDE:  x_{t} = a(s)*x_{ss}                       | a = s^3 - s^2 + 2     (unstable for lam > 4.66)    
+%                                                                                                     exponentially stable for lam < 4.66
 %                 + b(s)*x_{s}                      | b = 3*s^2 - 2*s               Gahlawat 2017 [4]
 %                 + c(s,lam)*x                      | c =-0.5*s^3 + 1.3*s^2 
 %   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            |    - 1.5*s + 0.7 +lam
@@ -194,17 +199,18 @@ switch index
 %--------------------------------------------------------------------------
 %        Beam Type Equations 
 %--------------------------------------------------------------------------
-    case 13
+    case {13.0,13.1,13.2}
 %   PDE: u_{tt} = -c*u_{ssss}                       | c = 0.1
 %   BCs: u(s=0) = 0,        u_{ss}(s=1) = 0         |                               Peet 2019 [8] (Example 8.1.0.1)
 %        u_{s}(s=0) = 0,    u_{sss}(s=1) = 0        |
-%   Use states x1 = u_{t}, x2 = u_{ss}.             |
+%   13.1 use PDE states x1 = u_{t}, x2 = u_{ss}.             | (PDE stable)
 %       =>                                          |
 %   PDE: x1_{t} = -c * x2_{ss}                      |
 %        x2_{t} = x1_{ss}                           |
 %   BCs: x1(s=0) = 0,       x2(s=1) = 0             |
 %        x1_{s}(s=0) = 0,   x2_{s}(s=1) = 0         |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(GUI,params);
+% 13.2  use PDE states x1= u and x_1=u_{t} | (PIE to PDE stable)
+    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params);
 %--------------------------------------------------------------------------
 %
 %   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                               Peet 2019 [8] (Example 8.1.0.2)
@@ -214,11 +220,11 @@ switch index
 %   
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 14
-%   Use states:                                     | k = 1                 Hyperbolic implementation (stable)
-%        x1 = w_{t},   x2 = k*aa*g * (w_{s}-phi),   | aa = 1
-%        x3 = phi_{t}, x4 = E*II * phi_{s}.         | II = 1
+%   Use states:                                     | k = 1                 Hyperbolic implementation | (PDE stable)
+%        x1 = w_{t},   x2 = k*aa*g * (w_{s}-phi),   | aa = 1 
+%        x3 = phi_{t}-c phi_{t}, x4 = E*II * phi_{s}.         | II = 1   
 %       =>                                          | g = 1
-%   PDE: x1_{t} = (1/r/aa) * x2_{s}                 | E = 1
+%   PDE: x1_{t} = (1/r/aa) * x2_{s}                 | E = 1   (Finite-energy PDE stable with damping c >0)
 %        x2_{t} = k*aa*g * x1_{s} - k*aa*g * x3     | r = 1
 %        x3_{t} = (1/r/II)*x2 + (1/r/II)*x4_{s}     | 
 %        x4_{t} = E*II * x3_{s}                     |
@@ -228,13 +234,13 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params);
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 15 
-%   Assume all parameters are 1, and use states:    |                       Hyperbolic/diffusive implementation (unstable)
+%   Assume all parameters are 1, and use states:    | Hyperbolic/diffusive implementation (unstable)
 %        x1 = w_{t},    x2 = w_{s},                 |
-%        x3 = phi_{t},  x4 = phi.                   |
+%        x3 = phi_{t},  x4 = phi.                   |                  (PDE stable with damping c >0)
 %       =>                                          |
 %   PDE: x1_{t} = x2_{s} - x4_{s}                   |
 %        x2_{t} = x1_{s}                            |
-%        x3_{t} = x2 - x4                           |
+%        x3_{t} = x2 - x4 -c x3                         |
 %        x4_{t} = x3                                |
 %   BCs: x4(0) = 0,     x4_{s}(1) = 0,              |
 %        x3(0) = 0,     x1(0) = 0,                  |
