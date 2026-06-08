@@ -1,14 +1,31 @@
-function P = rand_poly(dim,var,deg,nZ_max)
-% P = RAND_POLY(DIM,VAR,DEG,NZ_MAX) randomly generates a matrix-valued
-% polynomial of dimensions DIM, and of degree at most DEG in variables VAR.
+function P = rand_dpvar(dim,dvar,var,deg,nZ_max,rho)
+% P = RAND_POLY(DIM,DVAR,VAR,DEG,NZ_MAX) randomly generates a matrix-valued
+% 'dpvar' of dimensions DIM, and of degree at most DEG in variables VAR and
+% decision variables DVAR;
 % NZ_MAX is the maximal number of monomials to include in the polynomial
 % (optional argument), independent of the number of variables or degrees.
+% rho is the density of the coefficient matric defining the dpvar object,
+% defaults to 2*numel(dvar)/numel(C);
 
 % Deal with case of empty polynomial
 if any(dim==0)
-    P = polynomial(zeros(dim));
+    P = dpvar(zeros(dim));
     return
 end
+
+% Check that the decision variables are properly specified
+if isa(dvar,'double')
+    % Generate q=dvar decision variable names
+    q = dvar;
+    dvar = cell(q,1);
+    for i=1:q
+        dvar{i} = ['coeff',num2str(i)];
+    end
+elseif ~iscellstr(dvar)
+    error("Decision variables must be specified as 'cellstr'.")
+end
+dvar = dvar(:);
+ndvars = numel(dvar);
 
 % Check that the variables are properly specified
 if isa(var,'double')
@@ -36,12 +53,12 @@ elseif numel(deg)~=nvars
     error("Number of maximal monomial degrees should match number of variables.")
 end
     
-
+% Extract the dimensions
 m = dim(1);
 n = dim(2);
 
 % Randomly determine the number of monomials.
-if nargin<=3
+if nargin<=4
     nZ_max = prod(deg+1);
 else
     nZ_max = min(prod(deg+1),nZ_max);
@@ -55,13 +72,14 @@ end
 degmat = uniquerows_integerTable(degmat);
 nZ = size(degmat,1);
 
-% Generate random coefficients, on average two nonzero coefficients per
-% element of the matrix-valued object
-is_zero = logical(randi(floor(0.5*(m*n+1)),[nZ,m*n])-1);
-C = (~is_zero).*(2*rand([nZ,m*n])-1);
+% Generate random coefficients of desired sparsity
+if nargin<=5
+    rho = 2*ndvars/((m*ndvars+1)*n*nZ);
+end
+C = sprand(m*(ndvars+1),n*nZ,rho);
 
 % Set the polynomial
-P = polynomial(C,degmat,var,[m,n]);
+P = dpvar(C,degmat,var,dvar,[m,n]);
 
 end
 

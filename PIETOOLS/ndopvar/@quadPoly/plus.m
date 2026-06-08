@@ -7,6 +7,23 @@ function H = plus(F, G)
 % Outputs:
 %   H = F+G a quadPoly object
 
+% Support addition with constant terms
+if isequal(F,0)
+    H = G;
+    return
+elseif isequal(G,0)
+    H = F;
+    return
+end
+if isa(F,'double')
+    F = quadPoly(F);
+end
+if isa(G,'double')
+    G = quadPoly(G);
+end
+% should add error checking (e.g. matching matrix dimensions)
+
+
 % Fast path: if the monomials are same, just add coefficients
 if isequal(F.ns,G.ns) && isequal(F.nt,G.nt) ...
         && isequal(F.Zs,G.Zs) && isequal(F.Zt,G.Zt)

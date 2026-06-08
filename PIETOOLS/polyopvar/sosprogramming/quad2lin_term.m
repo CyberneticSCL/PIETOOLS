@@ -193,7 +193,8 @@ if ntrms_R==1 && ~isa(Rops{1},'nopvar')
 end
 % If both Lmon and Rmon are of degree 0, we return a constant polynomial
 if isempty(Rops) && isempty(Lops)
-    Kop = int(Pmat,var1,dom(1),dom(2));
+    Kval = int(Pmat,var1,dom(1),dom(2));
+    Kop = intop(Kval,zeros(1,0),cell(1,0),zeros(0,2));
     return
 end
 

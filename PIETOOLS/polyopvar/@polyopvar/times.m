@@ -63,7 +63,7 @@ end
 C = A;
 
 % Declare the full list of monomials appearing in the product of A and B
-degmat_full = repmat(A.degmat, size(B.degmat,1), 1) + repelem(B.degmat,size(A.degmat,1), 1);
+degmat_full = repelem(A.degmat, size(B.degmat,1), 1) + repmat(B.degmat,size(A.degmat,1), 1);
 
 % Declare the coefficients acting on the full vector of monomials
 params_full = otimes(A.C,B.C);
@@ -76,7 +76,7 @@ for k = 1:size(degmat_full,1)
     if sum(degmat_full(k,:))<=1
         continue
     end
-    [k1,k2] = ind2sub([d1,d2],k);
+    [k2,k1] = ind2sub([d2,d1],k);
     deg1 = A.degmat(k1,:);
     deg2 = B.degmat(k2,:);
     Ck = params_full.ops{k};
@@ -106,18 +106,21 @@ end
 [Pmat,degmat_new] = uniquerows_integerTable(degmat_full);   % deg_full = Pmat*deg_new
 C.degmat = degmat_new;
 C.C = params_full;
+C.C.ops = cell(size(params_full.ops,1),size(degmat_new,1));
 C.C.depmat2 = zeros(size(degmat_new,1),nvars);
-for j=1:size(degmat_new,1)
-    % Establish which parameters act on the jth monomial
-    param_idcs = find(Pmat(:,j));
-    C.C.depmat2(j,:) = params_full.depmat2(param_idcs(1),:);
-    % Add the different operators acting on this monomial
-    Ctmp = params_full.ops{param_idcs(1)};
-    for k=2:numel(param_idcs)
-        Ctmp = Ctmp + params_full.ops{param_idcs(k)};
+for i=1:size(params_full.ops,1)
+    for j=1:size(degmat_new,1)
+        % Establish which parameters act on the jth monomial
+        param_idcs = find(Pmat(:,j));
+        C.C.depmat2(j,:) = params_full.depmat2(param_idcs(1),:);
+        % Add the different operators acting on this monomial
+        Ctmp = 0;
+        for k=1:numel(param_idcs)
+            Ctmp = Ctmp + params_full.ops{i,param_idcs(k)};
+        end
+        % Set the operator acting on the jth monomial
+        C.C.ops{i,j} = Ctmp;
     end
-    % Set the operator acting on the jth monomial
-    C.C.ops{j} = Ctmp;
 end
 
 end

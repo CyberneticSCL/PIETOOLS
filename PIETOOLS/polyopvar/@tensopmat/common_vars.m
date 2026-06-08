@@ -52,6 +52,15 @@ dom_A = A_in.dom;           dom_B = B_in.dom;
 depmat1_A = A_in.depmat1;   depmat1_B = B_in.depmat1;
 depmat2_A = A_in.depmat2;   depmat2_B = B_in.depmat2;
 
+% Deal with case of constant coefficient
+if all(depmat1_A==0) && all(depmat2_A==0)
+    vars_A = vars_B;
+    dom_A = dom_B;
+elseif all(depmat1_B==0) && all(depmat2_B==0)
+    vars_B = vars_A;
+    dom_B = dom_A;
+end
+
 % Combine the variable names into a list of unique variables
 varname_A = pvar2varname(vars_A(:,1));    nvar_A = numel(varname_A);
 varname_B = pvar2varname(vars_B(:,1));

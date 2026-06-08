@@ -38,10 +38,10 @@ function C_out = uminus(C_in)
 % DJ, 04/21/2026: Initial coding
 
 C_out = C_in;
-for i=1:numel(C_out.ops,1)
+for i=1:numel(C_out.ops)
     % Mutliply each of the tensor-PI operators in the matrix with -1
     if ~isempty(C_in.ops{i})
-        C_out.ops{i} = -C_out.ops{i};
+        C_out.ops{i} = -C_in.ops{i};
     end
 end
 
