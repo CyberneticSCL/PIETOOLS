@@ -1,6 +1,8 @@
-function P = rand_poly(dim,var,deg)
-% P = RAND_POLY(DIM,VAR,DEG) randomly generates a matrix-valued polynomial
-% of dimensions DIM, and of degree at most DEG in variables VAR
+function P = rand_poly(dim,var,deg,nZ_max)
+% P = RAND_POLY(DIM,VAR,DEG,NZ_MAX) randomly generates a matrix-valued
+% polynomial of dimensions DIM, and of degree at most DEG in variables VAR.
+% NZ_MAX is the maximal number of monomials to include in the polynomial
+% (optional argument), independent of the number of variables or degrees.
 
 % Deal with case of empty polynomial
 if any(dim==0)
@@ -9,10 +11,17 @@ if any(dim==0)
 end
 
 % Check that the variables are properly specified
-if isa(var,'char')
+if isa(var,'double')
+    % Generate N=var variable names
+    N = var;
+    var = cell(N,1);
+    for i=1:N
+        var{i} = ['s',num2str(i)];
+    end
+elseif isa(var,'char')
     var = {var};
 elseif isa(var,'polynomial')
-    if ~ispvar(var)
+    if ~ispvar(var) && ~isempty(var)
         error("Variables must be specified as 'pvar' objects or 'cellstr'.")
     end
     var = pvar2varname(var);
@@ -32,7 +41,11 @@ m = dim(1);
 n = dim(2);
 
 % Randomly determine the number of monomials.
-nZ_max = prod(deg+1);
+if nargin<=3
+    nZ_max = prod(deg+1);
+else
+    nZ_max = min(prod(deg+1),nZ_max);
+end
 nZ = randi(nZ_max);
 % Generate a random monomial basis.
 degmat = zeros(nZ,nvars);
