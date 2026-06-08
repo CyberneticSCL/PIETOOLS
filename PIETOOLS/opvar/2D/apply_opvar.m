@@ -71,8 +71,8 @@ end
 % Distinguish 1D and 2D cases.
 if ~use_2d
     % Split the polynomial into finite-dimensional and 1D components.
-    v0 = v(1:nnc_arr(1),1);
-    vx = v(nnc_arr(1)+1:nnc_arr(2),1); 
+    v0 = v(1:nnc_arr(1),:);
+    vx = v(nnc_arr(1)+1:nnc_arr(2),:); 
     
     % Extract the spatial variables and their domain.
     ds1 = P.var1;   dt1 = P.var2;
@@ -91,10 +91,10 @@ if ~use_2d
     
 else
     % Split the polynomial into finite-dimensional, 1D, and 2D components
-    v0 = v(1:nnc_arr(1),1);
-    vx = v(nnc_arr(1)+1:nnc_arr(2),1);
-    vy = v(nnc_arr(2)+1:nnc_arr(3),1);
-    v2 = v(nnc_arr(3)+1:nnc_arr(4),1);
+    v0 = v(1:nnc_arr(1),:);
+    vx = v(nnc_arr(1)+1:nnc_arr(2),:);
+    vy = v(nnc_arr(2)+1:nnc_arr(3),:);
+    v2 = v(nnc_arr(3)+1:nnc_arr(4),:);
 
     % Extract the spatial variables
     ds = P.var1;        dt = P.var2;
