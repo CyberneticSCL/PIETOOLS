@@ -34,6 +34,7 @@ function [Pcat] = horzcat(varargin)
 %
 % Initial AT 01/21/2026
 % Update to new sopvar AT 05/18/26
+% Correct order ZL and ZR, split off UnionBasisMonomials, DJ 06/08/2026
 
 % Deal with single input case
 if nargin==1
@@ -93,7 +94,7 @@ end
 dims = a.dims;
 dims(2) = dims(2) + b.dims(2);
 
-Pcat = sopvar(params, a.vars, ZL, ZR, a.dom, dims);
+Pcat = sopvar(params, a.vars, ZR, ZL, a.dom, dims);
 
 
 if nargin>2 
@@ -101,46 +102,4 @@ if nargin>2
 end
 
 
-end
-
-
-% ---------------- local helpers ----------------
-function [Z, C1, C2] = UnionBasisMonomials(Z1, Z2)
-% computes monomial basis for to monomial vectors
-% and transformation matrix
-% such that for any matrix A we have 
-% A*Z1 = A*C1*Z and A*Z2 = A*C2*Z
-%
-% input Z1, Z2 -- cell arrays
-% output C1 -- (n1, n_new) sparse matrix
-% output C2 -- (n2, n_new) sparse matrix
-% output Z -- new basis (cell array)
-N = length(Z1);
-Z = cell(1:N);
-
-% construct union basis
-for i = 1:N
-    Z{i} = union(Z1{i}, Z2{i});
-end
-
-degmat_1   = Z1{1};
-degmat_2   = Z2{1};
-degmat_new = Z{1};
-
-% construct full monomial basis
-for dim = 2:N
-    degmat_new = [kron(degmat_new, ones(length(Z{dim}), 1)),  kron(ones(length(degmat_new), 1), Z{dim})];
-    degmat_1 = [kron(degmat_1, ones(length(Z1{dim}), 1)),  kron(ones(length(degmat_1), 1), Z1{dim})];
-    degmat_2 = [kron(degmat_2, ones(length(Z2{dim}), 1)),  kron(ones(length(degmat_2), 1), Z2{dim})];
-end
-
-% find identical rows 
-[~, C1_index] =ismember(degmat_1,  degmat_new, 'rows');
-[~, C2_index] =ismember(degmat_2,  degmat_new, 'rows');
-
-n1 = length(degmat_1);
-n2 = length(degmat_2);
-n_new = length(degmat_new);
-C1 = sparse(1:n1, C1_index, ones(n1, 1), n1, n_new);
-C2 = sparse(1:n2, C2_index, ones(n2, 1), n2, n_new);
 end
