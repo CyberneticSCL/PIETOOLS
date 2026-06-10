@@ -41,7 +41,7 @@ if isa(vars.in,'double')
     vars.in = cell(1,N);
     idcs = sort(randperm(2*N,N));
     for i=1:N
-        vars.in{i} = ['s',num2str(i)];
+        vars.in{i} = ['s',num2str(idcs(i))];
     end
 elseif ~iscellstr(vars.in)
     error("Input variables should be specified as 1 x N 'cellstr' object.")
@@ -108,11 +108,11 @@ end
 ZR = cell(1,N);     nZR = zeros(1,N);
 ZL = cell(1,M);     nZL = zeros(1,M);
 for i=1:N
-    ZR{i} = unique(randi([0,degs.out(i)],[degs.in(i)+1,1]));
+    ZR{i} = unique(randi([0,degs.in(i)],[degs.in(i)+1,1]));
     nZR(i) = numel(ZR{i});
 end
 for i=1:M
-    ZL{i} = unique(randi([0,degs.out(i)],[degs.in(i)+1,1]));
+    ZL{i} = unique(randi([0,degs.out(i)],[degs.out(i)+1,1]));
     nZL(i) = numel(ZL{i});
 end
 
