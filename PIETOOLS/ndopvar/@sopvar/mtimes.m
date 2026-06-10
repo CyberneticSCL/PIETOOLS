@@ -201,9 +201,20 @@ end
 
 % sum_betaa (I⊗A.ZL')CA(betaa,betab)*((I⊗PL'))(I⊗KZhat_s2a(s2a)')*(I⊗Cs2a_betaa')
 % = sum_betaa (I⊗ZLtemp(varLtemp)')CLtemp_betaab
+PLbig = kron(eye(size(CA{1},2)/size(PL,2)),PL');
+
+CA_PL = cell(size(CA));
+for i = 1:numel(CA)
+    CA_PL{i} = CA{i}*PLbig;
+end
+
 [varLtemp,ZLtemp,CLtemp_betaab]=leftShiftMonomials_SS( ...
-    A.vars.out,A.ZL,CA*kron(eye(size(CA{1},2)/size(PL,2)),PL'),vs2a,KZhat_s2a, ...
+    A.vars.out,A.ZL,CA_PL,vs2a,KZhat_s2a, ...
     cellfun(@(x) kron(eye(Gs3adim(1)),x), Cs2a_betaa, UniformOutput=false));
+
+% [varLtemp,ZLtemp,CLtemp_betaab]=leftShiftMonomials_SS( ...
+%     A.vars.out,A.ZL,CA*kron(eye(size(CA{1},2)/size(PL,2)),PL'),vs2a,KZhat_s2a, ...
+%     cellfun(@(x) kron(eye(Gs3adim(1)),x), Cs2a_betaa, UniformOutput=false));
 CLtemp = cell(1,size(CLtemp_betaab,2));
 for j=1:size(CLtemp_betaab,2)
     CLtemp{j} = CLtemp_betaab{1,j};
@@ -216,9 +227,21 @@ end
 % same for right side
 % sum_alphab (I⊗Cs3b_alphab)*(I⊗KZhat_s3b(s3b))))*(I⊗PR)*CB(alphaa,alphab)(I⊗B.ZR)
 % = sum_alphab (I⊗CRtemp_alphaab)*(I⊗ZRtemp(varRtemp))
+CBt = CB.';
+
+PRbig = kron(eye(size(CBt{1},1)/size(PR,2)),PR');
+
+CBt_PR = cell(size(CBt));
+for i = 1:numel(CBt)
+    CBt_PR{i} = CBt{i}*PRbig;
+end
+
 [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
-    B.vars.in,B.ZR,CB.'*kron(eye(size(CB{1},1)/size(PR,2)),PR'),vs3b,KZhat_s3b, ...
+    B.vars.in,B.ZR,CBt_PR,vs3b,KZhat_s3b, ...
     cellfun(@(x) kron(eye(Gs3adim(2)),x), Cs3b_alphab, UniformOutput=false).');
+% [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
+%     B.vars.in,B.ZR,CB.'*kron(eye(size(CB{1},1)/size(PR,2)),PR'),vs3b,KZhat_s3b, ...
+%     cellfun(@(x) kron(eye(Gs3adim(2)),x), Cs3b_alphab, UniformOutput=false).');
 % [varRtemp,ZRtemp,CRtemp_alphaba]=leftShiftMonomials_SS( ...
 %     B.vars.in,B.ZR,CB.',vs3b,KZhat_s3b, kron(eye(B.dim(1)),Cs3b_alphab)');  % verify that CB.' not just transposes cell rows/columns but also matrix rows/columns
 % note above that since we used leftShiftMonomials function by transposing
@@ -329,9 +352,12 @@ for i=1:size(C_gam_alp_beta,2)
                     Ci(1:nE,2:nE+1) = eye(nE);
                 case 212  % G(s_3a_i)
                     Ci(1:nE,nEint+1:nEint:nE*nEint+1) = eye(nE); 
-                case 222  % int_{s_3a_i}^{t_3a,i} eta_3a_i^E deta_3a_i = t_3a_i^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1); % THIS may need to change
-                    Ci(1:nE,nE+2:2*nE+1) = diag(1./(E+1));
-                    Ci(1:nE,(nE+1)*nEint+1:nEint:(2*nE)*nEint+1) = -diag(1./(E+1));
+                case 222% int_{t_3a_i}^{s_3a_i} eta_3a_i^E deta_3a_i = s_3a_i^(E+1)/(E+1) - t_3a_i^(E+1)/(E+1);                                    
+                    Ci(1:nE,nE+2:2*nE+1) = -diag(1./(E+1));  % -t^(E+1)/(E+1)
+                    Ci(1:nE,(nE+1)*nEint+1:nEint:(2*nE)*nEint+1) = diag(1./(E+1)); % +s^(E+1)/(E+1)
+                % case 222  % int_{s_3a_i}^{t_3a,i} eta_3a_i^E deta_3a_i = t_3a_i^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1); % THIS may need to change
+                %     Ci(1:nE,nE+2:2*nE+1) = diag(1./(E+1));
+                %     Ci(1:nE,(nE+1)*nEint+1:nEint:(2*nE)*nEint+1) = -diag(1./(E+1));
                 case 232  % int_{s_3a_i}^{b(i)} eta_3a_i^E deta_3a_i = b(i)^{E+1}/(E+1) -  s_3a_i^(E+1)/(E+1);
                     Ci(1:nE,1) = b(l).^(E+1)./(E+1);
                     Ci(1:nE,(nE+1)*nEint+1:nEint:(2*nE)*nEint+1) = -diag(1./(E+1));
@@ -346,9 +372,12 @@ for i=1:size(C_gam_alp_beta,2)
                 case 323  % int_{a(i)}^{s_3a_i} eta_3a_i^E deta_3a_i = s_3a_i^(E+1)/(E+1) - a(i)^{E+1}/(E+1);
                     Ci(1:nE,1) = -a(l).^(E+1)./(E+1);
                     Ci(1:nE,(nE+1)*nEint+1:nEint:(2*nE)*nEint+1) = diag(1./(E+1));
-                case 333  % int_{t_3a_i}^{s_3a,i} eta_3a_i^E deta_3a_i = s_3a_i^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);  % THIS may need to change
-                    Ci(1:nE,(nE+1)*nEint+1:nEint:(2*nE)*nEint+1) = diag(1./(E+1));
-                    Ci(1:nE,nE+2:2*nE+1) = -diag(1./(E+1));
+                case 333  % int_{s_3a_i}^{t_3a_i} eta_3a_i^E deta_3a_i= t_3a_i^(E+1)/(E+1) - s_3a_i^(E+1)/(E+1);
+                    Ci(1:nE,(nE+1)*nEint+1:nEint:(2*nE)*nEint+1) = -diag(1./(E+1)); % -s^(E+1)/(E+1)
+                    Ci(1:nE,nE+2:2*nE+1) = diag(1./(E+1));  % +t^(E+1)/(E+1)
+                % case 333  % int_{t_3a_i}^{s_3a,i} eta_3a_i^E deta_3a_i = s_3a_i^{E+1}/(E+1) -  t_3a_i^(E+1)/(E+1);  % THIS may need to change
+                %     Ci(1:nE,(nE+1)*nEint+1:nEint:(2*nE)*nEint+1) = diag(1./(E+1));
+                %     Ci(1:nE,nE+2:2*nE+1) = -diag(1./(E+1));
                 otherwise % cases 211,311,121,321,131,231,112,312,122,322,132,113,213,123,133,233  Ci=0
                     lenZG = prod(cellfun(@numel, ZLunique));
                     C = zeros(nE,lenZG^2);
@@ -377,7 +406,7 @@ function Cout = rearrangeCoef(Cmul,C,p,q,Zint)
 
 n = length(Zint);  % number of s3a
 ns = cellfun(@numel,Zint);  % size of monomials in s3a
-Cout = Cmul*C; 
+Cout = full(Cmul*C); 
 [nrows, ~] = size(Cout);
 nz = nrows/p;  % nz must be ns^2  since we have Z(s3a)\otimes Z(t3a) mixed
 K = reshape(1:nz,repelem(fliplr(ns),2));  % first generate lengths for each variable
@@ -435,16 +464,20 @@ for i=1:length(idx)
     end
     C = kron(C,Ci);
 end
-Cidx{i} = C;
+Cidx{k} = C;
 end
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Z2aout, G3aout, Z3bout, PL, PR] = int_2b(ZL, ZR, Zvar, s2a,s2b,s3a,s3b,lims)
 % This performs the factorization
-% int(ZL*ZR',s2b,0,1) = (Im\otimes Z2a') G(s3a) (In\otimes Z3b)
+% int(ZL*ZR',s2b,0,1) = PL'*(Im\otimes Z2a') G(s3a) (In\otimes Z3b)*PR
 % where m = length(kron(ZL)) and n = length(kron(ZR))
+%
+% note that PL and PR are permutation matrices which account for the fact
+% that Zvar may not be ordered as [s2a,s2b,s3a,s3b]
 
 % note that
 % int_0^1 (ZL2a⊗ZL2b⊗ZL3a⊗ZL3b)(ZR2a⊗ZR2b⊗ZR3a⊗ZR3b)' d2b
@@ -453,50 +486,19 @@ function [Z2aout, G3aout, Z3bout, PL, PR] = int_2b(ZL, ZR, Zvar, s2a,s2b,s3a,s3b
 % for some constant matrix C2b
 
 % Zvar must appear in both for composition to be well-defined, but may not
-% be ordered as [[s2a,s2b,s3a,s3b]
+% be ordered as [s2a,s2b,s3a,s3b]
 
 Zvar_ordered = [s2a,s2b,s3a,s3b];
-[~, idx] = ismember(Zvar, Zvar_ordered);
 
-dims = cellfun(@numel, ZL); n = numel(dims); N = prod(dims);
-dims_ordered = dims(idx);
+% first compute the permutation matrices so that
+%       Z_ordered = P*Z_original
+% hence
+%       Z_original = P'*Z_ordered
+dimsL = cellfun(@numel,ZL);
+dimsR = cellfun(@numel,ZR);
 
-% Original Kronecker multi-indices, in kron ordering
-r = cell(1,n);
-[r{:}] = ind2sub(fliplr(dims),1:N);
-I = flipud(vertcat(r{:})).';   % rows are [i1 i2 ... in]
-
-% Same monomial, but indexed in the permuted Kronecker basis
-Ip = I(:,idx);
-
-% Convert permuted multi-indices back to linear kron indices
-rp = num2cell(fliplr(Ip),1);
-p = sub2ind(fliplr(dimsp),rp{:}).';
-
-% Permutation matrix satisfying P*Zp = Z
-PL = speye(N);
-PL = P(p,:);
-
-dims = cellfun(@numel, ZR); n = numel(dims); N = prod(dims);
-dims_ordered = dims(idx);
-
-% Original Kronecker multi-indices, in kron ordering
-r = cell(1,n);
-[r{:}] = ind2sub(fliplr(dims),1:N);
-I = flipud(vertcat(r{:})).';   % rows are [i1 i2 ... in]
-
-% Same monomial, but indexed in the permuted Kronecker basis
-Ip = I(:,idx);
-
-% Convert permuted multi-indices back to linear kron indices
-rp = num2cell(fliplr(Ip),1);
-p = sub2ind(fliplr(dimsp),rp{:}).';
-
-% Permutation matrix satisfying P*Zp = Z
-PR = speye(N);
-PR = P(p,:);
-
-
+PL = permute_kron_basis(Zvar,Zvar_ordered,dimsL);
+PR = permute_kron_basis(Zvar,Zvar_ordered,dimsR);
 
 % first separate ZL and ZR into Z2a,Z2b,Z3a,Z3b
 [~,loc] = ismember(s2a,Zvar);
@@ -526,129 +528,235 @@ for i=1:length(s3b)
     Z3b{i} = ZL3b{i} + ZR3b{i}';
 end
 
+% condense Z2a matrix into unique monomials
+Z2anew = cell(1,length(s2a));
+idx2a = cell(1,length(s2a));
+for i=1:length(s2a)
+    E = Z2a{i};
+    [Z2anew{i},~,idx] = unique(E(:));
+    idx2a{i} = reshape(idx,size(E));
+end
+
 % integrate Z2b part over [a,b]
 % int_a^b Z2b d2b = 
 %       kron_i (b(i)^(Z2b{i}+1)-a(i)^(Z2b{i}+1))/(Z2b{i}+1)
-C2b = 1; a = lims(:,1); b = lims(:,2);
+C2b = cell(1,length(s2b));
+a = lims(:,1); b = lims(:,2);
 for i=1:length(s2b)
     E = Z2b{i};
-    Ci = (b(i).^(E+1)-a(i).^(E+1))./(E+1);
-    C2b = kron(C2b,Ci);
+    C2b{i} = (b(i).^(E+1)-a(i).^(E+1))./(E+1);
 end
 
-% condense Z2a matrix into (I2a \otimes Z2anew')*K2a
-Z2anew = cell(1,length(s2a));
-K2a = 1;
-for i=1:length(s2a)
-    E = Z2a{i};
-    [u,~,idx] = unique(E(:));
-    Z2anew{i} = u;
-    Ki = sparse(idx,1:numel(E), 1, numel(u),numel(E));  % len(u)xlen(E) sparse matrix 
-    K2a = kron(K2a,Ki);
-end
-
-% condense Z3b matrix into K3b*(I3b \otimes Z3bnew)
-Z3bnew = cell(1,length(s3b));
-K3b = 1;
-for i=1:length(s3b)
-    E = Z3b{i};
-    [u,~,idx] = unique(E(:));
-    Z3bnew{i} = u;
-    Ki = sparse(1:numel(E),idx,1,numel(E),numel(u));
-    K3b = kron(K3b,Ki);
-end
-
-% condense Z3a matrix into (I3a ⊗ Z3anew')*K3a
+% condense Z3a matrix into unique monomials
 Z3anew = cell(1,length(s3a));
-K3a = 1;
+idx3a = cell(1,length(s3a));
 for i=1:length(s3a)
     E = Z3a{i};
-    [u,~,idx] = unique(E(:));
-    Z3anew{i} = u;
-    Ki = sparse(idx,1:numel(E),1,length(u), numel(E));
-    K3a = kron(K3a,Ki);
+    [Z3anew{i},~,idx] = unique(E(:));
+    idx3a{i} = reshape(idx,size(E));
 end
 
-% now we have 
-% (Z2a*Zp2a')⊗C2b⊗(Z3a*Zp3a')⊗(Z3b*Zp3b')
-%  = ((I2a ⊗ Z2anew')*K2a)
-%      ⊗C2b
-%        ⊗(I3a ⊗ Z3anew')*K3a
-%          ⊗(K3b*(I3b ⊗ Z3bnew))
-% = ((I2a ⊗ Z2anew')⊗I⊗I⊗I) (K2a⊗C2b⊗((I3a ⊗ Z3anew')*K3a)⊗K3b) (I⊗I⊗I⊗(I3b ⊗ Z3bnew))
-% let us focus on finding
-% K2a⊗C2b⊗((I3a ⊗ Z3anew')*K3a)⊗K3b = G(s3a)
-A = kron(K2a,C2b);
-B = K3b;
-r3a  = prod(cellfun(@length,ZL3a));
-c3a  = prod(cellfun(@length,ZR3a));
-nz3a = prod(cellfun(@length,Z3anew));
+% condense Z3b matrix into unique monomials
+Z3bnew = cell(1,length(s3b));
+idx3b = cell(1,length(s3b));
+for i=1:length(s3b)
+    E = Z3b{i};
+    [Z3bnew{i},~,idx] = unique(E(:));
+    idx3b{i} = reshape(idx,size(E));
+end
 
-mA = size(A,1);  nA = size(A,2);
-mB = size(B,1);  nB = size(B,2);
+% ordered monomial dimensions
+dimL2a = cellfun(@numel,ZL2a);
+dimL2b = cellfun(@numel,ZL2b);
+dimL3a = cellfun(@numel,ZL3a);
+dimL3b = cellfun(@numel,ZL3b);
 
-% perfect shuffle: maps [q,nB] ordering to [nB,q] ordering
-q = nz3a;
-p = nB;
-idx = reshape(1:q*p,[q,p]);
-idx = reshape(idx.',1,[]);
-P3a = sparse(1:q*p, idx, 1, q*p, q*p);
+dimR2a = cellfun(@numel,ZR2a);
+dimR2b = cellfun(@numel,ZR2b);
+dimR3a = cellfun(@numel,ZR3a);
+dimR3b = cellfun(@numel,ZR3b);
 
-I3a = speye(mA*r3a*mB);
+dimsLord = [dimL2a,dimL2b,dimL3a,dimL3b];
+dimsRord = [dimR2a,dimR2b,dimR3a,dimR3b];
 
-C3a = kron(kron(kron(A,speye(r3a)),speye(mB)),speye(nz3a)) ...
-    * kron(speye(nA*r3a), P3a) ...
-    * kron(kron(speye(nA),K3a),speye(nB));
+m = prod_empty(dimsLord);
+n = prod_empty(dimsRord);
 
+% sizes of the condensed monomial bases
+nz2a = prod_empty(cellfun(@numel,Z2anew));
+nz3a = prod_empty(cellfun(@numel,Z3anew));
+nz3b = prod_empty(cellfun(@numel,Z3bnew));
 
-% now we have
-% (Z2a*Zp2a')⊗C2b⊗(Z3a*Zp3a')⊗(Z3b*Zp3b')
-%  = ((I2a⊗Z2anew')⊗I⊗I⊗I)
-%      *(I3a⊗Z3anew')*C3a
-%        *(I⊗I⊗I⊗Z3bnew)
-% we need (Im⊗ Z2anew')*(I3a⊗Z3anew')*C3a*(In⊗Z3bnew)
+% generate ordered Kronecker multi-indices
+IL = kron_indices(dimsLord);
+IR = kron_indices(dimsRord);
 
-% first, we find permuation P2a such that
-% ((I2a⊗Z2anew')⊗I⊗I⊗I) = (Im⊗ Z2anew')*P2a
-% (I⊗I⊗I⊗Z3bnew) does not need any permutation
-% sizes
-n2a = prod(cellfun(@length,Z2anew));   % size of Z2anew block
-n3a = prod(cellfun(@length,Z3anew));   % size of Z3anew block
-nI3a = size(C3a,1) / n3a;              % row identity size in (I3a ⊗ Z3anew')*C3a
-nrest = nI3a;                          % same block that sits to the right of Z2anew
+% index offsets in the ordered variables
+n2a = length(s2a);
+n2b = length(s2b);
+n3a = length(s3a);
+n3b = length(s3b);
 
-idx = reshape(1:n2a*nrest,[n2a,nrest]);
-idx = reshape(idx.',1,[]);   % perfect shuffle on [iz2a, irest]
+L2a = 1:n2a;
+L2b = n2a + (1:n2b);
+L3a = n2a+n2b + (1:n3a);
+L3b = n2a+n2b+n3a + (1:n3b);
 
-Pblk = sparse(1:n2a*nrest, idx, 1, n2a*nrest, n2a*nrest);
+R2a = 1:n2a;
+R2b = n2a + (1:n2b);
+R3a = n2a+n2b + (1:n3a);
+R3b = n2a+n2b+n3a + (1:n3b);
 
-nI2a = prod(cellfun(@length,ZL2a));    % size of I2a block
-P2a = kron(speye(nI2a), Pblk);
-
-% We want:
-% P2a*(I3a ⊗ Z3anew') = (I3a_new ⊗ Z3anew')*Q2a
+% build C3a directly so that
 %
-% Since P2a only permutes identity-type indices and does not touch Z3anew,
-% Q2a is just the induced permutation on the identity-row block of C3a,
-% lifted across the untouched Z3anew dimension.
+% int(ZL*ZR',s2b)
+%   = PL'*(Im⊗Z2anew')*(Im*nz2a⊗Z3anew')*C3a*(In⊗Z3bnew)*PR
+%
+% equivalently, G3aout.C = C3a and G3aout.Z = Z3anew
+II = zeros(m*n,1);
+JJ = zeros(m*n,1);
+VV = zeros(m*n,1);
 
-% first extract the permutation vector from P2a
-p_outer = zeros(size(P2a,1),1);
-for j = 1:size(P2a,2)
-    p_outer(j) = find(P2a(:,j),1);
+cnt = 0;
+for i=1:m
+    for j=1:n
+
+        % coefficient from integrating the s2b variables
+        c = 1;
+        for k=1:n2b
+            c = c*C2b{k}(IL(i,L2b(k)),IR(j,R2b(k)));
+        end
+
+        % index in Z2anew
+        idx = zeros(1,n2a);
+        for k=1:n2a
+            idx(k) = idx2a{k}(IL(i,L2a(k)),IR(j,R2a(k)));
+        end
+        k2a = kron_sub2ind(cellfun(@numel,Z2anew),idx);
+
+        % index in Z3anew
+        idx = zeros(1,n3a);
+        for k=1:n3a
+            idx(k) = idx3a{k}(IL(i,L3a(k)),IR(j,R3a(k)));
+        end
+        k3a = kron_sub2ind(cellfun(@numel,Z3anew),idx);
+
+        % index in Z3bnew
+        idx = zeros(1,n3b);
+        for k=1:n3b
+            idx(k) = idx3b{k}(IL(i,L3b(k)),IR(j,R3b(k)));
+        end
+        k3b = kron_sub2ind(cellfun(@numel,Z3bnew),idx);
+
+        % row and column in C3a
+        row = k3a + ((k2a + (i-1)*nz2a)-1)*nz3a;
+        col = k3b + (j-1)*nz3b;
+
+        cnt = cnt + 1;
+        II(cnt) = row;
+        JJ(cnt) = col;
+        VV(cnt) = c;
+    end
 end
 
-% reshape identity rows against the untouched Z3anew block
-tmp = reshape(1:nI3a*n3a, [nI3a, n3a]);
-tmp = tmp(p_outer, :);
-q = tmp(:);
-Q2a = sparse(1:length(q), q, 1, length(q), length(q));
+C3a = sparse(II(1:cnt),JJ(1:cnt),VV(1:cnt),m*nz2a*nz3a,n*nz3b);
 
-C3a = Q2a*C3a;
-
-%finally, we have 
-% (Im⊗ Z2anew')*(I3anew⊗Z3anew')*C3a*(In⊗Z3bnew)
+% finally, we have 
+% int(ZL*ZR',s2b)
+%   = PL'*(Im⊗Z2anew')*G3aout(s3a)*(In⊗Z3bnew)*PR
 Z2aout = Z2anew;
 Z3bout = Z3bnew;
 G3aout = struct('C', C3a, 'Z', {Z3anew});
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function P = permute_kron_basis(Zvar,Zvar_ordered,dims)
+% This computes the permutation matrix P such that
+%       Z_ordered = P*Z_original
+% where Z_original is kron ordered according to Zvar and Z_ordered is kron
+% ordered according to Zvar_ordered.
+
+if isempty(dims)
+    P = 1;
+    return
+end
+
+[~,idx] = ismember(Zvar_ordered,Zvar);
+
+if any(idx==0)
+    error('variables used in int_2b are not contained in Zvar');
+end
+
+N = prod_empty(dims);
+dims_ordered = dims(idx);
+
+if length(dims)==1
+    p = (1:N).';
+else
+    % Original Kronecker multi-indices, in kron ordering
+    r = cell(1,length(dims));
+    [r{:}] = ind2sub(fliplr(dims),1:N);
+    I = flipud(vertcat(r{:})).';   % rows are [i1 i2 ... in]
+
+    % Same monomial, but indexed in the permuted Kronecker basis
+    Ip = I(:,idx);
+
+    % Convert permuted multi-indices back to linear kron indices
+    rp = num2cell(fliplr(Ip),1);
+    p = sub2ind(fliplr(dims_ordered),rp{:}).';
+end
+
+% Permutation matrix satisfying P*Z_original = Z_ordered
+P = sparse(p,1:N,1,N,N);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function I = kron_indices(dims)
+% This returns the multi-indices associated with kron ordering.
+
+if isempty(dims)
+    I = zeros(1,0);
+    return
+end
+
+N = prod_empty(dims);
+
+if length(dims)==1
+    I = (1:N).';
+else
+    r = cell(1,length(dims));
+    [r{:}] = ind2sub(fliplr(dims),1:N);
+    I = flipud(vertcat(r{:})).';
+end
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function idx = kron_sub2ind(dims,sub)
+% This converts a multi-index into a linear index in kron ordering.
+
+if isempty(dims)
+    idx = 1;
+    return
+end
+
+if length(dims)==1
+    idx = sub;
+else
+    sub = num2cell(fliplr(sub));
+    idx = sub2ind(fliplr(dims),sub{:});
+end
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function p = prod_empty(x)
+% This treats empty products as one.
+
+if isempty(x)
+    p = 1;
+else
+    p = prod(x);
+end
 end

@@ -1,8 +1,8 @@
-
+clc; clear;
 % Declare the independent variables
-pvar s1 s1_dum
+pvar s1 t1
 var1 = s1;
-var2 = s1_dum;
+var2 = t1;
 % Declare the domain
 dom = [0,1];
 % Declare the degree of the parameters in the independent variables
@@ -30,3 +30,7 @@ Csop = Asop*Bsop;
 % Compare
 Cop_alt = sopvar2opvar(Csop);
 Cop_diff = clean_opvar(Cop - Cop_alt);
+Cop_diff.R.R0
+Cop_diff.R.R1
+Cop_diff.R.R2
+
