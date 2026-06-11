@@ -13,7 +13,7 @@ function [P_subs] = subs(P1, vars, vals)
 % S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -35,16 +35,22 @@ function [P_subs] = subs(P1, vars, vals)
 % authorship, and a brief description of modifications
 %
 % AT, 02/18/2026: Initial coding;
+% DJ, 06/05/2026: Add support for empty variable case;
  
 
 if ~isa(P1, 'quadPoly')
     error('quadPoly:subs:badType', 'subs supports only quadPoly ');
 end
 
+% Separately deal with case where no variables are to be substituted
+if isempty(vars) && isempty(vals)
+    P_subs = P1;
+    return
+end
+
 if isa(vars, 'char')
     vars = string(vars);
 end
-
 if ~isa(vars, 'cell')
     vars = num2cell(vars);
 end
@@ -215,7 +221,7 @@ if sum(isa_symb_var) > 0
         if length(ns_new) > 1
             is_repeated_in_ns = cellfun(@isequal, ns_new(1:end-1), ns_new(2:end));
         else
-            is_repeated_in_ns = {0};
+            is_repeated_in_ns = 0;
         end
     end
 
@@ -238,7 +244,7 @@ if sum(isa_symb_var) > 0
         if length(nt_new) > 1
             is_repeated_in_nt = cellfun(@isequal, nt_new(1:end-1), nt_new(2:end));
         else
-            is_repeated_in_nt = {0};
+            is_repeated_in_nt = 0;
         end
     end
 

@@ -42,6 +42,7 @@ function out = subsref(obj,s)
 %
 % Initial coding AT 01/26/2026
 % updated to new sopvar AT 05/18/26
+% Correct order ZL and ZR, DJ 06/08/2026
 
 switch s(1).type
     case '.'
@@ -112,7 +113,7 @@ switch s(1).type
             subsref_params{ii} = subsref_params{ii}(Loc_L_R, Loc_L_C);
         end
 
-        out = sopvar(subsref_params, obj.vars, obj.ZL, obj.ZR, obj.dom, dims); 
+        out = sopvar(subsref_params, obj.vars, ZR, ZL, obj.dom, dims); 
 
 
     case '{}'

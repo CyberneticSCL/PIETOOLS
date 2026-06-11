@@ -1,38 +1,53 @@
-function [S,Sd,Z3deg] = monomial_outer(Z1deg,Z2deg)
-% Given degmats of Z1 = length(m) and Z2 = length(n)
-% we compute int(Z1*Z2^T, t) = S(I_n\otimes Z3) = (I_m\otimes Z3^T)Sd.
-% S is size m x (n*length(Z3))
-% Sd is size (m*length(Z3)) x n.
+function [Z,C] = monomial_outer(Z1,Z2)
+% Given two monomial vectors Z1, Z2 in multiple variables (but same order), this returns
+% Z1*Z2' = (I_n1\otimes Z')*C, where ni =length(Zi), C size n1*n x n2
+% n = length(Z).
 
-Z1deg = Z1deg(:);  Z2deg = Z2deg(:); % make it column
-m  = numel(Z1deg); n  = numel(Z2deg); % number of monomials in Z1,Z2
+nvars = numel(Z1);
+Z = cell(1,nvars);
 
-% Pairwise sums Z3_ij and mapping to unique degrees Z3deg
-sumMat = Z1deg + Z2deg.';                    % m x n, degrees Z3_ij
-[Z3deg, ~, idx] = unique(sumMat(:), 'sorted');
-m3 = numel(Z3deg);
-idxMat = reshape(idx, m, n);           % k(i,j), k in 1:length(Z3deg)
+C = 1;
+for i=1:nvars
+    [Zi,Ci] = monomial_outer_single(Z1{i},Z2{i});
+    Z{i} = Zi;
+    C = kron(C,Ci);
+end
+% this is now ((I\otimes Z(s1)') \otimes(I\otimes Z(s2)')\otimes  ... \otimes (I\otimes Z(sn)'))*C
+% we need (I\otimes Z(s1)'\otimes Z(s2)' \otimes.... Z(sn)')*Cnew. so
+% rearrange rows of C.
+n1 = cellfun(@numel,Z1);
+nz = cellfun(@numel,Z);
 
-% Integrated basis degrees: Z3_ij + 1  -> Z3deg_int = Z3deg + 1
-Z3deg_int = Z3deg + 1;
+% Current row layout of C:
+%   [i1,z1,i2,z2,...,id,zd]
+%
+% Desired row layout:
+%   [i1,i2,...,id,z1,z2,...,zd]
 
-% Weight per unique product degree: w_k = 1/(Z3deg(k)+1)
-w = 1./double(Z3deg_int);               % m3 x 1
+rowShape = reshape([n1; nz],1,[]);          % [n1(1),nz(1),...,n1(d),nz(d)]
+newOrder = [1:2:2*nvars, 2:2:2*nvars];     % all i's first, then all z's
 
-% For each (i,j), the nonzero value is w_{k(i,j)}
-vals = w(idxMat(:));                   % length m*n
+C = reshape(C,[rowShape,size(C,2)]);
+C = permute(C,[newOrder,2*nvars+1]);
+C = reshape(C,prod(n1)*prod(nz),[]);
+end
 
-% ----- Build S: m x (n*m3) -----
-% Nonzeros at (row=i, col=(j-1)*m3 + k(i,j)) with value w(k(i,j))
-rowsS = repmat((1:m).', n, 1);                         % length m*n
-colShiftS = kron((0:n-1).'*m3, ones(m,1));             % length m*n
-colsS = idxMat(:) + colShiftS;                         % length m*n
-S = sparse(rowsS, colsS, vals, m, n*m3);
+function [Z,C] = monomial_outer_single(Z1,Z2)
+% Given two monomial vectors Z1, Z2 in same variable, this returns
+% Z1*Z2' = (I_n1\otimes Z')*C, where ni =length(Zi), C size n1*n x n2
+% n = length(Z).
 
-% ----- Build Sd: (m*m3) x n -----
-% Nonzeros at (row=(i-1)*m3 + k(i,j), col=j) with value w(k(i,j))
-[I,J] = ndgrid(1:m, 1:n);
-rowsSd = (I(:)-1)*m3 + idxMat(:);                      % length m*n
-colsSd = J(:);                                         % length m*n
-Sd = sparse(rowsSd, colsSd, vals, m*m3, n);
+n1 = length(Z1);
+n2 = length(Z2);
+[Z,~,map] = unique(Z1+Z2');
+n = length(Z);
+
+% Build sparse coefficient matrix C
+[I,J] = ndgrid(1:n1,1:n2);
+
+rows = (I(:)-1)*n + map(:);
+cols = J(:);
+vals = ones(numel(rows),1);
+
+C = sparse(rows,cols,vals,n1*n,n2);
 end

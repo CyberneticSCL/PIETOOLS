@@ -109,19 +109,28 @@ for I=1:idxA
 % in other words, 
 % (I\otimes ZA')*CA = sum_i A(:,:,i)*varsC{i}^EAc(i,:)
 % (I\otimes ZB')*CA = sum_i B(:,:,i)*varsC{i}^EBc(i,:)
-A = permute(reshape(CA{I,J}, [NA, p, q]), [2 3 1]);
-B = permute(reshape(CB{I}, [NB, q, r]), [2 3 1]);
+Acoef = CA{I,J};
+Bcoef = CB{I};
 
 % Accumulate output coefficients
 G = zeros(p, r, NC); % G(:,:,k) = coefficient matrix of k-th monomial in C
 % (I\otimes ZC')*CC = sum_i G(:,:,i)*varsC{i}^EC(i,:)
-for i = 1:NA  % now multiply each monomial of left polynomial with monomial of right polynomial
-    Ai = A(:,:,i);
+for i = 1:NA
+
+    rowsA = i:NA:(p*NA);
+    Ai = Acoef(rowsA,:);
+
     ei = EAc(i,:);
+
     for j = 1:NB
-        e = ei+EBc(j,:); % we can add since all exponents are aligned to varsC
-        k = find(all(EC==e,2),1); % find where in ZC these should go
-        G(:,:,k) = G(:,:,k)+Ai*B(:,:,j);
+
+        rowsB = j:NB:(q*NB);
+        Bj = Bcoef(rowsB,:);
+
+        e = ei+EBc(j,:);
+        k = find(all(EC==e,2),1);
+
+        G(:,:,k) = G(:,:,k)+Ai*Bj;
     end
 end
 
@@ -131,10 +140,12 @@ CC{I,J} = reshape(permute(G, [3 1 2]), [NC*p, r]);
 end
 
 % now we remove dummy variable if they exist
-var_names_removed = cellfun( ...
-    @(name) ~isempty(char(eraseBetween(string(name), "<", ">",'Boundaries','inclusive'))),...
-    varsC, 'UniformOutput',false); % names to rename
-var_names_removed = cell2mat(var_names_removed)
+var_names_removed = ~startsWith(string(varsC), "<dummy_");
+
+% var_names_removed = cellfun( ...
+%     @(name) ~isempty(char(eraseBetween(string(name), "<", ">",'Boundaries','inclusive'))),...
+%     varsC, 'UniformOutput',false); % names to rename
+% var_names_removed = cell2mat(var_names_removed);
 varsC = varsC(var_names_removed);
 ZC = ZC(var_names_removed);
 
