@@ -121,26 +121,24 @@ if GUI
     end
 end
 elseif index==13.2
- % In this case, the PDE states are set as u and u_{t}
- clc; clear; clear stateNameGenerator
-pvar s t; % define independent variables
-% Define dependent variables and system variable
-%   PDE: u_{tt} = -c*u_{ssss}                       | c = 0.1
-%   BCs: u(s=0) = 0,        u_{ss}(s=1) = 0         |                               Peet 2019 [8] (Example 8.1.0.1)
-%        u_{s}(s=0) = 0,    u_{sss}(s=1) = 0        |  
-x=pde_var(s,[0,1]); 
-c = 0.1;
-%% Define equations
-eq_PDE = diff(x,t,2)==-c*diff(x,s,4); % 	PDE: u_{tt} = -c*u_{ssss}
-eq_BC = [subs(x,s,0)==0;subs(diff(x,s),s,0)==0;
-         subs(diff(x,s,2),s,1)==0;subs(diff(x,s,3),s,1)==0]; %   BCs: u(s=0) = 0, u_{ss}(s=1) = 0, u_{s}(s=0) = 0, u_{sss}(s=1) = 0
-%% initialize pde system;
-PDE_b = initialize([eq_PDE;eq_BC]);
-PDE_t = PDE_b;
-
-else
- error(['Example ',num2str(indx),'does not exist, please choose from 13.1 and 13.2']);
-end
+     % In this case, the PDE states are set as u and u_{t}
+    pvar s t; % define independent variables
+    % Define dependent variables and system variable
+    %   PDE: u_{tt} = -c*u_{ssss}                       | c = 0.1
+    %   BCs: u(s=0) = 0,        u_{ss}(s=1) = 0         |                               Peet 2019 [8] (Example 8.1.0.1)
+    %        u_{s}(s=0) = 0,    u_{sss}(s=1) = 0        |  
+    x=pde_var(s,[0,1]); 
+    %% Define equations
+    eq_PDE = diff(x,t,2)==-c*diff(x,s,4); % 	PDE: u_{tt} = -c*u_{ssss}
+    eq_BC = [subs(x,s,0)==0;subs(diff(x,s),s,0)==0;
+             subs(diff(x,s,2),s,1)==0;subs(diff(x,s,3),s,1)==0]; %   BCs: u(s=0) = 0, u_{ss}(s=1) = 0, u_{s}(s=0) = 0, u_{sss}(s=1) = 0
+    %% initialize pde system;
+    PDE_b = initialize([eq_PDE;eq_BC]);
+    PDE_t = PDE_b;
+    
+    else
+     error(['Example ',num2str(indx),'does not exist, please choose from 13.1 and 13.2']);
+    end
 
 end
 % @article{peet2019discussion,

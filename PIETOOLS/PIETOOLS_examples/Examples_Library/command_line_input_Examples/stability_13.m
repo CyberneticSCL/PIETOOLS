@@ -1,3 +1,6 @@
+%% Euler-Bernoulli Equation
+% Parabolic/Diffusive implementation
+% using PDE states x1=w_{t}, x2=w_{s} and PIE states (w_{t,ss},w_{t,ss})
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
 %% Define dependent variables and system variable

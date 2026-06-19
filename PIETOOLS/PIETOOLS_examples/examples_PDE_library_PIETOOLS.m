@@ -209,22 +209,24 @@ switch index
 %        x2_{t} = x1_{ss}                           |
 %   BCs: x1(s=0) = 0,       x2(s=1) = 0             |
 %        x1_{s}(s=0) = 0,   x2_{s}(s=1) = 0         |
-% 13.2  use PDE states x1= u and x_1=u_{t} | (PIE to PDE stable)
+% 13.2  use PDE states x1= u and x_2=u_{t} |                (PIE to PDE stable)
+
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params);
 %--------------------------------------------------------------------------
 %
-%   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                               Peet 2019 [8] (Example 8.1.0.2)
-%        r*II * phi_{tt} = E*II * phi_{ss}  + k*aa*g * (w_{s} - phi) 
+%   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                             Peet 2019 [8] (Example 8.1.0.2)
+%        r*II * phi_{tt} = E*II * phi_{ss}  + k*aa*g * (w_{s} - phi)-c
+%        phi_{t}  
 %   BCs: phi(s=0) = 0,      phi_{s}(s=1) = 0    
 %        w(s=0) = 0,        w_{s}(s=1) - phi(s=1) = 0           
 %   
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 14
-%   Use states:                                     | k = 1                 Hyperbolic implementation | (PDE stable)
+%   Use states:                                     | k = 1                 Hyperbolic implementation | (PDE stable without damping c=0)
 %        x1 = w_{t},   x2 = k*aa*g * (w_{s}-phi),   | aa = 1 
 %        x3 = phi_{t}-c phi_{t}, x4 = E*II * phi_{s}.         | II = 1   
 %       =>                                          | g = 1
-%   PDE: x1_{t} = (1/r/aa) * x2_{s}                 | E = 1   (Finite-energy PDE stable with damping c >0)
+%   PDE: x1_{t} = (1/r/aa) * x2_{s}                 | E = 1   (PDE stable and Finite-energy PDE stable with damping c >0)
 %        x2_{t} = k*aa*g * x1_{s} - k*aa*g * x3     | r = 1
 %        x3_{t} = (1/r/II)*x2 + (1/r/II)*x4_{s}     | 
 %        x4_{t} = E*II * x3_{s}                     |
@@ -248,7 +250,7 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params);
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 16
-%   We rewrite the system as a single equation:     |                       4th order implementation (stable)
+%   We rewrite the system as a single equation:     |                       4th order implementation 
 %   PDE: 0 = alp*w_{ssss} + bet*w_{tt}              |
 %             - gam*w_{ttss} + w_{tttt}             |
 %   Use states:                                     |
@@ -274,8 +276,8 @@ switch index
 %       Wave Equations
 %--------------------------------------------------------------------------
     case 17
-%   PDE: u_{tt} = u_{ss}                            | k=1                   (stable for k=1)                  
-%   BCs: u(s=0) = 0,                                |                               Peet 2019 [8] (Example 8.2)
+%   PDE: u_{tt} = u_{ss}                            | k=1    (PDE exponentially stable for k=1)                  
+%   BCs: u(s=0) = 0,                                |               Peet 2019 [8] (Example 8.2)
 %        u_{s}(s=1) = -k*u_{t}(s=1)                 |
 %   Use states x1 = u_{s}, x2 = u_{t}.              |
 %       =>                                          |
@@ -283,7 +285,7 @@ switch index
 %   BCs: x2(0) = 0,         x1(1) + k*x2(1) = 0     |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Damped(GUI,params);
 %-----|---------------------------------------------|----------------------
-%     | PDE: u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} | k = 1                         Datko 1986 [9] (Test 7.5c)
+%     | PDE: u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} | k = 1     Datko 1986 [9] (Test 7.5c)
 %     | BCs: u(s=0) = 0                             |
 %     |      u_{s}(s=1) = -k*u_{t}(s=1)             |
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -296,7 +298,7 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params);
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 19
-%   Use states x1 = u_{t}, x2 = u, x3 = u_{s}.      | k = 1                
+%   Use states x1 = u_{t}, x2 = u, x3 = u_{s}.      | k = 1    (PDE stable)
 %       =>                                          | ad = 1
 %   PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x3_{s}       |
 %   BCs: x1(0) = 0,     x2(0) = 0,                  |
