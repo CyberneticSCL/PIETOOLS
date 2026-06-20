@@ -82,30 +82,38 @@ end
 %x = subs(x,vars.in,vars2);
 
 % Compute the left-monomial vector
-ZLmons = zeros(1,0);
-nZL = 1;
-for i=1:M
-    nZL_i = numel(Pop.ZL{i});
-    ZLmons = [repelem(ZLmons,nZL_i,1),repmat(Pop.ZL{i},nZL,1)];
-    nZL = nZL_i*nZL;
+if m==0
+    ZL = polynomial(zeros(0,0));
+else
+    ZLmons = zeros(1,0);
+    nZL = 1;
+    for i=1:M
+        nZL_i = numel(Pop.ZL{i});
+        ZLmons = [repelem(ZLmons,nZL_i,1),repmat(Pop.ZL{i},nZL,1)];
+        nZL = nZL_i*nZL;
+    end
+    ridcs = repmat((1:nZL)',m,1);
+    cidcs = (1:m:m*nZL)' + (0:m-1)*(m*nZL+1);
+    ZL_C = sparse(ridcs(:),cidcs(:),1);
+    ZL = polynomial(ZL_C,ZLmons,vars1,[m,m*nZL]);
 end
-ridcs = repmat((1:nZL)',m,1);
-cidcs = (1:m:m*nZL)' + (0:m-1)*(m*nZL+1);
-ZL_C = sparse(ridcs(:),cidcs(:),1);
-ZL = polynomial(ZL_C,ZLmons,vars1,[m,m*nZL]);
 
 % Compute the right-monomial vector
 ZRmons = zeros(1,0);
-nZR = 1;
-for i=1:N
-    nZR_i = numel(Pop.ZR{i});
-    ZRmons = [repelem(ZRmons,nZR_i,1),repmat(Pop.ZR{i},nZR,1)];
-    nZR = nZR_i*nZR;
+if n==0
+    ZR = polynomial(zeros(0,0));
+else
+    nZR = 1;
+    for i=1:N
+        nZR_i = numel(Pop.ZR{i});
+        ZRmons = [repelem(ZRmons,nZR_i,1),repmat(Pop.ZR{i},nZR,1)];
+        nZR = nZR_i*nZR;
+    end
+    ridcs = repmat((1:nZR)',n,1);
+    cidcs = (1:nZR)' + (0:n-1)*nZR + (0:n:n^2-1)*nZR;
+    ZR_C = sparse(ridcs(:),cidcs(:),1);
+    ZR = polynomial(ZR_C,ZRmons,vars2,[n*nZR,n]);
 end
-ridcs = repmat((1:nZR)',n,1);
-cidcs = (1:nZR)' + (0:n-1)*nZR + (0:n:n^2-1)*nZR;
-ZR_C = sparse(ridcs(:),cidcs(:),1);
-ZR = polynomial(ZR_C,ZRmons,vars2,[n*nZR,n]);
 
 % Apply right-monomials to the function and perform full integrals
 ZRx = ZR*x;
