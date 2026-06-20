@@ -53,7 +53,12 @@ dom = objSopvar.dom;
 
 % Make sure the operator is 1D
 if numel(unique([vars.in,vars.out]))>1
-    error("Operator maps between functions of more than one variable.")
+    if numel(unique([vars.in,vars.out]))<=2
+        obj = sopvar2opvar2d(objSopvar);
+        return
+    else
+        error("Operator maps between functions of more than one variable.")
+    end
 end
 
 % Initialize an empty operator
