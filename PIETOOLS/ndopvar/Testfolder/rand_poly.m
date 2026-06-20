@@ -59,7 +59,8 @@ nZ = size(degmat,1);
 % element of the matrix-valued object
 %is_zero = logical(randi(floor(2*(m*n+1)),[nZ,m*n])-1);
 %C = (~is_zero).*(2*rand([nZ,m*n])-1);
-C = sprand(nZ,m*n,0.25);
+dnsty = 2/nZ;
+C = sprand(nZ,m*n,dnsty);
 
 % Set the polynomial
 P = polynomial(C,degmat,var,[m,n]);
