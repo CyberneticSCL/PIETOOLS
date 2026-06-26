@@ -59,6 +59,8 @@ elseif ~iscellstr(vars.out)
     error("Output variables should be specified as 1 x M 'cellstr' object.")
 end
 vars.out = vars.out(:)';    M = numel(vars.out);
+[~,~,idcs_S3_in] = intersect(vars.out,vars.in);
+N3 = numel(idcs_S3_in);
 
 % Check that the domains are appropriately specified
 if isnumeric(dom) && all(size(dom)==[1,2])
@@ -108,7 +110,7 @@ end
 ZR = cell(1,N);     nZR = zeros(1,N);
 ZL = cell(1,M);     nZL = zeros(1,M);
 for i=1:N
-    ZR{i} = unique(randi([0,degs.in(i)],[degs.in(i)+1,1]));
+    ZR{i} = unique([0;randi([0,degs.in(i)],[degs.in(i)+1,1])]);
     nZR(i) = numel(ZR{i});
 end
 for i=1:M
@@ -122,8 +124,36 @@ n_shared = numel(S3);
 Ccell = cell([3*ones(1,n_shared),1,1]);
 nL = matdim(1)*prod(nZL);
 nR = matdim(2)*prod(nZR);
+if nargin<=4 || isempty(dnsty)
+    dnsty = 2/(prod(nZL)*prod(nZR));
+end
 for k=1:numel(Ccell)
     Ccell{k} = sprand(nL,nR,dnsty);
+    % Determine if the parameter corresponds to a multiplier term
+    if N3==0
+        continue
+    end
+    idcs_k = cell(1,N3+1);
+    [idcs_k{:}] = ind2sub([3*ones(1,N3),1],k);
+    is_mult = cellfun(@(a) a==1,idcs_k(1:N3));
+    if ~any(is_mult)
+        continue
+    end
+    % Split column indices per monomials
+    cidcs_rtn = 1:nR;
+    cidcs_rtn = reshape(cidcs_rtn,fliplr([matdim(2),nZR]));
+    % Determine which column indices correspond with constant monomial
+    is_mult_full = false(1,N);
+    is_mult_full(idcs_S3_in) = is_mult;
+    full_idcs = cellfun(@(a) 1:a,num2cell(size(cidcs_rtn)),'UniformOutput',false);
+    full_idcs(fliplr([false,is_mult_full])) = {1};
+    cidcs_rtn = cidcs_rtn(full_idcs{:});
+    cidcs_rtn = cidcs_rtn(:);
+    % Maintain only indices associated with constant monomial
+    [ridcsC,cidcsC] = find(Ccell{k});
+    rtn_idcs = ismember(cidcsC,cidcs_rtn);
+    vals_rtn = sprand(nnz(rtn_idcs),1,dnsty);% + vals(rtn_idcs);
+    Ccell{k} = sparse(ridcsC(rtn_idcs),cidcsC(rtn_idcs),vals_rtn,nL,nR);
 end
 
 % Declare the sopvar object
