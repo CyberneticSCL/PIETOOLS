@@ -16,7 +16,7 @@ function [P_int] = int(P1, vars, low_limit, high_limit)
 % S. Shivakumar at sshivak8@asu.edu, or Declan Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -71,9 +71,9 @@ end
 Zt = P1.Zt;
 Zs = P1.Zs;
 nt = P1.nt;
-nt = string(nt);
+nt_str = string(nt);
 ns = P1.ns;
-ns = string(ns);
+ns_str = string(ns);
 C = P1.C;
 dim = P1.dim;
 
@@ -81,15 +81,15 @@ dim = P1.dim;
 % subs_in_ns = {};
 % subs_in_nt = {};
 
-vals_in_ns = cell(size(ns));
-vals_in_nt = cell(size(nt));
+vals_in_ns = cell(size(ns_str));
+vals_in_nt = cell(size(nt_str));
 for vars_ind = 1:length(vars)
-    ind_in_ns = strcmp(ns, vars{vars_ind});
+    ind_in_ns = strcmp(ns_str, vars{vars_ind});
     if sum(ind_in_ns) > 0
         location_vars_ind = find(ind_in_ns);
         vals_in_ns{location_vars_ind} = 1;
     else
-        ind_in_nt = strcmp(nt, vars{vars_ind});
+        ind_in_nt = strcmp(nt_str, vars{vars_ind});
         
         if sum(ind_in_nt) > 0
             location_vars_ind = find(ind_in_nt);
@@ -100,47 +100,49 @@ for vars_ind = 1:length(vars)
     end
 end
 
-
+% Update left-monomials to account for antiderivative
 left_multiplier = 1;
-hatZs = {};
-for left_index = 1:length(ns)
+hatZs = cell(1,numel(ns));
+for left_index = 1:numel(ns)
     if isempty(vals_in_ns{left_index})
+        % If variable is not integrated, monomial remains the same
         n_mon = length(Zs{left_index});
         mon = speye(n_mon, n_mon);
-
-        hatZs{end + 1} = Zs{left_index};
+        hatZs{left_index} = Zs{left_index};
     else 
-        mon = diag(1./(Zs{left_index} + 1));  
-        hatZs{end + 1} = Zs{left_index} + 1; 
-        
+        % Set the factor with which the multiply monomial
+        mon = diag(1./(Zs{left_index} + 1)); 
+        % Increase the monomial degree
+        hatZs{left_index} = Zs{left_index} + 1;        
     end
     left_multiplier = kron(left_multiplier, mon);
 end
 left_multiplier = kron(speye(dim(1)), left_multiplier);
 
 
-hatZt = {};
+% Update left-monomials to account for antiderivative
+hatZt = cell(1,numel(nt));
 right_multiplier = 1;
-for right_index = 1:length(nt)
+for right_index = 1:numel(nt)
     if isempty(vals_in_nt{right_index})
+        % If variable is not integrated, monomial remains the same
         n_mon =length(Zt{right_index});
         mon = speye(n_mon, n_mon);
-
-        hatZt{end + 1} = Zt{right_index};
+        hatZt{right_index} = Zt{right_index};
     else
-        mon = diag(Zt{right_index} + 1);  
-
-        hatZt{end + 1} = Zt{right_index} + 1; 
+        % Set the factor with which the multiply monomial
+        mon = diag(1./(Zt{right_index} + 1));
+        % Increase the monomial degree
+        hatZt{right_index} = Zt{right_index} + 1; 
     end
     right_multiplier = kron(right_multiplier, mon);
 end
 right_multiplier = kron(speye(dim(2)), right_multiplier);
 
-
-
-
+% Update coefficients
 hatC = left_multiplier'*C*right_multiplier;
 
+% Set the new quadPoly
 P_int = quadPoly(hatC, hatZs, hatZt, dim, ns, nt);
 % we need to call clean quadpoly after diff
 end

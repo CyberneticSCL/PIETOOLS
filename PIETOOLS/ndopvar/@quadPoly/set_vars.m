@@ -1,4 +1,4 @@
-function [A_out] = set_vars(A_in,ns_new,nt_new)
+function [A_out,s_idcs,t_idcs] = set_vars(A_in,ns_new,nt_new)
 % A_OUT = SET_VARS(A_IN,NS_NEW,NT_NEW) takes a 'quadPoly' object and
 % expresses in terms of variables NS_NEW and NT_NEW
 %
@@ -14,6 +14,10 @@ function [A_out] = set_vars(A_in,ns_new,nt_new)
 %               input, but now expressed in terms of the specified
 %               variables, so that
 %                       A_out.ns = ns_new;    A_out.nt = nt_new;
+% - s_idcs,     1 x 2 cell, specifying the indices relating the variables
+%    t_idcs:    in A_in to those in A_out, so that
+%                   A_out.ns(s_idcs{1}) = A_in.ns(s_idcs{2})
+%                   A_out.nt(t_idcs{1}) = A_in.nt(t_idcs{2})
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -56,6 +60,8 @@ end
 % Determine map from old to new variables
 [~,s_idcs1,s_idcs2] = intersect(ns_new,vars1_A,'stable');
 [~,t_idcs1,t_idcs2] = intersect(nt_new,vars2_A,'stable');
+s_idcs = {s_idcs1,s_idcs2};
+t_idcs = {t_idcs1,t_idcs2};
 
 % Augment monomial basis with constant monomial for vars not appearing 
 % in the object

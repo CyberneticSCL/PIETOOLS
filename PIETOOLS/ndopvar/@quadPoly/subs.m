@@ -2,11 +2,11 @@ function [P_subs] = subs(P1, vars, vals)
 %SUBS Substitute variables in a quadPoly with tensor-decomposed exponent bases.
 %
 % % INPUTS
-% - P1:   nx1 or 1xn 'quadpoly' class object.
-% - vars:  cell array of names of vars
-% - vals:  cell array of 'double'
+% - P1:     nx1 or 1xn 'quadpoly' class object.
+% - vars:   cell array of names of vars
+% - vals:   cell array of 'double' or names of vars
 % % OUTPUTS
-% - P_subs:      'quadpoly' object differentiated with respect all vars
+% - P_subs:      'quadpoly' object evaluated at vars=vals
 % 
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -43,7 +43,7 @@ if ~isa(P1, 'quadPoly')
 end
 
 % Separately deal with case where no variables are to be substituted
-if isempty(vars) && isempty(vals)
+if (isempty(vars) && isempty(vals)) || isequal(vars,vals)
     P_subs = P1;
     return
 end
@@ -103,7 +103,7 @@ if sum(isa_symb_var) > 0
     id_sym_to_sym = num2cell(1:length(sym_to_sym_vals));
     % rename all symbolic vals to <isubs_>..., i is an index --
     % < > indicates additional names
-    % isubs_ will be removed lated
+    % isubs_ will be removed later
     sym_to_sym_vals_RENAMED = cellfun(@(id, name) char(strcat("<", string(id), "subs_>", name)), id_sym_to_sym, sym_to_sym_vals, 'UniformOutput', false);
     sym_to_sym_vals = cellfun(@char, sym_to_sym_vals, 'UniformOutput',false);
     

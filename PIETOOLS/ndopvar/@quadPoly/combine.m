@@ -36,16 +36,16 @@ function obj = combine(obj)
     [r, c, v] = find(C);
 
     % row block (matrix row), and monomial index in s-basis
-    rIn  = ceil(r / ds);     % 1..m
+    rIn  = ceil(r(:) / ds);     % 1..m
     % rIn    = mod(r-1, m) + 1;
-    sMon = mod(r - 1, ds) + 1;           % 1..ds (old full s-monomial)
+    sMon = mod(r(:) - 1, ds) + 1;           % 1..ds (old full s-monomial)
     % sMon   = ceil(r / m);
     sMon2  = mapS(sMon);
 
     % col block (matrix col), and monomial index in t-basis
-    cIn  = ceil(c / dt);      % 1..n
+    cIn  = ceil(c(:) / dt);      % 1..n
     % cIn    = mod(c-1, n) + 1;
-    tMon = mod(c - 1, dt) + 1;           % 1..dt (old full t-monomial)
+    tMon = mod(c(:) - 1, dt) + 1;           % 1..dt (old full t-monomial)
     % tMon   = ceil(c / n);
     tMon2  = mapT(tMon);
 
@@ -57,7 +57,7 @@ function obj = combine(obj)
     c2 = tMon2 + (cIn - 1)*dt_new;
 
     % Sparse constructor sums duplicates automatically
-    C2 = sparse(r2, c2, v, m*ds_new, n*dt_new);
+    C2 = sparse(r2, c2, v(:), m*ds_new, n*dt_new);
 
     % ---------- write back ----------
     obj.Zs = Zs_new; obj.ns = ns_new;
