@@ -68,8 +68,6 @@ vs2a = setdiff(A.vars_S3,vs3a);
 vs2b = setdiff(A.vars_S1,vs3b);
 
 % Compute the vars, domain, and dimensions of the composition, C = A*B
-Cvars = struct('in', {B.vars.in}, 'out', {A.vars.out});
-Cdom = struct('in',B.dom.in,'out',A.dom.out);
 Cdims = [A.dims(1),B.dims(2)];
 
 n3a = numel(vs3a); % size of passthrough variable
@@ -104,17 +102,8 @@ end
 % split alpha and beta as [alpha_a, alpha_b] and [beta_a, beta_b]
 % alpha_a corresponds to s3a vars, alpha_b to s3b
 % beta_a corresponds to s2a vars, beta_b to s3a
-[idx3a,~] = ismember(B.vars_S3,vs3a);
-alpha_a = unique(alphaIdx(:,idx3a),'rows','stable');
-alpha_b = unique(alphaIdx(:,~idx3a),'rows','stable');
-[idx2a,~] = ismember(A.vars_S3,vs2a);
-beta_a = unique(betaIdx(:,idx2a),'rows','stable');
-beta_b = unique(betaIdx(:,~idx2a),'rows','stable');
-% Now, we rebuild CA and CB indexed as CA{beta_a}{beta_b} and
+% rebuild CA and CB indexed as CA{beta_a}{beta_b} and
 % CB{alpha_a}{alpha_b}
-colsbetaa = find(idx2a); colsbetab = find(~idx2a);
-colsalphaa = find(idx3a); colsalphab = find(~idx3a);
-
 % Desired sorted group orders:
 %   beta_a  follows vs2a
 %   beta_b  follows vs3a
@@ -1293,30 +1282,32 @@ n = prod(dimsRord);
 dimLold = cellfun(@numel, ZL);
 dimRold = cellfun(@numel, ZR);
 
-[~, pL] = ismember(Zvar_ordered, Zvar);   % ordered vars = old vars(pL)
-[~, pR] = ismember(Zvar_ordered, Zvar);
+% [~, pL] = ismember(Zvar_ordered, Zvar);   % ordered vars = old vars(pL)
+% [~, pR] = ismember(Zvar_ordered, Zvar);
 
-if numel(dimLold) <= 1
-    PLvec = (1:m).';
-else
-    invpL = zeros(size(pL));
-    invpL(pL) = 1:numel(pL);
-    PLvec = reshape(permute(reshape(1:m, dimLold(pL)), invpL), [], 1);
-end
+% if numel(dimLold) <= 1
+%     PLvec = (1:m).';
+% else
+%     invpL = zeros(size(pL));
+%     invpL(pL) = 1:numel(pL);
+%     PLvec = reshape(permute(reshape(1:m, dimLold(pL)), invpL), [], 1);
+% end
+% 
+% if numel(dimRold) <= 1
+%     PRvec = (1:n).';
+% else
+%     invpR = zeros(size(pR));
+%     invpR(pR) = 1:numel(pR);
+%     PRvec = reshape(permute(reshape(1:n, dimRold(pR)), invpR), [], 1);
+% end
 
-if numel(dimRold) <= 1
-    PRvec = (1:n).';
-else
-    invpR = zeros(size(pR));
-    invpR(pR) = 1:numel(pR);
-    PRvec = reshape(permute(reshape(1:n, dimRold(pR)), invpR), [], 1);
-end
-
-PL = speye(m);
-PL = PL(PLvec, :);
-
-SR = speye(n);
-SR = SR(PRvec, :);
+% Monomial vectors in PIETOOLS are ordered with the first variable outermost
+% and the last variable fastest.  A reshape/permute on dimLold uses MATLAB's
+% first-dimension-fastest convention and gives the wrong permutation for
+% nontrivial variable reordering.  Build the permutation from explicit
+% tensor-product multi-indices instead.
+PL = kronPermutationMatrix_SS(Zvar,Zvar_ordered,dimLold);
+SR = kronPermutationMatrix_SS(Zvar,Zvar_ordered,dimRold);
 PR = SR.';
 
 % -------------------------------------------------------------------------
@@ -1528,4 +1519,72 @@ G3aout = struct();
 G3aout.C = C3a;
 G3aout.Z = Z3anew;
 
+end
+function P = kronPermutationMatrix_SS(oldVars,newVars,dimsOld)
+% kronPermutationMatrix_SS returns P such that Z_old = P*Z_new for tensor
+% monomial vectors ordered with the first variable outermost and the last
+% variable fastest.
+
+oldVars = oldVars(:).';
+newVars = newVars(:).';
+dimsOld = dimsOld(:).';
+
+if numel(oldVars) ~= numel(newVars) || numel(dimsOld) ~= numel(oldVars)
+    error('kronPermutationMatrix_SS: inconsistent inputs.');
+end
+
+[tf,loc] = ismember(newVars,oldVars);
+if any(~tf) || numel(unique(loc)) ~= numel(loc)
+    error('kronPermutationMatrix_SS: newVars must be a permutation of oldVars.');
+end
+
+N = prod(dimsOld);
+if isempty(dimsOld)
+    N = 1;
+end
+
+if numel(dimsOld) <= 1
+    P = speye(N);
+    return
+end
+
+dimsNew = dimsOld(loc);
+idxNew = kronMultiIdx_SS(dimsNew);
+idxOld = zeros(N,numel(dimsOld));
+idxOld(:,loc) = idxNew;
+oldLin = kronSub2ind_SS(dimsOld,idxOld);
+
+P = sparse(oldLin,(1:N).',1,N,N);
+end
+
+function idx = kronMultiIdx_SS(dims)
+% Multi-indices for the PIETOOLS tensor order: first variable outermost,
+% last variable fastest.
+
+dims = dims(:).';
+N = prod(dims);
+if isempty(dims)
+    idx = zeros(1,0);
+elseif numel(dims) == 1
+    idx = (1:N).';
+else
+    tmp = cell(1,numel(dims));
+    [tmp{:}] = ind2sub(fliplr(dims),1:N);
+    idx = flipud(vertcat(tmp{:})).';
+end
+end
+
+function lin = kronSub2ind_SS(dims,idx)
+% Inverse of kronMultiIdx_SS.
+
+dims = dims(:).';
+if isempty(dims)
+    lin = ones(size(idx,1),1);
+elseif numel(dims) == 1
+    lin = idx(:,1);
+else
+    subs = num2cell(fliplr(idx),1);
+    lin = sub2ind(fliplr(dims),subs{:});
+    lin = lin(:);
+end
 end

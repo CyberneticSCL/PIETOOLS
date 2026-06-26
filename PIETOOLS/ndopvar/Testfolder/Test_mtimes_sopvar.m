@@ -2,12 +2,12 @@ clc; clear;
 % Aop: L2^k[varmid] -> L2^m[varout]
 % Bop: L2^n[varin] -> L2^k[varmid]
 
-m = 3; n = 2; k = 4;
-maxvars = 2;
+m = 1; n = 1; k = 1;
+maxvars = 3;
 
-nvarsin = randi([0,floor(maxvars)]);
-nvarsmid = randi([0,floor(maxvars)]);
-nvarsout = randi([0,floor(maxvars)]);
+nvarsin = randi([1,floor(maxvars)]);
+nvarsmid = randi([1,floor(maxvars)]);
+nvarsout = randi([1,floor(maxvars)]);
 
 varin = cellstr(sort("s"+string(randperm(maxvars,nvarsin))));
 varmid = cellstr(sort("s"+string(randperm(maxvars,nvarsmid))));
@@ -26,10 +26,10 @@ Bdom = struct( ...
         'in', domall(ismember(varsall,varin),:), ...
         'out', domall(ismember(varsall,varmid),:));
 
-Adegs = struct('in',randi(3,1,length(Avars.in)), ...
-               'out',randi(3,1,length(Avars.out)));
-Bdegs = struct('in',randi(3,1,length(Bvars.in)), ...
-               'out',randi(3,1,length(Bvars.out)));
+Adegs = struct('in',randi(2,1,length(Avars.in)), ...
+               'out',randi(2,1,length(Avars.out)));
+Bdegs = struct('in',randi(2,1,length(Bvars.in)), ...
+               'out',randi(2,1,length(Bvars.out)));
 
 pdeg_x = 4;             % maximal monomial degree of test function
 dnsty = 0.1;           % density of coefficient matrices
