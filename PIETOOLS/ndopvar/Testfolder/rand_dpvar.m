@@ -74,7 +74,8 @@ nZ = size(degmat,1);
 
 % Generate random coefficients of desired sparsity
 if nargin<=5
-    rho = 2*ndvars/((m*ndvars+1)*n*nZ);
+    %rho = 2*ndvars/((m*ndvars+1)*n*nZ);
+    rho = 2/(nZ*ndvars);
 end
 C = sprand(m*(ndvars+1),n*nZ,rho);
 
