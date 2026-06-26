@@ -2,12 +2,12 @@ clc; clear;
 % Aop: L2^k[varmid] -> L2^m[varout]
 % Bop: L2^n[varin] -> L2^k[varmid]
 
-m = 3; n = 2; k = 1;
-maxvars = 6;
+m = 3; n = 2; k = 4;
+maxvars = 2;
 
-nvarsin = randi([1,floor(maxvars/2)]);
-nvarsmid = randi([1,floor(maxvars/2)]);
-nvarsout = randi([1,floor(maxvars/2)]);
+nvarsin = randi([0,floor(maxvars)]);
+nvarsmid = randi([0,floor(maxvars)]);
+nvarsout = randi([0,floor(maxvars)]);
 
 varin = cellstr(sort("s"+string(randperm(maxvars,nvarsin))));
 varmid = cellstr(sort("s"+string(randperm(maxvars,nvarsmid))));
@@ -43,7 +43,7 @@ vars_x = polynomial(Bop.vars.in(:));
 x = rand_poly([n,1],vars_x,pdeg_x,50);
 %%
 % Compute composition
-Cop = mtimes3(Aop,Bop);
+Cop = mtimes(Aop,Bop);
 
 % Compare direct composed application with sequential application
 Bx = apply_sopvar(Bop,x);

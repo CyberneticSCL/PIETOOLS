@@ -1,152 +1,170 @@
 function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
-% leftShiftMonomials
-%   ((I\otimes ZA')*CA)*((I \otimes ZB')*CB) = (I\otimes ZC')*CC
+% leftShiftMonomials_SS
+%
+% Computes
+%
+%   ((I_p \otimes ZA')*CA{I,J})*((I_q \otimes ZB')*CB{I})
+%       = (I_p \otimes ZC')*CC{I,J}
+%
+% for each cell index I,J.
 %
 % INPUTS
-%   varsA : cell array of variable names for ZA
-%   ZA    : cell array of exponent vectors for ZA
-%   CA    : mxn cell of (p*NA) x q coefficient matrices
-%   varsB : cell array of variable names for ZB
-%   ZB    : cell array of exponent vectors for ZB
-%   CB    : 1xm cell of (q*NB) x r coefficient matrices
+%   varsA : variables for ZA
+%   ZA    : 1-by-nA cell array of exponent vectors
+%   CA    : nI-by-nJ cell array, CA{I,J} has size p*NA by q
+%   varsB : variables for ZB
+%   ZB    : 1-by-nB cell array of exponent vectors
+%   CB    : 1-by-nI or nI-by-1 cell array, CB{I} has size q*NB by r
 %
 % OUTPUTS
-%   varsC : output variable list
-%   ZC    : output tensor-product monomial basis
-%   CC    : (p*NC) x r coefficient matrix
-NA = prod(cellfun(@numel, ZA));  % length of ZA monomial vec
-NB = prod(cellfun(@numel, ZB));  % length of ZB
+%   varsC : merged variable list
+%   ZC    : merged/product monomial basis
+%   CC    : nI-by-nJ cell array, CC{I,J} has size p*NC by r
 
+varsA = varsA(:).';
+varsB = varsB(:).';
+ZA = ZA(:).';
+ZB = ZB(:).';
 
+NA = prod(cellfun(@numel,ZA));
+NB = prod(cellfun(@numel,ZB));
 
-% if varsA or varsB is empty, we include a dummy variable
-if NA == 0
-    varsA = {'<dummy_varA>'};
-    ZA = {[0]};
+if isempty(ZA)
     NA = 1;
 end
-
-if NB == 0
-    varsB = {'<dummy_varB>'};
-    ZB = {[0]};
+if isempty(ZB)
     NB = 1;
 end
 
-[mA,q] = size(CA{1}); %must be length(NA)*p x q   if (I\otimes ZA')*CA is pxq
-[~,r] = size(CB{1}); %as above
+[nI,nJ] = size(CA);
 
-p  = mA/NA;  % must be integer by default
+if numel(CB) ~= nI
+    error('leftShiftMonomials_SS: CB must have one cell for each row of CA.');
+end
 
-varsC = union(varsA, varsB);  % just merge the vars
+[mA,q] = size(CA{1,1});
+[mB,r] = size(CB{1});
+
+if mod(mA,NA) ~= 0
+    error('leftShiftMonomials_SS: size(CA{1},1) must be divisible by NA.');
+end
+
+if mB ~= q*NB
+    error('leftShiftMonomials_SS: size(CB{1},1) must equal size(CA{1},2)*NB.');
+end
+
+p = mA/NA;
+
+% Merge variables. This uses MATLAB sorted union, matching current convention.
+varsC = union(varsA,varsB);
 nC = numel(varsC);
 
-% Build output basis per variable
+% Build output basis.
 ZC = cell(1,nC);
+
 for t = 1:nC
-    ia = find(strcmp(varsA, varsC{t}), 1);
-    ib = find(strcmp(varsB, varsC{t}), 1);
+    ia = find(strcmp(varsA,varsC{t}),1);
+    ib = find(strcmp(varsB,varsC{t}),1);
 
-    if isempty(ia) % if not present in ZA, just pick ZB
+    if isempty(ia)
         ZC{t} = ZB{ib}(:);
-    elseif isempty(ib) % if not present in ZB, just pick ZA
+    elseif isempty(ib)
         ZC{t} = ZA{ia}(:);
-    else  % if present in both, multiply as kronecker product
-        va = ZA{ia}(:);
-        vb = ZB{ib}(:);
-        ZC{t} = unique(reshape(va + vb.', [], 1));
+    else
+        ea = ZA{ia}(:);
+        eb = ZB{ib}(:);
+        ZC{t} = unique(reshape(ea + eb.',[],1));
     end
 end
 
-NC = prod(cellfun('length', ZC));
-
-% Expand ZA into exponent table aligned to varsC
-% ith row of EAc is the ith monomial in ZA but padded with varsC exponents 
-% i.e., varsA^{ZA} = varsC^EAc
-EAc = zeros(NA, nC);
-if ~isempty(varsA)
-    lenA = cellfun(@numel, ZA); % number of exponents in each varsA
-    for t = 1:numel(varsA)
-        k = find(strcmp(varsC, varsA{t}), 1); % find location of varsA in varsC
-        left  = prod(lenA(1:t-1));
-        right = prod(lenA(t+1:end));
-        EAc(:,k) = kron(ones(left,1), kron(ZA{t}(:), ones(right,1)));
-    end
+NC = prod(cellfun(@numel,ZC));
+if isempty(ZC)
+    NC = 1;
 end
 
-% Expand ZB into exponent table aligned to varsC
-EBc = zeros(NB, nC);
-if ~isempty(varsB)
-    lenB = cellfun(@numel, ZB);
-    for t = 1:numel(varsB)
-        k = find(strcmp(varsC, varsB{t}), 1);
-        left  = prod(lenB(1:t-1));
-        right = prod(lenB(t+1:end));
-        EBc(:,k) = kron(ones(left,1), kron(ZB{t}(:), ones(right,1)));
-    end
+% Expand ZA exponents into varsC coordinates.
+EAc = zeros(NA,nC);
+
+for t = 1:numel(varsA)
+    k = find(strcmp(varsC,varsA{t}),1);
+
+    lenA = cellfun(@numel,ZA);
+    left  = prod(lenA(1:t-1));
+    right = prod(lenA(t+1:end));
+
+    EAc(:,k) = kron(ones(left,1),kron(ZA{t}(:),ones(right,1)));
 end
 
-% Expand ZC into exponent table
-EC = zeros(NC, nC);
-if ~isempty(varsC)
-    lenC = cellfun(@numel, ZC);
-    for t = 1:nC
-        left  = prod(lenC(1:t-1));
-        right = prod(lenC(t+1:end));
-        EC(:,t) = kron(ones(left,1), kron(ZC{t}(:), ones(right,1)));
-    end
+% Expand ZB exponents into varsC coordinates.
+EBc = zeros(NB,nC);
+
+for t = 1:numel(varsB)
+    k = find(strcmp(varsC,varsB{t}),1);
+
+    lenB = cellfun(@numel,ZB);
+    left  = prod(lenB(1:t-1));
+    right = prod(lenB(t+1:end));
+
+    EBc(:,k) = kron(ones(left,1),kron(ZB{t}(:),ones(right,1)));
 end
 
-% Reshape coefficients
-% CA: (p*NA) x q -> A: p x q x NA
-% CB: (q*NB) x r -> B: q x r x NB
+% Expand ZC exponents into varsC coordinates.
+EC = zeros(NC,nC);
 
-idxA = size(CA,1); 
-idxB = size(CA,2);
-for I=1:idxA
-    for J=1:idxB
-% A(:,:,i) = coefficient matrix of i-th monomial in A
-% B(:,:,j) = coefficient matrix of j-th monomial in B
-% in other words, 
-% (I\otimes ZA')*CA = sum_i A(:,:,i)*varsC{i}^EAc(i,:)
-% (I\otimes ZB')*CA = sum_i B(:,:,i)*varsC{i}^EBc(i,:)
-Acoef = CA{I,J};
-Bcoef = CB{I};
+for t = 1:nC
+    lenC = cellfun(@numel,ZC);
+    left  = prod(lenC(1:t-1));
+    right = prod(lenC(t+1:end));
 
-% Accumulate output coefficients
-G = zeros(p, r, NC); % G(:,:,k) = coefficient matrix of k-th monomial in C
-% (I\otimes ZC')*CC = sum_i G(:,:,i)*varsC{i}^EC(i,:)
-for i = 1:NA
-
-    rowsA = i:NA:(p*NA);
-    Ai = Acoef(rowsA,:);
-
-    ei = EAc(i,:);
-
-    for j = 1:NB
-
-        rowsB = j:NB:(q*NB);
-        Bj = Bcoef(rowsB,:);
-
-        e = ei+EBc(j,:);
-        k = find(all(EC==e,2),1);
-
-        G(:,:,k) = G(:,:,k)+Ai*Bj;
-    end
+    EC(:,t) = kron(ones(left,1),kron(ZC{t}(:),ones(right,1)));
 end
 
-% Pack back to (p*NC) x r
-CC{I,J} = reshape(permute(G, [3 1 2]), [NC*p, r]);
+CC = cell(nI,nJ);
+
+for I = 1:nI
+
+    Bcoef = CB{I};
+
+    if ~isequal(size(Bcoef),[q*NB,r])
+        error('leftShiftMonomials_SS: inconsistent CB cell dimensions.');
+    end
+
+    for J = 1:nJ
+
+        Acoef = CA{I,J};
+
+        if ~isequal(size(Acoef),[p*NA,q])
+            error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');
+        end
+
+        G = zeros(p,r,NC);
+
+        for ia = 1:NA
+
+            rowsA = ia:NA:(p*NA);
+            Ai = Acoef(rowsA,:);
+
+            ea = EAc(ia,:);
+
+            for ib = 1:NB
+
+                rowsB = ib:NB:(q*NB);
+                Bj = Bcoef(rowsB,:);
+
+                e = ea + EBc(ib,:);
+
+                k = find(all(EC == e,2),1);
+
+                if isempty(k)
+                    error('leftShiftMonomials_SS: internal monomial basis mismatch.');
+                end
+
+                G(:,:,k) = G(:,:,k) + Ai*Bj;
+            end
+        end
+
+        CC{I,J} = reshape(permute(G,[3 1 2]),[NC*p,r]);
     end
 end
-
-% now we remove dummy variable if they exist
-var_names_removed = ~startsWith(string(varsC), "<dummy_");
-
-% var_names_removed = cellfun( ...
-%     @(name) ~isempty(char(eraseBetween(string(name), "<", ">",'Boundaries','inclusive'))),...
-%     varsC, 'UniformOutput',false); % names to rename
-% var_names_removed = cell2mat(var_names_removed);
-varsC = varsC(var_names_removed);
-ZC = ZC(var_names_removed);
 
 end
