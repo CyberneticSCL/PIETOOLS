@@ -48,6 +48,24 @@ function C = mtimes(A,B)
 %
 % Initial coding MMP, SS  - 1_16_2026
 %
+
+% Separately deal with scalar multiplication
+if isnumeric(A)
+    if ~isscalar(A) && size(A,2)~=size(B,1)
+        error("Inner dimensions of matrix-valued objects must match for multiplication.")
+    end
+    C = B;
+    C.params = cellfun(@(b) A*b, B.params,'UniformOutput',false);
+    return
+elseif isnumeric(B)
+    if ~isscalar(B) && size(A,2)~=size(B,1)
+        error("Inner dimensions of matrix-valued objects must match for multiplication.")
+    end
+    C = A;
+    C.params = cellfun(@(a) a*B, A.params,'UniformOutput',false);
+    return
+end
+
 % Error handling: Checks to ensure A and B are compatible
 if A.dims(2)~=B.dims(1)
     error('number of output components of B is different than number of input components of A');
