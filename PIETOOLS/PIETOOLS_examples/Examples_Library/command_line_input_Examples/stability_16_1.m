@@ -6,8 +6,15 @@ pvar s t; % define independent variables
 %   BCs: phi(s=0) = 0,      phi_{s}(s=1) = 0    
 %        w(s=0) = 0,        w_{s}(s=1) - phi(s=1) = 0           
 % 
-% Specify the parameters
+%% Specify the parameters
 alp = 1;     bet = 1;     gam = 2;
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 %   We rewrite the system as a single equation:     |                       4th order implementation (stable)
 %   PDE: 0 = alp*w_{ssss} + bet*w_{tt}              |
@@ -24,6 +31,7 @@ alp = 1;     bet = 1;     gam = 2;
 %        x4_{sss}(s=1) - x4_{s}(s=1) = 0              |
 %        x2(s=0) = 0     x2_{s}(s=0) = 0         |
 %        x3(s=0) = 0    x3_{s}(s=0) = 0        |
+%% Define dependent variables and system variable
 pde_var x1 x2 x3 x4
 x1.vars = s;    x2.vars = s;    x3.vars = s;    x4.vars = s;   
 %% Define equations

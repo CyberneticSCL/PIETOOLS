@@ -5,9 +5,16 @@ pvar s t; % define independent variables
 %     BCs  w(s=0) = 0,        w_{sss}(s=0)-w_{stt}(s=0)+w_s(s=0)=0, 
 %                 w_{ss}(s=1)=beta*wtt(s=1), alp*w_{sss}(s=1)=gam*w_{stt}(s=1) 
 % alp=E*I, beta= rho*A, gam= rhoI+E*I*rho/k/G, rho^2*I/k/G 
-% Specify the parameters
+%% Specify the parameters
 % Assuming E=I=rho=A=G=k=1,
 alp = 1;     bet = 1;     gam = 2;     delt=1;
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
 %   Use states:                                     |
 %        x1 = w_{t},    x2 = w_{ttt},              |
 %        x3 = w_{tt},       x4 = w.                 |
@@ -20,6 +27,7 @@ alp = 1;     bet = 1;     gam = 2;     delt=1;
 %        x4_{ss}(s=1) - x3(s=1) = 0                   |
 %        alp*x4_{sss}(s=1) - gam*x3_{s}(s=1) = 0              |
 %        x3(s=0) = 0    x3_{s}(s=0) = 0        |
+%% Define dependent variables and system variable
 pde_var x1 x2 x3 x4
 x1.vars = s;    x2.vars = s;    x3.vars = s;    x4.vars = s;   
 %% Define equations

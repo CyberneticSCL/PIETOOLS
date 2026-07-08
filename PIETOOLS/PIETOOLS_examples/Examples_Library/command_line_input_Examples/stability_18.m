@@ -1,17 +1,26 @@
-clc; clear; clear stateNameGenerator
-pvar s t; % define independent variables
-%     | PDE: u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} | k = 1                         Datko 1986 [9] (Test 7.5c)
+% Tip-damped wave eq with reaction term and viscous damping
+%     | PDE: u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} | k = 1     Datko 1986 [9] (Test 7.5c)
 %     | BCs: u(s=0) = 0                             |
 %     |      u_{s}(s=1) = -k*u_{t}(s=1)             |
-%
-%   Use states x1 = u_{t}, x2 = u.                  | k = 1
-%       =>                                          | ad = 1
+% -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+%   Use states x1 = u_{t}, x2 = u.                  | k = 1         (PDE exponentially dual stable )                 
+%       =>                                          | ad = 1                    (Finite Energy PIE to PDE stable )   
 %   PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x2_{ss}      |
-%            x2_{t} = x1      |
 %   BCs: x1(0) = 0,     x2(0) = 0,                  |
 %        k*x1(1) + x2_{s}(1) = 0                    |
+%clc; clear;
+clear stateNameGenerator
+pvar s t; % define independent variables
+%% Specify parameters
 k = 1;    ad = 1;
-% -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
+%% Define dependent variables and system variable
 pde_var x1 x2
 x1.vars = s;    x2.vars = s; 
 %% Define equations

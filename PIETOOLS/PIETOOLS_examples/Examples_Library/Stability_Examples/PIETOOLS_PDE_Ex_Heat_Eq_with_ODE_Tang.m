@@ -18,7 +18,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params)
 % % ODE             xo_{t} = xo + x_{s}(s=0)
 % % PDE             x_{t} = x_{ss}
 % % With BCs        x(s=0) = xo
-% %                 x(s=1) = -k * xo
+% %                 x(s=1) = k * xo
 % %
 % % Parameter k can be set.
 % %---------------------------------------------------------------------% %

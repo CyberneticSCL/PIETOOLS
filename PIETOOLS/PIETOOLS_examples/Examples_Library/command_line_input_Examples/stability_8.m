@@ -1,11 +1,19 @@
+% 	ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)        | a = 0    b = 1        (stable for lam < pi^2 = 9.8696)
+%   PDE:  x_{t}  = lam * x + x_{ss} + Bpv * xo      | lam = pi^2-1                  Das 2018 [7] (Example 2)
+%   BCs:  x(s=a) = 0,     x(s=b) = 0                | A, Bxr, and Bpv fixed
 clc; clear; clear stateNameGenerator
 pvar s t; % define independent variables
-%% Define dependent variables and system variable
-% 	ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)        | a = 0    b = 1        
-%   PDE:  x_{t}  = lam * x + x_{ss} + Bpv * xo      | lam = pi^2-1          
-%   BCs:  x(s=a) = 0,     x(s=b) = 0                | A, Bxr, and Bpv fixed
+% Define dependent variables and system variable
 x=pde_var(4); X = pde_var(2,s,[0,1]);
-lam = pi^2-1; a = 1;b=1;
+%% Secify the parameters
+lam = pi^2-1; a = 0;b=1;
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
 A = [-1.2142,  1.9649,  0.2232,  0.5616;
             -1.8042, -0.7260, -0.3479,  5.4355;
             -0.2898,  0.7381, -1.7606,  0.8294;
@@ -13,9 +21,9 @@ A = [-1.2142,  1.9649,  0.2232,  0.5616;
 Bpv = [-2.5575 0 1.0368 0;-1.8067 0.4630 1.3621 0];
 Bxr = [-1.5368 0;0 0.8871;1.0656 0;1.1882 0];
 %% Define equations
-eq_ODE=diff(x,t)==A*x+Bxr*diff(subs(X,s,0),s); % ODE: xo_{t} = A * xo + Bxr * x_{s}(s=0)
+eq_ODE=diff(x,t)==A*x+Bxr*diff(subs(X,s,a),s); % ODE: xo_{t} = A * xo + Bxr * x_{s}(s=0)
 eq_PDE = diff(X,t)==lam*X+diff(X,s,2)+Bpv*x; % 	PDE: x_{t}  = lam * x + x_{ss} + Bpv * xo
-eq_BC = [subs(X,s,0)==0;subs(X,s,1)==0]; %  BCs: x(s=a) = 0,     x(s=b) = 0 
+eq_BC = [subs(X,s,a)==0;subs(X,s,b)==0]; %  BCs: x(s=a) = 0,     x(s=b) = 0 
 %% initialize pde system;
 PDE = initialize([eq_ODE;eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie

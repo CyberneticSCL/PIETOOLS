@@ -1,18 +1,18 @@
-clc; clear; clear stateNameGenerator
-pvar s1 s2 t; % define independent variables
-
-%% Define dependent variables and system variable
 %   ODE: x1_{t} = A*x1 + A1*x3(t,1) + B*x2(t,s1=0)
 %   PDE: x2_{t} = x2_{s1s1} + a*x2 + a2*x4(t,s1,s2=1)
 %        x3_{t} = x3_{s2}
 %        x4_{t} = x4_{s2}
 %   tau = 1; A = -1; A1 = 0.5; B = -1; a = 1; a2 = 0.5
+clc; clear; clear stateNameGenerator
+pvar s1 s2 t; % define independent variables
+%% Specify parameters
 tau = 1;
 A = -1;
 A1 = 0.5;
 B = -1;
 a = 1;
 a2 = 0.5;
+%% Define dependent variables and system variable
 pde_var x1 x2 x3 x4
 x2.vars = s1;       x2.dom = [0,1];
 x3.vars = s2;       x3.dom = [1,1+tau];

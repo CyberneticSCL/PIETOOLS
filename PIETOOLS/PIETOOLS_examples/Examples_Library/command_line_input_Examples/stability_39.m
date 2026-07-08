@@ -1,7 +1,3 @@
-clc; clear; clear stateNameGenerator
-pvar s1 s2 t; % define independent variables
-
-%% Define dependent variables and system variable
 %   Linearized 2D isentropic compressible Navier-Stokes:
 %   p_{t}  = -s2*p_{s1} - v1_{s1} - v2_{s2}
 %   v1_{t} = -s2*v1_{s1} - v2 - (1/M^2)*p_{s1}
@@ -9,9 +5,20 @@ pvar s1 s2 t; % define independent variables
 %   v2_{t} = -s2*v2_{s1} - (1/M^2)*p_{s2}
 %            + nu*(v2_{s1s1}+v2_{s2s2}) + lam*(v1_{s1s2}+v2_{s2s2})
 %   BCs: p(s1=0)=0, p(s2=0)=0, and v=0 on all edges
+clc; clear; clear stateNameGenerator
+pvar s1 s2 t; % define independent variables
+%% Specify parameters
 M = 0.1;
 lam = 1;
 nu = 1;
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
+%% Define dependent variables and system variable
 v1 = pde_var([s1;s2],[0,1;0,1]);
 v2 = pde_var([s1;s2],[0,1;0,1]);
 p = pde_var([s1;s2],[0,1;0,1]);

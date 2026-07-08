@@ -1,14 +1,25 @@
-%clc; clear; clear stateNameGenerator
-pvar s t; % define independent variables
-%% Define dependent variables and system variable
 %   PDE: x_{t} = Mm*x - Lm*x_{s}                	| Mm, Lm, K00, K01,             Diagne 2012 [2] 
 %   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)]         | K10 and K11 may be
 %        [x_-(s=1)] = [K10, K11] [x_-(s=0)]         | specified
 %   The implementation is based on a Linearized Saint–Venant–Exner Model
+%   The dissipativity condition of Diagne 2012 [2] fails for default
+%   parameters  k1 = -.5;       k2 = -4.5;                                      
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable )
+clc; clear; clear stateNameGenerator
+pvar s t; % define independent variables
+% Define dependent variables and system variable
 x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
-
+%% Specify the parameters
  Hs = 1;       Vs = 1;     Bs = 0.1;
  g = 10;       Cf = 1;
+ if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+ end
  Lm = diag(sort(eig([Vs,Hs,0;10,Vs,10;0,1*Vs^2,0])));
  lm1 = Lm(1,1);    lm2 = Lm(2,2);      lm3 = Lm(3,3);
  al1 = Cf*(3*Vs - 2*lm1) * Vs/Hs * lm1/((lm1-lm2)*(lm1-lm3));
@@ -29,7 +40,6 @@ x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
  K = [0,chi2,chi3; pi2,0,0; pi3,0,0];
  K00 = K(1,1);   K01 = K(1,2:3);
  K10 = K(2:3,1); K11 = K(2:3,2:3);
-
 %% Define equations
 eq_PDE = diff(x,t)==Mm*x-Lm*diff(x,s); % 	PDE: x_{t} = Mm*x - Lm*x_{s}
 %   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)],

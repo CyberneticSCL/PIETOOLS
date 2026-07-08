@@ -3,7 +3,7 @@ pvar s t; % define independent variables
 %   PDE: 0 = alp*w_{ssss} + bet*w_{tt}              |
 %             - gam*w_{ttss} + delt*w_{tttt}             |
 % alp=E*I, beta= rho*A, gam= rhoI+E*I*rho/k/G, rho^2*I/k/G 
-% Specify the parameters
+%% Specify the parameters
 % Assuming E=I=rho=A=G=k=1,
 alp = 1;     bet = 1;     gam = 2;     delt=1;
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -24,6 +24,7 @@ alp = 1;     bet = 1;     gam = 2;     delt=1;
 %        x4_{ss}(s=1) - x4(s=1) = 0                   |
 %        x4_{sss}(s=1) - x4_{s}(s=1) = 0              |
 %        x3(s=0) = 0    x3_{s}(s=0) = 0        |
+%% Define dependent variables and system variable
 pde_var x1 x2 x3 x4
 x1.vars = s;    x2.vars = s;    x3.vars = s;    x4.vars = s;   
 %% Define equations

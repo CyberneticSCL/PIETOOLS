@@ -1,13 +1,30 @@
-clc; clear; clear stateNameGenerator
-pvar s t; % define independent variables
-%
+% Timoshenko Beam
 %   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                               Peet 2019 [8] (Example 8.1.0.2)
 %        r*II * phi_{tt} = E*II * phi_{ss}  + k*aa*g * (w_{s} - phi) 
 %   BCs: phi(s=0) = 0,      phi_{s}(s=1) = 0    
 %        w(s=0) = 0,        w_{s}(s=1) - phi(s=1) = 0           
-% 
-% Specify the parameters 
+%   Assume all parameters are 1, and use states:    | Hyperbolic/diffusive implementation (unstable)
+%        x1 = w_{t},    x2 = w_{s},                 |
+%        x3 = phi_{t},  x4 = phi.                   |                  (PDE stable with damping c >0)
+%       =>                                          |
+%   PDE: x1_{t} = x2_{s} - x4_{s}                   |
+%        x2_{t} = x1_{s}                            |
+%        x3_{t} = x2 - x4 -c x3                         |
+%        x4_{t} = x3                                |
+%   BCs: x4(0) = 0,     x4_{s}(1) = 0,              |
+%        x3(0) = 0,     x1(0) = 0,                  |
+%        x2(1) - x4(1) = 0 
+clc; clear; clear stateNameGenerator
+pvar s t; % define independent variables
+%% Specify the parameters 
 k = 1;    aa = 1;    II = 1;    g = 1;   
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
 %% Define dependent variables and system variable
 % use PDE states:  (unstable Hyperbolic/diffusive implementation)
 %        x1 = w_{t},    x2 = w_{s},                 |

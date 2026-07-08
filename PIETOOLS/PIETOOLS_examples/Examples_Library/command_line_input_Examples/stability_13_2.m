@@ -1,20 +1,4 @@
 %% Euler-Bernoulli Equation
-% using PDE states x1=w_{t}, x2=w and PIE states (w_{t,ssss},w_{ssss})
-clc; clear; clear stateNameGenerator
-pvar s t; % define independent variables
-% TImoshenko Beam Model, 4-th order in time implementation
-%   PDE: 0 = alp*w_{ssss} + bet*w_{tt}              |
-%             - gam*w_{ttss} + delt*w_{tttt}             |
-% alp=E*I, beta= rho*A, gam= rhoI+E*I*rho/k/G, rho^2*I/k/G 
-%   Use states:                                     |
-%        x1 = w_{ttt},      x2 = w_{t},             |
-%        x3 = w_{tt},       x4 = w.                 |
-% Specify the parameters
-% Assuming E=I=rho=A=G=k=1,
-alp = 0.1;     bet = 1; 
-% Case gam=delt=0 collapse to Euler-Bernoulli model,
-% with states x1=w_{t}, x2=w
-% -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 %   We rewrite the system as a single equation:     |                     
 %   PDE: 0 = alp*w_{ssss} + bet*w_{tt}      |
 %     BCs w(s=0) = 0,        w_{ss}(s=1) = 0         |                               Peet 2019 [8] (Example 8.1.0.1)
@@ -26,6 +10,28 @@ alp = 0.1;     bet = 1;
 %             x2_{t} = x_1           |
 %   BCs: x2(s=0) = 0,        x2_{ss}(s=1) = 0      |
 %        x2_{s}(s=0)= 0        x2_{sss}(s=1)= 0    |
+% using PDE states x1=w_{t}, x2=w and PIE states (w_{t,ssss},w_{ssss})
+clc; clear; clear stateNameGenerator
+pvar s t; % define independent variables
+% TImoshenko Beam Model, 4-th order in time implementation
+% collapse to Euler-Bernoulli model when gam=delt=0 
+%   PDE: 0 = alp*w_{ssss} + bet*w_{tt}              |
+%             - gam*w_{ttss} + delt*w_{tttt}             |
+% alp=E*I, beta= rho*A, gam= rhoI+E*I*rho/k/G, rho^2*I/k/G 
+%   Use states:                                     |
+%        x1 = w_{ttt},      x2 = w_{t},             |
+%        x3 = w_{tt},       x4 = w.                 |
+%% Specify the parameters
+% Assuming E=I=rho=A=G=k=1,
+alp = 0.1;     bet = 1; 
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
+% -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 pde_var x %x2 x3 x4
 x.vars = s;  %  x2.vars = s;    x3.vars = s;    x4.vars = s;   
 %% Define equations

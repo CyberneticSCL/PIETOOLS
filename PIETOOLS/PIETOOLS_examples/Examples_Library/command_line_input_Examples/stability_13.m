@@ -1,22 +1,28 @@
 %% Euler-Bernoulli Equation
 % Parabolic/Diffusive implementation
-% using PDE states x1=w_{t}, x2=w_{s} and PIE states (w_{t,ss},w_{t,ss})
-clc; clear; clear stateNameGenerator
-pvar s t; % define independent variables
-%% Define dependent variables and system variable
 % % This case uses PDE states x1 = u_{t}, x2 = u_{ss}, so that the system becomes
 % % PDE        x1_{t} = -c * x2_{ss}
-% %            x2_{t} = x1_{ss}
-% % with BCs   x1(0) = 0, x2(1) = 0, x1_{s}(0) = 0, x2_{s}(1) = 0
-% Construct the PDE.
+% %            x2_{t} = x1_{ss}                          | (PDE stable)
+% % with BCs   x1(0) = 0, x2(1) = 0, x1_{s}(0) = 0, x2_{s}(1) = 0   
+clc; clear; clear stateNameGenerator
+pvar s t; % define independent variables
+% Define dependent variables and system variable
 x1=pde_var(s,[0,1]); x2=pde_var(s,[0,1]); 
+%% Specify the parameters
 c = 0.1;
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
 %% Define equations
 eq_PDE = [diff(x1,t,1)==-c*diff(x2,s,2); % PDE        x1_{t} = -c * x2_{ss}
                    diff(x2,t,1)==diff(x1,s,2);]%           x2_{t} = x1_{ss}
 eq_BC = [subs(x1,s,0)==0;subs(diff(x1,s,1),s,0)==0;% with BCs   x1(0) = 0, x1_{s}(0) = 0, 
          subs(x2,s,1)==0;subs(diff(x2,s,1),s,1)==0];  % x2(1) = 0, x2_{s}(1) = 0
-%% initialize pde system;
+%% initialize pde system; PIE states (u_{tss},u_{ssss})
 PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie
 display(PDE);
