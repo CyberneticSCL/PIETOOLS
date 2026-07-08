@@ -2,12 +2,17 @@ clc; clear;
 % Aop: L2^k[varmid] -> L2^m[varout]
 % Bop: L2^n[varin] -> L2^k[varmid]
 
-m = 1; n = 1; k = 1;
+% runtime 
+% 3D->3D opvars density(0.01) = 100-300 sec, density(0.9) = 10-60 sec;
+% 2D->2D opvars density(0.01) = 0.05-0.16 sec, density(0.9) =  0.07-0.2 sec;
+% 1D->1D opvars density(0.01) = 0.0025-0.0040 sec, density(0.9) =  0.0030-0.0090 sec;
+
+m = 2; n = 2; k = 2;
 maxvars = 3;
 
-nvarsin = randi([1,floor(maxvars)]);
-nvarsmid = randi([1,floor(maxvars)]);
-nvarsout = randi([1,floor(maxvars)]);
+nvarsin = randi([3,floor(maxvars)]);
+nvarsmid = randi([3,floor(maxvars)]);
+nvarsout = randi([3,floor(maxvars)]);
 
 varin = cellstr(sort("s"+string(randperm(maxvars,nvarsin))));
 varmid = cellstr(sort("s"+string(randperm(maxvars,nvarsmid))));
@@ -32,7 +37,7 @@ Bdegs = struct('in',randi(2,1,length(Bvars.in)), ...
                'out',randi(2,1,length(Bvars.out)));
 
 pdeg_x = 4;             % maximal monomial degree of test function
-dnsty = 0.1;           % density of coefficient matrices
+dnsty = 0.01;           % density of coefficient matrices
 
 % Generate random sopvar operators
 Bop = rand_sopvar([k,n],Bvars,Bdom,Bdegs,dnsty);
@@ -43,7 +48,10 @@ vars_x = polynomial(Bop.vars.in(:));
 x = rand_poly([n,1],vars_x,pdeg_x,50);
 %%
 % Compute composition
-Cop = mtimes(Aop,Bop);
+
+Cop = @() mtimes(Aop,Bop);
+t=timeit(Cop);
+Cop = Cop();
 
 % Compare direct composed application with sequential application
 Bx = apply_sopvar(Bop,x);

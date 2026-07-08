@@ -61,7 +61,7 @@ end
 
 %B [s1,s3a,s3b] -> [s2a,s2b,s3a,s3b] S1=s1, S3 = [s3a,s3b], S2 = [s2a,s2b]
 %A [s2a,s2b,s3a,s3b] -> [s4,s2a,s3a] S1=[s2b,s3b], S3 = [s2a,s3a], S2 = s4
-vs1 = B.vars_S1; vs4 = A.vars_S2;
+% vs1 = B.vars_S1; vs4 = A.vars_S2;
 vs3a = intersect(A.vars_S3,B.vars_S3);
 vs3b = setdiff(B.vars_S3,vs3a);
 vs2a = setdiff(A.vars_S3,vs3a);
@@ -79,7 +79,7 @@ else
     Csize = 3*ones(1,n3a);
 end
 % n3a=0 => Cparams (1x1), n3a=1 => Cparams (3x1), else Cparams (3x3x...x3) n3a times
-Cparams = repmat({zeros(Cdims)}, Csize);
+Cparams = repmat({sparse(Cdims(1),Cdims(2))}, Csize);
 % Initialization of C parameters done. Monomials C.ZL/ZR will be done at the end.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -139,11 +139,10 @@ alpha_b = unique(alphaIdx(:,colsalphab),'rows','stable');
 if nbeta == 0
     Aparams = reshape(A.params,1,1);
     CA = Aparams;
-
 elseif nbeta == 1
     Aparams = reshape(A.params,3,1);
 
-    if numel(colsbetaa) == 1
+    if isscalar(colsbetaa)
         % single beta variable belongs to beta_a
         CA = reshape(Aparams,3,1);
     else
@@ -166,7 +165,7 @@ if nalpha == 0
 elseif nalpha == 1
     Bparams = reshape(B.params,3,1);
 
-    if numel(colsalphaa) == 1
+    if isscalar(colsalphaa)
         % single alpha variable belongs to alpha_a
         CB = reshape(Bparams,3,1);
     else
@@ -234,7 +233,7 @@ p = prod(cellfun(@numel,A.ZR)); q = prod(cellfun(@numel,B.ZL));
 % where G_s3a is size len(Zhat_s2a)*p x len(Zhat_s3b)*q = g1 x g2
 [Zhat_s2a,G_s3a,Zhat_s3b, PL, PR] = ...
         int_2b(A.ZR,B.ZL,A.vars.in,vs2a,vs2b,vs3a,vs3b,dom2b);
-Gs3adim = [p*prod(cellfun(@numel,Zhat_s2a)),q*prod(cellfun(@numel,Zhat_s3b))];
+% Gs3adim = [p*prod(cellfun(@numel,Zhat_s2a)),q*prod(cellfun(@numel,Zhat_s3b))];
 
 % alpha_b is attached to a B-pass-through variable which A fully integrates
 % out.  Swapping the order of integration reverses lower and upper one-sided
@@ -491,30 +490,35 @@ CB_barR = {speye(qRbar*nBarR)};
 % CRtemp_alphaa{k}'     : right coefficient for alpha_a(k), transposed back
 % -------------------------------------------------------------------------
 nMid = A.dims(2);
+if nMid ~= 1
+    for i = 1:numel(C_gam_alp_beta)
+        C_gam_alp_beta{i} = kron(speye(nMid),C_gam_alp_beta{i});
+    end
+end
+CRtemp_alphaatransposed = cell(size(CRtemp_alphaa));
+for k = 1:numel(CRtemp_alphaa)
+    CRtemp_alphaatransposed{k} = CRtemp_alphaa{k}.';
+end
 
 for i = 1:numel(Cparams)
-
     Cparams{i} = sparse(size(CLtemp_betab{1},1),size(CRtemp_alphaa{1},1));
-
     for j = 1:size(beta_b,1)
         for k = 1:size(alpha_a,1)
-
             L = CLtemp_betab{j};
             M = C_gam_alp_beta{i,j,k};
-            R = CRtemp_alphaa{k}.';
+            R = CRtemp_alphaatransposed{k};
 
-            if nMid ~= 1
-                M = kron(speye(nMid),M);
-            end
-
-            if size(L,2) ~= size(M,1)
-                error('mtimes: left/middle dimension mismatch in Cparams construction.');
-            end
-
-            if size(M,2) ~= size(R,1)
-                error('mtimes: middle/right dimension mismatch in Cparams construction.');
-            end
-
+            % if nMid ~= 1
+            %     M = kron(speye(nMid),M);
+            % end
+            % 
+            % if size(L,2) ~= size(M,1)
+            %     error('mtimes: left/middle dimension mismatch in Cparams construction.');
+            % end
+            % 
+            % if size(M,2) ~= size(R,1)
+            %     error('mtimes: middle/right dimension mismatch in Cparams construction.');
+            % end
             Cparams{i} = Cparams{i} + L*M*R;
         end
     end
@@ -808,7 +812,7 @@ for i = 1:nbeta
                 %   col = idx_t + (idx_s-1)*nZ
                 %
                 % so Ci has size nE by nZ^2.
-                Ci = zeros(nE,nZ^2);
+                Ci = sparse(nE,nZ^2);
 
                 key = 100*gamma(ell) + 10*beta(ell) + alpha(ell);
 
@@ -916,6 +920,82 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Cout = rearrangeCoef(Cmul,C,p,q,Zint)
+% rearrangeCoef
+%
+% Sparse-safe version.
+%
+% Converts
+%
+%   (I_p \otimes Zmix(s,t)') * Cmul*C
+%
+% where
+%
+%   Zmix(s,t) = kron_i (Z_i(s_i) \otimes Z_i(t_i))
+%
+% into
+%
+%   (I_p \otimes Z(s)') * Cout * (I_q \otimes Z(t)).
+%
+% OUTPUT
+%   Cout : sparse matrix of size p*NZ by q*NZ
+
+Zint = Zint(:).';
+ns = cellfun(@numel,Zint);
+
+% Force sparse multiplication/storage.
+D = sparse(Cmul) * sparse(C);
+
+if isempty(ns)
+    Cout = D;
+    return
+end
+
+NZ = prod(ns);
+
+if ~isequal(size(D),[p*NZ^2,q])
+    error('rearrangeCoef: input dimensions are inconsistent.');
+end
+
+n = numel(ns);
+
+% D rows are ordered as:
+%
+%   t_n, s_n, t_{n-1}, s_{n-1}, ..., t_1, s_1, p
+%
+% We want Cout ordered as:
+%
+%   rows: s_n, ..., s_1, p
+%   cols: t_n, ..., t_1, q
+%
+% Instead of full(D), reshape, permute, reshape, we remap nonzero indices.
+
+[rowD,colD,valD] = find(D);
+
+oldDims = [repelem(fliplr(ns),2), p];
+
+oldSub = cell(1,2*n+1);
+[oldSub{:}] = ind2sub(oldDims,rowD);
+
+% Extract old indices.
+% oldSub = {t_n, s_n, t_{n-1}, s_{n-1}, ..., t_1, s_1, p}
+tSub = oldSub(1:2:2*n);
+sSub = oldSub(2:2:2*n);
+pSub = oldSub{2*n+1};
+
+% New row index: s_n, ..., s_1, p
+rowDims = [fliplr(ns), p];
+rowArgs = [sSub, {pSub}];
+rowCout = sub2ind(rowDims,rowArgs{:});
+
+% New column index: t_n, ..., t_1, q
+colDims = [fliplr(ns), q];
+colArgs = [tSub, {colD}];
+colCout = sub2ind(colDims,colArgs{:});
+
+Cout = sparse(rowCout,colCout,valD,NZ*p,NZ*q);
+
+end
+function Cout = rearrangeCoef_old(Cmul,C,p,q,Zint)
 % rearrangeCoef
 %
 % Converts
@@ -1112,7 +1192,7 @@ for k = 1:size(idxAll,1)
         nE = numel(E);
         nI = numel(Ei);
 
-        Ci = zeros(nE,nI);
+        Ci = sparse(nE,nI);
 
         switch idx(i)
 
