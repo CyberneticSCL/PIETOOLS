@@ -1,5 +1,5 @@
 function B = repelem(A,r1,r2)
-% B = REPMAT(A,R1,R2) returns returns a modified version of the operator A
+% B = REPELM(A,R1,R2) returns returns a modified version of the operator A
 % with each row repeated R1 times and each column repeated R2 times
 %
 % INPUTS
@@ -53,6 +53,7 @@ if any(size(repdim)~=[1,2])
 elseif any(~isnumeric(repdim)) || any(repdim~=round(abs(repdim)))
     error("Replication factors must be specified as nonnegative integers.")
 end
+r1 = repdim(1);     r2 = repdim(2);
 
 % By definition of the sopvar class, repmat of the operator reduces to just
 % repmat of the parameters.
