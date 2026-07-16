@@ -160,7 +160,7 @@ if nbeta == 0
 elseif nbeta == 1
     Aparams = reshape(A.params,3,1);
 
-    if isscalar(colsbetaa)
+    if ~isempty(colsbetaa)
         % single beta variable belongs to beta_a
         CA = reshape(Aparams,3,1);
     else
@@ -183,7 +183,7 @@ if nalpha == 0
 elseif nalpha == 1
     Bparams = reshape(B.params,3,1);
 
-    if isscalar(colsalphaa)
+    if ~isempty(colsalphaa)
         % single alpha variable belongs to alpha_a
         CB = reshape(Bparams,3,1);
     else
@@ -584,7 +584,7 @@ Cvars = struct('in',{Cvarsin},'out',{Cvarsout});
 Cdom  = struct('in',B.dom.in(idx_in,:), ...
                'out',A.dom.out(idx_out,:));
 
-C = sopvar(Cparams,Cvars,CZR,CZL,Cdom,Cdims);
+C = sopvar(Cparams,Cvars,CZL,CZR,Cdom,Cdims);
 end
 
 function Cparams_out = expandCommonFullIntegrals(Cparams_in,baseVars,finalVars)

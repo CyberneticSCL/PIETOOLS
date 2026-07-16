@@ -94,9 +94,9 @@ else
     R1 = combine(R1);
     R2 = combine(R2);
     
-    obj.R.R0 = quadPoly.quadPoly2polynomial(R0);
-    obj.R.R1 = quadPoly.quadPoly2polynomial(R1);
-    obj.R.R2 = quadPoly.quadPoly2polynomial(R2); 
+    obj.R.R0 = combine(quadPoly.quadPoly2polynomial(R0));
+    obj.R.R1 = combine(quadPoly.quadPoly2polynomial(R1));
+    obj.R.R2 = combine(quadPoly.quadPoly2polynomial(R2)); 
 end
 
 end

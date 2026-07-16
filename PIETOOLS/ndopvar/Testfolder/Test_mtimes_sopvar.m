@@ -7,12 +7,14 @@ clc; clear;
 % 2D->2D opvars density(0.01) = 0.05-0.16 sec, density(0.9) =  0.07-0.2 sec;
 % 1D->1D opvars density(0.01) = 0.0025-0.0040 sec, density(0.9) =  0.0030-0.0090 sec;
 
-m = 2; n = 2; k = 2;
-maxvars = 3;
+% higher m x n scaling, degree scaling
 
-nvarsin = randi([3,floor(maxvars)]);
-nvarsmid = randi([3,floor(maxvars)]);
-nvarsout = randi([3,floor(maxvars)]);
+m = 2; n = 2; k = 2;
+maxvars = 1;
+
+nvarsin = randi([1,floor(maxvars)]);
+nvarsmid = randi([1,floor(maxvars)]);
+nvarsout = randi([1,floor(maxvars)]);
 
 varin = cellstr(sort("s"+string(randperm(maxvars,nvarsin))));
 varmid = cellstr(sort("s"+string(randperm(maxvars,nvarsmid))));
