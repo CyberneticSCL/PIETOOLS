@@ -29,7 +29,7 @@ stability=0; stability_dual=0;
 Hinf_gain=0; Hinf_gain_dual=0; H2_norm=0; H2_norm_dual=0;
 Hinf_control=0; Hinf_estimator=0; H2_control=0; H2_estimator=0;
 
-DDE_minimal_rep=1;
+DDE_minimal_rep=0;
 % sosineq_on=1; 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -241,7 +241,8 @@ if DDE_minimal_rep==1
     PIE = convert_PIETOOLS_DDF(DDF,'pie');  
 else
    % % Conversion from DDE to DDF using the formulation in our Automatica Paper.
-    PIE=convert_PIETOOLS_DDE2PIE(DDE);
+   PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE);
+%    PIE=convert_PIETOOLS_DDE2PIE(DDE);
 end
 
 

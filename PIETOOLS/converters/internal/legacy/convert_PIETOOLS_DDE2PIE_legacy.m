@@ -139,8 +139,8 @@ B1op.I = [-1 0]; B1op.dim=[nx nw; nxb 0]; B1op.var1 = s1; B1op.var2 = s1_dum;
 B2op.I = [-1 0]; B2op.dim = [nx nu; nxb 0]; B2op.var1 = s1; B2op.var2 = s1_dum;
 D11op.I = [-1 0]; D11op.dim = [nz nw; 0 0]; D11op.var1 = s1; D11op.var2 = s1_dum;
 D12op.I = [-1 0]; D12op.dim = [nz nw; 0 0]; D12op.var1 = s1; D12op.var2 = s1_dum;
-D21op.I = [-1 0]; D21op.dim = [nz nw; 0 0]; D21op.var1 = s1; D21op.var2 = s1_dum;
-D22op.I = [-1 0]; D22op.dim = [nz nw; 0 0]; D22op.var1 = s1; D22op.var2 = s1_dum;
+D21op.I = [-1 0]; D21op.dim = [ny nw; 0 0]; D21op.var1 = s1; D21op.var2 = s1_dum;
+D22op.I = [-1 0]; D22op.dim = [ny nw; 0 0]; D22op.var1 = s1; D22op.var2 = s1_dum;
 TB1op.I = [-1 0]; TB1op.dim = [nx nw; nxb 0]; TB1op.var1 = s1; TB1op.var2 = s1_dum;
 TB2op.I = [-1 0]; TB2op.dim = [nx nu; nxb 0]; TB2op.var1 = s1; TB2op.var2 = s1_dum;
 
