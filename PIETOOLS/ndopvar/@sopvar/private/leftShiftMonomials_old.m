@@ -1,4 +1,4 @@
-function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
+function [varsC,ZC,CC] = leftShiftMonomials_old(varsA,ZA,CA,varsB,ZB,CB)
 % leftShiftMonomials_SS
 %
 % Computes
@@ -137,59 +137,33 @@ for I = 1:nI
             error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');
         end
 
-        % % % % % % % % % % NEW COMPUTATION OF G % % % % % % % %
-        % tic;
-        rowsAA = 1:NA:(p*NA);
-        rowsAA = kron(ones(1, NA), rowsAA) + kron(0:(NA-1), ones(size(rowsAA)));   
-        Aperm = Acoef(rowsAA, :); 
-        % Aperm contains [A1; A2; ... Ai, ... A_{NA}]
-        rowsBB = 1:NB:(q*NB);
-        rowsBB = kron(ones(1, NB), rowsBB) + kron(0:(NB-1), ones(size(rowsBB)));  
-        Bperm = Bcoef(rowsBB, :);
-        % Bperm contains [B1; B2; ... Bi; ... B_{NB}]
+        G = zeros(p,r,NC);
 
-        qBperm = size(Bperm, 1)/NB;
-        pBperm = size(Bperm, 2);
-        qAperm = size(Aperm, 1)/NA;
-        pAperm = size(Aperm, 2);
+        for ia = 1:NA
 
-        % Now transform [A1; ...; AN] -> [A1, .. AN];
+            rowsA = ia:NA:(p*NA);
+            Ai = Acoef(rowsA,:);
 
-        [rows_A, cols_A, vals_A] = find(Aperm);
-        blk_idx = floor((rows_A-0.5)/qAperm);
-        new_rowidx = mod(rows_A-1, qAperm) + 1;
-        cols_A = cols_A + blk_idx*pAperm;
-        Aperm = sparse(new_rowidx, cols_A, vals_A, qAperm, NA*pAperm);
+            ea = EAc(ia,:);
 
+            for ib = 1:NB
 
+                rowsB = ib:NB:(q*NB);
+                Bj = Bcoef(rowsB,:);
 
-        % Construct C such that C(i, j, :) = EAc(i, :) + EBc(j, :);
-        EC3d = reshape(EAc, [], 1, size(EAc, 2)) + reshape(EBc, 1, [], size(EBc, 2));
-        % Now EC2d is a 2darray with EC2d(i, :) = EAc(*, :) + EBc(**, :)
-        EC2d = reshape(EC3d, [], size(EC3d, 3));
-        [~, Idx_array] = ismember(EC2d, EC, 'rows');
-        Idx_array = reshape(Idx_array, NA, NB); 
-        % Idx_array(i, j) = k if G(:, :, k) = ... + A_i B_j + ... 
+                e = ea + EBc(ib,:);
 
-        
-        H = zeros(p*NC, r);
-        for mask_idx = 1:max(Idx_array, [], 'all') % 1:NC
-            mask = (Idx_array == mask_idx); % NA x NB
-            % mask have at most one non-zero element in every row and
-            % column, since monomial degrees are unique
-            [row_idx, col_idx, ~] = find(mask); % we need to find sum A_{row_IDX} B_{col_IDX};
-            % Next we find row idx and col idx in A and B
-            subrow_A = kron(ones(1, length(row_idx')), 1:(pAperm)) + kron((row_idx'-1)*pAperm, ones(1, pAperm));
-            subrow_B = kron(ones(1, length(col_idx')), 1:(qBperm)) + kron((col_idx'-1)*qBperm, ones(1, qBperm));
-            sub_A = Aperm(:, subrow_A);
-            sub_B = Bperm(subrow_B, :);
-            % We need to compute the sum of this blocks
-            left_idxs = mask_idx:NC:(p*NC); % to avoid permutation
-            H(left_idxs, :) = sub_A*sub_B;
+                k = find(all(EC == e,2),1);
+
+                if isempty(k)
+                    error('leftShiftMonomials_SS: internal monomial basis mismatch.');
+                end
+
+                G(:,:,k) = G(:,:,k) + Ai*Bj;
+            end
         end
 
-        CC{I,J} = H;
-
+        CC{I,J} = reshape(permute(G,[3 1 2]),[NC*p,r]);
     end
 end
 
