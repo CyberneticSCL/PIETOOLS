@@ -16,9 +16,11 @@ classdef(InferiorClasses={?polynomial,?opvar}) sdopvar
     %         S_2 is the variables in y(S2,S3) (output) not in S3 (common)
     %         S_3 is the variables common to x (input) and y (output)
     %         S_3dum are dummy versions of the variables in S_3
+    %         C(alpha) = A(alpha) + Bt(alpha)*d, where d is column vector
+    %         of decision variables
     %
     % CLASS properties
-    % Each kernel represents
+    % Each kernel of the PI operator is represented as
     % K_alpha = 
     % (I_dims(1)\otimes ZL(s2,s3)') 
     %          unvec(params.A(alpha) + params.Bt(alpha)*Zd)
