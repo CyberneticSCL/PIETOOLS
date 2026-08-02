@@ -20,24 +20,24 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %         S_3dum are dummy versions of the variables in S_3
     %
     % CLASS properties
-    % - P.C:   3x3x3x3...x3 Cell array of Quadpoly objects, where n_3 is the number of variables in S_3;
-    %           Each quadpoly has the structure (I X Z_d(S_2,S_3)) C{alpha} (I X Z_d(S_3dum,S_1))
+    % - P.params:   3^n3 (stored as 3x3...x3) Cell array of sparse matrices, where n_3 is the number of variables in S_3;
     % - P.dims:   2x1 vector specifying the rows and columns of the operator i.e. [p,q];
-    % - P.vars_S1: n1x1 cell array specifying the unique names of the spatial
-    % variables in S1. There should be no duplication with S2 or S3
-    % - P.vars_S2: n2x1 cell array specifying the unique names of the spatial
-    % variables which appear in S2, these should be no duplication with S1 and S3
-    % - P.vars_S3: n3x1 cell array specifying the unique names of the spatial
-    % variables which appear in S3, these should be no duplication with S1 and
-    % S2 and the naming of the dummy variables in S3dum, should be copies of
-    % the variables in S3, with the appendix '_dum'
-    % - P.dom_1: ordered n1x2 array specifying the spatial domain of each
-    % variable in S1, so that dom_1(i,:) = [ai,bi] -> S1_i \in [ai,bi]
-    % - P.dom_2: ordered n2x2 array specifying the spatial domain of each
-    % variable in S2, so that dom_2(i,:) = [ai,bi] -> S2_i \in [ai,bi]
-    % - P.dom_3: ordered n3x2 array specifying the spatial domain of each
-    % variable in S3, so that dom_3(i,:) = [ai,bi] -> S3_i \in [ai,bi] and S3_dum_i \in [ai,bi]
-    %
+    % - P.vars: a structure with fields 'in' and 'out'
+    % - P.vars.in: a cell array specifying the unique sorted names of the spatial
+    % variables in the input function space
+    % - P.vars.out: a cell array specifying the unique sorted names of the spatial
+    % variables in the output function space
+    % - P.dom.: struct object with fields 'in' and 'out'
+    % - P.dom.in: ordered array (2 columns) specifying the spatial domain of each
+    % variable in P.vars.in, so that dom(i,:) = [ai,bi] -> vars.in(i) \in [ai,bi]
+    % - P.dom.out: same as P.dom.in but for out variables stored in
+    % P.vars.out
+    % - ZL: cell array of column vectors representing exponents of
+    % monomials in P.vars.out. That is monomials are constructed by as
+    % follows: ZL(P.vars.out) = P.vars.out(1).^ZL{1}\otimes ... P.vars.out(i).^ZL{i}... 
+    % - ZR: cell array of column vectors representing exponents of
+    % monomials in P.vars.in. That is monomials are constructed by as
+    % follows: ZR(P.vars.in) = P.vars.in(1).^ZR{1}\otimes ... P.vars.in(i).^ZR{i}... 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Copyright (C) 2026 PIETOOLS Team
     %
