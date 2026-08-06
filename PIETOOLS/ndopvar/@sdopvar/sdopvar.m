@@ -42,7 +42,7 @@ classdef(InferiorClasses={?polynomial,?opvar}) sdopvar
     end
 
     methods
-        function P = sopvar(params,vars,Zd,ZL,ZR,dom,dims)
+        function P = sdopvar(params,vars,Zd,ZL,ZR,dom,dims)
             P.params = params;
             P.vars = vars;
             P.dom = dom;
