@@ -21,6 +21,27 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 %   ZC    : merged/product monomial basis
 %   CC    : nI-by-nJ cell array, CC{I,J} has size p*NC by r
 
+% % % % % % % % % % COMPUTATION v3 % % % % % % % %
+% We need to compute (I_p otimes Z1^T) A (I_q otimes Z^2T) B
+% we have that A (I_q otimes Z2^T) = (A otimes 1)(I_q otimes Z2) =
+%              A otimes Z2^T =(I_{p*Na} otimes Z2^T)(A otimes I_Nb)
+%
+%
+% Also, we have
+%      (I_p otimes Z1^T)(I_{p*Na} otimes Z2^T) =
+%     (I_p otimes Z1^T)(I_{p} otimes I_{Na} otimes Z2^T) =
+%      I_p otimes (Z1^T (I_{Na} otimes Z2^T)) = 
+%      I_p otimes (Z1^T otimes 1)(I_{Na} otimes Z2^T) =
+%      I_p otimes (Z1^T otimes Z2^T) 
+% Given (Z1^T otimes Z2^T) = Z3^T Q, we have
+%      I_p otimes (Z1^T otimes Z2^T) = I_p otimes (Z3^T Q) =
+%      (I_p otimes Z3^T)(I_p otimes Q)
+%
+% Then, 
+% Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
+%       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
+%          p x           Q is Nc x Na*Nb 
+
 varsA = varsA(:).';
 varsB = varsB(:).';
 ZA = ZA(:).';
@@ -119,7 +140,22 @@ for t = 1:nC
     EC(:,t) = kron(ones(left,1),kron(ZC{t}(:),ones(right,1)));
 end
 
-CC = cell(nI,nJ);
+% % % % % Computing Q such that ZA otimes ZB = Q ZC % % % % % 
+
+
+EC3dt = reshape(EAc, 1,  [],size(EAc, 2)) + reshape(EBc, [], 1, size(EBc, 2));
+% Now EC2d is a 2darray with EC2d(i, :) = EAc(*, :) + EBc(**, :)
+EC2dt = reshape(EC3dt, [], size(EC3dt, 3));
+[~, Idx_array] = ismember(EC2dt, EC, 'rows');
+Qmat = sparse(Idx_array, 1:(NA*NB), ones(size(Idx_array)), NC, NA*NB);
+% Qmat Z3 = Z12
+% Idx_array = reshape(Idx_array, NA, NB); 
+% Idx_array = reshape(I)
+% Idx_array(i, j) = k if G(:, :, k) = ... + A_i B_j + ... 
+
+% x = rand(1);
+% Z12 = x.^EC2d;
+% Z3 =  x.^EC;
 
 for I = 1:nI
 
@@ -137,59 +173,19 @@ for I = 1:nI
             error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');
         end
 
-        % % % % % % % % % % NEW COMPUTATION OF G % % % % % % % %
-        % tic;
-        rowsAA = 1:NA:(p*NA);
-        rowsAA = kron(ones(1, NA), rowsAA) + kron(0:(NA-1), ones(size(rowsAA)));   
-        Aperm = Acoef(rowsAA, :); 
-        % Aperm contains [A1; A2; ... Ai, ... A_{NA}]
-        rowsBB = 1:NB:(q*NB);
-        rowsBB = kron(ones(1, NB), rowsBB) + kron(0:(NB-1), ones(size(rowsBB)));  
-        Bperm = Bcoef(rowsBB, :);
-        % Bperm contains [B1; B2; ... Bi; ... B_{NB}]
-
-        qBperm = size(Bperm, 1)/NB;
-        pBperm = size(Bperm, 2);
-        qAperm = size(Aperm, 1)/NA;
-        pAperm = size(Aperm, 2);
-
-        % Now transform [A1; ...; AN] -> [A1, .. AN];
-
-        [rows_A, cols_A, vals_A] = find(Aperm);
-        blk_idx = floor((rows_A-0.5)/qAperm);
-        new_rowidx = mod(rows_A-1, qAperm) + 1;
-        cols_A = cols_A + blk_idx*pAperm;
-        Aperm = sparse(new_rowidx, cols_A, vals_A, qAperm, NA*pAperm);
-
-
-
-        % Construct C such that C(i, j, :) = EAc(i, :) + EBc(j, :);
-        EC3d = reshape(EAc, [], 1, size(EAc, 2)) + reshape(EBc, 1, [], size(EBc, 2));
-        % Now EC2d is a 2darray with EC2d(i, :) = EAc(*, :) + EBc(**, :)
-        EC2d = reshape(EC3d, [], size(EC3d, 3));
-        [~, Idx_array] = ismember(EC2d, EC, 'rows');
-        Idx_array = reshape(Idx_array, NA, NB); 
-        % Idx_array(i, j) = k if G(:, :, k) = ... + A_i B_j + ... 
 
         
-        H = zeros(p*NC, r);
-        for mask_idx = 1:max(Idx_array, [], 'all') % 1:NC
-            mask = (Idx_array == mask_idx); % NA x NB
-            % mask have at most one non-zero element in every row and
-            % column, since monomial degrees are unique
-            [row_idx, col_idx, ~] = find(mask); % we need to find sum A_{row_IDX} B_{col_IDX};
-            % Next we find row idx and col idx in A and B
-            subrow_A = kron(ones(1, length(row_idx')), 1:(pAperm)) + kron((row_idx'-1)*pAperm, ones(1, pAperm));
-            subrow_B = kron(ones(1, length(col_idx')), 1:(qBperm)) + kron((col_idx'-1)*qBperm, ones(1, qBperm));
-            sub_A = Aperm(:, subrow_A);
-            sub_B = Bperm(subrow_B, :);
-            % We need to compute the sum of this blocks
-            left_idxs = mask_idx:NC:(p*NC); % to avoid permutation
-            H(left_idxs, :) = sub_A*sub_B;
-        end
+        % % % % % % % % % % NEW COMPUTATION OF G % % % % % % % %
+        % Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
+        %       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
+        %          p x           Q is Nc x Na*Nb 
 
-        CC{I,J} = H;
 
+        IpQ = kron(speye(p),Qmat);
+        AINb= kron(Acoef, speye(NB));
+        H = IpQ*AINb*Bcoef;
+        CC{I, J} = H;
+        % max(abs(H - HH))
     end
 end
 

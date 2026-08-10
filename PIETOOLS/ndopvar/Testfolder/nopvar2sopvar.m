@@ -1,15 +1,15 @@
 function obj = nopvar2sopvar(obj_ndopvar)
-% OBJ = SOPVAR2OPVAR(OBJSOPVAR) takes a sopvar object representing a 4-PI
-% operator component and returns an opvar object representing the same
+% OBJ = SOPVAR2OPVAR(OBJSOPVAR) takes a nopvar object representing a 4-PI
+% operator component and returns an sopvar object representing the same
 % operator.
 %
 % INPUTS
-% - objndopvar:  'ndopvar' object representing a nd PI operator. It can not
+% - objndopvar:  'nopvar' object representing a nd PI operator. It can not
 %               map between different function space, 
 %               (i.e. L2^n to L2^n);
 %
 % OUTPUTS
-% - obj:        'sdopvar' object representing the same operator as the input;
+% - obj:        'sopvar' object representing the same operator as the input;
 %                        in the dsopvar form
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,6 +1,6 @@
 function obj = ndopvar2sdopvar(obj_ndopvar)
-% OBJ = SOPVAR2OPVAR(OBJSOPVAR) takes a sopvar object representing a 4-PI
-% operator component and returns an opvar object representing the same
+% OBJ = SOPVAR2OPVAR(OBJSOPVAR) takes a ndopvar object representing a 4-PI
+% operator component and returns an sdopvar object representing the same
 % operator.
 %
 % INPUTS
