@@ -114,11 +114,12 @@ for ii=1:numel(A)
     column_idx = kron(ones(1, dims(2)), column_idx);
     [~, cols_mon, ~] = find(column_idx);
 
-    A_sub = A{ii};
-    B_sub = Bt{ii};
-    
-    A_sub = reshape(A_sub, left_size_block,right_size);
-    B_sub = reshape(B_sub, left_size_block*n_dvarnames, right_size);
+    A_sub = reshape(A{ii}, left_size_block,right_size);
+    B_sub = sparse(left_size_block*n_dvarnames, right_size);
+    for jj = 1:n_dvarnames
+        rows_jj = (jj-1)*left_size_block + (1:left_size_block);
+        B_sub(rows_jj,:) = reshape(Bt{ii}(:,jj), left_size_block,right_size);
+    end
 
     C_sub = [A_sub; B_sub];
     C_new{ii} = C_sub(:, cols_mon); 
