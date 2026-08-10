@@ -38,7 +38,9 @@ classdef(InferiorClasses={?polynomial,?opvar}) sdopvar
         ZL = {};
         ZR = {};
         Zd = {};
-        params = struct('A', {0},'Bt', {});
+        params = struct('A', {0},'B', {});  % represents C(d) = unvec(A + B'*d)
+        % for an m-by-n decision opvar, A is size m*n-by-1, Bt is size
+        % m*n-by-nd. nd >> m*n, so store B?
     end
 
     methods

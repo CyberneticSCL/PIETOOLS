@@ -13,10 +13,10 @@ mapB = ic(nA+1:end);
 
 
 % Build coefficient matrix over common parameter set
-Btout = sparse(size(CA.Bt,1), numel(ZdC));
-Btout(:,mapA) = CA.Bt;
-Btout(:,mapB) = Btout(:,mapB) + CB.Bt;
+Bout = sparse(numel(ZdC),size(CA.B,2));
+Bout(mapA,:) = CA.B;
+Bout(mapB,:) = Bout(mapB,:) + CB.B;
 
 Aout = CA.A + CB.A;
-CC = struct('A',Aout, 'Bt', Btout);
+CC = struct('A',Aout, 'B', Bout);
 end
