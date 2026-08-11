@@ -1,0 +1,8 @@
+To do: Specific to 
+decision matrices in the center
+1) batch_plus
+2) batch_lrmultiply
+3) plus   (sdopvar tests)
+4) mtimes (sdopvar)
+5) random sdopvar generator
+6) mtimes test function
