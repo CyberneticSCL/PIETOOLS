@@ -100,8 +100,12 @@ for ii=1:numel(P.C)
     C_new = sparse(rows, new_cols, vs, left_size_full, right_size);
     A_sub = C_new(1:left_size_block, :);
     B_sub = C_new((left_size_block+1):end, :);
-    A{ii} = reshape(A_sub, 1, []);
-    BT{ii} = reshape(B_sub, n_dvarnames, left_size_block*right_size);
+    A{ii} = reshape(A_sub, [], 1);
+    BT{ii} = sparse(left_size_block*right_size, n_dvarnames);
+    for jj = 1:n_dvarnames
+        rows_jj = (jj-1)*left_size_block + (1:left_size_block);
+        BT{ii}(:,jj) = reshape(B_sub(rows_jj,:), [], 1);
+    end
     % cdim = n*prod(deg(is_int)+1);
     % % Set sparse coefficients of dimension rdim x cdim
     % rho = (q+10)/(rdim*cdim);
