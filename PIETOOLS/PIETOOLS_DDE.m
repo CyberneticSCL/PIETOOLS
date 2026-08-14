@@ -70,7 +70,7 @@ DDE_minimal_rep=1;
 %
 %%%%%%%%%%%%%%%%%%%%%%%% Optional Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%         DDE.A{i} - matrices of dimension n x n (n is arbitrary)
+%         DDE.Ai{i} - matrices of dimension n x n (n is arbitrary)
 %         DDE.Ad{i} - matrix (n x n) of polynomial entries in independant variable s (a pvar) 
 %
 %         DDE.B1, DDE.B1i{i} - a matrix of dimension n x m (m is arbitrary)

@@ -99,6 +99,9 @@ else
         Zth=ZthT';
         [UT,DT,VT]=svd([Pb;HT'],'econ');
         rT=rank(DT);
+        if rT==0
+            error(['Delay ', int2str(i), ' has no associated coefficients. Remove the delay or correct the coefficients.'])
+        end
         UsT=UT(:,1:rT);
         VsT=VT(:,1:rT);
         DdT=diag(DT);
