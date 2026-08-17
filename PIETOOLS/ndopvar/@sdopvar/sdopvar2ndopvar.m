@@ -87,7 +87,7 @@ left_size_full = left_size_block*(length(dvarname) + 1);
 right_size = dims(2)*prod(cellfun(@(x) length(x), ZR));
 
 A = P.params.A;
-Bt= P.params.Bt;
+B= P.params.B;
 sz_C = size(A);
 n_dvarnames = length(dvarname);
 C_new = cell(size(A));
@@ -114,12 +114,8 @@ for ii=1:numel(A)
     column_idx = kron(ones(1, dims(2)), column_idx);
     [~, cols_mon, ~] = find(column_idx);
 
-    A_sub = reshape(A{ii}, left_size_block,right_size);
-    B_sub = sparse(left_size_block*n_dvarnames, right_size);
-    for jj = 1:n_dvarnames
-        rows_jj = (jj-1)*left_size_block + (1:left_size_block);
-        B_sub(rows_jj,:) = reshape(Bt{ii}(:,jj), left_size_block,right_size);
-    end
+    A_sub = reshape(A{ii}, left_size_block, right_size);
+    B_sub = reshape(B{ii}.', left_size_block*n_dvarnames, right_size);
 
     C_sub = [A_sub; B_sub];
     C_new{ii} = C_sub(:, cols_mon); 

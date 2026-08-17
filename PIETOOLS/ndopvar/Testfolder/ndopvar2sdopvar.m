@@ -72,7 +72,7 @@ left_size_block = dims(1)*prod(cellfun(@(x) length(x), ZL));
 left_size_full = (n_dvarnames+1)*left_size_block;
 right_size = dims(2)*prod(cellfun(@(x) length(x), ZR));
 A = cell(size(P.C));
-BT= cell(size(P.C));
+B= cell(size(P.C));
 for ii=1:numel(P.C) 
     % new C is dim(1)*len(Zl)*(len(dvarnames)+1) times (len(Zr)*dim(2))
     % need to determinated which columns to choose
@@ -101,18 +101,14 @@ for ii=1:numel(P.C)
     A_sub = C_new(1:left_size_block, :);
     B_sub = C_new((left_size_block+1):end, :);
     A{ii} = reshape(A_sub, [], 1);
-    BT{ii} = sparse(left_size_block*right_size, n_dvarnames);
-    for jj = 1:n_dvarnames
-        rows_jj = (jj-1)*left_size_block + (1:left_size_block);
-        BT{ii}(:,jj) = reshape(B_sub(rows_jj,:), [], 1);
-    end
+    B{ii} = reshape(B_sub, left_size_block*right_size, n_dvarnames).';
     % cdim = n*prod(deg(is_int)+1);
     % % Set sparse coefficients of dimension rdim x cdim
     % rho = (q+10)/(rdim*cdim);
     % Pop.C{ii} = sprand(rdim,cdim,rho);
 end
 
-params = struct('A', {A}, 'Bt', {BT});
+params = struct('A', {A}, 'B', {B});
 obj = sdopvar(params, vars, dvarname, ZL, ZR, dom, dims);
 
 end
