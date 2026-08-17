@@ -1,4 +1,4 @@
-function [CC,ZdC] = plus_dpvar(CA,CB,ZdA,ZdB)
+function [CC,ZdC] = plus_decparam(CA,CB,ZdA,ZdB)
 % Given two decision parameter structures of 
 % CA = CA.A + CA.Bt*ZdA
 % CB = CB.A + CB.Bt*ZdB,

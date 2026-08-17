@@ -6,3 +6,4 @@ decision matrices in the center
 4) mtimes (sdopvar)
 5) random sdopvar generator
 6) mtimes test function
+7) lpivar (sdopvar version)
