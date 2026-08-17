@@ -37,12 +37,12 @@ T2 = kron(C2R', C2L');
 % with the change of monomial basis,
 % C_1L C_1(d) C_1R + C_2L C_2(d) C_2R =unvec(T_1 A_1 +T_2 A_2 +(T_1 Bt_1 +T_2 Bt_2)*d)
 params_new.A = cell(size(A.params.A));
-params_new.Bt = cell(size(A.params.Bt));
+params_new.B = cell(size(A.params.B));
 for i=1:numel(A.params.A)
    % params.A{ii} = params.A{ii}+pb.A{ii};
   %  params.Bt{ii} = params.Bt{ii}+pb.Bt{ii};
     params_new.A{i} = T1*A.params.A{i} + T2*B.params.A{i};
-    params_new.Bt{i} = T1*A.params.Bt{i} + T2*B.params.Bt{i};
+    params_new.B{i} = A.params.B{i}*T1.' + B.params.B{i}*T2.';
 end
 C = sdopvar(params_new,A.vars,Zd,ZL,ZR,A.dom,A.dims);
 end
