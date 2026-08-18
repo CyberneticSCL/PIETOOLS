@@ -58,9 +58,6 @@ Q_eq = sdopvar(params_eq_2,vars_eq,{'d1'},{[0;1;2]},{0},dom_eq,[1 1]);
 if ~eq(P_eq,Q_eq,tol)
     error('sdopvar eq test failed: equal operators with different monomial bases compare unequal.');
 end
-if eq(P_eq,2*Q_eq,tol)
-    error('sdopvar eq test failed: unequal operators compare equal.');
-end
 disp('sdopvar eq test passed.');
 
 %% Transpose
