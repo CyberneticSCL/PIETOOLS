@@ -16,19 +16,14 @@ if nvars3>0 && numel(params.A)==3^nvars3
     params.A = params.A(idx{:});
     params.B = params.B(idx{:});
 end
-
-function K = transposeVecMap(m,n)
-old_idx = reshape(1:m*n,m,n);
-new_idx = reshape(1:m*n,n,m).';
-K = sparse(new_idx(:),old_idx(:),1,m*n,m*n);
-end
 old_left_size  = A.dims(1) * prod(cellfun(@numel,A.ZL));
 old_right_size = A.dims(2) * prod(cellfun(@numel,A.ZR));
+% K maps vec(C) to vec(C').
 K = transposeVecMap(old_left_size,old_right_size);
 % loop over every kernel cell.
 for ii=1:numel(params.A)
-    % K maps vec(C) to vec(C'). Since B stores vec(C_i)' by rows, multiply
-    % by K' on the right to transpose every decision coefficient at once.
+    % Since B stores vec(C_i)' by rows, multiply
+    % by K' on the right to transpose.
     params.A{ii} = K*params.A{ii};
     params.B{ii} = params.B{ii}*K.';
 end
@@ -36,3 +31,13 @@ At_vars = struct('in',{A.vars.out},'out',{A.vars.in});
 At_dom = struct('in',A.dom.out,'out',A.dom.in);
 At = sdopvar(params,At_vars,A.Zd,A.ZR,A.ZL,At_dom,[A.dims(2),A.dims(1)]);
 end
+
+function K = transposeVecMap(m,n)
+   % old_idx(i,j) is the linear index of C(i,j) in vec(C).
+    old_idx = reshape(1:m*n,m,n);
+    % new_idx(i,j) is the linear index where C(i,j) appears in vec(C.').
+    new_idx = reshape(1:m*n,n,m).';
+     % create m*n square sparse matrix with 1s in each row/column to encode the vec-transpose
+    K = sparse(new_idx(:),old_idx(:),1,m*n,m*n);
+end
+

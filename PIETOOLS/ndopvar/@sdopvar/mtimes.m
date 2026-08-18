@@ -35,6 +35,6 @@ elseif isnumeric(A) && isa(B,'sdopvar')
     params = MatrixMultiply(B.params,L,speye(right_size));
     C = sdopvar(params,B.vars,B.Zd,B.ZL,B.ZR,B.dom,[size(A,1),B.dims(2)]);
 else
-    error('Composition of sdopvar objects is not supported because option 3 is affine in the decision variables.');
+    error('Composition of sdopvar objects is not supported yet.');
 end
 end
