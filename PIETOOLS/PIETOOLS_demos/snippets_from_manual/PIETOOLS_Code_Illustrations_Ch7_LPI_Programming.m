@@ -149,7 +149,7 @@ Q = [-gam*Iw,           -D11',    -(P*B1+Z*D21)'*T;
      -D11,              -gam*Iz,  C1;
      -T'*(P*B1+Z*D21),  C1',      (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
 clear Q_opts
-Q_opts.psatz = 1;
+Q_opts.psatz = 4;
 prog = lpi_ineq(prog,-Q,Q_opts);
 
 % % lpi_eq

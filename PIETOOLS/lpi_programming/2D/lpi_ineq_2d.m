@@ -11,10 +11,24 @@ function [prog,Deop] = lpi_ineq_2d(prog,Pop,opts)
 %           operator must be symmetric for positivity to be enforced.
 % -opts:    (optional) 'struct' object specifying options for enforcing the
 %           inequality constraint Pop>=0. Specifically, using fields:
-%           opts.psatz: scalar integer, set to 1 or 2 to enforce Pop>=0
-%                       only on the spatial domain on which the operator is
-%                       defined. May decrease conservatism, but increases
-%                       computational cost. Defaults to 0.
+%           opts.psatz: p x 1 array of integers ranging from 1:4, specifying
+%                       which psatz terms to add in enforcing negativitiy.
+%                       Each element adds a term to the operator Deop for
+%                       which we set Pop = Deop>=0, i.e.
+%                           Deop = Deop_0 + Deop_1 + ... Deop_p
+%                       where Deop_0 is always present and declared to be
+%                       positive everywhere, and Deop_i is a term which may
+%                       be only locally positive, due to the inclusion of a
+%                       psatz multiplier defined by opts.psatz(i). This
+%                       multiplier is as follows:
+%                           1: gss(x,y)=(x-a)*(b-x). 
+%                           2: gss(x,y)=(y-c)*(d-y). 
+%                           3: gss(x,y)=(R^2 - (x-x_0)^2 - (y-y_0)^2),
+%                           where x_0=(b+a)/2, y_0=(d+c)/2, 
+%                               and R=norm([x-x_0;y-y_0]);
+%                           4: gss(x,y)=(x-a)*(b-x)*(y-c)*(d-y). 
+%                       Added terms may decrease conservatism, but will
+%                       increase computational cost. Defaults to [].
 %           opts.tol:   scalar 'double', specifying a tolerance below which
 %                       coefficients defining Pop are assumed to be 0.
 %                       These coefficients will be ignored when enforcing

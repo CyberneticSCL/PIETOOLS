@@ -191,8 +191,11 @@ if use_sosineq
 % D>=0, and requiring Q==D. In doing so, the necessary degrees of the
 % monomials defining D are established from the parameters defining Q.
 % We have almost no freedom in constructing the operator D.    
-    % We can, however, choose whether or not to add a Psatz term to D,
-    settings.ineq_opts.psatz = 0;
+    % We can, however, choose whether or not to add a Psatz term to D.
+    % Each element of the array adds a psatz term defined by the specified 
+    % multiplier (1, 2, 3, or 4)---the constant multiplier (0) is always
+    % present
+    settings.ineq_opts.psatz = [];
     
 else
 % Useing soseq, a constraint Q==D for D>=0 is also enforced, but now we 
@@ -226,7 +229,10 @@ else
     settings.eq_opts.exclude = zeros(1,16);    
     
     % Will we add a Psatz term?
-    settings.eq_use_psatz = [0;0];          	% Set to 1 or 2 or [1;2] to use psatz
+    % each element of the array adds a psatz term defined by the specified 
+    % multiplier (1, 2, 3, or 4)---the constant multiplier (0) is always
+    % present
+    settings.eq_use_psatz = [];
     for j=1:length(settings.eq_use_psatz)
         settings.eq_opts_psatz{j}.psatz = settings.eq_use_psatz(j);       
         settings.eq_opts_psatz{j}.sep = zeros(1,6);

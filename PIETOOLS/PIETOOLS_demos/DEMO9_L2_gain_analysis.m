@@ -128,7 +128,7 @@ prog = lpiprogram([s1;s2],[a,b;c,d]);
 Q = [-gam,        D',      (P*B)'*T;
      D,           -gam,    C;
      T'*(P*B),    C',     (P*A)'*T+T'*(P*A)];
-opts_Q.psatz = 2;
+opts_Q.psatz = 3;
 prog = lpi_ineq(prog,-Q,opts_Q);
 
 % % Set objective function:

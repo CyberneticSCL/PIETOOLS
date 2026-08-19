@@ -77,7 +77,12 @@ function [prog,Pop,Qmat,Zop,gss] = poslpivar_2d(prog,n,d,options)
 %   and columns associated to variables that do not appear in the monomial
 %   can be omitted, or should otherwise be set to zero.
 %
-%   options.psatz=1 if this is a psatz term. options.psatz=0 otherwise
+%   options.psatz: a scalar in {0,...,4}, specifying whether the positive 
+%   semidefinite matrix in the PSD operator is multiplied by a psatz
+%   multiplier. Set to 0 for constant multiplier, or set positive for
+%   multiplier which is only nonnegative on the PDE domain (see OUTPUT
+%   gss);
+%  if this is a psatz term. options.psatz=0 otherwise
 %   options.exclude is a length 16 binary vector where 
 %      options.exclude(i)=1 if we want to set $T_{ij}=0$ for j=1...16
 %   options.sep is a length 6 binary vector where
@@ -100,10 +105,12 @@ function [prog,Pop,Qmat,Zop,gss] = poslpivar_2d(prog,n,d,options)
 % - Zop:    mxn opvar object with all parameters given by monomial vectors,
 %           representing the monomial operator;
 % - gss:    scalar object of type 'polynomial', representing the function
-%           g(s) used to enforce positivity only on bounded domain. If
-%           options.psatz = 1, gss(x,y)=(x-a)*(b-x)*(y-c)*(d-y). If
-%           options.psatz = 2, gss(x,y)=(R^2 - (x-x_0)^2 - (y-y_0)^2),
+%           g(s) used to enforce positivity only on bounded domain. 
+%           If options.psatz = 1, gss(x,y)=(x-a)*(b-x). 
+%           If options.psatz = 2, gss(x,y)=(y-c)*(d-y). 
+%           If options.psatz = 3, gss(x,y)=(R^2 - (x-x_0)^2 - (y-y_0)^2),
 %           where x_0=(b+a)/2, y_0=(d+c)/2, and R=norm([x-x_0;y-y_0]);
+%           If options.psatz = 4, gss(x,y)=(x-a)*(b-x)*(y-c)*(d-y). 
 %           Otherwise, gss(x,y)=1;
 % 
 % NOTES:
@@ -512,16 +519,22 @@ rr = [rr1;rr2];
 
 % Define the multiplier function to be used later
 if psatz==0
+    % Multiplier is positive everywhere
     gss=polynomial(1);
 elseif psatz==1
-    gss=(ss1-I(1,1))*(I(1,2)-ss1)*(ss2-I(2,1))*(I(2,2)-ss2);
-    
+    % Multiplier is positive on the interval along the second variable
+    gss=(ss1-I(1,1))*(I(1,2)-ss1);    
 elseif psatz==2
+    % Multiplier is positive on the interval along the second variable
+    gss=(ss2-I(2,1))*(I(2,2)-ss2);
+elseif psatz==3
+    % Multiplier is positive on a circle enclosing the spatial domain
     cntr = [mean(I(1,:)),mean(I(2,:))];
     rds = norm([I(1,2),I(2,2)] - cntr);
-    
     gss = (rds^2 - (ss1-cntr(1))^2 - (ss2-cntr(2))^2);
-    
+elseif psatz==4
+    % Multiplier is positive only on the spatial domain
+    gss=(ss1-I(1,1))*(I(1,2)-ss1)*(ss2-I(2,1))*(I(2,2)-ss2);
 else
     error('options.psatz can only assume values 0, 1, and 2')
 end
