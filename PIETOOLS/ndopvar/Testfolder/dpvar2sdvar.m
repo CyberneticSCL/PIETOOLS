@@ -39,13 +39,24 @@ degmat_full = zeros(size(D.degmat,1),M+N);
 degmat_full(:,idcs1_new) = degmat(:,idcs1_old);
 degmat_full(:,M+idcs2_new) = degmat(:,idcs2_old);
 
+% Any variable of D that appears in neither vars.out nor vars.in would be
+% silently dropped from degmat_full, so refuse that case rather than
+% returning a parameter that represents a different object.
+vars_unused = setdiff(D.varname',[varnames1(:)',varnames2(:)']);            % MMP, 08/23/2026
+if ~isempty(vars_unused)                                                    % MMP, 08/23/2026
+    error("Variable '"+string(vars_unused{1})+"' appears in the input object "...
+          +"but in neither 'vars.in' nor 'vars.out'.")
+end                                                                         % MMP, 08/23/2026
+
 % Extract monomial degrees in common variables
+% Note that degmat_full is indexed by position in vars.out/vars.in, not by
+% position in D.varname, so the new indices must be used here.
 for i=1:numel(idcs1_new)
-    degs_i = unique(degmat_full(:,idcs1_old(i)));
+    degs_i = unique(degmat_full(:,idcs1_new(i)));                           % MMP, 08/23/2026
     ZL{idcs1_new(i)} = unique([ZL{idcs1_new(i)}; degs_i]);
 end
 for i=1:numel(idcs2_new)
-    degs_i = unique(degmat_full(:,idcs2_old(i)));
+    degs_i = unique(degmat_full(:,M+idcs2_new(i)));                         % MMP, 08/23/2026
     ZR{idcs2_new(i)} = unique([ZR{idcs2_new(i)}; degs_i]);
 end
    
