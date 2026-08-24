@@ -1,9 +1,13 @@
-
-
-function [C_gam_alp_beta,ZL,ZR] = int_semisep_AT(G,idxbeta,idxalpha,lims,Csize)
+function [CMat,ZL,ZR] = int_semisep_AT(G,idxbeta,idxalpha,lims,Csize)
 % int_semisep
 %
-% Converts
+% Evaluates the two-sided semiseparable integral of Sec. 6.1 of the sopvar
+% document,
+%
+%   int_{s''} I_beta(s-s'') I_alpha(s''-s') G(s'') ds''
+%       = sum_gamma (Delta_{p(gamma,alpha,beta)} G)(s,s') I_gamma(s-s')
+%
+% converting
 %
 %   G(s3a) = (I_g1 \otimes ZG(s3a)')*CG
 %
@@ -17,10 +21,11 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep_AT(G,idxbeta,idxalpha,lims,Csize)
 % INPUTS
 %   G.C      : coefficient matrix CG, size g1*NG by g2
 %   G.Z      : 1-by-ns3a cell array of exponent vectors
-%   idxbeta  : nbeta-by-ns3a array, beta_b indices
-%   idxalpha : nalpha-by-ns3a array, alpha_a indices
+%   idxbeta  : nbeta-by-ns3a array, beta indices, entries in {1,2,3}
+%   idxalpha : nalpha-by-ns3a array, alpha indices, entries in {1,2,3}
 %   lims     : ns3a-by-2 domain array
-%   Csize    : size of final C.params over gamma, used for compatibility
+%   Csize    : (optional) size of final C.params over gamma, used only for
+%              an input consistency check
 %
 % OUTPUTS
 %   C_gam_alp_beta : cell array of size 3^ns3a by nbeta by nalpha
@@ -30,6 +35,49 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep_AT(G,idxbeta,idxalpha,lims,Csize)
 % Each C_gam_alp_beta{k,i,j} has size
 %
 %   g1*prod(cellfun(@numel,ZL)) by g2*prod(cellfun(@numel,ZR))
+%
+% The index convention for beta, alpha and gamma is
+%   1 <-> 0   (multiplier, I_0(s) = delta(s))
+%   2 <-> +1  (lower integral, I_1(s)  = 1 for s>=0)
+%   3 <-> -1  (upper integral, I_-1(s) = 1 for s<=0)
+%
+% NOTES
+% This is the shared version of the routine. Near-identical copies exist as
+% @sopvar/private/int_semisep_AT.m and as local subfunctions of
+% @sopvar/mtimes.m and @sopvar/mtimes_AT.m; those should eventually be
+% replaced by calls to this function.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - int_semisep
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% SS, AT, 2026: Initial coding as @sopvar/private/int_semisep_AT
+% MP, 08/22/2026: Promoted to a shared function. Added a guard so that
+%                 partial (nbeta<3^ns3a, nalpha<3^ns3a) index lists are
+%                 supported, as the documented interface implies; the
+%                 previous version passed a zero subscript to sub2ind
+%                 whenever an enumerated key was absent from idxbeta or
+%                 idxalpha.
 
 ZG = G.Z(:).';
 CG = G.C;
@@ -93,13 +141,14 @@ if ns3a == 0
             C_gam_alp_beta{1,i,j} = CG;
         end
     end
-
+    CMat = cell(1);
+    CMat{1}= cell2mat(squeeze(C_gam_alp_beta(1, :, :)));
     ZL = {};
     ZR = {};
     return
 end
 
-if nargin >= 5 && prod(Csize) ~= 3^ns3a
+if nargin >= 5 && ~isempty(Csize) && prod(Csize) ~= 3^ns3a
     error('int_semisep: Csize is inconsistent with the number of s3a variables.');
 end
 
@@ -129,93 +178,86 @@ NR = NL;
 
 % Gamma multi-indices in the same linear order as 3-by-3-by-... parameter cells.
 gamIdx = fliplr(dec2base(0:3^ns3a-1,3,ns3a)-'0') + 1;
+% 
+% C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);
+% for idx_C = 1:numel(C_gam_alp_beta)
+%     C_gam_alp_beta{idx_C} = sparse(g1*NL,g2*NR);
+% end
 
-C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);
-for idx_C = 1:numel(C_gam_alp_beta)
-    C_gam_alp_beta{idx_C} = sparse(g1*NL,g2*NR);
+
+CMat = cell(length(gamIdx));
+for idx_C = 1:numel(CMat)
+    CMat{idx_C} = sparse(g1*NL*nbeta,g2*NR*nalpha);
 end
 
+% The eleven (gamma,beta,alpha) keys for which p(gamma,alpha,beta) is
+% nonzero, i.e. the eleven cases of the integral table in Sec. 6.1.
 cllA = [111   212   313   221   331   222   232   332   223   323   333];
 
+Ci_key_ell = cell(numel(cllA),ns3a);
 
 for key_idx = 1:length(cllA)
     key = cllA(key_idx);
-    % key3 = mod(key, 10);
-    % key2 = mod((key - key3)/10,10);
-    % key1 = mod((key - 10*key2 - key3)/100,10);
-    % 
-    % 
-    % un_indices_alpha = 1:length(idxalpha);
-    % un_indices_beta  = 1:length(idxbeta);
-    % un_indices_gamma = 1:length(gamIdx);
 
     for ell = 1:ns3a
-        % [indices_in_alpha, ~, ~] = find(idxalpha(:, ell) == key3); %
-        % [indices_in_beta,  ~, ~] = find(idxbeta(:, ell) == key2);  %
-        % [indices_in_gamma, ~, ~] = find(gamIdx(:, ell) == key1);   % 
-        % 
-        % un_indices_alpha = union(un_indices_alpha, indices_in_alpha);
-        % un_indices_beta  = union(un_indices_alpha, indices_in_beta);
-        % un_indices_gamma = union(un_indices_alpha, indices_in_gamma);
-
         E = ZG{ell}(:);
         ZE = ZL{ell}(:);
-        
+
         nE = numel(E);
         nZ = numel(ZE);
 
         Ci = sparse(nE,nZ^2);
         e = E;
         switch key
-    
+
             % Evaluation at s
             case {111,212,313}
                 coeffs = 0*e + 1;
                 exp_s  = e;
                 exp_t  = 0*e;
-    
+
             % Evaluation at t
             case {221,331}
                 coeffs = 0*e + 1;
                 exp_s  = 0*e;
                 exp_t  = e;
-    
+
             % int_t^s eta^e deta
             case 222
                 coeffs = [1./(e+1), -1./(e+1)];
                 exp_s  = [e+1, 0*e];
                 exp_t  = [0*e,   e+1];
-    
+
             % int_s^b eta^e deta
             case 232
                 coeffs = [b(ell).^(e+1)./(e+1), -1./(e+1)];
                 exp_s  = [0*e, e+1];
                 exp_t  = [0*e, 0*e];
-    
+
             % int_t^b eta^e deta
             case 332
                 coeffs = [b(ell).^(e+1)./(e+1), -1./(e+1)];
                 exp_s  = [0*e, 0*e];
                 exp_t  = [0*e, e+1];
-    
+
             % int_a^t eta^e deta
             case 223
                 coeffs = [-a(ell).^(e+1)./(e+1), 1./(e+1)];
                 exp_s  = [0*e, 0*e];
                 exp_t  = [0*e, e+1];
-    
+
             % int_a^s eta^e deta
             case 323
                 coeffs = [-a(ell).^(e+1)./(e+1), 1./(e+1)];
                 exp_s  = [0*e, e+1];
                 exp_t  = [0*e, 0*e];
-    
+
             % int_s^t eta^e deta
             case 333
                 coeffs = [-1./(e+1), 1./(e+1)];
                 exp_s  = [e+1, 0*e];
                 exp_t  = [0*e,   e+1];
-    
+
             % Empty interval / incompatible ordering
             otherwise
                 coeffs = [];
@@ -225,40 +267,48 @@ for key_idx = 1:length(cllA)
         for h = 1:size(coeffs, 2)
             [is, ~, ~] = find(ZE == exp_s(:, h)');
             [it, ~, ~] = find(ZE == exp_t(:, h)');
-        
+
             if isempty(is) || isempty(it)
                 error('int_semisep: internal basis construction error.');
             end
-        
+
             col = it + (is-1)*nZ;
             ind_Ci = sub2ind(size(Ci),1:length(e), col')';
             Ci(ind_Ci) = coeffs(:, h);
-            % if ~all(Ci(ind_Ci) == coeffs(:, h))
-            %     fprintf('ERROR')
-            % end
-            
         end
-    
 
-        Ci_key_ell{key_idx, ell} = Ci; 
-
+        Ci_key_ell{key_idx, ell} = Ci;
     end
- 
 end
- 
-
 
 cllA = str2double(num2cell(num2str(cllA')));
 all_possible_keys = cllA;
+% keys_length = 0;
+% % loop for constructing keys
+% for k = 1:3^ns3a
+%     gamma = gamIdx(k,:);
+%     for i = 1:nbeta    
+%         beta = idxbeta(i,:);    
+%         for j = 1:nalpha    
+%             alpha = idxalpha(j,:);
+%             keys_ = [gamma; beta; alpha];    
+%             if all(ismember(keys, cllA, 'rows'))
+%                 keys_ = reshape(keys, 1, []);
+%                 if ismember(keys, all_possible_keys, 'rows')
+%                     all_possible_keys(keys_length -1) = keys_;
+%                     keys_length = keys_length + 1;
+%                 end
+%             end
+%         end
+%     end
+% end
+
 
 for ell = 1:(ns3a-1)
     all_possible_keys = [ kron(all_possible_keys, ones(size(cllA, 1), 1)), kron(ones(size(all_possible_keys, 1), 1), cllA)];
 end
 
-
-
 for key_idx_arg = 1:size(all_possible_keys, 1)
-    % tic
     chosen_gamma = all_possible_keys(key_idx_arg, 1:3:size(all_possible_keys, 2));
     chosen_beta  = all_possible_keys(key_idx_arg, 2:3:size(all_possible_keys, 2));
     chosen_alpha = all_possible_keys(key_idx_arg, 3:3:size(all_possible_keys, 2));
@@ -267,42 +317,23 @@ for key_idx_arg = 1:size(all_possible_keys, 1)
     [~, un_indices_beta]  = ismember(chosen_beta, idxbeta, 'rows');   % i indices in C_gam_alp_beta
     [~, un_indices_gamma] = ismember(chosen_gamma, gamIdx, 'rows');   % k indices in C_gam_alp_beta
 
-    % un_indices_alpha = 1:length(idxalpha); % j indices in C_gam_alp_beta
-    % un_indices_beta  = 1:length(idxbeta);  % i indices in C_gam_alp_beta
-    % un_indices_gamma = 1:length(gamIdx);   % k indices in C_gam_alp_beta
+    % This (gamma,beta,alpha) key is not requested by the caller.
+    if un_indices_alpha==0 || un_indices_beta==0 || un_indices_gamma==0
+        continue
+    end
 
     Csep = 1;
     keys = all_possible_keys(key_idx_arg, :);
-    % key_idxs_in_Cikey = find(cllA)
     for ell = 1:ns3a
         lfi = ((ell - 1) * 3 + 1);
         rgi = (ell*3 );
         key = keys(lfi:rgi);
-        % key = all_possible_keys(key_idx_arg, ell);
-        % 
-        % key3 = mod(key, 10);
-        % key2 = mod((key - key3)/10,10);
-        % key1 = mod((key - 10*key2 - key3)/100,10);
-        % 
-        % [indices_in_alpha, ~, ~] = find(idxalpha(:, ell) == key3); %
-        % [indices_in_beta,  ~, ~] = find(idxbeta(:, ell) == key2);  %
-        % [indices_in_gamma, ~, ~] = find(gamIdx(:, ell) == key1);   % 
-        % 
-        % un_indices_alpha = intersect(un_indices_alpha, indices_in_alpha);
-        % un_indices_beta  = intersect(un_indices_beta,  indices_in_beta);
-        % un_indices_gamma = intersect(un_indices_gamma, indices_in_gamma);
 
-
-        [~, key_idx] = ismember(key, cllA, 'rows'); %find(cllA == key);
-        if isempty(key_idx)
-            Cihat = sparse(nE,nZ^2);
-        else
-            Cihat = Ci_key_ell{key_idx, ell};
+        [~, key_idx] = ismember(key, cllA, 'rows');
+        if key_idx==0
+            error('int_semisep: internal key lookup error.');
         end
-        Ci = Cihat;
-        % if ~all(Cihat == Ci, 'all')
-            % fprintf('ERROR')
-        % end
+        Ci = Ci_key_ell{key_idx, ell};
         Csep = kron(Csep,Ci);
     end
 
@@ -323,15 +354,27 @@ for key_idx_arg = 1:size(all_possible_keys, 1)
         error('int_semisep: output coefficient size mismatch.');
     end
 
-
-    ind_Cgam_alpha = sub2ind(size(C_gam_alp_beta), un_indices_gamma, un_indices_beta, un_indices_alpha);
-    if ~isempty(ind_Cgam_alpha)
-        C_gam_alp_beta{ind_Cgam_alpha} = Cnew;
-        % if ~all(C_gam_alp_beta{ind_Cgam_alpha(1)} == Cnew, 'all')
-        %     fprintf('error')
-        % end
-    end
+    % ind_Cgam_alpha = sub2ind(size(C_gam_alp_beta), un_indices_gamma, un_indices_beta, un_indices_alpha);
+    % C_gam_alp_beta{ind_Cgam_alpha} = Cnew;
+    left_CMAT_idx  = (1:(g1*NL)) + g1*NL*(un_indices_beta - 1);
+    right_CMAT_idx = (1:(g2*NR)) + g2*NR*(un_indices_alpha - 1);
+    CMat{un_indices_gamma}(left_CMAT_idx, right_CMAT_idx) = Cnew;
 end
+% (g1*NL*nbeta,g2*NR*nalpha)
+% C_gam_alp_beta is a cell array of size NxMxK
+% we can construct CMat -- cell array Nx1
+% where CMat{i} is a block matrix with elements
+%
+% CMat{i} = [C_gam_alp_beta{i, 1, 1}, ... , C_gam_alp_beta{i, 1, K};
+%           ...
+%           [C_gam_alp_beta{i, M, 1}, ... , C_gam_alp_beta{i, M, K}];
+%
+% sz_CGAB = length(gamIdx);
+% CMat = cell(sz_CGAB, 1);
+% for i = 1:numel(CMat)
+%     CMat{i} = cell2mat(squeeze(C_gam_alp_beta(i, :, :)));
+% end
+
 end
 
 
