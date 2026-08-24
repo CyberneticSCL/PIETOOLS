@@ -172,8 +172,10 @@ for k = 1:numel(Acell)
         B = sparse(ib,jb_full,vb,ndecvars,nC);
     end
 
-    params{k} = struct('A',A,'B',B);
+    Acell{k} = A;
+    Bcell{k} = B;
 end
 
-Pout = sdopvar(params,vars,Zd,ZL,ZR,dom,dims);
+params = struct('A',{Acell},'B',{Bcell});
+Pout = sdopvar(params,vars,Zd,ZL,ZR,dom,matdim);
 end

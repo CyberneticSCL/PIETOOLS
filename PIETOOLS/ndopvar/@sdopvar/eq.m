@@ -19,7 +19,7 @@ if any(P1.dims~=P2.dims)
     logval = false;
     return
 end
-if any(~strcmp(P1.vars.in,P2.vars.in)) || any(~strcmp(P1.vars.out,P2.vars.out))
+if ~isequal(cellstr(string(P1.vars.in(:))),cellstr(string(P2.vars.in(:)))) || ~isequal(cellstr(string(P1.vars.out(:))),cellstr(string(P2.vars.out(:))))
     logval = false;
     return
 end
