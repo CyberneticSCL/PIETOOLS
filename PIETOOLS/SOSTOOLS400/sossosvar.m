@@ -70,6 +70,10 @@ function [sos,V] = sossosvar(sos,ZSym,wscoeff,PVoption)
 % coefficient name declaration and degmat matrix declaration. Did not
 % remove redundant decision variable names yet, but that should be done.
 %
+% -MMP 08/23/2026: The dpvar branch compared "wscoeff == 'wscoeff'"
+% elementwise, so a third argument of any other length errored instead of
+% being ignored. Use strcmp, as every sibling site does.
+%
 
 
 
@@ -149,7 +153,7 @@ else
     
     [sos,V]=sosquadvar(sos,ZSym,ZSym,1,1,'pos');
     
-    if nargin > 2 & wscoeff == 'wscoeff'
+    if nargin > 2 && strcmp(wscoeff,'wscoeff')                              % MMP, 08/23/2026
         var = sos.var.num;
         for i = sos.var.idx{var}:sos.var.idx{var+1}-1
             dpvar(['coeff_',int2str(i-sos.var.idx{1}+1)]);
