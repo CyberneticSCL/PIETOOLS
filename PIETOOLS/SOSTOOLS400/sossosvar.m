@@ -63,6 +63,11 @@ function [sos,V] = sossosvar(sos,ZSym,wscoeff,PVoption)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Change log and developer notes
+%
+% -MMP 08/24/2026: The dpvar branch of 'wscoeff' rebuilt coefficient names
+% with int2str while sosquadvar names them via fastint2str, which zero-pads to
+% the digit width of the batch; the two diverge at >=10 decision variables.
+% Read the name from sos.decvartable instead of reformatting it.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % -MP 6/27/2021: updated to dpvar output.
@@ -156,8 +161,8 @@ else
     if nargin > 2 && strcmp(wscoeff,'wscoeff')                              % MMP, 08/23/2026
         var = sos.var.num;
         for i = sos.var.idx{var}:sos.var.idx{var+1}-1
-            dpvar(['coeff_',int2str(i-sos.var.idx{1}+1)]);
-            assignin('base',['coeff_',int2str(i-sos.var.idx{1}+1)],eval(['coeff_',int2str(i-sos.var.idx{1}+1)]));
+            cname = sos.decvartable{i};                                     % MMP, 08/24/2026
+            assignin('base',cname,dpvar(cname));                            % MMP, 08/24/2026
         end;
     end;
 end;
