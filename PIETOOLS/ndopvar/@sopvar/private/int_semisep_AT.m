@@ -185,7 +185,7 @@ gamIdx = fliplr(dec2base(0:3^ns3a-1,3,ns3a)-'0') + 1;
 % end
 
 
-CMat = cell(length(gamIdx));
+CMat = cell(length(gamIdx), 1);
 for idx_C = 1:numel(CMat)
     CMat{idx_C} = sparse(g1*NL*nbeta,g2*NR*nalpha);
 end
@@ -283,26 +283,7 @@ end
 
 cllA = str2double(num2cell(num2str(cllA')));
 all_possible_keys = cllA;
-% keys_length = 0;
-% % loop for constructing keys
-% for k = 1:3^ns3a
-%     gamma = gamIdx(k,:);
-%     for i = 1:nbeta    
-%         beta = idxbeta(i,:);    
-%         for j = 1:nalpha    
-%             alpha = idxalpha(j,:);
-%             keys_ = [gamma; beta; alpha];    
-%             if all(ismember(keys, cllA, 'rows'))
-%                 keys_ = reshape(keys, 1, []);
-%                 if ismember(keys, all_possible_keys, 'rows')
-%                     all_possible_keys(keys_length -1) = keys_;
-%                     keys_length = keys_length + 1;
-%                 end
-%             end
-%         end
-%     end
-% end
-
+ 
 
 for ell = 1:(ns3a-1)
     all_possible_keys = [ kron(all_possible_keys, ones(size(cllA, 1), 1)), kron(ones(size(all_possible_keys, 1), 1), cllA)];
@@ -359,21 +340,14 @@ for key_idx_arg = 1:size(all_possible_keys, 1)
     left_CMAT_idx  = (1:(g1*NL)) + g1*NL*(un_indices_beta - 1);
     right_CMAT_idx = (1:(g2*NR)) + g2*NR*(un_indices_alpha - 1);
     CMat{un_indices_gamma}(left_CMAT_idx, right_CMAT_idx) = Cnew;
-end
-% (g1*NL*nbeta,g2*NR*nalpha)
-% C_gam_alp_beta is a cell array of size NxMxK
-% we can construct CMat -- cell array Nx1
+end 
+% CMat is a cell array of size Nx1
 % where CMat{i} is a block matrix with elements
 %
 % CMat{i} = [C_gam_alp_beta{i, 1, 1}, ... , C_gam_alp_beta{i, 1, K};
 %           ...
 %           [C_gam_alp_beta{i, M, 1}, ... , C_gam_alp_beta{i, M, K}];
-%
-% sz_CGAB = length(gamIdx);
-% CMat = cell(sz_CGAB, 1);
-% for i = 1:numel(CMat)
-%     CMat{i} = cell2mat(squeeze(C_gam_alp_beta(i, :, :)));
-% end
+% 
 
 end
 
