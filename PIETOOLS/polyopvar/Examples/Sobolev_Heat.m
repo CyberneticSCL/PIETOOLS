@@ -14,33 +14,33 @@ clear;  clear stateNameGenerator
 % Declare the nonlinear PDE
 pvar   s t s_dum
 L = 1;
-a = 1;
-k = 2*a*pi^2/L^2;
+a0 = 1;
+k = 2.1*a0*pi^2/L^2;
 dom = [0,L];
 x = pde_var(s,dom);
 
 % FULL PDE
-PDE = [diff(x,t) == a*diff(x,s,2) +x^2- (k/L)*int(x,s,dom(1),dom(2));
+PDE = [diff(x,t) == a0*diff(x,s,2) +x^2- (k/L)*int(x,s,dom(1),dom(2));
        subs(diff(x,s,1),s,dom(1))==0; subs(x,s,dom(2))==0];
 
 
 % Script parameters
-q = 1.65*a*pi^2/L^2;     % For k=2*a*pi^2/L^2, stability can be verified with energy functional when |u|<q=a*pi^2/L^2
+q = 2.0*a0*pi^2/L^2; % For k=2*a*pi^2/L^2, stability can be verified with energy functional when |u|<q=a*pi^2/L^2
 q_sobolev = q/L;     % by Sobolev inequality, |u|^2 <= L*||u_{x}||_{L2}^2
 d = 1;               % degree of LF distributed monomial basis (will be doubled in LF).
-% pdeg = 4;            % degree of Zs monomials of positive P operator.
+pdeg = 4;            % degree of Zs monomials of positive P operator.
 
 % CARL: CONDITIONS TO REPLICATE EMILIA'S RESULT
-use_L2_LF = true;   % Express the Lyapunov function in terms of an L2 norm of the PDE state
+use_L2_LF = false;   % Express the Lyapunov function in terms of an L2 norm (if true) of the PDE state
 use_L2_ball = false; % Enforce bounds on the LF and derivative locally on an L2 ball (if TRUE) or Sobolev ball (if false) of radius R.
 
-% use_L2_pos = true;   % Enforce a lower bound on the LF in terms of the L2 norm of the PDE state
-use_L2_bnd = true;  % Enforce an upper bound on the LF in terms of the L2 norm of the PDE state
+use_L2_pos = false;   % Enforce a lower bound on the LF in terms of the L2 norm of the PDE state
+use_L2_bnd = false;  % Enforce an upper bound on the LF in terms of the L2 norm of the PDE state
 d_psatz1 = 1;
 d_psatz2 = 1; % degree of distributed monomial in upper bound condition of LF derivative.
 
-% eppos = 1e-2; % coefficient in LF lower bound condition.
-% q1_deg = 4;
+eppos = 1e-2; % coefficient in LF lower bound condition.
+q1_deg = 4;
 q2_deg = 4; % degree of monomials (not distributed) used to define the operator W2
 q3_deg = 4; % degree of monomials (not distributed) used to define the operator W3
 lam1_deg = 4; % degree of monomials (not distributed) used to define the operator lam1
@@ -93,14 +93,15 @@ else
     Zop.var2 = s_dum;
     Zop.I = dom;
     Z = dopvar2ndopvar(Zop);
-    
+
     % P matrix (not enforcing positivity here)
     [prog,Pcell] = sosquadvar(prog,{1},{1},size(Zop,1),1); % 1's restrict Pcell to matrix (not function)
-    
-    % Construct LF (up to degree 3).
+
+    % Construct LF (up to degree 2).
     Tx = Top*x;
     Zx = Z*x;
-    Vx = innerprod(Tx,Zx,Pcell{1}');
+    % Vx = innerprod(Tx,Zx,Pcell{1}');
+    Vx = innerprod(x,Z*Tx,Pcell{1}');
 end
 
 
@@ -133,29 +134,29 @@ else
 end
 
 
-%% 6. Define the lower bound on the LF (holds globally) and enforce constraint.
-% 
-% if use_L2_pos % LF lower bound dependent on ball.
-%     V_low = Vx - eppos*innerprod(Tx,Tx);
-% else
-%     Rx = Rop*x;
-%     V_low = Vx - eppos*innerprod(Rx,Rx);
-% end
-% 
-% % Enforce lower bound by defining a SOS distributed monomial
-% disp(" --- Enforcing the bound on the Lyapunov functional ---")
-% 
-% % Declare W1 >= 0
-% Z_bnd_degmat = unique(floor(V_low.degmat./2),'rows'); % This is the degree of W1
-% Z_bnd = polyopvar(f.varname,s,dom);
-% Z_bnd.degmat = Z_bnd_degmat;
-% Q1_opts.deg = q1_deg; % degree of monomials (not distributed) used to define the operator W1
-% Q1_opts.exclude = [1,0,0]';
-% Q1_opts.psatz = 0:1;
-% [prog,W1,Q1mat,ZQ1op] = piesos_sosvar(prog,Z_bnd,Q1_opts);
-% 
-% disp("  --  enforcing lower bound equality")
-% prog = piesos_eq(prog,V_low-W1);
+% 6. Define the lower bound on the LF (holds globally) and enforce constraint.
+
+if use_L2_pos % LF lower bound dependent on ball.
+    V_low = Vx - eppos*innerprod(Tx,Tx);
+else
+    Rx = Rop*x;
+    V_low = Vx - eppos*innerprod(Rx,Rx);
+end
+
+% Enforce lower bound by defining a SOS distributed monomial
+disp(" --- Enforcing the bound on the Lyapunov functional ---")
+
+% Declare W1 >= 0
+Z_bnd_degmat = unique(floor(V_low.degmat./2),'rows'); % This is the degree of W1
+Z_bnd = polyopvar(f.varname,s,dom);
+Z_bnd.degmat = Z_bnd_degmat;
+Q1_opts.deg = q1_deg; % degree of monomials (not distributed) used to define the operator W1
+Q1_opts.exclude = [1,0,0]';
+Q1_opts.psatz = 0:1;
+[prog,W1,Q1mat,ZQ1op] = piesos_sosvar(prog,Z_bnd,Q1_opts);
+
+disp("  --  enforcing lower bound equality")
+prog = piesos_eq(prog,V_low-W1);
 
 
 %% 7. Define the upper bound on the LF over the specified ball and enforce constraint.
@@ -245,9 +246,10 @@ if sol_info.pinf || sol_info.dinf || sol_info.numerr || abs(sol_info.feasratio-1
 else
     disp("PIESOS program was successfully solved.")
     Vsol = piesos_getsol(prog_sol,Vx);
-    % gam_sol = piesos_getsol(prog_sol,gam);
+    gam_sol = piesos_getsol(prog_sol,gam);
+    gam_sol = double(gam_sol)
+    M = gam_sol/eppos
 end
-
 
 % Compute the level set
 %gam_sol = GetLevelSet(Vsol,g);
