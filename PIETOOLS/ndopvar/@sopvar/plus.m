@@ -88,6 +88,6 @@ for i=1:numel(A.params)  % linear indexing of multi-dimensional cell array
 end
 
 
-C = sopvar(params, A.vars, ZR, ZL, A.dom, A.dims);
+C = sopvar(params, A.vars, ZL, ZR, A.dom, A.dims);                          % MMP, 08/29/2026
 
 end

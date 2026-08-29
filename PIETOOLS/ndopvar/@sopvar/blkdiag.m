@@ -85,7 +85,7 @@ end
 
 dims = a.dims + b.dims;
 
-Pblkdiag = sopvar(params, a.vars, ZR, ZL, a.dom, dims);
+Pblkdiag = sopvar(params, a.vars, ZL, ZR, a.dom, dims);                     % MMP, 08/29/2026
 
 if nargin>2 
     Pblkdiag = blkdiag(Pblkdiag, varargin{3:end});

@@ -113,7 +113,7 @@ switch s(1).type
             subsref_params{ii} = subsref_params{ii}(Loc_L_R, Loc_L_C);
         end
 
-        out = sopvar(subsref_params, obj.vars, ZR, ZL, obj.dom, dims); 
+        out = sopvar(subsref_params, obj.vars, ZL, ZR, obj.dom, dims);      % MMP, 08/29/2026
 
 
     case '{}'

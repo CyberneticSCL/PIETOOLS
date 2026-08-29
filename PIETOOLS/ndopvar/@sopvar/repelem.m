@@ -84,6 +84,6 @@ for k=1:numel(params)
 end
 % Construct the updated operator
 matdim = repdim.*size(A);
-B = sopvar(params,A.vars,A.ZR,A.ZL,A.dom,matdim);
+B = sopvar(params,A.vars,A.ZL,A.ZR,A.dom,matdim);                           % MMP, 08/29/2026
 
 end

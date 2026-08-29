@@ -99,7 +99,7 @@ end
 dims = a.dims;
 dims(1) = dims(1) + b.dims(1);
 
-Pcat = sopvar(params, a.vars, ZR, ZL, a.dom, dims);
+Pcat = sopvar(params, a.vars, ZL, ZR, a.dom, dims);                         % MMP, 08/29/2026
 
 
 if nargin>2 

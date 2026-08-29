@@ -64,6 +64,10 @@ function At = ctranspose(A)
 % Initial coding MMP, SS  - 1_16_2026
 % Update to new sopvar class AT - 05/18/2026
 % Bufix to switch monomial bases, DJ - 05/27/2026
+% MMP, 08/29/2026: Actually switch ZL and ZR. The coefficient matrices were
+%                  transposed without the bases being swapped, so the adjoint
+%                  was dimensionally inconsistent whenever numel(ZL)~=numel(ZR)
+%                  and silently incorrect whenever ZL and ZR differed as sets.
 
 % initialize the transpose object
 At = A;  
@@ -94,8 +98,8 @@ C = C(idx{:});  % swap the parameters along 2 and 3.
 Ct = cellfun(@(x) transpose(x), C, 'UniformOutput', false);
 
 % Switch the left and right monomial bases
-leftZ = A.ZL;
-rightZ = A.ZR;
+leftZ = A.ZR;                                                               % MMP, 08/29/2026
+rightZ = A.ZL;                                                              % MMP, 08/29/2026
 At_vars = struct();
 At_vars.in = A.vars.out;
 At_vars.out = A.vars.in;

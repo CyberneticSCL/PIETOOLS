@@ -61,6 +61,6 @@ for k=1:numel(params)
     params{k} = repmat(params{k},repdim(1),repdim(2));
 end
 matdim = repdim.*size(A);
-B = sopvar(params,A.vars,A.ZR,A.ZL,A.dom,matdim);
+B = sopvar(params,A.vars,A.ZL,A.ZR,A.dom,matdim);                           % MMP, 08/29/2026
 
 end
