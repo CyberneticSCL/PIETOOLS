@@ -84,6 +84,22 @@ function Dpsub=subsref(Dp,ref)
 % Correction for ":" case, DJ - 04/24/2022
 % DJ, 02/11/2026: Only allocate space for the true number of nonzero
 %                   coefficients;
+% MMP, 08/24/2026: Linear indexing took the shape of the index
+%                   unconditionally, so D([1 3]) on a column dpvar returned
+%                   1x2 while the same call on the equivalent @polynomial
+%                   returned 2x1. Adopt @polynomial/subsref's rule verbatim
+%                   -- a column object stays a column, otherwise the index's
+%                   shape is used -- so the two classes agree everywhere.
+%                   Deliberately NOT full MATLAB semantics: MATLAB also keeps
+%                   a row object a row and treats 1x1 as a matrix, but
+%                   matching that would make dpvar and @polynomial disagree in
+%                   two new cases, and the two interconvert constantly. If
+%                   MATLAB parity is wanted, fix both classes together.
+%                   The adjacent ndims() guard tested the output of size(),
+%                   which is always 2-D, so it never fired; it now tests the
+%                   index, turning a silently wrong result for a 3-D index
+%                   into an error.
+
 
 switch ref(1).type
     case '.'
@@ -112,11 +128,19 @@ switch ref(1).type
                 error('Indices exceed matrix dimensions');
             end
             
-            % Output will be a column vector
-            mdim = size(ref(1).subs{1});
-            if ndims(mdim)~=2
+            % Shape of the output, matching @polynomial/subsref exactly: a
+            % column object stays a column, otherwise the shape of the index
+            % is used. Note ':' has already been converted to a column above,
+            % so it yields a column either way.
+            if ndims(ref(1).subs{1})~=2                                     % MMP, 08/24/2026
                 error('Indices to dpvar objects can be at most 2 dimensional')
             end
+            if matdim(2)==1                                                 % MMP, 08/24/2026
+                mdim = [numel(ref(1).subs{1}),1];                           % MMP, 08/24/2026
+            else                                                            % MMP, 08/24/2026
+                mdim = size(ref(1).subs{1});                                % MMP, 08/24/2026
+            end                                                             % MMP, 08/24/2026
+
             [indr,indc] = ind2sub(size(Dp),ref(1).subs{1}(:));
             indr = reshape(indr,mdim);
             indc = reshape(indc,mdim);
