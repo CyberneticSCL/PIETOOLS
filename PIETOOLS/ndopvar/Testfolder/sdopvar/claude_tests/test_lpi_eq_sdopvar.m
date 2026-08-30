@@ -16,11 +16,20 @@
 % constraints coincides with that one, by comparing row spaces.
 %
 % The decisive case is P-P' for a self-adjoint P. That is the zero operator,
-% so it must impose no restriction at all, yet its multiplier parameter is
-% not in the canonical form: taking the adjoint moves monomial degrees from
-% ZL to ZR, and delta(s-s') identifies the two. Constraining the stored
-% coefficients to zero would wrongly restrict the decision variables here,
-% which is what the multiplier contraction in 'lpi_eq_sdopvar' avoids.
+% so it must impose no restriction at all.
+%
+% MMP, 08/29/2026: This case used to be decisive because 'ctranspose' moved
+% monomial degrees from ZL to ZR, which delta(s-s') makes equivalent, so
+% P-P' had a multiplier parameter outside the canonical form and
+% constraining the stored coefficients would wrongly have restricted the
+% decision variables. 'lpi_eq_sdopvar' contracted the multiplier directions
+% to avoid that. The canonical form is now a class invariant enforced by the
+% constructor, and 'ctranspose' preserves it, so a non-canonical parameter
+% can no longer be built here and the cases below marked 'non-canonical' are
+% canonicalized on construction. The check that the generated constraints
+% cut out exactly the operator-zero set is unaffected and still the point of
+% this file; the invariant itself is verified in
+% 'test_canonical_multiplier'.
 %
 % MMP, 08/28/2026: Initial coding
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

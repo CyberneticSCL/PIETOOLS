@@ -153,13 +153,12 @@ fprintf('\n=== known pre-existing issues, not caused by possopvar ===\n');
 fprintf('  1. eq(P,P'') is false for a self-adjoint P with a nonzero multiplier\n');
 fprintf('     part, because ctranspose does not restore the canonical form in\n');
 fprintf('     which a multiplier cell carries no ZR degree.\n');
-fprintf('  2. sdopvar2ndopvar/ndopvar2sdopvar do not round trip the decision\n');
-fprintf('     coefficient B whenever there is more than one decision variable.\n');
-fprintf('     This reproduces on a hand-built sdopvar in the documented layout\n');
-fprintf('     vec(C) = A + B''*d, so it is independent of possopvar. The constant\n');
-fprintf('     term A does round trip. @sdopvar/test_script does not catch it\n');
-fprintf('     because it only goes ndopvar -> sdopvar -> ndopvar, applying the\n');
-fprintf('     same convention in both directions.\n');
+fprintf('  2. (fixed 08/29/2026) sdopvar2ndopvar/ndopvar2sdopvar used to be\n');
+fprintf('     exact inverses of one another while both carried the same index\n');
+fprintf('     error, so the round trip returned the original object even though\n');
+fprintf('     the intermediate sdopvar was a different operator. Both now map\n');
+fprintf('     the decision coefficient B correctly; the round trip checks above\n');
+fprintf('     should read ok.\n');
 
 fprintf('\n');
 if nfail>0

@@ -94,14 +94,19 @@ for ii=1:numel(P.C)
         end
     end
     column_idx = kron(ones(1, dims(2)), column_idx);
-    [~, cols_mon, ~] = find(column_idx);
-    [rows, cols, vs] = find(P.C{ii});
-    new_cols = cols_mon(cols);
-    C_new = sparse(rows, new_cols, vs, left_size_full, right_size);
-    A_sub = C_new(1:left_size_block, :);
-    B_sub = C_new((left_size_block+1):end, :);
-    A{ii} = reshape(A_sub, [], 1);
-    B{ii} = reshape(B_sub, left_size_block*right_size, n_dvarnames).';
+    cols_mon = find(column_idx(:));                                        % MMP, 08/29/2026
+    % Split each coefficient by its position within the block of q+1 rows  % MMP, 08/29/2026
+    % that (I_k kron [1;d]) assigns to one (matrix row, monomial) slot:    % MMP, 08/29/2026
+    % offset 0 is the constant term, offset l the l-th decision variable.  % MMP, 08/29/2026
+    [rows, cols, vs] = find(P.C{ii});                                      % MMP, 08/29/2026
+    lvl = mod(rows-1, n_dvarnames+1);                                      % MMP, 08/29/2026
+    rslot = floor((rows-1)/(n_dvarnames+1)) + 1;                           % MMP, 08/29/2026
+    ccol = cols_mon(cols);          % expand to the full column range      % MMP, 08/29/2026
+    vpos = (ccol-1)*left_size_block + rslot;   % column-major vec position % MMP, 08/29/2026
+    isA = (lvl==0);                                                        % MMP, 08/29/2026
+    A{ii} = sparse(vpos(isA),1,vs(isA),left_size_block*right_size,1);      % MMP, 08/29/2026
+    B{ii} = sparse(lvl(~isA),vpos(~isA),vs(~isA), ...                      % MMP, 08/29/2026
+                   n_dvarnames,left_size_block*right_size);                % MMP, 08/29/2026
     % cdim = n*prod(deg(is_int)+1);
     % % Set sparse coefficients of dimension rdim x cdim
     % rho = (q+10)/(rdim*cdim);
