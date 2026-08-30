@@ -71,11 +71,22 @@ end
 ZL = P.ZL;
 ZR = P.ZR;
 degL = cellfun(@(x) max(x), ZL);
-degR = cellfun(@(x) max(x), ZL);
+degR = cellfun(@(x) max(x), ZR);                                            % MMP, 08/29/2026
 if ~isequal(degR, degL)
     error('left and right monomials have different degrees')
 end
 deg = degL;
+% An ndopvar carries a single degree per variable and always uses the
+% complete monomial basis 0:deg, so a gapped basis, or a left basis
+% differing from the right one, cannot be represented faithfully.
+for kk = 1:numel(ZL)                                                        % MMP, 08/29/2026
+    if ~isequal(reshape(ZL{kk},1,[]),0:degL(kk)) ...                        % MMP, 08/29/2026
+            || ~isequal(reshape(ZR{kk},1,[]),0:degR(kk))                    % MMP, 08/29/2026
+        error("Monomial bases must be the complete set 0:deg in every "... % MMP, 08/29/2026
+              +"variable for conversion to an ndopvar; use change_degree "... % MMP, 08/29/2026
+              +"or pad the basis first.")                                  % MMP, 08/29/2026
+    end                                                                     % MMP, 08/29/2026
+end                                                                         % MMP, 08/29/2026
 % now transform coefficient matrix 
 % in ndopvar it is (Ik o [1;d])^T Cj in R^{k times }
 % Cj has the size dim(1)*len(Zl)*(len(dvarnames)+1) times (len(Zr)*dim(2))
@@ -112,13 +123,37 @@ for ii=1:numel(A)
         end
     end
     column_idx = kron(ones(1, dims(2)), column_idx);
-    [~, cols_mon, ~] = find(column_idx);
+    cols_mon = find(column_idx(:));                                            % MMP, 08/29/2026
+    col_map = zeros(right_size,1);   col_map(cols_mon) = 1:numel(cols_mon);    % MMP, 08/29/2026
 
-    A_sub = reshape(A{ii}, left_size_block, right_size);
-    B_sub = reshape(B{ii}.', left_size_block*n_dvarnames, right_size);
-
-    C_sub = [A_sub; B_sub];
-    C_new{ii} = C_sub(:, cols_mon); 
+    % Map each stored coefficient to its place in the ndopvar cell.        % MMP, 08/29/2026
+    % The rows of C_j are grouped as (I_k kron [1;d]): one block of q+1     % MMP, 08/29/2026
+    % consecutive rows per (matrix row, monomial) slot, constant first, so  % MMP, 08/29/2026
+    % the decision variable is the INNER index and not a trailing block.    % MMP, 08/29/2026
+    Ak = A{ii};     Bk = B{ii};                                            % MMP, 08/29/2026
+    if isempty(Ak),  Ak = sparse(left_size_block*right_size,1);  end       % MMP, 08/29/2026
+    if isempty(Bk),  Bk = sparse(n_dvarnames,left_size_block*right_size); end % MMP, 08/29/2026
+    if numel(Ak)~=left_size_block*right_size ...                           % MMP, 08/29/2026
+            || size(Bk,1)~=n_dvarnames || size(Bk,2)~=numel(Ak)            % MMP, 08/29/2026
+        error("Parameter "+num2str(ii)+" has inconsistent dimensions.")    % MMP, 08/29/2026
+    end                                                                    % MMP, 08/29/2026
+    [va,~,sa] = find(Ak(:));                                               % MMP, 08/29/2026
+    [lb,vb,sb] = find(Bk);                                                 % MMP, 08/29/2026
+    vpos = [va(:); vb(:)];                                                 % MMP, 08/29/2026
+    lvl = [zeros(numel(va),1); lb(:)];      % 0 = constant term            % MMP, 08/29/2026
+    val = [sa(:); sb(:)];                                                  % MMP, 08/29/2026
+    ccol = floor((vpos-1)/left_size_block) + 1;                            % MMP, 08/29/2026
+    rslot = vpos - (ccol-1)*left_size_block;                               % MMP, 08/29/2026
+    % A multiplier direction carries no dummy monomials, so the columns    % MMP, 08/29/2026
+    % outside cols_mon must be empty for the operator to be representable. % MMP, 08/29/2026
+    newcol = col_map(ccol);                                                % MMP, 08/29/2026
+    if any(newcol==0)                                                      % MMP, 08/29/2026
+        error("Parameter "+num2str(ii)+" depends on a dummy variable in a "... % MMP, 08/29/2026
+              +"multiplier direction, which an 'ndopvar' cannot represent; "... % MMP, 08/29/2026
+              +"contract that direction first.")                           % MMP, 08/29/2026
+    end                                                                    % MMP, 08/29/2026
+    C_new{ii} = sparse((rslot-1)*(n_dvarnames+1)+1+lvl, newcol, val, ...   % MMP, 08/29/2026
+                       left_size_full, numel(cols_mon));                   % MMP, 08/29/2026
     % cdim = n*prod(deg(is_int)+1);
     % % Set sparse coefficients of dimension rdim x cdim
     % rho = (q+10)/(rdim*cdim);
