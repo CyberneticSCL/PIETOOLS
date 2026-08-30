@@ -157,7 +157,7 @@ for k=1:numel(Ccell)
 end
 
 % Declare the sopvar object
-Pop = sopvar(Ccell,vars,ZR,ZL,dom,matdim);
+Pop = sopvar(Ccell,vars,ZL,ZR,dom,matdim);                                  % MMP, 08/29/2026
 
 end
 

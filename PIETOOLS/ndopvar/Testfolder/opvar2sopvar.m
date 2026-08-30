@@ -106,7 +106,7 @@ else
 end
 
 % Declare the operator
-Psop = sopvar(params,vars,ZR,ZL,dom,dims);
+Psop = sopvar(params,vars,ZL,ZR,dom,dims);                                  % MMP, 08/29/2026
 
 end
 

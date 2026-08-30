@@ -91,6 +91,6 @@ params = repmat({spalloc(size(Cmat,1),size(Cmat,2),0)},[3*ones(1,N_S3),1]);
 params{1} = Cmat;
 
 % Declare the operator
-Pop = sopvar(params,vars,ZR,ZL,dom,size(Pmat));
+Pop = sopvar(params,vars,ZL,ZR,dom,size(Pmat));                             % MMP, 08/29/2026
 
 end
