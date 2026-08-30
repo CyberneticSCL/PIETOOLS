@@ -72,10 +72,22 @@ end
 
 
  
+% Compare through the difference rather than parameter by parameter. That     % MMP, 08/29/2026
+% lets 'plus' align the monomial bases through 'UnionBasisMonomials', which   % MMP, 08/29/2026
+% matters because two objects can represent the same operator on different    % MMP, 08/29/2026
+% bases: 'ctranspose' enlarges them where a multiplier direction and an       % MMP, 08/29/2026
+% integral direction have to share one basis. Comparing the stored            % MMP, 08/29/2026
+% coefficients is otherwise only meaningful because of the canonical          % MMP, 08/29/2026
+% multiplier form; see the class documentation.                               % MMP, 08/29/2026
+D = P1 + uminus(P2);                                                         % MMP, 08/29/2026
+
 logval = true;
-for ii = 1:numel(P1.params)
-    temp_log_val = max(abs(P1.params{ii} - P2.params{ii}), [], "all") < tol;
-    logval = logval & temp_log_val;
+for ii = 1:numel(D.params)                                                   % MMP, 08/29/2026
+    dv = nonzeros(D.params{ii});    % 'max(...,''all'')' rejects sparse input % MMP, 08/29/2026
+    if ~isempty(dv) && max(abs(dv))>=tol                                     % MMP, 08/29/2026
+        logval = false;                                                      % MMP, 08/29/2026
+        return                                                               % MMP, 08/29/2026
+    end                                                                      % MMP, 08/29/2026
 end
 
 end

@@ -37,7 +37,26 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     % follows: ZL(P.vars.out) = P.vars.out(1).^ZL{1}\otimes ... P.vars.out(i).^ZL{i}... 
     % - ZR: cell array of column vectors representing exponents of
     % monomials in P.vars.in. That is monomials are constructed by as
-    % follows: ZR(P.vars.in) = P.vars.in(1).^ZR{1}\otimes ... P.vars.in(i).^ZR{i}... 
+    % follows: ZR(P.vars.in) = P.vars.in(1).^ZR{1}\otimes ... P.vars.in(i).^ZR{i}...
+    %
+    % CANONICAL MULTIPLIER FORM                                              % MMP, 08/29/2026
+    % A parameter P.params{alpha} with alpha(k)==1 carries a factor          % MMP, 08/29/2026
+    % delta(s_k-s_k'), which identifies s_k with s_k'. A coefficient at left % MMP, 08/29/2026
+    % degree a and right degree b in direction k then contributes the same   % MMP, 08/29/2026
+    % monomial s_k^(a+b) as one at left degree a+b and right degree 0, so    % MMP, 08/29/2026
+    % the stored coefficients are not determined by the operator. Objects of % MMP, 08/29/2026
+    % this class therefore satisfy                                          % MMP, 08/29/2026
+    %                                                                        % MMP, 08/29/2026
+    %   alpha(k)==1  ==>  P.params{alpha} has no content outside the columns % MMP, 08/29/2026
+    %                     whose ZR monomial has degree 0 in direction k,     % MMP, 08/29/2026
+    %                                                                        % MMP, 08/29/2026
+    % that is, a multiplier direction carries no dummy variable degree. The  % MMP, 08/29/2026
+    % constructor enforces this by rewriting anything that does not already  % MMP, 08/29/2026
+    % satisfy it, enlarging ZL where the folded degrees require it; see      % MMP, 08/29/2026
+    % 'canonicalize_multiplier'. The representation is then unique, which is % MMP, 08/29/2026
+    % what lets 'eq' compare coefficients and 'lpi_eq_sdopvar' constrain     % MMP, 08/29/2026
+    % them. Assigning to P.params directly bypasses the constructor and so   % MMP, 08/29/2026
+    % bypasses the invariant; build a new object instead.                    % MMP, 08/29/2026
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Copyright (C) 2026 PIETOOLS Team
     %
@@ -80,11 +99,24 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
 
     methods
         function P = sopvar(params,vars,ZL,ZR,dom,dims)
+            % The canonical multiplier form is a class invariant; see the    % MMP, 08/29/2026
+            % CANONICAL MULTIPLIER FORM note above. Anything handed in that  % MMP, 08/29/2026
+            % is not canonical is rewritten here, so no 'sopvar' object can  % MMP, 08/29/2026
+            % violate it. An object that is already canonical, which is the  % MMP, 08/29/2026
+            % normal case, is not touched.                                   % MMP, 08/29/2026
+            [params,ZL,ZR,was_rewritten] = ...                               % MMP, 08/29/2026
+                canonicalize_multiplier(params,vars,ZL,ZR,dims);             % MMP, 08/29/2026
+            if was_rewritten                                                 % MMP, 08/29/2026
+                warning('sopvar:noncanonicalMultiplier',...                  % MMP, 08/29/2026
+                    ['A multiplier parameter depended on a dummy variable, so it was rewritten in '...% MMP, 08/29/2026
+                     'canonical form and ZL was enlarged to hold the folded degrees. The operator '...% MMP, 08/29/2026
+                     'is unchanged. Build multiplier parameters with the degree on ZL to avoid this.']);% MMP, 08/29/2026
+            end                                                              % MMP, 08/29/2026
             P.params = params;
             P.vars = vars;
             P.dom = dom;
             P.dims = dims;
-            P.ZR = ZR; 
+            P.ZR = ZR;
             P.ZL = ZL;
 
             P.vars_S1 = setdiff(vars.in,vars.out);
