@@ -295,6 +295,11 @@ for k=1:numel(Qcell)
 end
 Zd = unique(Zd);
 ndec = numel(Zd);
+% Index lookup for the decision variables, built once. Each block below
+% needs the positions of its own names in Zd; doing that with ismember
+% per block is O(ndec) per block, which is the dominant cost once there
+% are many decision variables.
+dmap = containers.Map(Zd,num2cell(1:ndec));                                % MMP, 08/29/2026
 
 % Multiplier used to restrict positivity to the domain. Note that it is
 % evaluated at the integration variable, as in 'poslpivar'.
@@ -351,7 +356,7 @@ for i=1:nblk
 
         % Express the affine coefficient A + B'*d over the common decision
         % variable basis Zd.
-        Bblk = remap_dvars(Pblk.B,cellstr(string(Pblk.dvarname)),Zd);
+        Bblk = remap_dvars(Pblk.B,cellstr(string(Pblk.dvarname)),dmap,ndec);   % MMP, 08/29/2026
 
         % % % Eliminate theta
         % Both A and each row of B are subjected to the same linear map, so
@@ -460,16 +465,21 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Bnew = remap_dvars(B,dvars_old,dvars_new)
-% Move the rows of B from the ordering dvars_old to the ordering dvars_new,
-% inserting zero rows for decision variables that do not appear in B.
+function Bnew = remap_dvars(B,dvars_old,dmap,ndec)
+% Move the rows of B from the ordering dvars_old to the global ordering that
+% dmap indexes, inserting zero rows for decision variables absent from B.
+% The lookup is a hash per name rather than a search over the whole global
+% list, so the cost is in the number of names B actually carries.
 
-[tf,loc] = ismember(dvars_old,dvars_new);
-if ~all(tf)
-    error("Internal error: unrecognized decision variable.")
+loc = zeros(numel(dvars_old),1);
+for i = 1:numel(dvars_old)
+    if ~isKey(dmap,dvars_old{i})
+        error("Internal error: unrecognized decision variable.")
+    end
+    loc(i) = dmap(dvars_old{i});
 end
 
-Bnew = sparse(numel(dvars_new),size(B,2));
+Bnew = sparse(ndec,size(B,2));
 if ~isempty(loc)
     Bnew(loc,:) = B;
 end
@@ -498,17 +508,26 @@ function [A,B] = unpack_sheets(C,mrow,ncol,nsheet)
 % fastest, so each sheet still occupies a contiguous block of ncol columns.
 % Sheet 1 is returned as the vectorized A, the remaining nsheet sheets as
 % the rows of B.
+%
+% The whole array is scanned once and then partitioned by column, rather
+% than sliced first. Slicing a sparse matrix whose column count carries the
+% decision variable dimension, as C(:,ncol+1:end) does, copies that block
+% before anything useful happens, and the copy dominates once there are many
+% decision variables.
 
 if size(C,1)~=mrow || size(C,2)~=(1+nsheet)*ncol
     error("Internal error: unexpected coefficient dimensions.")
 end
 
-A = reshape(C(:,1:ncol),[],1);
+[irow,icol,val] = find(C);
+is_A = icol<=ncol;
 
-[irow,icol,val] = find(C(:,ncol+1:end));
-sg = floor((icol-1)/ncol)+1;
-cc = mod(icol-1,ncol)+1;
-B = sparse(sg,(cc-1)*mrow+irow,val,nsheet,mrow*ncol);
+A = sparse((icol(is_A)-1)*mrow+irow(is_A),1,val(is_A),mrow*ncol,1);
+
+jcol = icol(~is_A)-ncol;
+sg = floor((jcol-1)/ncol)+1;
+cc = jcol - (sg-1)*ncol;
+B = sparse(sg,(cc-1)*mrow+irow(~is_A),val(~is_A),nsheet,mrow*ncol);
 
 end
 

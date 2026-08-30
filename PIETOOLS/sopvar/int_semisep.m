@@ -281,14 +281,24 @@ for ell = 1:(ns3a-1)
     all_possible_keys = [ kron(all_possible_keys, ones(size(cllA, 1), 1)), kron(ones(size(all_possible_keys, 1), 1), cllA)];
 end
 
+% Encode each multi-index of {1,2,3}^ns3a as an integer and look the key up
+% in a table, rather than calling ismember with the 'rows' flag per key.
+% The key loop runs 11^ns3a times, so the per-call overhead of ismember
+% dominates once there is more than one spatial variable. Built in reverse
+% so that, as ismember does, the FIRST matching row wins on duplicates.
+pw3 = 3.^(0:ns3a-1)';                                                       % MMP, 08/29/2026
+lutA = zeros(3^ns3a,1);   lutA((idxalpha(end:-1:1,:)-1)*pw3+1) = nalpha:-1:1;  % MMP, 08/29/2026
+lutB = zeros(3^ns3a,1);   lutB((idxbeta(end:-1:1,:)-1)*pw3+1)  = nbeta:-1:1;   % MMP, 08/29/2026
+lutG = zeros(3^ns3a,1);   lutG((gamIdx(end:-1:1,:)-1)*pw3+1)   = 3^ns3a:-1:1;  % MMP, 08/29/2026
+
 for key_idx_arg = 1:size(all_possible_keys, 1)
     chosen_gamma = all_possible_keys(key_idx_arg, 1:3:size(all_possible_keys, 2));
     chosen_beta  = all_possible_keys(key_idx_arg, 2:3:size(all_possible_keys, 2));
     chosen_alpha = all_possible_keys(key_idx_arg, 3:3:size(all_possible_keys, 2));
 
-    [~, un_indices_alpha] = ismember(chosen_alpha, idxalpha, 'rows'); % j indices in C_gam_alp_beta
-    [~, un_indices_beta]  = ismember(chosen_beta, idxbeta, 'rows');   % i indices in C_gam_alp_beta
-    [~, un_indices_gamma] = ismember(chosen_gamma, gamIdx, 'rows');   % k indices in C_gam_alp_beta
+    un_indices_alpha = lutA((chosen_alpha-1)*pw3+1);                            % MMP, 08/29/2026
+    un_indices_beta  = lutB((chosen_beta-1)*pw3+1);                             % MMP, 08/29/2026
+    un_indices_gamma = lutG((chosen_gamma-1)*pw3+1);                            % MMP, 08/29/2026
 
     % This (gamma,beta,alpha) key is not requested by the caller.
     if un_indices_alpha==0 || un_indices_beta==0 || un_indices_gamma==0
