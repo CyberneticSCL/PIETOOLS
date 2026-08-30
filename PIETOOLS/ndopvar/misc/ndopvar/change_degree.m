@@ -36,6 +36,8 @@ function Cop = change_degree(Aop,degree)
 %
 % AT, 01/21/2026: Initial coding
 % DJ, 03/05/2026: Allow for empty parameters, asssumed to be zero
+% MMP, 08/23/2026: count monomials with size(.,1), not length(.), which
+%                  returned the direction count when it was larger
 
 
 
@@ -93,12 +95,12 @@ degmat_old_out = Zd_old_out{1};
 degmat_new_out = Zd_new_out{1};
 
 for dim=2:N
-    degmat_old_out = [kron(degmat_old_out, ones(length(Zd_old_out{dim}), 1)), kron(ones(length(degmat_old_out), 1), Zd_old_out{dim})];
-    degmat_new_out = [kron(degmat_new_out, ones(length(Zd_new_out{dim}), 1)), kron(ones(length(degmat_new_out), 1), Zd_new_out{dim})];
+    degmat_old_out = [kron(degmat_old_out, ones(size(Zd_old_out{dim},1), 1)), kron(ones(size(degmat_old_out,1), 1), Zd_old_out{dim})];     % MMP, 08/23/2026
+    degmat_new_out = [kron(degmat_new_out, ones(size(Zd_new_out{dim},1), 1)), kron(ones(size(degmat_new_out,1), 1), Zd_new_out{dim})];     % MMP, 08/23/2026
 end
 
 % find location of new monomials in the old monomials
-size_left = length(degmat_new_out);
+size_left = size(degmat_new_out,1);                                         % MMP, 08/23/2026
 [~, Loc_temp] =ismember(degmat_old_out,  degmat_new_out, 'rows');
 for iter_idx = 1:Aop.dim(1)
     % shift m times if (I_m otimes Z(s))^T
@@ -145,14 +147,14 @@ for iter_idx = 1:size(binStr, 1)
         if subdegree1(dim) == 0 % do not perform kron product if no monomials
             continue
         end
-        degmat_old_in = [kron(degmat_old_in, ones(length(Zd_old_in{dim}), 1)),kron(ones(length(degmat_old_in), 1), Zd_old_in{dim})];
-        degmat_new_in = [kron(degmat_new_in, ones(length(Zd_new_in{dim}), 1)),kron(ones(length(degmat_new_in), 1), Zd_new_in{dim})];
+        degmat_old_in = [kron(degmat_old_in, ones(size(Zd_old_in{dim},1), 1)),kron(ones(size(degmat_old_in,1), 1), Zd_old_in{dim})];        % MMP, 08/23/2026
+        degmat_new_in = [kron(degmat_new_in, ones(size(Zd_new_in{dim},1), 1)),kron(ones(size(degmat_new_in,1), 1), Zd_new_in{dim})];        % MMP, 08/23/2026
     end
 
     % construct monomial basis for right multiplier (depends on iter_idx)
 
     [~, Loc_temp] =ismember(degmat_old_in,  degmat_new_in, 'rows');
-    size_right = length(degmat_new_in);
+    size_right = size(degmat_new_in,1);                                     % MMP, 08/23/2026
     for iter_idx = 1:Aop.dim(2)  % shift n times if I_n otimes Z(theta)
         if iter_idx == 1
             Loc_r = Loc_temp;
