@@ -1,0 +1,19 @@
+Requests for developers:
+
+1) When editing code in any of the files, in the header, please indicate the developer initials, date of modification, and a brief summary of changes and reasoning for the changes.
+
+2) When editing code in any of the files, in the body of the code, for each line change, at the end of the line in a comment, indicate initials of developer and date corresponding to note in the header. 
+
+3) For relatively minor changes, please leave old code commented out and again indicate date and initials.
+
+4) For more extensive changes comment the beginning and the end of the modified section of the code with initials and date. If commenting out old code is impractical, indicate in a comment what was deleted and the date stamps of the code being deleted. If this impacts a previous modification in the header, indicate this at the end of the header mod notes so we know this change is no longer in the code or is no longer relevant.
+
+5) In all cases (minor change, extensive change, or new code), each portion of the code body should indicate what is being done and why, if appropriate referencing the governing mathematical documentation for that class or the user manual. This is especially true for modifications, and exceptionally true for major modifications. 
+
+6) All modifications should be tested as extensively as possible, for varying numbers of spatial variables, and replicating the intended workflow for solving large-scale SDP problems for the purpose and analysis, control, and simulation of non-trivial PDEs. 
+
+7) Be aware of dependencies. pvar/dpvar -> opvar/dopvar/nopvar/dopvar/sopvar/sdopvar; opvar/dopvar->lpiprogramming 1D/2D-> executives->examples; nopvar/dopvar-> polyopvar/lpis_ndopvar; polyopvar->tensopvar/intop->sosprogramming
+Changes to core data structures must be tested all the way down the workflow.
+
+8) Be aware that typical usage of much of this code involves millions of decision variables in several spatial dimensions. Modifications should be rigorously tested for impact on both memory complexity and time-complexity for a suitably representative sampling of use cases.
+ 
