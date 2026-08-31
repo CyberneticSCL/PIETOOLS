@@ -12,7 +12,7 @@ Requests for developers:
 
 6) All modifications should be tested as extensively as possible, for varying numbers of spatial variables, and replicating the intended workflow for solving large-scale SDP problems for the purpose and analysis, control, and simulation of non-trivial PDEs. 
 
-7) Be aware of dependencies. pvar/dpvar -> opvar/dopvar/nopvar/dopvar/sopvar/sdopvar; opvar/dopvar->lpiprogramming 1D/2D-> executives->examples; nopvar/dopvar-> polyopvar/lpis_ndopvar; polyopvar->tensopvar/intop->sosprogramming
+7) Be aware of dependencies. pvar/dpvar -> opvar/dopvar/nopvar/ndopvar/sopvar/sdopvar; opvar/dopvar->lpiprogramming 1D/2D-> executives->examples; nopvar/ndopvar-> polyopvar/lpis_ndopvar; polyopvar->tensopvar/intop->sosprogramming
 Changes to core data structures must be tested all the way down the workflow.
 
 8) Be aware that typical usage of much of this code involves millions of decision variables in several spatial dimensions. Modifications should be rigorously tested for impact on both memory complexity and time-complexity for a suitably representative sampling of use cases.
