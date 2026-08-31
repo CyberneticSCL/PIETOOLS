@@ -1,4 +1,9 @@
-function [CMat,ZL,ZR] = int_semisep_AT(G,idxbeta,idxalpha,lims,Csize)
+% RETIRED 2026-08-30. Original @sopvar/private/int_semisep_AT.m,
+% replaced by a repacking wrapper over sopvar/int_semisep.m. Verified
+% identical to the wrapper on deduplicated indices (which is all either
+% caller passes); the wrapper additionally handles repeated index rows.
+
+function [CMat,ZL,ZR] = int_semisep_AT_v1(G,idxbeta,idxalpha,lims,Csize)
 % int_semisep
 %
 % Evaluates the two-sided semiseparable integral of Sec. 6.1 of the sopvar

@@ -75,6 +75,9 @@ fprintf('\n=== composition with empty (zero) parameters ===\n');
 S = compose(S,tol,'1D  Qop.C{2} empty',        1,[2,3],[3,2],2,2,[0 1],{'Q',2});
 S = compose(S,tol,'2D  Rop.C{1,3} empty',      2,[2,3],[3,2],[2;1],[2;1],[0 1;-1 1],{'R',7});
 
+fprintf('\n=== parameter slices left entirely empty ===\n');
+S = slicetest(S,tol);
+
 fprintf('\n=== randomised sweep, 1D and 2D ===\n');
 S = sweep(S,tol,30);
 
@@ -130,6 +133,109 @@ try
     end
 catch ME
     fprintf('FAIL  (%s)\n',ME.message);         S.nfail = S.nfail+1;
+end
+
+end
+
+
+
+%% Slices of the parameter cell left entirely empty
+function S = slicetest(S,tol)
+
+N = 2;   deg = [2;2];   dom = [0 1;-1 1];
+[v1,v2] = decl_vars(N);
+Rop = rand_nopvar([3,2],deg,dom,v1,v2);
+
+% A pure integral operator: the whole multiplier slice is empty, so
+% SPLITNDOP hands the recursion a sub-operator with no nonzero parameters
+fprintf('  %-32s : ','pure integral, j1=0 empty');
+try
+    Qop = rand_nopvar([2,3],deg,dom,v1,v2);
+    for i2=1:3
+        Qop.C{1,i2} = [];
+    end
+    err = compare(Qop,Rop,Qop*Rop,dom,N,2);
+    S = verdict(S,err<tol,err);
+catch ME
+    fprintf('FAIL  (%s)\n',ME.message);         S.nfail = S.nfail+1;
+end
+
+% A pure multiplier operator: both integral slices are empty
+fprintf('  %-32s : ','pure multiplier, j1>0 empty');
+try
+    Qop = rand_nopvar([2,3],deg,dom,v1,v2);
+    for i1=2:3
+        for i2=1:3
+            Qop.C{i1,i2} = [];
+        end
+    end
+    err = compare(Qop,Rop,Qop*Rop,dom,N,2);
+    S = verdict(S,err<tol,err);
+catch ME
+    fprintf('FAIL  (%s)\n',ME.message);         S.nfail = S.nfail+1;
+end
+
+% The zero operator, with its dimensions recorded, should short-circuit to
+% a zero operator of the appropriate size rather than doing any work
+fprintf('  %-32s : ','zero operator short-circuits');
+try
+    Zop = zero_op(deg,dom,v1,v2,[2,3]);
+    Pop = Zop*Rop;
+    ok = all(cellfun(@isempty,Pop.C(:))) && isequal(Pop.dim,[2,2]) ...
+                                    && isequal(Pop.deg(:),3*deg(:)+1);
+    S = verdict(S,ok,0);
+catch ME
+    fprintf('FAIL  (%s)\n',ME.message);         S.nfail = S.nfail+1;
+end
+
+% Composition on the right as well
+fprintf('  %-32s : ','zero operator on the right');
+try
+    Zop = zero_op(deg,dom,v1,v2,[2,3]);
+    Pop = rand_nopvar([3,2],deg,dom,v1,v2)*zero_op(deg,dom,v1,v2,[2,4]);
+    ok = all(cellfun(@isempty,Pop.C(:))) && isequal(Pop.dim,[3,4]);
+    S = verdict(S,ok,0);
+catch ME
+    fprintf('FAIL  (%s)\n',ME.message);         S.nfail = S.nfail+1;
+end
+
+% Without recorded dimensions, an all-empty operator carries no size and
+% cannot be composed
+fprintf('  %-32s : ','all-empty, no recorded dim');
+try
+    Zop = nopvar();
+    Zop.deg = deg;    Zop.dom = dom;    Zop.vars = [v1,v2];
+    Zop.C = cell([3,3]);
+    Zop*Rop;                                                %#ok<VUNUS>
+    fprintf('FAIL  (no error raised)\n');       S.nfail = S.nfail+1;
+catch
+    fprintf('pass  (error raised)\n');          S.npass = S.npass+1;
+end
+
+end
+
+
+
+%% The zero operator of the given dimensions, with every parameter empty
+function Zop = zero_op(deg,dom,v1,v2,dim)
+
+N = size(dom,1);
+Zop = nopvar();
+Zop.deg = deg;    Zop.dom = dom;    Zop.vars = [v1,v2];
+Zop.C = cell([3*ones(1,N),1]);
+Zop.dim = dim;
+
+end
+
+
+
+%% Report one verdict
+function S = verdict(S,ok,err)
+
+if ok
+    fprintf('pass  (err %.2e)\n',err);          S.npass = S.npass+1;
+else
+    fprintf('FAIL  (err %.2e)\n',err);          S.nfail = S.nfail+1;
 end
 
 end
