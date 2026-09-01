@@ -1,5 +1,4 @@
-function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SS( ...
-    varsA,ZA,CA,varsB,ZB,CB)
+function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 % leftShiftMonomials_SS
 %
 % Computes
@@ -9,39 +8,12 @@ function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SS( ...
 %
 % for each cell index I,J.
 %
-% INPUTS
-%   varsA : variables for ZA
-%   ZA    : 1-by-nA cell array of exponent vectors
-%   CA    : nI-by-nJ cell array, CA{I,J} has size p*NA by q
-%   varsB : variables for ZB
-%   ZB    : 1-by-nB cell array of exponent vectors
-%   CB    : 1-by-nI or nI-by-1 cell array, CB{I} has size q*NB by r
+% Optional 4th output:
 %
-% OUTPUTS
-%   varsC : merged variable list
-%   ZC    : merged/product monomial basis
-%   CC    : nI-by-nJ cell array, CC{I,J} has size p*NC by r
-
-% % % % % % % % % % COMPUTATION v3 % % % % % % % %
-% We need to compute (I_p otimes Z1^T) A (I_q otimes Z^2T) B
-% we have that A (I_q otimes Z2^T) = (A otimes 1)(I_q otimes Z2) =
-%              A otimes Z2^T =(I_{p*Na} otimes Z2^T)(A otimes I_Nb)
+%   vec(CC{I,J}) = Tmap{I} * vec(CA{I,J})
 %
-%
-% Also, we have
-%      (I_p otimes Z1^T)(I_{p*Na} otimes Z2^T) =
-%     (I_p otimes Z1^T)(I_{p} otimes I_{Na} otimes Z2^T) =
-%      I_p otimes (Z1^T (I_{Na} otimes Z2^T)) = 
-%      I_p otimes (Z1^T otimes 1)(I_{Na} otimes Z2^T) =
-%      I_p otimes (Z1^T otimes Z2^T) 
-% Given (Z1^T otimes Z2^T) = Z3^T Q, we have
-%      I_p otimes (Z1^T otimes Z2^T) = I_p otimes (Z3^T Q) =
-%      (I_p otimes Z3^T)(I_p otimes Q)
-%
-% Then, 
-% Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
-%       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
-%          p x           Q is Nc x Na*Nb 
+% This is useful when CA{I,J} is not numeric but represented through
+% decision-parameter coefficients.
 
 varsA = varsA(:).';
 varsB = varsB(:).';
@@ -77,11 +49,9 @@ end
 
 p = mA/NA;
 
-% Merge variables. This uses MATLAB sorted union, matching current convention.
 varsC = union(varsA,varsB);
 nC = numel(varsC);
 
-% Build output basis.
 ZC = cell(1,nC);
 
 for t = 1:nC
@@ -104,7 +74,6 @@ if isempty(ZC)
     NC = 1;
 end
 
-% Expand ZA exponents into varsC coordinates.
 EAc = zeros(NA,nC);
 
 for t = 1:numel(varsA)
@@ -117,7 +86,6 @@ for t = 1:numel(varsA)
     EAc(:,k) = kron(ones(left,1),kron(ZA{t}(:),ones(right,1)));
 end
 
-% Expand ZB exponents into varsC coordinates.
 EBc = zeros(NB,nC);
 
 for t = 1:numel(varsB)
@@ -130,7 +98,6 @@ for t = 1:numel(varsB)
     EBc(:,k) = kron(ones(left,1),kron(ZB{t}(:),ones(right,1)));
 end
 
-% Expand ZC exponents into varsC coordinates.
 EC = zeros(NC,nC);
 
 for t = 1:nC
@@ -141,22 +108,30 @@ for t = 1:nC
     EC(:,t) = kron(ones(left,1),kron(ZC{t}(:),ones(right,1)));
 end
 
-% % % % % Computing Q such that ZA otimes ZB = Q ZC % % % % % 
+if nC == 0
+    Qmat = sparse(1,1,1,1,1);
+else
+    EC3dt = reshape(EAc,1,[],size(EAc,2)) + reshape(EBc,[],1,size(EBc,2));
+    EC2dt = reshape(EC3dt,[],size(EC3dt,3));
 
+    [~,Idx_array] = ismember(EC2dt,EC,'rows');
 
-EC3dt = reshape(EAc, 1,  [],size(EAc, 2)) + reshape(EBc, [], 1, size(EBc, 2));
-% Now EC2d is a 2darray with EC2d(i, :) = EAc(*, :) + EBc(**, :)
-EC2dt = reshape(EC3dt, [], size(EC3dt, 3));
-[~, Idx_array] = ismember(EC2dt, EC, 'rows');
-Qmat = sparse(Idx_array, 1:(NA*NB), ones(size(Idx_array)), NC, NA*NB);
-% Qmat Z3 = Z12
-% Idx_array = reshape(Idx_array, NA, NB); 
-% Idx_array = reshape(I)
-% Idx_array(i, j) = k if G(:, :, k) = ... + A_i B_j + ... 
+    if any(Idx_array == 0)
+        error('leftShiftMonomials_SS: failed to map product exponents into ZC.');
+    end
 
-% x = rand(1);
-% Z12 = x.^EC2d;
-% Z3 =  x.^EC;
+    Qmat = sparse(Idx_array,1:(NA*NB),ones(size(Idx_array)),NC,NA*NB);
+end
+
+IpQ = kron(speye(p),Qmat);
+
+CC = cell(nI,nJ);
+
+if nargout >= 4
+    Tmap = cell(nI,1);
+else
+    Tmap = [];
+end
 
 for I = 1:nI
 
@@ -164,6 +139,18 @@ for I = 1:nI
 
     if ~isequal(size(Bcoef),[q*NB,r])
         error('leftShiftMonomials_SS: inconsistent CB cell dimensions.');
+    end
+
+    if nargout >= 4
+        T = sparse(p*NC*r,p*NA*q);
+
+        for k = 1:NB
+            Dk = IpQ(:,k:NB:end);
+            Ek = Bcoef(k:NB:end,:);
+            T = T + kron(Ek.',Dk);
+        end
+
+        Tmap{I} = T;
     end
 
     for J = 1:nJ
@@ -174,19 +161,11 @@ for I = 1:nI
             error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');
         end
 
-
-        
-        % % % % % % % % % % NEW COMPUTATION OF G % % % % % % % %
-        % Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
-        %       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
-        %          p x           Q is Nc x Na*Nb 
-
-
-        IpQ = kron(speye(p),Qmat);
-        AINb= kron(Acoef, speye(NB));
-        H = IpQ*AINb*Bcoef;
-        CC{I, J} = H;
-        % max(abs(H - HH))
+        if nargout >= 4
+            CC{I,J} = reshape(Tmap{I}*Acoef(:),p*NC,r);
+        else
+            CC{I,J} = IpQ*kron(Acoef,speye(NB))*Bcoef;
+        end
     end
 end
 
