@@ -271,11 +271,11 @@ alpha_b_int(alpha_b==3) = 2;
 % = (PL)(I_p⊗KZhat_s2a(s2a)'*Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I_q⊗Cs3b_alphab*KZhat_s3b(s3b))(PR)
 % = PL(I_p⊗KZhat_s2a(s2a)')*(I_p⊗Cs2a_betaa')*int(G_s3a(s3a),s3a)*(I_q⊗Cs3b_alphab)*(I_q⊗KZhat_s3b(s3b))PR
 % next we need to perform int(G_s3a(s3a),s3a) = (I_g1⊗barZ_3aL')*C_(gam,beta,alp)*(I_g2⊗barZ_3aR)
-[C_gam_alp_beta,barZ_3aL,barZ_3aR] = int_semisep(G_s3a,beta_b,alpha_a,dom3a, Csize); 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%% PART 1 %%%%%%%%%%%%%%%%%%%%%%%%%%
+[CMat,barZ_3aL,barZ_3aR] = int_semisep(G_s3a,beta_b,alpha_a,dom3a,Csize,'packed'); 
 
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%% PART 2 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % looking at the original composition, we have  K^C_gamma = 
 % sum_{betaa,betab,alphaa,alphab) (I⊗A.ZL')CA(betaa,betab)*int((I⊗A.ZR)*(I⊗B.ZL'),s2a,s2b,s3a,s3b)*CB(alphaa,alphab)(I⊗B.ZR)
 % = sum (I⊗A.ZL')CA(betaa,betab)*(I⊗int(A.ZR*B.ZL',s2a,s2b,s3a,s3b))*CB(alphaa,alphab)(I⊗B.ZR)
@@ -500,49 +500,131 @@ CB_barR = {speye(qRbar*nBarR)};
     vs3a,barZ_3aR,CB_barR);
 
 
-% -------------------------------------------------------------------------
-% Assemble Cparams.
-%
-% CLtemp_betab{j}        : left coefficient for beta_b(j)
-% C_gam_alp_beta{i,j,k} : middle coefficient for gamma(i), beta_b(j), alpha_a(k)
-% CRtemp_alphaa{k}'     : right coefficient for alpha_a(k), transposed back
-% -------------------------------------------------------------------------
-nMid = A.dims(2);
-if nMid ~= 1
-    for i = 1:numel(C_gam_alp_beta)
-        C_gam_alp_beta{i} = kron(speye(nMid),C_gam_alp_beta{i});
-    end
-end
 CRtemp_alphaatransposed = cell(size(CRtemp_alphaa));
 for k = 1:numel(CRtemp_alphaa)
     CRtemp_alphaatransposed{k} = CRtemp_alphaa{k}.';
 end
 
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% PART 3 %%%%%%%%%%%%%%%%%%%%%%%%%%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% We need to compute 
+% sum_{j, k} L_j [I_{nMid} otimes C_gam_alp_beta{i, j, k}] R_k
+% 
+% If we have L_j = [L_{j1}, ... L_{j,nMid}] and 
+%            R_k = [R_{k1}; ...; R_{k, nMid}], then
+%
+% sum_{j, k} L_j [I_{nMid} otimes C_gam_alp_beta{i, j, k}] R_k=
+% sum_{j, k, d} L_{jd} C_gam_alp_beta{i, j, k} R_{kd}
+%
+% To compute the expression, we construct block matrices
+%
+% [LeftMat]_{d, j} = L_{j, d} and
+% [RightMat]_{k, d} = R_{k, d}
+% [CMat]_{j, k} = C_gam_alp_beta{i, j, k} (computed in int_semisep_AT)
+% Then, 
+%
+% sum_{j, k} L_j [I_{nMid} otimes C_gam_alp_beta{i, j, k}] R_k
+% is a block diagonal of LeftMat*CMat*RightMat,
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% construct LeftMat, RightMat, CMat
+
+
+nMid = A.dims(2);
+Left_CLtemp_betab = cell2mat(CLtemp_betab); %[CL{1}, ... ,CL{end}]
+Right_CRtemp_alphaaT = cell2mat(CRtemp_alphaatransposed'); %[CR{1}; ... ;CR{end}]
+
+% % % % STEP 1 % % % % 
+% Left_CLtemp=> LeftMat
+% Left_CLtemp has the form
+% [L_{11}, .., L_{1d}, ... , L_{n1}, .. L_{nd}] = [L_{jk}];
+% we need [L_{11}, ..., L_{n1};
+%          ... 
+%         [L_{1d}, ..., L_{nd}]
+
+
+[ind_r, ind_c, vals] = find(Left_CLtemp_betab);
+
+sz_CL = size(Left_CLtemp_betab);
+sz_LeftMat = [sz_CL(1)*nMid, floor(sz_CL(2)/nMid)];
+BLCK_SIZE = sz_CL(2)/(nMid*length(CLtemp_betab));
+
+ind_inBLC = mod(ind_c - 1, BLCK_SIZE) + 1; % indices in L_{id} 
+ij_indx = floor((ind_c - 1)/BLCK_SIZE) + 1;
+i_indx = floor((ij_indx - 1)/nMid) + 1; 
+d_indx = mod(ij_indx - 1, nMid) + 1;
+
+
+new_ind_c = ind_inBLC + (i_indx-1)*BLCK_SIZE; %mod(ind_c - 1, sz_LeftMat(2)) + 1;
+new_ind_r = ind_r + (d_indx - 1)*sz_CL(1); 
+
+LeftMat = sparse(new_ind_r, new_ind_c, vals, sz_LeftMat(1), sz_LeftMat(2));
+
+
+% % % % STEP 2 % % % % 
+% Right_CRtemp=> RightMat
+% Left_CLtemp has the form
+% [R_{11}; .. ; R_{1d} ; ... ; R_{n1}, .. R_{nd}] = [R_{jk}];
+% we need [R_{11}, ..., R_{1d};
+%          ... 
+%         [R_{n1}, ..., R_{nd}]
+
+[ind_r, ind_c, vals] = find(Right_CRtemp_alphaaT);
+
+sz_CR = size(Right_CRtemp_alphaaT);
+sz_RMat = [floor(sz_CR(1)/nMid), sz_CR(2)*nMid];
+
+BLCK_SIZE = sz_CR(1)/(nMid*length(CLtemp_betab));
+
+ind_inBLC = mod(ind_r - 1, BLCK_SIZE) + 1; % indices in R_{id} 
+ij_indx = floor((ind_r - 1)/BLCK_SIZE) + 1;
+i_indx = floor((ij_indx - 1)/nMid) + 1; 
+d_indx = mod(ij_indx - 1, nMid) + 1;
+
+
+
+new_ind_r = ind_inBLC + (i_indx-1)*BLCK_SIZE;
+new_ind_c = ind_c + (d_indx - 1)*sz_CR(2); 
+
+
+RightMat = sparse(new_ind_r, new_ind_c, vals, sz_RMat(1), sz_RMat(2));
+% 
+% % construct CMat
+% sz_CGAB = size(C_gam_alp_beta);
+% CMat = cell(sz_CGAB(1), 1);
+% for i = 1:numel(CMat)
+%     CMat{i} = cell2mat(squeeze(C_gam_alp_beta(i, :, :)));
+% end
+
+% % % % STEP 3 % % % % 
+% Define the following for computing diagonal elements
+right_BLCK_size = sz_CR(2);
+left_BLCK_size  = sz_CL(1);
+Mask = kron(speye(nMid), ones(left_BLCK_size, right_BLCK_size));
+LeftMult  = kron(ones(nMid, 1), speye(left_BLCK_size));
+RightMult = kron(ones(nMid, 1), speye(right_BLCK_size));
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% PART 4 %%%%%%%%%%%%%%%%%%%%%%%%%%
+% Construct Cparams
 for i = 1:numel(Cparams)
-    Cparams{i} = sparse(size(CLtemp_betab{1},1),size(CRtemp_alphaa{1},1));
-    for j = 1:size(beta_b,1)
-        for k = 1:size(alpha_a,1)
-            L = CLtemp_betab{j};
-            M = C_gam_alp_beta{i,j,k};
-            R = CRtemp_alphaatransposed{k};
-
-            % if nMid ~= 1
-            %     M = kron(speye(nMid),M);
-            % end
-            % 
-            % if size(L,2) ~= size(M,1)
-            %     error('mtimes: left/middle dimension mismatch in Cparams construction.');
-            % end
-            % 
-            % if size(M,2) ~= size(R,1)
-            %     error('mtimes: middle/right dimension mismatch in Cparams construction.');
-            % end
-            Cparams{i} = Cparams{i} + L*M*R;
-        end
-    end
+    
+    Cparams{i} = sparse(size(CLtemp_betab{1},1),size(CRtemp_alphaa{1},1)); 
+    % instead of loops we have
+    CLCMCR = LeftMat*CMat{i}*RightMat;
+    % instead of kronecker product we have
+    PROD2 = Mask.*CLCMCR;
+    PROD3 =LeftMult'*PROD2*RightMult;
+    Cparams{i} = Cparams{i} + PROD3;
+    % max(abs(Cparams{i} - Cparams2{i}), [], 'all')
 end
+% Cparams = Cparams;
 
 
+%%%%%%%%%%%%%%%%%%%% PART 5 %%%%%%%%%%%%%%%%%%%%%%
 % -------------------------------------------------------------------------
 % Construct C.
 %
