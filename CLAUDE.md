@@ -9,6 +9,18 @@ licence block of every source file already mandates the documentation rules belo
 
 Applies to every edit of an existing file.
 
+**Keep the change minimal.** Achieve the objective with the fewest changed lines and the
+fewest auxiliary functions necessary. Do not refactor, rename, restructure or generalize
+while fixing something. Do not extract a helper unless the alternative is genuinely worse —
+duplicated logic across two or more real callers, or a block too large to sit inline. Prefer
+a one-line change to a five-line rewrite even when the rewrite reads better, and editing in
+place to adding a file.
+
+This governs the *functional* edit, not the documentation: the annotation below is required
+on top of whatever minimal change you made. Make the smallest correct change, then annotate
+it fully. A large diff made of annotation is expected; a large diff made of unrequested
+restructuring is not.
+
 **Header entry.** Add to the file header: developer initials, date, and a brief summary of
 the change *and the reasoning for it*. Follow the format the file already uses — these vary
 and you should match the file you are in rather than impose one style:
