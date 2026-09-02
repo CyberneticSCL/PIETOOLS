@@ -143,11 +143,19 @@ end
 % % % % % Computing Q such that ZA otimes ZB = Q ZC % % % % % 
 
 
-EC3dt = reshape(EAc, 1,  [],size(EAc, 2)) + reshape(EBc, [], 1, size(EBc, 2));
-% Now EC2d is a 2darray with EC2d(i, :) = EAc(*, :) + EBc(**, :)
-EC2dt = reshape(EC3dt, [], size(EC3dt, 3));
-[~, Idx_array] = ismember(EC2dt, EC, 'rows');
-Qmat = sparse(Idx_array, 1:(NA*NB), ones(size(Idx_array)), NC, NA*NB);
+% An empty merged variable list leaves nothing to permute, so Qmat is the   % MMP, 08/30/2026
+% 1-by-1 identity. Without this branch ismember returns an empty index and  % MMP, 08/30/2026
+% 'sparse' builds the 1-by-1 ZERO instead, which zeroed every composition   % MMP, 08/30/2026
+% involving R^n. Matches the @sdopvar copy, which already had the guard.    % MMP, 08/30/2026
+if nC == 0                                                                  % MMP, 08/30/2026
+    Qmat = sparse(1,1,1,1,1);                                               % MMP, 08/30/2026
+else                                                                        % MMP, 08/30/2026
+    EC3dt = reshape(EAc, 1,  [],size(EAc, 2)) + reshape(EBc, [], 1, size(EBc, 2));
+    % Now EC2d is a 2darray with EC2d(i, :) = EAc(*, :) + EBc(**, :)
+    EC2dt = reshape(EC3dt, [], size(EC3dt, 3));
+    [~, Idx_array] = ismember(EC2dt, EC, 'rows');
+    Qmat = sparse(Idx_array, 1:(NA*NB), ones(size(Idx_array)), NC, NA*NB);
+end                                                                         % MMP, 08/30/2026
 % Qmat Z3 = Z12
 % Idx_array = reshape(Idx_array, NA, NB); 
 % Idx_array = reshape(I)
