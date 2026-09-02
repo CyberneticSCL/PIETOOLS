@@ -93,6 +93,15 @@ elseif Pdim(1,2)
 
 else
     % % Pop maps L2 to L2
+    % An 'sopvar' records one name per direction, so a dummy that is not     % MMP, 08/30/2026
+    % <primary>_dum cannot be recovered and 'sopvar2opvar' would hand it     % MMP, 08/30/2026
+    % back renamed. Since these converters exist to check sopvar code        % MMP, 08/30/2026
+    % against opvar, refuse rather than compare relabelled operators.        % MMP, 08/30/2026
+    if ~strcmp(var2{1},[var1{1},'_dum'])                                     % MMP, 08/30/2026
+        error("opvar2sopvar: dummy variable '"+var2{1}+"' does not follow the "...% MMP, 08/30/2026
+              +"'"+var1{1}+"_dum' convention. An 'sopvar' does not record the "...% MMP, 08/30/2026
+              +"dummy name, so it would be silently renamed on conversion back.")% MMP, 08/30/2026
+    end                                                                      % MMP, 08/30/2026
     % Extract the parameters
     R0fun = quadPoly.polynomial2quadPoly(Pop.R.R0, var1, var2);
     R1fun = quadPoly.polynomial2quadPoly(Pop.R.R1, var1, var2);

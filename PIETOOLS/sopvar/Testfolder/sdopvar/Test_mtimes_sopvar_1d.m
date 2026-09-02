@@ -1,8 +1,8 @@
 clc; clear;
 % Declare the independent variables
-pvar s1 t1
+pvar s1 s1_dum                  % MMP, 08/30/2026: sopvar2opvar now names the dummy <primary>_dum
 var1 = s1;
-var2 = t1;
+var2 = s1_dum;                                                              % MMP, 08/30/2026
 % Declare the domain
 dom = [0,1];
 % Declare the degree of the parameters in the independent variables

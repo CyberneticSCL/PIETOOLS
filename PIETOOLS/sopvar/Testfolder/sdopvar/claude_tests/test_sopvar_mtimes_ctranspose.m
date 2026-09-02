@@ -23,12 +23,12 @@ rng(17);
 tol = 1e-9;
 npass = 0;
 
-pvar s1 t1 s2 s1_dum s2_dum
+pvar s1 s2 s1_dum s2_dum   % the dummy is <primary>_dum, see sopvar2opvar % MMP, 08/30/2026
 
 %% 1D conversion round trip, with unequal monomial bases
 fprintf('=== 1D: sopvar2opvar(opvar2sopvar(A)) == A ===\n');
 for k = 1:6
-    A = rand_opvar_1d(s1,t1);
+    A = rand_opvar_1d(s1,s1_dum);
     Ab = sopvar2opvar(opvar2sopvar(A));
     assert_zero(A-Ab,tol,sprintf('1D conversion round trip, k=%d',k));
     npass = npass+1;
@@ -38,7 +38,7 @@ fprintf('  passed: 6 round trips\n');
 %% 1D adjoint
 fprintf('=== 1D: sopvar2opvar(As'') == A'' ===\n');
 for k = 1:6
-    A = rand_opvar_1d(s1,t1);
+    A = rand_opvar_1d(s1,s1_dum);
     got = sopvar2opvar(opvar2sopvar(A)');
     assert_zero(A'-got,tol,sprintf('1D adjoint, k=%d',k));
     npass = npass+1;
@@ -48,8 +48,8 @@ fprintf('  passed: 6 adjoints\n');
 %% 1D composition, including adjoints on either side
 fprintf('=== 1D: composition against opvar ===\n');
 for k = 1:6
-    A = rand_opvar_1d(s1,t1);
-    B = rand_opvar_1d(s1,t1);
+    A = rand_opvar_1d(s1,s1_dum);
+    B = rand_opvar_1d(s1,s1_dum);
     As = opvar2sopvar(A);   Bs = opvar2sopvar(B);
     assert_zero(A*B   - sopvar2opvar(As*Bs),  tol,sprintf('A*B, k=%d',k));
     assert_zero(A'*B  - sopvar2opvar(As'*Bs), tol,sprintf('A''*B, k=%d',k));

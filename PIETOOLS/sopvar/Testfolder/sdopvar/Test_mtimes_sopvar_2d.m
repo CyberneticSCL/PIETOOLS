@@ -1,8 +1,8 @@
 
 % Declare the independent variables
-pvar s1 s2 t1 t2
+pvar s1 s2 s1_dum s2_dum   % dummies must be <primary>_dum            % MMP, 08/30/2026
 var1 = [s1;s2];
-var2 = [t1;t2];
+var2 = [s1_dum;s2_dum];                                                     % MMP, 08/30/2026
 % Declare the domain
 dom = [-0.5,1;2,3];
 % Declare the degree of the parameters in the independent variables
@@ -29,5 +29,6 @@ Csop = Asop*Bsop;
 
 % Compare
 Cop_alt = sopvar2opvar2d(Csop);
-Cop_alt.var2 = [t1;t2];
+% (was followed by "Cop_alt.var2 = [t1;t2];" -- a manual relabel to work      % MMP, 08/30/2026
+%  around sopvar2opvar2d hardcoding its variable names. No longer needed.)  % MMP, 08/30/2026
 Cop_diff = clean_opvar(Cop - Cop_alt);

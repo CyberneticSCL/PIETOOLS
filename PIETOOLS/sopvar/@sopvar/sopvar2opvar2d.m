@@ -13,9 +13,9 @@ function Pop = sopvar2opvar2d(Psop)
 % - obj:    'opvar2d' object representing the same operator as the input;
 %
 % NOTES
-% At this time, the output operator is always expressed in terms of
-% variables [s1;s2] (primary) and [s1_dum;s2_dum] (dummy), independent of 
-% the variables specified in Psop.vars
+% The primary variables are taken from Psop.vars. The dummies are still     % MMP, 08/30/2026
+% <primary>_dum by convention: an 'sopvar' records only one name per        % MMP, 08/30/2026
+% direction, so the input-side name is not stored and cannot be recovered.  % MMP, 08/30/2026
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,6 +43,9 @@ function Pop = sopvar2opvar2d(Psop)
 % authorship, and a brief description of modifications
 %
 % DJ, 05/27/2026: Initial coding
+% MMP, 08/30/2026: Take the primary variables from Psop.vars rather than
+%                  hardcoding s1,s2, which relabelled any operator not
+%                  already in those. Dummy convention unchanged.
 
 % Extract the dimension, variables and domain of the operator
 dims = Psop.dims;
@@ -52,8 +55,7 @@ Pparams = Psop.params;
 
 % Initialize an empty operator
 Pop = opvar2d();
-Pop.var1 = polynomial({'s1';'s2'});  % use default variables
-Pop.var2 = polynomial({'s1_dum';'s2_dum'});
+% Pop.var1/var2 are set below, once the variable names are read from Psop.  % MMP, 08/30/2026
 
 % Determine between what function spaces the operator maps
 if numel(unique([vars.in,vars.out]))>2
@@ -83,6 +85,16 @@ x_idx_in = mapsx;
 x_idx_out = maps2x;
 y_idx_in = mapsx+mapsy;
 y_idx_out = maps2x+maps2y;
+
+% Name each direction from whichever role the operator involves; the        % MMP, 08/30/2026
+% direction it does not involve keeps the default.                          % MMP, 08/30/2026
+sv = {'s1','s2'};                                                           % MMP, 08/30/2026
+if mapsx,   sv{1} = char(vars.in{x_idx_in});    end                         % MMP, 08/30/2026
+if maps2x,  sv{1} = char(vars.out{x_idx_out});  end                         % MMP, 08/30/2026
+if mapsy,   sv{2} = char(vars.in{y_idx_in});    end                         % MMP, 08/30/2026
+if maps2y,  sv{2} = char(vars.out{y_idx_out});  end                         % MMP, 08/30/2026
+Pop.var1 = polynomial(sv(:));                                               % MMP, 08/30/2026
+Pop.var2 = polynomial(strcat(sv(:),'_dum'));                                % MMP, 08/30/2026
 
 % Set the domain of the variables
 if (mapsx && maps2x && ~all(dom.in(x_idx_in,:)==dom.out(x_idx_out,:))) ||...
@@ -116,23 +128,23 @@ Rname = Rparam_names{ridx,cidx};
 % Determine the primary and dummy variable names used in the parameters
 var1 = {};        var2 = {};
 if maps2x
-    var1 = [var1,{'s1'}];
+    var1 = [var1,{sv{1}}];                                                  % MMP, 08/30/2026
 end
 if maps2y
-    var1 = [var1,{'s2'}];
+    var1 = [var1,{sv{2}}];                                                  % MMP, 08/30/2026
 end
 if mapsx
     if ~maps2x
-        var2 = [var2,{'s1'}];
+        var2 = [var2,{sv{1}}];                                              % MMP, 08/30/2026
     else
-        var2 = [var2,{'s1_dum'}];
+        var2 = [var2,{[sv{1},'_dum']}];                                     % MMP, 08/30/2026
     end
 end
 if mapsy
     if ~maps2y
-        var2 = [var2,{'s2'}];
+        var2 = [var2,{sv{2}}];                                              % MMP, 08/30/2026
     else
-        var2 = [var2,{'s2_dum'}];
+        var2 = [var2,{[sv{2},'_dum']}];                                     % MMP, 08/30/2026
     end
 end
 

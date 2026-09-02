@@ -95,6 +95,19 @@ vars.out = var1([maps2x;maps2y])';
 dom.in = Pdom([mapsx;mapsy],:);
 dom.out = Pdom([maps2x;maps2y],:);
 
+% A direction appearing on both sides carries a dummy, and an 'sopvar'       % MMP, 08/30/2026
+% records one name per direction, so a dummy that is not <primary>_dum       % MMP, 08/30/2026
+% cannot be recovered and 'sopvar2opvar2d' would hand it back renamed.       % MMP, 08/30/2026
+% Refuse rather than let a verification test compare relabelled operators.   % MMP, 08/30/2026
+for k = find([mapsx&&maps2x, mapsy&&maps2y])                                 % MMP, 08/30/2026
+    if ~strcmp(var2{k},[var1{k},'_dum'])                                     % MMP, 08/30/2026
+        error("opvar2d2sopvar: dummy variable '"+var2{k}+"' does not follow "...% MMP, 08/30/2026
+              +"the '"+var1{k}+"_dum' convention. An 'sopvar' does not record "...% MMP, 08/30/2026
+              +"the dummy name, so it would be silently renamed on conversion "...% MMP, 08/30/2026
+              +"back.")                                                      % MMP, 08/30/2026
+    end                                                                      % MMP, 08/30/2026
+end                                                                          % MMP, 08/30/2026
+
 % Decompose parameters into coefficient matrices and monomials
 [params,ZL,ZR] = get_params(R,var1([maps2x;maps2y]),var2([mapsx;mapsy]));
 if all(size(params)==[1,3])
