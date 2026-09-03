@@ -1,0 +1,15 @@
+To do: Specific to 
+decision matrices in the center
+1) batch_plus  
+2) batch_lrmultiply
+3) plus   (sdopvar tests)
+4) mtimes (sdopvar)
+5) random sdopvar generator
+6) mtimes test function
+7) lpivar (sdopvar version)
+(done above) 
+
+8) sdopvar: plus (mixed, sdopvar+sopvar), mtimes (bug testing), concatenation, 
+9) possopvar (uses int_semisep), 
+10) lpi_eq/ineq
+ 
