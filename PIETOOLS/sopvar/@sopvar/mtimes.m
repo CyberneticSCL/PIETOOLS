@@ -47,6 +47,12 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
+% MMP, 09/06/2026: Lift a numeric matrix factor over the monomial index and
+%                  record the new dimension. A matrix was previously applied
+%                  straight to the coefficients, which threw for degree >= 1
+%                  and for degree 0 returned an object whose 'dims' still
+%                  claimed the old size. Scalars need neither and keep the
+%                  original path.
 %
 
 % Separately deal with scalar multiplication
@@ -55,6 +61,12 @@ if isnumeric(A)
         error("Inner dimensions of matrix-valued objects must match for multiplication.")
     end
     C = B;
+    if ~isscalar(A)                                                         % MMP, 09/06/2026
+        % A matrix factor acts on the row index lifted over ZL:             % MMP, 09/06/2026
+        %   M*(I_m kron ZL') = (I_p kron ZL')*kron(M,I_NL).                 % MMP, 09/06/2026
+        C.dims(1) = size(A,1);                                              % MMP, 09/06/2026
+        A = kron(sparse(A),speye(prod([cellfun(@numel,B.ZL),1])));          % MMP, 09/06/2026
+    end                                                                     % MMP, 09/06/2026
     C.params = cellfun(@(b) A*b, B.params,'UniformOutput',false);
     return
 elseif isnumeric(B)
@@ -62,6 +74,10 @@ elseif isnumeric(B)
         error("Inner dimensions of matrix-valued objects must match for multiplication.")
     end
     C = A;
+    if ~isscalar(B)                                                         % MMP, 09/06/2026
+        C.dims(2) = size(B,2);                                              % MMP, 09/06/2026
+        B = kron(sparse(B),speye(prod([cellfun(@numel,A.ZR),1])));          % MMP, 09/06/2026
+    end                                                                     % MMP, 09/06/2026
     C.params = cellfun(@(a) a*B, A.params,'UniformOutput',false);
     return
 end
