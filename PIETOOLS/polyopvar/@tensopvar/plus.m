@@ -49,13 +49,13 @@ if ~isa(A,'tensopvar')
     if ~isa(A,'nopvar') && ~isa(A,'ndopvar')
         error("Addition of 'tensopvar' objects with non-'tensopvar' objects is not supported.")
     else
-        A = ndopvar2tensopvar_new(A);
+        A = ndopvar2tensopvar(A,B.type);                                    % MMP, 08/23/2026
     end
 elseif ~isa(B,'tensopvar')
     if ~isa(B,'nopvar') && ~isa(B,'ndopvar')
         error("Addition of 'tensopvar' objects with non-'tensopvar' objects is not supported.")
     else
-        B = ndopvar2tensopvar_new(B);
+        B = ndopvar2tensopvar(B,A.type);                                    % MMP, 08/23/2026
     end
 end
 
