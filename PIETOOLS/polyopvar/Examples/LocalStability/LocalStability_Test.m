@@ -1,7 +1,7 @@
 
 % Local stability test script.
 
-clear;  clear stateNameGenerator
+clear all; clear stateNameGenerator; close all; clc;
 
 % Fisher Equation.
 pvar s t
@@ -29,11 +29,11 @@ lambda = 0;
 
 % Declare degrees of dist mon basis for SOS LF and p1, p2 multipliers (respectively).
 % Degree will be doubled when converted from quadratic to linear form.
-dist_degs = [1, 0, 1];
+dist_degs = [1, 2, 1];
 
 % Declare monomial degrees in independent variables used to parametrize SOS LF and p1, p2 multipliers (respectively).
-mon_degs = [4, 1, 1];
+mon_degs = [4, 2, 2];
 
 
 % Run local stability test.
-[PIE, Top, f] = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs);
+[g,p1] = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs);

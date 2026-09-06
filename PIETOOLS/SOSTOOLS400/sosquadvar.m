@@ -1,3 +1,4 @@
+
 function [sos,P,Q] = sosquadvar(sos,Z1c,Z2c,mdim_in,ndim_in,option)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
