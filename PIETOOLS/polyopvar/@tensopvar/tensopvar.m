@@ -122,7 +122,7 @@ methods
             end
             if nargin==1
                 if isa(varargin{1},'nopvar') || isa(varargin{1},'ndopvar')
-                    C = ndopvar2tensopvar_new(varargin{1});
+                    C = ndopvar2tensopvar(varargin{1});                     % MMP, 08/23/2026
                 else
                     error("Input must be 'nopvar' or 'ndopvar' object.")
                 end

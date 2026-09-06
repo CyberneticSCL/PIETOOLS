@@ -1,5 +1,5 @@
 function Top = ndopvar2tensopvar(Pop,type)
-% TOP = NDOPVAR2TENSOPVAR(POP) returns a 'tensopvar_new' object TOP
+% TOP = NDOPVAR2TENSOPVAR(POP) returns a 'tensopvar' object TOP
 % representing the same operator as the input 'nopvar' or 'ndopvar' object
 % POP
 %
@@ -36,6 +36,8 @@ function Top = ndopvar2tensopvar(Pop,type)
 % authorship, and a brief description of modifications
 %
 % DJ, 04/14/2026: Initial coding
+% MMP, 08/23/2026: point the three remaining 'ndopvar2tensopvar_new' call
+%                  sites here, left over from the tensopvar_new rename
 
 % Check the input
 if ~isa(Pop,'nopvar') && ~isa(Pop,'ndopvar') && ~isa(Pop,'cell')
