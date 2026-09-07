@@ -127,6 +127,13 @@ function [prog,Pop,Qcell,alpha_list] = possopvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding
+% MMP, 09/07/2026: Collect the nblk^2 blocks and sum them once with
+%                  'plus_batch' instead of accumulating pairwise. Every
+%                  block is built on the same Zd, so one synchronization of
+%                  decision variables and monomial bases serves all of them;
+%                  accumulating pairwise re-synchronized the growing
+%                  accumulator on every addition, which profiled at 32% of
+%                  this routine at three spatial variables (729 additions).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -336,7 +343,13 @@ dom_io.out = dom;
 % Adjoining a basis operator flips its lower and upper integrals.
 negmap = [1,3,2];
 
-Pop = [];
+% Blocks are collected and summed once by 'plus_batch' rather than          % MMP, 09/07/2026
+% accumulated pairwise: every block carries the same Zd, so one             % MMP, 09/07/2026
+% synchronization serves all nblk^2 of them. Pairwise accumulation was      % MMP, 09/07/2026
+% measured at 32% of this routine's runtime at three spatial variables,     % MMP, 09/07/2026
+% where there are 729 additions.                                            % MMP, 09/07/2026
+Pcells = cell(nblk*nblk,1);     nPc = 0;                                    % MMP, 09/07/2026
+%Pop = [];                                                                  % MMP, 09/07/2026 (was)
 for i=1:nblk
     for j=1:nblk
         % % % Coefficients of the product, over the split (s,theta | s')
@@ -386,13 +399,16 @@ for i=1:nblk
         params.B = reshape(params.B,[3*ones(1,n3),1,1]);
 
         Pij = sdopvar(params,vars_io,Zd,ZLf,ZRf,dom_io,[m,m]);
-        if isempty(Pop)
-            Pop = Pij;
-        else
-            Pop = Pop+Pij;
-        end
+        nPc = nPc+1;    Pcells{nPc} = Pij;                                  % MMP, 09/07/2026
+%       if isempty(Pop)                                                     % MMP, 09/07/2026 (was)
+%           Pop = Pij;                                                      % MMP, 09/07/2026 (was)
+%       else                                                                % MMP, 09/07/2026 (was)
+%           Pop = Pop+Pij;                                                  % MMP, 09/07/2026 (was)
+%       end                                                                 % MMP, 09/07/2026 (was)
     end
 end
+
+Pop = plus_batch(Pcells{1:nPc});                                            % MMP, 09/07/2026
 
 end
 
