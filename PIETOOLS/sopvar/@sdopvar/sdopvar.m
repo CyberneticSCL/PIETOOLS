@@ -1,4 +1,13 @@
-classdef(InferiorClasses={?polynomial,?opvar}) sdopvar
+classdef(InferiorClasses={?polynomial,?dpvar,?sopvar}) sdopvar             % MMP, 09/07/2026
+%classdef(InferiorClasses={?polynomial,?opvar}) sdopvar                    % MMP, 09/07/2026 (was)
+% Every other decision operator class lists its fixed sibling plus          % MMP, 09/07/2026
+% {?polynomial,?dpvar}: dopvar has {?polynomial,?dpvar,?opvar}, dopvar2d    % MMP, 09/07/2026
+% has {?opvar2d,?dpvar,?polynomial}, ndopvar has {?polynomial,?dpvar,       % MMP, 09/07/2026
+% ?nopvar}. 'sdopvar' listed ?opvar, which is 'dopvar's sibling and not     % MMP, 09/07/2026
+% its own, and omitted ?sopvar and ?dpvar. Consequently a mixed expression  % MMP, 09/07/2026
+% led by a fixed 'sopvar' dispatched to '@sopvar', so [A,Pop], A*Pop and    % MMP, 09/07/2026
+% A+Pop all failed, and the 'isa(A,''sopvar'')' branch of mtimes was        % MMP, 09/07/2026
+% unreachable. No method here ever handled an 'opvar'.                      % MMP, 09/07/2026
     % Represents PI maps from L_2^p[S1,S3] to L_2^q[S2,S3]
     %
     % This defines PI operators from one L2 space to another.
