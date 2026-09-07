@@ -55,9 +55,11 @@ function Pcat = vertcat(varargin)
 %                  'sopvar2sdopvar'. Building a decision operator out of a
 %                  mix of fixed and decision blocks is the normal usage.
 % MMP, 09/07/2026: Synchronize all N operands in one pass via 'sync_basis'
-%                  instead of recursing pairwise, and build each parameter
-%                  from one set of triplets rather than N indexed sparse
-%                  assignments.
+%                  instead of recursing pairwise.
+% MMP, 09/07/2026: Scatter each operand with an indexed assignment rather
+%                  than collecting all N operands' triplets into one
+%                  sparse() call, which was 2x to 4.5x slower because that
+%                  constructor sorts every entry.
 
 % Deal with single input case
 if nargin==1
@@ -119,23 +121,29 @@ for k = 1:N
     J{k} = reshape(off(k)+(1:mk(k)*NL).' + (0:ncol-1)*nrow,[],1);
 end
 
-% % % Each parameter is built from a single set of triplets, so the q axis
-% is touched once per parameter rather than once per operand.
+% % % Scatter each operand into its rows. One indexed assignment per        % MMP, 09/07/2026
+% operand, not a single triplet sparse() over all N: measured 2x to 4.5x    % MMP, 09/07/2026
+% faster across N=2..8 and densities 1e-2..1 (40.9 s against 14.4 s at      % MMP, 09/07/2026
+% N=8 with 6e8 nonzeros), because the triplet form must sort every entry.   % MMP, 09/07/2026
 q = numel(Zd);
 ncell = numel(ops{1}.params.A);
 params_new.A = cell(size(ops{1}.params.A));
 params_new.B = cell(size(ops{1}.params.B));
-ia = cell(1,N);     va = cell(1,N);
-ib = cell(1,N);     jb = cell(1,N);     vb = cell(1,N);
 for i = 1:ncell
+    params_new.A{i} = sparse(nrow*ncol,1);                                  % MMP, 09/07/2026
+    params_new.B{i} = sparse(q,nrow*ncol);                                  % MMP, 09/07/2026
     for k = 1:N
         [Ak,Bk] = apply_basis_map(T{k},ops{k}.params.A{i},ops{k}.params.B{i});
-        [r,~,v] = find(Ak);         ia{k} = J{k}(r);    va{k} = v;
-        [r,c,v] = find(Bk);         ib{k} = r;          jb{k} = J{k}(c);    vb{k} = v;
+        params_new.A{i}(J{k})   = Ak;                                       % MMP, 09/07/2026
+        params_new.B{i}(:,J{k}) = Bk;                                       % MMP, 09/07/2026
     end
-    params_new.A{i} = sparse(cat(1,ia{:}),1,cat(1,va{:}),nrow*ncol,1);
-    params_new.B{i} = sparse(cat(1,ib{:}),cat(1,jb{:}),cat(1,vb{:}),q,nrow*ncol);
 end
+%   ia = cell(1,N);  va = cell(1,N);  ib = cell(1,N);  jb = cell(1,N);      % MMP, 09/07/2026 (was)
+%   vb = cell(1,N);                                                         % MMP, 09/07/2026 (was)
+%   [r,~,v] = find(Ak);      ia{k} = J{k}(r);   va{k} = v;                  % MMP, 09/07/2026 (was)
+%   [r,c,v] = find(Bk);      ib{k} = r; jb{k} = J{k}(c); vb{k} = v;         % MMP, 09/07/2026 (was)
+%   params_new.A{i} = sparse(cat(1,ia{:}),1,cat(1,va{:}),nrow*ncol,1);      % MMP, 09/07/2026 (was)
+%   params_new.B{i} = sparse(cat(1,ib{:}),cat(1,jb{:}),cat(1,vb{:}),q,nrow*ncol); % MMP, 09/07/2026 (was)
 
 dims = [sum(mk), ops{1}.dims(2)];
 Pcat = sdopvar(params_new,ops{1}.vars,Zd,ZL,ZR,ops{1}.dom,dims);
