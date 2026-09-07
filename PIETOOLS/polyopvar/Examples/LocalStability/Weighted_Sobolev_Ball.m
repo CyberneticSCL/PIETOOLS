@@ -35,18 +35,20 @@ function g = Weighted_Sobolev_Ball(r, alpha, Top, x)
     % If you modify this code, document all changes carefully and include date
     % authorship, and a brief description of modifications
     %
-    % CRR, 09/01/2026: Initial coding
+    % CR, 09/01/2026: Initial coding
+    % CR, 09/07/2026: Route inner products through the local MATLAB-compatible v2 implementation.
     
         %%
         n = size(alpha,2) - 1; % degree of PDE.
         Top_opvar = ndopvar2dopvar(Top);
         
-        
-        g = r^2 - alpha(1)*innerprod(Top*x,Top*x);
+        % g = r^2 - alpha(1)*innerprod(Top*x,Top*x);
+        g = r^2 - alpha(1)*innerprod_v2(Top*x,Top*x);                    % CRR, 09/07/2026
         
         for i=2:n+1
             Rop = dopvar2ndopvar(diff(Top_opvar,Top_opvar.var1,i-1,'pure'));
-            g = g - alpha(i)*innerprod(Rop*x,Rop*x);
+            % g = g - alpha(i)*innerprod(Rop*x,Rop*x);
+            g = g - alpha(i)*innerprod_v2(Rop*x,Rop*x);                  % CRR, 09/07/2026
         end
 
 end

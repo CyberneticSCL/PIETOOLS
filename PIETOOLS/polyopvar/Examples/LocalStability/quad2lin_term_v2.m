@@ -1,0 +1,440 @@
+function [Kop] = quad2lin_term_v2(Pmat,Lmon,Rmon,dom,var1,var2)
+% [KOP] = QUAD2LIN_TERM(PMAT,LMON,RMON) takes a distributed
+% polynomial in quadratic form
+%   V(x) = <LMON(x) , PMAT*RMON(x))>_{L2},
+% for 
+%   LMON(x) = C1*(x1^d1*...*xm^dm)(s)  and  RMON = C2*(x1^p1*...*xm^pm)
+% and converts it to the linear form, computing a cell KCELL of
+% kernels such that
+%  V(x) = sum_{i=1}^{m} int_{a}^{b} int_{t_k1}^{b} ... int_{t_kd}^{b} 
+%           K_{k}(t1,...,td)*
+%           x1(t1)*...*x1(t_{d1+p1})*...*xm(t_{d-dm-pm+1})*...*xm(t_{d})
+%                                                       dt_kd ... dt_k1 
+% where kj = IDX_MAT(i,j) for j=1,...,d and i=1,...,m for m=d!, with 
+% d=d1...+dm+p1+...+pm.
+%
+% INPUTS
+% - Pmat:   m1 x n1 'double' or 'dpvar' object parameterizing the inner
+%           product;
+% - Lmon:   m1 x m 'polyopvar' object representing an distributed monomial
+%           involving a single (scalar) distributed monomial Z1(x);
+% - Rmon:   n1 x n 'polyopvar' object representing an distributed monomial
+%           involving a single (scalar) distributed monomial Z1(x);
+% - dom:    (optional) 1x2 array specifing the interval, [a,b], over which
+%           integration is performed.
+% - var1:   (optional) 1x1 'pvar' object specifying the variable used in
+%           the integral defining the inner product;
+% - var2:   (optional) dx1 'pvar' object specifying the variables used in
+%           the multi-integral defining the inner product in linear format;
+%
+% OUTPUTS
+% - Kop:    'intop' object representing the functional operator defining
+%           distributed monomial functional
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - quad2lin_term
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% CR, 09/07/2026: Initial coding - Main diff is introduction of is_tensor_L, is_tensor_R, and parameter_product function.
+%  This replaces lines such as 
+% % Ltmp = Ltmp.*subs(Lop_params{trm,k}{3},var1,vars_m(j)) 
+% by
+% % parameter_product(Ltmp,subs(Lop_params{trm,k}{3},var1,vars_m(j)),is_tensor_L);
+% %
+% which replaces the standard product by a kronecker product if required as indicated by is_tensor_L. 
+% 
+
+% Process the left and right factors
+is_tensor_L = false;
+is_tensor_R = false;
+if isa(Lmon,'polyopvar') && isa(Rmon,'polyopvar')
+    % Make sure the two factors are expressed in terms of the same variables
+    [Lmon,Rmon] = common_vars(Lmon,Rmon);
+    degL = Lmon.degmat;
+    degR = Rmon.degmat;
+elseif (isa(Lmon,'polynomial') || isa(Lmon,'dpvar')) || isempty(Lmon) && isa(Rmon,'polyopvar')
+    degL = 0;
+    degR = Rmon.degmat;
+else
+    error("Monomials terms in the inner product should be specified as 'polyopvar' objects.")
+end
+
+if size(degL,1)~=1 || size(degR,1)~=1
+    error("The left and right polynomial in the inner product must be defined by exactly one monomial.")
+end
+
+% Check that the other arguments are properly specified
+if isempty(Pmat)
+    Pmat = 1;
+end
+if isa(Pmat,"double")
+    Pmat = polynomial(Pmat);
+end
+if nargin<=3
+    dom = [];
+end
+if nargin<=4
+    var1 = [];
+end
+
+
+
+% Add the monomial degrees of the left and right monomials:
+%   [x1^d1*...*xm^dm] * [x1^p1*...*xm^pm] = x1^(d1+p1)*...*xm^(dm+pm)
+deg_new = degL+degR;
+d1 = sum(degL);
+d2 = sum(degR);
+dtot = d1+d2;
+nvars = size(deg_new,2);
+if nargin<=5
+    var2 = polynomial(zeros(dtot,1));
+elseif numel(var2)~=dtot
+    error("Number of dummy variables must match the cumulative degree of the monomials.")
+end
+if d1>0
+    % % Establish the new order of the independent variables:
+    % If we have e.g. the product of a monomial in 5 factors with a monomial in 
+    % 4 factors,
+    %   [x1(t1)*x1(t2)*x2(t3)*x2(t4)*x2(t5)] * [x1(t6)*x1(t7)*x2(t8)*x2(t9)]
+    % we need to re-index the independent variables (t1,...,t9) to get
+    %    x1(t1)*x1(t2)*x1(t3)*x1(t4) * x2(t5)*x2(t6)*x2(t7)*x2(t8)*x2(t9);
+    % First, assign each factor k in Lmon(x) an index j=p1_idcs(k)=k, meaning 
+    % that factor k depends on variable t_{j}=t_{k}
+    p1_idcs = [[0,cumsum(degL(1:end-1))];cumsum(degL)];
+    p1_idcs = mat2cell(p1_idcs,2,ones(1,nvars));
+    p1_idcs = cellfun(@(a)(a(1)+1:a(2))',p1_idcs,'UniformOutput',false);
+    % Similarly, assign each factor k in Rmon(x) an index j=p2_idcs(k)=k+d1,
+    % meaning that factor k depends on variable t_{j}=t_{k+d1}
+    p2_idcs = d1+[[0,cumsum(degR(1:end-1))];cumsum(degR)];
+    p2_idcs = mat2cell(p2_idcs,2,ones(1,nvars));
+    p2_idcs = cellfun(@(a)(a(1)+1:a(2))',p2_idcs,'UniformOutput',false);
+    % Assign each factor in the product Lmon(x)*Rmon(x) an index
+    p_idcs = [p1_idcs;p2_idcs];
+    quad_var_order = cell2mat(p_idcs(:))';     % quad_var_order(i) = k means that factor i in the linear representation corresponds to factor k in the quadratic one
+    % Reorder so that factor k in the product again depends on variable t_{k}
+    [~,var_order] = sort(quad_var_order);      % var_order(k) = i means that factor k in the old monomials is assigned variable t_{i}
+    
+    % Also set the variable of integration
+    if isempty(var1)
+        var1 = polynomial(Lmon.pvarname(1));
+    end
+    if isempty(dom)
+        % Extract the domain
+        dom = Lmon.dom(1,:);
+    end   
+else
+    var_order = 1:dtot;
+    if isempty(var1)
+        % Set the variable of integration
+        var1 = polynomial(Rmon.pvarname(1));
+    end
+    if isempty(dom)
+        % Extract the domain
+        dom = Rmon.dom(1,:);
+    end   
+end
+
+
+
+% Extract the operators acting on the left monomials
+if isa(Lmon,'polyopvar')
+    if isa(Lmon.C.ops{1},'double') 
+        Lops = Lmon.C.ops(1);
+        ntrms_L = 1;
+        mdim = size(Lops{1},2);
+    else
+        is_tensor_L = Lmon.C.ops{1}.type(1); % records how the left TDP acts along its output/spatial dimension.
+        Lops = Lmon.C.ops{1}.ops;
+        ntrms_L = size(Lops,1);
+        mdim = size(Lops{1},2);
+    end
+else
+    if ~isempty(Lmon)
+        Pmat = Lmon'*Pmat;
+    end
+    Lops = {};
+    ntrms_L = 1;
+    mdim = size(Lmon,1);
+end
+% Account for case of constant polynomial
+if ntrms_L==1 && ~isa(Lops{1},'nopvar')
+    Pmat = Lops{1}'*Pmat;
+    Lops = {};
+end
+% Extract the operators acting on the right monomials
+if isa(Rmon.C.ops{1},'double') 
+    Rops = Rmon.C.ops(1);
+    ntrms_R = 1;
+else
+    is_tensor_R = Rmon.C.ops{1}.type(1); % records how the right TDP acts along its output/spatial dimension.
+    Rops = Rmon.C.ops{1}.ops;
+    ntrms_R = size(Rops,1);
+end
+%ndim = size(Rops{1},2);
+% Account for case of constant polynomial
+if ntrms_R==1 && ~isa(Rops{1},'nopvar')
+    Pmat = Pmat*Rops{1};
+    Rops = {};
+end
+% If both Lmon and Rmon are of degree 0, we return a constant polynomial
+if isempty(Rops) && isempty(Lops)
+    Kval = int(Pmat,var1,dom(1),dom(2));
+    Kop = intop(Kval,zeros(1,0),cell(1,0),zeros(0,2));
+    return
+end
+
+% if size(Lops,1)>1 || size(Rops,1)>1
+%     error("Conversion of polynomials with multiple terms is not supported.")
+% end
+if size(Lops,2)~=d1 || size(Rops,2)~=d2
+    error("Number of factors in coefficient operator should match the power of the monomial.")
+end
+
+% Extract the parameters defining each operator
+[Lop_params,has_multiplier_L,var2] = compute_params(Lops,var1,var2,var_order(1:d1),true);
+[Rop_params,has_multiplier_R,var2] = compute_params(Rops,var1,var2,var_order(d1+1:end),false);
+% Allow only multipliers acting on linear monomials
+if sum(has_multiplier_L)>1 || sum(has_multiplier_R)>1
+    error("There can be at most one multiplier term in each of the left and right factors.")
+elseif sum(has_multiplier_L)+sum(has_multiplier_R)>1 && (d1>1 || d2>1)
+    error("The presence of multiple multiplier terms is supported only for quadratic polynomials.")
+else
+    m_nums = find([has_multiplier_L,has_multiplier_R]);
+    vars_m = var2(var_order(m_nums));
+end
+
+% List all possible orders of the variables t1 through td
+%   idx_mat(l,:) = [i,j,k] means a <= ti <= tj <= tk <= b in term l
+idx_mat = 1;
+for i=2:dtot
+    n_ords = size(idx_mat,1);
+    idx_mat_new = zeros(i*n_ords,i);
+    for j=1:i
+        % Place variable t_ii in position jj
+        idx_mat_new(j:i:end,:) = [idx_mat(:,1:j-1),i*ones(n_ords,1),idx_mat(:,j:end)];
+    end
+    idx_mat = idx_mat_new;
+end
+
+% Add the boundaries of the domain to the list of variables.
+var2_f = [dom(1);var2;dom(2)];
+
+% For each possible ordering of the variables ti, compute the associated
+% kernel
+n_ords = size(idx_mat,1);
+if isa(Pmat,'dpvar') || isa(Lmon,'dpvar')
+    %Kparams = dpvar(zeros(mdim,ndim*n_ords));
+    Kparams = dpvar(zeros(mdim,0));
+else
+    %Kparams = polynomial(zeros(mdim,ndim*n_ords));
+    Kparams = polynomial(zeros(mdim,0));
+end
+for i=1:n_ords
+    param_i = 0;
+    idx_i = idx_mat(i,:);
+    idx_f = [1,idx_i+1,dtot+2];
+    for j=1:dtot+1
+        % For the considered order of the variables ti, place variable s in
+        % position j
+        idx_j = [idx_i(1,1:j-1),dtot+1,idx_i(1,j:end)];
+        % For each variable ti, determine whether s<= ti or s>=ti
+        [~,ord] = sort(idx_j);
+        is_geq_s = ord(1:dtot)>=ord(end);
+        % Extract the associated parameter from each operator Lop_k
+        Lj = 0;
+        for trm=1:ntrms_L
+            Ltmp = 1;
+            for k=1:d1
+                % Selects the appropriate multiplication rule between Ltmp and Lop_params depending on
+                % if is_tensor_L is true or not.
+                Ltmp = parameter_product(Ltmp,Lop_params{trm,k}{is_geq_s(var_order(k))+2},is_tensor_L);
+            end
+            Lj = Lj+Ltmp;
+        end
+        % Extract the associated parameter from each operator Rop_k
+        Rj = 0;
+        for trm=1:ntrms_R
+            Rtmp = 1;
+            for k=1:d2
+                % Selects the appropriate multiplication rule between Rtmp and Rop_params depending on
+                % if is_tensor_L is true or not.
+                Rtmp = parameter_product(Rtmp,Rop_params{trm,k}{is_geq_s(var_order(k+d1))+2},is_tensor_R);
+            end
+            Rj = Rj+Rtmp;
+        end
+        % Integrate the product of the parameters over the interval
+        L = var2_f(idx_f(1,j));     % will be dom(1) if j==1
+        U = var2_f(idx_f(1,j+1));   % will be dom(2) if j==dtot+1
+        param_i = param_i + int_simple(Lj*Pmat*Rj,var1,L,U);
+    end
+    % Also account for possible multiplier term: tj = s
+    for j=1:numel(m_nums)
+        [~,ord_ii] = sort(idx_i);
+        ord_m = ord_ii(var_order(m_nums(j)));
+        Lj = 0;
+        for trm=1:ntrms_L
+            Ltmp = 1;
+            for k=1:d1
+                if ord_ii(var_order(k))<ord_m
+                    % t_k <= t_m = s
+                    % Selects the appropriate multiplication rule between Ltmp and Lop_params depending on
+                    % if is_tensor_L is true or not.
+                    Ltmp = parameter_product(Ltmp,subs(Lop_params{trm,k}{2},var1,vars_m(j)),is_tensor_L);
+                elseif ord_ii(var_order(k))==ord_m
+                    % t_k == t_m = s
+                    % Selects the appropriate multiplication rule between Ltmp and Lop_params depending on
+                    % if is_tensor_L is true or not.
+                    Ltmp = parameter_product(Ltmp,Lop_params{trm,m_nums(j)}{1},is_tensor_L);
+                else
+                    % t_k >= t_m = s
+                    % Selects the appropriate multiplication rule between Ltmp and Lop_params depending on
+                    % if is_tensor_L is true or not.
+                    Ltmp = parameter_product(Ltmp,subs(Lop_params{trm,k}{3},var1,vars_m(j)),is_tensor_L);
+                end
+            end
+            Lj = Lj+Ltmp;
+        end
+        Rj = 0;
+        for trm=1:ntrms_R
+            Rtmp = 1;
+            for k=1:d2
+                if ord_ii(var_order(k+d1))<ord_m
+                    % t_k <= t_m = s
+                    % Selects the appropriate multiplication rule between Rtmp and Rop_params depending on
+                    % if is_tensor_R is true or not.
+                    Rtmp = parameter_product(Rtmp,subs(Rop_params{trm,k}{2},var1,vars_m(j)),is_tensor_R);
+                elseif ord_ii(var_order(k+d1))==ord_m
+                    % t_k == t_m = s
+                    % Selects the appropriate multiplication rule between Rtmp and Rop_params depending on
+                    % if is_tensor_R is true or not.
+                    Rtmp = parameter_product(Rtmp,Rop_params{trm,m_nums(j)-d1}{1},is_tensor_R);
+                else
+                    % t_k >= t_m = s
+                    % Selects the appropriate multiplication rule between Rtmp and Rop_params depending on
+                    % if is_tensor_R is true or not.
+                    Rtmp = parameter_product(Rtmp,subs(Rop_params{trm,k}{3},var1,vars_m(j)),is_tensor_R);
+                end
+            end
+            Rj = Rj+Rtmp;
+        end
+        param_i = param_i + subs(Lj*Pmat*Rj,var1,vars_m(j));
+    end
+    if ~isempty(param_i)
+        %Kparams(:,(i-1)*ndim+1:i*ndim) = param_i;
+        Kparams = [Kparams, param_i];       % faster than subsref for dpvar
+    end
+end
+% In the case of a quadratic function
+%   < Zop*x , P*Zop*x>
+% we do allow both terms Zop to have multipliers, 
+%   < Zop_0*x, P*Zop_0*x> = int_{a}^{b} Z0(s)^T*Pmat*Z0(s)*x(s)*x(s) ds
+% We store the parameter Z0(s)^T*Pmat*Z0(s) as an extra element of the
+% cell.
+if d1==1 && d2==1 && sum([has_multiplier_L,has_multiplier_R])==2
+    idx_mat = [zeros(1,dtot);idx_mat];
+    Kparams0 = subs(Lop_params{1}{1}*subs(Pmat,var1,var2(var_order(1)))*subs(Rop_params{1}{1},var2(var_order(2)),var2(var_order(1))),var2(2),var2(1));
+    Kparams = [Kparams0,Kparams];
+end
+
+var2name = pvar2varname(var2)';
+Kop = intop(Kparams,idx_mat,var2name,dom);
+
+end
+
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
+function [Pop_params,has_multiplier,var2] = compute_params(Pops,var1,var2,var_order,use_transpose)
+% For a cell of 1D nopvar objects Pops, return the parameters defining
+% the associated operators
+
+Pop_params = cell(size(Pops));
+has_multiplier = false(1,size(Pops,2));
+
+for k=1:numel(Pop_params)
+    % Determine the row and column index in Pop
+    [ridx,cidx] = ind2sub(size(Pops),k);
+    % Extract the kth operator
+    Pop_k = Pops{k};
+    if ~isa(Pop_k,'nopvar')
+        error("Operators must be specified as a cell of 'nopvar' objects.")
+    end
+    N = size(Pop_k.vars,1);
+    if N>1
+        error("Multivariate operators are currently not supported.")
+    end
+    % Extract the dimension of the operator
+    dim_k = Pop_k.dim;
+    % % % Check that the domains match
+    % if any(~isequal(Pop_k.dom,dom))
+    %     error("Spatial domains of the operators must match.")
+    % end
+    % Set the kth dummy variable
+    if ridx==1 && isequal(var2(var_order(cidx)),0)
+        var2_k_name = [var1.varname{1},'_',num2str(var_order(cidx))];
+        var2_k = polynomial({var2_k_name});
+        var2(var_order(cidx)) = var2_k;
+    else
+        var2_k = var2(var_order(cidx));
+    end
+    % % Build monomial vectors in primary and dummy variables
+    deg_k = Pop_k.deg;
+    % Check that we have no multiplier term
+    Pop_k_params = Pop_k.C;
+    if ~isempty(Pop_k.C{1}) && any(any(Pop_k.C{1}))
+        has_multiplier(cidx) = true;
+        Pop_k_params{1} = coeff2poly(Pop_k.C{1},dim_k,[deg_k,0],[var2_k,var1]);  % <-- substitute R0(s=t_k)
+        if use_transpose
+            Pop_k_params{1} = Pop_k_params{1}';
+        end
+    else
+        Pop_k_params{1} = zeros(dim_k);
+    end
+    % Convert integral terms to polynomial
+    for i=2:3
+        %Pop_kk_params.C{ii} = quadPoly(Pop_kk.C{ii},Z1,Z2,dim_kk,1,1);
+        Pop_k_params{i} = coeff2poly(Pop_k.C{i},dim_k,deg_k,[var1,var2_k]);
+        if use_transpose
+            Pop_k_params{i} = Pop_k_params{i}';     % Lop operators get transposed in inner product
+        end
+    end
+    Pop_params{k} = Pop_k_params;
+end
+
+end
+
+function C = parameter_product(A,B,is_tensor)
+    % Multiply coefficient factors pointwise, or by Kronecker product for
+    % Def. 4 TDP factors whose component dimensions must be retained.
+    if ~is_tensor
+        C = A.*B;
+    elseif isscalar(A)
+        C = B;
+    elseif isscalar(B)
+        C = A;
+    else
+        C = kron(A,B);
+    end
+end

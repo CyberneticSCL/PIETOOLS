@@ -1,10 +1,8 @@
 function C = polyopvar_product(A,B)
-    % C = polyopvar_product(A,B) Computes a special case of the tensor product between 
-    % two polyopvars parameterized by tensopvar operators. This function allows products such as
-    %
-    %     Zs{i} = polyopvar_product(Zs{i-1},Zx);
-    %
-    % to be computed when Zs{i} represents (Z*x)^(\otimes i).  Hence, this function is restricted to
+    % C = polyopvar_product(A,B) Computes the m=1 case of Def. 4 in Paper1.
+    % The product is formed between the TDP coefficient operators associated
+    % with two distributed-polynomial factors. This allows products such as
+    % Zs{2} = Zx*Zx, where Zs{i} represents (Z*x)^(\otimes i). Hence, this function is restricted to
     % polyopvar objects having a single operator coefficient: a 1-by-1 C array
     % containing one tensopmat.  That tensopmat may act on a tensor product of
     % any degree.  Polyopvars with multiple C coefficients or separately stored
@@ -34,15 +32,12 @@ function C = polyopvar_product(A,B)
     % (at your option) any later version.
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %
-    % CRR, 09/03/2026: Initial coding
+    % CR, 09/03/2026: Initial coding
+    % CR, 09/07/2026: Use Def. 4 for vector-valued 3-PI factors. The output
+    %                   component count is the product of the two counts.
 
     narginchk(2,2);
     
-    % A.C.ops % 1 by 1 cell arrays
-    % size(A.C) % {n by m tensopvar}
-    % numel(A.C) % number of cells
-
-
     if ~isa(A,'polyopvar') || ~isa(B,'polyopvar')
         error('polyopvar_product:InvalidInput', ...
             'Both inputs must be polyopvar objects.');
@@ -79,13 +74,39 @@ function C = polyopvar_product(A,B)
             'Both input factors must describe one scalar state variable.');
     end
 
+    if ~isequal(size(A.C.ops),[1,1]) || ~isequal(size(B.C.ops),[1,1]) || ...
+            ~isa(A.C.ops{1},'tensopvar') || ~isa(B.C.ops{1},'tensopvar')
+        error('polyopvar_product:InvalidCoefficient', ...
+            'Each input must contain one tensopvar coefficient in C{1,1}.');
+    end
+
+    % Def. 4 maps the tensor-product input through R_A otimes R_B. Since
+    % R_A and R_B have k_A and k_B output components, respectively, the new
+    % TDP has k_A*k_B components while retaining one TDP coefficient.
+    TA = A.C.ops{1};
+    TB = B.C.ops{1};
+    kA = size(TA,1);
+    kB = size(TB,1);
+    TDP = otimes(TA,TB,[true,true]);                                     % CR, 09/07/2026
+    if size(TDP,1) ~= kA*kB
+        error('polyopvar_product:InvalidProductDimension', ...
+            'Def. 4 product has an inconsistent output component count.');
+    end
+
     C = polyopvar();
-    C.varname = unique([A.varname(:);B.varname(:)]);
+    C.varname = A.varname;
     C.varsize = A.varsize(:);
     C.degmat = A.degmat + B.degmat;
-    C.C.ops{1} = otimes(A.C.ops{1},B.C.ops{1});
+
+    % Rebuild the enclosing tensopmat from the TDP. Direct cell assignment
+    % leaves vars, dom, and dependency arrays empty for later products.
+    C.C = tensopmat(TDP);                                                % CR, 09/07/2026
+    
     C.pvarname = A.pvarname;
     C.dom = A.dom;
-    C.varmat = [A.varmat; B.varmat];
+    
+    % Stacking varmat would incorrectly create a second state variable.
+    % C.varmat = [A.varmat; B.varmat];
+    C.varmat = A.varmat;                                                 % CR, 09/07/2026
 
 end

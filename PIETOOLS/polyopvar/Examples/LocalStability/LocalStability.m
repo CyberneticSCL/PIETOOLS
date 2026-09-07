@@ -17,7 +17,32 @@ function [g,p1] = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    
+    % PIETOOLS - LocalStability.m
+    %
+    % Copyright (C) 2026 PIETOOLS Team
+    %
+    % This program is free software; you can redistribute it and/or modify
+    % it under the terms of the GNU General Public License as published by
+    % the Free Software Foundation; either version 2 of the License, or
+    % (at your option) any later version.
+    %
+    % This program is distributed in the hope that it will be useful,
+    % but WITHOUT ANY WARRANTY; without even the implied warranty of
+    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    % GNU General Public License for more details.
+    %
+    % You should have received a copy of the GNU General Public License
+    % along with this program; if not, write to the Free Software
+    % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % If you modify this code, document all changes carefully and include date
+    % authorship, and a brief description of modifications
+    %
+    % CR, 09/01/2026: Initial coding
+
+
     %% Convert PDE to PIE.
     PIE = convert(PDE);
     Top = PIE.T; % Inverse map.
@@ -26,15 +51,6 @@ function [g,p1] = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     
     % Construct fundamental state.
     x = f.vartab;
-    % pvar s
-    % x = polyopvar();
-    % x.varname = f.varname;
-    % x.varsize = 1;
-    % x.degmat = 1;
-    % x.C.ops = 1;
-    % x.pvarname = f.pvarname;
-    % x.dom = dom;
-    % x.varmat = 1;
 
     
     %% Initialize PIESOS program structure.
@@ -55,17 +71,19 @@ function [g,p1] = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     
     % Define weighted sobolev ball of radius r.
     g = Weighted_Sobolev_Ball(r, alpha, Top, x);
+    fprintf(" --- Weighted Sobolev ball declared ---\n");
 
 
     %% Declare p1, p2 as SOS DPs.
     [prog, p1] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
+    fprintf(" --- p1 declared ---\n");
     
     % [prog, p2] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
-    % 
+    % fprintf(" --- p2 declared ---\n");
     % 
     % %% Declare the LF as SOS DP.
     % [prog, V] = LF_V3(prog, V_deg, V_mon, Top, x, dom);
-    % 
+    % fprintf(" --- LF declared ---\n");
     % 
     % %% Compute Lie derivative of the Lyapunov functional along the PIE.
     % 

@@ -38,12 +38,17 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
     % If you modify this code, document all changes carefully and include date
     % authorship, and a brief description of modifications
     %
-    % CRR, 09/01/2026: Initial coding
+    % CR, 09/01/2026: Initial coding
+    % CR, 09/07/2026: Build a block Gram form using tensor-product basis
+    %                   operators and evaluate every block with innerprod.
+    %                   Re-routed innerprod via innerprod_v2.m
+    % CR, 09/07/2026: Verify the returned Gram blocks are symbolically
+    %                   symmetric before using the factor-two reduction.
         
             
         %% Build the monomial basis used to parameterize P.
     
-        % Construct the basis operator corresponding to U in paper.
+        % Construct the basis operator corresponding to \hat{U} in paper.
         pvar s s_dum
         Zmon = monomials([s,s_dum],0:opdeg);
         Zop = opvar();
@@ -56,7 +61,7 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
         Z = dopvar2ndopvar(Zop);
         Zx = Z*x;
 
-        % Construct the T-PI operators (corresponding to U^i x^i in the paper) as products of Zx.
+        % Construct the T-PI operators (corresponding to \hat{U}^i x^i in the paper) as products of Zx.
         Zs = cell(d,1);
         for i = 1:d
             if i==1
@@ -67,7 +72,20 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
         end
     
         %% Declare the block Gram operator P >= 0 and add its variables to prog.
-        [prog, Pcell] = polyopvar_sosquadvar(prog, Zs, Zs, 'pos'); % 'pos' ensure Pcell is symmetric.
+        [prog, Pcell] = polyopvar_sosquadvar(prog, Zs, Zs, 'pos');
+
+        % The lower-triangular evaluation below is valid only when
+        % Pcell{j,i} = Pcell{i,j}'. Check dimensions and symbolic dpvar
+        % structure before exploiting that identity.
+        for i = 1:d
+            for j = 1:i
+                if ~isequal(size(Pcell{i,j}),size(Pcell{j,i}')) || ...
+                        ~isequal(Pcell{i,j},Pcell{j,i}')
+                    error('SOS_DP:NonSymmetricGram', ...
+                        'Pcell must be symmetric before using the factor-two reduction.');
+                end
+            end
+        end
 
         %% Ensure strict positivity of the constructed SOS DP.
         eppos = 1e-4;
@@ -77,16 +95,28 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
         
         %% Evaluate DP = <Z_d(x), P Z_d(x)> as a complete block quadratic form.
         
-        % THIS DOES NOT WORK SINCE... Zs{1} will typically be a vector valued
-        % 3-PI operator with the number of elements determined by the
-        % monomial basis. innerprod cannot handle such array entries.
+        % Each Zs{i} is a vector-valued polyopvar and Pcell{i,j} is the
+        % matching block of the global Gram matrix.
+        % DP = 0;
+        % for i = 1:d
+        %     for j = 1:d
+        %         % DP = DP + innerprod(Zs{i},Zs{j},Pcell{i,j});
+        %         DP = DP + innerprod_v2(Zs{i},Zs{j},Pcell{i,j});            % CRR, 09/07/2026
+        %     end
+        % end
+        
+        % Each Zs{i} is a vector-valued polyopvar and Pcell{i,j} is the
+        % matching block of the global Gram matrix.
+        % Compute DP when exploiting symmetry of Pcell.           % CR 09/07/26
         DP = 0;
         for i = 1:d
-            for j = 1:d
-                DP = DP + innerprod(Zs{i},Zs{j},Pcell{i,j});
+            for j = 1:i
+                if i==j
+                    DP = DP + innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                else
+                    DP = DP + 2*innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                end
             end
         end
-        
-        DP = innerprod(Zs{2},Zs{2},Pcell{2,2}); % innerprod(Zs{1},Zs{1},Pcell{1,1}) + innerprod(Zs{1},Zs{2},Pcell{1,2}) + innerprod(Zs{2},Zs{1},Pcell{2,1});
 
 end

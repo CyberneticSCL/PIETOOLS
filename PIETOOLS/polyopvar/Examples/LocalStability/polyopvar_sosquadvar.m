@@ -16,7 +16,7 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
     % - Pcell   Cell array of Gram-matrix blocks.
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - ndopvar_sosquadvar
+    % PIETOOLS - polyopvar_sosquadvar
     %
     % Copyright (C) 2026 PIETOOLS Team
     %
@@ -26,17 +26,17 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
     % (at your option) any later version.
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %
-    % CRR, 09/01/2026: Initial coding
+    % CR, 09/01/2026: Initial coding
     
     narginchk(4,4);
     
     if ~iscell(Z1) || ~iscell(Z2) || isempty(Z1) || isempty(Z2)
-        error('polyopvar_sosquadvar:InvalidBasis', ...
+        error('polyopvar_sosquadvar_v2:InvalidBasis', ...
             'Z1 and Z2 must be nonempty cell arrays.');
     end
     
     if numel(Z1) ~= numel(Z2)
-        error('polyopvar_sosquadvar:InvalidBasis', ...
+        error('polyopvar_sosquadvar_v2:InvalidBasis', ...
             'Z1 and Z2 must contain the same number of blocks.');
     end
     
@@ -46,7 +46,7 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
 
     for i = 1:d
         if ~isa(Z1{i},'polyopvar') || ~isa(Z2{i},'polyopvar')
-            error('polyopvar_sosquadvar:InvalidBasis', ...
+            error('polyopvar_sosquadvar_v2:InvalidBasis', ...
                 'Each basis block must be a polyopvar object.');
         end
 
@@ -55,17 +55,18 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
     end
 
     if strcmpi(option,'pos') && any(m ~= n)
-        error('polyopvar_sosquadvar:InvalidDimension', ...
+        error('polyopvar_sosquadvar_v2:InvalidDimension', ...
             'A positive Gram variable requires matching left and right dimensions.');
     end
 
     % Declare one matrix variable.  This is what couples all Pcell blocks
     % into one global PSD/symmetric Gram matrix.
+    % One call couples all degree blocks into one matrix P >= 0.
     [prog,P] = sosquadvar(prog,{1},{1},sum(m),sum(n),option);
     P = P{1}; % P is no longer a cell.
 
     Pcell = cell(d,d);
-    
+
     row0 = 0;
     for i = 1:d
         col0 = 0;
@@ -75,4 +76,5 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
         end
         row0 = row0 + m(i);
     end
+
 end
