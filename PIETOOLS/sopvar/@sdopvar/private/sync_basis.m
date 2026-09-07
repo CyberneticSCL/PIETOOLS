@@ -111,11 +111,13 @@ for k = 2:N
 end
 
 % % % One embedding per operand, straight onto the merged bases.
+NLnew = prod([cellfun(@numel,ZL),1]);
+NRnew = prod([cellfun(@numel,ZR),1]);
 T = cell(1,N);
 for k = 1:N
     if isequal(objs{k}.ZL,ZL) && isequal(objs{k}.ZR,ZR)
         % Already on the merged bases: leave T{k} empty so the caller skips
-        % an identity multiply over the whole coefficient block.
+        % the remapping entirely rather than performing an identity one.
         continue
     end
     % ZL contains objs{k}.ZL, so the union below IS ZL and CL embeds
@@ -123,10 +125,26 @@ for k = 1:N
     % the monomial ordering identical to the pairwise code it replaces.
     [~,CL] = UnionBasisMonomials(objs{k}.ZL,ZL);
     [~,CR] = UnionBasisMonomials(objs{k}.ZR,ZR);
-    CL = kron(eye(objs{k}.dims(1)),CL);
-    CR = kron(eye(objs{k}.dims(2)),CR);
-    % vec(CL' * C * CR) = kron(CR',CL') * vec(C)
-    T{k} = kron(CR',CL');
+
+    % CL and CR are selection matrices: exactly one 1 per row, in the
+    % column this operand's monomial occupies in the merged basis. So
+    % kron(CR',CL') would be an nC_new x nC_k sparse holding one 1 per
+    % column and nothing else -- a pure scatter. Read the positions off CL
+    % and CR and store the scatter as an index vector instead of building
+    % that matrix; see 'apply_basis_map'.
+    aL = zeros(size(CL,1),1);   [rL,cL] = find(CL);     aL(rL) = cL;
+    aR = zeros(size(CR,1),1);   [rR,cR] = find(CR);     aR(rR) = cR;
+    mk = objs{k}.dims(1);       nk = objs{k}.dims(2);
+
+    % Entry (matrix row i, ZL index a, matrix column j, ZR index b) sits at
+    % vec position (i-1)*NLk+a + ((j-1)*NRk+b-1)*mk*NLk, the monomial index
+    % inner on both axes. Its destination is the same expression with NLk,
+    % NRk replaced by the merged sizes and a,b by aL(a),aR(b). Building
+    % rowmap and colmap first keeps this one reshape per axis.
+    rowmap = reshape(aL + (0:mk-1)*NLnew,[],1);
+    colmap = reshape(aR + (0:nk-1)*NRnew,[],1);
+    T{k} = struct('idx',reshape(rowmap+(colmap.'-1)*(mk*NLnew),[],1), ...
+                  'nC', mk*NLnew*nk*NRnew);
 end
 
 end
