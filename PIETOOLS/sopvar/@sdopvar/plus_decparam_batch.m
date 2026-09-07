@@ -13,7 +13,20 @@ function [CC,ZdC] = plus_decparam_batch(C,Zd)
 %
 % Outputs:
 %   CC  - structure with fields A and B
-%   ZdC - combined unique decision-parameter vector
+%   ZdC - combined unique decision-parameter vector, in first-occurrence
+%         order, matching the contract of 'CombineDecisionBasis'
+%
+% MMP, 09/07/2026: 'unique' -> 'unique(...,''stable'')'. Plain 'unique'
+% sorts, so the returned ZdC did not match the order every other routine in
+% the class uses, and a caller would have had its decision variables
+% silently permuted.
+%
+% NOTE: this routine is currently unreachable and uncalled. It sits in the
+% class folder, so it is a method and dispatches on its first argument,
+% which every intended caller passes as a cell -- the same trap that made
+% 'lrmultiply' unreachable until it was moved to 'private'. Its work is also
+% now done by 'sync_basis', which merges the decision lists for all N
+% operands at once and leaves the summation to the caller.
 
 N = numel(C);
 
@@ -30,7 +43,12 @@ offset = [0; cumsum(n(:))];
 
 ZdAll = vertcat(Zd{:});
 
-[ZdC,~,ic] = unique(ZdAll);
+% 'stable' keeps first-occurrence order, which is the contract              % MMP, 09/07/2026
+% 'CombineDecisionBasis' establishes: Zd = [ZdA; setdiff(ZdB,ZdA,'stable')]. % MMP, 09/07/2026
+% Plain 'unique' SORTS, so a caller would silently get a different          % MMP, 09/07/2026
+% decision variable ordering than every other routine in the class.         % MMP, 09/07/2026
+[ZdC,~,ic] = unique(ZdAll,'stable');                                        % MMP, 09/07/2026
+%[ZdC,~,ic] = unique(ZdAll);                                                % MMP, 09/07/2026 (was)
 
 nC = numel(ZdC);
 ncol = size(C{1}.B,2);
