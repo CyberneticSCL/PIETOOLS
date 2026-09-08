@@ -34,6 +34,12 @@ function [Pblkdiag] = blkdiag(varargin)
 %
 % Initial AT 01/21/2026
 % Correct order ZL and ZR, split off UnionBasisMonomials, DJ 06/08/2026
+% MMP, 09/07/2026: Compare the spatial variable lists with 'isequal'
+%                  instead of 'any(~strcmp(...))'. strcmp of two cellstr of
+%                  different length scalar-expands to an empty logical, so
+%                  the guard was false for a genuine mismatch and blocks on
+%                  different spaces were accepted, discarding a spatial
+%                  variable and retyping an L2 component as R.
 
 % Deal with single input case
 if nargin==1
@@ -59,7 +65,13 @@ end
 
 
 % Check that domain and variables match
-if any(~strcmp(a.vars.in, b.vars.in))|| any(~strcmp(a.vars.out, b.vars.out))
+% 'isequal' rather than 'any(~strcmp(...))': strcmp of two cellstr of       % MMP, 09/07/2026
+% different length scalar-expands to an empty logical, so any([]) is        % MMP, 09/07/2026
+% false and a mismatch between {} and {'s1'} passed. That let blocks on     % MMP, 09/07/2026
+% different spaces sit on one diagonal, silently discarding the spatial     % MMP, 09/07/2026
+% variable and retyping an L2 component as R.                              % MMP, 09/07/2026
+if ~isequal(a.vars.in(:),b.vars.in(:)) || ~isequal(a.vars.out(:),b.vars.out(:)) % MMP, 09/07/2026
+%if any(~strcmp(a.vars.in, b.vars.in))|| any(~strcmp(a.vars.out, b.vars.out)) % MMP, 09/07/2026 (was)
     error('Operators being concatenated have input/output variables');
 end
  
