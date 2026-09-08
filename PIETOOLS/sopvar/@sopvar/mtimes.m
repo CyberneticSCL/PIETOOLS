@@ -47,6 +47,12 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
+% MMP, 09/07/2026: Compare the spatial variable lists with 'isequal'
+%                  instead of 'any(~strcmp(...))'. strcmp of two cellstr of
+%                  different length scalar-expands to an empty logical, so
+%                  the guard was false for a genuine mismatch and blocks on
+%                  different spaces were accepted, discarding a spatial
+%                  variable and retyping an L2 component as R.
 % MMP, 09/06/2026: Lift a numeric matrix factor over the monomial index and
 %                  record the new dimension. A matrix was previously applied
 %                  straight to the coefficients, which threw for degree >= 1
@@ -86,7 +92,12 @@ end
 if A.dims(2)~=B.dims(1)
     error('number of output components of B is different than number of input components of A');
 end
-if any(~strcmp(A.vars.in,B.vars.out))
+% 'isequal' rather than 'any(~strcmp(...))': strcmp of two cellstr of       % MMP, 09/07/2026
+% different length scalar-expands to an empty logical, so any([]) is        % MMP, 09/07/2026
+% false and a composition across mismatched spaces passed -- B mapping to   % MMP, 09/07/2026
+% R^n composed with A acting on L_2, or the reverse.                       % MMP, 09/07/2026
+if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/07/2026
+%if any(~strcmp(A.vars.in,B.vars.out))                                      % MMP, 09/07/2026 (was)
     error('names of B output variables differ from names of A input variables');
 end
 if any(any(A.dom.in~=B.dom.out))
