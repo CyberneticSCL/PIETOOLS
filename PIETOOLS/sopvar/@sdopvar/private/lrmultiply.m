@@ -20,9 +20,10 @@ Aout = Y(:);
 Bout = sparse(size(B,1),size(L,1)*size(R,2));
 
 % new implementation using kronecker product
-Rkron = kron(speye(size(L,2)), R);
-Lkron = kron(L, speye(size(R,1)));
-LRkron = Lkron*Rkron;
+% vec(L*X*R) = (R' otimes L)*vec(X) = vec(X)' (R otimes L') 
+% Rkron = kron(speye(size(L,2)), R);
+% Lkron = kron(L, speye(size(R,1)));
+LRkron = kron(R, L');%;Lkron*Rkron;
 Bout = B*LRkron;
 
 % Previous implementation
