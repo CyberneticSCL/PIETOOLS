@@ -9,7 +9,8 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
     % - prog    Current PIESOS/SOSTOOLS program.
     % - Z1      Cell array of left polyopvar basis operators.
     % - Z2      Cell array of right polyopvar basis operators.
-    % - option  'pos', 'sym', or another option accepted by sosquadvar.
+    % - option  'pos', 'sym', or 'free'. The 'free' option declares an
+    %           unconstrained matrix variable.
     %
     % OUTPUTS
     % - prog    Updated program containing the Gram decision variables.
@@ -28,7 +29,11 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
     %
     % CR, 09/01/2026: Initial coding
     
-    narginchk(4,4);
+    narginchk(3,4);
+
+    if nargin<4 || isempty(option)
+        option = 'free';
+    end
     
     if ~iscell(Z1) || ~iscell(Z2) || isempty(Z1) || isempty(Z2)
         error('polyopvar_sosquadvar_v2:InvalidBasis', ...
@@ -59,10 +64,15 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
             'A positive Gram variable requires matching left and right dimensions.');
     end
 
-    % Declare one matrix variable.  This is what couples all Pcell blocks
-    % into one global PSD/symmetric Gram matrix.
-    % One call couples all degree blocks into one matrix P >= 0.
-    [prog,P] = sosquadvar(prog,{1},{1},sum(m),sum(n),option);
+    % Declare one matrix variable. This is what couples all Pcell blocks
+    % into one global matrix P. For the free option, omitting the final
+    % argument leaves P unconstrained; 'pos' and 'sym' impose the usual
+    % SOS quadratic-form constraints.
+    if strcmpi(option,'free')
+        [prog,P] = sosquadvar(prog,{1},{1},sum(m),sum(n));
+    else
+        [prog,P] = sosquadvar(prog,{1},{1},sum(m),sum(n),option);
+    end
     P = P{1}; % P is no longer a cell.
 
     Pcell = cell(d,d);

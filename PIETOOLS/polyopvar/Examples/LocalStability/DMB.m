@@ -1,7 +1,7 @@
-function C = polyopvar_product(A,B)
-    % C = polyopvar_product(A,B) Computes the m=1 case of Def. 4 in Paper1.
+function C = DMB(A,B)
+    % C = DMB(A,B) Computes the m=1 case of Def. 4 in Paper1.
     % The product is formed between the TDP coefficient operators associated
-    % with two distributed-polynomial factors. This allows products such as
+    % with two distributed-monomial basis factors. This allows products such as
     % Zs{2} = Zx*Zx, where Zs{i} represents (Z*x)^(\otimes i). Hence, this function is restricted to
     % polyopvar objects having a single operator coefficient: a 1-by-1 C array
     % containing one tensopmat.  That tensopmat may act on a tensor product of
@@ -22,7 +22,7 @@ function C = polyopvar_product(A,B)
     % - C     polyopvar object representing the tensor product A otimes B.
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % PIETOOLS - polyopvar_product
+    % PIETOOLS - DMB
     %
     % Copyright (C) 2026 PIETOOLS Team
     %
