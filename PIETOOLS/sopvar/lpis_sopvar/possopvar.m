@@ -174,6 +174,16 @@ vars = vars(:)';        n3 = numel(vars);
 if numel(unique(vars))~=n3
     error("Spatial variable names should be unique.")
 end
+% The parameter cell of an sopvar/sdopvar is indexed over S3 in SORTED      % MMP, 09/11/2026
+% order: the class recovers a direction from a cell subscript with          % MMP, 09/11/2026
+% intersect(vars.in,vars.out), which sorts (see canonicalize_multiplier,    % MMP, 09/11/2026
+% apply_sopvar and lpi_eq_sdopvar). Everything below is built over 'vars'   % MMP, 09/11/2026
+% in the CALLER's order, because 'dom' and 'alpha_list' have to stay        % MMP, 09/11/2026
+% consistent with each other for 'int_semisep'. This records the            % MMP, 09/11/2026
+% permutation so the finished cell can be relabelled onto sorted order      % MMP, 09/11/2026
+% just before the constructor is called; sorted variable j is              % MMP, 09/11/2026
+% vars{ord_S3(j)}.                                                          % MMP, 09/11/2026
+[~,ord_S3] = sort(vars);                                                    % MMP, 09/11/2026
 
 % Declare names for the integration variable theta and the input dummy
 % variable s'. Neither appears in the returned object: the dummy variables
@@ -397,6 +407,21 @@ for i=1:nblk
         end
         params.A = reshape(params.A,[3*ones(1,n3),1,1]);
         params.B = reshape(params.B,[3*ones(1,n3),1,1]);
+        % Relabel the cell from the caller's variable order onto the sorted  % MMP, 09/11/2026
+        % order the class indexes by. Cell dimension k currently means       % MMP, 09/11/2026
+        % vars{k}; after the permute, dimension j means the j-th variable in % MMP, 09/11/2026
+        % sorted order. Without this the constructor canonicalizes vars,     % MMP, 09/11/2026
+        % dom, ZL and ZR but the cell keeps the caller's labelling, so for   % MMP, 09/11/2026
+        % an unsorted 'vars' the returned operator had its basis-operator    % MMP, 09/11/2026
+        % directions permuted: declaring the same variable-to-domain         % MMP, 09/11/2026
+        % association as ({a,b},[0,1;2,3]) and as ({b,a},[2,3;0,1]) gave     % MMP, 09/11/2026
+        % kernels differing by 2.8 relative, and it also left dummy-variable % MMP, 09/11/2026
+        % degree in the multiplier cell, which showed up as a stream of      % MMP, 09/11/2026
+        % noncanonicalMultiplier warnings.                                   % MMP, 09/11/2026
+        if n3 > 1                                                           % MMP, 09/11/2026
+            params.A = permute(params.A,[ord_S3,n3+1,n3+2]);                % MMP, 09/11/2026
+            params.B = permute(params.B,[ord_S3,n3+1,n3+2]);                % MMP, 09/11/2026
+        end                                                                 % MMP, 09/11/2026
 
         Pij = sdopvar(params,vars_io,Zd,ZLf,ZRf,dom_io,[m,m]);
         nPc = nPc+1;    Pcells{nPc} = Pij;                                  % MMP, 09/07/2026
