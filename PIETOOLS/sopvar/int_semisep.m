@@ -94,6 +94,19 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % authorship, and a brief description of modifications
 %
 % AT, 2026: Initial coding as @sopvar/private/int_semisep_AT
+% MMP, 09/10/2026: Build the 'packed' outputs from accumulated triplets, one
+%                  'sparse' call per gamma, instead of preallocating all-zero
+%                  sparse matrices and filling them by subscripted
+%                  assignment. Profiling a composition put 67.5% of this
+%                  routine in that single assignment statement at two
+%                  pass-through variables and degree 3, and 79.5% at three;
+%                  its cost per nonzero moved rose from 67.9 to 131.0 ns as
+%                  the problem grew, which is the signature of rebuilding
+%                  the sparse structure on every write. CLAUDE.md's rule --
+%                  build sparse matrices once from triplets, never
+%                  index-assign in a loop -- applied literally. Only the
+%                  'packed' layout is affected; the 'separate' layout
+%                  already assigned whole cells.
 % MP, 08/22/2026: Promoted to a shared function. Added a guard so that
 %                 partial (nbeta<3^ns3a, nalpha<3^ns3a) index lists are
 %                 supported, as the documented interface implies; the
@@ -244,10 +257,25 @@ gamIdx = fliplr(dec2base(0:3^ns3a-1,3,ns3a)-'0') + 1;
 
 % 'packed' needs 3^ns3a matrices rather than 3^ns3a*nbeta*nalpha of them.     % MMP, 08/30/2026
 if packed                                                                    % MMP, 08/30/2026
-    C_gam_alp_beta = cell(3^ns3a,1);                                         % MMP, 08/30/2026
-    for idx_C = 1:numel(C_gam_alp_beta)                                      % MMP, 08/30/2026
-        C_gam_alp_beta{idx_C} = sparse(g1*NL*nbeta,g2*NR*nalpha);            % MMP, 08/30/2026
-    end                                                                      % MMP, 08/30/2026
+    % The packed outputs are accumulated as triplets and built with one      % MMP, 09/10/2026
+    % 'sparse' call each, below the loop. They used to be preallocated as    % MMP, 09/10/2026
+    % all-zero sparse matrices and filled by subscripted assignment, which   % MMP, 09/10/2026
+    % rebuilds the whole sparse structure on every one of the 11^ns3a        % MMP, 09/10/2026
+    % writes: that single statement measured 67.5% of this routine at two    % MMP, 09/10/2026
+    % pass-through variables and degree 3, rising to 79.5% at three, and     % MMP, 09/10/2026
+    % its cost per nonzero moved GREW with the problem (67.9 -> 131.0 ns).   % MMP, 09/10/2026
+    % One slot per (gamma,beta,alpha): the eleven rows of 'cllA' are         % MMP, 09/10/2026
+    % distinct (gamma,beta,alpha) triples, so for a fixed (beta,alpha) the   % MMP, 09/10/2026
+    % gammas differ, and gamma-tuple -> gam_lin is a bijection. Each block   % MMP, 09/10/2026
+    % is therefore written at most once and nothing needs summing.          % MMP, 09/10/2026
+    nGam = 3^ns3a;                                                           % MMP, 09/10/2026
+    accI = cell(nGam,nbeta*nalpha);                                          % MMP, 09/10/2026
+    accJ = cell(nGam,nbeta*nalpha);                                          % MMP, 09/10/2026
+    accV = cell(nGam,nbeta*nalpha);                                          % MMP, 09/10/2026
+%   C_gam_alp_beta = cell(3^ns3a,1);                                         % MMP, 09/10/2026 (was)
+%   for idx_C = 1:numel(C_gam_alp_beta)                                      % MMP, 09/10/2026 (was)
+%       C_gam_alp_beta{idx_C} = sparse(g1*NL*nbeta,g2*NR*nalpha);            % MMP, 09/10/2026 (was)
+%   end                                                                      % MMP, 09/10/2026 (was)
 else                                                                         % MMP, 08/30/2026
     C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);
     for idx_C = 1:numel(C_gam_alp_beta)
@@ -348,6 +376,40 @@ end
 
 cllA = str2double(num2cell(num2str(cllA')));
 
+% The eleven keys share only EIGHT distinct per-direction factors: the switch  % MMP, 09/10/2026
+% above handles {111,212,313} in one branch and {221,331} in another, so       % MMP, 09/10/2026
+% Ci_key_ell takes 8 values per direction and the Kronecker product Csep       % MMP, 09/10/2026
+% below takes 8^ns3a, not 11^ns3a. Every repeat costs a redundant              % MMP, 09/10/2026
+% 'rearrangeCoef', which is 11^ns3a/8^ns3a = 1.89x at two pass-through         % MMP, 09/10/2026
+% variables, 2.60x at three and 3.57x at four. The duplicates are found by     % MMP, 09/10/2026
+% COMPARING the built factors rather than by hard-coding the branch labels,    % MMP, 09/10/2026
+% so the grouping stays correct if the table or the domains change; the        % MMP, 09/10/2026
+% comparison is 11^2 per direction on matrices of a few dozen nonzeros.        % MMP, 09/10/2026
+nkey  = size(cllA,1);                                                        % MMP, 09/10/2026
+repOf = repmat((1:nkey).',1,ns3a);                                           % MMP, 09/10/2026
+for ell = 1:ns3a                                                             % MMP, 09/10/2026
+    for k = 2:nkey                                                           % MMP, 09/10/2026
+        for j = 1:k-1                                                        % MMP, 09/10/2026
+            if isequal(Ci_key_ell{k,ell},Ci_key_ell{j,ell})                   % MMP, 09/10/2026
+                repOf(k,ell) = repOf(j,ell);                                 % MMP, 09/10/2026
+                break                                                        % MMP, 09/10/2026
+            end                                                              % MMP, 09/10/2026
+        end                                                                  % MMP, 09/10/2026
+    end                                                                      % MMP, 09/10/2026
+end                                                                          % MMP, 09/10/2026
+% Renumber the representatives densely per direction, so the memo is indexed  % MMP, 09/10/2026
+% in mixed radix over the DISTINCT counts (8 per direction in the current      % MMP, 09/10/2026
+% table) rather than over 11, and holds prod(nCls) slots instead of           % MMP, 09/10/2026
+% 11^ns3a.                                                                    % MMP, 09/10/2026
+clsOf = zeros(nkey,ns3a);   nCls = zeros(1,ns3a);                            % MMP, 09/10/2026
+for ell = 1:ns3a                                                             % MMP, 09/10/2026
+    [~,~,ic] = unique(repOf(:,ell));                                         % MMP, 09/10/2026
+    clsOf(:,ell) = ic;                                                       % MMP, 09/10/2026
+    nCls(ell)    = max(ic);                                                  % MMP, 09/10/2026
+end                                                                          % MMP, 09/10/2026
+pwCls = cumprod([1,nCls(1:end-1)]);                                          % MMP, 09/10/2026
+memoC = cell(prod([nCls,1]),1);                                              % MMP, 09/10/2026
+
 % % % Enumerate only the (gamma,beta,alpha) triples the caller asked for.     % MMP, 08/30/2026
 %                                                                            % MMP, 08/30/2026
 % Per spatial direction the table holds 11 triples, so enumerating all of     % MMP, 08/30/2026
@@ -391,19 +453,21 @@ for comb = 0:prod(nopt)-1                                                    % M
     % options, accumulating both the Kronecker factor and the linear index    % MMP, 08/30/2026
     % of gamma. The gamma multi-index encodes to its own cell position in     % MMP, 08/30/2026
     % base 3, so no lookup table is needed.                                   % MMP, 08/30/2026
-    Csep = 1;   gam_lin = 1;    rem_c = comb;                                % MMP, 08/30/2026
+    % Walk the mixed radix for the keys, gamma, and the memo slot. Csep is    % MMP, 09/10/2026
+    % NOT built here: it is only needed on a memo miss, so the Kronecker      % MMP, 09/10/2026
+    % chain is skipped on a hit along with the rearrangeCoef.                 % MMP, 09/10/2026
+    gam_lin = 1;    rem_c = comb;    memoLin = 1;                            % MMP, 09/10/2026
+    kseq = zeros(1,ns3a);                                                    % MMP, 09/10/2026
     for ell = 1:ns3a                                                         % MMP, 08/30/2026
         sel = mod(rem_c,nopt(ell)) + 1;                                      % MMP, 08/30/2026
         rem_c = floor(rem_c/nopt(ell));                                      % MMP, 08/30/2026
         key_idx = opt{ell}(sel);                                             % MMP, 08/30/2026
-        Csep = kron(Csep,Ci_key_ell{key_idx,ell});                           % MMP, 08/30/2026
+        kseq(ell) = key_idx;                                                 % MMP, 09/10/2026
+        memoLin = memoLin + (clsOf(key_idx,ell)-1)*pwCls(ell);               % MMP, 09/10/2026
+%       Csep = kron(Csep,Ci_key_ell{key_idx,ell});                           % MMP, 09/10/2026 (was)
         gam_lin = gam_lin + (cllA(key_idx,1)-1)*pw3(ell);                    % MMP, 08/30/2026
     end                                                                      % MMP, 08/30/2026
     un_indices_gamma = gam_lin;                                              % MMP, 08/30/2026
-
-    if ~isequal(size(Csep),[NG,NL*NR])
-        error('int_semisep: internal Csep size mismatch.');
-    end
 
     % Convert
     %
@@ -412,15 +476,35 @@ for comb = 0:prod(nopt)-1                                                    % M
     % into
     %
     %   (I_g1 \otimes ZL')*Cnew*(I_g2 \otimes ZR).
-    Cnew = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL);                   % MMP, 08/30/2026
-    if ~isequal(size(Cnew),[g1*NL,g2*NR])
-        error('int_semisep: output coefficient size mismatch.');
-    end
+    % Keyed on the representative tuple, so the 11^ns3a enumerated blocks     % MMP, 09/10/2026
+    % share the 8^ns3a distinct results. The size checks stay on the miss     % MMP, 09/10/2026
+    % path, so every distinct Csep and Cnew is still validated once.          % MMP, 09/10/2026
+    if isempty(memoC{memoLin})                                               % MMP, 09/10/2026
+        Csep = 1;                                                            % MMP, 09/10/2026
+        for ell = 1:ns3a                                                     % MMP, 09/10/2026
+            Csep = kron(Csep,Ci_key_ell{kseq(ell),ell});                     % MMP, 09/10/2026
+        end                                                                  % MMP, 09/10/2026
+        if ~isequal(size(Csep),[NG,NL*NR])
+            error('int_semisep: internal Csep size mismatch.');
+        end
+        Cmiss = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL);              % MMP, 09/10/2026
+        if ~isequal(size(Cmiss),[g1*NL,g2*NR])                               % MMP, 09/10/2026
+            error('int_semisep: output coefficient size mismatch.');
+        end
+        memoC{memoLin} = Cmiss;                                              % MMP, 09/10/2026
+    end                                                                      % MMP, 09/10/2026
+    Cnew = memoC{memoLin};                                                   % MMP, 09/10/2026
 
     if packed                                                                % MMP, 08/30/2026
-        rows = (1:(g1*NL)) + g1*NL*(un_indices_beta - 1);                    % MMP, 08/30/2026
-        cols = (1:(g2*NR)) + g2*NR*(un_indices_alpha - 1);                   % MMP, 08/30/2026
-        C_gam_alp_beta{un_indices_gamma}(rows,cols) = Cnew;                  % MMP, 08/30/2026
+        % Stash this block's nonzeros, shifted onto its (beta,alpha) offset. % MMP, 09/10/2026
+        [ri,ci,vi] = find(Cnew);                                             % MMP, 09/10/2026
+        slot = un_indices_beta + nbeta*(un_indices_alpha - 1);               % MMP, 09/10/2026
+        accI{un_indices_gamma,slot} = ri + g1*NL*(un_indices_beta - 1);      % MMP, 09/10/2026
+        accJ{un_indices_gamma,slot} = ci + g2*NR*(un_indices_alpha - 1);     % MMP, 09/10/2026
+        accV{un_indices_gamma,slot} = vi;                                    % MMP, 09/10/2026
+%       rows = (1:(g1*NL)) + g1*NL*(un_indices_beta - 1);                    % MMP, 09/10/2026 (was)
+%       cols = (1:(g2*NR)) + g2*NR*(un_indices_alpha - 1);                   % MMP, 09/10/2026 (was)
+%       C_gam_alp_beta{un_indices_gamma}(rows,cols) = Cnew;                  % MMP, 09/10/2026 (was)
     else                                                                     % MMP, 08/30/2026
         ind_Cgam_alpha = sub2ind(size(C_gam_alp_beta), un_indices_gamma, un_indices_beta, un_indices_alpha);
         C_gam_alp_beta{ind_Cgam_alpha} = Cnew;
@@ -433,6 +517,17 @@ end                                                                          % M
 % above is driven by the row indices themselves, so every occurrence is       % MMP, 08/30/2026
 % filled. The earlier version resolved a multi-index back to its first        % MMP, 08/30/2026
 % matching row and needed a separate pass to copy the duplicates.             % MMP, 08/30/2026
+
+% One 'sparse' per gamma from the accumulated triplets. A gamma that was      % MMP, 09/10/2026
+% never written concatenates to empty, which 'sparse' turns into the          % MMP, 09/10/2026
+% all-zero matrix the preallocation used to supply.                          % MMP, 09/10/2026
+if packed                                                                    % MMP, 09/10/2026
+    C_gam_alp_beta = cell(nGam,1);                                           % MMP, 09/10/2026
+    for k = 1:nGam                                                           % MMP, 09/10/2026
+        C_gam_alp_beta{k} = sparse(vertcat(accI{k,:}),vertcat(accJ{k,:}), ...% MMP, 09/10/2026
+            vertcat(accV{k,:}),g1*NL*nbeta,g2*NR*nalpha);                    % MMP, 09/10/2026
+    end                                                                      % MMP, 09/10/2026
+end                                                                          % MMP, 09/10/2026
 
 end
 

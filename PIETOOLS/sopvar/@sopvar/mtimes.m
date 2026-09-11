@@ -47,6 +47,20 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
+% MMP, 09/10/2026: Vectorize int_2b's C3a assembly. It was a scalar loop
+%                  over all m*n ordered monomial pairs -- m the product of
+%                  A.ZR's per-direction monomial counts, n the same for
+%                  B.ZL -- calling num2cell, sub2ind and two fliplr on
+%                  every iteration, and it produced 99.3% of the sub2ind
+%                  calls in a composition profile (26282 on one A'*A).
+%                  Every per-direction lookup depends on i and j only
+%                  through IL(i,:) and IR(j,:), so each is a linear-index
+%                  gather over the whole grid; the mixed-radix condensation
+%                  moves into the local 'condenseIdx'. Exact rather than
+%                  merely equivalent, because (i,k2a,k3a) -> row and
+%                  (j,k3b) -> col are bijections, so no two grid points
+%                  produce the same triplet and 'sparse' never sums a
+%                  duplicate.
 % MMP, 09/10/2026: PART 4 formed the whole nMid x nMid block product
 %                  LeftMat*CMat*RightMat and then discarded every off-
 %                  diagonal block with a mask, so it computed nMid^2 blocks
@@ -1251,91 +1265,42 @@ R3b = L3b;
 % has size m-by-n.
 % -------------------------------------------------------------------------
 
-II = zeros(m*n, 1);
-JJ = zeros(m*n, 1);
-VV = zeros(m*n, 1);
-
-cnt = 0;
-
 dims2a = cellfun(@numel, Z2anew);
 dims3a = cellfun(@numel, Z3anew);
 dims3b = cellfun(@numel, Z3bnew);
 
-for i = 1:m
-    for j = 1:n
+% Vectorized over the whole m-by-n grid. Every per-direction lookup depends % MMP, 09/10/2026
+% on i and j only through IL(i,:) and IR(j,:), so each is a linear-index    % MMP, 09/10/2026
+% gather and the assembly needs no loop at all. The scalar version called   % MMP, 09/10/2026
+% num2cell, sub2ind and two fliplr on every one of the m*n iterations, and  % MMP, 09/10/2026
+% was measured to produce 99.3% of the sub2ind calls in a composition       % MMP, 09/10/2026
+% profile (26282 of them on one A'*A).                                      % MMP, 09/10/2026
+%                                                                          % MMP, 09/10/2026
+% The triplets may be emitted in any order: (i,k2a,k3a) -> row and          % MMP, 09/10/2026
+% (j,k3b) -> col are both bijections, so row determines i and col           % MMP, 09/10/2026
+% determines j, no two (i,j) collide, and 'sparse' never has to sum a       % MMP, 09/10/2026
+% duplicate. Hence this is exact, not merely equivalent.                    % MMP, 09/10/2026
+iv = reshape(repmat((1:m).',1,n),[],1);                                     % MMP, 09/10/2026
+jv = reshape(repmat(1:n,m,1),[],1);                                         % MMP, 09/10/2026
 
-        % Scalar contribution from full integration over s2b
-        c = 1;
-        for k = 1:n2b
-            c = c * C2b{k}(IL(i,L2b(k)), IR(j,R2b(k)));
-        end
+% Scalar contribution from full integration over s2b.                       % MMP, 09/10/2026
+VV = ones(m*n,1);                                                           % MMP, 09/10/2026
+for k = 1:n2b                                                               % MMP, 09/10/2026
+    Ck = C2b{k};                                                            % MMP, 09/10/2026
+    % reshape, not just indexing: when Ck is a ROW vector MATLAB returns a   % MMP, 09/10/2026
+    % row for a column index, and 'VV .* row' would implicitly expand to an  % MMP, 09/10/2026
+    % m*n by m*n matrix instead of failing loudly.                           % MMP, 09/10/2026
+    VV = VV .* reshape(Ck(IL(iv,L2b(k)) + (IR(jv,R2b(k))-1)*size(Ck,1)),[],1);% MMP, 09/10/2026
+end                                                                         % MMP, 09/10/2026
 
-        % Condensed basis index for s2a products
-        if n2a == 0
-            k2a = 1;
-        else
-            idx = zeros(1,n2a);
-            for k = 1:n2a
-                idx(k) = idx2a{k}(IL(i,L2a(k)), IR(j,R2a(k)));
-            end
+% Condensed basis indices for the s2a, s3a and s3b products.                % MMP, 09/10/2026
+k2a = condenseIdx(idx2a,IL,IR,iv,jv,L2a,R2a,dims2a,n2a);                    % MMP, 09/10/2026
+k3a = condenseIdx(idx3a,IL,IR,iv,jv,L3a,R3a,dims3a,n3a);                    % MMP, 09/10/2026
+k3b = condenseIdx(idx3b,IL,IR,iv,jv,L3b,R3b,dims3b,n3b);                    % MMP, 09/10/2026
 
-            if n2a == 1
-                k2a = idx;
-            else
-                idxcell = num2cell(fliplr(idx));
-                k2a = sub2ind(fliplr(dims2a), idxcell{:});
-            end
-        end
-
-        % Condensed basis index for s3a products
-        if n3a == 0
-            k3a = 1;
-        else
-            idx = zeros(1,n3a);
-            for k = 1:n3a
-                idx(k) = idx3a{k}(IL(i,L3a(k)), IR(j,R3a(k)));
-            end
-
-            if n3a == 1
-                k3a = idx;
-            else
-                idxcell = num2cell(fliplr(idx));
-                k3a = sub2ind(fliplr(dims3a), idxcell{:});
-            end
-        end
-
-        % Condensed basis index for s3b products
-        if n3b == 0
-            k3b = 1;
-        else
-            idx = zeros(1,n3b);
-            for k = 1:n3b
-                idx(k) = idx3b{k}(IL(i,L3b(k)), IR(j,R3b(k)));
-            end
-
-            if n3b == 1
-                k3b = idx;
-            else
-                idxcell = num2cell(fliplr(idx));
-                k3b = sub2ind(fliplr(dims3b), idxcell{:});
-            end
-        end
-
-        % Row of C3a:
-        %   k3a inside block (i,k2a)
-        rowBlock = k2a + (i-1)*nz2a;
-        row = k3a + (rowBlock-1)*nz3a;
-
-        % Column of C3a:
-        %   k3b inside block j
-        col = k3b + (j-1)*nz3b;
-
-        cnt = cnt + 1;
-        II(cnt) = row;
-        JJ(cnt) = col;
-        VV(cnt) = c;
-    end
-end
+% Row: k3a inside block (i,k2a).  Column: k3b inside block j.               % MMP, 09/10/2026
+II = k3a + (k2a + (iv-1)*nz2a - 1)*nz3a;                                    % MMP, 09/10/2026
+JJ = k3b + (jv-1)*nz3b;                                                     % MMP, 09/10/2026
 
 C3a = sparse(II, JJ, VV, m*nz2a*nz3a, n*nz3b);
 
@@ -1348,6 +1313,30 @@ G3aout.C = C3a;
 G3aout.Z = Z3anew;
 
 end
+function kk = condenseIdx(T,IL,IR,iv,jv,Lk,Rk,dims,nk)                      % MMP, 09/10/2026
+% Condense one group's per-direction indices into a single basis index, for % MMP, 09/10/2026
+% every (i,j) of the grid at once. Reproduces exactly what                  % MMP, 09/10/2026
+%     sub2ind(fliplr(dims),num2cell(fliplr(idx)){:})                        % MMP, 09/10/2026
+% computed per iteration: the LAST direction runs fastest, so direction k   % MMP, 09/10/2026
+% carries stride prod(dims(k+1:end)). Collapses to idx(1) at nk == 1 and to % MMP, 09/10/2026
+% 1 at nk == 0, which are the two cases the scalar version special-cased.   % MMP, 09/10/2026
+kk = ones(numel(iv),1);                                                     % MMP, 09/10/2026
+if nk == 0                                                                  % MMP, 09/10/2026
+    return                                                                  % MMP, 09/10/2026
+end                                                                         % MMP, 09/10/2026
+str = ones(1,nk);                                                           % MMP, 09/10/2026
+for k = nk-1:-1:1                                                           % MMP, 09/10/2026
+    str(k) = str(k+1)*dims(k+1);                                            % MMP, 09/10/2026
+end                                                                         % MMP, 09/10/2026
+for k = 1:nk                                                                % MMP, 09/10/2026
+    Tk = T{k};                                                              % MMP, 09/10/2026
+    a  = Tk(IL(iv,Lk(k)) + (IR(jv,Rk(k))-1)*size(Tk,1));                    % MMP, 09/10/2026
+    kk = kk + (a(:)-1)*str(k);                                              % MMP, 09/10/2026
+end                                                                         % MMP, 09/10/2026
+end                                                                         % MMP, 09/10/2026
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function P = kronPermutationMatrix_SS(oldVars,newVars,dimsOld)
 % kronPermutationMatrix_SS returns P such that Z_old = P*Z_new for tensor
 % monomial vectors ordered with the first variable outermost and the last
