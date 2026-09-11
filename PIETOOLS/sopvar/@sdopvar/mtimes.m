@@ -1,6 +1,18 @@
 function C = mtimes(A,B)
 % Multiplication for sdopvar with numeric matrices/scalars.
 %
+% MMP, 09/11/2026: Prune the composed monomial bases before constructing C,
+%                  matching '@sopvar/mtimes'. The composed CZL/CZR hold every
+%                  degree the semiseparable integrals can reach (sopvar.pdf
+%                  S4.1) and most hold no coefficient -- 31 carried against
+%                  13 occupied per direction on the 2D heat equation, 32x the
+%                  coefficient area. Here it matters twice over: the empty
+%                  degrees are columns of every 'B', the axis multiplying the
+%                  number of decision variables, and each is a redundant row
+%                  in the equality constraints C later enters. A degree is
+%                  dropped only when neither 'A' nor any row of 'B' has a
+%                  nonzero there, so the coefficient is zero for every value
+%                  of the decision variables and the operator is unchanged.
 % MMP, 09/09/2026: Align B's output side onto A.vars.in by NAME instead of
 %                  requiring the two lists to be stored in the same order,
 %                  matching '@sopvar/mtimes'. vars.out = [S2,S3] and
@@ -538,6 +550,43 @@ Cvars = struct( ...
 Cdom = struct( ...
     'in',B.dom.in(idxIn,:), ...
     'out',A.dom.out(idxOut,:));
+
+% Drop the composed-basis degrees that hold no coefficient; see the same    % MMP, 09/11/2026
+% block in '@sopvar/mtimes' and 'prune_zero_monomials'. Here it also        % MMP, 09/11/2026
+% narrows the COLUMN axis of every 'B', the axis that multiplies the        % MMP, 09/11/2026
+% number of decision variables, so the saving is on the dangerous product.  % MMP, 09/11/2026
+% A degree is empty only when neither 'A' nor any row of 'B' has a nonzero  % MMP, 09/11/2026
+% there, i.e. the coefficient is zero for every value of the decision       % MMP, 09/11/2026
+% variables, so the operator is unchanged. 'find' with two outputs reads    % MMP, 09/11/2026
+% the nonzero columns of 'B' without densifying a length-nCoefC vector.     % MMP, 09/11/2026
+occL = false(nCZL,1);                                                       % MMP, 09/11/2026
+occR = false(nCZR,1);                                                       % MMP, 09/11/2026
+for ii = 1:numel(Cparams.A)                                                 % MMP, 09/11/2026
+    if numel(Cparams.A{ii})~=nCoefC                                         % MMP, 09/11/2026
+        continue                                                            % MMP, 09/11/2026
+    end                                                                     % MMP, 09/11/2026
+    [~,cB] = find(Cparams.B{ii});                                           % MMP, 09/11/2026
+    % Positions into vec(C) of an nRowsC x nColsC block, column major.      % MMP, 09/11/2026
+    lin = [find(Cparams.A{ii}); cB(:)];                                     % MMP, 09/11/2026
+    rr  = mod(lin-1,nRowsC);                                                % MMP, 09/11/2026
+    cc  = floor((lin-1)/nRowsC);                                            % MMP, 09/11/2026
+    % Rows are (matrix row outer, monomial inner), columns likewise.        % MMP, 09/11/2026
+    occL(mod(rr,nCZL)+1) = true;                                            % MMP, 09/11/2026
+    occR(mod(cc,nCZR)+1) = true;                                            % MMP, 09/11/2026
+end                                                                         % MMP, 09/11/2026
+[CZL,CZR,keepL,keepR] = prune_zero_monomials(CZL,CZR,occL,occR);            % MMP, 09/11/2026
+if numel(keepL)<nCZL || numel(keepR)<nCZR                                   % MMP, 09/11/2026
+    rowK = reshape(keepL(:)+(0:A.dims(1)-1)*nCZL,[],1);                     % MMP, 09/11/2026
+    colK = reshape(keepR(:)+(0:B.dims(2)-1)*nCZR,[],1);                     % MMP, 09/11/2026
+    vecK = reshape(rowK(:)+(colK(:).'-1)*nRowsC,[],1);                      % MMP, 09/11/2026
+    for ii = 1:numel(Cparams.A)                                             % MMP, 09/11/2026
+        if numel(Cparams.A{ii})~=nCoefC                                     % MMP, 09/11/2026
+            continue                                                        % MMP, 09/11/2026
+        end                                                                 % MMP, 09/11/2026
+        Cparams.A{ii} = Cparams.A{ii}(vecK);                                % MMP, 09/11/2026
+        Cparams.B{ii} = Cparams.B{ii}(:,vecK);                              % MMP, 09/11/2026
+    end                                                                     % MMP, 09/11/2026
+end                                                                         % MMP, 09/11/2026
 
 C = sdopvar( ...
     Cparams,Cvars,A.Zd,CZL,CZR,Cdom,Cdims);

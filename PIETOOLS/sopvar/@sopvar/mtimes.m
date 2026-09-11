@@ -47,6 +47,19 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
+% MMP, 09/11/2026: Prune the composed monomial bases before constructing C.
+%                  PART 3 sets CZL/CZR from the degrees the semiseparable
+%                  integrals can REACH (sopvar.pdf S4.1), and most of those
+%                  degrees hold no coefficient: on the 2D heat equation at
+%                  Lyapunov degree 1 the composed bases carry 31 degrees per
+%                  direction and only 13 are occupied, 32x the coefficient
+%                  area, and the padding compounds over a chain of
+%                  compositions. Each empty degree is also a redundant row
+%                  in every equality constraint C later enters, which is
+%                  what SeDuMi's 'pretransfo' handles badly. An empty degree
+%                  is the zero function, so the operator is unchanged. The
+%                  prune is per direction because ZL/ZR are tensor bases;
+%                  see 'prune_zero_monomials'.
 % MMP, 09/10/2026: Vectorize int_2b's C3a assembly. It was a scalar loop
 %                  over all m*n ordered monomial pairs -- m the product of
 %                  A.ZR's per-direction monomial counts, n the same for
@@ -767,6 +780,38 @@ Cparams = expandCommonFullIntegrals(Cparams,vs3a,Cvars_S3);
 Cvars = struct('in',{Cvarsin},'out',{Cvarsout});
 Cdom  = struct('in',B.dom.in(idx_in,:), ...
                'out',A.dom.out(idx_out,:));
+
+% Drop the composed-basis degrees that hold no coefficient. Composition     % MMP, 09/11/2026
+% sets CZL/CZR from the degrees PART 3 integrals can REACH (sopvar.pdf      % MMP, 09/11/2026
+% S4.1), not the ones attained: on the 2D heat equation at Lyapunov         % MMP, 09/11/2026
+% degree 1, 31 degrees per direction are carried and 13 occupied, so        % MMP, 09/11/2026
+% 32x of the coefficient area is padding, and it compounds over a           % MMP, 09/11/2026
+% chain of compositions. An empty degree is the zero function, so the       % MMP, 09/11/2026
+% operator is unchanged; what goes is a redundant row from every later      % MMP, 09/11/2026
+% equality constraint, which SeDuMi handles badly (see the class notes).    % MMP, 09/11/2026
+NLc  = prod([cellfun(@numel,CZL),1]);                                       % MMP, 09/11/2026
+NRc  = prod([cellfun(@numel,CZR),1]);                                       % MMP, 09/11/2026
+occL = false(NLc,1);                                                        % MMP, 09/11/2026
+occR = false(NRc,1);                                                        % MMP, 09/11/2026
+for ii = 1:numel(Cparams)                                                   % MMP, 09/11/2026
+    % [] and scalar 0 are the zero-block shorthand and hold no degree.      % MMP, 09/11/2026
+    if numel(Cparams{ii})>1                                                 % MMP, 09/11/2026
+        [ri,ci] = find(Cparams{ii});                                        % MMP, 09/11/2026
+        % Rows are (matrix row outer, monomial inner), columns likewise.    % MMP, 09/11/2026
+        occL(mod(ri-1,NLc)+1) = true;                                       % MMP, 09/11/2026
+        occR(mod(ci-1,NRc)+1) = true;                                       % MMP, 09/11/2026
+    end                                                                     % MMP, 09/11/2026
+end                                                                         % MMP, 09/11/2026
+[CZL,CZR,keepL,keepR] = prune_zero_monomials(CZL,CZR,occL,occR);            % MMP, 09/11/2026
+if numel(keepL)<NLc || numel(keepR)<NRc                                     % MMP, 09/11/2026
+    rowK = reshape(keepL(:)+(0:Cdims(1)-1)*NLc,[],1);                       % MMP, 09/11/2026
+    colK = reshape(keepR(:)+(0:Cdims(2)-1)*NRc,[],1);                       % MMP, 09/11/2026
+    for ii = 1:numel(Cparams)                                               % MMP, 09/11/2026
+        if numel(Cparams{ii})>1                                             % MMP, 09/11/2026
+            Cparams{ii} = Cparams{ii}(rowK,colK);                           % MMP, 09/11/2026
+        end                                                                 % MMP, 09/11/2026
+    end                                                                     % MMP, 09/11/2026
+end                                                                         % MMP, 09/11/2026
 
 C = sopvar(Cparams,Cvars,CZL,CZR,Cdom,Cdims);
 end
