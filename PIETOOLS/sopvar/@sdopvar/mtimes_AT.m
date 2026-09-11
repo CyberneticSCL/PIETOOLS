@@ -13,16 +13,32 @@ function C = mtimes_AT(A,B)
 %                  variable SETS ('setxor'), then B.ZL, B.dom.out and the row
 %                  index of each parameter are permuted onto A's order, since
 %                  the body below contracts A.ZR against B.ZL positionally.
-%                  KNOWN LIMITATION, not introduced here but only now
-%                  reachable: the orders can disagree only when vs3a and
-%                  vs2b are BOTH nonempty (they are [T,U] against [U,T]), so
-%                  the old guard refused every such call. That branch runs
-%                  correctly -- checked against '@sopvar/mtimes' on the
-%                  evaluated operator to 4e-15 -- but the vectorized
-%                  composition asks for a 122 GB array at two integrated
-%                  variables and degrees (2,3), and 485 GB at (3,3), where
-%                  '@sopvar/mtimes' completes. Needs the same triplet
-%                  treatment PART 3 got.
+%                  The orders can disagree only when vs3a and vs2b are
+%                  BOTH nonempty (they are [T,U] against [U,T]), so the old
+%                  guard refused every such call; that branch was therefore
+%                  unreachable before this change. It runs correctly --
+%                  checked against '@sopvar/mtimes' on the evaluated
+%                  operator to 4e-15.
+% MMP, 09/10/2026: Form only the nMid diagonal blocks in PART 3 instead of
+%                  the full nMid x nMid block product and a mask, per
+%                  Sec. 5.4 of the sopvar document: "efficient summation is
+%                  all that is needed here". This removes the three
+%                  nMid^2-sized objects the masked form built -- the dense
+%                  ones() inside Mask, spdiags(Mask(:)) of side
+%                  numel(Mask), and kron(K',I) of size
+%                  (nMid^2*R*L) x (W*nMid*L) on the decision path.
+%                  The A part is bit-identical to the masked form; the B
+%                  part agrees to reassociation of the sum over d (exactly
+%                  0 at nMid==1, ~2e-15 at nMid==4), since the nMid terms
+%                  are now summed separately rather than inside one sparse
+%                  product.
+%                  This does NOT fully cure the memory blowup. The
+%                  composition now completes at degrees (2,3) where it
+%                  previously wanted 122 GB, and agrees with
+%                  '@sopvar/mtimes' to 1.1e-15, but at (3,3) it still asks
+%                  for 75.8 GB -- see the REMAINING LIMITATION note in
+%                  PART 3, which is a different defect (the nnz of
+%                  kron(Kd',I_L)) with a different fix.
 if isa(A,'sdopvar') 
     if isnumeric(B)
         if isscalar(B)
@@ -542,29 +558,74 @@ vecLeftDecision = PermL*BigB; %vecLeft(:,2:end);
 right_BLCK_size = sz_RMat(2)/nMid;
 left_BLCK_size  = sz_LeftMat(1)/nMid;
 
-Mask      = kron(speye(nMid),ones(left_BLCK_size,right_BLCK_size));
-LeftMult  = kron(ones(nMid,1),speye(left_BLCK_size));
-RightMult = kron(ones(nMid,1),speye(right_BLCK_size));
-MaskDiag  = kron(RightMult.',LeftMult.')*spdiags(Mask(:),0,numel(Mask),numel(Mask));
+% Only the nMid DIAGONAL blocks of the nMid x nMid block product are        % MMP, 09/10/2026
+% wanted, so form those directly: block row d of the left factor times      % MMP, 09/10/2026
+% block column d of K, summed over d. Sec. 5.4 of the sopvar document,      % MMP, 09/10/2026
+% "efficient summation is all that is needed here". This removes three      % MMP, 09/10/2026
+% nMid^2-sized objects: the DENSE ones() inside Mask, spdiags(Mask(:))      % MMP, 09/10/2026
+% of side numel(Mask), and kron(K',I) of size (nMid^2*R*L) x (W*nMid*L)     % MMP, 09/10/2026
+% on the decision path -- the last being the allocation that reached        % MMP, 09/10/2026
+% 10450944 x 30862944 (103.5 GB) at four spatial variables per side.        % MMP, 09/10/2026
+% The A part is bit-identical; the B part agrees to reassociation of the    % MMP, 09/10/2026
+% sum over d (0 at nMid==1, ~1e-15 at nMid==4), since the nMid terms are    % MMP, 09/10/2026
+% now summed separately rather than inside one sparse product.              % MMP, 09/10/2026
+%Mask      = kron(speye(nMid),ones(left_BLCK_size,right_BLCK_size));        % MMP, 09/10/2026 (was)
+%LeftMult  = kron(ones(nMid,1),speye(left_BLCK_size));                      % MMP, 09/10/2026 (was)
+%RightMult = kron(ones(nMid,1),speye(right_BLCK_size));                     % MMP, 09/10/2026 (was)
+%MaskDiag  = kron(RightMult.',LeftMult.')*spdiags(Mask(:),0,numel(Mask),numel(Mask)); % MMP, 09/10/2026 (was)
 
 LeftMat_const = reshape(vecLeftConst,sz_LeftMat);
+
+% Block row d of the left factor, and the vec() rows carrying it. vec is    % MMP, 09/10/2026
+% column-major over the sz_LeftMat(1) x sz_LeftMat(2) array, so block row   % MMP, 09/10/2026
+% d occupies (d-1)*left_BLCK_size+(1:left_BLCK_size) of every column.       % MMP, 09/10/2026
+% Gathered once here, not once per gamma.                                   % MMP, 09/10/2026
+nW    = sz_LeftMat(2);                                                      % MMP, 09/10/2026
+IL    = speye(left_BLCK_size);                                              % MMP, 09/10/2026
+Lconstd = cell(1,nMid);   Vdecd = cell(1,nMid);                             % MMP, 09/10/2026
+for d = 1:nMid                                                              % MMP, 09/10/2026
+    rows_d     = (d-1)*left_BLCK_size+(1:left_BLCK_size);                   % MMP, 09/10/2026
+    Lconstd{d} = LeftMat_const(rows_d,:);                                   % MMP, 09/10/2026
+    Vdecd{d}   = vecLeftDecision(reshape(rows_d.'+(0:nW-1)*sz_LeftMat(1),[],1),:);% MMP, 09/10/2026
+end                                                                         % MMP, 09/10/2026
 
 for igamma = 1:numel(Cparams.A)
 
     % step 1: (compute I_nMid otimes C) RightMat
     K = Cmat{igamma}*RightMat;                      % decision-free, small
 
-    % decision free (as in sopvar/mtimes 
-    CLCMCR = LeftMat_const*K;
-    PROD2  = Mask.*CLCMCR;
-    PROD3  = LeftMult.'*PROD2*RightMult;
-    Cparams.A{igamma} = PROD3(:);
-
-
-    % Same linear chain (X -> LeftMult'*(Mask.*(X*K))*RightMult), reapplied
-    % to every decision sensitivity at once via vec(X*K)=(K' kron I)*vec(X).
-    G = MaskDiag*kron(K.',speye(sz_LeftMat(1)));
-    Cparams.B{igamma} = (G*vecLeftDecision).';
+    Aacc = sparse(left_BLCK_size,right_BLCK_size);                          % MMP, 09/10/2026
+    Bacc = sparse(left_BLCK_size*right_BLCK_size,size(vecLeftDecision,2));  % MMP, 09/10/2026
+    for d = 1:nMid                                                          % MMP, 09/10/2026
+        Kd   = K(:,(d-1)*right_BLCK_size+(1:right_BLCK_size));              % MMP, 09/10/2026
+        Aacc = Aacc + Lconstd{d}*Kd;                                        % MMP, 09/10/2026
+        % vec(X_d*Kd) = (Kd' kron I_L)*vec(X_d). The kron is on the         % MMP, 09/10/2026
+        % monomial axis; the decision-variable count stays a passive        % MMP, 09/10/2026
+        % column dimension of Vdecd and is never entered.                   % MMP, 09/10/2026
+        %                                                                   % MMP, 09/10/2026
+        % REMAINING LIMITATION, separate from the nMid^2 problem this        % MMP, 09/10/2026
+        % change fixes: kron(Kd',I_L) has nnz(Kd)*left_BLCK_size entries,    % MMP, 09/10/2026
+        % since it repeats Kd once per row of X_d, so no matrix form of      % MMP, 09/10/2026
+        % this map is small. At four spatial variables per side and degree   % MMP, 09/10/2026
+        % 3 on both operands it asks for 75.8 GB and the composition still   % MMP, 09/10/2026
+        % fails, where '@sopvar/mtimes' completes. Applying it in bounded    % MMP, 09/10/2026
+        % column chunks was tried and rejected: the chunk width collapses    % MMP, 09/10/2026
+        % to one column in exactly the case that needs it, trading the       % MMP, 09/10/2026
+        % memory blowup for right_BLCK_size sparse products. The fix is      % MMP, 09/10/2026
+        % option 1 of the Note in Sec. 6.1.2 of the sopvar document --       % MMP, 09/10/2026
+        % carry L and R in metadata and never form the product -- which      % MMP, 09/10/2026
+        % restructures how the decision block is propagated rather than      % MMP, 09/10/2026
+        % patching this line.                                                % MMP, 09/10/2026
+        Bacc = Bacc + kron(Kd.',IL)*Vdecd{d};                               % MMP, 09/10/2026
+    end                                                                     % MMP, 09/10/2026
+    Cparams.A{igamma} = Aacc(:);                                            % MMP, 09/10/2026
+    Cparams.B{igamma} = Bacc.';                                             % MMP, 09/10/2026
+%   CLCMCR = LeftMat_const*K;                                               % MMP, 09/10/2026 (was)
+%   PROD2  = Mask.*CLCMCR;                                                  % MMP, 09/10/2026 (was)
+%   PROD3  = LeftMult.'*PROD2*RightMult;                                    % MMP, 09/10/2026 (was)
+%   Cparams.A{igamma} = PROD3(:);                                           % MMP, 09/10/2026 (was)
+%   G = MaskDiag*kron(K.',speye(sz_LeftMat(1)));                            % MMP, 09/10/2026 (was)
+%   Cparams.B{igamma} = (G*vecLeftDecision).';                              % MMP, 09/10/2026 (was)
 end
 
 % ---- AT, 09/07/2026: old loop-based reference,

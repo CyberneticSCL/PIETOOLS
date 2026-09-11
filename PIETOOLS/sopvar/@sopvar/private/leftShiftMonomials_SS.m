@@ -20,6 +20,13 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 %   varsC : merged variable list
 %   ZC    : merged/product monomial basis
 %   CC    : nI-by-nJ cell array, CC{I,J} has size p*NC by r
+%
+% MMP, 09/10/2026: Hoist the 'kron(speye(p),Qmat)' lift out of the I,J loops,
+%                  where it was rebuilt nI*nJ times identically; check the
+%                  cell shapes once instead of inside them; preallocate CC.
+%                  Taking Sec. 5.1's partial sum over I inside this routine
+%                  was tried and rejected as slower -- see the note at the
+%                  coefficient loop.
 
 % % % % % % % % % % COMPUTATION v3 % % % % % % % %
 % We need to compute (I_p otimes Z1^T) A (I_q otimes Z^2T) B
@@ -165,31 +172,46 @@ end                                                                         % MM
 % Z12 = x.^EC2d;
 % Z3 =  x.^EC;
 
+% Cell shapes, checked once rather than inside the coefficient loops.       % MMP, 09/10/2026
+for I = 1:nI                                                                % MMP, 09/10/2026
+    if ~isequal(size(CB{I}),[q*NB,r])                                       % MMP, 09/10/2026
+        error('leftShiftMonomials_SS: inconsistent CB cell dimensions.');   % MMP, 09/10/2026
+    end                                                                     % MMP, 09/10/2026
+    for J = 1:nJ                                                            % MMP, 09/10/2026
+        if ~isequal(size(CA{I,J}),[p*NA,q])                                 % MMP, 09/10/2026
+            error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');% MMP, 09/10/2026
+        end                                                                 % MMP, 09/10/2026
+    end                                                                     % MMP, 09/10/2026
+end                                                                         % MMP, 09/10/2026
+
+% % % % % % % % % % NEW COMPUTATION OF G % % % % % % % %
+% Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
+%       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
+%          p x           Q is Nc x Na*Nb
+
+% Q is fixed by the bases alone, so lift it over the matrix dimension once. % MMP, 09/10/2026
+% It was previously rebuilt inside both loops, nI*nJ times identically.     % MMP, 09/10/2026
+IpQ = kron(speye(p),Qmat);                                                  % MMP, 09/10/2026
+
+% Sec. 5.1 of the sopvar document takes the partial sum                     % MMP, 09/10/2026
+%     L_betab = sum_betaa C^A_{betaa,betab} K_betaa                         % MMP, 09/10/2026
+% on the common basis BEFORE the monomials are shifted, which would let     % MMP, 09/10/2026
+% IpQ be applied once per J instead of once per (I,J). That was tried and   % MMP, 09/10/2026
+% measured SLOWER (0.90x overall, 0.73x worst, at nBetaA = nAlphaB = 9):    % MMP, 09/10/2026
+% Qmat compresses the monomial axis, NC <= NA*NB, so applying IpQ first     % MMP, 09/10/2026
+% shrinks the rows from p*NA*NB to p*NC and the caller's sum afterwards     % MMP, 09/10/2026
+% adds the SMALLER matrices. Pre-summing instead accumulates the larger     % MMP, 09/10/2026
+% pre-shift matrix nI times. Left as the document has it only in spirit:    % MMP, 09/10/2026
+% the sum stays with the caller.                                           % MMP, 09/10/2026
+CC = cell(nI,nJ);                                                           % MMP, 09/10/2026
 for I = 1:nI
 
     Bcoef = CB{I};
-
-    if ~isequal(size(Bcoef),[q*NB,r])
-        error('leftShiftMonomials_SS: inconsistent CB cell dimensions.');
-    end
 
     for J = 1:nJ
 
         Acoef = CA{I,J};
 
-        if ~isequal(size(Acoef),[p*NA,q])
-            error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');
-        end
-
-
-        
-        % % % % % % % % % % NEW COMPUTATION OF G % % % % % % % %
-        % Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
-        %       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
-        %          p x           Q is Nc x Na*Nb 
-
-
-        IpQ = kron(speye(p),Qmat);
         AINb= kron(Acoef, speye(NB));
         H = IpQ*AINb*Bcoef;
         CC{I, J} = H;

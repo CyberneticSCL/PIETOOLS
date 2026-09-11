@@ -47,6 +47,18 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
+% MMP, 09/10/2026: PART 4 formed the whole nMid x nMid block product
+%                  LeftMat*CMat*RightMat and then discarded every off-
+%                  diagonal block with a mask, so it computed nMid^2 blocks
+%                  to keep nMid of them, and the mask itself held a DENSE
+%                  ones(left_BLCK_size,right_BLCK_size). Sec. 5.4 of the
+%                  sopvar document asks only for sum_d L_{jd} C R_{kd}, so
+%                  the nMid diagonal blocks are now formed directly from
+%                  block row d of LeftMat and block column d of RightMat.
+%                  Same arithmetic; the dense allocation is gone and the
+%                  block work is linear rather than quadratic in nMid,
+%                  which is the matrix dimension A.dims(2) and so grows
+%                  with the operator, not with the spatial variables.
 % MMP, 09/09/2026: Align B's output side onto A.vars.in by NAME instead of
 %                  requiring the two lists to be stored in the same order.
 %                  The variables were made canonical -- vars.out = [S2,S3],
@@ -661,12 +673,26 @@ RightMat = sparse(new_ind_r, new_ind_c, vals, sz_RMat(1), sz_RMat(2));
 % end
 
 % % % % STEP 3 % % % % 
-% Define the following for computing diagonal elements
+% Only the nMid DIAGONAL blocks of LeftMat*CMat*RightMat are wanted, so     % MMP, 09/10/2026
+% form those nMid products directly instead of the full nMid x nMid         % MMP, 09/10/2026
+% product followed by a mask that discards the rest. Block row d of         % MMP, 09/10/2026
+% LeftMat is [L_{1,d},...,L_{n,d}] and block column d of RightMat is        % MMP, 09/10/2026
+% [R_{1,d};...;R_{n,d}], so block (d,d) is Ld{d}*CMat*Rd{d} and the         % MMP, 09/10/2026
+% quantity sought is sum_d of those; see Sec. 5.4 of the sopvar             % MMP, 09/10/2026
+% document, "efficient summation is all that is needed here". The old       % MMP, 09/10/2026
+% Mask also held a DENSE ones(left_BLCK_size,right_BLCK_size), which is     % MMP, 09/10/2026
+% the largest allocation in the routine once the matrix dimensions and      % MMP, 09/10/2026
+% the composed monomial bases grow.                                         % MMP, 09/10/2026
 right_BLCK_size = sz_CR(2);
 left_BLCK_size  = sz_CL(1);
-Mask = kron(speye(nMid), ones(left_BLCK_size, right_BLCK_size));
-LeftMult  = kron(ones(nMid, 1), speye(left_BLCK_size));
-RightMult = kron(ones(nMid, 1), speye(right_BLCK_size));
+%Mask = kron(speye(nMid), ones(left_BLCK_size, right_BLCK_size));           % MMP, 09/10/2026 (was)
+%LeftMult  = kron(ones(nMid, 1), speye(left_BLCK_size));                    % MMP, 09/10/2026 (was)
+%RightMult = kron(ones(nMid, 1), speye(right_BLCK_size));                   % MMP, 09/10/2026 (was)
+Ld = cell(1,nMid);   Rd = cell(1,nMid);                                     % MMP, 09/10/2026
+for d = 1:nMid                                                              % MMP, 09/10/2026
+    Ld{d} = LeftMat((d-1)*left_BLCK_size+(1:left_BLCK_size),:);             % MMP, 09/10/2026
+    Rd{d} = RightMat(:,(d-1)*right_BLCK_size+(1:right_BLCK_size));          % MMP, 09/10/2026
+end                                                                         % MMP, 09/10/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% PART 4 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -674,12 +700,13 @@ RightMult = kron(ones(nMid, 1), speye(right_BLCK_size));
 for i = 1:numel(Cparams)
     
     Cparams{i} = sparse(size(CLtemp_betab{1},1),size(CRtemp_alphaa{1},1)); 
-    % instead of loops we have
-    CLCMCR = LeftMat*CMat{i}*RightMat;
-    % instead of kronecker product we have
-    PROD2 = Mask.*CLCMCR;
-    PROD3 =LeftMult'*PROD2*RightMult;
-    Cparams{i} = Cparams{i} + PROD3;
+    for d = 1:nMid                                                          % MMP, 09/10/2026
+        Cparams{i} = Cparams{i} + Ld{d}*CMat{i}*Rd{d};                      % MMP, 09/10/2026
+    end                                                                     % MMP, 09/10/2026
+%   CLCMCR = LeftMat*CMat{i}*RightMat;                                      % MMP, 09/10/2026 (was)
+%   PROD2 = Mask.*CLCMCR;                                                   % MMP, 09/10/2026 (was)
+%   PROD3 =LeftMult'*PROD2*RightMult;                                       % MMP, 09/10/2026 (was)
+%   Cparams{i} = Cparams{i} + PROD3;                                        % MMP, 09/10/2026 (was)
     % max(abs(Cparams{i} - Cparams2{i}), [], 'all')
 end
 % Cparams = Cparams;
