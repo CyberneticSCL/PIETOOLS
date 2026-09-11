@@ -1,20 +1,11 @@
-classdef(InferiorClasses={?polynomial,?dpvar,?sopvar}) sdopvar             % MMP, 09/07/2026
-%classdef(InferiorClasses={?polynomial,?opvar}) sdopvar                    % MMP, 09/07/2026 (was)
-% Every other decision operator class lists its fixed sibling plus          % MMP, 09/07/2026
-% {?polynomial,?dpvar}: dopvar has {?polynomial,?dpvar,?opvar}, dopvar2d    % MMP, 09/07/2026
-% has {?opvar2d,?dpvar,?polynomial}, ndopvar has {?polynomial,?dpvar,       % MMP, 09/07/2026
-% ?nopvar}. 'sdopvar' listed ?opvar, which is 'dopvar's sibling and not     % MMP, 09/07/2026
-% its own, and omitted ?sopvar and ?dpvar. Consequently a mixed expression  % MMP, 09/07/2026
-% led by a fixed 'sopvar' dispatched to '@sopvar', so [A,Pop], A*Pop and    % MMP, 09/07/2026
-% A+Pop all failed, and the 'isa(A,''sopvar'')' branch of mtimes was        % MMP, 09/07/2026
-% unreachable. No method here ever handled an 'opvar'.                      % MMP, 09/07/2026
+classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar             % MMP, 09/07/2026
     % Represents PI maps from L_2^p[S1,S3] to L_2^q[S2,S3]
     %
     % This defines PI operators from one L2 space to another.
     %
     %   Pop: L_2^p[S1,S3] to L_2^q[S2,S3]
     %
-    % Elements of this class are intended to be included in a container object.
+    % Elements of this class are intended to be included in a mopvar container object.
     %
     %   The operator has the form
     %         y(S2,S3)=sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3)
@@ -29,9 +20,31 @@ classdef(InferiorClasses={?polynomial,?dpvar,?sopvar}) sdopvar             % MMP
     %         of decision variables
     %
     % CLASS properties
+    % - P.dims:   2x1 vector specifying the rows and columns of the operator i.e. [p,q];
+    % - P.vars: a structure with fields 'in' and 'out'
+    % - P.vars.in: a cell array specifying the unique names of the spatial  % MMP, 09/09/2026
+    % variables in the input function space, stored in the canonical order  % MMP, 09/09/2026
+    % [S_3,S_1]. S_1 and S_3 are each sorted, but the concatenation is not, % MMP, 09/09/2026
+    % so do not assume vars.in is sorted; look up a variable by name        % MMP, 09/09/2026
+    % - P.vars.out: a cell array specifying the unique names of the spatial % MMP, 09/09/2026
+    % variables in the output function space, canonical order [S_2,S_3]     % MMP, 09/09/2026
+    % - P.dom.: struct object with fields 'in' and 'out'
+    % - P.dom.in: ordered array (2 columns) specifying the spatial domain of each
+    % variable in P.vars.in, so that dom(i,:) = [ai,bi] -> vars.in(i) \in [ai,bi]
+    % - P.dom.out: same as P.dom.in but for out variables stored in
+    % P.vars.out
+    % - ZL: cell array of column vectors representing exponents of
+    % monomials in P.vars.out. That is monomials are constructed by as
+    % follows: ZL(P.vars.out) = P.vars.out(1).^ZL{1}\otimes ... P.vars.out(i).^ZL{i}...
+    % - ZR: cell array of column vectors representing exponents of
+    % monomials in P.vars.in. That is monomials are constructed by as
+    % follows: ZR(P.vars.in) = P.vars.in(1).^ZR{1}\otimes ... P.vars.in(i).^ZR{i}...
+    %
+    % - P.params:   3^n3 (stored as 3x3...x3) Cell array of sparse matrices, where n_3 is the number of variables in S_3;
+
     % Each kernel of the PI operator is represented as
-    % K_alpha = 
-    % (I_dims(1)\otimes ZL(s2,s3)') 
+    % K_alpha =
+    % (I_dims(1)\otimes ZL(s2,s3)')
     %          unvec(params.A(alpha) + params.B(alpha)^T*Zd)
     %                (I_dims(2)\otimes ZR(t1,t3))
     % where K_alpha represents kernel for multiplier/integral operator
@@ -78,6 +91,32 @@ classdef(InferiorClasses={?polynomial,?dpvar,?sopvar}) sdopvar             % MMP
             % violate it. The check inspects only the positions the form     % MMP, 08/29/2026
             % forbids, so for a canonical object it costs numel(C) per       % MMP, 08/29/2026
             % parameter and does not scale with the decision variables.      % MMP, 08/29/2026
+            % Canonical spatial-variable order, vars.out = [S2,S3] and       % MMP, 09/09/2026
+            % vars.in = [S3,S1], applied before the multiplier form. ZL{i}   % MMP, 09/09/2026
+            % is bound positionally to vars.out(i), so reordering the        % MMP, 09/09/2026
+            % variables permutes the vec index of every coefficient. The     % MMP, 09/09/2026
+            % decision variables are the rows of B and are only carried      % MMP, 09/09/2026
+            % through, so this does not scale with their number. The helper  % MMP, 09/09/2026
+            % also rejects a pass-through variable given different domains   % MMP, 09/09/2026
+            % on the two sides.                                              % MMP, 09/09/2026
+            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                   % MMP, 09/09/2026
+                canonical_var_order(vars,dom,ZL,ZR,dims);                    % MMP, 09/09/2026
+            if reordered                                                     % MMP, 09/09/2026
+                nrow = dims(1)*prod([cellfun(@numel,ZL),1]);                 % MMP, 09/09/2026
+                vecIdx = reshape(rowIdx(:)+(colIdx(:).'-1)*nrow,[],1);       % MMP, 09/09/2026
+                for ii = 1:numel(params.A)                                   % MMP, 09/09/2026
+                    % [] and scalar 0 are the zero-block shorthand accepted  % MMP, 09/09/2026
+                    % everywhere else in the class, and indexing one throws. % MMP, 09/09/2026
+                    % Permuting a zero block is a no-op, and for a single    % MMP, 09/09/2026
+                    % coefficient the gather can only be the identity.       % MMP, 09/09/2026
+                    if numel(params.A{ii})>1                                 % MMP, 09/09/2026
+                        params.A{ii} = params.A{ii}(vecIdx);                 % MMP, 09/09/2026
+                    end                                                      % MMP, 09/09/2026
+                    if size(params.B{ii},2)>1                                % MMP, 09/09/2026
+                        params.B{ii} = params.B{ii}(:,vecIdx);               % MMP, 09/09/2026
+                    end                                                      % MMP, 09/09/2026
+                end                                                          % MMP, 09/09/2026
+            end                                                              % MMP, 09/09/2026
             [params,ZL,ZR,was_rewritten] = ...                               % MMP, 08/29/2026
                 canonicalize_multiplier(params,vars,ZL,ZR,dims);             % MMP, 08/29/2026
             if was_rewritten                                                 % MMP, 08/29/2026

@@ -47,6 +47,16 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, SS  - 1_16_2026
+% MMP, 09/09/2026: Align B's output side onto A.vars.in by NAME instead of
+%                  requiring the two lists to be stored in the same order.
+%                  The variables were made canonical -- vars.out = [S2,S3],
+%                  vars.in = [S3,S1] -- so a legal composition can present
+%                  the two lists in different orders: for A'*A the adjoint's
+%                  vars.in is [S3,S2] while A's vars.out is [S2,S3], and the
+%                  old order guard refused it. Legality is now tested on the
+%                  variable SETS ('setxor'), then B.ZL, B.dom.out and the row
+%                  index of each parameter are permuted onto A's order, since
+%                  the body below contracts A.ZR against B.ZL positionally.
 % MMP, 09/07/2026: Compare the spatial variable lists with 'isequal'
 %                  instead of 'any(~strcmp(...))'. strcmp of two cellstr of
 %                  different length scalar-expands to an empty logical, so
@@ -92,14 +102,38 @@ end
 if A.dims(2)~=B.dims(1)
     error('number of output components of B is different than number of input components of A');
 end
-% 'isequal' rather than 'any(~strcmp(...))': strcmp of two cellstr of       % MMP, 09/07/2026
-% different length scalar-expands to an empty logical, so any([]) is        % MMP, 09/07/2026
-% false and a composition across mismatched spaces passed -- B mapping to   % MMP, 09/07/2026
-% R^n composed with A acting on L_2, or the reverse.                       % MMP, 09/07/2026
-if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/07/2026
+% Legality is a question about the variable SETS. The composition body      % MMP, 09/09/2026
+% below contracts A.ZR against B.ZL positionally, so the two lists must     % MMP, 09/09/2026
+% then agree in ORDER -- and they need not, because each operand is         % MMP, 09/09/2026
+% stored in its own canonical order: for A'*A the adjoint's vars.in is      % MMP, 09/09/2026
+% [S3,S2] while A's vars.out is [S2,S3]. So B is aligned onto A.vars.in     % MMP, 09/09/2026
+% by name below rather than the composition being refused.                  % MMP, 09/09/2026
+if ~isempty(setxor(A.vars.in,B.vars.out))                                   % MMP, 09/09/2026
+%if ~isequal(A.vars.in(:),B.vars.out(:))                                    % MMP, 09/09/2026 (was)
 %if any(~strcmp(A.vars.in,B.vars.out))                                      % MMP, 09/07/2026 (was)
     error('names of B output variables differ from names of A input variables');
 end
+
+% Permute B's output side onto A's input order: reorder B.ZL, B.dom.out     % MMP, 09/09/2026
+% and the ROW index of every parameter, the row being (matrix row outer,    % MMP, 09/09/2026
+% ZL monomial inner). Done in place on this local copy, NOT through the     % MMP, 09/09/2026
+% constructor, which would canonicalize B straight back. The permutation    % MMP, 09/09/2026
+% touches only rows, so the canonical multiplier form -- a condition on     % MMP, 09/09/2026
+% ZR columns -- is untouched, and vars_S1/S2/S3 are sorted and so are       % MMP, 09/09/2026
+% unchanged by a reordering.                                                % MMP, 09/09/2026
+if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/09/2026
+    [~,ordB] = ismember(A.vars.in,B.vars.out);                              % MMP, 09/09/2026
+    pB   = monomial_gather(B.ZL,ordB);                                      % MMP, 09/09/2026
+    NLb  = prod([cellfun(@numel,B.ZL),1]);                                  % MMP, 09/09/2026
+    rowB = reshape(pB(:)+(0:B.dims(1)-1)*NLb,[],1);                         % MMP, 09/09/2026
+    for ii = 1:numel(B.params)                                              % MMP, 09/09/2026
+        B.params{ii} = B.params{ii}(rowB,:);                                % MMP, 09/09/2026
+    end                                                                     % MMP, 09/09/2026
+    B.ZL      = B.ZL(ordB);                                                 % MMP, 09/09/2026
+    B.dom.out = B.dom.out(ordB,:);                                          % MMP, 09/09/2026
+    B.vars.out = B.vars.out(ordB);                                          % MMP, 09/09/2026
+end                                                                         % MMP, 09/09/2026
+
 if any(any(A.dom.in~=B.dom.out))
     error('output domain of B differs from input domain of A');
 end

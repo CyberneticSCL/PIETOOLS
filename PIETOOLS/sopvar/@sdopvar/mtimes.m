@@ -1,5 +1,19 @@
 function C = mtimes(A,B)
 % Multiplication for sdopvar with numeric matrices/scalars.
+%
+% MMP, 09/09/2026: Align B's output side onto A.vars.in by NAME instead of
+%                  requiring the two lists to be stored in the same order,
+%                  matching '@sopvar/mtimes'. vars.out = [S2,S3] and
+%                  vars.in = [S3,S1] are canonical, so a legal composition
+%                  can present the two intermediate lists in different
+%                  orders and the old guard refused it. This is the live
+%                  path: '*' on an sdopvar and an sopvar reaches
+%                  mtimesSdopvarAndSopvar here, and sopvar*sdopvar reaches
+%                  it too via mtimes(B',A'), so every composition whose
+%                  intermediate space had both a pass-through and a
+%                  non-pass-through variable was rejected. The identical
+%                  fix in 'mtimes_AT' does not cover it -- nothing in the
+%                  toolbox calls that routine.
 if isa(A,'sdopvar') 
     if isnumeric(B)
         if isscalar(B)
@@ -70,10 +84,37 @@ if A.dims(2) ~= B.dims(1)
         'The output dimension of B must equal the input dimension of A.');
 end
 
-if ~isequal(A.vars.in(:),B.vars.out(:))
+% Legality is a question about the variable SETS. The body below contracts  % MMP, 09/09/2026
+% A.ZR against B.ZL positionally, so the two lists must then agree in       % MMP, 09/09/2026
+% ORDER -- and they need not, because each operand is stored in its own     % MMP, 09/09/2026
+% canonical order: for A'*A the adjoint's vars.in is [S3,S2] while A's      % MMP, 09/09/2026
+% vars.out is [S2,S3]. So B is aligned onto A.vars.in by name below         % MMP, 09/09/2026
+% rather than the composition being refused.                                % MMP, 09/09/2026
+if ~isempty(setxor(A.vars.in,B.vars.out))                                   % MMP, 09/09/2026
+%if ~isequal(A.vars.in(:),B.vars.out(:))                                    % MMP, 09/09/2026 (was)
     error('mtimes:intermediateVariables', ...
-        'B output variables must match A input variables in the same order.');
+        'B output variable names differ from A input variable names.');
 end
+
+% Permute B's output side onto A's input order: reorder B.ZL, B.dom.out     % MMP, 09/09/2026
+% and the ROW index of every parameter, the row being (matrix row outer,    % MMP, 09/09/2026
+% ZL monomial inner). Done in place on this local copy, NOT through the     % MMP, 09/09/2026
+% constructor, which would canonicalize B straight back. The permutation    % MMP, 09/09/2026
+% touches only rows, so the canonical multiplier form -- a condition on     % MMP, 09/09/2026
+% ZR columns -- is untouched. B is an sopvar here, so its parameters are    % MMP, 09/09/2026
+% plain matrices; A's decision-variable coefficients are not touched.       % MMP, 09/09/2026
+if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/09/2026
+    [~,ordB] = ismember(A.vars.in,B.vars.out);                              % MMP, 09/09/2026
+    pB   = monomial_gather(B.ZL,ordB);                                      % MMP, 09/09/2026
+    NLb  = prod([cellfun(@numel,B.ZL),1]);                                  % MMP, 09/09/2026
+    rowB = reshape(pB(:)+(0:B.dims(1)-1)*NLb,[],1);                         % MMP, 09/09/2026
+    for ii = 1:numel(B.params)                                              % MMP, 09/09/2026
+        B.params{ii} = B.params{ii}(rowB,:);                                % MMP, 09/09/2026
+    end                                                                     % MMP, 09/09/2026
+    B.ZL      = B.ZL(ordB);                                                 % MMP, 09/09/2026
+    B.dom.out = B.dom.out(ordB,:);                                          % MMP, 09/09/2026
+    B.vars.out = B.vars.out(ordB);                                          % MMP, 09/09/2026
+end                                                                         % MMP, 09/09/2026
 
 if ~isequal(A.dom.in,B.dom.out)
     error('mtimes:intermediateDomains', ...

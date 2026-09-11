@@ -23,10 +23,12 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     % - P.params:   3^n3 (stored as 3x3...x3) Cell array of sparse matrices, where n_3 is the number of variables in S_3;
     % - P.dims:   2x1 vector specifying the rows and columns of the operator i.e. [p,q];
     % - P.vars: a structure with fields 'in' and 'out'
-    % - P.vars.in: a cell array specifying the unique sorted names of the spatial
-    % variables in the input function space
-    % - P.vars.out: a cell array specifying the unique sorted names of the spatial
-    % variables in the output function space
+    % - P.vars.in: a cell array specifying the unique names of the spatial  % MMP, 09/09/2026
+    % variables in the input function space, stored in the canonical order  % MMP, 09/09/2026
+    % [S_3,S_1]. S_1 and S_3 are each sorted, but the concatenation is not, % MMP, 09/09/2026
+    % so do not assume vars.in is sorted; look up a variable by name        % MMP, 09/09/2026
+    % - P.vars.out: a cell array specifying the unique names of the spatial % MMP, 09/09/2026
+    % variables in the output function space, canonical order [S_2,S_3]     % MMP, 09/09/2026
     % - P.dom.: struct object with fields 'in' and 'out'
     % - P.dom.in: ordered array (2 columns) specifying the spatial domain of each
     % variable in P.vars.in, so that dom(i,:) = [ai,bi] -> vars.in(i) \in [ai,bi]
@@ -80,6 +82,15 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     % authorship, and a brief description of modifications
     %
     % SS,MP, 01/15/2026: Initial coding
+    % MMP, 09/09/2026: Enforce the canonical spatial-variable order
+    %                  vars.out = [S2,S3], vars.in = [S3,S1] in the
+    %                  constructor, and check that a variable appearing on
+    %                  both sides is given the same domain by each. The
+    %                  property documentation above said vars.in and
+    %                  vars.out held SORTED names, which the canonical order
+    %                  contradicts: [S2,S3] is sorted only when S2 is empty.
+    %                  Corrected, since code that assumed it could locate a
+    %                  variable by sorted position would now be wrong.
     properties
         vars = struct('in',{},'out',{});
         dom = struct('in',zeros(0,2),'out',zeros(0,2));
@@ -104,6 +115,27 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
             % is not canonical is rewritten here, so no 'sopvar' object can  % MMP, 08/29/2026
             % violate it. An object that is already canonical, which is the  % MMP, 08/29/2026
             % normal case, is not touched.                                   % MMP, 08/29/2026
+            % Canonical spatial-variable order, vars.out = [S2,S3] and       % MMP, 09/09/2026
+            % vars.in = [S3,S1], applied before the multiplier form. ZL{i}   % MMP, 09/09/2026
+            % is bound positionally to vars.out(i), so reordering the        % MMP, 09/09/2026
+            % variables permutes the monomial index of every coefficient;    % MMP, 09/09/2026
+            % 'canonical_var_order' returns that permutation lifted over the % MMP, 09/09/2026
+            % matrix dimension, empty when nothing moves. It also rejects a  % MMP, 09/09/2026
+            % pass-through variable given different domains on the two sides.% MMP, 09/09/2026
+            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                   % MMP, 09/09/2026
+                canonical_var_order(vars,dom,ZL,ZR,dims);                    % MMP, 09/09/2026
+            if reordered                                                     % MMP, 09/09/2026
+                for ii = 1:numel(params)                                     % MMP, 09/09/2026
+                    % [] and scalar 0 are the zero-block shorthand accepted  % MMP, 09/09/2026
+                    % everywhere else in the class, and indexing one throws. % MMP, 09/09/2026
+                    % Permuting a zero block is a no-op, and for a genuine   % MMP, 09/09/2026
+                    % 1x1 the gather can only be the identity, so skipping   % MMP, 09/09/2026
+                    % is exact in both cases.                                % MMP, 09/09/2026
+                    if numel(params{ii})>1                                   % MMP, 09/09/2026
+                        params{ii} = params{ii}(rowIdx,colIdx);              % MMP, 09/09/2026
+                    end                                                      % MMP, 09/09/2026
+                end                                                          % MMP, 09/09/2026
+            end                                                              % MMP, 09/09/2026
             [params,ZL,ZR,was_rewritten] = ...                               % MMP, 08/29/2026
                 canonicalize_multiplier(params,vars,ZL,ZR,dims);             % MMP, 08/29/2026
             if was_rewritten                                                 % MMP, 08/29/2026
