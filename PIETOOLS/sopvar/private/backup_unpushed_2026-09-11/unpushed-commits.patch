@@ -1,0 +1,1248 @@
+diff --git a/PIETOOLS/sopvar/@sdopvar/mtimes.m b/PIETOOLS/sopvar/@sdopvar/mtimes.m
+index 5d6f710f..5735e6ae 100644
+--- a/PIETOOLS/sopvar/@sdopvar/mtimes.m
++++ b/PIETOOLS/sopvar/@sdopvar/mtimes.m
+@@ -1,5 +1,19 @@
+ function C = mtimes(A,B)
+ % Multiplication for sdopvar with numeric matrices/scalars.
++%
++% MMP, 09/09/2026: Align B's output side onto A.vars.in by NAME instead of
++%                  requiring the two lists to be stored in the same order,
++%                  matching '@sopvar/mtimes'. vars.out = [S2,S3] and
++%                  vars.in = [S3,S1] are canonical, so a legal composition
++%                  can present the two intermediate lists in different
++%                  orders and the old guard refused it. This is the live
++%                  path: '*' on an sdopvar and an sopvar reaches
++%                  mtimesSdopvarAndSopvar here, and sopvar*sdopvar reaches
++%                  it too via mtimes(B',A'), so every composition whose
++%                  intermediate space had both a pass-through and a
++%                  non-pass-through variable was rejected. The identical
++%                  fix in 'mtimes_AT' does not cover it -- nothing in the
++%                  toolbox calls that routine.
+ if isa(A,'sdopvar') 
+     if isnumeric(B)
+         if isscalar(B)
+@@ -70,10 +84,37 @@ if A.dims(2) ~= B.dims(1)
+         'The output dimension of B must equal the input dimension of A.');
+ end
+ 
+-if ~isequal(A.vars.in(:),B.vars.out(:))
++% Legality is a question about the variable SETS. The body below contracts  % MMP, 09/09/2026
++% A.ZR against B.ZL positionally, so the two lists must then agree in       % MMP, 09/09/2026
++% ORDER -- and they need not, because each operand is stored in its own     % MMP, 09/09/2026
++% canonical order: for A'*A the adjoint's vars.in is [S3,S2] while A's      % MMP, 09/09/2026
++% vars.out is [S2,S3]. So B is aligned onto A.vars.in by name below         % MMP, 09/09/2026
++% rather than the composition being refused.                                % MMP, 09/09/2026
++if ~isempty(setxor(A.vars.in,B.vars.out))                                   % MMP, 09/09/2026
++%if ~isequal(A.vars.in(:),B.vars.out(:))                                    % MMP, 09/09/2026 (was)
+     error('mtimes:intermediateVariables', ...
+-        'B output variables must match A input variables in the same order.');
+-end
++        'B output variable names differ from A input variable names.');
++end
++
++% Permute B's output side onto A's input order: reorder B.ZL, B.dom.out     % MMP, 09/09/2026
++% and the ROW index of every parameter, the row being (matrix row outer,    % MMP, 09/09/2026
++% ZL monomial inner). Done in place on this local copy, NOT through the     % MMP, 09/09/2026
++% constructor, which would canonicalize B straight back. The permutation    % MMP, 09/09/2026
++% touches only rows, so the canonical multiplier form -- a condition on     % MMP, 09/09/2026
++% ZR columns -- is untouched. B is an sopvar here, so its parameters are    % MMP, 09/09/2026
++% plain matrices; A's decision-variable coefficients are not touched.       % MMP, 09/09/2026
++if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/09/2026
++    [~,ordB] = ismember(A.vars.in,B.vars.out);                              % MMP, 09/09/2026
++    pB   = monomial_gather(B.ZL,ordB);                                      % MMP, 09/09/2026
++    NLb  = prod([cellfun(@numel,B.ZL),1]);                                  % MMP, 09/09/2026
++    rowB = reshape(pB(:)+(0:B.dims(1)-1)*NLb,[],1);                         % MMP, 09/09/2026
++    for ii = 1:numel(B.params)                                              % MMP, 09/09/2026
++        B.params{ii} = B.params{ii}(rowB,:);                                % MMP, 09/09/2026
++    end                                                                     % MMP, 09/09/2026
++    B.ZL      = B.ZL(ordB);                                                 % MMP, 09/09/2026
++    B.dom.out = B.dom.out(ordB,:);                                          % MMP, 09/09/2026
++    B.vars.out = B.vars.out(ordB);                                          % MMP, 09/09/2026
++end                                                                         % MMP, 09/09/2026
+ 
+ if ~isequal(A.dom.in,B.dom.out)
+     error('mtimes:intermediateDomains', ...
+diff --git a/PIETOOLS/sopvar/@sdopvar/mtimes_AT.m b/PIETOOLS/sopvar/@sdopvar/mtimes_AT.m
+index e8bf379e..b401a221 100644
+--- a/PIETOOLS/sopvar/@sdopvar/mtimes_AT.m
++++ b/PIETOOLS/sopvar/@sdopvar/mtimes_AT.m
+@@ -3,6 +3,42 @@ function C = mtimes_AT(A,B)
+ %
+ % SS initial code
+ % AT, 09/07/2026: Vectorized PART 3 of mtimesSdopvarAndSopvar. 
++% MMP, 09/09/2026: Align B's output side onto A.vars.in by NAME instead of
++%                  requiring the two lists to be stored in the same order.
++%                  The variables were made canonical -- vars.out = [S2,S3],
++%                  vars.in = [S3,S1] -- so a legal composition can present
++%                  the two lists in different orders: for A'*A the adjoint's
++%                  vars.in is [S3,S2] while A's vars.out is [S2,S3], and the
++%                  old order guard refused it. Legality is now tested on the
++%                  variable SETS ('setxor'), then B.ZL, B.dom.out and the row
++%                  index of each parameter are permuted onto A's order, since
++%                  the body below contracts A.ZR against B.ZL positionally.
++%                  The orders can disagree only when vs3a and vs2b are
++%                  BOTH nonempty (they are [T,U] against [U,T]), so the old
++%                  guard refused every such call; that branch was therefore
++%                  unreachable before this change. It runs correctly --
++%                  checked against '@sopvar/mtimes' on the evaluated
++%                  operator to 4e-15.
++% MMP, 09/10/2026: Form only the nMid diagonal blocks in PART 3 instead of
++%                  the full nMid x nMid block product and a mask, per
++%                  Sec. 5.4 of the sopvar document: "efficient summation is
++%                  all that is needed here". This removes the three
++%                  nMid^2-sized objects the masked form built -- the dense
++%                  ones() inside Mask, spdiags(Mask(:)) of side
++%                  numel(Mask), and kron(K',I) of size
++%                  (nMid^2*R*L) x (W*nMid*L) on the decision path.
++%                  The A part is bit-identical to the masked form; the B
++%                  part agrees to reassociation of the sum over d (exactly
++%                  0 at nMid==1, ~2e-15 at nMid==4), since the nMid terms
++%                  are now summed separately rather than inside one sparse
++%                  product.
++%                  This does NOT fully cure the memory blowup. The
++%                  composition now completes at degrees (2,3) where it
++%                  previously wanted 122 GB, and agrees with
++%                  '@sopvar/mtimes' to 1.1e-15, but at (3,3) it still asks
++%                  for 75.8 GB -- see the REMAINING LIMITATION note in
++%                  PART 3, which is a different defect (the nnz of
++%                  kron(Kd',I_L)) with a different fix.
+ if isa(A,'sdopvar') 
+     if isnumeric(B)
+         if isscalar(B)
+@@ -75,10 +111,37 @@ if A.dims(2) ~= B.dims(1)
+         'The output dimension of B must equal the input dimension of A.');
+ end
+ 
+-if ~isequal(A.vars.in(:),B.vars.out(:))
++% Legality is a question about the variable SETS. The body below contracts  % MMP, 09/09/2026
++% A.ZR against B.ZL positionally, so the two lists must then agree in       % MMP, 09/09/2026
++% ORDER -- and they need not, because each operand is stored in its own     % MMP, 09/09/2026
++% canonical order: for A'*A the adjoint's vars.in is [S3,S2] while A's      % MMP, 09/09/2026
++% vars.out is [S2,S3]. So B is aligned onto A.vars.in by name below         % MMP, 09/09/2026
++% rather than the composition being refused.                                % MMP, 09/09/2026
++if ~isempty(setxor(A.vars.in,B.vars.out))                                   % MMP, 09/09/2026
++%if ~isequal(A.vars.in(:),B.vars.out(:))                                    % MMP, 09/09/2026 (was)
+     error('mtimes:intermediateVariables', ...
+-        'B output variables must match A input variables in the same order.');
+-end
++        'B output variable names differ from A input variable names.');
++end
++
++% Permute B's output side onto A's input order: reorder B.ZL, B.dom.out     % MMP, 09/09/2026
++% and the ROW index of every parameter, the row being (matrix row outer,    % MMP, 09/09/2026
++% ZL monomial inner). Done in place on this local copy, NOT through the     % MMP, 09/09/2026
++% constructor, which would canonicalize B straight back. The permutation    % MMP, 09/09/2026
++% touches only rows, so the canonical multiplier form -- a condition on     % MMP, 09/09/2026
++% ZR columns -- is untouched. B is an sopvar here, so its parameters are    % MMP, 09/09/2026
++% plain matrices; A's decision-variable coefficients are not touched.       % MMP, 09/09/2026
++if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/09/2026
++    [~,ordB] = ismember(A.vars.in,B.vars.out);                              % MMP, 09/09/2026
++    pB   = monomial_gather(B.ZL,ordB);                                      % MMP, 09/09/2026
++    NLb  = prod([cellfun(@numel,B.ZL),1]);                                  % MMP, 09/09/2026
++    rowB = reshape(pB(:)+(0:B.dims(1)-1)*NLb,[],1);                         % MMP, 09/09/2026
++    for ii = 1:numel(B.params)                                              % MMP, 09/09/2026
++        B.params{ii} = B.params{ii}(rowB,:);                                % MMP, 09/09/2026
++    end                                                                     % MMP, 09/09/2026
++    B.ZL      = B.ZL(ordB);                                                 % MMP, 09/09/2026
++    B.dom.out = B.dom.out(ordB,:);                                          % MMP, 09/09/2026
++    B.vars.out = B.vars.out(ordB);                                          % MMP, 09/09/2026
++end                                                                         % MMP, 09/09/2026
+ 
+ if ~isequal(A.dom.in,B.dom.out)
+     error('mtimes:intermediateDomains', ...
+@@ -495,29 +558,74 @@ vecLeftDecision = PermL*BigB; %vecLeft(:,2:end);
+ right_BLCK_size = sz_RMat(2)/nMid;
+ left_BLCK_size  = sz_LeftMat(1)/nMid;
+ 
+-Mask      = kron(speye(nMid),ones(left_BLCK_size,right_BLCK_size));
+-LeftMult  = kron(ones(nMid,1),speye(left_BLCK_size));
+-RightMult = kron(ones(nMid,1),speye(right_BLCK_size));
+-MaskDiag  = kron(RightMult.',LeftMult.')*spdiags(Mask(:),0,numel(Mask),numel(Mask));
++% Only the nMid DIAGONAL blocks of the nMid x nMid block product are        % MMP, 09/10/2026
++% wanted, so form those directly: block row d of the left factor times      % MMP, 09/10/2026
++% block column d of K, summed over d. Sec. 5.4 of the sopvar document,      % MMP, 09/10/2026
++% "efficient summation is all that is needed here". This removes three      % MMP, 09/10/2026
++% nMid^2-sized objects: the DENSE ones() inside Mask, spdiags(Mask(:))      % MMP, 09/10/2026
++% of side numel(Mask), and kron(K',I) of size (nMid^2*R*L) x (W*nMid*L)     % MMP, 09/10/2026
++% on the decision path -- the last being the allocation that reached        % MMP, 09/10/2026
++% 10450944 x 30862944 (103.5 GB) at four spatial variables per side.        % MMP, 09/10/2026
++% The A part is bit-identical; the B part agrees to reassociation of the    % MMP, 09/10/2026
++% sum over d (0 at nMid==1, ~1e-15 at nMid==4), since the nMid terms are    % MMP, 09/10/2026
++% now summed separately rather than inside one sparse product.              % MMP, 09/10/2026
++%Mask      = kron(speye(nMid),ones(left_BLCK_size,right_BLCK_size));        % MMP, 09/10/2026 (was)
++%LeftMult  = kron(ones(nMid,1),speye(left_BLCK_size));                      % MMP, 09/10/2026 (was)
++%RightMult = kron(ones(nMid,1),speye(right_BLCK_size));                     % MMP, 09/10/2026 (was)
++%MaskDiag  = kron(RightMult.',LeftMult.')*spdiags(Mask(:),0,numel(Mask),numel(Mask)); % MMP, 09/10/2026 (was)
+ 
+ LeftMat_const = reshape(vecLeftConst,sz_LeftMat);
+ 
++% Block row d of the left factor, and the vec() rows carrying it. vec is    % MMP, 09/10/2026
++% column-major over the sz_LeftMat(1) x sz_LeftMat(2) array, so block row   % MMP, 09/10/2026
++% d occupies (d-1)*left_BLCK_size+(1:left_BLCK_size) of every column.       % MMP, 09/10/2026
++% Gathered once here, not once per gamma.                                   % MMP, 09/10/2026
++nW    = sz_LeftMat(2);                                                      % MMP, 09/10/2026
++IL    = speye(left_BLCK_size);                                              % MMP, 09/10/2026
++Lconstd = cell(1,nMid);   Vdecd = cell(1,nMid);                             % MMP, 09/10/2026
++for d = 1:nMid                                                              % MMP, 09/10/2026
++    rows_d     = (d-1)*left_BLCK_size+(1:left_BLCK_size);                   % MMP, 09/10/2026
++    Lconstd{d} = LeftMat_const(rows_d,:);                                   % MMP, 09/10/2026
++    Vdecd{d}   = vecLeftDecision(reshape(rows_d.'+(0:nW-1)*sz_LeftMat(1),[],1),:);% MMP, 09/10/2026
++end                                                                         % MMP, 09/10/2026
++
+ for igamma = 1:numel(Cparams.A)
+ 
+     % step 1: (compute I_nMid otimes C) RightMat
+     K = Cmat{igamma}*RightMat;                      % decision-free, small
+ 
+-    % decision free (as in sopvar/mtimes 
+-    CLCMCR = LeftMat_const*K;
+-    PROD2  = Mask.*CLCMCR;
+-    PROD3  = LeftMult.'*PROD2*RightMult;
+-    Cparams.A{igamma} = PROD3(:);
+-
+-
+-    % Same linear chain (X -> LeftMult'*(Mask.*(X*K))*RightMult), reapplied
+-    % to every decision sensitivity at once via vec(X*K)=(K' kron I)*vec(X).
+-    G = MaskDiag*kron(K.',speye(sz_LeftMat(1)));
+-    Cparams.B{igamma} = (G*vecLeftDecision).';
++    Aacc = sparse(left_BLCK_size,right_BLCK_size);                          % MMP, 09/10/2026
++    Bacc = sparse(left_BLCK_size*right_BLCK_size,size(vecLeftDecision,2));  % MMP, 09/10/2026
++    for d = 1:nMid                                                          % MMP, 09/10/2026
++        Kd   = K(:,(d-1)*right_BLCK_size+(1:right_BLCK_size));              % MMP, 09/10/2026
++        Aacc = Aacc + Lconstd{d}*Kd;                                        % MMP, 09/10/2026
++        % vec(X_d*Kd) = (Kd' kron I_L)*vec(X_d). The kron is on the         % MMP, 09/10/2026
++        % monomial axis; the decision-variable count stays a passive        % MMP, 09/10/2026
++        % column dimension of Vdecd and is never entered.                   % MMP, 09/10/2026
++        %                                                                   % MMP, 09/10/2026
++        % REMAINING LIMITATION, separate from the nMid^2 problem this        % MMP, 09/10/2026
++        % change fixes: kron(Kd',I_L) has nnz(Kd)*left_BLCK_size entries,    % MMP, 09/10/2026
++        % since it repeats Kd once per row of X_d, so no matrix form of      % MMP, 09/10/2026
++        % this map is small. At four spatial variables per side and degree   % MMP, 09/10/2026
++        % 3 on both operands it asks for 75.8 GB and the composition still   % MMP, 09/10/2026
++        % fails, where '@sopvar/mtimes' completes. Applying it in bounded    % MMP, 09/10/2026
++        % column chunks was tried and rejected: the chunk width collapses    % MMP, 09/10/2026
++        % to one column in exactly the case that needs it, trading the       % MMP, 09/10/2026
++        % memory blowup for right_BLCK_size sparse products. The fix is      % MMP, 09/10/2026
++        % option 1 of the Note in Sec. 6.1.2 of the sopvar document --       % MMP, 09/10/2026
++        % carry L and R in metadata and never form the product -- which      % MMP, 09/10/2026
++        % restructures how the decision block is propagated rather than      % MMP, 09/10/2026
++        % patching this line.                                                % MMP, 09/10/2026
++        Bacc = Bacc + kron(Kd.',IL)*Vdecd{d};                               % MMP, 09/10/2026
++    end                                                                     % MMP, 09/10/2026
++    Cparams.A{igamma} = Aacc(:);                                            % MMP, 09/10/2026
++    Cparams.B{igamma} = Bacc.';                                             % MMP, 09/10/2026
++%   CLCMCR = LeftMat_const*K;                                               % MMP, 09/10/2026 (was)
++%   PROD2  = Mask.*CLCMCR;                                                  % MMP, 09/10/2026 (was)
++%   PROD3  = LeftMult.'*PROD2*RightMult;                                    % MMP, 09/10/2026 (was)
++%   Cparams.A{igamma} = PROD3(:);                                           % MMP, 09/10/2026 (was)
++%   G = MaskDiag*kron(K.',speye(sz_LeftMat(1)));                            % MMP, 09/10/2026 (was)
++%   Cparams.B{igamma} = (G*vecLeftDecision).';                              % MMP, 09/10/2026 (was)
+ end
+ 
+ % ---- AT, 09/07/2026: old loop-based reference,
+diff --git a/PIETOOLS/sopvar/@sdopvar/sdopvar.m b/PIETOOLS/sopvar/@sdopvar/sdopvar.m
+index 44bde911..491aa10e 100644
+--- a/PIETOOLS/sopvar/@sdopvar/sdopvar.m
++++ b/PIETOOLS/sopvar/@sdopvar/sdopvar.m
+@@ -1,20 +1,11 @@
+-classdef(InferiorClasses={?polynomial,?dpvar,?sopvar}) sdopvar             % MMP, 09/07/2026
+-%classdef(InferiorClasses={?polynomial,?opvar}) sdopvar                    % MMP, 09/07/2026 (was)
+-% Every other decision operator class lists its fixed sibling plus          % MMP, 09/07/2026
+-% {?polynomial,?dpvar}: dopvar has {?polynomial,?dpvar,?opvar}, dopvar2d    % MMP, 09/07/2026
+-% has {?opvar2d,?dpvar,?polynomial}, ndopvar has {?polynomial,?dpvar,       % MMP, 09/07/2026
+-% ?nopvar}. 'sdopvar' listed ?opvar, which is 'dopvar's sibling and not     % MMP, 09/07/2026
+-% its own, and omitted ?sopvar and ?dpvar. Consequently a mixed expression  % MMP, 09/07/2026
+-% led by a fixed 'sopvar' dispatched to '@sopvar', so [A,Pop], A*Pop and    % MMP, 09/07/2026
+-% A+Pop all failed, and the 'isa(A,''sopvar'')' branch of mtimes was        % MMP, 09/07/2026
+-% unreachable. No method here ever handled an 'opvar'.                      % MMP, 09/07/2026
++classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar             % MMP, 09/07/2026
+     % Represents PI maps from L_2^p[S1,S3] to L_2^q[S2,S3]
+     %
+     % This defines PI operators from one L2 space to another.
+     %
+     %   Pop: L_2^p[S1,S3] to L_2^q[S2,S3]
+     %
+-    % Elements of this class are intended to be included in a container object.
++    % Elements of this class are intended to be included in a mopvar container object.
+     %
+     %   The operator has the form
+     %         y(S2,S3)=sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3)
+@@ -29,9 +20,31 @@ classdef(InferiorClasses={?polynomial,?dpvar,?sopvar}) sdopvar             % MMP
+     %         of decision variables
+     %
+     % CLASS properties
++    % - P.dims:   2x1 vector specifying the rows and columns of the operator i.e. [p,q];
++    % - P.vars: a structure with fields 'in' and 'out'
++    % - P.vars.in: a cell array specifying the unique names of the spatial  % MMP, 09/09/2026
++    % variables in the input function space, stored in the canonical order  % MMP, 09/09/2026
++    % [S_3,S_1]. S_1 and S_3 are each sorted, but the concatenation is not, % MMP, 09/09/2026
++    % so do not assume vars.in is sorted; look up a variable by name        % MMP, 09/09/2026
++    % - P.vars.out: a cell array specifying the unique names of the spatial % MMP, 09/09/2026
++    % variables in the output function space, canonical order [S_2,S_3]     % MMP, 09/09/2026
++    % - P.dom.: struct object with fields 'in' and 'out'
++    % - P.dom.in: ordered array (2 columns) specifying the spatial domain of each
++    % variable in P.vars.in, so that dom(i,:) = [ai,bi] -> vars.in(i) \in [ai,bi]
++    % - P.dom.out: same as P.dom.in but for out variables stored in
++    % P.vars.out
++    % - ZL: cell array of column vectors representing exponents of
++    % monomials in P.vars.out. That is monomials are constructed by as
++    % follows: ZL(P.vars.out) = P.vars.out(1).^ZL{1}\otimes ... P.vars.out(i).^ZL{i}...
++    % - ZR: cell array of column vectors representing exponents of
++    % monomials in P.vars.in. That is monomials are constructed by as
++    % follows: ZR(P.vars.in) = P.vars.in(1).^ZR{1}\otimes ... P.vars.in(i).^ZR{i}...
++    %
++    % - P.params:   3^n3 (stored as 3x3...x3) Cell array of sparse matrices, where n_3 is the number of variables in S_3;
++
+     % Each kernel of the PI operator is represented as
+-    % K_alpha = 
+-    % (I_dims(1)\otimes ZL(s2,s3)') 
++    % K_alpha =
++    % (I_dims(1)\otimes ZL(s2,s3)')
+     %          unvec(params.A(alpha) + params.B(alpha)^T*Zd)
+     %                (I_dims(2)\otimes ZR(t1,t3))
+     % where K_alpha represents kernel for multiplier/integral operator
+@@ -78,6 +91,32 @@ classdef(InferiorClasses={?polynomial,?dpvar,?sopvar}) sdopvar             % MMP
+             % violate it. The check inspects only the positions the form     % MMP, 08/29/2026
+             % forbids, so for a canonical object it costs numel(C) per       % MMP, 08/29/2026
+             % parameter and does not scale with the decision variables.      % MMP, 08/29/2026
++            % Canonical spatial-variable order, vars.out = [S2,S3] and       % MMP, 09/09/2026
++            % vars.in = [S3,S1], applied before the multiplier form. ZL{i}   % MMP, 09/09/2026
++            % is bound positionally to vars.out(i), so reordering the        % MMP, 09/09/2026
++            % variables permutes the vec index of every coefficient. The     % MMP, 09/09/2026
++            % decision variables are the rows of B and are only carried      % MMP, 09/09/2026
++            % through, so this does not scale with their number. The helper  % MMP, 09/09/2026
++            % also rejects a pass-through variable given different domains   % MMP, 09/09/2026
++            % on the two sides.                                              % MMP, 09/09/2026
++            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                   % MMP, 09/09/2026
++                canonical_var_order(vars,dom,ZL,ZR,dims);                    % MMP, 09/09/2026
++            if reordered                                                     % MMP, 09/09/2026
++                nrow = dims(1)*prod([cellfun(@numel,ZL),1]);                 % MMP, 09/09/2026
++                vecIdx = reshape(rowIdx(:)+(colIdx(:).'-1)*nrow,[],1);       % MMP, 09/09/2026
++                for ii = 1:numel(params.A)                                   % MMP, 09/09/2026
++                    % [] and scalar 0 are the zero-block shorthand accepted  % MMP, 09/09/2026
++                    % everywhere else in the class, and indexing one throws. % MMP, 09/09/2026
++                    % Permuting a zero block is a no-op, and for a single    % MMP, 09/09/2026
++                    % coefficient the gather can only be the identity.       % MMP, 09/09/2026
++                    if numel(params.A{ii})>1                                 % MMP, 09/09/2026
++                        params.A{ii} = params.A{ii}(vecIdx);                 % MMP, 09/09/2026
++                    end                                                      % MMP, 09/09/2026
++                    if size(params.B{ii},2)>1                                % MMP, 09/09/2026
++                        params.B{ii} = params.B{ii}(:,vecIdx);               % MMP, 09/09/2026
++                    end                                                      % MMP, 09/09/2026
++                end                                                          % MMP, 09/09/2026
++            end                                                              % MMP, 09/09/2026
+             [params,ZL,ZR,was_rewritten] = ...                               % MMP, 08/29/2026
+                 canonicalize_multiplier(params,vars,ZL,ZR,dims);             % MMP, 08/29/2026
+             if was_rewritten                                                 % MMP, 08/29/2026
+@@ -95,4 +134,4 @@ classdef(InferiorClasses={?polynomial,?dpvar,?sopvar}) sdopvar             % MMP
+             P.Zd = Zd;
+         end
+     end
+-end
+\ No newline at end of file
++end
+diff --git a/PIETOOLS/sopvar/@sopvar/mtimes.m b/PIETOOLS/sopvar/@sopvar/mtimes.m
+index b11635cc..9f995ff3 100644
+--- a/PIETOOLS/sopvar/@sopvar/mtimes.m
++++ b/PIETOOLS/sopvar/@sopvar/mtimes.m
+@@ -47,6 +47,42 @@ function C = mtimes(A,B)
+ % authorship, and a brief description of modifications
+ %
+ % Initial coding MMP, SS  - 1_16_2026
++% MMP, 09/10/2026: Vectorize int_2b's C3a assembly. It was a scalar loop
++%                  over all m*n ordered monomial pairs -- m the product of
++%                  A.ZR's per-direction monomial counts, n the same for
++%                  B.ZL -- calling num2cell, sub2ind and two fliplr on
++%                  every iteration, and it produced 99.3% of the sub2ind
++%                  calls in a composition profile (26282 on one A'*A).
++%                  Every per-direction lookup depends on i and j only
++%                  through IL(i,:) and IR(j,:), so each is a linear-index
++%                  gather over the whole grid; the mixed-radix condensation
++%                  moves into the local 'condenseIdx'. Exact rather than
++%                  merely equivalent, because (i,k2a,k3a) -> row and
++%                  (j,k3b) -> col are bijections, so no two grid points
++%                  produce the same triplet and 'sparse' never sums a
++%                  duplicate.
++% MMP, 09/10/2026: PART 4 formed the whole nMid x nMid block product
++%                  LeftMat*CMat*RightMat and then discarded every off-
++%                  diagonal block with a mask, so it computed nMid^2 blocks
++%                  to keep nMid of them, and the mask itself held a DENSE
++%                  ones(left_BLCK_size,right_BLCK_size). Sec. 5.4 of the
++%                  sopvar document asks only for sum_d L_{jd} C R_{kd}, so
++%                  the nMid diagonal blocks are now formed directly from
++%                  block row d of LeftMat and block column d of RightMat.
++%                  Same arithmetic; the dense allocation is gone and the
++%                  block work is linear rather than quadratic in nMid,
++%                  which is the matrix dimension A.dims(2) and so grows
++%                  with the operator, not with the spatial variables.
++% MMP, 09/09/2026: Align B's output side onto A.vars.in by NAME instead of
++%                  requiring the two lists to be stored in the same order.
++%                  The variables were made canonical -- vars.out = [S2,S3],
++%                  vars.in = [S3,S1] -- so a legal composition can present
++%                  the two lists in different orders: for A'*A the adjoint's
++%                  vars.in is [S3,S2] while A's vars.out is [S2,S3], and the
++%                  old order guard refused it. Legality is now tested on the
++%                  variable SETS ('setxor'), then B.ZL, B.dom.out and the row
++%                  index of each parameter are permuted onto A's order, since
++%                  the body below contracts A.ZR against B.ZL positionally.
+ % MMP, 09/07/2026: Compare the spatial variable lists with 'isequal'
+ %                  instead of 'any(~strcmp(...))'. strcmp of two cellstr of
+ %                  different length scalar-expands to an empty logical, so
+@@ -92,14 +128,38 @@ end
+ if A.dims(2)~=B.dims(1)
+     error('number of output components of B is different than number of input components of A');
+ end
+-% 'isequal' rather than 'any(~strcmp(...))': strcmp of two cellstr of       % MMP, 09/07/2026
+-% different length scalar-expands to an empty logical, so any([]) is        % MMP, 09/07/2026
+-% false and a composition across mismatched spaces passed -- B mapping to   % MMP, 09/07/2026
+-% R^n composed with A acting on L_2, or the reverse.                       % MMP, 09/07/2026
+-if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/07/2026
++% Legality is a question about the variable SETS. The composition body      % MMP, 09/09/2026
++% below contracts A.ZR against B.ZL positionally, so the two lists must     % MMP, 09/09/2026
++% then agree in ORDER -- and they need not, because each operand is         % MMP, 09/09/2026
++% stored in its own canonical order: for A'*A the adjoint's vars.in is      % MMP, 09/09/2026
++% [S3,S2] while A's vars.out is [S2,S3]. So B is aligned onto A.vars.in     % MMP, 09/09/2026
++% by name below rather than the composition being refused.                  % MMP, 09/09/2026
++if ~isempty(setxor(A.vars.in,B.vars.out))                                   % MMP, 09/09/2026
++%if ~isequal(A.vars.in(:),B.vars.out(:))                                    % MMP, 09/09/2026 (was)
+ %if any(~strcmp(A.vars.in,B.vars.out))                                      % MMP, 09/07/2026 (was)
+     error('names of B output variables differ from names of A input variables');
+ end
++
++% Permute B's output side onto A's input order: reorder B.ZL, B.dom.out     % MMP, 09/09/2026
++% and the ROW index of every parameter, the row being (matrix row outer,    % MMP, 09/09/2026
++% ZL monomial inner). Done in place on this local copy, NOT through the     % MMP, 09/09/2026
++% constructor, which would canonicalize B straight back. The permutation    % MMP, 09/09/2026
++% touches only rows, so the canonical multiplier form -- a condition on     % MMP, 09/09/2026
++% ZR columns -- is untouched, and vars_S1/S2/S3 are sorted and so are       % MMP, 09/09/2026
++% unchanged by a reordering.                                                % MMP, 09/09/2026
++if ~isequal(A.vars.in(:),B.vars.out(:))                                     % MMP, 09/09/2026
++    [~,ordB] = ismember(A.vars.in,B.vars.out);                              % MMP, 09/09/2026
++    pB   = monomial_gather(B.ZL,ordB);                                      % MMP, 09/09/2026
++    NLb  = prod([cellfun(@numel,B.ZL),1]);                                  % MMP, 09/09/2026
++    rowB = reshape(pB(:)+(0:B.dims(1)-1)*NLb,[],1);                         % MMP, 09/09/2026
++    for ii = 1:numel(B.params)                                              % MMP, 09/09/2026
++        B.params{ii} = B.params{ii}(rowB,:);                                % MMP, 09/09/2026
++    end                                                                     % MMP, 09/09/2026
++    B.ZL      = B.ZL(ordB);                                                 % MMP, 09/09/2026
++    B.dom.out = B.dom.out(ordB,:);                                          % MMP, 09/09/2026
++    B.vars.out = B.vars.out(ordB);                                          % MMP, 09/09/2026
++end                                                                         % MMP, 09/09/2026
++
+ if any(any(A.dom.in~=B.dom.out))
+     error('output domain of B differs from input domain of A');
+ end
+@@ -627,12 +687,26 @@ RightMat = sparse(new_ind_r, new_ind_c, vals, sz_RMat(1), sz_RMat(2));
+ % end
+ 
+ % % % % STEP 3 % % % % 
+-% Define the following for computing diagonal elements
++% Only the nMid DIAGONAL blocks of LeftMat*CMat*RightMat are wanted, so     % MMP, 09/10/2026
++% form those nMid products directly instead of the full nMid x nMid         % MMP, 09/10/2026
++% product followed by a mask that discards the rest. Block row d of         % MMP, 09/10/2026
++% LeftMat is [L_{1,d},...,L_{n,d}] and block column d of RightMat is        % MMP, 09/10/2026
++% [R_{1,d};...;R_{n,d}], so block (d,d) is Ld{d}*CMat*Rd{d} and the         % MMP, 09/10/2026
++% quantity sought is sum_d of those; see Sec. 5.4 of the sopvar             % MMP, 09/10/2026
++% document, "efficient summation is all that is needed here". The old       % MMP, 09/10/2026
++% Mask also held a DENSE ones(left_BLCK_size,right_BLCK_size), which is     % MMP, 09/10/2026
++% the largest allocation in the routine once the matrix dimensions and      % MMP, 09/10/2026
++% the composed monomial bases grow.                                         % MMP, 09/10/2026
+ right_BLCK_size = sz_CR(2);
+ left_BLCK_size  = sz_CL(1);
+-Mask = kron(speye(nMid), ones(left_BLCK_size, right_BLCK_size));
+-LeftMult  = kron(ones(nMid, 1), speye(left_BLCK_size));
+-RightMult = kron(ones(nMid, 1), speye(right_BLCK_size));
++%Mask = kron(speye(nMid), ones(left_BLCK_size, right_BLCK_size));           % MMP, 09/10/2026 (was)
++%LeftMult  = kron(ones(nMid, 1), speye(left_BLCK_size));                    % MMP, 09/10/2026 (was)
++%RightMult = kron(ones(nMid, 1), speye(right_BLCK_size));                   % MMP, 09/10/2026 (was)
++Ld = cell(1,nMid);   Rd = cell(1,nMid);                                     % MMP, 09/10/2026
++for d = 1:nMid                                                              % MMP, 09/10/2026
++    Ld{d} = LeftMat((d-1)*left_BLCK_size+(1:left_BLCK_size),:);             % MMP, 09/10/2026
++    Rd{d} = RightMat(:,(d-1)*right_BLCK_size+(1:right_BLCK_size));          % MMP, 09/10/2026
++end                                                                         % MMP, 09/10/2026
+ 
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%% PART 4 %%%%%%%%%%%%%%%%%%%%%%%%%%
+@@ -640,12 +714,13 @@ RightMult = kron(ones(nMid, 1), speye(right_BLCK_size));
+ for i = 1:numel(Cparams)
+     
+     Cparams{i} = sparse(size(CLtemp_betab{1},1),size(CRtemp_alphaa{1},1)); 
+-    % instead of loops we have
+-    CLCMCR = LeftMat*CMat{i}*RightMat;
+-    % instead of kronecker product we have
+-    PROD2 = Mask.*CLCMCR;
+-    PROD3 =LeftMult'*PROD2*RightMult;
+-    Cparams{i} = Cparams{i} + PROD3;
++    for d = 1:nMid                                                          % MMP, 09/10/2026
++        Cparams{i} = Cparams{i} + Ld{d}*CMat{i}*Rd{d};                      % MMP, 09/10/2026
++    end                                                                     % MMP, 09/10/2026
++%   CLCMCR = LeftMat*CMat{i}*RightMat;                                      % MMP, 09/10/2026 (was)
++%   PROD2 = Mask.*CLCMCR;                                                   % MMP, 09/10/2026 (was)
++%   PROD3 =LeftMult'*PROD2*RightMult;                                       % MMP, 09/10/2026 (was)
++%   Cparams{i} = Cparams{i} + PROD3;                                        % MMP, 09/10/2026 (was)
+     % max(abs(Cparams{i} - Cparams2{i}), [], 'all')
+ end
+ % Cparams = Cparams;
+@@ -1190,91 +1265,42 @@ R3b = L3b;
+ % has size m-by-n.
+ % -------------------------------------------------------------------------
+ 
+-II = zeros(m*n, 1);
+-JJ = zeros(m*n, 1);
+-VV = zeros(m*n, 1);
+-
+-cnt = 0;
+-
+ dims2a = cellfun(@numel, Z2anew);
+ dims3a = cellfun(@numel, Z3anew);
+ dims3b = cellfun(@numel, Z3bnew);
+ 
+-for i = 1:m
+-    for j = 1:n
+-
+-        % Scalar contribution from full integration over s2b
+-        c = 1;
+-        for k = 1:n2b
+-            c = c * C2b{k}(IL(i,L2b(k)), IR(j,R2b(k)));
+-        end
+-
+-        % Condensed basis index for s2a products
+-        if n2a == 0
+-            k2a = 1;
+-        else
+-            idx = zeros(1,n2a);
+-            for k = 1:n2a
+-                idx(k) = idx2a{k}(IL(i,L2a(k)), IR(j,R2a(k)));
+-            end
+-
+-            if n2a == 1
+-                k2a = idx;
+-            else
+-                idxcell = num2cell(fliplr(idx));
+-                k2a = sub2ind(fliplr(dims2a), idxcell{:});
+-            end
+-        end
+-
+-        % Condensed basis index for s3a products
+-        if n3a == 0
+-            k3a = 1;
+-        else
+-            idx = zeros(1,n3a);
+-            for k = 1:n3a
+-                idx(k) = idx3a{k}(IL(i,L3a(k)), IR(j,R3a(k)));
+-            end
+-
+-            if n3a == 1
+-                k3a = idx;
+-            else
+-                idxcell = num2cell(fliplr(idx));
+-                k3a = sub2ind(fliplr(dims3a), idxcell{:});
+-            end
+-        end
+-
+-        % Condensed basis index for s3b products
+-        if n3b == 0
+-            k3b = 1;
+-        else
+-            idx = zeros(1,n3b);
+-            for k = 1:n3b
+-                idx(k) = idx3b{k}(IL(i,L3b(k)), IR(j,R3b(k)));
+-            end
+-
+-            if n3b == 1
+-                k3b = idx;
+-            else
+-                idxcell = num2cell(fliplr(idx));
+-                k3b = sub2ind(fliplr(dims3b), idxcell{:});
+-            end
+-        end
+-
+-        % Row of C3a:
+-        %   k3a inside block (i,k2a)
+-        rowBlock = k2a + (i-1)*nz2a;
+-        row = k3a + (rowBlock-1)*nz3a;
+-
+-        % Column of C3a:
+-        %   k3b inside block j
+-        col = k3b + (j-1)*nz3b;
+-
+-        cnt = cnt + 1;
+-        II(cnt) = row;
+-        JJ(cnt) = col;
+-        VV(cnt) = c;
+-    end
+-end
++% Vectorized over the whole m-by-n grid. Every per-direction lookup depends % MMP, 09/10/2026
++% on i and j only through IL(i,:) and IR(j,:), so each is a linear-index    % MMP, 09/10/2026
++% gather and the assembly needs no loop at all. The scalar version called   % MMP, 09/10/2026
++% num2cell, sub2ind and two fliplr on every one of the m*n iterations, and  % MMP, 09/10/2026
++% was measured to produce 99.3% of the sub2ind calls in a composition       % MMP, 09/10/2026
++% profile (26282 of them on one A'*A).                                      % MMP, 09/10/2026
++%                                                                          % MMP, 09/10/2026
++% The triplets may be emitted in any order: (i,k2a,k3a) -> row and          % MMP, 09/10/2026
++% (j,k3b) -> col are both bijections, so row determines i and col           % MMP, 09/10/2026
++% determines j, no two (i,j) collide, and 'sparse' never has to sum a       % MMP, 09/10/2026
++% duplicate. Hence this is exact, not merely equivalent.                    % MMP, 09/10/2026
++iv = reshape(repmat((1:m).',1,n),[],1);                                     % MMP, 09/10/2026
++jv = reshape(repmat(1:n,m,1),[],1);                                         % MMP, 09/10/2026
++
++% Scalar contribution from full integration over s2b.                       % MMP, 09/10/2026
++VV = ones(m*n,1);                                                           % MMP, 09/10/2026
++for k = 1:n2b                                                               % MMP, 09/10/2026
++    Ck = C2b{k};                                                            % MMP, 09/10/2026
++    % reshape, not just indexing: when Ck is a ROW vector MATLAB returns a   % MMP, 09/10/2026
++    % row for a column index, and 'VV .* row' would implicitly expand to an  % MMP, 09/10/2026
++    % m*n by m*n matrix instead of failing loudly.                           % MMP, 09/10/2026
++    VV = VV .* reshape(Ck(IL(iv,L2b(k)) + (IR(jv,R2b(k))-1)*size(Ck,1)),[],1);% MMP, 09/10/2026
++end                                                                         % MMP, 09/10/2026
++
++% Condensed basis indices for the s2a, s3a and s3b products.                % MMP, 09/10/2026
++k2a = condenseIdx(idx2a,IL,IR,iv,jv,L2a,R2a,dims2a,n2a);                    % MMP, 09/10/2026
++k3a = condenseIdx(idx3a,IL,IR,iv,jv,L3a,R3a,dims3a,n3a);                    % MMP, 09/10/2026
++k3b = condenseIdx(idx3b,IL,IR,iv,jv,L3b,R3b,dims3b,n3b);                    % MMP, 09/10/2026
++
++% Row: k3a inside block (i,k2a).  Column: k3b inside block j.               % MMP, 09/10/2026
++II = k3a + (k2a + (iv-1)*nz2a - 1)*nz3a;                                    % MMP, 09/10/2026
++JJ = k3b + (jv-1)*nz3b;                                                     % MMP, 09/10/2026
+ 
+ C3a = sparse(II, JJ, VV, m*nz2a*nz3a, n*nz3b);
+ 
+@@ -1287,6 +1313,30 @@ G3aout.C = C3a;
+ G3aout.Z = Z3anew;
+ 
+ end
++function kk = condenseIdx(T,IL,IR,iv,jv,Lk,Rk,dims,nk)                      % MMP, 09/10/2026
++% Condense one group's per-direction indices into a single basis index, for % MMP, 09/10/2026
++% every (i,j) of the grid at once. Reproduces exactly what                  % MMP, 09/10/2026
++%     sub2ind(fliplr(dims),num2cell(fliplr(idx)){:})                        % MMP, 09/10/2026
++% computed per iteration: the LAST direction runs fastest, so direction k   % MMP, 09/10/2026
++% carries stride prod(dims(k+1:end)). Collapses to idx(1) at nk == 1 and to % MMP, 09/10/2026
++% 1 at nk == 0, which are the two cases the scalar version special-cased.   % MMP, 09/10/2026
++kk = ones(numel(iv),1);                                                     % MMP, 09/10/2026
++if nk == 0                                                                  % MMP, 09/10/2026
++    return                                                                  % MMP, 09/10/2026
++end                                                                         % MMP, 09/10/2026
++str = ones(1,nk);                                                           % MMP, 09/10/2026
++for k = nk-1:-1:1                                                           % MMP, 09/10/2026
++    str(k) = str(k+1)*dims(k+1);                                            % MMP, 09/10/2026
++end                                                                         % MMP, 09/10/2026
++for k = 1:nk                                                                % MMP, 09/10/2026
++    Tk = T{k};                                                              % MMP, 09/10/2026
++    a  = Tk(IL(iv,Lk(k)) + (IR(jv,Rk(k))-1)*size(Tk,1));                    % MMP, 09/10/2026
++    kk = kk + (a(:)-1)*str(k);                                              % MMP, 09/10/2026
++end                                                                         % MMP, 09/10/2026
++end                                                                         % MMP, 09/10/2026
++
++
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ function P = kronPermutationMatrix_SS(oldVars,newVars,dimsOld)
+ % kronPermutationMatrix_SS returns P such that Z_old = P*Z_new for tensor
+ % monomial vectors ordered with the first variable outermost and the last
+diff --git a/PIETOOLS/sopvar/@sopvar/private/leftShiftMonomials_SS.m b/PIETOOLS/sopvar/@sopvar/private/leftShiftMonomials_SS.m
+index 79f7f287..4032b193 100644
+--- a/PIETOOLS/sopvar/@sopvar/private/leftShiftMonomials_SS.m
++++ b/PIETOOLS/sopvar/@sopvar/private/leftShiftMonomials_SS.m
+@@ -20,6 +20,13 @@ function [varsC,ZC,CC] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
+ %   varsC : merged variable list
+ %   ZC    : merged/product monomial basis
+ %   CC    : nI-by-nJ cell array, CC{I,J} has size p*NC by r
++%
++% MMP, 09/10/2026: Hoist the 'kron(speye(p),Qmat)' lift out of the I,J loops,
++%                  where it was rebuilt nI*nJ times identically; check the
++%                  cell shapes once instead of inside them; preallocate CC.
++%                  Taking Sec. 5.1's partial sum over I inside this routine
++%                  was tried and rejected as slower -- see the note at the
++%                  coefficient loop.
+ 
+ % % % % % % % % % % COMPUTATION v3 % % % % % % % %
+ % We need to compute (I_p otimes Z1^T) A (I_q otimes Z^2T) B
+@@ -165,31 +172,46 @@ end                                                                         % MM
+ % Z12 = x.^EC2d;
+ % Z3 =  x.^EC;
+ 
++% Cell shapes, checked once rather than inside the coefficient loops.       % MMP, 09/10/2026
++for I = 1:nI                                                                % MMP, 09/10/2026
++    if ~isequal(size(CB{I}),[q*NB,r])                                       % MMP, 09/10/2026
++        error('leftShiftMonomials_SS: inconsistent CB cell dimensions.');   % MMP, 09/10/2026
++    end                                                                     % MMP, 09/10/2026
++    for J = 1:nJ                                                            % MMP, 09/10/2026
++        if ~isequal(size(CA{I,J}),[p*NA,q])                                 % MMP, 09/10/2026
++            error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');% MMP, 09/10/2026
++        end                                                                 % MMP, 09/10/2026
++    end                                                                     % MMP, 09/10/2026
++end                                                                         % MMP, 09/10/2026
++
++% % % % % % % % % % NEW COMPUTATION OF G % % % % % % % %
++% Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
++%       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
++%          p x           Q is Nc x Na*Nb
++
++% Q is fixed by the bases alone, so lift it over the matrix dimension once. % MMP, 09/10/2026
++% It was previously rebuilt inside both loops, nI*nJ times identically.     % MMP, 09/10/2026
++IpQ = kron(speye(p),Qmat);                                                  % MMP, 09/10/2026
++
++% Sec. 5.1 of the sopvar document takes the partial sum                     % MMP, 09/10/2026
++%     L_betab = sum_betaa C^A_{betaa,betab} K_betaa                         % MMP, 09/10/2026
++% on the common basis BEFORE the monomials are shifted, which would let     % MMP, 09/10/2026
++% IpQ be applied once per J instead of once per (I,J). That was tried and   % MMP, 09/10/2026
++% measured SLOWER (0.90x overall, 0.73x worst, at nBetaA = nAlphaB = 9):    % MMP, 09/10/2026
++% Qmat compresses the monomial axis, NC <= NA*NB, so applying IpQ first     % MMP, 09/10/2026
++% shrinks the rows from p*NA*NB to p*NC and the caller's sum afterwards     % MMP, 09/10/2026
++% adds the SMALLER matrices. Pre-summing instead accumulates the larger     % MMP, 09/10/2026
++% pre-shift matrix nI times. Left as the document has it only in spirit:    % MMP, 09/10/2026
++% the sum stays with the caller.                                           % MMP, 09/10/2026
++CC = cell(nI,nJ);                                                           % MMP, 09/10/2026
+ for I = 1:nI
+ 
+     Bcoef = CB{I};
+ 
+-    if ~isequal(size(Bcoef),[q*NB,r])
+-        error('leftShiftMonomials_SS: inconsistent CB cell dimensions.');
+-    end
+-
+     for J = 1:nJ
+ 
+         Acoef = CA{I,J};
+ 
+-        if ~isequal(size(Acoef),[p*NA,q])
+-            error('leftShiftMonomials_SS: inconsistent CA cell dimensions.');
+-        end
+-
+-
+-        
+-        % % % % % % % % % % NEW COMPUTATION OF G % % % % % % % %
+-        % Then, (I_p otimes Z1^T) A (I_q otimes Z^2T) B =
+-        %       (I_p otimes Z3^T)(I_p otimes Q)(A otimes I_Nb) B
+-        %          p x           Q is Nc x Na*Nb 
+-
+-
+-        IpQ = kron(speye(p),Qmat);
+         AINb= kron(Acoef, speye(NB));
+         H = IpQ*AINb*Bcoef;
+         CC{I, J} = H;
+diff --git a/PIETOOLS/sopvar/@sopvar/sopvar.m b/PIETOOLS/sopvar/@sopvar/sopvar.m
+index f27e29e1..b45dbab7 100644
+--- a/PIETOOLS/sopvar/@sopvar/sopvar.m
++++ b/PIETOOLS/sopvar/@sopvar/sopvar.m
+@@ -23,10 +23,12 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
+     % - P.params:   3^n3 (stored as 3x3...x3) Cell array of sparse matrices, where n_3 is the number of variables in S_3;
+     % - P.dims:   2x1 vector specifying the rows and columns of the operator i.e. [p,q];
+     % - P.vars: a structure with fields 'in' and 'out'
+-    % - P.vars.in: a cell array specifying the unique sorted names of the spatial
+-    % variables in the input function space
+-    % - P.vars.out: a cell array specifying the unique sorted names of the spatial
+-    % variables in the output function space
++    % - P.vars.in: a cell array specifying the unique names of the spatial  % MMP, 09/09/2026
++    % variables in the input function space, stored in the canonical order  % MMP, 09/09/2026
++    % [S_3,S_1]. S_1 and S_3 are each sorted, but the concatenation is not, % MMP, 09/09/2026
++    % so do not assume vars.in is sorted; look up a variable by name        % MMP, 09/09/2026
++    % - P.vars.out: a cell array specifying the unique names of the spatial % MMP, 09/09/2026
++    % variables in the output function space, canonical order [S_2,S_3]     % MMP, 09/09/2026
+     % - P.dom.: struct object with fields 'in' and 'out'
+     % - P.dom.in: ordered array (2 columns) specifying the spatial domain of each
+     % variable in P.vars.in, so that dom(i,:) = [ai,bi] -> vars.in(i) \in [ai,bi]
+@@ -80,6 +82,15 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
+     % authorship, and a brief description of modifications
+     %
+     % SS,MP, 01/15/2026: Initial coding
++    % MMP, 09/09/2026: Enforce the canonical spatial-variable order
++    %                  vars.out = [S2,S3], vars.in = [S3,S1] in the
++    %                  constructor, and check that a variable appearing on
++    %                  both sides is given the same domain by each. The
++    %                  property documentation above said vars.in and
++    %                  vars.out held SORTED names, which the canonical order
++    %                  contradicts: [S2,S3] is sorted only when S2 is empty.
++    %                  Corrected, since code that assumed it could locate a
++    %                  variable by sorted position would now be wrong.
+     properties
+         vars = struct('in',{},'out',{});
+         dom = struct('in',zeros(0,2),'out',zeros(0,2));
+@@ -104,6 +115,27 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
+             % is not canonical is rewritten here, so no 'sopvar' object can  % MMP, 08/29/2026
+             % violate it. An object that is already canonical, which is the  % MMP, 08/29/2026
+             % normal case, is not touched.                                   % MMP, 08/29/2026
++            % Canonical spatial-variable order, vars.out = [S2,S3] and       % MMP, 09/09/2026
++            % vars.in = [S3,S1], applied before the multiplier form. ZL{i}   % MMP, 09/09/2026
++            % is bound positionally to vars.out(i), so reordering the        % MMP, 09/09/2026
++            % variables permutes the monomial index of every coefficient;    % MMP, 09/09/2026
++            % 'canonical_var_order' returns that permutation lifted over the % MMP, 09/09/2026
++            % matrix dimension, empty when nothing moves. It also rejects a  % MMP, 09/09/2026
++            % pass-through variable given different domains on the two sides.% MMP, 09/09/2026
++            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                   % MMP, 09/09/2026
++                canonical_var_order(vars,dom,ZL,ZR,dims);                    % MMP, 09/09/2026
++            if reordered                                                     % MMP, 09/09/2026
++                for ii = 1:numel(params)                                     % MMP, 09/09/2026
++                    % [] and scalar 0 are the zero-block shorthand accepted  % MMP, 09/09/2026
++                    % everywhere else in the class, and indexing one throws. % MMP, 09/09/2026
++                    % Permuting a zero block is a no-op, and for a genuine   % MMP, 09/09/2026
++                    % 1x1 the gather can only be the identity, so skipping   % MMP, 09/09/2026
++                    % is exact in both cases.                                % MMP, 09/09/2026
++                    if numel(params{ii})>1                                   % MMP, 09/09/2026
++                        params{ii} = params{ii}(rowIdx,colIdx);              % MMP, 09/09/2026
++                    end                                                      % MMP, 09/09/2026
++                end                                                          % MMP, 09/09/2026
++            end                                                              % MMP, 09/09/2026
+             [params,ZL,ZR,was_rewritten] = ...                               % MMP, 08/29/2026
+                 canonicalize_multiplier(params,vars,ZL,ZR,dims);             % MMP, 08/29/2026
+             if was_rewritten                                                 % MMP, 08/29/2026
+@@ -135,4 +167,4 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
+         [Minv, R1Minv, R2Minv, info] = inv_1D(M, K1, K2, interval, opts);
+     end
+ 
+-end
+\ No newline at end of file
++end
+diff --git a/PIETOOLS/sopvar/int_semisep.m b/PIETOOLS/sopvar/int_semisep.m
+index b40edece..fd9c35c7 100644
+--- a/PIETOOLS/sopvar/int_semisep.m
++++ b/PIETOOLS/sopvar/int_semisep.m
+@@ -94,6 +94,19 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
+ % authorship, and a brief description of modifications
+ %
+ % AT, 2026: Initial coding as @sopvar/private/int_semisep_AT
++% MMP, 09/10/2026: Build the 'packed' outputs from accumulated triplets, one
++%                  'sparse' call per gamma, instead of preallocating all-zero
++%                  sparse matrices and filling them by subscripted
++%                  assignment. Profiling a composition put 67.5% of this
++%                  routine in that single assignment statement at two
++%                  pass-through variables and degree 3, and 79.5% at three;
++%                  its cost per nonzero moved rose from 67.9 to 131.0 ns as
++%                  the problem grew, which is the signature of rebuilding
++%                  the sparse structure on every write. CLAUDE.md's rule --
++%                  build sparse matrices once from triplets, never
++%                  index-assign in a loop -- applied literally. Only the
++%                  'packed' layout is affected; the 'separate' layout
++%                  already assigned whole cells.
+ % MP, 08/22/2026: Promoted to a shared function. Added a guard so that
+ %                 partial (nbeta<3^ns3a, nalpha<3^ns3a) index lists are
+ %                 supported, as the documented interface implies; the
+@@ -244,10 +257,25 @@ gamIdx = fliplr(dec2base(0:3^ns3a-1,3,ns3a)-'0') + 1;
+ 
+ % 'packed' needs 3^ns3a matrices rather than 3^ns3a*nbeta*nalpha of them.     % MMP, 08/30/2026
+ if packed                                                                    % MMP, 08/30/2026
+-    C_gam_alp_beta = cell(3^ns3a,1);                                         % MMP, 08/30/2026
+-    for idx_C = 1:numel(C_gam_alp_beta)                                      % MMP, 08/30/2026
+-        C_gam_alp_beta{idx_C} = sparse(g1*NL*nbeta,g2*NR*nalpha);            % MMP, 08/30/2026
+-    end                                                                      % MMP, 08/30/2026
++    % The packed outputs are accumulated as triplets and built with one      % MMP, 09/10/2026
++    % 'sparse' call each, below the loop. They used to be preallocated as    % MMP, 09/10/2026
++    % all-zero sparse matrices and filled by subscripted assignment, which   % MMP, 09/10/2026
++    % rebuilds the whole sparse structure on every one of the 11^ns3a        % MMP, 09/10/2026
++    % writes: that single statement measured 67.5% of this routine at two    % MMP, 09/10/2026
++    % pass-through variables and degree 3, rising to 79.5% at three, and     % MMP, 09/10/2026
++    % its cost per nonzero moved GREW with the problem (67.9 -> 131.0 ns).   % MMP, 09/10/2026
++    % One slot per (gamma,beta,alpha): the eleven rows of 'cllA' are         % MMP, 09/10/2026
++    % distinct (gamma,beta,alpha) triples, so for a fixed (beta,alpha) the   % MMP, 09/10/2026
++    % gammas differ, and gamma-tuple -> gam_lin is a bijection. Each block   % MMP, 09/10/2026
++    % is therefore written at most once and nothing needs summing.          % MMP, 09/10/2026
++    nGam = 3^ns3a;                                                           % MMP, 09/10/2026
++    accI = cell(nGam,nbeta*nalpha);                                          % MMP, 09/10/2026
++    accJ = cell(nGam,nbeta*nalpha);                                          % MMP, 09/10/2026
++    accV = cell(nGam,nbeta*nalpha);                                          % MMP, 09/10/2026
++%   C_gam_alp_beta = cell(3^ns3a,1);                                         % MMP, 09/10/2026 (was)
++%   for idx_C = 1:numel(C_gam_alp_beta)                                      % MMP, 09/10/2026 (was)
++%       C_gam_alp_beta{idx_C} = sparse(g1*NL*nbeta,g2*NR*nalpha);            % MMP, 09/10/2026 (was)
++%   end                                                                      % MMP, 09/10/2026 (was)
+ else                                                                         % MMP, 08/30/2026
+     C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);
+     for idx_C = 1:numel(C_gam_alp_beta)
+@@ -348,6 +376,40 @@ end
+ 
+ cllA = str2double(num2cell(num2str(cllA')));
+ 
++% The eleven keys share only EIGHT distinct per-direction factors: the switch  % MMP, 09/10/2026
++% above handles {111,212,313} in one branch and {221,331} in another, so       % MMP, 09/10/2026
++% Ci_key_ell takes 8 values per direction and the Kronecker product Csep       % MMP, 09/10/2026
++% below takes 8^ns3a, not 11^ns3a. Every repeat costs a redundant              % MMP, 09/10/2026
++% 'rearrangeCoef', which is 11^ns3a/8^ns3a = 1.89x at two pass-through         % MMP, 09/10/2026
++% variables, 2.60x at three and 3.57x at four. The duplicates are found by     % MMP, 09/10/2026
++% COMPARING the built factors rather than by hard-coding the branch labels,    % MMP, 09/10/2026
++% so the grouping stays correct if the table or the domains change; the        % MMP, 09/10/2026
++% comparison is 11^2 per direction on matrices of a few dozen nonzeros.        % MMP, 09/10/2026
++nkey  = size(cllA,1);                                                        % MMP, 09/10/2026
++repOf = repmat((1:nkey).',1,ns3a);                                           % MMP, 09/10/2026
++for ell = 1:ns3a                                                             % MMP, 09/10/2026
++    for k = 2:nkey                                                           % MMP, 09/10/2026
++        for j = 1:k-1                                                        % MMP, 09/10/2026
++            if isequal(Ci_key_ell{k,ell},Ci_key_ell{j,ell})                   % MMP, 09/10/2026
++                repOf(k,ell) = repOf(j,ell);                                 % MMP, 09/10/2026
++                break                                                        % MMP, 09/10/2026
++            end                                                              % MMP, 09/10/2026
++        end                                                                  % MMP, 09/10/2026
++    end                                                                      % MMP, 09/10/2026
++end                                                                          % MMP, 09/10/2026
++% Renumber the representatives densely per direction, so the memo is indexed  % MMP, 09/10/2026
++% in mixed radix over the DISTINCT counts (8 per direction in the current      % MMP, 09/10/2026
++% table) rather than over 11, and holds prod(nCls) slots instead of           % MMP, 09/10/2026
++% 11^ns3a.                                                                    % MMP, 09/10/2026
++clsOf = zeros(nkey,ns3a);   nCls = zeros(1,ns3a);                            % MMP, 09/10/2026
++for ell = 1:ns3a                                                             % MMP, 09/10/2026
++    [~,~,ic] = unique(repOf(:,ell));                                         % MMP, 09/10/2026
++    clsOf(:,ell) = ic;                                                       % MMP, 09/10/2026
++    nCls(ell)    = max(ic);                                                  % MMP, 09/10/2026
++end                                                                          % MMP, 09/10/2026
++pwCls = cumprod([1,nCls(1:end-1)]);                                          % MMP, 09/10/2026
++memoC = cell(prod([nCls,1]),1);                                              % MMP, 09/10/2026
++
+ % % % Enumerate only the (gamma,beta,alpha) triples the caller asked for.     % MMP, 08/30/2026
+ %                                                                            % MMP, 08/30/2026
+ % Per spatial direction the table holds 11 triples, so enumerating all of     % MMP, 08/30/2026
+@@ -391,20 +453,22 @@ for comb = 0:prod(nopt)-1                                                    % M
+     % options, accumulating both the Kronecker factor and the linear index    % MMP, 08/30/2026
+     % of gamma. The gamma multi-index encodes to its own cell position in     % MMP, 08/30/2026
+     % base 3, so no lookup table is needed.                                   % MMP, 08/30/2026
+-    Csep = 1;   gam_lin = 1;    rem_c = comb;                                % MMP, 08/30/2026
++    % Walk the mixed radix for the keys, gamma, and the memo slot. Csep is    % MMP, 09/10/2026
++    % NOT built here: it is only needed on a memo miss, so the Kronecker      % MMP, 09/10/2026
++    % chain is skipped on a hit along with the rearrangeCoef.                 % MMP, 09/10/2026
++    gam_lin = 1;    rem_c = comb;    memoLin = 1;                            % MMP, 09/10/2026
++    kseq = zeros(1,ns3a);                                                    % MMP, 09/10/2026
+     for ell = 1:ns3a                                                         % MMP, 08/30/2026
+         sel = mod(rem_c,nopt(ell)) + 1;                                      % MMP, 08/30/2026
+         rem_c = floor(rem_c/nopt(ell));                                      % MMP, 08/30/2026
+         key_idx = opt{ell}(sel);                                             % MMP, 08/30/2026
+-        Csep = kron(Csep,Ci_key_ell{key_idx,ell});                           % MMP, 08/30/2026
++        kseq(ell) = key_idx;                                                 % MMP, 09/10/2026
++        memoLin = memoLin + (clsOf(key_idx,ell)-1)*pwCls(ell);               % MMP, 09/10/2026
++%       Csep = kron(Csep,Ci_key_ell{key_idx,ell});                           % MMP, 09/10/2026 (was)
+         gam_lin = gam_lin + (cllA(key_idx,1)-1)*pw3(ell);                    % MMP, 08/30/2026
+     end                                                                      % MMP, 08/30/2026
+     un_indices_gamma = gam_lin;                                              % MMP, 08/30/2026
+ 
+-    if ~isequal(size(Csep),[NG,NL*NR])
+-        error('int_semisep: internal Csep size mismatch.');
+-    end
+-
+     % Convert
+     %
+     %   (I_g1 \otimes Zmix')*(I_g1 \otimes Csep')*CG
+@@ -412,15 +476,35 @@ for comb = 0:prod(nopt)-1                                                    % M
+     % into
+     %
+     %   (I_g1 \otimes ZL')*Cnew*(I_g2 \otimes ZR).
+-    Cnew = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL);                   % MMP, 08/30/2026
+-    if ~isequal(size(Cnew),[g1*NL,g2*NR])
+-        error('int_semisep: output coefficient size mismatch.');
+-    end
++    % Keyed on the representative tuple, so the 11^ns3a enumerated blocks     % MMP, 09/10/2026
++    % share the 8^ns3a distinct results. The size checks stay on the miss     % MMP, 09/10/2026
++    % path, so every distinct Csep and Cnew is still validated once.          % MMP, 09/10/2026
++    if isempty(memoC{memoLin})                                               % MMP, 09/10/2026
++        Csep = 1;                                                            % MMP, 09/10/2026
++        for ell = 1:ns3a                                                     % MMP, 09/10/2026
++            Csep = kron(Csep,Ci_key_ell{kseq(ell),ell});                     % MMP, 09/10/2026
++        end                                                                  % MMP, 09/10/2026
++        if ~isequal(size(Csep),[NG,NL*NR])
++            error('int_semisep: internal Csep size mismatch.');
++        end
++        Cmiss = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL);              % MMP, 09/10/2026
++        if ~isequal(size(Cmiss),[g1*NL,g2*NR])                               % MMP, 09/10/2026
++            error('int_semisep: output coefficient size mismatch.');
++        end
++        memoC{memoLin} = Cmiss;                                              % MMP, 09/10/2026
++    end                                                                      % MMP, 09/10/2026
++    Cnew = memoC{memoLin};                                                   % MMP, 09/10/2026
+ 
+     if packed                                                                % MMP, 08/30/2026
+-        rows = (1:(g1*NL)) + g1*NL*(un_indices_beta - 1);                    % MMP, 08/30/2026
+-        cols = (1:(g2*NR)) + g2*NR*(un_indices_alpha - 1);                   % MMP, 08/30/2026
+-        C_gam_alp_beta{un_indices_gamma}(rows,cols) = Cnew;                  % MMP, 08/30/2026
++        % Stash this block's nonzeros, shifted onto its (beta,alpha) offset. % MMP, 09/10/2026
++        [ri,ci,vi] = find(Cnew);                                             % MMP, 09/10/2026
++        slot = un_indices_beta + nbeta*(un_indices_alpha - 1);               % MMP, 09/10/2026
++        accI{un_indices_gamma,slot} = ri + g1*NL*(un_indices_beta - 1);      % MMP, 09/10/2026
++        accJ{un_indices_gamma,slot} = ci + g2*NR*(un_indices_alpha - 1);     % MMP, 09/10/2026
++        accV{un_indices_gamma,slot} = vi;                                    % MMP, 09/10/2026
++%       rows = (1:(g1*NL)) + g1*NL*(un_indices_beta - 1);                    % MMP, 09/10/2026 (was)
++%       cols = (1:(g2*NR)) + g2*NR*(un_indices_alpha - 1);                   % MMP, 09/10/2026 (was)
++%       C_gam_alp_beta{un_indices_gamma}(rows,cols) = Cnew;                  % MMP, 09/10/2026 (was)
+     else                                                                     % MMP, 08/30/2026
+         ind_Cgam_alpha = sub2ind(size(C_gam_alp_beta), un_indices_gamma, un_indices_beta, un_indices_alpha);
+         C_gam_alp_beta{ind_Cgam_alpha} = Cnew;
+@@ -434,6 +518,17 @@ end                                                                          % M
+ % filled. The earlier version resolved a multi-index back to its first        % MMP, 08/30/2026
+ % matching row and needed a separate pass to copy the duplicates.             % MMP, 08/30/2026
+ 
++% One 'sparse' per gamma from the accumulated triplets. A gamma that was      % MMP, 09/10/2026
++% never written concatenates to empty, which 'sparse' turns into the          % MMP, 09/10/2026
++% all-zero matrix the preallocation used to supply.                          % MMP, 09/10/2026
++if packed                                                                    % MMP, 09/10/2026
++    C_gam_alp_beta = cell(nGam,1);                                           % MMP, 09/10/2026
++    for k = 1:nGam                                                           % MMP, 09/10/2026
++        C_gam_alp_beta{k} = sparse(vertcat(accI{k,:}),vertcat(accJ{k,:}), ...% MMP, 09/10/2026
++            vertcat(accV{k,:}),g1*NL*nbeta,g2*NR*nalpha);                    % MMP, 09/10/2026
++    end                                                                      % MMP, 09/10/2026
++end                                                                          % MMP, 09/10/2026
++
+ end
+ 
+ 
+diff --git a/PIETOOLS/sopvar/misc/claude/canonical_var_order.m b/PIETOOLS/sopvar/misc/claude/canonical_var_order.m
+new file mode 100644
+index 00000000..d528286e
+--- /dev/null
++++ b/PIETOOLS/sopvar/misc/claude/canonical_var_order.m
+@@ -0,0 +1,171 @@
++function [vars,dom,ZL,ZR,rowIdx,colIdx,changed] = canonical_var_order(vars,dom,ZL,ZR,dims)
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++% [vars,dom,ZL,ZR,rowIdx,colIdx,changed] = ...
++%                        canonical_var_order(vars,dom,ZL,ZR,dims)
++% puts the spatial variables of an sopvar/sdopvar into the canonical order
++%
++%       vars.out = [S2, S3]        vars.in = [S3, S1]
++%
++% where S1 = vars.in \ vars.out are the variables integrated out, S2 =
++% vars.out \ vars.in those introduced, and S3 the pass-through variables
++% common to both. S1, S2 and S3 each keep the sorted order that 'setdiff'
++% and 'intersect' produce.
++%
++% INPUT
++% vars: struct with fields 'in' and 'out', cellstr of variable names;
++% dom:  struct with fields 'in' and 'out', one row per corresponding variable;
++% ZL:   1 x numel(vars.out) cell of exponent columns;
++% ZR:   1 x numel(vars.in)  cell of exponent columns;
++% dims: [p,q] dimensions of the operator;
++%
++% OUTPUT
++% vars,dom,ZL,ZR: the same content, reordered into the canonical order;
++% rowIdx,colIdx:  gather indices for the ROW and COLUMN index of the
++%                 coefficient matrix, so that
++%                     C_new = C_old(rowIdx,colIdx),
++%                 or in vectorized form
++%                     vec_new(p) = vec_old(rowIdx(r) + (colIdx(c)-1)*p_rows).
++%                 Both are EMPTY when the input was already canonical, so a
++%                 caller can skip the gather rather than perform an identity;
++% changed:        false when the input was already canonical;
++%
++% NOTES
++% ZL{i} is bound positionally to vars.out(i) and ZR{i} to vars.in(i), so
++% reordering the variables must reorder those cells and permute the monomial
++% index of every stored coefficient to match. The monomial vector is
++% kron(Z{1},...,Z{N}) with the FIRST variable outermost, so a permutation of
++% the cells is a tensor transposition of that index.
++%
++% The permutation is obtained by building the full degree table both ways and
++% matching rows, which is the same construction 'UnionBasisMonomials' uses,
++% rather than by stride arithmetic. The table has one row per monomial and
++% one column per direction, i.e. it lives on the small axis, and getting a
++% tensor stride wrong here would be silent.
++%
++% The parameter CELL array is NOT permuted and must not be. Its multi-index
++% runs over S3 in the order 'intersect(vars.in,vars.out)' returns, which this
++% reordering leaves alone; routines that need a direction from a multi-index
++% component recover it with ismember against the stored order at the point of
++% use (see canonicalize_multiplier and lpi_eq_sdopvar), so they follow the
++% new order automatically.
++%
++% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
++
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++% Copyright (C)2026 PIETOOLS Team
++%
++% This program is free software; you can redistribute it and/or modify
++% it under the terms of the GNU General Public License as published by
++% the Free Software Foundation; either version 2 of the License, or
++% (at your option) any later version.
++%
++% This program is distributed in the hope that it will be useful,
++% but WITHOUT ANY WARRANTY; without even the implied warranty of
++% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++% GNU General Public License for more details.
++%
++% You should have received a copy of the GNU General Public License
++% along with this program; if not, write to the Free Software
++% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++%
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++%
++% If you modify this code, document all changes carefully and include date
++% authorship, and a brief description of modifications
++%
++% Initial coding MMP, 09/09/2026
++
++vin  = vars.in(:).';        vout = vars.out(:).';
++
++% Normalize the two input shapes the class tolerates elsewhere. This routine
++% runs BEFORE 'canonicalize_multiplier', which is where the same
++% normalization used to happen (canonicalize_multiplier.m:85-91), so callers
++% that legitimately hand over row-oriented exponent vectors or an empty
++% domain side as [] reached the code below in a shape it could not use:
++% 'monomial_gather' matches degree table ROWS, so a row basis widens the
++% table instead of lengthening it and the 'rows' ismember throws.
++ZL = reshape(ZL,1,[]);      ZR = reshape(ZR,1,[]);
++for i = 1:numel(ZL),    ZL{i} = ZL{i}(:);    end
++for i = 1:numel(ZR),    ZR{i} = ZR{i}(:);    end
++if isempty(dom.in),     dom.in  = zeros(0,2);   end
++if isempty(dom.out),    dom.out = zeros(0,2);   end
++
++% A repeated name would be silently swallowed: setdiff and intersect unique()
++% their arguments, so the target lists come back shorter than the input and
++% the gather below truncates the operator, discarding the coefficients of
++% every direction past the duplicate.
++if numel(unique(vin))~=numel(vin) || numel(unique(vout))~=numel(vout)
++    error("canonical_var_order: a spatial variable name is repeated within "...
++         +"vars.in or vars.out; each names one variable.")
++end
++% Likewise a basis cell of the wrong length would truncate rather than error,
++% since ZL{i} is bound positionally to vars.out(i).
++if numel(ZL)~=numel(vout) || numel(ZR)~=numel(vin)
++    error("canonical_var_order: ZL and ZR must have one entry per variable "...
++         +"in vars.out and vars.in (got %d/%d and %d/%d).", ...
++          numel(ZL),numel(vout),numel(ZR),numel(vin))
++end
++
++S1 = reshape(setdiff(vin,vout),1,[]);
++S2 = reshape(setdiff(vout,vin),1,[]);
++S3 = reshape(intersect(vin,vout),1,[]);
++
++% A pass-through variable is ONE variable, so its interval must agree on the
++% two sides. Nothing checked this before: the constructor took S3's domain
++% from dom.in alone (P.dom_3 = dom.in(idx,:)) and kept a contradictory
++% dom.out on the object unexamined, so an operator could carry two intervals
++% for one variable and still compare cleanly against others, since plus and
++% mtimes compare domains BETWEEN operands and never within one object.
++% Checked before the fast-path return below, so an already-canonical object
++% is validated too.
++[~,pl] = ismember(S3,vout);
++[~,pr] = ismember(S3,vin);
++% NaN~=NaN, so a plain '~=' rejected an unbounded or placeholder domain even
++% when the caller passed the very same array to both sides. Treat two NaNs in
++% the same position as agreeing, which is what isequaln would do.
++dl = dom.out(pl,:);     dr = dom.in(pr,:);
++bad = find(any(dl~=dr & ~(isnan(dl)&isnan(dr)),2),1);
++if ~isempty(bad)
++    error("canonical_var_order: variable '"+string(S3{bad})+"' appears in "...
++         +"both the input and output space but is given the domain "...
++         +mat2str(dom.in(pr(bad),:))+" on the input side and "...
++         +mat2str(dom.out(pl(bad),:))+" on the output side.")
++end
++
++outTarget = [S2,S3];
++inTarget  = [S3,S1];
++
++changed = ~isequal(vout,outTarget) || ~isequal(vin,inTarget);
++if ~changed
++    % Already canonical, which is the normal case: every producer in the
++    % toolbox emits vars.in and vars.out in the natural spatial order with
++    % S1 and S2 empty, so this is the path that must stay cheap.
++    rowIdx = [];    colIdx = [];
++    return
++end
++
++% New position k holds the variable that was at old position ord(k).
++[okL,ordL] = ismember(outTarget,vout);
++[okR,ordR] = ismember(inTarget,vin);
++if ~all(okL) || ~all(okR)
++    error("canonical_var_order: the variable lists are inconsistent.")
++end
++
++pL = monomial_gather(ZL,ordL);
++pR = monomial_gather(ZR,ordR);
++
++vars.out = outTarget;               vars.in  = inTarget;
++dom.out  = dom.out(ordL,:);         dom.in   = dom.in(ordR,:);
++ZL = ZL(ordL);                      ZR = ZR(ordR);
++
++% Lift each monomial permutation over the matrix dimension. The row index of
++% the coefficient is (matrix row outer, ZL monomial inner) and the column
++% index likewise with ZR, so row (i,z) takes old row (i,pL(z)).
++NL = prod([cellfun(@numel,ZL),1]);
++NR = prod([cellfun(@numel,ZR),1]);
++rowIdx = reshape(pL(:) + (0:dims(1)-1)*NL,[],1);
++colIdx = reshape(pR(:) + (0:dims(2)-1)*NR,[],1);
++
++end
++
++
+diff --git a/PIETOOLS/sopvar/misc/claude/monomial_gather.m b/PIETOOLS/sopvar/misc/claude/monomial_gather.m
+new file mode 100644
+index 00000000..df03d15e
+--- /dev/null
++++ b/PIETOOLS/sopvar/misc/claude/monomial_gather.m
+@@ -0,0 +1,85 @@
++function p = monomial_gather(Z,ord)
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++% p = monomial_gather(Z,ord) gives the permutation of a tensor monomial index
++% induced by reordering the directions of Z.
++%
++% INPUT
++% Z:    1 x N cell of exponent columns, in the OLD direction order;
++% ord:  1 x N, ord(k) = index in Z of the direction that moves to new
++%       position k, i.e. Znew = Z(ord);
++%
++% OUTPUT
++% p:    prod(cellfun(@numel,Z)) x 1 gather index: new monomial j is old
++%       monomial p(j). So a coefficient's monomial axis is reordered by
++%       C_new = C_old(p,:) once p is lifted over the matrix dimension.
++%
++% NOTES
++% The monomial vector is kron(Z{1},...,Z{N}) with the FIRST direction
++% outermost, so reordering the cells is a tensor transposition of that index.
++% The permutation is obtained by building the full degree table both ways and
++% matching rows, which is the construction 'UnionBasisMonomials' uses, rather
++% than by stride arithmetic: the table lives on the small (monomial) axis,
++% and a wrong stride here would be silent.
++%
++% Column k of the new table describes new position k, i.e. old direction
++% ord(k); reordering the old table's columns the same way makes the two
++% tables describe the same monomials with matching columns, differing only in
++% row order. Column reordering does not disturb row order, so the matched row
++% index is the old monomial index.
++%
++% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
++
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++% Copyright (C)2026 PIETOOLS Team
++%
++% This program is free software; you can redistribute it and/or modify
++% it under the terms of the GNU General Public License as published by
++% the Free Software Foundation; either version 2 of the License, or
++% (at your option) any later version.
++%
++% This program is distributed in the hope that it will be useful,
++% but WITHOUT ANY WARRANTY; without even the implied warranty of
++% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++% GNU General Public License for more details.
++%
++% You should have received a copy of the GNU General Public License
++% along with this program; if not, write to the Free Software
++% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++%
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++%
++% If you modify this code, document all changes carefully and include date
++% authorship, and a brief description of modifications
++%
++% Initial coding MMP, 09/09/2026: split out of 'canonical_var_order' so that
++%                  '@sopvar/mtimes' can use it to align two operands stored
++%                  in different canonical variable orders.
++
++if numel(Z)<=1 || isequal(ord(:).',1:numel(Z))
++    p = (1:prod([cellfun(@numel,Z),1])).';
++    return
++end
++
++Dold = degree_table(Z);
++Dnew = degree_table(Z(ord));
++
++[tf,p] = ismember(Dnew,Dold(:,ord),'rows');
++if ~all(tf)
++    error("monomial_gather: reordering lost a monomial.")
++end
++p = p(:);
++
++end
++
++
++%%
++function D = degree_table(Z)
++% One row per monomial of kron(Z{1},...,Z{N}), one column per direction,
++% first direction outermost. Same construction as 'UnionBasisMonomials'.
++
++D = zeros(1,0);
++for k = 1:numel(Z)
++    D = [kron(D,ones(size(Z{k}))), kron(ones(size(D,1),1),Z{k})];           %#ok<AGROW>
++end
++
++end

@@ -1,0 +1,11 @@
+d119dc785b1c8d37a1226af798675b7ddb6f8d4507fb9164ea14fc1cf0511551 *./PIETOOLS/sopvar/@mopvar/mopvar.m.bak
+4f2b192810202eb072f2e3408b33320c13bd9706de7f3c9076c620b664d51093 *./PIETOOLS/sopvar/@sdopvar/mtimes.m.bak
+d394de954d20c16fd4bc1767007b27ba1495233355f950c5f8eecf4a656facda *./PIETOOLS/sopvar/@sdopvar/mtimes_AT.m.bak
+84ee7822b9f173f8f010791db97cc3855867971e72e3c75ce3e82624d494a3bf *./PIETOOLS/sopvar/@sdopvar/sdopvar.m.bak
+9cd7f1545c0aa6f60514a6da309b3133c025d62c81be51f87230cf960e98416e *./PIETOOLS/sopvar/@sopvar/mtimes.m.bak
+196e216998ba6bad058075a9be835ec462d772f3cfa80fd4bc9b2de944e69898 *./PIETOOLS/sopvar/@sopvar/private/leftShiftMonomials_SS.m.bak
+c919220c5ee65e4c1d4d9176060c6018e17c351caa3ec1203f359daff2958657 *./PIETOOLS/sopvar/@sopvar/sopvar.m.bak
+d0c5384226b72a6850e53653245dd5d34bdc135096d1b858f754acdbe6d1d6e7 *./PIETOOLS/sopvar/@sopvar/sopvar2opvar2d.m.bak
+8897bf777a16c9ede407768b19c53cafc78e426d4f76f9df76c35ad7589b4fff *./PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_canonical_multiplier.m.bak
+d32e1337738b07a06e4ce06b94bcb669a0f1960ad918f208613e5bc27a5202e4 *./PIETOOLS/sopvar/Testfolder/sdopvar/rand_sopvar.m.bak
+c1af2e59b5be156b1f566afbd2ffbe41a671ef5a1d4ca67785f2db4b48528dc6 *./PIETOOLS/sopvar/int_semisep.m.bak

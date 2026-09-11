@@ -1,0 +1,2 @@
+PIETOOLS/sopvar/misc/claude/canonical_var_order.m
+PIETOOLS/sopvar/misc/claude/monomial_gather.m

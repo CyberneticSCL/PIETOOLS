@@ -1,0 +1,409 @@
+commit 420cd624512638572850631669674cbc7a8a629b
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Thu Sep 10 19:38:25 2026 -0700
+
+    Vectorize int_2b's C3a assembly over the monomial-pair grid
+    
+    The assembly was a scalar loop over all m*n ordered monomial pairs -- m the
+    product of A.ZR's per-direction monomial counts, n the same for B.ZL --
+    calling num2cell, sub2ind and two fliplr on every iteration. It produced
+    99.3% of the sub2ind calls in a composition profile: 186662 of them on one
+    A'*A at degree 4, now 38.
+    
+    Every per-direction lookup depends on i and j only through IL(i,:) and
+    IR(j,:), so each becomes a linear-index gather over the whole grid and the
+    loop disappears. The mixed-radix condensation that sub2ind(fliplr(dims),
+    num2cell(fliplr(idx)){:}) performed moves into the local 'condenseIdx',
+    where the last direction carries stride 1 and direction k carries
+    prod(dims(k+1:end)); it collapses to idx(1) at one direction and to 1 at
+    none, the two cases the scalar version special-cased.
+    
+    Exact rather than merely equivalent: (i,k2a,k3a) -> row and (j,k3b) -> col
+    are both bijections, so row recovers i and col recovers j, no two grid
+    points emit the same triplet, and 'sparse' never sums a duplicate. Order of
+    emission therefore cannot matter.
+    
+    One trap this hit on the way in, worth the guard it now carries: when
+    C2b{k} is a ROW vector MATLAB returns a row for a column index, so
+    'VV .* Ck(...)' implicitly expanded to an m*n by m*n matrix rather than
+    failing. It surfaced as MATLAB:samelen from 'sparse' on 6 of 28
+    shape/degree/product combinations. The value gather is now reshaped
+    explicitly, as condenseIdx already was.
+    
+    Verified BIT-IDENTICAL: 28 captured A'*A and A'*B compositions over 7
+    variable-group shapes at two degrees, 0.000e+00 relative difference against
+    HEAD, with both captures written fresh; and all 28 shape/degree/product
+    combinations construct.
+    
+    Un-profiled end-to-end, A'*A, mean +- std:
+      deg3 dims[2 2]  m*n=5184     0.096+-0.043 -> 0.076+-0.020   noise-level
+      deg4 dims[2 2]  m*n=186624   2.411+-0.043 -> 2.235+-0.054   1.08x
+      deg5 dims[2 2]  m*n=1638400 23.02 +-0.42  -> 21.39 +-0.08   1.08x
+    A profiled run makes int_2b look like 26-33% of mtimes and the change look
+    like 1.27x-1.43x, but the profiler instruments each of the 186662 calls, so
+    those figures are inflated; un-profiled the block is 7-8% and 1.08x is the
+    honest number. The degree-5 case additionally checks out semantically:
+    self-adjointness of A'*A at 1.08e-19 and the adjoint identity at 1.69e-21.
+    
+    161-check battery 0 failures; canonical-order sweep 0.00e+00 on 26 shapes x
+    1120 orderings with its negative control detecting; LPI stability unchanged
+    at ndec 462 with the same verdicts.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ PIETOOLS/sopvar/@sopvar/mtimes.m | 147 ++++++++++++++++++---------------------
+ 1 file changed, 68 insertions(+), 79 deletions(-)
+
+commit 9d5fdba813b760224c05c08ffb91d7943421d0c0
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Thu Sep 10 18:39:48 2026 -0700
+
+    Memoise int_semisep's per-key results on the eight distinct factors
+    
+    The loop enumerates 11^ns3a (gamma,beta,alpha) triples and calls
+    rearrangeCoef for each, but the eleven keys share only EIGHT distinct
+    per-direction factors: the switch handles {111,212,313} in one branch and
+    {221,331} in another. So Csep takes 8^ns3a values, not 11^ns3a, and the
+    redundant rearrangeCoef calls are a factor (11/8)^ns3a -- 1.89x at two
+    pass-through variables, 2.60x at three, 3.57x at four.
+    
+    Results are now cached on the representative tuple. On a hit both the
+    Kronecker chain and the rearrangeCoef are skipped, which is why the walk
+    computes the memo slot before building Csep rather than after. The size
+    checks stay on the miss path, so every distinct Csep and Cnew is still
+    validated exactly once.
+    
+    The duplicate factors are found by COMPARING the built Ci matrices, not by
+    hard-coding the branch labels, so the grouping stays correct if the table
+    or the domains change; the comparison is 11^2 per direction on matrices of
+    a few dozen nonzeros. Representatives are then renumbered densely per
+    direction so the memo is indexed in mixed radix over the distinct counts
+    and holds prod(nCls) = 8^ns3a slots rather than 11^ns3a.
+    
+    Sharing one matrix across several output cells is safe under MATLAB's
+    value semantics: the packed branch only reads it through find(), and the
+    'separate' branch stores it, where copy-on-write makes aliasing
+    unobservable. Both layouts are checked below.
+    
+    Verified BIT-IDENTICAL: int_semisep called directly against the pre-memo
+    routine at ns3a 1/2/3, 0.0e+00 in BOTH the 'packed' and 'separate'
+    layouts; and 28 captured A'*A and A'*B compositions through
+    @sopvar/mtimes, 0.000e+00 relative difference against HEAD.
+    
+    Isolated: 1.11x at ns3a=1, 2.38x at ns3a=2, 6.27x at ns3a=3.
+    End-to-end A'*A, 5 reps, mean +- std, at rand_sopvar's default density and
+    at 0.25 -- note the earlier measurement in 22880a96 used density 1, the
+    least favourable corner, and understated that change:
+      out{w,y,z,m,n} deg3 dims[2 2] default  0.098+-0.024 -> 0.093+-0.024  1.06x
+      out{w,y,z,m,n} deg3 dims[2 2] 0.25     0.150+-0.009 -> 0.138+-0.005  1.09x
+      out{w,y,z,m,n} deg3 dims[4 4] default  0.096+-0.008 -> 0.082+-0.006  1.17x
+      out{w,y,z,m,n} deg3 dims[4 4] 0.25     0.403+-0.008 -> 0.395+-0.007  1.02x
+      out{y,z,m,n,p} deg2 dims[2 2] default  0.751+-0.007 -> 0.639+-0.015  1.18x
+      out{y,z,m,n,p} deg2 dims[2 2] 0.25     2.655+-0.013 -> 2.592+-0.039  1.02x
+    Peak memory costs +0.3 to +0.6 MB for the retained blocks, measured.
+    
+    161-check battery 0 failures; canonical-order sweep 0.00e+00 on 26 shapes
+    x 1120 orderings with its negative control detecting; LPI stability
+    unchanged -- same verdicts, ndec 462, and that test has ns3a = 1 where
+    this change is worth nothing.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ PIETOOLS/sopvar/int_semisep.m | 70 ++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 60 insertions(+), 10 deletions(-)
+
+commit 22880a96dd0307a53aee2b064104bbcf74804f3f
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Thu Sep 10 06:25:22 2026 -0700
+
+    Build int_semisep's packed outputs from triplets, not by index assignment
+    
+    Profiling a large composition put 67.5% of int_semisep in a single
+    statement -- C_gam_alp_beta{gamma}(rows,cols) = Cnew -- repeated 11^ns3a
+    times into preallocated all-zero sparse matrices, rising to 79.5% at
+    three pass-through variables. Its cost per nonzero moved GREW with the
+    problem, 67.9 -> 131.0 ns, which is the signature of rebuilding the
+    sparse structure on every write.
+    
+    Now each block's nonzeros are stashed as triplets, shifted onto their
+    (beta,alpha) offset, and one 'sparse' call per gamma assembles the result
+    after the loop. That is CLAUDE.md's rule applied literally: build sparse
+    matrices once from triplets, never index-assign in a loop.
+    
+    Nothing needs summing, and that is a property of the key table rather
+    than luck: the eleven rows of 'cllA' are distinct (gamma,beta,alpha)
+    triples, so for a fixed (beta,alpha) the gammas differ, and the map from
+    gamma-tuple to gam_lin is a bijection -- each (gamma,beta,alpha) block is
+    written at most once. A gamma never written concatenates to empty, which
+    'sparse' turns into the all-zero matrix the preallocation used to supply.
+    Only the 'packed' layout is touched; 'separate' already assigned whole
+    cells.
+    
+    Verified BIT-IDENTICAL: 28 captured A'*A and A'*B compositions over 7
+    variable-group shapes at two degrees, 0.000e+00 relative difference
+    against HEAD; and int_semisep called directly, old against new on
+    identical inputs, 0.0e+00 at ns3a 1 to 3.
+    
+    End-to-end through @sopvar/mtimes, 5 reps, mean +- std:
+      in{m,n,a}    out{w,y,z,m,n} deg3 dims[2 2]  1.113+-0.050 -> 0.875+-0.036  1.27x
+      in{m,n,a}    out{w,y,z,m,n} deg3 dims[4 4]  3.005+-0.042 -> 2.756+-0.031  1.09x
+      in{m,n,p,a}  out{y,z,m,n,p} deg2 dims[2 2]  3.677+-0.018 -> 2.175+-0.036  1.69x
+    Differences of 0.25-1.5 s against standard deviations of 0.02-0.05 s, so
+    this one is outside the noise, unlike the two attempts before it.
+    
+    161-check battery 0 failures; canonical-order sweep 0.00e+00 on 26 shapes
+    x 1120 orderings with its negative control detecting; LPI stability still
+    straddles pi^2 = 9.8696 at 462 decision variables.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ PIETOOLS/sopvar/int_semisep.m | 59 ++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 52 insertions(+), 7 deletions(-)
+
+commit 2f548d5b208563674639a8bd92448bb7dbad7c4c
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Thu Sep 10 03:38:21 2026 -0700
+
+    Hoist the basis lift out of leftShiftMonomials_SS's coefficient loops
+    
+    S2 attempted Sec. 5.1's partial sum -- take the beta_a / alpha_b sum on
+    the common basis BEFORE shifting the monomials, so the shift runs once
+    per beta_b instead of once per (beta_a,beta_b). It was implemented,
+    measured, and REJECTED as slower: 0.90x overall and 0.73x worst at
+    nBetaA = nAlphaB = 9.
+    
+    The reason is worth recording, and is now a comment at the coefficient
+    loop. Qmat compresses the monomial axis, NC <= NA*NB, so applying
+    kron(speye(p),Qmat) first shrinks the rows from p*NA*NB to p*NC and the
+    caller's sum afterwards adds the SMALLER matrices. Pre-summing instead
+    accumulates the larger pre-shift matrix nI times, which is sparse
+    accumulation in a loop -- the pattern CLAUDE.md warns about. So the
+    document's ordering is a pessimization against this particular
+    factorization, and the sum stays with the caller.
+    
+    What is kept from the attempt, all of it free:
+    - kron(speye(p),Qmat) was rebuilt inside both loops, nI*nJ times
+      identically. Hoisted; at nBetaA = nBetaB = 9 that is 81 constructions
+      reduced to one.
+    - The CA/CB cell shapes are checked once instead of inside the loops.
+    - CC is preallocated rather than grown.
+    
+    Verified BIT-IDENTICAL: 28 captured A'*A and A'*B compositions over 7
+    variable-group shapes at two degrees each, max relative difference
+    0.000e+00 against the committed version. 161-check battery, 0 failures;
+    canonical-order sweep 0.00e+00 on 26 shapes x 1120 orderings with its
+    negative control detecting; LPI stability still straddles pi^2 = 9.8696
+    at 462 decision variables. End-to-end timing is within run-to-run noise
+    at the sizes measured (10-30 ms per composition); the removed work is
+    redundant by construction rather than measurably faster here.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ .../sopvar/@sopvar/private/leftShiftMonomials_SS.m | 56 +++++++++++++++-------
+ 1 file changed, 39 insertions(+), 17 deletions(-)
+
+commit 28e0bd5134374a1aa0ab5ef0ee53b6311a56fe26
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Thu Sep 10 02:58:47 2026 -0700
+
+    Sum the nMid diagonal blocks in mtimes_AT's PART 3
+    
+    Same change as 516e502a made to @sopvar/mtimes, applied to the vectorized
+    sibling. PART 3 formed the whole nMid x nMid block product and masked off
+    the diagonal, so it built three nMid^2-sized objects: the dense ones()
+    inside Mask, spdiags(Mask(:)) of side numel(Mask), and -- on the decision
+    path -- kron(K',I) of size (nMid^2*R*L) x (W*nMid*L). Sec. 5.4 of the
+    sopvar document asks only for sum_d L_{jd} C R_{kd}.
+    
+    The A part is bit-identical to the masked form. The B part agrees to
+    reassociation of the sum over d: exactly 0 at nMid==1 and ~2e-15 at
+    nMid==4, which is summation order, not a different answer.
+    
+    This does NOT fully cure the memory blowup, and the header and PART 3 now
+    say so. Degrees (2,3) complete where they previously wanted 122 GB, and
+    the 158-check operation battery is green for the first time -- 161 checks,
+    0 failures, with the S1{a,b} S2{y,z} S3{m,n} shape passing at 8.1e-16
+    where it used to ask for 103.5 GB. But (3,3) still asks for 75.8 GB,
+    because kron(Kd',I_L) has nnz(Kd)*left_BLCK_size entries -- it repeats Kd
+    once per row of X_d -- so no matrix form of that map is small. That is a
+    separate defect from the nMid^2 one fixed here. Applying it in bounded
+    column chunks was tried and reverted: the chunk width collapses to one
+    column in exactly the case that needs it, trading the memory blowup for
+    right_BLCK_size sparse products. The fix is option 1 of the Note in
+    Sec. 6.1.2 -- carry L and R in metadata and never form the product --
+    which restructures how the decision block is propagated.
+    
+    Note this routine is called from nowhere in the toolbox; the live
+    sdopvar path is @sdopvar/mtimes, which has no Mask/LeftMat structure and
+    is untouched by this issue.
+    
+    Verified: unit test of both linear maps against the old formulas over
+    nMid in {1,2,3,4}; the 9-cell degree sweep, 8 of 9 cells now completing
+    and agreeing with @sopvar/mtimes to <=2.8e-15; 161-check battery over 7
+    variable-group shapes, 0 failures.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ PIETOOLS/sopvar/@sdopvar/mtimes_AT.m | 111 +++++++++++++++++++++++++++--------
+ 1 file changed, 86 insertions(+), 25 deletions(-)
+
+commit 516e502a8f83bfff932dbc61b400466b6af9d9d8
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Thu Sep 10 01:53:39 2026 -0700
+
+    Sum the nMid diagonal blocks in mtimes instead of masking a full product
+    
+    PART 4 of @sopvar/mtimes formed the whole nMid x nMid block product
+    LeftMat*CMat*RightMat and then threw away every off-diagonal block with a
+    mask, computing nMid^2 blocks to keep nMid of them. The mask itself held
+    a DENSE ones(left_BLCK_size,right_BLCK_size).
+    
+    Sec. 5.4 of the sopvar document asks only for sum_d L_{jd} C R_{kd} --
+    "efficient summation is all that is needed here" -- so the nMid diagonal
+    blocks are now formed directly from block row d of LeftMat and block
+    column d of RightMat. Mask, LeftMult and RightMult are gone.
+    
+    nMid is A.dims(2), the matrix dimension, so this scales with the operator
+    rather than with the spatial variables; the removed dense ones() is
+    L x R with L = dims(1)*NL_C and R = dims(2)*NR_C, and composition adds
+    degrees, so NL_C outgrows both operands' bases.
+    
+    Verified: the two formulas agree BIT-IDENTICALLY (0.00e+00) across a
+    sweep of nMid in {1,2,3,5,8} and block sizes, at 1.8-14x the speed; the
+    158-check operation battery over 7 variable-group shapes is unchanged
+    (its one failure is @sdopvar/mtimes_AT, untouched here and called from
+    nowhere); the canonical-order sweep still gives 0.00e+00 on 26 shapes x
+    1120 orderings with its negative control detecting; the LPI stability
+    test still straddles pi^2 = 9.8696 at 462 decision variables. mtimes
+    self time 0.126 -> 0.097 s on the profiled case, where nMid is only 2.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ PIETOOLS/sopvar/@sopvar/mtimes.m | 47 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 37 insertions(+), 10 deletions(-)
+
+commit bf4beffe9f4053f263a55fe686966d28d530b0e5
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Wed Sep 9 04:13:23 2026 -0700
+
+    Keep the zero-block parameter shorthand working through the reorder
+    
+    [] and scalar 0 stand for a zero parameter block throughout the class,
+    but the canonical reorder indexed every cell unconditionally, so the
+    shorthand threw MATLAB:badsubscript exactly when a permutation was
+    needed and worked when it was not. Reproduced both ways before fixing.
+    
+    Skipped rather than special-cased: permuting a zero block is a no-op,
+    and where a parameter really does hold one coefficient the gather can
+    only be the identity, so skipping is exact in both cases.
+    
+    Verified: shorthand now constructs under a non-canonical declaration;
+    158-check battery, canonical-order sweep and LPI stability unchanged.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ PIETOOLS/sopvar/@sdopvar/sdopvar.m | 12 ++++++++++--
+ PIETOOLS/sopvar/@sopvar/sopvar.m   |  9 ++++++++-
+ 2 files changed, 18 insertions(+), 3 deletions(-)
+
+commit f226ae30265dd5f44045b23dbc04037cf1d6f251
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Wed Sep 9 04:08:29 2026 -0700
+
+    Fix the live sdopvar composition path and harden canonical_var_order
+    
+    An adversarial sweep over the canonical ordering confirmed that the
+    alignment landed in the wrong places. @sopvar/mtimes and mtimes_AT both
+    got it, but '*' on an sdopvar and an sopvar reaches
+    mtimesSdopvarAndSopvar in @sdopvar/mtimes, and sopvar*sdopvar reaches it
+    too via mtimes(B',A'); mtimes_AT is called from nowhere in the toolbox,
+    so the fix was unreachable on the path that matters and every
+    composition whose intermediate space had both a pass-through and a
+    non-pass-through variable was still refused. Same block, applied there.
+    
+    Four ways canonical_var_order mishandled inputs the class supports
+    elsewhere, all reproduced first:
+    
+    - Row-oriented exponent vectors hard-errored. canonicalize_multiplier
+      normalizes bases with (:) precisely because callers pass rows, but the
+      canonical reorder now runs before it, and monomial_gather matches
+      degree-table ROWS, so a row basis widened the table and the 'rows'
+      ismember threw. Normalized here too.
+    - A repeated variable name silently truncated the operator: setdiff and
+      intersect unique() their arguments, so the target list came back short
+      and the gather dropped every direction past the duplicate. Now an
+      error, as is a basis cell whose length disagrees with the variable
+      list, which truncated the same way.
+    - A domain containing NaN was rejected even when the caller passed the
+      same array to both sides, because NaN ~= NaN.
+    - An empty domain side given as [] rather than zeros(0,2) reached the
+      pass-through comparison as 0x0 against 0x2 and threw a raw size error.
+    
+    The sweep's strongest result is a negative one: the permutation itself is
+    correct. Two independent lanes rebuilt the same operator under different
+    declared variable orders using genuine 3- and 4-cycles and unequal basis
+    sizes per direction, and found 0 differing coefficients; a 738-evaluation
+    kernel battery against the pre-change tree found the mtimes rejection and
+    nothing else.
+    
+    Verified: 158 checks over 7 shapes, the live P*Q and (Q'*P')' now
+    correct to 3e-16..2e-15 on all six shapes that fit in memory and to
+    1.0e-15 on the seventh; canonical-order sweep still 0.00e+00 on 26
+    shapes x 1120 orderings with its negative control detecting; LPI
+    stability still straddles pi^2 = 9.8696 at 462 decision variables.
+    
+    Also corrected the vars.in/vars.out property documentation in both
+    classdefs, which still claimed the names were stored SORTED -- [S2,S3]
+    is sorted only when S2 is empty.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ PIETOOLS/sopvar/@sdopvar/mtimes.m                 | 47 ++++++++++++++++--
+ PIETOOLS/sopvar/@sdopvar/sdopvar.m                | 59 +++++++++++++++++------
+ PIETOOLS/sopvar/@sopvar/sopvar.m                  | 35 ++++++++++++--
+ PIETOOLS/sopvar/misc/claude/canonical_var_order.m | 35 +++++++++++++-
+ 4 files changed, 153 insertions(+), 23 deletions(-)
+
+commit f40509e7d98172fe86cf03aa4cbe00c4a08d9ddc
+Author: MATTHEW M PEET <68134670+mmpeet@users.noreply.github.com>
+Date:   Wed Sep 9 03:51:14 2026 -0700
+
+    Align the right operand of an sopvar composition by variable name
+    
+    vars.out = [S2,S3] and vars.in = [S3,S1] are now canonical, so a legal
+    composition can present its two intermediate lists in different orders:
+    for A'*A the adjoint's vars.in is [S3,S2] while A's vars.out is [S2,S3].
+    The order guard in mtimes refused exactly those, which took out A'*A,
+    A'*B and every self-adjointness check whenever S2 and S3 were both
+    nonempty.
+    
+    Legality is now a question about the variable SETS. Once that holds, B's
+    output side is permuted onto A's input order: B.ZL, B.dom.out and the row
+    index of each parameter, the row being (matrix row outer, ZL monomial
+    inner). Rows only, so the canonical multiplier form -- a condition on ZR
+    columns -- is untouched, and it is done on the local copy rather than
+    through the constructor, which would canonicalize B straight back.
+    
+    monomial_gather is split out of canonical_var_order for the tensor
+    transposition of the monomial index, now that two callers need it.
+    
+    The same change in @sdopvar/mtimes_AT, which carried the same guard. It
+    is not reachable from anything in the toolbox today -- every reference to
+    it is a comment -- and the branch the alignment newly exposes asks for a
+    122 GB array at two integrated variables and degrees (2,3), recorded in
+    its header. It is correct where it fits in memory.
+    
+    Verified: 146 checks over 7 variable-group shapes, 0 failures, adjoint
+    identity and A'*B == (B'*A)' at machine precision; mtimes_AT agreed with
+    @sopvar/mtimes on the evaluated operator to 4e-15 wherever both ran; the
+    canonical-order sweep still gives 0.00e+00 on 26 shapes x 1120 orderings
+    with its negative control detecting; the LPI stability test still
+    straddles pi^2 = 9.8696 at 462 decision variables.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ PIETOOLS/sopvar/@sdopvar/mtimes_AT.m              |  53 ++++++++-
+ PIETOOLS/sopvar/@sopvar/mtimes.m                  |  44 ++++++-
+ PIETOOLS/sopvar/misc/claude/canonical_var_order.m | 138 ++++++++++++++++++++++
+ PIETOOLS/sopvar/misc/claude/monomial_gather.m     |  85 +++++++++++++
+ 4 files changed, 312 insertions(+), 8 deletions(-)

@@ -1,0 +1,13 @@
+PIETOOLS/sopvar/@mopvar/mopvar.m
+PIETOOLS/sopvar/@sdopvar/mtimes.m
+PIETOOLS/sopvar/@sdopvar/mtimes_AT.m
+PIETOOLS/sopvar/@sdopvar/sdopvar.m
+PIETOOLS/sopvar/@sopvar/mtimes.m
+PIETOOLS/sopvar/@sopvar/private/leftShiftMonomials_SS.m
+PIETOOLS/sopvar/@sopvar/sopvar.m
+PIETOOLS/sopvar/@sopvar/sopvar2opvar2d.m
+PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_canonical_multiplier.m
+PIETOOLS/sopvar/Testfolder/sdopvar/rand_sopvar.m
+PIETOOLS/sopvar/int_semisep.m
+PIETOOLS/sopvar/misc/claude/canonical_var_order.m
+PIETOOLS/sopvar/misc/claude/monomial_gather.m

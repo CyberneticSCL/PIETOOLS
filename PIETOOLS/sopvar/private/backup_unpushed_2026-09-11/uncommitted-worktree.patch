@@ -1,0 +1,274 @@
+diff --git a/PIETOOLS/sopvar/@mopvar/mopvar.m b/PIETOOLS/sopvar/@mopvar/mopvar.m
+index 36bf4afd..99161738 100644
+--- a/PIETOOLS/sopvar/@mopvar/mopvar.m
++++ b/PIETOOLS/sopvar/@mopvar/mopvar.m
+@@ -1,4 +1,4 @@
+-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) mopvar
++classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) mopvar
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ % This defines the class of mixed-domain PI operators, each element of
+ % which is a nopvar object
+diff --git a/PIETOOLS/sopvar/@sopvar/sopvar2opvar2d.m b/PIETOOLS/sopvar/@sopvar/sopvar2opvar2d.m
+index 56a7d31a..b44cbcbf 100644
+--- a/PIETOOLS/sopvar/@sopvar/sopvar2opvar2d.m
++++ b/PIETOOLS/sopvar/@sopvar/sopvar2opvar2d.m
+@@ -61,30 +61,39 @@ Pop = opvar2d();
+ if numel(unique([vars.in,vars.out]))>2
+     error("Operator maps between functions of more than two distinct variables.")
+ end
+-mapsx = numel(vars.in)>=1;
+-maps2x = numel(vars.out)>=1;
+-mapsy = numel(vars.in)>=2;
+-maps2y = numel(vars.out)>=2;
+-% NOTE: sopvar does not inherently distinguish between x and y variable
+-% --> we perform this distinction only in special case of default vars
+-if mapsx && ~mapsy && (strcmp(vars.in{1},'s2') || strcmp(vars.in{1},'y'))
+-    mapsx = false;
+-    mapsy = true;
+-end
+-if maps2x && ~maps2y && (strcmp(vars.out{1},'s2') || strcmp(vars.out{1},'y'))
+-    maps2x = false;
+-    maps2y = true;
+-end
+-if mapsx && maps2x && ~strcmp(vars.in{1},vars.out{1})
+-    % If input and output variables don't match, the space cannot be the
+-    % same
+-    maps2x = false;
+-    maps2y = true;
+-end
+-x_idx_in = mapsx;       
+-x_idx_out = maps2x;
+-y_idx_in = mapsx+mapsy;
+-y_idx_out = maps2x+maps2y;
++% An 'sopvar' does not itself distinguish the x and y directions, so the    % MMP, 09/09/2026
++% two distinct variables are assigned to them in sorted order, matching     % MMP, 09/09/2026
++% the default {'s1','s2'}; a lone variable named 's2' or 'y' still          % MMP, 09/09/2026
++% occupies the y direction. Each direction is then LOCATED IN EACH LIST     % MMP, 09/09/2026
++% BY NAME rather than assumed to sit at position 1 and 2, because the       % MMP, 09/09/2026
++% constructor stores vars.out as [S2,S3] and vars.in as [S3,S1]: for a      % MMP, 09/09/2026
++% block L_2[x] -> L_2[x,y] that puts y first in vars.out, and reading       % MMP, 09/09/2026
++% position 1 as x then took y for x and reported the two as unmatched.      % MMP, 09/09/2026
++allv = unique([vars.in(:).',vars.out(:).']);                                % MMP, 09/09/2026
++if isempty(allv)                                                            % MMP, 09/09/2026
++    % R^n -> R^m: neither direction is involved.                            % MMP, 09/09/2026
++    xy = {'',''};                                                           % MMP, 09/09/2026
++elseif isscalar(allv) && (strcmp(allv{1},'s2') || strcmp(allv{1},'y'))      % MMP, 09/09/2026
++    xy = {'',allv{1}};                                                      % MMP, 09/09/2026
++elseif isscalar(allv)                                                       % MMP, 09/09/2026
++    xy = {allv{1},''};                                                      % MMP, 09/09/2026
++else                                                                        % MMP, 09/09/2026
++    xy = {allv{1},allv{2}};                                                 % MMP, 09/09/2026
++end                                                                         % MMP, 09/09/2026
++[mapsx, x_idx_in ] = name_at(vars.in ,xy{1});                               % MMP, 09/09/2026
++[maps2x,x_idx_out] = name_at(vars.out,xy{1});                               % MMP, 09/09/2026
++[mapsy, y_idx_in ] = name_at(vars.in ,xy{2});                               % MMP, 09/09/2026
++[maps2y,y_idx_out] = name_at(vars.out,xy{2});                               % MMP, 09/09/2026
++%mapsx = numel(vars.in)>=1;    maps2x = numel(vars.out)>=1;                 % MMP, 09/09/2026 (was)
++%mapsy = numel(vars.in)>=2;    maps2y = numel(vars.out)>=2;                 % MMP, 09/09/2026 (was)
++%if mapsx && ~mapsy && (strcmp(vars.in{1},'s2')||strcmp(vars.in{1},'y'))    % MMP, 09/09/2026 (was)
++%    mapsx = false;  mapsy = true;   end                                    % MMP, 09/09/2026 (was)
++%if maps2x && ~maps2y && (strcmp(vars.out{1},'s2')||strcmp(vars.out{1},'y'))% MMP, 09/09/2026 (was)
++%    maps2x = false; maps2y = true;  end                                    % MMP, 09/09/2026 (was)
++%if mapsx && maps2x && ~strcmp(vars.in{1},vars.out{1})                      % MMP, 09/09/2026 (was)
++%    maps2x = false; maps2y = true;  end                                    % MMP, 09/09/2026 (was)
++%x_idx_in = mapsx;      x_idx_out = maps2x;                                 % MMP, 09/09/2026 (was)
++%y_idx_in = mapsx+mapsy;    y_idx_out = maps2x+maps2y;                      % MMP, 09/09/2026 (was)
+ 
+ % Name each direction from whichever role the operator involves; the        % MMP, 08/30/2026
+ % direction it does not involve keeps the default.                          % MMP, 08/30/2026
+@@ -125,48 +134,59 @@ Rparam_names = {'R00','R0x','R0y','R02';
+                 'R20','R2x','R2y','R22'};
+ Rname = Rparam_names{ridx,cidx};
+ 
+-% Determine the primary and dummy variable names used in the parameters
+-var1 = {};        var2 = {};
+-if maps2x
+-    var1 = [var1,{sv{1}}];                                                  % MMP, 08/30/2026
+-end
+-if maps2y
+-    var1 = [var1,{sv{2}}];                                                  % MMP, 08/30/2026
+-end
+-if mapsx
+-    if ~maps2x
+-        var2 = [var2,{sv{1}}];                                              % MMP, 08/30/2026
+-    else
+-        var2 = [var2,{[sv{1},'_dum']}];                                     % MMP, 08/30/2026
+-    end
+-end
+-if mapsy
+-    if ~maps2y
+-        var2 = [var2,{sv{2}}];                                              % MMP, 08/30/2026
+-    else
+-        var2 = [var2,{[sv{2},'_dum']}];                                     % MMP, 08/30/2026
+-    end
+-end
++% Determine the primary and dummy variable names used in the parameters.
++% These are handed to 'quadPoly' below alongside Psop.ZL and Psop.ZR, so     % MMP, 09/09/2026
++% they must be in the STORED order of vars.out and vars.in, not in (x,y)     % MMP, 09/09/2026
++% order: ZL{k} belongs to vars.out(k). A variable that appears only on the   % MMP, 09/09/2026
++% input side is integrated out and keeps its own name; one that appears on   % MMP, 09/09/2026
++% both sides is the dummy copy.                                             % MMP, 09/09/2026
++var1 = vars.out(:).';                                                       % MMP, 09/09/2026
++var2 = cell(1,numel(vars.in));                                              % MMP, 09/09/2026
++for k = 1:numel(vars.in)                                                    % MMP, 09/09/2026
++    if ismember(vars.in{k},vars.out)                                        % MMP, 09/09/2026
++        var2{k} = [char(vars.in{k}),'_dum'];                                % MMP, 09/09/2026
++    else                                                                    % MMP, 09/09/2026
++        var2{k} = char(vars.in{k});                                         % MMP, 09/09/2026
++    end                                                                     % MMP, 09/09/2026
++end                                                                         % MMP, 09/09/2026
++% Positions of each pass-through variable on the two sides, for the         % MMP, 09/09/2026
++% multiplier substitution below. The parameter cell index runs over S3 in    % MMP, 09/09/2026
++% 'intersect' order, so direction t is cell subscript t.                     % MMP, 09/09/2026
++vS3 = intersect(vars.in,vars.out);                                          % MMP, 09/09/2026
++[~,posL3] = ismember(vS3,vars.out);                                         % MMP, 09/09/2026
++[~,posR3] = ismember(vS3,vars.in);                                          % MMP, 09/09/2026
++%var1 = {};  var2 = {};                                                     % MMP, 09/09/2026 (was)
++%if maps2x,  var1 = [var1,{sv{1}}];  end                                    % MMP, 09/09/2026 (was)
++%if maps2y,  var1 = [var1,{sv{2}}];  end                                    % MMP, 09/09/2026 (was)
++%if mapsx                                                                   % MMP, 09/09/2026 (was)
++%    if ~maps2x, var2 = [var2,{sv{1}}]; else, var2 = [var2,{[sv{1},'_dum']}]; end % MMP, 09/09/2026 (was)
++%end                                                                        % MMP, 09/09/2026 (was)
++%if mapsy                                                                   % MMP, 09/09/2026 (was)
++%    if ~maps2y, var2 = [var2,{sv{2}}]; else, var2 = [var2,{[sv{2},'_dum']}]; end % MMP, 09/09/2026 (was)
++%end                                                                        % MMP, 09/09/2026 (was)
+ 
+ % Convert the parameters to 'polynomial' class objects
+ Rcell = cell(size(Pparams));
+ for i=1:numel(Pparams)
+     [i1,i2] = ind2sub(size(Pparams),i);
+-    var2_i = var2;
+-    if i1==1
+-        % Multiplier parameter does not have dummy variables
+-        if mapsx && maps2x
+-            var2_i(x_idx_in) = var1(x_idx_out);
+-        elseif mapsy && maps2y
+-            var2_i(y_idx_in) = var1(y_idx_out);
+-        end
+-    end
+-    if i2==1 && (mapsx && maps2x)
+-        % In 2D case, i2==1 means multiplier along y-direction
+-        if mapsy && maps2y
+-            var2_i(y_idx_in) = var1(y_idx_out);
+-        end
+-    end
++    % A multiplier direction carries delta(s-s'), which identifies the two   % MMP, 09/09/2026
++    % copies, so the dummy is replaced by the primary in that direction      % MMP, 09/09/2026
++    % only. Driven off the cell subscript and the stored positions rather    % MMP, 09/09/2026
++    % than off x/y, which no longer sit at fixed positions.                  % MMP, 09/09/2026
++    var2_i = var2;                                                          % MMP, 09/09/2026
++    gam = [i1,i2];                                                          % MMP, 09/09/2026
++    for t = 1:numel(vS3)                                                    % MMP, 09/09/2026
++        if gam(t)==1                                                        % MMP, 09/09/2026
++            var2_i(posR3(t)) = var1(posL3(t));                              % MMP, 09/09/2026
++        end                                                                 % MMP, 09/09/2026
++    end                                                                     % MMP, 09/09/2026
++%   if i1==1                                                                % MMP, 09/09/2026 (was)
++%       if mapsx && maps2x,     var2_i(x_idx_in) = var1(x_idx_out);         % MMP, 09/09/2026 (was)
++%       elseif mapsy && maps2y, var2_i(y_idx_in) = var1(y_idx_out);  end    % MMP, 09/09/2026 (was)
++%   end                                                                     % MMP, 09/09/2026 (was)
++%   if i2==1 && (mapsx && maps2x)                                           % MMP, 09/09/2026 (was)
++%       if mapsy && maps2y,     var2_i(y_idx_in) = var1(y_idx_out);  end    % MMP, 09/09/2026 (was)
++%   end                                                                     % MMP, 09/09/2026 (was)
+     Ri = quadPoly(Pparams{i}, Psop.ZL, Psop.ZR, dims, var1, var2_i, 0);
+     %Ri = combine(Ri);
+     Rcell{i} = combine(quadPoly.quadPoly2polynomial(Ri));
+@@ -179,4 +199,15 @@ else
+     Pop.(Rname) = reshape(Rcell,size(Pop.(Rname)));
+ end
+ 
+-end
+\ No newline at end of file
++end
++
++%%
++function [tf,idx] = name_at(list,nm)                                        % MMP, 09/09/2026
++% Position of variable 'nm' in 'list', or (false,0) when absent or unnamed. % MMP, 09/09/2026
++if isempty(nm)                                                              % MMP, 09/09/2026
++    tf = false;     idx = 0;                                                % MMP, 09/09/2026
++else                                                                        % MMP, 09/09/2026
++    [tf,idx] = ismember(nm,list);                                           % MMP, 09/09/2026
++end                                                                         % MMP, 09/09/2026
++
++end                                                                         % MMP, 09/09/2026
+diff --git a/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_canonical_multiplier.m b/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_canonical_multiplier.m
+index 632a876d..9b51662d 100644
+--- a/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_canonical_multiplier.m
++++ b/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/test_canonical_multiplier.m
+@@ -285,7 +285,8 @@ vS3 = intersect(A.vars.in,A.vars.out);
+ n3 = numel(vS3);
+ [~,posL] = ismember(vS3,A.vars.out);
+ [~,posR] = ismember(vS3,A.vars.in);
+-No = numel(A.vars.out);     Ni = numel(A.vars.in);
++No = numel(A.vars.out);     Ni = numel(A.vars.in);                          %#ok<NASGU>
++allnames = unique([A.vars.in(:).',A.vars.out(:).']);                        % MMP, 09/09/2026
+ sz_C = [3*ones(1,n3),1];
+ 
+ e = 0;
+@@ -304,16 +305,30 @@ for k = 1:numel(A.params)
+     end
+ 
+     for trial = 1:6
+-        u = 0.2+0.6*rand(1,No);     % point in the output variables of A
+-        v = 0.2+0.6*rand(1,Ni);     % point in the input variables of A
+-        % On the diagonal in every multiplier direction.
+-        for t = find(gam==1)
+-            v(posR(t)) = u(posL(t));
+-        end
+-        KA = kern(A,k,u,v);
+-        % The adjoint's output variables are A's input variables, and its
+-        % input variables are A's output variables.
+-        KT = kern(At,kadj,v,u);
++        % Evaluation points are assigned BY VARIABLE NAME, on both A        % MMP, 09/09/2026
++        % and its adjoint, so neither depends on the order the two          % MMP, 09/09/2026
++        % objects happen to store their variables in. Passing A's own       % MMP, 09/09/2026
++        % point arrays to the adjoint positionally only worked while        % MMP, 09/09/2026
++        % 'ctranspose' handed back vars.out = A.vars.in verbatim; the       % MMP, 09/09/2026
++        % constructor now canonicalizes to [S1,S3], a permutation.          % MMP, 09/09/2026
++        uval = struct();    vval = struct();                                % MMP, 09/09/2026
++        for i = 1:numel(allnames)                                           % MMP, 09/09/2026
++            uval.(allnames{i}) = 0.2+0.6*rand;                              % MMP, 09/09/2026
++            vval.(allnames{i}) = 0.2+0.6*rand;                              % MMP, 09/09/2026
++        end                                                                 % MMP, 09/09/2026
++        % delta identifies the two copies of a multiplier direction         % MMP, 09/09/2026
++        for t = find(gam==1)                                                % MMP, 09/09/2026
++            vval.(vS3{t}) = uval.(vS3{t});                                  % MMP, 09/09/2026
++        end                                                                 % MMP, 09/09/2026
++        u  = cellfun(@(nm) uval.(nm), A.vars.out);                          % MMP, 09/09/2026
++        v  = cellfun(@(nm) vval.(nm), A.vars.in);                           % MMP, 09/09/2026
++        ut = cellfun(@(nm) vval.(nm), At.vars.out);                         % MMP, 09/09/2026
++        vt = cellfun(@(nm) uval.(nm), At.vars.in);                          % MMP, 09/09/2026
++        KA = kern(A,k,u,v);                                                 % MMP, 09/09/2026
++        KT = kern(At,kadj,ut,vt);                                           % MMP, 09/09/2026
++%       u = 0.2+0.6*rand(1,No);  v = 0.2+0.6*rand(1,Ni);                    % MMP, 09/09/2026 (was)
++%       for t = find(gam==1),  v(posR(t)) = u(posL(t));  end                % MMP, 09/09/2026 (was)
++%       KA = kern(A,k,u,v);     KT = kern(At,kadj,v,u);                     % MMP, 09/09/2026 (was)
+         e = max(e,max(max(abs(KT-KA.'))));
+     end
+ end
+diff --git a/PIETOOLS/sopvar/Testfolder/sdopvar/rand_sopvar.m b/PIETOOLS/sopvar/Testfolder/sdopvar/rand_sopvar.m
+index 94ca5846..9f3a6707 100644
+--- a/PIETOOLS/sopvar/Testfolder/sdopvar/rand_sopvar.m
++++ b/PIETOOLS/sopvar/Testfolder/sdopvar/rand_sopvar.m
+@@ -84,6 +84,21 @@ elseif ~all(size(dom.out)==[M,2])
+     error("Output domains should be specified as M x 2 array for M output variables.")
+ end
+ 
++% A variable shared by the input and output space is ONE variable and must   % MMP, 09/09/2026
++% carry one interval: delta(s-s') in a multiplier direction identifies the   % MMP, 09/09/2026
++% two copies, and the bounds of an integral direction come from a single     % MMP, 09/09/2026
++% interval. Callers generated dom.in and dom.out independently, so a shared  % MMP, 09/09/2026
++% variable got two intervals; the sopvar constructor now rejects that. The   % MMP, 09/09/2026
++% input side is taken as authoritative. Done here rather than in each caller % MMP, 09/09/2026
++% because this routine may generate the variable names itself, in which case % MMP, 09/09/2026
++% no caller can align them.                                                  % MMP, 09/09/2026
++vS3_dom = intersect(vars.in,vars.out);                                      % MMP, 09/09/2026
++if ~isempty(vS3_dom)                                                        % MMP, 09/09/2026
++    [~,i_in ] = ismember(vS3_dom,vars.in);                                  % MMP, 09/09/2026
++    [~,i_out] = ismember(vS3_dom,vars.out);                                 % MMP, 09/09/2026
++    dom.out(i_out,:) = dom.in(i_in,:);                                      % MMP, 09/09/2026
++end                                                                         % MMP, 09/09/2026
++
+ % Check that the degrees are properly specified
+ if isnumeric(degs) && isscalar(degs)
+     deg1 = degs;
