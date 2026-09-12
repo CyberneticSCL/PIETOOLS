@@ -65,14 +65,22 @@ function [prog,Pop,Qcell,alpha_list] = possopvar(prog,dim,vars,dom,deg,options)
 %                     operator only on the domain, by including the factor
 %                     g(theta) = prod_k (theta_k-ak)*(bk-theta_k) in the
 %                     construction. Defaults to 0;
+%   options.sep       logical scalar or 1 x n3 array. Where sep(k) is true,
+%                     direction k is SEPARABLE: the lower and upper integral
+%                     basis operators are replaced by a single full-domain
+%                     integral, so the returned operator has equal lower and
+%                     upper kernels in that direction. This is the R_1 = R_2
+%                     form of 'poslpivar_2d's option of the same name. The
+%                     admissible alpha_k are then 1 and 4, where 4 denotes
+%                     the full-domain integral. Defaults to all false;
 %   options.include   specification of which basis operators to include.
 %                     Either an N x n3 array whose rows are the desired
-%                     multi-indices alpha (entries in {1,2,3}, with 1 the
-%                     multiplier, 2 the lower integral and 3 the upper
-%                     integral), or a logical array of length 3^n3 masking
-%                     the multi-indices in their standard linear order, or a
-%                     numeric vector of linear indices into that order.
-%                     Defaults to all 3^n3 multi-indices;
+%                     multi-indices alpha (entries in {1,2,3}, or {1,4} in a
+%                     separable direction, with 1 the multiplier, 2 the lower
+%                     integral, 3 the upper and 4 the full-domain integral),
+%                     or a logical array with one entry per basis operator in
+%                     their standard linear order, or a numeric vector of
+%                     linear indices into that order. Defaults to all;
 %
 % OUTPUT
 % - prog:       'struct' specifying the same program as the input, but now
@@ -127,6 +135,27 @@ function [prog,Pop,Qcell,alpha_list] = possopvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding
+% MMP, 09/12/2026: Support 'options.sep', matching 'poslpivar_2d'. A
+%                  separable direction replaces its lower and upper integral
+%                  basis operators by one full-domain integral, encoded as
+%                  alpha_k = 4, so the returned operator satisfies
+%                  R_lower = R_upper there: int_a^s + int_s^b = int_a^b over
+%                  a shared kernel. Implemented by expanding each 4 into its
+%                  2/3 substitutions on both sides of B_i'*Q*B_j, against
+%                  the same Q, and emitting each term as its own block --
+%                  'plus_batch' already sums the blocks and merges their
+%                  monomials, so the rest of the loop is untouched. The
+%                  motivation is degree, not expressiveness: a full-domain
+%                  integral has CONSTANT limits, so composing with it never
+%                  substitutes a spatial variable into an integration limit,
+%                  where the Volterra form inflates the monomial degree at
+%                  every composition. On the 2D heat equation that inflation
+%                  drives the composed derivative to per-variable degree 12
+%                  against 3 for the 'opvar2d' path, and SeDuMi then fails
+%                  with numerr=2 at every lambda. It also shrinks the basis
+%                  from 3^n3 blocks to 2^n3 when every direction is
+%                  separable, at the cost of up to 4^nsep more
+%                  'int_semisep' calls per block pair.
 % MMP, 09/07/2026: Collect the nblk^2 blocks and sum them once with
 %                  'plus_batch' instead of accumulating pairwise. Every
 %                  block is built on the same Zd, so one synchronization of
@@ -225,35 +254,64 @@ end
 if ~isfield(options,'psatz') || isempty(options.psatz)
     options.psatz = 0;
 end
-if isfield(options,'sep') && ~isempty(options.sep) && options.sep
-    error("The 'sep' option is not supported by 'possopvar'.")
-end
+% % % Separable directions                                                  % MMP, 09/12/2026
+% 'sep(k)' replaces the lower and upper integral basis operators in         % MMP, 09/12/2026
+% direction k by a single FULL-DOMAIN integral, encoded as alpha_k = 4.     % MMP, 09/12/2026
+% Since int_a^s + int_s^b = int_a^b over one shared kernel, the operator    % MMP, 09/12/2026
+% then has equal lower and upper kernels in that direction: the R_1 = R_2   % MMP, 09/12/2026
+% form 'poslpivar_2d' calls 'sep'. Its limits are constant, so composing    % MMP, 09/12/2026
+% with it never substitutes a spatial variable into an integration limit    % MMP, 09/12/2026
+% and never inflates the monomial degree, which the Volterra form does at   % MMP, 09/12/2026
+% every composition.                                                        % MMP, 09/12/2026
+if ~isfield(options,'sep') || isempty(options.sep)                          % MMP, 09/12/2026
+    sep = false(1,n3);                                                      % MMP, 09/12/2026
+else                                                                        % MMP, 09/12/2026
+    sep = logical(reshape(options.sep,1,[]));                               % MMP, 09/12/2026
+    if isscalar(sep)                                                        % MMP, 09/12/2026
+        sep = repmat(sep,1,n3);                                             % MMP, 09/12/2026
+    elseif numel(sep)~=n3                                                   % MMP, 09/12/2026
+        error("'sep' should be a scalar or have one entry per variable.")   % MMP, 09/12/2026
+    end                                                                     % MMP, 09/12/2026
+end                                                                         % MMP, 09/12/2026
 
 % % % Basis operators to include
-%   1 <-> multiplier (delta),  2 <-> lower integral,  3 <-> upper integral
-if n3==0
-    alpha_all = zeros(1,0);
-else
-    alpha_all = fliplr(dec2base(0:3^n3-1,3,n3)-'0')+1;
-end
+%   1 <-> multiplier (delta),  2 <-> lower integral,  3 <-> upper integral,
+%   4 <-> full-domain integral, used exactly where 'sep' is set
+% Direction 1 varies fastest, the layout 'fliplr(dec2base(...))' produced.  % MMP, 09/12/2026
+vals = cell(1,n3);                                                          % MMP, 09/12/2026
+for k = 1:n3                                                                % MMP, 09/12/2026
+    if sep(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end                % MMP, 09/12/2026
+end                                                                         % MMP, 09/12/2026
+szv = cellfun(@numel,vals);                                                 % MMP, 09/12/2026
+nall = prod([szv,1]);                                                       % MMP, 09/12/2026
+alpha_all = zeros(nall,n3);                                                 % MMP, 09/12/2026
+rep = 1;                                                                    % MMP, 09/12/2026
+for k = 1:n3                                                                % MMP, 09/12/2026
+    col = reshape(repmat(vals{k},rep,1),[],1);                              % MMP, 09/12/2026
+    alpha_all(:,k) = repmat(col,nall/(rep*szv(k)),1);                       % MMP, 09/12/2026
+    rep = rep*szv(k);                                                       % MMP, 09/12/2026
+end                                                                         % MMP, 09/12/2026
 if ~isfield(options,'include') || isempty(options.include)
     alpha_list = alpha_all;
 else
     incl = options.include;
     if islogical(incl)
         if numel(incl)~=size(alpha_all,1)
-            error("A logical 'include' should have 3^n3 elements.")
+            error("A logical 'include' has one entry per basis operator.")  % MMP, 09/12/2026
         end
         alpha_list = alpha_all(incl(:),:);
     elseif n3>0 && size(incl,2)==n3
-        if any(incl(:)<1) || any(incl(:)>3) || any(incl(:)~=round(incl(:)))
-            error("Multi-indices in 'include' should have entries 1, 2 or 3.")
+        % A separable direction admits only 1 or 4 and a non-separable one  % MMP, 09/12/2026
+        % only 1, 2 or 3, so validate against the generated list rather     % MMP, 09/12/2026
+        % than a fixed numeric range.                                       % MMP, 09/12/2026
+        if ~all(ismember(incl,alpha_all,'rows'))                            % MMP, 09/12/2026
+            error("'include' contains an inadmissible multi-index.")        % MMP, 09/12/2026
         end
         alpha_list = incl;
     else
         if any(incl(:)<1) || any(incl(:)>size(alpha_all,1)) ...
                 || any(incl(:)~=round(incl(:)))
-            error("Linear indices in 'include' should lie between 1 and 3^n3.")
+            error("Linear indices in 'include' are out of range.")          % MMP, 09/12/2026
         end
         alpha_list = alpha_all(incl(:),:);
     end
@@ -351,14 +409,16 @@ dom_io.in = dom;
 dom_io.out = dom;
 
 % Adjoining a basis operator flips its lower and upper integrals.
-negmap = [1,3,2];
+negmap = [1,3,2,4];   % 4 = full-domain integral, self-adjoint              % MMP, 09/12/2026
 
 % Blocks are collected and summed once by 'plus_batch' rather than          % MMP, 09/07/2026
 % accumulated pairwise: every block carries the same Zd, so one             % MMP, 09/07/2026
 % synchronization serves all nblk^2 of them. Pairwise accumulation was      % MMP, 09/07/2026
 % measured at 32% of this routine's runtime at three spatial variables,     % MMP, 09/07/2026
 % where there are 729 additions.                                            % MMP, 09/07/2026
-Pcells = cell(nblk*nblk,1);     nPc = 0;                                    % MMP, 09/07/2026
+% A separable direction turns each block pair into up to 4 terms per such   % MMP, 09/12/2026
+% direction, so the bound carries 4^nsep.                                   % MMP, 09/12/2026
+Pcells = cell(nblk*nblk*4^sum(sep),1);     nPc = 0;                         % MMP, 09/12/2026
 %Pop = [];                                                                  % MMP, 09/07/2026 (was)
 for i=1:nblk
     for j=1:nblk
@@ -388,7 +448,18 @@ for i=1:nblk
         G = struct();
         G.C = pack_sheets([Pblk.A.';Bblk],Pblk.m,Pblk.n);
         G.Z = Zth;
-        [Cgam,ZLnew,ZRnew] = int_semisep(G,negmap(alpha_list(i,:)),alpha_list(j,:),dom);
+        % A separable direction carries alpha_k = 4, a full-domain          % MMP, 09/12/2026
+        % integral, the SUM of the lower and upper integrals over one       % MMP, 09/12/2026
+        % shared kernel; adjoining swaps the two. So B_i'*Q*B_j expands     % MMP, 09/12/2026
+        % into every 2/3 substitution of the 4s on each side, all against   % MMP, 09/12/2026
+        % the SAME Q, which is what makes the two kernels equal. Each term  % MMP, 09/12/2026
+        % is emitted as its own block and 'plus_batch' below sums them and  % MMP, 09/12/2026
+        % merges the monomials, so nothing else in the loop changes.        % MMP, 09/12/2026
+        aL_all = expand_full(negmap(alpha_list(i,:)));                      % MMP, 09/12/2026
+        aR_all = expand_full(alpha_list(j,:));                              % MMP, 09/12/2026
+        for iL = 1:size(aL_all,1)                                           % MMP, 09/12/2026
+        for iR = 1:size(aR_all,1)                                           % MMP, 09/12/2026
+        [Cgam,ZLnew,ZRnew] = int_semisep(G,aL_all(iL,:),aR_all(iR,:),dom);  % MMP, 09/12/2026
         NL = prod(cellfun(@numel,ZLnew));
         NR = prod(cellfun(@numel,ZRnew));
 
@@ -425,6 +496,8 @@ for i=1:nblk
 
         Pij = sdopvar(params,vars_io,Zd,ZLf,ZRf,dom_io,[m,m]);
         nPc = nPc+1;    Pcells{nPc} = Pij;                                  % MMP, 09/07/2026
+        end                                                                 % MMP, 09/12/2026
+        end                                                                 % MMP, 09/12/2026
 %       if isempty(Pop)                                                     % MMP, 09/07/2026 (was)
 %           Pop = Pij;                                                      % MMP, 09/07/2026 (was)
 %       else                                                                % MMP, 09/07/2026 (was)
@@ -590,5 +663,29 @@ Y = L*X*R;
 Aout = Y(:);
 
 Bout = B*kron(R.',L).';
+
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function A = expand_full(a)
+% Every 2/3 substitution of the full-domain entries of a multi-index.
+%
+% alpha_k = 4 denotes a full-domain integral, which is the SUM of the lower
+% and upper integrals over one shared kernel, so a term carrying it stands
+% for 2^(number of 4s) ordinary semiseparable terms. Direction 1 varies
+% fastest, matching the layout of 'alpha_all'.
+
+f = find(a==4);
+if isempty(f)
+    A = a;
+    return
+end
+nf = numel(f);
+A = repmat(a,2^nf,1);
+for t = 1:nf
+    blk = 2^(t-1);
+    A(:,f(t)) = repmat(reshape(repmat([2,3],blk,1),[],1),2^nf/(2*blk),1);
+end
 
 end
