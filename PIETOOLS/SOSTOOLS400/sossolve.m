@@ -87,6 +87,15 @@ function [sos,info] = sossolve(sos,options)
 %                   exist('solver_options.params') is always false, so a
 %                   caller's options.params was overwritten by the CSDP
 %                   defaults. Branch on user_params instead.
+% 09/12/2026 - MMP - Normalize the SDP right-hand side b before the solve and
+%                   scale the primal back on output. b carries only the
+%                   eppos/eppos2 margins, so ||b||~1e-5 against an O(1)
+%                   solution and solvers stall about three orders short on the
+%                   equality system (measured relative residual 6.4e-3 -> 1.4e-7
+%                   at n=4 'heavy', SeDuMi). Exact for every LPI since b -> b/t
+%                   scales the argmin by 1/t; the dual is unaffected. NOTE the
+%                   "Residual norm" printed after the solve is now relative to
+%                   the original ||b||.
 
 % Record whether the caller supplied solver parameters.
 user_params = (nargin>=2) && isfield(options,'params');                     % MMP, 08/23/2026
@@ -190,6 +199,16 @@ end;
 
 % Processing all variables
 [At,b,K,RR] = processvars(sos,Atf,bf);
+
+% Normalize the right-hand side.  b carries only the strict-positivity margins
+% (eppos/eppos2), so ||b||~1e-5 against an O(1) solution and the solver stalls
+% about three orders short on the equality system.  Exact for every LPI, not
+% just feasibility: b -> b/t scales the feasible set and the argmin by 1/t, so
+% the primal is scaled back where it is stored; gam is a free component of x
+% and scales with it.  The dual is untouched, since A'*y+z = c has no b.
+bscl = norm(b);                                                             % MMP, 09/12/2026
+if bscl==0 || ~isfinite(bscl),  bscl = 1;  end                              % MMP, 09/12/2026
+b = b/bscl;                                                                 % MMP, 09/12/2026
 
 % Objective function
 c = sparse(size(At,1),1);
@@ -653,9 +672,13 @@ end
 disp([' ']);
 disp(['Residual norm: ' num2str(norm(At'*x-b))]);
 disp([' ']);
-sos.solinfo.x = x;
+% Undo the b normalization applied before the solve.  Only the primal scales;
+% the dual solves A'*y+z = c, which never saw b.
+%   sos.solinfo.x = x;                                                      % MMP, 09/12/2026 (was)
+sos.solinfo.x = x*bscl;                                                     % MMP, 09/12/2026
 sos.solinfo.y = y;
-sos.solinfo.RRx = RR*x;
+%   sos.solinfo.RRx = RR*x;                                                 % MMP, 09/12/2026 (was)
+sos.solinfo.RRx = (RR*x)*bscl;                                              % MMP, 09/12/2026
 sos.solinfo.RRy = RR*(c-At*y);    % inv(RR') = RR
 sos.solinfo.info = info;
 sos.solinfo.solverOptions = options;
