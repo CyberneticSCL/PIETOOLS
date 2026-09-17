@@ -84,6 +84,34 @@ elseif ~all(size(dom.out)==[M,2])
     error("Output domains should be specified as M x 2 array for M output variables.")
 end
 
+% A variable shared by the input and output space is ONE variable and       % MMP, 09/17/2026
+% must carry ONE interval: delta(s-s') in a multiplier direction            % MMP, 09/17/2026
+% identifies the two copies, and an integral direction takes its bounds     % MMP, 09/17/2026
+% from a single interval. Two different intervals for one name is a         % MMP, 09/17/2026
+% caller error, so it is REJECTED here rather than reconciled: adopting     % MMP, 09/17/2026
+% either side silently would build an operator the caller did not ask       % MMP, 09/17/2026
+% for, and the discarded interval would reappear as a wrong integration     % MMP, 09/17/2026
+% limit. Agreement costs the caller nothing -- the scalar and 1x2 forms     % MMP, 09/17/2026
+% above broadcast one row to both sides, and a caller passing               % MMP, 09/17/2026
+% per-variable arrays should index a single domain table by variable        % MMP, 09/17/2026
+% name, as both in-repo callers do. NaN matches NaN, as in                  % MMP, 09/17/2026
+% 'canonical_var_order', so a placeholder domain is not a clash.            % MMP, 09/17/2026
+vS3_dom = intersect(vars.in,vars.out);                                      % MMP, 09/17/2026
+if ~isempty(vS3_dom)                                                        % MMP, 09/17/2026
+    [~,i_in ] = ismember(vS3_dom,vars.in);                                  % MMP, 09/17/2026
+    [~,i_out] = ismember(vS3_dom,vars.out);                                 % MMP, 09/17/2026
+    dl = dom.in(i_in,:);        dr = dom.out(i_out,:);                      % MMP, 09/17/2026
+    bad = find(any(dl~=dr & ~(isnan(dl)&isnan(dr)),2),1);                   % MMP, 09/17/2026
+    if ~isempty(bad)                                                        % MMP, 09/17/2026
+        % '+' on a string with NaN yields <missing>, which 'error' rejects, % MMP, 09/17/2026
+        % so the endpoints go through %g rather than string concatenation.  % MMP, 09/17/2026
+        error("Variable '%s' is shared by the input and output space but "...
+              +"was given two different domains, [%g,%g] on the input "...
+              +"side and [%g,%g] on the output side.", ...
+              vS3_dom{bad},dl(bad,1),dl(bad,2),dr(bad,1),dr(bad,2))         % MMP, 09/17/2026
+    end                                                                     % MMP, 09/17/2026
+end                                                                         % MMP, 09/17/2026
+
 % Check that the degrees are properly specified
 if isnumeric(degs) && isscalar(degs)
     deg1 = degs;
