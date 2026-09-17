@@ -285,7 +285,8 @@ vS3 = intersect(A.vars.in,A.vars.out);
 n3 = numel(vS3);
 [~,posL] = ismember(vS3,A.vars.out);
 [~,posR] = ismember(vS3,A.vars.in);
-No = numel(A.vars.out);     Ni = numel(A.vars.in);
+No = numel(A.vars.out);     Ni = numel(A.vars.in);                          %#ok<NASGU>
+allnames = unique([A.vars.in(:).',A.vars.out(:).']);                        % MMP, 09/09/2026
 sz_C = [3*ones(1,n3),1];
 
 e = 0;
@@ -304,16 +305,30 @@ for k = 1:numel(A.params)
     end
 
     for trial = 1:6
-        u = 0.2+0.6*rand(1,No);     % point in the output variables of A
-        v = 0.2+0.6*rand(1,Ni);     % point in the input variables of A
-        % On the diagonal in every multiplier direction.
-        for t = find(gam==1)
-            v(posR(t)) = u(posL(t));
-        end
-        KA = kern(A,k,u,v);
-        % The adjoint's output variables are A's input variables, and its
-        % input variables are A's output variables.
-        KT = kern(At,kadj,v,u);
+        % Evaluation points are assigned BY VARIABLE NAME, on both A        % MMP, 09/09/2026
+        % and its adjoint, so neither depends on the order the two          % MMP, 09/09/2026
+        % objects happen to store their variables in. Passing A's own       % MMP, 09/09/2026
+        % point arrays to the adjoint positionally only worked while        % MMP, 09/09/2026
+        % 'ctranspose' handed back vars.out = A.vars.in verbatim; the       % MMP, 09/09/2026
+        % constructor now canonicalizes to [S1,S3], a permutation.          % MMP, 09/09/2026
+        uval = struct();    vval = struct();                                % MMP, 09/09/2026
+        for i = 1:numel(allnames)                                           % MMP, 09/09/2026
+            uval.(allnames{i}) = 0.2+0.6*rand;                              % MMP, 09/09/2026
+            vval.(allnames{i}) = 0.2+0.6*rand;                              % MMP, 09/09/2026
+        end                                                                 % MMP, 09/09/2026
+        % delta identifies the two copies of a multiplier direction         % MMP, 09/09/2026
+        for t = find(gam==1)                                                % MMP, 09/09/2026
+            vval.(vS3{t}) = uval.(vS3{t});                                  % MMP, 09/09/2026
+        end                                                                 % MMP, 09/09/2026
+        u  = cellfun(@(nm) uval.(nm), A.vars.out);                          % MMP, 09/09/2026
+        v  = cellfun(@(nm) vval.(nm), A.vars.in);                           % MMP, 09/09/2026
+        ut = cellfun(@(nm) vval.(nm), At.vars.out);                         % MMP, 09/09/2026
+        vt = cellfun(@(nm) uval.(nm), At.vars.in);                          % MMP, 09/09/2026
+        KA = kern(A,k,u,v);                                                 % MMP, 09/09/2026
+        KT = kern(At,kadj,ut,vt);                                           % MMP, 09/09/2026
+%       u = 0.2+0.6*rand(1,No);  v = 0.2+0.6*rand(1,Ni);                    % MMP, 09/09/2026 (was)
+%       for t = find(gam==1),  v(posR(t)) = u(posL(t));  end                % MMP, 09/09/2026 (was)
+%       KA = kern(A,k,u,v);     KT = kern(At,kadj,v,u);                     % MMP, 09/09/2026 (was)
         e = max(e,max(max(abs(KT-KA.'))));
     end
 end
