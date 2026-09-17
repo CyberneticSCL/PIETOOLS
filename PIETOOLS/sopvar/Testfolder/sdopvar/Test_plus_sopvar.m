@@ -1,4 +1,10 @@
 
+% MMP, 09/17/2026: Draw one domain per variable NAME over the union of
+% vars.in and vars.out and index dom.in/dom.out out of that table, replacing
+% two independent per-side draws. A variable shared by the input and output
+% space is one variable carrying one interval, so independent draws gave it
+% two and 'rand_sopvar' rejected the operator (see commit e6842c92).
+
 % % Set parameters for declaring random operator
 % Dimensions
 m = 3;                  % row dimension of operator
@@ -18,10 +24,19 @@ idcs = sort(randperm(N+M,M));
 for i=1:M
     vars.out{i} = ['s',num2str(idcs(i))];
 end
-% Domains of the variables
+% Domains of the variables. A variable in both vars.in and vars.out is one  % MMP, 09/17/2026
+% variable carrying ONE interval, and 'rand_sopvar' rejects a clash, so the % MMP, 09/17/2026
+% table is drawn over the union of names and indexed by name per side.      % MMP, 09/17/2026
+% Independent per-side draws gave a shared variable two different domains.  % MMP, 09/17/2026
+varsall = unique([vars.in,vars.out]);  nvarsall = numel(varsall);           % MMP, 09/17/2026
+domall = randi([-2,2],[nvarsall,1]) +[zeros(nvarsall,1),rand([nvarsall,1])];% MMP, 09/17/2026
+[~,i_in ] = ismember(vars.in, varsall);                                     % MMP, 09/17/2026
+[~,i_out] = ismember(vars.out,varsall);                                     % MMP, 09/17/2026
 dom = struct();
-dom.in = randi([-2,2],[N,1]) +[zeros(N,1),rand([N,1])];
-dom.out = randi([-2,2],[M,1]) +[zeros(M,1),rand([M,1])];
+%   dom.in = randi([-2,2],[N,1]) +[zeros(N,1),rand([N,1])];                 % MMP, 09/17/2026 (was)
+%   dom.out = randi([-2,2],[M,1]) +[zeros(M,1),rand([M,1])];                % MMP, 09/17/2026 (was)
+dom.in  = domall(i_in,:);                                                   % MMP, 09/17/2026
+dom.out = domall(i_out,:);                                                  % MMP, 09/17/2026
 % Monomial degrees
 degs = struct();
 degs.in = randi(3,[1,N]);     degs.out = randi(3,[1,M]);
