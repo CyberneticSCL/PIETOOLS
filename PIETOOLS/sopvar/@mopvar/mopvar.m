@@ -1,24 +1,78 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) mopvar
+classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) mopvar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This defines the class of mixed-domain PI operators, each element of
-% which is a nopvar object
+% MOPVAR  Container for FIXED PI operators between concatenated mixed L2
+% spaces. Sec. 8 of the sopvar document. An M x N grid of 'sopvar' blocks,
 %
-%   Pop(r): [   L2^d_1^n_1   ] -->  [ L2^d_1^n_1    ],
-                    ...         
-%               L2^d_N^n_N   ]      [ L2^d_M^n_M    ]
+%   P.C{i,j} : L_2^{p_j}[s^j] -> L_2^{q_i}[s^i],   (P*x)_i = sum_j P.C{i,j}*x_j
+%
+% For a container that carries decision variables, use 'mdopvar', whose
+% blocks may be 'sdopvar'. The two stand to each other as 'sopvar' does to
+% 'sdopvar': 'mopvar' is closed under composition, 'mdopvar' is not.
+%
+% ROW IS OUTPUT, COLUMN IS INPUT. Sec. 8 also writes the blocks inline as
+% "P_{i,j}: L_2^{p_i}[s^i] -> L_2^{q_j}[s^j]", putting i on the input side;
+% that contradicts its own display of P acting on [x_1;...;x_M] and its
+% partition s_1^{ij} = s^j/s^i (input only), s_2^{ij} = s^i/s^j (output
+% only). The partition is the correct reading and is implemented here.
 %
 % CLASS properties
-% - P.C:    MxN matrix of nopvar objects;
-% - P.in.vars:  Nx1 array specifying the number of spatial variables (n_i) in L2^d_i^n_i; -- Note: n_i can be 0
-% - P.in.dim:   Nx1 array specifying the number of components (d_i) in L2^d_i^n_i;
-% - P.in.dom:   Nx1 array specifying the domains of the spatial variables ;
-% - P.dom:  Nx2 array with each row dom(i,:) = [ai,bi] representing the
-%           spatial interval along the ith direction on which the operator
-%           is defined;
+% - P.C:         M x N cell of 'sopvar'. A cell holding [] is a
+%                STRUCTURALLY ZERO block: it stores nothing and its space
+%                and dimension come from the metadata below. Sec. 8 has no
+%                convention for an absent block, but a PIE is mostly zero;
+% - P.vars:      1 x nv sorted cellstr registry of every spatial variable;
+% - P.dom:       nv x 2, dom(k,:) = [a,b] the domain of P.vars{k};
+% - P.space_out: M x nv logical, row i is the mask of s^i in P.vars;
+% - P.space_in:  N x nv logical, row j is the mask of s^j;
+% - P.dim_out:   M x 1 component counts q_i;
+% - P.dim_in:    N x 1 component counts p_j.
 %
+% Blocks still carry their own vars/dom/dims, so they stay valid standalone
+% operators and no block method changes. The container holds the
+% authoritative copy for two reasons: it is the only place a cross-block
+% conflict is visible, since 'canonical_var_order' sees one block at a time
+% and so catches only a variable given two domains by the two SIDES of one
+% block, not by two different blocks; and it determines the zero blocks,
+% which have no metadata of their own. This is what 'opvar2d' does with
+% P.var1 and P.I.
+%
+% What this placement does NOT buy, because the blocks are left intact:
+% container-level checks compare masks over P.vars, but the per-block
+% spatial set operations remain - the block constructor still computes
+% vars_S1/S2/S3 by setdiff/intersect ('sopvar.m'), and @sopvar/mtimes still
+% re-partitions by name per pair ('mtimes.m'). The container-level domain
+% check is likewise ADDITIONAL to the per-block one, not a replacement.
+% Removing those would require 'sopvar' to accept externally owned vars/dom
+% and index them by position, which would touch every block method; that is
+% a separate change and has not been made.
+%
+% ROW AND COLUMN CONSISTENCY. Every populated block in row i maps into
+% L_2^{q_i}[s^i], every block in column j out of L_2^{p_j}[s^j]. The space
+% check is SET equality, not 'isequal' on the name lists: the block
+% constructors enforce vars.out = [S2,S3] with S2^{ij} = s^i/s^j, so two
+% blocks in one row order the same variable set differently whenever their
+% input spaces differ.
+%
+% NOT STORED: any row- or column-synchronized auxiliary representation
+% (Sec. 8.3.1). ZL and ZR are metadata - together under 0.1 MB of a 66.85 MB
+% 'sdopvar' block at q = 1e6 - so sharing them across a row saves nothing,
+% while forcing blocks onto the row-union basis multiplies their coefficient
+% column count, the union being taken per variable and then tensored.
+% Measured over the subset lattice at 2 components per space, total
+% coefficient columns grow x2.3 (nv=2, deg 1), x5.9 (nv=3, deg 2) and x15.3
+% (nv=4, deg 3) under synchronization. Row/column factorization belongs
+% inside 'mtimes' as a transient.
+%
+% COST. Construction is O(M*N) block visits. The spatial set operations run
+% on the registry, one entry per direction. Class methods pass validated
+% metadata to the two-argument constructor rather than re-deriving it.
+%
+% See also MDOPVAR, VERIFY, SIZE, PLUS, CTRANSPOSE, MTIMES, SOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - nopvar
+% PIETOOLS - mopvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -42,88 +96,87 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar}) mopvar
 % authorship, and a brief description of modifications
 %
 % MP, 01/15/2026: Initial coding
+% MMP, 09/17/2026: Replaced the body. The 01/15/2026 stub was a copy of
+%                  'ndopvar': constructor named 'ndopvar', header describing
+%                  'nopvar' elements, and properties (C, deg, dom, dim,
+%                  vars) plus 'get.dim' implementing ndopvar's single-basis
+%                  deg/nZ convention, under which a coefficient block is
+%                  dim(1)*nZ x dim(2)*nZ_t. 'sopvar' has no 'deg' property
+%                  and no such convention - it carries per-variable bases ZL
+%                  and ZR over separate input and output variable lists - so
+%                  none of the stub was reusable and all of it is deleted
+%                  rather than commented out. The 01/15/2026 entry therefore
+%                  no longer describes code present here.
+% MMP, 09/17/2026: Split the decision-variable case out into 'mdopvar', so
+%                  that the containers mirror the sopvar/sdopvar pair and
+%                  'class(P)' states whether decision variables are present.
+%                  Consequences here: the 'Zd' property, its merge in the
+%                  constructor, 'private/put_on_list', the reconciliation in
+%                  'plus'/'mtimes', 'isdecision' and the
+%                  'decisionTimesDecision' guard are all gone, and a block
+%                  of class 'sdopvar' is now rejected. Note this makes the
+%                  09/11/2026 branch edit's inclusion of ?sdopvar in
+%                  InferiorClasses inert - 'mopvar' no longer interacts with
+%                  an 'sdopvar' - but it is left as the author wrote it,
+%                  since the precedence it declares is harmless and never
+%                  exercised.
 
-properties
-    C = {};
-    deg = zeros(0,1);
-    dom = zeros(0,2);
-    dim = [0,0];
-    vars = polynomial(zeros(0,2));
-end
+% % % BEGIN body replaced by MMP, 09/17/2026 - everything from here to the
+% % % END marker at the foot of the file is new; see the header entries
+% % % above for what was deleted.
 
-methods
-    function [P] = ndopvar(varargin) %constructor
-        if nargout==0
-            % Declare operators as
-            %   ndopvar P1 P2 P3
-            for i=1:nargin
-                if ischar(varargin{i})
-                    if nargout==0
-                        assignin('caller', varargin{i}, ndopvar());
-                    end
-                else
-                    error("Input must be strings");
+    properties
+        C = {};                     % M x N cell of blocks; [] = zero block
+        vars = cell(1,0);           % 1 x nv global variable registry
+        dom = zeros(0,2);           % nv x 2 domains, row k for vars{k}
+        space_out = false(0,0);     % M x nv mask of s^i in vars
+        space_in = false(0,0);      % N x nv mask of s^j in vars
+        dim_out = zeros(0,1);       % M x 1 component counts q_i
+        dim_in = zeros(0,1);        % N x 1 component counts p_j
+    end
+
+    methods
+        function P = mopvar(varargin)
+            % P = MOPVAR(C) builds a container from an M x N cell of
+            % 'sopvar' blocks, deriving and validating all metadata. [] is a
+            % zero block.
+            %
+            % P = MOPVAR(C,meta) trusts 'meta' and skips validation, used by
+            % the class methods, which already know their result's metadata.
+            %
+            % MOPVAR P1 P2 declares empty containers in the caller.
+            if nargin==0
+                return
+            end
+            if nargout==0 && (ischar(varargin{1}) || isstring(varargin{1}))
+                for i = 1:nargin
+                    assignin('caller',char(varargin{i}),mopvar());
                 end
+                return
             end
-        end
-    end
-    function [obj] = set.C(obj,C) 
-        obj.C = C;
-    end
-    function [obj] = set.deg(obj,deg)
-        obj.deg = deg;
-    end
-    function [obj] = set.dom(obj,dom)
-        obj.dom = dom;
-    end
-    function [obj] = set.vars(obj,vars)
-        obj.vars = vars;
-    end
-    function [dim] = get.dim(obj)
-        % % Determine the dimensions of the operator, m x n, from the
-        % % dimensions of the coefficient matrices,
-        % %     m*prod(deg+1) x n*prod(deg+1).
-
-        % Get the number of monomials and decision variables
-        degs = obj.deg;
-        if isempty(degs)
-            degs = 0;
-        end
-        nZ = prod(obj.deg+1);
-        N = numel(obj.deg);
-
-        % Check the dimensions of the coefficient matrices
-        m_min = inf;    n_min = inf;
-        m_max = 0;      n_max = 0;
-        sz_C = [size(obj.C),1];
-        % if sz_C(2)==1
-        %     sz_C = sz_C(1);
-        % end
-        for ii=1:numel(obj.C)
-            if isempty(obj.C{ii})
-                continue
+            C = varargin{1};
+            if ~iscell(C)
+                error('mopvar:badBlocks','Blocks must be an M x N cell array.')
             end
-            [m,n] = size(obj.C{ii});
-            m_min = min(m_min,m/nZ);
-            m_max = max(m_max,m/nZ);
-            % Get the number of monomials and decision variables
-            idcs = cell(1,N);
-            [idcs{:}] = ind2sub(sz_C,ii);
-            idcs = cell2mat(idcs);
-            nZ_t = prod(degs(logical(idcs-1))+1);
-            n_min = min(n_min,n/(nZ_t));
-            n_max = max(n_max,n/(nZ_t));
+            if nargin>=2
+                meta = varargin{2};
+            else
+                meta = derive_mopvar_meta(C,'mopvar',{'sopvar'});
+            end
+            P.C = C;
+            P.vars      = meta.vars;            P.dom       = meta.dom;
+            P.space_out = meta.space_out;       P.space_in  = meta.space_in;
+            P.dim_out   = meta.dim_out;         P.dim_in    = meta.dim_in;
         end
-        
-        % Set the dimensions
-        dim = [nan,nan];
-        if m_min==m_max && round(m_min)==m_min
-            dim(1) = m_min;
-        end
-        if n_min==n_max && round(n_min)==n_min
-            dim(2) = n_min;
+
+        function meta = metadata(P)
+            % META = METADATA(P) returns the validated metadata of P, for
+            % handing to the two-argument constructor.
+            meta = struct('vars',{P.vars},'dom',P.dom,...
+                'space_out',P.space_out,'space_in',P.space_in,...
+                'dim_out',P.dim_out,'dim_in',P.dim_in);
         end
     end
 end
 
-end
+% % % END body replaced by MMP, 09/17/2026

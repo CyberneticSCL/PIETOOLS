@@ -1,6 +1,6 @@
 function info = verify(Mop)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% INFO = VERIFY(MOP) checks that the blocks of a 'mopvar' agree with its
+% INFO = VERIFY(MOP) checks that the blocks of a 'mdopvar' agree with its
 % container metadata and with each other.
 %
 % OUTPUTS
@@ -10,7 +10,8 @@ function info = verify(Mop)
 %
 % CHECKED: metadata shapes; no all-empty row or column; per block, that its
 % output side matches its row and its input side matches its column, that it
-% puts every variable on the registry's domain.
+% puts every variable on the registry's domain, and that an 'sdopvar' block
+% carries the container's Zd.
 %
 % The space checks are SET equality of the names, not 'isequal' on the
 % lists: the block constructors enforce vars.out = [S2,S3] and vars.in =
@@ -18,19 +19,20 @@ function info = verify(Mop)
 % whenever their input spaces differ, and blocks in one column likewise.
 % Comparing with 'isequal' would reject legitimate containers.
 %
-% The constructor already rejects anything reported here, so a 'mopvar'
-% built through 'mopvar(C)' always verifies. VERIFY is for objects reached
+% The constructor already rejects anything reported here, so a 'mdopvar'
+% built through 'mdopvar(C)' always verifies. VERIFY is for objects reached
 % another way: properties assigned directly, the two-argument trusted
 % constructor, or a block replaced in place via P.C{i,j} = ....
 %
-% Cost: O(M*N) block visits, with spatial set operations on the registry.
+% Cost: O(M*N) block visits, spatial set operations on the registry, and
+% O(q) string comparisons per 'sdopvar' block guarded by an O(1) length test.
 %
-% See also MOPVAR, SIZE.
+% See also MDOPVAR, MOPVAR, SIZE.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - verify(mopvar)
+% PIETOOLS - verify(mdopvar)
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -53,28 +55,14 @@ function info = verify(Mop)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MP, 01/19/2026: Initial coding
-% MMP, 09/17/2026: Replaced the body. The 01/19/2026 draft could not run:
-%                  its first executable line read 'C' and 'fields' before
-%                  either was assigned, 'r' was never assigned, dynamic
-%                  field access was attempted with the non-field names
-%                  'dim(1)' and 'vars(1)', and 'row = Mop{i,:}' takes only
-%                  the first element of a comma list. It also compared
-%                  variable lists for equality, which rejects legitimate
-%                  containers for the canonical-order reason above. All of
-%                  it is deleted rather than commented out; the 01/19/2026
-%                  entry no longer describes code present here. The draft's
-%                  commented-out cellfun sketches noted that empty elements
-%                  should be eliminated; that is now the zero-block
-%                  convention, under which [] is a legal block whose space
-%                  and dimension come from the container metadata.
+% Initial coding MMP, 09/17/2026. Split out of @mopvar/verify, which until
+%                this date checked both cases; that file keeps the history
+%                of MP's 01/19/2026 draft. This copy differs from it only by
+%                admitting 'sdopvar' blocks and by checking the decision
+%                variable list.
 
-% % % BEGIN body replaced by MMP, 09/17/2026 - everything from here to the
-% % % END marker at the foot of the file is new; see the header entry above
-% % % for what was deleted.
-
-if ~isa(Mop,'mopvar')
-    error('verify:badInput','Input must be a mopvar object.')
+if ~isa(Mop,'mdopvar')
+    error('verify:badInput','Input must be a mdopvar object.')
 end
 
 flags = cell(0,1);
@@ -113,9 +101,9 @@ for i = 1:M
         if ~occ(i,j),   continue,   end
         b = C{i,j};
         s_j = sort(vars(Mop.space_in(j,:)));
-        if ~isa(b,'sopvar') || numel(b.dims)~=2
+        if (~isa(b,'sopvar') && ~isa(b,'sdopvar')) || numel(b.dims)~=2
             flags{end+1,1} = sprintf(...
-                'Block (%d,%d) is a ''%s'' with %d matrix dimensions; want sopvar with 2.',...
+                'Block (%d,%d) is a ''%s'' with %d matrix dimensions; want sopvar or sdopvar with 2.',...
                 i,j,class(b),numel(b.dims)); %#ok<AGROW>
             continue
         end
@@ -139,6 +127,13 @@ for i = 1:M
         % variable given two domains is invisible from inside one block.
         flags = check_dom(flags,i,j,b.vars.out,b.dom.out,vars,Mop.dom,'output');
         flags = check_dom(flags,i,j,b.vars.in ,b.dom.in ,vars,Mop.dom,'input');
+        % Decision variables; length first, so a mismatch is usually settled
+        % without comparing q names. A 'sopvar' block has none to check.
+        if isa(b,'sdopvar') && (numel(b.Zd)~=numel(Mop.Zd) || ~isequal(b.Zd(:),Mop.Zd(:)))
+            flags{end+1,1} = sprintf(['Block (%d,%d) carries a decision variable '...
+                'list of length %d, differing from the container''s %d.'],...
+                i,j,numel(b.Zd),numel(Mop.Zd)); %#ok<AGROW>
+        end
     end
 end
 
@@ -171,4 +166,3 @@ for k = 1:numel(v)
 end
 end
 
-% % % END body replaced by MMP, 09/17/2026
