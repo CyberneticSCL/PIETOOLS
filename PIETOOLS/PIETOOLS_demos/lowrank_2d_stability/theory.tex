@@ -229,15 +229,15 @@ is flagged as untested:
   Lyapunov block to noise, so its truncated faces fail at every rank tried.
   Worth attempting on a new problem --- it is deterministic --- but not to be
   relied on.
-\item[Structure: replication and transfer.] When the problem has replicated
-  states, Section~6 removes the guess entirely: the $n=1$ face is
-  constructed, not searched, at every larger $n$. More generally one can
-  warm-start the descent from the face of a \emph{neighboring} problem (a
-  smaller basis, a nearby parameter value). Measured support is partial:
-  transfer up the basis axis was used successfully as a warm start, while
-  naive transfer between differently-pruned settings failed in 1-D
-  experiments --- treat cross-problem transfer as an initialization, never as
-  a certificate.
+\item[Structure: replication --- not transfer.] When the problem has
+  replicated states, Section~6 removes the guess entirely: the $n=1$ face is
+  constructed, not searched, at every larger $n$. That is where structural
+  reuse ends. Reusing a face across a \emph{physics} change is measured to
+  fail and has been abandoned as a goal: on the demo family, the
+  $\lambda=2$ face gives an $O(1)$ operator residual already at
+  $\lambda=1.9$, while a cold search re-certifies the new problem at the
+  \emph{same} rank --- the certificate's rank survives the parameter change,
+  its subspace does not. Every new operating point pays its own discovery.
 \item[Physics-informed construction.] The mechanism of Section~2 says the
   face \emph{is} the operator square root written in the basis. When a
   candidate Lyapunov operator is known in closed form, $V$ can be written

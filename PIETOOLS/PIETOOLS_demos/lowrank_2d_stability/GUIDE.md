@@ -122,19 +122,20 @@ the new call is certification only, seconds instead of minutes.
 cert2 = pielr_certify(PIE2, cert);     % seconds, no discovery
 ```
 
-Two situations where this pays:
+Two situations where this pays — note both are the **same physics**:
 
-- **Re-certifying after a change** — a tweaked parameter, a coefficient, a
-  richer degree setting. If the old certificate's face still contains a
-  certificate for the new problem, you get it in seconds; if not, you get an
-  honest failure (the restriction can only lose feasibility, never fake a
-  certificate) and you fall back to a cold call. **Expect the failure to be
-  common across parameter changes** — the face encodes the operating point.
-  Measured on the demo's heat equation, λ = 2 → 1.9: the shipped face fails
-  at op rel 1.7e-2 (an O(1) miss, not a near-thing), while a cold call
-  re-certifies λ = 1.9 at the *same* rank [2 2] (op rel 8.2e-07, discovery
-  ~3 min). A face failure says nothing about the new system's stability —
-  only that this face doesn't contain its certificate.
+- **Re-certifying the same problem** — a saved certificate reloaded in a
+  later session, or the same system rebuilt. **Do not expect a face to
+  transfer across a physics change; that idea is measured dead and has been
+  abandoned.** On the demo's heat equation, λ = 2 → 1.9: the shipped face
+  fails at op rel 1.7e-2 (an O(1) miss, not a near-thing); on the
+  anisotropic demo the same experiment gives op rel = 1. Meanwhile a cold
+  call re-certifies λ = 1.9 at the *same* rank [2 2] (op rel 8.2e-07,
+  discovery ~3 min): the rank survives the parameter change, the subspace
+  does not, so every new operating point pays its own discovery. If you try
+  anyway, the failure is honest (the restriction can only lose feasibility,
+  never fake a certificate) and says nothing about the new system's
+  stability — `demo_your_system` section (5) demonstrates exactly this.
 - **Replicated states** — for a family of `n` copies of a certified 1-state
   system, the face is *constructed*, not searched:
 
@@ -200,7 +201,8 @@ things:
 2. **Near-miss just above the gate** (residual ~1e-6–5e-6 at some rank):
    the search's characteristic false negative — a certificate at that rank
    may still exist. Add seeds, raise `.maxrank` by one or two, or supply a
-   related face as a warm start. Accept the higher rank if it certifies;
+   face from an earlier run of the *same* problem as a warm start. Accept
+   the higher rank if it certifies;
    it is still a valid upper bound.
 3. **Your operator forces a multiplier.** If the certificate must reproduce
    a multiplication operator `a(s1,s2)` exactly, its rank includes the
@@ -240,4 +242,4 @@ Two things change relative to stability:
   means raise it.
 
 Tensor replication across states does not apply here; a previous certificate
-still chains as a warm start on the same or a nearby target.
+still chains as a warm start on the same target.

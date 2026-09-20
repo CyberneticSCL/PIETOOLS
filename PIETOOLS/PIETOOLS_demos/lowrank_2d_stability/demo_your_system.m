@@ -73,17 +73,20 @@ assert(cert2.ok,'demo_your_system: the raw-operators call did not certify.');
 fprintf(['\nBoth entry points certified: rank %s (converted PIE, cold) and ' ...
          'rank %s (raw T/A struct).\n'],mat2str(cert.r),mat2str(cert2.r));
 
-% ============ (5) warm-start on a NEARBY system ==============================
-% Change the system a little (here lam 2 -> 1.9) and try re-certifying from
-% the previous certificate: no discovery, seconds.  EXPECT THIS TO FAIL as
-% often as not -- the face encodes the operating point (MEASURED here: the
-% lam=2 face gives op rel = 1 at lam=1.9, and on the heat demo the same
-% experiment gave op rel 1.7e-2, while a cold call re-certifies lam=1.9 at
-% the SAME rank).  The failure is honest -- the restriction can only lose
-% feasibility, never fake a certificate -- and it says NOTHING about the new
-% system's stability, only that this face does not contain its certificate.
-% CC, 09/19/2026: assert removed -- a face-transfer failure is an expected,
-%                 informative outcome, not a script error (measured above).
+% ============ (5) why faces do NOT transfer across physics ===================
+% Demonstration, not a workflow: change the system (here lam 2 -> 1.9) and
+% try re-certifying from the previous certificate.  THIS FAILS, and that is
+% the point -- a face is specific to the operating point (MEASURED: the
+% lam=2 face gives op rel = 1 at lam=1.9 here, op rel 1.7e-2 on the heat
+% demo, while a cold call re-certifies lam=1.9 at the SAME rank).  Reuse a
+% certificate only on the SAME physics (saved certs, replicated states); a
+% changed system pays its own discovery.  The failure is honest -- the
+% restriction can only lose feasibility, never fake a certificate -- and
+% says NOTHING about the new system's stability.
+% CC, 09/19/2026: assert removed -- the failure is an expected, informative
+%                 outcome, not a script error (measured above).
+% CC, 09/20/2026: reframed as a demonstration of non-transfer; cross-physics
+%                 face reuse is abandoned as a workflow (maintainer decision).
 pvar s1 s2
 clear stateNameGenerator
 x = pde_var('state',1,[s1;s2],[0,1;0,1]);
