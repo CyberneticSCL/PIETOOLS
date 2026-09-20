@@ -67,6 +67,13 @@ classdef (InferiorClasses={?polynomial})dpvar
     % 12/15/21 - DJ -- Add single input single output case (y=dpvar('x'))
     % 02/14/22 - DJ -- Add option to input cell of strings (y=dpvar({'x1','x2'}))
     % 01/26/25 - DJ -- Combine decision variable names for cell to dpvar;
+    % 09/17/26 - MP -- Build C from its nonzero indices in the cellstr branch.
+    %                  The dense intermediate it replaces held nd*(nd+1)
+    %                  elements for a cell of nd decision variables, so the
+    %                  branch cost O(nd^2) MEMORY before sparse() saw it: at
+    %                  nd = 101124 it requested a 76 GB array and the
+    %                  construction died. The nonzero pattern is unchanged,
+    %                  so this is memory only, not semantics.
     
     
     
@@ -126,8 +133,21 @@ classdef (InferiorClasses={?polynomial})dpvar
                 elseif iscellstr(varargin{1})
                     [nd1,nd2] = size(varargin{1});
                     nd = nd1*nd2;
-                    if nargout<=1   
-                        Cf = sparse(reshape([repmat([0;1;zeros(nd,1)],nd-1,1);0;1],nd1*(nd+1),nd2));
+                    if nargout<=1
+                        % C has ONE nonzero per decision variable, so build it
+                        % from linear indices rather than from a dense pattern
+                        % of nd*(nd+1) elements. Rows are (matrix row outer,
+                        % dvar inner) with the constant term first, so entry p
+                        % of the cell -- the p-th dvar, of matrix entry
+                        % (i,j) = (mod(p-1,nd1)+1, floor((p-1)/nd1)+1) -- sits
+                        % at (j-1)*nd1*(nd+1) + (i-1)*(nd+1) + 1 + p, which is
+                        % 2+(p-1)*(nd+2): the same positions the dense pattern
+                        % filled.
+%                       Cf = sparse(reshape([repmat([0;1;zeros(nd,1)],nd-1,1);0;1],nd1*(nd+1),nd2));    % MP, 09/17/2026 (was)
+                        lin = 2 + (0:nd-1)'*(nd+2);                         % MP, 09/17/2026
+                        nr  = nd1*(nd+1);                                   % MP, 09/17/2026
+                        Cf  = sparse(mod(lin-1,nr)+1, ...
+                                     floor((lin-1)/nr)+1,1,nr,nd2);         % MP, 09/17/2026
                         dmat = zeros(1,0);
                         vname = {};
                         dvname = varargin{1}(:);
