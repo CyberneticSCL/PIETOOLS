@@ -1,0 +1,362 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\PP}{\mathcal{P}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\Z}{\mathcal{Z}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\tr}{\mathrm{tr}}
+
+\title{\vspace{-1.5em}Low-rank certification of 2-D PIE stability:\\ the theory behind the demo}
+\date{September 2026}
+\author{}
+
+\begin{document}
+\maketitle
+\vspace{-3em}
+
+\begin{abstract}
+\noindent
+Stability of a 2-D PIE is certified by solving a semidefinite program whose
+matrix variables are far larger than the information they carry: the
+certificates that exist have rank $2$ per block (and exactly $2n$ for $n$
+states), while the matrices being searched over have side length in the
+thousands. This note explains, with a minimum of machinery, why that rank is
+small, how the demo exploits it by searching only a low-dimensional slice of
+the positive semidefinite cone, why a certificate found this way can be
+trusted even though the search is nonconvex, and where the method is known to
+stop working. Everything quantitative below was measured on the demo's
+problem family; nothing is asserted from theory alone.
+\end{abstract}
+
+\section{The certification problem, and where the cost lives}
+
+Given a PIE with operators $(\T,\A)$, exponential stability follows from the
+existence of a PI operator $\PP\succeq 0$ (coercive) with
+\begin{equation}\label{eq:lpi}
+\T^{*}\PP\A+\A^{*}\PP\T \;=\; -\,\D, \qquad \D\succeq 0 .
+\end{equation}
+PIETOOLS turns~\eqref{eq:lpi} into a semidefinite program in the standard
+way: $\PP$ and $\D$ are parameterized so that positivity is automatic.
+Concretely, a positive PI operator is written as a quadratic form in a fixed
+finite basis of simpler operators (monomial multipliers and monomial-kernel
+integrals): collecting that basis into a column $\Z(s)$,
+\begin{equation}\label{eq:gram}
+\PP \;=\; \Z^{*} Q\, \Z, \qquad Q\succeq 0,
+\end{equation}
+so any positive semidefinite \emph{Gram matrix} $Q$ yields a valid
+$\PP\succeq0$, and~\eqref{eq:lpi} becomes a set of \emph{linear} equality
+constraints on the entries of the two Gram matrices ($Q_1$ for $\PP$, $Q_2$
+for $\D$), obtained by matching the polynomial coefficients of every operator
+parameter. The decision problem is therefore
+\begin{equation}\label{eq:sdp}
+\text{find } Q_1,Q_2\succeq 0 \quad\text{s.t.}\quad
+\mathcal{L}(Q_1,Q_2)=b ,
+\end{equation}
+with $m$ scalar equality constraints and $\sum_i N_i(N_i+1)/2$ scalar
+unknowns, where $N_i$ is the side length of Gram block $i$.
+
+The side length is $N_i = (\text{states})\times(\text{basis functions})$, and
+in two spatial dimensions the basis is what explodes: a basis over the four
+variables $(x,\theta_x,y,\theta_y)$ at per-variable degree $d$ has
+$O(d^4)$ elements. At per-variable degree~$4$ the negativity block of the
+demo problem already has $N_2=744$ for one state, i.e.\ $277{,}176$ Gram
+unknowns; four states give $4.43$ million.
+
+An interior-point solver does not mind the number of unknowns per se; what it
+must do at every iteration is form and factor an $m\times m$ system (the
+Schur complement of the KKT equations). For these LPIs that matrix is
+\emph{completely dense} --- measured on the demo family at $m=35{,}800$:
+every one of the $m^2$ entries is structurally nonzero --- so each iteration
+costs $O(m^2)$ memory and $O(m^3)$ flops, and $m$ grows like
+$(\text{states})^2$. Measured consequences: the one-state problem solves in
+$1707$\,s; the four-state problem needs a $66.8$\,GiB dense matrix and cannot
+be attempted on a $64$\,GiB machine. Memory, not time, is what fails first.
+
+\section{The observation: certificates have tiny rank}
+
+The matrices being searched over are enormous, but the certificates that
+exist inside them are not. Measured on the demo family, with every accepted
+certificate verified as described in Section~\ref{sec:verify}:
+\begin{itemize}
+\item the minimum rank of each Gram block is $2$ for one state, and it stays
+      $2$ while the basis (and hence $N$) grows from $424$ to $1208$;
+\item across $n=1,\dots,6$ replicated states the minimum rank is exactly
+      $2n$ in both blocks --- rank grows with \emph{states}, never with
+      \emph{basis size}.
+\end{itemize}
+
+There is a mechanism behind this, and it predicts both halves. A positive
+operator $\PP\succeq0$ has a square root: $\PP=\mathcal{R}^{*}\mathcal{R}$.
+If $\PP$ is an \emph{integral} operator, its square root can itself be
+represented in the same operator basis $\Z$, as a small number of rows of
+coefficients --- one row per ``square'' in the representation. Writing
+$\mathcal{R}$ with $r$ rows of coefficients $Y\in\R^{N\times r}$ gives
+$Q=YY^{\top}$, i.e.\ $\mathrm{rank}\,Q\le r$. The point is that $r$ counts
+\emph{how many squares the operator needs}, which does not change when the
+basis is enriched: raising the polynomial degree, or moving from one spatial
+dimension to two, adds columns to the search space without adding squares to
+the answer. Adding states does add squares --- the square root of an
+$n\times n$ block operator needs $n$ block rows --- which is exactly the
+measured $2n$.
+
+Two practical corollaries. First, the useful axes are separated: problem
+difficulty (basis size, spatial dimension, degree) inflates $N$ but not the
+rank, so the \emph{information content} of a certificate is a handful of
+numbers even when the SDP has millions of unknowns. Second, the rank tells
+you what a solver \emph{could} exploit; interior-point methods cannot ---
+they converge to maximum-rank solutions by design (the returned Gram ranks
+were measured at $417$--$423$ out of $424$) --- so the structure is invisible
+unless one goes looking for it.
+
+\section{Exploiting it: search a slice, not the cone}
+
+Suppose we know (or guess) an $N\times r$ matrix $V$ with orthonormal columns
+such that a certificate exists of the form
+\begin{equation}\label{eq:face}
+Q \;=\; V S V^{\top}, \qquad S\in\R^{r\times r},\; S\succeq 0 .
+\end{equation}
+Substituting~\eqref{eq:face} into~\eqref{eq:sdp} leaves a semidefinite
+program in $S$ alone: $r(r+1)/2$ unknowns instead of $N(N+1)/2$. With
+$r=2$ and $N=744$ that is $3$ unknowns instead of $277{,}140$ for that block; the resulting
+SDP solves in seconds. (In convex-analysis language, \eqref{eq:face}
+restricts the search to a \emph{face} of the positive semidefinite cone; no
+property of faces beyond the substitution itself is used.)
+
+The step that makes this safe is elementary but load-bearing:
+\begin{quote}
+$S\succeq0$ implies $VSV^{\top}\succeq0$, and the constraints
+$\mathcal{L}(Q)=b$ are linear, so \textbf{any} $(S\succeq0)$ satisfying the
+restricted constraints yields a genuine solution of the original
+problem~\eqref{eq:sdp}. The restriction can only \emph{lose} feasible points;
+it can never manufacture one.
+\end{quote}
+So a bad guess for $V$ costs a failed attempt, never a false certificate.
+The converse direction carries no guarantee, and the demo is explicit about
+this: a rank at which the search fails is reported as ``not reached,'' never
+as a proven lower bound.
+
+\section{Finding the slice --- the weak point, examined}\label{sec:bm}
+
+Everything so far is either measured fact or elementary algebra. The genuine
+weakness of the method is concentrated in one place: \emph{$V$ must be
+guessed}, and a wrong guess, while never unsafe (Section~3), yields nothing.
+This section explains how the demo guesses, why that choice is defensible,
+how it fails, and what the alternatives are.
+
+\subsection*{The proposer: factored descent}
+
+The demo finds $V$ by \emph{factored descent} (the Burer--Monteiro
+method~\cite{bm2003}): substitute $Q=YY^{\top}$ with $Y\in\R^{N\times r}$
+directly into the equality constraints and minimize the residual
+$\|\mathcal{L}(YY^{\top})-b\|^2$ over $Y$ by nonlinear least squares
+(Levenberg--Marquardt), from a handful of random starting points plus a
+warm start from the previous rank. Two things make this the right tool here:
+\begin{itemize}
+\item the semidefinite constraint disappears --- $YY^{\top}$ is positive
+      semidefinite by construction --- leaving an unconstrained problem in
+      $N\!\cdot\!r$ variables (a few thousand at $r=2$, not millions), whose
+      per-iteration linear algebra involves an $(Nr)\times(Nr)$ system;
+\item nothing in it ever touches an $m\times m$ matrix, so the memory wall of
+      Section~1 never appears, at any problem size.
+\end{itemize}
+$Y$ is then orthonormalized to give $V$, the small restricted
+SDP~\eqref{eq:face} is solved exactly, and the verification step decides.
+The unknown rank is handled by scanning $r$ upward under the same gate, then
+shrinking the certified face one direction at a time; overshooting $r$ is
+harmless, since a rank-$r$ face contains every lower-rank certificate built
+from its directions.
+
+\subsection*{What can be said in its favor --- and what cannot}
+
+The honest theoretical position is asymmetric. In one direction there is a
+guarantee of \emph{existence}: any feasible SDP with $m$ equality constraints
+admits a solution of rank $r$ with $r(r+1)/2\le m$~\cite{pataki}, so
+low-rank solutions ($r\sim\sqrt{2m}$, here 100--270) always exist. In the
+other direction there is a guarantee about the \emph{search}: when $r$ is
+taken large enough that $r(r+1)/2 > m$, the factored problem has, for
+generic data, no spurious local minima --- descent finds a global
+solution~\cite{boumal}. The demo operates far below that threshold ($r=2$
+against $m$ in the thousands), where no such guarantee applies and stalls in
+local minima are possible in principle. What can be claimed instead is
+empirical, and it was measured rather than assumed:
+\begin{itemize}
+\item at the ranks where certificates exist, the descent found them at the
+      \emph{first} random seed in most measured cases, and within three seeds
+      plus a warm start in the rest;
+\item its characteristic failure is a \emph{near-miss}, not divergence: a
+      residual settling just above the acceptance gate. One measured case
+      stalled at $1.6\times10^{-6}$ at rank $2$ on a problem where a rank-$2$
+      certificate provably exists (it was later exhibited by a structural
+      construction); the first off-family test showed the same signature.
+\end{itemize}
+That failure mode is why the architecture is a \emph{proposer--checker}
+split, and the split does real work: the nonconvex step only has to find the
+right $r$-dimensional \emph{subspace}, not the right point in it --- the
+restricted SDP then repairs the point exactly within that subspace, and the
+verification step (Section~\ref{sec:verify}) is the sole arbiter. A stalled
+descent therefore costs minutes and produces the report ``rank $r$ not
+reached,'' which is the correct statement: with this proposer, a failed rank
+is never evidence of a rank floor.
+
+For a new operator the discovery step is a one-time cost (measured 11--25
+minutes on two cold problems) --- cheaper than a single full interior-point
+solve, but not free. Everything after it is.
+
+\subsection*{Alternatives, and their measured status}
+
+Guessing $V$ is a heuristic, so the natural question is what else could
+supply it. Each of the following was either measured on this problem class or
+is flagged as untested:
+\begin{description}
+\item[Truncating the interior-point solution.] The obvious first idea, and
+  it fails for a structural reason: interior-point methods converge to the
+  \emph{maximum}-rank point of the solution set (measured Gram ranks
+  417--423 of 424), and the leading eigenvectors of such a point are not the
+  low-rank subspace. Faces truncated from full solves certified nothing on
+  the demo family --- including in a control experiment where the restriction
+  was made generous enough that success was expected.
+\item[Trace minimization.] The standard convex surrogate for low rank
+  (minimize $\tr\,Q$, then truncate). It supplied usable faces on related
+  1-D problems, but on the demo family it was measured to fail: the solver
+  exits with a numerical error and the trace objective crushes the small
+  Lyapunov block to noise, so its truncated faces fail at every rank tried.
+  Worth attempting on a new problem --- it is deterministic --- but not to be
+  relied on.
+\item[Structure: replication and transfer.] When the problem has replicated
+  states, Section~6 removes the guess entirely: the $n=1$ face is
+  constructed, not searched, at every larger $n$. More generally one can
+  warm-start the descent from the face of a \emph{neighboring} problem (a
+  smaller basis, a nearby parameter value). Measured support is partial:
+  transfer up the basis axis was used successfully as a warm start, while
+  naive transfer between differently-pruned settings failed in 1-D
+  experiments --- treat cross-problem transfer as an initialization, never as
+  a certificate.
+\item[Physics-informed construction.] The mechanism of Section~2 says the
+  face \emph{is} the operator square root written in the basis. When a
+  candidate Lyapunov operator is known in closed form, $V$ can be written
+  down rather than searched: on a 1-D beam example, injecting the known
+  energy $\mathrm{diag}(1,c)$ reproduced the certificate to machine
+  precision. For PDEs with a known energy functional this is the cheapest
+  route of all, and it is the most promising direction for removing the
+  guess in general.
+\item[Purpose-built low-rank SDP solvers.] Solvers that natively exploit
+  low rank exist --- manifold-optimization methods and sketching-based
+  conditional-gradient methods among them. On 1-D analogues of these LPIs
+  they were measured and did not overtake the pipeline above before the
+  problem sizes of interest; they have not been re-evaluated in 2-D, where
+  the balance could differ. They are alternatives to the \emph{whole}
+  pipeline rather than to the guess of $V$.
+\end{description}
+
+\section{Trust the check, not the search}\label{sec:verify}
+
+Because the proposer is nonconvex and the solver is numerical, no certificate
+is accepted on the word of either. Acceptance is a direct check of the
+original operator identity: reconstruct the PI operators $\PP$ and $\D$ from
+the candidate Gram matrices and evaluate
+\[
+\frac{\max\bigl|\,\T^{*}\PP\A+\A^{*}\PP\T+\D\,\bigr|}
+     {\max|\,\T^{*}\PP\A+\A^{*}\PP\T\,|}\;<\;10^{-6}
+\]
+where the maxima run over the coefficients of \emph{every} parameter of the
+resulting operators (all 36 parameter cells of a 2-D PI operator --- checking
+a subset was measured to pass garbage), together with positive
+semidefiniteness of every Gram block. Both halves are necessary: a point
+satisfying the equalities to $10^{-11}$ but indefinite was measured, as was
+the reverse. In this sense every certificate the demo reports is
+approximate --- exact up to a $10^{-6}$ relative residual --- which is the
+same standard the underlying SDP solvers work to.
+
+\section{The structure bonus: states replicate for free}
+
+The Gram basis produced by PIETOOLS is organized in groups (one per kind of
+basis operator), with the state index nested \emph{inside} each group. For a
+family of $n$ replicated states this has a striking consequence: if $X_1$ is
+a certified one-state Gram, then placing $I_n\otimes(\cdot)$ \emph{within
+each group} produces an $n$-state certificate with no optimization at all ---
+write it down, verify it, done. (The naive global $I_n\otimes X_1$, ignoring
+the group structure, is wrong and fails; the demo's \texttt{pielr\_tensor}
+performs the correct per-group construction and checks the group layout
+against the actual Gram sizes before using it.)
+
+Measured: the $n=1$ certificate replicates through $n=6$ with the residual
+unchanged to four digits ($9.291\times10^{-7}$), including sizes where the
+direct solve is memory-infeasible. This is why the demo's ``solve'' column is
+seconds at every $n$: after one discovery at $n=1$, larger $n$ requires only
+assembly and verification.
+
+\section{What it buys, and where it stops}
+
+\begin{center}
+\begin{tabular}{@{}rrrrrl@{}}
+\toprule
+$n$ & Gram unknowns & setup (s) & certify (s) & residual & direct solve\\
+\midrule
+1 & 277{,}176   & 5.5  & 1.6  & $9.3\times10^{-7}$ & 1707 s\\
+2 & 1{,}107{,}952 & 26.4 & 6.2  & $9.3\times10^{-7}$ & $\sim$8.6 h (est.)\\
+3 & 2{,}492{,}328 & 68.5 & 16.0 & $9.3\times10^{-7}$ & $\sim$98 h (est.)\\
+4 & 4{,}430{,}304 & 278  & 47   & $9.3\times10^{-7}$ & infeasible (66.8 GiB)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+Setup (assembling the LPI) is now the dominant cost: the cone side has been
+removed from the scaling path, and what remains is program construction.
+
+Known limits, all measured rather than conjectured:
+\begin{enumerate}
+\item \textbf{Multipliers cost their sum-of-squares length.} The mechanism
+      of Section~2 is about integral operators. If the certificate is
+      \emph{forced} to reproduce a multiplication operator $a(s)$ --- as in
+      weighted inequalities, or Lyapunov weights for variable-coefficient
+      PDEs --- then the corresponding Gram sub-block must represent $a$ as a
+      sum of squares, and its rank is exactly the number of squares $a$
+      needs. In one spatial variable that number is at most $2$ (every
+      nonnegative univariate polynomial is a sum of two squares), so the
+      effect is benign. In two variables it is unbounded in degree
+      (measured: $a=1+x^2+y^2$ forces rank $3$), and a weight that is
+      positive on the domain but \emph{not} a sum of squares makes the
+      problem infeasible outright at these settings. Pure PDE stability
+      problems dodge all of this structurally: their negativity operator has
+      no multiplication part whenever $\T$ and $\A$ have none, which holds
+      for every 2-D example shipped with PIETOOLS.
+\item \textbf{Low rank is a property of certificates with margin.} As the
+      operating point approaches the boundary of what the LPI can certify at
+      all, the minimum rank climbs toward full (measured: floor $3$ at half
+      the certifiable boundary, $6$ at $0.8$, none found $\le 6$ at $0.95$).
+      Borderline certificates are not compressible.
+\item \textbf{The measured laws are regularities, not theorems.} Rank $2$,
+      the $2n$ law, and the replication property are measurements on the
+      reaction--diffusion family plus two PIETOOLS library examples, at the
+      direct-form stability LPI with no Positivstellensatz terms. The API
+      exists precisely so that other systems can be probed; the first
+      off-family datapoint (an anisotropic variant) certified at rank
+      $[3\;3]$ with rank $2$ not reached --- consistent with the picture,
+      but a reminder that the constants are problem-dependent.
+\end{enumerate}
+
+\begin{thebibliography}{9}\small
+\bibitem{bm2003} S.~Burer and R.D.C.~Monteiro,
+``A nonlinear programming algorithm for solving semidefinite programs via
+low-rank factorization,'' \emph{Mathematical Programming} 95(2):329--357,
+2003.
+\bibitem{pataki} G.~Pataki,
+``On the rank of extreme matrices in semidefinite programs and the
+multiplicity of optimal eigenvalues,'' \emph{Mathematics of Operations
+Research} 23(2):339--358, 1998; see also A.~Barvinok, \emph{Discrete \&
+Computational Geometry} 13:189--202, 1995.
+\bibitem{boumal} N.~Boumal, V.~Voroninski, and A.S.~Bandeira,
+``The non-convex Burer--Monteiro approach works on smooth semidefinite
+programs,'' \emph{NeurIPS} 2016; deterministic guarantees in \emph{Comm.
+Pure Appl.\ Math.} 73(3):581--608, 2020.
+\end{thebibliography}
+
+\end{document}
