@@ -1,11 +1,25 @@
-function [R,q,info] = restrict_solve_pos(prog,Ptgt,Peop,P,Atf,bf,V)
+function [R,q,info] = restrict_solve_pos(prog,Ptgt,Peop,P,Atf,bf,V,use_sdp) % CC, 09/20/2026
 % restrict_solve_pos -- restrict_solve.m for BARE POSITIVITY programs: the only
 % change is the acceptance gate, opcheck_pos2d (Ptgt vs Peop(q)) instead of
 % opcheck_2d's stability identity.  The restriction/lift mechanics, the
 % sparse-side application of V', the (:) find-orientation trap at r = 1, the
-% pivoted-QR row reduction and the free-padding for SeDuMi's variable count are
-% copied verbatim from the validated restrict_solve.m -- see its header for
-% the soundness (one-way) and memory arguments.
+% pivoted-QR row reduction, the backslash solve of the kept rows and the PSD
+% projection of S are copied verbatim from the validated restrict_solve.m --
+% see its header for the soundness (one-way) argument, for why the restricted
+% system is a DETERMINED solve rather than an optimisation, for why the
+% projection cannot manufacture a certificate, and for the memory argument.
+% use_sdp = true restores the pre-09/20 SeDuMi solve as the oracle.         % CC, 09/20/2026
+%
+% CC, 09/20/2026: solve the restricted system by backslash on the kept rows
+%          and project S onto the PSD cone, instead of calling SeDuMi,
+%          tracking restrict_solve.m: the system is determined (np == rM
+%          measured at every working rank) and the SDP call returned x = 0 on
+%          faces that contain a certificate.  MEASURED on this program, both
+%          arms in one session on identical faces: 6 banked certificates
+%          unchanged to every printed digit, 6 superset faces that SeDuMi
+%          rejected now accepted, 9 negative controls still rejected.  The
+%          gate, opcheck_pos2d, is untouched and remains the only acceptance.
+if nargin<8 || isempty(use_sdp), use_sdp = false; end                       % CC, 09/20/2026
 Ns = P.Ns;   Kf = P.Kf;   m = P.m;   B = numel(Ns);
 rr = zeros(1,B);
 for i = 1:B, rr(i) = size(V{i},2); end
@@ -34,6 +48,7 @@ Atr = sparse(cat(1,Ri{:}),cat(1,Rj{:}),cat(1,Rv{:}),Kf+sum(rr.^2),m);
 % ---- M: the restricted map in SYMMETRIC parameters ------------------------
 np = sum(rr.*(rr+1)/2);
 M = zeros(m,np);  pcol = 0;  roff2 = Kf;
+pidx = cell(1,np);   % where s(p) lands in xr; see restrict_solve           % CC, 09/20/2026
 for i = 1:B
     ri = rr(i);
     Ab = full(Atr(roff2+(1:ri^2),:));                 % ri^2 x m, ri is tiny
@@ -42,28 +57,58 @@ for i = 1:B
             pcol = pcol + 1;
             if a==bq
                 M(:,pcol) = Ab((a-1)*ri+a,:)';
+                pidx{pcol} = roff2+(a-1)*ri+a;                              % CC, 09/20/2026
             else
                 M(:,pcol) = (Ab((bq-1)*ri+a,:) + Ab((a-1)*ri+bq,:))';
+                pidx{pcol} = roff2+[(bq-1)*ri+a, (a-1)*ri+bq];              % CC, 09/20/2026
             end
         end
     end
     roff2 = roff2 + ri^2;
 end
 
-% ---- reduce to independent rows, then the tiny SDP ------------------------
+% ---- CC, 09/20/2026, START: backslash + PSD projection instead of SeDuMi --
+% ---- reduce to independent rows, then the tiny DETERMINED solve -----------
+% (was "...then the tiny SDP"; the row selection itself is unchanged)
 bfull = full(bf(:));
 [~,Rq,eq_] = qr(full(M'),0);
 dq = abs(diag(Rq));
 rM = max(nnz(dq > max(dq)*1e-12),1);
 keep = sort(eq_(1:rM));
-npad = max(0, rM - (Kf + sum(rr.^2)) + 1);
-Atr_s = [sparse(npad,m); Atr];
-Kr = struct('f',Kf+npad,'l',0,'s',rr);
-pars.fid = 0;
-[xr,~,infr] = sedumi(Atr_s(:,keep),bfull(keep),sparse(size(Atr_s,1),1),Kr,pars);
-xr = full(xr);   xr = xr(npad+1:end);
+if use_sdp                             % oracle: the pre-09/20 SeDuMi path  % CC, 09/20/2026
+    npad = max(0, rM - (Kf + sum(rr.^2)) + 1);
+    Atr_s = [sparse(npad,m); Atr];
+    Kr = struct('f',Kf+npad,'l',0,'s',rr);
+    pars.fid = 0;
+    [xr,~,infr] = sedumi(Atr_s(:,keep),bfull(keep),sparse(size(Atr_s,1),1),Kr,pars);
+    xr = full(xr);   xr = xr(npad+1:end);
+    info.sedumi_iter = getf(infr,'iter');
+    info.clip = NaN;                     % the cone was the solver's job    % CC, 09/20/2026
+else                                                                        % CC, 09/20/2026
+    % free variables ride along in the same solve; Kf = 0 in every program  % CC, 09/20/2026
+    % this package builds, and M covers the PSD blocks only                 % CC, 09/20/2026
+    s = [full(Atr(1:Kf,keep))', M(keep,:)] \ bfull(keep);                   % CC, 09/20/2026
+    xr = zeros(Kf+sum(rr.^2),1);   xr(1:Kf) = s(1:Kf);                      % CC, 09/20/2026
+    for p = 1:np, xr(pidx{p}) = s(Kf+p); end         % S_ab = S_ba = s(p)   % CC, 09/20/2026
+    % project S onto the PSD cone; see restrict_solve.m's header            % CC, 09/20/2026
+    roff3 = Kf;   info.clip = 0;                                            % CC, 09/20/2026
+    for i = 1:B                                                             % CC, 09/20/2026
+        ri = rr(i);                                                         % CC, 09/20/2026
+        Si = reshape(xr(roff3+(1:ri^2)),ri,ri);   Si = (Si+Si')/2;          % CC, 09/20/2026
+        [Wc,Dc] = eig(Si);   dc = diag(Dc);                                 % CC, 09/20/2026
+        if min(dc) < 0                                                      % CC, 09/20/2026
+            info.clip = max(info.clip,-min(dc)/max(max(dc),realmin));       % CC, 09/20/2026
+            Si = Wc*diag(max(dc,0))*Wc';   xr(roff3+(1:ri^2)) = Si(:);      % CC, 09/20/2026
+        end                                                                 % CC, 09/20/2026
+        roff3 = roff3 + ri^2;                                               % CC, 09/20/2026
+    end                                                                     % CC, 09/20/2026
+    info.sedumi_iter = -1;                           % no SeDuMi call       % CC, 09/20/2026
+end                                                                         % CC, 09/20/2026
+if use_sdp, info.method = 'sdp'; else, info.method = 'ls'; end              % CC, 09/20/2026
+% ---- CC, 09/20/2026, END --------------------------------------------------
 info.t = toc(t0);
-info.np = np;  info.rM = rM;  info.sedumi_iter = getf(infr,'iter');
+info.np = np;  info.rM = rM;
+%info.sedumi_iter = getf(infr,'iter');   % now set in the branch above      % CC, 09/20/2026 (was)
 
 % ---- lift and verify against the FULL ORIGINAL program --------------------
 xfull = zeros(Kf+sum(Ns.^2),1);

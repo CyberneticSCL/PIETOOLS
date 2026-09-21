@@ -69,7 +69,7 @@ This does four things, timed separately in the report:
 |---|---|---|
 | setup | assemble the stability LPI (same program as `PIETOOLS_stability_2D`, psatz 0) and extract the SDP data | seconds |
 | discovery | search for a low-rank face: factored descent from a few seeds, starting at the ESTIMATED rank 2·n₂ (the measured law) and escalating to `opts.maxrank` | **minutes** (measured 11–25 min on two cold problems) |
-| certification | solve the ~10–50-unknown restricted SDP on the found face, then shrink it per block | seconds |
+| certification | solve the ~10–50-unknown restricted system on the found face (CC, 09/20/2026: a determined linear solve plus a PSD projection, not an SDP — see `private/restrict_solve.m`), then shrink it per block | seconds |
 | verification | rebuild the PI operators from the candidate and check the operator identity over all 36 parameter cells, plus PSD of every block | seconds |
 
 A one-screen report prints at the end. The line that matters:

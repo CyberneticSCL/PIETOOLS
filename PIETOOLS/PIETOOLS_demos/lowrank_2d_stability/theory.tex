@@ -199,7 +199,15 @@ empirical, and it was measured rather than assumed:
 That failure mode is why the architecture is a \emph{proposer--checker}
 split, and the split does real work: the nonconvex step only has to find the
 right $r$-dimensional \emph{subspace}, not the right point in it --- the
-restricted SDP then repairs the point exactly within that subspace, and the
+restricted solve then repairs the point exactly within that subspace, and the
+% CC, 09/20/2026: "restricted SDP" -> "restricted solve": on the face the
+% equality system is determined (np = rank M measured at r = 2..30), so it is
+% a linear solve plus a projection onto the PSD cone, not an SDP.  Rank
+% deficiency alone is NOT the obstruction: a rank-deficient face (np 21,
+% rM 13) is repaired at op rel 1.2e-07 where the SDP call rejects it at
+% 2.9e-06.  Severe ill CONDITIONING is: at cond(M) ~ 3e16 neither the
+% linear solve nor the SDP finds the certificate the face demonstrably
+% contains.
 verification step (Section~\ref{sec:verify}) is the sole arbiter. A stalled
 descent therefore costs minutes and produces the report ``rank $r$ not
 reached,'' which is the correct statement: with this proposer, a failed rank
