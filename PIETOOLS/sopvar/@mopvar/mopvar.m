@@ -134,6 +134,15 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) mopvar
         dim_out = zeros(0,1);       % M x 1 component counts q_i
         dim_in = zeros(0,1);        % N x 1 component counts p_j
     end
+    properties(Access=protected)
+        % Common row-basis representation.
+        leftCommonBasis = cell(0,1);    % M x 1, one common ZL per row
+        leftCommonC     = cell(0,0);    % M x N sopvar blocks in row-common form
+    
+        % Common column-basis representation.
+        rightCommonBasis = cell(0,1);   % N x 1, one common ZR per column
+        rightCommonC     = cell(0,0);   % M x N sopvar blocks in column-common form
+    end
 
     methods
         function P = mopvar(varargin)
