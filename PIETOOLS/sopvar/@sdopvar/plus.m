@@ -5,6 +5,12 @@ function C = plus(A,B)
 % 'sopvar2sdopvar'. Adding a known block to a decision operator is normal
 % usage, and since 'sdopvar' now lists ?sopvar among its InferiorClasses
 % both A+Pop and Pop+A are dispatched here.
+% MMP, 09/21/2026: Compare the variable lists with 'isequal' rather than
+% 'any(~strcmp(...))'. '@sopvar/plus' took the same fix on 09/07/2026 and
+% this copy was missed. Reached by adding the strict-positivity identity to a
+% 'posmopvar' container, whose R^n block has an empty variable list: '{}' and
+% a 1 x 0 cellstr name the same space, and strcmp of two different-sized
+% cellstr does not compare them.
 
 % A fixed 'sopvar' operand is promoted to a decision operator with a        % MMP, 09/07/2026
 % zero B, so that A+Pop and Pop+A work; mixing fixed and decision blocks    % MMP, 09/07/2026
@@ -24,7 +30,14 @@ end                                                                         % MM
 if any(A.dims~=B.dims)
     error('Dimensions of summands A and B do not match');
 end
-if any(~strcmp(A.vars.in,B.vars.in)) || any(~strcmp(A.vars.out,B.vars.out))
+% 'isequal' rather than 'any(~strcmp(...))', the same fix '@sopvar/plus'     % MMP, 09/21/2026
+% took on 09/07/2026 and this line was missed by: strcmp of two cellstr of   % MMP, 09/21/2026
+% different size does not compare them, so an operand on {} against one on   % MMP, 09/21/2026
+% {'s1'} either throws a size error or silently passes the check. The empty   % MMP, 09/21/2026
+% case is reached as soon as a container holds an R^n block, since '{}' and   % MMP, 09/21/2026
+% a 1 x 0 cellstr name the same space but are not the same size.             % MMP, 09/21/2026
+if ~isequal(A.vars.in(:),B.vars.in(:)) || ~isequal(A.vars.out(:),B.vars.out(:)) % MMP, 09/21/2026
+%if any(~strcmp(A.vars.in,B.vars.in)) || any(~strcmp(A.vars.out,B.vars.out)) % MMP, 09/21/2026 (was)
     error('Summands A and B map between different spaces');
 end
 if any(any(A.dom.in~=B.dom.in)) || any(any(A.dom.out~=B.dom.out))

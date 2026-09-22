@@ -1,6 +1,44 @@
 function C = mtimes(A,B)
 % Multiplication for sdopvar with numeric matrices/scalars.
 %
+% MMP, 09/22/2026: Three changes to the assembly loop of
+%                  'mtimesSdopvarAndSopvar', which a time-and-memory profile
+%                  put at 29% of a three-variable composition. Line-profiled,
+%                  two statements held 78% of the routine:
+%                  'Baccum = Baccum + Lparam.B*T.'' at 1.501 s over 19683
+%                  hits and 'T = kron(MR.',speye(nRowsC))' at 0.655 s.
+%                  (1) The decision coefficient is accumulated as triplets
+%                  and built with one 'sparse' per gamma; a sparse '+'
+%                  rebuilds the structure on every addition, which is the
+%                  pattern CLAUDE.md s2 forbids, and 'sparse' sums duplicate
+%                  subscripts so the semantics are unchanged.
+%                  (2) The A accumulation applies vec(L*MR) = (MR' kron
+%                  I)*vec(L) as a reshape, so it no longer needs the
+%                  Kronecker product, and kron(MR,I) is built directly rather
+%                  than transposing kron(MR.',I).
+%                  (3) A gamma cell whose middle factor is all zero
+%                  contributes nothing and is skipped before the kron; only
+%                  (11/9)^n3 of the 3^n3 cells can be nonzero, measured at
+%                  93.2% empty for three variables. Every dimension check
+%                  still runs.
+%                  MEASURED: the composed operator is unchanged to one unit
+%                  in the last place. Against the previous code at two
+%                  variables, max|B_new - B_old| = 2.22e-16 on coefficients
+%                  of magnitude up to 3.57, a relative 6.2e-17, and
+%                  'lpi_eq_sdopvar' emits the same number of equality rows.
+%                  It is not bit-identical: summing duplicate subscripts
+%                  inside 'sparse' orders the additions differently from a
+%                  pairwise '+', and floating-point addition is not
+%                  associative, so 8605 cancellations that previously landed
+%                  on exact zero now leave a residue at eps and are stored.
+%                  They are NOT pruned: that would need a tolerance, and a
+%                  hard-coded one could drop a legitimate small coefficient.
+%                  The cost is 0.6% more stored entries.
+%                  Timing, alternating A/B with two repetitions: the isolated
+%                  composition goes from 1.158/1.200 s to 0.374/0.389 s at
+%                  three variables (3.1x) and 0.672/0.726 to 0.500/0.447 at
+%                  two (1.5x); one variable is unchanged, the problem being
+%                  too small for the loop to matter.
 % MMP, 09/11/2026: Prune the composed monomial bases before constructing C,
 %                  matching '@sopvar/mtimes'. The composed CZL/CZR hold every
 %                  degree the semiseparable integrals can reach (sopvar.pdf
@@ -447,7 +485,19 @@ nMid = A.dims(2);
 for igamma = 1:numel(Cparams.A)
 
     Aaccum = sparse(nCoefC,1);
-    Baccum = sparse(nDecision,nCoefC);
+    % The decision coefficient is accumulated as TRIPLETS and built with one  % MMP, 09/22/2026
+    % 'sparse' call per gamma, instead of 'Baccum = Baccum + ...' inside the   % MMP, 09/22/2026
+    % j,k loops. A sparse '+' rebuilds the structure on every addition, and    % MMP, 09/22/2026
+    % that statement ran 19683 times for a three-variable composition:        % MMP, 09/22/2026
+    % line-profiled at 1.501 s, 54% of this routine, against 0.046 s for the  % MMP, 09/22/2026
+    % A accumulation beside it. CLAUDE.md s2: build sparse matrices once from  % MMP, 09/22/2026
+    % triplets, never grow one in a loop. 'sparse' sums duplicate (i,j)        % MMP, 09/22/2026
+    % entries, which is exactly the accumulation this replaces.               % MMP, 09/22/2026
+    nAcc = 0;                                                                % MMP, 09/22/2026
+    accI = cell(size(beta_b,1)*size(alpha_a,1),1);                           % MMP, 09/22/2026
+    accJ = cell(size(accI));                                                 % MMP, 09/22/2026
+    accV = cell(size(accI));                                                 % MMP, 09/22/2026
+%   Baccum = sparse(nDecision,nCoefC);                                       % MMP, 09/22/2026 (was)
 
     for j = 1:size(beta_b,1)
 
@@ -459,6 +509,10 @@ for igamma = 1:numel(Cparams.A)
         end
 
         nColsL = numel(Lparam.A)/nRowsC;
+        % The left constant term as a matrix, hoisted out of the k loop: it   % MMP, 09/22/2026
+        % does not depend on k, and with it the A accumulation can use        % MMP, 09/22/2026
+        % vec(L*MR) = (MR' kron I)*vec(L) directly and never form the kron.   % MMP, 09/22/2026
+        Lmat = reshape(Lparam.A,nRowsC,nColsL);                              % MMP, 09/22/2026
 
         if size(Lparam.B,1) ~= nDecision || ...
                 size(Lparam.B,2) ~= numel(Lparam.A)
@@ -493,16 +547,37 @@ for igamma = 1:numel(Cparams.A)
                     'The assembled right factor has an unexpected size.');
             end
 
-            % vec(L*MR) = (MR' kron I)*vec(L)
-            T = kron(MR.',speye(nRowsC));
+            % An all-zero middle factor contributes nothing to either        % MMP, 09/22/2026
+            % accumulator, so the kron and the multiply below are skipped    % MMP, 09/22/2026
+            % for it. Every dimension check above still runs. MEASURED in    % MMP, 09/22/2026
+            % the constructor that only (11/9)^n3 of the 3^n3 gamma cells    % MMP, 09/22/2026
+            % can be nonzero -- 93.2% are empty at three variables -- and    % MMP, 09/22/2026
+            % the same table governs the cells consumed here.                % MMP, 09/22/2026
+            if nnz(MR)==0                                                    % MMP, 09/22/2026
+                continue                                                     % MMP, 09/22/2026
+            end                                                              % MMP, 09/22/2026
 
-            Aaccum = Aaccum + T*Lparam.A;
-            Baccum = Baccum + Lparam.B*T.';
+            % vec(L*MR) = (MR' kron I)*vec(L), applied as a reshape rather   % MMP, 09/22/2026
+            % than by forming the Kronecker product.                         % MMP, 09/22/2026
+            Aaccum = Aaccum + reshape(Lmat*MR,[],1);                         % MMP, 09/22/2026
+
+            % kron(MR,I) is kron(MR.',I).', so it is built in that form      % MMP, 09/22/2026
+            % directly and the transpose of a q-column sparse is avoided.    % MMP, 09/22/2026
+            [bi,bj,bv] = find(Lparam.B*kron(MR,speye(nRowsC)));              % MMP, 09/22/2026
+            nAcc = nAcc+1;                                                   % MMP, 09/22/2026
+            accI{nAcc} = bi(:);     accJ{nAcc} = bj(:);                      % MMP, 09/22/2026
+            accV{nAcc} = bv(:);                                              % MMP, 09/22/2026
+%           T = kron(MR.',speye(nRowsC));                                    % MMP, 09/22/2026 (was)
+%           Aaccum = Aaccum + T*Lparam.A;                                    % MMP, 09/22/2026 (was)
+%           Baccum = Baccum + Lparam.B*T.';                                  % MMP, 09/22/2026 (was)
         end
     end
 
     Cparams.A{igamma} = Aaccum;
-    Cparams.B{igamma} = Baccum;
+    Cparams.B{igamma} = sparse(vertcat(accI{1:nAcc}), ...                    % MMP, 09/22/2026
+                               vertcat(accJ{1:nAcc}), ...                    % MMP, 09/22/2026
+                               vertcat(accV{1:nAcc}),nDecision,nCoefC);      % MMP, 09/22/2026
+%   Cparams.B{igamma} = Baccum;                                              % MMP, 09/22/2026 (was)
 end
 [foundIn,idxIn] = ismember(Cvarsin,B.vars.in);
 [foundOut,idxOut] = ismember(Cvarsout,A.vars.out);

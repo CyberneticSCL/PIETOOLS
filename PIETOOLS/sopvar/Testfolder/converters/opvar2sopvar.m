@@ -36,6 +36,13 @@ function Psop = opvar2sopvar(Pop)
 % authorship, and a brief description of modifications
 %
 % DJ, 05/27/2026: Initial coding
+% MMP, 09/21/2026: Convert the R -> R component to a numeric matrix. The
+%                   branch passed 'Pop.P' straight through, so a 'polynomial'
+%                   P - which is what 'convert(...,''pie'')' produces even
+%                   for a constant - reached 'sopvar' as a parameter and then
+%                   failed inside '@sopvar/mtimes', which calls 'find' on the
+%                   parameters. Found via 'opvar2mopvar' on a coupled ODE-PDE
+%                   PIE, where the R -> R block is the one carrying it.
 
 % Check that the input is of appropraite class
 if isa(Pop,'opvar2d')
@@ -65,7 +72,20 @@ ZL = cell(1,0);         ZR = cell(1,0);
 if Pdim(1,1) && Pdim(1,2)
     % % Pop maps R to R
     dims = Pdim(1,:);
-    params = {Pop.P};
+    % 'sopvar' documents its parameters as sparse matrices and 'mtimes'     % MMP, 09/21/2026
+    % calls 'find' on them, so a 'polynomial' here fails there rather than  % MMP, 09/21/2026
+    % on construction. The other three branches already go through          % MMP, 09/21/2026
+    % 'full', and 'convert(...,''pie'')' returns a constant P typed         % MMP, 09/21/2026
+    % 'polynomial'. A P that genuinely depends on a spatial variable is not % MMP, 09/21/2026
+    % an R -> R map at all, so refuse it here.                              % MMP, 09/21/2026
+    Pmat = polynomial(Pop.P);                                               % MMP, 09/21/2026
+    if ~isempty(Pmat.varname)                                               % MMP, 09/21/2026
+        error("The R -> R component depends on the variable(s) "...         % MMP, 09/21/2026
+              +strjoin(Pmat.varname(:)',", ")+", but a map R^m -> R^m "...  % MMP, 09/21/2026
+              +"must be a constant matrix.")                                % MMP, 09/21/2026
+    end                                                                     % MMP, 09/21/2026
+%   params = {Pop.P};                                                       % MMP, 09/21/2026 (was)
+    params = {double(Pmat)};                                                % MMP, 09/21/2026
 
 elseif Pdim(1,1)
     % % Pop maps L2 to R
