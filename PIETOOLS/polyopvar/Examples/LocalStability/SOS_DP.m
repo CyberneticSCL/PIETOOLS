@@ -90,10 +90,10 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
     % end
 
     %% Ensure strict positivity of the constructed SOS DP.
-    eppos = 1e-4;
-    for i = 1:d
-        Pcell{i,i} = Pcell{i,i} + eppos*eye(size(Pcell{i,i}));
-    end
+    % eppos = 1e-4;
+    % for i = 1:d
+    %     Pcell{i,i} = Pcell{i,i} + eppos*eye(size(Pcell{i,i}));
+    % end
     
     %% Evaluate DP = <Z_d(x), P Z_d(x)> as a complete block quadratic form.
     
