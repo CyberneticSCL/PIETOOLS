@@ -51,17 +51,20 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
     % CR, 09/08/2026: Enforce the operator-adjoint condition through equality
     %                   of the corresponding scalar distributed-polynomial
     %                   forms.
+    % DJ, 09/22/2026: Add monomials for multiplier operator in the basis
+    %                   operator Zop.
         
             
     %% Build the monomial basis used to parameterize P.
 
     % Construct the basis operator corresponding to \hat{U} in paper.
     pvar s s_dum
-    Zmon = monomials([s,s_dum],0:opdeg);
+    Zmon1 = monomials(s,0:opdeg);
+    Zmon2 = monomials([s,s_dum],0:opdeg);
     Zop = opvar();
-    Zop.R.R0 = [0*Zmon;0*Zmon];
-    Zop.R.R1 = [Zmon;0*Zmon];
-    Zop.R.R2 = [0*Zmon;Zmon];
+    Zop.R.R0 = [Zmon1;0*Zmon2;0*Zmon2];
+    Zop.R.R1 = [0*Zmon1;Zmon2;0*Zmon2];
+    Zop.R.R2 = [0*Zmon1;0*Zmon2;Zmon2];
     Zop.var1 = s;
     Zop.var2 = s_dum;
     Zop.I = dom;
