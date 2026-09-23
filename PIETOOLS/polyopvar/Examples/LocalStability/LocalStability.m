@@ -105,19 +105,22 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     %% Define the lower bound on the LF and enforce constraint.
     
     % Define lower bound.
-    V_low = V + eppos*bound; % bound term is already negated.
+    %V_low = V + eppos*bound; % bound term is already negated.
+    V_low = V; % enforce V>=0
     
     % Enforce lower bound by defining and equating with new SOS DP.
     [prog, p3] = SOS_DP(prog, V_deg, V_mon, x, dom);
     prog = piesos_eq(prog, V_low-p3);
     fprintf(" --- Enforced lower bound equality ---\n");
+
+    V = V_low - eppos*bound; % ensure strict positivity V>=-eppos*bound
     
     
     %% Define the upper bound on the LF and enforce constraint.
 
     % Define upper bound.
     V_up = -C*bound - V - p1*g; % bound term is already negated.
-    
+
     % Enforce upper bound by defining and equating with new SOS DP.
     deg4 = max(V_deg,p1_deg+1);
     [prog, p4] = SOS_DP(prog, deg4, V_mon, x, dom);
@@ -129,7 +132,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     
     % Define constraint.
     dV_con = -dV - 2*lambda*V - p2*g; 
-    
+
     % Enforce constraint by defining and equating with new SOS DP.
     deg5 = max(V_deg,p2_deg+1);
     [prog, p5] = SOS_DP(prog, deg5, V_mon, x, dom);
