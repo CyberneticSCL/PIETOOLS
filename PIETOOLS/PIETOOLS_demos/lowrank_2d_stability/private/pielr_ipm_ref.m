@@ -1,4 +1,4 @@
-function ref = pielr_ipm_ref(prog,H,D,A,vb,solver)                          % CC, 09/23/2026
+function ref = pielr_ipm_ref(prog,H,D,A,vb,solver,rb)                       % CC, 09/23/2026
 % PIELR_IPM_REF  Solve the SAME assembled program with the interior-point
 % method and judge it with the SAME gate, to give the low-rank result a
 % reference measured in this session.
@@ -21,7 +21,7 @@ function ref = pielr_ipm_ref(prog,H,D,A,vb,solver)                          % CC
 %         ref.err  error message if the solve failed, '' otherwise
 
 ref = struct('ok',false,'rel',NaN,'rel_d',NaN,'maxRes',NaN,'maxNrm',NaN, ...
-             'solver','', ...
+             'solver','','rel_obj',NaN,'fixed',false, ...
              'mineig',NaN,'rank',NaN,'gam',NaN,'t',NaN,'err','');
 % THE REFERENCE SOLVER IS AN ARGUMENT, and it is pinned.  sossolve takes the
 % first solver on the path and mosekopt leads its list, so an unset
@@ -48,6 +48,7 @@ ref = struct('ok',false,'rel',NaN,'rel_d',NaN,'maxRes',NaN,'maxNrm',NaN, ...
 % the best available.  Mosek is also 4-6x faster, so the extra solve is cheap
 % relative to the low-rank arm it is scoring.
 if nargin<6 || isempty(solver), solver = 'best'; end                        % CC, 09/23/2026
+if nargin<7, rb = []; end                                                   % CC, 09/24/2026
 if strcmpi(solver,'best')
     cand = {};
     if ~isempty(which('sedumi')),   cand{end+1} = 'sedumi';   end
@@ -55,7 +56,11 @@ if strcmpi(solver,'best')
     if isempty(cand), ref.err = 'no interior-point solver on the path'; return, end
     best = [];
     for i = 1:numel(cand)
-        ri = pielr_ipm_ref(prog,H,D,A,vb,cand{i});
+        % rb is threaded through, so each candidate is ranked on the SAME
+        % quantity the score will use -- the fixed-gamma residual.  Ranking
+        % on the optimising residual and then re-solving the winner would
+        % pick a solver by a number nothing downstream reads. % CC, 09/24/2026
+        ri = pielr_ipm_ref(prog,H,D,A,vb,cand{i},rb);
         if isempty(ri.err) && (isempty(best) || ri.rel < best.rel), best = ri; end
     end
     if isempty(best)
@@ -111,4 +116,37 @@ ref.maxRes = R.maxRes;  ref.maxNrm = R.maxNrm;
 ref.mineig = R.mineig;  ref.rank = R.rank;
 jc = find(D.c);
 if numel(jc)==1, ref.gam = x(jc); end
+
+% ---- MATCH THE COMPUTATION THE CANDIDATE ACTUALLY PERFORMS --------------
+% (CC, 09/24/2026) When the LPI carries an objective, the two arms were not
+% solving the same kind of problem: pielr_bisect_obj never optimises -- it
+% PINS gamma and tests feasibility -- while this reference minimised.  With
+% score = rel/ipm_rel the reference residual sets the acceptance threshold,
+% so the mismatch is not cosmetic: an optimising solve reaches a worse
+% equality residual (the iterates trade feasibility against optimality;
+% with c = 0 the dual condition is satisfiable for free and the solver
+% spends everything on primal feasibility), which INFLATES the threshold and
+% admits candidate points that a like-for-like reference would reject.
+%
+% Given a rebuild handle, re-solve at the optimum as a pure feasibility
+% program and report THAT residual, keeping gamma from the optimising solve.
+% Without one the behaviour is exactly as before, so every existing caller
+% is unaffected.
+if nargin>=7 && ~isempty(rb) && isfinite(ref.gam)
+    try
+        [pg,Hg] = rb(ref.gam);
+        Dg = pielr_rawdata(pg);
+        rg = pielr_ipm_ref(pg,Hg,Dg,A,vb,solver);      % no rb: no recursion
+        if isempty(rg.err) && isfinite(rg.rel)
+            ref.rel_obj = ref.rel;        % keep both; the ratio is the finding
+            ref.rel = rg.rel;   ref.ok = rg.ok;
+            ref.maxRes = rg.maxRes;  ref.maxNrm = rg.maxNrm;
+            ref.rel_d  = rg.rel_d;
+            ref.mineig = rg.mineig;  ref.rank = rg.rank;
+            ref.fixed  = true;
+        end
+    catch ME
+        ref.err = ['fixed-gamma reference failed: ' ME.message];
+    end
+end
 end

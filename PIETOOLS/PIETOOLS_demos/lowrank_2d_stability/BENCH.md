@@ -392,3 +392,329 @@ so these are not syntax faults.
   diverged from `private/`. By that suite's own `t1d_corefiles` contract ("If these diverge from
   ../private/, every other result here becomes a statement about a copy"), T0 fails until they
   are re-synced.
+
+---
+
+## 8. The objective is the wrong question to ask the solver
+
+Raised by the maintainer, then by the parallel cuADMM session: *are you using an objective in
+these test cases?* The answer turned out to be "in one arm only", and that asymmetry is the
+mechanism behind the single unsoundness the suite has measured.
+
+### The asymmetry
+
+Nothing in the low-rank pipeline optimises. `bm_lm2` minimises `||W(A(X)-b)||`, in which the
+objective vector `c` never appears, so `pielr_bisect_obj` **pins γ and tests feasibility**,
+bisecting to recover the optimum. The reference, however, called `lpisolve` with
+`lpisetobj(prog,gam)` still active — it *minimised*. The two arms were not solving the same kind
+of problem, and once `score = rel/ipm_rel` made the reference residual set the acceptance
+threshold, that stopped being cosmetic.
+
+### Why it is one fault and not two
+
+The natural reading is that there are two independent faults: an inflated reference (explaining a
+loose *accept*) and something else entirely (explaining a γ *below* the reference, which a face
+restriction cannot produce). That reading is wrong, and the bisection loop says why:
+
+```matlab
+if ~isempty(Rk) && Rk.ok, hi = g; else, lo = g; end
+```
+
+A trial is accepted **iff the gate accepts it**. So the bisection does not converge to the true
+optimum — it converges to *the lowest γ the gate will still admit*. Threshold slack is not merely
+permissive, it is a **search direction**: the bisection actively hunts for the most optimistic γ
+inside the slack. Inflating the reference therefore does produce a sub-1 ratio, by exactly this
+route, and fixing the reference removes the cause rather than hiding it.
+
+The generalisable rule, which the cuADMM session stated after this exchange and which its own
+harness already satisfies by using an absolute `rel_b < 1e-6`: **a bisection's per-trial accept
+test must not depend on a quantity that varies with solver behaviour.** Absolute, or relative to
+something structural like `||b||` — never relative to another solve's residual, or the tolerance
+becomes an optimisation direction.
+
+### The fix
+
+`st.gamfix` on both objective builders (`build_l2gain_1d`, `build_poincare_1d`) **substitutes** a
+numeric γ rather than pinning it with an appended row. PIETOOLS documents this route itself
+("a specific gain test ... results in a feasibility test instead of an optimization problem").
+Substitution rather than pinning because pinning leaves the `γ >= 0` cone block and the objective
+in the data while making that block redundant, and redundant equality rows are a known
+conditioning hazard in this stack. The structural signature distinguishes them, measured by the
+cuADMM session on its own build: substitution takes `Kf` 44→43, `Ns` `[10 17 8 1]`→`[10 17 8]`
+and `m` 150→149 — *down* by one; pinning would take `m` up by one.
+
+`pielr_ipm_ref` takes an optional rebuild handle. Given one, it solves with the objective to get
+γ\*, then re-solves at fixed γ\* as a pure feasibility program and reports **that** residual,
+keeping γ\* from the optimising solve. Both are retained (`rel_obj` and `rel`) so the inflation is
+a measured per-case quantity rather than a constant anyone quotes. Without the handle the
+behaviour is exactly as before.
+
+### The floor, which this puts in question
+
+With the reference bisected, `max(abs, k*ref)` can collapse onto the absolute floor and the gate
+silently stops being relative. Whether it does depends on the inflation factor, and the two
+candidate numbers give opposite answers on `gain-reacdiff` tier 2 (reference 4.2845e-07, BM
+accepted at rel 4.280e-06):
+
+| inflation | bisected ref | threshold `max(1e-6, 10·ref)` | verdict on BM | what binds |
+|---|---|---|---|---|
+| 10× | 4.3e-08 | 1e-6 | reject | the **floor**; `k` never binds |
+| 3.5× | 1.22e-07 | 1.22e-06 | reject | **`k`**; the floor never binds |
+
+BM is rejected either way, but *what rejects it* differs, and only one of those says the floor
+needs retuning. The cuADMM session first reported ~10× and then corrected itself to 2.6×–6.3×
+(clustering ~3.5×) on n = 1 plant at 2 settings — too weak to settle it. This is why
+`pielr_ipm_ref` records `rel_obj` and `rel` separately: **the floor is decided after the
+18-case distribution, not before it.**
+
+Independent of the inflation factor, there is a separate reason to suspect 1e-6. Achievable
+fixed-γ residuals on these programs, measured by that session: SeDuMi 3.0e-10 to 1.1e-08, Mosek
+through PIETOOLS 3.3e-08 to 7.8e-08; and the three 1-D stability cases reach 2.6e-08 to 4.9e-08
+here. A floor of 1e-6 therefore sits one to two orders above what both arms can actually achieve,
+so on the easy cases it binds and the gate reverts to the fixed threshold it was moved away from.
+A floor should be anchored to achievable residual, not to a round number.
+
+### Adjudicating BM's sub-1 γ without trusting either arm
+
+Feasibility at fixed γ is objective-independent, so it settles whether BM's γ is achievable
+without reference to any objective value. `gamfix_probe` rebuilds the identical program at a
+ladder of γ spanning BM's answer and the reference and asks the interior-point solver at each
+rung. Two outcomes, opposite conclusions:
+
+- IPM **infeasible** at BM's γ → the accept is spurious; gate slack produced an invalid bound.
+- IPM **feasible** at BM's γ → the reference was simply not optimal and BM is right.
+
+The rungs are judged at the **absolute** 1e-6 (`pielr_ipm_ref` never sets `g.ref`), so the ladder
+does not inherit the fault it is diagnosing — and the residuals are printed alongside the verdict,
+because at 1e-6 the boolean is far coarser than the number.
+
+### What the measurements actually showed — and it was not the reference
+
+Two hypotheses went into this, both plausible, and the measurements refuted both.
+
+**Reference inflation does not reproduce.** `rel_obj / rel_fixed` at the reference γ on
+`gain-reacdiff`: **0.98×** at tier 2 and **0.55×** at tier 3. The fixed-γ solve is the same or
+*worse*, against the 2.6–6.3× the cuADMM session measured on its own plant. That session has
+since withdrawn the figure as plant-specific. The `gamfix` route stays — a like-for-like
+reference is right on principle — but it is **not** the fix and is not claimed as one.
+
+**The fixed-γ ladder locates the true boundary.** γ substituted, every rung judged at the
+absolute 1e-6 so the ladder cannot inherit the fault it is diagnosing:
+
+| γ | vs ref | rel | maxRes | feasible |
+|---|---|---|---|---|
+| 7.691067 | 0.9364 | 9.7757e-04 | 9.2412e-05 | no |
+| 7.933943 | 0.9659 | 5.2542e-04 | 4.9274e-05 | no |
+| **8.095860** | **0.9856** | **2.2808e-04** | 2.1463e-05 | **no** ← BM's answer |
+| 8.154864 | 0.9928 | 1.1703e-04 | 1.0840e-05 | no |
+| 8.213868 | 1.0000 | 4.2894e-07 | 1.3713e-07 | **yes** ← reference |
+| 8.378145 | 1.0200 | 1.0147e-08 | 9.1608e-10 | yes |
+| 9.035255 | 1.1000 | 9.4383e-09 | 9.4150e-10 | yes |
+
+Monotone below the reference with a four-order cliff exactly at it. The reference **is** the
+feasibility boundary and BM's γ is inside the infeasible region.
+
+**The controlled experiment: the threshold is the whole cause.** Identical bisection, identical
+settings, identical seeds; the only variable is the acceptance threshold.
+
+| threshold | γ | γ / ref | sound |
+|---|---|---|---|
+| absolute 1e-6 | 8.216934 | **1.0004** | yes |
+| 10·ref = 4.28e-06 | 8.095859 | **0.9856** | no |
+
+**This refutes `k = 10`, not merely `k >= 100`.** §5's "k = 10 validated" is withdrawn: it was
+inferred from which cases produced γ < 1 at each `k`, which is a weaker test than varying `k`
+on one case with everything else held fixed. `score = rel/ipm_rel` is retained as a
+**diagnostic**; the gate goes back to an absolute threshold.
+
+### The denominator is a second, independent source of slack
+
+One number resisted explanation: at γ = 8.095859 the low-rank point has operator `maxRes`
+4.2005e-07 while the IPM's best at the same substituted γ is 2.1336e-05 — apparently beating a
+convex solve 50× on an infeasible program. Two explanations were tested and refuted here:
+**denominator inflation between the two points** (maxNrm BM/IPM = 1.043, not ≫1) and
+**target-vs-achieved γ** (`cert.gam` is overwritten from `R.aux.gam` at `pielr_solve:251`, so the
+reported γ is read back out of the solution, not the bisection's target).
+
+The cuADMM session supplied the explanation, with both quantities on the same point from its own
+panel: three genuinely different **numerators** (induced L2, Hilbert–Schmidt, coefficient-space
+Frobenius) agree within **1.5×**, while changing only the **denominator** moves the answer
+**23–65×**. The ratio of operator to row residual ranged 0.15× to 65× across its configs — a 430×
+spread, in both directions.
+
+The reason the maxNrm comparison could not detect this: it compared *this gate's own* denominator
+between two points, which is stable by construction. The row residual's denominator is `||b||`,
+**fixed by the program**, whereas `||Dop||` and `||Pop||` are **solution-dependent** — that session
+measured `||Dop||` swinging 24× (3.94e-06 vs 1.62e-07) from a settings change with the physics
+unchanged. Two measures whose denominators are respectively constant and solution-dependent cannot
+track each other, and they diverge most where the solution is unusual — exactly the regime a gate
+adjudicates.
+
+So the "BM beats the IPM" reading is dropped; the ground truth was never in doubt, since the ladder
+establishes infeasibility independently of any normaliser.
+
+**This leaves an open design question, and it is now the important one.** Both normalisers here are
+solution-dependent (`max|Dop|` on the negativity row, `max(|Top'*Qop|, |Rop|)` on the coupling row),
+so the gate inherits that swing. The absolute-threshold fix addresses the *threshold*; it does not
+address the *denominator*. `||b||` is fixed but lives in coefficient space, and the reason the gate
+works in operator space at all is that coefficient-space residuals failed to detect operator-level
+nonsense (§4). A fixed operator-space normaliser is the thing to find; there is not one yet.
+
+### Closing the 50×: the gate inverts the ranking
+
+`twores_u.m` reproduces the unsound accept (the relative gate attached to the adapter, which is
+what `pielr_solve` does and a direct `pielr_bisect_obj` call does *not* — that asymmetry is why
+the earlier direct run returned the sound 8.216934) and scores its **row** residual. Both arms at
+γ = 8.095859 on the same program:
+
+| point | row ‖A'x−b‖/‖b‖ | gate operator rel | op/row |
+|---|---|---|---|
+| low-rank | **3.0702e-05** | 4.2800e-06 | 7.17 |
+| IPM | **9.3484e-06** | 2.2676e-04 | 0.0412 |
+
+**BM never beat a convex solve.** In the quantity the SDP constrains, the interior-point point is
+**3.3× better**. The 50× was an artifact of the operator measure.
+
+Worse, the gate gets the ordering backwards: it **accepts** the low-rank point (4.28e-06, just
+inside threshold) and **rejects** the interior-point one (2.27e-04) at the same γ, while the row
+residual says the rejected point is the less-violating of the two. The operator residual
+understates BM's violation 7.2× and overstates the IPM's 24× — a 174× disagreement between the
+two arms on one program. This is the branch the test's own decision rule named: *the gate and the
+SDP disagree, and the gate is the defect.* The threshold fix is necessary but not sufficient.
+
+Two corollaries:
+
+- **The program is genuinely infeasible at that γ.** Both row residuals sit at ~1e-5 against
+  ~1e-8 at a feasible γ (8.378145), independently of any normaliser.
+- **It is not the denominator.** maxNrm 9.81e-02 vs 9.41e-02, ratio 1.04. The whole gap is in the
+  **numerator**: `max|Res|` over operator coefficients versus `‖A'x−b‖`, two measures of the same
+  residual **165× apart**. That bounds the cuADMM session's decomposition (numerator ~1.5×,
+  denominator 23–65×) — its three numerators were all *operator* norms of the same reconstructed
+  residual and so were bound to agree. The row residual is not an operator norm, and the gap
+  lives exactly there.
+
+Scope of the claim: one case, two points. The contrast with the **sound** point matters — there
+op/row was 0.133 and 0.129, consistent to 3%. So the measures track near feasibility and diverge
+*and invert* at an infeasible point, which is precisely where a gate operates. That is a
+hypothesis from two data points, not an established law, and it is the next thing to test across
+the suite.
+
+**Consequence for the package:** `max|Res|` on the reconstructed operator must not be treated as a
+proxy for SDP feasibility. The row residual `‖A'x−b‖/‖b‖` should be computed and reported
+alongside it, and acceptance should not rest on the operator residual alone. It also means an
+operator residual and a `rel_b` from another session are not comparable quantities.
+
+### Does the inversion generalise? Yes — and on exact comparisons
+
+`inversion.m` puts a low-rank point and an interior-point point **on the same system** for every
+case and scores both residuals on both. For the feasibility LPIs there is no objective, so the two
+arms solve the *identical* program and the row residuals are residuals of one linear system —
+an exact comparison with nothing to reconcile. Inversion is declared when `r_op = op_bm/op_ipm`
+and `r_row = row_bm/row_ipm` fall on opposite sides of 1, i.e. the two measures disagree about
+which of the two points is better.
+
+| case | r_op | r_row | inversion | op/row (BM, IPM) | within-case spread |
+|---|---|---|---|---|---|
+| rd1d-lam0.5 | 120 | 3.56 | — | 3.67, 0.109 | 34× |
+| rd1d-lam0.9 | 63.7 | 3.97 | — | 1.87, 0.117 | 16× |
+| rd1d-n2 | 2.22 | **0.0734** | **INVERT** | 2.29, 0.0756 | 30× |
+| advdiff1d | 4.72 | **0.606** | **INVERT** | 2.64, 0.339 | 7.8× |
+| advdiff1d-dual | 1893 | 555 | — | 0.0185, 0.00542 | 3.4× |
+| lib-transport | 47.1 | 3.32 | — | 0.55, 0.0387 | 14× |
+
+**Two outright inversions in six**, on identical linear systems — so the `gain-reacdiff` result was
+not a one-off, and these carry no cross-system caveat at all.
+
+The stronger statistic is the last column. `op/row` is **never constant**: it differs by 3.4× to
+34× between two points on the *same program*. If the operator and row residuals were one quantity
+in different units this ratio would be fixed and inversion would be impossible. It is not, so
+inversion is a structural possibility of the gate rather than an accident of one case.
+
+**A complication, recorded because it cuts against a tidy story.** On all six of these, BM's
+`op/row` is *higher* than the IPM's — the operator measure consistently makes the low-rank point
+look relatively worse. On `gain-reacdiff` it was the reverse (0.139 vs 24.3). So the bias is not
+even consistent in sign. That case compared two systems differing by the γ column while these are
+exact, so the two are not strictly comparable; but it means "the operator residual is optimistic"
+would be the wrong lesson. The right one is that it is *unrelated* to the constraint violation at
+the scale that matters.
+
+**Run note.** Both this and the tier-3 block of the absolute-gate sweep were cut short by the
+R2025b JIT access violation (`evalc` around a handle stored in a struct array — the pattern
+already recorded in §6). Tiers 1 and 2 completed and are reported; tier 3 is **not** a result and
+is not quoted. The inversion run was re-executed in crash-isolated chunks to cover the rest.
+
+#### The complete table (supersedes the six-case partial above)
+
+Re-run in crash-isolated chunks after the JIT fault. `same = EXACT` means both arms solved the
+*identical* program; `gam` means γ was fixed at BM's own answer, so the systems differ by the γ
+column only.
+
+| case | same | r_op | r_row | inv | op/row (BM, IPM) |
+|---|---|---|---|---|---|
+| rd1d-lam0.5 | EXACT | 120 | 3.56 | — | 3.67, 0.109 |
+| rd1d-lam0.9 | EXACT | 63.7 | 3.97 | — | 1.87, 0.117 |
+| rd1d-n2 | EXACT | 2.22 | 0.0734 | **INVERT** | 2.29, 0.0756 |
+| advdiff1d | EXACT | 4.72 | 0.606 | **INVERT** | 2.64, 0.339 |
+| advdiff1d-dual | EXACT | 1893 | 555 | — | 0.0185, 0.00542 |
+| lib-transport | EXACT | 47.1 | 3.32 | — | 0.55, 0.0387 |
+| lib-heat-ode-das | — | — | — | — | no certificate |
+| lib-beam-eb | EXACT | 0.0115 | 0.00201 | — | 0.0442, 0.00772 |
+| lib-wave-damped | EXACT | 14.3 | 1.09 | — | 0.548, 0.0416 |
+| gain-transport | gam | 1.39e3 | 996 | — | 0.0349, 0.025 |
+| gain-transport-dual | gam | 2.57e3 | 1.99e3 | — | 0.0575, 0.0447 |
+| gain-heat-dist | gam | 18.2 | 9.6 | — | 0.422, 0.223 |
+| gain-reacdiff | gam | 0.0189 | 3.28 | **INVERT** | 0.139, 24.3 |
+| dde-scalar | EXACT | 67.6 | 7.29 | — | 0.553, 0.0596 |
+| dde-2state | EXACT | 1.71e4 | 1.34e3 | — | 0.0874, 0.00684 |
+| dde-2delay | EXACT | 6.28e3 | 1.29e3 | — | 0.0453, 0.00933 |
+| dde-2state-dual | EXACT | 44.4 | 7.91 | — | 0.016, 0.00285 |
+| poincare | gam | 104 | 111 | — | 0.714, 0.76 |
+
+**3 inversions in 17 comparable cases**, two of them on identical systems. `op/row` over the 34
+points spans **0.00285 to 24.3 — a factor of 8,526**.
+
+**Degeneracy control** (the cuADMM session's, and it is necessary): a candidate pair spanning one
+ray cannot invert under *any* degree-1 homogeneous measure, so a non-inversion there is
+uninformative rather than negative. Its discriminator is `op/row` agreeing to 3+ digits between
+the two points. Only **poincare** comes close (0.714 vs 0.76, 6% apart), so its non-inversion is
+the least informative row; every other pair differs by ≥1.29× and its negative is real. That
+session's first attempt at the same test returned `op/row` *exactly* constant and 0 of 10
+disagreements, purely because all five of its candidates were solved points lying on one ray —
+it nearly filed a non-reproduction. The control is not optional.
+
+**Independent replication.** That session then reproduced the inversion on different physics with
+an **analytic** infeasibility boundary (Dirichlet heat PIE, Lyapunov operator pinned to the
+identity, f = λ/λ\* = 1.20 where infeasibility is Poincaré, i.e. a theorem rather than a solver
+verdict): **16 rank disagreements in 66 pairs**, `op/row` spread 20.5×. So the effect is not an
+artifact of these plants, of `pielr_opcheck`, or of two interior-point solvers happening to agree.
+
+### The fixed normaliser: safe at X=0, and the coupling row is vacuous either way
+
+`fixnorm.m`, `Nrm_fixed = |Top|·|Aop|` in this gate's own max-coefficient units, residual at the
+**trivial point** per equality:
+
+- All 13 feasibility cases: `rel_fixed` between **5.0e-03 and 5.1e-02** — four to five orders
+  above the 1e-6 threshold, so **X = 0 is comfortably rejected**.
+- All four objective cases: **`1.000e+00, 0.000e+00`** — the negativity row rejects at 1.0, and
+  the coupling row `Top'*Qop - Rop` reads **exactly zero**.
+
+So the concern that a fixed denominator would re-admit the trivial point is **not borne out**,
+because the gate takes the *worst* ratio across equalities and the negativity row always carries
+plant-data constants. It would be a real defect in a gate that took the best or the mean.
+
+The coupling row's exact zero is not new to the fixed normaliser — it reads zero under the
+current solution-dependent one too (measured earlier as `[1, 0]`). That row is **vacuous at the
+trivial point under either choice** and contributes nothing to rejecting it; it should come out of
+the accept test and be reported separately.
+
+Two caveats on this table, both limiting what it can support:
+
+- `|Top| = 1.0000` in every case. This is **not** a normalisation — `pielr_norm_pie` converts and
+  repackages but does not rescale (checked). It is that `pielr_maxop` is a max absolute
+  coefficient and these PIEs' `T` parameters have unit entries. On this suite `|T|·|A|` therefore
+  reduces to `|A|`.
+- **This instrument cannot test the cuADMM session's warning against `|T'A+A'T|`.** Its collapse
+  is spectral — loss of definiteness at the stability boundary — and a max-coefficient norm cannot
+  see it. The two columns here are close or equal (identical on `rd1d-lam0.9` at λ = 0.9λ\*, right
+  where a collapse would show), which neither confirms nor refutes the warning. Taking that
+  question further requires an induced norm this package does not have.

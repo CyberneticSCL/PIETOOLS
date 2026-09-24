@@ -62,10 +62,35 @@ if isfield(st,'sosineq_on') && st.sosineq_on
 end
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
-dpvar gam;
-prog = lpidecvar(prog, gam);
-prog = lpi_ineq(prog, gam);          % expr of type 'ineq'; see header
-prog = lpisetobj(prog, gam);
+% GAMFIX: build with a NUMERIC gamma, turning the optimisation into a pure
+% feasibility test.  PIETOOLS_Hinf_gain documents this route itself ("a
+% specific gain test specified by defining a specific desired value of gamma
+% ... results in a feasibility test instead of an optimization problem").
+%
+% WHY IT MATTERS, measured by the parallel cuADMM session on this same
+% executive and plant family: with the objective active the interior-point
+% solve reaches rel_b 2.058e-07 (light) / 1.523e-07 (heavy), while bisection
+% at fixed gamma on the same programs reaches 3.3e-08 to 7.8e-08 -- about an
+% ORDER OF MAGNITUDE better equality residual for a gamma agreeing to 1.9e-05.
+% With c = 0 the dual condition A'y + z = c is trivially satisfiable and the
+% gap is ~0 for free, so the solver spends its effort on primal feasibility;
+% with c nonzero the iterates trade feasibility against optimality.
+%
+% Substituting rather than pinning by an appended row: pinning would leave
+% the gamma >= 0 cone block and the objective in the data while making that
+% block redundant, and redundant equality rows are a known conditioning
+% hazard in this stack.  Substitution removes the block instead.  Note b then
+% DEPENDS on gamma (Dop carries -gam*Iw and -gam*Iz as constant blocks), so
+% each fixed-gamma program is differently scaled -- harmless for a relative
+% residual, misleading if absolute residuals are compared across a bracket.
+if isfield(st,'gamfix') && ~isempty(st.gamfix)
+    gam = st.gamfix;                 % a plain number: no decvar, no objective
+else
+    dpvar gam;
+    prog = lpidecvar(prog, gam);
+    prog = lpi_ineq(prog, gam);      % expr of type 'ineq'; see header
+    prog = lpisetobj(prog, gam);
+end
 
 % ---- positive operator Rop, and the free operator Qop it couples to ------
 [prog, R1op] = poslpivar(prog, Top.dim, st.dd1, st.options1);

@@ -43,7 +43,16 @@ H1op = PIE.C1;      % (H1op*x_ss) = x_s
 dom  = H2op.I;      var1 = H2op.var1;
 
 prog = lpiprogram(var1,dom);
-[prog,gam] = lpidecvar(prog,'gam');
+% GAMFIX: numeric gamma, so the reference can be measured on the same kind of
+% program the low-rank arm actually solves.  pielr_bisect_obj never optimises
+% -- it pins gamma and tests feasibility -- so an OPTIMISING reference is not
+% the same computation, and with score = rel/ipm_rel that difference sets the
+% acceptance threshold.  See build_l2gain_1d for the residual measurements.
+if isfield(st,'gamfix') && ~isempty(st.gamfix)
+    gam = st.gamfix;                                                    % CC, 09/24/2026
+else
+    [prog,gam] = lpidecvar(prog,'gam');
+end
 P = gam*(H1op'*H1op) - H2op'*H2op;
 
 dim = P.dim;
@@ -83,7 +92,9 @@ else
     De2op = [];
     prog = lpi_eq(prog,Deop-P,'symmetric');
 end
-prog = lpisetobj(prog,gam);
+if ~(isfield(st,'gamfix') && ~isempty(st.gamfix))
+    prog = lpisetobj(prog,gam);                                         % CC, 09/24/2026
+end
 
 H.H1 = H1op;   H.H2 = H2op;   H.gam = gam;
 H.Deop = Deop; H.De2op = De2op;

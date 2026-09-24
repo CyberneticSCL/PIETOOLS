@@ -89,7 +89,25 @@ fn = fieldnames(def);
 for k = 1:numel(fn)
     if ~isfield(opts,fn{k}) || isempty(opts.(fn{k})), opts.(fn{k}) = def.(fn{k}); end
 end
-if isempty(opts.lmtol), opts.lmtol = opts.gate; end
+% lmtol DEFAULTS TO gate/100, NOT gate (CC, 09/24/2026).  bm_lm2 compares tol
+% against f = ||W r||, the WHITENED residual, while the gate is an operator
+% residual; the two are not in the same units and their ratio is not 1.  Set
+% equal to the gate, the 'tol' exit stops the search while the operator
+% residual is still above threshold, and no amount of budget helps because
+% the run never reaches maxit.
+%
+% MEASURED, tier 2, the three 1-D stability cases that missed at EVERY budget
+% (8000, 32000 and 128000 all gave the same answer in the same 17 s, exiting
+% tol:13 / tol:11 / tol:11):
+%   case          lmtol 1e-6            lmtol 1e-8
+%   rd1d-lam0.5   no  (tol:13)          yes rel 4.9327e-08  rank [1 1 1]
+%   rd1d-lam0.9   no  (tol:11)          yes rel 2.9318e-08  rank [2 2 2]
+%   rd1d-n2       no  (tol:11)          yes rel 2.6312e-08  rank [2 2 2]
+% The residuals reached are 20-40x BELOW the gate, so the certificates were
+% always in reach and the exit was stopping two orders short.  A factor 100
+% is chosen to sit well inside that margin; the right long-term fix is for
+% the exit to test the quantity the gate actually uses.
+if isempty(opts.lmtol), opts.lmtol = opts.gate/100; end                    % CC, 09/24/2026
 vb = opts.verbose;
 
 A = pielr_lpi(lpi);
