@@ -1,4 +1,4 @@
-function [prog,H] = build_stab_2d_st2(PIE,s2d)
+function [prog,H] = build_stab_2d_st2(PIE,s2d,dual)                         % CC, 09/23/2026
 % build_stab_2d_st2 -- 2-D direct-form stability LPI, returning OPERATOR HANDLES.
 %
 % Same LPI as executives/2D/PIETOOLS_stability_2D.m, but
@@ -38,8 +38,18 @@ function [prog,H] = build_stab_2d_st2(PIE,s2d)
 %                     declaration order
 %          .tags      a label per poslpivar_2d call, aligned with H.Q
 %          .st .PIE   settings actually used, and the PIE
+%
+% CC, 09/23/2026: optional third argument DUAL (default false) selects the
+%   dual-form LPI of executives/2D/PIETOOLS_stability_dual_2D.m instead of the
+%   primal.  The two executives differ in exactly three lines -- the negativity
+%   operator is built from T*P*A' rather than A'*P*T -- and everything else
+%   (settings handling, the psatz loops, get_eq_opts_2D, the equality) is
+%   identical, so a flag here reuses the transcription that is already verified
+%   against the primal rather than forking a second near-copy of this file.
+%   Omitting the argument leaves the primal path bitwise unchanged.
 
 Top = PIE.T;    Aop = PIE.A;
+if nargin<3 || isempty(dual), dual = false; end                            % CC, 09/23/2026
 
 % ---- eppos / epneg defaults, copied from PIETOOLS_stability_2D lines 81-95 ---
 if ~isfield(s2d,'eppos')
@@ -83,13 +93,26 @@ end
 % opcheck_2d repeats these five lines on the SUBSTITUTED Pop.  Valid because
 % Qop is a LINEAR map of Pop and Pop is affine in the decision variables, so
 % substitution commutes with the operator algebra.
-PTop  = Pop*Top;
-APTop = Aop'*PTop;
-if epneg==0
-    Qop = APTop' + APTop;
-else
-    Qop = APTop' + APTop + 2*epneg*(Top'*PTop);
-end
+% Primal (PIETOOLS_stability_2D lines 164-172) and dual                     % CC, 09/23/2026
+% (PIETOOLS_stability_dual_2D lines 165-173) transcribed verbatim; opcheck    % CC, 09/23/2026
+% repeats whichever branch ran, which is why H.dual is recorded below.        % CC, 09/23/2026
+if ~dual                                                                    % CC, 09/23/2026
+    PTop  = Pop*Top;
+    APTop = Aop'*PTop;
+    if epneg==0
+        Qop = APTop' + APTop;
+    else
+        Qop = APTop' + APTop + 2*epneg*(Top'*PTop);
+    end
+else                                                                        % CC, 09/23/2026
+    TPop  = Top*Pop;                                                        % CC, 09/23/2026
+    TPAop = TPop*Aop';                                                      % CC, 09/23/2026
+    if epneg==0                                                             % CC, 09/23/2026
+        Qop = TPAop' + TPAop;                                               % CC, 09/23/2026
+    else                                                                    % CC, 09/23/2026
+        Qop = TPAop' + TPAop + 2*epneg*(TPop*Top');                         % CC, 09/23/2026
+    end                                                                     % CC, 09/23/2026
+end                                                                         % CC, 09/23/2026
 ztol = 1e-12;
 Qop = clean_opvar(Qop,ztol);
 
@@ -116,6 +139,7 @@ prog = lpi_eq_2d(prog,Qeop+Qop,'symmetric');
 H.Top = Top;    H.Aop = Aop;    H.Pop = Pop;
 H.Qop = Qop;    H.Deop = Qeop;
 H.eppos = eppos;  H.epneg = epneg;
+H.dual = dual;                    % which branch opcheck must repeat          % CC, 09/23/2026
 H.st = s2d;     H.PIE = PIE;
 end
 

@@ -46,7 +46,32 @@ function cert = pielr_certify(PIE,opts)
 %     .gate      operator-residual acceptance gate (default 1e-6)
 %     .refine    per-block face shrinking after acceptance (default: true when
 %                discovery ran, false when opts.face was supplied)
-%     .seeds     BM random seeds per rank (default [11 22 33])
+%     .seeds     BM random seeds per rank (default [11 22 33]).  NOTE the seed
+%                INDEX also picks the initial magnitude from [1e-1 1 1e1 1e2
+%                1e4 1e6], so the 4th..6th scales are only reached by passing
+%                four or more seeds.
+%     .w0        {Y_1,...,Y_B} per-block factor to SEED the search with       % CC, 09/21/2026
+%                (X_i ~ Y_i*Y_i'), e.g. the factor returned by an external     % CC, 09/21/2026
+%                low-rank solver.  Tried FIRST at every rank rung, ahead of    % CC, 09/21/2026
+%                the random seeds.  Unlike .face, which freezes a subspace     % CC, 09/21/2026
+%                and skips discovery, this one only starts the descent -- the  % CC, 09/21/2026
+%                columns stay free to move.  Columns beyond the current rank   % CC, 09/21/2026
+%                are filled with small random values, never zeros (see fitw).  % CC, 09/21/2026
+%     .lmit      LM iterations per attempt (default 400, the shipped value)  % CC, 09/21/2026
+%                MEASURED 1-D, 22 lam x 5 degrees: 400 is a HARD cut, not a  % CC, 09/21/2026
+%                convergence test -- bm_lm2 exits only when its damping loop  % CC, 09/21/2026
+%                stalls or ||F|| < 1e-16 (never), so whether the residual     % CC, 09/21/2026
+%                crosses the gate inside exactly 400 steps is near-arbitrary  % CC, 09/21/2026
+%                in the operating point, which shows up as a RAGGED reach     % CC, 09/21/2026
+%                (verdict flipping on 0.01 steps in lam).  At lmit = 4000 the % CC, 09/21/2026
+%                1-D reach went 0.41 -> 0.999 of lam* at 'heavy' and the gap  % CC, 09/21/2026
+%                to the best known relaxation closed to zero at every degree  % CC, 09/21/2026
+%                tested -- and where 400 FAILS, 4000 is usually FASTER too,   % CC, 09/21/2026
+%                since it accepts at low rank early instead of grinding the   % CC, 09/21/2026
+%                rank ladder (heavy/0.50: 39 attempts/23.4 s fail -> 5        % CC, 09/21/2026
+%                attempts/6.4 s certify).  Where 400 already works, 4000      % CC, 09/21/2026
+%                costs ~4.5x, because there is no early exit.  The real fix   % CC, 09/21/2026
+%                is a stagnation test in bm_lm2; this knob exposes the cut.   % CC, 09/21/2026
 %     .verbose   print progress and the final report (default true)
 %
 % OUTPUT (struct)
@@ -93,7 +118,8 @@ elseif isstruct(opts) && isfield(opts,'V') && iscell(opts.V) ...              % 
     opts = struct('face',opts);                                               % CC, 09/19/2026
 end                                                                           % CC, 09/19/2026
 def = struct('settings',[],'rank',[],'face',[],'route','auto','maxrank',6, ...
-             'gate',1e-6,'refine',[],'seeds',[11 22 33],'verbose',true);
+             'gate',1e-6,'refine',[],'seeds',[11 22 33],'verbose',true, ...
+             'w0',[],'lmit',400,'lmtol',[]);                                % CC, 09/22/2026
 fn = fieldnames(def);
 for k = 1:numel(fn)
     if ~isfield(opts,fn{k}) || isempty(opts.(fn{k})), opts.(fn{k}) = def.(fn{k}); end
@@ -104,6 +130,9 @@ end
 if isempty(opts.settings), opts.settings = set2d_deg(4,[]); end
 if isempty(opts.refine)
     opts.refine = isempty(opts.face);   % shrink only when we searched ourselves
+end
+if isempty(opts.lmtol)                  % raw-residual target for bm_lm2      % CC, 09/22/2026
+    opts.lmtol = opts.gate;             % see the bm_lm2 header for the ratio % CC, 09/22/2026
 end
 okg = @(R) (R.rel < opts.gate) && R.psd;   % THE acceptance gate, used everywhere
 vb  = opts.verbose;
@@ -389,11 +418,19 @@ prevw = [];  prevrv = [];
 for ri = 1:numel(rvl)
     rv = rvl{ri};
     bestraw = inf;  bestw = [];
-    nst = numel(opts.seeds) + ~isempty(prevw);
+    % CC, 09/21/2026: a supplied .w0 is tried FIRST at every rung.  It must
+    % lead: on the heat family seed 1 certifies on the first attempt, so an
+    % arm appended after the seeds would never execute and the option would
+    % silently measure nothing.
+    nw0 = double(~isempty(opts.w0));                                        % CC, 09/21/2026
+    nst = nw0 + numel(opts.seeds) + ~isempty(prevw);                        % CC, 09/21/2026
     for si = 1:nst
-        if si <= numel(opts.seeds)
-            rng(opts.seeds(si),'twister');
-            scl = [1e-1 1 1e1 1e2 1e4 1e6];  sc = scl(mod(si-1,numel(scl))+1);
+        if nw0 && si==1                                                     % CC, 09/21/2026
+            w = fitw(opts.w0,rv,Ns);   sname = 'w0';                        % CC, 09/21/2026
+        elseif si <= nw0 + numel(opts.seeds)                                % CC, 09/21/2026
+            sj = si - nw0;                                                  % CC, 09/21/2026
+            rng(opts.seeds(sj),'twister');                                  % CC, 09/21/2026
+            scl = [1e-1 1 1e1 1e2 1e4 1e6];  sc = scl(mod(sj-1,numel(scl))+1); % CC, 09/21/2026
             q0 = zeros(P.Ntot,1);
             for i = 1:B
                 Mr = randn(Ns(i));  Mr = sc*(Mr+Mr')/sqrt(2*Ns(i));
@@ -409,13 +446,16 @@ for ri = 1:numel(rvl)
                 end
                 w = [w;Yi(:)]; %#ok<AGROW>
             end
-            sname = sprintf('seed%d',opts.seeds(si));
+            sname = sprintf('seed%d',opts.seeds(sj));                       % CC, 09/21/2026
         else
             % warm start: a rank-r' solution with r' < r is also a rank-r
             % solution, so padding keeps the sweep monotone in r
             w = padw(prevw,prevrv,rv,Ns);   sname = 'prev';
         end
-        w = bm_lm2(P,rv,w,400,1e-16);
+%       w = bm_lm2(P,rv,w,400,1e-16);                                       % CC, 09/21/2026 (was)
+        % tol at the gate value, not 1e-16: op_rel ~ 0.35-0.40*raw_rel here,  % CC, 09/22/2026
+        % so this exits with ~2.5x margin instead of never exiting at all.    % CC, 09/22/2026
+        w = bm_lm2(P,rv,w,opts.lmit,opts.lmtol);                            % CC, 09/22/2026
         R1 = bm_report(w,P,rv);
         if R1.raw_rel < bestraw, bestraw = R1.raw_rel;  bestw = w; end
         [~,~,qk] = bm_resid(w,P,rv);
@@ -575,6 +615,28 @@ function v = wblk(w,Ns,rv,i)
 k = 0;
 for j = 1:i-1, k = k + Ns(j)*rv(j); end
 v = w(k+(1:Ns(i)*rv(i)));
+end
+
+function w = fitw(Y0,rv,Ns)                                                 % CC, 09/21/2026
+% Fit a supplied per-block factor {Y_1..Y_B} to the current rank profile rv.
+% Keep the leading columns; fill any surplus with SMALL RANDOM values scaled
+% to the factor's own entries.  Never zeros: a zero column of Y has an
+% identically zero Jacobian block (J_i = 2*W*Ssym(:,rows_i)*kron(Y_i,I), whose
+% column block for column c is Y_i(:,c) (x) I), so LM can never move it and the
+% extra rank would be inert -- the same fixed point the 'prev' pad sits on.
+w = [];
+for i = 1:numel(Ns)
+    Yi = zeros(Ns(i),rv(i));
+    Y  = Y0{i};
+    kk = min(size(Y,2),rv(i));
+    if kk>0, Yi(:,1:kk) = Y(:,1:kk); end
+    if rv(i) > kk
+        s = norm(Y,'fro')/max(sqrt(numel(Y)),1);       % rms entry of the seed
+        if ~isfinite(s) || s<=0, s = 1; end
+        Yi(:,kk+1:end) = 1e-3*s*randn(Ns(i),rv(i)-kk);
+    end
+    w = [w;Yi(:)]; %#ok<AGROW>
+end
 end
 
 function w = padw(wold,rold,rnew,Ns)

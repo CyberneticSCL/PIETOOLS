@@ -1,4 +1,18 @@
-function [R,q,info] = restrict_solve(prog,H,P,Atf,bf,V,use_sdp,adp)         % CC, 09/23/2026
+function [R,q,info] = restrict_solve_1d(prog,H,P,Atf,bf,V,use_sdp)          % CC, 09/21/2026
+% PROVENANCE.  scratchpad/reach1d/restrict_solve_1d.m verbatim.  T0 asserts it
+% still differs from the shipped private/restrict_solve.m in the header and the
+% ONE gate call only -- if the shipped file gains a fix this copy has not, the
+% suite is testing something else.  T5 is the test that exists because this
+% routine returned FALSE NEGATIVES on six faces that provably contain a
+% certificate (defect B3).
+%                                                                 % CC, 09/22/2026
+% restrict_solve_1d -- the shipped 2-D restrict_solve, verbatim, with ONE line
+% changed: the final verification calls gate1d (opcheck's 6-leaf 1-D operator
+% residual relP, plus per-block PSD) instead of opcheck_2d's 36-leaf opvar2d
+% scan, because the operators here are opvar, not opvar2d.  The face
+% restriction, the pivoted-QR row selection, the determined backslash solve,
+% the PSD projection and the lift are unmodified, so the reach measured in 1-D
+% is the same procedure the 2-D study measured.               % CC, 09/21/2026
 % restrict_solve -- restrict the SDP to the face X_i = V_i S_i V_i', solve the
 % tiny problem, lift, and VERIFY AT THE OPERATOR LEVEL.  This is the acceptance
 % test for a claimed rank; nothing else in this study may accept one.
@@ -79,11 +93,6 @@ function [R,q,info] = restrict_solve(prog,H,P,Atf,bf,V,use_sdp,adp)         % CC
 %          equality residual, decides.
 
 if nargin<7 || isempty(use_sdp), use_sdp = false; end                       % CC, 09/20/2026
-% adp: a pielr_lpi adapter.  Supplying one selects pielr_opcheck (which takes  % CC, 09/23/2026
-% its normaliser from the adapter) instead of opcheck_2d, and is what lets     % CC, 09/23/2026
-% this routine serve 1-D and the non-stability executives.  Omitted, the       % CC, 09/23/2026
-% 2-D stability behaviour is exactly as before.                               % CC, 09/23/2026
-if nargin<8, adp = []; end                                                  % CC, 09/23/2026
 Ns = P.Ns;   Kf = P.Kf;   m = P.m;   B = numel(Ns);
 rr = zeros(1,B);
 for i = 1:B, rr(i) = size(V{i},2); end
@@ -91,25 +100,14 @@ info.rr = rr;
 t0 = tic;
 
 % ---- restrict: Atil(:,k) = vec( V_i' A_k^(i) V_i ) ------------------------
-% CC, 09/23/2026: the rows of Atf are addressed through P.free / P.rows
-% instead of the contiguous offsets Kf and Kf+off.  Those offsets are correct
-% only when every Gram block follows a single free prefix; a program built
-% with lpivar interleaves free coordinates BETWEEN the Gram blocks, and the
-% contiguous form then reads the wrong rows for every block after the first.
-% P.free is 1:Kf and P.rows{i} is Kf+off+(1:N^2) whenever the old layout
-% holds, so the stability path is unchanged.  The RESTRICTED x-vector
-% (Atr's rows) keeps its own contiguous [free; vec(S_1); ...] layout, which is
-% internal to this routine and unaffected.
-Ri = {};  Rj = {};  Rv = {};  roff = Kf;                                    % CC, 09/23/2026
+Ri = {};  Rj = {};  Rv = {};  off = 0;  roff = Kf;
 if Kf > 0
-%   [ii,jj,vv] = find(Atf(1:Kf,:));                                         % CC, 09/23/2026 (was)
-    [ii,jj,vv] = find(Atf(P.free,:));                                       % CC, 09/23/2026
+    [ii,jj,vv] = find(Atf(1:Kf,:));
     Ri{end+1}=ii(:); Rj{end+1}=jj(:); Rv{end+1}=vv(:);
 end
 for i = 1:B
     N = Ns(i);  ri = rr(i);  Vi = V{i};
-%   Ab = Atf(Kf+off+(1:N^2),:);                                             % CC, 09/23/2026 (was)
-    Ab = Atf(P.rows{i},:);                            % N^2 x m, SPARSE, kept so % CC, 09/23/2026
+    Ab = Atf(Kf+off+(1:N^2),:);                       % N^2 x m, SPARSE, kept so
     M1 = Vi' * reshape(Ab,N,N*m);                     % r x (N*m)
     T  = reshape(M1,ri,N,m);
     M2 = Vi' * reshape(permute(T,[2 1 3]),N,ri*m);    % r x (r*m)
@@ -119,8 +117,7 @@ for i = 1:B
     % r = 1 is exactly the interesting case here (trap 3).
     [ii,jj,vv] = find(sparse(Atil));
     Ri{end+1}=ii(:)+roff; Rj{end+1}=jj(:); Rv{end+1}=vv(:); %#ok<AGROW>
-%   off = off + N^2;   roff = roff + ri^2;                                  % CC, 09/23/2026 (was)
-    roff = roff + ri^2;                               % off is no longer used % CC, 09/23/2026
+    off = off + N^2;   roff = roff + ri^2;
 end
 Atr = sparse(cat(1,Ri{:}),cat(1,Rj{:}),cat(1,Rv{:}),Kf+sum(rr.^2),m);
 
@@ -201,17 +198,16 @@ info.np = np;  info.rM = rM;
 %info.sedumi_iter = getf(infr,'iter');   % now set in the branch above      % CC, 09/20/2026 (was)
 
 % ---- lift and verify against the FULL ORIGINAL program --------------------
-%xfull = zeros(Kf+sum(Ns.^2),1);                                            % CC, 09/23/2026 (was)
-xfull = zeros(P.Ntot,1);          % addressed through the layout, as above   % CC, 09/23/2026
-if Kf>0, xfull(P.free) = xr(1:Kf); end                                      % CC, 09/23/2026
-roff = Kf;  mn = zeros(1,B);  mx = zeros(1,B);                              % CC, 09/23/2026
+xfull = zeros(Kf+sum(Ns.^2),1);
+if Kf>0, xfull(1:Kf) = xr(1:Kf); end
+off = 0;  roff = Kf;  mn = zeros(1,B);  mx = zeros(1,B);
 for i = 1:B
-    ri = rr(i);
+    N = Ns(i);  ri = rr(i);
     Si = reshape(xr(roff+(1:ri^2)),ri,ri);  Si = (Si+Si')/2;
     Xi = V{i}*Si*V{i}';   Xi = (Xi+Xi')/2;
-    xfull(P.rows{i}) = Xi(:);                                               % CC, 09/23/2026
+    xfull(Kf+off+(1:N^2)) = Xi(:);
     ev = eig(Si);  mn(i) = min(ev);  mx(i) = max(ev);
-    roff = roff + ri^2;                                                     % CC, 09/23/2026
+    off = off + N^2;   roff = roff + ri^2;
 end
 info.rel_eq_full = norm(Atf'*xfull - bfull)/max(norm(bfull),realmin);
 info.mineig_lift = min(mn./max(mx,realmin));
@@ -220,24 +216,13 @@ info.mineig_lift = min(mn./max(mx,realmin));
 % (trap 2).  The restricted solve used the ORIGINAL bf, so divide.  Omitting
 % this scales the Gram by 5e-6, leaving Pop ~ eppos*I and reporting rel = 1 for
 % a perfectly good solution.
-%q = zeros(P.Ntot,1);   off = 0;                                            % CC, 09/23/2026 (was)
-%for i = 1:B                                                                % CC, 09/23/2026 (was)
-%    N = Ns(i);                                                             % CC, 09/23/2026 (was)
-%    q(P.rows{i}) = xfull(Kf+off+(1:N^2))/P.nb0;   off = off+N^2;           % CC, 09/23/2026 (was)
-%end                                                                        % CC, 09/23/2026 (was)
-%if Kf>0, q(1:Kf) = xfull(1:Kf)/P.nb0; end                                  % CC, 09/23/2026 (was)
-% xfull is already in the program's own coordinate order, so the loop that    % CC, 09/23/2026
-% copied it block by block was only re-deriving the identity map -- and it    % CC, 09/23/2026
-% re-derived it with the contiguous offsets, which is wrong once the free      % CC, 09/23/2026
-% coordinates are interleaved.  One scaling does the whole vector.             % CC, 09/23/2026
-q = xfull/P.nb0;                                                            % CC, 09/23/2026
-% The gate is the ADAPTER's when one is supplied; opcheck_2d otherwise, so     % CC, 09/23/2026
-% the legacy 2-D stability path through pielr_certify is unchanged.            % CC, 09/23/2026
-if isempty(adp)                                                             % CC, 09/23/2026
-    R = opcheck_2d(prog,H,P,q);
-else                                                                        % CC, 09/23/2026
-    R = pielr_opcheck(prog,H,P,q,adp);                                      % CC, 09/23/2026
-end                                                                         % CC, 09/23/2026
+q = zeros(P.Ntot,1);   off = 0;
+for i = 1:B
+    N = Ns(i);
+    q(P.rows{i}) = xfull(Kf+off+(1:N^2))/P.nb0;   off = off+N^2;
+end
+if Kf>0, q(1:Kf) = xfull(1:Kf)/P.nb0; end
+R = gate1d(prog,H,P,q);                    % 1-D gate; see header % CC, 09/21/2026
 end
 
 function v = getf(s,f)

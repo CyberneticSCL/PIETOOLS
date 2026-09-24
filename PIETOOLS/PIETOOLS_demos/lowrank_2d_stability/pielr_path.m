@@ -66,7 +66,13 @@ end
 need = {'poslpivar_2d','lpi_eq_2d','pde_var','get_eq_opts_2D','lpiprogram', ...
         'lpigetsol','monomials','sortrows_integerTable'};
 own  = {'pielr_certify','pielr_certify_pos','pielr_tensor', ...        % CC, 09/19/2026
-        'set2d_deg','nb_rd2d','build_stab_2d_st2'};                    % CC, 09/19/2026
+        'set2d_deg','nb_rd2d','build_stab_2d_st2', ...                 % CC, 09/19/2026
+        'pielr_solve','pielr_bench','pielr_bench_cases', ...           % CC, 09/23/2026
+        'pielr_bench_diff','pielr_private'};                           % CC, 09/23/2026
+% The new entry points join the shadow assert for the same reason the old ones % CC, 09/23/2026
+% are in it: a second copy on the path (an agent worktree, a stale scratch     % CC, 09/23/2026
+% folder) silently changes which code a benchmark measures, and a benchmark    % CC, 09/23/2026
+% that measured a copy is worse than none.                                     % CC, 09/23/2026
 % (set2d_deg/nb_rd2d/build_stab_2d_st2 moved out of private/ because the       % CC, 09/19/2026
 %  demos are now SCRIPTS, and scripts cannot see private/)                     % CC, 09/19/2026
 bad = {};

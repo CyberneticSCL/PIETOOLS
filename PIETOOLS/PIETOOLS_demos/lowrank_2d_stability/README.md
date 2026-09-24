@@ -14,6 +14,21 @@ the restricted search is sound, how the face is found (and the alternatives),
 and where the method stops working. [GUIDE.md](GUIDE.md) — the full workflow
 for certifying *your own* system from the command line.
 
+> **A wider interface and a benchmark suite exist as of 09/23/2026 — see
+> [BENCH.md](BENCH.md).** `pielr_solve(PIE,lpi,opts)` mirrors `lpiscript` and
+> covers `stability`, `stability-dual`, `l2gain` and `l2gain-dual` across 1-D
+> PDEs, 2-D PDEs and DDEs; `pielr_bench` scores each case against an
+> interior-point reference solved in the same run and judged by the same gate.
+> Two things on this page are affected. First, the acceptance residual there
+> is divided by `max|Pop|`, not by `max|Qop|` as item 5 below describes —
+> `tests_1d/opcheck.m` records a measured case where the `max|Qop|`
+> denominator collapsed and manufactured a threshold that does not exist, so
+> the two halves of this package had been accepting on different quantities.
+> Second, the ranks quoted in item 2 were measured at `lmit = 400`, and the
+> reported rank is **budget-dependent**: on the gain cases it falls by one per
+> block between `lmit = 400` and `8000`. `pielr_certify` itself is unchanged
+> and remains the baseline the suite measures against.
+
 **The mechanism in 5 lines.**
 1. Build the direct-form 2-D stability LPI (the shipped 2-D executive's own
    program, psatz 0): find Gram blocks `X_i >= 0` satisfying equality rows.
@@ -161,7 +176,24 @@ route, not a rank floor.
   not theorems for all 2-D PIEs — which is exactly why the API exists: so you
   can probe other cases. First datapoint from the template's anisotropic
   variant: r = [3 3] certified, rank 2 not reached (three BM seeds at
-  1.4e-06–4.9e-06, just above the gate).
+  1.4e-06–4.9e-06, just above the gate). **Retested (CC, 09/22/2026): MARGINAL, cite with
+  care.** Those seeds sit only 1.4–4.9x above the gate and were run under
+  `bm_lm2`'s then-shipped 400-iteration hard cut, so the budget was re-swept
+  with the rank pinned at [2 2] (seeds 11/22/33, lmit 400/2000/8000):
+
+  | seed | 400 | 2000 | 8000 | |
+  |---|---|---|---|---|
+  | 11 | 2.070e-06 | 1.166e-06 | 1.166e-06 | stagnation exit |
+  | 22 | 1.355e-06 | 1.307e-06 | 1.307e-06 | stagnation exit |
+  | 33 | 4.888e-06 | 1.082e-06 | **1.000e-06** | still descending |
+
+  The lmit-400 rung reproduces the original 1.4e-06–4.9e-06 range, so this is
+  the same measurement. Two seeds hit the windowed stagnation test and stop;
+  the third keeps descending and lands at 1.000e-06 against a 1e-6 gate.
+  "Rank 2 not reached" therefore stands, but with essentially NO margin, so
+  the "+1 per block under anisotropy" departure from r* = 2n is a knife-edge
+  threshold effect rather than a robust property of the operator. Do not cite
+  it as a rank law.
 - **When low rank fails, measured.** (i) If the operator *forces* a
   non-constant multiplier (the delta cell `R22{1,1}` must equal a given
   `a(s1,s2)`, as in weighted integral inequalities or weighted Lyapunov
@@ -178,7 +210,15 @@ route, not a rank floor.
   toward full rank as the operating point approaches the LPI's own certifiable
   boundary (measured on the weighted-inequality family: floor 3 at half the
   boundary, 6 at 0.8, none ≤ 6 at 0.95) — low rank is a property of
-  certificates with margin, not of borderline ones.
+  certificates with margin, not of borderline ones. **Caveat (CC, 09/22/2026).**
+  Those three points were measured with `bm_lm2` at its then-shipped cap of 400
+  iterations, which is a hard cut and not a convergence test; see that file's
+  header. Raising the budget moved the 1-D reach from 0.41 to 0.999 of `lam*`,
+  so the 0.95 entry establishes only that *this search* did not attain rank
+  ≤ 6 within that budget — not that no such certificate exists. The
+  direction of (iv) is independently consistent with the interior-point rank
+  at the boundary (737/744 under a min-trace objective), but the numbers
+  3 / 6 / none are not a rank floor and should not be cited as one.
 - **Assembly is now the dominant cost.** The point of this package is that the
   cone side has been removed from the scaling path; making `poslpivar_2d` +
   `lpi_eq_2d` assembly cheaper is a separate (open) problem.

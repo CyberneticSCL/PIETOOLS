@@ -18,7 +18,14 @@
 % MEASURED on this exact example (fresh run): the cold call certifies at
 % r = [3 3], op rel 9.9e-07, discovery ~25 min.  Rank 2 was NOT reached --
 % three BM seeds landed at 1.4e-06..4.9e-06, just above the gate -- so [3 3]
-% is an honest upper bound, not a floor.  Expect discovery time and the
+% is an honest upper bound, not a floor.  CC, 09/22/2026: and a MARGINAL one.
+% Retested with the rank pinned at [2 2] over lmit 400/2000/8000, seeds
+% 11/22/33: the 400 rung reproduces the original 1.4e-06..4.9e-06, then two
+% seeds hit bm_lm2's stagnation exit at 1.166e-06 / 1.307e-06 while the third
+% keeps descending to 1.000e-06 -- against a 1e-6 gate.  So rank 2 really is
+% not reached, but by nothing, and the "+1 per block under anisotropy" reading
+% is a knife-edge threshold effect, not a rank law.  Do not cite it as one.
+% Expect discovery time and the
 % achieved rank to vary with the system; that variation is the point.
 %
 % CC, 09/19/2026: converted from a function to a SCRIPT (maintainer request)

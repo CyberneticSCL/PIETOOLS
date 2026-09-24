@@ -1,18 +1,7 @@
-function P = bm_setup(Atf,bf,Ns,Kf,pre,lay)                                 % CC, 09/23/2026
+function P = bm_setup(Atf,bf,Ns,Kf,pre)
 % Package the SeDuMi data for Burer-Monteiro.
 %   x = [ z (Kf free) ; vec(Q_1) ; ... ; vec(Q_B) ],  Q_i = Y_i*Y_i'
 %   constraint  Atf'*x = bf   (m equations)
-%
-% CC, 09/23/2026: optional 6th argument LAY (a pielr_layout struct) supplies
-%   the coordinate map explicitly.  The layout written on the line above --
-%   free prefix, then the Gram blocks contiguously -- holds for every
-%   stability program but NOT for a program built with lpivar, where the free
-%   operator's coordinates are interleaved BETWEEN the Gram blocks (measured
-%   on the 1-D l2gain program: free at x(1) and x(102..144), Gram blocks at
-%   x(2..101), x(145..433), x(434..497)).  Indexing those contiguously puts
-%   every block after the first at the wrong offset.  With LAY omitted the
-%   contiguous map is computed exactly as before, so existing callers are
-%   unaffected.
 %
 % Ssym is Atf' with each block's (i,j)/(j,i) columns averaged, so that
 % Ssym*vec(Q) = Atf'*vec(Q) for symmetric Q and the Jacobian simplifies to
@@ -34,19 +23,11 @@ bf  = full(bf(:));
 P.nb0 = norm(bf);          % original ||b||, for converting Q back
 bf = bf/P.nb0;
 S   = Atf';                       % m x Ntot
-if nargin<6 || isempty(lay)                                                 % CC, 09/23/2026
-    B   = numel(Ns);
-    rows = cell(1,B);  off = Kf;
-    for i=1:B
-        rows{i} = off+(1:Ns(i)^2);  off = off+Ns(i)^2;
-    end
-    free = (1:Kf)';                                                         % CC, 09/23/2026
-else                                                                        % CC, 09/23/2026
-    Ns   = lay.N;   B = numel(Ns);                                          % CC, 09/23/2026
-    rows = lay.rows;                                                        % CC, 09/23/2026
-    free = lay.free(:);                                                     % CC, 09/23/2026
-    Kf   = numel(free);                                                     % CC, 09/23/2026
-end                                                                         % CC, 09/23/2026
+B   = numel(Ns);
+rows = cell(1,B);  off = Kf;
+for i=1:B
+    rows{i} = off+(1:Ns(i)^2);  off = off+Ns(i)^2;
+end
 Ssym = S;
 for i=1:B
     N = Ns(i);
@@ -54,7 +35,6 @@ for i=1:B
     Ssym(:,rows{i}) = 0.5*(S(:,rows{i}) + S(:,rows{i}(p)));
 end
 P.S = S;  P.Ssym = Ssym;  P.bf = bf;  P.Ns = Ns;  P.Kf = Kf;
-P.free = free;            % explicit free-coordinate index set                % CC, 09/23/2026
 P.rows = rows;  P.m = numel(bf);  P.Ntot = size(S,2);
 P.nb = norm(bf);
 P.pre = pre;

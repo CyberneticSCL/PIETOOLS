@@ -48,6 +48,10 @@ function P = pielr_evalgram(prog,P)
 % function's output catches it.
 %
 % CC, 09/19/2026: initial version.
+% CC, 09/23/2026: the local function evaldp moved out to private/pielr_evaldp.m
+%   unchanged, because pielr_evalop needs the identical per-cell arithmetic for
+%   the 6 leaves of a 1-D dopvar.  Two real callers, and a second copy would be
+%   free to drift; nothing else about this file changed.
 
 if isa(P,'opvar2d')
     return                              % nothing to substitute
@@ -59,55 +63,21 @@ dtab = prog.decvartable;
 RRx  = prog.solinfo.RRx;
 
 for f = {'R00','R0x','R0y','R02','Rx0','Rxy','Ry0','Ryx','R20'}
-    P.(f{:}) = evaldp(P.(f{:}),dtab,RRx);
+    P.(f{:}) = pielr_evaldp(P.(f{:}),dtab,RRx);
 end
 for i = 1:3
-    P.Rxx{i,1} = evaldp(P.Rxx{i,1},dtab,RRx);
-    P.Rx2{i,1} = evaldp(P.Rx2{i,1},dtab,RRx);
-    P.R2x{i,1} = evaldp(P.R2x{i,1},dtab,RRx);
-    P.Ryy{1,i} = evaldp(P.Ryy{1,i},dtab,RRx);
-    P.Ry2{1,i} = evaldp(P.Ry2{1,i},dtab,RRx);
-    P.R2y{1,i} = evaldp(P.R2y{1,i},dtab,RRx);
+    P.Rxx{i,1} = pielr_evaldp(P.Rxx{i,1},dtab,RRx);
+    P.Rx2{i,1} = pielr_evaldp(P.Rx2{i,1},dtab,RRx);
+    P.R2x{i,1} = pielr_evaldp(P.R2x{i,1},dtab,RRx);
+    P.Ryy{1,i} = pielr_evaldp(P.Ryy{1,i},dtab,RRx);
+    P.Ry2{1,i} = pielr_evaldp(P.Ry2{1,i},dtab,RRx);
+    P.R2y{1,i} = pielr_evaldp(P.R2y{1,i},dtab,RRx);
     for j = 1:3
-        P.R22{i,j} = evaldp(P.R22{i,j},dtab,RRx);
+        P.R22{i,j} = pielr_evaldp(P.R22{i,j},dtab,RRx);
     end
 end
 P = opvar2d(P);                         % dopvar2d with polynomial cells -> opvar2d
 end
-
-% =========================================================================
-function p = evaldp(V,dtab,RRx)
-% Evaluate ONE parameter cell.  Only dpvar cells carry decision variables;
-% empty/double/polynomial cells pass through, as in getsol_lpivar_2d.
-if isempty(V) || isa(V,'double') || isa(V,'polynomial')
-    p = V;  return
-end
-m  = V.matdim(1);   n  = V.matdim(2);
-dn = V.dvarname;    nd = numel(dn);
-dm = V.degmat;      vn = V.varname;
-nZ = size(dm,1);
-C  = V.C;
-assert(size(C,1)==m*(nd+1) && size(C,2)==n*nZ, ...
-    'pielr_evalgram: cell C is %dx%d, expected %dx%d from [m n nd nZ]=[%d %d %d %d]', ...
-    size(C,1),size(C,2),m*(nd+1),n*nZ,m,n,nd,nZ);
-if nd > 0
-    [tf,loc] = ismember(dn,dtab);
-    assert(all(tf), ...
-        'pielr_evalgram: %d decision variable(s) of this cell are not in prog.decvartable',sum(~tf));
-    d = full(RRx(loc));  d = d(:);
-else
-    d = zeros(0,1);
-end
-% row i of the evaluated coefficient = (const row) + d'*(dvar rows) of block i
-Cnew = kron(speye(m),sparse([1;d]'))*C;     % m x n*nZ, stays sparse throughout
-% remap to polynomial layout: entry (t,(j-1)*nZ+... ) -> row t, column i+m*(j-1)
-[ri,ci,vv] = find(Cnew);
-jj = floor((ci-1)/nZ);                      % matrix column minus 1
-tt = ci - jj*nZ;                            % monomial index
-if nZ==0 || isempty(vn)
-    % no polynomial part: plain matrix (sparse() sums any duplicate indices)
-    p = reshape(full(sparse(ri+m*jj,ones(size(ri)),vv,m*n,1)),m,n);
-else
-    p = combine(polynomial(sparse(tt,ri+m*jj,vv,nZ,m*n),dm,vn,[m,n]));
-end
-end
+% CC, 09/23/2026: the local function evaldp that stood here was moved verbatim
+% to private/pielr_evaldp.m and the six call sites above renamed to match.  It
+% is not reproduced here because it is unchanged -- see that file's header.
