@@ -49,6 +49,14 @@ function prog = lpi_eq(prog,P,opts)
 % 07/24/2023, DJ: Add option to exploit symmetry of operators;
 % 10/19/2024, DJ: Add support for non-opvar decision variables;
 % 11/29/2024, DJ: Make sure dummy variables match those in LPI program;
+% 09/24/2026, CC: Test the coefficient block for nonzeros with nnz instead of
+%   ~all(all(C.C==0)).  C.C is sparse, and comparing a sparse matrix to 0 yields
+%   a FULL logical of the same size, so the guard allocated a dense array as
+%   large as the coefficient block itself.  Measured: a 1-D stability LPI with
+%   32 decoupled states died here requesting 9613344x1536 (123.8 GB) while
+%   24 states built in 43 s -- i.e. the wall was this guard, not the SDP solver,
+%   which never ran.  nnz is O(1) on a sparse matrix and exactly equivalent:
+%   both ask whether every entry is zero.
 
 
 % Check that the input is of appropriate type.
@@ -98,7 +106,8 @@ end
 for i = i_set2
     if ~isempty(P.R.(i{:}))
         C = P.R.(i{:}); 
-        if ~all(all(C.C==0))
+%       if ~all(all(C.C==0))                                                % CC, 09/24/2026 (was)
+        if nnz(C.C)~=0                                                      % CC, 09/24/2026
             prog = soseq(prog, C);
         end
     end
