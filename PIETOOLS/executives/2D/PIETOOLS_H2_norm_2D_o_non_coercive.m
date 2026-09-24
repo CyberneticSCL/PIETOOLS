@@ -41,6 +41,14 @@ function [prog,W, gam, R, Q] = PIETOOLS_H2_norm_2D_o_non_coercive(PIE, settings,
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 % DB, 01/17/2025: initial code
+% CC, 09/24/2026: fix Deop/Deopp being assigned only inside the psatz branch,
+%                 which left them undefined with psatz off (the default) and
+%                 made this executive unrunnable; they are now initialised
+%                 from De1op/De3op before the loop and accumulated into, as
+%                 in the coercive variant.  See the notes at the fix site,
+%                 Also corrects De4op, which was built on Dneg.dim while
+%                 being added to De3op (Dpos.dim) -- unequal whenever the
+%                 disturbance and output counts differ.
 
 % STEP 0: Extract LPI settings and necessary PI operators
 %     if nargin==1
@@ -193,6 +201,15 @@ else
     disp('   - Using an equality constraint...');
      [prog, De1op] = poslpivar_2d(prog, Dneg.dim, eq_deg, eq_opts);
      [prog, De3op] = poslpivar_2d(prog, Dpos.dim, eq_deg, eq_opts);
+    % CC, 09/24/2026: initialise Deop/Deopp from the base operators BEFORE the
+    % psatz loop.  Previously they were assigned ONLY inside
+    % 'if eq_use_psatz(j)~=0', so with psatz off -- the default -- the
+    % lpi_eq_2d calls below hit an undefined Deop and this executive could not
+    % build at all, while De1op/De3op were constructed and then discarded.
+    % Mirrors PIETOOLS_H2_norm_2D_c.m, which assigns the base operator straight
+    % into Deop and accumulates the psatz terms into it.
+    Deop  = De1op;                                                          % CC, 09/24/2026
+    Deopp = De3op;                                                          % CC, 09/24/2026
     
     % Introduce the psatz term.
     for j=1:length(eq_use_psatz)
@@ -200,10 +217,22 @@ else
             eq_opts_psatz{j}.exclude = eq_opts_psatz{j}.exclude | eq_opts.exclude;
             eq_opts_psatz{j}.sep = eq_opts_psatz{j}.sep | eq_opts.sep;
              [prog, De2op] = poslpivar_2d(prog, Dneg.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
-             [prog, De4op] = poslpivar_2d(prog, Dneg.dim, eq_deg_psatz{j}, eq_opts_psatz{j});
+%            [prog, De4op] = poslpivar_2d(prog, Dneg.dim, eq_deg_psatz{j}, eq_opts_psatz{j});  % CC, 09/24/2026 (was)
+             [prog, De4op] = poslpivar_2d(prog, Dpos.dim, eq_deg_psatz{j}, eq_opts_psatz{j});  % CC, 09/24/2026
 
-            Deop = De1op+De2op;
-            Deopp = De3op+De4op;
+             % CC, 09/24/2026: De4op was built on Dneg.dim, but it is added to
+             % De3op (Dpos.dim) and feeds the Deopp-Dpos equality, so it must
+             % be Dpos.dim.  The two differ: Dneg's leading block is the
+             % DISTURBANCE space and Dpos's is the OUTPUT space (Iw from
+             % B1op.dim(:,2) against Wm from C1op.dim(:,1); mirrored in the
+             % _o variant).  They coincide only when the disturbance and
+             % output counts are equal, so a square system hides this -- which
+             % is why it survived alongside the undefined-Deop bug above.
+%           Deop = De1op+De2op;                                             % CC, 09/24/2026 (was)
+%           Deopp = De3op+De4op;                                            % CC, 09/24/2026 (was)
+            % accumulate: the overwrite above kept only the LAST psatz term
+            Deop  = Deop+De2op;                                             % CC, 09/24/2026
+            Deopp = Deopp+De4op;                                            % CC, 09/24/2026
         end
 
     end
