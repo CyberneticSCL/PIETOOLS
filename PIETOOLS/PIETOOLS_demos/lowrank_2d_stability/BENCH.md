@@ -718,3 +718,139 @@ Two caveats on this table, both limiting what it can support:
   see it. The two columns here are close or equal (identical on `rd1d-lam0.9` at λ = 0.9λ\*, right
   where a collapse would show), which neither confirms nor refutes the warning. Taking that
   question further requires an induced norm this package does not have.
+
+---
+
+## 9. The baseline
+
+113 cells, **one MATLAB process each** so the R2025b JIT fault costs one row rather than a run,
+CSV-append with resume. 18 1-D/DDE cases across tiers 0-3, two further seed sets at tier 2, and
+the five 2-D cells. 8.5 hours, **109 rows**; four cells lost, all 2-D.
+
+### The absolute gate is necessary but NOT sufficient
+
+§8 concluded from tiers 1 and 2 that the absolute threshold repaired soundness. **Tiers 0 and 3
+refute that.** Bounds still below 1, where a face restriction can only *raise* an optimum:
+
+| case | tier | ratio |
+|---|---|---|
+| gain-transport | 0 | **0.7466** |
+| gain-transport-dual | 0 | **0.7878** |
+| gain-reacdiff | 3 | **0.9893** |
+
+The earlier statement was true of the tiers measured and was generalised past them. The threshold
+was only an **amplifier**: because the operator residual does not track the constraint, an
+absolute threshold on it still admits infeasible points. **No threshold choice repairs a gate
+whose measured quantity is wrong.** The numerator is the defect, and it is unfixed.
+
+Where the gate is sound the bounds are tight — tier 2 gives 1.00013 to 1.00186 across all five
+objective cases, and Poincaré lands at 1.00013 of the analytic 1/π.
+
+### Complexity: no power law, and the IPM wins everywhere
+
+| fit | exponent | R² | range |
+|---|---|---|---|
+| `t_bm ~ m` | 1.00 | **0.173** | m 21..1834 |
+| `t_bm ~ Ntot` | 0.37 | **0.045** | Ntot 145..46720 |
+| `t_ref ~ m` | 0.35 | **0.313** | |
+| `t_ref ~ Ntot` | 0.28 | **0.370** | |
+
+Over a 20-fold range in m and 300-fold in `Ntot`, **no power law describes either arm**. At that
+range a bad fit means the model is wrong, not that the constant is uncertain, so no exponent is
+quoted. Cost on this suite is not size-determined.
+
+`t_bm / t_ref`: **min 1.06, median 9.91, max 341.** The interior-point arm is faster on *every*
+case. The low-rank arm has no wall-clock argument in 1-D, and any case for it has to rest on
+something else — memory at scale, or 2-D, where it currently cannot run at all.
+
+### 2-D is unmeasured at this budget
+
+Four of five cells failed: three hit the 7200 s/cell timeout, one segfaulted. Only `rd2d-deg2`
+produced a row. The 2-D block consumed 6¼ of the 8.5 hours and returned one data point. Any 2-D
+claim in this package rests on the historical measurements, not on this baseline.
+
+### The numerator defect, at baseline scale
+
+**9 rank inversions in 56 comparable rows (16%)**, up from 3 in 17. `op/row` over 129 points spans
+6.124e-05 to 234.4 — **a factor of 3.83e6**.
+
+Certification: low-rank 56, reference 54, **agreeing on 71 of 73 rows** — the low-rank arm
+certifies marginally *more* often than the reference.
+
+### Seed stability is good
+
+Across three seed sets at tier 2, the certify/fail verdict is **identical for all 18 cases** and
+bounds agree to ≤7.5e-4 relative. `rel_op` itself varies by up to ~660× on one case
+(`lib-beam-eb`, 1.05e-12 to 6.96e-10) without changing any verdict. So the verdicts are not
+seed-flaky even though the residual is noisy — worth recording, since the repo's `Test_*` scripts
+are seed-flaky and the assumption does not transfer.
+
+---
+
+## 10. The whitener: my objection was wrong, and here is what it is actually doing
+
+§1 of the opening theory pass argued the BM preconditioner (`bm_setup` with `pre=1`) should go, on
+two grounds: it forms `full(Ssym*Ssym')` and eigendecomposes it — O(m²) memory, O(m³) time, which
+contradicts `theory.tex`'s "never touches an m×m matrix" — and it makes `bm_lm2` minimise `‖W r‖`,
+which is not the quantity the gate measures. Paired A/B over the 18 1-D/DDE cases at tier 2, both
+arms back to back so a machine slowdown cannot masquerade as an effect. **The prediction was
+registered before the run and it failed.**
+
+### 1. The cost objection is refuted at these sizes
+
+`t_setup` is **0.0025 s to 0.019 s** against solve times of 1–500 s: about **0.01 %** of runtime.
+The O(m³) term is real but asymptotic; at m ≤ 1834 it is free. It would only bite at the 2-D sizes
+(m ~ 6000) where §9 showed the method cannot complete at all, so it is not the binding problem.
+
+### 2. It pays for itself on time
+
+`pre=1` is faster on **12 of 17** complete pairs, by up to **3.1×** (`rd1d-lam0.5`, 1.47 s vs
+4.49 s). `pre=0` wins on three, two are ties. Whatever the setup costs, it is repaid several times
+over in the solve.
+
+### 3. On residual it is a wash — so the alignment argument is not supported
+
+`pre=1` reaches the lower `rel_op` on **7** cases, `pre=0` on **8**. If the whitened objective were
+systematically pulling the search away from the gate's quantity, `pre=0` should win consistently.
+It does not. The de-alignment is real as a statement about *units* but does not show up as a worse
+final residual.
+
+### 4. Turning it off loses a certificate
+
+`rd1d-lam0.9` certifies with `pre=1` and **fails** with `pre=0`. No case goes the other way.
+
+### 5. What it is really doing: revealing rank deficiency
+
+The measurement the critique missed. `P.rankA` is the numerical rank of the equality system, and
+**A is rank-deficient in 14 of 17 cases**:
+
+| case | m | rankA | dropped |
+|---|---|---|---|
+| gain-reacdiff | 160 | 127 | **33 (21 %)** |
+| lib-heat-ode-das | 320 | 279 | 41 (13 %) |
+| rd1d-n2 | 236 | 210 | 26 (11 %) |
+| gain-heat-dist | 146 | 127 | 19 (13 %) |
+| dde-2state-dual | 248 | 237 | 11 |
+| gain-transport-dual | 131 | 121 | 10 |
+| lib-beam-eb / lib-wave-damped / dde-2delay / gain-transport | 212/212/227/130 | 203/203/218/121 | 9 |
+| advdiff1d-dual | 61 | 55 | 6 |
+| rd1d-lam0.5 / rd1d-lam0.9 | 59 | 55 | 4 |
+| dde-2state | 71 | 70 | 1 |
+| lib-transport / dde-scalar / poincare | 53/61/52 | — | **0** |
+
+So these executives build equality systems carrying **up to 21 % redundant rows**, and `pre=1` is
+not merely a preconditioner — it is a **rank-revealing reduction** that solves the well-posed
+reduced system while `pre=0` works with the dependent rows still in. That is the most plausible
+explanation for the speed result, and it connects to a known upstream hazard: redundant equality
+systems are one of the two documented triggers of `sossolve`'s "Size b mismatch".
+
+### Verdict
+
+**Keep the whitener; `pre=1` stays the default.** The opening objection was wrong on cost at
+these sizes and unsupported on residual. `opts.pre` is retained as a knob because the O(m³) term
+will matter if the 2-D arm is ever made to run.
+
+What survives of the critique is narrower and still real: `bm_lm2`'s **exit test** compares
+`‖W r‖` against a threshold calibrated in operator units, which is why `tol` fired two orders above
+the gate and needed `lmtol = gate/100`. That is a defect in the *exit test*, not an argument
+against the preconditioner, and it is the next thing to fix.

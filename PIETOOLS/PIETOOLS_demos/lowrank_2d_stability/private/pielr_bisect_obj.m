@@ -118,7 +118,12 @@ if ~isempty(jc)
     Dt.At = [D.At, e];
     Dt.b  = [D.b;  g];
 end
-P = bm_setup(Dt.At,Dt.b,Dt.L.N,Dt.L.Kf,1,Dt.L);
+% pre from the caller (default 1), so the whitener can be A/B'd on the
+% objective executives too and not only the feasibility ones.  This loop is
+% where the cost objection bites hardest: bm_setup is rebuilt PER TRIAL, so a
+% 12-step bisection pays the dense m x m eigendecomposition 12 times.
+pre = 1;  if isfield(opts,'pre') && ~isempty(opts.pre), pre = opts.pre; end % CC, 09/24/2026
+P = bm_setup(Dt.At,Dt.b,Dt.L.N,Dt.L.Kf,pre,Dt.L);                       % CC, 09/24/2026
 [V,R,q,why,notes] = pielr_discover(prog,H,Dt,P,A,opts,vb && isempty(jc));
 end
 

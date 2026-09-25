@@ -31,9 +31,23 @@ function S = pielr_settings(tier,dim)                                      % CC,
 %        stripped  lam/lam* 0.50  ipm rel 5.290e+00  FAILS
 %        light     lam/lam* 0.10  ipm rel 5.550e-09  certifies
 %        light     lam/lam* 0.50  ipm rel 9.267e-08  certifies
-%      Raising the plain degree cannot substitute for the boundary factor.
 %      It also sets the BLOCK COUNT, which is what the rank ladder sweeps
 %      across: 2 blocks without, 3 with.
+%
+%      *** THIS EXPERIMENT IS CONFOUNDED (CC, 09/25/2026). *** Every failing
+%      row above is (stripped, psatz OFF) and every certifying row is
+%      (light, psatz ON): the preset and the psatz flag move TOGETHER, so the
+%      table is equally consistent with "stripped is too coarse" as with
+%      "psatz is necessary".  The tier ladder below inherits the same
+%      confound -- tier 0 is (stripped, Dup 1, OFF) and tier 1 is (light,
+%      Dup 1, ON) -- so the baseline's 6/18 -> 14/18 jump in reference
+%      certifications across that boundary cannot attribute the gain either.
+%      The isolating test, stripped+ON against stripped+OFF at fixed Dup and
+%      lam, HAS NOT BEEN RUN.  Treat "psatz on in tiers 1-3" as following the
+%      ladder, not as a measured necessity, until it is.
+%      (The earlier sentence "Raising the plain degree cannot substitute for
+%      the boundary factor" is removed: it is exactly the alternative these
+%      rows cannot rule out.)
 %
 %  (2) Dup ON dd2/dd3 IS THE ACCURACY LEVER, and it is cheap:
 %        lam/lam* 0.50  Dup1 rel 9.267e-08 certifies | Dup2 4.111e-10 certifies

@@ -105,7 +105,13 @@ for ri = 1:numel(rvl)
             w = pielr_fitw(Y0,rv,Ns,prevw(1:P.Kf));   sname = 'prev';
         end
 
-        [w,~,itlm,lmexit] = bm_lm2(P,rv,w,opts.lmit,opts.lmtol);
+        % rtol/win forwarded so the STAGNATION exit is reachable; [] keeps
+        % bm_lm2's defaults (1e-3 over 100 iterations).  See pielr_solve's
+        % option block: this is the exit that fires on the 2-D cells.
+        lmr = []; lmw = [];                                                 % CC, 09/25/2026
+        if isfield(opts,'lmrtol'), lmr = opts.lmrtol; end                   % CC, 09/25/2026
+        if isfield(opts,'lmwin'),  lmw = opts.lmwin;  end                   % CC, 09/25/2026
+        [w,~,itlm,lmexit] = bm_lm2(P,rv,w,opts.lmit,opts.lmtol,lmr,lmw);    % CC, 09/25/2026
         R1 = bm_report(w,P,rv);
         if R1.raw_rel < bestraw, bestraw = R1.raw_rel;  bestw = w; end
         [~,~,qk] = bm_resid(w,P,rv);

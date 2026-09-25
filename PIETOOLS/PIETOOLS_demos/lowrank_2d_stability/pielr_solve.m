@@ -84,7 +84,18 @@ if nargin<2 || isempty(lpi), lpi = 'stability'; end
 if nargin<3, opts = struct(); end
 def = struct('settings',[],'rank',[],'maxrank',6,'gate',1e-6, ...
              'seeds',[11 22 33],'lmit',400,'lmtol',[],'verbose',true, ...
-             'refine',true,'w0',[],'ref_rel',NaN,'gate_k',10,'gate_refmax',[]); % CC, 09/23/2026
+             'refine',true,'w0',[],'ref_rel',NaN,'gate_k',10,'gate_refmax',[], ...
+             'pre',1,'lmrtol',[],'lmwin',[]); % CC, 09/23/2026; .pre/.lmrtol/.lmwin CC, 09/25/2026
+% lmrtol/lmwin REACH bm_lm2's STAGNATION exit, which no caller could set
+% before (CC, 09/25/2026).  bm_lm2 takes (P,rv,w,maxit,tol,rtol,win) but every
+% call site passes five arguments, so rtol = 1e-3 over win = 100 iterations
+% was hard-wired: the run is cut whenever the residual improves by less than
+% 0.1% per 100 iterations.  That is the DOMINANT exit on the 2-D cells --
+% "stagnant" on every rank-1 and rank-2 attempt, and "stagnant:14" on all
+% fourteen attempts of rd2d-deg2 -- so the one knob governing why 2-D stops
+% was the one knob unreachable from pielr_solve.  Same defect class as lmtol
+% defaulting to the gate: an exit heuristic firing before the gate is met.
+% Empty means bm_lm2's own default, so behaviour is unchanged unless set.
 fn = fieldnames(def);
 for k = 1:numel(fn)
     if ~isfield(opts,fn{k}) || isempty(opts.(fn{k})), opts.(fn{k}) = def.(fn{k}); end
@@ -180,7 +191,17 @@ if D.has_obj && ~(isfield(opts,'no_bisect') && opts.no_bisect)
 end
 
 % ---- package for Burer-Monteiro -----------------------------------------
-P = bm_setup(D.At,D.b,L.N,L.Kf,1,L);      % pre=1: BM needs the whitened metric
+% opts.pre selects the whitener (default 1, the historical behaviour).  It is
+% an option rather than a constant because pre=1 is implicated in BOTH of the
+% baseline's problems (CC, 09/24/2026):
+%   COST  -- it forms full(Ssym*Ssym'), a DENSE m x m matrix, and eig()s it:
+%            O(m^2) memory and O(m^3) time, which is exactly what theory.tex
+%            claims the method never does ("never touches an m x m matrix").
+%   ALIGNMENT -- bm_lm2 then minimises ||W r||, which is NOT the quantity the
+%            gate measures.  That mismatch is why the 'tol' exit was stopping
+%            two orders short of the gate and needed lmtol = gate/100; the
+%            patch treated the symptom.
+P = bm_setup(D.At,D.b,L.N,L.Kf,opts.pre,L);                             % CC, 09/24/2026
 if P.bout > 1e-10
     % b outside the numerical range of A: the whitened residual is blind to
     % that component by construction, so ||F|| -> 0 is attainable while the
@@ -230,6 +251,10 @@ cert.maxRes_i = NaN;  cert.maxNrm_i = NaN;  cert.worst_eq = NaN;
 cert.mineig  = NaN;   cert.normQ   = NaN;   cert.psd      = false;
 cert.nrm_why = '';    cert.face    = {};    cert.S        = {};
 cert.unknowns_face = NaN;
+% set on BOTH paths: an earlier revision left cert.score unset on the failure
+% path and a tier sweep lost exactly the five non-certifying cases it existed
+% to characterise, to "Unrecognized field name".
+cert.q       = [];    cert.nb0     = NaN;                               % CC, 09/24/2026
 if isempty(R)
     cert.notes = [notes {sprintf(['no certificate at rank <= %d over %d seed(s)/rank; ' ...
         'reported as NOT REACHED, never as a proven floor'],opts.maxrank,numel(opts.seeds))}];
@@ -253,6 +278,17 @@ cert.face = V;
 cert.r    = cellfun(@(v)size(v,2),V);
 cert.unknowns_face = sum(cert.r.*(cert.r+1)/2);
 cert.S    = pielr_face_coeffs(V,q,P);
+% THE DECISION VECTOR ITSELF, so a caller can score the SDP ROW residual
+% ||At'x-b||/||b|| and not only the operator residual this gate reports.
+% (CC, 09/24/2026) Those are not interchangeable: measured 3 rank INVERSIONS
+% in 17 cases -- the gate preferring the point the SeDuMi rows say violates
+% MORE -- with op/row spanning 8526x over 34 points, and replicated
+% independently on physics whose infeasibility is analytic.  Until the
+% numerator defect is repaired, any verdict taken from cert.rel alone should
+% be checkable against the rows, which needs x.  q is in normalised-b units;
+% x = q*nb0.  Two references to arrays already held, so no copy of anything
+% q-scaled is created.
+cert.q    = q;   cert.nb0 = P.nb0;                                      % CC, 09/24/2026
 cert.notes = notes;
 if vb, pielr_report(cert); end
 end
