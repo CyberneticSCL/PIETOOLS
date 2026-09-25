@@ -61,6 +61,17 @@ function C = plus(A,B)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
 %                  @mdopvar/ with the class.
+% MMP, 09/25/2026: Reconcile the two decision variable lists with
+%                  'merge_dvar_lists' instead of 'put_on_list'. One
+%                  unique(...,'stable') then gives both operands' row maps,
+%                  where 'put_on_list' had every block search the union by
+%                  name: measured on two separately declared containers at
+%                  q = 4e5 each, D + E took 5.31 s, 4.24 s of it that per-block
+%                  'ismember'. This is the pattern of every executive
+%                  (Top'*Qop - Pop, Dop + Deop), and 'minus' goes through
+%                  here. Also point every block sum at the container's one Zd
+%                  array afterwards: a block sum carries a fresh copy of the
+%                  list, one per block, where the container invariant is one.
 
 % A 'copvar' operand is promoted, so the rest of this routine sees one type.
 % Promotion copies the block grid and metadata and leaves Zd empty.
@@ -89,9 +100,16 @@ end
 % Merging first also puts every block addition below on its fast lane.
 CA = A.C;   CB = B.C;   Zd = A.Zd(:);
 if ~isequal(A.Zd(:),B.Zd(:))
-    Zd = unique([A.Zd(:);B.Zd(:)],'stable');
-    CA = put_on_list(CA,Zd);
-    CB = put_on_list(CB,Zd);
+%     Zd = unique([A.Zd(:);B.Zd(:)],'stable');                              % MMP, 09/25/2026 (was)
+%     CA = put_on_list(CA,Zd);                                              % MMP, 09/25/2026 (was)
+%     CB = put_on_list(CB,Zd);                                              % MMP, 09/25/2026 (was)
+    % Both grids as one, operand 1 = A and 2 = B, so the one sort in        % MMP, 09/25/2026
+    % 'merge_dvar_lists' yields both row maps.                              % MMP, 09/25/2026
+    nA = numel(CA);                                                         % MMP, 09/25/2026
+    src = [ones(1,nA), 2*ones(1,numel(CB))];                                % MMP, 09/25/2026
+    [Cab,Zd] = merge_dvar_lists([CA(:);CB(:)]',{A.Zd(:),B.Zd(:)},src);      % MMP, 09/25/2026
+    CA = reshape(Cab(1:nA),size(CA));                                       % MMP, 09/25/2026
+    CB = reshape(Cab(nA+1:end),size(CB));                                   % MMP, 09/25/2026
 end
 
 Cc = cell(size(CA));
@@ -103,6 +121,8 @@ for ii = 1:numel(Cc)
     else
         Cc{ii} = CA{ii} + CB{ii};
     end
+    % A block sum carries its own copy of the list; share the one array.    % MMP, 09/25/2026
+    if isa(Cc{ii},'sdopvar'),   Cc{ii}.Zd = Zd;     end                     % MMP, 09/25/2026
 end
 
 % The sum is on the same spaces and dimensions as its summands, so the

@@ -53,6 +53,8 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % - options: (optional) struct with field
 %           - occ:  M x N logical, false for a structurally zero block,
 %                   which declares no variables. Default all true;
+%                   a row or column entirely false still holds one          % MMP, 09/25/2026
+%                   explicit zero block, with no variables;                 % MMP, 09/25/2026
 %
 % OUTPUT
 % - prog:   the program with the new decision variables declared;
@@ -108,6 +110,11 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/25/2026: A row or column that 'occ' leaves with no block gets one
+%                  explicit zero block (degree 0, no variables). Without it
+%                  the container failed 'verify' and could not be rebuilt by
+%                  cdopvar(C), which read a row's space off a block. Costs
+%                  O(nC) of column pointers for that block, nothing in q.
 
 if nargin<5 || isempty(deg),        deg = 1;            end
 if nargin<6 || isempty(options),    options = struct(); end
@@ -139,14 +146,27 @@ if isfield(options,'occ') && ~isempty(options.occ)
     end
 end
 degs = parse_deg(deg,M,N);
+% A row or column with no block cannot have its space read off one          % MMP, 09/25/2026
+% ('verify', cdopvar(C)), so it gets one explicit zero block: degree 0,     % MMP, 09/25/2026
+% no coefficient positions, hence no variables. Rows first, then columns.   % MMP, 09/25/2026
+zfill = false(M,N);                                                         % MMP, 09/25/2026
+for i = find(~any(occ,2))',         zfill(i,1) = true;      end             % MMP, 09/25/2026
+for j = find(~any(occ|zfill,1)),    zfill(1,j) = true;      end             % MMP, 09/25/2026
+deg0 = struct('mult',0,'int',[0 0],'out',0,'in',0);                         % MMP, 09/25/2026
 
 % % % First pass: each block's bases and the coefficient positions of its
 % % % variables, and the total count, so ONE declaration covers them all.
 spec = cell(M,N);       q = 0;
 for i = 1:M
     for j = 1:N
-        if ~occ(i,j),   continue,   end
-        s = block_spec(sp_out{i},sp_in{j},d_out(i),d_in(j),degs{i,j},vars,dom);
+%       if ~occ(i,j),   continue,   end                                     % MMP, 09/25/2026 (was)
+        if ~occ(i,j) && ~zfill(i,j),    continue,   end                     % MMP, 09/25/2026
+        dg = degs{i,j};     if zfill(i,j),  dg = deg0;  end                 % MMP, 09/25/2026
+%       s = block_spec(sp_out{i},sp_in{j},d_out(i),d_in(j),degs{i,j},vars,dom); % MMP, 09/25/2026 (was)
+        s = block_spec(sp_out{i},sp_in{j},d_out(i),d_in(j),dg,vars,dom);    % MMP, 09/25/2026
+        if zfill(i,j)                                                       % MMP, 09/25/2026
+            s.pos = cellfun(@(p) zeros(0,1),s.pos,'UniformOutput',false);   % MMP, 09/25/2026
+        end                                                                 % MMP, 09/25/2026
         s.first = q+1;
         % s.pos is 3 x 3 x ... for two or more shared variables, so sum
         % over ALL of it; a plain sum() returns a row and q a vector.
@@ -170,7 +190,8 @@ end
 C = cell(M,N);
 for i = 1:M
     for j = 1:N
-        if ~occ(i,j),   continue,   end
+%       if ~occ(i,j),   continue,   end                                     % MMP, 09/25/2026 (was)
+        if isempty(spec{i,j}),  continue,   end     % a [] block            % MMP, 09/25/2026
         s = spec{i,j};
         A = cell(size(s.pos));      B = cell(size(s.pos));
         k0 = s.first;

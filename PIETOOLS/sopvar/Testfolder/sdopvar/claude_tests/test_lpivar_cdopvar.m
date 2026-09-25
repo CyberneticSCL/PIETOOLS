@@ -23,6 +23,14 @@
 %   constructor had nothing to fold (no noncanonical warning).
 %
 % MMP, 09/25/2026: Initial coding
+% MMP, 09/25/2026: Strengthened after review. An occ case leaving a row and
+%                  a column empty, where lpivar_cdopvar now places zero
+%                  blocks, and 'verify' plus a rebuild from the blocks on
+%                  every n-D case (both failed before that fix). The
+%                  arithmetic check asserted isfield(prog,'expr'), true
+%                  before the call; it now counts constraints, and checks
+%                  that T'*Q - Q'*T is skew. Error cases match a message
+%                  fragment instead of accepting any error.
 
 rng(20260926);
 nchk = 0;
@@ -79,6 +87,8 @@ CASES = {
       struct('out',[1;2],'in',[2;1]), 2, logical([1 1; 0 1])
   'per-block degrees', ...
       {{'s'},{'s','t'}}, [1;1], {1, [2 1 3]; struct('int',[0 3]), 0}, []
+  'occ leaving a row and a column empty', ...
+      {{},{'s'}}, [1;2], 1, logical([1 0; 0 0])                             % MMP, 09/25/2026
 };
 for ic = 1:size(CASES,1)
     [lbl,sp,dm,dg,occ] = deal(CASES{ic,:});
@@ -96,7 +106,13 @@ for ic = 1:size(CASES,1)
     assert(nsupp==numel(Pc.Zd),'%s: support %d ~= variables %d (not injective)',lbl,nsupp,numel(Pc.Zd));
     [ok,msg] = unit_responses(Pc,40);
     assert(ok,'%s: %s',lbl,msg);
-    nchk = nchk+5;
+    % The container is valid and re-derivable from its blocks alone, which  % MMP, 09/25/2026
+    % needs a block in every row and column.                                % MMP, 09/25/2026
+    v = verify(Pc);                                                         % MMP, 09/25/2026
+    assert(v.true,'%s: verify fails: %s',lbl,strjoin(v.flags(:)',' | '));   % MMP, 09/25/2026
+    assert(isequal(metadata(cdopvar(Pc.C)),metadata(Pc)),'%s: blocks do not rebuild the container',lbl); % MMP, 09/25/2026
+%   nchk = nchk+5;                                                          % MMP, 09/25/2026 (was)
+    nchk = nchk+7;                                                          % MMP, 09/25/2026
     fprintf('  passed: %-42s %5d variables\n',lbl,numel(Pc.Zd));
 end
 
@@ -107,17 +123,30 @@ prog = lpiprogram(polynomial({'s'}),[],[0,1]);
 [prog,Q] = lpivar_cdopvar(prog,[2;3],{{},{'s'}},[0,1],[1 1 1]);
 T = rand_copvar(struct('out',{{ {}, {'s'} }},'in',{{ {}, {'s'} }}), ...
                 struct('out',[2;3],'in',[2;3]),[0,1],1,0.7);
-R = T'*Q - Q'*T;                                            %#ok<NASGU>
+% R = T'*Q - Q'*T;                                            %#ok<NASGU>   % MMP, 09/25/2026 (was)
+R = T'*Q - Q'*T;                                                            % MMP, 09/25/2026
+% R is skew, R' = -R; a wrong adjoint or sign in either term breaks it.     % MMP, 09/25/2026
+assert(eq(R + R',0,1e-10),'adjoint: T''*Q - Q''*T is not skew-adjoint');    % MMP, 09/25/2026
+nexpr = prog.expr.num;                                                      % MMP, 09/25/2026
 prog = lpi_eq_cdopvar(prog,T'*Q);
-assert(isa(Q','cdopvar') && isfield(prog,'expr'),'arithmetic / constraint on the result');
-nchk = nchk+1;
+% assert(isa(Q','cdopvar') && isfield(prog,'expr'),'arithmetic / constraint on the result'); % MMP, 09/25/2026 (was)
+% isfield(prog,'expr') held before the call; count the constraints instead. % MMP, 09/25/2026
+assert(isa(Q','cdopvar') && prog.expr.num>nexpr,'arithmetic / constraint on the result'); % MMP, 09/25/2026
+% nchk = nchk+1;                                                            % MMP, 09/25/2026 (was)
+nchk = nchk+2;                                                              % MMP, 09/25/2026
 
 % ------------------------------------------------------------ errors
+% The routine raises identifier-free errors, so each case is matched by a   % MMP, 09/25/2026
+% fragment of its message: any error at all would otherwise pass.           % MMP, 09/25/2026
 prog = lpiprogram(polynomial({'s'}),[],[0,1]);
-expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s'}},[0,1],1,struct('occ',true(3))),'');
-expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s'}},[0,1],struct('bogus',1)),'');
-expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s_dum'}},[0,1],1),'');
-expect_error(@() lpivar_cdopvar(prog,[1;1;1],{{},{'s'}},[0,1],1),'');
+% expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s'}},[0,1],1,struct('occ',true(3))),''); % MMP, 09/25/2026 (was)
+% expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s'}},[0,1],struct('bogus',1)),''); % MMP, 09/25/2026 (was)
+% expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s_dum'}},[0,1],1),'');   % MMP, 09/25/2026 (was)
+% expect_error(@() lpivar_cdopvar(prog,[1;1;1],{{},{'s'}},[0,1],1),'');     % MMP, 09/25/2026 (was)
+expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s'}},[0,1],1,struct('occ',true(3))),'options.occ should be 2 x 2'); % MMP, 09/25/2026
+expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s'}},[0,1],struct('bogus',1)),'Unknown degree field ''bogus'''); % MMP, 09/25/2026
+expect_error(@() lpivar_cdopvar(prog,[1;1],{{},{'s_dum'}},[0,1],1),'may not end in'); % MMP, 09/25/2026
+expect_error(@() lpivar_cdopvar(prog,[1;1;1],{{},{'s'}},[0,1],1),'one entry per space'); % MMP, 09/25/2026
 nchk = nchk+4;
 
 fprintf('test_lpivar_cdopvar passed (%d checks).\n',nchk);
@@ -247,7 +276,15 @@ for i = 1:M
     for j = 1:N
         B = Pc.C{i,j};
         if ~occ(i,j)
-            if ~isempty(B),  ok = false;  msg = sprintf('block (%d,%d) should be []',i,j);  return,  end
+%           if ~isempty(B),  ok = false;  msg = sprintf('block (%d,%d) should be []',i,j);  return,  end % MMP, 09/25/2026 (was)
+            % [], or an all-zero block where occ leaves the row or the      % MMP, 09/25/2026
+            % column empty (it then holds the space for 'verify').          % MMP, 09/25/2026
+            if isempty(B),  continue,   end                                 % MMP, 09/25/2026
+            iszero = all(cellfun(@nnz,B.params.A(:))==0) && ...
+                     all(cellfun(@nnz,B.params.B(:))==0);                   % MMP, 09/25/2026
+            if ~iszero || (any(occ(i,:)) && any(occ(:,j)))                  % MMP, 09/25/2026
+                ok = false;  msg = sprintf('block (%d,%d) should be []',i,j);  return % MMP, 09/25/2026
+            end                                                             % MMP, 09/25/2026
             continue
         end
         d = block_deg(dg,i,j);
@@ -383,10 +420,12 @@ end
 
 
 function expect_error(f,id)
+% ID is an error identifier or a fragment of the message.                   % MMP, 09/25/2026
 try
     f();
 catch ME
-    if ~isempty(id) && ~strcmp(ME.identifier,id)
+%   if ~isempty(id) && ~strcmp(ME.identifier,id)                            % MMP, 09/25/2026 (was)
+    if ~isempty(id) && ~strcmp(ME.identifier,id) && ~contains(ME.message,id) % MMP, 09/25/2026
         error('test_lpivar_cdopvar: expected ''%s'', got ''%s'': %s',id,ME.identifier,ME.message);
     end
     return

@@ -6,12 +6,16 @@
 %   opvar2copvar            T, A, B1, C1, D11 and the identities
 %   poscopvar               the storage operator P and the negativity slack
 %   @cdopvar/mtimes, plus   the KYP entries
-%   @cdopvar/uminus         -(gam*Iw), -(gam*Iz), and -KYP below
+%   @copvar/uminus          -(gam*Iw), -(gam*Iz)                            % MMP, 09/25/2026
+%   @cdopvar/uminus         (-1)*N in the constraint: applied once, so      % MMP, 09/25/2026
+%                           a sign error cannot cancel                      % MMP, 09/25/2026
+% (was)   @cdopvar/uminus         -(gam*Iw), -(gam*Iz), and -KYP below      % MMP, 09/25/2026 (was)
 %   @cdopvar/horzcat,vertcat  the 3 x 3 KYP operator, mixing fixed and
 %                           decision blocks, R^n and L_2 spaces, and
 %                           operators over different variable registries
 %                           (Iw and Dzw have none)
-%   @cdopvar/minus          N - (-KYP) = 0, i.e. KYP = -N <= 0
+%   @cdopvar/minus          KYP - ((-1)*N) = 0, i.e. KYP = -N <= 0          % MMP, 09/25/2026
+% (was)   @cdopvar/minus          N - (-KYP) = 0, i.e. KYP = -N <= 0        % MMP, 09/25/2026 (was)
 %   lpi_eq_cdopvar          the equality constraint
 %
 % against the construction of 'PIETOOLS_Hinf_gain_coercive' with 'opvar'
@@ -49,6 +53,10 @@
 % (spaces w, z, R^1, L_2[s]) and 3 x 3 for the PDE-only case.
 %
 % MMP, 09/25/2026: Initial coding
+% MMP, 09/25/2026: Constraint written KYP - ((-1)*N) instead of N - (-KYP).
+%                  The old form negates KYP twice, so a @cdopvar/uminus that
+%                  returned its input would still pass; now uminus acts once,
+%                  on N. -(gam*Iw) is @copvar/uminus, not @cdopvar.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
@@ -187,7 +195,8 @@ Km = [-(gam*Iw),   Dzw',      PB'*Tm;
 Km = Km + ep*blkdiag(Iw,Iz,0*Ix);           % eps on w and z, none on the state
 [sp,dm] = space_list(Km,'out');
 [prog,Nm] = poscopvar(prog,dm,sp,PIE.dom,pl2pm(dd2,sp));
-prog = lpi_eq_cdopvar(prog,Nm - (-Km),'symmetric');     % KYP = -N <= 0
+% prog = lpi_eq_cdopvar(prog,Nm - (-Km),'symmetric');     % KYP = -N <= 0   % MMP, 09/25/2026 (was)
+prog = lpi_eq_cdopvar(prog,Km - ((-1)*Nm),'symmetric');   % KYP = -N <= 0   % MMP, 09/25/2026
 nd = numel(prog.decvartable);
 evalc('sol = lpisolve(prog,sopts);');
 [st,info] = read_sol(sol);

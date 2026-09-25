@@ -11,8 +11,10 @@ function P = ChangeDecVar(P,Zd,loc)                                         % MM
 %                  concatenations get it free from one 'unique'). It skips
 %                  the per-block 'ismember', which was 4.4 of 5.3 s of a
 %                  two-list [D, E] at q = 4e5. LOC's size and range are
-%                  checked and three entries spot-checked by name, O(1) in q;
-%                  without LOC the behaviour is unchanged.
+%                  checked, a scan of LOC, and three entries by name; a
+%                  permutation within the right length and range is NOT
+%                  caught, so LOC must come from the list itself. Without
+%                  LOC the behaviour is unchanged.
 %% First, convert the existing decision-variable list P.Zd and the desired decision-variable list Zd 
 % into column string vectors for comparison and indexing.
 Zd_old = P.Zd(:).';

@@ -35,6 +35,10 @@ function tf = eq_copvar(A,B,tol)
 % 'derive_copvar_meta': it is logic that would silently diverge.
 %
 % Cost: one block 'eq' per populated pair; each forms the block difference.
+% Two decision containers on DIFFERENT lists reconcile them once per block  % MMP, 09/25/2026
+% pair ('sync_basis' in @sdopvar/eq), O(q log q) each, not once for the     % MMP, 09/25/2026
+% container. Left so: eq is a test-side routine, and the zero test A == 0   % MMP, 09/25/2026
+% and containers on one list never reconcile.                               % MMP, 09/25/2026
 %
 % See also EQ, PLUS, MINUS, COPVAR, CDOPVAR.
 %
@@ -65,6 +69,9 @@ function tf = eq_copvar(A,B,tol)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/25/2026: Documented the per-block decision-list reconciliation
+%                  cost of comparing containers on different lists. No code
+%                  change.
 
 if nargin<3 || isempty(tol)
     tol = 1e-14;

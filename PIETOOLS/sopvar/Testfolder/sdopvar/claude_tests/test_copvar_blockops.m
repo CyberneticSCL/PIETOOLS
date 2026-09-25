@@ -27,6 +27,12 @@
 % are included via the 'occ' argument of the generators.
 %
 % MMP, 09/25/2026: Initial coding
+% MMP, 09/25/2026: Review cases. A decision operand whose sdopvar blocks are
+%                  on an EMPTY list, in [D,P0], [P0,D] and D+P0 (such blocks
+%                  were left off the container list); an operand whose list
+%                  already is the union (left in place) and one holding the
+%                  same names permuted (moved); 'verify' on every
+%                  concatenation; and the 'setdvars' row-map guard.
 
 rng(20260925);
 warning('off','sopvar:noncanonicalMultiplier');
@@ -118,7 +124,9 @@ for ish = 1:numel(SH)
         lhs = H*[X; Y];
         rhs = A*X + B*Y;
         assert(sem_equal(lhs,rhs,dmap,1),'horzcat: [A,B]*[X;Y] ~= A*X+B*Y');
-        nchk = nchk+8;
+        v = verify(H);  assert(v.true,'horzcat result fails verify');       % MMP, 09/25/2026
+%       nchk = nchk+8;                                                      % MMP, 09/25/2026 (was)
+        nchk = nchk+9;                                                      % MMP, 09/25/2026
     end
     % Decision variable list merged when the lists differ, reused when not.
     H = [D, E];
@@ -155,6 +163,37 @@ for ish = 1:numel(SH)
     assert(sem_blocks_equal(G,D,1:M,1:N,dmap) && sem_blocks_equal(G,Er,M+(1:M),N+(1:N),dmap) ...
         && sem_blocks_equal(G,D,2*M+(1:M),2*N+(1:N),dmap),'three-operand blkdiag blocks');
     nchk = nchk+8;
+    % Identity-map skip: R2 = D + Er is on [D.Zd; Er.Zd], which IS the union % MMP, 09/25/2026
+    % for [D, R2], so only D's blocks move. R3 = Er + D holds the same names % MMP, 09/25/2026
+    % permuted: full length, but not the identity map, so it must move.     % MMP, 09/25/2026
+    R2 = D + Er;    R3 = Er + D;                                            % MMP, 09/25/2026
+    H = [D, R2];                                                            % MMP, 09/25/2026
+    assert(isequal(H.Zd(:),R2.Zd(:)) && all_blocks_on_list(H),'identity-map horzcat list'); % MMP, 09/25/2026
+    assert(sem_blocks_equal(H,D,1:M,1:N,dmap) && sem_blocks_equal(H,R2,1:M,N+(1:N),dmap),...
+        'identity-map horzcat altered a block');                            % MMP, 09/25/2026
+    H = [R2, R3];                                                           % MMP, 09/25/2026
+    assert(isequal(H.Zd(:),R2.Zd(:)) && all_blocks_on_list(H),'permuted-list horzcat list'); % MMP, 09/25/2026
+    assert(sem_blocks_equal(H,R2,1:M,1:N,dmap) && sem_blocks_equal(H,R3,1:M,N+(1:N),dmap),...
+        'permuted-list horzcat altered a block');                           % MMP, 09/25/2026
+    % A decision operand with NO decision variables - sdopvar blocks on an  % MMP, 09/25/2026
+    % empty list - must still be put on the container's list, from either   % MMP, 09/25/2026
+    % side, and in a sum.                                                   % MMP, 09/25/2026
+    C0 = P.C;                                                               % MMP, 09/25/2026
+    for ii = 1:numel(C0)                                                    % MMP, 09/25/2026
+        if ~isempty(C0{ii}),    C0{ii} = sopvar2sdopvar(C0{ii});    end     % MMP, 09/25/2026
+    end                                                                     % MMP, 09/25/2026
+    P0 = cdopvar(C0);                                                       % MMP, 09/25/2026
+    assert(isempty(P0.Zd) && isa(P0.C{end,end},'sdopvar'),'setup: P0 should be decision blocks on no list'); % MMP, 09/25/2026
+    H1 = [D, P0];   H2 = [P0, D];                                           % MMP, 09/25/2026
+    assert(all_blocks_on_list(H1) && all_blocks_on_list(H2) && ...
+        isequal(H1.Zd(:),D.Zd(:)) && isequal(H2.Zd(:),D.Zd(:)),'empty-list operand left off the list'); % MMP, 09/25/2026
+    assert(sem_blocks_equal(H1,P0,1:M,N+(1:N),dmap) && sem_blocks_equal(H2,P0,1:M,1:N,dmap) ...
+        && sem_blocks_equal(H2,D,1:M,N+(1:N),dmap),'empty-list operand altered a block'); % MMP, 09/25/2026
+    v1 = verify(H1);    v2 = verify(H2);                                    % MMP, 09/25/2026
+    assert(v1.true && v2.true,'empty-list concatenation fails verify');     % MMP, 09/25/2026
+    S0 = D + P0;                                                            % MMP, 09/25/2026
+    assert(all_blocks_on_list(S0) && sem_lincomb(S0,{D,P0},[1,1],dmap),'D + P0 with an empty-list P0'); % MMP, 09/25/2026
+    nchk = nchk+9;                                                          % MMP, 09/25/2026
 
     % ---------------------------------------------------------- vertcat
     spV = struct('out',{{ sh.sp.out{end} }},'in',{sh.sp.in});
@@ -178,7 +217,9 @@ for ish = 1:numel(SH)
         VZ = V*Z;   AZ = A*Z;   BZ = B*Z;
         assert(sem_rows_equal(VZ,1:M,AZ,dmap) && sem_rows_equal(VZ,M+1,BZ,dmap),...
             'vertcat: [A;B]*Z rows ~= A*Z, B*Z');
-        nchk = nchk+7;
+        v = verify(V);  assert(v.true,'vertcat result fails verify');       % MMP, 09/25/2026
+%       nchk = nchk+7;                                                      % MMP, 09/25/2026 (was)
+        nchk = nchk+8;                                                      % MMP, 09/25/2026
     end
 
     % ---------------------------------------------------------- blkdiag
@@ -195,7 +236,9 @@ for ish = 1:numel(SH)
         GXY = G*XY;
         assert(sem_rows_equal(GXY,1:M,A*Z,dmap) && sem_rows_equal(GXY,M+(1:M),B*Z,dmap),...
             'blkdiag: blkdiag(A,B)*[Z;Z] ~= [A*Z; B*Z]');
-        nchk = nchk+5;
+        v = verify(G);  assert(v.true,'blkdiag result fails verify');       % MMP, 09/25/2026
+%       nchk = nchk+5;                                                      % MMP, 09/25/2026 (was)
+        nchk = nchk+6;                                                      % MMP, 09/25/2026
     end
 
     % ---------------------------------------------------------- eq
@@ -304,6 +347,18 @@ expect_error(@() [A; Bt],'copvar:vertcatDimMismatch');     % R^1 vs R^2
 expect_error(@() [A, 3],'copvar:horzcatBadOperand');
 expect_error(@() A==3,'eq:badInput');
 nchk = nchk+10;
+% The row map the container code hands 'setdvars': refused at the wrong     % MMP, 09/25/2026
+% length or out of range; a right one moves each row with its name. Bk is   % MMP, 09/25/2026
+% a block of the last shape's D.                                            % MMP, 09/25/2026
+Bk = D.C{end,end};      n = numel(Bk.Zd);                                   % MMP, 09/25/2026
+expect_error(@() setdvars(Bk,Bk.Zd,1:n-1),'ChangeDecVar:badLoc');           % MMP, 09/25/2026
+expect_error(@() setdvars(Bk,Bk.Zd,[0,2:n]),'ChangeDecVar:badLoc');         % MMP, 09/25/2026
+Zr = [{'x_new'}; flipud(Bk.Zd(:))];     dmap('x_new') = randn;              % MMP, 09/25/2026
+Bm = setdvars(Bk,Zr,n+1:-1:2);          % entry k of Bk.Zd is at n+2-k      % MMP, 09/25/2026
+Kk = kern(Bk,dmap);                                                         % MMP, 09/25/2026
+assert(isequal(Bm.Zd(:),Zr) && kdiff(kern(Bm,dmap),Kk,1) <= 1e-9*kscale(Kk),...
+    'setdvars with a map moved a row off its name');                        % MMP, 09/25/2026
+nchk = nchk+3;                                                              % MMP, 09/25/2026
 
 fprintf('test_copvar_blockops passed (%d checks).\n',nchk);
 

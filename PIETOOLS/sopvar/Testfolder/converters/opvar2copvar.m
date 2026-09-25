@@ -12,12 +12,17 @@ function Pmop = opvar2copvar(Pop)
 %           the full 4-PI operator is the point of this routine;
 %
 % OUTPUTS
-% - Pmop:   'copvar' over the spaces (R^m, L2^n[s]), with
+% - Pmop:   'copvar' from (R^m2, L2^n2[s]) to (R^m1, L2^n1[s]), with        % MMP, 09/25/2026
+% - (was)   'copvar' over the spaces (R^m, L2^n[s]), with                   % MMP, 09/25/2026 (was)
 %
-%               Pmop.C{1,1} = P    (R^m  -> R^m)
-%               Pmop.C{1,2} = Q1   (L2^n -> R^m)
-%               Pmop.C{2,1} = Q2   (R^m  -> L2^n)
-%               Pmop.C{2,2} = R    (L2^n -> L2^n)
+%               Pmop.C{1,1} = P    (R^m2  -> R^m1)                          % MMP, 09/25/2026
+%               Pmop.C{1,2} = Q1   (L2^n2 -> R^m1)                          % MMP, 09/25/2026
+%               Pmop.C{2,1} = Q2   (R^m2  -> L2^n1)                         % MMP, 09/25/2026
+%               Pmop.C{2,2} = R    (L2^n2 -> L2^n1)                         % MMP, 09/25/2026
+%     (was)     Pmop.C{1,1} = P    (R^m  -> R^m)                            % MMP, 09/25/2026 (was)
+%     (was)     Pmop.C{1,2} = Q1   (L2^n -> R^m)                            % MMP, 09/25/2026 (was)
+%     (was)     Pmop.C{2,1} = Q2   (R^m  -> L2^n)                           % MMP, 09/25/2026 (was)
+%     (was)     Pmop.C{2,2} = R    (L2^n -> L2^n)                           % MMP, 09/25/2026 (was)
 %
 %           Row is output, column is input, which is the container's
 %           convention and matches opvar's own component naming;
@@ -29,17 +34,24 @@ function Pmop = opvar2copvar(Pop)
 % whose dim matrix selects just that block. opvar's dim is
 % [out_R in_R; out_L2 in_L2], so the four selectors are
 %
-%   P  [m m;0 0]     Q1 [m 0;0 n]     Q2 [0 m;n 0]     R  [0 0;n n]
+%   P  [m1 m2;0 0]   Q1 [m1 0;0 n2]   Q2 [0 m2;n1 0]   R  [0 0;n1 n2]       % MMP, 09/25/2026
+% (was) P  [m m;0 0]     Q1 [m 0;0 n]     Q2 [0 m;n 0]     R  [0 0;n n]     % MMP, 09/25/2026 (was)
 %
 % A component that is empty or identically zero is left as a structurally
 % zero block ([]) rather than converted, so a sparse operator stays sparse
 % and the container does not carry bases for blocks that hold nothing.
+% Exception: a row or column that would have no block at all gets one       % MMP, 09/25/2026
+% explicit zero block, since 'verify' and copvar(C) read its space off it.  % MMP, 09/25/2026
 %
-% A zero-dimensional side is skipped the same way: for m = 0 the whole first
-% row and column are absent, and the result is a 1 x 1 container. Rows and
-% columns of a 'copvar' cannot be entirely empty, since the container reads
-% each row's space and dimension off a populated block, so an operator with
-% m = 0 or n = 0 must not produce a 2 x 2 grid.
+% A zero-dimensional space is skipped: for m1 = 0 there is no R row, for    % MMP, 09/25/2026
+% m2 = 0 no R column, likewise n1, n2 for L2, so e.g. dim = [0 0; n n]      % MMP, 09/25/2026
+% gives a 1 x 1 container. Including such a space would give a row or       % MMP, 09/25/2026
+% column of zero dimension.                                                 % MMP, 09/25/2026
+% (was) A zero-dimensional side is skipped the same way: for m = 0 the whole first % MMP, 09/25/2026 (was)
+% (was) row and column are absent, and the result is a 1 x 1 container. Rows and % MMP, 09/25/2026 (was)
+% (was) columns of a 'copvar' cannot be entirely empty, since the container reads % MMP, 09/25/2026 (was)
+% (was) each row's space and dimension off a populated block, so an operator with % MMP, 09/25/2026 (was)
+% (was) m = 0 or n = 0 must not produce a 2 x 2 grid.                       % MMP, 09/25/2026 (was)
 %
 % See also COPVAR2OPVAR, OPVAR2SOPVAR, OPVAR2D2COPVAR, RAND_COPVAR.
 %
@@ -87,6 +99,12 @@ function Pmop = opvar2copvar(Pop)
 %                  zero) leaves one empty. For dim = [m m; n n] the selectors
 %                  are the four used before and the result is unchanged. The
 %                  'opvar2copvar:nonSquare' error of 09/18/2026 is gone.
+% MMP, 09/25/2026: A row or column left with no block by zero components
+%                  gets one explicit zero block. With only the stated
+%                  metadata such a container failed 'verify' ("Row 1 contains
+%                  no populated block") and could not be rebuilt by copvar(C)
+%                  ('copvar:emptyRow'), e.g. D11 = 0. A zero block costs one
+%                  degree-0 basis.
 
 if ~isa(Pop,'opvar')
     error('opvar2copvar:badInput','Input must be an opvar object.')
@@ -94,7 +112,7 @@ end
 d = Pop.dim;
 % % % BEGIN change MMP, 09/25/2026: general dim. Deleted: the square check  % MMP, 09/25/2026
 % % % and its 'nonSquare' error, and the square selectors (09/18/2026).     % MMP, 09/25/2026
-% if d(1,1)~=d(1,2) || d(2,1)~=d(2,2)
+% if d(1,1)~=d(1,2) || d(2,1)~=d(2,2)                                       % MMP, 09/25/2026 (was)
 %     error('opvar2copvar:nonSquare',...
 %         ['This routine expects an opvar with equal input and output '...
 %          'dimensions on each space, i.e. dim = [m m; n n]; got %s.'],mat2str(d)) % MMP, 09/25/2026 (was)
@@ -125,6 +143,20 @@ nm  = {'P' ,'Q1';
 % rows = [keep_R, keep_L2];       cols = [keep_R, keep_L2];                 % MMP, 09/25/2026 (was)
 % % % END change MMP, 09/25/2026                                            % MMP, 09/25/2026
 
+% % % BEGIN change MMP, 09/25/2026: no row or column entirely [].           % MMP, 09/25/2026
+% Blocks to convert: the nonzero components, plus one explicit zero block   % MMP, 09/25/2026
+% in each row, then each column, they leave empty - 'verify' and            % MMP, 09/25/2026
+% copvar(C) read a row's or column's space off a block. The opvar holds     % MMP, 09/25/2026
+% such a component as zeros of the right size, which converts as is.        % MMP, 09/25/2026
+keep = false(2,2);                                                          % MMP, 09/25/2026
+for i = find(rows),     for j = find(cols)                                  % MMP, 09/25/2026
+    keep(i,j) = ~is_zero_component(Pop.(nm{i,j}));                          % MMP, 09/25/2026
+end,                    end                                                 % MMP, 09/25/2026
+ir = find(rows);        jc = find(cols);                                    % MMP, 09/25/2026
+for i = ir,     if ~any(keep(i,:)),     keep(i,jc(1)) = true;   end,    end % MMP, 09/25/2026
+for j = jc,     if ~any(keep(:,j)),     keep(ir(1),j) = true;   end,    end % MMP, 09/25/2026
+% % % END change MMP, 09/25/2026                                            % MMP, 09/25/2026
+
 C = cell(sum(rows),sum(cols));
 ri = 0;
 for i = 1:2
@@ -134,7 +166,8 @@ for i = 1:2
         if ~cols(j),    continue,   end
         ci = ci+1;
         comp = Pop.(nm{i,j});
-        if is_zero_component(comp)
+%       if is_zero_component(comp)                                          % MMP, 09/25/2026 (was)
+        if ~keep(i,j)                                                       % MMP, 09/25/2026
             continue                            % structurally zero block
         end
         Pblk = opvar();
