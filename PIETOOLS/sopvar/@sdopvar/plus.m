@@ -8,9 +8,12 @@ function C = plus(A,B)
 % MMP, 09/21/2026: Compare the variable lists with 'isequal' rather than
 % 'any(~strcmp(...))'. '@sopvar/plus' took the same fix on 09/07/2026 and
 % this copy was missed. Reached by adding the strict-positivity identity to a
-% 'posmopvar' container, whose R^n block has an empty variable list: '{}' and
+% 'poscopvar' container, whose R^n block has an empty variable list: '{}' and
 % a 1 x 0 cellstr name the same space, and strcmp of two different-sized
 % cellstr does not compare them.
+% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+% mdopvar -> cdopvar, with every file and function named after them. Mechanical
+% rename, no functional change. Renamed here: posmopvar -> poscopvar.
 
 % A fixed 'sopvar' operand is promoted to a decision operator with a        % MMP, 09/07/2026
 % zero B, so that A+Pop and Pop+A work; mixing fixed and decision blocks    % MMP, 09/07/2026

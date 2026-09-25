@@ -21,7 +21,7 @@ function [prog,Pop,Qcell,alpha_list] = possopvar(prog,dim,vars,dom,deg,options)
 % a 'sym' variable would not be a positive operator and the name would then
 % be wrong.
 %
-% See also SOPQUADVAR, POSMOPVAR, EQ_OPTS_SOPVAR, DEGBALANCE,
+% See also SOPQUADVAR, POSCOPVAR, EQ_OPTS_SOPVAR, DEGBALANCE,
 % SETTINGS2POSSOPVAR, LPI_EQ_SDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -54,12 +54,16 @@ function [prog,Pop,Qcell,alpha_list] = possopvar(prog,dim,vars,dom,deg,options)
 %                  a quadratic form, and the whole of the positivity
 %                  question was the literal 'pos' passed to 'sosquadvar' --
 %                  so it belonged in a constructor that Sec. 8.4's
-%                  'posmopvar' can share, rather than being duplicated. The
+%                  'poscopvar' can share, rather than being duplicated. The
 %                  earlier header entries for the sep option, deg.subset,
 %                  the sorted-S3 cell order and the block accumulation now
 %                  live with the code in 'sopquadvar'. Behaviour here is
 %                  unchanged, checked against the Gram dimensions measured
 %                  beforehand and the 'test_possopvar' suite.
+% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+%                  mdopvar -> cdopvar, with every file and function named after
+%                  them. Mechanical rename, no functional change. Renamed here:
+%                  posmopvar -> poscopvar.
 
 if nargin<6 || isempty(options)
     options = struct();

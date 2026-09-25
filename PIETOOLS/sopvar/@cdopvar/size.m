@@ -1,34 +1,23 @@
-function P = setdvars(P,Zd)
+function varargout = size(P,dim)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% P = SETDVARS(P,Zd) rewrites the 'sdopvar' P over the decision variable
-% list Zd, which must contain every variable P already uses. The operator is
-% unchanged: only the row indexing of params.B moves, with zero rows for
-% variables P does not use.
+% [M,N] = SIZE(P) returns the BLOCK dimensions of the 'cdopvar' P: the number
+% of output spaces M and input spaces N, i.e. size(P.C). SIZE(P,1) and
+% SIZE(P,2) return them individually.
 %
-% INPUTS
-% - P:      an 'sdopvar' object;
-% - Zd:     cellstr of decision variable names, a superset of P.Zd;
+% This is the block grid, NOT the total component count - which differs from
+% @sopvar/size, where the return is matrix dimensions. Component counts are
+% P.dim_out (M x 1) and P.dim_in (N x 1); the concatenated spaces have
+% sum(P.dim_out) and sum(P.dim_in) components. The grid is what a container
+% is indexed by and what 'verify' iterates over, and with mixed L2 spaces a
+% single component total is rarely the quantity wanted, so a caller who
+% needs one should name it.
 %
-% OUTPUTS
-% - P:      the same operator with P.Zd = Zd;
-%
-% NOTES
-% Public entry point to the private 'ChangeDecVar', needed because the
-% 'copvar' container holds one decision variable list for all of its blocks
-% and must be able to put a block onto it. Reimplementing the row remap in
-% @copvar would duplicate logic on the decision variable axis, which is the
-% axis that scales to millions.
-%
-% Cost: O(nnz(B)) per parameter, plus the O(q) 'ismember' over the names
-% that 'ChangeDecVar' performs to locate the old rows. Returns immediately
-% when P.Zd already equals Zd.
-%
-% See also CHANGEDECVAR, SYNC_BASIS, COPVAR.
+% See also VERIFY, CDOPVAR, COPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - setdvars
+% PIETOOLS - size(cdopvar)
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -51,14 +40,21 @@ function P = setdvars(P,Zd)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/17/2026
+% Initial coding MMP, 09/17/2026. Split out of @copvar; identical except for
+%                the container class it builds and the Zd it carries through.
 % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
 %                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change.
+%                  them. Mechanical rename, no functional change. Moved from
+%                  @mdopvar/ with the class.
 
-if isstring(Zd)
-    Zd = cellstr(Zd);
+blkdim = [size(P.C,1),size(P.C,2)];
+
+if nargin==2
+    varargout = {blkdim(dim)};
+elseif nargout<=1
+    varargout = {blkdim};
+else
+    varargout = {blkdim(1),blkdim(2)};
 end
-P = ChangeDecVar(P,Zd(:));
 
 end

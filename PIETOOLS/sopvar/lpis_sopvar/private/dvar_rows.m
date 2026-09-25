@@ -23,9 +23,12 @@ function loc = dvar_rows(dvars_old,dmap)
 % OUTPUTS
 % - loc:        n x 1 array of global row indices.
 %
-% See also REMAP_DVARS, SOPQUADVAR, MOPQUADVAR.
+% See also REMAP_DVARS, SOPQUADVAR, COPQUADVAR.
 %
 % MMP, 09/22/2026: Initial coding, split out of 'remap_dvars'.
+% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+%                  mdopvar -> cdopvar, with every file and function named after
+%                  them. Mechanical rename, no functional change.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - dvar_rows

@@ -164,6 +164,10 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+%                  mdopvar -> cdopvar, with every file and function named after
+%                  them. Mechanical rename, no functional change. Renamed here:
+%                  mopquadvar -> copquadvar, posmopvar -> poscopvar.
 % MMP, 09/22/2026: Defer the scatter onto the global decision variable basis
 %                  until after the theta elimination. 'remap_dvars' was called
 %                  before 'pack_sheets', so every block was widened from its
@@ -196,13 +200,13 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 %                  'expand_caps', 'remap_dvars', 'pack_sheets',
 %                  'unpack_sheets', 'lr_multiply' and 'expand_full'. Sec. 8.4
 %                  asks for one implementation shared with the multi-domain
-%                  'mopquadvar' rather than two, and a file-local subfunction
+%                  'copquadvar' rather than two, and a file-local subfunction
 %                  cannot be shared. A 'private' folder is visible to every
 %                  function in 'lpis_sopvar' and to nothing else, so the
 %                  bodies are unchanged and no name is exposed.
 % MMP, 09/21/2026: Renamed from 'possopvar' and the variable type made an
-%                  argument. Sec. 8.4 asks for a posmopvar over the mixed
-%                  domains of an 'mopvar' and observes that there should not
+%                  argument. Sec. 8.4 asks for a poscopvar over the mixed
+%                  domains of a 'copvar' and observes that there should not
 %                  be two implementations, just the general one with a
 %                  fastlane. Extracting the constructor is the first step:
 %                  the body assembles sum_ij Z_i^* Q_ij Z_j from a basis
@@ -213,7 +217,7 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 %                  fixing type to 'pos', with its behaviour unchanged, and
 %                  'sym' additionally becomes available for the
 %                  unconstrained operator variable the settings files call
-%                  Zop. Multi-domain support, and the 'posmopvar' wrapper
+%                  Zop. Multi-domain support, and the 'poscopvar' wrapper
 %                  over it, follow separately.
 % MMP, 09/21/2026: Accept 'deg.subset', one maximal degree per SUBSET of the
 %                  variables, over the order the basis is built in. The

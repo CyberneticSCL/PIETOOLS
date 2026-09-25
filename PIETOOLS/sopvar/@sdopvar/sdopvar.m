@@ -5,7 +5,7 @@ classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar             % MMP, 09/07
     %
     %   Pop: L_2^p[S1,S3] to L_2^q[S2,S3]
     %
-    % Elements of this class are intended to be included in a mopvar container object.
+    % Elements of this class are intended to be included in a cdopvar container object.
     %
     %   The operator has the form
     %         y(S2,S3)=sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_d(S_2,S_3)
@@ -71,6 +71,13 @@ classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar             % MMP, 09/07
     % what lets 'eq' compare coefficients and 'lpi_eq_sdopvar' constrain     % MMP, 08/29/2026
     % them to zero. Assigning to the properties directly bypasses the        % MMP, 08/29/2026
     % constructor and so bypasses the invariant; build a new object instead. % MMP, 08/29/2026
+    %
+    % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+    %                  mdopvar -> cdopvar, with every file and function named
+    %                  after them. Mechanical rename, no functional change. The
+    %                  mention above names the container that holds sdopvar
+    %                  blocks, which is cdopvar: copvar admits sopvar blocks
+    %                  only.
 
     properties
         vars = struct('in',{},'out',{});

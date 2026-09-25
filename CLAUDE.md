@@ -137,7 +137,9 @@ Class locations (one definition each; `objs/opvar/` is inert):
 | `opvar`, `dopvar` | `opvar/@opvar`, `opvar/@dopvar` |
 | `opvar2d`, `dopvar2d` | `opvar/2D/@opvar2d`, `opvar/2D/@dopvar2d` |
 | `nopvar`, `ndopvar` | `ndopvar/@nopvar`, `ndopvar/@ndopvar` |
-| `sopvar`, `sdopvar`, `mopvar` | `sopvar/@sopvar`, `sopvar/@sdopvar`, `sopvar/@mopvar` |
+| `sopvar`, `sdopvar` | `sopvar/@sopvar`, `sopvar/@sdopvar` |
+| `copvar`, `cdopvar` (containers; renamed from `mopvar`, `mdopvar` 2026-09-25) | `sopvar/@copvar`, `sopvar/@cdopvar` |
+| `mopvar` (the 01/2026 stub, restored 2026-09-25 with SS's `canonicalize`, which cannot run on it) | `sopvar/@mopvar` |
 | `polyopvar`, `tensopvar`, `tensopmat`, `intop` | `polyopvar/@…` |
 
 `pietools_path_update.m` is a single `addpath(genpath(...))`, so everything is on the path at

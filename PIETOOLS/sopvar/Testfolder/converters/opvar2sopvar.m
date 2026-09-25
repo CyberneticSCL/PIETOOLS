@@ -41,8 +41,12 @@ function Psop = opvar2sopvar(Pop)
 %                   P - which is what 'convert(...,''pie'')' produces even
 %                   for a constant - reached 'sopvar' as a parameter and then
 %                   failed inside '@sopvar/mtimes', which calls 'find' on the
-%                   parameters. Found via 'opvar2mopvar' on a coupled ODE-PDE
+%                   parameters. Found via 'opvar2copvar' on a coupled ODE-PDE
 %                   PIE, where the R -> R block is the one carrying it.
+% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+%                  mdopvar -> cdopvar, with every file and function named after
+%                  them. Mechanical rename, no functional change. Renamed here:
+%                  opvar2mopvar -> opvar2copvar.
 
 % Check that the input is of appropraite class
 if isa(Pop,'opvar2d')

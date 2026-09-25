@@ -1,11 +1,11 @@
 function Kc = pi_blk_kernels(B,dval)
-% KC = PI_BLK_KERNELS(B,DVAL) returns the kernels of ONE block of an 'mopvar'
-% or 'mdopvar' container, as matrix-valued 'polynomial' objects, whichever
+% KC = PI_BLK_KERNELS(B,DVAL) returns the kernels of ONE block of a 'copvar'
+% or 'cdopvar' container, as matrix-valued 'polynomial' objects, whichever
 % class the block happens to be.
 %
 % A container's blocks need not all be decision operators: adding a fixed
 % operator to a decision one leaves a 'sopvar' block among 'sdopvar' ones,
-% and an 'mopvar' has only fixed blocks. 'pi_sdopvar_kernels' covers the
+% and a 'copvar' has only fixed blocks. 'pi_sdopvar_kernels' covers the
 % decision case; this wraps it and handles the fixed case, which stores its
 % coefficients directly and has no decision variables to substitute.
 %
@@ -27,6 +27,9 @@ function Kc = pi_blk_kernels(B,dval)
 % See also PI_SDOPVAR_KERNELS, PI_MONOM_VECTOR, PI_GAMMA_INDEX.
 %
 % MMP, 09/21/2026: Initial coding
+% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
+%                  mdopvar -> cdopvar, with every file and function named after
+%                  them. Mechanical rename, no functional change.
 
 if isa(B,'sdopvar')
     Kc = pi_sdopvar_kernels(B,dval);
