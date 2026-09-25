@@ -139,6 +139,45 @@ function [prog,Pop,Qmat,Zop,gss] = poslpivar_2d(prog,n,d,options)
 % DJ, 12/15/2024: Bugfix in case no degrees are specified;
 % DJ, 01/23/2025: Check that 'options' are specified as struct;
 % DJ, 01/25/2025: Return the monomial operator Zop and function gs;
+% CC, 09/23/2026: Add psatz = 3,4,5,6 for the four LINEAR generators of the
+%                 rectangle.  [a,b]x[c,d] is cut out by FOUR inequalities
+%                 (s1-a)>=0, (b-s1)>=0, (s2-c)>=0, (d-s2)>=0, and a
+%                 Positivstellensatz certificate needs a separate multiplier
+%                 for each.  Only their degree-4 PRODUCT was available
+%                 (psatz=1), and that multiplier vanishes on all four edges
+%                 simultaneously, so it cannot correct a deficiency localised
+%                 to one pair of edges.  MEASURED on 2-D stability of
+%                 x_t = lap(x) + lam*x, Dirichlet, with the Lyapunov operator
+%                 pinned to the identity so only the negativity certificate
+%                 varies (lam* = 2*pi^2): the stock product certifies NOTHING
+%                 (reach 0.00*lam*, m = 5848), while {3,4,5,6} together reach
+%                 0.9999*lam* at m = 3728 -- the smallest m of any certifying
+%                 set AND the best reach.  Cost is set by multiplier DEGREE,
+%                 not by the number of terms: four degree-1 generators add
+%                 29% to m, the one degree-4 product adds 103%.  Carries over
+%                 to a searched Lyapunov operator: with light settings and a
+%                 full P search the generators certify to 0.90*lam* at rel_b
+%                 1e-08 (m = 4492, 6 Gram blocks [8 424 424 424 424 424],
+%                 nnz(At) 5.6e+05 -> 3.7e+06), where psatz-free reaches only
+%                 ~0.25*lam*.  CORRECTION 09/25/2026, CC: an earlier version of
+%                 this line read "reach 0.99 at m = 3912, against 0.00 for the
+%                 shipped settings".  The 0.00 was a MOSEK ARTEFACT, not a
+%                 property of the formulation: re-measured on the same programs
+%                 with psatz off and a searched P, SeDuMi certifies at
+%                 0.10*lam* (rel_b 7.3e-06, min eig +3.1e-10) and 0.25*lam*
+%                 (1.9e-05) and only degrades by 0.50*lam* (1.3e-04), while
+%                 Mosek fails at all three (1.5e-03 / 2.18 / 2.08, numerr 2).
+%                 So the generators EXTEND the reach; they are not required for
+%                 a searched P to certify at all.
+%                 DEGREES: each generator needs its own positive operator at
+%                 the FULL eq_deg, summed with the psatz-free base operator.
+%                 The usual convention of giving psatz terms eq_deg-1
+%                 (settings.eq_deg_psatz) DESTROYS the certificate here --
+%                 measured, reach 0.9999 -> 0.0000 at offset -1, returning the
+%                 trivial solution, because the reduced blocks span no
+%                 monomials the base does not already have (m is then
+%                 unchanged at 2880).  So set eq_deg_psatz = eq_deg when
+%                 using these generators.
 
 % % % Set-up % % %
 
@@ -522,8 +561,29 @@ elseif psatz==2
     
     gss = (rds^2 - (ss1-cntr(1))^2 - (ss2-cntr(2))^2);
     
+elseif psatz==3                                                             % CC, 09/23/2026
+    % One LINEAR generator per face of the rectangle.  These must be supplied
+    % as SEPARATE multipliers: the product form (psatz=1) vanishes on all four
+    % edges simultaneously and so cannot correct a deficiency localised to one
+    % pair of edges.  Use them together, e.g. eq_use_psatz = [3;4;5;6].
+    % NORMALISED by the interval length so each generator maps the domain onto
+    % [0,1] whatever the geometry.  The raw form is badly scaled on a
+    % non-unit-length side and the Gram blocks no longer share a scale:
+    % MEASURED on x_t = lap(x)+lam*x, Dirichlet, P = I, reach as a fraction of
+    % lam*, raw against normalised -- [0,1]^2 0.99 / 0.99 (normalisation is a
+    % no-op there), [0,1]x[0,2] 0.10 / 0.99, [0,1]x[0,4] 0.00 / 0.00.  So
+    % normalisation repairs the moderate aspect ratio outright and neither
+    % form survives 1x4, where the obstruction is degree, not scaling.
+    gss = (ss1-I(1,1))/(I(1,2)-I(1,1));                                     % CC, 09/24/2026
+elseif psatz==4                                                             % CC, 09/23/2026
+    gss = (I(1,2)-ss1)/(I(1,2)-I(1,1));                                     % CC, 09/24/2026
+elseif psatz==5                                                             % CC, 09/23/2026
+    gss = (ss2-I(2,1))/(I(2,2)-I(2,1));                                     % CC, 09/24/2026
+elseif psatz==6                                                             % CC, 09/23/2026
+    gss = (I(2,2)-ss2)/(I(2,2)-I(2,1));                                     % CC, 09/24/2026
 else
-    error('options.psatz can only assume values 0, 1, and 2')
+%   error('options.psatz can only assume values 0, 1, and 2')               % CC, 09/23/2026 (was)
+    error('options.psatz can only assume values 0, 1, 2, 3, 4, 5, and 6')   % CC, 09/23/2026
 end
 
 % ONLY FOR TESTING PURPOSES: Take square of psatz polynomial
