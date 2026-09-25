@@ -1,12 +1,23 @@
-function P = ChangeDecVar(P,Zd)
+function P = ChangeDecVar(P,Zd,loc)                                         % MMP, 09/25/2026
+% function P = ChangeDecVar(P,Zd)                                           % MMP, 09/25/2026 (was)
 % P = ChangeDecVar(P,Zd)
 % Change the decision-variable order of an sdopvar object.
 % this routine does not change the operator P. It only rewrites it so that B rows match a new decision-variable ordering Zd,
 % inserting zero rows for newly introduced decision variables.
+%
+% MMP, 09/25/2026: Optional third input LOC, the position in Zd of each
+%                  entry of P.Zd, for a caller that moves many blocks sharing
+%                  one list and has the map already (the container
+%                  concatenations get it free from one 'unique'). It skips
+%                  the per-block 'ismember', which was 4.4 of 5.3 s of a
+%                  two-list [D, E] at q = 4e5. LOC's size and range are
+%                  checked and three entries spot-checked by name, O(1) in q;
+%                  without LOC the behaviour is unchanged.
 %% First, convert the existing decision-variable list P.Zd and the desired decision-variable list Zd 
 % into column string vectors for comparison and indexing.
 Zd_old = P.Zd(:).';
 Zd_new = Zd(:).';
+if nargin<3 || isempty(loc)                                                 % MMP, 09/25/2026
 % Checks the case where the decision variables already match exactly, including order.
 if isequal(Zd_old,Zd_new)
     P.Zd = Zd_new;
@@ -17,6 +28,19 @@ end
 if any(~tf)
     error('New decision-variable list must contain all existing variables.');
 end
+else                                                                        % MMP, 09/25/2026
+    % A supplied map is trusted for the names - that is the saving - but a  % MMP, 09/25/2026
+    % map built for another list is caught by its size, its range, and a    % MMP, 09/25/2026
+    % name check at three positions.                                        % MMP, 09/25/2026
+    loc = loc(:).';                                                         % MMP, 09/25/2026
+    nl = numel(Zd_old);                                                     % MMP, 09/25/2026
+    probe = unique([1,ceil(nl/2),nl]);                                      % MMP, 09/25/2026
+    if numel(loc)~=nl || any(loc<1) || any(loc>numel(Zd_new)) ||...
+            ~isequal(Zd_new(loc(probe)),Zd_old(probe))                      % MMP, 09/25/2026
+        error('ChangeDecVar:badLoc',['LOC must give, for each entry of '...
+            'P.Zd, its position in Zd.']);                                  % MMP, 09/25/2026
+    end                                                                     % MMP, 09/25/2026
+end                                                                         % MMP, 09/25/2026
 % old number of rows in each B{i}.
 n_old = numel(Zd_old);
 % new number of rows in each B{i}.
