@@ -1,0 +1,28 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+CEP eppos2,normb,normx,normDop,rel_b,rel_cu,op_ind,op_hs,op_coef,psd_min,Pmin,feasratio
+CEP 1e-06,9.428e-07,1.392e-05,3.938e-06,1.463e-08,1.380e-14,2.184e-09,1.709e-09,1.409e-09,-1.561e-06,+2.587e-11,+1.0056
+CEP 1e-04,9.428e-05,1.381e-03,3.883e-04,1.333e-08,1.256e-12,1.972e-09,1.580e-09,1.282e-09,-1.548e-04,+2.573e-09,+0.9990
+CEP 1e-02,9.428e-03,1.381e-01,3.883e-02,1.327e-08,1.240e-10,1.952e-09,1.576e-09,1.265e-09,-1.548e-02,+2.573e-07,+0.9990
+CEP 1e-01,9.428e-02,1.381e+00,3.883e-01,1.331e-08,1.146e-09,1.958e-09,1.583e-09,1.268e-09,-1.548e-01,+2.573e-06,+0.9990
+CEP 1e+00,9.428e-01,1.392e+01,3.938e+00,1.463e-08,7.102e-09,2.184e-09,1.709e-09,1.409e-09,-1.561e+00,+2.587e-05,+1.0056
+CEPDONE

@@ -1,0 +1,26 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+T2 lpisolve resolves to C:\Users\mpeet\AppData\Local\Temp\claude\C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS\a69ac9db-6cc4-4fd1-9dcb-b003878763dd\scratchpad\work\stub\lpisolve.m
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T2 PIE dim 1
+T2 PIETOOLS_PIE2PDEstability      m=130    nvar=404      Kf=43   nblk=3  Ns=[10  15   6] nnz=982      |b|=9.428e-07 c_nnz=0 dim_ok=1
+T2 PIETOOLS_PDEstability          m=54     nvar=361      Kf=0    nblk=3  Ns=[10  15   6] nnz=1054     |b|=4.522e-06 c_nnz=0 dim_ok=1
+T2DONE

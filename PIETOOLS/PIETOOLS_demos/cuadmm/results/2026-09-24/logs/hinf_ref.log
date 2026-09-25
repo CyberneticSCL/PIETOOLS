@@ -1,0 +1,358 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Searching for Hinf gain bound using primal KYP lemma --- 
+- Declaring Positive Lyapunov Operator variable using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 498  150
+ 
+The coefficient matrix is not full row rank, numerical problems may occur.
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Detected 1 diagonal SDP block(s) with 1 linear variables
+Put 44 free variables in a quadratic cone
+eqs m = 150, order n = 39, dim = 500, blocks = 5
+nnz(A) = 1127 + 0, nnz(ADA) = 18720, nnz(L) = 9435
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            6.42E-01 0.000
+  1 :   2.08E-01 1.64E-01 0.000 0.2561 0.9000 0.9000   1.45  1  1  1.6E+00
+  2 :   1.38E-01 4.90E-02 0.000 0.2982 0.9000 0.9000   2.10  1  1  3.6E-01
+  3 :   9.98E-02 1.38E-02 0.000 0.2814 0.9000 0.9000   1.46  1  1  9.9E-02
+  4 :   9.05E-02 3.75E-03 0.000 0.2722 0.9000 0.9000   1.05  1  1  2.9E-02
+  5 :   8.24E-02 1.06E-03 0.000 0.2823 0.9000 0.9000   0.81  1  1  9.7E-03
+  6 :   7.87E-02 3.48E-04 0.000 0.3281 0.9000 0.9000   0.76  1  1  3.6E-03
+  7 :   7.68E-02 1.08E-04 0.000 0.3107 0.9000 0.9000   0.78  1  1  1.1E-03
+  8 :   7.57E-02 4.34E-05 0.000 0.4015 0.9000 0.9000   0.59  1  1  3.4E-04
+  9 :   7.48E-02 1.43E-05 0.000 0.3295 0.9000 0.9000   0.62  1  2  1.2E-04
+ 10 :   7.43E-02 4.92E-06 0.000 0.3443 0.9000 0.9000   0.63  1  2  5.0E-05
+ 11 :   7.40E-02 1.68E-06 0.000 0.3415 0.9000 0.9000   0.78  1  2  1.9E-05
+ 12 :   7.39E-02 6.18E-07 0.000 0.3675 0.9000 0.9000   0.82  1  2  7.7E-06
+ 13 :   7.39E-02 2.31E-07 0.000 0.3748 0.9000 0.9000   0.83  2  2  3.2E-06
+ 14 :   7.39E-02 4.53E-08 0.000 0.1956 0.9000 0.6656   0.69  2  3  1.9E-06
+ 15 :   7.39E-02 1.48E-08 0.000 0.3275 0.9106 0.9000   0.72  2  6  7.1E-07
+ 16 :   7.39E-02 5.58E-09 0.000 0.3760 0.9000 0.9073   0.67 13 12  3.3E-07
+ 17 :   7.39E-02 2.60E-09 0.000 0.4667 0.9000 0.6794   0.73 12 13  1.7E-07
+ 18 :   7.39E-02 8.71E-10 0.000 0.3346 0.9000 0.9000   0.77 20 28  6.6E-08
+ 19 :   7.39E-02 3.74E-10 0.000 0.4294 0.9000 0.9000   0.71 29 33  3.4E-08
+ 20 :   7.39E-02 1.49E-10 0.000 0.3973 0.9000 0.9000   0.74 49 44  1.5E-08
+Run into numerical problems.
+
+iter seconds digits       c*x               b*y
+ 20      0.3   6.2  7.3859112289e-02  7.3859156255e-02
+|Ax-b| =   2.7e-08, [Ay-c]_+ =   5.2E-09, |x|=  1.1e+02, |y|=  4.9e+02
+
+Detailed timing (sec)
+   Pre          IPM          Post
+7.900E-02    3.010E-01    1.400E-02    
+Max-norms: ||b||=7.071068e-01, ||c|| = 1,
+Cholesky |add|=0, |skip| = 47, ||L.L|| = 1.39475e+08.
+ 
+Residual norm: 2.6553e-08
+ 
+         iter: 20
+    feasratio: 0.7370
+         pinf: 0
+         dinf: 0
+       numerr: 1
+       timing: [0.0790 0.3010 0.0140]
+      wallsec: 0.3940
+       cpusec: 0.3750
+
+The H-infty norm of the given system is upper bounded by:
+    0.0522
+
+HR light sedumi gam_exec=0.05222628 gam_RRx=0.05222628 match=0.00e+00 | m=150 Kf=44 Ns=[10  17   8   1] |b|=7.071e-01 obj_nnz=1 obj_idx=1 | rel_b=2.655e-08 numerr=1 t=2.53
+
+ --- Searching for Hinf gain bound using primal KYP lemma --- 
+- Declaring Positive Lyapunov Operator variable using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 498  150
+ 
+
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (0) of matrix 'A'.
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 150             
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 44              
+  Matrix variables       : 4 (scalarized: 245)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 1
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 82              
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 17                conic                  : 16              
+Optimizer  - Semi-definite variables: 3                 scalarized             : 244             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 2440              after factor           : 2440            
+Factor     - dense dim.             : 0                 flops                  : 1.95e+05        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   1.5e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   3.2e-01  2.1e-01  6.2e-02  1.40e+00   2.788442318e-01   2.004862131e-01   2.1e-01  0.00  
+2   1.0e-01  6.6e-02  1.0e-02  1.30e+00   1.259249661e-01   1.059973006e-01   6.6e-02  0.00  
+3   2.7e-02  1.8e-02  1.5e-03  1.26e+00   9.967706742e-02   9.544406644e-02   1.8e-02  0.00  
+4   6.7e-03  4.5e-03  2.1e-04  9.36e-01   8.836009395e-02   8.754695664e-02   4.5e-03  0.00  
+5   2.3e-03  1.6e-03  5.1e-05  7.23e-01   8.089347200e-02   8.074020947e-02   1.6e-03  0.00  
+6   5.2e-04  3.5e-04  5.9e-06  8.53e-01   7.774427060e-02   7.774006117e-02   3.5e-04  0.00  
+7   2.0e-04  1.3e-04  1.9e-06  5.80e-01   7.607906520e-02   7.612825958e-02   1.3e-04  0.00  
+8   6.3e-05  4.2e-05  4.0e-07  7.01e-01   7.512049324e-02   7.515386204e-02   4.2e-05  0.00  
+9   2.9e-05  1.9e-05  1.6e-07  5.25e-01   7.450763322e-02   7.453918937e-02   1.9e-05  0.00  
+10  7.4e-06  4.9e-06  2.2e-08  8.06e-01   7.410276292e-02   7.411291416e-02   4.9e-06  0.00  
+11  2.5e-06  1.6e-06  4.8e-09  8.07e-01   7.396106402e-02   7.396595935e-02   1.6e-06  0.00  
+12  8.1e-07  5.4e-07  1.0e-09  8.69e-01   7.390950298e-02   7.391157702e-02   5.4e-07  0.01  
+13  4.3e-07  2.9e-07  4.7e-10  6.41e-01   7.388709344e-02   7.388892171e-02   2.9e-07  0.01  
+14  1.3e-07  8.6e-08  8.7e-11  7.85e-01   7.386959661e-02   7.387033254e-02   8.6e-08  0.01  
+15  5.9e-08  4.0e-08  3.3e-11  6.19e-01   7.386337676e-02   7.386392658e-02   4.0e-08  0.01  
+16  1.4e-08  9.3e-09  4.2e-12  7.57e-01   7.385924934e-02   7.385943871e-02   9.2e-09  0.01  
+17  4.5e-09  4.0e-09  6.8e-13  5.82e-01   7.385826563e-02   7.385836268e-02   2.2e-09  0.01  
+18  2.0e-09  3.4e-09  2.0e-13  4.74e-01   7.385836760e-02   7.385843629e-02   8.0e-10  0.01  
+19  1.0e-09  4.9e-09  6.1e-14  6.91e-01   7.385852232e-02   7.385855782e-02   3.3e-10  0.01  
+20  1.6e-09  2.2e-08  5.2e-14  9.84e-01   7.385854496e-02   7.385857674e-02   2.9e-10  0.01  
+21  2.4e-09  3.2e-08  4.7e-14  9.84e-01   7.385855523e-02   7.385858531e-02   2.8e-10  0.01  
+22  3.2e-09  3.5e-08  4.4e-14  9.84e-01   7.385856501e-02   7.385859348e-02   2.6e-10  0.01  
+23  3.2e-09  3.2e-08  4.4e-14  9.93e-01   7.385856501e-02   7.385859348e-02   2.6e-10  0.02  
+24  3.2e-09  3.6e-08  4.4e-14  9.93e-01   7.385856501e-02   7.385859348e-02   2.6e-10  0.02  
+25  3.2e-09  3.6e-08  4.4e-14  9.93e-01   7.385856501e-02   7.385859348e-02   2.6e-10  0.02  
+26  3.1e-09  5.0e-08  4.4e-14  1.00e+00   7.385856505e-02   7.385859351e-02   2.6e-10  0.02  
+27  3.2e-09  5.4e-08  4.4e-14  1.00e+00   7.385856506e-02   7.385859352e-02   2.6e-10  0.02  
+28  3.2e-09  6.6e-08  4.4e-14  1.00e+00   7.385856506e-02   7.385859352e-02   2.6e-10  0.02  
+29  3.2e-09  7.1e-08  4.4e-14  1.00e+00   7.385856506e-02   7.385859352e-02   2.6e-10  0.02  
+30  3.2e-09  7.1e-08  4.4e-14  1.00e+00   7.385856506e-02   7.385859352e-02   2.6e-10  0.03  
+31  3.2e-09  5.1e-08  4.4e-14  1.00e+00   7.385856507e-02   7.385859352e-02   2.6e-10  0.03  
+32  3.2e-09  5.5e-08  4.4e-14  1.00e+00   7.385856507e-02   7.385859352e-02   2.6e-10  0.03  
+33  3.2e-09  8.2e-08  4.4e-14  1.00e+00   7.385856507e-02   7.385859352e-02   2.6e-10  0.03  
+Optimizer terminated. Time: 0.03    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 7.3858565067e-02    nrm: 3e+01    Viol.  con: 1e-07    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 7.3858593520e-02    nrm: 6e+01    Viol.  con: 0e+00    var: 3e-09    barvar: 9e-07  
+Optimizer summary
+  Optimizer                 -                        time: 0.03    
+    Interior-point          - iterations : 34        time: 0.03    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 2.0583e-07
+ 
+       cpusec: 0.0324
+         iter: 34
+    feasratio: 1.0000
+         dinf: 0
+         pinf: 0
+       numerr: 0
+
+The H-infty norm of the given system is upper bounded by:
+    0.0522
+
+HR light mosek  gam_exec=0.05222589 gam_RRx=0.05222589 match=0.00e+00 | m=150 Kf=44 Ns=[10  17   8   1] |b|=7.071e-01 obj_nnz=1 obj_idx=1 | rel_b=2.058e-07 numerr=0 t=0.70
+
+ --- Searching for Hinf gain bound using primal KYP lemma --- 
+- Declaring Positive Lyapunov Operator variable using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 821  156
+ 
+SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.
+Alg = 2: xz-corrector, Adaptive Step-Differentiation, theta = 0.250, beta = 0.500
+Detected 1 diagonal SDP block(s) with 1 linear variables
+Put 46 free variables in a quadratic cone
+eqs m = 156, order n = 50, dim = 823, blocks = 5
+nnz(A) = 1500 + 0, nnz(ADA) = 19700, nnz(L) = 9928
+ it :     b*y       gap    delta  rate   t/tP*  t/tD*   feas cg cg  prec
+  0 :            5.56E-01 0.000
+  1 :   1.95E-01 1.51E-01 0.000 0.2716 0.9000 0.9000   1.46  1  1  1.8E+00
+  2 :   1.33E-01 4.65E-02 0.000 0.3081 0.9000 0.9000   2.15  1  1  3.9E-01
+  3 :   9.56E-02 1.33E-02 0.000 0.2858 0.9000 0.9000   1.54  1  1  1.1E-01
+  4 :   8.45E-02 3.80E-03 0.000 0.2859 0.9000 0.9000   1.07  1  1  3.3E-02
+  5 :   7.81E-02 1.09E-03 0.000 0.2879 0.9000 0.9000   0.92  1  1  1.1E-02
+  6 :   7.56E-02 3.73E-04 0.000 0.3411 0.9000 0.9000   0.86  1  1  4.1E-03
+  7 :   7.45E-02 1.07E-04 0.000 0.2868 0.9000 0.9000   0.89  1  1  1.3E-03
+  8 :   7.41E-02 4.22E-05 0.000 0.3945 0.9000 0.9000   0.83  1  1  5.6E-04
+  9 :   7.39E-02 1.21E-05 0.000 0.2862 0.9000 0.9000   0.89  1  1  1.8E-04
+ 10 :   7.38E-02 4.17E-06 0.000 0.3447 0.9000 0.9000   0.88  1  1  6.4E-05
+ 11 :   7.37E-02 1.14E-06 0.000 0.2736 0.9000 0.9000   0.94  1  1  1.8E-05
+ 12 :   7.37E-02 3.68E-07 0.000 0.3226 0.9000 0.9000   0.97  1  1  6.1E-06
+ 13 :   7.37E-02 5.39E-08 0.000 0.1465 0.9000 0.6849   1.00  2  2  9.2E-07
+ 14 :   7.37E-02 1.72E-08 0.000 0.3198 0.9230 0.9000   0.94  2  2  3.4E-07
+ 15 :   7.37E-02 6.08E-09 0.000 0.3526 0.9101 0.9000   0.88  2  2  1.3E-07
+ 16 :   7.37E-02 1.78E-09 0.000 0.2929 0.9000 0.9012   0.74  2  2  4.6E-08
+ 17 :   7.37E-02 5.50E-10 0.000 0.3091 0.9000 0.9001   0.59  2  2  1.8E-08
+ 18 :   7.37E-02 1.79E-10 0.000 0.3258 0.9027 0.9000   0.66  2  2  6.9E-09
+
+iter seconds digits       c*x               b*y
+ 18      0.1   6.4  7.3707003793e-02  7.3707032592e-02
+|Ax-b| =   6.2e-09, [Ay-c]_+ =   3.3E-09, |x|=  2.5e+01, |y|=  3.0e+03
+
+Detailed timing (sec)
+   Pre          IPM          Post
+8.006E-03    6.400E-02    1.992E-03    
+Max-norms: ||b||=7.071068e-01, ||c|| = 1,
+Cholesky |add|=0, |skip| = 39, ||L.L|| = 8.73577e+07.
+ 
+Residual norm: 6.1527e-09
+ 
+         iter: 18
+    feasratio: 0.6645
+         pinf: 0
+         dinf: 0
+       numerr: 0
+       timing: [0.0080 0.0640 0.0020]
+      wallsec: 0.0740
+       cpusec: 0.1250
+
+The H-infty norm of the given system is upper bounded by:
+    0.0521
+
+HR heavy sedumi gam_exec=0.05211872 gam_RRx=0.05211872 match=0.00e+00 | m=156 Kf=46 Ns=[11  22  13   1] |b|=7.071e-01 obj_nnz=1 obj_idx=1 | rel_b=6.153e-09 numerr=0 t=0.58
+
+ --- Searching for Hinf gain bound using primal KYP lemma --- 
+- Declaring Positive Lyapunov Operator variable using specified options...
+- Constructing the Negativity Constraint...
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 821  156
+ 
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (0) of matrix 'A'.
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 156             
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 46              
+  Matrix variables       : 4 (scalarized: 411)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 1
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 92              
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 19                conic                  : 18              
+Optimizer  - Semi-definite variables: 3                 scalarized             : 410             
+Factor     - setup time             : 0.00            
+Factor     - dense det. time        : 0.00              GP order time          : 0.00            
+Factor     - nonzeros before factor : 2955              after factor           : 2971            
+Factor     - dense dim.             : 0                 flops                  : 3.87e+05        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   1.8e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.00  
+1   4.1e-01  2.3e-01  7.3e-02  1.42e+00   2.679652157e-01   1.880482583e-01   2.3e-01  0.00  
+2   1.2e-01  7.0e-02  1.1e-02  1.37e+00   1.237071947e-01   1.032483744e-01   7.0e-02  0.00  
+3   3.0e-02  1.7e-02  1.3e-03  1.30e+00   9.474575705e-02   9.109783038e-02   1.7e-02  0.00  
+4   7.3e-03  4.2e-03  1.8e-04  9.38e-01   8.122416465e-02   8.048573283e-02   4.2e-03  0.00  
+5   3.0e-03  1.7e-03  5.1e-05  8.32e-01   7.685649665e-02   7.660970970e-02   1.7e-03  0.00  
+6   6.7e-04  3.8e-04  5.4e-06  9.62e-01   7.509086671e-02   7.502593780e-02   3.8e-04  0.00  
+7   2.7e-04  1.5e-04  1.6e-06  7.80e-01   7.429177626e-02   7.427571939e-02   1.5e-04  0.00  
+8   6.8e-05  3.9e-05  2.1e-07  9.25e-01   7.394365306e-02   7.393931270e-02   3.9e-05  0.00  
+9   2.6e-05  1.5e-05  5.4e-08  8.15e-01   7.379987105e-02   7.379914085e-02   1.5e-05  0.00  
+10  5.7e-06  3.3e-06  5.6e-09  9.83e-01   7.373531273e-02   7.373517449e-02   3.3e-06  0.01  
+11  1.7e-06  9.7e-07  9.6e-10  9.10e-01   7.371622037e-02   7.371625001e-02   9.7e-07  0.01  
+12  4.3e-07  2.5e-07  1.2e-10  1.02e+00   7.371009197e-02   7.371009027e-02   2.5e-07  0.01  
+13  1.6e-07  9.2e-08  3.0e-11  9.16e-01   7.370857011e-02   7.370857850e-02   9.2e-08  0.01  
+14  3.9e-08  2.3e-08  4.1e-12  9.05e-01   7.370756433e-02   7.370757117e-02   2.3e-08  0.01  
+15  2.3e-08  1.2e-08  1.6e-12  8.58e-01   7.370731208e-02   7.370731595e-02   1.2e-08  0.01  
+Optimizer terminated. Time: 0.01    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 7.3707312081e-02    nrm: 5e+00    Viol.  con: 6e-08    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 7.3707315947e-02    nrm: 2e+00    Viol.  con: 0e+00    var: 1e-08    barvar: 1e-08  
+Optimizer summary
+  Optimizer                 -                        time: 0.01    
+    Interior-point          - iterations : 15        time: 0.01    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 1.5225e-07
+ 
+       cpusec: 0.0075
+         iter: 15
+    feasratio: 0.8583
+         dinf: 0
+         pinf: 0
+       numerr: 0
+
+The H-infty norm of the given system is upper bounded by:
+    0.0521
+
+HR heavy mosek  gam_exec=0.05211894 gam_RRx=0.05211894 match=0.00e+00 | m=156 Kf=46 Ns=[11  22  13   1] |b|=7.071e-01 obj_nnz=1 obj_idx=1 | rel_b=1.523e-07 numerr=0 t=0.48
+HRDONE

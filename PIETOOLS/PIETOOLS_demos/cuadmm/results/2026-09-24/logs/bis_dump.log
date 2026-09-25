@@ -1,0 +1,54 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+BD lab|m|Kf|Ns|nnz|vec|c_nnz|sedumi_feas|rel_b
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+BD bis_light_g6000|149|43|[10  17   8]|1123|287|0|1|5.897e-09
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+BD bis_light_g5230|149|43|[10  17   8]|1123|287|0|1|1.140e-08
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+BD bis_heavy_g6000|155|45|[11  22  13]|1496|455|0|1|6.289e-10
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+BD bis_heavy_g5230|155|45|[11  22  13]|1496|455|0|1|2.975e-10
+BDDONE

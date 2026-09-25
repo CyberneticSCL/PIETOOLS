@@ -1,0 +1,139 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+TR set|m|nblk|Ns|frac|lam|cert|rel_b|feasratio|numerr|t
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+TR P searched, stock psatz OFF|3096|2|[30  264]|0.2500|4.9348|0|1.000e+00|-1.0000|0|26.6
+TRREACH P searched, stock psatz OFF|reach=0.0000|m=3096|nblk=2
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P searched, linear4|3912|6|[30  264  264  264  264  264]|0.2500|4.9348|1|1.717e-07|+0.9810|0|45.0
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P searched, linear4|3912|6|[30  264  264  264  264  264]|0.5000|9.8696|1|1.470e-07|+0.9695|0|47.6
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P searched, linear4|3912|6|[30  264  264  264  264  264]|0.9000|17.7653|1|1.790e-07|+1.0037|0|63.4
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P searched, linear4|3912|6|[30  264  264  264  264  264]|0.9900|19.5418|1|1.673e-07|+0.9893|0|50.8
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P searched, linear4|3912|6|[30  264  264  264  264  264]|0.9990|19.7195|0|2.655e-06|+0.7784|0|55.4
+TRREACH P searched, linear4|reach=0.9900|m=3912|nblk=6
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P=I,       linear4 (ref)|3728|5|[264  264  264  264  264]|0.2500|4.9348|1|2.436e-08|+1.0527|0|53.7
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P=I,       linear4 (ref)|3728|5|[264  264  264  264  264]|0.5000|9.8696|1|6.868e-08|+0.9868|0|46.8
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P=I,       linear4 (ref)|3728|5|[264  264  264  264  264]|0.9000|17.7653|1|9.113e-08|+0.9079|0|38.6
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P=I,       linear4 (ref)|3728|5|[264  264  264  264  264]|0.9900|19.5418|1|8.922e-08|+0.6984|0|45.3
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P=I,       linear4 (ref)|3728|5|[264  264  264  264  264]|0.9990|19.7195|1|1.077e-07|+0.7177|0|57.0
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TR P=I,       linear4 (ref)|3728|5|[264  264  264  264  264]|0.9999|19.7372|1|1.158e-07|+0.7681|0|38.2
+TRREACH P=I,       linear4 (ref)|reach=0.9999|m=3728|nblk=5
+TRDONE

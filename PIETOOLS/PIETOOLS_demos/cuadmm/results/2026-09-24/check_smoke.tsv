@@ -1,0 +1,5 @@
+id	verdict	m	Kf	Ks	nnzAt	rel_b	ref_rel_b	t_wall	note
+stab_rd1	PASS	130	43	[10 15 6]	982	1.32278e-08	1.32278e-08	4.96	
+stabpde_rd1	PASS	54	0	[10 15 6]	1054	5.08852e-08	5.08852e-08	2.50	
+hinf_rd1	PASS	242	44	[10 31 13 1]	1945	5.10481e-07	5.10481e-07	3.03	
+wellposed_rd1	PASS	108	0	[10 10 15 15 6 6]	2148	8.74222e-08	8.74222e-08	2.89	

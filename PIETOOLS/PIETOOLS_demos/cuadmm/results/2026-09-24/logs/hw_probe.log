@@ -1,0 +1,326 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+HW n|set|wdist|stage|t_s|mem_GB|m|note
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 1|light|1|convert|0.0|1.99||
+HW 1|light|1|poslpivar_R|0.3|2.01||
+HW 1|light|1|lpivar_Q|0.1|2.01||
+HW 1|light|1|lpi_eq_TQ|0.3|2.02||
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In opvar/horzcat (line 103)
+In hw_probe>run_one (line 77)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 78)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/vertcat (line 96)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+HW 1|light|1|Dop_compose|0.8|2.04||
+HW 1|light|1|poslpivar_De|0.3|2.05||
+HW 1|light|1|lpi_eq_neg|0.1|2.05|241|Ks=[10 31 13] nnzAt=1941
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 2|light|1|convert|0.0|2.06||
+HW 2|light|1|poslpivar_R|0.1|2.07||
+HW 2|light|1|lpivar_Q|0.0|2.08||
+HW 2|light|1|lpi_eq_TQ|0.1|2.08||
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In opvar/horzcat (line 103)
+In hw_probe>run_one (line 77)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 78)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/vertcat (line 96)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+HW 2|light|1|Dop_compose|0.4|2.08||
+HW 2|light|1|poslpivar_De|0.2|2.09||
+HW 2|light|1|lpi_eq_neg|0.0|2.09|964|Ks=[20 62 26] nnzAt=7880
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 3|light|1|convert|0.0|2.09||
+HW 3|light|1|poslpivar_R|0.0|2.09||
+HW 3|light|1|lpivar_Q|0.0|2.09||
+HW 3|light|1|lpi_eq_TQ|0.1|2.09||
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In opvar/horzcat (line 103)
+In hw_probe>run_one (line 77)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 78)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/vertcat (line 96)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+HW 3|light|1|Dop_compose|0.3|2.10||
+HW 3|light|1|poslpivar_De|0.1|2.10||
+HW 3|light|1|lpi_eq_neg|0.0|2.11|2169|Ks=[30 93 39] nnzAt=17816
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 1|heavy|1|convert|0.0|2.12||
+HW 1|heavy|1|poslpivar_R|0.1|2.12||
+HW 1|heavy|1|lpivar_Q|0.0|2.12||
+HW 1|heavy|1|lpi_eq_TQ|0.1|2.12||
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In opvar/horzcat (line 103)
+In hw_probe>run_one (line 77)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 78)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/vertcat (line 96)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+HW 1|heavy|1|Dop_compose|0.3|2.12||
+HW 1|heavy|1|poslpivar_De|0.1|2.12||
+HW 1|heavy|1|lpi_eq_neg|0.0|2.12|266|Ks=[11 41 23] nnzAt=3262
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 2|heavy|1|convert|0.0|2.13||
+HW 2|heavy|1|poslpivar_R|0.0|2.13||
+HW 2|heavy|1|lpivar_Q|0.0|2.13||
+HW 2|heavy|1|lpi_eq_TQ|0.1|2.13||
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In opvar/horzcat (line 103)
+In hw_probe>run_one (line 77)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 78)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/vertcat (line 96)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+HW 2|heavy|1|Dop_compose|0.2|2.12||
+HW 2|heavy|1|poslpivar_De|0.1|2.13||
+HW 2|heavy|1|lpi_eq_neg|0.0|2.13|1064|Ks=[22 82 46] nnzAt=13288
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 3|heavy|1|convert|0.0|2.13||
+HW 3|heavy|1|poslpivar_R|0.0|2.13||
+HW 3|heavy|1|lpivar_Q|0.0|2.13||
+HW 3|heavy|1|lpi_eq_TQ|0.1|2.13||
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In opvar/horzcat (line 103)
+In hw_probe>run_one (line 77)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In hw_probe>run_one (line 78)
+In hw_probe (line 32)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/vertcat (line 96)
+In hw_probe>run_one (line 76)
+In hw_probe (line 32)
+In run (line 112)] 
+HW 3|heavy|1|Dop_compose|0.2|2.13||
+HW 3|heavy|1|poslpivar_De|0.1|2.13||
+HW 3|heavy|1|lpi_eq_neg|0.1|2.13|2394|Ks=[33 123 69] nnzAt=30077
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 1|light|0|convert|0.0|2.14||
+HW 1|light|0|poslpivar_R|0.0|2.14||
+HW 1|light|0|lpivar_Q|0.0|2.14||
+HW 1|light|0|lpi_eq_TQ|0.1|2.14||
+HW 1|light|0|Dop_compose|0.3|2.14||
+HW 1|light|0|poslpivar_De|0.1|2.14||
+HW 1|light|0|lpi_eq_neg|0.0|2.14|148|Ks=[10 17 8] nnzAt=1123
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 2|light|0|convert|0.0|2.15||
+HW 2|light|0|poslpivar_R|0.0|2.15||
+HW 2|light|0|lpivar_Q|0.0|2.15||
+HW 2|light|0|lpi_eq_TQ|0.1|2.15||
+HW 2|light|0|Dop_compose|0.2|2.15||
+HW 2|light|0|poslpivar_De|0.1|2.15||
+HW 2|light|0|lpi_eq_neg|0.0|2.15|592|Ks=[20 34 16] nnzAt=4580
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 3|light|0|convert|0.0|2.15||
+HW 3|light|0|poslpivar_R|0.0|2.15||
+HW 3|light|0|lpivar_Q|0.0|2.15||
+HW 3|light|0|lpi_eq_TQ|0.1|2.15||
+HW 3|light|0|Dop_compose|0.2|2.15||
+HW 3|light|0|poslpivar_De|0.1|2.15||
+HW 3|light|0|lpi_eq_neg|0.0|2.15|1332|Ks=[30 51 24] nnzAt=10370
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 1|heavy|0|convert|0.0|2.15||
+HW 1|heavy|0|poslpivar_R|0.0|2.15||
+HW 1|heavy|0|lpivar_Q|0.0|2.15||
+HW 1|heavy|0|lpi_eq_TQ|0.1|2.15||
+HW 1|heavy|0|Dop_compose|0.2|2.15||
+HW 1|heavy|0|poslpivar_De|0.1|2.15||
+HW 1|heavy|0|lpi_eq_neg|0.0|2.15|154|Ks=[11 22 13] nnzAt=1496
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 2|heavy|0|convert|0.0|2.15||
+HW 2|heavy|0|poslpivar_R|0.0|2.15||
+HW 2|heavy|0|lpivar_Q|0.0|2.15||
+HW 2|heavy|0|lpi_eq_TQ|0.1|2.15||
+HW 2|heavy|0|Dop_compose|0.2|2.15||
+HW 2|heavy|0|poslpivar_De|0.1|2.15||
+HW 2|heavy|0|lpi_eq_neg|0.0|2.15|616|Ks=[22 44 26] nnzAt=6138
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+HW 3|heavy|0|convert|0.0|2.15||
+HW 3|heavy|0|poslpivar_R|0.1|2.15||
+HW 3|heavy|0|lpivar_Q|0.0|2.15||
+HW 3|heavy|0|lpi_eq_TQ|0.1|2.15||
+HW 3|heavy|0|Dop_compose|0.2|2.15||
+HW 3|heavy|0|poslpivar_De|0.1|2.15||
+HW 3|heavy|0|lpi_eq_neg|0.0|2.15|1386|Ks=[33 66 39] nnzAt=13925
+HWDONE

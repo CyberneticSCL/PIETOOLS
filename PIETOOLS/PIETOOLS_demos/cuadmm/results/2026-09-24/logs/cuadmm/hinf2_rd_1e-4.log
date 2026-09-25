@@ -1,0 +1,60 @@
+Loaded problem from /mnt/c/Users/mpeet/AppData/Local/Temp/claude/C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS/a69ac9db-6cc4-4fd1-9dcb-b003878763dd/scratchpad/work/baseline/dumps/hinf2_rd/
+              vector length: 378052
+      number of constraints: 14005
+           number of blocks: 3
+  number of non-zeros in At: 2254619
+  number of non-zeros in  b: 90
+  number of non-zeros in  C: 1
+
+Analysis of the blk vector:
+        1 u. block of size   1
+        1 matrices of size    8 (small)
+        1 matrices of size  869 (medium)
+
+ ||C|| = 2, ||b|| = 2
+
+Problem parameters:
+              solver max iter: 2000000
+       KKT stopping tolerance: 0.0001
+       sigma update threshold: 500
+         sigma update stage 1: 50
+         sigma update stage 2: 100
+                  switch admm: 0
+         switch proj max iter: 0
+              switch proj tol: 0.01
+                     sigscale: 2
+                initial sigma: 100
+    initial projection method: EIG_FP64
+      final projection method: EIG_FP64
+                   use LOBPCG: true
+              LOBPCG max iter: 20
+             LOBPCG tolerance: 1e-05
+             LOBPCG warmstart: true
+                 LOBPCG ratio: 0.03
+            LOBPCG relaxation: 1.2
+        LOBPCG rank threshold: 1e-05
+           small matrix limit: 32
+          medium matrix limit: 1000
+
+ ------------------------------------------------------------------------------
+                                   cuADMM
+ ------------------------------------------------------------------------------
+  it. | p infeas d infeas | primal obj.   dual obj. rel. gap |  time |   sigma 
+ ------------------------------------------------------------------------------
+ --------------- Starting with projection method EIG_FP64 ---------------------
+    0 | 5.00e-01 5.00e-01 |  0.0000e+00  0.0000e+00 0.00e+00 |   7.1 | 1.0e+02 
+   50 | 4.98e-02 4.63e-03 |  1.9795e-02  5.5119e-02 3.29e-02 |  10.3 | 3.1e+00 
+  100 | 1.21e-02 2.31e-02 |  5.9525e-02  1.2148e-01 5.25e-02 |  13.4 | 3.9e-01 
+  150 | 6.04e-03 7.94e-03 |  6.4190e-02  1.2856e-01 5.40e-02 |  16.5 | 7.8e-01 
+  200 | 4.37e-03 5.30e-03 |  5.9976e-02  1.1947e-01 5.04e-02 |  18.2 | 7.8e-01 
+  300 | 3.21e-03 3.60e-03 |  5.4825e-02  1.0965e-01 4.71e-02 |  26.7 | 7.8e-01 
+  400 | 2.97e-03 2.88e-03 |  5.2051e-02  1.0411e-01 4.50e-02 |  35.4 | 7.8e-01 
+  500 | 2.82e-03 2.93e-03 |  5.2845e-02  1.0569e-01 4.56e-02 |  44.0 | 7.8e-01 
+  600 | 2.81e-03 2.76e-03 |  5.2482e-02  1.0515e-01 4.55e-02 |  52.7 | 2.0e-01 
+  700 | 2.61e-03 2.82e-03 |  5.4412e-02  1.0870e-01 4.67e-02 |  61.3 | 7.8e-01 
+  800 | 2.53e-03 2.52e-03 |  5.4599e-02  1.0929e-01 4.70e-02 |  70.0 | 2.0e-01 
+  900 | 2.41e-03 2.41e-03 |  5.5799e-02  1.1172e-01 4.79e-02 |  78.7 | 7.8e-01 
+ 1000 | 2.39e-03 2.17e-03 |  5.6000e-02  1.1228e-01 4.82e-02 |  87.3 | 2.0e-01 
+ 1100 | 2.35e-03 2.57e-03 |  5.7012e-02  1.1451e-01 4.91e-02 |  96.0 | 2.0e-01 
+ 1200 | 2.29e-03 2.09e-03 |  5.8360e-02  1.1657e-01 4.95e-02 | 104.6 | 7.8e-01 
+ 1300 | 2.26e-03 2.10e-03 |  5.8852e-02  1.1798e-01 5.02e-02 | 113.3 | 2.0e-01 

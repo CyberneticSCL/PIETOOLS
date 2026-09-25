@@ -1,0 +1,104 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+PP label|m|nblk|Nmax|Ns|eigcost|nnzAt|pred_titer_vs_heavy
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy|8950|2|952|[30  952]|8.62828e+08|2859942|1.000
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy+eqpsatz1|11390|3|952|[30  952  536]|1.01682e+09|5736214|1.311
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy+eqpsatz2|8950|3|952|[30  952  536]|1.01682e+09|3746006|1.006
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy+eqpsatz12|11390|4|952|[30  952  536  536]|1.17081e+09|8894566|1.318
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy+LFpsatz1|16856|3|952|[30  144  952]|8.65814e+08|13937051|2.007
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy+Dup2|5380|2|536|[30  536]|1.54018e+08|942534|0.538
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy+Dup2+eqpsatz1|6652|3|536|[30  536  264]|1.72417e+08|1637556|0.682
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy+Dup2+eqpsatz12|6652|4|536|[30  536  264  264]|1.90817e+08|2400570|0.684
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+PP heavy+Dup1+eqpsatz12|3572|4|264|[30  264  104  104]|2.06765e+07|495200|0.320
+PPDONE

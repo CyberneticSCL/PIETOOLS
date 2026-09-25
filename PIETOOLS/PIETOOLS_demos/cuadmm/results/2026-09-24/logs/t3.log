@@ -1,0 +1,33 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+T3 --- identity: G must equal I exactly at every D
+T3 D=4   ||G-I||=3.503e-15  norm=1.000000000000
+T3 D=8   ||G-I||=9.585e-15  norm=1.000000000000
+T3 D=16  ||G-I||=5.983e-14  norm=1.000000000000
+T3 D=32  ||G-I||=8.475e-14  norm=1.000000000000
+T3 --- Volterra  int_0^s : exact ||V|| = 2/pi = 0.636619772368
+T3 D=4   ||G||=0.636619766907  err=-5.461e-09
+T3 D=8   ||G||=0.636619772368  err=+9.992e-16
+T3 D=16  ||G||=0.636619772368  err=+0.000e+00
+T3 D=32  ||G||=0.636619772368  err=+4.441e-16
+T3 D=48  ||G||=0.636619772368  err=-5.551e-16
+T3 --- adjoint  int_s^1 : must match 2/pi
+T3 D=16  ||G||=0.636619772368  err=+2.220e-16
+T3 D=48  ||G||=0.636619772368  err=-6.661e-16
+T3 --- rank one f(s)g(th)=s*1 over all th: ||K||=1/sqrt(3)=0.577350269190
+T3 D=4   ||G||=0.577350269190  err=+1.776e-15
+T3 D=12  ||G||=0.577350269190  err=+4.441e-16
+T3 D=24  ||G||=0.577350269190  err=+1.221e-15
+T3 --- non-unit domain [0,2], Volterra scales linearly: 2*2/pi=1.273239544735
+T3 dom[0,2] ||G||=1.273239544735 err=+6.661e-16
+T3DONE

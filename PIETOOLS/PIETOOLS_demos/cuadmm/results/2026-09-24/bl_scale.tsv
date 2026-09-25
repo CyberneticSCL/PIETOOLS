@@ -1,0 +1,11 @@
+id	n	status	m	Kf	nblk	Ks	nnzAt	nvar	vec_len	normb	t_build	t_mosek	rel_b	psd_min	psd_relmin	numerr	normx	note
+scale_stab_n01	1	skip_big	135	45	3	[11 20 11]	1315	687	387	9.42809e-07	1.84875	NaN	NaN	NaN	NaN	NaN	NaN	m=135 over solve gate 0 (dense Schur 0 GB)
+scale_stab_n02	2	skip_big	540	180	3	[22 40 22]	5414	2748	1506	1.33333e-06	0.855277	NaN	NaN	NaN	NaN	NaN	NaN	m=540 over solve gate 0 (dense Schur 0 GB)
+scale_stab_n03	3	skip_big	1215	405	3	[33 60 33]	12296	6183	3357	1.63299e-06	0.631244	NaN	NaN	NaN	NaN	NaN	NaN	m=1215 over solve gate 0 (dense Schur 0 GB)
+scale_stab_n04	4	skip_big	2160	720	3	[44 80 44]	21964	10992	5940	1.88562e-06	0.657609	NaN	NaN	NaN	NaN	NaN	NaN	m=2160 over solve gate 0 (dense Schur 0 GB)
+scale_stab_n06	6	skip_big	4860	1620	3	[66 120 66]	49650	24732	13302	2.3094e-06	0.788186	NaN	NaN	NaN	NaN	NaN	NaN	m=4860 over solve gate 0 (dense Schur 0 GB)
+scale_stab_n08	8	skip_big	8640	2880	3	[88 160 88]	88472	43968	23592	2.66667e-06	0.971138	NaN	NaN	NaN	NaN	NaN	NaN	m=8640 over solve gate 0 (dense Schur 1 GB)
+scale_stab_n12	12	skip_big	19440	6480	3	[132 240 132]	199524	98928	52956	3.26599e-06	3.12406	NaN	NaN	NaN	NaN	NaN	NaN	m=19440 over solve gate 0 (dense Schur 3 GB)
+scale_stab_n16	16	skip_big	34560	11520	3	[176 320 176]	355104	175872	94032	3.77124e-06	7.76969	NaN	NaN	NaN	NaN	NaN	NaN	m=34560 over solve gate 0 (dense Schur 9 GB)
+scale_stab_n24	24	skip_big	77760	25920	3	[264 480 264]	799941	395712	211320	4.6188e-06	40.6579	NaN	NaN	NaN	NaN	NaN	NaN	m=77760 over solve gate 0 (dense Schur 45 GB)
+scale_stab_n32	32	ERR	NaN	NaN	NaN		NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	Requested 9613344x1536 (123.8GB) array exceeds maximum array size preference (63.7GB) and might cause MATLAB to become unresponsive.

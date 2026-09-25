@@ -1,0 +1,114 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+CEN2 header exec,m,nvar,Kf,nblk,Ns,eigcost,svec,nnzAt,normb,c_nnz,feas,dim_ok,t_build
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_stability_2D,3456,179840,0,2,[8  424],7.62255e+07,90136,557492,5.6394e-06,0,1,1,2.8
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_stability_dual_2D,3456,179840,0,2,[8  424],7.62255e+07,90136,557492,5.6394e-06,0,1,1,2.0
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_Hinf_gain_2D,3528,181541,1,2,[8  426],7.73093e+07,90988,559594,5.0000e-01,1,0,1,4.4
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_Hinf_gain_2D_non_coercive,4546,367342,42,2,[8  606],2.22546e+08,183999,777041,5.0000e-01,1,0,1,13.6
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_Hinf_gain_dual_2D,3529,181541,1,2,[8  426],7.73093e+07,90988,559599,1.0000e+00,1,0,1,3.1
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_Hinf_estimator_2D,3528,181542,2,2,[8  426],7.73093e+07,90989,559626,5.0000e-01,1,0,1,4.3
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_H2_norm_2D_c,4127,377061,1,2,[8  614],2.31476e+08,188842,781340,1.4142e+00,1,0,1,13.7
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_H2_norm_2D_o,4127,377061,1,2,[8  614],2.31476e+08,188842,781340,3.5356e-01,1,0,1,13.6
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_H2_norm_2D_c_non_coercive,FAILED,Unrecognized function or variable 'Deop'.
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+CEN2 PIETOOLS_H2_norm_2D_o_non_coercive,FAILED,Unrecognized function or variable 'Deop'.
+CEN2DONE

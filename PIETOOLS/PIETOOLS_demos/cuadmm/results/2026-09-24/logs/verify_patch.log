@@ -1,0 +1,46 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+VP poslpivar_2d resolves to C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\lpi_programming\2D\poslpivar_2d.m
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+VP frac=0.9900 m=3728 nblk=5 cert=1 rel_b=8.922e-08 feasratio=+0.6984
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+VP frac=0.9990 m=3728 nblk=5 cert=1 rel_b=1.077e-07 feasratio=+0.7177
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+VP frac=0.9999 m=3728 nblk=5 cert=1 rel_b=1.158e-07 feasratio=+0.7681
+VPDONE

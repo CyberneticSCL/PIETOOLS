@@ -1,0 +1,27 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+FX frac|gam|m|rel_b|psd_min|normx|prosta|solsta|t_s
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+FX 0.500|0.091313|243|1.0000e+00|+3.422e-16|1.9317e-18|PRIMAL_INFEASIBLE|PRIMAL_INFEASIBLE_CER|0.118
+FX 0.800|0.146101|243|1.0000e+00|+2.457e-08|5.5362e-15|PRIMAL_INFEASIBLE|PRIMAL_INFEASIBLE_CER|0.026
+FX 0.950|0.173495|243|1.0000e+00|+2.914e-14|5.2462e-19|PRIMAL_INFEASIBLE|PRIMAL_INFEASIBLE_CER|0.030
+FX 0.990|0.180800|243|1.0000e+00|+7.300e-12|2.6520e-13|PRIMAL_INFEASIBLE|PRIMAL_INFEASIBLE_CER|0.026
+FX 0.999|0.182443|243|1.0000e+00|+6.184e-14|2.7312e-18|PRIMAL_INFEASIBLE|PRIMAL_INFEASIBLE_CER|0.034
+FX 1.000|0.182626|243|4.5977e-07|+2.242e-11|1.4477e+02|PRIMAL_AND_DUAL_FEASIBLE|OPTIMAL|0.034
+FX 1.001|0.182809|243|9.5893e-08|+1.765e-10|1.8720e+01|PRIMAL_AND_DUAL_FEASIBLE|OPTIMAL|0.021
+FX 1.010|0.184452|243|8.3612e-08|+1.381e-10|1.3737e+01|PRIMAL_AND_DUAL_FEASIBLE|OPTIMAL|0.020
+FX 1.050|0.191757|243|1.1477e-07|+9.591e-10|7.1963e+00|PRIMAL_AND_DUAL_FEASIBLE|OPTIMAL|0.018
+FX 1.200|0.219151|243|7.3745e-08|+7.346e-10|5.4003e+00|PRIMAL_AND_DUAL_FEASIBLE|OPTIMAL|0.019
+FX 2.000|0.365252|243|4.5116e-08|+3.884e-10|4.5371e+00|PRIMAL_AND_DUAL_FEASIBLE|OPTIMAL|0.016
+FXDONE

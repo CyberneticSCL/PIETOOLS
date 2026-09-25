@@ -1,0 +1,46 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+FN which(innerprod) = C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\polyopvar\sosprogramming\innerprod.m
+FN n_resolutions = 1
+FN first line = function V = innerprod(Z1,Z2,P)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+FN lam=0    ||T'A+A'T||=2.026424e-01  ||T'T||=1.026598e-02  ||T||=1.013212e-01  ||A||=1.000000e+00  ||T||*||A||=1.013212e-01
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+FN lam=2    ||T'A+A'T||=1.615784e-01  ||T'T||=1.026598e-02  ||T||=1.013212e-01  ||A||=9.999808e-01  ||T||*||A||=1.013192e-01
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+FN lam=5    ||T'A+A'T||=9.998254e-02  ||T'T||=1.026598e-02  ||T||=1.013212e-01  ||A||=9.999520e-01  ||T||*||A||=1.013163e-01
+FNDONE

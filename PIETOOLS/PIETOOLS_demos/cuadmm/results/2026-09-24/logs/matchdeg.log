@@ -1,0 +1,71 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+MD variant|m|nblk|Ns|frac|cert|rel_b|feasratio|numerr
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+MD product  @eq_deg|5848|2|[264  264]|0.10|0|1.425e-06|-0.8976|0
+MDREACH product  @eq_deg|reach=0.00|m=5848|nblk=2|Ns=[264  264]
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+MD product  @eq_deg-1|3356|2|[264  104]|0.10|0|3.445e-01|-1.0000|2
+MDREACH product  @eq_deg-1|reach=0.00|m=3356|nblk=2|Ns=[264  104]
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+MD product  @eq_deg-2|2880|2|[264   28]|0.10|0|7.525e-01|-1.0000|2
+MDREACH product  @eq_deg-2|reach=0.00|m=2880|nblk=2|Ns=[264   28]
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+MD linear4  @eq_deg|ERR|0.10|options.psatz can only assume values 0, 1, 2, 3, and 4
+MDREACH linear4  @eq_deg|reach=0.00|m=-1|nblk=-1|Ns=[]
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+MD linear4  @eq_deg-1|ERR|0.10|options.psatz can only assume values 0, 1, 2, 3, and 4
+MDREACH linear4  @eq_deg-1|reach=0.00|m=-1|nblk=-1|Ns=[]
+MDDONE

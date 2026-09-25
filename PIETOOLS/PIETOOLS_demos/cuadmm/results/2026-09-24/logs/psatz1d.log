@@ -1,0 +1,181 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+Q1 poslpivar resolves to C:\Users\mpeet\AppData\Local\Temp\claude\C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS\a69ac9db-6cc4-4fd1-9dcb-b003878763dd\scratchpad\work\shadow\poslpivar.m
+Q1 variant|m|nblk|Ns|frac|lam|cert|rel_b|feasratio|t
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 none|32|1|[15]|0.1000|0.9870|0|1.000e+00|-0.9527|2.71
+Q1REACH Dup1 none|reach=0.0000|m=32|nblk=1
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 product {s(1-s)}|32|2|[15   6]|0.1000|0.9870|1|3.613e-10|+0.9824|0.90
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 product {s(1-s)}|32|2|[15   6]|0.5000|4.9348|1|1.219e-10|+1.0036|0.55
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 product {s(1-s)}|32|2|[15   6]|0.9000|8.8826|0|1.000e+00|-0.9976|0.33
+Q1REACH Dup1 product {s(1-s)}|reach=0.5000|m=32|nblk=2
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 linear {s,1-s}|32|3|[15   6   6]|0.1000|0.9870|1|2.186e-09|+1.0979|0.55
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 linear {s,1-s}|32|3|[15   6   6]|0.5000|4.9348|0|1.000e+00|-0.9617|0.34
+Q1REACH Dup1 linear {s,1-s}|reach=0.1000|m=32|nblk=3
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 all three|32|4|[15   6   6   6]|0.1000|0.9870|1|5.489e-10|+0.9851|0.38
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 all three|32|4|[15   6   6   6]|0.5000|4.9348|1|5.613e-10|+1.0102|0.39
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup1 all three|32|4|[15   6   6   6]|0.9000|8.8826|0|1.000e+00|-0.9946|0.33
+Q1REACH Dup1 all three|reach=0.5000|m=32|nblk=4
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup2 product (current)|53|2|[26  15]|0.1000|0.9870|1|2.626e-10|+0.9769|0.35
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup2 product (current)|53|2|[26  15]|0.5000|4.9348|1|2.556e-10|+1.0033|0.36
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup2 product (current)|53|2|[26  15]|0.9000|8.8826|1|2.097e-10|+1.0079|0.38
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup2 product (current)|53|2|[26  15]|0.9900|9.7709|1|2.534e-10|+0.9962|0.37
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup2 product (current)|53|2|[26  15]|0.9990|9.8597|1|5.449e-10|+0.9973|0.38
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup2 product (current)|53|2|[26  15]|0.9999|9.8686|1|5.277e-10|+0.9935|0.40
+Q1REACH Dup2 product (current)|reach=0.9999|m=53|nblk=2
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+Q1 Dup2 linear {s,1-s}|53|3|[26  15  15]|0.1000|0.9870|0|2.790e-08|+1.0028|0.40
+Q1REACH Dup2 linear {s,1-s}|reach=0.0000|m=53|nblk=3
+Q1DONE

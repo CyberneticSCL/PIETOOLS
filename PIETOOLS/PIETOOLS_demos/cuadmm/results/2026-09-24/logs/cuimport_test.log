@@ -1,0 +1,19 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+CI fwd|sedumi_rel_b=4.0846e-05|cuADMM_system_rel_b=4.0846e-05|t=797.9|numerr=1
+CI imp|rel_b=1.9201e-04|psd_min=-3.7586e-10|psd_relmin=-3.2057e-10|max_asym=0.00e+00|dual_min=-5.3023e-05|obj=0.000000e+00|normx=1.2859e+00
+CI blk|-1.35e-11 -2.05e-10 -3.76e-10 -3.69e-10
+CI neg|factor=0.7071|rel_b=1.9201e-04|psd_min=-3.7586e-10|psd_relmin=-3.2057e-10
+CI neg|factor=0.5000|rel_b=6.8864e-01|psd_min=+5.3749e-09|psd_relmin=+5.9715e-09
+CI neg|factor=1.0000|rel_b=9.7389e-01|psd_min=-1.1817e-01|psd_relmin=-7.5572e-02
+CIDONE

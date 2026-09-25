@@ -1,0 +1,41 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+OP variant|Top.dim|T.R00|A.R00|Q.R00|Q nonzero cells (R00/R22)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+ An accurate inverse (up to specified tolerance) could not be obtained with a degree increase factor of 
+
+deg_fctr =
+
+     1     5
+     1     5
+     5     1
+     5     1
+
+ Returning the current best guess of the inverse.
+ OP ODE coupled via BC|FAILED|The PI operator defining the boundary conditions appears not to be invertible. Please make sure that your system is well-posed.
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t)        <--                  x(t)
+   x(t,s,s)  <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+OP ODE coupled via source|[1  0  0  1]|1|1|1|R00 R22{22} R22{23} R22{32} R22{33}
+OPDONE

@@ -1,0 +1,92 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+G2 f_dst=1.20 cand|normx|rel_b|op_ind|op_abs|op_over_row
+G2 mosek_f0.30|1.9657e+01|6.9674e-01|4.5000e+00|1.8238e-01|6.4587
+G2 mosek_f0.60|7.7667e+01|4.6449e-01|3.0000e+00|1.2159e-01|6.4587
+G2 mosek_f0.90|3.8132e+02|2.3225e-01|1.5000e+00|6.0793e-02|6.4587
+G2 sedumi_f0.30|2.1464e+01|6.9674e-01|4.5000e+00|1.8238e-01|6.4587
+G2 sedumi_f0.60|7.9823e+01|4.6449e-01|3.0000e+00|1.2159e-01|6.4587
+G2 sedumi_f0.90|3.8575e+02|2.3225e-01|1.5000e+00|6.0793e-02|6.4587
+G2 pert1e-0.5|3.9948e+02|3.8368e+00|4.8725e+02|1.9748e+01|126.9931
+G2 pert1e-1.0|3.8316e+02|1.7729e+00|2.3451e+02|9.5045e+00|132.2740
+G2 pert1e-1.5|3.8253e+02|4.4442e-01|3.5164e+01|1.4252e+00|79.1236
+G2 pert1e-2.0|3.8112e+02|3.0433e-01|1.8868e+01|7.6467e-01|61.9968
+G2 pert1e-2.5|3.8128e+02|2.4215e-01|7.1415e+00|2.8944e-01|29.4920
+G2 pert1e-3.0|3.8132e+02|2.3017e-01|4.0232e+00|1.6305e-01|17.4790
+G2SUM pairs=66|disagree_op_ind=16|disagree_op_abs=16|ratio_min=6.4587|ratio_max=132.2740|spread=20.5x
+G2DONE

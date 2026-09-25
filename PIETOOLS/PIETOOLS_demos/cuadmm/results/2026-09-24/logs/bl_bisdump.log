@@ -1,0 +1,47 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+BS est_rd1_g080           f=0.80 gam=0.000169185  UNKNOWN                    feas=1 t=0.073 rel_b=1.181e-05
+BS est_rd1_g099           f=0.99 gam=0.000209366  UNKNOWN                    feas=1 t=0.070 rel_b=8.438e-06
+BS est_rd1_g101           f=1.01 gam=0.000213596  UNKNOWN                    feas=1 t=0.045 rel_b=8.299e-06
+BS est_rd1_g120           f=1.20 gam=0.000253777  UNKNOWN                    feas=1 t=0.038 rel_b=1.708e-05
+BS h2c_rd1_g080           f=0.80 gam=0.231029     PRIMAL_INFEASIBLE          feas=0 t=0.026 rel_b=1.000e+00
+BS h2c_rd1_g099           f=0.99 gam=0.285898     PRIMAL_INFEASIBLE          feas=0 t=0.039 rel_b=1.000e+00
+BS h2c_rd1_g101           f=1.01 gam=0.291674     PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.027 rel_b=7.060e-09
+BS h2c_rd1_g120           f=1.20 gam=0.346543     PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.018 rel_b=2.723e-08
+BS h2est_rd1_g080         f=0.80 gam=0.000137143  UNKNOWN                    feas=1 t=0.048 rel_b=4.393e-06
+BS h2est_rd1_g099         f=0.99 gam=0.000169715  UNKNOWN                    feas=1 t=0.045 rel_b=1.089e-04
+BS h2est_rd1_g101         f=1.01 gam=0.000173143  UNKNOWN                    feas=1 t=0.070 rel_b=2.038e-06
+BS h2est_rd1_g120         f=1.20 gam=0.000205715  UNKNOWN                    feas=1 t=0.091 rel_b=1.755e-06
+BS h2oco_rd1_g080         f=0.80 gam=7.22537e-05  PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.008 rel_b=6.063e-08
+BS h2oco_rd1_g099         f=0.99 gam=8.94139e-05  PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.010 rel_b=5.308e-08
+BS h2oco_rd1_g101         f=1.01 gam=9.12203e-05  PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.007 rel_b=5.568e-08
+BS h2oco_rd1_g120         f=1.20 gam=0.000108381  PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.009 rel_b=5.631e-08
+BS hinf2_rd_g080          f=0.80 gam=1.01777      UNKNOWN                    feas=1 t=479.782 rel_b=5.696e-05
+BS hinf2_rd_g099          f=0.99 gam=1.25949      UNKNOWN                    feas=1 t=422.841 rel_b=4.952e-05
+BS hinf2_rd_g101          f=1.01 gam=1.28493      UNKNOWN                    feas=1 t=341.065 rel_b=3.208e-05
+BS hinf2_rd_g120          f=1.20 gam=1.52665      UNKNOWN                    feas=1 t=363.535 rel_b=2.156e-05
+BS hinf_rd1_g080          f=0.80 gam=0.146101     PRIMAL_INFEASIBLE          feas=0 t=0.026 rel_b=1.000e+00
+BS hinf_rd1_g099          f=0.99 gam=0.1808       PRIMAL_INFEASIBLE          feas=0 t=0.029 rel_b=1.000e+00
+BS hinf_rd1_g101          f=1.01 gam=0.184452     PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.018 rel_b=8.361e-08
+BS hinf_rd1_g120          f=1.20 gam=0.219151     PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.017 rel_b=7.375e-08
+BS hinf_rd1_hv_g080       f=0.80 gam=0.145986     PRIMAL_INFEASIBLE          feas=0 t=0.047 rel_b=1.000e+00
+BS hinf_rd1_hv_g099       f=0.99 gam=0.180657     PRIMAL_INFEASIBLE          feas=0 t=0.056 rel_b=1.000e+00
+BS hinf_rd1_hv_g101       f=1.01 gam=0.184307     PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.031 rel_b=1.068e-07
+BS hinf_rd1_hv_g120       f=1.20 gam=0.218978     PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.028 rel_b=5.640e-08
+BS hinfdu_rd1_g080        f=0.80 gam=0.146041     PRIMAL_INFEASIBLE          feas=0 t=0.024 rel_b=1.000e+00
+BS hinfdu_rd1_g099        f=0.99 gam=0.180725     PRIMAL_INFEASIBLE          feas=0 t=0.038 rel_b=1.000e+00
+BS hinfdu_rd1_g101        f=1.01 gam=0.184377     PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.023 rel_b=8.266e-08
+BS hinfdu_rd1_g120        f=1.20 gam=0.219061     PRIMAL_AND_DUAL_FEASIBLE   feas=1 t=0.029 rel_b=4.089e-09
+BSDONE

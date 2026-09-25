@@ -1,0 +1,26 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T6 light  sep=0 m=130  eig=4591    | rel_b=1.463e-08 rel_cu=1.380e-14 | psd_min=-1.561e-06 | op_ind=2.184e-09 op_hs=1.709e-09 op_coef=1.409e-09 | Pmin=+2.587e-11 | t=0.4s
+T6 light  sep=1 FAILED Incorrect dimensions for matrix multiplication. Check that the number of columns in the first matrix matches the number of rows in the second matrix. To operate on each element of the matrix individually, use TIMES (.*) for elementwise multiplication.
+T6 heavy  sep=0 m=135  eig=10662   | rel_b=5.789e-09 rel_cu=5.458e-15 | psd_min=-2.621e-06 | op_ind=6.507e-10 op_hs=5.254e-10 op_coef=4.609e-10 | Pmin=+3.657e-11 | t=0.1s
+T6 heavy  sep=1 FAILED Incorrect dimensions for matrix multiplication. Check that the number of columns in the first matrix matches the number of rows in the second matrix. To operate on each element of the matrix individually, use TIMES (.*) for elementwise multiplication.
+T6DONE

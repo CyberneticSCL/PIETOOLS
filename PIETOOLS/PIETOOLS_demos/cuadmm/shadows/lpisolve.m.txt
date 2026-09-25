@@ -1,0 +1,40 @@
+function prog_sol = lpisolve(prog,opts)                                     %#ok<INUSD>
+% lpisolve (CENSUS STUB) -- shadows PIETOOLS' lpisolve to capture the assembled
+% SDP without solving it.
+%
+% Placed FIRST on the path so the stock executives run unmodified and hand us
+% the program they actually build.  Every executive calls getsol_lpivar after
+% the solve, so solinfo is filled with zeros of the correct length: the census
+% reads shapes, never values, and a zero solution keeps the caller from erroring.
+
+global CENSUS_PROG
+CENSUS_PROG = prog;
+
+% LOUD ON EVERY CALL. This stub returns a zero solution and a "clean feasible"
+% info struct, so any executive that reaches it by accident -- e.g. after an
+% experiment forgot cuadmm_shadow('off') -- would report gamma = 0 and success
+% with no error at all. The census scripts wrap executives in evalc, which
+% swallows this, so they are unaffected; accidental use gets a warning instead
+% of a silent wrong answer.
+warning('cuadmm_shadow:stubCalled', ...
+    ['lpisolve CAPTURE STUB: this call did NOT solve -- solution is all zeros. ' ...
+     'Run cuadmm_shadow(''off'') to restore the real lpisolve.']);
+
+% Total primal length: decision variables, then every 'poly'/'sos' variable,
+% then the extra (slack) variables poslpivar/lpi_ineq introduced.
+if isfield(prog,'extravar') && prog.extravar.num > 0
+    nx = prog.extravar.idx{end}-1;
+else
+    nx = prog.var.idx{end}-1;
+end
+
+prog_sol = prog;
+prog_sol.solinfo.x    = zeros(nx,1);
+prog_sol.solinfo.RRx  = zeros(nx,1);
+prog_sol.solinfo.RRy  = zeros(nx,1);
+% The 2-D executives branch on SeDuMi's own info fields after the solve
+% (e.g. Hinf_estimator_2D:313 reads feasratio/numerr/pinf/dinf), so supply a
+% "clean feasible solve" info struct or the census dies after the capture.
+prog_sol.solinfo.info = struct('stub',true,'feasratio',1,'numerr',0, ...
+                               'pinf',0,'dinf',0,'iter',0,'cpusec',0);
+end

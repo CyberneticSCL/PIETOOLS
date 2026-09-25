@@ -1,0 +1,32 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+T5 --- identity on L2: norm 1, M=I
+T5 ||M||=1.000000000000  ||M-I||=2.343e-14
+T5 --- Volterra on L2: 2/pi=0.636619772368
+T5 ||M||=0.636619772368 err=+9.992e-16
+T5 --- block diag(P=2, I on L2): norm 2
+T5 ||M||=2.000000000000 err=+0.000e+00  size=14
+T5 --- REAL PIETOOLS operator: Top'*Top for the Dirichlet heat PIE
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T5 D=8   ||M||=0.0102659823  rel_asym=2.727e-15  min_eig=+1.120e-07  (self-adjoint & PSD expected)
+T5 D=16  ||M||=0.0102659823  rel_asym=4.227e-15  min_eig=+1.545e-09  (self-adjoint & PSD expected)
+T5 D=24  ||M||=0.0102659823  rel_asym=7.930e-15  min_eig=+9.722e-11  (self-adjoint & PSD expected)
+T5DONE

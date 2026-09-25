@@ -1,0 +1,47 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+T8 lam*=pi^2=9.8696
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T8 lam=0    sep=0 m=113  eig=4591   | pinf=0 dinf=0 numerr=0 feasratio=+1.0007 | solution=1
+T8 lam=0    sep=1 m=74   eig=1009   | pinf=1 dinf=1 numerr=0 feasratio=-1.0000 | solution=0
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T8 lam=2    sep=0 m=130  eig=4591   | pinf=0 dinf=0 numerr=0 feasratio=+1.0056 | solution=1
+T8 lam=2    sep=1 m=92   eig=1009   | pinf=1 dinf=1 numerr=0 feasratio=-1.0000 | solution=0
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T8 lam=5    sep=0 m=130  eig=4591   | pinf=0 dinf=0 numerr=0 feasratio=+1.0066 | solution=1
+T8 lam=5    sep=1 m=92   eig=1009   | pinf=1 dinf=1 numerr=0 feasratio=-1.0000 | solution=0
+T8DONE

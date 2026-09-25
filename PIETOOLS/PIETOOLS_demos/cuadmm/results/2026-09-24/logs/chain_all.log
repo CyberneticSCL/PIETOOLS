@@ -1,0 +1,61 @@
+=== phase 2: scaling arm ===
+=== phase 3: GPU arm ===
+/mnt/c/Users/mpeet/AppData/Local/Temp/claude/C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS/a69ac9db-6cc4-4fd1-9dcb-b003878763dd/scratchpad/work/bl_gpu.sh: line 66: continue: only meaningful in a `for', `while', or `until' loop
+/mnt/c/Users/mpeet/AppData/Local/Temp/claude/C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS/a69ac9db-6cc4-4fd1-9dcb-b003878763dd/scratchpad/work/bl_gpu.sh: line 67: run_one: command not found
+/mnt/c/Users/mpeet/AppData/Local/Temp/claude/C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS/a69ac9db-6cc4-4fd1-9dcb-b003878763dd/scratchpad/work/bl_gpu.sh: line 72: syntax error near unexpected token `done'
+/mnt/c/Users/mpeet/AppData/Local/Temp/claude/C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS/a69ac9db-6cc4-4fd1-9dcb-b003878763dd/scratchpad/work/bl_gpu.sh: line 72: `done'
+=== phase 4: verify ===
+=== CHAINDONE ===
+14500 gap=NA
+GPU skip hinf2du_rd 1e-4
+GPU hinf2du_rd 1e-6 rc=124 capped=1 solve=NA iters=14400 gap=NA
+GPU skip hinf2nc_rd 1e-4
+GPU hinf2nc_rd 1e-6 rc=124 capped=1 solve=NA iters=9600 gap=NA
+GPU skip hinf_rd1 1e-4
+GPU hinf_rd1 1e-6 rc=0 capped=0 solve=219.927 iters=39122 gap=7.6e-07
+GPU skip hinf_rd1_hv 1e-4
+GPU skip hinf_rd1_hv 1e-6
+GPU skip hinfco_rd1 1e-4
+GPU hinfco_rd1 1e-6 rc=124 capped=1 solve=NA iters=159700 gap=NA
+GPU skip hinfdu_rd1 1e-4
+GPU hinfdu_rd1 1e-6 rc=124 capped=1 solve=NA iters=163000 gap=NA
+GPU skip hinfduco_rd1 1e-4
+GPU hinfduco_rd1 1e-6 rc=124 capped=1 solve=NA iters=597400 gap=NA
+GPU skip nl_fisher_gamfix 1e-4
+GPU nl_fisher_gamfix 1e-6 rc=124 capped=1 solve=NA iters=22900 gap=NA
+GPU skip nl_fisher_nobnd 1e-4
+GPU nl_fisher_nobnd 1e-6 rc=124 capped=1 solve=NA iters=24800 gap=NA
+GPU skip nl_fisher_opt 1e-4
+GPU nl_fisher_opt 1e-6 rc=124 capped=1 solve=NA iters=22400 gap=NA
+GPU skip scale_stab_n02 1e-4
+GPU skip scale_stab_n02 1e-6
+GPU skip scale_stab_n04 1e-4
+GPU skip scale_stab_n04 1e-6
+GPU skip scale_stab_n08 1e-4
+GPU skip scale_stab_n08 1e-6
+GPU skip scale_stab_n16 1e-4
+GPU skip scale_stab_n16 1e-6
+GPU skip stab2_rd 1e-4
+GPU skip stab2_rd 1e-6
+GPU skip stab2dual_rd 1e-4
+GPU skip stab2dual_rd 1e-6
+GPU skip stab_rd1 1e-4
+GPU skip stab_rd1 1e-6
+GPU skip stab_rd1_hv 1e-4
+GPU skip stab_rd1_hv 1e-6
+GPU skip stab_rd1_tight 1e-4
+GPU skip stab_rd1_tight 1e-6
+GPU skip stab_tr1 1e-4
+GPU skip stab_tr1 1e-6
+GPU skip stab_wave1 1e-4
+GPU skip stab_wave1 1e-6
+GPU skip stabdual_rd1 1e-4
+GPU skip stabdual_rd1 1e-6
+GPU skip stabpde_rd1 1e-4
+GPU skip stabpde_rd1 1e-6
+GPU skip stabpded_rd1 1e-4
+GPU skip stabpded_rd1 1e-6
+GPU skip wellposed_rd1 1e-4
+GPU skip wellposed_rd1 1e-6
+GPU skip wellposed_rd1
+GPU wellposed_rd1 1e-6 SKIPPED (1e-4 did not converge)

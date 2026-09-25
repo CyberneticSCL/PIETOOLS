@@ -1,0 +1,113 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n01     skip_big  n=1   m=135      nvar=687       t=NaN       rel=NaN         m=135 over solve gate 0 (dense Schur 0 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n02     skip_big  n=2   m=540      nvar=2748      t=NaN       rel=NaN         m=540 over solve gate 0 (dense Schur 0 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n03     skip_big  n=3   m=1215     nvar=6183      t=NaN       rel=NaN         m=1215 over solve gate 0 (dense Schur 0 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n04     skip_big  n=4   m=2160     nvar=10992     t=NaN       rel=NaN         m=2160 over solve gate 0 (dense Schur 0 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n06     skip_big  n=6   m=4860     nvar=24732     t=NaN       rel=NaN         m=4860 over solve gate 0 (dense Schur 0 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n08     skip_big  n=8   m=8640     nvar=43968     t=NaN       rel=NaN         m=8640 over solve gate 0 (dense Schur 1 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n12     skip_big  n=12  m=19440    nvar=98928     t=NaN       rel=NaN         m=19440 over solve gate 0 (dense Schur 3 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n16     skip_big  n=16  m=34560    nvar=175872    t=NaN       rel=NaN         m=34560 over solve gate 0 (dense Schur 9 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n24     skip_big  n=24  m=77760    nvar=395712    t=NaN       rel=NaN         m=77760 over solve gate 0 (dense Schur 45 GB)
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+SC scale_stab_n32     ERR       n=32  m=NaN      nvar=NaN       t=NaN       rel=NaN         Requested 9613344x1536 (123.8GB) array exceeds maximum array size preference (63.7GB) and might cause MATLAB to become unresponsive.
+SCDONE

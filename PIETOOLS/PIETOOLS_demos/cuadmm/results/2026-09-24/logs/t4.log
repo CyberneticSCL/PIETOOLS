@@ -1,0 +1,25 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T4 stripped   stock m=91 Kf=27 Ns=[6  8] nnz=451 | mirror m=91 Kf=27 Ns=[6  8] nnz=451 | MATCH=1
+T4 light      stock m=130 Kf=43 Ns=[10  15   6] nnz=982 | mirror m=130 Kf=43 Ns=[10  15   6] nnz=982 | MATCH=1
+T4 heavy      stock m=135 Kf=45 Ns=[11  20  11] nnz=1315 | mirror m=135 Kf=45 Ns=[11  20  11] nnz=1315 | MATCH=1
+T4DONE

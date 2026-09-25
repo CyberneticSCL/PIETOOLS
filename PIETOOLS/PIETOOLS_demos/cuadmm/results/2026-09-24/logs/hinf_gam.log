@@ -1,0 +1,23 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+HG set|tol|iters|t|gamma_cuadmm|gamma_ref|rel_err
+HG light|1e-04|31859|39.5|0.052228728|0.052225892|5.43e-05
+HG light|1e-06|200000|252.8|0.052240506|0.052225892|2.80e-04
+HG light|1e-08|200000|451.0|0.052240506|0.052225892|2.80e-04
+HG heavy|1e-04|3074|4.9|0.052156789|0.052118940|7.26e-04
+HG heavy|1e-06|78105|127.3|0.052119206|0.052118940|5.10e-06
+HG heavy|1e-08|200000|325.5|0.052119123|0.052118940|3.51e-06
+HG --- cross-check: import the surviving X_opt through svec-inverse + RRx
+HG light|import gamma=0.052240506 | ref=0.052225892 | rel=2.80e-04
+HG heavy|import gamma=0.052119123 | ref=0.052118940 | rel=3.51e-06
+HGDONE

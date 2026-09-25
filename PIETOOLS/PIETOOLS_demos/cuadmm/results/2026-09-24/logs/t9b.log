@@ -1,0 +1,26 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T9 sepLF=0 sepD=0 m=130  eig=4591   Ns=[10  15   6] | pinf=0 feasratio=+1.006 sol=1 | rel_b=1.46e-08 op_ind=2.18e-09 op_indP=5.12e-08 psd_min=-1.6e-06 Pmin=+2.6e-11 normDop=3.94e-06 TRIV=0
+T9 sepLF=1 sepD=0 m=95   eig=3807   Ns=[6  15   6] | pinf=0 feasratio=+0.955 sol=1 | rel_b=5.70e-08 op_ind=2.36e-07 op_indP=3.71e-06 psd_min=-6.1e-07 Pmin=+1.2e-14 normDop=1.62e-07 TRIV=0
+T9 sepLF=0 sepD=1 m=130  eig=1793   Ns=[10   9   4] | pinf=1 feasratio=-0.975 sol=1 | rel_b=1.00e+00 op_ind=0.00e+00 op_indP=0.00e+00 psd_min=+0.0e+00 Pmin=+1.5e-15 normDop=0.00e+00 TRIV=1
+T9 sepLF=1 sepD=1 m=92   eig=1009   Ns=[6  9  4] | pinf=1 feasratio=-1.000 sol=0
+T9DONE

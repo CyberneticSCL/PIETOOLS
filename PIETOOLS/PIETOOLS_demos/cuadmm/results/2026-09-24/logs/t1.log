@@ -1,0 +1,19 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+T1 sedumi_found 1 mosek_found 1
+T1 sedumi obj 2.000000000001 t 0.765 pinf 0 dinf 0 numerr 0
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+T1 mosekopt callable rcode 0
+T1 sedumi_correct 1 mosek_callable 1
+T1DONE

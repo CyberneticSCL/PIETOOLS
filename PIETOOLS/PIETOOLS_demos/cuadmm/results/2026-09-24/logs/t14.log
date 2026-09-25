@@ -1,0 +1,33 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+T14 program m=130 nvar=404 Kf=43 Ns=[10  15   6]
+T14 wrote vec_len=239 nnz=964
+T14 blk.txt = u 43 s 10 s 15 s 6
+T14 b match = 0.000e+00
+T14 trial 1  rel_diff = 2.040e-16
+T14 trial 2  rel_diff = 1.947e-16
+T14 trial 3  rel_diff = 2.598e-16
+T14 trial 4  rel_diff = 1.940e-16
+T14 trial 5  rel_diff = 2.006e-16
+T14 WORST = 2.598e-16   (must be ~1e-15)
+T14 VERDICT CONVERTER OK
+T14DONE

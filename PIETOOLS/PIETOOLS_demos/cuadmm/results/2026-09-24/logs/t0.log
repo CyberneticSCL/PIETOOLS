@@ -1,0 +1,29 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+T0 stripped 90 shadowing entries
+T0 resolve poslpivar      1
+T0 resolve lpi_eq         1
+T0 resolve lpiprogram     1
+T0 resolve monomials      2
+T0    C:\Program Files\MATLAB\R2025b\toolbox\mbc\mbcmodels\@xregcubic\monomials.m
+T0    C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\SOSTOOLS400\monomials.m
+T0 resolve sossolve       1
+T0 resolve poslpivar_2d   1
+T0 resolve lpi_eq_2d      1
+T0 resolve lpivar_2d      1
+T0 resolve opvar2d        1
+T0 multi_resolved 1
+T0 matlabver 25.2.0.2998904 (R2025b)
+T0 sedumi false
+T0 mosek false
+T0DONE

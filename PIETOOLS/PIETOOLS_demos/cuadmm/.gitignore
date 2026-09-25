@@ -1,0 +1,14 @@
+# Generated data goes to cuadmm_outdir() (default <tempdir>/cuadmm), never here.
+# These are a backstop for when CUADMM_OUT points inside this folder (at any
+# depth -- hence unanchored) or an experiment writes from an old layout. One
+# baseline run wrote ~1.9 GB of dumps.
+baseline/
+dumps/
+bisect/
+cu_*/
+cvt_test/
+*.mat
+search2d_rows.txt
+*.asv
+# results/2026-09-24/ IS tracked: the measured tables and logs behind BASELINE_REPORT.md.
+!results/**

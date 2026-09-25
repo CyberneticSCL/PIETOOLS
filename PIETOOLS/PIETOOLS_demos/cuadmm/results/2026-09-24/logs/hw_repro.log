@@ -1,0 +1,141 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+HR start mem=1.87 GB
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s)    <--  (/s)ýx(t,s)
+
+ --- Conversion to PIE was successful --- 
+
+ --- Searching for Hinf gain bound using primal KYP lemma --- 
+- Declaring Positive Lyapunov Operator variable using specified options...
+- Constructing the Negativity Constraint...
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In PIETOOLS_Hinf_gain (line 173)
+In bl_b_io1 (line 16)
+In hw_repro (line 10)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In PIETOOLS_Hinf_gain (line 174)
+In bl_b_io1 (line 16)
+In hw_repro (line 10)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/horzcat (line 103)
+In PIETOOLS_Hinf_gain (line 175)
+In bl_b_io1 (line 16)
+In hw_repro (line 10)
+In run (line 112)] 
+[Warning: Proposed opvar concatenation is ambiguous.] 
+[> In dopvar/vertcat (line 96)
+In PIETOOLS_Hinf_gain (line 173)
+In bl_b_io1 (line 16)
+In hw_repro (line 10)
+In run (line 112)] 
+- Enforcing the Negativity Constraint...
+  - Using an Equality constraint...
+- Solving the LPI using the specified SDP solver...
+Size: 9506  1065
+ 
+
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+MOSEK Version 11.0.30 (Build date: 2025-11-17 21:19:36)
+Copyright (c) MOSEK ApS, Denmark WWW: mosek.com
+Platform: Windows/64-X86
+
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (0) of matrix 'A'.
+MOSEK warning 710 (MSK_RES_WRN_ZEROS_IN_SPARSE_COL): #1 (nearly) zero elements are specified in sparse col '' (41) of matrix 'A'.
+Problem
+  Name                   :                 
+  Objective sense        : minimize        
+  Type                   : CONIC (conic optimization problem)
+  Constraints            : 1065            
+  Affine conic cons.     : 0               
+  Disjunctive cons.      : 0               
+  Cones                  : 0               
+  Scalar variables       : 181             
+  Matrix variables       : 4 (scalarized: 4738)
+  Integer variables      : 0               
+
+Optimizer started.
+Presolve started.
+Linear dependency checker started.
+Linear dependency checker terminated.
+Eliminator started.
+Freed constraints in eliminator : 4
+Eliminator terminated.
+Eliminator - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - tries                  : 1                 time                   : 0.00            
+Lin. dep.  - primal attempts        : 1                 successes              : 1               
+Lin. dep.  - dual attempts          : 0                 successes              : 0               
+Lin. dep.  - primal deps.           : 0                 dual deps.             : 0               
+Presolve terminated. Time: 0.00    
+Optimizer  - threads                : 24              
+Optimizer  - solved problem         : the primal      
+Optimizer  - Constraints            : 809             
+Optimizer  - Cones                  : 1               
+Optimizer  - Scalar variables       : 67                conic                  : 66              
+Optimizer  - Semi-definite variables: 3                 scalarized             : 4737            
+Factor     - setup time             : 0.02            
+Factor     - dense det. time        : 0.01              GP order time          : 0.00            
+Factor     - nonzeros before factor : 2.30e+05          after factor           : 2.39e+05        
+Factor     - dense dim.             : 2                 flops                  : 1.45e+08        
+ITE PFEAS    DFEAS    GFEAS    PRSTATUS   POBJ              DOBJ              MU       TIME  
+0   1.8e+00  1.0e+00  1.0e+00  0.00e+00   0.000000000e+00   0.000000000e+00   1.0e+00  0.02  
+1   3.3e-01  1.9e-01  3.8e-02  1.64e+00   2.155399586e-01   1.654924716e-01   1.9e-01  0.04  
+2   7.1e-02  4.0e-02  3.6e-03  1.51e+00   1.717973679e-01   1.640585859e-01   4.0e-02  0.05  
+3   1.3e-02  7.1e-03  2.7e-04  9.92e-01   1.826770602e-01   1.811919363e-01   7.1e-03  0.06  
+4   2.6e-03  1.5e-03  2.6e-05  9.23e-01   1.837326491e-01   1.834246939e-01   1.5e-03  0.07  
+5   3.1e-04  1.8e-04  9.6e-07  8.25e-01   1.827546079e-01   1.826999507e-01   1.8e-04  0.08  
+6   2.6e-04  1.5e-04  7.9e-07  7.15e-01   1.827158636e-01   1.826688207e-01   1.5e-04  0.09  
+7   5.0e-05  2.8e-05  5.2e-08  9.33e-01   1.825001819e-01   1.824896642e-01   2.8e-05  0.10  
+8   1.3e-05  7.7e-06  8.6e-09  9.46e-01   1.824898366e-01   1.824872033e-01   7.7e-06  0.11  
+9   1.6e-06  8.9e-07  2.8e-10  9.92e-01   1.824833333e-01   1.824829931e-01   8.9e-07  0.12  
+10  2.1e-07  1.2e-07  1.1e-11  1.02e+00   1.824819334e-01   1.824818827e-01   1.2e-07  0.14  
+11  2.4e-08  1.4e-08  4.3e-13  9.85e-01   1.824816260e-01   1.824816201e-01   1.4e-08  0.15  
+Optimizer terminated. Time: 0.15    
+
+
+Interior-point solution summary
+  Problem status  : PRIMAL_AND_DUAL_FEASIBLE
+  Solution status : OPTIMAL
+  Primal.  obj: 1.8248162602e-01    nrm: 3e+00    Viol.  con: 1e-08    var: 0e+00    barvar: 0e+00  
+  Dual.    obj: 1.8248162015e-01    nrm: 2e+00    Viol.  con: 0e+00    var: 3e-09    barvar: 7e-09  
+Optimizer summary
+  Optimizer                 -                        time: 0.15    
+    Interior-point          - iterations : 11        time: 0.15    
+    Simplex                 - iterations : 0         time: 0.00    
+    Mixed integer           - relaxations: 0         time: 0.00    
+
+ 
+Residual norm: 7.454e-08
+ 
+       cpusec: 0.1484
+         iter: 11
+    feasratio: 0.9854
+         dinf: 0
+         pinf: 0
+       numerr: 0
+
+The H-infty norm of the given system is upper bounded by:
+    0.1825
+
+HR done t=3.9 s mem=2.42 GB m=1065 Ks=[22 82 46 1]
+HRDONE

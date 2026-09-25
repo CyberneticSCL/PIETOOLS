@@ -1,0 +1,74 @@
+Loaded problem from /mnt/c/Users/mpeet/AppData/Local/Temp/claude/C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS/a69ac9db-6cc4-4fd1-9dcb-b003878763dd/scratchpad/work/baseline/dumps/stab_tr1/
+              vector length: 239
+      number of constraints: 96
+           number of blocks: 4
+  number of non-zeros in At: 730
+  number of non-zeros in  b: 4
+  number of non-zeros in  C: 0
+
+Analysis of the blk vector:
+        1 u. block of size  43
+        1 matrices of size    6 (small)
+        1 matrices of size   10 (small)
+        1 matrices of size   15 (small)
+
+ ||C|| = 1, ||b|| = 2
+
+Problem parameters:
+              solver max iter: 2000000
+       KKT stopping tolerance: 1e-06
+       sigma update threshold: 500
+         sigma update stage 1: 50
+         sigma update stage 2: 100
+                  switch admm: 0
+         switch proj max iter: 0
+              switch proj tol: 0.01
+                     sigscale: 2
+                initial sigma: 100
+    initial projection method: EIG_FP64
+      final projection method: EIG_FP64
+                   use LOBPCG: true
+              LOBPCG max iter: 20
+             LOBPCG tolerance: 1e-05
+             LOBPCG warmstart: true
+                 LOBPCG ratio: 0.03
+            LOBPCG relaxation: 1.2
+        LOBPCG rank threshold: 1e-05
+           small matrix limit: 32
+          medium matrix limit: 1000
+
+ ------------------------------------------------------------------------------
+                                   cuADMM
+ ------------------------------------------------------------------------------
+  it. | p infeas d infeas | primal obj.   dual obj. rel. gap |  time |   sigma 
+ ------------------------------------------------------------------------------
+ --------------- Starting with projection method EIG_FP64 ---------------------
+    0 | 5.00e-01 0.00e+00 |  0.0000e+00  0.0000e+00 0.00e+00 |   0.1 | 1.0e+02 
+   50 | 3.57e-04 1.01e-04 |  0.0000e+00  3.2256e-05 3.23e-05 |   0.3 | 3.1e+00 
+  100 | 1.67e-04 3.52e-04 |  0.0000e+00  1.2188e-04 1.22e-04 |   0.4 | 3.9e-01 
+  150 | 1.09e-04 7.36e-05 |  0.0000e+00  2.5345e-05 2.53e-05 |   0.5 | 3.1e+00 
+  200 | 3.70e-05 3.95e-05 |  0.0000e+00  4.9226e-06 4.92e-06 |   0.7 | 1.6e+00 
+  300 | 2.56e-05 2.05e-05 |  0.0000e+00  6.5376e-07 6.54e-07 |   1.0 | 6.2e+00 
+  400 | 7.23e-06 8.03e-06 |  0.0000e+00  2.4242e-07 2.42e-07 |   1.2 | 6.2e+00 
+  500 | 3.01e-06 3.50e-06 |  0.0000e+00  1.1998e-07 1.20e-07 |   1.5 | 6.2e+00 
+  600 | 1.51e-06 1.61e-06 |  0.0000e+00  7.1370e-08 7.14e-08 |   1.8 | 6.2e+00 
+  697 | 9.93e-07 8.24e-07 |  0.0000e+00  4.8074e-08 4.81e-08 |   2.1 | 6.2e+00 
+ ------------------------------------------------------------------------------
+
+Solver ended: converged.
+
+ primal infeasibility = 9.9e-07 
+ dual   infeasibility = 8.2e-07 
+ relative gap         = 4.8e-08
+ PSD violation X      = -0.0e+00 
+ PSD violation S      = -0.0e+00
+
+ primal objective =  0.00000000e+00 
+ dual   objective =  4.80738166e-08
+
+ time per iteration = 0.0029s 
+ total time         = 2.1s
+ -------------------------------------------------------------------------------
+
+CUADMM_TIMING init 0.0828242 solve 1.97676 total 2.05959 tol 1e-06 switch_admm 0 sig 100 sigscale 2 sig_thresh 500
+CUADMM_MEM base_MiB 1575.5 after_load_MiB 0 after_init_MiB 804 after_solve_MiB 804 vec_len 239 con_num 96 At_nnz 730 mat_num 4 eig_streams 15

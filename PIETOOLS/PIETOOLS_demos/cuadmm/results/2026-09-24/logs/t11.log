@@ -1,0 +1,28 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+D2 Dup|m|Nmax|eigcost|pinf|dinf|numerr|feasratio|rel_b|rel_cu|psd_min|psd_relmin|trivial|t_solve
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+D2 1|890|92|779200|1|0|0|-1.0000|1.000e+00|5.639e-06|+2.750e-41|+1.238e-25|1|2.5
+D2 2|1834|216|1.00782e+07|0|0|2|-1.0000|4.976e+00|2.806e-05|+1.074e-12|+2.267e-10|0|4.8
+D2 3|3456|424|7.62255e+07|0|0|2|-1.0000|3.508e-03|1.978e-08|+6.324e-16|+3.534e-14|0|22.3
+D2DONE

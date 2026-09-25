@@ -1,0 +1,134 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+S2 label|m|nblk|Nmax|eigcost|nnzAt|frac|lam|cert|rel_b|feasratio|numerr|t
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+S2 light(base)|3456|2|424|7.62255e+07|557492|0.10|1.9739|0|1.373e-03|-0.9999|2|25.4
+S2REACH light(base)|reach=0.00|eigcost=7.62255e+07|nnz=557492|Nmax=424|m=3456
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 light+LFsep0|4283|2|424|7.62494e+07|730898|0.10|1.9739|0|1.427e-06|-0.9128|0|32.0
+S2REACH light+LFsep0|reach=0.00|eigcost=7.62494e+07|nnz=730898|Nmax=424|m=4283
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 light+LFsep0+Dup2|3615|2|216|1.01021e+07|320388|0.10|1.9739|0|1.048e+01|-1.0000|2|11.6
+S2REACH light+LFsep0+Dup2|reach=0.00|eigcost=1.01021e+07|nnz=320388|Nmax=216|m=3615
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 light+LFsep0+Dup1|3451|2|92|803077|203198|0.10|1.9739|0|1.000e+00|-1.0000|0|6.8
+S2REACH light+LFsep0+Dup1|reach=0.00|eigcost=803077|nnz=203198|Nmax=92|m=3451
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 light+Dup2|1834|2|216|1.00782e+07|146982|0.10|1.9739|0|4.502e-03|-1.0000|2|5.4
+S2REACH light+Dup2|reach=0.00|eigcost=1.00782e+07|nnz=146982|Nmax=216|m=1834
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 heavy(ref)|8950|2|952|8.62828e+08|2859942|0.10|1.9739|1|1.101e-07|+0.9747|0|420.4
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 heavy(ref)|8950|2|952|8.62828e+08|2859942|0.25|4.9348|1|5.612e-08|+0.6772|0|510.8
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 heavy(ref)|8950|2|952|8.62828e+08|2859942|0.50|9.8696|0|3.530e-06|-1.0213|2|600.4
+S2REACH heavy(ref)|reach=0.25|eigcost=8.62828e+08|nnz=2859942|Nmax=952|m=8950
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 heavy+Dup2|5380|2|536|1.54018e+08|942534|0.10|1.9739|1|7.636e-08|+0.7279|0|69.6
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 heavy+Dup2|5380|2|536|1.54018e+08|942534|0.25|4.9348|0|4.721e-02|-1.0000|2|118.1
+S2REACH heavy+Dup2|reach=0.10|eigcost=1.54018e+08|nnz=942534|Nmax=536|m=5380
+
+ --- Reordering the state components to allow for representation as PIE ---
+
+ --- Converting the PDE to an equivalent PIE --- 
+
+The following fundamental state components have been introduced:
+   x(t,s,s)   <--  (/s)ý(/s)ýx(t,s,s)
+
+ --- Conversion to PIE was successful --- 
+S2 heavy+Dup1|3096|2|264|1.84267e+07|270436|0.10|1.9739|0|4.289e-05|-1.0416|2|18.5
+S2REACH heavy+Dup1|reach=0.00|eigcost=1.84267e+07|nnz=270436|Nmax=264|m=3096
+S2DONE

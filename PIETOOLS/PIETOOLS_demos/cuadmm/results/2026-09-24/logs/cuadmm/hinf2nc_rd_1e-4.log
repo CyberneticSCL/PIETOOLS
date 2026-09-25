@@ -1,0 +1,76 @@
+Loaded problem from /mnt/c/Users/mpeet/AppData/Local/Temp/claude/C--Users-mpeet-OneDrive-Documents-GitHub-PIETOOLS-PIETOOLS/a69ac9db-6cc4-4fd1-9dcb-b003878763dd/scratchpad/work/baseline/dumps/hinf2nc_rd/
+              vector length: 755913
+      number of constraints: 16949
+           number of blocks: 3
+  number of non-zeros in At: 3134504
+  number of non-zeros in  b: 4
+  number of non-zeros in  C: 1
+
+Analysis of the blk vector:
+        1 u. block of size  42
+        1 matrices of size    8 (small)
+        1 matrices of size 1229 (large)
+
+ ||C|| = 2, ||b|| = 2
+
+Problem parameters:
+              solver max iter: 2000000
+       KKT stopping tolerance: 0.0001
+       sigma update threshold: 500
+         sigma update stage 1: 50
+         sigma update stage 2: 100
+                  switch admm: 0
+         switch proj max iter: 0
+              switch proj tol: 0.01
+                     sigscale: 2
+                initial sigma: 100
+    initial projection method: EIG_FP64
+      final projection method: EIG_FP64
+                   use LOBPCG: true
+              LOBPCG max iter: 20
+             LOBPCG tolerance: 1e-05
+             LOBPCG warmstart: true
+                 LOBPCG ratio: 0.03
+            LOBPCG relaxation: 1.2
+        LOBPCG rank threshold: 1e-05
+           small matrix limit: 32
+          medium matrix limit: 1000
+
+ ------------------------------------------------------------------------------
+                                   cuADMM
+ ------------------------------------------------------------------------------
+  it. | p infeas d infeas | primal obj.   dual obj. rel. gap |  time |   sigma 
+ ------------------------------------------------------------------------------
+ --------------- Starting with projection method EIG_FP64 ---------------------
+    0 | 5.00e-01 5.00e-01 |  0.0000e+00  0.0000e+00 0.00e+00 |   7.4 | 1.0e+02 
+ ------------------ Number of low rank matrices =   1 /   1 ------------------
+ Ranks (matrix 0):   +2  -1
+   50 | 8.86e-04 1.53e-03 |  1.0496e-02  2.1461e-02 1.06e-02 |   9.2 | 3.1e+00 
+  100 | 4.96e-01 9.66e-01 |  4.0076e-02  1.2031e-01 6.91e-02 |  13.1 | 3.9e-01 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +263  -257
+  150 | 7.98e-03 8.91e-03 |  2.2788e-02  4.5967e-02 2.17e-02 |  19.5 | 7.8e-01 
+  200 | 4.75e-03 4.89e-03 |  2.2682e-02  4.5794e-02 2.16e-02 |  25.9 | 7.8e-01 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +220  -386
+  300 | 3.97e-03 3.66e-03 |  2.2139e-02  4.5320e-02 2.17e-02 |  38.8 | 2.0e-01 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +230  -370
+  400 | 3.94e-03 3.63e-03 |  2.4043e-02  4.8208e-02 2.25e-02 |  51.5 | 7.8e-01 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +236  -367
+  500 | 3.41e-03 3.54e-03 |  2.4675e-02  5.1155e-02 2.46e-02 |  64.3 | 9.8e-02 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +240  -361
+  600 | 3.43e-03 3.25e-03 |  2.6792e-02  5.4583e-02 2.57e-02 |  77.1 | 3.9e-01 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +236  -364
+  700 | 3.22e-03 3.01e-03 |  2.9041e-02  5.9133e-02 2.77e-02 |  89.9 | 3.9e-01 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +237  -363
+  800 | 3.04e-03 2.78e-03 |  3.1242e-02  6.3586e-02 2.95e-02 | 102.7 | 3.9e-01 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +238  -361
+  900 | 2.86e-03 2.56e-03 |  3.3377e-02  6.7832e-02 3.13e-02 | 115.5 | 3.9e-01 
+ ------------------ Number of low rank matrices =   0 /   1 ------------------
+ Ranks (matrix 0):   +239  -358

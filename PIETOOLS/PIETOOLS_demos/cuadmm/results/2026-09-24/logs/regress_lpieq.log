@@ -1,0 +1,22 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+RG id|m_ref|m_new|Ks_ref|Ks_new|relb_ref|relb_new|rel_reldiff|MATCH
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+RG stab_rd1|130|130|[10 15 6]|[10 15 6]|1.322780e-08|1.322776e-08|2.69e-06|0
+RG stabpde_rd1|54|54|[10 15 6]|[10 15 6]|5.088520e-08|5.088516e-08|8.34e-07|1
+RG hinf_rd1|242|242|[10 31 13 1]|[10 31 13 1]|5.104810e-07|5.104808e-07|3.90e-07|1
+RG wellposed_rd1|108|108|[10 10 15 15 6 6]|[10 10 15 15 6 6]|8.742220e-08|8.742221e-08|5.98e-08|1
+RG stab2_rd|3456|3456|[8 424]|[8 424]|2.081580e+00|2.081579e+00|4.58e-07|1
+RGVERDICT false
+RGDONE

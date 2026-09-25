@@ -1,0 +1,46 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+BL stab_rd1           ok   m=130     tM=0.0098814 tD=0.0067501 rel=1.3228e-08 
+BL stabdual_rd1       ok   m=130     tM=0.0084496 tD=0.0063088 rel=1.3324e-08 
+BL stabpde_rd1        ok   m=54      tM=0.0067482 tD=0.0077012 rel=5.0885e-08 
+BL stabpded_rd1       ok   m=54      tM=0.0091675 tD=0.0060097 rel=5.1e-08    
+BL stab_rd1_hv        ok   m=135     tM=0.0079583 tD=0.0081119 rel=2.7905e-08 
+BL stab_rd1_tight     ok   m=135     tM=0.010384 tD=0.010698 rel=1.1505e-08 
+BL stab_tr1           ok   m=96      tM=0.0069491 tD=0.004983 rel=6.4233e-08 
+BL stab_wave1         ok   m=520     tM=0.024993 tD=0.028169 rel=5.8967e-08 
+BL hinf_rd1           ok   m=242     tM=0.021629 tD=0.023208 rel=5.1048e-07 
+BL hinfco_rd1         ok   m=176     tM=0.11403  tD=0.11026  rel=9.3914e-07 
+BL hinfdu_rd1         ok   m=244     tM=0.03772  tD=0.030326 rel=1.5184e-08 
+BL hinfduco_rd1       ok   m=168     tM=0.051581 tD=0.045683 rel=0.001864   
+BL hinf_rd1_hv        ok   m=267     tM=0.025346 tD=0.027068 rel=4.8279e-08 
+BL h2c_rd1            ok   m=272     tM=0.036931 tD=0.027466 rel=2.7753e-07 
+BL h2cco_rd1          ok   m=56      tM=0.03029  tD=0.033181 rel=1          
+BL h2o_rd1            ok   m=269     tM=0.064047 tD=0.054171 rel=3.9728e-06 
+BL h2oco_rd1          ok   m=56      tM=0.010658 tD=0.0088024 rel=5.6785e-08 
+BL est_rd1            ok   m=189     tM=0.068935 tD=0.059306 rel=1.071e-06  
+BL h2est_rd1          ok   m=198     tM=0.073342 tD=0.062788 rel=6.4527e-07 
+BL ctrl_rd1           ok   m=181     tM=0.058924 tD=0.055642 rel=0.0010836  
+BL h2ctrl_rd1         ok   m=202     tM=0.055246 tD=0.057746 rel=0.00078106 
+BL wellposed_rd1      ok   m=108     tM=0.01256  tD=0.0094453 rel=8.7422e-08 
+BL nl_fisher_opt      ok   m=5093    tM=48.2721  tD=50.8504  rel=5.108e-06  
+BL nl_fisher_gamfix   ok   m=5093    tM=53.233   tD=54.3158  rel=5.1455e-06 
+BL nl_fisher_nobnd    ok   m=4978    tM=60.6214  tD=44.4415  rel=3.4361e-05 
+BL stab2_rd           ok   m=3456    tM=15.0705  tD=14.6476  rel=2.0816     
+BL stab2dual_rd       ok   m=3456    tM=17.9863  tD=18.1035  rel=0.0084316  
+BL hinf2_rd           ERR  m=NaN     tM=NaN      tD=NaN      rel=NaN        Too many input arguments.
+BL hinf2nc_rd         ERR  m=NaN     tM=NaN      tD=NaN      rel=NaN        Too many input arguments.
+BL hinf2du_rd         ERR  m=NaN     tM=NaN      tD=NaN      rel=NaN        Too many input arguments.
+BL h2_2dc_rd          ERR  m=NaN     tM=NaN      tD=NaN      rel=NaN        Too many output arguments.
+BLDONE stability,hinf,h2,estimator,controller,wellposed,nonlinear
