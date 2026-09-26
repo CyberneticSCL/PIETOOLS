@@ -1,4 +1,4 @@
-opefunction V = innerprod(Z1,Z2,P)
+function V = innerprod(Z1,Z2,P)
 % V = INNERPROD(Z1,Z2,P) computes the weighted inner product of two
 % distributed polynomial functions, V = <Z1,P*Z2>
 %
