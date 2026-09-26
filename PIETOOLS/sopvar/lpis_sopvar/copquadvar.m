@@ -206,6 +206,17 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  3.2 -> 2.5 s. Programs bit-identical in every field.
 %                  What remains of this loop is 'find' on Cgam, whose
 %                  column count 'int_semisep' sets at (1+nloc)*g2b*NR3.
+% MMP, 09/26/2026: Call int_semisep with layout 'triplets', so Cgam{q}
+%                  reaches 'unpack_sheets' as (i,j,v) and the
+%                  (1+nloc)*g2b*NR3-column matrix above is never built nor
+%                  scanned (4.6 + 3.6 s of a 19.7 s 2-D Hinf build). And Zd
+%                  is concatenated once instead of grown per Qcell block.
+%                  Programs bit-identical; measured numbers in int_semisep.
+% MMP, 09/26/2026: plus_batch(...,'shared_Zd'): every term of a block is
+%                  built on this call's one Zd, so its per-operand O(q) list
+%                  comparison is redundant (plus_batch 1.13 -> 0.33 s, 2-D
+%                  Hinf). Pblk.dvarname passed without a cellstr(string())
+%                  round trip when already a cellstr. Bit-identical.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -499,10 +510,15 @@ end
 
 % Common decision variable basis, so that every block is expressed over the
 % same Zd - a class invariant of 'cdopvar'.
-Zd = {};
+% Pieces collected, concatenated once: growing Zd re-copied the whole list  % MMP, 09/26/2026
+% for each of the N^2 blocks, O(N^2*q).                                     % MMP, 09/26/2026
+% Zd = {};                                                                  % MMP, 09/26/2026 (was)
+Zd = cell(numel(Qcell),1);                                                  % MMP, 09/26/2026
 for q = 1:numel(Qcell)
-    Zd = [Zd; reshape(cellstr(string(Qcell{q})),[],1)];                     %#ok<AGROW>
+%   Zd = [Zd; reshape(cellstr(string(Qcell{q})),[],1)];                     %#ok<AGROW> % MMP, 09/26/2026 (was)
+    Zd{q} = reshape(cellstr(string(Qcell{q})),[],1);                        % MMP, 09/26/2026
 end
+Zd = vertcat(Zd{:});                                                        % MMP, 09/26/2026
 Zd = unique(Zd);    ndec = numel(Zd);
 dmap = containers.Map(Zd,num2cell(1:ndec));
 
@@ -572,7 +588,11 @@ for k = 1:M
         % elimination runs on this block's OWN rows and they are scattered
         % onto the global basis Zd once at the end; see the note at the
         % unpack loop below, and 'sopquadvar', which took the same change.
-        locB = dvar_rows(cellstr(string(Pblk.dvarname)),dmap);              % MMP, 09/22/2026
+%       locB = dvar_rows(cellstr(string(Pblk.dvarname)),dmap);              % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
+        % A cellstr needs no string round trip (0.6 s in 2-D Hinf).         % MMP, 09/26/2026
+        dn = Pblk.dvarname;                                                 % MMP, 09/26/2026
+        if ~iscellstr(dn),  dn = cellstr(string(dn));   end                 % MMP, 09/26/2026
+        locB = dvar_rows(dn(:),dmap);                                       % MMP, 09/26/2026
         nloc = numel(locB);                                                 % MMP, 09/22/2026
         if size(Pblk.B,1)~=nloc                                             % MMP, 09/22/2026
             error("Internal error: B has %d rows for %d decision variables.",...% MMP, 09/22/2026
@@ -615,7 +635,12 @@ for k = 1:M
         aR_all = expand_full(aR(D3));
         for iL = 1:size(aL_all,1)
         for iR = 1:size(aR_all,1)
-        [Cgam,ZL3,ZR3] = int_semisep(G,aL_all(iL,:),aR_all(iR,:),dom(D3,:));
+%       [Cgam,ZL3,ZR3] = int_semisep(G,aL_all(iL,:),aR_all(iR,:),dom(D3,:));% MMP, 09/26/2026 (was)
+        % Triplets, not matrices: each Cgam{q} would be g1b*NL3 x           % MMP, 09/26/2026
+        % (1+nloc)*g2b*NR3, O(nloc) column pointers to write and then to    % MMP, 09/26/2026
+        % scan in 'unpack_sheets' for a few thousand nonzeros.              % MMP, 09/26/2026
+        [Cgam,ZL3,ZR3] = int_semisep(G,aL_all(iL,:),aR_all(iR,:), ...
+                                     dom(D3,:),'triplets');                 % MMP, 09/26/2026
 
         ZL3f = repmat({0},1,nk);
         for t = 1:nk
@@ -688,7 +713,11 @@ for k = 1:M
     if nt==0
         error("Internal error: block (%d,%d) collected no terms.",k,l)
     end
-    Cblk{k,l} = plus_batch(terms{1:nt});
+%   Cblk{k,l} = plus_batch(terms{1:nt});                                    % MMP, 09/26/2026 (was)
+    % Every term was built on this call's one Zd (the sdopvar constructor   % MMP, 09/26/2026
+    % stores it unchanged), so plus_batch may skip its O(q) per-operand     % MMP, 09/26/2026
+    % list comparison: 136 comparisons of 3.8e5 names in 2-D Hinf.          % MMP, 09/26/2026
+    Cblk{k,l} = plus_batch(terms{1:nt},'shared_Zd');                        % MMP, 09/26/2026
   end
 end
 

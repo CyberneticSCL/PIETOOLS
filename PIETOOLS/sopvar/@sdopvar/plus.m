@@ -14,12 +14,21 @@ function C = plus(A,B)
 % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
 % mdopvar -> cdopvar, with every file and function named after them. Mechanical
 % rename, no functional change. Renamed here: posmopvar -> poscopvar.
+% MMP, 09/26/2026: After promoting a 'sopvar' operand onto the other's
+% nonempty list, tell 'sync_basis' the lists are equal (its 'shared_Zd')
+% instead of letting it prove so with an O(q) isequal. 7 of the 11 calls in
+% the 2-D container Hinf build (q = 3.8e5 per list, ~8 ms each); with the
+% cheaper comparison in 'sync_basis', plus there 0.21 -> 0.11 s. Same output.
 
 % A fixed 'sopvar' operand is promoted to a decision operator with a        % MMP, 09/07/2026
 % zero B, so that A+Pop and Pop+A work; mixing fixed and decision blocks    % MMP, 09/07/2026
 % is normal usage. The decision variable list is taken from the sdopvar     % MMP, 09/07/2026
 % operand so 'CombineDecisionBasis' below takes its fast path. Placed        % MMP, 09/07/2026
 % before the checks because an 'sopvar' has no 'params.A'.                  % MMP, 09/07/2026
+% A nonempty Zd_p is stored unchanged by 'sopvar2sdopvar', so both lists    % MMP, 09/26/2026
+% are then the same array. An empty one is replaced by cell(0,1), and the   % MMP, 09/26/2026
+% comparison is O(1) there anyway, so it is left to sync_basis.             % MMP, 09/26/2026
+shared_Zd = false;                                                          % MMP, 09/26/2026
 if isa(A,'sopvar') || isa(B,'sopvar')                                       % MMP, 09/07/2026
     if      isa(B,'sdopvar'),   Zd_p = B.Zd;                                % MMP, 09/07/2026
     elseif  isa(A,'sdopvar'),   Zd_p = A.Zd;                                % MMP, 09/07/2026
@@ -27,6 +36,7 @@ if isa(A,'sopvar') || isa(B,'sopvar')                                       % MM
     end                                                                     % MMP, 09/07/2026
     if isa(A,'sopvar'),     A = sopvar2sdopvar(A,Zd_p);     end             % MMP, 09/07/2026
     if isa(B,'sopvar'),     B = sopvar2sdopvar(B,Zd_p);     end             % MMP, 09/07/2026
+    shared_Zd = ~isempty(Zd_p);                                             % MMP, 09/26/2026
 end                                                                         % MMP, 09/07/2026
 
 % Error handling: Checks to ensure A and B are compatible
@@ -53,7 +63,8 @@ end
 % bases. 'sync_basis' is N-ary and replaces the prologue that plus, eq,     % MMP, 09/07/2026
 % horzcat and vertcat each carried inline; T{k} is empty when operand k     % MMP, 09/07/2026
 % needs no remapping, and 'apply_basis_map' then skips the multiply.        % MMP, 09/07/2026
-[ops,T,Zd,ZL,ZR] = sync_basis({A,B});                                       % MMP, 09/07/2026
+%[ops,T,Zd,ZL,ZR] = sync_basis({A,B});                                      % MMP, 09/07/2026 % MMP, 09/26/2026 (was)
+[ops,T,Zd,ZL,ZR] = sync_basis({A,B},shared_Zd);                             % MMP, 09/26/2026
 A = ops{1};     B = ops{2};                                                 % MMP, 09/07/2026
 %[A,B,Zd] = CombineDecisionBasis(A,B);                                     % MMP, 09/07/2026 (was)
 %[ZR,C1R,C2R] = UnionBasisMonomials(A.ZR,B.ZR);                            % MMP, 09/07/2026 (was)

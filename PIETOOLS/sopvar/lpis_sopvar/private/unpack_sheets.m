@@ -21,6 +21,19 @@ function [A,B] = unpack_sheets(C,mrow,ncol,nsheet,L,R,rloc,nrow)
 % triplets of C replaces B, the Kronecker product, B*K, 'find' and a second % MMP, 09/26/2026
 % 'sparse'. Anything else takes the unfused route.                          % MMP, 09/26/2026
 %
+% C may instead be the triplet struct of int_semisep(...,'triplets'),       % MMP, 09/26/2026
+% fields i, j, v, m, n, standing for sparse(i,j,v,m,n) with no repeated     % MMP, 09/26/2026
+% (i,j) and no zero v. Nothing is then built or scanned over the n          % MMP, 09/26/2026
+% columns, which carry the decision variables.                              % MMP, 09/26/2026
+%
+% MMP, 09/26/2026: Triplet input for C (above), from 'copquadvar' via
+%                  int_semisep(...,'triplets'). The 'find' below was 3.6 s
+%                  of a 19.7 s 2-D Hinf build (io2, light, 1146 calls),
+%                  O(n) per call. Exact: every 'sparse' here depends only
+%                  on the SET of triplets, not their order -- positions are
+%                  distinct except in the fused B, which the guard limits
+%                  to two per entry, and x1+x2 == x2+x1 -- and the triplets
+%                  are the set 'find' returned. Matrix input is unchanged.
 % MMP, 09/26/2026: Optional inputs L, R, RLOC, NROW, as above, for
 %                  'copquadvar'. Profiled A/B, 2-D Hinf build (io2, light,
 %                  1146 calls): unpack + lr_multiply + kron 5.7 + 1.3 +
@@ -33,11 +46,18 @@ function [A,B] = unpack_sheets(C,mrow,ncol,nsheet,L,R,rloc,nrow)
 %                  Bit-identical: see the guard below. Without the new
 %                  inputs the behaviour is unchanged ('sopquadvar').
 
+if isstruct(C)                  % triplets: the 'find' is already done      % MMP, 09/26/2026
+    if C.m~=mrow || C.n~=(1+nsheet)*ncol                                    % MMP, 09/26/2026
+        error("Internal error: unexpected coefficient dimensions.")         % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
+    irow = C.i(:);  icol = C.j(:);  val = C.v(:);                           % MMP, 09/26/2026
+else                                                                        % MMP, 09/26/2026
 if size(C,1)~=mrow || size(C,2)~=(1+nsheet)*ncol
     error("Internal error: unexpected coefficient dimensions.")
 end
 
 [irow,icol,val] = find(C);
+end                                                                         % MMP, 09/26/2026
 is_A = icol<=ncol;
 
 A = sparse((icol(is_A)-1)*mrow+irow(is_A),1,val(is_A),mrow*ncol,1);

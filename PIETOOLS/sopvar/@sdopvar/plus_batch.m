@@ -6,6 +6,10 @@ function C = plus_batch(varargin)
 % INPUT
 % varargin: N 'sdopvar' objects of equal dimension, sharing vars and dom. A
 %           fixed 'sopvar' operand is accepted and promoted;
+%           a trailing 'shared_Zd' is the caller's guarantee that every     % MMP, 09/26/2026
+%           'sdopvar' operand carries the same decision variable list (e.g. % MMP, 09/26/2026
+%           all were built from one Zd); it skips an O(q) comparison per    % MMP, 09/26/2026
+%           operand. Pass it only when that holds by construction;          % MMP, 09/26/2026
 %
 % OUTPUT
 % C:        'sdopvar' object equal to P1 + P2 + ... + PN
@@ -51,7 +55,33 @@ function C = plus_batch(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
+% MMP, 09/26/2026: Optional trailing 'shared_Zd', forwarded to 'sync_basis'.
+% In the 2-D container Hinf build (q = 7.6e5) 'copquadvar' sums ~16 terms
+% per block, all constructed on its one Zd, and sync_basis spent 1.32 of
+% plus_batch's 1.63 s re-proving that with 136 isequal calls on 3.8e5-name
+% lists. The caller knows it; the check cannot be made O(1) here. Same
+% output, bit for bit.
+% MMP, 09/26/2026: Skip adding a summand that stores no entries (local
+% 'noop_sum'): 860 of the 1096 additions in the same build, each copying
+% the whole running sum. Guarded to real sparse double of equal size, where
+% the skipped sum is provably the same bits. Such a summand is also mapped
+% onto the merged bases without 'apply_basis_map', whose scatter of zeros
+% took 4.9 of plus_batch's 7.3 s at q = 1e6 over three spatial variables
+% (single-space 'poscopvar', one block of 729 summands). Measured, same
+% process vs HEAD, with the 'shared_Zd' call site in 'copquadvar':
+% plus_batch 2-D Hinf (q = 7.6e5) 1.66 -> 0.25 s; 3 variables (q = 1e6)
+% 24.5 -> 3.1 s. Programs bit-identical.
 
+% A trailing 'shared_Zd' is removed before the operands are processed; see  % MMP, 09/26/2026
+% INPUT. Any other text input is an error rather than an operand.           % MMP, 09/26/2026
+shared_Zd = false;                                                          % MMP, 09/26/2026
+if ~isempty(varargin) && (ischar(varargin{end}) || isstring(varargin{end})) % MMP, 09/26/2026
+    if ~strcmp(varargin{end},'shared_Zd')                                   % MMP, 09/26/2026
+        error("plus_batch: unrecognized option '%s'.",varargin{end})        % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
+    shared_Zd = true;                                                       % MMP, 09/26/2026
+    varargin(end) = [];                                                     % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026
 ops = varargin;
 if isempty(ops)
     error('plus_batch requires at least one operand.')
@@ -98,7 +128,10 @@ for k = 2:N
 end
 
 % % % One synchronization for all N summands
-[ops,T,Zd,ZL,ZR] = sync_basis(ops);
+% [ops,T,Zd,ZL,ZR] = sync_basis(ops);                                       % MMP, 09/26/2026 (was)
+% A promoted 'sopvar' took Zd_p from an 'sdopvar' operand above, so the     % MMP, 09/26/2026
+% caller's guarantee covers it too.                                         % MMP, 09/26/2026
+[ops,T,Zd,ZL,ZR] = sync_basis(ops,shared_Zd);                               % MMP, 09/26/2026
 
 % % % Add the summands in sequence. Only the SYNCHRONIZATION is batched;
 % the summation is left as sparse additions, which merge two already-sorted
@@ -112,9 +145,27 @@ params_new.B = cell(size(ops{1}.params.B));
 for i = 1:ncell
     [Asum,Bsum] = apply_basis_map(T{1},ops{1}.params.A{i},ops{1}.params.B{i});
     for k = 2:N
-        [Ak,Bk] = apply_basis_map(T{k},ops{k}.params.A{i},ops{k}.params.B{i});
-        Asum = Asum + Ak;
-        Bsum = Bsum + Bk;
+%       [Ak,Bk] = apply_basis_map(T{k},ops{k}.params.A{i},ops{k}.params.B{i}); % MMP, 09/26/2026 (was)
+        % A summand without entries maps to sparse zeros of the merged      % MMP, 09/26/2026
+        % size; build those directly rather than run apply_basis_map's      % MMP, 09/26/2026
+        % scatter (4.9 of plus_batch's 7.3 s at q = 1e6, 3 variables). The  % MMP, 09/26/2026
+        % guard admits only inputs on which that scatter succeeds and       % MMP, 09/26/2026
+        % returns exactly these: real double, numel/columns matching T.idx. % MMP, 09/26/2026
+        Ar = ops{k}.params.A{i};    Br = ops{k}.params.B{i};                % MMP, 09/26/2026
+        if ~isempty(T{k}) && nnz(Ar)==0 && nnz(Br)==0 && isa(Ar,'double') ...
+            && isa(Br,'double') && isreal(Ar) && isreal(Br) && ismatrix(Br) ...
+            && numel(Ar)==numel(T{k}.idx) && size(Br,2)==numel(T{k}.idx)    % MMP, 09/26/2026
+            Ak = sparse(T{k}.nC,1);     Bk = sparse(size(Br,1),T{k}.nC);    % MMP, 09/26/2026
+        else                                                                % MMP, 09/26/2026
+            [Ak,Bk] = apply_basis_map(T{k},Ar,Br);                          % MMP, 09/26/2026
+        end                                                                 % MMP, 09/26/2026
+%       Asum = Asum + Ak;                                                   % MMP, 09/26/2026 (was)
+%       Bsum = Bsum + Bk;                                                   % MMP, 09/26/2026 (was)
+        % A summand without entries still costs a copy of the whole sum.    % MMP, 09/26/2026
+        % 860 of 1096 are such in the 2-D Hinf build, copying 4.9e7 entries % MMP, 09/26/2026
+        % to add 4.5e6. Skipped only where the sum keeps the same bits.     % MMP, 09/26/2026
+        if ~noop_sum(Asum,Ak),  Asum = Asum + Ak;   end                     % MMP, 09/26/2026
+        if ~noop_sum(Bsum,Bk),  Bsum = Bsum + Bk;   end                     % MMP, 09/26/2026
     end
     params_new.A{i} = Asum;
     params_new.B{i} = Bsum;
@@ -123,3 +174,15 @@ end
 C = sdopvar(params_new,ops{1}.vars,Zd,ZL,ZR,ops{1}.dom,ops{1}.dims);
 
 end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 09/26/2026
+function tf = noop_sum(S,Z)                                                 % MMP, 09/26/2026
+% TF = NOOP_SUM(S,Z) is true when S+Z equals S bit for bit, so the add can  % MMP, 09/26/2026
+% be skipped: both real sparse double of one size, and Z stores nothing.    % MMP, 09/26/2026
+% Sparse storage holds no zeros, so every value of S passes through as is   % MMP, 09/26/2026
+% (x+0 == x for x ~= 0); a full S could hold -0, which +0 would flip; a     % MMP, 09/26/2026
+% class, complexity or size difference would change the result or error.    % MMP, 09/26/2026
+tf = issparse(S) && issparse(Z) && isa(S,'double') && isa(Z,'double') ...
+     && isreal(S) && isreal(Z) && nnz(Z)==0 && isequal(size(S),size(Z));    % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026

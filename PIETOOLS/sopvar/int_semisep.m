@@ -26,12 +26,12 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 %   lims     : ns3a-by-2 domain array
 %   Csize    : (optional) size of final C.params over gamma, used only for
 %              an input consistency check. Pass [] to skip it
-%   layout   : (optional) 'separate' (default) or 'packed', selecting the
-%              output layout described below. May be given in place of
-%              Csize, since the two are told apart by type
+%   layout   : (optional) 'separate' (default), 'packed' or 'triplets',     % MMP, 09/26/2026
+%              selecting the output layout described below. May be given    % MMP, 09/26/2026
+%              in place of Csize, since the two are told apart by type      % MMP, 09/26/2026
 %
 % OUTPUTS
-%   C_gam_alp_beta : coefficient matrices, in one of two layouts
+%   C_gam_alp_beta : coefficient matrices, in one of three layouts          % MMP, 09/26/2026
 %   ZL             : left monomial basis in s3a
 %   ZR             : right monomial basis in s3a_dum
 %
@@ -52,6 +52,14 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % Both hold the same numbers. 'packed' allocates 3^ns3a sparse matrices
 % instead of 3^ns3a*nbeta*nalpha of them, which is cheaper when nbeta and
 % nalpha are large, and is the form '@sopvar/mtimes_AT' consumes.
+%
+% 'triplets' is 'separate' with each matrix M replaced by the struct        % MMP, 09/26/2026
+%   struct('i',I,'j',J,'v',V,'m',size(M,1),'n',size(M,2))                   % MMP, 09/26/2026
+% of column vectors, M == sparse(I,J,V,m,n), no repeated (I,J), no zero V,  % MMP, 09/26/2026
+% in no particular order. The matrix is never formed: its g2*NR columns     % MMP, 09/26/2026
+% carry the decision variables in 'copquadvar', so its column pointers      % MMP, 09/26/2026
+% alone cost O(q) per cell to write and again to scan. Consumed by          % MMP, 09/26/2026
+% 'lpis_sopvar/private/unpack_sheets'.                                      % MMP, 09/26/2026
 %
 % The index convention for beta, alpha and gamma is
 %   1 <-> 0   (multiplier, I_0(s) = delta(s))
@@ -94,6 +102,31 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % authorship, and a brief description of modifications
 %
 % AT, 2026: Initial coding as @sopvar/private/int_semisep_AT
+% MMP, 09/26/2026: New layout 'triplets' ('copquadvar' only): each output
+%                  matrix is returned as its (i,j,v) triplets and never
+%                  built. The NZ*p x NZ*q matrix of 'rearrangeCoef' has the
+%                  decision variables on its q axis, so writing its column
+%                  pointers (~108 MB per heavy 2-D Hinf call) and then
+%                  scanning them in 'unpack_sheets' were 4.6 + 3.6 s of a
+%                  19.7 s build, for ~4e3 nonzeros per call. Exact: with
+%                  one beta and one alpha row each cell is ONE memoized
+%                  'rearrangeCoef' result or empty, whose scatter is a
+%                  bijection, so the triplets are that matrix's nonzeros;
+%                  see 'unpack_sheets' for why its output depends only on
+%                  their set. 'separate' and 'packed' are unchanged
+%                  (operator products, 'sopquadvar', 'possopvar').
+%                  Old -> new, one process, alternating, medians of 3,
+%                  whole cx_exec builds with copquadvar's Zd change of the
+%                  same date, programs isequal in every field: 2-D Hinf
+%                  20.0 -> 10.8 s, its dual 20.1 -> 10.2 s, 2-D stability
+%                  6.1 -> 4.1 s, and at degrees +1 (q = 5.5e5) 28.5 ->
+%                  11.5 s; nv=3 poscopvar 2.8 -> 2.5 s, single space
+%                  (q = 1.0e6) 46.9 -> 33.9 s; 1-D and the operator
+%                  products unchanged. Peak memory in 'copquadvar' 216 ->
+%                  17 MB (2-D Hinf), 1373 -> 13 MB (q = 5.5e5); cost per
+%                  cell now O(nnz), no longer O(q*NZ). One exception: at
+%                  nv=3 single space the cells are not wide and peak rises
+%                  54 -> 69 MB (24 B/nonzero vs 16 B/nonzero + 8 B/column).
 % MMP, 09/26/2026: 'rearrangeCoef' builds only the nonempty columns of
 %                  X = reshape(C,NG,[]) when X is wide (p*q > 8*nnz(C)+1024).
 %                  'copquadvar' puts the decision variables on q, so X had
@@ -142,10 +175,14 @@ if isempty(layout)                                                           % M
     layout = 'separate';                                                     % MMP, 08/30/2026
 end                                                                          % MMP, 08/30/2026
 if ~(ischar(layout) || isstring(layout)) ...                                 % MMP, 08/30/2026
-        || ~any(strcmpi(layout,{'separate','packed'}))                       % MMP, 08/30/2026
-    error('int_semisep: layout must be ''separate'' or ''packed''.');        % MMP, 08/30/2026
+        || ~any(strcmpi(layout,{'separate','packed','triplets'}))           % MMP, 09/26/2026
+%       || ~any(strcmpi(layout,{'separate','packed'}))                       % MMP, 08/30/2026 % MMP, 09/26/2026 (was)
+    error(['int_semisep: layout must be ''separate'', ''packed'' or ' ...
+           '''triplets''.']);                                               % MMP, 09/26/2026
+%   error('int_semisep: layout must be ''separate'' or ''packed''.');        % MMP, 08/30/2026 % MMP, 09/26/2026 (was)
 end                                                                          % MMP, 08/30/2026
 packed = strcmpi(layout,'packed');                                           % MMP, 08/30/2026
+trip   = strcmpi(layout,'triplets');    % 'separate' shape, triplet entries % MMP, 09/26/2026
 
 ZG = G.Z(:).';
 CG = G.C;
@@ -205,6 +242,11 @@ if ns3a == 0
     if packed                                                                % MMP, 08/30/2026
         C_gam_alp_beta = {repmat(CG,nbeta,nalpha)};                          % MMP, 08/30/2026
     else                                                                     % MMP, 08/30/2026
+        if trip     % CG itself is the output; hand over its nonzeros       % MMP, 09/26/2026
+            [ti,tj,tv] = find(CG);                                          % MMP, 09/26/2026
+            CG = struct('i',ti(:),'j',tj(:),'v',tv(:), ...
+                        'm',size(CG,1),'n',size(CG,2));                     % MMP, 09/26/2026
+        end                                                                 % MMP, 09/26/2026
         C_gam_alp_beta = cell(1,nbeta,nalpha);
         for i = 1:nbeta
             for j = 1:nalpha
@@ -293,6 +335,11 @@ if packed                                                                    % M
 %   for idx_C = 1:numel(C_gam_alp_beta)                                      % MMP, 09/10/2026 (was)
 %       C_gam_alp_beta{idx_C} = sparse(g1*NL*nbeta,g2*NR*nalpha);            % MMP, 09/10/2026 (was)
 %   end                                                                      % MMP, 09/10/2026 (was)
+elseif trip                                                                 % MMP, 09/26/2026
+    % Unwritten cells: no triplets, the dimensions of the all-zero matrix.  % MMP, 09/26/2026
+    C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);                             % MMP, 09/26/2026
+    C_gam_alp_beta(:) = {struct('i',zeros(0,1),'j',zeros(0,1), ...
+        'v',zeros(0,1),'m',g1*NL,'n',g2*NR)};                               % MMP, 09/26/2026
 else                                                                         % MMP, 08/30/2026
     C_gam_alp_beta = cell(3^ns3a,nbeta,nalpha);
     for idx_C = 1:numel(C_gam_alp_beta)
@@ -504,8 +551,12 @@ for comb = 0:prod(nopt)-1                                                    % M
         if ~isequal(size(Csep),[NG,NL*NR])
             error('int_semisep: internal Csep size mismatch.');
         end
-        Cmiss = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL);              % MMP, 09/10/2026
-        if ~isequal(size(Cmiss),[g1*NL,g2*NR])                               % MMP, 09/10/2026
+%       Cmiss = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL);              % MMP, 09/10/2026 % MMP, 09/26/2026 (was)
+%       if ~isequal(size(Cmiss),[g1*NL,g2*NR])                               % MMP, 09/10/2026 % MMP, 09/26/2026 (was)
+        % 'triplets': Cmiss is a triplet struct and its size is its m, n.   % MMP, 09/26/2026
+        Cmiss = rearrangeCoef(Csep,CG,g1,g2,rowMap,colMap,NL,trip);         % MMP, 09/26/2026
+        if trip,  szC = [Cmiss.m,Cmiss.n];  else,  szC = size(Cmiss);  end  % MMP, 09/26/2026
+        if ~isequal(szC,[g1*NL,g2*NR])                                      % MMP, 09/26/2026
             error('int_semisep: output coefficient size mismatch.');
         end
         memoC{memoLin} = Cmiss;                                              % MMP, 09/10/2026
@@ -550,7 +601,8 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ)                   % MMP, 08/30/2026
+function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ,trip)             % MMP, 09/26/2026
+% function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ)                 % MMP, 08/30/2026 % MMP, 09/26/2026 (was)
 % rearrangeCoef
 %
 % Converts
@@ -587,9 +639,12 @@ function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ)                   % M
 %   colMap : p*NZ^2 vector, destination column of D's row index, before the
 %            contribution of D's own column index
 %   NZ     : prod(cellfun(@numel,ZL))
+%   trip   : (optional, default false) return Cout as the triplet struct    % MMP, 09/26/2026
+%            of the 'triplets' layout instead of building it                % MMP, 09/26/2026
 %
 % OUTPUT
 %   Cout   : NZ*p by NZ*q sparse matrix
+if nargin<8,    trip = false;   end                                         % MMP, 09/26/2026
 
 % BEGIN MMP, 09/26/2026: wide X. The line after END forms X = reshape(C,NG,[])
 % with p*q columns, the product D0 = Csep.'*X over all of them, and a reshape
@@ -625,6 +680,11 @@ if ~isempty(rowMap) && p*q > 8*nnz(C) + 1024
     ppD   = mod(pc-1,p) + 1;
     rowD  = kD + NZ2*(ppD-1);                       % row of D
     colD  = (pc-ppD)/p + 1;                         % column of D
+    if trip     % the scatter's triplets: bijective, so no duplicates       % MMP, 09/26/2026
+        Cout = struct('i',rowMap(rowD(:)),'j',colMap(rowD(:))+NZ*(colD(:)-1), ...
+                      'v',valD(:),'m',NZ*p,'n',NZ*q);                       % MMP, 09/26/2026
+        return                                                              % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
     Cout = sparse(rowMap(rowD), colMap(rowD) + NZ*(colD-1), valD, NZ*p, NZ*q);
     return
 end
@@ -641,6 +701,11 @@ if size(D,1)~=numel(rowMap)
 end
 
 [rowD,colD,valD] = find(D);
+if trip         % as in the wide branch above                               % MMP, 09/26/2026
+    Cout = struct('i',rowMap(rowD(:)),'j',colMap(rowD(:))+NZ*(colD(:)-1), ...
+                  'v',valD(:),'m',NZ*p,'n',NZ*q);                           % MMP, 09/26/2026
+    return                                                                  % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026
 Cout = sparse(rowMap(rowD), colMap(rowD) + NZ*(colD-1), valD, NZ*p, NZ*q);
 
 end

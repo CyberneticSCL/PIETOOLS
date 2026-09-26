@@ -1,4 +1,5 @@
-function [objs,T,Zd,ZL,ZR] = sync_basis(objs)
+function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MMP, 09/26/2026
+% function [objs,T,Zd,ZL,ZR] = sync_basis(objs)                             % MMP, 09/26/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [objs,T,Zd,ZL,ZR] = sync_basis(objs) puts N sdopvar objects on a common
 % decision variable list and a common pair of monomial bases, in one pass
@@ -7,6 +8,10 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs)
 % INPUT
 % objs: 1 x N cell of 'sdopvar' objects. They must already agree on vars and
 %       dom; this routine reconciles only Zd, ZL and ZR;
+% shared_Zd: (optional) true is the CALLER's guarantee that each operand's  % MMP, 09/26/2026
+%       Zd holds the same entries as objs{1}.Zd, e.g. because all were      % MMP, 09/26/2026
+%       built from one list. The O(q)-per-operand comparison is skipped.    % MMP, 09/26/2026
+%       Default false;                                                      % MMP, 09/26/2026
 %
 % OUTPUT
 % objs: the same operators, with the rows of params.B reordered onto the
@@ -70,6 +75,17 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
+% MMP, 09/26/2026: The decision-list comparison was 1.24 of the 1.36 s this
+% routine took in the 2-D container Hinf build: 147 isequal calls on lists
+% of 3.8e5 names, ~8.4 ms each, although every operand carried one shared
+% list. (1) Optional input 'shared_Zd', a caller's guarantee that the lists
+% are equal, skips the comparison; 'plus_batch' forwards it and '@sdopvar/
+% plus' sets it after promoting a 'sopvar' operand onto the other's list.
+% (2) Compare Zd itself when it is already a column: 'P.Zd(:)' copies the
+% q-entry cell. Measured, same process vs HEAD: without the flag 1.44 ->
+% 0.91 s and 56 -> 0.2 MB allocated; with 'copquadvar' passing it 0.15 s.
+% At q = 1e6 over 3 variables (729 summands per block) 11.2 -> 0.9 s.
+% Same output, bit for bit.
 
 N = numel(objs);
 if N==0
@@ -79,11 +95,29 @@ end
 % % % Decision variables: one merged list for all N.
 % The common case is that every operand already carries the same list, and
 % then no comparison beyond isequal is needed.
-Zd = objs{1}.Zd(:);
+% Zd = objs{1}.Zd(:);                                                       % MMP, 09/26/2026 (was)
+% '(:)' on a property copies the whole cell (O(q)); a column needs none.    % MMP, 09/26/2026
+Zd = objs{1}.Zd;                                                            % MMP, 09/26/2026
+if ~iscolumn(Zd),   Zd = Zd(:);     end                                     % MMP, 09/26/2026
 allsame = true;
+% Equal by the caller's guarantee: no O(q) comparison needed. A length      % MMP, 09/26/2026
+% mismatch is a broken guarantee, and merging on it would pair the rows of  % MMP, 09/26/2026
+% params.B with the wrong names, so it errors rather than proceeding.       % MMP, 09/26/2026
+if nargin>=2 && shared_Zd                                                   % MMP, 09/26/2026
+    for k = 2:N                                                             % MMP, 09/26/2026
+        if numel(objs{k}.Zd)~=numel(Zd)                                     % MMP, 09/26/2026
+            error("'shared_Zd' was set, but operand %d has %d decision "+...
+                  "variables against %d.",k,numel(objs{k}.Zd),numel(Zd))    % MMP, 09/26/2026
+        end                                                                 % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
+else                                                                        % MMP, 09/26/2026
 for k = 2:N
-    if ~isequal(objs{k}.Zd(:),Zd),    allsame = false;    break;    end
+%   if ~isequal(objs{k}.Zd(:),Zd),    allsame = false;    break;    end     % MMP, 09/26/2026 (was)
+    Zk = objs{k}.Zd;                                                        % MMP, 09/26/2026
+    if ~iscolumn(Zk),   Zk = Zk(:);     end                                 % MMP, 09/26/2026
+    if ~isequal(Zk,Zd),    allsame = false;    break;    end                % MMP, 09/26/2026
 end
+end                                                                         % MMP, 09/26/2026
 if ~allsame
     lists = cell(1,N);
     for k = 1:N,    lists{k} = objs{k}.Zd(:);    end

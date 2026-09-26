@@ -99,6 +99,15 @@ function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                   % MM
 %                  Measured, 2-D container Hinf build (q = 7.6e5, 6 calls,
 %                  14 soseq): the check and conversions took 3.7 s and
 %                  combine/compress 1.6 s; same program, bit for bit.
+% MMP, 09/26/2026: Membership check by one unique over [table; names]
+%                  instead of ismember(names,table). The reverse scan
+%                  getequation took today (ismember(table,names)) does not
+%                  help here: the names are half the table (3.8e5 of 7.6e5),
+%                  so both sides are large; measured 261 vs 275 ms. The
+%                  unique route, same process vs HEAD: 2-D Hinf 411 -> 212
+%                  ms, q = 1e6 over 3 variables 461 -> 191 ms; peak +8 MB
+%                  at 1.1e6 names (6.5 -> 14.5 MB). A single name keeps
+%                  ismember (a strcmp there). Same verdict, same error.
 
 
 % % % Check the inputs
@@ -171,7 +180,24 @@ if q>0 && ~(nargin>=4 && dvars_checked)                                     % MM
     else                                                                    % MMP, 09/26/2026
         known = cellstr(string(prog.decvartable(:)));                       % MMP, 09/26/2026
     end                                                                     % MMP, 09/26/2026
-    is_new = ~ismember(dvars,known);
+%   is_new = ~ismember(dvars,known);                                        % MMP, 09/26/2026 (was)
+    % One unique over [known;dvars]: ic labels each distinct name, and a    % MMP, 09/26/2026
+    % dvar is known iff its label also occurs among the table's. Exact:     % MMP, 09/26/2026
+    % unique and ismember both match names char for char. Measured ~2x      % MMP, 09/26/2026
+    % cheaper than ismember for 2 to 3.8e5 names against 7.6e5; a single    % MMP, 09/26/2026
+    % name keeps ismember, whose scalar path is one strcmp (18 vs 171 ms).  % MMP, 09/26/2026
+    % On failure ismember runs to name the first missing variable.          % MMP, 09/26/2026
+    if q==1                                                                 % MMP, 09/26/2026
+        is_new = ~ismember(dvars,known);                                    % MMP, 09/26/2026
+    else                                                                    % MMP, 09/26/2026
+        nk = numel(known);                                                  % MMP, 09/26/2026
+        [~,~,ic] = unique([known;dvars]);                                   % MMP, 09/26/2026
+        lab_known = false(max(ic),1);   lab_known(ic(1:nk)) = true;         % MMP, 09/26/2026
+        is_new = false;                                                     % MMP, 09/26/2026
+        if ~all(lab_known(ic(nk+1:end)))                                    % MMP, 09/26/2026
+            is_new = ~ismember(dvars,known);                                % MMP, 09/26/2026
+        end                                                                 % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
     if any(is_new)
         error("Decision variable '"+string(dvars{find(is_new,1)})+"' does not appear "...
               +"in the program; declare it with 'lpidecvar' before imposing constraints.")
