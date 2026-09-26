@@ -19,6 +19,11 @@ function prog = cx_Hinf_gain_dual_2D(PIE,st,gam)
 %                                                            -> cx_hinf_slack2d
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/26/2026: (1,3)/(3,1) blocks now C*P*T' and T*(C*P)', following the
+%                  fix of the stock executive the same day (the old blocks
+%                  certified gamma below the true gain for T ~= T*). The
+%                  "transcribed AS WRITTEN" note above describes the old
+%                  stock form and no longer applies. Same SDP for io2 (T=T*).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3 || ~isnumeric(gam) || gam==0
@@ -41,8 +46,12 @@ prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 [prog,Pm] = cx_hinf_lf2d(prog,Tm,PIE,S,true);
 
 CP = Cz*Pm;     AP = Am*Pm;
-Km = [-(gam*Iz),    Dzw,         CP*Tm;
-       Dzw',        -(gam*Iw),   Bw';
-       Tm'*CP',     Bw,          Tm*AP' + AP*Tm'];
+% Km = [-(gam*Iz),    Dzw,         CP*Tm;                                   % MMP, 09/26/2026 (was)
+%        Dzw',        -(gam*Iw),   Bw';                                     % MMP, 09/26/2026 (was)
+%        Tm'*CP',     Bw,          Tm*AP' + AP*Tm'];                        % MMP, 09/26/2026 (was)
+% (1,3)/(3,1) as the stock executive since its 09/26 fix: C*P*T', T*(C*P)'. % MMP, 09/26/2026
+Km = [-(gam*Iz),    Dzw,         CP*Tm';                                    % MMP, 09/26/2026
+       Dzw',        -(gam*Iw),   Bw';                                       % MMP, 09/26/2026
+       Tm*CP',      Bw,          Tm*AP' + AP*Tm'];                          % MMP, 09/26/2026
 prog = cx_hinf_slack2d(prog,Km,PIE,S);
 end
