@@ -60,6 +60,12 @@ function [At,b,Z] = getequation(symexpr,vartable,decvartable,varmat,Type)
 % 12/14/21 - DJ -- Fixed issues with symengine, missing ']', though more issues may be expected
 % 02/14/22 - DJ -- Adjustment for dpvar Mineq case
 % 02/21/22 - DJ, PS -- Bugfix for sym case
+% 09/26/26 - MMP -- dpvar with ONE matrix row: skip the mat2cell/cell2mat
+%                   reordering, which is then the identity. It split C into
+%                   one sparse cell per column block: 16.2 of 27.6 s of a 2-D
+%                   container assembly (lpi_eq_sdopvar passes each cell's
+%                   constraints as a 1 x n_eff dpvar, n_eff in the thousands,
+%                   q = 1.8e5). Same C_reshape, bit for bit.
 
 
 if isa(symexpr,'dpvar')  
@@ -86,8 +92,13 @@ if isa(symexpr,'dpvar')
     
     
     % % Reshape coefficients as [C11,C21,...,Cm1,C12,...,Cmn]
+    if m==1                                                                 % MMP, 09/26/2026
+        % One row of blocks is already in that order.                       % MMP, 09/26/2026
+        C_reshape = C;                                                      % MMP, 09/26/2026
+    else                                                                    % MMP, 09/26/2026
     C_cell = mat2cell(C,(n_dvars_dp+1)*ones(m,1),n_mons*ones(n,1));
     C_reshape = cell2mat(reshape(C_cell,1,m*n));
+    end                                                                     % MMP, 09/26/2026
     
     if nargin>=5 && strcmp(Type,'ineq')
         % In Mineq case, retain all columns, and store the unique monomials

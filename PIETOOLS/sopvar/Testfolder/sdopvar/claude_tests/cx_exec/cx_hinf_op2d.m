@@ -13,6 +13,8 @@ function Pm = cx_hinf_op2d(Pop)
 % converted zero component (degree-0 basis, no decision variables).
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/26/2026: Redundant since 09/26/2026: opvar2d2copvar gives
+%                  identical output (checked on io2 T, Tw, A, B1, C1, D11).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nm = {'R00','R0x','R0y','R02';

@@ -5,6 +5,8 @@ function [C,Zd] = merge_dvar_lists(C,Zds,src)
 % came from. This is the rule '@cdopvar/plus' applies to two summands,
 % extended to K operands for horzcat, vertcat and blkdiag.
 % '@cdopvar/plus' calls it too, as a two-operand grid.                      % MMP, 09/25/2026
+% So does '@cdopvar/mtimes' (both factors, a fixed one promoted with an     % MMP, 09/26/2026
+% empty list: the owner shortcut then makes the reconciliation O(blocks)).  % MMP, 09/26/2026
 %
 % INPUTS
 % - C:      block grid; 'sdopvar' blocks are on their own operand's list;
@@ -60,6 +62,8 @@ function [C,Zd] = merge_dvar_lists(C,Zds,src)
 %                  'setdvars' catches a misplaced block was wrong (a
 %                  permutation passes) and is replaced. Now also called by
 %                  '@cdopvar/plus'.
+% MMP, 09/26/2026: Header notes that '@cdopvar/mtimes' calls it too. Doc
+%                  only.
 
 nz = ~cellfun(@isempty,Zds);
 % Operands owning an sdopvar block, whatever their list; with none, the     % MMP, 09/25/2026

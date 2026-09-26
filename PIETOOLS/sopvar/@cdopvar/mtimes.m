@@ -32,6 +32,11 @@ function C = mtimes(A,B)
 % product that receives no term stays [] and the container metadata says
 % what that zero block maps between.
 %
+% Factors over different registries are first restated over their sorted    % MMP, 09/26/2026
+% union ('merge_copvar_registry'), so an R^n -> R^n factor such as Dzu,     % MMP, 09/26/2026
+% whose registry is empty, composes with an L_2 one. Metadata only, O(nv);  % MMP, 09/26/2026
+% the result keeps the union registry.                                      % MMP, 09/26/2026
+%
 % The inner sum goes to 'plus_batch' when its terms include an 'sdopvar', so
 % the K terms are synchronized once rather than K-1 times against a growing
 % accumulator; pairwise accumulation profiled at 32% of 'possopvar' at three
@@ -91,6 +96,34 @@ function C = mtimes(A,B)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
 %                  @mdopvar/ with the class.
+% MMP, 09/26/2026: (1) Factors over different variable registries are
+%                  restated over their union by 'merge_copvar_registry'
+%                  instead of raising mtimes:registryMismatch, so an R^n ->
+%                  R^n operator (Dzu, Dyw: empty registry) composes with an
+%                  L_2 one, as Hinf_control's Dzu*Z and the estimators'
+%                  Z*Dyw need. Metadata only: measured 20-40 us, flat in q
+%                  (1e3 to 3.9e5) and in nv (1 to 4), nothing held; a
+%                  variable on two domains is cdopvar:domConflict. (2) The
+%                  decision variable lists are reconciled by
+%                  'merge_dvar_lists', as in 'plus', instead of
+%                  unique(...,'stable') + 'put_on_list'. One factor is always
+%                  fixed and its promoted list empty, so the lists differ in
+%                  every product with decision variables and the old route
+%                  paid an O(q log q) sort of names plus a name search per
+%                  block each time; the owner shortcut keeps the decision
+%                  factor's list and only points its blocks at it. Measured
+%                  on the two products of T'*(P*A), P from 'poscopvar' over
+%                  R x L2^m[s1] (2 x 2 grid), same process, alternated: per
+%                  product 0.031 -> 0.001 s at q = 9.9e4 and 0.23 ->
+%                  0.007-0.012 s at q = 3.9e5; transient peak +2 -> <2 MB and
+%                  +20 -> +6 MB (the 6 MB are the (:) copies of the list,
+%                  made by both routes); same result. Small against the
+%                  product: T'*(P*A) takes 41 s at q = 9.9e4 either way
+%                  (random dense degree-2 T and A from rand_copvar). For
+%                  scale: the stock dopvar product T'*(P*A), timed on the
+%                  same P family, is SLOWER - 1.3-3.4x, on PIE operators (1
+%                  and 4 PDE states, q to 5.3e4) and on dense random ones.
+%                  'put_on_list' now has no caller.
 
 % % % Scalar factor: scales every populated block, changes no metadata.
 if isnumeric(A) || isnumeric(B)
@@ -128,10 +161,13 @@ if K~=KB
     error('mtimes:gridMismatch','Inner block dimensions differ: A is %dx%d, B is %dx%d.',...
         M,K,KB,N)
 end
-if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)
-    error('mtimes:registryMismatch',['Factors are built on different variable '...
-        'registries; rebuild them over a common set of variables and domains.'])
-end
+% if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)                       % MMP, 09/26/2026 (was)
+%     error('mtimes:registryMismatch',['Factors are built on different variable '...
+%         'registries; rebuild them over a common set of variables and domains.']) % MMP, 09/26/2026 (was)
+% end                                                                       % MMP, 09/26/2026 (was)
+% One registry for both, so the masks below compare by name; the domain     % MMP, 09/26/2026
+% conflict check lives there too.                                           % MMP, 09/26/2026
+[A,B] = merge_copvar_registry('cdopvar','mtimes',A,B);                      % MMP, 09/26/2026
 % The image of B must be the domain of A: input space k of A is output space
 % k of B. Compared as masks over the shared registry.
 if ~isequal(A.space_in,B.space_out)
@@ -146,9 +182,18 @@ end
 % none of the K*M*N products merges a name list of its own.
 CA = A.C;   CB = B.C;   Zd = A.Zd(:);
 if ~isequal(A.Zd(:),B.Zd(:))
-    Zd = unique([A.Zd(:);B.Zd(:)],'stable');
-    CA = put_on_list(CA,Zd);
-    CB = put_on_list(CB,Zd);
+%     Zd = unique([A.Zd(:);B.Zd(:)],'stable');                              % MMP, 09/26/2026 (was)
+%     CA = put_on_list(CA,Zd);                                              % MMP, 09/26/2026 (was)
+%     CB = put_on_list(CB,Zd);                                              % MMP, 09/26/2026 (was)
+    % The fixed factor's promoted list is empty, so only the decision       % MMP, 09/26/2026
+    % factor owns sdopvar blocks: 'merge_dvar_lists' keeps its list and     % MMP, 09/26/2026
+    % points the blocks at it, O(blocks), no sort. Both grids as one,       % MMP, 09/26/2026
+    % operand 1 = A and 2 = B, as in 'plus'.                                % MMP, 09/26/2026
+    nA = numel(CA);                                                         % MMP, 09/26/2026
+    src = [ones(1,nA), 2*ones(1,numel(CB))];                                % MMP, 09/26/2026
+    [Cab,Zd] = merge_dvar_lists([CA(:);CB(:)]',{A.Zd(:),B.Zd(:)},src);      % MMP, 09/26/2026
+    CA = reshape(Cab(1:nA),size(CA));                                       % MMP, 09/26/2026
+    CB = reshape(Cab(nA+1:end),size(CB));                                   % MMP, 09/26/2026
 end
 
 Cc = cell(M,N);

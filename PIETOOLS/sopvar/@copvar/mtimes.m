@@ -23,6 +23,11 @@ function C = mtimes(A,B)
 % product that receives no term stays [] and the container metadata says
 % what that zero block maps between.
 %
+% Factors over different registries are first restated over their sorted    % MMP, 09/26/2026
+% union ('merge_copvar_registry'), so an R^n -> R^n factor such as Dzu,     % MMP, 09/26/2026
+% whose registry is empty, composes with an L_2 one. Metadata only, O(nv);  % MMP, 09/26/2026
+% the result keeps the union registry.                                      % MMP, 09/26/2026
+%
 % The inner sum folds with 'plus'. There is nothing to batch: 'sopvar'
 % carries no decision variables, so the synchronization that makes
 % 'plus_batch' worthwhile for a decision container does not arise here. See
@@ -83,6 +88,13 @@ function C = mtimes(A,B)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
 %                  @mopvar/ with the class.
+% MMP, 09/26/2026: Factors over different variable registries are restated
+%                  over their union by 'merge_copvar_registry' instead of
+%                  raising mtimes:registryMismatch. An R^n -> R^n operator
+%                  (Dzu, Dyw) has an empty registry, so it could not compose
+%                  with an L_2 one. The registry is metadata: blocks
+%                  untouched, cost O(nv), flat in q. A variable on two
+%                  domains is copvar:domConflict.
 
 % % % Scalar factor: scales every populated block, changes no metadata.
 if isnumeric(A) || isnumeric(B)
@@ -107,10 +119,13 @@ if K~=KB
     error('mtimes:gridMismatch','Inner block dimensions differ: A is %dx%d, B is %dx%d.',...
         M,K,KB,N)
 end
-if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)
-    error('mtimes:registryMismatch',['Factors are built on different variable '...
-        'registries; rebuild them over a common set of variables and domains.'])
-end
+% if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)                       % MMP, 09/26/2026 (was)
+%     error('mtimes:registryMismatch',['Factors are built on different variable '...
+%         'registries; rebuild them over a common set of variables and domains.']) % MMP, 09/26/2026 (was)
+% end                                                                       % MMP, 09/26/2026 (was)
+% One registry for both, so the masks below compare by name; the domain     % MMP, 09/26/2026
+% conflict check lives there too.                                           % MMP, 09/26/2026
+[A,B] = merge_copvar_registry('copvar','mtimes',A,B);                       % MMP, 09/26/2026
 % The image of B must be the domain of A: input space k of A is output space
 % k of B. Compared as masks over the shared registry.
 if ~isequal(A.space_in,B.space_out)

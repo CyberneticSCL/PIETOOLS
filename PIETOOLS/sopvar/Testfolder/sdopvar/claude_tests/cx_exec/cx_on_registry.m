@@ -7,6 +7,9 @@ function X = cx_on_registry(X,R)
 % until restated. Same as on_registry in test_copvar_blockops.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/26/2026: Redundant since 09/26/2026: plus and mtimes merge
+%                  registries themselves (merge_copvar_registry); calls are kept,
+%                  and return at once when the registries already agree.
 if isequal(X.vars,R.vars) && isequal(X.dom,R.dom),  return,     end
 meta = metadata(X);
 [tf,loc] = ismember(X.vars,R.vars);

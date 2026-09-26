@@ -26,6 +26,8 @@ function tr = cx_h2_trace(X)
 % decision axis.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/26/2026: The sdvar2dpvar stride defect described above was fixed
+%                  09/26/2026; the direct 1x1 sum here is kept, and is exact.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if isa(X,'cdopvar'),    Zd = X.Zd(:);   else,   Zd = cell(0,1);     end

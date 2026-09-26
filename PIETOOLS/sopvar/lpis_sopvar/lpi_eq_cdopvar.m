@@ -35,12 +35,14 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %           constraints enforcing P==0.
 %
 % NOTES
-% To enforce P==Q, call LPI_EQ_CDOPVAR(PROG,P+(-1)*Q); '@cdopvar/plus' aligns
+% To enforce P==Q, call LPI_EQ_CDOPVAR(PROG,P-Q); '@cdopvar/plus' aligns    % MMP, 09/26/2026
 % the blocks, monomial bases and decision variable lists of the two
-% containers, and a zero block on one side passes through untouched. Note
-% that neither 'cdopvar' nor 'copvar' defines 'minus' or 'uminus', so P-Q is
-% not executable; the scalar branch of '@cdopvar/mtimes' is what negates a
-% container.
+% containers, and a zero block on one side passes through untouched.        % MMP, 09/26/2026
+% (was) To enforce P==Q, call LPI_EQ_CDOPVAR(PROG,P+(-1)*Q); '@cdopvar/plus' aligns % MMP, 09/26/2026 (was)
+% (was) containers, and a zero block on one side passes through untouched. Note % MMP, 09/26/2026 (was)
+% (was) that neither 'cdopvar' nor 'copvar' defines 'minus' or 'uminus', so P-Q is % MMP, 09/26/2026 (was)
+% (was) not executable; the scalar branch of '@cdopvar/mtimes' is what negates a % MMP, 09/26/2026 (was)
+% (was) container.                                                          % MMP, 09/26/2026 (was)
 %
 % Where one block of an adjoint pair is structurally zero and the other is
 % not, the nonzero one is constrained, so 'symmetric' does not depend on
@@ -89,6 +91,9 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  lpi_eq_mdopvar -> lpi_eq_cdopvar, posmopvar -> poscopvar.
 %                  File was 'lpi_eq_mdopvar.m'.
+% MMP, 09/26/2026: NOTES recipe is P-Q again: minus/uminus exist for both
+%                  containers since 09/25/2026. The 09/21 note that no
+%                  container class defines 'minus' is obsolete. Doc only.
 
 if isa(P,'copvar')
     error("Input of type 'copvar' carries no decision variables; use 'eq' "...

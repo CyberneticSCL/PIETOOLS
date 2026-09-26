@@ -36,6 +36,12 @@ function Psop = opvar2d2sopvar(Pop)
 % authorship, and a brief description of modifications
 %
 % DJ, 05/27/2026: Initial coding
+% MMP, 09/26/2026: R22 with var1 not in sorted name order (e.g. the x
+%                  direction named 's2') came out with its two alpha axes
+%                  swapped: its 3x3 cell is in var1 order, an sopvar's is
+%                  over sorted S3. Measured kernel error 0.83 against the
+%                  definition read by name; 0 for sorted names, which are
+%                  unaffected. The cell is now transposed in that case.
 
 % Check that the input is of appropraite class
 if isa(Pop,'opvar')
@@ -113,6 +119,12 @@ end                                                                          % M
 if all(size(params)==[1,3])
     params = params';
 end
+% The parameter cell is indexed over the shared directions in SORTED order  % MMP, 09/26/2026
+% (class convention; see canonical_var_order), but R22's alpha cell is in   % MMP, 09/26/2026
+% var1 order, so swap its two axes when var1 is not sorted. Only R22 has    % MMP, 09/26/2026
+% two shared directions.                                                    % MMP, 09/26/2026
+S3v = var1([mapsx&&maps2x; mapsy&&maps2y]);                                 % MMP, 09/26/2026
+if numel(S3v)==2 && ~issorted(S3v),     params = params.';      end         % MMP, 09/26/2026
 
 % Declare the operator
 Psop = sopvar(params,vars,ZL,ZR,dom,dims);                                  % MMP, 08/29/2026

@@ -30,6 +30,9 @@ function prog = cx_H2_norm_2D_c(PIE,st,gam)
 % opvar2d2copvar has no zero-fill for empty rows (map_container_caps).
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/26/2026: opvar2d2copvar has zero-fill for empty rows since
+%                  09/26/2026; the L2[x,y]-only scope remains for the settings
+%                  translation.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3,    error('cx_H2_norm_2D_c:gam','The container LPI is posed at fixed gamma.'),  end

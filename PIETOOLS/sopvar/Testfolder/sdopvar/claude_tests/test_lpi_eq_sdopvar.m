@@ -32,6 +32,8 @@
 % 'test_canonical_multiplier'.
 %
 % MMP, 08/28/2026: Initial coding
+% MMP, 09/26/2026: Stale comment corrected (@sdopvar/minus exists). No change
+%                  to what is tested.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
@@ -92,7 +94,8 @@ fprintf('\n=== P-P'''' for a self-adjoint P must impose no restriction ===\n');
 for dg = [0,1]
     prog = lpiprogram(polynomial({'s1'}),polynomial({'s1_dum'}),[0,1]);
     [prog,P] = possopvar(prog,1,{'s1'},[0,1],dg);
-    D = P + (-1)*P';   % @sdopvar defines no 'minus'
+%   D = P + (-1)*P';   % @sdopvar defines no 'minus'                        % MMP, 09/26/2026 (was)
+    D = P + (-1)*P';   % equivalent to P - P' (@sdopvar/minus since 09/07)  % MMP, 09/26/2026
 
     prog_c = lpi_eq_sdopvar(prog,D);
     [Ac,bc] = collect_constraints(prog_c,prog);

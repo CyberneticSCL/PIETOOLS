@@ -17,6 +17,10 @@ function C = plus(A,B)
 % Spaces are compared as masks over the shared registry, so the canonical
 % per-block order of vars.out and vars.in does not enter.
 %
+% Summands over different registries are first restated over their sorted   % MMP, 09/26/2026
+% union, as concatenation does ('merge_copvar_registry'): an R^n -> R^n     % MMP, 09/26/2026
+% summand such as -gam*Iw has an empty registry. Metadata only, O(nv).      % MMP, 09/26/2026
+%
 % Cost: M*N block additions. Each unions the two bases for that block only,
 % so nothing is inflated to a row or column union; see the Sec. 8.3.1 note
 % in 'copvar'. Measured over the subset lattice at 2 components and degree
@@ -58,6 +62,14 @@ function C = plus(A,B)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
 %                  @mopvar/ with the class.
+% MMP, 09/26/2026: Summands over different variable registries are restated
+%                  over their union by 'merge_copvar_registry' instead of
+%                  raising plus:registryMismatch. An R^n -> R^n operator
+%                  (-gam*Iw) has an empty registry and a product such as
+%                  PB'*Tw keeps its left factor's, so compatible summands
+%                  were refused, blocking Hinf_gain with Tw ~= 0. The
+%                  registry is metadata: blocks untouched, cost O(nv), flat
+%                  in q. A variable on two domains is copvar:domConflict.
 
 if ~isa(A,'copvar') || ~isa(B,'copvar')
     error('plus:badInput','Both summands must be copvar objects.')
@@ -66,10 +78,13 @@ if ~isequal(size(A),size(B))
     error('plus:gridMismatch','Summands have block grids %s and %s.',...
         mat2str(size(A)),mat2str(size(B)))
 end
-if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)
-    error('plus:registryMismatch',['Summands are built on different variable '...
-        'registries; rebuild them over a common set of variables and domains.'])
-end
+% if ~isequal(A.vars,B.vars) || ~isequal(A.dom,B.dom)                       % MMP, 09/26/2026 (was)
+%     error('plus:registryMismatch',['Summands are built on different variable '...
+%         'registries; rebuild them over a common set of variables and domains.']) % MMP, 09/26/2026 (was)
+% end                                                                       % MMP, 09/26/2026 (was)
+% One registry for both, so the masks below compare by name; the domain     % MMP, 09/26/2026
+% conflict check lives there too.                                           % MMP, 09/26/2026
+[A,B] = merge_copvar_registry('copvar','plus',A,B);                         % MMP, 09/26/2026
 if ~isequal(A.space_out,B.space_out) || ~isequal(A.space_in,B.space_in)
     error('plus:spaceMismatch','Summands map between different spaces.')
 end

@@ -32,6 +32,8 @@ function Pmop = opvar2d2copvar(Pop)
 % zero blocks. A PIE's 2D operator is mostly zero, so this matters: the
 % container then carries no basis for them and 'mtimes' skips their
 % products entirely.
+% Exception: a row or column that would have no block at all gets one       % MMP, 09/26/2026
+% explicit zero block, since 'verify' and copvar(C) read its space off it.  % MMP, 09/26/2026
 %
 % Spaces with dimension zero are dropped, along with their row and column,
 % because a 'copvar' row must have a populated block to define its space
@@ -76,6 +78,18 @@ function Pmop = opvar2d2copvar(Pop)
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  opvar2d2mopvar -> opvar2d2copvar. File was
 %                  'opvar2d2mopvar.m'.
+% MMP, 09/26/2026: An all-zero row or column no longer errors. Zero
+%                  components became [] blocks, so D11 = 0, Tw = 0, a B1/C1
+%                  with a zero part or a zero eppos entry left a row or
+%                  column with no block, and copvar(C) raised
+%                  'copvar:emptyRow'/'copvar:emptyColumn'. Ported from
+%                  opvar2copvar (09/25/2026): one explicit zero block in each
+%                  row, then each column, that zeros leave empty (costs one
+%                  small basis each), and the metadata stated from the
+%                  opvar2d's dim, var1 and I instead of derived from the
+%                  blocks, so the spaces do not depend on where a zero block
+%                  sits. Operators with no empty row or column convert
+%                  unchanged.
 
 if ~isa(Pop,'opvar2d')
     error('opvar2d2copvar:badInput','Input must be an opvar2d object.')
@@ -93,6 +107,20 @@ if ~any(rows) || ~any(cols)
     error('opvar2d2copvar:empty','Operator has no dimensions to convert.')
 end
 
+% % % BEGIN change MMP, 09/26/2026: no row or column entirely [].           % MMP, 09/26/2026
+% Blocks to convert: the nonzero components, plus one explicit zero block   % MMP, 09/26/2026
+% in each row, then each column, they leave empty - 'verify' and            % MMP, 09/26/2026
+% copvar(C) read a row's or column's space off a block. A zero component    % MMP, 09/26/2026
+% converts as is (measured in all 16 positions). As in opvar2copvar.        % MMP, 09/26/2026
+ir = find(rows)';       jc = find(cols)';   % rows, cols are 4x1            % MMP, 09/26/2026
+keep = false(4,4);                                                          % MMP, 09/26/2026
+for i = ir,     for j = jc                                                  % MMP, 09/26/2026
+    keep(i,j) = ~is_zero_component(Pop.(nm{i,j}));                          % MMP, 09/26/2026
+end,            end                                                         % MMP, 09/26/2026
+for i = ir,  if ~any(keep(i,:)),  keep(i,jc(1)) = true;  end,  end          % MMP, 09/26/2026
+for j = jc,  if ~any(keep(:,j)),  keep(ir(1),j) = true;  end,  end          % MMP, 09/26/2026
+% % % END change MMP, 09/26/2026                                            % MMP, 09/26/2026
+
 C = cell(sum(rows),sum(cols));
 ri = 0;
 for i = 1:4
@@ -102,7 +130,8 @@ for i = 1:4
         if ~cols(j),    continue,   end
         ci = ci+1;
         comp = Pop.(nm{i,j});
-        if is_zero_component(comp)
+%       if is_zero_component(comp)                                          % MMP, 09/26/2026 (was)
+        if ~keep(i,j)                                                       % MMP, 09/26/2026
             continue                        % structurally zero block
         end
         Pblk = opvar2d();
@@ -114,7 +143,20 @@ for i = 1:4
         C{ri,ci} = opvar2d2sopvar(Pblk);
     end
 end
-Pmop = copvar(C);
+% Pmop = copvar(C);                                                         % MMP, 09/26/2026 (was)
+% % % BEGIN change MMP, 09/26/2026: metadata from the opvar2d, not blocks.  % MMP, 09/26/2026
+% Space k of (R, L2[x], L2[y], L2[x,y]) holds the variables msk(k,:) of     % MMP, 09/26/2026
+% var1; the registry is their sorted union over the surviving spaces,       % MMP, 09/26/2026
+% which is what copvar(C) derives. As in opvar2copvar.                      % MMP, 09/26/2026
+msk  = logical([0 0; 1 0; 0 1; 1 1]);                                       % MMP, 09/26/2026
+used = find(any(msk(rows,:),1) | any(msk(cols,:),1));                       % MMP, 09/26/2026
+vn   = pvar2varname(Pop.var1);                                              % MMP, 09/26/2026
+[vars,ord] = sort(reshape(vn(used),1,[]));      used = used(ord);           % MMP, 09/26/2026
+meta = struct('vars',{vars},'dom',Pop.I(used,:),...
+    'space_out',msk(rows,used),'space_in',msk(cols,used),...
+    'dim_out',d(rows,1),'dim_in',d(cols,2));                                % MMP, 09/26/2026
+Pmop = copvar(C,meta);                                                      % MMP, 09/26/2026
+% % % END change MMP, 09/26/2026                                            % MMP, 09/26/2026
 
 end
 

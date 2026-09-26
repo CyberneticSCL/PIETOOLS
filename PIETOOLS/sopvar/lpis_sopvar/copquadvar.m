@@ -189,6 +189,11 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                   SHARED directions rather than by all shared directions.
 %                   With the default sep it over-allocated an empty cell
 %                   array by 4^n3 per block pair.
+% MMP, 09/26/2026: Form kron(Rmat.',Lmat).' once per (iL,iR) pair and pass
+%                  it to 'lr_multiply', which formed it once per gamma cell
+%                  with the same Lmat and Rmat (3^n3 cells). Measured on a
+%                  2-D stability build: kron was 3.2 of 11.7 s. Same result;
+%                  cost unchanged in q, one kron per pair instead of 3^n3.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -635,10 +640,14 @@ for k = 1:M
         params = struct();
         params.A = cell(numel(Cgam),1);
         params.B = cell(numel(Cgam),1);
+        % Lmat and Rmat are those of this (iL,iR) pair for every gamma cell, % MMP, 09/26/2026
+        % so their Kronecker product is formed once here, not once per cell. % MMP, 09/26/2026
+        KLR = kron(Rmat.',Lmat).';                                          % MMP, 09/26/2026
         for q = 1:numel(Cgam)
 %           [Aq,Bq] = unpack_sheets(Cgam{q},g1b*NL3,g2b*NR3,ndec);          % MMP, 09/22/2026 (was)
             [Aq,Bq] = unpack_sheets(Cgam{q},g1b*NL3,g2b*NR3,nloc);          % MMP, 09/22/2026
-            [params.A{q},Bout] = lr_multiply(Lmat,Aq,Bq,Rmat);              % MMP, 09/22/2026
+%           [params.A{q},Bout] = lr_multiply(Lmat,Aq,Bq,Rmat);              % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
+            [params.A{q},Bout] = lr_multiply(Lmat,Aq,Bq,Rmat,KLR);          % MMP, 09/26/2026
 %           [params.A{q},params.B{q}] = lr_multiply(Lmat,Aq,Bq,Rmat);       % MMP, 09/22/2026 (was)
             % 'find' returns ROWS for a single-row input, which Bout is when
             % the block carries one decision variable; forced to columns, as
