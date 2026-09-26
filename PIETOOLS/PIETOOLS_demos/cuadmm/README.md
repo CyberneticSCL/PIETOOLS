@@ -37,6 +37,7 @@ setenv('CUADMM_OUT','D:\cuadmm')   % put generated data somewhere durable
 | `bl_cases.m`, `bl_suites.m` | the case registry, and the question-organised lists over it |
 | `bl_check.m` | runs a list against `bl_expect.tsv`; `bl_check(s,'bank')` records new cases |
 | `bl_run.m`, `bl_scale.m`, `bl_big.m` | Mosek arm, size ladder, and the rungs Mosek cannot solve |
+| `bl_bisect.m` | **certified bisection** on an objective-form dump, cuADMM or Mosek probes: F/I only from verified certificates, leans steer, threshold and cap scale with the bracket interval. Rule and calibration in its header; defaults in `cuadmm_settings(1).cuadmm.bisect` |
 | `bl_fix.m`, `bl_bisdump.m` | pin γ to pose the feasibility question; write the bisection programs |
 | `dump2cuadmm.m`, `cuimport.m`, `bl_verify.m` | SDP → cuADMM input; cuADMM certificate → scored against the ORIGINAL data |
 | `bl_expect.tsv` | banked expectations — a package input, kept in the repo |

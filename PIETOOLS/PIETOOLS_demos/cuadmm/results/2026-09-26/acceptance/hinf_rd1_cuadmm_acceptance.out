@@ -1,0 +1,29 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+BIS seed  gam=0.2191512     tau=1.00e-07  cap=30000  it=7421   t=  17.08s pinf=1.00e-07  -> F  (Flmin -3.6e-08 Fres 5.3e-16 | Ibeta NaN Ieps NaN) 
+BIS probe gam=0.1095756     tau=7.49e-03  cap=2000   it=2000   t=   4.39s pinf=1.46e-02  -> i  (Flmin NaN Fres NaN | Ibeta 2.4e-02 Ieps 3.2e-05) 
+BIS probe gam=0.1549633     tau=3.67e-03  cap=3296   it=3296   t=   7.27s pinf=4.82e-03  -> i  (Flmin NaN Fres NaN | Ibeta 8.4e-03 Ieps 1.6e-05) 
+BIS probe gam=0.18428346    tau=2.12e-03  cap=4838   it=1336   t=   2.90s pinf=6.09e-04  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=0.16898868    tau=9.80e-04  cap=8300   it=8300   t=  18.40s pinf=2.29e-03  -> i  (Flmin NaN Fres NaN | Ibeta 4.0e-03 Ieps 6.2e-06) 
+BIS probe gam=0.17647044    tau=5.09e-04  cap=13131  it=13131  t=  29.08s pinf=1.02e-03  -> i  (Flmin NaN Fres NaN | Ibeta 1.8e-03 Ieps 2.6e-06) 
+BIS probe gam=0.18033464    tau=2.59e-04  cap=20000  it=20000  t=  44.83s pinf=3.78e-04  -> i  (Flmin NaN Fres NaN | Ibeta 7.0e-04 Ieps 3.9e-06) 
+BIS probe gam=0.18229836    tau=1.31e-04  cap=20000  it=20000  t=  45.17s pinf=6.34e-05  -> f  (Flmin NaN Fres NaN | Ibeta 2.0e-04 Ieps 6.8e-06) 
+BIS probe gam=0.18131384    tau=6.51e-05  cap=20000  it=20000  t=  44.91s pinf=2.19e-04  -> i  (Flmin NaN Fres NaN | Ibeta 4.3e-04 Ieps 3.8e-06) 
+BIS probe gam=0.18180543    tau=3.26e-05  cap=20000  it=20000  t=  44.74s pinf=1.40e-04  -> i  (Flmin NaN Fres NaN | Ibeta 3.1e-04 Ieps 4.9e-06) 
+BIS probe gam=0.18205173    tau=1.63e-05  cap=20000  it=20000  t=  45.26s pinf=1.07e-04  -> i  (Flmin NaN Fres NaN | Ibeta 3.0e-04 Ieps 9.2e-06) 
+BIS probe gam=0.182175      tau=8.18e-06  cap=20000  it=20000  t=  46.33s pinf=8.06e-05  -> i  (Flmin NaN Fres NaN | Ibeta 2.1e-04 Ieps 5.3e-06) 
+BIS cert  gam=0.18229836    tau=1.00e-07  cap=30000  it=30000  t=  67.86s pinf=5.86e-05  -> i  (Flmin -6.7e-06 Fres 1.1e-15 | Ibeta 1.5e-04 Ieps 3.8e-06) 
+BIS cert  gam=0.18248066    tau=1.00e-07  cap=30000  it=30000  t=  67.64s pinf=3.09e-05  -> i  (Flmin -3.7e-06 Fres 8.4e-16 | Ibeta 1.2e-04 Ieps 4.9e-06) 
+BIS cert  gam=0.18266296    tau=1.00e-07  cap=30000  it=30000  t=  66.38s pinf=3.90e-06  -> F  (Flmin -2.9e-08 Fres 1.1e-15 | Ibeta NaN Ieps NaN) 
+BISDONE hinf_rd1 [cuadmm]  certified [0, 0.18266296]  estimate [0.182175, 0.18229836]  probes 15 (F2 f2 i11 I0)  solver 552.3 s  iters 245484
+CUADMM: gamma_F/gs = 1.000202  gamma_I/gs = 0.000000  estimate [0.997530, 0.998206]  wall 562 s

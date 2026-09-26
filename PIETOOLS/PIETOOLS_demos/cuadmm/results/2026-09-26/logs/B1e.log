@@ -1,0 +1,52 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B1e start 2026-09-26 07:21:52  deadline 2026-09-26 16:15:00
+REGIME start B1e|cuadmm|ctrl_rd1 (est 1560 s) 2026-09-26 07:21:52
+BIS seed  gam=4700.3941     tau=1.00e-07  cap=30000  it=30000  t=  46.56s pinf=5.32e-05  -> i  (Flmin -4.5e-08 Fres 2.3e-13 | Ibeta 1.1e-04 Ieps 8.9e-12) 
+BIS seed  gam=9400.7883     tau=1.00e-07  cap=30000  it=30000  t=  43.92s pinf=1.68e-05  -> i  (Flmin -1.1e-08 Fres 4.5e-14 | Ibeta 3.4e-05 Ieps 1.9e-11) 
+BIS seed  gam=18801.577     tau=1.00e-07  cap=30000  it=30000  t=  40.66s pinf=4.56e-06  -> i  (Flmin -2.8e-09 Fres 2.6e-13 | Ibeta 9.1e-06 Ieps 3.2e-11) 
+BIS seed  gam=37603.153     tau=1.00e-07  cap=30000  it=30000  t=  40.14s pinf=1.17e-06  -> i  (Flmin -7.1e-10 Fres 2.2e-13 | Ibeta 2.3e-06 Ieps 4.1e-11) 
+BIS seed  gam=75206.306     tau=1.00e-07  cap=30000  it=30000  t=  38.25s pinf=2.93e-07  -> F  (Flmin -1.8e-10 Fres 1.7e-13 | Ibeta NaN Ieps NaN) 
+BIS probe gam=53178.889     tau=1.55e-03  cap=2000   it=35     t=   0.09s pinf=5.89e-07  -> i  (Flmin -3.5e-10 Fres 1.3e-13 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=63240.713     tau=6.43e-04  cap=3698   it=37     t=   0.08s pinf=4.17e-07  -> F  (Flmin -2.5e-10 Fres 2.6e-13 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=57991.99      tau=3.49e-04  cap=5672   it=38     t=   0.08s pinf=4.95e-07  -> F  (Flmin -3.0e-10 Fres 3.2e-13 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=55533.32      tau=1.82e-04  cap=8948   it=40     t=   0.09s pinf=5.39e-07  -> i  (Flmin -3.2e-10 Fres 2.0e-14 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=56749.341     tau=8.91e-05  cap=14757  it=41     t=   0.08s pinf=5.17e-07  -> i  (Flmin -3.1e-10 Fres 3.7e-13 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=57367.301     tau=4.41e-05  cap=20000  it=44     t=   0.09s pinf=5.05e-07  -> i  (Flmin -3.0e-10 Fres 3.2e-13 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=57678.8       tau=2.19e-05  cap=20000  it=45     t=   0.08s pinf=5.00e-07  -> F  (Flmin -3.0e-10 Fres 4.0e-14 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=57522.839     tau=1.10e-05  cap=20000  it=47     t=   0.09s pinf=5.02e-07  -> i  (Flmin -3.0e-10 Fres 1.2e-13 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=57600.767     tau=5.49e-06  cap=20000  it=48     t=   0.09s pinf=5.01e-07  -> F  (Flmin -3.0e-10 Fres 4.3e-13 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BIS probe gam=57561.79      tau=2.75e-06  cap=20000  it=50     t=   0.10s pinf=5.01e-07  -> F  (Flmin -3.0e-10 Fres 1.7e-13 | Ibeta NaN Ieps NaN) stopped in the start-up transient: no lean
+BISDONE ctrl_rd1_B1e [cuadmm]  certified [0, 57561.79]  estimate [57522.839, 57561.79]  probes 15 (F6 f0 i9 I0)  solver 210.4 s  iters 150425
+REGIME done B1e|cuadmm|ctrl_rd1 ok 219.6 s
+REGIME start B1e|probe|hinfco_rd1 (est 360 s) 2026-09-26 07:25:32
+BIS probe gam=0.23076549    tau=1.00e-08  cap=100000 it=100000 t= 223.32s pinf=7.76e-06  -> i  (Flmin -1.7e-07 Fres 4.5e-15 | Ibeta 3.9e-05 Ieps 6.1e-07) 
+BISDONE hinfco_rd1_B1e [cuadmm]  certified [0, Inf]  estimate [0.23076549, Inf]  probes 1 (F0 f0 i1 I0)  solver 223.3 s  iters 100000
+REGIME done B1e|probe|hinfco_rd1 ok 224.4 s
+REGIME start B1e|cuadmm|hinfdu_rd1 (est 1260 s) 2026-09-26 07:29:16
+BIS seed  gam=0.21906664    tau=1.00e-07  cap=60000  it=52649  t= 126.82s pinf=9.96e-08  -> F  (Flmin -1.0e-09 Fres 1.0e-14 | Ibeta NaN Ieps NaN) 
+BIS probe gam=0.10953332    tau=3.84e-03  cap=3400   it=3400   t=   7.35s pinf=2.27e-02  -> i  (Flmin NaN Fres NaN | Ibeta 3.4e-02 Ieps 2.0e-05) 
+BIS probe gam=0.15490351    tau=1.91e-03  cap=3400   it=3400   t=   7.40s pinf=8.84e-03  -> i  (Flmin NaN Fres NaN | Ibeta 1.6e-02 Ieps 2.3e-05) 
+BIS probe gam=0.18421235    tau=1.11e-03  cap=4753   it=4753   t=  10.35s pinf=8.60e-04  -> f  (Flmin NaN Fres NaN | Ibeta 2.3e-03 Ieps 1.2e-05) 
+BIS probe gam=0.16892347    tau=5.11e-04  cap=8207   it=8207   t=  17.92s pinf=4.07e-03  -> i  (Flmin NaN Fres NaN | Ibeta 7.8e-03 Ieps 9.4e-06) 
+BIS probe gam=0.17640235    tau=2.66e-04  cap=12953  it=12953  t=  28.41s pinf=2.02e-03  -> i  (Flmin NaN Fres NaN | Ibeta 4.7e-03 Ieps 8.8e-06) 
+BIS probe gam=0.18026506    tau=1.36e-04  cap=20738  it=20738  t=  45.78s pinf=8.23e-04  -> i  (Flmin NaN Fres NaN | Ibeta 2.2e-03 Ieps 4.9e-06) 
+BIS probe gam=0.18222802    tau=6.86e-05  cap=33445  it=33445  t=  73.94s pinf=1.97e-04  -> i  (Flmin NaN Fres NaN | Ibeta 7.0e-04 Ieps 2.1e-06) 
+BIS probe gam=0.1832175     tau=3.45e-05  cap=54132  it=36568  t=  81.25s pinf=2.08e-06  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=0.18272209    tau=1.72e-05  cap=60000  it=60000  t= 131.75s pinf=3.12e-05  -> i  (Flmin NaN Fres NaN | Ibeta 7.4e-05 Ieps 4.7e-07) 
+BIS probe gam=0.18296963    tau=8.61e-06  cap=60000  it=49950  t= 110.73s pinf=3.05e-07  -> F  (Flmin -2.6e-09 Fres 2.5e-14 | Ibeta NaN Ieps NaN) 
+BIS probe gam=0.18284582    tau=4.30e-06  cap=60000  it=60000  t= 135.75s pinf=3.31e-07  -> f  (Flmin NaN Fres NaN | Ibeta -1.1e-07 Ieps 1.2e-06) 
+BIS cert  gam=0.18284582    tau=1.00e-07  cap=60000  it=60000  t= 133.27s pinf=3.31e-07  -> F  (Flmin -1.4e-09 Fres 2.2e-14 | Ibeta NaN Ieps NaN) 
+BISDONE hinfdu_rd1_B1e [cuadmm]  certified [0, 0.18284582]  estimate [0.18272209, 0.18284582]  probes 13 (F3 f3 i7 I0)  solver 910.7 s  iters 406063
+REGIME done B1e|cuadmm|hinfdu_rd1 ok 918.2 s
+REGIMEDONE B1e 2026-09-26 07:44:35

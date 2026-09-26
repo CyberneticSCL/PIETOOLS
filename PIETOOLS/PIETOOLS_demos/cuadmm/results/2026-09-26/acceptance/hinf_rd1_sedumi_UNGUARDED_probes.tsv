@@ -1,0 +1,13 @@
+phase	gam	tau	cap	iters	t_s	conv	pinf_end	pinf_min	dobj_end	verdict	F_lmin	F_res	F_unpin	F_lmax	F_labs	F_normx	I_beta	I_eps	slope	aitken	note
+seed	0.2191512	1e-07	50000	NaN	0.1403625	0	NaN	NaN	NaN	F	-6.0122941e-10	4.3384398e-16	6.019896e-16	4.2746629	-2.5700531e-09	4.1237757	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+probe	0.1095756	0.0074852227	2000	NaN	0.0870164	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	0.00015818585	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+probe	0.1549633	0.0036666617	3296	NaN	0.0951121	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	2.3667577e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+probe	0.18428346	0.0021193188	4838	NaN	0.1666213	0	NaN	NaN	NaN	F	-3.5678358e-11	1.067098e-15	1.2868769e-15	10.509302	-3.7495463e-10	10.369257	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=0
+probe	0.16898868	0.00098005165	8300	NaN	0.085566	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	7.9806743e-05	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+probe	0.17647044	0.00050896779	13131	NaN	0.0707214	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	1.0592046e-07	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+probe	0.18033464	0.00025935205	20000	NaN	0.0808076	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	6.2455409e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+probe	0.18229836	0.0001309093	20000	NaN	0.1225463	0	NaN	NaN	NaN	F	-3.5360098e-08	2.3345006e-13	2.3951171e-13	2920.16	-0.00010325715	2182.351	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+probe	0.18131384	6.5144442e-05	20000	NaN	0.1088568	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	4.852847e-07	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=1
+probe	0.18180543	3.2649539e-05	20000	NaN	0.0926424	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	4.0674018e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+probe	0.18205173	1.634413e-05	20000	NaN	0.1224077	0	NaN	NaN	NaN	F	-4.7406485e-08	2.7356689e-13	3.1977566e-13	3784.6392	-0.00017941644	2797.8	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+probe	0.18192854	8.1672211e-06	20000	NaN	0.1072202	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	7.5560372e-07	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0

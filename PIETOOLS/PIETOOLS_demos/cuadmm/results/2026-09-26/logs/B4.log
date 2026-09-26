@@ -1,0 +1,112 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B4 start 2026-09-26 06:18:52  deadline 2026-09-26 16:15:00
+REGIME start B4|build|scale_hinf_n02 (est 600 s) 2026-09-26 06:18:53
+[Warning: RESUMING: 32 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_regime>dumps (line 266)
+In bl_regime>@()dumps({id}) (line 191)
+In bl_regime>item (line 218)
+In bl_regime (line 191)] 
+BL start scale_hinf_n02
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+BL scale_hinf_n02     ok   m=1065    tM=0.20892  tD=0.20347  rel=7.454e-08  
+BLDONE scale_hinf_n02
+REGIME done B4|build|scale_hinf_n02 ok 6.0 s
+REGIME start B4|mosek|scale_hinf_n02 (est 1200 s) 2026-09-26 06:18:59
+BIS seed  gam=0.2189784     tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> F  (Flmin -2.0e-09 Fres 4.6e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1094892     tau=5.38e-03  cap=2000   it=NaN    t=   0.26s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.2e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.15484111    tau=2.66e-03  cap=3273   it=NaN    t=   0.29s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 8.2e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18413815    tau=1.55e-03  cap=4781   it=NaN    t=   0.18s pinf=NaN       -> F  (Flmin -2.7e-09 Fres 6.5e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.16885543    tau=7.12e-04  cap=8238   it=NaN    t=   0.28s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.6e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1763313     tau=3.71e-04  cap=13012  it=NaN    t=   0.23s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.6e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18019245    tau=1.89e-04  cap=20000  it=NaN    t=   0.32s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 5.9e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18215462    tau=9.55e-05  cap=20000  it=NaN    t=   0.37s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.6e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1831437     tau=4.80e-05  cap=20000  it=NaN    t=   0.19s pinf=NaN       -> F  (Flmin -2.2e-09 Fres 6.6e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18264849    tau=2.39e-05  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> F  (Flmin -2.1e-09 Fres 7.1e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18240139    tau=1.19e-05  cap=20000  it=NaN    t=   0.39s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.1825249     tau=5.98e-06  cap=20000  it=NaN    t=   0.15s pinf=NaN       -> F  (Flmin -2.8e-09 Fres 6.6e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE scale_hinf_n02_B4 [mosek]  certified [0.18215462, 0.1825249]  estimate [0.18240139, 0.1825249]  probes 12 (F5 f0 i1 I6)  solver 2.9 s  iters 0
+REGIME done B4|mosek|scale_hinf_n02 ok 5.7 s
+REGIME start B4|cuadmm|scale_hinf_n02 (est 300 s) 2026-09-26 06:19:04
+BIS probe gam=0.21902988    tau=1.00e-12  cap=2000   it=2000   t=   9.14s pinf=1.13e-06  -> F  (Flmin -9.4e-08 Fres 6.3e-16 | Ibeta NaN Ieps NaN) 
+BISDONE scale_hinf_n02_B4 [cuadmm]  certified [0, 0.21902988]  estimate [0, 0.21902988]  probes 1 (F1 f0 i0 I0)  solver 9.1 s  iters 2000
+REGIME done B4|cuadmm|scale_hinf_n02 ok 11.7 s
+REGIME start B4|build|scale_hinf_n04 (est 600 s) 2026-09-26 06:19:16
+[Warning: RESUMING: 33 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_regime>dumps (line 266)
+In bl_regime>@()dumps({id}) (line 191)
+In bl_regime>item (line 218)
+In bl_regime (line 191)] 
+BL start scale_hinf_n04
+BL scale_hinf_n04     ok   m=4257    tM=2.3163   tD=2.2795   rel=6.9908e-08 
+BLDONE scale_hinf_n04
+REGIME done B4|build|scale_hinf_n04 ok 9.3 s
+REGIME start B4|mosek|scale_hinf_n04 (est 1200 s) 2026-09-26 06:19:25
+BIS seed  gam=0.2189784     tau=1.00e-07  cap=50000  it=NaN    t=   2.12s pinf=NaN       -> F  (Flmin -6.6e-09 Fres 5.6e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1094892     tau=3.84e-03  cap=2000   it=NaN    t=   3.66s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.4e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.15484111    tau=1.91e-03  cap=3261   it=NaN    t=   3.55s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.8e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18413815    tau=1.11e-03  cap=4753   it=NaN    t=   2.30s pinf=NaN       -> F  (Flmin -2.5e-09 Fres 6.1e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.16885543    tau=5.11e-04  cap=8207   it=NaN    t=   3.58s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.6e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1763313     tau=2.66e-04  cap=12953  it=NaN    t=   3.56s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 9.5e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18019245    tau=1.36e-04  cap=20000  it=NaN    t=   3.48s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.7e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18215462    tau=6.86e-05  cap=20000  it=NaN    t=   4.40s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.9e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1831437     tau=3.45e-05  cap=20000  it=NaN    t=   2.41s pinf=NaN       -> F  (Flmin -8.0e-10 Fres 6.4e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18264849    tau=1.72e-05  cap=20000  it=NaN    t=   1.89s pinf=NaN       -> F  (Flmin -2.2e-09 Fres 6.8e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18240139    tau=8.59e-06  cap=20000  it=NaN    t=   4.03s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.1825249     tau=4.30e-06  cap=20000  it=NaN    t=   2.17s pinf=NaN       -> F  (Flmin -8.2e-10 Fres 7.3e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE scale_hinf_n04_B4 [mosek]  certified [0.18215462, 0.1825249]  estimate [0.18240139, 0.1825249]  probes 12 (F5 f0 i1 I6)  solver 37.2 s  iters 0
+REGIME done B4|mosek|scale_hinf_n04 ok 52.2 s
+REGIME start B4|cuadmm|scale_hinf_n04 (est 300 s) 2026-09-26 06:20:18
+BIS probe gam=0.21902988    tau=1.00e-12  cap=2000   it=2000   t=  12.02s pinf=3.52e-06  -> i  (Flmin -4.5e-07 Fres 6.8e-16 | Ibeta 1.2e-08 Ieps 7.3e-06) 
+BISDONE scale_hinf_n04_B4 [cuadmm]  certified [0, Inf]  estimate [0.21902988, Inf]  probes 1 (F0 f0 i1 I0)  solver 12.0 s  iters 2000
+REGIME done B4|cuadmm|scale_hinf_n04 ok 16.9 s
+REGIME start B4|build|scale_hinf_n08 (est 600 s) 2026-09-26 06:20:35
+[Warning: RESUMING: 34 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_regime>dumps (line 266)
+In bl_regime>@()dumps({id}) (line 191)
+In bl_regime>item (line 218)
+In bl_regime (line 191)] 
+BL start scale_hinf_n08
+BL scale_hinf_n08     ok   m=17025   tM=33.8807  tD=32.8551  rel=1.8708e-07 
+BLDONE scale_hinf_n08
+REGIME done B4|build|scale_hinf_n08 ok 96.1 s
+REGIME start B4|mosek|scale_hinf_n08 (est 1200 s) 2026-09-26 06:22:11
+BIS seed  gam=0.2189784     tau=1.00e-07  cap=50000  it=NaN    t=  31.39s pinf=NaN       -> F  (Flmin -5.2e-09 Fres 5.1e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1094892     tau=2.73e-03  cap=2000   it=NaN    t=  42.89s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 8.7e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.15484111    tau=1.36e-03  cap=3255   it=NaN    t=  43.32s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.0e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18413815    tau=7.95e-04  cap=4739   it=NaN    t=  34.39s pinf=NaN       -> F  (Flmin -2.9e-09 Fres 7.1e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.16885543    tau=3.64e-04  cap=8191   it=NaN    t=  48.65s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 8.5e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1763313     tau=1.90e-04  cap=12923  it=NaN    t=  51.45s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.4e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18019245    tau=9.68e-05  cap=20000  it=NaN    t=  50.44s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.2e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18215462    tau=4.89e-05  cap=20000  it=NaN    t=  56.67s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.1831437     tau=2.46e-05  cap=20000  it=NaN    t=  34.90s pinf=NaN       -> F  (Flmin -1.8e-09 Fres 6.9e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18264849    tau=1.23e-05  cap=20000  it=NaN    t=  33.37s pinf=NaN       -> F  (Flmin -1.4e-09 Fres 6.6e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18240139    tau=6.12e-06  cap=20000  it=NaN    t=  60.30s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.1825249     tau=3.06e-06  cap=20000  it=NaN    t=  38.07s pinf=NaN       -> F  (Flmin -1.2e-09 Fres 6.9e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE scale_hinf_n08_B4 [mosek]  certified [0.18019245, 0.1825249]  estimate [0.18240139, 0.1825249]  probes 12 (F5 f0 i2 I5)  solver 525.8 s  iters 0
+REGIME done B4|mosek|scale_hinf_n08 ok 679.5 s
+REGIME start B4|cuadmm|scale_hinf_n08 (est 300 s) 2026-09-26 06:33:30
+BIS probe gam=0.21902988    tau=1.00e-12  cap=2000   it=2000   t=  19.38s pinf=1.09e-06  -> F  (Flmin -9.8e-08 Fres 5.9e-16 | Ibeta NaN Ieps NaN) 
+BISDONE scale_hinf_n08_B4 [cuadmm]  certified [0, 0.21902988]  estimate [0, 0.21902988]  probes 1 (F1 f0 i0 I0)  solver 19.4 s  iters 2000
+REGIME done B4|cuadmm|scale_hinf_n08 ok 25.4 s
+REGIMEDONE B4 2026-09-26 06:33:56

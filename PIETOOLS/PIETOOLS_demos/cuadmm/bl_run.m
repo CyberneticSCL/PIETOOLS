@@ -1,5 +1,13 @@
 function bl_run(chunk)
 % bl_run(chunk) -- Mosek arm of the overnight baseline, one chunk of classes.
+% chunk may also name case ids, or be a struct array of cases in bl_cases()'s
+% format (id, cls, dim, kind, builder, args) that are not in the registry.
+%
+% CC, 09/26/2026: chunk matches ids as well as classes, and a struct chunk
+%   replaces the registry, so a regime can build exactly the cases it needs
+%   (and never walks into scale_stab_n24's 45 GB Mosek solve, which a class
+%   chunk 'scaling' would) and bl_lambda can dump off-registry stability
+%   programs through this same, verified dump path.
 %
 % Writes ONE TSV line per case, flushed immediately, so a hard MATLAB crash
 % loses only the case in flight. Re-running skips ids already recorded 'ok', so
@@ -59,10 +67,13 @@ if done.Count > 0
         'delete that file or setenv(''CUADMM_OUT'',<new folder>) first.'], done.Count, TSV);
 end
 
-C = bl_cases();
+%C = bl_cases();                                                            % CC, 09/26/2026 (was)
+if nargin>=1 && isstruct(chunk), C = chunk; chunk = {}; else, C = bl_cases(); end % CC, 09/26/2026
 for i = 1:numel(C)
     c = C(i);
-    if nargin>=1 && ~isempty(chunk) && ~any(strcmpi(c.cls,cellstr(chunk))), continue; end
+%   if nargin>=1 && ~isempty(chunk) && ~any(strcmpi(c.cls,cellstr(chunk))), continue; end % CC, 09/26/2026 (was)
+    if nargin>=1 && ~isempty(chunk) && ~any(strcmpi(c.cls,cellstr(chunk))) ...
+            && ~any(strcmpi(c.id,cellstr(chunk))), continue; end            % CC, 09/26/2026
     if isKey(done,c.id), fprintf('BL skip %s\n',c.id); continue; end
     row = emptyrow(COLS);
     row.id=c.id; row.cls=c.cls; row.dim=c.dim; row.kind=c.kind;

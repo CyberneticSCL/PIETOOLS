@@ -1,0 +1,35 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B3b start 2026-09-26 06:46:29  deadline 2026-09-26 16:15:00
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+REGIME hi_of nl_fisher_opt: objective form solved, gamma_obj*1.2 = 1.199991 (PRIMAL_AND_DUAL_FEASIBLE)
+REGIME start B3b|mosek|nl_fisher_opt (est 2400 s) 2026-09-26 06:47:33
+BIS seed  gam=1.199991      tau=1.00e-07  cap=50000  it=NaN    t=  44.35s pinf=NaN       -> F  (Flmin -3.3e-09 Fres 9.7e-11 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.59999552    tau=1.62e-03  cap=2000   it=NaN    t=  44.69s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.8485218     tau=8.10e-04  cap=3251   it=NaN    t=  56.35s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=1.0090682     tau=4.74e-04  cap=4729   it=NaN    t=  55.50s pinf=NaN       -> F  (Flmin -1.4e-09 Fres 4.9e-12 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.92531959    tau=2.17e-04  cap=8181   it=NaN    t=  58.83s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.96628698    tau=1.13e-04  cap=12904  it=NaN    t=  40.56s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.98744591    tau=5.78e-05  cap=20000  it=NaN    t=  45.69s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.99819849    tau=2.92e-05  cap=20000  it=NaN    t=  43.41s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=1.0036186     tau=1.47e-05  cap=20000  it=NaN    t=  50.38s pinf=NaN       -> F  (Flmin -6.7e-10 Fres 3.9e-12 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=1.0009049     tau=7.32e-06  cap=20000  it=NaN    t=  49.05s pinf=NaN       -> F  (Flmin -1.2e-09 Fres 3.4e-11 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.99955077    tau=3.65e-06  cap=20000  it=NaN    t=  43.09s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=1.0002276     tau=1.83e-06  cap=20000  it=NaN    t=  39.80s pinf=NaN       -> F  (Flmin -1.3e-09 Fres 4.9e-12 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.99988913    tau=9.14e-07  cap=20000  it=NaN    t=  49.34s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=1.0000584     tau=4.57e-07  cap=20000  it=NaN    t=  34.50s pinf=NaN       -> F  (Flmin -5.9e-10 Fres 7.0e-11 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.99997374    tau=2.28e-07  cap=20000  it=NaN    t=  46.64s pinf=NaN       -> F  (Flmin -5.2e-10 Fres 8.6e-11 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE nl_fisher_opt_B3b [mosek]  certified [0, 0.99997374]  estimate [0.99988913, 0.99997374]  probes 15 (F7 f0 i8 I0)  solver 702.2 s  iters 0
+REGIME done B3b|mosek|nl_fisher_opt ok 1085.7 s
+REGIMEDONE B3b 2026-09-26 07:05:39

@@ -1,0 +1,62 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B1d start 2026-09-26 05:42:09  deadline 2026-09-26 16:15:00
+REGIME start B1d|cuadmm|ctrl_rd1 (est 1260 s) 2026-09-26 05:42:09
+BIS seed  gam=4700.3941     tau=1.00e-07  cap=30000  it=33     t=   0.08s pinf=6.72e-08  -> F  (Flmin -4.5e-08 Fres 2.5e-17 | Ibeta NaN Ieps NaN) 
+BIS probe gam=2350.1971     tau=3.54e-02  cap=2000   it=6      t=   0.04s pinf=2.79e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=1175.0985     tau=3.53e-02  cap=2000   it=6      t=   0.04s pinf=2.79e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=587.54927     tau=3.53e-02  cap=2001   it=6      t=   0.04s pinf=2.79e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=293.77463     tau=3.53e-02  cap=2001   it=6      t=   0.04s pinf=2.79e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=146.88732     tau=3.53e-02  cap=2003   it=6      t=   0.04s pinf=2.79e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=73.443659     tau=3.52e-02  cap=2007   it=6      t=   0.04s pinf=2.79e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=36.721829     tau=3.50e-02  cap=2013   it=6      t=   0.04s pinf=2.79e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=18.360915     tau=3.47e-02  cap=2027   it=6      t=   0.04s pinf=2.79e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=9.1804573     tau=3.40e-02  cap=2057   it=6      t=   0.04s pinf=2.85e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=4.5902287     tau=3.26e-02  cap=2119   it=7      t=   0.05s pinf=2.71e-02  -> f  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) 
+BIS probe gam=2.2951143     tau=2.97e-02  cap=2259   it=2259   t=   4.17s pinf=6.95e-02  -> i  (Flmin NaN Fres NaN | Ibeta 1.4e-01 Ieps 1.1e-12) 
+BIS probe gam=3.2457818     tau=6.32e-03  cap=6676   it=6676   t=  11.47s pinf=4.00e-02  -> i  (Flmin NaN Fres NaN | Ibeta 8.0e-02 Ieps 1.1e-13) 
+BIS probe gam=3.8599068     tau=2.80e-03  cap=11802  it=11802  t=  20.18s pinf=2.96e-02  -> i  (Flmin NaN Fres NaN | Ibeta 5.9e-02 Ieps 3.9e-14) 
+BIS probe gam=4.2092582     tau=1.31e-03  cap=20000  it=20000  t=  33.92s pinf=2.54e-02  -> i  (Flmin NaN Fres NaN | Ibeta 5.1e-02 Ieps 1.2e-14) 
+BIS probe gam=4.395618      tau=6.32e-04  cap=20000  it=20000  t=  33.81s pinf=2.35e-02  -> i  (Flmin NaN Fres NaN | Ibeta 4.7e-02 Ieps 1.3e-14) 
+BIS probe gam=4.4918695     tau=3.10e-04  cap=20000  it=20000  t=  35.13s pinf=2.26e-02  -> i  (Flmin NaN Fres NaN | Ibeta 4.5e-02 Ieps 1.3e-14) 
+BIS probe gam=4.5407828     tau=1.54e-04  cap=20000  it=20000  t=  34.06s pinf=2.21e-02  -> i  (Flmin NaN Fres NaN | Ibeta 4.4e-02 Ieps 1.3e-14) 
+BIS probe gam=4.5654388     tau=7.65e-05  cap=20000  it=20000  t=  34.12s pinf=2.19e-02  -> i  (Flmin NaN Fres NaN | Ibeta 4.4e-02 Ieps 1.3e-14) 
+BIS probe gam=4.5778169     tau=3.82e-05  cap=20000  it=20000  t=  34.69s pinf=2.18e-02  -> i  (Flmin NaN Fres NaN | Ibeta 4.4e-02 Ieps 1.3e-14) 
+BIS probe gam=4.5840186     tau=1.91e-05  cap=20000  it=20000  t=  34.93s pinf=2.17e-02  -> i  (Flmin NaN Fres NaN | Ibeta 4.3e-02 Ieps 1.3e-14) 
+BIS probe gam=4.5871226     tau=9.53e-06  cap=20000  it=20000  t=  34.37s pinf=2.17e-02  -> i  (Flmin NaN Fres NaN | Ibeta 4.3e-02 Ieps 1.3e-14) 
+BIS cert  gam=4.5902287     tau=1.00e-07  cap=30000  it=30000  t=  50.66s pinf=2.17e-02  -> i  (Flmin -4.3e-02 Fres 4.3e-16 | Ibeta 4.3e-02 Ieps 4.6e-15) 
+BIS cert  gam=4.5948189     tau=1.00e-07  cap=30000  it=30000  t=  51.03s pinf=2.17e-02  -> i  (Flmin -4.3e-02 Fres 4.3e-16 | Ibeta 4.3e-02 Ieps 4.7e-15) 
+BIS cert  gam=4.5994091     tau=1.00e-07  cap=30000  it=30000  t=  50.86s pinf=2.16e-02  -> i  (Flmin -4.3e-02 Fres 4.3e-16 | Ibeta 4.3e-02 Ieps 4.7e-15) 
+BIS cert  gam=4.6085896     tau=1.00e-07  cap=30000  it=30000  t=  51.07s pinf=2.15e-02  -> i  (Flmin -4.3e-02 Fres 4.3e-16 | Ibeta 4.3e-02 Ieps 4.7e-15) 
+BIS cert  gam=4.6269505     tau=1.00e-07  cap=30000  it=30000  t=  50.91s pinf=2.14e-02  -> i  (Flmin -4.3e-02 Fres 4.2e-16 | Ibeta 4.3e-02 Ieps 4.7e-15) 
+BIS cert  gam=4.6636723     tau=1.00e-07  cap=30000  it=30000  t=  52.91s pinf=2.11e-02  -> i  (Flmin -4.2e-02 Fres 4.2e-16 | Ibeta 4.2e-02 Ieps 4.7e-15) 
+BIS cert  gam=4.737116      tau=1.00e-07  cap=30000  it=30000  t=  52.78s pinf=2.05e-02  -> i  (Flmin -4.1e-02 Fres 4.1e-16 | Ibeta 4.1e-02 Ieps 4.8e-15) 
+BIS cert  gam=4.8840033     tau=1.00e-07  cap=30000  it=30000  t=  50.87s pinf=1.94e-02  -> i  (Flmin -3.9e-02 Fres 3.9e-16 | Ibeta 3.9e-02 Ieps 4.9e-15) 
+BIS cert  gam=5.1777779     tau=1.00e-07  cap=30000  it=30000  t=  50.97s pinf=1.74e-02  -> i  (Flmin -3.5e-02 Fres 3.5e-16 | Ibeta 3.5e-02 Ieps 5.2e-15) 
+BIS cert  gam=5.7653272     tau=1.00e-07  cap=30000  it=30000  t=  51.05s pinf=1.42e-02  -> i  (Flmin -2.8e-02 Fres 2.9e-16 | Ibeta 2.8e-02 Ieps 5.8e-15) 
+BIS cert  gam=6.9404257     tau=1.00e-07  cap=30000  it=30000  t=  50.47s pinf=9.97e-03  -> i  (Flmin -2.0e-02 Fres 1.8e-16 | Ibeta 2.0e-02 Ieps 6.9e-15) 
+BIS cert  gam=9.2906228     tau=1.00e-07  cap=30000  it=30000  t=  50.03s pinf=5.66e-03  -> i  (Flmin -1.1e-02 Fres 1.2e-16 | Ibeta 1.1e-02 Ieps 9.3e-15) 
+BIS cert  gam=13.991017     tau=1.00e-07  cap=30000  it=30000  t=  50.83s pinf=2.53e-03  -> i  (Flmin -5.1e-03 Fres 7.3e-17 | Ibeta 5.1e-03 Ieps 1.4e-14) 
+BIS cert  gam=23.391805     tau=1.00e-07  cap=30000  it=30000  t=  50.58s pinf=9.10e-04  -> i  (Flmin -1.8e-03 Fres 5.8e-17 | Ibeta 1.8e-03 Ieps 2.3e-14) 
+BIS cert  gam=42.193382     tau=1.00e-07  cap=30000  it=30000  t=  49.58s pinf=2.81e-04  -> i  (Flmin -5.6e-04 Fres 4.9e-17 | Ibeta 5.6e-04 Ieps 4.2e-14) 
+BIS cert  gam=79.796535     tau=1.00e-07  cap=30000  it=30000  t=  49.38s pinf=7.85e-05  -> i  (Flmin -1.6e-04 Fres 5.2e-17 | Ibeta 1.6e-04 Ieps 8.5e-14) 
+BISDONE ctrl_rd1_B1d [cuadmm]  certified [0, 4700.3941]  estimate [4.5871226, 4.5902287]  probes 38 (F1 f10 i27 I0)  solver 1125.3 s  iters 660831
+  FLAG STOPPED: max_wall 1200 s
+REGIME done B1d|cuadmm|ctrl_rd1 ok 1146.0 s
+REGIME start B1d|heldout|ctrl_rd1 (est 180 s) 2026-09-26 06:01:15
+BIS probe gam=128           tau=1.00e-07  cap=30000  it=30000  t=  48.96s pinf=3.05e-05  -> i  (Flmin -6.1e-05 Fres 9.6e-19 | Ibeta 6.1e-05 Ieps 1.5e-13) 
+BISDONE ctrl_rd1_B1d_heldout [cuadmm]  certified [0, Inf]  estimate [128, Inf]  probes 1 (F0 f0 i1 I0)  solver 49.0 s  iters 30000
+REGIME done B1d|heldout|ctrl_rd1 ok 50.0 s
+REGIME skip B1d|cuadmm|hinfduco_rd1: no Mosek-certified upper end in B1a
+REGIME skip B1d|cuadmm|est_rd1_pin: B1a Mosek bracket has no certified lower end
+REGIMEDONE B1d 2026-09-26 06:02:05

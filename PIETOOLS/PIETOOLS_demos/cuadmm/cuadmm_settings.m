@@ -22,6 +22,9 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 %   Hinf rungs refute it at m = 243 and 268: at 0.99 gam* pinf is 3.8e-4
 %   (hinf_rd1) and 3.2e-4 (hinf_rd1_hv), under 1e-3, where Mosek returns
 %   PRIMAL_INFEASIBLE_CER. It agrees on hinfdu_rd1 (1.5e-3 vs 4.5e-4).
+% CC, 09/26/2026: S.cuadmm.bisect now holds bl_bisect's defaults (certified
+%   verdicts, interval-scaled lean threshold and cap); the pinf_plateau rule
+%   and its validated_to_m/refuted_at_m fields from the entry above are gone.
 %
 % ---------------------------------------------------------------------------
 % WHAT TRANSFERS FROM pielr_settings, AND WHY
@@ -144,6 +147,9 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 % gives a WRONG one.  S.cuadmm.bisect records that it is validated at no m; it
 % must not drive a bisection without a stagnation test and a known-answer
 % control.  (CC, 09/26/2026: paragraph corrected, see header log.)
+% (CC, 09/26/2026: that rule is now retired.  bl_bisect.m decides F/I only from
+% verified certificates and uses leans only to steer; S.cuadmm.bisect holds its
+% defaults.)
 %
 % INPUT
 %   tier   0,1,2,3 (default 1)
@@ -211,13 +217,51 @@ S.cuadmm = struct( ...
 % misclassifies at m = 243, 268 and 14,006 (see header); do not use it.
 % CC, 09/26/2026: was validated_to_m 273, refuted_at_m 14006, note 'needs a
 % stagnation test and a known-answer control above validated_to_m'.
+% CC, 09/26/2026 (start): pinf_plateau rule REPLACED by bl_bisect's certified
+% rule (see its header): F/I only from verified certificates, leans steer.
+% The old struct was:
+%   'rule','pinf_plateau', 'budget',5000, 'pinf_threshold',1e-3,
+%   'validated_to_m',0, 'refuted_at_m',[243 268 14006], 'note','validated at no m ...'
+% Defaults below: c_lean 0.05 is half the retro-tested 0.1 (the hv 0.99 margin
+% was 1.3x at 0.1); p 0.7 is the measured lean-time exponent; kmin/kmax and the
+% certification budget are unvalidated first choices.
 S.cuadmm.bisect = struct( ...
-    'rule',           'pinf_plateau', ...
-    'budget',         5000, ...
-    'pinf_threshold', 1e-3, ...
-    'validated_to_m', 0, ...
-    'refuted_at_m',   [243 268 14006], ...
-    'note', 'validated at no m; needs a stagnation test and a known-answer control'); % CC, 09/26/2026
+    'rule',        'certified_interval', ...
+    'solver',      'cuadmm', ...       % or 'mosek'
+    'lo',          0, ...              % analytic lower bound: an I point by theorem
+    'hi',          [], ...             % first upper end; certified, doubled if not F
+    'hi_doublings', 4, ...
+    'rtol',        1e-3, ...           % relative width of the estimate bracket
+    'c_lean',      0.05, ...           % tau = c_lean * bracket chord / 2
+    'kmin',        2000, ...           % cap at the first probe
+    'kmax',        20000, ...
+    'p',           0.7, ...            % cap grows as (D0/D)^p
+    'tau_min',     1e-10, ...
+    'cert_tol',    1e-7, ...           % certification runs (seed, endgame)
+    'cert_iter',   50000, ...
+    'delta',       [], ...             % endgame margin; [] = rtol
+    'try_F',       1e-6, ...           % also try to certify a probe that got this low
+    'lean_kmin',   200, ...            % no lean from a run shorter than this (sigma start-up transient)
+    'rep_tol',     1e-10, ...          % affine residual of a repaired point
+    'psd_tol',     1e-7, ...           % repaired blocks: lambda_min >= -psd_tol*lambda_max (calibrated, bl_bisect header)
+    'psd_abs',     1e-6, ...           % AND lambda_min >= -psd_abs (unit-norm b): the relative test alone was fooled
+    'norm_ratio',  50, ...             % AND ||X|| <= norm_ratio x the seed's certified ||X||
+    'rep_rounds',  8, ...
+    'lsqr_it',     2000, ...           % lsqr iterations per affine repair step
+    'max_probes',  40, ...
+    'outdir',      '', ...             % [] = cuadmm_outdir()/bisect
+    'exe',         '', ...             % [] = $CUADMM_EXE or the workstation build
+    'mode',        'bisect', ...       % 'probe' (at gammas) or 'feas' (c = 0 program)
+    'gammas',      [], ...
+    'probe_tol',   [], ...             % [] = cert_tol
+    'probe_cap',   [], ...             % [] = cert_iter
+    'pin_scale',   1, ...              % or 'auto' = ||b_un||/hi (est_rd1)
+    'tag',         '', ...
+    'run_timeout', Inf, ...            % s, one cuADMM call
+    'max_wall',    Inf, ...            % s, the whole bl_bisect call
+    'deadline',    Inf, ...            % posix s: no call may be started that would end later
+    'stopfile',    '');                % [] = cuadmm_outdir()/STOP
+% CC, 09/26/2026 (end)
 
 S.tier = tier;   S.tier_base = base;   S.tier_Dup = Dup;   S.dim = dim;
 S.ladder = 'cuadmm';

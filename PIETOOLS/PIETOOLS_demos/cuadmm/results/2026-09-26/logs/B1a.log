@@ -1,0 +1,474 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B1a start 2026-09-26 05:05:31  deadline 2026-09-26 16:15:00
+REGIME start B1a|mosek|hinf_rd1 (est 120 s) 2026-09-26 05:05:31
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+BIS seed  gam=0.2191512     tau=1.00e-07  cap=50000  it=NaN    t=   0.02s pinf=NaN       -> F  (Flmin -2.1e-09 Fres 4.3e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1095756     tau=7.49e-03  cap=2000   it=NaN    t=   0.02s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 5.9e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1549633     tau=3.67e-03  cap=3296   it=NaN    t=   0.02s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 8.2e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18428346    tau=2.12e-03  cap=4838   it=NaN    t=   0.02s pinf=NaN       -> F  (Flmin -7.8e-10 Fres 8.5e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.16898868    tau=9.80e-04  cap=8300   it=NaN    t=   0.02s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 7.3e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.17647044    tau=5.09e-04  cap=13131  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.7e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18033464    tau=2.59e-04  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 7.7e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18229836    tau=1.31e-04  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.2e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18328822    tau=6.58e-05  cap=20000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -7.3e-10 Fres 1.0e-15 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18279262    tau=3.28e-05  cap=20000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -1.2e-09 Fres 1.6e-15 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18254532    tau=1.64e-05  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.4e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18266893    tau=8.20e-06  cap=20000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -4.9e-10 Fres 1.4e-15 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18260712    tau=4.10e-06  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18263802    tau=2.05e-06  cap=20000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -2.4e-10 Fres 1.5e-15 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18262257    tau=1.02e-06  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18263029    tau=5.12e-07  cap=20000  it=NaN    t=   0.02s pinf=NaN       -> F  (Flmin -1.7e-10 Fres 1.9e-15 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18262643    tau=2.56e-07  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -5.6e-10 Fres 7.3e-15 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1826245     tau=1.28e-07  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18262546    tau=6.40e-08  cap=20000  it=NaN    t=   0.02s pinf=NaN       -> f  (Flmin -4.6e-11 Fres 2.2e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18262498    tau=3.20e-08  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18262522    tau=1.60e-08  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18262534    tau=8.00e-09  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> f  (Flmin -6.1e-11 Fres 3.2e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS cert  gam=0.18262534    tau=1.00e-07  cap=50000  it=NaN    t=   0.05s pinf=NaN       -> f  (Flmin -6.1e-11 Fres 3.2e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS cert  gam=0.18262553    tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> F  (Flmin -7.4e-11 Fres 1.4e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE hinf_rd1_B1a [mosek]  certified [0.18254532, 0.18262553]  estimate [0.18262522, 0.18262534]  probes 24 (F9 f3 i5 I7)  solver 0.6 s  iters 0
+REGIME done B1a|mosek|hinf_rd1 ok 2.0 s
+REGIME start B1a|sedumi|hinf_rd1 (est 300 s) 2026-09-26 05:05:33
+BIS seed  gam=0.2191512     tau=1.00e-07  cap=50000  it=NaN    t=   0.45s pinf=NaN       -> F  (Flmin -6.0e-10 Fres 4.3e-16 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.1095756     tau=7.49e-03  cap=2000   it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.6e-04 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.1549633     tau=3.67e-03  cap=3296   it=NaN    t=   0.10s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.4e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18428346    tau=2.12e-03  cap=4838   it=NaN    t=   0.16s pinf=NaN       -> F  (Flmin -3.6e-11 Fres 1.1e-15 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=0
+BIS probe gam=0.16898868    tau=9.80e-04  cap=8300   it=NaN    t=   0.17s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 8.0e-05 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.17647044    tau=5.09e-04  cap=13131  it=NaN    t=   0.08s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.1e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18033464    tau=2.59e-04  cap=20000  it=NaN    t=   0.09s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.2e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18229836    tau=1.31e-04  cap=20000  it=NaN    t=   0.23s pinf=NaN       -> f  (Flmin -3.5e-08 Fres 2.3e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18131384    tau=6.51e-05  cap=20000  it=NaN    t=   0.14s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.9e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18180543    tau=3.26e-05  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.1e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18205173    tau=1.63e-05  cap=20000  it=NaN    t=   0.15s pinf=NaN       -> f  (Flmin -4.7e-08 Fres 2.7e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18192854    tau=8.17e-06  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 7.6e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18199013    tau=4.08e-06  cap=20000  it=NaN    t=   0.10s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.3e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18202093    tau=2.04e-06  cap=20000  it=NaN    t=   0.17s pinf=NaN       -> f  (Flmin -4.9e-08 Fres 2.5e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18200552    tau=1.02e-06  cap=20000  it=NaN    t=   0.17s pinf=NaN       -> f  (Flmin -7.6e-08 Fres 2.2e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18200552    tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -7.6e-08 Fres 2.2e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18202373    tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.9e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS cert  gam=0.18204193    tau=1.00e-07  cap=50000  it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.8e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS cert  gam=0.18207833    tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -4.6e-08 Fres 3.1e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18215113    tau=1.00e-07  cap=50000  it=NaN    t=   0.11s pinf=NaN       -> f  (Flmin -1.8e-07 Fres 1.1e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18229673    tau=1.00e-07  cap=50000  it=NaN    t=   0.15s pinf=NaN       -> f  (Flmin -3.5e-08 Fres 2.2e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18258794    tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> f  (Flmin -3.6e-08 Fres 4.3e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18317036    tau=1.00e-07  cap=50000  it=NaN    t=   0.20s pinf=NaN       -> F  (Flmin -4.2e-10 Fres 1.7e-15 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BISDONE hinf_rd1_B1a [sedumi]  certified [0.18204193, 0.18317036]  estimate [0.18199013, 0.18200552]  probes 23 (F3 f9 i0 I11)  solver 3.5 s  iters 0
+  FLAG endgame: certified infeasible at 0.18202373, above gamma_f
+  FLAG endgame: certified infeasible at 0.18204193, above gamma_f
+REGIME done B1a|sedumi|hinf_rd1 ok 4.4 s
+REGIME start B1a|mosek|hinf_rd1_hv (est 120 s) 2026-09-26 05:05:38
+BIS seed  gam=0.2189784     tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -3.2e-09 Fres 4.7e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1094892     tau=7.48e-03  cap=2000   it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.7e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.15484111    tau=3.66e-03  cap=3296   it=NaN    t=   0.05s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.4e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18413815    tau=2.12e-03  cap=4837   it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -3.4e-09 Fres 8.5e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.16885543    tau=9.79e-04  cap=8300   it=NaN    t=   0.06s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.1e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1763313     tau=5.09e-04  cap=13130  it=NaN    t=   0.05s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.5e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18019245    tau=2.59e-04  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 9.4e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18215462    tau=1.31e-04  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.3e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1831437     tau=6.57e-05  cap=20000  it=NaN    t=   0.02s pinf=NaN       -> F  (Flmin -3.3e-09 Fres 7.2e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18264849    tau=3.28e-05  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -2.4e-09 Fres 6.7e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18240139    tau=1.64e-05  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.5e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.1825249     tau=8.19e-06  cap=20000  it=NaN    t=   0.02s pinf=NaN       -> F  (Flmin -8.9e-10 Fres 6.4e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18246313    tau=4.09e-06  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18249401    tau=2.05e-06  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -9.2e-10 Fres 7.4e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18247857    tau=1.02e-06  cap=20000  it=NaN    t=   0.09s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18248629    tau=5.12e-07  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -2.1e-09 Fres 6.6e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18248243    tau=2.56e-07  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -4.0e-10 Fres 7.4e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1824805     tau=1.28e-07  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18248147    tau=6.40e-08  cap=20000  it=NaN    t=   0.10s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) ILL_POSED
+BIS probe gam=0.18248195    tau=3.20e-08  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -4.2e-10 Fres 6.1e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18248171    tau=1.60e-08  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -9.3e-10 Fres 9.9e-16 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18248159    tau=8.00e-09  cap=20000  it=NaN    t=   0.02s pinf=NaN       -> F  (Flmin -1.3e-09 Fres 1.2e-15 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE hinf_rd1_hv_B1a [mosek]  certified [0.18240139, 0.18248159]  estimate [0.18248147, 0.18248159]  probes 22 (F11 f0 i4 I7)  solver 1.0 s  iters 0
+REGIME done B1a|mosek|hinf_rd1_hv ok 2.4 s
+REGIME start B1a|sedumi|hinf_rd1_hv (est 300 s) 2026-09-26 05:05:40
+BIS seed  gam=0.2189784     tau=1.00e-07  cap=50000  it=NaN    t=   0.20s pinf=NaN       -> F  (Flmin -6.1e-12 Fres 3.9e-16 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=0
+BIS probe gam=0.1094892     tau=7.48e-03  cap=2000   it=NaN    t=   0.10s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.9e-04 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.15484111    tau=3.66e-03  cap=3296   it=NaN    t=   0.20s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.8e-05 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18413815    tau=2.12e-03  cap=4837   it=NaN    t=   0.19s pinf=NaN       -> F  (Flmin -6.1e-12 Fres 8.5e-16 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=0
+BIS probe gam=0.16885543    tau=9.79e-04  cap=8300   it=NaN    t=   0.12s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.5e-05 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.1763313     tau=5.09e-04  cap=13130  it=NaN    t=   0.19s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.5e-05 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18019245    tau=2.59e-04  cap=20000  it=NaN    t=   0.20s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 9.7e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18215462    tau=1.31e-04  cap=20000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -1.3e-08 Fres 5.6e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18117088    tau=6.51e-05  cap=20000  it=NaN    t=   0.22s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.8e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18166208    tau=3.26e-05  cap=20000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -2.5e-08 Fres 5.2e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18141631    tau=1.63e-05  cap=20000  it=NaN    t=   0.23s pinf=NaN       -> f  (Flmin -6.9e-09 Fres 2.4e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18129355    tau=8.14e-06  cap=20000  it=NaN    t=   0.22s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.0e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18135492    tau=4.07e-06  cap=20000  it=NaN    t=   0.24s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.2e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18138562    tau=2.04e-06  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.7e-07 Ieps 2.6e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18140096    tau=1.02e-06  cap=20000  it=NaN    t=   0.23s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.6e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=0.18141631    tau=1.00e-07  cap=50000  it=NaN    t=   0.24s pinf=NaN       -> f  (Flmin -6.9e-09 Fres 2.4e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18143446    tau=1.00e-07  cap=50000  it=NaN    t=   0.20s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.1e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=0.1814526     tau=1.00e-07  cap=50000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -1.5e-08 Fres 9.3e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18148888    tau=1.00e-07  cap=50000  it=NaN    t=   0.22s pinf=NaN       -> f  (Flmin -5.8e-09 Fres 2.3e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18156145    tau=1.00e-07  cap=50000  it=NaN    t=   0.20s pinf=NaN       -> f  (Flmin -3.1e-08 Fres 5.6e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18170658    tau=1.00e-07  cap=50000  it=NaN    t=   0.22s pinf=NaN       -> f  (Flmin -2.1e-08 Fres 6.4e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18199685    tau=1.00e-07  cap=50000  it=NaN    t=   0.23s pinf=NaN       -> f  (Flmin -1.9e-08 Fres 5.6e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18257738    tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> F  (Flmin -6.5e-12 Fres 7.4e-16 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=0
+BISDONE hinf_rd1_hv_B1a [sedumi]  certified [0.18143446, 0.18257738]  estimate [0.18140096, 0.18141631]  probes 23 (F3 f9 i1 I10)  solver 4.6 s  iters 0
+  FLAG endgame: certified infeasible at 0.18143446, above gamma_f
+REGIME done B1a|sedumi|hinf_rd1_hv ok 5.3 s
+REGIME start B1a|mosek|hinfdu_rd1 (est 120 s) 2026-09-26 05:05:45
+BIS seed  gam=0.2190612     tau=1.00e-07  cap=50000  it=NaN    t=   0.02s pinf=NaN       -> F  (Flmin -7.8e-12 Fres 1.0e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1095306     tau=3.84e-03  cap=2000   it=NaN    t=   0.02s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 8.2e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.15489966    tau=1.91e-03  cap=3261   it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.7e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18420778    tau=1.11e-03  cap=4753   it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -2.4e-11 Fres 2.9e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.16891928    tau=5.11e-04  cap=8207   it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.3e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.17639797    tau=2.66e-04  cap=12953  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 5.6e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18026058    tau=1.36e-04  cap=20000  it=NaN    t=   0.02s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.1e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18222349    tau=6.86e-05  cap=20000  it=NaN    t=   0.02s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.8e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18321295    tau=3.45e-05  cap=20000  it=NaN    t=   0.02s pinf=NaN       -> F  (Flmin -1.5e-12 Fres 3.1e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18271755    tau=1.72e-05  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -1.1e-12 Fres 5.1e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18247036    tau=8.59e-06  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 7.4e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18259391    tau=4.30e-06  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -1.3e-12 Fres 3.8e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18253212    tau=2.15e-06  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18256302    tau=1.07e-06  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -9.1e-13 Fres 6.9e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18254757    tau=5.37e-07  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18255529    tau=2.69e-07  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.18255915    tau=1.34e-07  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> F  (Flmin -3.7e-11 Fres 2.6e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18255722    tau=6.71e-08  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> F  (Flmin -5.5e-11 Fres 7.3e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18255626    tau=3.36e-08  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> F  (Flmin -5.5e-11 Fres 4.7e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18255577    tau=1.68e-08  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> F  (Flmin -5.1e-11 Fres 5.2e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18255553    tau=8.39e-09  cap=20000  it=NaN    t=   0.09s pinf=NaN       -> F  (Flmin -2.1e-11 Fres 7.6e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.18255541    tau=4.20e-09  cap=20000  it=NaN    t=   0.03s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BISDONE hinfdu_rd1_B1a [mosek]  certified [0.18247036, 0.18255553]  estimate [0.18255541, 0.18255553]  probes 22 (F11 f0 i4 I7)  solver 0.7 s  iters 0
+REGIME done B1a|mosek|hinfdu_rd1 ok 1.9 s
+REGIME start B1a|sedumi|hinfdu_rd1 (est 300 s) 2026-09-26 05:05:47
+BIS seed  gam=0.2190612     tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> F  (Flmin -3.2e-10 Fres 1.3e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.1095306     tau=3.84e-03  cap=2000   it=NaN    t=   0.09s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 9.4e-05 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.15489966    tau=1.91e-03  cap=3261   it=NaN    t=   0.08s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.6e-05 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18420778    tau=1.11e-03  cap=4753   it=NaN    t=   0.11s pinf=NaN       -> F  (Flmin -5.0e-10 Fres 3.4e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.16891928    tau=5.11e-04  cap=8207   it=NaN    t=   0.09s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 9.4e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.17639797    tau=2.66e-04  cap=12953  it=NaN    t=   0.10s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 8.0e-06 Ieps 3.6e-11) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18026058    tau=1.36e-04  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.5e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18222349    tau=6.86e-05  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> f  (Flmin -2.1e-08 Fres 7.1e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18123938    tau=3.41e-05  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.3e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18173077    tau=1.71e-05  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.1e-07 Ieps 2.3e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18197697    tau=8.57e-06  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.0e-06 Ieps 1.0e-11) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18210019    tau=4.29e-06  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -6.7e-09 Fres 4.1e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18203857    tau=2.14e-06  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.7e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=0.18206938    tau=1.07e-06  cap=20000  it=NaN    t=   0.15s pinf=NaN       -> f  (Flmin -6.8e-09 Fres 3.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18205397    tau=5.36e-07  cap=20000  it=NaN    t=   0.17s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 6.1e-08 Ieps 1.4e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=0.18206938    tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> f  (Flmin -6.8e-09 Fres 3.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18208758    tau=1.00e-07  cap=50000  it=NaN    t=   0.20s pinf=NaN       -> f  (Flmin -6.5e-09 Fres 4.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18210579    tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> f  (Flmin -2.0e-08 Fres 1.3e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.1821422     tau=1.00e-07  cap=50000  it=NaN    t=   0.17s pinf=NaN       -> f  (Flmin -6.5e-09 Fres 3.3e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18221503    tau=1.00e-07  cap=50000  it=NaN    t=   0.22s pinf=NaN       -> f  (Flmin -6.1e-09 Fres 2.1e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18236069    tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -5.8e-09 Fres 1.2e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.182652      tau=1.00e-07  cap=50000  it=NaN    t=   0.11s pinf=NaN       -> F  (Flmin -7.9e-10 Fres 5.3e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BISDONE hinfdu_rd1_B1a [sedumi]  certified [0.18203857, 0.182652]  estimate [0.18205397, 0.18206938]  probes 22 (F3 f9 i4 I6)  solver 3.0 s  iters 0
+REGIME done B1a|sedumi|hinfdu_rd1 ok 3.7 s
+REGIME start B1a|mosek|hinfco_rd1 (est 120 s) 2026-09-26 05:05:51
+BIS seed  gam=0.2316024     tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -1.8e-11 Fres 1.4e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.1158012     tau=7.88e-03  cap=2000   it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.4e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.16376763    tau=3.85e-03  cap=3301   it=NaN    t=   0.05s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.2e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.19475363    tau=2.22e-03  cap=4851   it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -1.8e-11 Fres 1.8e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.17858986    tau=1.03e-03  cap=8315   it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.6e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.18649671    tau=5.34e-04  cap=13158  it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.9e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS probe gam=0.19058046    tau=2.72e-04  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.19265574    tau=1.37e-04  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -8.2e-10 Fres 2.5e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.19161529    tau=6.84e-05  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.19213481    tau=3.43e-05  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.1923951     tau=1.71e-05  cap=20000  it=NaN    t=   0.10s pinf=NaN       -> F  (Flmin -7.8e-10 Fres 2.6e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.19226491    tau=8.57e-06  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.19233       tau=4.29e-06  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -1.2e-09 Fres 2.9e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.19229745    tau=2.14e-06  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.19231372    tau=1.07e-06  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -1.2e-09 Fres 3.0e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.19230559    tau=5.36e-07  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> F  (Flmin -8.9e-10 Fres 3.7e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.19230152    tau=2.68e-07  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.19230355    tau=1.34e-07  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.19230457    tau=6.70e-08  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> F  (Flmin -1.2e-09 Fres 3.0e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.19230406    tau=3.35e-08  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.19230432    tau=1.67e-08  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.19230444    tau=8.37e-09  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BISDONE hinfco_rd1_B1a [mosek]  certified [0.18649671, 0.19230457]  estimate [0.19230444, 0.19230457]  probes 22 (F8 f0 i10 I4)  solver 1.2 s  iters 0
+REGIME done B1a|mosek|hinfco_rd1 ok 2.2 s
+REGIME start B1a|sedumi|hinfco_rd1 (est 300 s) 2026-09-26 05:05:53
+BIS seed  gam=0.2316024     tau=1.00e-07  cap=50000  it=NaN    t=   0.15s pinf=NaN       -> F  (Flmin -8.5e-10 Fres 1.9e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.1158012     tau=7.88e-03  cap=2000   it=NaN    t=   0.06s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.1e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.16376763    tau=3.85e-03  cap=3301   it=NaN    t=   0.07s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.6e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.19475363    tau=2.22e-03  cap=4851   it=NaN    t=   0.13s pinf=NaN       -> F  (Flmin -1.2e-10 Fres 1.6e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.17858986    tau=1.03e-03  cap=8315   it=NaN    t=   0.07s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.7e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18649671    tau=5.34e-04  cap=13158  it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 5.8e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.19058046    tau=2.72e-04  cap=20000  it=NaN    t=   0.10s pinf=NaN       -> f  (Flmin -3.7e-09 Fres 3.9e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18852753    tau=1.35e-04  cap=20000  it=NaN    t=   0.10s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.1e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18955121    tau=6.77e-05  cap=20000  it=NaN    t=   0.15s pinf=NaN       -> f  (Flmin -2.7e-09 Fres 8.9e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18903868    tau=3.38e-05  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> f  (Flmin -9.1e-09 Fres 5.1e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18878293    tau=1.69e-05  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.7e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18891076    tau=8.44e-06  cap=20000  it=NaN    t=   0.12s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.6e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18897471    tau=4.22e-06  cap=20000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -4.5e-09 Fres 1.3e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.18894273    tau=2.11e-06  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.3e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS probe gam=0.18895872    tau=1.06e-06  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> f  (Flmin -9.0e-09 Fres 4.7e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18895872    tau=1.00e-07  cap=50000  it=NaN    t=   0.11s pinf=NaN       -> f  (Flmin -9.0e-09 Fres 4.7e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18897762    tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.6e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS cert  gam=0.18899651    tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.6e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS cert  gam=0.1890343     tau=1.00e-07  cap=50000  it=NaN    t=   0.26s pinf=NaN       -> f  (Flmin -2.4e-09 Fres 1.6e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18910989    tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> f  (Flmin -9.2e-09 Fres 4.9e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.18926105    tau=1.00e-07  cap=50000  it=NaN    t=   0.11s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.5e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS cert  gam=0.18956339    tau=1.00e-07  cap=50000  it=NaN    t=   0.15s pinf=NaN       -> f  (Flmin -4.0e-09 Fres 1.3e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.19016806    tau=1.00e-07  cap=50000  it=NaN    t=   0.11s pinf=NaN       -> f  (Flmin -3.3e-09 Fres 5.5e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.19137739    tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> F  (Flmin -1.5e-09 Fres 5.5e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BISDONE hinfco_rd1_B1a [sedumi]  certified [0.18926105, 0.19137739]  estimate [0.18894273, 0.18895872]  probes 24 (F3 f10 i0 I11)  solver 3.0 s  iters 0
+  FLAG endgame: certified infeasible at 0.18897762, above gamma_f
+  FLAG endgame: certified infeasible at 0.18899651, above gamma_f
+  FLAG endgame: certified infeasible at 0.18926105, above gamma_f
+REGIME done B1a|sedumi|hinfco_rd1 ok 3.6 s
+REGIME start B1a|mosek|hinfduco_rd1 (est 120 s) 2026-09-26 05:05:57
+BIS seed  gam=0.3           tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.2e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=0.6           tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.4e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=1.2           tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.9e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=2.4           tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.3e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=4.8           tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.2e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=9.6           tau=1.00e-07  cap=50000  it=NaN    t=   0.05s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.0e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=19.2          tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.2e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=38.4          tau=1.00e-07  cap=50000  it=NaN    t=   0.05s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.8e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=76.8          tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.0e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=153.6         tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=307.2         tau=1.00e-07  cap=50000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=614.4         tau=1.00e-07  cap=50000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=1228.8        tau=1.00e-07  cap=50000  it=NaN    t=   0.07s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BISDONE hinfduco_rd1_B1a [mosek]  certified [76.8, Inf]  estimate [1228.8, Inf]  probes 13 (F0 f0 i4 I9)  solver 0.6 s  iters 0
+  FLAG no certified upper bound up to 1228.8
+REGIME done B1a|mosek|hinfduco_rd1 ok 1.4 s
+REGIME start B1a|sedumi|hinfduco_rd1 (est 300 s) 2026-09-26 05:05:58
+BIS seed  gam=0.3           tau=1.00e-07  cap=50000  it=NaN    t=   0.09s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.7e-04 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=0.6           tau=1.00e-07  cap=50000  it=NaN    t=   0.07s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 7.9e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=1.2           tau=1.00e-07  cap=50000  it=NaN    t=   0.06s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.1e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=2.4           tau=1.00e-07  cap=50000  it=NaN    t=   0.07s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.2e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=4.8           tau=1.00e-07  cap=50000  it=NaN    t=   0.08s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.0e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=9.6           tau=1.00e-07  cap=50000  it=NaN    t=   0.08s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.6e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=19.2          tau=1.00e-07  cap=50000  it=NaN    t=   0.09s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.9e-13 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=38.4          tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 2.1e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=76.8          tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 8.1e-07 Ieps 2.1e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS seed  gam=153.6         tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -1.1e-09 Fres 5.1e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=307.2         tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -7.0e-10 Fres 2.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=614.4         tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -2.1e-10 Fres 3.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=1228.8        tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -8.4e-10 Fres 7.4e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BISDONE hinfduco_rd1_B1a [sedumi]  certified [38.4, Inf]  estimate [76.8, 153.6]  probes 13 (F0 f4 i1 I8)  solver 1.4 s  iters 0
+  FLAG no certified upper bound up to 1228.8
+REGIME done B1a|sedumi|hinfduco_rd1 ok 2.0 s
+REGIME start B1a|mosek|ctrl_rd1 (est 120 s) 2026-09-26 05:06:00
+BIS seed  gam=1             tau=1.00e-07  cap=50000  it=NaN    t=   0.02s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.5e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=2             tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.7e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=4             tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 5.6e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=8             tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.6e-05 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=16            tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.4e-06 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=32            tau=1.00e-07  cap=50000  it=NaN    t=   0.05s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 7.1e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=64            tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.5e-07 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=128           tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.3e-08 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BIS seed  gam=256           tau=1.00e-07  cap=50000  it=NaN    t=   0.07s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=512           tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=1024          tau=1.00e-07  cap=50000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=2048          tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=4096          tau=1.00e-07  cap=50000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -7.8e-11 Fres 2.7e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=2896.3094     tau=8.63e-06  cap=2000   it=NaN    t=   0.07s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3444.3117     tau=3.58e-06  cap=3707   it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3756.0486     tau=1.63e-06  cap=6415   it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3922.343      tau=7.81e-07  cap=10749  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -9.2e-11 Fres 1.5e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=3838.2953     tau=3.99e-07  cap=17201  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3880.0916     tau=1.97e-07  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3901.1601     tau=9.82e-08  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3911.7372     tau=4.89e-08  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3917.0366     tau=2.44e-08  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -8.9e-11 Fres 2.5e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=3914.386      tau=1.22e-08  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3915.7111     tau=6.11e-09  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3916.3737     tau=3.06e-09  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3916.7051     tau=1.53e-09  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3916.8708     tau=7.64e-10  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3916.9537     tau=3.82e-10  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=3916.9951     tau=1.91e-10  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> F  (Flmin -1.0e-10 Fres 1.7e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE ctrl_rd1_B1a [mosek]  certified [128, 3916.9951]  estimate [3916.9537, 3916.9951]  probes 29 (F4 f0 i17 I8)  solver 1.4 s  iters 0
+  FLAG resolution: tau 9.55e-11, seed first passage 0
+REGIME done B1a|mosek|ctrl_rd1 ok 2.8 s
+REGIME start B1a|sedumi|ctrl_rd1 (est 300 s) 2026-09-26 05:06:03
+BIS seed  gam=1             tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 6.4e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=2             tau=1.00e-07  cap=50000  it=NaN    t=   0.07s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 3.7e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=4             tau=1.00e-07  cap=50000  it=NaN    t=   0.07s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.0e-06 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=8             tau=1.00e-07  cap=50000  it=NaN    t=   0.08s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 8.8e-08 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=16            tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 1.5e-05 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=32            tau=1.00e-07  cap=50000  it=NaN    t=   0.15s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 4.0e-07 Ieps 0.0e+00) sedumi pinf=1 dinf=0 numerr=0
+BIS seed  gam=64            tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 4.2e-07 Ieps 2.6e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS seed  gam=128           tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> f  (Flmin -1.4e-09 Fres 5.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=256           tau=1.00e-07  cap=50000  it=NaN    t=   0.15s pinf=NaN       -> f  (Flmin -5.0e-10 Fres 3.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=512           tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> f  (Flmin -1.5e-09 Fres 5.2e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=1024          tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> f  (Flmin -1.3e-09 Fres 2.5e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=2048          tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> F  (Flmin -1.5e-09 Fres 4.7e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=90.509668     tau=2.76e-04  cap=2000   it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 8.2e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=76.109255     tau=1.62e-04  cap=2908   it=NaN    t=   0.17s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.9e-07 Ieps 3.8e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=82.997731     tau=7.39e-05  cap=5033   it=NaN    t=   0.19s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.0e-06 Ieps 5.4e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=86.672355     tau=3.53e-05  cap=8433   it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.6e-07 Ieps 1.5e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=88.570232     tau=1.73e-05  cap=13911  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.2e-07 Ieps 2.2e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=89.534699     tau=8.55e-06  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.6e-07 Ieps 2.8e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=90.020864     tau=4.25e-06  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 6.9e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=89.777452     tau=2.13e-06  cap=20000  it=NaN    t=   0.14s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 7.2e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=89.655993     tau=1.07e-06  cap=20000  it=NaN    t=   0.17s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.0e-06 Ieps 1.1e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=89.716702     tau=5.33e-07  cap=20000  it=NaN    t=   0.14s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.8e-07 Ieps 3.0e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=89.747072     tau=2.67e-07  cap=20000  it=NaN    t=   0.12s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.5e-07 Ieps 2.8e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=89.762261     tau=1.33e-07  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.1e-07 Ieps 1.9e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=89.769856     tau=6.66e-08  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.2e-09 Fres 5.4e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=89.769856     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.2e-09 Fres 5.4e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=89.778833     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 5.2e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=89.78781      tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -2.3e-09 Fres 1.7e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=89.805764     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 7.9e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=89.841672     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 6.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=89.913488     tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 8.9e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=90.05712      tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 4.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=90.344383     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 5.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=90.91891      tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -2.1e-09 Fres 7.0e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=92.067965     tau=1.00e-07  cap=50000  it=NaN    t=   0.11s pinf=NaN       -> f  (Flmin -4.1e-09 Fres 3.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=94.366073     tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> f  (Flmin -2.0e-09 Fres 5.8e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=98.96229      tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> f  (Flmin -1.9e-09 Fres 1.1e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=108.15472     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -1.7e-09 Fres 6.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=126.53959     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -1.4e-09 Fres 6.2e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=163.30932     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -1.3e-09 Fres 2.9e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=236.84879     tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> f  (Flmin -1.1e-09 Fres 1.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=383.92772     tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -8.3e-10 Fres 1.5e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=678.08559     tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> f  (Flmin -1.4e-09 Fres 5.1e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=1266.4013     tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> F  (Flmin -1.5e-09 Fres 7.8e-14 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BISDONE ctrl_rd1_B1a [sedumi]  certified [32, 1266.4013]  estimate [89.762261, 89.769856]  probes 44 (F2 f26 i10 I6)  solver 5.7 s  iters 0
+REGIME done B1a|sedumi|ctrl_rd1 ok 6.6 s
+REGIME start B1a|mosek|est_rd1 (est 120 s) 2026-09-26 05:06:10
+BIS seed  gam=0.0002537772  tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=0.0005075544  tau=1.00e-07  cap=50000  it=NaN    t=   0.06s pinf=NaN       -> F  (Flmin -1.4e-11 Fres 5.1e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00035889516 tau=8.97e-06  cap=2000   it=NaN    t=   0.08s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00042680068 tau=5.26e-06  cap=2908   it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -3.9e-11 Fres 9.6e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00039137795 tau=2.40e-06  cap=5033   it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00040870573 tau=1.25e-06  cap=7937   it=NaN    t=   0.08s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00041765522 tau=6.40e-07  cap=12702  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -4.4e-11 Fres 4.7e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00041315624 tau=3.16e-07  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -3.7e-11 Fres 2.5e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00041092496 tau=1.57e-07  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -4.3e-11 Fres 5.8e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00040981384 tau=7.85e-08  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00041036902 tau=3.93e-08  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> F  (Flmin -5.7e-11 Fres 7.1e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00041009134 tau=1.96e-08  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00041023016 tau=9.82e-09  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> F  (Flmin -1.9e-11 Fres 9.8e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00041016074 tau=4.91e-09  cap=20000  it=NaN    t=   0.09s pinf=NaN       -> F  (Flmin -3.5e-11 Fres 7.5e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00041012604 tau=2.45e-09  cap=20000  it=NaN    t=   0.08s pinf=NaN       -> F  (Flmin -2.6e-11 Fres 4.3e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00041010869 tau=1.23e-09  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -5.8e-11 Fres 1.1e-12 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00041010001 tau=6.13e-10  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00041010435 tau=3.07e-10  cap=20000  it=NaN    t=   0.08s pinf=NaN       -> F  (Flmin -2.2e-11 Fres 4.9e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00041010218 tau=1.53e-10  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BISDONE est_rd1_B1a [mosek]  certified [0, 0.00041010435]  estimate [0.00041010218, 0.00041010435]  probes 19 (F11 f0 i8 I0)  solver 1.1 s  iters 0
+  FLAG resolution: tau 7.67e-11, seed first passage 0
+REGIME done B1a|mosek|est_rd1 ok 2.1 s
+REGIME start B1a|sedumi|est_rd1 (est 300 s) 2026-09-26 05:06:12
+BIS seed  gam=0.0002537772  tau=1.00e-07  cap=50000  it=NaN    t=   0.23s pinf=NaN       -> f  (Flmin -3.2e-10 Fres 8.7e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=0.0005075544  tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> F  (Flmin -8.8e-11 Fres 6.0e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.0001268886  tau=8.97e-06  cap=2000   it=NaN    t=   0.15s pinf=NaN       -> f  (Flmin -9.7e-10 Fres 1.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=6.34443e-05   tau=4.49e-06  cap=3249   it=NaN    t=   0.20s pinf=NaN       -> f  (Flmin -1.1e-09 Fres 6.1e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=3.172215e-05  tau=2.24e-06  cap=5278   it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -4.6e-09 Fres 4.9e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=1.5861075e-05 tau=1.12e-06  cap=8574   it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -3.6e-09 Fres 8.4e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=7.9305375e-06 tau=5.61e-07  cap=13929  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -3.2e-09 Fres 5.2e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=3.9652687e-06 tau=2.80e-07  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 6.9e-12 Ieps 4.8e-16) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=5.6077368e-06 tau=1.40e-07  cap=20000  it=NaN    t=   0.23s pinf=NaN       -> f  (Flmin -1.1e-09 Fres 1.3e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=4.7155258e-06 tau=5.81e-08  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -3.4e-09 Fres 9.3e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=4.3241562e-06 tau=2.65e-08  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 5.8e-11 Ieps 4.1e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=4.515603e-06  tau=1.38e-08  cap=20000  it=NaN    t=   0.23s pinf=NaN       -> f  (Flmin -1.3e-09 Fres 7.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=4.4188429e-06 tau=6.77e-09  cap=20000  it=NaN    t=   0.12s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 5.5e-11 Ieps 3.9e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=4.466961e-06  tau=3.42e-09  cap=20000  it=NaN    t=   0.19s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 4.2e-12 Ieps 1.8e-16) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=4.4912161e-06 tau=1.72e-09  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.0e-11 Ieps 7.1e-16) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=4.503393e-06  tau=8.62e-10  cap=20000  it=NaN    t=   0.22s pinf=NaN       -> f  (Flmin -1.6e-09 Fres 4.4e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=4.4973005e-06 tau=4.31e-10  cap=20000  it=NaN    t=   0.19s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 8.8e-13 Ieps 3.9e-17) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=4.5003457e-06 tau=2.15e-10  cap=20000  it=NaN    t=   0.14s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 3.5e-11 Ieps 2.5e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=4.5018691e-06 tau=1.08e-10  cap=20000  it=NaN    t=   0.24s pinf=NaN       -> f  (Flmin -1.7e-09 Fres 1.1e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.5018691e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.23s pinf=NaN       -> f  (Flmin -1.7e-09 Fres 1.1e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.5023193e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.23s pinf=NaN       -> f  (Flmin -2.3e-09 Fres 1.5e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.5027695e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -3.5e-09 Fres 1.5e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.5036699e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.17s pinf=NaN       -> f  (Flmin -3.4e-09 Fres 5.1e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.5054706e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.24s pinf=NaN       -> f  (Flmin -2.8e-09 Fres 4.6e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.5090721e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 5.0e-11 Ieps 3.6e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=4.5162751e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.24s pinf=NaN       -> f  (Flmin -1.5e-09 Fres 1.3e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.5306811e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -3.4e-09 Fres 1.4e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.5594931e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -3.4e-09 Fres 9.5e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.617117e-06  tau=1.00e-07  cap=50000  it=NaN    t=   0.22s pinf=NaN       -> f  (Flmin -1.2e-09 Fres 1.1e-11 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=4.7323648e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.5e-11 Ieps 1.1e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=4.9628605e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.14s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 4.6e-11 Ieps 3.4e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=5.4238519e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.20s pinf=NaN       -> f  (Flmin -2.3e-09 Fres 7.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=6.3458347e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.24s pinf=NaN       -> f  (Flmin -1.1e-09 Fres 7.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=8.1898003e-06 tau=1.00e-07  cap=50000  it=NaN    t=   0.19s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.5e-12 Ieps 1.9e-16) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=1.1877732e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -3.8e-09 Fres 4.1e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=1.9253594e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -3.7e-09 Fres 2.8e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=3.4005319e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.21s pinf=NaN       -> f  (Flmin -1.7e-09 Fres 4.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=6.3508768e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -1.4e-09 Fres 4.0e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.00012251567 tau=1.00e-07  cap=50000  it=NaN    t=   0.20s pinf=NaN       -> f  (Flmin -4.4e-10 Fres 4.1e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.00024052947 tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -3.0e-10 Fres 1.0e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.00047655706 tau=1.00e-07  cap=50000  it=NaN    t=   0.17s pinf=NaN       -> F  (Flmin -8.2e-11 Fres 2.4e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BISDONE est_rd1_B1a [sedumi]  certified [0, 0.00047655706]  estimate [4.5003457e-06, 4.5018691e-06]  probes 41 (F2 f28 i11 I0)  solver 7.6 s  iters 0
+  FLAG resolution: tau 5.39e-11, seed first passage 0
+REGIME done B1a|sedumi|est_rd1 ok 8.3 s
+REGIME start B1a|mosek|est_rd1_pin (est 120 s) 2026-09-26 05:06:20
+BIS seed  gam=0.0002537772  tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS seed  gam=0.0005075544  tau=1.00e-07  cap=50000  it=NaN    t=   0.04s pinf=NaN       -> F  (Flmin -3.0e-11 Fres 2.0e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00035889516 tau=8.01e-03  cap=2000   it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -2.8e-11 Fres 2.5e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00030179365 tau=4.24e-03  cap=3120   it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00032910831 tau=2.09e-03  cap=5118   it=NaN    t=   0.08s pinf=NaN       -> F  (Flmin -5.5e-11 Fres 9.1e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.0003151552  tau=1.06e-03  cap=8250   it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.0003220562  tau=5.26e-04  cap=13446  it=NaN    t=   0.07s pinf=NaN       -> F  (Flmin -3.8e-11 Fres 6.6e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031858701 tau=2.64e-04  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00032031691 tau=1.32e-04  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> F  (Flmin -5.1e-11 Fres 3.3e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031945079 tau=6.59e-05  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> F  (Flmin -1.2e-11 Fres 7.0e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031901861 tau=3.30e-05  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> F  (Flmin -5.0e-11 Fres 3.1e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031880274 tau=1.65e-05  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00031891066 tau=8.25e-06  cap=20000  it=NaN    t=   0.04s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00031896463 tau=4.12e-06  cap=20000  it=NaN    t=   0.08s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BIS probe gam=0.00031899162 tau=2.06e-06  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> F  (Flmin -7.0e-11 Fres 5.4e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031897812 tau=1.03e-06  cap=20000  it=NaN    t=   0.06s pinf=NaN       -> F  (Flmin -3.3e-11 Fres 4.7e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031897138 tau=5.15e-07  cap=20000  it=NaN    t=   0.08s pinf=NaN       -> F  (Flmin -5.1e-11 Fres 9.4e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.000318968   tau=2.58e-07  cap=20000  it=NaN    t=   0.08s pinf=NaN       -> F  (Flmin -4.4e-11 Fres 1.1e-12 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031896631 tau=1.29e-07  cap=20000  it=NaN    t=   0.09s pinf=NaN       -> F  (Flmin -4.1e-11 Fres 2.3e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031896547 tau=6.44e-08  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> F  (Flmin -2.5e-11 Fres 4.2e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031896505 tau=3.22e-08  cap=20000  it=NaN    t=   0.07s pinf=NaN       -> F  (Flmin -5.5e-11 Fres 5.4e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BIS probe gam=0.00031896484 tau=1.61e-08  cap=20000  it=NaN    t=   0.05s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta NaN Ieps NaN) UNKNOWN
+BISDONE est_rd1_B1a_pin [mosek]  certified [0, 0.00031896505]  estimate [0.00031896484, 0.00031896505]  probes 22 (F14 f0 i8 I0)  solver 1.4 s  iters 0
+REGIME done B1a|mosek|est_rd1_pin ok 2.5 s
+REGIME start B1a|sedumi|est_rd1_pin (est 300 s) 2026-09-26 05:06:23
+BIS seed  gam=0.0002537772  tau=1.00e-07  cap=50000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -1.2e-08 Fres 4.9e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS seed  gam=0.0005075544  tau=1.00e-07  cap=50000  it=NaN    t=   0.23s pinf=NaN       -> F  (Flmin -7.9e-11 Fres 2.1e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=0.0001268886  tau=1.91e-02  cap=2000   it=NaN    t=   0.21s pinf=NaN       -> f  (Flmin -3.1e-09 Fres 2.1e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=6.34443e-05   tau=1.15e-02  cap=2858   it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -1.3e-08 Fres 2.0e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=3.172215e-05  tau=6.11e-03  cap=4447   it=NaN    t=   0.16s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 3.3e-13 Ieps 1.2e-16) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=4.4861895e-05 tau=3.01e-03  cap=7293   it=NaN    t=   0.10s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 3.1e-10 Ieps 1.3e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=5.3350084e-05 tau=1.75e-03  cap=10671  it=NaN    t=   0.19s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.1e-11 Ieps 6.5e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=5.817868e-05  tau=9.44e-04  cap=16434  it=NaN    t=   0.10s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.2e-12 Ieps 6.8e-16) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=6.075447e-05  tau=4.91e-04  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -5.1e-09 Fres 2.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=5.9452627e-05 tau=2.41e-04  cap=20000  it=NaN    t=   0.11s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.2e-10 Ieps 8.5e-14) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=6.0100023e-05 tau=1.21e-04  cap=20000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -7.9e-09 Fres 2.3e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=5.9775449e-05 tau=6.04e-05  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 5.0e-11 Ieps 3.7e-14) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=5.9937516e-05 tau=3.03e-05  cap=20000  it=NaN    t=   0.15s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 5.7e-13 Ieps 5.8e-16) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=6.0018715e-05 tau=1.52e-05  cap=20000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 9.6e-11 Ieps 1.0e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=6.0059355e-05 tau=7.59e-06  cap=20000  it=NaN    t=   0.17s pinf=NaN       -> f  (Flmin -1.5e-08 Fres 4.7e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=6.0039032e-05 tau=3.79e-06  cap=20000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -5.9e-09 Fres 1.9e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS probe gam=6.0028872e-05 tau=1.90e-06  cap=20000  it=NaN    t=   0.15s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.8e-11 Ieps 2.7e-14) sedumi pinf=1 dinf=0 numerr=1
+BIS probe gam=6.0033952e-05 tau=9.48e-07  cap=20000  it=NaN    t=   0.16s pinf=NaN       -> f  (Flmin -1.3e-08 Fres 2.3e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=6.0033952e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.17s pinf=NaN       -> f  (Flmin -1.3e-08 Fres 2.3e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=6.0039955e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 6.0e-15 Ieps 5.0e-18) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=6.0045959e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.6e-10 Ieps 8.8e-14) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=6.0057965e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.15s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.8e-10 Ieps 1.4e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=6.0081979e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.12s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 7.5e-11 Ieps 4.1e-14) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=6.0130006e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.8e-09 Ieps 1.6e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=6.0226061e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.16s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 3.3e-12 Ieps 2.6e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=6.0418169e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.0e-11 Ieps 1.5e-14) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=6.0802386e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -4.7e-09 Fres 1.8e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=6.1570821e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.19s pinf=NaN       -> f  (Flmin -9.8e-09 Fres 2.0e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=6.310769e-05  tau=1.00e-07  cap=50000  it=NaN    t=   0.08s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 2.9e-09 Ieps 1.9e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=6.6181429e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 3.8e-12 Ieps 3.3e-15) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=7.2328905e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.7e-10 Ieps 1.3e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=8.4623859e-05 tau=1.00e-07  cap=50000  it=NaN    t=   0.11s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.5e-09 Ieps 1.4e-12) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=0.00010921377 tau=1.00e-07  cap=50000  it=NaN    t=   0.13s pinf=NaN       -> i  (Flmin NaN Fres NaN | Ibeta 1.2e-10 Ieps 1.8e-13) sedumi pinf=1 dinf=0 numerr=1
+BIS cert  gam=0.00015839358 tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -1.6e-09 Fres 1.2e-12 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.00025675321 tau=1.00e-07  cap=50000  it=NaN    t=   0.18s pinf=NaN       -> f  (Flmin -9.5e-10 Fres 4.9e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BIS cert  gam=0.00045347246 tau=1.00e-07  cap=50000  it=NaN    t=   0.10s pinf=NaN       -> f  (Flmin -2.5e-08 Fres 3.7e-13 | Ibeta NaN Ieps NaN) sedumi pinf=0 dinf=0 numerr=1
+BISDONE est_rd1_B1a_pin [sedumi]  certified [0, 0.0005075544]  estimate [6.0028872e-05, 6.0033952e-05]  probes 36 (F1 f14 i21 I0)  solver 5.4 s  iters 0
+REGIME done B1a|sedumi|est_rd1_pin ok 6.1 s
+REGIMEDONE B1a 2026-09-26 05:06:29

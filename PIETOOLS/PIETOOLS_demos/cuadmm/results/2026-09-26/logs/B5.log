@@ -1,0 +1,37 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B5 start 2026-09-26 06:06:16  deadline 2026-09-26 16:15:00
+REGIME start B5|build|stab2_rd_psz (est 480 s) 2026-09-26 06:06:16
+[Warning: RESUMING: 31 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_regime>dumps (line 242)
+In bl_regime>@()dumps({'stab2_rd_psz'}) (line 159)
+In bl_regime>item (line 194)
+In bl_regime (line 159)] 
+BL start stab2_rd_psz
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+BL stab2_rd_psz       ok   m=4492    tM=66.1889  tD=63.9194  rel=8.4173e-09 
+BLDONE stab2_rd_psz
+REGIME done B5|build|stab2_rd_psz ok 236.4 s
+REGIME start B5|mosek|stab2_rd_psz (est 600 s) 2026-09-26 06:10:12
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=  64.42s pinf=NaN       -> F  (Flmin -8.7e-12 Fres 4.1e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE stab2_rd_psz_B5 [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 64.4 s  iters 0
+REGIME done B5|mosek|stab2_rd_psz ok 120.2 s
+REGIME start B5|cuadmm|stab2_rd_psz (est 960 s) 2026-09-26 06:12:12
+BIS feas  gam=NaN           tau=1.00e-07  cap=10000  it=10000  t= 294.57s pinf=8.08e-06  -> i  (Flmin -7.8e-06 Fres 1.2e-15 | Ibeta 2.8e-05 Ieps 1.9e-05) 
+BISDONE stab2_rd_psz_B5 [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F0 f0 i1 I0)  solver 294.6 s  iters 10000
+REGIME done B5|cuadmm|stab2_rd_psz ok 393.4 s
+REGIMEDONE B5 2026-09-26 06:18:46

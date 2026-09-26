@@ -1,0 +1,201 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B2S start 2026-09-26 05:06:34  deadline 2026-09-26 16:15:00
+REGIME start B2S|lambda (est 600 s) 2026-09-26 05:06:34
+[Warning: RESUMING: 19 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p950000
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+BL lamhv_f0p950000    ok   m=135     tM=0.012203 tD=0.0091058 rel=1.1505e-08 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -2.6e-11 Fres 1.1e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p950000_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.950000 -> F
+[Warning: RESUMING: 20 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p975000
+BL lamhv_f0p975000    ok   m=135     tM=0.0099281 tD=0.0096772 rel=1.0734e-08 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -1.8e-11 Fres 1.2e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p975000_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.975000 -> F
+[Warning: RESUMING: 21 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p987500
+BL lamhv_f0p987500    ok   m=135     tM=0.01104  tD=0.0076713 rel=7.9183e-09 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -1.8e-11 Fres 1.3e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p987500_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.987500 -> F
+[Warning: RESUMING: 22 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p993750
+BL lamhv_f0p993750    ok   m=135     tM=0.010708 tD=0.0094439 rel=1.1891e-08 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -1.4e-11 Fres 1.2e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p993750_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.993750 -> F
+[Warning: RESUMING: 23 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p996875
+BL lamhv_f0p996875    ok   m=135     tM=0.012313 tD=0.010288 rel=1.0889e-08 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -4.4e-12 Fres 8.9e-15 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p996875_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.996875 -> F
+[Warning: RESUMING: 24 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p998437
+BL lamhv_f0p998437    ok   m=135     tM=0.009517 tD=0.007472 rel=2.8103e-08 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -4.7e-12 Fres 1.6e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p998437_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.998437 -> F
+[Warning: RESUMING: 25 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p999219
+BL lamhv_f0p999219    ok   m=135     tM=0.011385 tD=0.0085562 rel=8.8152e-08 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -4.1e-12 Fres 1.3e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p999219_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.999219 -> F
+[Warning: RESUMING: 26 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p999609
+BL lamhv_f0p999609    ok   m=135     tM=0.0096568 tD=0.010247 rel=1.5978e-07 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -4.2e-12 Fres 1.5e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p999609_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.999609 -> F
+[Warning: RESUMING: 27 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p999805
+BL lamhv_f0p999805    ok   m=135     tM=0.010967 tD=0.012103 rel=2.2072e-07 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -3.2e-12 Fres 1.3e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p999805_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.999805 -> F
+[Warning: RESUMING: 28 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_lambda (line 31)
+In bl_regime>@()bl_lambda('rd','heavy','PIE2PDEstability',0.95,1.0,1e-4,'lamhv',DL) (line 74)
+In bl_regime>item (line 194)
+In bl_regime (line 74)] 
+BL start lamhv_f0p999902
+BL lamhv_f0p999902    ok   m=135     tM=0.011679 tD=0.009749 rel=3.9436e-08 
+BLDONE 
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> F  (Flmin -3.0e-12 Fres 1.9e-14 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE lamhv_f0p999902_lam [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+LAMBDA lamhv frac=0.999902 -> F
+LAMBDADONE lamhv  lambda_LPI in [0.999902, 1.000000] (upper end certified: 0)
+REGIME done B2S|lambda ok 26.0 s
+REGIME start B2S|build|sentLPI_f1p000000 (est 120 s) 2026-09-26 05:07:00
+[Warning: RESUMING: 29 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_regime>dumps (line 242)
+In bl_regime>@()dumps(c) (line 82)
+In bl_regime>item (line 194)
+In bl_regime (line 82)] 
+BL start sentLPI_f1p000000
+BL sentLPI_f1p000000  ok   m=135     tM=0.030107 tD=0.029336 rel=4.2473e-07 
+BLDONE 
+REGIME done B2S|build|sentLPI_f1p000000 ok 1.5 s
+REGIME start B2S|mosek|sentLPI_f1p000000 (est 60 s) 2026-09-26 05:07:02
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.03s pinf=NaN       -> F  (Flmin -1.0e-11 Fres 3.9e-13 | Ibeta NaN Ieps NaN) PRIMAL_AND_DUAL_FEASIBLE
+BISDONE sentLPI_f1p000000_B2S [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 0.0 s  iters 0
+REGIME done B2S|mosek|sentLPI_f1p000000 ok 0.5 s
+REGIME start B2S|cuadmm|sentLPI_f1p000000 (est 420 s) 2026-09-26 05:07:02
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=50000  t=  60.38s pinf=3.46e-06  -> i  (Flmin -7.8e-08 Fres 4.7e-15 | Ibeta 2.7e-06 Ieps 7.6e-08) 
+BISDONE sentLPI_f1p000000_B2S [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F0 f0 i1 I0)  solver 60.4 s  iters 50000
+REGIME done B2S|cuadmm|sentLPI_f1p000000 ok 62.7 s
+REGIME start B2S|build|sent101_f1p010000 (est 120 s) 2026-09-26 05:08:05
+[Warning: RESUMING: 30 case(s) already recorded in
+  C:\Users\mpeet\cuadmm_out\regime_0926\baseline\bl_mosek.tsv
+will be SKIPPED, not re-measured. If the code under test changed since, delete that file or setenv('CUADMM_OUT',<new folder>) first.] 
+[> In bl_run (line 65)
+In bl_regime>dumps (line 242)
+In bl_regime>@()dumps(c) (line 82)
+In bl_regime>item (line 194)
+In bl_regime (line 82)] 
+BL start sent101_f1p010000
+BL sent101_f1p010000  ok   m=135     tM=0.013662 tD=0.010483 rel=1          
+BLDONE 
+REGIME done B2S|build|sent101_f1p010000 ok 1.6 s
+REGIME start B2S|mosek|sent101_f1p010000 (est 60 s) 2026-09-26 05:08:07
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=NaN    t=   0.01s pinf=NaN       -> I  (Flmin NaN Fres NaN | Ibeta 5.4e-04 Ieps 0.0e+00) PRIMAL_INFEASIBLE
+BISDONE sent101_f1p010000_B2S [mosek]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F0 f0 i0 I1)  solver 0.0 s  iters 0
+REGIME done B2S|mosek|sent101_f1p010000 ok 0.4 s
+REGIME start B2S|cuadmm|sent101_f1p010000 (est 420 s) 2026-09-26 05:08:07
+BIS feas  gam=NaN           tau=1.00e-07  cap=50000  it=50000  t=  61.36s pinf=9.00e-04  -> i  (Flmin -1.5e-05 Fres 8.6e-15 | Ibeta 1.4e-03 Ieps 1.2e-06) 
+BISDONE sent101_f1p010000_B2S [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F0 f0 i1 I0)  solver 61.4 s  iters 50000
+REGIME done B2S|cuadmm|sent101_f1p010000 ok 62.5 s
+REGIMEDONE B2S 2026-09-26 05:09:10

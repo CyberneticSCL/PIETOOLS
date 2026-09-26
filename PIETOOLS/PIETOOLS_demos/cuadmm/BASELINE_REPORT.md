@@ -8,6 +8,11 @@ first-order solver can be judged on a tradeoff curve rather than on anecdotes.
 *2026-09-26:* H2 has been dropped from the testing regime (`SUITES.md`). The H2 rows below
 are kept as measured.
 
+*2026-09-26:* the certified-bisection regime, on fresh dumps, is in
+`results/2026-09-26/REGIME_REPORT.md`. It supersedes this report on bisection and certificates,
+and on timings: the 09-24 wall times here are 1.8–3× inflated by overlapping GPU jobs,
+though the iteration counts are unchanged.
+
 ## Method
 
 Each case builds a self-contained plant inline from the `pde_var` API (never the
@@ -211,6 +216,14 @@ of this row as an LPI failure.
 This is the one place in the suite where the GPU solver wins on **accuracy** rather than size,
 and it happens at m = 3456, well *below* the crossover. Worth knowing before dismissing a
 first-order solver at small m.
+
+*Downgraded 2026-09-26.* "Verifies at rel_b = 2.0e-04" is a residual check, not a
+certificate. The certified standard adopted since (`bl_bisect.m`) repairs the point onto the
+rows, and it needs λ_min ≥ −1e-7 relative and ≥ −1e-6 absolute. A point at rel_b 2e-4 would
+not pass that. The truth at 0.5 λ\* for this psatz-off program is also undecided: the
+SeDuMi operator gate passes only at 0.10 λ\*. So "the LPI is feasible at 0.5 λ\*" and "the
+GPU solver wins on accuracy" are unestablished. On 2-D linear-generator stability,
+cuADMM did not certify in 10k iterations, where Mosek did (`results/2026-09-26/REGIME_REPORT.md`, §5).
 
 ## 4. What ||b|| says about the classes
 

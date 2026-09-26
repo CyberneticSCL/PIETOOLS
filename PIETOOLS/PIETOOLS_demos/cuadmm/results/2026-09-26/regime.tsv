@@ -1,0 +1,76 @@
+key	status	start	wall_s	gamma_I	gamma_F	gamma_i	gamma_f	F	f	i	I	iters	t_solver	flags	note
+B0|dumps	ok	2026-09-26 04:56:36	430.2												
+B1a|mosek|hinf_rd1	ok	2026-09-26 05:05:31	2.0	0.1825453227	0.1826255265	0.1826252232	0.1826253439	9	3	5	7	0	0.6		
+B1a|sedumi|hinf_rd1	ok	2026-09-26 05:05:33	4.4	0.1820419257	0.18317036	0.1819901253	0.1820055246	3	9	0	11	0	3.5	endgame: certified infeasible at 0.18202373, above gamma_f | endgame: certified infeasible at 0.18204193, above gamma_f	
+B1a|mosek|hinf_rd1_hv	ok	2026-09-26 05:05:38	2.4	0.1824013863	0.1824815857	0.182481465	0.1824815857	11	0	4	7	0	1.0		
+B1a|sedumi|hinf_rd1_hv	ok	2026-09-26 05:05:40	5.3	0.1814344553	0.1825773781	0.1814009642	0.1814163137	3	9	1	10	0	4.6	endgame: certified infeasible at 0.18143446, above gamma_f	
+B1a|mosek|hinfdu_rd1	ok	2026-09-26 05:05:45	1.9	0.1824703558	0.1825555331	0.1825554125	0.1825555331	11	0	4	7	0	0.7		
+B1a|sedumi|hinfdu_rd1	ok	2026-09-26 05:05:47	3.7	0.1820385669	0.1826519971	0.1820539703	0.1820693751	3	9	4	6	0	3.0		
+B1a|mosek|hinfco_rd1	ok	2026-09-26 05:05:51	2.2	0.186496713	0.1923045719	0.1923044448	0.1923045719	8	0	10	4	0	1.2		
+B1a|sedumi|hinfco_rd1	ok	2026-09-26 05:05:53	3.6	0.1892610546	0.1913773923	0.188942733	0.1889587206	3	10	0	11	0	3.0	endgame: certified infeasible at 0.18897762, above gamma_f | endgame: certified infeasible at 0.18899651, above gamma_f | endgame: certified infeasible at 0.18926105, above gamma_f	
+B1a|mosek|hinfduco_rd1	ok	2026-09-26 05:05:57	1.4	76.8	Inf	1228.8	Inf	0	0	4	9	0	0.6	no certified upper bound up to 1228.8	
+B1a|sedumi|hinfduco_rd1	ok	2026-09-26 05:05:58	2.0	38.4	Inf	76.8	153.6	0	4	1	8	0	1.4	no certified upper bound up to 1228.8	
+B1a|mosek|ctrl_rd1	ok	2026-09-26 05:06:00	2.8	128	3916.995122	3916.953694	3916.995122	4	0	17	8	0	1.4	resolution: tau 9.55e-11, seed first passage 0	
+B1a|sedumi|ctrl_rd1	ok	2026-09-26 05:06:03	6.6	32	1266.401316	89.7622609	89.76985625	2	26	10	6	0	5.7		
+B1a|mosek|est_rd1	ok	2026-09-26 05:06:10	2.1	0	0.0004101043505	0.0004101021818	0.0004101043505	11	0	8	0	0	1.1	resolution: tau 7.67e-11, seed first passage 0	
+B1a|sedumi|est_rd1	ok	2026-09-26 05:06:12	8.3	0	0.0004765570616	4.500345727e-06	4.50186913e-06	2	28	11	0	0	7.6	resolution: tau 5.39e-11, seed first passage 0	
+B1a|mosek|est_rd1_pin	ok	2026-09-26 05:06:20	2.5	0	0.0003189650498	0.000318964839	0.0003189650498	14	0	8	0	0	1.4		
+B1a|sedumi|est_rd1_pin	ok	2026-09-26 05:06:23	6.1	0	0.0005075544	6.002887248e-05	6.00339519e-05	1	14	21	0	0	5.4		
+B2S|lambda	ok	2026-09-26 05:06:34	26.0												
+B2S|build|sentLPI_f1p000000	ok	2026-09-26 05:07:00	1.5												
+B2S|mosek|sentLPI_f1p000000	ok	2026-09-26 05:07:02	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2S|cuadmm|sentLPI_f1p000000	ok	2026-09-26 05:07:02	62.7	0	Inf	0	Inf	0	0	1	0	50000	60.4		
+B2S|build|sent101_f1p010000	ok	2026-09-26 05:08:05	1.6												
+B2S|mosek|sent101_f1p010000	ok	2026-09-26 05:08:07	0.4	0	Inf	0	Inf	0	0	0	1	0	0.0		
+B2S|cuadmm|sent101_f1p010000	ok	2026-09-26 05:08:07	62.5	0	Inf	0	Inf	0	0	1	0	50000	61.4		
+B1c|cuadmm|hinf_rd1_hv	ok	2026-09-26 05:09:14	668.9	0	0.1825185127	0.1820309455	0.1821542042	2	2	11	0	245917	659.6		
+B1c|heldout|hinf_rd1_hv	ok	2026-09-26 05:20:23	81.2	0	Inf	0.1824013863	Inf	0	0	1	0	30000	80.0		
+B1c|cuadmm|hinfdu_rd1	ok	2026-09-26 05:21:44	765.2	0	0.1856860509	0.1840877007	0.1842123521	2	1	14	0	332713	755.5		
+B1c|heldout|hinfdu_rd1	ok	2026-09-26 05:34:30	67.2	0	Inf	0.1824703558	Inf	0	0	1	0	30000	66.2		
+B1c|cuadmm|hinfco_rd1	ok	2026-09-26 05:35:37	322.6	0	Inf	3.692247781	Inf	0	0	5	0	150000	319.0	no certified upper bound up to 3.69225	
+B1c|heldout|hinfco_rd1	ok	2026-09-26 05:40:59	65.4	0	Inf	0.186496713	Inf	0	0	1	0	30000	64.5		
+B1d|cuadmm|ctrl_rd1	ok	2026-09-26 05:42:09	1146.0	0	4700.394146	4.587122577	4.590228658	1	10	27	0	660831	1125.3	STOPPED: max_wall 1200 s	
+B1d|heldout|ctrl_rd1	ok	2026-09-26 06:01:15	50.0	0	Inf	128	Inf	0	0	1	0	30000	49.0		
+B1d|cuadmm|hinfduco_rd1	SKIP	2026-09-26 06:02:05	0												no Mosek-certified upper end in B1a
+B1d|cuadmm|est_rd1_pin	SKIP	2026-09-26 06:02:05	0												B1a Mosek bracket has no certified lower end
+B2|mosek|stab_rd1	ok	2026-09-26 06:02:09	0.8	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_rd1	ok	2026-09-26 06:02:10	16.8	0	Inf	0	Inf	1	0	0	0	19111	15.6		
+B2|mosek|stabdual_rd1	ok	2026-09-26 06:02:27	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stabdual_rd1	ok	2026-09-26 06:02:27	16.6	0	Inf	0	Inf	1	0	0	0	19111	15.6		
+B2|mosek|stabpde_rd1	ok	2026-09-26 06:02:44	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stabpde_rd1	ok	2026-09-26 06:02:44	37.6	0	Inf	0	Inf	1	0	0	0	50000	36.6		
+B2|mosek|stabpded_rd1	ok	2026-09-26 06:03:22	0.4	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stabpded_rd1	ok	2026-09-26 06:03:22	37.5	0	Inf	0	Inf	1	0	0	0	50000	36.6		
+B2|mosek|stab_rd1_hv	ok	2026-09-26 06:04:00	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_rd1_hv	ok	2026-09-26 06:04:00	20.0	0	Inf	0	Inf	1	0	0	0	14092	19.2		
+B2|mosek|stab_rd1_tight	ok	2026-09-26 06:04:20	0.4	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_rd1_tight	ok	2026-09-26 06:04:20	52.7	0	Inf	0	Inf	1	0	0	0	37456	51.9		
+B2|mosek|stab_tr1	ok	2026-09-26 06:05:13	0.4	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_tr1	ok	2026-09-26 06:05:14	2.5	0	Inf	0	Inf	1	0	0	0	1973	1.5		
+B2|mosek|stab_wave1	ok	2026-09-26 06:05:16	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_wave1	ok	2026-09-26 06:05:17	40.7	0	Inf	0	Inf	1	0	0	0	26396	39.8		
+B2|mosek|wellposed_rd1	ok	2026-09-26 06:05:57	0.4	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|wellposed_rd1	ok	2026-09-26 06:05:58	1.7	0	Inf	0	Inf	0	1	0	0	928	0.8		
+B3b|mosek|nl_fisher_opt	ERR	2026-09-26 06:06:03	0.4												opts.hi (a positive gamma expected to be feasible) is required
+B3a	SKIP	2026-09-26 06:06:08	0												no Mosek bracket from B3b
+B3c	SKIP	2026-09-26 06:06:12	0												gate failed: no certified cuADMM point in B3a, or the control certified
+B5|build|stab2_rd_psz	ok	2026-09-26 06:06:16	236.4												
+B5|mosek|stab2_rd_psz	ok	2026-09-26 06:10:12	120.2	0	Inf	0	Inf	1	0	0	0	0	64.4		
+B5|cuadmm|stab2_rd_psz	ok	2026-09-26 06:12:12	393.4	0	Inf	0	Inf	0	0	1	0	10000	294.6		
+B4|build|scale_hinf_n02	ok	2026-09-26 06:18:53	6.0												
+B4|mosek|scale_hinf_n02	ok	2026-09-26 06:18:59	5.7	0.1821546178	0.1825248959	0.1824013863	0.1825248959	5	0	1	6	0	2.9		
+B4|cuadmm|scale_hinf_n02	ok	2026-09-26 06:19:04	11.7	0	0.2190298751	0	0.2190298751	1	0	0	0	2000	9.1		
+B4|build|scale_hinf_n04	ok	2026-09-26 06:19:16	9.3												
+B4|mosek|scale_hinf_n04	ok	2026-09-26 06:19:25	52.2	0.1821546178	0.1825248959	0.1824013863	0.1825248959	5	0	1	6	0	37.2		
+B4|cuadmm|scale_hinf_n04	ok	2026-09-26 06:20:18	16.9	0	Inf	0.2190298751	Inf	0	0	1	0	2000	12.0		
+B4|build|scale_hinf_n08	ok	2026-09-26 06:20:35	96.1												
+B4|mosek|scale_hinf_n08	ok	2026-09-26 06:22:11	679.5	0.1801924507	0.1825248959	0.1824013863	0.1825248959	5	0	2	5	0	525.8		
+B4|cuadmm|scale_hinf_n08	ok	2026-09-26 06:33:30	25.4	0	0.2190298751	0	0.2190298751	1	0	0	0	2000	19.4		
+B3b|mosek|nl_fisher_opt	ok	2026-09-26 06:47:33	1085.7	0	0.9999737366	0.9998891297	0.9999737366	7	0	8	0	0	702.2		
+B3a|cuadmm|tol0.0001	ok	2026-09-26 07:05:45	135.4	0	Inf	0	1.199968484	0	1	0	0	4490	77.6		
+B3a|cuadmm|tol1e-05	ok	2026-09-26 07:08:01	320.1	0	Inf	1.199968484	Inf	0	0	1	0	15000	260.9		
+B3a|cuadmm|tol1e-06	ok	2026-09-26 07:13:21	502.3	0	Inf	1.199968484	Inf	0	0	1	0	25000	437.0		
+B3c	SKIP	2026-09-26 07:21:49	0												gate failed: no certified cuADMM point in B3a, or the control certified
+B1e|cuadmm|ctrl_rd1	ok	2026-09-26 07:21:52	219.6	0	57561.78995	57522.83947	57561.78995	6	0	9	0	150425	210.4		
+B1e|probe|hinfco_rd1	ok	2026-09-26 07:25:32	224.4	0	Inf	0.2307654863	Inf	0	0	1	0	100000	223.3		
+B1e|cuadmm|hinfdu_rd1	ok	2026-09-26 07:29:16	918.2	0	0.1828458161	0.1827220893	0.1828458161	3	3	7	0	406063	910.7		

@@ -1,0 +1,2 @@
+phase	gam	tau	cap	iters	t_s	conv	pinf_end	pinf_min	dobj_end	verdict	F_lmin	F_res	F_unpin	F_lmax	F_labs	F_normx	I_beta	I_eps	slope	aitken	note
+probe	0.18247036	1e-07	30000	30000	66.1885	0	7.14e-05	7.14e-05	0.018745	i	-9.7988387e-07	3.0104866e-14	3.3594479e-14	133.05924	-0.0001303826	297.09972	0.00040994079	1.3614737e-06	-1.2850913	2.427932e-05	

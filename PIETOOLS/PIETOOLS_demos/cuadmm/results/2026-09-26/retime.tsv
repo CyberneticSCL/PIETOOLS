@@ -1,0 +1,10 @@
+id	tol	iters	solve_s	converged
+stab_rd1_hv	1e-6	4023	5.28109	1
+stab2_rd	1e-4	1316	14.9382	1
+nl_fisher_nobnd	1e-4	4567	72.8958	1
+est_rd1	1e-4	55000	NA	0
+ctrl_rd1	1e-4	64100	NA	0
+hinfco_rd1	1e-4	53900	NA	0
+hinfduco_rd1	1e-4	227100	NA	0
+hinfdu_rd1	1e-4	53600	NA	0
+nl_fisher_opt	1e-4	6600	NA	0

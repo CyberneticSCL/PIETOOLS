@@ -1,0 +1,57 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B0 start 2026-09-26 04:56:36  deadline 2026-09-26 16:15:00
+REGIME start B0|dumps (est 600 s) 2026-09-26 04:56:36
+BL start stab_rd1
+TBB Warning: The number of workers is currently limited to 7. The request for 23 workers is ignored. Further requests for more workers will be silently ignored until the limit changes.
+
+BL stab_rd1           ok   m=130     tM=0.0081136 tD=0.007933 rel=1.3228e-08 
+BL start stabdual_rd1
+BL stabdual_rd1       ok   m=130     tM=0.0054519 tD=0.0050645 rel=1.3324e-08 
+BL start stabpde_rd1
+BL stabpde_rd1        ok   m=54      tM=0.0061929 tD=0.0058489 rel=5.0885e-08 
+BL start stabpded_rd1
+BL stabpded_rd1       ok   m=54      tM=0.0069841 tD=0.0055828 rel=5.1e-08    
+BL start stab_rd1_hv
+BL stab_rd1_hv        ok   m=135     tM=0.0070898 tD=0.0080731 rel=2.7905e-08 
+BL start stab_rd1_tight
+BL stab_rd1_tight     ok   m=135     tM=0.011104 tD=0.0086966 rel=1.1505e-08 
+BL start stab_tr1
+BL stab_tr1           ok   m=96      tM=0.0055653 tD=0.0051579 rel=6.4233e-08 
+BL start stab_wave1
+BL stab_wave1         ok   m=520     tM=0.02445  tD=0.018439 rel=5.8967e-08 
+BL start hinf_rd1
+BL hinf_rd1           ok   m=242     tM=0.024125 tD=0.023351 rel=5.1048e-07 
+BL start hinfco_rd1
+BL hinfco_rd1         ok   m=176     tM=0.102    tD=0.10037  rel=9.3914e-07 
+BL start hinfdu_rd1
+BL hinfdu_rd1         ok   m=244     tM=0.031895 tD=0.028726 rel=1.5184e-08 
+BL start hinfduco_rd1
+BL hinfduco_rd1       ok   m=168     tM=0.043515 tD=0.044728 rel=0.001864   
+BL start hinf_rd1_hv
+BL hinf_rd1_hv        ok   m=267     tM=0.03076  tD=0.028224 rel=4.8279e-08 
+BL start est_rd1
+BL est_rd1            ok   m=189     tM=0.058009 tD=0.056638 rel=1.071e-06  
+BL start ctrl_rd1
+BL ctrl_rd1           ok   m=181     tM=0.052742 tD=0.049117 rel=0.0010836  
+BL start wellposed_rd1
+BL wellposed_rd1      ok   m=108     tM=0.010665 tD=0.013594 rel=8.7422e-08 
+BL start nl_fisher_opt
+BL nl_fisher_opt      ok   m=5093    tM=45.7034  tD=45.6883  rel=5.108e-06  
+BL start nl_fisher_nobnd
+BL nl_fisher_nobnd    ok   m=4978    tM=52.4729  tD=54.3572  rel=3.4361e-05 
+BL start stab2_rd
+BL stab2_rd           ok   m=3456    tM=18.4528  tD=17.5943  rel=2.0816     
+BLDONE stab_rd1,stabdual_rd1,stabpde_rd1,stabpded_rd1,stab_rd1_hv,stab_rd1_tight,stab_tr1,stab_wave1,wellposed_rd1,hinf_rd1,hinf_rd1_hv,hinfdu_rd1,hinfco_rd1,hinfduco_rd1,ctrl_rd1,est_rd1,nl_fisher_opt,nl_fisher_nobnd,stab2_rd
+REGIME done B0|dumps ok 430.2 s
+REGIMEDONE B0 2026-09-26 05:03:46

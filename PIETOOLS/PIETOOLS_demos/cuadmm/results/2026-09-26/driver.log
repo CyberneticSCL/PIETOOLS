@@ -1,0 +1,109 @@
+[2026-09-26 04:56:33] block B0 start
+[2026-09-26 05:03:48] block B0 exit 0 (1 items done, 0 ERR)
+[2026-09-26 05:03:50] B0g GPU hygiene
+90e5c37b87721fea6bc4bcfe807ed3dcfe1fba84a95a43b4a59346c0338c5ea1  cuadmm_exe
+6c40ca15c783d1e75304fde3a8c1d1fe8c9af20ace720791af05084abe7784d7  libcuadmm_lib.so
+c4a7504d8a264b86fe54d8653c0ff269669ae5c1cd6120cbc4dbb702e1ccf7fa  psd_projection/libpsd_lib.so
+     23 
+      1         'sm_62','sm_70','sm_72','sm_75','sm_80','sm_86','sm_87','sm_89','sm_90',
+      1         'sm_90a'.
+      2         All 'dump' and 'list' options are ignored with this option.
+      1         Allowed values for this option:  'sm_50','sm_52','sm_53','sm_60','sm_61',
+      1         Dump CUDA assembly for a single cubin file or all cubin files embedded in
+      1         Dump ELF Object sections.
+      1         Dump ELF symbol names.
+      1         Dump all fatbin sections.  By default will only dump contents of executable
+      1         Dump ptx for all listed device functions.
+      1         Dump resource usage for each ELF. Useful in getting all the resource usage
+      1         Extract ELF file(s) name containing <partial file name> and save as file(s).
+      1         Extract PTX file(s) name containing <partial file name> and save as file(s).
+      1         Extract text binary encoding file(s) name containing <partial file name>
+      1         Include command line options from specified file.
+      1         List all the ELF files available in the fatbin. All other options are ignored
+      1         List all the PTX files available in the fatbin. All other options are ignored
+      1         List all the text binary function names available in the fatbin. All other
+      1         Print this help information on this tool.
+      1         Print version information on this tool.
+      1         Sort functions when dumping sass.
+      1         Specify GPU Architecture for which information should be dumped.
+      1         Specify names of device functions whose fat binary structures must be dumped.
+      1         Specify symbol table index of the function whose fat binary structures must
+      1         Use 'all' to extract all files. To get the list of ELF files use -lelf option.
+      1         Use 'all' to extract all files. To get the list of PTX files use -lptx option.
+      1         and save as file(s). Use 'all' to extract all files. To get the list of text
+      1         be dumped.
+      1         binary encoding use -ltext option. All 'dump' and 'list' options are ignored
+      1         fatbin (if exists), else relocatable fatbin if no executable fatbin.
+      1         function with -xtext option later.
+      1         information at one place.
+      2         later.
+      1         options are ignored with the flag. This can be used to select particular
+      1         the binary.
+      1         with this flag. This can be used to select particular ELF with -xelf option
+      1         with this flag. This can be used to select particular PTX with -xptx option
+      1         with this option.
+      1 --all-fatbin                                (-all)        
+      1 --dump-elf                                  (-elf)        
+      1 --dump-elf-symbols                          (-symbols)    
+      1 --dump-ptx                                  (-ptx)        
+      1 --dump-resource-usage                       (-res-usage)  
+      1 --dump-sass                                 (-sass)       
+      1 --extract-elf <partial file name>,...       (-xelf)       
+      1 --extract-ptx <partial file name>,...       (-xptx)       
+      1 --extract-text <partial file name>,...      (-xtext)      
+      1 --function <function name>,...              (-fun)        
+      1 --function-index <function index>           (-findex)     
+      1 --gpu-architecture <gpu architecture name>  (-arch)       
+      1 --help                                      (-h)          
+      1 --list-elf                                  (-lelf)       
+      1 --list-ptx                                  (-lptx)       
+      1 --list-text <partial file name>             (-ltext)      
+      1 --options-file <file>,...                   (-optf)       
+      1 --sort-functions                            (-sort)       
+      1 --version                                   (-V)          
+      1 =======
+      1 Options
+      1 Usage  : cuobjdump [options] <file>
+[2026-09-26 05:03:57] retime stab_rd1_hv tol=1e-6 iters=4023 solve=5.28109s
+[2026-09-26 05:04:13] retime stab2_rd tol=1e-4 iters=1316 solve=14.9382s
+[2026-09-26 05:05:28] retime nl_fisher_nobnd tol=1e-4 iters=4567 solve=72.8958s
+[2026-09-26 05:05:28] block B1a start
+[2026-09-26 05:06:30] block B1a exit 0 (16 items done, 0 ERR)
+[2026-09-26 05:06:31] block B2S start
+[2026-09-26 05:09:11] block B2S exit 0 (7 items done, 0 ERR)
+[2026-09-26 05:09:11] block B1c start
+[2026-09-26 05:42:06] block B1c exit 0 (6 items done, 0 ERR)
+[2026-09-26 05:42:06] block B1d start
+[2026-09-26 05:59:02] code updated to 2478d265 (lean_kmin, B3c pin auto) before block B2
+[2026-09-26 06:02:06] block B1d exit 0 (2 items done, 0 ERR)
+[2026-09-26 06:02:06] block B2 start
+[2026-09-26 06:06:00] block B2 exit 0 (18 items done, 0 ERR)
+[2026-09-26 06:06:00] block B3b start
+[2026-09-26 06:06:05] block B3b exit 0 (1 items done, 1 ERR)
+[2026-09-26 06:06:05] block B3a start
+[2026-09-26 06:06:09] block B3a exit 0 (0 items done, 0 ERR)
+[2026-09-26 06:06:09] block B3c start
+[2026-09-26 06:06:13] block B3c exit 0 (0 items done, 0 ERR)
+[2026-09-26 06:06:13] block B5 start
+[2026-09-26 06:07:14] bl_regime updated to b9dac69c (hi_of objective solve, B1e) during B5
+[2026-09-26 06:18:47] block B5 exit 0 (3 items done, 0 ERR)
+[2026-09-26 06:18:50] block B4 start
+[2026-09-26 06:33:57] block B4 exit 0 (9 items done, 0 ERR)
+[2026-09-26 06:33:57] B6b clean re-times
+[2026-09-26 06:35:57] retime est_rd1 tol=1e-4 iters=55000 solve=NAs
+[2026-09-26 06:37:58] retime ctrl_rd1 tol=1e-4 iters=64100 solve=NAs
+[2026-09-26 06:39:58] retime hinfco_rd1 tol=1e-4 iters=53900 solve=NAs
+[2026-09-26 06:41:58] retime hinfduco_rd1 tol=1e-4 iters=227100 solve=NAs
+[2026-09-26 06:43:59] retime hinfdu_rd1 tol=1e-4 iters=53600 solve=NAs
+[2026-09-26 06:45:59] retime nl_fisher_opt tol=1e-4 iters=6600 solve=NAs
+[2026-09-26 06:45:59] driver finished
+[2026-09-26 06:46:24] second pass starting: B3b B3a B3c B1e
+[2026-09-26 06:46:26] block B3b start
+[2026-09-26 07:05:40] block B3b exit 0 (1 items done, 0 ERR)
+[2026-09-26 07:05:42] block B3a start
+[2026-09-26 07:21:44] block B3a exit 0 (3 items done, 0 ERR)
+[2026-09-26 07:21:46] block B3c start
+[2026-09-26 07:21:49] block B3c exit 0 (0 items done, 0 ERR)
+[2026-09-26 07:21:50] block B1e start
+[2026-09-26 07:44:35] block B1e exit 0 (3 items done, 0 ERR)
+[2026-09-26 07:44:35] driver finished

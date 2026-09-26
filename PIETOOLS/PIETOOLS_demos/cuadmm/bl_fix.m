@@ -1,6 +1,12 @@
-function out = bl_fix(matfile,gam,outdir)
+function out = bl_fix(matfile,gam,outdir,s)
 % bl_fix(matfile,gam,outdir) -- turn an objective-form SDP into the FEASIBILITY
 % question at a fixed gamma, exactly, with no re-derivation of the LPI.
+% bl_fix(...,s) pins with the row s*e_j' x = s*gam instead (same feasible set).
+%
+% CC, 09/26/2026: optional pin-row scale s (default 1, unchanged behaviour).
+%   est_rd1's pinned entry of the normalised b is 2.4e-4 against O(1) entries,
+%   below cuADMM's reachable residual, so its gamma rungs are unresolvable;
+%   s = ||b_un||/gam puts that entry at O(1) without changing the problem.
 %
 % WHY AT THE SDP LEVEL. The stock 1-D executives hard-declare the objective:
 %   dpvar gam; lpidecvar(prog,gam); lpi_ineq(prog,gam); lpisetobj(prog,gam)
@@ -41,9 +47,12 @@ nvar = size(S.At,1);
 Mt = load(strrep(matfile,'.mat','_meta.mat'));
 b_un = full(S.b(:))*Mt.bscl;
 
-row = sparse(j,1,1,nvar,1);
+if nargin < 4 || isempty(s), s = 1; end                                     % CC, 09/26/2026
+%row = sparse(j,1,1,nvar,1);                                                % CC, 09/26/2026 (was)
+row = sparse(j,1,s,nvar,1);                                                 % CC, 09/26/2026
 At2 = [S.At, row];
-b2  = [b_un; gam];
+%b2  = [b_un; gam];                                                         % CC, 09/26/2026 (was)
+b2  = [b_un; s*gam];                                                        % CC, 09/26/2026
 bscl2 = norm(b2);  if bscl2==0 || ~isfinite(bscl2), bscl2 = 1; end
 
 D.At = At2;

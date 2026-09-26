@@ -1,0 +1,14 @@
+phase	gam	tau	cap	iters	t_s	conv	pinf_end	pinf_min	dobj_end	verdict	F_lmin	F_res	F_unpin	F_lmax	F_labs	F_normx	I_beta	I_eps	slope	aitken	note
+seed	0.3	1e-07	50000	NaN	0.0927335	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	0.00016746848	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	0.6	1e-07	50000	NaN	0.0682015	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	7.8959252e-08	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	1.2	1e-07	50000	NaN	0.0633155	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	2.1458201e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	2.4	1e-07	50000	NaN	0.0734999	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	3.1757261e-07	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	4.8	1e-07	50000	NaN	0.0777661	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	3.0070871e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	9.6	1e-07	50000	NaN	0.0756609	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	6.5911218e-07	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	19.2	1e-07	50000	NaN	0.0896056	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	1.9186353e-13	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	38.4	1e-07	50000	NaN	0.1442441	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	2.0667077e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	76.8	1e-07	50000	NaN	0.1263218	0	NaN	NaN	NaN	i	NaN	NaN	NaN	NaN	NaN	NaN	8.0757449e-07	2.0920655e-12	NaN	NaN	sedumi pinf=1 dinf=0 numerr=1
+seed	153.6	1e-07	50000	NaN	0.1325412	0	NaN	NaN	NaN	f	-1.0713947e-09	5.1155468e-12	5.4511124e-10	50078.885	-5.3654252e-05	8358473.4	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+seed	307.2	1e-07	50000	NaN	0.1325738	0	NaN	NaN	NaN	f	-7.0412208e-10	2.6009136e-12	8.3134384e-10	19342.443	-1.3619441e-05	6794009	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+seed	614.4	1e-07	50000	NaN	0.1594851	0	NaN	NaN	NaN	f	-2.0964122e-10	3.6904772e-12	1.7022865e-09	16477.918	-3.4544509e-06	11710215	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+seed	1228.8	1e-07	50000	NaN	0.1555435	0	NaN	NaN	NaN	f	-8.4140619e-10	7.4462374e-14	1.8233218e-10	1193.801	-1.0044716e-06	1831623.5	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1

@@ -1,0 +1,26 @@
+[Warning: Name is nonexistent or not a directory: C:\Users\mpeet\OneDrive\Documents\GitHub\PIETOOLS\PIETOOLS\ndopvar\Old_Codes] 
+
+Error using tbxmanager>tbx_n2s (line 1124)
+Malformed string, must be in "name:version:arch" format.
+
+{Error using tbxmanager (line 150)
+Cannot continue, see message above.
+
+Error in startup (line 1)
+tbxmanager restorepath
+^^^^^^^^^^
+} 
+REGIME B3a start 2026-09-26 07:05:45  deadline 2026-09-26 16:15:00
+REGIME start B3a|cuadmm|tol0.0001 (est 1140 s) 2026-09-26 07:05:45
+BIS probe gam=1.1999685     tau=1.00e-04  cap=8000   it=4490   t=  77.59s pinf=9.99e-05  -> f  (Flmin -3.0e-06 Fres 5.0e-10 | Ibeta NaN Ieps NaN) 
+BISDONE nl_fisher_opt_B3a_0.0001 [cuadmm]  certified [0, Inf]  estimate [0, 1.1999685]  probes 1 (F0 f1 i0 I0)  solver 77.6 s  iters 4490
+REGIME done B3a|cuadmm|tol0.0001 ok 135.4 s
+REGIME start B3a|cuadmm|tol1e-05 (est 1140 s) 2026-09-26 07:08:01
+BIS probe gam=1.1999685     tau=1.00e-05  cap=15000  it=15000  t= 260.94s pinf=2.38e-05  -> i  (Flmin -1.0e-06 Fres 1.9e-11 | Ibeta 4.2e-06 Ieps 2.9e-06) 
+BISDONE nl_fisher_opt_B3a_1e-05 [cuadmm]  certified [0, Inf]  estimate [1.1999685, Inf]  probes 1 (F0 f0 i1 I0)  solver 260.9 s  iters 15000
+REGIME done B3a|cuadmm|tol1e-05 ok 320.1 s
+REGIME start B3a|cuadmm|tol1e-06 (est 1140 s) 2026-09-26 07:13:21
+BIS probe gam=1.1999685     tau=1.00e-06  cap=25000  it=25000  t= 436.99s pinf=1.64e-05  -> i  (Flmin -7.3e-07 Fres 6.2e-12 | Ibeta 2.9e-06 Ieps 1.8e-06) 
+BISDONE nl_fisher_opt_B3a_1e-06 [cuadmm]  certified [0, Inf]  estimate [1.1999685, Inf]  probes 1 (F0 f0 i1 I0)  solver 437.0 s  iters 25000
+REGIME done B3a|cuadmm|tol1e-06 ok 502.3 s
+REGIMEDONE B3a 2026-09-26 07:21:43
