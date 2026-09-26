@@ -16,10 +16,15 @@ function [Aout,Bout] = lr_multiply(L,A,B,R,K)
 %
 % MMP, 09/26/2026: optional fifth input K, as above. Without it the
 %                  behaviour is unchanged.
+% MMP, 09/26/2026: Skip B when only Aout is requested: 'unpack_sheets' now
+%                  maps B itself and calls this for A alone, so forming K
+%                  there would undo the saving. No caller passes K any more
+%                  ('copquadvar' did, above); the input is kept.
 
 X = reshape(A,size(L,2),size(R,1));
 Y = L*X*R;
 Aout = Y(:);
+if nargout<2,  return;  end     % B unused: no Kronecker product            % MMP, 09/26/2026
 
 % Bout = B*kron(R.',L).';                                                   % MMP, 09/26/2026 (was)
 if nargin<5 || isempty(K),  K = kron(R.',L).';  end                         % MMP, 09/26/2026

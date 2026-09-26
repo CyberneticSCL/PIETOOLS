@@ -1,4 +1,5 @@
-function prog = lpi_eq_sdopvar(prog,P,opts)
+function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                   % MMP, 09/26/2026
+% function prog = lpi_eq_sdopvar(prog,P,opts)                               % MMP, 09/26/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PROG = LPI_EQ_SDOPVAR(PROG,P) takes an LPI optimization program structure
 % 'prog' and an 'sdopvar' decision variable P, and adds equality constraints
@@ -40,6 +41,11 @@ function prog = lpi_eq_sdopvar(prog,P,opts)
 %           Taking the adjoint exchanges lower and upper integrals in every
 %           direction, so the parameters pair up under the index map
 %           1->1, 2->3, 3->2;
+% - dvars_checked: (optional, internal) true if the caller has already      % MMP, 09/26/2026
+%           verified that every entry of P.Zd is in prog.decvartable, so    % MMP, 09/26/2026
+%           the check here, which hashes all of prog.decvartable, is        % MMP, 09/26/2026
+%           skipped. 'lpi_eq_cdopvar' uses it to check once per distinct    % MMP, 09/26/2026
+%           list rather than once per block. Default false;                 % MMP, 09/26/2026
 %
 % OUTPUT
 % - prog:   Same LPI program structure as the input, but with the added
@@ -82,6 +88,17 @@ function prog = lpi_eq_sdopvar(prog,P,opts)
 %                  the operator and can be constrained directly. What remains
 %                  is a selection of the positions the form allows to be
 %                  nonzero, which is pure indexing.
+% MMP, 09/26/2026: Name handling in O(q) per call removed from the hot path.
+%                  (1) Use P.Zd and prog.decvartable as they are when they are
+%                  already cellstr, instead of a cellstr(string(.)) round trip
+%                  over q names each; (2) optional 4th input lets
+%                  'lpi_eq_cdopvar' skip the membership check for blocks whose
+%                  list it has already verified; (3) hand soseq only the
+%                  decision variables a parameter uses, so sosconstr's
+%                  combine/compress no longer sort all q names per call.
+%                  Measured, 2-D container Hinf build (q = 7.6e5, 6 calls,
+%                  14 soseq): the check and conversions took 3.7 s and
+%                  combine/compress 1.6 s; same program, bit for bit.
 
 
 % % % Check the inputs
@@ -97,7 +114,13 @@ if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
 end
 
 % % % Extract the structure of the operator
-dvars = cellstr(string(P.Zd(:)));
+% dvars = cellstr(string(P.Zd(:)));                                         % MMP, 09/26/2026 (was)
+% A cellstr already is the normal form; the round trip only costs O(q).     % MMP, 09/26/2026
+if iscellstr(P.Zd)                                                          % MMP, 09/26/2026
+    dvars = P.Zd(:);                                                        % MMP, 09/26/2026
+else                                                                        % MMP, 09/26/2026
+    dvars = cellstr(string(P.Zd(:)));                                       % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026
 q = numel(dvars);
 m = P.dims(1);      n = P.dims(2);
 nL = cellfun(@numel,P.ZL(:)');      NL = prod([nL,1]);
@@ -138,8 +161,16 @@ if ~is_canon                                                                % MM
 end                                                                         % MMP, 08/29/2026
 
 % Every decision variable of the operator must be known to the program.
-if q>0
-    known = cellstr(string(prog.decvartable(:)));
+% The check hashes all of prog.decvartable, so a caller that has verified   % MMP, 09/26/2026
+% this list already (dvars_checked) skips it.                               % MMP, 09/26/2026
+% if q>0                                                                    % MMP, 09/26/2026 (was)
+if q>0 && ~(nargin>=4 && dvars_checked)                                     % MMP, 09/26/2026
+%   known = cellstr(string(prog.decvartable(:)));                           % MMP, 09/26/2026 (was)
+    if iscellstr(prog.decvartable)                                          % MMP, 09/26/2026
+        known = prog.decvartable(:);                                        % MMP, 09/26/2026
+    else                                                                    % MMP, 09/26/2026
+        known = cellstr(string(prog.decvartable(:)));                       % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
     is_new = ~ismember(dvars,known);
     if any(is_new)
         error("Decision variable '"+string(dvars{find(is_new,1)})+"' does not appear "...
@@ -217,10 +248,21 @@ for k=1:numel(params_A)
     % sosconstr scales with that row count. As a row the coefficient matrix
     % is (q+1) by n_eff with the same nonzeros, which is orders of magnitude
     % cheaper to process and yields byte-identical At, b and Z.
-    M = [reshape(full(A_eff),1,[]); B_eff];
-    [sg,ii,vv] = find(M);
-    Cdp = sparse(sg,ii,vv,q+1,n_eff);
-    Dk = dpvar(Cdp,zeros(1,0),{},dvars,[1,n_eff]);
+%   M = [reshape(full(A_eff),1,[]); B_eff];                                 % MMP, 09/26/2026 (was)
+%   [sg,ii,vv] = find(M);                                                   % MMP, 09/26/2026 (was)
+%   Cdp = sparse(sg,ii,vv,q+1,n_eff);                                       % MMP, 09/26/2026 (was)
+%   Dk = dpvar(Cdp,zeros(1,0),{},dvars,[1,n_eff]);                          % MMP, 09/26/2026 (was)
+    % Pass only the decision variables this parameter uses. sosconstr's     % MMP, 09/26/2026
+    % combine/compress drop the rest anyway, but only after O(q) passes     % MMP, 09/26/2026
+    % over all q names (char + sortrows in DPVuniquedvar). In the 2-D Hinf  % MMP, 09/26/2026
+    % build a parameter uses 1 to 1.0e5 of q = 3.8e5. At, b, Z unchanged:   % MMP, 09/26/2026
+    % compress would remove exactly these zero rows, and getequation places % MMP, 09/26/2026
+    % the remaining rows by name.                                           % MMP, 09/26/2026
+    used = find(any(B_eff,2));                                              % MMP, 09/26/2026
+    M = [reshape(full(A_eff),1,[]); B_eff(used,:)];                         % MMP, 09/26/2026
+    [sg,ii,vv] = find(M);                                                   % MMP, 09/26/2026
+    Cdp = sparse(sg,ii,vv,numel(used)+1,n_eff);                             % MMP, 09/26/2026
+    Dk = dpvar(Cdp,zeros(1,0),{},dvars(used),[1,n_eff]);                    % MMP, 09/26/2026
     prog = soseq(prog,Dk);
 end
 

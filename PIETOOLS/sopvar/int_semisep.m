@@ -94,6 +94,23 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % authorship, and a brief description of modifications
 %
 % AT, 2026: Initial coding as @sopvar/private/int_semisep_AT
+% MMP, 09/26/2026: 'rearrangeCoef' builds only the nonempty columns of
+%                  X = reshape(C,NG,[]) when X is wide (p*q > 8*nnz(C)+1024).
+%                  'copquadvar' puts the decision variables on q, so X had
+%                  7.0e6 columns for 1.1e4 nonzeros, and forming X, the
+%                  product and its reshape, each O(p*q), was 7.8 s of the
+%                  routine's 12.8 s in the 2-D Hinf build. Now O(nnz(C)).
+%                  Bit-identical: isequal on the 1-D and 2-D container
+%                  programs and on every captured call. Old -> new, one
+%                  process, medians: rearrangeCoef 14.0 -> 5.7 s (2-D Hinf),
+%                  3.0 -> 1.3 s (2-D stability), 18.2 -> 7.8 s (2-D stability
+%                  at degrees +1, q = 1.2e6); whole builds 26.3 -> 20.4 s,
+%                  6.1 -> 4.2 s, 31.6 -> 21.2 s. 1-D builds and the operator
+%                  products are unchanged: X is never wide there, so they keep
+%                  the original lines. Transient memory per wide key drops from
+%                  16*p*q bytes to O(nnz(C)) (108 -> 1.1 MB at the 2-D Hinf
+%                  call). Peak memory and the remaining cost are both set by
+%                  the output's NZ*q columns, which the interface fixes.
 % MMP, 09/10/2026: Build the 'packed' outputs from accumulated triplets, one
 %                  'sparse' call per gamma, instead of preallocating all-zero
 %                  sparse matrices and filling them by subscripted
@@ -551,6 +568,9 @@ function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ)                   % M
 %   diagonal, so materializing it would cost p times the nonzeros of M and
 %   make the multiply p times wider than it need be; reshaping C so that its
 %   p row blocks sit side by side gives the same result from one multiply.
+%   When that reshape is wide -- q carries the decision variables and its   % MMP, 09/26/2026
+%   p*q columns are nearly all empty -- only its nonempty columns are       % MMP, 09/26/2026
+%   formed, from C's triplets.                                              % MMP, 09/26/2026
 %
 %   The reindexing is a fixed permutation of D's row index, depending only on
 %   the monomial sizes and on p, not on the key being processed. ROWMAP and
@@ -570,6 +590,45 @@ function Cout = rearrangeCoef(Csep,C,p,q,rowMap,colMap,NZ)                   % M
 %
 % OUTPUT
 %   Cout   : NZ*p by NZ*q sparse matrix
+
+% BEGIN MMP, 09/26/2026: wide X. The line after END forms X = reshape(C,NG,[])
+% with p*q columns, the product D0 = Csep.'*X over all of them, and a reshape
+% of D0: each O(p*q), whatever nnz(C). In 'copquadvar' q carries the
+% decision variables and nearly every column of X is empty (2-D Hinf:
+% p*q = 7.0e6 against nnz(C) = 1.1e4), which made that line 7.8 s of this
+% routine's 12.8 s. Here the nonempty columns of X alone are built from C's
+% triplets, O(nnz(C)) plus one read of C, and mapped back.
+%   Exact: sparse*sparse computes each column of D0 from the same column of
+% X alone, so every entry is the same sum of the same products in the same
+% order; the result is bit-identical (isequal on the 1-D and 2-D container
+% Hinf and stability programs, and on every call captured from them and
+% from the operator products).
+%   The rule is a measured crossover over synthetic shapes at p = 8, 25, 64:
+% under it no shape ran slower than the original. Narrow X, e.g. every call
+% from the operator products, where p*q is about nnz(C), keeps the original.
+if ~isempty(rowMap) && p*q > 8*nnz(C) + 1024
+    NG  = size(Csep,1);     NZ2 = size(Csep,2);
+    if NZ2*size(C,1)~=NG*numel(rowMap)          % the size(D,1) test below
+        error('rearrangeCoef: input dimensions are inconsistent.');
+    end
+    [ci,cj,cv] = find(C);
+    ci = ci(:);     cj = cj(:);     cv = cv(:);     % rows if C is a row
+    rr   = mod(ci-1,NG) + 1;                        % monomial index in G
+    xcol = (ci-rr)/NG + 1 + p*(cj-1);               % column of X: pp+p*(c-1)
+    % find runs column-major with rows ascending, so xcol is nondecreasing
+    % and a run-length code numbers its distinct values without a sort.
+    isnew = diff([0; xcol])~=0;
+    ux    = xcol(isnew);
+    Xc    = sparse(rr, cumsum(isnew), cv, NG, numel(ux));
+    [kD,jD,valD] = find(sparse(Csep).' * Xc);
+    pc    = ux(jD);                                 % column of X
+    ppD   = mod(pc-1,p) + 1;
+    rowD  = kD + NZ2*(ppD-1);                       % row of D
+    colD  = (pc-ppD)/p + 1;                         % column of D
+    Cout = sparse(rowMap(rowD), colMap(rowD) + NZ*(colD-1), valD, NZ*p, NZ*q);
+    return
+end
+% END MMP, 09/26/2026
 
 D = reshape(sparse(Csep).' * reshape(sparse(C),size(Csep,1),[]), [], q);
 

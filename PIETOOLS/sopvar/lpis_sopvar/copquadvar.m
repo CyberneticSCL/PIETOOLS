@@ -194,6 +194,18 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  with the same Lmat and Rmat (3^n3 cells). Measured on a
 %                  2-D stability build: kron was 3.2 of 11.7 s. Same result;
 %                  cost unchanged in q, one kron per pair instead of 3^n3.
+% MMP, 09/26/2026: Call site only: the per-gamma unpack_sheets, lr_multiply,
+%                  find and scatter onto Zd are now one 'unpack_sheets'
+%                  call, which applies Lmat and Rmat as an index remap of
+%                  the triplets of Cgam{q}. SUPERSEDES the entry above: no
+%                  Kronecker product is formed any more. With the
+%                  vectorized 'dvar_rows' of the same date, alternating A/B
+%                  medians of whole cx_exec builds: 2-D Hinf (io2, light,
+%                  ndec 7.6e5) 55.0 -> 40.0 s; 2-D stability 9.4 -> 6.7 s
+%                  light, 67.3 -> 45.3 s heavy (ndec 9.1e5); nv=3 poscopvar
+%                  3.2 -> 2.5 s. Programs bit-identical in every field.
+%                  What remains of this loop is 'find' on Cgam, whose
+%                  column count 'int_semisep' sets at (1+nloc)*g2b*NR3.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -642,19 +654,24 @@ for k = 1:M
         params.B = cell(numel(Cgam),1);
         % Lmat and Rmat are those of this (iL,iR) pair for every gamma cell, % MMP, 09/26/2026
         % so their Kronecker product is formed once here, not once per cell. % MMP, 09/26/2026
-        KLR = kron(Rmat.',Lmat).';                                          % MMP, 09/26/2026
+%       KLR = kron(Rmat.',Lmat).';                                          % MMP, 09/26/2026 (was)
+        % Superseded the same day: 'unpack_sheets' now applies Lmat, Rmat and
+        % the scatter onto Zd as one index remap of the triplets of Cgam{q}, so
+        % no Kronecker product is formed at all (see its header).
         for q = 1:numel(Cgam)
 %           [Aq,Bq] = unpack_sheets(Cgam{q},g1b*NL3,g2b*NR3,ndec);          % MMP, 09/22/2026 (was)
-            [Aq,Bq] = unpack_sheets(Cgam{q},g1b*NL3,g2b*NR3,nloc);          % MMP, 09/22/2026
+%           [Aq,Bq] = unpack_sheets(Cgam{q},g1b*NL3,g2b*NR3,nloc);          % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
 %           [params.A{q},Bout] = lr_multiply(Lmat,Aq,Bq,Rmat);              % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
-            [params.A{q},Bout] = lr_multiply(Lmat,Aq,Bq,Rmat,KLR);          % MMP, 09/26/2026
+%           [params.A{q},Bout] = lr_multiply(Lmat,Aq,Bq,Rmat,KLR);          % MMP, 09/26/2026 (was)
 %           [params.A{q},params.B{q}] = lr_multiply(Lmat,Aq,Bq,Rmat);       % MMP, 09/22/2026 (was)
             % 'find' returns ROWS for a single-row input, which Bout is when
             % the block carries one decision variable; forced to columns, as
             % elsewhere in this file.
-            [bi,bj,bv] = find(Bout);                                        % MMP, 09/22/2026
-            params.B{q} = sparse(colv(locB(bi)),colv(bj),colv(bv), ...      % MMP, 09/22/2026
-                                 ndec,size(Bout,2));                        % MMP, 09/22/2026
+%           [bi,bj,bv] = find(Bout);                                        % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
+%           params.B{q} = sparse(colv(locB(bi)),colv(bj),colv(bv), ...
+%                                ndec,size(Bout,2));                        % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
+            [params.A{q},params.B{q}] = unpack_sheets(Cgam{q},g1b*NL3, ...
+                g2b*NR3,nloc,Lmat,Rmat,locB,ndec);                          % MMP, 09/26/2026
         end
         % The parameter cell is indexed over the pair's shared variables. The
         % registry is sorted, so D3 is already in the sorted order the class

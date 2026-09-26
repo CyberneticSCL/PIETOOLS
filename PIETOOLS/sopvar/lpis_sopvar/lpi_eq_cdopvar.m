@@ -94,6 +94,15 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % MMP, 09/26/2026: NOTES recipe is P-Q again: minus/uminus exist for both
 %                  containers since 09/25/2026. The 09/21 note that no
 %                  container class defines 'minus' is obsolete. Doc only.
+% MMP, 09/26/2026: Verify each block's decision variables against the
+%                  program once per distinct Zd list, not once per block.
+%                  lpi_eq_sdopvar's check hashes all q names of
+%                  prog.decvartable; blocks of a container sum share one list
+%                  (@cdopvar/plus), and soseq adds no variables, so one check
+%                  covers every block with that list. Measured, 2-D container
+%                  Hinf build (q = 7.6e5, 6 blocks): 2.3 s of ismember became
+%                  one call plus an O(q) isequal (~10 ms) per block. Same
+%                  program, bit for bit.
 
 if isa(P,'copvar')
     error("Input of type 'copvar' carries no decision variables; use 'eq' "...
@@ -122,6 +131,10 @@ if symm && M~=N
           +num2str(M)+" x "+num2str(N)+".")
 end
 
+% Last Zd list lpi_eq_sdopvar verified against prog.decvartable (NaN:       % MMP, 09/26/2026
+% none). prog.decvartable does not change in this loop, so the verdict      % MMP, 09/26/2026
+% carries over to every later block with an equal list.                     % MMP, 09/26/2026
+Zd_ok = NaN;                                                                % MMP, 09/26/2026
 for i = 1:M
     for j = 1:N
         if symm && j<i
@@ -158,11 +171,18 @@ for i = 1:M
             end
             continue
         end
+        % isequal is O(q) with a small constant (~10 ms at q = 3.8e5); the  % MMP, 09/26/2026
+        % check it replaces hashes the whole program table.                 % MMP, 09/26/2026
+        checked = isequal(Bij.Zd,Zd_ok);                                    % MMP, 09/26/2026
         if symm && i==j
-            prog = lpi_eq_sdopvar(prog,Bij,'symmetric');
+%           prog = lpi_eq_sdopvar(prog,Bij,'symmetric');                    % MMP, 09/26/2026 (was)
+            prog = lpi_eq_sdopvar(prog,Bij,'symmetric',checked);            % MMP, 09/26/2026
         else
-            prog = lpi_eq_sdopvar(prog,Bij);
+%           prog = lpi_eq_sdopvar(prog,Bij);                                % MMP, 09/26/2026 (was)
+            prog = lpi_eq_sdopvar(prog,Bij,[],checked);                     % MMP, 09/26/2026
         end
+        % Verified now: lpi_eq_sdopvar errors on an unknown variable.       % MMP, 09/26/2026
+        Zd_ok = Bij.Zd;                                                     % MMP, 09/26/2026
     end
 end
 
