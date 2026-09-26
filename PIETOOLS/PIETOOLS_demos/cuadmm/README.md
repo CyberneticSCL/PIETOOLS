@@ -1,9 +1,10 @@
 # cuADMM evaluation for PIETOOLS
 
 A harness for judging the GPU first-order SDP solver **cuADMM** against Mosek on the SDPs
-that PIETOOLS executives generate, across every application class (stability, H∞, H2,
+that PIETOOLS executives generate, across every application class (stability, H∞,
 estimator and controller synthesis, well-posedness, nonlinear local stability), plus a
-settings ladder tuned to cuADMM's strengths.
+settings ladder tuned to cuADMM's strengths. H2 was dropped from the testing regime on
+2026-09-26; see `SUITES.md`.
 
 - **`BASELINE_REPORT.md`** — what was measured and what it means. Start here.
 - **`SUITES.md`** — the short test lists, and which to run after which kind of change.
@@ -13,7 +14,7 @@ settings ladder tuned to cuADMM's strengths.
 ```matlab
 cuadmm_path                 % PIETOOLS + solvers on the path; asserts nothing is shadowed
 bl_check('smoke')           % 4 cases, ~1 min with startup: is the pipeline alive?
-bl_check('structure')       % 22 cases, ~1.5 min: did a core change alter any assembled program?
+bl_check('structure')       % 16 cases, ~1.5 min: did a core change alter any assembled program?
 ```
 
 Before committing a change to a core data structure, run at least `smoke` + `structure`.
@@ -110,8 +111,9 @@ nothing.
 ## Status of the settings ladder
 
 `cuadmm_settings` is **written but not validated**. Its header records what carries over from
-the low-rank ladder, and the psatz claim that has not been isolated for a searched Lyapunov
-operator. It also records an **inference from the code, not a measurement**: in 2-D both
+the low-rank ladder. It also records that in 1-D the psatz is **necessary** with a searched
+Lyapunov operator but **inert at `stripped`**, where its block is 1×1. That's measured by the
+low-rank session's preset × flag cross, not re-run here. And it records an **inference from the code, not a measurement**: in 2-D both
 ladders collapse to three distinct programs, because the 2-D executives discard every
 top-level settings field. The reasoning, with line references, is in the header of
 `cuadmm_settings.m`.

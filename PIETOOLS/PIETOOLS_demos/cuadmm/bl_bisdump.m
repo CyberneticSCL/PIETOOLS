@@ -13,6 +13,11 @@ function bl_bisdump(ids)
 % Fractions are relative to each case's own gamma*, so every case is probed at
 % the same relative distance from its own boundary rather than at absolute
 % gammas that would mean different things per case.
+%
+% CC, 09/26/2026: H2 dropped from the testing regime (maintainer decision):
+%   h2c_rd1, h2oco_rd1 and h2est_rd1 removed from the gamma* map; old map kept
+%   in a comment above it. The gam^2 note on the coercive H2 executives stays,
+%   for anyone restoring them.
 
 cuadmm_path;
 HERE = fileparts(mfilename('fullpath'));
@@ -33,9 +38,12 @@ end
 % above its optimum (8.16e-09): all four rungs sat deep in the feasible region and
 % the "feasible even below gamma*" reading was an artefact of that. Every other
 % executive listed here returns the objective directly (checked, 2026-09-25).
+% CC, 09/26/2026: H2 entries removed (see header). Was:
+%  {'hinf_rd1','hinfdu_rd1','hinf_rd1_hv','h2c_rd1','h2oco_rd1','est_rd1','h2est_rd1','hinf2_rd'}, ...
+%  { 0.182626,  0.182551,    0.182482,     0.288786, 9.03171e-05^2, 0.000211481, 0.000171429, 1.27221});
 G = containers.Map( ...
-  {'hinf_rd1','hinfdu_rd1','hinf_rd1_hv','h2c_rd1','h2oco_rd1','est_rd1','h2est_rd1','hinf2_rd'}, ...
-  { 0.182626,  0.182551,    0.182482,     0.288786, 9.03171e-05^2, 0.000211481, 0.000171429, 1.27221});
+  {'hinf_rd1','hinfdu_rd1','hinf_rd1_hv','est_rd1','hinf2_rd'}, ...
+  { 0.182626,  0.182551,    0.182482,     0.000211481, 1.27221});           % CC, 09/26/2026
 FR = [0.80 0.99 1.01 1.20];     % two infeasible, two feasible, by construction
 
 if nargin<1 || isempty(ids), ids = G.keys; end

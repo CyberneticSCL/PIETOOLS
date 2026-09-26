@@ -2,7 +2,8 @@ function C = bl_cases()
 % bl_cases -- the baseline case registry.
 %
 % The axis is BREADTH OF APPLICATION CLASS, not spatial dimension: stability
-% (four variants), Hinf gain (four), H2 norm (four), estimator and controller
+%(four variants), Hinf gain (four), H2 norm (four), estimator and controller % CC, 09/26/2026 (was)
+% (four variants), Hinf gain (four), estimator and controller               % CC, 09/26/2026
 % synthesis, well-posedness, nonlinear local stability, then 2-D. 1-D dominates
 % deliberately -- it is where a method bug is cheapest to find, and every bug
 % found so far has been dimension-independent.
@@ -19,6 +20,12 @@ function C = bl_cases()
 %
 % ORDERED BY PRIORITY: if the overnight run is cut short, the cases that carry
 % the most information have already been measured.
+%
+% CC, 09/26/2026: H2 dropped from the testing regime (maintainer decision). The
+%   seven H2 rows -- four H2-norm, H2 estimator, H2 controller, 2-D H2 -- are
+%   commented out, not deleted: their builders are unchanged and their banked
+%   rows stay in bl_expect.tsv and results/2026-09-24, so uncommenting restores
+%   them. Loses the only trivial-point sentinels (h2cco_rd1, h2_2dc_rd).
 
 L = {};
 add = @(id,cls,dim,kind,bld,args) struct('id',id,'cls',cls,'dim',dim, ...
@@ -44,17 +51,18 @@ L{end+1} = add('hinfduco_rd1',  'hinf','1D','obj', 'bl_b_io1', {'Hinf_gain_dual_
 L{end+1} = add('hinf_rd1_hv',   'hinf','1D','obj', 'bl_b_io1', {'Hinf_gain',              'heavy'});
 
 % ---- 1-D H2 norm: controllability and observability gramians, both forms.
-L{end+1} = add('h2c_rd1',       'h2','1D','obj', 'bl_b_io1', {'H2_norm_c',         'light'});
-L{end+1} = add('h2cco_rd1',     'h2','1D','obj', 'bl_b_io1', {'H2_norm_c_coercive','light'});
-L{end+1} = add('h2o_rd1',       'h2','1D','obj', 'bl_b_io1', {'H2_norm_o',         'light'});
-L{end+1} = add('h2oco_rd1',     'h2','1D','obj', 'bl_b_io1', {'H2_norm_o_coercive','light'});
+% H2 dropped from the regime (see header).                                  % CC, 09/26/2026
+%L{end+1} = add('h2c_rd1',       'h2','1D','obj', 'bl_b_io1', {'H2_norm_c',         'light'}); % CC, 09/26/2026 (was)
+%L{end+1} = add('h2cco_rd1',     'h2','1D','obj', 'bl_b_io1', {'H2_norm_c_coercive','light'}); % CC, 09/26/2026 (was)
+%L{end+1} = add('h2o_rd1',       'h2','1D','obj', 'bl_b_io1', {'H2_norm_o',         'light'}); % CC, 09/26/2026 (was)
+%L{end+1} = add('h2oco_rd1',     'h2','1D','obj', 'bl_b_io1', {'H2_norm_o_coercive','light'}); % CC, 09/26/2026 (was)
 
 % ---- 1-D synthesis: these need channels the gain cases do not have, so the
 %      plant gains a control input and a sensed output.
 L{end+1} = add('est_rd1',       'estimator', '1D','obj', 'bl_b_syn1', {'Hinf_estimator','light'});
-L{end+1} = add('h2est_rd1',     'estimator', '1D','obj', 'bl_b_syn1', {'H2_estimator',  'light'});
+%L{end+1} = add('h2est_rd1',     'estimator', '1D','obj', 'bl_b_syn1', {'H2_estimator',  'light'}); % CC, 09/26/2026 (was; H2 dropped)
 L{end+1} = add('ctrl_rd1',      'controller','1D','obj', 'bl_b_syn1', {'Hinf_control',  'light'});
-L{end+1} = add('h2ctrl_rd1',    'controller','1D','obj', 'bl_b_syn1', {'H2_control',    'light'});
+%L{end+1} = add('h2ctrl_rd1',    'controller','1D','obj', 'bl_b_syn1', {'H2_control',    'light'}); % CC, 09/26/2026 (was; H2 dropped)
 L{end+1} = add('wellposed_rd1', 'wellposed', '1D','feas','bl_b_syn1', {'well_posedness','light'});
 
 % ---- nonlinear local stability, three problem forms at a fixed radius.
@@ -73,7 +81,7 @@ L{end+1} = add('stab2_rd_psz90','stability','2D','feas','bl_b_stab2',{0.9,'light
 L{end+1} = add('hinf2_rd',      'hinf','2D','obj', 'bl_b_io2',  {'Hinf_gain_2D',             'light'});
 L{end+1} = add('hinf2nc_rd',    'hinf','2D','obj', 'bl_b_io2',  {'Hinf_gain_2D_non_coercive','light'});
 L{end+1} = add('hinf2du_rd',    'hinf','2D','obj', 'bl_b_io2',  {'Hinf_gain_dual_2D',        'light'});
-L{end+1} = add('h2_2dc_rd',     'h2','2D','obj',   'bl_b_io2',  {'H2_norm_2D_c',             'light'});
+%L{end+1} = add('h2_2dc_rd',     'h2','2D','obj',   'bl_b_io2',  {'H2_norm_2D_c',             'light'}); % CC, 09/26/2026 (was; H2 dropped)
 
 % ---- SCALING ARM. n decoupled states multiplies the block sizes without
 %      changing the physics, so m grows with the analysis held fixed. This is

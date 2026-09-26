@@ -13,6 +13,15 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 % Initial coding CC - 09/25/2026, after consulting the low-rank session on
 % which of pielr_settings' findings are properties of the LPI (and so transfer)
 % and which are properties of Burer-Monteiro (and so do not).
+% CC, 09/26/2026: psatz paragraph rewritten from "necessity not isolated" to
+%   the low-rank session's preset x flag cross: necessary for a searched P in
+%   1-D, inert at 'stripped' (1x1 psatz block). Tier table unchanged -- it
+%   already had psatz off at tier 0 and on from 'light' up.
+% CC, 09/26/2026: S.cuadmm.bisect validated_to_m 273 -> 0. Its one validation
+%   was h2c_rd1 (m = 273; H2, dropped from the regime today). The banked 1-D
+%   Hinf rungs refute it at m = 243 and 268: at 0.99 gam* pinf is 3.8e-4
+%   (hinf_rd1) and 3.2e-4 (hinf_rd1_hv), under 1e-3, where Mosek returns
+%   PRIMAL_INFEASIBLE_CER. It agrees on hinfdu_rd1 (1.5e-3 vs 4.5e-4).
 %
 % ---------------------------------------------------------------------------
 % WHAT TRANSFERS FROM pielr_settings, AND WHY
@@ -32,20 +41,33 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 %  (wellposed_rd1, ||b|| = 17.7) converged in 44 iterations, against hundreds
 %  to thousands for the eppos2 ~ 1e-6 feasibility cases.
 %
-%  THE PSATZ FLAG -- carried over, BUT THE NECESSITY IS NOT ESTABLISHED for the
-%  searched Lyapunov operator this ladder is used with:
-%    - The one isolating experiment (poinc1d.m: override2 toggled with preset
-%      and Dup held fixed, SeDuMi, so not a Mosek artefact) pins P = I.  There
-%      psatz off reaches 0.00*lam* at Dup 1, 2 AND 3, and psatz on reaches 0.50
-%      (Dup 1) and 0.9999 (Dup 2).  That settles it FOR P = I only.
-%    - The searched-P evidence (the stripped/light table in pielr_settings)
-%      CONFOUNDS the preset with the flag: every failing row is stripped + OFF
-%      and every certifying row is light + ON.
-%    - In 2-D the pinned-P "necessary" conclusion was FALSE for a searched P:
-%      psatz-off certifies to ~0.25*lam* under SeDuMi (7.3e-06 at 0.10*lam*).
-%    So: psatz ON in tiers 1-3, FOLLOWING THE EXISTING LADDER.  The isolating
-%    experiment for a searched P -- same preset, same Dup, same lam, flag on vs
-%    off -- has not been done.
+%  THE PSATZ FLAG -- ON in tiers 1-3.  In 1-D it is NECESSARY, and it is INERT
+%  below 'light'.  Measured by the low-rank session (2026-09-25/26) with the
+%  full preset x flag cross, a searched P, Dup 1, eppos 1e-2 and solver='best'
+%  (every solver on the path, the smaller residual kept); not re-run here:
+%
+%      lam/lam*   stripped OFF  stripped ON   light OFF   light ON
+%       0.10       FAILS         FAILS         FAILS       certifies
+%       0.50       FAILS         FAILS         FAILS       certifies
+%       0.90       FAILS         FAILS         FAILS       FAILS
+%
+%    - light+OFF fails at every lam, so the psatz is necessary for a searched P,
+%      not only for P = I (where poinc1d.m showed the same thing: reach 0.00
+%      off at Dup 1-3 versus 0.50/0.9999 on).
+%    - stripped+ON is BIT-IDENTICAL to stripped+OFF.  At 'stripped' the psatz
+%      block is 1x1 ([6 8 1] against light's [10 15 6]): a multiplier with no
+%      monomials cannot correct anything, so the flag is a no-op there.  Preset
+%      and flag INTERACT: a tier that turns the psatz on at too coarse a base
+%      pays for the extra block, gains nothing, and looks like evidence the
+%      psatz does not help.  Do not enable it below 'light' -- hence tier 0 has
+%      it off.
+%    - Every FAILS cell above returns the trivial point X = 0: the residuals are
+%      identical to 5 digits across presets and solvers.  So they read "no
+%      certificate found", not "a near-miss".
+%    - 2-D differs: psatz-off with a searched P certifies to ~0.25*lam* under
+%      SeDuMi (7.3e-06 at 0.10*lam*), and the linear generators EXTEND reach
+%      (1e-08 to 0.90*lam*) rather than enable it.  And in 2-D this ladder's
+%      flag does not reach the executive at all -- see the 2-D note below.
 %
 %  Dup ON dd2/dd3 AS THE ACCURACY LEVER -- carried over as the ladder's axis.
 %
@@ -115,11 +137,13 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 % infeasibility certificate and on pinned-gamma programs neither side converges,
 % so feasibility is read from the primal residual PLATEAU at a fixed budget.
 % That rule (pinf < 1e-3 after 5,000 iterations) reproduced Mosek's certificates
-% exactly at m ~ 270, and FAILED a control at m = 14,006: it called
+% on h2c_rd1 and hinfdu_rd1, and FAILED on hinf_rd1 and hinf_rd1_hv (0.99 gam*
+% called feasible, m = 243 and 268) and on a control at m = 14,006: it called
 % gamma = 0.70x the analytic gain feasible, because pinf decays smoothly through
 % the true boundary there.  A short budget gives a loose answer; a broken rule
-% gives a WRONG one.  S.cuadmm.bisect records the validated range and must not
-% be used above it without a stagnation test and a known-answer control.
+% gives a WRONG one.  S.cuadmm.bisect records that it is validated at no m; it
+% must not drive a bisection without a stagnation test and a known-answer
+% control.  (CC, 09/26/2026: paragraph corrected, see header log.)
 %
 % INPUT
 %   tier   0,1,2,3 (default 1)
@@ -183,15 +207,17 @@ S.cuadmm = struct( ...
     'form',        'feasibility', ...
     'linear_psatz', false, ...      % 2-D only; see cuadmm_linear_psatz
     'ld_library_path', '/usr/lib/wsl/lib');   % MANDATORY on the WSL build
-% The bisection rule, with the range it has been validated over. Above
-% validated_to_m it is KNOWN to misclassify (see header); do not use it there.
+% The bisection rule, with the range it has been validated over: none. It
+% misclassifies at m = 243, 268 and 14,006 (see header); do not use it.
+% CC, 09/26/2026: was validated_to_m 273, refuted_at_m 14006, note 'needs a
+% stagnation test and a known-answer control above validated_to_m'.
 S.cuadmm.bisect = struct( ...
     'rule',           'pinf_plateau', ...
     'budget',         5000, ...
     'pinf_threshold', 1e-3, ...
-    'validated_to_m', 273, ...
-    'refuted_at_m',   14006, ...
-    'note', 'needs a stagnation test and a known-answer control above validated_to_m');
+    'validated_to_m', 0, ...
+    'refuted_at_m',   [243 268 14006], ...
+    'note', 'validated at no m; needs a stagnation test and a known-answer control'); % CC, 09/26/2026
 
 S.tier = tier;   S.tier_base = base;   S.tier_Dup = Dup;   S.dim = dim;
 S.ladder = 'cuadmm';

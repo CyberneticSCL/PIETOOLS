@@ -5,6 +5,9 @@ ships, plus a size ladder that runs past what an interior-point method can do he
 purpose is a reference point per **application class** — not per spatial dimension — so a GPU
 first-order solver can be judged on a tradeoff curve rather than on anecdotes.
 
+*2026-09-26:* H2 has been dropped from the testing regime (`SUITES.md`). The H2 rows below
+are kept as measured.
+
 ## Method
 
 Each case builds a self-contained plant inline from the `pde_var` API (never the
@@ -318,6 +321,20 @@ never improves, while the feasible one keeps descending:
 At a 5000-iteration budget a threshold of 1e-3 separates them cleanly, and **cuADMM's verdicts
 then agree with Mosek's certificates on every `h2c_rd1` rung.**
 
+**CORRECTED (2026-09-26): the rule does not hold on 1-D H∞.** The H∞ rungs were run on cuADMM
+after this section was written (`logs/bisect/`), and nobody scored them against the rule until
+now. At 0.99γ\* the rule calls two of them feasible, where Mosek returns
+`PRIMAL_INFEASIBLE_CER`:
+
+| case | m | pinf @5000, 0.80 / 0.99 / 1.01 / 1.20 γ\* | rule at 0.99 |
+|---|---|---|---|
+| `hinf_rd1` | 243 | 6.5e-03 / **3.8e-04** / 1.0e-06 / 2.2e-07 | **feasible — wrong** |
+| `hinf_rd1_hv` | 268 | 6.5e-03 / **3.2e-04** / 5.0e-08 / 2.7e-07 | **feasible — wrong** |
+| `hinfdu_rd1` | 245 | 1.1e-02 / 1.5e-03 / 4.5e-04 / 4.4e-05 | infeasible — right |
+
+So the threshold was fitted to `h2c_rd1`, and it held there only. H2 has since been dropped
+from the testing regime, which leaves the rule with no validation at any m.
+
 **RETRACTED (2026-09-25): the `h2oco_rd1` rows.** An earlier version of this section said
 `h2oco_rd1` was feasible even at 0.80γ\*, with cuADMM's pinf identical to three digits at all
 four γ, and concluded that the objective form's γ\* was not the relaxation's true optimum.
@@ -358,14 +375,17 @@ would need a far larger budget — at 34.5 ms/iter, 50,000 iterations is 29 min 
 
 1. **Use bisection by default on the objective classes.** The objective form is gap-limited
    for cuADMM and returns numerr = 2 (and in four cases a useless gamma: 8251.9, 15433, 18396,
-   `Inf`) under Mosek. The feasibility form is well-posed and, where it decides, both solvers
-   agree.
+   `Inf`) under Mosek. The feasibility form is well-posed. *Corrected 2026-09-26:* the
+   earlier "where it decides, both solvers agree" is false. The cuADMM verdicts came from
+   the pinf rule, which disagrees with Mosek on two 1-D H∞ rungs (see above).
 2. **Report the per-step cost, and the step count separately.** They scale differently: the
    step count is set by the bisection tolerance, the per-step cost by m.
 3. **Two classes are not decidable by either solver as posed** — the Hinf and H2 estimators,
    where Mosek returns UNKNOWN at every gamma. That is a property of those programs, not of
    the method, and it needs diagnosis before either solver is judged on them.
-4. **A fixed-iteration threshold is not a portable decision rule.** It was validated at
-   m ~ 270 and refuted at m = 14,006 by a control that used a known analytic answer. Any
+4. **A fixed-iteration threshold is not a portable decision rule.** It held on `h2c_rd1`
+   (m = 273) and was refuted at m = 14,006 by a control that used a known analytic answer.
+   *Corrected 2026-09-26:* it also fails on 1-D H∞ at m = 243 and 268 (see above), so it
+   was never validated beyond the one case it was fitted to. Any
    cuADMM-driven bisection needs a stagnation test, not a budget — and needs a control of this
    kind on each new problem size before its verdicts are trusted.

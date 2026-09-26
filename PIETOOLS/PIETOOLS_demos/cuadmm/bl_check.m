@@ -27,6 +27,12 @@ function R = bl_check(suite,mode)
 %   ERR     did not build or solve
 %   NEW     no banked expectation (run with 'bank' to record one)
 % A suite of mode 'runs' checks only that each case builds and solves.
+%
+% CC, 09/26/2026: 'sentinel_trivial' now means rel_b == 1 (the X=0 residual),
+%   not rel_b > 0.5, which had mislabelled stab2_rd (rel_b 2.08, Mosek failing,
+%   ||x|| = 0.028) as a trivial-point return. The verdict logic treats both
+%   sentinel labels alike, so no verdict changes; the label is what a reader
+%   uses to tell "no certificate" from "a bad one".
 
 if nargin < 2, mode = 'check'; end
 cuadmm_path;
@@ -136,7 +142,15 @@ end
 
 function bank(fn,id,m,Kf,Ks,nz,rb,kind)
 st = 'pass';
-if rb > 0.5, st = 'sentinel_trivial'; elseif rb > 1e-4, st = 'sentinel_poor'; end
+% Trivial = the X=0 residual, rel_b EXACTLY 1 -- the same test bl_run records.
+% rel_b > 1 is a solver returning a point worse than zero (stab2_rd, 2.08), not X=0.
+%if rb > 0.5, st = 'sentinel_trivial';                                      % CC, 09/26/2026 (was)
+%elseif rb > 1e-4, st = 'sentinel_poor'; end                                % CC, 09/26/2026 (was)
+if abs(rb-1) <= 1e-6                                                        % CC, 09/26/2026
+    st = 'sentinel_trivial';                                                % CC, 09/26/2026
+elseif rb > 1e-4                                                            % CC, 09/26/2026
+    st = 'sentinel_poor';                                                   % CC, 09/26/2026
+end                                                                         % CC, 09/26/2026
 fid = fopen(fn,'a');
 fprintf(fid,'%s\t%d\t%d\t%s\t%d\t%.6g\t%s\t%s\t%s\n',id,m,Kf,Ks,nz,rb,'NaN',kind,st);
 fclose(fid);

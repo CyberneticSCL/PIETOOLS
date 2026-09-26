@@ -24,7 +24,7 @@ wellposed_rd1	108	0	[10 10 15 15 6 6]	2148	8.74222e-08	0	feas	pass
 nl_fisher_opt	5093	1	[5 50 50 40 456 380]	1.80334e+06	5.108e-06	0	obj	pass
 nl_fisher_gamfix	5093	0	[5 50 50 40 456 380]	1.80334e+06	5.14548e-06	0	feas	pass
 nl_fisher_nobnd	4978	0	[5 50 456 380]	1.79684e+06	3.43612e-05	0	feas	pass
-stab2_rd	3456	0	[8 424]	557492	2.08158	2	feas	sentinel_trivial
+stab2_rd	3456	0	[8 424]	557492	2.08158	2	feas	sentinel_poor
 stab2dual_rd	3456	0	[8 424]	557492	0.00843163	2	feas	sentinel_poor
 hinf2_rd	14005	1	[8 869]	2.25462e+06	0.000136177	2	obj	sentinel_poor
 hinf2nc_rd	16949	42	[8 1229]	3.1345e+06	0.00015363	2	obj	sentinel_poor

@@ -1,6 +1,6 @@
 # Test suites: what to run after a change
 
-The full registry is ~40 cases and hours with the 2-D and scaling rows. These eight lists are
+The full registry is ~35 cases and hours with the 2-D and scaling rows. These eight lists are
 cut by **the question each one answers**, so a change is checked by the lists whose question it
 can break. Lists overlap on purpose — a case belongs to every question it answers.
 
@@ -8,6 +8,13 @@ can break. Lists overlap on purpose — a case belongs to every question it answ
 bl_check('smoke')             % run one list against the banked expectations
 bl_check('twod','bank')       % run it and record expectations for cases not yet banked
 ```
+
+**H2 is dropped from the testing regime (2026-09-26, maintainer decision).** That's seven cases:
+four H2-norm, the H2 estimator and controller, and 2-D H2. They're commented out of
+`bl_cases.m` and removed from every list below. Their rows stay in `bl_expect.tsv` and
+`results/2026-09-24`, so uncommenting restores them. The drop took out the suite's only
+trivial-point sentinels (`h2cco_rd1`, `h2_2dc_rd`: rel_b = 1 with a clean status). The times
+below were re-summed from the measured per-case times, not re-run.
 
 Cost is set by what gets *solved*, not by how many cases there are: every 1-D case solves in
 4–115 ms, so a 1-D list costs ~45 s of MATLAB startup plus 1–3 s of PDE→PIE conversion per case.
@@ -17,16 +24,17 @@ Cost is set by what gets *solved*, not by how many cases there are: every 1-D ca
 | list | question | cases | case time | with startup |
 |---|---|---|---|---|
 | `smoke` | Is the pipeline alive? | 4 | **13 s** measured | ~1 min |
-| `structure` | Did a core change alter any assembled program? | 22 | **53 s** measured | ~1.5 min |
-| `executives` | Does every executive family still run? | 9 | ~22 s | ~1 min |
-| `known_fail` | Did a change fix, or silently move, a known failure? | 4 | ~6 s | ~1 min |
+| `structure` | Did a core change alter any assembled program? | 16 | ~39 s | ~1.5 min |
+| `executives` | Does every executive family still run? | 7 | ~19 s | ~1 min |
+| `known_fail` | Did a change fix, or silently move, a known failure? | 2 | ~3 s | ~1 min |
 | `nonlinear` | Is the PIESOS path intact? | 3 | ~4 min | ~5 min |
 | `twod` | 2-D assembly and the psatz generators | 4 | ~4 min | ~5 min |
-| `objective2d` | The expensive 2-D objective executives | 4 | ~27 min | ~28 min |
+| `objective2d` | The expensive 2-D objective executives | 3 | ~26 min | ~27 min |
 | `scaling` | Solver comparison and size questions only | 4 | ~2.7 min | ~3.5 min |
 
-"Case time" is the sum of per-case wall times. It is measured for `smoke` and `structure`
-(`results/2026-09-24/check_*.tsv`) and summed from the baseline for the rest. "With startup"
+"Case time" is the sum of per-case wall times. For `smoke` it's a measured list run. For
+`structure` it's the sum of that list's measured per-case times
+(`results/2026-09-24/check_*.tsv`). The rest are summed from the baseline. "With startup"
 adds ~45 s of MATLAB start and path setup. **`objective2d` exceeds the 20-minute limit for runs
 on the shared workstation while its owner is online; schedule it for after 4:30 AM.**
 
@@ -36,18 +44,16 @@ variables present (`stab_rd1`, K.f=43), none at all (`stabpde_rd1`, K.f=0), an o
 with an O(1) right-hand side (`wellposed_rd1`, ‖b‖=17.7, where every other feasibility case sits
 at `eppos2` ≈ 1e-6).
 
-**`structure`** — all 22 1-D executive cases, compared *exactly* on m, K.f, block list and
+**`structure`** — all 16 1-D executive cases, compared *exactly* on m, K.f, block list and
 nnz(At). None of those depends on solver behaviour, so any difference means the assembled
 program changed. This is the list that cleared the `lpi_eq` fix: 22/22 identical, including
-nnz(At).
+nnz(At), when it still held the six 1-D H2 cases.
 
 **`executives`** — one case per executive family (Q-form and direct stability, H∞ primal and
-dual, H2 in both gramians, estimator, controller, well-posedness). Only checks that each builds
-and solves.
+dual, estimator, controller, well-posedness). Only checks that each builds and solves.
 
 **`known_fail`** — the 1-D cases whose *current* behaviour is a documented failure, so the
-expected result *is* the failure: `h2cco_rd1` (rel_b = 1.000 with numerr = 0, which the status
-word does not catch), `hinfduco_rd1` (γ = 8251.9), and the two controllers (rel_b ~1e-3,
+expected result *is* the failure: `hinfduco_rd1` (γ = 8251.9) and `ctrl_rd1` (rel_b ~1e-3,
 ‖x‖ ~ 7e7). A change that repairs one of these is news. So is one that moves it without
 repairing it — and a pass/fail suite that reports only passing cases can see neither.
 
