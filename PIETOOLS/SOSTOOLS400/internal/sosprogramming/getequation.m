@@ -60,12 +60,31 @@ function [At,b,Z] = getequation(symexpr,vartable,decvartable,varmat,Type)
 % 12/14/21 - DJ -- Fixed issues with symengine, missing ']', though more issues may be expected
 % 02/14/22 - DJ -- Adjustment for dpvar Mineq case
 % 02/21/22 - DJ, PS -- Bugfix for sym case
-% 09/26/26 - MMP -- dpvar with ONE matrix row: skip the mat2cell/cell2mat
-%                   reordering, which is then the identity. It split C into
-%                   one sparse cell per column block: 16.2 of 27.6 s of a 2-D
-%                   container assembly (lpi_eq_sdopvar passes each cell's
-%                   constraints as a 1 x n_eff dpvar, n_eff in the thousands,
-%                   q = 1.8e5). Same C_reshape, bit for bit.
+% 09/26/26 - MMP -- dpvar branch: two changes that remove costs growing with
+%                   the size of the program rather than of the constraint.
+%                   The equations produced are identical (At, b, Z bit for
+%                   bit on every program tested).
+%   (1) Expression with ONE matrix row (1 x n): skip the mat2cell/cell2mat
+%       reordering of the coefficients to [C11,...,Cm1,C12,...], which is the
+%       identity when m = 1. It split C into n sparse cells, one per column
+%       block, and concatenated them again, so a long row of scalar equalities
+%       - e.g. the coefficient-matching conditions of a large matrix or
+%       polynomial identity passed to soseq as a 1 x n expression - paid
+%       O(n) sparse extractions for no effect. Measured: n in the thousands,
+%       1.8e5 program decision variables, 16 s -> 0 per program.
+%   (2) Locate the expression's decision variables in the program's table by
+%       one pass of the table against the expression's names, instead of
+%       looking the names up in char(decvartable). The char table made
+%       ismember convert it back to a cellstr (cellstr + deblank of every
+%       row) on every soseq/sosineq call, so each dpvar constraint cost
+%       O(N) in the TOTAL number N of decision variables in the program,
+%       however few it involves; large programs with many constraints paid it
+%       again and again. Measured with N = 7.6e5: 5.2 -> 1.4 s over 5
+%       constraints, peak memory 108 -> 17 MB. The indices equal the old
+%       lookup's whenever names carry no trailing blanks, which holds for
+%       every name SOSTOOLS generates (cellstr, int2str/fastint2str); a table
+%       that is not a cellstr, or a name missing from it or repeated in the
+%       expression, takes the plain ismember route.
 
 
 if isa(symexpr,'dpvar')  
@@ -74,7 +93,7 @@ if isa(symexpr,'dpvar')
     n_dvars_prog = numel(decvartable);
     n_vars_prog = numel(vartable);
     cvartable_prog = char(vartable);
-    cdvartable_prog = char(decvartable);
+%   cdvartable_prog = char(decvartable);                                    % MMP, 09/26/2026 (was)
     dvarname = symexpr.dvarname;
 %     if isempty(dvarname)
 %         error(['Direct constraints on independent variables are not supported.',...
@@ -152,7 +171,27 @@ if isa(symexpr,'dpvar')
     Z(:,idx) = degmat_big2;
 
     % synchronize dpvars to SOS program decvartable
-    [~,idx]=ismember(dvarname,cdvartable_prog); % also slow??
+%   [~,idx]=ismember(dvarname,cdvartable_prog); % also slow??               % MMP, 09/26/2026 (was)
+    % Match against the cellstr itself: a char table makes ismember rebuild % MMP, 09/26/2026
+    % the cellstr (cellstr + deblank of every table row) on every call.     % MMP, 09/26/2026
+    if iscellstr(decvartable) && iscellstr(dvarname)                        % MMP, 09/26/2026
+%       [~,idx]=ismember(dvarname,decvartable);                             % MMP, 09/26/2026 (was)
+        % Scan the table once against the expression's names, which combine % MMP, 09/26/2026
+        % has made few and distinct: ismember(dvarname,decvartable) costs   % MMP, 09/26/2026
+        % ~0.5 s with 7.6e5 program variables even for a few hundred names, % MMP, 09/26/2026
+        % this ~0.04 s.                                                     % MMP, 09/26/2026
+        % idx(i) = lowest table row holding dvarname{i}, as in ismember.    % MMP, 09/26/2026
+        [tf,loc] = ismember(decvartable(:),dvarname);                       % MMP, 09/26/2026
+        idx = accumarray(loc(tf),find(tf),[numel(dvarname),1],@min,0);      % MMP, 09/26/2026
+        if ~all(idx)                                                        % MMP, 09/26/2026
+            % A name absent from the table, or repeated in dvarname         % MMP, 09/26/2026
+            % (only its first copy is matched above): use ismember.         % MMP, 09/26/2026
+            [~,idx]=ismember(dvarname,decvartable);                         % MMP, 09/26/2026
+        end                                                                 % MMP, 09/26/2026
+        idx = reshape(idx,size(dvarname));                                  % MMP, 09/26/2026
+    else                                                                    % MMP, 09/26/2026
+        [~,idx]=ismember(dvarname,char(decvartable));                       % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
     if ~isempty(find(~idx,1))
         error('The given expression has a decision variable which does not appear in the sosprogram')
     end
