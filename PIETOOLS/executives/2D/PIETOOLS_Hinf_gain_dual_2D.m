@@ -47,6 +47,15 @@ function [prog, Pop, gam, solve_val] = PIETOOLS_Hinf_gain_dual_2D(PIE, settings,
 %
 % DJ - 02/21/2022: Initial coding;
 % DJ - 10/20/2024: Update to use new LPI programming structure;
+% MMP - 09/26/2026: KYP blocks (1,3) and (3,1) now (C*P)*T' and T*(C*P)',
+%                   were (C*P)*T and T'*(C*P)'. The dual storage function
+%                   <T'v, P*T'v> puts Q = P*T' in every block (manual eq.
+%                   13.12; the (3,3) block already had it). The old blocks
+%                   certified gamma below the true gain whenever T ~= T':
+%                   measured 0.1839 for exact gain e^-1 = 0.3679 (2-D
+%                   damped transport), now infeasible there. Plants with
+%                   T = T' are unaffected. The commented-out epneg branch
+%                   carries the same slip; fix it if it is re-enabled.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -191,9 +200,13 @@ Izop = mat2opvar(eye(size(Cop,1)), Cop.dim(:,1), PIE.vars, PIE.dom);
 
 % Assemble the KYP operator
 %if epneg==0
-Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top),...
+% Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top),...
+%                      horzcat_legacy(Dop', -gam*Iwop, Bop'),...
+%                      horzcat_legacy(Top'*(Cop*Pop)', Bop, Top*(Aop*Pop)'+(Aop*Pop)*Top')); % MMP, 09/26/2026 (was)
+% Off-diagonal blocks C*Q and Q'*C' with Q = P*T', as in (3,3) (eq. 13.12). % MMP, 09/26/2026
+Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top'),...
                      horzcat_legacy(Dop', -gam*Iwop, Bop'),...
-                     horzcat_legacy(Top'*(Cop*Pop)', Bop, Top*(Aop*Pop)'+(Aop*Pop)*Top'));
+                     horzcat_legacy(Top*(Cop*Pop)', Bop, Top*(Aop*Pop)'+(Aop*Pop)*Top')); % MMP, 09/26/2026
 % else
 %     % Ensure strict negativity
 %     Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top),...
