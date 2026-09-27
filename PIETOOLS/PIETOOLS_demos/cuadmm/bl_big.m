@@ -1,4 +1,12 @@
+function bl_big(ns,frac)                                                    % CC, 09/27/2026
 % bl_big.m -- the rungs Mosek cannot reach.
+%
+% CC, 09/27/2026: now a function, bl_big(ns,frac); bl_big with no arguments is
+%   the old script exactly (n = 24, 32 at lambda = 0.5 pi^2).  frac ~= 0.5
+%   builds lambda = frac*pi^2 as scale_sent_f<frac>_n<n>: at frac = 1.01 every
+%   decoupled copy is unstable (lambda* = pi^2, Dirichlet on [0,1]), so the LPI
+%   is infeasible by theory at any n -- a soundness sentinel for sizes where no
+%   reference solver runs (Sol has no Mosek).  Built without solving, as before.
 %
 % Unlocked by the lpi_eq fix (nnz instead of ~all(all(C.C==0))): before it, the
 % n=32 program could not even be BUILT -- construction requested a 9613344x1536
@@ -18,15 +26,22 @@ if ~exist(TSV,'file')
     fprintf(fid,'id\tn\tstatus\tm\tKf\tKs\tnnzAt\tnvar\tvec_len\tt_build\tt_dump\tschur_GB\tnote\n');
     fclose(fid);
 end
-for n = [24 32]
-    id = sprintf('scale_stab_n%02d',n);
+if nargin < 1 || isempty(ns),   ns = [24 32]; end                           % CC, 09/27/2026
+if nargin < 2 || isempty(frac), frac = 0.5;   end                           % CC, 09/27/2026
+%for n = [24 32]                                                            % CC, 09/27/2026 (was)
+for n = ns                                                                  % CC, 09/27/2026
+%   id = sprintf('scale_stab_n%02d',n);                                     % CC, 09/27/2026 (was)
+    id = sprintf('scale_stab_n%02d',n);                                     % CC, 09/27/2026
+    if frac ~= 0.5, id = strrep(sprintf('scale_sent_f%.2f_n%02d',frac,n),'.','p'); end % CC, 09/27/2026
     st_s=''; note=''; m=NaN; Kf=NaN; Ks=''; nz=NaN; nv=NaN; vl=NaN; tb=NaN; td=NaN; sg=NaN;
     try
         clear stateNameGenerator
         pvar s t
         x = pde_var(n,s,[0,1]);
-        PIE = initialize(convert([diff(x,t,1)==diff(x,s,2)+0.5*pi^2*x; ...
-                                  subs(x,s,0)==0; subs(x,s,1)==0]));
+%       PIE = initialize(convert([diff(x,t,1)==diff(x,s,2)+0.5*pi^2*x; ...
+%                                 subs(x,s,0)==0; subs(x,s,1)==0]));        % CC, 09/27/2026 (was)
+        PIE = initialize(convert([diff(x,t,1)==diff(x,s,2)+frac*pi^2*x; ...
+                                  subs(x,s,0)==0; subs(x,s,1)==0]));        % CC, 09/27/2026
         stg = lpisettings('heavy');
         stg.sos_opts.solver='mosek'; stg.sos_opts.simplify=false;
         t0=tic; evalc('out = stab_mirror(PIE,stg);'); tb=toc(t0);
@@ -58,6 +73,7 @@ for n = [24 32]
         id,st_s,n,num2str(m),num2str(nv),num2str(tb),num2str(td),sg,note);
 end
 fprintf('BIGDONE\n');
+end                                  % CC, 09/27/2026: closes the function (was a script)
 
 function RR = mkRR(prog)
 RR = speye(prog.var.idx{1}-1);

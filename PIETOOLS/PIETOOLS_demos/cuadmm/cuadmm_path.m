@@ -37,6 +37,10 @@ function cuadmm_path(mode)                                                  % CC
 % EDIT THESE for your machine. Missing folders are skipped.
 SEDUMI = 'C:\Users\mpeet\ASU Dropbox\Matthew Peet\Codes\setup_nonlinear_Matlab\SeDuMi_1_3';
 MOSEK  = 'C:\Program Files\Mosek\11.0\toolbox\r2019b';
+% CC, 09/27/2026: CUADMM_SEDUMI / CUADMM_MOSEK override them (Sol: SeDuMi is
+% shipped to /scratch/mpeet/pietools/solvers/SeDuMi_1_3; there is no Mosek).
+if ~isempty(getenv('CUADMM_SEDUMI')), SEDUMI = getenv('CUADMM_SEDUMI'); end   % CC, 09/27/2026
+if ~isempty(getenv('CUADMM_MOSEK')),  MOSEK  = getenv('CUADMM_MOSEK');  end   % CC, 09/27/2026
 % ---------------------------------------------------------------------------
 
 ROOT = fileparts(fileparts(fileparts(mfilename('fullpath'))));

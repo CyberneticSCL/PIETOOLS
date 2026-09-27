@@ -40,6 +40,10 @@ HERE = fileparts(mfilename('fullpath'));
 EXP  = fullfile(HERE,'bl_expect.tsv');     % banked expectations: a package INPUT, kept in the repo
 OUT  = fullfile(cuadmm_outdir(),'baseline',sprintf('check_%s.tsv',suite));
 S = bl_suites(suite);
+if strcmp(S.check,'cuadmm')                                                 % CC, 09/27/2026
+    error('bl_check:cuadmm',['suite %s is a cuADMM / Sol list (bl_regime, sol_harness.slurm); ' ...
+          'bl_check would build it through Mosek (scale_stab_n24/n32: 45/142 GB)'],suite); % CC, 09/27/2026
+end                                                                         % CC, 09/27/2026
 C = bl_cases();  cid = {C.id};
 E = readexp(EXP);
 

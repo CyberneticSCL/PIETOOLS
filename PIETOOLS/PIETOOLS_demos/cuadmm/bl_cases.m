@@ -42,6 +42,12 @@ L{end+1} = add('stab_rd1_hv',   'stability','1D','feas', 'bl_b_stab1', {'rd',  0
 L{end+1} = add('stab_rd1_tight','stability','1D','feas', 'bl_b_stab1', {'rd',  0.95,'heavy','PIE2PDEstability'});
 L{end+1} = add('stab_tr1',      'stability','1D','feas', 'bl_b_stab1', {'tr',  0.5,'light','PIE2PDEstability'});
 L{end+1} = add('stab_wave1',    'stability','1D','feas', 'bl_b_stab1', {'wave',0.5,'light','PIE2PDEstability'});
+% CC, 09/27/2026: registered sentinel, built until now only inside bl_regime B2S
+% (same id and builder).  lambda = 1.01 lambda*: the PDE has an unstable mode, so
+% the LPI is infeasible by theorem; Mosek returns PRIMAL_INFEASIBLE with a
+% verified Farkas vector and rel_b = 1 (so it is also the trivial-point
+% sentinel lost with H2).  The negative control that needs no Mosek on Sol.
+L{end+1} = add('sent101_f1p010000','sentinel','1D','feas','bl_b_stab1', {'rd',  1.01,'heavy','PIE2PDEstability'}); % CC, 09/27/2026
 
 % ---- 1-D Hinf gain: primal/dual x coercive/non-coercive is the full 2x2.
 L{end+1} = add('hinf_rd1',      'hinf','1D','obj', 'bl_b_io1', {'Hinf_gain',              'light'});

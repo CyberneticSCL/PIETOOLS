@@ -265,7 +265,10 @@ S.cuadmm.bisect = struct( ...
     'pinf_norm',   '2', ...            % CC, 09/27/2026: 'inf' = cuADMM stops on the worst row (rebuilt exe)
     'face',        false, ...          % CC, 09/27/2026: repair on the face found by bl_face
     'cert_rule',   'psd_clip', ...     % CC, 09/27/2026: F iff eta of the clipped (PSD) point <= psd_eta_tol; 'eta_psd' = old two-number rule
-    'psd_eta_tol', 1e-7);              % CC, 09/27/2026: calibrated on 120 regime iterates (bl_bisect header)
+    'psd_eta_tol', 1e-7, ...           % CC, 09/27/2026: calibrated on 120 regime iterates (bl_bisect header)
+    'launcher',    'auto', ...         % CC, 09/27/2026: 'wsl' (workstation) | 'linux' (Sol) | 'auto' by platform
+    'require_full_gpu', false, ...     % CC, 09/27/2026: error on a MIG slice (set true for timed Sol runs)
+    'keep_x',      true);              % CC, 09/27/2026: keep Mosek/SeDuMi points too, for offline re-certification
 % CC, 09/26/2026 (end)
 
 S.tier = tier;   S.tier_base = base;   S.tier_Dup = Dup;   S.dim = dim;

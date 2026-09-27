@@ -132,6 +132,20 @@ function R = bl_bisect(dumpfile,opts)                                        % C
 %   of ~4e-9.  Supersedes the eta_tol/psd_tol decision above (still available
 %   as cert_rule 'eta_psd').  Calibration in certify_primal.  run_NNN_Frep
 %   holds the point the rule judged (the clipped one under psd_clip).
+% CC, 09/27/2026 (c): readiness for Sol (Linux, no Mosek, fairshare-billed).
+%   opts.launcher 'auto' runs cuadmm_exe through WSL on Windows (unchanged
+%   command) and directly on Linux, where the job script must load gcc/13.4.0
+%   and CUDA (the Sol build needs GLIBCXX_3.4.32 at run time).  env.txt in the
+%   run folder records host, binary + kernel-library sha256, nvidia-smi -L and
+%   the Slurm job, so a desktop/Sol comparison compares like with like;
+%   opts.require_full_gpu errors on a MIG slice (~2x slower, and nvidia-smi
+%   names the physical A100 either way).  Each probe row adds t_init (cuADMM
+%   setup: text parse + factorisation, host work), t_cert (MATLAB certification,
+%   during which the billed GPU idles) and mem_mb (Linux: peak RSS; Windows:
+%   current MATLAB use).  opts.keep_x keeps Mosek/SeDuMi points as
+%   run_NNN_X.txt / run_NNN_y.txt too, so any verdict can be re-certified
+%   offline (the SeDuMi calibration points had to be re-solved).  pinf_norm
+%   'inf' now errors on a binary without the patch (it would ignore argv[10]).
 
 if nargin < 2, opts = struct(); end
 cuadmm_path;
@@ -195,6 +209,13 @@ end
 
 R.id = tag;  R.solver = P.solver;  R.mode = P.mode;  R.flags = {};  R.t_solver = 0;
 R.iters = 0;  R.spi = 5e-3;  R.stopped = '';
+R.env = struct();                                                           % CC, 09/27/2026 (c)
+if strcmp(P.solver,'cuadmm')                                                % CC, 09/27/2026 (c)
+    R.env = envrec(P,C.dir);                   % binary, GPU, host: env.txt   % CC, 09/27/2026 (c)
+    if P.require_full_gpu && R.env.mig                                      % CC, 09/27/2026 (c)
+        error('bl_bisect:mig','MIG slice (%s): timings would be ~2x slow; request --gres=gpu:a100:1',C.dir); % CC, 09/27/2026 (c)
+    end                                                                     % CC, 09/27/2026 (c)
+end                                                                         % CC, 09/27/2026 (c)
 R.probes = repmat(newpr(),0,1);
 fid = fopen(C.live,'w');  fprintf(fid,'%s\n',strjoin(fieldnames(newpr())',sprintf('\t')));  fclose(fid);
 cert = struct('F',inf,'I',P.lo);             % gamma_F, gamma_I
@@ -294,8 +315,11 @@ case 'cuadmm'
     ext = '';  if strcmp(P.pinf_norm,'inf'), ext = ' 0 100 2 500 1'; end
 %   cmd = sprintf(['wsl -e bash -c "LD_LIBRARY_PATH=/usr/lib/wsl/lib %s''%s'' ''%s/'' ' ...
 %                  '%.6g %d 15 1 > ''%s'' 2>&1"'],pre,P.exe,wslpath(C.dir),tol,cap,wslpath(lg)); % CC, 09/27/2026 (was)
-    cmd = sprintf(['wsl -e bash -c "LD_LIBRARY_PATH=/usr/lib/wsl/lib %s''%s'' ''%s/'' ' ...
-                   '%.6g %d 15 1%s > ''%s'' 2>&1"'],pre,P.exe,wslpath(C.dir),tol,cap,ext,wslpath(lg)); % CC, 09/27/2026
+%   cmd = sprintf(['wsl -e bash -c "LD_LIBRARY_PATH=/usr/lib/wsl/lib %s''%s'' ''%s/'' ' ...
+%                  '%.6g %d 15 1%s > ''%s'' 2>&1"'],pre,P.exe,wslpath(C.dir),tol,cap,ext,wslpath(lg)); % CC, 09/27/2026 (c) (was)
+    % CC, 09/27/2026 (c): same command, wrapped per platform (shellcmd)
+    cmd = shellcmd(P,sprintf('%s''%s'' ''%s/'' %.6g %d 15 1%s > ''%s'' 2>&1', ...
+                   pre,P.exe,upath(P,C.dir),tol,cap,ext,upath(P,lg)));      % CC, 09/27/2026 (c)
     system(cmd);
     txt = fileread(lg);
     tm  = regexp(txt,'CUADMM_TIMING init (\S+) solve (\S+)','tokens','once');
@@ -303,6 +327,10 @@ case 'cuadmm'
         pr.note = 'cuADMM: no CUADMM_TIMING line (failed or timed out)';   % a timeout lands here too
         return
     end
+    if strcmp(P.pinf_norm,'inf') && isempty(strfind(txt,'CUADMM_PINF_NORM'))  % CC, 09/27/2026 (c)
+        error('bl_bisect:pinfnorm','%s lacks gpu/cuadmm_pinf_inf.patch: argv[10] was ignored',P.exe); % CC, 09/27/2026 (c)
+    end                                                                     % CC, 09/27/2026 (c)
+    pr.t_init = str2double(tm{1});                                          % CC, 09/27/2026 (c)
     pr.t_s  = str2double(tm{2});
     pr.conv = ~isempty(strfind(txt,'Solver ended: converged'));
     tr = parse_trace(txt);
@@ -324,6 +352,7 @@ case 'cuadmm'
     % A certification (F) can still come out of a short run; only the lean is voided.
     if ~(pr.iters >= P.lean_kmin), pr.verdict = 'i';  pr.note = 'stopped in the start-up transient: no lean'; end
     xf_ = fullfile(C.dir,'X_opt.txt');  yf_ = fullfile(C.dir,'y_opt.txt');
+    tc = tic;                                  % certification: host time, GPU idle % CC, 09/27/2026 (c)
     if wantF || (pr.conv && pr.pinf_end <= P.try_F)
         xs = readvec(xf_);
         [ok,info] = certify_primal(C,xs,bn,g,bscl);
@@ -336,6 +365,7 @@ case 'cuadmm'
         pr.I_beta = info.beta;  pr.I_eps = info.eps;
         if ok, pr.verdict = 'I'; end
     end
+    pr.t_cert = toc(tc);  pr.mem_mb = memmb();                              % CC, 09/27/2026 (c)
     % keep this run's certificate candidates for offline re-analysis
     kx = fullfile(C.dir,sprintf('run_%03d_X.txt',n));  ky = fullfile(C.dir,sprintf('run_%03d_y.txt',n));
     if exist(xf_,'file'), movefile(xf_,kx); end
@@ -345,16 +375,20 @@ case 'mosek'
     [~,res] = mosekopt('minimize info echo(0)',prob);
     pr.t_s  = res.info.MSK_DINF_OPTIMIZER_TIME;
     pro = res.sol.itr.prosta;  pr.note = pro;
+    tc = tic;                                                               % CC, 09/27/2026 (c)
     if ~isempty(strfind(pro,'INFEASIBLE'))
         [ok,info] = certify_farkas(C,res.sol.itr.y,bn);
         pr.I_beta = info.beta;  pr.I_eps = info.eps;
         if ok, pr.verdict = 'I'; end
+        if P.keep_x, writevec(fullfile(C.dir,sprintf('run_%03d_y.txt',n)),res.sol.itr.y); end % CC, 09/27/2026 (c)
     elseif ~isempty(strfind(pro,'FEASIBLE'))
         x  = MosekSol2SedumiSol(C.K,res);
         [ok,info] = certify_primal(C,C.T*x(:),bn,g,bscl);
         pr = putF(pr,info);
         pr.verdict = 'f';  if ok, pr.verdict = 'F'; end
+        if P.keep_x, writevec(fullfile(C.dir,sprintf('run_%03d_X.txt',n)),C.T*x(:)); end % CC, 09/27/2026 (c)
     end
+    pr.t_cert = toc(tc);  pr.mem_mb = memmb();                              % CC, 09/27/2026 (c)
 case 'file'                                                                 % CC, 09/27/2026
     % re-certify a kept iterate (run_NNN_X.txt, svec, the same pinned/feas
     % program) without solving: only the verifier runs
@@ -367,6 +401,7 @@ case 'sedumi'
     [x,y,info] = sedumi(C.At2',bn,sparse(C.nvar,1),C.K,struct('fid',0));
     pr.t_s = toc(t1);
     pr.note = sprintf('sedumi pinf=%d dinf=%d numerr=%d',info.pinf,info.dinf,info.numerr);
+    tc = tic;                                                               % CC, 09/27/2026 (c)
     if info.pinf == 1
         [ok,inf2] = certify_farkas(C,y,bn);
         pr.I_beta = inf2.beta;  pr.I_eps = inf2.eps;
@@ -376,6 +411,11 @@ case 'sedumi'
         pr = putF(pr,inf2);
         pr.verdict = 'f';  if ok, pr.verdict = 'F'; end
     end
+    pr.t_cert = toc(tc);  pr.mem_mb = memmb();                              % CC, 09/27/2026 (c)
+    if P.keep_x                                                             % CC, 09/27/2026 (c)
+        writevec(fullfile(C.dir,sprintf('run_%03d_X.txt',n)),C.T*x(:));     % CC, 09/27/2026 (c)
+        writevec(fullfile(C.dir,sprintf('run_%03d_y.txt',n)),y);            % CC, 09/27/2026 (c)
+    end                                                                     % CC, 09/27/2026 (c)
 otherwise
     error('bl_bisect:solver','unknown solver %s',P.solver);
 end
@@ -651,6 +691,7 @@ pr = struct('phase','','gam',NaN,'tau',NaN,'cap',NaN,'iters',NaN,'t_s',NaN, ...
     'F_lmin',NaN,'F_res',NaN,'F_unpin',NaN,'F_lmax',NaN,'F_labs',NaN,'F_normx',NaN, ...
     'F_eta',NaN,'F_etaraw',NaN,'F_strict',NaN, ...                          % CC, 09/27/2026
     'F_etapsd',NaN, ...                        % eta of the clipped PSD point % CC, 09/27/2026 (b)
+    't_init',NaN,'t_cert',NaN,'mem_mb',NaN, ...  % phase costs, to size Sol jobs % CC, 09/27/2026 (c)
     'I_beta',NaN,'I_eps',NaN,'slope',NaN,'aitken',NaN,'note','');
 end
 
@@ -727,3 +768,60 @@ function p = wslpath(p)
 p = strrep(p,'\','/');
 if numel(p) >= 2 && p(2) == ':', p = ['/mnt/' lower(p(1)) p(3:end)]; end
 end
+
+
+% CC, 09/27/2026 (c) (start): platform launch for Sol (header log (c)).
+function L = launcher(P)
+% 'auto': WSL on Windows (the workstation), direct on Linux (Sol)
+L = P.launcher;  if strcmp(L,'auto'), if ispc, L = 'wsl'; else, L = 'linux'; end, end
+end
+
+function c = shellcmd(P,core)
+% wsl: the WSL driver's libcuda must shadow the distro's stale one
+% (cuadmm-wsl-instrument-defects); linux: the job script loads the modules
+switch launcher(P)
+    case 'wsl',   c = sprintf('wsl -e bash -c "LD_LIBRARY_PATH=/usr/lib/wsl/lib %s"',core);
+    case 'linux', c = core;
+    otherwise,    error('bl_bisect:launcher','unknown launcher %s',P.launcher);
+end
+end
+
+function p = upath(P,p)
+if strcmp(launcher(P),'wsl'), p = wslpath(p); end
+end
+
+function E = envrec(P,dir)
+% what a timing or a verdict depends on, once per run (env.txt): host, the
+% exe and its kernel libraries (sha256), the GPU as the job sees it, Slurm
+[pd,~] = fileparts(P.exe);
+sh = sprintf(['hostname; sha256sum ''%s'' ''%s/libcuadmm_lib.so'' ''%s/psd_projection/libpsd_lib.so'' 2>&1; ' ...
+              'nvidia-smi -L 2>&1; nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader 2>&1; ' ...
+              'echo SLURM_JOB_ID=${SLURM_JOB_ID:-} CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-}'], ...
+             upath(P,P.exe),upath(P,pd),upath(P,pd));
+[~,out] = system(shellcmd(P,sh));
+% a MIG slice lists as 'MIG ...' under the physical GPU in nvidia-smi -L
+E = struct('text',out,'mig',~isempty(strfind(out,'MIG')),'matlab',version, ...
+           'arch',computer,'when',datestr(now,31));
+if ~exist(dir,'dir'), mkdir(dir); end
+fid = fopen(fullfile(dir,'env.txt'),'w');
+fprintf(fid,'%s\nMATLAB %s %s\nexe %s\n%s',E.when,E.matlab,E.arch,P.exe,out);  fclose(fid);
+end
+
+function mb = memmb()
+% MATLAB memory in MB: Linux peak RSS (VmHWM), Windows current use
+mb = NaN;
+try
+    if ispc
+        m = memory;  mb = m.MemUsedMATLAB/2^20;
+    else
+        t = fileread('/proc/self/status');  v = regexp(t,'VmHWM:\s+(\d+)','tokens','once');
+        mb = str2double(v{1})/1024;
+    end
+catch
+end
+end
+
+function writevec(fn,v)
+fid = fopen(fn,'w');  fprintf(fid,'%.17g\n',full(v(:)));  fclose(fid);
+end
+% CC, 09/27/2026 (c) (end)

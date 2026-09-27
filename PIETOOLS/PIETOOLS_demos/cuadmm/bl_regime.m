@@ -28,6 +28,25 @@ function bl_regime(block)                                                   % CC
 %   B3c  cuADMM bisection on nl_fisher_opt, only if B3a certified.
 %   B5   2-D stability with the four linear psatz generators: Mosek and cuADMM.
 %   B4   scale_hinf n02/n04/n08: Mosek bisection and cuADMM ms/iteration only.
+% CC, 09/27/2026: Sol-readiness blocks (night 1 of the 09-27 plan; Sol has no
+%   Mosek, so verdicts at size must be checked where the answer is known):
+%   N1   the driver itself: resume skips a done item, the deadline and STOP
+%        refuse to start one, bl_bisect's STOP check fires before any solver
+%        call.  Results in regime/N1_checks.txt; any FAIL -> DRIVER_TRIP.
+%   N2b  infeasible seeds: hi at 0.99/0.999 x Mosek's certified gamma_I, no
+%        doubling, SeDuMi and cuADMM.  The first certification has no
+%        norm_ratio reference, so this is the unguarded case.  F -> SOUNDNESS_TRIP.
+%   S1   scale ladder: scale_stab n08/16/24/32 at 0.5 lambda* (feasible by
+%        construction) and 1.01 lambda* sentinels at n16/24/32 (infeasible by
+%        theory), cuADMM under the default rule.  Readouts: verdicts, iterations
+%        to certificate, ms/it, t_init, t_cert, memory vs m, to price Sol jobs.
+%        Decoupled copies: iteration counts are expected n-invariant (519 / 4023
+%        to 1e-4 / 1e-6 at every n on 09-24), so this measures cost per
+%        iteration and soundness at size, not convergence of a coupled problem.
+%   N4   the harness at m = 80550 (Th_n3, 2-D, 26.1M nonzeros): re-certify the
+%        kept 1e-6 cuADMM point (certification cost, and whether it passes),
+%        then one live run capped at the 1e-4 level (dump, setup, certification
+%        end to end).
 
 cuadmm_path;
 OUT = cuadmm_outdir();
@@ -47,7 +66,11 @@ fprintf('REGIME %s start %s  deadline %s\n',block,datestr(now,31),stamp(DL));
 ONE = {'hinf_rd1','hinf_rd1_hv','hinfdu_rd1','hinfco_rd1','hinfduco_rd1','ctrl_rd1','est_rd1'};
 FEAS = {'stab_rd1','stabdual_rd1','stabpde_rd1','stabpded_rd1','stab_rd1_hv', ...
         'stab_rd1_tight','stab_tr1','stab_wave1','wellposed_rd1'};
-cu = @(extra) merge(struct('solver','cuadmm','deadline',DL,'outdir',G.BO),extra);
+%cu = @(extra) merge(struct('solver','cuadmm','deadline',DL,'outdir',G.BO),extra); % CC, 09/27/2026 (was)
+% CC, 09/27/2026: CUADMM_REQUIRE_FULL_GPU=1 (set by sol/sol_harness.slurm) makes
+% every cuADMM run refuse a MIG slice
+cu = @(extra) merge(struct('solver','cuadmm','deadline',DL,'outdir',G.BO, ...
+     'require_full_gpu',strcmp(getenv('CUADMM_REQUIRE_FULL_GPU'),'1')),extra); % CC, 09/27/2026
 ms = @(extra) merge(struct('solver','mosek','deadline',DL,'outdir',G.BO),extra);
 sd = @(extra) merge(struct('solver','sedumi','deadline',DL,'outdir',G.BO),extra);
 
@@ -199,11 +222,126 @@ case 'B4'
         end
     end
 
+% CC, 09/27/2026 (start): Sol-readiness blocks (header).
+case 'N1'
+    chk = {};  ck = @(name,ok) sprintf('%s %s',passfail(ok),name);
+    item(G,'N1|ok',5,@() struct('probe',1));
+    n0 = nrows(G.MAN,'N1|ok');  item(G,'N1|ok',5,@() struct('probe',2));
+    chk{end+1} = ck('resume: a done item is not re-run',nrows(G.MAN,'N1|ok') == n0);
+    G2 = G;  G2.DL = posixtime(datetime('now')) + 30;
+    item(G2,'N1|deadline',600,@() struct('probe',3));
+    chk{end+1} = ck('deadline: an item that would overrun is refused',lastnote(G.MAN,'N1|deadline',"SKIP_DEADLINE"));
+    sf = fullfile(G.OUT,'STOP');  fid = fopen(sf,'w');  fclose(fid);
+    cl = onCleanup(@() delete_if(sf));         % never leave STOP behind
+    item(G,'N1|stop',5,@() struct('probe',4));
+    chk{end+1} = ck('STOP: the driver refuses a new item',lastnote(G.MAN,'N1|stop',"STOP file"));
+    try
+        Rs = bl_bisect(dmp(G,'stab_tr1'),cu(struct('mode','feas','probe_tol',1e-7, ...
+             'probe_cap',2000,'run_timeout',60,'stopfile',sf,'tag','N1stop')));
+        nolog = isempty(dir(fullfile(G.BO,'stab_tr1_N1stop_cuadmm','run_*.log')));
+        chk{end+1} = ck('STOP: bl_bisect makes no solver call',~isempty(Rs.stopped) && nolog);
+    catch ME
+        chk{end+1} = ck(['STOP: bl_bisect (' ME.message ')'],false);
+    end
+    delete_if(sf);
+    fid = fopen(fullfile(G.RG,'N1_checks.txt'),'w');  fprintf(fid,'%s\n',chk{:});  fclose(fid);
+    fprintf('%s\n',chk{:});
+    if any(startsWith(chk,'FAIL')), fid = fopen(fullfile(G.RG,'DRIVER_TRIP'),'w'); fprintf(fid,'%s\n',chk{:}); fclose(fid); end
+
+case 'N2b'
+    for id = {'hinf_rd1','hinfdu_rd1'}
+        Rm = getres(G,['B1a|mosek|' id{1}]);
+        if isempty(Rm) || ~(Rm.gamma_I > 0), skiprow(G,['N2b|' id{1}],'no Mosek-certified gamma_I'); continue; end
+        for fr = [0.99 0.999]
+            hi = fr*Rm.gamma_I;  t = strrep(sprintf('N2b_%g',fr),'.','p');
+            item(G,sprintf('N2b|sedumi|%s|%g',id{1},fr),60,@() bl_bisect(dmp(G,id{1}), ...
+                 sd(struct('hi',hi,'hi_doublings',0,'rtol',1e-3,'max_probes',3,'tag',t))));
+            item(G,sprintf('N2b|cuadmm|%s|%g',id{1},fr),6*60,@() bl_bisect(dmp(G,id{1}), ...
+                 cu(struct('hi',hi,'hi_doublings',0,'cert_iter',30000,'run_timeout',300, ...
+                 'max_probes',3,'tag',t))));
+            for sv = {'sedumi','cuadmm'}
+                R = getres(G,sprintf('N2b|%s|%s|%g',sv{1},id{1},fr));
+                if ~isempty(R) && R.counts.F > 0, trip(G,sprintf('%s F at %g x Mosek gamma_I of %s',sv{1},fr,id{1})); end
+            end
+        end
+    end
+
+case 'S1'
+    % worst-case caps priced from the 09-24 ms/it (contended, so conservative):
+    % n08 15, n16 21, n24 38, n32 55 ms/it
+    spi = containers.Map({8,16,24,32},{0.015,0.021,0.038,0.055});
+    cap = 30000;
+    for n = [8 16 24 32]
+        id = sprintf('scale_stab_n%02d',n);  rt = ceil(1.3*cap*spi(n)) + 120;
+        item(G,['S1|cuadmm|' id],rt + 300,@() bl_bisect(dmp(G,id),cu(struct('mode','feas', ...
+             'probe_tol',1e-7,'probe_cap',cap,'run_timeout',rt,'tag','S1'))));
+    end
+    item(G,'S1|build|sentinels',15*60,@() bigbuild([16 24 32],1.01));
+    for n = [16 24 32]
+        id = sprintf('scale_sent_f1p01_n%02d',n);  rt = ceil(1.3*cap*spi(n)) + 120;
+        item(G,['S1|cuadmm|' id],rt + 300,@() bl_bisect(dmp(G,id),cu(struct('mode','feas', ...
+             'probe_tol',1e-7,'probe_cap',cap,'run_timeout',rt,'tag','S1'))));
+        R = getres(G,['S1|cuadmm|' id]);
+        if ~isempty(R) && R.counts.F > 0, trip(G,sprintf('cuADMM F on sentinel %s (1.01 lambda*)',id)); end
+    end
+
+case 'N4'
+    xk = fullfile(G.OUT,'keep','Th_n3_X_1e-6.txt');
+    if exist(xk,'file')
+        item(G,'N4|file|Th_n3',45*60,@() bl_bisect(dmp(G,'Th_n3'),struct('mode','feas','solver','file', ...
+             'xfile',xk,'outdir',G.BO,'deadline',DL,'tag','N4f')));
+    else
+        skiprow(G,'N4|file|Th_n3',['no kept point ' xk]);
+    end
+    item(G,'N4|cuadmm|Th_n3',60*60,@() bl_bisect(dmp(G,'Th_n3'),cu(struct('mode','feas', ...
+         'probe_tol',1e-4,'probe_cap',4000,'run_timeout',35*60,'tag','N4'))));
+% CC, 09/27/2026 (end)
+
 otherwise
     error('bl_regime:block','unknown block %s',block);
 end
 fprintf('REGIMEDONE %s %s\n',block,datestr(now,31));
 end
+
+
+% CC, 09/27/2026 (start): helpers for the Sol-readiness blocks.
+function n = nrows(MAN,key)
+% manifest rows with this key (resume test: a skipped item adds none)
+n = 0;  fid = fopen(MAN,'r');  if fid < 0, return; end
+fgetl(fid);
+while true
+    l = fgetl(fid);  if ~ischar(l), break; end
+    if startsWith(l,[key sprintf('\t')]), n = n + 1; end
+end
+fclose(fid);
+end
+
+function ok = lastnote(MAN,key,pat)
+% the last row for key is a SKIP whose note contains pat
+ok = false;  fid = fopen(MAN,'r');  if fid < 0, return; end
+fgetl(fid);  last = '';
+while true
+    l = fgetl(fid);  if ~ischar(l), break; end
+    if startsWith(l,[key sprintf('\t')]), last = l; end
+end
+fclose(fid);
+ok = contains(last,sprintf('\tSKIP\t')) && contains(last,pat);
+end
+
+function delete_if(f), if exist(f,'file'), delete(f); end, end
+
+function s = passfail(ok), if ok, s = 'PASS'; else, s = 'FAIL'; end, end
+
+function trip(G,msg)
+fid = fopen(fullfile(G.RG,'SOUNDNESS_TRIP'),'a');  fprintf(fid,'%s %s\n',datestr(now,31),msg);  fclose(fid);
+fprintf('REGIME SOUNDNESS_TRIP %s\n',msg);
+end
+
+function R = bigbuild(ns,frac)
+bl_big(ns,frac);
+R = struct('built',{arrayfun(@(n) sprintf('n%02d',n),ns,'UniformOutput',false)});
+end
+% CC, 09/27/2026 (end)
 
 
 % =========================================================================
