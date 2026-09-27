@@ -85,6 +85,24 @@ function [At,b,Z] = getequation(symexpr,vartable,decvartable,varmat,Type)
 %       every name SOSTOOLS generates (cellstr, int2str/fastint2str); a table
 %       that is not a cellstr, or a name missing from it or repeated in the
 %       expression, takes the plain ismember route.
+% 09/26/26 - MMP -- Corrects the entry above, whose "identical" held on the
+%                   SOSTOOLS demos but not on two degenerate inputs that a
+%                   randomized search over sosprogram/sosdecvar/soseq/sosineq
+%                   found. Both now take the original code again:
+%   (1) A 1 x 0 expression was bypassed and gave an empty set of equations;
+%       through sosineq the solver then received a 0 x 0 psd block (SeDuMi
+%       crashed MATLAB). The original reorder rejects it with an index error.
+%       The bypass now requires n > 0.
+%   (2) A program with exactly one decision variable and a constraint not
+%       involving it (e.g. sosdecvar(prog,dpvar('g')), then
+%       sosineq(prog,x^2+1)) threw in accumarray: ismember with a 1 x 1 cell
+%       first argument returns scalar outputs. The one-pass lookup now
+%       requires at least two table entries; 0 or 1 cost nothing to look up.
+%   Both conditions are O(1). With them, 5272 intercepted calls from random
+%   programs and targeted cases match the pre-09/26/26 code exactly, except
+%   user-chosen names ending in blanks (e.g. dpvar('c ')): the old char
+%   route stripped those from the table but not from the expression, which
+%   was inconsistent; they are now matched exactly.
 
 
 if isa(symexpr,'dpvar')  
@@ -111,7 +129,10 @@ if isa(symexpr,'dpvar')
     
     
     % % Reshape coefficients as [C11,C21,...,Cm1,C12,...,Cmn]
-    if m==1                                                                 % MMP, 09/26/2026
+%   if m==1                                                                 % MMP, 09/26/2026 (was)
+    % n = 0 stays on the reorder, which errors on it as before; bypassed,   % MMP, 09/26/2026
+    % a 1 x 0 sosineq reached the solver as a 0 x 0 psd block.              % MMP, 09/26/2026
+    if m==1 && n>0                                                          % MMP, 09/26/2026
         % One row of blocks is already in that order.                       % MMP, 09/26/2026
         C_reshape = C;                                                      % MMP, 09/26/2026
     else                                                                    % MMP, 09/26/2026
@@ -174,7 +195,11 @@ if isa(symexpr,'dpvar')
 %   [~,idx]=ismember(dvarname,cdvartable_prog); % also slow??               % MMP, 09/26/2026 (was)
     % Match against the cellstr itself: a char table makes ismember rebuild % MMP, 09/26/2026
     % the cellstr (cellstr + deblank of every table row) on every call.     % MMP, 09/26/2026
-    if iscellstr(decvartable) && iscellstr(dvarname)                        % MMP, 09/26/2026
+%   if iscellstr(decvartable) && iscellstr(dvarname)                        % MMP, 09/26/2026 (was)
+    % Tables of 0 or 1 names keep the char route: on a scalar cell          % MMP, 09/26/2026
+    % ismember returns scalar tf, loc(tf) is then 0 x 0, and accumarray     % MMP, 09/26/2026
+    % throws when that one name is not in dvarname.                         % MMP, 09/26/2026
+    if iscellstr(decvartable) && iscellstr(dvarname) && numel(decvartable)>1 % MMP, 09/26/2026
 %       [~,idx]=ismember(dvarname,decvartable);                             % MMP, 09/26/2026 (was)
         % Scan the table once against the expression's names, which combine % MMP, 09/26/2026
         % has made few and distinct: ismember(dvarname,decvartable) costs   % MMP, 09/26/2026
