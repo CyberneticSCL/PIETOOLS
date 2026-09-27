@@ -171,6 +171,32 @@ for i = 1:B
 end
 R.psd = all(R.mineig >= -1e-8*max(R.normQ,realmin));
 
+% ---- row-normwise backward error, REPORTED, NOT GATED -------------------
+% (CC, 09/27/2026) R.rel is an OPERATOR residual and this session measured it
+% not tracking the constraint the SDP imposes: 3 rank inversions in 15 cases,
+% op/row spanning 3.83e6 over 129 points, and the gate preferring the point
+% the SeDuMi rows say violates MORE.  eta is row-scale invariant and says "x
+% solves exactly a problem whose every row is perturbed by relative <= eta",
+% which is the property R.rel lacks.  See pielr_eta for why a 2-norm ratio is
+% the wrong instrument here (b is 86-99% zeros on these programs).
+%
+% NOT USED IN R.ok.  eta alone is unsound -- it is relative to ||x||_inf, so a
+% point growing along a near-recession direction flatters it -- and it needs a
+% scale guard calibrated against certified references before it can decide
+% anything.  R.eta_normx is returned for exactly that guard.
+%
+% Computed from P.S / P.bf, the NORMALISED system, which costs no transpose.
+% eta is invariant to that normalisation: scaling b, x and r all by 1/nb0
+% divides numerator and denominator alike.
+try                                                                     % CC, 09/27/2026
+    Et = pielr_eta(P.S,P.bf,q,P);                                       % CC, 09/27/2026
+    R.eta = Et.eta;   R.eta_psd = Et.eta_psd;                           % CC, 09/27/2026
+    R.eta_normx = Et.normx;   R.eta_clipnorm = Et.clipnorm;             % CC, 09/27/2026
+catch                                                                   % CC, 09/27/2026
+    R.eta = NaN;  R.eta_psd = NaN;                                      % CC, 09/27/2026
+    R.eta_normx = NaN;  R.eta_clipnorm = NaN;                           % CC, 09/27/2026
+end                                                                     % CC, 09/27/2026
+
 % ---- the threshold ------------------------------------------------------
 % THE REFERENCE MUST ITSELF BE CREDIBLE (CC, 09/23/2026).  A first cut applied
 % max(abs, k*ref) unconditionally and accepted THREE garbage points, caught by

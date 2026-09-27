@@ -58,6 +58,7 @@ if vb
 end
 
 prevw = [];  prevrv = [];
+bestq = [];  bestqraw = inf;     % best attempt across ALL ranks % CC, 09/27/2026
 for ri = 1:numel(rvl)
     rv = rvl{ri};
     bestraw = inf;  bestw = [];
@@ -115,6 +116,14 @@ for ri = 1:numel(rvl)
         R1 = bm_report(w,P,rv);
         if R1.raw_rel < bestraw, bestraw = R1.raw_rel;  bestw = w; end
         [~,~,qk] = bm_resid(w,P,rv);
+        % Keep the best attempt ACROSS ranks, so a run that certifies nothing
+        % still returns a point (CC, 09/27/2026).  Without this the failure
+        % path returned q = [], and a failing low-rank run could not be
+        % scored on the SDP row residual at all -- which is the one measure
+        % that self-identifies a trivial return (||At'x-b||/||b|| is exactly 1
+        % at x = 0; 15 of 21 reference failures in the baseline are trivial by
+        % that test, and every low-rank failure was unclassifiable).
+        if R1.raw_rel < bestqraw, bestqraw = R1.raw_rel;  bestq = qk; end   % CC, 09/27/2026
         Rk = pielr_opcheck(prog,H,P,qk,A);
 
         % certify the SUBSPACE BM found -- the point of the find/certify split
@@ -163,6 +172,10 @@ for ri = 1:numel(rvl)
     end
     prevw = bestw;  prevrv = rv;
 end
+% Fell through every rank without certifying.  V and R stay EMPTY -- callers
+% test isempty(R) for "no certificate" and that contract is unchanged -- but
+% hand back the best point seen so a failure can still be scored.
+q = bestq;                                                              % CC, 09/27/2026
 end
 
 % =========================================================================

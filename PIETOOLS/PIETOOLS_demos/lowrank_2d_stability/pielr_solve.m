@@ -254,8 +254,26 @@ cert.unknowns_face = NaN;
 % set on BOTH paths: an earlier revision left cert.score unset on the failure
 % path and a tier sweep lost exactly the five non-certifying cases it existed
 % to characterise, to "Unrecognized field name".
-cert.q       = [];    cert.nb0     = NaN;                               % CC, 09/24/2026
+% q and nb0 from the ACTUAL run, not placeholders: pielr_discover now returns
+% its best attempt even when nothing certifies, so a failing run can still be
+% scored on the SDP row residual.  Placeholders here defeated that.
+cert.q       = q;     cert.nb0     = P.nb0;                             % CC, 09/27/2026
+%cert.q      = [];    cert.nb0     = NaN;                               % CC, 09/24/2026 (was)
+cert.eta     = NaN;   cert.eta_psd = NaN;                               % CC, 09/27/2026
+cert.eta_normx = NaN; cert.eta_clipnorm = NaN;                          % CC, 09/27/2026
 if isempty(R)
+    % Score the best attempt even though it did not certify (CC, 09/27/2026).
+    % The gate never ran on this path, so eta has to be computed here -- and a
+    % failure is exactly where it is wanted: it distinguishes a TRIVIAL return
+    % from a near miss, which R.rel alone cannot do.
+    if ~isempty(q)                                                      % CC, 09/27/2026
+        try                                                             % CC, 09/27/2026
+            Ef = pielr_eta(P.S,P.bf,q,P);                               % CC, 09/27/2026
+            cert.eta = Ef.eta;  cert.eta_psd = Ef.eta_psd;              % CC, 09/27/2026
+            cert.eta_normx = Ef.normx;                                  % CC, 09/27/2026
+            cert.eta_clipnorm = Ef.clipnorm;                            % CC, 09/27/2026
+        catch, end                                                      % CC, 09/27/2026
+    end                                                                 % CC, 09/27/2026
     cert.notes = [notes {sprintf(['no certificate at rank <= %d over %d seed(s)/rank; ' ...
         'reported as NOT REACHED, never as a proven floor'],opts.maxrank,numel(opts.seeds))}];
     if vb, pielr_report(cert); end
@@ -273,6 +291,11 @@ cert.maxRes  = R.maxRes;    cert.maxNrm = R.maxNrm;   cert.maxDop = R.maxDop;
 cert.nrm_why = R.nrm_why;
 cert.mineig  = R.mineig;    cert.normQ  = R.normQ;    cert.rank = R.rank;
 cert.psd     = R.psd;
+% reported alongside rel/rel_d; decides nothing.  See pielr_opcheck.
+if isfield(R,'eta')                                                     % CC, 09/27/2026
+    cert.eta = R.eta;  cert.eta_psd = R.eta_psd;                        % CC, 09/27/2026
+    cert.eta_normx = R.eta_normx;  cert.eta_clipnorm = R.eta_clipnorm;  % CC, 09/27/2026
+end                                                                     % CC, 09/27/2026
 if isfield(R,'aux') && isfield(R.aux,'gam'), cert.gam = R.aux.gam; end
 cert.face = V;
 cert.r    = cellfun(@(v)size(v,2),V);

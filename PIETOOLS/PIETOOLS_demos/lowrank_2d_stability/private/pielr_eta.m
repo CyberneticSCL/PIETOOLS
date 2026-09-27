@@ -59,12 +59,25 @@ function E = pielr_eta(At,b,x,P)                                            % CC
 % COST: one mat-vec plus precomputed row norms, O(nnz(At)); the clip reuses an
 % eigendecomposition the caller may already have done.
 
-x = full(x(:));
+x  = full(x(:));
+bf = full(b(:));
 E = struct('eta',NaN,'eta_psd',NaN,'normx',norm(x,inf), ...
            'mineig',NaN,'clipnorm',NaN);
-rn = full(sqrt(sum(At.^2,1)))';          % ||A_i||_2, one per equality row
-bf = full(b(:));
-E.eta = etaof(At,bf,x,rn);
+% ORIENTATION-TOLERANT (CC, 09/27/2026).  Callers hold the constraint in two
+% shapes and neither should pay a sparse transpose: pielr_opcheck has P.S,
+% m x Ntot with rows = equality rows, while a standalone caller has D.At,
+% Ntot x m with At'x = b.  Transposing P.S per gate call would be O(nnz) on
+% every attempt -- 3.7e6 nonzeros on a 2-D linear4 program, 14 attempts per
+% ladder.  Detect instead: the row count matching numel(b) identifies the
+% row-oriented form.
+if size(At,1) == numel(bf) && size(At,2) == numel(x)                    % CC, 09/27/2026
+    S  = At;                             % already m x Ntot
+    rn = full(sqrt(sum(S.^2,2)));        % ||A_i||_2 along rows
+else
+    S  = At.';                           % Ntot x m -> m x Ntot
+    rn = full(sqrt(sum(At.^2,1)))';      % ||A_i||_2 along columns of At
+end
+E.eta = etaof(S,bf,x,rn);
 
 % ---- clip every Gram block to its PSD part ------------------------------
 % The blocks are FULL N^2 column-major vectorisations indexed by P.rows{i},
@@ -84,11 +97,11 @@ for i = 1:numel(P.rows)
 end
 E.mineig   = me;
 E.clipnorm = norm(x-xc,inf);
-E.eta_psd  = etaof(At,bf,xc,rn);
+E.eta_psd  = etaof(S,bf,xc,rn);
 end
 
-function e = etaof(At,b,x,rn)
-r = At.'*x - b;
+function e = etaof(S,b,x,rn)
+r = S*x - b;                             % S is m x Ntot
 den = rn*norm(x,inf) + abs(b);
 g = den > 0;                             % a zero row with b_i = 0 is vacuous
 if ~any(g), e = 0; return, end
