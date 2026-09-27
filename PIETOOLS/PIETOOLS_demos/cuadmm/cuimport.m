@@ -23,6 +23,15 @@ function r = cuimport(dumpdir,matfile,sfx)
 % Plus a FORWARD check of T against known-good data: T*x_mosek must satisfy
 % cuADMM's own system, which uses T in the export direction on a vector T never
 % produced.  T'*T is the identity on the symmetric subspace, so this is exact.
+%
+% CC, 09/27/2026: also reported, in SeDuMi full-vec coordinates (as posed, and
+% as bl_bisect's unpinned check):
+%   eta      row-normwise backward error max_i |r_i|/(||A_i|| ||x||_inf + |b_i|):
+%            invariant to row scaling; rel_b is not, and with b 88-99.8% zeros
+%            it is dominated by the few rows with b_i ~= 0 and tightens ~1/sqrt(m)
+%   eta_psd  eta of x with every block clipped to PSD, i.e. of a point IN the
+%            cone: the backward error of the whole certificate.  Measured: a
+%            tolerated lambda_min of -3e-9 x max turns ~1:1 into eta_psd ~4e-9.
 
 S = load(matfile);                       % SeDuMi form: At (nvar x m), b, c, K
 K = S.K;  if ~isfield(K,'f')||isempty(K.f), K.f = 0; end
@@ -47,16 +56,22 @@ r.vec_len    = vec_len;  r.m = numel(ys);  r.Kf = K.f;  r.Ks = Ks;
 
 % ---- cone, in the rebuilt blocks.  THE T-INDEPENDENT CHECK.
 off = K.f;  r.psd_min = inf;  r.psd_max = -inf;  r.blk_mineig = zeros(1,numel(Ks));
+xcl = x;                                       % x clipped to PSD, for eta_psd % CC, 09/27/2026
 for k = 1:numel(Ks)
     N = Ks(k);
     Xk = reshape(x(off+(1:N^2)),N,N);
     r.asym(k) = norm(Xk-Xk','fro')/max(norm(Xk,'fro'),eps);   % must be ~0
-    ev = eig((Xk+Xk')/2);
+%   ev = eig((Xk+Xk')/2);                                                   % CC, 09/27/2026 (was)
+    [Vk,Dk] = eig((Xk+Xk')/2);  ev = diag(Dk);                              % CC, 09/27/2026
+    Xc = Vk*diag(max(ev,0))*Vk';  xcl(off+(1:N^2)) = Xc(:);                 % CC, 09/27/2026
     r.blk_mineig(k) = min(ev);
     r.psd_min = min(r.psd_min,min(ev));  r.psd_max = max(r.psd_max,max(ev));
     off = off + N^2;
 end
 r.psd_relmin = r.psd_min/max(r.psd_max,eps);
+rn = full(sqrt(sum(S.At.^2,1)))';  bb = full(S.b(:));                       % CC, 09/27/2026
+r.eta     = max(abs(S.At'*x   - bb)./(rn*max(abs(x))   + abs(bb) + realmin));  % CC, 09/27/2026
+r.eta_psd = max(abs(S.At'*xcl - bb)./(rn*max(abs(xcl)) + abs(bb) + realmin));  % CC, 09/27/2026
 r.max_asym   = max(r.asym);
 
 % ---- dual slack S = C - sum_k y_k A_k, which must also be PSD

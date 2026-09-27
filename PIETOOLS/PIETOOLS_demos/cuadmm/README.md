@@ -66,6 +66,13 @@ Two things that cost real time:
 
 The binary path defaults to this workstation's build; override it with `CUADMM_EXE`.
 
+The workstation build carries `gpu/cuadmm_pinf_inf.patch` (2026-09-27). It adds an optional
+10th argument: `1` makes cuADMM's primal residual, both its stopping test and the printed pinf,
+the worst row, ‖b−AX‖∞/(1+‖b‖∞). `bl_bisect(...,struct('pinf_norm','inf'))` uses it. The default
+`0` reproduces the unpatched solver exactly (checked: `stab_rd1_hv` at 1e-6, 4023 iterations
+before and after). Why: b is 88–99.8% zeros, so the 2-norm ratio is an absolute test that
+tightens like 1/√m.
+
 ## Shadows: read this before running an experiment that uses one
 
 Some experiments replace a PIETOOLS function with an instrumented copy. `lpisolve` becomes a

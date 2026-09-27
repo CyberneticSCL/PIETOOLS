@@ -1,0 +1,116 @@
+--- a/src/main.cu
++++ b/src/main.cu
+@@ -44,7 +44,7 @@
+     if (argc < 2) {
+         std::cerr << "usage: " << argv[0]
+                   << " <prefix> [stop_tol] [max_iter] [eig_streams] [dump_sol]"
+-                     " [switch_admm] [sig] [sigscale] [sig_thresh]\n";
++                     " [switch_admm] [sig] [sigscale] [sig_thresh] [pinf_inf]\n";
+         return 1;
+     }
+     std::string prefix = argv[1];
+@@ -56,6 +56,9 @@
+     double sig      = (argc > 7) ? atof(argv[7]) : 1e2;
+     double sigscale = (argc > 8) ? atof(argv[8]) : 2.0;
+     int sig_thresh  = (argc > 9) ? atoi(argv[9]) : 500;
++    // CC, 09/27/2026: 1 = primal residual (stopping test and printed pinf) in the
++    // infinity norm, ||b - AX||_inf / (1 + ||b||_inf); default 0 keeps the 2-norm.
++    bool pinf_inf   = (argc > 10) ? (atoi(argv[10]) != 0) : false;
+ 
+     // Force the CUDA context to exist before the baseline, so the baseline does
+     // not accidentally include context creation (~300-500 MiB) as solver usage.
+@@ -76,6 +79,8 @@
+     }
+ 
+     SDPSolver solver;
++    solver.pinf_inf = pinf_inf;                                   // CC, 09/27/2026: before init
++    std::cout << "CUADMM_PINF_NORM " << (pinf_inf ? "inf" : "2") << std::endl;
+ 
+     auto t0 = std::chrono::steady_clock::now();
+     solver.init(
+--- a/src/solver.cu
++++ b/src/solver.cu
+@@ -216,6 +216,7 @@
+     this->synchronize_gpu0_streams();
+     // compute the norms of b and C
+     this->norm_borg = 1 + this->borg.get_norm(this->cublasH);
++    this->norm_borg_inf = 1 + this->borg.get_absmax(this->cublasH); // CC, 09/27/2026
+     this->norm_Corg = 1 + this->Corg.get_norm(this->cublasH);
+ 
+     std::cout << std::endl
+@@ -260,7 +261,9 @@
+     dense_vector_mul_scalar(this->Rdorg, this->Rd, this->Cscale);
+ 
+     // compute initial residuals
+-    this->errRp = this->Rporg.get_norm(this->cublasH) / this->norm_borg;
++    // CC, 09/27/2026: optional worst-row primal residual (see solver.h pinf_inf)
++    this->errRp = this->pinf_inf ? this->Rporg.get_absmax(this->cublasH) / this->norm_borg_inf
++                                 : this->Rporg.get_norm(this->cublasH) / this->norm_borg;
+     this->errRd = this->Rdorg.get_norm(this->cublasH) / this->norm_Corg;
+     this->maxfeas = max(this->errRp, this->errRd);
+     this->SpVV_CtX_buffer_size = SparseVV_get_buffersize_cusparse(this->cusparseH, this->C, this->X);
+@@ -1428,7 +1431,9 @@
+         /* Update errors and compute residuals */
+         // compute primal error and objective
+         dense_vector_mul_dense_vector_mul_scalar(this->Rporg, this->normA, this->Rp, this->bscale);
+-        this->errRp = this->Rporg.get_norm(this->cublasH) / this->norm_borg; // scale it
++        // CC, 09/27/2026: optional worst-row primal residual (see solver.h pinf_inf)
++        this->errRp = this->pinf_inf ? this->Rporg.get_absmax(this->cublasH) / this->norm_borg_inf
++                                     : this->Rporg.get_norm(this->cublasH) / this->norm_borg; // scale it
+         this->pobj = SparseVV_cusparse(this->cusparseH, this->C, this->X, this->SpVV_CtX_buffer) * this->objscale;
+ 
+         // compute dual error and objective
+--- a/include/cuadmm/solver.h
++++ b/include/cuadmm/solver.h
+@@ -101,6 +101,8 @@
+     DeviceDenseVector<double> Rporg; // original primal residual (size con_num)
+     DeviceDenseVector<double> Rdorg; // original dual residual (size vec_len)
+     double norm_borg;                // 1 + original norm of b
++    double norm_borg_inf = 1;        // CC, 09/27/2026: 1 + ||b_orig||_inf
++    bool pinf_inf = false;           // CC, 09/27/2026: errRp in the infinity norm (worst row); set before init
+     double norm_Corg;                // 1 + original norm of C
+     double bscale;                   // scale for b
+     double Cscale;                   // scale for C
+--- a/include/cuadmm/memory.h
++++ b/include/cuadmm/memory.h
+@@ -312,6 +312,20 @@
+         return norm;
+     }
+ 
++    // CC, 09/27/2026: max_i |v_i| (infinity norm), for the worst-row primal
++    // residual option (SDPSolver::pinf_inf).  cublasIdamax returns a 1-based index.
++    inline T get_absmax(const DeviceBlasHandle &cublas_H)
++    {
++        static_assert(std::is_same<T, double>::value, "DeviceDenseVector absmax only works with double type.");
++        CHECK_CUDA(cudaSetDevice(this->gpu_id));
++        int idx = 0;
++        T v = 0;
++        CHECK_CUBLAS(cublasIdamax(cublas_H.cublas_handle, this->size, this->vals, 1, &idx));
++        if (idx > 0)
++            CHECK_CUDA(cudaMemcpy(&v, this->vals + (idx - 1), sizeof(T), cudaMemcpyDeviceToHost));
++        return std::abs(v);
++    }
++
+     ~DeviceDenseVector()
+     {
+         CHECK_CUDA(cudaSetDevice(this->gpu_id));
+@@ -433,6 +447,19 @@
+         return norm;
+     }
+ 
++    // CC, 09/27/2026: max |v_i| over the stored entries (infinity norm).
++    inline double get_absmax(const DeviceBlasHandle &cublas_H)
++    {
++        CHECK_CUDA(cudaSetDevice(this->gpu_id));
++        int idx = 0;
++        T v = 0;
++        if (this->nnz == 0) return 0.0;
++        CHECK_CUBLAS(cublasIdamax(cublas_H.cublas_handle, this->nnz, this->vals, 1, &idx));
++        if (idx > 0)
++            CHECK_CUDA(cudaMemcpy(&v, this->vals + (idx - 1), sizeof(T), cudaMemcpyDeviceToHost));
++        return std::abs((double)v);
++    }
++
+     ~DeviceSparseVector()
+     {
+         CHECK_CUDA(cudaSetDevice(this->gpu_id));

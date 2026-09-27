@@ -17,14 +17,27 @@ function bl_verify()
 %   dual_v    PSD margin of the dual slack C - sum y_k A_k
 %   asym      symmetry defect of the rebuilt blocks; must be ~0 by construction,
 %             so anything else means the svec inverse is wrong
+%   eta_v, eta_psd_v  (CC, 09/27/2026) row-normwise backward error of the point
+%             and of the point clipped to PSD (cuimport header): the
+%             row-scaling-invariant replacement for rel_b_v, which b's 88-99.8%
+%             zeros make an absolute test.  rel_b_v is kept for the banked values.
+%             A TSV created before 09/27 keeps its old columns (warning): adding
+%             columns under an old header would misalign every reader.
 
 cuadmm_path;
 HERE = fileparts(mfilename('fullpath'));
 DMP  = fullfile(cuadmm_outdir(),'baseline','dumps');
 TSV  = fullfile(cuadmm_outdir(),'baseline','bl_verify.tsv');
 COLS = {'id','tol','status','rel_b_v','psd_v','psd_relv','dual_v','asym','obj_v','normx_v','note'};
+COLS = [COLS {'eta_v','eta_psd_v'}];                                        % CC, 09/27/2026
 if ~exist(TSV,'file')
     fid=fopen(TSV,'w'); fprintf(fid,'%s\n',strjoin(COLS,sprintf('\t'))); fclose(fid);
+else                                                                        % CC, 09/27/2026
+    fid=fopen(TSV,'r'); h=fgetl(fid); fclose(fid);                          % CC, 09/27/2026
+    if strcmp(h,strjoin(COLS(1:end-2),sprintf('\t')))                       % CC, 09/27/2026
+        COLS = COLS(1:end-2);                                               % CC, 09/27/2026
+        warning('bl_verify:schema','%s predates the eta columns; eta not recorded there',TSV); % CC, 09/27/2026
+    end                                                                     % CC, 09/27/2026
 end
 done = readdone(TSV);
 
@@ -41,19 +54,23 @@ for i = 1:numel(d)
         if ~exist(xf,'file'), continue; end
         row = struct('id',id,'tol',tol{1},'status','','rel_b_v',NaN,'psd_v',NaN, ...
                      'psd_relv',NaN,'dual_v',NaN,'asym',NaN,'obj_v',NaN, ...
-                     'normx_v',NaN,'note','');
+                     'normx_v',NaN,'note','','eta_v',NaN,'eta_psd_v',NaN);  % CC, 09/27/2026 (eta_v, eta_psd_v)
         try
             r = cuimport(fullfile(DMP,id),mf,['_' tol{1}]);
             row.rel_b_v=r.rel_b_norm; row.psd_v=r.psd_min; row.psd_relv=r.psd_relmin;
             row.dual_v=r.dual_min;    row.asym=r.max_asym; row.obj_v=r.obj_norm;
             row.normx_v=r.normx;      row.status='ok';
+            row.eta_v=r.eta;          row.eta_psd_v=r.eta_psd;              % CC, 09/27/2026
         catch ME
             row.status='ERR'; row.note=regexprep(ME.message,'[\t\r\n]+',' ');
         end
         appendrow(TSV,COLS,row);
-        fprintf('VF %-18s %-5s %-4s rel=%-11s psd=%-11s dual=%-11s %s\n', ...
-            row.id,row.tol,row.status,num2str(row.rel_b_v),num2str(row.psd_v), ...
-            num2str(row.dual_v),row.note);
+%       fprintf('VF %-18s %-5s %-4s rel=%-11s psd=%-11s dual=%-11s %s\n', ...
+%           row.id,row.tol,row.status,num2str(row.rel_b_v),num2str(row.psd_v), ...
+%           num2str(row.dual_v),row.note);                                  % CC, 09/27/2026 (was)
+        fprintf('VF %-18s %-5s %-4s rel=%-11s eta=%-11s eta_psd=%-11s psd=%-11s dual=%-11s %s\n', ...
+            row.id,row.tol,row.status,num2str(row.rel_b_v),num2str(row.eta_v), ...
+            num2str(row.eta_psd_v),num2str(row.psd_v),num2str(row.dual_v),row.note); % CC, 09/27/2026
     end
 end
 fprintf('VFDONE\n');

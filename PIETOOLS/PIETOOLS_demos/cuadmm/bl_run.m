@@ -8,6 +8,14 @@ function bl_run(chunk)
 %   (and never walks into scale_stab_n24's 45 GB Mosek solve, which a class
 %   chunk 'scaling' would) and bl_lambda can dump off-registry stability
 %   programs through this same, verified dump path.
+% CC, 09/27/2026: also records eta (executive's point, Atf/RRx), eta_dump and
+%   eta_psd_dump (the dump re-solve, and that point clipped to PSD): the
+%   row-normwise backward error max_i |r_i|/(||A_i|| ||x||_inf + |b_i|), in
+%   SeDuMi full-vec coordinates as cuimport.  rel_b is kept for the banked
+%   values, but with b 88-99.8% zeros it is an absolute test dominated by the
+%   few rows with b_i ~= 0, and it is not invariant to row scaling.  A TSV
+%   created before 09/27 keeps its old columns (warning), since new columns
+%   under an old header would misalign every reader (bl_regime's hi_of).
 %
 % Writes ONE TSV line per case, flushed immediately, so a hard MATLAB crash
 % loses only the case in flight. Re-running skips ids already recorded 'ok', so
@@ -54,8 +62,15 @@ COLS = {'id','cls','dim','kind','status','m','Kf','nblk','Ks','nnzAt','nvar', ..
         'vec_len','normb','c_nnz','t_wall','t_mosek','t_dump','rel_b','rel_dump', ...
         'gam','gam_exact','feasratio','numerr','pinf','dinf','psd_min','psd_relmin', ...
         'normx','trivial','psd_rel_bad','note'};
+COLS = [COLS {'eta','eta_dump','eta_psd_dump'}];                            % CC, 09/27/2026
 if ~exist(TSV,'file')
     fid=fopen(TSV,'w'); fprintf(fid,'%s\n',strjoin(COLS,sprintf('\t'))); fclose(fid);
+else                                                                        % CC, 09/27/2026
+    fid=fopen(TSV,'r'); h=fgetl(fid); fclose(fid);                          % CC, 09/27/2026
+    if strcmp(h,strjoin(COLS(1:end-3),sprintf('\t')))                       % CC, 09/27/2026
+        COLS = COLS(1:end-3);                                               % CC, 09/27/2026
+        warning('bl_run:schema','%s predates the eta columns; eta not recorded there',TSV); % CC, 09/27/2026
+    end                                                                     % CC, 09/27/2026
 end
 done = readdone(TSV);
 % Resume state lives under cuadmm_outdir(), which PERSISTS across sessions and
@@ -92,6 +107,7 @@ for i = 1:numel(C)
         x  = sol.solinfo.RRx(:);
         nb = norm(full(bf));
         row.rel_b = norm(full(Atf'*x-bf))/max(nb,eps);
+        row.eta   = etaof(Atf,bf,x);                                        % CC, 09/27/2026
         row.normx = norm(x);
         row.trivial = double((abs(row.rel_b-1)<=1e-6) || row.normx<=1e-12);
 
@@ -134,6 +150,8 @@ for i = 1:numel(C)
             row.t_dump = res.info.MSK_DINF_OPTIMIZER_TIME;
             xd = MosekSol2SedumiSol(D.K,res);
             row.rel_dump = norm(full(D.At'*xd(:)-D.b))/max(norm(full(D.b)),eps);
+            row.eta_dump = etaof(D.At,D.b,xd(:));                           % CC, 09/27/2026
+            row.eta_psd_dump = etaof(D.At,D.b,clippsd(xd(:),S));            % CC, 09/27/2026
         catch ME2
             row.note = ['dumpsolve: ' regexprep(ME2.message,'[\t\r\n]+',' ')];
         end
@@ -161,6 +179,24 @@ for k = 1:numel(S.Ks)
     pmin = min(pmin,min(ev));  pmax = max(pmax,max(ev));  off = off + N^2;
 end
 prel = pmin/max(pmax,eps);
+end
+
+function e = etaof(At,b,x)
+% CC, 09/27/2026: row-normwise backward error of x for At'x = b (header):
+% invariant to row scaling, unlike ||r||_2/||b||_2.  O(nnz(At)).
+b = full(b(:));  rn = full(sqrt(sum(At.^2,1)))';
+e = max(abs(At'*x - b)./(rn*max(abs(x)) + abs(b) + realmin));
+end
+
+function x = clippsd(x,S)
+% CC, 09/27/2026: every PSD block of a CONE-order vector clipped to its PSD
+% part, so etaof of the result is the backward error of a point in the cone.
+off = S.Kf;
+for k = 1:numel(S.Ks)
+    N = double(S.Ks(k));  Xk = reshape(x(off+(1:N^2)),N,N);
+    [V,L] = eig((Xk+Xk')/2);  Xk = V*diag(max(diag(L),0))*V';
+    x(off+(1:N^2)) = Xk(:);  off = off + N^2;
+end
 end
 
 function RR = mkRR(prog)

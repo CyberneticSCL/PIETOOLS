@@ -243,7 +243,7 @@ S.cuadmm.bisect = struct( ...
     'try_F',       1e-6, ...           % also try to certify a probe that got this low
     'lean_kmin',   200, ...            % no lean from a run shorter than this (sigma start-up transient)
     'rep_tol',     1e-10, ...          % affine residual of a repaired point
-    'psd_tol',     1e-7, ...           % repaired blocks: lambda_min >= -psd_tol*lambda_max (calibrated, bl_bisect header)
+    'psd_tol',     1e-7, ...           % repaired blocks: lambda_min >= -psd_tol*lambda_max (calibrated, bl_bisect header); cert_rule 'eta_psd' only % CC, 09/27/2026
     'psd_abs',     1e-6, ...           % AND lambda_min >= -psd_abs (unit-norm b): the relative test alone was fooled
     'norm_ratio',  50, ...             % AND ||X|| <= norm_ratio x the seed's certified ||X||
     'rep_rounds',  8, ...
@@ -260,7 +260,12 @@ S.cuadmm.bisect = struct( ...
     'run_timeout', Inf, ...            % s, one cuADMM call
     'max_wall',    Inf, ...            % s, the whole bl_bisect call
     'deadline',    Inf, ...            % posix s: no call may be started that would end later
-    'stopfile',    '');                % [] = cuadmm_outdir()/STOP
+    'stopfile',    '', ...             % [] = cuadmm_outdir()/STOP
+    'eta_tol',     1e-10, ...          % CC, 09/27/2026: row-normwise backward error of a repaired point (lsqr reaches 2.5e-12 at m 5k)
+    'pinf_norm',   '2', ...            % CC, 09/27/2026: 'inf' = cuADMM stops on the worst row (rebuilt exe)
+    'face',        false, ...          % CC, 09/27/2026: repair on the face found by bl_face
+    'cert_rule',   'psd_clip', ...     % CC, 09/27/2026: F iff eta of the clipped (PSD) point <= psd_eta_tol; 'eta_psd' = old two-number rule
+    'psd_eta_tol', 1e-7);              % CC, 09/27/2026: calibrated on 120 regime iterates (bl_bisect header)
 % CC, 09/26/2026 (end)
 
 S.tier = tier;   S.tier_base = base;   S.tier_Dup = Dup;   S.dim = dim;

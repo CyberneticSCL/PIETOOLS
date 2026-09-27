@@ -110,6 +110,28 @@ function R = bl_bisect(dumpfile,opts)                                        % C
 %   Each cuADMM run's X and y are kept as run_NNN_X.txt / run_NNN_y.txt, and
 %   each probe is appended to <tag>_<solver>_probes.tsv as it finishes, so a
 %   crash loses nothing already measured.
+%
+% CC, 09/27/2026: the row test of a repaired point is the row-normwise
+%   backward error max_i |r_i|/(||A_i|| ||x||_inf + |b_i|) <= eta_tol (1e-12),
+%   for the pinned and the unpinned rows; the old ||r||_2/||b||_2 <= rep_tol
+%   gate is replaced (rres still reported).  b is 88-99.8% zeros (3-320
+%   nonzeros, measured on the dumps), so the 2-norm ratio was an absolute test,
+%   silent per row, and it tightens like 1/sqrt(m) with size.  Options:
+%   opts.face = true repairs on the face bl_face finds (forced-zero Gram rows/
+%   columns) and runs the PSD test on the reduced blocks, reporting F_strict
+%   when they are positive definite (no PSD tolerance needed); opts.pinf_norm
+%   'inf' makes the rebuilt cuadmm_exe stop on the worst row, and tau follows
+%   in the same norm (resol); opts.solver 'file' re-certifies a kept iterate
+%   (opts.xfile) without solving.  Defaults leave the 09-26 behaviour except
+%   the eta gate.  (eta_tol is 1e-10, not the 1e-12 above: lsqr reaches
+%   2.5e-12 at m 5k.)
+% CC, 09/27/2026 (b): default cert_rule 'psd_clip': F iff the repaired point
+%   CLIPPED TO PSD (so in the cone) has eta <= psd_eta_tol (1e-7), plus the
+%   unchanged scale guards (psd_abs, norm_ratio).  One number for rows and
+%   cone: the old pair (eta 1e-17, lambda_min -3e-9 x max) hid a backward error
+%   of ~4e-9.  Supersedes the eta_tol/psd_tol decision above (still available
+%   as cert_rule 'eta_psd').  Calibration in certify_primal.  run_NNN_Frep
+%   holds the point the rule judged (the clipped one under psd_clip).
 
 if nargin < 2, opts = struct(); end
 cuadmm_path;
@@ -156,6 +178,20 @@ vec_len = K.f + sum(Ks.*(Ks+1)/2);
 C.T    = svecmap(K.f,Ks,vec_len,nvar);
 C.As   = C.T*C.At2;                          % vec_len x m: constraint rows on symmetric X
 C.live = fullfile(P.outdir,sprintf('%s_%s_probes.tsv',tag,P.solver));
+% CC, 09/27/2026: row norms for the row-normwise backward error (b is 88-99.8%
+% zeros, so a residual relative to ||b|| says nothing per row), and the face.
+C.rownorm  = full(sqrt(sum(C.As.^2,1)))';
+C.rownorm0 = full(sqrt(sum(C.At0.^2,1)))';
+C.zero = arrayfun(@(N) false(N,1),Ks,'UniformOutput',false);  C.keep = true(vec_len,1);
+C.facemsg = 'off';
+if P.face
+    bf = C.b_un;  if ~isempty(C.j), bf = [C.b_un; 1]; end   % gamma only moves the pin row, never a zero of b
+    Fc = bl_face(C.At2,bf,K);
+    C.zero = Fc.zero;  C.keep = ~(C.T*double(Fc.elim) > 0);
+    C.facemsg = sprintf('%d rows force %s zero diagonals of blocks %s',numel(Fc.rows), ...
+                        mat2str(Fc.nzero),mat2str(Ks));
+    fprintf('BIS face: %s\n',C.facemsg);
+end
 
 R.id = tag;  R.solver = P.solver;  R.mode = P.mode;  R.flags = {};  R.t_solver = 0;
 R.iters = 0;  R.spi = 5e-3;  R.stopped = '';
@@ -192,10 +228,13 @@ if ~isfinite(cert.F)
 end
 
 % ---- 3-6. steer on the estimate bracket
-D0 = chord(C.s*est.i,C.s*est.f,C.B);
+%D0 = chord(C.s*est.i,C.s*est.f,C.B);                                       % CC, 09/27/2026 (was)
+D0 = resol(C,est.i,est.f);                                                  % CC, 09/27/2026
 while (est.f-est.i) > P.rtol*est.f && numel(R.probes) < P.max_probes
-    D   = chord(C.s*est.i,C.s*est.f,C.B);
-    tau = P.c_lean*D/2;
+%   D   = chord(C.s*est.i,C.s*est.f,C.B);                                   % CC, 09/27/2026 (was)
+%   tau = P.c_lean*D/2;                                                     % CC, 09/27/2026 (was)
+    D   = resol(C,est.i,est.f);                % in the solver's pinf units, either norm % CC, 09/27/2026
+    tau = P.c_lean*D;                                                       % CC, 09/27/2026
     fp  = firstpass(seedtr,tau);
     if tau < P.tau_min || (strcmp(P.solver,'cuadmm') && fp > P.kmax/2)
         R.flags{end+1} = sprintf('resolution: tau %.2e, seed first passage %g',tau,fp);
@@ -239,6 +278,8 @@ else
 end
 pr = newpr();  pr.phase = phase;  pr.gam = g;  pr.tau = tol;  pr.cap = cap;
 tr = [];
+C.frep = fullfile(C.dir,sprintf('run_%03d_Frep.txt',n));                    % CC, 09/27/2026: certificate file if F
+if ~exist(C.dir,'dir'), mkdir(C.dir); end                                   % CC, 09/27/2026
 switch P.solver
 case 'cuadmm'
     write_b(fullfile(C.dir,'b.txt'),bn);
@@ -248,8 +289,13 @@ case 'cuadmm'
     lg  = fullfile(C.dir,sprintf('run_%03d_%s.log',n,phase));
     to  = min([P.run_timeout, P.max_wall - toc(C.t0), P.deadline - posixtime(datetime('now'))]);
     pre = '';  if isfinite(to), pre = sprintf('timeout %d ',max(1,floor(to))); end
+    % CC, 09/27/2026: argv[10] = 1 makes cuADMM's pinf (stop test and trace) the
+    % worst row, ||b-AX||_inf/(1+||b||_inf); argv[6..9] are its defaults.
+    ext = '';  if strcmp(P.pinf_norm,'inf'), ext = ' 0 100 2 500 1'; end
+%   cmd = sprintf(['wsl -e bash -c "LD_LIBRARY_PATH=/usr/lib/wsl/lib %s''%s'' ''%s/'' ' ...
+%                  '%.6g %d 15 1 > ''%s'' 2>&1"'],pre,P.exe,wslpath(C.dir),tol,cap,wslpath(lg)); % CC, 09/27/2026 (was)
     cmd = sprintf(['wsl -e bash -c "LD_LIBRARY_PATH=/usr/lib/wsl/lib %s''%s'' ''%s/'' ' ...
-                   '%.6g %d 15 1 > ''%s'' 2>&1"'],pre,P.exe,wslpath(C.dir),tol,cap,wslpath(lg));
+                   '%.6g %d 15 1%s > ''%s'' 2>&1"'],pre,P.exe,wslpath(C.dir),tol,cap,ext,wslpath(lg)); % CC, 09/27/2026
     system(cmd);
     txt = fileread(lg);
     tm  = regexp(txt,'CUADMM_TIMING init (\S+) solve (\S+)','tokens','once');
@@ -309,6 +355,13 @@ case 'mosek'
         pr = putF(pr,info);
         pr.verdict = 'f';  if ok, pr.verdict = 'F'; end
     end
+case 'file'                                                                 % CC, 09/27/2026
+    % re-certify a kept iterate (run_NNN_X.txt, svec, the same pinned/feas
+    % program) without solving: only the verifier runs
+    t1 = tic;
+    [ok,info] = certify_primal(C,readvec(P.xfile),bn,g,bscl);
+    pr.t_s = toc(t1);  pr = putF(pr,info);  pr.note = ['verify ' P.xfile];
+    pr.verdict = 'f';  if ok, pr.verdict = 'F'; end
 case 'sedumi'
     t1 = tic;
     [x,y,info] = sedumi(C.At2',bn,sparse(C.nvar,1),C.K,struct('fid',0));
@@ -335,30 +388,81 @@ function [ok,info] = certify_primal(C,xs,bn,g,bscl)
 % clip each block's negative eigenvalues to 0.  F only if a point AFTER an
 % affine step passes.  Blocks are rebuilt by reshape of T'x, as cuimport does,
 % so an svec error that T'T would hide shows up as lost positivity.
+%
+% CC, 09/27/2026 (start): (i) the rows are judged by the row-normwise backward
+% error eta_i = |r_i| / (||A_i|| ||x||_inf + |b_i|) instead of ||r||_2/||b||_2:
+% b is 88-99.8% zeros, so the old ratio was an absolute test that says nothing
+% per row and tightens like 1/sqrt(m) as m grows.  The old gate was
+% rres <= rep_tol; rres is still reported.  (ii) With C.keep from bl_face the
+% point is put on the face (forced-zero coordinates set to 0), the affine step
+% only moves the remaining coordinates, and the PSD test runs on the reduced
+% blocks, whose smallest eigenvalue can be strictly positive; info.strict says
+% whether it is (then no PSD tolerance was needed).  Soundness does not rest on
+% the face being right: the returned point is still checked against every row
+% and every block; a wrong face can only make the rows unsatisfiable.
 P = C.P;  K = C.K;  x = xs(:);  nb = norm(bn);  ok = false;  lmin = -inf;  rres = inf;
+kp = C.keep;  x(~kp) = 0;  Ak = C.As(kp,:);  eta = inf;  lred = -inf;
+r0 = C.As'*xs(:) - bn;
+info_eta_raw = max(abs(r0)./(C.rownorm*max(abs(xs(:))) + abs(bn) + realmin));
+% CALIBRATION (09/27, 120 kept cuADMM iterates of the 09-26 regime, truth from
+% Mosek's certified brackets; scratchpad t_calpsd.m): etac of every infeasible
+% iterate >= 2.0e-6; of every iterate the old rule certified <= 7.2e-8, so
+% psd_eta_tol = 1e-7 gives the old rule's verdicts exactly (17 F, 0 wrong).
+% The scale guards stay: SeDuMi's infeasible points at 0.9966-0.9982 gamma_F
+% have etac 8.5e-8..1.2e-7 (||X|| ~2e3 vs ~10 genuine; eta is relative to
+% ||x||_inf, so growing x flatters it), rejected only by psd_abs/norm_ratio.
+% psd_abs is also what rejects 25 genuinely feasible large-norm iterates
+% (ctrl_rd1 B1e, hinfdu_rd1): etac alone would certify 42 of 54, still 0 wrong.
+% CC, 09/27/2026 (b): each round also clips to PSD and measures eta of the
+% CLIPPED point (etac, best over rounds, point xc).  That point is in the cone,
+% so etac is the whole certificate's backward error: the tolerated negative
+% eigenvalue of the affine point turns ~1:1 into row error (measured: affine
+% eta ~1e-17 at lambda_min -3e-9 rel; clipped eta 1.4e-9..4.6e-9).
+% cert_rule 'psd_clip' decides F by etac <= psd_eta_tol alone; 'eta_psd' is the
+% earlier two-number rule (eta_tol on xa AND lambda_min >= -psd_tol).
+etac = inf;  xc = x;                                                        % CC, 09/27/2026 (b)
 for r = 1:P.rep_rounds
-    [dx,~] = lsqr(C.As',C.As'*x - bn,1e-14,P.lsqr_it);
-    x  = x - dx;  xa = x;                      % xa: last affine-repaired point, what F is judged on
-    rres = norm(C.As'*x - bn)/nb;
+    [dx,~] = lsqr(Ak',C.As'*x - bn,1e-14,P.lsqr_it);
+    x(kp) = x(kp) - dx;  xa = x;               % xa: last affine-repaired point, what F is judged on
+    rv   = C.As'*x - bn;  rres = norm(rv)/nb;
+    eta  = max(abs(rv)./(C.rownorm*max(abs(x)) + abs(bn) + realmin));
     xf = C.T'*x;
-    [lmin,V,L,lmax] = blockeig(xf,K,C.Ks);
-    labs = lmin;  lmin = lmin/max(lmax,realmin);   % relative to the largest eigenvalue over blocks
-    if rres <= P.rep_tol && lmin >= -P.psd_tol, ok = true; break; end
+    [lmin,V,L,lmax] = blockeig(xf,K,C.Ks,C.zero);
+    labs = lmin;  lred = lmin;  lmin = lmin/max(lmax,realmin);   % relative to the largest eigenvalue over blocks
+%   if eta <= P.eta_tol && lmin >= -P.psd_tol, ok = true; break; end        % CC, 09/27/2026 (b) (was; now after the clip)
     off = K.f;
     for k = 1:numel(C.Ks)
-        N = C.Ks(k);
-        Xk = V{k}*diag(max(L{k},0))*V{k}';
+        N = C.Ks(k);  kk = ~C.zero{k};
+        Xk = zeros(N);
+        if any(kk), Xk(kk,kk) = V{k}*diag(max(L{k},0))*V{k}'; end
         xf(off+(1:N^2)) = Xk(:);
         off = off + N^2;
     end
-    x = C.T*xf;
+    x = C.T*xf;  x(~kp) = 0;                   % clipped: in the cone up to eig rounding
+    er = max(abs(C.As'*x - bn)./(C.rownorm*max(abs(x)) + abs(bn) + realmin));  % CC, 09/27/2026 (b)
+    if er < etac, etac = er;  xc = x; end                                   % CC, 09/27/2026 (b)
+    if strcmp(P.cert_rule,'psd_clip'), pass = etac <= P.psd_eta_tol;        % CC, 09/27/2026 (b)
+    else, pass = eta <= P.eta_tol && lmin >= -P.psd_tol; end                % CC, 09/27/2026 (b)
+    if pass, ok = true; break; end                                          % CC, 09/27/2026 (b)
 end
+% CC, 09/27/2026 (end)
+% the point F is judged on: the affine one (eta_psd) or the clipped one (psd_clip)
+xcert = xa;  etol = P.eta_tol;                                              % CC, 09/27/2026 (b)
+if strcmp(P.cert_rule,'psd_clip'), xcert = xc;  etol = P.psd_eta_tol; end   % CC, 09/27/2026 (b)
 % independent of the pinned system: the unpinned rows and x_j = gamma, in the
 % units the executive posed them (undo bl_fix's 1/bscl)
-xt = (C.T'*xa)*bscl;                           % not x: after a failed round x is the clipped point
-unpin = norm(C.At0'*xt - C.b_un)/max(norm(C.b_un),eps);
+%xt = (C.T'*xa)*bscl;                           % not x: after a failed round x is the clipped point % CC, 09/27/2026 (b) (was)
+xt = (C.T'*xcert)*bscl;                                                     % CC, 09/27/2026 (b)
+%unpin = norm(C.At0'*xt - C.b_un)/max(norm(C.b_un),eps);                    % CC, 09/27/2026 (was)
+r1    = C.At0'*xt - C.b_un;                                                 % CC, 09/27/2026
+unpin = max(abs(r1)./(C.rownorm0*max(abs(xt)) + abs(C.b_un) + realmin));    % CC, 09/27/2026: row-normwise, as eta
 pin   = 0;  if ~isempty(C.j), pin = abs(xt(C.j) - g)/max(abs(g),eps); end
-ok = ok && unpin <= 10*P.rep_tol && pin <= 10*P.rep_tol;
+%ok = ok && unpin <= 10*P.rep_tol && pin <= 10*P.rep_tol;                   % CC, 09/27/2026 (was)
+%ok = ok && unpin <= 10*P.eta_tol && pin <= 10*P.rep_tol;                   % CC, 09/27/2026 (b) (was)
+% psd_clip: the pin is one of the rows eta covers, so it gets the same tolerance;
+% 10*psd_eta_tol relative in gamma is far below rtol
+ptol = P.rep_tol;  if strcmp(P.cert_rule,'psd_clip'), ptol = etol; end      % CC, 09/27/2026 (b)
+ok = ok && unpin <= 10*etol && pin <= 10*ptol;                              % CC, 09/27/2026 (b)
 % scale guards (see header, item 1): a near-infeasible program's huge-norm point
 % flatters the relative test, so bound the absolute negativity and the norm
 ok = ok && labs >= -P.psd_abs;
@@ -366,8 +470,20 @@ if isfield(C,'normx_ref') && ~isempty(C.normx_ref), ok = ok && norm(xt) <= P.nor
 % lmax and ||X|| are logged so a ratio flattered by a large lambda_max (a drifting
 % recession direction) is visible against Mosek's; labs is the absolute margin,
 % to set against eppos on the c = 0 classes
+%info = struct('lmin',lmin,'res',rres,'unpin',max(unpin,pin),'lmax',lmax, ...
+%              'labs',labs,'normx',norm(xt));                               % CC, 09/27/2026 (was)
+% strict: every (face-reduced) block positive definite beyond eig rounding
+% (~1e-12 x lambda_max), so the PSD test needed no tolerance at all
+%info = struct('lmin',lmin,'res',rres,'unpin',max(unpin,pin),'lmax',lmax, ...
+%              'labs',labs,'normx',norm(xt),'eta',eta,'eta_raw',info_eta_raw, ...
+%              'strict',double(lred > 1e-12*max(lmax,realmin)));            % CC, 09/27/2026 (b) (was)
 info = struct('lmin',lmin,'res',rres,'unpin',max(unpin,pin),'lmax',lmax, ...
-              'labs',labs,'normx',norm(xt));
+              'labs',labs,'normx',norm(xt),'eta',eta,'eta_raw',info_eta_raw, ...
+              'strict',double(lred > 1e-12*max(lmax,realmin)),'eta_psd',etac); % CC, 09/27/2026 (b)
+% CC, 09/27/2026: keep the certificate itself (the repaired svec point) so it
+% can be mapped back and re-checked on another program (bl_reduce)
+%if ok && isfield(C,'frep'), fid = fopen(C.frep,'w'); fprintf(fid,'%.17g\n',xa); fclose(fid); end % CC, 09/27/2026 (b) (was)
+if ok && isfield(C,'frep'), fid = fopen(C.frep,'w'); fprintf(fid,'%.17g\n',xcert); fclose(fid); end % CC, 09/27/2026 (b)
 end
 
 
@@ -405,13 +521,31 @@ end
 end
 
 
-function [lmin,V,L,lmax] = blockeig(xf,K,Ks)
+function [lmin,V,L,lmax] = blockeig(xf,K,Ks,zero)
+% CC, 09/27/2026: optional zero{k} (bl_face) -- eigen-decompose only the
+% reduced block X(~z,~z); the forced-zero rows/columns carry exact zeros.
 lmin = inf;  lmax = -inf;  off = K.f;  V = cell(1,numel(Ks));  L = V;
 for k = 1:numel(Ks)
-    N = Ks(k);  Xk = reshape(xf(off+(1:N^2)),N,N);
-    [V{k},Dk] = eig((Xk+Xk')/2);  L{k} = diag(Dk);
-    lmin = min(lmin,min(L{k}));  lmax = max(lmax,max(L{k}));
+    N = Ks(k);  Xk = reshape(xf(off+(1:N^2)),N,N);  Xs = (Xk+Xk')/2;
+    kk = true(N,1);  if nargin >= 4 && ~isempty(zero), kk = ~zero{k}; end
     off = off + N^2;
+    if ~any(kk), V{k} = zeros(0);  L{k} = zeros(0,1);  continue; end
+    [V{k},Dk] = eig(Xs(kk,kk));  L{k} = diag(Dk);
+    lmin = min(lmin,min(L{k}));  lmax = max(lmax,max(L{k}));
+end
+end
+
+
+function D = resol(C,a,b)
+% CC, 09/27/2026: the bracket interval in the solver's primal-residual units:
+% the change in the pinned, unit-normalised b between gamma = a and gamma = b,
+% divided as cuADMM divides its residual.  2-norm: 1+||b||_2 = 2, i.e. the old
+% chord/2 exactly.  'inf': max-entry change over 1+||b||_inf.
+if strcmp(C.P.pinf_norm,'inf')
+    ba = [C.b_un; C.s*a];  ba = ba/norm(ba);  bb = [C.b_un; C.s*b];  bb = bb/norm(bb);
+    D = max(abs(ba-bb))/(1 + max(max(abs(ba)),max(abs(bb))));
+else
+    D = chord(C.s*a,C.s*b,C.B)/2;
 end
 end
 
@@ -515,6 +649,8 @@ function pr = newpr()
 pr = struct('phase','','gam',NaN,'tau',NaN,'cap',NaN,'iters',NaN,'t_s',NaN, ...
     'conv',false,'pinf_end',NaN,'pinf_min',NaN,'dobj_end',NaN,'verdict','i', ...
     'F_lmin',NaN,'F_res',NaN,'F_unpin',NaN,'F_lmax',NaN,'F_labs',NaN,'F_normx',NaN, ...
+    'F_eta',NaN,'F_etaraw',NaN,'F_strict',NaN, ...                          % CC, 09/27/2026
+    'F_etapsd',NaN, ...                        % eta of the clipped PSD point % CC, 09/27/2026 (b)
     'I_beta',NaN,'I_eps',NaN,'slope',NaN,'aitken',NaN,'note','');
 end
 
@@ -522,6 +658,8 @@ end
 function pr = putF(pr,info)
 pr.F_lmin = info.lmin;  pr.F_res = info.res;  pr.F_unpin = info.unpin;
 pr.F_lmax = info.lmax;  pr.F_labs = info.labs;  pr.F_normx = info.normx;
+pr.F_eta = info.eta;  pr.F_etaraw = info.eta_raw;  pr.F_strict = info.strict;   % CC, 09/27/2026
+pr.F_etapsd = info.eta_psd;                                                 % CC, 09/27/2026 (b)
 end
 
 
