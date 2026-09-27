@@ -19,6 +19,13 @@ function s2d = set2d_deg(Dup,dmult)
 % psatz=1 REPLACES the plain term rather than adding to it, and enabling it
 % made whole measured studies infeasible.  Keeping it off also keeps the block
 % count at 2 (LF, eq) so per-block ranks map 1:1 onto operators.
+%
+% CC, 09/27/2026: eppos 1e-4/1e-6 -> 1e-2, matching pielr_settings.  The two
+%   settings files in this package disagreed about one knob and the 2-D cells,
+%   which use this one, kept the tiny-||b|| pathology the 1-D arm had already
+%   shed.  See the comment at the assignment.  Invalidates banked 2-D numbers.
+% CC, 09/27/2026: also see set2d_psatz4, which wraps this to add the four
+%   linear face generators; it inherits this eppos.
 if nargin<2, dmult = []; end
 s2d = settings_PIETOOLS_light_2D();
 if ~isempty(dmult)
@@ -37,7 +44,21 @@ for a = 1:3
 end
 s2d.LF_use_psatz = 0;
 s2d.eq_use_psatz = [0;0];
-s2d.eppos = [1e-4;1e-6;1e-6;1e-6];
+% eppos RAISED TO 1e-2 (CC, 09/27/2026).  b is proportional to eppos for the
+% stability LPI, so the shipped 1e-4/1e-6 made ||b|| = 5.6e-06 on
+% rd2d-deg3-f010 (m = 3456, 70 nonzeros in b).  At that scale the trivial
+% point satisfies the equality rows to ~1e-9 and acceptance sits on the noise
+% floor -- the same pathology diagnosed and fixed for 1-D, where
+% pielr_settings pins eppos = eppos2 = 1e-2 and also writes 1e-2 into
+% settings_2d.  set2d_deg is what the 2-D bench cells actually use, so the two
+% settings files in this package disagreed about one knob and the 2-D arm kept
+% the pathology the 1-D arm had shed.  Relative measures are invariant to this
+% and absolute ones scale with it, so raising it lifts acceptance off the
+% noise floor without flattering any ratio.
+% INVALIDATES every banked 2-D number taken with this file: b, and hence every
+% absolute residual, changes by ~1e4.
+% s2d.eppos = [1e-4;1e-6;1e-6;1e-6];                                       % CC, 09/27/2026 (was)
+s2d.eppos = 1e-2*ones(4,1);                                               % CC, 09/27/2026
 s2d.epneg = 0;
 s2d.use_sosineq = 0;
 % MASTER-BRANCH PORTABILITY (measured, 09/19/2026): the shipped                % CC, 09/19/2026
