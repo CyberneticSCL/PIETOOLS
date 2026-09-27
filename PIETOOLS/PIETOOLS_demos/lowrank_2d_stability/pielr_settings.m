@@ -42,12 +42,29 @@ function S = pielr_settings(tier,dim)                                      % CC,
 %      confound -- tier 0 is (stripped, Dup 1, OFF) and tier 1 is (light,
 %      Dup 1, ON) -- so the baseline's 6/18 -> 14/18 jump in reference
 %      certifications across that boundary cannot attribute the gain either.
-%      The isolating test, stripped+ON against stripped+OFF at fixed Dup and
-%      lam, HAS NOT BEEN RUN.  Treat "psatz on in tiers 1-3" as following the
-%      ladder, not as a measured necessity, until it is.
-%      (The earlier sentence "Raising the plain degree cannot substitute for
-%      the boundary factor" is removed: it is exactly the alternative these
-%      rows cannot rule out.)
+%      RESOLVED (CC, 09/26/2026) by crossing the two variables instead of
+%      sliding them together -- {stripped,light} x {OFF,ON} x three lam,
+%      Dup 1, eppos 1e-2, searched P, solver='best':
+%
+%        lam/*   stripped OFF   stripped ON   light OFF   light ON
+%         0.10   2.658 FAILS    2.658 FAILS   2.658 FAILS 5.550e-09 certifies
+%         0.50   5.290 FAILS    5.290 FAILS   5.290 FAILS 7.862e-08 certifies
+%         0.90   8.883 FAILS    8.883 FAILS   8.883 FAILS 8.883     FAILS
+%
+%      THE PSATZ IS NECESSARY -- light+OFF fails at every lam -- so the
+%      original claim stands.  But it is NOT SUFFICIENT and the flag is INERT
+%      without enough base degree: stripped+ON is bit-identical to
+%      stripped+OFF at all three lam because its psatz block is 1x1
+%      (blocks [6 8 1] against light's [10 15 6]).  A multiplier with no
+%      monomials cannot correct anything.  So preset and flag are an
+%      INTERACTION, not two independent levers, and tier 0 is a weak control
+%      for both reasons at once.
+%
+%      EVERY failing cell returns the TRIVIAL POINT: 2.658 / 5.290 / 8.883 are
+%      the X=0 residuals, identical across different m and different solvers.
+%      That also decodes the Dup table below -- its 8.883e+00 at lam 0.90 is
+%      the same number, so "Dup1 FAILS" there has always meant "returns X=0",
+%      not "returns a loose certificate".
 %
 %  (2) Dup ON dd2/dd3 IS THE ACCURACY LEVER, and it is cheap:
 %        lam/lam* 0.50  Dup1 rel 9.267e-08 certifies | Dup2 4.111e-10 certifies
