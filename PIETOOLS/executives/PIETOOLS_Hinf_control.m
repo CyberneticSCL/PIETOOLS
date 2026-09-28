@@ -62,6 +62,11 @@
 % DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
 %                   avoid conflict with MATLAB gamma function;
 % DJ - 10/19/2024: Update to use new LPI programming structure;
+% MMP - 09/26/2026: Form Czop*Pop+Dzuop*Zop and Aop*Pop+Buop*Zop once
+%                   (CPDZop, APBZop) for the KYP operator; each occurred
+%                   twice and MATLAB does not reuse repeated
+%                   subexpressions. Same calls on the same operands, so the
+%                   program is bit-identical.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -172,9 +177,15 @@ Pop = Pop + mat2opvar(Imat, Pop.dim(:,2), PIE.vars, PIE.dom);
 Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-Dop = [-gam*Iz,                      Dzwop      (Czop*Pop+Dzuop*Zop)*Top';
+% Dop = [-gam*Iz,                      Dzwop      (Czop*Pop+Dzuop*Zop)*Top'; % MMP, 09/26/2026 (was)
+%         Dzwop',                      -gam*Iw,   Bwop';                    % MMP, 09/26/2026 (was)
+%         Top*(Czop*Pop+Dzuop*Zop)',   Bwop       (Aop*Pop+Buop*Zop)*(Top')+Top*(Aop*Pop+Buop*Zop)']; % MMP, 09/26/2026 (was)
+% Both parenthesised sums occurred 2x each (no CSE in MATLAB): form once.   % MMP, 09/26/2026
+CPDZop = Czop*Pop+Dzuop*Zop;                                                % MMP, 09/26/2026
+APBZop = Aop*Pop+Buop*Zop;                                                  % MMP, 09/26/2026
+Dop = [-gam*Iz,                      Dzwop      CPDZop*Top';                % MMP, 09/26/2026
         Dzwop',                      -gam*Iw,   Bwop';
-        Top*(Czop*Pop+Dzuop*Zop)',   Bwop       (Aop*Pop+Buop*Zop)*(Top')+Top*(Aop*Pop+Buop*Zop)']; 
+        Top*CPDZop',                 Bwop       APBZop*(Top')+Top*APBZop']; % MMP, 09/26/2026
 
 disp('- Parameterize the derivative inequality...');
 

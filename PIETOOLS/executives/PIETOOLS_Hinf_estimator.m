@@ -57,6 +57,11 @@
 %                   avoid conflict with MATLAB gamma function;
 % DJ - 08/01/2024: add call to 2D version;
 % DJ - 10/19/2024: Update to use new LPI programming structure;
+% MMP - 09/26/2026: Form Pop*Bwop+Zop*Dywop and Pop*Aop+Zop*Cyop once
+%                   (PBZDop, PAZCop) for the KYP operator; each occurred
+%                   four times and MATLAB does not reuse repeated
+%                   subexpressions. Same calls on the same operands, so the
+%                   program is bit-identical.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, Lop, gam, P, Z] = PIETOOLS_Hinf_estimator(PIE, settings,gain)
@@ -172,9 +177,15 @@ disp('- Constructing the Negativity Constraint...');
 Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-Dop = [-gam*Iw+Twop'*(Pop*Bwop+Zop*Dywop)+(Pop*Bwop+Zop*Dywop)'*Twop,   -Dzwop',   -(Pop*Bwop+Zop*Dywop)'*Top-Twop'*(Pop*Aop+Zop*Cyop);
+% Dop = [-gam*Iw+Twop'*(Pop*Bwop+Zop*Dywop)+(Pop*Bwop+Zop*Dywop)'*Twop,   -Dzwop',   -(Pop*Bwop+Zop*Dywop)'*Top-Twop'*(Pop*Aop+Zop*Cyop); % MMP, 09/26/2026 (was)
+%        -Dzwop,                                                          -gam*Iz,   Czop; % MMP, 09/26/2026 (was)
+%        -Top'*(Pop*Bwop+Zop*Dywop)-(Pop*Aop+Zop*Cyop)'*Twop,             Czop',     (Pop*Aop+Zop*Cyop)'*Top+Top'*(Pop*Aop+Zop*Cyop)]; % MMP, 09/26/2026 (was)
+% Both parenthesised sums occurred 4x each (no CSE in MATLAB): form once.   % MMP, 09/26/2026
+PBZDop = Pop*Bwop+Zop*Dywop;                                                % MMP, 09/26/2026
+PAZCop = Pop*Aop+Zop*Cyop;                                                  % MMP, 09/26/2026
+Dop = [-gam*Iw+Twop'*PBZDop+PBZDop'*Twop,                               -Dzwop',   -PBZDop'*Top-Twop'*PAZCop; % MMP, 09/26/2026
        -Dzwop,                                                          -gam*Iz,   Czop;
-       -Top'*(Pop*Bwop+Zop*Dywop)-(Pop*Aop+Zop*Cyop)'*Twop,             Czop',     (Pop*Aop+Zop*Cyop)'*Top+Top'*(Pop*Aop+Zop*Cyop)];
+       -Top'*PBZDop-PAZCop'*Twop,                                       Czop',     PAZCop'*Top+Top'*PAZCop]; % MMP, 09/26/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
