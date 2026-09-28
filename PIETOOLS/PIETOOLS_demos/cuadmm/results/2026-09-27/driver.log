@@ -1,0 +1,94 @@
+[2026-09-27 03:39:05] block B0 start
+[2026-09-27 03:43:05] block B0 exit 0 (1 items done, 0 ERR)
+[2026-09-27 03:43:08] block N1 start
+[2026-09-27 03:43:13] block N1 exit 0 (1 items done, 0 ERR)
+[2026-09-27 03:43:13] driver finished
+armed 2026-09-27 03:44:21: start 04:30:00, deadline 12:00:00
+S2 armed 2026-09-27 04:24:27: after night 1, deadline 12:00
+[2026-09-27 04:30:28] B0g GPU hygiene
+bde9e1e4a25bf5ea2018f2f2a93af1761912e2f315708ded22900f2621ebc240  cuadmm_exe
+7c6661ed74acc35f61e7fdda37efb245f3ca3ee1307e03aade8a364c624becd3  libcuadmm_lib.so
+c4a7504d8a264b86fe54d8653c0ff269669ae5c1cd6120cbc4dbb702e1ccf7fa  psd_projection/libpsd_lib.so
+     23 
+      1         'sm_62','sm_70','sm_72','sm_75','sm_80','sm_86','sm_87','sm_89','sm_90',
+      1         'sm_90a'.
+      2         All 'dump' and 'list' options are ignored with this option.
+      1         Allowed values for this option:  'sm_50','sm_52','sm_53','sm_60','sm_61',
+      1         Dump CUDA assembly for a single cubin file or all cubin files embedded in
+      1         Dump ELF Object sections.
+      1         Dump ELF symbol names.
+      1         Dump all fatbin sections.  By default will only dump contents of executable
+      1         Dump ptx for all listed device functions.
+      1         Dump resource usage for each ELF. Useful in getting all the resource usage
+      1         Extract ELF file(s) name containing <partial file name> and save as file(s).
+      1         Extract PTX file(s) name containing <partial file name> and save as file(s).
+      1         Extract text binary encoding file(s) name containing <partial file name>
+      1         Include command line options from specified file.
+      1         List all the ELF files available in the fatbin. All other options are ignored
+      1         List all the PTX files available in the fatbin. All other options are ignored
+      1         List all the text binary function names available in the fatbin. All other
+      1         Print this help information on this tool.
+      1         Print version information on this tool.
+      1         Sort functions when dumping sass.
+      1         Specify GPU Architecture for which information should be dumped.
+      1         Specify names of device functions whose fat binary structures must be dumped.
+      1         Specify symbol table index of the function whose fat binary structures must
+      1         Use 'all' to extract all files. To get the list of ELF files use -lelf option.
+      1         Use 'all' to extract all files. To get the list of PTX files use -lptx option.
+      1         and save as file(s). Use 'all' to extract all files. To get the list of text
+      1         be dumped.
+      1         binary encoding use -ltext option. All 'dump' and 'list' options are ignored
+      1         fatbin (if exists), else relocatable fatbin if no executable fatbin.
+      1         function with -xtext option later.
+      1         information at one place.
+      2         later.
+      1         options are ignored with the flag. This can be used to select particular
+      1         the binary.
+      1         with this flag. This can be used to select particular ELF with -xelf option
+      1         with this flag. This can be used to select particular PTX with -xptx option
+      1         with this option.
+      1 --all-fatbin                                (-all)        
+      1 --dump-elf                                  (-elf)        
+      1 --dump-elf-symbols                          (-symbols)    
+      1 --dump-ptx                                  (-ptx)        
+      1 --dump-resource-usage                       (-res-usage)  
+      1 --dump-sass                                 (-sass)       
+      1 --extract-elf <partial file name>,...       (-xelf)       
+      1 --extract-ptx <partial file name>,...       (-xptx)       
+      1 --extract-text <partial file name>,...      (-xtext)      
+      1 --function <function name>,...              (-fun)        
+      1 --function-index <function index>           (-findex)     
+      1 --gpu-architecture <gpu architecture name>  (-arch)       
+      1 --help                                      (-h)          
+      1 --list-elf                                  (-lelf)       
+      1 --list-ptx                                  (-lptx)       
+      1 --list-text <partial file name>             (-ltext)      
+      1 --options-file <file>,...                   (-optf)       
+      1 --sort-functions                            (-sort)       
+      1 --version                                   (-V)          
+      1 =======
+      1 Options
+      1 Usage  : cuobjdump [options] <file>
+[2026-09-27 04:30:35] retime stab_rd1_hv tol=1e-6 iters=4023 solve=6.12844s
+[2026-09-27 04:30:54] retime stab2_rd tol=1e-4 iters=1316 solve=16.9562s
+[2026-09-27 04:32:20] retime nl_fisher_nobnd tol=1e-4 iters=4567 solve=81.3762s
+[2026-09-27 04:32:20] block B1a start
+[2026-09-27 04:33:27] block B1a exit 0 (16 items done, 0 ERR)
+[2026-09-27 04:33:28] block B2S start
+[2026-09-27 04:36:30] block B2S exit 0 (7 items done, 0 ERR)
+[2026-09-27 04:36:30] block B2 start
+[2026-09-27 04:40:59] block B2 exit 0 (18 items done, 0 ERR)
+[2026-09-27 04:41:00] block N2b start
+[2026-09-27 04:46:11] block N2b exit 0 (8 items done, 0 ERR)
+[2026-09-27 04:46:12] block S1 start
+[2026-09-27 05:30:35] block S1 exit 0 (8 items done, 0 ERR)
+[2026-09-27 05:30:37] block N4 start
+[2026-09-27 06:10:51] block N4 exit 0 (2 items done, 0 ERR)
+[2026-09-27 06:10:54] block B1c start
+[2026-09-27 06:46:09] block B1c exit 0 (6 items done, 0 ERR)
+[2026-09-27 06:46:09] block B1d start
+[2026-09-27 06:47:24] block B1d exit 0 (2 items done, 0 ERR)
+[2026-09-27 06:47:24] driver finished
+[2026-09-27 06:47:36] block S2 start
+[2026-09-27 11:13:50] block S2 exit 0 (11 items done, 0 ERR)
+[2026-09-27 11:13:50] driver finished

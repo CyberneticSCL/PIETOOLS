@@ -162,8 +162,34 @@ not in any file yet. Both the primal and the dual bracket contain it.
 **`scale_stab` does not test convergence at scale.** It is n decoupled copies. cuADMM takes 519
 iterations to 1e-4 at every n = 1..32, and 4,023 to 1e-6 at n = 1..16, with identical residuals. It
 tests memory and cost per iteration at size, and soundness where the answer is known by
-construction. **No registered case is both large and coupled.** Whether Th_n3's three states are
-coupled has not been checked.
+construction. Whether Th_n3's three states are coupled has not been checked.
+
+**The coupled ladder `scale_rot` (added 09-27) fills that gap.** It is built by
+`bl_big(ns,frac,true)`: `x_t = x_ss + A x` with `A = Q diag(μ) Qᵀ`, where Q is dense orthogonal
+(from `rng(n)`) and μ runs from `frac·π²` down to `−frac·π²`. Every state is coupled, so the SDP is
+not block-separable. The answer follows from an argument, not a measurement:
+- a constant orthogonal change of state variables maps PIETOOLS' Gram basis `kron(I_n, Z(s))` to
+  itself, so it preserves LPI feasibility;
+- the decoupled LPI is feasible exactly when each scalar one is;
+- the scalar LPI is monotone in λ.
+
+So `frac = 0.5` is feasible and `frac = 1.01` (one unstable mode) is infeasible by theory. Checked
+where Mosek can: Mosek-F at n = 2, 4, 8, and block `S2` checks n = 16. Measured to 1e-6, cuADMM takes
+**3,937 / 3,261 / 6,519** iterations at n = 2 / 4 / 8, against 4,023 at every n for `scale_stab`,
+so convergence now depends on size. At n = 4 it has 1.56× the nonzeros of `scale_stab_n04`, with
+the same m and blocks. `scale_rot_f0p50_n04` is in the Sol-0 smoke block `X0`: 10,894 iterations,
+52.2 s, F on the workstation.
+
+**S2 result (09-27):** Mosek-F at n = 16 too. cuADMM certifies n = 8 (21,984 iterations,
+10.3 ms/it), but slows down sharply beyond that:
+- n = 16: about 110 ms/it, unfinished in 24 min;
+- n = 24: about 380 ms/it;
+- n = 32: no iteration printed in an hour.
+
+The cause is measured: the Cholesky factor of AAᵀ, which cuADMM builds once and solves against
+every iteration, is about 9% dense for the coupled ladder (54M / 260M / 812M nonzeros at
+n = 16 / 24 / 32), against 0.1–0.6% decoupled. Nested dissection is worse than AMD. So cuADMM's
+cost is set by that fill, not by m. See `results/2026-09-27/REGIME_REPORT.md` §4.
 
 ### `problematic`: kept apart for later
 
@@ -196,7 +222,8 @@ digit), `stabpded_rd1` (= `stabpde_rd1`), `stab2dual_rd` (= `stab2_rd`), `nl_fis
 - **Direct-form stability and well-posedness**: only tolerance-edge cases.
 - **Dual executives on a non-self-adjoint plant**: none. `stabdual_tr1` would fill it.
 - **Near-boundary ladder**: the Mosek-F rungs 0.975 … 0.999902 λ\* have no cuADMM runs.
-- **Large and coupled**: nothing. `scale_stab` is decoupled, and Th_n3 has no known answer.
+- **Large and coupled**: `scale_rot` (09-27), with the answer from the invariance argument, checked
+  with Mosek to n = 8, and n = 16 pending (`S2`). Its n = 24/32 rungs have no Mosek check.
 - **Objective above m = 17k, and 2-D with a known answer above m = 4.5k**: none.
 - **Certified lower ends on Sol**: cuADMM has produced no exact Farkas certificate anywhere, so
   infeasible ends come from banked Mosek γ_I, theory (`sent101`, the scale sentinels, `hinf2_rd`

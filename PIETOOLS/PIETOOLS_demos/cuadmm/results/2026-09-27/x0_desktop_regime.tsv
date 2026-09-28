@@ -1,0 +1,8 @@
+key	status	start	wall_s	gamma_I	gamma_F	gamma_i	gamma_f	F	f	i	I	iters	t_solver	flags	note
+N1|ok	ok	2026-09-27 04:20:29	0.0												
+N1|deadline	SKIP	2026-09-27 04:20:29	0												SKIP_DEADLINE (est 600 s)
+N1|stop	SKIP	2026-09-27 04:20:29	0												STOP file
+X0|warm|stab_tr1	ok	2026-09-27 04:20:34	3.4	0	Inf	0	Inf	1	0	0	0	1973	1.6		
+X0|cuadmm|stab_tr1	ok	2026-09-27 04:20:38	2.9	0	Inf	0	Inf	1	0	0	0	1973	1.6		
+X0|cuadmm|stab_rd1_hv	ok	2026-09-27 04:20:41	20.3	0	Inf	0	Inf	1	0	0	0	14092	19.0		
+X0|cuadmm|scale_rot_f0p50_n04	ok	2026-09-27 04:21:01	53.8	0	Inf	0	Inf	1	0	0	0	10894	52.2		

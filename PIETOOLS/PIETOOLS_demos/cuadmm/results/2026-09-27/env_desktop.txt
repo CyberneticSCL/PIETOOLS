@@ -1,0 +1,10 @@
+2026-09-27 05:39:48
+MATLAB 25.2.0.2998904 (R2025b) PCWIN64
+exe /home/mpeet/solvers/cuADMM/build/cuadmm_exe
+AW-2025-peet
+bde9e1e4a25bf5ea2018f2f2a93af1761912e2f315708ded22900f2621ebc240  /home/mpeet/solvers/cuADMM/build/cuadmm_exe
+7c6661ed74acc35f61e7fdda37efb245f3ca3ee1307e03aade8a364c624becd3  /home/mpeet/solvers/cuADMM/build/libcuadmm_lib.so
+c4a7504d8a264b86fe54d8653c0ff269669ae5c1cd6120cbc4dbb702e1ccf7fa  /home/mpeet/solvers/cuADMM/build/psd_projection/libpsd_lib.so
+GPU 0: NVIDIA GeForce RTX 4090 (UUID: GPU-bbcc6bb3-977a-1d32-236a-ddf8c4727113)
+NVIDIA GeForce RTX 4090, 24564 MiB, 610.60
+SLURM_JOB_ID= CUDA_VISIBLE_DEVICES=

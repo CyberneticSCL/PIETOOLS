@@ -1,0 +1,2 @@
+phase	gam	tau	cap	iters	t_s	conv	pinf_end	pinf_min	dobj_end	verdict	F_lmin	F_res	F_unpin	F_lmax	F_labs	F_normx	F_eta	F_etaraw	F_strict	F_etapsd	t_init	t_cert	mem_mb	I_beta	I_eps	slope	aitken	note
+feas	NaN	1e-07	30000	14092	119.947	1	9.96e-08	6.11e-08	3.2003e-09	F	-8.7482754e-09	2.7556747e-15	5.1639971e-09	1.2307928	-1.0767315e-08	1.5434743e-05	2.296749e-16	2.2283862e-08	0	6.6666916e-09	0.144533	0.408321	2119.5039	NaN	NaN	-0.58648674	5.7715005e-08	

@@ -1,0 +1,14 @@
+phase	gam	tau	cap	iters	t_s	conv	pinf_end	pinf_min	dobj_end	verdict	F_lmin	F_res	F_unpin	F_lmax	F_labs	F_normx	F_eta	F_etaraw	F_strict	F_etapsd	t_init	t_cert	mem_mb	I_beta	I_eps	slope	aitken	note
+seed	0.3	1e-07	50000	NaN	0.0872973	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.0001387	2303.8711	0.00016746848	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	0.6	1e-07	50000	NaN	0.0730571	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.0001127	2303.8711	7.8959252e-08	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	1.2	1e-07	50000	NaN	0.0678808	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.000112	2303.8711	2.1458201e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	2.4	1e-07	50000	NaN	0.0747314	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.0001195	2303.8711	3.1757261e-07	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	4.8	1e-07	50000	NaN	0.0927478	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.0001872	2303.8711	3.0070871e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	9.6	1e-07	50000	NaN	0.0892419	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.000163	2303.8711	6.5911218e-07	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	19.2	1e-07	50000	NaN	0.1063104	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.0001068	2303.8711	1.9186353e-13	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	38.4	1e-07	50000	NaN	0.1598284	0	NaN	NaN	NaN	I	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.0001947	2303.8711	2.0667077e-06	0	NaN	NaN	sedumi pinf=1 dinf=0 numerr=0
+seed	76.8	1e-07	50000	NaN	0.140534	0	NaN	NaN	NaN	i	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	0.0020706	2303.8711	8.0757449e-07	2.0920655e-12	NaN	NaN	sedumi pinf=1 dinf=0 numerr=1
+seed	153.6	1e-07	50000	NaN	0.1742151	0	NaN	NaN	NaN	f	-1.0713947e-09	5.1155468e-12	2.7555162e-09	50078.885	-5.3654252e-05	8358473.4	1.1364638e-15	3.4776449e-09	0	2.7555162e-09	NaN	0.0034969	2303.8711	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+seed	307.2	1e-07	50000	NaN	0.1507689	0	NaN	NaN	NaN	f	-7.0412208e-10	2.6009136e-12	1.5707479e-09	19342.443	-1.3619441e-05	6794009	8.1392453e-16	2.3193036e-09	0	1.5707479e-09	NaN	0.003983	2303.8711	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+seed	614.4	1e-07	50000	NaN	0.1584394	0	NaN	NaN	NaN	f	-2.0964122e-10	3.6904772e-12	4.664335e-10	16477.918	-3.4544509e-06	11710215	8.1320489e-16	1.342274e-09	0	4.6409733e-10	NaN	0.0027815	2303.8711	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1
+seed	1228.8	1e-07	50000	NaN	0.1390487	0	NaN	NaN	NaN	f	-8.4140619e-10	7.4462374e-14	1.7846583e-09	1193.801	-1.0044716e-06	1831623.5	4.9442513e-16	2.2379213e-09	0	1.6462213e-09	NaN	0.0038408	2303.8711	NaN	NaN	NaN	NaN	sedumi pinf=0 dinf=0 numerr=1

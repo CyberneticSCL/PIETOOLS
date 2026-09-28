@@ -24,6 +24,9 @@ ver="$(git -C "$TREE" rev-parse HEAD) dirty-diff-sha256=$(git -C "$TREE" diff HE
 echo "pushing tree ($ver)"
 tar -C "$(dirname "$TREE")" --exclude=.git --exclude=.claude --exclude='*.asv' \
     -czf - "$(basename "$TREE")" | ssh sol "rm -rf $SOL/harness/PIETOOLS && tar xzf - -C $SOL/harness && echo '$ver' > $SOL/harness/VERSION"
+# git on Windows may check shell scripts out with CRLF; bash on Sol would then
+# fail on the \r (CC, 09/27/2026)
+ssh sol "find $SOL/harness/PIETOOLS -name '*.sh' -o -name '*.slurm' | xargs -r sed -i 's/\r\$//'"
 
 for id in "$@"; do
   d="$OUTU/baseline/dumps"

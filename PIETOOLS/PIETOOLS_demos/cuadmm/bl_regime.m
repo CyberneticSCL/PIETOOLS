@@ -295,6 +295,44 @@ case 'N4'
     end
     item(G,'N4|cuadmm|Th_n3',60*60,@() bl_bisect(dmp(G,'Th_n3'),cu(struct('mode','feas', ...
          'probe_tol',1e-4,'probe_cap',4000,'run_timeout',35*60,'tag','N4'))));
+
+case 'X0'
+    % Sol-0 smoke, run identically on the workstation and on Sol: a discarded
+    % warm-up (GPU clock ramp: a first timed run can be ~2.6x slow), then three
+    % certified-standard feasibility runs -- the cheapest case, the ladder
+    % anchor, and the coupled ladder at n = 4 (bl_big(4,0.5,true)).
+    ff = @(t) struct('mode','feas','probe_tol',1e-7,'probe_cap',30000,'run_timeout',240,'tag',t);
+    item(G,'X0|warm|stab_tr1',120,@() bl_bisect(dmp(G,'stab_tr1'),cu(ff('X0w'))));
+    for id = {'stab_tr1','stab_rd1_hv','scale_rot_f0p50_n04'}
+        item(G,['X0|cuadmm|' id{1}],300,@() bl_bisect(dmp(G,id{1}),cu(ff('X0'))));
+    end
+
+case 'S2'
+    % the COUPLED ladder (bl_big rot = true, header there): a large problem that
+    % is not decoupled copies.  Measured 09-27 at 1e-6: 3937 / 3261 / 6519
+    % iterations at n = 2 / 4 / 8 against 4023 at every n for scale_stab, and
+    % Mosek-F at all three (the invariance argument, checked at small n).
+    % Order: truth checks and the n16 sentinel first, so the deadline cuts the
+    % largest rungs, not the soundness items.  Caps priced at ~25/45/70 ms/it
+    % for n16/24/32 (INFERRED: n08 measured 9 ms/it, decoupled 21/38/55).
+    item(G,'S2|build|rot05',20*60,@() bigbuild_rot([8 16 24 32],0.5));
+    item(G,'S2|build|rot101',20*60,@() bigbuild_rot([16 24 32],1.01));
+    for n = [8 16]
+        id = sprintf('scale_rot_f0p50_n%02d',n);
+        item(G,['S2|mosek|' id],15*60,@() bl_bisect(dmp(G,id),ms(struct('mode','feas','tag','S2'))));
+    end
+    cap = 40000;  spi = containers.Map({8,16,24,32},{0.012,0.025,0.045,0.070});
+    L2 = {'scale_rot_f0p50_n08','scale_rot_f0p50_n16','scale_rot_f1p01_n16', ...
+          'scale_rot_f0p50_n24','scale_rot_f1p01_n24','scale_rot_f0p50_n32','scale_rot_f1p01_n32'};
+    for k = 1:numel(L2)
+        id = L2{k};  n = str2double(id(end-1:end));  rt = ceil(1.3*cap*spi(n)) + 120;
+        item(G,['S2|cuadmm|' id],rt + 300,@() bl_bisect(dmp(G,id),cu(struct('mode','feas', ...
+             'probe_tol',1e-7,'probe_cap',cap,'run_timeout',rt,'tag','S2'))));
+        R = getres(G,['S2|cuadmm|' id]);
+        if contains(id,'f1p01') && ~isempty(R) && R.counts.F > 0
+            trip(G,sprintf('cuADMM F on coupled sentinel %s (1.01 lambda*)',id));
+        end
+    end
 % CC, 09/27/2026 (end)
 
 otherwise
@@ -340,6 +378,11 @@ end
 function R = bigbuild(ns,frac)
 bl_big(ns,frac);
 R = struct('built',{arrayfun(@(n) sprintf('n%02d',n),ns,'UniformOutput',false)});
+end
+
+function R = bigbuild_rot(ns,frac)
+bl_big(ns,frac,true);
+R = struct('built',{arrayfun(@(n) sprintf('rot n%02d',n),ns,'UniformOutput',false)});
 end
 % CC, 09/27/2026 (end)
 

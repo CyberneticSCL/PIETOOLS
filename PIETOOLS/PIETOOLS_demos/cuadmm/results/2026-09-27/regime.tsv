@@ -1,0 +1,85 @@
+key	status	start	wall_s	gamma_I	gamma_F	gamma_i	gamma_f	F	f	i	I	iters	t_solver	flags	note
+B0|dumps	ok	2026-09-27 03:39:08	236.1												
+N1|ok	ok	2026-09-27 03:43:11	0.0												
+N1|deadline	SKIP	2026-09-27 03:43:11	0												SKIP_DEADLINE (est 600 s)
+N1|stop	SKIP	2026-09-27 03:43:11	0												STOP file
+B1a|mosek|hinf_rd1	ok	2026-09-27 04:32:23	2.2	0.1825453227	0.1826255265	0.1826252232	0.1826253439	9	3	5	7	0	0.7		
+B1a|sedumi|hinf_rd1	ok	2026-09-27 04:32:25	4.5	0.1820419257	0.18317036	0.1819901253	0.1820055246	3	9	0	11	0	3.1	endgame: certified infeasible at 0.18202373, above gamma_f | endgame: certified infeasible at 0.18204193, above gamma_f	
+B1a|mosek|hinf_rd1_hv	ok	2026-09-27 04:32:30	2.2	0.1824013863	0.1824815857	0.182481465	0.1824815857	11	0	4	7	0	1.0		
+B1a|sedumi|hinf_rd1_hv	ok	2026-09-27 04:32:32	5.9	0.1814344553	0.1825773781	0.1814009642	0.1814163137	3	9	1	10	0	4.7	endgame: certified infeasible at 0.18143446, above gamma_f	
+B1a|mosek|hinfdu_rd1	ok	2026-09-27 04:32:38	1.8	0.1824703558	0.1825555331	0.1825554125	0.1825555331	11	0	4	7	0	0.7		
+B1a|sedumi|hinfdu_rd1	ok	2026-09-27 04:32:40	4.0	0.1820385669	0.1826519971	0.1820539703	0.1820693751	3	9	4	6	0	2.9		
+B1a|mosek|hinfco_rd1	ok	2026-09-27 04:32:44	2.3	0.186496713	0.1923045719	0.1923044448	0.1923045719	8	0	10	4	0	1.2		
+B1a|sedumi|hinfco_rd1	ok	2026-09-27 04:32:46	4.4	0.1892610546	0.1913773923	0.188942733	0.1889587206	3	10	0	11	0	3.2	endgame: certified infeasible at 0.18897762, above gamma_f | endgame: certified infeasible at 0.18899651, above gamma_f | endgame: certified infeasible at 0.18926105, above gamma_f	
+B1a|mosek|hinfduco_rd1	ok	2026-09-27 04:32:50	1.4	76.8	Inf	1228.8	Inf	0	0	4	9	0	0.6	no certified upper bound up to 1228.8	
+B1a|sedumi|hinfduco_rd1	ok	2026-09-27 04:32:52	2.4	38.4	Inf	76.8	153.6	0	4	1	8	0	1.5	no certified upper bound up to 1228.8	
+B1a|mosek|ctrl_rd1	ok	2026-09-27 04:32:54	2.9	128	3916.995122	3916.953694	3916.995122	4	0	17	8	0	1.4	resolution: tau 9.55e-11, seed first passage 0	
+B1a|sedumi|ctrl_rd1	ok	2026-09-27 04:32:57	8.0	32	1266.401316	89.7622609	89.76985625	2	26	10	6	0	6.1		
+B1a|mosek|est_rd1	ok	2026-09-27 04:33:05	2.0	0	0.0004101043505	0.0004101021818	0.0004101043505	11	0	8	0	0	1.1	resolution: tau 7.67e-11, seed first passage 0	
+B1a|sedumi|est_rd1	ok	2026-09-27 04:33:07	8.5	0	0.0004765570616	4.500345727e-06	4.50186913e-06	2	28	11	0	0	7.0	resolution: tau 5.39e-11, seed first passage 0	
+B1a|mosek|est_rd1_pin	ok	2026-09-27 04:33:15	2.7	0	0.0003189650498	0.000318964839	0.0003189650498	14	0	8	0	0	1.5		
+B1a|sedumi|est_rd1_pin	ok	2026-09-27 04:33:18	7.1	0	0.0005075544	6.002887248e-05	6.00339519e-05	1	14	21	0	0	5.6		
+B2S|lambda	ok	2026-09-27 04:33:32	24.8												
+B2S|build|sentLPI_f1p000000	ok	2026-09-27 04:33:57	1.6												
+B2S|mosek|sentLPI_f1p000000	ok	2026-09-27 04:33:58	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2S|cuadmm|sentLPI_f1p000000	ok	2026-09-27 04:33:59	72.1	0	Inf	0	Inf	0	0	1	0	50000	68.7		
+B2S|build|sent101_f1p010000	ok	2026-09-27 04:35:11	1.8												
+B2S|mosek|sent101_f1p010000	ok	2026-09-27 04:35:13	0.5	0	Inf	0	Inf	0	0	0	1	0	0.0		
+B2S|cuadmm|sent101_f1p010000	ok	2026-09-27 04:35:13	75.7	0	Inf	0	Inf	0	0	1	0	50000	73.9		
+B2|mosek|stab_rd1	ok	2026-09-27 04:36:33	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_rd1	ok	2026-09-27 04:36:34	20.9	0	Inf	0	Inf	1	0	0	0	19111	19.5		
+B2|mosek|stabdual_rd1	ok	2026-09-27 04:36:55	0.4	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stabdual_rd1	ok	2026-09-27 04:36:55	21.7	0	Inf	0	Inf	1	0	0	0	19111	20.3		
+B2|mosek|stabpde_rd1	ok	2026-09-27 04:37:17	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stabpde_rd1	ok	2026-09-27 04:37:18	43.0	0	Inf	0	Inf	1	0	0	0	50000	41.5		
+B2|mosek|stabpded_rd1	ok	2026-09-27 04:38:01	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stabpded_rd1	ok	2026-09-27 04:38:01	39.6	0	Inf	0	Inf	1	0	0	0	50000	38.2		
+B2|mosek|stab_rd1_hv	ok	2026-09-27 04:38:41	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_rd1_hv	ok	2026-09-27 04:38:41	22.5	0	Inf	0	Inf	1	0	0	0	14092	21.1		
+B2|mosek|stab_rd1_tight	ok	2026-09-27 04:39:04	0.4	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_rd1_tight	ok	2026-09-27 04:39:04	59.7	0	Inf	0	Inf	1	0	0	0	37456	58.3		
+B2|mosek|stab_tr1	ok	2026-09-27 04:40:04	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_tr1	ok	2026-09-27 04:40:04	2.9	0	Inf	0	Inf	1	0	0	0	1973	1.7		
+B2|mosek|stab_wave1	ok	2026-09-27 04:40:07	0.5	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|stab_wave1	ok	2026-09-27 04:40:08	47.5	0	Inf	0	Inf	1	0	0	0	26396	46.3		
+B2|mosek|wellposed_rd1	ok	2026-09-27 04:40:55	0.4	0	Inf	0	Inf	1	0	0	0	0	0.0		
+B2|cuadmm|wellposed_rd1	ok	2026-09-27 04:40:56	2.5	0	Inf	0	Inf	0	1	0	0	928	1.0		
+N2b|sedumi|hinf_rd1|0.99	ok	2026-09-27 04:41:04	1.2	0.1807198695	Inf	0.1807198695	Inf	0	0	0	1	0	0.5	no certified upper bound up to 0.18072	
+N2b|cuadmm|hinf_rd1|0.99	ok	2026-09-27 04:41:05	78.2	0	Inf	0.1807198695	Inf	0	0	1	0	30000	76.3	no certified upper bound up to 0.18072	
+N2b|sedumi|hinf_rd1|0.999	ok	2026-09-27 04:42:23	0.7	0	Inf	0	0.1823627774	0	1	0	0	0	0.2	no certified upper bound up to 0.182363	
+N2b|cuadmm|hinf_rd1|0.999	ok	2026-09-27 04:42:24	77.8	0	Inf	0.1823627774	Inf	0	0	1	0	30000	76.3	no certified upper bound up to 0.182363	
+N2b|sedumi|hinfdu_rd1|0.99	ok	2026-09-27 04:43:42	0.6	0.1806456523	Inf	0.1806456523	Inf	0	0	0	1	0	0.2	no certified upper bound up to 0.180646	
+N2b|cuadmm|hinfdu_rd1|0.99	ok	2026-09-27 04:43:42	73.1	0	Inf	0.1806456523	Inf	0	0	1	0	30000	71.7	no certified upper bound up to 0.180646	
+N2b|sedumi|hinfdu_rd1|0.999	ok	2026-09-27 04:44:56	0.5	0	Inf	0	0.1822878855	0	1	0	0	0	0.1	no certified upper bound up to 0.182288	
+N2b|cuadmm|hinfdu_rd1|0.999	ok	2026-09-27 04:44:56	74.1	0	Inf	0.1822878855	Inf	0	0	1	0	30000	72.9	no certified upper bound up to 0.182288	
+S1|cuadmm|scale_stab_n08	ok	2026-09-27 04:46:16	122.4	0	Inf	0	Inf	1	0	0	0	14092	119.9		
+S1|cuadmm|scale_stab_n16	ok	2026-09-27 04:48:18	151.7	0	Inf	0	Inf	1	0	0	0	14092	148.5		
+S1|cuadmm|scale_stab_n24	ok	2026-09-27 04:50:50	246.8	0	Inf	0	Inf	1	0	0	0	14092	241.8		
+S1|cuadmm|scale_stab_n32	ok	2026-09-27 04:54:57	363.2	0	Inf	0	Inf	1	0	0	0	14092	354.8		
+S1|build|sentinels	ok	2026-09-27 05:01:00	108.9												
+S1|cuadmm|scale_sent_f1p01_n16	ok	2026-09-27 05:02:49	319.0	0	Inf	0	Inf	0	0	1	0	30000	305.3		
+S1|cuadmm|scale_sent_f1p01_n24	ok	2026-09-27 05:08:08	535.9	0	Inf	0	Inf	0	0	1	0	30000	509.3		
+S1|cuadmm|scale_sent_f1p01_n32	ok	2026-09-27 05:17:04	810.3	0	Inf	0	Inf	0	0	1	0	30000	753.6		
+N4|file|Th_n3	ok	2026-09-27 05:30:41	525.6	0	Inf	0	Inf	0	1	0	0	0	505.8		
+N4|cuadmm|Th_n3	ok	2026-09-27 05:39:26	1884.1	0	Inf	0	Inf	0	1	0	0	3063	1057.5		
+B1c|cuadmm|hinf_rd1_hv	ok	2026-09-27 06:10:57	710.5	0	0.1825185127	0.1820309455	0.1821542042	2	2	11	0	245917	700.2		
+B1c|heldout|hinf_rd1_hv	ok	2026-09-27 06:22:48	89.1	0	Inf	0.1824013863	Inf	0	0	1	0	30000	87.8		
+B1c|cuadmm|hinfdu_rd1	ok	2026-09-27 06:24:17	811.9	0	0.1856860509	0.1840877007	0.1842123521	2	1	14	0	332713	800.8		
+B1c|heldout|hinfdu_rd1	ok	2026-09-27 06:37:49	68.6	0	Inf	0.1824703558	Inf	0	0	1	0	30000	67.4		
+B1c|cuadmm|hinfco_rd1	ok	2026-09-27 06:38:58	355.0	0	Inf	3.692247781	Inf	0	0	5	0	150000	350.9	no certified upper bound up to 3.69225	
+B1c|heldout|hinfco_rd1	ok	2026-09-27 06:44:53	75.2	0	Inf	0.186496713	Inf	0	0	1	0	30000	73.4		
+B1d|cuadmm|ctrl_rd1	ok	2026-09-27 06:46:14	9.2	0	4333.684833	4310.280437	4333.684833	5	0	4	0	238	0.9	resolution: tau 4.43e-08, seed first passage Inf	
+B1d|heldout|ctrl_rd1	ok	2026-09-27 06:46:23	58.7	0	Inf	128	Inf	0	0	1	0	30000	57.1		
+B1d|cuadmm|hinfduco_rd1	SKIP	2026-09-27 06:47:22	0												no Mosek-certified upper end in B1a
+B1d|cuadmm|est_rd1_pin	SKIP	2026-09-27 06:47:22	0												B1a Mosek bracket has no certified lower end
+S2|build|rot05	ok	2026-09-27 06:47:41	201.2												
+S2|build|rot101	ok	2026-09-27 06:51:02	144.1												
+S2|mosek|scale_rot_f0p50_n08	ok	2026-09-27 06:53:26	4.3	0	Inf	0	Inf	1	0	0	0	0	3.2		
+S2|mosek|scale_rot_f0p50_n16	ok	2026-09-27 06:53:31	66.4	0	Inf	0	Inf	1	0	0	0	0	62.7		
+S2|cuadmm|scale_rot_f0p50_n08	ok	2026-09-27 06:54:37	231.4	0	Inf	0	Inf	1	0	0	0	21984	225.5		
+S2|cuadmm|scale_rot_f0p50_n16	ok	2026-09-27 06:58:28	1421.9	0	Inf	0	Inf	0	0	1	0	0	0.0		
+S2|cuadmm|scale_rot_f1p01_n16	ok	2026-09-27 07:22:10	1422.6	0	Inf	0	Inf	0	0	1	0	0	0.0		
+S2|cuadmm|scale_rot_f0p50_n24	ok	2026-09-27 07:45:53	2465.1	0	Inf	0	Inf	0	0	1	0	0	0.0		
+S2|cuadmm|scale_rot_f1p01_n24	ok	2026-09-27 08:26:58	2465.2	0	Inf	0	Inf	0	0	1	0	0	0.0		
+S2|cuadmm|scale_rot_f0p50_n32	ok	2026-09-27 09:08:03	3771.8	0	Inf	0	Inf	0	0	1	0	0	0.0		
+S2|cuadmm|scale_rot_f1p01_n32	ok	2026-09-27 10:10:55	3773.0	0	Inf	0	Inf	0	0	1	0	0	0.0		
