@@ -854,3 +854,54 @@ What survives of the critique is narrower and still real: `bm_lm2`'s **exit test
 `‖W r‖` against a threshold calibrated in operator units, which is why `tol` fired two orders above
 the gate and needed `lmtol = gate/100`. That is a defect in the *exit test*, not an argument
 against the preconditioner, and it is the next thing to fix.
+
+### Failures are not equivalent between the arms — correcting §9's agreement count
+
+§9 reports "low-rank 56, reference 54, **agreeing on 71 of 73 rows**". That count treats a
+failure on one arm as the same event as a failure on the other. It is not, and the difference
+covers 12 of the 16 shared failures.
+
+This became measurable only after two changes: `rel_row = ‖A'x−b‖/‖b‖` is **exactly 1 at x = 0**,
+so it self-identifies a trivial return (the fingerprint is the cuADMM session's), and a failing
+low-rank run now returns its best point instead of `q = []`, so it can be scored at all.
+
+Re-running all 16 low-rank failures (1-D/DDE, tier-A seeds; 2-D excluded because the 09/27 eppos
+change makes its banked rows stale, while the 1-D cells take `eppos = 1e-2` from `pielr_settings`
+and are unaffected):
+
+| | trivial | worse than trivial | near miss |
+|---|---|---|---|
+| **low-rank** | 0 | 0 | **16** |
+| **reference** | **12** | 0 | 4 |
+
+The split is structural, not scattered: **every** trivial reference return is a *feasibility* LPI,
+and **every** reference near-miss is an *objective* LPI (`gain-reacdiff` ×2, `gain-heat-dist`,
+`poincare`). On a feasibility LPI a failing interior-point solve returns X = 0; on an objective
+LPI it returns a real point.
+
+**The reading that is wrong, and the one that is right.** It is tempting to conclude the low-rank
+arm degrades more gracefully. On the four cells where *both* arms produce a real point, the
+reference is closer every single time:
+
+| case | tier | lr rel_row | ref rel_row | reference better by |
+|---|---|---|---|---|
+| gain-reacdiff | 1 | 7.9945e-03 | 4.1139e-05 | 194× |
+| poincare | 0 | 9.9137e-03 | 1.8929e-04 | 52× |
+| gain-heat-dist | 0 | 1.9417e-01 | 4.2661e-03 | 45× |
+| gain-reacdiff | 0 | 6.1744e-02 | 8.9391e-03 | 6.9× |
+
+So the correct statement is **not** "the low-rank arm fails better". It is: *on feasibility LPIs
+the interior-point arm returns nothing while the low-rank arm returns a near miss; on objective
+LPIs both return near misses and the interior-point one is 7–194× closer.* The low-rank arm's
+advantage exists only where the comparison is against zero.
+
+**How to report the suite from here.** A single agreement count cannot carry this. Certifications
+and failure *quality* are separate axes, and the second one only became visible once failures
+carried a point.
+
+**One caveat on the comparison.** `rel_row` for the low-rank arm is computed on its best attempt
+across ranks — the point the search liked most by raw residual — while the reference's is its one
+returned solution. Those are not the same kind of object, and for the objective cases the
+low-rank point is scored against the *pinned* system of its trial (D plus the appended γ row)
+rather than against D. Both are the system each point was actually found against, which is the
+right choice, but the table is not a like-for-like comparison of two solvers' outputs.

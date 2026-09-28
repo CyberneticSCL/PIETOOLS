@@ -37,6 +37,15 @@ function [V,R,q,why,notes,P] = pielr_bisect_obj(prog,H,D,A,opts,vb)        % CC,
 %         ACCEPTED trial, which the caller needs to lift the face.
 
 notes = {};  V = [];  R = [];  q = [];  why = [];  P = [];
+% Best point seen across ALL trials, so a bisection that never brackets still
+% returns something to score (CC, 09/27/2026).  pielr_discover now hands back
+% its best attempt on failure, but this loop discarded it and the objective
+% executives were the only cells left unclassifiable -- gain-reacdiff and
+% gain-heat-dist reported "no point" while every feasibility case could be
+% scored.  NOTE the P returned with it is the PINNED system of that trial
+% (D plus the appended gamma row), which is the system the point was actually
+% found against, so a residual computed from it is the right one.
+bq = [];  bP = [];  brel = inf;                                         % CC, 09/27/2026
 jc = find(D.c);
 if numel(jc)~=1
     error('pielr_bisect_obj:obj', ...
@@ -69,6 +78,7 @@ else
         nit = nit+1;
         [Vk,Rk,qk,wk,nk,Pk] = trial(prog,H,D,A,opts,vb,jc,g);
         allwhy = [allwhy wk];  notes = [notes nk];   %#ok<AGROW>
+        [bq,bP,brel] = keepbest(bq,bP,brel,qk,Pk,Rk);                   % CC, 09/27/2026
         if vb, fprintf('  [gamma] ladder g = %-10.6g -> %s\n',g,verd(Rk)); end
         if ~isempty(Rk) && Rk.ok
             hi = g;  bestall = struct('V',{Vk},'R',Rk,'q',qk,'P',Pk,'g',g);
@@ -80,6 +90,9 @@ end
 if isempty(hi)
     notes{end+1} = ['no gamma certified on the bracketing ladder up to 2^12; ' ...
         'reported as NOT REACHED, never as a proven bound'];
+    % V and R stay EMPTY -- callers test isempty(R) for "no certificate" --
+    % but hand back the best trial point so the failure can be scored.
+    q = bq;  P = bP;                                                    % CC, 09/27/2026
     why = allwhy;   return
 end
 
@@ -131,5 +144,17 @@ function s = verd(R)
 if isempty(R), s = 'no certificate';
 elseif R.ok,   s = sprintf('CERTIFIES (rel %.3e)',R.rel);
 else,          s = sprintf('fail (rel %.3e)',R.rel);
+end
+end
+
+function [bq,bP,brel] = keepbest(bq,bP,brel,qk,Pk,Rk)                   % CC, 09/27/2026
+% Keep the trial point with the smallest gate residual.  A trial whose gate
+% returned nothing still carries a point (pielr_discover hands back its best
+% attempt), so score those as inf and take the first -- some point beats none.
+if isempty(qk), return, end
+s = inf;
+if ~isempty(Rk) && isfield(Rk,'rel') && isfinite(Rk.rel), s = Rk.rel; end
+if s < brel || isempty(bq)
+    bq = qk;  bP = Pk;  brel = s;
 end
 end
