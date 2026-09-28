@@ -203,3 +203,15 @@ maintainer for access. Section map: §1–3 cell-of-parameters representation, a
 adjoint; §4–5 the kernel form and its adjoint; §6 composition; §7 `dsopvar` and the four key
 operations; §8 the decision-variable object `vec C(d) = A + B'd`; §9 construction of positive
 operators. Cite it by section when explaining a modification (protocol item 5).
+
+---
+
+## 7. SOSTOOLS files never reference PIETOOLS
+
+SOSTOOLS is a separate toolbox with its own users: `SOSTOOLS400/` in this repository, the
+standalone SOSTOOLS repository, and any other SOSTOOLS copy. In any file inside a SOSTOOLS
+folder — code, comments, header log entries, error and warning text — never mention PIETOOLS
+or its concepts: PIEs, opvars and the other operator classes, LPIs, executives, containers,
+`eppos`, settings presets such as `'heavy'`, PIETOOLS tests or plants. Motivate and measure a
+change in SOSTOOLS terms: the SOS program, `soseq`/`sosineq`, the SDP's m, `K.s` and nnz, the
+SOSTOOLS demos. References already written by other authors are left as they are (§1).

@@ -31,8 +31,8 @@ function B = repmat(A,M,N)
 %                  'M>1'/'N>1' guards below take the same branch for 0 as
 %                  for 1 and return A at full size, contradicting the
 %                  documented size [size(A,1)*M,size(A,2)*N] and the
-%                  built-in 'repmat'. The wrong-sized operand surfaced as
-%                  dimension errors in Test_repmat_sopvar at nr==0/nc==0.
+%                  built-in 'repmat', so callers tiling by zero received a
+%                  wrongly sized result.
 
 % Argument checking
 error(nargchk(2,3,nargin))
