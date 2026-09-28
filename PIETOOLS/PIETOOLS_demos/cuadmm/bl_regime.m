@@ -307,6 +307,15 @@ case 'X0'
         item(G,['X0|cuadmm|' id{1}],300,@() bl_bisect(dmp(G,id{1}),cu(ff('X0'))));
     end
 
+case 'X1'
+    % Sol vs desktop at large m (CC, 09/28/2026): a warm-up, then scale_stab_n32
+    % (m 138,240) exactly as S1 ran it on the workstation 09-27: 14,092 it,
+    % 354.8 s solve, 25.2 ms/it, init 0.4 s, certify 4.2 s, F.
+    item(G,'X1|warm|stab_tr1',120,@() bl_bisect(dmp(G,'stab_tr1'),cu(struct('mode','feas', ...
+         'probe_tol',1e-7,'probe_cap',30000,'run_timeout',240,'tag','X1w'))));
+    item(G,'X1|cuadmm|scale_stab_n32',10*60,@() bl_bisect(dmp(G,'scale_stab_n32'),cu(struct('mode','feas', ...
+         'probe_tol',1e-7,'probe_cap',30000,'run_timeout',15*60,'tag','X1'))));
+
 case 'S2'
     % the COUPLED ladder (bl_big rot = true, header there): a large problem that
     % is not decoupled copies.  Measured 09-27 at 1e-6: 3937 / 3261 / 6519
