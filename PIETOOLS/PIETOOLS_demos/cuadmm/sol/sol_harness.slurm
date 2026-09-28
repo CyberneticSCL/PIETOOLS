@@ -39,6 +39,10 @@ export CUADMM_REQUIRE_FULL_GPU=1
 
 module purge
 module load gcc/13.4.0 nvhpc/25.7-cuda-12.9-nompi matlab/2025b
+# MATLAB's system() prepends MATLAB's own libstdc++ (no GLIBCXX_3.4.32), so
+# cuadmm_exe launched from MATLAB fails to load (Sol-0, job 64075050).  Save the
+# module environment's path now; bl_bisect restores it for cuadmm_exe only.
+export CUADMM_LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
 
 # a missing library would make cuadmm_exe fail with exit 0 (it does on CUDA
 # failure): stop here instead of spending the walltime

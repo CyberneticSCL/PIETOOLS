@@ -268,7 +268,8 @@ S.cuadmm.bisect = struct( ...
     'psd_eta_tol', 1e-7, ...           % CC, 09/27/2026: calibrated on 120 regime iterates (bl_bisect header)
     'launcher',    'auto', ...         % CC, 09/27/2026: 'wsl' (workstation) | 'linux' (Sol) | 'auto' by platform
     'require_full_gpu', false, ...     % CC, 09/27/2026: error on a MIG slice (set true for timed Sol runs)
-    'keep_x',      true);              % CC, 09/27/2026: keep Mosek/SeDuMi points too, for offline re-certification
+    'keep_x',      true, ...           % CC, 09/27/2026: keep Mosek/SeDuMi points too, for offline re-certification
+    'cert_skip',   100);               % CC, 09/28/2026: skip cuADMM certification if pinf_min > cert_skip*psd_eta_tol (Inf = never)
 % CC, 09/26/2026 (end)
 
 S.tier = tier;   S.tier_base = base;   S.tier_Dup = Dup;   S.dim = dim;

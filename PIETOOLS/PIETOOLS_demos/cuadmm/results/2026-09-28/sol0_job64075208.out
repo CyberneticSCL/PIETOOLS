@@ -1,0 +1,59 @@
+Loading gcc/13.4.0 
+  * This version of GCC is stricter than GCC 10 and older,
+    so you may need to use the following flags:
+      -std=gnu11
+      -std=gnu17
+      -fpermissive
+      -Wno-incompatible-pointer-types
+      -Wno-implicit-function-declaration
+Loading nvhpc/25.7-cuda-12.9-nompi
+  * NVHPC includes CUDA, so you don't need to load a CUDA module.
+===============================================================================
+Loaded: matlab 2025b
+
+  Matlab is a high-level language and interactive environment for numerical
+  computation, visualization and programming
+
+  For more information, visit:
+  https://www.mathworks.com/
+
+===============================================================================
+     
+GPU 0: NVIDIA A100-SXM4-80GB (UUID: GPU-89aa45e7-abb5-ff14-0a11-ffc96bc993a0)
+job 64075208 on sg045: blocks [N1 X0], deadline Mon Sep 28 01:27:01 MST 2026
+REGIME N1 start 2026-09-28 01:17:41  deadline 2026-09-28 01:27:01
+REGIME start N1|ok (est 5 s) 2026-09-28 01:17:41
+REGIME done N1|ok ok 0.0 s
+REGIME skip N1|ok (done)
+REGIME skip N1|deadline: SKIP_DEADLINE (est 600 s)
+REGIME skip N1|stop: STOP file
+BISDONE stab_tr1_N1stop [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 0 (F0 f0 i0 I0)  solver 0.0 s  iters 0
+  FLAG STOPPED: STOP file
+PASS resume: a done item is not re-run
+PASS deadline: an item that would overrun is refused
+PASS STOP: the driver refuses a new item
+PASS STOP: bl_bisect makes no solver call
+REGIMEDONE N1 2026-09-28 01:17:43
+REGIME X0 start 2026-09-28 01:17:43  deadline 2026-09-28 01:27:01
+REGIME start X0|warm|stab_tr1 (est 120 s) 2026-09-28 01:17:43
+BIS feas  gam=NaN           tau=1.00e-07  cap=30000  it=1973   t=   1.57s pinf=9.92e-08  -> F  (Flmin -5.0e-08 Fres 3.5e-16 | Ibeta NaN Ieps NaN) 
+BISDONE stab_tr1_X0w [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 1.6 s  iters 1973
+REGIME done X0|warm|stab_tr1 ok 13.8 s
+REGIME start X0|cuadmm|stab_tr1 (est 300 s) 2026-09-28 01:17:57
+BIS feas  gam=NaN           tau=1.00e-07  cap=30000  it=1973   t=   0.97s pinf=9.92e-08  -> F  (Flmin -5.0e-08 Fres 3.5e-16 | Ibeta NaN Ieps NaN) 
+BISDONE stab_tr1_X0 [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 1.0 s  iters 1973
+REGIME done X0|cuadmm|stab_tr1 ok 2.5 s
+REGIME start X0|cuadmm|stab_rd1_hv (est 300 s) 2026-09-28 01:18:00
+BIS feas  gam=NaN           tau=1.00e-07  cap=30000  it=14092  t=   8.55s pinf=9.96e-08  -> F  (Flmin -8.7e-09 Fres 3.1e-15 | Ibeta NaN Ieps NaN) 
+BISDONE stab_rd1_hv_X0 [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 8.6 s  iters 14092
+REGIME done X0|cuadmm|stab_rd1_hv ok 9.9 s
+REGIME start X0|cuadmm|scale_rot_f0p50_n04 (est 300 s) 2026-09-28 01:18:10
+BIS feas  gam=NaN           tau=1.00e-07  cap=30000  it=10894  t=  27.01s pinf=5.11e-08  -> F  (Flmin -1.4e-08 Fres 3.3e-15 | Ibeta NaN Ieps NaN) 
+BISDONE scale_rot_f0p50_n04_X0 [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 27.0 s  iters 10894
+REGIME done X0|cuadmm|scale_rot_f0p50_n04 ok 28.9 s
+REGIMEDONE X0 2026-09-28 01:18:38
+JobID           Elapsed     MaxRSS   TotalCPU                                                    AllocTRES 
+------------ ---------- ---------- ---------- ------------------------------------------------------------ 
+64075208       00:01:38              00:00:00   billing=40,cpu=4,gres/gpu:a100=1,gres/gpu=1,mem=32G,node=1 
+64075208.ba+   00:01:38              00:00:00              cpu=4,gres/gpu:a100=1,gres/gpu=1,mem=32G,node=1 
+64075208.ex+   00:01:38              00:00:00   billing=40,cpu=4,gres/gpu:a100=1,gres/gpu=1,mem=32G,node=1 
