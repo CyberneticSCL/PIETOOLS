@@ -103,6 +103,8 @@ function [At,b,Z] = getequation(symexpr,vartable,decvartable,varmat,Type)
 %   user-chosen names ending in blanks (e.g. dpvar('c ')): the old char
 %   route stripped those from the table but not from the expression, which
 %   was inconsistent; they are now matched exactly.
+% 09/27/26 - DJ -- Throw an error right away if repeated or missing
+%                   decision variables are encountered in 'dvarname'.
 
 
 if isa(symexpr,'dpvar')  
@@ -210,16 +212,20 @@ if isa(symexpr,'dpvar')
         idx = accumarray(loc(tf),find(tf),[numel(dvarname),1],@min,0);      % MMP, 09/26/2026
         if ~all(idx)                                                        % MMP, 09/26/2026
             % A name absent from the table, or repeated in dvarname         % MMP, 09/26/2026
-            % (only its first copy is matched above): use ismember.         % MMP, 09/26/2026
-            [~,idx]=ismember(dvarname,decvartable);                         % MMP, 09/26/2026
+            % (only its first copy is matched above): not supported.        
+            %[~,idx]=ismember(dvarname,decvartable);                        % DJ, 09/27/2026 (was)
+            error('The given expression has a decision variable which is repeated or does not appear in the sosprogram')
         end                                                                 % MMP, 09/26/2026
         idx = reshape(idx,size(dvarname));                                  % MMP, 09/26/2026
     else                                                                    % MMP, 09/26/2026
         [~,idx]=ismember(dvarname,char(decvartable));                       % MMP, 09/26/2026
-    end                                                                     % MMP, 09/26/2026
-    if ~isempty(find(~idx,1))
-        error('The given expression has a decision variable which does not appear in the sosprogram')
+        if ~all(idx)                                                        % DJ, 09/27/2026
+            error('The given expression has a decision variable which does not appear in the sosprogram')
+        end
     end
+    % if ~isempty(find(~idx,1))                                             % DJ, 09/27/2026 (was)
+    %     error('The given expression has a decision variable which does not appear in the sosprogram')
+    % end
     At=sparse([],[],[],n_dvars_prog,n_cons,nnz(At_temp));
     At(idx,:)=-At_temp; % main time sink?
     
