@@ -56,6 +56,32 @@ function prob = Sedumi2Mosek(A,b,c,K)
 
 % A Sedumi to Mosek converter
 % changed sparse construction for faster conversion, SS - 7/20/2021
+% 09/26/26 - MMP - bara (the constraint matrices A_ij of Mosek's form) is
+%   built per psd block in one pass over that block's nonzeros, instead of
+%   one constraint row at a time. The old loop took row i of A on block j,
+%   reshaped it with mat() and ran find(tril(X+X')/2), for every row i and
+%   every block j. Extracting a row of a sparse (compressed-column) A
+%   searches all K.s(j)^2 columns of the block however few nonzeros the row
+%   has, so the conversion cost O(m*sum(K.s.^2)), i.e. (equality
+%   constraints) x (Gram-matrix entries), plus one cellfun call and one
+%   sparse K.s(j) x K.s(j) matrix per row and block. It now costs
+%   O(nnz(A) + size(A,2) + m*numel(K.s)). Measured (min of reps, one
+%   process): sosdemo11 (m = 5555, K.s = [100 100 150]) 0.86 s -> 0.001 s;
+%   sosdemo12 0.73 s -> 0.0015 s; an SDP with m = 13977, K.s = [8 869],
+%   nnz(A) = 2.3e6: 72 s -> 0.08 s, peak memory 314 -> 191 MB (86 MB of it
+%   prob.bara itself); there the old conversion was 19-24% of the whole
+%   Mosek solve.
+%   The per-block pieces are joined once after the loop: appending them to
+%   the full arrays block by block, as the old code did, costs
+%   O(numel(K.s)*nnz(A)); with the new extraction, 37 s against 1.4 s for
+%   10^4 blocks of size 3 and m = 10^5.
+%   The output is unchanged bit for bit, every prob field, including the
+%   order, orientation and empty shapes of the bara triplets: the same
+%   operations are applied to the same operands (X+X' with the same
+%   operand order, so NaN bits, cancellations and overflow agree; /2;
+%   find).
+%   Replaces the cellfun construction of SS - 7/20/2021 (kept commented
+%   out below).
 
 if (isfield(K,'q') && any(K.q>0)) || (isfield(K,'r') && any(K.r>0))
     error('K.q and K.r are supposed to be empty')
@@ -103,6 +129,9 @@ prob2.bara.subj=[];
 prob2.bara.subk=[];
 prob2.bara.subl=[];
 prob2.bara.val=[];
+% bara pieces per block, joined once after the loop: appending to the       % MMP, 09/26/2026
+% full arrays in every block cost O(numel(K.s)*nnz(A)).                     % MMP, 09/26/2026
+Bi = cell(1,nsdpvar);  Bj = Bi;  Bk = Bi;  Bl = Bi;  Bv = Bi;               % MMP, 09/26/2026
 for j=1:nsdpvar
     temp=mat(c(Kindex(j):(Kindex(j+1)-1)),K.s(j));
     [I,J,V] = find(tril(temp+temp')/2);
@@ -128,16 +157,50 @@ for j=1:nsdpvar
 
 %     cell implementation
     
-    barAcell = num2cell((1:m)');
-    barAcell = cellfun(@(x) mat(A(x,Kindex(j):(Kindex(j+1)-1)),K.s(j)), barAcell, 'un',0);
-    [I, J, V] = cellfun(@(x) find(tril(x+x')/2), barAcell, 'un', 0);
-    idxI = num2cell((1:m)'); 
-    prob2.bara.subi = [prob2.bara.subi (cell2mat(cellfun(@(x,y) y*ones(length(x),1), I, idxI,'un',0)))'];
-    prob2.bara.subj = [prob2.bara.subj (cell2mat(cellfun(@(x) j*ones(length(x),1), I,'un',0)))'];
-    prob2.bara.subk = [prob2.bara.subk (cell2mat(I))'];
-    prob2.bara.subl = [prob2.bara.subl (cell2mat(J))'];
-    prob2.bara.val = [prob2.bara.val (cell2mat(V))'];
+% BEGIN MMP, 09/26/2026: block j in one pass over its nonzeros, not one
+% cellfun call per constraint row (see header).
+%   barAcell = num2cell((1:m)');                                            % MMP, 09/26/2026 (was)
+%   barAcell = cellfun(@(x) mat(A(x,Kindex(j):(Kindex(j+1)-1)),K.s(j)), barAcell, 'un',0); % MMP, 09/26/2026 (was)
+%   [I, J, V] = cellfun(@(x) find(tril(x+x')/2), barAcell, 'un', 0);        % MMP, 09/26/2026 (was)
+%   idxI = num2cell((1:m)');                                                % MMP, 09/26/2026 (was)
+%   prob2.bara.subi = [prob2.bara.subi (cell2mat(cellfun(@(x,y) y*ones(length(x),1), I, idxI,'un',0)))']; % MMP, 09/26/2026 (was)
+%   prob2.bara.subj = [prob2.bara.subj (cell2mat(cellfun(@(x) j*ones(length(x),1), I,'un',0)))']; % MMP, 09/26/2026 (was)
+%   prob2.bara.subk = [prob2.bara.subk (cell2mat(I))'];                     % MMP, 09/26/2026 (was)
+%   prob2.bara.subl = [prob2.bara.subl (cell2mat(J))'];                     % MMP, 09/26/2026 (was)
+%   prob2.bara.val = [prob2.bara.val (cell2mat(V))'];                       % MMP, 09/26/2026 (was)
+    % Row i of A on block j is vec(X_i)'; bara holds the lower triangle of  % MMP, 09/26/2026
+    % (X_i+X_i')/2, i outer, column-major within X_i. All rows at once, by  % MMP, 09/26/2026
+    % the old operations: the same + with the same operand order (so NaN    % MMP, 09/26/2026
+    % bits, cancellation, overflow agree), /2 (drops underflow), find.      % MMP, 09/26/2026
+    if m==0,  continue,  end        % old appended 0x0 (no rows)            % MMP, 09/26/2026
+    s = K.s(j);                                                             % MMP, 09/26/2026
+    [kk,ll] = find(tril(true(s)));  % lower triangle k>=l, column-major     % MMP, 09/26/2026
+    % Block column (l-1)*s+k is X_i(k,l); Y(i,:) = X_i(k,l)+X_i'(k,l).      % MMP, 09/26/2026
+    Y = A(:,Kindex(j)-1+(ll-1)*s+kk) + A(:,Kindex(j)-1+(kk-1)*s+ll);        % MMP, 09/26/2026
+    Y = (Y/2).';                    % transposed: find runs i outer, as old % MMP, 09/26/2026
+    [p,ii,vv] = find(Y);                                                    % MMP, 09/26/2026
+    clear Y                                                                 % MMP, 09/26/2026
+    kk = kk(p);  ll = ll(p);                                                % MMP, 09/26/2026
+    kk = kk(:)'; ll = ll(:)'; ii = ii(:)'; vv = vv(:)';  % rows, as old     % MMP, 09/26/2026
+    Bi{j} = ii;                                                             % MMP, 09/26/2026
+    Bj{j} = j*ones(1,numel(ii));                                            % MMP, 09/26/2026
+    % Old shape for an empty block with s<=1: find of a 1x1 zero is 0x0,    % MMP, 09/26/2026
+    % so cell2mat(I) was 0x0 there (1x0 for s>1, and for subi/subj);        % MMP, 09/26/2026
+    % a 0x0 piece is left empty, which the join below skips.                % MMP, 09/26/2026
+    if ~isempty(vv) || s>1                                                  % MMP, 09/26/2026
+        Bk{j} = kk;                                                         % MMP, 09/26/2026
+        Bl{j} = ll;                                                         % MMP, 09/26/2026
+        Bv{j} = vv;                                                         % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
+% END MMP, 09/26/2026
 end
+% One horzcat equals the per-block appends it replaces: 0x0 pieces are      % MMP, 09/26/2026
+% skipped, 1x0 ones kept, so shapes of empty results are unchanged.         % MMP, 09/26/2026
+prob2.bara.subi = [prob2.bara.subi Bi{:}];                                  % MMP, 09/26/2026
+prob2.bara.subj = [prob2.bara.subj Bj{:}];                                  % MMP, 09/26/2026
+prob2.bara.subk = [prob2.bara.subk Bk{:}];                                  % MMP, 09/26/2026
+prob2.bara.subl = [prob2.bara.subl Bl{:}];                                  % MMP, 09/26/2026
+prob2.bara.val = [prob2.bara.val Bv{:}];                                    % MMP, 09/26/2026
 
 prob.bara = prob2.bara;
 
