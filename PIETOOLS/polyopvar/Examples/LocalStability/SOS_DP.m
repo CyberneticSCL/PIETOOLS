@@ -44,6 +44,7 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
     %                   Re-routed innerprod via innerprod_v2.m
     % CR, 09/07/2026: Verify the returned Gram blocks are symbolically
     %                   symmetric before using the factor-two reduction.
+    % DJ, 09/21/2026: Removed strict positivity constraint.
         
             
     %% Build the monomial basis used to parameterize P.
@@ -58,6 +59,7 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
     Zop.var1 = s;
     Zop.var2 = s_dum;
     Zop.I = dom;
+    
     Z = dopvar2ndopvar(Zop);
     Zx = Z*x;
 
@@ -89,7 +91,7 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
     %     end
     % end
 
-    %% Ensure strict positivity of the constructed SOS DP.
+    % %% Ensure strict positivity of the constructed SOS DP.
     % eppos = 1e-4;
     % for i = 1:d
     %     Pcell{i,i} = Pcell{i,i} + eppos*eye(size(Pcell{i,i}));

@@ -41,7 +41,8 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % authorship, and a brief description of modifications
     %
     % CR, 09/01/2026: Initial coding
-
+    % CR, 09/28/2026: Fixed bug with p1*g by creating polyopvar_times_v2.m
+    % CR, 09/28/2026: Added positivity constraint to C.
 
     %% Convert PDE to PIE.
     PIE = convert(PDE);
@@ -58,6 +59,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     if nargin < 8
         dpvar C % treated as C^2, the upper bound on the LF.
         prog = piesos_program(x,C);
+        prog = piesos_ineq(prog,C-1e-6); % C>=0.
         prog = piesos_setobj(prog,C); % Minimize C.
         fprintf(" --- Upper bound C to be minimised ---\n");
     else
@@ -66,7 +68,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     end
     
     
-    %% Declare degrees of SOS distributed polynomials and define weighted Sobolev ball.
+    %% Unpack degrees of distributed polynomials and define weighted Sobolev ball.
     
     % Declare degrees of dist mon basis for SOS LF and p1, p2 multipliers (respectively).
     % Degree will be doubled when converted from quadratic to linear form.
@@ -76,74 +78,67 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     V_mon = mon_degs(1); p1_mon = mon_degs(2); p2_mon = mon_degs(3);
     
     % Define weighted sobolev ball of radius r.
-    g = Weighted_Sobolev_Ball(r, alpha, Top, x);
-    fprintf(" --- Weighted Sobolev ball declared ---\n");
-
-    % Define term related to lower and upper bounds.
+    g     = Weighted_Sobolev_Ball(r, alpha, Top, x);
+    g_deg = 2;
+     
+    % Define (negated) term related to lower and upper bounds.
     bound = Weighted_Sobolev_Ball(0.0, alpha, Top, x);
     
+    fprintf(" --- Weighted Sobolev ball declared ---\n");
 
-    %% Declare p1, p2 as SOS DPs.
-    
-    % p1_deg=2, p1_mon=4 takes approx. 2 mins to declare!
-    [prog, p1] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
-    fprintf(" --- p1 declared ---\n");
-    
-    [prog, p2] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
-    fprintf(" --- p2 declared ---\n");
-    
 
-    %% Declare the LF (Not as SOS DP).
+    %% Declare LF and enforce lower bound.
     [prog, V] = V3_DP(prog, V_deg, V_mon, Top, x, dom);
-    fprintf(" --- LF declared and symmetry constraint imposed ---\n");
-       
 
-    %% Compute Lie derivative of the Lyapunov functional along the PIE.
-    dV = Liediff(V,PIE);
+    % Define global lower bound on V.
+    V_low = V + eppos*bound; % bound term is already negated.
 
+    % Set lower bound by defining and equating with new SOS DP.
+    [prog, sos1] = SOS_DP(prog, V_deg, V_mon, x, dom);
+    prog = piesos_eq(prog, V_low-sos1);
 
-    %% Define the lower bound on the LF and enforce constraint.
-    
-    % Define lower bound.
-    %V_low = V + eppos*bound; % bound term is already negated.
-    V_low = V; % enforce V>=0
-    
-    % Enforce lower bound by defining and equating with new SOS DP.
-    [prog, p3] = SOS_DP(prog, V_deg, V_mon, x, dom);
-    prog = piesos_eq(prog, V_low-p3);
-    fprintf(" --- Enforced lower bound equality ---\n");
+    fprintf(" --- LF declared (without symmetry constraint) and lower bound equality set ---\n");
 
-    V = V_low - eppos*bound; % ensure strict positivity V>=-eppos*bound
-    
-    
     %% Define the upper bound on the LF and enforce constraint.
 
-    % Define upper bound.
-    V_up = -C*bound - V - p1*g; % bound term is already negated.
+    % Declare p1 as SOS DP.
+    [prog, p1] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
 
-    % Enforce upper bound by defining and equating with new SOS DP.
-    deg4 = max(V_deg,p1_deg+1);
-    [prog, p4] = SOS_DP(prog, deg4, V_mon, x, dom);
-    prog = piesos_eq(prog, V_up-p4);
-    fprintf(" --- Enforced upper bound equality ---\n");
+    % Define local upper bound on V.
+    % V_up = -C*bound - V - p1*g; % bound term already negated.
+    V_up = -C*bound - V - polyopvar_times_v2(p1,g); % bound term already negated.
+
+    % Set upper bound by defining and equating with new SOS DP.
+    deg = max(V_deg,p1_deg+1);
+    g_mon = kernel_degree(g);
+    g_mon = max(0,ceil((g_mon-1)/(2*g_deg)));
+    mon = max(V_mon, p1_mon+g_mon);
+    [prog, sos2] = SOS_DP(prog, deg, mon, x, dom);
+    prog = piesos_eq(prog, V_up-sos2);
+    fprintf(" --- p1 declared and LF upper bound equality set ---\n");
+
+
+    %% Compute Lie derivative of the LF along the PIE and enforce constraint.
     
+    % Declare p2 as SOS DP.
+    % [prog, p2] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
 
-    %% Define constraint on the Lie derivative and enforce.
-    
-    % Define constraint.
-    dV_con = -dV - 2*lambda*V - p2*g; 
+    % Compute and define upper bound on Lie derivative.
+    % dV = Liediff(V,PIE);
+    % dV_con = -dV - 2*lambda*V - p2*g; 
+    % 
+    % % Enforce constraint by defining and equating with new SOS DP.
+    % deg = max(V_deg,p2_deg+1);
+    % mon = max(V_mon, p2_mon+g_mon);
+    % [prog, sos3] = SOS_DP(prog, deg, mon, x, dom);
+    % prog = piesos_eq(prog, dV_con-sos3);
+    % fprintf(" --- p2 declared and Lie derivative upper bound equality set ---\n");
 
-    % Enforce constraint by defining and equating with new SOS DP.
-    deg5 = max(V_deg,p2_deg+1);
-    [prog, p5] = SOS_DP(prog, deg5, V_mon, x, dom);
-    prog = piesos_eq(prog, dV_con-p5);
-    fprintf(" --- Enforced Lie derivative equality ---\n");
 
     %% Solve the optimization program.
-    
+
     sol_opts.simplify = true;
     prog_sol = piesos_solve(prog,sol_opts);
-
 
     % Extract the solution
     sol_info = prog_sol.solinfo.info;

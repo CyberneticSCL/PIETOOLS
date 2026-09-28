@@ -53,6 +53,8 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
     %                   forms.
     % DJ, 09/22/2026: Add monomials for multiplier operator in the basis
     %                   operator Zop.
+    % CR, 09/28/2026: Removed symmetry constraints as these will be enforced 
+    % when equating to an SOS_DP.
         
             
     %% Build the monomial basis used to parameterize P.
@@ -121,12 +123,11 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
     V3 = 0;
     for i = 1:d
         for j = 1:d
-            Vij = innerprod_v2(Zs1{i},Zs2{j},Pcell{i,j});
-            V3 = V3 + Vij;
-            if i >= j
-                rhs = innerprod_v2(Zs2{i}, Zs1{j}, Pcell{j,i}');
-                prog = piesos_eq(prog,Vij-rhs);
-            end
+            V3 = V3 + innerprod_v2(Zs1{i},Zs2{j},Pcell{i,j});
+            % if i >= j
+            %     rhs = innerprod_v2(Zs2{i}, Zs1{j}, Pcell{j,i}');
+            %     prog = piesos_eq(prog,Vij-rhs);
+            % end
         end
     end
 
