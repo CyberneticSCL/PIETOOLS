@@ -56,6 +56,10 @@ function [prog, Pop, gam, solve_val] = PIETOOLS_Hinf_gain_dual_2D(PIE, settings,
 %                   damped transport), now infeasible there. Plants with
 %                   T = T' are unaffected. The commented-out epneg branch
 %                   carries the same slip; fix it if it is re-enabled.
+% MMP - 09/26/2026: Form Cop*Pop and Aop*Pop once (CPop, APop) for the KYP
+%                   operator; each occurred twice and MATLAB does not reuse
+%                   repeated subexpressions. Same calls on the same
+%                   operands, so the program is bit-identical.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,9 +208,15 @@ Izop = mat2opvar(eye(size(Cop,1)), Cop.dim(:,1), PIE.vars, PIE.dom);
 %                      horzcat_legacy(Dop', -gam*Iwop, Bop'),...
 %                      horzcat_legacy(Top'*(Cop*Pop)', Bop, Top*(Aop*Pop)'+(Aop*Pop)*Top')); % MMP, 09/26/2026 (was)
 % Off-diagonal blocks C*Q and Q'*C' with Q = P*T', as in (3,3) (eq. 13.12). % MMP, 09/26/2026
-Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top'),...
+% Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top'),...
+%                      horzcat_legacy(Dop', -gam*Iwop, Bop'),...
+%                      horzcat_legacy(Top*(Cop*Pop)', Bop, Top*(Aop*Pop)'+(Aop*Pop)*Top')); % MMP, 09/26/2026 (was)
+% Cop*Pop, Aop*Pop occurred 2x each (no CSE in MATLAB): form once.          % MMP, 09/26/2026
+CPop = Cop*Pop;                                                             % MMP, 09/26/2026
+APop = Aop*Pop;                                                             % MMP, 09/26/2026
+Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, CPop*Top'),...
                      horzcat_legacy(Dop', -gam*Iwop, Bop'),...
-                     horzcat_legacy(Top*(Cop*Pop)', Bop, Top*(Aop*Pop)'+(Aop*Pop)*Top')); % MMP, 09/26/2026
+                     horzcat_legacy(Top*CPop', Bop, Top*APop'+APop*Top'));  % MMP, 09/26/2026
 % else
 %     % Ensure strict negativity
 %     Qop = vertcat_legacy(horzcat_legacy(-gam*Izop, Dop, (Cop*Pop)*Top),...

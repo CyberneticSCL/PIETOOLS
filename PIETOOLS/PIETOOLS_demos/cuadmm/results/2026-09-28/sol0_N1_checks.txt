@@ -1,0 +1,4 @@
+PASS resume: a done item is not re-run
+PASS deadline: an item that would overrun is refused
+PASS STOP: the driver refuses a new item
+PASS STOP: bl_bisect makes no solver call

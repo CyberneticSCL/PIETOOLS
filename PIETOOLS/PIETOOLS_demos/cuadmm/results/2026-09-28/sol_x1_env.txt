@@ -1,0 +1,10 @@
+2026-09-28 01:26:23
+MATLAB 25.2.0.3042426 (R2025b) Update 1 GLNXA64
+exe /scratch/mpeet/pietools/solvers/cuADMM/build_sol/cuadmm_exe
+sg036
+d29ed1492fd790848c1a2546398b7a613ad8d71e7f90e3e43849cb1c06cb7f2d  /scratch/mpeet/pietools/solvers/cuADMM/build_sol/cuadmm_exe
+177d47e681dac45351fd43e9642b67cc7b29dcdb46e4f6abe2498e8f6c596dd5  /scratch/mpeet/pietools/solvers/cuADMM/build_sol/libcuadmm_lib.so
+0e8288eb215b3a95752e36d123047666dd95ae9598988abec42df3463e68fa56  /scratch/mpeet/pietools/solvers/cuADMM/build_sol/psd_projection/libpsd_lib.so
+GPU 0: NVIDIA A100-SXM4-80GB (UUID: GPU-ef832483-fa7e-70cd-91a9-c1f64902bda7)
+NVIDIA A100-SXM4-80GB, 81920 MiB, 595.71.05
+SLURM_JOB_ID=64075580 CUDA_VISIBLE_DEVICES=0

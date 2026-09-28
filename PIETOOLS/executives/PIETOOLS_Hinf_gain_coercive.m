@@ -48,6 +48,10 @@
 % DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
 %                   avoid conflict with MATLAB gamma function;
 % DJ - 10/19/2024: Update to use new LPI programming structure;
+% MMP - 09/26/2026: Form Pop*Bwop and Pop*Aop once (PBop, PAop) for the KYP
+%                   operator; each occurred four times and MATLAB does not
+%                   reuse repeated subexpressions. Same calls on the same
+%                   operands, so the program is bit-identical.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, P, gam] = PIETOOLS_Hinf_gain(PIE, settings)
@@ -152,9 +156,15 @@ disp('- Constructing the Negativity Constraint...');
 Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
-Dop = [-gam*Iw+Twop'*(Pop*Bwop)+(Pop*Bwop)'*Twop,   Dzwop',    (Pop*Bwop)'*Top+Twop'*(Pop*Aop);
+% Dop = [-gam*Iw+Twop'*(Pop*Bwop)+(Pop*Bwop)'*Twop,   Dzwop',    (Pop*Bwop)'*Top+Twop'*(Pop*Aop); % MMP, 09/26/2026 (was)
+%         Dzwop,                                      -gam*Iz,   Czop;      % MMP, 09/26/2026 (was)
+%         Top'*(Pop*Bwop)+(Pop*Aop)'*Twop,            Czop'      (Pop*Aop)'*Top+Top'*(Pop*Aop)]; % MMP, 09/26/2026 (was)
+% Pop*Bwop, Pop*Aop occurred 4x each (no CSE in MATLAB): form once.         % MMP, 09/26/2026
+PBop = Pop*Bwop;                                                            % MMP, 09/26/2026
+PAop = Pop*Aop;                                                             % MMP, 09/26/2026
+Dop = [-gam*Iw+Twop'*PBop+PBop'*Twop,               Dzwop',    PBop'*Top+Twop'*PAop; % MMP, 09/26/2026
         Dzwop,                                      -gam*Iz,   Czop;
-        Top'*(Pop*Bwop)+(Pop*Aop)'*Twop,            Czop'      (Pop*Aop)'*Top+Top'*(Pop*Aop)];
+        Top'*PBop+PAop'*Twop,                       Czop'      PAop'*Top+Top'*PAop]; % MMP, 09/26/2026
     
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

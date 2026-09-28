@@ -45,6 +45,11 @@ function [prog, Lop, gam, Pop, Zop] = PIETOOLS_Hinf_estimator_2D(PIE, settings, 
 %
 % DJ - 01/24/2024: Initial coding;
 % DJ - 10/20/2024: Update to use new LPI programming structure;
+% MMP - 09/26/2026: Form Pop*Bop+Zop*Dyop and Pop*Aop+Zop*Cyop once
+%                   (PBZDop, PAZCop) for the KYP operator; each occurred
+%                   four times and MATLAB does not reuse repeated
+%                   subexpressions. Same calls on the same operands, so the
+%                   program is bit-identical.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -239,9 +244,15 @@ Iwop = mat2opvar(eye(size(Bop,2)), Bop.dim(:,2), PIE.vars, PIE.dom);
 Izop = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
 % Assemble the KYP operator
-Qop = vertcat_legacy(horzcat_legacy(-gam*Iwop+Twop'*(Pop*Bop+Zop*Dyop)+(Pop*Bop+Zop*Dyop)'*Twop, -Dzop', -(Pop*Bop+Zop*Dyop)'*Top-Twop'*(Pop*Aop+Zop*Cyop)),...
+% Qop = vertcat_legacy(horzcat_legacy(-gam*Iwop+Twop'*(Pop*Bop+Zop*Dyop)+(Pop*Bop+Zop*Dyop)'*Twop, -Dzop', -(Pop*Bop+Zop*Dyop)'*Top-Twop'*(Pop*Aop+Zop*Cyop)),...
+%                      horzcat_legacy(-Dzop, -gam*Izop, Czop),...
+%                      horzcat_legacy(-Top'*(Pop*Bop+Zop*Dyop)-(Pop*Aop+Zop*Cyop)'*Twop, Czop', (Pop*Aop+Zop*Cyop)'*Top+Top'*(Pop*Aop+Zop*Cyop))); % MMP, 09/26/2026 (was)
+% Both parenthesised sums occurred 4x each (no CSE in MATLAB): form once.   % MMP, 09/26/2026
+PBZDop = Pop*Bop+Zop*Dyop;                                                  % MMP, 09/26/2026
+PAZCop = Pop*Aop+Zop*Cyop;                                                  % MMP, 09/26/2026
+Qop = vertcat_legacy(horzcat_legacy(-gam*Iwop+Twop'*PBZDop+PBZDop'*Twop, -Dzop', -PBZDop'*Top-Twop'*PAZCop),...
                      horzcat_legacy(-Dzop, -gam*Izop, Czop),...
-                     horzcat_legacy(-Top'*(Pop*Bop+Zop*Dyop)-(Pop*Aop+Zop*Cyop)'*Twop, Czop', (Pop*Aop+Zop*Cyop)'*Top+Top'*(Pop*Aop+Zop*Cyop)));
+                     horzcat_legacy(-Top'*PBZDop-PAZCop'*Twop, Czop', PAZCop'*Top+Top'*PAZCop)); % MMP, 09/26/2026
 
 % Get rid of terms that are below tolerance
 ztol = 1e-12;

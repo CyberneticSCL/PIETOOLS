@@ -57,6 +57,10 @@
 % DJ - 06/02/2021: incorporate sosineq_on option, replacd gamma with gam to
 %                   avoid conflict with MATLAB gamma function;
 % DJ - 10/19/2024: Update to use new LPI programming structure;
+% MMP - 09/26/2026: Form Top*Pop once (TPop) for the KYP operator; the
+%                   (3,1) and (3,3) blocks both began with it and MATLAB
+%                   does not reuse repeated subexpressions. Top*Pop*X is
+%                   (Top*Pop)*X, so the program is bit-identical.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, P, gam] = PIETOOLS_Hinf_gain_dual(PIE, settings)
@@ -169,9 +173,14 @@ disp('- Constructing the Negativity Constraint...');
 Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
 Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
 
+% Dop = [-gam*Iz,          Dzwop,     Czop*Pop*Top';                        % MMP, 09/26/2026 (was)
+%         Dzwop',          -gam*Iw,   Bwop';                                % MMP, 09/26/2026 (was)
+%         Top*Pop*Czop',   Bwop,      Top*Pop*Aop'+Aop*Pop*Top'];           % MMP, 09/26/2026 (was)
+% Top*Pop*X parses as (Top*Pop)*X; Top*Pop led two blocks: form once.       % MMP, 09/26/2026
+TPop = Top*Pop;                                                             % MMP, 09/26/2026
 Dop = [-gam*Iz,          Dzwop,     Czop*Pop*Top';
         Dzwop',          -gam*Iw,   Bwop';
-        Top*Pop*Czop',   Bwop,      Top*Pop*Aop'+Aop*Pop*Top']; 
+        TPop*Czop',      Bwop,      TPop*Aop'+Aop*Pop*Top'];                % MMP, 09/26/2026
     
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

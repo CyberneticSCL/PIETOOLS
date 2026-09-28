@@ -257,7 +257,13 @@ cert.unknowns_face = NaN;
 % q and nb0 from the ACTUAL run, not placeholders: pielr_discover now returns
 % its best attempt even when nothing certifies, so a failing run can still be
 % scored on the SDP row residual.  Placeholders here defeated that.
-cert.q       = q;     cert.nb0     = P.nb0;                             % CC, 09/27/2026
+% P IS EMPTY when pielr_bisect_obj never brackets: that path returns
+% V=R=q=P=[] and an unguarded P.nb0 errors with "Dot indexing is not
+% supported", which is how this first shipped and it broke the objective
+% failure path on gain-reacdiff/gain-heat-dist.  q is [] there too, so the
+% scoring below is skipped and the cert simply carries no point.
+cert.q = q;                                                             % CC, 09/27/2026
+if ~isempty(P) && isstruct(P) && isfield(P,'nb0'), cert.nb0 = P.nb0; end % CC, 09/27/2026
 %cert.q      = [];    cert.nb0     = NaN;                               % CC, 09/24/2026 (was)
 cert.eta     = NaN;   cert.eta_psd = NaN;                               % CC, 09/27/2026
 cert.eta_normx = NaN; cert.eta_clipnorm = NaN;                          % CC, 09/27/2026
@@ -266,7 +272,7 @@ if isempty(R)
     % The gate never ran on this path, so eta has to be computed here -- and a
     % failure is exactly where it is wanted: it distinguishes a TRIVIAL return
     % from a near miss, which R.rel alone cannot do.
-    if ~isempty(q)                                                      % CC, 09/27/2026
+    if ~isempty(q) && ~isempty(P)                                       % CC, 09/27/2026
         try                                                             % CC, 09/27/2026
             Ef = pielr_eta(P.S,P.bf,q,P);                               % CC, 09/27/2026
             cert.eta = Ef.eta;  cert.eta_psd = Ef.eta_psd;              % CC, 09/27/2026

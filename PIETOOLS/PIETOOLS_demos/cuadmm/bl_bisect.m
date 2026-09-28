@@ -146,6 +146,16 @@ function R = bl_bisect(dumpfile,opts)                                        % C
 %   run_NNN_X.txt / run_NNN_y.txt too, so any verdict can be re-certified
 %   offline (the SeDuMi calibration points had to be re-solved).  pinf_norm
 %   'inf' now errors on a binary without the patch (it would ignore argv[10]).
+% CC, 09/28/2026 (d): cuADMM probes skip the primal certification when the
+%   solver's running-min residual pinf_min exceeds cert_skip (100) x
+%   psd_eta_tol, i.e. 1e-5.  Such a point cannot certify, and on large dumps
+%   the attempt is the expensive host phase while a billed GPU idles: Th_n3's
+%   1e-4 probe spent 529 s certifying to reach eta 5.4e-5.  Evidence for the
+%   cutoff: over all 73 cuADMM probes certified F on 09-26/27, the largest
+%   pinf_min is 5.0e-7 (ctrl_rd1) and none exceeds 1e-6, so the skip leaves a
+%   20x margin.  Only the primal certification is skipped: the Farkas test
+%   still runs, and Mosek, SeDuMi and 'file' points are never skipped.
+%   cert_skip = Inf disables it.
 
 if nargin < 2, opts = struct(); end
 cuadmm_path;
@@ -353,11 +363,18 @@ case 'cuadmm'
     if ~(pr.iters >= P.lean_kmin), pr.verdict = 'i';  pr.note = 'stopped in the start-up transient: no lean'; end
     xf_ = fullfile(C.dir,'X_opt.txt');  yf_ = fullfile(C.dir,'y_opt.txt');
     tc = tic;                                  % certification: host time, GPU idle % CC, 09/27/2026 (c)
-    if wantF || (pr.conv && pr.pinf_end <= P.try_F)
+    % CC, 09/28/2026: skip a primal certification that cannot pass (header (d));
+    % NaN pinf_min (no trace) never skips
+    skipF = isfinite(P.cert_skip) && pr.pinf_min > P.cert_skip*P.psd_eta_tol;  % CC, 09/28/2026
+%   if wantF || (pr.conv && pr.pinf_end <= P.try_F)                         % CC, 09/28/2026 (was)
+    if (wantF || (pr.conv && pr.pinf_end <= P.try_F)) && ~skipF             % CC, 09/28/2026
         xs = readvec(xf_);
         [ok,info] = certify_primal(C,xs,bn,g,bscl);
         pr = putF(pr,info);
         if ok, pr.verdict = 'F'; end
+    elseif skipF && wantF                                                   % CC, 09/28/2026
+        pr.note = strtrim(sprintf('%s certification skipped: pinf_min %.2g > %g x psd_eta_tol', ...
+                  pr.note,pr.pinf_min,P.cert_skip));                        % CC, 09/28/2026
     end
     if ~strcmp(pr.verdict,'F') && ~pr.conv
         y = readvec(yf_);
@@ -781,7 +798,15 @@ function c = shellcmd(P,core)
 % (cuadmm-wsl-instrument-defects); linux: the job script loads the modules
 switch launcher(P)
     case 'wsl',   c = sprintf('wsl -e bash -c "LD_LIBRARY_PATH=/usr/lib/wsl/lib %s"',core);
-    case 'linux', c = core;
+%   case 'linux', c = core;                                                 % CC, 09/28/2026 (was)
+    case 'linux'
+        % CC, 09/28/2026: MATLAB's system() inherits MATLAB's LD_LIBRARY_PATH,
+        % whose sys/os/glnxa64/libstdc++.so.6 lacks GLIBCXX_3.4.32 and shadows
+        % gcc/13.4.0's (measured, Sol-0 job 64075050: every cuADMM call died
+        % at load).  sol_harness.slurm saves the module environment's path as
+        % CUADMM_LD_LIBRARY_PATH before MATLAB starts; restore it for cuADMM only.
+        lp = getenv('CUADMM_LD_LIBRARY_PATH');                              % CC, 09/28/2026
+        c = core;  if ~isempty(lp), c = sprintf('LD_LIBRARY_PATH=''%s'' %s',lp,core); end % CC, 09/28/2026
     otherwise,    error('bl_bisect:launcher','unknown launcher %s',P.launcher);
 end
 end
