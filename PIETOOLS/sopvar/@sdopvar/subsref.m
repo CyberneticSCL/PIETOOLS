@@ -1,4 +1,4 @@
-function out = subsref(obj,s)
+function [out,varargout] = subsref(obj,s)                                   % MMP, 09/29/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % out = subsref(obj,s) overloads indexing for sdopvar objects, so that
 % obj(I,J) returns the sub-operator mapping the input components J to the
@@ -53,16 +53,46 @@ function out = subsref(obj,s)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/06/2026
+% MMP, 09/29/2026: '.' reads return every element of a comma list. With the
+%                  one output 'out', {P.Zd{:}}, [P.params.A{:}] and
+%                  f(P.ZL{:}) silently kept the first element only, and
+%                  P.C{i,j}.Zd{:} through a container raised
+%                  MATLAB:TooManyOutputs. A '.' read now returns nargout
+%                  values, the builtin count set by
+%                  'numArgumentsFromSubscript'; the one-value read and '()'
+%                  run the same lines as before, so their outputs and cost
+%                  are unchanged. The signature was
+% function out = subsref(obj,s)                                             % MMP, 09/29/2026 (was)
+% MMP, 09/29/2026: A slice followed by a comma-list brace, e.g.
+%                  {P(I,J).Zd{:}}, now errors 'sdopvar:parenThenList'. A
+%                  '()' read gets one output, so the list silently kept its
+%                  first element.
 
 switch s(1).type
     case '.'
         % Every property access, at any depth, is handled by the builtin.
         % Without this branch no property of an sdopvar is readable.
+        if nargout~=1                                                       % MMP, 09/29/2026
+            % A comma list: nargout is its length (0 for an empty list;     % MMP, 09/29/2026
+            % an explicit subsref(P,s) statement also has 0 and returns     % MMP, 09/29/2026
+            % the one value as 'ans', as before).                           % MMP, 09/29/2026
+            [varargout{1:nargout}] = builtin('subsref',obj,s);              % MMP, 09/29/2026
+            if ~isempty(varargout)                                          % MMP, 09/29/2026
+                out = varargout{1};  varargout(1) = [];                     % MMP, 09/29/2026
+            end                                                             % MMP, 09/29/2026
+            return                                                          % MMP, 09/29/2026
+        end                                                                 % MMP, 09/29/2026
         out = builtin('subsref',obj,s);
     case '()'
         if numel(s(1).subs)~=2
             error('An sdopvar must be indexed with two subscripts, as P(I,J).')
         end
+        % A comma-list brace after the slice cannot be served (one output). % MMP, 09/29/2026
+        for k = 2:numel(s)                                                  % MMP, 09/29/2026
+            if strcmp(s(k).type,'{}') && ~all(cellfun(@(x) isscalar(x) && (isnumeric(x) || islogical(x)),s(k).subs)) % MMP, 09/29/2026
+                error('sdopvar:parenThenList','Slice first, then read the list: Y = P(I,J); Y.field{...}.') % MMP, 09/29/2026
+            end                                                             % MMP, 09/29/2026
+        end                                                                 % MMP, 09/29/2026
         indr = s(1).subs{1};    % output components
         indc = s(1).subs{2};    % input components
 

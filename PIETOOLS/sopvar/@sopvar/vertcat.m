@@ -48,6 +48,9 @@ function [Pcat] = vertcat(varargin)
 %                  the guard was false for a genuine mismatch and blocks on
 %                  different spaces were accepted, discarding a spatial
 %                  variable and retyping an L2 component as R.
+% MMP, 09/29/2026: Three or more operands recursed with horzcat, so [A;B;C]
+%                  returned [[A;B],C] (a wrong operator, silently, when the
+%                  shapes allowed it). Recurse with vertcat.
 
 
 % Deal with single input case
@@ -115,7 +118,8 @@ Pcat = sopvar(params, a.vars, ZL, ZR, a.dom, dims);                         % MM
 
 
 if nargin>2 
-    Pcat = horzcat(Pcat, varargin{3:end});
+%   Pcat = horzcat(Pcat, varargin{3:end});                                  % MMP, 09/29/2026 (was)
+    Pcat = vertcat(Pcat, varargin{3:end});                                  % MMP, 09/29/2026
 end
 
 
