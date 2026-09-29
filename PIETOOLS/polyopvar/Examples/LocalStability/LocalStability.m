@@ -128,7 +128,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % on deg and mon. This could lead to lower order degrees in sos2 than V_up.
     if V_up_deg > 1
         deg = min(V_up_deg,2);
-        mon = min(V_up_mon,5);
+        mon = min(V_up_mon,2);
     end
     
     fprintf(" --- sos2.deg = %d and sos2.mon = %d whilst V_up.deg = %d and V_up.mon = %d ---\n",deg, mon, V_up_deg, V_up_mon);

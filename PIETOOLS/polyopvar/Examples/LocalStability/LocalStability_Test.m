@@ -60,7 +60,7 @@ dist_degs = [2, 1, 1];
 
 % Declare monomial degrees in independent variables used to parametrize
 %  SOS LF and p1, p2 multipliers (respectively).
-mon_degs = [3, 3, 3];
+mon_degs = [3, 2, 2];
 
 
 % Run local stability test. If successful res = [C, M].
