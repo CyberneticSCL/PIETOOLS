@@ -1,0 +1,13 @@
+Memory of Sol job 64076098 (X2, scale_rot_f0p50_n16), recorded 09/28/2026 from the live
+monitor of the job (tail of the cuADMM log on Sol, then sacct once the job left the queue).
+Neither line is in sol_x2_job64076098.out: its sacct query ran before the batch step
+reported MaxRSS.
+
+CUADMM_MEM base_MiB 426.062 after_load_MiB 0 after_init_MiB 910 after_solve_MiB 910 vec_len 94032 con_num 34560 At_nnz 1349904 mat_num 4 eig_streams 15
+
+JobID           State      Elapsed     MaxRSS   AllocTRES   (header added here)
+64076098      COMPLETED   00:21:20            billing=40,cpu=4,energy=1941414,gres/gpu:a10+
+64076098.ba+  COMPLETED   00:21:20   2828840K cpu=4,gres/gpu:a100=1,gres/gpu=1,mem=32G,nod+
+
+GPU memory after init/solve: 910 MiB.  Batch-step MaxRSS: 2,828,840 KiB = 2.70 GiB.
+MATLAB peak RSS (VmHWM, bl_bisect memmb) from the probes file: mem_mb 1219.5 MiB.

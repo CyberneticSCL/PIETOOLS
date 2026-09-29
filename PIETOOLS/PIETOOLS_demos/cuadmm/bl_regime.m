@@ -47,6 +47,13 @@ function bl_regime(block)                                                   % CC
 %        kept 1e-6 cuADMM point (certification cost, and whether it passes),
 %        then one live run capped at the 1e-4 level (dump, setup, certification
 %        end to end).
+% CC, 09/27-28/2026: Sol comparison blocks, each run identically on the
+%   workstation and on Sol (results/2026-09-28/SOL0_REPORT.md):
+%   X0   Sol-0 smoke: three small certified feasibility runs.
+%   X1   scale_stab_n32 (m 138,240, decoupled) at large m.
+%   X2   scale_rot_f0p50_n16 (m 34,560, COUPLED, answer known: Mosek-F 09-27),
+%        cap 22,000: the coupled rung the workstation S2 run left unfinished.
+%   S2   the coupled ladder on the workstation (bl_big rot = true).
 
 cuadmm_path;
 OUT = cuadmm_outdir();
@@ -315,6 +322,18 @@ case 'X1'
          'probe_tol',1e-7,'probe_cap',30000,'run_timeout',240,'tag','X1w'))));
     item(G,'X1|cuadmm|scale_stab_n32',10*60,@() bl_bisect(dmp(G,'scale_stab_n32'),cu(struct('mode','feas', ...
          'probe_tol',1e-7,'probe_cap',30000,'run_timeout',15*60,'tag','X1'))));
+
+case 'X2'                                                                   % CC, 09/28/2026
+    % the first large COUPLED run on Sol (CC, 09/28/2026): scale_rot_f0p50_n16
+    % (m 34,560; chol(AA') 54M nnz, 9% dense).  Desktop S2 09-27: 12,900 it in
+    % 1,413 s incl. ~206 s setup (~110 ms/it wall, 88.8 ms/it steady) at its
+    % 1,420 s limit, pinf 2.4e-7, unfinished.  Cap 22,000 priced from the wall
+    % rate at ~79 ms/it on the A100 (X1: 1.40x at large m) = ~29 min.
+    item(G,'X2|warm|stab_tr1',120,@() bl_bisect(dmp(G,'stab_tr1'),cu(struct('mode','feas', ...
+         'probe_tol',1e-7,'probe_cap',30000,'run_timeout',240,'tag','X2w')))); % CC, 09/28/2026
+    item(G,'X2|cuadmm|scale_rot_f0p50_n16',35*60,@() bl_bisect(dmp(G,'scale_rot_f0p50_n16'),cu(struct( ...
+         'mode','feas','probe_tol',1e-7,'probe_cap',22000,'run_timeout',36*60,'tag','X2')))); % CC, 09/28/2026
+    % end X2                                                                % CC, 09/28/2026
 
 case 'S2'
     % the COUPLED ladder (bl_big rot = true, header there): a large problem that

@@ -62,6 +62,49 @@ problem grows. The host phases run 1.1–1.5× slower on Sol, as measured before
 are seconds, so they don't matter here, but for Th_n3 they are about 13 minutes per probe
 (2026-09-27 §3).
 
+## X2: the first large COUPLED run, `scale_rot_f0p50_n16` on Sol (job 64076098, 21 min 20 s, about 14 CHE)
+
+m = 34,560, 1.35M nnz, and chol(AAᵀ) has 54M nonzeros (9% dense; 2026-09-27 §4). The answer is
+known (Mosek-F at n16 on 09-27). Capped at 22,000 iterations; the pre-run estimate was about
+21 CHE.
+
+**Certified F:**
+- clipped η 3.5e-8, repaired λ_min −3.7e-8 relative, pinf 6.4e-8 at the cap;
+- GPU memory 910 MiB after init and solve, batch-step MaxRSS 2.70 GiB, MATLAB peak RSS
+  1,219.5 MiB (`sol_x2_mem.txt`).
+
+Against the 09-27 S2 run on the workstation, same dump (stopped at its 1,420 s limit, 12,900 it):
+
+| | desktop RTX 4090 | Sol A100-80GB | Sol faster by |
+|---|---|---|---|
+| setup (cuADMM init: parse + CHOLMOD of AAᵀ) | ~206 s | 111.4 s | 1.85× |
+| ms/it, iterations 1,000–12,900 | 88.8 | 50.7 | 1.75× |
+| total time to iteration 12,900 | 1,413 s | 765 s | 1.85× |
+| to iteration 22,000 (certified on Sol) | 2,221–2,263 s (projected) | 1,226 s | 1.81–1.85× |
+| certification | — | 3.5 s | |
+
+The desktop projection adds 9,100 iterations to its 1,413 s at 88.8 ms/it (the 1,000–12,900
+average) or at 93.4 ms/it (its last segment, 10,000–12,800).
+
+- **Identical trajectory through iteration 12,900,** where the desktop run stopped. All 132
+  iterations printed by both runs have identical (pinf, dinf) to the printed precision
+  (`sol_x2_trace.txt` vs `desktop_s2_n16_trace.txt`), so the solver is deterministic across the
+  two builds here.
+- **The per-iteration speedup is 1.75× here against 1.40× on the decoupled n32 (X1).** Time per
+  iteration tracks the factor size (2026-09-27 §4); that the A100 gains more on a larger factor is
+  inferred, not profiled.
+- **The setup took 111.4 s on Sol against ~206 s on the desktop,** whereas the Th_n3 setup was
+  1.14× slower on Sol (09-22). The job had 4 cores (AllocTRES); a multithreaded CHOLMOD
+  factorization would explain the difference, but that is inferred, not measured.
+
+**Extrapolation for the next coupled rungs (inferred, not measured):** A100 ms/it = desktop ms/it
+/ 1.75 (X2), scaled by factor nnz where the desktop rate is unknown; 22k–30k iterations (n8 and
+n16 certified at about 22k); 40 CHE per hour.
+- n24 (factor 260M nnz): desktop ~380 ms/it (2026-09-27 §4) → ~217 ms/it → 1.3–1.8 h plus setup
+  → **~55–75 CHE plus setup**.
+- n32 (812M nnz, 3.1× n24): ~680 ms/it → 4.1–5.7 h, plus a setup that did not finish within an
+  hour on the desktop (2026-09-27 §4) → **~170–230 CHE plus setup**.
+
 ## What it establishes, and what it does not
 
 **Established:**
@@ -74,5 +117,6 @@ are seconds, so they don't matter here, but for Th_n3 they are about 13 minutes 
 - ~~Behaviour at large m~~: X1 shows identical iterations and verdict at m = 138,240 on the
   decoupled ladder. Only a coupled or large-nnz case (Th_n3 drifted about 1% in 09-21's raw
   runs) can still differ.
-- Host-phase cost on Sol for a large-nnz dump.
-- Anything about the coupled-ladder fill problem (see 2026-09-27 §4).
+- Host-phase cost on Sol for a large-nnz dump like Th_n3.
+- ~~The coupled ladder~~: X2 certifies coupled n16 on Sol, on a trajectory identical to the
+  desktop run through its last iteration (12,900). n24 and n32 remain priced, not run.

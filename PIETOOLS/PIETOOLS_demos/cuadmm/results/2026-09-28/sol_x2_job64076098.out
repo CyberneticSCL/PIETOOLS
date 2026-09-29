@@ -1,0 +1,38 @@
+Loading gcc/13.4.0 
+  * This version of GCC is stricter than GCC 10 and older,
+    so you may need to use the following flags:
+      -std=gnu11
+      -std=gnu17
+      -fpermissive
+      -Wno-incompatible-pointer-types
+      -Wno-implicit-function-declaration
+Loading nvhpc/25.7-cuda-12.9-nompi
+  * NVHPC includes CUDA, so you don't need to load a CUDA module.
+===============================================================================
+Loaded: matlab 2025b
+
+  Matlab is a high-level language and interactive environment for numerical
+  computation, visualization and programming
+
+  For more information, visit:
+  https://www.mathworks.com/
+
+===============================================================================
+     
+GPU 0: NVIDIA A100-SXM4-80GB (UUID: GPU-ae14af6e-6993-bbe1-6673-3176aaa51244)
+job 64076098 on sg008: blocks [X2], deadline Mon Sep 28 02:23:50 MST 2026
+REGIME X2 start 2026-09-28 01:39:30  deadline 2026-09-28 02:23:50
+REGIME start X2|warm|stab_tr1 (est 120 s) 2026-09-28 01:39:31
+BIS feas  gam=NaN           tau=1.00e-07  cap=30000  it=1973   t=   1.04s pinf=9.92e-08  -> F  (Flmin -5.0e-08 Fres 3.5e-16 | Ibeta NaN Ieps NaN) 
+BISDONE stab_tr1_X2w [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 1.0 s  iters 1973
+REGIME done X2|warm|stab_tr1 ok 4.5 s
+REGIME start X2|cuadmm|scale_rot_f0p50_n16 (est 2100 s) 2026-09-28 01:39:35
+BIS feas  gam=NaN           tau=1.00e-07  cap=22000  it=22000  t=1114.20s pinf=6.44e-08  -> F  (Flmin -3.7e-08 Fres 1.1e-14 | Ibeta NaN Ieps NaN) 
+BISDONE scale_rot_f0p50_n16_X2 [cuadmm]  certified [0, Inf]  estimate [0, Inf]  probes 1 (F1 f0 i0 I0)  solver 1114.2 s  iters 22000
+REGIME done X2|cuadmm|scale_rot_f0p50_n16 ok 1233.2 s
+REGIMEDONE X2 2026-09-28 02:00:08
+JobID           Elapsed     MaxRSS   TotalCPU                                                    AllocTRES 
+------------ ---------- ---------- ---------- ------------------------------------------------------------ 
+64076098       00:21:20              00:00:00   billing=40,cpu=4,gres/gpu:a100=1,gres/gpu=1,mem=32G,node=1 
+64076098.ba+   00:21:20              00:00:00              cpu=4,gres/gpu:a100=1,gres/gpu=1,mem=32G,node=1 
+64076098.ex+   00:21:20              00:00:00   billing=40,cpu=4,gres/gpu:a100=1,gres/gpu=1,mem=32G,node=1 
