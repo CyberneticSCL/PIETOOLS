@@ -1,21 +1,15 @@
-function k = kernel_degree(F)
-    % k = kernel_degree(F) returns the maximum total polynomial degree
-    % appearing in the kernels of a polyopvar functional F.
-    %
-    % For an intop coefficient, the rows of Kop.params.degmat contain the
-    % exponents of the kernel monomials in the independent spatial variables.
-    % The total degree of a kernel monomial is the sum of the exponents in
-    % its row. Therefore, k is the maximum row sum over all intop
-    % coefficients in F.
+function opdeg = kernel_degree(F)
+    % opdeg = kernel_degree(F) returns the spatial monomial degree to use
+    % as opdeg in SOS_DP when F must equate to an SOS-FDP.
     %
     % Constant and decision-variable coefficients do not contribute spatial
     % kernel degree and are assigned degree zero.
     %
     % INPUTS
-    % - F    1 x 1 'polyopvar' functional whose kernel degree is required.
+    % - F    1 x 1 'polyopvar' functional whose SOS basis degree is required.
     %
     % OUTPUTS
-    % - kg   Maximum total polynomial degree of the kernels in F.
+    % - opdeg  Smallest spatial monomial degree suitable for SOS_DP.
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PIETOOLS - kernel_degree
@@ -42,36 +36,46 @@ function k = kernel_degree(F)
     % authorship, and a brief description of modifications
     %
     % CR, 09/28/2026: Initial coding.
+    % CR, 09/29/2026: Return the SOS_DP spatial basis degree rather than the
+    %                   expanded FDP kernel degree; add optional distributed
+    %                   degree and fix accumulator/index handling.
 
-    narginchk(1,1);
 
-    if ~isa(F,'polyopvar') || ~all(size(F)==1)
+    if ~isa(F,'polyopvar') || ~(size(F.degmat,2)==1) 
         error('kernel_degree:InvalidInput', ...
             'F must be a 1-by-1 polyopvar functional.');
     end
 
-    % Initialize to zero so that functionals containing only constant or
-    % decision-variable terms return k = 0.
-    k = 0;
+    nz = size(F.degmat,1); % number of operators.
+    deg_opts = zeros(1,nz); % max degrees of each operator.
 
     % A polyopvar may contain several coefficient operators. Only intop
     % coefficients carry explicit polynomial kernels in their params field.
-    for k = 1:numel(F.C.ops)
-        Kop = F.C.ops{k};
+    for idx = 1:nz
+        Kop = F.C.ops{idx};
 
         if ~isa(Kop,'intop')
             continue
         end
-
+        
+        % size = (number of unique terms in polynomial, number of variables in polynomial)
+        % row entries = number of times each variable appears in each unique term
         degmat = full(Kop.params.degmat);
+
         if isempty(degmat)
             continue
         end
-
-        % Each row represents one kernel monomial. Sum across the spatial
-        % variables to obtain its total polynomial degree.
-        k = max(k,max(sum(degmat,2)));
+        
+        sor = sum(degmat,2); % sum over rows = degree of each term.
+        deg_opts(idx) = max(sor); % max. of sum over rows = degree of polynomial.
     end
 
-    k = double(k);
+    [max_deg, arg_deg] = max(deg_opts);
+    d = F.degmat(arg_deg); % degree of FDP in linear form - should always be even for SOS, could be odd for anti-symmetric LFs.
+    d = ceil(d/2); % degree of FDP in quadratic form - used in formula.
+
+    opdeg = (max_deg-1) / (2*d); % this could be negative if deg_opts = 0.
+    opdeg = max(0, opdeg); % maximum polynomial degree - could be fractional in case of non-symmetric LF, should be exact for SOS_DP.
+    opdeg = ceil(opdeg);
+
 end

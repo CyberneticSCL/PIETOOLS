@@ -95,5 +95,6 @@ function V = innerprod_v2(Z1,Z2,P)
 
     % The vector-valued backend replaces the original quad2lin branching:
     % one call passes the complete P block with both TDP vectors.
+    % V = quad2lin_v2(P,ZopL,ZxL,ZopR,ZxR);
     V = quad2lin_v2(P,ZopL,ZxL,ZopR,ZxR); 
 end

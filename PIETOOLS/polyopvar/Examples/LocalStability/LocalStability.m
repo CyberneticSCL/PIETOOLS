@@ -79,7 +79,6 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     
     % Define weighted sobolev ball of radius r.
     g     = Weighted_Sobolev_Ball(r, alpha, Top, x);
-    g_deg = 2;
      
     % Define (negated) term related to lower and upper bounds.
     bound = Weighted_Sobolev_Ball(0.0, alpha, Top, x);
@@ -94,10 +93,23 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     V_low = V + eppos*bound; % bound term is already negated.
 
     % Set lower bound by defining and equating with new SOS DP.
-    [prog, sos1] = SOS_DP(prog, V_deg, V_mon, x, dom);
-    prog = piesos_eq(prog, V_low-sos1);
+    V_low_mon = kernel_degree(V_low);
 
-    fprintf(" --- LF declared (without symmetry constraint) and lower bound equality set ---\n");
+    % Above are appropriate choices, but computation requires limits to be placed 
+    % on deg and mon. This could lead to lower order degrees in sos1 than V_low.
+    if V_deg > 1
+        mon = min(V_low_mon,2);
+    else
+        mon = min(V_low_mon,5);
+    end
+    
+    fprintf(" --- sos1.deg = %d and sos1.mon = %d whilst V_low.deg = %d and V_low.mon = %d ---\n",V_deg, mon, V_deg, V_low_mon);
+
+    [prog, sos1] = SOS_DP(prog, V_deg, mon, x, dom);
+    prog = piesos_eq(prog, V_low-sos1);
+ 
+    fprintf(" --- LF declared and lower bound equality set ---\n");
+
 
     %% Define the upper bound on the LF and enforce constraint.
 
@@ -105,16 +117,25 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     [prog, p1] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
 
     % Define local upper bound on V.
-    % V_up = -C*bound - V - p1*g; % bound term already negated.
     V_up = -C*bound - V - polyopvar_times_v2(p1,g); % bound term already negated.
 
     % Set upper bound by defining and equating with new SOS DP.
-    deg = max(V_deg,p1_deg+1);
-    g_mon = kernel_degree(g);
-    g_mon = max(0,ceil((g_mon-1)/(2*g_deg)));
-    mon = max(V_mon, p1_mon+g_mon);
+    V_up_deg = max(V_up.degmat); % degree of FDP in linear form - will always be even.
+    V_up_deg = ceil(V_up_deg/2); % degree of FDP in quadratic form.
+    V_up_mon = kernel_degree(V_up);
+
+    % Above are appropriate choices, but computation requires limits to be placed 
+    % on deg and mon. This could lead to lower order degrees in sos2 than V_up.
+    if V_up_deg > 1
+        deg = min(V_up_deg,2);
+        mon = min(V_up_mon,5);
+    end
+    
+    fprintf(" --- sos2.deg = %d and sos2.mon = %d whilst V_up.deg = %d and V_up.mon = %d ---\n",deg, mon, V_up_deg, V_up_mon);
+
     [prog, sos2] = SOS_DP(prog, deg, mon, x, dom);
     prog = piesos_eq(prog, V_up-sos2);
+    
     fprintf(" --- p1 declared and LF upper bound equality set ---\n");
 
 
@@ -127,12 +148,13 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % dV = Liediff(V,PIE);
     % dV_con = -dV - 2*lambda*V - p2*g; 
     % 
-    % % Enforce constraint by defining and equating with new SOS DP.
-    % deg = max(V_deg,p2_deg+1);
-    % mon = max(V_mon, p2_mon+g_mon);
+    % % Set upper bound by defining and equating with new SOS DP.
+    % deg max(dV_con.degmat); % degree of FDP in linear form - will always be even.
+    % deg = ceil(deg/2); % degree of FDP in quadratic form.
+    % mon = kernel_degree(V_con);
     % [prog, sos3] = SOS_DP(prog, deg, mon, x, dom);
     % prog = piesos_eq(prog, dV_con-sos3);
-    % fprintf(" --- p2 declared and Lie derivative upper bound equality set ---\n");
+    % fprintf(" --- p2 declared and Lie derivative upper bound equality set with sos3.deg = %d and sos3.mon = %d ---\n",deg, mon);
 
 
     %% Solve the optimization program.
