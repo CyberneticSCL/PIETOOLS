@@ -70,6 +70,13 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
     Zop.var1 = s;
     Zop.var2 = s_dum;
     Zop.I = dom;
+
+    Zop_no_mult = opvar();
+    Zop_no_mult.R.R1 = [Zmon2;0*Zmon2];
+    Zop_no_mult.R.R2 = [0*Zmon2;Zmon2];
+    Zop_no_mult.var1 = s;
+    Zop_no_mult.var2 = s_dum;
+    Zop_no_mult.I = dom;
     
     % Express as tensopvar and polyopvars which we can work with for constructing V3.
     % Note that Z is a nopvar and Tx is a polyopvar. Applying Z directly to Tx invokes
@@ -80,7 +87,11 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
     ZTop = Z*Top;                                                       % CR, 09/08/2026
     Zx   = Z*x;
     ZTx  = ZTop*x;                                                      % CR, 09/08/2026
-    
+    Z_noM = dopvar2ndopvar(Zop_no_mult);
+    ZT_noM = Z_noM*Top;
+    Zx_noM = Z_noM*x;
+    ZTx_noM = ZT_noM*x;
+
     % Construct the T-PI operators (corresponding to \hat{U}^i x^i and 
     % (\hat{U} o T)^j x^j in the paper) as products of Zx and ZTx.
     Zs1 = cell(d,1);
@@ -89,9 +100,12 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
         if i==1
             Zs1{i} = Zx;
             Zs2{i} = ZTx;
+        elseif i==2
+            Zs1{i} = Zx_noM;
+            Zs2{i} = ZTx_noM;
         else
-            Zs1{i} = DMB(Zs1{i-1},Zx);
-            Zs2{i} = DMB(Zs2{i-1},ZTx);
+            Zs1{i} = DMB(Zs1{i-1},Zx_noM);
+            Zs2{i} = DMB(Zs2{i-1},ZTx_noM);
         end
     end
 
