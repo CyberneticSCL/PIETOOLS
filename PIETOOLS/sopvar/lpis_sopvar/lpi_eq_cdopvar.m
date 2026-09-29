@@ -49,6 +49,12 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % which of the two a sum happened to populate. For a genuinely self-adjoint
 % container the two cases cannot differ in substance.
 %
+% All blocks sharing a decision variable list are imposed together, joined  % MMP, 09/26/2026
+% into as few 'soseq' calls as a cap of numel(prog.decvartable) nonzeros    % MMP, 09/26/2026
+% each allows (see 'lpi_eq_sdopvar'), so prog.expr gains a few entries per  % MMP, 09/26/2026
+% call. The rows sossolve assembles (At and b, in order) are those one      % MMP, 09/26/2026
+% 'soseq' per parameter gave.                                               % MMP, 09/26/2026
+%
 % See also LPI_EQ_SDOPVAR, LPI_EQ, POSCOPVAR, COPQUADVAR, CDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -103,6 +109,19 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  Hinf build (q = 7.6e5, 6 blocks): 2.3 s of ismember became
 %                  one call plus an O(q) isequal (~10 ms) per block. Same
 %                  program, bit for bit.
+% MMP, 09/26/2026: Blocks sharing a Zd list are imposed together, joined up
+%                  to q nonzeros per soseq, instead of one soseq per nonzero
+%                  parameter of every block: each soseq scans all q names of
+%                  prog.decvartable in getequation. Blocks are collected with
+%                  lpi_eq_sdopvar's second output and imposed by it, columns
+%                  in the old order. 2-D container Hinf: 14 soseq -> 4, S6b
+%                  1.9x faster at +50% stage peak, below stock's in both
+%                  (numbers: lpi_eq_sdopvar, MMP 09/26/2026). prog.expr has
+%                  fewer entries; the
+%                  At, b, c, K sossolve builds are bit-identical, row order
+%                  included. The 09/21 entry's check by counting
+%                  prog.expr.num no longer discriminates (blocks now share
+%                  entries); count equality rows (columns of At) instead.
 
 if isa(P,'copvar')
     error("Input of type 'copvar' carries no decision variables; use 'eq' "...
@@ -135,6 +154,10 @@ end
 % none). prog.decvartable does not change in this loop, so the verdict      % MMP, 09/26/2026
 % carries over to every later block with an equal list.                     % MMP, 09/26/2026
 Zd_ok = NaN;                                                                % MMP, 09/26/2026
+% Constraints collected, not yet imposed, all over the list Zd_ok. Every    % MMP, 09/26/2026
+% soseq scans all q names of prog.decvartable, so all blocks sharing a list % MMP, 09/26/2026
+% (the common case, see Zd_ok) are imposed together, ~q nonzeros per soseq. % MMP, 09/26/2026
+batch = [];                                                                 % MMP, 09/26/2026
 for i = 1:M
     for j = 1:N
         if symm && j<i
@@ -174,16 +197,35 @@ for i = 1:M
         % isequal is O(q) with a small constant (~10 ms at q = 3.8e5); the  % MMP, 09/26/2026
         % check it replaces hashes the whole program table.                 % MMP, 09/26/2026
         checked = isequal(Bij.Zd,Zd_ok);                                    % MMP, 09/26/2026
+        if ~checked && ~isempty(batch)                                      % MMP, 09/26/2026
+            % New list: the pending rows index the old one, so impose them. % MMP, 09/26/2026
+            prog = lpi_eq_sdopvar(prog,batch);                              % MMP, 09/26/2026
+            batch = [];                                                     % MMP, 09/26/2026
+        end                                                                 % MMP, 09/26/2026
+        % Second output: collect this block's constraints, do not impose.   % MMP, 09/26/2026
         if symm && i==j
 %           prog = lpi_eq_sdopvar(prog,Bij,'symmetric');                    % MMP, 09/26/2026 (was)
-            prog = lpi_eq_sdopvar(prog,Bij,'symmetric',checked);            % MMP, 09/26/2026
+%           prog = lpi_eq_sdopvar(prog,Bij,'symmetric',checked);            % MMP, 09/26/2026 (was)
+            [prog,Eq] = lpi_eq_sdopvar(prog,Bij,'symmetric',checked);       % MMP, 09/26/2026
         else
 %           prog = lpi_eq_sdopvar(prog,Bij);                                % MMP, 09/26/2026 (was)
-            prog = lpi_eq_sdopvar(prog,Bij,[],checked);                     % MMP, 09/26/2026
+%           prog = lpi_eq_sdopvar(prog,Bij,[],checked);                     % MMP, 09/26/2026 (was)
+            [prog,Eq] = lpi_eq_sdopvar(prog,Bij,[],checked);                % MMP, 09/26/2026
         end
+        % Appended after the earlier blocks' columns, the order one soseq   % MMP, 09/26/2026
+        % per block imposed them in, so sossolve's rows keep their order.   % MMP, 09/26/2026
+        if isempty(batch),  batch = Eq;                                     % MMP, 09/26/2026
+        else,               batch.Cs = [batch.Cs, Eq.Cs];                   % MMP, 09/26/2026
+        end                                                                 % MMP, 09/26/2026
         % Verified now: lpi_eq_sdopvar errors on an unknown variable.       % MMP, 09/26/2026
         Zd_ok = Bij.Zd;                                                     % MMP, 09/26/2026
     end
 end
+% The rest: all blocks if they share one list. lpi_eq_sdopvar caps each     % MMP, 09/26/2026
+% soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/26/2026
+% the collected coefficients, O(nnz), until then (see impose_rows there).   % MMP, 09/26/2026
+if ~isempty(batch)                                                          % MMP, 09/26/2026
+    prog = lpi_eq_sdopvar(prog,batch);                                      % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026
 
 end

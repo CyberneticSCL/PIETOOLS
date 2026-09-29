@@ -84,6 +84,14 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                     (theta_d-ad)*(bd-theta_d). Defaults to 0, and rejected
 %                     for type 'sym', where a nonnegative weight means
 %                     nothing;
+%                     set to 2d+1 or 2d+2 (d = 1..nv, over the registry) for
+%                     the linear weight of ONE face of the box,
+%                     g = (theta_d-ad)/(bd-ad) or (bd-theta_d)/(bd-ad). Declare
+%                     one variable per face and sum them, each at the full
+%                     degree of the base variable (measured in
+%                     'poslpivar_2d', CC 09/23/2026: face terms at eq_deg-1
+%                     destroyed the certificate). In 2-D with sorted names
+%                     these are 'poslpivar_2d' psatz 3-6;
 %   options.sep       logical scalar or 1 x nv array over the registry. Where
 %                     sep(d) is true the lower and upper integral basis
 %                     operators in direction d are replaced by one
@@ -217,6 +225,17 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  comparison is redundant (plus_batch 1.13 -> 0.33 s, 2-D
 %                  Hinf). Pblk.dvarname passed without a cellstr(string())
 %                  round trip when already a cellstr. Bit-identical.
+% MMP, 09/27/2026: options.psatz = 2d+1 / 2d+2 weights the Gram form by the
+%                  normalised linear generator (theta_d-a_d)/L_d or
+%                  (b_d-theta_d)/L_d of one face of the box, d indexing the
+%                  registry: the N-D extension of 'poslpivar_2d' psatz 3-6
+%                  (identical codes in 2-D with sorted names). The product
+%                  weight (psatz=1) vanishes on every face, so it cannot
+%                  supply what a certificate needs near one face; measured on
+%                  the heatNd benchmark (u_t = Lap u + r u), 2-D: product
+%                  certifies nothing, the 4 faces reach 0.9875 kappa*.
+%                  Nonnegative on the box by construction, so no weight can
+%                  make the variable indefinite. psatz 0/1 unchanged.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -367,15 +386,24 @@ end
 if ~isfield(options,'psatz') || isempty(options.psatz)
     options.psatz = 0;
 end
-% Only 0 and 1 are implemented, and the value is checked rather than taken
+% Only 0 and 1 are implemented, and the value is checked rather than taken  % MMP, 09/27/2026 (was)
+% 0, 1 and the face codes are implemented; the value is checked, not taken  % MMP, 09/27/2026
 % for its truthiness. 'poslpivar_2d' also accepts 2, whose weight is a BALL
 % (rds^2 - sum (s_d-c_d)^2) and not the box built below, so treating 2 as 1
 % would hand a caller carrying a settings file across a different cone with
 % no warning; 'settings2possopvar' drops psatz=2 terms for the same reason.
-if ~isscalar(options.psatz) || ~ismember(options.psatz,[0,1])
-    error("'psatz' should be 0 or 1. 'poslpivar_2d' additionally accepts 2, "...
-          +"whose weight is a ball rather than the box this routine builds.")
+% if ~isscalar(options.psatz) || ~ismember(options.psatz,[0,1])             % MMP, 09/27/2026 (was)
+%     error("'psatz' should be 0 or 1. 'poslpivar_2d' additionally accepts 2, "...
+%           +"whose weight is a ball rather than the box this routine builds.") % MMP, 09/27/2026 (was)
+% 2d+1 / 2d+2: one face of the box in registry direction d (see header).    % MMP, 09/27/2026
+if ~isscalar(options.psatz) || ~ismember(options.psatz,[0,1,3:2*nv+2])      % MMP, 09/27/2026
+    error("'psatz' should be 0, 1, or a face code 2d+1 / 2d+2 with d "...
+          +"in 1..nv, here nv = "+num2str(nv)+"; 2 is "...
+          +"poslpivar_2d's ball, not the box.")                             % MMP, 09/27/2026
 end
+% Double from here on: an integer class passes the check above, and then    % MMP, 09/27/2026
+% floor((psatz-1)/2) rounds in integer arithmetic and picks the wrong face. % MMP, 09/27/2026
+options.psatz = double(options.psatz);                                      % MMP, 09/27/2026
 vartype = 'pos';
 if isfield(options,'type') && ~isempty(options.type)
     vartype = char(options.type);
@@ -525,11 +553,22 @@ dmap = containers.Map(Zd,num2cell(1:ndec));
 % Multiplier restricting positivity to the domain, evaluated at the
 % integration variable as in 'poslpivar'.
 gfun = polynomial(1);
-if options.psatz
+% if options.psatz                                                          % MMP, 09/27/2026 (was)
+if options.psatz==1                                                         % MMP, 09/27/2026
     for d = 1:nv
         thd = polynomial(vars_int(d));
         gfun = gfun*(thd-dom(d,1))*(dom(d,2)-thd);
     end
+elseif options.psatz>=3                                                     % MMP, 09/27/2026
+    % One face: odd code the lower face theta_d = ad, even the upper.       % MMP, 09/27/2026
+    % Normalised by L_d, as in 'poslpivar_2d', so faces share a scale.      % MMP, 09/27/2026
+    d = floor((options.psatz-1)/2);                                         % MMP, 09/27/2026
+    thd = polynomial(vars_int(d));                                          % MMP, 09/27/2026
+    if mod(options.psatz,2)==1                                              % MMP, 09/27/2026
+        gfun = (thd-dom(d,1))/(dom(d,2)-dom(d,1));                          % MMP, 09/27/2026
+    else                                                                    % MMP, 09/27/2026
+        gfun = (dom(d,2)-thd)/(dom(d,2)-dom(d,1));                          % MMP, 09/27/2026
+    end                                                                     % MMP, 09/27/2026
 end
 
 

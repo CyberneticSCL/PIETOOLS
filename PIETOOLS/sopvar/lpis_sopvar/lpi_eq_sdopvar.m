@@ -1,4 +1,5 @@
-function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                   % MMP, 09/26/2026
+function [prog,Eq] = lpi_eq_sdopvar(prog,P,opts,dvars_checked)              % MMP, 09/26/2026
+% function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                 % MMP, 09/26/2026 (was)
 % function prog = lpi_eq_sdopvar(prog,P,opts)                               % MMP, 09/26/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PROG = LPI_EQ_SDOPVAR(PROG,P) takes an LPI optimization program structure
@@ -36,6 +37,8 @@ function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                   % MM
 %           'prog.decvartable';
 % - P:      'sdopvar' object of which to enforce P==0. Parameters that are
 %           empty or identically zero generate no constraints;
+%           (internal) or a batch EQ returned by earlier calls, which is    % MMP, 09/26/2026
+%           then imposed as it stands; see EQ below;                        % MMP, 09/26/2026
 % - opts:   (optional) set opts = 'symmetric' if P is known to be
 %           self-adjoint, to constrain only one parameter per adjoint pair.
 %           Taking the adjoint exchanges lower and upper integrals in every
@@ -50,10 +53,21 @@ function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                   % MM
 % OUTPUT
 % - prog:   Same LPI program structure as the input, but with the added
 %           constraints enforcing P==0.
+% - Eq:     (optional, internal) if requested, the constraints are NOT      % MMP, 09/26/2026
+%           imposed; prog is returned unchanged and Eq holds them: Eq.Cs,   % MMP, 09/26/2026
+%           one sparse (q+1) x n_k block per constrained parameter (row 1   % MMP, 09/26/2026
+%           the constant term, row 1+i decision variable Eq.Zd{i}), in the  % MMP, 09/26/2026
+%           order they would be imposed. 'lpi_eq_cdopvar' joins the blocks  % MMP, 09/26/2026
+%           of all its blocks and imposes them with one call;               % MMP, 09/26/2026
 %
 % NOTES
 % To enforce P==Q, call LPI_EQ_SDOPVAR(PROG,P-Q); '@sdopvar/plus' aligns the
 % monomial and decision variable bases of the two operators.
+%
+% The constraints of one call are joined into as few 'soseq' calls as a cap % MMP, 09/26/2026
+% of numel(prog.decvartable) nonzeros each allows, so prog.expr gets a few  % MMP, 09/26/2026
+% entries per call, not one per parameter. The rows sossolve assembles from % MMP, 09/26/2026
+% prog.expr (At and b, in order) are the same either way.                   % MMP, 09/26/2026
 %
 % See also LPI_EQ, LPI_EQ_NDOPVAR, POSSOPVAR, SOSEQ, SDOPVAR.
 
@@ -108,7 +122,40 @@ function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                   % MM
 %                  ms, q = 1e6 over 3 variables 461 -> 191 ms; peak +8 MB
 %                  at 1.1e6 names (6.5 -> 14.5 MB). A single name keeps
 %                  ismember (a strcmp there). Same verdict, same error.
+% MMP, 09/26/2026: One soseq per ~q nonzeros instead of one per parameter.
+%                  Every soseq scans all q names of prog.decvartable in
+%                  getequation (ismember(decvartable,dvarname)), and each
+%                  call hashes its names again. Measured, 2-D container Hinf
+%                  (q = 7.6e5): 14 calls, 28 ms fixed each (1-entry soseq),
+%                  738k names hashed for a 3.8e5 list; soseq 1.74 of the
+%                  2.29 s of S6b. The parameters' columns are now collected
+%                  in the old call order and imposed as row dpvars joined up
+%                  to q nonzeros each (impose_rows). A second output returns
+%                  them unimposed and P = that output imposes them, so
+%                  'lpi_eq_cdopvar' joins all its blocks. The cap, not one
+%                  soseq for everything: soseq holds ~9 copies of its input,
+%                  so one uncapped call peaked at 3.4x the per-parameter
+%                  memory. Measured 2-D Hinf, q = 7.6e5 / 2.3e6, old -> new:
+%                  2.2 -> 1.1 s / 9.5 -> 5.0 s; peak 90 -> 138 MB / 291 ->
+%                  447 MB (stock lpi_eq_2d 1.5 s, 174 MB / 6.3 s, 540 MB).
+%                  Item (3) of the first 09/26 entry now applies per soseq:
+%                  the names used by any of its parameters. prog.expr has
+%                  fewer, longer entries; the At, b, c, K sossolve builds
+%                  are bit-identical, row order included. Cost: soseq calls
+%                  ~ nnz/q + name-list changes, instead of the parameter
+%                  count (3^n3 per block, multiplicative in dimension);
+%                  memory ~9 x 16 B x min(q + largest parameter, nnz) per
+%                  soseq plus one 16 B/nnz copy of the collected blocks.
+%                  Measured in 1-D and 2-D only.
 
+
+% Internal batch form: P is the Eq output of earlier calls, possibly        % MMP, 09/26/2026
+% several joined over one name list by 'lpi_eq_cdopvar'. Its names were     % MMP, 09/26/2026
+% verified when it was collected.                                           % MMP, 09/26/2026
+if isstruct(P) && isfield(P,'Cs') && isfield(P,'Zd')                        % MMP, 09/26/2026
+    prog = impose_rows(prog,P);                                             % MMP, 09/26/2026
+    return                                                                  % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026
 
 % % % Check the inputs
 if isa(P,'polynomial') || isa(P,'double')
@@ -215,7 +262,11 @@ end
 
 sz_C = [3*ones(1,n3),1];
 
-% % % Impose the constraints, one parameter at a time
+% Constraint blocks of the parameters, collected for one soseq (see Eq).    % MMP, 09/26/2026
+Cs = cell(1,numel(params_A));                                               % MMP, 09/26/2026
+
+% % % Impose the constraints, one parameter at a time                       % MMP, 09/26/2026 (was)
+% % % Collect the constraints, one parameter at a time                      % MMP, 09/26/2026
 for k=1:numel(params_A)
     Ak = params_A{k};
     Bk = params_B{k};
@@ -284,15 +335,67 @@ for k=1:numel(params_A)
     % build a parameter uses 1 to 1.0e5 of q = 3.8e5. At, b, Z unchanged:   % MMP, 09/26/2026
     % compress would remove exactly these zero rows, and getequation places % MMP, 09/26/2026
     % the remaining rows by name.                                           % MMP, 09/26/2026
-    used = find(any(B_eff,2));                                              % MMP, 09/26/2026
-    M = [reshape(full(A_eff),1,[]); B_eff(used,:)];                         % MMP, 09/26/2026
-    [sg,ii,vv] = find(M);                                                   % MMP, 09/26/2026
-    Cdp = sparse(sg,ii,vv,numel(used)+1,n_eff);                             % MMP, 09/26/2026
-    Dk = dpvar(Cdp,zeros(1,0),{},dvars(used),[1,n_eff]);                    % MMP, 09/26/2026
-    prog = soseq(prog,Dk);
+%   used = find(any(B_eff,2));                                              % MMP, 09/26/2026 (was)
+%   M = [reshape(full(A_eff),1,[]); B_eff(used,:)];                         % MMP, 09/26/2026 (was)
+%   [sg,ii,vv] = find(M);                                                   % MMP, 09/26/2026 (was)
+%   Cdp = sparse(sg,ii,vv,numel(used)+1,n_eff);                             % MMP, 09/26/2026 (was)
+%   Dk = dpvar(Cdp,zeros(1,0),{},dvars(used),[1,n_eff]);                    % MMP, 09/26/2026 (was)
+%   prog = soseq(prog,Dk);                                                  % MMP, 09/26/2026 (was)
+    % Collect rather than impose: joined soseq calls (impose_rows) pay      % MMP, 09/26/2026
+    % getequation's scan of the q program names per ~q nonzeros, not per    % MMP, 09/26/2026
+    % parameter.                                                            % MMP, 09/26/2026
+    % Row 1 the constant term, row 1+i dvars{i}; sparse even if B is full.  % MMP, 09/26/2026
+    Cs{k} = [sparse(reshape(A_eff,1,[])); sparse(B_eff)];                   % MMP, 09/26/2026
 end
 
+% Skipped parameters stay [] and are dropped. Order is the loop's, which is % MMP, 09/26/2026
+% the order of the former one-soseq-per-parameter expressions.              % MMP, 09/26/2026
+Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars});                 % MMP, 09/26/2026
+if nargout<2                                                                % MMP, 09/26/2026
+    prog = impose_rows(prog,Eq);                                            % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026
+
 end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 09/26/2026
+function prog = impose_rows(prog,Eq)                                        % MMP, 09/26/2026
+% PROG = IMPOSE_ROWS(PROG,EQ) imposes the blocks EQ.Cs{:}, each (q+1) x n_k % MMP, 09/26/2026
+% over the names EQ.Zd with row 1 the constant term, joining consecutive    % MMP, 09/26/2026
+% blocks into as few soseq calls as the cap below allows, each on one       % MMP, 09/26/2026
+% variable-free row dpvar (see the layout note in the main loop). Columns   % MMP, 09/26/2026
+% keep their order, so the At and b produced are those of one soseq per     % MMP, 09/26/2026
+% block, concatenated as sossolve concatenates prog.expr.                   % MMP, 09/26/2026
+% Cap: at most N = numel(prog.decvartable) nonzeros per soseq; a larger     % MMP, 09/26/2026
+% block goes alone. Each soseq pays an O(N) scan of the program's names     % MMP, 09/26/2026
+% (getequation), which N nonzeros of work amortize; and soseq holds ~9      % MMP, 09/26/2026
+% copies of its coefficients (combine, compress, getequation), so each      % MMP, 09/26/2026
+% soseq's transient is O(N) bytes. Eq.Cs itself, one copy of all the        % MMP, 09/26/2026
+% collected coefficients (O(nnz)), lives until the last soseq. Measured,    % MMP, 09/26/2026
+% 2-D container Hinf, q = 2.3e6: one uncapped soseq peaked at 974 MB,       % MMP, 09/26/2026
+% capped 447 MB (per parameter 291 MB, stock lpi_eq_2d 540 MB).             % MMP, 09/26/2026
+if isempty(Eq.Cs),  return,     end                                         % MMP, 09/26/2026
+cap = numel(prog.decvartable);                                              % MMP, 09/26/2026
+nz = cellfun(@nnz,Eq.Cs);                                                   % MMP, 09/26/2026
+k0 = 1;                                                                     % MMP, 09/26/2026
+while k0<=numel(Eq.Cs)                                                      % MMP, 09/26/2026
+    k1 = k0;    tot = nz(k0);                                               % MMP, 09/26/2026
+    while k1<numel(Eq.Cs) && tot+nz(k1+1)<=cap                              % MMP, 09/26/2026
+        k1 = k1+1;  tot = tot+nz(k1);                                       % MMP, 09/26/2026
+    end                                                                     % MMP, 09/26/2026
+    M = [Eq.Cs{k0:k1}];                                                     % MMP, 09/26/2026
+    % Keep the constant row and the rows of names in use; compress would    % MMP, 09/26/2026
+    % drop the others only after O(q) passes over their names.              % MMP, 09/26/2026
+    rows = find(any(M,2));                                                  % MMP, 09/26/2026
+    rows = [1; rows(rows>1)];                                               % MMP, 09/26/2026
+    Dk = dpvar(M(rows,:),zeros(1,0),{},Eq.Zd(rows(2:end)-1),[1,size(M,2)]); % MMP, 09/26/2026
+    % Free the joined copy before soseq makes its own.                      % MMP, 09/26/2026
+    M = [];                                                                 % MMP, 09/26/2026
+    prog = soseq(prog,Dk);                                                  % MMP, 09/26/2026
+    k0 = k1+1;                                                              % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026
+end                                                                         % MMP, 09/26/2026
 
 
 
