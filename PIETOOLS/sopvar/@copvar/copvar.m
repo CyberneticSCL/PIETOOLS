@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) copvar
+classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MMP, 09/29/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % COPVAR  Container for FIXED PI operators between concatenated mixed L2
 % spaces. Sec. 8 of the sopvar document. An M x N grid of 'sopvar' blocks,
@@ -125,6 +125,13 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) copvar
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  derive_mopvar_meta -> derive_copvar_meta. File was
 %                  'mopvar.m'.
+% MMP, 09/29/2026: ?dpvar added to InferiorClasses, so that a dpvar operand
+%                  (gam*P, gam - T'*T, [-gam, D']) dispatches to this
+%                  class's methods, which route it to 'dpvar_op_copvar'
+%                  (legacy @opvar/@dopvar semantics; the result is a
+%                  cdopvar). Before, the dpvar's own method was called and
+%                  failed. The classdef line was
+% classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) copvar          % MMP, 09/29/2026 (was)
 
 % % % BEGIN body replaced by MMP, 09/17/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

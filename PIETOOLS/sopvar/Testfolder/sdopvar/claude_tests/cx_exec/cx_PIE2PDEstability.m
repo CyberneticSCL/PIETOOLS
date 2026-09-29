@@ -1,4 +1,4 @@
-function prog = cx_PIE2PDEstability(PIE,st)
+function [prog,ops] = cx_PIE2PDEstability(PIE,st)                           % MMP, 09/29/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PROG = CX_PIE2PDESTABILITY(PIE,ST) builds, with copvar/cdopvar only, the
 % LPI of executives/PIETOOLS_PIE2PDEstability.m (Q form, Cor. 7.1, the
@@ -21,12 +21,20 @@ function prog = cx_PIE2PDEstability(PIE,st)
 % - P lives on T's INPUT spaces (T'*T, T'*Q: in -> in).
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/29/2026: Second output OPS = struct of the program's operators
+%                  T, A (copvar) and P, Q, D, N (cdopvar), so a solved
+%                  program can be checked at operator level
+%                  (lpi_programming_sopvar/tests/test_getsol_sop). Empty in
+%                  2-D, whose program cx_stability_2D builds. One-output
+%                  callers are unaffected. The signature was
+%function prog = cx_PIE2PDEstability(PIE,st)                                % MMP, 09/29/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
     error('The PIE should be a ''pie_struct''.')
 end
 PIE = initialize(PIE);
+ops = struct();     % 2-D: operators not returned (built in cx_stability_2D) % MMP, 09/29/2026
 if PIE.dim==2                                       % stock lines 60-68
     if nargin<2,    prog = cx_stability_2D(PIE);
     else,           prog = cx_stability_2D(PIE,st);
@@ -78,4 +86,6 @@ if override2~=1
     Nm = Nm + N2m;
 end
 prog = lpi_eq_cdopvar(prog,Dm+Nm,'symmetric');
+% Operators the two lpi_eq relations constrain, for operator-level checks   % MMP, 09/29/2026
+ops = struct('T',Tm,'A',Am,'P',Pm,'Q',Qm,'D',Dm,'N',Nm);                    % MMP, 09/29/2026
 end

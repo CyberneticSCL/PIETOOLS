@@ -1,4 +1,4 @@
-classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar             % MMP, 09/07/2026
+classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MMP, 09/29/2026
     % Represents PI maps from L_2^p[S1,S3] to L_2^q[S2,S3]
     %
     % This defines PI operators from one L2 space to another.
@@ -78,6 +78,13 @@ classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar             % MMP, 09/07
     %                  mention above names the container that holds sdopvar
     %                  blocks, which is cdopvar: copvar admits sopvar blocks
     %                  only.
+    % MMP, 09/29/2026: ?dpvar added to InferiorClasses, so that a dpvar
+    %                  operand (gam*P, P - gam, [gam, P]) dispatches to this
+    %                  class's methods, which now route it to
+    %                  'dpvar_op_copvar' (legacy @dopvar semantics). Before,
+    %                  the dpvar's own method was called and failed. The
+    %                  classdef line was
+% classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar           % MMP, 09/07/2026 % MMP, 09/29/2026 (was)
 
     properties
         vars = struct('in',{},'out',{});

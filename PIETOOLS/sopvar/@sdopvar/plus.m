@@ -19,7 +19,17 @@ function C = plus(A,B)
 % instead of letting it prove so with an O(q) isequal. 7 of the 11 calls in
 % the 2-D container Hinf build (q = 3.8e5 per list, ~8 ms each); with the
 % cheaper comparison in 'sync_basis', plus there 0.21 -> 0.11 s. Same output.
+% MMP, 09/29/2026: A dpvar summand is routed at the top to
+% 'dpvar_op_copvar' (legacy @dopvar/plus semantics): a scalar is scalar*I on
+% a square block, a matrix of the block's size its multiplier. Before, a
+% dpvar never dispatched here. Numeric summands are not routed, as before.
 
+% dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
+% the promotion and checks below.                                           % MMP, 09/29/2026
+if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+    C = dpvar_op_copvar('plus',A,B);                                        % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 % A fixed 'sopvar' operand is promoted to a decision operator with a        % MMP, 09/07/2026
 % zero B, so that A+Pop and Pop+A work; mixing fixed and decision blocks    % MMP, 09/07/2026
 % is normal usage. The decision variable list is taken from the sdopvar     % MMP, 09/07/2026

@@ -41,12 +41,24 @@ function [Pcat] = horzcat(varargin)
 %                  the guard was false for a genuine mismatch and blocks on
 %                  different spaces were accepted, discarding a spatial
 %                  variable and retyping an L2 component as R.
+% MMP, 09/29/2026: A dpvar operand is routed to
+%                  'dpvar_op_copvar' (legacy @opvar/horzcat semantics: the
+%                  entry maps R^{cols} into the blocks' output space), which
+%                  returns a CONTAINER, since that entry's input space is not
+%                  this block's. Before, it errored "Currently supported only
+%                  for sopvar".
 
 % Deal with single input case
 if nargin==1
     Pcat = varargin{1};
     return
 end
+% dpvar entry: an R^{cols} -> output-space block, so the result             % MMP, 09/29/2026
+% is a container; see 'dpvar_op_copvar'.                                    % MMP, 09/29/2026
+if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MMP, 09/29/2026
+    Pcat = dpvar_op_copvar('horzcat',varargin{:});                          % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 
 % Extract the operators
 a = varargin{1};    b = varargin{2};

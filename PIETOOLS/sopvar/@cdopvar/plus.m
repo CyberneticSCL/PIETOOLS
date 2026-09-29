@@ -85,7 +85,21 @@ function C = plus(A,B)
 %                  registry is metadata: blocks and Zd untouched, cost
 %                  O(nv), flat in q. A variable on two domains is
 %                  cdopvar:domConflict.
+% MMP, 09/29/2026: A dpvar summand is routed at the top to
+%                  'dpvar_op_copvar' with the legacy @dopvar/plus semantics:
+%                  a scalar is scalar*I on a square operator (gam*I - Q), a
+%                  matrix of the total size a multiplier split by the
+%                  dimensions. Before, it reached the dpvar's method or
+%                  errored plus:badInput. A numeric summand is still
+%                  plus:badInput. minus = plus(A,-B) reaches the branch
+%                  unchanged.
 
+% dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
+% the container checks below.                                               % MMP, 09/29/2026
+if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+    C = dpvar_op_copvar('plus',A,B);                                        % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 % A 'copvar' operand is promoted, so the rest of this routine sees one type.
 % Promotion copies the block grid and metadata and leaves Zd empty.
 if isa(A,'copvar'),     A = cdopvar(A);     end

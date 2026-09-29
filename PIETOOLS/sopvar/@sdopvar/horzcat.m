@@ -56,12 +56,23 @@ function Pcat = horzcat(varargin)
 % MMP, 09/07/2026: Synchronize all N operands in one pass via 'sync_basis'
 %                  instead of recursing pairwise, which re-synchronized the
 %                  growing accumulator once per operand.
+% MMP, 09/29/2026: A dpvar operand is routed to
+%                  'dpvar_op_copvar' (legacy @dopvar/horzcat semantics: the
+%                  entry maps R^{cols} into the blocks' output space), which
+%                  returns a CONTAINER, since that entry's input space is not
+%                  this block's. Before, it errored below.
 
 % Deal with single input case
 if nargin==1
     Pcat = varargin{1};
     return
 end
+% dpvar entry: an R^{cols} -> output-space block, so the result             % MMP, 09/29/2026
+% is a container; see 'dpvar_op_copvar'.                                    % MMP, 09/29/2026
+if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MMP, 09/29/2026
+    Pcat = dpvar_op_copvar('horzcat',varargin{:});                          % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 
 % A fixed 'sopvar' operand is promoted to a decision operator with a zero B.
 % The decision variable list is taken from whichever operand already has

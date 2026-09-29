@@ -70,7 +70,21 @@ function C = plus(A,B)
 %                  were refused, blocking Hinf_gain with Tw ~= 0. The
 %                  registry is metadata: blocks untouched, cost O(nv), flat
 %                  in q. A variable on two domains is copvar:domConflict.
+% MMP, 09/29/2026: A dpvar summand is routed at the top to
+%                  'dpvar_op_copvar' with the legacy @opvar/plus semantics: a
+%                  scalar is scalar*I on a square operator (gam - T'*T), a
+%                  matrix of the total size a multiplier split by the
+%                  dimensions. A dpvar makes the sum a cdopvar. Before, it
+%                  reached the dpvar's method or errored plus:badInput. A
+%                  numeric summand is still plus:badInput. minus = plus(A,-B)
+%                  reaches the branch unchanged.
 
+% dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
+% the container checks below.                                               % MMP, 09/29/2026
+if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+    C = dpvar_op_copvar('plus',A,B);                                        % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 if ~isa(A,'copvar') || ~isa(B,'copvar')
     error('plus:badInput','Both summands must be copvar objects.')
 end

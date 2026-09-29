@@ -58,7 +58,19 @@ function P = horzcat(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/29/2026: A dpvar operand is converted by
+%                  'dpvar_op_copvar' (legacy @dopvar/horzcat semantics: the
+%                  entry maps R^{cols} into the rows' spaces, e.g. -gam in
+%                  [-gam, D', Bw'*Q]), then concatenated as a container.
+%                  Before, it errored cdopvar:horzcatBadOperand (or never
+%                  dispatched here, for a dpvar on the left).
 
+% dpvar entry: an R^{cols} -> row-space container; see                      % MMP, 09/29/2026
+% 'dpvar_op_copvar'. [] stays ignored, below.                               % MMP, 09/29/2026
+if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MMP, 09/29/2026
+    P = dpvar_op_copvar('horzcat',varargin{:});                             % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 [C,meta,Zds,src] = cat_copvar_grid('h',varargin,'cdopvar');
 [C,meta.Zd] = merge_dvar_lists(C,Zds,src);
 P = cdopvar(C,meta);
