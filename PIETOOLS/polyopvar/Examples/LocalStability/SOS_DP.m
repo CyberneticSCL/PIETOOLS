@@ -1,5 +1,5 @@
 function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
-    % [prog, DP] = SOS_DP(prog, d, opdeg, x) Construct a degree-2*d SOS distributed polynomial
+    % [prog, DP] = SOS_DP(...) Construct a degree-2*d SOS distributed polynomial
     % DP = < Z_d(x), P Z_d(x) >_{L2} = \sum_i=1^d \sum_j=1^d <U^i x^i, Pmat U^j x^j>_{L_2}
     % (as in Def. 9 CDC paper) and add the variable to the PIESOS program.
     %
@@ -51,17 +51,17 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
 
     % Construct the basis operator corresponding to \hat{U} in paper.
     pvar s s_dum
-    Zmon = monomials([s,s_dum],0:opdeg);
-    Zop = opvar();
+    Zmon     = monomials([s,s_dum],0:opdeg);
+    Zop      = opvar();
+    Zop.var1 = s;
+    Zop.var2 = s_dum;
+    Zop.I    = dom;
     Zop.R.R0 = [0*Zmon;0*Zmon];
     Zop.R.R1 = [Zmon;0*Zmon];
     Zop.R.R2 = [0*Zmon;Zmon];
-    Zop.var1 = s;
-    Zop.var2 = s_dum;
-    Zop.I = dom;
-    
-    Z = dopvar2ndopvar(Zop);
-    Zx = Z*x;
+
+    Z         = dopvar2ndopvar(Zop);                                                      % CR, 09/08/2026
+    Zx        = Z*x;
 
     % Construct the T-PI operators (corresponding to \hat{U}^i x^i in 
     % the paper) as products of Zx.
@@ -76,20 +76,6 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
 
     %% Declare the block Gram operator P >= 0 and add its variables to prog.
     [prog, Pcell] = polyopvar_sosquadvar(prog, Zs, Zs, 'pos');
-    
-    % Only needed for testing.
-    % % The lower-triangular evaluation below is valid only when
-    % % Pcell{j,i} = Pcell{i,j}'. Check dimensions and symbolic dpvar
-    % % structure before exploiting that identity.
-    % for i = 1:d
-    %     for j = 1:i
-    %         if ~isequal(size(Pcell{i,j}),size(Pcell{j,i}')) || ...
-    %                 ~isequal(Pcell{i,j},Pcell{j,i}')
-    %             error('SOS_DP:NonSymmetricGram', ...
-    %                 'Pcell must be symmetric before using the factor-two reduction.');
-    %         end
-    %     end
-    % end
 
     % %% Ensure strict positivity of the constructed SOS DP.
     % eppos = 1e-4;
@@ -98,16 +84,6 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
     % end
     
     %% Evaluate DP = <Z_d(x), P Z_d(x)> as a complete block quadratic form.
-    
-    % Each Zs{i} is a vector-valued polyopvar and Pcell{i,j} is the
-    % matching block of the global Gram matrix.
-    % DP = 0;
-    % for i = 1:d
-    %     for j = 1:d
-    %         % DP = DP + innerprod(Zs{i},Zs{j},Pcell{i,j});
-    %         DP = DP + innerprod_v2(Zs{i},Zs{j},Pcell{i,j});          % CR, 09/07/2026
-    %     end
-    % end
     
     % Each Zs{i} is a vector-valued polyopvar and Pcell{i,j} is the
     % matching block of the global Gram matrix.

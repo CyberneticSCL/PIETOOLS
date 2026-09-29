@@ -1,5 +1,5 @@
 function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
-    % [prog, V3] = V3_DP(prog, d, opdeg, x) Construct a degree-2*d distributed polynomial
+    % [prog, V3] = V3_DP(...) Construct a degree-2*d distributed polynomial
     % V3 = < Z_d(x), P Z_d(T*x) >_{L2} (as in Sec. 7.5 Automatica paper) and add the variable 
     % to the PIESOS program. In this function, P is constructed without any PSD constraints.
     % Positivity will be enforced when equating to an SOS DP and the symmetry 
@@ -60,37 +60,28 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
     %% Build the monomial basis used to parameterize P.
 
     % Construct the basis operator corresponding to \hat{U} in paper.
+    % Currently just uses 2PI operators; however code is set to accept 3PI op. if d==1.
+    % For d>1, code can only accept 2PI ops.
     pvar s s_dum
-    Zmon1 = monomials(s,0:opdeg);
-    Zmon2 = monomials([s,s_dum],0:opdeg);
-    Zop = opvar();
-    Zop.R.R0 = [Zmon1;0*Zmon2;0*Zmon2];
-    Zop.R.R1 = [0*Zmon1;Zmon2;0*Zmon2];
-    Zop.R.R2 = [0*Zmon1;0*Zmon2;Zmon2];
+    Zmon     = monomials([s,s_dum],0:opdeg);
+    Zop      = opvar();
     Zop.var1 = s;
     Zop.var2 = s_dum;
-    Zop.I = dom;
+    Zop.I    = dom;    
+    Zop.R.R0 = [0*Zmon;0*Zmon];
+    Zop.R.R1 = [Zmon;0*Zmon];
+    Zop.R.R2 = [0*Zmon;Zmon];
 
-    Zop_no_mult = opvar();
-    Zop_no_mult.R.R1 = [Zmon2;0*Zmon2];
-    Zop_no_mult.R.R2 = [0*Zmon2;Zmon2];
-    Zop_no_mult.var1 = s;
-    Zop_no_mult.var2 = s_dum;
-    Zop_no_mult.I = dom;
     
     % Express as tensopvar and polyopvars which we can work with for constructing V3.
     % Note that Z is a nopvar and Tx is a polyopvar. Applying Z directly to Tx invokes
-    % an unsupported nopvar*polyopvar multiplication. Compose the two
-    % operators first, then apply the composed operator to the fundamental
-    % state. This gives ZTx = Z*(Top*x) = (Z*Top)*x.
-    Z    = dopvar2ndopvar(Zop);
-    ZTop = Z*Top;                                                       % CR, 09/08/2026
-    Zx   = Z*x;
-    ZTx  = ZTop*x;                                                      % CR, 09/08/2026
-    Z_noM = dopvar2ndopvar(Zop_no_mult);
-    ZT_noM = Z_noM*Top;
-    Zx_noM = Z_noM*x;
-    ZTx_noM = ZT_noM*x;
+    % an unsupported nopvar*polyopvar multiplication. Compose the two operators first, 
+    % then apply the composed operator to the fundamental state. This gives 
+    % ZTx = Z*(Top*x) = (Z*Top)*x.
+    Z         = dopvar2ndopvar(Zop);
+    ZTop      = Z*Top;                                                      % CR, 09/08/2026
+    Zx        = Z*x;
+    ZTx       = ZTop*x;                                                     % CR, 09/08/2026
 
     % Construct the T-PI operators (corresponding to \hat{U}^i x^i and 
     % (\hat{U} o T)^j x^j in the paper) as products of Zx and ZTx.
@@ -100,40 +91,24 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
         if i==1
             Zs1{i} = Zx;
             Zs2{i} = ZTx;
-        elseif i==2
-            Zs1{i} = Zx_noM;
-            Zs2{i} = ZTx_noM;
         else
-            Zs1{i} = DMB(Zs1{i-1},Zx_noM);
-            Zs2{i} = DMB(Zs2{i-1},ZTx_noM);
+            Zs1{i} = DMB(Zs1{i-1},Zx);
+            Zs2{i} = DMB(Zs2{i-1},ZTx);
         end
     end
 
 
     %% Declare the block Gram operator P and add its variables to prog.
-    % P in V3 is not constrained to be positive or symmetric at this stage.
-    % The local helper represents this choice by the 'free' option.
+    % P in V3 is not constrained to be positive at this stage. The local helper 
+    % represents this choice by the 'free' option.
     [prog, Pcell] = polyopvar_sosquadvar(prog, Zs1, Zs2, 'free');
 
 
-    %% Evaluate V3 and enforce the operator-adjoint condition.
+    %% Evaluate V3 = <Z_d(x), P Z_d(Tx)> as a complete block quadratic form.
 
-    % Each Zs{i} is a vector-valued polyopvar and Pcell{i,j} is the
-    % matching block of the global Gram matrix.
-    %
-    % The desired constraint is
-    %   hat{Q}_{ij}' = hat{Q}_{ji},
-    % where
-    %   hat{Q}_{ij} = (hat{U}^i)' Pij (hat{U}*Top)^j.
-    %
-    % Rather than constructing hat{Q}_{ij} explicitly, use the equivalent
-    % bilinear-form identity represented by the available polyopvar tools:
-    %
-    % <Zs1{i}, Pij*Zs2{j}> = <Zs2{i}, Pji'*Zs1{j}>.
-    %
-    % innerprod_v2 returns each side in linear distributed-polynomial form,
-    % and piesos_eq imposes equality of their coefficients. This avoids the
-    % unsupported multiplication of a dpvar matrix by a tensopmat object.
+    % Each Zs1{i} and Zs2{j} are vector-valued polyopvars and Pcell{i,j} is the
+    % matching block of the global Gram matrix. The symmetry constraint is naturally 
+    % enforced when equating to an SOS DP, so no need to do it explicitly here.
     V3 = 0;
     for i = 1:d
         for j = 1:d
