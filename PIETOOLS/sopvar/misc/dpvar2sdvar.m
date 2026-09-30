@@ -7,6 +7,12 @@ function [P,ZL,ZR] = dpvar2sdvar(D,vars)
 % where d is the vector of decision variables (D.dvarname) and where
 %   {s1,...,sM} = vars.out;     {t1,...,tN} = vars.in;
 % P also has fields P.m = m*nZL1*...*nZLM and P.n = n*nZLN*...*nZLN;
+%
+% MMP, 09/29/2026: Moved from sopvar/Testfolder/converters to sopvar/misc,
+%                  name and code unchanged. The dpvar operator branches of
+%                  the four classes (dpvar_op_copvar, mat2copvar_grid) call
+%                  it, as copquadvar and sopquadvar already did, and library
+%                  code should not depend on a test folder.
 
 if ~isa(D,'dpvar')
     error("Input object must be of type 'dpvar'.")

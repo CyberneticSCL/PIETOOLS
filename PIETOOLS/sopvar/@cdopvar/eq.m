@@ -10,10 +10,11 @@ function tf = eq(A,B,tol)
 %           the blocks;
 %
 % OUTPUTS
-% - tf:     logical scalar; true iff same spaces, dimensions and domains,
-%           and every block pair equal within tol as affine functions of
-%           the decision variables, matched by name. Different spaces give
-%           false, not an error.
+% - tf:     logical scalar; true iff the same ordered sequence of component % MMP, 09/29/2026
+%           spaces (by name and domain) on each side and equal kernels      % MMP, 09/29/2026
+%           componentwise, within tol, whatever the two block partitions,   % MMP, 09/29/2026
+%           as affine functions of the decision variables, matched by       % MMP, 09/29/2026
+%           name. Different spaces give false, not an error.                % MMP, 09/29/2026
 %
 % NOTES
 % The logic is in 'eq_copvar', shared with 'copvar'. The two containers may
@@ -48,6 +49,13 @@ function tf = eq(A,B,tol)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/29/2026: OUTPUTS updated for 'eq_copvar', which now compares one
+%                  operator stored in two block partitions as equal. No code
+%                  change here. The OUTPUTS entry for tf was:
+% - tf:     logical scalar; true iff same spaces, dimensions and domains,   % MMP, 09/29/2026 (was)
+%           and every block pair equal within tol as affine functions of    % MMP, 09/29/2026 (was)
+%           the decision variables, matched by name. Different spaces give  % MMP, 09/29/2026 (was)
+%           false, not an error.                                            % MMP, 09/29/2026 (was)
 
 if nargin<3,    tol = [];   end
 tf = eq_copvar(A,B,tol);

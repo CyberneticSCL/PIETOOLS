@@ -71,6 +71,12 @@ function C = plus_batch(varargin)
 % process vs HEAD, with the 'shared_Zd' call site in 'copquadvar':
 % plus_batch 2-D Hinf (q = 7.6e5) 1.66 -> 0.25 s; 3 variables (q = 1e6)
 % 24.5 -> 3.1 s. Programs bit-identical.
+% MMP, 09/29/2026: A summand without entries is now skipped before its
+% zeros are built, in exactly the cases where 'noop_sum' then skipped both
+% adds (running sums real sparse double of the merged sizes); in any other
+% case it is handled as before, so the output keeps its bits. 3-D heat
+% build: 'noop_sum' calls 174636 -> 58398; programs bit-identical. Also
+% '@sdopvar/plus' now calls this routine for its two operands.
 
 % A trailing 'shared_Zd' is removed before the operands are processed; see  % MMP, 09/26/2026
 % INPUT. Any other text input is an error rather than an operand.           % MMP, 09/26/2026
@@ -155,6 +161,17 @@ for i = 1:ncell
         if ~isempty(T{k}) && nnz(Ar)==0 && nnz(Br)==0 && isa(Ar,'double') ...
             && isa(Br,'double') && isreal(Ar) && isreal(Br) && ismatrix(Br) ...
             && numel(Ar)==numel(T{k}.idx) && size(Br,2)==numel(T{k}.idx)    % MMP, 09/26/2026
+            % Both adds below would be skipped: 'noop_sum' holds for these  % MMP, 09/29/2026
+            % zeros exactly when the running sums are real sparse double    % MMP, 09/29/2026
+            % of the merged sizes. Then skip before building the zeros;     % MMP, 09/29/2026
+            % otherwise (e.g. a full sum, whose -0 the add turns to +0)     % MMP, 09/29/2026
+            % build them and add as before.                                 % MMP, 09/29/2026
+            if issparse(Asum) && issparse(Bsum) && isa(Asum,'double') ...
+                && isa(Bsum,'double') && isreal(Asum) && isreal(Bsum) ...
+                && isequal(size(Asum),[T{k}.nC,1]) ...
+                && isequal(size(Bsum),[size(Br,1),T{k}.nC])                 % MMP, 09/29/2026
+                continue                                                    % MMP, 09/29/2026
+            end                                                             % MMP, 09/29/2026
             Ak = sparse(T{k}.nC,1);     Bk = sparse(size(Br,1),T{k}.nC);    % MMP, 09/26/2026
         else                                                                % MMP, 09/26/2026
             [Ak,Bk] = apply_basis_map(T{k},Ar,Br);                          % MMP, 09/26/2026

@@ -21,8 +21,9 @@ function Pd = sopvar2sdopvar(P,Zd)
 % unchanged.
 %
 % Pass Zd when the result is to be combined with an existing sdopvar, so the
-% two share a decision variable list and 'CombineDecisionBasis' takes its
-% fast path instead of a setdiff over every name.
+% two share a decision variable list and 'sync_basis' takes its equal-list  % MMP, 09/29/2026
+% path (one isequal, or none with 'shared_Zd') instead of a unique over     % MMP, 09/29/2026
+% every name and a remap of the rows of B.                                  % MMP, 09/29/2026
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -49,6 +50,12 @@ function Pd = sopvar2sdopvar(P,Zd)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
+% MMP, 09/29/2026: The help text named 'CombineDecisionBasis' as the routine
+% that merges decision variable lists. It had no caller after 09/07/2026 and
+% is now in sopvar/private/dead_code/; 'sync_basis' does the merge. Comment only. The two help
+% lines were (kept here so that 'help' shows only the current text):
+% % two share a decision variable list and 'CombineDecisionBasis' takes its % MMP, 09/29/2026 (was)
+% % fast path instead of a setdiff over every name.                         % MMP, 09/29/2026 (was)
 
 if ~isa(P,'sopvar')
     error("Input must be of type 'sopvar'.")

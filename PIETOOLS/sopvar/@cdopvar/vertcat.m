@@ -56,7 +56,19 @@ function P = vertcat(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/29/2026: A dpvar operand is converted by
+%                  'dpvar_op_copvar' (legacy @dopvar/vertcat semantics: the
+%                  entry maps the columns' spaces into R^{rows}, the integral
+%                  Q1 from L2), then stacked as a container. Before, it
+%                  errored cdopvar:vertcatBadOperand (or never dispatched
+%                  here, for a dpvar on top).
 
+% dpvar entry: a column-space -> R^{rows} container; see                    % MMP, 09/29/2026
+% 'dpvar_op_copvar'. [] stays ignored, below.                               % MMP, 09/29/2026
+if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MMP, 09/29/2026
+    P = dpvar_op_copvar('vertcat',varargin{:});                             % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 [C,meta,Zds,src] = cat_copvar_grid('v',varargin,'cdopvar');
 [C,meta.Zd] = merge_dvar_lists(C,Zds,src);
 P = cdopvar(C,meta);

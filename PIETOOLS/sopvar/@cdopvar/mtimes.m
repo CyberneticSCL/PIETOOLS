@@ -124,6 +124,21 @@ function C = mtimes(A,B)
 %                  same P family, is SLOWER - 1.3-3.4x, on PIE operators (1
 %                  and 4 PDE states, q to 5.3e4) and on dense random ones.
 %                  'put_on_list' now has no caller.
+% MMP, 09/29/2026: A dpvar factor is routed at the top to 'dpvar_op_copvar'
+%                  with the legacy @dopvar semantics: a constant dpvar
+%                  scales, a dpvar with decision variables is refused
+%                  (decision x decision, as cdopvar x cdopvar below), a
+%                  constant dpvar matrix multiplies the output or input
+%                  components. Before, dpvar*P reached the dpvar's method and
+%                  failed. Numeric factors and the composition body are
+%                  unchanged.
+
+% dpvar factor: the constant multiplier of legacy @dopvar/mtimes. Before    % MMP, 09/29/2026
+% any work, so the composition below is untouched.                          % MMP, 09/29/2026
+if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+    C = dpvar_op_copvar('mtimes',A,B);                                      % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 
 % % % Scalar factor: scales every populated block, changes no metadata.
 if isnumeric(A) || isnumeric(B)

@@ -1,4 +1,4 @@
-classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar             % MMP, 09/07/2026
+classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MMP, 09/29/2026
     % Represents PI maps from L_2^p[S1,S3] to L_2^q[S2,S3]
     %
     % This defines PI operators from one L2 space to another.
@@ -78,6 +78,29 @@ classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar             % MMP, 09/07
     %                  mention above names the container that holds sdopvar
     %                  blocks, which is cdopvar: copvar admits sopvar blocks
     %                  only.
+    % MMP, 09/29/2026: ?dpvar added to InferiorClasses, so that a dpvar
+    %                  operand (gam*P, P - gam, [gam, P]) dispatches to this
+    %                  class's methods, which now route it to
+    %                  'dpvar_op_copvar' (legacy @dopvar semantics). Before,
+    %                  the dpvar's own method was called and failed. The
+    %                  classdef line was
+% classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar           % MMP, 09/07/2026 % MMP, 09/29/2026 (was)
+    % MMP, 09/29/2026: Moved dead files of this class, all written by other
+    %                  developers, to sopvar/private/dead_code/ (off the
+    %                  path; its README lists origin and author). Each has no live
+    %                  caller: whole-repository grep of code and strings,
+    %                  and no feval/str2func/eval that could build the name.
+    %                  mtimes_AT (an uncalled variant of mtimes, dated
+    %                  09/07-09/10/2026, last changed 09/11/2026),
+    %                  plus_decparam, plus_decparam_batch (dated 09/07/2026),
+    %                  minus_decparam (called plus_dpvar, which exists
+    %                  nowhere), lrmultiply_batch, rand_sdopvar (no caller
+    %                  passes an sdopvar, so every call reaches the
+    %                  Testfolder/sdopvar function of that name), test_script
+    %                  (no assertions), private/MatrixMultiply (its two calls
+    %                  in mtimes.m are commented out) and
+    %                  private/CombineDecisionBasis (dated 08/29/2026; its
+    %                  callers moved to 'sync_basis' on 09/07/2026).
 
     properties
         vars = struct('in',{},'out',{});

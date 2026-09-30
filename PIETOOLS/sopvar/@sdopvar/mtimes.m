@@ -64,6 +64,18 @@ function C = mtimes(A,B)
 %                  non-pass-through variable was rejected. The identical
 %                  fix in 'mtimes_AT' does not cover it -- nothing in the
 %                  toolbox calls that routine.
+% MMP, 09/29/2026: A dpvar factor is routed at the top to 'dpvar_op_copvar'
+%                  (legacy @dopvar/mtimes semantics): a constant dpvar
+%                  scales, one with decision variables is refused (the
+%                  product is quadratic), a matrix multiplies the output or
+%                  input components. Before, dpvar*P left C unassigned.
+
+% dpvar factor: legacy semantics, before any work; the composition below    % MMP, 09/29/2026
+% is untouched.                                                             % MMP, 09/29/2026
+if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+    C = dpvar_op_copvar('mtimes',A,B);                                      % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 if isa(A,'sdopvar') 
     if isnumeric(B)
         if isscalar(B)

@@ -33,7 +33,8 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 %   1. The decision variable lists are merged with a single
 %      unique(...,'stable') over the concatenation of all N. That is
 %      provably the same list as iterating Zd = [Zd; setdiff(Zd_k,Zd,...)],
-%      which is the order 'CombineDecisionBasis' produces, because both keep
+%      which is the order the former pairwise 'CombineDecisionBasis'        % MMP, 09/29/2026
+%      produced (no longer called), because both keep                       % MMP, 09/29/2026
 %      first occurrences in order; but it costs one sort of the whole set
 %      instead of N-1 setdiffs against a growing accumulator. This is the
 %      dominant cost: a setdiff over decision variable NAMES accounted for
@@ -86,6 +87,21 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 % 0.91 s and 56 -> 0.2 MB allocated; with 'copquadvar' passing it 0.15 s.
 % At q = 1e6 over 3 variables (729 summands per block) 11.2 -> 0.9 s.
 % Same output, bit for bit.
+% MMP, 09/29/2026: Each operand's positions in the merged bases are read
+% directly by the local 'basis_positions' (ismember per direction and
+% Kronecker strides, first variable outermost), instead of building the
+% selection matrices of 'UnionBasisMonomials' and recovering the positions
+% with find(). Same positions, work on the monomial axis only, flat in q.
+% 3-D heat build, profiled: the 4738 position calls 1.27 -> 0.12 s, this
+% routine 1.83 -> 0.62 s; programs bit-identical. New guard: a monomial of
+% an operand missing from the merged basis errors, where the direct form
+% would give position 0 and the old route built its own union without
+% complaint. This was the only live
+% caller of the @sdopvar copy of 'UnionBasisMonomials' (MMP, SS, AT, DJ,
+% 06/08/2026), which is moved to sopvar/private/dead_code/; @sopvar/private
+% keeps its own copy. NOTES
+% item 1 no longer names 'CombineDecisionBasis' as live. In the 09/26/2026
+% entry, '@sdopvar/plus' now sets 'shared_Zd' through 'plus_batch'.
 
 N = numel(objs);
 if N==0
@@ -154,20 +170,19 @@ for k = 1:N
         % the remapping entirely rather than performing an identity one.
         continue
     end
-    % ZL contains objs{k}.ZL, so the union below IS ZL and CL embeds
-    % operand k into it; likewise CR. Reusing 'UnionBasisMonomials' keeps
-    % the monomial ordering identical to the pairwise code it replaces.
-    [~,CL] = UnionBasisMonomials(objs{k}.ZL,ZL);
-    [~,CR] = UnionBasisMonomials(objs{k}.ZR,ZR);
-
-    % CL and CR are selection matrices: exactly one 1 per row, in the
-    % column this operand's monomial occupies in the merged basis. So
-    % kron(CR',CL') would be an nC_new x nC_k sparse holding one 1 per
-    % column and nothing else -- a pure scatter. Read the positions off CL
-    % and CR and store the scatter as an index vector instead of building
-    % that matrix; see 'apply_basis_map'.
-    aL = zeros(size(CL,1),1);   [rL,cL] = find(CL);     aL(rL) = cL;
-    aR = zeros(size(CR,1),1);   [rR,cR] = find(CR);     aR(rR) = cR;
+    % BEGIN MMP, 09/29/2026: aL(a) is the position in ZL of monomial a of
+    % objs{k}.ZL, read directly; likewise aR. Deleted with the old code
+    % below: its 9 comment lines (09/07/2026) on the UnionBasisMonomials
+    % selection matrices and the find() back to positions. The embedding
+    % into the merged basis is a pure scatter, stored as the index vector
+    % T{k}.idx below rather than as a matrix; see 'apply_basis_map'.
+%   [~,CL] = UnionBasisMonomials(objs{k}.ZL,ZL);                            % MMP, 09/29/2026 (was)
+%   [~,CR] = UnionBasisMonomials(objs{k}.ZR,ZR);                            % MMP, 09/29/2026 (was)
+%   aL = zeros(size(CL,1),1);   [rL,cL] = find(CL);     aL(rL) = cL;        % MMP, 09/29/2026 (was)
+%   aR = zeros(size(CR,1),1);   [rR,cR] = find(CR);     aR(rR) = cR;        % MMP, 09/29/2026 (was)
+    aL = basis_positions(objs{k}.ZL,ZL);                                    % MMP, 09/29/2026
+    aR = basis_positions(objs{k}.ZR,ZR);                                    % MMP, 09/29/2026
+    % END MMP, 09/29/2026
     mk = objs{k}.dims(1);       nk = objs{k}.dims(2);
 
     % Entry (matrix row i, ZL index a, matrix column j, ZR index b) sits at
@@ -182,3 +197,25 @@ for k = 1:N
 end
 
 end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 09/29/2026
+function a = basis_positions(Zs,Zf)                                         % MMP, 09/29/2026
+% A = BASIS_POSITIONS(ZS,ZF): A(j) is the position in the monomial vector   % MMP, 09/29/2026
+% kron(ZF{1},...,ZF{N}) of monomial j of kron(ZS{1},...,ZS{N}), first       % MMP, 09/29/2026
+% variable outermost, as in 'UnionBasisMonomials' and the class bases.      % MMP, 09/29/2026
+% Requires ZS{i} within ZF{i} for each direction i, which holds for the     % MMP, 09/29/2026
+% unions formed in 'sync_basis'; otherwise it errors, since a missing       % MMP, 09/29/2026
+% monomial would get position 0. Cost: the monomial axis only, not q.       % MMP, 09/29/2026
+a = 1;                                                                      % MMP, 09/29/2026
+for i = 1:numel(Zs)                                                         % MMP, 09/29/2026
+    [tf,p] = ismember(Zs{i}(:),Zf{i}(:));                                   % MMP, 09/29/2026
+    if ~all(tf)                                                             % MMP, 09/29/2026
+        error('sync_basis:basisNotContained',['A monomial of an operand '...
+              'basis is missing from the merged basis.'])                   % MMP, 09/29/2026
+    end                                                                     % MMP, 09/29/2026
+    % (a-1)*numel(Zf{i}) + p is the merged position of (earlier directions, % MMP, 09/29/2026
+    % direction i); direction i is the inner index, hence the transpose.    % MMP, 09/29/2026
+    a = reshape(((a(:)-1)*numel(Zf{i}) + p(:).').',[],1);                   % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026

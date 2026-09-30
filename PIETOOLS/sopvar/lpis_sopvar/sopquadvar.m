@@ -88,11 +88,23 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 %                     straight through. This single argument is the whole of
 %                     the positivity question; the rest of this routine is
 %                     assembly;
-%   options.psatz     binary value, set to 1 to enforce positivity of the
-%                     operator only on the domain, by including the factor
+%   options.psatz     set to 1 to enforce positivity of the operator only on
+%                     the domain, by including the factor
 %                     g(theta) = prod_k (theta_k-ak)*(bk-theta_k) in the
-%                     construction. Defaults to 0. Rejected for type
-%                     'sym', where a nonnegative weight means nothing;
+%                     construction; set to 2k+1 or 2k+2 (k = 1..n3) for the
+%                     linear weight of ONE face of the box,
+%                     g = (theta_k-ak)/(bk-ak) or (bk-theta_k)/(bk-ak).
+%                     Here k counts S3 in SORTED order -- the k-th entry of
+%                     sort(vars), [ak,bk] its row of dom -- unlike dom, deg,
+%                     sep and include, which follow 'vars'; for the same
+%                     single space a code then names the same face as in
+%                     'copquadvar' (whose registry spans all its spaces).
+%                     Declare one variable per face and sum them, each at
+%                     the full degree (see 'copquadvar'). Any other value
+%                     is an error, including
+%                     2, the ball of 'poslpivar_2d'. Defaults to 0. Rejected
+%                     for type 'sym', where a nonnegative weight means
+%                     nothing;
 %   options.sep       logical scalar or 1 x n3 array. Where sep(k) is true,
 %                     direction k is SEPARABLE: the lower and upper integral
 %                     basis operators are replaced by a single full-domain
@@ -164,6 +176,16 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 09/28/2026: options.psatz is value-checked, and 2k+1 / 2k+2 weight the
+%                  Gram form by one face of the box, (theta_k-a_k)/L_k or
+%                  (b_k-theta_k)/L_k, k over SORTED S3. The value was taken
+%                  for its truthiness, so 2 (poslpivar_2d's ball), every
+%                  face code and out-of-range codes such as 9 at n3 = 2 all
+%                  silently built the product weight, while 'copquadvar'
+%                  (MMP, 09/27/2026) reads 3.. as faces: one options struct,
+%                  two cones. Check, double conversion and face branch
+%                  mirror copquadvar's; sorted k makes a code name the same
+%                  face in both. Help text updated. psatz 0/1 unchanged.
 % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Renamed here:
@@ -351,6 +373,17 @@ end
 if ~isfield(options,'psatz') || isempty(options.psatz)
     options.psatz = 0;
 end
+% 0, 1 and the face codes 2k+1 / 2k+2, k over SORTED S3 as in 'copquadvar'; % MMP, 09/28/2026
+% checked, not taken for truthiness, which let 2 (poslpivar_2d's ball) and  % MMP, 09/28/2026
+% every face code build the product while 'copquadvar' reads 3.. as faces.  % MMP, 09/28/2026
+if ~isscalar(options.psatz) || ~ismember(options.psatz,[0,1,3:2*n3+2])      % MMP, 09/28/2026
+    error("'psatz' should be 0, 1, or a face code 2k+1 / 2k+2 with k "...
+          +"in 1..n3, here n3 = "+num2str(n3)+"; 2 is "...
+          +"poslpivar_2d's ball, not the box.")                             % MMP, 09/28/2026
+end                                                                         % MMP, 09/28/2026
+% Double from here on: an integer class passes the check above, and then    % MMP, 09/28/2026
+% floor((psatz-1)/2) rounds in integer arithmetic and picks the wrong face. % MMP, 09/28/2026
+options.psatz = double(options.psatz);                                      % MMP, 09/28/2026
 % % % Variable type. This is the ONLY place positivity enters: everything    % MMP, 09/21/2026
 % else here assembles sum_ij Z_i^* Q_ij Z_j from the basis list and the      % MMP, 09/21/2026
 % coefficient matrix, and whether Q is constrained is one argument to        % MMP, 09/21/2026
@@ -494,12 +527,24 @@ dmap = containers.Map(Zd,num2cell(1:ndec));                                % MMP
 
 % Multiplier used to restrict positivity to the domain. Note that it is
 % evaluated at the integration variable, as in 'poslpivar'.
-if options.psatz
+% if options.psatz                                                          % MMP, 09/28/2026 (was)
+if options.psatz==1                                                         % MMP, 09/28/2026
     gfun = polynomial(1);
     for k=1:n3
         thk = polynomial(vars_int(k));
         gfun = gfun*(thk-dom(k,1))*(dom(k,2)-thk);
     end
+elseif options.psatz>=3                                                     % MMP, 09/28/2026
+    % One face, normalised by L_k as in 'copquadvar': odd code the lower    % MMP, 09/28/2026
+    % face theta_k = ak, even the upper. k counts SORTED S3, but vars_int   % MMP, 09/28/2026
+    % and dom follow 'vars', so sorted k is row kf = ord_S3(k) here.        % MMP, 09/28/2026
+    kf = ord_S3(floor((options.psatz-1)/2));                                % MMP, 09/28/2026
+    thk = polynomial(vars_int(kf));                                         % MMP, 09/28/2026
+    if mod(options.psatz,2)==1                                              % MMP, 09/28/2026
+        gfun = (thk-dom(kf,1))/(dom(kf,2)-dom(kf,1));                       % MMP, 09/28/2026
+    else                                                                    % MMP, 09/28/2026
+        gfun = (dom(kf,2)-thk)/(dom(kf,2)-dom(kf,1));                       % MMP, 09/28/2026
+    end                                                                     % MMP, 09/28/2026
 else
     gfun = polynomial(1);
 end

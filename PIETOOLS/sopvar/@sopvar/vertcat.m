@@ -48,6 +48,15 @@ function [Pcat] = vertcat(varargin)
 %                  the guard was false for a genuine mismatch and blocks on
 %                  different spaces were accepted, discarding a spatial
 %                  variable and retyping an L2 component as R.
+% MMP, 09/29/2026: Three or more operands recursed with horzcat, so [A;B;C]
+%                  returned [[A;B],C] (a wrong operator, silently, when the
+%                  shapes allowed it). Recurse with vertcat.
+% MMP, 09/29/2026: A dpvar operand is routed to
+%                  'dpvar_op_copvar' (legacy @opvar/vertcat semantics: the
+%                  entry maps the blocks' input space into R^{rows}, an
+%                  integral from L2), which returns a CONTAINER, since that
+%                  entry's output space is not this block's. Before, it
+%                  errored "Currently supported only for sopvar".
 
 
 % Deal with single input case
@@ -55,6 +64,12 @@ if nargin==1
     Pcat = varargin{1};
     return
 end
+% dpvar entry: an input-space -> R^{rows} block, so the result              % MMP, 09/29/2026
+% is a container; see 'dpvar_op_copvar'.                                    % MMP, 09/29/2026
+if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MMP, 09/29/2026
+    Pcat = dpvar_op_copvar('vertcat',varargin{:});                          % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 
 % Extract the operators
 a = varargin{1};    b = varargin{2};
@@ -115,7 +130,8 @@ Pcat = sopvar(params, a.vars, ZL, ZR, a.dom, dims);                         % MM
 
 
 if nargin>2 
-    Pcat = horzcat(Pcat, varargin{3:end});
+%   Pcat = horzcat(Pcat, varargin{3:end});                                  % MMP, 09/29/2026 (was)
+    Pcat = vertcat(Pcat, varargin{3:end});                                  % MMP, 09/29/2026
 end
 
 

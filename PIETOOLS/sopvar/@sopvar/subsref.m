@@ -1,4 +1,4 @@
-function out = subsref(obj,s)
+function [out,varargout] = subsref(obj,s)                                   % MMP, 09/29/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % out=subsref(Pbop,s) used for subscripted indexing of the operator 
 % P: R^p x L2^q to R^m x L2^n
@@ -43,11 +43,40 @@ function out = subsref(obj,s)
 % Initial coding AT 01/26/2026
 % updated to new sopvar AT 05/18/26
 % Correct order ZL and ZR, DJ 06/08/2026
+% Return every element of a '.' comma list, MMP, 09/29/2026. With the one
+%   output 'out', {P.params{:}}, [P.params{:}] and f(P.ZL{:}) silently kept
+%   the first element only, and P.C{i,j}.params{:} through a container
+%   raised MATLAB:TooManyOutputs. A '.' read now returns nargout values,
+%   the builtin count set by 'numArgumentsFromSubscript'; the one-value
+%   read and '()' run the same lines as before, so their outputs and cost
+%   are unchanged. The signature was
+% function out = subsref(obj,s)                                             % MMP, 09/29/2026 (was)
+% Continue indexing after a slice, MMP, 09/29/2026: P(I,J).dims silently
+%   returned the slice (the tail was dropped); it now continues, as in
+%   'sdopvar'. A slice followed by a comma-list brace, e.g. {P(I,J).ZL{:}},
+%   is refused: a '()' read gets one output, so the list would keep only
+%   its first element.
 
 switch s(1).type
     case '.'
+        if nargout~=1                                                       % MMP, 09/29/2026
+            % A comma list: nargout is its length (0 for an empty list;     % MMP, 09/29/2026
+            % an explicit subsref(P,s) statement also has 0 and returns     % MMP, 09/29/2026
+            % the one value as 'ans', as before).                           % MMP, 09/29/2026
+            [varargout{1:nargout}] = builtin('subsref',obj,s);              % MMP, 09/29/2026
+            if ~isempty(varargout)                                          % MMP, 09/29/2026
+                out = varargout{1};  varargout(1) = [];                     % MMP, 09/29/2026
+            end                                                             % MMP, 09/29/2026
+            return                                                          % MMP, 09/29/2026
+        end                                                                 % MMP, 09/29/2026
         out = builtin('subsref',obj,s);
     case '()'
+        % A comma-list brace after the slice cannot be served (one output). % MMP, 09/29/2026
+        for k = 2:numel(s)                                                  % MMP, 09/29/2026
+            if strcmp(s(k).type,'{}') && ~all(cellfun(@(x) isscalar(x) && (isnumeric(x) || islogical(x)),s(k).subs)) % MMP, 09/29/2026
+                error('sopvar:parenThenList','Slice first, then read the list: Y = P(I,J); Y.field{...}.') % MMP, 09/29/2026
+            end                                                             % MMP, 09/29/2026
+        end                                                                 % MMP, 09/29/2026
         indr = s(1).subs{1}; %output
         indc = s(1).subs{2}; %input
         dim_old=obj.dims;
@@ -115,6 +144,11 @@ switch s(1).type
 
         out = sopvar(subsref_params, obj.vars, ZL, ZR, obj.dom, dims);      % MMP, 08/29/2026
 
+        % Continue any further indexing, e.g. P(1,1).dims, as sdopvar does; % MMP, 09/29/2026
+        % the tail used to be dropped and the slice returned instead.       % MMP, 09/29/2026
+        if numel(s)>1                                                       % MMP, 09/29/2026
+            out = subsref(out,s(2:end));                                    % MMP, 09/29/2026
+        end                                                                 % MMP, 09/29/2026
 
     case '{}'
         error('Not a valid indexing expression')

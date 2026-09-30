@@ -23,6 +23,9 @@ function Pop = copvar2opvar2d(Pmop,vars_xy)
 % Each block is delegated to 'sopvar2opvar2d' and its one live component is
 % copied into the corresponding slot of the result. A structurally zero
 % block contributes nothing and leaves that component empty.
+% 'sopvar2opvar2d' picks x and y itself (Bk.var1); where that is the        % MMP, 09/28/2026
+% reverse of vars_xy the component is taken from the mirror slot (x<->y)    % MMP, 09/28/2026
+% and a cell-valued one transposed, cell axis d being direction d.          % MMP, 09/28/2026
 %
 % Blocks are matched to components BY SPACE, not by grid position: the
 % container sorts its registry and may omit rows for spaces the operator
@@ -71,6 +74,16 @@ function Pop = copvar2opvar2d(Pmop,vars_xy)
 %                  mopvar2nopvar -> copvar2nopvar,
 %                  mopvar2opvar2d -> copvar2opvar2d. File was
 %                  'mopvar2opvar2d.m'.
+% MMP, 09/28/2026: A block that 'sopvar2opvar2d' orients the reverse way to
+%                  vars_xy (its rule: sorted, a lone 's2'/'y' is y) is read
+%                  from the mirror slot, cells transposed. Before, the
+%                  same-named slot was copied: 12 of the 16 components came
+%                  out empty (block dropped with its dim zeroed, or rejected
+%                  by opvar2d's setter), and R22 had its alpha
+%                  axes swapped, or was rejected by opvar2d's setter when it
+%                  depends on a dummy. Hit every non-sorted vars_xy, and the
+%                  DEFAULT too wherever the lone-variable rule disagrees with
+%                  sorted order (registry {a,b}: lone b; {y,z}: lone y, z).
 
 if ~isa(Pmop,'copvar')
     error('copvar2opvar2d:badInput','Input must be a copvar object.')
@@ -120,12 +133,27 @@ d(ri,1) = Pmop.dim_out(:);
 d(ci,2) = Pmop.dim_in(:);
 Pop.dim = d;
 
+mir = [1 3 2 4];    % opvar2d space index with x and y exchanged            % MMP, 09/28/2026
 for i = 1:M
     for j = 1:N
         if isempty(Pmop.C{i,j}),    continue,   end
         Bk = sopvar2opvar2d(Pmop.C{i,j});
         slot = nm{ri(i),ci(j)};
-        Pop.(slot) = Bk.(slot);
+%       Pop.(slot) = Bk.(slot);                                             % MMP, 09/28/2026 (was)
+        % Bk's x,y follow sopvar2opvar2d's rule, not vars_xy. opvar2d has   % MMP, 09/28/2026
+        % two directions, so one variable of the block decides: Bk agrees   % MMP, 09/28/2026
+        % with vars_xy or is its reverse. Reversed: mirror slot, and cell   % MMP, 09/28/2026
+        % axes swapped (R22{a,b} -> {b,a}; Ry2 1x3 -> Rx2 3x1, etc.).       % MMP, 09/28/2026
+        v = [Pmop.C{i,j}.vars.in, Pmop.C{i,j}.vars.out];                    % MMP, 09/28/2026
+        sw = ~isempty(v) && find(strcmp(pvar2varname(Bk.var1),v{1}),1)...
+                         ~= find(strcmp(vars_xy,v{1}),1);                   % MMP, 09/28/2026
+        if sw                                                               % MMP, 09/28/2026
+            val = Bk.(nm{mir(ri(i)),mir(ci(j))});                           % MMP, 09/28/2026
+            if iscell(val),     val = val.';    end                         % MMP, 09/28/2026
+        else                                                                % MMP, 09/28/2026
+            val = Bk.(slot);                                                % MMP, 09/28/2026
+        end                                                                 % MMP, 09/28/2026
+        Pop.(slot) = val;                                                   % MMP, 09/28/2026
     end
 end
 

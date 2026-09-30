@@ -49,8 +49,21 @@ function C = plus(A,B)
 %                  variable and retyping an L2 component as R.
 % Allowing different monomials AT - 05/26/26
 % Switch order ZL and ZR, DJ 06/08/2026
+% MMP, 09/29/2026: A dpvar summand is routed at the top to
+%                  'dpvar_op_copvar' (legacy @opvar/plus semantics): a
+%                  scalar is scalar*I on a square block, a matrix of the
+%                  block's size its multiplier; the sum is an sdopvar.
+%                  Before, it failed in the dims check below. Numeric
+%                  summands are not routed and fail there as before.
 
 % initialize added output class
+
+% dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
+% the checks below.                                                         % MMP, 09/29/2026
+if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+    C = dpvar_op_copvar('plus',A,B);                                        % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 
 % Error handling: Checks to ensure A and B are compatible
 if any(A.dims~=B.dims)

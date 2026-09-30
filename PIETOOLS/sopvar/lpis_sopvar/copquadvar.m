@@ -236,6 +236,19 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  certifies nothing, the 4 faces reach 0.9875 kappa*.
 %                  Nonnegative on the box by construction, so no weight can
 %                  make the variable indefinite. psatz 0/1 unchanged.
+% MMP, 09/29/2026: Skip an all-zero gamma cell before 'unpack_sheets' and
+%                  write its zeros directly: the skip 'sopquadvar' took on
+%                  09/22/2026, which this copy lacked. At most 2^n3 of the
+%                  3^n3 cells can be nonzero (Sec. 6.1 key table), so
+%                  79884 of 87696 unpack calls in the 3-D heatNd build
+%                  (w3) were on an empty cell. Measured unprofiled against
+%                  the HEAD copy on the same arguments: 52 -> 15 us per
+%                  empty cell (median, 60 captured w3 sets), ~3.0 s per w3
+%                  build; the 14 w3 calls 43.5 -> 39.1 s. Cost in q
+%                  unchanged: the zeros written are those the unpack
+%                  returned. Programs bit-identical (w1-w3, 91 SDP
+%                  leaves). An empty B stored as [] was rejected:
+%                  'plus_batch' then errors ('Bsum + []').
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -734,6 +747,19 @@ for k = 1:M
 %           [bi,bj,bv] = find(Bout);                                        % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
 %           params.B{q} = sparse(colv(locB(bi)),colv(bj),colv(bv), ...
 %                                ndec,size(Bout,2));                        % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
+            % All-zero gamma cell: write its zeros, skip the unpack. The    % MMP, 09/29/2026
+            % Sec. 6.1 key table admits at most 2 gammas per direction for  % MMP, 09/29/2026
+            % one (beta,alpha), so at most 2^n3 of the 3^n3 cells are       % MMP, 09/29/2026
+            % nonzero (91% of w3 cells empty). 'triplets' stores no zero    % MMP, 09/29/2026
+            % v, so an empty v is an all-zero cell, and these are the       % MMP, 09/29/2026
+            % zeros 'unpack_sheets' returns for it: same size and class.    % MMP, 09/29/2026
+            % The skip 'sopquadvar' has had since 09/22/2026.               % MMP, 09/29/2026
+            if isempty(Cgam{q}.v)                                           % MMP, 09/29/2026
+                nAB = size(Lmat,1)*size(Rmat,2);                            % MMP, 09/29/2026
+                params.A{q} = sparse(nAB,1);                                % MMP, 09/29/2026
+                params.B{q} = sparse(ndec,nAB);                             % MMP, 09/29/2026
+                continue                                                    % MMP, 09/29/2026
+            end                                                             % MMP, 09/29/2026
             [params.A{q},params.B{q}] = unpack_sheets(Cgam{q},g1b*NL3, ...
                 g2b*NR3,nloc,Lmat,Rmat,locB,ndec);                          % MMP, 09/26/2026
         end

@@ -37,6 +37,14 @@ function obj = sopvar2nopvar(objsopvar)
 % authorship, and a brief description of modifications
 %
 % AT, 08/05/2026: Initial coding 
+% MMP, 09/29/2026: degR is now read from ZR. It was read from ZL, so the
+%   degree check compared degL with itself and never fired: ZL = 0:1 with
+%   ZR = 0:2 returned a degree-1 nopvar without the s'^2 column. Also reject
+%   any basis other than the complete set 0:deg, since the columns are
+%   selected by position in that basis (ZL = [0 2], ZR = 0:2 returned the s^2
+%   row as s^1). And reject content on dummy monomials of a multiplier
+%   direction (params assigned past the canonical form), which was dropped
+%   silently. All three mirror 'sdopvar2ndopvar', fixed 08/29/2026.
 
 
 if ~isa(objsopvar, 'sopvar') 
@@ -70,11 +78,24 @@ end
 ZL = P.ZL;
 ZR = P.ZR;
 degL = cellfun(@(x) max(x), ZL);
-degR = cellfun(@(x) max(x), ZL);
+% degR = cellfun(@(x) max(x), ZL);                                          % MMP, 09/29/2026 (was)
+% The degree of the right basis; ZL here made the check below vacuous.      % MMP, 09/29/2026
+degR = cellfun(@(x) max(x), ZR);                                            % MMP, 09/29/2026
 if ~isequal(degR, degL)
     error('left and right monomials have different degrees')
 end
 deg = degL;
+% A nopvar has one degree per variable and the complete basis 0:deg on      % MMP, 09/29/2026
+% both sides, and the columns below are picked by position in it, so any    % MMP, 09/29/2026
+% other basis drops or misplaces coefficients. As in sdopvar2ndopvar.       % MMP, 09/29/2026
+for kk = 1:numel(ZL)                                                        % MMP, 09/29/2026
+    if ~isequal(reshape(ZL{kk},1,[]),0:degL(kk)) ...
+            || ~isequal(reshape(ZR{kk},1,[]),0:degR(kk))                    % MMP, 09/29/2026
+        error("Monomial bases must be the complete set 0:deg in every "...
+              +"variable for conversion to an nopvar; use change_degree "...
+              +"or pad the basis first.")                                   % MMP, 09/29/2026
+    end                                                                     % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 % now transform coefficient matrix 
 % in ndopvar it is (Ik o [1;d])^T Cj in R^{k times }
 % Cj has the size dim(1)*len(Zl)*(len(dvarnames)+1) times (len(Zr)*dim(2))
@@ -109,8 +130,18 @@ for ii=1:numel(P.params)
     column_idx = kron(ones(1, dims(2)), column_idx);
     [~, cols_mon, ~] = find(column_idx);
 
-    C_sopvar = P.params{ii}; 
-    C_new{ii} = C_sopvar(:, cols_mon); 
+    C_sopvar = P.params{ii};
+    % A multiplier direction carries no dummy monomials, so the columns     % MMP, 09/29/2026
+    % outside cols_mon must be empty (as in sdopvar2ndopvar). Only a params % MMP, 09/29/2026
+    % assignment that bypassed the canonical form can put content there,    % MMP, 09/29/2026
+    % which the selection below would drop silently.                        % MMP, 09/29/2026
+    other = true(1,size(C_sopvar,2));   other(cols_mon) = false;            % MMP, 09/29/2026
+    if nnz(C_sopvar(:,other))                                               % MMP, 09/29/2026
+        error("Parameter "+num2str(ii)+" depends on a dummy variable in a "...
+              +"multiplier direction, which an 'nopvar' cannot represent; "...
+              +"contract that direction first.")                            % MMP, 09/29/2026
+    end                                                                     % MMP, 09/29/2026
+    C_new{ii} = C_sopvar(:, cols_mon);
     % cdim = n*prod(deg(is_int)+1);
     % % Set sparse coefficients of dimension rdim x cdim
     % rho = (q+10)/(rdim*cdim);

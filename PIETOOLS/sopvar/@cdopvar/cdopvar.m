@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar}) cdopvar
+classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar % MMP, 09/29/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CDOPVAR  Container for PI operators between concatenated mixed L2 spaces
 % that may DEPEND ON DECISION VARIABLES. Sec. 8 of the sopvar document.
@@ -104,6 +104,14 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar}) cdopvar
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  derive_mopvar_meta -> derive_copvar_meta. File was
 %                  'mdopvar.m'.
+% MMP, 09/29/2026: ?dpvar added to InferiorClasses, so that a dpvar operand
+%                  (P + gam, [-gam, D', Bw'*Q]) dispatches to this class's
+%                  methods, which route it to 'dpvar_op_copvar' (legacy
+%                  @dopvar semantics). A dpvar with decision variables times
+%                  a cdopvar is refused there, as cdopvar*cdopvar is.
+%                  Before, the dpvar's own method was called and failed.
+%                  The classdef line was
+% classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar}) cdopvar % MMP, 09/29/2026 (was)
 
     properties
         C = {};                     % M x N cell of blocks; [] = zero block

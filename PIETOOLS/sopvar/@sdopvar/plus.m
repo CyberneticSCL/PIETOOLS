@@ -19,12 +19,50 @@ function C = plus(A,B)
 % instead of letting it prove so with an O(q) isequal. 7 of the 11 calls in
 % the 2-D container Hinf build (q = 3.8e5 per list, ~8 ms each); with the
 % cheaper comparison in 'sync_basis', plus there 0.21 -> 0.11 s. Same output.
+% MMP, 09/29/2026: A dpvar summand is routed at the top to
+% 'dpvar_op_copvar' (legacy @dopvar/plus semantics): a scalar is scalar*I on
+% a square block, a matrix of the block's size its multiplier. Before, a
+% dpvar never dispatched here. Numeric summands are not routed, as before.
+% MMP, 09/29/2026: The sum is now 'plus_batch' with two operands. It runs
+% the same four stages this file repeated for N = 2 (sopvar promotion, the
+% compatibility checks, 'sync_basis', the 'apply_basis_map' sum; spec sec.
+% 8.1.3-8.1.4), and the copies had drifted: this one lacked plus_batch's
+% skip of summands without entries. Kept here: the dpvar routing and the
+% 'shared_Zd' rule of 09/26/2026, passed as plus_batch's option. Programs of
+% the 1-D, 2-D and 3-D benchmark builds unchanged bit for bit. Error texts
+% are now plus_batch's ('Summands map between different spaces' etc.), and
+% a numeric or polynomial summand fails with 'plus_batch is supported only
+% for sdopvar and sopvar objects' rather than on its missing 'dims'. The
+% 09/07/2026, 09/21/2026 and 09/26/2026 entries above now describe code in
+% 'plus_batch'; that code is deleted here, see BEGIN/END below. Cost,
+% measured: about 20 us more per call at one spatial variable and q <= 1e4
+% (+3-8%), from plus_batch's operand handling; faster from two variables or
+% q >= 1e5 (47x for a 'sopvar' summand at three variables, q = 3e6). A text
+% summand is refused here, since plus_batch reads text as its option.
 
-% A fixed 'sopvar' operand is promoted to a decision operator with a        % MMP, 09/07/2026
-% zero B, so that A+Pop and Pop+A work; mixing fixed and decision blocks    % MMP, 09/07/2026
-% is normal usage. The decision variable list is taken from the sdopvar     % MMP, 09/07/2026
-% operand so 'CombineDecisionBasis' below takes its fast path. Placed        % MMP, 09/07/2026
-% before the checks because an 'sopvar' has no 'params.A'.                  % MMP, 09/07/2026
+% dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
+% the promotion and checks below.                                           % MMP, 09/29/2026 (was)
+% the call to 'plus_batch' below.                                           % MMP, 09/29/2026
+if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+    C = dpvar_op_copvar('plus',A,B);                                        % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
+% BEGIN MMP, 09/29/2026: delegation to 'plus_batch'. Deleted here, done     % MMP, 09/29/2026
+% there: the dims, space, domain and term-count checks (space check         % MMP, 09/29/2026
+% 09/21/2026), the 'sync_basis' call (09/07/2026, flag 09/26/2026), the     % MMP, 09/29/2026
+% 'apply_basis_map' sum loop (09/07/2026), the '(was)' lines of the         % MMP, 09/29/2026
+% pairwise CombineDecisionBasis/UnionBasisMonomials prologue (09/07/2026),  % MMP, 09/29/2026
+% and the unmarked comments of the original sum (spec sec. 8.1.3) with 2    % MMP, 09/29/2026
+% commented-out lines, and the 09/07/2026 promotion comment (it named the   % MMP, 09/29/2026
+% uncalled 'CombineDecisionBasis'). The promotion is commented out below.   % MMP, 09/29/2026
+% 'plus_batch' promotes a fixed 'sopvar' operand onto Zd_p, the list of     % MMP, 09/29/2026
+% its first 'sdopvar' operand; with two operands that is the Zd_p below,    % MMP, 09/29/2026
+% which only sets the flag.                                                 % MMP, 09/29/2026
+% Text is plus_batch's option, never a summand: refuse it here, as the old  % MMP, 09/29/2026
+% body did (it failed on the missing 'dims').                               % MMP, 09/29/2026
+if ischar(A) || isstring(A) || ischar(B) || isstring(B)                     % MMP, 09/29/2026
+    error("A summand of an 'sdopvar' must be an operator, not text.")       % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 % A nonempty Zd_p is stored unchanged by 'sopvar2sdopvar', so both lists    % MMP, 09/26/2026
 % are then the same array. An empty one is replaced by cell(0,1), and the   % MMP, 09/26/2026
 % comparison is O(1) there anyway, so it is left to sync_basis.             % MMP, 09/26/2026
@@ -34,62 +72,14 @@ if isa(A,'sopvar') || isa(B,'sopvar')                                       % MM
     elseif  isa(A,'sdopvar'),   Zd_p = A.Zd;                                % MMP, 09/07/2026
     else,                       Zd_p = cell(0,1);                           % MMP, 09/07/2026
     end                                                                     % MMP, 09/07/2026
-    if isa(A,'sopvar'),     A = sopvar2sdopvar(A,Zd_p);     end             % MMP, 09/07/2026
-    if isa(B,'sopvar'),     B = sopvar2sdopvar(B,Zd_p);     end             % MMP, 09/07/2026
+%   if isa(A,'sopvar'),     A = sopvar2sdopvar(A,Zd_p);     end             % MMP, 09/07/2026 % MMP, 09/29/2026 (was)
+%   if isa(B,'sopvar'),     B = sopvar2sdopvar(B,Zd_p);     end             % MMP, 09/07/2026 % MMP, 09/29/2026 (was)
     shared_Zd = ~isempty(Zd_p);                                             % MMP, 09/26/2026
 end                                                                         % MMP, 09/07/2026
-
-% Error handling: Checks to ensure A and B are compatible
-if any(A.dims~=B.dims)
-    error('Dimensions of summands A and B do not match');
-end
-% 'isequal' rather than 'any(~strcmp(...))', the same fix '@sopvar/plus'     % MMP, 09/21/2026
-% took on 09/07/2026 and this line was missed by: strcmp of two cellstr of   % MMP, 09/21/2026
-% different size does not compare them, so an operand on {} against one on   % MMP, 09/21/2026
-% {'s1'} either throws a size error or silently passes the check. The empty   % MMP, 09/21/2026
-% case is reached as soon as a container holds an R^n block, since '{}' and   % MMP, 09/21/2026
-% a 1 x 0 cellstr name the same space but are not the same size.             % MMP, 09/21/2026
-if ~isequal(A.vars.in(:),B.vars.in(:)) || ~isequal(A.vars.out(:),B.vars.out(:)) % MMP, 09/21/2026
-%if any(~strcmp(A.vars.in,B.vars.in)) || any(~strcmp(A.vars.out,B.vars.out)) % MMP, 09/21/2026 (was)
-    error('Summands A and B map between different spaces');
-end
-if any(any(A.dom.in~=B.dom.in)) || any(any(A.dom.out~=B.dom.out))
-    error('Input or output variables in summands A and B have different domains');
-end
-if numel(A.params.A)~=numel(B.params.A)
-    error('number of terms in summands is not equal -- one of them is probably malformed');
-end
-% Put A and B on a common decision variable list and common monomial        % MMP, 09/07/2026
-% bases. 'sync_basis' is N-ary and replaces the prologue that plus, eq,     % MMP, 09/07/2026
-% horzcat and vertcat each carried inline; T{k} is empty when operand k     % MMP, 09/07/2026
-% needs no remapping, and 'apply_basis_map' then skips the multiply.        % MMP, 09/07/2026
-%[ops,T,Zd,ZL,ZR] = sync_basis({A,B});                                      % MMP, 09/07/2026 % MMP, 09/26/2026 (was)
-[ops,T,Zd,ZL,ZR] = sync_basis({A,B},shared_Zd);                             % MMP, 09/26/2026
-A = ops{1};     B = ops{2};                                                 % MMP, 09/07/2026
-%[A,B,Zd] = CombineDecisionBasis(A,B);                                     % MMP, 09/07/2026 (was)
-%[ZR,C1R,C2R] = UnionBasisMonomials(A.ZR,B.ZR);                            % MMP, 09/07/2026 (was)
-%[ZL,C1L,C2L] = UnionBasisMonomials(A.ZL,B.ZL);                            % MMP, 09/07/2026 (was)
-%C1L = kron(eye(A.dims(1)),C1L);                                           % MMP, 09/07/2026 (was)
-%C2L = kron(eye(B.dims(1)),C2L);                                           % MMP, 09/07/2026 (was)
-%C1R = kron(eye(A.dims(2)),C1R);                                           % MMP, 09/07/2026 (was)
-%C2R = kron(eye(B.dims(2)),C2R);                                           % MMP, 09/07/2026 (was)
-%T1 = kron(C1R', C1L');                                                    % MMP, 09/07/2026 (was)
-%T2 = kron(C2R', C2L');                                                    % MMP, 09/07/2026 (was)
-% Once C_1, C_2 have compatible sizes and variables,
-% C_1(d) + C_2(d) = unvec(A_1 + A_2 + (Bt_1 + Bt_2)*d)
-% with the change of monomial basis,
-% C_1L C_1(d) C_1R + C_2L C_2(d) C_2R =unvec(T_1 A_1 +T_2 A_2 +(T_1 Bt_1 +T_2 Bt_2)*d)
-params_new.A = cell(size(A.params.A));
-params_new.B = cell(size(A.params.B));
-for i=1:numel(A.params.A)
-   % params.A{ii} = params.A{ii}+pb.A{ii};
-  %  params.Bt{ii} = params.Bt{ii}+pb.Bt{ii};
-    [A1,B1] = apply_basis_map(T{1},A.params.A{i},A.params.B{i});            % MMP, 09/07/2026
-    [A2,B2] = apply_basis_map(T{2},B.params.A{i},B.params.B{i});            % MMP, 09/07/2026
-    params_new.A{i} = A1 + A2;                                              % MMP, 09/07/2026
-    params_new.B{i} = B1 + B2;                                              % MMP, 09/07/2026
-%   params_new.A{i} = T1*A.params.A{i} + T2*B.params.A{i};                  % MMP, 09/07/2026 (was)
-%   params_new.B{i} = A.params.B{i}*T1.' + B.params.B{i}*T2.';              % MMP, 09/07/2026 (was)
-end
-C = sdopvar(params_new,A.vars,Zd,ZL,ZR,A.dom,A.dims);
+if shared_Zd                                                                % MMP, 09/29/2026
+    C = plus_batch(A,B,'shared_Zd');                                        % MMP, 09/29/2026
+else                                                                        % MMP, 09/29/2026
+    C = plus_batch(A,B);                                                    % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
+% END MMP, 09/29/2026
 end

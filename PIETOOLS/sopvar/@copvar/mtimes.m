@@ -95,6 +95,21 @@ function C = mtimes(A,B)
 %                  with an L_2 one. The registry is metadata: blocks
 %                  untouched, cost O(nv), flat in q. A variable on two
 %                  domains is copvar:domConflict.
+% MMP, 09/29/2026: A dpvar factor is routed at the top to 'dpvar_op_copvar'
+%                  with the legacy @opvar/@dopvar semantics: a scalar scales
+%                  (gam*P is a cdopvar), a dpvar matrix multiplies the output
+%                  (D*P) or input (P*D) components. Before, gam*P reached the
+%                  dpvar's method and failed. Numeric factors (a matrix still
+%                  errors mtimes:nonScalarNumeric; dpvar(M) or
+%                  mat2copvar_sop give its multiplier) and the composition
+%                  body are unchanged.
+
+% dpvar factor: the constant multiplier of legacy @opvar/mtimes. Before any % MMP, 09/29/2026
+% work, so the composition below is untouched.                              % MMP, 09/29/2026
+if isa(A,'dpvar') || isa(B,'dpvar')                                         % MMP, 09/29/2026
+    C = dpvar_op_copvar('mtimes',A,B);                                      % MMP, 09/29/2026
+    return                                                                  % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 
 % % % Scalar factor: scales every populated block, changes no metadata.
 if isnumeric(A) || isnumeric(B)
