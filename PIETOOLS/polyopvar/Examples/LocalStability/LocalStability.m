@@ -92,10 +92,11 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % Define global lower bound on V.
     V_low = V + eppos*bound; % bound term is already negated.
 
-    % Set lower bound by defining and equating with new SOS DP.
+    % Obtain kernel degree of V_low (not same as V_deg due to T) to use for 
+    % defining sos1 of equal degree.
     V_low_mon = kernel_degree(V_low);
 
-    % Above are appropriate choices, but computation requires limits to be placed 
+    % Above are appropriate choices but computation requires limits to be placed 
     % on deg and mon. This could lead to lower order degrees in sos1 than V_low.
     if V_deg > 1
         mon = min(V_low_mon,2);
@@ -104,7 +105,8 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     end
     
     fprintf(" --- sos1.deg = %d and sos1.mon = %d whilst V_low.deg = %d and V_low.mon = %d ---\n",V_deg, mon, V_deg, V_low_mon);
-
+    
+    % Set lower bound by defining and equating with new SOS DP.
     [prog, sos1] = SOS_DP(prog, V_deg, mon, x, dom);
     prog = piesos_eq(prog, V_low-sos1);
  
@@ -119,20 +121,20 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % Define local upper bound on V.
     V_up = -C*bound - V - polyopvar_times_v2(p1,g); % bound term already negated.
 
-    % Set upper bound by defining and equating with new SOS DP.
+    % Obtain kernel and distributed monomial degrees of V_up to use for defining
+    % sos2 of equal degrees.
     V_up_deg = max(V_up.degmat); % degree of FDP in linear form - will always be even.
     V_up_deg = ceil(V_up_deg/2); % degree of FDP in quadratic form.
     V_up_mon = kernel_degree(V_up);
 
     % Above are appropriate choices, but computation requires limits to be placed 
     % on deg and mon. This could lead to lower order degrees in sos2 than V_up.
-    if V_up_deg > 1
-        deg = min(V_up_deg,2);
-        mon = min(V_up_mon,2);
-    end
+    deg = min(V_up_deg,2);
+    mon = min(V_up_mon,2);
     
     fprintf(" --- sos2.deg = %d and sos2.mon = %d whilst V_up.deg = %d and V_up.mon = %d ---\n",deg, mon, V_up_deg, V_up_mon);
-
+    
+    % Set upper bound by defining and equating with new SOS DP.
     [prog, sos2] = SOS_DP(prog, deg, mon, x, dom);
     prog = piesos_eq(prog, V_up-sos2);
     

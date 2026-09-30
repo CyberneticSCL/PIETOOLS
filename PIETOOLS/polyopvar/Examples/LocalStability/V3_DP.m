@@ -2,8 +2,8 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
     % [prog, V3] = V3_DP(...) Construct a degree-2*d distributed polynomial
     % V3 = < Z_d(x), P Z_d(T*x) >_{L2} (as in Sec. 7.5 Automatica paper) and add the variable 
     % to the PIESOS program. In this function, P is constructed without any PSD constraints.
-    % Positivity will be enforced when equating to an SOS DP and the symmetry 
-    % constraint needed for the Lie derivative is enforced below.
+    % Positivity and symmetry (for Lie derivative) constraints will be enforced 
+    % when equating to an SOS DP.
     %
     % INPUTS
     % - prog   Current PIESOS program.
@@ -42,49 +42,42 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
     % authorship, and a brief description of modifications
     %
     % CR, 09/01/2026: Initial coding
-    % CR, 09/08/2026: Compose Z with Top before applying the result to x.
-    %                   PIETOOLS does not support nopvar*polyopvar directly,
-    %                   whereas (Z*Top)*x is the equivalent operator
-    %                   composition Z(Top*x).
-    % CR, 09/08/2026: Use an unconstrained Gram matrix and the vector-valued
-    %                   inner-product implementation for the V3 blocks.
-    % CR, 09/08/2026: Enforce the operator-adjoint condition through equality
-    %                   of the corresponding scalar distributed-polynomial
-    %                   forms.
-    % DJ, 09/22/2026: Add monomials for multiplier operator in the basis
-    %                   operator Zop.
+    % CR, 09/08/2026: Re-routed innerprod via innerprod_v2.m.
     % CR, 09/28/2026: Removed symmetry constraints as these will be enforced 
     % when equating to an SOS_DP.
+    % DJ, 09/29/2026: Added 3PI basis for when d=1 so that operator can be
+    % a multiplier. Functions like quad2lin cannot (currently) handle
+    % multipliers when d>1, so are omitted for this case.
         
             
     %% Build the monomial basis used to parameterize P.
 
     % Construct the basis operator corresponding to \hat{U} in paper.
-    % Currently just uses 2PI operators; however code is set to accept 3PI op. if d==1.
-    % For d>1, code can only accept 2PI ops.
     pvar s s_dum
     Zmon     = monomials([s,s_dum],0:opdeg);
     Zop      = opvar();
     Zop.var1 = s;
     Zop.var2 = s_dum;
-    Zop.I    = dom;    
-    Zop.R.R0 = [0*Zmon;0*Zmon];
-    Zop.R.R1 = [Zmon;0*Zmon];
-    Zop.R.R2 = [0*Zmon;Zmon];
-
+    Zop.I    = dom;
     
-    % Express as tensopvar and polyopvars which we can work with for constructing V3.
-    % Note that Z is a nopvar and Tx is a polyopvar. Applying Z directly to Tx invokes
-    % an unsupported nopvar*polyopvar multiplication. Compose the two operators first, 
-    % then apply the composed operator to the fundamental state. This gives 
-    % ZTx = Z*(Top*x) = (Z*Top)*x.
+    if d == 1
+        Zmon0    = monomials(s,0:opdeg);
+        Zop.R.R0 = [Zmon0;0*Zmon;0*Zmon];
+        Zop.R.R1 = [0*Zmon0;Zmon;0*Zmon];
+        Zop.R.R2 = [0*Zmon0;0*Zmon;Zmon];
+    else  
+        Zop.R.R0 = [0*Zmon;0*Zmon];
+        Zop.R.R1 = [Zmon;0*Zmon];
+        Zop.R.R2 = [0*Zmon;Zmon];
+    end
+
     Z         = dopvar2ndopvar(Zop);
-    ZTop      = Z*Top;                                                      % CR, 09/08/2026
+    ZTop      = Z*Top;
     Zx        = Z*x;
-    ZTx       = ZTop*x;                                                     % CR, 09/08/2026
+    ZTx       = ZTop*x;
 
     % Construct the T-PI operators (corresponding to \hat{U}^i x^i and 
-    % (\hat{U} o T)^j x^j in the paper) as products of Zx and ZTx.
+    % (\hat{U} o T)^j x^j in the automatica paper) as products of Zx and ZTx.
     Zs1 = cell(d,1);
     Zs2 = cell(d,1);
     for i = 1:d
@@ -99,16 +92,14 @@ function [prog, V3] = V3_DP(prog, d, opdeg, Top, x, dom)
 
 
     %% Declare the block Gram operator P and add its variables to prog.
-    % P in V3 is not constrained to be positive at this stage. The local helper 
-    % represents this choice by the 'free' option.
     [prog, Pcell] = polyopvar_sosquadvar(prog, Zs1, Zs2, 'free');
 
 
     %% Evaluate V3 = <Z_d(x), P Z_d(Tx)> as a complete block quadratic form.
 
     % Each Zs1{i} and Zs2{j} are vector-valued polyopvars and Pcell{i,j} is the
-    % matching block of the global Gram matrix. The symmetry constraint is naturally 
-    % enforced when equating to an SOS DP, so no need to do it explicitly here.
+    % matching block of the global Gram matrix. The symmetry and positivity 
+    % constraints are enforced when equating to an SOS DP, so no need to do it explicitly here.
     V3 = 0;
     for i = 1:d
         for j = 1:d

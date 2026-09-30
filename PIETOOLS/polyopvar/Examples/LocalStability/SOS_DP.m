@@ -38,30 +38,27 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
     % If you modify this code, document all changes carefully and include date
     % authorship, and a brief description of modifications
     %
-    % CR, 09/01/2026: Initial coding
-    % CR, 09/07/2026: Build a block Gram form using tensor-product basis
-    %                   operators and evaluate every block with innerprod.
-    %                   Re-routed innerprod via innerprod_v2.m
-    % CR, 09/07/2026: Verify the returned Gram blocks are symbolically
-    %                   symmetric before using the factor-two reduction.
+    % CR, 09/01/2026: Initial coding.
+    % CR, 09/07/2026: Re-routed innerprod via innerprod_v2.m.
     % DJ, 09/21/2026: Removed strict positivity constraint.
         
             
     %% Build the monomial basis used to parameterize P.
 
     % Construct the basis operator corresponding to \hat{U} in paper.
+    % Only 2PI operators can be used here (for now).
     pvar s s_dum
     Zmon     = monomials([s,s_dum],0:opdeg);
     Zop      = opvar();
     Zop.var1 = s;
     Zop.var2 = s_dum;
-    Zop.I    = dom;
+    Zop.I    = dom;  
     Zop.R.R0 = [0*Zmon;0*Zmon];
     Zop.R.R1 = [Zmon;0*Zmon];
     Zop.R.R2 = [0*Zmon;Zmon];
 
-    Z         = dopvar2ndopvar(Zop);                                                      % CR, 09/08/2026
-    Zx        = Z*x;
+    Z  = dopvar2ndopvar(Zop);
+    Zx = Z*x;
 
     % Construct the T-PI operators (corresponding to \hat{U}^i x^i in 
     % the paper) as products of Zx.
@@ -85,9 +82,8 @@ function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
     
     %% Evaluate DP = <Z_d(x), P Z_d(x)> as a complete block quadratic form.
     
-    % Each Zs{i} is a vector-valued polyopvar and Pcell{i,j} is the
-    % matching block of the global Gram matrix.
-    % Compute DP when exploiting symmetry of Pcell.                    % CR 09/07/26
+    % Each Zs{i} is a vector-valued polyopvar and Pcell{i,j} is the matching
+    % block of the global Gram matrix. Computation exploits smmetry of Pcell.
     DP = 0;
     for i = 1:d
         for j = 1:i

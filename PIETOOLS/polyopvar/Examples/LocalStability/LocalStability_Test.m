@@ -56,11 +56,11 @@ lambda = 0;
 % Declare degrees of dist mon basis for SOS LF and p1, p2 multipliers 
 % (respectively). Degree will be doubled when converted from quadratic 
 % to linear format.
-dist_degs = [2, 1, 1];
+dist_degs = [1, 1, 1];
 
 % Declare monomial degrees in independent variables used to parametrize
 %  SOS LF and p1, p2 multipliers (respectively).
-mon_degs = [3, 2, 2];
+mon_degs = [4, 4, 4];
 
 
 % Run local stability test. If successful res = [C, M].
