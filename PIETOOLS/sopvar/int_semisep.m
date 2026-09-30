@@ -102,6 +102,18 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % authorship, and a brief description of modifications
 %
 % AT, 2026: Initial coding as @sopvar/private/int_semisep_AT
+% MMP, 09/29/2026: The Sec. 6.1 key table is now also written as the
+%                  literal 11 x 3 matrix keyGBA, columns [gamma beta
+%                  alpha], replacing str2double(num2cell(num2str(cllA')))
+%                  (the column meaning was stated nowhere). The decimal
+%                  cllA stays for the switch that keys on it. Removed the
+%                  unused gamIdx (dec2base table, never read). Outputs
+%                  bit-identical on all 3589 calls of the 1-D and 2-D
+%                  container stability + Hinf builds and the 3-D heatNd
+%                  build. Unprofiled against the HEAD copy on captured
+%                  arguments: 3-D heatNd 2322 -> 2069 us per call
+%                  (median), 9.20 -> 8.37 s per build; 1-D 336 -> 138 us.
+%                  No change in the q scaling.
 % MMP, 09/26/2026: New layout 'triplets' ('copquadvar' only): each output
 %                  matrix is returned as its (i,j,v) triplets and never
 %                  built. The NZ*p x NZ*q matrix of 'rearrangeCoef' has the
@@ -312,7 +324,8 @@ else                                                                         % M
 end                                                                          % MMP, 08/30/2026
 
 % Gamma multi-indices in the same linear order as 3-by-3-by-... parameter cells.
-gamIdx = fliplr(dec2base(0:3^ns3a-1,3,ns3a)-'0') + 1;
+% gamIdx = fliplr(dec2base(0:3^ns3a-1,3,ns3a)-'0') + 1;                     % MMP, 09/29/2026 (was)
+% Removed: never read; gam_lin in the key loop encodes gamma in base 3.     % MMP, 09/29/2026
 
 % 'packed' needs 3^ns3a matrices rather than 3^ns3a*nbeta*nalpha of them.     % MMP, 08/30/2026
 if packed                                                                    % MMP, 08/30/2026
@@ -350,6 +363,10 @@ end                                                                          % M
 % The eleven (gamma,beta,alpha) keys for which p(gamma,alpha,beta) is
 % nonzero, i.e. the eleven cases of the integral table in Sec. 6.1.
 cllA = [111   212   313   221   331   222   232   332   223   323   333];
+% The same eleven keys as rows [gamma beta alpha], row k the digits of      % MMP, 09/29/2026
+% cllA(k): column 1 gamma, 2 beta, 3 alpha. Replaces cllA after the switch. % MMP, 09/29/2026
+keyGBA = [1 1 1; 2 1 2; 3 1 3; 2 2 1; 3 3 1; 2 2 2; ...
+          2 3 2; 3 3 2; 2 2 3; 3 2 3; 3 3 3];                               % MMP, 09/29/2026
 
 Ci_key_ell = cell(numel(cllA),ns3a);
 
@@ -438,7 +455,9 @@ for key_idx = 1:length(cllA)
     end
 end
 
-cllA = str2double(num2cell(num2str(cllA')));
+% cllA = str2double(num2cell(num2str(cllA')));                              % MMP, 09/29/2026 (was)
+% The literal above, not a number->string->number parse (165 us per call).  % MMP, 09/29/2026
+cllA = keyGBA;                                                              % MMP, 09/29/2026
 
 % The eleven keys share only EIGHT distinct per-direction factors: the switch  % MMP, 09/10/2026
 % above handles {111,212,313} in one branch and {221,331} in another, so       % MMP, 09/10/2026

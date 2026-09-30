@@ -69,6 +69,22 @@ function [params,ZL,ZR,changed] = canonicalize_multiplier(params,vars,ZL,ZR,dims
 % authorship, and a brief description of modifications
 %
 % MMP, 08/29/2026: Initial coding
+% MMP, 09/29/2026: Pass 1 tests 'has_content' first, so an empty cell skips
+%                  the multi-index and the mask, and the mask of each
+%                  multiplier direction t (right monomials of degree 0 in
+%                  t, a function of ZR and t only) is built on first use
+%                  and reused, instead of per cell per direction. Same
+%                  skips, same bad/need/need_zero, so outputs are
+%                  bit-identical (3788 build calls; 3000 random inputs,
+%                  848 rewritten, 918 raising the same error in both).
+%                  Unprofiled against the HEAD copy on captured arguments,
+%                  median per call: 3 shared directions 327 -> 62 us (3-D
+%                  heatNd, 1.36 -> 0.48 s per build), 2 directions 100 ->
+%                  47 us, 1 direction 38 -> 33 us. Cost flat in q, as
+%                  before. 'has_content' tests storage by 'stores': nnz for
+%                  sparse, find(X,1) for full, since it now runs for every
+%                  cell and nnz of a full q x nC B scanned it (constructor
+%                  0.18 -> 6.5 ms at 2 variables, q = 1e6, before this).
 
 changed = false;
 
@@ -128,7 +144,15 @@ for r = 1:numel(vout)
 end
 bad = false(1,ncell);
 need_zero = false(1,n3);
+% maskR{t}: right monomials of degree 0 in shared direction t. Depends on   % MMP, 09/29/2026
+% (ZR,t) only, so built on first use and reused by every later cell.        % MMP, 09/29/2026
+maskR = cell(1,n3);                                                         % MMP, 09/29/2026
 for k = 1:ncell
+    % Empty cell first: nothing stored, so nothing to fold. It then costs   % MMP, 09/29/2026
+    % one nnz per stored array, not the multi-index and the O(NR) mask.     % MMP, 09/29/2026
+    if ~has_content(params,k,is_sdop)                                       % MMP, 09/29/2026
+        continue                                                            % MMP, 09/29/2026
+    end                                                                     % MMP, 09/29/2026
     idcs = cell(1,n3);
     [idcs{:}] = ind2sub(sz_C,k);
     gam = cell2mat(idcs);
@@ -143,6 +167,10 @@ for k = 1:ncell
     % % % of decision variables.
     okB = true(NR,1);
     for t = mult_dirs
+        if ~isempty(maskR{t})                                               % MMP, 09/29/2026
+            okB = okB & maskR{t};                                           % MMP, 09/29/2026
+            continue                                                        % MMP, 09/29/2026
+        end                                                                 % MMP, 09/29/2026
         p = posR(t);
         v = (ZR{p}(:)==0);
         kk = true(1,1);
@@ -153,11 +181,14 @@ for k = 1:ncell
                 kk = kron(kk,true(nR(i),1));
             end
         end
+        maskR{t} = kk;                                                      % MMP, 09/29/2026
         okB = okB & kk;
     end
     bBad = find(~okB)-1;
-    if isempty(bBad) || ~has_content(params,k,is_sdop)
-        continue                % nothing forbidden, or nothing stored at all
+%   if isempty(bBad) || ~has_content(params,k,is_sdop)                      % MMP, 09/29/2026 (was)
+%       continue                % nothing forbidden, or nothing stored at all % MMP, 09/29/2026 (was)
+    if isempty(bBad)                                % content tested above  % MMP, 09/29/2026
+        continue                % nothing forbidden                         % MMP, 09/29/2026
     end
     [bG,jG,rG] = ndgrid(bBad,(0:n-1)',(0:nrow-1)');
     linBad = (jG(:)*NR + bG(:))*nrow + rG(:) + 1;
@@ -291,12 +322,24 @@ function tf = has_content(params,k,is_sdop)
 % instead of one index per coefficient.
 
 if is_sdop
-    tf = nnz(params.A{k})>0 || nnz(params.B{k})>0;
+%   tf = nnz(params.A{k})>0 || nnz(params.B{k})>0;                          % MMP, 09/29/2026 (was)
+    tf = stores(params.A{k}) || stores(params.B{k});                        % MMP, 09/29/2026
 else
-    tf = nnz(params{k})>0;
+%   tf = nnz(params{k})>0;                                                  % MMP, 09/29/2026 (was)
+    tf = stores(params{k});                                                 % MMP, 09/29/2026
 end
 
 end
+
+
+function tf = stores(X)                                                     % MMP, 09/29/2026
+% X has a nonzero entry. nnz is O(1) for sparse storage but scans a full    % MMP, 09/29/2026
+% array; find(X,1) stops at the first nonzero. Pass 1 now calls this for    % MMP, 09/29/2026
+% every cell, so a full q x nC B would otherwise cost O(q*nC) per cell.     % MMP, 09/29/2026
+if issparse(X),     tf = nnz(X)>0;                                          % MMP, 09/29/2026
+else,               tf = ~isempty(find(X,1));                               % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
+end                                                                         % MMP, 09/29/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
