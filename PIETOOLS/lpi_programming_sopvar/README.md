@@ -310,7 +310,7 @@ The coefficient/row ratios lie in [1.23, 1.414].
 
 | suite | result |
 |---|---|
-| `sg_battery` | 1 error, 0 failures; the error is the known `test_leftshift_monomials_sopvar`, which calls a class-private function |
+| `sg_battery` | 1 error, 0 failures; the error is the known `test_leftshift_monomials_sopvar`, which calls a class-private function (moved to sopvar/private/dead_code/ later on 09/29/2026 with the dead helpers it tested) |
 | `cx_run_1d` (called directly) | 21 case lines identical to the operators agent's pre-change reference (timings excluded) |
 | `test_heatNd_pie`, `test_heatNd_lpi` (with `test_copquadvar_faces`), `test_heatNd_poincare` | 70, 74 (97) and 44 checks pass |
 | `test_copvar_silent_fixes` | 643 checks |

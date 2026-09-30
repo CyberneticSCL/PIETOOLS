@@ -91,6 +91,40 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %                  contradicts: [S2,S3] is sorted only when S2 is empty.
     %                  Corrected, since code that assumed it could locate a
     %                  variable by sorted position would now be wrong.
+    % MMP, 09/29/2026: Removed dead files of this class: moved to
+    %                  sopvar/private/dead_code/ (off the path; its README
+    %                  lists origin and author) where another developer
+    %                  wrote them, deleted where MMP did (randsopvar,
+    %                  test_MP). Each has no live
+    %                  caller: whole-repository grep of code and strings,
+    %                  and no feval/str2func/eval that could build the name.
+    %                  Methods: sopvar_old (quadPoly-era constructor, dated
+    %                  01/15/2026), ctranspose_old (quadPoly-era adjoint, dated
+    %                  1/16/26; reachable as ctranspose_old(P), and it failed
+    %                  on a sopvar), randOpvar, randsopvar (called the
+    %                  sopvar_old signature, MATLAB:TooManyInputs), and the
+    %                  scripts mtimestest, test_MP, test_script (no
+    %                  assertions). private/: int_2b (a 9-input variant; the
+    %                  local int_2b in mtimes.m takes precedence, so only
+    %                  termCompose called it), leftPermuteVec,
+    %                  leftShiftMonomials_old, leftshiftMonomoials_AT,
+    %                  rightshiftMonomials_AT, mapAlphaBetaToGamma,
+    %                  monomial_outer, monomial_shift_left,
+    %                  monomial_shift_right, termCompose, termCompose_old (the
+    %                  _AT pair and both termCompose read quadPoly fields
+    %                  that a sparse parameter lacks, so could not run on a
+    %                  sopvar). The private files carry no date stamps. Also
+    %                  moved:
+    %                  Testfolder/test_leftshift_monomials_sopvar,
+    %                  example_of_leftshiftmonomials_AT,
+    %                  leftshiftMonomoials_ATv2, rightshiftMonomials_ATv2,
+    %                  which called these private files, the live private
+    %                  leftShiftMonomials_SS, or each other, and could not
+    %                  run, since a private function is not visible outside
+    %                  the class. All 22 were last changed in
+    %                  commit 2135d87f (08/30/2026); the 2 deleted ones
+    %                  remain in git history.
+    %                  The Static declaration of randsopvar is commented out.
     properties
         vars = struct('in',{},'out',{});
         dom = struct('in',zeros(0,2),'out',zeros(0,2));
@@ -163,7 +197,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
         end
     end
     methods(Static)
-        out = randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density);
+%       out = randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density);       % MMP, 09/29/2026 (was)
+        % randsopvar.m is deleted (dead); see the 09/29/2026 header entry.  % MMP, 09/29/2026
         [Minv, R1Minv, R2Minv, info] = inv_1D(M, K1, K2, interval, opts);
     end
 

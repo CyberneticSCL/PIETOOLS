@@ -85,6 +85,22 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
     %                  the dpvar's own method was called and failed. The
     %                  classdef line was
 % classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar           % MMP, 09/07/2026 % MMP, 09/29/2026 (was)
+    % MMP, 09/29/2026: Moved dead files of this class, all written by other
+    %                  developers, to sopvar/private/dead_code/ (off the
+    %                  path; its README lists origin and author). Each has no live
+    %                  caller: whole-repository grep of code and strings,
+    %                  and no feval/str2func/eval that could build the name.
+    %                  mtimes_AT (an uncalled variant of mtimes, dated
+    %                  09/07-09/10/2026, last changed 09/11/2026),
+    %                  plus_decparam, plus_decparam_batch (dated 09/07/2026),
+    %                  minus_decparam (called plus_dpvar, which exists
+    %                  nowhere), lrmultiply_batch, rand_sdopvar (no caller
+    %                  passes an sdopvar, so every call reaches the
+    %                  Testfolder/sdopvar function of that name), test_script
+    %                  (no assertions), private/MatrixMultiply (its two calls
+    %                  in mtimes.m are commented out) and
+    %                  private/CombineDecisionBasis (dated 08/29/2026; its
+    %                  callers moved to 'sync_basis' on 09/07/2026).
 
     properties
         vars = struct('in',{},'out',{});
