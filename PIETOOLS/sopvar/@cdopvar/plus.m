@@ -93,6 +93,11 @@ function C = plus(A,B)
 %                  errored plus:badInput. A numeric summand is still
 %                  plus:badInput. minus = plus(A,-B) reaches the branch
 %                  unchanged.
+% MMP, 09/30/2026: The comment before the reconciliation points to
+%                  'merge_dvar_lists', whose NOTES now hold the rationale,
+%                  instead of 'private/put_on_list', deleted (no caller since
+%                  09/26/2026). The '(was)' lines below that call it are
+%                  history. Comment only.
 
 % dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
 % the container checks below.                                               % MMP, 09/29/2026
@@ -126,7 +131,8 @@ if ~isequal(A.dim_out(:),B.dim_out(:)) || ~isequal(A.dim_in(:),B.dim_in(:))
 end
 
 % Reconcile the decision variables once, before the block loop; see
-% 'put_on_list' for why doing it as a by-product of the loop is wrong.
+% (was) 'put_on_list' for why doing it as a by-product of the loop is wrong. % MMP, 09/30/2026 (was)
+% 'merge_dvar_lists' for why doing it as a by-product of the loop is wrong. % MMP, 09/30/2026
 % Merging first also puts every block addition below on its fast lane.
 CA = A.C;   CB = B.C;   Zd = A.Zd(:);
 if ~isequal(A.Zd(:),B.Zd(:))

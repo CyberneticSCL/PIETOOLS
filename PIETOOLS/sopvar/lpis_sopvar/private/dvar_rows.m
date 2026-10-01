@@ -3,7 +3,8 @@ function loc = dvar_rows(dvars_old,dmap)
 % variable basis that each of DVARS_OLD occupies, where DMAP is the
 % containers.Map from name to global index.
 %
-% This is the lookup half of 'remap_dvars'. It exists so that a caller can
+% (was) This is the lookup half of 'remap_dvars'. It exists so that a caller can % MMP, 09/30/2026 (was)
+% This lookup exists so that a caller can                                   % MMP, 09/30/2026
 % run the coefficient elimination on a block's OWN decision rows and scatter
 % to the global basis once at the end, rather than widening the block to the
 % global row count first: the decision-variable axis is a pure batch axis, so
@@ -23,7 +24,8 @@ function loc = dvar_rows(dvars_old,dmap)
 % OUTPUTS
 % - loc:        n x 1 array of global row indices.
 %
-% See also REMAP_DVARS, SOPQUADVAR, COPQUADVAR.
+% (was) See also REMAP_DVARS, SOPQUADVAR, COPQUADVAR.                       % MMP, 09/30/2026 (was)
+% See also SOPQUADVAR, COPQUADVAR.                                          % MMP, 09/30/2026
 %
 % MMP, 09/22/2026: Initial coding, split out of 'remap_dvars'.
 % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
@@ -40,6 +42,11 @@ function loc = dvar_rows(dvars_old,dmap)
 %                  global count; 'ismember' against the sorted global list
 %                  was measured and rejected: it pays for the global list on
 %                  every call, 0.64 s against 0.013 s for 1e4 names of 1e6.
+% MMP, 09/30/2026: 'remap_dvars' deleted: no caller since 09/22/2026 (its
+%                  scatter half is built from triplets in the callers). Help
+%                  no longer introduces this routine as its lookup half; the
+%                  hash-per-name rationale it held is the paragraph above.
+%                  Comments only.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - dvar_rows

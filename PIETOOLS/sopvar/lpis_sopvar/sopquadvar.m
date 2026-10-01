@@ -176,6 +176,11 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 09/30/2026: 'lpis_sopvar/private/remap_dvars' deleted: no caller
+%                  since the 09/22/2026 entry below replaced its call (kept
+%                  there as a '(was)' line) by 'dvar_rows' plus a triplet
+%                  scatter. The 09/21/2026 entry's list of moved subfunctions
+%                  therefore no longer holds for it. Comments only.
 % MMP, 09/28/2026: options.psatz is value-checked, and 2k+1 / 2k+2 weight the
 %                  Gram form by one face of the box, (theta_k-a_k)/L_k or
 %                  (b_k-theta_k)/L_k, k over SORTED S3. The value was taken
