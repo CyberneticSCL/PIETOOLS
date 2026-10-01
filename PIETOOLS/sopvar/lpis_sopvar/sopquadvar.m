@@ -149,7 +149,10 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % the temporary measure the document describes; the coefficient matrices
 % B_gamma could instead be built directly from vec(Q) by index arithmetic.
 %
-% See also POSLPIVAR, SOSQUADVAR, INT_SEMISEP, DPVAR2SDVAR.
+% The construction itself is 'copquadvar' on one space (10/01/2026): this
+% routine is its single-space interface, in the caller's variable order.
+%
+% See also COPQUADVAR, POSSOPVAR, POSLPIVAR, SOSQUADVAR.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - possopvar
@@ -176,6 +179,23 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 10/01/2026: One implementation of the Sec. 9 construction: this file
+%                  now checks its inputs as before, moves them to the sorted
+%                  registry and calls 'copquadvar' on one space, returning
+%                  the single block. The construction below the checks is
+%                  deleted (see BEGIN/END). It had diverged from copquadvar
+%                  five times since 09/22/2026; copquadvar held the 09/26
+%                  speed-ups, this file the zero-cell skip (now in both).
+%                  For sorted variables the program, Pop, Qcell and
+%                  alpha_list are bit-identical to before. For unsorted ones
+%                  the program equals the former one for the sorted
+%                  variables, the Gram blocks list monomials in registry
+%                  order, and Qcell is reordered back to the caller's
+%                  monomial order so it keeps its meaning. Every entry below that
+%                  describes the deleted construction (09/07, 09/11 for the
+%                  cell relabelling, 09/21 moved subfunctions, 09/22 and
+%                  09/30 SGCELL) no longer applies; 'process_degrees' had
+%                  this file as its only caller and is deleted.
 % MMP, 09/30/2026: SGCELL instrumentation removed: two counters in the gamma
 %                  cell loop (MMP, 09/22/2026) and a print when the
 %                  environment variable SGCELL was set, which no file in the
@@ -351,6 +371,8 @@ end
 % just before the constructor is called; sorted variable j is              % MMP, 09/11/2026
 % vars{ord_S3(j)}.                                                          % MMP, 09/11/2026
 [~,ord_S3] = sort(vars);                                                    % MMP, 09/11/2026
+% (10/01/2026: the comment above describes the deleted construction; ord_S3 % MMP, 10/01/2026
+% now maps the caller's order onto copquadvar's sorted registry, below.)    % MMP, 10/01/2026
 
 % Declare names for the integration variable theta and the input dummy
 % variable s'. Neither appears in the returned object: the dummy variables
@@ -358,8 +380,9 @@ end
 % These suffixes are reserved outright, rather than only where they would
 % actually collide, so that the set of admissible names does not depend on
 % which other variables happen to be present.
-vars_int = strcat(vars,'_int');
-vars_dum = strcat(vars,'_dum');
+% vars_int = strcat(vars,'_int');                                           % MMP, 10/01/2026 (was)
+% vars_dum = strcat(vars,'_dum');                                           % MMP, 10/01/2026 (was)
+% copquadvar builds both name lists now; the reservation stays here.        % MMP, 10/01/2026
 % is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));       % MMP, 09/30/2026 (was)
 % if any(is_reserved)                                                       % MMP, 09/30/2026 (was)
 %     error("Spatial variable names may not end in '_int' or '_dum'; "...
@@ -495,254 +518,91 @@ if size(unique(alpha_list,'rows'),1)~=size(alpha_list,1)
 end
 nblk = size(alpha_list,1);
 
-% % % Degrees
-deg_list = process_degrees(deg,nblk,n3);
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Build the monomial bases Z^alpha(theta,s) and Z^alpha(theta,s')
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% The exponents of Z^alpha are stored over the variable list
-% [theta_1,...,theta_n3, s_1,...,s_n3], so that Z1c{i} and Z2c{i} differ
-% only in the name of the second group of variables.
-Z1c = cell(1,nblk);
-Z2c = cell(1,nblk);
-mdim = m*ones(nblk,1);
-ndim = mdim;
-for i=1:nblk
-    caps_int = deg_list{i}.int;
-    caps_mult = deg_list{i}.mult;
-    % A multiplier in variable k identifies s_k with theta_k, so any s_k
-    % dependence of the basis would be redundant.
-    caps_mult(alpha_list(i,:)==1) = 0;
-
-    Ei = build_exponent_grid([caps_int,caps_mult],deg_list{i}.joint, ...
-                             deg_list{i}.subset);                           % MMP, 09/21/2026
-    Ti = size(Ei,1);
-
-    Z1c{i} = polynomial(speye(Ti),Ei,[vars_int(:);vars(:)],[Ti,1]);
-    Z2c{i} = polynomial(speye(Ti),Ei,[vars_int(:);vars_dum(:)],[Ti,1]);
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Declare Q>=0 and form the products N{i,j} = Z^alpha_i' Q_ij Z^alpha_j
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-[prog,N,Qcell] = sosquadvar(prog,Z1c,Z2c,mdim,ndim,vartype);          % MMP, 09/21/2026
-
-% Collect the full list of decision variables, so that every block is
-% expressed over a common decision variable basis.
-Zd = {};
-for k=1:numel(Qcell)
-    Zd = [Zd; reshape(cellstr(string(Qcell{k})),[],1)];                     %#ok<AGROW>
-end
-Zd = unique(Zd);
-ndec = numel(Zd);
-% Index lookup for the decision variables, built once. Each block below
-% needs the positions of its own names in Zd; doing that with ismember
-% per block is O(ndec) per block, which is the dominant cost once there
-% are many decision variables.
-dmap = containers.Map(Zd,num2cell(1:ndec));                                % MMP, 08/29/2026
-
-% Multiplier used to restrict positivity to the domain. Note that it is
-% evaluated at the integration variable, as in 'poslpivar'.
-% if options.psatz                                                          % MMP, 09/28/2026 (was)
-if options.psatz==1                                                         % MMP, 09/28/2026
-    gfun = polynomial(1);
-    for k=1:n3
-        thk = polynomial(vars_int(k));
-        gfun = gfun*(thk-dom(k,1))*(dom(k,2)-thk);
-    end
-elseif options.psatz>=3                                                     % MMP, 09/28/2026
-    % One face, normalised by L_k as in 'copquadvar': odd code the lower    % MMP, 09/28/2026
-    % face theta_k = ak, even the upper. k counts SORTED S3, but vars_int   % MMP, 09/28/2026
-    % and dom follow 'vars', so sorted k is row kf = ord_S3(k) here.        % MMP, 09/28/2026
-    kf = ord_S3(floor((options.psatz-1)/2));                                % MMP, 09/28/2026
-    thk = polynomial(vars_int(kf));                                         % MMP, 09/28/2026
-    if mod(options.psatz,2)==1                                              % MMP, 09/28/2026
-        gfun = (thk-dom(kf,1))/(dom(kf,2)-dom(kf,1));                       % MMP, 09/28/2026
-    else                                                                    % MMP, 09/28/2026
-        gfun = (dom(kf,2)-thk)/(dom(kf,2)-dom(kf,1));                       % MMP, 09/28/2026
-    end                                                                     % MMP, 09/28/2026
-else
-    gfun = polynomial(1);
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Eliminate the integration variable block by block
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Variable split used to read the products as
-%   N{i,j} = (I_m kron Zs(s) kron Zth(theta))' C (I_m kron Zsp(s'))
-% Placing theta last in vars.out makes the theta monomials the fastest row
-% index, which is the layout 'int_semisep' expects of its input.
-vars_conv = struct();
-vars_conv.out = [vars,vars_int];
-vars_conv.in = vars_dum;
-
-vars_io = struct();
-vars_io.in = vars;
-vars_io.out = vars;
-dom_io = struct();
-dom_io.in = dom;
-dom_io.out = dom;
-
-% Adjoining a basis operator flips its lower and upper integrals.
-negmap = [1,3,2,4];   % 4 = full-domain integral, self-adjoint              % MMP, 09/12/2026
-
-% Blocks are collected and summed once by 'plus_batch' rather than          % MMP, 09/07/2026
-% accumulated pairwise: every block carries the same Zd, so one             % MMP, 09/07/2026
-% synchronization serves all nblk^2 of them. Pairwise accumulation was      % MMP, 09/07/2026
-% measured at 32% of this routine's runtime at three spatial variables,     % MMP, 09/07/2026
-% where there are 729 additions.                                            % MMP, 09/07/2026
-% A separable direction turns each block pair into up to 4 terms per such   % MMP, 09/12/2026
-% direction, so the bound carries 4^nsep.                                   % MMP, 09/12/2026
-% nCellTot = 0;   nCellSkip = 0;   % all-zero gamma cells skipped (see the loop)   % MMP, 09/22/2026 % MMP, 09/30/2026 (was)
-Pcells = cell(nblk*nblk*4^sum(sep),1);     nPc = 0;                         % MMP, 09/12/2026
-%Pop = [];                                                                  % MMP, 09/07/2026 (was)
-for i=1:nblk
-    for j=1:nblk
-        % % % Coefficients of the product, over the split (s,theta | s')
-        Rij = gfun*N{i,j};
-        [Pblk,ZLb,ZRb] = dpvar2sdvar(Rij,vars_conv);
-
-        Zs  = ZLb(1:n3);
-        Zth = ZLb(n3+1:2*n3);
-        Zsp = ZRb;
-        Ns  = prod(cellfun(@numel,Zs));
-        NG  = prod(cellfun(@numel,Zth));
-        Nsp = prod(cellfun(@numel,Zsp));
-        g1 = m*Ns;      g2 = m*Nsp;
-        if Pblk.m~=g1*NG || Pblk.n~=g2
-            error("Internal error: unexpected coefficient dimensions.")
-        end
-
-        % Row map from THIS block's decision variables to the common basis    % MMP, 09/22/2026
-        % Zd. Only the map is taken here; the scatter itself is deferred to    % MMP, 09/22/2026
-        % after the elimination -- see the note at the unpack loop below.      % MMP, 09/22/2026
-        locB = dvar_rows(cellstr(string(Pblk.dvarname)),dmap);               % MMP, 09/22/2026
-        nloc = numel(locB);                                                  % MMP, 09/22/2026
-        if size(Pblk.B,1)~=nloc                                              % MMP, 09/22/2026
-            error("Internal error: B has %d rows for %d decision variables.",...% MMP, 09/22/2026
-                  size(Pblk.B,1),nloc)                                       % MMP, 09/22/2026
-        end                                                                  % MMP, 09/22/2026
-%       Bblk = remap_dvars(Pblk.B,cellstr(string(Pblk.dvarname)),dmap,ndec); % MMP, 09/22/2026 (was)
-
-        % % % Eliminate theta
-        % Both A and each row of B are subjected to the same linear map, so
-        % they are stacked as additional column blocks of the input and
-        % sliced apart afterwards.
-        G = struct();
-%       G.C = pack_sheets([Pblk.A.';Bblk],Pblk.m,Pblk.n);                    % MMP, 09/22/2026 (was)
-        G.C = pack_sheets([Pblk.A.';Pblk.B],Pblk.m,Pblk.n);                  % MMP, 09/22/2026
-        G.Z = Zth;
-        % A separable direction carries alpha_k = 4, a full-domain          % MMP, 09/12/2026
-        % integral, the SUM of the lower and upper integrals over one       % MMP, 09/12/2026
-        % shared kernel; adjoining swaps the two. So B_i'*Q*B_j expands     % MMP, 09/12/2026
-        % into every 2/3 substitution of the 4s on each side, all against   % MMP, 09/12/2026
-        % the SAME Q, which is what makes the two kernels equal. Each term  % MMP, 09/12/2026
-        % is emitted as its own block and 'plus_batch' below sums them and  % MMP, 09/12/2026
-        % merges the monomials, so nothing else in the loop changes.        % MMP, 09/12/2026
-        aL_all = expand_full(negmap(alpha_list(i,:)));                      % MMP, 09/12/2026
-        aR_all = expand_full(alpha_list(j,:));                              % MMP, 09/12/2026
-        for iL = 1:size(aL_all,1)                                           % MMP, 09/12/2026
-        for iR = 1:size(aR_all,1)                                           % MMP, 09/12/2026
-        [Cgam,ZLnew,ZRnew] = int_semisep(G,aL_all(iL,:),aR_all(iR,:),dom);  % MMP, 09/12/2026
-        NL = prod(cellfun(@numel,ZLnew));
-        NR = prod(cellfun(@numel,ZRnew));
-
-        % % % Merge the pre-existing and newly generated monomials
-        [ZLf,ML] = merge_monomial_product(Zs,ZLnew);
-        [ZRf,MR] = merge_monomial_product(Zsp,ZRnew);
-        Lmat = kron(speye(m),ML).';
-        Rmat = kron(speye(m),MR);
-
-        % The decision-variable axis is a pure BATCH axis: 'pack_sheets' lays  % MMP, 09/22/2026
-        % one sheet per row and nothing between here and 'unpack_sheets' ever  % MMP, 09/22/2026
-        % mixes sheets -- 'unpack_sheets' own header records that each sheet   % MMP, 09/22/2026
-        % stays a contiguous block of columns. So the elimination runs on this % MMP, 09/22/2026
-        % block's OWN nloc sheets and the rows are scattered onto the global   % MMP, 09/22/2026
-        % Zd once, at the end, instead of the block being widened to ndec      % MMP, 09/22/2026
-        % sheets before the integral.                                         % MMP, 09/22/2026
-        %                                                                     % MMP, 09/22/2026
-        % MEASURED at two variables and degree 2, where ndec = 97461: the      % MMP, 09/22/2026
-        % sheet axis was 97462 columns wide for block pair (1,1), which needs  % MMP, 09/22/2026
-        % 46 -- a factor of 2119 -- and 292386 against 2190 for pair (2,3).    % MMP, 09/22/2026
-        % That padding is what 'int_semisep' preallocated over and what        % MMP, 09/22/2026
-        % 'rearrangeCoef' reshaped, and it accounted for 48% of the runtime    % MMP, 09/22/2026
-        % and 392 GB of allocation churn against a 242 MB peak.               % MMP, 09/22/2026
-        params = struct();
-        params.A = cell(numel(Cgam),1);
-        params.B = cell(numel(Cgam),1);
-        % Most gamma cells are structurally zero and cost nothing to fill.    % MMP, 09/22/2026
-        % 'int_semisep's key table admits at most two gammas per direction     % MMP, 09/22/2026
-        % for a given (beta,alpha), so of the 3^n3 cells only a fraction can   % MMP, 09/22/2026
-        % be nonzero. An all-zero cell gives 'unpack_sheets' an empty 'find',  % MMP, 09/22/2026
-        % hence all-zero A and B, which 'lr_multiply' carries through to an    % MMP, 09/22/2026
-        % all-zero result of a known shape -- so writing that shape directly   % MMP, 09/22/2026
-        % is exactly equivalent and skips the unpack, the kron and the         % MMP, 09/22/2026
-        % scatter. CLAUDE.md s2: skip empty or all-zero blocks rather than     % MMP, 09/22/2026
-        % filling them.                                                       % MMP, 09/22/2026
-        nAB = size(Lmat,1)*size(Rmat,2);                                     % MMP, 09/22/2026
-        for k=1:numel(Cgam)
-%           nCellTot = nCellTot+1;                                           % MMP, 09/22/2026 % MMP, 09/30/2026 (was)
-            if nnz(Cgam{k})==0                                               % MMP, 09/22/2026
-%               nCellSkip = nCellSkip+1;                                     % MMP, 09/22/2026 % MMP, 09/30/2026 (was)
-                params.A{k} = sparse(nAB,1);                                 % MMP, 09/22/2026
-                params.B{k} = sparse(ndec,nAB);                              % MMP, 09/22/2026
-                continue                                                     % MMP, 09/22/2026
-            end                                                              % MMP, 09/22/2026
-%           [Ak,Bk] = unpack_sheets(Cgam{k},g1*NL,g2*NR,ndec);               % MMP, 09/22/2026 (was)
-            [Ak,Bk] = unpack_sheets(Cgam{k},g1*NL,g2*NR,nloc);               % MMP, 09/22/2026
-            [params.A{k},Bout] = lr_multiply(Lmat,Ak,Bk,Rmat);               % MMP, 09/22/2026
-%           [params.A{k},params.B{k}] = lr_multiply(Lmat,Ak,Bk,Rmat);        % MMP, 09/22/2026 (was)
-            % Scatter this block's rows onto the global decision basis. Built % MMP, 09/22/2026
-            % once from triplets rather than by index-assignment into a       % MMP, 09/22/2026
-            % q-row sparse, which CLAUDE.md s2 forbids outright.              % MMP, 09/22/2026
-            % 'find' returns ROWS for a single-row input, which Bout is when  % MMP, 09/22/2026
-            % the block carries one decision variable, so the orientation is  % MMP, 09/22/2026
-            % forced rather than assumed.                                    % MMP, 09/22/2026
-            [bi,bj,bv] = find(Bout);                                         % MMP, 09/22/2026
-            params.B{k} = sparse(reshape(locB(bi),[],1),reshape(bj,[],1), ...% MMP, 09/22/2026
-                                 reshape(bv,[],1),ndec,size(Bout,2));        % MMP, 09/22/2026
-        end
-        params.A = reshape(params.A,[3*ones(1,n3),1,1]);
-        params.B = reshape(params.B,[3*ones(1,n3),1,1]);
-        % Relabel the cell from the caller's variable order onto the sorted  % MMP, 09/11/2026
-        % order the class indexes by. Cell dimension k currently means       % MMP, 09/11/2026
-        % vars{k}; after the permute, dimension j means the j-th variable in % MMP, 09/11/2026
-        % sorted order. Without this the constructor canonicalizes vars,     % MMP, 09/11/2026
-        % dom, ZL and ZR but the cell keeps the caller's labelling, so for   % MMP, 09/11/2026
-        % an unsorted 'vars' the returned operator had its basis-operator    % MMP, 09/11/2026
-        % directions permuted: declaring the same variable-to-domain         % MMP, 09/11/2026
-        % association as ({a,b},[0,1;2,3]) and as ({b,a},[2,3;0,1]) gave     % MMP, 09/11/2026
-        % kernels differing by 2.8 relative, and it also left dummy-variable % MMP, 09/11/2026
-        % degree in the multiplier cell, which showed up as a stream of      % MMP, 09/11/2026
-        % noncanonicalMultiplier warnings.                                   % MMP, 09/11/2026
-        if n3 > 1                                                           % MMP, 09/11/2026
-            params.A = permute(params.A,[ord_S3,n3+1,n3+2]);                % MMP, 09/11/2026
-            params.B = permute(params.B,[ord_S3,n3+1,n3+2]);                % MMP, 09/11/2026
-        end                                                                 % MMP, 09/11/2026
-
-        Pij = sdopvar(params,vars_io,Zd,ZLf,ZRf,dom_io,[m,m]);
-        nPc = nPc+1;    Pcells{nPc} = Pij;                                  % MMP, 09/07/2026
-        end                                                                 % MMP, 09/12/2026
-        end                                                                 % MMP, 09/12/2026
-%       if isempty(Pop)                                                     % MMP, 09/07/2026 (was)
-%           Pop = Pij;                                                      % MMP, 09/07/2026 (was)
-%       else                                                                % MMP, 09/07/2026 (was)
-%           Pop = Pop+Pij;                                                  % MMP, 09/07/2026 (was)
-%       end                                                                 % MMP, 09/07/2026 (was)
-    end
-end
-
-% if ~isempty(getenv('SGCELL'))                                             % MMP, 09/30/2026 (was)
-%     fprintf(1,'SGCELL n3=%d cells=%d skipped=%d (%.1f%%)\n', ...
-%         n3,nCellTot,nCellSkip,100*nCellSkip/max(nCellTot,1));             % MMP, 09/30/2026 (was)
-% end                                                                       % MMP, 09/30/2026 (was)
-Pop = plus_batch(Pcells{1:nPc});                                            % MMP, 09/07/2026
+% BEGIN MMP, 10/01/2026: the construction is 'copquadvar' on one space (spec
+% sec. 9; the Overleaf sec. 8.4 asks for one implementation, the single
+% space being a special case). Deleted here, old lines 497-748: the degree
+% processing ('process_degrees'), the monomial bases, the 'sosquadvar'
+% call, the psatz weight and the block-pair loop with its 'int_semisep',
+% 'unpack_sheets', 'lr_multiply' and 'plus_batch' assembly, stamped MP
+% 08/22/2026 and MMP 09/07, 09/11, 09/21, 09/22, 09/25, 09/28, 09/30/2026;
+% git history holds them. The checks above are unchanged, so the accepted
+% inputs and the error messages are as before.
+%
+% copquadvar works over the SORTED registry; registry variable j is
+% vars{ord_S3(j)}. 'dom' goes in paired with the names, so it needs no
+% permutation; 'sep', the degree caps and the multi-indices are permuted.
+% The basis list built above goes in as 'include', which copquadvar keeps
+% in the given order, so alpha_list, Qcell and a per-basis 'deg' cell keep
+% this routine's order.
+o = options;                                                                % MMP, 10/01/2026
+o.sep = sep(ord_S3);                                                        % MMP, 10/01/2026
+o.include = alpha_list(:,ord_S3);                                           % MMP, 10/01/2026
+if iscell(deg)                                                              % MMP, 10/01/2026
+    if numel(deg)~=nblk                                                     % MMP, 10/01/2026
+        error("A cell 'deg' should have one entry per included basis operator.") % MMP, 10/01/2026
+    end                                                                     % MMP, 10/01/2026
+    degc = {cellfun(@(d) registry_deg(d,ord_S3,n3),reshape(deg,1,[]), ...
+                    'UniformOutput',false)};    % one space, one entry per basis % MMP, 10/01/2026
+else                                                                        % MMP, 10/01/2026
+    degc = registry_deg(deg,ord_S3,n3);                                     % MMP, 10/01/2026
+end                                                                         % MMP, 10/01/2026
+[prog,Pc,Qcell] = copquadvar(prog,m,{vars},struct('vars',{vars},'dom',dom),degc,o); % MMP, 10/01/2026
+% Unsorted variables: copquadvar lists each basis operator's monomials over % MMP, 10/01/2026
+% the registry, this routine listed them over 'vars'. Rebuild both exponent % MMP, 10/01/2026
+% grids with the helpers copquadvar uses and reorder the rows and columns   % MMP, 10/01/2026
+% of each Qcell block (sosquadvar: component outer, monomial inner), so that % MMP, 10/01/2026
+% Qcell keeps its meaning. The program and Pop are not affected.            % MMP, 10/01/2026
+if ~isequal(reshape(ord_S3,1,[]),1:n3)                                      % MMP, 10/01/2026
+    Rw = cell(1,nblk);                                                      % MMP, 10/01/2026
+    for i = 1:nblk                                                          % MMP, 10/01/2026
+        spec = deg;     if iscell(deg),  spec = deg{i};  end                % MMP, 10/01/2026
+        dc = process_degrees_one(spec,n3);                                  % MMP, 10/01/2026
+        dr = process_degrees_one(registry_deg(spec,ord_S3,n3),n3);          % MMP, 10/01/2026
+        mc = dc.mult;   mc(alpha_list(i,:)==1) = 0;                         % MMP, 10/01/2026
+        mr = dr.mult;   mr(alpha_list(i,ord_S3)==1) = 0;                    % MMP, 10/01/2026
+        Ec = build_exponent_grid([dc.int,mc],dc.joint,dc.subset);           % MMP, 10/01/2026
+        Er = build_exponent_grid([dr.int,mr],dr.joint,dr.subset);           % MMP, 10/01/2026
+        [tf,p] = ismember(Ec(:,[ord_S3,n3+ord_S3]),Er,'rows');              % MMP, 10/01/2026
+        if ~all(tf) || numel(p)~=size(Er,1)                                 % MMP, 10/01/2026
+            error("Internal error: the monomial bases do not correspond.")  % MMP, 10/01/2026
+        end                                                                 % MMP, 10/01/2026
+        Rw{i} = reshape(p(:)+size(Er,1)*(0:m-1),[],1);                      % MMP, 10/01/2026
+    end                                                                     % MMP, 10/01/2026
+    for i = 1:nblk                                                          % MMP, 10/01/2026
+        for j = 1:nblk                                                      % MMP, 10/01/2026
+            Qcell{i,j} = Qcell{i,j}(Rw{i},Rw{j});                           % MMP, 10/01/2026
+        end                                                                 % MMP, 10/01/2026
+    end                                                                     % MMP, 10/01/2026
+end                                                                         % MMP, 10/01/2026
+Pop = Pc.C{1,1};                                                           % MMP, 10/01/2026
+% END MMP, 10/01/2026
 
 end
+
+
+function d = registry_deg(d,ord,n3)
+% One degree specification moved from the caller's variable order to the
+% sorted registry: the per-variable caps by ORD, and the 'subset' array by
+% relabelling the bits of its index over [theta_1..theta_n3, s_1..s_n3]
+% (see the help: the subset with bits b sits at 1+sum(2.^(b-1))). A scalar
+% or a scalar cap is the same in every order.
+%
+% Initial coding MMP, 10/01/2026
+if ~isstruct(d) || n3<2                                                     % MMP, 10/01/2026
+    return                                                                  % MMP, 10/01/2026
+end                                                                         % MMP, 10/01/2026
+for f = {'int','mult'}                                                      % MMP, 10/01/2026
+    if isfield(d,f{1}) && numel(d.(f{1}))==n3                               % MMP, 10/01/2026
+        d.(f{1}) = d.(f{1})(ord);                                           % MMP, 10/01/2026
+    end                                                                     % MMP, 10/01/2026
+end                                                                         % MMP, 10/01/2026
+if isfield(d,'subset') && numel(d.subset)==2^(2*n3)                         % MMP, 10/01/2026
+    r(ord) = 1:n3;                              % registry position of vars{k} % MMP, 10/01/2026
+    nb = [r, n3+r];                             % caller bit b -> registry bit % MMP, 10/01/2026
+    bits = fliplr(dec2bin(0:2^(2*n3)-1,2*n3)=='1');     % column b = bit b  % MMP, 10/01/2026
+    to = bits*(2.^(nb(:)-1)) + 1;               % registry index of each entry % MMP, 10/01/2026
+    s = d.subset;                                                           % MMP, 10/01/2026
+    s(to) = d.subset(:);                                                    % MMP, 10/01/2026
+    d.subset = s;                                                           % MMP, 10/01/2026
+end                                                                         % MMP, 10/01/2026
+end                                                                         % MMP, 10/01/2026

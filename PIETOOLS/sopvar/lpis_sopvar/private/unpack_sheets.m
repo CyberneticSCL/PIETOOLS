@@ -45,19 +45,27 @@ function [A,B] = unpack_sheets(C,mrow,ncol,nsheet,L,R,rloc,nrow)
 %                  here and 616 -> 5 MB in kron on 2-D heavy stability.
 %                  Bit-identical: see the guard below. Without the new
 %                  inputs the behaviour is unchanged ('sopquadvar').
+% MMP, 10/01/2026: Matrix input and the four-argument call removed: their
+%                  only caller was the 'sopquadvar' construction, now
+%                  'copquadvar' on one space, which always passes the
+%                  triplets with L, R, RLOC, NROW. The 09/26 entries'
+%                  "unchanged without the new inputs" no longer applies.
 
-if isstruct(C)                  % triplets: the 'find' is already done      % MMP, 09/26/2026
+if ~isstruct(C) || nargin<8                                                 % MMP, 10/01/2026
+    error("unpack_sheets takes the triplets of int_semisep(...,'triplets') "...
+          +"with L, R, RLOC and NROW.")                                     % MMP, 10/01/2026
+end                                                                         % MMP, 10/01/2026
+% if isstruct(C)                  % triplets: the 'find' is already done    % MMP, 09/26/2026 % MMP, 10/01/2026 (was)
     if C.m~=mrow || C.n~=(1+nsheet)*ncol                                    % MMP, 09/26/2026
         error("Internal error: unexpected coefficient dimensions.")         % MMP, 09/26/2026
     end                                                                     % MMP, 09/26/2026
     irow = C.i(:);  icol = C.j(:);  val = C.v(:);                           % MMP, 09/26/2026
-else                                                                        % MMP, 09/26/2026
-if size(C,1)~=mrow || size(C,2)~=(1+nsheet)*ncol
-    error("Internal error: unexpected coefficient dimensions.")
-end
-
-[irow,icol,val] = find(C);
-end                                                                         % MMP, 09/26/2026
+% else                                                                      % MMP, 09/26/2026 % MMP, 10/01/2026 (was)
+% if size(C,1)~=mrow || size(C,2)~=(1+nsheet)*ncol                          % MMP, 10/01/2026 (was)
+%     error("Internal error: unexpected coefficient dimensions.")           % MMP, 10/01/2026 (was)
+% end                                                                       % MMP, 10/01/2026 (was)
+% [irow,icol,val] = find(C);                                                % MMP, 10/01/2026 (was)
+% end                                                                       % MMP, 09/26/2026 % MMP, 10/01/2026 (was)
 is_A = icol<=ncol;
 
 A = sparse((icol(is_A)-1)*mrow+irow(is_A),1,val(is_A),mrow*ncol,1);
@@ -66,10 +74,10 @@ jcol = icol(~is_A)-ncol;
 sg = floor((jcol-1)/ncol)+1;
 cc = jcol - (sg-1)*ncol;
 % B = sparse(sg,(cc-1)*mrow+irow(~is_A),val(~is_A),nsheet,mrow*ncol);       % MMP, 09/26/2026 (was)
-if nargin<5                                                                 % MMP, 09/26/2026
-    B = sparse(sg,(cc-1)*mrow+irow(~is_A),val(~is_A),nsheet,mrow*ncol);     % MMP, 09/26/2026
-    return                                                                  % MMP, 09/26/2026
-end                                                                         % MMP, 09/26/2026
+% if nargin<5                                                               % MMP, 09/26/2026 % MMP, 10/01/2026 (was)
+%     B = sparse(sg,(cc-1)*mrow+irow(~is_A),val(~is_A),nsheet,mrow*ncol);   % MMP, 09/26/2026 % MMP, 10/01/2026 (was)
+%     return                                                                % MMP, 09/26/2026 % MMP, 10/01/2026 (was)
+% end                                                                       % MMP, 09/26/2026 % MMP, 10/01/2026 (was)
 
 % BEGIN MMP, 09/26/2026: fused lr_multiply and row scatter.
 % Everything forced to columns: 'find' returns ROWS for a single-row input,

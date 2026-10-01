@@ -141,9 +141,13 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %
 % Sec. 8.4 observes that there should not be two implementations of this
 % construction, just the general one with a fastlane for the single-space
-% case. 'sopquadvar' is that fastlane and still has its own pair loop; the
-% input processing, degree handling and coefficient bookkeeping are already
-% shared through 'lpis_sopvar/private'.
+% case. 'sopquadvar' is that fastlane and still has its own pair loop; the  % MMP, 10/01/2026 (was)
+% input processing, degree handling and coefficient bookkeeping are already % MMP, 10/01/2026 (was)
+% shared through 'lpis_sopvar/private'.                                     % MMP, 10/01/2026 (was)
+% Since 10/01/2026 there is one: 'sopquadvar' checks its single-space       % MMP, 10/01/2026
+% inputs, moves them to the sorted registry and calls this routine, so the  % MMP, 10/01/2026
+% construction exists only here (for sorted variables its programs are      % MMP, 10/01/2026
+% bit-identical to the former pair loop's).                                 % MMP, 10/01/2026
 % The space, domain and registry parse is 'parse_copvar_spaces', shared     % MMP, 09/30/2026
 % with 'lpivar_cdopvar'.                                                    % MMP, 09/30/2026
 %
@@ -314,6 +318,8 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  Also documented, in the help and in degree_list, what
 %                  each 'deg' field means here, and that 'lpivar_cdopvar'
 %                  gives 'int' and 'mult' other meanings; no option changed.
+% MMP, 10/01/2026: 'sopquadvar' now calls this routine (one space) instead
+%                  of its own pair loop; NOTES updated. No code change here.
 
 
 % % % BEGIN change MMP, 09/30/2026 (split): the primary runs the            % MMP, 09/30/2026
