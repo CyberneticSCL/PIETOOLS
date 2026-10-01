@@ -85,6 +85,17 @@ function [params,ZL,ZR,changed] = canonicalize_multiplier(params,vars,ZL,ZR,dims
 %                  sparse, find(X,1) for full, since it now runs for every
 %                  cell and nnz of a full q x nC B scanned it (constructor
 %                  0.18 -> 6.5 ms at 2 variables, q = 1e6, before this).
+% MMP, 09/30/2026: Index conventions from the shared helpers in
+%                  sopvar/misc/conventions: gamma_of_cell for the cell
+%                  multi-index (was ind2sub + cell2mat), kron_strides,
+%                  kron_split, monomial_position_map, monomial_position (were
+%                  the local strides_of, split_index, degree_lookup, lookup,
+%                  now deleted). The Kronecker helpers were copied in five
+%                  files and two copies had diverged. Same integers in the
+%                  same order, so outputs are bit-identical; the one change
+%                  is on invalid input: a negative or non-integer exponent
+%                  in the enlarged bases raises monomial_position_map's
+%                  error instead of a MATLAB indexing error.
 
 changed = false;
 
@@ -133,8 +144,12 @@ nR = cellfun(@numel,ZR);        NR = prod([nR,1]);
 m = dims(1);        n = dims(2);
 nrow = m*NL;        nC = nrow*(n*NR);
 
-sL = strides_of(nL);        sR = strides_of(nR);
-sz_C = [3*ones(1,n3),1];
+% sL = strides_of(nL);        sR = strides_of(nR);                          % MMP, 09/30/2026 (was)
+% sz_C = [3*ones(1,n3),1];                                                  % MMP, 09/30/2026 (was)
+% Shared helpers (sopvar/misc/conventions), one copy of each convention:    % MMP, 09/30/2026
+% kron_strides for the kron(Z{1},...,Z{N}) basis, first variable slowest.   % MMP, 09/30/2026
+% sz_C went with ind2sub; gamma_of_cell needs only n3.                      % MMP, 09/30/2026
+sL = kron_strides(nL);      sR = kron_strides(nR);                          % MMP, 09/30/2026
 
 % % % Pass 1. Locate the parameters that are not canonical, and record the
 % % % left degrees that folding them will require.
@@ -153,9 +168,10 @@ for k = 1:ncell
     if ~has_content(params,k,is_sdop)                                       % MMP, 09/29/2026
         continue                                                            % MMP, 09/29/2026
     end                                                                     % MMP, 09/29/2026
-    idcs = cell(1,n3);
-    [idcs{:}] = ind2sub(sz_C,k);
-    gam = cell2mat(idcs);
+%   idcs = cell(1,n3);                                                      % MMP, 09/30/2026 (was)
+%   [idcs{:}] = ind2sub(sz_C,k);                                            % MMP, 09/30/2026 (was)
+%   gam = cell2mat(idcs);                                                   % MMP, 09/30/2026 (was)
+    gam = gamma_of_cell(k,n3);      % multi-index of cell k, labels 1/2/3   % MMP, 09/30/2026
     mult_dirs = find(gam==1);
     if isempty(mult_dirs)
         continue
@@ -200,8 +216,10 @@ for k = 1:ncell
     bad(k) = true;
     need_zero(mult_dirs) = true;
     row = mod(lin-1,nrow);          col = floor((lin-1)/nrow);
-    alpha = split_index(mod(row,NL),sL);
-    beta  = split_index(mod(col,NR),sR);
+%   alpha = split_index(mod(row,NL),sL);                                    % MMP, 09/30/2026 (was)
+%   beta  = split_index(mod(col,NR),sR);                                    % MMP, 09/30/2026 (was)
+    alpha = kron_split(mod(row,NL),sL);                                     % MMP, 09/30/2026
+    beta  = kron_split(mod(col,NR),sR);                                     % MMP, 09/30/2026
     for t = mult_dirs
         r = posL(t);
         tot = ZL{r}(alpha(:,r)+1) + ZR{posR(t)}(beta(:,posR(t))+1);
@@ -238,13 +256,16 @@ end
 
 nLn = cellfun(@numel,ZLnew);        NLn = prod([nLn,1]);
 nRn = cellfun(@numel,ZRnew);        NRn = prod([nRn,1]);
-sLn = strides_of(nLn);              sRn = strides_of(nRn);
+% sLn = strides_of(nLn);              sRn = strides_of(nRn);                % MMP, 09/30/2026 (was)
+sLn = kron_strides(nLn);            sRn = kron_strides(nRn);                % MMP, 09/30/2026
 nrow_n = m*NLn;     nC_n = nrow_n*(n*NRn);
 
 mapL = cell(1,numel(vout));
-for r = 1:numel(vout),  mapL{r} = degree_lookup(ZLnew{r});   end
+% for r = 1:numel(vout),  mapL{r} = degree_lookup(ZLnew{r});   end          % MMP, 09/30/2026 (was)
+for r = 1:numel(vout),  mapL{r} = monomial_position_map(ZLnew{r});   end    % MMP, 09/30/2026
 mapR = cell(1,numel(vin));
-for p = 1:numel(vin),   mapR{p} = degree_lookup(ZRnew{p});   end
+% for p = 1:numel(vin),   mapR{p} = degree_lookup(ZRnew{p});   end          % MMP, 09/30/2026 (was)
+for p = 1:numel(vin),   mapR{p} = monomial_position_map(ZRnew{p});   end    % MMP, 09/30/2026
 
 % % % Pass 3. Rebuild every parameter in the new bases, folding the
 % % % multiplier directions on the way. Every parameter has to be rebuilt,
@@ -269,9 +290,10 @@ for k = 1:ncell
     end
 end
 for k = 1:ncell
-    idcs = cell(1,n3);
-    [idcs{:}] = ind2sub(sz_C,k);
-    gam = cell2mat(idcs);
+%   idcs = cell(1,n3);                                                      % MMP, 09/30/2026 (was)
+%   [idcs{:}] = ind2sub(sz_C,k);                                            % MMP, 09/30/2026 (was)
+%   gam = cell2mat(idcs);                                                   % MMP, 09/30/2026 (was)
+    gam = gamma_of_cell(k,n3);                                              % MMP, 09/30/2026
     is_mult = (gam==1);
 
     lin = nonzero_positions(params,k,is_sdop,nC);
@@ -282,8 +304,10 @@ for k = 1:ncell
     row = mod(lin-1,nrow);      col = floor((lin-1)/nrow);
     i0 = floor(row/NL);         aIdx = mod(row,NL);
     j0 = floor(col/NR);         bIdx = mod(col,NR);
-    alpha = split_index(aIdx,sL);
-    beta  = split_index(bIdx,sR);
+%   alpha = split_index(aIdx,sL);                                           % MMP, 09/30/2026 (was)
+%   beta  = split_index(bIdx,sR);                                           % MMP, 09/30/2026 (was)
+    alpha = kron_split(aIdx,sL);                                            % MMP, 09/30/2026
+    beta  = kron_split(bIdx,sR);                                            % MMP, 09/30/2026
 
     aStar = zeros(numel(lin),1);
     for r = 1:numel(vout)
@@ -292,7 +316,8 @@ for k = 1:ncell
         if ~isempty(t) && is_mult(t)
             deg = deg + ZR{posR(t)}(beta(:,posR(t))+1);
         end
-        aStar = aStar + sLn(r)*lookup(mapL{r},deg);
+%       aStar = aStar + sLn(r)*lookup(mapL{r},deg);                         % MMP, 09/30/2026 (was)
+        aStar = aStar + sLn(r)*monomial_position(mapL{r},deg);              % MMP, 09/30/2026
     end
     bStar = zeros(numel(lin),1);
     for p = 1:numel(vin)
@@ -302,7 +327,8 @@ for k = 1:ncell
         else
             deg = ZR{p}(beta(:,p)+1);
         end
-        bStar = bStar + sRn(p)*lookup(mapR{p},deg);
+%       bStar = bStar + sRn(p)*lookup(mapR{p},deg);                         % MMP, 09/30/2026 (was)
+        bStar = bStar + sRn(p)*monomial_position(mapR{p},deg);              % MMP, 09/30/2026
     end
 
     dest = (j0*NRn + bStar)*nrow_n + (i0*NLn + aStar) + 1;
@@ -434,60 +460,9 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s = strides_of(nvec)
-% Stride of each variable in kron(Z{1},...,Z{N}), first variable slowest.
-
-N = numel(nvec);
-s = ones(1,N);
-for k = N-1:-1:1
-    s(k) = s(k+1)*nvec(k+1);
-end
-
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function a = split_index(idx,stride)
-% Split a zero-based monomial index into zero-based per-variable indices.
-
-N = numel(stride);
-a = zeros(numel(idx),N);
-rem = idx(:);
-for k = 1:N
-    a(:,k) = floor(rem/stride(k));
-    rem = rem - a(:,k)*stride(k);
-end
-
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function map = degree_lookup(Zvec)
-% Position of a degree within a basis, as a zero-based index.
-
-d = double(Zvec(:));
-if isempty(d)
-    map = zeros(0,1);
-    return
-end
-map = -ones(max(d)+1,1);
-map(d+1) = 0:numel(d)-1;
-
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out = lookup(map,deg)
-% Position of each requested degree in a basis, as a zero-based index.
-
-deg = double(deg(:));
-out = -ones(numel(deg),1);
-in_range = deg>=0 & deg==round(deg) & deg+1<=numel(map);
-out(in_range) = map(deg(in_range)+1);
-bad = find(out<0,1);
-if ~isempty(bad)
-    error("Monomial basis does not contain degree "+num2str(deg(bad))...
-          +"; the bases were not enlarged correctly.")
-end
-
-end
+% Deleted: the local functions strides_of, split_index,                     % MMP, 09/30/2026
+% degree_lookup and lookup (initial coding 08/29/2026, no later stamps).    % MMP, 09/30/2026
+% Their bodies are now kron_strides, kron_split, monomial_position_map      % MMP, 09/30/2026
+% (the copy of canonical_adjoint_map, which also refuses negative and       % MMP, 09/30/2026
+% non-integer exponents) and monomial_position (this file's message) in     % MMP, 09/30/2026
+% sopvar/misc/conventions.                                                  % MMP, 09/30/2026

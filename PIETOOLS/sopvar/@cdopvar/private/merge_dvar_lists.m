@@ -7,6 +7,8 @@ function [C,Zd] = merge_dvar_lists(C,Zds,src)
 % '@cdopvar/plus' calls it too, as a two-operand grid.                      % MMP, 09/25/2026
 % So does '@cdopvar/mtimes' (both factors, a fixed one promoted with an     % MMP, 09/26/2026
 % empty list: the owner shortcut then makes the reconciliation O(blocks)).  % MMP, 09/26/2026
+% Both now reach it through 'merge_dvar_pair'. The 'cdopvar' constructor    % MMP, 09/30/2026
+% calls it with each 'sdopvar' block its own operand ('unify_dvars').       % MMP, 09/30/2026
 %
 % INPUTS
 % - C:      block grid; 'sdopvar' blocks are on their own operand's list;
@@ -79,6 +81,9 @@ function [C,Zd] = merge_dvar_lists(C,Zds,src)
 %                  of NOTES. The two comments citing it now say what it did.
 %                  '(was)' lines in @cdopvar/plus and @cdopvar/mtimes still
 %                  name it. Comments only.
+% MMP, 09/30/2026: Header: now also called by the 'cdopvar' constructor
+%                  ('unify_dvars'), and by plus and mtimes through
+%                  'merge_dvar_pair'. Doc only.
 
 nz = ~cellfun(@isempty,Zds);
 % Operands owning an sdopvar block, whatever their list; with none, the     % MMP, 09/25/2026

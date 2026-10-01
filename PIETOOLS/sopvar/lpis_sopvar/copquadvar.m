@@ -128,6 +128,8 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 % case. 'sopquadvar' is that fastlane and still has its own pair loop; the
 % input processing, degree handling and coefficient bookkeeping are already
 % shared through 'lpis_sopvar/private'.
+% The space, domain and registry parse is 'parse_copvar_spaces', shared     % MMP, 09/30/2026
+% with 'lpivar_cdopvar'.                                                    % MMP, 09/30/2026
 %
 % See also SOPQUADVAR, POSCOPVAR, POSSOPVAR, POSLPIVAR, SOSQUADVAR,
 % INT_SEMISEP, CDOPVAR, LPI_EQ_CDOPVAR.
@@ -249,6 +251,30 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  returned. Programs bit-identical (w1-w3, 91 SDP
 %                  leaves). An empty B stored as [] was rejected:
 %                  'plus_batch' then errors ('Bsum + []').
+% MMP, 09/30/2026: Shared helpers (sopvar/misc/conventions) in place of
+%                  two local copies, each of which had hand-written twins
+%                  elsewhere that could drift apart silently: (1) spaces,
+%                  registry, dims, reserved names and domain are read by
+%                  'parse_copvar_spaces', the parser shared with
+%                  'lpivar_cdopvar'; the self-adjoint check stays here,
+%                  after the parse. (2) 'multiindex_grid' replaces the
+%                  local 'alpha_grid' (same body, direction 1 fastest,
+%                  the order 'sopquadvar' and 'eq_opts_sopvar' use).
+%                  'int_onesided' keeps its inline copy of 'kron_split',
+%                  which the helper calls would slow (see its comment).
+%                  Same values on every input the old parse accepted:
+%                  'test_space_parser' compares the two on 120 random
+%                  inputs, and the programs are bit-identical (w1-w3,
+%                  91 SDP leaves). On other inputs the parser's NOTES
+%                  list the differences: six messages reworded; the
+%                  self-adjoint error now follows the other input
+%                  errors; a struct ARRAY 'spaces' is refused (its first
+%                  element was used); '' is one R^q space (a variable
+%                  named '' was declared); struct dims and [] spaces are
+%                  accepted. Time unchanged: the 14 w3 calls, run on the
+%                  same arguments within one build, unprofiled, take
+%                  34.99 s before and 34.88 s after (a second copy of the
+%                  old file: 34.57 s).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -259,55 +285,26 @@ if nargin<5
     error("Not enough input arguments.")
 end
 
-% % % Spaces. A 'cellstr' is one space named directly, which keeps the
-% single-space call identical to 'sopquadvar'; several spaces are nested.
-if isa(spaces,'struct')
-    if ~isfield(spaces,'out')
-        error("A 'struct' space specification should have a field 'out'.")
-    end
-    if isfield(spaces,'in') && ~isequal(spaces.in,spaces.out)
-        error("A self-adjoint operator has equal input and output spaces.")
-    end
-    spaces = spaces.out;
-end
-if ischar(spaces) || isa(spaces,'polynomial')
-    spaces = {spaces};
-end
-if iscellstr(spaces)
-    spaces = {spaces};
-end
-if ~iscell(spaces)
-    error("Spaces should be specified as a cell of 'cellstr' objects.")
-end
-spaces = reshape(spaces,1,[]);      M = numel(spaces);
-if M<1
-    error("At least one space must be specified.")
-end
-for k = 1:M
-    sk = spaces{k};
-    if isa(sk,'polynomial'),            sk = sk.varname(:)';    end
-    if ischar(sk),                      sk = {sk};              end
-    if isnumeric(sk) && isempty(sk),    sk = cell(1,0);         end
-    if ~iscellstr(sk)
-        error("Space "+num2str(k)+" should be a 'cellstr' of variable names; "...
-              +"an empty one is the finite-dimensional space R^m.")
-    end
-    sk = reshape(sk,1,[]);
-    if numel(unique(sk))~=numel(sk)
-        error("Space "+num2str(k)+" repeats a variable name.")
-    end
-    spaces{k} = sk;
-end
+% % % BEGIN change MMP, 09/30/2026 (parser): spaces, registry, dims,        % MMP, 09/30/2026
+% reserved names and domain are read by 'parse_copvar_spaces', the parser   % MMP, 09/30/2026
+% this file shares with 'lpivar_cdopvar' and the _sop constructors. Deleted: % MMP, 09/30/2026
+% the inline parse of the same forms (spaces; registry and mask; dims; the  % MMP, 09/30/2026
+% reserved suffix check; domain; initial coding 09/21/2026, no later        % MMP, 09/30/2026
+% markers), the parser's logic with six messages worded differently. A      % MMP, 09/30/2026
+% 'cellstr' is still one space, so the single-space call matches            % MMP, 09/30/2026
+% 'sopquadvar'. The registry comes back SORTED, which is not cosmetic: an   % MMP, 09/30/2026
+% sopvar/sdopvar indexes its parameter cell over S3 in sorted order, and    % MMP, 09/30/2026
+% with a sorted registry every space, and hence every pair's shared set,    % MMP, 09/30/2026
+% is already sorted, so no cell permutation is needed at the end.           % MMP, 09/30/2026
+[meta,spaces,sp_in] = parse_copvar_spaces(dims,spaces,dom);                 % MMP, 09/30/2026
+% Pop is self-adjoint: the input spaces and dims must be the output ones.   % MMP, 09/30/2026
+if ~isequal(sp_in,spaces) || ~isequal(meta.dim_in,meta.dim_out)             % MMP, 09/30/2026
+    error("A self-adjoint operator has equal input and output spaces.")     % MMP, 09/30/2026
+end                                                                         % MMP, 09/30/2026
+M = numel(spaces);                                                          % MMP, 09/30/2026
+vars = meta.vars;       nv = numel(vars);       mask = meta.space_out;      % MMP, 09/30/2026
+dims = meta.dim_out;    dom = meta.dom;                                     % MMP, 09/30/2026
 
-% % % Variable registry. Sorting it is not cosmetic: an sopvar/sdopvar
-% indexes its parameter cell over S3 in sorted order, and with a sorted
-% registry every space, and hence every pair's shared set, is already sorted,
-% so no cell permutation is needed at the end.
-vars = reshape(unique([spaces{:}]),1,[]);       nv = numel(vars);
-mask = false(M,nv);
-for k = 1:M
-    mask(k,:) = ismember(vars,spaces{k});
-end
 % Row orientation is forced on every direction list here and below. 'find'
 % returns a COLUMN for a 1x1 input, so with a single registry variable an
 % empty list comes back 0x1 rather than 1x0, and a 0x1 index silently turns
@@ -317,77 +314,13 @@ for k = 1:M
     own{k} = reshape(find(mask(k,:)),1,[]);
 end
 
-% % % Block dimensions
-dims = reshape(dims,[],1);
-if isscalar(dims)
-    dims = repmat(dims,M,1);
-elseif numel(dims)~=M
-    error("Dimensions should be a scalar or have one entry per space.")
-end
-if any(dims<1) || any(dims~=round(dims))
-    error("Dimensions of the operator should be positive integers.")
-end
-
 % % % Reserved names, as in 'sopquadvar': the integration variable theta and
 % the input dummy s' are named by suffix, so the suffixes are reserved
 % outright rather than only where they would collide.
+% The check itself is 'check_reserved_names', called by the parser above.   % MMP, 09/30/2026
 vars_int = strcat(vars,'_int');
 vars_dum = strcat(vars,'_dum');
-is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));
-if any(is_reserved)
-    error("Spatial variable names may not end in '_int' or '_dum'; "...
-          +"'"+string(vars{find(is_reserved,1)})+"' does.")
-end
-
-% % % Domain
-% The registry is the SORTED union of the spaces, which is nobody's natural
-% order, so a name-keyed form is accepted: a caller holding a (vars,dom)
-% pair from a PIE passes it through unchanged instead of re-sorting it, and
-% an array form silently taken in the wrong order would give a different
-% operator with no error.
-if isa(dom,'struct')
-    if ~isfield(dom,'vars') || ~isfield(dom,'dom')
-        error("A 'struct' domain should have fields 'vars' and 'dom'.")
-    end
-    if ~isscalar(dom)
-        % struct('vars',v,...) with a cell v builds an ARRAY of structs, one
-        % per variable, which is a silent trap; say so rather than reading
-        % the first element.
-        error("A 'struct' domain should be a single struct, not a "...
-              +num2str(numel(dom))+"-element array; build it by assigning "...
-              +"the fields, since struct() with a cell value returns an array.")
-    end
-    dvars = dom.vars;
-    if isa(dvars,'polynomial'),  dvars = dvars.varname(:)';   end
-    if ischar(dvars),            dvars = {dvars};             end
-    dvars = reshape(dvars,1,[]);
-    if size(dom.dom,1)~=numel(dvars) || size(dom.dom,2)~=2
-        error("A 'struct' domain should pair each name in 'vars' with a row "...
-              +"of 'dom'.")
-    end
-    [tf_d,loc] = ismember(vars,dvars);
-    if ~all(tf_d)
-        error("No domain was given for the variable '"...
-              +string(vars{find(~tf_d,1)})+"'.")
-    end
-    dom = dom.dom(loc,:);
-end
-if nv==0
-    dom = zeros(0,2);
-else
-    if size(dom,2)~=2
-        error("Domains should be specified as an nv x 2 array.")
-    end
-    if size(dom,1)==1 && nv~=1
-        dom = repmat(dom,nv,1);
-    elseif size(dom,1)~=nv
-        error("Domains should be specified as an nv x 2 array for nv "...
-              +"registry variables.")
-    end
-    if any(dom(:,2)<=dom(:,1))
-        error("Each domain should satisfy dom(d,1) < dom(d,2).")
-    end
-end
+% % % END change MMP, 09/30/2026 (parser)                                   % MMP, 09/30/2026
 
 % % % Options
 if nargin<6 || isempty(options)
@@ -460,7 +393,10 @@ for k = 1:M
     for t = 1:nk
         if sep(own{k}(t)),  vals{t} = [1,4];  else,  vals{t} = [1,2,3];  end
     end
-    A = alpha_grid(vals);
+%   A = alpha_grid(vals);                                                   % MMP, 09/30/2026 (was)
+    % Shared enumeration, direction 1 fastest (Sec. 9.1 multi-indices): a   % MMP, 09/30/2026
+    % linear 'include' index means the same here and in 'sopquadvar'.       % MMP, 09/30/2026
+    A = multiindex_grid(vals);                                              % MMP, 09/30/2026
     A = alpha_select(A,incl{k},nk,k);
     if size(A,1)==0
         error("At least one basis operator must be included for space "...
@@ -791,24 +727,9 @@ Pop = cdopvar(Cblk);
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function A = alpha_grid(vals)
-% Every multi-index obtainable by picking one entry of vals{d} per direction,
-% with direction 1 varying fastest - the layout 'sopquadvar' produces, so a
-% linear 'include' index means the same thing in both.
-
-nd = numel(vals);
-szv = cellfun(@numel,vals);
-nall = prod([szv,1]);
-A = zeros(nall,nd);
-rep = 1;
-for d = 1:nd
-    col = reshape(repmat(reshape(vals{d},1,[]),rep,1),[],1);
-    A(:,d) = repmat(col,nall/(rep*szv(d)),1);
-    rep = rep*szv(d);
-end
-
-end
+% MMP, 09/30/2026: deleted the local function 'alpha_grid' (initial coding  % MMP, 09/30/2026
+% 09/21/2026, no later markers), now 'multiindex_grid' (misc/conventions),  % MMP, 09/30/2026
+% whose body is alpha_grid's.                                               % MMP, 09/30/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -917,6 +838,9 @@ tr = tr(:);     tc = tc(:);     tw = tw(:);
 % Split the transfer's output index into the three groups, each with the
 % lowest-numbered direction slowest so that it matches a per-variable
 % monomial cell built in registry order.
+% The split is the kron order of 'kron_split' (misc/conventions), kept      % MMP, 09/30/2026
+% inline: the helper calls made this function 5 us (2%) slower per call,   % MMP, 09/30/2026
+% measured on 51 captured w3 calls, and it runs 3248 times per w3 build.    % MMP, 09/30/2026
 ns = numel(tr);
 sub = zeros(ns,nv);
 rem = tr-1;

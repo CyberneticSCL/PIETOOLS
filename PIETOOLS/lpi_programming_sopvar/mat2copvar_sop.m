@@ -86,10 +86,16 @@ function Pop = mat2copvar_sop(Mat,dims,spaces,dom,options)
 %                spaces, replacing opvar2copvar(mat2opvar(...)), which has
 %                no N-D route. The work is in 'mat2copvar_grid' (sopvar/
 %                misc), which the classes' dpvar branches share.
+% MMP, 09/30/2026: Read the spaces with the shared 'parse_copvar_spaces'
+%                (sopvar/misc/conventions); 'private/spaces2meta_sop', a
+%                verbatim copy of the same parser, is deleted. Same meta on
+%                every input; a non-cell space list now raises the parser's
+%                message instead of MATLAB's brace-indexing error.
 
 if nargin<5 || isempty(options),    options = struct();     end
 mult_only = isfield(options,'mult_only') && options.mult_only;
-meta = spaces2meta_sop(dims,spaces,dom);
+% meta = spaces2meta_sop(dims,spaces,dom);                                  % MMP, 09/30/2026 (was)
+meta = parse_copvar_spaces(dims,spaces,dom);                                % MMP, 09/30/2026
 Pop = mat2copvar_grid(Mat,meta,mult_only);
 
 end

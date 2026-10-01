@@ -98,6 +98,12 @@ function C = plus(A,B)
 %                  instead of 'private/put_on_list', deleted (no caller since
 %                  09/26/2026). The '(was)' lines below that call it are
 %                  history. Comment only.
+% MMP, 09/30/2026: The reconciliation calls 'merge_dvar_pair' (new, private),
+%                  the two-operand wrapper of 'merge_dvar_lists' that this
+%                  file and 'mtimes' each carried inline. It reads each list
+%                  as stored, where A.Zd(:) and B.Zd(:) made up to 5 q-length
+%                  copies per sum (measured 12.3 ms each at q = 1.07e6).
+%                  Same union, same blocks, same result.
 
 % dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
 % the container checks below.                                               % MMP, 09/29/2026
@@ -134,19 +140,16 @@ end
 % (was) 'put_on_list' for why doing it as a by-product of the loop is wrong. % MMP, 09/30/2026 (was)
 % 'merge_dvar_lists' for why doing it as a by-product of the loop is wrong. % MMP, 09/30/2026
 % Merging first also puts every block addition below on its fast lane.
-CA = A.C;   CB = B.C;   Zd = A.Zd(:);
-if ~isequal(A.Zd(:),B.Zd(:))
+% CA = A.C;   CB = B.C;   Zd = A.Zd(:);                                     % MMP, 09/30/2026 (was)
+% if ~isequal(A.Zd(:),B.Zd(:))                                              % MMP, 09/30/2026 (was)
 %     Zd = unique([A.Zd(:);B.Zd(:)],'stable');                              % MMP, 09/25/2026 (was)
 %     CA = put_on_list(CA,Zd);                                              % MMP, 09/25/2026 (was)
 %     CB = put_on_list(CB,Zd);                                              % MMP, 09/25/2026 (was)
-    % Both grids as one, operand 1 = A and 2 = B, so the one sort in        % MMP, 09/25/2026
-    % 'merge_dvar_lists' yields both row maps.                              % MMP, 09/25/2026
-    nA = numel(CA);                                                         % MMP, 09/25/2026
-    src = [ones(1,nA), 2*ones(1,numel(CB))];                                % MMP, 09/25/2026
-    [Cab,Zd] = merge_dvar_lists([CA(:);CB(:)]',{A.Zd(:),B.Zd(:)},src);      % MMP, 09/25/2026
-    CA = reshape(Cab(1:nA),size(CA));                                       % MMP, 09/25/2026
-    CB = reshape(Cab(nA+1:end),size(CB));                                   % MMP, 09/25/2026
-end
+% Deleted MMP, 09/30/2026: the rest of this 'if' (09/25/2026: both grids    % MMP, 09/30/2026
+% as one, operand 1 = A and 2 = B, one 'merge_dvar_lists' call on           % MMP, 09/30/2026
+% {A.Zd(:),B.Zd(:)}) and its 'end'. It is now 'merge_dvar_pair', shared     % MMP, 09/30/2026
+% with 'mtimes', which reads no list through a q-length (:) copy.           % MMP, 09/30/2026
+[CA,CB,Zd] = merge_dvar_pair(A.C,B.C,A.Zd,B.Zd);                            % MMP, 09/30/2026
 
 Cc = cell(size(CA));
 for ii = 1:numel(Cc)

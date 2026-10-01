@@ -132,6 +132,13 @@ function C = mtimes(A,B)
 %                  components. Before, dpvar*P reached the dpvar's method and
 %                  failed. Numeric factors and the composition body are
 %                  unchanged.
+% MMP, 09/30/2026: The reconciliation calls 'merge_dvar_pair' (new, private),
+%                  the two-operand wrapper of 'merge_dvar_lists' that this
+%                  file and 'plus' each carried inline. It reads each list as
+%                  stored, where A.Zd(:) and B.Zd(:) made 2 or 3 q-length
+%                  copies per product (the "+6 MB" of the 09/26/2026 entry).
+%                  Same union, same blocks, same result. 'put_on_list', in
+%                  the '(was)' lines, is deleted (no caller since 09/26/2026).
 
 % dpvar factor: the constant multiplier of legacy @dopvar/mtimes. Before    % MMP, 09/29/2026
 % any work, so the composition below is untouched.                          % MMP, 09/29/2026
@@ -195,21 +202,19 @@ end
 
 % Reconcile the decision variables once for the whole composition, so that
 % none of the K*M*N products merges a name list of its own.
-CA = A.C;   CB = B.C;   Zd = A.Zd(:);
-if ~isequal(A.Zd(:),B.Zd(:))
+% CA = A.C;   CB = B.C;   Zd = A.Zd(:);                                     % MMP, 09/30/2026 (was)
+% if ~isequal(A.Zd(:),B.Zd(:))                                              % MMP, 09/30/2026 (was)
 %     Zd = unique([A.Zd(:);B.Zd(:)],'stable');                              % MMP, 09/26/2026 (was)
 %     CA = put_on_list(CA,Zd);                                              % MMP, 09/26/2026 (was)
 %     CB = put_on_list(CB,Zd);                                              % MMP, 09/26/2026 (was)
-    % The fixed factor's promoted list is empty, so only the decision       % MMP, 09/26/2026
-    % factor owns sdopvar blocks: 'merge_dvar_lists' keeps its list and     % MMP, 09/26/2026
-    % points the blocks at it, O(blocks), no sort. Both grids as one,       % MMP, 09/26/2026
-    % operand 1 = A and 2 = B, as in 'plus'.                                % MMP, 09/26/2026
-    nA = numel(CA);                                                         % MMP, 09/26/2026
-    src = [ones(1,nA), 2*ones(1,numel(CB))];                                % MMP, 09/26/2026
-    [Cab,Zd] = merge_dvar_lists([CA(:);CB(:)]',{A.Zd(:),B.Zd(:)},src);      % MMP, 09/26/2026
-    CA = reshape(Cab(1:nA),size(CA));                                       % MMP, 09/26/2026
-    CB = reshape(Cab(nA+1:end),size(CB));                                   % MMP, 09/26/2026
-end
+% Deleted MMP, 09/30/2026: the rest of this 'if' (09/26/2026: both grids    % MMP, 09/30/2026
+% as one, operand 1 = A and 2 = B, one 'merge_dvar_lists' call on           % MMP, 09/30/2026
+% {A.Zd(:),B.Zd(:)}) and its 'end'. It is now 'merge_dvar_pair', shared     % MMP, 09/30/2026
+% with 'plus', which reads no list through a q-length (:) copy. The fixed   % MMP, 09/30/2026
+% factor's promoted list is empty, so only the decision factor owns         % MMP, 09/30/2026
+% sdopvar blocks: 'merge_dvar_lists' keeps its list and points the blocks   % MMP, 09/30/2026
+% at it, O(blocks), no sort.                                                % MMP, 09/30/2026
+[CA,CB,Zd] = merge_dvar_pair(A.C,B.C,A.Zd,B.Zd);                            % MMP, 09/30/2026
 
 Cc = cell(M,N);
 terms = cell(1,K);

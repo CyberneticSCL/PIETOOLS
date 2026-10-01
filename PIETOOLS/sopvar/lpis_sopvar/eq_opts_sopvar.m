@@ -87,6 +87,19 @@ function [opts,report] = eq_opts_sopvar(Dop,opts,ztol)
 %                  contributes only identically-zero equality rows. The
 %                  'opvar2d' path has 'get_eq_opts_2D' for this; 'sopvar'
 %                  had nothing.
+% MMP, 09/30/2026: The parameter-cell <-> gamma map (Sec. 1 and 4 of
+%                  sopvar_implementation_notes.pdf; direction 1 fastest)
+%                  and the multi-index enumerations
+%                  call the shared 'gamma_of_cell', 'cell_of_gamma' and
+%                  'multiindex_grid' (sopvar/misc/conventions); the locals
+%                  gamma_of and lin_of, and the kron loops of reach and
+%                  enum_alpha, are gone. The cell order is load-bearing: the
+%                  'include' rows emitted here are read by 'copquadvar' and
+%                  'sopquadvar', so all three must enumerate alike; the
+%                  helper states that order once.
+%                  Same output on every input that ran before; at n3 = 0
+%                  (no shared variable) reach and enum_alpha now return
+%                  cell 1 and the empty multi-index where they errored.
 
 if nargin<2 || isempty(opts)
     opts = struct();
@@ -132,10 +145,12 @@ for kdir = 1:n3
     if sepv(kdir), continue, end
     ok = true;
     for k = 1:ncell
-        g = gamma_of(k,n3);
+%       g = gamma_of(k,n3);                                                 % MMP, 09/30/2026 (was)
+        g = gamma_of_cell(k,n3);                                            % MMP, 09/30/2026
         if g(kdir)~=2, continue, end
         g3 = g;  g3(kdir) = 3;
-        if celldiff(Dop,k,lin_of(g3,n3)) > ztol
+%       if celldiff(Dop,k,lin_of(g3,n3)) > ztol                             % MMP, 09/30/2026 (was)
+        if celldiff(Dop,k,cell_of_gamma(g3)) > ztol                         % MMP, 09/30/2026
             ok = false;  break
         end
     end
@@ -196,15 +211,17 @@ for k = 1:n3
         sets{k} = [2 3];
     end
 end
-G = sets{1}(:);
-for k = 2:n3
-    G = [kron(ones(numel(sets{k}),1),G), ...
-         kron(sets{k}(:),ones(size(G,1),1))];
-end
-C = zeros(size(G,1),1);
-for r = 1:size(G,1)
-    C(r) = lin_of(G(r,:),n3);
-end
+% G = sets{1}(:);                                                           % MMP, 09/30/2026 (was)
+% for k = 2:n3                                                              % MMP, 09/30/2026 (was)
+%     G = [kron(ones(numel(sets{k}),1),G), ...
+%          kron(sets{k}(:),ones(size(G,1),1))];                             % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
+% C = zeros(size(G,1),1);                                                   % MMP, 09/30/2026 (was)
+% for r = 1:size(G,1)                                                       % MMP, 09/30/2026 (was)
+%     C(r) = lin_of(G(r,:),n3);                                             % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
+% The product set, direction 1 fastest, as linear cell indices (column).    % MMP, 09/30/2026
+C = cell_of_gamma(multiindex_grid(sets));                                   % MMP, 09/30/2026
 end
 
 
@@ -216,11 +233,12 @@ vals = cell(1,n3);
 for k = 1:n3
     if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end
 end
-A = vals{1}(:);
-for k = 2:n3
-    A = [kron(ones(numel(vals{k}),1),A), ...
-         kron(vals{k}(:),ones(size(A,1),1))];
-end
+% A = vals{1}(:);                                                           % MMP, 09/30/2026 (was)
+% for k = 2:n3                                                              % MMP, 09/30/2026 (was)
+%     A = [kron(ones(numel(vals{k}),1),A), ...
+%          kron(vals{k}(:),ones(size(A,1),1))];                             % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
+A = multiindex_grid(vals);                                                  % MMP, 09/30/2026
 end
 
 
@@ -274,17 +292,6 @@ if isempty(X), m = 0; else, m = full(max(abs([nonzeros(X);0]))); end
 end
 
 
-%%
-function g = gamma_of(k,n3)
-g = ones(1,n3);
-for t = 1:n3
-    g(t) = mod(floor((k-1)/3^(t-1)),3)+1;
-end
-end
-
-function k = lin_of(g,n3)
-k = 1;
-for t = 1:n3
-    k = k + (g(t)-1)*3^(t-1);
-end
-end
+% MMP, 09/30/2026: local functions gamma_of and lin_of (Initial coding
+% 09/21/2026, no line stamps) deleted: 'gamma_of_cell' and 'cell_of_gamma'
+% (sopvar/misc/conventions) compute the same map.

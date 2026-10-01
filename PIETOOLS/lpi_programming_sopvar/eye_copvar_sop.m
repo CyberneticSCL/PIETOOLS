@@ -53,8 +53,14 @@ function Iop = eye_copvar_sop(dims,spaces,dom)
 %
 % Initial coding MMP, 09/29/2026. Tier 1c: the Iw, Iz and eppos*I of the
 %                executives, without opvar2copvar(mat2opvar(...)).
+% MMP, 09/30/2026: Read the spaces with the shared 'parse_copvar_spaces'
+%                (sopvar/misc/conventions); 'private/spaces2meta_sop', a
+%                verbatim copy of the same parser, is deleted. Same meta on
+%                every input; a non-cell space list now raises the parser's
+%                message instead of MATLAB's brace-indexing error.
 
-meta = spaces2meta_sop(dims,spaces,dom);
+% meta = spaces2meta_sop(dims,spaces,dom);                                  % MMP, 09/30/2026 (was)
+meta = parse_copvar_spaces(dims,spaces,dom);                                % MMP, 09/30/2026
 if ~isequal(meta.space_out,meta.space_in) || ~isequal(meta.dim_out,meta.dim_in)
     error('eye_copvar_sop:notSquare',...
         'The identity needs the same spaces and dimensions in and out.')

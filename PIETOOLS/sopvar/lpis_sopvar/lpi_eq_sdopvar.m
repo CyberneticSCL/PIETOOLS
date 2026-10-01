@@ -147,6 +147,14 @@ function [prog,Eq] = lpi_eq_sdopvar(prog,P,opts,dvars_checked)              % MM
 %                  memory ~9 x 16 B x min(q + largest parameter, nnz) per
 %                  soseq plus one 16 B/nnz copy of the collected blocks.
 %                  Measured in 1-D and 2-D only.
+% MMP, 09/30/2026: The gamma of parameter k and the cell of its adjoint
+%                  (direction 1 fastest; Sec. 1 and 4 of
+%                  sopvar_implementation_notes.pdf) come from the
+%                  shared 'gamma_of_cell' and 'cell_of_gamma'
+%                  (sopvar/misc/conventions) instead of ind2sub/sub2ind over
+%                  sz_C, a map several files wrote locally. Same integers;
+%                  3.5 us less per parameter (4.2 -> 0.75 us per call,
+%                  measured standalone).
 
 
 % Internal batch form: P is the Eq output of earlier calls, possibly        % MMP, 09/26/2026
@@ -260,7 +268,7 @@ if nargin>=3 && ~isempty(opts)
     use_symmetry = true;
 end
 
-sz_C = [3*ones(1,n3),1];
+% sz_C = [3*ones(1,n3),1];                                                  % MMP, 09/30/2026 (was)
 
 % Constraint blocks of the parameters, collected for one soseq (see Eq).    % MMP, 09/26/2026
 Cs = cell(1,numel(params_A));                                               % MMP, 09/26/2026
@@ -284,20 +292,22 @@ for k=1:numel(params_A)
     end
 
     % Determine the multi-index of this parameter.
-    gam = ones(1,n3);
-    if n3>0
-        idcs = cell(1,n3);
-        [idcs{:}] = ind2sub(sz_C,k);
-        gam = cell2mat(idcs);
-    end
+%   gam = ones(1,n3);                                                       % MMP, 09/30/2026 (was)
+%   if n3>0                                                                 % MMP, 09/30/2026 (was)
+%       idcs = cell(1,n3);                                                  % MMP, 09/30/2026 (was)
+%       [idcs{:}] = ind2sub(sz_C,k);                                        % MMP, 09/30/2026 (was)
+%       gam = cell2mat(idcs);                                               % MMP, 09/30/2026 (was)
+%   end                                                                     % MMP, 09/30/2026 (was)
+    gam = gamma_of_cell(k,n3);      % 1 x n3; 1 x 0 at n3 = 0               % MMP, 09/30/2026
 
     % Under self-adjointness a lower integral pairs with an upper integral.
     if use_symmetry && n3>0
         adj = gam;
         adj(gam==2) = 3;
         adj(gam==3) = 2;
-        adj_cell = num2cell(adj);
-        if sub2ind(sz_C,adj_cell{:})<k
+%       adj_cell = num2cell(adj);                                           % MMP, 09/30/2026 (was)
+%       if sub2ind(sz_C,adj_cell{:})<k                                      % MMP, 09/30/2026 (was)
+        if cell_of_gamma(adj)<k                                             % MMP, 09/30/2026
             continue
         end
     end

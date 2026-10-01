@@ -85,6 +85,19 @@ function [C,meta,Zds,src] = cat_copvar_grid(dir,args,cls)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 09/30/2026: The registry merge and the mask remap call
+%                  'merge_copvar_registry' instead of carrying a verbatim
+%                  copy of its merge loop, which that file's NOTES recorded.
+%                  Same union, domains, masks, error identifier and message.
+%                  Difference: an operand not yet on the union is restated
+%                  in place (4 property writes through the overloaded
+%                  subsasgn, O(nv), flat in q), where this routine only read.
+%                  The equalities hold under the class invariant (sorted
+%                  1 x nv registry, logical masks). Operands that all share
+%                  one off-invariant registry (column or 0x0 'vars',
+%                  unsorted names, double masks) now keep it, as plus and
+%                  mtimes already did; the deleted loop rebuilt a sorted row
+%                  and logical masks. No library constructor builds one.
 
 if ~any(strcmp(dir,{'h','v','d'}))
     error('cat_copvar_grid:badDir',"'dir' must be 'h', 'v' or 'd'.")
@@ -140,41 +153,24 @@ if K==0
     return
 end
 
-% % % Merge the variable registries. Each is sorted and short (one entry
-% % % per spatial direction), so this is on the small axis.
-allv = cell(1,0);
-for k = 1:K
-    allv = [allv, reshape(args{k}.vars,1,[])];                     %#ok<AGROW>
-end
-vars = unique(allv);                        % sorted, as the registry must be
-vars = reshape(vars,1,[]);
-dom = nan(numel(vars),2);
-for k = 1:K
-    [~,loc] = ismember(args{k}.vars,vars);
-    for r = 1:numel(loc)
-        d = args{k}.dom(r,:);
-        if all(isnan(dom(loc(r),:)))
-            dom(loc(r),:) = d;
-        elseif any(dom(loc(r),:)~=d)
-            error([cls ':domConflict'],['Variable ''%s'' is on [%g,%g] in '...
-                'operand %d of %s and on [%g,%g] in an earlier operand.'],...
-                vars{loc(r)},d(1),d(2),k,opname,dom(loc(r),1),dom(loc(r),2))
-        end
-    end
-end
-nv = numel(vars);
-
-% % % Remap each operand's space masks onto the merged registry.
+% % % BEGIN merge replaced by MMP, 09/30/2026. Deleted: the registry merge
+% % % (sorted union, one domain per name, cls:domConflict) and the remap of
+% % % each operand's masks onto it (initial coding 09/25/2026), a verbatim
+% % % copy of the loop in 'merge_copvar_registry', which plus and mtimes
+% % % call. That routine now does both: every operand comes back on the
+% % % sorted union registry, masks remapped by name, same error and message.
+% % % Registries are sorted and short (one entry per spatial direction), so
+% % % this is on the small axis.
+[args{1:K}] = merge_copvar_registry(cls,opname,args{:});                    % MMP, 09/30/2026
+vars = args{1}.vars;        dom = args{1}.dom;                              % MMP, 09/30/2026
 S_out = cell(1,K);      S_in = cell(1,K);
 D_out = cell(1,K);      D_in = cell(1,K);
 for k = 1:K
     a = args{k};
-    [~,loc] = ismember(a.vars,vars);
-    so = false(size(a.C,1),nv);     so(:,loc) = a.space_out;
-    si = false(size(a.C,2),nv);     si(:,loc) = a.space_in;
-    S_out{k} = so;                  S_in{k} = si;
+    S_out{k} = a.space_out;         S_in{k} = a.space_in;                   % MMP, 09/30/2026
     D_out{k} = a.dim_out(:);        D_in{k} = a.dim_in(:);
 end
+% % % END merge replaced by MMP, 09/30/2026
 
 % % % Agreement checks, and the grid.
 switch dir

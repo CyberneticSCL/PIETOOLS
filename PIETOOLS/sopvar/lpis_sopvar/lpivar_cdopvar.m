@@ -73,8 +73,11 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % no 'sep' option: an operator separable in a direction is a restriction of
 % this family, and can be imposed with 'lpi_eq_cdopvar' if wanted.
 %
-% The domain parsing mirrors 'copquadvar', which does it inline, rather than
-% refactor that routine into a shared helper.
+% (was) The domain parsing mirrors 'copquadvar', which does it inline, rather than % MMP, 09/30/2026 (was)
+% (was) refactor that routine into a shared helper.                         % MMP, 09/30/2026 (was)
+% Spaces, dimensions and domains are read by 'parse_copvar_spaces'          % MMP, 09/30/2026
+% (sopvar/misc/conventions), the parser 'eye_copvar_sop', 'zeros_copvar_sop' % MMP, 09/30/2026
+% and 'mat2copvar_sop' also call.                                           % MMP, 09/30/2026
 %
 % Cost: O(number of decision variables) - one triplet per variable, one
 % 'sparse' per gamma cell, and one declaration for the whole container. The
@@ -115,6 +118,23 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  the container failed 'verify' and could not be rebuilt by
 %                  cdopvar(C), which read a row's space off a block. Costs
 %                  O(nC) of column pointers for that block, nothing in q.
+% MMP, 09/30/2026: Shared helpers of sopvar/misc/conventions replace local
+%                  copies of conventions that three to four files each
+%                  wrote: 'parse_copvar_spaces' reads spaces, dimensions,
+%                  sorted registry, reserved names and domains (its bodies
+%                  are this file's parse_spaces, norm_spaces and parse_dom,
+%                  which also lived verbatim in 'spaces2meta_sop');
+%                  'kron_strides', 'gamma_of_cell' and 'multiindex_grid'
+%                  give the Kronecker strides, the gamma of a parameter cell
+%                  and the tensor indices (the cells: Sec. 1 and 4 of
+%                  sopvar_implementation_notes.pdf).
+%                  Locals strides, tensor_index, gamma_of, parse_spaces,
+%                  norm_spaces and parse_dom deleted. Same program bit for
+%                  bit (tr_ab, 91 SDP leaves over w1-w3). One message
+%                  changes: a non-cell space list, e.g. 5, now raises the
+%                  parser's "Spaces should be specified as a cell of
+%                  'cellstr' objects." instead of MATLAB's brace-indexing
+%                  error. NOTES line on 'copquadvar' replaced.
 
 if nargin<5 || isempty(deg),        deg = 1;            end
 if nargin<6 || isempty(options),    options = struct(); end
@@ -123,19 +143,25 @@ if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
 end
 
 % % % Spaces and dimensions
-[sp_out,sp_in,d_out,d_in] = parse_spaces(dims,spaces);
-M = numel(sp_out);      N = numel(sp_in);
+% [sp_out,sp_in,d_out,d_in] = parse_spaces(dims,spaces);                    % MMP, 09/30/2026 (was)
+% M = numel(sp_out);      N = numel(sp_in);                                 % MMP, 09/30/2026 (was)
 
 % % % Registry, sorted, as the containers and 'poscopvar' keep it: an
 % sdopvar indexes its gamma cells over S3 in sorted order, and with a sorted
 % registry every space and shared set is already sorted.
-vars = reshape(unique([sp_out{:}, sp_in{:}]),1,[]);     nv = numel(vars);
-is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));
-if any(is_reserved)
-    error("Spatial variable names may not end in '_int' or '_dum'; "...
-          +"'"+string(vars{find(is_reserved,1)})+"' does.")
-end
-dom = parse_dom(dom,vars);
+% vars = reshape(unique([sp_out{:}, sp_in{:}]),1,[]);     nv = numel(vars); % MMP, 09/30/2026 (was)
+% is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));       % MMP, 09/30/2026 (was)
+% if any(is_reserved)                                                       % MMP, 09/30/2026 (was)
+%     error("Spatial variable names may not end in '_int' or '_dum'; "...
+%           +"'"+string(vars{find(is_reserved,1)})+"' does.")               % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
+% dom = parse_dom(dom,vars);                                                % MMP, 09/30/2026 (was)
+% One shared parser for these inputs; same values and errors, in the same   % MMP, 09/30/2026
+% order: spaces, dims, reserved '_int'/'_dum' names, domain.                % MMP, 09/30/2026
+[meta,sp_out,sp_in] = parse_copvar_spaces(dims,spaces,dom);                 % MMP, 09/30/2026
+M = numel(sp_out);      N = numel(sp_in);                                   % MMP, 09/30/2026
+vars = meta.vars;       dom = meta.dom;                                     % MMP, 09/30/2026
+d_out = meta.dim_out;   d_in = meta.dim_in;                                 % MMP, 09/30/2026
 
 % % % Occupancy and degrees
 occ = true(M,N);
@@ -208,11 +234,14 @@ end
 
 % % % The container, with its metadata stated: a structurally zero block
 % % % leaves nothing to derive a row's or column's space from.
-so = false(M,nv);       si = false(N,nv);
-for i = 1:M,    so(i,:) = ismember(vars,sp_out{i});    end
-for j = 1:N,    si(j,:) = ismember(vars,sp_in{j});     end
-meta = struct('vars',{vars},'dom',dom,'space_out',so,'space_in',si,...
-    'dim_out',d_out(:),'dim_in',d_in(:),'Zd',{Zd});
+% so = false(M,nv);       si = false(N,nv);                                 % MMP, 09/30/2026 (was)
+% for i = 1:M,    so(i,:) = ismember(vars,sp_out{i});    end                % MMP, 09/30/2026 (was)
+% for j = 1:N,    si(j,:) = ismember(vars,sp_in{j});     end                % MMP, 09/30/2026 (was)
+% meta = struct('vars',{vars},'dom',dom,'space_out',so,'space_in',si,...
+%     'dim_out',d_out(:),'dim_in',d_in(:),'Zd',{Zd});                       % MMP, 09/30/2026 (was)
+% The parser's meta holds these fields already, in this order; Zd is added  % MMP, 09/30/2026
+% last, as before. The assignment shares Zd, it does not copy q names.      % MMP, 09/30/2026
+meta.Zd = Zd;                                                               % MMP, 09/30/2026
 Pop = cdopvar(C,meta);
 
 end
@@ -238,12 +267,14 @@ ZR = [repmat({(0:dg.int(2))'},1,n3), repmat({(0:dg.in)'},1,n1)];
 nL = cellfun(@numel,ZL);    nR = cellfun(@numel,ZR);
 NL = prod([nL,1]);          NR = prod([nR,1]);
 nrow = m*NL;                nC = nrow*n*NR;
-sL = strides(nL);           sR = strides(nR);
+% sL = strides(nL);           sR = strides(nR);                             % MMP, 09/30/2026 (was)
+sL = kron_strides(nL);      sR = kron_strides(nR);                          % MMP, 09/30/2026
 
 ncell = 3^n3;
 pos = cell([3*ones(1,n3),1,1]);
 for g = 1:ncell
-    gam = gamma_of(g,n3);
+%   gam = gamma_of(g,n3);                                                   % MMP, 09/30/2026 (was)
+    gam = gamma_of_cell(g,n3);      % direction 1 fastest, as the class     % MMP, 09/30/2026
     % Admissible left and right monomials, per variable, as 0-based indices.
     iL = cell(1,n2+n3);
     for p = 1:n2,   iL{p} = 0:nL(p)-1;      end
@@ -257,7 +288,10 @@ for g = 1:ncell
         iR{t} = find(ZR{t}<=cap)'-1;
     end
     for p = 1:n1,   iR{n3+p} = 0:nR(n3+p)-1;    end
-    a = tensor_index(iL,sL);        b = tensor_index(iR,sR);
+%   a = tensor_index(iL,sL);        b = tensor_index(iR,sR);                % MMP, 09/30/2026 (was)
+    % 0-based Kronecker positions of the product set, variable 1 fastest in % MMP, 09/30/2026
+    % the enumeration (as tensor_index): exact integer arithmetic.          % MMP, 09/30/2026
+    a = multiindex_grid(iL)*sL(:);  b = multiindex_grid(iR)*sR(:);          % MMP, 09/30/2026
     % Coefficient rows are (component, left monomial) with the component
     % outer, columns (component, right monomial) likewise; vec is column
     % major - the layout 'canonicalize_multiplier' reads.
@@ -276,134 +310,12 @@ s.nC = nC;      s.pos = pos;
 end
 
 
-function st = strides(nvec)
-% Stride of each variable in kron(Z{1},...,Z{N}), first variable slowest.
-st = ones(1,numel(nvec));
-for k = numel(nvec)-1:-1:1,     st(k) = st(k+1)*nvec(k+1);   end
-end
-
-
-function lin = tensor_index(idx,st)
-% Linear 0-based indices of the tensor product of per-variable index sets.
-lin = 0;
-for p = 1:numel(idx)
-    lin = reshape(lin(:) + st(p)*reshape(idx{p},1,[]),[],1);
-end
-end
-
-
-function gam = gamma_of(g,n3)
-% The gamma multi-index of linear cell g, first direction fastest, as the
-% class's ind2sub over [3 ... 3] gives it.
-if n3==0,   gam = zeros(1,0);   return,     end
-c = cell(1,n3);
-[c{:}] = ind2sub([3*ones(1,n3),1],g);
-gam = cell2mat(c(1:n3));
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [so,si,dout,din] = parse_spaces(dims,spaces)
-% Output and input space lists, and component counts.
-if isstruct(spaces)
-    if ~isscalar(spaces)
-        error("'spaces' should be a single struct, not an array; struct() with "...
-              +"a cell value returns an array, so assign the fields instead.")
-    end
-    if ~isfield(spaces,'out')
-        error("A 'struct' spaces argument needs a field 'out'.")
-    end
-    so = norm_spaces(spaces.out);
-    if isfield(spaces,'in'),    si = norm_spaces(spaces.in);
-    else,                       si = so;
-    end
-else
-    so = norm_spaces(spaces);   si = so;
-end
-M = numel(so);      N = numel(si);
-if isstruct(dims)
-    dout = reshape(dims.out,[],1);
-    if isfield(dims,'in'),  din = reshape(dims.in,[],1);
-    else,                   din = dout;
-    end
-else
-    dout = reshape(dims,[],1);  din = dout;
-end
-if isscalar(dout),  dout = repmat(dout,M,1);    end
-if isscalar(din),   din = repmat(din,N,1);      end
-if numel(dout)~=M || numel(din)~=N
-    error("Dimensions should have one entry per space: %d output and %d input.",M,N)
-end
-if any([dout;din]<1) || any([dout;din]~=round([dout;din]))
-    error("Component counts should be positive integers.")
-end
-end
-
-
-function sp = norm_spaces(sp)
-% A plain cellstr is ONE space; otherwise a cell of cellstr, one per space.
-if isempty(sp),     sp = {cell(1,0)};   return,     end
-if iscellstr(sp) || ischar(sp) || isa(sp,'polynomial'),  sp = {sp};  end
-sp = reshape(sp,1,[]);
-for k = 1:numel(sp)
-    sk = sp{k};
-    if isa(sk,'polynomial'),            sk = sk.varname(:)';    end
-    if ischar(sk),                      sk = {sk};              end
-    if isnumeric(sk) && isempty(sk),    sk = cell(1,0);         end
-    if ~iscellstr(sk)
-        error("Space %d should be a 'cellstr' of variable names; an empty "...
-              +"one is the finite-dimensional space R^q.",k)
-    end
-    sk = reshape(sk,1,[]);
-    if numel(unique(sk))~=numel(sk)
-        error("Space %d repeats a variable name.",k)
-    end
-    sp{k} = sk;
-end
-end
-
-
-function dom = parse_dom(dom,vars)
-% As 'copquadvar': nv x 2 in registry order, one 1 x 2 row for all, or a
-% struct pairing names with intervals.
-nv = numel(vars);
-if isa(dom,'struct')
-    if ~isfield(dom,'vars') || ~isfield(dom,'dom')
-        error("A 'struct' domain should have fields 'vars' and 'dom'.")
-    end
-    if ~isscalar(dom)
-        error("A 'struct' domain should be a single struct, not an array; "...
-              +"struct() with a cell value returns an array.")
-    end
-    dvars = dom.vars;
-    if isa(dvars,'polynomial'),  dvars = dvars.varname(:)';   end
-    if ischar(dvars),            dvars = {dvars};             end
-    dvars = reshape(dvars,1,[]);
-    if size(dom.dom,1)~=numel(dvars) || size(dom.dom,2)~=2
-        error("A 'struct' domain should pair each name in 'vars' with a row of 'dom'.")
-    end
-    [tf,loc] = ismember(vars,dvars);
-    if ~all(tf)
-        error("No domain was given for the variable '"+string(vars{find(~tf,1)})+"'.")
-    end
-    dom = dom.dom(loc,:);
-end
-if nv==0
-    dom = zeros(0,2);
-    return
-end
-if size(dom,2)~=2
-    error("Domains should be specified as an nv x 2 array.")
-end
-if size(dom,1)==1 && nv~=1
-    dom = repmat(dom,nv,1);
-elseif size(dom,1)~=nv
-    error("Domains should be an nv x 2 array for the %d registry variables.",nv)
-end
-if any(dom(:,2)<=dom(:,1))
-    error("Each domain should satisfy dom(d,1) < dom(d,2).")
-end
-end
+% MMP, 09/30/2026: local functions strides, tensor_index and gamma_of (Initial
+% coding 09/25/2026, no line stamps) deleted, replaced by the shared
+% kron_strides, multiindex_grid and gamma_of_cell (sopvar/misc/conventions),
+% which reproduce them exactly (test_index_maps (B) holds verbatim copies).
+% Local functions parse_spaces, norm_spaces and parse_dom (Initial coding
+% 09/25/2026) deleted, moved verbatim into parse_copvar_spaces.
 
 
 function degs = parse_deg(deg,M,N)

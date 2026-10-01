@@ -96,6 +96,15 @@ function [Tcell,ZLnew,ZRnew] = canonical_adjoint_map(vars,ZL,ZR,dims)
 % authorship, and a brief description of modifications
 %
 % MMP, 08/29/2026: Initial coding
+% MMP, 09/30/2026: Index conventions from the shared helpers in
+%                  sopvar/misc/conventions: gamma_of_cell for the cell
+%                  multi-index (was ind2sub + cell2mat), kron_strides,
+%                  kron_split, monomial_position_map, monomial_position (were
+%                  the local strides_of, split_index, degree_lookup, lookup,
+%                  now deleted), because the Kronecker helpers were copied
+%                  in five files and two copies had diverged. The helpers
+%                  are this file's copies verbatim, messages included, so
+%                  outputs and errors are unchanged.
 
 vin  = reshape(vars.in,1,[]);
 vout = reshape(vars.out,1,[]);
@@ -153,17 +162,22 @@ nRnew = cellfun(@numel,ZRnew);      NRnew = prod([nRnew,1]);
 
 % Monomials are ordered as ZL(x) = x_1^ZL{1} o ... o x_N^ZL{N}, so the first
 % variable is the slowest index.
-sLold = strides_of(nLold);      sRold = strides_of(nRold);
-sLnew = strides_of(nLnew);      sRnew = strides_of(nRnew);
+% sLold = strides_of(nLold);      sRold = strides_of(nRold);                % MMP, 09/30/2026 (was)
+% sLnew = strides_of(nLnew);      sRnew = strides_of(nRnew);                % MMP, 09/30/2026 (was)
+% The index helpers are the shared ones of sopvar/misc/conventions.         % MMP, 09/30/2026
+sLold = kron_strides(nLold);    sRold = kron_strides(nRold);                % MMP, 09/30/2026
+sLnew = kron_strides(nLnew);    sRnew = kron_strides(nRnew);                % MMP, 09/30/2026
 
 % Degree-to-index lookups, used to place a degree in the adjoint bases.
 mapLnew = cell(1,Ni);
 for p = 1:Ni
-    mapLnew{p} = degree_lookup(ZLnew{p});
+%   mapLnew{p} = degree_lookup(ZLnew{p});                                   % MMP, 09/30/2026 (was)
+    mapLnew{p} = monomial_position_map(ZLnew{p});                           % MMP, 09/30/2026
 end
 mapRnew = cell(1,No);
 for r = 1:No
-    mapRnew{r} = degree_lookup(ZRnew{r});
+%   mapRnew{r} = degree_lookup(ZRnew{r});                                   % MMP, 09/30/2026 (was)
+    mapRnew{r} = monomial_position_map(ZRnew{r});                           % MMP, 09/30/2026
 end
 
 nrow_old = m*NLold;     ncol_old = n*NRold;     nC_old = nrow_old*ncol_old;
@@ -173,12 +187,13 @@ sz_C = [3*ones(1,n3),1];
 Tcell = cell(sz_C);
 
 for k = 1:3^n3
-    gam = ones(1,n3);
-    if n3>0
-        idcs = cell(1,n3);
-        [idcs{:}] = ind2sub(sz_C,k);
-        gam = cell2mat(idcs);
-    end
+%   gam = ones(1,n3);                                                       % MMP, 09/30/2026 (was)
+%   if n3>0                                                                 % MMP, 09/30/2026 (was)
+%       idcs = cell(1,n3);                                                  % MMP, 09/30/2026 (was)
+%       [idcs{:}] = ind2sub(sz_C,k);                                        % MMP, 09/30/2026 (was)
+%       gam = cell2mat(idcs);                                               % MMP, 09/30/2026 (was)
+%   end                                                                     % MMP, 09/30/2026 (was)
+    gam = gamma_of_cell(k,n3);      % 1 x 0 when n3 = 0, as ones(1,0) was   % MMP, 09/30/2026
     is_mult = (gam==1);
 
     % % % Only source columns whose ZR degree is zero in every multiplier
@@ -209,8 +224,10 @@ for k = 1:3^n3
 
     src = (jG*NRold + bG)*nrow_old + (iG*NLold + aG) + 1;
 
-    alpha = split_index(aG,sLold);      % zero based, per variable
-    beta  = split_index(bG,sRold);
+%   alpha = split_index(aG,sLold);      % zero based, per variable          % MMP, 09/30/2026 (was)
+%   beta  = split_index(bG,sRold);                                          % MMP, 09/30/2026 (was)
+    alpha = kron_split(aG,sLold);       % zero based, per variable          % MMP, 09/30/2026
+    beta  = kron_split(bG,sRold);                                           % MMP, 09/30/2026
 
     % % % Left index of the adjoint, over vars.in. A multiplier direction
     % % % keeps the degree it had on the left; every other direction takes
@@ -223,7 +240,9 @@ for k = 1:3^n3
         else
             deg = ZR{p}(beta(:,p)+1);
         end
-        aStar = aStar + sLnew(p)*lookup(mapLnew{p},deg);
+%       aStar = aStar + sLnew(p)*lookup(mapLnew{p},deg);                    % MMP, 09/30/2026 (was)
+        aStar = aStar + sLnew(p)*monomial_position(mapLnew{p},deg, ...
+                                               "Adjoint monomial basis");   % MMP, 09/30/2026
     end
 
     % % % Right index of the adjoint, over vars.out. A multiplier direction
@@ -236,7 +255,9 @@ for k = 1:3^n3
         else
             deg = ZL{r}(alpha(:,r)+1);
         end
-        bStar = bStar + sRnew(r)*lookup(mapRnew{r},deg);
+%       bStar = bStar + sRnew(r)*lookup(mapRnew{r},deg);                    % MMP, 09/30/2026 (was)
+        bStar = bStar + sRnew(r)*monomial_position(mapRnew{r},deg, ...
+                                               "Adjoint monomial basis");   % MMP, 09/30/2026
     end
 
     dest = (iG*NRnew + bStar)*nrow_new + (jG*NLnew + aStar) + 1;
@@ -248,64 +269,7 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s = strides_of(nvec)
-% Stride of each variable in kron(Z{1},...,Z{N}), first variable slowest.
-
-N = numel(nvec);
-s = ones(1,N);
-for k = N-1:-1:1
-    s(k) = s(k+1)*nvec(k+1);
-end
-
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function a = split_index(idx,stride)
-% Split a zero-based monomial index into zero-based per-variable indices.
-
-N = numel(stride);
-a = zeros(numel(idx),N);
-rem = idx(:);
-for k = 1:N
-    a(:,k) = floor(rem/stride(k));
-    rem = rem - a(:,k)*stride(k);
-end
-
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function map = degree_lookup(Zvec)
-% Position of a degree within a basis, as a zero-based index, stored as a
-% direct lookup table over the shifted degree.
-
-d = double(Zvec(:));
-if isempty(d)
-    map = zeros(0,1);
-    return
-end
-if any(d<0) || any(d~=round(d))
-    error("Monomial exponents should be nonnegative integers.")
-end
-map = -ones(max(d)+1,1);
-map(d+1) = 0:numel(d)-1;
-
-end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out = lookup(map,deg)
-% Position of each requested degree in a basis, as a zero-based index.
-
-deg = double(deg(:));
-out = -ones(numel(deg),1);
-in_range = deg>=0 & deg==round(deg) & deg+1<=numel(map);
-out(in_range) = map(deg(in_range)+1);
-bad = find(out<0,1);
-if ~isempty(bad)
-    error("Adjoint monomial basis does not contain degree "...
-          +num2str(deg(bad))+"; the bases were not enlarged correctly.")
-end
-
-end
+% Deleted: the local functions strides_of, split_index, degree_lookup and   % MMP, 09/30/2026
+% lookup (initial coding 08/29/2026, no later stamps), now kron_strides,    % MMP, 09/30/2026
+% kron_split, monomial_position_map and monomial_position in                % MMP, 09/30/2026
+% sopvar/misc/conventions, with the same bodies and messages.               % MMP, 09/30/2026

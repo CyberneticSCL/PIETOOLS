@@ -97,6 +97,17 @@ function [deg,report] = degbalance_core(P,opts)
 %                  n-variate in form -- halve the per-subset maximal degree
 %                  array -- so what was missing was reading that array off
 %                  an 'sopvar', which has no 'getdeg'.
+% MMP, 09/30/2026: The degree tables, the gamma enumeration of 'reach' and
+%                  'enum_alpha' use the shared helpers multiindex_grid and
+%                  cell_of_gamma (sopvar/misc/conventions); the local
+%                  degree_table is deleted. The same grids were written out
+%                  in five files, and this degree_table and monomial_gather's
+%                  had diverged. Same values in the same order on every
+%                  input the old code accepted, so deg and report are
+%                  unchanged. Degenerate inputs differ: an operator with no
+%                  shared variable (n3 = 0) now fails later, at a(1), not at
+%                  vals{1}; an empty basis before a nonempty one gives an
+%                  empty table, where the old table lost a column.
 
 if nargin<2 || isempty(opts)
     opts = struct();
@@ -132,8 +143,11 @@ deg = cell(1,size(incl,1));
 
 % Degree tables of the two bases: row t of DL gives the degree of composite
 % ZL monomial t in each output variable, first direction outermost.
-DL = degree_table(P.ZL);
-DR = degree_table(P.ZR);
+% DL = degree_table(P.ZL);                                                  % MMP, 09/30/2026 (was)
+% DR = degree_table(P.ZR);                                                  % MMP, 09/30/2026 (was)
+% The shared kron-order grid (sopvar/misc/conventions) is the degree table. % MMP, 09/30/2026
+DL = multiindex_grid(P.ZL,'first_slowest');                                 % MMP, 09/30/2026
+DR = multiindex_grid(P.ZR,'first_slowest');                                 % MMP, 09/30/2026
 
 for r = 1:size(incl,1)
     a = incl(r,:);
@@ -220,16 +234,8 @@ end
 
 
 %%
-function D = degree_table(Z)
-% One row per composite monomial of kron(Z{1},...,Z{N}), one column per
-% direction, FIRST direction outermost -- the convention 'monomial_gather'
-% documents and the class stores.
-D = zeros(1,0);
-for k = 1:numel(Z)
-    D = [kron(D,ones(numel(Z{k}),1)), ...
-         kron(ones(max(size(D,1),1),1),Z{k}(:))];
-end
-end
+% Deleted: the local function degree_table (initial coding 09/21/2026, no   % MMP, 09/30/2026
+% later stamps), now multiindex_grid(Z,'first_slowest').                    % MMP, 09/30/2026
 
 
 %%
@@ -240,17 +246,19 @@ sets = cell(1,n3);
 for k = 1:n3
     if a(k)==1, sets{k} = 1; else, sets{k} = [2 3]; end
 end
-G = sets{1}(:);
-for k = 2:n3
-    G = [kron(ones(numel(sets{k}),1),G), ...
-         kron(sets{k}(:),ones(size(G,1),1))];
-end
-C = zeros(size(G,1),1);
-for r = 1:size(G,1)
-    k = 1;
-    for t = 1:n3, k = k + (G(r,t)-1)*3^(t-1); end
-    C(r) = k;
-end
+% G = sets{1}(:);                                                           % MMP, 09/30/2026 (was)
+% for k = 2:n3                                                              % MMP, 09/30/2026 (was)
+%     G = [kron(ones(numel(sets{k}),1),G), ...
+%          kron(sets{k}(:),ones(size(G,1),1))];                             % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
+% C = zeros(size(G,1),1);                                                   % MMP, 09/30/2026 (was)
+% for r = 1:size(G,1)                                                       % MMP, 09/30/2026 (was)
+%     k = 1;                                                                % MMP, 09/30/2026 (was)
+%     for t = 1:n3, k = k + (G(r,t)-1)*3^(t-1); end                         % MMP, 09/30/2026 (was)
+%     C(r) = k;                                                             % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
+% Every gamma in the product of the sets, direction 1 fastest, as cells.    % MMP, 09/30/2026
+C = cell_of_gamma(multiindex_grid(sets));                                   % MMP, 09/30/2026
 end
 
 
@@ -260,11 +268,12 @@ vals = cell(1,n3);
 for k = 1:n3
     if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end
 end
-A = vals{1}(:);
-for k = 2:n3
-    A = [kron(ones(numel(vals{k}),1),A), ...
-         kron(vals{k}(:),ones(size(A,1),1))];
-end
+% A = vals{1}(:);                                                           % MMP, 09/30/2026 (was)
+% for k = 2:n3                                                              % MMP, 09/30/2026 (was)
+%     A = [kron(ones(numel(vals{k}),1),A), ...
+%          kron(vals{k}(:),ones(size(A,1),1))];                             % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
+A = multiindex_grid(vals);          % direction 1 fastest                   % MMP, 09/30/2026
 end
 
 

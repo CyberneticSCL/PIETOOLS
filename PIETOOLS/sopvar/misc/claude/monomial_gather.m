@@ -54,14 +54,27 @@ function p = monomial_gather(Z,ord)
 % Initial coding MMP, 09/09/2026: split out of 'canonical_var_order' so that
 %                  '@sopvar/mtimes' can use it to align two operands stored
 %                  in different canonical variable orders.
+% MMP, 09/30/2026: The degree tables come from the shared helper
+%                  multiindex_grid(Z,'first_slowest') (sopvar/misc/
+%                  conventions); the local degree_table is deleted. It was
+%                  one of five copies of this grid, and it differed from
+%                  degbalance_core's: a ROW exponent vector widened the
+%                  table instead of lengthening it. The helper reads every
+%                  exponent vector as a list. Identical on column bases,
+%                  which the classes store (CLAUDE.md sec. 5), so p is
+%                  unchanged there.
 
 if numel(Z)<=1 || isequal(ord(:).',1:numel(Z))
     p = (1:prod([cellfun(@numel,Z),1])).';
     return
 end
 
-Dold = degree_table(Z);
-Dnew = degree_table(Z(ord));
+% Dold = degree_table(Z);                                                   % MMP, 09/30/2026 (was)
+% Dnew = degree_table(Z(ord));                                              % MMP, 09/30/2026 (was)
+% Degree tables in kron order, first direction slowest: the shared grid     % MMP, 09/30/2026
+% of sopvar/misc/conventions.                                               % MMP, 09/30/2026
+Dold = multiindex_grid(Z,'first_slowest');                                  % MMP, 09/30/2026
+Dnew = multiindex_grid(Z(ord),'first_slowest');                             % MMP, 09/30/2026
 
 [tf,p] = ismember(Dnew,Dold(:,ord),'rows');
 if ~all(tf)
@@ -73,13 +86,5 @@ end
 
 
 %%
-function D = degree_table(Z)
-% One row per monomial of kron(Z{1},...,Z{N}), one column per direction,
-% first direction outermost. Same construction as 'UnionBasisMonomials'.
-
-D = zeros(1,0);
-for k = 1:numel(Z)
-    D = [kron(D,ones(size(Z{k}))), kron(ones(size(D,1),1),Z{k})];           %#ok<AGROW>
-end
-
-end
+% Deleted: the local function degree_table (initial coding 09/09/2026, no   % MMP, 09/30/2026
+% later stamps), now multiindex_grid(Z,'first_slowest').                    % MMP, 09/30/2026

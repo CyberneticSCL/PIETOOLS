@@ -176,6 +176,15 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 09/30/2026: The reserved-suffix check and the enumeration of the
+%                  basis multi-indices alpha (sopvar_implementation_notes.pdf
+%                  Sec. 9.1; direction 1 fastest)
+%                  call the shared 'check_reserved_names' and
+%                  'multiindex_grid' (sopvar/misc/conventions) instead of
+%                  inline copies of what 'copquadvar', 'lpivar_cdopvar',
+%                  'eq_opts_sopvar' and 'spaces2meta_sop' also wrote. Same
+%                  message, same alpha_all (test_index_maps (B) compares the
+%                  verbatim inline form).
 % MMP, 09/30/2026: 'lpis_sopvar/private/remap_dvars' deleted: no caller
 %                  since the 09/22/2026 entry below replaced its call (kept
 %                  there as a '(was)' line) by 'dvar_rows' plus a triplet
@@ -346,11 +355,12 @@ end
 % which other variables happen to be present.
 vars_int = strcat(vars,'_int');
 vars_dum = strcat(vars,'_dum');
-is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));
-if any(is_reserved)
-    error("Spatial variable names may not end in '_int' or '_dum'; "...
-          +"'"+string(vars{find(is_reserved,1)})+"' does.")
-end
+% is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));       % MMP, 09/30/2026 (was)
+% if any(is_reserved)                                                       % MMP, 09/30/2026 (was)
+%     error("Spatial variable names may not end in '_int' or '_dum'; "...
+%           +"'"+string(vars{find(is_reserved,1)})+"' does.")               % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
+check_reserved_names(vars);     % shared check, same message                % MMP, 09/30/2026
 
 % % % Domain
 if isempty(dom) && n3==0
@@ -435,15 +445,16 @@ vals = cell(1,n3);                                                          % MM
 for k = 1:n3                                                                % MMP, 09/12/2026
     if sep(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end                % MMP, 09/12/2026
 end                                                                         % MMP, 09/12/2026
-szv = cellfun(@numel,vals);                                                 % MMP, 09/12/2026
-nall = prod([szv,1]);                                                       % MMP, 09/12/2026
-alpha_all = zeros(nall,n3);                                                 % MMP, 09/12/2026
-rep = 1;                                                                    % MMP, 09/12/2026
-for k = 1:n3                                                                % MMP, 09/12/2026
-    col = reshape(repmat(vals{k},rep,1),[],1);                              % MMP, 09/12/2026
-    alpha_all(:,k) = repmat(col,nall/(rep*szv(k)),1);                       % MMP, 09/12/2026
-    rep = rep*szv(k);                                                       % MMP, 09/12/2026
-end                                                                         % MMP, 09/12/2026
+% szv = cellfun(@numel,vals);                                               % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+% nall = prod([szv,1]);                                                     % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+% alpha_all = zeros(nall,n3);                                               % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+% rep = 1;                                                                  % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+% for k = 1:n3                                                              % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+%     col = reshape(repmat(vals{k},rep,1),[],1);                            % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+%     alpha_all(:,k) = repmat(col,nall/(rep*szv(k)),1);                     % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+%     rep = rep*szv(k);                                                     % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
+alpha_all = multiindex_grid(vals);  % the same loop, shared (conventions/)  % MMP, 09/30/2026
 if ~isfield(options,'include') || isempty(options.include)
     alpha_list = alpha_all;
 else

@@ -22,8 +22,12 @@ caller. Every function here therefore ends in **`_sop`**: `lpiprogram_sop`,
 `lpi_eq_sop`, `lpigetsol_sop`, and so on. Helpers follow the same rule:
 
 - `tests/private/same_val_sop` and `examples/private/opcheck_sop` are reachable only
-  from their own folders;
-- `private/spaces2meta_sop` is reachable only from this folder.
+  from their own folders.
+
+MMP, 09/30/2026: `private/spaces2meta_sop` (a verbatim copy of the space parser of
+`lpivar_cdopvar`) is deleted. The constructors call the shared
+`parse_copvar_spaces` in `sopvar/misc/conventions/` instead, a name that does not
+collide with a legacy one.
 
 `which -all` resolves each function to one file in the tree.
 

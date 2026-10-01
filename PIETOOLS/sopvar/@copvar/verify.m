@@ -25,6 +25,8 @@ function info = verify(Mop)
 %
 % Cost: O(M*N) block visits, with spatial set operations on the registry.
 %
+% The checks are in 'verify_copvar_meta', shared with 'cdopvar'.            % MMP, 09/30/2026
+%
 % See also COPVAR, SIZE.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -72,107 +74,18 @@ function info = verify(Mop)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
 %                  @mopvar/ with the class.
+% MMP, 09/30/2026: The body, between the 'BEGIN/END body replaced by MMP,
+%                  09/17/2026' markers (the checks and the local
+%                  'check_dom'), is deleted and moved to 'verify_copvar_meta',
+%                  which @cdopvar/verify, a copy of it, now calls too. One
+%                  algorithm had two copies; derive_copvar_meta's NOTES name
+%                  exactly this validation as what must not diverge.
+%                  Verdicts and messages unchanged. The 09/17/2026 entry
+%                  describes code that now lives there.
 
-% % % BEGIN body replaced by MMP, 09/17/2026 - everything from here to the
-% % % END marker at the foot of the file is new; see the header entry above
-% % % for what was deleted.
-
-if ~isa(Mop,'copvar')
-    error('verify:badInput','Input must be a copvar object.')
-end
-
-flags = cell(0,1);
-[M,N] = size(Mop);
-C = Mop.C;      vars = Mop.vars;        nv = numel(vars);
-occ = ~cellfun(@isempty,C);
-
-% % % Metadata shapes. The per-block checks index into this metadata, so
-% % % report shape problems and stop rather than cascade consequences.
-want = {'dom',[nv,2]; 'space_out',[M,nv]; 'space_in',[N,nv];
-        'dim_out',[M,1]; 'dim_in',[N,1]};
-for k = 1:size(want,1)
-    got = size(Mop.(want{k,1}));
-    if ~isequal(got,want{k,2})
-        flags{end+1,1} = sprintf('%s is %s; expected %s.',...
-            want{k,1},mat2str(got),mat2str(want{k,2})); %#ok<AGROW>
-    end
-end
-if ~isempty(flags)
-    info.true = 0;      info.flags = flags;     return
-end
-
-% % % No structurally empty row or column: such a row has no block to say
-% % % what its space and dimension are.
-for i = find(~any(occ,2))'
-    flags{end+1,1} = sprintf('Row %d contains no populated block.',i); %#ok<AGROW>
-end
-for j = find(~any(occ,1))
-    flags{end+1,1} = sprintf('Column %d contains no populated block.',j); %#ok<AGROW>
-end
-
-% % % Per-block agreement with the container.
-for i = 1:M
-    s_i = sort(vars(Mop.space_out(i,:)));
-    for j = 1:N
-        if ~occ(i,j),   continue,   end
-        b = C{i,j};
-        s_j = sort(vars(Mop.space_in(j,:)));
-        if ~isa(b,'sopvar') || numel(b.dims)~=2
-            flags{end+1,1} = sprintf(...
-                'Block (%d,%d) is a ''%s'' with %d matrix dimensions; want sopvar with 2.',...
-                i,j,class(b),numel(b.dims)); %#ok<AGROW>
-            continue
-        end
-        if b.dims(1)~=Mop.dim_out(i)
-            flags{end+1,1} = sprintf('Block (%d,%d) has output dimension %d; row %d is %d.',...
-                i,j,b.dims(1),i,Mop.dim_out(i)); %#ok<AGROW>
-        end
-        if b.dims(2)~=Mop.dim_in(j)
-            flags{end+1,1} = sprintf('Block (%d,%d) has input dimension %d; column %d is %d.',...
-                i,j,b.dims(2),j,Mop.dim_in(j)); %#ok<AGROW>
-        end
-        if ~isequal(sort(b.vars.out(:))',s_i(:)')
-            flags{end+1,1} = sprintf('Block (%d,%d) maps into {%s}; row %d is {%s}.',...
-                i,j,strjoin(sort(b.vars.out(:))',','),i,strjoin(s_i(:)',',')); %#ok<AGROW>
-        end
-        if ~isequal(sort(b.vars.in(:))',s_j(:)')
-            flags{end+1,1} = sprintf('Block (%d,%d) maps out of {%s}; column %d is {%s}.',...
-                i,j,strjoin(sort(b.vars.in(:))',','),j,strjoin(s_j(:)',',')); %#ok<AGROW>
-        end
-        % Domains against the registry, not against another block: a
-        % variable given two domains is invisible from inside one block.
-        flags = check_dom(flags,i,j,b.vars.out,b.dom.out,vars,Mop.dom,'output');
-        flags = check_dom(flags,i,j,b.vars.in ,b.dom.in ,vars,Mop.dom,'input');
-    end
-end
-
-info.true = double(isempty(flags));
-info.flags = flags;
+% % % BEGIN body replaced by MMP, 09/30/2026 - the 09/17/2026 body, deleted
+% % % here, is 'verify_copvar_meta'; see the header entry above.
+info = verify_copvar_meta(Mop,'copvar',{'sopvar'});                         % MMP, 09/30/2026
 
 end
-
-
-% ========================================================================
-function flags = check_dom(flags,i,j,v,d,vars,dom,side)
-% Compare a block's domains, listed in its own variable order, against the
-% container registry.
-v = v(:)';
-if size(d,1)~=numel(v)
-    flags{end+1,1} = sprintf('Block (%d,%d) lists %d %s variables against %d domain rows.',...
-        i,j,numel(v),side,size(d,1));
-    return
-end
-for k = 1:numel(v)
-    idx = find(strcmp(vars,v{k}),1);
-    if isempty(idx)
-        flags{end+1,1} = sprintf('Block (%d,%d) uses %s variable ''%s'', not in the registry.',...
-            i,j,side,v{k}); %#ok<AGROW>
-    elseif ~isequal(d(k,:),dom(idx,:))
-        flags{end+1,1} = sprintf(['Block (%d,%d) puts %s variable ''%s'' on '...
-            '[%g,%g]; the registry says [%g,%g].'],...
-            i,j,side,v{k},d(k,1),d(k,2),dom(idx,1),dom(idx,2)); %#ok<AGROW>
-    end
-end
-end
-
-% % % END body replaced by MMP, 09/17/2026
+% % % END body replaced by MMP, 09/30/2026

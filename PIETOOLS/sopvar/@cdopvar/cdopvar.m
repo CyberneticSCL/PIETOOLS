@@ -112,6 +112,15 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
 %                  Before, the dpvar's own method was called and failed.
 %                  The classdef line was
 % classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar}) cdopvar % MMP, 09/29/2026 (was)
+% MMP, 09/30/2026: 'unify_dvars' reconciles through 'merge_dvar_lists',
+%                  each block its own operand, instead of its own copy of
+%                  the rule (one unique(...,'stable'), then 'setdvars' by
+%                  name per block). One algorithm now keeps the one-list
+%                  invariant for the constructor, plus, mtimes and
+%                  concatenation. Same list and blocks; where the lists
+%                  differ each block moves by the sort's row map, not by a
+%                  name search, and no list is read through a q-length (:)
+%                  copy unless stored as a row.
 
     properties
         C = {};                     % M x N cell of blocks; [] = zero block
@@ -190,41 +199,38 @@ end
 function [C,Zd] = unify_dvars(C)
 % Put every 'sdopvar' block on one decision variable list and return it.
 %
-% The numel guard is O(1) and settles the usual mismatch without touching
-% the names; 'isequal' is O(q) string comparisons and is only reached once
-% the lengths already agree.
+% (was) The numel guard is O(1) and settles the usual mismatch without touching % MMP, 09/30/2026 (was)
+% (was) the names; 'isequal' is O(q) string comparisons and is only reached once % MMP, 09/30/2026 (was)
+% (was) the lengths already agree.                                          % MMP, 09/30/2026 (was)
+% Each block is its own operand of 'merge_dvar_lists', the rule of plus,    % MMP, 09/30/2026
+% mtimes and concatenation. Same list: one unique(...,'stable') over the    % MMP, 09/30/2026
+% lists in block order (one merge, not pairwise against a growing list,     % MMP, 09/30/2026
+% which profiled at 32% of 'possopvar' at three spatial variables), and     % MMP, 09/30/2026
+% the same all-equal shortcut ('isequal' tests sizes first, the O(1) guard  % MMP, 09/30/2026
+% once explicit here). Where lists differ a block moves by its slice of     % MMP, 09/30/2026
+% the sort's row map, not by a name search: the same rows, since the union  % MMP, 09/30/2026
+% has distinct names. Every block then shares the one array.                % MMP, 09/30/2026
+% % % BEGIN MMP, 09/30/2026. Deleted (initial coding 09/17/2026): Zd from
+% % % the first block's Zd(:), the same test over every block's Zd(:), the
+% % % union unique(vertcat(lists{:}),'stable'), and per block setdvars(B,Zd)
+% % % by name then B.Zd = Zd, whose comment measured the sharing at 0 MB
+% % % against 24.4 MB for the fresh Zd(:).' 'setdvars' stores (16 blocks,
+% % % q = 2e5); 'merge_dvar_lists' makes the same assignment.
 
 dec = find(cellfun(@(b) isa(b,'sdopvar'),C(:)))';
 Zd = cell(0,1);
 if isempty(dec)
     return
 end
-Zd = C{dec(1)}.Zd(:);
+% Zd(:) on a q-length column copies its pointer array (12.3 ms at           % MMP, 09/30/2026
+% q = 1.07e6, measured): reshape only a list stored as a row.               % MMP, 09/30/2026
 lists = cell(1,numel(dec));
-same = true;
 for k = 1:numel(dec)
-    lists{k} = C{dec(k)}.Zd(:);
-    if numel(lists{k})~=numel(Zd) || ~isequal(lists{k},Zd)
-        same = false;
-    end
+    z = C{dec(k)}.Zd;                                                       % MMP, 09/30/2026
+    if ~iscolumn(z),    z = z(:);   end                                     % MMP, 09/30/2026
+    lists{k} = z;                                                           % MMP, 09/30/2026
 end
-if ~same
-    % One merge for all blocks, not pairwise against a growing list:
-    % pairwise re-synchronization profiled at 32% of 'possopvar' at three
-    % spatial variables. 'unique(...,''stable'')' over the concatenation
-    % gives the same list iterated setdiff would, both keeping first
-    % occurrences in order.
-    Zd = unique(vertcat(lists{:}),'stable');
-end
-for k = 1:numel(dec)
-    if ~same
-        C{dec(k)} = setdvars(C{dec(k)},Zd);     % remaps the rows of B
-    end
-    % Assign the one array itself, so all blocks share its storage.
-    % 'setdvars' stores Zd(:).', a fresh q-length pointer array per block,
-    % which costs 8*q bytes each (24.4 MB over 16 blocks at q = 2e5); this
-    % makes the arrays identical instead, measured at 0 MB of extra memory.
-    % It also normalizes the orientation to a column.
-    C{dec(k)}.Zd = Zd;
-end
+[Cd,Zd] = merge_dvar_lists(C(dec),lists,1:numel(dec));                      % MMP, 09/30/2026
+C(dec) = Cd;                                                                % MMP, 09/30/2026
+% % % END MMP, 09/30/2026
 end

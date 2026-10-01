@@ -70,6 +70,14 @@ function [tf,info] = is_canonical_multiplier(params,vars,ZL,ZR,dims)
 % authorship, and a brief description of modifications
 %
 % MMP, 08/29/2026: Initial coding
+% MMP, 09/30/2026: The cell multi-index comes from the shared helper
+%                  gamma_of_cell (sopvar/misc/conventions) instead of the
+%                  ind2sub + cell2mat idiom, one definition of the cell
+%                  order for every file. The mask of each multiplier
+%                  direction t depends on (ZR,t) only and was rebuilt for
+%                  every cell; it is now built on first use and reused, as
+%                  canonicalize_multiplier does since 09/29. Same values, so
+%                  tf and info are unchanged.
 
 tf = true;
 info = struct('bad',[],'dirs',{{}},'unchecked',[],'message','');
@@ -116,11 +124,16 @@ if ncell~=3^n3
     return
 end
 
-sz_C = [3*ones(1,n3),1];
+% sz_C = [3*ones(1,n3),1];                                                  % MMP, 09/30/2026 (was)
+% maskR{t}: ZR monomials of degree 0 in shared direction t, a function of   % MMP, 09/30/2026
+% (ZR,t) only, built on first use and reused by every later cell, as in     % MMP, 09/30/2026
+% canonicalize_multiplier.                                                  % MMP, 09/30/2026
+maskR = cell(1,n3);                                                         % MMP, 09/30/2026
 for k = 1:ncell
-    idcs = cell(1,n3);
-    [idcs{:}] = ind2sub(sz_C,k);
-    gam = cell2mat(idcs);
+%   idcs = cell(1,n3);                                                      % MMP, 09/30/2026 (was)
+%   [idcs{:}] = ind2sub(sz_C,k);                                            % MMP, 09/30/2026 (was)
+%   gam = cell2mat(idcs);                                                   % MMP, 09/30/2026 (was)
+    gam = gamma_of_cell(k,n3);      % helper in sopvar/misc/conventions     % MMP, 09/30/2026
     mult_dirs = find(gam==1);
     if isempty(mult_dirs)
         continue
@@ -155,16 +168,21 @@ for k = 1:ncell
     % % % nonzeros, so it does not scale with the decision variables.
     viol = false(1,numel(mult_dirs));
     for ii = 1:numel(mult_dirs)
-        p = posR(mult_dirs(ii));
-        v = (ZR{p}(:)==0);
-        kk = true(1,1);
-        for i = 1:numel(nR)
-            if i==p
-                kk = kron(kk,v);
-            else
-                kk = kron(kk,true(nR(i),1));
-            end
-        end
+        t = mult_dirs(ii);                                                  % MMP, 09/30/2026
+        if isempty(maskR{t})            % first use: build, keep            % MMP, 09/30/2026
+            p = posR(mult_dirs(ii));                                        % MMP, 09/30/2026
+            v = (ZR{p}(:)==0);                                              % MMP, 09/30/2026
+            kk = true(1,1);                                                 % MMP, 09/30/2026
+            for i = 1:numel(nR)                                             % MMP, 09/30/2026
+                if i==p                                                     % MMP, 09/30/2026
+                    kk = kron(kk,v);                                        % MMP, 09/30/2026
+                else                                                        % MMP, 09/30/2026
+                    kk = kron(kk,true(nR(i),1));                            % MMP, 09/30/2026
+                end                                                         % MMP, 09/30/2026
+            end                                                             % MMP, 09/30/2026
+            maskR{t} = kk;                                                  % MMP, 09/30/2026
+        end                                                                 % MMP, 09/30/2026
+        kk = maskR{t};                                                      % MMP, 09/30/2026
         bBad = find(~kk)-1;
         if isempty(bBad)
             continue
