@@ -39,6 +39,7 @@ function test_container_method_parity(mode)
 % Initial coding MMP, 09/30/2026. Audit item C10: nothing checked that the
 %                10 code-identical pairs stay identical or that the other 6
 %                differ only in their decision-variable branches.
+% MMP, 09/30/2026: EXPECTED.verify follows the verify input rename Mop -> P.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1,    mode = 'test';  end
@@ -196,9 +197,9 @@ E.plus = {{ ...
     'meta = metadata(A); meta.Zd = Zd;'
     }};
 E.verify = {{ ...
-    'info = verify_copvar_meta(Mop,''CONT'',{''sopvar''});'
+    'info = verify_copvar_meta(P,''CONT'',{''sopvar''});'
     }, { ...
-    'info = verify_copvar_meta(Mop,''CONT'',{''sopvar'',''sdopvar''});'
+    'info = verify_copvar_meta(P,''CONT'',{''sopvar'',''sdopvar''});'
     }};
 end
 

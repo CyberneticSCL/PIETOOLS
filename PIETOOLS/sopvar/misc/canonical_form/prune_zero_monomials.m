@@ -80,6 +80,10 @@ function [ZLn,ZRn,keepL,keepR] = prune_zero_monomials(ZL,ZR,occL,occR)
 %                  every downstream operation and hands the solver a large
 %                  block of redundant equality rows. Shared by
 %                  '@sopvar/mtimes' and '@sdopvar/mtimes'.
+% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
+%                  sopvar/misc/canonical_form, after what it holds (the
+%                  canonical form of the block classes), not the tool that
+%                  wrote it. The move changes no code.
 
 [ZLn,keepL] = prune_side(ZL,occL);
 [ZRn,keepR] = prune_side(ZR,occR);

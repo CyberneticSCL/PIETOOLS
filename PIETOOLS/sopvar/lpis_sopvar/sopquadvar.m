@@ -176,6 +176,11 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 09/30/2026: SGCELL instrumentation removed: two counters in the gamma
+%                  cell loop (MMP, 09/22/2026) and a print when the
+%                  environment variable SGCELL was set, which no file in the
+%                  repository sets. Diagnostic only; nothing it computed was
+%                  returned.
 % MMP, 09/30/2026: The reserved-suffix check and the enumeration of the
 %                  basis multi-indices alpha (sopvar_implementation_notes.pdf
 %                  Sec. 9.1; direction 1 fastest)
@@ -595,7 +600,7 @@ negmap = [1,3,2,4];   % 4 = full-domain integral, self-adjoint              % MM
 % where there are 729 additions.                                            % MMP, 09/07/2026
 % A separable direction turns each block pair into up to 4 terms per such   % MMP, 09/12/2026
 % direction, so the bound carries 4^nsep.                                   % MMP, 09/12/2026
-nCellTot = 0;   nCellSkip = 0;   % all-zero gamma cells skipped (see the loop)   % MMP, 09/22/2026
+% nCellTot = 0;   nCellSkip = 0;   % all-zero gamma cells skipped (see the loop)   % MMP, 09/22/2026 % MMP, 09/30/2026 (was)
 Pcells = cell(nblk*nblk*4^sum(sep),1);     nPc = 0;                         % MMP, 09/12/2026
 %Pop = [];                                                                  % MMP, 09/07/2026 (was)
 for i=1:nblk
@@ -683,9 +688,9 @@ for i=1:nblk
         % filling them.                                                       % MMP, 09/22/2026
         nAB = size(Lmat,1)*size(Rmat,2);                                     % MMP, 09/22/2026
         for k=1:numel(Cgam)
-            nCellTot = nCellTot+1;                                           % MMP, 09/22/2026
+%           nCellTot = nCellTot+1;                                           % MMP, 09/22/2026 % MMP, 09/30/2026 (was)
             if nnz(Cgam{k})==0                                               % MMP, 09/22/2026
-                nCellSkip = nCellSkip+1;                                     % MMP, 09/22/2026
+%               nCellSkip = nCellSkip+1;                                     % MMP, 09/22/2026 % MMP, 09/30/2026 (was)
                 params.A{k} = sparse(nAB,1);                                 % MMP, 09/22/2026
                 params.B{k} = sparse(ndec,nAB);                              % MMP, 09/22/2026
                 continue                                                     % MMP, 09/22/2026
@@ -734,10 +739,10 @@ for i=1:nblk
     end
 end
 
-if ~isempty(getenv('SGCELL'))
-    fprintf(1,'SGCELL n3=%d cells=%d skipped=%d (%.1f%%)\n', ...
-        n3,nCellTot,nCellSkip,100*nCellSkip/max(nCellTot,1));
-end
+% if ~isempty(getenv('SGCELL'))                                             % MMP, 09/30/2026 (was)
+%     fprintf(1,'SGCELL n3=%d cells=%d skipped=%d (%.1f%%)\n', ...
+%         n3,nCellTot,nCellSkip,100*nCellSkip/max(nCellTot,1));             % MMP, 09/30/2026 (was)
+% end                                                                       % MMP, 09/30/2026 (was)
 Pop = plus_batch(Pcells{1:nPc});                                            % MMP, 09/07/2026
 
 end

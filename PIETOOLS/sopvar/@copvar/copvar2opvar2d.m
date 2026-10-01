@@ -1,17 +1,17 @@
-function Pop = copvar2opvar2d(Pmop,vars_xy)
+function Pop = copvar2opvar2d(Pc,vars_xy)                                   % MMP, 09/30/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% POP = COPVAR2OPVAR2D(PMOP) takes a 'copvar' container over the spaces
+% POP = COPVAR2OPVAR2D(PC) takes a 'copvar' container over the spaces       % MMP, 09/30/2026
 % R x L2[x] x L2[y] x L2[x,y] and returns the equivalent 'opvar2d'.
 %
-% POP = COPVAR2OPVAR2D(PMOP,VARS_XY) names which registry variable plays x
+% POP = COPVAR2OPVAR2D(PC,VARS_XY) names which registry variable plays x    % MMP, 09/30/2026
 % and which plays y, as a 1 x 2 cellstr.
 %
 % INPUTS
-% - Pmop:     'copvar' over at most two spatial variables, whose output and
+% - Pc:       'copvar' over at most two spatial variables, whose output and % MMP, 09/30/2026
 %             input space lists agree. Unlike 'sopvar2opvar2d', all sixteen
 %             blocks may be populated;
 % - vars_xy:  optional 1 x 2 cellstr {xname,yname}. DEFAULTS TO THE SORTED
-%             REGISTRY ORDER, Pmop.vars, which is alphabetical - so a
+%             REGISTRY ORDER, Pc.vars, which is alphabetical - so a         % MMP, 09/30/2026
 %             container over {'y','x'} would otherwise silently put 'x'
 %             first. Pass this explicitly whenever the intended roles are
 %             not alphabetical;
@@ -84,33 +84,39 @@ function Pop = copvar2opvar2d(Pmop,vars_xy)
 %                  depends on a dummy. Hit every non-sorted vars_xy, and the
 %                  DEFAULT too wherever the lone-variable rule disagrees with
 %                  sorted order (registry {a,b}: lone b; {y,z}: lone y, z).
+% MMP, 09/30/2026: Renamed the input Pmop -> Pc, here and in 'dom_matrix',
+%                  a name from before the 09/25/2026 rename ('mopvar' is now
+%                  the stub class in @mopvar). Mechanical, no functional
+%                  change; each marked line differs from its old text only
+%                  by that name. The one line with a 09/28/2026 marker keeps
+%                  its old text as '(was)'.
 
-if ~isa(Pmop,'copvar')
+if ~isa(Pc,'copvar')                                                        % MMP, 09/30/2026
     error('copvar2opvar2d:badInput','Input must be a copvar object.')
 end
-if numel(Pmop.vars)>2
+if numel(Pc.vars)>2                                                         % MMP, 09/30/2026
     error('copvar2opvar2d:tooManyVars',...
         ['''opvar2d'' is the 2D class; this container has %d spatial '...
          'variables (%s). Use ''copvar2nopvar''.'],...
-        numel(Pmop.vars),strjoin(Pmop.vars,','))
+        numel(Pc.vars),strjoin(Pc.vars,','))                                % MMP, 09/30/2026
 end
 if nargin<2 || isempty(vars_xy)
-    vars_xy = Pmop.vars;
+    vars_xy = Pc.vars;                                                      % MMP, 09/30/2026
 end
 vars_xy = vars_xy(:)';
-if ~all(ismember(Pmop.vars,vars_xy))
+if ~all(ismember(Pc.vars,vars_xy))                                          % MMP, 09/30/2026
     error('copvar2opvar2d:varsMismatch',...
         'vars_xy {%s} does not cover the registry {%s}.',...
-        strjoin(vars_xy,','),strjoin(Pmop.vars,','))
+        strjoin(vars_xy,','),strjoin(Pc.vars,','))                          % MMP, 09/30/2026
 end
 
 nm = {'R00','R0x','R0y','R02';
       'Rx0','Rxx','Rxy','Rx2';
       'Ry0','Ryx','Ryy','Ry2';
       'R20','R2x','R2y','R22'};
-[M,N] = size(Pmop);
-ri = space_index(Pmop.space_out,Pmop.vars,vars_xy,'output');
-ci = space_index(Pmop.space_in ,Pmop.vars,vars_xy,'input');
+[M,N] = size(Pc);                                                           % MMP, 09/30/2026
+ri = space_index(Pc.space_out,Pc.vars,vars_xy,'output');                    % MMP, 09/30/2026
+ci = space_index(Pc.space_in ,Pc.vars,vars_xy,'input');                     % MMP, 09/30/2026
 if numel(unique(ri))~=M || numel(unique(ci))~=N
     error('copvar2opvar2d:repeatedSpace',...
         ['''opvar2d'' carries one dimension per space, so no two rows or '...
@@ -118,7 +124,7 @@ if numel(unique(ri))~=M || numel(unique(ci))~=N
 end
 
 Pop = opvar2d();
-Pop.I = dom_matrix(Pmop,vars_xy);
+Pop.I = dom_matrix(Pc,vars_xy);                                             % MMP, 09/30/2026
 if ~isempty(vars_xy)
     v1 = polynomial(zeros(numel(vars_xy),1));
     v2 = polynomial(zeros(numel(vars_xy),1));
@@ -129,22 +135,23 @@ if ~isempty(vars_xy)
     Pop.var1 = v1;      Pop.var2 = v2;
 end
 d = zeros(4,2);
-d(ri,1) = Pmop.dim_out(:);
-d(ci,2) = Pmop.dim_in(:);
+d(ri,1) = Pc.dim_out(:);                                                    % MMP, 09/30/2026
+d(ci,2) = Pc.dim_in(:);                                                     % MMP, 09/30/2026
 Pop.dim = d;
 
 mir = [1 3 2 4];    % opvar2d space index with x and y exchanged            % MMP, 09/28/2026
 for i = 1:M
     for j = 1:N
-        if isempty(Pmop.C{i,j}),    continue,   end
-        Bk = sopvar2opvar2d(Pmop.C{i,j});
+        if isempty(Pc.C{i,j}),    continue,   end                           % MMP, 09/30/2026
+        Bk = sopvar2opvar2d(Pc.C{i,j});                                     % MMP, 09/30/2026
         slot = nm{ri(i),ci(j)};
 %       Pop.(slot) = Bk.(slot);                                             % MMP, 09/28/2026 (was)
         % Bk's x,y follow sopvar2opvar2d's rule, not vars_xy. opvar2d has   % MMP, 09/28/2026
         % two directions, so one variable of the block decides: Bk agrees   % MMP, 09/28/2026
         % with vars_xy or is its reverse. Reversed: mirror slot, and cell   % MMP, 09/28/2026
         % axes swapped (R22{a,b} -> {b,a}; Ry2 1x3 -> Rx2 3x1, etc.).       % MMP, 09/28/2026
-        v = [Pmop.C{i,j}.vars.in, Pmop.C{i,j}.vars.out];                    % MMP, 09/28/2026
+%       v = [Pmop.C{i,j}.vars.in, Pmop.C{i,j}.vars.out];                    % MMP, 09/30/2026 (was)
+        v = [Pc.C{i,j}.vars.in, Pc.C{i,j}.vars.out];                        % MMP, 09/30/2026
         sw = ~isempty(v) && find(strcmp(pvar2varname(Bk.var1),v{1}),1)...
                          ~= find(strcmp(vars_xy,v{1}),1);                   % MMP, 09/28/2026
         if sw                                                               % MMP, 09/28/2026
@@ -187,12 +194,12 @@ for i = 1:nsp
 end
 end
 
-function I = dom_matrix(Pmop,vars_xy)
+function I = dom_matrix(Pc,vars_xy)                                         % MMP, 09/30/2026
 % opvar2d's I is 2x2, row k the domain of vars_xy{k}. A direction the
 % container never used has no recorded domain, so it defaults to [0,1].
 I = [0 1;0 1];
 for k = 1:min(2,numel(vars_xy))
-    idx = find(strcmp(Pmop.vars,vars_xy{k}),1);
-    if ~isempty(idx),   I(k,:) = Pmop.dom(idx,:);  end
+    idx = find(strcmp(Pc.vars,vars_xy{k}),1);                               % MMP, 09/30/2026
+    if ~isempty(idx),   I(k,:) = Pc.dom(idx,:);  end                        % MMP, 09/30/2026
 end
 end

@@ -73,6 +73,22 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %           only for a space holding every variable. May also be a cell with
 %           one such specification per SPACE, each of which may itself be a
 %           cell with one per basis operator of that space;
+%           the fields cap degrees of the factor Z^alpha(theta,s), not of   % MMP, 09/30/2026
+%           the kernel of Pop:                                              % MMP, 09/30/2026
+%             'int'    scalar or 1 x nv, the degree in each integration     % MMP, 09/30/2026
+%                      variable theta_d. Defaults to 1;                     % MMP, 09/30/2026
+%             'mult'   scalar or 1 x nv, the degree in each output          % MMP, 09/30/2026
+%                      variable s_d, set to 0 where alpha_d is a            % MMP, 09/30/2026
+%                      multiplier. Defaults to 'int';                       % MMP, 09/30/2026
+%             'joint'  scalar, the total degree in (theta,s^k). Defaults    % MMP, 09/30/2026
+%                      to no further cap;                                   % MMP, 09/30/2026
+%             'subset' 2^(2*nv) entries, one cap per subset of              % MMP, 09/30/2026
+%                      [theta_1..theta_nv, s^k], as in 'sopquadvar';        % MMP, 09/30/2026
+%           'lpivar_cdopvar' names its fields 'int' and 'mult' too, with    % MMP, 09/30/2026
+%           other meanings: kernel degrees per variable role, 'mult' the    % MMP, 09/30/2026
+%           left degree in a multiplier direction and 'int' the [left       % MMP, 09/30/2026
+%           right] degrees in an integral direction. A 'deg' struct         % MMP, 09/30/2026
+%           therefore does not carry over between the two routines;         % MMP, 09/30/2026
 % - options: (optional) 'struct' specifying other options, with fields
 %   options.type      'pos' (default) declares Q positive semidefinite, so
 %                     that Pop = Pop* >= 0; 'sym' declares it symmetric but
@@ -275,15 +291,92 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  same arguments within one build, unprofiled, take
 %                  34.99 s before and 34.88 s after (a second copy of the
 %                  old file: 34.57 s).
+% MMP, 09/30/2026: Split the primary function into local functions, one
+%                  per phase of the construction, bodies moved unchanged:
+%                  parse_inputs, parse_options, basis_operators,
+%                  degree_list, monomial_bases, common_dvars, psatz_weight
+%                  and block_terms, with, inside block_terms, gamma_params
+%                  (the parameter cell of one term over the gamma cells of
+%                  Sec. 6.1) and by_space (four identical scatter loops).
+%                  Two moved lines change, marked (was): the nargin test
+%                  on options moves to the primary, and the unused nlv
+%                  goes. Why: the basis operators Z_alpha (Sec. 9.1) and the
+%                  pairs Z_i* Q_ij Z_j (Sec. 9.2) sat behind about 260
+%                  lines of input normalization, and the computation of one
+%                  term 6 loops deep in one function of McCabe 101.
+%                  Primary: 354 -> 24 code lines, McCabe 101 -> 5, nesting
+%                  depth 8 -> 2; largest local McCabe 20 (parse_options),
+%                  deepest nesting 4 (block_terms). The q-length Zd and
+%                  the Nprod cell reach block_terms by reference and are
+%                  only read. Programs bit-identical (w1-w3, 91 SDP
+%                  leaves); the 14 w3 calls on the same arguments take
+%                  34.94 s against 34.99 s before (unprofiled, one build).
+%                  Also documented, in the help and in degree_list, what
+%                  each 'deg' field means here, and that 'lpivar_cdopvar'
+%                  gives 'int' and 'mult' other meanings; no option changed.
 
+
+% % % BEGIN change MMP, 09/30/2026 (split): the primary runs the            % MMP, 09/30/2026
+% construction of Sec. 9 phase by phase, one call each: the inputs; the     % MMP, 09/30/2026
+% basis operators Z_alpha (Sec. 9.1) and their degree caps; their           % MMP, 09/30/2026
+% monomial bases; one Gram Q through 'sosquadvar' (Sec. 9.3); the pairs     % MMP, 09/30/2026
+% Z_i* Q_ij Z_j (Sec. 9.2), block by block. Each phase was a section of     % MMP, 09/30/2026
+% this function and is now the local function below named after it, its     % MMP, 09/30/2026
+% lines moved unchanged with their markers. New, and marked: the lines      % MMP, 09/30/2026
+% passing variables in and out, and in 'block_terms' the calls to           % MMP, 09/30/2026
+% 'gamma_params' and 'by_space'.                                            % MMP, 09/30/2026
+
+if nargin<5
+    error("Not enough input arguments.")
+end
+if nargin<6,    options = [];   end                                         % MMP, 09/30/2026
+
+S = parse_inputs(dims,spaces,dom);                                          % MMP, 09/30/2026
+[options,vartype,S.sep,incl] = parse_options(options,S.nv,S.M);             % MMP, 09/30/2026
+[alpha_sp,nb,base,basis_list,bsp,bix] = basis_operators(S,incl);            % MMP, 09/30/2026
+deg_list = degree_list(deg,S,nb,bsp,bix);                                   % MMP, 09/30/2026
+[Z1c,Z2c,mdim] = monomial_bases(S,alpha_sp,deg_list,bsp,bix);               % MMP, 09/30/2026
+
+% One call, one Gram, spanning every (space, multi-index) pair: this is what
+% couples the blocks of the container and makes Pop positive as a whole.
+[prog,Nprod,Qcell] = sosquadvar(prog,Z1c,Z2c,mdim,mdim,vartype);
+
+% What the block loop reads. No callee assigns into Zd, Nprod or prog, so   % MMP, 09/30/2026
+% none of the q-length data is copied (copy-on-write).                      % MMP, 09/30/2026
+B = struct('alpha_sp',{alpha_sp},'nb',nb,'base',base,'Nprod',{Nprod});      % MMP, 09/30/2026
+[B.Zd,B.dmap,B.ndec] = common_dvars(Qcell);                                 % MMP, 09/30/2026
+B.gfun = psatz_weight(options,S);                                           % MMP, 09/30/2026
+
+M = S.M;                                                                    % MMP, 09/30/2026
+Cblk = cell(M,M);
+for k = 1:M
+  for l = 1:M
+    [terms,nt] = block_terms(k,l,S,B);                                      % MMP, 09/30/2026
+%   Cblk{k,l} = plus_batch(terms{1:nt});                                    % MMP, 09/26/2026 (was)
+    % Every term was built on this call's one Zd (the sdopvar constructor   % MMP, 09/26/2026
+    % stores it unchanged), so plus_batch may skip its O(q) per-operand     % MMP, 09/26/2026
+    % list comparison: 136 comparisons of 3.8e5 names in 2-D Hinf.          % MMP, 09/26/2026
+    Cblk{k,l} = plus_batch(terms{1:nt},'shared_Zd');                        % MMP, 09/26/2026
+  end
+end
+
+Pop = cdopvar(Cblk);
+% % % END change MMP, 09/30/2026 (split)                                    % MMP, 09/30/2026
+
+end
+
+
+% % % BEGIN change MMP, 09/30/2026 (split): the local functions from here   % MMP, 09/30/2026
+% to its END are the sections of the former primary, bodies unchanged.      % MMP, 09/30/2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Process the inputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if nargin<5
-    error("Not enough input arguments.")
-end
+function S = parse_inputs(dims,spaces,dom)                                  % MMP, 09/30/2026
+% Spaces, registry, dims and domain, as the fields of S: M, nv, vars,       % MMP, 09/30/2026
+% vars_int, vars_dum (the names of theta and s'), mask (M x nv, space k     % MMP, 09/30/2026
+% has variable d), own{k} (its variable indices, a row), dims, dom.         % MMP, 09/30/2026
 
 % % % BEGIN change MMP, 09/30/2026 (parser): spaces, registry, dims,        % MMP, 09/30/2026
 % reserved names and domain are read by 'parse_copvar_spaces', the parser   % MMP, 09/30/2026
@@ -322,8 +415,20 @@ vars_int = strcat(vars,'_int');
 vars_dum = strcat(vars,'_dum');
 % % % END change MMP, 09/30/2026 (parser)                                   % MMP, 09/30/2026
 
+S = struct('M',M,'nv',nv,'vars',{vars},'vars_int',{vars_int}, ...
+           'vars_dum',{vars_dum},'mask',mask,'own',{own},'dims',dims,'dom',dom); % MMP, 09/30/2026
+
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [options,vartype,sep,incl] = parse_options(options,nv,M)           % MMP, 09/30/2026
+% Options psatz (validated, as double), type, sep (1 x nv logical) and      % MMP, 09/30/2026
+% include (1 x M cell), for nv registry variables and M spaces.             % MMP, 09/30/2026
+
 % % % Options
-if nargin<6 || isempty(options)
+% if nargin<6 || isempty(options)                                           % MMP, 09/30/2026 (was)
+if isempty(options)             % the primary passes [] when omitted        % MMP, 09/30/2026
     options = struct();
 end
 if ~isa(options,'struct')
@@ -383,6 +488,17 @@ else
     end
 end
 
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [alpha_sp,nb,base,basis_list,bsp,bix] = basis_operators(S,incl)    % MMP, 09/30/2026
+% The basis operators Z_alpha of Sec. 9.1, per space: alpha_sp{k} holds     % MMP, 09/30/2026
+% one multi-index per row over space k's own variables, nb(k) rows; base,   % MMP, 09/30/2026
+% bsp, bix map global basis c to (space, row) and back; basis_list is the   % MMP, 09/30/2026
+% output of the same name.                                                  % MMP, 09/30/2026
+M = S.M;    nv = S.nv;  own = S.own;    sep = S.sep;                        % MMP, 09/30/2026
+
 % % % Basis operators of each space. The multi-index runs over the space's
 % OWN variables only: a variable the space does not have carries no
 % indicator, so there is nothing to choose in that direction.
@@ -422,6 +538,24 @@ for k = 1:M
     end
 end
 
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function deg_list = degree_list(deg,S,nb,bsp,bix)                           % MMP, 09/30/2026
+% The degree specification of each basis operator: deg_list{c} is the       % MMP, 09/30/2026
+% struct 'process_degrees_one' returns for global basis c, with fields      % MMP, 09/30/2026
+%   int     1 x nv, cap on the degree in each integration variable theta_d; % MMP, 09/30/2026
+%   mult   1 x nv, cap on the degree in each s_d (default: int);            % MMP, 09/30/2026
+%   joint   cap on the total degree (default: no further cap);              % MMP, 09/30/2026
+%   subset  caps per subset of [theta_1..theta_nv, s^k], or [];             % MMP, 09/30/2026
+% the vocabulary of 'sopquadvar', over the registry. These cap the factor   % MMP, 09/30/2026
+% Z^alpha(theta,s), not the kernel of Pop. Not the fields of the same       % MMP, 09/30/2026
+% names in 'lpivar_cdopvar', which are kernel degrees per variable role:    % MMP, 09/30/2026
+% there 'mult' is the left degree in a multiplier direction and 'int' the   % MMP, 09/30/2026
+% [left right] degrees in an integral direction.                            % MMP, 09/30/2026
+M = S.M;    nv = S.nv;  own = S.own;    N = sum(nb);                        % MMP, 09/30/2026
+
 % % % Degrees, one struct per basis operator. 'int' and 'mult' are given over
 % the registry; space k uses the 'mult' entries of its own variables.
 if iscell(deg)
@@ -453,10 +587,18 @@ for c = 1:N
     deg_list{c} = d;
 end
 
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Build the monomial bases Z^alpha(theta,s) and Z^alpha(theta,s')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [Z1c,Z2c,mdim] = monomial_bases(S,alpha_sp,deg_list,bsp,bix)       % MMP, 09/30/2026
+% Z1c{c}, Z2c{c}: the monomials of basis c in (theta,s) and (theta,s'),     % MMP, 09/30/2026
+% the two arguments 'sosquadvar' takes; mdim(c) its space dimension.        % MMP, 09/30/2026
+own = S.own;    vars = S.vars;  vars_int = S.vars_int;                      % MMP, 09/30/2026
+vars_dum = S.vars_dum;  dims = S.dims;  N = numel(bsp);                     % MMP, 09/30/2026
 
 % Exponents are stored over [theta_1..theta_nv, s^k], so Z1c{c} and Z2c{c}
 % differ only in the name of the second group.
@@ -476,14 +618,17 @@ for c = 1:N
     mdim(c) = dims(k);
 end
 
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Declare Q and form the products N{c,e} = Z_c' Q_ce Z_e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The 'sosquadvar' call that declares Q is in the primary.                  % MMP, 09/30/2026
 
-% One call, one Gram, spanning every (space, multi-index) pair: this is what
-% couples the blocks of the container and makes Pop positive as a whole.
-[prog,Nprod,Qcell] = sosquadvar(prog,Z1c,Z2c,mdim,mdim,vartype);
+function [Zd,dmap,ndec] = common_dvars(Qcell)                               % MMP, 09/30/2026
+% The sorted list Zd of every decision variable of Q, ndec = numel(Zd),     % MMP, 09/30/2026
+% and dmap: name -> index into Zd.                                          % MMP, 09/30/2026
 
 % Common decision variable basis, so that every block is expressed over the
 % same Zd - a class invariant of 'cdopvar'.
@@ -498,6 +643,14 @@ end
 Zd = vertcat(Zd{:});                                                        % MMP, 09/26/2026
 Zd = unique(Zd);    ndec = numel(Zd);
 dmap = containers.Map(Zd,num2cell(1:ndec));
+
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function gfun = psatz_weight(options,S)                                     % MMP, 09/30/2026
+% The weight g(theta) of options.psatz (0: g = 1), see the help.            % MMP, 09/30/2026
+nv = S.nv;  vars_int = S.vars_int;  dom = S.dom;                            % MMP, 09/30/2026
 
 % Multiplier restricting positivity to the domain, evaluated at the
 % integration variable as in 'poslpivar'.
@@ -520,20 +673,32 @@ elseif options.psatz>=3                                                     % MM
     end                                                                     % MMP, 09/27/2026
 end
 
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Eliminate the integration variable, block pair by block pair
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+function [terms,nt] = block_terms(k,l,S,B)                                  % MMP, 09/30/2026
+% The terms Z_i* Q_ij Z_j (Sec. 9.2) of block (k,l), i over the basis       % MMP, 09/30/2026
+% operators of space k and j over those of space l, integration variable    % MMP, 09/30/2026
+% eliminated: terms{1:nt}, one sdopvar per substitution pair of each        % MMP, 09/30/2026
+% (i,j), all on the one list B.Zd. HOT: runs the whole elimination. It      % MMP, 09/30/2026
+% must not assign into Zd, Nprod or prog: writing one element of a          % MMP, 09/30/2026
+% shared q-length cell copies all of it (27.5 ms at q = 2.7e6, measured).   % MMP, 09/30/2026
+nv = S.nv;  vars = S.vars;  vars_int = S.vars_int;  vars_dum = S.vars_dum;  % MMP, 09/30/2026
+own = S.own;  dims = S.dims;  mask = S.mask;  dom = S.dom;  sep = S.sep;    % MMP, 09/30/2026
+alpha_sp = B.alpha_sp;  nb = B.nb;  base = B.base;  Nprod = B.Nprod;        % MMP, 09/30/2026
+gfun = B.gfun;  Zd = B.Zd;  dmap = B.dmap;  ndec = B.ndec;                  % MMP, 09/30/2026
+
 % Adjoining a basis operator flips its lower and upper integrals; the
 % full-domain integral is self-adjoint.
 negmap = [1,3,2,4];
 
-Cblk = cell(M,M);
-for k = 1:M
-  for l = 1:M
     ok = own{k};    ol = own{l};    mk = dims(k);   ml = dims(l);
-    nk = numel(ok); nlv = numel(ol);
+%   nk = numel(ok); nlv = numel(ol);                                        % MMP, 09/30/2026 (was)
+    nk = numel(ok);     % nlv went with the loops 'by_space' replaced       % MMP, 09/30/2026
 
     % Direction classes for this pair: 3 shared (S3), 1 output only (S2),
     % 2 input only (S1), 0 in neither space.
@@ -605,14 +770,16 @@ for k = 1:M
 
         % New exponents these produce, laid out per variable of each space so
         % they can be merged with the pre-existing bases.
-        ZpL = repmat({0},1,nk);
-        for t = 1:nk
-            if cls(ok(t))==1,   ZpL{t} = Zp{ok(t)};     end
-        end
-        ZpR = repmat({0},1,nlv);
-        for t = 1:nlv
-            if cls(ol(t))==2,   ZpR{t} = Zp{ol(t)};     end
-        end
+%       ZpL = repmat({0},1,nk);                                             % MMP, 09/30/2026 (was)
+%       for t = 1:nk                                                        % MMP, 09/30/2026 (was)
+%           if cls(ok(t))==1,   ZpL{t} = Zp{ok(t)};     end                 % MMP, 09/30/2026 (was)
+%       end                                                                 % MMP, 09/30/2026 (was)
+%       ZpR = repmat({0},1,nlv);                                            % MMP, 09/30/2026 (was)
+%       for t = 1:nlv                                                       % MMP, 09/30/2026 (was)
+%           if cls(ol(t))==2,   ZpR{t} = Zp{ol(t)};     end                 % MMP, 09/30/2026 (was)
+%       end                                                                 % MMP, 09/30/2026 (was)
+        ZpL = by_space(Zp,ok,cls(ok)==1);                                   % MMP, 09/30/2026
+        ZpR = by_space(Zp,ol,cls(ol)==2);                                   % MMP, 09/30/2026
 
         % % % Shared directions: the semiseparable integral. A full-domain
         % index expands into its 2/3 substitutions against the same Q.
@@ -630,14 +797,16 @@ for k = 1:M
         [Cgam,ZL3,ZR3] = int_semisep(G,aL_all(iL,:),aR_all(iR,:), ...
                                      dom(D3,:),'triplets');                 % MMP, 09/26/2026
 
-        ZL3f = repmat({0},1,nk);
-        for t = 1:nk
-            if cls(ok(t))==3,   ZL3f{t} = ZL3{p3(ok(t))};   end
-        end
-        ZR3f = repmat({0},1,nlv);
-        for t = 1:nlv
-            if cls(ol(t))==3,   ZR3f{t} = ZR3{p3(ol(t))};   end
-        end
+%       ZL3f = repmat({0},1,nk);                                            % MMP, 09/30/2026 (was)
+%       for t = 1:nk                                                        % MMP, 09/30/2026 (was)
+%           if cls(ok(t))==3,   ZL3f{t} = ZL3{p3(ok(t))};   end             % MMP, 09/30/2026 (was)
+%       end                                                                 % MMP, 09/30/2026 (was)
+%       ZR3f = repmat({0},1,nlv);                                           % MMP, 09/30/2026 (was)
+%       for t = 1:nlv                                                       % MMP, 09/30/2026 (was)
+%           if cls(ol(t))==3,   ZR3f{t} = ZR3{p3(ol(t))};   end             % MMP, 09/30/2026 (was)
+%       end                                                                 % MMP, 09/30/2026 (was)
+        ZL3f = by_space(ZL3,p3(ok),cls(ok)==3);                             % MMP, 09/30/2026
+        ZR3f = by_space(ZR3,p3(ol),cls(ol)==3);                             % MMP, 09/30/2026
 
         % % % Merge the three groups of monomials on each side. The row index
         % is (m_k, Zs, ZpL, ZL3) and the column index (m_l, Zsp, ZpR, ZR3),
@@ -655,6 +824,32 @@ for k = 1:M
 
         Lmat = kron(speye(mk),ML).';
         Rmat = kron(speye(ml),MR);
+
+        % % % Parameter cell of the term over the gamma cells of Sec. 6.1   % MMP, 09/30/2026
+        params = gamma_params(Cgam,g1b,NL3,g2b,NR3,nloc,Lmat,Rmat, ...
+                              locB,ndec,n3);                                % MMP, 09/30/2026
+
+        nt = nt+1;
+        terms{nt} = sdopvar(params,vars_io,Zd,ZLf,ZRf,dom_io,[mk,ml]);
+        end
+        end
+      end
+    end
+    if nt==0
+        error("Internal error: block (%d,%d) collected no terms.",k,l)
+    end
+
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function params = gamma_params(Cgam,g1b,NL3,g2b,NR3,nloc,Lmat,Rmat, ...
+                               locB,ndec,n3)                                % MMP, 09/30/2026
+% The sdopvar parameter cell of one term: params.A{q}, params.B{q} (the     % MMP, 09/30/2026
+% constant and decision parts of gamma cell q, B over the global list of    % MMP, 09/30/2026
+% ndec variables), as a 3 x ... x 3 cell over the n3 shared variables.      % MMP, 09/30/2026
+% Cgam{q}: triplets from 'int_semisep' on the block's own nloc sheets;      % MMP, 09/30/2026
+% locB: their rows in the global list; Lmat, Rmat: the basis merge maps.    % MMP, 09/30/2026
 
         % Nothing between 'pack_sheets' and here mixes sheets -- each stays a
         % contiguous block of columns, as 'unpack_sheets' own header records --
@@ -705,26 +900,20 @@ for k = 1:M
         params.A = reshape(params.A,[3*ones(1,n3),1,1]);
         params.B = reshape(params.B,[3*ones(1,n3),1,1]);
 
-        nt = nt+1;
-        terms{nt} = sdopvar(params,vars_io,Zd,ZLf,ZRf,dom_io,[mk,ml]);
-        end
-        end
-      end
-    end
-    if nt==0
-        error("Internal error: block (%d,%d) collected no terms.",k,l)
-    end
-%   Cblk{k,l} = plus_batch(terms{1:nt});                                    % MMP, 09/26/2026 (was)
-    % Every term was built on this call's one Zd (the sdopvar constructor   % MMP, 09/26/2026
-    % stores it unchanged), so plus_batch may skip its O(q) per-operand     % MMP, 09/26/2026
-    % list comparison: 136 comparisons of 3.8e5 names in 2-D Hinf.          % MMP, 09/26/2026
-    Cblk{k,l} = plus_batch(terms{1:nt},'shared_Zd');                        % MMP, 09/26/2026
-  end
 end
 
-Pop = cdopvar(Cblk);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function Z = by_space(src,idx,sel)                                          % MMP, 09/30/2026
+% Exponent lists laid out per variable of one space: Z{t} = src{idx(t)}     % MMP, 09/30/2026
+% where sel(t), and 0 (degree 0 only) elsewhere. Replaces four identical    % MMP, 09/30/2026
+% scatter loops of 'block_terms' (initial coding 09/21/2026).               % MMP, 09/30/2026
+
+Z = repmat({0},1,numel(idx));                                               % MMP, 09/30/2026
+Z(sel) = src(idx(sel));                                                     % MMP, 09/30/2026
 
 end
+% % % END change MMP, 09/30/2026 (split)                                    % MMP, 09/30/2026
 
 
 % MMP, 09/30/2026: deleted the local function 'alpha_grid' (initial coding  % MMP, 09/30/2026

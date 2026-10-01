@@ -70,6 +70,9 @@ function prog = lpi_eq_sop(prog,P,opts)
 %                'lpi_eq' refuses the new classes ("Input must be of type
 %                'dopvar', 'dopvar2d', or 'dpvar'"), so an LPI body had to
 %                call lpi_eq_cdopvar or lpi_eq_sdopvar by class.
+% MMP, 09/30/2026: Comment only: lpi_eq_sdopvar has one output and three
+%                inputs since its modes were split into collect_eq_rows and
+%                impose_eq_rows; the note on a second output is obsolete.
 
 % Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and
 % lpi_eq_sdopvar each test nargin for it.
@@ -78,8 +81,9 @@ if isa(P,'cdopvar') || isa(P,'copvar')
     else,           prog = lpi_eq_cdopvar(prog,P);
     end
 elseif isa(P,'sdopvar') || isa(P,'sopvar')
-    % One output: lpi_eq_sdopvar imposes the rows (a second output would
-    % return them unimposed).
+%   % One output: lpi_eq_sdopvar imposes the rows (a second output would    % MMP, 09/30/2026 (was)
+%   % return them unimposed).                                               % MMP, 09/30/2026 (was)
+    % lpi_eq_sdopvar collects and imposes the rows.                         % MMP, 09/30/2026
     if nargin>=3,   prog = lpi_eq_sdopvar(prog,P,opts);
     else,           prog = lpi_eq_sdopvar(prog,P);
     end

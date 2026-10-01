@@ -50,6 +50,13 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %           Q2, R0 (degree d1) and R1, R2 (d3 in s, d2 in theta). A struct
 %           may give any subset of the fields, the rest defaulting to 1. An
 %           M x N cell gives one specification per block;
+%           'int' and 'mult' are KERNEL degrees here (ZL in t_k, ZR in      % MMP, 09/30/2026
+%           s'_k). In 'copquadvar'/'poscopvar' and 'sopquadvar'/'possopvar' % MMP, 09/30/2026
+%           the same names cap each basis operator Z_alpha: 'int' in the    % MMP, 09/30/2026
+%           integration variable theta_k, 'mult' in s_k. A struct with only % MMP, 09/30/2026
+%           these two fields, 'mult' a scalar, passes both routines, so a   % MMP, 09/30/2026
+%           deg written for one gives the other a different basis without   % MMP, 09/30/2026
+%           an error ('joint' and 'subset' are refused here);               % MMP, 09/30/2026
 % - options: (optional) struct with field
 %           - occ:  M x N logical, false for a structurally zero block,
 %                   which declares no variables. Default all true;
@@ -135,6 +142,12 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  parser's "Spaces should be specified as a cell of
 %                  'cellstr' objects." instead of MATLAB's brace-indexing
 %                  error. NOTES line on 'copquadvar' replaced.
+% MMP, 09/30/2026: Help for 'deg' states that 'int' and 'mult' are kernel
+%                  degrees here but basis-operator caps in 'copquadvar' and
+%                  'sopquadvar', and that a struct with only those two
+%                  fields, 'mult' scalar, passes both (measured at nv = 1
+%                  and 2), so the mix-up raises no error. Help only; the
+%                  field names are unchanged.
 
 if nargin<5 || isempty(deg),        deg = 1;            end
 if nargin<6 || isempty(options),    options = struct(); end

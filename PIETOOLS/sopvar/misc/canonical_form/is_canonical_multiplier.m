@@ -78,6 +78,10 @@ function [tf,info] = is_canonical_multiplier(params,vars,ZL,ZR,dims)
 %                  every cell; it is now built on first use and reused, as
 %                  canonicalize_multiplier does since 09/29. Same values, so
 %                  tf and info are unchanged.
+% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
+%                  sopvar/misc/canonical_form, after what it holds (the
+%                  canonical form of the block classes), not the tool that
+%                  wrote it. The move changes no code.
 
 tf = true;
 info = struct('bad',[],'dirs',{{}},'unchecked',[],'message','');

@@ -63,6 +63,10 @@ function p = monomial_gather(Z,ord)
 %                  exponent vector as a list. Identical on column bases,
 %                  which the classes store (CLAUDE.md sec. 5), so p is
 %                  unchanged there.
+% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
+%                  sopvar/misc/canonical_form, after what it holds (the
+%                  canonical form of the block classes), not the tool that
+%                  wrote it. The move changes no code.
 
 if numel(Z)<=1 || isequal(ord(:).',1:numel(Z))
     p = (1:prod([cellfun(@numel,Z),1])).';

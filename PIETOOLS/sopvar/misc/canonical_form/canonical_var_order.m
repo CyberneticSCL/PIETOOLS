@@ -74,16 +74,29 @@ function [vars,dom,ZL,ZR,rowIdx,colIdx,changed] = canonical_var_order(vars,dom,Z
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/09/2026
+% MMP, 09/30/2026: Comments only. The normalization note cited
+%                  canonicalize_multiplier by file and line, which goes
+%                  stale on the next edit above it; it now names the step.
+%                  The monomial_gather failure it gives as the reason is
+%                  marked as past: since 09/30 monomial_gather builds its
+%                  degree tables with multiindex_grid, which reads a row
+%                  exponent vector as a list. The normalization stays, for
+%                  the column bases the class stores.
+% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
+%                  sopvar/misc/canonical_form, after what it holds (the
+%                  canonical form of the block classes), not the tool that
+%                  wrote it. The move changes no code.
 
 vin  = vars.in(:).';        vout = vars.out(:).';
 
 % Normalize the two input shapes the class tolerates elsewhere. This routine
 % runs BEFORE 'canonicalize_multiplier', which is where the same
-% normalization used to happen (canonicalize_multiplier.m:85-91), so callers
-% that legitimately hand over row-oriented exponent vectors or an empty
-% domain side as [] reached the code below in a shape it could not use:
-% 'monomial_gather' matches degree table ROWS, so a row basis widens the
-% table instead of lengthening it and the 'rows' ismember throws.
+% normalization used to happen (its 'Normalize the bases' step), so         % MMP, 09/30/2026
+% callers that legitimately hand over row-oriented exponent vectors or an   % MMP, 09/30/2026
+% empty domain side as [] reached the code below in a shape it could not    % MMP, 09/30/2026
+% use: 'monomial_gather' matched degree table ROWS, so a row basis widened  % MMP, 09/30/2026
+% the table instead of lengthening it and the 'rows' ismember threw (until  % MMP, 09/30/2026
+% 09/30/2026; its shared degree table now reads either orientation).        % MMP, 09/30/2026
 ZL = reshape(ZL,1,[]);      ZR = reshape(ZR,1,[]);
 for i = 1:numel(ZL),    ZL{i} = ZL{i}(:);    end
 for i = 1:numel(ZR),    ZR{i} = ZR{i}(:);    end

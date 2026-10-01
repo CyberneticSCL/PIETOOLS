@@ -1,12 +1,12 @@
-function info = verify(Mop)
+function info = verify(P)                                                   % MMP, 09/30/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% INFO = VERIFY(MOP) checks that the blocks of a 'copvar' agree with its
+% INFO = VERIFY(P) checks that the blocks of a 'copvar' agree with its      % MMP, 09/30/2026
 % container metadata and with each other.
 %
 % OUTPUTS
-% - info.true:   1 if MOP is consistent, 0 otherwise;
+% - info.true:   1 if P is consistent, 0 otherwise;                         % MMP, 09/30/2026
 % - info.flags:  cell array of messages, one per inconsistency, empty when
-%                MOP is consistent;
+%                P is consistent;                                           % MMP, 09/30/2026
 %
 % CHECKED: metadata shapes; no all-empty row or column; per block, that its
 % output side matches its row and its input side matches its column, that it
@@ -82,10 +82,14 @@ function info = verify(Mop)
 %                  exactly this validation as what must not diverge.
 %                  Verdicts and messages unchanged. The 09/17/2026 entry
 %                  describes code that now lives there.
+% MMP, 09/30/2026: Renamed the input Mop -> P, a name from before the
+%                  09/25/2026 rename ('mopvar' is now the stub class in
+%                  @mopvar). Mechanical, no functional change; each marked
+%                  line differs from its old text only by that name.
 
 % % % BEGIN body replaced by MMP, 09/30/2026 - the 09/17/2026 body, deleted
 % % % here, is 'verify_copvar_meta'; see the header entry above.
-info = verify_copvar_meta(Mop,'copvar',{'sopvar'});                         % MMP, 09/30/2026
+info = verify_copvar_meta(P,'copvar',{'sopvar'});                           % MMP, 09/30/2026
 
 end
 % % % END body replaced by MMP, 09/30/2026

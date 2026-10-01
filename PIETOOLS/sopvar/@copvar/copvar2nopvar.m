@@ -1,10 +1,10 @@
-function Pnop = copvar2nopvar(Pmop)
+function Pnop = copvar2nopvar(Pc)                                           % MMP, 09/30/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PNOP = COPVAR2NOPVAR(PMOP) takes a 1 x 1 'copvar' container whose block
+% PNOP = COPVAR2NOPVAR(PC) takes a 1 x 1 'copvar' container whose block     % MMP, 09/30/2026
 % maps one L2 space to itself and returns the equivalent 'nopvar' object.
 %
 % INPUTS
-% - Pmop:   1 x 1 'copvar' whose single block has the same spatial
+% - Pc:     1 x 1 'copvar' whose single block has the same spatial          % MMP, 09/30/2026
 %           variables on both sides;
 % OUTPUTS
 % - Pnop:   'nopvar' object representing the same operator;
@@ -55,27 +55,31 @@ function Pnop = copvar2nopvar(Pmop)
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  Bench_mopvar_vs_legacy -> Bench_copvar_vs_legacy,
 %                  mopvar2nopvar -> copvar2nopvar. File was 'mopvar2nopvar.m'.
+% MMP, 09/30/2026: Renamed the input Pmop -> Pc, a name from before the
+%                  09/25/2026 rename ('mopvar' is now the stub class in
+%                  @mopvar). Mechanical, no functional change; each marked
+%                  line differs from its old text only by that name.
 
-if ~isa(Pmop,'copvar')
+if ~isa(Pc,'copvar')                                                        % MMP, 09/30/2026
     error('copvar2nopvar:badInput','Input must be a copvar object.')
 end
-[M,N] = size(Pmop);
+[M,N] = size(Pc);                                                           % MMP, 09/30/2026
 if M~=1 || N~=1
     error('copvar2nopvar:badGrid',...
         ['''nopvar'' has one space on each side and no block structure, so '...
          'only a 1x1 container converts; got %dx%d.'],M,N)
 end
-if isempty(Pmop.C{1,1})
+if isempty(Pc.C{1,1})                                                       % MMP, 09/30/2026
     error('copvar2nopvar:zeroBlock',...
         ['The single block is structurally zero, so there is no operator to '...
          'convert. Build an explicitly zero-valued sopvar block instead.'])
 end
-if ~isequal(Pmop.space_out(1,:),Pmop.space_in(1,:))
+if ~isequal(Pc.space_out(1,:),Pc.space_in(1,:))                             % MMP, 09/30/2026
     error('copvar2nopvar:spaceMismatch',...
         ['''nopvar'' maps a space to itself; this container maps {%s} to '...
-         '{%s}.'],strjoin(Pmop.vars(Pmop.space_in(1,:)),','),...
-        strjoin(Pmop.vars(Pmop.space_out(1,:)),','))
+         '{%s}.'],strjoin(Pc.vars(Pc.space_in(1,:)),','),...
+        strjoin(Pc.vars(Pc.space_out(1,:)),','))                            % MMP, 09/30/2026
 end
-Pnop = sopvar2nopvar(Pmop.C{1,1});
+Pnop = sopvar2nopvar(Pc.C{1,1});                                            % MMP, 09/30/2026
 
 end

@@ -122,6 +122,15 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  included. The 09/21 entry's check by counting
 %                  prog.expr.num no longer discriminates (blocks now share
 %                  entries); count equality rows (columns of At) instead.
+% MMP, 09/30/2026: Collect with 'collect_eq_rows' and impose with
+%                  'impose_eq_rows' (lpis_sopvar/private), the two halves
+%                  of 'lpi_eq_sdopvar', called by name instead of through
+%                  its second output, 4th input and struct-P modes, which
+%                  are gone. The previous entry's "collected with
+%                  lpi_eq_sdopvar's second output and imposed by it" now
+%                  reads: collected by collect_eq_rows, imposed by
+%                  impose_eq_rows. Same calls in the same order, same
+%                  program bit for bit.
 
 if isa(P,'copvar')
     error("Input of type 'copvar' carries no decision variables; use 'eq' "...
@@ -150,7 +159,8 @@ if symm && M~=N
           +num2str(M)+" x "+num2str(N)+".")
 end
 
-% Last Zd list lpi_eq_sdopvar verified against prog.decvartable (NaN:       % MMP, 09/26/2026
+% Last Zd list lpi_eq_sdopvar verified against prog.decvartable (NaN:       % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+% Last Zd list collect_eq_rows verified against prog.decvartable (NaN:      % MMP, 09/30/2026
 % none). prog.decvartable does not change in this loop, so the verdict      % MMP, 09/26/2026
 % carries over to every later block with an equal list.                     % MMP, 09/26/2026
 Zd_ok = NaN;                                                                % MMP, 09/26/2026
@@ -199,33 +209,42 @@ for i = 1:M
         checked = isequal(Bij.Zd,Zd_ok);                                    % MMP, 09/26/2026
         if ~checked && ~isempty(batch)                                      % MMP, 09/26/2026
             % New list: the pending rows index the old one, so impose them. % MMP, 09/26/2026
-            prog = lpi_eq_sdopvar(prog,batch);                              % MMP, 09/26/2026
+%           prog = lpi_eq_sdopvar(prog,batch);                              % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+            prog = impose_eq_rows(prog,batch);                              % MMP, 09/30/2026
             batch = [];                                                     % MMP, 09/26/2026
         end                                                                 % MMP, 09/26/2026
-        % Second output: collect this block's constraints, do not impose.   % MMP, 09/26/2026
+        % Second output: collect this block's constraints, do not impose.   % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+        % Collect this block's constraints, do not impose (prog unchanged). % MMP, 09/30/2026
         if symm && i==j
 %           prog = lpi_eq_sdopvar(prog,Bij,'symmetric');                    % MMP, 09/26/2026 (was)
 %           prog = lpi_eq_sdopvar(prog,Bij,'symmetric',checked);            % MMP, 09/26/2026 (was)
-            [prog,Eq] = lpi_eq_sdopvar(prog,Bij,'symmetric',checked);       % MMP, 09/26/2026
+%           [prog,Eq] = lpi_eq_sdopvar(prog,Bij,'symmetric',checked);       % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+            Eq = collect_eq_rows(prog,Bij,'symmetric',checked);             % MMP, 09/30/2026
         else
 %           prog = lpi_eq_sdopvar(prog,Bij);                                % MMP, 09/26/2026 (was)
 %           prog = lpi_eq_sdopvar(prog,Bij,[],checked);                     % MMP, 09/26/2026 (was)
-            [prog,Eq] = lpi_eq_sdopvar(prog,Bij,[],checked);                % MMP, 09/26/2026
+%           [prog,Eq] = lpi_eq_sdopvar(prog,Bij,[],checked);                % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+            Eq = collect_eq_rows(prog,Bij,[],checked);                      % MMP, 09/30/2026
         end
         % Appended after the earlier blocks' columns, the order one soseq   % MMP, 09/26/2026
         % per block imposed them in, so sossolve's rows keep their order.   % MMP, 09/26/2026
         if isempty(batch),  batch = Eq;                                     % MMP, 09/26/2026
         else,               batch.Cs = [batch.Cs, Eq.Cs];                   % MMP, 09/26/2026
         end                                                                 % MMP, 09/26/2026
-        % Verified now: lpi_eq_sdopvar errors on an unknown variable.       % MMP, 09/26/2026
+        % Verified now: lpi_eq_sdopvar errors on an unknown variable.       % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+        % Verified now: collect_eq_rows errors on an unknown variable.      % MMP, 09/30/2026
         Zd_ok = Bij.Zd;                                                     % MMP, 09/26/2026
     end
 end
-% The rest: all blocks if they share one list. lpi_eq_sdopvar caps each     % MMP, 09/26/2026
-% soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/26/2026
-% the collected coefficients, O(nnz), until then (see impose_rows there).   % MMP, 09/26/2026
+% The rest: all blocks if they share one list. lpi_eq_sdopvar caps each     % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+% soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+% the collected coefficients, O(nnz), until then (see impose_rows there).   % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+% The rest: all blocks if they share one list. impose_eq_rows caps each     % MMP, 09/30/2026
+% soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/30/2026
+% the collected coefficients, O(nnz), until then (see its help).            % MMP, 09/30/2026
 if ~isempty(batch)                                                          % MMP, 09/26/2026
-    prog = lpi_eq_sdopvar(prog,batch);                                      % MMP, 09/26/2026
+%   prog = lpi_eq_sdopvar(prog,batch);                                      % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+    prog = impose_eq_rows(prog,batch);                                      % MMP, 09/30/2026
 end                                                                         % MMP, 09/26/2026
 
 end

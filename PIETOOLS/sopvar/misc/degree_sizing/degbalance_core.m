@@ -108,6 +108,11 @@ function [deg,report] = degbalance_core(P,opts)
 %                  shared variable (n3 = 0) now fails later, at a(1), not at
 %                  vals{1}; an empty basis before a nonempty one gives an
 %                  empty table, where the old table lost a column.
+% MMP, 09/30/2026 (move): from sopvar/misc/claude to
+%                  sopvar/misc/degree_sizing. It sizes 'possopvar' degrees,
+%                  which is not the canonical form the rest of that folder,
+%                  now sopvar/misc/canonical_form, holds. The move changes
+%                  no code.
 
 if nargin<2 || isempty(opts)
     opts = struct();

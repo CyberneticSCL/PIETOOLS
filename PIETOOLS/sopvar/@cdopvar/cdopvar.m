@@ -121,6 +121,11 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
 %                  differ each block moves by the sort's row map, not by a
 %                  name search, and no list is read through a q-length (:)
 %                  copy unless stored as a row.
+% MMP, 09/30/2026: The initial-coding entry calls copvar's ?sdopvar
+%                  precedence inert. That no longer holds since 09/25/2026:
+%                  @copvar/horzcat, vertcat and blkdiag rely on it to catch a
+%                  decision block among fixed operands and promote it to a
+%                  'cdopvar' (see the 09/30/2026 entry in 'copvar'). Doc only.
 
     properties
         C = {};                     % M x N cell of blocks; [] = zero block

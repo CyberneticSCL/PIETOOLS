@@ -132,6 +132,15 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
 %                  cdopvar). Before, the dpvar's own method was called and
 %                  failed. The classdef line was
 % classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) copvar          % MMP, 09/29/2026 (was)
+% MMP, 09/30/2026: The 09/17/2026 entry calls the ?sdopvar precedence
+%                  inert and never exercised. That no longer holds since
+%                  09/25/2026: @copvar/horzcat, vertcat and blkdiag rely on
+%                  it ("copvar outranks sdopvar, so a decision BLOCK among
+%                  the operands lands here"), promoting such a block and
+%                  re-dispatching to 'cdopvar'. Without it an operand list
+%                  that starts with the 'sdopvar' block, [B, P], would reach
+%                  @sdopvar/horzcat (MATLAB calls the leftmost argument's
+%                  method when no precedence is declared). Doc only.
 
 % % % BEGIN body replaced by MMP, 09/17/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

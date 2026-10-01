@@ -105,6 +105,10 @@ function [Tcell,ZLnew,ZRnew] = canonical_adjoint_map(vars,ZL,ZR,dims)
 %                  in five files and two copies had diverged. The helpers
 %                  are this file's copies verbatim, messages included, so
 %                  outputs and errors are unchanged.
+% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
+%                  sopvar/misc/canonical_form, after what it holds (the
+%                  canonical form of the block classes), not the tool that
+%                  wrote it. The move changes no code.
 
 vin  = reshape(vars.in,1,[]);
 vout = reshape(vars.out,1,[]);

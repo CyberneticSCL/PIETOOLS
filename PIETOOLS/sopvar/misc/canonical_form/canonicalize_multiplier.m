@@ -96,6 +96,17 @@ function [params,ZL,ZR,changed] = canonicalize_multiplier(params,vars,ZL,ZR,dims
 %                  is on invalid input: a negative or non-integer exponent
 %                  in the enlarged bases raises monomial_position_map's
 %                  error instead of a MATLAB indexing error.
+% MMP, 09/30/2026: The three passes, one 167-line body of McCabe 46, are
+%                  the local functions find_noncanonical (pass 1),
+%                  enlarge_bases (pass 2) and rebuild_params (pass 3). The
+%                  primary keeps the guards and returns after pass 1 on the
+%                  normal, canonical input. Bodies moved unchanged; pass 1
+%                  takes the shared sizes as arguments, the rewrite passes
+%                  as one struct. Outputs bit-identical.
+% MMP, 09/30/2026 (move): folder sopvar/misc/claude renamed
+%                  sopvar/misc/canonical_form, after what it holds (the
+%                  canonical form of the block classes), not the tool that
+%                  wrote it. The move changes no code.
 
 changed = false;
 
@@ -151,8 +162,40 @@ nrow = m*NL;        nC = nrow*(n*NR);
 % sz_C went with ind2sub; gamma_of_cell needs only n3.                      % MMP, 09/30/2026
 sL = kron_strides(nL);      sR = kron_strides(nR);                          % MMP, 09/30/2026
 
+% BEGIN MMP, 09/30/2026: the three passes are the local functions
+% find_noncanonical, enlarge_bases and rebuild_params below, so this reads
+% guards, detect, return; the rewrite runs only when pass 1 finds a
+% non-canonical parameter (0 of the 3788 calls of the 1-D, 2-D and 3-D
+% executive program builds, measured 09/30/2026). Their bodies moved
+% unchanged. Pass 1 runs on every construction, so it takes the sizes it
+% reads as arguments: a struct built and unpacked costs 7.3 us per call,
+% arguments 0.03 us (measured). The rewrite passes take theirs as the
+% struct 'sz', built on that path only and unpacked to the same names.
+[bad,need,need_zero] = find_noncanonical(params,ZL,ZR,vin,vout,n3,posL, ...
+    posR,is_sdop,ncell,nR,NL,NR,n,nrow,nC,sL,sR);                           % MMP, 09/30/2026
+if ~any(bad)
+    return
+end
+changed = true;
+sz = struct('vin',{vin},'vout',{vout},'n3',n3,'posL',posL,'posR',posR, ...
+            'is_sdop',is_sdop,'ncell',ncell,'NL',NL,'NR',NR,'m',m, ...
+            'n',n,'nrow',nrow,'nC',nC,'sL',sL,'sR',sR);                     % MMP, 09/30/2026
+[ZLnew,ZRnew] = enlarge_bases(ZL,ZR,need,need_zero,sz);                     % MMP, 09/30/2026
+params = rebuild_params(params,ZL,ZR,ZLnew,ZRnew,sz);                       % MMP, 09/30/2026
+ZL = ZLnew;     ZR = ZRnew;
+% END MMP, 09/30/2026
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [bad,need,need_zero] = find_noncanonical(params,ZL,ZR,vin,vout, ...
+    n3,posL,posR,is_sdop,ncell,nR,NL,NR,n,nrow,nC,sL,sR)                    % MMP, 09/30/2026
 % % % Pass 1. Locate the parameters that are not canonical, and record the
 % % % left degrees that folding them will require.
+% bad(k): parameter k has content the canonical form forbids; need{r}: the  % MMP, 09/30/2026
+% left degrees of output variable r that folding needs; need_zero(t): ZR    % MMP, 09/30/2026
+% needs degree 0 in shared direction t. Reads params, writes nothing. The   % MMP, 09/30/2026
+% sizes are the primary's, under the same names.                            % MMP, 09/30/2026
 need = cell(1,numel(vout));
 for r = 1:numel(vout)
     need{r} = zeros(0,1);
@@ -226,11 +269,11 @@ for k = 1:ncell
         need{r} = [need{r}; tot(:)];
     end
 end
-if ~any(bad)
-    return
-end
-changed = true;
+end                                                                         % MMP, 09/30/2026
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [ZLnew,ZRnew] = enlarge_bases(ZL,ZR,need,need_zero,sz)             % MMP, 09/30/2026
 % % % Pass 2. Enlarge the bases. The left basis has to hold the folded
 % % % degrees as well as the ones the integral parameters already use; the
 % % % right basis has to hold degree 0.
@@ -238,6 +281,7 @@ changed = true;
 % counts as a row, so every result is forced back to a column. A row basis
 % is not merely untidy: 'UnionBasisMonomials' builds its degree matrix from
 % the orientation, and 'plus', 'minus' and 'eq' then fail outright.
+vin = sz.vin;   vout = sz.vout;     posR = sz.posR;                         % MMP, 09/30/2026
 ZLnew = ZL;     ZRnew = ZR;
 for r = 1:numel(vout)
     if ~isempty(need{r})
@@ -253,7 +297,26 @@ end
 for p = 1:numel(vin)
     ZRnew{p} = ZRnew{p}(:);
 end
+end                                                                         % MMP, 09/30/2026
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function params = rebuild_params(params,ZL,ZR,ZLnew,ZRnew,sz)               % MMP, 09/30/2026
+% % % Pass 3. Rebuild every parameter in the new bases, folding the
+% % % multiplier directions on the way. Every parameter has to be rebuilt,
+% % % not just the offending ones, because enlarging a basis moves the
+% % % positions of all the others.
+%
+% A parameter whose size disagrees with the declared bases cannot be
+% rebuilt, and silently emptying it would discard content, so refuse. Pass 1
+% has already found a well formed parameter that needs folding, so reaching
+% this with an inconsistent sibling means the parameter array is malformed.
+% Called as params = rebuild_params(params,...), the form MATLAB can update % MMP, 09/30/2026
+% in place; each cell is replaced whole, as before.                         % MMP, 09/30/2026
+vin = sz.vin;   vout = sz.vout;     n3 = sz.n3;     posL = sz.posL;         % MMP, 09/30/2026
+posR = sz.posR;     is_sdop = sz.is_sdop;   ncell = sz.ncell;   m = sz.m;   % MMP, 09/30/2026
+n = sz.n;   NL = sz.NL;     NR = sz.NR;     nrow = sz.nrow;     nC = sz.nC; % MMP, 09/30/2026
+sL = sz.sL;     sR = sz.sR;                                                 % MMP, 09/30/2026
 nLn = cellfun(@numel,ZLnew);        NLn = prod([nLn,1]);
 nRn = cellfun(@numel,ZRnew);        NRn = prod([nRn,1]);
 % sLn = strides_of(nLn);              sRn = strides_of(nRn);                % MMP, 09/30/2026 (was)
@@ -267,15 +330,6 @@ mapR = cell(1,numel(vin));
 % for p = 1:numel(vin),   mapR{p} = degree_lookup(ZRnew{p});   end          % MMP, 09/30/2026 (was)
 for p = 1:numel(vin),   mapR{p} = monomial_position_map(ZRnew{p});   end    % MMP, 09/30/2026
 
-% % % Pass 3. Rebuild every parameter in the new bases, folding the
-% % % multiplier directions on the way. Every parameter has to be rebuilt,
-% % % not just the offending ones, because enlarging a basis moves the
-% % % positions of all the others.
-%
-% A parameter whose size disagrees with the declared bases cannot be
-% rebuilt, and silently emptying it would discard content, so refuse. Pass 1
-% has already found a well formed parameter that needs folding, so reaching
-% this with an inconsistent sibling means the parameter array is malformed.
 for k = 1:ncell
     if is_sdop
         ok = (isempty(params.A{k}) || numel(params.A{k})==nC) ...
@@ -335,10 +389,7 @@ for k = 1:ncell
     T = sparse(dest,lin,1,nC_n,nC);
     params = set_param(params,k,is_sdop,T,nC_n,nrow_n);
 end
-
-ZL = ZLnew;     ZR = ZRnew;
-
-end
+end                                                                         % MMP, 09/30/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

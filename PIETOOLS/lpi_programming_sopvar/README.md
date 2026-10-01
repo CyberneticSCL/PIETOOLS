@@ -61,7 +61,7 @@ checks wrongly:
 | class of `P` | routine |
 |---|---|
 | `cdopvar`, `copvar` | `lpi_eq_cdopvar` |
-| `sdopvar`, `sopvar` | `lpi_eq_sdopvar` (one output, so the rows are imposed) |
+| `sdopvar`, `sopvar` | `lpi_eq_sdopvar`, which collects and imposes the rows (MMP, 09/30/2026: it has one output and no internal modes since then) |
 | any other class (`dpvar`, `dopvar`, `dopvar2d`, `opvar`, `opvar2d`, `polynomial`, `double`, ...) | `lpi_eq`, unchanged |
 
 `opts` (`'symmetric'`) is passed on only when given. Each routine keeps its own errors,
