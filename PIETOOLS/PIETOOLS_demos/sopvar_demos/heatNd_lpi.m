@@ -85,9 +85,9 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %             infeasible at 0.5 k* in 2-D here, as for stock);
 %   'none'    Cor. 35 as printed (no Psatz term). MEASURED: certifies no
 %             rate in 1-D or 2-D at practical degree, as the stock listing.
-%   The 2N face terms are summed one 'plus' at a time, each re-merging the
-%   decision list: MEASURED 6.0 s of the 56.5 s Q stage in 3-D (review);
-%   left as is.
+%   The 2N face terms are summed by one 'plus_batch' (10/01/2026); summed
+%   one 'plus' at a time, each re-merged the decision list: MEASURED 6.0 s
+%   of the 56.5 s Q stage in 3-D (review).
 % - OPTS.preset sets defaults, individual fields still override:
 %   'bench' (default) Tspan dp 0, linear;  'heavy' Tspan dp 1, linear;
 %   'listing' balance, none (the Sec. 7.1 listing as printed);
@@ -132,6 +132,10 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 % MMP, 10/01/2026: The program is lpiprogram for every N; it no longer refuses
 %   N > 2, so the hand-built copy for N > 2 is commented out. Same program
 %   (lpiprogram builds exactly what the copy built).
+% MMP, 10/01/2026: The 'linear' face terms are summed by one plus_batch
+%   instead of Z = Z + Zg per face: each '+' remapped the growing sum
+%   onto the union of the decision lists (O(N^2) block rows in the number
+%   of terms). Same program; see @cdopvar/plus_batch.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<5 || isempty(opts),   opts = struct();    end
@@ -264,6 +268,9 @@ switch opts.psatz
         % (th_i-a_i)/L_i / (b_i-th_i)/L_i at theta; i indexes the SORTED    % MMP, 09/27/2026
         % registry, which vars = s1..sN is (heatNd_pie: N <= 9), as dom     % MMP, 09/27/2026
         % row order assumes too.                                            % MMP, 09/27/2026
+        % The terms are summed once at the end ('plus_batch'): each '+'     % MMP, 10/01/2026
+        % remapped the growing sum onto the union of the decision lists.    % MMP, 10/01/2026
+        terms = {Z};                                                        % MMP, 10/01/2026
         for i = 1:N
 %           si = polynomial(vars(i));   L = dom(i,2)-dom(i,1);              % MMP, 09/27/2026 (was)
 %           gi = {(si-dom(i,1))/L, (dom(i,2)-si)/L};                        % MMP, 09/27/2026 (was)
@@ -272,9 +279,11 @@ switch opts.psatz
 %               [prog,Zg] = heatNd_posw(prog,1,vars,dom,deg,pg);            % MMP, 09/27/2026 (was)
                 pg = po;    pg.psatz = 2*i+e;                               % MMP, 09/27/2026
                 [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pg);              % MMP, 09/27/2026
-                Z = Z + Zg;
+%               Z = Z + Zg;                                                 % MMP, 10/01/2026 (was)
+                terms{end+1} = Zg;                                          % MMP, 10/01/2026
             end
         end
+        Z = plus_batch(terms{:});                                           % MMP, 10/01/2026
     otherwise
         error('heatNd_lpi:psatz','psatz is ''none'', ''product'' or ''linear''.')
 end

@@ -40,6 +40,9 @@ function test_container_method_parity(mode)
 %                10 code-identical pairs stay identical or that the other 6
 %                differ only in their decision-variable branches.
 % MMP, 09/30/2026: EXPECTED.verify follows the verify input rename Mop -> P.
+% MMP, 10/01/2026: 'plus_batch' listed as class-specific in both classes:
+%                  the copvar file is the '+' chain, the cdopvar file the
+%                  one-reconciliation sum, so they are not copies.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1,    mode = 'test';  end
@@ -53,8 +56,10 @@ assert(endsWith(dirA,[filesep '@copvar']) && endsWith(dirB,[filesep '@cdopvar'])
 IDENT = {'cat','ctranspose','eq','minus','numArgumentsFromSubscript','size',...
          'subsasgn','subsref','transpose','uminus'};
 DIFF  = {'blkdiag','horzcat','vertcat','mtimes','plus','verify'};
-ONLY_A = {'copvar','canonicalize','copvar2nopvar','copvar2opvar','copvar2opvar2d'};
-ONLY_B = {'cdopvar'};
+% ONLY_A = {'copvar','canonicalize','copvar2nopvar','copvar2opvar','copvar2opvar2d'}; % MMP, 10/01/2026 (was)
+% ONLY_B = {'cdopvar'};                                                     % MMP, 10/01/2026 (was)
+ONLY_A = {'copvar','canonicalize','copvar2nopvar','copvar2opvar','copvar2opvar2d','plus_batch'}; % MMP, 10/01/2026
+ONLY_B = {'cdopvar','plus_batch'};                                          % MMP, 10/01/2026
 nchk = 0;
 
 % % % (1) The method sets.
