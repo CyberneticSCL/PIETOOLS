@@ -35,9 +35,10 @@ collide with a legacy one.
 
 ### `prog = lpiprogram_sop(...)`
 
-This is `lpiprogram` without its 2-variable cap. It follows lpiprogram's parsing and
-construction in full, so one code path serves every N. For N ≤ 2 its output equals
-lpiprogram's field by field (test (a)).
+This is `lpiprogram` with three more input forms (the last three rows below). Since
+10/01/2026 `lpiprogram` itself takes any number of variables, so `lpiprogram_sop` only
+converts those forms and calls it; before, it was a copy of lpiprogram without the
+2-variable cap. Its outputs and error messages were checked unchanged on 93 input forms.
 
 | input | result |
 |---|---|
@@ -49,12 +50,9 @@ lpiprogram's field by field (test (a)).
 It has these fields: `vartable = [vars; dummies; free]` (a `polynomial`), `dom` (n×2),
 `decvartable` (a cellstr), and the SOSTOOLS fields.
 
-It deviates from `lpiprogram` in three places, all on inputs that lpiprogram rejects or
-checks wrongly:
-
-- it checks the dummy variables with `ispvar`, where lpiprogram checks `vartab` again;
-- it accepts names as a cellstr or a container;
-- with no spatial variable it sets `dom = zeros(0,2)`, where lpiprogram errors.
+The former copy deviated from `lpiprogram` in three places. Since 10/01/2026 `lpiprogram`
+has two of them itself (it checks the dummy variables with `ispvar`, and with no spatial
+variable sets `dom = zeros(0,2)`); the cellstr and container forms stay here.
 
 ### `prog = lpi_eq_sop(prog,P[,opts])`
 

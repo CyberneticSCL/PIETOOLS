@@ -129,6 +129,9 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   poscopvar psatz = 2i+1 / 2i+2, the option copquadvar gained today, not
 %   from the copy heatNd_posw (retired). MEASURED: every SDP of the
 %   switch-over set (N = 1, 2, 3-D bench d = 0) bit-identical before/after.
+% MMP, 10/01/2026: The program is lpiprogram for every N; it no longer refuses
+%   N > 2, so the hand-built copy for N > 2 is commented out. Same program
+%   (lpiprogram builds exactly what the copy built).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<5 || isempty(opts),   opts = struct();    end
@@ -158,14 +161,15 @@ t = struct('ops',0,'P',0,'compose',0,'R',0,'Q',0,'eq15a',0,'eq15b',0);
 if isempty(opts.base)
     % % % Program in N variables. lpiprogram refuses N > 2 (lpiprogram.m,
     % 'more than 2 spatial variables'); for N > 2 build what it would return.
+    % (10/01/2026: it no longer refuses; one call for every N.)             % MMP, 10/01/2026
     t0 = tic;
-    if N<=2
+%   if N<=2                                                                 % MMP, 10/01/2026 (was)
         prog = lpiprogram(polynomial(vars(:)),[],dom);
-    else
-        prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));
-        prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))];
-        prog.dom = dom;
-    end
+%   else                                                                    % MMP, 10/01/2026 (was)
+%       prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));                % MMP, 10/01/2026 (was)
+%       prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))]; % MMP, 10/01/2026 (was)
+%       prog.dom = dom;                                                     % MMP, 10/01/2026 (was)
+%   end                                                                     % MMP, 10/01/2026 (was)
     T = pie.T;  A = pie.A0; t.ops = toc(t0);    % r enters via kappa only
     % % % P = c' Z_d.
     t0 = tic;

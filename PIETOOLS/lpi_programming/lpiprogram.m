@@ -63,6 +63,15 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 % Initial coding DJ - 10/13/2024
 % DJ, 11/30/2024: Introduce separate input for dummy variables;
 % DJ, 01/23/2025: Allow dummy variables to be specified as empty array;
+% MMP, 10/01/2026: Allow any number of spatial variables: the cap of 2 is
+%   removed, since nothing below depends on the number. The legacy operator
+%   routines still take 1 or 2 variables: for 3, lpivar and poslpivar stop
+%   with "Error setting property 'I' of class 'dopvar'" (measured); the
+%   container routines take any N. This removes the reason for the fork
+%   'lpi_programming_sopvar/lpiprogram_sop', now an adapter calling this.
+%   Also: the dummy variables' ispvar check tested 'vartab' again, and no
+%   spatial variables failed the vector test and then dom(:,2); now zero
+%   variables give dom = zeros(0,2). Valid inputs give the same program.
 
 
 % % % Process the inputs
@@ -110,13 +119,14 @@ elseif ~isa(vartab,'polynomial')
 elseif ~ispvar(vartab)
     error("Each element of the array of spatial variables should correspond to a single polynomial variable.")
 end
-if prod(size(vartab))~=max(size(vartab))
+% if prod(size(vartab))~=max(size(vartab))                                  % MMP, 10/01/2026 (was)
+if ~isempty(vartab) && prod(size(vartab))~=max(size(vartab))  % 0 x 1 is a column % MMP, 10/01/2026
     error("Spatial variables in the LPI optimization program should be specified as nx1 array.")
 end
 vartab = vartab(:);
-if size(vartab,1)>2
-    error('LPI programs involving more than 2 spatial variables are currently not supported.')
-end
+% if size(vartab,1)>2                                                       % MMP, 10/01/2026 (was)
+%     error('LPI programs involving more than 2 spatial variables are currently not supported.') % MMP, 10/01/2026 (was)
+% end                                                                       % MMP, 10/01/2026 (was)
 
 % % Check that the dummy varaibles are properly specified.
 if isempty(dumvartab)                                                       % DJ, 01/23/2025
@@ -135,7 +145,8 @@ if isempty(dumvartab)                                                       % DJ
 else
     if ~isa(dumvartab,'polynomial')
         error("Dummy variables in the LPI optimization program should be specified as nx1 array of type 'polynomial'.")
-    elseif ~ispvar(vartab)
+%   elseif ~ispvar(vartab)                                                  % MMP, 10/01/2026 (was)
+    elseif ~ispvar(dumvartab)                                               % MMP, 10/01/2026
         error("Each element of the array of dummy variables should correspond to a single polynomial variable.")
     end
     dumvartab = dumvartab(:);
@@ -148,7 +159,8 @@ end
 if nargin<=2
     error("No domain has been specified for the spatial variables.")
 elseif isempty(dom) && isempty(vartab)
-    dom = zeros(0,1); 
+%   dom = zeros(0,1);                                                       % MMP, 10/01/2026 (was)
+    dom = zeros(0,2);       % n x 2 for n = 0, so dom(:,2) below is valid   % MMP, 10/01/2026
 elseif ~isa(dom,'double') && ~(isa(dom,'polynomial') && isdouble(dom))
     error("Spatial domain should be specified as nx2 array of type 'double'.")
 elseif size(dom,2)~=2

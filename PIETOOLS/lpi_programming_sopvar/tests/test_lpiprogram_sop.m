@@ -29,6 +29,10 @@ function R = test_lpiprogram_sop(parts)
 %     between 1 and sqrt(2) times the SDP row residual of its rows.
 %
 % Initial coding MMP, 09/29/2026
+% MMP, 10/01/2026: lpiprogram now takes any number of variables (the cap is
+%   removed), so part (a) checks that lpiprogram_sop equals it at N = 3
+%   instead of checking that lpiprogram refuses; part (b) still compares
+%   N = 3, 4 against the hand-built program, which is now also lpiprogram.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(parts),  parts = {'a','b','c','d'};  end
@@ -82,10 +86,13 @@ for k = 1:numel(bad)
     assert(~isempty(m0) && strcmp(m0,m1),'(a) error case %d: lpiprogram "%s", lpiprogram_sop "%s"',k,m0,m1)
 end
 % Three variables: lpiprogram refuses, lpiprogram_sop does not.
+% (10/01/2026: lpiprogram takes them too; lpiprogram_sop must equal it.)    % MMP, 10/01/2026
 pvar s3 th3
-m0 = err_msg(@() lpiprogram([s1;s2;s3],[th1;th2;th3],[0 1]));
-assert(contains(m0,'more than 2 spatial variables'),'(a) lpiprogram no longer caps at 2: %s',m0)
+% m0 = err_msg(@() lpiprogram([s1;s2;s3],[th1;th2;th3],[0 1]));             % MMP, 10/01/2026 (was)
+% assert(contains(m0,'more than 2 spatial variables'),'(a) lpiprogram no longer caps at 2: %s',m0) % MMP, 10/01/2026 (was)
 p3 = lpiprogram_sop([s1;s2;s3],[th1;th2;th3],[0 1]);
+assert(same_val_sop(lpiprogram([s1;s2;s3],[th1;th2;th3],[0 1]),p3,'p3'), ...
+       '(a) 3 variables: lpiprogram_sop differs from lpiprogram')           % MMP, 10/01/2026
 assert(isequal(p3.dom,repmat([0 1],3,1)) && isequal(elem_names(p3.vartable),{'s1','s2','s3','th1','th2','th3'}),...
     '(a) 3-variable program wrong')
 fprintf('(a) %d forms equal to lpiprogram field by field; %d error messages equal\n',numel(cases),numel(bad));

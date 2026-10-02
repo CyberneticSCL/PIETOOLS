@@ -27,6 +27,9 @@ function R = test_copquadvar_faces()
 % Initial coding MMP, 09/27/2026 (from heatNd_test_posw, retired with the
 %   copy heatNd_posw it tested; (ii) is its check (ii), extended to N = 3
 %   and to every code).
+% MMP, 10/01/2026: The program is lpiprogram for every N; it no longer refuses
+%   N > 2, so the hand-built copy for N > 2 is commented out. Same program
+%   (lpiprogram builds exactly what the copy built).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 heatNd_path();
@@ -134,12 +137,14 @@ end
 
 function prog = mkprog(vars,dom)
 % lpiprogram refuses N > 2; for N = 3 what it would return (as HEATND_LPI).
-if numel(vars)<=2
-    prog = lpiprogram(polynomial(vars(:)),[],dom);  return
-end
-prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));
-prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))];
-prog.dom = dom;
+% (10/01/2026: it no longer refuses; one call for every N.)                 % MMP, 10/01/2026
+% if numel(vars)<=2                                                         % MMP, 10/01/2026 (was)
+%     prog = lpiprogram(polynomial(vars(:)),[],dom);  return                % MMP, 10/01/2026 (was)
+% end                                                                       % MMP, 10/01/2026 (was)
+% prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));                      % MMP, 10/01/2026 (was)
+% prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))]; % MMP, 10/01/2026 (was)
+% prog.dom = dom;                                                           % MMP, 10/01/2026 (was)
+prog = lpiprogram(polynomial(vars(:)),[],dom);                              % MMP, 10/01/2026
 end
 
 function y = basis_apply(alpha,x,Th,dom,nq)

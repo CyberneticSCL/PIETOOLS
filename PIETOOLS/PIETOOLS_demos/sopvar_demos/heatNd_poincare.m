@@ -127,6 +127,9 @@ function R = heatNd_poincare(pie,spec,popts)
 %   heatNd_posw (retired). MEASURED: the families of the switch-over set
 %   (N = 1, 2, 3-D L2 d = 0, 1) bit-identical before/after; caches built
 %   before stay valid.
+% MMP, 10/01/2026: The program is lpiprogram for every N; it no longer refuses
+%   N > 2, so the hand-built copy for N > 2 is commented out. Same program
+%   (lpiprogram builds exactly what the copy built).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2 || isempty(spec),   spec = struct();    end
@@ -359,13 +362,14 @@ end
 function prog = make_prog(vars,dom)
 % LPI program in the N variables. lpiprogram refuses N > 2 ('more than 2
 % spatial variables'); for N > 2 build what it would return, as HEATND_LPI.
-if numel(vars)<=2
+% (10/01/2026: it no longer refuses; one call for every N.)                 % MMP, 10/01/2026
+% if numel(vars)<=2                                                         % MMP, 10/01/2026 (was)
     prog = lpiprogram(polynomial(vars(:)),[],dom);
-else
-    prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));
-    prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))];
-    prog.dom = dom;
-end
+% else                                                                      % MMP, 10/01/2026 (was)
+%     prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));                  % MMP, 10/01/2026 (was)
+%     prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))]; % MMP, 10/01/2026 (was)
+%     prog.dom = dom;                                                       % MMP, 10/01/2026 (was)
+% end                                                                       % MMP, 10/01/2026 (was)
 end
 
 
