@@ -13,6 +13,11 @@ function prog = impose_eq_rows(prog,Eq)
 % collected coefficients (O(nnz)), lives until the last soseq. Measured,    % MMP, 09/26/2026
 % 2-D container Hinf, q = 2.3e6: one uncapped soseq peaked at 974 MB,       % MMP, 09/26/2026
 % capped 447 MB (per parameter 291 MB, stock lpi_eq_2d 540 MB).             % MMP, 09/26/2026
+% Each batch is now written by 'lpi_soseq' when EQ.pos gives the table rows % MMP, 10/02/2026
+% of EQ.Zd; soseq runs only without it (a name repeated in EQ.Zd, or a      % MMP, 10/02/2026
+% hand-built EQ). lpi_soseq scans no names, so the cap no longer amortizes  % MMP, 10/02/2026
+% a scan; it still bounds the per-batch transient (the joined M, 16 B per   % MMP, 10/02/2026
+% nonzero, and lpi_soseq's ~80 B), and every entry is the one soseq wrote.  % MMP, 10/02/2026
 %
 % See also COLLECT_EQ_ROWS, LPI_EQ_SDOPVAR, LPI_EQ_CDOPVAR, SOSEQ.
 
@@ -48,8 +53,17 @@ function prog = impose_eq_rows(prog,Eq)
 %                  'lpi_eq_sdopvar' reached it for a struct P, a
 %                  mode its public help did not show; 'lpi_eq_cdopvar' now
 %                  calls it directly. Same soseq calls, same order, same cap.
+% MMP, 10/02/2026: Batches with known table rows (Eq.pos) are written by
+%                  'lpi_soseq' instead of soseq: same batches, same entries.
+%                  In the 3-D heatNd build the 11 soseq calls cost 6.86 s
+%                  in getequation, 5.9 s of it matching the 2.7e6 program
+%                  names against each batch (measured). The entry above
+%                  ("same soseq calls") now holds for the entries, not the
+%                  calls.
 
 if isempty(Eq.Cs),  return,     end                                         % MMP, 09/26/2026
+% Rows of Eq.Zd known (collect_eq_rows' Eq.pos): no soseq.                  % MMP, 10/02/2026
+direct = isfield(Eq,'pos') && numel(Eq.pos)==numel(Eq.Zd);                  % MMP, 10/02/2026
 cap = numel(prog.decvartable);                                              % MMP, 09/26/2026
 nz = cellfun(@nnz,Eq.Cs);                                                   % MMP, 09/26/2026
 k0 = 1;                                                                     % MMP, 09/26/2026
@@ -59,6 +73,13 @@ while k0<=numel(Eq.Cs)                                                      % MM
         k1 = k1+1;  tot = tot+nz(k1);                                       % MMP, 09/26/2026
     end                                                                     % MMP, 09/26/2026
     M = [Eq.Cs{k0:k1}];                                                     % MMP, 09/26/2026
+    % BEGIN MMP, 10/02/2026: the entry soseq would append, written from the
+    % triplets of M with the rows collect_eq_rows found ('lpi_soseq'). The
+    % else branch is the former soseq path, kept for a list without pos.
+    if direct                                                               % MMP, 10/02/2026
+        prog = lpi_soseq(prog,M,Eq.Zd,Eq.pos);                              % MMP, 10/02/2026
+        M = [];                                                             % MMP, 10/02/2026
+    else                                                                    % MMP, 10/02/2026
     % Keep the constant row and the rows of names in use; compress would    % MMP, 09/26/2026
     % drop the others only after O(q) passes over their names.              % MMP, 09/26/2026
     rows = find(any(M,2));                                                  % MMP, 09/26/2026
@@ -67,6 +88,8 @@ while k0<=numel(Eq.Cs)                                                      % MM
     % Free the joined copy before soseq makes its own.                      % MMP, 09/26/2026
     M = [];                                                                 % MMP, 09/26/2026
     prog = soseq(prog,Dk);                                                  % MMP, 09/26/2026
+    end                                                                     % MMP, 10/02/2026
+    % END MMP, 10/02/2026
     k0 = k1+1;                                                              % MMP, 09/26/2026
 end                                                                         % MMP, 09/26/2026
 end                                                                         % MMP, 09/26/2026

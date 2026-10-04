@@ -50,7 +50,8 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % container the two cases cannot differ in substance.
 %
 % All blocks sharing a decision variable list are imposed together, joined  % MMP, 09/26/2026
-% into as few 'soseq' calls as a cap of numel(prog.decvartable) nonzeros    % MMP, 09/26/2026
+% into as few 'soseq' calls as a cap of numel(prog.decvartable) nonzeros    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+% into as few prog.expr entries as a nonzero cap of numel(prog.decvartable) % MMP, 10/02/2026
 % each allows (see 'lpi_eq_sdopvar'), so prog.expr gains a few entries per  % MMP, 09/26/2026
 % call. The rows sossolve assembles (At and b, in order) are those one      % MMP, 09/26/2026
 % 'soseq' per parameter gave.                                               % MMP, 09/26/2026
@@ -131,6 +132,12 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  reads: collected by collect_eq_rows, imposed by
 %                  impose_eq_rows. Same calls in the same order, same
 %                  program bit for bit.
+% MMP, 10/02/2026: Comments only. impose_eq_rows now writes each joined
+%                  batch with 'lpi_soseq' (the rows from collect_eq_rows'
+%                  check), so no soseq scans the program names; 'soseq
+%                  calls' below read 'prog.expr entries'. The batch keeps
+%                  the Eq.pos of its first block, valid for every later
+%                  block with an equal list.
 
 if isa(P,'copvar')
     error("Input of type 'copvar' carries no decision variables; use 'eq' "...
@@ -165,8 +172,10 @@ end
 % carries over to every later block with an equal list.                     % MMP, 09/26/2026
 Zd_ok = NaN;                                                                % MMP, 09/26/2026
 % Constraints collected, not yet imposed, all over the list Zd_ok. Every    % MMP, 09/26/2026
-% soseq scans all q names of prog.decvartable, so all blocks sharing a list % MMP, 09/26/2026
-% (the common case, see Zd_ok) are imposed together, ~q nonzeros per soseq. % MMP, 09/26/2026
+% soseq scans all q names of prog.decvartable, so all blocks sharing a list % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+% (the common case, see Zd_ok) are imposed together, ~q nonzeros per soseq. % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+% check of the list against prog.decvartable runs once per list, so all     % MMP, 10/02/2026
+% blocks sharing one (the common case, see Zd_ok) are imposed together.     % MMP, 10/02/2026
 batch = [];                                                                 % MMP, 09/26/2026
 for i = 1:M
     for j = 1:N
@@ -228,6 +237,11 @@ for i = 1:M
         end
         % Appended after the earlier blocks' columns, the order one soseq   % MMP, 09/26/2026
         % per block imposed them in, so sossolve's rows keep their order.   % MMP, 09/26/2026
+        % batch keeps the Eq.pos (table rows) of its first block: that one  % MMP, 10/02/2026
+        % is collected unchecked (a batch starts only at Zd_ok = NaN or     % MMP, 10/02/2026
+        % after a flush, i.e. ~checked), every later one has an equal list, % MMP, 10/02/2026
+        % and nothing here changes prog.decvartable. Break that, and        % MMP, 10/02/2026
+        % lpi_soseq, which trusts pos, puts rows on the wrong variables.    % MMP, 10/02/2026
         if isempty(batch),  batch = Eq;                                     % MMP, 09/26/2026
         else,               batch.Cs = [batch.Cs, Eq.Cs];                   % MMP, 09/26/2026
         end                                                                 % MMP, 09/26/2026
@@ -240,7 +254,9 @@ end
 % soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
 % the collected coefficients, O(nnz), until then (see impose_rows there).   % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
 % The rest: all blocks if they share one list. impose_eq_rows caps each     % MMP, 09/30/2026
-% soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/30/2026
+% soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/30/2026 % MMP, 10/02/2026 (was)
+% prog.expr entry at q nonzeros, bounding its transient; 'batch' holds      % MMP, 10/02/2026
+% one copy of                                                               % MMP, 10/02/2026
 % the collected coefficients, O(nnz), until then (see its help).            % MMP, 09/30/2026
 if ~isempty(batch)                                                          % MMP, 09/26/2026
 %   prog = lpi_eq_sdopvar(prog,batch);                                      % MMP, 09/26/2026 % MMP, 09/30/2026 (was)

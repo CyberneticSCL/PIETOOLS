@@ -27,6 +27,10 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 %           constrained parameter (row 1 the constant term, row 1+i
 %           decision variable Eq.Zd{i}), in the order one soseq per
 %           parameter imposed them, and Zd, the q x 1 cellstr of names.
+%           Field pos (q x 1): pos(i) = first row of prog.decvartable named % MMP, 10/02/2026
+%           Zd{i}, from the membership check; 0 x 1 when the check is       % MMP, 10/02/2026
+%           skipped (dvars_checked) or Zd repeats a name. 'impose_eq_rows'  % MMP, 10/02/2026
+%           writes the rows directly ('lpi_soseq') when it has pos.         % MMP, 10/02/2026
 %
 % See also LPI_EQ_SDOPVAR, IMPOSE_EQ_ROWS, LPI_EQ_CDOPVAR.
 
@@ -65,6 +69,16 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 %                  nargout switch that imposed the rows ('lpi_eq_sdopvar'
 %                  calls 'impose_eq_rows' instead). One comment renames
 %                  impose_rows -> impose_eq_rows (marked below).
+% MMP, 10/02/2026: Eq.pos, the table row of each name, from the membership
+%                  check's own unique (its first-occurrence output), so
+%                  'impose_eq_rows' can write prog.expr without soseq,
+%                  whose getequation matched all N program names against
+%                  each batch (0.54 s per call at N = 2.7e6, measured).
+%                  Same verdict and errors; cost +7 B x N transient (ia
+%                  replaces a logical), 8 B x q held, and an O(N) repeat
+%                  check (1 B x N, q > 1 only). The check's N-length arrays
+%                  (known, ia, ic) are now freed before the parameter loop;
+%                  they used to live through it.
 
 % % % Check the inputs
 if isa(P,'polynomial') || isa(P,'double')
@@ -128,6 +142,8 @@ end                                                                         % MM
 % Every decision variable of the operator must be known to the program.
 % The check hashes all of prog.decvartable, so a caller that has verified   % MMP, 09/26/2026
 % this list already (dvars_checked) skips it.                               % MMP, 09/26/2026
+% The check also gives Eq.pos, the table row of each name (see OUTPUT).     % MMP, 10/02/2026
+pos = zeros(0,1);       % stays empty when the check is skipped             % MMP, 10/02/2026
 % if q>0                                                                    % MMP, 09/26/2026 (was)
 if q>0 && ~(nargin>=4 && dvars_checked)                                     % MMP, 09/26/2026
 %   known = cellstr(string(prog.decvartable(:)));                           % MMP, 09/26/2026 (was)
@@ -144,13 +160,21 @@ if q>0 && ~(nargin>=4 && dvars_checked)                                     % MM
     % name keeps ismember, whose scalar path is one strcmp (18 vs 171 ms).  % MMP, 09/26/2026
     % On failure ismember runs to name the first missing variable.          % MMP, 09/26/2026
     if q==1                                                                 % MMP, 09/26/2026
-        is_new = ~ismember(dvars,known);                                    % MMP, 09/26/2026
+%       is_new = ~ismember(dvars,known);                                    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+        % The scalar path's loc is the first strcmp match, the lowest row.  % MMP, 10/02/2026
+        [is_known,pos] = ismember(dvars,known);  is_new = ~is_known;        % MMP, 10/02/2026
     else                                                                    % MMP, 09/26/2026
         nk = numel(known);                                                  % MMP, 09/26/2026
-        [~,~,ic] = unique([known;dvars]);                                   % MMP, 09/26/2026
-        lab_known = false(max(ic),1);   lab_known(ic(1:nk)) = true;         % MMP, 09/26/2026
+%       [~,~,ic] = unique([known;dvars]);                                   % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+%       lab_known = false(max(ic),1);   lab_known(ic(1:nk)) = true;         % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+        % ia = first occurrence of each label; known comes first, so a name % MMP, 10/02/2026
+        % is in the table iff ia <= nk, and ia is then its lowest row - the % MMP, 10/02/2026
+        % row getequation gives it (ismember + accumarray @min).            % MMP, 10/02/2026
+        [~,ia,ic] = unique([known;dvars]);                                  % MMP, 10/02/2026
+        pos = ia(ic(nk+1:end));                                             % MMP, 10/02/2026
         is_new = false;                                                     % MMP, 09/26/2026
-        if ~all(lab_known(ic(nk+1:end)))                                    % MMP, 09/26/2026
+%       if ~all(lab_known(ic(nk+1:end)))                                    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+        if any(pos>nk)                                                      % MMP, 10/02/2026
             is_new = ~ismember(dvars,known);                                % MMP, 09/26/2026
         end                                                                 % MMP, 09/26/2026
     end                                                                     % MMP, 09/26/2026
@@ -158,6 +182,15 @@ if q>0 && ~(nargin>=4 && dvars_checked)                                     % MM
         error("Decision variable '"+string(dvars{find(is_new,1)})+"' does not appear "...
               +"in the program; declare it with 'lpidecvar' before imposing constraints.")
     end
+    % A name repeated in P.Zd: soseq sums its rows and drops a column that  % MMP, 10/02/2026
+    % cancels, so leave such a list to soseq (empty pos). O(N), no sort.    % MMP, 10/02/2026
+    if q>1                          % one name cannot repeat                % MMP, 10/02/2026
+        seen = false(numel(known),1);   seen(pos) = true;                   % MMP, 10/02/2026
+        if nnz(seen)<q,     pos = zeros(0,1);   end                         % MMP, 10/02/2026
+    end                                                                     % MMP, 10/02/2026
+    % Free the check's N-length arrays before the parameter loop; known is  % MMP, 10/02/2026
+    % a new N-name cellstr when the table is not one.                       % MMP, 10/02/2026
+    known = [];     ia = [];    ic = [];    seen = [];                      % MMP, 10/02/2026
 end
 
 % % % Check the options
@@ -171,7 +204,8 @@ end
 
 % sz_C = [3*ones(1,n3),1];                                                  % MMP, 09/30/2026 (was)
 
-% Constraint blocks of the parameters, collected for one soseq (see Eq).    % MMP, 09/26/2026
+% Constraint blocks of the parameters, collected for one soseq (see Eq).    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+% Constraint blocks of the parameters, collected for one prog.expr entry.   % MMP, 10/02/2026
 Cs = cell(1,numel(params_A));                                               % MMP, 09/26/2026
 
 % % % Impose the constraints, one parameter at a time                       % MMP, 09/26/2026 (was)
@@ -252,16 +286,19 @@ for k=1:numel(params_A)
 %   Cdp = sparse(sg,ii,vv,numel(used)+1,n_eff);                             % MMP, 09/26/2026 (was)
 %   Dk = dpvar(Cdp,zeros(1,0),{},dvars(used),[1,n_eff]);                    % MMP, 09/26/2026 (was)
 %   prog = soseq(prog,Dk);                                                  % MMP, 09/26/2026 (was)
-    % Collect rather than impose: joined soseq calls (impose_eq_rows) pay   % MMP, 09/30/2026
-    % getequation's scan of the q program names per ~q nonzeros, not per    % MMP, 09/26/2026
-    % parameter.                                                            % MMP, 09/26/2026
+    % Collect rather than impose: joined soseq calls (impose_eq_rows) pay   % MMP, 09/30/2026 % MMP, 10/02/2026 (was)
+    % getequation's scan of the q program names per ~q nonzeros, not per    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+    % parameter.                                                            % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+    % Collect rather than impose: impose_eq_rows writes one prog.expr entry % MMP, 10/02/2026
+    % per ~q nonzeros, not one per parameter.                               % MMP, 10/02/2026
     % Row 1 the constant term, row 1+i dvars{i}; sparse even if B is full.  % MMP, 09/26/2026
     Cs{k} = [sparse(reshape(A_eff,1,[])); sparse(B_eff)];                   % MMP, 09/26/2026
 end
 
 % Skipped parameters stay [] and are dropped. Order is the loop's, which is % MMP, 09/26/2026
 % the order of the former one-soseq-per-parameter expressions.              % MMP, 09/26/2026
-Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars});                 % MMP, 09/26/2026
+% Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars});               % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars},'pos',{pos});     % MMP, 10/02/2026
 
 end
 

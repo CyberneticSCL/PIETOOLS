@@ -52,10 +52,14 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % To enforce P==Q, call LPI_EQ_SDOPVAR(PROG,P-Q); '@sdopvar/plus' aligns the
 % monomial and decision variable bases of the two operators.
 %
-% The constraints of one call are joined into as few 'soseq' calls as a cap % MMP, 09/26/2026
+% The constraints of one call are joined into as few 'soseq' calls as a cap % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+% The constraints of one call are joined into as few prog.expr entries as   % MMP, 10/02/2026
+% a cap                                                                     % MMP, 10/02/2026
 % of numel(prog.decvartable) nonzeros each allows, so prog.expr gets a few  % MMP, 09/26/2026
 % entries per call, not one per parameter. The rows sossolve assembles from % MMP, 09/26/2026
 % prog.expr (At and b, in order) are the same either way.                   % MMP, 09/26/2026
+% Each entry is the one soseq would write, written by 'lpi_soseq' without   % MMP, 10/02/2026
+% soseq's scan of all program names (see 'impose_eq_rows').                 % MMP, 10/02/2026
 %
 % The work is two private routines of lpis_sopvar: 'collect_eq_rows' builds % MMP, 09/30/2026
 % the rows without imposing them and 'impose_eq_rows' imposes them.         % MMP, 09/30/2026
@@ -160,6 +164,13 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 %                  are no longer here; the check, the cap and the row order
 %                  they describe hold in the private routines. Same program
 %                  bit for bit (tr_ab, 91 SDP leaves over w1-w3).
+% MMP, 10/02/2026: NOTES: the joined rows are written by 'lpi_soseq', not
+%                  soseq (see 'impose_eq_rows'); no code change here. The
+%                  second 09/26/2026 entry's cost model (each soseq scans
+%                  all q names; ~9 copies per soseq) and the 09/30/2026
+%                  "soseq calls are unchanged" now describe only the soseq
+%                  fallback; by default each batch costs O(nnz) and ~80 B
+%                  per nonzero (lpi_soseq), the batches unchanged.
 
 
 % BEGIN MMP, 09/30/2026: the three modes split. Deleted here, moved verbatim

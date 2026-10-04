@@ -32,7 +32,9 @@ function prog = lpi_eq_sop(prog,P,opts)
 %
 % NOTES
 % Cost: two to four class tests, then the routine's own cost. The
-% container routines impose the rows in joined 'soseq' calls, about one
+% container routines impose the rows in joined 'soseq' calls, about one     % MMP, 10/02/2026 (was)
+% container routines impose the rows in joined prog.expr entries written    % MMP, 10/02/2026
+% by 'lpi_soseq', about one                                                 % MMP, 10/02/2026
 % per numel(prog.decvartable) nonzeros (see 'lpi_eq_sdopvar').
 %
 % See also LPI_EQ, LPI_EQ_CDOPVAR, LPI_EQ_SDOPVAR, LPIPROGRAM_SOP,
@@ -73,6 +75,8 @@ function prog = lpi_eq_sop(prog,P,opts)
 % MMP, 09/30/2026: Comment only: lpi_eq_sdopvar has one output and three
 %                inputs since its modes were split into collect_eq_rows and
 %                impose_eq_rows; the note on a second output is obsolete.
+% MMP, 10/02/2026: Comment only: the container rows are written by
+%                'lpi_soseq', not soseq.
 
 % Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and
 % lpi_eq_sdopvar each test nargin for it.
