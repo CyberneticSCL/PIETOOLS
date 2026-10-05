@@ -62,8 +62,9 @@ function [Kop] = quad2lin_term_v2(Pmat,Lmon,Rmon,dom,var1,var2)
 % by
 % % parameter_product(Ltmp,subs(Lop_params{trm,k}{3},var1,vars_m(j)),is_tensor_L);
 % %
-% which replaces the standard product by a kronecker product if required as indicated by is_tensor_L. 
-% 
+% which replaces the standard product by a kronecker product if required as indicated by is_tensor_L.
+%
+% DJ, 10/05/2026: Make sure that type(2)==2 (no pointwise product of input);
 
 % Process the left and right factors
 is_tensor_L = false;
@@ -165,6 +166,9 @@ if isa(Lmon,'polyopvar')
         mdim = size(Lops{1},2);
     else
         is_tensor_L = Lmon.C.ops{1}.type(1); % records how the left TDP acts along its output/spatial dimension.
+        if ~Lmon.C.ops{1}.type(2)                                           % DJ, 10/05/2026                              
+            error("Tensor-PI operators with a pointwise (shared-dummy-variable) column product are not currently supported.")
+        end
         Lops = Lmon.C.ops{1}.ops;
         ntrms_L = size(Lops,1);
         mdim = size(Lops{1},2);
@@ -188,6 +192,9 @@ if isa(Rmon.C.ops{1},'double')
     ntrms_R = 1;
 else
     is_tensor_R = Rmon.C.ops{1}.type(1); % records how the right TDP acts along its output/spatial dimension.
+    if ~Rmon.C.ops{1}.type(2)                                               % DJ, 10/05/2026
+        error("Tensor-PI operators with a pointwise (shared-dummy-variable) column product are not currently supported.")
+    end
     Rops = Rmon.C.ops{1}.ops;
     ntrms_R = size(Rops,1);
 end
