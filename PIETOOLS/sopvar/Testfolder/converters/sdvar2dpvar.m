@@ -36,6 +36,8 @@ function D = sdvar2dpvar(P,dims,vars,ZL,ZR,Zd)
 %                  ridcs(ridcsB) expanded to a matrix and crashed 'sparse'.
 %                  Test: sopvar/Testfolder/sdopvar/claude_tests/
 %                  test_sdvar2dpvar.m.
+% DJ, 10/05/2026: Fix ZR count check (throw explicit error for incorrect
+%                   number of right-monomials);
 %
 
 
@@ -64,9 +66,9 @@ vars2 = vars.in;        N = numel(vars2);
 
 % Determine the number of monomials in each input and output variable
 if numel(ZL)~=M
-    error('Number of left-monomials should mathc number of output variables.')
+    error('Number of left-monomials should match number of output variables.')
 elseif numel(ZR)~=N
-    N = numel(ZR);
+    error('Number of right-monomials should match number of input variables.')
 end
 nZL_arr = cellfun(@(a)numel(a),ZL);
 nZR_arr = cellfun(@(a)numel(a),ZR);
