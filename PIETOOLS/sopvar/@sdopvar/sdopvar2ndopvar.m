@@ -37,6 +37,13 @@ function obj = sdopvar2ndopvar(objsdopvar)
 % authorship, and a brief description of modifications
 %
 % AT, 08/05/2026: Initial coding 
+% MMP, 10/04/2026: Compare the variable lists with 'isequal' on the cellstr
+%   rather than 'strcmp' on 'char' of it, matching 'plus' (09/07/2026). Not a
+%   live fault: 'char' of a cellstr is a char matrix, and 'strcmp' on two char
+%   arrays is a whole-array test returning false on a size difference, so the
+%   guard does fire. It relies on that and on 'char' not collapsing two
+%   different lists under padding; the cellstr form needs neither. Ported
+%   from commit ca42b7f0 (09/21/2026), which stayed on an unmerged branch.
 
 
 if ~isa(objsdopvar, 'sdopvar') 
@@ -51,7 +58,12 @@ dvarname = P.Zd; %
 if ~isequal(P.dom.in, P.dom.out)
     error('Input/Output domains dismatch')
 end
-if any(~strcmp(char(P.vars.in),char(P.vars.out)))
+% 'isequal' on the cellstr rather than 'strcmp' on 'char' of it: 'char'     % MMP, 10/04/2026
+% pads a ragged name list into a matrix, so the test depends on padding,    % MMP, 10/04/2026
+% and removing the 'char' would make 'strcmp' elementwise, so 'any(~[])'    % MMP, 10/04/2026
+% would pass an empty list -- the bug fixed in 'plus' on 09/07/2026.        % MMP, 10/04/2026
+% if any(~strcmp(char(P.vars.in),char(P.vars.out)))                         % MMP, 10/04/2026 (was)
+if ~isequal(P.vars.in(:),P.vars.out(:))                                     % MMP, 10/04/2026
     error('Input/Output vars dismatch')
 end
 % ndopvar include dummy variables
