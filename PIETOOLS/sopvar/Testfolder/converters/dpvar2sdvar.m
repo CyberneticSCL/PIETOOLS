@@ -8,11 +8,32 @@ function [P,ZL,ZR] = dpvar2sdvar(D,vars)
 %   {s1,...,sM} = vars.out;     {t1,...,tN} = vars.in;
 % P also has fields P.m = m*nZL1*...*nZLM and P.n = n*nZLN*...*nZLN;
 %
+% INPUTS
+% - D:      'dpvar' object representing an m x n decision variable matrix;
+% - vars:   (optional) struct with fields 'in' and 'out', each a cellstr
+%           specifying the names of the input and output independent
+%           variables in terms of which to express D. If not specified
+%           (nargin==1), every variable D depends on is treated as an
+%           output variable, with no input variables.
+%
+% OUTPUTS
+% - P:  struct with fields 'A', 'B', 'm', 'n', and 'dvarname'. A, B are the
+%       coefficients defining the decision variable matrix in the 'sdopvar'
+%       form above; m, n are the row/column dimensions P.m = m*nZL,
+%       P.n = n*nZR of that (vec'd) kernel; dvarname is a column cellstr
+%       naming the decision variables, 'd', matching the column convention
+%       of 'sdopvar.Zd' and 'sdvar2dpvar's 'Zd' input;
+% - ZL: 1 x M cell (for M output variables), specifying the degrees of the
+%       monomials actually encountered in D, in each output variable;
+% - ZR: 1 x N cell (for N input variables), specifying the degrees of the
+%       monomials actually encountered in D, in each input variable.
+%
 % MMP, 09/29/2026: Moved from sopvar/Testfolder/converters to sopvar/misc,
 %                  name and code unchanged. The dpvar operator branches of
 %                  the four classes (dpvar_op_copvar, mat2copvar_grid) call
 %                  it, as copquadvar and sopquadvar already did, and library
 %                  code should not depend on a test folder.
+% DJ, 10/05/2026:  Make sure P.dvarname is always a column;
 
 if ~isa(D,'dpvar')
     error("Input object must be of type 'dpvar'.")
@@ -133,6 +154,6 @@ P.A = A;
 P.B = B;
 P.m = m*nnZL_arr(1);
 P.n = n*nnZR_arr(1);
-P.dvarname = dvars;
+P.dvarname = dvars(:);                                                      % DJ, 10/05/2026
 
 end
