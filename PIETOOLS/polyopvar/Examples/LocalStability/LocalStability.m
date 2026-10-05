@@ -43,15 +43,15 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % CR, 09/01/2026: Initial coding
     % CR, 09/28/2026: Fixed bug with p1*g by creating polyopvar_times_v2.m
     % CR, 09/28/2026: Added positivity constraint to C.
+    % CR, 10/05/2026: Replaced V3_DP.m and Liediff.m by joint function
+    %                 V3_Liediff.m.
 
     %% Convert PDE to PIE.
     PIE = convert(PDE);
-    Top = PIE.T; % Inverse map.
-    f   = PIE.f; % Polynomial PIE.
-    dom = PIE.dom; % Spatial domain [a,b].
-    
-    % Construct fundamental state.
-    x = f.vartab;
+    Top = PIE.T;    % Inverse map.
+    f   = PIE.f;    % Polynomial PIE.
+    dom = PIE.dom;  % Spatial domain [a,b].
+    x   = f.vartab; % Fundamental state.
 
     
     %% Initialize PIESOS program structure.
@@ -59,7 +59,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     if nargin < 8
         dpvar C % treated as C^2, the upper bound on the LF.
         prog = piesos_program(x,C);
-        prog = piesos_ineq(prog,C-1e-6); % C>=0.
+        prog = piesos_ineq(prog,C-1e-6); % C>=1e-6.
         prog = piesos_setobj(prog,C); % Minimize C.
         fprintf(" --- Upper bound C to be minimised ---\n");
     else
@@ -68,17 +68,23 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     end
     
     
-    %% Unpack degrees of distributed polynomials and define weighted Sobolev ball.
+    %% Unpack degrees of DPs and define weighted Sobolev ball.
     
-    % Declare degrees of dist mon basis for SOS LF and p1, p2 multipliers (respectively).
-    % Degree will be doubled when converted from quadratic to linear form.
-    V_deg = dist_degs(1); p1_deg = dist_degs(2); p2_deg = dist_degs(3);
+    % Declare degrees of dist mon basis for SOS LF and p1, p2 multipliers 
+    % (respectively). Degree will be doubled when converted from quadratic 
+    % to linear form.
+    V_deg  = dist_degs(1);
+    p1_deg = dist_degs(2);
+    p2_deg = dist_degs(3);
     
-    % Declare monomial degrees in independent variables used to parametrize SOS LF and p1, p2 multipliers (respectively).
-    V_mon = mon_degs(1); p1_mon = mon_degs(2); p2_mon = mon_degs(3);
+    % Declare monomial degrees in independent variables used to parametrize
+    % SOS LF and p1, p2 multipliers (respectively).
+    V_mon  = mon_degs(1);
+    p1_mon = mon_degs(2);
+    p2_mon = mon_degs(3);
     
     % Define weighted sobolev ball of radius r.
-    g     = Weighted_Sobolev_Ball(r, alpha, Top, x);
+    g = Weighted_Sobolev_Ball(r, alpha, Top, x);
      
     % Define (negated) term related to lower and upper bounds.
     bound = Weighted_Sobolev_Ball(0.0, alpha, Top, x);
@@ -86,8 +92,12 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     fprintf(" --- Weighted Sobolev ball declared ---\n");
 
 
-    %% Declare LF and enforce lower bound.
-    [prog, V] = V3_DP(prog, V_deg, V_mon, Top, x, dom);
+    %% Construct LF and its Lie derivative.
+    % [prog, V] = V3_DP(prog, V_deg, V_mon, Top, x, dom);
+    [prog, V, dV] = V3_Liediff(prog, PIE, V_deg, V_mon);
+    
+    
+    %% Define lower bound on the LF and enforce constraint.
 
     % Define global lower bound on V.
     V_low = V + eppos*bound; % bound term is already negated.
@@ -101,7 +111,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     if V_deg > 1
         mon = min(V_low_mon,2);
     else
-        mon = min(V_low_mon,5);
+        mon = min(V_low_mon,4);
     end
     
     fprintf(" --- sos1.deg = %d and sos1.mon = %d whilst V_low.deg = %d and V_low.mon = %d ---\n",V_deg, mon, V_deg, V_low_mon);
@@ -110,7 +120,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     [prog, sos1] = SOS_DP(prog, V_deg, mon, x, dom);
     prog = piesos_eq(prog, V_low-sos1);
  
-    fprintf(" --- LF declared and lower bound equality set ---\n");
+    fprintf(" --- V3 and dV3 declared. Lower bound equality set ---\n");
 
 
     %% Define the upper bound on the LF and enforce constraint.
@@ -130,7 +140,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % Above are appropriate choices, but computation requires limits to be placed 
     % on deg and mon. This could lead to lower order degrees in sos2 than V_up.
     deg = min(V_up_deg,2);
-    mon = min(V_up_mon,2);
+    mon = min(V_up_mon,4);
     
     fprintf(" --- sos2.deg = %d and sos2.mon = %d whilst V_up.deg = %d and V_up.mon = %d ---\n",deg, mon, V_up_deg, V_up_mon);
     
@@ -141,22 +151,32 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     fprintf(" --- p1 declared and LF upper bound equality set ---\n");
 
 
-    %% Compute Lie derivative of the LF along the PIE and enforce constraint.
-    
-    % Declare p2 as SOS DP.
-    % [prog, p2] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
+    %% Define upper bound on Lie derivative and enforce constraint.
 
-    % Compute and define upper bound on Lie derivative.
-    % dV = Liediff(V,PIE);
-    % dV_con = -dV - 2*lambda*V - p2*g; 
-    % 
-    % % Set upper bound by defining and equating with new SOS DP.
-    % deg max(dV_con.degmat); % degree of FDP in linear form - will always be even.
-    % deg = ceil(deg/2); % degree of FDP in quadratic form.
-    % mon = kernel_degree(V_con);
-    % [prog, sos3] = SOS_DP(prog, deg, mon, x, dom);
-    % prog = piesos_eq(prog, dV_con-sos3);
-    % fprintf(" --- p2 declared and Lie derivative upper bound equality set with sos3.deg = %d and sos3.mon = %d ---\n",deg, mon);
+    % Declare p2 as SOS DP.
+    [prog, p2] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
+
+    % Define local upper bound on Lie derivative.
+    dV_up = -dV - 2*lambda*V - p2*g; 
+
+    % Obtain kernel and distributed monomial degrees of V_up to use for defining
+    % sos2 of equal degrees.
+    dV_up_deg = max(dV_up.degmat); % degree of FDP in linear form - will always be even.
+    dV_up_deg = ceil(dV_up_deg/2); % degree of FDP in quadratic form.
+    dV_up_mon = kernel_degree(dV_up);
+
+    % Above are appropriate choices, but computation requires limits to be placed 
+    % on deg and mon. This could lead to lower order degrees in sos3 than dV_up.
+    deg = min(dV_up_deg,2);
+    mon = min(dV_up_mon,4);
+
+    fprintf(" --- sos3.deg = %d and sos3.mon = %d whilst dV_up.deg = %d and dV_up.mon = %d ---\n",deg, mon, dV_up_deg, dV_up_mon);
+
+    % Set upper bound by defining and equating with new SOS DP.
+    [prog, sos3] = SOS_DP(prog, deg, mon, x, dom);
+    prog = piesos_eq(prog, dV_up-sos3);
+
+    fprintf(" --- p2 declared and Lie derivative upper bound equality set ---\n");
 
 
     %% Solve the optimization program.

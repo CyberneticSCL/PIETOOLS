@@ -48,7 +48,7 @@ eppos = 0.1;
 alpha = [1, 0, 0];
 
 % radius of local ball.
-r = 4.0;
+r = 3.0;
 
 % exponential decay rate.
 lambda = 0;
@@ -60,13 +60,15 @@ dist_degs = [1, 1, 1];
 
 % Declare monomial degrees in independent variables used to parametrize
 %  SOS LF and p1, p2 multipliers (respectively).
-mon_degs = [4, 4, 4];
+mon_degs = [3, 2, 2];
 
 
 % Run local stability test. If successful res = [C, M].
 % C can be passed in as optional final argument if it is fixed.
-res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs);
-C = res(1)
-M = res(2)
+res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs, eppos);
 
-% p1_deg=2, p1_mon=4 takes approx. 2 mins to declare!
+if ~isempty(res)
+    C = res(1)
+    M = res(2)
+end
+

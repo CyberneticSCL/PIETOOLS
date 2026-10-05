@@ -36,6 +36,8 @@ function [P_subs] = subs(P1, vars, vals)
 %
 % AT, 02/18/2026: Initial coding;
 % DJ, 06/05/2026: Add support for empty variable case;
+% DJ, 10/04/2026: Combine and sort monomials and associated coefficients,
+%                   as expected by quadPoly structure;
  
 
 if ~isa(P1, 'quadPoly')
@@ -210,13 +212,32 @@ if sum(isa_symb_var) > 0
         ns_new{idx_to_merge_monomials+1} = []; % delete repeated var name
         Zs_new_idx=  Zs_new{idx_to_merge_monomials}; % choose repeated monoms
         Zs_new_idx_p1=  Zs_new{idx_to_merge_monomials + 1};
-        Zs_new{idx_to_merge_monomials + 1} = []; % delete dublicate
-        % Define new monomial degrees
-        Zs_new_merged = kron(Zs_new_idx, ones(size(Zs_new_idx_p1))) ...
-                        + kron(ones(size(Zs_new_idx)), Zs_new_idx_p1);
+        Zs_new{idx_to_merge_monomials + 1} = []; % delete duplicate
+        % Establish unique basis of monomials corresponding to all products
+        % of Zs_new and Zs_new_idx_p1, using s^a*s^b = s^(a+b):
+        % raw pairwise sums in (i-1)*nB+j order, matching C_new's existing 
+        % block layout (outer var slow/inner var fast, per quadPoly.m's
+        %  Z(s) = Zs1 kron ... kron Zsk convention).
+        nA = numel(Zs_new_idx);  nB = numel(Zs_new_idx_p1);
+        Zs_pair_raw = kron(Zs_new_idx, ones(nB,1)) + kron(ones(nA,1), Zs_new_idx_p1);
+        [Zs_new_merged, ~, old2new] = unique(Zs_pair_raw, 'sorted');
         Zs_new{idx_to_merge_monomials} = Zs_new_merged;
-        Zs_new = Zs_new(~cellfun(@isempty, ns_new)); % remove empty cells
-        ns_new = ns_new(~cellfun(@isempty, ns_new)); % remove empty cells
+        % Remap C_new's rows for this block onto the unique basis.
+        pairSize  = nA*nB;
+        innerSize = prod(cellfun(@numel, Zs_new(idx_to_merge_monomials+2:end)));
+        outerSize = size(C_new,1) / (pairSize*innerSize);
+        newPairSize = numel(Zs_new_merged);
+        [r,c,v] = find(C_new);
+        innerIdx = mod(r(:)-1, innerSize);
+        rest = floor((r(:)-1)/innerSize);
+        pairIdx = mod(rest, pairSize);          % old (i-1)*nB+j-1
+        outerIdx = floor(rest/pairSize);
+        pairIdxNew = old2new(pairIdx+1) - 1;
+        r_new = outerIdx*(newPairSize*innerSize) + pairIdxNew*innerSize + innerIdx + 1;
+        C_new = sparse(r_new, c(:), v(:), outerSize*newPairSize*innerSize, size(C_new,2));
+        % Remove empty cells
+        Zs_new = Zs_new(~cellfun(@isempty, ns_new));
+        ns_new = ns_new(~cellfun(@isempty, ns_new));
         % check if any repeated var names
         if length(ns_new) > 1
             is_repeated_in_ns = cellfun(@isequal, ns_new(1:end-1), ns_new(2:end));
@@ -233,13 +254,29 @@ if sum(isa_symb_var) > 0
         nt_new{idx_to_merge_monomials+1} = []; % delete repeated var name
         Zt_new_idx=  Zt_new{idx_to_merge_monomials}; % choose repeated monoms
         Zt_new_idx_p1=  Zt_new{idx_to_merge_monomials + 1}; %
-        Zt_new{idx_to_merge_monomials + 1} = []; % delete dublicate
-        % Define new monomial degrees
-        Zt_new_merged = kron(Zt_new_idx, ones(size(Zt_new_idx_p1))) ...
-                        + kron(ones(size(Zt_new_idx)), Zt_new_idx_p1);
+        Zt_new{idx_to_merge_monomials + 1} = []; % delete duplicate
+        % Establish unique basis of monomials corresponding to all products
+        % of Zt_new and Zt_new_idx_p1
+        nA = numel(Zt_new_idx);  nB = numel(Zt_new_idx_p1);
+        Zt_pair_raw = kron(Zt_new_idx, ones(nB,1)) + kron(ones(nA,1), Zt_new_idx_p1);
+        [Zt_new_merged, ~, old2new] = unique(Zt_pair_raw, 'sorted');
         Zt_new{idx_to_merge_monomials} = Zt_new_merged;
-        Zt_new = Zt_new(~cellfun(@isempty, nt_new)); % remove empty cells
-        nt_new = nt_new(~cellfun(@isempty, nt_new)); % remove empty cells
+        % Remap C_new's columns for this block.
+        pairSize = nA*nB;
+        innerSize = prod(cellfun(@numel, Zt_new(idx_to_merge_monomials+2:end)));
+        outerSize = size(C_new,2) / (pairSize*innerSize);
+        newPairSize = numel(Zt_new_merged);
+        [r,c,v] = find(C_new);
+        innerIdx = mod(c(:)-1, innerSize);
+        rest = floor((c(:)-1)/innerSize);
+        pairIdx = mod(rest, pairSize);          % old (i-1)*nB+j-1
+        outerIdx = floor(rest/pairSize);
+        pairIdxNew = old2new(pairIdx+1) - 1;
+        c_new = outerIdx*(newPairSize*innerSize) + pairIdxNew*innerSize + innerIdx + 1;
+        C_new = sparse(r(:), c_new, v(:), size(C_new,1), outerSize*newPairSize*innerSize);
+        % Remove empty cells
+        Zt_new = Zt_new(~cellfun(@isempty, nt_new)); 
+        nt_new = nt_new(~cellfun(@isempty, nt_new));
         % check if any repeated var names
         if length(nt_new) > 1
             is_repeated_in_nt = cellfun(@isequal, nt_new(1:end-1), nt_new(2:end));
