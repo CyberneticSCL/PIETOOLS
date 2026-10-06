@@ -94,7 +94,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
 
     %% Construct LF and its Lie derivative.
     % [prog, V] = V3_DP(prog, V_deg, V_mon, Top, x, dom);
-    [prog, V, dV] = V3_Liediff(prog, PIE, V_deg, V_mon);
+    [prog, V, dV, ~] = V3_Liediff(prog, PIE, V_deg, V_mon);
     
     
     %% Define lower bound on the LF and enforce constraint.
@@ -113,48 +113,48 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     else
         mon = min(V_low_mon,4);
     end
-    
+
     fprintf(" --- sos1.deg = %d and sos1.mon = %d whilst V_low.deg = %d and V_low.mon = %d ---\n",V_deg, mon, V_deg, V_low_mon);
-    
+
     % Set lower bound by defining and equating with new SOS DP.
-    [prog, sos1] = SOS_DP(prog, V_deg, mon, x, dom);
+    [prog, sos1, ~, ~] = SOS_DP(prog, V_deg, mon, x, dom);
     prog = piesos_eq(prog, V_low-sos1);
- 
+
     fprintf(" --- V3 and dV3 declared. Lower bound equality set ---\n");
 
 
-    %% Define the upper bound on the LF and enforce constraint.
-
-    % Declare p1 as SOS DP.
-    [prog, p1] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
-
-    % Define local upper bound on V.
-    V_up = -C*bound - V - polyopvar_times_v2(p1,g); % bound term already negated.
-
-    % Obtain kernel and distributed monomial degrees of V_up to use for defining
-    % sos2 of equal degrees.
-    V_up_deg = max(V_up.degmat); % degree of FDP in linear form - will always be even.
-    V_up_deg = ceil(V_up_deg/2); % degree of FDP in quadratic form.
-    V_up_mon = kernel_degree(V_up);
-
-    % Above are appropriate choices, but computation requires limits to be placed 
-    % on deg and mon. This could lead to lower order degrees in sos2 than V_up.
-    deg = min(V_up_deg,2);
-    mon = min(V_up_mon,4);
-    
-    fprintf(" --- sos2.deg = %d and sos2.mon = %d whilst V_up.deg = %d and V_up.mon = %d ---\n",deg, mon, V_up_deg, V_up_mon);
-    
-    % Set upper bound by defining and equating with new SOS DP.
-    [prog, sos2] = SOS_DP(prog, deg, mon, x, dom);
-    prog = piesos_eq(prog, V_up-sos2);
-    
-    fprintf(" --- p1 declared and LF upper bound equality set ---\n");
+    % %% Define the upper bound on the LF and enforce constraint.
+    % 
+    % % Declare p1 as SOS DP.
+    % [prog, p1, ~, ~] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
+    % 
+    % % Define local upper bound on V.
+    % V_up = -C*bound - V - polyopvar_times_v2(p1,g); % bound term already negated.
+    % 
+    % % Obtain kernel and distributed monomial degrees of V_up to use for defining
+    % % sos2 of equal degrees.
+    % V_up_deg = max(V_up.degmat); % degree of FDP in linear form - will always be even.
+    % V_up_deg = ceil(V_up_deg/2); % degree of FDP in quadratic form.
+    % V_up_mon = kernel_degree(V_up);
+    % 
+    % % Above are appropriate choices, but computation requires limits to be placed 
+    % % on deg and mon. This could lead to lower order degrees in sos2 than V_up.
+    % deg = min(V_up_deg,2);
+    % mon = min(V_up_mon,4);
+    % 
+    % fprintf(" --- sos2.deg = %d and sos2.mon = %d whilst V_up.deg = %d and V_up.mon = %d ---\n",deg, mon, V_up_deg, V_up_mon);
+    % 
+    % % Set upper bound by defining and equating with new SOS DP.
+    % [prog, sos2, ~, ~] = SOS_DP(prog, deg, mon, x, dom);
+    % prog = piesos_eq(prog, V_up-sos2);
+    % 
+    % fprintf(" --- p1 declared and LF upper bound equality set ---\n");
 
 
     %% Define upper bound on Lie derivative and enforce constraint.
 
     % Declare p2 as SOS DP.
-    [prog, p2] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
+    [prog, p2, ~, ~] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
 
     % Define local upper bound on Lie derivative.
     dV_up = -dV - 2*lambda*V - p2*g; 
@@ -173,7 +173,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     fprintf(" --- sos3.deg = %d and sos3.mon = %d whilst dV_up.deg = %d and dV_up.mon = %d ---\n",deg, mon, dV_up_deg, dV_up_mon);
 
     % Set upper bound by defining and equating with new SOS DP.
-    [prog, sos3] = SOS_DP(prog, deg, mon, x, dom);
+    [prog, sos3, ~, ~] = SOS_DP(prog, deg, mon, x, dom);
     prog = piesos_eq(prog, dV_up-sos3);
 
     fprintf(" --- p2 declared and Lie derivative upper bound equality set ---\n");
