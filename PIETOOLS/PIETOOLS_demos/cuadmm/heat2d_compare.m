@@ -104,16 +104,16 @@ fprintf('  PDE: x_t = x_s1s1 + x_s2s2 + lam*x on [0,1]^2, x in R^%d\n', n);
 fprintf('  BC : x = 0 on all four edges\n');
 fprintf('  lam = %.8g  (lam / (2*pi^2) = %.6g)\n', lam, lam/lam_star);
 fprintf('  analytic stable iff lam < %.8g\n', lam_star);
-fprintf('  LPI: build_stab_2d_st2 with Dup=%d\n', nd);
+fprintf('  LPI: build_stab_2d_st2 with nd=%d\n', nd);
 t0 = tic;
 pvar s1 s2
 clear stateNameGenerator
-x = pde_var('state', n, [s1;s2], [0,1;0,1]);
+x = pde_var('state', 1, [s1;s2], [0,1;0,1]);
 sys = [diff(x,'t') == diff(x,s1,2) + diff(x,s2,2) + lam*x;
-       subs(x,s1,0) == zeros(n,1);
-       subs(x,s1,1) == zeros(n,1);
-       subs(x,s2,0) == zeros(n,1);
-       subs(x,s2,1) == zeros(n,1)];
+       subs(x,s1,0) == 0;
+       subs(x,s1,1) == 0;
+       subs(x,s2,0) ==0;
+       subs(x,s2,1) == 0];
 PIE = convert(sys, 'pie');
 t_pie = toc(t0);
 %% SDP settings
@@ -171,17 +171,6 @@ fprintf('  full Gram unknowns: %d\n', shape.unknowns_full);
 fprintf('  nnz(At): %d\n', shape.nnzAt);
 
 out = struct();
-out.params = struct('n', n, 'lam', lam, 'Dup', nd, 'dmult', dmult, ...
-    'run_mosek', run_mosek, 'run_lowrank', run_lowrank, ...
-    'gate', gate, 'gate_k', gate_k, 'gate_refmax', gate_refmax, ...
-    'maxrank', maxrank, 'rank', rank, 'seeds', seeds, 'lmit', lmit, ...
-    'lmtol', lmtol, 'pietools_root', pietools_root, 'solver', solver, ...
-    'cuadmm_exe', cuadmm_exe, 'cuadmm_outdir', cuadmm_outdir, ...
-    'cuadmm_tol', cuadmm_tol, 'cuadmm_maxiter', cuadmm_maxiter, ...
-    'cuadmm_timeout', cuadmm_timeout, 'cuadmm_max_wall', cuadmm_max_wall, ...
-    'cuadmm_tag', cuadmm_tag, 'cuadmm_pinf_norm', cuadmm_pinf_norm, ...
-    'cuadmm_require_full_gpu', cuadmm_require_full_gpu, ...
-    'cuadmm_launcher', cuadmm_launcher, 'verbose', verbose);
 out.lam_star = lam_star;
 out.PIE = PIE;
 out.settings = st;
@@ -243,9 +232,9 @@ if run_lowrank
 else
     fprintf('\nLow-rank solve skipped.\n');
 end
-
+%% export_cuadmm_problem
 fprintf('\ncuADMM export and GPU solve for the same assembled LPI...\n');
-out.cuadmm = export_cuadmm_problem(D, shape, n, lam, nd, dmult, cuadmm_outdir);
+out.cuadmm = export_cuadmm_problem(D, shape, lam, nd, dmult, cuadmm_outdir);
 fprintf('  dump: %s\n', out.cuadmm.dumpfile);
 fprintf('  text problem dir: %s\n', out.cuadmm.problem_dir);
 fprintf('  export time: %.2f s\n', out.cuadmm.t_export);
@@ -267,10 +256,15 @@ cu_opts.tag = cuadmm_tag;
 cu_opts.pinf_norm = cuadmm_pinf_norm;
 cu_opts.require_full_gpu = cuadmm_require_full_gpu;
 cu_opts.launcher = cuadmm_launcher;
-
+%% prepares a cuADMM run folder.
+% bl_bisect was created by CC
+% bl_bisect calls probe(...), which writes the current b.txt.
+% system(cmd) launches the external binary P.exe.
+% That external binary is where ADMM iterations happen.
 t0 = tic;
 R = bl_bisect(out.cuadmm.dumpfile, cu_opts);
 out.cuadmm.wall = toc(t0);
+%% Checking cuADMM solution
 out.cuadmm.R = R;
 out.cuadmm.ran = true;
 out.cuadmm.run_dir = fullfile(cuadmm_outdir, sprintf('%s_%s', R.id, R.solver));
@@ -328,7 +322,7 @@ end
 end
 
 
-function cu = export_cuadmm_problem(D, shape, n, lam, Dup, dmult, cuadmm_outdir)
+function cu = export_cuadmm_problem(D, shape, lam, nd, dmult, cuadmm_outdir)
 if ~exist(cuadmm_outdir, 'dir')
     mkdir(cuadmm_outdir);
 end
@@ -337,7 +331,7 @@ if isfield(D, 'c') && nnz(D.c) > 0 && norm(full(D.c(:))) > 1e-12
     error('cuADMM feasibility export expects c = 0; norm(D.c) = %.3e', norm(full(D.c(:))));
 end
 
-case_id = sprintf('heat2d_n%d_lam%s_Dup%d', n, number_tag(lam), Dup);
+case_id = sprintf('heat2d_n%d_lam%s_Dup%d', n, number_tag(lam), nd);
 dumpfile = fullfile(cuadmm_outdir, [case_id '.mat']);
 metafile = fullfile(cuadmm_outdir, [case_id '_meta.mat']);
 
@@ -356,9 +350,8 @@ save(dumpfile, 'At', 'b', 'c', 'K', 'Ns', 'Kf', '-v7.3');
 meta = struct();
 meta.bscl = bscl;
 meta.shape = shape;
-meta.n = n;
 meta.lam = lam;
-meta.Dup = Dup;
+meta.nd = nd;
 meta.dmult = dmult;
 save(metafile, '-struct', 'meta');
 
