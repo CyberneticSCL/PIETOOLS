@@ -1,0 +1,80 @@
+%
+% Burgers eq.
+%
+% PDE: u_t = u_ss + r*u - u*u_s;
+% BCs: u(t,0) = u(t,1) = 0;
+%
+% fundamental state: v = u_ss \in L_2[0,1];
+%
+% maps from fundamental state to PDE states
+% u   = (Tv) = \int_0^s T_1(s,t)v(t)dt + \int_s^1 T_2(s,t)v(t)dt;
+% u_s = (Rv) = \int_0^s R_1(s,t)v(t)dt + \int_s^1 R_2(s,t)v(t)dt;
+% T_1(s,t)=(s-1)*t; T_2(s,t) = s*(t-1);
+% R_1(s,t)=t;       R_2(s,t) = t-1;
+%
+% PIE: (Tv_t) = f(v) = v + (r*Tv) - (Tv)(Rv);
+%
+% PIE as a polyopvar: Z_1(v) = v; C = C_1 = [[C_111, C_112] 
+%                                            [C_121, C_122]
+%                                            [C_131, C_132]]
+%
+% C_111 = 1; C_112 = 1; C_121 = 1; C_122 = r*T; C_131 = -T; C_132 = R
+% where nz = 1; m_1 = 3; d_1 = d_11 = 2; size(C_1) = (3,2)
+
+%%%% 1. Modelling PIE.
+
+% declare spatial variables, domain, and r.
+clear;  clear stateNameGenerator
+pvar s t
+dom = [0,1];
+r = pi^2-0.1;
+%r = 1;
+
+% Declare the nonlinear PDE
+x = pde_var(s,dom);
+PDE = [diff(x,t)==diff(x,s,2)+r*x-x*diff(x,s);
+       subs(x,s,dom(1))==0;  subs(x,s,dom(2))==0];
+
+% Convert ot a PIE
+PIE = convert(PDE);
+Top = PIE.T;
+f = PIE.f;
+x = polyopvar(f.varname,s,dom);
+
+
+%%%% 2. Call the SOS local stability test
+%%%%    V - eppos^2*bnd = SOS
+%%%%    C*bnd - V - p1*g + = SOS
+%%%%    -dV - 2*lam*V - p2*g = SOS
+
+% Declare the setting for the stability test
+
+% Treated as eppos^2, the lower bound on SOS LF.
+eppos = 0.1;
+
+% (n+1)-dim array containing parameters of weighted Sobolev ball.
+alpha = [1, 0, 0];      % <-- [1,0,0] for L2 ball
+
+% radius of local ball.
+r = 1.0;                % for Burgers', we should have stability for any r>0
+
+% exponential decay rate.
+lambda = 0;
+
+% Declare degrees of dist mon basis for SOS LF and p1, p2 multipliers 
+% (respectively). Degree will be doubled when converted from quadratic 
+% to linear format.
+dist_degs = [1, 1, 1];
+
+% Declare monomial degrees in independent variables used to parametrize
+%  SOS LF and p1, p2 multipliers (respectively).
+mon_degs = [4, 4, 4];
+
+
+% Run local stability test. If successful res = [C, M].
+% C can be passed in as optional final argument if it is fixed.
+res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs);
+C = res(1)
+M = res(2)
+
+
