@@ -36,13 +36,15 @@ record it; its logs say 24.
 tracked; `heatNd_path` finds the root two levels up. Checked with `git` on 09/28/2026 (HEAD
 `b3334203`): `Sedumi2Mosek.m` (a035aa8e) and `executives/*.m` (e6c78800) are committed, and
 `sossolve.m` and `repmat.m` have no working-tree changes. `copquadvar.m`, `lpi_eq_cdopvar.m` and
-`lpi_eq_sdopvar.m` are still uncommitted. At HEAD, `copquadvar` rejects the face codes ('psatz'
-should be 0 or 1), so every `'linear'` / `'faces'` Psatz term errors: `heatNd_lpi` (default
-preset `'bench'`), `heatNd_bisect`, `heatNd_validate`, `heatNd_ladder`, `heatNd_poincare`
-(default gen `'faces'`), `heatNd_poincare_validate` (all SDP stages but `'3d0'`), and
-`test_copquadvar_faces`, `test_heatNd_lpi`, `test_heatNd_poincare` (read from the code, not run
-at HEAD). The batched `soseq` affects build time and memory only, per the `lpi_eq_sdopvar`
-header (same rows; not re-measured here). The 09/27 record follows unchanged.
+`lpi_eq_sdopvar.m` are committed in e792cc40 (09/28/2026). Before that commit, `copquadvar`
+rejected the face codes ('psatz' should be 0 or 1), so every `'linear'` / `'faces'` Psatz term
+errored: `heatNd_lpi` (default preset `'bench'`), `heatNd_bisect`, `heatNd_validate`,
+`heatNd_ladder`, `heatNd_poincare` (default gen `'faces'`), `heatNd_poincare_validate` (all SDP
+stages but `'3d0'`), and `test_copquadvar_faces`, `test_heatNd_lpi`, `test_heatNd_poincare`
+(read from the code). Measured on e792cc40 with a clean path: those three tests pass (97, 74,
+44 checks), and `cx_run_1d` (21 stock-vs-container 1-D executive cases) prints identical
+verdicts, brackets, shapes and residuals with and without the batched `soseq`. The 09/27
+record follows unchanged.
 
 Measured with `git` on 09/27/2026: branch `ndopvar`, HEAD `5234b627`. The heatNd folder
 is untracked. These uncommitted working-tree files are on the benchmark's call path:
