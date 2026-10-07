@@ -121,11 +121,15 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
 
     %% Define the upper bound on the LF and enforce constraint.
 
-    % Declare p1 as SOS DP.
-    [prog, p1, ~, ~] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
-
-    % Define local upper bound on V.
-    V_up = -C*bound - V - polyopvar_times_v2(p1,g); % bound term already negated.
+    % Declare p1 as SOS DP and define upper bound on V.
+    if p1_mon>0
+        [prog, p1, ~, ~] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
+        V_up = -C*bound - V - polyopvar_times_v2(p1,g); % bound term already negated.
+    elseif p1_mon==0
+        V_up = -C*bound - V;
+    else
+        error('LocalStability:p1_mon>=0.');
+    end
 
     % Obtain kernel and distributed monomial degrees of V_up to use for defining
     % sos2 of equal degrees.
@@ -148,12 +152,17 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
 
 
     %% Define upper bound on Lie derivative and enforce constraint.
-
-    % Declare p2 as SOS DP.
-    [prog, p2, ~, ~] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
-
-    % Define local upper bound on Lie derivative.
-    dV_up = -dV - 2*lambda*V - p2*g; 
+    
+    % Declare p2 as SOS DP and define local upper bound on dV.
+    if p2_mon>0
+        [prog, p2, ~, ~] = SOS_DP(prog, p2_deg, p2_mon, x, dom);
+        dV_up = -dV - 2*lambda*V - p2*g; 
+    elseif p2_mon==0
+        dV_up = -dV - 2*lambda*V; 
+    else
+        error('LocalStability:p2_mon>=0.');
+    end
+    
 
     % Obtain kernel and distributed monomial degrees of V_up to use for defining
     % sos2 of equal degrees.
@@ -167,7 +176,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     if size(mon_degs,2) == 4
         sos3_mon = mon_degs(4);
     else
-        sos3_mon = min(dV_up_mon,7);
+        sos3_mon = min(dV_up_mon,10);
     end
 
     fprintf(" --- sos3.deg = %d and sos3.mon = %d whilst dV_up.deg = %d and dV_up.mon = %d ---\n",sos3_deg, sos3_mon, dV_up_deg, dV_up_mon);
