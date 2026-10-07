@@ -61,6 +61,16 @@ function out = hinf_gain_1d_sop(plant,level)
 % pietools_path_update puts both there.
 %
 % Initial coding MMP, 09/29/2026. Tier 1 end-to-end example E1.
+% MMP, 10/06/2026: cx_hinf_lf -> poslpivar_settings_sop ('lf'), cx_hinf_qdeg
+%                -> get_lpivar_degs_sop, cx_space_list -> copvar_space_list,
+%                and the re-typed cx_hinf_slack block -> poslpivar_settings_sop
+%                ('slack'), so the example runs on the library translators
+%                (lpi_programming_sopvar); programs unchanged (126-program
+%                bit-identity check). 'cx_hinf_lf', 'cx_hinf_qdeg' and
+%                'cx_hinf_slack' above now refer to those library routines.
+%                Check (0) ('checked to build cx_hinf_slack's program
+%                exactly', above) is superseded and removed: the example and
+%                the transcriptions now share one routine.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(plant),  plant = {'io1'};    end
@@ -83,15 +93,19 @@ t_stock = toc(t0);
 t0 = tic;
 Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
 Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw);
-[spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out');
+% [spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out'); % MMP, 10/06/2026 (was)
+[spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026
 Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
 prog = lpiprogram_sop(Tm);                          % registry and dom of T
 [prog,gam] = lpidecvar(prog,'gam');
 prog = lpi_ineq(prog,gam);                          % gam >= 0: legacy sosineq
 prog = lpisetobj(prog,gam);
-[prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);             % R >= 0
-[sp,dm] = cx_space_list(Tm,'out');
-[prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_hinf_qdeg(Rm));
+% [prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);             % R >= 0              % MMP, 10/06/2026 (was)
+% [sp,dm] = cx_space_list(Tm,'out');                                        % MMP, 10/06/2026 (was)
+% [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_hinf_qdeg(Rm));          % MMP, 10/06/2026 (was)
+[prog,Rm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom); % R >= 0 % MMP, 10/06/2026
+[sp,dm] = copvar_space_list(Tm,'out');                                      % MMP, 10/06/2026
+[prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,get_lpivar_degs_sop(Rm));     % MMP, 10/06/2026
 E1 = Tm'*Qm - Rm;
 e0 = prog.expr.num;
 prog = lpi_eq_sop(prog,E1);                         % NOT symmetric (stock line 157)
@@ -99,24 +113,31 @@ rows1 = e0+1:prog.expr.num;
 Km = [-(gam*Iw),   Dzw',        Bw'*Qm;
        Dzw,        -(gam*Iz),   Cz;
        Qm'*Bw,     Cz',         Am'*Qm + Qm'*Am];
-% N >= 0 on K's spaces, as cx_hinf_slack (which does not return N).
-prog0 = prog;
-[spk,dmk] = cx_space_list(Km,'out');
-[deg,co] = cx_hinf_posdeg(st.dd2,st.options2,spk);
-[prog,Nm] = poscopvar(prog,dmk,spk,PIE.dom,deg,co);
-if st.override2~=1
-    [deg,co] = cx_hinf_posdeg(st.dd3,st.options3,spk);
-    [prog,N2] = poscopvar(prog,dmk,spk,PIE.dom,deg,co);
-    Nm = Nm + N2;
-end
+% BEGIN MMP, 10/06/2026: N by the library poslpivar_settings_sop ('slack'),
+% which returns N, in place of the re-typed cx_hinf_slack block (kept below,
+% commented out). prog0 served check (0) only, which is removed.
+% % N >= 0 on K's spaces, as cx_hinf_slack (which does not return N).       % MMP, 10/06/2026 (was)
+% prog0 = prog;                                                             % MMP, 10/06/2026 (was)
+% [spk,dmk] = cx_space_list(Km,'out');                                      % MMP, 10/06/2026 (was)
+% [deg,co] = cx_hinf_posdeg(st.dd2,st.options2,spk);                        % MMP, 10/06/2026 (was)
+% [prog,Nm] = poscopvar(prog,dmk,spk,PIE.dom,deg,co);                       % MMP, 10/06/2026 (was)
+% if st.override2~=1                                                        % MMP, 10/06/2026 (was)
+%     [deg,co] = cx_hinf_posdeg(st.dd3,st.options3,spk);                    % MMP, 10/06/2026 (was)
+%     [prog,N2] = poscopvar(prog,dmk,spk,PIE.dom,deg,co);                   % MMP, 10/06/2026 (was)
+%     Nm = Nm + N2;                                                         % MMP, 10/06/2026 (was)
+% end                                                                       % MMP, 10/06/2026 (was)
+% N >= 0 on K's spaces (dd2/options2, + dd3/options3 when override2 ~= 1).  % MMP, 10/06/2026
+[prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
+% END MMP, 10/06/2026
 E2 = Nm + Km;
 e0 = prog.expr.num;
 prog = lpi_eq_sop(prog,E2,'symmetric');             % Deop + Dop = 0
 rows2 = e0+1:prog.expr.num;
 t_build = toc(t0);
-pchk = cx_hinf_slack(prog0,Km,PIE,st);
-chk(isequal(pchk.expr,prog.expr) && isequal(pchk.var,prog.var) && isequal(pchk.decvartable,prog.decvartable),...
-    '(0) the slack transcription does not build cx_hinf_slack''s program')
+% Check (0) removed: the transcriptions now build N by the same routine.    % MMP, 10/06/2026
+% pchk = cx_hinf_slack(prog0,Km,PIE,st);                                    % MMP, 10/06/2026 (was)
+% chk(isequal(pchk.expr,prog.expr) && isequal(pchk.var,prog.var) && isequal(pchk.decvartable,prog.decvartable),...
+%     '(0) the slack transcription does not build cx_hinf_slack''s program') % MMP, 10/06/2026 (was)
 
 % % % One solve.
 t0 = tic;

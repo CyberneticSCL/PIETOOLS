@@ -31,6 +31,17 @@ function prog = cx_H2_norm_c(PIE,st,gam)
 % error; L55-63 (2-D dispatch): see cx_H2_norm_2D_c.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: cx_h2_lf, cx_h2_slack, cx_h2_pos, cx_h2_qdeg,
+%   cx_h2_trace, cx_space_list -> library poslpivar_settings_sop,
+%   poslpivar_sop, get_lpivar_degs_sop, trace_rn_sop, copvar_space_list, so
+%   the transcription runs on the library translators
+%   (lpi_programming_sopvar, sopvar/misc/conventions); programs unchanged
+%   (126-program bit-identity check). Qdeg is read off R itself instead of a
+%   stock poslpivar redeclared on a scratch program (equal on 5 plants x 6
+%   presets). The cx_h2_lf, cx_h2_qdeg, cx_h2_pos, cx_h2_slack and
+%   cx_h2_trace named above now refer to poslpivar_settings_sop ('lf'),
+%   get_lpivar_degs_sop, poslpivar_sop, poslpivar_settings_sop ('slack')
+%   and trace_rn_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3,    error('cx_H2_norm_c:gam','The container LPI is posed at fixed gamma.'),  end
@@ -50,17 +61,21 @@ Bw = opvar2copvar(PIE.B1);  Cz = opvar2copvar(PIE.C1);
 Iw = opvar2copvar(mat2opvar(eye(size(PIE.B1,2)),PIE.B1.dim(:,2),PIE.vars,PIE.dom));
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                     % L100
-[sp,dm] = cx_space_list(Tm,'out');          % state spaces, zero-dim dropped
-[prog,Rm] = cx_h2_lf(prog,dm,sp,PIE.dom,st);                                % L123-130
+% [sp,dm] = cx_space_list(Tm,'out');          % state spaces, zero-dim dropped % MMP, 10/06/2026 (was)
+[sp,dm] = copvar_space_list(Tm,'out');      % state spaces, zero-dim dropped % MMP, 10/06/2026
+% [prog,Rm] = cx_h2_lf(prog,dm,sp,PIE.dom,st);                                % L123-130 % MMP, 10/06/2026 (was)
+[prog,Rm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);   % L123-130 % MMP, 10/06/2026
 
 % L133-135: Q free with lpivar's degree family; T*Q - R = 0, NOT symmetric.
-[prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_h2_qdeg(PIE,st));
+% [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_h2_qdeg(PIE,st));        % MMP, 10/06/2026 (was)
+[prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,get_lpivar_degs_sop(Rm));     % MMP, 10/06/2026
 prog = lpi_eq_cdopvar(prog,Tm*Qm - Rm);
 
 % L139: poslpivar(prog,C1op.dim(:,1)) takes the nargin==2 defaults (psatz 0,
 % d = {1,[1,1,1],[1,1,1]}); on a finite z it is a PSD nz x nz matrix.
-[spz,dmz] = cx_space_list(Cz,'out');
-[prog,Wm] = cx_h2_pos(prog,dmz,spz,PIE.dom,[],struct());
+% [spz,dmz] = cx_space_list(Cz,'out');                                      % MMP, 10/06/2026 (was)
+% [prog,Wm] = cx_h2_pos(prog,dmz,spz,PIE.dom,[],struct());                  % MMP, 10/06/2026 (was)
+[prog,Wm] = poslpivar_sop(prog,Cz,[],struct(),'out',PIE.dom);               % MMP, 10/06/2026
 
 % L148-151. gam is numeric, so -(gam*Iw) is the scalar branch of mtimes.
 Dneg = [-(gam*Iw),  Bw';
@@ -69,11 +84,14 @@ Dpos = [Wm,         Cz*Qm;
         Qm'*Cz',    Rm];
 
 % L166-179: Dneg = -Deop, Dpos = Deopp, both 'symmetric'.
-[prog,Nneg] = cx_h2_slack(prog,Dneg,PIE.dom,st);
-[prog,Npos] = cx_h2_slack(prog,Dpos,PIE.dom,st);
+% [prog,Nneg] = cx_h2_slack(prog,Dneg,PIE.dom,st);                          % MMP, 10/06/2026 (was)
+% [prog,Npos] = cx_h2_slack(prog,Dpos,PIE.dom,st);                          % MMP, 10/06/2026 (was)
+[prog,Nneg] = poslpivar_settings_sop(prog,Dneg,st,'slack','out',PIE.dom);   % MMP, 10/06/2026
+[prog,Npos] = poslpivar_settings_sop(prog,Dpos,st,'slack','out',PIE.dom);   % MMP, 10/06/2026
 prog = lpi_eq_cdopvar(prog,Nneg + Dneg,'symmetric');
 prog = lpi_eq_cdopvar(prog,Npos - Dpos,'symmetric');
 
 % L183-184: gam >= trace(W.P), the stock scalar lpi_ineq on a dpvar.
-prog = lpi_ineq(prog,gam - cx_h2_trace(Wm));
+% prog = lpi_ineq(prog,gam - cx_h2_trace(Wm));                              % MMP, 10/06/2026 (was)
+prog = lpi_ineq(prog,gam - trace_rn_sop(Wm));                               % MMP, 10/06/2026
 end

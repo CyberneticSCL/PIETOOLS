@@ -20,6 +20,8 @@ function out = volterra_norm_sop()
 % rel_b of the container solve.
 %
 % Initial coding MMP, 09/29/2026
+% MMP, 10/06/2026: cx_space_list -> library copvar_space_list, so the example
+%                  runs on the library translators; program unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 a = 0;  b = 1;
@@ -40,7 +42,8 @@ leg = sqrt(double(lpigetsol(prob,gam)));
 
 % % % Container path.
 Tc = opvar2copvar(Top);                     % L2[s] -> L2[s]
-[sp,dm] = cx_space_list(Tc,'out');
+% [sp,dm] = cx_space_list(Tc,'out');                                        % MMP, 10/06/2026 (was)
+[sp,dm] = copvar_space_list(Tc,'out');                                      % MMP, 10/06/2026
 prog = lpiprogram(Top.vars,Top.I);
 [prog,gc] = lpidecvar(prog,'gam');
 Km = gc - Tc'*Tc;                           % gam*I - T'*T, a cdopvar

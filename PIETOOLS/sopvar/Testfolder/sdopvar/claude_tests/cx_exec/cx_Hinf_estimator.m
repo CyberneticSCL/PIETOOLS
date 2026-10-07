@@ -21,6 +21,13 @@ function prog = cx_Hinf_estimator(PIE,st,gam)
 % epneg is read (line 104) but never used.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: cx_hinf_lf, cx_hinf_dimsp and cx_hinf_slack -> library
+%                  poslpivar_settings_sop ('lf'; 'slack' + lpi_eq_cdopvar)
+%                  and copvar_space_list, so the transcription runs on the
+%                  library translators (lpi_programming_sopvar); programs
+%                  unchanged (126-program bit-identity check). The
+%                  '-> cx_hinf_lf' and '-> cx_hinf_slack' notes above now
+%                  refer to poslpivar_settings_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3 || ~isnumeric(gam)
@@ -39,12 +46,16 @@ Iw  = opvar2copvar(mat2opvar(eye(size(Bwop,2)),Bwop.dim(:,2),PIE.vars,PIE.dom));
 Iz  = opvar2copvar(mat2opvar(eye(size(Czop,1)),Czop.dim(:,1),PIE.vars,PIE.dom));
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
-[prog,Pm] = cx_hinf_lf(prog,Tm,PIE,st);
+% [prog,Pm] = cx_hinf_lf(prog,Tm,PIE,st);                                   % MMP, 10/06/2026 (was)
+[prog,Pm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);          % MMP, 10/06/2026
 Imat = blkdiag(st.eppos*eye(Top.dim(1,:)),st.eppos2*eye(Top.dim(2,:)));
 Pm = Pm + opvar2copvar(mat2opvar(Imat,Top.dim(:,2),PIE.vars,PIE.dom));
 
 % Z: R^ny (Cy.dim(:,1)) -> state (Cy.dim(:,2)).
-[dz,sz] = cx_hinf_dimsp(Cyop.dim(:,[2,1]),PIE);
+% [dz,sz] = cx_hinf_dimsp(Cyop.dim(:,[2,1]),PIE);                           % MMP, 10/06/2026 (was)
+[spx,dmx] = copvar_space_list(Cy,'in');     % Z out = Cy in (state)         % MMP, 10/06/2026
+[spy,dmy] = copvar_space_list(Cy,'out');    % Z in = Cy out (R^ny)          % MMP, 10/06/2026
+dz = struct('out',dmx,'in',dmy);    sz = struct('out',{spx},'in',{spy});    % MMP, 10/06/2026
 [prog,Zm] = lpivar_cdopvar(prog,dz,sz,PIE.dom,st.ddZ);
 Dyw = cx_on_registry(opvar2copvar(PIE.D21),Zm);    % registry bridge only
 
@@ -60,5 +71,7 @@ end
 Km = [K11,      -Dzw',       K13;
       -Dzw,     -(gam*Iz),   Cz;
       K31,      Cz',         PA'*Tm + Tm'*PA];
-prog = cx_hinf_slack(prog,Km,PIE,st);
+% prog = cx_hinf_slack(prog,Km,PIE,st);                                     % MMP, 10/06/2026 (was)
+[prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
+prog = lpi_eq_cdopvar(prog,Nm + Km,'symmetric');    % Deop + Dop = 0        % MMP, 10/06/2026
 end

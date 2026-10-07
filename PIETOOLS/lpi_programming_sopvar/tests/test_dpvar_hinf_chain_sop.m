@@ -24,6 +24,12 @@ function R = test_dpvar_hinf_chain_sop(plant)
 % PLANT: cx_plant argument cell, default {'io1'}.
 %
 % Initial coding MMP, 09/29/2026
+% MMP, 10/06/2026: cx_hinf_lf, cx_hinf_qdeg, cx_space_list and
+%                  cx_hinf_slack -> library poslpivar_settings_sop ('lf';
+%                  'slack' + the equality cx_hinf_slack imposed),
+%                  get_lpivar_degs_sop, copvar_space_list, so the test runs
+%                  on the library translators (lpi_programming_sopvar);
+%                  programs unchanged (126-program bit-identity check).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(plant),  plant = {'io1'};    end
@@ -51,16 +57,20 @@ t = tic;
 Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
 Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);
 Dzw = opvar2copvar(PIE.Dzw);
-[spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out');
+% [spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out'); % MMP, 10/06/2026 (was)
+[spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026
 Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 gam = dpvar('gam');
 prog = lpidecvar(prog,gam);
 prog = lpi_ineq(prog,gam);
 prog = lpisetobj(prog,gam);
-[prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);
-Qdeg = cx_hinf_qdeg(Rm);
-[sp,dm] = cx_space_list(Tm,'out');
+% [prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);                                   % MMP, 10/06/2026 (was)
+% Qdeg = cx_hinf_qdeg(Rm);                                                  % MMP, 10/06/2026 (was)
+% [sp,dm] = cx_space_list(Tm,'out');                                        % MMP, 10/06/2026 (was)
+[prog,Rm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);          % MMP, 10/06/2026
+Qdeg = get_lpivar_degs_sop(Rm);                                             % MMP, 10/06/2026
+[sp,dm] = copvar_space_list(Tm,'out');                                      % MMP, 10/06/2026
 [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,Qdeg);
 prog = lpi_eq_cdopvar(prog,Tm'*Qm - Rm);
 Km = [-gam*Iw,     Dzw',       Bw'*Qm;
@@ -73,7 +83,9 @@ if all(cellfun(@isempty,spz)) && sum(dmz)==1
     ck(eq(Km,Km2),'KYP operator: -gam*Iz equals the raw dpvar entry -gam');
 end
 ck(isa(Km,'cdopvar') && any(strcmp(Km.Zd,'gam')),'KYP operator carries gam');
-prog = cx_hinf_slack(prog,Km,PIE,st);
+% prog = cx_hinf_slack(prog,Km,PIE,st);                                     % MMP, 10/06/2026 (was)
+[prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
+prog = lpi_eq_cdopvar(prog,Nm + Km,'symmetric');   % Deop + Dop = 0         % MMP, 10/06/2026
 ta = toc(t);
 t = tic;
 prog = lpisolve(prog,st.sos_opts);

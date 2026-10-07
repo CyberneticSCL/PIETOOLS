@@ -18,6 +18,14 @@ function prog = cx_PIE2PDEstability_dual(PIE,st)
 % OUTPUT spaces (T*T', T*Q: out -> out).
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: P1(+P2) and N1(+N2) pairs -> library
+%                  poslpivar_settings_sop ('lf', 'slack'),
+%                  cx_stability_lpivar_degs -> get_lpivar_degs_sop,
+%                  cx_space_list -> copvar_space_list, so the transcription
+%                  runs on the library translators (lpi_programming_sopvar);
+%                  programs unchanged (126-program bit-identity check).
+%                  'cx_stability_lpivar_degs' above now refers to the
+%                  library routine get_lpivar_degs_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -48,16 +56,19 @@ Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);        % line 108
 
 % P = P1 (+P2) + eppos2*T*T', lines 115-125.
-[prog,Pm] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd1,options1);
-if override1~=1
-    [prog,P2m] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd12,options12);
-    Pm = Pm + P2m;
-end
+% [prog,Pm] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd1,options1);         % MMP, 10/06/2026 (was)
+% if override1~=1                                                           % MMP, 10/06/2026 (was)
+%     [prog,P2m] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd12,options12);  % MMP, 10/06/2026 (was)
+%     Pm = Pm + P2m;                                                        % MMP, 10/06/2026 (was)
+% end                                                                       % MMP, 10/06/2026 (was)
+[prog,Pm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);          % MMP, 10/06/2026
 Pm = Pm + eppos2*Tm*Tm';
 
 % Q: T.out -> T.in (the shape of Top2 = Top'), T*Q = P, lines 128-130.
-Qdeg = cx_stability_lpivar_degs(Pm);
-[spO,dmO] = cx_space_list(Tm,'in');     [spI,dmI] = cx_space_list(Tm,'out');
+% Qdeg = cx_stability_lpivar_degs(Pm);                                      % MMP, 10/06/2026 (was)
+% [spO,dmO] = cx_space_list(Tm,'in');     [spI,dmI] = cx_space_list(Tm,'out'); % MMP, 10/06/2026 (was)
+Qdeg = get_lpivar_degs_sop(Pm);                                             % MMP, 10/06/2026
+[spO,dmO] = copvar_space_list(Tm,'in');     [spI,dmI] = copvar_space_list(Tm,'out'); % MMP, 10/06/2026
 [prog,Qm] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI), ...
                            struct('out',{spO},'in',{spI}),PIE.dom,Qdeg);
 prog = lpi_eq_cdopvar(prog,Tm*Qm - Pm);             % NOT symmetric (line 130)
@@ -69,10 +80,11 @@ if epneg~=0
 end
 
 % D = -N, lines 159-167.
-[prog,Nm] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd2,options2);
-if override2~=1
-    [prog,N2m] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd3,options3);
-    Nm = Nm + N2m;
-end
+% [prog,Nm] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd2,options2);         % MMP, 10/06/2026 (was)
+% if override2~=1                                                           % MMP, 10/06/2026 (was)
+%     [prog,N2m] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd3,options3);    % MMP, 10/06/2026 (was)
+%     Nm = Nm + N2m;                                                        % MMP, 10/06/2026 (was)
+% end                                                                       % MMP, 10/06/2026 (was)
+[prog,Nm] = poslpivar_settings_sop(prog,Dm,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
 prog = lpi_eq_cdopvar(prog,Dm+Nm,'symmetric');
 end

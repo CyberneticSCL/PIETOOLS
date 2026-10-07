@@ -24,6 +24,13 @@ function prog = cx_H2_norm_o_coercive(PIE,st,gam)
 % here the trace is a constant 0 dpvar and the constraint is gam >= 0.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: cx_h2_lf, cx_h2_slack, cx_h2_trace -> library
+%   poslpivar_settings_sop, trace_rn_sop, so the transcription runs on the
+%   library translators (lpi_programming_sopvar); programs unchanged
+%   (126-program bit-identity check). The cx_space_list call fed only
+%   cx_h2_lf and is commented out. The cx_h2_lf, cx_h2_slack and
+%   cx_h2_trace named above now refer to poslpivar_settings_sop ('lf',
+%   'slack') and trace_rn_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3,    error('cx_H2_norm_o_coercive:gam','The container LPI is posed at fixed gamma.'),  end
@@ -41,14 +48,17 @@ Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
 Bw = opvar2copvar(PIE.B1);  Cz = opvar2copvar(PIE.C1);
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                     % L94
-[sp,dm] = cx_space_list(Tm,'out');
-[prog,Wm] = cx_h2_lf(prog,dm,sp,PIE.dom,st);                                % L117-124
+% [sp,dm] = cx_space_list(Tm,'out');                                        % MMP, 10/06/2026 (was)
+% [prog,Wm] = cx_h2_lf(prog,dm,sp,PIE.dom,st);                                % L117-124 % MMP, 10/06/2026 (was)
+[prog,Wm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);   % L117-124 % MMP, 10/06/2026
 
 Dm = (Am'*Wm)*Tm + Tm'*(Wm*Am) + Cz'*Cz;                                    % L131
 
-[prog,Nm] = cx_h2_slack(prog,Dm,PIE.dom,st);                                % L145-152
+% [prog,Nm] = cx_h2_slack(prog,Dm,PIE.dom,st);                                % L145-152 % MMP, 10/06/2026 (was)
+[prog,Nm] = poslpivar_settings_sop(prog,Dm,st,'slack','out',PIE.dom); % L145-152 % MMP, 10/06/2026
 prog = lpi_eq_cdopvar(prog,Nm + Dm,'symmetric');                            % L153
 
 % L156-163: tempObj = Bwop'*Wop*Bwop evaluates left to right.
-prog = lpi_ineq(prog,gam - cx_h2_trace((Bw'*Wm)*Bw));
+% prog = lpi_ineq(prog,gam - cx_h2_trace((Bw'*Wm)*Bw));                     % MMP, 10/06/2026 (was)
+prog = lpi_ineq(prog,gam - trace_rn_sop((Bw'*Wm)*Bw));                      % MMP, 10/06/2026
 end

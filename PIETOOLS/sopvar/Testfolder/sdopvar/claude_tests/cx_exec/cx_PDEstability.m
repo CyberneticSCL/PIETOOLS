@@ -24,6 +24,13 @@ function prog = cx_PDEstability(PIE,st)
 %   with the term skipped (cx_stability_check), and at epneg=0.1 with it.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: P1(+P2) and N1(+N2) pairs -> library
+%                  poslpivar_settings_sop ('lf', 'slack'), so the
+%                  transcription runs on the library translators
+%                  (lpi_programming_sopvar); programs unchanged (126-program
+%                  bit-identity check). 'cx_stability_pos' above now refers
+%                  to the library routine poslpivar_sop, which
+%                  poslpivar_settings_sop calls.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -54,11 +61,12 @@ Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);        % line 110
 
 % P = P1 (+P2), lines 117-124.
-[prog,Pm] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd1,options1);
-if override1~=1
-    [prog,P2m] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd12,options12);
-    Pm = Pm + P2m;
-end
+% [prog,Pm] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd1,options1);         % MMP, 10/06/2026 (was)
+% if override1~=1                                                           % MMP, 10/06/2026 (was)
+%     [prog,P2m] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd12,options12);  % MMP, 10/06/2026 (was)
+%     Pm = Pm + P2m;                                                        % MMP, 10/06/2026 (was)
+% end                                                                       % MMP, 10/06/2026 (was)
+[prog,Pm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);          % MMP, 10/06/2026
 % Strict positivity, lines 127-128: n0 = R^n count, n1 = L2 count of T's output.
 n = PIE.T.dim(:,1);
 Imat = blkdiag(eppos*eye(n(1)),eppos2*eye(n(2)));
@@ -71,10 +79,11 @@ if epneg~=0
 end
 
 % D = -N with N = N1 (+N2) >= 0, lines 156-164.
-[prog,Nm] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd2,options2);
-if override2~=1
-    [prog,N2m] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd3,options3);
-    Nm = Nm + N2m;
-end
+% [prog,Nm] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd2,options2);         % MMP, 10/06/2026 (was)
+% if override2~=1                                                           % MMP, 10/06/2026 (was)
+%     [prog,N2m] = cx_stability_pos(prog,Dm,'out',PIE.dom,dd3,options3);    % MMP, 10/06/2026 (was)
+%     Nm = Nm + N2m;                                                        % MMP, 10/06/2026 (was)
+% end                                                                       % MMP, 10/06/2026 (was)
+[prog,Nm] = poslpivar_settings_sop(prog,Dm,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
 prog = lpi_eq_cdopvar(prog,Dm+Nm,'symmetric');
 end
