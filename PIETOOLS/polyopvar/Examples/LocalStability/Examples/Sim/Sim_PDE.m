@@ -50,7 +50,7 @@ elseif PDE_name == "Burgers"
     %   ||u_x||_{L2}  = abs(q) * ( pi/sqrt(2*L) )
     %   ||u||_{H1}    = abs(q) * sqrt( (L^2 + pi^2) / (2*L) )
     L  = dom(2);
-    q  = 50; % 500 stable when r=pi^2-0.1.
+    q  = 500; % 500 stable when r=pi^2-0.1.
     u0 = @(x) q * sin( (pi*x) / (L) );
     
     % Norm checks.

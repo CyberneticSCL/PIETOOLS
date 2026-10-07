@@ -49,7 +49,8 @@ eppos = 1.0;
 % (n+1)-dim array containing parameters of weighted Sobolev ball.
 alpha = [1, 0, 0];
 
-% radius of local ball.
+% Radius of local ball experiments with eppos=1.0; alpha = [1, 0, 0]; lambda = 0.
+% rad=4.125 passed with dist_degs=[1,0,1], mon_degs=[4,0,5] --> numerr=0 and feasratio=1.00. ---> should fail.
 % rad=4.125 failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9863.
 % rad=4.25  failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9999.
 % rad=4.5   failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9966.
@@ -76,7 +77,7 @@ dist_degs = [1, 0, 1];
 
 % Declare monomial degrees in independent variables used to respectively parametrize
 % LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.
-mon_degs = [4, 0, 4]; 
+mon_degs = [4, 0, 5]; 
 
 % Run local stability test.
 % C can be passed in as optional final argument if it is fixed.
