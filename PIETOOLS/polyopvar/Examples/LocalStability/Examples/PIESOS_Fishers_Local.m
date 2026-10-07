@@ -63,7 +63,7 @@ dist_degs = [1, 1, 1];
 mon_degs = [3, 2, 2];
 
 
-% Run local stability test. If successful res = [C, M].
+% Run local stability test.
 % C can be passed in as optional final argument if it is fixed.
 res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs, eppos);
 

@@ -1,4 +1,4 @@
-function V = innerprod_v2(Z1,Z2,P)
+function V = innerprod_v2(Z1,Z2,P,opts)
     % V = innerprod_v2(Z1,Z2,P) computes the weighted inner product
     % V = <Z1,P*Z2>_{L2} in vector-valued form. It can be considered as
     % returning the individual terms from Lem. 7.
@@ -11,6 +11,8 @@ function V = innerprod_v2(Z1,Z2,P)
     % - Z1,Z2: n x 1 polyopvar distributed-polynomial vectors. If Z2 is
     %           empty, the symmetric inner product is used.
     % - P:     n x n double, polynomial, or dpvar weight.
+    % - opts:  (optional) char, default ''. Pass 'skip_combine' to skip the 
+    %           combine_terms folding of repeated states in quad2lin_v2.
     %
     % OUTPUT
     % - V:     scalar polyopvar representing <Z1,P*Z2>_{L2}.
@@ -30,8 +32,13 @@ function V = innerprod_v2(Z1,Z2,P)
     % CR, 09/07/2026: Initial coding - Main diff to innerprod is that
     % quad2lin_v2 is called instead of quad2lin and the full P matrix is
     % passed in.
+    % DJ, 10/05/2026: Add optional input to skip the 'combine_terms' call
+    %                   in quad2lin_v2;
 
-    narginchk(1,3);
+    narginchk(1,4);
+    if nargin<4 || isempty(opts)
+        opts = '';                                                         % DJ, 10/05/2026
+    end
 
     % Extract information from the left polynomial
     if isa(Z1,'double') || isa(Z1,'polynomial') || isa(Z1,'dpvar')
@@ -67,8 +74,9 @@ function V = innerprod_v2(Z1,Z2,P)
         end
 
         % quad2lin_v2 recognizes the symmetric form and avoids generating
-        % the two mirrored block terms separately.
-        V = quad2lin_v2(P,ZopL,ZxL);                                      % CR, 09/07/2026
+        % the two mirrored block terms separately. ZopR/ZxR passed as []
+        % since opts is a trailing argument.                               % DJ, 10/05/2026
+        V = quad2lin_v2(P,ZopL,ZxL,[],[],opts);                            % CR, 09/07/2026
         return
     elseif isa(Z2,'double') || isa(Z2,'polynomial') || isa(Z2,'dpvar')
         % Convert to polyopvar.
@@ -95,6 +103,5 @@ function V = innerprod_v2(Z1,Z2,P)
 
     % The vector-valued backend replaces the original quad2lin branching:
     % one call passes the complete P block with both TDP vectors.
-    % V = quad2lin_v2(P,ZopL,ZxL,ZopR,ZxR);
-    V = quad2lin_v2(P,ZopL,ZxL,ZopR,ZxR); 
+    V = quad2lin_v2(P,ZopL,ZxL,ZopR,ZxR,opts);                             % DJ, 10/05/2026 (was: no opts arg)
 end

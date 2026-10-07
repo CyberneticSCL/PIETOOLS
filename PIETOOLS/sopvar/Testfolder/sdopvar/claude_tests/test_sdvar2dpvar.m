@@ -15,6 +15,8 @@
 %           'pi_blk_kernels', on bases of unequal size (a ZL/ZR swap or
 %           a transposed vec would show);
 %   HAND    the 2x2 case from the defect report, value worked by hand;
+%   ERRCHK  a numel(ZR) ~= numel(vars.in) call errors directly, instead of
+%           silently overwriting N (fixed 10/05/2026, see sdvar2dpvar.m);
 %   VALUE   the output dpvar, expanded by the class's own 'dpvar2poly' and
 %           evaluated by 'subs' at random (d,s,t), equals 'ref_eval',
 %           computed directly from A, B and the degree lists. Neither
@@ -30,6 +32,7 @@
 % on a row B returns rows.
 %
 % Initial coding MMP, 09/26/2026
+% DJ, 10/05/2026: Add ERRCHK case for the numel(ZR) validation fix.
 
 tol = 1e-10;        % relative, Frobenius
 nsamp = 3;          % random (d,s,t) per case
@@ -76,6 +79,23 @@ catch ME
 end
 nchk = nchk+1;
 if ~isempty(msg),   fails{end+1} = ['HAND: ',msg];  end
+
+%% ERRCHK: numel(ZR) mismatched with vars.in must error, not silently        % DJ, 10/05/2026
+%  redefine N (the ZL branch above already errors on a mismatch; the ZR     % DJ, 10/05/2026
+%  branch used to just overwrite N instead -- see sdvar2dpvar.m header).    % DJ, 10/05/2026
+try                                                                         % DJ, 10/05/2026
+    sdvar2dpvar(struct('A',sparse(2,1),'B',sparse(1,2)),[1,1], ...          % DJ, 10/05/2026
+                struct('out',{cell(1,0)},'in',{{'t1','t2'}}), ...           % DJ, 10/05/2026
+                cell(1,0),{[0;1]},{'d1'});                                  % DJ, 10/05/2026
+    msg = 'expected an error, got none';                                    % DJ, 10/05/2026
+catch ME                                                                    % DJ, 10/05/2026
+    msg = '';                                                               % DJ, 10/05/2026
+    if ~contains(ME.message,'right-monomials')                              % DJ, 10/05/2026
+        msg = ['wrong error: ',ME.message];                                 % DJ, 10/05/2026
+    end                                                                     % DJ, 10/05/2026
+end                                                                         % DJ, 10/05/2026
+nchk = nchk+1;                                                              % DJ, 10/05/2026
+if ~isempty(msg),   fails{end+1} = ['ERRCHK: ',msg];  end                   % DJ, 10/05/2026
 
 %% VALUE: sweep over dimensions, variable counts and degrees
 ncase = 0;

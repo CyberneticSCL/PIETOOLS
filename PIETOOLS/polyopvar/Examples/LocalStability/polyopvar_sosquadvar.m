@@ -28,7 +28,9 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %
     % CR, 09/01/2026: Initial coding
-    
+    % DJ, 10/05/2026: Require m=n for 'sym' case as well, and pass
+    %                   "lower(option)" to sosquadvar;
+
     narginchk(3,4);
 
     if nargin<4 || isempty(option)
@@ -59,9 +61,9 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
         n(i) = size(Z2{i},1);
     end
 
-    if strcmpi(option,'pos') && any(m ~= n)
+    if (strcmpi(option,'pos') || strcmpi(option,'sym')) && any(m ~= n)
         error('polyopvar_sosquadvar_v2:InvalidDimension', ...
-            'A positive Gram variable requires matching left and right dimensions.');
+            'A positive or symmetric Gram variable requires matching left and right dimensions.');
     end
 
     % Declare one matrix variable. This is what couples all Pcell blocks
@@ -70,8 +72,9 @@ function [prog,Pcell] = polyopvar_sosquadvar(prog,Z1,Z2,option)
     % SOS quadratic-form constraints.
     if strcmpi(option,'free')
         [prog,P] = sosquadvar(prog,{1},{1},sum(m),sum(n));
-    else
-        [prog,P] = sosquadvar(prog,{1},{1},sum(m),sum(n),option);
+    else                                                                    % DJ, 10/05/2026
+        % sosquadvar requires option to match case-sensitively
+        [prog,P] = sosquadvar(prog,{1},{1},sum(m),sum(n),lower(option));    
     end
     P = P{1}; % P is no longer a cell.
 

@@ -1,4 +1,4 @@
-function [prog, V3, dV3] = V3_Liediff(prog, PIE, d, opdeg)
+function [prog, V3, dV3, Pcell] = V3_Liediff(prog, PIE, d, opdeg)
     % [prog,V3,dV3] = V3_Liediff(...) constructs the Lyapunov
     % functional V3 from Sec. 7.5 of the Automatica paper and returns its
     % Lie derivative along the polynomial PIE, as stated in Lem. 13.
@@ -73,6 +73,11 @@ function [prog, V3, dV3] = V3_Liediff(prog, PIE, d, opdeg)
     % authorship, and a brief description of modifications
     %
     % CR, 10/05/2026: Initial coding.
+    % DJ, 10/05/2026: Modify construction of V3 and dV3;
+    %                   account for lower-diagonal (j<i) terms in V3 and
+    %                   avoid "combine_terms" in computation of dV3 until
+    %                   after substitution.
+    % CR, 10/06/2026: Corrected symmetry constraint.
 
     narginchk(4,4);
 
@@ -127,6 +132,7 @@ function [prog, V3, dV3] = V3_Liediff(prog, PIE, d, opdeg)
 
     f_deg   = size(f.degmat,1);
     f_terms = cell(f_deg,1);
+
     for l = 1:f_deg
         f_terms{l}           = f;
         f_terms{l}.degmat    = f.degmat(l,:);
@@ -233,33 +239,58 @@ function [prog, V3, dV3] = V3_Liediff(prog, PIE, d, opdeg)
     Zs2_left  = Zs2;
     Zs2_right = Zs2;
     
+    
+    % Jointly construct the LF, derivative, and impose symmetry.
     V3  = 0;
     dV3 = 0;
     for i = 1:d
+
         Zs1_left{i}.varname  = {left_name};
         Zs1_right{i}.varname = {right_name};
         Zs2_left{i}.varname  = {left_name};
         Zs2_right{i}.varname = {right_name};
+
         for j = i:d
+
             % Symmetry constraints.
-            Qhat_ij = innerprod_v2(Zs1_left{i}, Zs2_right{j}, Pcell{i,j});
-            Qhat_ji_adj = innerprod_v2(Zs1_right{j}, Zs2_left{i}, Pcell{j,i});
-            prog = piesos_eq(prog,Qhat_ij-Qhat_ji_adj);
+            Qhat_ij_adj = innerprod_v2(Zs2_left{j}, Zs1_right{i}, Pcell{i,j}'); % CR, 10/06/2026
+            Qhat_ji = innerprod_v2(Zs1_left{j}, Zs2_right{i}, Pcell{j,i});
+            prog = piesos_eq(prog,Qhat_ij_adj-Qhat_ji);
+
             % Construct V3.
-            V3 = V3 + innerprod_v2(Zs1{i},Zs2{j},Pcell{i,j});
+            if i==j                                                         % DJ, 10/05/2026 
+                V3 = V3 + innerprod_v2(Zs1{i},Zs2{j},Pcell{i,j});
+            else
+                V3 = V3 + 2*innerprod_v2(Zs1{i},Zs2{j},Pcell{i,j});
+            end
+
+            % Construct the derivative
+            block = 0;
             for k = 1:j
-                % Construct dV3.
-                % Before substitution, the factors are ordered as i left
-                % factors followed by j right factors. Thus the placeholder
-                % is factor i+k of the resulting degree-(i+j) FDP.
-                dV3_ijk = innerprod_v2(Zs1{i}, right_factors{j,k} ,Pcell{i,j});
+                % R_ij: substitute factor k of right_factors{j,k}, which
+                % sits at global position i+k after Zs1{i}'s own i factors.
+                Rijk = innerprod_v2(Zs1{i}, right_factors{j,k}, Pcell{i,j}, 'skip_combine'); % DJ, 10/05/2026
                 for l = 1:f_deg
-                    dV3_ijkl = subs(dV3_ijk,i+k,f_terms{l});
-                    dV3 = dV3 + 2*dV3_ijkl;
+                    block = block + subs(Rijk,i+k,f_terms{l});
                 end
+            end
+            for m = 1:i
+                % L_ij = R_ji: substitute factor m of right_factors{i,m},
+                % at global position j+m after Zs1{j}'s own j factors.
+                Ljim = innerprod_v2(Zs1{j}, right_factors{i,m}, Pcell{j,i}, 'skip_combine'); % DJ, 10/05/2026
+                for l = 1:f_deg
+                    block = block + subs(Ljim,j+m,f_terms{l});
+                end
+            end
+            if i==j
+                % Add the derivative of diagonal block to full derivative.
+                dV3 = dV3 + block;
+            else
+                % Double the contribution of block (i,j) to account for
+                % symmetry.
+                dV3 = dV3 + 2*block;
             end
         end
     end
-
 
 end

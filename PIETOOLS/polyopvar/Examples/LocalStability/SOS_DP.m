@@ -1,4 +1,4 @@
-function [prog, DP] = SOS_DP(prog, d, opdeg, x, dom)
+function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
     % [prog, DP] = SOS_DP(...) Construct a degree-2*d SOS distributed polynomial
     % DP = < Z_d(x), P Z_d(x) >_{L2} = \sum_i=1^d \sum_j=1^d <U^i x^i, Pmat U^j x^j>_{L_2}
     % (as in Def. 9 CDC paper) and add the variable to the PIESOS program.

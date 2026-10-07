@@ -1,4 +1,4 @@
-function Vx = quad2lin_v2(Pmat,ZopL,ZxL,ZopR,ZxR)
+function Vx = quad2lin_v2(Pmat,ZopL,ZxL,ZopR,ZxR,opts)
 % VX = QUAD2LIN(PMAT,ZOP,ZX) converts a distributed polynomial in quadratic
 % form,
 %   V(x) = <ZopL*ZL(x), Pmat*ZopR*ZR(x)>_{L2}
@@ -17,6 +17,8 @@ function Vx = quad2lin_v2(Pmat,ZopL,ZxL,ZopR,ZxR)
 %           ZopL if not specified;
 % - ZxR:    d2 x 1 'polyopovar' object representing a basis of distributed
 %           monomials;
+% - opts:   (optional) char, default ''. Pass 'skip_combine' to skip the
+%           per-block combine_terms folding of repeated-state monomials.
 %
 % OUTPUTS
 % - Vx:     1 x 1 'polyopvar' object representing the function
@@ -51,15 +53,20 @@ function Vx = quad2lin_v2(Pmat,ZopL,ZxL,ZopR,ZxR)
 % CR, 09/07/2026: Initial coding - Routes vector-valued TDP terms through the local term
 %                   linearizer, preserving their Kronecker output form.
 %                   Main diff to quad2lin is that quad2lin_term_v2 is called instead of quad2lin.
+% DJ, 10/05/2026: Add optional input to skip the 'combine_terms' call;
 
+if nargin<6 || isempty(opts)
+    opts = '';                                                              % DJ, 10/05/2026
+end
+skip_combine = strcmpi(opts,'skip_combine');
 
 % Assume a symmetric operator if only one half is specified.
 is_symmetric = false;
-if nargin<=3 && size(Pmat,1)==size(Pmat,2)
+if (nargin<4 || isempty(ZopR)) && size(Pmat,1)==size(Pmat,2)
     ZopR = ZopL;
     ZxR = ZxL;
     is_symmetric = true;
-elseif nargin<=3
+elseif nargin<4 || isempty(ZopR)
     error("Insufficient input arguments.")
 else
     [ZxL,ZxR] = common_vars(ZxL,ZxR);
@@ -130,7 +137,9 @@ for ii=1:nZL
         Kpoly_ij.C.depmat2 = sum(degmat_lin(lidx,:));
         Kpoly_ij.degmat = degmat_lin(lidx,:);
         % Get rid of duplicate terms in the functional, and add to Vx
-        Kpoly_ij = combine_terms(Kpoly_ij);
+        if ~skip_combine                                                   % DJ, 10/05/2026
+            Kpoly_ij = combine_terms(Kpoly_ij);
+        end
         Vx = Vx + Kpoly_ij;
     end
 end

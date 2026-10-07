@@ -47,10 +47,14 @@ function Psop = opvar2sopvar(Pop)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  opvar2mopvar -> opvar2copvar.
+% DJ, 10/05/2026: Add call to 'dopvar2sdopvar';
 
 % Check that the input is of appropraite class
 if isa(Pop,'opvar2d')
     Psop = opvar2d2sopvar(Pop);
+    return
+elseif isa(Pop,'dopvar')                                                    % DJ, 10/05/2026
+    Psop = dopvar2sdopvar(Pop);
     return
 elseif ~isa(Pop,'opvar')
     error("Input must be of type 'opvar'.")
