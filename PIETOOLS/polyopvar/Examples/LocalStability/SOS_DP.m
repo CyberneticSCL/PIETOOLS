@@ -41,6 +41,8 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
     % CR, 09/01/2026: Initial coding.
     % CR, 09/07/2026: Re-routed innerprod via innerprod_v2.m.
     % DJ, 09/21/2026: Removed strict positivity constraint.
+    % DJ, 10/06/2026: Reduce monomial degree of kernels for tensor product
+    %                   of basis operators.
         
             
     %% Build the monomial basis used to parameterize P.
@@ -48,26 +50,84 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
     % Construct the basis operator corresponding to \hat{U} in paper.
     % Only 2PI operators can be used here (for now).
     pvar s s_dum
-    Zmon     = monomials([s,s_dum],0:opdeg);
-    Zop      = opvar();
-    Zop.var1 = s;
-    Zop.var2 = s_dum;
-    Zop.I    = dom;  
-    Zop.R.R0 = [0*Zmon;0*Zmon];
-    Zop.R.R1 = [Zmon;0*Zmon];
-    Zop.R.R2 = [0*Zmon;Zmon];
-
-    Z  = dopvar2ndopvar(Zop);
-    Zx = Z*x;
+    % Zmon     = monomials([s,s_dum],0:opdeg);
+    % Zop      = opvar();
+    % Zop.var1 = s;
+    % Zop.var2 = s_dum;
+    % Zop.I    = dom;  
+    % Zop.R.R0 = [0*Zmon;0*Zmon];
+    % Zop.R.R1 = [Zmon;0*Zmon];
+    % Zop.R.R2 = [0*Zmon;Zmon];
+    % 
+    % Z  = dopvar2ndopvar(Zop);
+    % Zx = Z*x;
+    % 
+    % % Construct the T-PI operators (corresponding to \hat{U}^i x^i in 
+    % % the paper) as products of Zx.
+    % Zs = cell(d,1);
+    % for i = 1:d
+    %     if i==1
+    %         Zs{i} = Zx;
+    %     else
+    %         Zs{i} = DMB(Zs{i-1},Zx);
+    %     end
+    % end
 
     % Construct the T-PI operators (corresponding to \hat{U}^i x^i in 
     % the paper) as products of Zx.
     Zs = cell(d,1);
-    for i = 1:d
+    for i = 1:d  
         if i==1
+            % For i==1, define basis of operators by basis of monomials of  % DJ, 10/06/2026
+            % degree at most opdeg in s and theta
+            %Zmon     = monomials([s,s_dum],0:opdeg+4);
+            Zmon1    = monomials(s,0:opdeg);                              % NOTE: +4 should be removed 
+            Zmon2    = monomials(s_dum,0:opdeg);
+            Zmon = kron(Zmon1,Zmon2);
+            Zop      = opvar();
+            Zop.var1 = s;
+            Zop.var2 = s_dum;
+            Zop.I    = dom;  
+            Zop.R.R0 = [0*Zmon;0*Zmon];
+            Zop.R.R1 = [Zmon;0*Zmon];
+            Zop.R.R2 = [0*Zmon;Zmon];
+        
+            Z  = dopvar2ndopvar(Zop);
+            Zx = Z*x;
             Zs{i} = Zx;
         else
-            Zs{i} = DMB(Zs{i-1},Zx);
+            % For i>1, define basis of operators as tensor product of 1D    % DJ, 10/06/2026
+            % basis. Define the 1D operators in such a manner that the
+            % cumulative degree of (theta_1,...,theta_i) in the tensor
+            % product is opdeg
+            Zmon1    = monomials(s,0:opdeg/i);
+            Zmon2    = monomials(s_dum,0:floor(opdeg/i));
+            Zmon = kron(Zmon1,Zmon2);
+            % Zop1 is degree opdeg/i in s, and opdeg/i in theta
+            Zop1      = opvar();
+            Zop1.var1 = s;
+            Zop1.var2 = s_dum;
+            Zop1.I    = dom;  
+            Zop1.R.R0 = [0*Zmon;0*Zmon];
+            Zop1.R.R1 = [Zmon;0*Zmon];
+            Zop1.R.R2 = [0*Zmon;Zmon];
+            Z1  = dopvar2ndopvar(Zop1);
+            % Zop2 is degree 0 in s, and opdeg/i in theta
+            Zop2      = opvar();
+            Zop2.var1 = s;
+            Zop2.var2 = s_dum;
+            Zop2.I    = dom;  
+            Zop2.R.R0 = [0*Zmon2;0*Zmon2];
+            Zop2.R.R1 = [Zmon2;0*Zmon2];
+            Zop2.R.R2 = [0*Zmon2;Zmon2];
+            Z2  = dopvar2ndopvar(Zop2);
+            % Take the tensor product
+            Z1x = Z1*x;
+            Z2x = Z2*x;
+            Zs{i} = Z1x;
+            for k=2:i
+                Zs{i} = DMB(Zs{i},Z2x);
+            end
         end
     end
 

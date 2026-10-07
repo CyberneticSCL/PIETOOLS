@@ -39,7 +39,7 @@ PDE = [diff(x,t)==diff(x,s,2)+r*x-x*diff(x,s);
 n = 2; % degree of PDE.
 
 % Treated as eppos^2, the lower bound on SOS LF.
-eppos = 0.1;
+eppos = 1;
 
 % (n+1)-dim array containing parameters of weighted Sobolev ball.
 alpha = [1, 0, 0];      % <-- [1,0,0] for L2 ball
@@ -57,7 +57,7 @@ dist_degs = [1, 1, 1];
 
 % Declare monomial degrees in independent variables used to parametrize
 % SOS LF and p1, p2 multipliers (respectively).
-mon_degs = [1, 1, 1];
+mon_degs = [3, 0, 0];
 
 
 %%%% 2. Call the SOS local stability test

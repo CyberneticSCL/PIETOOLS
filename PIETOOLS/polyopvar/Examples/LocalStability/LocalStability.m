@@ -95,6 +95,8 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     %% Construct LF and its Lie derivative.
     % [prog, V] = V3_DP(prog, V_deg, V_mon, Top, x, dom);
     [prog, V, dV, ~] = V3_Liediff(prog, PIE, V_deg, V_mon);
+    %V = innerprod(Top*x,Top*x);         % energy functional
+    %dV = 2*innerprod(Top*x,f);
     
     
     %% Define lower bound on the LF and enforce constraint.
@@ -123,8 +125,8 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     fprintf(" --- V3 and dV3 declared. Lower bound equality set ---\n");
 
 
-    % %% Define the upper bound on the LF and enforce constraint.
-    % 
+    %% Define the upper bound on the LF and enforce constraint.
+
     % % Declare p1 as SOS DP.
     % [prog, p1, ~, ~] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
     % 
@@ -168,7 +170,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % Above are appropriate choices, but computation requires limits to be placed 
     % on deg and mon. This could lead to lower order degrees in sos3 than dV_up.
     deg = min(dV_up_deg,2);
-    mon = min(dV_up_mon,4);
+    mon = min(dV_up_mon,4)+4;       % NOTE: +3 should be removed
 
     fprintf(" --- sos3.deg = %d and sos3.mon = %d whilst dV_up.deg = %d and dV_up.mon = %d ---\n",deg, mon, dV_up_deg, dV_up_mon);
 
