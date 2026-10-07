@@ -49,7 +49,7 @@ eppos = 0.1;
 alpha = [1, 0, 0]; % [1,0,0] for L2 ball.
 
 % radius of local ball - we should have stability for any rad>0.
-rad = 1.0;
+rad = 0.1;
 
 % exponential decay rate.
 lambda = 0;
@@ -57,7 +57,7 @@ lambda = 0;
 % Declare degrees of dist mon basis for SOS LF and p1, p2 multipliers 
 % (respectively). Degree will be doubled when converted from quadratic 
 % to linear format.
-dist_degs = [1, 1, 1];
+dist_degs = [1, 0, 1];
 
 % Declare monomial degrees in independent variables used to respectively parametrize
 % LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.

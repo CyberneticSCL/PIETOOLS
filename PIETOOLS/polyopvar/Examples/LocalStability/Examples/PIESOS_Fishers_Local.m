@@ -50,7 +50,21 @@ eppos = 1.0;
 alpha = [1, 0, 0];
 
 % radius of local ball.
-rad = 0.1;
+% rad=4.125 failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9863.
+% rad=4.25  failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9999.
+% rad=4.5   failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9966.
+% rad=4.1   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00. ---> should fail.
+% rad=4.0   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00. ---> should pass.
+% rad=3.9   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
+% rad=3.5   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
+% rad=2.5   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
+% rad=1.0   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
+% rad=0.5   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
+% rad=0.1   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
+% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,4] --> numerr=0.
+% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,3] --> numerr=2.
+% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=2.
+rad = 4.125; 
 
 % exponential decay rate.
 lambda = 0;
@@ -62,7 +76,7 @@ dist_degs = [1, 0, 1];
 
 % Declare monomial degrees in independent variables used to respectively parametrize
 % LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.
-mon_degs = [4, 0, 4];
+mon_degs = [4, 0, 4]; 
 
 % Run local stability test.
 % C can be passed in as optional final argument if it is fixed.

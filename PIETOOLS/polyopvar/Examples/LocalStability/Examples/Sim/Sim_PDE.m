@@ -4,8 +4,8 @@
 clear all; close all; clc;
 
 % Choose PDE and maximum simulation time.
-PDE_name = "Fisher"; % "Fisher", "Burgers"
-T = 1.0;
+PDE_name = "Fisher"; % "Fisher", "Burgers".
+T = 2.0;
 
 if PDE_name == "Fisher"
     % Define domain, parameters, and BCs of PDE being simulated.
