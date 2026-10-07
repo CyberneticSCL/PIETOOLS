@@ -1,29 +1,33 @@
-%
-% Burgers eq.
-%
-% PDE: u_t = u_ss + r*u - u*u_s;
-% BCs: u(t,0) = u(t,1) = 0;
-%
-% fundamental state: v = u_ss \in L_2[0,1];
-%
-% maps from fundamental state to PDE states
-% u   = (Tv) = \int_0^s T_1(s,t)v(t)dt + \int_s^1 T_2(s,t)v(t)dt;
-% u_s = (Rv) = \int_0^s R_1(s,t)v(t)dt + \int_s^1 R_2(s,t)v(t)dt;
-% T_1(s,t)=(s-1)*t; T_2(s,t) = s*(t-1);
-% R_1(s,t)=t;       R_2(s,t) = t-1;
-%
-% PIE: (Tv_t) = f(v) = v + (r*Tv) - (Tv)(Rv);
-%
-% PIE as a polyopvar: Z_1(v) = v; C = C_1 = [[C_111, C_112] 
-%                                            [C_121, C_122]
-%                                            [C_131, C_132]]
-%
-% C_111 = 1; C_112 = 1; C_121 = 1; C_122 = r*T; C_131 = -T; C_132 = R
-% where nz = 1; m_1 = 3; d_1 = d_11 = 2; size(C_1) = (3,2)
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - PIESOS_Burgers_Local.m
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% CR, 09/01/2026: Initial coding
+
+% Local stability test script.
 
 clear all; clear stateNameGenerator; close all; clc;
-
 
 % 1. Define PDE and local stability parameters.
 
@@ -31,8 +35,9 @@ clear all; clear stateNameGenerator; close all; clc;
 pvar s t
 dom = [0,1];
 x   = pde_var(s,dom);
+v   = 1.0;
 r   = pi^2-0.1;
-PDE = [diff(x,t)==diff(x,s,2)+r*x-x*diff(x,s);
+PDE = [diff(x,t)==v*diff(x,s,2)+r*x-x*diff(x,s);
        subs(x,s,dom(1))==0;  subs(x,s,dom(2))==0];
 
 n = 2; % degree of PDE.
@@ -41,10 +46,10 @@ n = 2; % degree of PDE.
 eppos = 0.1;
 
 % (n+1)-dim array containing parameters of weighted Sobolev ball.
-alpha = [1, 0, 0];      % <-- [1,0,0] for L2 ball
+alpha = [1, 0, 0]; % [1,0,0] for L2 ball.
 
-% radius of local ball.
-rad = 1.0;                % for Burgers', we should have stability for any r>0
+% radius of local ball - we should have stability for any rad>0.
+rad = 1.0;
 
 % exponential decay rate.
 lambda = 0;

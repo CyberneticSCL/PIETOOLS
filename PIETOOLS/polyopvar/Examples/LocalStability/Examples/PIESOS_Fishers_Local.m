@@ -1,6 +1,6 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - LocalStability_Test.m
+% PIETOOLS - PIESOS_Fishers_Local.m
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -29,11 +29,13 @@
 
 clear all; clear stateNameGenerator; close all; clc;
 
+% 1. Define PDE and local stability parameters.
+
 % Fisher Equation.
 pvar s t
 dom = [0,1];
 u   = pde_var(s,dom);
-alp =  5;
+alp = 5;
 bet = -1;
 PDE = [diff(u,t)==diff(u,s,2) + alp*u - bet*u^2;
        subs(u,s,dom(1))==0;
@@ -42,13 +44,13 @@ PDE = [diff(u,t)==diff(u,s,2) + alp*u - bet*u^2;
 n = 2; % degree of PDE.
 
 % Treated as eppos^2, the lower bound on SOS LF.
-eppos = 0.1;
+eppos = 1.0;
 
 % (n+1)-dim array containing parameters of weighted Sobolev ball.
 alpha = [1, 0, 0];
 
 % radius of local ball.
-r = 3.0;
+rad = 0.1;
 
 % exponential decay rate.
 lambda = 0;
@@ -58,17 +60,19 @@ lambda = 0;
 % to linear format.
 dist_degs = [1, 1, 1];
 
-% Declare monomial degrees in independent variables used to parametrize
-%  SOS LF and p1, p2 multipliers (respectively).
-mon_degs = [3, 2, 2];
-
+% Declare monomial degrees in independent variables used to respectively parametrize
+% LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.
+mon_degs = [1, 0, 0];
 
 % Run local stability test.
 % C can be passed in as optional final argument if it is fixed.
-res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs, eppos);
+res = LocalStability(PDE, rad, alpha, eppos, lambda, dist_degs, mon_degs);
 
 if ~isempty(res)
-    C = res(1)
-    M = res(2)
+    C     = res{1}
+    M     = res{2}
+    V     = res{3};
+    dV    = res{4};
+    Pcell = res{5};
 end
 

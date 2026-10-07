@@ -108,11 +108,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
 
     % Above are appropriate choices but computation requires limits to be placed 
     % on deg and mon. This could lead to lower order degrees in sos1 than V_low.
-    if V_deg > 1
-        sos1_mon = min(V_low_mon,2);
-    else
-        sos1_mon = min(V_low_mon,4);
-    end
+    sos1_mon = min(V_low_mon,6);
 
     fprintf(" --- sos1.deg = %d and sos1.mon = %d whilst V_low.deg = %d and V_low.mon = %d ---\n",V_deg, sos1_mon, V_deg, V_low_mon);
 
@@ -140,12 +136,12 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % Above are appropriate choices, but computation requires limits to be placed 
     % on deg and mon. This could lead to lower order degrees in sos2 than V_up.
     sos2_deg = min(V_up_deg,2);
-    sos2_mon = min(V_up_mon,4);
+    sos2_mon = min(V_up_mon,6);
 
     fprintf(" --- sos2.deg = %d and sos2.mon = %d whilst V_up.deg = %d and V_up.mon = %d ---\n",sos2_deg, sos2_mon, V_up_deg, V_up_mon);
 
     % Set upper bound by defining and equating with new SOS DP.
-    [prog, sos2, ~, ~] = SOS_DP(prog, sos2_deg, sos2_mon, x, dom);
+    [prog, sos2, ~, ~] = SOS_DP(prog, V_up_deg, sos2_mon, x, dom);
     prog = piesos_eq(prog, V_up-sos2);
 
     fprintf(" --- p1 declared and LF upper bound equality set ---\n");
@@ -171,7 +167,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     if size(mon_degs,2) == 4
         sos3_mon = mon_degs(4);
     else
-        sos3_mon = min(dV_up_mon,5);
+        sos3_mon = min(dV_up_mon,7);
     end
 
     fprintf(" --- sos3.deg = %d and sos3.mon = %d whilst dV_up.deg = %d and dV_up.mon = %d ---\n",sos3_deg, sos3_mon, dV_up_deg, dV_up_mon);
