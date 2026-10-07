@@ -23,6 +23,12 @@ function prog = cx_well_posedness(PIE,st)
 % - Declaration order P1, R1, (P2, R2), N1a, N2a, (N1b, N2b) as in the stock.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: each cx_stability_pos call -> library poslpivar_sop
+%                  (arguments reordered; term by term, as the P1, R1, P2, R2
+%                  interleaving rules out poslpivar_settings_sop), so the
+%                  transcription runs on the library translators
+%                  (lpi_programming_sopvar); programs unchanged (126-program
+%                  bit-identity check).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -50,12 +56,16 @@ Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);        % line 106
 
 % P, R, lines 113-124.
-[prog,Pm] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd1,options1);
-[prog,Rm] = cx_stability_pos(prog,Tm,'in',PIE.dom,dd1,options1);
+% [prog,Pm] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd1,options1);         % MMP, 10/06/2026 (was)
+% [prog,Rm] = cx_stability_pos(prog,Tm,'in',PIE.dom,dd1,options1);          % MMP, 10/06/2026 (was)
+[prog,Pm] = poslpivar_sop(prog,Tm,dd1,options1,'out',PIE.dom);              % MMP, 10/06/2026
+[prog,Rm] = poslpivar_sop(prog,Tm,dd1,options1,'in',PIE.dom);               % MMP, 10/06/2026
 if override1~=1
-    [prog,P2m] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd12,options12);
+%     [prog,P2m] = cx_stability_pos(prog,Tm,'out',PIE.dom,dd12,options12);  % MMP, 10/06/2026 (was)
+    [prog,P2m] = poslpivar_sop(prog,Tm,dd12,options12,'out',PIE.dom);       % MMP, 10/06/2026
     Pm = Pm + P2m;
-    [prog,R2m] = cx_stability_pos(prog,Tm,'in',PIE.dom,dd12,options12);
+%     [prog,R2m] = cx_stability_pos(prog,Tm,'in',PIE.dom,dd12,options12);   % MMP, 10/06/2026 (was)
+    [prog,R2m] = poslpivar_sop(prog,Tm,dd12,options12,'in',PIE.dom);        % MMP, 10/06/2026
     Rm = Rm + R2m;
 end
 % Strictness, lines 127-131: P >= I1, R >= I (identity on the TOTAL state).
@@ -75,12 +85,16 @@ TA = Tm - Am;
 Dm2 = TA*Rm*TA' - I1;
 
 % D1 = -N1, D2 = N2, lines 161-174.
-[prog,N1m] = cx_stability_pos(prog,Dm1,'out',PIE.dom,dd2,options2);
-[prog,N2m] = cx_stability_pos(prog,Dm2,'out',PIE.dom,dd2,options2);
+% [prog,N1m] = cx_stability_pos(prog,Dm1,'out',PIE.dom,dd2,options2);       % MMP, 10/06/2026 (was)
+% [prog,N2m] = cx_stability_pos(prog,Dm2,'out',PIE.dom,dd2,options2);       % MMP, 10/06/2026 (was)
+[prog,N1m] = poslpivar_sop(prog,Dm1,dd2,options2,'out',PIE.dom);            % MMP, 10/06/2026
+[prog,N2m] = poslpivar_sop(prog,Dm2,dd2,options2,'out',PIE.dom);            % MMP, 10/06/2026
 if override2~=1
-    [prog,N1b] = cx_stability_pos(prog,Dm1,'out',PIE.dom,dd3,options3);
+%     [prog,N1b] = cx_stability_pos(prog,Dm1,'out',PIE.dom,dd3,options3);   % MMP, 10/06/2026 (was)
+    [prog,N1b] = poslpivar_sop(prog,Dm1,dd3,options3,'out',PIE.dom);        % MMP, 10/06/2026
     N1m = N1m + N1b;
-    [prog,N2b] = cx_stability_pos(prog,Dm2,'out',PIE.dom,dd3,options3);
+%     [prog,N2b] = cx_stability_pos(prog,Dm2,'out',PIE.dom,dd3,options3);   % MMP, 10/06/2026 (was)
+    [prog,N2b] = poslpivar_sop(prog,Dm2,dd3,options3,'out',PIE.dom);        % MMP, 10/06/2026
     N2m = N2m + N2b;
 end
 prog = lpi_eq_cdopvar(prog,Dm1+N1m,'symmetric');

@@ -23,6 +23,13 @@ function prog = cx_Hinf_control(PIE,st,gam)
 % epneg is read (line 106) but never used.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: cx_hinf_lf, cx_hinf_dimsp and cx_hinf_slack -> library
+%                  poslpivar_settings_sop ('lf'; 'slack' + lpi_eq_cdopvar)
+%                  and copvar_space_list, so the transcription runs on the
+%                  library translators (lpi_programming_sopvar); programs
+%                  unchanged (126-program bit-identity check). The
+%                  '-> cx_hinf_lf' and '-> cx_hinf_slack' notes above now
+%                  refer to poslpivar_settings_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3 || ~isnumeric(gam)
@@ -45,13 +52,17 @@ Iw  = opvar2copvar(mat2opvar(eye(size(Bwop,2)),Bwop.dim(:,2),PIE.vars,PIE.dom));
 Iz  = opvar2copvar(mat2opvar(eye(size(Czop,1)),Czop.dim(:,1),PIE.vars,PIE.dom));
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
-[prog,Pm] = cx_hinf_lf(prog,Tm,PIE,st);
+% [prog,Pm] = cx_hinf_lf(prog,Tm,PIE,st);                                   % MMP, 10/06/2026 (was)
+[prog,Pm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);          % MMP, 10/06/2026
 % Strict positivity; eye(dim(1,:)) is the executive's own idiom (n x n).
 Imat = blkdiag(st.eppos*eye(Top.dim(1,:)),st.eppos2*eye(Top.dim(2,:)));
 Pm = Pm + opvar2copvar(mat2opvar(Imat,Top.dim(:,2),PIE.vars,PIE.dom));
 
 % Z: state (Bu.dim(:,1)) -> R^nu (Bu.dim(:,2)); zero-dimension spaces dropped.
-[dz,sz] = cx_hinf_dimsp(Buop.dim(:,[2,1]),PIE);
+% [dz,sz] = cx_hinf_dimsp(Buop.dim(:,[2,1]),PIE);                           % MMP, 10/06/2026 (was)
+[spu,dmu] = copvar_space_list(Bu,'in');     % Z out = Bu in (R^nu)          % MMP, 10/06/2026
+[spx,dmx] = copvar_space_list(Bu,'out');    % Z in = Bu out (state)         % MMP, 10/06/2026
+dz = struct('out',dmu,'in',dmx);    sz = struct('out',{spu},'in',{spx});    % MMP, 10/06/2026
 [prog,Zm] = lpivar_cdopvar(prog,dz,sz,PIE.dom,st.ddZ);
 Dzu = cx_on_registry(opvar2copvar(PIE.Dzu),Zm);    % registry bridge only
 
@@ -59,5 +70,7 @@ CZ = Cz*Pm + Dzu*Zm;        AZ = Am*Pm + Bu*Zm;
 Km = [-(gam*Iz),   Dzw,         CZ*Tm';
        Dzw',       -(gam*Iw),   Bw';
        Tm*CZ',     Bw,          AZ*(Tm') + Tm*AZ'];
-prog = cx_hinf_slack(prog,Km,PIE,st);
+% prog = cx_hinf_slack(prog,Km,PIE,st);                                     % MMP, 10/06/2026 (was)
+[prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
+prog = lpi_eq_cdopvar(prog,Nm + Km,'symmetric');    % Deop + Dop = 0        % MMP, 10/06/2026
 end

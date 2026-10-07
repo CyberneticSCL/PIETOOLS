@@ -13,6 +13,13 @@ function R = cx_stability_check(cases)
 %            the stock objects rebuilt by the stock executive's own lines.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: 1-D P1(+P2) pair in qdeg_pair -> library
+%                  poslpivar_settings_sop ('lf'), cx_stability_lpivar_degs
+%                  -> get_lpivar_degs_sop, so the harness runs on the library
+%                  translators (lpi_programming_sopvar); programs unchanged
+%                  (126-program bit-identity check). 2-D parts untouched.
+%                  'cx_stability_lpivar_degs' above now refers to the
+%                  library routine get_lpivar_degs_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if iscell(cases),   cases = [cases{:}];     end
@@ -64,14 +71,17 @@ if st.override1~=1,   [prog,P2] = poslpivar(prog,Top.dim,st.dd12,st.options12); 
 Tm = opvar2copvar(Top);
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 if dual,    side = 'out';   else,   side = 'in';    end
-[prog,Pm] = cx_stability_pos(prog,Tm,side,PIE.dom,st.dd1,st.options1);
-if st.override1~=1,   [~,P2m] = cx_stability_pos(prog,Tm,side,PIE.dom,st.dd12,st.options12);   Pm = Pm+P2m;   end
+% [prog,Pm] = cx_stability_pos(prog,Tm,side,PIE.dom,st.dd1,st.options1);    % MMP, 10/06/2026 (was)
+% if st.override1~=1,   [~,P2m] = cx_stability_pos(prog,Tm,side,PIE.dom,st.dd12,st.options12);   Pm = Pm+P2m;   end % MMP, 10/06/2026 (was)
+[prog,Pm] = poslpivar_settings_sop(prog,Tm,st,'lf',side,PIE.dom);           % MMP, 10/06/2026
 if dual
     qs = get_lpivar_degs(Pop + st.eppos2*Top*Top',Top');
-    qc = cx_stability_lpivar_degs(Pm + st.eppos2*Tm*Tm');
+%     qc = cx_stability_lpivar_degs(Pm + st.eppos2*Tm*Tm');                 % MMP, 10/06/2026 (was)
+    qc = get_lpivar_degs_sop(Pm + st.eppos2*Tm*Tm');                        % MMP, 10/06/2026
 else
     qs = get_lpivar_degs(Pop + st.eppos2*Top'*Top,Top);
-    qc = cx_stability_lpivar_degs(Pm + st.eppos2*Tm'*Tm);
+%     qc = cx_stability_lpivar_degs(Pm + st.eppos2*Tm'*Tm);                 % MMP, 10/06/2026 (was)
+    qc = get_lpivar_degs_sop(Pm + st.eppos2*Tm'*Tm);                        % MMP, 10/06/2026
 end
 end
 

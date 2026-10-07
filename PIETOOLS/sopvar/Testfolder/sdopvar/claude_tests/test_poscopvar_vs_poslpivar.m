@@ -43,6 +43,10 @@
 %                  posmopvar_generators -> poscopvar_generators,
 %                  test_posmopvar_vs_poslpivar -> test_poscopvar_vs_poslpivar.
 %                  File was 'test_posmopvar_vs_poslpivar.m'.
+% MMP, 10/06/2026: Second part: the library 'poslpivar_sop' against
+%                  poslpivar on 16 cases (degree forms, d2 ~= d3, psatz,
+%                  exclude, sep), the semantic check for the translation
+%                  that replaced cx_stability_pos / cx_h2_pos / cx_hinf_posdeg.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
@@ -104,6 +108,56 @@ for ic = 1:numel(cases)
 end
 
 fprintf('poscopvar vs poslpivar test passed (%d of %d cases).\n',npass,numel(cases));
+
+% BEGIN MMP, 10/06/2026: the library translation 'poslpivar_sop' (container
+% branch) against 'poslpivar' itself, on the inputs the cases above leave
+% out: d2 ~= d3 with int ~= mult (a Z2/Z3 or int/mult swap changes the
+% span), every degree form poslpivar fills in, psatz 0/1/2 (2 = no weight,
+% as poslpivar), exclude patterns, and sep (Z2 a full integral, Z3 dropped).
+% X only supplies the spaces; P takes X's domain (poslpivar_sop's default).
+cases2 = {
+    {'d2~=d3, int~=mult',      1, 1, [0,1],  {2,[1 2 3],[2 1 3]}, struct()}
+    {'default degrees []',     1, 1, [0,1],  [],                  struct()}
+    {'scalar degree 2',        1, 1, [0,1],  2,                   []}
+    {'numeric [1 2]',          1, 1, [0,1],  [1 2],               []}
+    {'numeric [1 2 3], n=2',   2, 1, [0,1],  [1 2 3],             []}
+    {'{2,[1 2]}, m=2',         1, 2, [0,1],  {2,[1 2]},           []}
+    {'psatz 1',                1, 1, [0,1],  {1,[1 1 2],[2 1 2]}, struct('psatz',1)}
+    {'psatz 2 (no weight)',    1, 1, [0,1],  {1,[1 1 2],[2 1 2]}, struct('psatz',2)}
+    {'exclude Z1',             1, 1, [0,1],  {2,[1 2 3],[2 1 3]}, struct('exclude',[0 1 0 0])}
+    {'exclude Z2',             1, 1, [0,1],  {2,[1 2 3],[2 1 3]}, struct('exclude',[0 0 1 0])}
+    {'exclude Z3',             1, 1, [0,1],  {2,[1 2 3],[2 1 3]}, struct('exclude',[0 0 0 1])}
+    {'exclude Z1,Z3',          1, 1, [0,1],  {2,[1 2 3],[2 1 3]}, struct('exclude',[0 1 0 1])}
+    {'exclude Z2,Z3',          2, 1, [0,1],  {2,[1 2 3],[2 1 3]}, struct('exclude',[0 0 1 1])}
+    {'sep',                    1, 1, [0,1],  {2,[1 2 3],[1 2 3]}, struct('sep',1)}
+    {'sep, exclude Z1',        1, 1, [0,1],  {2,[1 2 3],[1 2 3]}, struct('sep',1,'exclude',[0 1 0 0])}
+    {'shifted domain, psatz 1',1, 1, [-1,2], {2,[1 2 3],[2 1 3]}, struct('psatz',1)}
+    };
+npass2 = 0;
+for ic = 1:numel(cases2)
+    [lbl,n,m,dom,d,opts] = deal(cases2{ic}{:});
+    vars = {'s1'};      vars_dum = {'s1_dum'};
+    pts = grid_points(dom,ngrid);
+    prog = lpiprogram(polynomial(vars(:)),[],dom);
+    optl = opts;    if isempty(optl),   optl = struct();    end     % poslpivar refuses []
+    [~,Pop_pl] = poslpivar(prog,[n,m],d,optl);
+    Kpl = poslpivar_generators(Pop_pl,vars,vars_dum);
+    X = eye_copvar_sop([n;m],{{},vars},dom);
+    prog = lpiprogram(polynomial(vars(:)),[],dom);
+    [~,Pop_pm] = poslpivar_sop(prog,X,d,opts);
+    Kpm = poscopvar_generators(Pop_pm,vars);
+    [r_pl,r_pm,r_both] = compare_spans(sample_generators(Kpl,n,m,vars,vars_dum,pts), ...
+                                       sample_generators(Kpm,n,m,vars,vars_dum,pts));
+    if r_pl~=r_pm || r_both~=r_pl
+        error(['test_poscopvar_vs_poslpivar: poslpivar_sop differs from poslpivar '...
+               'for case ''%s'': rank(poslpivar) = %d, rank(poslpivar_sop) = %d, '...
+               'rank(joint) = %d.'],lbl,r_pl,r_pm,r_both);
+    end
+    fprintf('  passed: %-28s dim of family = %3d\n',lbl,r_both);
+    npass2 = npass2+1;
+end
+fprintf('poslpivar_sop vs poslpivar test passed (%d of %d cases).\n',npass2,numel(cases2));
+% END MMP, 10/06/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

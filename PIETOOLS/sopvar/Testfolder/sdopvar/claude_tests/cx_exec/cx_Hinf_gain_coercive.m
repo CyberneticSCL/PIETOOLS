@@ -17,6 +17,13 @@ function prog = cx_Hinf_gain_coercive(PIE,st,gam)
 % operators and are dropped, which leaves the same LPI.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: cx_hinf_lf and cx_hinf_slack -> library
+%                  poslpivar_settings_sop ('lf'; 'slack' + lpi_eq_cdopvar),
+%                  so the transcription runs on the library translators
+%                  (lpi_programming_sopvar); programs unchanged (126-program
+%                  bit-identity check). The '-> cx_hinf_lf' and
+%                  '-> cx_hinf_slack' notes above now refer to
+%                  poslpivar_settings_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3 || ~isnumeric(gam)
@@ -33,7 +40,8 @@ Iw  = opvar2copvar(mat2opvar(eye(size(Bwop,2)),Bwop.dim(:,2),PIE.vars,PIE.dom));
 Iz  = opvar2copvar(mat2opvar(eye(size(Czop,1)),Czop.dim(:,1),PIE.vars,PIE.dom));
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
-[prog,Pm] = cx_hinf_lf(prog,Tm,PIE,st);
+% [prog,Pm] = cx_hinf_lf(prog,Tm,PIE,st);                                   % MMP, 10/06/2026 (was)
+[prog,Pm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);          % MMP, 10/06/2026
 
 PB = Pm*Bw;     PA = Pm*Am;
 K11 = -(gam*Iw);
@@ -47,5 +55,7 @@ end
 Km = [K11,      Dzw',        K13;
       Dzw,      -(gam*Iz),   Cz;
       K31,      Cz',         PA'*Tm + Tm'*PA];
-prog = cx_hinf_slack(prog,Km,PIE,st);
+% prog = cx_hinf_slack(prog,Km,PIE,st);                                     % MMP, 10/06/2026 (was)
+[prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
+prog = lpi_eq_cdopvar(prog,Nm + Km,'symmetric');    % Deop + Dop = 0        % MMP, 10/06/2026
 end

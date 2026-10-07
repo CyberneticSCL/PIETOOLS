@@ -16,6 +16,14 @@ function prog = cx_Hinf_gain_dual(PIE,st,gam)
 %   189-203  negativity: slack + lpi_eq 'symmetric'         -> cx_hinf_slack
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: cx_hinf_lf, cx_hinf_qdeg, cx_space_list and
+%                  cx_hinf_slack -> library poslpivar_settings_sop ('lf';
+%                  'slack' + lpi_eq_cdopvar), get_lpivar_degs_sop and
+%                  copvar_space_list, so the transcription runs on the
+%                  library translators (lpi_programming_sopvar); programs
+%                  unchanged (126-program bit-identity check). The
+%                  '-> cx_hinf_lf' and '-> cx_hinf_slack' notes above now
+%                  refer to poslpivar_settings_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3 || ~isnumeric(gam)
@@ -36,14 +44,19 @@ Iw  = opvar2copvar(mat2opvar(eye(size(Bwop,2)),Bwop.dim(:,2),PIE.vars,PIE.dom));
 Iz  = opvar2copvar(mat2opvar(eye(size(Czop,1)),Czop.dim(:,1),PIE.vars,PIE.dom));
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
-[prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);
-Qdeg = cx_hinf_qdeg(Rm);                        % = get_lpivar_degs(Rop,Top)
-[sp,dm] = cx_space_list(Tm,'out');
+% [prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);                                   % MMP, 10/06/2026 (was)
+[prog,Rm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);          % MMP, 10/06/2026
+% Qdeg = cx_hinf_qdeg(Rm);                        % = get_lpivar_degs(Rop,Top) % MMP, 10/06/2026 (was)
+Qdeg = get_lpivar_degs_sop(Rm);    % = get_lpivar_degs(Rop,Top)             % MMP, 10/06/2026
+% [sp,dm] = cx_space_list(Tm,'out');                                        % MMP, 10/06/2026 (was)
+[sp,dm] = copvar_space_list(Tm,'out');                                      % MMP, 10/06/2026
 [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,Qdeg);
 prog = lpi_eq_cdopvar(prog,Tm*Qm - Rm);         % NOT symmetric (line 161)
 
 Km = [-(gam*Iz),   Dzw,         Cz*Qm;
        Dzw',       -(gam*Iw),   Bw';
        Qm'*Cz',    Bw,          Qm'*Am' + Am*Qm];
-prog = cx_hinf_slack(prog,Km,PIE,st);
+% prog = cx_hinf_slack(prog,Km,PIE,st);                                     % MMP, 10/06/2026 (was)
+[prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
+prog = lpi_eq_cdopvar(prog,Nm + Km,'symmetric');    % Deop + Dop = 0        % MMP, 10/06/2026
 end

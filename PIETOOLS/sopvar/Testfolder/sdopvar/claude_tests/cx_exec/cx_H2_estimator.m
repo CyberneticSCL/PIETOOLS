@@ -31,6 +31,12 @@ function prog = cx_H2_estimator(PIE,st,gam)
 % objective); L168-171 (sosineq_on, error); L200-208 (getsol/getObserver).
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 10/06/2026: cx_h2_lf, cx_h2_slack, cx_h2_trace, cx_space_list ->
+%   library poslpivar_settings_sop, trace_rn_sop, copvar_space_list, so the
+%   transcription runs on the library translators (lpi_programming_sopvar,
+%   sopvar/misc/conventions); programs unchanged (126-program bit-identity
+%   check). The cx_h2_lf, cx_h2_slack and cx_h2_trace named above now refer
+%   to poslpivar_settings_sop ('lf', 'slack') and trace_rn_sop.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<3,    error('cx_H2_estimator:gam','The container LPI is posed at fixed gamma.'),  end
@@ -50,17 +56,21 @@ Cz  = opvar2copvar(PIE.C1);  D21m = opvar2copvar(PIE.D21);
 Iz  = opvar2copvar(mat2opvar(eye(size(PIE.C1,1)),PIE.C1.dim(:,1),PIE.vars,PIE.dom));    % L154
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                     % L119
-[spx,dmx] = cx_space_list(Tm,'out');       % T.dim(:,1) with zero-dim dropped
-[prog,Pm] = cx_h2_lf(prog,dmx,spx,PIE.dom,st);                              % L134-140
+% [spx,dmx] = cx_space_list(Tm,'out');       % T.dim(:,1) with zero-dim dropped % MMP, 10/06/2026 (was)
+[spx,dmx] = copvar_space_list(Tm,'out');   % T.dim(:,1), zero-dim dropped   % MMP, 10/06/2026
+% [prog,Pm] = cx_h2_lf(prog,dmx,spx,PIE.dom,st);                              % L134-140 % MMP, 10/06/2026 (was)
+[prog,Pm] = poslpivar_settings_sop(prog,Tm,st,'lf','out',PIE.dom);   % L134-140 % MMP, 10/06/2026
 Pm = Pm + opvar2copvar(mat2opvar(blkdiag(st.eppos*eye(nx1),st.eppos2*eye(nx2)), ...
                                  [nx1;nx2],PIE.vars,PIE.dom));              % L142-143
 
 % L145-146: Z maps y (C2's output spaces) to the state.
-[spy,dmy] = cx_space_list(C2m,'out');
+% [spy,dmy] = cx_space_list(C2m,'out');                                     % MMP, 10/06/2026 (was)
+[spy,dmy] = copvar_space_list(C2m,'out');                                   % MMP, 10/06/2026
 [prog,Zm] = lpivar_cdopvar(prog,struct('out',dmx,'in',dmy), ...
                            struct('out',{spx},'in',{spy}),PIE.dom,st.ddZ);
 % L148-149: W free and square on the w spaces.
-[spw,dmw] = cx_space_list(Bw,'in');
+% [spw,dmw] = cx_space_list(Bw,'in');                                       % MMP, 10/06/2026 (was)
+[spw,dmw] = copvar_space_list(Bw,'in');                                     % MMP, 10/06/2026
 [prog,Wm] = lpivar_cdopvar(prog,dmw,spw,PIE.dom,st.ddZ);
 
 Dneg = [-(gam*Iz),  Cz;                                                     % L156-157
@@ -69,10 +79,13 @@ D12 = Bw'*Pm + cx_on_registry(D21m',Zm')*Zm';                               % L1
 Dpos = [Wm,       -D12;                                                     % L159-160
         -D12',    Pm];
 
-[prog,Nneg] = cx_h2_slack(prog,Dneg,PIE.dom,st);                            % L174-185
-[prog,Npos] = cx_h2_slack(prog,Dpos,PIE.dom,st);
+% [prog,Nneg] = cx_h2_slack(prog,Dneg,PIE.dom,st);                            % L174-185 % MMP, 10/06/2026 (was)
+% [prog,Npos] = cx_h2_slack(prog,Dpos,PIE.dom,st);                          % MMP, 10/06/2026 (was)
+[prog,Nneg] = poslpivar_settings_sop(prog,Dneg,st,'slack','out',PIE.dom); % L174-185 % MMP, 10/06/2026
+[prog,Npos] = poslpivar_settings_sop(prog,Dpos,st,'slack','out',PIE.dom);   % MMP, 10/06/2026
 prog = lpi_eq_cdopvar(prog,Nneg + Dneg,'symmetric');                        % L186
 prog = lpi_eq_cdopvar(prog,Npos - Dpos,'symmetric');                        % L187
 
-prog = lpi_ineq(prog,gam - cx_h2_trace(Wm));                                % L161, L190
+% prog = lpi_ineq(prog,gam - cx_h2_trace(Wm));                                % L161, L190 % MMP, 10/06/2026 (was)
+prog = lpi_ineq(prog,gam - trace_rn_sop(Wm));                    % L161, L190 % MMP, 10/06/2026
 end

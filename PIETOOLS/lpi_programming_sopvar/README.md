@@ -1,6 +1,7 @@
 # lpi_programming_sopvar — LPI programming for both operator families
 
 Initial coding MMP, 09/29/2026 (Tier 1 of the container parity map).
+MMP, 10/06/2026: the 1-D executive translators (Tier 2), see §2.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -139,6 +140,33 @@ unchanged on container programs. **Measured** in two places:
 Neither `prog.vartable` nor `prog.dom` is read by lpidecvar, lpisetobj, lpisolve or any
 container routine.
 
+### Executive translators (Tier 2, MMP, 10/06/2026)
+
+The settings-to-operator steps the 1-D executives share. Each sends a legacy class to
+the stock routine unchanged; the container branch mirrors it.
+
+| function | legacy class | container |
+|---|---|---|
+| `poslpivar_sop(prog,n/X,d,options[,side,dom])` | `poslpivar` | `poscopvar` over X's `side` spaces, with poslpivar's degree filling, psatz (weight only for 1), exclude and sep translated; 1-D |
+| `poslpivar_settings_sop(prog,n/X,settings,role[,side,dom])` | the `dd1`/`dd12` (`'lf'`) or `dd2`/`dd3` (`'slack'`) pair of `poslpivar` calls | the same pair through `poslpivar_sop`; P1 first, `P1 + P2`; imposes nothing |
+| `get_lpivar_degs_sop(R[,T])` | `get_lpivar_degs` | the same 1-D rule read off the nonzero coefficients |
+| `trace_rn_sop(X)` | `trace(X.P)`, `trace(X.R00)` | trace of the R^q diagonal blocks, a 1 x 1 dpvar over `X.Zd` |
+| `copvar_space_list(X,side)` (sopvar/misc/conventions) | — | the inverse of `parse_copvar_spaces` |
+
+They replace twelve test-folder translators of `cx_exec`, deleted 10/06/2026:
+`cx_pl2pm`, `cx_hinf_posdeg`, `cx_h2_pos`, `cx_stability_pos`, `cx_hinf_lf`,
+`cx_h2_lf`, `cx_hinf_slack`, `cx_h2_slack`, `cx_hinf_qdeg`, `cx_stability_lpivar_degs`,
+`cx_hinf_dimsp`, `cx_h2_qdeg` (all MMP 09/25/2026). The three poslpivar translations
+among them disagreed on psatz other than 0/1, on sep and on degree filling;
+`poslpivar_sop` follows poslpivar on all three. `cx_space_list`, `cx_h2_trace` and
+`cx_on_registry` stay unchanged for the frozen 2-D helpers.
+
+**Measured:** the 17 1-D transcriptions at all six presets (126 programs; the 5 at
+`extreme` fail identically, Qdeg(3) = -1) are bit-identical to before. Generator spans
+equal poslpivar's on 16 cases, sep included (test_poscopvar_vs_poslpivar, part 2); the
+container Q degrees equal stock `get_lpivar_degs` on 5 plants x 6 presets x 3 operator
+forms.
+
 ## 3. Tier 1 scope
 
 **Covered:**
@@ -154,7 +182,9 @@ container routine.
   `poscopvar`/`copquadvar` and cancelled by `lpi_eq_sop`, as E1–E4 do. A dpvar scalar
   inequality goes through the legacy `lpi_ineq`.
 - No `_sop` positive/indefinite variable dispatch: `lpivar`/`poslpivar` versus
-  `lpivar_cdopvar`/`poscopvar` are still chosen by the caller.
+  `lpivar_cdopvar`/`poscopvar` are still chosen by the caller. (MMP, 10/06/2026:
+  `poslpivar_sop` now dispatches the positive variable, 1-D; there is still no
+  `lpivar_sop`.)
 - The PDE→PIE conversion and `pie_struct` still stop at 2 variables. heatNd builds its
   N-D PIE directly.
 - There is no regrid, no container `inv`, no closed-loop PIE, no PIESIM.
@@ -222,6 +252,7 @@ are MOSEK 11 and SeDuMi (E3).
 | `test_dpvar_ops_sop`, `test_dpvar_hinf_chain_sop` | dpvar operators and constructors (operators agent) | 17 s, 10 s |
 | `test_endtoend_sop` | E1, E2 by default; `'all'` adds E3 and E4 | 15 s; E3 5 min; E4 15–20 min |
 | `examples/volterra_norm_sop` | DEMO2 on containers | 5 s |
+| `test_translators_sop` | the executive translators: legacy dispatch, errors, the settings pair, Q degrees against stock, trace against its definition, space lists against opvar dims (MMP, 10/06/2026) | 9 s |
 
 ## 6. End-to-end results
 
