@@ -42,7 +42,7 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
     % CR, 09/07/2026: Re-routed innerprod via innerprod_v2.m.
     % DJ, 09/21/2026: Removed strict positivity constraint.
     % DJ, 10/06/2026: Reduce monomial degree of kernels for tensor product
-    %                   of basis operators.
+    %                 of basis operators.
         
             
     %% Build the monomial basis used to parameterize P.

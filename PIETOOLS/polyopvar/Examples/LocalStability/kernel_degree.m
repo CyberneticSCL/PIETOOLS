@@ -54,7 +54,7 @@ function opdeg = kernel_degree(F)
     for idx = 1:nz
         Kop = F.C.ops{idx};
 
-        if ~isa(Kop,'intop')
+        if ~isa(Kop,'intop') || isempty(Kop.params.degmat)
             continue
         end
         

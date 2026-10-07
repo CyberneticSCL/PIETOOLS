@@ -44,13 +44,13 @@ function g = Weighted_Sobolev_Ball(r, alpha, Top, x)
     Top_opvar = ndopvar2dopvar(Top);
     
     % g = r^2 - alpha(1)*innerprod(Top*x,Top*x);
-    % g = r^2 - alpha(1)*innerprod_v2(Top*x,Top*x);                    % CRR, 09/07/2026
+    % g = r^2 - alpha(1)*innerprod_v2(Top*x,Top*x);                    % CR, 09/07/2026
     g = r^2;
 
     for i=find(alpha(:)')                                                   % DJ, 10/06/2026
         Rop = dopvar2ndopvar(diff(Top_opvar,Top_opvar.var1,i-1,'pure'));
         % g = g - alpha(i)*innerprod(Rop*x,Rop*x);
-        g = g - alpha(i)*innerprod_v2(Rop*x,Rop*x);                  % CRR, 09/07/2026
+        g = g - alpha(i)*innerprod_v2(Rop*x,Rop*x);                  % CR, 09/07/2026
     end
 
 end

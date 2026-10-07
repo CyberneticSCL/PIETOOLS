@@ -32,20 +32,19 @@ pvar s t
 dom = [0,1];
 x   = pde_var(s,dom);
 r   = pi^2-0.1;
-%r  = 1;
 PDE = [diff(x,t)==diff(x,s,2)+r*x-x*diff(x,s);
        subs(x,s,dom(1))==0;  subs(x,s,dom(2))==0];
 
 n = 2; % degree of PDE.
 
 % Treated as eppos^2, the lower bound on SOS LF.
-eppos = 1;
+eppos = 0.1;
 
 % (n+1)-dim array containing parameters of weighted Sobolev ball.
 alpha = [1, 0, 0];      % <-- [1,0,0] for L2 ball
 
 % radius of local ball.
-r = 1.0;                % for Burgers', we should have stability for any r>0
+rad = 1.0;                % for Burgers', we should have stability for any r>0
 
 % exponential decay rate.
 lambda = 0;
@@ -55,22 +54,18 @@ lambda = 0;
 % to linear format.
 dist_degs = [1, 1, 1];
 
-% Declare monomial degrees in independent variables used to parametrize
-% SOS LF and p1, p2 multipliers (respectively).
+% Declare monomial degrees in independent variables used to respectively parametrize
+% LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.
 mon_degs = [3, 0, 0];
-
-
-%%%% 2. Call the SOS local stability test
-%%%%  V - eppos^2*bnd      = SOS
-%%%%  C*bnd - V - p1*g     = SOS
-%%%%  -dV - 2*lam*V - p2*g = SOS
 
 % Run local stability test.
 % C can be passed in as optional final argument if it is fixed.
-res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs, eppos);
+res = LocalStability(PDE, rad, alpha, eppos, lambda, dist_degs, mon_degs);
 
 if ~isempty(res)
-    C = res(1)
-    M = res(2)
+    C     = res{1}
+    M     = res{2}
+    V     = res{3};
+    dV    = res{4};
+    Pcell = res{5};
 end
-
