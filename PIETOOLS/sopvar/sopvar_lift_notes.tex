@@ -1,0 +1,431 @@
+\documentclass[12pt]{article}
+
+% Self-contained preamble, mirroring ../misc/myStyle of the Overleaf project
+% "ndopvar Structure" so that this file compiles both there and from the
+% repository (MiKTeX, pdflatex).
+\usepackage[a4paper,margin=0.9in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\mcl}[1]{\mathcal{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\mrm}[1]{\mathrm{#1}}
+\newcommand{\bmat}[1]{\begin{bmatrix} #1 \end{bmatrix}}
+\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\path{#1}}      % a file name, breakable at underscores
+\setlength{\emergencystretch}{2em}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\title{Positive operators in separated form: \\ the lift and the weight \\
+\large sopvar/copvar implementation notes, companion to \emph{sopvar: Mathematical Description and Matlab Implementation}, Sec.~8 and 9.5}
+\author{M.~M.~Peet, with Claude (Anthropic)}
+\date{October 7, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+Section~8 of the sopvar notes constructs a positive decision operator on $L_2^m[s]$ as a quadratic form in a list of basis operators,
+\begin{equation}\label{eq:gram}
+\mcl P=\sum_{i,j}(\mcl Z_{\alpha_i}\otimes I_m)^*Q_{ij}(\mcl Z_{\alpha_j}\otimes I_m),\qquad Q\succeq 0,
+\end{equation}
+where $Q$ is a constant Gram matrix and each $\mcl Z_{\alpha}$ carries an indicator $I_\alpha(\theta-s)$ and a vector of monomials $Z^\alpha(\theta,s)$ in both the auxiliary variable $\theta$ and the space variable $s$. Section~9.5 extends \eqref{eq:gram} to a concatenation of mixed spaces with one Gram spanning every (space, multi-index) pair. The toolbox implements \eqref{eq:gram} in \code{copquadvar} (with \code{poscopvar}, \code{possopvar} and \code{sopquadvar} as adapters), and the 1-D legacy \code{poslpivar} is the two-space case $\R^{n}\times L_2^m[s]$.
+
+This note restates the same positive cone in the \emph{separated} form
+\begin{equation}\label{eq:sep}
+\mcl P=\mcl A^*\,\mcl M\,\mcl A,
+\end{equation}
+where $\mcl A$ is a \emph{fixed} operator, the lift, whose components are the basis operators of \eqref{eq:gram} without their $\theta$-monomials, and $\mcl M$ is the \emph{positive multiplier}: multiplication by a polynomial matrix $M(\theta)$ that is positive semidefinite on the domain. The decision object is $M$ alone. The lift carries one degree, the lift degree $D$; the multiplier carries the other, the weight degree $w$; and positivity of $M$ on a box is imposed by the matrix sum-of-squares terms of the interval Positivstellensatz. The construction is the representation of the necessity proof program for 1-D PI operators (\file{proof_roadmap.md}, Sec.~1), $P=\mcl A_D^*M_W\mcl A_D$, in which $\mcl A_D$ is the canonical moment lift and $W$ the bounded weight. In that program, existence results are stated in terms of $D$ and the margin of $P$, the weight degree is unbounded, and the solved $W$ is the object the theory describes: its rank, its behaviour at endpoint zeros and its degree are what the theorems concern.
+
+Sections~\ref{sec:lift} to \ref{sec:construction} parallel Sec.~8.1 to 8.3 of the sopvar notes: the components of the lift, the construction of $\mcl A^*\mcl M\mcl A$, and the data structure. Section~\ref{sec:weight} is new: the parameterisation of $M$. Section~\ref{sec:container} parallels Sec.~9.5 (the container form). Section~\ref{sec:degrees} states what is known about the two degrees. Section~\ref{sec:measured} reports the measured equivalence with \code{copquadvar} and the measured cost. Section~\ref{sec:direct} replaces the composition by the direct map from the Gram to the kernel coefficients and measures it. Everything stated for $N$ spatial variables beyond one is the extrapolation of the 1-D structure; the proof program is 1-D and nothing in it is asserted in $N$-D.
+
+\paragraph{Notation.} As in the sopvar notes, $I_{\alpha}(s)=\prod_d I_{\alpha_d}(s_d)$ with $I_0=\delta$, $I_1(t)=1$ for $t\ge 0$ and $0$ otherwise, and $I_{-1}(t)=I_1(-t)$. A fourth symbol $\alpha_d=\pm$ denotes the full integral, $I_{\pm}=I_1+I_{-1}$. The code numbers these $1,2,3,4$ (multiplier, lower, upper, full). The box is $\Omega=\prod_d[a_d,b_d]$. The auxiliary variable of the Gram pairing is $\theta$; $s$ is an output variable and $s'$ an input variable. For an integer $D\ge 0$ let $v_D(t)=\bmat{1&t&\cdots&t^D}^T$ and, for a multi-degree $D\in\N^n$, $Z_D(\theta)=v_{D_1}(\theta_1)\otimes\cdots\otimes v_{D_n}(\theta_n)$.
+
+\section{The lift}\label{sec:lift}
+
+\subsection{Components on one space}
+
+Fix a space $L_2^m[s]$, $s\in\R^{n}$, and a lift degree $D\in\N^{n}$. For every multi-index $\alpha\in\{0,1,-1,\pm\}^{n}$ the component $\mcl A_\alpha$ maps $L_2^m[s]$ into $L_2[\theta]$,
+\begin{equation}\label{eq:component}
+\begin{aligned}
+(\mcl A_\alpha\mbf x)(\theta)&=\int_\Omega I_\alpha(\theta-s)\,\bigl(V^\alpha(s)\otimes I_m\bigr)\,\mbf x(s)\,ds,\\
+V^\alpha(s)&=\bigotimes_{d:\ \alpha_d\ne 0}v_{D_d}(s_d).
+\end{aligned}
+\end{equation}
+A direction with $\alpha_d=0$ contributes no monomial, since $\delta(\theta_d-s_d)$ identifies the two variables and any $s_d$-dependence could be moved into $\theta_d$; this is the canonical multiplier form of the class. The component has $m\prod_{d:\alpha_d\ne0}(D_d+1)$ output rows, one per (output component, monomial of $V^\alpha$).
+
+In the notation of the proof program, for $n=1$ on $[a,b]$: $\alpha=1$ gives the running moments $z(\theta)=\int_a^\theta v_D(s)\mbf x(s)\,ds$, $\alpha=\pm$ gives the full moments $\int_a^b v_D(s)\mbf x(s)\,ds$, and $\alpha=-1$ gives the upper moments, which are the full moments minus the running ones. The lower-plus-full pair $\{1,\pm\}$ is the canonical lift $\mcl A_D$ of \file{proof_roadmap.md}, eq.~(1); the lower-plus-upper pair $\{1,-1\}$ spans the same space of lifted functions, since $\bmat{z\\u}=\bmat{I&0\\-I&I}\bmat{z\\m}$. Adding $\alpha=0$, the identity, gives the mixed lift $\Xi_{D}$ of the round-4 correspondence (\file{round4_positive_normal_form_2026_10_06.md}, eq.~(3)), which a target with a multiplier part needs.
+
+The lift of the space is the stack of its components,
+\[
+\mcl A=\bmat{\mcl A_{\alpha_1}\\ \vdots\\ \mcl A_{\alpha_N}}:L_2^m[s]\to L_2^{K}[\theta],\qquad K=\sum_i m\prod_{d:\alpha_{i,d}\ne0}(D_d+1).
+\]
+
+\subsection{Relation to the basis operators of Sec.~8.1}
+
+The basis operator of \eqref{eq:gram} with the full product grid of monomials at degree $w$ in $\theta$ and $D$ in $s$ is
+\begin{align*}
+(\mcl Z_\alpha\mbf x)(\theta)&=\int_\Omega I_\alpha(\theta-s)\bigl(Z_w(\theta)\otimes V^\alpha(s)\otimes I_m\bigr)\mbf x(s)\,ds
+=\Lambda_\alpha(\theta)\,(\mcl A_\alpha\mbf x)(\theta),\\
+\Lambda_\alpha(\theta)&=Z_w(\theta)\otimes I_{K_\alpha},
+\end{align*}
+because the $\theta$-monomials do not depend on the integration variable $s$ and factor out of the integral. The basis operator is the lift component followed by multiplication by a polynomial matrix in $\theta$. This identity is the whole content of the separation.
+
+\subsection{The adjoint of a component}
+
+As in Sec.~8.2, the adjoint flips the indicator and transposes the monomial factor. From $\ip{\mcl A_\alpha\mbf x}{\mbf y}=\int\!\!\int \mbf x(s)^T(V^\alpha(s)^T\otimes I_m)I_\alpha(\theta-s)\mbf y(\theta)\,d\theta\,ds$,
+\begin{equation}\label{eq:adjoint}
+(\mcl A_\alpha^*\mbf y)(s)=\bigl(V^\alpha(s)^T\otimes I_m\bigr)\int_\Omega I_\alpha(\theta-s)\,\mbf y(\theta)\,d\theta .
+\end{equation}
+The monomial factor now sits on the output side, which is the ZL/ZR exchange of the class in an integral direction and no exchange in a multiplier direction.
+
+\section{The weight}\label{sec:weight}
+
+The weight is a polynomial matrix $M(\theta)\in\mathbb S^{K}[\theta]$, positive semidefinite at every $\theta\in\Omega$, declared as a sum of matrix sum-of-squares terms with the weights of the interval Positivstellensatz,
+\begin{equation}\label{eq:weight}
+M(\theta)=\sum_{c}g_c(\theta)\,\Lambda_c(\theta)^TQ_c\Lambda_c(\theta),\qquad Q_c\succeq0,\qquad \Lambda_c(\theta)=Z_{w_c}(\theta)\otimes I_K,
+\end{equation}
+with $g_c\in\{1,\ \prod_d(\theta_d-a_d)(b_d-\theta_d),\ (\theta_d-a_d)/L_d,\ (b_d-\theta_d)/L_d\}$ and $L_d=b_d-a_d$. The product and the faces are the psatz codes $1$ and $2d+1,2d+2$ of \code{copquadvar}; each term is one Gram $Q_c$ and a separate semidefinite block.
+
+\paragraph{Degree count in 1-D.} For a polynomial matrix $W$ of degree $2w$ on $[a,b]$, $W(\theta)\succeq0$ on $[a,b]$ if and only if $W=S_0+(\theta-a)(b-\theta)S_1$ with $S_0,S_1$ matrix sums of squares of degrees $2w$ and $2w-2$; for degree $2w+1$ the form is $(\theta-a)S_1+(b-\theta)S_2$ with both of degree $2w$. The scalar statement is the Markov--Luk\'acs theorem; the matrix statement is the interval matrix theorem cited by the proof program (\file{relevant_positivstellensatz.md}, Sec.~1, after Zalar) in its three-term form $S_0+(\theta-a)S_1+(b-\theta)S_2$, which contains the two forms above through $(\theta-a)(b-a)=(\theta-a)^2+(\theta-a)(b-\theta)$. The degree bound of the matrix two-term form is the one used here; its attribution to the matrix literature has not been checked and is flagged as needing a citation. Consequently a plain term at weight $w$ with a product term at weight $w-1$ is complete for polynomial weights of degree $2w$, and a face term stays at $w$. The pair \code{lpi\_ineq} declares (\code{poslpivar} with psatz 0 plus \code{poslpivar} with psatz 1) is this form, with its product term one degree higher than needed. The implementation makes $w-1$ the default for the product term and $w$ for faces, through \code{psatz\_offset}.
+
+\paragraph{$N$-D.} On a box the product weight vanishes on every face, and the face weights are the generators of the Schm\"udgen preorder of the box; completeness at a fixed degree does not hold in more than one variable, and the degree reduction of the product term, one per direction, is bookkeeping rather than a theorem. The measured 2-D heat benchmark needed the face terms where the product term certified nothing (\code{copquadvar} header, 09/27/2026).
+
+\paragraph{Why the multiplier is the parameter.} Three reasons, all from the proof program. First, every existence theorem there is a statement about $W$ at a stated $D$: bounded weights exist at every $D$ covering both kernel variables when $J(s)\succeq c(s-a)(b-s)I$ or when the mixed derivative of the kernel is a full polynomial kernel, polynomial weights exist exactly under the margin $P\succeq\delta e_D$, and the critical Poincar\'e operator has a bounded rank-one weight at $D=2$ and none at $D=1$. Second, the solved $M$ is what those statements can be checked against: its pointwise rank, its values near endpoint zeros of $J$, and whether it is polynomial. Third, the map $M\mapsto\mcl A^*\mcl M\mcl A$ has a kernel, the storage identities (\file{canonical_measure_storage.md}, Sec.~5), so many weights represent one operator; declaring $M$ makes that gauge explicit instead of burying it in the Gram.
+
+\section{Construction}\label{sec:construction}
+
+Partition $M$ into the blocks $M_{\alpha\beta}$ paired with the components. Then
+\begin{equation}\label{eq:AMA}
+\mcl A^*\mcl M\mcl A=\sum_{\alpha,\beta}\mcl A_\alpha^*\,M_{\alpha\beta}\,\mcl A_\beta ,
+\end{equation}
+and by \eqref{eq:component} and \eqref{eq:adjoint},
+\begin{equation}\label{eq:pair}
+(\mcl A_\alpha^*M_{\alpha\beta}\mcl A_\beta\mbf x)(s)
+=\bigl(V^\alpha(s)^T\otimes I_m\bigr)\int_\Omega\Bigl(\int_\Omega I_\alpha(\theta-s)\,I_\beta(\theta-s')\,M_{\alpha\beta}(\theta)\,d\theta\Bigr)\bigl(V^\beta(s')\otimes I_m\bigr)\mbf x(s')\,ds'.
+\end{equation}
+The inner integral is the integral of Sec.~8.3 of the sopvar notes, written there as
+\[
+\int_{s''}I_{\alpha_i}(s''-s)\,I_{\alpha_j}(s''-s')\,G(s'')\,ds''
+\]
+with $G$ the polynomial $Z(s,s'')^TQ_{ij}Z(s'',s')$. Here $G=M_{\alpha\beta}$ and the monomials in $s$ and $s'$ stand outside the integral. The formulae of Subsec.~5.1 there apply unchanged: direction by direction,
+\[
+\int I_{\alpha_d}(\theta_d-s_d)\,I_{\beta_d}(\theta_d-s'_d)\,G\,d\theta_d=\sum_{\gamma_d\in\{0,1,-1\}}I_{\gamma_d}(s_d-s'_d)\,\bigl(\Delta_{p(\gamma_d,\beta_d,-\alpha_d)}G\bigr)(s_d,s'_d),
+\]
+with the maps $\Delta_\delta$ of that subsection: antiderivatives of $G$ in $\theta_d$ evaluated at $s_d$, at $s'_d$, or at an endpoint. The sign $-\alpha_d$ is the flip of the output indicator in \eqref{eq:adjoint}. A full integral $\alpha_d=\pm$ is the sum of the two one-sided cases. The result is a polynomial semiseparable kernel in $(s,s')$ with parameter cells indexed by $\gamma$, the form the class stores.
+
+\begin{proposition}[one Gram term]\label{prop:equiv}
+Fix a space, a multi-index list $\{\alpha_i\}$, a lift degree $D$, a weight degree $w$ and a psatz weight $g$. Let $\mcl P_{\mrm{G}}$ be the operator \eqref{eq:gram} of \code{copquadvar} with the basis monomials
+\[
+Z_w(\theta)\otimes V^{\alpha_i}(s)
+\]
+on every component and no joint cap, and let $\mcl P_{\mrm{S}}=\mcl A^*\mcl M\mcl A$ with the lift \eqref{eq:component} and the one-term weight
+\[
+M=g\,\Lambda^TQ\Lambda,\qquad \Lambda=Z_w(\theta)\otimes I_K.
+\]
+Then $\mcl P_{\mrm{G}}=\mcl P_{\mrm{S}}$ for every $Q$, and the two have the same Gram dimension.
+\end{proposition}
+In words: moving the $\theta$-monomials out of the basis operators and into the weight changes nothing in the operator; it changes what is declared and what is returned.
+
+\begin{proof}[Method: factor the monomials]
+By Sec.~\ref{sec:lift}, $\mcl Z_{\alpha_i}=\Lambda_{\alpha_i}\mcl A_{\alpha_i}$ with $\Lambda_{\alpha_i}(\theta)=Z_w(\theta)\otimes I_{K_{\alpha_i}}$. Substituting in \eqref{eq:gram} and using $\Lambda_{\alpha_i}^*=\Lambda_{\alpha_i}^T$ for a multiplication operator,
+$\sum_{ij}\mcl A_{\alpha_i}^*\Lambda_{\alpha_i}^T(gQ_{ij})\Lambda_{\alpha_j}\mcl A_{\alpha_j}=\mcl A^*\bigl(g\Lambda^TQ\Lambda\bigr)\mcl A$. The Gram $Q$ is indexed by (component, monomial of $Z_w$, output row) on both sides.
+\end{proof}
+
+\begin{remark}
+The joint degree cap of \code{copquadvar} (\code{d\{2\}(3)} of \code{poslpivar}) removes the monomials $\theta^i s^j$ with $i+j$ above the cap. In the separated form that is a weight whose block acting on the moment of order $j$ has degree at most $\mathrm{joint}-j$, a graded weight; the proof program's weight is not graded, and the implementation refuses a capping joint degree.
+\end{remark}
+
+\section{Structure}\label{sec:structure}
+
+Three routines in \code{sopvar/lpis\_sopvar} implement the construction beside \code{copquadvar}, which is unchanged.
+
+\paragraph{\code{lift\_copvar}} builds $\mcl A$ as a fixed \code{copvar}. The components are enumerated exactly as \code{copquadvar} enumerates its basis operators (\code{multiindex\_grid}, direction 1 fastest, then \code{include} and \code{sep}), so the two routes agree component by component. Each component block has output bases of degree $0$, input bases $v_{D_d}$ in its integral directions and $\{0\}$ in its multiplier directions, and the nonzero parameter cells selected by its indicator: $\gamma_d=\alpha_d$ for $\alpha_d\in\{0,1,-1\}$ and both $\gamma_d\in\{1,-1\}$ for $\alpha_d=\pm$. With the output rows ordered as the input monomials every nonzero cell is a $0/1$ placement matrix; no coefficient arithmetic occurs.
+
+\paragraph{\code{posmult\_cdopvar}} declares $M$ as the \code{cdopvar} \eqref{eq:weight}, one \code{poscopvar} call per Positivstellensatz term with the identity and multiplier components only (\code{include = 1} on every $L_2$ space), at weight degree $w_c=w-\mathrm{offset}_c$. The multiplier-only pair loop of \code{copquadvar} does no semiseparable integral, so each term costs one Gram declaration. Every block is then pruned to its occupied monomials: \code{copquadvar} returns the bases its pair integrals can reach, $\{0,\dots,2w+1\}$ per direction on both sides, of which a multiplier-only block occupies right degree $0$ and left degrees up to $2w$. Measured in 3-D at $w=1$ before the prune: $8000\times8000$ coefficient grids per cell with $421875$ of $64\times10^{6}$ columns in use, and the composition carried that padding through every intermediate.
+
+\paragraph{\code{poscopvar\_lift}} parses the degrees (Sec.~\ref{sec:degrees}), groups the components into the spaces of the lifted space by weight degree, calls the two routines and returns $\mcl P=\mcl A^*(\mcl M\mcl A)$ by the class composition, together with $\mcl M$ and $\mcl A$. The solved weight is read with \code{getsol\_lpivar\_sop(prog,M)}.
+
+The composition is where the two routes differ in cost. \code{copquadvar} integrates $\theta$ out pair by pair with the $\Delta$-maps, stored as triplets on the decision-variable sheets. The class composition \code{@cdopvar/mtimes} runs the general composition of Sec.~5 of the sopvar notes, whose double sum over cells is $9^{n_3}$ in the shared directions and which carries the full $(\theta,s)$ bases through the product. Section~\ref{sec:measured} measures the difference: with $M$ pruned the two routes are within a factor of $2.5$ of each other in 1-D and 2-D, and in 3-D the general composition takes $7\times$ the time and $15\times$ the peak memory of \code{copquadvar}. Section~\ref{sec:direct} removes the composition altogether: the map from the Gram to the kernel coefficients, with the lift and the weight as index sets.
+
+\section{The container form}\label{sec:container}
+
+Section~9.5 of the sopvar notes takes a positive operator on the mixed space
+\[
+X=\R^{m_1}\times L_2^{m_2}[s^2]\times\cdots\times L_2^{m_M}[s^M]
+\]
+with one Gram over every (space, multi-index) pair, so that the container is positive as a whole. The separated form has the same shape. The lifted space is
+\begin{equation}\label{eq:Y}
+Y=\R^{m_R}\times L_2^{K_1}[s]\times\cdots\times L_2^{K_G}[s],\qquad s=\text{every registry variable},
+\end{equation}
+with one $\R$ space collecting the identity components of the $\R^{m_k}$ spaces of $X$, and one $L_2$ space per group of components sharing a weight degree. A component of a space $L_2^{m_k}[s^k]$ over a subset $s^k$ of the registry maps into $L_2[s]$ as a function constant in the variables $s^k$ lacks; this is the embedding by which \code{copquadvar} lets every basis operator depend on every $\theta_d$ polynomially (Sec.~9.5: ``a variable the space does not have gets no indicator, and the basis depends on its theta polynomially''). The weight $M$ on $Y$ is then a polynomial matrix in all of $\theta$, its $\R$ block a constant Gram integrated over the box, its $\R$-to-$L_2$ blocks the integral operators with polynomial kernel, and its $L_2$ block a multiplier. The $\R$ components carry the weight degree $0$ by default, the identity basis of \code{poslpivar}; a larger weight degree there is the option \code{wR}. The blocks of $\mcl A^*\mcl M\mcl A$ between two spaces of $X$ integrate out the variables neither space has, as the pair loop of \code{copquadvar} does with its definite integrals.
+
+In $N$-D the lift of each $L_2$ space is the tensor product of the 1-D lifts over its variables, \eqref{eq:component} with the product indicator and the product monomial vector, and $M$ is one polynomial matrix in all $\theta$ with the psatz weights of Sec.~\ref{sec:weight}. This is the structure of \code{copquadvar}; it is the extrapolation of the 1-D construction and carries no theorem from the proof program.
+
+\section{Degrees}\label{sec:degrees}
+
+\subsection{The two degrees and their names in the toolbox}
+
+The lift degree $D$ is the degree of $V^\alpha$ in the components' own variables; the weight degree $w$ is the half-degree of $M$ in $\theta$. Table~\ref{tab:slots} gives the correspondence with the existing degree vocabularies. It was settled by measurement (\code{degshape.m}, 10/07/2026): with lower and upper components only, the monomial support of the lower kernel is $\{(i,j):\min(i,j)\le D,\ \max(i,j)\le D+2w+1\}$ on five $(w,D)$ pairs, and the pair $(1,0)$ gives a cross while $(0,1)$ gives a filled square. The proof program calls $t$, the variable of $v_D(t)$, the integration variable; the toolbox gives that name to $\theta$. The two are different variables.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llll}
+\toprule
+degree & \code{poslpivar} & \code{copquadvar}, \code{possopvar} & \code{poscopvar\_lift} \\
+\midrule
+lift $D$ & \code{d\{2\}(2)}, \code{d\{3\}(2)}, slot 2 & \code{mult} & \code{lift}, alias \code{mult} \\
+weight $w$ & \code{d\{2\}(1)}, \code{d\{3\}(1)}, slot 1 & \code{int} & \code{weight}, alias \code{int} \\
+multiplier block & \code{d\{1\}} & \code{int}, $\alpha=0$ component & \code{weight} of that component \\
+joint cap & \code{d\{2\}(3)} & \code{joint} & refused unless no cap \\
+psatz product & same degrees & same degrees & $w-1$ \\
+\bottomrule
+\end{tabular}
+\caption{The two degrees of the separated form against the slots of the existing routines.}\label{tab:slots}
+\end{table}
+
+\subsection{What the lift degree must satisfy}
+
+\begin{lemma}[support of the lower kernel]\label{lem:shape}
+Let $n=1$, $I=[a,b]$, let $\mcl A_D$ be the lower-plus-full lift of degree $D$ and let $W\in L_\infty(I;\mathbb S^{2n(D+1)})$ be any bounded weight, partitioned into blocks $W_{zz},W_{zm},W_{mz},W_{mm}$ along $(z,m)$. For every $t<s$ in $I$ the lower kernel of $\mcl A_D^*M_W\mcl A_D$ equals
+\[
+V_D(s)^T\Bigl[\int_s^bW_{zz}+\int_s^bW_{zm}+\int_t^bW_{mz}+\int_a^bW_{mm}\Bigr]V_D(t).
+\]
+Consequently every monomial $s^it^j$ of that kernel satisfies $\min(i,j)\le D$.
+\end{lemma}
+In words: whatever the weight, the lift of degree $D$ cannot produce a kernel monomial of degree above $D$ in both variables at once; the dependence on $s$ or on $t$ beyond degree $D$ comes from the weight, one variable at a time.
+
+\begin{proof}[Method: expand the quadratic form]
+With $w_x=\bmat{z_x\\m_x}$, $z_x(s)=\int_a^sV_D(t)x(t)\,dt$, the form $\int_a^bw_x^TWw_x$ has the four terms $\int_a^b z^TW_{zz}z$, $2\int_a^bz^TW_{zm}m$ and $m^T(\int_a^bW_{mm})m$. Substituting $z$ and interchanging the order of integration gives, for the pair $(t,t')$ of input points, the bracket evaluated with $\max(t,t')$ as the lower limit of $\int W_{zz}$ and the limits $t$ and $t'$ for the two cross blocks. For $t'<t$ this is the displayed bracket. Each term of the bracket depends on $s$ or on $t$ but not on both, so after multiplication by $V_D(s)^T$ on the left and $V_D(t)$ on the right every monomial has degree at most $D$ in at least one of the two variables.
+\end{proof}
+
+For a target $\mcl P$ with lower kernel $K(s,t)=\sum k_{ij}s^it^j$ define
+\[
+D_{\min}(\mcl P)=\max\{\min(i,j):k_{ij}\ne0\},\qquad D_{\max}(\mcl P)=\max\{\max(i,j):k_{ij}\ne0\}.
+\]
+Lemma~\ref{lem:shape} gives $D\ge D_{\min}(\mcl P)$ as a necessary condition for an exact equality $\mcl A^*\mcl M\mcl A=\mcl P$ with any weight, and the measured support gives $D+2w+1\ge D_{\max}(\mcl P)$ as a necessary condition with a polynomial weight of half-degree $w$. Neither is sufficient: the critical Poincar\'e operator $G-\pi^2G^2$ has $D_{\min}=1$ and no bounded weight at $D=1$ (\file{path_b_signed_dual_2026_10_05.md}, Thm.~3). The stock sizing rule \code{@opvar/degbalance} halves the input-variable degree; measured on $s^k\theta^k$ for $k=2,3,4$ (\code{degstock.m}), it returns $D=\lceil k/2\rceil<k=D_{\min}$ and the positive operator it sizes cannot carry the target monomial, so the equality is infeasible with no warning. On the total-degree kernels $(s-\theta)^k$ and $s^k$ it covers the target.
+
+\subsection{What the proof program establishes}
+
+All statements are for the pure lift of a pure integral target of lower kernel $K$ in 1-D; the mixed lift at $d=D-1$ for a target with a multiplier follows from the round-4 bijection, which is exact.
+\begin{itemize}\setlength\itemsep{0pt}
+\item $D\ge\max(\deg_sK,\deg_tK)$: a bounded-variation storage exists; a polynomial weight exists for $P+\varepsilon e_D$ for every $\varepsilon>0$, and for $P$ itself whenever $P\succeq\delta e_D$ for some $\delta>0$ (\file{canonical_measure_storage.md}, \code{route\_a}, \code{route\_b}). The polynomial degree of the weight may grow as $\varepsilon\downarrow0$; no bound is known.
+\item At that $D$ a bounded weight exists exactly when $J(s)=\mathrm{Sym}(K_t-K_s)(s,s)\succeq c(s-a)(b-s)I$, or $J\succeq c(s-a)^2(b-s)^2I$, or $K_{st}(s,t)=K_{st}(t,s)^T$ as polynomials (\file{algebraic_uniform_localization.md}, \file{double_pole_endpoint_resolution.md}, \file{matrix_finite_rank_uniform_bound.md}). For a target with a multiplier $R_0$, $J=R_0$: the multiplier is the principal jump of its first primitive.
+\item A kernel affine in each variable has a constant weight at $D=1$ (\file{bilinear_matrix_uniform_bound.md}); a separated kernel $C(s)F(t)^T$ with $C+F$ generically of full column rank has a rational bounded weight at the generator degree (\file{separated_generator_uniform_bound.md}).
+\item $d_{\mathrm{pure}}((V^r)^*QV^r)=d_{\mathrm{mix}}(Q)+r$ exactly (\code{round4}, Cor.~4): for an $r$-fold primitive of a multiplier the minimal lift degree is $r-1$.
+\item Homogeneous singular $J=\mathrm{diag}(s^{k_i})$: $D\le\max_i\lceil k_i/2\rceil$, about half the kernel degree (\file{round3_weighted_extension_2026_10_06.md}).
+\end{itemize}
+Existence of a bounded weight at some finite $D$ for every positive polynomial-kernel operator is the necessity conjecture, taken as an assumption for design on 10/07/2026 and labelled as such wherever relied on. It gives no bound on $D$ or on $w$.
+
+\subsection{Sizing}
+
+For an equality $\mcl A^*\mcl M\mcl A=\mcl P$ the lift degree is bounded below by $D_{\min}(\mcl P)$, computable from the monomial support of $\mcl P$ even when $\mcl P$ carries decision variables, and $\max(\deg_sK,\deg_tK)$ is the degree at which the existence results hold. The weight degree starts at $\lceil(D_{\max}(\mcl P)-D-1)/2\rceil$ and is the refinement knob. The product psatz term goes one below, faces at $w$. \code{get\_lift\_degs} computes these from a \code{copvar}, \code{cdopvar}, \code{sopvar} or \code{sdopvar} target and feeds \code{lpi\_ineq\_sop} (10/08/2026); on a target linear in a free operator it is applied to the fixed positive operator of the LPI instead (\code{opts.like}; the $H_\infty$ paragraph below).
+
+\paragraph{Measured on the heat benchmark (1-D, 10/08/2026).} \code{heatNd\_tailor}, in the heat benchmark folder of the demos, sizes $R$ and $Q$ of the Cor.~35 stability LPI from their own targets and bisects the certified rate. For the Dirichlet problem, $\kappa^*=\pi^2$, the stock \code{heavy} sizing, int $=$ mult $=2$ with joint cap $3$ and two face terms at the same degree, certifies $\kappa=9.8695954$ at $n_x=1854$ to $1866$ SDP variables and $87$ to $96$ rows for $P$ of degree $0$, $1$ and $2$. The same rate, to the last digit of the bisection, comes from $R$ at $(D,w)=(2,1)$, $Q$ at $(2,2)$ and the product term at $w-1$: $n_x=820$ to $832$ and $78$ to $87$ rows, $2.25$ times fewer variables and $10\%$ fewer rows at every degree. $Q$ is the binding operator: at $w=1$ it certifies $9.8048$ with the product pair and $9.8690$ with two faces, and $R$ may drop to $(1,2)$ for $9.8695860$. The necessary conditions above place $D$ at $D_{\min}=1$ and $w$ at $1$; the certificate needs $D=2$ and, for $Q$, $w=2$. For the Dirichlet--Neumann problem, $\kappa^*=\pi^2/4$, the stock \code{bench} sizing already certifies $2.467346$ at $n_x=303$ to $315$, and the tailored $R=Q=(1,1)$ pair reaches $2.467195$ at $n_x=213$. Without a Positivstellensatz term no sizing certifies a rate. In 2-D (Dirichlet in $s_1$, Dirichlet--Neumann in $s_2$, $\kappa^*=12.337006$, $P$ of degree $0$) the product pair certifies nothing and the face terms are needed, as the benchmark had found; uncapped faces at $w-1$ with $Q$ at weight $2$ reach $12.335223$ against the stock \code{heavy} value $12.336731$, and uncapped faces at $w$ cost $10^6$ variables. What carries over is the split: $R$ at the stock \code{bench} degrees with $Q$ at the \code{heavy} degrees certifies \code{heavy}'s $12.336731$ at $n_x=392409$ and $2884$ rows against $565209$ and $4282$, and the reverse split certifies only \code{bench}'s $12.183$. In 2-D the graded basis of the stock sizing is what keeps the degree-2 face terms affordable; the saving comes from giving the two operators different degrees.
+
+
+\paragraph{Measured on the $H_\infty$ gain LPI (1-D, 10/08/2026).} \code{hinf\_tailor\_1d} in \file{lpi\_programming\_sopvar/examples} poses the primal KYP LPI on the container path for the plant \code{io1} of \code{cx\_plant}, $x_t=x_{ss}+\tfrac{\pi^2}{2}x+w$ on $[0,1]$ with Dirichlet conditions and $z=\int_0^1x$, whose gain is $\|(-\mcl A)^{-1}1\|_{L_2}=0.182479080$ ($\mcl A$ is self-adjoint, so the supremum over frequency is at zero), and for its two-component copy. The storage operator $R$ takes the stock \code{light} or \code{heavy} degrees, $Q$ the degrees of \code{get\_lpivar\_degs\_sop}, and the slack $N=-K$ is sized by the stock \code{slack} settings, by the reader of \code{lpi\_ineq\_sop}, and by explicit $(D,w)$. Table~\ref{tab:hinf1d} gives the one-component rows with $R$ at \code{light}; the rows with $R$ at \code{heavy} and the two-component plant repeat them. Every slack with $D\ge2$ and $w\ge2$, and $(1,3)$, gives $\gamma=0.1824816\pm10^{-7}$, which is $2.5\times10^{-6}$ above the closed form at both levels of $R$, so neither $R$ nor the slack sets this residual. The stock \code{light} slack, $d\{2\}=\{2,[1\,2\,3],[1\,2\,3]\}$, is $(D,w)=(1,2)$ with joint cap $3$ and gives $0.182626$, the value of \code{PIETOOLS\_Hinf\_gain} at \code{light}; the stock \code{heavy} slack, $\{3,[2\,2\,3],[2\,2\,3]\}$ with the psatz term at $\{2,[1\,1\,2]\}$, is $(2,2)$ with joint cap $3$ beside a separate degree-3 multiplier block. The smallest sufficient slack, $(2,2)$ with the cap and the product term at $w-1$, has $396$ decision variables against $587$ (\code{light}) and $1137$ (\code{heavy}), and the SDP has $n_x=898$ against $1274$ and $2377$.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llrrrrrr}
+\toprule
+slack & terms & $\gamma$ & $\gamma-\gamma^*$ & dec.\ vars & $n_x$ & $m$ & $\max K_s$ \\
+\midrule
+stock \code{light} & stock & 0.182626 & $1.5\times10^{-4}$ & 587 & 1274 & 237 & 31 \\
+reader, $(5,3)$ & pair & 0.1824816 & $2.5\times10^{-6}$ & 2599 & 5242 & 321 & 57 \\
+reader $dw=0$, $(5,2)$ & pair & 0.1824816 & $2.6\times10^{-6}$ & 1381 & 2834 & 265 & 43 \\
+$(1,1)$ & pair & 0.193093 & $1.1\times10^{-2}$ & 119 & 362 & 184 & 13 \\
+$(1,1)$ & faces & 0.186930 & $4.5\times10^{-3}$ & 273 & 651 & 187 & 13 \\
+$(2,1)$ & pair & 0.184185 & $1.7\times10^{-3}$ & 198 & 514 & 185 & 17 \\
+$(3,1)$ & pair & 0.182833 & $3.5\times10^{-4}$ & 297 & 706 & 191 & 21 \\
+$(1,2)$ & pair & 0.182620 & $1.4\times10^{-4}$ & 281 & 674 & 197 & 19 \\
+$(1,3)$ & pair & 0.1824817 & $2.6\times10^{-6}$ & 515 & 1130 & 215 & 25 \\
+$(2,2)$ & pair & 0.1824817 & $2.6\times10^{-6}$ & 478 & 1058 & 205 & 25 \\
+$(2,2)$ cap 3 & pair & 0.1824817 & $2.6\times10^{-6}$ & 396 & 898 & 197 & 23 \\
+$(2,2)$ & faces & 0.1824816 & $2.5\times10^{-6}$ & 975 & 2019 & 217 & 25 \\
+$(3,2)$ & pair & 0.1824816 & $2.5\times10^{-6}$ & 727 & 1546 & 217 & 31 \\
+$(4,2)$ & pair & 0.1824816 & $2.6\times10^{-6}$ & 1028 & 2138 & 233 & 37 \\
+\bottomrule
+\end{tabular}
+\caption{The slack of the primal KYP LPI for \code{io1}, $R$ at the stock \code{light} degrees, MOSEK: the gain, its excess over the closed form $\gamma^*=0.182479080$, the decision variables of the slack, and the SDP shape. Terms: pair, the plain term at $w$ and the product term at $w-1$; faces, the plain term and the two faces at $w$; stock, $d\{2\}=\{2,[1\,2\,3],[1\,2\,3]\}$, i.e.\ $(1,2)$ with joint cap $3$ and a degree-2 multiplier block, plus the psatz term $\{1,[0\,1\,2]\}$. With $R$ at \code{heavy} the stock slack $\{3,[2\,2\,3],[2\,2\,3]\}$ gives $0.1824816$ with $1137$ decision variables at $n_x=2377$, $m=260$, $\max K_s=41$.}\label{tab:hinf1d}
+\end{table}
+
+The reader sizes this slack at $(5,3)$ because the block $K_{33}=\mcl A^*\mcl Q+\mcl Q^*\mcl A$ is composed before the equality $\mcl T^*\mcl Q=\mcl R$ is imposed: its lower kernel has monomials to degree $9$ with $D_{\min}=4$, the support of the whole \code{lpivar} family of $Q$ under composition with $\mcl T$, not of the optimal $Q$. The part of $Q$ that the equality $K+N=0$ cannot reach is set to zero by the solver, at no cost in $\gamma$ down to $(2,2)$. For a target linear in a free operator the support rule therefore measures the family. The reader applied to $R$ instead, $D_{\min}(R)=1$ and $D_{\max}(R)=4$ at both stock levels, gives $(2,2)$ with the defaults $dD=dw=1$, the measured minimum; this is \code{opts.like} of \code{get\_lift\_degs} and \code{lpi\_ineq\_sop}, measured at $\gamma=0.1824816$ and $n_x=1058$. With $R$ at \code{heavy}, whose multiplier block has degree $4$, the rule gives $(2,3)$ at $n_x=1881$ against the stock $2377$, the same $\gamma$. At $(1,1)$ the gain stays finite: $0.193093$ with the product pair and $0.186930$ with two faces.
+
+On a fixed target the support rule is the right instrument. \code{volterra\_tailor} bounds the Volterra operator, $\|\mcl T\|=2/\pi$, from $\gamma-\mcl T^*\mcl T\ge0$: the reader gives $D=1$, and the excess over $2/\pi$ is $1.9\times10^{-4}$ at $w=1$ with the product pair ($n_x=126$), $1.1\times10^{-6}$ with two faces ($301$), $3.2\times10^{-8}$ at $w=2$ with the product pair ($326$) and $9.9\times10^{-9}$ with two faces ($676$). The stock-style pair, plain plus product at the same degree, gives $2.9\times10^{-5}$ at degree $1$ ($n_x=201$) and $8.0\times10^{-9}$ at degree $2$ ($883$).
+
+
+\paragraph{The coercive form (1-D, 10/08/2026).} \code{PIETOOLS\_Hinf\_gain\_coercive} stores $V=\langle\mcl Tx,\mcl P\mcl Tx\rangle$ with $\mcl P\succeq0$ at the storage degrees and no free operator, and its KYP block is $\mcl A^*\mcl P\mcl T+\mcl T^*\mcl P\mcl A$ (\code{hinf\_tailor\_1d} with \code{form} \code{'P'}). The same sweep gives a different picture (Table~\ref{tab:hinfco}). The stock \code{light} slack is short: $\gamma=0.1928$, $5.7\%$ above the closed form, with MOSEK status UNKNOWN, as the baseline suite of 09/24 had recorded for this executive; the stock \code{heavy} slack is exact to $6.6\times10^{-7}$. Slacks with lift $1$ diverge as the 2-D slacks do, the objective running to $10^{6}$: under the margin $\mcl P\succeq\varepsilon I$ the restricted program is infeasible. $(2,1)$ doubles the gain. The reader on $K$ is now the right size, since the support of $\mcl A^*\mcl P\mcl T+\mcl T^*\mcl P\mcl A$ is that of the positive operator $\mcl P$ at its declared degrees under composition and not of an oversized free family: $(4,3)$, or $(4,2)$ with $dw=0$, reaches the floor of the light storage, $1.1$ to $1.4\times10^{-6}$ above the closed form, at $n_x=1786$ against the stock \code{heavy} $2332$. The reader on $\mcl P$, $(2,2)$, is $1.1\times10^{-5}$ above at $n_x=810$, and $(3,2)$, $(2,3)$ are at the floor for $1246$ and $1426$. The joint cap $3$ costs $4\times10^{-3}$ here, where it cost nothing in the $Q$ form. With $\mcl P$ at \code{heavy} the floor moves to $10^{-7}$: in the coercive form the storage binds at the $10^{-6}$ level, whereas the $Q$ form stalls at $2.5\times10^{-6}$ with either $R$, so the residual of the $Q$ form belongs to that form, its free $Q$ under the caps of \code{get\_lpivar\_degs} and the coupling $\mcl T^*\mcl Q=\mcl R$, and not to the slack. The two-component plant repeats every row.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llrrrrrr}
+\toprule
+slack & terms & $\gamma$ & $\gamma-\gamma^*$ & dec.\ vars & $n_x$ & $m$ & $\max K_s$ \\
+\midrule
+stock \code{light} & stock & 0.192820 & $1.0\times10^{-2}$ & 587 & 1231 & 171 & 31 \\
+reader, $(4,3)$ & pair & 0.1824805 & $1.4\times10^{-6}$ & 1630 & 3282 & 200 & 45 \\
+reader $dw=0$, $(4,2)$ & pair & 0.1824802 & $1.1\times10^{-6}$ & 871 & 1786 & 162 & 34 \\
+$(1,1)$ & pair & diverges & & 87 & 258 & 121 & 11 \\
+$(1,2)$ & pair & diverges & & 202 & 478 & 127 & 16 \\
+$(2,1)$ & pair & 0.370581 & $1.9\times10^{-1}$ & 156 & 390 & 122 & 15 \\
+$(2,2)$, the reader on $\mcl P$ & pair & 0.1824905 & $1.1\times10^{-5}$ & 373 & 810 & 131 & 22 \\
+$(2,2)$ cap 3 & pair & 0.186543 & $4.1\times10^{-3}$ & 301 & 670 & 127 & 20 \\
+$(2,2)$ & faces & 0.1824865 & $7.4\times10^{-6}$ & 759 & 1553 & 138 & 22 \\
+$(3,2)$ & pair & 0.1824808 & $1.7\times10^{-6}$ & 596 & 1246 & 139 & 28 \\
+$(2,3)$ & pair & 0.1824807 & $1.6\times10^{-6}$ & 688 & 1426 & 147 & 29 \\
+$(3,3)$ & pair & 0.1824804 & $1.3\times10^{-6}$ & 1109 & 2254 & 166 & 37 \\
+$(3,3)$ cap 4 & pair & 0.1824804 & $1.4\times10^{-6}$ & 749 & 1546 & 139 & 31 \\
+\bottomrule
+\end{tabular}
+\caption{The slack of the coercive KYP LPI for \code{io1}, $\mcl P$ at the stock \code{light} degrees, MOSEK; terms as in Table~\ref{tab:hinf1d}. The stock \code{light} row and the two divergent rows end with status UNKNOWN. With $\mcl P$ at \code{heavy}: the stock slack gives $0.1824797$, $6.6\times10^{-7}$ above the closed form, with $1137$ decision variables at $n_x=2332$; the reader with $dw=0$ gives $9\times10^{-8}$ at $1807$; the reader on $\mcl P$ gives $(2,3)$ and $1.4\times10^{-6}$ at $1447$.}\label{tab:hinfco}
+\end{table}
+
+
+\paragraph{The dual forms (1-D, 10/08/2026).} \code{PIETOOLS\_Hinf\_gain\_dual} poses the dual non-coercive LPI, $\mcl T\mcl Q=\mcl R$ and $K_{33}=\mcl Q^*\mcl A^*+\mcl A\mcl Q$ (\code{form} \code{'Qd'}), and behaves as the primal $Q$ form with one difference: it reaches the closed form. At the \code{light} storage the stock slack is $7.2\times10^{-5}$ above it, the reader on $R$, $(2,2)$, $2.7\times10^{-6}$ at $n_x=1058$, $(2,3)$ $1.5\times10^{-7}$ at $1858$, $(2,2)$ with two faces $2.8\times10^{-7}$ at $2019$, and the reader on $K$, now $(5,5)$, $1.1\times10^{-7}$ at $12410$; at \code{heavy} every slack from $(2,2)$ up is within $2\times10^{-7}$. The floor of $2.5\times10^{-6}$ is therefore specific to the primal $Q$ form. \code{PIETOOLS\_Hinf\_gain\_dual\_coercive} (\code{form} \code{'Pd'}, $K_{33}=\mcl T\mcl P\mcl A^*+\mcl A\mcl P\mcl T^*$) is unusable on this plant as shipped: the stock executive returns $\gamma=8252$ at \code{light}, as the baseline suite had recorded, the container stock slack $10785$ with status UNKNOWN, and every tailored slack from $(2,2)$ to $(3,3)$, with the pair or two faces, is reported primal infeasible at both storage levels.
+
+
+\paragraph{The $H_\infty$ gain LPI in 2-D (10/08/2026).} \code{hinf\_tailor\_2d} poses the same LPI for the plant \code{io2} of \code{cx\_plant}, the reaction--diffusion equation $x_t=15x+\Delta x+w$ on the unit square with Dirichlet conditions and $z=\iint x$, closed-form gain $0.1711$, with $R$ at the stock \code{light} 2-D degrees: $(D,w)=(1,1)$ in each direction under the stock joint caps. The stock \code{light} slack is $R$'s degree table plus $3$ in every slot, $(4,4)$ per direction under the caps and without a psatz term, a program of $1.5\times10^{6}$ SDP variables and $17063$ rows that was stopped after $9$ minutes. Every tailored slack diverges: for $(1,1)$, $(2,1)$ and $(1,2)$ with the plain term and four faces at $w$ ($n_x=5.1\times10^{4}$ to $2.6\times10^{5}$), for $(2,2)$ with the product pair with and without a cap of $6$ on the total degree ($2.1$ and $2.3\times10^{5}$) and for $(2,2)$ with four faces under the cap ($8.9\times10^{5}$), MOSEK ends with status UNKNOWN after $2$ to $107$ seconds, the primal and dual residuals at $10^{-9}$ or below and the objective growing without bound, $10^{2}$ to $3\times10^{3}$ at the last iterate; the uncapped $(2,2)$ with four faces, $9.8\times10^{5}$ variables, ends with the same status at $\gamma=12.4$ after $151$ seconds. The storage family these slacks leave admits no finite gain. The baseline suite of 09/24 had found the stock 2-D executive on this plant at \code{light} $7.4$ times conservative, $\gamma=1.272$, with the same solver status; in the $Q$ form this LPI gives no clean reference in 2-D at any sizing tried.
+
+
+\paragraph{The coercive form in 2-D (10/08/2026).} With \code{form} \code{'P'}, $\mcl P$ at the stock \code{light} 2-D degrees plus the margin $\varepsilon I$, the picture changes again. The reader on $\mcl P$ gives $(2,1)$ per direction with the four faces at $w$: $1.1\times10^{5}$ variables and $2788$ rows, solved to optimality in $5$ seconds, $\gamma=0.2665$, $56\%$ above the closed form. The product pair fails at $(2,2)$, $(3,2)$ and $(2,3)$ with status UNKNOWN and succeeds at $(3,3)$: $\gamma=0.171777$, $0.40\%$ above the closed form, at $1.43\times10^{6}$ variables, $13659$ rows and $491$ seconds. The four faces do what the product pair cannot: $(3,1)$ gives $0.1974$, $15\%$ above, at $3.4\times10^{5}$ variables in $25$ seconds, and $(2,2)$ gives $\gamma=0.171718$, $0.36\%$ above the closed form, at $5.6\times10^{5}$ variables, $5420$ rows and $57$ seconds; with a cap of $6$ on the total degree, $0.171719$ at $4.9\times10^{5}$ variables in $36$ seconds. The stock \code{light} slack, $\mcl P$'s degrees plus $3$ in every slot, is a program of $7.6\times10^{5}$ variables and $13978$ rows that the budget stopped after $459$ seconds at iteration $14$, objective $0.34$ and falling; the baseline suite of 09/24 had run the stock executive on this plant to $\gamma=1.272$ with status UNKNOWN in $283$ seconds. The 2-D extrapolation therefore stands on the coercive form: the reader on $\mcl P$ gives a clean bound at a seventh of the stock size, and the reader's degrees with the weight raised by one more, $(2,2)$ with the four faces, bring it within $0.36\%$ of the closed form at three quarters of the stock size. In both dimensions the coercive form wants the reader on $\mcl P$ with the weight raised by $2$ rather than $1$: $(2,3)$ in 1-D at the floor, $(2,2)$ with faces in 2-D.
+
+\section{Measured equivalence and cost}\label{sec:measured}
+
+The test \code{test\_poscopvar\_lift} (\code{sopvar/Testfolder/sdopvar/claude\_tests}) compares the two routes in coefficient space: generator $g$ of a decision container is row $g$ of the stacked coefficient matrices of its blocks, keyed by (block, cell, entries, output and input exponents), and the spans are compared by rank, read off a pivoted QR after a Gaussian compression of both axes to $k\times k$ with $k$ doubled on saturation: the SVD of the row-compressed $k\times n_k$ dense matrices was 58\% of the test (profiled 10/07/2026), and the change took parts 1, 2, 3 and 5 from $55.8$\,s to $30.3$\,s. Sampling the kernels on a grid or at random points was tried first and misjudged the rank by a few dimensions in 2-D through conditioning; the coefficient comparison has no evaluation map in between. Table~\ref{tab:cases} lists the cases, all span-identical with equal decision-variable count and Gram dimension; the lift passes \code{verify} in every case. Separately, psatz $=[0\ 1]$ at $w=2$ equals \code{poscopvar} at $\mathrm{int}=2$ plus \code{poscopvar} with the product at $\mathrm{int}=1$; a face term equals \code{poscopvar} at $\mathrm{int}=2$; the \code{int}/\code{mult} aliases, a scalar degree, a non-capping \code{joint} and per-component degrees with two weight groups all agree with \code{poscopvar}, and a capping \code{joint} or a \code{subset} cap is refused.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrr}
+\toprule
+case & ndec & Gram & span & \code{poscopvar} [s] & lift form [s] \\
+\midrule
+1-D $\R\times L_2$, $D=w=1$ & 66 & 11 & 24 & 0.76 & 0.80 \\
+1-D $\R^2\times L_2^2$, $D=1$, $w=2$ & 528 & 32 & 132 & 0.21 & 0.15 \\
+1-D $\R\times L_2$, $D=2$, $w=1$ & 120 & 15 & 36 & 0.12 & 0.13 \\
+1-D $L_2$, $D=w=2$ & 231 & 21 & 44 & 0.12 & 0.10 \\
+1-D $\R\times L_2$, domain $[-1,2]$ & 66 & 11 & 24 & 0.07 & 0.07 \\
+1-D $\R\times L_2$, $\R$ weight 1 & 78 & 12 & 25 & 0.11 & 0.04 \\
+1-D $\R\times L_2$, product psatz & 66 & 11 & 34 & 0.17 & 0.11 \\
+1-D $\R\times L_2$, face & 66 & 11 & 29 & 0.09 & 0.04 \\
+1-D $\R\times L_2$, sep & 28 & 7 & 11 & 0.05 & 0.07 \\
+1-D $\R\times L_2$, include $\{0,1\}$ & 28 & 7 & 18 & 0.02 & 0.07 \\
+1-D $L_2$, $D=0$, $w=1$ & 21 & 6 & 10 & 0.05 & 0.06 \\
+2-D $L_2[s_1,s_2]$, $D=w=1$ & 5050 & 100 & 557 & 0.45 & 0.80 \\
+2-D $\R\times L_2[s_1]\times L_2[s_1,s_2]$ & 7381 & 121 & 762 & 0.95 & 1.77 \\
+2-D $L_2[s_1]\times L_2[s_2]$, $w=(1,2)$ & 1830 & 60 & 83 & 0.16 & 0.64 \\
+2-D $L_2[s_1,s_2]$, product psatz & 5050 & 100 & 1129 & 0.41 & 5.93 \\
+2-D $L_2[s_1,s_2]$, face & 5050 & 100 & 675 & 0.37 & 1.10 \\
+2-D $L_2[s_1,s_2]$, sep $(1,0)$ & 1830 & 60 & 194 & 0.29 & 0.28 \\
+2-D $\R\times L_2[s_1,s_2]$, $D=2$, $w=1$ & 19503 & 197 & 1502 & 0.46 & 2.16 \\
+\bottomrule
+\end{tabular}
+\caption{Span-identical cases (10/07/2026, R2025b). ndec: decision variables; Gram: dimension of $Q$; span: dimension of the generator span. Times are one build each, the first row including warm-up; the psatz product case uses the same weight degree on both routes.}\label{tab:cases}
+\end{table}
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrl}
+\toprule
+case & ndec & \code{poscopvar} [s] & lift form [s] & parts [s] \\
+\midrule
+1-D $\R^2\times L_2^2$, $D=w=2$ & 990 & 0.08 & 0.09 & 0.01 / 0.02 / 0.06 \\
+1-D $\R^2\times L_2^3$, $D=w=3$ & 6105 & 0.10 & 0.11 & 0.00 / 0.04 / 0.07 \\
+2-D $L_2[s_1,s_2]$, $D=w=1$ & 5050 & 0.40 & 0.16 & 0.00 / 0.04 / 0.12 \\
+2-D $L_2[s_1,s_2]$, $D=w=2$ & 97461 & 1.04 & 2.15 & 0.00 / 0.55 / 1.60 \\
+2-D, four spaces, $D=w=1$ & 10011 & 0.85 & 0.62 & 0.01 / 0.07 / 0.51 \\
+3-D $L_2[s_1,s_2,s_3]$, $D=w=1$ & 500500 & 10.60 & 73.42 & 0.02 / 5.11 / 68.27 \\
+\bottomrule
+\end{tabular}
+\caption{Build time of the two routes (10/07/2026, R2025b, one run of \code{test\_poscopvar\_lift}), with $M$ pruned. The separated build is the lift, the weight declaration and the composition $\mcl A^*(\mcl M\mcl A)$ by \code{@cdopvar/mtimes}; the parts column gives the three in that order. The four spaces are $\R$, $L_2[s_1]$, $L_2[s_2]$ and $L_2[s_1,s_2]$.}\label{tab:time}
+\end{table}
+
+The composition is the cost, and most of its cost was the padding of $M$. Before the prune of Sec.~\ref{sec:structure} the general composition carried the reachable bases of $M$ through every intermediate: in 2-D it was slower than \code{copquadvar} by a factor between $2$ and $35$ ($28$\,s against $0.80$\,s at $D=w=2$ on $L_2[s_1,s_2]$, with a peak working set of $14.3$\,GB against $0.13$\,GB), and the 3-D case did not finish in $22$\,min. With $M$ pruned the composed operators are bit-identical to the unpruned ones and Table~\ref{tab:time} holds: in 1-D and 2-D the two routes are within a factor of $2.5$ of each other either way ($1.25$\,GB peak at $D=w=2$), and in 3-D the general composition takes $73$\,s against $10.6$\,s with a peak working set of $34$\,GB against $2.3$\,GB. The remaining gap is the general route's intermediates on the union bases of the product, which Sec.~\ref{sec:direct} removes.
+
+\paragraph{End to end.} The operator $\mcl P=\mcl V^*\mcl V+\mcl L^*\mcl L$ on $[0,1]$, with $\mcl V$ the Volterra integral and $\mcl L\mbf x=\int_0^1\mbf x$, has lower kernel $2-s$ and the degree-zero certificate $W=I_2$ in the lower-plus-full lift (\file{scalar_rank_one_weight_obstruction.md}, Sec.~1). Declared with \code{poscopvar\_lift} at lift degree $0$ and weight degree $0$ with the lower and upper components, the equality $\mcl P_{\mathrm S}=\mcl P$ imposed by \code{lpi\_eq\_sop} and solved with MOSEK has $3$ decision variables, equality residual $5.2\times10^{-9}$ (\code{rel\_b}), and reproduces the kernel of $\mcl P$ on a random grid to $7.7\times10^{-9}$. The solved weight, read with \code{getsol\_lpivar\_sop}, is the constant matrix $\bmat{2&1\\1&1}$ with eigenvalues $0.38$ and $2.62$, which is $T^TI_2T$ for the change of basis $T=\bmat{1&0\\1&1}$ from (lower, full) to (lower, upper) coordinates: the certificate of the proof program, read directly off the solution.
+
+\section{The direct map}\label{sec:direct}
+
+The composition $\mcl A^*\mcl M\mcl A$ need not be computed as a composition. With the Gram row $u=(c,r,\theta^p s^j)$ and column $v=(c',t,\theta^q s'^{\,l})$ of \code{copquadvar}, and one Positivstellensatz weight $g(\theta)=\prod_d g_d(\theta_d)$, the kernel of $\mcl P$ is
+\begin{equation}\label{eq:direct}
+\sum_{u,v} Q_{uv}\; s^{j} s'^{\,l}\, e_r e_t^{T} \prod_{d}\int_{a_d}^{b_d} I_{\alpha_d}(\theta_d-s_d)\, I_{\beta_d}(\theta_d-s'_d)\, g_d(\theta_d)\,\theta_d^{\,p_d+q_d}\, d\theta_d ,
+\end{equation}
+linear in $Q$, with every factor an entry of the table of Sec.~6.1 of the sopvar notes evaluated on the monomial $G=g_d\theta^n$, $n=p_d+q_d$, $\mcl G$ its antiderivative (Table~\ref{tab:key}). An entry is a polynomial in $s_d$ alone or in $s'_d$ alone with at most $\deg g_d+2$ monomials; the lift monomials add $j_d$ and $l_d$ to the exponents; a direction only one space has, or neither has, is the one-sided or definite integral of the same $G$; and the $N$-D entry is the Kronecker product of the per-direction lists. Each term is a triplet (Gram position, coefficient column of the cell, value), one \code{sparse} per cell gives the map from the Gram positions, and the symmetric placement of the decision variables, two entries per variable, gives \code{params.B} of every block. The bases are the exponents reached, so nothing is padded.
+
+\begin{table}[h]\centering\footnotesize
+\begin{tabular}{lccc}
+\toprule
+$(\alpha_d,\beta_d)$ & multiplier, $\gamma_d=1$ & lower, $\gamma_d=2$, $s'_d\le s_d$ & upper, $\gamma_d=3$, $s_d\le s'_d$ \\
+\midrule
+(1,1) & $G(s)$ & & \\
+(1,2) & & $G(s)$ & \\
+(1,3) & & & $G(s)$ \\
+(2,1) & & & $G(s')$ \\
+(3,1) & & $G(s')$ & \\
+(2,2) & & $\mathcal G(b)-\mathcal G(s)$ & $\mathcal G(b)-\mathcal G(s')$ \\
+(3,3) & & $\mathcal G(s')-\mathcal G(a)$ & $\mathcal G(s)-\mathcal G(a)$ \\
+(2,3) & & & $\mathcal G(s')-\mathcal G(s)$ \\
+(3,2) & & $\mathcal G(s)-\mathcal G(s')$ & \\
+\bottomrule
+\end{tabular}
+\caption{The $\theta_d$-integral of \eqref{eq:direct} in one shared direction, $G=g_d\theta^{p_d+q_d}$. A full index, $\alpha_d=4$ or $\beta_d=4$, is the sum of the two one-sided rows or columns, which is $\mathcal G(b)-\mathcal G(s')$ in both cells for $(4,2)$, $\mathcal G(b)-\mathcal G(s)$ for $(2,4)$, $\mathcal G(s')-\mathcal G(a)$ for $(4,3)$, $\mathcal G(s)-\mathcal G(a)$ for $(3,4)$ and $\mathcal G(b)-\mathcal G(a)$ for $(4,4)$.}\label{tab:key}
+\end{table}
+
+\paragraph{Two paths.} \code{poscopvar\_direct} (\code{sopvar/lpis\_sopvar}) takes the inputs of \code{poscopvar}, joint and subset caps included, since only the index set of the Gram enters, and declares the Gram with \code{sosquadvar} on the constant basis, so that the decision variables and their order are those \code{poscopvar} would declare on the same program. On the \emph{general} path the tables are built for the term's own weight. On the \emph{fast} path a canonical box weight, a product of degree-1 factors, moves onto the Gram side: $(\theta-a)v_{w'}=E_av_w$ and $(b-\theta)v_{w'}=E_bv_w$ give $g\,Z_{w'}^TSZ_{w'}=Z_w^T(E^TSF)Z_w$, so the tables are those of $g=1$ on the shifted index set and the position map, which depends on degrees, domain and spaces but not on the program, is cached across calls. A cold shifted map is the plain map on the enlarged set with the shift's fan-out on top (3-D, product at $\mathrm{int}=1$: $26$\,s against $17$\,s for the term's own map), so the shift route is taken only when its map is already cached; otherwise the term's own map is built and cached. Every route gives the same operator to rounding.
+
+\paragraph{Verified.} \code{test\_poscopvar\_direct}: on 24 cases the direct map declares the same decision variables as \code{poscopvar} and every coefficient of every block and cell agrees to at most $4.4\times10^{-16}$ (1-D and 2-D mixed and single spaces, shifted domains, \code{sep}, \code{include}, per-component degrees, joint and subset caps, product and face terms, and 3-D at $500500$ variables); the fast and general paths agree to $0$ on five product and face cases with $a\ne0$; a second call reuses the map and the product term at $\mathrm{int}=1$ reuses the plain map at $\mathrm{int}=2$; and the certificate of Sec.~\ref{sec:measured}, $W=\bmat{2&1\\1&1}$, is read off the solved Gram.
+
+\begin{table}[h]\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+case & ndec & \code{poscopvar} [s] & direct cold [s] & direct warm [s] & general [s] & nnz($B$) \\
+\midrule
+1-D $\R^2\times L_2^2$, 2/2 & 990 & 0.42 & 0.09 & 0.01 & 0.01 & 3838 \\
+1-D $\R^2\times L_2^3$, 3/3 & 6105 & 0.14 & 0.02 & 0.01 & 0.01 & 25666 \\
+1-D $L_2^{16}$, 2/2 & 56616 & 0.23 & 0.08 & 0.03 & 0.04 & 236400 \\
+2-D $L_2[s_1,s_2]$, 1/1 & 5050 & 0.31 & 0.04 & 0.01 & 0.04 & 37402 \\
+2-D $L_2[s_1,s_2]$, 2/2 & 97461 & 0.63 & 0.24 & 0.07 & 0.21 & 846333 \\
+2-D $L_2^4[s_1,s_2]$, 2/2 & 1556730 & 7.76 & 1.94 & 1.18 & 1.89 & 13697280 \\
+2-D, four spaces, 1/1 & 10011 & 0.96 & 0.34 & 0.03 & 0.17 & 62839 \\
+2-D $L_2[s_1,s_2]$, 2/2, product & 97461 & 1.22 & 0.67 & 0.09 & 0.61 & 2826000 \\
+3-D $L_2[s_1,s_2,s_3]$, 1/1 & 500500 & 7.28 & 2.95 & 0.40 & 2.92 & 7468020 \\
+3-D $L_2[s_1,s_2,s_3]$, 1/1, product & 500500 & 26.95 & 16.29 & 0.73 & 16.33 & 46357856 \\
+\bottomrule
+\end{tabular}
+\caption{Build time of \code{poscopvar} and \code{poscopvar\_direct} (10/07/2026, R2025b), degrees int/mult. Cold: empty cache; warm: a second call with the same inputs; general: the term's own tables, no cache. Peak working set in 3-D, fresh processes: plain $2303$\,MB against $465$\,MB, product $15666$\,MB against $2215$\,MB.}\label{tab:direct}
+\end{table}
+
+\paragraph{Consequence for the separated form.} Table~\ref{tab:direct} is the cost of $\mcl A^*\mcl M\mcl A$ with neither $\mcl A$ nor $\mcl M$ as an object: the lift and the weight enter as index sets, the lift exponents and the $\theta$-exponents of the Gram, and the solved weight is the Gram itself. Against \code{copquadvar} the cold build is $1.7$ to $8$ times faster and holds $5$ to $7$ times less memory, and against the composition of Table~\ref{tab:time} it is $9$ times faster in 2-D at $D=w=2$ and $25$ times in 3-D with $70$ times less memory. Warm, which is every call of a bisection after the first and the product term of \code{lpi\_ineq} after its plain term, the 3-D builds take $0.4$ and $0.7$\,s against $7.3$ and $27$\,s. The cold cost is the assembly of the triplets, $15$ of the $16$\,s of the 3-D product term for $4.6\times10^{7}$ nonzeros.
+
+\paragraph{Several terms in one call, and the inequality.} \code{poscopvar\_direct} takes a row of term codes with an offset per term (10/08/2026): one Gram per term, the position maps shared where the index sets coincide, every term's map embedded in the union of the bases the terms reach and summed on one decision list, so the multipliers are added before the lift is applied and a sum of terms costs one block build and no container addition. Checked against the sum of single-term calls, through \code{poscopvar\_direct} and through \code{poscopvar} with \code{plus\_batch}: the same decision variables, coefficients to $10^{-16}$, on five cases including the four faces in 2-D and a joint cap. On it, \code{lpi\_ineq\_sop} imposes $\mcl P\ge0$ for a container: \code{get\_lift\_degs} reads $D_{\min}$, $D_{\max}$ and the multiplier degree off the support of $\mcl P$ per direction, sets $D=D_{\min}+1$ and $w$ one above the reach rule, chooses the plain and product terms in 1-D and the plain and face terms in N-D, prunes the basis operators by the support of the diagonal blocks, declares them in one call and imposes $\mcl P-\mcl P_{\mathrm{op}}=0$. Its test certifies a fixed positive operator, poses the 1-D heat LPI as two inequalities, feasible at $\kappa=9$ and rejected at $11$, and certifies $\mcl T^*\mcl T$ in 2-D.
+
+\section{What remains}\label{sec:remains}
+
+\begin{enumerate}\setlength\itemsep{0pt}
+\item The sizing routine exists for a fixed target (\code{get\_lift\_degs}, Sec.~\ref{sec:degrees}); for a target linear in a free operator the support rule measures the family and the routine is applied to the fixed positive operator of the LPI instead (\code{opts.like}). A rule that reads the free target itself, from the degrees of its fixed factors, is not written, and the residual $2.5\times10^{-6}$ of the 1-D gain above its closed form is unexplained.
+\item The N-D defaults: the heat benchmark favours faces at $w$ with graded caps and different degrees for $R$ and $Q$. On the 2-D $H_\infty$ LPI of \code{io2} the $Q$ form admits no finite gain with any slack up to $(2,2)$ per direction, while the coercive form solves cleanly at the reader's $(2,1)$ with faces, $56\%$ above the closed form at $1.1\times10^{5}$ variables, and at $(3,3)$ with the product pair, $0.4\%$ above at $1.4\times10^{6}$. With four faces, $(2,2)$ per direction is within $0.36\%$ at $5.6\times10^{5}$ variables and $57$ seconds. The N-D rule that reaches the floor at the least cost is open, as is the storage: $\mcl P$ at the \code{heavy} 2-D degrees under the reader's slack is the next run.
+
+
+\item Routing \code{poslpivar\_sop} and the container \code{lpi\_ineq} through \code{poscopvar\_direct}, and the cold assembly of its map in 3-D: $15$ of the $16$\,s of the product term is the \code{sparse} assembly of $4.6\times10^{7}$ triplets.
+\item Conditioning: the lift in iterated primitives $V^{k+1}x$ (the canonical primitive coordinates of \file{primitive_basis_audit.md}) is a polynomial congruence of the moment lift and selects a different sub-cone at equal $w$; whether it conditions better is unmeasured.
+\end{enumerate}
+
+\end{document}

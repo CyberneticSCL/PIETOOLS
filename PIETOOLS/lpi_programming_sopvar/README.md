@@ -67,6 +67,101 @@ variable sets `dom = zeros(0,2)`); the cellstr and container forms stay here.
 for example for a fixed `copvar`/`sopvar`, a polynomial, or an unknown option. The
 program it returns equals the routine's own program field by field (test_lpi_eq_sop).
 
+### `[prog,Pop,info] = lpi_ineq_sop(prog,P[,opts])` (MMP, 10/08/2026)
+
+| class of `P` | routine |
+|---|---|
+| `cdopvar`, `copvar` (square, self-adjoint; a `copvar` is certified) | this file: `get_lift_degs` sizes the positive operator from `P`, ONE `poscopvar_direct` call declares every Positivstellensatz term, `lpi_eq_sop` imposes `P - Pop == 0` ('symmetric') |
+| any other class | `lpi_ineq`, unchanged |
+
+The degrees come from the lower-kernel support of `P` per direction (`Dmin`, `Dmax`, the
+multiplier degree): lift `D = Dmin + dD`, weight `w = max(ceil((Dmax - D - 1)/2), ceil(Mdeg/2), 0) +
+dw`, defaults `dD = dw = 1` (the heat benchmark needs both, `PIETOOLS_demos/sopvar_demos/README.md`
+Sec. 12); terms `'auto'`: 1-D the plain term at `w` and the product at `w - 1` (the Markov-Lukacs
+pair), N-D the plain term and the `2N` faces at `w`; `opts.deg` bypasses the reader; `opts.prune`
+(default true) keeps only the basis operators that can reach the diagonal blocks' support
+(`eq_opts_sopvar`). `tests/test_lpi_ineq_sop`: a fixed positive operator certified, the 1-D heat LPI
+feasible at kappa = 9 and rejected at 11, 2-D `T'*T` certified, the option variants, the legacy
+dispatch. The several-term call of `poscopvar_direct` is itself checked against the sum of
+single-term calls, through `poscopvar_direct` and through `poscopvar` + `plus_batch`
+(`claude_tests/test_poscopvar_direct` part 6: same decision variables, coefficients to rounding).
+
+
+**Measured on the H-infinity gain LPI, 1-D (`examples/hinf_tailor_1d`, 10/08/2026).** The primal
+KYP LPI of the plant `io1` of `cx_plant` (reaction-diffusion, Dirichlet, `z = int(x)`, closed-form
+gain `0.182479080`), `R` at the stock `light` or `heavy` degrees, `Q` from `get_lpivar_degs_sop`,
+the slack `N = -K` sized three ways. Every slack with `D >= 2` and `w >= 2`, and `(1,3)`, gives
+`gamma = 0.1824816 +- 1e-7` at both levels of `R` (2.5e-6 above the closed form, a residual neither
+`R` nor the slack sets); the stock `light` slack `{2,[1 2 3],[1 2 3]}` is `(D,w) = (1,2)` with joint
+cap 3 and gives `0.182626`; `(2,1)` gives `0.184185`. The smallest sufficient slack, `(2,2)` with
+joint cap 3 and the product term at `w - 1`, has 396 decision variables and `nx = 898` against 587
+and 1274 for the stock `light` slack and 1137 and 2377 for the stock `heavy` one
+(`{3,[2 2 3],[2 2 3]}`: the same `(2,2)` and cap beside a separate degree-3 multiplier block). The
+reader sizes the same slack at `(5,3)`, `nx = 5242` (`dw = 0`: `(5,2)`, 2834): `A'*Q + Q'*A` is
+composed before `T'*Q = R` is imposed, so its support (lower kernel to degree 9, `Dmin = 4`) is
+that of the whole `lpivar` family of `Q`, not of the optimal `Q`, whose unreachable part the
+solver sets to zero at no cost in `gamma`. For a target linear in a free operator the support rule
+measures the family; applied to `R` instead (`Dmin 1`, `Dmax 4`) the reader gives `(2,2)` at
+light with its defaults: `opts.like` of `get_lift_degs` / `lpi_ineq_sop` (`nx` 1058, same `gamma`;
+at heavy, where `R` has a degree-4 multiplier, `(2,3)` at `nx` 1881 against the stock 2377). At
+`(1,1)` the gain stays finite, `0.193093` with the product pair and `0.186930` with two faces. On a fixed target the rule holds (`examples/volterra_tailor`, Volterra
+norm `2/pi`): `D = 1`, excess `1.9e-4` at `w = 1` with the product pair (`nx` 126), `1.1e-6` with
+two faces (301), `3.2e-8` at `w = 2` with the product pair (326), `9.9e-9` with two faces (676);
+the stock-style pair at degree 2 gives `8.0e-9` at 883.
+
+
+**The coercive form, 1-D (`hinf_tailor_1d(...,'P')`, `PIETOOLS_Hinf_gain_coercive`: `P >= 0`
+at the storage degrees, `K33 = A'*P*T + T'*P*A`, no free operator).** A different picture. The
+stock `light` slack is short: `gamma = 0.1928`, 5.7% above the closed form, MOSEK status UNKNOWN
+(as the baseline suite recorded for this executive); the stock `heavy` slack is exact to 6.6e-7.
+Slacks with lift 1 diverge (objective to 1e6: under the margin `P >= eps I` the restricted program
+is infeasible); `(2,1)` doubles the gain. The reader on `K` is the right size here, because the
+support of `A'*P*T + T'*P*A` is that of the positive `P` at its declared degrees under
+composition: `(4,3)`, or `(4,2)` with `dw = 0`, reaches the floor of the light storage (1.1e-6 to
+1.4e-6 above the closed form) at `nx` 1786 against the stock `heavy` 2332; `like` (the reader on
+`P`, `(2,2)`) is 1.1e-5 above at `nx` 810; `(3,2)` and `(2,3)` are at the floor for 1246 and
+1426. The joint cap 3 costs 4e-3 here. With `P` at `heavy` the floor moves to 1e-7, so in the
+coercive form the storage binds at 1e-6, while the `Q` form stalls at 2.5e-6 with either `R`: that
+residual belongs to the `Q` form (free `Q` under the `get_lpivar_degs` caps, `T'*Q = R`), not to
+the slack. The two-component plant repeats every row.
+
+
+**The dual forms, 1-D.** `'Qd'` (`PIETOOLS_Hinf_gain_dual`: `T*Q = R`, `K33 = Q'*A' + A*Q`)
+behaves as the primal `Q` form but reaches the closed form: at light `R` the stock slack is 7.2e-5
+above, `like` (`(2,2)`) 2.7e-6 at `nx` 1058, `(2,3)` 1.5e-7 at 1858, `(2,2)` faces 2.8e-7 at
+2019, the reader on `K` (`(5,5)`) 1.1e-7 at 12410; at heavy every slack from `(2,2)` up is within
+2e-7. The 2.5e-6 floor is specific to the primal `Q` form. `'Pd'`
+(`PIETOOLS_Hinf_gain_dual_coercive`, `K33 = T*P*A' + A*P*T'`) is unusable on this plant as
+shipped: the stock executive returns `gamma = 8252` at light (as the baseline suite recorded), the
+container stock slack 10785 with status UNKNOWN, and every tailored slack from `(2,2)` to `(3,3)`
+(pair or faces) is reported primal infeasible at both storage levels.
+
+
+**2-D (`examples/hinf_tailor_2d`, io2 at light `R`, 10/08/2026).** No tailored slack admits a
+finite gain: `(1,1)`, `(2,1)`, `(1,2)` with four faces, `(2,2)` with the product pair (with and
+without a total-degree cap of 6) and `(2,2)` with four faces (`nx` 5.1e4 to 9.8e5) all end with
+MOSEK status UNKNOWN, residuals at 1e-9 and the objective running to 1e1-3e3 (the uncapped
+`(2,2)` faces run stalls at `gamma` 12.4). The stock light 2-D slack is `R`'s degrees + 3 in every
+slot (`Dup = 3`), a 1.5M-variable program stopped after 9 minutes, and the baseline suite (09/24)
+had found the stock 2-D executive on this plant 7.4x conservative with the same status. In the `Q` form the LPI gives no clean 2-D reference at any sizing tried; the heat benchmark
+(`PIETOOLS_demos/sopvar_demos/README.md` Sec. 12) and the coercive form below carry the 2-D
+evidence.
+
+
+**The coercive form in 2-D (`hinf_tailor_2d(...,'light','P')`, `P` at the stock light degrees
+plus the margin).** The reader on `P` (`like`) gives `(2,1)` per direction with four faces: `nx`
+1.1e5, `m` 2788, solved to optimality in 5 s, `gamma = 0.2665` (56% above the closed form). The
+product pair fails at `(2,2)`, `(3,2)`, `(2,3)` (UNKNOWN) and succeeds at `(3,3)`: `gamma =
+0.171777`, 0.40% above the closed form, `nx` 1.43e6, `m` 13659, 491 s. Four faces do what the product pair cannot: `(3,1)` 0.1974 (+15%) at `nx` 3.4e5 in 25 s;
+`(2,2)` `gamma = 0.171718`, 0.36% above the closed form, `nx` 5.6e5, `m` 5420, 57 s; with cap 6,
+0.171719 at `nx` 4.9e5 in 36 s. The stock light
+slack (`P`'s degrees + 3 in every slot, `nx` 7.6e5, `m` 13978) was stopped by the budget after
+459 s at iteration 14 (objective 0.34 and falling); the baseline suite (09/24) ran the stock
+executive on this plant to `gamma = 1.272` with status UNKNOWN in 283 s. The 2-D extrapolation
+rests on the coercive form: `like` gives a clean bound at a seventh of the stock size, and `like` with `dw = 2` (`(2,2)` with
+four faces) is within 0.36% at three quarters of it. In both dimensions the coercive form wants
+`like` with `dw = 2`: `(2,3)` in 1-D at the floor, `(2,2)` faces in 2-D.
+
 ### `sol = lpigetsol_sop(prog,X)`, `Psol = getsol_lpivar_sop(prog,P)`, `Xsol = subs_dvar_sop(X,names,vals)`
 
 These were written by the getsol agent. They are verified again here in the chain and

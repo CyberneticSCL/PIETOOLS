@@ -63,6 +63,9 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   'balance' the listing's rule: lpi_ineq sizes the positive variable by
 %             'degbalance' of the operator cancelled; container analogue
 %             'eq_opts_sopvar' + '@sdopvar/degbalance' (dp unused).
+%   'custom'  OPTS.Rdeg and OPTS.Qdeg, copquadvar degree specs used as      % MMP, 10/08/2026
+%             given (dp unused): R and Q sized from their targets by the    % MMP, 10/08/2026
+%             lift/weight rules of sopvar_lift_notes Sec. 7 (HEATND_TAILOR). % MMP, 10/08/2026
 % - OPTS.prune (default true): only the basis blocks that can reach the
 %   support of the cancelled operator ('eq_opts_sopvar'; lossless by its
 %   argument); 'balance' always prunes, as lpi_ineq excludes zero blocks.
@@ -88,6 +91,10 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   The 2N face terms are summed by one 'plus_batch' (10/01/2026); summed
 %   one 'plus' at a time, each re-merged the decision list: MEASURED 6.0 s
 %   of the 56.5 s Q stage in 3-D (review).
+% - OPTS.psatz_offset (default 0): the Psatz terms at 'int' reduced by this, % MMP, 10/08/2026
+%   floored at 0; a product term that would need 'int' < 0 is omitted. 1    % MMP, 10/08/2026
+%   with 'product' is the Markov-Lukacs pair S0 + g S1, deg S1 = deg S0 - 2 % MMP, 10/08/2026
+%   (sopvar_lift_notes Sec. 3). Only for 'int'/'mult' specs, not 'subset'.  % MMP, 10/08/2026
 % - OPTS.preset sets defaults, individual fields still override:
 %   'bench' (default) Tspan dp 0, linear;  'heavy' Tspan dp 1, linear;
 %   'listing' balance, none (the Sec. 7.1 listing as printed);
@@ -136,6 +143,11 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   instead of Z = Z + Zg per face: each '+' remapped the growing sum
 %   onto the union of the decision lists (O(N^2) block rows in the number
 %   of terms). Same program; see @cdopvar/plus_batch.
+% MMP, 10/08/2026: OPTS.RQ 'custom' (Rdeg, Qdeg given) and OPTS.psatz_offset,
+%   so that HEATND_TAILOR can size R and Q from their targets by the
+%   lift/weight rules and put the product term one degree below the plain
+%   term. Defaults reproduce every earlier program: 'custom' is never a
+%   preset and offset 0 is the former behaviour. Both enter the base key.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<5 || isempty(opts),   opts = struct();    end
@@ -155,7 +167,8 @@ switch opts.preset
     otherwise,          error('heatNd_lpi:preset','Unknown preset ''%s''.',opts.preset)
 end
 df = struct('Pbasis','paper','Pmult',true,'RQ',pr.RQ,'dp',pr.dp,'psatz',pr.psatz, ...
-            'psatzon','RQ','faces',[],'prune',true,'eq15a','split','base',[]);
+            'psatzon','RQ','faces',[],'prune',true,'eq15a','split','base',[], ...
+            'Rdeg',[],'Qdeg',[],'psatz_offset',0);                          % MMP, 10/08/2026
 fn = fieldnames(df);
 for i = 1:numel(fn),    if ~isfield(opts,fn{i}),    opts.(fn{i}) = df.(fn{i});  end,    end
 dp = opts.dp;   if isscalar(dp),    dp = [dp dp];   end
@@ -192,7 +205,15 @@ if isempty(opts.base)
     E1 = PT - ep^2*TT;                          % (15a) is E1 - R = 0
     t.compose = toc(t0);
     % % % R >= 0 sized on E1, Q >= 0 on X1 + X2 (support of X1 + k X2, k ~= 0).
-    dR = RQ_deg(pie,opts.RQ,dp(1));     dQ = RQ_deg(pie,opts.RQ,dp(2));
+%   dR = RQ_deg(pie,opts.RQ,dp(1));     dQ = RQ_deg(pie,opts.RQ,dp(2));     % MMP, 10/08/2026 (was)
+    if strcmp(opts.RQ,'custom')     % specs given, sized from the targets   % MMP, 10/08/2026
+        if isempty(opts.Rdeg) || isempty(opts.Qdeg)                         % MMP, 10/08/2026
+            error('heatNd_lpi:custom','RQ ''custom'' needs OPTS.Rdeg and OPTS.Qdeg.') % MMP, 10/08/2026
+        end                                                                 % MMP, 10/08/2026
+        dR = opts.Rdeg;     dQ = opts.Qdeg;                                 % MMP, 10/08/2026
+    else                                                                    % MMP, 10/08/2026
+        dR = RQ_deg(pie,opts.RQ,dp(1));     dQ = RQ_deg(pie,opts.RQ,dp(2)); % MMP, 10/08/2026
+    end                                                                     % MMP, 10/08/2026
     t0 = tic;   [prog,R] = posvar(prog,E1,vars,dom,opts,dR,contains(opts.psatzon,'R'));    t.R = toc(t0);
     t0 = tic;   [prog,Q] = posvar(prog,X1+X2,vars,dom,opts,dQ,contains(opts.psatzon,'Q')); t.Q = toc(t0);
     % % % (15a), in the form OPTS.eq15a.
@@ -212,10 +233,12 @@ if isempty(opts.base)
     t.eq15a = toc(t0);
     % Key without r: the base is r-independent (built from A0).
     base = struct('prog',prog,'X1',X1,'X2',X2,'Q',Q,'P',P,'R',R,'E1',E1,'nP',nP,'t',t, ...
-                  'key',{{N,pie.bc,pie.dom,d,ep,opts.Pbasis,opts.Pmult,opts.RQ,dp,opts.psatz,opts.psatzon,opts.faces,opts.prune,opts.eq15a}});
+                  'key',{{N,pie.bc,pie.dom,d,ep,opts.Pbasis,opts.Pmult,opts.RQ,dp,opts.psatz,opts.psatzon,opts.faces,opts.prune,opts.eq15a, ...
+                          opts.Rdeg,opts.Qdeg,opts.psatz_offset}});         % MMP, 10/08/2026
 else
     base = opts.base;   prog = base.prog;   nP = base.nP;   t = base.t;
-    if ~isequal(base.key,{N,pie.bc,pie.dom,d,ep,opts.Pbasis,opts.Pmult,opts.RQ,dp,opts.psatz,opts.psatzon,opts.faces,opts.prune,opts.eq15a})
+    if ~isequal(base.key,{N,pie.bc,pie.dom,d,ep,opts.Pbasis,opts.Pmult,opts.RQ,dp,opts.psatz,opts.psatzon,opts.faces,opts.prune,opts.eq15a, ...
+                          opts.Rdeg,opts.Qdeg,opts.psatz_offset})           % MMP, 10/08/2026
         error('heatNd_lpi:base','OPTS.base was built for different inputs.')
     end
 end
@@ -255,13 +278,20 @@ elseif opts.prune
 end
 [prog,Z] = poscopvar(prog,1,vars,dom,deg,po);
 if ~usepsatz,   return,     end
+% The Psatz terms at 'int' reduced by OPTS.psatz_offset (0: as before).     % MMP, 10/08/2026
+% Empty when a product term would need 'int' < 0: omitted, as the           % MMP, 10/08/2026
+% Markov-Lukacs pair has no S1 at w = 0.                                    % MMP, 10/08/2026
+degp = psatz_deg(deg,opts.psatz_offset);                                    % MMP, 10/08/2026
 switch opts.psatz
     case 'none'
     case 'product'
+        if isempty(degp),   return,     end                                 % MMP, 10/08/2026
         pp = po;    pp.psatz = 1;
-        [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pp);
+%       [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pp);                      % MMP, 10/08/2026 (was)
+        [prog,Zg] = poscopvar(prog,1,vars,dom,degp,pp);                     % MMP, 10/08/2026
         Z = Z + Zg;
     case 'linear'
+        if isempty(degp),   return,     end     % no face term below w = 0  % MMP, 10/08/2026
         % OPTS.faces: N x 2 logical, face (i,1) at a_i, (i,2) at b_i.
         fc = opts.faces;    if isempty(fc),     fc = true(N,2);     end
         % Face (i,e): poscopvar psatz 2i+1 (e=1) / 2i+2 (e=2), weight       % MMP, 09/27/2026
@@ -278,7 +308,8 @@ switch opts.psatz
 %               pg = po;    pg.gfun = gi{e};                                % MMP, 09/27/2026 (was)
 %               [prog,Zg] = heatNd_posw(prog,1,vars,dom,deg,pg);            % MMP, 09/27/2026 (was)
                 pg = po;    pg.psatz = 2*i+e;                               % MMP, 09/27/2026
-                [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pg);              % MMP, 09/27/2026
+%               [prog,Zg] = poscopvar(prog,1,vars,dom,deg,pg);              % MMP, 09/27/2026 % MMP, 10/08/2026 (was)
+                [prog,Zg] = poscopvar(prog,1,vars,dom,degp,pg);             % MMP, 10/08/2026
 %               Z = Z + Zg;                                                 % MMP, 10/01/2026 (was)
                 terms{end+1} = Zg;                                          % MMP, 10/01/2026
             end
@@ -288,6 +319,31 @@ switch opts.psatz
         error('heatNd_lpi:psatz','psatz is ''none'', ''product'' or ''linear''.')
 end
 end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function degp = psatz_deg(deg,off)                                          % MMP, 10/08/2026
+% The degree spec of a Psatz term: DEG with 'int' lowered by OFF, floored   % MMP, 10/08/2026
+% at 0; [] when some 'int' would go below 0 (no such term). A 'subset'      % MMP, 10/08/2026
+% spec (Tspan) is refused, since its caps would have to move with 'int'.    % MMP, 10/08/2026
+degp = deg;                                                                 % MMP, 10/08/2026
+if isempty(off) || off==0,  return,     end                                 % MMP, 10/08/2026
+if iscell(deg)                                                              % MMP, 10/08/2026
+    for i = 1:numel(deg)                                                    % MMP, 10/08/2026
+        degp{i} = psatz_deg(deg{i},off);                                    % MMP, 10/08/2026
+        if isempty(degp{i}),    degp = [];  return,     end                 % MMP, 10/08/2026
+    end                                                                     % MMP, 10/08/2026
+    return                                                                  % MMP, 10/08/2026
+end                                                                         % MMP, 10/08/2026
+if isnumeric(deg),  deg = struct('int',deg);    degp = deg;     end         % MMP, 10/08/2026
+if isfield(deg,'subset') && ~isempty(deg.subset)                            % MMP, 10/08/2026
+    error('heatNd_lpi:psatz_offset','psatz_offset is not defined for a ''subset'' spec.') % MMP, 10/08/2026
+end                                                                         % MMP, 10/08/2026
+w = deg.int;    if ~isfield(deg,'int') || isempty(w),   w = 1;  end         % MMP, 10/08/2026
+if any(w-off<0),    degp = [];  return,     end                             % MMP, 10/08/2026
+degp.int = w-off;                                                           % MMP, 10/08/2026
+if ~isfield(degp,'mult') || isempty(degp.mult),    degp.mult = w;   end     % MMP, 10/08/2026
+end                                                                         % MMP, 10/08/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

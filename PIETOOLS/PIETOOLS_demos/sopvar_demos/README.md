@@ -1160,3 +1160,56 @@ Open:
 - `heatNd_lindep` cannot be used on the 3-D faces families (memory).
 - Both maintainer questions of §10 are answered. The paper's Table 1 d = 0/1 rows, from
   an earlier PIETOOLS version, are not reproduced here either.
+
+## 12. Degree tailoring of R and Q (MMP, 10/08/2026)
+
+Question: does sizing R and Q by the lift/weight rules of the proof program (sopvar_lift_notes
+Sec. 7: lower-kernel support {min(i,j) <= D, max(i,j) <= D + 2w + 1}, multiplier degree <= 2w,
+lift D and weight w separate, the product Psatz term one degree below the plain term) reach the
+same certified rate as the stock presets with a smaller SDP? `heatNd_tailor(N,dlist,bopts,bc)`
+answers it: for every P degree d it bisects `bench` and `heavy`, reads Dmin, Dmax and the
+multiplier degree off the targets E1 and X1 + X2, and bisects the grid D = Dmin + {0,1},
+w = rule + {0,1}, Psatz none / product at w-1 / product at w / faces at w / faces at w-1, each
+R and Q from its own target, no joint cap. It uses two new `heatNd_lpi` options: `RQ 'custom'`
+(`Rdeg`, `Qdeg` copquadvar specs used as given) and `psatz_offset` (the Psatz terms at `int`
+reduced by it; with `product` and 1 this is the Markov-Lukacs pair S0 + g S1, deg S1 = deg S0 - 2).
+Defaults reproduce every earlier program. Measured 1-D, eps = 0.1, certified bisection, the
+decisive rows re-run at rtol 1e-6 (brackets end "uncertain" only because MOSEK returns UNKNOWN
+above lambda1, as in Sec. 6); nx = SDP variables, m = equality rows.
+
+**DD, kappa* = 9.869604.** `heavy` (int = mult = 2, joint cap 3, two face terms at the same degree)
+certifies 9.8695954 at nx 1854 / 1859 / 1866 and m 87 / 91 / 96 for d = 0 / 1 / 2. The same rate,
+to the last digit of the bisection, comes from R at (D,w) = (2,1), Q at (2,2) and the product term
+at w - 1: nx 820 / 825 / 832, m 78 / 82 / 87, i.e. 2.25 times fewer variables and 10% fewer rows at
+every d. Smaller variants fall short: R(2,1) Q(2,1) gives 9.8048 with the product pair and 9.8690
+(gap 6e-4, nx 1028) with two faces; R(2,1) Q(1,2) gives 9.8620; R(1,2) Q(2,2) gives 9.8695860
+(nx 853). Q is the binding operator and needs weight 2 with lift 2; R needs weight 1. The
+necessary conditions place D at Dmin = 1 and w at 1 for d = 1; the certificate needs D = 2 and,
+for Q, w = 2. The two-face form at the same degrees costs 1763 variables against 825 for the
+product pair. `bench` (9.7165 at d = 0, 1) is not improved at equal rate: the smallest tailored
+SDP reaching it is R(2,1) Q(2,1) with the product pair at d = 0 (9.8043, nx 428 against 495, but
+m 64 against 51).
+
+**DN, kappa* = 2.467401.** `bench` already certifies 2.467346 at nx 303 / 308 / 315 (its Tspan
+cap a + c <= 1 keeps 3 of the 4 monomials), and `heavy` the same rate at 1110 to 1122. The
+tailored R = Q = (1,1) with the product pair reaches 2.467195 (gap 2.1e-4) at nx 213, m 44 at
+d = 1; nothing smaller than `bench` reaches 2.467346.
+
+Without any Psatz term no configuration certifies a rate (as Sec. 6 for `listing`); a product
+term at w = 0 does not exist and a face term at w - 1 = 0 certifies nothing in DD.
+
+**2-D, DD x DN, kappa* = 12.337006, d = 0 (10/08/2026, rtol 1e-4, tmax 150-200 s per bisection).**
+`bench` certifies 12.183764 (gap 0.153) at nx 40409, m 1242; `heavy` 12.336731 (gap 2.7e-4) at
+nx 565209, m 4282. The 1-D pattern does not carry over as such: with Q at (D,w) = (2,2) per
+direction the product pair certifies nothing (R at w = 1) or 1.5 (R at w = 2), as Sec. 3 found
+for the product generator; the faces are needed. Uncapped faces at w - 1 with Q at weight 2 reach
+12.335223 (gap 1.8e-3) at nx 339209 to 360009 whatever R is (R at (1,1) weight 1 suffices), and
+uncapped faces at w with Q at weight 2 give nx 1036809, beyond the budget. What does carry over is
+the split between the two operators: R at the `bench` degrees (Tspan dp 0) with Q at the `heavy`
+degrees (Tspan dp 1), faces at the same degree, certifies heavy's 12.336731 at nx 392409, m 2884,
+i.e. 31% fewer SDP variables and 33% fewer rows than `heavy`; the reverse split gives bench's
+12.183 (Q binds, R does not), and the faces on Q only certify nothing (as Sec. 3). So in 2-D the
+stock graded basis (the Tspan subset caps) is what keeps the degree-2 face terms affordable, and
+the saving comes from giving Q and R different degrees, not from the Markov-Lukacs pair.
+`heatNd_tailor` runs the grid per direction (support_degrees, rule per direction); the split
+configurations were run directly with `RQ 'custom'` and the Tspan specs of `RQ_deg`.
