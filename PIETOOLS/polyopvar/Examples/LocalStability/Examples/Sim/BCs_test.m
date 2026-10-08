@@ -1,4 +1,4 @@
-function [pass, err] = BCs_test(U, BC)
+function [pass, err, tol] = BCs_test(U, BC)
 %BCS_TEST Test whether simulation data satisfies specified boundary conditions.
 %
 %   [pass, err] = BCs_test(U, BC)
@@ -29,6 +29,9 @@ function [pass, err] = BCs_test(U, BC)
 %
 %       err:
 %           Structure containing the maximum error at each boundary.
+%
+%       tol:
+%           Aceptable tolerance on of test.
 %
 %   Example:
 %

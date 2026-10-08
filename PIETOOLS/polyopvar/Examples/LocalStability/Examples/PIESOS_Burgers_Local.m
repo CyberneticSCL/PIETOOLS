@@ -23,7 +23,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% CR, 09/01/2026: Initial coding
+% CR, 10/07/2026: Initial coding
 
 % Local stability test script.
 
@@ -43,12 +43,18 @@ PDE = [diff(x,t)==v*diff(x,s,2)+r*x-x*diff(x,s);
 n = 2; % degree of PDE.
 
 % Treated as eppos^2, the lower bound on SOS LF.
-eppos = 0.1;
+eppos = 1.0;
 
 % (n+1)-dim array containing parameters of weighted Sobolev ball.
 alpha = [1, 0, 0]; % [1,0,0] for L2 ball.
 
-% radius of local ball - we should have stability for any rad>0.
+% Radius of local ball experiments with eppos=1.0; alpha = [1, 0, 0]; lambda = 0.
+% rad=10000.0 passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
+% rad=1000.0  passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
+% rad=100.0   passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
+% rad=10.0    passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
+% rad=1.0     passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
+% rad=0.1     passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
 rad = 1.0;
 
 % exponential decay rate.
@@ -57,7 +63,7 @@ lambda = 0;
 % Declare degrees of dist mon basis for SOS LF and p1, p2 multipliers 
 % (respectively). Degree will be doubled when converted from quadratic 
 % to linear format.
-dist_degs = [1, 1, 1];
+dist_degs = [1, 0, 1];
 
 % Declare monomial degrees in independent variables used to respectively parametrize
 % LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.
