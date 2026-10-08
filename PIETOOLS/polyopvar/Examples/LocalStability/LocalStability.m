@@ -88,8 +88,8 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % Define weighted sobolev ball of radius r.
     g = Weighted_Sobolev_Ball(r, alpha, Top, x);
      
-    % Define (negated) term related to lower and upper bounds.
-    bound = Weighted_Sobolev_Ball(0.0, alpha, Top, x);
+    % Define term related to lower and upper bounds.
+    bound = r^2 - g;
     
     fprintf(" --- Weighted Sobolev ball declared ---\n");
 
@@ -100,7 +100,7 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     %% Define lower bound on the LF and enforce constraint.
 
     % Define global lower bound on V.
-    V_low = V + eppos*bound; % bound term is already negated.
+    V_low = V - eppos*bound;
 
     % Obtain kernel degree of V_low (not same as V_deg due to T) to use for 
     % defining sos1 of equal degree.
@@ -124,9 +124,9 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % Declare p1 as SOS DP and define upper bound on V.
     if p1_mon>0
         [prog, p1, ~, ~] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
-        V_up = -C*bound - V - polyopvar_times_v2(p1,g); % bound term already negated.
+        V_up = C*bound - V - polyopvar_times_v2(p1,g);
     elseif p1_mon==0
-        V_up = -C*bound - V;
+        V_up = C*bound - V;
     else
         error('LocalStability:p1_mon>=0.');
     end

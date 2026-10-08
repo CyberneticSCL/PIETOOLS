@@ -38,7 +38,8 @@ U = zeros(Nx,Nt);
 % Initial condition - assumes BCs are satisfied.
 U(:,1)   = u0(x)';
 
-% Time stepping (explicit Euler).
+% Time stepping (explicit Euler) with spatial loop defined to satisfy 
+% Dirichlet BCs.
 for n = 1:Nt-1
     for i = 2:Nx-1
         ux  = (U(i+1,n) - U(i-1,n))/(2*dx);

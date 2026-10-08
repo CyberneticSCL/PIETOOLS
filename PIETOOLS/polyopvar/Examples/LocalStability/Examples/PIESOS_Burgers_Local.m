@@ -23,7 +23,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% CR, 09/01/2026: Initial coding
+% CR, 10/07/2026: Initial coding
 
 % Local stability test script.
 
@@ -55,7 +55,7 @@ alpha = [1, 0, 0]; % [1,0,0] for L2 ball.
 % rad=10.0    passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
 % rad=1.0     passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
 % rad=0.1     passed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=0 and feasratio=1.00.
-rad = 0.1;
+rad = 1.0;
 
 % exponential decay rate.
 lambda = 0;

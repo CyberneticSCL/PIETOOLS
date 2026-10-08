@@ -1,6 +1,6 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - PIESOS_Fishers_Local.m
+% PIETOOLS - PIESOS_Heat_Local.m
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -23,7 +23,7 @@
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% CR, 10/07/2026: Initial coding
+% CR, 10/08/2026: Initial coding.
 
 % Local stability test script.
 
@@ -31,15 +31,15 @@ clear all; clear stateNameGenerator; close all; clc;
 
 % 1. Define PDE and local stability parameters.
 
-% Fisher Equation.
+% Semilinear Heat Equation.
 pvar s t
-dom = [0,1];
-u   = pde_var(s,dom);
-alp = 5;
-bet = -1;
-PDE = [diff(u,t)==diff(u,s,2) + alp*u - bet*u^2;
-       subs(u,s,dom(1))==0;
-       subs(u,s,dom(2))==0];
+dom  = [0,1];
+L    = dom(2);
+x    = pde_var(s,dom);
+a0   = 1.0;
+k    = 2*a0*pi^2 / L^2;
+PDE  = [diff(x,t) == a0*diff(x,s,2) + x^2 - (k/L)*int(x,s,dom(1),dom(2));
+       subs(diff(x,s,1),s,dom(1))==0; subs(x,s,dom(2))==0];
 
 n = 2; % degree of PDE.
 
@@ -47,26 +47,14 @@ n = 2; % degree of PDE.
 eppos = 1.0;
 
 % (n+1)-dim array containing parameters of weighted Sobolev ball.
-alpha = [1, 0, 0];
+alpha = [0, 1, 0]; % [0,1,0] for L2 ball on x_s.
 
-% Radius of local ball experiments with eppos=1.0; alpha = [1, 0, 0]; lambda = 0.
-% rad=4.0   passed with dist_degs=[1,0,1], mon_degs=[3,0,4] --> numerr=0 and feasratio=1.00.
-% rad=4.125 passed with dist_degs=[1,0,1], mon_degs=[4,0,5] --> numerr=0 and feasratio=1.00. ---> should fail.
-% rad=4.125 failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9863.
-% rad=4.25  failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9999.
-% rad=4.5   failed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=2 and feasratio=0.9966.
-% rad=4.1   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00. ---> should fail.
-% rad=4.0   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00. ---> should pass.
-% rad=3.9   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
-% rad=3.5   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
-% rad=2.5   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
-% rad=1.0   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
-% rad=0.5   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
-% rad=0.1   passed with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr=0 and feasratio=1.00.
-% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,4] --> numerr=0 and feasratio=-0.02.
-% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,3] --> numerr=2.
-% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=2.
-rad = 0.1; 
+% Radius of local ball experiments with eppos=1.0; alpha = [0, 1, 0]; lambda = 0.
+% rad=0.1    with dist_degs=[1,0,1], mon_degs=[4,0,4] --> numerr= and feasratio=.
+% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,4] --> numerr=2 and feasratio=-0.11.
+% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,3] --> numerr=2 and feasratio=0.02.
+% rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=2 and feasratio=-0.36.
+rad = 0.1;
 
 % exponential decay rate.
 lambda = 0;
@@ -78,7 +66,7 @@ dist_degs = [1, 0, 1];
 
 % Declare monomial degrees in independent variables used to respectively parametrize
 % LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.
-mon_degs = [3, 0, 4];
+mon_degs = [4, 0, 4];
 
 % Run local stability test.
 % C can be passed in as optional final argument if it is fixed.
@@ -91,4 +79,3 @@ if ~isempty(res)
     dV    = res{4};
     Pcell = res{5};
 end
-
