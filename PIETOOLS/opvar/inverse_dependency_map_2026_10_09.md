@@ -262,3 +262,157 @@ and any edit of the stock routines (SS, DJ files).
 
 Not changed: the fit error of `R0^{-1}` in `inv_opvar` is still not checked; the stock
 `getObserver` keeps `inv(P,1e-5)`.
+
+## 8. Controller gains without an explicit inverse
+
+### 8.1 The P formulation: `getController_direct_sop` (implemented)
+
+Setting. Cor. 14 of arXiv 2208.13104: the LPI returns `P = P* ⪰ ηI` on `R^k x L2^m[a,b]`
+and `Z: R^k x L2^m -> R^nu`; the controller is `u = Z P^{-1} x`, `x = [x1; x2(.)]` the
+fundamental state. `P^{-1}` is bounded, and (Lemma 16 / Cor. 17) its L2 block has the
+pointwise form `Rh0(s) = R0(s)^{-1}`, `Rh(s,t) = M(s)(I - Pg)N(t)` for `t <= s`,
+`-M(s)Pg N(t)` for `t > s`, with `M = CU`, `N = VBR0^{-1}` the solutions of two linear ODEs.
+
+Construction (the analogue of Cor. 11 of arXiv 1806.08071, where the delay gains
+`K_0`, `K_{1i}`, `K_{2i}(s)` are written with `S_i(s)^{-1}` only pointwise and the
+matrices `O_i` by quadrature). Write `P = [Pm Q1; Q2 R]`, `Z = [Z1 Z2]`, and let
+`E(s) = int_a^s Z2 M`, `F(s) = int_a^s Q1 M`, `Y(s) = int_a^s N Q2`, integrated by the
+same RK4 as `U`, `V` (augmented linear systems, `sopvar/misc/gk_grid.m`). Then
+`(Z2 Rh)(s) = Z2 Rh0 + [(E(b) - E(s))(I - Pg) - E(s)Pg] N(s)`, likewise `(Q1 Rh)(s)`,
+`(Rh Q2)(s) = Rh0 Q2 + M(s)[(I - Pg)Y(s) - Pg(Y(b) - Y(s))]`, the Schur complement
+`T = Pm - int Q1 (Rh Q2)` and `J = int Z2 (Rh Q2)` by Simpson, and
+`u = K1 x1 + int_a^b K2(s) x2(s) ds` with `K1 = (Z1 - J)T^{-1}`,
+`K2(s) = (Z2 Rh)(s) + (J - Z1)T^{-1}(Q1 Rh)(s)`. Plain reading: every matrix is an
+integral of grid values, the distributed gain is a function of one variable on the grid,
+and nothing of `P^{-1}` is ever stored. `K.apply(x1,x2)` evaluates `u` by quadrature;
+`K.op` is the one polynomial fit (of `K2`, Chebyshev least squares, residual reported) that
+`closedLoopPIE` and PIESIM need. The construction uses only: `R0(s)` invertible on
+`[a,b]`, `U22(b)` invertible, `T` invertible. Coercivity is not used by the algebra; it is
+what guarantees the three conditions.
+
+Measured: Sec. 8.3.
+
+### 8.2 The QT formulation: a method without inverting Q (proposal)
+
+Setting. Cor. 15 of arXiv 2208.13104: the LPI returns `Z` and a PI operator `Q` with
+`T Q = Q* T* =: R ⪰ 0`, and the controller is written `u = Z Q^{-1} x`. `Q` is not
+self-adjoint and `<x, Qx>` has no sign. **`Q` need not have a multiplier**, and the LPI
+does not give it one (Sec. 8.4): `Q` is declared by `lpivar` with every parameter free,
+and the equality `TQ = R` constrains the multiplier `Q0` only through the kernel
+identity. Three cases for the multiplier, with what they mean for `Q^{-1}`:
+- `Q0(s)` invertible for every `s` in `[a,b]`: `Q = Q0 (I + Q0^{-1} K)` with `K` compact,
+  a Fredholm operator of index 0, boundedly invertible on `L2` iff injective iff `U22(b)`
+  of Lemma 16 is invertible. This, and only this, is the case where `Q^{-1}` is a bounded
+  operator on `L2`, and Cor. 15's hypothesis "Q invertible" is this case.
+- `Q0 ≡ 0`: `Q` is an integral operator with a bounded kernel on a bounded interval,
+  hence Hilbert-Schmidt, hence compact; it has no bounded inverse on `L2`. If it is
+  injective, `Q^{-1}` exists on `range(Q)`, a subspace of smoother functions (for the
+  Volterra integral, `H^1` with a zero boundary value), and is a differential-type
+  operator. `Z Q^{-1}` may still be bounded there, and is then in general not a PI
+  operator (integration by parts leaves boundary evaluations).
+- `Q0(s0)` singular at some point: multiplication by `Q0` has 0 in its essential
+  spectrum, which a compact perturbation does not move; no bounded inverse on `L2`.
+The two routes below use NO multiplier and NO inverse; they need only that `Q` be
+injective, which is the minimal content of "Q invertible" that survives.
+
+**Claim A (the closed loop in the coordinates the LPI is written in).** Let `T, A, B1,
+B2, C, D1, D2` be the PIE operators and `Q` injective, and define `R = TQ`. Consider
+```
+∂_t(R ξ) = (A Q + B2 Z) ξ + B1 w,     z = (C Q + D2 Z) ξ + D1 w,     u = Z ξ.      (QT-CL)
+```
+(i) The LPI of Cor. 15 is Theorem 12(b) of the same paper applied to the PIE `(QT-CL)`
+with the Theorem's operator equal to the identity: `T̃ Q̃* = R̃` reads `R = R`, which holds
+with `R = R*` since `TQ = Q*T*`, and the Theorem's inequality is Cor. 15's inequality
+term for term. So the gain bound `||z|| <= γ||w||` holds for `(QT-CL)` with no inverse and
+no multiplier (given that `(QT-CL)` is a PIE in the sense of the Theorem, i.e. that `R`,
+a composition of PI operators, is admitted as its `T`). (ii) For every solution `ξ` of
+`(QT-CL)`, `x := Qξ` satisfies `∂_t(Tx) = Ax + B1 w + B2 u`, `z = Cx + D1 w + D2 u` with
+`u = Zξ`, by `TQ = R`; conversely a solution `x` of the closed loop with `x(t)` in
+`range(Q)` for all `t` gives `ξ = Q^{-1}x` solving `(QT-CL)`. Plain reading: `(QT-CL)` IS
+the closed loop; `Q^{-1}` is needed only to write `u` as a function of `x`, and when `Q`
+has no multiplier the closed loop is defined on `range(Q)` only, a Sobolev-type space,
+which is the correct domain of `Z Q^{-1}`. What simulation needs: `R` in the role of
+`T`. `R = TQ` is a PI operator (composition), self-adjoint, positive definite: `R ⪰ 0`
+by the LPI and `Ry = 0` implies `TQy = 0`, hence `Qy = 0` since `T` is injective, hence
+`y = 0`. Its Galerkin matrix on any finite basis is therefore symmetric positive
+definite, for every `N`, whether or not `Q` has a multiplier; PIESIM's implicit step is
+a Cholesky solve as for `T_N`; `ξ(0)` is one such solve, `R_N ξ_0 = (T x_0)_N`; `x = Qξ`
+and `v = Tx = Rξ` are compositions. Limit: `R` is compact (no multiplier, because `T` has
+none), so `cond(R_N)` grows with `N` as `cond(T_N) cond(Q_N)` roughly (Sec. 8.4: 1.6 x
+`cond(T_N)` when `Q` has a multiplier; a further power of `N` when it does not).
+
+**Claim B (feedback from the PDE state, one SPD solve).** Let `v = Tx` be the PDE state
+with `x` in `range(Q)`. Then `ξ = Q^{-1}x` is the unique solution of `R ξ = v`.
+Justification: `Rξ = TQξ = Tx = v` gives existence; `Rξ' = v` gives `T(Qξ' - x) = 0`,
+hence `Qξ' = x` by injectivity of `T`, hence `ξ' = ξ` by injectivity of `Q`. Plain
+reading: the control law is "solve the self-adjoint positive-definite equation `Rξ = v`,
+then `u = Zξ`"; the right-hand side is consistent on the closed-loop trajectories, and
+the discretized law is `u = Z_N R_N^{-1} v_N` (or `K_N = Z_N R_N^{-1} T_N` on
+fundamental-state coefficients) with `R_N` SPD. Nothing pointwise in `Q0(s)` is
+inverted and no kernel is fitted. `pie_disc_sop` already builds the Legendre-Galerkin
+matrix of any 1-D opvar, so `K_N` is three calls and one Cholesky solve. If a kernel
+`K2(s)` is wanted for `closedLoopPIE`, sample `sum_j K_N(:,j) p_j(s)` on the Gauss grid
+and fit it once (as 8.1 does), checking convergence by comparing `N` and `N + 8`. For
+`x` outside `range(Q)` (a `Q` without multiplier and a rough `x`) the equation has no
+solution and the Galerkin solve returns the projection: this is the regularization the
+discretization imposes, and it must be reported, not hidden.
+
+**Claim C (the only route that needs a multiplier).** The construction of 8.1 applied
+to `(Q, Z)` is valid exactly in the first case above: `Q0(s)` invertible on `[a,b]` and
+`U22(b)` invertible (and, with an R^k block, the Schur complement invertible);
+coercivity is not used. `gk_grid` now errors on a singular `Q0(s)` at any node and
+reports `rcondU22`, so admissibility is a cheap test. Justification: Lemma 16 and Lemma
+18 of arXiv 2208.13104 are stated for invertibility, not coercivity, and the Fredholm
+argument above says bounded invertibility on `L2` is equivalent to these two conditions.
+Measured on the test plant (Sec. 8.4): admissible, residual 1.7e-9. In general it cannot
+be assumed, and the gains should be built by Claims A and B, which do not need it.
+
+Recommendation. Implement the QT controller as Claim A for simulation and certification
+(a `closedLoopPIE` variant that returns the `(QT-CL)` PIE: three compositions) and as
+Claim B for a gain on the PDE state (`getController_galerkin_sop(Q, Z, T, N)` on
+`pie_disc_sop` matrices). Claim C is a diagnostic only. Neither A nor B needs `Q^{-1}`
+as an operator or a multiplier in `Q`; both reduce to exact PI algebra plus one SPD
+solve. What was assumed before this revision: the first version of this section took
+"Q invertible" as bounded invertibility on `L2`, which presumes an invertible
+multiplier; Claims A and B are restated above without it.
+
+### 8.4 The structure of Q in the code, measured
+
+Declaration. Every Q-form executive (`PIETOOLS_Hinf_gain`, `_dual`, `H2_norm_c`, `_o`,
+`PIE2PDEstability`; container `hinf_build_sop` forms 'Q', 'Qd', `h2_build_sop` 'c', 'o')
+declares `Qop = lpivar(prog, Top.dim, Qdeg)` with `Qdeg = get_lpivar_degs(Rop, Top)`, a
+full 4-PI decision operator: the multiplier `R0` of degree `Qdeg(1)` in `s`, kernels
+`R1 ~= R2` of degrees `Qdeg(2:3)`, and the `P`, `Q1`, `Q2` blocks when an R^k space
+exists; the container form uses `lpivar_cdopvar` with the same roles (`mult`, `int`,
+`out`, `in`). Nothing requires the multiplier to be nonzero or invertible; it is a free
+decision variable constrained through `TQ = R` (dual) or `T*Q = R` (primal) and the
+inequality. The equality forces the multiplier of the positive operator `R` to zero
+(`T` has none): the solved `R` has `max|R0| = 9e-10`, i.e. the solver zeroes the
+multiplier Gram block of `poslpivar`.
+
+Solved `Q` on the test plant (reaction-diffusion with `s(1-s)` on `w`, light, MOSEK,
+`Qdeg = [2 4 3]`, `Q.dim = [0 0; 1 1]`):
+
+| form | gamma | `Q0(s)` on [0,1] | kernels | `cond(Q_N)` | `cond(R_N)`, `R = TQ` | `cond(T_N)` | solve `R_N ξ = v_N` |
+|---|---|---|---|---|---|---|---|
+| dual `TQ = R` (synthesis form) | 0.03333238 | degree 2, in [-1.243, -1.230], no sign change | degree 3, `R1 ~= R2`, max 1.88 | 1.61 (N 8..32) | 8.1e2, 7.8e3, 3.3e4, 9.4e4 at N = 8, 16, 24, 32 | 5.0e2, 4.8e3, 2.0e4, 5.8e4 | 1e-13 relative |
+| primal `T*Q = R` | 0.03333235 | degree 2, in [-0.310, -0.307] | degree 3, max 0.47 | 1.61 | 8.1e2 .. 9.4e4 | the same | 1e-13 |
+
+On this plant `Q` has a uniformly negative multiplier, so `Q` is boundedly invertible
+on `L2` (`gk_grid`: `rcondU22` 0.023, the Gohberg-Krein inverse of `Q` has residual
+1.7e-9) and Claim C applies; the negative multiplier is the `||v_s||^2` part of the
+storage function (`Q = -I` gives `V = ||v_s||^2` for the heat equation in the paper's
+own example). This is a property of this solution, not of the formulation: a plant
+whose optimal storage needs no such term can return `Q0 = 0` or a `Q0` that changes
+sign, and only Claims A and B then apply. `R_N` is SPD at every `N` in both forms
+(`|R_N - R_N'|` 4e-10, smallest eigenvalue 2e-6 at N = 32), as Claim A says.
+
+### 8.3 Measured (direct construction, `Test_copvar_inv(false)`, 19 checks, 10/09/2026)
+
+| case | direct vs `Z*inv(P)` | fitted `K.op`: `|K P - Z|/|Z|` (fit degree, residual) | other |
+|---|---|---|---|
+| c7, `P` on `R^2 x L2^2`, `Z: R^2 x L2^2 -> R^2` | `K1` 2.2e-11, `K2` on the grid 1.9e-9 relative | 2.6e-9 (d 8, 9.2e-10) | `apply` vs quadrature of the inverse route 6.6e-12; `cond T` 1.3; 0.07 s |
+| solved `P`, `Z` of `Hinf_control_sop` on the test plant | `K2` 5.7e-11 relative | 9.8e-9 (d 10, 8.2e-9) | closed-loop numerical gain 0.03286346 = that of the inverse route, below gamma 0.03286578 |
+
+The refactored `@sopvar/inv` (grid and fit shared with the direct route) reproduces
+every number of Sec. 6.

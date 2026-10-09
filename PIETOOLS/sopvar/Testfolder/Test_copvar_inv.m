@@ -70,6 +70,26 @@ for c = 1:numel(cases)
         n = check(n,dR<1e-5,sprintf('   vs inv_opvar_2: max parameter difference on the grid %.2e',dR));
     end
 end
+% (e) the direct construction (no inverse object) against the inverse route,
+%     on the 4-PI operator c7 with a free operator Z: R^2 x L2^2 -> R^2
+opvar Zc; Zc.I = [0,1]; Zc.var1 = s; Zc.var2 = s_dum;
+Zc.P = [1, 0.5; 0, 2];   Zc.Q1 = [s, 1; 0.5*s^2, 2*s];
+Pc = cases{7}{2};
+t0 = tic;   [Kd,infod] = getController_direct_sop(Pc,Zc);    tk = toc(t0);
+Ki = copvar2opvar(getController_sop(Pc,Zc));
+dP = max(abs(Kd.P - double(Ki.P)),[],'all');
+q = zeros(size(Kd.Q1));
+for i = 1:numel(Kd.s),  q(:,:,i) = double(subs(Ki.Q1,s,Kd.s(i)));    end
+dQ = max(abs(q(:) - Kd.Q1(:)))/max(abs(Kd.Q1(:)));
+zmax = opres(Zc,sg);
+rKd = opres(Kd.op*Pc - Zc,sg)/zmax;
+x1 = [0.3; -0.2];   x2 = @(t) [sin(pi*t); t.^2];
+u1 = Kd.apply(x1,x2);
+u2 = double(Ki.P)*x1;
+for i = 1:numel(Kd.s),  u2 = u2 + Kd.w(i)*(double(subs(Ki.Q1,s,Kd.s(i)))*x2(Kd.s(i)));   end
+n = check(n,dP<1e-8 && dQ<1e-7 && rKd<1e-6 && max(abs(u1-u2))<1e-8 && isa(Kd.c,'copvar'), ...
+    sprintf('direct gains on c7: %.2f s; K1 vs Z*inv(P) %.1e, K2 on the grid %.1e (rel), |K P - Z|/|Z| of the fitted opvar %.1e (fit d %d relrms %.1e), apply vs quadrature of the inverse route %.1e, condT %.2g', ...
+    tk,dP,dQ,rKd,Kd.fit.d,Kd.fit.relrms,max(abs(u1-u2)),infod.condT));
 % (c) identity and a pure matrix
 Pm = opvar2copvar(mat2opvar(eye(3),[1;2],[s,s_dum],[0,1]));
 Pinv = inv(Pm);     E = copvar2opvar(Pm*Pinv) - mat2opvar(eye(3),[1;2],[s,s_dum],[0,1]);
@@ -100,6 +120,16 @@ if ~quick
     n = check(n,isa(info.G,'copvar') && isa(K,'opvar') && rK<1e-6 && W.gain<=gam*(1+1e-6), ...
         sprintf('Hinf_control_sop: gamma %.7g, closed-loop numerical gain %.7g; |K P - Z|/|Z| %.1e (stock getController %.1e), K vs stock rel %.1e, inverse d %d relrms %.1e', ...
         gam,W.gain,rK,rKst,dK,info.inv.d,max(info.inv.relrms)));
+    % the direct construction on the solved P, Z against the inverse route
+    Kd = getController_direct_sop(P,Z);
+    q = zeros(size(Kd.Q1));
+    for i = 1:numel(Kd.s),  q(:,:,i) = double(subs(K.Q1,s,Kd.s(i)));    end
+    dQ = max(abs(q(:) - Kd.Q1(:)))/max(abs(Kd.Q1(:)));
+    rKd = opres(Kd.op*P - Z,sg)/zmax;
+    Wd = pie_witness_sop(closedLoopPIE(PIE,Kd.op),'gain',struct('N_cheb',24));
+    n = check(n,dQ<1e-7 && rKd<1e-6 && Wd.gain<=gam*(1+1e-6), ...
+        sprintf('   direct gains: K2 vs inverse route %.1e (rel), |K P - Z|/|Z| %.1e (fit d %d relrms %.1e), closed-loop numerical gain %.7g', ...
+        dQ,rKd,Kd.fit.d,Kd.fit.relrms,Wd.gain));
     [~,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,st);
     Lst = getObserver(P,Z);
     zmax = opres(Z,sg);
