@@ -30,7 +30,9 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                10/08/2026, README);
 %   deg          a degree specification for 'poscopvar_direct' used as
 %                given instead of the reader's (then psatz, psatz_offset
-%                as given, default [0 1] with [0 1] in 1-D, faces in N-D);
+%                as given, default [0 1] with [0 1] in 1-D, the faces at
+%                w-1 in N-D when every weight is at least 2, at w
+%                otherwise: GET_LIFT_DEGS 'auto', changed 10/08/2026);
 %   prune        logical (default true): restrict the basis operators of
 %                each L2 space to those that can reach the support of the
 %                diagonal block of P ('eq_opts_sopvar', lossless by its

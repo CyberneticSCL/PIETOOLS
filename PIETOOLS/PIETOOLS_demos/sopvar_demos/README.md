@@ -1213,3 +1213,20 @@ stock graded basis (the Tspan subset caps) is what keeps the degree-2 face terms
 the saving comes from giving Q and R different degrees, not from the Markov-Lukacs pair.
 `heatNd_tailor` runs the grid per direction (support_degrees, rule per direction); the split
 configurations were run directly with `RQ 'custom'` and the Tspan specs of `RQ_deg`.
+
+**The tensor term set against the faces (10/08/2026, later).** `heatNd_lpi` psatz `'tensor'`: the
+Markov-Lukacs tensor set, each box quadratic `(th_i - a_i)(b_i - th_i)` at `int - offset` in its own
+direction and their product at `int - offset` in every direction (`poscopvar_direct` codes `2N+2+i`
+and 1). 2-D DD x DN, d = 0, R (1,1), Q (2,2) uncapped, certified bisection with a 200 to 400 s budget:
+
+| terms | kappa certified | gap to kappa* | nx | m | solves |
+|---|---|---|---|---|---|
+| faces at w - 1 | 12.336731 | 2.7e-4 | 339209 | 4002 | 16, 192 s |
+| tensor at w - 1 | 12.326178 | 1.1e-2 | 395785 | 4002 | 15, 390 s |
+| tensor at w | 6.17 after 2 solves | | 762889 | 7126 | budget |
+
+The faces at w - 1 reach heavy's 12.336731 (the earlier record of 12.335223 for this configuration
+was the smaller solve budget) at 339209 variables, below the split configuration (392409) and
+`heavy` (565209); the tensor set is larger and certifies less. The same holds on the 2-D coercive
+H-infinity slack (`lpi_programming_sopvar/README.md`, `lpi_ineq_sop`). The N-D default of
+`get_lift_degs` is now faces at w - 1 whenever every weight is at least 2.

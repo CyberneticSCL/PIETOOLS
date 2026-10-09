@@ -88,6 +88,15 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %             infeasible at 0.5 k* in 2-D here, as for stock);
 %   'none'    Cor. 35 as printed (no Psatz term). MEASURED: certifies no
 %             rate in 1-D or 2-D at practical degree, as the stock listing.
+%   'tensor'  the Markov-Lukacs tensor set: g_i = (th_i-a_i)(b_i-th_i)     % MMP, 10/08/2026
+%             alone in direction i and the product of all g_i, each at     % MMP, 10/08/2026
+%             'int' lowered by OPTS.psatz_offset in the directions it acts % MMP, 10/08/2026
+%             in (poscopvar_direct codes 2N+2+i and 1); in 1-D with offset % MMP, 10/08/2026
+%             1 it is the 'product' pair. MEASURED 2-D DD x DN, d = 0,     % MMP, 10/08/2026
+%             R (1,1), Q (2,2) uncapped: faces at w-1 certify 12.336731 at % MMP, 10/08/2026
+%             nx 339209, the tensor set at w-1 12.326178 at nx 395785 in   % MMP, 10/08/2026
+%             twice the time, the tensor set at w nx 762889; it loses to   % MMP, 10/08/2026
+%             'linear' with psatz_offset 1 (README Sec. 12).               % MMP, 10/08/2026
 %   The 2N face terms are summed by one 'plus_batch' (10/01/2026); summed
 %   one 'plus' at a time, each re-merged the decision list: MEASURED 6.0 s
 %   of the 56.5 s Q stage in 3-D (review).
@@ -143,6 +152,9 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   instead of Z = Z + Zg per face: each '+' remapped the growing sum
 %   onto the union of the decision lists (O(N^2) block rows in the number
 %   of terms). Same program; see @cdopvar/plus_batch.
+% MMP, 10/08/2026: OPTS.psatz 'tensor' (the Markov-Lukacs tensor set through
+%   poscopvar_direct's single-direction quadratic codes), to test it against
+%   the faces on the 2-D benchmark before it becomes the N-D default.
 % MMP, 10/08/2026: OPTS.RQ 'custom' (Rdeg, Qdeg given) and OPTS.psatz_offset,
 %   so that HEATND_TAILOR can size R and Q from their targets by the
 %   lift/weight rules and put the product term one degree below the plain
@@ -315,8 +327,19 @@ switch opts.psatz
             end
         end
         Z = plus_batch(terms{:});                                           % MMP, 10/01/2026
+    case 'tensor'                                                           % MMP, 10/08/2026
+        % Markov-Lukacs tensor set (sopvar_lift_notes Sec. 9): g_i =        % MMP, 10/08/2026
+        % (th_i-a_i)(b_i-th_i) alone in direction i at 'int' lowered by the % MMP, 10/08/2026
+        % offset in that direction only, and the product of all g_i at      % MMP, 10/08/2026
+        % 'int' lowered in every direction: poscopvar_direct codes 2N+2+i   % MMP, 10/08/2026
+        % and 1 in one call. A 'subset' spec takes offset 0 only.           % MMP, 10/08/2026
+        pt = po;    pt.psatz = [2*N+2+(1:N), 1];                            % MMP, 10/08/2026
+        pt.psatz_offset = opts.psatz_offset*ones(1,N+1);                    % MMP, 10/08/2026
+        [prog,Zg] = poscopvar_direct(prog,1,vars,dom,deg,pt);               % MMP, 10/08/2026
+        Z = Z + Zg;                                                         % MMP, 10/08/2026
     otherwise
-        error('heatNd_lpi:psatz','psatz is ''none'', ''product'' or ''linear''.')
+%       error('heatNd_lpi:psatz','psatz is ''none'', ''product'' or ''linear''.') % MMP, 10/08/2026 (was)
+        error('heatNd_lpi:psatz','psatz is ''none'', ''product'', ''linear'' or ''tensor''.') % MMP, 10/08/2026
 end
 end
 

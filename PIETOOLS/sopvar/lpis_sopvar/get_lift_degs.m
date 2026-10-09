@@ -31,8 +31,10 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %   wR            weight degree of R^q spaces (default 0, the identity
 %                 basis of poslpivar);
 %   psatz         'auto' (default: 1-D codes [0 1] with offsets [0 1];
-%                 N-D the plain term and the 2N faces at w), 'none',
-%                 'product' ([0 1], [0 1]), 'faces', or a row of codes;
+%                 N-D the plain term at w and the 2N faces at w-1 when
+%                 every weight is at least 2, at w otherwise), 'none',
+%                 'product' ([0 1], [0 1]), 'faces' (the 2N faces at w),
+%                 or a row of codes;
 %   psatz_offset  with a row of codes, per term (default 0);
 %   like          a 'cdopvar' or 'copvar' whose support is read in place of
 %                 P's, the specification laid out over P's spaces: for a
@@ -96,6 +98,14 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 % Initial coding MMP, 10/08/2026. The sizing routine of the separated form,
 %                from the measured degree map (memory degree-map-proof-to-
 %                code) and the heat benchmark (heatNd_tailor).
+% MMP, 10/08/2026: N-D 'auto' terms: the 2N faces at w-1 instead of w when
+%                every weight is at least 2. Measured on the 2-D heat
+%                benchmark (R (1,1), Q (2,2): 12.336731 at nx 339209
+%                against 1.04e6 for the faces at w) and on the 2-D coercive
+%                KYP slack (the same gain at 200425 against 557845
+%                variables); the Markov-Lukacs tensor set lost both tests
+%                (sopvar_lift_notes Sec. 10). A face term at weight 0
+%                certified nothing in 1-D DD, hence the floor at w = 1.
 
 if nargin<2 || isempty(opts),   opts = struct();    end
 dD = 1;     if isfield(opts,'dD') && ~isempty(opts.dD),     dD = opts.dD;   end
@@ -217,7 +227,9 @@ else
     switch lower(char(ps))
         case 'auto'
             if nv==1,   codes = [0 1];  offs = [0 1];
-            else,       codes = [0, 3:2*nv+2];  offs = zeros(size(codes));
+%           else,       codes = [0, 3:2*nv+2];  offs = zeros(size(codes));  % MMP, 10/08/2026 (was)
+            else        % faces one below the plain term when every weight allows it, else at w
+                codes = [0, 3:2*nv+2];  offs = [0, double(min(w)>=2)*ones(1,2*nv)]; % MMP, 10/08/2026
             end
         case 'none',    codes = 0;              offs = 0;
         case 'product', codes = [0 1];          offs = [0 1];

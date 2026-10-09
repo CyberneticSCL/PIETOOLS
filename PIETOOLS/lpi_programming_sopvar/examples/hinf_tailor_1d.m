@@ -175,6 +175,7 @@ if strcmp(tok{1},'deg')
     switch ps
         case 'product',     o.psatz = [0 1];    o.psatz_offset = [0 1];
         case 'faces',       o.psatz = [0 3 4];  o.psatz_offset = [0 0 0];
+        case 'quad',        o.psatz = [0 5];    o.psatz_offset = [0 1];     % the single-direction quadratic code; = 'product' in 1-D
         case 'none',        o.psatz = 0;        o.psatz_offset = 0;
         otherwise,          error('hinf_tailor_1d:mode','Unknown psatz ''%s''.',ps)
     end

@@ -67,7 +67,11 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %   sep, include   as 'copquadvar';
 %   psatz          term codes as 'poscopvar', one or a ROW of them: 0
 %                  (default), 1 (the box product), 2d+1 / 2d+2 (lower /
-%                  upper face in direction d, normalised by the length).
+%                  upper face in direction d, normalised by the length),
+%                  2nv+2+d (the box quadratic (s_d-a_d)(b_d-s_d) in
+%                  direction d alone; its offset lowers 'int' in that
+%                  direction only, so [0, 2nv+3..3nv+2, 1] at offsets
+%                  [0, 1..1, 1] is the Markov-Lukacs tensor set).
 %                  With several codes Pop is the SUM of the terms, one Gram
 %                  each, declared in the given order, all on one decision
 %                  list and built in one pass: the multipliers are added
@@ -143,6 +147,10 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                symbolic product, the sheet conversion and the per-pair
 %                term objects) and the separated form (three operator
 %                objects on union bases, 34 GB in 3-D).
+% MMP, 10/08/2026: Single-direction box quadratics as term codes 2nv+2+d,
+%                offset lowering 'int' in that direction only, so the
+%                Markov-Lukacs tensor set (plain, g_d at w-1 in s_d, the
+%                product at w-1) can be compared with the 2N faces at w.
 % MMP, 10/08/2026: Several Positivstellensatz terms in one call ('psatz' a
 %                row, 'psatz_offset' per term): one Gram per term, the maps
 %                shared where the index sets coincide, every term's map
@@ -200,8 +208,9 @@ M = numel(sp);  vars = meta.vars;   nv = numel(vars);   dom = meta.dom;
 mask = meta.space_out;  mk = meta.dim_out(:);
 own = cell(1,M);
 for k = 1:M,    own{k} = reshape(find(mask(k,:)),1,[]);     end
-if any(~ismember(codes,[0,1,3:2*nv+2]))
-    error("'psatz' entries should be 0, 1, or face codes 2d+1 / 2d+2 with d in 1..nv.")
+% if any(~ismember(codes,[0,1,3:2*nv+2]))                                   % MMP, 10/08/2026 (was)
+if any(~ismember(codes,[0,1,3:3*nv+2]))                                     % MMP, 10/08/2026
+    error("'psatz' entries should be 0, 1, face codes 2d+1 / 2d+2 or quadratic codes 2nv+2+d with d in 1..nv.")
 end
 lopt = struct();
 if isfield(options,'sep'),      lopt.sep = options.sep;         end
@@ -240,7 +249,12 @@ for c = 1:nt
             end
             spec = spec{bix(b)};
         end
-        spec = reduce_spec(spec,offs(c),ng_of(codes(c),nv),nv);
+%       spec = reduce_spec(spec,offs(c),ng_of(codes(c),nv),nv);             % MMP, 10/08/2026 (was)
+        offv = offs(c);                                                     % MMP, 10/08/2026
+        if codes(c)>2*nv+2      % single-direction quadratic: lower 'int' there only
+            offv = zeros(1,nv);     offv(codes(c)-2*nv-2) = offs(c);        % MMP, 10/08/2026
+        end
+        spec = reduce_spec(spec,offv,ng_of(codes(c),nv),nv);                % MMP, 10/08/2026
         d = process_degrees_one(spec,nv);
         ok = own{k};
         if ~isempty(d.subset) && numel(ok)~=nv
@@ -417,10 +431,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spec = reduce_spec(spec,off,ng,nv)
 % The degree specification of a Psatz term: 'int' lowered by OFF in every
-% direction, floored at 0, 'mult' kept at what it was (its default is the
-% ORIGINAL 'int'), a 'joint' cap lowered by OFF per direction the weight
-% acts in. A 'subset' cap cannot move with 'int' and is refused.
-if off==0,  return,     end
+% direction (OFF a row: per direction), floored at 0, 'mult' kept at what
+% it was (its default is the ORIGINAL 'int'), a 'joint' cap lowered by OFF
+% per direction the weight acts in (a row: by its sum). A 'subset' cap
+% cannot move with 'int' and is refused.
+% if off==0,  return,     end                                               % MMP, 10/08/2026 (was)
+if all(off==0),     return,     end                                         % MMP, 10/08/2026
 if isnumeric(spec) && isscalar(spec)
     spec = struct('int',spec,'mult',spec);
 elseif ~isstruct(spec)
@@ -435,7 +451,9 @@ if ~isfield(spec,'mult') || isempty(spec.mult), spec.mult = w;  end
 w = reshape(w,1,[]);    if isscalar(w),   w = repmat(w,1,max(nv,1));    end
 spec.int = max(w-off,0);
 if isfield(spec,'joint') && ~isempty(spec.joint)
-    spec.joint = max(spec.joint-off*ng,0);
+%   spec.joint = max(spec.joint-off*ng,0);                                  % MMP, 10/08/2026 (was)
+    tot = off*ng;   if ~isscalar(off),  tot = sum(off);     end             % MMP, 10/08/2026
+    spec.joint = max(spec.joint-tot,0);                                     % MMP, 10/08/2026
 end
 end
 
@@ -523,6 +541,11 @@ if code==1
         else
             gco{d} = [-a*b, a+b, -1];
         end
+    end
+elseif code>2*nv+2      % the box quadratic in direction d alone            % MMP, 10/08/2026
+    d = code-2*nv-2;    a = dom(d,1);   b = dom(d,2);                       % MMP, 10/08/2026
+    if strcmp(path,'fast'),     shL{d} = [0,-a; 1,1];   shR{d} = [0,b; 1,-1]; % MMP, 10/08/2026
+    else,                       gco{d} = [-a*b, a+b, -1];                   % MMP, 10/08/2026
     end
 elseif code>=3
     d = floor((code-1)/2);  a = dom(d,1);   b = dom(d,2);   L = b-a;

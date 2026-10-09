@@ -78,7 +78,8 @@ The degrees come from the lower-kernel support of `P` per direction (`Dmin`, `Dm
 multiplier degree): lift `D = Dmin + dD`, weight `w = max(ceil((Dmax - D - 1)/2), ceil(Mdeg/2), 0) +
 dw`, defaults `dD = dw = 1` (the heat benchmark needs both, `PIETOOLS_demos/sopvar_demos/README.md`
 Sec. 12); terms `'auto'`: 1-D the plain term at `w` and the product at `w - 1` (the Markov-Lukacs
-pair), N-D the plain term and the `2N` faces at `w`; `opts.deg` bypasses the reader; `opts.prune`
+pair), N-D the plain term at `w` and the `2N` faces at `w - 1` when every weight is at least 2, at
+`w` otherwise (changed 10/08/2026, see below); `opts.deg` bypasses the reader; `opts.prune`
 (default true) keeps only the basis operators that can reach the diagonal blocks' support
 (`eq_opts_sopvar`). `tests/test_lpi_ineq_sop`: a fixed positive operator certified, the 1-D heat LPI
 feasible at kappa = 9 and rejected at 11, 2-D `T'*T` certified, the option variants, the legacy
@@ -147,6 +148,26 @@ had found the stock 2-D executive on this plant 7.4x conservative with the same 
 (`PIETOOLS_demos/sopvar_demos/README.md` Sec. 12) and the coercive form below carry the 2-D
 evidence.
 
+
+**Variables and the dual (notes Sec. 9, 10/08/2026).** Against the proof's minimum-cap problem and
+its dual: the rows are independent in every solve (MOSEK presolve), so the storage parametrisation
+of the null weights removes nothing; the Gram overhead `(w+1)^2/(2w+1)` is the price of the
+certificate; the one lever is the term set. New `poscopvar_direct` codes `2nv+2+d` (the box
+quadratic in direction `d` alone, offset lowering `int` there only) give the Markov-Lukacs tensor
+set `[0, 2nv+2+(1:nv), 1]` at offsets `[0, 1..1, 1]`: on the 2-D coercive KYP slack at `(2,2)` it
+reaches `gamma = 0.171720` at `nx` 233280, `m` 4116, 17.6 s against the four faces' 0.171718 at
+557845, 5420, 57 s (`'deg 2 2 tensor'`); in 1-D the new code reproduces the product code exactly.
+The 2-D heat benchmark decided against it (R (1,1), Q (2,2) uncapped, d = 0, certified bisection):
+faces at `w - 1` certify 12.336731, the heavy rate, at `nx` 339209 in 16 solves; the tensor set at
+`w - 1` certifies 12.326178 at `nx` 395785 in 15 solves and twice the time; the tensor set at `w` has
+`nx` 762889. On the KYP slack faces at `w - 1` give 0.171722 at `nx` 200425, below the tensor set.
+The N-D default of `get_lift_degs` is now the plain term at `w` with the `2N` faces at `w - 1`
+whenever every weight is at least 2, and at `w` otherwise. The dual MOSEK solves
+has the same Gram-sized slack; the proof's pointwise dual is a degree diagnostic
+(`claude_tests/mincap_dual`, `test_mincap_dual`: cap 1 for `2 - max(s,t)` at `D = 0`, unbounded at
+`D = 0` and below 65700 at `D = 2` for the rank-one target, the Poincare operator unbounded at
+`D = 1`), under a second per level, and it explains the UNKNOWN exits as the fixed-degree
+alternative of the duality note.
 
 **The coercive form in 2-D (`hinf_tailor_2d(...,'light','P')`, `P` at the stock light degrees
 plus the margin).** The reader on `P` (`like`) gives `(2,1)` per direction with four faces: `nx`

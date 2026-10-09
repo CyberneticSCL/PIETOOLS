@@ -13,8 +13,10 @@ function T = hinf_tailor_2d(modes,level,form)
 % mode. The stock 2-D settings are a reference point, not a truth (ad hoc,
 % little tested).
 % MODES (default {'stock2d','new','new dw0','new dD0','new product'}; also
-% 'deg D w [faces|product|none] [capJ]': lift D and weight w in both
-% directions on the L2 spaces, R^q spaces at weight 0, faces by default,
+% 'deg D w [faces|facesm1|product|tensor|none] [capJ]': lift D and weight w
+% in both directions on the L2 spaces, R^q spaces at weight 0, faces (at w)
+% by default, 'facesm1' the faces at w-1 in every direction, 'tensor' the
+% Markov-Lukacs tensor set (poscopvar_direct codes 2nv+2+d),
 % J a scalar cap on the total degree over the four axes [int, mult]),
 % LEVEL lpisettings name (default 'light').
 % OUTPUT: struct array T (mode, gam, excess over the closed-form gain, the
@@ -29,8 +31,11 @@ function T = hinf_tailor_2d(modes,level,form)
 % after 9 min. Form 'P': 'new like' (the reader on P: (2,1) per direction,
 % four faces) solves cleanly in 5 s to gamma 0.2665 (+56%) at nx 1.1e5;
 % (3,1) faces 0.1974 (+15%) at 3.4e5; (2,2) faces 0.171718 (+0.36%) at
-% 5.6e5, m 5420, 57 s (cap 6: 4.9e5, 36 s); (3,3) product 0.171777 (+0.40%)
-% at 1.43e6, 491 s; (2,2), (3,2), (2,3) product fail (UNKNOWN); the stock
+% 5.6e5, m 5420, 57 s (cap 6: 4.9e5, 36 s); (2,2) faces at w-1 ('facesm1')
+% 0.171722 at 2.0e5, m 4096, 16 s; (2,2) TENSOR set (plain, each box
+% quadratic at w-1 in its direction, the product at w-1) 0.171720 at
+% 2.3e5, m 4116, 17.6 s (cap 6: 2.0e5, 0.171775); (3,3) product 0.171777
+% (+0.40%) at 1.43e6, 491 s; (2,2), (3,2), (2,3) product fail (UNKNOWN); the stock
 % light slack (7.6e5 variables, 13978 rows) was stopped by the budget at
 % 459 s, objective 0.34 and falling, and the baseline suite (09/24) ran the
 % stock coercive executive on this plant to 1.272 with status UNKNOWN.
@@ -117,8 +122,12 @@ for im = 1:numel(modes)
                 o.deg = deg;
                 switch ps
                     case 'faces',   o.psatz = [0 3 4 5 6];  o.psatz_offset = zeros(1,5);
+                    case 'facesm1', o.psatz = [0 3 4 5 6];  o.psatz_offset = [0 1 1 1 1];   % faces at w-1 (the heat benchmark's winner)
                     case 'product', o.psatz = [0 1];        o.psatz_offset = [0 1];
+                    case 'tensor'   % Markov-Lukacs tensor set: plain, g_1 at w-1 in s1, g_2 at w-1 in s2, g_1 g_2 at w-1
+                        o.psatz = [0, 2*nv+2+(1:nv), 1];    o.psatz_offset = [0, ones(1,nv), 1];
                     case 'none',    o.psatz = 0;            o.psatz_offset = 0;
+                    otherwise,      error('hinf_tailor_2d:mode','Unknown psatz ''%s''.',ps)
                 end
             else
                 switch mode
