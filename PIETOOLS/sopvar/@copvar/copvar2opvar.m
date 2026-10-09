@@ -4,10 +4,11 @@ function Pop = copvar2opvar(Pc)                                             % MM
 % (R^m, L2^n[s]) and returns the equivalent 'opvar' object.
 %
 % INPUTS
-% - Pc:     'copvar' whose output and input spaces are the same list drawn  % MMP, 09/30/2026
-%           from {R^m, L2^n[s]} - that is, a 1 x 1 or 2 x 2 grid over one
-%           spatial variable. Unlike 'sopvar2opvar', all four blocks may be
-%           populated;
+% - Pc:     'copvar' whose output and input spaces are drawn from           % MMP, 10/08/2026
+%           {R^m, L2^n[s]} - a grid of at most 2 x 2 over one spatial       % MMP, 10/08/2026
+%           variable, the two lists not necessarily equal ('opvar' has a    % MMP, 10/08/2026
+%           dim per space and side). Unlike 'sopvar2opvar', all four blocks % MMP, 10/08/2026
+%           may be populated;                                               % MMP, 10/08/2026
 %
 % OUTPUTS
 % - Pop:    'opvar' object representing the same operator, with
@@ -27,9 +28,8 @@ function Pop = copvar2opvar(Pc)                                             % MM
 % whose space is empty is the R row.
 %
 % Restrictions, each of which errors rather than producing a wrong operator:
-% at most one spatial variable, since 'opvar' is the 1D class; the output
-% and input space lists must agree, since 'opvar' has a single dim per
-% space; and no more than two of each.
+% at most one spatial variable, since 'opvar' is the 1D class; and no more  % MMP, 10/08/2026
+% than one space of each kind per side.                                     % MMP, 10/08/2026
 %
 % See also OPVAR2COPVAR, SOPVAR2OPVAR, COPVAR2OPVAR2D, COPVAR2NOPVAR.
 %
@@ -70,6 +70,16 @@ function Pop = copvar2opvar(Pc)                                             % MM
 %                  09/25/2026 rename ('mopvar' is now the stub class in
 %                  @mopvar). Mechanical, no functional change; each marked
 %                  line differs from its old text only by that name.
+% MMP, 10/08/2026: Dropped the requirement that the output and input space
+%                  lists agree: 'opvar' carries dim(:,1) and dim(:,2)
+%                  separately and the slot of a block is fixed by its own
+%                  two spaces, so a non-square grid (the free operator
+%                  Z: R^nu <- R^n x L2^n of the synthesis executives, W on
+%                  R^nz) converts as a square one does. The check was the
+%                  only line that used the agreement. Also: a container
+%                  without a variable (dom 0 x 2, an operator on R^n alone)
+%                  assigned that empty dom to Pop.I, which opvar rejects;
+%                  the default [0,1] is now applied before the assignment.
 
 if ~isa(Pc,'copvar')                                                        % MMP, 09/30/2026
     error('copvar2opvar:badInput','Input must be a copvar object.')
@@ -89,15 +99,16 @@ if M>2 || N>2 || numel(unique(row_is_L2))~=M || numel(unique(col_is_L2))~=N
         ['An opvar has one R space and one L2 space, so the grid must have '...
          'at most one of each; got %dx%d.'],M,N)
 end
-if ~isequal(sort(row_is_L2(:)),sort(col_is_L2(:)))
-    error('copvar2opvar:asymmetric',...
-        ['''opvar'' carries a single dimension per space, so the output and '...
-         'input space lists must agree.'])
-end
+% if ~isequal(sort(row_is_L2(:)),sort(col_is_L2(:)))                       % MMP, 10/08/2026 (was)
+%     error('copvar2opvar:asymmetric',...                                   % MMP, 10/08/2026 (was)
+%         ['''opvar'' carries a single dimension per space, so the output and '...
+%          'input space lists must agree.'])                                % MMP, 10/08/2026 (was)
+% end                                                                       % MMP, 10/08/2026 (was)
 
 Pop = opvar();
-Pop.I = Pc.dom;                                                             % MMP, 09/30/2026
-if isempty(Pop.I),      Pop.I = [0,1];      end
+% Pop.I = Pc.dom;                                                           % MMP, 10/08/2026 (was)
+% if isempty(Pop.I),      Pop.I = [0,1];      end                           % MMP, 10/08/2026 (was)
+if isempty(Pc.dom),     Pop.I = [0,1];      else,   Pop.I = Pc.dom;     end % MMP, 10/08/2026
 % opvar needs both a primary and a dummy variable name. The container stores
 % only the primary, as 'sopvar' does, so the dummy follows the '<primary>_dum'
 % convention that 'sopvar2opvar' also applies.

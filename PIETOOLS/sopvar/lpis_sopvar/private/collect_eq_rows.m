@@ -69,6 +69,10 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 %                  nargout switch that imposed the rows ('lpi_eq_sdopvar'
 %                  calls 'impose_eq_rows' instead). One comment renames
 %                  impose_rows -> impose_eq_rows (marked below).
+% MMP, 10/08/2026: Eq.cols, Eq.cells and Eq.blk: which coefficient position
+%                  each written row constrains, per parameter, with the
+%                  block's bases, so that 'lpigetdual_sop' can assemble the
+%                  solver's multipliers into the dual kernel. Rows unchanged.
 % MMP, 10/02/2026: Eq.pos, the table row of each name, from the membership
 %                  check's own unique (its first-occurrence output), so
 %                  'impose_eq_rows' can write prog.expr without soseq,
@@ -207,6 +211,7 @@ end
 % Constraint blocks of the parameters, collected for one soseq (see Eq).    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
 % Constraint blocks of the parameters, collected for one prog.expr entry.   % MMP, 10/02/2026
 Cs = cell(1,numel(params_A));                                               % MMP, 09/26/2026
+cols = cell(1,numel(params_A));     % positions written, per parameter      % MMP, 10/08/2026
 
 % % % Impose the constraints, one parameter at a time                       % MMP, 09/26/2026 (was)
 % % % Collect the constraints, one parameter at a time                      % MMP, 09/26/2026
@@ -293,12 +298,25 @@ for k=1:numel(params_A)
     % per ~q nonzeros, not one per parameter.                               % MMP, 10/02/2026
     % Row 1 the constant term, row 1+i dvars{i}; sparse even if B is full.  % MMP, 09/26/2026
     Cs{k} = [sparse(reshape(A_eff,1,[])); sparse(B_eff)];                   % MMP, 09/26/2026
+    % The rows the writer will produce: lpi_soseq (and soseq) drop a column % MMP, 10/08/2026
+    % that is all zero, so the written rows are the kept positions whose    % MMP, 10/08/2026
+    % column has a nonzero, in order (LPIGETDUAL_SOP reads them back).      % MMP, 10/08/2026
+    nzc = full(any(Cs{k},1));                                               % MMP, 10/08/2026
+    cols{k} = reshape(keep(nzc),1,[]);                                      % MMP, 10/08/2026
 end
 
 % Skipped parameters stay [] and are dropped. Order is the loop's, which is % MMP, 09/26/2026
 % the order of the former one-soseq-per-parameter expressions.              % MMP, 09/26/2026
 % Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars});               % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars},'pos',{pos});     % MMP, 10/02/2026
+% Eq = struct('Cs',{Cs(~cellfun(@isempty,Cs))},'Zd',{dvars},'pos',{pos});   % MMP, 10/02/2026 % MMP, 10/08/2026 (was)
+% cols, cells and blk describe the rows for the dual read-back: the         % MMP, 10/08/2026
+% parameter index of each kept block, its written positions (linear into    % MMP, 10/08/2026
+% the m*NL x n*NR coefficient matrix) and the block's bases and spaces.     % MMP, 10/08/2026
+kept = ~cellfun(@isempty,Cs);                                               % MMP, 10/08/2026
+blk = struct('ZL',{P.ZL},'ZR',{P.ZR},'dims',P.dims,'vars',P.vars,'dom',P.dom, ...% MMP, 10/08/2026
+             'NL',NL,'NR',NR,'psize',size(params_A),'symmetric',use_symmetry);% MMP, 10/08/2026
+Eq = struct('Cs',{Cs(kept)},'Zd',{dvars},'pos',{pos}, ...                   % MMP, 10/08/2026
+            'cols',{cols(kept)},'cells',find(kept),'blk',blk);              % MMP, 10/08/2026
 
 end
 

@@ -37,7 +37,11 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                each L2 space to those that can reach the support of the
 %                diagonal block of P ('eq_opts_sopvar', lossless by its
 %                argument);
-%   path, cache  as 'poscopvar_direct'.
+%   path, cache  as 'poscopvar_direct';
+%   margin       eps >= 0 (default 0): certify P + eps*e_D >= 0 instead,
+%                e_D = A'A the energy of the plain term's lift, the
+%                regularizer of the proof program (a solver margin; the
+%                certified statement is the perturbed one: INFO.margin, eD).
 %   For a legacy P, OPTS is passed to 'lpi_ineq' unchanged.
 %
 % OUTPUT
@@ -45,7 +49,8 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % - Pop:   the positive 'cdopvar' (container path; [] for a legacy P);
 % - info:  struct with fields deg (the specification used), terms (codes,
 %          offsets), degrees (GET_LIFT_DEGS info), include, direct (the
-%          info of 'poscopvar_direct').
+%          info of 'poscopvar_direct'), tag (the row record of the
+%          equality in prog.sopeq, for LPIGETDUAL_SOP), margin and eD.
 %
 % NOTES
 % Why one call: the SDP is the same whether the terms are declared
@@ -87,6 +92,16 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % Initial coding MMP, 10/08/2026. Tier 2 of the container parity map: the
 %                negativity constraint on the direct map, degrees from the
 %                target by GET_LIFT_DEGS.
+% MMP, 10/08/2026: opts.margin (the e_D regularizer) and info.tag (the row
+%                record of the equality, for the dual read-back), for the
+%                container executives.
+% MMP, 10/08/2026: The pruned 'include' expands the full-integral index 4
+%                (eq_opts_sopvar marks a direction separable when the
+%                diagonal block's lower and upper cells agree, as the stock
+%                2-D storage's do under options.sep) to the indices 2 and 3
+%                of the unseparated lift; the 2-D H2 Q forms, whose
+%                positivity block carries the storage itself, failed in
+%                alpha_select ("inadmissible multi-index") before this.
 
 if nargin<2
     error("Not enough input arguments.")
@@ -142,7 +157,21 @@ if prune
     for k = 1:M
         if isempty(sp{k}) || isempty(P.C{k,k}),    continue,   end
         eo = eq_opts_sopvar(P.C{k,k});
-        include{k} = eo.include;
+%       include{k} = eo.include;                                            % MMP, 10/08/2026 (was)
+        inc = eo.include;                                                   % MMP, 10/08/2026
+        % eq_opts_sopvar marks a direction separable (its lower and upper   % MMP, 10/08/2026
+        % cells agree, as the stock storage's do under options.sep) and     % MMP, 10/08/2026
+        % lists the full-integral index 4 there; the lift here is not       % MMP, 10/08/2026
+        % separated, so 4 is expanded to the lower and upper indices 2 and  % MMP, 10/08/2026
+        % 3 (a superset of the unseparated reading: lossless).              % MMP, 10/08/2026
+        for t = 1:size(inc,2)                                               % MMP, 10/08/2026
+            r = inc(:,t)==4;                                                % MMP, 10/08/2026
+            if any(r)                                                       % MMP, 10/08/2026
+                lo = inc(r,:);  up = lo;    lo(:,t) = 2;    up(:,t) = 3;    % MMP, 10/08/2026
+                inc = unique([inc(~r,:); lo; up],'rows');                   % MMP, 10/08/2026
+            end                                                             % MMP, 10/08/2026
+        end                                                                 % MMP, 10/08/2026
+        include{k} = inc;                                                   % MMP, 10/08/2026
     end
 end
 
@@ -153,7 +182,31 @@ for f = {'path','cache'}
     if isfield(opts,f{1}) && ~isempty(opts.(f{1})),  popts.(f{1}) = opts.(f{1});    end
 end
 [prog,Pop,~,pinfo] = poscopvar_direct(prog,dm,sp,dom,deg,popts);
-prog = lpi_eq_sop(prog,P-Pop,'symmetric');
-info = struct('deg',{deg},'terms',terms,'degrees',dinfo,'include',{include},'direct',pinfo);
+% % % The e_D margin (opts.margin = eps > 0): certify P + eps*e_D >= 0 with  % MMP, 10/08/2026
+% e_D = A'A the energy of the plain term's own lift (lift_copvar), the      % MMP, 10/08/2026
+% perturbation under which the proof program guarantees a polynomial weight % MMP, 10/08/2026
+% at a fixed lift (sopvar_lift_notes Sec. 7.3). A solver regularisation:    % MMP, 10/08/2026
+% the certified statement is the perturbed one, and the caller reports it.  % MMP, 10/08/2026
+eD = [];    margin = 0;                                                     % MMP, 10/08/2026
+if isfield(opts,'margin') && ~isempty(opts.margin) && opts.margin>0         % MMP, 10/08/2026
+    margin = opts.margin;                                                   % MMP, 10/08/2026
+    lopt = struct();                                                        % MMP, 10/08/2026
+    if isfield(popts,'include'),    lopt.include = popts.include;   end     % MMP, 10/08/2026
+    dl = 1;                         % the plain term's lift degree          % MMP, 10/08/2026
+    dc = deg;   if ~iscell(dc),     dc = {dc};  end                         % MMP, 10/08/2026
+    for k = 1:numel(dc)                                                     % MMP, 10/08/2026
+        if isstruct(dc{k}) && isfield(dc{k},'mult') && ~isempty(dc{k}.mult) % MMP, 10/08/2026
+            dl = max([dl, reshape(dc{k}.mult,1,[])]);                       % MMP, 10/08/2026
+        elseif isnumeric(dc{k}) && isscalar(dc{k}),  dl = max(dl,dc{k});   % MMP, 10/08/2026
+        end                                                                 % MMP, 10/08/2026
+    end                                                                     % MMP, 10/08/2026
+    A_D = lift_copvar(dm,sp,dom,dl,lopt);                                   % MMP, 10/08/2026
+    eD = A_D'*A_D;                                                          % MMP, 10/08/2026
+    P = P + margin*eD;                                                      % MMP, 10/08/2026
+end                                                                         % MMP, 10/08/2026
+% prog = lpi_eq_sop(prog,P-Pop,'symmetric');                                % MMP, 10/08/2026 (was)
+[prog,tag] = lpi_eq_sop(prog,P-Pop,'symmetric');                            % MMP, 10/08/2026
+info = struct('deg',{deg},'terms',terms,'degrees',dinfo,'include',{include},'direct',pinfo, ...
+              'tag',tag,'margin',margin,'eD',eD);                           % MMP, 10/08/2026
 
 end

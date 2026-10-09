@@ -1,4 +1,4 @@
-function prog = lpi_eq_sop(prog,P,opts)
+function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MMP, 10/08/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PROG = LPI_EQ_SOP(PROG,P,OPTS) takes an LPI optimization program
 % structure 'prog' and a (PI operator) decision variable P of either
@@ -80,10 +80,16 @@ function prog = lpi_eq_sop(prog,P,opts)
 
 % Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and
 % lpi_eq_sdopvar each test nargin for it.
+% MMP, 10/08/2026: second output TAG, the index in prog.sopeq of the row
+%                  record lpi_eq_cdopvar keeps for this equality, so that
+%                  'lpigetdual_sop' can assemble its dual kernel; 0 on the
+%                  single-block and legacy paths, which keep no record.
+tag = 0;                                                                    % MMP, 10/08/2026
 if isa(P,'cdopvar') || isa(P,'copvar')
     if nargin>=3,   prog = lpi_eq_cdopvar(prog,P,opts);
     else,           prog = lpi_eq_cdopvar(prog,P);
     end
+    if isfield(prog,'sopeq'),   tag = numel(prog.sopeq);    end              % MMP, 10/08/2026
 elseif isa(P,'sdopvar') || isa(P,'sopvar')
 %   % One output: lpi_eq_sdopvar imposes the rows (a second output would    % MMP, 09/30/2026 (was)
 %   % return them unimposed).                                               % MMP, 09/30/2026 (was)

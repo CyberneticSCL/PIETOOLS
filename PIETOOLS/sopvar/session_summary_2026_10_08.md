@@ -143,3 +143,118 @@ closed-form gain is 0.1711.
   `test_mincap_dual.m`, and this file. `test_lpi_ineq_sop` passes with the new default (6 checks).
 - Left alone on purpose: `pielr_solve.m`, `pielr_opcheck.m`, `jp_wave_plate_rates.m` (another session's
   gate-rule work, CC 10/07).
+- Committed later on 10/08: 96ef81f6 (the certificate as an optimization problem and its dual; faces at
+  w-1). Uncommitted after it: everything of Sec. 10 below (`executives_sopvar/`, the new
+  `lpi_programming_sopvar` files, and the edits to `get_lpivar_degs_sop`, `lpi_eq_sop`, `lpi_ineq_sop`,
+  `copvar2opvar`, `lpi_eq_cdopvar`, `collect_eq_rows`), plus this file. `eye_copvar_sop` was
+  overwritten by mistake during the work and restored from git (no change).
+
+## 10. The executives on the container path (executives_sopvar, 10/08, UNCOMMITTED)
+
+One `PIETOOLS_<name>_sop` per stock executive, 28 files (18 1-D including the auto_execute script, 10
+2-D), on four private builders (`hinf_build_sop`, `stability_build_sop`, `h2_build_sop`,
+`synth_build_sop`) with `exec_tools_sop` (per-dimension storage, stock slack, eppos identity, free-variable
+degrees, container-to-opvar) and `exec_info_sop`. The LPIs are the stock ones as the 10/06 transcriptions
+wrote them; what is new: the slack is `lpi_ineq_sop` 'like' the storage (dw_Q 1, dw_P 2), rebuilt with
+the weight raised while MOSEK returns UNKNOWN or primal infeasible (`lpi_solve_loop_sop`, at most 2
+raises); the dual kernel of the negativity constraint is read back (`lpigetdual_sop`); a Legendre
+Galerkin discretization (`pie_disc_sop`, quadrature on the recurrence-evaluated basis, exact to degree 40)
+gives the numerical counterpart (`pie_witness_sop`: frequency response, spectrum of (A,T), Lyapunov H2,
+alignment of the worst input with the dual kernel); `settings.sop.slack = 'stock'` restores the stock
+slack for comparison; `settings.sop.gam_fixed` poses the feasibility test at a fixed gamma. Library
+changes outside the folder: `get_lpivar_degs_sop` (N-D per-role reading), `copvar2opvar` (non-square
+grids; variable-free containers), `lpi_eq_sop` / `lpi_ineq_sop` (tag, margin), `lpi_eq_cdopvar` /
+`collect_eq_rows` (row bookkeeping), and the new `settings_2d_sop`,
+`poslpivar_settings_2d_sop`, `exec_sop_settings`, `lpi_classify_sop`, `lpi_solve_loop_sop`,
+`lpi_shape_sop`, `op2copvar_sop`, `on_registry_sop`.
+
+Measured (light, MOSEK 11; drivers `run_exec_1d`, `run_exec_1d_b`, `run_exec_2d` in the session
+scratchpad; `executives_sopvar/tests/test_executives_sop.m` asserts the 1-D part):
+
+- **Discretization.** The first `pie_disc_sop` expanded the Legendre basis in monomials and summed
+  closed-form moments: exact at degree 8, spurious eigenvalues at 16, singular T at 24 (the default), so
+  every witness of the first stability run was wrong (max Re 548 for a plant at -4.93). The quadrature
+  version gives eig(A,T) = -4.9348, -34.5436, -83.8916 and the static gain 0.1824791 at every degree 8 to
+  40, cond(T) 1.3e5 at 40; the io1 witness is 0.1824791 at omega 0 against the certified 0.18248166 (gap
+  1.4e-5), the rate -4.93480, the H2 norm 0.287684.
+- **1-D, distributed disturbance (io1, syn1, rd 0.5).** Stability x4 and well-posedness certify in both
+  modes and agree with the stock. H2_norm_c: stock 0.28878602, 'stock' slack 0.28879091, 'like'
+  0.28775623 against the numerical 0.28768384 (gap 2.5e-4 against the stock's 3.9e-3). Every DUAL-form
+  LPI (Hinf_gain_dual, _dual_coercive, Hinf_control, H2_control, H2_norm_c_coercive) is infeasible or
+  UNKNOWN in both modes and in the stock (numerr 2, gamma 1e4): the Lyapunov block (AP)T' + T(AP)' is
+  compact (T' is purely integral) and the Schur complement asks it to dominate B B' = I on L2; not a
+  defect of either implementation. H2_norm_o and _o_coercive take the trace over the R^nw block, which
+  is empty for a distributed w: both return the solver floor (1e-4, numerical H2 0.2877), as the stock.
+- **1-D, finite disturbance and input** (reaction-diffusion, w through s(1-s), u constant, y = int x,
+  z = [int x; u]; numerical gain 0.0333106, numerical H2 0.0523601). All twelve gain, H2 and synthesis
+  executives certify with the 'like' slack at dw 0; the 'stock' slack reproduces the stock in every
+  case (value to 5-7 digits where the stock solves; UNKNOWN where it does not):
+
+  | executive | stock (light) | 'stock' slack | 'like' slack | numerical |
+  |---|---|---|---|---|
+  | Hinf_gain | 0.033332351 | 0.033332353 | 0.033310666 (gap 1.5e-6) | 0.0333106 |
+  | Hinf_gain_coercive | UNKNOWN 0.0574 | UNKNOWN 0.0575 | 0.033311035 | 0.0333106 |
+  | Hinf_gain_dual | 0.03333238 | 0.033332403 | 0.033310842 | 0.0333106 |
+  | Hinf_gain_dual_coercive | UNKNOWN 0.0584 | UNKNOWN 0.0583 | 0.033313355 | 0.0333106 |
+  | H2_norm_c | 0.052715641 | 0.052715636 | 0.052428236 (gap 1.3e-3) | 0.0523601 |
+  | H2_norm_o | 0.052715396 | 0.052715396 | 0.052428398 | 0.0523601 |
+  | H2_norm_c_coercive | 0.0825005 | 0.0824501 | 0.052396837 (gap 7e-4) | 0.0523601 |
+  | H2_norm_o_coercive | 0.0827630 | UNKNOWN 0.0823 | 0.052393641 | 0.0523601 |
+  | Hinf_control | UNKNOWN 0.0569 | UNKNOWN 0.0569 | 0.032865781 | open loop 0.0333 |
+  | Hinf_estimator | 2.11e-4 | 3.18e-4 | 1.39e-4 | floor |
+  | H2_control | UNKNOWN 0.0829 | UNKNOWN 0.0829 | 0.052222382 | open loop 0.0524 |
+  | H2_estimator | 1.71e-4 | 2.40e-4 | 1.63e-4 | floor |
+
+  The stock light slack is short in the lift for every coercive form (UNKNOWN, or 57% loose for the
+  coercive H2 norms); the 'like' slack at dw 2 certifies all of them within 1e-3 of the numerical value.
+  The two estimator values are at the eppos floor (the error output is nearly unobservable from y).
+  The dual alignment is 1.000 on the finite-disturbance plant for both primal gain forms.
+- **2-D (rd2 at 0.5 lambda*, io2).** stability_2D and stability_dual_2D: the stock returns UNKNOWN
+  (numerr 2, 23 s); 'like' certifies in 8-11 s (nx 187984, m 3075, faces [2 2] at w [2 2]); 'stock'
+  slack reproduces the stock's UNKNOWN (nx 179840, m 3456). On io2 with 'like', no raises: Hinf_gain_2D
+  0.17172212 in 33 s (nx 200426, the 10/08 KYP value), Hinf_gain_2D_non_coercive UNKNOWN (the 2-D Q
+  form), Hinf_gain_dual_2D and H2_norm_2D_c INFEASIBLE (distributed w, structural), H2_norm_2D_o at the
+  floor (empty R^nw trace), H2_norm_2D_c_non_coercive INFEASIBLE at dw 0 (6 s), H2_norm_2D_o_non_coercive
+  UNKNOWN at dw 0 (nx 624536, 95 s), Hinf_estimator_2D 5.1e-4 in 24 s. The stock Hinf_gain_2D on io2 returns UNKNOWN (1.2722) after 413 s; the other stock 2-D gain
+  and H2 programs were not run to completion within the daytime budget.
+  Two defects surfaced by the 2-D H2 Q forms and fixed: `lpi_ineq_sop` passed the full-integral index 4
+  of a separable direction to the unseparated lift (now expanded to 2 and 3, lossless), and
+  `h2_build_sop` declared W on a distributed input space through the 1-D `poslpivar_sop` (now the LF
+  storage in 2-D).
+- **Dual read-back, checked on the Posopvar session's question.** With `sos_opts.simplify` 0 and 1
+  alike, b'y equals the primal objective (0.033310669 against 0.033310666; 0.033310717 against
+  0.033310712): sossolve restores the multipliers of removed rows as zeros in the original row
+  coordinates, and the b normalization leaves y unscaled; the two dual kernels differ only in how the
+  multipliers are spread over dependent rows. The row record `prog.sopeq` is opt-in (the builders set
+  `prog.sopeq = {}` after `lpiprogram`): a program built by any other caller of `lpi_eq_cdopvar` gains
+  no field.
+- **Independent regression check (Posopvar session, 10/08, against b3e24923, clean copy vs this working
+  tree, single resolution asserted).** Programs bit-identical: 91/91 SDP leaves of the w1-w3 benchmark
+  builds, 126/126 of the 1-D container programs (cx_run_1d cases x 6 presets; the same 5 'extreme'
+  cases fail in both). 3-D heatNd timing in alternating fresh processes: equality stages equal within
+  noise (eq15a 1.51/1.63 vs 1.74/1.74 s, eq15b 2.11/2.06 vs 2.14/2.28 s); totals 46.64/47.07 vs
+  47.62/47.90 s, the 0.8-1.0 s in the Q stage, which no edit touches (path length is one candidate;
+  two pairs cannot separate it from noise). Memory not measured.
+- **Tests.** `executives_sopvar/tests/test_executives_sop.m`: 20 checks pass (every 1-D executive on the
+  finite-disturbance plant within tolerance of the numerical value, the stock-slack equalities, the
+  four stability executives and well-posedness at -pi^2/2, and 2-D stability).
+- **Write-up (10/09, second version at the maintainer's request).** `sopvar/sopvar_duality_pruning_notes.tex`
+  / `.pdf` (19 pages, for PhD students familiar with PIEs): the canonical lift and the certificate map
+  with the kernel formula; the necessity statement (proof_roadmap (2)) with its status, the perturbation
+  theorem and the Poincare degree lower bound; the minimum-cap problem and the uniform-cap criterion
+  (proved); the exact dual over signed covariance fields (Theorem 1 of the min-cap document, proof
+  included), the capped criterion, the preannihilator form, the fixed-degree alternative, the finite
+  hierarchy with the exact level dual and the lower-bound/monotonicity lemma (proved); the SOS weight
+  cone and the primal SDP of lpi_ineq_sop with the cap it certifies; the SDP dual in coefficient
+  coordinates (dual kernel, pairing lemma, Farkas form with the closedness caveat); the map to the
+  dual problem: coefficient pairing = kernel pairing after the monomial Gram, the covariance field of a
+  dual kernel as the diagonal of its lift (proved), and the theorem that the finite-degree dual is the
+  exact dual with pointwise positivity of the field relaxed to weighted moment positivity of order w,
+  with the positive-part normalization relaxed to a moment form (the cap SDP dual); the H-infinity
+  instance (unit input-plus-output energy from the gamma row) and the UNKNOWN exit as weak
+  infeasibility; sizing and pruning with proved/measured/assumed labels; the executives, witness,
+  brackets and the compactness argument for the dual forms.
+- **Open.** The 2-D Q forms (gain and H2) need a weight rule beyond dw 1 (the degree loop is the
+  current answer); the dual alignment is a coefficient-space heuristic (0 for a distributed w on io1,
+  1.000 on the finite-disturbance plant); the stock bisection options of the 2-D executives are not
+  reproduced; the 2-D `Zop_deg` cap is one number on every role.

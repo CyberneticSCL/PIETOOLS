@@ -132,6 +132,17 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  reads: collected by collect_eq_rows, imposed by
 %                  impose_eq_rows. Same calls in the same order, same
 %                  program bit for bit.
+% MMP, 10/08/2026: Row bookkeeping for the dual: prog.sopeq{end} records the
+%                  rows this call produced (first and last row of the
+%                  program, the blocks in writing order with their
+%                  parameters, positions and bases, from collect_eq_rows),
+%                  so 'lpigetdual_sop' can assemble prog.solinfo.y into the
+%                  signed dual kernel of this equality. Rows unchanged.
+%                  Opt-in (same day): recorded only when the program already
+%                  carries the field 'sopeq', so that no other caller's
+%                  program gains a field. Checked: b'y equals the primal
+%                  objective with sos_opts.simplify 0 and 1 (sossolve puts
+%                  the multipliers back in the original row coordinates).
 % MMP, 10/02/2026: Comments only. impose_eq_rows now writes each joined
 %                  batch with 'lpi_soseq' (the rows from collect_eq_rows'
 %                  check), so no soseq scans the program names; 'soseq
@@ -177,6 +188,18 @@ Zd_ok = NaN;                                                                % MM
 % check of the list against prog.decvartable runs once per list, so all     % MMP, 10/02/2026
 % blocks sharing one (the common case, see Zd_ok) are imposed together.     % MMP, 10/02/2026
 batch = [];                                                                 % MMP, 09/26/2026
+% Row bookkeeping for the dual read-back ('lpigetdual_sop'): the program's % MMP, 10/08/2026
+% row count before this call and, per block written, the parameters and    % MMP, 10/08/2026
+% positions in the order the rows are produced. Opt-in: only a program     % MMP, 10/08/2026
+% that already carries the field 'sopeq' (the container executives set     % MMP, 10/08/2026
+% prog.sopeq = {} after lpiprogram) is recorded; every other caller's       % MMP, 10/08/2026
+% program keeps the stock fields.                                           % MMP, 10/08/2026
+record = isfield(prog,'sopeq');                                             % MMP, 10/08/2026
+r0 = 0;                                                                     % MMP, 10/08/2026
+if record && isfield(prog,'expr') && isfield(prog.expr,'At')                % MMP, 10/08/2026
+    for e = 1:numel(prog.expr.At),  r0 = r0 + size(prog.expr.At{e},2);  end % MMP, 10/08/2026
+end                                                                         % MMP, 10/08/2026
+ents = struct('i',{},'j',{},'cells',{},'cols',{},'blk',{});                 % MMP, 10/08/2026
 for i = 1:M
     for j = 1:N
         if symm && j<i
@@ -245,6 +268,9 @@ for i = 1:M
         if isempty(batch),  batch = Eq;                                     % MMP, 09/26/2026
         else,               batch.Cs = [batch.Cs, Eq.Cs];                   % MMP, 09/26/2026
         end                                                                 % MMP, 09/26/2026
+        if record                                                           % MMP, 10/08/2026
+            ents(end+1) = struct('i',i,'j',j,'cells',Eq.cells,'cols',{Eq.cols},'blk',Eq.blk); %#ok<AGROW> % MMP, 10/08/2026
+        end                                                                 % MMP, 10/08/2026
         % Verified now: lpi_eq_sdopvar errors on an unknown variable.       % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
         % Verified now: collect_eq_rows errors on an unknown variable.      % MMP, 09/30/2026
         Zd_ok = Bij.Zd;                                                     % MMP, 09/26/2026
@@ -262,5 +288,13 @@ if ~isempty(batch)                                                          % MM
 %   prog = lpi_eq_sdopvar(prog,batch);                                      % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
     prog = impose_eq_rows(prog,batch);                                      % MMP, 09/30/2026
 end                                                                         % MMP, 09/26/2026
+% Record the rows of this call (prog.sopeq{end}) for 'lpigetdual_sop'.      % MMP, 10/08/2026
+if record                                                                   % MMP, 10/08/2026
+    nrow = 0;                                                               % MMP, 10/08/2026
+    for e = 1:numel(ents),  nrow = nrow + sum(cellfun(@numel,ents(e).cols));    end % MMP, 10/08/2026
+    prog.sopeq{end+1} = struct('rows',[r0+1,r0+nrow],'entries',ents,'M',M,'N',N, ...% MMP, 10/08/2026
+                               'symmetric',symm,'space_out',P.space_out, ...% MMP, 10/08/2026
+                               'space_in',P.space_in,'vars',{P.vars},'dom',P.dom); % MMP, 10/08/2026
+end                                                                         % MMP, 10/08/2026
 
 end
