@@ -41,6 +41,10 @@ function Pinv = inv(Pop,inv_tol)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07_01_2024
+% MMP, 10/09/2026: The non-separable branch named P1op, which does not exist
+%                  here (the input is Pop), so every non-separable inverse
+%                  errored "Unrecognized function or variable 'P1op'"
+%                  (measured, opvar/inverse_dependency_map_2026_10_09.md).
 
 
 % % Deal with empty operator...
@@ -63,7 +67,8 @@ else
     % % Otherwise, see if we can get an inverse using mrdivide.
     deg_fctr = 2*ones(4,2);
     deg_fctr_max = [10,10; 10,10; 5,5; 5,5];
-    Pinv = mrdivide(1,P1op,deg_fctr,inv_tol,deg_fctr_max);
+%   Pinv = mrdivide(1,P1op,deg_fctr,inv_tol,deg_fctr_max);                  % MMP, 10/09/2026 (was)
+    Pinv = mrdivide(1,Pop,deg_fctr,inv_tol,deg_fctr_max);                   % MMP, 10/09/2026
 end
 
 end

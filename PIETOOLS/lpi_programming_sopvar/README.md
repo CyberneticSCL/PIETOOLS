@@ -226,6 +226,27 @@ The arguments `dims`, `spaces` and `dom` follow the conventions of `lpivar_cdopv
 All three pass `verify` and satisfy the canonical multiplier form. They replace the
 `opvar2copvar(mat2opvar(...))` route, which has no N-D form.
 
+### Operator inverse and gain reconstruction (MMP, 10/09/2026)
+
+1-D only. The class methods are in `sopvar/@sopvar/inv.m` and `sopvar/@copvar/inv.m`;
+the wrappers are in this folder. Measured on `sopvar/Testfolder/Test_copvar_inv.m` (17
+checks, 10/09/2026): operator residuals `max|P*Pinv - I|` of 1e-9 to 1e-11 on seven
+hand-built 3-PI and 4-PI operators (0.05 to 0.3 s each), and on the synthesis executives
+`|K P - Z|/|Z|` = 2.4e-11 and `|P L - Z|/|Z|` = 7.0e-9 where the stock `getController`
+and `getObserver` give 8.1e-5 and 7.4e-3 on the same solved P, Z.
+
+| function | result |
+|---|---|
+| `[Rinv,info] = inv(R[,opts])` on a `sopvar` block L2^m[s] -> L2^m[s] | Gohberg-Krein (arXiv 2208.13104, Lemma 16, Cor. 17) on the stored coefficient matrices: the kernels `R_i = (I kron ZL') C_i (I kron ZR)` are split by one SVD each, `U` and `V` by RK4 on `opts.N` nodes (101), the three parameters fitted by Chebyshev least squares at one degree raised from `opts.deg0` (4) until the relative RMS residual is below `opts.tol` (1e-8) or `opts.degmax` (16). `info`: ranks, `rcondU22`, `condR0`, `d`, `relrms`. |
+| `[Pinv,info] = inv(P[,opts])` on a `copvar` over R^k x L2^m[s] | the L2 block by the method above, the rest by the block inverse through the finite-dimensional Schur complement `T = Pm - Q1 Rh Q2` (Lemma 18): one operator inverse and one matrix inverse. `info.condT`. N-D is refused. |
+| `[K,Kop,info] = getController_sop(P,Z[,opts])` | `K = Z P^{-1}` as a `copvar`; `Kop` its `opvar` for `closedLoopPIE`, `piess`, PIESIM. Accepts `opvar` inputs (`opvar2copvar`). No coefficient truncation (the stock routine zeroes coefficients of K below 1e-4). |
+| `[L,Lop,info] = getObserver_sop(P,Z[,opts])` | `L = P^{-1} Z`, the same way. |
+
+`synth_build_sop` and `h2_build_sop` call these in 1-D and return the `opvar` gain as
+before; `info.G` is the container gain and `info.inv` the inverse diagnostics. 2-D keeps
+`getObserver_2D`. The defects of the stock routines are documented in
+`opvar/inverse_dependency_map_2026_10_09.md`.
+
 ### dpvar as an operator (Tier 1b, in the class files)
 
 These changes are in the class files, not in this folder: `sopvar/@*/mtimes`, `plus`,

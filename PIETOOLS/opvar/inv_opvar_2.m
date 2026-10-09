@@ -7,9 +7,14 @@ function [Pinv, info] = inv_opvar_2(P, opts)
 %   Pop: positive definite opvar to invert
 %   opts: inverse options; 
 %       - opts.N: number of points in [a,b] to approximate the inverse
+%         (the RK4 grid; the accuracy is set by the fit degrees, not by N)  % MMP, 10/09/2026
 %       - opts.mulDeg: maximum degree of multiplier in the inverse
 %       - opts.kerDeg: maximum degree of semiseperable kernel in the
-%       inverse 
+%       inverse, a 1 x 2 vector [degree in var1, degree in var2]            % MMP, 10/09/2026
+%       - opts.fitKernelEverywhere (default 1): fit each kernel on the      % MMP, 10/09/2026
+%         whole square from its formula; 0 fits it on its triangle only     % MMP, 10/09/2026
+%       - opts.outIsPoly (default 1): 0 also returns the grid samples in    % MMP, 10/09/2026
+%         info.samples; the opvar is polynomial either way                  % MMP, 10/09/2026
 % 
 % OUTPUT 
 %   Pinv: inverse opvar object. Inverse opvar is a numerical inversion and
@@ -45,6 +50,16 @@ function [Pinv, info] = inv_opvar_2(P, opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding SS - 2/24/2026
+% MMP, 10/09/2026: Four fixes, each reproduced before the change
+%                  (opvar/inverse_dependency_map_2026_10_09.md, Sec. 5.3):
+%                  the 4-block branch concatenated two info structs with
+%                  different fields, so [Pinv,info] errored on every
+%                  operator with an R^k space; fitKernelEverywhere = 0
+%                  filled one triangle and fitted the whole square (residual
+%                  0.25); outIsPoly = 0 stored the sample arrays in the
+%                  opvar, which no product accepts; a singular matrix block
+%                  returned NaN silently. The help text now states the
+%                  shape of kerDeg and the two options.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -71,6 +86,10 @@ var1 = P.var1; var2 = P.var2;
 % ----- Pure finite-dimensional block (no distributed part) -----
 if all(P.dim(2,:)==0)
     if isa(P.P,'polynomial'), P.P = double(P.P); end
+    if rcond(P.P)<eps                                                       % MMP, 10/09/2026
+        error(['inv_opvar_2: the matrix block P.P is singular; invert ' ...
+               'through the L2 block instead (Lemma 18, copvar/inv).']);     % MMP, 10/09/2026
+    end                                                                     % MMP, 10/09/2026
     Pinv = P;
     Pinv.P = inv(P.P);
     if nargout>1
@@ -243,20 +262,27 @@ if all(P.dim(1,:)==0)
 
     % ---- Fit polynomials at the end ----
     [S0_poly, fitS0] = fitpoly_1D_cheb(t, S0_num, opts.mulDeg, var1.varname, [a b]); % convert (m,m,N) matrix of points to (m,m) polynomial in var1
-    [S1_poly, fitS1] = fitpoly_2D_cheb(t, t, S1_num, opts.kerDeg, var1.varname, var2.varname, 'all', [a b], [a b]); % convert (m,m,N,N) matrix of points to (m,m) polynomial in (var1,var2)
-    [S2_poly, fitS2] = fitpoly_2D_cheb(t, t, S2_num, opts.kerDeg, var1.varname, var2.varname, 'all', [a b], [a b]); % convert (m,m,N,N) matrix of points to (m,m) polynomial in (var1,var2)
+    % the region of the fit follows the fill above: the whole square, or   % MMP, 10/09/2026
+    % the lower triangle for S1 and the upper for S2                        % MMP, 10/09/2026
+    if opts.fitKernelEverywhere,    reg1 = 'all';   reg2 = 'all';           % MMP, 10/09/2026
+    else,                           reg1 = 'lower'; reg2 = 'upper';         % MMP, 10/09/2026
+    end                                                                     % MMP, 10/09/2026
+%   [S1_poly, fitS1] = fitpoly_2D_cheb(t, t, S1_num, opts.kerDeg, var1.varname, var2.varname, 'all', [a b], [a b]); % convert (m,m,N,N) matrix of points to (m,m) polynomial in (var1,var2)   % MMP, 10/09/2026 (was)
+%   [S2_poly, fitS2] = fitpoly_2D_cheb(t, t, S2_num, opts.kerDeg, var1.varname, var2.varname, 'all', [a b], [a b]); % convert (m,m,N,N) matrix of points to (m,m) polynomial in (var1,var2)   % MMP, 10/09/2026 (was)
+    [S1_poly, fitS1] = fitpoly_2D_cheb(t, t, S1_num, opts.kerDeg, var1.varname, var2.varname, reg1, [a b], [a b]); % (m,m,N,N) samples -> (m,m) polynomial in (var1,var2)   % MMP, 10/09/2026
+    [S2_poly, fitS2] = fitpoly_2D_cheb(t, t, S2_num, opts.kerDeg, var1.varname, var2.varname, reg2, [a b], [a b]); % MMP, 10/09/2026
     
     Pinv = P;
     Pinv.R.R0 = S0_poly;
     Pinv.R.R1 = S1_poly;
     Pinv.R.R2 = S2_poly;
 
-    if ~opts.outIsPoly
-        Pinv.R.R0 = S0_num;
-        Pinv.R.R1 = S1_num;
-        Pinv.R.R2 = S2_num;
-    end
-    
+%   if ~opts.outIsPoly                                                      % MMP, 10/09/2026 (was)
+%       Pinv.R.R0 = S0_num;                                                 % MMP, 10/09/2026 (was)
+%       Pinv.R.R1 = S1_num;                                                 % MMP, 10/09/2026 (was)
+%       Pinv.R.R2 = S2_num;                                                 % MMP, 10/09/2026 (was)
+%   end                                                                     % MMP, 10/09/2026 (was)
+
     if nargout>1
         infoL2.condR0.max = max([condR0_nodes(:);condR0_mid(:)]);
         infoL2.condR0.min = min([condR0_nodes(:);condR0_mid(:)]);
@@ -265,6 +291,10 @@ if all(P.dim(1,:)==0)
         infoL2.fitS2 = fitS2;
         infoL2.condU22 = cond(U22);
         info.L2 = infoL2;
+        if ~opts.outIsPoly                                                  % MMP, 10/09/2026
+            % the samples the fit was made from, on the node grid t         % MMP, 10/09/2026
+            info.samples = struct('t',t,'R0',S0_num,'R1',S1_num,'R2',S2_num); % MMP, 10/09/2026
+        end                                                                 % MMP, 10/09/2026
     end
 
     return
@@ -289,7 +319,8 @@ Pinv = [Ainv + Ainv*B*TB*C*Ainv,  -Ainv*B*TB;
         -TB*C*Ainv,                TB];
 
 if nargout>1
-    info = [infoFinite, infoInfinite];
+%   info = [infoFinite, infoInfinite];                                      % MMP, 10/09/2026 (was)
+    info = struct('R',infoFinite.R,'L2',infoInfinite.L2);                   % MMP, 10/09/2026
 end
 end
 

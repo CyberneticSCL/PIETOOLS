@@ -39,6 +39,20 @@ function [Pinv] = inv_opvar(Pop, tol)
 % authorship, and a brief description of modifications
 %
 % Initial coding SS - 5_31_2022
+% MMP, 10/09/2026: Three fixes, each measured on hand-built 3-PI operators
+%                  (opvar/inverse_dependency_map_2026_10_09.md, Sec. 5):
+%                  (i) the series for U^{-1} had the wrong sign on every
+%                  even term: V = U^{-1} solves V' = -V A, whose Picard
+%                  series alternates, and the loop subtracted every term;
+%                  the residual max|P*Pinv - I| was 1e-3..1e-2 on kernels of
+%                  size 0.3 and is now 1e-5..1e-9;
+%                  (ii) getsemisepmonomials indexed Rb.degmat with Ra's
+%                  variable position, so that with a constant R0 and an R2
+%                  in theta only the whole R2 part of the inverse was
+%                  dropped (residual 0.30 = |R2|);
+%                  (iii) orderapp 4 -> 8 in the polynomial fit of R0^{-1}:
+%                  R0 residual 4e-5 -> 5e-9 on R0 = 1 + 0.5 s. The fit error
+%                  is still not checked.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -118,14 +132,17 @@ elseif all(Pop.dim(1,:)==0)
         Uinv = polynomial(eye(size(A)));
         Ukinv = Uinv;
         for i=1:Nmax
-            Ukinv = int(Ukinv*A,var1,X(1),var1);
+            % V_k = -int_a^s V_{k-1} A: the sign belongs to every term     % MMP, 10/09/2026
+%           Ukinv = int(Ukinv*A,var1,X(1),var1);                             % MMP, 10/09/2026 (was)
+            Ukinv = -int(Ukinv*A,var1,X(1),var1);                           % MMP, 10/09/2026
             if isa(Ukinv, 'double')
                 Ukinv = polynomial(Ukinv);
             end
             if max(abs(Ukinv.coefficient(:)))<tol
                 break;
             end
-            Uinv = Uinv-Ukinv;
+%           Uinv = Uinv-Ukinv;                                              % MMP, 10/09/2026 (was)
+            Uinv = Uinv+Ukinv;                                              % MMP, 10/09/2026
         end
         
         Uinv.coefficient(find(abs(Uinv.coefficient)<tol)) = 0;
@@ -159,7 +176,8 @@ end
 X = P.I; var1 = P.var1; var2 = P.var2;
 
 % finding U-inverse  
-N=100; orderapp=4; 
+% N=100; orderapp=4;                                                        % MMP, 10/09/2026 (was)
+N=100; orderapp=8;                                                          % MMP, 10/09/2026
 dx = (X(2)-X(1))/N; 
 ii=0;
 Rtemp = zeros(size(P.R.R0,1),size(P.R.R0,2),N);
@@ -247,7 +265,8 @@ var1_loc_Rb = ismember(Rb_vnames,var1.varname);
 var2_loc_Rb = ismember(Rb_vnames,var2.varname);
 if Rb_maxdeg(var1_loc_Rb)<= Rb_maxdeg(var2_loc_Rb)
     [newdegmat,idx] = sortrows(Rb.degmat);
-    [val,~,~] = unique(full(Rb.degmat(:,var1_loc_Ra)));
+%   [val,~,~] = unique(full(Rb.degmat(:,var1_loc_Ra)));                     % MMP, 10/09/2026 (was)
+    [val,~,~] = unique(full(Rb.degmat(:,var1_loc_Rb)));                     % MMP, 10/09/2026
     Rb = polynomial(Rb.coefficient(idx,:),Rb.degmat(idx,:),Rb.varname,Rb.matdim);
     F{2} = kron(var1.^(val'),eye(size(Rb)));
     G{2} = {};

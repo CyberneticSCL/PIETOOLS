@@ -44,6 +44,12 @@ function [is_sep,is_full_int,is_no_mult] = is_separable(Pop,Ctol)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 07/01/2024
+% MMP, 10/09/2026: The fifth check was the bare statement is_full_int(5);
+%                  with no assignment, so an operator whose Ry2 or R2y lower
+%                  and upper kernels differ was reported separable and
+%                  inv_opvar2d_separable then inverted the operator with the
+%                  upper kernel overwritten by the lower, residual 0.1 with
+%                  no warning (measured, opvar/inverse_dependency_map_2026_10_09.md).
 
 
 % % Convert all operator parameters to class 'polynomial'
@@ -76,7 +82,8 @@ elseif ~all(all(isequal(cleanpoly(Pop.Ry2{2}-Pop.Ry2{3},Ctol),0))) ||...
         ~all(all(isequal(cleanpoly(Pop.R2y{2}-Pop.R2y{3},Ctol),0)))
     % Check if the maps L2[x,y]-->L2[y] and L2[y]-->L2[x,y] are defined by
     % full integral operators
-    is_full_int(5);
+%   is_full_int(5);                                                         % MMP, 10/09/2026 (was)
+    is_full_int(5) = false;                                                 % MMP, 10/09/2026
 end
 
 % % Check that off-diagonal multipliers are zero.
