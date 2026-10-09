@@ -44,6 +44,13 @@ function R = pielr_opcheck(prog,H,P,q,A)                                    % CC
 %       R.thresh = max(abs, k*ref)   when ref is credible (ref <= refmax)
 %                = abs               otherwise
 % where ref is the residual a reference solve achieves on the SAME program.
+%
+% OPTIONAL eta RULE (CC, 10/07/2026).  A.gate.rule = 'eta_psd' accepts on the
+% row-normwise backward error of the PSD-clipped point instead, at
+% A.gate.eta_tol (default 1e-6); 'op' (the rule above) stays the default.
+% Taken from the cuADMM harness, where it is the calibrated default.  Here it
+% measured WORSE for the gamma bisection's soundness -- 4 of 5 bounds below
+% the reference against 3 of 5 -- see the comment at the R.ok line.
 % The 'abs' floor is kept at 1e-6 by default so that nothing which passed
 % before fails now: every certificate this package has accepted has
 % rel < 1e-6 <= max(1e-6, k*ref).  Setting abs = 0 gives the pure ratio gate.
@@ -226,7 +233,13 @@ end                                                                     % CC, 09
 %   admit  2-D deg 3 frac 0.10, ref 1.900e-06      of this
 %   REJECT 2-D deg 3 frac 0.50, ref 6.283e-05   <- the negative control
 % and it caps the loosest possible threshold at k*refmax = 1e-4 for k = 10.
-g = struct('abs',1e-6,'k',10,'ref',NaN,'refmax',1e-5);
+% g = struct('abs',1e-6,'k',10,'ref',NaN,'refmax',1e-5);                    % CC, 10/07/2026 (was)
+% rule 'op' = accept on the operator residual R.rel (default, unchanged);
+% rule 'eta_psd' = accept on the row-normwise backward error of the
+% PSD-clipped point, the rule the cuADMM harness adopted after calibrating
+% it on 120 iterates against MOSEK brackets.  See the R.ok block below.
+g = struct('abs',1e-6,'k',10,'ref',NaN,'refmax',1e-5, ...
+           'rule','op','eta_tol',1e-6);                                     % CC, 10/07/2026
 if isfield(A,'gate') && ~isempty(A.gate)
     fn = fieldnames(A.gate);
     for i = 1:numel(fn), g.(fn{i}) = A.gate.(fn{i}); end
@@ -243,7 +256,34 @@ else
 end
 R.gate_ref = g.ref;   R.gate_k = g.k;   R.gate_abs = g.abs;
 R.gate_refmax = g.refmax;
-R.ok = (R.rel <= R.thresh) && R.psd;
+% R.ok = (R.rel <= R.thresh) && R.psd;                                      % CC, 10/07/2026 (was)
+% WHY AN eta RULE.  R.rel inverts the ranking of two points against the SDP
+% rows (9 of 56 baseline rows), and at the points behind this package's three
+% UNSOUND bounds it reads 9.96e-07 at all three -- the gate edge, where the
+% gamma bisection parks.  eta(X+) at those same points is 2.12e-06,
+% 2.11e-06 and 3.79e-07, against 5.04e-07 and 2.96e-07 at sound points on
+% the same plants: it separates the two GROSS errors (ratios 0.747, 0.788)
+% that R.rel admitted, but NOT the 1.1% one (gain-reacdiff tier 3).
+% MEASURED AS A GATE, IT IS WORSE, so 'op' stays the default.  Same five
+% bisections rerun with rule 'eta_psd', tol 1e-6 -- bound ratio op -> eta:
+%   gain-transport t0        0.747 -> 0.832   both unsound
+%   gain-transport-dual t0   0.788 -> 0.848   both unsound
+%   gain-reacdiff t3         0.989 -> 0.971   WORSE
+%   gain-transport t1        1.015 -> 1.009   both sound
+%   gain-transport-dual t1   1.019 -> 0.999   NEWLY UNSOUND, ||x||inf 57.1
+% Every accepted point sits at eta(X+) ~ 9.9e-07, the new gate edge: the
+% bisection parks wherever the threshold is, so NO residual threshold makes
+% it sound; that needs a margin exceeding the operator error.  The last row
+% is the large-norm failure eta is exposed to (it is relative to
+% ||x||_inf): the norm guard the cuADMM harness keeps IS needed with this
+% rule, although the unsound points under rule 'op' have the smallest norms.
+if strcmp(g.rule,'eta_psd')                                                 % CC, 10/07/2026
+    R.ok = isfield(R,'eta_psd') && isfinite(R.eta_psd) && ...
+           R.eta_psd <= g.eta_tol && R.psd;                                 % CC, 10/07/2026
+else                                                                        % CC, 10/07/2026
+    R.ok = (R.rel <= R.thresh) && R.psd;                                    % CC, 10/07/2026
+end                                                                         % CC, 10/07/2026
+R.gate_rule = g.rule;   R.gate_eta = g.eta_tol;                             % CC, 10/07/2026
 end
 
 % =========================================================================

@@ -21,23 +21,42 @@ function R = jp_wave_plate_rates(sys,par,opts)
 %          above (topdown: probes hi*(1-fracs) and (1+above)*hi; above = []
 %          skips the latter), hi (wave: kap, the exact rate; plate: the value
 %          in the paper), rtol (1e-4), maxsteps (24, bisect), deadline (posix
-%          s, Inf), tight (true), accept ('certified' | 'mosek': the MOSEK
-%          status, NOT certified; topdown only), scale (1; wave only: state
-%          u2 = phi_t/scale)
+%          s, Inf), tight (true; heatNd_solve only), accept ('certified' | 'psd_clip' | 'mosek':
+%          the MOSEK status, NOT certified; topdown only), scale (1; wave
+%          only: state u2 = phi_t/scale)
 % R      lo (largest certified k; NaN if none); hi (topdown: the top of the
 %        probe grid; bisect: smallest k certified infeasible or uncertain
 %        above lo); I_above (topdown: (1+above)*hi if certified infeasible,
-%        else NaN); trace [k st t_mosek rel_b]; affine_err; the SDP shape,
-%        build and solve times; the value in the paper, for comparison.
+%        else NaN); trace [k st t_mosek rel_b] (column 4 is eta of the
+%        clipped point under 'psd_clip'); affine_err; the SDP shape, build and
+%        solve times; the value in the paper, for comparison.
 %
 % VERDICTS are certified unless OPTS.accept = 'mosek' (heatNd_solve: +1 needs
 % rel_b <= 1e-6, PSD blocks and x ~= 0; -1 a verified Farkas ray; else 0,
 % 'uncertain', which bounds the steering but never the certified result).
+% 'psd_clip' certifies with bl_bisect 'feas' and MOSEK (default tolerances)
+% instead: +1 iff MOSEK reports a FEASIBLE status and its point, repaired onto
+% the rows and clipped to PSD, has row-normwise backward error eta <= 1e-7, with
+% lambda_min >= -1e-6 (unit-norm b) before clipping; -1 a verified Farkas ray.
+% Rule: PIETOOLS_demos/cuadmm/bl_bisect.m; its calibration (certify_primal) is
+% on other classes, and on the wave no infeasible k returned a FEASIBLE status,
+% so the +1 side has no infeasible control on this class.
+% On the same SDP (wave kap 3, scale 1, k = 3) heatNd_solve (tight) rejected
+% its MOSEK point, rel_b 5.9e-6, and bl_bisect certified its own MOSEK point,
+% eta 1.0e-10 (two solves, measured 10/06/2026).
+% TABLE 2 (wave): jp_wave_plate_rates('wave',kap,struct('d',[],'psatz',[3 4 5 6],
+% 'scale',kap,'accept','psd_clip')) certified k = kap exactly (eta 1.1e-10 to
+% 2.3e-10) and 1.01*kap infeasible for kap = 1..7, 21-27 s per kap (15-20 s
+% building, 3.5-4.9 s in the two MOSEK probes) (measured with this script
+% 10/07/2026, before the eta print label, which was checked at kap = 3; paper
+% 0.9999 .. 6.9645). Without the scaling, 'psd_clip' certifies k = kap for
+% kap = 1..4 only.
 % THE SDP IS AFFINE IN k (only the 2k*P'*T term depends on it): built at
 % k = 1 and k = 2 and interpolated, At(k) = At1 + (k-1)*(At2 - At1); checked
 % against a direct build at k = 0.5 before any solve.
 % DEPENDENCY: heatNd_path / heatNd_sdp / heatNd_solve (MMP, 09/27/2026) in
-% PIETOOLS_demos/sopvar_demos.
+% PIETOOLS_demos/sopvar_demos; for 'psd_clip', bl_bisect and cuadmm_path in
+% PIETOOLS_demos/cuadmm.
 %
 % CC, 09/28/2026: initial coding, recreating the wave and plate examples of
 % the paper (PIETOOLS_examples/Examples_Library/2D/PIETOOLS_PDE_Ex_2D_Wave_Eq_Damped.m
@@ -49,6 +68,11 @@ function R = jp_wave_plate_rates(sys,par,opts)
 % CC, 09/28/2026: the heatNd tools moved to PIETOOLS_demos/sopvar_demos; the
 % addpath follows them. Header corrected to the code (top-down default,
 % R.hi per mode, R.I_above, accept, scale).
+% CC, 10/07/2026: OPTS.accept = 'psd_clip' (bl_bisect's certificate rule, with
+% MOSEK). The heatNd_solve gate rejected k = kap at kap = 3, 4 (scale 1) and
+% kap = 5, 6, 7 (scale = kap), where this rule certifies it (separate MOSEK
+% solves); with scale = kap it reproduces Table 2 (kap = 1..7, exactly k = kap).
+% The kap = 3 note under 'accept' below is the heatNd_solve gate only.
 
 if nargin < 3, opts = struct(); end
 isw = strcmp(sys,'wave');
@@ -134,10 +158,13 @@ sv = struct('tight',o.tight);
 % the MOSEK status): +1 whenever MOSEK returns PRIMAL_AND_DUAL_FEASIBLE/OPTIMAL,
 % whatever rel_b.  Measured at kap = 3 (faces): no probe certified -- MOSEK
 % OPTIMAL but rel_b 1.6e-6 > 1e-6 at k = 0.3 (eta 1e-8), UNKNOWN at the
-% probes k = 1.5, 2.7, 2.97, 3.
+% probes k = 1.5, 2.7, 2.97, 3.  'psd_clip' certifies k = 3 there (header).
 if strcmp(o.accept,'mosek')
     hs = @heatNd_solve;
     solve = @(D,s) mosek_status(hs(D,s));
+elseif strcmp(o.accept,'psd_clip')                                          % CC, 10/07/2026
+    cuadmm_path();                  % adds MOSEK and SeDuMi; same checkout  % CC, 10/07/2026
+    solve = @(D,s) psd_clip_solve(D);                                       % CC, 10/07/2026
 else
     solve = @heatNd_solve;
 end
@@ -152,11 +179,13 @@ if strcmp(o.mode,'topdown')
     if v.st == -1, R.I_above = (1+o.above)*hi; end
     fprintf('JP %s k=%.6f (above): st=%+d %s\n',sys,(1+o.above)*hi,v.st,v.why);
     end                                                                     % CC, 09/28/2026
+    rlab = 'rel_b';  if strcmp(o.accept,'psd_clip'), rlab = 'eta'; end      % CC, 10/07/2026
     for fr = o.fracs
         if posixtime(datetime('now')) > o.deadline, break; end
         k = hi*(1-fr);
         v = solve(at(k),sv);  R.trace(end+1,:) = [k v.st v.t_mosek v.rel_b];
-        fprintf('JP %s k=%.6f (1-%g): st=%+d %s rel_b=%.1e t=%.0fs\n',sys,k,fr,v.st,v.prosta,v.rel_b,v.t_mosek);
+%       fprintf('JP %s k=%.6f (1-%g): st=%+d %s rel_b=%.1e t=%.0fs\n',sys,k,fr,v.st,v.prosta,v.rel_b,v.t_mosek); % CC, 10/07/2026 (was)
+        fprintf('JP %s k=%.6f (1-%g): st=%+d %s %s=%.1e t=%.0fs\n',sys,k,fr,v.st,v.prosta,rlab,v.rel_b,v.t_mosek); % CC, 10/07/2026
         if v.st == 1, R.lo = k; break; end
     end
     R.hi = hi;  R.why = 'topdown';  R.t_total = toc(t0);
@@ -210,6 +239,30 @@ prog = lpi_ineq(prog,T'*P-o.ep^2*(T'*T),io);
 prog = lpi_ineq(prog,-(P'*A+A'*P+2*k*(P'*T)),io);
 D = heatNd_sdp(prog);
 end
+
+
+% CC, 10/07/2026 (start): OPTS.accept = 'psd_clip'
+function v = psd_clip_solve(D)
+% one probe through bl_bisect 'feas' with MOSEK (its rule, not re-implemented
+% here): the SDP goes to a temporary dump (unit-norm b, bscl in the _meta file,
+% the format bl_bisect reads); the folder, including the cuADMM text copy of At
+% that 'feas' mode writes (2.53 GB measured for the plate with faces at d = 0,
+% 10/06/2026), is deleted on return, error or Ctrl+C (onCleanup).  bl_bisect
+% gets its own stop file: its default (cuadmm_outdir()/STOP) is the harness
+% kill switch, which would leave it with no probe
+tmp = tempname;  mkdir(tmp);  cl = onCleanup(@() rmdir(tmp,'s'));  file = fullfile(tmp,'jp.mat');
+S = struct('At',D.At,'b',D.b,'c',D.c,'K',D.K,'Ns',D.K.s(:)','Kf',D.K.f);
+save(file,'-struct','S','-v7.3');  clear S
+bscl = D.bscl;  save(fullfile(tmp,'jp_meta.mat'),'bscl');
+R = bl_bisect(file,struct('solver','mosek','mode','feas','outdir',tmp,'tag','jp', ...
+                          'stopfile',fullfile(tmp,'STOP')));
+if isempty(R.probes), error('jp_wave_plate_rates:psd_clip','bl_bisect made no probe: %s',R.stopped); end
+p = R.probes(end);
+v.st = 0;  if p.verdict == 'F', v.st = 1; elseif p.verdict == 'I', v.st = -1; end
+v.t_mosek = p.t_s;  v.rel_b = p.F_etapsd;  v.prosta = p.note;  v.solsta = p.verdict;
+v.why = sprintf('psd_clip %s (eta %.1e, lambda_min %.1e; %s)',p.verdict,p.F_etapsd,p.F_labs,p.note);
+end
+% CC, 10/07/2026 (end)
 
 
 function v = mosek_status(v)

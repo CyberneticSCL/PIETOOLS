@@ -45,6 +45,9 @@ function cert = pielr_solve(PIE,lpi,opts)                                   % CC
 %     .rank      per-block rank (or scalar) to START the ladder at
 %     .maxrank   ladder ceiling (default 6)
 %     .gate      acceptance threshold on the operator residual (default 1e-6)
+%     .gate_rule 'op' (default) or 'eta_psd': accept on eta of the PSD-clipped
+%                point instead (CC, 10/07/2026).  Measured worse for gamma
+%                bisection soundness; see pielr_opcheck.  .gate_eta its tol.
 %     .seeds     BM random seeds per rank (default [11 22 33]).  NOTE the seed
 %                INDEX also selects the initial magnitude, so the seeds are a
 %                designed sweep over scale, not an i.i.d. ensemble.
@@ -85,7 +88,8 @@ if nargin<3, opts = struct(); end
 def = struct('settings',[],'rank',[],'maxrank',6,'gate',1e-6, ...
              'seeds',[11 22 33],'lmit',400,'lmtol',[],'verbose',true, ...
              'refine',true,'w0',[],'ref_rel',NaN,'gate_k',10,'gate_refmax',[], ...
-             'pre',1,'lmrtol',[],'lmwin',[]); % CC, 09/23/2026; .pre/.lmrtol/.lmwin CC, 09/25/2026
+             'pre',1,'lmrtol',[],'lmwin',[], ...
+             'gate_rule',[],'gate_eta',[]); % CC, 09/23/2026; .pre/.lmrtol/.lmwin CC, 09/25/2026; .gate_rule/.gate_eta CC, 10/07/2026
 % lmrtol/lmwin REACH bm_lm2's STAGNATION exit, which no caller could set
 % before (CC, 09/25/2026).  bm_lm2 takes (P,rv,w,maxit,tol,rtol,win) but every
 % call site passes five arguments, so rtol = 1e-3 over win = 100 iterations
@@ -140,6 +144,10 @@ A.gate = struct('abs',opts.gate,'k',opts.gate_k,'ref',opts.ref_rel);   % CC, 09/
 if ~isempty(opts.gate_refmax)                                          % CC, 09/23/2026
     A.gate.refmax = opts.gate_refmax;                                  % CC, 09/23/2026
 end                                                                    % CC, 09/23/2026
+% gate_rule ('op' | 'eta_psd') and gate_eta likewise reach pielr_opcheck
+% only when set, so its defaults ('op', 1e-6) are the single definition.
+if ~isempty(opts.gate_rule), A.gate.rule    = opts.gate_rule; end           % CC, 10/07/2026
+if ~isempty(opts.gate_eta),  A.gate.eta_tol = opts.gate_eta;  end           % CC, 10/07/2026
 
 % ---- normalise the PIE, and settle the dimension ------------------------
 PIE = pielr_norm_pie(PIE);
