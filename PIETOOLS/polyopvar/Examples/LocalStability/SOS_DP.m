@@ -47,8 +47,8 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
             
     %% Build the monomial basis used to parameterize P.
 
-    % Construct the basis operator corresponding to \hat{U} in paper.
-    % Only 2PI operators can be used here (for now).
+    % % Construct the basis operator corresponding to \hat{U} in paper.
+    % % Only 2PI operators can be used here (for now).
     pvar s s_dum
     % Zmon     = monomials([s,s_dum],0:opdeg);
     % Zop      = opvar();
@@ -91,7 +91,7 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
             Zop.R.R0 = [0*Zmon;0*Zmon];
             Zop.R.R1 = [Zmon;0*Zmon];
             Zop.R.R2 = [0*Zmon;Zmon];
-        
+
             Z  = dopvar2ndopvar(Zop);
             Zx = Z*x;
             Zs{i} = Zx;

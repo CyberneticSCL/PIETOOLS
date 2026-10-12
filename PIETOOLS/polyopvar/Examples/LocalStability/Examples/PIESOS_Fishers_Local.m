@@ -66,7 +66,7 @@ alpha = [1, 0, 0];
 % rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,4] --> numerr=0 and feasratio=-0.02.
 % rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,3] --> numerr=2.
 % rad=0.1   failed with dist_degs=[1,0,1], mon_degs=[3,0,0] --> numerr=2.
-rad = 0.1; 
+rad = 4.1; 
 
 % exponential decay rate.
 lambda = 0;
@@ -78,7 +78,7 @@ dist_degs = [1, 0, 1];
 
 % Declare monomial degrees in independent variables used to respectively parametrize
 % LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.
-mon_degs = [3, 0, 4];
+mon_degs = [1, 0, 1];
 
 % Run local stability test.
 % C can be passed in as optional final argument if it is fixed.

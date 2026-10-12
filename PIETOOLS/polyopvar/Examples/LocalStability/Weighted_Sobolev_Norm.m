@@ -1,15 +1,14 @@
-function g = Weighted_Sobolev_Ball(r, alpha, Top, x)
-    % g = weighted_sobolev_ball(...) Returns the weighted sobolev ball (Sec. 7.1 in Automatica paper).
+function g = Weighted_Sobolev_Norm(alpha, Top, x)
+    % g = weighted_sobolev_norm(...) Returns the weighted sobolev norm (Sec. 7.1 in Automatica paper).
     %
     % INPUTS
-    % - r:         Radius of the local ball.
-    % - alpha:     (n+1)-dim array containing parameters of weighted Sobolev ball.
+    % - alpha:     (n+1)-dim array containing parameters of weighted Sobolev norm.
     % - Top:       Map from fundamental to PDE state represented as an ndopvar object.
     % - x:         Fundamental state.
     
     %
     % OUTPUTS
-    % - g:         Weighted sobolev ball of radius r.
+    % - g:         Weighted sobolev norm.
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PIETOOLS - weighted_sobolev_ball
@@ -38,6 +37,8 @@ function g = Weighted_Sobolev_Ball(r, alpha, Top, x)
     % CR, 09/01/2026: Initial coding
     % CR, 09/07/2026: Route inner products through the local MATLAB-compatible v2 implementation.
     % DJ, 10/06/2026: Directly avoid terms with zero factor.
+    % CR, 10/12/2026: Changed from computing the weighted Sobolev ball (of radius r) to computing 
+    %                 just the weighted Sobolev norm.
     
         
     %n = size(alpha,2) - 1; % degree of PDE.
@@ -45,12 +46,14 @@ function g = Weighted_Sobolev_Ball(r, alpha, Top, x)
     
     % g = r^2 - alpha(1)*innerprod(Top*x,Top*x);
     % g = r^2 - alpha(1)*innerprod_v2(Top*x,Top*x);                    % CR, 09/07/2026
-    g = r^2;
+    % g = r^2;
+    g = 0;
 
     for i=find(alpha(:)')                                                   % DJ, 10/06/2026
         Rop = dopvar2ndopvar(diff(Top_opvar,Top_opvar.var1,i-1,'pure'));
         % g = g - alpha(i)*innerprod(Rop*x,Rop*x);
-        g = g - alpha(i)*innerprod_v2(Rop*x,Rop*x);                  % CR, 09/07/2026
+        % g = g - alpha(i)*innerprod_v2(Rop*x,Rop*x);                  % CR, 09/07/2026
+        g = g + alpha(i)*innerprod_v2(Rop*x,Rop*x);
     end
 
 end

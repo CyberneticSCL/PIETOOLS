@@ -15,7 +15,7 @@ clear;  clear stateNameGenerator
 pvar   s t s_dum
 L = 1;
 a0 = 1;
-k = 2.1*a0*pi^2/L^2;
+k = 2.0*a0*pi^2/L^2;
 dom = [0,L];
 x = pde_var(s,dom);
 
@@ -25,10 +25,10 @@ PDE = [diff(x,t) == a0*diff(x,s,2) +x^2- (k/L)*int(x,s,dom(1),dom(2));
 
 
 % Script parameters
-q = 2.0*a0*pi^2/L^2; % For k=2*a*pi^2/L^2, stability can be verified with energy functional when |u|<q=a*pi^2/L^2
+q = 1.9*a0*pi^2/L^2; % For k=2*a*pi^2/L^2, stability can be verified with energy functional when |u|<q=a*pi^2/L^2
 q_sobolev = q/L;     % by Sobolev inequality, |u|^2 <= L*||u_{x}||_{L2}^2
 d = 1;               % degree of LF distributed monomial basis (will be doubled in LF).
-pdeg = 4;            % degree of Zs monomials of positive P operator.
+pdeg = 6;            % degree of Zs monomials of positive P operator.
 
 % CARL: CONDITIONS TO REPLICATE EMILIA'S RESULT
 use_L2_LF = false;   % Express the Lyapunov function in terms of an L2 norm (if true) of the PDE state
