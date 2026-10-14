@@ -1,4 +1,4 @@
-function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
+function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom, opts)
     % [prog, DP] = SOS_DP(...) Construct a degree-2*d SOS distributed polynomial
     % DP = < Z_d(x), P Z_d(x) >_{L2} = \sum_i=1^d \sum_j=1^d <U^i x^i, Pmat U^j x^j>_{L_2}
     % (as in Def. 9 CDC paper) and add the variable to the PIESOS program.
@@ -9,6 +9,12 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
     % - opdeg  Degree of the spatial monomial basis in SOS P operator.
     % - x      Fundamental state.
     % - dom    Spatial domain [a, b].
+    % - opts   (optional) struct with fields:
+    %             - 'psatz': binary value specifying whether to use a psatz
+    %               multiplier to enforce positivity only on the interval
+    %               over which the operator integrates. If psatz=0, the 
+    %               Pcell will be multiplied by (s-a)*(b-s), where [a,b]=Z.dom.
+    %               If psatz=1, Pcell = Pcell0 + (s-a)*(b-s)*Pcell1.
     %
     % OUTPUTS
     % - prog  Updated PIESOS program.
@@ -43,6 +49,9 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
     % DJ, 09/21/2026: Removed strict positivity constraint.
     % DJ, 10/06/2026: Reduce monomial degree of kernels for tensor product
     %                 of basis operators.
+    % CR, 10/14/2026: Added opts structure as optional input so Pcell can
+    %                 be constructed using a psatz multiplier.
+    % 
         
             
     %% Build the monomial basis used to parameterize P.
@@ -132,7 +141,20 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
     end
 
     %% Declare the block Gram operator P >= 0 and add its variables to prog.
-    [prog, Pcell] = polyopvar_sosquadvar(prog, Zs, Zs, 'pos');
+    if nargin < 6
+        [prog, Pcell] = polyopvar_sosquadvar(prog, Zs, Zs, 'pos');
+    else
+        g = (s-dom(1))*(dom(2)-s);
+        if ~opts.psatz
+            [prog, Pcell] = polyopvar_sosquadvar(prog, Zs, Zs, 'pos');
+        elseif opts.psatz
+            [prog, Pcell0] = polyopvar_sosquadvar(prog, Zs, Zs, 'pos');
+            [prog, Pcell1] = polyopvar_sosquadvar(prog, Zs, Zs, 'pos');
+            Pcell = cell(size(Pcell0));
+        else
+            error("SOS_DP: Invalid opts.psatz value!")
+        end
+    end
 
     % %% Ensure strict positivity of the constructed SOS DP.
     % eppos = 1e-4;
@@ -148,9 +170,29 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom)
     for i = 1:d
         for j = 1:i
             if i==j
-                DP = DP + innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                if nargin < 6
+                    DP = DP + innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                elseif ~opts.psatz
+                    Pcell{i,j} = g*Pcell{i,j};
+                    DP         = DP + innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                elseif opts.psatz
+                    Pcell{i,j} = Pcell0{i,j} + g*Pcell1{i,j};
+                    DP         = DP + innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                else
+                    error("SOS_DP: Invalid opts.psatz value!")
+                end
             else
-                DP = DP + 2*innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                if nargin < 6
+                    DP = DP + 2*innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                elseif ~opts.psatz
+                    Pcell{i,j} = g*Pcell{i,j};
+                    DP         = DP + 2*innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                elseif opts.psatz
+                    Pcell{i,j} = Pcell0{i,j} + g*Pcell1{i,j};
+                    DP         = DP + 2*innerprod_v2(Zs{i}, Zs{j}, Pcell{i,j});
+                else
+                    error("SOS_DP: Invalid opts.psatz value!")
+                end
             end
         end
     end

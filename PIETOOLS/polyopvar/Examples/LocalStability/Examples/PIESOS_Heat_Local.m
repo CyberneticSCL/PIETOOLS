@@ -47,14 +47,9 @@ n = 2; % degree of PDE.
 eppos = 0.1;
 
 % (n+1)-dim array containing parameters of weighted Sobolev norm for the local ball.
-alpha_ball = [0, 1, 0]; % [0,1,0] for L2 ball on x_s.
+alpha = [0, 1, 0]; % [0,1,0] for L2 ball on x_s.
 
-% (n+1)-dim array containing parameters of weighted Sobolev norm for the 
-% upper and lower bounds of the LF.
-alpha_low = [0, 1, 0];
-alpha_up  = [0, 1, 0];
-
-% Radius of local ball experiments with eppos=1.0; alpha = [0, 1, 0]; lambda = 0.
+% Radius of local ball - for a0=1, k=2*a0*pi^2/L^2, should be able to prove up to rad =< \pi^2/2.
 rad = 0.1;
 
 % exponential decay rate.
@@ -67,20 +62,24 @@ dist_degs = [1, 1, 1];
 
 % Declare monomial degrees in independent variables used to respectively parametrize
 % LF, p1, p2 multipliers. Optionally include mon_degs(4)=sos3_mon.
-mon_degs = [5, 3, 3];
+mon_degs = [1, 1, 4, 6];
+
+% Declare psatz indicators for sos1, sos2, sos3 respectively.
+% psatz(i)=0 --> Pcell=(s-a)*(b-s)*Pcell1.
+% psatz(i)=1 --> Pcell=Pcell0 + (s-a)*(b-s)*Pcell1.
+% psatz(i)=2 --> Pcell=Pcell.
+psatz = [0, 0, 2];
 
 % Conditions to test - all must be true for full stability test.
-active_conds = [true, true, true]; 
+active_conds = [false, false, true]; 
 
 % Run local stability test.
-% C can be passed in as optional final argument if it is fixed.
-res = LocalStability(PDE, rad, alpha_ball, alpha_low, alpha_up, eppos, lambda, ...
-                        dist_degs, mon_degs, active_conds);
+res = LocalStability(PDE, rad, alpha, eppos, lambda, dist_degs, ...
+                        mon_degs, psatz, active_conds);
 
 if ~isempty(res)
     C     = res{1}
     M     = res{2}
     V     = res{3};
     dV    = res{4};
-    Pcell = res{5};
 end

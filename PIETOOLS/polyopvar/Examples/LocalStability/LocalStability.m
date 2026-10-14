@@ -1,25 +1,22 @@
-function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, lambda, dist_degs, ...
-                                mon_degs, active_conds, C)
+function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs, ...
+                                psatz, active_conds)
 
     % res = Local_Stability(...) runs the local stability test (Thm. 1 in Automatica paper).
     %
     % INPUTS
     % - PDE:            The PDE to convert to a PIE.
     % - r:              Radius of the local ball.
-    % - alpha_ball:     (n+1)-dim array containing parameters of weighted Sobolev norm representing local ball.
-    % - alpha_low:      (n+1)-dim array containing parameters of weighted Sobolev norm representing lower
-    %                   bound on LF.
-    % - alpha_up:       (n+1)-dim array containing parameters of weighted Sobolev norm representing upper
-    %                   bound on LF.
+    % - alpha:         (n+1)-dim array containing parameters of weighted Sobolev norm representing local ball.
     % - eppos:          Treated as eppos^2, the lower bound on LF.
     % - lambda:         Exponential decay rate.
     % - dist_degs:      array containing degrees of distributed monomial basis for V, p1, p2 resptively.
     % - mon_degs:       array containing degrees of monomial basis for V, p1, p2,
     %                   (and optionally sos3) resptively.
+    % - psatz:          array containing indicators (0,1,2) which denote when to include psatz 
+    %                   multipliers for sos1, sos2, sos3 resptively.
     % - active_conds:   Array containing logical values indicating which of the three SOS conditions to
     %                   enfore. All must be set to true for the complete stability test. Useful for 
     %                   determining appropriate degree values.
-    % - C:              Treated as C^2, the upper bound on LF (optional argument).
     % OUTPUTS
     % - res:            Cell containing C_sol, M_sol, V_sol, dV_sol, Pcell_sol.
     
@@ -55,9 +52,10 @@ function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, la
     %                 V3_Liediff.m.
     % CR, 10/07/2026: Replaced kernel_degree by kernel_degree2 and added option
     %                 to pass in monomial degree of sos3 as mon_degs(4).
-    % CR, 10/12/2026: Added active_conds as input for switching SOS constraints on/off and split
-    %                 alpha into alpha_ball, alpha_up, and alphaa_low so they can be defined indpendently.
+    % CR, 10/12/2026: Added active_conds as input for switching SOS constraints on/off.
     %                 Also replaced Weighted_Sobolev_Ball by Weighted_Sobolev_Norm.
+    % CR, 10/14/2026: Added opts structure for constructing Pcell using
+    %                 psatz multiplier.
 
     %% Convert PDE to PIE.
     PIE = convert(PDE);
@@ -68,17 +66,11 @@ function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, la
 
     
     %% Initialize PIESOS program structure.
-    
-    if nargin < 11
-        dpvar C % treated as C^2, the upper bound on the LF.
-        prog = piesos_program(x,C);
-        prog = piesos_ineq(prog,C-1e-6); % C>=1e-6.
-        prog = piesos_setobj(prog,C); % Minimize C.
-        fprintf(" --- Upper bound C to be minimised ---\n");
-    else
-        prog = piesos_program(x);
-        fprintf(" --- Upper bound C is fixed ---\n");
-    end
+    dpvar C % treated as C^2, the upper bound on the LF.
+    prog = piesos_program(x,C);
+    prog = piesos_ineq(prog,C-1e-6);
+    prog = piesos_setobj(prog,C); % Minimize C.
+    fprintf(" --- Upper bound C to be minimised ---\n");
     
     
     %% Unpack degrees of DPs and define weighted Sobolev ball.
@@ -95,31 +87,32 @@ function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, la
     V_mon    = mon_degs(1);
     p1_mon   = mon_degs(2);
     p2_mon   = mon_degs(3);
-    
-    % Define weighted sobolev ball of radius r.
-    g = Weighted_Sobolev_Norm(alpha_ball, Top, x);
-    g = r^2 - g;
-     
-    % Define term related to lower bound.
-    bound_low = Weighted_Sobolev_Norm(alpha_low, Top, x);
-    
-    % Define term related to upper bound.
-    bound_up = Weighted_Sobolev_Norm(alpha_up, Top, x);
 
-    fprintf(" --- Weighted Sobolev ball and bounds declared ---\n");
+    % Declare psatz indicators for sos1, sos2, sos3 respectively.
+    psatz1 = psatz(1);
+    psatz2 = psatz(2);
+    psatz3 = psatz(3);
+     
+    % Define term related to lower and upper bound on V.
+    bound = Weighted_Sobolev_Norm(alpha, Top, x);
+   
+    % Define weighted sobolev ball of radius r.
+    g = r^2 - bound;
+
+    fprintf(" --- Weighted Sobolev ball and bound declared ---\n");
 
 
     %% Construct LF and its Lie derivative.
-    [prog, V, dV, Pcell] = V3_Liediff(prog, PIE, V_deg, V_mon);
-    % V  = -innerprod(x,Top*x);
-    % dV = -2*innerprod(x,f);
+    % [prog, V, dV, Pcell] = V3_Liediff(prog, PIE, V_deg, V_mon);
+    V  = -0.5 * innerprod(x, Top*x);
+    dV = -innerprod(x, f);
 
     %% Define lower bound on the LF and enforce constraint.
     
     if active_conds(1)
 
         % Define global lower bound on V.
-        V_low = V - eppos*bound_low;
+        V_low = V - eppos*bound;
     
         % Obtain kernel degree of V_low (not same as V_deg due to T) to use for 
         % defining sos1 of equal degree.
@@ -130,9 +123,17 @@ function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, la
         sos1_mon = min(V_low_mon,6);
     
         fprintf(" --- sos1.deg = %d and sos1.mon = %d whilst V_low.deg = %d and V_low.mon = %d ---\n",V_deg, sos1_mon, V_deg, V_low_mon);
-    
+        
         % Set lower bound by defining and equating with new SOS DP.
-        [prog, sos1, ~, ~] = SOS_DP(prog, V_deg, sos1_mon, x, dom);
+        if psatz1 == 2
+            [prog, sos1, ~, ~] = SOS_DP(prog, V_deg, sos1_mon, x, dom);
+        elseif ~psatz1 || psatz1
+            opts.psatz = psatz1;
+            [prog, sos1, ~, ~] = SOS_DP(prog, V_deg, sos1_mon, x, dom, opts);
+        else
+            error("LocalStability: Invalid psatz entry!");
+        end
+
         prog = piesos_eq(prog, V_low-sos1);
     
         fprintf(" --- LF lower bound equality set ---\n");
@@ -147,9 +148,9 @@ function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, la
         % Declare p1 as SOS DP and define upper bound on V.
         if p1_mon>0
             [prog, p1, ~, ~] = SOS_DP(prog, p1_deg, p1_mon, x, dom);
-            V_up = C*bound_up - V - polyopvar_times_v2(p1,g);
+            V_up = C*bound - V - polyopvar_times_v2(p1,g);
         elseif p1_mon==0
-            V_up = C*bound_up - V;
+            V_up = C*bound - V;
         else
             error('LocalStability:p1_mon>=0.');
         end
@@ -168,7 +169,15 @@ function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, la
         fprintf(" --- sos2.deg = %d and sos2.mon = %d whilst V_up.deg = %d and V_up.mon = %d ---\n",sos2_deg, sos2_mon, V_up_deg, V_up_mon);
     
         % Set upper bound by defining and equating with new SOS DP.
-        [prog, sos2, ~, ~] = SOS_DP(prog, V_up_deg, sos2_mon, x, dom);
+        if psatz2 == 2
+            [prog, sos2, ~, ~] = SOS_DP(prog, V_up_deg, sos2_mon, x, dom);
+        elseif ~psatz2 || psatz2
+            opts.psatz = psatz2;
+            [prog, sos2, ~, ~] = SOS_DP(prog, V_up_deg, sos2_mon, x, dom, opts);
+        else
+            error("LocalStability: Invalid psatz entry!");
+        end
+        
         prog = piesos_eq(prog, V_up-sos2);
     
         fprintf(" --- LF upper bound equality set ---\n");
@@ -208,7 +217,15 @@ function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, la
         fprintf(" --- sos3.deg = %d and sos3.mon = %d whilst dV_up.deg = %d and dV_up.mon = %d ---\n",sos3_deg, sos3_mon, dV_up_deg, dV_up_mon);
     
         % Set upper bound by defining and equating with new SOS DP.
-        [prog, sos3, ~, ~] = SOS_DP(prog, sos3_deg, sos3_mon, x, dom);
+        if psatz3 == 2
+            [prog, sos3, ~, ~] = SOS_DP(prog, sos3_deg, sos3_mon, x, dom);
+        elseif ~psatz3 || psatz3
+            opts.psatz = psatz3;
+            [prog, sos3, ~, ~] = SOS_DP(prog, sos3_deg, sos3_mon, x, dom, opts);
+        else
+            error("LocalStability: Invalid psatz entry!");
+        end     
+
         prog = piesos_eq(prog, dV_up-sos3);
     
         fprintf(" --- Lie derivative upper bound equality set ---\n");
@@ -228,18 +245,12 @@ function res = LocalStability(PDE, r, alpha_ball, alpha_low, alpha_up, eppos, la
         res = {};
         fprintf(" --- PIESOS program was not solved ---\n")
     else
-        if nargin < 11
-            C_sol = piesos_getsol(prog_sol,C);
-            C_sol = double(C_sol);
-        else
-            C_sol = C;
-        end
-
+        C_sol = piesos_getsol(prog_sol,C);
+        C_sol = double(C_sol);
         M_sol     = sqrt(C_sol/eppos);
         V_sol     = piesos_getsol(prog_sol,V);
         dV_sol    = piesos_getsol(prog_sol,dV);
-        Pcell_sol = piesos_getsol(prog_sol,Pcell);
-        res       = {C_sol, M_sol, V_sol, dV_sol, Pcell_sol};
+        res       = {C_sol, M_sol, V_sol, dV_sol};
         fprintf(" --- PIESOS program was solved ---\n")
     end
 
