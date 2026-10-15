@@ -1,70 +1,80 @@
 function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% convert_PIETOOLS_PDE_2D.m     PIETOOLS 2026
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Convert a coupled ODE-1D_PDE-2D system to an equivalent PIE.
-% 
-% INPUTS:
-% - PDE:    A struct or pde_struct object defining a PDE in the terms
-%           format (see also "@pde_struct/initialize").
-% - comp_order:     Optional argument specifying the order of the state
-%                   variables, inputs, and outputs from the PDE as they 
-%                   appear in the PIE, specified as a struct. That is, e.g.
-%                   PIE.x{i} = PDE.x{comp_order.x(1)};
-%                   If not specified, the converter will reorder the
-%                   variables itself, and determine the new order.
-% - flag:           (optional) 'char' object which can be set to 'silent'
-%                   to suppress display window messages informing the user
-%                   on the progress, or 'Top' to stop conversion after the
-%                   T operators (from PIE to PDE state) have been computed,
-%                   returning only those.
+% PIE = CONVERT_PIETOOLS_PDE_NONLINEAR(PDE,COMP_ORDER,FLAG) converts a
+% coupled ODE-1D PDE-2D PDE system, possibly with nonlinear terms, to an
+% equivalent PIE.
 %
-% OUTPUTS:
-% - PIE:    A struct with fields:
+% INPUTS
+% - PDE:        'pde_struct' object defining a PDE in the terms format
+%               (see also "@pde_struct/initialize");
+% - comp_order: (optional) struct with fields 'x', 'y', 'z', 'w' and 'u',
+%               and optionally 'BC', specifying the order of the state
+%               components, outputs, inputs and boundary conditions of
+%               the PDE as they appear in the PIE, so that e.g.
+%                   PIE.x{i} = PDE.x{comp_order.x(i)};
+%               If not specified, the converter reorders the components
+%               itself, and determines the new order. If the field 'BC'
+%               is missing, it is set to (1:numel(PDE.BC))';
+% - flag:       (optional) 'char' or cell of 'char' objects, containing
+%               'silent' to suppress display messages informing the user
+%               on the progress, and/or 'Top' (or 'return_Top') to stop
+%               the conversion after the T operators (from PIE to PDE
+%               state) have been computed, returning only those;
 %
-%           Tx, Tw, Tu: opvar or opvar2d objects describing the map from
-%           fundamental state x_f, exogenous input w, and actuator input u 
-%           to the PDE state x.
+% OUTPUTS
+% - PIE:        struct with fields
+%                   'dim':  number of spatial variables in the PIE;
+%                   'dom':  dim x 2 array, each row defining the interval
+%                           associated to a spatial variable;
+%                   'vars': dim x 2 'polynomial' object, with the first
+%                           column defining the primary variables, and the
+%                           second the associated dummy variables as used
+%                           in the PI operators;
+%                   'T', 'Tw', 'Tu':  the map from the fundamental state
+%                           xf, exogenous input w, and actuator input u
+%                           to the PDE state x. T is a 'tensopmat' object
+%                           (an 'opvar' or 'opvar2d' object if flag
+%                           contains 'Top'), Tw and Tu are 'opvar' or
+%                           'opvar2d' objects;
+%                   'f', 'g', 'h':  'polyopvar' objects representing
+%                           distributed polynomials defining the right-hand
+%                           side of the PIE for the state, observed output
+%                           y, and regulated output z, respectively;
+%                   'B1', 'B2':  'opvar2d' objects representing the
+%                           contribution of the exogenous inputs w and the
+%                           actuator inputs u to the PIE state equation;
+%                   'D11', 'D12':  'opvar2d' objects representing the
+%                           contribution of w and u to z;
+%                   'D21', 'D22':  'opvar2d' objects representing the
+%                           contribution of w and u to y;
+%                   'x_tab', 'y_tab', 'z_tab', 'u_tab', 'w_tab':  arrays
+%                           describing for each fundamental state, output,
+%                           and input component, which PDE component it
+%                           corresponds to, what size this component is,
+%                           and which of the dim variables it depends on;
+%                   'varname_pie', 'varname_pde':  cells of 'char'
+%                           objects, with the names of the PIE and PDE
+%                           states;
+%                   'x', 'x_pde':  the fundamental state, as a 'polyopvar'
+%                           object, and the PDE state T*x.
+%               If flag contains 'Top', PIE is a 'pie_struct' object,
+%               with only the fields 'dom', 'vars', 'T', 'Tw' and 'Tu';
 %
-%           f, g, h: 'polyopvar' objects representing distributed
-%           polynomials defining the right-hand side of the PIE for the
-%           state, observed output, and regulated output, respectively.
-%
-%           Bu, Dyu, Dzu: opvar or opvar2d objects representing the
-%           contribution of actuator inputs to the PIE and outputs.
-%
-%           Bw, Dyw, Dzw: opvar or opvar2d objects representing the
-%           contribution of exogenous inputs to the PIE and outputs.
-%
-%           dim, dom, vars,: The dimension of the spatial domain for the
-%           PIE, the domain of the spatial variables, and the spatial
-%           variables that appear in the PIE. dom should be a dimx2 array,
-%           with each row defining the interval associated to a spatial
-%           variable. vars should be a dimx2 pvar object, with the first
-%           column defining the primary variables, and the second the
-%           associated dummy variables as used in the opvar objects.
-%
-%           x_tab, y_tab, z_tab, u_tab, w_tab: Arrays describing for each
-%           fundamental state, input, and output component, which PDE
-%           state, input, or output component it corresponds to, what size
-%           this component is, and which of the dim variables it depends
-%           on.
-%
-% NOTES:
-% - For a state variables x(s1,s2), differentiable up to order i wrt s1 and
+% NOTES
+% - For a state variable x(s1,s2), differentiable up to order i wrt s1 and
 %   order j wrt s2, the associated fundamental state variable xf(s1,s2) is
 %   defined as
 %       xf(s1,s2) = \partial_{s1}^{i} \partial_{s2}^{j} x(s1,s2);
 %   For any well-posed PDE, with well-posed BCs of the form
 %       0 = F(x,u,w);
-%   there exist unique PI operator T, Tu and Tw such that
-%       x(s1,s2) = (T * x)(s1,s2) + (Tu * u)(s1,s2) + (Tw * w)(s1,s2);
-%   This function constructs these operators {T, Tx Tw}. Using these 
-%   operators, it then constructs the PI operators A through Dzw such that 
-%   the PDE may be equivalently represented by the PIE
-%       Tw*w(t) + Tu*u + T*xf(t) = f(xf(t)) + Bu  * u(t) + Bw  * w(t);
-%                           y(t) = g(xf(t)) + Dyu * u(t) + Dyw * w(t);
-%                           z(t) = h(xf(t)) + Dzu * u(t) + Dzw * w(t);
+%   there exist unique PI operators T, Tu and Tw such that
+%       x(s1,s2) = (T * xf)(s1,s2) + (Tu * u)(s1,s2) + (Tw * w)(s1,s2);
+%   This function constructs these operators {T, Tu, Tw}. Using these
+%   operators, it then constructs the objects f, g, h and the PI operators
+%   B1 through D22 such that the PDE may be equivalently represented by
+%   the PIE
+%     d/dt(Tw*w(t) + Tu*u(t) + T*xf(t)) = f(xf(t)) + B1*w(t) + B2*u(t);
+%                                  y(t) = g(xf(t)) + D21*w(t) + D22*u(t);
+%                                  z(t) = h(xf(t)) + D11*w(t) + D12*u(t);
 %
 % - The order of the state, input, and output components in the PIE
 %   structure may not be the same as that in the PDE structure. Check e.g.
@@ -72,11 +82,11 @@ function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 %   re-arranged.
 %
 % - If the PDE is 2D and involves boundary conditions with inputs u or
-%   disturbances w that vary in space, the inputs and disturbance may be
-%   differentiated with respect to the spatial variables as well in the PIE
-%   representation. The function will warn the user of this fact, and the
-%   order of the derivative taken with respect to each spatial is stored in
-%   the outputs PIE.u_tab and PIE.w_tab, with e.g. the element
+%   disturbances w that vary in space, the inputs and disturbances may be
+%   differentiated with respect to the spatial variables in the PIE
+%   representation. The function warns the user of this fact, and the
+%   order of the derivative taken with respect to each spatial variable is
+%   stored in the outputs PIE.u_tab and PIE.w_tab, with e.g. the element
 %   PIE.u_tab(i,5) indicating the order of derivative taken of the ith
 %   input with respect to the first spatial variable, and
 %   PIE.u_tab(i,6) indicating the order of derivative taken of the ith
@@ -92,13 +102,16 @@ function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 %   boundary this input is evaluated, compute
 %       is_bval = PIE.w_tab(idx,3:2+nvars) - PIE.w_tab(i,3:2+nvars);
 %   where nvars = PIE.dim. For each j in 1 to nvars, if is_bval(j)=1, then
-%   the input is evaluated at the lower-boundary PIE.dom(j,1) in the
-%   spatial variable PIE.vars(j,1);
+%   the input is evaluated at the lower boundary PIE.dom(j,1) in the
+%   spatial variable PIE.vars(j,1).
+%
+% - If only two arguments are passed, the second may be FLAG instead of
+%   COMP_ORDER.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE_nonlinear
 %
-% Copyright (C)2026 PIETOOLS Team
+% Copyright (C) 2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -119,8 +132,7 @@ function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 02/24/2026: Initial coding;
-%
+% DJ, 10/15/2026: Initial coding;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Initialization                                          % % % % %
@@ -566,7 +578,20 @@ PIE.vars = vars;
 PIE.dim = size(PIE.vars,1);
 
 % Store the PI operators defining the fundamental to PDE state map.
-PIE.T = dopvar2ndopvar(clean_opvar(Top.x,op_clean_tol));
+Topi = [];
+nnr = [0;cumsum(x_tab(:,2))];
+for i=1:size(x_tab,1)
+    Topj = [];
+    ridcs = nnr(i)+1:nnr(i+1);
+    for j=1:size(x_tab,1)
+        cidcs = nnr(j)+1:nnr(j+1);
+        Topij = opvar2sopvar(clean_opvar(Top.x(ridcs,cidcs),op_clean_tol));
+        Topj = [Topj, tensopmat(tensopvar(Topij))];
+    end
+    Topi = [Topi;Topj];
+end
+%PIE.T = opvar2sopvar(clean_opvar(Top.x,op_clean_tol));
+PIE.T = Topi;
 PIE.Tw = clean_opvar(Top.w,op_clean_tol);
 PIE.Tu = clean_opvar(Top.u,op_clean_tol);
 
@@ -582,6 +607,20 @@ y_tab(:,1) = ycomp_order;       PIE.y_tab = y_tab;
 z_tab(:,1) = zcomp_order;       PIE.z_tab = z_tab;
 u_tab(:,1) = ucomp_order;       PIE.u_tab = u_tab;
 w_tab(:,1) = wcomp_order;       PIE.w_tab = w_tab;
+
+% Store the variable names of the PDE and PIE states
+PIE.varname_pie = cell(size(x_tab,1),1);
+PIE.varname_pde = cell(size(x_tab,1),1);
+ndig_x = numel(num2str(size(x_tab,1)));
+for i=1:size(x_tab,1)
+    PIE.varname_pde{i} = ['x',num2str(x_tab(i,1))];
+    PIE.varname_pie{i} = ['x',num2str(i,['%0',num2str(ndig_x),'d']),'_pie'];
+end
+
+% Store the PIE state variables
+xvars = polyopvar(PIE.varname_pie,x_tab(:,2),PIE.vars(:,1),PIE.dom,logical(x_tab(:,3:2+nvars)));
+PIE.x = xvars;
+PIE.x_pde = PIE.T*xvars;
 
 % Account for the introduction of boundary values of the inputs
 PIE.w_tab = PIE.w_tab(w_idcs,:);
@@ -605,7 +644,7 @@ end
 
 % Get rid of any higher-order temporal derivatives in the PIE.
 if any(tdiff_list>1)
-    error("Higher-order termporal derivatives in nonlinear PDEs are currently not supported.")
+    error("Higher-order temporal derivatives in nonlinear PDEs are currently not supported.")
     %[PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,true);
 else
     tdiff_tab = [(1:numel(PDE.x))',zeros(numel(PDE.x),1)];
@@ -1157,20 +1196,19 @@ nw_op = np_op.w;        nnw_op = cumsum([0;nw_op]);
 nr_op = np_op.(obj);    nnr_op = cumsum([0;nr_op]);
 
 % Initialize an empty distributed polynomial
-fx = polyopvar();
-varname = cell(size(x_tab,1),1);
-pvarname = cell(nvars,1);
+ftmp = polyopvar();
+ftmp.varname = cell(size(x_tab,1),1);
 for j=1:size(x_tab,1)
-    varname{j} = ['x',num2str(j)];
+    ftmp.varname{j} = ['x',num2str(x_tab(j),['%0',num2str(numel(num2str(size(x_tab,1)))),'d']),'_pie']; 
 end
-for j=1:nvars
-    pvarname(j) = vars(j,1).varname;
-end
-fx.varname = varname;
-fx.pvarname = pvarname;
-fx.varmat = logical(x_tab(:,3:2+nvars));
-fx.dom = dom;
-fx.varsize = x_tab(:,2);
+ftmp.dims = struct('in',x_tab(:,2),'out',obj_tab(:,2));
+pvarname = pvar2varname(vars(:,1))';
+ftmp.vars = struct('in',{pvarname},'out',{pvarname});
+ftmp.dom = struct('in',dom,'out',dom);
+ftmp.depmat = struct('in',logical(x_tab(:,3:2+nvars)),'out',obj_tab(:,3:2+nvars));
+ftmp.C = mat2tensopmat(sparse(sum(obj_tab(:,2)),sum(x_tab(:,2))),ftmp.dims,ftmp.vars,ftmp.dom,ftmp.depmat);
+ftmp.Z = (1:numel(nx_arr))';
+ftmp.chkval = true;
 
 % Initialize empty operators.
 if nvars<=1
@@ -1202,18 +1240,19 @@ end
 
 % If the "obj" has no components, there is nothing to do
 if nnr_op(end)==0    
+    fx = ftmp;
     return
 end
 
-% Declare a matrix of degrees of monomials that appear in the PIE, and
-% associated cell of operators
-degmat = zeros(0,size(x_tab,1));
-op_cell_full = cell(1,0);
+% % Declare a matrix of degrees of monomials that appear in the PIE, and
+% % associated cell of operators
+% degmat = zeros(0,size(x_tab,1));
 
 % % % Loop over all equations of the considered "obj" (PDEs or outputs)
 % % % For each equation, loop over all the terms, and add the coefficients
 % % % that appear in each term to the appropriate parameter in the
 % % % appropriate operator
+fx = [];
 for eqnum=1:numel(PDE.(obj))
         
     % Establish which row indices in the operators are linked to this 
@@ -1221,9 +1260,17 @@ for eqnum=1:numel(PDE.(obj))
     rindcs = nnr_arr(eqnum)+1:nnr_arr(eqnum+1);
     Cop_rnum = find((rindcs(1)>nnr_op(1:end-1) & rindcs(1)<=nnr_op(2:end)),1);
 
-    % For each monomial, keep track of which term involving this monomial
-    % we are considering for this equation.
-    trm_cntr = ones(size(degmat,1),1);
+    % Declare a polynomial representing the current equation
+    % fi = fx;
+    % fi.Z = zeros(0,0);
+    % fi.C.ops = cell(1,0);
+    % fi.dims.out = fi.dims.out(eqnum);
+    % fi.depmat.out = fi.depmat.out(eqnum,:);
+    % fi.C.dims.out = fi.dims.out;
+    % fi.C.depmat.out = fi.depmat.out;
+    % fi.chkval = true;
+
+    fi = 0;
     
     for jj=1:numel(PDE.(obj){eqnum}.term)
         % Extract the jth term
@@ -1277,8 +1324,10 @@ for eqnum=1:numel(PDE.(obj))
 
             % Determine the number of factors in the term
             nfctrs = numel(term_jj);
-            state_nums_jj = zeros(1,0);
-            op_cell_jj = cell(1,0);
+            %state_nums_jj = zeros(1,0);
+            %op_cell_jj = cell(1,0);
+            %fj = fi;
+            fj = 1;
 
             for fctr_num=1:nfctrs
                 % Extract the factor from the term
@@ -1350,90 +1399,78 @@ for eqnum=1:numel(PDE.(obj))
                 Pop_w(rindcs,:) = Pop_w(rindcs,:) + Pop_w2x_ll;
 
                 % Augment x operator to map to all equations
-                Pop_x2x_ll = [Pop_tmp(1:rindcs(1)-1,:); Pop_x2x_ll; Pop_tmp(rindcs(end)+1:end,:)];
+                %Pop_x2x_ll = [Pop_tmp(1:rindcs(1)-1,:); Pop_x2x_ll; Pop_tmp(rindcs(end)+1:end,:)];
 
-                % Split the operator into columns associated with each
-                % fundamental state variable
-                state_nums_tmp = state_nums_jj;
-                op_cell_tmp = op_cell_jj;
-                nreps = size(state_nums_tmp,1);
-                state_nums_jj = zeros(0,size(state_nums_tmp,2)+1);
-                op_cell_jj = cell(0,size(op_cell_tmp,2)+1);
+                % Declare the factor as a distributed polynomial
+                fl = ftmp;
+                fl.C.ops = cell(1,numel(nx_arr));
+                fl.dims.out = fl.dims.out(eqnum);
+                fl.depmat.out = fl.depmat.out(eqnum,:);
+                fl.C.dims.out = fl.dims.out;
+                fl.C.depmat.out = fl.depmat.out;
+                
+                rtn_idcs = true(numel(nx_arr),1);
                 for state_num=1:numel(nx_arr)
                     % Extract columns of the operator associated with
                     % fundamental state variable state_num
                     c_idcs = nnx_arr(state_num)+1:nnx_arr(state_num+1);
-                    %Pop_x_tmp = Pop_x2x_ll(:,c_idcs);
-                    Pop_x_tmp = dopvar2ndopvar(Pop_x2x_ll(:,c_idcs));
+                    Pop_x_tmp = opvar2sopvar(Pop_x2x_ll(:,c_idcs));
                     if all(all(Pop_x_tmp==0))
                         % The current fundamental state variable does not
                         % contribute to this equation
-                        continue
-                    end
-                    % Add the state number to the list of variables that
-                    % contribute to this particular PDE term
-                    state_nums_jj = [state_nums_jj; [state_nums_tmp,state_num*ones(nreps,1)]];
-                    op_cell_jj = [op_cell_jj; [op_cell_tmp,repmat({Pop_x_tmp},nreps,1)]];
-                end
-            end
-            % Add the terms to the PIE
-            for ll=1:size(state_nums_jj,1)
-                % Reorder factors based on order of states
-                [state_nums_ll,new_order] = sort(state_nums_jj(ll,:));
-                op_cell_ll = op_cell_jj(ll,new_order);
-                % Determine the degree of the monomial in each state
-                [state_nums_unique,strt_idx] = unique(state_nums_ll);
-                degs_part = [strt_idx(2:end); numel(state_nums_ll)+1] - strt_idx;
-                degs_ll = zeros(1,size(x_tab,1));
-                degs_ll(state_nums_unique) = degs_part;
-                % Determine whether the monomial already appears
-                deg_idx = find(ismember(degmat,degs_ll,'rows'));
-                if isempty(deg_idx)
-                    % The monomial does not appear yet
-                    % --> add it to the list
-                    degmat = [degmat; degs_ll];
-                    if sum(degs_ll)==1
-                        op_cell_full = [op_cell_full,op_cell_ll];
+                        rtn_idcs(state_num) = false;
                     else
-                        op_cell_full = [op_cell_full,{op_cell_ll}];
-                    end
-                    trm_cntr = [trm_cntr; 2];
-                else
-                    % The monomial already appears
-                    % --> add the new operator to the old one
-                    if sum(degs_ll)==1
-                        op_cell_full{deg_idx} = op_cell_full{deg_idx}+op_cell_ll{1};
-                    else
-                        trm_cntr_ll = trm_cntr(deg_idx);
-                        nterms_ll = size(op_cell_full{deg_idx},1);
-                        if trm_cntr_ll<=nterms_ll
-                            % For terms belonging to a new equation, we can
-                            % just add to terms already declared for
-                            % previous equations
-                            for fctr_num=1:size(op_cell_ll,2)
-                                op_cell_full{deg_idx}{trm_cntr_ll,fctr_num} = op_cell_full{deg_idx}{trm_cntr_ll,fctr_num}+op_cell_ll{fctr_num};
-                            end
-                        else
-                            % Otherwise, we concatenate to represent the
-                            % newly added term
-                            op_cell_full{deg_idx} = [op_cell_full{deg_idx};op_cell_ll];
-                        end
-                        trm_cntr(deg_idx) = trm_cntr_ll + 1;
-                    end
+                        % Set the coefficients multiplying the state
+                        fl.C.ops{1,state_num} = tensopvar(Pop_x_tmp);
+                    end                                       
                 end
+                fl.Z = fl.Z(rtn_idcs);
+                fl.C.ops = fl.C.ops(:,rtn_idcs);
+                fl.C.dims.in = fl.dims.in(rtn_idcs,:);
+                fl.C.depmat.in = fl.depmat.in(rtn_idcs,:);
+                fj = fj*fl;
             end
+            % Add the terms to equation i of the PIE
+            fi = fi + fj;       
         end
     end
+    % Set the ith equation
+    if isequal(fi,0)
+        % Declare a zero map from constant monomial to function
+        fi = ftmp;
+        fi.C.ops = cell(1,numel(nx_arr));
+        fi.dims.out = fi.dims.out(eqnum);
+        fi.depmat.out = fi.depmat.out(eqnum,:);
+        fi.C.dims.out = fi.dims.out;
+        fi.C.depmat.out = fi.depmat.out;
+        fi.Z = zeros(1,1);
+        fi.C.dims.in = 1;
+        fi.C.depmat.in = zeros(1,0);
+        fi.C.vars.in = cell(1,0);
+        fi.C.dom.in = zeros(0,2);
+        vars_tmp = fi.C.vars;
+        vars_tmp.out = vars_tmp.out(1,logical(fi.depmat.out));
+        dom_tmp = fi.C.dom;
+        dom_tmp.out = dom_tmp.out(logical(fi.depmat.out),:);
+        fi.C.ops = {tensopvar(mat2sopvar(zeros(fi.dims.out,1),vars_tmp,dom_tmp))};        
+    end
+    fx = [fx;fi];
+    % if ~isempty(fi.Z)
+    %     % Get a unique basis of monomials
+    %     %[fx,fi] = common_basis(f,fi);
+    %     %fx.C.ops(eqnum,:) = fi.C.ops(1,:);
+    %     fx = [fx;fi];
+    % end
 end
 
-% % Finally, declare the distributed polynomial based on the encountered
-% % monomials and associated operators
-% Declare the degrees of the monomials appearing in f
-[degmat_f,deg_order] = sortrows_integerTable([sum(degmat,2),degmat(:,end:-1:1)]);
-fx.degmat = degmat_f(:,end:-1:2);
-% Declare the coefficients acting on these monomials
-Cop = tensopmat(op_cell_full(1,deg_order));
-fx.C = Cop;
+% % % Finally, declare the distributed polynomial based on the encountered
+% % % monomials and associated operators
+% % Declare the degrees of the monomials appearing in f
+% [degmat_f,deg_order] = sortrows_integerTable([sum(degmat,2),degmat(:,end:-1:1)]);
+% fx.degmat = degmat_f(:,end:-1:2);
+% % Declare the coefficients acting on these monomials
+% Cop = tensopmat(op_cell_full(1,deg_order));
+% fx.C = Cop;
 
 % Add the contribution of the inputs
 Pop_u = Pop_u + Pop_u_tmp*Uop;
