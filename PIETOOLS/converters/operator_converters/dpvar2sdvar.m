@@ -34,6 +34,10 @@ function [P,ZL,ZR] = dpvar2sdvar(D,vars)
 %                  it, as copquadvar and sopquadvar already did, and library
 %                  code should not depend on a test folder.
 % DJ, 10/05/2026:  Make sure P.dvarname is always a column;
+% MMP, 10/16/2026: moved from sopvar/Testfolder/converters (where the file
+%                  was again, despite the 09/29 entry) to converters/
+%                  operator_converters/, with the other operator converters.
+%                  Code unchanged.
 
 if ~isa(D,'dpvar')
     error("Input object must be of type 'dpvar'.")

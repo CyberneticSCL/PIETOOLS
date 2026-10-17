@@ -1,7 +1,8 @@
 function Pm = op2copvar_sop(Pop)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PM = OP2COPVAR_SOP(POP) converts a legacy PI operator to a container:
-%   opvar      -> opvar2copvar (Testfolder/converters);
+%   opvar      -> opvar2copvar (Testfolder/converters);                     % MMP, 10/16/2026 (was)
+%   opvar      -> opvar2copvar (converters/operator_converters);            % MMP, 10/16/2026
 %   opvar2d    -> a copvar over the present spaces of POP (R^n, L2[x],
 %                 L2[y], L2[x,y]), one block per nonzero component, with a
 %                 zero block kept in every all-zero row and column so that
@@ -12,6 +13,11 @@ function Pm = op2copvar_sop(Pop)
 % Initial coding MMP, 10/08/2026 (the opvar2d branch is the logic of the
 % frozen test helper cx_hinf_op2d, copied so that the executives depend on
 % the library only).
+% MMP, 10/16/2026: moved from lpi_programming_sopvar/ to converters/
+%                operator_converters/, with the operator converters of
+%                sopvar/Testfolder/converters: a conversion between operator
+%                classes, not LPI programming, and the executives must not
+%                depend on a test folder. Comment only otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if isa(Pop,'copvar') || isa(Pop,'cdopvar'),     Pm = Pop;   return,     end
 if isa(Pop,'opvar') || isa(Pop,'dopvar')

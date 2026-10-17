@@ -1,5 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TEST_SDVAR2DPVAR checks 'sdvar2dpvar' (sopvar/Testfolder/converters)
+% TEST_SDVAR2DPVAR checks 'sdvar2dpvar' (sopvar/Testfolder/converters)      % MMP, 10/16/2026 (was)
+% TEST_SDVAR2DPVAR checks 'sdvar2dpvar' (converters/operator_converters)    % MMP, 10/16/2026
 % against the definition in its header,
 %
 %   D(s,t) = (Im o ZL(s))' unvec(A + B'd) (In o ZR(t)),
@@ -33,6 +34,8 @@
 %
 % Initial coding MMP, 09/26/2026
 % DJ, 10/05/2026: Add ERRCHK case for the numel(ZR) validation fix.
+% MMP, 10/16/2026: comment only: sdvar2dpvar moved to converters/
+%                  operator_converters/.
 
 tol = 1e-10;        % relative, Frobenius
 nsamp = 3;          % random (d,s,t) per case
