@@ -31,7 +31,8 @@ function T = hinf_tailor_1d(plants,levels,modes,form)
 % Needs cx_plant, cx_settings, cx_shape, cx_resid (claude_tests/cx_exec).
 %
 % MEASURED (10/08/2026, io1, closed-form gain 0.182479080, MOSEK; details
-% in lpi_programming_sopvar/README.md under lpi_ineq_sop). 'Q': every
+% in lpi_programming_sopvar/README.md under lpi_ineq_sop). 'Q': every       % MMP, 10/16/2026 (was)
+% in lpi_programming_sopvar/NOTES.md under lpi_ineq_sop). 'Q': every        % MMP, 10/16/2026
 % slack with D >= 2, w >= 2 gives 0.1824816 (+2.5e-6, a floor of this form);
 % stock light (1,2) 0.182626; the reader on K overshoots to (5,3), the
 % reader on R ('new like') gives the minimum (2,2). 'Qd': as 'Q' but
@@ -42,6 +43,9 @@ function T = hinf_tailor_1d(plants,levels,modes,form)
 % slack primal infeasible.
 %
 % Initial coding MMP, 10/08/2026
+% MMP, 10/16/2026: moved from lpi_programming_sopvar/examples/ to
+%                claude_tests/slack_sizing/: a measurement study, not an
+%                example. Its results moved to lpi_programming_sopvar/NOTES.md.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(plants),     plants = {{'io1'},{'io1',2}};    end
