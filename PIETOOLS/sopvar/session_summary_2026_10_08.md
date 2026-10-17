@@ -254,6 +254,18 @@ scratchpad; `executives_sopvar/tests/test_executives_sop.m` asserts the 1-D part
   instance (unit input-plus-output energy from the gamma row) and the UNKNOWN exit as weak
   infeasibility; sizing and pruning with proved/measured/assumed labels; the executives, witness,
   brackets and the compactness argument for the dual forms.
+- **Correction and degree-start check (10/16, Posopvar session).** The statement that raises change
+  nothing for a feasibility LPI was wrong: on the 2-D stability executives the slack at the reader's
+  rule (dw_P = 0) is infeasible and one raise certifies (2.57 s and 2.48 s in total against 6.60 s and
+  5.68 s from the default dw_P = 2); in 1-D the feasibility executives certify at dw 0 either way with
+  2.0-3.7x fewer decision variables (280 against 1000, 388 against 780, 625 against 2325) at the same
+  time. Fixed in the loop header, the README and the
+  notes. A dual data check found every Positivstellensatz term active (Z_k = -A_k'y PSD to 3e-9,
+  tr(Z_k Q_k) <= 4e-9, Gram ranks 41-83% of N), so a term-level drop finds nothing on those plants.
+  Joint proposal to the maintainer: `lpi_ineq_sop` stays single-build; `lpi_dual_raise_sop(prog,tag,li)`
+  between passes (next-order moment matrices of the dual field through an exposed
+  `poscopvar_direct_map`); `opts.face` for fixed-degree continuation (direct only); the bare-rule start
+  for feasibility LPIs only.
 - **Open.** The 2-D Q forms (gain and H2) need a weight rule beyond dw 1 (the degree loop is the
   current answer); the dual alignment is a coefficient-space heuristic (0 for a distributed w on io1,
   1.000 on the finite-disturbance plant); the stock bisection options of the 2-D executives are not

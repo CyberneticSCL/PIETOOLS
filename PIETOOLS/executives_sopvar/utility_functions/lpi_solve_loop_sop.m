@@ -12,14 +12,27 @@ function [prog,aux,hist] = lpi_solve_loop_sop(build,st,label)
 % 'unknown' (MOSEK status UNKNOWN: the signature of a slack degree that
 % admits no certificate at any finite value, sopvar_lift_notes Sec. 10) or
 % 'infeasible' (a slack too small for the operator reads as primal
-% infeasibility when the objective is bounded below; for a feasibility LPI
-% the raises cost solves and change nothing) and fewer than ST.sop.max_raise
+% infeasibility when the objective is bounded below; for a feasibility LPI  % MMP, 10/16/2026 (was)
+% the raises cost solves and change nothing) and fewer than ST.sop.max_raise % MMP, 10/16/2026 (was)
+% infeasibility; the verdict is about the slack degree, not the LPI, and a  % MMP, 10/16/2026
+% raise can turn it into a certificate for a feasibility LPI as well: 2-D   % MMP, 10/16/2026
+% stability at dw 0 is infeasible at 6.5e3 variables and certified after    % MMP, 10/16/2026
+% one raise at 1.04e5, measured 10/16/2026) and fewer than ST.sop.max_raise % MMP, 10/16/2026
 % raises have been made, raises DW by one and
 % rebuilds. HIST records every pass (dw, status, objective, numerr, pinf,
 % dinf, decision count, rows, build and solve times); AUX is that of the
-% last pass with AUX.classify and AUX.dw added.
+% last pass with AUX.classify and AUX.dw added. What a raise cannot do is   % MMP, 10/16/2026
+% show that no degree certifies.                                            % MMP, 10/16/2026
 %
 % Initial coding MMP, 10/08/2026
+% MMP, 10/16/2026: Header only. The earlier text said a raise changes
+%                  nothing for a feasibility LPI; the Posopvar session
+%                  measured the opposite on the 2-D stability executives
+%                  (infeasible at dw 0, certified at dw 1; 2.57 s and
+%                  2.48 s against 6.60 s and 5.68 s from the default
+%                  dw_P = 2; the 1-D feasibility executives certify at
+%                  dw 0 with 2.0-3.7x fewer decision variables at the
+%                  same time). Code unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin<3,    label = '';     end
 st = exec_sop_settings(st);

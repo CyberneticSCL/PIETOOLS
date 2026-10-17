@@ -51,8 +51,10 @@ The 1-D wrappers route a 2-D PIE to the 2-D version with the same LPI, as the st
    classifies the exit (`lpi_classify_sop`), and on MOSEK status UNKNOWN (the fixed-degree alternative of
    the duality note: no certificate at any finite value) or on primal infeasibility (a slack too small
    for the operator) raises `dw` by one and rebuilds, up to `settings.sop.max_raise` (default 2) times.
-   For a feasibility LPI (stability, well-posedness) the raises cost solves and cannot change an
-   infeasible verdict; set `max_raise = 0` to skip them.
+   An infeasible verdict is a statement about the slack degree, not about the LPI: on the 2-D stability
+   executive the slack at `dw_P = 0` is infeasible (6.5e3 variables, 0.46 s) and one raise certifies
+   (1.04e5 variables), 2.95 s in total against 6.35 s from the default `dw_P = 2` (measured 10/16/2026).
+   What a raise cannot do is show that no degree certifies; set `max_raise = 0` to skip the raises.
 5. **Dual.** The builders set `prog.sopeq = {}` after `lpiprogram` (when `settings.sop.keepdual`), which
    asks `lpi_eq_cdopvar` to record which row of the program is which coefficient of which cell (opt-in:
    programs built elsewhere gain no field); `lpigetdual_sop` assembles the solver's multipliers into the

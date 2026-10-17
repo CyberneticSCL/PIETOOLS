@@ -1,0 +1,549 @@
+\documentclass[12pt]{article}
+
+% Self-contained preamble, the same as sopvar_lift_notes.tex (MiKTeX, pdflatex).
+\usepackage[a4paper,margin=0.9in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Sym}[1]{\mathbb{S}^{#1}}
+\newcommand{\mcl}[1]{\mathcal{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\mrm}[1]{\mathrm{#1}}
+\newcommand{\bmat}[1]{\begin{bmatrix} #1 \end{bmatrix}}
+\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\ipc}[2]{\left\langle #1,#2\right\rangle_{\mrm{c}}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\path{#1}}
+\newcommand{\SOS}{\mathsf{SOS}}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\range}{range}
+\DeclareMathOperator{\diag}{diag}
+\setlength{\emergencystretch}{2em}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{statement}[theorem]{Statement}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\title{Necessity, the minimum cap, and its dual: \\ from the proof program to the SDP of the container executives}
+\author{M.~M.~Peet, with Claude (Anthropic)}
+\date{October 9, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent Every positivity constraint an executive of PIETOOLS imposes is an equality between a target operator and the image of a positive weight under a fixed linear map, the certificate map $\Phi_D$ of the proof program. The necessity statement of that program says that every positive polynomial PI operator is such an image for some finite lift degree $D$ and some bounded positive weight; the executives impose it with a polynomial weight of fixed degree. These notes state the necessity claim exactly, turn it into the minimum-cap optimization problem whose finiteness it asserts, state and prove the exact dual of that problem over signed covariance fields, and then set the finite-degree SDP that \code{lpi\_ineq\_sop} builds beside it: the SDP is the minimum-cap problem restricted to sum-of-squares weights, its dual multipliers assemble into a kernel whose covariance field is a signed family positive against every degree-$w$ weight, and the positive-part normalization of the exact dual becomes a truncated moment condition. The fixed-degree alternative of the proof program is the solver exit the executives see as UNKNOWN. The last two sections state what the sizing and pruning rules rest on, each labelled proved, measured or assumed, and what the executives measure.
+\end{abstract}
+
+\tableofcontents
+
+\paragraph{Notation.} $I=[a,b]$, $n\in\N$. Bold lowercase ($\mbf x$) denotes a function of the spatial variable; calligraphic uppercase ($\mcl P$) a bounded linear operator on an $L_2$ space; $\ip{\cdot}{\cdot}$ the $L_2(I;\R^n)$ inner product; $\Sym r$ the symmetric $r\times r$ matrices; $\preceq$ the Loewner order, applied pointwise to matrix functions; $M_W$ the operator of multiplication by $W\in L_\infty(I;\Sym r)$; $Z_+$ the positive part of a symmetric matrix in its spectral decomposition; $\tr$ the trace. A PI operator $\mcl P$ on $L_2(I;\R^n)$ has parameters $(R_0,R_1,R_2)$,
+\[
+(\mcl P\mbf x)(s)=R_0(s)\mbf x(s)+\int_a^sR_1(s,t)\mbf x(t)\,dt+\int_s^bR_2(s,t)\mbf x(t)\,dt,
+\]
+and is \emph{polynomial} when the three are polynomial, \emph{purely integral} when $R_0=0$, self-adjoint when $R_0=R_0^T$ and $R_2(s,t)=R_1(t,s)^T$. The lift of degree $D$ is $\mcl L_D$ (written $\mcl A_D$ in the proof documents; the letter $\mcl A$ is kept for the PIE generator). The positive-part integral of a matrix field is $\varrho(Z)=\int_I\tr Z(\theta)_+\,d\theta$ (written $\gamma(Z)$ in the proof documents; $\gamma$ is kept for the $H_\infty$ bound). An SDP is written $\min\{c^Tx:\ Ex=b,\ x\in\mathbb K\}$ with $\mathbb K$ a product of free spaces and positive semidefinite cones. The proof documents are \file{minimum_cap_primal_dual.md}, \file{bounded_gram_duality.md}, \file{algebraic_hierarchy_duality.md}, \file{path_b_signed_dual_2026_10_05.md} and \file{proof_roadmap.md} (ask the maintainer for access); the lift notes are \file{sopvar/sopvar_lift_notes.pdf}.
+
+\section{The necessity statement}\label{sec:necessity}
+
+\subsection{The lift and the certificate map}
+
+\begin{definition}[canonical lift]\label{def:lift}
+Given $D\in\N$, let $V_D(t)=\bmat{I_n& tI_n&\cdots&t^DI_n}^T\in\R^{n(D+1)\times n}$ and $r=2n(D+1)$. The \textbf{canonical lift of degree $D$} is the operator $\mcl L_D:L_2(I;\R^n)\to L_2(I;\R^{r})$,
+\[
+(\mcl L_D\mbf x)(\theta)=\bmat{\int_a^\theta V_D(t)\mbf x(t)\,dt\\[2pt]\int_a^bV_D(t)\mbf x(t)\,dt}=:\bmat{\mbf z_{\mbf x}(\theta)\\ m_{\mbf x}},
+\]
+the running moments and the full moments of $\mbf x$ to degree $D$. For $W\in L_\infty(I;\Sym r)$ the \textbf{certificate map} is $\Phi_D(W)=\mcl L_D^*M_W\mcl L_D$, and $e_D=\Phi_D(I_r)$.
+\end{definition}
+
+The map $W\mapsto\Phi_D(W)$ is linear, and $\mcl L_D$ is an integral operator with the bounded kernel $\ell_D(\theta,s)=\bmat{\mathbf 1_{s\le\theta}V_D(s)\\ V_D(s)}$, so $\Phi_D(W)$ is the integral operator with kernel
+\begin{equation}\label{eq:kernelW}
+K_W(s,t)=\int_a^b\ell_D(\theta,s)^TW(\theta)\,\ell_D(\theta,t)\,d\theta .
+\end{equation}
+The next lemma evaluates \eqref{eq:kernelW}: it is the formula on which every degree rule of Sec.~\ref{sec:pruning} rests.
+
+\begin{lemma}[the kernel of a certificate; lift notes, Lemma 7.1]\label{lem:kernel}
+Let $D\in\N$ and $W\in L_\infty(I;\Sym{r})$, partitioned into blocks $W_{zz},W_{zm},W_{mz},W_{mm}$ along the running and full moments. Then $\Phi_D(W)$ is the purely integral PI operator with lower kernel, for $t<s$,
+\[
+R_1(s,t)=V_D(s)^T\Bigl[\int_s^bW_{zz}(\theta)\,d\theta+\int_s^bW_{zm}(\theta)\,d\theta+\int_t^bW_{mz}(\theta)\,d\theta+\int_a^bW_{mm}(\theta)\,d\theta\Bigr]V_D(t)
+\]
+and upper kernel $R_2(s,t)=R_1(t,s)^T$. Consequently every monomial $s^it^j$ of the lower kernel of $\Phi_D(W)$ satisfies $\min(i,j)\le D$, for every bounded $W$.
+\end{lemma}
+In words: a certificate at lift degree $D$ has polynomial degree at most $D$ in whichever kernel variable is smaller; degree beyond $D$ in one variable at a time comes from the weight, through the integrals in the bracket.
+\begin{proof}[Method: evaluate \eqref{eq:kernelW} block by block]
+Write $\ell_D(\theta,s)^TW(\theta)\ell_D(\theta,t)$ with the four blocks of $W$: the $zz$ term carries $\mathbf 1_{s\le\theta}\mathbf 1_{t\le\theta}=\mathbf 1_{\theta\ge s}$ for $t<s$, the $zm$ term $\mathbf 1_{\theta\ge s}$, the $mz$ term $\mathbf 1_{\theta\ge t}$, and the $mm$ term no indicator; the factors $V_D(s)^T$ and $V_D(t)$ do not depend on $\theta$ and come out of the integral. No term carries a delta, so $R_0=0$. The degree claim follows because $V_D(s)^T[\cdot]V_D(t)$ has degree at most $D$ in $s$ and in $t$ apart from the bracket, and each bracket entry depends on one of $s$, $t$ only.
+\end{proof}
+
+\begin{lemma}[sufficiency]\label{lem:sufficiency}
+Let $D\in\N$ and $W\in L_\infty(I;\Sym r)$ with $W(\theta)\succeq0$ for almost every $\theta$. Then $\Phi_D(W)\succeq0$.
+\end{lemma}
+In words: a positive weight certifies a positive operator; the content of the necessity statement is the converse.
+\begin{proof}[Method: direct]
+For every $\mbf x\in L_2(I;\R^n)$,
+\[
+\ip{\mbf x}{\Phi_D(W)\mbf x}=\ip{\mcl L_D\mbf x}{M_W\mcl L_D\mbf x}=\int_a^b(\mcl L_D\mbf x)(\theta)^TW(\theta)(\mcl L_D\mbf x)(\theta)\,d\theta\ge0 .
+\]
+\end{proof}
+
+\begin{remark}
+A target with a multiplier $R_0\ne0$ is not in the range of $\Phi_D$ (Lemma~\ref{lem:kernel}). The proof documents treat it through the \emph{mixed} lift, which adjoins the input itself as a component, $\mbf x\mapsto\bmat{\mbf x\\ \mcl L_{D}\mbf x}$, and prove that the minimal lift degree of $(V^r)^*QV^r$ is $r-1$ (round-4 note, Cor.~4); the toolbox slack always carries that multiplier component. Sections~\ref{sec:necessity} to \ref{sec:sdpdual} are stated for the pure lift and a purely integral target, as the proof documents state them; Sec.~\ref{sec:map} says where the multiplier component enters the correspondence.
+\end{remark}
+
+\subsection{The statement}
+
+\begin{statement}[necessity; \file{proof_roadmap.md}, (2)]\label{st:necessity}
+Let $\mcl P$ be a self-adjoint purely integral polynomial PI operator on $L_2(I;\R^n)$ with $\mcl P\succeq0$. Then there exist $D\in\N$ and $W\in L_\infty(I;\Sym{2n(D+1)})$ with $W(\theta)\succeq0$ for almost every $\theta\in I$ such that $\Phi_D(W)=\mcl P$.
+\end{statement}
+In words: positivity of a polynomial PI operator is always witnessed by a bounded positive weight at some finite lift degree, so the equality-imposed inequality of Sec.~\ref{sec:sdp} loses nothing once $D$ is large enough and the weight is allowed to be bounded rather than polynomial. Neither $D$ nor $\|W\|_\infty$ is claimed uniform over targets, and $W$ may be nonpolynomial.
+
+\paragraph{Status.} Statement~\ref{st:necessity} is the active objective of the proof program and is \emph{assumed} for the design of the degree rules (maintainer, 10/07/2026); every rule that relies on it says so. Three results bound what is known.
+\begin{theorem}[prescribed perturbation; \file{proof_roadmap.md}, (3)]\label{thm:perturb}
+Let $D\in\N$ and let $\mcl P\succeq0$ lie in the polynomial image $\Phi_D(\Sym{2n(D+1)}[s])$. Then for every $\varepsilon>0$ there is a polynomial matrix $W_\varepsilon$ with $W_\varepsilon(\theta)\succeq\tfrac{\varepsilon}{4}I$ on $I$ and $\mcl P+\varepsilon e_D=\Phi_D(W_\varepsilon)$.
+\end{theorem}
+In words: at a degree where the target has any signed polynomial representative, a strictly positive polynomial weight exists for the target perturbed by $\varepsilon e_D$; the degree of $W_\varepsilon$ may grow as $\varepsilon\downarrow0$, and no bound on it is known. This is the result behind the \code{margin} option of \code{lpi\_ineq\_sop}.
+
+\begin{theorem}[a degree lower bound; \file{path_b_signed_dual_2026_10_05.md}, Theorem 3]\label{thm:poincare}
+Let $\mcl G$ be the Volterra operator $(\mcl G\mbf x)(s)=\int_0^s\mbf x$ on $L_2([0,1])$. The operator $\mcl G-\pi^2\mcl G^2$ is positive, and no bounded positive weight $W$ satisfies $\Phi_1(W)=\mcl G-\pi^2\mcl G^2$; its minimal lift degree is two.
+\end{theorem}
+In words: the lift degree cannot be read from the kernel degrees, since this kernel has $\min(i,j)\le1$ throughout and still needs $D=2$. The critical Poincar\'e operator is the running example of these notes.
+
+The third result is an exact bounded weight at every canonical degree covering both kernel variables whenever the principal jump $J(s)$ of the kernel at the diagonal satisfies $J(s)\succeq c(s-a)(b-s)I$ for some $c>0$ (\file{proof_roadmap.md}, results table); the critical Poincar\'e operator violates that hypothesis at both endpoints.
+
+\section{From necessity to an optimization problem}\label{sec:mincap}
+
+\subsection{The minimum cap}
+
+Existence of a bounded positive weight at a given $D$ is a feasibility question. The proof documents quantify it by the smallest bound the weight needs.
+
+\begin{definition}[minimum cap]\label{def:mincap}
+Let $D\in\N$ and let $\mcl P$ be a bounded self-adjoint operator on $L_2(I;\R^n)$. The \textbf{minimum cap of $\mcl P$ at degree $D$} is
+\[
+m_D(\mcl P)=\inf\Bigl\{\mu\ge0:\ \exists W\in L_\infty(I;\Sym{2n(D+1)}),\ 0\preceq W(\theta)\preceq\mu I\ \text{a.e.},\ \Phi_D(W)=\mcl P\Bigr\},
+\]
+with $\inf\emptyset=+\infty$.
+\end{definition}
+
+For a positive feasible weight, $m_D(\mcl P)$ is the infimum of $\|W\|_{L_\infty}$, and Statement~\ref{st:necessity} is the assertion that for every positive polynomial purely integral $\mcl P$ some $D$ has $m_D(\mcl P)<\infty$. The next proposition is the form in which the proof program pursues it: a uniform cap along the perturbed targets of Theorem~\ref{thm:perturb}.
+
+\begin{proposition}[exact certificate from a uniform cap; \file{proof_roadmap.md}, (9)--(10)]\label{prop:uniformcap}
+Let $D\in\N$ and $\mcl P$ be bounded and self-adjoint. There is $W\in L_\infty(I;\Sym{2n(D+1)})$ with $W\succeq0$ a.e.\ and $\Phi_D(W)=\mcl P$ if and only if there is $\varepsilon_0>0$ with $\sup_{0<\varepsilon\le\varepsilon_0}m_D(\mcl P+\varepsilon e_D)<\infty$.
+\end{proposition}
+In words: a bounded weight for the target itself exists exactly when the perturbed targets have bounded weights with a common cap; the polynomial degrees of those weights may grow without harm, since only the $L_\infty$ bound enters.
+\begin{proof}[Method: direct in both directions]
+If $\Phi_D(W)=\mcl P$ with $0\preceq W\preceq\mu I$, then $W+\varepsilon I$ is positive, bounded by $\mu+\varepsilon$, and $\Phi_D(W+\varepsilon I)=\mcl P+\varepsilon e_D$ by linearity; hence $m_D(\mcl P+\varepsilon e_D)\le\mu+\varepsilon_0$ for $\varepsilon\le\varepsilon_0$. Conversely, let $\mu$ bound the caps and pick feasible $W_j$ for $\varepsilon_j\downarrow0$ with $0\preceq W_j\preceq\mu I$. Bounded sets of $L_\infty(I;\Sym r)=L_1(I;\Sym r)^*$ are weak-star compact, so a subsequence converges weak-star to some $W$, and $0\preceq W\preceq\mu I$ passes to the limit since both order constraints are weak-star closed. For every $\mbf x$ the quadratic form $\ip{\mbf x}{\Phi_D(W_j)\mbf x}=\int(\mcl L_D\mbf x)^TW_j(\mcl L_D\mbf x)$ is a weak-star continuous functional of $W_j$ (its integrand is in $L_1$), so $\ip{\mbf x}{\Phi_D(W)\mbf x}=\lim_j\ip{\mbf x}{(\mcl P+\varepsilon_je_D)\mbf x}=\ip{\mbf x}{\mcl P\mbf x}$, and polarization gives $\Phi_D(W)=\mcl P$.
+\end{proof}
+
+\subsection{The structure of the primal}
+
+Problem \eqref{def:mincap} is convex: the feasible weights at cap $\mu$ are the intersection of the affine set $\{W:\Phi_D(W)=\mcl P\}$ with the order interval $\{0\preceq W\preceq\mu I\}$. When $\mcl P$ has a signed polynomial representative $W_0$, the affine set is $W_0+\ker\Phi_D$, and the proof documents describe $\ker\Phi_D$ explicitly as the derivatives of storage fields with matched boundary values (\file{minimum_cap_primal_dual.md}, Sec.~4). The problem is infinite-dimensional even at fixed $D$. Imposing a polynomial degree on $W$ is a further restriction; Sec.~\ref{sec:sdp} is about that restriction.
+
+\section{The dual problem}\label{sec:dual}
+
+\subsection{Signed covariance fields}
+
+\begin{definition}[signed covariance field]\label{def:field}
+Let $D\in\N$. For a finite family $\mbf x_1,\dots,\mbf x_k\in L_2(I;\R^n)$ and $\lambda_1,\dots,\lambda_k\in\R$, the \textbf{signed covariance field} is
+\[
+Z(\theta)=\sum_{i=1}^k\lambda_i\,(\mcl L_D\mbf x_i)(\theta)(\mcl L_D\mbf x_i)(\theta)^T\in\Sym{r},
+\]
+the \textbf{signed energy} of a bounded self-adjoint $\mcl P$ on the family is $\ell_{\mcl P}(Z)=\sum_i\lambda_i\ip{\mbf x_i}{\mcl P\mbf x_i}$, and $\varrho(Z)=\int_I\tr Z(\theta)_+\,d\theta$.
+\end{definition}
+
+When $\mcl P=\Phi_D(W_0)$ for a signed bounded $W_0$, the identity $\ip{\mbf x}{\Phi_D(W_0)\mbf x}=\int(\mcl L_D\mbf x)^TW_0(\mcl L_D\mbf x)$ gives $\ell_{\mcl P}(Z)=\int_I\tr(W_0Z)$, so the signed energy depends on the field alone and not on the family that produced it. The coefficients $\lambda_i$ may have either sign; a positive family has $Z\succeq0$ and $\ell_{\mcl P}(Z)\ge0$ for positive $\mcl P$, so the content of the dual is in the signed cancellations.
+
+\subsection{The exact dual}
+
+\begin{theorem}[exact minimum-cap dual; \file{minimum_cap_primal_dual.md}, Theorem 1]\label{thm:dual}
+Let $D\in\N$ and let $\mcl P$ be a bounded self-adjoint operator on $L_2(I;\R^n)$. Then
+\[
+m_D(\mcl P)=\sup\Bigl\{\sum_{i=1}^k\lambda_i\ip{\mbf x_i}{\mcl P\mbf x_i}:\ k<\infty,\ \lambda_i\in\R,\ \mbf x_i\in L_2(I;\R^n),\ \varrho(Z)\le1\Bigr\},
+\]
+with $Z$ the signed covariance field of the family, equality holding in $[0,+\infty]$. When the common value is finite, the infimum in Definition~\ref{def:mincap} is attained, and the supremum is unchanged when the inputs are restricted to vector polynomials.
+\end{theorem}
+In words: the smallest pointwise bound of a positive weight certifying $\mcl P$ equals the largest signed energy of $\mcl P$ on a family whose covariance field has unit positive part. The obstruction to a bounded certificate is therefore a sequence of signed families, not a single input, and it is measured in $L_1$ of the positive part, not in the trace norm.
+\begin{proof}[Method: pointwise weak duality, then weak-star compactness]
+Fix $\mu\ge0$ and write
+\[
+\mcl W_\mu=\{W\in L_\infty(I;\Sym r):\ 0\preceq W(\theta)\preceq\mu I\ \text{for almost every }\theta\}.
+\]
+The proof has four steps. Step 1 shows that a feasible $W$ with cap $\mu$ gives $\ell_{\mcl P}(Z)\le\mu\varrho(Z)$ for every family. Step 2 shows the converse: if that inequality holds for every family, some $W\in\mcl W_\mu$ has $\Phi_D(W)=\mcl P$. Step 3 derives the equality of the two values in $[0,\infty]$ and the attainment of a finite value. Step 4 restricts the inputs to polynomials.
+
+Step 1. Let $0\preceq W\preceq\mu I$ with $\Phi_D(W)=\mcl P$. For a symmetric $Z$, $\tr(WZ)=\tr(WZ_+)-\tr(WZ_-)\le\tr(WZ_+)\le\mu\tr Z_+$, since $W\succeq0$ makes $\tr(WZ_-)\ge0$ and $W\preceq\mu I$ makes $\tr(WZ_+)\le\mu\tr Z_+$. Integrating, $\ell_{\mcl P}(Z)=\sum_i\lambda_i\int(\mcl L_D\mbf x_i)^TW(\mcl L_D\mbf x_i)=\int\tr(WZ)\le\mu\varrho(Z)$.
+
+Step 2. The set $\mcl W_\mu$ is convex and weak-star compact in $L_\infty=L_1^*$. For a finite family $F=\{\mbf x_1,\dots,\mbf x_k\}$ the map $T_F:W\mapsto\bigl(\int(\mcl L_D\mbf x_i)^TW(\mcl L_D\mbf x_i)\bigr)_{i=1}^k$ is linear and weak-star continuous, so $T_F(\mcl W_\mu)$ is a compact convex subset of $\R^k$ whose support function in the direction $\lambda$ is $\sup_{W\in\mcl W_\mu}\int\tr(WZ)=\mu\varrho(Z)$, the supremum attained by $W(\theta)=\mu\Pi_+(\theta)$ with $\Pi_+$ the spectral projection onto the positive eigenspace of $Z(\theta)$. By finite-dimensional separation, the vector $(\ip{\mbf x_i}{\mcl P\mbf x_i})_i$ lies in $T_F(\mcl W_\mu)$ if and only if $\ell_{\mcl P}(Z)\le\mu\varrho(Z)$ for every $\lambda\in\R^k$. Under the hypothesis of Step 2 the closed sets $C_F=\{W\in\mcl W_\mu:T_F(W)=(\ip{\mbf x_i}{\mcl P\mbf x_i})_i\}$ are therefore nonempty for every finite $F$, and $C_{F\cup F'}\subseteq C_F\cap C_{F'}$, so they have the finite intersection property; compactness gives $W\in\bigcap_FC_F$, that is $\ip{\mbf x}{\Phi_D(W)\mbf x}=\ip{\mbf x}{\mcl P\mbf x}$ for every $\mbf x$, and polarization gives $\Phi_D(W)=\mcl P$.
+
+Step 3. Let $d$ be the supremum in the statement. If $d<\infty$, then $\ell_{\mcl P}(Z)\le d\varrho(Z)$ for every family: for $\varrho(Z)>0$ scale the family by $\varrho(Z)^{-1}$; for $\varrho(Z)=0$, positive scaling of a family with $\ell_{\mcl P}(Z)>0$ would make the supremum infinite. Step 2 with $\mu=d$ gives a feasible weight with cap $d$, so $m_D(\mcl P)\le d$, and Step 1 gives $m_D(\mcl P)\ge d$; the weight found attains the infimum. If $d=+\infty$, Step 1 excludes every finite cap, so $m_D(\mcl P)=+\infty$.
+
+Step 4. Vector polynomials are dense in $L_2(I;\R^n)$; approximating each $\mbf x_i$ makes $\mcl L_D\mbf x_i$ converge uniformly, hence $Z$ in $L_1(I;\Sym r)$ and $\ell_{\mcl P}(Z)$ converge, and $\varrho$ is continuous in that norm since $Z\mapsto Z_+$ is $1$-Lipschitz in the trace norm pointwise; rescaling restores $\varrho(Z)\le1$.
+\end{proof}
+
+Two reformulations are used later. The first is the criterion form (\file{bounded_gram_duality.md}, Sec.~1), the equivalence of Steps 1 and 2 at a fixed cap.
+
+\begin{corollary}[capped criterion]\label{cor:capped}
+Let $D\in\N$, $\mu\ge0$ and $\mcl P$ be bounded and self-adjoint. There is $W$ with $0\preceq W\preceq\mu I$ a.e.\ and $\Phi_D(W)=\mcl P$ if and only if $\sum_i\lambda_i\ip{\mbf x_i}{\mcl P\mbf x_i}\le\mu\varrho(Z)$ for every finite signed family, and it suffices to test vector polynomial inputs.
+\end{corollary}
+
+The second places the dual variable in a function space rather than in finite families (\file{minimum_cap_primal_dual.md}, (10)--(11)).
+
+\begin{proposition}[preannihilator form]\label{prop:preann}
+Let $D\in\N$ and $\mcl P=\Phi_D(W_0)$ for some $W_0\in L_\infty(I;\Sym r)$. With $\mcl K_D^\perp=\{Z\in L_1(I;\Sym r):\int_I\tr(Z\,\Delta W)=0\ \text{for all }\Delta W\in\ker\Phi_D\}$,
+\[
+m_D(\mcl P)=\sup\Bigl\{\int_I\tr(W_0Z):\ Z\in\mcl K_D^\perp,\ \varrho(Z)\le1\Bigr\}.
+\]
+\end{proposition}
+In words: the dual variable is a symmetric matrix field that the certificate map cannot distinguish from a covariance field, normalized by its positive part; the normalization is $\varrho$ and not the trace norm because the primal weight is constrained to be positive, so the support function of the order interval $[0,I]$ is $\varrho$.
+\begin{proof}[Method: two inequalities]
+Every covariance field of a finite family lies in $\mcl K_D^\perp$, since $\int\tr(Z\Delta W)=\sum_i\lambda_i\ip{\mbf x_i}{\Phi_D(\Delta W)\mbf x_i}=0$, and on such fields $\int\tr(W_0Z)=\ell_{\mcl P}(Z)$; so the right side is at least the supremum of Theorem~\ref{thm:dual}, which is $m_D(\mcl P)$. Conversely, for $Z\in\mcl K_D^\perp$ and any feasible $W$ with cap $\mu$, $W-W_0\in\ker\Phi_D$ gives $\int\tr(W_0Z)=\int\tr(WZ)\le\mu\varrho(Z)$ by the pointwise inequality of Step 1, so the right side is at most $m_D(\mcl P)$.
+\end{proof}
+
+\subsection{The fixed-degree alternative}\label{sec:alternative}
+
+What does failure look like when $m_D(\mcl P)=+\infty$? Not a single witness.
+
+\begin{proposition}[the alternative at a fixed degree; \file{bounded_gram_duality.md}, Sec.~4]\label{prop:alternative}
+Let $D\in\N$ and let $\mcl P\succeq0$ be a self-adjoint purely integral polynomial PI operator. Exactly one of the following holds: 1) some finite $\mu$ satisfies the criterion of Corollary~\ref{cor:capped}; 2) there is a sequence of finite signed polynomial families with covariance fields $Z_j$ such that $\ell_{\mcl P}(Z_j)=1$ and $\varrho(Z_j)\to0$. In case 2) no single family has $\ell_{\mcl P}(Z)>0$ with $Z_+=0$ almost everywhere.
+\end{proposition}
+In words: when no bounded weight exists at $D$, the obstruction is a sequence of signed families whose positive part vanishes while their energy stays at one, a quantitative failure near the negative cone; an exact Farkas witness, a nonpositive field with positive energy, does not exist.
+\begin{proof}[Method: direct, from Corollary~\ref{cor:capped}]
+If 1) fails, then for every $j\in\N$ the criterion fails at $\mu=j$: there is a polynomial family with $\ell_{\mcl P}(Z)>j\varrho(Z)$. Its energy is positive, so dividing the coefficients by $\ell_{\mcl P}(Z)$ gives $\ell_{\mcl P}(Z_j)=1$ and $\varrho(Z_j)<1/j$. Conversely a sequence as in 2) violates the criterion at every finite $\mu$ by Step 1. For the last claim, the qualitative theorem of \file{bounded_gram_duality.md} (Sec.~2--3) places a positive polynomial $\mcl P$ in the weak operator closure of $\Phi_D(\{W\succeq0\})$; for a family with $Z\preceq0$ a.e.\ and weights $W_j\succeq0$ with $\Phi_D(W_j)\to\mcl P$ weakly, $\ell_{\mcl P}(Z)=\lim_j\int\tr(W_jZ)\le0$.
+\end{proof}
+
+\subsection{The finite hierarchy}\label{sec:hierarchy}
+
+The dual of Theorem~\ref{thm:dual} is computable at finite levels, which is how the degree diagnostic \code{mincap\_dual} works. Fix an orthonormal basis $\mbf p_1,\dots,\mbf p_q$ of a space of vector polynomials, a partition $\mathfrak P$ of $I$ into cells $J$ of positive length, and set
+\[
+F(\theta)=\bmat{(\mcl L_D\mbf p_1)(\theta)&\cdots&(\mcl L_D\mbf p_q)(\theta)}\in\R^{r\times q},\qquad\Gamma_J=\int_JF(\theta)^TF(\theta)\,d\theta,
+\]
+and $P_q=\bigl(\ip{\mbf p_i}{\mcl P\mbf p_j}\bigr)_{ij}$, the matrix of $\mcl P$ in the input basis.
+Each $\Gamma_J$ is positive definite, since a polynomial input whose lift vanishes on a cell is zero. The level value is
+\begin{equation}\label{eq:level}
+\beta_{q,\mathfrak P}=\min\Bigl\{\mu:\ Y_J\succeq0,\ Y_J\preceq\mu\Gamma_J,\ \sum_{J\in\mathfrak P}Y_J=P_q\Bigr\}.
+\end{equation}
+
+\begin{proposition}[exact dual of the level; \file{algebraic_hierarchy_duality.md}, Prop.~1]\label{prop:level}
+Let $P_q\succeq0$. Then
+\[
+\beta_{q,\mathfrak P}=\sup\Bigl\{\tr(P_q\Psi):\ \Psi=\Psi^T,\ \sum_{J\in\mathfrak P}\tr\bigl((\Gamma_J^{1/2}\Psi\Gamma_J^{1/2})_+\bigr)\le1\Bigr\},
+\]
+and in semidefinite variables the same value is $\sup\{\tr(P_q\Psi):S_J\succeq0,\ S_J\succeq\Psi,\ \sum_J\tr(\Gamma_JS_J)\le1\}$.
+\end{proposition}
+In words: at a finite level the signed family is a symmetric matrix $\Psi$ in the input basis, and the positive-part normalization is taken cell by cell against the cell Gramians. The proof is the finite-dimensional case of Theorem~\ref{thm:dual}: the set $\{\sum_JY_J:0\preceq Y_J\preceq\Gamma_J\}$ is compact and convex with the stated support function, and separation gives the formula.
+
+\begin{lemma}[the levels bound the cap from below and increase under refinement]\label{lem:levels}
+Let $D\in\N$ and $\mcl P$ be bounded and self-adjoint. Then $\beta_{q,\mathfrak P}\le m_D(\mcl P)$ for every level; $\beta_{q,\mathfrak P}\le\beta_{q,\mathfrak P'}$ whenever $\mathfrak P'$ refines $\mathfrak P$; and $\beta_{q,\mathfrak P}\le\beta_{q',\mathfrak P}$ whenever the input space of level $q$ is a subspace of that of level $q'$.
+\end{lemma}
+In words: the hierarchy is a lower bound on the minimum cap that can only rise as the mesh or the input degree grows; the proof documents do not assert that it converges to $m_D(\mcl P)$, and these notes do not either.
+\begin{proof}[Method: direct, by mapping feasible points]
+If $0\preceq W\preceq\mu I$ and $\Phi_D(W)=\mcl P$, then $Y_J=\int_JF^TWF$ satisfies $0\preceq Y_J\preceq\mu\Gamma_J$ and $\sum_JY_J=\int_IF^TWF=P_q$, so $\beta_{q,\mathfrak P}\le\mu$. If $\mathfrak P'$ refines $\mathfrak P$ and $(Y_{J'})$ is feasible for $\mathfrak P'$ at cap $\mu$, then $Y_J=\sum_{J'\subseteq J}Y_{J'}$ is feasible for $\mathfrak P$ at the same cap, since $\sum_{J'\subseteq J}\Gamma_{J'}=\Gamma_J$. If the inputs of level $q$ span a subspace of those of level $q'$, choose the basis of level $q'$ to extend that of level $q$; compressing a feasible family of level $q'$ to the first $q$ coordinates gives a feasible family of level $q$ at the same cap.
+\end{proof}
+
+\paragraph{The implementation.} \code{claude\_tests/mincap\_dual.m} uses shifted Legendre inputs of degree $\le d$ and replaces each cell by a two-point Gauss rule, so that the normalization becomes $S_k\succeq F(s_k)\Psi F(s_k)^T$, $S_k\succeq0$, $\sum_kw_k\tr S_k\le1$ at the nodes $s_k$ with weights $w_k$; the cell form of Proposition~\ref{prop:level} is exact but its Gramians are numerically rank deficient on fine meshes, and MOSEK stalls on it. The pointwise form is a quadrature of the normalization, not a bound, and at coarse meshes it reports unboundedness. Each level solves in under one second. Table~\ref{tab:mincap} lists the measured levels: the exact cap $1$ of $2-\max(s,t)$ at $D=0$; unboundedness at every level for a target with no bounded weight; and for the running example $\mcl G-\pi^2\mcl G^2$, values rising to $191$ at input degree $8$ and unbounded at $12$ for $D=1$, in agreement with Theorem~\ref{thm:poincare}, against $8.4$ at $D=2$. The instrument detects a missing lift degree in seconds and bounds the cap of a bounded weight from below; its conditioning ends near input degree $12$, so it does not resolve borderline degrees.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llrrrrl}
+\toprule
+target & $D$ & $d=2$ & $d=4$ & $d=8$ & $d=12$ & known \\
+\midrule
+$2-\max(s,t)$ & 0 & 1.000 & 1.000 & 1.001 & & cap 1 \\
+$\ell_p^*\ell_p$, $\deg p=2$ & 0 & $\infty$ & $\infty$ & $\infty$ & & no bounded weight \\
+$\ell_p^*\ell_p$ & 2 & 6428 & 46830 & & & cap $\le65700$ \\
+$\mcl G-\pi^2\mcl G^2$ & 1 & & 4.59 & 191 & $\infty$ & no bounded weight (Thm.~\ref{thm:poincare}) \\
+$\mcl G-\pi^2\mcl G^2$ & 2 & & 1.68 & 8.38 & no status & bounded weight exists \\
+$\mcl G-\pi^2\mcl G^2$ & 3 & & 1.31 & 4.44 & no status & bounded weight exists \\
+\bottomrule
+\end{tabular}
+\caption{The pointwise hierarchy of the minimum-cap dual, $32$ cells ($128$ for the Poincar\'e rows), MOSEK, 10/08/2026 (lift notes, Sec.~10). ``No status'': MOSEK ends with status UNKNOWN. Entries at which the pointwise form reports unboundedness because of the coarse mesh are omitted.}\label{tab:mincap}
+\end{table}
+
+\section{The SDP of the executives}\label{sec:sdp}
+
+\subsection{The sum-of-squares restriction}
+
+The toolbox never represents a weight as a function. It restricts $W$ to a finite-dimensional cone.
+
+\begin{definition}[SOS weight cone]\label{def:sos}
+Given $r\in\N$, a degree $w\in\N$ and multipliers $g_1,\dots,g_K$, polynomials with $g_k(\theta)\ge0$ on $I$ and $g_1=1$, let $\Lambda_w(\theta)=\bmat{1&\theta&\cdots&\theta^w}^T\otimes I_r$ and $w_k=w-\lceil\deg g_k/2\rceil$. The \textbf{SOS weight cone} is
+\[
+\SOS_{w,g}=\Bigl\{W(\theta)=\sum_{k=1}^Kg_k(\theta)\Lambda_{w_k}(\theta)^TQ_k\Lambda_{w_k}(\theta):\ Q_k\succeq0\Bigr\}.
+\]
+\end{definition}
+With $g=\{1\}$ this is the cone of matrix polynomials that are sums of squares; with $g=\{1,(\theta-a)(b-\theta)\}$ it is the Markov--Luk\'acs form of a matrix polynomial nonnegative on $I$, the pair the executives use in one variable; the face terms $\theta-a$, $b-\theta$ give the forms used in two.
+
+\begin{lemma}[the restriction, and the cap it certifies]\label{lem:soscap}
+Let $W\in\SOS_{w,g}$ with Gram matrices $Q_k$. Then $W(\theta)\succeq0$ on $I$, and $W(\theta)\preceq\mu I$ on $I$ with
+\[
+\mu=\sum_{k=1}^K\|g_k\|_{L_\infty(I)}\,\lambda_{\max}(Q_k)\,\max_{\theta\in I}\sum_{p=0}^{w_k}\theta^{2p}.
+\]
+Consequently, if some $W\in\SOS_{w,g}$ has $\Phi_D(W)=\mcl P$, then $m_D(\mcl P)\le\mu$.
+\end{lemma}
+In words: the SOS cone sits inside the bounded positive weights, so a solved Gram matrix certifies the target and also bounds its minimum cap, which a reader can compute from the eigenvalues of the Gram blocks.
+\begin{proof}[Method: direct]
+Positivity is $v^T\Lambda^TQ_k\Lambda v=(\Lambda v)^TQ_k(\Lambda v)\ge0$ with $g_k\ge0$. For the bound, $\Lambda_{w_k}^TQ_k\Lambda_{w_k}\preceq\lambda_{\max}(Q_k)\Lambda_{w_k}^T\Lambda_{w_k}=\lambda_{\max}(Q_k)\bigl(\sum_p\theta^{2p}\bigr)I_r$ because $\Lambda_{w_k}=v\otimes I_r$ gives $\Lambda_{w_k}^T\Lambda_{w_k}=(v^Tv)I_r$. The last claim is Definition~\ref{def:mincap}.
+\end{proof}
+
+\subsection{The primal SDP}\label{sec:primalsdp}
+
+At fixed $(D,w,g)$ the question posed to the solver is the feasibility problem
+\begin{equation}\label{eq:feas}
+\text{find }Q_1,\dots,Q_K\succeq0\quad\text{such that}\quad\Phi_D\Bigl(\sum_kg_k\Lambda_{w_k}^TQ_k\Lambda_{w_k}\Bigr)=\mcl P .
+\end{equation}
+By Lemma~\ref{lem:kernel} with a polynomial $W$, both sides of \eqref{eq:feas} are polynomial kernels, so the equality is a finite list of linear equations between coefficients: one row per monomial position $(i,j)$ of the lower cell (the upper cell is its adjoint and is not written), of the form $\sum_k\langle E^{(k)}_{ij},Q_k\rangle=p_{ij}$ with $p_{ij}$ the coefficient of $\mcl P$ and $E^{(k)}_{ij}$ the symmetric matrices that \code{poscopvar\_direct} assembles from the one-dimensional integral tables. In the executives the target is affine in the free variables $d$ of the LPI, $\mcl P=-\mcl H(d)$, with an objective $c^Td$ (the gain $\gamma$) and further equalities (such as $\mcl T^*\mcl Q=\mcl P_{\mrm{s}}$ of a Q form with storage $\mcl P_{\mrm s}$), and the program is
+\begin{equation}\label{eq:sdp}
+\min\ c^Td\quad\text{s.t.}\quad\sum_k\langle E^{(k)}_{ij},Q_k\rangle+h_{ij}(d)=0\ \ \forall(i,j),\qquad\text{(other rows)},\qquad Q_k\succeq0,
+\end{equation}
+with $h_{ij}(d)$ the coefficient of $\mcl H(d)$. The sizes reported by the executives are $n_x$, the number of scalar variables after the Gram blocks are vectorized, and $n_r$, the number of rows. The routine \code{lpi\_ineq\_sop} declares the $Q_k$, chooses $(D,w,g)$ (Sec.~\ref{sec:pruning}) and writes the rows through \code{lpi\_eq\_cdopvar}.
+
+For comparison with Definition~\ref{def:mincap}, the SOS version of the minimum cap is
+\begin{equation}\label{eq:capsdp}
+m_{D,w}(\mcl P)=\min\Bigl\{\mu:\ W\in\SOS_{w,g},\ \mu I-W\in\SOS_{w,g},\ \Phi_D(W)=\mcl P\Bigr\},
+\end{equation}
+an SDP in $(\mu,Q_k,Q'_k)$. It is not implemented, but its dual (Sec.~\ref{sec:map}) is the cleanest statement of how the finite-degree dual relates to Theorem~\ref{thm:dual}. Since $\SOS_{w,g}\subseteq\{W\succeq0\}$ and $\mu I-W\in\SOS_{w,g}$ implies $W\preceq\mu I$, every feasible point of \eqref{eq:capsdp} is feasible for Definition~\ref{def:mincap}: $m_{D,w}(\mcl P)\ge m_D(\mcl P)$, and $m_{D,w}$ is nonincreasing in $w$ because $\SOS_{w,g}\subseteq\SOS_{w+1,g}$.
+
+\subsection{The SDP dual in coefficient coordinates}\label{sec:sdpdual}
+
+The dual of $\min\{c^Tx:Ex=b,\ x\in\mathbb K\}$ is $\max\{b^Ty:c-E^Ty\in\mathbb K^*\}$, one multiplier $y_\rho$ per row $\rho$; weak duality $b^Ty\le c^Tx$ holds for all feasible pairs, and strong duality with attainment holds when both problems are strictly feasible. For the rows of \eqref{eq:feas} and \eqref{eq:sdp} the multipliers have an operator meaning.
+
+\begin{definition}[dual kernel]\label{def:dualkernel}
+Let the rows $\rho$ of \eqref{eq:sdp} that come from the kernel equality be indexed by block, cell and monomial position, and let $y$ be a vector of multipliers for them. The \textbf{dual kernel} of the equality is the self-adjoint PI operator $\mcl Y$ whose coefficient at the position of row $\rho$ is $y_\rho$ and whose other coefficients are zero, on the same cells and monomial bases as $\mcl H$.
+\end{definition}
+
+For two PI operators with polynomial parameters on the same bases, write $\ipc{\mcl P}{\mcl Y}$ for the Euclidean inner product of their coefficient vectors over the written positions, the \emph{coefficient pairing}.
+
+\begin{lemma}[what the multipliers pair with]\label{lem:pairing}
+Let $y$ be multipliers for the kernel rows and $\mcl Y$ the dual kernel. For every PI operator $\mcl P$ representable on the same cells and bases, $\sum_\rho y_\rho\,\mrm{coeff}_\rho(\mcl P)=\ipc{\mcl P}{\mcl Y}$, where $\mrm{coeff}_\rho(\mcl P)$ is the coefficient of $\mcl P$ at the position row $\rho$ constrains.
+\end{lemma}
+In words: the action of the multipliers on an operator is the coefficient inner product with the dual kernel; the proof is the definition read in both directions.
+
+\begin{proposition}[the dual of an equality-imposed inequality]\label{prop:dualineq}
+In \eqref{eq:sdp} let the Gram blocks $Q_k$ enter the kernel rows only and carry no cost, and for a dual kernel $\mcl Y$ let $N_k(\mcl Y)$ be the symmetric matrix with $\tr(N_k(\mcl Y)S)=\ipc{\Phi_D(g_k\Lambda_{w_k}^TS\Lambda_{w_k})}{\mcl Y}$ for all symmetric $S$. Then dual feasibility of \eqref{eq:sdp} on the Gram blocks reads $N_k(\mcl Y)\succeq0$ for every $k$, and complementary slackness at an optimal pair reads $\tr(N_k(\mcl Y)Q_k)=0$. For the feasibility problem \eqref{eq:feas}: if a dual kernel satisfies $N_k(\mcl Y)\succeq0$ for all $k$ and $\ipc{\mcl P}{\mcl Y}<0$, then \eqref{eq:feas} is infeasible; and if \eqref{eq:feas} is infeasible and the cone $\{\Phi_D(W):W\in\SOS_{w,g}\}$ is closed, such a dual kernel exists.
+\end{proposition}
+In words: the dual kernel pairs nonnegatively with every operator the slack can produce and to zero with the slack the solver returns; a dual kernel with negative energy against the target is an infeasibility certificate, and it is guaranteed to exist only when the image cone is closed. The gap between the two sentences is the finite-degree form of Proposition~\ref{prop:alternative}, and Sec.~\ref{sec:unknown} is about it.
+\begin{proof}[Method: read off $\mathbb K^*$ block by block, then conic Farkas]
+The component of $c-E^Ty$ on the block $Q_k$ is $-E_k^Ty$ with zero cost, and by Lemma~\ref{lem:pairing} and the linearity of $S\mapsto\Phi_D(g_k\Lambda^TS\Lambda)$, $\tr((E_k^Ty)S)=\ipc{\Phi_D(g_k\Lambda^TS\Lambda)}{\mcl Y}$ with the sign convention that the kernel rows are written as $\Phi_D(\cdot)-\mcl P=0$; membership of $\mathbb K^*$ on a semidefinite block is positive semidefiniteness, which gives $N_k(\mcl Y)\succeq0$, and complementary slackness is the trace identity. For the feasibility problem, a feasible $(Q_k)$ and a dual kernel as stated give $0\le\sum_k\tr(N_k(\mcl Y)Q_k)=\ipc{\Phi_D(W)}{\mcl Y}=\ipc{\mcl P}{\mcl Y}<0$, a contradiction. If the image cone is closed and does not contain $\mcl P$, the separating hyperplane theorem in the finite-dimensional coefficient space gives a functional, represented by a kernel $\mcl Y$ through the coefficient pairing, that is nonnegative on the cone and negative at $\mcl P$; nonnegativity on the cone is $N_k(\mcl Y)\succeq0$ for every $k$.
+\end{proof}
+
+\paragraph{The implementation.} \code{collect\_eq\_rows} records, per block written, the cells, the kept column positions and the bases; \code{lpi\_eq\_cdopvar} records the row range of the call when the program carries the field \code{sopeq} (the executives set \code{prog.sopeq = \{\}} after \code{lpiprogram}; no other program gains a field); \code{lpigetdual\_sop} places \code{prog.solinfo.y} at the recorded positions and returns $\mcl Y$ as a \code{copvar}. Two solver facts were checked by running (10/08/2026, 1-D $H_\infty$ gain executive, 169 rows): \code{sossolve} divides $b$ by its norm before the solve, and the dual of the scaled problem has the same maximizer as the dual of the original, so $y$ needs no rescaling; and with \code{sos\_opts.simplify} on, \code{sossolve} removes dependent rows and restores the multipliers into the original coordinates with zeros at the removed rows. In both settings $b^Ty$ equals the primal objective to $5\times10^{-9}$.
+
+\section{How the SDP dual maps to the dual problem}\label{sec:map}
+
+This section is the bridge. Throughout, $\mcl P$ is purely integral and the lift is pure, as in the proof documents; the remark at the end places the multiplier component.
+
+\subsection{From coefficient pairing to covariance field}
+
+The coefficient pairing is not an operator pairing: it depends on the monomial basis. The first lemma removes that dependence.
+
+\begin{lemma}[coefficient pairing as a kernel pairing]\label{lem:gram}
+For purely integral PI operators $\mcl P$, $\mcl Y$ with full kernels $K_{\mcl P}$, $K_{\mcl Y}$ on $I\times I$ ($R_1$ below the diagonal, $R_2$ above), define the \textbf{kernel pairing}
+\[
+\ip{\mcl P}{\mcl Y}_{\mrm k}=\int\!\!\int_{I\times I}\tr\bigl(K_{\mcl P}(s,t)^TK_{\mcl Y}(s,t)\bigr)\,ds\,dt .
+\]
+Let the rows be written on the lower cell only (the symmetric write), let $\phi$ be the vector of its monomial positions $s^it^j$ and $G=\int\!\!\int_{t<s}\phi\,\phi^T$ their Gram matrix. If $\mcl Y$ has coefficient vector $y$ on the lower cell and $\widetilde{\mcl Y}$ is the self-adjoint kernel whose lower cell has coefficient vector $\tfrac12G^{-1}y$, then $\ipc{\mcl P}{\mcl Y}=\ip{\mcl P}{\widetilde{\mcl Y}}_{\mrm k}$ for every self-adjoint $\mcl P$ on that cell.
+\end{lemma}
+In words: the multipliers are the coordinates of a kernel in the dual basis of the monomials; the inverse monomial Gram matrix turns the Euclidean coefficient product into the integral of the product of kernels, and the factor one half pays for the upper cell that the symmetric write leaves to the adjoint. The proof is that the full-square integral is twice the lower-triangle integral for two self-adjoint kernels, and the lower-triangle integral is $p^TG(\tfrac12G^{-1}y)=\tfrac12p^Ty$ with $p$ the coefficient vector of $\mcl P$; $G$ is invertible because the monomials are linearly independent on a cell of positive area.
+
+\begin{proposition}[the covariance field of a dual kernel]\label{prop:field}
+Let $D\in\N$ and let $\widetilde{\mcl Y}$ be a self-adjoint purely integral PI operator on $L_2(I;\R^n)$ with bounded kernel $Y(s,t)$ on $I\times I$. Define
+\[
+Z_{\widetilde{\mcl Y}}(\theta)=\int_a^b\!\!\int_a^b\ell_D(\theta,s)\,Y(s,t)\,\ell_D(\theta,t)^T\,ds\,dt\in\Sym r,\qquad\theta\in I,
+\]
+the diagonal of the kernel of $\mcl L_D\widetilde{\mcl Y}\mcl L_D^*$. Then for every $W\in L_\infty(I;\Sym r)$,
+\[
+\ip{\Phi_D(W)}{\widetilde{\mcl Y}}_{\mrm k}=\int_a^b\tr\bigl(W(\theta)Z_{\widetilde{\mcl Y}}(\theta)\bigr)\,d\theta ,
+\]
+and if $Y(s,t)=\sum_{i=1}^k\lambda_i\mbf x_i(s)\mbf x_i(t)^T$ for a finite family, then $Z_{\widetilde{\mcl Y}}$ is the signed covariance field of that family and $\ip{\mcl P}{\widetilde{\mcl Y}}_{\mrm k}=\ell_{\mcl P}(Z_{\widetilde{\mcl Y}})$ for every purely integral self-adjoint $\mcl P$.
+\end{proposition}
+In words: a dual kernel is a signed family in disguise. Its covariance field is the diagonal of its lift, and the pairing of a certificate with the kernel is the pairing of the weight with that field, exactly the quantity that Theorem~\ref{thm:dual} bounds by the cap times the positive part.
+\begin{proof}[Method: Fubini on \eqref{eq:kernelW}]
+The kernel of $\Phi_D(W)$ is $K_W$ of \eqref{eq:kernelW} on all of $I\times I$, so
+\begin{multline*}
+\int\!\!\int\tr\bigl(K_W(s,t)^TY(s,t)\bigr)\,ds\,dt\\
+=\int_a^b\tr\Bigl(W(\theta)^T\int\!\!\int\ell_D(\theta,s)\,Y(s,t)\,\ell_D(\theta,t)^T\,ds\,dt\Bigr)\,d\theta
+\end{multline*}
+by Fubini, which is the claim since $W$ is symmetric. For the finite family, the definition of $\mcl L_D$ gives
+\[
+\int\!\!\int\ell_D(\theta,s)\,\mbf x_i(s)\mbf x_i(t)^T\,\ell_D(\theta,t)^T\,ds\,dt=(\mcl L_D\mbf x_i)(\theta)(\mcl L_D\mbf x_i)(\theta)^T,
+\]
+and $\int\!\!\int\tr\bigl(K_{\mcl P}(s,t)^T\mbf x_i(s)\mbf x_i(t)^T\bigr)\,ds\,dt=\ip{\mbf x_i}{\mcl P\mbf x_i}$ for a purely integral $\mcl P$.
+\end{proof}
+
+\subsection{The dual SDP as a moment relaxation}
+
+\begin{theorem}[the finite-degree dual]\label{thm:map}
+Let $D,w\in\N$, multipliers $g_1,\dots,g_K$ as in Definition~\ref{def:sos}, and let $\mcl P$ be a self-adjoint purely integral polynomial PI operator. Let $\mcl Y$ be a dual kernel of the rows of \eqref{eq:feas}, $\widetilde{\mcl Y}$ its kernel-pairing representative (Lemma~\ref{lem:gram}) and $Z=Z_{\widetilde{\mcl Y}}$ its covariance field (Proposition~\ref{prop:field}). Then:
+\begin{enumerate}\setlength\itemsep{0pt}
+\item[(i)] for every $k$, $N_k(\mcl Y)=\int_a^bg_k(\theta)\Lambda_{w_k}(\theta)Z(\theta)\Lambda_{w_k}(\theta)^T\,d\theta$, the $g_k$-weighted moment matrix of $Z$ of order $w_k$;
+\item[(ii)] the infeasibility certificate of Proposition~\ref{prop:dualineq} is a field $Z$ with $\int g_k\Lambda_{w_k}Z\Lambda_{w_k}^T\succeq0$ for all $k$ and $\ell_{\mcl P}(Z)<0$;
+\item[(iii)] every field with $Z(\theta)\succeq0$ a.e.\ satisfies the moment conditions of (ii), and the field of a finite family with $Z\succeq0$ a.e.\ has $\ell_{\mcl P}(Z)\ge0$ whenever $\mcl P\succeq0$;
+\item[(iv)] the dual of the cap SDP \eqref{eq:capsdp} is
+\[
+\max\Bigl\{\ell_{\mcl P}(Z):\ \exists\,\Xi\ \text{with}\ \int g_k\Lambda_{w_k}(\Xi-Z)\Lambda_{w_k}^T\succeq0,\ \int g_k\Lambda_{w_k}\Xi\Lambda_{w_k}^T\succeq0\ \forall k,\ \int_a^b\tr\Xi=1\Bigr\},
+\]
+and its normalization $\varrho_{w}(Z)=\min\{\int\tr\Xi:\Xi\ \text{as above}\}$ satisfies $\varrho_w(Z)\le\varrho(Z)$.
+\end{enumerate}
+\end{theorem}
+In words: restricting the primal weight to sums of squares of degree $w$ relaxes the dual in exactly one place, the positivity of the covariance field, which is tested only against the finitely many weights of the cone instead of pointwise. The dual multipliers of the solver are a signed family that no weight of degree $w$ can tell from a positive one; the positive-part normalization of Theorem~\ref{thm:dual} becomes the smallest trace of a moment-positive field dominating $Z$ in the moment order; and as $w$ grows the relaxation tightens, because more weights test the field.
+\begin{proof}[Method: direct, from Propositions~\ref{prop:dualineq} and \ref{prop:field} and the Lagrangian of \eqref{eq:capsdp}]
+(i) For symmetric $S$, $\tr(N_k(\mcl Y)S)=\ipc{\Phi_D(g_k\Lambda^TS\Lambda)}{\mcl Y}=\int\tr(g_k\Lambda^TS\Lambda\,Z)=\tr\bigl(S\int g_k\Lambda Z\Lambda^T\bigr)$ by Lemma~\ref{lem:gram} and Proposition~\ref{prop:field}; two symmetric matrices with the same trace pairing against every symmetric $S$ are equal. (ii) is Proposition~\ref{prop:dualineq} with (i) and $\ipc{\mcl P}{\mcl Y}=\ell_{\mcl P}(Z)$. (iii) If $Z\succeq0$ a.e.\ then $\Lambda Z\Lambda^T\succeq0$ a.e.\ and $g_k\ge0$, so the integral is positive semidefinite. For the sign of the energy, the qualitative theorem cited in Proposition~\ref{prop:alternative} gives weights $W_j\succeq0$ with $\Phi_D(W_j)\to\mcl P$ weakly, so for the field of a finite family $\ell_{\mcl P}(Z)=\sum_i\lambda_i\ip{\mbf x_i}{\mcl P\mbf x_i}=\lim_j\sum_i\lambda_i\ip{\mbf x_i}{\Phi_D(W_j)\mbf x_i}=\lim_j\int\tr(W_jZ)\ge0$. (iv) Write $W=\sum_kg_k\Lambda^TQ_k\Lambda$, $\mu I-W=\sum_kg_k\Lambda^TQ'_k\Lambda$, and form the Lagrangian with a dual kernel $\mcl Y$ for the equality $\Phi_D(W)=\mcl P$ and a matrix field $\Xi$ for the cap equality, pairing the latter by $\int\tr(\Xi\,\cdot)$: $L=\mu+\ipc{\mcl P-\Phi_D(W)}{\mcl Y}-\int\tr\bigl(\Xi(\mu I-W-\textstyle\sum_kg_k\Lambda^TQ'_k\Lambda)\bigr)$. Minimizing over $\mu\in\R$ gives $\int\tr\Xi=1$; over $Q'_k\succeq0$, $\int g_k\Lambda\Xi\Lambda^T\succeq0$; over $Q_k\succeq0$, $\int g_k\Lambda(\Xi-Z)\Lambda^T\succeq0$ by (i); and the remaining value is $\ipc{\mcl P}{\mcl Y}=\ell_{\mcl P}(Z)$, which gives the stated dual. For the last claim, $\Xi=Z_+$ is admissible for $\varrho_w$ by (iii) applied to $Z_+-Z=Z_-\succeq0$ and to $Z_+$, and $\int\tr Z_+=\varrho(Z)$; while $\varrho(Z)=\min\{\int\tr\Xi:\Xi\succeq Z,\ \Xi\succeq0\ \text{a.e.}\}$ because $\tr\Xi\ge\tr(\Pi_+\Xi\Pi_+)\ge\tr(\Pi_+Z\Pi_+)=\tr Z_+$ pointwise, so the pointwise minimum is over a smaller set than the moment minimum.
+\end{proof}
+
+\begin{remark}
+Three consequences follow. First, $m_{D,w}(\mcl P)\ge m_D(\mcl P)$ from both sides: the primal of \eqref{eq:capsdp} is a restriction, its dual a relaxation, and strong duality of the SDP makes the two values equal. Second, the moment conditions of (ii) for \emph{all} $w$ and the Markov--Luk\'acs multipliers characterize the positive fields: a matrix field whose weighted moments against every nonnegative polynomial on $I$ are positive semidefinite is positive semidefinite almost everywhere, by the solution of the matrix moment problem on an interval; the reader should check the precise statement in a reference before relying on it, since these notes do not prove it. Third, with the mixed lift the slack has a multiplier cell and the dual kernel a multiplier component $Y_0$; in the coefficient pairing $Y_0$ meets only the multiplier cell of $\Phi_D$, so $Z$ acquires the block $Y_0(\theta)$ in the input component of the lift and nothing else, and (i)--(iv) hold with that $Z$. The parameter pairing is not the trace pairing of operators: the two differ by the diagonal term $\int\tr(K_W(s,s)Y_0(s))\,ds$, which the SDP does not see.
+\end{remark}
+
+\subsection{The $H_\infty$ instance, and what the executives measure}\label{sec:kyp}
+
+For the primal Q form of the $H_\infty$ gain the rows of \eqref{eq:sdp} are those of $\mcl K+\mcl N=0$ with
+\[
+\mcl K=\bmat{-\gamma I_{\mrm{in}}&\mcl D_{11}^*&\mcl B_1^*\mcl Q\\ \mcl D_{11}&-\gamma I_{\mrm{out}}&\mcl C_1\\ \mcl Q^*\mcl B_1&\mcl C_1^*&\mcl A^*\mcl Q+\mcl Q^*\mcl A},
+\]
+together with the rows of $\mcl T^*\mcl Q=\mcl P_{\mrm s}$ and the objective $\min\gamma$. The dual kernel $\mcl Y$ lives on the three-space grid. Two of its dual constraints are exact consequences of the rows and are worth reading: the row of $\gamma$ gives $\ipc{\diag(I_{\mrm{in}},I_{\mrm{out}},0)}{\mcl Y}=1$, that is, the traces of the constant multiplier coefficients of the input and output blocks of $\mcl Y$ sum to one, the normalization of a signed family with unit input-plus-output energy; and the dual objective is $\ipc{\mcl K_0}{\mcl Y}$ with $\mcl K_0$ the blocks $\mcl D_{11}$, $\mcl C_1$ that carry no variable, the cross energy of the family through the output map. The dual optimizer is thus a degree-$w$ relaxed signed family that maximizes output energy against unit input-plus-output energy subject to the moment positivity of Theorem~\ref{thm:map} and the linear conditions the rows of $\mcl Q$ impose; the worst-case input problem in covariance form. The executives test this reading numerically: \code{pie\_witness\_sop} computes the worst input from the frequency response of a Legendre discretization (Sec.~\ref{sec:witness}) and reports the normalized Frobenius inner product of its covariance with the symmetrized input block of $\mcl Y$ (\code{info.dual\_alignment}). On a plant with a finite-dimensional disturbance, where the input block of $\mcl Y$ is a plain matrix, the alignment is $1.000$ for both primal forms; on a plant with a distributed disturbance it is $0$, and the comparison there is a heuristic, since it is made in the coefficient pairing without the Gram correction of Lemma~\ref{lem:gram}.
+
+\subsection{The UNKNOWN exit}\label{sec:unknown}
+
+Proposition~\ref{prop:dualineq} guarantees an infeasibility certificate only when the image cone is closed, and Proposition~\ref{prop:alternative} says that at a degree without a bounded weight the obstruction is a sequence, not a witness. Inside the SDP the two statements meet as weak infeasibility: at every finite value of the objective the program is infeasible, no dual certificate exists, and an interior-point method ends with status UNKNOWN, its objective diverging and its residuals small. Every UNKNOWN exit of the sizing studies had this signature, residuals near $10^{-9}$ and objective between $10^{1}$ and $10^{6}$, and raising the weight degree $w$ by one resolved every such run (lift notes, Sec.~10; measured 10/08/2026). The degree loop of the executives, \code{lpi\_solve\_loop\_sop}, is this observation turned into a rule: it classifies the exit (\code{lpi\_classify\_sop}) and on UNKNOWN or primal infeasibility rebuilds the program with $w$ raised by one, at most \code{settings.sop.max\_raise} times. An infeasible verdict is a statement about the slack degree, not about the LPI: on the 2-D stability LPI the slack sized by the reader alone ($dw_P=0$, $6.5\times10^3$ variables) is infeasible, and one raise certifies at $1.04\times10^5$ variables in $2.95$~s against $6.35$~s for the default start $dw_P=2$ (Posopvar session, 10/16/2026). What a raise cannot do is prove that no degree certifies. The loop is an interpretation of the exit through Proposition~\ref{prop:alternative}, not a theorem that every UNKNOWN is a degree defect.
+
+\section{Sizing and pruning}\label{sec:pruning}
+
+Four reductions shape the SDP \eqref{eq:sdp}. They rest on statements of different strength.
+
+\subsection{Sizing the lift and the weight}\label{sec:sizing}
+
+For a target with lower kernel $\sum k_{ij}s^it^j$ put $D_{\min}=\max\{\min(i,j):k_{ij}\ne0\}$ and $D_{\max}=\max\{\max(i,j):k_{ij}\ne0\}$. Lemma~\ref{lem:kernel} gives $D\ge D_{\min}$ as a necessary condition for an exact certificate with any bounded weight; with a polynomial weight of half-degree $w$ exactly the monomials with $\min(i,j)\le D$ and $\max(i,j)\le D+2w+1$ occur in the lower kernel (measured on five $(w,D)$ pairs, 10/07/2026), so $D+2w+1\ge D_{\max}$ is necessary for a polynomial weight. Neither is sufficient: the running example has $D_{\min}=1$ and needs $D=2$ (Theorem~\ref{thm:poincare}). The reader \code{get\_lift\_degs} applies the two conditions per direction and per block, with $M_{\deg,d}$ the multiplier degree and $J_d$ the one-sided reach a block between $\R^q$ and an $L_2$ space needs:
+\[
+D_d=D_{\min,d}+dD,\qquad w_d=\max\Bigl(\bigl\lceil\tfrac{D_{\max,d}-D_d-1}{2}\bigr\rceil,\ \bigl\lceil\tfrac{M_{\deg,d}}{2}\bigr\rceil,\ J_d-D_d-w_R-1,\ 0\Bigr)+dw,
+\]
+with $dD=dw=1$ by default: on the heat benchmark the certificate needed $D=D_{\min}+1$ and one more unit of $w$ than the support rule for the binding operator at every degree (measured 10/08/2026). The terms are the Markov--Luk\'acs pair in one variable, the plain Gram at $w$ and the box product at $w-1$, and the plain term at $w$ with the $2N$ faces at $w-1$ in $N$ variables when every weight is at least $2$; the tensor extension of the pair was neither smaller nor stronger on two 2-D problems and is not the default.
+
+\paragraph{A target linear in a free operator.} The support rule bounds a fixed target. The block $\mcl A^*\mcl Q+\mcl Q^*\mcl A$ of a Q form is composed \emph{before} the equality $\mcl T^*\mcl Q=\mcl P_{\mrm s}$ is imposed, so its support is that of the whole \code{lpivar} family of $\mcl Q$ under composition, a lower kernel to degree $9$ with $D_{\min}=4$ on the plant \code{io1}, and not that of the optimal $\mcl Q$; the reader then sizes the slack at $(D,w)=(5,3)$ where $(2,2)$ is the measured minimum (Table~\ref{tab:kyp}). The option \code{like} of \code{lpi\_ineq\_sop} reads the support of the fixed positive operator of the LPI, the storage, and lays the degrees over the spaces of the target; on the storage the rule gives $(2,2)$ at the stock light level and $(2,3)$ at heavy. The executives use \code{like} with the storage for every slack and raise the rule by $dw_Q=1$ in the Q forms and $dw_P=2$ in the coercive forms, the smallest values that reached the numerical value on one 1-D and one 2-D plant.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llrrrrr}
+\toprule
+slack & terms & $\gamma$ & $\gamma-\gamma^*$ & dec.\ vars & $n_x$ & $n_r$ \\
+\midrule
+stock \code{light}, $(1,2)$ cap 3 & stock & 0.182626 & $1.5\times10^{-4}$ & 587 & 1274 & 237 \\
+reader on $\mcl K$, $(5,3)$ & pair & 0.1824816 & $2.5\times10^{-6}$ & 2599 & 5242 & 321 \\
+$(1,1)$ & pair & 0.193093 & $1.1\times10^{-2}$ & 119 & 362 & 184 \\
+$(2,1)$ & pair & 0.184185 & $1.7\times10^{-3}$ & 198 & 514 & 185 \\
+$(1,2)$ & pair & 0.182620 & $1.4\times10^{-4}$ & 281 & 674 & 197 \\
+$(2,2)$ = \code{like} on the storage & pair & 0.1824817 & $2.6\times10^{-6}$ & 478 & 1058 & 205 \\
+$(2,2)$ cap 3 & pair & 0.1824817 & $2.6\times10^{-6}$ & 396 & 898 & 197 \\
+$(3,2)$ & pair & 0.1824816 & $2.5\times10^{-6}$ & 727 & 1546 & 217 \\
+\bottomrule
+\end{tabular}
+\caption{The slack of the primal KYP LPI (Q form) for \code{io1}, $x_t=x_{ss}+\tfrac{\pi^2}{2}x+w$ on $[0,1]$, Dirichlet, $z=\int_0^1x$, closed-form gain $\gamma^*=0.182479080$; storage at the stock \code{light} degrees, MOSEK (lift notes, Sec.~7.4, 10/08/2026). $(D,w)$ per row; pair: plain term at $w$, product term at $w-1$.}\label{tab:kyp}
+\end{table}
+
+\subsection{Lossless removal of basis operators}\label{sec:reach}
+
+\begin{proposition}[zero diagonal, zero row]\label{prop:zerodiag}
+Let $\mcl N=\sum_{i,j}\mcl Z_i^*Q_{ij}\mcl Z_j$ with $Q\succeq0$ and basis operators $\mcl Z_i$, and let $E_i$ be the set of evaluation vectors through which block $i$ enters the coefficients of $\mcl N$, so that every coefficient of $\mcl Z_i^*Q_{ij}\mcl Z_j$ is a linear combination of entries $v^TQ_{ij}u$ with $v\in E_i$. If $v^TQ_{ii}v=0$ for all $v\in E_i$, then $v^TQ_{ij}=0$ for all $v\in E_i$ and all $j$, every term of $\mcl N$ involving block $i$ vanishes, and the set of operators $\mcl N$ representable with block $i$ removed equals the set representable with it present.
+\end{proposition}
+In words: a basis operator whose own quadratic term is forced to vanish contributes nothing through its cross terms either, so dropping it loses no certificate.
+\begin{proof}[Method: the range inclusion of a positive semidefinite matrix]
+$Q\succeq0$ gives $Q_{ii}\succeq0$ and $\range(Q_{ij})\subseteq\range(Q_{ii})$, so $Q_{ij}=Q_{ii}^{1/2}R_{ij}$ for some $R_{ij}$. From $v^TQ_{ii}v=\|Q_{ii}^{1/2}v\|^2=0$ follows $Q_{ii}^{1/2}v=0$, hence $v^TQ_{ij}=(Q_{ii}^{1/2}v)^TR_{ij}=0$; every coefficient of a term with block $i$ is a combination of such products, so the term is zero, and setting $Q_{i\cdot}=Q_{\cdot i}=0$ keeps $Q\succeq0$ and changes no coefficient.
+\end{proof}
+
+\begin{lemma}[the multiplier cell forces its block]\label{lem:deltacell}
+In one variable, the multiplier cell of $\mcl N$ receives contributions from the all-multiplier block alone, with kernel $\Lambda(s)^TQ_{11}\Lambda(s)$ for the monomial vector $\Lambda$ of that block. If the multiplier cell of the target is zero, the equality forces $\Lambda(s)^TQ_{11}\Lambda(s)=0$ for all $s$, and Proposition~\ref{prop:zerodiag} applies with $E_1=\{\Lambda(s):s\in I\}$.
+\end{lemma}
+In words: an integral basis operator cannot produce a delta, so a target without a multiplier cell is certified without the multiplier block at no loss. The proof is that a product of two basis operators is a multiplier only when both are.
+
+\paragraph{What the code does.} \code{eq\_opts\_sopvar} measures the reach of the diagonal term of a block with multi-index $\alpha$ by declaring one block at a time, $\mrm{reach}(\alpha)=\prod_dR_d$ with $R_d=\{1\}$ if $\alpha_d=1$ and $\{2,3\}$ otherwise, since adjoining turns a lower integral into an upper one; it drops a block only when the target is zero on all of $\mrm{reach}(\alpha)$, and marks a direction separable when the lower and upper cells of the target agree there. \code{lpi\_ineq\_sop} applies the rule to the diagonal block of each $L_2$ space of the target (option \code{prune}, on by default), passes the survivors as the \code{include} of the lift, and expands the separable full-integral index into the lower and upper indices, a superset of the unseparated reading. Soundness is immediate, since dropping basis operators shrinks the cone; losslessness is Lemma~\ref{lem:deltacell} for the multiplier cell, and for the integral cells, which several blocks reach, it is argued in the code header from the measured reach sets and not proved here. The stock 2-D rule (\code{get\_eq\_opts\_2D}) drops a component whenever its own cell alone is zero; Proposition~\ref{prop:zerodiag} does not imply that, since the diagonal of a lower block also reaches the upper and mixed cells, and it can lose a certificate. A per-monomial version of the argument is false (measured 09/21/2026): the map from Gram entries to output monomials is many-to-one, $256$ entries onto $10$ output degrees at $\mrm{int}=\mrm{mult}=3$, and no entry is isolated at a position.
+
+\subsection{Storage pruning}
+
+A third reduction changes stored zeros, not the cone. \code{copquadvar} builds each block on the union of bases its pair integrals can reach rather than the occupied ones; the direct map of \code{poscopvar\_direct} stores the exponents reached and nothing else, and \code{posmult\_cdopvar} prunes its blocks to the occupied monomials. Composed operators are bit-identical; the 2-D composition at $(2,2)$ went from $22.4$ to $1.6$~s and from $14.3$ to $1.25$~GB (10/07/2026).
+
+\subsection{What each rule rests on}
+
+\begin{center}\footnotesize
+\begin{tabular}{p{5.2cm} p{3.6cm} p{6.4cm}}
+\toprule
+rule & routine & status \\
+\midrule
+drop a block whose reach the target misses & \code{eq\_opts\_sopvar}, \code{prune} & sound; lossless proved for the multiplier cell, argued for the rest \\
+$D\ge D_{\min}$, $D+2w+1\ge D_{\max}$ & \code{get\_lift\_degs} & proved necessary (Lemma~\ref{lem:kernel}); not sufficient (Theorem~\ref{thm:poincare}) \\
+$dD=dw=1$; $dw_Q=1$, $dw_P=2$ & defaults & measured on two plants per dimension \\
+size from the storage (\code{like}) & \code{lpi\_ineq\_sop} & measured: the support of the family oversizes \\
+faces at $w-1$ in $N$ variables & \code{get\_lift\_degs} & measured on two 2-D problems \\
+raise $w$ on UNKNOWN or infeasible & \code{lpi\_solve\_loop\_sop} & Proposition~\ref{prop:alternative} read inside the solver; measured, including one infeasible-to-certified raise \\
+a polynomial weight exists for $\mcl P+\varepsilon e_D$ & \code{margin} option & proved (Theorem~\ref{thm:perturb}) \\
+some finite $D$ exists for every target & design basis & Statement~\ref{st:necessity}, assumed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{What the executives compute}\label{sec:executives}
+
+\subsection{The pipeline}
+
+Every executive of \code{executives\_sopvar} runs the same steps, the LPI being the only variable part: convert the PIE operators to containers; declare the storage as the stock executive does (\code{exec\_tools\_sop}); form the blocks of the LPI; declare the slack with \code{lpi\_ineq\_sop} and \code{like} the storage, or the stock slack when \code{settings.sop.slack = 'stock'}; solve inside the degree loop; read the solution, the dual kernel (Sec.~\ref{sec:sdpdual}) and the SDP shape; and in one variable evaluate the numerical counterpart. The stock outputs come first, in the stock order, and \code{info} last.
+
+\subsection{The numerical counterpart}\label{sec:witness}
+
+A certificate is an upper bound; the executives set a lower bound beside it. \code{pie\_disc\_sop} forms the Galerkin matrix of each 4-PI operator in the orthonormal basis $\R^{m_0}\oplus\mrm{span}\{p_j(s)e_k\}$, $p_j$ the shifted Legendre polynomials of degree $\le N$ on $I$, with exact pairings: the kernels are polynomial, so Gauss--Legendre quadrature with $N+d_{\max}+3$ nodes on the recurrence-evaluated basis integrates every entry exactly. Orthonormality makes the matrix of a composition the product of the matrices up to the truncation and the $L_2$ norms the Euclidean norms of coefficient vectors, so no mass matrix enters. \code{pie\_witness\_sop} evaluates the frequency response $G(i\omega)=C(i\omega T-A)^{-1}B+D$ on a logarithmic grid refined around its maximum (a lower bound on the gain, with the worst input), the generalized eigenvalues of $(A,T)$ (the decay rate) and the Lyapunov $H_2$ norm. The first version expanded the Legendre basis in monomials and summed closed-form moments; its coefficients grow as $4^N$, every digit was lost beyond $N=12$, and the default $N=24$ produced spurious eigenvalues ($+548$ for a plant at $-4.93$) before the quadrature version replaced it. Never evaluate an orthogonal polynomial through its monomial coefficients.
+
+\subsection{Measured brackets}
+
+Table~\ref{tab:bracket} gives, on a 1-D reaction--diffusion plant with a finite-dimensional disturbance and input ($x_t=x_{ss}+\tfrac{\pi^2}{2}x+s(1-s)w+u$, $y=\int x$, $z=[\int x;u]$, Dirichlet), the stock value, the value with the stock slack on the container path, the value with the default slack and the numerical lower bound. The default slack certifies within $1.5\times10^{-6}$ to $1.3\times10^{-3}$ of the numerical value in every case, including the four where the stock light slack is short in the lift and the stock returns UNKNOWN; the stock-slack mode reproduces the stock to 5--7 digits where the stock solves. In two variables, on the reaction--diffusion plant at half the critical coefficient, the two stability executives certify in 8--11~s where the stock returns UNKNOWN after 23~s, and the coercive gain executive certifies $0.17172212$ on the input--output plant in 26~s against UNKNOWN after 413~s for the stock. The test \code{executives\_sopvar/tests/test\_executives\_sop.m} asserts the 1-D part and the 2-D stability executive (20 checks).
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrr}
+\toprule
+executive & stock (light) & stock slack & default slack & numerical \\
+\midrule
+Hinf\_gain (Q) & 0.033332351 & 0.033332353 & 0.033310666 & 0.0333106 \\
+Hinf\_gain\_coercive (P) & UNKNOWN & UNKNOWN & 0.033311035 & 0.0333106 \\
+Hinf\_gain\_dual (Qd) & 0.03333238 & 0.033332403 & 0.033310842 & 0.0333106 \\
+Hinf\_gain\_dual\_coercive (Pd) & UNKNOWN & UNKNOWN & 0.033313355 & 0.0333106 \\
+H2\_norm\_c & 0.052715641 & 0.052715636 & 0.052428236 & 0.0523601 \\
+H2\_norm\_o & 0.052715396 & 0.052715396 & 0.052428398 & 0.0523601 \\
+H2\_norm\_c\_coercive & 0.0825005 & 0.0824501 & 0.052396837 & 0.0523601 \\
+H2\_norm\_o\_coercive & 0.0827630 & UNKNOWN & 0.052393641 & 0.0523601 \\
+Hinf\_control & UNKNOWN & UNKNOWN & 0.032865781 & open loop 0.0333 \\
+H2\_control & UNKNOWN & UNKNOWN & 0.052222382 & open loop 0.0524 \\
+\bottomrule
+\end{tabular}
+\caption{1-D executives on the finite-disturbance plant, light settings, MOSEK, 10/08/2026. The two estimator executives sit at the \code{eppos} floor ($10^{-4}$) in every mode and are omitted.}\label{tab:bracket}
+\end{table}
+
+\subsection{A structural fact seen through the blocks}
+
+The first run of the executives, on plants whose disturbance enters through the identity on $L_2$, returned UNKNOWN or infeasibility for every dual-form LPI, in the stock as in the container versions. The reason is a compactness argument, not a degree.
+
+\begin{proposition}[the dual forms and a distributed disturbance]\label{prop:dualforms}
+Let $\gamma>0$ and let
+\[
+\mcl K=\bmat{K_{11}&\cdot&\cdot\\ \cdot&-\gamma I_{\mrm{in}}&\mcl B_1^*\\ \cdot&\mcl B_1&K_{33}}\preceq0\quad\text{on }\R^{n_z}\times L_2(I;\R^{n_w})\times X,
+\]
+where $K_{33}=\mcl T\mcl P\mcl A^*+\mcl A\mcl P\mcl T^*$, or the same with $\mcl A\mcl P$ replaced by $\mcl A\mcl P+\mcl B_2\mcl Z$, with $\mcl A$, $\mcl P$, $\mcl Z$ bounded and $\mcl T$ a 4-PI operator without a multiplier part on its $L_2$ components, as the map from the fundamental to the PDE state is whenever every $L_2$ state carries a spatial derivative; and suppose $\mcl B_1\mcl B_1^*$ has a multiplier part $m(s)\ge c>0$ on a set of positive measure of some $L_2$ component. Then no finite $\gamma$ makes $\mcl K\preceq0$ feasible.
+\end{proposition}
+In words: in the dual forms every Lyapunov term carries $\mcl T$ or $\mcl T^*$, a finite-rank plus integral operator, and is compact, while a disturbance entering through a multiplier produces an identity-like term; a compact operator cannot dominate the identity on an infinite-dimensional subspace at any finite scale.
+\begin{proof}[Method: Schur complement, then compactness against a weakly null sequence]
+A principal $2\times2$ block of a negative semidefinite operator is negative semidefinite, and with $-\gamma I_{\mrm{in}}\prec0$ invertible its Schur complement gives $K_{33}+\gamma^{-1}\mcl B_1\mcl B_1^*\preceq0$. The operator $\mcl T$ is the sum of a finite-rank part and an integral operator with polynomial kernel on a bounded domain, which is Hilbert--Schmidt; hence $\mcl T$ is compact, and so is each term of $K_{33}$. Take an orthonormal sequence $\mbf x_k$ supported where $m\ge c$; then $\mbf x_k\rightharpoonup0$, so $\ip{\mbf x_k}{K_{33}\mbf x_k}\to0$ and the integral part of $\mcl B_1\mcl B_1^*$ contributes nothing in the limit, while the multiplier part gives $\liminf_k\ip{\mbf x_k}{\mcl B_1\mcl B_1^*\mbf x_k}\ge c$, contradicting $\ip{\mbf x_k}{K_{33}\mbf x_k}+\gamma^{-1}\ip{\mbf x_k}{\mcl B_1\mcl B_1^*\mbf x_k}\le0$ for large $k$.
+\end{proof}
+The primal forms escape: their Schur complement onto the state block is $K_{33}-\gamma^{-1}(\mcl T^*\mcl P\mcl B_1)(\mcl T^*\mcl P\mcl B_1)^*-\gamma^{-1}\mcl C_1^*\mcl C_1$, and with a finite-dimensional output every term is compact; in the Q forms the free $\mcl Q$ keeps a multiplier part, so $\mcl A^*\mcl Q+\mcl Q^*\mcl A$ is not compact and can dominate. The observability $H_2$ executives take the trace over the $\R^{n_w}$ block, empty for a distributed disturbance, and return the solver floor in the stock and the container versions alike.
+
+\section{Where things are, and what is open}
+
+\paragraph{Files} (layout of 10/16/2026: the former \file{sopvar/lpis_sopvar} is merged into \file{lpi_programming_sopvar}). In \file{lpi_programming_sopvar/}: dual read-back \file{private/collect_eq_rows.m}, \file{lpi_eq_cdopvar.m}, \file{lpigetdual_sop.m}; sizing and pruning \file{get_lift_degs.m}, \file{eq_opts_sopvar.m}, \file{poscopvar_direct.m}, \file{lpi_ineq_sop.m}; classification \file{lpi_classify_sop.m}. In \file{executives_sopvar/utility_functions/}: the degree loop \file{lpi_solve_loop_sop.m}, the witness \file{pie_disc_sop.m}, \file{pie_witness_sop.m}, the settings readers and \file{settings2possopvar.m}. Hierarchy: \file{sopvar/Testfolder/sdopvar/claude_tests/mincap_dual.m}. Executives and test: \file{executives_sopvar/}, \file{executives_sopvar/tests/test_executives_sop.m}. Measurements: \file{sopvar/session_summary_2026_10_08.md}, Sec.~10, and the lift notes, Sec.~7 and 10.
+
+\paragraph{Open.} Statement~\ref{st:necessity} itself; a bound on the weight degree $w$, which the proof program does not supply and the degree loop replaces by search; convergence of the hierarchy of Lemma~\ref{lem:levels} to $m_D(\mcl P)$; the matrix moment theorem behind the second consequence of Theorem~\ref{thm:map}, to be cited rather than assumed; losslessness of the reach pruning for the integral cells; the $L_2$ form of the dual kernel in the alignment diagnostic; and a weight rule for the 2-D Q forms, which stay UNKNOWN at the base weight.
+
+\end{document}
