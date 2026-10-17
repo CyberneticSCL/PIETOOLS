@@ -179,6 +179,9 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 10/16/2026: moved, with private/, from sopvar/lpis_sopvar/ to
+%                  lpi_programming_sopvar/; 'lpis_sopvar' in the entries
+%                  below now reads lpi_programming_sopvar. Code unchanged.
 % MMP, 10/01/2026: One implementation of the Sec. 9 construction: this file
 %                  now checks its inputs as before, moves them to the sorted
 %                  registry and calls 'copquadvar' on one space, returning

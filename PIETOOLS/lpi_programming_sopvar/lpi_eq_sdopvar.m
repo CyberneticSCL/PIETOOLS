@@ -61,7 +61,9 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % Each entry is the one soseq would write, written by 'lpi_soseq' without   % MMP, 10/02/2026
 % soseq's scan of all program names (see 'impose_eq_rows').                 % MMP, 10/02/2026
 %
-% The work is two private routines of lpis_sopvar: 'collect_eq_rows' builds % MMP, 09/30/2026
+% The work is two private routines of lpis_sopvar: 'collect_eq_rows' builds % MMP, 09/30/2026 % MMP, 10/16/2026 (was)
+% The work is two private routines of lpi_programming_sopvar:               % MMP, 10/16/2026
+% 'collect_eq_rows' builds                                                  % MMP, 10/16/2026
 % the rows without imposing them and 'impose_eq_rows' imposes them.         % MMP, 09/30/2026
 % 'lpi_eq_cdopvar' calls the two directly, to join the rows of all blocks   % MMP, 09/30/2026
 % that share a decision variable list.                                      % MMP, 09/30/2026
@@ -171,6 +173,10 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 %                  "soseq calls are unchanged" now describe only the soseq
 %                  fallback; by default each batch costs O(nnz) and ~80 B
 %                  per nonzero (lpi_soseq), the batches unchanged.
+% MMP, 10/16/2026: moved, with private/, from sopvar/lpis_sopvar/ to
+%                  lpi_programming_sopvar/; 'lpis_sopvar' in the 09/30/2026
+%                  entry and BEGIN block now reads lpi_programming_sopvar.
+%                  The help text names the new folder. Code unchanged.
 
 
 % BEGIN MMP, 09/30/2026: the three modes split. Deleted here, moved verbatim

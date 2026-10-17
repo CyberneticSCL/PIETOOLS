@@ -7,6 +7,9 @@ executives' helpers moved to `executives_sopvar/utility_functions/`, the constru
 `sopvar/constructors/`, `op2copvar_sop` to `converters/operator_converters/`, `on_registry_sop` to
 `sopvar/misc/`, and the slack-sizing studies to `sopvar/Testfolder/sdopvar/claude_tests/slack_sizing/`
 (§3). The measurements and the history that were in this file are in `NOTES.md`, verbatim.
+MMP, 10/16/2026: `sopvar/lpis_sopvar` merged into this folder: the container routines the
+dispatchers call (second table below) and their 11 `private/` helpers. Its settings translator
+`settings2possopvar` went to `executives_sopvar/utility_functions/`.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -32,15 +35,37 @@ any number of variables since 10/01/2026.
 | `lpi_shape_sop` | the SDP shape: decision variables, PSD block sizes, equality rows, primal length |
 | `lpi_classify_sop` | the solver exit: optimal, inaccurate, infeasible, unbounded or unknown |
 
+The container routines (from `sopvar/lpis_sopvar`, 10/16/2026). The dispatchers call them, and
+they can be called directly, as the stock `lpivar` and `poslpivar` are:
+
+| function | what it does |
+|---|---|
+| `lpivar_cdopvar` | declares a free `cdopvar` decision operator between concatenations of mixed spaces |
+| `poscopvar` | declares a positive self-adjoint `cdopvar` on a concatenation of mixed spaces; calls `copquadvar` |
+| `copquadvar` | the quadratic form in a list of basis operators, with one Gram matrix over every (space, basis operator) pair |
+| `poscopvar_direct` | the operator of `poscopvar`, mapped from the Gram blocks straight to the kernel coefficients; used by `lpi_ineq_sop` |
+| `poscopvar_lift`, `lift_copvar`, `posmult_cdopvar` | the separated form `Pop = A'*M*A`: the fixed moment lift `A`, the positive multiplier `M` |
+| `possopvar`, `sopquadvar` | the one-space (`sdopvar`) counterparts of `poscopvar` and `copquadvar`; `sopquadvar` calls `copquadvar` |
+| `get_lift_degs` | sizes the positive operator that cancels a self-adjoint `P`, for `lpi_ineq_sop` |
+| `eq_opts_sopvar` | the `possopvar` options read off the support of an operator (counterpart of `get_eq_opts_2D`) |
+| `lpi_eq_cdopvar`, `lpi_eq_sdopvar` | impose `P == 0` for a `cdopvar` / `sdopvar`; called by `lpi_eq_sop` |
+| `lpi_soseq` | appends to `prog.expr` the entry `soseq` would write for affine scalar equations, built from triplets |
+
 ## 1. Naming rule
 
 `pietools_path_update` adds every folder to the path with one `genpath`, so a file here
 must never reuse a legacy name. Such a file would shadow the legacy one for every
-caller. Every function here therefore ends in **`_sop`**: `lpiprogram_sop`,
-`lpi_eq_sop`, `lpigetsol_sop`, and so on. Helpers follow the same rule:
+caller. Every dispatcher here therefore ends in **`_sop`**: `lpiprogram_sop`,
+`lpi_eq_sop`, `lpigetsol_sop`, and so on. The container routines name their class
+(`lpivar_cdopvar`, `poscopvar`, `possopvar`, `lpi_eq_cdopvar`, ...) or use a name no legacy
+file has (`lpi_soseq`, `get_lift_degs`, `lift_copvar`). Helpers follow the same rule:
 
 - `tests/private/same_val_sop` and `examples/private/opcheck_sop` are reachable only
-  from their own folders.
+  from their own folders;
+- `private/` holds the 11 helpers of the container routines (`collect_eq_rows`,
+  `impose_eq_rows`, `build_exponent_grid`, `unpack_sheets`, ...), reachable only from this
+  folder. No other file in the tree has one of their names and no dispatcher calls one, so
+  the 10/16/2026 merge changed the resolution of no call.
 
 MMP, 09/30/2026: `private/spaces2meta_sop` (a verbatim copy of the space parser of
 `lpivar_cdopvar`) is deleted. The constructors call the shared
@@ -174,7 +199,8 @@ container routine.
   which `@cdopvar/plus` needs when the operands' registries differ.
 - **The container executives' helpers**, `executives_sopvar/utility_functions/`: the settings and
   degree loop, the stock settings translators (`poslpivar_sop`, `poslpivar_settings_sop`,
-  `poslpivar_settings_2d_sop`, `settings_2d_sop`), `get_lpivar_degs_sop`, `trace_rn_sop`, the gain
+  `poslpivar_settings_2d_sop`, `settings_2d_sop`, and `settings2possopvar` from
+  `sopvar/lpis_sopvar`), `get_lpivar_degs_sop`, `trace_rn_sop`, the gain
   reconstruction (`getController_sop`, `getObserver_sop`, `getController_direct_sop`) and the
   numerical witness (`pie_disc_sop`, `pie_witness_sop`); see `executives_sopvar/README.md`.
 - **Slack-sizing studies**, `sopvar/Testfolder/sdopvar/claude_tests/slack_sizing/`:

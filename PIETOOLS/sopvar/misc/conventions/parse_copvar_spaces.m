@@ -106,6 +106,10 @@ function [meta,sp_out,sp_in] = parse_copvar_spaces(dims,spaces,dom)
 %                  parse_spaces, norm_spaces and parse_dom are those of
 %                  lpivar_cdopvar (MMP, 09/25/2026), plus copquadvar's
 %                  non-cell check in norm_spaces.
+% MMP, 10/16/2026: comment only: sopvar/lpis_sopvar is now part of
+%                  lpi_programming_sopvar, and the constructors that call
+%                  this routine are in sopvar/constructors, so it stays
+%                  public for those two folders.
 
 [sp_out,sp_in,d_out,d_in] = parse_spaces(dims,spaces);
 M = numel(sp_out);      N = numel(sp_in);

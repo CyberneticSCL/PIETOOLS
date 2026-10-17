@@ -149,6 +149,9 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  calls' below read 'prog.expr entries'. The batch keeps
 %                  the Eq.pos of its first block, valid for every later
 %                  block with an equal list.
+% MMP, 10/16/2026: moved, with private/, from sopvar/lpis_sopvar/ to
+%                  lpi_programming_sopvar/; 'lpis_sopvar' in the entries
+%                  above now reads lpi_programming_sopvar. Code unchanged.
 
 if isa(P,'copvar')
     error("Input of type 'copvar' carries no decision variables; use 'eq' "...

@@ -1,8 +1,8 @@
 # executives_sopvar: the executives on the container path (MMP, 10/08/2026)
 
 Parallel versions of every file in `executives/` (1-D) and `executives/2D/`, one `PIETOOLS_<name>_sop`
-per stock `PIETOOLS_<name>`, built on `lpi_programming_sopvar`, `sopvar/lpis_sopvar` and the helpers in
-`utility_functions/` (below). The stock files
+per stock `PIETOOLS_<name>`, built on `lpi_programming_sopvar` (which holds the former `sopvar/lpis_sopvar`
+since 10/16/2026) and the helpers in `utility_functions/` (below). The stock files
 are untouched; `pietools_path_update` is one `genpath`, so every name here ends in `_sop` and
 `which -all` resolves each once. The stock output list is kept, in the stock order, and one `info`
 struct is appended.
@@ -103,6 +103,7 @@ counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop`
 | `settings_2d_sop` | the 2-D settings the stock 2-D executives read, with their defaults |
 | `poslpivar_sop`, `poslpivar_settings_sop` | the 1-D storage and slack from the stock degrees and settings (Executive translators, below) |
 | `poslpivar_settings_2d_sop` | the same in 2-D, for R^n and L2[x,y] spaces |
+| `settings2possopvar` | a stock settings struct (`settings_PIETOOLS_*`, `*_2D`) as `possopvar` degrees and options, for `poslpivar_settings_2d_sop` and the cx_exec 2-D tests (from `sopvar/lpis_sopvar`, 10/16/2026) |
 | `get_lpivar_degs_sop` | the degrees of the free operator, read off the storage |
 | `trace_rn_sop` | the trace over the R^q blocks, for the H2 executives |
 | `getController_sop`, `getObserver_sop` | the 1-D gains through the container inverse (below) |
@@ -113,8 +114,9 @@ Added for this folder on 10/08/2026 and kept in the library: `lpi_classify_sop`,
 `lpigetdual_sop` (in `lpi_programming_sopvar`), `op2copvar_sop` (now `converters/operator_converters/`),
 `on_registry_sop` (now `sopvar/misc/`); `get_lpivar_degs_sop` gained the N-D reading;
 `lpi_ineq_sop` the margin option and the equality tag; `lpi_eq_sop` returns the tag;
-`sopvar/@copvar/copvar2opvar` converts non-square grids. `sopvar/lpis_sopvar/lpi_eq_cdopvar` and
-`private/collect_eq_rows` record the row bookkeeping the dual read-back uses.
+`sopvar/@copvar/copvar2opvar` converts non-square grids. `lpi_eq_cdopvar` and `private/collect_eq_rows`
+(in `lpi_programming_sopvar`, `sopvar/lpis_sopvar` until 10/16/2026) record the row bookkeeping the dual
+read-back uses.
 
 The two sections below moved here from `lpi_programming_sopvar/README.md` on 10/16/2026, verbatim.
 
