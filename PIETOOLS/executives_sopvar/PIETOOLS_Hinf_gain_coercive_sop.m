@@ -5,12 +5,15 @@ function [prog,P,gam,info] = PIETOOLS_Hinf_gain_coercive_sop(PIE,settings)
 % the primal KYP LPI with the storage V = <Tx,PTx>, P >= 0, and the
 % negativity constraint on the container path (executives_sopvar/README.md).
 % The slack is sized from P with the weight raised by settings.sop.dw_P
-% (default 2; measured in 1-D and 2-D, lpi_programming_sopvar/README.md).
+% (default 2; measured in 1-D and 2-D, lpi_programming_sopvar/README.md).   % MMP, 10/16/2026 (was)
+% (default 2; measured in 1-D and 2-D, lpi_programming_sopvar/NOTES.md).    % MMP, 10/16/2026
 %
 % INPUT / OUTPUT as PIETOOLS_Hinf_gain_sop, with P the storage operator; a
 % 2-D PIE is routed to PIETOOLS_Hinf_gain_2D_sop.
 %
 % Initial coding MMP, 10/08/2026
+% MMP, 10/16/2026: comment only: the measurements cited above moved from
+%                lpi_programming_sopvar/README.md to NOTES.md beside it.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
 PIE = initialize(PIE);

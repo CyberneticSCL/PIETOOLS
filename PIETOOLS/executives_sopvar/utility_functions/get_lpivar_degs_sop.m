@@ -34,7 +34,9 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 % A stock degmat may list a monomial whose coefficients are all zero; the
 % container reading cannot see one, so its Qdeg is entrywise <= the stock
 % value for the same operator, and equal whenever every listed monomial has
-% a nonzero coefficient (measured on the shipped presets: see the README).
+% a nonzero coefficient (measured on the shipped presets: see the README).  % MMP, 10/16/2026 (was)
+% a nonzero coefficient (measured on the shipped presets:                   % MMP, 10/16/2026
+% executives_sopvar/README.md).                                             % MMP, 10/16/2026
 % deg2 = 0 gives Qdeg(3) = -1, as the stock rule does; lpivar_cdopvar
 % rejects it. A container with a block over two or more variables returns  % MMP, 10/08/2026
 % the struct lpivar_cdopvar takes: 'mult' the largest left degree of a      % MMP, 10/08/2026
@@ -85,6 +87,10 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %                  09/26/2026), copied below as qdeg_nd, so that the 2-D
 %                  container executives (executives_sopvar) size their free
 %                  operator from one routine. The 1-D rule is unchanged.
+% MMP, 10/16/2026: moved from lpi_programming_sopvar/ to executives_sopvar/
+%                  utility_functions/, as the stock get_lpivar_degs is in
+%                  executives/utility_functions; the README it cites is
+%                  executives_sopvar's. Comment only otherwise.
 
 if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))
     Qdeg = get_lpivar_degs(Rop,Top);

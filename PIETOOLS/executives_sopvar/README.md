@@ -1,7 +1,8 @@
 # executives_sopvar: the executives on the container path (MMP, 10/08/2026)
 
 Parallel versions of every file in `executives/` (1-D) and `executives/2D/`, one `PIETOOLS_<name>_sop`
-per stock `PIETOOLS_<name>`, built on `lpi_programming_sopvar` and `sopvar/lpis_sopvar`. The stock files
+per stock `PIETOOLS_<name>`, built on `lpi_programming_sopvar`, `sopvar/lpis_sopvar` and the helpers in
+`utility_functions/` (below). The stock files
 are untouched; `pietools_path_update` is one `genpath`, so every name here ends in `_sop` and
 `which -all` resolves each once. The stock output list is kept, in the stock order, and one `info`
 struct is appended.
@@ -41,7 +42,7 @@ The 1-D wrappers route a 2-D PIE to the 2-D version with the same LPI, as the st
 3. **Negativity.** Every `Dop <= 0` is `lpi_ineq_sop(prog,-Dop,opts)`: the slack is sized by
    `get_lift_degs` on the storage operator (`opts.like`), with the weight raised by `settings.sop.dw_Q`
    (default 1) in the Q forms and `settings.sop.dw_P` (default 2) in the coercive forms (measured,
-   `lpi_programming_sopvar/README.md`), the 1-D Markov-Lukacs pair or the N-D faces one degree below the
+   `lpi_programming_sopvar/NOTES.md`), the 1-D Markov-Lukacs pair or the N-D faces one degree below the
    plain term, through one `poscopvar_direct` call. `settings.sop.slack = 'stock'` restores the stock
    slack (`poslpivar_settings_sop` 'slack' in 1-D; in 2-D `poslpivar_settings_2d_sop` 'slack', eq_deg and
    eq_opts with the exclusions and separations `get_eq_opts_2D` derives from the operator) for
@@ -69,7 +70,8 @@ The 1-D wrappers route a 2-D PIE to the 2-D version with the same LPI, as the st
    'infeasible', 'unbounded', 'unknown'), certified, the value, the witness fields, the degrees and
    terms of the slack, the SDP shape (`lpi_shape_sop`: decision count, cone sizes, rows), the loop
    history and the dual kernel. The synthesis executives return K or L as an opvar (opvar2d in 2-D)
-   through the stock `getController` / `getObserver` / `getObserver_2D`.
+   through `getController_sop` / `getObserver_sop` in 1-D (since 10/09/2026; `utility_functions/`,
+   below) and the stock `getObserver_2D` in 2-D.
 7. **Margin.** `settings.sop.margin = eps` certifies `-Dop + eps*e_D >= 0` with `e_D` the lift's own
    energy (the regularizer of the proof program under which polynomial certificates exist at a fixed
    lift). Default 0.
@@ -87,14 +89,83 @@ estimator) take their degrees from the storage (`get_lpivar_degs_sop`, the per-r
 the largest entry of `settings_2d.Zop_deg` (one cap on every role of `lpivar_cdopvar`, a superset of the
 stock `lpivar_2d` monomials); in 1-D from `get_lpivar_degs_sop` and `settings.ddZ`, as the stock.
 
-## Library files added for this folder (lpi_programming_sopvar)
+## utility_functions/ (moved from lpi_programming_sopvar, 10/16/2026)
 
-`exec_sop_settings`, `lpi_classify_sop`, `lpi_solve_loop_sop`, `lpi_shape_sop`, `lpigetdual_sop`,
-`pie_disc_sop`, `pie_witness_sop`, `op2copvar_sop`, `on_registry_sop`, `settings_2d_sop`,
-`poslpivar_settings_2d_sop`; `get_lpivar_degs_sop` gained the N-D reading;
+The helpers the builders call. They are on the path like every folder, not in `private/`: the tests
+and examples of `lpi_programming_sopvar` and the cx_exec tests call some of them. The stock
+counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop` are in
+`executives/utility_functions/`.
+
+| function | what it does |
+|---|---|
+| `exec_sop_settings` | completes a settings struct with the `sop` field (Settings, above) |
+| `lpi_solve_loop_sop` | the degree loop: build, solve, classify the exit, raise `dw` |
+| `settings_2d_sop` | the 2-D settings the stock 2-D executives read, with their defaults |
+| `poslpivar_sop`, `poslpivar_settings_sop` | the 1-D storage and slack from the stock degrees and settings (Executive translators, below) |
+| `poslpivar_settings_2d_sop` | the same in 2-D, for R^n and L2[x,y] spaces |
+| `get_lpivar_degs_sop` | the degrees of the free operator, read off the storage |
+| `trace_rn_sop` | the trace over the R^q blocks, for the H2 executives |
+| `getController_sop`, `getObserver_sop` | the 1-D gains through the container inverse (below) |
+| `getController_direct_sop` | the controller gains without forming the inverse; called by `Test_copvar_inv` only |
+| `pie_disc_sop`, `pie_witness_sop` | the Legendre-Galerkin matrices of a 1-D PIE, and the numerical counterpart of a certificate |
+
+Added for this folder on 10/08/2026 and kept in the library: `lpi_classify_sop`, `lpi_shape_sop`,
+`lpigetdual_sop` (in `lpi_programming_sopvar`), `op2copvar_sop` (now `converters/operator_converters/`),
+`on_registry_sop` (now `sopvar/misc/`); `get_lpivar_degs_sop` gained the N-D reading;
 `lpi_ineq_sop` the margin option and the equality tag; `lpi_eq_sop` returns the tag;
 `sopvar/@copvar/copvar2opvar` converts non-square grids. `sopvar/lpis_sopvar/lpi_eq_cdopvar` and
 `private/collect_eq_rows` record the row bookkeeping the dual read-back uses.
+
+The two sections below moved here from `lpi_programming_sopvar/README.md` on 10/16/2026, verbatim.
+
+### Operator inverse and gain reconstruction (MMP, 10/09/2026)
+
+1-D only. The class methods are in `sopvar/@sopvar/inv.m` and `sopvar/@copvar/inv.m`;
+the wrappers are in this folder. Measured on `sopvar/Testfolder/Test_copvar_inv.m` (17
+checks, 10/09/2026): operator residuals `max|P*Pinv - I|` of 1e-9 to 1e-11 on seven
+hand-built 3-PI and 4-PI operators (0.05 to 0.3 s each), and on the synthesis executives
+`|K P - Z|/|Z|` = 2.4e-11 and `|P L - Z|/|Z|` = 7.0e-9 where the stock `getController`
+and `getObserver` give 8.1e-5 and 7.4e-3 on the same solved P, Z.
+
+| function | result |
+|---|---|
+| `[Rinv,info] = inv(R[,opts])` on a `sopvar` block L2^m[s] -> L2^m[s] | Gohberg-Krein (arXiv 2208.13104, Lemma 16, Cor. 17) on the stored coefficient matrices: the kernels `R_i = (I kron ZL') C_i (I kron ZR)` are split by one SVD each, `U` and `V` by RK4 on `opts.N` nodes (101), the three parameters fitted by Chebyshev least squares at one degree raised from `opts.deg0` (4) until the relative RMS residual is below `opts.tol` (1e-8) or `opts.degmax` (16). `info`: ranks, `rcondU22`, `condR0`, `d`, `relrms`. |
+| `[Pinv,info] = inv(P[,opts])` on a `copvar` over R^k x L2^m[s] | the L2 block by the method above, the rest by the block inverse through the finite-dimensional Schur complement `T = Pm - Q1 Rh Q2` (Lemma 18): one operator inverse and one matrix inverse. `info.condT`. N-D is refused. |
+| `[K,Kop,info] = getController_sop(P,Z[,opts])` | `K = Z P^{-1}` as a `copvar`; `Kop` its `opvar` for `closedLoopPIE`, `piess`, PIESIM. Accepts `opvar` inputs (`opvar2copvar`). No coefficient truncation (the stock routine zeroes coefficients of K below 1e-4). |
+| `[L,Lop,info] = getObserver_sop(P,Z[,opts])` | `L = P^{-1} Z`, the same way. |
+| `[K,info] = getController_direct_sop(P,Z[,opts])` | the gains `K1`, `K2(s)` of `u = Z P^{-1} x` WITHOUT forming `P^{-1}` (the analogue of Cor. 11 of arXiv 1806.08071): grid values of the Gohberg-Krein data and their cumulative integrals (`gk_grid`), Simpson for the Schur complement; `K.apply` evaluates `u` by quadrature, `K.op` is the one polynomial fit (of `K2`) for `closedLoopPIE`, `K.fit.relrms` its residual. Agrees with the inverse route to 1e-9 (Test_copvar_inv). The QT formulation is discussed in `opvar/inverse_dependency_map_2026_10_09.md`, Sec. 8.2. |
+
+`synth_build_sop` and `h2_build_sop` call these in 1-D and return the `opvar` gain as
+before; `info.G` is the container gain and `info.inv` the inverse diagnostics. 2-D keeps
+`getObserver_2D`. The defects of the stock routines are documented in
+`opvar/inverse_dependency_map_2026_10_09.md`.
+
+### Executive translators (Tier 2, MMP, 10/06/2026)
+
+The settings-to-operator steps the 1-D executives share. Each sends a legacy class to
+the stock routine unchanged; the container branch mirrors it.
+
+| function | legacy class | container |
+|---|---|---|
+| `poslpivar_sop(prog,n/X,d,options[,side,dom])` | `poslpivar` | `poscopvar` over X's `side` spaces, with poslpivar's degree filling, psatz (weight only for 1), exclude and sep translated; 1-D |
+| `poslpivar_settings_sop(prog,n/X,settings,role[,side,dom])` | the `dd1`/`dd12` (`'lf'`) or `dd2`/`dd3` (`'slack'`) pair of `poslpivar` calls | the same pair through `poslpivar_sop`; P1 first, `P1 + P2`; imposes nothing |
+| `get_lpivar_degs_sop(R[,T])` | `get_lpivar_degs` | the same 1-D rule read off the nonzero coefficients |
+| `trace_rn_sop(X)` | `trace(X.P)`, `trace(X.R00)` | trace of the R^q diagonal blocks, a 1 x 1 dpvar over `X.Zd` |
+| `copvar_space_list(X,side)` (sopvar/misc/conventions) | — | the inverse of `parse_copvar_spaces` |
+
+They replace twelve test-folder translators of `cx_exec`, deleted 10/06/2026:
+`cx_pl2pm`, `cx_hinf_posdeg`, `cx_h2_pos`, `cx_stability_pos`, `cx_hinf_lf`,
+`cx_h2_lf`, `cx_hinf_slack`, `cx_h2_slack`, `cx_hinf_qdeg`, `cx_stability_lpivar_degs`,
+`cx_hinf_dimsp`, `cx_h2_qdeg` (all MMP 09/25/2026). The three poslpivar translations
+among them disagreed on psatz other than 0/1, on sep and on degree filling;
+`poslpivar_sop` follows poslpivar on all three. `cx_space_list`, `cx_h2_trace` and
+`cx_on_registry` stay unchanged for the frozen 2-D helpers.
+
+**Measured:** the 17 1-D transcriptions at all six presets (126 programs; the 5 at
+`extreme` fail identically, Qdeg(3) = -1) are bit-identical to before. Generator spans
+equal poslpivar's on 16 cases, sep included (test_poscopvar_vs_poslpivar, part 2); the
+container Q degrees equal stock `get_lpivar_degs` on 5 plants x 6 presets x 3 operator
+forms.
 
 ## Status (measured 10/08/2026, MOSEK 11, light settings)
 

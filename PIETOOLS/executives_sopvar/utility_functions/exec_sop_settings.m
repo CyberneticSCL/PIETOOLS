@@ -8,7 +8,10 @@ function st = exec_sop_settings(st)
 %   slack      'like' (default) the slack of every negativity constraint is
 %              sized by GET_LIFT_DEGS on the storage operator ('like'), with
 %              the weight raised by dw_Q in a non-coercive form and by dw_P
-%              in a coercive one (measured, lpi_programming_sopvar/README.md:
+%              in a coercive one (measured,                                 % MMP, 10/16/2026 (was)
+%              lpi_programming_sopvar/README.md:                            % MMP, 10/16/2026 (was)
+%              in a coercive one (measured,                                 % MMP, 10/16/2026
+%              lpi_programming_sopvar/NOTES.md:                             % MMP, 10/16/2026
 %              the reader on the storage gives the smallest sufficient slack
 %              in 1-D and the clean 2-D solves); 'stock' the stock slack
 %              (POSLPIVAR_SETTINGS_SOP 'slack': dd2/options2 + dd3/options3),
@@ -31,6 +34,9 @@ function st = exec_sop_settings(st)
 %   verbose    true print the stages and the result.
 %
 % Initial coding MMP, 10/08/2026
+% MMP, 10/16/2026: moved from lpi_programming_sopvar/ to executives_sopvar/
+%                utility_functions/: read by the container executives only.
+%                The measurements cited above moved to that folder's NOTES.md.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
            'N_cheb',24,'nfreq',240,'keepdual',true,'verbose',true);
