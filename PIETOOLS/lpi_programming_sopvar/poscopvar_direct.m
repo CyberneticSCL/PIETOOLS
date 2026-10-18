@@ -158,6 +158,16 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                decision list, so a sum of terms costs one block build and
 %                no container addition. For 'lpi_ineq_sop'. One term is
 %                unchanged (the same program, Qcell and info as before).
+% MMP, 10/17/2026: Spaces without a spatial variable (every space R^q, nv =
+%                0: the W on R^{n_w} or R^{n_z} of the H2 executives through
+%                poslpivar_sop -> poscopvar) errored in pos_map, found by
+%                the Posopvar session's chain test: the stride vector of a
+%                one-row exponent grid had a stray entry, and the Kronecker
+%                product over directions indexed a third dimension of size
+%                zero. Both now read the empty direction set as one Gram
+%                position mapped to one coefficient with weight 1; the map
+%                is then the Gram itself, block by block, as copquadvar
+%                builds it. Nothing changes when nv >= 1.
 
 persistent CACHE
 if nargin>=1 && (ischar(prog) || isstring(prog))
@@ -669,10 +679,15 @@ for c = 1:Nb
         JL(c,ok) = max(ELt{c}(:,nv+1:end),[],1);
         JR(c,ok) = max(ERt{c}(:,nv+1:end),[],1);
     end
-    % monomial index on the target grid from the exponent row, 0 if absent
-    rng = [PL(c,:)+1, JL(c,ok)+1];      stL{c} = cumprod([1,rng(1:end-1)]);
+    % monomial index on the target grid from the exponent row, 0 if absent.
+    % The stride vector has one entry per exponent column: with no spatial
+    % variable (every space R^q) it is EMPTY, and the one-row grid maps to
+    % index 1; cumprod([1,rng(1:end-1)]) gave a stray entry there.         % MMP, 10/17/2026
+%   rng = [PL(c,:)+1, JL(c,ok)+1];      stL{c} = cumprod([1,rng(1:end-1)]); % MMP, 10/17/2026 (was)
+    rng = [PL(c,:)+1, JL(c,ok)+1];      st = cumprod([1,rng]);  stL{c} = st(1:numel(rng)); % MMP, 10/17/2026
     tlL{c} = zeros(prod(rng),1);        tlL{c}(1+ELt{c}*stL{c}(:)) = (1:TL(c))';
-    rng = [PR(c,:)+1, JR(c,ok)+1];      stR{c} = cumprod([1,rng(1:end-1)]);
+%   rng = [PR(c,:)+1, JR(c,ok)+1];      stR{c} = cumprod([1,rng(1:end-1)]); % MMP, 10/17/2026 (was)
+    rng = [PR(c,:)+1, JR(c,ok)+1];      st = cumprod([1,rng]);  stR{c} = st(1:numel(rng)); % MMP, 10/17/2026
     tlR{c} = zeros(prod(rng),1);        tlR{c}(1+ERt{c}*stR{c}(:)) = (1:TR(c))';
 end
 Kg = cellfun(@(g) numel(g)-1,gco);
@@ -748,7 +763,13 @@ for k = 1:M
       c = cs(ic);
       for jc = 1:numel(cps)
         cp = cps(jc);
-        T = Td{ic,jc,1};    rsz(1) = size(T,1);    csz(1) = size(T,2);
+        % With no spatial variable the Kronecker product over directions is
+        % empty: one Gram position (the constant) maps to one coefficient,
+        % weight 1 (Td has no third dimension to index then).              % MMP, 10/17/2026
+%       T = Td{ic,jc,1};    rsz(1) = size(T,1);    csz(1) = size(T,2);      % MMP, 10/17/2026 (was)
+        if nv==0,   T = sparse(1);                                          % MMP, 10/17/2026
+        else,       T = Td{ic,jc,1};    rsz(1) = size(T,1);    csz(1) = size(T,2); % MMP, 10/17/2026
+        end                                                                 % MMP, 10/17/2026
         for d = 2:nv
             T = kron(T,Td{ic,jc,d});
             rsz(d) = size(Td{ic,jc,d},1);   csz(d) = size(Td{ic,jc,d},2);
