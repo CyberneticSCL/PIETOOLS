@@ -1,6 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TEST_POSCOPVAR_DIRECT checks the direct Gram-to-kernel map of
-% 'poscopvar_direct' against 'poscopvar' (copquadvar), and compares its two
+% 'poscopvar_direct' against 'poscopvar' (copquadvar), and compares its two  % MMP, 10/17/2026 (was)
+% 'poscopvar_direct' against 'copquadvar' with type 'pos' (the reference    % MMP, 10/17/2026
+% poscopvar_ref below: what 'poscopvar' was until 10/17/2026; it now calls  % MMP, 10/17/2026
+% poscopvar_direct), and compares its two                                   % MMP, 10/17/2026
 % paths and its cost.
 %
 % (1) Identity with poscopvar: on the same program the two declare the
@@ -26,6 +29,11 @@
 %
 % Initial coding MMP, 10/07/2026
 % MMP, 10/08/2026: part (6), the several-term call.
+% MMP, 10/17/2026: 'poscopvar' now calls 'poscopvar_direct', so comparing
+%                  against it would compare the routine with itself. The
+%                  three reference calls (parts 1, 5, 6) go to poscopvar_ref,
+%                  copquadvar with type 'pos', the former poscopvar; "poscopvar"
+%                  in the text of parts (1), (5), (6) means that reference.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
@@ -76,7 +84,9 @@ for ic = 1:numel(cases)
     [lbl,dims,spaces,dom,deg,opts] = deal(cases{ic}{:});
     vars = reshape(unique([spaces{:}]),1,[]);
     prog = lpiprogram_sop(vars,dom);
-    t0 = tic;   [~,Pc] = poscopvar(prog,dims,spaces,dom,deg,opts);              tc = toc(t0);
+%   t0 = tic;   [~,Pc] = poscopvar(prog,dims,spaces,dom,deg,opts);              tc = toc(t0); % MMP, 10/17/2026 (was)
+    t0 = tic;                                                               % MMP, 10/17/2026
+    [~,Pc] = poscopvar_ref(prog,dims,spaces,dom,deg,opts);  tc = toc(t0);   % MMP, 10/17/2026
     prog = lpiprogram_sop(vars,dom);
     t0 = tic;   [~,Pd,~,id] = poscopvar_direct(prog,dims,spaces,dom,deg,opts);  td = toc(t0);
     if ~isequal(Pc.Zd(:),Pd.Zd(:))
@@ -198,7 +208,9 @@ for ic = reshape(tsel,1,[])
     opts = struct('psatz',code);
     poscopvar_direct('clear');
     prog = lpiprogram_sop(vars,dom);
-    t0 = tic;   [~,Pc] = poscopvar(prog,dims,spaces,dom,deg,opts);              tc = toc(t0);
+%   t0 = tic;   [~,Pc] = poscopvar(prog,dims,spaces,dom,deg,opts);              tc = toc(t0); % MMP, 10/17/2026 (was)
+    t0 = tic;                                                               % MMP, 10/17/2026
+    [~,Pc] = poscopvar_ref(prog,dims,spaces,dom,deg,opts);  tc = toc(t0);   % MMP, 10/17/2026
     prog = lpiprogram_sop(vars,dom);
     t0 = tic;   [~,Pd] = poscopvar_direct(prog,dims,spaces,dom,deg,opts);       td1 = toc(t0);
     prog = lpiprogram_sop(vars,dom);
@@ -245,7 +257,9 @@ for ic = 1:numel(cases)
     prog = lpiprogram_sop(vars,dom);    terms = cell(1,numel(codes));
     for c = 1:numel(codes)
         degc = reduced(deg,offs(c),codes(c),nv);
-        [prog,terms{c}] = poscopvar(prog,dims,spaces,dom,degc,struct('psatz',codes(c)));
+%       [prog,terms{c}] = poscopvar(prog,dims,spaces,dom,degc,struct('psatz',codes(c))); % MMP, 10/17/2026 (was)
+        [prog,terms{c}] = poscopvar_ref(prog,dims,spaces,dom,degc, ...
+                                        struct('psatz',codes(c)));          % MMP, 10/17/2026
     end
     if numel(terms)==1,     Pcq = terms{1};    else,   Pcq = plus_batch(terms{:});  end
     % The one call sorts all names at once; a sum keeps the merge order of
@@ -269,6 +283,18 @@ fprintf('(6) several terms in one call = the sum of single calls on %d cases.\n\
 end
 
 fprintf('\ntest_poscopvar_direct passed (%d checks, parts %s).\n',npass,mat2str(parts));
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BEGIN MMP, 10/17/2026: the reference construction
+function varargout = poscopvar_ref(prog,dims,spaces,dom,deg,options)
+% The construction poscopvar used until 10/17/2026: copquadvar with type
+% 'pos', the pair-integral route, independent of the direct map under test.
+if nargin<6 || isempty(options),    options = struct();     end
+options.type = 'pos';
+[varargout{1:max(nargout,1)}] = copquadvar(prog,dims,spaces,dom,deg,options);
+end
+% END MMP, 10/17/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -41,8 +41,8 @@ they can be called directly, as the stock `lpivar` and `poslpivar` are:
 | function | what it does |
 |---|---|
 | `lpivar_cdopvar` | declares a free `cdopvar` decision operator between concatenations of mixed spaces |
-| `poscopvar` | declares a positive self-adjoint `cdopvar` on a concatenation of mixed spaces; calls `copquadvar` |
-| `copquadvar` | the quadratic form in a list of basis operators, with one Gram matrix over every (space, basis operator) pair |
+| `poscopvar` | declares a positive self-adjoint `cdopvar` on a concatenation of mixed spaces; calls `poscopvar_direct` (since 10/17/2026; `copquadvar` before, the same operator and decision variables) |
+| `copquadvar` | the quadratic form in a list of basis operators, with one Gram matrix over every (space, basis operator) pair, built from the pair integrals; types `'pos'` and `'sym'`; the reference of the tests of `poscopvar_direct` |
 | `poscopvar_direct` | the operator of `poscopvar`, mapped from the Gram blocks straight to the kernel coefficients; used by `lpi_ineq_sop` |
 | `poscopvar_lift`, `lift_copvar`, `posmult_cdopvar` | the separated form `Pop = A'*M*A`: the fixed moment lift `A`, the positive multiplier `M` |
 | `possopvar`, `sopquadvar` | the one-space (`sdopvar`) counterparts of `poscopvar` and `copquadvar`; `sopquadvar` calls `copquadvar` |
