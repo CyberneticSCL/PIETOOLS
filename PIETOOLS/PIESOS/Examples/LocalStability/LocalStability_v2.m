@@ -2,8 +2,8 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
                                 psatz, active_conds, sos_degs, M)
 
     % RES = LOCALSTABILITY_V2(PDE,R,ALPHA,EPPOS,LAMBDA,DIST_DEGS,MON_DEGS,
-    % PSATZ,ACTIVE_CONDS,SOS_DEGS,M) runs the local stability test (Thm. 1
-    % in Automatica paper) for the PDE, on the ball of radius r in the
+    % PSATZ,ACTIVE_CONDS,SOS_DEGS,M) runs the local stability test
+    % (Thm. 1 in Automatica paper) for the PDE, on the ball of radius r in the
     % weighted Sobolev norm with weights alpha. A Lyapunov functional V
     % and its Lie derivative dV along the PIE associated to the PDE are
     % declared using `piesos_LF`, and the constant C in the upper bound
@@ -12,18 +12,23 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     %   sos1:  V - N_eppos >= 0,
     %   sos2:  C*N_M - V - p1*g >= 0,
     %   sos3:  -dV - 2*lambda*V - p2*g >= 0,
-    % where N_w = sum_j w(j+1)*||d^j/ds^j T*x||^2 is the squared weighted
-    % Sobolev norm with weights w, g = r^2 - N_alpha, and p1, p2 are SOS
-    % multipliers.
+    % where N_w = sum_i sum_j w(i,j+1)*||d^j/ds^j (T*x)_i||^2 is the
+    % squared weighted Sobolev norm with weights w, g = r^2 - N_alpha, and
+    % p1, p2 are SOS multipliers.
     %
     % INPUTS
     % - PDE:            'pde_struct' object defining the PDE, to be
-    %                   converted to a PIE;
+    %                   converted to a PIE. All PDE states must be scalar;
     % - r:              positive scalar, radius of the local ball;
-    % - alpha:          array of n+1 weights, with alpha(j+1) the weight
-    %                   of the jth derivative in the weighted Sobolev
-    %                   norm defining the local ball, for n the order of
-    %                   the PDE;
+    % - alpha:          m x (n+1) array of weights, with alpha(i,j+1) the
+    %                   weight of the jth derivative of the ith PDE state
+    %                   in the weighted Sobolev norm defining the local
+    %                   ball, for m the number of states and n the maximal
+    %                   order of the PDE. The states are ordered as they
+    %                   were declared in the PDE. Derivatives of the
+    %                   states with a zero weight are never taken, so that
+    %                   states of order 0 can be included. For m=1, a
+    %                   vector of n+1 weights can be used;
     % - eppos:          scalar or array of the same size as alpha,
     %                   specifying the weights of the lower bound on the
     %                   LF, V(x) >= N_eppos(x). If scalar, eppos*alpha is
@@ -63,16 +68,24 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     %                   is used as the weights. Defaults to 1;
     %
     % OUTPUTS
-    % - res:            1 x 4 cell {C_sol,M_sol,V_sol,dV_sol} with the
-    %                   optimal value C_sol of C, the gain M_sol, and
-    %                   the solved 'polyopvar' objects V_sol and dV_sol.
+    % - res:            1 x 5 cell {C_sol,M_sol,V_sol,dV_sol,rho} with the
+    %                   optimal value C_sol of C, the gain M_sol, the
+    %                   solved 'polyopvar' objects V_sol and dV_sol, and the
+    %                   radius rho of the certified region of attraction.
     %                   An empty cell if the program is not solved. With
     %                   the norms ||.||_eppos and ||.||_M of the weights
     %                   eppos and M, the solution satisfies
     %                   ||x(t)||_eppos <= sqrt(C)*exp(-lambda*t)*
     %                   ||x(0)||_M. If eppos and M are both scalar, M_sol =
     %                   sqrt(C_sol*M/eppos) is the gain in the norm of
-    %                   alpha, otherwise M_sol = sqrt(C_sol);
+    %                   alpha, otherwise M_sol = sqrt(C_sol).
+    %                   The radius rho = r*sqrt(gam/C_sol) is such that
+    %                   every solution with ||x(0)||_M < rho remains in the
+    %                   ball N_alpha <= r^2 and converges to zero, with
+    %                   gam = min_{alpha(i,j)>0} eppos(i,j)/alpha(i,j) (so
+    %                   that V >= N_eppos >= gam*N_alpha). Here, V(x(0)) <=
+    %                   C*N_M(x(0)) < gam*r^2 <= min V on the boundary
+    %                   N_alpha=r^2. If gam=0, then rho=0;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -115,6 +128,10 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     % DJ, 10/14/2026: Alternative formulation using new `piesos_LF`
     %                   function.
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+    % DJ, 10/21/2026: Add support for vector-valued case;
+    % DJ, 10/21/2026: Certified radius rho as 5th output; progress times.
+
+    t_start = tic;
 
     %% Set the default options.
     if nargin<8 || isempty(psatz)
@@ -131,6 +148,9 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     end
     % Weights of the lower and upper bound on V: arrays like alpha, or scalar multiples of alpha
     is_scalar_bounds = isscalar(eppos) && isscalar(M);
+    if isvector(alpha)
+        alpha = reshape(alpha,1,[]);    % scalar PDE state: row of weights
+    end
     if isscalar(eppos)  
         eppos_w = eppos*alpha;      
     else   
@@ -141,7 +161,13 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     else
         M_w = M;     
     end
-    if numel(eppos_w)~=numel(alpha) || numel(M_w)~=numel(alpha)
+    if isvector(eppos_w) && size(alpha,1)==1
+        eppos_w = reshape(eppos_w,1,[]);
+    end
+    if isvector(M_w) && size(alpha,1)==1
+        M_w = reshape(M_w,1,[]);
+    end
+    if ~isequal(size(eppos_w),size(alpha)) || ~isequal(size(M_w),size(alpha))
         error('LocalStability: eppos and M must be scalars or of the same size as alpha!');
     end
     if any(psatz<0) || any(mod(psatz,1)~=0)
@@ -154,6 +180,17 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     f   = PIE.f;    % Polynomial PIE.
     dom = PIE.dom;  % Spatial domain [a,b].
     x   = PIE.x;    % Fundamental state.
+
+    % The rows of T follow the order of the PIE states, which differs from
+    % the order in which the PDE states were declared: row i of T*x is PDE
+    % state x_tab(i,1). Reorder the weights accordingly.
+    if any(PIE.x_tab(:,2)~=1) || size(alpha,1)~=size(PIE.x_tab,1)
+        error('LocalStability: alpha must have one row for each of the (scalar) PDE states!');
+    end
+    eppos_user = eppos_w;   % declaration order, used for the radius rho
+    alpha_w = alpha(PIE.x_tab(:,1),:);
+    eppos_w = eppos_w(PIE.x_tab(:,1),:);
+    M_w     = M_w(PIE.x_tab(:,1),:);
 
 
     %% Initialize PIESOS program structure.
@@ -183,7 +220,7 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     psatz3 = psatz(3);
 
     % Define term related to lower and upper bound on V.
-    bound = Weighted_Sobolev_Norm(alpha, Top, x);
+    bound = Weighted_Sobolev_Norm(alpha_w, Top, x);
 
     % Terms related to the lower and upper bound on V.
     bound_low = Weighted_Sobolev_Norm(eppos_w, Top, x);                     % DJ, 10/14/2026
@@ -192,7 +229,7 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     % Define weighted sobolev ball of radius r.
     g = r^2 - bound;
 
-    fprintf(" --- Weighted Sobolev ball and bound declared ---\n");
+    fprintf(" --- Weighted Sobolev ball and bound declared ---\n"); fprintf("     (%.0f s elapsed)\n",toc(t_start));
 
 
     %% Construct LF and its Lie derivative.
@@ -220,7 +257,7 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
         [prog, sos1, ~, ~, Z1] = piesos_ineq(prog, V_low, opts1);           % DJ, 10/14/2026
 
         fprintf(" --- sos1 has %d distributed monomials in its basis ---\n",size(Z1.Z,1));
-        fprintf(" --- LF lower bound set ---\n");
+        fprintf(" --- LF lower bound set ---\n"); fprintf("     (%.0f s elapsed)\n",toc(t_start));
 
     end
 
@@ -251,7 +288,7 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
         [prog, sos2, ~, ~, Z2] = piesos_ineq(prog, V_up, opts2);            % DJ, 10/14/2026
 
         fprintf(" --- sos2 has %d distributed monomials in its basis ---\n",size(Z2.Z,1));
-        fprintf(" --- LF upper bound set ---\n");
+        fprintf(" --- LF upper bound set ---\n"); fprintf("     (%.0f s elapsed)\n",toc(t_start));
 
     end
 
@@ -286,7 +323,7 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
         [prog, sos3, ~, ~, Z3] = piesos_ineq(prog, dV_up, opts3);           % DJ, 10/14/2026
 
         fprintf(" --- sos3 has %d distributed monomials in its basis ---\n",size(Z3.Z,1));
-        fprintf(" --- Lie derivative upper bound set ---\n");
+        fprintf(" --- Lie derivative upper bound set ---\n"); fprintf("     (%.0f s elapsed)\n",toc(t_start));
 
     end
 
@@ -294,7 +331,7 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     %% Solve the optimization program.
 
     sol_opts.simplify = true;
-    sol_opts.solver   = 'mosek'; % 'mosek', 'sdpt3'
+    sol_opts.solver   = 'mosek'; % 'sedumi', 'sdpt3'
     prog_sol = piesos_solve(prog,sol_opts);
 
     % Extract the solution
@@ -312,7 +349,12 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
         end
         V_sol     = piesos_getsol(prog_sol,V);
         dV_sol    = piesos_getsol(prog_sol,dV);
-        res       = {C_sol, M_sol, V_sol, dV_sol};
+        % Radius of the certified region of attraction, in the norm N_M
+        pos_alpha = alpha>0;
+        gam       = min(eppos_user(pos_alpha)./alpha(pos_alpha));
+        rho       = r*sqrt(max(gam,0)/C_sol);
+        res       = {C_sol, M_sol, V_sol, dV_sol, rho};
+        fprintf(" --- Certified radius rho = %g (in N_M norm) ---\n",rho);
         fprintf(" --- PIESOS program was solved ---\n")
     end
 

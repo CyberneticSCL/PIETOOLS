@@ -5,12 +5,17 @@ function g = Weighted_Sobolev_Norm(alpha, Top, x)
     % of the PDE state T*x, for the fundamental state x.
     %
     % INPUTS
-    % - alpha:  array of n+1 weights, with alpha(j+1) the weight of the
-    %           jth derivative;
-    % - Top:    1 x 1 'tensopmat' object with a single 'sopvar' operator,
+    % - alpha:  m x (n+1) array of weights, with alpha(i,j+1) the weight of
+    %           the jth derivative of component i of T*x. For m=1 (scalar
+    %           PDE state), alpha can also be an array of n+1 weights.
+    %           Derivatives are only taken of the components with nonzero
+    %           weights, so that e.g. L2 states, without derivatives, can
+    %           be included by setting the weights of their derivatives
+    %           to zero;
+    % - Top:    m x m' 'tensopmat' object with 'sopvar' operators,
     %           representing the map T from the fundamental state to the
-    %           PDE state (PIE.T);
-    % - x:      scalar 'polyopvar' object representing the fundamental
+    %           PDE state (PIE.T), in a single spatial variable;
+    % - x:      m' x 1 'polyopvar' object representing the fundamental
     %           state (PIE.x);
     %
     % OUTPUTS
@@ -51,33 +56,59 @@ function g = Weighted_Sobolev_Norm(alpha, Top, x)
     % DJ, 10/15/2026: Updated to use new polyopvar functions.
     % DJ, 10/20/2026: Use '@sopvar/diff' function, instead of converting to
     %                   opvar.
+    % DJ, 10/21/2026: Allow for vector-valued PDE states, with weights
+    %                   alpha(i,j) for each component i.
 
 
     %n = size(alpha,2) - 1; % degree of PDE.
-    % The map is a single PI operator (scalar fundamental state, one
-    % spatial variable), that we differentiate in this variable
-    if ~isa(Top,'tensopmat') || ~isequal(size(Top.ops),[1,1]) || ...
-            ~isequal(size(Top.ops{1}.ops),[1,1]) || ~isa(Top.ops{1}.ops{1,1},'sopvar')
-        error("Weighted_Sobolev_Norm: the map T must be a 1 x 1 'tensopmat' of a single 'sopvar' operator.")
-    end
+    % The map T is an m x m' block matrix of PI operators in a single
+    % spatial variable, that we differentiate in this variable
+
+    if ~isa(Top,'tensopmat')                                                % DJ, 10/21/2026
+        error("Weighted_Sobolev_Norm: the map T must be a 'tensopmat'.")
+    end 
     svar = Top.vars.out;                                                    % DJ, 10/20/2026
+
+    % Component i of T*x gets the weights alpha(i,:): a vector alpha is
+    % allowed only for m=1.
+    m = size(Top,1);                                                        % DJ, 10/20/2026
+    if m==1 && isvector(alpha)                                             
+        alpha = reshape(alpha,1,[]);                                       
+    end                                                                     
+    if size(alpha,1)~=m               
+        % ideally, each row of alpha would correspond to a vector-valued component...
+        error("Weighted_Sobolev_Norm: alpha must have one row of weights per component of T*x.")  
+    end                                                                  
 
     % g = r^2 - alpha(1)*innerprod(Top*x,Top*x);
     % g = r^2 - alpha(1)*innerprod_v2(Top*x,Top*x);                    % CR, 09/07/2026
     % g = r^2;
     g = 0;
 
-    for i=find(alpha(:)')                                                   % DJ, 10/06/2026
-        % g = g - alpha(i)*innerprod(Rop*x,Rop*x);
-        % g = g - alpha(i)*innerprod_v2(Rop*x,Rop*x);                  % CR, 09/07/2026
-        % R_{i-1} = d^{i-1}/ds^{i-1} T, as 'tensopmat' (T itself for i=1)
-        if i==1
-            Rop = Top;
-        else
-            Rop = diff(Top,svar,i-1);                                       % DJ, 10/20/2026
+    % Loop over (derivative order, component) pairs with nonzero weight, in
+    % the order of the derivative as before; for m=1 this is the loop over
+    % find(alpha) of the scalar case.
+    for i=find(any(alpha,1))
+        for c=find(alpha(:,i)')                                             % DJ, 10/20/2026
+            % g = g - alpha(i)*innerprod_v2(Rop*x,Rop*x);                   % CR, 09/07/2026
+            % R_{i-1} = d^{i-1}/ds^{i-1} T, as 'tensopmat' (T itself for i=1)
+            % Component c only: the other components may be L2 states, that
+            % cannot be differentiated.
+            if m==1                                                         % DJ, 10/20/2026
+                Rop = Top;
+            else
+                Rop = Top(c,:);     % ideally, we would allow for vector-valued component 
+            end
+            if i>1
+                try                                                    
+                    Rop = diff(Rop,svar,i-1);                                
+                catch ME                                                   
+                    error("Weighted_Sobolev_Norm: derivative of order %d of component %d of T*x is not defined (%s)",i-1,c,ME.message) 
+                end                                                             
+            end
+            Rx = Rop*x;                   
+            g = g + alpha(c,i)*innerprod(Rx,Rx);                            % DJ, 10/20/2026
         end
-        Rx = Rop*x;
-        g = g + alpha(i)*innerprod(Rx,Rx);                                  % DJ, 10/14/2026
     end
 
 end

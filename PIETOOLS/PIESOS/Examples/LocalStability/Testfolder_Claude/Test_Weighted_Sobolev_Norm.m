@@ -45,6 +45,9 @@ function Test_Weighted_Sobolev_Norm()
 % DJ (CC), 10/15/2026: Initial coding;
 % DJ (CC), 10/20/2026: Weighted_Sobolev_Norm now differentiates T with
 %                   'diff' for 'tensopmat': updated the description;
+% DJ (CC), 10/21/2026: Added vector-valued PDE state (wave equation), with
+%                   weights per component of T*x; the cases above are for
+%                   a scalar state;
 
 alpha_cases = [1,0,0; 0,1,0; 0,0,1; 2,3,4; 0,0,0];
 
@@ -106,6 +109,71 @@ for ib=1:numel(bc_cases)
 end
 assert(nfail==0,'%d weighted Sobolev norm cases failed.',nfail);
 
+% Wave equation u1_t=u2, u2_t=u1_ss-4*u2+5*u1+u1^2, u1(0)=0,
+% u1_s(1)=-k*int u1, with PIE state (y,z_ss)=(u2,u1_ss) in the order of T
+% (PIE.x_tab(:,1)=[2;1]), so that T*x=(y,z). Weights alpha(i,j+1) per
+% component i of T*x, so that e.g. ||y||^2+||z_s||^2 has alpha=[1,0,0;0,1,0].
+% The polynomial z(s)=c1*s+c2*s^2+c3*s^3 satisfies the nonlocal BC for
+% c1=-(2*c2+3*c3+k*(c2/3+c3/4))/(1+k/2).
+clear stateNameGenerator
+kk = 3;
+u1 = pde_var(s,dom);    u2 = pde_var(s,dom);
+PDEw = [diff(u1,t)==u2;
+        diff(u2,t)==diff(u1,s,2)-4*u2+5*u1+u1^2;
+        subs(u1,s,dom(1))==0;
+        subs(diff(u1,s),s,dom(2))+kk*int(u1,s,dom(1),dom(2))==0];
+PIEw = convert_PIETOOLS_PDE_nonlinear(PDEw,'silent');
+assert(isequal(PIEw.x_tab(:,1),[2;1]),'Unexpected order of the PIE states.');
+Topw = PIEw.T;      xw = PIEw.x;
+alpha_w = {[1,0,0;0,0,0], [0,0,0;0,1,0], [1,0,0;0,1,0], [2,0,0;3,4,5], [0,0,0;1,0,0]};
+pz_cases = {[1,-2], [0.5,3], [-1,0]};          % [c2,c3]
+py_cases = {[0,1,2], [3,0,0,1], [-1,1]};       % y(s), coefficients of decreasing power
+for ic=1:numel(pz_cases)
+    c2 = pz_cases{ic}(1);   c3 = pz_cases{ic}(2);
+    c1 = -(2*c2+3*c3+kk*(c2/3+c3/4))/(1+kk/2);
+    pz = [c3,c2,c1,0];
+    py = py_cases{ic};
+    % Check that z satisfies the BCs
+    assert(abs(polyval(polyder(pz),1)+kk*diff(polyval(polyint(pz),[0,1])))<1e-12);
+    xvals = [polynomial(poly2pol(py,s)); polynomial(poly2pol(polyder(polyder(pz)),s))];
+    pu = {py,pz};
+    for ia=1:numel(alpha_w)
+        alpha = alpha_w{ia};
+        B = Weighted_Sobolev_Norm(alpha,Topw,xw);
+        Bexp = 0;
+        for i=1:2
+            for j=0:2
+                dj = pu{i};
+                for k=1:j,  dj = polyder(dj);   end
+                sq = polyint(conv(dj,dj));
+                Bexp = Bexp + alpha(i,j+1)*(polyval(sq,1)-polyval(sq,0));
+            end
+        end
+        assert(isa(B,'polyopvar') && isequal(size(B),[1,1]),'Expected a scalar polyopvar.');
+        assert(all(sum(B.degmat,2)==2),'The weighted Sobolev norm must be homogeneous of degree 2.');
+        Bval = double(eval_Vvec(B,xvals));
+        err = abs(Bval-Bexp);
+        if err>1e-10*max(1,abs(Bexp))
+            nfail = nfail+1;
+            fprintf('FAIL wave z#%d alpha=[%s]: B=%.12g, expected %.12g\n',ic,num2str(alpha(:)'),Bval,Bexp);
+        end
+    end
+end
+assert(nfail==0,'%d weighted Sobolev norm cases (wave) failed.',nfail);
+fprintf('Passed vector-valued case: wave equation\n');
+
+% A vector alpha is only allowed for a scalar state, the number of rows must
+% match, and no derivative can be taken of the L2 state y
+for alpha_bad = {[1,0,0], [1,0,0;0,1,0;0,0,1], [0,1,0;0,0,0]}
+    threw = false;
+    try
+        Weighted_Sobolev_Norm(alpha_bad{1},Topw,xw);
+    catch
+        threw = true;
+    end
+    assert(threw,'An error was expected for alpha=[%s].',num2str(alpha_bad{1}(:)'));
+end
+
 % Errors for inappropriate maps
 threw = false;
 try
@@ -126,6 +194,29 @@ n = numel(c);
 p = 0*s;
 for k=1:n
     p = p + c(k)*s^(n-k);
+end
+end
+
+function Y = eval_Vvec(V,xvals)
+% Y = EVAL_VVEC(V,XVALS) evaluates the scalar functional V (polyopvar of
+% 'intop' coefficients in the states with polynomial values XVALS(i), all
+% depending on s) at the state x=XVALS, as eval_V. Row k of Z lists the
+% state of each factor of monomial k, with dummy variables s_1,...,s_d.
+Zf = full(V.Z);
+Y = 0;
+for k=1:size(Zf,1)
+    op = V.C.ops{1,k};
+    if isempty(op),     continue,   end
+    idx = Zf(k,:);                              % state of each factor
+    assert(all(idx>0),'Known factors (zeros in Z) are not supported.');
+    d = numel(idx);
+    v = 1;
+    for j=1:d
+        xj = xvals(idx(j));
+        if d>1,     xj = subs(xj,pvar('s'),pvar(sprintf('s_%d',j)));     end
+        v = kron(v,xj);
+    end
+    Y = Y + apply_op(op,v);
 end
 end
 

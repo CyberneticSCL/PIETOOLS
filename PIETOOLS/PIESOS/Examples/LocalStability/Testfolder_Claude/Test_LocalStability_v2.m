@@ -63,6 +63,8 @@ function Test_LocalStability_v2()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: LocalStability_v2 now also accepts weights per PDE
+%                   state (merged from LocalStability_v3): added (6e)-(6g);
 
 pvar s t
 dom = [0,1];
@@ -152,6 +154,21 @@ assert(threw,'(6c) an error is expected for eppos of another size than alpha.');
 threw = false;
 try,    run_quiet(PDE_heat,1.0,alpha,eppos,0,[1,0,1],[3,0,0],[],[],[],[1,2]);   catch,  threw = true;   end
 assert(threw,'(6d) an error is expected for M of another size than alpha.');
+% alpha must have one row per scalar PDE state: the scalar heat equation
+% has a single state, so two rows are an error (before any SDP is solved)
+threw = false;
+try,    run_quiet(PDE_heat,1.0,[0,1,0;1,0,0],eppos,0,[1,0,1],[3,0,0]);      catch,  threw = true;   end
+assert(threw,'(6e) an error is expected for alpha with more rows than PDE states.');
+threw = false;
+try,    run_quiet(PDE_heat,1.0,[0,1,0;1,0,0],[0,1,0],0,[1,0,1],[3,0,0]);   catch,  threw = true;   end
+assert(threw,'(6f) an error is expected for eppos of another size than alpha (rows).');
+% a column of weights is allowed for the scalar state, as a row
+try
+    [~,txt] = run_quiet(PDE_heat,1.0,[0;1;0],eppos,0,[1,0,1],[3,0,0],[0,0,0],[0,0,0]);
+    assert(contains(txt,'Weighted Sobolev ball and bound declared'),'(6g) alpha as a column must be accepted.');
+catch ME
+    error('(6g) alpha as a column must be accepted: %s',ME.message);
+end
 
 disp('Test_LocalStability_v2: all tests passed.')
 end
