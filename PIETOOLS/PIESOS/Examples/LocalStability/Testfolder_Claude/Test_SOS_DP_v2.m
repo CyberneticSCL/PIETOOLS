@@ -49,6 +49,8 @@ function Test_SOS_DP_v2()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/20/2026: Differentiate T with 'diff' for 'tensopmat', instead
+%                   of converting T to an 'opvar' and back;
 
 clear stateNameGenerator
 pvar s t
@@ -57,8 +59,9 @@ x = pde_var(s,dom);
 PDE = [diff(x,t)==diff(x,s,2); subs(x,s,dom(1))==0; subs(x,s,dom(2))==0];
 PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
 Top = PIE.T;    xs = PIE.x;
-Top_o = sopvar2opvar(Top.ops{1}.ops{1,1});
-Rop = tensopmat(sopvar2tensopvar(opvar2sopvar(diff(Top_o,Top_o.var1,1,'pure'))));
+%Top_o = sopvar2opvar(Top.ops{1}.ops{1,1});                                 % DJ (CC), 10/15/2026 (was)
+%Rop = tensopmat(sopvar2tensopvar(opvar2sopvar(diff(Top_o,Top_o.var1,1,'pure'))));  % DJ (CC), 10/15/2026 (was)
+Rop = diff(Top,Top.vars.out,1);                                             % DJ (CC), 10/20/2026
 u = Top*xs;     us = Rop*xs;
 
 %% (1) Structure

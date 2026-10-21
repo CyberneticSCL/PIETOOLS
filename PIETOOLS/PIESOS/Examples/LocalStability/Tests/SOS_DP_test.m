@@ -24,6 +24,8 @@
 %
 % CR, 10/06/2026: Initial coding.
 % DJ, 10/15/2026: Updated to use new polyopvar functions;
+% DJ, 10/20/2026: Differentiate T with 'diff' for 'tensopmat', instead
+%                   of converting T to an 'opvar' and back;
 
 % Test the SOS distributed polynomials returned by SOS_DP.m against Def. 9
 % of DSOS.pdf. The test verifies the block dimensions of the basis and
@@ -48,8 +50,7 @@ PDE = [diff(u,t)==diff(u,s,2) + 5*u + u^2;
 PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
 x   = PIE.x;
 Top = PIE.T;
-Top_o = sopvar2opvar(Top.ops{1}.ops{1,1});
-Rop = tensopmat(sopvar2tensopvar(opvar2sopvar(diff(Top_o,Top_o.var1,1,'pure'))));
+Rop = diff(Top,Top.vars.out,1);                                             % DJ, 10/20/2026
 uu  = Top*x;    uus = Rop*x;
 
 

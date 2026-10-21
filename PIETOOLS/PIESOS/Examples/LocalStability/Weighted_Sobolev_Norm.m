@@ -48,17 +48,19 @@ function g = Weighted_Sobolev_Norm(alpha, Top, x)
     % CR, 10/12/2026: Changed from computing the weighted Sobolev ball (of
     %                   radius r) to computing just the weighted Sobolev
     %                   norm.
-    % DJ, 10/15/2026: Updated to use new polyopvar functions;
+    % DJ, 10/15/2026: Updated to use new polyopvar functions.
+    % DJ, 10/20/2026: Use '@sopvar/diff' function, instead of converting to
+    %                   opvar.
 
 
     %n = size(alpha,2) - 1; % degree of PDE.
     % The map is a single PI operator (scalar fundamental state, one
-    % spatial variable): extract it as an 'opvar', to differentiate it
+    % spatial variable), that we differentiate in this variable
     if ~isa(Top,'tensopmat') || ~isequal(size(Top.ops),[1,1]) || ...
             ~isequal(size(Top.ops{1}.ops),[1,1]) || ~isa(Top.ops{1}.ops{1,1},'sopvar')
         error("Weighted_Sobolev_Norm: the map T must be a 1 x 1 'tensopmat' of a single 'sopvar' operator.")
     end
-    Top_opvar = sopvar2opvar(Top.ops{1}.ops{1,1});                          % DJ, 10/14/2026
+    svar = Top.vars.out;                                                    % DJ, 10/20/2026
 
     % g = r^2 - alpha(1)*innerprod(Top*x,Top*x);
     % g = r^2 - alpha(1)*innerprod_v2(Top*x,Top*x);                    % CR, 09/07/2026
@@ -72,8 +74,7 @@ function g = Weighted_Sobolev_Norm(alpha, Top, x)
         if i==1
             Rop = Top;
         else
-            Rop = diff(Top_opvar,Top_opvar.var1,i-1,'pure');                % DJ, 10/14/2026
-            Rop = tensopmat(sopvar2tensopvar(opvar2sopvar(Rop)));
+            Rop = diff(Top,svar,i-1);                                       % DJ, 10/20/2026
         end
         Rx = Rop*x;
         g = g + alpha(i)*innerprod(Rx,Rx);                                  % DJ, 10/14/2026

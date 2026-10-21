@@ -9,8 +9,8 @@ function Test_Weighted_Sobolev_Norm()
 % eval_polyopvar (apply_op of the operators, not `subs`), and compared
 % with the integrals of the squared derivatives of u, computed from the
 % polynomial coefficients of u with polyder/polyint (MATLAB, independent
-% of the PIETOOLS classes and of the 'pure' derivative of the operator T
-% that is under test). The cases cover each of the derivatives j=0,1,2
+% of the PIETOOLS classes and of the derivative of the operator T that is
+% under test, 'diff' for 'tensopmat'). The cases cover each of the derivatives j=0,1,2
 % separately (the j=2 case has the multiplier term of d^2/ds^2 T, which
 % equals the identity) and a mixed weight, for Dirichlet-Dirichlet and
 % Neumann-Dirichlet boundary conditions (different operators T), and the
@@ -43,6 +43,8 @@ function Test_Weighted_Sobolev_Norm()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/20/2026: Weighted_Sobolev_Norm now differentiates T with
+%                   'diff' for 'tensopmat': updated the description;
 
 alpha_cases = [1,0,0; 0,1,0; 0,0,1; 2,3,4; 0,0,0];
 
