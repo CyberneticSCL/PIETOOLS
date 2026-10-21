@@ -60,7 +60,8 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % carry the decision variables in 'copquadvar', so its column pointers      % MMP, 09/26/2026
 % alone cost O(q) per cell to write and again to scan. Consumed by          % MMP, 09/26/2026
 % 'lpis_sopvar/private/unpack_sheets'.                                      % MMP, 09/26/2026 % MMP, 10/16/2026 (was)
-% 'lpi_programming_sopvar/private/unpack_sheets'.                           % MMP, 10/16/2026
+% 'lpi_programming_sopvar/private/unpack_sheets'.                           % MMP, 10/16/2026 % MMP, 10/21/2026 (was)
+% 'lpi_programming_sopvar/misc/private/unpack_sheets'.                      % MMP, 10/21/2026
 %
 % The index convention for beta, alpha and gamma is
 %   1 <-> 0   (multiplier, I_0(s) = delta(s))
@@ -103,6 +104,8 @@ function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize,layo
 % authorship, and a brief description of modifications
 %
 % AT, 2026: Initial coding as @sopvar/private/int_semisep_AT
+% MMP, 10/21/2026: comment only: unpack_sheets is now in
+%                  lpi_programming_sopvar/misc/private.
 % MMP, 10/16/2026: comment only: unpack_sheets moved with the rest of
 %                  sopvar/lpis_sopvar to lpi_programming_sopvar.
 % MMP, 09/30/2026: Split the 600-line primary (McCabe 69) into local

@@ -52,7 +52,9 @@
 % The exponent grid of each basis operator is rebuilt here from the degree
 % specification. That duplicates a convention -- 'build_exponent_grid' lives
 % in 'lpis_sopvar/private' and is not reachable from this folder -- but only a % MMP, 10/16/2026 (was)
-% in 'lpi_programming_sopvar/private' and is not reachable from this folder % MMP, 10/16/2026
+% in 'lpi_programming_sopvar/private' and is not reachable from this folder % MMP, 10/16/2026 % MMP, 10/21/2026 (was)
+% in 'lpi_programming_sopvar/misc/private' and is not reachable from this   % MMP, 10/21/2026
+% folder                                                                    % MMP, 10/21/2026
 % -- but only a                                                             % MMP, 10/16/2026
 % convention: the monomial ORDER has to agree for the Qcell blocks to line up,
 % while the identity being checked is the semantic content.
@@ -69,6 +71,8 @@
 % MMP, 10/16/2026: comment only: build_exponent_grid moved with
 %                  sopvar/lpis_sopvar/private to lpi_programming_sopvar/
 %                  private, still not reachable from this folder.
+% MMP, 10/21/2026: comment only: build_exponent_grid is now in
+%                  lpi_programming_sopvar/misc/private, private to misc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
@@ -433,7 +437,8 @@ function E = basis_grid(brow,own,nv,deg,c,basis_list)
 %
 % This reimplements the degree expansion rather than calling
 % 'build_exponent_grid', which is private to 'lpis_sopvar'. Only the ORDER is % MMP, 10/16/2026 (was)
-% 'build_exponent_grid', which is private to 'lpi_programming_sopvar'.      % MMP, 10/16/2026
+% 'build_exponent_grid', which is private to 'lpi_programming_sopvar'.      % MMP, 10/16/2026 % MMP, 10/21/2026 (was)
+% 'build_exponent_grid', which is private to 'lpi_programming_sopvar/misc'. % MMP, 10/21/2026
 % Only the ORDER is                                                         % MMP, 10/16/2026
 % a shared convention -- rows sorted ascending -- and it has to be shared for
 % the Gram blocks to line up. 'subset' caps are not covered here; those are

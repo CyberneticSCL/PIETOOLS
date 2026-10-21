@@ -113,12 +113,12 @@ counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop`
 | `pie_disc_sop`, `pie_witness_sop` | the Legendre-Galerkin matrices of a 1-D PIE, and the numerical counterpart of a certificate |
 
 Added for this folder on 10/08/2026 and kept in the library: `lpi_classify_sop`, `lpi_shape_sop`,
-`lpigetdual_sop` (in `lpi_programming_sopvar`), `op2copvar_sop` (now `converters/operator_converters/`),
-`on_registry_sop` (now `sopvar/misc/`); `get_lpivar_degs_sop` gained the N-D reading;
-`lpi_ineq_sop` the margin option and the equality tag; `lpi_eq_sop` returns the tag;
+`lpigetdual_sop` (in `lpi_programming_sopvar/misc` since 10/21/2026), `op2copvar_sop` (now
+`converters/operator_converters/`), `on_registry_sop` (now `sopvar/misc/`); `get_lpivar_degs_sop` gained
+the N-D reading; `lpi_ineq_sop` the margin option and the equality tag; `lpi_eq_sop` returns the tag;
 `sopvar/@copvar/copvar2opvar` converts non-square grids. `lpi_eq_cdopvar` and `private/collect_eq_rows`
-(in `lpi_programming_sopvar`, `sopvar/lpis_sopvar` until 10/16/2026) record the row bookkeeping the dual
-read-back uses.
+(in `lpi_programming_sopvar/misc` since 10/21/2026; `sopvar/lpis_sopvar` until 10/16/2026) record the
+row bookkeeping the dual read-back uses.
 
 The two sections below moved here from `lpi_programming_sopvar/README.md` on 10/16/2026, verbatim.
 

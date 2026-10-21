@@ -1,4 +1,5 @@
-function out = stability_1d_sop(plant,level)
+function out = e2e_stability_1d(plant,level)                                % MMP, 10/21/2026
+% function out = stability_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OUT = STABILITY_1D_SOP(PLANT,LEVEL) solves the 1-D PIE stability LPI of
 % executives/PIETOOLS_PIE2PDEstability.m (Q form, the default 'stability'
@@ -36,6 +37,11 @@ function out = stability_1d_sop(plant,level)
 %   margins of (3), the control, and the times (s).
 %
 % Initial coding MMP, 09/29/2026. Tier 1 end-to-end example E2.
+% MMP, 10/21/2026: moved from examples/stability_1d_sop.m to
+%                tests/e2e_stability_1d.m: an end-to-end check built on test
+%                helpers (cx_exec, opcheck_sop), not an example of standard
+%                usage; examples/stability_1d_sop.m is now that. Code
+%                unchanged; the error identifiers keep the former name.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(plant),  plant = {'rd',0.5};     end

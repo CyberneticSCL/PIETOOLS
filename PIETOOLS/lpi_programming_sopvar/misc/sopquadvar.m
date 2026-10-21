@@ -179,6 +179,10 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 10/21/2026: moved to lpi_programming_sopvar/misc/ and the private
+%                  helpers to misc/private/: the folder root keeps the user
+%                  functions only. The locations in the entries below read
+%                  accordingly. Code unchanged.
 % MMP, 10/16/2026: moved, with private/, from sopvar/lpis_sopvar/ to
 %                  lpi_programming_sopvar/; 'lpis_sopvar' in the entries
 %                  below now reads lpi_programming_sopvar. Code unchanged.

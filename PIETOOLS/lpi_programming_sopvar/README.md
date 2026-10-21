@@ -10,6 +10,11 @@ executives' helpers moved to `executives_sopvar/utility_functions/`, the constru
 MMP, 10/16/2026: `sopvar/lpis_sopvar` merged into this folder: the container routines the
 dispatchers call (second table below) and their 11 `private/` helpers. Its settings translator
 `settings2possopvar` went to `executives_sopvar/utility_functions/`.
+MMP, 10/21/2026: the folder root holds the user functions only, the seven container counterparts
+of the user functions of `lpi_programming/` (first table). Every routine they depend on is in
+`misc/` (second table), and the 11 helpers of those routines in `misc/private/`.
+MMP, 10/21/2026: the four end-to-end checks of `examples/`, which call test helpers, moved to
+`tests/` as `e2e_*` (§4).
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -24,24 +29,29 @@ so its result is the legacy result. It sends a container-family class to contain
 code. No file in `lpi_programming/` was modified, apart from `lpiprogram`, which takes
 any number of variables since 10/01/2026.
 
+The user functions, in the folder root. Each is the container counterpart of the user function of
+`lpi_programming/` in the second column; `lpidecvar`, `lpisetobj` and `lpisolve` are used unchanged.
+
+| function | stock counterpart | what it does |
+|---|---|---|
+| `lpiprogram_sop` | `lpiprogram` | declares the program; also from a container's registry (§2) |
+| `lpivar_cdopvar` | `lpivar` | declares a free `cdopvar` decision operator between concatenations of mixed spaces |
+| `poscopvar` | `poslpivar` | declares a positive self-adjoint `cdopvar` on a concatenation of mixed spaces; calls `poscopvar_direct` (since 10/17/2026; `copquadvar` before, the same operator and decision variables) |
+| `lpi_eq_sop` | `lpi_eq` | imposes `P == 0` (§2) |
+| `lpi_ineq_sop` | `lpi_ineq` | imposes `P >= 0`: sizes and declares the positive slack, then `P - Pop == 0` (§2) |
+| `lpigetsol_sop` | `lpigetsol` | the solved value of a decision variable or operator (§2) |
+| `getsol_lpivar_sop` | `getsol_lpivar` | the same for a decision operator (§2) |
+
+The routines the user functions depend on, in `misc/` (public, since the executives, the tests and
+the demos call some of them). From `sopvar/lpis_sopvar` (10/16/2026) and the former folder root
+(10/21/2026); each can still be called directly:
+
 | function | what it does |
 |---|---|
-| `lpiprogram_sop` | declares the program; also from a container's registry (§2) |
-| `lpi_eq_sop` | imposes `P == 0` (§2) |
-| `lpi_ineq_sop` | imposes `P >= 0`: sizes and declares the positive slack, then `P - Pop == 0` (§2) |
-| `lpigetsol_sop`, `getsol_lpivar_sop` | the solved value of a decision variable or operator (§2) |
-| `subs_dvar_sop` | the same at given decision values, for certifying a candidate point (§2) |
+| `subs_dvar_sop` | `lpigetsol_sop` at given decision values, for certifying a candidate point (§2) |
 | `lpigetdual_sop` | the solver's multipliers of one container equality as its signed dual kernel; needs `prog.sopeq = {}` set after `lpiprogram` |
 | `lpi_shape_sop` | the SDP shape: decision variables, PSD block sizes, equality rows, primal length |
 | `lpi_classify_sop` | the solver exit: optimal, inaccurate, infeasible, unbounded or unknown |
-
-The container routines (from `sopvar/lpis_sopvar`, 10/16/2026). The dispatchers call them, and
-they can be called directly, as the stock `lpivar` and `poslpivar` are:
-
-| function | what it does |
-|---|---|
-| `lpivar_cdopvar` | declares a free `cdopvar` decision operator between concatenations of mixed spaces |
-| `poscopvar` | declares a positive self-adjoint `cdopvar` on a concatenation of mixed spaces; calls `poscopvar_direct` (since 10/17/2026; `copquadvar` before, the same operator and decision variables) |
 | `copquadvar` | the quadratic form in a list of basis operators, with one Gram matrix over every (space, basis operator) pair, built from the pair integrals; types `'pos'` and `'sym'`; the reference of the tests of `poscopvar_direct` |
 | `poscopvar_direct` | the operator of `poscopvar`, mapped from the Gram blocks straight to the kernel coefficients; used by `lpi_ineq_sop` |
 | `poscopvar_lift`, `lift_copvar`, `posmult_cdopvar` | the separated form `Pop = A'*M*A`: the fixed moment lift `A`, the positive multiplier `M` |
@@ -60,12 +70,14 @@ caller. Every dispatcher here therefore ends in **`_sop`**: `lpiprogram_sop`,
 (`lpivar_cdopvar`, `poscopvar`, `possopvar`, `lpi_eq_cdopvar`, ...) or use a name no legacy
 file has (`lpi_soseq`, `get_lift_degs`, `lift_copvar`). Helpers follow the same rule:
 
-- `tests/private/same_val_sop` and `examples/private/opcheck_sop` are reachable only
-  from their own folders;
-- `private/` holds the 11 helpers of the container routines (`collect_eq_rows`,
-  `impose_eq_rows`, `build_exponent_grid`, `unpack_sheets`, ...), reachable only from this
-  folder. No other file in the tree has one of their names and no dispatcher calls one, so
-  the 10/16/2026 merge changed the resolution of no call.
+- `tests/private/same_val_sop` and `tests/private/opcheck_sop` are reachable only
+  from `tests/` (`opcheck_sop` was in `examples/private/` until 10/21/2026, §4);
+- `misc/private/` holds the 11 helpers of the container routines (`collect_eq_rows`,
+  `impose_eq_rows`, `build_exponent_grid`, `unpack_sheets`, ...), reachable only from
+  `misc/`, where every routine that calls one is. No other file in the tree has one of their
+  names, so neither the 10/16/2026 merge nor the 10/21/2026 move changed the resolution of a
+  call. A routine moved to `misc/` stays on the path (`genpath` adds `misc/`, never a
+  `private/` folder), so every caller outside this folder still finds it.
 
 MMP, 09/30/2026: `private/spaces2meta_sop` (a verbatim copy of the space parser of
 `lpivar_cdopvar`) is deleted. The constructors call the shared
@@ -228,10 +240,15 @@ All three pass `verify` and satisfy the canonical multiplier form. They replace 
 ## 4. Running
 
 Set the path with `run pietools_path_update`, then remove the `.claude`/`worktrees`
-entries. A saved pathdef or a nested worktree can shadow the tree. The examples need
-the cx_exec helpers (`sopvar/Testfolder/sdopvar/claude_tests/cx_exec`) and
-`heatNd_apply` (`PIETOOLS_demos/sopvar_demos`), which `genpath` includes. The solvers
+entries. A saved pathdef or a nested worktree can shadow the tree. The solvers
 are MOSEK 11 and SeDuMi (E3).
+
+### Tests
+
+The end-to-end checks E1–E4, `tests/e2e_*` (the examples of this folder until 10/21/2026), compare
+the container LPIs with the legacy ones. They use the cx_exec helpers
+(`sopvar/Testfolder/sdopvar/claude_tests/cx_exec`), `heatNd_apply` (`PIETOOLS_demos/sopvar_demos`),
+both on the path from `genpath`, and `tests/private/opcheck_sop`.
 
 | command | what | time |
 |---|---|---|
@@ -239,7 +256,7 @@ are MOSEK 11 and SeDuMi (E3).
 | `test_lpi_eq_sop` | dispatch of 16 cases field by field, the option pass-through, 7 errors | 2 s |
 | `test_getsol_sop`, `bench_getsol_sop` | getsol (getsol agent) | 18 s, minutes |
 | `test_dpvar_ops_sop`, `test_dpvar_hinf_chain_sop` | dpvar operators and constructors (operators agent) | 17 s, 10 s |
-| `test_endtoend_sop` | E1, E2 by default; `'all'` adds E3 and E4 | 15 s; E3 5 min; E4 15–20 min |
+| `test_endtoend_sop` | E1 `e2e_hinf_gain_1d` and E2 `e2e_stability_1d` by default; `'all'` adds E3 `e2e_stability_2d` and E4 `e2e_heat3d_stability` | 15 s; E3 5 min; E4 15–20 min |
 | `examples/volterra_norm_sop` | DEMO2 on containers | 5 s |
 | `test_translators_sop` | the executive translators: legacy dispatch, errors, the settings pair, Q degrees against stock, trace against its definition, space lists against opvar dims (MMP, 10/06/2026) | 9 s |
 

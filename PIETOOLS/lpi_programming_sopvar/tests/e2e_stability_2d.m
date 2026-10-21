@@ -1,4 +1,5 @@
-function out = stability_2d_sop(frac,level)
+function out = e2e_stability_2d(frac,level)                                 % MMP, 10/21/2026
+% function out = stability_2d_sop(frac,level)                               % MMP, 10/21/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OUT = STABILITY_2D_SOP(FRAC,LEVEL) solves the 2-D PIE stability LPI of
 % executives/2D/PIETOOLS_stability_2D.m (direct form) on the container
@@ -48,6 +49,11 @@ function out = stability_2d_sop(frac,level)
 % reference); SeDuMi 215-273 s; about 4-5 min in all.
 %
 % Initial coding MMP, 09/29/2026. Tier 1 end-to-end example E3.
+% MMP, 10/21/2026: moved from examples/stability_2d_sop.m to
+%                tests/e2e_stability_2d.m: an end-to-end check built on test
+%                helpers (cx_exec, opcheck_sop), not an example of standard
+%                usage; examples/stability_2d_sop.m is now that. Code
+%                unchanged; the error identifiers keep the former name.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(frac),   frac = 0.1;         end

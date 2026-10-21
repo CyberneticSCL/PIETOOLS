@@ -1,4 +1,5 @@
-function out = heat3d_stability_sop(kappa,opts)
+function out = e2e_heat3d_stability(kappa,opts)                             % MMP, 10/21/2026
+% function out = heat3d_stability_sop(kappa,opts)                           % MMP, 10/21/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OUT = HEAT3D_STABILITY_SOP(KAPPA,OPTS) certifies exponential stability at
 % rate KAPPA of the 3-D heat equation
@@ -61,6 +62,13 @@ function out = heat3d_stability_sop(kappa,opts)
 % 9 operators 10.8 s, checks 57 s, 18 min in all. Price before running.
 %
 % Initial coding MMP, 09/29/2026. Tier 1 end-to-end example E4.
+% MMP, 10/21/2026: moved from examples/heat3d_stability_sop.m to
+%                tests/e2e_heat3d_stability.m: an end-to-end check built on
+%                the heatNd benchmark functions and opcheck_sop, not an
+%                example of standard usage. No standard-usage 3-D example
+%                replaces it: the PDE front end converts at most two
+%                spatial variables. Code unchanged; the error identifiers
+%                keep the former name.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(kappa),  kappa = 14.0;       end

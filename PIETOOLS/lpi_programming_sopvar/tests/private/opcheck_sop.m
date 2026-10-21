@@ -1,7 +1,9 @@
 function out = opcheck_sop(mode,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OUT = OPCHECK_SOP(MODE,...) semantic checks of FIXED operators ('copvar'
-% or 'sopvar') for the examples of this folder, by their action on random
+% or 'sopvar') for the examples of this folder, by their action on random   % MMP, 10/21/2026 (was)
+% or 'sopvar') for the end-to-end checks of this folder, by their action on % MMP, 10/21/2026
+% random                                                                    % MMP, 10/21/2026
 % polynomial test functions, evaluated by quadrature of the kernel
 % definition (heatNd_apply, sopvar document Sec. 4). No class method acts
 % on the operators here, so the checks test the operators against their
@@ -40,6 +42,10 @@ function out = opcheck_sop(mode,varargin)
 %                heat3d_stability_sop); generalizes the local helpers of
 %                tests/test_getsol_sop (part ii) to R^n x L2 containers,
 %                weak forms and a seeded generator.
+% MMP, 10/21/2026: moved from examples/private/ to tests/private/ with the
+%                four end-to-end examples, now the checks e2e_hinf_gain_1d,
+%                e2e_stability_1d, e2e_stability_2d, e2e_heat3d_stability.
+%                Code unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch mode

@@ -1,4 +1,5 @@
-function out = hinf_gain_1d_sop(plant,level)
+function out = e2e_hinf_gain_1d(plant,level)                                % MMP, 10/21/2026
+% function out = hinf_gain_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OUT = HINF_GAIN_1D_SOP(PLANT,LEVEL) computes an upper bound on the
 % H-infinity gain of a 1-D PIE on the container path, with the gain gamma
@@ -71,6 +72,11 @@ function out = hinf_gain_1d_sop(plant,level)
 %                Check (0) ('checked to build cx_hinf_slack's program
 %                exactly', above) is superseded and removed: the example and
 %                the transcriptions now share one routine.
+% MMP, 10/21/2026: moved from examples/hinf_gain_1d_sop.m to
+%                tests/e2e_hinf_gain_1d.m: an end-to-end check built on test
+%                helpers (cx_exec, opcheck_sop), not an example of standard
+%                usage; examples/hinf_gain_1d_sop.m is now that. Code
+%                unchanged; the error identifiers keep the former name.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<1 || isempty(plant),  plant = {'io1'};    end

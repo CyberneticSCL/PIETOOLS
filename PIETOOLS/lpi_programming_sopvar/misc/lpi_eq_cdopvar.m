@@ -152,6 +152,10 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % MMP, 10/16/2026: moved, with private/, from sopvar/lpis_sopvar/ to
 %                  lpi_programming_sopvar/; 'lpis_sopvar' in the entries
 %                  above now reads lpi_programming_sopvar. Code unchanged.
+% MMP, 10/21/2026: moved to lpi_programming_sopvar/misc/ and the private
+%                  helpers to misc/private/: the folder root keeps the user
+%                  functions only. The locations in the entries above read
+%                  accordingly. Code unchanged.
 
 if isa(P,'copvar')
     error("Input of type 'copvar' carries no decision variables; use 'eq' "...
