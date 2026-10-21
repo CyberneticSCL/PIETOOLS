@@ -13,8 +13,8 @@ dispatchers call (second table below) and their 11 `private/` helpers. Its setti
 MMP, 10/21/2026: the folder root holds the user functions only, the seven container counterparts
 of the user functions of `lpi_programming/` (first table). Every routine they depend on is in
 `misc/` (second table), and the 11 helpers of those routines in `misc/private/`.
-MMP, 10/21/2026: the four end-to-end checks of `examples/`, which call test helpers, moved to
-`tests/` as `e2e_*` (§4).
+MMP, 10/21/2026: `examples/` holds four scripts that use the user functions only (§4). The four
+end-to-end checks that were there, which call test helpers, moved to `tests/` as `e2e_*`.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -133,7 +133,10 @@ multiplier degree): lift `D = Dmin + dD`, weight `w = max(ceil((Dmax - D - 1)/2)
 dw`, defaults `dD = dw = 1` (the heat benchmark needs both, `PIETOOLS_demos/sopvar_demos/README.md`
 Sec. 12); terms `'auto'`: 1-D the plain term at `w` and the product at `w - 1` (the Markov-Lukacs
 pair), N-D the plain term at `w` and the `2N` faces at `w - 1` when every weight is at least 2, at
-`w` otherwise (changed 10/08/2026, see below); `opts.deg` bypasses the reader; `opts.prune`
+`w` otherwise (changed 10/08/2026, see below); `opts.deg` bypasses the reader; `opts.like` reads
+the support of another operator instead, for a `P` linear in a decision operator, whose own support
+is that of the whole family (a Lyapunov or KYP inequality: pass the positive decision operator; the
+examples, §4, measure it, 10/21/2026); `opts.prune`
 (default true) keeps only the basis operators that can reach the diagonal blocks' support
 (`eq_opts_sopvar`). `tests/test_lpi_ineq_sop`: a fixed positive operator certified, the 1-D heat LPI
 feasible at kappa = 9 and rejected at 11, 2-D `T'*T` certified, the option variants, the legacy
@@ -243,6 +246,32 @@ Set the path with `run pietools_path_update`, then remove the `.claude`/`worktre
 entries. A saved pathdef or a nested worktree can shadow the tree. The solvers
 are MOSEK 11 and SeDuMi (E3).
 
+### Examples (MMP, 10/21/2026)
+
+The scripts in `examples/` show standard usage, as the DEMOs of `PIETOOLS_demos/` do. A PDE is
+declared with `pde_var` and converted with `convert` (or an `opvar` is declared), its operators
+become containers with `op2copvar_sop`, and one LPI is written with the user functions of the folder
+root and the stock `lpidecvar`, `lpisetobj` and `lpisolve`. Each runs by name, with MOSEK when
+`mosekopt` is on the path and SeDuMi otherwise. Measured with MOSEK 11 on the development
+workstation, the time including `convert`:
+
+| script | LPI | result | decision variables | time |
+|---|---|---|---|---|
+| `volterra_norm_sop` | DEMO2: min `gam`, `gam*I - T'*T >= 0` | 0.636804 (2/pi = 0.636620) | 126 | 1 s |
+| `stability_1d_sop` | `P >= 1e-3*I`, `T'*P*A + A'*P*T <= 0`, `x_t = x_ss + (pi^2/2)x` | feasible | 2041 | 2 s |
+| `hinf_gain_1d_sop` | the KYP LPI of `PIETOOLS_Hinf_gain`, then `PIETOOLS_Hinf_gain_sop` | 0.033311, both | 2274 | 2 s |
+| `stability_2d_sop` | the stability LPI of `x_t = x_s1s1 + x_s2s2 + pi^2 x` on `[0,1]^2` | feasible | 197920 | 19 s |
+
+The three LPIs linear in the decision operator `P` pass `opts.like = P` to `lpi_ineq_sop` (§2).
+Sized from the target instead, the certificate covers every `P` of the declared degree: 9225 and
+27426 decision variables in 1-D, with the same verdict and gain, and 12036880 in 2-D, unsolved after
+900 s and 31 GB. With `opts.dw = 2`, the executives' default for the coercive forms, the 2-D LPI has
+761680 decision variables and takes 50 s; `PIETOOLS_stability_2D_sop` certifies the same PDE with
+its own storage in 6 s (187984 decision variables).
+
+No example has three spatial variables: `convert` reduces a PDE to at most two. The 3-D LPI is
+checked by E4 below.
+
 ### Tests
 
 The end-to-end checks E1–E4, `tests/e2e_*` (the examples of this folder until 10/21/2026), compare
@@ -257,7 +286,6 @@ both on the path from `genpath`, and `tests/private/opcheck_sop`.
 | `test_getsol_sop`, `bench_getsol_sop` | getsol (getsol agent) | 18 s, minutes |
 | `test_dpvar_ops_sop`, `test_dpvar_hinf_chain_sop` | dpvar operators and constructors (operators agent) | 17 s, 10 s |
 | `test_endtoend_sop` | E1 `e2e_hinf_gain_1d` and E2 `e2e_stability_1d` by default; `'all'` adds E3 `e2e_stability_2d` and E4 `e2e_heat3d_stability` | 15 s; E3 5 min; E4 15–20 min |
-| `examples/volterra_norm_sop` | DEMO2 on containers | 5 s |
 | `test_translators_sop` | the executive translators: legacy dispatch, errors, the settings pair, Q degrees against stock, trace against its definition, space lists against opvar dims (MMP, 10/06/2026) | 9 s |
 
 ## 5. Measurements and history
