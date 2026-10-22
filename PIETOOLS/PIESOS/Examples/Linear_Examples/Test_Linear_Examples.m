@@ -22,7 +22,7 @@
 %%%% 1. Declare the PIE
 
 clear
-example_num = 15;
+example_num = 6;
 PDE = examples_PDE_library_PIETOOLS_nouinput(example_num);
 PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
 
@@ -59,38 +59,3 @@ ineq_opts.psatz = 1;    % multipliers (b-s), (s-a), see piesos_quadopvar
 
 % Solve the optimization program
 prog_sol = piesos_solve(prog);
-
-
-
-
-
-% Zop_opvar = ndopvar2dopvar(Zop.ops{1});
-% Pop = Zop_opvar'*Pmat*Zop_opvar;
-% 
-% tst = subs(Vx.C.ops{1}.params(1),Vx.C.ops{1}.vars,PIE.vars');
-% tst2 = tst - 2*Pop.R.R1;
-% max(max(abs(tst2.C)))
-% tmp = Vx.C.ops{1}.params(2);
-% tmp2 = subs(tmp,polynomial({'s_1'}),PIE.vars(1)) - Pop.R.R0;
-% max(max(abs(tmp2.C)))
-% 
-% 
-% eppos = 1e-4;
-% is_diag_term = sum(Vx.degmat,2)==2 & max(Vx.degmat,[],2)==2;
-% for i=find(is_diag_term')
-% Vx.C.ops{i}.params(end) = Vx.C.ops{i}.params(end) + eppos;  % can be done more elegantly once polyopvar is better developed
-% end
-% Pop.R.R0 = Pop.R.R0 + eppos;
-
-% dV = Liediff(Vx,PIE);
-% APT = PIE_lin.A'*Pop*PIE_lin.T + PIE_lin.T'*Pop*PIE_lin.A;
-% tst = subs(dV.C.ops{1}.params(1),dV.C.ops{1}.vars,PIE.vars');
-% tst2 = tst - 2*APT.R.R1;
-% max(max(abs(tst2.C)))
-
-
-% ZQop_opvar = ndopvar2dopvar(ZQop.ops{1});
-% Qop = ZQop_opvar'*Qmat*ZQop_opvar;
-% tst = subs(W.C.ops{1}.params(1),W.C.ops{1}.vars,PIE.vars');
-% tst2 = tst - 2*Qop.R.R1;
-% max(max(abs(tst2.C)))
