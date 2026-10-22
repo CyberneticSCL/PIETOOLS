@@ -53,6 +53,8 @@ function Cop = mtimes_tensopvar(Aop,Bop)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/21/2026: Compare empty variable lists regardless of shape;
+% DJ, 10/21/2026: Name variable groups S1, S2 as in 'sopvar';
 
 % Check that the functional is properly specified.
 if ~isa(Aop,'intop')
@@ -76,7 +78,8 @@ end
 % operator
 if size(Aop,2)~=size(Bop,1)
     error("Number of columns of functional must match number of rows of tensor-PI operator.")
-elseif ~isequal(Aop.vars.in,Bop.vars.out) || ~isequal(Aop.dom.in,Bop.dom.out) || ~isequal(Aop.depmat.in,Bop.deps.out)
+% Compare the variables as columns, so that empty cells of different shape (0x0, 1x0) are equal
+elseif ~isequal(Aop.vars.in(:),Bop.vars.out(:)) || ~isequal(Aop.dom.in,Bop.dom.out) || ~isequal(Aop.depmat.in,Bop.deps.out)
     error("Input function space of the functional must match output space of the operator.")
 end
 
@@ -95,9 +98,11 @@ dom = Bop.dom;
 deps1 = Bop.deps.out;         % to what degree does the output depend on each var
 deps2 = Bop.deps.in;
 % Determine which variables are passed through Bop
+% Names as in 'sopvar': S1 = vars.in\vars.out (integrated out),
+% S2 = vars.out\vars.in (introduced), S3 = common (passed through)
 [vars_S3,idcs_S3_out,idcs_S3_in] = intersect(vars1,vars2,'stable');
-idcs_S1 = setdiff(1:M,idcs_S3_out);
-idcs_S2 = setdiff(1:N,idcs_S3_in);
+idcs_S2 = setdiff(1:M,idcs_S3_out);
+idcs_S1 = setdiff(1:N,idcs_S3_in);
 N1 = numel(idcs_S1);
 N2 = numel(idcs_S2);
 N3 = numel(idcs_S3_out);
@@ -109,14 +114,14 @@ Aop = clean_op(Aop);
 [Bop,is_zeroB] = clean_op(Bop);
 if is_zeroB
     % Bop is zero up to tolerance -- return the zero functional directly.
-    intmat = cell(1,N2+N3);
-    for i=1:N2+N3
+    intmat = cell(1,N1+N3);
+    for i=1:N1+N3
         intmat{i} = repmat([0,deps2(i)+1],1,deps2(i));
     end
     nd = numel(Aop.Zd);
     params = {sparse(size(Aop,1)*(nd+1),size(Bop,2))};
-    Zin = cell(1,N2+N3);
-    for i=1:N2+N3
+    Zin = cell(1,N1+N3);
+    for i=1:N1+N3
         Zin{i} = zeros(1,deps2(i));
     end
     vars = Bop.vars;        vars.out = cell(1,0);
@@ -145,27 +150,27 @@ for i=1:N
     varnames_B.in{i} = invars_Bi;
 end
 varnames_B_full = struct('in',{hcat_cellstr(varnames_B.in)},'out',{hcat_cellstr(varnames_B.out)});
-varnames_Z =struct('in',{varnames_B.out([idcs_S1,idcs_S3_out(:)'])},'out',{cell(1,0)});
+varnames_Z =struct('in',{varnames_B.out([idcs_S2,idcs_S3_out(:)'])},'out',{cell(1,0)});
 varnames_Z_full = struct('in',{hcat_cellstr(varnames_B.out)},'out',{cell(1,0)});
 
 % Express parameters defining A in terms of full list of variables;
-% order as [vars_S1, vars_S3]
+% order as [vars_S2, vars_S3]
 intmat_A = Aop.intmat;
-Aparams = permute(Aop.params,[idcs_S1,idcs_S3_out(:)',M+1,M+2]);
+Aparams = permute(Aop.params,[idcs_S2,idcs_S3_out(:)',M+1,M+2]);
 sz_Aparams = size(Aparams,1:N1+N2+N3);
 full_idcsA = cellfun(@(a) 1:a,num2cell(sz_Aparams),'UniformOutput',false);
 
 % Get intervals of integration and associated parameters defining Bop,
-% in terms of the full list of variables, [vars_S1, vars_S3, vars_S2]
+% in terms of the full list of variables, [vars_S2, vars_S3, vars_S1]
 % Start with vars introduced by Bop
 % --> just whatever integral Aop takes
-intmat_S1 = intmat_A(idcs_S1);
+intmat_S2 = intmat_A(idcs_S2);
 % Next, vars removed by Bop
 % --> must be integral over full domain
-intmat_S2 = cell(1,N2);
-for j=1:N2
-    d2j = deps2(idcs_S2(j));
-    intmat_S2{j} = repmat([0,d2j+1],1,d2j);
+intmat_S1 = cell(1,N1);
+for j=1:N1
+    d2j = deps2(idcs_S1(j));
+    intmat_S1{j} = repmat([0,d2j+1],1,d2j);
 end
 % Finally, vars passed through Bop
 % --> need to check for each factor in Bop what integrals are taken
@@ -206,14 +211,14 @@ for k=1:numel(Acoeffs)
     Acoeffs{k} = mtimes_kronR(Acoeffs{k},C_inner{1});
 end
 
-% Take the integrals specified in Aop of the S1 variables introduced by Bop
-for i=1:N1
+% Take the integrals specified in Aop of the S2 variables introduced by Bop
+for i=1:N2
     % Determine the variables and domain associated with var i
-    varnames_i = varnames_B.out{idcs_S1(i)};
-    dom_i = dom.out(idcs_S1(i),:);
+    varnames_i = varnames_B.out{idcs_S2(i)};
+    dom_i = dom.out(idcs_S2(i),:);
     domvals_i = [{dom_i(1)},varnames_i,{dom_i(2)}];
-    % Perform the integrals specified by intmat_S1{i}
-    intmat_i = intmat_S1{i};
+    % Perform the integrals specified by intmat_S2{i}
+    intmat_i = intmat_S2{i};
     params_i = cell(size(intmat_i,1),1);
     for j=1:size(intmat_i,1)
         params_i{j} = int_params(Z_inner,intmat_i(j,:),domvals_i);
@@ -235,9 +240,9 @@ for i=1:N1
     full_idcsA{i} = 1;
     Acoeffs = Acoeffs_new;
 end
-% Remove dimensions along variables S1
-sz_Aparams = sz_Aparams(N1+1:end);
-full_idcsA = full_idcsA(N1+1:end);
+% Remove dimensions along variables S2
+sz_Aparams = sz_Aparams(N2+1:end);
+full_idcsA = full_idcsA(N2+1:end);
 Acoeffs = reshape(Acoeffs,[sz_Aparams,ones(1,2-numel(sz_Aparams))]);
 
 % Take all combinations of integrals in Aop and Bop for S3 vars
@@ -489,14 +494,14 @@ end
 clear Csum
 
 % Reorder the variables
-vars_in = [Bvars.out(idcs_S3_out),Bvars.in(idcs_S2)];
+vars_in = [Bvars.out(idcs_S3_out),Bvars.in(idcs_S1)];
 [vars_in,new_order] = sort(vars_in);
-doms_in = [dom.out(idcs_S3_out,:); dom.in(idcs_S2,:)];
+doms_in = [dom.out(idcs_S3_out,:); dom.in(idcs_S1,:)];
 doms_in = doms_in(new_order,:);
 varsC = struct('in',{vars_in},'out',{cell(1,0)});
 domC = struct('in',doms_in,'out',zeros(0,2));
 Cparams = permute(Cparams,[new_order,numel(new_order)+1:ndims(Cparams)]);
-intmatC = [intmat_S3,intmat_S2];
+intmatC = [intmat_S3,intmat_S1];
 intmatC = intmatC(new_order);
 
 % Declare the functional

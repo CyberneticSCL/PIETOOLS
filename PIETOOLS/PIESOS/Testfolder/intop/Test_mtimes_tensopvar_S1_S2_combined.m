@@ -1,6 +1,6 @@
 % Test_mtimes_tensopvar_S1_S2_combined.m -- Tests the intop*tensopvar
-% composition when Bop has BOTH an "S1-type" output variable (new, no
-% matching entry in Bop.vars.in) AND an "S2-type" input variable (consumed
+% composition when Bop has BOTH an "S2-type" output variable (new, no       % DJ (CC), 10/21/2026
+% matching entry in Bop.vars.in) AND an "S1-type" input variable (consumed  % DJ (CC), 10/21/2026
 % internally, no matching entry in Bop.vars.out) at once, together with
 % N3>=2 shared/pass-through variables.
 %
@@ -8,6 +8,8 @@
 % composition.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: Names of the variable groups S1 (input only) and S2
+%   (output only) swapped, to match 'sopvar' and mtimes_tensopvar;
 %
 % NOTES
 % - Cases with N3>=3 and d>=2 are not covered, with or without extra

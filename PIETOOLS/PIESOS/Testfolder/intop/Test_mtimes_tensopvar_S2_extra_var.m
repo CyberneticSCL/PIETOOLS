@@ -1,5 +1,5 @@
-% Test_mtimes_tensopvar_S1_extra_var.m -- Tests the intop*tensopvar
-% composition when Bop introduces an "S1-type" output variable: one that
+% Test_mtimes_tensopvar_S2_extra_var.m -- Tests the intop*tensopvar         % DJ (CC), 10/21/2026
+% composition when Bop introduces an "S2-type" output variable: one that    % DJ (CC), 10/21/2026
 % appears in Bop.vars.out but has NO corresponding entry in Bop.vars.in (a
 % newly introduced output, as opposed to a variable shared/passed through
 % between the input and output of Bop).
@@ -8,9 +8,12 @@
 % composition.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: Renamed from Test_mtimes_tensopvar_S1_extra_var;
+%   S1 (input only) and S2 (output only) swapped, to match 'sopvar' and
+%   mtimes_tensopvar, so that "S2-type" is now the output-only variable;
 %
 % NOTES
-% - The mirror "S2-type" case (variable in Bop.vars.in only) is covered by
+% - The mirror "S1-type" case (variable in Bop.vars.in only) is covered by  % DJ (CC), 10/21/2026
 %   Test_mtimes_tensopvar_shared_input_var.m.
 % - Deliberately small (d==1, N3<=5): the case needs no more.
 
@@ -47,12 +50,15 @@ for N3 = [3,4,5]
         errval = full(max(max(abs(err.C))));
         if isempty(errval); errval = 0; end
         if errval>tol*max(1,nrmref)
-            error("Test_mtimes_tensopvar_S1_extra_var failed: N3=%d case does not match ground truth (seed_ofst=%d).",N3,seed_ofst)
+%           error("Test_mtimes_tensopvar_S1_extra_var failed: N3=%d case does not match ground truth (seed_ofst=%d).",N3,seed_ofst) % DJ (CC), 10/21/2026 (was)
+            error("Test_mtimes_tensopvar_S2_extra_var failed: N3=%d case does not match ground truth (seed_ofst=%d).",N3,seed_ofst) % DJ (CC), 10/21/2026
         end
         nchecked = nchecked+1;
     end
 end
 if nchecked==0
-    error("Test_mtimes_tensopvar_S1_extra_var: every trial was skipped (all zero ground truth) -- test exercised nothing.")
+%   error("Test_mtimes_tensopvar_S1_extra_var: every trial was skipped (all zero ground truth) -- test exercised nothing.") % DJ (CC), 10/21/2026 (was)
+    error("Test_mtimes_tensopvar_S2_extra_var: every trial was skipped (all zero ground truth) -- test exercised nothing.") % DJ (CC), 10/21/2026
 end
-fprintf('Test_mtimes_tensopvar_S1_extra_var passed: %d/%d trials checked against ground truth.\n',nchecked,ntrials);
+%fprintf('Test_mtimes_tensopvar_S1_extra_var passed: %d/%d trials checked against ground truth.\n',nchecked,ntrials); % DJ (CC), 10/21/2026 (was)
+fprintf('Test_mtimes_tensopvar_S2_extra_var passed: %d/%d trials checked against ground truth.\n',nchecked,ntrials); % DJ (CC), 10/21/2026

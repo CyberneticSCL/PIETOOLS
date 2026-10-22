@@ -24,6 +24,8 @@
 % operators map from.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: Names of the variable groups S1 (input only) and S2
+%   (output only) swapped, to match 'sopvar' and mtimes_tensopvar;
 %
 % NOTES
 % - Nestings that mtimes_tensopvar does not support (Kronecker product as a
@@ -67,7 +69,7 @@ cases = {
            'dep',struct('in',[1 0;1 1;1 1],'out',[1 0;1 1;0 1]))
     struct('Ntot',2,'nleaves',2,'order','NS','sibt',true, 'nNterms',1,'nBterms',1,'type',[2,2],'q',0,...
            'dep',struct('in',[1 0;1 0;0 1],'out',[1 0;1 0;0 1]))
-    % a variable that only the first operator maps from (integrated out): S2 variable
+    % a variable that only the first operator maps from (integrated out): S1 variable % DJ (CC), 10/21/2026
     struct('Ntot',2,'nleaves',2,'order','NS','sibt',false,'nNterms',1,'nBterms',1,'type',[2,2],'q',0,...
            'dep',struct('in',[1 1;1 0;1 0],'out',[1 0;1 0;1 0]))
     struct('Ntot',2,'nleaves',2,'order','SN','sibt',false,'nNterms',1,'nBterms',1,'type',[2,2],'q',0,...
