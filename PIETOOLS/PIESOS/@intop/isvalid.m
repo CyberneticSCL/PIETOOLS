@@ -43,6 +43,7 @@ function [logval,errmsg] = isvalid(Kop)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/22/2026: Check that the intervals of integration are ordered;
 
 % Initialize
 logval = true;  % innocent until proven guilty
@@ -203,6 +204,14 @@ for i=1:N
     % Check that the intervals do not impose inconsistent ordering
     if ~is_consistent(intmat_i)
         errmsg = errmsg + "The intervals of integration are incompatible.";
+        logval = false;
+        return
+    end
+    % Check that the intervals are ordered, see 'intop.canonicalize_intmat'
+    [~,~,is_ord] = intop.canonicalize_intmat(intmat_i,[],true);
+    if ~all(is_ord)
+        errmsg = errmsg + "Intervals of integration are not ordered. ";
+        errmsg = errmsg + "Use intop.canonicalize_intmat to fix.";
         logval = false;
         return
     end

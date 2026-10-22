@@ -77,6 +77,14 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intop
 %           is integrated over the domain [sk_p,sk_r], where we set
 %           sk_0:=ak and sk_{dk+1}:=bk. If p=r, then the term acts as a
 %           multiplier along variable sk_j, evaluating v at sk_j=sk_p.
+%           The intervals must be ordered: if both limits of sk_j are
+%           variables (p,r in {1,...,dk}, p~=r), sk_p<=sk_r must follow from
+%           the limits of the other variables, e.g. because r has lower limit
+%           p. Otherwise, chi_{[sk_p,sk_r]}(sk_j) would be nonzero for
+%           sk_r<sk_p as well, depending on the order of integration. The
+%           constructor rejects rows that are not ordered, e.g.
+%           [0,4,1,3,0,4]. Use intop.canonicalize_intmat to split them into
+%           ordered rows, [0,2,0,3,0,4], with the same kernel;
 % - matdim: 1 x 2 array specifying the matrix dimensions [m,n] of the
 %           functional (not stored: determined by params, Zd, and Z);
 % - dims:   struct with fields 'in' and 'out', with dims.in = n and
@@ -122,6 +130,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intop
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/22/2026: Require ordered intmat, see 'intop.canonicalize_intmat';
 
 
 properties
@@ -194,6 +203,9 @@ function Kop = intop(params,intmat,vars,dom,Z,Zd,chkval)
 % - The spatial variables are sorted, and dom, intmat, params, and Z.in
 %   are permuted accordingly.
 % - Without inputs, INTOP returns an object with the default properties.
+% - The rows of intmat must be ordered, see intop.canonicalize_intmat. This
+%   is checked by isvalid; only set chkval to true if the intmat is known 
+%   to be ordered, e.g. if all rows are those of PI operators.
 
 if nargin==0
     return
@@ -538,6 +550,12 @@ end
 
 end
 
+end
+
+%%
+% Static methods, defined in the files of the class folder
+methods (Static)
+    [intmat,params,is_ord] = canonicalize_intmat(intmat,params,check_only)
 end
 
 end

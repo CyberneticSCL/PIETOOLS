@@ -31,6 +31,10 @@ function Kop = rand_intop(dims,vars,dom,degs,pdegs,q)
 %           functional;
 
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/22/2026: Split the rows of intmat that are not ordered with
+%   intop.canonicalize_intmat before declaring the functional, as the
+%   'intop' constructor rejects them. split_ints follows the signed
+%   convention for reversed limits, canonicalize_intmat the indicator;
 
 % Check that the dimensions are appropriately specified
 if isscalar(dims)
@@ -151,6 +155,14 @@ end
 
 % Declare the functional
 [intmat_new,params_new] = split_ints(intmat,params);
+% Split the rows that are not ordered, repeating their kernels
+try                                                                         % DJ (CC), 10/22/2026
+    [intmat_new,params_new] = intop.canonicalize_intmat(intmat_new,params_new); % DJ (CC), 10/22/2026
+catch                                                                       % DJ (CC), 10/22/2026
+    % All regions are empty: use the full integral of the first kernel      % DJ (CC), 10/22/2026
+    for i=1:N,  intmat_new{i} = repmat([0,degs(i)+1],1,degs(i));  end       % DJ (CC), 10/22/2026
+    params_new = params_new(1);                                             % DJ (CC), 10/22/2026
+end                                                                         % DJ (CC), 10/22/2026
 Kop = intop(params_new,intmat_new,vars,dom);
 
 end

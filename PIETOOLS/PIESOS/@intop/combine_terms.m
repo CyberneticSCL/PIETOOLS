@@ -36,10 +36,12 @@ function Kop = combine_terms(Kop,degs,dims,depmat)
 %   is in canonical form: every variable is integrated from a (0) up to
 %   the next larger variable, the largest over [a,b], and multipliers
 %   [t,t] follow a variable that is not a multiplier. E.g. [0,3,0,3]
-%   becomes [0,2,0,3] + [0,3,0,1], and [2,3,0,3] becomes [0,3,0,1]. An
-%   integral over reversed limits is evaluated as a signed integral, as
-%   in 'apply_op'. Integrals over more than 8 variables are not expanded
-%   (a warning is issued).
+%   becomes [0,2,0,3] + [0,3,0,1], and [2,3,0,3] becomes [0,3,0,1]. The
+%   rows of an 'intop' are ordered (see intop.canonicalize_intmat), so
+%   that the limits are never reversed where a cell is nonzero, and the
+%   signed integral and the integral of the indicator function agree.
+%   Integrals over more than 8 variables are not expanded (a warning is
+%   issued).
 % - In each term, the copies of the same state are ordered by decreasing
 %   order of integration (the last variable is integrated first, see
 %   'int_order' in 'intop'), along the first spatial variable on which the
@@ -81,6 +83,7 @@ function Kop = combine_terms(Kop,degs,dims,depmat)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/22/2026: Update comment on reversed limits, which do not occur;
 
 if nargin==1
     % Just combine terms involving the same integral

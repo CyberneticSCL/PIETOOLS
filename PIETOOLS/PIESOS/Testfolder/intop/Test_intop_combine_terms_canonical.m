@@ -29,10 +29,11 @@
 %           variables, also those of the multipliers, which are replaced
 %           by the variable at which the multiplier is evaluated (the
 %           lowest of the equal variables);
-%   Part 7: for integrals with the limits in the reverse order, e.g. s1
-%           integrated from s3 to s2 when s2<s3, which apply_op evaluates
-%           as a signed integral (minus the integral from s2 to s3): the
-%           cells get the opposite sign;
+%   Part 7: for rows that are not ordered, e.g. s1 integrated from s3 to s2,
+%           which the 'intop' constructor rejects: after splitting them with
+%           canonicalize_intmat (the indicator of s3<=s1<=s2; an empty region
+%           gives an error), the value is unchanged and the result is made of
+%           cells;
 %   Part 8: for groups of equal variables (multipliers), also for
 %           different states;
 %   Part 9: for vector-valued states: copies that are equal in all spatial
@@ -43,6 +44,9 @@
 %           functionals of the SOS programs.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/22/2026: Part 7: rows that are not ordered are split with
+%   canonicalize_intmat before declaring the functional, as the 'intop'
+%   constructor rejects them (before, they were integrated with signed limits);
 
 % NOTES
 % - Oracle: expected intmat and kernels are written out by hand per case;
@@ -202,7 +206,7 @@ for variant = 1:2
     end
 end
 
-%% Part 7: limits in reverse order (signed integrals): [3,2,0,3,0,4] is s1 from s3 down to s2, with s2<s3
+%% Part 7: rows that are not ordered: [3,2,0,4,0,4] is s1 from s3 to s2, nonzero only for s3<=s1<=s2
 pvar s s_1 s_2 s_3
 vb = {1+s+2*s^2, 2-s+s^3};
 rows7 = {[3,2,0,3,0,4],[2,3,0,4,0,4],[3,2,0,4,0,4],[0,4,3,1,0,4]};
@@ -212,7 +216,15 @@ for j=1:numel(rows7)
         dg = degs7{r};
         if numel(dg)==1,    state_idcs = [1,1,1];   else,   state_idcs = [1,1,2];  end
         k7 = rand_poly([1,1],{'s_dum1','s_dum2','s_dum3'},1,5);
-        Kop = intop({k7},{rows7{j}},{'s'},[0,1],false);
+        % The constructor rejects rows that are not ordered
+        try
+            [im7,p7] = intop.canonicalize_intmat(rows7(j),{k7});
+        catch
+            % [3,2,0,3,0,4]: s2<=s3, so that s3<=s1<=s2 only on a null set: the functional is zero
+            if j~=1,    error('Test_intop_combine_terms_canonical failed: Part 7, row %s: empty region.',mat2str(rows7{j})),   end
+            continue
+        end
+        Kop = intop(p7,im7,{'s'},[0,1],false);
         K1 = combine_terms(Kop,dg,ones(1,numel(dg)),true(numel(dg),1));
         if ~same_op(combine_terms(K1,dg,ones(1,numel(dg)),true(numel(dg),1)),K1)
             error("Test_intop_combine_terms_canonical failed: Part 7, row %s, degs %s: not idempotent.",mat2str(rows7{j}),mat2str(dg))
