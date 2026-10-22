@@ -81,6 +81,8 @@ function Test_piesos_poslpivar()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: 3 x 1 'exclude' is OR over the variables of a state
+%                        (nrows_nd, case_mixed_exclude_sep);
 
 % NOTES
 % - The SDP cases (case_sdp_feasibility,
@@ -91,9 +93,8 @@ function Test_piesos_poslpivar()
 % - case_unsorted_variables uses dummy degree 0 and does not check Zop:
 %   for a positive degree, monopmat returns a different operator than for
 %   alphabetical order (warning 'sopvar:noncanonicalMultiplier');
-% - nrows_nd: monopmat applies one exclude array to all states, so a
-%   3-vector exclude removes terms of a state not depending on all
-%   variables only if it excludes the multiplier.
+% - nrows_nd: monopmat applies a 3-vector exclude along the variables of
+%   each state, and excludes a term if its kind is excluded in any of them.
 
 tests = {@case_split_1D, @case_defaults, @case_degs_formats, ...
          @case_struct_inputs, @case_2D, @case_3D, @case_two_states, ...
@@ -1108,16 +1109,16 @@ function m = nrows_nd(r,excl,N)
 % Rows of the basis of a state depending on variables with dummy degrees r (one
 % per variable, in a list of N variables): the product over the variables of
 % the state, less the excluded terms. A 3-vector excl = logical
-% [mult,lower,upper] excludes the terms whose kind is excluded in EVERY
-% variable of the list, as monopmat applies it; in a variable the state does
-% not depend on the term is the multiplier, so excl(1) is required to exclude
-% anything for a state that does not depend on all N variables.
-mall = arrayfun(@(rk) nrows_3pi(rk,false(1,3)),r);
-mexc = arrayfun(@(rk) excl(1)*1+excl(2)*(rk+1)+excl(3)*(rk+1),r);
-if numel(r)<N
-    mexc = [mexc,excl(1)];
+% [mult,lower,upper] excludes the terms with an excluded kind in ANY variable
+% of the state (OR), as monopmat applies it (10/21/2026; was AND over the list,
+% with the term a multiplier in the variables the state does not depend on):
+% the rows are the product over the variables of the state of the rows of the
+% kinds not excluded. A state without variables has its multiplier only.
+if isempty(r)
+    m = ~excl(1)*1;
+else
+    m = prod(arrayfun(@(rk) nrows_3pi(rk,excl),r));
 end
-m = prod(mall) - prod(mexc);
 end
 
 function case_mixed_structure()
@@ -1189,8 +1190,8 @@ end
 function case_mixed_exclude_sep()
 % Excluded terms and separability with states of different dependence (see
 % nrows_nd): e.g. for the state of x1(s1) in the list (s1,s2), exclude [0 1 0]
-% leaves the lower integral in, as monopmat applies the same exclude array to
-% all states.
+% removes the lower integral, as monopmat applies the 3-vector along the
+% variables of each state (10/21/2026; was: left it in).
 rng(19);
 dom = [0.5 2;-1 0.7];
 r = [2 1];

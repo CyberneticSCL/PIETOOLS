@@ -21,7 +21,9 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 %           - 'exclude': 3x1 boolean array indicating whether to exclude
 %               the multiplier term (exclude(1)=1), lower integral
 %               (exclude(2)=1), or upper integral (exclude(3)=1) from the
-%               definition of basis operator Zop;
+%               definition of basis operator Zop. For several spatial
+%               variables, a term is excluded if its type is excluded
+%               along any of the variables (see `monopmat`);
 %           - 'psatz': 1 x N array of integers, or logical array,   
 %               specifying psatz multipliers g_k(s)>=0 on the domain,  
 %               with Pmat = sum_k g_k*Pmat_k and Pmat_k an SOS matrix, so  
@@ -73,6 +75,7 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/21/2026: Describe 'exclude' for several spatial variables;
 
 % Verify that the monomials are appropriately specified
 if ~isa(Z,'polyopvar')

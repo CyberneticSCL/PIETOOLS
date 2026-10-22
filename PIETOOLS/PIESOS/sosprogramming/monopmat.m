@@ -60,7 +60,12 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 %               integral term (k=3), along spatial variable j in the list
 %               of 3-PI variables (intersect(vars.in,vars.out)). A single
 %               logical array may also be specified, to be used for all
-%               blocks. By default, no terms are excluded;
+%               blocks. A 3 x 1 array e may be specified instead of the full
+%               array, to exclude every term of which the type is excluded
+%               along any of the 3-PI variables of the block, e.g. e =
+%               [0;0;1] excludes every term with an upper integral, so that
+%               for N3=2 the full array is [0,0,1;0,0,1;1,1,1]. By default,
+%               no terms are excluded;
 %       'sep':  1 x q cell, specifying for each of the operator blocks
 %               whether to enforce separability along each of the
 %               variables. Element opts.sep{i} is a 1 x N3(i) logical
@@ -115,6 +120,8 @@ function Zop = monopmat(dims,vars,dom,depmat,degs,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/21/2026: Expand a 3 x 1 'exclude' with OR over the variables of
+%                   each block, instead of AND;
 
 
 %% Process the inputs
@@ -209,18 +216,29 @@ else
     exclude_arr = opts.exclude;
 end
 if N3>0
-    if islogical(exclude_arr) || (isnumeric(exclude_arr) && all(ismember(exclude_arr(:),[0;1])))
-        if numel(exclude_arr)==3
-            % Assume same exclude along all dimensions
-            exclude_arr = exclude_arr(:);
-            excludeL = exclude_arr;
-            new_shape = ones(1,N3+1);
-            for i=2:N3
+    is_excl_log = islogical(exclude_arr) || (isnumeric(exclude_arr) && all(ismember(exclude_arr(:),[0;1])));
+    if is_excl_log && numel(exclude_arr)==3
+        % Exclude a term if its type is excluded along ANY 3-PI variable of
+        % the state; variables the state does not depend on are skipped
+        exclude_arr = logical(exclude_arr(:));
+        exclude_cell = cell(1,q);
+        for j=1:q
+            Ni = N3_arr(j);
+            excl_j = exclude_arr;
+            new_shape = ones(1,Ni+1);
+            for i=2:Ni
                 new_shape(i) = 3;
-                exclude_arr = exclude_arr & reshape(excludeL,new_shape);
+                excl_j = excl_j | reshape(exclude_arr,new_shape);
                 new_shape(i) = 1;
             end
-        elseif numel(exclude_arr)~=3^N3
+            if Ni==0
+                % State without 3-PI variables: its only term is a multiplier
+                excl_j = exclude_arr(1);
+            end
+            exclude_cell{j} = reshape(excl_j,[3*ones(1,Ni),1,1]);
+        end
+    elseif is_excl_log
+        if numel(exclude_arr)~=3^N3
             error("Option 'exclude' must be specified as 3^N = 3 x ... x 3 logical array for N spatial variables.")
         end
         exclude_arr = reshape(exclude_arr,[3*ones(1,N3),1]);
@@ -254,7 +272,7 @@ if N3>0
                 new_shape = ones(1,Ni+1);
                 for i=2:Ni 
                     new_shape(i) = 3;
-                    exclude_arr = exclude_arr & reshape(excludeL,new_shape);
+                    exclude_arr = exclude_arr | reshape(excludeL,new_shape);
                     new_shape(i) = 1;
                 end
             end

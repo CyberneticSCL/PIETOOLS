@@ -78,10 +78,11 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 %               upper integral term (k=3), along spatial variable j in
 %               the list of 3-PI variables (intersect(vars.in,vars.out)).
 %               If exclude is a 3 x 1 array, it is applied in every
-%               variable of vars, and a state is a multiplier in the
-%               variables it does not depend on: only an excluded
-%               multiplier (exclude(1)=true) then excludes terms for a
-%               state that does not depend on all of them;
+%               variable on which a state depends, and a term is excluded
+%               if its type is excluded in any of these variables (e.g.
+%               exclude = [0;0;1] excludes every term with an upper
+%               integral). Variables a state does not depend on are
+%               ignored, see `monopmat`;
 %       'sep':  1 x q cell, specifying for each of the operator blocks
 %               whether to enforce separability along each of the
 %               variables. Element opts.sep{i} is a 1 x N3(i) logical
@@ -152,6 +153,7 @@ function [prog,Pmat,Zop] = piesos_poslpivar(prog,dims,vars,dom,depmat,degs,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/21/2026: Describe 3 x 1 'exclude' as OR over variables of a state;
 
 % Check that the inputs are appropriate
 if isstruct(dims) && isfield(dims,'in')

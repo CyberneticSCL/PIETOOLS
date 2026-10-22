@@ -49,6 +49,8 @@ function Test_monopmat()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: 3 x 1 'exclude' with several variables is OR, not
+%                        AND (oracle changed, N3=2 sweep cases and J1-J2 added);
 
 % NOTES
 % - Needs apply_sopvar.m (sopvar/Testfolder) on the path; it is a test
@@ -123,6 +125,12 @@ end
 [ok,msg] = run_case('H3: 3 variables, all dependence sets, sep and exclude', @case_H3);
 [nfail,ntotal] = tally(nfail,ntotal,ok,msg);
 [ok,msg] = run_case('H4: q=2 (s1 | s2), sep=true, own and common output space', @case_H4);
+[nfail,ntotal] = tally(nfail,ntotal,ok,msg);
+
+%% ---- Part J: 3 x 1 exclude over several variables (OR) ----
+[ok,msg] = run_case('J1: 3 x 1 exclude, states in 1 and 2 of 2 variables (hand rows, array/cell/full forms)', @case_J1);
+[nfail,ntotal] = tally(nfail,ntotal,ok,msg);
+[ok,msg] = run_case('J2: 3 x 1 exclude in 2D, kept terms by hand', @case_J2);
 [nfail,ntotal] = tally(nfail,ntotal,ok,msg);
 
 %% ---- Part I: omitted inputs ----
@@ -280,6 +288,17 @@ excl = false([3,3,1]); excl(1,1,1)=true; excl(3,3,1)=true;
 c.exclude = excl; c.sep = [false,false];
 cases{end+1} = c;
 
+% 3 x 1 exclude with several variables: OR over the variables (10/21/2026)
+for e = {[false;false;true],[false;true;false],[true;false;false],[false;true;true]}
+    c = struct(); c.label=sprintf('N=2,N3=2, 3 x 1 exclude %s (OR over variables)',mat2str(double(e{1}')));
+    c.vars.in = {'s1','s2'}; c.vars.out = {'s1','s2'};
+    c.dom.in = [0.4,2.1; -1.3,-0.2]; c.dom.out = [0.4,2.1; -1.3,-0.2];
+    c.depmat.in = [1,1]; c.depmat.out = [1,1];
+    c.ZR = {[0;1],[0;1]}; c.ZL = {[0;2],[0;3]};
+    c.exclude = e{1}; c.sep = [false,false];
+    cases{end+1} = c;
+end
+
 c = struct(); c.label='N1=1,N2=1,N3=1 mixed';
 c.vars.in = {'s1','x1'}; c.vars.out = {'s1','y1'};
 c.dom.in = [0.4,2.1; -1.3,-0.2]; c.dom.out = [0.4,2.1; 0.1,0.6];
@@ -361,16 +380,20 @@ end
 if N3==0
     excl = false;
 else
-    excl = reshape(logical(cs.exclude),[3*ones(1,N3),1]);
+    excl = logical(cs.exclude);
     if numel(excl)==3
+        % 3 x 1 array e: a term is excluded if its type is excluded along
+        % ANY variable (type k_d in variable d: e(k_d) for some d)
         e = excl(:);
-        tmp = e;
-        shp = ones(1,N3+1);
-        for d=2:N3
-            shp(d)=3; tmp = tmp & reshape(e,shp); shp(d)=1;
+        tmp = false([3*ones(1,N3),1]);
+        for lin=1:3^N3
+            ks = cell(1,N3+1);
+            [ks{:}] = ind2sub([3*ones(1,N3),1],lin);
+            tmp(lin) = any(e(cell2mat(ks(1:N3))));
         end
-        excl = reshape(tmp,[3*ones(1,N3),1]);
+        excl = tmp;
     end
+    excl = reshape(excl,[3*ones(1,N3),1]);
     sep = cs.sep;
     for d=find(sep)
         idx2 = repmat({1:3},1,N3); idx2{d}=2; idx2=[idx2,{1}];
@@ -1005,6 +1028,51 @@ for i=1:q
 end
 end
 
+
+%% ========================================================================
+% Part J: 3 x 1 exclude over several variables (OR)
+function case_J1()
+% States x1(s1), x2(s1,s2) in the list (s1,s2), dummy degree 1: per variable
+% the types give 1 (multiplier), 2 (lower), 2 (upper) rows. A 3 x 1 exclude
+% excludes a term if its type is excluded along ANY variable of the state, and
+% variables the state does not depend on are ignored: rows by hand
+vars = struct('in',{{'s1','s2'}},'out',{{'s1','s2'}});
+dom = struct('in',[0.4,2.1; -1.3,-0.2],'out',[0.4,2.1; -1.3,-0.2]);
+depmat = struct('in',[1,0;1,1],'out',[1,1;1,1]);
+degs = struct('in',1,'out',0);
+excls = {[0;0;1],[0;1;0],[1;0;0],[0;1;1],[1;1;0]};
+rows =  {[3,9],   [3,9],   [4,16],  [1,1],   [2,4]};
+for k=1:numel(excls)
+    e = logical(excls{k});
+    % x1: types allowed in s1; x2: product over s1,s2
+    Zop = monopmat([1;1],vars,dom,depmat,degs,struct('exclude',e));
+    assert(isequal(Zop.dims.out(:)',rows{k}),'exclude=%s: rows %s expected, got %s.',mat2str(e'),mat2str(rows{k}),mat2str(Zop.dims.out(:)'));
+    % Same for the cell form with the 3-vector for each state
+    Zop_c = monopmat([1;1],vars,dom,depmat,degs,struct('exclude',{{e,e}}));
+    assert(isequal(Zop_c.dims.out(:)',rows{k}),'cell exclude=%s: rows %s expected, got %s.',mat2str(e'),mat2str(rows{k}),mat2str(Zop_c.dims.out(:)'));
+    % Same as the explicit arrays, built from the allowed types per variable
+    al = double(~e);
+    Z1 = monopmat([1;1],vars,dom,depmat,degs,struct('exclude',{{~logical(al),~logical(al*al')}}));
+    assert(isequal(Z1.dims.out(:)',rows{k}),'full arrays, exclude=%s: rows %s expected, got %s.',mat2str(e'),mat2str(rows{k}),mat2str(Z1.dims.out(:)'));
+end
+end
+
+function case_J2()
+% One state in (s1,s2): the kept terms (rows: type in s1, columns: type in s2;
+% 1 multiplier, 2 lower, 3 upper) for a 3 x 1 exclude, by hand
+vars = struct('in',{{'s1','s2'}},'out',{{'s1','s2'}});
+dom = struct('in',[0.4,2.1; -1.3,-0.2],'out',[0.4,2.1; -1.3,-0.2]);
+depmat = struct('in',[1,1],'out',[1,1]);
+degs = struct('in',1,'out',0);
+excls = {[0;0;1],                  [0;1;0],                  [1;0;0]};
+kept  = {logical([1 1 0;1 1 0;0 0 0]), logical([1 0 1;0 0 0;1 0 1]), logical([0 0 0;0 1 1;0 1 1])};
+for k=1:numel(excls)
+    Zop = monopmat(1,vars,dom,depmat,degs,struct('exclude',excls{k}));
+    P = Zop.ops{1,1}.ops{1,1};
+    got = ~cellfun(@isempty,P.params);
+    assert(isequal(got,kept{k}),'exclude=%s: kept terms differ from the hand-derived pattern.',mat2str(excls{k}'));
+end
+end
 
 %% ========================================================================
 % Part H: state depending on the 2nd variable only
