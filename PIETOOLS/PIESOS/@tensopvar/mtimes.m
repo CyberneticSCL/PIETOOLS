@@ -60,6 +60,7 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/21/2026: Compare empty variable lists regardless of shape;
 
 % Check that multiplication is supported
 if ~isa(B,'tensopvar') && all(size(B)==1)
@@ -110,7 +111,8 @@ end
 
 % Check that the spatial domain of the output of B matches the input of A
 if isa(A,'tensopvar')
-    if ~isequal(A.vars.in,B.vars.out) || ~isequal(A.depmat.in,B.depmat.out) || ~isequal(A.dims(:,2),B.dims(:,1))
+    % Compare the variables as columns, so that empty cells of different shape (0x0, 1x0) are equal
+    if ~isequal(A.vars.in(:),B.vars.out(:)) || ~isequal(A.depmat.in,B.depmat.out) || ~isequal(A.dims(:,2),B.dims(:,1))
         error("Function space of input of A must match that of output of B.")
     end
 end

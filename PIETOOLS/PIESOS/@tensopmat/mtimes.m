@@ -52,6 +52,7 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/21/2026: Compare empty variable lists regardless of shape;
 
 % Check that multiplication is supported
 if isa(A,'sopvar') || isa(A,'tensopvar') || isa(A,'intop')
@@ -166,7 +167,8 @@ end
 
 % Check for (currently) unsupported cases
 if isa(A,'tensopmat') && isa(B,'tensopmat')
-    if ~isequal(A.vars.in,B.vars.out) || ~isequal(A.depmat.in,B.depmat.out)
+    % Compare the variables as columns, so that empty cells of different shape (0x0, 1x0) are equal
+    if ~isequal(A.vars.in(:),B.vars.out(:)) || ~isequal(A.depmat.in,B.depmat.out)
         error("Input function space of first factor must match output space of second factor.")
     elseif ~isequal(A.dims.in,B.dims.out)
         error("Inner dimensions of operators must match.")
