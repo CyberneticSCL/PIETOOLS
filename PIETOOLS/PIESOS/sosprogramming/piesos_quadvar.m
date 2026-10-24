@@ -1,22 +1,25 @@
 function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % [PROG,V,PMAT,ZOPL,ZOPR] = PIESOS_QUADVAR(PROG,ZL,ZR,OPTS) computes a
-% distributed polynomial decision variable based on the monomial bases ZL
-% and ZR, taking the quadratic form
+% distributed polynomial decision variable based on the vectors of
+% distributed polynomials ZL and ZR, typically bases of distributed
+% monomials, taking the quadratic form
 %   V = <ZOPL*ZL, PMAT*ZOPR*ZR>
 % where ZOPL and ZOPR are bases of tensor-PI operators, acting on the
-% distributed monomials in ZL and ZR, and PMAT(s) is a matrix of 
-% polynomials in primary variables s, parameterized by decision variables. 
-% PMAT is a general matrix by default, a symmetric matrix if 
-% opts.sym==true, and an SOS matrix if opts.pos==true. For ZL=ZR and 
+% entries of ZL and ZR, and PMAT(s) is a matrix of
+% polynomials in primary variables s, parameterized by decision variables.
+% PMAT is a general matrix by default, a symmetric matrix if
+% opts.sym==true, and an SOS matrix if opts.pos==true. For ZL=ZR and
 % opts.pos==true, V is a distributed SOS polynomial.
 %
 % INPUTS
 % - prog:   PIESOS program structure in which to declare the decision
 %           variable;
-% - ZL:     nL x 1 'polyopvar' object representing a basis of distributed
-%           monomials, acted on by the operators ZopL;
-% - ZR:     (optional) nR x 1 'polyopvar' object representing a basis of
-%           distributed monomials, acted on by the operators ZopR. If
+% - ZL:     nL x 1 'polyopvar' object representing a vector of distributed
+%           polynomials, e.g. a basis of distributed monomials, acted on by
+%           the operators ZopL: block i of ZopL acts on entry i of ZL, see
+%           NOTES;
+% - ZR:     (optional) nR x 1 'polyopvar' object representing a vector of
+%           distributed polynomials, acted on by the operators ZopR. If
 %           omitted or empty, the same basis is used on the left and the
 %           right, ZR=ZL;
 % - opts:   (optional) struct with fields
@@ -57,18 +60,25 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %           polynomial functional
 %               V(x) = <ZopL*ZL(x), Pmat*ZopR*ZR(x)>;
 % - Pmat:   nL x nR cell, with element Pmat{i,j} an mi x nj 'dpvar' object
-%           in the primary variables, coupling the ith block row of ZopL 
-%           and the jth block row of ZopR, see `piesos_quadopvar`;
+%           in the primary variables, coupling the ith block row of ZopL
+%           and the jth block row of ZopR, i.e. entry i of ZL and entry j
+%           of ZR, see `piesos_quadopvar`;
 % - ZopL/ZopR:  'tensopmat' objects representing the bases of operators on
-%           the monomials in ZL and ZR (block i acts on monomial i), see
-%           `piesos_quadopvar`;
+%           the entries of ZL and ZR (block i acts on the output of row i
+%           of ZL.C), see `piesos_quadopvar`;
 %
 % NOTES
-% - The operators ZopL and ZopR act on the monomials in the rows of ZL.Z 
-%   and ZR.Z, i.e. on the input spaces of ZL.C and ZR.C, so that for e.g. 
-%   ZL=[x1;x1.*x1], block 2 of ZopL acts on x1 o x1. A monomial of states 
-%   depending on different variables is not supported, but the product of a
-%   monomial in ZL and one in ZR may mix such states. 
+% - Entry i of ZL is ZL_i(x) = sum_j C_ij*Z_j(x), for the monomials Z_j in
+%   the rows of ZL.Z and the coefficients ZL.C of ZL (a single term for a
+%   monomial basis). Block i of ZopL acts on the output of the coefficients
+%   of row i, so that V is defined by the operators ZopL_i*C_ij, the blocks
+%   of the product ZopL*ZL.C (mixed product), on the monomials Z_j. 
+% - The coefficients must be tensor-PI operators with a Kronecker output
+%   (otype(1)=2), so that the monomials are tensor products of the
+%   variables, as in dmonomials; elementwise products, as in x1.*x1, are
+%   not supported. A factor that is itself a pointwise product, nested in a
+%   tensor product, is not supported either. The factors of a monomial must
+%   have the same size, and its states depend on the same variables.
 % - The states in ZL and ZR are matched by name, and must have the same
 %   size and domain in both.
 % - If Pmat is symmetric, ZL=ZR, and ZopL=ZopR, only the upper triangle of 
@@ -99,6 +109,7 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/22/2026: Support coefficients ZL.C, ZR.C, e.g. T*x;
 
 % Verify that the monomials are appropriately specified
 is_eqZLR = false;
@@ -120,6 +131,16 @@ if ~is_eqZLR
         ZR = initialize(ZR); 
     end
     is_eqZLR = isequal(ZL,ZR);
+end
+% The operators ZopL, ZopR act on the output of the coefficients ZL.C, ZR.C
+% (e.g. T*x): extract the function space of the output of each row, and its
+% nonzero columns
+CL = ZL.C;      CR = ZR.C;
+[dimsL,depmatL,colsL] = coefficient_blocks(CL,'L');
+if is_eqZLR
+    dimsR = dimsL;      depmatR = depmatL;      colsR = colsL;
+else
+    [dimsR,depmatR,colsR] = coefficient_blocks(CR,'R');
 end
 % Declare default monomial degree if not specified
 if nargin<=3
@@ -183,28 +204,28 @@ if (only_degsL || ~isfield(opts,'L')) && (only_degsR || ~isfield(opts,'R'))
     end
 end
 
-% Extract the domains. The operators act on the distributed monomials, 
-% the input spaces of ZL.C, ZR.C
-dims = struct('R',ZR.C.dims.in,'L',ZL.C.dims.in);
-vars = struct('R',{ZR.C.vars.in},'L',{ZL.C.vars.in});
-dom = struct('R',ZR.C.dom.in,'L',ZL.C.dom.in);
-depmat = struct('R',ZR.C.depmat.in,'L',ZL.C.depmat.in);
+% Extract the domains. The operators act on the output of the coefficients,
+% the output spaces of the rows of CL, CR
+dims = struct('R',dimsR,'L',dimsL);
+vars = struct('R',{CR.vars.out},'L',{CL.vars.out});
+dom = struct('R',CR.dom.out,'L',CL.dom.out);
+depmat = struct('R',depmatR,'L',depmatL);
 if any(arrayfun(@(i) numel(unique(nonzeros(depmat.L(i,:))))>1,1:size(depmat.L,1))) || ...
-        any(arrayfun(@(i) numel(unique(nonzeros(depmat.R(i,:))))>1,1:size(depmat.R,1))) 
+        any(arrayfun(@(i) numel(unique(nonzeros(depmat.R(i,:))))>1,1:size(depmat.R,1)))
     error("Distributed monomials of states depending on different variables are not supported.")
 end
 
-% Declare a basis of operators on this domain, and a matrix Pmat(s) in the  
-% primary variables (nL x nR cell, a block row for each monomial in ZL and
-% a block column for each in ZR), so that Pop = ZopL'*Pmat*ZopR;
+% Declare a basis of operators on this domain, and a matrix Pmat(s) in the
+% primary variables (nL x nR cell, a block row for each entry of ZL and
+% a block column for each of ZR), so that Pop = ZopL'*Pmat*ZopR;
 [prog,Pmat,ZopL,ZopR] = piesos_quadopvar(prog,dims,vars,dom,depmat,degs,opts);
 
-% The terms of the pairs of monomials (ridx,cidx) and (cidx,ridx) are equal
-% if Pmat is symmetric and the same monomials and operators appear on the
+% The terms of the pairs of entries (ridx,cidx) and (cidx,ridx) are equal
+% if Pmat is symmetric and the same entries and operators appear on the
 % left and right, in which case only the upper triangle is computed
 is_sym = (isfield(opts,'pos') && opts.pos) || (isfield(opts,'sym') && opts.sym);
 is_sym = is_sym && is_eqZLR && isequal(ZopL,ZopR);
-nZL = numel(dims.L);    nZR = numel(dims.R);
+nZL = numel(dimsL);     nZR = numel(dimsR);
 if is_sym
     [ridcs,cidcs] = find(triu(true(nZL,nZR)));
 else
@@ -217,8 +238,28 @@ else
     [ZLc,ZRc] = common_states(ZL,ZR);
 end
 
+% Compose the basis operators with the coefficients by one product: block (i,j)
+% of ZopL*ZL.C is ZopL_i*C_ij, acting on the monomial Z_j by the mixed product of
+% the factors. The empty parameters of the excluded terms are filled first, as
+% @sopvar/mtimes fails on them
+PL = fill_empty_params(ZopL)*CL;
+if is_eqZLR && isequal(ZopL,ZopR)
+    PR = PL;
+else
+    PR = fill_empty_params(ZopR)*CR;
+end
+
+% A term for each pair of rows (ridx,cidx) of Pmat and each pair of nonzero blocks
+% (a,b) in these rows, acting on the monomial [ZL.Z(a,:),ZR.Z(b,:)]: the columns
+% of terms are ridx, cidx, a, b
+terms = zeros(0,4);
+for k=1:numel(ridcs)
+    [a,b] = ndgrid(colsL{ridcs(k)},colsR{cidcs(k)});
+    terms = [terms; repmat([ridcs(k),cidcs(k)],numel(a),1),a(:),b(:)];
+end
+
 % Compute the list of monomials that appear in the distributed polynomial.
-Z_full = [ZLc.Z(ridcs,:), ZRc.Z(cidcs,:)];
+Z_full = [ZLc.Z(terms(:,3),:), ZRc.Z(terms(:,4),:)];
 for i=1:size(Z_full,1)
     Z_i = Z_full(i,:);
     Z_full(i,:) = [Z_i(Z_i>0), Z_i(Z_i==0)];
@@ -232,29 +273,25 @@ nZ_lin = size(Z_lin,1);
 Kcell = num2cell(zeros(1,nZ_lin));
 
 % Determine the operator acting on each of the distributed monomials
-for k=1:numel(ridcs)
-    ridx = ridcs(k);    cidx = cidcs(k);
-
-    % Extract the kth block of decision variables
-    Pij = Pmat{ridx,cidx};
-
-    % Extract the monomial operators associated with the kth block
-    CL = ZopL.ops{ridx,ridx};
-    CR = ZopR.ops{cidx,cidx};
-
-    % Convert to the linear format: Kronecker (pointwise) product along the
-    % output dim, proper tensor product along the input dim. The factors
-    % are ordered as the monomial [ZL(ridx),ZR(cidx)] in Z_full. For
-    % symmetric Pmat, (cidx,ridx) and (ridx,cidx) give the same term.
-    m = size(CL,1);   n = size(CR,1);       % row counts of CL, CR
-    Wij = vec_dpvar(Pij);                   % Pij(1:end) as a row                      
-    if is_sym && cidx>ridx
-        Wij = 2*Wij;
+% One iteration for each term (ridx,cidx,a,b), with the weight Wij of a row pair
+% computed once for its terms
+for t=1:size(terms,1)
+    ridx = terms(t,1);      cidx = terms(t,2);
+    if t==1 || ~isequal(terms(t,1:2),terms(t-1,1:2))
+        % Convert the block of decision variables to the linear format: Kronecker
+        % (pointwise) product along the output dim, proper tensor product along
+        % the input dim. The factors are ordered as the monomial [ZL(a),ZR(b)] in
+        % Z_full. For symmetric Pmat, (cidx,ridx) and (ridx,cidx) give the same term
+        m = size(ZopL.ops{ridx,ridx},1);    n = size(ZopR.ops{cidx,cidx},1);    % row counts of ZopL_i, ZopR_j
+        Wij = vec_dpvar(Pmat{ridx,cidx});       % Pij(1:end) as a row
+        if is_sym && cidx>ridx
+            Wij = 2*Wij;
+        end
     end
-    Kij = int(otimes(repmat(CL,n,1),repelem(CR,m,1),[1,2]),Wij);
+    Kij = int(otimes(repmat(PL.ops{ridx,terms(t,3)},n,1),repelem(PR.ops{cidx,terms(t,4)},m,1),[1,2]),Wij);
 
     % Match the obtained kernel with the correct distributed monomial
-    mon_idx = old2new_idcs(k);
+    mon_idx = old2new_idcs(t);
     Kcell{mon_idx} = Kcell{mon_idx} + Kij;
 end
 
@@ -298,5 +335,86 @@ i = ceil(r/nd);                 d = r-(i-1)*nd;
 j = ceil(c/nZ);                 z = c-(j-1)*nZ;
 k = i+(j-1)*m;
 W = compress(dpvar(sparse(d,(k-1)*nZ+z,v,nd,m*n*nZ),P.degmat,P.varname,P.dvarname,[1,m*n]));   % as dpvar/subsref
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function [dims,depmat,cols] = coefficient_blocks(C,side)
+% [DIMS,DEPMAT,COLS] = COEFFICIENT_BLOCKS(C,SIDE) checks the coefficients C
+% of a vector of distributed polynomials (tensor-PI operators with a
+% Kronecker output) and returns the function space of the output of each
+% row of C, on which the basis operator of the row acts, and its nonzero
+% columns: the size DIMS(i) of each factor of the output of row i (the size
+% of the output, if its factors cannot be distinguished, or it has no
+% spatial variables), the number DEPMAT(i,:) of copies of each output
+% variable, and the indices COLS{i} of the monomials in row i. SIDE ('L' or
+% 'R') is used in error messages.
+
+nr = size(C.ops,1);
+dims = zeros(nr,1);     depmat = double(C.depmat.out);      cols = cell(nr,1);
+for i=1:nr
+    cols{i} = find(~cellfun(@isempty,C.ops(i,:)));
+    if isempty(cols{i})
+        error("Row %d of Z%s.C is zero: the entries of Z%s must be nonzero.",i,side,side)
+    end
+    for j=cols{i}
+        blk = C.ops{i,j};
+        if ~isa(blk,'tensopvar')
+            error("The coefficients of Z%s must be tensor-PI operators (row %d, column %d is not).",side,i,j)
+        elseif any(cellfun(@(f) isa(f,'tensopvar'),blk.ops(:)))
+            error("Coefficients of Z%s with nested factors, e.g. a pointwise product of states in a tensor product, are not supported (row %d, column %d).",side,i,j)
+        elseif blk.otype(1)==1 && size(blk.ops,2)>1
+            error("The monomial basis Z%s must be defined in terms of tensor products of the variables, as in dmonomials, not elementwise products (row %d, column %d).",side,i,j)
+        elseif size(blk.ops,2)>1 && ~any(depmat(i,:))
+            % The factors of the block cannot be composed with the single factor of ZopL_i
+            error("Products of states without spatial variables in the basis Z%s are not supported (row %d, column %d).",side,i,j)
+        end
+    end
+    % The size of each factor, if each of the factors has a copy of a variable
+    blk = C.ops{i,cols{i}(1)};
+    dims(i) = size(blk,1);
+    if any(depmat(i,:)) && size(blk.ops,2)==max(depmat(i,:))
+        fdims = blk.dims(:,1);
+        if any(fdims~=fdims(1))
+            error("The factors of a monomial in Z%s must have the same size (row %d).",side,i)
+        end
+        dims(i) = fdims(1);
+    end
+end
+
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function T = fill_empty_params(T)
+% T = FILL_EMPTY_PARAMS(T) replaces the empty parameters params{k}=[] of
+% the 'sopvar' objects in the tensor-PI operator or the diagonal 
+% 'tensopmat' T, left by monopmat for the excluded multiplier, lower and 
+% upper terms, by zero matrices of the right size.
+
+if isa(T,'tensopmat')
+    for i=1:size(T.ops,1)
+        T.ops{i,i} = fill_empty_params(T.ops{i,i});
+    end
+    T.chkval = true;
+elseif isa(T,'tensopvar')
+    for k=1:numel(T.ops)
+        T.ops{k} = fill_empty_params(T.ops{k});
+    end
+elseif isa(T,'sopvar')
+    params = T.params;
+    nL = prod(cellfun(@numel,T.ZL));    nR = prod(cellfun(@numel,T.ZR));
+    for k=1:numel(params)
+        if isempty(params{k})
+            params{k} = sparse(T.dims(1)*nL,T.dims(2)*nR);
+        end
+    end
+    T = sopvar(params,T.vars,T.ZL,T.ZR,T.dom,T.dims);
+end
+
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

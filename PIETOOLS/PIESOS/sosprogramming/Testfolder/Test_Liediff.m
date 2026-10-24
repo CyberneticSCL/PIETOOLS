@@ -64,6 +64,8 @@ function Test_Liediff(only)
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/22/2026: apply_side: Zop acts on the entries of the basis
+%                        (rows of Z.C), not on its monomials;
 
 tests ={@case_pde, @case_pde_degrees, @case_pde_coupled, @case_mixed, ...
          @case_mixed_known, @case_combined, @case_unused_states, @case_nonlinear, ...
@@ -341,15 +343,22 @@ P = vertcat(rows{:});
 end
 
 function Y = apply_side(Zop,Z,X)
-% Zop applied to the monomials in the rows of Z.Z (the states in X)
+% Zop applied to the entries of Z (the states in X): block i acts on the tensor
+% product of the factors of the monomial in row i of Z.C, each with its
+% coefficient (the selection of a component of a vector state) applied
 Zf = full(Z.Z);
-Xc = cell(1,size(Zf,1));
-for k=1:size(Zf,1)
+nr = size(Z.C.ops,1);
+Xc = cell(1,nr);
+for i=1:nr
+    k = find(~cellfun(@isempty,Z.C.ops(i,:)));
+    assert(isscalar(k),'Row %d of the basis does not have a single monomial.',i);
     idc = Zf(k,Zf(k,:)~=0);
     if isempty(idc)
-        Xc{k} = {1};
+        Xc{i} = {1};
     else
-        Xc{k} = cellfun(@(nm) X.(nm),reshape(Z.varname(idc),1,[]),'UniformOutput',false);
+        blk = Z.C.ops{i,k};
+        assert(size(blk.ops,1)==1 && size(blk.ops,2)==numel(idc),'Row %d of the basis has an unexpected coefficient.',i);
+        Xc{i} = arrayfun(@(m) apply_sopvar(blk.ops{1,m},X.(Z.varname{idc(m)})),1:numel(idc),'UniformOutput',false);
     end
 end
 Y = apply_op(fix_empty_params_zop(Zop),Xc);

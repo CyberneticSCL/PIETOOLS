@@ -55,6 +55,7 @@ function C = otimes(A,B,type)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/22/2026: Fix construction of the input and output depmats;
 
 % Allow for tensor product with empty array
 if nargin<2
@@ -142,16 +143,9 @@ else
     C.ops = {A,B};
     Adeps = A.deps;
     Bdeps = B.deps;
-    if type(1)==1
-        C.depmat.out = max(Adeps.out,Bdeps.out);
-    else
-        C.depmat.out = Adeps.out + Bdeps.out;
-    end
-    if type(2)==1
-        C.depmat.in = max(Adeps.in,Bdeps.in);
-    else
-        C.depmat.in = Adeps.in + Bdeps.in;
-    end
+    % Store the deps of each of the two factors in the operator 
+    C.depmat.out = [Adeps.out; Bdeps.out];
+    C.depmat.in = [Adeps.in; Bdeps.in];
     C.dims = [A.matdim; B.matdim];
     C.otype = type;
     C.chkval = true;

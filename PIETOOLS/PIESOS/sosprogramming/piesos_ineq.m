@@ -114,6 +114,7 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/23/2026: Pass the degrees per state to dmonomials;
 
 % % Check the inputs
 % Check the program structure
@@ -258,6 +259,7 @@ end
 % Pass dims and depmat, so states keep their size and spatial dependency
 vartab = polyopvar(f.varname,f.dims.in,f.vars.in,f.dom.in,f.depmat.in);
 [~,vidx] = ismember(vartab.varname,f.varname);
+% Degrees per state: a state of size n is one variable of dmonomials
 Z = dmonomials(vartab,Z_degmat(:,vidx));
 % dmonomials leaves monomials with zero coefficient in Z.Z, e.g. x1*x2 for  
 % the basis [x1^2;x2^2], which piesos_sosvar would treat as monomials: 
@@ -307,7 +309,9 @@ if ~isfield(opts,'degs')
     end
 end
 if ~isfield(opts,'exclude') && ~isempty(zvidx)
-    opts.exclude = exclude_types(Z.C.depmat.in,[kst.hasD(zvidx);kst.hasNL(zvidx);kst.hasNL(zvidx)]);
+    % Zop has a block per row of Z.C, acting on its output: types per row
+    [~,zvidx_out] = ismember(Z.C.vars.out,f.vars.in);
+    opts.exclude = exclude_types(Z.C.depmat.out,[kst.hasD(zvidx_out);kst.hasNL(zvidx_out);kst.hasNL(zvidx_out)]);
 end
 [prog,g,Qmat,Zop] = piesos_sosvar(prog,Z,opts);
 

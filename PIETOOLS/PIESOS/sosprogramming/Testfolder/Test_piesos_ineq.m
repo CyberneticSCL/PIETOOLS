@@ -50,6 +50,9 @@ function Test_piesos_ineq()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: Add case_vector_states;
+% DJ (CC), 10/23/2026: case_vector_states: basis with a block per state
+%   (degrees per state, no longer per scalar row), check its block sizes;
 
 % NOTES
 % - case_mixed_basis_warning pins a known limitation: a basis monomial
@@ -58,6 +61,8 @@ function Test_piesos_ineq()
 % - A cross term of Gram matrix [1 -.75;-.75 1] is used in
 %   case_two_states: a perfect square (c=-2) is on the boundary of the
 %   cone, where SeDuMi reports both pinf and dinf;
+% - case_vector_states: states of size larger than 1 (the states, not their
+%   rows, are the variables of the monomials);
 % - Programs without a PSD variable fail in SeDuMi: feasible() adds a
 %   trivial one;
 % - The degree rule for Zop is exact for numeric f; f with decision
@@ -68,7 +73,7 @@ tests ={@case_input_errors, @case_sweep_1var, @case_certificate_values, ...
          @case_constants, @case_psatz, @case_two_states, @case_mixed_dependence, ...
          @case_two_variables, @case_uncombined_f, ...
          @case_mixed_basis_warning, @case_kernel_degrees, @case_option_types, ...
-         @case_psatz_degree, @case_symbolic_f};
+         @case_psatz_degree, @case_symbolic_f, @case_vector_states};
 nfail = 0;
 for i=1:numel(tests)
     try
@@ -292,6 +297,29 @@ assert(~feasible(progk),'int x1^2 - int x2^2 must be infeasible.');
 
 end
 
+function case_vector_states()
+% States of size larger than 1, with a scalar state: the basis of g has the degree per state (dmonomials
+% has the states as variables), so for degree 1 the vectors x1 (size 2) and x2, one block of Z per state.
+% The weights with cross terms between the entries of x1 (and between the states) are certified by the
+% Gram matrices of these vectors
+% NOTE: f of degree 2 in a vector-valued state (monomials x_i*x_j of its rows, f quartic) fails in
+% intop/combine_terms ("Vector dimension of the distributed monomial does not match ..."), not tested
+x = polyopvar({'x1';'x2'},[2;1],{'s'},[0,1],true(2,1));         % x1 of size 2, x2 scalar
+[~,~,Qmat,~,Zb] = piesos_ineq(piesos_program(x),innerprod(x,x));
+assert(isequal(sort(reshape(Zb.dims.out,1,[])),[1,2]),'The basis must have a block per state (sizes 1 and 2), got %s.',mat2str(Zb.dims.out));
+assert(isequal(sort(cellfun(@(q) size(q,1),Qmat(:,1))'),[1,2]),'Qmat must have blocks of the sizes of the states.');
+check_ineq(innerprod(x,x),x,true,'vector state, int |x|^2');
+check_ineq(-innerprod(x,x),x,false,'vector state, -int |x|^2');
+Ppd = [2 -1 .5; -1 2 .3; .5 .3 1];                              % positive definite, with cross terms
+check_ineq(innerprod(x,Ppd,x),x,true,'vector state, int x''*P*x, P>0');
+check_ineq(-innerprod(x,Ppd,x),x,false,'vector state, -int x''*P*x, P>0');
+Pind = [1 2 0; 2 1 0; 0 0 1];                                   % indefinite in the rows of x1
+check_ineq(innerprod(x,Pind,x),x,false,'vector state, int x''*P*x, P indefinite');
+Ps = [1 0 -.9; 0 1 0; -.9 0 1];                                 % couples a row of x1 and the scalar state
+check_ineq(innerprod(x,Ps,x),x,true,'vector and scalar state, int x''*P*x, P>0');
+check_ineq(innerprod(x,Ps-.05*eye(3),x),x,true,'vector and scalar state, P>0 (eigenvalues .05, 1, 1.9)');
+check_ineq(innerprod(x,Ps-.2*eye(3),x),x,false,'vector and scalar state, P indefinite (eigenvalue -.1)');
+end
 function case_two_variables()
 pvar s1 s2
 [~,y] = new_prog({'s1','s2'},'y');

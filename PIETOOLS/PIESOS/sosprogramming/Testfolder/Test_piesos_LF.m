@@ -28,7 +28,12 @@ function Test_piesos_LF(only)
 %    into V, see piesos_LF): Burgers, cubic, and coupled nonlinear PDEs;
 %  - opts.derivative=false and the nargout rule (case_skip_derivative):
 %    program, V, Pmat, Zop equal those of the full call, and the calls of
-%    subs of the derivative are gone, counted by the profiler.
+%    subs of the derivative are gone, counted by the profiler;
+%  - an ODE state coupled to a PDE state (case_ode_pde), compared with
+%    polynomial arithmetic;
+%  - vector-valued states (case_vector_states): V and dV equal those of
+%    the equivalent scalar states with the same decision variables, also
+%    for subsets of the states (rows of T and f selected by state).
 %
 % INPUTS
 % - only:   (optional) cell of character arrays with the names of the
@@ -72,11 +77,17 @@ function Test_piesos_LF(only)
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: Add cases for an ODE state and vector-valued states;
+% DJ (CC), 10/22/2026: apply_side, check_pde_blocks: Zop acts on the
+%                        entries of the basis (rows of Z.C), not on its
+%                        monomials;
+% DJ (CC), 10/23/2026: check_pde_blocks: one block of Zop per state (vector
+%                        variable of dmonomials), not per scalar entry;
 
 tests ={@case_pde_options, @case_pde_degrees, @case_pde_coupled, ...
          @case_mixed, @case_mixed_coupled, @case_combined, ...
          @case_input_forms, @case_errors, @case_nonlinear, ...
-         @case_skip_derivative};
+         @case_skip_derivative, @case_ode_pde, @case_vector_states};
 if nargin>0
     tests = tests(ismember(cellfun(@func2str,tests,'UniformOutput',false),only));
 end
@@ -139,6 +150,33 @@ switch kind
                diff(x2,t)==diff(x2,s,2)-x2-x1*diff(x1,s);
                subs(x1,s,dom(1))==0;  subs(x1,s,dom(2))==0;
                subs(x2,s,dom(1))==0;  subs(x2,s,dom(2))==0];
+    case 'ode_pde'     % xo_t = xo + u_s(0),  u_t = u_ss,  u(0) = xo,  u(1) = -2*xo
+        xo = pde_var();
+        x = pde_var(s,dom);
+        PDE = [diff(xo,t)==xo+subs(diff(x,s),s,dom(1));  diff(x,t)==diff(x,s,2);
+               subs(x,s,dom(1))==xo;  subs(x,s,dom(2))==-2*xo];
+    case 'sc3'          % three scalar states, u_t = u_ss + A3*u, Dirichlet
+        x1 = pde_var(s,dom);
+        x2 = pde_var(s,dom);
+        x3 = pde_var(s,dom);
+        A3 = [2 .5 .2; .3 -1 .4; .1 .6 -2];
+        PDE = [diff(x1,t)==diff(x1,s,2)+A3(1,1)*x1+A3(1,2)*x2+A3(1,3)*x3;
+               diff(x2,t)==diff(x2,s,2)+A3(2,1)*x1+A3(2,2)*x2+A3(2,3)*x3;
+               diff(x3,t)==diff(x3,s,2)+A3(3,1)*x1+A3(3,2)*x2+A3(3,3)*x3;
+               subs(x1,s,dom(1))==0;  subs(x1,s,dom(2))==0;
+               subs(x2,s,dom(1))==0;  subs(x2,s,dom(2))==0;
+               subs(x3,s,dom(1))==0;  subs(x3,s,dom(2))==0];
+    case 'vec'          % vector state with 2 components: the same PDE as 'coupled'
+        x = pde_var(2,s,dom);
+        PDE = [diff(x,t)==diff(x,s,2)+[2 .5; .3 -1]*x;  subs(x,s,dom(1))==0;  subs(x,s,dom(2))==0];
+    case 'vec_sc'       % vector state with 2 components, and a scalar state: the same PDE as 'sc3'
+        x = pde_var(2,s,dom);
+        y = pde_var(s,dom);
+        A3 = [2 .5 .2; .3 -1 .4; .1 .6 -2];
+        PDE = [diff(x,t)==diff(x,s,2)+A3(1:2,1:2)*x+A3(1:2,3)*y;
+               diff(y,t)==diff(y,s,2)+A3(3,1:2)*x+A3(3,3)*y;
+               subs(x,s,dom(1))==0;  subs(x,s,dom(2))==0;
+               subs(y,s,dom(1))==0;  subs(y,s,dom(2))==0];
     otherwise
         error('Unknown PIE.');
 end
@@ -297,15 +335,22 @@ P = vertcat(rows{:});
 end
 
 function Y = apply_side(Zop,Z,X)
-% Zop applied to the monomials in the rows of Z.Z (the states in X)
+% Zop applied to the entries of Z (the states in X): block i acts on the tensor
+% product of the factors of the monomial in row i of Z.C, each with its
+% coefficient (the selection of a component of a vector state) applied
 Zf = full(Z.Z);
-Xc = cell(1,size(Zf,1));
-for k=1:size(Zf,1)
+nr = size(Z.C.ops,1);
+Xc = cell(1,nr);
+for i=1:nr
+    k = find(~cellfun(@isempty,Z.C.ops(i,:)));
+    assert(isscalar(k),'Row %d of the basis does not have a single monomial.',i);
     idc = Zf(k,Zf(k,:)~=0);
     if isempty(idc)
-        Xc{k} = {1};
+        Xc{i} = {1};
     else
-        Xc{k} = cellfun(@(nm) X.(nm),reshape(Z.varname(idc),1,[]),'UniformOutput',false);
+        blk = Z.C.ops{i,k};
+        assert(size(blk.ops,1)==1 && size(blk.ops,2)==numel(idc),'Row %d of the basis has an unexpected coefficient.',i);
+        Xc{i} = arrayfun(@(m) apply_sopvar(blk.ops{1,m},X.(Z.varname{idc(m)})),1:numel(idc),'UniformOutput',false);
     end
 end
 Y = apply_op(fix_empty_params_zop(Zop),Xc);
@@ -596,6 +641,181 @@ info = profile('info');
 fnames = {info.FunctionTable.FunctionName};
 n = sum([info.FunctionTable(strcmp(fnames,'polyopvar.subs')).NumCalls]);
 assert(n>0,'Vacuous: the profiler must see the calls of subs.');
+end
+
+function case_ode_pde()
+% An ODE state coupled to a PDE state through the domain and the boundary (states of different
+% spatial dependence), PDE-state functional: V and dV compared with polynomial arithmetic. The
+% ODE state is a constant, the PDE-state x2 any polynomial (T*x satisfies the boundary conditions)
+PIE = get_pie('ode_pde');
+sv = polynomial({'s'});     sv = sv(1);
+X0 = {polynomial(0.7), 2*sv-3*sv^2+sv^3};
+cs = {};
+cs{end+1} = {{'x1','x2'},  struct('degs',struct('in',1,'out',1),'pos',true)};
+cs{end+1} = {{'x1','x2'},  struct('degs',struct('in',0,'out',1),'sym',true)};
+cs{end+1} = {{'x2'},       struct('degs',struct('in',1,'out',1),'pos',true)};
+cs{end+1} = {{'x1'},       struct('degs',struct('in',0,'out',0),'pos',true)};
+cs{end+1} = {{'x1','x2'},  struct('degs',struct('in',1,'out',1),'pos',true,'exclude',[false;false;true])};
+for c=1:numel(cs)
+    res = check_pde(PIE,X0,cs{c}{1},1,cs{c}{2},c);
+    assert_res(res,sprintf('ODE-PDE, case %d',c));
+end
+end
+
+function vals = pie_vals(PIE,X0)
+% Values of the PIE states by name
+vals = struct();
+for i=1:numel(X0)
+    vals.(PIE.varname_pie{i}) = X0{i};
+end
+end
+
+function res = check_equiv(PIEa,Xa,namesa,PIEb,Xb,namesb,degmat,opts,seed)
+% V and dV declared in two equivalent PIEs (a: scalar states, b: with a vector-valued state) for
+% the states namesa, namesb, with the same random decision variables and the same PIE state values
+% (stacked as vectors in b). The scalar case is verified against polynomial arithmetic (check_pde)
+va = pie_vals(PIEa,Xa);         vb = pie_vals(PIEb,Xb);
+proga = piesos_program(PIEa.x);     progb = piesos_program(PIEb.x);
+[~,Va,dVa,Pa] = piesos_LF(proga,PIEa,namesa,degmat,opts);
+[~,Vb,dVb,Pb] = piesos_LF(progb,PIEb,namesb,degmat,opts);
+% Pmat is partitioned differently (blocks per state), so match its values rather than the variables
+Ma = block_matrix(Pa);              Mb = block_matrix(Pb);
+assert(isequal(size(Ma),size(Mb)),'The declared Pmat must have the same size.');
+da = random_decvars(Pa,seed);
+db = match_decvars(eval_dpvar_at(Ma,da),Mb);
+res.Va = double(eval_dpvar_at(eval_V(Va,va),da));       res.Vb = double(eval_dpvar_at(eval_V(Vb,vb),db));
+res.dVa = double(eval_dpvar_at(eval_V(dVa,va),da));     res.dVb = double(eval_dpvar_at(eval_V(dVb,vb),db));
+res.errV = abs(res.Va-res.Vb)/max(1e-12,abs(res.Va));
+res.errdV = abs(res.dVa-res.dVb)/max(1e-12,abs(res.dVa));
+end
+
+function d0map = match_decvars(Pnum,Mb)
+% Values of the decision variables of the matrix Mb ('dpvar') for which Mb equals the matrix of
+% polynomials Pnum, by least squares on points in s (Mb is linear in its decision variables)
+names = Mb.dvarname(:);         nd = numel(names);
+pts = linspace(0.1,0.9,5);
+f0 = eval_points(eval_dpvar_at(Mb,containers.Map(names,num2cell(zeros(nd,1)))),pts);
+A = zeros(numel(f0),nd);
+for k=1:nd
+    e = zeros(nd,1);        e(k) = 1;
+    A(:,k) = eval_points(eval_dpvar_at(Mb,containers.Map(names,num2cell(e))),pts) - f0;
+end
+target = eval_points(Pnum,pts);
+d = pinv(A)*(target-f0);
+assert(norm(A*d+f0-target)<=1e-8*max(1,norm(target)),'The matrices Pmat of the two representations cannot be matched.');
+d0map = containers.Map(names,num2cell(d));
+end
+
+function v = eval_points(P,pts)
+% Values of the matrix of polynomials P in s at the points pts, stacked
+sv = polynomial({'s'});     sv = sv(1);
+v = zeros(0,1);
+for p=pts
+    if isempty(P.varname)
+        Pk = double(P);
+    else
+        Pk = double(subs(P,sv,p));
+    end
+    v = [v;Pk(:)]; %#ok<AGROW>
+end
+end
+
+function assert_equiv(res,label)
+assert(abs(res.Va)>1e-8 && abs(res.dVa)>1e-8,'%s: the values %g, %g are too small to test.',label,res.Va,res.dVa);
+assert(res.errV<=1e-8,'%s: V(x0)=%.10g differs from %.10g of the scalar states.',label,res.Vb,res.Va);
+assert(res.errdV<=1e-8,'%s: dV(x0)=%.10g differs from %.10g of the scalar states.',label,res.dVb,res.dVa);
+end
+
+function res = check_pde_blocks(PIE,X0,names,opts,seed)
+% As check_pde, for the degree-1 monomials Z(u)=u of states that may be vector-valued: Zop and Pmat
+% are those of the functional itself (one block per state), and V and dV are compared with
+%   V = int Y'*P*Y,  Y = Zop*u,   dV = d/dh V(u0+h*w0) at h=0
+% for the PDE states u0=T*x0 and their velocity w0=f(x0) (the rows of the states of size n are n rows).
+% Zop and Pmat have one block per state (dmonomials has the states as variables): block i acts on
+% state i, of size n, and has n rows
+pvar h
+sv = polynomial({'s'});     sv = sv(1);
+[vals,~,~,u0,w0] = pie_values(PIE,X0);
+idcs = state_idcs(PIE,names,true);
+row0 = cumsum([0;PIE.x_tab(:,2)]);
+prog = piesos_program(PIE.x);
+[prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,names,1,opts); %#ok<ASGLU>
+d0map = random_decvars(Pmat,seed);
+uh = cell(numel(idcs),1);
+for k=1:numel(idcs)
+    r = row0(idcs(k))+1:row0(idcs(k)+1);
+    uh{k} = u0(r)+h*w0(r);
+end
+% One input per block of Zop, the (vector-valued) state
+Xc = cell(1,numel(uh));
+for k=1:numel(uh)
+    Xc{k} = {uh{k}};
+end
+Y = apply_op(fix_empty_params_zop(Zop),Xc);
+Ph = block_matrix(cellfun(@(P) eval_dpvar_at(P,d0map),Pmat,'UniformOutput',false));
+Fh = int(Y.'*Ph*Y,sv,0,1);
+res.Vtrue = double(subs(Fh,h,0));
+res.dVtrue = double(subs(diff(Fh,h),h,0));
+res.V = double(eval_dpvar_at(eval_V(V,vals),d0map));
+res.dV = double(eval_dpvar_at(eval_V(dV,vals),d0map));
+res.errV = abs(res.V-res.Vtrue)/max(1e-12,abs(res.Vtrue));
+res.errdV = abs(res.dV-res.dVtrue)/max(1e-12,abs(res.dVtrue));
+end
+
+function case_vector_states()
+% Vector-valued states. PDE-state functionals with monomials Z(u)=u, compared with polynomial
+% arithmetic (check_pde_blocks): a vector state, and a vector state with a scalar state, also for
+% functionals in a subset of the states (rows of T and f selected by state). Functionals with only
+% a multiplier (so that the order of the basis operators is the same) are compared with those of
+% the equivalent scalar states, also for PIE states. All comparisons are run, failures reported together
+fails = {};
+% (i) one vector state of size 2: PDE states
+PIE = get_pie('vec');           Xa = states_x0(2);          Xv = {[Xa{1};Xa{2}]};
+cs = {'sym',            struct('degs',struct('in',1,'out',1),'sym',true)
+      'pos',            struct('degs',struct('in',1,'out',1),'pos',true)
+      'multiplier only',struct('degs',struct('in',0,'out',1),'pos',true,'exclude',[false;true;true])
+      'upper integral', struct('degs',struct('in',0,'out',1),'pos',true,'exclude',[true;true;false])
+      'psatz',          struct('degs',struct('in',1,'out',2),'pos',true,'psatz',1)};
+for c=1:size(cs,1)
+    fails = [fails,try_blocks(['vector state, ',cs{c,1}],PIE,Xv,{'x1'},cs{c,2},c)]; %#ok<AGROW>
+end
+% (ii) vector state of size 2 and a scalar state: all states, and each of the subsets
+PIE = get_pie('vec_sc');        X3 = states_x0(3);          Xvs = {[X3{1};X3{2}],X3{3}};
+opts = struct('degs',struct('in',1,'out',1),'pos',true);
+cs = {'all states',{'x1','x2'}; 'vector state',{'x1'}; 'scalar state',{'x2'}};
+for c=1:size(cs,1)
+    fails = [fails,try_blocks(['vector and scalar state: ',cs{c,1}],PIE,Xvs,cs{c,2},opts,10+c)]; %#ok<AGROW>
+end
+% (iii) equivalence with scalar states, for functionals that only multiply, PDE and PIE states
+opts = struct('degs',struct('in',0,'out',1),'exclude',[false;true;true]);
+fails = [fails,try_equiv('equivalence, vector state, PDE states',get_pie('coupled'),Xa,{'x1','x2'},get_pie('vec'),Xv,{'x1'},1,opts,1)];
+fails = [fails,try_equiv('equivalence, vector state, PIE states',get_pie('coupled'),Xa,{'x1_pie','x2_pie'},get_pie('vec'),Xv,{'x1_pie'},1,opts,2)];
+PIEa = get_pie('sc3');          PIEb = get_pie('vec_sc');
+fails = [fails,try_equiv('equivalence, vector and scalar state, PDE states',PIEa,X3,{'x1','x2','x3'},PIEb,Xvs,{'x1','x2'},1,opts,3)];
+fails = [fails,try_equiv('equivalence, vector and scalar state, PIE state: scalar state',PIEa,X3,{'x3_pie'},PIEb,Xvs,{'x2_pie'},1,opts,4)];
+fails = [fails,try_equiv('equivalence, vector and scalar state, PIE state: vector state',PIEa,X3,{'x1_pie','x2_pie'},PIEb,Xvs,{'x1_pie'},1,opts,5)];
+assert(isempty(fails),'%d comparisons failed:\n%s',numel(fails),strjoin(fails,newline));
+end
+
+function msg = try_blocks(label,PIE,X0,names,opts,seed)
+% Cell with the error message of check_pde_blocks/assert_res, empty if they pass
+msg = {};
+try
+    res = check_pde_blocks(PIE,X0,names,opts,seed);
+    assert_res(res,label);
+catch err
+    msg = {sprintf('%s: %s',label,err.message)};
+end
+end
+function msg = try_equiv(label,PIEa,Xa,namesa,PIEb,Xb,namesb,degmat,opts,seed)
+% Cell with the error message of check_equiv/assert_equiv, empty if they pass
+msg = {};
+try
+    res = check_equiv(PIEa,Xa,namesa,PIEb,Xb,namesb,degmat,opts,seed);
+    assert_equiv(res,label);
+catch err
+    msg = {sprintf('%s: %s',label,err.message)};
+end
 end
 
 function case_nonlinear()

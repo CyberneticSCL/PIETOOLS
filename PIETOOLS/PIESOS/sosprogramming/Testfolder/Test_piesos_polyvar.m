@@ -59,8 +59,16 @@ function Test_piesos_polyvar()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/22/2026: dmonomials: tensor products (output of degree d);
+%   basis_2d, case_three_variables use pointwise products (to_pointwise), as
+%   their counts assume; add case_dmonomials_tensor;
 
 % NOTES
+% - dmonomials builds tensor products x o ... o x (output of degree d, a
+%   function of d copies of each variable), so that the functional of a row
+%   acts on the tensor space; the cases whose counts of decision variables
+%   assume rows of output degree 1 (pointwise products) use to_pointwise.
+%   case_dmonomials_tensor covers the tensor products themselves;
 % - The ground-truth value check depends on apply_op matching dummy
 %   variables by name: monomial_value renames each factor's variables to
 %   s_v_c (c = copy index) when the monomial has degree >=2 in s_v;
@@ -73,7 +81,7 @@ function Test_piesos_polyvar()
 tests ={@case_structure, @case_values, @case_degs_formats, @case_full_degs, ...
          @case_intmat_formats, @case_output_degree2, @case_mixed_basis, @case_three_variables_shape, @case_discarded_variable_terms, ...
          @case_three_variables, @case_vector_state, @case_constant_basis, ...
-         @case_sequential, @case_piesos_eq, @case_sdp_recovery, @case_errors};
+         @case_sequential, @case_piesos_eq, @case_sdp_recovery, @case_dmonomials_tensor, @case_errors};
 nfail = 0;
 for i=1:numel(tests)
     try
@@ -124,16 +132,45 @@ end
 error('Expected an error containing "%s", none thrown.',needle);
 end
 
-function [vartab,Zx,dep,vars] = basis_2d(degs)
+%function [vartab,Zx,dep,vars] = basis_2d(degs)                             % DJ (CC), 10/22/2026 (was)
+function [vartab,Zx,dep,vars] = basis_2d(degs,is_tensor)                    % DJ (CC), 10/22/2026
 % States x1(s1,s2) on [0,1]x[0,2], x2(s1) on [0,1], and the basis of monomials
-% of cumulative degrees degs. dep(k,v): state k depends on s_v
+% of cumulative degrees degs, as pointwise products (output of degree 1) unless
+% is_tensor, for tensor products (output of degree d). dep(k,v): state k
+% depends on s_v
 pvar s1 s2
 x1 = polyopvar('x1',[s1;s2],[0,1;0,2]);
 x2 = polyopvar('x2',s1,[0,1]);
 vartab = [x1;x2];
 Zx = dmonomials(vartab,degs);
+if nargin<2 || ~is_tensor                                                   % DJ (CC), 10/22/2026
+    Zx = to_pointwise(Zx);                                                  % DJ (CC), 10/22/2026
+end                                                                         % DJ (CC), 10/22/2026
 dep = [1 1; 1 0];
 vars = {'s1','s2'};
+end
+
+function Z = to_pointwise(Z)
+% The monomials of Z as pointwise products x_k1.*...*x_kd, with output of degree 1
+% (otype(1)=1), instead of the tensor products of dmonomials, with output of degree d
+% (otype(1)=2): the counts of decision variables in several cases assume rows of
+% output degree 1. Only the output side changes, so the fields of Z.C are updated in
+% place (a column without blocks, a monomial no row uses, has no input dimension to infer)
+C = Z.C;
+[ridcs,cidcs] = find(~cellfun(@isempty,C.ops));
+for k=1:numel(ridcs)
+    blk = C.ops{ridcs(k),cidcs(k)};
+    if isa(blk,'tensopvar') && size(blk.ops,2)>1 && blk.otype(1)==2
+        blk.otype(1) = 1;       blk.chkval = false;     blk = initialize(blk);
+        C.ops{ridcs(k),cidcs(k)} = blk;
+        [~,idcs] = ismember(blk.vars.out,C.vars.out);
+        C.depmat.out(ridcs(k),idcs) = blk.deps.out;
+    end
+end
+C.chkval = true;
+Z.C = C;
+Z.depmat.out = C.depmat.out;
+Z.chkval = true;
 end
 
 function xvals = rand_states(dep,vars)
@@ -605,7 +642,8 @@ x1 = polyopvar('x1',[s1;s2;s3],[0,1;0,2;0,1]);
 x2 = polyopvar('x2',s2,[0,2]);
 x3 = polyopvar('x3',[s1;s3],[0,1;0,1]);
 vartab = [x1;x2;x3];
-Zx = dmonomials(vartab,[1;2]);
+%Zx = dmonomials(vartab,[1;2]);                                             % DJ (CC), 10/22/2026 (was)
+Zx = to_pointwise(dmonomials(vartab,[1;2]));                                % DJ (CC), 10/22/2026
 dep = [1 1 1; 0 1 0; 1 0 1];
 vars = {'s1','s2','s3'};
 prog0 = piesos_program(vartab);
@@ -751,6 +789,49 @@ for c=1:size(ps.C.ops,2)
         continue
     end
     val = val + double(apply_op(op,monomial_value(Zx.Z(c,:),xvals,dep,vars)));
+end
+end
+
+function case_dmonomials_tensor()
+% A basis from dmonomials, whose monomials are tensor products: the output of row i
+% is a function of d_i copies of each variable it depends on, so that the functional
+% acts on the tensor space. Terms by hand, for constant kernels (one decision variable
+% in each of the blocks, one for each integral): along a variable with d=2 copies,
+% 'full' has 3 integrals (the orderings of the 2 dummy variables, a tie being a
+% multiplier), 'nomult' 2, 'lower' and 'upper' 1; along one with d=1, a single
+% integral; the numbers multiply over the variables
+rng(15);
+pvar s1 s2
+x = polyopvar('x',[s1;s2],[0,1;0,2]);
+Zx = dmonomials(x,[0;1;2]);
+assert(isequal(full(Zx.depmat.out),[0 0;1 1;2 2]),'Rows of dmonomials must have output of degree 0, 1, 2 in each variable.');
+prog0 = piesos_program(x);
+nterms = struct('full',3^2,'nomult',2^2,'lower',1,'upper',1);           % integrals of the row x o x, in s1 and s2
+for o=fieldnames(nterms)'
+    [prog,p] = piesos_polyvar(prog0,Zx,struct('intmat',o{1},'degs',0));
+    check_p_structure(p,Zx);
+    % the constant, x, and the integrals of x o x, each with a single decision variable
+    assert(isequal(block_sizes(prog),ones(2+nterms.(o{1}),1)),'Option %s: wrong number of decision variables: %s',o{1},mat2str(block_sizes(prog)'));
+end
+% for pointwise products, one integral per variable (output of degree 1)
+[prog,~] = piesos_polyvar(prog0,to_pointwise(Zx),struct('degs',0));
+assert(isequal(block_sizes(prog),[1;1;1]),'Pointwise rows must have a single integral: %s',mat2str(block_sizes(prog)'));
+% states of different dependence: counts and values against the functionals declared by direct
+% calls of piesos_intopvar on the output space of each row, with the states evaluated by apply_poly
+[vartab,Zx,dep,vars] = basis_2d([0;1;2],true);
+prog0 = piesos_program(vartab);
+n = size(Zx.C.ops,1);
+assert(max(Zx.depmat.out(:))==2,'Test assumes monomials of degree 2.');
+for opt = {'full','nomult','lower','upper'}
+    [prog,p] = piesos_polyvar(prog0,Zx,struct('intmat',opt{1},'degs',1));
+    check_p_structure(p,Zx);
+    [K,progR] = replay(prog0,Zx,repmat(opt,n,1),repmat({1},n,1));
+    assert(isequal(block_sizes(prog),block_sizes(progR)),'Option %s: wrong number of decision variables: %s vs %s',opt{1},mat2str(block_sizes(prog)'),mat2str(block_sizes(progR)'));
+    d0 = rand_dvals(K);
+    for trial=1:2
+        xvals = rand_states(dep,vars);
+        assert(abs(value_of_p(p,d0,Zx,xvals,dep,vars)-value_of_K(K,d0,Zx,xvals))<1e-9,'Option %s: values differ.',opt{1});
+    end
 end
 end
 

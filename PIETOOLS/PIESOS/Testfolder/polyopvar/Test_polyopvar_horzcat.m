@@ -1,5 +1,5 @@
 % Test_polyopvar_horzcat.m -- structural check of horzcat.m (vertcat is
-% covered by Test_polyopvar_cat_subsref.m). Matrix-valued (matdim(2)>1)
+% covered by Test_polyopvar_vertcat.m). Matrix-valued (matdim(2)>1)
 % 'polyopvar' objects are not supported, so horzcat(x,y) must error
 % immediately ('Matrix-valued') rather than build an object that cannot
 % be evaluated.

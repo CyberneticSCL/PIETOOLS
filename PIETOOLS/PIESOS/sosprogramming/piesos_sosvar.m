@@ -8,7 +8,8 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 % - prog:   'struct' specifying a PIESOS program in which to declare the
 %           decision variable (see `piesos_program`);
 % - Z:      n x 1 'polyopvar' object representing a basis of distributed
-%           monomials;
+%           monomials, or a vector of other distributed polynomials, e.g.
+%           T*x for an operator T, see `piesos_quadvar`;
 % - opts:   (optional) struct with fields:
 %           - 'degs': struct or array specifying the degrees of the
 %               monomials to use in the parameterization of the operators
@@ -44,8 +45,8 @@ function [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts)
 %           functional;
 % - Pmat:   q x q cell, with Pmat{i,j} an mi x mj 'dpvar' object in the
 %           primary variables, representing the SOS matrix decision
-%           variable Pmat(s) (one block row for each of the q monomials
-%           in Z, see `piesos_poslpivar`);
+%           variable Pmat(s) (one block row for each of the q entries
+%           of Z, see `piesos_poslpivar`);
 % - Zop:    m x n 'tensopmat' object representing the monomial basis
 %           operator acting on the distributed monomial basis defined by Z;
 %

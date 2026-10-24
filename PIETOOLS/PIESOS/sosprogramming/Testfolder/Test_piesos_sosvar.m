@@ -51,6 +51,10 @@ function Test_piesos_sosvar()
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/22/2026: Z_by_rows: Zop and Pmat are indexed by the entries
+%                        of Z (rows of Z.C), not by the rows of Z.Z;
+% DJ (CC), 10/23/2026: Bases from otimes (tensor products), not x1.*x1, which
+%                        piesos_quadvar rejects;
 
 % NOTES
 % - piesos_sosvar declares V by piesos_quadvar: the loop and kernels are
@@ -212,7 +216,7 @@ function case_A4()
 % errors before the loop). Same variables, or linear monomials, are accepted (Part G)
 y1 = polyopvar('y1',polynomial({'s1'}),[0 1]);
 y2 = polyopvar('y2',polynomial({'s1','s2'}),[0 1;0 1]);
-Z = [y1;y2;y1.*y2];
+Z = [y1;y2;otimes(y1,y2)];
 prog = piesos_program([y1;y2]);
 % sep: few rows, so without the guard the error would come only from combine_terms
 assert_err_contains(@() piesos_sosvar(prog,Z,struct('sep',true)), 'different variables', 'A4');
@@ -259,11 +263,11 @@ c.nstates = 2; c.Zexpr = '[x1;x2]'; c.degs = 1; c.opts_extra = struct();
 cases{end+1} = c;
 
 c = struct(); c.label = 'multi-monomial single state, Z=[x1;x1.*x1]';
-c.nstates = 1; c.Zexpr = '[x1;x1.*x1]'; c.degs = 1; c.opts_extra = struct();
+c.nstates = 1; c.Zexpr = '[x1;otimes(x1,x1)]'; c.degs = 1; c.opts_extra = struct();
 cases{end+1} = c;
 
 c = struct(); c.label = 'cross term, Z=[x1;x2;x1.*x2]';
-c.nstates = 2; c.Zexpr = '[x1;x2;x1.*x2]'; c.degs = 1; c.opts_extra = struct();
+c.nstates = 2; c.Zexpr = '[x1;x2;otimes(x1,x2)]'; c.degs = 1; c.opts_extra = struct();
 cases{end+1} = c;
 
 c = struct(); c.label = 'opts.exclude sET (drop multiplier term)';
@@ -411,7 +415,7 @@ function verify_end_to_end(cs)
 [prog,V,Pmat,Zop] = piesos_sosvar(prog,Z,opts); %#ok<ASGLU>
 
 [s1var,xvals,d0map] = concrete_values(Z,Pmat);
-Zraw = full(Z.Z);
+Zraw = Z_by_rows(Z);
 dom_ab = Z.C.dom.in(1,:);
 
 Vtrue = ground_truth_via_Zop(Zop,Pmat,xvals,Zraw,s1var,dom_ab,d0map);
@@ -430,6 +434,16 @@ if ~ok2
 end
 assert(abs(Vcand-Vtrue) < tol, ...
     'full-V evaluation %.10f does not match ground truth %.10f', Vcand, Vtrue);
+end
+
+function Zr = Z_by_rows(Z)
+% Z.Z with its rows in the order of the entries of Z (rows of Z.C), the order of
+% the blocks of Zop and Pmat: the monomial of entry i is the row of Z.Z with a
+% block in row i of Z.C (Z.Z can order the monomials differently, e.g. for
+% Z=[x1;x2;x1.*x2])
+[~,kmon] = max(~cellfun(@isempty,Z.C.ops),[],2);
+Zr = full(Z.Z);
+Zr = Zr(kmon,:);
 end
 
 function [s1var,xvals,d0map] = concrete_values(Z,Pmat)
@@ -623,7 +637,7 @@ end
 %% ========================================================================
 function case_D1()
 polyopvar x1(s1);
-Z = combine_terms([x1; x1.*x1]);    % 2 distinct monomials: x1, x1^2
+Z = combine_terms([x1; otimes(x1,x1)]);    % 2 distinct monomials: x1, x1^2
 assert(Z.chkval, 'test setup: Z should be chkval=true after combine_terms');
 assert(size(Z.Z,1)==2 && size(Z.C.ops,2)==2, 'test setup: expected a 2-monomial, 2-column Z');
 
@@ -677,15 +691,15 @@ cases = {};
 vn = {'s1'};    dom = [0.5 2];
 cases{end+1} = mkcase('single state, in 2, out 2, sep',vn,dom,{1},'x1',2,2,struct('sep',true),[]);
 cases{end+1} = mkcase('two states, Z=[x1;x2]',vn,dom,{1,1},'[x1;x2]',1,1,struct(),[]);
-cases{end+1} = mkcase('Z=[x1;x1.*x1]',vn,dom,{1},'[x1;x1.*x1]',1,1,struct(),[]);
-cases{end+1} = mkcase('cross term Z=[x1;x2;x1.*x2]',vn,dom,{1,1},'[x1;x2;x1.*x2]',1,1,struct(),[]);
+cases{end+1} = mkcase('Z=[x1;x1.*x1]',vn,dom,{1},'[x1;otimes(x1,x1)]',1,1,struct(),[]);
+cases{end+1} = mkcase('cross term Z=[x1;x2;x1.*x2]',vn,dom,{1,1},'[x1;x2;otimes(x1,x2)]',1,1,struct(),[]);
 cases{end+1} = mkcase('constant Pmat (out 0), in 2',vn,dom,{1},'x1',2,0,struct(),[]);
 cases{end+1} = mkcase('kernels of degree 0, Pmat of degree 4 (in 0, out 2)',vn,dom,{1},'x1',0,2,struct(),[]);
 cases{end+1} = mkcase('exclude the multiplier term',vn,dom,{1},'x1',2,1,struct('exclude',[true;false;false]),[]);
 cases{end+1} = mkcase('psatz 1',vn,dom,{1},'x1',1,2,struct(),1);
 cases{end+1} = mkcase('psatz 2',vn,dom,{1},'x1',0,2,struct(),2);
 cases{end+1} = mkcase('two states, psatz 1',vn,dom,{1,1},'[x1;x2]',1,2,struct(),1);
-cases{end+1} = mkcase('Z=[x1;x1.*x1], psatz 1',vn,dom,{1},'[x1;x1.*x1]',0,1,struct(),1);
+cases{end+1} = mkcase('Z=[x1;x1.*x1], psatz 1',vn,dom,{1},'[x1;otimes(x1,x1)]',0,1,struct(),1);
 end
 
 function cases = build_mixed_cases()
@@ -698,7 +712,7 @@ cases{end+1} = mkcase('y1(s1), y2(s1,s2), psatz [1 1] (4 terms)',vn,dom,{1,[1 2]
 cases{end+1} = mkcase('y1(s1), y2(s1,s2), y3(s2)',vn,dom,{1,[1 2],2},'[x1;x2;x3]',1,1,struct(),[]);
 cases{end+1} = mkcase('y1(s1) and y2(s1,s2), exclude multiplier',vn,dom,{1,[1 2]},'[x1;x2]',1,1,struct('exclude',[true;false;false]),[]);
 cases{end+1} = mkcase('y1(s1) and y2(s1,s2), sep',vn,dom,{1,[1 2]},'[x1;x2]',1,1,struct('sep',true),[]);
-cases{end+1} = mkcase('y1(s1), y2(s1,s2), Z=[x1;x2;x1.*x1]',vn,dom,{1,[1 2]},'[x1;x2;x1.*x1]',0,0,struct('sep',true),[]);
+cases{end+1} = mkcase('y1(s1), y2(s1,s2), Z=[x1;x2;x1.*x1]',vn,dom,{1,[1 2]},'[x1;x2;otimes(x1,x1)]',0,0,struct('sep',true),[]);
 cases{end+1} = mkcase('disjoint y1(s1), y2(s2), psatz [0 1]',vn,dom,{1,2},'[x1;x2]',1,2,struct(),[0 1]);
 % The first state not depending on s1 (the left factor CL of the pair has other
 % variables than the right one, listed after them in Kij)
@@ -860,7 +874,7 @@ for i=1:numel(Z.varname)
     X{i} = p;
 end
 % Zop*(monomials) by polynomial arithmetic
-Zf = full(Z.Z);
+Zf = Z_by_rows(Z);
 Xc = cell(1,size(Zf,1));
 for k=1:size(Zf,1)
     idc = Zf(k,Zf(k,:)~=0);

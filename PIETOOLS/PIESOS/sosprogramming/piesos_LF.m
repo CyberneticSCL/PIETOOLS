@@ -112,6 +112,7 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding, based on V3_Liediff by CR;
+% DJ, 10/23/2026: Fix for vector-valued states;
 
 % Check the options
 if nargin<=4
@@ -232,8 +233,11 @@ fx = PIE.f;
 if ~isequal(idcs_PIE(:)',1:numel(varname_pie))
     % Indexing is not supported for operators of multiple components, so
     % only index if V depends on a subset of the states
-    Top = Top(idcs_PIE,:);
-    fx = fx(idcs_PIE,:);                    % d/dt (Tx) = f(x)
+    % A vector-valued state occupies several rows of T and f
+    xrow0 = cumsum([0;PIE.x_tab(:,2)]);
+    rows_PIE = cell2mat(arrayfun(@(i) xrow0(i)+1:xrow0(i+1),idcs_PIE(:)','UniformOutput',false));
+    Top = Top(rows_PIE,:);
+    fx = fx(rows_PIE,:);                    % d/dt (Tx) = f(x)
 end
 Tx = Top*PIE.x;                             % PDE state in terms of PIE state
 names_pde = varname_pde(idcs_PIE);          % PDE states, in the order of the rows of Tx, fx
@@ -294,19 +298,18 @@ V = subs(Wxu,names_pde,Tx);
 % The derivative is computed only if requested (get_dV); the unused states of V are removed after
 if get_dV
     dV = 0;
-    for k=1:size(Wxu.Z,1)
-        if isempty(Wxu.C.ops{1,k})
-            continue
-        end
+    for k=find(~cellfun('isempty',Wxu.C.ops(1,:)))
         Wk = Wxu{1,k};
         zk = full(Wk.Z(1,:));
         [is_u,rows] = ismember(Wk.varname(zk(zk>0)),names_pde);     % factors u, and their rows in T, f
         fctrs = find(is_u(:))';                                     % row, for the loops
         for j=fctrs
-            if size(fx,1)==1
+            % Rows of f of the state of factor j
+            xrowsel = cumsum([0;xsize(:)]);
+            if size(fx,1)==xsize(rows(j))
                 fj = fx;                % indexing not supported for multiple components
             else
-                fj = fx(rows(j),:);
+                fj = fx(xrowsel(rows(j))+1:xrowsel(rows(j)+1),:);
             end
             dV = dV + subs(subs(Wk,j,fj),names_pde,Tx);
         end
