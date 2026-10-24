@@ -3,11 +3,11 @@ function varargout = size(P,dim)
 % varargout = size(P,dim) gives the size of PI operator P: R^p x L2^q to
 % R^m x L2^n along dimensions dim
 % 
-% INPUT
+% INPUTS
 % P: sopvar class object
 % dim: a scalar or 1-by-2 non-zero integer vector
 % 
-% OUTPUT
+% OUTPUTS
 % varargout: one value if dim is scalar, two values if no dim is specified
 % 
 % NOTES:

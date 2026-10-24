@@ -3,12 +3,12 @@ function Pout = repmat(P,varargin)
 % Pout = repmat(P,p,q) tiles the sdopvar object P into a p-by-q block
 % pattern, so that Pout is the operator whose (i,j) block is P.
 %
-% INPUT
+% INPUTS
 % P:        sdopvar class object
 % p,q:      number of copies down and across; may also be given as [p,q],
 %           or as a single scalar p meaning [p,p]
 %
-% OUTPUT
+% OUTPUTS
 % Pout:     sdopvar object of dimension [p*P.dims(1), q*P.dims(2)]
 %
 % NOTES:

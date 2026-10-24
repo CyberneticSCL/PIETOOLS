@@ -4,11 +4,11 @@ function Pcat = vertcat(varargin)
 % vertically, so that Pcat maps x to the stacked output (A*x;B*x;...). All
 % operands must share the input space.
 %
-% INPUT
+% INPUTS
 % varargin: sdopvar objects with matching vars, dom and input dimension. A
 %           fixed 'sopvar' operand is accepted and promoted;
 %
-% OUTPUT
+% OUTPUTS
 % Pcat:     sdopvar object of dimension [sum of output dimensions, A.dims(2)]
 %
 % NOTES:

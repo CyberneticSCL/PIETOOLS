@@ -1,15 +1,25 @@
 function [Pblkdiag] = blkdiag(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [Pcat] = horzcat(varargin) takes n inputs and concatentates them vertically,
+% [Pblkdiag] = blkdiag(varargin) takes n inputs and concatenates them
+% block-diagonally,
 % provided they satisfy the following criteria:
-% 1) All input must be of type 'sopvar' 
+%
+% INPUTS
+% - varargin:   two or more 'sopvar' objects A_1,...,A_n defined on the
+%               same domains and spatial variables;
+%
+% OUTPUTS
+% - Pblkdiag:   'sopvar' object representing blkdiag(A_1,...,A_n), with
+%               dims the sum of those of the inputs, and with ZL, ZR the
+%               unions of the monomial bases of the inputs;
+% 1) All input must be of type 'sopvar'
  
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETools - horzcat
+% PIETools - blkdiag
 %
 % Copyright (C)2019  M. Peet, S. Shivakumar
 %

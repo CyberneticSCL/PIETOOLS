@@ -3,11 +3,11 @@ function out = end(a,k,n)
 % out = end(a,k,n) is used to establish the size of sdopvar object a
 % associated with index k out of n (used in subsref, e.g. a(i:end,j:end))
 %
-% INPUT
+% INPUTS
 % a:    sdopvar class object
 % k,n:  natural numbers
 %
-% OUTPUT
+% OUTPUTS
 % out:  the size of a along dim k
 %
 % NOTES:

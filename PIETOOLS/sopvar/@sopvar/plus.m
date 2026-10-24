@@ -4,12 +4,12 @@ function C = plus(A,B)
 % Date: 1/16/26
 % Version: 1.0
 % 
-% INPUT
+% INPUTS
 % A: sopvar class object L_2^p[Si,...Sn] to L_2^q[Sj,...,Sm]
 % B: sopvar class object L_2^p[Si,...Sn] to L_2^q[Sj,...,Sm]
 % Note: A,B must have identical dimensions and domains
 %
-% OUTPUT
+% OUTPUTS
 % C = A+B:  L_2^q[Sj,...,Sm] to L_2^p[Si,...Sn]
 % 
 % NOTES:

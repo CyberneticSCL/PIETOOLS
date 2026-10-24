@@ -4,12 +4,12 @@ function Pd = sopvar2sdopvar(P,Zd)
 % sdopvar object representing the same operator as a decision operator that
 % happens not to depend on any decision variable.
 %
-% INPUT
+% INPUTS
 % P:    'sopvar' object;
 % Zd:   (optional) cell array naming the decision variables of the result,
 %       in the order they are to be indexed. Defaults to none;
 %
-% OUTPUT
+% OUTPUTS
 % Pd:   'sdopvar' object representing the same operator as P, with
 %           vec(C_gamma(d)) = A_gamma + B_gamma'*d,   B_gamma = 0.
 %

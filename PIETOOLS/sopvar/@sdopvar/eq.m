@@ -1,5 +1,45 @@
 function logval = eq(P1,P2,tol)
 % Test equality of two sdopvar objects after aligning decision and monomial bases.
+%
+% INPUTS
+% - P1, P2: 'sdopvar' objects of the same size; one of them may instead be
+%           the scalar 0, in which case the other is tested for being zero;
+% - tol:    (optional) scalar tolerance, default 1e-14. Entries differ if
+%           their absolute difference is >= tol;
+%
+% OUTPUTS
+% - logval: logical, true if P1 and P2 have the same dimensions, variables,
+%           domains and number of parameters, and, after 'sync_basis' has
+%           put them on common decision-variable and monomial bases, their
+%           coefficients A and B agree entrywise within tol. This tests the
+%           stored coefficients, which determine the operator since the
+%           canonical multiplier form is a class invariant;
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - eq
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+
 if nargin<3
     tol = 1e-14;
 end

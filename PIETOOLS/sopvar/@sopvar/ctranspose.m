@@ -4,7 +4,7 @@ function At = ctranspose(A)
 % Date: 1/16/26
 % Version: 1.0
 % 
-% INPUT
+% INPUTS
 % A: sopvar class object
 %   of the form 
 %         sum_alpha int_S1 int_S3dum  I_alpha(S_3-S_3dum) Z_1(S_2,S_3) C{\alpha} Z_2(S1,S_3dum)
@@ -14,7 +14,7 @@ function At = ctranspose(A)
 %         S_1 is the variables in S_j (input) not in S_i (output)
 %         S_3 is the variables common to S_j (input) and S_i (output)
 %         S_3dum are dummy versions of the variables in S_3
-% OUTPUT
+% OUTPUTS
 % At: transpose of the input opvar with the same matlab structure as
 %   At: L_2^q[S_2,S_3] to L_2^p[S1,...Sn]
 %   of the form 

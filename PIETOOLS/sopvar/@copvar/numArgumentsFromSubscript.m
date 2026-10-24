@@ -4,6 +4,16 @@ function n = numArgumentsFromSubscript(P,s,ctx)
 % outputs of the indexing expression S on the 'copvar' P, which MATLAB
 % passes to the overloaded 'subsref' / 'subsasgn' as nargout.
 %
+% INPUTS
+% - P:      container object, a 'copvar';
+% - s:      struct array of subscripts (fields 'type' and 'subs') of the
+%           indexing expression, as passed by MATLAB;
+% - ctx:    matlab.indexing.IndexingContext of the expression (statement,
+%           expression or assignment);
+%
+% OUTPUTS
+% - n:      nonnegative integer, the number of outputs MATLAB should expect;
+%
 % Why: once 'subsref' is overloaded, MATLAB's default count is 1, so a
 % comma list such as {P.C{:}} or [P.C{:}] silently kept only its first
 % element (measured, R2025b). The builtin count restores the behaviour of

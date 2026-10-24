@@ -4,11 +4,11 @@ function logval = eq(P1,P2,tol)
 % Date: 6/13/19
 % Version: 1.0
 % 
-% INPUT
+% INPUTS
 % P1, P2: sopvar class objects
 % tol: acceptable tolerance value. If max(P1-P2)<tol, then P1=P2
 % 
-% OUTPUT
+% OUTPUTS
 % logval: returns 1 if the objects are equal, 0 if not equal
 %
 

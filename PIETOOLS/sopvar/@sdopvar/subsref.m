@@ -4,11 +4,11 @@ function [out,varargout] = subsref(obj,s)                                   % MM
 % obj(I,J) returns the sub-operator mapping the input components J to the
 % output components I, rather than indexing the MATLAB object array.
 %
-% INPUT
+% INPUTS
 % obj:  sdopvar class object
 % s:    substruct specifying the indexing operation
 %
-% OUTPUT
+% OUTPUTS
 % out:  for s(1).type '.', the requested property; for '()', an sdopvar
 %       object of dimension [numel(I),numel(J)]
 %

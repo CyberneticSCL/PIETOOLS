@@ -6,11 +6,11 @@ function C = mtimes(A,B)
 % Date: 1/16/26
 % Version: 1.0
 % 
-% INPUT
+% INPUTS
 % A: sopvar class object L_2^q[S4,S5] to L_2^r[S6,S5]
 % B: sopvar class object L_2^p[S1,S3] to L_2^q[S2,S3]
 %
-% OUTPUT
+% OUTPUTS
 % C = AB:  L_2^p[S7,S8] to L_2^r[S9,S8]
 % 
 % Where S7= S1, S3 cap S4                   %S1=S1, S3b= S3 cap S4 
@@ -1362,7 +1362,7 @@ JJ = k3b + (jv-1)*nz3b;                                                     % MM
 
 C3a = sparse(II, JJ, VV, m*nz2a*nz3a, n*nz3b);
 
-% Outputs
+% OUTPUTS
 Z2aout = Z2anew;
 Z3bout = Z3bnew;
 

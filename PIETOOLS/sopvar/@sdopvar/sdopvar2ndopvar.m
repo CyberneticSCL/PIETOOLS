@@ -1,6 +1,6 @@
 function obj = sdopvar2ndopvar(objsdopvar)
-% OBJ = SOPVAR2OPVAR(OBJSOPVAR) takes a sdopvar object representing a 4-PI
-% operator component and returns an ndopvar object representing the same
+% OBJ = SDOPVAR2NDOPVAR(OBJSDOPVAR) takes an sdopvar object representing a
+% 4-PI operator component and returns an ndopvar object representing the same
 % operator.
 %
 % INPUTS
@@ -13,7 +13,7 @@ function obj = sdopvar2ndopvar(objsdopvar)
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - sopvar2opvar
+% PIETOOLS - sdopvar2ndopvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %

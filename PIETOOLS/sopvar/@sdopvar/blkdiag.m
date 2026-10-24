@@ -4,11 +4,11 @@ function Pblkdiag = blkdiag(varargin)
 % so that Pblkdiag maps the stacked input (x_A;x_B;...) to the stacked
 % output (A*x_A; B*x_B; ...).
 %
-% INPUT
+% INPUTS
 % varargin: sdopvar objects sharing vars and dom. Dimensions need not match.
 %           A fixed 'sopvar' operand is accepted and promoted;
 %
-% OUTPUT
+% OUTPUTS
 % Pblkdiag: sdopvar object of dimension [sum of output dims, sum of input dims]
 %
 % NOTES:

@@ -3,12 +3,12 @@ function Pout = repelem(P,varargin)
 % Pout = repelem(P,p,q) repeats each block of the sdopvar object P, p times
 % down and q times across, keeping the copies of a block adjacent.
 %
-% INPUT
+% INPUTS
 % P:        sdopvar class object
 % p,q:      number of copies of each row block and each column block; may
 %           also be given as [p,q]
 %
-% OUTPUT
+% OUTPUTS
 % Pout:     sdopvar object of dimension [p*P.dims(1), q*P.dims(2)]
 %
 % NOTES:

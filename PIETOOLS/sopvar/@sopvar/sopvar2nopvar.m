@@ -1,5 +1,5 @@
 function obj = sopvar2nopvar(objsopvar)
-% OBJ = SOPVAR2OPVAR(OBJSOPVAR) takes a sopvar object representing a 4-PI
+% OBJ = SOPVAR2NOPVAR(OBJSOPVAR) takes a sopvar object representing a 4-PI
 % operator component and returns an nopvar object representing the same
 % operator.
 %
@@ -13,7 +13,7 @@ function obj = sopvar2nopvar(objsopvar)
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - sopvar2opvar
+% PIETOOLS - sopvar2nopvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %

@@ -3,11 +3,11 @@ function varargout = size(P,dim)
 % [m,n] = size(P) returns the dimensions of the operator represented by the
 % sdopvar object P, i.e. P maps L_2^n[vars.in] to L_2^m[vars.out].
 %
-% INPUT
+% INPUTS
 % P:    sdopvar class object
 % dim:  (optional) 1 to request the number of rows, 2 the number of columns
 %
-% OUTPUT
+% OUTPUTS
 % varargout: [m,n] = P.dims, or P.dims(dim) if dim is specified
 %
 % NOTES:

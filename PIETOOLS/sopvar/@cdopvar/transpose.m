@@ -4,6 +4,12 @@ function Pt = transpose(P)
 % (@sopvar/transpose, @sdopvar/transpose): all parameters are real, so the
 % transpose and the adjoint coincide.
 %
+% INPUTS
+% - P:      'cdopvar' container;
+%
+% OUTPUTS
+% - Pt:     'cdopvar' container, the adjoint of P, as returned by 'ctranspose';
+%
 % Why: without this method P.' is the builtin transpose of a scalar object
 % and returned P unchanged, a silently wrong operator whenever P is not
 % self-adjoint.

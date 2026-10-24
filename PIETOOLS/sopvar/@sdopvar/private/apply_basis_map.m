@@ -4,14 +4,14 @@ function [Aout,Bout] = apply_basis_map(T,Ain,Bin)
 % coefficient  vec(C) = A + B'*d  on the merged monomial bases, using the
 % map T returned by 'sync_basis'.
 %
-% INPUT
+% INPUTS
 % T:        the scatter from 'sync_basis' -- a struct with fields 'idx'
 %           (destination vec position of each source position) and 'nC'
 %           (length of the destination) -- or [] when it is the identity;
 % Ain,Bin:  one parameter cell of an sdopvar, i.e. vec(C) and its q x nC
 %           block of decision variable coefficients;
 %
-% OUTPUT
+% OUTPUTS
 % Aout,Bout: the same coefficient on the merged bases;
 %
 % NOTES

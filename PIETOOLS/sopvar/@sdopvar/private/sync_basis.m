@@ -5,7 +5,7 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 % decision variable list and a common pair of monomial bases, in one pass
 % over all N rather than N-1 pairwise merges.
 %
-% INPUT
+% INPUTS
 % objs: 1 x N cell of 'sdopvar' objects. They must already agree on vars and
 %       dom; this routine reconciles only Zd, ZL and ZR;
 % shared_Zd: (optional) true is the CALLER's guarantee that each operand's  % MMP, 09/26/2026
@@ -13,7 +13,7 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 %       built from one list. The O(q)-per-operand comparison is skipped.    % MMP, 09/26/2026
 %       Default false;                                                      % MMP, 09/26/2026
 %
-% OUTPUT
+% OUTPUTS
 % objs: the same operators, with the rows of params.B reordered onto the
 %       merged decision variable list Zd (zero rows for variables the
 %       operand does not use);

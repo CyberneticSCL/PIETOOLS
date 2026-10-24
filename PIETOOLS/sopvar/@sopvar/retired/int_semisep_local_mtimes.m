@@ -3,6 +3,33 @@
 % sopvar/int_semisep.m. Verified equivalent to that routine except that it
 % fills every repeated row of idxbeta/idxalpha rather than only the first;
 % the shared routine now does the same. Kept for reference only: this
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - int_semisep_local_mtimes
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+%
 % folder is inside an @-folder and so is never on the MATLAB path.
 
 function [C_gam_alp_beta,ZL,ZR] = int_semisep(G,idxbeta,idxalpha,lims,Csize)
@@ -296,7 +323,7 @@ function Cout = rearrangeCoef(Cmul,C,p,q,Zint)
 %
 %   (I_p \otimes Z(s)') * Cout * (I_q \otimes Z(t)).
 %
-% OUTPUT
+% OUTPUTS
 %   Cout : sparse matrix of size p*NZ by q*NZ
 
 Zint = Zint(:).';

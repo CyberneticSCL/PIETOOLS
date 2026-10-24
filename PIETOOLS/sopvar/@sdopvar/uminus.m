@@ -2,10 +2,10 @@ function Pop_out = uminus(Pop_in)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pop_out = uminus(Pop_in) or -Pop_in negates an sdopvar operator.
 %
-% INPUT
+% INPUTS
 % Pop_in:   'sdopvar' object;
 %
-% OUTPUT
+% OUTPUTS
 % Pop_out:  'sdopvar' object representing -Pop_in;
 %
 % NOTES:

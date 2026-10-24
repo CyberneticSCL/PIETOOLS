@@ -1,5 +1,5 @@
 function B = repelem(A,r1,r2)
-% B = REPELM(A,R1,R2) returns returns a modified version of the operator A
+% B = REPELEM(A,R1,R2) returns returns a modified version of the operator A
 % with each row repeated R1 times and each column repeated R2 times
 %
 % INPUTS

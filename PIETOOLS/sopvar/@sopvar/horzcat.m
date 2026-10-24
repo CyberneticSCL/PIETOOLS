@@ -1,8 +1,20 @@
 function [Pcat] = horzcat(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [Pcat] = horzcat(varargin) takes n inputs and concatentates them vertically,
+% [Pcat] = horzcat(varargin) takes n inputs and concatentates them horizontally,
 % provided they satisfy the following criteria:
 % 1) All input must be of type 'sopvar' 
+%
+% INPUTS
+% - varargin:   two or more 'sopvar' objects [A_1,...,A_n] with the same
+%               number of rows (dims(1)), domains and spatial variables. A
+%               'dpvar' entry is also accepted, in which case the call is
+%               routed to 'dpvar_op_copvar';
+%
+% OUTPUTS
+% - Pcat:       'sopvar' object representing [A_1,...,A_n], with dims(2)
+%               the sum of those of the inputs, and with ZL, ZR the unions
+%               of the monomial bases of the inputs. A container if any
+%               input is a 'dpvar';
  
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu

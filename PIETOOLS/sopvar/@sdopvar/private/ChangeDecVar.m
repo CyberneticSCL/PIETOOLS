@@ -5,6 +5,41 @@ function P = ChangeDecVar(P,Zd,loc)                                         % MM
 % this routine does not change the operator P. It only rewrites it so that B rows match a new decision-variable ordering Zd,
 % inserting zero rows for newly introduced decision variables.
 %
+% INPUTS
+% - P:   'sdopvar' object;
+% - Zd:  list of decision variables, containing every entry of P.Zd;
+% - loc: (optional) vector with the position in Zd of each entry of P.Zd;
+%        see the 09/25/2026 entry below;
+%
+% OUTPUTS
+% - P:   'sdopvar' object representing the same operator, with P.Zd = Zd,
+%        the rows of each B{i} rearranged to follow Zd, and zero rows for
+%        the decision variables newly introduced;
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - ChangeDecVar
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
 % MMP, 09/25/2026: Optional third input LOC, the position in Zd of each
 %                  entry of P.Zd, for a caller that moves many blocks sharing
 %                  one list and has the map already (the container
@@ -37,6 +72,7 @@ function P = ChangeDecVar(P,Zd,loc)                                         % MM
 %                  q = 1e7); peak memory inside the call rises by Pi when a
 %                  B cell is smaller than Pi (34 -> 69 MB at q = 3e6). The
 %                  no-LOC branch is re-indented (whitespace).
+%
 %% First, convert the existing decision-variable list P.Zd and the desired decision-variable list Zd 
 % into column string vectors for comparison and indexing.
 Zd_old = P.Zd(:).';

@@ -9,6 +9,17 @@ function [deg,report] = degbalance(P,opts)
 % in 'degbalance_core', which both the 'sopvar' and 'sdopvar' methods share
 % because the only class-dependent step is reading a cell's nonzeros.
 %
+% INPUTS
+% - P:    'sopvar' object, the operator whose degrees are to be matched;
+% - opts: (optional) 'struct' of options, with fields 'include', 'sep' and
+%         'weight' as documented in 'degbalance_core';
+%
+% OUTPUTS
+% - deg:    1 x nblk cell, one degree struct per block, with fields 'int',
+%           'mult', 'joint' and 'subset', to be passed to 'possopvar';
+% - report: 'struct' with fields 'lines' (what was decided) and 'maxdeg'
+%           (per-block maximal degrees read off P);
+%
 % See also DEGBALANCE_CORE, EQ_OPTS_SOPVAR, POSSOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -38,6 +49,7 @@ function [deg,report] = degbalance(P,opts)
 % Initial coding MMP, 09/21/2026: thin wrapper so 'degbalance' is reachable
 %                  as a method, matching '@opvar', '@dopvar' and
 %                  '@dopvar2d'.
+%
 
 if nargin<2
     [deg,report] = degbalance_core(P);

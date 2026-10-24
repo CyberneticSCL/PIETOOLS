@@ -1,13 +1,13 @@
 function Cop = minus(Aop,Bop)
-% COP = MINUS(AOP,BOP) returns the nopvar object representing the
+% COP = MINUS(AOP,BOP) returns the sopvar object representing the
 % difference of the PI operators defined by AOP and BOP.
 %
 % INPUTS
 % - Aop:    m x n 'sopvar' object
 % - Bop:    m x n 'sopvar' object
 %
-% OUTPUS
-% - Cop:    m x n 'sopvar' object representing the sum of the operators
+% OUTPUTS
+% - Cop:    m x n 'sopvar' object representing the difference of the operators
 %           defined by Aop and Bop
 %
 
@@ -35,6 +35,8 @@ function Cop = minus(Aop,Bop)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+%
+% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
 
 
 Cop = plus(Aop,uminus(Bop));

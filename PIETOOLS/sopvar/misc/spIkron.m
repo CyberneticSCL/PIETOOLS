@@ -23,6 +23,7 @@ function varargout = spIkron(q,varargin)
 % - IC: 1x5 cell representing the sparse matrix I o Cmat as
 %           ICmat = sparse(IC{1}, IC{2}, IC{3}, IC{4}, IC{5}).
 %
+% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
 
 % If C is specified as an actual array, we compute the kronecker product
 % using the built-in Matlab routine

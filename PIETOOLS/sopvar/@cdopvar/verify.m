@@ -3,6 +3,9 @@ function info = verify(P)                                                   % MM
 % INFO = VERIFY(P) checks that the blocks of a 'cdopvar' agree with its     % MMP, 09/30/2026
 % container metadata and with each other.
 %
+% INPUTS
+% - P:      'cdopvar' container to be checked;
+%
 % OUTPUTS
 % - info.true:   1 if P is consistent, 0 otherwise;                         % MMP, 09/30/2026
 % - info.flags:  cell array of messages, one per inconsistency, empty when

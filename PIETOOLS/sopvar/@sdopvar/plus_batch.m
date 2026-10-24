@@ -3,7 +3,7 @@ function C = plus_batch(varargin)
 % C = plus_batch(P1,P2,...,PN) sums N sdopvar operators, synchronizing all N
 % once instead of once per addition.
 %
-% INPUT
+% INPUTS
 % varargin: N 'sdopvar' objects of equal dimension, sharing vars and dom. A
 %           fixed 'sopvar' operand is accepted and promoted;
 %           a trailing 'shared_Zd' is the caller's guarantee that every     % MMP, 09/26/2026
@@ -11,7 +11,7 @@ function C = plus_batch(varargin)
 %           all were built from one Zd); it skips an O(q) comparison per    % MMP, 09/26/2026
 %           operand. Pass it only when that holds by construction;          % MMP, 09/26/2026
 %
-% OUTPUT
+% OUTPUTS
 % C:        'sdopvar' object equal to P1 + P2 + ... + PN
 %
 % NOTES:

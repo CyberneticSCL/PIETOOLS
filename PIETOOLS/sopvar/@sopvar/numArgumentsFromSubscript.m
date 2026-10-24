@@ -16,6 +16,16 @@ function n = numArgumentsFromSubscript(obj,s,ctx)
 % slice, {P(I,J).ZL{:}}, is therefore not served: @sopvar/subsref drops
 % the subscripts after '()' and returns the slice (pre-existing).
 %
+% INPUTS
+% - obj:    'sopvar' object being indexed;
+% - s:      struct array of subscripts, with fields 'type' ('.', '()' or
+%           '{}') and 'subs';
+% - ctx:    'matlab.indexing.IndexingContext' of the call, e.g. Assignment;
+%
+% OUTPUTS
+% - n:      scalar integer, the number of values the expression takes or
+%           yields;
+%
 % See also SUBSASGN, SUBSREF, SOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -47,6 +57,7 @@ function n = numArgumentsFromSubscript(obj,s,ctx)
 % Initial coding MMP, 09/29/2026, with 'subsasgn'. Reads that start with
 %                '.' return the builtin count too (same date), with the
 %                comma-list case of 'subsref'.
+%
 
 persistent props
 if strcmp(s(1).type,'.')

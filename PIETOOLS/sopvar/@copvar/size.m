@@ -12,6 +12,14 @@ function varargout = size(P,dim)
 % single component total is rarely the quantity wanted, so a caller who
 % needs one should name it.
 %
+% INPUTS
+% - P:      'copvar' container;
+% - dim:    (optional) 1 or 2, the dimension of the block grid to return;
+%
+% OUTPUTS
+% - varargout:  with dim, the scalar size(P.C,dim); with one output, the
+%               1 x 2 vector [M,N]; with two outputs, M and N separately;
+%
 % See also VERIFY, COPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu

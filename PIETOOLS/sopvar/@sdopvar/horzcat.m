@@ -4,11 +4,11 @@ function Pcat = horzcat(varargin)
 % horizontally, so that Pcat maps the stacked input (x_A;x_B;...) to
 % A*x_A + B*x_B + ... . All operands must share the output space.
 %
-% INPUT
+% INPUTS
 % varargin: sdopvar objects with matching vars, dom and output dimension. A
 %           fixed 'sopvar' operand is accepted and promoted;
 %
-% OUTPUT
+% OUTPUTS
 % Pcat:     sdopvar object of dimension [A.dims(1), sum of input dimensions]
 %
 % NOTES:

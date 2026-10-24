@@ -1,6 +1,40 @@
 function C = plus(A,B)
 % Add two sdopvar operators, preserving affine decision representation.
 %
+% INPUTS
+% - A, B:   'sdopvar' objects of the same size, mapping between the same
+%           spaces, or one of them a fixed 'sopvar' (promoted onto the
+%           decision variables of the other), or a 'dpvar' (scalar*I or
+%           matrix multiplier, via 'dpvar_op_copvar'). Text is refused;
+%
+% OUTPUTS
+% - C:      'sdopvar' object representing A + B, on the merged decision-
+%           variable and monomial bases; computed by 'plus_batch';
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - plus
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
 % MMP, 09/07/2026: Accept a fixed 'sopvar' summand, promoting it with
 % 'sopvar2sdopvar'. Adding a known block to a decision operator is normal
 % usage, and since 'sdopvar' now lists ?sopvar among its InferiorClasses
@@ -39,6 +73,7 @@ function C = plus(A,B)
 % (+3-8%), from plus_batch's operand handling; faster from two variables or
 % q >= 1e5 (47x for a 'sopvar' summand at three variables, q = 3e6). A text
 % summand is refused here, since plus_batch reads text as its option.
+%
 
 % dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
 % the promotion and checks below.                                           % MMP, 09/29/2026 (was)

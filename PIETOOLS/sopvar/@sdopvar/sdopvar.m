@@ -53,6 +53,28 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
     % Zd is a vector of decision variables, sorted (all monomial degrees 1)
     % ZL, ZR, vars, dom, dims, are same as in sopvar
     %
+    % CONSTRUCTOR P = sdopvar(params,vars,Zd,ZL,ZR,dom,dims)
+    %
+    % INPUTS
+    % - params: struct with fields 'A' and 'B', each a 3^n3 cell array, one
+    %           cell per multi-index alpha in {1,2,3}^n3; params.A{i} is the
+    %           vectorized constant part of the coefficient, params.B{i} the
+    %           nd x numel(params.A{i}) matrix of decision variable
+    %           coefficients (see CLASS properties);
+    % - vars:   struct with fields 'in' and 'out', cell arrays of the names of
+    %           the spatial variables of the input and output spaces;
+    % - Zd:     list of decision variables, with nd entries;
+    % - ZL, ZR: cell arrays of column vectors of monomial exponents in
+    %           vars.out and vars.in, respectively;
+    % - dom:    struct with fields 'in' and 'out', each an n x 2 array with the
+    %           interval of each variable in vars.in and vars.out;
+    % - dims:   1 x 2 vector, the size [p,q] of the operator;
+    %
+    % OUTPUTS
+    % - P:      'sdopvar' object, with variables put in the canonical order
+    %           and multipliers in canonical form (with a warning if rewritten);
+    %
+    %
     % CANONICAL MULTIPLIER FORM                                              % MMP, 08/29/2026
     % A parameter with alpha(k)==1 carries a factor delta(s_k-s_k'), which   % MMP, 08/29/2026
     % identifies s_k with s_k'. A coefficient at left degree a and right     % MMP, 08/29/2026
@@ -71,6 +93,30 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
     % what lets 'eq' compare coefficients and 'lpi_eq_sdopvar' constrain     % MMP, 08/29/2026
     % them to zero. Assigning to the properties directly bypasses the        % MMP, 08/29/2026
     % constructor and so bypasses the invariant; build a new object instead. % MMP, 08/29/2026
+    %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % PIETOOLS - sdopvar
+    %
+    % Copyright (C) 2026 PIETOOLS Team
+    %
+    % This program is free software; you can redistribute it and/or modify
+    % it under the terms of the GNU General Public License as published by
+    % the Free Software Foundation; either version 2 of the License, or
+    % (at your option) any later version.
+    %
+    % This program is distributed in the hope that it will be useful,
+    % but WITHOUT ANY WARRANTY; without even the implied warranty of
+    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    % GNU General Public License for more details.
+    %
+    % You should have received a copy of the GNU General Public License
+    % along with this program; if not, write to the Free Software
+    % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % If you modify this code, document all changes carefully and include date
+    % authorship, and a brief description of modifications
     %
     % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
     %                  mdopvar -> cdopvar, with every file and function named
@@ -101,6 +147,7 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
     %                  in mtimes.m are commented out) and
     %                  private/CombineDecisionBasis (dated 08/29/2026; its
     %                  callers moved to 'sync_basis' on 09/07/2026).
+    %
 
     properties
         vars = struct('in',{},'out',{});

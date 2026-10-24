@@ -10,7 +10,7 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
 %   K1(s,t) = M(s)^{-1} FG1(s,t) ≈ M(s)^{-1}F1(s)G1(t)
 %   K2(s,t) = M(s)^{-1} FG2(s,t) ≈ M(s)^{-1}F2(s)G2(t)
 %
-% Inputs
+% INPUTS
 %   M_qp   : quadPoly, m×m, depends only on s
 %   FG1_qp : quadPoly kernel, m×m, is NOT split
 %   FG2_qp : quadPoly kernel, m×m, is NOT split
@@ -23,7 +23,7 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
 %       .rk4_cfl  (default 0.5)    enforce h*L <= rk4_cfl
 %       .storeABC (default true)   store A(t) on grid for ODE (recommended)
 %
-% Outputs
+% OUTPUTS
 %   Minv_qp : quadPoly approx of M(s)^(-1) (left-only)
 %   RM1_qp  : quadPoly kernel for (R M^{-1})(s,t) for t <= s
 %   RM2_qp  : quadPoly kernel for (R M^{-1})(s,t) for t >  s
@@ -33,6 +33,33 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
 %   - Lambda is NOT used inside. FG1_qp/FG2_qp must already include it.
 %   - We solve U' = A(s) U, V' = -V A(s), where A(s)=B(s)C(s).
 %   - Fits Minv and RM kernels back to quadPoly only at the end.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - inv_1D
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+%
 
     % ----------------------- Defaults -----------------------
     if nargin < 5, opts = struct(); end
@@ -436,11 +463,11 @@ function [Zc, nc] = mergeBasis(Z1, n1, Z2, n2)
 % Assumes both sides use the SAME variable ordering and names when present.
 % If one side is "constant-only" ({0} or empty), it will be expanded to match the other.
 %
-% Inputs:
+% INPUTS
 %   Z1, Z2 : 1×k cell arrays of exponent vectors (each a column)
 %   n1, n2 : 1×k cell arrays of variable name strings (can be empty)
 %
-% Outputs:
+% OUTPUTS
 %   Zc : merged exponent cell array
 %   nc : merged variable name cell array
 

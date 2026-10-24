@@ -1,6 +1,44 @@
 function C = mtimes(A,B)
 % Multiplication for sdopvar with numeric matrices/scalars.
 %
+% INPUTS
+% - A, B:   the factors, one of which is an 'sdopvar'. The other is
+%           - a numeric scalar (scales the operator),
+%           - a numeric matrix of compatible size (multiplies the output or
+%             input components),
+%           - a fixed 'sopvar' (composition; the product stays affine in
+%             the decision variables), or
+%           - a 'dpvar' (routed to 'dpvar_op_copvar').
+%           A product of two 'sdopvar' objects is refused, being quadratic
+%           in the decision variables;
+%
+% OUTPUTS
+% - C:      'sdopvar' object representing the product A*B;
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - mtimes
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
 % MMP, 09/22/2026: Three changes to the assembly loop of
 %                  'mtimesSdopvarAndSopvar', which a time-and-memory profile
 %                  put at 29% of a three-variable composition. Line-profiled,
@@ -69,6 +107,7 @@ function C = mtimes(A,B)
 %                  scales, one with decision variables is refused (the
 %                  product is quadratic), a matrix multiplies the output or
 %                  input components. Before, dpvar*P left C unassigned.
+
 
 % dpvar factor: legacy semantics, before any work; the composition below    % MMP, 09/29/2026
 % is untouched.                                                             % MMP, 09/29/2026
@@ -1324,7 +1363,7 @@ end
 
 C3a = sparse(II, JJ, VV, m*nz2a*nz3a, n*nz3b);
 
-% Outputs
+% OUTPUTS
 Z2aout = Z2anew;
 Z3bout = Z3bnew;
 

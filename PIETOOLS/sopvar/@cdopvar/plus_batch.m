@@ -3,13 +3,13 @@ function C = plus_batch(varargin)
 % reconciling their decision variable lists ONCE, where a chain
 % P1 + P2 + ... + PN reconciles once per '+'.
 %
-% INPUT
+% INPUTS
 % varargin: N >= 1 'cdopvar' / 'copvar' containers, at least one a
 %           'cdopvar', on the same block grid, mapping between the same
 %           spaces with the same component dimensions (as for '+'). A
 %           'copvar' operand is promoted;
 %
-% OUTPUT
+% OUTPUTS
 % C:        'cdopvar' equal to P1 + P2 + ... + PN
 %
 % NOTES
@@ -27,6 +27,31 @@ function C = plus_batch(varargin)
 % 1.05 GB; N = 2, q = 1.5e4: 0.25 -> 0.19 s; N = 1: 0.16 -> 0.15 s.
 %
 % See also PLUS, PLUS_BATCH, MERGE_DVAR_LISTS, MERGE_COPVAR_REGISTRY.
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - plus_batch
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/01/2026
 

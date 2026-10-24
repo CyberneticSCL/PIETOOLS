@@ -1,6 +1,39 @@
 function At = ctranspose(A)
 % Pt = ctranspose(P) transposes a sdopvar operator P: L_2^p[S1,S3] to L_2^q[S2,S3]
 % Date: 8/17/26
+% INPUTS
+% - A:  'sdopvar' object representing a PI operator from L_2^p[S1,S3] to
+%       L_2^q[S2,S3];
+%
+% OUTPUTS
+% - At: 'sdopvar' object representing the adjoint operator, from
+%       L_2^q[S2,S3] to L_2^p[S1,S3], with the input and output variables
+%       and domains exchanged and the same decision variables A.Zd;
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - ctranspose
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
 %
 % MMP, 08/29/2026: Preserve the canonical multiplier form. Swapping the bases
 %                  in a multiplier direction moves the monomial degrees onto
@@ -11,6 +44,7 @@ function At = ctranspose(A)
 %                  constraining the operator. The adjoint is now assembled
 %                  through 'canonical_adjoint_map', which swaps only the
 %                  integral directions.
+%
 % Compute the number of variables S3 that appear in both the input and output spaces.
 nvars3 = numel(intersect(A.vars.in,A.vars.out));
 % each common variable has three kernel types: multiplier, lower integral, upper integral.

@@ -64,6 +64,17 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
 % two-argument constructor, so the O(M*N*q) check is paid once at
 % construction, not once per operation.
 %
+% INPUTS
+% - C:      M x N cell of 'sdopvar' / 'sopvar' blocks, [] for a zero block;
+%           or a 'copvar' Q, which is promoted, keeping its blocks and
+%           leaving Zd empty;
+% - meta:   (optional) struct with fields vars, dom, space_out, space_in,
+%           dim_out, dim_in, Zd, trusted as is, validation skipped;
+%
+% OUTPUTS
+% - P:      'cdopvar' container. Called with no output, as 'cdopvar P1 P2',
+%           it declares empty containers P1, P2 in the caller;
+%
 % See also COPVAR, VERIFY, SIZE, PLUS, CTRANSPOSE, MTIMES, SDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu

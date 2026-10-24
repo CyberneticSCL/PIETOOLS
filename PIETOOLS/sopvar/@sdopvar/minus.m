@@ -2,11 +2,11 @@ function Cop = minus(Aop,Bop)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Cop = minus(Aop,Bop) or Aop-Bop subtracts two sdopvar operators.
 %
-% INPUT
+% INPUTS
 % Aop,Bop:  'sdopvar' objects of equal dimension, sharing vars and dom. A
 %           fixed 'sopvar' operand is accepted, on either side;
 %
-% OUTPUT
+% OUTPUTS
 % Cop:      'sdopvar' object representing Aop-Bop;
 %
 % NOTES:

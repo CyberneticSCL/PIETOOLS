@@ -11,6 +11,18 @@ function [Pcat] = vertcat(varargin)
 %       that is, opvars always mapt to from RxL2, never to L2xR. We cannot
 %       concatenate e.g. [A;B] for A:R-->L2 and B:R-->R.
 %
+% INPUTS
+% - varargin:   two or more 'sopvar' objects [A_1;...;A_n] with the same
+%               number of columns (dims(2)), domains and spatial variables.
+%               A 'dpvar' entry is also accepted, in which case the call is
+%               routed to 'dpvar_op_copvar';
+%
+% OUTPUTS
+% - Pcat:       'sopvar' object representing [A_1;...;A_n], with dims(1)
+%               the sum of those of the inputs, and with ZL, ZR the unions
+%               of the monomial bases of the inputs. A container if any
+%               input is a 'dpvar';
+%
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu

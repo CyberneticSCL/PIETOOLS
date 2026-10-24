@@ -375,7 +375,7 @@ function Cout = rearrangeCoef(Cmul,C,p,q,Zint)
 %
 %   (I_p \otimes Z(s)') * Cout * (I_q \otimes Z(t)).
 %
-% OUTPUT
+% OUTPUTS
 %   Cout : sparse matrix of size p*NZ by q*NZ
 
 Zint = Zint(:).';

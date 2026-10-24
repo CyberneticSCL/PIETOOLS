@@ -16,6 +16,16 @@ function n = numArgumentsFromSubscript(obj,s,ctx)
 % slice, {P(I,J).Zd{:}}, therefore still holds its first element only
 % (pre-existing).
 %
+% INPUTS
+% - obj:    'sdopvar' object being indexed;
+% - s:      struct array describing the indexing expression, with fields
+%           'type' ('.', '()' or '{}') and 'subs', as passed by MATLAB;
+% - ctx:    matlab.indexing.IndexingContext of the expression (assignment
+%           or not);
+%
+% OUTPUTS
+% - n:      number of values the indexing expression takes or yields;
+%
 % See also SUBSASGN, SUBSREF, SDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -47,6 +57,7 @@ function n = numArgumentsFromSubscript(obj,s,ctx)
 % Initial coding MMP, 09/29/2026, with 'subsasgn'. Reads that start with
 %                '.' return the builtin count too (same date), with the
 %                comma-list case of 'subsref'.
+%
 
 persistent props
 if strcmp(s(1).type,'.')

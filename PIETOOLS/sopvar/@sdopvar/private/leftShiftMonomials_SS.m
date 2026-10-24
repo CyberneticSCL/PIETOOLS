@@ -13,6 +13,50 @@ function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 %   vec(CC{I,J}) = Tmap{I} * vec(CA{I,J})
 %
 % This is useful when CA{I,J} is not numeric but represented through
+%
+% INPUTS
+% - varsA, varsB:   cell arrays of spatial variable names;
+% - ZA, ZB:         cell arrays (one entry per variable) of column vectors
+%                   of monomial exponents; NA = prod(cellfun(@numel,ZA)),
+%                   and NB similarly (1 if empty);
+% - CA:             nI x nJ cell of numeric (p*NA) x q matrices;
+% - CB:             nI x 1 cell of numeric (q*NB) x r matrices;
+%
+% OUTPUTS
+% - varsC:  union of varsA and varsB;
+% - ZC:     cell array of column vectors of exponents, the sums of those of
+%           ZA and ZB in each variable; NC = prod(cellfun(@numel,ZC));
+% - CC:     nI x nJ cell of numeric (p*NC) x r matrices;
+% - Tmap:   (optional, computed only if requested) nI x 1 cell of sparse
+%           (p*NC*r) x (p*NA*q) matrices with vec(CC{I,J}) = Tmap{I}*vec(CA{I,J});
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - leftShiftMonomials_SS
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+%
+
 % decision-parameter coefficients.
 
 varsA = varsA(:).';
