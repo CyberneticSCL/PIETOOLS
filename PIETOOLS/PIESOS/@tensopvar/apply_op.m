@@ -26,6 +26,10 @@ function Y = apply_op(Cop,X)
 %   of the inputs. If Cop.otype(1)==1, then m = m1 =...= mp, and the output
 %   represents the elementwise product of each of the operators applied to
 %   each of the factors. If Cop.otype(1)==2, then m = m1*...*mp.
+% - If Cop.otype(1)==2, the copies of each output variable s are named s_1,
+%   s_2,..., numbered over the factors in order. A nested factor with k
+%   copies of s (as in Cop.depmat.out) takes k consecutive numbers, a
+%   nested single factor and a nested pointwise product one.
 % - Each operator in Cop.ops may be a 'tensopvar' or 'intop' object, to
 %   which its own 'apply_op' is applied, or a 'sopvar' object, to which
 %   'apply_sopvar' is applied.
@@ -55,6 +59,8 @@ function Y = apply_op(Cop,X)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/22/2026: Number the copies of an output variable in a tensor
+%                   product over the factors by their copies in depmat;
 
 
 % Check that the tensor-PI operator is properly specified
@@ -110,8 +116,11 @@ end
 % associated factor in the distributed monomial
 Y = 0;
 vars_out = Cop.vars.out;
-depmat_out = logical(Cop.depmat.out);
-degs = cumsum(depmat_out,1);
+% Copies of each output variable in each factor (more than 1 for a nested tensor product), and
+% the number of copies up to and including each factor, for numbering the copies in a tensor product
+ncps_out = Cop.depmat.out;
+depmat_out = logical(ncps_out);
+degs = cumsum(ncps_out,1);
 for i=1:ntrms
     Yi = 1;
     % The nested factors may differ between terms, so split the inputs for each term
@@ -134,13 +143,30 @@ for i=1:ntrms
             % --> need to replace variables
             vars_ij = vars_out(depmat_out(j,:));
             degs_ij = degs(j,depmat_out(j,:));
+            ncps_ij = ncps_out(j,depmat_out(j,:));
             %vars_new = vars_ij;
+            % Factor j has ncps copies of s, numbered degs-ncps+1,...,degs in the product. Its own
+            % output names them s_1,...,s_ncps, or s for a single copy of a leaf or pointwise product.
+            % Match on the old names, so that no copy is renamed twice
+            names_old = Yij.varname;
+            names_new = names_old;
             for k=1:numel(vars_ij)
-                is_varij = ismember(Yij.varname,vars_ij{k});
+                is_varij = strcmp(names_old,vars_ij{k});
                 if any(is_varij)
-                    Yij.varname(is_varij) = {[vars_ij{k},'_',num2str(degs_ij(k))]};
-                    %vars_new{k} = [vars_ij{k},'_',num2str(degs_ij(k))];
+                    % Unnumbered copy: must be the only copy
+                    if ncps_ij(k)>1 || any(strcmp(names_old,[vars_ij{k},'_1']))
+                        error("Output variable '%s' of a factor in a tensor product has both numbered and unnumbered copies.",vars_ij{k})
+                    end
+                    names_new(is_varij) = {sprintf('%s_%d',vars_ij{k},degs_ij(k))};
+                else
+                    for l=1:ncps_ij(k)
+                        is_varij = strcmp(names_old,sprintf('%s_%d',vars_ij{k},l));
+                        names_new(is_varij) = {sprintf('%s_%d',vars_ij{k},degs_ij(k)-ncps_ij(k)+l)};
+                    end
                 end
+            end
+            if ~isequal(names_new,names_old)
+                Yij.varname = names_new;
             end
             Yi = kron(Yi,Yij);
         end

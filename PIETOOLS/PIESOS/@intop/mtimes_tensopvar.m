@@ -56,6 +56,8 @@ function Cop = mtimes_tensopvar(Aop,Bop)
 % DJ, 10/21/2026: Compare empty variable lists regardless of shape;
 % DJ, 10/21/2026: Name variable groups S1, S2 as in 'sopvar';
 % DJ, 10/22/2026: Move 'enumerate_valid_orders' to '@intop/private';
+% DJ, 10/23/2026: Support Kronecker product of operators as a factor in a
+%                   pointwise product.
 
 % Check that the functional is properly specified.
 if ~isa(Aop,'intop')
@@ -666,8 +668,8 @@ for i=1:ntrms
             if ~opN.chkval
                 opN = initialize(opN);
             end
-            if opN.otype(2)==1 || (otypeR(1)==1 && opN.otype(1)==2 && size(opN.ops,2)>1)
-                error("Pointwise product of the input dimensions, or of a tensor product of operators, in a nested tensor-PI operator is not supported.")
+            if opN.otype(2)==1
+                error("Pointwise product of the input dimensions in a nested tensor-PI operator is not supported.")
             end
             % Extract the parameters and integrals by recursion, starting at the
             % dummy variables for the factors before. A single term in the

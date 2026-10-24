@@ -1,4 +1,8 @@
-% Test_tensopvar_apply_op_nested.m -- tests apply_op of a 'tensopvar' with
+% Test_tensopvar_apply_op.m -- tests apply_op of a 'tensopvar' with nested factors, in two
+% parts, the descriptions of which follow (the first, formerly
+% Test_tensopvar_apply_op_nested, and the second, formerly Test_tensopvar_apply_op_nested_tensor).
+%
+% ============ Part 1: check_nested ============
 % nested factors (a 'tensopvar' as factor of another), applied to a cell
 % with one input for each factor, counting those of the nested operators
 % (num_factors(Cop)), as apply_poly/subs pass them for the operator acting
@@ -29,15 +33,50 @@
 % right (cases 1.x).
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/22/2026: Also compare cases 2.1, 2.2 with apply_nested, as
+%   apply_op now numbers the copies of the output variables of nested
+%   tensor products (s_1,s_2,s_3); see Part 2 below;
 
 % NOTES
-% - Kronecker products of operators nested in Kronecker products (cases
-%   2.1, 2.2) are only compared to the 1 x d form: apply_op names the
-%   output variables one per factor of the outer operator (s_1,s_2), where
-%   apply_nested numbers each leaf operator (s_1,s_2,s_3);
 % - Substitution of some, not all, states in a nested operator: see
 %   Test_tensopvar_mtimes_nested.
 
+% ============ Part 2: check_nested_tensor ============
+% product (otype(1)=2) of which some factors are 'tensopvar' objects
+% themselves (nested factors): a pointwise product A1.*A2, a tensor product
+% N = A1 o B1 with several copies of the output variable, a single factor
+% B1 (with otype [2,2] or [1,2]), and combinations of these, in up to four
+% levels. The operators are built by hand (ops, otype, initialize), so
+% that depmat has one row for each factor of each layer, with the
+% dependency (deps) of the factor for a nested factor, as in otimes with
+% operands of different types.
+%
+% Oracle (independent of apply_op): each of the 'sopvar' operators is
+% applied to its own input by apply_sopvar; the output variable s is
+% renamed to its k-th copy s_k, with k numbering the sopvar factors in the
+% product in order (separately for each output variable; the sopvar
+% factors of a pointwise product share the copy); the results are
+% multiplied, summed over the terms.
+%
+% DJ (CC), 10/22/2026: Initial coding;
+
+% NOTES
+% - The inputs are passed as a flat cell, one for each sopvar factor in
+%   order (num_factors), and, for some cases, as the 1 x d cell with the
+%   inputs of nested factors as cells.
+% - A pointwise product with both numbered (s_1,s_2) and unnumbered (s)
+%   copies of a variable in a nested factor of a tensor product cannot be
+%   renamed unambiguously: apply_op must raise an error (case 9).
+
+% DJ (CC), 10/23/2026: Merge of Test_tensopvar_apply_op_nested and
+%   Test_tensopvar_apply_op_nested_tensor;
+
+check_nested();
+check_nested_tensor();
+disp('Test_tensopvar_apply_op passed.')
+
+
+function check_nested()
 tol = 1e-8;
 ncases = 0;
 pvar s s1 s2
@@ -76,7 +115,7 @@ for k=1:size(specs,1)
         f = f{1};
         Top = f.C.ops{1,1};
         if ~isa(Top,'tensopvar') || ~any(cellfun('isclass',Top.ops(:),'tensopvar'))
-            error("Test_tensopvar_apply_op_nested failed (1.%d): setup: the operator should be nested.",k)
+            error("Test_tensopvar_apply_op failed (1.%d): setup: the operator should be nested.",k)
         end
         assert_close(apply_poly(f,{xv,yv}),Yref,tol,sprintf('(1.%d)',k));
         ncases = ncases+1;
@@ -119,10 +158,10 @@ for variant=1:6
     Yflat = apply_op(Bop,leaves);
     Ystruct = apply_op(Bop,nest_leaves(Bop,leaves));
     assert_close(Yflat,Ystruct,tol,sprintf('(2.%d) vs 1 x d form',variant));
-    if variant>=3
+%   if variant>=3                                                           % DJ (CC), 10/22/2026 (was)
         Yref = apply_nested(Bop,leaves,1,zeros(1,numel(Bop.vars.out)),Bop.vars.out);
         assert_close(Yflat,Yref,tol,sprintf('(2.%d) vs apply_nested',variant));
-    end
+%   end                                                                     % DJ (CC), 10/22/2026 (was)
     ncases = ncases+1;
 end
 
@@ -178,25 +217,187 @@ assert_close(Y1,Y1c,tol,'(4) single factor');
 expect_error(@() apply_op(T,v1),'1xd cell');
 expect_error(@() apply_op(T,{v1,v2,v1}),'1xd cell');
 ncases = ncases+11;
+end
 
-fprintf('Test_tensopvar_apply_op_nested passed (%d cases).\n',ncases)
+function check_nested_tensor()
+tol = 1e-8;
+ncases = 0;
+rng(41);
 
+% Output variable y (input x), and y2 (input x2)
+dom01 = struct('in',[0,1],'out',[0,1]);
+vx_y = struct('in',{{'x'}},'out',{{'y'}});
+vx_y2 = struct('in',{{'x2'}},'out',{{'y2'}});
+vx_yy2 = struct('in',{{'x'}},'out',{{'y','y2'}});
+lf_y = @() rand_sopvar([1,1],vx_y,dom01,struct('in',2,'out',2),0.6);
+lf_y2 = @() rand_sopvar([1,1],vx_y2,dom01,struct('in',2,'out',2),0.6);
+lf_yy2 = @() rand_sopvar([1,1],vx_yy2,struct('in',[0,1],'out',[0,1;0,1]),struct('in',2,'out',[2,2]),0.6);
+px = polynomial({'x'});     px2 = polynomial({'x2'});
+rp = @() rand_poly([1,1],px,2,50);
+rp2 = @() rand_poly([1,1],px2,2,50);
+% Output of a sopvar operator R on its input v
+ap = @(R,v) apply_sopvar(R,v);
 
-%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+%% (1) Pointwise product A1.*A2 and a single factor B1: Apw o B1 and B1 o Apw
+for otB=[2,1]       % otype(1) of the single factor B1 has no effect
+    a1 = lf_y();    a2 = lf_y();    b1 = lf_y();
+    v1 = rp();      v2 = rp();      v3 = rp();
+    Apw = mk({a1,a2},[1,2]);
+    B1 = mk({b1},[otB,2]);
+    pw = ap(a1,v1).*ap(a2,v2);
+    C = mk({Apw,B1},[2,2]);
+    check_rows(C,2,'(1) Apw o B1');
+    check_equal(apply_op(C,{v1,v2,v3}),rn(pw,'y',1)*rn(ap(b1,v3),'y',2),'(1) Apw o B1');
+    C = mk({B1,Apw},[2,2]);
+    check_equal(apply_op(C,{v3,v1,v2}),rn(ap(b1,v3),'y',1)*rn(pw,'y',2),'(1) B1 o Apw');
+    ncases = ncases+2;
+end
+
+%% (2) Tensor product N = A1 o B1 (2 copies of y) and a pointwise product: N o Apw, Apw o N
+a1 = lf_y();    a2 = lf_y();    a3 = lf_y();    b1 = lf_y();
+v1 = rp();      v2 = rp();      v3 = rp();      v4 = rp();
+Apw = mk({a1,a2},[1,2]);
+N = mk({a3,b1},[2,2]);
+pw = ap(a1,v1).*ap(a2,v2);
+C = mk({N,Apw},[2,2]);
+check_equal(apply_op(C,{v3,v4,v1,v2}),rn(ap(a3,v3),'y',1)*rn(ap(b1,v4),'y',2)*rn(pw,'y',3),'(2) N o Apw');
+C = mk({Apw,N},[2,2]);
+check_equal(apply_op(C,{v1,v2,v3,v4}),rn(pw,'y',1)*rn(ap(a3,v3),'y',2)*rn(ap(b1,v4),'y',3),'(2) Apw o N');
+ncases = ncases+2;
+
+%% (3) N o N' (2+2 copies), and N o N' o B1
+a4 = lf_y();    b2 = lf_y();    v5 = rp();      v6 = rp();
+N2 = mk({a4,b2},[2,2]);
+C = mk({N,N2},[2,2]);
+check_equal(apply_op(C,{v3,v4,v5,v6}),rn(ap(a3,v3),'y',1)*rn(ap(b1,v4),'y',2)*rn(ap(a4,v5),'y',3)*rn(ap(b2,v6),'y',4),'(3) N o N');
+B1 = mk({lf_y()},[2,2]);
+B1op = B1.ops{1,1};     v7 = rp();
+C = mk({N,B1,N2},[2,2]);
+check_equal(apply_op(C,{v3,v4,v7,v5,v6}),rn(ap(a3,v3),'y',1)*rn(ap(b1,v4),'y',2)*rn(ap(B1op,v7),'y',3)*rn(ap(a4,v5),'y',4)*rn(ap(b2,v6),'y',5),'(3) N o B1 o N');
+ncases = ncases+2;
+
+%% (4) Three or more levels of nesting
+% (a) { {Apw o N} o B1 }: the inner product has 3 copies of y
+Inner = mk({Apw,N},[2,2]);
+B1op = lf_y();      B1 = mk({B1op},[2,2]);      v7 = rp();
+C = mk({Inner,B1},[2,2]);
+check_equal(apply_op(C,{v1,v2,v3,v4,v7}),rn(pw,'y',1)*rn(ap(a3,v3),'y',2)*rn(ap(b1,v4),'y',3)*rn(ap(B1op,v7),'y',4),'(4a) {Apw o N} o B1');
+% (b) { B1 o {N.*N'} o Apw }: pointwise product of 2 tensor products, with 2 copies of y
+Pw2 = mk({N,N2},[1,2]);
+pw2 = (rn(ap(a3,v3),'y',2)*rn(ap(b1,v4),'y',3)).*(rn(ap(a4,v5),'y',2)*rn(ap(b2,v6),'y',3));
+C = mk({B1,Pw2,Apw},[2,2]);
+check_rows(C,3,'(4b) B1 o {N.*N} o Apw');
+check_equal(apply_op(C,{v7,v3,v4,v5,v6,v1,v2}),rn(ap(B1op,v7),'y',1)*pw2*rn(pw,'y',4),'(4b) B1 o {N.*N} o Apw');
+% (c) { { {N o Apw} o B1 } o Apw' } : depth four
+Inner2 = mk({N,Apw},[2,2]);
+Inner3 = mk({Inner2,B1},[2,2]);
+a5 = lf_y();    a6 = lf_y();    v8 = rp();      v9 = rp();
+Apw2 = mk({a5,a6},[1,2]);
+C = mk({Inner3,Apw2},[2,2]);
+pw3 = ap(a5,v8).*ap(a6,v9);
+check_equal(apply_op(C,{v3,v4,v1,v2,v7,v8,v9}),rn(ap(a3,v3),'y',1)*rn(ap(b1,v4),'y',2)*rn(pw,'y',3)*rn(ap(B1op,v7),'y',4)*rn(pw3,'y',5),'(4c) depth four');
+% (d) pointwise product of pointwise products as nested factor: one copy
+Pw4 = mk({Apw,mk({a5,a6},[1,2])},[1,2]);
+C = mk({Pw4,B1},[2,2]);
+check_equal(apply_op(C,{v1,v2,v8,v9,v7}),rn(pw.*pw3,'y',1)*rn(ap(B1op,v7),'y',2),'(4d) pointwise of pointwise');
+ncases = ncases+4;
+
+%% (5) Several terms
+% (a) nested pointwise product with two terms: B1 o {A1.*A2 + A3.*A4}
+a3b = lf_y();   a4b = lf_y();
+Pt = mk({a1,a2;a3b,a4b},[1,2]);
+C = mk({B1,Pt},[2,2]);
+pt = pw + ap(a3b,v1).*ap(a4b,v2);
+check_equal(apply_op(C,{v7,v1,v2}),rn(ap(B1op,v7),'y',1)*rn(pt,'y',2),'(5a) nested operator with two terms');
+% (b) two terms in the outer product, each with a nested factor: Apw o B1 + Apw' o B1'
+b1b = lf_y();   Apwb = mk({a3b,a4b},[1,2]);     B1b = mk({b1b},[2,2]);
+C = mk({Apw,B1;Apwb,B1b},[2,2]);
+check_equal(apply_op(C,{v1,v2,v3}),rn(pw,'y',1)*rn(ap(B1op,v3),'y',2) + rn(ap(a3b,v1).*ap(a4b,v2),'y',1)*rn(ap(b1b,v3),'y',2),'(5b) two outer terms');
+% (c) nested tensor product with two terms, which both have 2 copies: {A3 o B1 + A4 o B2} o Apw
+N2t = mk({a3,b1;a4,b2},[2,2]);
+C = mk({N2t,Apw},[2,2]);
+Nt = rn(ap(a3,v3),'y',1)*rn(ap(b1,v4),'y',2) + rn(ap(a4,v3),'y',1)*rn(ap(b2,v4),'y',2);
+check_equal(apply_op(C,{v3,v4,v1,v2}),Nt*rn(pw,'y',3),'(5c) nested tensor product with two terms');
+% (d) both: two terms, each a nested tensor product with two terms
+C = mk({N2t,Apw;N2t,Apwb},[2,2]);
+check_equal(apply_op(C,{v3,v4,v1,v2}),Nt*rn(pw,'y',3) + Nt*rn(ap(a3b,v1).*ap(a4b,v2),'y',3),'(5d) two terms of nested operators with two terms');
+ncases = ncases+4;
+
+%% (6) Different spatial variables: the copies are numbered for each output variable
+% L1 (x -> y), Pw (x -> y,y2: pointwise product of two such operators), M2 (x2 -> y2), N2 (x2 -> y2, 2 copies)
+L1 = lf_y();                l1 = lf_yy2();      l2 = lf_yy2();
+M2 = lf_y2();               m1 = lf_y2();       m2 = lf_y2();
+Pw = mk({l1,l2},[1,2]);     N2y2 = mk({m1,m2},[2,2]);
+va = rp();      vb = rp();      vc = rp();      vz = rp2();     vz1 = rp2();    vz2 = rp2();
+plw = ap(l1,vb).*ap(l2,vc);
+% y copies: L1: 1, Pw: 2; y2 copies: Pw: 1, M2: 2, N2: 3,4
+C = mk({mk({L1},[2,2]),Pw,mk({M2},[2,2]),N2y2},[2,2]);
+check_rows(C,4,'(6) different variables');
+Ey = rn(ap(L1,va),'y',1)*rn(rn(plw,'y',2),'y2',1)*rn(ap(M2,vz),'y2',2)*rn(ap(m1,vz1),'y2',3)*rn(ap(m2,vz2),'y2',4);
+check_equal(apply_op(C,{va,vb,vc,vz,vz1,vz2}),Ey,'(6) different variables');
+% N2 first, then Pw, M2 and L1: y2 copies: N2: 1,2, Pw: 3, M2: 4; y copies: Pw: 1, L1: 2
+C = mk({N2y2,Pw,mk({M2},[2,2]),mk({L1},[2,2])},[2,2]);
+Ey = rn(ap(m1,vz1),'y2',1)*rn(ap(m2,vz2),'y2',2)*rn(rn(plw,'y',1),'y2',3)*rn(ap(M2,vz),'y2',4)*rn(ap(L1,va),'y',2);
+check_equal(apply_op(C,{vz1,vz2,vb,vc,vz,va}),Ey,'(6) different variables, other order');
+% a nested tensor product depending on both variables, with 2 copies of each, after a factor depending on y only
+Nyy2 = mk({l1,l2},[2,2]);
+C = mk({mk({L1},[2,2]),Nyy2,mk({M2},[2,2])},[2,2]);
+Ey = rn(ap(L1,va),'y',1)*rn(rn(ap(l1,vb),'y',2),'y2',1)*rn(rn(ap(l2,vc),'y',3),'y2',2)*rn(ap(M2,vz),'y2',3);
+check_equal(apply_op(C,{va,vb,vc,vz}),Ey,'(6) tensor product in two variables');
+ncases = ncases+3;
+
+%% (7) Inputs as the 1 x d cell, with the inputs of nested factors as cells
+C = mk({N,Apw},[2,2]);
+Yflat = apply_op(C,{v3,v4,v1,v2});
+check_equal(apply_op(C,{{v3,v4},{v1,v2}}),Yflat,'(7) 1 x d form, N o Apw');
+C = mk({Apw,mk({a3},[2,2]),N},[2,2]);
+check_equal(apply_op(C,{{v1,v2},v3,{v3,v4}}),apply_op(C,{v1,v2,v3,v3,v4}),'(7) 1 x d form, Apw o B1 o N');
+check_equal(apply_op(C,{v1,v2,v3,v3,v4}),rn(pw,'y',1)*rn(ap(a3,v3),'y',2)*rn(ap(a3,v3),'y',3)*rn(ap(b1,v4),'y',4),'(7) Apw o B1 o N');
+ncases = ncases+3;
+
+%% (8) Operators without nested factors: unchanged
+C = mk({a1,b1,a2},[2,2]);
+check_equal(apply_op(C,{v1,v3,v2}),rn(ap(a1,v1),'y',1)*rn(ap(b1,v3),'y',2)*rn(ap(a2,v2),'y',3),'(8) flat tensor product');
+C = mk({a1,a2},[1,2]);
+check_equal(apply_op(C,{v1,v2}),ap(a1,v1).*ap(a2,v2),'(8) flat pointwise product');
+C = mk({a1},[2,2]);
+check_equal(apply_op(C,v1),rn(ap(a1,v1),'y',1),'(8) single factor, otype [2,2]');
+C = mk({a1},[1,2]);
+check_equal(apply_op(C,v1),ap(a1,v1),'(8) single factor, otype [1,2]');
+% nested factor that has a constant output: no variables to rename
+Ccst = mk({mk({a1,a2},[1,2]),mk({a3},[2,2])},[2,2]);
+Ycst = polynomial(apply_op(Ccst,{0*v1,0*v2,0*v3}));
+if any(abs(nonzeros(Ycst.coefficient))>tol)
+    error("Test_tensopvar_apply_op failed (8): zero inputs give a nonzero output.")
+end
+ncases = ncases+5;
+
+%% (9) A nested pointwise product with both numbered and unnumbered copies cannot be placed
+Pmix = mk({a1,N},[1,2]);
+% on its own, the pointwise product is evaluated as before
+check_equal(apply_op(Pmix,{v1,v3,v4}),ap(a1,v1).*(rn(ap(a3,v3),'y',1)*rn(ap(b1,v4),'y',2)),'(9) pointwise product with N on its own');
+C = mk({Pmix,B1},[2,2]);
+expect_error(@() apply_op(C,{v1,v3,v4,v7}),'numbered and unnumbered');
+ncases = ncases+2;
+end
+
 function N = pointwise(A,B)
 % Pointwise product of the outputs of the operators A and B
 N = tensopvar();        N.otype = [1,2];        N.ops = {A,B};      N = initialize(N);
 end
+
 
 function N = kron_op(ops)
 % Kronecker product of the outputs of the operators in each row of the cell ops, summed over the rows
 N = tensopvar();        N.otype = [2,2];        N.ops = ops;        N = initialize(N);
 end
 
+
 function N = pointwise_terms(A1,B1,A2,B2)
 % Sum of two pointwise products, a nested operator with two terms
 N = tensopvar();        N.otype = [1,2];        N.ops = {A1,B1; A2,B2};     N = initialize(N);
 end
+
 
 function X = nest_leaves(R,leaves)
 % The 1 x d cell of inputs to the first term of R, with the inputs of nested factors as cells
@@ -213,6 +414,7 @@ for j=1:d
     end
 end
 end
+
 
 function [Y,pos,nslots] = apply_nested(R,leaves,pos,off,vars_out)
 % Apply the (nested) tensor-PI operator R to the states in leaves(pos:end), one for each of the 'sopvar'
@@ -252,6 +454,7 @@ for i=1:size(R.ops,1)
 end
 end
 
+
 function f = build_f(Zrow,facs,Id)
 % polyopvar with monomial Z=Zrow in the states x,y, acted on by the product of the factors facs: the
 % identity operators of the states for 'x','y', multipliers from R for polynomials
@@ -275,6 +478,7 @@ f.vars.in = {'s1','s2'};    f.dom.in = [0,1;0,1];   f.depmat.in = true(2,2);
 f = initialize(f);
 end
 
+
 function Y = prod_facs(Zrow,facs,xv,yv)
 % Product of the values of the factors, as polynomials: x -> xv, y -> yv, polynomial -> itself
 Y = 1;
@@ -288,30 +492,66 @@ for j=1:numel(facs)
 end
 end
 
+
 function assert_close(Y,Yref,tol,label)
 % Output variables of Kronecker products are named s_1,s_2,..., and compared as they are named
 Y = polynomial(Y);      Yref = polynomial(Yref);
 D = Y-Yref;
 if ~isequal(size(D),size(Yref))
-    error("Test_tensopvar_apply_op_nested failed %s: size %s, expected %s.",label,mat2str(size(Y)),mat2str(size(Yref)))
+    error("Test_tensopvar_apply_op failed %s: size %s, expected %s.",label,mat2str(size(Y)),mat2str(size(Yref)))
 end
 err = full(max([0;abs(nonzeros(D.coefficient))]));
 if err>tol
-    error("Test_tensopvar_apply_op_nested failed %s: residual %.3e.",label,err)
+    error("Test_tensopvar_apply_op failed %s: residual %.3e.",label,err)
 end
 if isempty(nonzeros(Yref.coefficient))
-    error("Test_tensopvar_apply_op_nested %s: reference value is zero; test would be vacuous.",label)
+    error("Test_tensopvar_apply_op %s: reference value is zero; test would be vacuous.",label)
 end
 end
+
 
 function expect_error(fun,str)
 try
     fun();
 catch ME
     if ~contains(ME.message,str)
-        error("Test_tensopvar_apply_op_nested failed: unexpected error message '%s' (expected to contain '%s').",ME.message,str)
+        error("Test_tensopvar_apply_op failed: unexpected error message '%s' (expected to contain '%s').",ME.message,str)
     end
     return
 end
-error("Test_tensopvar_apply_op_nested failed: expected an error containing '%s', but none was thrown.",str)
+error("Test_tensopvar_apply_op failed: expected an error containing '%s', but none was thrown.",str)
+end
+
+function T = mk(ops,otype)
+% Tensor-PI operator with the factors in the cell ops, with otype(1) specifying a pointwise (1) or
+% tensor (2) product of the outputs; a nested factor is a 'tensopvar' in ops
+T = tensopvar();        T.otype = otype;        T.ops = ops;        T = initialize(T);
+end
+
+
+function p = rn(p,nm,k)
+% The output variable nm of the polynomial p, renamed to its k-th copy nm_k
+p.varname(strcmp(p.varname,nm)) = {[nm,'_',num2str(k)]};
+end
+
+
+function check_rows(C,d,label)
+% depmat has one row for each of the d factors of C, also if a factor is nested
+if size(C.depmat.out,1)~=d || size(C.depmat.in,1)~=d
+    error("Test_tensopvar_apply_op failed (%s): depmat should have %d rows.",label,d)
+end
+end
+
+
+function check_equal(Y,E,label)
+err = cleanpoly(polynomial(Y)-polynomial(E),1e-10);
+cf = nonzeros(err.coefficient);
+if ~isempty(cf) && max(abs(cf))>1e-8
+    error("Test_tensopvar_apply_op failed (%s): residual %.3e.",label,max(abs(cf)))
+end
+% the oracle must not be zero, or the comparison is vacuous
+Ep = cleanpoly(polynomial(E),1e-10);
+if isempty(nonzeros(Ep.coefficient))
+    error("Test_tensopvar_apply_op (%s): reference value is zero; test would be vacuous.",label)
+end
 end
