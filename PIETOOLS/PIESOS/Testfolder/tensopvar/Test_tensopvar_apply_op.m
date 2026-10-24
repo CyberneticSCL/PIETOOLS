@@ -39,7 +39,7 @@
 
 % NOTES
 % - Substitution of some, not all, states in a nested operator: see
-%   Test_tensopvar_mtimes_nested.
+%   Test_tensopvar_mtimes/case_nested.
 
 % ============ Part 2: check_nested_tensor ============
 % product (otype(1)=2) of which some factors are 'tensopvar' objects

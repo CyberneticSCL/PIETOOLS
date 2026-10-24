@@ -194,7 +194,7 @@ ncases = ncases+2;
 %% (6) Substitution
 % New functions of the states w,v, with their values. The operator on a monomial of
 % more than one factor can only be composed with operators of a single factor
-% (see Test_polyopvar_subs_fctr_function), so the new functions are linear in w,v
+% (see Test_polyopvar_subs/case_fctr_function), so the new functions are linear in w,v
 valw = {    2*w,                            2*vals.w
             w+2*v,                          vals.w+2*vals.v     };
 for k=[1,2,3,4,5,8,9]

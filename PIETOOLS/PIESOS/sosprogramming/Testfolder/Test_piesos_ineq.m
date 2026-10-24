@@ -24,6 +24,9 @@ function Test_piesos_ineq()
 %    different variables, feasible otherwise) is pinned;
 %  - kernel degrees (case_kernel_degrees, case_option_types): f SOS by
 %    construction with known degrees and term types of Zop.
+%  - state variables that do not appear in any monomial, as returned by
+%    piesos_LF (case_unused_states): for the transport equation the
+%    program is feasible;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Test_piesos_ineq
@@ -53,6 +56,8 @@ function Test_piesos_ineq()
 % DJ (CC), 10/21/2026: Add case_vector_states;
 % DJ (CC), 10/23/2026: case_vector_states: basis with a block per state
 %   (degrees per state, no longer per scalar row), check its block sizes;
+% DJ (CC), 10/23/2026: Merge Test_piesos_ineq_unused_states into this test,
+%   as cases;
 
 % NOTES
 % - case_mixed_basis_warning pins a known limitation: a basis monomial
@@ -73,7 +78,8 @@ tests ={@case_input_errors, @case_sweep_1var, @case_certificate_values, ...
          @case_constants, @case_psatz, @case_two_states, @case_mixed_dependence, ...
          @case_two_variables, @case_uncombined_f, ...
          @case_mixed_basis_warning, @case_kernel_degrees, @case_option_types, ...
-         @case_psatz_degree, @case_symbolic_f, @case_vector_states};
+         @case_psatz_degree, @case_symbolic_f, @case_vector_states, ...
+         @case_unused_states};
 nfail = 0;
 for i=1:numel(tests)
     try
@@ -93,8 +99,62 @@ end
 fprintf('Test_piesos_ineq: all %d cases passed.\n',numel(tests));
 end
 
+%% ---- cases ------------------------------------------------------------
+function case_unused_states()
+% case_unused_states -- tests piesos_ineq for a functional
+% with state variables that do not appear in any monomial, as returned by
+% piesos_LF (names of the PDE state and of the copies of the PIE state,
+% besides the PIE state).
+%
+% For the transport equation x_t = -x_s, x(0)=0, the Lie derivative of the
+% functional V = <u,P*u> + eps*<u,u> along the PIE is nonpositive for P=0
+% (dV = -eps*u(1)^2), so the program "find P>=0 such that -dV is a sum of
+% squares" is feasible. Infeasibility (pinf=1) is therefore a failure.
+%
 
-%% ---- helpers ----------------------------------------------------------
+% NOTES
+% - A psd variable (sosposmatr) is added so that SeDuMi's preprocessing
+%   does not fail on small programs;
+% - Feasible means pinf=dinf=0 and feasratio>=0.5.
+
+    clear stateNameGenerator
+    pvar s t
+    dom = [0,1];
+    u = pde_var(s,dom);
+    PDE = [diff(u,t)==-diff(u,s);   subs(u,s,dom(1))==0];
+    evalc('PIE = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
+    x = PIE.x;
+    nfeas = 0;
+
+    opts_list = {struct('degs',2,'exclude',[0;0;0]), struct('degs',0,'exclude',[0;1;1]), struct('degs',struct('in',0,'out',2),'exclude',[0;1;1])};
+    for io = 1:numel(opts_list)
+        prog = piesos_program(x);
+        Popts = opts_list{io};      Popts.pos = true;
+        evalc('[prog,Vx,dV] = piesos_LF(prog,PIE,''pde'',1,Popts);');
+        % Strict positivity: eps*<u,u>, with derivative 2*eps*<u,f(x)>
+        Tx = PIE.T*x;
+        Vx = Vx + 1e-2*innerprod(Tx,Tx);            %#ok<NASGU>
+        dV = dV + 2e-2*innerprod(Tx,PIE.f);
+        evalc('[prog,W] = piesos_ineq(prog,-dV);');
+        prog = sosposmatr(prog,20);
+        evalc('prog = piesos_solve(prog);');
+        info = prog.solinfo.info;
+        if info.pinf || info.dinf || info.feasratio<0.5
+            error("case_unused_states failed (options %d): program infeasible (pinf=%d, feasratio=%g).",io,info.pinf,info.feasratio)
+        end
+        nfeas = nfeas+1;
+    end
+
+    % The variables of dV from piesos_LF are the PIE state only
+    prog = piesos_program(x);
+    evalc('[~,~,dV] = piesos_LF(prog,PIE,''pde'',1,struct(''degs'',0,''exclude'',[0;1;1],''pos'',true));');
+    if ~isequal(reshape(dV.varname,[],1),reshape(x.varname,[],1))
+        error("case_unused_states failed: dV has unused state variables.")
+    end
+
+    fprintf('case_unused_states passed (%d programs feasible).\n',nfeas)
+end
+
 function [prog,x] = new_prog(varnames,name)
 % Program in the distributed state x of the given spatial variables, on [0,1]
 if nargin<2
@@ -150,8 +210,6 @@ V.dom.out = V.C.dom.out;        V.depmat.out = V.C.depmat.out;
 V.chkval = true;
 end
 
-
-%% ---- cases ------------------------------------------------------------
 function case_input_errors()
 pvar s
 [prog,x] = new_prog({'s'});
@@ -320,6 +378,7 @@ check_ineq(innerprod(x,Ps,x),x,true,'vector and scalar state, int x''*P*x, P>0')
 check_ineq(innerprod(x,Ps-.05*eye(3),x),x,true,'vector and scalar state, P>0 (eigenvalues .05, 1, 1.9)');
 check_ineq(innerprod(x,Ps-.2*eye(3),x),x,false,'vector and scalar state, P indefinite (eigenvalue -.1)');
 end
+
 function case_two_variables()
 pvar s1 s2
 [~,y] = new_prog({'s1','s2'},'y');
