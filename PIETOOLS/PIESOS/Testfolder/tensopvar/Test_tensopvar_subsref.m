@@ -6,6 +6,7 @@
 % Kronecker-product message.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/21/2026: Add single-factor trials (otype 2 allowed there);
 
 % NOTES
 % - subsref disallows '()' indexing along a Kronecker (otype==2)
@@ -125,4 +126,48 @@ end
 end
 end
 
-fprintf('Test_tensopvar_subsref passed (%d trials, otype(1) in {1,2} alternating).\n',ntrials)
+%%%% Single factor: otype is immaterial, so rows and columns can be extracted also for otype=[2,2]
+% (u=T*x with a vector-valued state), checked against apply_op: rows of A*v, and A(:,c)*v(c) = A*(v
+% with the entries outside c zeroed)
+nsingle = 0;
+for trial=1:10
+    tol = 1e-8;
+    type = {[2,2],[1,2]};       type = type{mod(trial,2)+1};
+    N = randi(2);
+    m = randi(3)+1;             n = randi(3)+1;                 % at least 2 rows and columns
+    vars = struct('in',{arrayfun(@(i) ['s',num2str(i)],1:N,'UniformOutput',false)},'out',{cell(1,0)});
+    dom = struct('in',repmat([0,1],N,1),'out',zeros(0,2));
+    degs = struct('in',randi(2,[1,N]),'out',zeros(1,0));
+    depmat = struct('in',true(1,N),'out',false(1,0));
+    Aop = rand_tensopvar([m,n],vars,dom,depmat,1,type,degs,0.5);
+    if size(Aop.ops,2)~=1 || ~isequal(size(Aop),[m,n])
+        error("Single factor, trial %d: test setup error.",trial)
+    end
+    pvars = polynomial(vars.in(:));
+    v = rand_poly([n,2],pvars,2,50);
+    Av = apply_op(Aop,{v});
+    ridcs = randperm(m,2);
+    cidcs = sort(randperm(n,2));
+    % rows
+    Asub_r = Aop(ridcs,':');
+    if ~isequal(size(Asub_r),[2,n])
+        error("Single factor, trial %d (otype [%d,%d]): size of Aop(ridcs,:) is incorrect.",trial,type)
+    end
+    err = cleanpoly(apply_op(Asub_r,{v}) - Av(ridcs,:),1e-10);
+    if max(max(abs(err.C)))>tol
+        error("Single factor, trial %d (otype [%d,%d]): row indexing: residual exceeds tolerance.",trial,type)
+    end
+    % columns
+    Asub_c = Aop(':',cidcs);
+    if ~isequal(size(Asub_c),[m,2])
+        error("Single factor, trial %d (otype [%d,%d]): size of Aop(:,cidcs) is incorrect.",trial,type)
+    end
+    vz = polynomial(diag(double(ismember(1:n,cidcs))))*v;
+    err = cleanpoly(apply_op(Asub_c,{v(cidcs,:)}) - apply_op(Aop,{vz}),1e-10);
+    if max(max(abs(err.C)))>tol
+        error("Single factor, trial %d (otype [%d,%d]): column indexing: residual exceeds tolerance.",trial,type)
+    end
+    nsingle = nsingle+1;
+end
+
+fprintf('Test_tensopvar_subsref passed (%d trials, otype(1) in {1,2} alternating; %d single-factor trials).\n',ntrials,nsingle)

@@ -118,7 +118,7 @@ properties (Access=protected)
     vars = struct('in',{cell(1,0)},'out',{cell(1,0)});
     dom = struct('in',zeros(0,2),'out',zeros(0,2));
     dims = zeros(0,2);
-    depmat = struct('in',zeros(0,0),'out',zeros(0,2));
+    depmat = struct('in',zeros(0,0),'out',zeros(0,0));
 end
 properties (Dependent)
     matdim

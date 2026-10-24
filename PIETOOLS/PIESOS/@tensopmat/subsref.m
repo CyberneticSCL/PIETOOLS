@@ -13,7 +13,16 @@ function out = subsref(obj,ref)
 %           ref(1).type='()', the output will be a 'tensopmat' object
 %           including the rows and columns with the indices specified by
 %           ref(1).subs. If ref(1).type='{}', the output will be the
-%           block of obj.ops with the indices specified by ref(1).subs;
+%           block of obj.ops with the indices specified by ref(1).subs. If
+%           ref(1).subs are not both scalar (index vectors, or ':' for all
+%           blocks), the output will be the 'tensopmat' object including
+%           these row- and column-blocks (like subsasgn for C{I,J}=RHS);
+%
+% NOTES
+% - The indices of C{i,j} count the row- and column-blocks of obj.ops, not
+%   the scalar rows and columns that C(i,j) indexes. The keyword 'end'
+%   cannot be used: it evaluates to 1 for a 'tensopmat', so C{i,end} is
+%   C{i,1}. Use size(C.ops,2) instead.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,6 +50,8 @@ function out = subsref(obj,ref)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/23/2026: Support ':' and index vectors in C{I,J}, returning a
+%                   'tensopmat' of the selected blocks;
 
 if isempty(ref)
     out = obj;
@@ -143,10 +154,31 @@ switch ref(1).type
         else
             error("At most two indices are supported for 'tensopmat' objects.")
         end
+        % A single block, C{i,j}, is returned as such, anything else as 'tensopmat'
+        is_blck = isnumeric(indr) && isscalar(indr);
+        is_blck = is_blck && isnumeric(indc) && isscalar(indc);
+        % ':' selects all row/column-blocks (else compared as a char code below)
+        if strcmp(indr,':'),    indr = 1:ncomps;    end
+        if strcmp(indc,':'),    indc = 1:ntrms;     end
         if any(indr>ncomps)
             error("Row indices cannot exceed number of components.")
         elseif any(indc>ntrms)
             error("Column indices cannot exceed number of monomials.")
+        end
+        % Several blocks, C{I,J} or with ':': the 'tensopmat' of these blocks. Slicing obj.ops, and
+        % dims/depmat as for '()', keeps the dimensions of blocks in an empty row or column
+        if ~is_blck
+            out = obj;
+            out.ops = obj.ops(indr,indc);
+            out.dims.out = reshape(obj.dims.out(indr),[],1);
+            out.dims.in = reshape(obj.dims.in(indc),[],1);
+            out.depmat.out = obj.depmat.out(indr,:);
+            out.depmat.in = obj.depmat.in(indc,:);
+            out.chkval = true;
+            if numel(ref)>=2
+                out = subsref(out,ref(2:end));
+            end
+            return
         end
         % Extract desired coefficient operators
         ref(1).type = '{}';

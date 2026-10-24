@@ -23,7 +23,14 @@ function out = subsref(obj,ref)
 % - For ref(1).type = '()', ref(1).subs index the rows and columns of the
 %   'tensopmat' obj.C, see 'subsref' for 'tensopmat'.
 % - For ref(1).type = '{}', either two indices or a single scalar linear
-%   index must be specified.
+%   index must be specified. The indices count the rows and columns of
+%   blocks of obj.C.ops (components and monomials); ':' selects all of
+%   them. Monomials for which all extracted blocks are empty are dropped
+%   from the output (so f{i,:} returns the nonempty terms of component
+%   i), and an error is thrown if no nonempty block is extracted. The
+%   keyword 'end' cannot be used: it evaluates to 1 for a 'polyopvar'
+%   (MATLAB's size of the scalar object), so f{j,end} is f{j,1}. Use
+%   f{j,size(f.C.ops,2)} instead.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,6 +58,8 @@ function out = subsref(obj,ref)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/23/2026: Support ':' in f{i,j}, and drop the monomials without a
+%                   nonempty block; several blocks via C{I,J} of tensopmat;
 
 if isempty(ref)
     out = obj;
@@ -84,7 +93,8 @@ switch ref(1).type
     case '{}'
         % When calling f{i,j}, extract the term associated to the jth
         % monomial in the ith function
-        [ncomps,ntrms] = size(obj.C);
+        % Numbers of blocks of C.ops, which C.ops(i,j) indexes: size(obj.C) counts scalar rows/columns
+        [ncomps,ntrms] = size(obj.C.ops);
         if isscalar(ref(1).subs)
             % Support only a single linear index
             if ~isnumeric(ref(1).subs{1}) || ~isscalar(ref(1).subs{1})
@@ -100,6 +110,9 @@ switch ref(1).type
         else
             error("At most two indices are supported for 'polyopvar' objects.")
         end
+        % ':' selects all components/monomials (else compared as a char code below)
+        if strcmp(indr,':'),    indr = 1:ncomps;    end
+        if strcmp(indc,':'),    indc = 1:ntrms;     end
         if any(indr>ncomps)
             error("Row indices cannot exceed number of components.")
         elseif any(indc>ntrms)
@@ -110,7 +123,20 @@ switch ref(1).type
         % its cell constructor (which calls its own 'initialize') rather
         % than @tensopmat/subsref.m's '{}' (unwraps to a bare factor) or
         % '()' (re-slices element-wise within each block) cases.
-        C = tensopmat(obj.C.ops(indr,indc));
+        % Drop the monomials without a nonempty block in the extracted rows: the constructor cannot
+        % infer the input dimension of a column without blocks, e.g. f{i,:} for diagonal C, [y1;y2]
+        ops = obj.C.ops(indr,indc);
+        keep = any(~cellfun('isempty',ops),1);
+        if ~any(keep)
+            error("Extracted component(s) contain no nonempty term.")
+        end
+        indc = indc(keep);
+        if isscalar(indr) && isscalar(indc)
+            C = tensopmat(ops(:,keep));
+        else
+            % Slices dims/depmat from obj.C, so a row without a block keeps its dimensions
+            C = obj.C{indr,indc};
+        end
 
         % Retain only the corresponding monomials, and let 'initialize'
         % recompute the output side (and validate the result) from the

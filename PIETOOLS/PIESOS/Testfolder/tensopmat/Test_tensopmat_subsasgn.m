@@ -8,6 +8,8 @@
 % mismatched block shapes, and chained assignment (C{i,j}.field=...).
 
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/23/2026: Add C{I,J}=RHS with ':' and index vectors, errors, 'end'
+%   (moved from Test_tensopmat_subsref);
 
 % NOTES
 % - A mismatched-dimension replacement is only guaranteed to be caught if
@@ -208,7 +210,8 @@ end
 
 end
 
-fprintf('Test_tensopmat_subsasgn passed (%d trials).\n',ntrials)
+ncases = check_subsasgn_selections(dom,1e-8);
+fprintf('Test_tensopmat_subsasgn passed (%d trials, %d cases with '':'' and index vectors).\n',ntrials,ncases)
 
 
 function [Cop,i0,j0] = find_sibling_block(p,d,N,M,dom)
@@ -225,4 +228,121 @@ for attempt=1:20
     end
 end
 error("Could not generate a 'tensopmat' with a row containing >=2 populated blocks after 20 attempts.")
+end
+
+
+function ncases = check_subsasgn_selections(dom,tol)
+% C{I,J} = RHS with ':' and index vectors: the selected blocks are replaced by the RHS (a
+% 'tensopmat', here the selected blocks doubled), the other blocks stay. Oracle: the raw blocks,
+% with those of the selected rows and columns counted twice
+ncases = 0;
+for trial=1:6
+    p = randi([3,4]);  d = randi([3,4]);
+    [Cop,info] = rand_tensopmat(p,d,randi([2,3]),randi([2,3]),dom,0.7);
+    X = cell(1,d);
+    for j=1:d
+        X{j} = rand_poly([info.dims_in(j),1],info.vars_in_pool(info.sel_in{j}),1,5);
+    end
+    sels = {':',':'; randi(p),':'; ':',randi(d); randperm(p,2),randperm(d,2); randperm(p),1:d; 1:p,randperm(d,1)};
+    [i1,j1] = find(~cellfun(@isempty,Cop.ops),1,'first');
+    C1 = tensopmat(Cop.ops(i1,j1));
+    % C{I,J}=C{I,J} leaves the blocks as they are
+    Cop2 = Cop;
+    Cop2{1:p,1:d} = Cop{':',':'};
+    if ~isequal(Cop2.ops,Cop.ops)
+        error("Test_tensopmat_subsasgn failed (trial %d): C{1:p,1:d} = C{':',':'} changed the blocks.",trial)
+    end
+    % subsasgn C{I,J} = RHS with ':' and index vectors: the selected blocks are replaced by the
+    % RHS ('tensopmat', here the selected blocks doubled), the other blocks stay. Oracle: the raw
+    % blocks, with those of the selected rows and columns counted twice
+    all_rows = all(any(~cellfun(@isempty,Cop.ops),2));      % apply_op needs a block in each row
+    for k=1:6
+        I = sels{k,1};      J = sels{k,2};
+        rows = expand_idx(I,p);     cols = expand_idx(J,d);
+        lbl = sprintf('trial %d, C{%s,%s}=RHS',trial,idx_str(I),idx_str(J));
+        RHS = Cop{I,J};
+        for q=1:numel(RHS.ops)
+            if ~isempty(RHS.ops{q}),    RHS.ops{q} = RHS.ops{q}+RHS.ops{q};     end
+        end
+        Cop3 = Cop;
+        Cop3{I,J} = RHS;
+        if ~isa(Cop3,'tensopmat') || ~isequal(Cop3.ops(rows,cols),RHS.ops)
+            error("Test_tensopmat_subsasgn failed (%s): the selected blocks are not those of the RHS.",lbl)
+        end
+        other = true(p,d);      other(rows,cols) = false;
+        for q=find(other(:))'
+            if ~isequal(Cop3.ops{q},Cop.ops{q})
+                error("Test_tensopmat_subsasgn failed (%s): a block outside the selection changed.",lbl)
+            end
+        end
+        if ~isequal(Cop3.dims,Cop.dims) || ~isequal(Cop3.depmat,Cop.depmat)
+            error("Test_tensopmat_subsasgn failed (%s): dims or depmat changed.",lbl)
+        end
+        if all_rows
+            Yexp = [];
+            for i=1:p
+                yi = polynomial(zeros(Cop.dims.out(i),1));
+                for j=1:d
+                    if ~isempty(Cop.ops{i,j})
+                        c_ij = 1 + (any(rows==i) && any(cols==j));
+                        yi = yi + c_ij*apply_op(Cop.ops{i,j},X{j});
+                    end
+                end
+                Yexp = [Yexp;yi];       %#ok<AGROW>
+            end
+            err = cleanpoly(apply_op(Cop3,X)-Yexp,1e-10);
+            if max(max(abs(err.C)))>tol*max(1,max(max(abs(Yexp.C))))
+                error("Test_tensopmat_subsasgn failed (%s): apply_op of the updated object does not match the raw blocks.",lbl)
+            end
+        end
+        ncases = ncases+1;
+    end
+    % ':' on a 1x1 'tensopmat' still takes a 'tensopmat', C{1,1} a block
+    C1b = C1;       C1b{':',':'} = C1;
+    if ~isequal(C1b.ops,C1.ops)
+        error("Test_tensopmat_subsasgn failed (trial %d): C1{':',':'} = C1.",trial)
+    end
+    assert_error(@() subsasgn_(C1,{':',':'},Cop.ops{i1,j1}),'must be specified as ''tensopmat''',"':' with a block on the RHS");
+    % errors of subsasgn
+    assert_error(@() subsasgn_(Cop,{':'},Cop{':',':'}),'Linear indexing',"C{':'}=RHS");
+    assert_error(@() subsasgn_(Cop,{':',1},Cop.ops{1,1}),'must be specified as ''tensopmat''',"C{':',1}=block");
+    assert_error(@() subsasgn_(Cop,{':',1:2},Cop{':',1}),'Size of the','C{:,1:2}=RHS with too few blocks');
+    assert_error(@() subsasgn_(Cop,{p+1,':'},Cop{1,':'}),'Row indices cannot exceed',"row beyond the blocks");
+    assert_error(@() subsasgn_(Cop,{0,':'},Cop{1,':'}),'positive integers',"row 0");
+    % 'end' evaluates to 1, so C{p,end}=blk sets C{p,1}, see the header of subsasgn
+    if ~isempty(Cop.ops{p,1})
+        blk = Cop.ops{p,1}+Cop.ops{p,1};
+        Cop4 = Cop;     Cop4{p,end} = blk;
+        if ~isequal(Cop4.ops{p,1},blk)
+            error("Test_tensopmat_subsasgn failed (trial %d): 'end' no longer evaluates to 1 in C{p,end}=blk, update the header of subsasgn.",trial)
+        end
+    end
+    ncases = ncases+6;
+end
+end
+
+function C = subsasgn_(C,subs,RHS)
+% C{subs{:}} = RHS, for subs a cell of indices
+C = subsasgn(C,struct('type','{}','subs',{subs}),RHS);
+end
+
+function idx = expand_idx(I,n)
+% Indices selected by I in a dimension of n blocks
+if ischar(I),   idx = 1:n;      else,   idx = reshape(I,1,[]);    end
+end
+
+function s = idx_str(I)
+if ischar(I),   s = ':';        else,   s = mat2str(I);     end
+end
+
+function assert_error(f,needle,label)
+try
+    f();
+catch err
+    if ~contains(err.message,needle)
+        error('Test_tensopmat_subsasgn failed (%s): wrong error "%s".',label,err.message)
+    end
+    return
+end
+error('Test_tensopmat_subsasgn failed (%s): expected an error containing "%s".',label,needle)
 end

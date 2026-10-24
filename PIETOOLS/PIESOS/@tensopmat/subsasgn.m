@@ -12,14 +12,18 @@ function out = subsasgn(obj,ref,RHS)
 %             - if ref(1).subs is a single (scalar) row,column pair: the
 %               'tensopvar' or 'intop' object, or 'double', 'polynomial'
 %               or 'dpvar' matrix, to store directly as obj.ops{i,j};
-%             - if ref(1).subs is a pair of index vectors: a 'tensopmat'
-%               object whose .ops matches the selected shape, substituted
-%               into obj.ops(idcs1,idcs2) as a block;
+%             - if ref(1).subs is a pair of index vectors, or ':' for all
+%               row- or column-blocks: a 'tensopmat' object whose .ops
+%               matches the selected shape, substituted into
+%               obj.ops(idcs1,idcs2) as a block;
 %
 % OUTPUTS
 % - out:    'tensopmat' object with the desired component value;
 %
 % NOTES
+% - The indices of C{i,j} count the row- and column-blocks of obj.ops, as
+%   for C{i,j} in 'subsref'. The keyword 'end' cannot be used: it evaluates
+%   to 1 for a 'tensopmat', so C{i,end}=RHS sets C{i,1}.
 % - Only '{}'-type subsasgn (replacing row/column-block(s) in obj.ops) and
 %   '.'-type subsasgn (setting a field) are supported; '()'-type subsasgn
 %   is not supported.
@@ -53,6 +57,7 @@ function out = subsasgn(obj,ref,RHS)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/23/2026: Support ':' in C{I,J}=RHS, as in 'subsref';
 
 switch ref(1).type
     case '.'
@@ -75,6 +80,12 @@ switch ref(1).type
         else
             error("At most two indices are supported for 'tensopmat' objects.")
         end
+        % A single block, C{i,j}=RHS, is set directly, anything else (also with ':') from a 'tensopmat'
+        is_blck = isnumeric(indr) && isscalar(indr);
+        is_blck = is_blck && isnumeric(indc) && isscalar(indc);
+        % ':' selects all row/column-blocks (else compared as a char code below)
+        if strcmp(indr,':'),    indr = 1:ncomps;    end
+        if strcmp(indc,':'),    indc = 1:ntrms;     end
         if any(indr<=0) || any(indc<=0)
             error("Indices must be positive integers.")
         elseif any(indr>ncomps)
@@ -89,7 +100,7 @@ switch ref(1).type
         end
 
         ref(1).subs = {indr,indc};
-        if isscalar(indr) && isscalar(indc)
+        if is_blck
             % Setting a single block C{i,j}: store the operator directly
             % as obj.ops{i,j}.
             if ~isa(RHS,'tensopvar') && ~isa(RHS,'intop') && ~is_native_op(RHS)

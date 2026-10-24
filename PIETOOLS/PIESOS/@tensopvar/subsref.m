@@ -18,8 +18,8 @@ function out = subsref(obj,ref)
 %
 % NOTES
 % - '()'-type subsref is not supported for operators consisting of
-%   multiple terms, or with a Kronecker product (otype==2) along a
-%   dimension of size larger than 1.
+%   multiple terms, or with a Kronecker product (otype==2) of multiple
+%   factors along a dimension of size larger than 1.
 % - C.dims.in and C.dims.out return C.dims(:,2) and C.dims(:,1), the
 %   dimensions of the inputs and outputs of the factors of C.
 %
@@ -49,6 +49,7 @@ function out = subsref(obj,ref)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/22/2026: Allow '()' subsref for single-factor Kronecker products.
 
 if isempty(ref)
     out = obj;
@@ -77,7 +78,8 @@ switch ref(1).type
         
     case '()'
         % When calling C(i,j), just extract C.ops(i,j);
-        if (obj.otype(1)==2 && size(obj,1)>1) || (obj.otype(2)==2 && size(obj,2)>1)
+        % With a single factor, otype is immaterial
+        if size(obj.ops,2)>1 && ((obj.otype(1)==2 && size(obj,1)>1) || (obj.otype(2)==2 && size(obj,2)>1))
             error("'()'-type subsref is currently not supported for Kronecker products in 'tensopvar' objects.")
         end
         matdim = obj.matdim;
