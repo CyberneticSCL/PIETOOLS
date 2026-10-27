@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_Poly2Mat_cheb.m     PIETOOLS 2024
+% PIESIM_Poly2Mat_cheb.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - discrete matrix representation of a polymonial operator
-%
+% Discretizes FULL OPERATOR
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
 % Rop -  polynomial matrix operator size (n0+n1+n2) x no
@@ -10,12 +10,11 @@
 %
 % Outputs:
 % A - matrix of size n0(N+1) n1N n2(N-1) x no that represents a Chebyshev
-% discretizaiton of the polynomial matrix operator. Represents a block of a
-% square total matrix operator for PIE solution
-% A_nonsquare - matrix of size n0n1n2(N+1)^3 x no that represents a Chebyshev
-% discretizaiton of the polynomial matrix operator. Represents a block of a
-% non-square total matrix operator for reconstruction of the primary
-% solution
+% discretizaiton of the polynomial matrix operator. Represents a block of
+% the total time-propagator matrix operator for the PIE solution
+% A_2PDEstate - matrix of size n0n1n2(N+1)^3 x no that represents a Chebyshev
+% discretizaiton of the polynomial matrix operator. Represents a block of
+% the total matrix operator for reconstruction of the primary solution
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -26,7 +25,7 @@
 % YP -  added support for an arbitary variable name - 04_16_2024
 % DJ, 12/16/2024: Make sure variable to substitute matches that of Rop;
 
-function [A, A_nonsquare]=PIESIM_Poly2Mat_cheb(N, Rop, p)
+function [A, A_2PDEstate]=PIESIM_Poly2Mat_cheb(N, Rop, p)
 
 ns=length(p);
 no=size(Rop,2);
@@ -41,8 +40,7 @@ chebgrid=cos(pi*(0:deg+1)/(deg+1));
 
 for m=1:ns
         
-A(1:N+1,1:no,m)=0;
-
+Alocal(1:N+1,1:no)=0;
 
 for k=1:no
     if (isempty(Rop))
@@ -64,23 +62,17 @@ for k=1:no
     acheb=fcht(double(Reval));
 
 for j=1:length(acheb)
-    A(j,k,m)=acheb(j);
+    Alocal(j,k)=acheb(j);
 end
 
 end % k loop
 
-A_block_nonsquare(1:N+1,1:no,m)=double(A(1:N+1,1:no,m));
-
 rsize=N-p(m)+1;
-
-A_block(1:rsize,1:no,m)=A_block_nonsquare(1:rsize,1:no,m);
-
-A_cell{m,1}=A_block(1:rsize,1:no,m);
-A_cell_nonsquare{m,1}=A_block_nonsquare(1:N+1,1:no,m);
-
+A_cell_2PDEstate{m,1}=Alocal(1:N+1,1:no);
+A_cell{m,1}=Alocal(1:rsize,1:no);
 
 end % m loop
 
 
-A_nonsquare=cell2mat(A_cell_nonsquare);
+A_2PDEstate=cell2mat(A_cell_2PDEstate);
 A=cell2mat(A_cell);

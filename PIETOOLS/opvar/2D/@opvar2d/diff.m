@@ -59,6 +59,7 @@ function [dP] = diff(P,invar,deg,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 08/27/2021
+% DJ, 01/24/2026: Correction in check if opts='pure' is supported.
 
 % % Error checking
 if ~isa(P,'opvar2d')
@@ -147,8 +148,13 @@ while ~isempty(addvar)
             sss = P.var1(1);    ttt = P.var2(1);
             if (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
                 % In this case, our state [u0; ux; uy; u2] doesn't change
-                if any(~isequal(dP.Rxx{1},0)) || any(~isequal(dP.Rx2{1},0)) || any(~isequal(dP.R2x{1},0)) || ...
-                        any(~isequal(dP.R22{1,1},0)) || any(~isequal(dP.R22{1,2},0)) || any(~isequal(dP.R22{1,3},0))
+                P = clean_opvar(P,1e-12);
+                if any(any(~isequal(P.Rxx{1},zeros(size(P.Rxx{1}))))) ||...
+                     any(any(~isequal(P.Rx2{1},zeros(size(P.Rx2{1}))))) ||...
+                       any(any(~isequal(P.R2x{1},zeros(size(P.R2x{1}))))) || ...
+                         any(any(~isequal(P.R22{1,1},zeros(size(P.R22{1,1}))))) ||...
+                           any(any(~isequal(P.R22{1,2},zeros(size(P.R22{1,2}))))) ||...
+                             any(any(~isequal(P.R22{1,3},zeros(size(P.R22{1,3})))))
                     error('"Pure differentiation" of PI operator is only possible when there are no multiplier terms along the dimension of differentiation')
                 else
                     dP.dim = dim_new;
@@ -260,8 +266,13 @@ while ~isempty(addvar)
             sss = P.var1(2);    ttt = P.var2(2);
             if (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
                 % In this case, our state [u0; ux; uy; u2] doesn't change
-                if any(~isequal(dP.Ryy{1},0)) || any(~isequal(dP.Ry2{1},0)) || any(~isequal(dP.R2y{1},0)) || ...
-                        any(~isequal(dP.R22{1,1},0)) || any(~isequal(dP.R22{2,1},0)) || any(~isequal(dP.R22{3,1},0))
+                P = clean_opvar(P,1e-12);
+                if any(any(~isequal(P.Ryy{1},zeros(size(P.Ryy{1}))))) ||...
+                     any(any(~isequal(P.Ry2{1},zeros(size(P.Ry2{1}))))) ||...
+                       any(any(~isequal(P.R2y{1},zeros(size(P.R2y{1}))))) || ...
+                         any(any(~isequal(P.R22{1,1},zeros(size(P.R22{1,1}))))) ||...
+                           any(any(~isequal(P.R22{2,1},zeros(size(P.R22{2,1}))))) ||...
+                             any(any(~isequal(P.R22{3,1},zeros(size(P.R22{3,1})))))
                     error('"Pure differentiation" of PI operator is only possible when there are no multiplier terms along the dimension of differentiation')
                 else
                     dP.dim = dim_new;

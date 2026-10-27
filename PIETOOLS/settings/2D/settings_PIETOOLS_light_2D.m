@@ -182,7 +182,7 @@ if evalin('base','exist(''sosineq_on'',''var'')')
 elseif evalin('base','exist(''use_sosineq'',''var'')') 
     use_sosineq = evalin('base','use_sosineq');
 else
-    use_sosineq = 0;
+    use_sosineq = 1;
 end
 settings.use_sosineq = use_sosineq;
 
@@ -192,7 +192,7 @@ if use_sosineq
 % monomials defining D are established from the parameters defining Q.
 % We have almost no freedom in constructing the operator D.    
     % We can, however, choose whether or not to add a Psatz term to D,
-    settings.ineq_opts.psatz = 0;
+    settings.ineq_opts.psatz = 2;
     
 else
 % Useing soseq, a constraint Q==D for D>=0 is also enforced, but now we 
@@ -226,7 +226,7 @@ else
     settings.eq_opts.exclude = zeros(1,16);    
     
     % Will we add a Psatz term?
-    settings.eq_use_psatz = [0;0];          	% Set to 1 or 2 or [1;2] to use psatz
+    settings.eq_use_psatz = [0;2];          	% Set to 1 or 2 or [1;2] to use psatz
     for j=1:length(settings.eq_use_psatz)
         settings.eq_opts_psatz{j}.psatz = settings.eq_use_psatz(j);       
         settings.eq_opts_psatz{j}.sep = zeros(1,6);

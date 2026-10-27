@@ -16,7 +16,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)
 % %---------------------------------------------------------------------% %
 % % Timoschenko Beam equation Example (hyperbolic/diffusive) from Peet:
 % % PDE        r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})
-% %            r*II * phi_{tt} = E*II * phi_{ss} + k*aa*g * (w_{s} - phi)
+% %     r*II * phi_{tt} = E*II * phi_{ss} + k*aa*g * (w_{s} - phi) -c \phi_t
 % % with BCs   phi(s=0) = 0
 % %            w(s=0) = 0
 % %            phi_{s}(s=1) = 0
@@ -26,7 +26,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params)
 % % We also assume all coefficients are 1. Then, our system becomes:
 % % PDE        x1_{t} = x2_{s} - x4_{s}
 % %            x2_{t} = x1_{s}
-% %            x3_{t} = x2 - x4
+% %            x3_{t} = x2 - x4-c x_3
 % %            x4_{t} = x3
 % % with BCs   x4(0) = 0, x4_{s}(1) = 0, x3(0) = 0, x1(0) = 0, x2(1)-x4(1) = 0
 % %
@@ -43,7 +43,9 @@ pvar s
 %%% Executive Function:
 evalin('base','stability_dual= 1;');
 
+
 % Specify the parameters
+c=0;
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -52,7 +54,6 @@ if npars~=0
     end
 end
 
-
 % Construct the PDE.
 % Batch input format
 PDE_b.n0 = 0;   PDE_b.n1 = 3;   PDE_b.n2=1;
@@ -60,7 +61,7 @@ PDE_b.dom = [0,1];
 
 PDE_b.A0 = [0 0 0 0;
     0 0 0 0;
-    0 1 0 -1;
+    0 1 -c -1;
     0 0 1 0];
 PDE_b.A1 = [0 1 0 -1;
     1 0 0 0;
@@ -87,9 +88,9 @@ PDE_t.x{1}.term{1}.C = [1,-1];
 PDE_t.x{2}.term{1}.x = 1;
 PDE_t.x{2}.term{1}.D = 1;
 
-% PDE 3: x3_{t} = x2 - x4
-PDE_t.x{3}.term{1}.x = [2;4];
-PDE_t.x{3}.term{1}.C = [1,-1];
+% PDE 3: x3_{t} = x2 - x4-c x_3
+PDE_t.x{3}.term{1}.x = [2;4;3];
+PDE_t.x{3}.term{1}.C = [1,-1,-c];
 
 % PDE 4: x4_{t} = x3
 PDE_t.x{4}.term{1}.x = 3;

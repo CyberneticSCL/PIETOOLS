@@ -65,6 +65,7 @@ function sttngs = lpisettings(type,derivative_strictness,simplify,solver)
 %
 % Initial coding SS - 15_07_2022
 % DJ, 05/18/2025: Specify no solver by default;
+% DJ, 04/09/2026: Increase eppos to avoid numerical false positives;
 
 arguments
     type {mustBeMember(type,{'light','heavy','veryheavy','stripped','extreme','custom'})}='light';
@@ -101,12 +102,12 @@ switch type
 end
 
 % Set strictness of positivity of LF and negativity of its derivative.
-sttngs.eppos = 1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
-sttngs.eppos2 = 1*1e-6;   % Positivity of Lyapunov Function with respect to spatially distributed states
+sttngs.eppos = 1e-4;        % Positivity of Lyapunov Function with respect to real-valued states
+sttngs.eppos2 = 1e-4;       % Positivity of Lyapunov Function with respect to spatially distributed states
 sttngs.epneg = derivative_strictness;    % Negativity of Derivative of Lyapunov Function in both ODE and PDE state
 
 % Set same settings for 2D case.
-sttngs.settings_2d.eppos = [1e-4; 1e-6; 1e-6; 1e-6];    % Positivity of LF wrt R x L2[s1] x L2[s2] x L2[s1,s2]
+sttngs.settings_2d.eppos = [1e-2; 1e-2; 1e-2; 1e-2];    % Positivity of LF wrt R x L2[s1] x L2[s2] x L2[s1,s2]
 sttngs.settings_2d.epneg = derivative_strictness;       % Negativity of Derivative of Lyapunov Function in both ODE and PDE state
 
 

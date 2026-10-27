@@ -15,6 +15,8 @@
 % If settings.epneg>0, this test implies |Tx(t)|\le Ce^{-\alpha t}|x(0)|
 % for some \alpha>0
 %
+% This script implements the LPI in Lemma 8, 1) of [1].
+%
 % INPUT: 
 % PIE - A pie_struct class object with the above listed PI operators as fields
 % settings - An lpisettings() structure with relevant optimization parameters defined
@@ -46,6 +48,8 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding MP - 07_05_2025
+% DB - 05_20_2026: added reference paper for the LPI
+% DB - 05_21_2026: change Qop to Qop' to match the reference paper
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, P] = PIETOOLS_PIE2PDEstability(PIE, settings)
@@ -60,9 +64,9 @@ end
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
-        [prog, P] = PIETOOLS_stability_2D(PIE);
+        [prog, P] = PIETOOLS_PIE2PDEstability_2D(PIE);
     else
-        [prog, P] = PIETOOLS_stability_2D(PIE,settings);
+        [prog, P] = PIETOOLS_PIE2PDEstability_2D(PIE,settings);
     end
     return
 end
@@ -119,10 +123,10 @@ else
 end
 Pop = Pop + eppos2*Top'*Top;
 
-% Also declare an indefinite operator Qop=Pop*Top so that Rop = Top'*Qop.   % DJ, 01/06/2025
+% Also declare an indefinite operator Qop such that Pop=QopTop=(QopTop)'
 Qdeg = get_lpivar_degs(Pop,Top);
 [prog, Qop] = lpivar(prog,Top.dim,Qdeg);
-prog = lpi_eq(prog, Top'*Qop-Pop);
+prog = lpi_eq(prog, Top'*Qop'-Pop);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -134,7 +138,7 @@ prog = lpi_eq(prog, Top'*Qop-Pop);
 
 disp('- Constructing the Negativity Constraint...');
 
-Dop = Aop'*Qop+Qop'*Aop +epneg*Pop; 
+Dop = Qop*Aop+Aop'*Qop' +epneg*Pop; 
     
 
 
@@ -181,3 +185,11 @@ for i=1:length(prog.expr.At)
     prog.expr.Z{i} = unique(prog.expr.Z{i},'rows');
 end
 end
+% References:
+% [1]-
+% @article{peet2026hierarchical,
+%   title={Hierarchical Stability Notions and Lyapunov Functions for PDEs},
+%   author={Peet, Matthew M},
+%   journal={arXiv preprint arXiv:2603.17536},
+%   year={2026}
+% }

@@ -1,8 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_3PI2Mat_cheb_opint_discretize.m     PIETOOLS 2024
+% PIESIM_3PI_opint_discretize.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A - a dicrete matrix representation of an integrative portion
 % of the 3PI operator
+% Discretizes an operator component (NOT FULL OPERATOR) 
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
@@ -12,7 +13,7 @@
 % R1, R2 operators act
 %
 % Output:
-% A - a non-square matrix of size (N+1)x(N-p+1) that represents a Chebyshev
+% A - a  matrix of size (N+1)x(N+1) that represents a Chebyshev
 % discretizaiton of the integrative portion of the PI operator
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -22,11 +23,11 @@
 %
 % Initial coding YP  - 6_28_2022
 % DJ, 12/28/2024: Remove redundant variables s, theta;
-function A=PIESIM_3PI2Mat_cheb_opint_discretize(N, R1, R2, p)
+% YP, 2/1/2026: changed to square operator, truncation done on assembled
+% operator
+function A=PIESIM_3PI_opint_discretize(N, R1, R2)
 
-Norder=N-p;
-
-A(1:N+1,1:Norder+1)=0;
+A(1:N+1,1:N+1)=0;
 
 if isa(R1,'polynomial')
     deg1=R1.maxdeg;
@@ -42,10 +43,10 @@ end
 
 maxdeg=max(deg1,deg2);
 
-Rcheb1=PIESIM_PIop_discretize(R1,maxdeg);
-Rcheb2=PIESIM_PIop_discretize(R2,maxdeg);
+Rcheb1=PIESIM_PI_discretize(R1,maxdeg);
+Rcheb2=PIESIM_PI_discretize(R2,maxdeg);
 
-for k=0:Norder
+for k=0:N
     % Finding a column vector of Chebyshev coefficient for the column k+1
     % of matrix A
 vecmult1=zeros(N+1,1);

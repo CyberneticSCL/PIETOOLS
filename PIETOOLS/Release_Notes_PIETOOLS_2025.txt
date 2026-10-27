@@ -1,0 +1,20 @@
+PIETOOLS 2025 Release Notes
+
+NOTE: PIETOOLS 2025 is available on MATLAB toolbox repository and GitHub.
+
+PIETOOLS 2025 provides several improvements, including more accurate and sophisticated stability tests, the ability to define PIEs with infinite-dimensional inputs and outputs, features for robust analysis and control, along with enhanced 2D functionality.
+
+Major Updates:
+--- Several new notions of PDE stability have been defined and implemented. The default stability test is now PIE to PDE stability, which is the weakest of these notions. 
+     	--> Scripts now exist to test Lyapunov and exponential in both the PIE to PDE, PDE to PDE sense. 
+--- PIE and PDE objects can now have infinite-dimensional inputs and outputs.
+	--> $L_2$-gain analysis routines now support infinite-dimensional inputs and outputs.
+	--> PIESIM supports infinite-dimensional inputs and outputs in 1D (made after PIETOOLS 2025 release)
+--- A test for well-posedness of univariate PDEs has been included and conversion scripts updated.
+--- PIESIM allows for simulation of 2D PDEs
+--- Finite-dimensional disturbances and control inputs can be entered as user-defined arrays in PIESIM (made after PIETOOLS 2025 release)
+
+Minor Updates:
+
+--- The ability to utilize second order time derivatives in the command line interface has been modified.
+--- changes to lpigetdegrees.m

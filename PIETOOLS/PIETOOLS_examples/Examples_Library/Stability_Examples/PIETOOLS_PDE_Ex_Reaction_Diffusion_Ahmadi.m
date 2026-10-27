@@ -57,7 +57,7 @@ PDE_b.A0 = Cm;
 PDE_b.A2 = (1/R)*on;
 
 PDE_b.B = [on ze ze ze;
-    ze  ze ze on];
+                    ze  on ze ze];
 
 
 %%% Term-based input format
@@ -73,8 +73,9 @@ PDE_t.x{1}.term{2}.C = (1/R)*eye(ne);
 % BCs: 0 = x(0)
 PDE_t.BC{1}.term{1}.loc = 0;
 
-% BCs: 0 = x_{s}(1)
+% BCs: 0 = x(1)
 PDE_t.BC{2}.term{1}.loc = 1;
+% PDE_t.BC{2}.term{1}.D = 1;
 
 
 if GUI

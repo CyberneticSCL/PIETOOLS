@@ -6,10 +6,11 @@ function uinput = PIESIM_disturbance_check(varargin)
 % 1) Check if disturbances are provided in a correct format 
 % 2) Split diturbances into a spatial and temporal parts for simulation
 % Inputs:
-% 1) varargin{1}: uinput - user-defined boundary inputs, forcing and initial
+% 1) varargin{1}: structure - PDE or PIE 
+% 2) varargin{2}: uinput - user-defined boundary inputs, forcing and initial
 % conditions. If empty or incomplete, will be set to default values 
-% 2) varargin{2}: structure - PDE or PIE 
-% Both inputs are REQUIRED
+% 3) varargin{3}: psize - size of the problem
+% All inputs are REQUIRED
 % Outputs: uinput -user-defined boundary inputs, forcing and initial
 % conditions. If empty or incomplete, will be set to default values 
 
@@ -19,12 +20,9 @@ syms st sx sy;
 
 nargin=length(varargin);
 
-if (nargin<2)
-    error('Both uinput and data structure must be provided to the disturbance check')
-end
-
-uinput=varargin{1};
-structure=varargin{2};
+structure=varargin{1};
+uinput=varargin{2};
+psize=varargin{3};
 
 if isa(structure,'pie_struct') || isfield(structure,'T')
     type='PIE';
@@ -38,47 +36,29 @@ end
 
  % Disturbance check for PDEs
 
-if (type=='PDE')
-    nw = sum(PDE.w_tab(:,2)); % number of disturbances
-    nu = sum(PDE.u_tab(:,2)); % number of control inputs
+nw=psize.nw;
+nw0=psize.nw0;
+nu=psize.nu;
+nu0=psize.nu0;
 
-    % Initialize the sizes
-
-   nu2=0;
-   nux=0;
-   nuy=0;
-   nu0=0;
-
-   nw2=0;
-   nwx=0;
-   nwy=0;
-   nw0=0;
-
-else
-    nu=size(PIE.Tu,2); % number of disturbances
-    nw=size(PIE.Tw,2); % number of control inputs
-
-      % Define the sizes of FD versus INFD inputs (disturbances and control inputs must be provided in the correct
-      % order - first FD and then INFD - as no sorting as available)
-
-          % 2D INFD disturbances are not yet supported with PIE format
-    nu2=0;
-    nuy=0;
-    nw2=0;
-    nwy=0;
-
-    nu0=size(PIE.Tu.P,2);
-    nux=size(PIE.Tu.Q1,2);
-
-    nw0=size(PIE.Tw.P,2);
-    nwx=size(PIE.Tw.Q1,2);
-end
-
-
-     % Check for actuator inputs
-    if (nu>0 & ~isfield(uinput,'u'))
-             disp('nu>0 is specified but control inputs are not defined. Defaulting nu to zero.');
-             nu=0;
+  if (nu>0 & ~isfield(uinput,'u') )
+            if ~isfield(uinput,'control')
+                disp('Signal type for control inputs is not defined. Defaulting to zero');
+                       uinput.u{1:nu}=0;
+            else
+            disp('Control inputs are not defined. Defaulting to a user-specified signal type');
+                switch uinput.control
+                    case 'constant'
+                        [uinput.u{1:nu}]=deal(1+0*st);
+                    case 'sin'
+                        [uinput.u{1:nu}]=deal(sin(st));
+                    case 'sinc'
+                        [uinput.u{1:nu}]=deal(sinc(st));
+                    otherwise
+                        disp('The specified signal type for control inputs is not supported. Defaulting to zero');
+                       uinput.u{1:nu}=0;
+                end
+            end
     end
 
 
@@ -86,8 +66,12 @@ end
          if (nu>0 | isfield(uinput,'u'))
 
          % Make sure uinput.u is a cell array
-            if ~iscell(uinput.u)
-            uinput.u=num2cell(uinput.u);
+          if ~iscell(uinput.u)
+                if (size(uinput.u,1)==1)
+                    uinput.u=num2cell(uinput.u);
+                else
+                    uinput.u={uinput.u};
+                end
             end
 
             % Check control inputs size and type
@@ -95,7 +79,7 @@ end
                  if (size(uinput.u,2)<nu)
                     disp('Warning: Number of provided u inputs is less than nu.');
                     disp('Defaulting the rest of u inputs to zero');
-                    uinput.u{size(uinput.u,2)+1:nu}=0;
+                    uinput.u(size(uinput.u,2)+1:nu)={0};
                 elseif (size(uinput.u,2)>nu)
                     disp('Warning: Number of provided u inputs is  greater than nu.');
                     disp('The rest of u inputs will be ignored');
@@ -126,11 +110,11 @@ end
         % Check disturbance setup
 
     if (nw>0 & ~isfield(uinput,'w') )
-            disp('Disturbances are not defined. Defaulting to a user-specified signal type');
             if ~isfield(uinput,'dist')
-                disp('Signal type for disturbances is not defined. Defaulting to a sinusoidal type');
-                [uinput.w{1:nw}]=deal(sin(st));
+                disp('Signal type for disturbances is not defined. Defaulting to zero');
+                       [uinput.w{1:nw}] = deal(0);
             else
+            disp('Disturbances are not defined. Defaulting to a user-specified signal type');
                 switch uinput.dist
                     case 'constant'
                         [uinput.w{1:nw}]=deal(1+0*st);
@@ -139,8 +123,8 @@ end
                     case 'sinc'
                         [uinput.w{1:nw}]=deal(sinc(st));
                     otherwise
-                        disp('The specified signal type for disturbances is not supported. Defaulting to a sinusoidal type');
-                       [uinput.w{1:nw}]=deal(sin(st));
+                        disp('The specified signal type for disturbances is not supported. Defaulting to zero');
+                       [uinput.w{1:nw}] = deal(0);
                 end
             end
     end
@@ -150,13 +134,17 @@ end
 
               % Make sure uinput.w is a cell array
             if ~iscell(uinput.w)
-            uinput.w=num2cell(uinput.w);
+                if (size(uinput.w,1)==1)
+                    uinput.w=num2cell(uinput.w);
+                else
+                    uinput.w={uinput.w};
+                end
             end
 
                 if (size(uinput.w,2)<nw)
                     disp('Warning: Number of provided w inputs is less than nw');
                     disp('Defaulting the rest of w inputs to zero');
-                    uinput.w{size(uinput.w,2)+1:nw}=0;
+                    uinput.w(size(uinput.w,2)+1:nw)={0};
                 elseif (size(uinput.w,2)>nw)
                     disp('Warning: Number of provided w inputs is greater than nw');
                     disp('Extra disturbances will be ignored');
@@ -193,6 +181,10 @@ end
         [PDE,w_order] = reorder_comps(PDE,'w'); % Reorder disturbances in increasing order of differentiability
         [PDE,u_order] = reorder_comps(PDE,'u'); % Reorder control inputs in increasing order of differentiability 
              
+         % Append this to uinput for future use
+         uinput.w_order=w_order;
+         uinput.u_order=u_order;
+
          if~issorted(u_order)
          uinput.u = uinput.u(u_order); % Reorder control inputs if needed
          end
@@ -203,134 +195,41 @@ end
 
          end   % PDE
 
- for k=1:nu 
-     if (type=='PDE')
-        dom=PDE.u{k,1}.dom;
-     else
-         if (k<=nu0)
-        dom=[];
-         else
-        dom=PIE.dom;
-         end
-     end
-    if(~isdouble(uinput.u{k}))  
-    entry=uinput.u{k};
-    if(has(entry,sx)|has(entry,sy))
-        split = cell2sym(children(entry));
-        temp=split(has(split,st));
-        if (isempty(temp))
-        uinput.uspace{k}=uinput.u{k};
-        uinput.u{k}=1+0*st;
-        else
-        uinput.uspace{k}=uinput.u{k}/temp;
-        uinput.u{k}=temp;
-        end
-        % Check if control input is in a separable form
-        if has(uinput.uspace{k},st)
-             disp('Warning: each control input needs to be in a separable form as f(t)g(x) etc. Defaulting non-separable disturbances to zero.');
-             disp('For a desired functionality: split non-separable control inputs into separable contributions in the PDE construct.')
-             if has(uinput.uspace{k},sx) & has(uinput.uspace{k},sy)
-             uinput.uspace{k}=sx*sy;
-             elseif has(uinput.uspace{k},sx)
-                  uinput.uspace{k}=sx;
-             else
-                 uinput.uspace{k}=sy;
-             end
-             uinput.u{k}=0;
-             entry=0;
-        end % has(uinput.wspace{k},st)
-
-          % Check if disturbance is specified correctly
-        if (isempty(dom))
-            disp('Warning: spatial contribution of disturbance is provided for a finite-dimensional control input. Spatial part will be ignored.');
-            if (isdouble(entry))
-            uinput.u{k}=entry*temp;
-            else
-            uinput.u{k}=coeffs(entry)*temp;
-            end
-            uinput.uspace{k}=sym(0);
-        end
-       
-    else
-      if (isempty(dom))
-        uinput.uspace{k}=sym(0);
-        else
-        uinput.uspace{k}=sym(1);
-        end
-    end % (has(uinput.u{k},sx)|has(uinput.u{k},sy))
-    else 
-        % Double
-        if (isempty(dom))
-        uinput.uspace{k}=sym(0);
-        else
-        uinput.uspace{k}=sym(1);  
-        end
-    end % (~isdouble(uinput.u{k}))
-    end % for k
-
-
-
-    % Count number of control inputs according to their spatial structure
-    % (if in PDE format)
-
-   if (type=='PDE')
-   for k=1:nu
-        dom=PDE.u{k,1}.dom;
-         if (uinput.uspace{k}==0)
-             nu0=nu0+1;
-         elseif (uinput.uspace{k}==1)
-             if (size(dom,1)==1)
-             nux=nux+1;
-             elseif (size(dom,1)==2)
-             nu2=nu2+1;
-             end
-         elseif has(uinput.uspace{k},'sx') & has(uinput.uspace{k},'sy')
-             nu2=nu2+1;
-         elseif has(uinput.uspace{k},'sx')
-                 nux=nux+1; 
-         else
-                 nuy=nuy+1; 
-         end
-   end
-   end
-
-    
     % Split disturbances into spatial and temporal parts
     for k=1:nw
-        if (type=='PDE')
-        dom=PDE.w{k,1}.dom;
-        else
-            if (k<=nw0)
+        uinput.wsep{k}=true;
+         if (k<=nw0)
                 dom=[];
+         else
+            if (type=='PDE')
+        dom=PDE.w{k,1}.dom;
             else
         dom=PIE.dom;
             end
-        end
+         end % if k<=nw0
     if(~isdouble(uinput.w{k}))
   entry=uinput.w{k};
     if(has(entry,sx)|has(entry,sy))
         split = cell2sym(children(entry));
         temp=split(has(split,st));
+        temp=prod(temp);
+
         if (isempty(temp))
         uinput.wspace{k}=uinput.w{k};
         uinput.w{k}=1+0*st;
-        else
-        uinput.wspace{k}=uinput.w{k}/temp;
-        uinput.w{k}=temp;
-        end
+        elseif(has(temp,sx)|has(temp,sy)) % temp non-empty but split unsuccessful
+                 uinput.wsep{k}=false;
+                 uinput.wspace{k}=sym(0);
+                 entry=0;
+        else % temp non-empty but split successful
+         uinput.wspace{k}=uinput.w{k}/temp;
+         uinput.w{k}=temp;
+        end % if (isempty(temp))
+        
         % Check if disturbance is in a separable form
         if has(uinput.wspace{k},st)
-             disp('Warning: each disturbance needs to be in a separable form as f(t)g(x) etc. Defaulting non-separable disturbances to zero.');
-             disp('For a desired functionality: split non-separable disturbances into separable contributions in the PDE construct.')
-             if has(uinput.wspace{k},sx) & has(uinput.wspace{k},sy)
-             uinput.wspace{k}=sx*sy;
-             elseif has(uinput.wspace{k},sx)
-                  uinput.wspace{k}=sx;
-             else
-                 uinput.wspace{k}=sy;
-             end
-             uinput.w{k}=0;
-             entry=0;
+                  uinput.wsep{k}=false;
+                  entry=0;
         end % has(uinput.wspace{k},st)
 
           % Check if disturbance is specified correctly
@@ -344,14 +243,15 @@ end
             uinput.wspace{k}=sym(0);
         end
        
-    else
+    else % entry does not have sx or sy - disturbance is symbolic but space-independent
       if (isempty(dom))
         uinput.wspace{k}=sym(0);
         else
         uinput.wspace{k}=sym(1);
         end
-    end % (has(uinput.w{k},sx)|has(uinput.w{k},sy))
-    else 
+    end %  (has(entry,sx)|has(entry,sy)) 
+
+    else % uinput.w{k} is double
         % Double
         if (isempty(dom))
         uinput.wspace{k}=sym(0);
@@ -359,45 +259,76 @@ end
         uinput.wspace{k}=sym(1);  
         end
     end % (~isdouble(uinput.w{k}))
+
     end % for k
 
-    % Count number of disturbances according to their spatial structure (if
-    % in PDE format)
-
-
-     if (type=='PDE')
-     for k=1:nw
-        dom=PDE.w{k,1}.dom;
-         if (uinput.wspace{k}==0)
-             nw0=nw0+1;
-         elseif (uinput.wspace{k}==1)
-             if (size(dom,1)==1)
-             nwx=nwx+1;
-             elseif (size(dom,1)==2)
-             nw2=nw2+1;
-             end
-         elseif has(uinput.wspace{k},'sx') & has(uinput.wspace{k},'sy')
-             nw2=nw2+1;
-         elseif has(uinput.wspace{k},'sx')
-                 nwx=nwx+1; 
+        % Split control inputs into spatial and temporal parts
+    for k=1:nu
+        uinput.usep{k}=true;
+         if (k<=nu0)
+                dom=[];
          else
-                 nwy=nwy+1; 
-         end
-     end % for k
+            if (type=='PDE')
+        dom=PDE.u{k,1}.dom;
+            else
+        dom=PIE.dom;
+            end
+         end % if k<=nu0
+    if(~isdouble(uinput.u{k}))
+  entry=uinput.u{k};
+    if(has(entry,sx)|has(entry,sy))
+        split = cell2sym(children(entry));
+        temp=split(has(split,st));
+        temp=prod(temp);
 
-     end % if PDE
+        if (isempty(temp))
+        uinput.uspace{k}=uinput.u{k};
+        uinput.u{k}=1+0*st;
+        elseif(has(temp,sx)|has(temp,sy)) % temp non-empty but split unsuccessful
+                 uinput.usep{k}=false;
+                 uinput.uspace{k}=sym(0);
+                 entry=0;
+        else % temp non-empty but split successful
+         uinput.uspace{k}=uinput.u{k}/temp;
+         uinput.u{k}=temp;
+        end % if (isempty(temp))
+        
+        % Check if disturbance is in a separable form
+        if has(uinput.uspace{k},st)
+                  uinput.usep{k}=false;
+                  entry=0;
+        end % has(uinput.wspace{k},st)
 
-         % Append sizes to uinput
-         uinput.nu=nu;
-         uinput.nu0=nu0;
-         uinput.nux=nux;
-         uinput.nuy=nuy;
-         uinput.nu2=nu2;
+          % Check if disturbance is specified correctly
+        if (isempty(dom))
+            disp('Warning: spatial contribution of control input is provided for a finite-dimensional disturbance. Spatial part will be ignored.');
+            if (isdouble(entry))
+            uinput.u{k}=entry*temp;
+            else
+            uinput.u{k}=coeffs(entry)*temp;
+            end
+            uinput.uspace{k}=sym(0);
+        end
+       
+    else % entry does not have sx or sy - disturbance is symbolic but space-independent
+      if (isempty(dom))
+        uinput.uspace{k}=sym(0);
+        else
+        uinput.uspace{k}=sym(1);
+        end
+    end %  (has(entry,sx)|has(entry,sy)) 
 
-         uinput.nw=nw;
-         uinput.nw0=nw0;
-         uinput.nwx=nwx;
-         uinput.nwy=nwy;
-         uinput.nw2=nw2;
+    else % uinput.w{k} is double
+        % Double
+        if (isempty(dom))
+        uinput.uspace{k}=sym(0);
+        else
+        uinput.uspace{k}=sym(1);  
+        end
+    end % (~isdouble(uinput.u{k}))
 
-end
+    end % for k
+
+ 
+
+ 

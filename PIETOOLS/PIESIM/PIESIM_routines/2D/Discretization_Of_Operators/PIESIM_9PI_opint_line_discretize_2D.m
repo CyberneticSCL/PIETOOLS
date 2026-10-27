@@ -1,17 +1,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_9PI2Mat_cheb_opint_discretize_line.m     PIETOOLS 2024
+% PIESIM_9PI_opint_line_discretize_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Constructs A, A_nonsquare - discrete matrix representations of
+% Constructs A - discrete matrix representations of
 % singly integrated blocks (R01, R02, R10, R20) of 9PI operator in 2D
-%
+% Discretizes an operator component of 9PI operator (NOT FULL OPERATOR)
 % Called by 'PIESIM_9PI2Mat_cheb_2D.m' 
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
 % R -  polymonial multiplicative block (R01, R02, R10 or R20) of 9PI operator in 2D
 % corresponding to a single solution state
-% rsize - the number of rows in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the solution state on the left-hand side of the ODE matrix system corresponding to the discrete block in question)
-% csize - the number of columns in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the right-hand side of the ODE matrix system corresponding to the discrete block in question)
 % var1: 2x1 pvar array specifying the primary spatial variables (x,y)
 % var2: 2x1 pvar array specifying the dummy variables for integration
 %           (theta,nu)
@@ -21,12 +19,10 @@
 % Outputs:
 % A - Chebyshev
 % discretizaiton of R01, R02, R10 or R20 block that represents a block of a
-% square total matrix operator for time-advancement of the
-% spatially-discretized PIE solution (square ODE system matrix)
-% A_nonsquare - Chebyshev
-% discretizaiton of R01, R02, R10 or R20 block that represents a block of a
-% nonsquare total matrix operator for reconstruction of the primary (PDE)
-% solution (nonsquare transformation matrix)
+% total matrix operator for time-advancement of the
+% spatially-discretized PIE solution (spatially-discrertized propagator
+% matrix) - consruct square prod(N+1)^2 x prod(N+1)^2 matrices only - truncaiton is done
+% on assembled operators
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -36,8 +32,10 @@
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
 %                   defining R as additional inputs.
+% YP, 1/31/2026 - restructured matrix conversion, made it for square
+% operators
 
-function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_line(N, R, rsize, csize, var1, var2, dir, sign)
+function A=PIESIM_9PI_opint_line_discretize_2D(N, R, var1, var2, dir, sign)
 
 % Extract spatial and dummy variables defining the operator R               % DJ, 12/16/2024
 s1 = var1(1);   s1_dum = var2(1);
@@ -52,14 +50,14 @@ if (dir=='x')
     theta=s1_dum;
     snative=s2;
     snstr=s2.varname{1};
+    idir=1;
 else
     s=s2;
     theta=s2_dum;
     snative=s1;
     snstr=s1.varname{1};
+    idir=2;
 end
-
-A(1:N+1,1:csize)=0;
 
 if isa(R,'polynomial')
     deg=R.maxdeg;
@@ -93,44 +91,33 @@ end
 for kcell=1:numel(Reval)
     Rcheb=Rchebcell{kcell};
 
-    [A,Abig]=PIESIM_integral_projection1D(N, Rcheb, csize, sign);
-
+    Aint=PIESIM_integral_projection1D(N(idir), Rcheb, sign);
 
 % Construct multiplicative operator in the other direction
 
-    Multop_big=eye((N+1)^2);
-    Id=eye(rsize);
-    Id_big=eye(N+1);
-    Multop_nonsquare=Multop_big(:,1:csize^2);
-    Multop=Multop_big(1:rsize*csize,1:csize^2);
-    Id_nonsquare=[Id;zeros(N+1-rsize,rsize)];
+    Multop=eye(prod(N+1));
+    Idx=eye(N(2)+1);
+    Idy=eye(N(1)+1);
+   
 if (R_native)
     index = find(strcmp(R.varname, snstr));
     Rop=polynomial(1,R.degmat(kcell,index),R.varname(index),R.matdim);
-    [Multop,Multop_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize_2D(N, Rop, rsize, csize, var1);
+    Multop=PIESIM_9PI_opmult_discretize_2D(N, Rop, var1);
 end
-
-Atran=A(1:rsize,1:csize);
-
 
 if (dir=='x')
-    if (exist('Afull_nonsquare','var'))
-    Afull_nonsquare=Afull_nonsquare+kron(Id_big,Abig)*Multop_nonsquare;
-    Afull=Afull+kron(Id,Atran)*Multop;
-    else
-    Afull_nonsquare=kron(Id_big,Abig)*Multop_nonsquare;
-    Afull=kron(Id,Atran)*Multop;
+    if (exist('A','var'))
+    A=A+kron(Idx,Aint)*Multop;
+   else
+    A=kron(Idx,Aint)*Multop;
     end
 else
-     if (exist('Afull_nonsquare','var'))
-    Afull_nonsquare=Afull_nonsquare+kron(Abig,Id_big)*Multop_nonsquare;
-    Afull=Afull+kron(Atran,Id)*Multop;
+      if (exist('A','var'))
+    A=A+kron(Aint,Idy)*Multop;
      else
-    Afull_nonsquare=kron(Abig,Id_big)*Multop_nonsquare;
-    Afull=kron(Atran,Id)*Multop;
-    end
+    A=kron(Aint,Idy)*Multop;
+      end
 end
-
 
 end % kcell
 

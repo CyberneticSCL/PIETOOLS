@@ -51,6 +51,7 @@ function [dP] = diff(P,invar,deg,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 10/16/2024
+% DJ, 01/24/2026: Correction in check if opts='pure' is supported.
 
 % % Error checking
 if nargin>4
@@ -155,7 +156,8 @@ while ~isempty(addvar)
             sss = P.var1(1);    ttt = P.var2(1);
             if (strcmpi(opts,'exclude') || strcmpi(opts,'pure'))
                 % In this case, our state [u0; ux; uy; u2] doesn't change
-                if any(~isequal(dP.R.R0,0))
+                P = clean_opvar(P,1e-12);
+                if any(any(~isequal(P.R.R0,zeros(size(P.R.R0)))))
                     error('"Pure differentiation" of PI operator is only possible when there are no multiplier terms along the dimension of differentiation')
                 else
                     dP.dim = dim_new;

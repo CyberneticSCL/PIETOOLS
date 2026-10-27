@@ -12,6 +12,8 @@
 % is a strong notion of stability. If this test fails, try PIE2PDE
 % stability.
 %
+% This script implements the LPI in Lemma 8, 3) of [1].
+%
 % If settings.epneg>0, this test implies |Tx(t)|\le Ce^{-\alpha t}|Tx(0)|
 % for some \alpha>0
 %
@@ -51,6 +53,7 @@
 % DJ - 06/02/2021: incorporate sosineq_on option;
 % DJ - 10/19/2024: Update to use new LPI programming structure;
 % MP - 12/04/2025: updated name and description;
+% DB - 05/20/2026: added reference paper for the LPI
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [prog, P] = PIETOOLS_PDEstability(PIE, settings)
@@ -65,9 +68,9 @@ end
 if PIE.dim==2
     % Call the 2D version of the executive.
     if nargin==1
-        [prog, P] = PIETOOLS_stability_2D(PIE);
+        [prog, P] = PIETOOLS_PDEstability_2D(PIE);
     else
-        [prog, P] = PIETOOLS_stability_2D(PIE,settings);
+        [prog, P] = PIETOOLS_PDEstability_2D(PIE,settings);
     end
     return
 end
@@ -183,3 +186,11 @@ for i=1:length(prog.expr.At)
     prog.expr.Z{i} = unique(prog.expr.Z{i},'rows');
 end
 end
+% References:
+% [1]-
+% @article{peet2026hierarchical,
+%   title={Hierarchical Stability Notions and Lyapunov Functions for PDEs},
+%   author={Peet, Matthew M},
+%   journal={arXiv preprint arXiv:2603.17536},
+%   year={2026}
+% }

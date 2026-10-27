@@ -48,7 +48,7 @@ pvar s
 evalin('base','stability = 1;');
 
 % Specify the parameters
-alp = 1;     bet = 1;     gam = 1;
+alp = 1;     bet = 1;     gam = 2;
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -85,9 +85,11 @@ PDE_t.x{4}.term{1}.x = 2;
 PDE_t.BC{1}.term{1}.x = 4;
 PDE_t.BC{1}.term{1}.loc = 0;
 
-% BC 2: 0 = x4(1)
+% BC 2: 0 = x4_s(0)
 PDE_t.BC{2}.term{1}.x = 4;
-PDE_t.BC{2}.term{1}.loc = 1;
+PDE_t.BC{2}.term{1}.D = 1;
+PDE_t.BC{2}.term{1}.loc = 0;
+
 
 % BC 3: 0 = x4_{ss}(1) - x4(1)
 PDE_t.BC{3}.term{1}.x = 4;

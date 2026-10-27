@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fcgltran2dperm(.m     PIETOOLS 2024
+% fcgltran2dperm.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
@@ -32,5 +32,5 @@ else            % Spectral-to-nodal
     B=real(F(1:N,:));
     G=B.';
     F=fft([G(1,:); [G(2:M,:);G(M-1:-1:2,:)]/2]);
-    B=real(F(1:N,:)).';
+    B=real(F(1:M,:)).';
 end

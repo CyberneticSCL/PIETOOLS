@@ -47,6 +47,7 @@
 % DJ, 12/28/2024: Initial coding;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state;
 % DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
+% YP, 02/23/2026: Update inputs and outputs to PIESIM
 clear
 
 
@@ -58,7 +59,7 @@ clc; clear; close all; clear stateNameGenerator;
 % Declare independent variables
 pvar t s;   
 % Declare state, input, and output variables
-phi = pde_var(2,s,[0,1]);   x = pde_var();
+x = pde_var();              phi = pde_var(2,s,[0,1]);   
 w = pde_var('in');          u = pde_var('control');   
 z = pde_var('out',2);
 % Declare system parameters
@@ -92,23 +93,18 @@ opts.dt = 3*1e-2;   % use time step of 3*10^-2
 opts.intScheme = 1; % use backward differentiation formula for time integration
 
 % Declare initial values and values of disturbance and input.
-syms st sx real                 % symbolic time and space variables
-uinput.ic.PDE = [0,0];          % initial values of both PDE state variables
-uinput.ic.ODE = 0;              % initial value of ODE state variable
+syms st sx                      % symbolic time and space variables
+uinput.ic = [0,0,0];           % initial values of ODE and two PDE state variables
 uinput.u = 0;                   % value of control as function of time
 uinput.w = sin(5*st)*exp(-st);  % value of disturbance as function of time
 
-% Declare number of PDE state variables differentiable up to each order:
-%   0 0th-order, 2 1st-order, and 0 2nd-order differentiable states.
-ndiff = [0,2,0]; 
-
 % Simulate the ODE-PDE system using specified settings.
-[solution,grids] = PIESIM(odepde, opts, uinput);
+[solution,grid] = PIESIM(odepde, opts, uinput);
 
 % Extract values of the second state variables and thet output at each time step.
 tval = solution.timedep.dtime;
-phi2 = reshape(solution.timedep.pde(:,2,:),opts.N+1,[]);
-zval = solution.timedep.regulated;
+phi2 = reshape(solution.timedep.primary{2}(:,2,:),opts.N+1,[]);
+zval = solution.timedep.regulated{1};
 wval = subs(uinput.w,st,tval);
 
 % Plot evolution of the PDE state and regulated output.
@@ -118,7 +114,7 @@ sgtitle('Open-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter',
 
 ax1 = subplot(1,2,1);
 box on
-surf(tval,grids.phys,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tval,grid,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h=colorbar;     
 colormap jet
 ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
@@ -173,7 +169,7 @@ PIE_CL = initialize(PIE_CL);
 
 %% -.-.- Simulate the closed-loop ODE-PDE system
 % Simulate the solution to the PIE with controller
-[solution_CL,grids_CL] = PIESIM(PIE_CL,opts,uinput,ndiff);
+[solution_CL,grids_CL] = PIESIM(PIE_CL,opts,uinput);
 
 % Having found an optimal controller, constructed closed loop system, and
 % running PIESIM to simulate, we can now extract the solution and plot it
@@ -183,9 +179,9 @@ PIE_CL = initialize(PIE_CL);
 % disturbance, we see that the effect of disturbance on this neutrally
 % stable system is reduced.
 tval = solution_CL.timedep.dtime;
-phi1_cl = reshape(solution_CL.timedep.pde(:,1,:),opts.N+1,[]);
-phi2_cl = reshape(solution_CL.timedep.pde(:,2,:),opts.N+1,[]);
-zval_cl = solution_CL.timedep.regulated;
+phi1_cl = reshape(solution_CL.timedep.primary{2}(:,1,:),opts.N+1,[]);
+phi2_cl = reshape(solution_CL.timedep.primary{2}(:,2,:),opts.N+1,[]);
+zval_cl = solution_CL.timedep.regulated{1};
 wval = subs(uinput.w,st,tval);
 
 
@@ -197,7 +193,7 @@ sgtitle('Closed-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter
 
 ax1 = subplot(1,2,1);
 box on
-surf(tval,grids.phys,phi2_cl,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tval,grid,phi2_cl,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h=colorbar;     
 colormap jet
 ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)

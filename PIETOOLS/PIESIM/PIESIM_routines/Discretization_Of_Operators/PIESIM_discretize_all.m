@@ -12,7 +12,8 @@
 % 1) Dop - discrete PIE operators containing Chebyshev matrices for
 % T,Tu,Tw,A,Bi,Ci
 % 2) coeff - Chebyshev coefficients for initial conditions and forcing functions
-% 3) grid - contains physical and computational grid for n0 states
+% 4) gridall - contains all grids for all states with different degree of
+% differentiability (internal)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -20,12 +21,10 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 9_18_2021
-function [Dop, coeff, grid]=PIESIM_discretize_all(PIE, uinput, psize);
+function [Dop, coeff, gridall]=PIESIM_discretize_all(PIE, uinput, psize);
 
 % Discretize computational domain
-[grid,gridall]=PIESIM_discretize_domain(uinput,psize);
-% n1grid, n2grid are local variables denoting auxiliary computational grid
-% of n1, n2 states (not needed outside PIESIM_discretize_all)
+gridall=PIESIM_discretize_domain(uinput,psize);
 
 % Discretize initial conditions and non-polynomial in space forcing matrix operator
 

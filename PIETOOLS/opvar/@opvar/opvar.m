@@ -48,6 +48,7 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
 % Changed var1 and var2 to be pvars instead of chars. SS - 9/6/2019
 % Changed default var1 and var2. SS -12/1/2024 
 % DJ, 01/23/2025: Add default spatial variables (s1,s1_dum) to workspace;
+% DJ, 02/04/2026: Add default variables only to command window;
 
 
     properties
@@ -78,7 +79,9 @@ classdef (InferiorClasses={?polynomial,?dpvar}) opvar
                 end
             end
             % Also add spatial variables to workspace;
-            evalin("caller", 'pvar s1 s1_dum;');                            % DJ, 01/23/2025
+            if isscalar(dbstack)                                            % DJ, 02/04/2026
+                evalin("caller", 'pvar s1 s1_dum;');                        % DJ, 01/23/2025
+            end
         end
         function [obj] = set.P(obj,P) 
             obj.P = P;

@@ -41,6 +41,7 @@ function [d] = degbalance(P,opts)
 %
 % Initial coding DJ - 04_12_2022
 % DJ, 12/16/2024: Use more expensive but less conservative degrees.
+% DJ, 04/09/2026: Use even greater (less conservative) degrees.
 
 % Process the inputs
 if nargin==1
@@ -77,81 +78,50 @@ end
 % in the operator
 [Pdegs,Pmaxdegs,~] = getdeg(P);
 
-% % DJ, 12/16/2024: For now, just choose degrees as half those of P.
-% % This is computationally expensive, but seems not to introduce too much
-% % conservatism.
 
-% Degrees for monomials in x
+% To account for the fact that degrees in the primary variables (x and y)
+% get doubled, whereas those in the dummy variables (x_dum and y_dum) do
+% not, we scale the degrees in x,y with 0.5, and those in x_dum,y_dum with
+% 1
+fctr_1d = [0,0.5,1,2/3];                                                    % DJ, 04/09/2026
+
+% Degrees for monomials in x and x_dum
 dx = cell(3,1);
 dx{1} = floor(Pmaxdegs.Rxx{1}(2,1)/2);
-dx{2} = floor(Pmaxdegs.Rxx{2}(2:4,1)/2);
-dx{3} = floor(Pmaxdegs.Rxx{3}(2:4,1)/2);
+deg_dx = max(Pmaxdegs.Rxx{2},Pmaxdegs.Rxx{3});
+dx{2} = round(deg_dx(2:4,1).*fctr_1d(2:4)');
+dx{3} = floor(deg_dx(2:4,1).*fctr_1d(2:4)');
 
-% Degrees for monomials in y
+% Degrees for monomials in y and y_dum
 dy = cell(1,3);
 dy{1} = floor(Pmaxdegs.Ryy{1}(1,2)/2);
-dy{2} = floor(Pmaxdegs.Ryy{2}(1,2:4)/2);
-dy{3} = floor(Pmaxdegs.Ryy{3}(1,2:4)/2);
+deg_dy = max(Pmaxdegs.Ryy{2},Pmaxdegs.Ryy{3});
+dy{2} = floor(deg_dy(1,2:4).*fctr_1d(2:4));
+dy{3} = floor(deg_dy(1,2:4).*fctr_1d(2:4));
 
-% Degrees for monomials in x and y
+% Degrees for monomials in x, x_dum, y and y_dum
 d2 = cell(3,3);
 d2{1,1} = floor(Pmaxdegs.R22{1,1}([1;2],[1,2])/2);
-d2{2,1} = floor(Pmaxdegs.R22{2,1}(:,[1,2])/2);
-d2{3,1} = floor(Pmaxdegs.R22{3,1}(:,[1,2])/2);
-d2{1,2} = floor(Pmaxdegs.R22{1,2}([1;2],:)/2);
-d2{1,3} = floor(Pmaxdegs.R22{1,3}([1;2],:)/2);
-d2{2,2} = floor(Pmaxdegs.R22{2,2}/2);
-d2{3,2} = floor(Pmaxdegs.R22{3,2}/2);
-d2{2,3} = floor(Pmaxdegs.R22{2,3}/2);
-d2{3,3} = floor(Pmaxdegs.R22{3,3}/2);
+deg_d2_a = max(Pmaxdegs.R22{2,1},Pmaxdegs.R22{3,1});
+deg_d2_b = max(Pmaxdegs.R22{1,2},Pmaxdegs.R22{1,3});
+fctr1 = fctr_1d(1:2) + fctr_1d';
+fctr1(2:4,2) = 0.5*fctr1(2:4,2);
+for ii=2:3
+    d2{ii,1} = round(fctr1.*deg_d2_a(:,[1,2]));
+    d2{1,ii} = round(fctr1'.*deg_d2_b([1,2],:));
+end
+deg_d2 = max(cat(3,Pmaxdegs.R22{2,2},Pmaxdegs.R22{2,3},Pmaxdegs.R22{3,2},Pmaxdegs.R22{3,3}),[],3);
+fctr_2d = fctr_1d' + fctr_1d;
+fctr_2d(2:4,2:4) = 0.5*fctr_2d(2:4,2:4);
+for ii=2:3
+    for jj=2:3
+        d2{ii,jj} = round(deg_d2.*fctr_2d);
+    end
+end
 
 d.dx = dx;  d.dy = dy;  d.d2 = d2;
 
-
-%% ====================== ALTERNATIVE IMPLEMENTATION ====================== %%  % DJ, 09/04/2025
-% % % Even more expensive, less conservative implementation
-% % To account for the fact that degrees in the primary variables (x and y)
-% % get doubled, whereas those in the dummy variables (x_dum and y_dum) do
-% % not, we scale the degrees in x,y with 0.5, and those in x_dum,y_dum with
-% % 1
-% fctr_1d = [0,0.5,1,0.75];
-% 
-% % Degrees for monomials in x and x_dum
-% dx = cell(3,1);
-% dx{1} = floor(Pmaxdegs.Rxx{1}(2,1)/2);
-% deg_dx = max(Pmaxdegs.Rxx{2},Pmaxdegs.Rxx{3});
-% dx{2} = round(deg_dx(2:4,1).*fctr_1d(2:4)');
-% dx{3} = floor(deg_dx(2:4,1).*fctr_1d(2:4)');
-% 
-% % Degrees for monomials in y and y_dum
-% dy = cell(1,3);
-% dy{1} = floor(Pmaxdegs.Ryy{1}(1,2)/2);
-% deg_dy = max(Pmaxdegs.Ryy{2},Pmaxdegs.Ryy{3});
-% dy{2} = floor(deg_dy(1,2:4).*fctr_1d(2:4));
-% dy{3} = floor(deg_dy(1,2:4).*fctr_1d(2:4));
-% 
-% % Degrees for monomials in x, x_dum, y and y_dum
-% d2 = cell(3,3);
-% d2{1,1} = floor(Pmaxdegs.R22{1,1}([1;2],[1,2])/2);
-% deg_d2_a = max(Pmaxdegs.R22{2,1},Pmaxdegs.R22{3,1});
-% deg_d2_b = max(Pmaxdegs.R22{1,2},Pmaxdegs.R22{1,3});
-% fctr1 = fctr_1d(1:2) + fctr_1d';
-% fctr1(2:4,2) = 0.5*fctr1(2:4,2);
-% for ii=2:3
-%     d2{ii,1} = round(fctr1.*deg_d2_a(:,[1,2]));
-%     d2{1,ii} = round(fctr1'.*deg_d2_b([1,2],:));
-% end
-% deg_d2 = max(cat(3,Pmaxdegs.R22{2,2},Pmaxdegs.R22{2,3},Pmaxdegs.R22{3,2},Pmaxdegs.R22{3,3}),[],3);
-% fctr_2d = fctr_1d' + fctr_1d;
-% fctr_2d(2:4,2:4) = 0.5*fctr_2d(2:4,2:4);
-% for ii=2:3
-%     for jj=2:3
-%         d2{ii,jj} = round(deg_d2.*fctr_2d);
-%     end
-% end
-% 
-% d.dx = dx;  d.dy = dy;  d.d2 = d2;
-% 
+end
 
 %% =============================== OLD CODE =============================== %%  % DJ, 12/16/2024
 % 
@@ -765,8 +735,6 @@ d.dx = dx;  d.dy = dy;  d.d2 = d2;
 %     d2{j} = reduce_joint_degs(d2{j});
 % end
 % d.dx = dx;  d.dy = dy;  d.d2 = d2;
-
-end
 
 
 

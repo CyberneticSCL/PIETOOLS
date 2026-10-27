@@ -15,8 +15,8 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params)
 %
 % %---------------------------------------------------------------------% %
 % % Timoschenko beam equation (hyperbolic) from Peet (Example 8.1.0.2):
-% % PDE        r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})
-% %            r*II * phi_{tt} = E*II * phi_{ss} + k*aa*g * (w_{s} - phi)
+% % PDE   r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})
+%       r*II * phi_{tt} = E*II * phi_{ss} + k*aa*g * (w_{s} - phi)-cphi_{t}
 % % with BCs   phi(s=0) = 0
 % %            w(s=0) = 0 
 % %            phi_{s}(s=1) = 0 
@@ -26,7 +26,7 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params)
 % % Then, our system becomes:
 % % PDE        x1_{t} = (1/r/aa) * x2_{s}
 % %            x2_{t} = k*aa*g * x1_{s} - k*aa*g * x3
-% %            x3_{t} = (1/r/II) * x2 + (1/r/II) * x4_{s}
+% %            x3_{t} = (1/r/II) * x2 + (1/r/II) * x4_{s} -c x_3
 % %            x4_{t} = E*II * x3_{s}
 % % with BCs   x1(0) = 0, x3(0) = 0, x4(1) = 0, x2(1) = 0
 % % 
@@ -44,7 +44,7 @@ pvar s
 evalin('base','stability = 1;');
 
 % Specify the parameters
-k = 1;    aa = 1;    II = 1;    g = 1;    E = 1;   r = 1;  %5-30kPa
+k = 1;    aa = 1;    II = 1;    g = 1;    E = 1;   r = 1;  c=0;%5-30kPa
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters
@@ -61,7 +61,7 @@ PDE_b.dom = [0,1];
 
 PDE_b.A0 = [0 0 0 0;
     0 0 -k*aa*g 0;
-    0 1/r/II 0 0;
+    0 1/r/II -c 0;
     0 0 0 0];
 PDE_b.A1 = [0 1/r/aa 0 0;
     k*aa*g 0 0 0;
@@ -77,10 +77,10 @@ PDE_b.B = [ 1 0 0 0 0 0 0 0;
 %%% Term-based input format
 PDE_t.x{1}.vars = s;    PDE_t.x{1}.dom = [0,1];
 
-% PDE: x2_{t} = -k*aa*g * x3,   x3_{t} = (1/r/II) * x2
+% PDE: x2_{t} = -k*aa*g * x3,   x3_{t} = (1/r/II) * x2-c x_3
 PDE_t.x{1}.term{1}.C = [0, 0,      0,       0;
     0, 0,      -k*aa*g, 0;
-    0, 1/r/II, 0,       0;
+    0, 1/r/II, -c,       0;
     0, 0,      0,       0];
 
 % PDE: x1_{t} = (1/r/aa) * x2_{s},        x2_{t} = ... + k*aa*g * x1_{s}

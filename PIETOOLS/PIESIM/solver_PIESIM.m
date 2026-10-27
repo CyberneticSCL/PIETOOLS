@@ -5,7 +5,7 @@
 % PIESIM Version of PIETOOLS for 1D and 2D problems: 
 % For support, contact Y. Peet, Arizona State University at ypeet@asu.edu
 
-% This is the main driver for the PIESIM code if a numerical solution of PDE/ODE problem is the only task required.
+% This is the wrapper for the PIESIM code if a numerical solution of PDE/ODE problem is the only task required.
 % It can be called instead of PIETOOLS_PDE in this case. 
 % Examples can be drawn from 'examples_pde_library_PIESIM.m' for 1D or
 % 'examples_pde_library_PIESIM_2D.m' for 2D.
@@ -31,7 +31,7 @@
 % opts.ifexact
 
 clear all;
-clc;
+clc
 close all;
 format long;
 
@@ -46,9 +46,13 @@ format long;
 
 dim=1;
 
+if (dim~=1&dim~=2)
+    error('Dimension must be specified as 1 or 2');
+end
+
 % Set up options for the simulations
 
-% If exact solution is known (see examles) and is desired to be provided for testing,
+% If exact solution is known (see examples) and is desired to be provided for testing,
 % select opts.ifexact=true.
 % NOTE: Only choose opts.ifexact=true if exact solution for all the states is
 %       available. Otherwise, choose opts.ifexact=false.
@@ -60,13 +64,17 @@ opts.ploteig='yes';
 
 % Here we define parameters related to simulation.
 
-% Input N - the Chebyshev polynomial discretization order of the
-%            distributed states
+% Input opts.N - the Chebyshev polynomial discretization order of the
+%            distributed states 
+
+% For 2D: if different order of discretization is required in different directions,
+% enter opts.N as an array, such as opts.N=[16,32]
+
 opts.N=16;
 
 %-----------------------------------------------------------
 % Input the desired final time of the solution
-opts.tf=1.6;
+opts.tf=0.1;
 
 %-----------------------------------------------------------
 % Choose temporal integration scheme 
@@ -93,7 +101,7 @@ opts.intScheme=1;
 
 if (opts.intScheme==1)
     opts.Norder = 2;
-    opts.dt=0.02;
+    opts.dt=1e-3;
 end
 
 
@@ -102,20 +110,20 @@ end
 %------------------------------------------------------------------------------
 % For 1D problems: example = xxx (between 1 and 41) to correspond to an Example number in
 % the 'examples_pde_library_PIESIM_1D.m'
-% For 2D problems: example = xxx (between 1 and 19) to correspond to an Example number in
+% For 2D problems: example = xxx (between 1 and 32) to correspond to an Example number in
 % the 'examples_pde_library_PIESIM_2D.m'
 %------------------------------------------------------------------------------
 
-    example=7;
+    example=41;
 
     if (dim==1)
     if (example<1|example>41)
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
         example=1;
     end
-    [PDE,uinput]=examples_pde_library_PIESIM_1D(example,opts);
-    else   % dim=2
-    if (example<1|example>19)
+    [PDE,uinput]=examples_pde_library_PIESIM_1D(example);
+    else   % dim==2
+    if (example<1|example>32)
         disp('Warning: Example number is outside of the range. Defaulting to example=1');
         example=1;
     end
@@ -126,14 +134,17 @@ end
 %   USER INPUT ENDS
 %--------------------------------------------------------------------------
 
+% If disturbances are used while supplying PIE input to PIESIM, 
+% user needs to ensure that finite-dimensional distubrances are
+% entered before infinite-dimensional disturbances for a proper
+% functionality. Disturbances are not reordered automatically with the PIE
+% structure as they are with the PDE structure.
+
 if exist('PIE','var')
-    solution = PIESIM(PIE,opts,uinput,PDE.n.n_pde);
+    solution = PIESIM(PIE,opts,uinput);
 elseif exist('DDE','var')
     solution=PIESIM(DDE,opts,uinput);
 else
-    solution = PIESIM(PDE,opts,uinput);
+    [solution,grid] = PIESIM(PDE,opts,uinput);
 end
-
-
-
 

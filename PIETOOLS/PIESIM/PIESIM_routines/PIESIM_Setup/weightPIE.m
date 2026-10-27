@@ -19,14 +19,18 @@ function PIE = weightPIE(PIE,k)
 
 % Initial coding: YP 1/7/2026
 
+pvar s1;
+
         % Initialize mapping operators to be unmodified PIE operators
+
+        pvar s1;
 
         PIE.misc.Tmap = PIE.T;
         PIE.misc.Tumap = PIE.Tu;
         PIE.misc.Twmap = PIE.Tw;
 
         % Modify PIE operators that describe dynamics due to the multiplication
-        % of th PDE by r^k (k=weight)
+        % of the PDE by r^k (k=weight)
     
         opvar W;
         [m, n] = size(PIE.T.R.R0);

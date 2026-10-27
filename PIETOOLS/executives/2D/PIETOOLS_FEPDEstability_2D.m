@@ -1,10 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS_stability_2D.m     PIETOOLS 2022a
+% PIETOOLS_FEPIE2PDEstability_2D.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [prog, Pop, Qop, solve_val] = PIETOOLS_stability_2D(PIE,settings)
-% This script executes a stability analysis for a 2D-PIE System defined
-% by the PI operator representation
-% Top \dot{x}(t)=Aop x(t)
+function [prog, Pop, Qop, solve_val]  = PIETOOLS_FEPDEstability_2D(PIE,settings)
+% This script executes a FE PDE stability analysis for a 2D-PIE System
+% defined by the PI operator representation
+%       Top \dot{x}(t)=Aop x(t)
+% testing whether solutions satisfy
+%       \int_0^\infty ||Tx(t)||^2_{L_2}  dt \le C||Tx(0)||_{L_2}
 %
 % If any other parts of the PIE are present, these are ignored. Both Top
 % and Aop must be properly defined for the script to function.
@@ -21,11 +23,11 @@ function [prog, Pop, Qop, solve_val] = PIETOOLS_stability_2D(PIE,settings)
 %
 % OUTPUTS:
 %   prog:       SOS program structure associated to the (solved) LPI.
-%   Pop:        dopvar2d object defining the LF V(x)=<x,Pop*x>. Use
+%   Qop:        dopvar2d object defining the LF V(x)=<x,Pop*x>. Use
 %               "sosgetsol_lpivar_2d(prog,Pop)" to get the solved operator.
-%   Qop:        dopvar2d object defining the right-hand side of the
+%   Dop:        dopvar2d object defining the right-hand side of the
 %               stability LPI,
-%               Qop = Top'*Pop*Aop + Aop'*Pop*Top + epneg*(Top'*Top).
+%               Dop = Qop*Aop + Aop'*Qop' + epneg*(Top'*Qop').
 %   solve_val:  Value specifying whether the problem is feasible, based on
 %               outputs of SOS program. Value is 1 if the a feasible
 %               solution is found, 0.5 if it a feasible solution is only
@@ -37,8 +39,7 @@ function [prog, Pop, Qop, solve_val] = PIETOOLS_stability_2D(PIE,settings)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ - 02/21/2022: Initial coding;
-% DJ - 10/20/2024: Update to use new LPI programming structure;
+% DB - 05/21/2026: Initial coding;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,7 +58,7 @@ if nargin==1
     settings = settings_PIETOOLS_light_2D;
     settings.sos_opts.simplify = 1;         % Use psimplify
     settings.eppos = 1e-2*ones(4,1);    % Positivity of Lyapunov Function
-    settings.epneg = 0*1e-5;                % Negativity of derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+    settings.epneg = 1e-5;                % Negativity of derivative of Lyapunov Function in both ODE and PDE state -  Needs to be >0 
 elseif ~isfield(settings,'is2D') || ~settings.is2D
     % Extract 2D settings.
     sos_opts = settings.sos_opts;
@@ -79,19 +80,20 @@ end
 
 % Extract LF positivity and negativity conditions
 if ~isfield(settings,'eppos')
-    eppos = [1e-4;      % Positivity of Lyapunov Function with respect to real-valued states
-              1e-6;1e-6;
-              1e-6];    % Positivity of Lyapunov Function with respect to 2D spatially distributed states
+    eppos = 1e-2*ones(4,1);    % Positivity of Lyapunov Function
 else
     eppos = settings.eppos;
-    if numel(eppos)==1
+    if isscalar(eppos)
         eppos = eppos*ones(4,1);
     end
 end
 if ~isfield(settings,'epneg')
-    epneg = 0;         % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
+    epneg = 1e-5;     % Negativity of derivative of Lyapunov Function in both ODE and PDE state -  Needs to be >0 
 else
     epneg = settings.epneg;
+    if epneg==0
+          error('Finite energy stability check requires settings.epneg >0. Please change your settings. ')
+    end
 end
 
 % Extract settings defining operator P parameterizing LF V=<x,Px>
@@ -144,14 +146,6 @@ for j=1:length(LF_use_psatz)
     end
 end
 
-% Ensure strict positivity of the operator
-if ~all(eppos==0)
-    np_op = Pop.dim(:,1);           % Dimensions RxL2[x]xL2[y]xL2[x,y] of the PDE state
-    Ip = blkdiag(eppos(1)*eye(np_op(1)),eppos(2)*eye(np_op(2)),eppos(3)*eye(np_op(3)),eppos(4)*eye(np_op(4)));
-    Iop = opvar2d(Ip,Pop.dim,PIE.dom,PIE.vars);
-    Pop = Pop + Iop;
-end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 3: Define the Lyapunov Inequality
@@ -163,12 +157,8 @@ disp(' - Constructing the Negativity Constraint');
 
 PTop = Pop*Top;
 APTop = Aop'*PTop;
-if epneg==0
-    Qop = APTop' + APTop; 
-else
-    % Enforce strict negativity
-    Qop = APTop' + APTop + 2*epneg*(Top'*PTop); 
-end
+% Enforce strict negativity
+ Qop = APTop' + APTop + 2*epneg*(Top'*Top); 
 % Get rid of terms that are below tolerance
 ztol = 1e-12;
 Qop = clean_opvar(Qop,ztol);

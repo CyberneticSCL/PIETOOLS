@@ -1,21 +1,31 @@
-clc; clear; clear stateNameGenerator
-pvar s t; % define independent variables
-%% Define dependent variables and system variable
-% 	ODE:  xo_{t} = k*xo                             | k = -1              
+% 	ODE:  xo_{t} = k*xo                             | k = -1                (stable for k<0)
 %   PDE:  x_{t} = x_{ss}                            |
 %   BCs:  x(s=0) = 0,     x(s=1) = xo               |
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable )
+clc; clear; clear stateNameGenerator
+pvar s t; % define independent variables
+% Define dependent variables and system variable
 x=pde_var(); X = pde_var(s,[0,1]);
+%% Secify the parameters
 k = -1;
+if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+end
 %% Define equations
 eq_ODE=diff(x,t)==k*x; % ODE: xo_{t} = k*xo
 eq_PDE = diff(X,t)==diff(X,s,2); % 	PDE: x_{t} = x_{ss}
 eq_BC = [subs(X,s,0)==0;subs(X,s,1)==x]; %  BCs: x(s=a) = 0,     x(s=b) = 0 
 %% initialize pde system;
-pde = initialize([eq_ODE;eq_PDE;eq_BC]);
+PDE = initialize([eq_ODE;eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie
-display(pde);
-pie = convert(pde,'pie');
-display(pie);
+display(PDE);
+PIE = convert(PDE,'pie');
+display(PIE);
 
 
 

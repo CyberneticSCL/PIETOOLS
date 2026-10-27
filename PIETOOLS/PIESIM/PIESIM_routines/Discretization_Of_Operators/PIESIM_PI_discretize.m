@@ -1,22 +1,25 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_PIop_discretize.m     PIETOOLS 2024
+% PIESIM_PI_discretize.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs Rcheb - PI operator evaluated on a Chebyshev grid
 %
 % Inputs:
-% R - PI operator to be discretized
+% R - compnent PI operator to be discretized
 % maxdeg - maximum polynomial degree of a PI operator R
 %
 % Output:
 % Rcheb - a square matrix of size (maxdeg+2)x(maxdeg+2) that evaluates the PI operator
 % on a Chebysheb grid
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Used by PIESIM_3PI2Mat_cheb_opint_discretize.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 12_21_2024
-function Rcheb=PIESIM_PIop_discretize(R,maxdeg)
+function Rcheb=PIESIM_PI_discretize(R,maxdeg)
 
 chebgrid=cos(pi*(0:maxdeg+1)/(maxdeg+1));
 if isa(R,'polynomial')

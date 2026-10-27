@@ -35,7 +35,7 @@ evalin('base','stability = 1;');
 evalin('base','stability_dual = 0;')
 
 % Specify the parameters
-Cm = [0 0 0; s 0 0; s -s^2 0];      R = (21+9);
+Cm = [0 0 0; s 0 0; s -s^2 0];      R = 30;
 npars = length(params);
 if npars~=0
     %%% Specify potential parameters

@@ -47,7 +47,7 @@ end
 Hs = 1;       Vs = 1;     Bs = 0.1;
 g = 10;       Cf = 1;
 
- Lm = diag(sort(eig([Vs,Hs,0;10,Vs,10;0,1*Vs^2,0])));
+ Lm = diag(sort(eig([Vs,Hs,0;g,Vs,g;0,1*Vs^2,0])));
  lm1 = Lm(1,1);    lm2 = Lm(2,2);      lm3 = Lm(3,3);
 
  al1 = Cf*(3*Vs - 2*lm1) * Vs/Hs * lm1/((lm1-lm2)*(lm1-lm3));
@@ -63,15 +63,22 @@ g = 10;       Cf = 1;
  c32 = (lm1/g) * (lm2 - lm3);
  c13 = (lm2/g) * (lm3 - lm1);
 
- k1 = 1;       k2 = 2;
+ % k1 = 1;       k2 = 2;
+ k1 = -.5;       k2 = -4.5;
  pi2 = (a21 - c21*k1)/(a32 - c32*k1);
  pi3 = (a13 - c13*k1)/(a32 - c32*k1);
  chi2 = ((lm2 - Vs)/(lm1 - Vs)) * ((g + (lm2-Vs)*k2)/(g + (lm1-Vs)*k2));
  chi3 = ((lm3 - Vs)/(lm1 - Vs)) * ((g + (lm3-Vs)*k2)/(g + (lm1-Vs)*k2));
 
  K = [0,chi2,chi3; pi2,0,0; pi3,0,0];
- K00 = K(1,1);   K01 = K(1,2:3);
- K10 = K(2:3,1); K11 = K(2:3,2:3);
+ % K is built in the example ordering
+ % [x_-(1); x_+(0)] = K [x_-(0); x_+(1)]
+K11 = K(1,1);
+K10 = K(1,2:3);
+K01 = K(2:3,1);
+K00 = K(2:3,2:3);
+ % K00 = K(1,1);   K01 = K(1,2:3);
+ % K10 = K(2:3,1); K11 = K(2:3,2:3);
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
  
 npars = length(params);
@@ -91,11 +98,30 @@ PDE_b.dom = [0,1];
 
 PDE_b.A0 = Mm;
 PDE_b.A1 = -Lm;
+% [x_-(1); x_+(0)] = K [x_-(0); x_+(1)]
 
-ny1 = size(K00,1);   ny2 = size(K10,1);
-on0 = eye(ny1);   on1 = eye(ny2);   zer12 = zeros(ny1,ny2);
-PDE_b.B = [ on0 -K01 -K00 zer12;
-            zer12' -K11 -K10  on1;];
+ny1 = size(K00,1);   % number of x_+ states = 2
+ny2 = size(K11,1);   % number of x_- states = 1
+
+on0 = eye(ny1);
+on1 = eye(ny2);
+zer12 = zeros(ny1,ny2);
+
+% Converts raw state [x_-; x_+] to paper order [x_+; x_-]
+Ppm = [0 1 0;
+       0 0 1;
+       1 0 0];
+C0_pm = [ on0,    -K01;
+               zer12', -K11 ];
+
+C1_pm = [ -K00,  zer12;
+             -K10,  on1 ];
+
+C0_raw = C0_pm * Ppm;
+C1_raw = C1_pm * Ppm;
+%ny1 = size(K00,1);   ny2 = size(K10,1);
+%on0 = eye(ny1);   on1 = eye(ny2);   zer12 = zeros(ny1,ny2);
+PDE_b.B = [C0_raw, C1_raw];
 
 
 %%% Term-based input format
@@ -109,16 +135,13 @@ PDE_t.x{1}.term{1}.C = Mm;
 PDE_t.x{1}.term{2}.D = 1;
 PDE_t.x{1}.term{2}.C = -Lm;
 
-ny1 = size(K00,1);    ny2 = size(K10,1);
-on0 = eye(ny1);       on1 = eye(ny2);     zer12 = zeros(ny1,ny2);
-
 % BCs: 0 = [1,-K01;0,-K11] * x(0)
 PDE_t.BC{1}.term{1}.loc = 0;
-PDE_t.BC{1}.term{1}.C = [on0, -K01; zer12', -K11];
+PDE_t.BC{1}.term{1}.C = C0_raw;
 
 % BCs: 0 = ... + [-K00,0;-K10,1] * x(1)
 PDE_t.BC{1}.term{2}.loc = 1;
-PDE_t.BC{1}.term{2}.C = [-K00, zer12; -K10, on1];
+PDE_t.BC{1}.term{2}.C = C1_raw;
 
 %%% Command-line format
 % PDE_c=sys();

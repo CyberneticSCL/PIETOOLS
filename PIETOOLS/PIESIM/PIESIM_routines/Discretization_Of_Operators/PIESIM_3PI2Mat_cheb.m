@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIESIM_3PI2Mat_cheb.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Constructs A and A_nonsquare matrices for the entire multi-dimensional 3PI operator  
-%
+% Constructs A and A_2PDEstate matrices for the entire multi-dimensional 3PI operator  
+% Discretizes FULL OPERATOR
 % Inputs:
 % varargin - variable number of arguments (between 3 and 4)
 % Required:
@@ -17,9 +17,9 @@
 % columns of Rop (1 x size(Rop{},2)). If not supplied, it is assumed that pcol=p;
 %
 % Outputs:
-% A - square discretization matrix for PIE solution
-% A_nonsquare -non-square discretization matrix for transform between
-% funamental and primary solution
+% A - discretization matrix of the time-dependent PIE propagator
+% A_2PDEstate -discretization matrix for transform between
+% funsamental and primary solution
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -27,7 +27,7 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding YP  - 6_28_2022
-function [A, A_nonsquare]=PIESIM_3PI2Mat_cheb(varargin)
+function [A, A_2PDEstate]=PIESIM_3PI2Mat_cheb(varargin)
 
 N=varargin{1};
 Rop=varargin{2};
@@ -58,24 +58,27 @@ for i=1:ns_row
          csize=N-pcol(j)+1;
 %        
 % Treatment of mutliplicative operator (opmult stands for multiplicative)
-        [A_opmult, A_opmult_nonsquare]=PIESIM_PI2Mat_cheb_opmult_discretize(N, rsize, R0(i,j), pcol(j));
+         A_opmult_square=PIESIM_3PI_opmult_discretize(N, R0(i,j));
+         A_opmult_2PDEstate=A_opmult_square(:,1:csize);
+         A_opmult=A_opmult_2PDEstate(1:rsize,1:csize);
  % Treatment of integrative operator (opint stands for integrative)
-         A_opint_nonsquare=PIESIM_3PI2Mat_cheb_opint_discretize(N,R1(i,j),R2(i,j),pcol(j)); 
-         A_opint=A_opint_nonsquare(1:rsize,1:csize);
+         A_opint_square=PIESIM_3PI_opint_discretize(N,R1(i,j),R2(i,j)); 
+         A_opint_2PDEstate=A_opint_square(:,1:csize);
+         A_opint=A_opint_2PDEstate(1:rsize,1:csize);
 
  % Summing multiplicative and integrative together
          A_cell{i,j}=double(A_opmult+A_opint);
-         A_cell_nonsquare{i,j}=double(A_opmult_nonsquare+A_opint_nonsquare);
+         A_cell_2PDEstate{i,j}=double(A_opmult_2PDEstate+A_opint_2PDEstate);
 %         
      end
 end
 
 % Concatenating from cellular to a global matrix structure 
 
-%  A_nonsquare is a nonsquare matrix for the transfer between fundamental and primary
+%  A_2PDEstate is a 2PDEstate matrix for the transfer between fundamental and primary
 %  state coefficients
 
- A_nonsquare=cell2mat(A_cell_nonsquare);
+ A_2PDEstate=cell2mat(A_cell_2PDEstate);
 % 
 % %  A is a square matrix for the PIE (fundamental state
 % %  coefficients)

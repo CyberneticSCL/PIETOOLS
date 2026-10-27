@@ -39,6 +39,7 @@ function logval = eq(P1,P2,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% DJ, 01/21/2026: Fix bug with converting parameters of "diff" to 'double';
 
 if nargin<3
     tol=1e-14;
@@ -98,11 +99,12 @@ end
 
 
 try
-    diff.P = double(diff.P);
-    diff.Q1 = double(diff.Q1); diff.Q2 = double(diff.Q2);
-    diff.R.R0 = double(diff.R.R0); diff.R.R1 = double(diff.R.R1);
-    diff.R.R2 = double(diff.R.R2);
-    if all(all(diff.P==0))&&all(all(diff.Q1==0))&&all(all(diff.Q2==0))&&all(all(diff.R.R0==0))&&all(all(diff.R.R1==0))&&all(all(diff.R.R2==0))
+    P_mat = double(diff.P);
+    Q1_mat = double(diff.Q1);   Q2_mat = double(diff.Q2);
+    R0_mat = double(diff.R.R0); R1_mat = double(diff.R.R1);
+    R2_mat = double(diff.R.R2);
+    if all(all(P_mat==0)) && all(all(Q1_mat==0)) && all(all(Q2_mat==0)) &&...
+            all(all(R0_mat==0)) && all(all(R1_mat==0)) && all(all(R2_mat==0))
         logval=1;
     else
         logval=0;

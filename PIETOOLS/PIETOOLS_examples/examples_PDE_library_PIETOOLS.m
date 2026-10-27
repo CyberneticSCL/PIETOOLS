@@ -116,15 +116,17 @@ switch index
 %       Hyperbolic Transport, Balance Laws, Conservation Equations
 %--------------------------------------------------------------------------
     case 1
-% 	PDE: x_{t} = v*x_{s}                            | v=-1;   
-%   BCs: x(s=0) = 0                                 |
+% 	PDE: x_{t} = v*x_{s}                            | v=-1;   (Exponentially PDE stable ) 
+%   BCs: x(s=0) = 0                                 |                (Finite Energy PDE stable ) 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Transport_Eq(GUI,params);
 %-----|-------------------------------------------------------------------
     case {2.0,2.1,2.2,2.3,2.4}
 %	PDE: x_{t} = Fm*x - Lm*x_{s}                    | Different parameters          Lamare 2016 [1] 
-%   BCs: [x_-(s=1)] = [Gm1, Gm2] [x_-(s=0)]         | may be invoked calling
-%        [x_+(s=0)] = [Gm3, Gm4] [x_+(s=1)]         | examples 2.1, 2.2, 
-%                                                   | 2.3, and 2.4.
+%   BCs: [x_-(s=1)] = [Gm1, Gm2] [x_-(s=0)]         | may be invoked calling 
+%        [x_+(s=0)] = [Gm3, Gm4] [x_+(s=1)]           | examples 2.1, 2.2, 
+%                                                                            | 2.3, and 2.4.    
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable )   
 	[PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Lamare(index,GUI,params);
 %-------------------------------------------------------------------------
     case 3
@@ -132,6 +134,10 @@ switch index
 %   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)]         | K10 and K11 may be
 %        [x_-(s=1)] = [K10, K11] [x_-(s=0)]         | specified
 %   The implementation is based on a Linearized Saint–Venant–Exner Model
+%   The dissipativity condition of Diagne 2012 [2] fails for default
+%   parameters  k1 = -.5;       k2 = -4.5;                                      
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable )
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Diagne(GUI,params);
 %--------------------------------------------------------------------------
     case {4.0,4.1,4.2,4.4,4.3,4.5}
@@ -139,30 +145,37 @@ switch index
 %        x2_{t} = sig2*x1 + (1/r2)*x2_{s}           | may be invoked calling  
 %   BCs: x1(s=0) = qb*x2(s=0)                       | examples 4.1, 4.2, 
 %        x2(s=1) = pb*x1(s=1)                       | 4.3, 4.4, and 4.5.  
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable ) 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Saba(index,GUI,params);
 %--------------------------------------------------------------------------
 %        Diffusion and Heat-Equation Type Systems
 %--------------------------------------------------------------------------
     case 5
-%   PDE: x_{t} = lam*x + x_{ss}                     | lam = 9.86            (stable for lam < pi^2 = 9.8696)  
+%   PDE: x_{t} = lam*x + x_{ss}                     | lam = 9.86   (unstable for lam > pi^2/4,
+%                                                                                          exponentially stable and FE PDE stable for lam < pi^2 = 9.8696)  
 %   BCs: x(s=0) = 0,      x(s=1) = 0                |                               Ahmadi 2015 [5] 
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy FEPIE2PDE stable ) 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Eq(GUI,params);
 %--------------------------------------------------------------------------
     case 6
-%   | PDE: x_{t} = lam*x + x_{ss}                   | lam = 2.466           (unstable for lam > pi^2/4 = 2.467)        
+%   | PDE: x_{t} = lam*x + x_{ss}                   | lam = 2.466           (unstable for lam > pi^2/4 \approx 2.467,  
+%                                                                                                     exponentially stable and FE PDE stable for lam < pi^2/4)
 %   | BCs: x(s=0) = 0,      x_{s}(s=1) = 0          |                               Gahlawat 2017 [4]
+
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Gahlawat(GUI,params);
 %--------------------------------------------------------------------------
     case 7
-%   PDE:  x_{t} = a(s)*x_{ss}                       | a = s^3 - s^2 + 2     (unstable for lam > 4.66)            
-%                 + b(s)*x_{s}                      | b = 3*s^2 - 2*s               Gahlawat 2017 [4]
-%                 + c(s,lam)*x                      | c =-0.5*s^3 + 1.3*s^2 
-%   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            |    - 1.5*s + 0.7 +lam
-%                                                   | lam = 4.66                 
+%   PDE:  x_{t} = a(s)*x_{ss}                    | a = s^3 - s^2 + 2     (unstable for lam > 4.66)                                                                                                      
+%                 + b(s)*x_{s}                          | b = 3*s^2 - 2*s                 exponentially stable and FE PDE stable for lam < 4.66 
+%                 + c(s,lam)*x                          | c =-0.5*s^3 + 1.3*s^2            Gahlawat 2017 [4]
+%   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0     |    - 1.5*s + 0.7 +lam
+%                                                              | lam = 4.65                 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Parabolic_Eq_Gahlawat(GUI,params);
 %--------------------------------------------------------------------------
     case 8
-% 	ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)        | a = 1    b = 1        (stable for lam < pi^2 = 9.8696)
+% 	ODE:  xo_{t} = A * xo + Bxr * x_{s}(s=a)        | a = 0    b = 1        (stable for lam < pi^2 = 9.8696)
 %   PDE:  x_{t}  = lam * x + x_{ss} + Bpv * xo      | lam = pi^2-1                  Das 2018 [7] (Example 2)
 %   BCs:  x(s=a) = 0,     x(s=b) = 0                | A, Bxr, and Bpv fixed
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das(GUI,params);
@@ -171,54 +184,63 @@ switch index
 % 	ODE:  xo_{t} = k*xo                             | k = -1                (stable for k<0)
 %   PDE:  x_{t} = x_{ss}                            |
 %   BCs:  x(s=0) = 0,     x(s=1) = xo               |
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable ) 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_in_BC(GUI,params);
 %--------------------------------------------------------------------------
     case 10
 %   ODE: xo_{t} = xo + x_{s}(s=0)               	| k = -2                (stable for k=-2)            
 %   PDE: x_{t} = x_{ss}                             |                               Tang 2011 [13]
-%   BCs: x(s=0) = xo,    x(s=1) = k*xo              |
+%   BCs: x(s=0) = xo,    x(s=1) = k*xo              |                           (PDE stable )
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Tang(GUI,params);
 %--------------------------------------------------------------------------
     case 11
 % 	PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 2.9               (stable for R<2.7 (not tight))
 %   BCs:  x(s=0) = 0,     x(s=1) = 0                | Cm = [1, 1.5; 5, 0.2]         Ahmadi 2014 [6] Example D
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable ) 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi(GUI,params);
 %--------------------------------------------------------------------------
     case 12
-%   PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = (21+9)            (stable for R<21 (not tight))
+%   PDE:  x_{t} = Cm*x + (1/R)*x_{ss}               | R = 30            (stable for R<21 (not tight))
 %   BCs:  x(s=0) = 0,     x_{s}(s=1) = 0            | Cm = [0 0 0;                  Ahmadi 2015 [5] Adapted Example B
 %                                                   |       s 0 0;
 %                                                   |       -s^2 0 0]
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable ) 
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Reaction_Diffusion_Ahmadi_2(GUI,params);
 %
 %--------------------------------------------------------------------------
 %        Beam Type Equations 
 %--------------------------------------------------------------------------
-    case 13
+    case {13.0,13.1,13.2}
 %   PDE: u_{tt} = -c*u_{ssss}                       | c = 0.1
 %   BCs: u(s=0) = 0,        u_{ss}(s=1) = 0         |                               Peet 2019 [8] (Example 8.1.0.1)
 %        u_{s}(s=0) = 0,    u_{sss}(s=1) = 0        |
-%   Use states x1 = u_{t}, x2 = u_{ss}.             |
+%   13.1 use PDE states x1 = u_{t}, x2 = u_{ss}.             | (PDE stable)
 %       =>                                          |
 %   PDE: x1_{t} = -c * x2_{ss}                      |
 %        x2_{t} = x1_{ss}                           |
 %   BCs: x1(s=0) = 0,       x2(s=1) = 0             |
 %        x1_{s}(s=0) = 0,   x2_{s}(s=1) = 0         |
-    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(GUI,params);
+% 13.2  use PDE states x1= u and x_2=u_{t} |                (PIE to PDE stable)
+
+    [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq(index,GUI,params);
 %--------------------------------------------------------------------------
 %
-%   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                               Peet 2019 [8] (Example 8.1.0.2)
-%        r*II * phi_{tt} = E*II * phi_{ss}  + k*aa*g * (w_{s} - phi) 
+%   PDE: r*aa * w_{tt} = k*aa*g * (-phi_{s} + w_{ss})                             Peet 2019 [8] (Example 8.1.0.2)
+%        r*II * phi_{tt} = E*II * phi_{ss}  + k*aa*g * (w_{s} - phi)-c
+%        phi_{t}  
 %   BCs: phi(s=0) = 0,      phi_{s}(s=1) = 0    
 %        w(s=0) = 0,        w_{s}(s=1) - phi(s=1) = 0           
 %   
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 14
-%   Use states:                                     | k = 1                 Hyperbolic implementation (stable)
-%        x1 = w_{t},   x2 = k*aa*g * (w_{s}-phi),   | aa = 1
-%        x3 = phi_{t}, x4 = E*II * phi_{s}.         | II = 1
+%   Use states:                                     | k = 1                 Hyperbolic implementation | (PDE stable without damping c=0)
+%        x1 = w_{t},   x2 = k*aa*g * (w_{s}-phi),   | aa = 1 
+%        x3 = phi_{t}-c phi_{t}, x4 = E*II * phi_{s}.         | II = 1   
 %       =>                                          | g = 1
-%   PDE: x1_{t} = (1/r/aa) * x2_{s}                 | E = 1
+%   PDE: x1_{t} = (1/r/aa) * x2_{s}                 | E = 1   (PDE stable and Finite-energy PDE stable with damping c >0)
 %        x2_{t} = k*aa*g * x1_{s} - k*aa*g * x3     | r = 1
 %        x3_{t} = (1/r/II)*x2 + (1/r/II)*x4_{s}     | 
 %        x4_{t} = E*II * x3_{s}                     |
@@ -228,13 +250,13 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_1(GUI,params);
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 15 
-%   Assume all parameters are 1, and use states:    |                       Hyperbolic/diffusive implementation (unstable)
+%   Assume all parameters are 1, and use states:    | Hyperbolic/diffusive implementation (unstable)
 %        x1 = w_{t},    x2 = w_{s},                 |
-%        x3 = phi_{t},  x4 = phi.                   |
+%        x3 = phi_{t},  x4 = phi.                   |                  (PDE stable with damping c >0)
 %       =>                                          |
 %   PDE: x1_{t} = x2_{s} - x4_{s}                   |
 %        x2_{t} = x1_{s}                            |
-%        x3_{t} = x2 - x4                           |
+%        x3_{t} = x2 - x4 -c x3                         |
 %        x4_{t} = x3                                |
 %   BCs: x4(0) = 0,     x4_{s}(1) = 0,              |
 %        x3(0) = 0,     x1(0) = 0,                  |
@@ -242,7 +264,7 @@ switch index
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Timoshenko_Beam_2(GUI,params);
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 16
-%   We rewrite the system as a single equation:     |                       4th order implementation (stable)
+%   We rewrite the system as a single equation:     |                       4th order implementation 
 %   PDE: 0 = alp*w_{ssss} + bet*w_{tt}              |
 %             - gam*w_{ttss} + w_{tttt}             |
 %   Use states:                                     |
@@ -268,30 +290,30 @@ switch index
 %       Wave Equations
 %--------------------------------------------------------------------------
     case 17
-%   PDE: u_{tt} = u_{ss}                            | k=1                   (stable for k=1)                  
-%   BCs: u(s=0) = 0,                                |                               Peet 2019 [8] (Example 8.2)
+%   PDE: u_{tt} = u_{ss}                            | k=1    
+%   BCs: u(s=0) = 0,                                |               Peet 2019 [8] (Example 8.2)
 %        u_{s}(s=1) = -k*u_{t}(s=1)                 |
-%   Use states x1 = u_{s}, x2 = u_{t}.              |
-%       =>                                          |
+%   Use states x1 = u_{s}, x2 = u_{t}.              |     (PDE exponentially stable for k>0)                 
+%       =>                                          |                      (Finite Energy PDE stable  for k>0) 
 %   PDE: x1_{t} = x2_{s},   x2_{t} = x1_{s}         |
 %   BCs: x2(0) = 0,         x1(1) + k*x2(1) = 0     |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Damped(GUI,params);
 %-----|---------------------------------------------|----------------------
-%     | PDE: u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} | k = 1                         Datko 1986 [9] (Test 7.5c)
+%     | PDE: u_{tt} + 2*ad*u_{t} = -ad^2*u + u_{ss} | k = 1     Datko 1986 [9] (Test 7.5c)
 %     | BCs: u(s=0) = 0                             |
 %     |      u_{s}(s=1) = -k*u_{t}(s=1)             |
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 18
-%   Use states x1 = u_{t}, x2 = u.                  | k = 1
-%       =>                                          | ad = 1
+%   Use states x1 = u_{t}, x2 = u.                  | k = 1         (PDE exponentially dual stable )                 
+%       =>                                          | ad = 1                    (Finite Energy PIE to PDE stable )   
 %   PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x2_{ss}      |
 %   BCs: x1(0) = 0,     x2(0) = 0,                  |
 %        k*x1(1) + x2_{s}(1) = 0                    |
     [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Wave_Eq_Datko_Boundary_Damped_1(GUI,params);
 % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     case 19
-%   Use states x1 = u_{t}, x2 = u, x3 = u_{s}.      | k = 1                
-%       =>                                          | ad = 1
+%   Use states x1 = u_{t}, x2 = u, x3 = u_{s}.      | k = 1  ( PDE exponentially stable)
+%       =>                                          | ad = 1                    
 %   PDE: x1_{t} = -2*ad*x1 - ad^2*x2 + x3_{s}       |
 %   BCs: x1(0) = 0,     x2(0) = 0,                  |
 %        k*x1(1) + x3(1) = 0                        |

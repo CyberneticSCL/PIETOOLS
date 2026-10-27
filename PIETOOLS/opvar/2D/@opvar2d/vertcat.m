@@ -43,6 +43,8 @@ function [Pcat] = vertcat(varargin)
 %   ^ Based heavily on "@opvar"-vertcat code by SS ^
 % DJ, 09/30/2023: Prohibit "ambiguous" concatenations;
 % DJ, 12/15/2024: Allow conctanetation with matrix, polynomial, and dpvar;
+% DB - 03/31/2026: "ambiguous" concatenations allowed, warning displayed.
+% DJ, 04/08/2026: Bugfix concatenation off-diagonal components;
 
 % Deal with single input case
 if nargin==1
@@ -98,7 +100,7 @@ if ~isempty(intype_a) && ~isempty(intype_b) && intype_b<intype_a
     % a has columns mapping from L2, but b has columns mapping from R.
     % Concatenation would place those columns of a to the right of
     % those columns of b in the opvar, which we currently prohibit...
-    error('Proposed opvar2d concatenation is ambiguous, and currently prohibited')
+    warning('Proposed opvar2d concatenation is ambiguous')
 end
 
 % Finally, let's actually concatenate
@@ -139,7 +141,7 @@ for i=1:3
         Pcat.Ryy{1,i} = [a.Ryy{1,i}; b.Ryy{1,i}];
         Pcat.R2y{1,i} = [a.R2y{1,i}; b.R2y{1,i}];
     end
-    if perform_cat(4)        
+    if perform_cat(4)
         Pcat.Rx2{i,1} = [a.Rx2{i,1}; b.Rx2{i,1}];
         Pcat.Ry2{1,i} = [a.Ry2{1,i}; b.Ry2{1,i}];
         for j=1:3

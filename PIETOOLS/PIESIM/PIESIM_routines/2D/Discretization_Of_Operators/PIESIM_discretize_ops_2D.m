@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_discretize_ops_2D.m     PIETOOLS 2024
+% PIESIM_discretize_ops_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform discretization of PIE operators with Chebyshev methods  
 %
@@ -22,22 +22,20 @@
 
 function Dop=PIESIM_discretize_ops_2D(PIE, psize);
 
-% disp('Setting up Chebyshev matrices for the PIE system');
-% 
  Dop.D11cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.D11,psize,0);
  Dop.D12cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.D12,psize,0);
  Dop.D21cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.D21,psize,0);
  Dop.D22cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.D22,psize,0);
- [Dop.Twcheb,Dop.Twcheb_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.Tw,psize,1);
- [Dop.Tucheb,Dop.Tucheb_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.Tu,psize,1);
- Dop.B1cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.B1,psize,1);
- Dop.B2cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.B2,psize,1);
- Dop.C1cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.C1,psize,2);
- Dop.C2cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.C2,psize,2);
+ Dop.C1cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.C1,psize,1);
+ Dop.C2cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.C2,psize,1);
+ [Dop.Tucheb,Dop.Tucheb_2PDEstate]=PIESIM_fullPI2Mat_cheb_2D(PIE.Tu,psize,2);
+ [Dop.Twcheb,Dop.Twcheb_2PDEstate]=PIESIM_fullPI2Mat_cheb_2D(PIE.Tw,psize,2);
+ Dop.B1cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.B1,psize,2);
+ Dop.B2cheb=PIESIM_fullPI2Mat_cheb_2D(PIE.B2,psize,2);
  Dop.Acheb=PIESIM_fullPI2Mat_cheb_2D(PIE.A,psize,3);
- [Tcheb, Dop.Tcheb_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.T,psize,3);
+ [Tcheb, Dop.Tcheb_2PDEstate]=PIESIM_fullPI2Mat_cheb_2D(PIE.T,psize,3);
  if isfield(PIE.misc,'Tmap') 
-     [Tchebmap, Dop.Tchebmap_nonsquare]=PIESIM_fullPI2Mat_cheb_2D(PIE.misc.Tmap,psize,3);
+     [Tchebmap, Dop.Tchebmap_2PDEstate]=PIESIM_fullPI2Mat_cheb_2D(PIE.misc.Tmap,psize,3);
  end
 %  
   Dop.Tcheb_inv=inv(Tcheb);

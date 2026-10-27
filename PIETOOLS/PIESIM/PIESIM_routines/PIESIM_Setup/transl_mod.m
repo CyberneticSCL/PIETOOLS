@@ -88,5 +88,4 @@ T.R.R1 = subs(subs(T.R.R1, sbar, s),thetabar, theta);
 T.R.R2 = ((b-a)/(d-c))*subs(subs(T.R.R2, s, ((b-a)/(d-c))*sbar+(a*d-b*c)/(d-c)), theta, ((b-a)/(d-c))*thetabar+(a*d-b*c)/(d-c));
 T.R.R2 = subs(subs(T.R.R2, sbar, s),thetabar,theta);
 
-T.I = I;
 end

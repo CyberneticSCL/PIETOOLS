@@ -1,17 +1,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIESIM_9PI2Mat_cheb_opint_discretize_area.m     PIETOOLS 2024
+% PIESIM_9PI_opint_area_discretize_2D.m     PIETOOLS 2025
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constructs A, A_nonsquare - discrete matrix representations of
 % double-integrated blocks (R11, R12, R21, R22) of 9PI operator in 2D
-%
+% Discretizes operator component of 9PI operator (NOT FULL OPERATOR)
 % Called by 'PIESIM_9PI2Mat_cheb_2D.m' 
 %
 % Inputs:
 % N   - polynomial order of Chebyshev discretization polynomial
 % R -  polymonial block (R11, R12, R21 or R22) of 9PI operator in 2D
 % corresponding to a single solution state
-% rsize - the number of rows in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the solution state on the left-hand side of the ODE matrix system corresponding to the discrete block in question)
-% csize - the number of columns in the resulting A matrix block (number of the PIE state Chebyshev coefficients per dimension in the right-hand side of the ODE matrix system corresponding to the discrete block in question)
 % var1: 2x1 pvar array specifying the primary spatial variables (x,y)
 % var2: 2x1 pvar array specifying the dummy variables for integration
 %           (theta,nu)
@@ -20,12 +18,8 @@
 % Outputs:
 % A - Chebyshev
 % discretizaiton of R11, R12, R21 or R22 block that represents a block of a
-% square total matrix operator for time-advancement of the
-% spatially-discretized PIE solution (square ODE system matrix)
-% A_nonsquare - Chebyshev
-% discretizaiton of R11, R12, R21 or R22 block that represents a block of a
-% nonsquare total matrix operator for reconstruction of the primary (PDE)
-% solution (nonsquare transformation matrix)
+% total matrix operator - size (N+1)x(N+1) - truncation done on assembled
+% operators
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -35,8 +29,10 @@
 % Initial coding YP  - 4_16_2024
 % DJ, 12/16/2024: Remove hard-coded variables. Instead, pass variables
 %                   defining R as additional inputs.
+% YP, 1/31/2026 - changed to square consturction, truncation is done on
+% assembled operators
 
-function [Afull, Afull_nonsquare]=PIESIM_9PI2Mat_cheb_opint_discretize_area(N, R, rsize, csize, var1, var2, lim)
+function A=PIESIM_9PI_opint_area_discretize_2D(N, R, var1, var2, lim)
 
 % Extract spatial and dummy variables defining the operator R               % DJ, 12/16/2024
 s1 = var1(1);   s1_dum = var2(1);
@@ -94,23 +90,19 @@ Rcheb=fcgltran4d(Reval);
 
 for q=1:deg+2
     for p=1:deg+2
-        A(1:N+1,1:csize,p,q)=PIESIM_integral_projection1D(N, Rcheb(:,:,p,q), csize, lim(1,:));
+        A(1:N(1)+1,1:N(1)+1,p,q)=PIESIM_integral_projection1D(N(1), Rcheb(:,:,p,q), lim(1,:));
     end
 end
 
- for k=1:csize
-     for i=1:N+1
+ for k=1:N(1)+1
+     for i=1:N(1)+1
          Rycheb(:,:)=A(i,k,:,:);
-         A2D(i,k,1:N+1,1:csize)=PIESIM_integral_projection1D(N, Rycheb, csize, lim(2,:));
+         A2D(i,k,1:N(2)+1,1:N(2)+1)=PIESIM_integral_projection1D(N(2), Rycheb, lim(2,:));
      end
  end
 
-
-
-acheb_all=permute(A2D,[1 3 2 4]);
-acheb=acheb_all(1:rsize,1:rsize,:,:);
-Afull_nonsquare=reshape(acheb_all,(N+1)^2,csize^2);
-Afull=reshape(acheb,rsize^2,csize^2);
+acheb=permute(A2D,[1 3 2 4]);
+A=reshape(acheb,prod(N+1),prod(N+1));
 
 
 

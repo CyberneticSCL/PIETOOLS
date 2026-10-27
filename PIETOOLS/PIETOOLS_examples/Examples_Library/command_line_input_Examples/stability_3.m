@@ -1,14 +1,25 @@
-clc; clear; clear stateNameGenerator
-pvar s t; % define independent variables
-%% Define dependent variables and system variable
 %   PDE: x_{t} = Mm*x - Lm*x_{s}                	| Mm, Lm, K00, K01,             Diagne 2012 [2] 
 %   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)]         | K10 and K11 may be
 %        [x_-(s=1)] = [K10, K11] [x_-(s=0)]         | specified
 %   The implementation is based on a Linearized Saint–Venant–Exner Model
+%   The dissipativity condition of Diagne 2012 [2] fails for default
+%   parameters  k1 = -.5;       k2 = -4.5;                                      
+%                                                                         (Exponentially PDE stable )
+%                                                                         (Finite Energy PDE stable )
+clc; clear; clear stateNameGenerator
+pvar s t; % define independent variables
+% Define dependent variables and system variable
 x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
-
+%% Specify the parameters
  Hs = 1;       Vs = 1;     Bs = 0.1;
  g = 10;       Cf = 1;
+ if exist('params','var')
+    npars = length(params);
+    %%% Specify potential parameters
+    for j=1:npars
+        eval(params{j});
+    end
+ end
  Lm = diag(sort(eig([Vs,Hs,0;10,Vs,10;0,1*Vs^2,0])));
  lm1 = Lm(1,1);    lm2 = Lm(2,2);      lm3 = Lm(3,3);
  al1 = Cf*(3*Vs - 2*lm1) * Vs/Hs * lm1/((lm1-lm2)*(lm1-lm3));
@@ -21,7 +32,7 @@ x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
  c21 = (lm3/g) * (lm1 - lm2);
  c32 = (lm1/g) * (lm2 - lm3);
  c13 = (lm2/g) * (lm3 - lm1);
- k1 = 1;       k2 = 2;
+ k1 = -.5;       k2 = -4.5;
  pi2 = (a21 - c21*k1)/(a32 - c32*k1);
  pi3 = (a13 - c13*k1)/(a32 - c32*k1);
  chi2 = ((lm2 - Vs)/(lm1 - Vs)) * ((g + (lm2-Vs)*k2)/(g + (lm1-Vs)*k2));
@@ -29,17 +40,27 @@ x = pde_var(3,s,[0,1]); % x = [x_+; x_-];
  K = [0,chi2,chi3; pi2,0,0; pi3,0,0];
  K00 = K(1,1);   K01 = K(1,2:3);
  K10 = K(2:3,1); K11 = K(2:3,2:3);
-
 %% Define equations
 eq_PDE = diff(x,t)==Mm*x-Lm*diff(x,s); % 	PDE: x_{t} = Mm*x - Lm*x_{s}
-eq_BC = [[1,0,0]*subs(x,s,0); [0,1,0;0,0,1]*subs(x,s,1)]==[K00,K01;K10,K11]*[[1,0,0;0,1,0]*subs(x,s,1);[0,0,1]*subs(x,s,0)];    
-%   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)], [x_-(s=1)] = [K10, K11] [x_-(s=0)]
+%   BCs: [x_+(s=0)] = [K00, K01] [x_+(s=1)],
+%            [x_-(s=1)]     [K10, K11] [x_-(s=0)]
+% in the reference order lambda1 > lambda2 > 0 > lambda3
+% Exemple order: lambda1 < 0 < lambda2 < lambda3
+% Incoming traces:  [x1(1); x2(0); x3(0)]
+% Outgoing traces:  [x1(0); x2(1); x3(1)]
+B1 = [[1,0,0]*subs(x,s,1);
+      [0,1,0;
+       0,0,1]*subs(x,s,0)];
+B2 = [[1,0,0]*subs(x,s,0);
+      [0,1,0;
+       0,0,1]*subs(x,s,1)];
+eq_BC = B1 == [K00,K01; K10,K11]*B2;
 %% addequations to pde system; set control inputs/observed inputs, if any
-pde = initialize([eq_PDE;eq_BC]);
+PDE = initialize([eq_PDE;eq_BC]);
 %% display pde to verify and convert to pie
-display(pde);
-pie = convert(pde,'pie');
-display(pie);
+display(PDE);
+PIE = convert(PDE,'pie');
+display(PIE);
 
 
 
