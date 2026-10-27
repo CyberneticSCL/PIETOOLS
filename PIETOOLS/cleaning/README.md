@@ -4,14 +4,16 @@ Files staged for removal before the public release (maintainer decision, 10/23/2
 been deleted: every file below is a `git mv` of a tracked file, and `git mv <moved path> <original
 path>` restores it.
 
-The folder sits at the repository root, outside `PIETOOLS/`, so `pietools_path_update` never adds
-it to the MATLAB path. Do not add it by hand. Above each moved folder, `@X` became `X_class` and
-`private` became `private_files`, so adding a subfolder to the path cannot create a second class or
-private definition.
+The moved files sit in `private/`, which `genpath` (and so `pietools_path_update`) skips with
+everything below it; MATLAB never searches the subfolders of a private folder. None of them is on
+the MATLAB path, which matters: `dead_code/` holds an older `rand_sdopvar.m` that would otherwise
+shadow the live one in `sopvar/Testfolder/sdopvar/`. Do not add these folders by hand. Above each
+moved folder, `@X` became `X_class` and `private` became `private_files`, so adding a subfolder to
+the path cannot create a second class or private definition.
 
-- `definitely/` – the Claude test folders (`claude_tests`, `claude`, `Testfolder_Claude`), a
-  backup of unpushed commits, session notes, to-do lists and `CLAUDE.md`.
-- `dead_code/` – obsolete code with no caller anywhere in the tree on 10/23/2026: a word search for
+- `private/definitely/` – the Claude test folders (`claude_tests`, `claude`, `Testfolder_Claude`),
+  a backup of unpushed commits, session notes, to-do lists and `CLAUDE.md`.
+- `private/dead_code/` – obsolete code with no caller anywhere in the tree on 10/23/2026: a word search for
   each function name over every tracked file, comments excluded, plus the files of
   `PIETOOLS_PDE_GUI.mlapp`. It includes the earlier `sopvar/private/dead_code/` (09/29/2026), whose
   own README lists the original paths of its 31 files.
@@ -38,7 +40,7 @@ master added on 04/29/2026 and which is an older copy of
 
 First commit is the earliest commit of the original path, renames followed.
 
-| Original path | Moved to (under `cleaning/`) | First commit |
+| Original path | Moved to (under `PIETOOLS/cleaning/private/`) | First commit |
 |---|---|---|
 | `PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_control.m` | `definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_control.m` | MATTHEW M PEET, 2026-09-25, 2be2e6b5 |
 | `PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_estimator.m` | `definitely/PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_H2_estimator.m` | MATTHEW M PEET, 2026-09-25, 2be2e6b5 |
