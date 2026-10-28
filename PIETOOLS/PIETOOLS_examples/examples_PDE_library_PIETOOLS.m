@@ -1,4 +1,4 @@
-2function varargout = examples_PDE_library_PIETOOLS(varargin)
+function varargout = examples_PDE_library_PIETOOLS(varargin)                % MMP, 10/28/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % examples_PDE_library_PIETOOLS.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,6 +94,9 @@
 % Adjusted to function format. DJ - 05-31-2021
 % Updated zero input case, and fixed some examples. DJ - 12-29-2021
 % Update to new terms format and separate files: DJ - 08/25/2022
+% Removed a stray "2" before "function" on line 1: MATLAB rejected the
+% file, so every call to this function failed. MMP - 10/28/2026
+% 2function varargout = examples_PDE_library_PIETOOLS(varargin)             % MMP, 10/28/2026 (was)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
