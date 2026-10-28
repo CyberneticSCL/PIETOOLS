@@ -1,85 +1,130 @@
 function [prog,Pop,M,A,info] = poscopvar_lift(prog,dims,spaces,dom,deg,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PROG,POP,M,A,INFO] = POSCOPVAR_LIFT(PROG,DIMS,SPACES,DOM,DEG,OPTIONS)
-% declares a positive semidefinite, self-adjoint 'cdopvar' decision operator
-% on a concatenation of mixed spaces in the separated form
+% declares a positive semidefinite, self-adjoint 'cdopvar' decision
+% operator on X = X_1 x ... x X_Ms, X_k = R^{m_k} or L_2^{m_k}[s^k], as
 %
-%       Pop = A' * M * A,
+%       Pop = A^* M A,
 %
-% A the FIXED moment lift of 'lift_copvar' and M the positive multiplier of
-% 'posmult_cdopvar'. The only decision object is the pointwise PSD
-% polynomial matrix M(theta); Pop is its composition with the lift. With one
-% Gram term this is the quadratic form of 'poscopvar' at 'int' = weight,
-% 'mult' = lift and no joint cap (measured span-identical in
-% test_poscopvar_lift). What the separation changes is what is exposed: the
-% lift degree, the weight degree and the Positivstellensatz terms are
-% separate inputs, and M is returned so that the solved weight - the
-% certificate W(theta) of the proof program - can be read with
-% 'getsol_lpivar_sop'.
+% A the fixed lift from X to Y = R^{m_R} x L_2^{K_1}[s] x ... x
+% L_2^{K_G}[s], s the registry (the sorted union of the variables of the
+% s^k), and M a positive decision operator on Y. A places every R^{m_k} in
+% R^{m_R} and maps L_2^{m_k}[s^k] to its moments, one per multi-index
+% alpha over the variables of s^k,
 %
-% DEGREES, the two knobs of the proof program (proof_roadmap.md Sec. 1; the
-% slot map is measured in the memory note degree-map-proof-to-code):
-%   lift    D, the degree of the moments int_a^s t^j x(t) dt in the
-%           components' own variables ('copquadvar's 'mult', poslpivar's
-%           slot 2). For an exact equality Deop - P = 0 it must satisfy
-%           D >= max min(i,j) over the monomials s^i t^j of P's lower
-%           kernel, for every weight; D at least the kernel degree in each
-%           variable is where the proof program's existence results hold;
-%   weight  w, the half-degree of M in theta ('int', slot 1), the refinement
-%           knob. The proof program bounds it by nothing; a polynomial
-%           weight at finite w exists under a margin P >= delta*e_D, and its
-%           finiteness in general is the necessity ASSUMPTION the
-%           maintainer adopted on 10/07/2026 (1-D; N-D is a further
-%           conjecture).
+%       (A_{k,alpha} x)(theta) = int I_alpha(theta-s)
+%                                    (I_{m_k} kron V^alpha(s)) x(s) ds,
+%       I_alpha(r) = prod_d I_{alpha_d}(r_d),     I_1(r) = delta(r),
+%       I_2(r) = [r >= 0],     I_3(r) = [r <= 0],     I_4(r) = 1,
+%       V^alpha(s) = kron_{d: alpha_d ~= 1} [1; s_d; ...; s_d^{D_d}],
+%
+% the integral over the domain of s^k, [.] the indicator function, d over
+% the variables of s^k in registry order, alpha_d in {1,2,3} ({1,4} in a
+% separable direction) and D the lift degree; the moments with equal
+% weight degree w form one space L_2^{K_g}[s]. M is
+%
+%       M = sum_c Lambda_c^* g_c Q_c Lambda_c,     Q_c >= 0,
+%
+% one Gram matrix Q_c of new decision variables per term c of
+% OPTIONS.psatz, g_c the multiplication by its weight g_c(theta), and
+% Lambda_c the block-diagonal map y -> (I kron Z_{w_c}(theta)) y over the
+% spaces of Y, Z_{w_c}(theta) the column of the monomials of degree at
+% most w_c in each theta_d, w_c = max(w - OPTIONS.psatz_offset(c),0) with
+% w the weight degree of the space, and y in R^{m_R} constant in theta.
 %
 % INPUT
-% - prog, dims, spaces, dom: as 'poscopvar';
-% - deg:     scalar s: lift = weight = s on every space, as a scalar 'deg'
-%            in 'copquadvar'; or a struct with fields
-%              lift    (alias mult)  scalar or 1 x nv, defaults to weight;
-%              weight  (alias int)   scalar or 1 x nv, defaults to 1;
-%              joint   accepted only when it imposes no cap, i.e. is at
-%                      least the sum of lift and weight over the space's
-%                      and the registry's variables; a cap is copquadvar's
-%                      graded basis and is refused here;
-%              subset  refused;
-%            or a cell with one such entry per space, each of which may be
-%            a cell with one per component (order of INFO.basis_list). On
-%            an R^{m_k} space only the weight is read; it defaults to 0,
-%            the identity basis of 'poslpivar', when 'deg' is a struct or
-%            a cell, and to s for a scalar 'deg' (copquadvar's reading);
-% - options: (optional) struct with fields
-%   sep, include   as 'copquadvar': the components of A;
-%   psatz          row of term codes for M, as 'posmult_cdopvar'; default
-%                  0. NOTE 'poscopvar's psatz = 1 is the single product
-%                  term; the plain-plus-product pair of 'lpi_ineq' is
-%                  psatz = [0 1], the product term one degree lower;
-%   psatz_offset   as 'posmult_cdopvar';
-%   wR             weight degree of the R components (scalar or 1 x nv),
-%                  overriding the per-space value;
+% - prog:    'struct', the LPI program to which the Gram matrices Q_c are
+%            added;
+% - dims:    'double', Ms x 1 positive integers, dims(k) = m_k; a scalar
+%            for every space;
+% - spaces:  1 x Ms 'cell' of 'cellstr', spaces{k} the variable names of
+%            s^k, an empty entry the space R^{m_k}, no name ending in
+%            '_int' or '_dum'; a 'cellstr' is one space;
+% - dom:     'double', nv x 2, row d the interval [a_d,b_d] of variable d
+%            of the registry; or 1 x 2, the interval of every variable; or
+%            a 'struct' with fields vars ('cellstr') and dom ('double', one
+%            row per name);
+% - deg:     the lift degree D and the weight degree w: a 'double' scalar
+%            d, D = w = d; or a 'struct' with the fields
+%              lift (or mult)    'double', scalar or 1 x nv, D (default w);
+%              weight (or int)   'double', scalar or 1 x nv, w (default 1
+%                                on L_2^{m_k}[s^k], 0 on R^{m_k});
+%              joint             (optional) 'double' scalar, at least
+%                                sum(D) + sum(w);
+%            or a 1 x Ms 'cell' with one such entry per space, each of
+%            which may be a 'cell' with one entry per component of the
+%            space, in the order of INFO.basis_list; nonnegative integers.
+%            On R^{m_k} only w is read, and all R^{m_k} have the same w;
+% - options: (optional) 'struct' with the optional fields
+%              sep           'logical', scalar or 1 x nv (default false),
+%                            the separable directions;
+%              include       1 x Ms 'cell', entry k the components of space
+%                            k (default all, in the enumeration of every
+%                            alpha, direction 1 fastest): a 'double' array
+%                            with one column per variable of s^k, its rows
+%                            distinct admissible alpha; a 'logical' mask
+%                            over the enumeration; or other 'double'
+%                            indices into it;
+%              psatz         'double' row of term codes (default 0): 0,
+%                            g_c = 1; 1, g_c(theta) = prod_d
+%                            (theta_d-a_d)(b_d-theta_d); 2d+1 or 2d+2, d
+%                            indexing the registry, g_c(theta) =
+%                            (theta_d-a_d)/(b_d-a_d) or
+%                            (b_d-theta_d)/(b_d-a_d);
+%              psatz_offset  'double', scalar or one entry per code, the
+%                            reduction of w in every direction (default 1
+%                            for code 1, 0 otherwise);
+%              wR            'double', scalar or 1 x nv, the weight degree
+%                            of every R^{m_k}, in place of that of DEG;
+%              type          'char', 'pos'.
 %
 % OUTPUT
-% - prog:    the program with M's Grams declared and the constraints
+% - prog:    'struct', PROG with the Gram matrices Q_c and the constraints
 %            Q_c >= 0;
-% - Pop:     M x M 'cdopvar' on the given spaces, Pop = Pop' >= 0;
-% - M:       the positive multiplier, a 'cdopvar' on the lifted space
-%            INFO.dims_Y x INFO.spaces_Y;
-% - A:       the lift, a 'copvar' from the given spaces to the lifted one;
-% - info:    the struct of 'lift_copvar' (basis_list, comp, dims_Y, ...),
-%            comp with the added field weight, plus mult (the info of
-%            'posmult_cdopvar'), ndec, and the build times t_lift, t_mult,
-%            t_compose in seconds.
+% - Pop:     'cdopvar' object on X, Ms x Ms blocks;
+% - M:       'cdopvar' object on Y, the spaces INFO.dims_Y, INFO.spaces_Y;
+% - A:       'copvar' object from X to Y without decision variables: block
+%            row 1 R^{m_R} when X has an R^{m_k} space, then one block row
+%            per space L_2^{K_g}[s];
+% - info:    'struct' with fields
+%              basis_list  'double', N_b x (1+nv), row c = [k, alpha] of
+%                          component c, alpha over the registry with 0
+%                          where s^k lacks the variable, ordered by space;
+%              comp        1 x N_b 'struct' array, per component the fields
+%                          space (k), alpha (over the variables of s^k),
+%                          dim (its number of rows of Y), lift (1 x nv, D),
+%                          weight (1 x nv, w), yspace (its block row of A),
+%                          off (its first row in that space, minus 1), ZR
+%                          (1 x n_k 'cell', the exponents of V^alpha in
+%                          each variable of s^k) and cells (the parameter
+%                          cells it fills in its block of A);
+%              dims_Y      'double' column, the dimension of each space of
+%                          Y;
+%              spaces_Y    'cell' row, the variable names of each space of
+%                          Y (empty for R^{m_R});
+%              isR_Y       'logical' row, isR_Y(1) true when Y has R^{m_R},
+%                          every other entry false;
+%              vars, dom   1 x nv 'cellstr', the registry, and nv x 2
+%                          'double', its intervals;
+%              nv, M, nb   'double', the numbers of registry variables, of
+%                          spaces of X and of components per space
+%                          (1 x Ms);
+%              sep         1 x nv 'logical', the separable directions;
+%              mult        'struct' of the terms of M, with fields psatz
+%                          and offset (1 x nterms 'double', the codes and
+%                          the reductions of w), deg (1 x nterms 'cell',
+%                          per term a 'cell' of 'struct' with field int,
+%                          w_c on each space of Y), Qcell (1 x nterms
+%                          'cell', per term the 'cell' of 'cellstr' naming
+%                          the entries of the blocks of Q_c), gram
+%                          (1 x nterms 'double', the order of each Q_c)
+%                          and ndec;
+%              ndec        'double', the number of decision variables of M;
+%              t_lift, t_mult, t_compose  'double', the seconds taken to
+%                          build A, M and A^* M A.
 %
 % NOTES
-% Y groups the L2 components by their weight degree, so with one weight
-% for all components (the usual case) A has at most two block rows and
-% Pop = A'*(M*A) is a few compositions of large blocks instead of the
-% N_b^2 pair terms of 'copquadvar'. Which is faster at which size is
-% measured, not assumed: see test_poscopvar_lift.
-%
-% N-D: the lift is the tensor product of the 1-D lifts and M a polynomial
-% matrix in all theta on the box, the structure of 'copquadvar'. The proof
-% program is 1-D; nothing here is asserted beyond that in N-D.
+% A field subset of DEG and an OPTIONS.type other than 'pos' are errors.
 %
 % See also LIFT_COPVAR, POSMULT_CDOPVAR, POSCOPVAR, COPQUADVAR,
 % GETSOL_LPIVAR_SOP.
@@ -115,7 +160,14 @@ function [prog,Pop,M,A,info] = poscopvar_lift(prog,dims,spaces,dom,deg,options)
 %                lift and weight as separate inputs, the weight the
 %                parameter. Built beside 'poscopvar', which is unchanged,
 %                so that the two can be measured against each other.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), step comments in the body and headers
+%                of the local functions; code unchanged. The deleted
+%                header text was the reading of the degrees in the proof
+%                program (with references to notes and a memo), a measured
+%                equivalence with 'poscopvar', and remarks on cost and N-D.
 
+% Five inputs at least; OPTIONS a 'struct', type 'pos' only
 if nargin<5
     error("Not enough input arguments.")
 end
@@ -143,6 +195,8 @@ wR = [];
 for k = 1:Ms
     wk = w_spec{k};
     if ~iscell(wk),     wk = {wk};  end
+    % Per component: label 0 on R (its weight kept as wR), else the index
+    % of its weight row in wrows
     lab = zeros(1,numel(wk));
     for i = 1:numel(wk)
         if isR(k)
@@ -163,6 +217,7 @@ for k = 1:Ms
 end
 
 % % % The lift
+% The labels as groups, sep and include as given; timed
 lopt = struct('ygroup',{yg});
 if isfield(options,'sep'),      lopt.sep = options.sep;         end
 if isfield(options,'include'),  lopt.include = options.include; end
@@ -176,11 +231,14 @@ nY = numel(info.dims_Y);
 wY = cell(1,nY);
 if info.isR_Y(1),   wY{1} = wR;     end
 for g = 1:size(wrows,1),    wY{g+info.isR_Y(1)} = wrows(g,:);  end
+% The weight of each component, from its Y space
 for c = 1:numel(info.comp)
     y = info.comp(c).yspace;    info.comp(c).weight = wY{y};
 end
 
 % % % The positive multiplier
+% On the spaces of Y with their weights; psatz and psatz_offset as given;
+% timed
 mopt = struct();
 if isfield(options,'psatz'),        mopt.psatz = options.psatz;                 end
 if isfield(options,'psatz_offset'), mopt.psatz_offset = options.psatz_offset;   end
@@ -194,6 +252,7 @@ t0 = tic;
 Pop = A'*(M*A);
 t_compose = toc(t0);
 
+% The terms of M, its number of decision variables and the build times
 info.mult = minfo;      info.ndec = minfo.ndec;
 info.t_lift = t_lift;   info.t_mult = t_mult;   info.t_compose = t_compose;
 
@@ -204,6 +263,14 @@ end
 function [dl,ws] = parse_deg(deg,Ms,isR,nv,options)
 % dl{k}, ws{k}: the lift and weight of space k, each a 1 x nv row or, when
 % 'deg' gives one entry per component, a cell of rows.
+% INPUT  deg:     the DEG input of POSCOPVAR_LIFT;
+%        Ms:      'double', the number of spaces;
+%        isR:     1 x Ms 'logical', true for an R^{m_k} space;
+%        nv:      'double', the number of registry variables;
+%        options: 'struct', the field wR read.
+% OUTPUT dl, ws:  1 x Ms 'cell' of 1 x nv 'double' rows, or of 'cell'
+%                 arrays of rows, one per component.
+% One entry per space
 if iscell(deg)
     if numel(deg)~=Ms
         error("A cell 'deg' should have one entry per space.")
@@ -212,6 +279,7 @@ if iscell(deg)
 else
     spec = repmat({deg},1,Ms);
 end
+% Per space: one entry or one per component; wR replaces the weight on R
 dl = cell(1,Ms);    ws = cell(1,Ms);
 for k = 1:Ms
     sk = spec{k};
@@ -235,6 +303,12 @@ function [dl,w] = one_deg(d,isRk,nv,percell)
 % A scalar: lift = weight = scalar (copquadvar's scalar 'deg'); a struct:
 % weight (alias int) default 1, lift (alias mult) default weight. An R
 % space reads only the weight, default 0 for a struct or a per-space cell.
+% INPUT  d:       one entry of DEG, a 'double' scalar or a 'struct';
+%        isRk:    'logical', true for an R^{m_k} space;
+%        nv:      'double', the number of registry variables;
+%        percell: 'logical', true when DEG is a 'cell'.
+% OUTPUT dl, w:   1 x nv 'double', the lift and the weight degree.
+% Scalar: lift = weight
 if isnumeric(d) && isscalar(d)
     dl = expand_row(d,nv,'deg');    w = dl;
     return
@@ -242,6 +316,7 @@ end
 if ~isa(d,'struct')
     error("Degrees should be specified as a scalar or a 'struct' with fields 'lift' and 'weight'.")
 end
+% Struct: weight (or int), then lift (or mult), with their defaults
 w = [];
 if isfield(d,'weight') && ~isempty(d.weight),   w = d.weight;
 elseif isfield(d,'int') && ~isempty(d.int),     w = d.int;
@@ -256,6 +331,7 @@ end
 w = expand_row(w,nv,'weight');
 if isempty(dl),     dl = w;     end
 dl = expand_row(dl,nv,'lift');
+% No degree cap: subset refused, joint at least sum(dl) + sum(w)
 if isfield(d,'subset') && ~isempty(d.subset)
     error("A 'subset' cap grades the basis of 'copquadvar'; the separated form has no cap. Use 'poscopvar'.")
 end
@@ -269,6 +345,12 @@ end
 
 
 function v = expand_row(v,nv,name)
+% V = EXPAND_ROW(V,NV,NAME) returns V as a row of nonnegative integers,
+% one entry per registry variable, a scalar repeated.
+% INPUT  v:    'double', a scalar or nv entries;
+%        nv:   'double', the number of registry variables;
+%        name: 'char', the name used in the error messages.
+% OUTPUT v:    1 x max(nv,1) 'double'.
 if ~isnumeric(v) || any(v(:)<0) || any(v(:)~=round(v(:)))
     error("'%s' should be nonnegative integers.",name)
 end

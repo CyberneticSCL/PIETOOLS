@@ -15,6 +15,9 @@ of the user functions of `lpi_programming/` (first table). Every routine they de
 `misc/` (second table), and the 11 helpers of those routines in `misc/private/`.
 MMP, 10/21/2026: `examples/` holds four scripts that use the user functions only (§4). The four
 end-to-end checks that were there, which call test helpers, moved to `tests/` as `e2e_*`.
+MMP, 10/21/2026: `lpi_ineq_sop` counts and prints the decision variables of its certificate before
+declaring it, and sizes it from the operators of `poscopvar` its target depends on (§2); the
+examples no longer set `opts.like`.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -36,9 +39,9 @@ The user functions, in the folder root. Each is the container counterpart of the
 |---|---|---|
 | `lpiprogram_sop` | `lpiprogram` | declares the program; also from a container's registry (§2) |
 | `lpivar_cdopvar` | `lpivar` | declares a free `cdopvar` decision operator between concatenations of mixed spaces |
-| `poscopvar` | `poslpivar` | declares a positive self-adjoint `cdopvar` on a concatenation of mixed spaces; calls `poscopvar_direct` (since 10/17/2026; `copquadvar` before, the same operator and decision variables) |
+| `poscopvar` | `poslpivar` | declares a positive self-adjoint `cdopvar` on a concatenation of mixed spaces; calls `poscopvar_direct` (since 10/17/2026; `copquadvar` before, the same operator and decision variables); records it in `prog.sop_pos` for `lpi_ineq_sop` (10/21/2026) |
 | `lpi_eq_sop` | `lpi_eq` | imposes `P == 0` (§2) |
-| `lpi_ineq_sop` | `lpi_ineq` | imposes `P >= 0`: sizes and declares the positive slack, then `P - Pop == 0` (§2) |
+| `lpi_ineq_sop` | `lpi_ineq` | imposes `P >= 0`: sizes the positive slack, prints its decision variables, declares it, then `P - Pop == 0` (§2) |
 | `lpigetsol_sop` | `lpigetsol` | the solved value of a decision variable or operator (§2) |
 | `getsol_lpivar_sop` | `getsol_lpivar` | the same for a decision operator (§2) |
 
@@ -134,9 +137,12 @@ dw`, defaults `dD = dw = 1` (the heat benchmark needs both, `PIETOOLS_demos/sopv
 Sec. 12); terms `'auto'`: 1-D the plain term at `w` and the product at `w - 1` (the Markov-Lukacs
 pair), N-D the plain term at `w` and the `2N` faces at `w - 1` when every weight is at least 2, at
 `w` otherwise (changed 10/08/2026, see below); `opts.deg` bypasses the reader; `opts.like` reads
-the support of another operator instead, for a `P` linear in a decision operator, whose own support
-is that of the whole family (a Lyapunov or KYP inequality: pass the positive decision operator; the
-examples, §4, measure it, 10/21/2026); `opts.prune`
+the support of another operator instead, or of a cell of them, pooled. Without `opts.like` and
+`opts.deg` it reads the operators of `poscopvar` that `P` depends on, which `poscopvar` records in
+`prog.sop_pos`: a Lyapunov or KYP inequality is sized from its positive decision operator, not from
+every value of it (10/21/2026, §4). Before anything is declared, the decision variables of the
+certificate are counted, `N^2` per Gram block as `prog.decvartable` counts them, and printed with the
+program total (`info.ndec`, `info.N`); `opts.prune`
 (default true) keeps only the basis operators that can reach the diagonal blocks' support
 (`eq_opts_sopvar`). `tests/test_lpi_ineq_sop`: a fixed positive operator certified, the 1-D heat LPI
 feasible at kappa = 9 and rejected at 11, 2-D `T'*T` certified, the option variants, the legacy
@@ -262,11 +268,13 @@ workstation, the time including `convert`:
 | `hinf_gain_1d_sop` | the KYP LPI of `PIETOOLS_Hinf_gain`, then `PIETOOLS_Hinf_gain_sop` | 0.033311, both | 2274 | 2 s |
 | `stability_2d_sop` | the stability LPI of `x_t = x_s1s1 + x_s2s2 + pi^2 x` on `[0,1]^2` | feasible | 197920 | 19 s |
 
-The three LPIs linear in the decision operator `P` pass `opts.like = P` to `lpi_ineq_sop` (§2).
-Sized from the target instead, the certificate covers every `P` of the declared degree: 9225 and
+In the three LPIs linear in the decision operator `P`, `lpi_ineq_sop` sizes the certificate from `P`,
+which `poscopvar` recorded in the program (§2), and prints its decision variables before declaring
+it; no example sets an option. Sized from the target instead, the certificate covers every `P` of the
+declared degree: 9225 and
 27426 decision variables in 1-D, with the same verdict and gain, and 12036880 in 2-D, unsolved after
 900 s and 31 GB. With `opts.dw = 2`, the executives' default for the coercive forms, the 2-D LPI has
-761680 decision variables and takes 50 s; `PIETOOLS_stability_2D_sop` certifies the same PDE with
+761680 decision variables and takes 50 s; `PIETOOLS_stability_sop` (form 'P') certifies the same PDE with
 its own storage in 6 s (187984 decision variables).
 
 No example has three spatial variables: `convert` reduces a PDE to at most two. The 3-D LPI is

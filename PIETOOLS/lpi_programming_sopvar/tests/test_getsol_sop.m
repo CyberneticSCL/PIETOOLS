@@ -1,53 +1,136 @@
 function R = test_getsol_sop(parts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% R = TEST_GETSOL_SOP(PARTS) tests getsol_lpivar_sop, lpigetsol_sop and
-% subs_dvar_sop against the SEMANTICS of the classes, never against an
-% inverse routine (CLAUDE.md sec. 4). Errors on the first failure; returns
-% the measured numbers. PARTS is a cellstr subset of {'i','ii','iii','iv'}
-% (default all).
+% R = TEST_GETSOL_SOP(PARTS) tests GETSOL_LPIVAR_SOP, LPIGETSOL_SOP and
+% SUBS_DVAR_SOP, which replace the decision variables of an LPI object by
+% their values, and errors at the first failed check. Operators are
+% compared by their action on random polynomial test functions, the
+% kernels integrated by Gauss-Legendre quadrature of the 'sopvar' class
+% definition (HEATND_APPLY):
+%   (i)   9 random 'cdopvar' objects: 1, 2 and 3 spatial variables on
+%         [0,1], [-1,2], [0.5,1.5], R^n spaces, structurally empty blocks,
+%         a decision-variable list per block merged by the constructor, a
+%         'sopvar' block among 'sdopvar' blocks; the values given by name,
+%         shuffled, with 4 names the operator does not have and RRx 3
+%         entries longer than decvartable. Each extracted block, applied to
+%         a test function (4 terms of degree at most 2 per variable) at 3
+%         points, equals to 1e-10 relative the action of the 'sdopvar'
+%         kernels converted by SDVAR2DPVAR, fixed by SOSGETSOL and
+%         integrated separately, 6 Gauss nodes per direction in both; with
+%         the values deranged among the names, every block differs by more
+%         than 1e-3 relative. The three
+%         routines return the same 'copvar', bit for bit, which passes
+%         verify, keeps the container metadata, the empty blocks and the
+%         'sopvar' block of the input, and raises no canonical-form
+%         warning. A random half of the names gives a 'cdopvar' on the
+%         others, in order, with their B rows unchanged; the others then
+%         give the full result to 1e-13.
+%   (ii)  The stability LPI of CX_PIE2PDESTABILITY (T'*Q - P = 0, D + N = 0
+%         with D = A'*Q + Q'*A + epneg*P, P and N positive, Q free) for
+%         x_t = x_ss + pi^2/2 x, x(0) = x(1) = 0 (CX_PLANT('rd',0.5)), at
+%         lpisettings('light') with MOSEK. The solve has pinf = numerr = 0,
+%         the equality residual rel_b on solinfo.RRx at most 1e-6, and Gram
+%         eigenvalues at least -1e-8 times the largest. The extracted P, Q,
+%         D, N pass verify and agree bit for bit across the three routines.
+%         On 6 test functions (5 monomials of degree at most 3 per
+%         variable; kernels by 10 Gauss nodes, L2 norms by 12) the relative
+%         residuals of T'*Q = P and D = -N are at most 1e-6, the extracted
+%         D equals A'*Q + Q'*A + epneg*P of the extracted operators to
+%         1e-10 relative, and <x,Px>/(||x|| ||Px||) and <x,Nx>/(||x||
+%         ||Nx||) are at least -1e-8. RRx plus 1e-3*norm(RRx)/sqrt(n) times
+%         a standard normal vector, n = numel(decvartable), raises the
+%         larger residual by a factor of more than 1e3.
+%   (iii) A 1-D program (s in [0,1]; RRx random, 2 entries longer than
+%         decvartable) and a 2-D program on [0,1]^2. LPIGETSOL_SOP returns
+%         the result of LPIGETSOL bit for bit for [], 'double',
+%         'polynomial', 'opvar', 'dpvar', a 'dpvar' expression, char,
+%         cellstr, a cell of 'dpvar', two 'dopvar', a 'dopvar2d' and an
+%         'opvar2d' object, and so does SUBS_DVAR_SOP for the 1-D objects;
+%         the comparison detects RRx + 1; GETSOL_LPIVAR_SOP returns the
+%         result of GETSOL_LPIVAR for 'dopvar' and 'dopvar2d'; a permuted
+%         name list gives the same 'dpvar' result; a name listed twice in
+%         decvartable takes the value of its lower row index, in
+%         GETSOL_LPIVAR_SOP and SOSGETSOL alike. A 'cdopvar' gives a
+%         'copvar' and an 'sdopvar' a 'sopvar'; a 'copvar' and a 'sopvar'
+%         are returned unchanged; a cell mixing both families is solved
+%         entry by entry; a 'cdopvar' whose names the program does not list
+%         is returned with the same names. A struct, logical, int8, string
+%         or (when the class exists) 'nopvar' input raises
+%         'lpigetsol_sop:badClass', and a cell holding a struct raises an
+%         error; so do an unsolved program (empty solinfo.info) and, in
+%         GETSOL_LPIVAR_SOP, a program without solinfo.RRx
+%         ('getsol_lpivar_sop:notSolved').
+%   (iv)  The H-infinity gain LPI for x_t = x_ss + pi^2/2 x + w,
+%         z = int_0^1 x ds, x(0) = x(1) = 0, w in L2[0,1] (CX_PLANT('io1')),
+%         at lpisettings('light') with MOSEK: gamma a 'dpvar' decision
+%         variable, gamma >= 0, minimized; T'*Q - R = 0 with R positive and
+%         Q free; N + K = 0 with N positive, for the KYP operator
+%           K = [-gamma*I, Dzw', Bw'*Q; Dzw, -gamma*I, Cz;
+%                Q'*Bw, Cz', A'*Q + Q'*A],
+%         a program in which solinfo.x and solinfo.RRx differ in length.
+%         The solve has pinf = numerr = 0, rel_b at most 1e-6 and the Gram
+%         eigenvalue ratio at least -1e-8; the extracted K equals K rebuilt
+%         from the gamma of LPIGETSOL and the extracted Q to 1e-10
+%         relative; on 6 test functions T'*Q = R holds to 1e-5 relative and
+%         <x,Kx>/(||x|| ||Kx||) is at most 1e-8.
+% In (ii) and (iv) the residuals with solinfo.x in place of RRx are
+% printed, not checked.
 %
-% (i)   Random 'sdopvar'/'cdopvar' at a random decision vector: 1-D, 2-D and
-%       3 variables, R^n blocks, structurally empty blocks, per-block name
-%       lists merged by the constructor, a 'sopvar' block among 'sdopvar'
-%       ones. The name list is shuffled and padded with names absent from
-%       the operator, and RRx carries entries past decvartable (the slack
-%       a solve appends). Each extracted block is applied to random
-%       polynomial test functions by quadrature straight from the 'sopvar'
-%       class definition (heatNd_apply) and compared with an INDEPENDENT
-%       evaluation: the block's gamma cells converted by 'sdvar2dpvar' (DJ)
-%       to 'dpvar' kernels, the values substituted by legacy 'sosgetsol',
-%       and the polynomial kernels integrated by a separate quadrature.
-%       A control with the values shuffled among the names must fail the
-%       same comparison. Also: partial substitution (names left out stay
-%       decision variables, in order, with their B rows), class invariants
-%       (verify, no canonical-form rewrite), and agreement of the three
-%       entry points.
-% (ii)  A real solved program: cx_PIE2PDEstability on cx_plant('rd',0.5),
-%       MOSEK. Certified first (MOSEK status, rel_b on solinfo.RRx rows,
-%       PSD Gram blocks). Every decision operator (P, Q, D, N) is
-%       extracted; both lpi_eq relations, T'*Q - P = 0 and D + N = 0, are
-%       evaluated on the extracted operators by their action on random
-%       test functions, relative to the size of the two sides; P and N
-%       must be PSD on test functions. Controls: solinfo.x in place of
-%       RRx, and a perturbed RRx, must both break the relations.
-% (iii) Dispatch: every legacy class through lpigetsol_sop against legacy
-%       lpigetsol on a program with a known decision vector (bit-identical
-%       results), the same for subs_dvar_sop, the new classes, a cell
-%       mixing both families, and errors for unknown classes and for an
-%       unsolved program; a name listed twice in decvartable reads its
-%       lowest row, as getequation places its At row and sosgetsol reads.
-% (iv)  A solved program with a free scalar and an inequality, where
-%       solinfo.x and RRx differ in length: the 1-D primal H-infinity LPI
-%       on cx_plant('io1') with gamma a decision variable (gam >= 0,
-%       minimized), MOSEK. The extracted KYP operator must equal the one
-%       rebuilt from the legacy gamma (lpigetsol on the dpvar) and the
-%       extracted Q, be negative on test functions, and T'*Q = R must hold
-%       on the extracted operators. Uses the dpvar-operator overloads
-%       (-gam*Iw, [ ]) and eye_copvar_sop of Tier 1b/1c.
+% INPUT
+% - parts:  (optional) 'cellstr' or char, the parts to run, from
+%           {'i','ii','iii','iv'}; default (or []) all four.
 %
-% Requires the PIETOOLS path (pietools_path_update) and, for (ii) and
-% (iv), MOSEK and the cx_exec harness
-% (sopvar/Testfolder/sdopvar/claude_tests/cx_exec).
+% OUTPUT
+% - R:      'struct' with one field per part run:
+%             i    'struct' array, one entry per case, with fields label
+%                  (char), q (double, the number of decision variables),
+%                  nblk (double, the blocks compared), err (double, the
+%                  largest relative error), err_ctrl (double, the smallest
+%                  relative error of the control) and err_part (double, the
+%                  largest change of a kept B row);
+%             ii   'struct' with fields ndec (double, numel(decvartable)),
+%                  build, solve, extract (double, seconds), rel_b,
+%                  psd_relmin, rel1 (T'*Q = P), rel2 (D = -N), relD, psdP,
+%                  psdN (double, the quantities above) and controls (1 x 2
+%                  'struct' array with fields name, rel1, rel2);
+%             iii  'struct' with fields nlegacy, nnew, nerr (double, the
+%                  legacy objects compared, the new-class checks, the
+%                  rejected inputs);
+%             iv   'struct' with fields gam (double, gamma), rel_b, relK,
+%                  rel1, maxK, rel_x (double, the quantities above and the
+%                  residual with solinfo.x), ndec, nx (double,
+%                  numel(decvartable) and numel(solinfo.x));
+%           printed lines; errors at the first failure.
+%
+% NOTES
+% Parts (ii) and (iv) require MOSEK, and CX_PLANT, CX_SETTINGS,
+% CX_PIE2PDESTABILITY and CX_SOLVE (sopvar/Testfolder/sdopvar/claude_tests/
+% cx_exec) on the path.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - test_getsol_sop
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/29/2026
 % MMP, 10/06/2026: part (iv): cx_hinf_lf, cx_hinf_qdeg, cx_space_list and
@@ -56,10 +139,19 @@ function R = test_getsol_sop(parts)
 %                  get_lpivar_degs_sop, copvar_space_list, so the test runs
 %                  on the library translators (lpi_programming_sopvar);
 %                  programs unchanged (126-program bit-identity check).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), the licence block added, step comments
+%                  in the body and headers of the local functions; code
+%                  unchanged. The deleted header text was a notes
+%                  reference, an author attribution, the rationale for the
+%                  independent evaluation, a reference to the Tier 1 plan,
+%                  and the claim that the solinfo.x control is checked in
+%                  (ii) (it is printed only).
 
+% Default: all four parts; one part given as char
 if nargin<1 || isempty(parts),  parts = {'i','ii','iii','iv'};  end
 if ischar(parts),   parts = {parts};    end
+% Each requested part from its own fixed seed
 R = struct();
 if any(strcmp(parts,'i')),      rng(20260929);  R.i   = part_i();     end
 if any(strcmp(parts,'ii')),     rng(20260930);  R.ii  = part_ii();    end
@@ -73,6 +165,13 @@ end
 % (i) random operators against an independent evaluation
 % ========================================================================
 function out = part_i()
+% OUT = PART_I() runs part (i) on the nine random 'cdopvar' cases below,
+% and errors at the first failed check.
+% INPUT  none.
+% OUTPUT out: 'struct' array, one entry per case, with fields label, q,
+%             nblk, err, err_ctrl and err_part (R.i of TEST_GETSOL_SOP).
+% Tolerance, quadrature, the variables and their domains; sp(o,i) the
+% spaces struct of output spaces o and input spaces i over V
 tol = 1e-10;    nq = 6;     % Gauss nodes: exact to degree 11, integrands here <= 4
 V = {'s1','s2','s3'};   D = [0 1; -1 2; 0.5 1.5];   % distinct domains per variable
 sp = @(o,i) struct('out',{o},'in',{i},'vars',{V});
@@ -91,6 +190,8 @@ cases = {
   };
 out = struct('label',{},'q',{},'nblk',{},'err',{},'err_ctrl',{},'err_part',{});
 for c = 1:numel(cases)
+    % The random cdopvar of the case (parameter density 0.5), a fixed block
+    % put in place of block sblk when the case has one
     cs = cases{c};
     [lbl,spaces,dims,deg,ndec,occ,sblk] = cs{:};
     P = rand_cdopvar(spaces,dims,D,deg,ndec,0.5,occ);
@@ -101,14 +202,18 @@ for c = 1:numel(cases)
         assert(isa(P.C{sblk(1),sblk(2)},'sopvar'),'case %s: sopvar block not kept',lbl)
     end
     assert(verify(P).true,'case %s: generator produced an invalid cdopvar',lbl)
+    % A random value for every decision variable of P
     Zd = cellstr(P.Zd(:));      q = numel(Zd);
     d = randn(q,1);
     % Shuffled list, padded with names the operator does not have.
     extra = strcat('zz_absent_',cellstr(string((1:4)')));
     names = [Zd; extra];        vals = [d; randn(4,1)];
     pm = randperm(numel(names));    names = names(pm);  vals = vals(pm);
+    % A solved program with that list; RRx 3 entries longer than it
     prog = struct('decvartable',{names},'solinfo',struct('RRx',[vals; randn(3,1)],'info',struct('pinf',0)));
 
+    % The three entry points: copvar results, no canonical-form warning,
+    % verify, identical results and the container metadata of P
     lastwarn('');
     S1 = subs_dvar_sop(P,names,vals);
     S2 = getsol_lpivar_sop(prog,P);
@@ -126,6 +231,8 @@ for c = 1:numel(cases)
     dperm = d(derangement(q));
     Sbad = subs_dvar_sop(P,Zd,dperm);
 
+    % Every block: empty blocks and the sopvar block kept; each sdopvar
+    % block against the independent evaluation and the control
     [M,N] = size(P.C);  err = 0;    errc = inf;     nblk = 0;
     for i = 1:M
         for j = 1:N
@@ -140,6 +247,9 @@ for c = 1:numel(cases)
             % the standalone sdopvar path gives the same block
             Sb = subs_dvar_sop(b,names,vals);
             assert(isa(Sb,'sopvar') && same_ops(Sb,bs,0),'case %s: sdopvar path differs at (%d,%d)',lbl,i,j)
+            % A test function and points; the extracted block, the
+            % independent evaluation and the control at them; relative
+            % errors, on a nonzero independent value
             [f,S] = test_data(b,D,V);
             y_get = heatNd_apply(bs,f,S,nq);
             y_ind = indep_apply(b,names,vals,f,S,nq);
@@ -151,6 +261,7 @@ for c = 1:numel(cases)
             nblk = nblk+1;
         end
     end
+    % Largest error below tol; the control detected in every block
     assert(err<tol,'case %s: extracted operator differs from the independent evaluation by %.3g',lbl,err)
     assert(errc>1e-3,'case %s: control not detected (%.3g) - the comparison cannot see a wrong d',lbl,errc)
 
@@ -159,6 +270,7 @@ for c = 1:numel(cases)
     Sp = subs_dvar_sop(P,Zd(giv),d(giv));
     assert(isa(Sp,'cdopvar') && verify(Sp).true,'case %s: partial result invalid',lbl)
     assert(isequal(cellstr(Sp.Zd(:)),Zd(rest)),'case %s: remaining names wrong or reordered',lbl)
+    % Largest change of a kept B row, over the decision blocks and cells
     ep = 0;
     for k = 1:numel(P.C)
         if ~isa(P.C{k},'sdopvar'),  continue,   end
@@ -171,6 +283,7 @@ for c = 1:numel(cases)
     assert(isa(Sf,'copvar') && same_ops(Sf,S1,1e-13),'case %s: two-step substitution differs',lbl)
     assert(ep==0,'case %s: kept B rows changed',lbl)
 
+    % Record and print the case
     out(end+1) = struct('label',lbl,'q',q,'nblk',nblk,'err',err,'err_ctrl',errc,'err_part',ep); %#ok<AGROW>
     fprintf('(i) %-22s q=%3d blocks=%d  rel err %.2e  control %.2e\n',lbl,q,nblk,err,errc);
 end
@@ -179,15 +292,25 @@ end
 
 % ------------------------------------------------------------------------
 function [f,S] = test_data(b,D,V)
-% Random polynomial test function on the block's input space (handle of
-% points whose columns are in b.vars.in order) and three evaluation points
-% of its output space (columns in b.vars.out order), by variable NAME.
+% [F,S] = TEST_DATA(B,D,V) returns a random polynomial test function on the
+% block's input space (handle of points whose columns are in b.vars.in
+% order) and three evaluation points of its output space (columns in
+% b.vars.out order), the domains looked up by variable NAME.
+% INPUT  b: 'sdopvar' object; D: nv x 2 double, the domain of each
+%           variable of V; V: 1 x nv cellstr, the variable names.
+% OUTPUT f: function_handle, f(X) for X an n x numel(b.vars.in) double
+%           returns n x b.dims(2) double: 4 terms of degree at most 2 per
+%           variable, the first constant, N(0,1) coefficients;
+%        S: 3 x numel(b.vars.out) double, uniform in the domains, or 1 x 0
+%           when b has no output variable.
+% Exponents and coefficients of the terms
 vin = b.vars.in(:)';    vout = b.vars.out(:)';
 p = b.dims(2);
 nt = 4;                                         % terms, degree <= 2 per variable
 F.deg = randi([0 2],nt,numel(vin));     F.deg(1,:) = 0;
 F.coef = randn(nt,p);
 f = @(X) prod_terms(X,F);
+% Three uniform points in the domain of each output variable
 S = zeros(3,numel(vout));
 for k = 1:numel(vout)
     dk = D(strcmp(V,vout{k}),:);
@@ -197,6 +320,12 @@ if isempty(vout),   S = zeros(1,0);     end
 end
 
 function y = prod_terms(X,F)
+% Y = PROD_TERMS(X,F) returns the polynomial with exponent rows F.deg and
+% coefficient rows F.coef at the points X: sum_t prod_k
+% X(:,k).^F.deg(t,k) * F.coef(t,:).
+% INPUT  X: n x k double; F: 'struct' with fields deg (nt x k double) and
+%           coef (nt x p double).
+% OUTPUT y: n x p double.
 n = size(X,1);  Z = ones(n,size(F.deg,1));
 for t = 1:size(F.deg,1)
     for k = 1:size(F.deg,2),    Z(:,t) = Z(:,t).*X(:,k).^F.deg(t,k);    end
@@ -207,16 +336,25 @@ end
 
 % ------------------------------------------------------------------------
 function y = indep_apply(b,names,vals,f,S,nq)
-% (P(d) x)(s) for an 'sdopvar' block b, with its kernels obtained without
-% the code under test: sdvar2dpvar gives each gamma cell as a 'dpvar' in
-% (vars.out, vars.in_dum); legacy sosgetsol substitutes the values by
-% name; the polynomial kernels are integrated here. Gamma cell g over the
-% SORTED shared variables, direction 1 fastest; 1 = multiplier (s' = s),
-% 2 = int_a^s, 3 = int_s^b (sopvar.m header, sopvar document Sec. 4).
+% Y = INDEP_APPLY(B,NAMES,VALS,F,S,NQ) returns (P(d) x)(s) for an
+% 'sdopvar' block b, with its kernels obtained without the code under
+% test: SDVAR2DPVAR gives each gamma cell as a 'dpvar' in (vars.out,
+% vars.in_dum); SOSGETSOL substitutes the values by name; the polynomial
+% kernels are integrated here. Gamma cell g runs over the SORTED shared
+% variables, direction 1 fastest; 1 = multiplier (s' = s), 2 = int_a^s,
+% 3 = int_s^b (sopvar document Sec. 4).
+% INPUT  b:     'sdopvar' object; names: cellstr, decision variable names;
+%        vals:  double, vals(k) the value of names{k};
+%        f:     function_handle of TEST_DATA; S: ns x numel(b.vars.out)
+%               double, the points; nq: double, Gauss nodes per direction.
+% OUTPUT y:     ns x b.dims(1) double.
+% Variables, dummy input names, parameters and names of the block; a
+% program holding the values, for SOSGETSOL
 vin = b.vars.in(:)';    vout = b.vars.out(:)';
 vdum = strcat(vin,'_dum');
 prm = b.params;     Zd = cellstr(b.Zd(:));
 sos = struct('decvartable',{names(:)},'solinfo',struct('RRx',vals(:)));
+% Shared (S3, sorted) and input-only (S1) variables, by position
 S3 = sort(intersect(vin,vout));     n3 = numel(S3);
 [~,i3in] = ismember(S3,vin);        [~,i3out] = ismember(S3,vout);
 S1 = setdiff(vin,vout);             [~,i1in] = ismember(S1,vin);
@@ -224,12 +362,15 @@ q = b.dims(1);  p = b.dims(2);
 [xg,wg] = gauss01(nq);
 ns = size(S,1);     y = zeros(ns,q);
 for g = 1:numel(prm.A)
+    % The kernel of cell g at the values, and its multi-index gamma
     Dg = sdvar2dpvar(struct('A',prm.A{g},'B',prm.B{g}),b.dims, ...
                      struct('out',{vout},'in',{vdum}),b.ZL,b.ZR,Zd);
     K = sosgetsol(sos,Dg);                      % q x p, polynomial or double
     gam = ones(1,n3);
     if n3>0,    c = cell(1,n3);     [c{:}] = ind2sub([3*ones(1,n3),1],g);   gam = [c{1:n3}];    end
     for is = 1:ns
+        % Integration limits at the point s: [a, s_k] for gamma_k = 2,
+        % [s_k, b] for gamma_k = 3, the domain of an input-only variable
         s = S(is,:);
         lo = [];    hi = [];    col = [];
         for k = 1:n3
@@ -240,6 +381,8 @@ for g = 1:numel(prm.A)
         for k = 1:numel(S1)
             lo(end+1) = b.dom.in(i1in(k),1);   hi(end+1) = b.dom.in(i1in(k),2);   col(end+1) = i1in(k); %#ok<AGROW>
         end
+        % Tensor Gauss points of the integrated variables; a multiplier
+        % variable (gamma_k = 1) fixed at s_k
         nd = numel(col);    nx = nq^nd;
         X = zeros(nx,numel(vin));   w = ones(nx,1);
         for k = 1:n3
@@ -251,6 +394,7 @@ for g = 1:numel(prm.A)
             X(:,col(t)) = lo(t) + (hi(t)-lo(t))*xg(sub{t});
             w = w.*((hi(t)-lo(t))*wg(sub{t}));
         end
+        % Kernel and test function at the points; the weighted sum
         Kv = poly_at(K,[vout,vdum],[repmat(s,nx,1),X]);    % nx x q*p, column-major
         fx = f(X);
         for ii = 1:q
@@ -263,12 +407,18 @@ end
 end
 
 function v = poly_at(K,names,Y)
-% Values of a matrix polynomial (or double) at the rows of Y, whose columns
-% are the variables NAMES; one column per entry, column-major.
+% V = POLY_AT(K,NAMES,Y) returns the values of a matrix polynomial (or
+% double) at the rows of Y, whose columns are the variables NAMES; one
+% column per entry, column-major.
+% INPUT  K: 'polynomial' or 'double' matrix; names: cellstr, containing
+%           the variables of K; Y: n x numel(names) double.
+% OUTPUT v: n x numel(K) double.
+% A double: the same values at every point
 n = size(Y,1);
 if isa(K,'double')
     v = repmat(reshape(full(K),1,[]),n,1);  return
 end
+% The monomials of K at the points, times its coefficients
 dm = full(K.degmat);    cf = full(K.coefficient);   vn = K.varname;
 [tf,loc] = ismember(vn,names);
 assert(all(tf),'poly_at: kernel variable not among %s',strjoin(names,','))
@@ -284,7 +434,18 @@ end
 % (ii) a real solved container stability program
 % ========================================================================
 function out = part_ii()
+% OUT = PART_II() runs part (ii): builds and solves the stability LPI of
+% CX_PIE2PDESTABILITY on CX_PLANT('rd',0.5) with MOSEK, extracts its
+% decision operators and checks them, and errors at the first failure.
+% INPUT  none.
+% OUTPUT out: 'struct' with fields ndec, build, solve, rel_b, psd_relmin,
+%             extract, rel1, rel2, relD, psdP, psdN and controls (R.ii of
+%             TEST_GETSOL_SOP).
+% Gauss nodes of the kernel integrals and of the output grid; the number
+% of test functions
 nqi = 10;   nqo = 12;   ntest = 6;
+% Build and solve the LPI; print the solve, then require MOSEK's
+% certificate, the equality residual and PSD Gram blocks
 PIE = cx_plant('rd',0.5);
 st = cx_settings('light','mosek');
 t0 = tic;   [prog,ops] = cx_PIE2PDEstability(PIE,st);    tb = toc(t0);
@@ -295,6 +456,8 @@ fprintf('(ii) rd 0.5: build %.1f s, solve %.1f s wall, pinf %g dinf %g numerr %g
 assert(r.st==1,'(ii) MOSEK did not certify feasibility (pinf %g, numerr %g)',r.pinf,r.numerr)
 assert(r.rel_b<=1e-6,'(ii) equality residual rel_b = %.3g on solinfo.RRx rows',r.rel_b)
 assert(r.psd_relmin>=-1e-8,'(ii) Gram blocks not PSD: min eig / max eig = %.3g',r.psd_relmin)
+% Print the sizes of decvartable, RRx and x, and the distance of x from
+% RRx on their common entries
 ntot = numel(sol.decvartable);
 nxr = min(ntot,numel(sol.solinfo.x));
 fprintf('(ii) %d decision variables, RRx %d, x %d; ||x-RRx|| = %.3g on the first %d, ||RRx|| = %.3g\n',ntot,...
@@ -313,6 +476,7 @@ for k = 1:numel(nm)
     X.(nm{k}) = Xk;
 end
 tx = toc(t0);
+% The fixed operators T and A; the decay rate epneg of the settings
 T = ops.T;  A = ops.A;
 epn = st.epneg;
 % Test functions on T's input space (P, Q, N all live there).
@@ -327,6 +491,7 @@ rel1 = rel_res(L1,R1,G);        rel2 = rel_res(L2,neg(R2),G);
 relD = rel_res(L2,L2q,G);       % getsol(D) against D rebuilt from getsol(Q)
 % PSD on test functions: <x, P x> and <x, N x>, relative to ||x|| ||P x||.
 pP = min_quad(F,R1,G);      pN = min_quad(F,R2,G);
+% Print, then check the tolerances
 fprintf('(ii) extract %.2f s | T''Q-P: rel %.2e | D+N: rel %.2e | D vs A''Q+Q''A: rel %.2e | min <x,Px> %.2e, <x,Nx> %.2e\n',...
     tx,rel1,rel2,relD,pP,pN);
 assert(rel1<=1e-6 && rel2<=1e-6,'(ii) extracted operators violate the equality constraints (%.3g, %.3g)',rel1,rel2)
@@ -335,10 +500,13 @@ assert(pP>=-1e-8 && pN>=-1e-8,'(ii) extracted P or N not PSD on test functions (
 
 % Controls: each must break the relations, else the check above is blind.
 ctl = struct('name',{'solinfo.x','RRx+1e-3'},'rel1',{NaN,NaN},'rel2',{NaN,NaN});
+% solinfo.x in place of RRx (zero-padded to numel(decvartable)), and RRx
+% plus 1e-3*norm(RRx)/sqrt(ntot) times a standard normal vector
 xx = zeros(ntot,1);     nx = min(ntot,numel(sol.solinfo.x));    xx(1:nx) = sol.solinfo.x(1:nx);
 bad = sol;  bad.solinfo.RRx = xx;
 bad2 = sol; bad2.solinfo.RRx = sol.solinfo.RRx + 1e-3*norm(sol.solinfo.RRx)/sqrt(ntot)*randn(size(sol.solinfo.RRx));
 bb = {bad,bad2};
+% Both relations at each control
 for k = 1:2
     Qb = getsol_lpivar_sop(bb{k},ops.Q);    Pb = getsol_lpivar_sop(bb{k},ops.P);
     Nb = getsol_lpivar_sop(bb{k},ops.N);    Db = getsol_lpivar_sop(bb{k},ops.D);
@@ -346,7 +514,9 @@ for k = 1:2
     ctl(k).rel2 = rel_res(apply_c(Db,F,G,nqi),neg(apply_c(Nb,F,G,nqi)),G);
     fprintf('(ii) control %-9s: T''Q-P rel %.2e, D+N rel %.2e\n',ctl(k).name,ctl(k).rel1,ctl(k).rel2);
 end
+% Only the perturbed RRx is asserted; the solinfo.x control is printed
 assert(max(ctl(2).rel1,ctl(2).rel2)>1e3*max(rel1,rel2),'(ii) perturbed RRx not detected')
+% Results
 out = struct('ndec',ntot,'build',tb,'solve',r.wall,'rel_b',r.rel_b,'psd_relmin',r.psd_relmin,...
     'extract',tx,'rel1',rel1,'rel2',rel2,'relD',relD,'psdP',pP,'psdN',pN,'controls',ctl);
 end
@@ -354,8 +524,13 @@ end
 
 % ------------------------------------------------------------------------
 function F = test_funcs(P,nt)
-% nt random polynomial test functions on the column spaces of container P:
-% F{t}{j} = struct(vars, deg, coef), degree <= 3 per variable.
+% F = TEST_FUNCS(P,NT) returns nt random polynomial test functions on the
+% column spaces of container P: F{t}{j} = struct(vars, deg, coef), 5
+% monomials of degree <= 3 per variable, N(0,1) coefficients.
+% INPUT  P: 'copvar' object; nt: double.
+% OUTPUT F: 1 x nt cell; F{t} 1 x N cell of 'struct' with fields vars
+%           (cellstr, the variables of input space j), deg (5 x numel(vars)
+%           double, the exponents) and coef (5 x P.dim_in(j) double).
 [~,N] = size(P.C);
 F = cell(1,nt);
 for t = 1:nt
@@ -368,11 +543,18 @@ end
 end
 
 function G = out_grid(P,nq)
-% Gauss grid (points and weights) on each row space of P; R^n: one point.
+% G = OUT_GRID(P,NQ) returns the Gauss grid (points and weights) on each
+% row space of P; R^n: one point.
+% INPUT  P: 'copvar' object; nq: double, the nodes per direction.
+% OUTPUT G: 1 x M cell; G{i} 'struct' with fields vars (cellstr), X
+%           (nq^nd x nd double, the points) and w (nq^nd x 1 double, the
+%           weights), nd the number of variables of row space i.
 [M,~] = size(P.C);
 [xg,wg] = gauss01(nq);
 G = cell(1,M);
 for i = 1:M
+    % Variables and domains of space i; the tensor index of every point,
+    % then the nodes and weights mapped to each domain
     vi = P.vars(P.space_out(i,:));      di = P.dom(P.space_out(i,:),:);
     nd = numel(vi);     nx = nq^nd;
     Xp = zeros(nx,nd);  w = ones(nx,1);
@@ -387,7 +569,14 @@ end
 end
 
 function Y = apply_c(P,F,G,nq)
-% Y{t}{i} = ((P x_t)_i at G{i}.X) = sum_j heatNd_apply(P.C{i,j}, x_t,j).
+% Y = APPLY_C(P,F,G,NQ) returns Y{t}{i} = ((P x_t)_i at G{i}.X) =
+% sum_j heatNd_apply(P.C{i,j}, x_t,j).
+% INPUT  P:  'copvar' object; F: test functions (TEST_FUNCS) on the input
+%            spaces of P; G: grids (OUT_GRID) on the output spaces of P;
+%        nq: double, the Gauss nodes per direction of the kernel
+%            integrals.
+% OUTPUT Y:  1 x numel(F) cell; Y{t} 1 x M cell, Y{t}{i} size(G{i}.X,1) x
+%            P.dim_out(i) double.
 [M,N] = size(P.C);
 Y = cell(1,numel(F));
 for t = 1:numel(F)
@@ -407,13 +596,20 @@ end
 end
 
 function y = eval_f(Z,ci,Fj)
-% Test function Fj at points Z whose column k is variable Fj.vars{ci(k)}.
+% Y = EVAL_F(Z,CI,FJ) returns the test function Fj at points Z whose column
+% k is variable Fj.vars{ci(k)}; a variable of Fj not in CI is zero.
+% INPUT  Z:  n x numel(ci) double; ci: double, positions in Fj.vars;
+%        Fj: 'struct' with fields vars, deg and coef (TEST_FUNCS).
+% OUTPUT y:  n x size(Fj.coef,2) double.
 X = zeros(size(Z,1),numel(Fj.vars));    X(:,ci) = Z;
 y = prod_terms(X,Fj);
 end
 
 function r = rel_res(L,Rt,G)
-% max_t ||L_t - R_t|| / max_t max(||L_t||,||R_t||), L2 norms on the grids.
+% R = REL_RES(L,RT,G) returns max_t ||L_t - R_t|| / max_t max(||L_t||,
+% ||R_t||), L2 norms on the grids.
+% INPUT  L, Rt: outputs of APPLY_C on the grids G; G: grids (OUT_GRID).
+% OUTPUT r:     double.
 num = 0;    den = 0;
 for t = 1:numel(L)
     num = max(num,l2n(cellfun(@minus,L{t},Rt{t},'uni',0),G));
@@ -423,20 +619,33 @@ r = num/max(den,realmin);
 end
 
 function Y = neg(Y)
+% Y = NEG(Y) returns the output Y of APPLY_C with every value negated.
+% INPUT  Y: 1 x nt cell of 1 x M cells of double arrays.
+% OUTPUT Y: the same cells, negated.
 for t = 1:numel(Y),     Y{t} = cellfun(@uminus,Y{t},'uni',0);  end
 end
 
 function n = l2n(Y,G)
+% N = L2N(Y,G) returns the L2 norm of the values Y on the grids G, by
+% their quadrature weights, summed over the spaces.
+% INPUT  Y: 1 x M cell, Y{i} size(G{i}.X,1) x p double; G: grids
+%           (OUT_GRID).
+% OUTPUT n: double.
 n = 0;
 for i = 1:numel(Y),     n = n + sum(G{i}.w.*sum(Y{i}.^2,2));    end
 n = sqrt(n);
 end
 
 function m = min_quad(F,Y,G)
-% min_t <x_t, P x_t> / (||x_t|| ||P x_t||), x_t evaluated on the grids of
-% the same (square) spaces.
+% M = MIN_QUAD(F,Y,G) returns min_t <x_t, P x_t> / (||x_t|| ||P x_t||),
+% x_t evaluated on the grids of the same (square) spaces.
+% INPUT  F: test functions (TEST_FUNCS); Y: the values of P x_t on G
+%           (APPLY_C); G: grids (OUT_GRID) on the output spaces of P, which
+%           equal its input spaces.
+% OUTPUT m: double.
 m = inf;
 for t = 1:numel(F)
+    % x_t on the grids, <x_t, P x_t> summed over the spaces, then the ratio
     ip = 0;     xs = cell(1,numel(G));
     for i = 1:numel(G)
         [~,ci] = ismember(G{i}.vars,F{t}{i}.vars);
@@ -452,21 +661,31 @@ end
 % (iv) a solved program with a free scalar and an inequality: H-infinity
 % ========================================================================
 function out = part_iv()
-% The 1-D primal H-infinity LPI with gamma a decision variable, built as in
-% test_dpvar_hinf_chain_sop (cx_Hinf_gain with gam = dpvar, gam >= 0,
-% minimized). Here solinfo.x holds one more entry than decvartable (the
+% OUT = PART_IV() runs part (iv): builds and solves the 1-D primal
+% H-infinity LPI on CX_PLANT('io1') with gamma a decision variable (gam >=
+% 0, minimized), extracts its operators and checks them, and errors at the
+% first failure. Here solinfo.x holds one more entry than decvartable (the
 % slack of the 'ineq'), which is the case where x and RRx differ.
+% INPUT  none.
+% OUTPUT out: 'struct' with fields gam, rel_b, relK, rel1, maxK, rel_x,
+%             ndec and nx (R.iv of TEST_GETSOL_SOP).
+% Gauss nodes and test functions; the settings; the PIE and its operators
+% as containers
 nqi = 10;   nqo = 12;   ntest = 6;
 st = cx_settings('light','mosek');
 PIE = initialize(cx_plant('io1'));
 Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
 Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw);
+% Identity operators on the spaces of w and z
 % [spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out'); % MMP, 10/06/2026 (was)
 [spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026
 Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
+% The program; gamma declared, gamma >= 0, gamma the objective
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 gam = dpvar('gam');
 prog = lpidecvar(prog,gam);     prog = lpi_ineq(prog,gam);  prog = lpisetobj(prog,gam);
+% R positive on the output spaces of T, Q free with the degrees of R, and
+% T'*Q - R = 0
 % [prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);                                   % MMP, 10/06/2026 (was)
 % [sp,dm] = cx_space_list(Tm,'out');                                        % MMP, 10/06/2026 (was)
 % [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_hinf_qdeg(Rm));          % MMP, 10/06/2026 (was)
@@ -474,20 +693,24 @@ prog = lpidecvar(prog,gam);     prog = lpi_ineq(prog,gam);  prog = lpisetobj(pro
 [sp,dm] = copvar_space_list(Tm,'out');                                      % MMP, 10/06/2026
 [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,get_lpivar_degs_sop(Rm));     % MMP, 10/06/2026
 prog = lpi_eq_cdopvar(prog,Tm'*Qm - Rm);
+% The KYP operator K, its positive slack N and N + K = 0
 Km = [-gam*Iw, Dzw', Bw'*Qm;  Dzw, -gam*Iz, Cz;  Qm'*Bw, Cz', Am'*Qm + Qm'*Am];
 % prog = cx_hinf_slack(prog,Km,PIE,st);                                     % MMP, 10/06/2026 (was)
 [prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
 prog = lpi_eq_cdopvar(prog,Nm + Km,'symmetric');   % Deop + Dop = 0         % MMP, 10/06/2026
+% Solve; print the solve and the sizes, then require the certificate
 r = cx_solve(prog,st.sos_opts);     sol = r.sol;
 ntot = numel(sol.decvartable);
 fprintf('(iv) io1 H-inf: pinf %g numerr %g, rel_b %.2e, psd_relmin %.2e; decvartable %d, RRx %d, x %d\n',...
     r.pinf,r.numerr,r.rel_b,r.psd_relmin,ntot,numel(sol.solinfo.RRx),numel(sol.solinfo.x));
 assert(r.numerr==0 && r.pinf==0 && r.rel_b<=1e-6 && r.psd_relmin>=-1e-8,'(iv) solve not certified')
+% Extract gamma and the operators K, Q, R
 g = double(lpigetsol(sol,gam));             % legacy dpvar path
 Ks = getsol_lpivar_sop(sol,Km);     Qs = getsol_lpivar_sop(sol,Qm);     Rs = getsol_lpivar_sop(sol,Rm);
 assert(isa(Ks,'copvar') && isa(Qs,'copvar') && isa(Rs,'copvar'),'(iv) not fixed')
 % Km at the solution, rebuilt from the legacy gamma and the extracted Q.
 Kf = [(-g)*Iw, Dzw', Bw'*Qs;  Dzw, (-g)*Iz, Cz;  Qs'*Bw, Cz', Am'*Qs + Qs'*Am];
+% The extracted K against the rebuilt K on test functions
 F = test_funcs(Ks,ntest);   G = out_grid(Ks,nqo);
 YK = apply_c(Ks,F,G,nqi);
 relK = rel_res(YK,apply_c(Kf,F,G,nqi),G);
@@ -495,6 +718,7 @@ relK = rel_res(YK,apply_c(Kf,F,G,nqi),G);
 FT = test_funcs(Rs,ntest);  GT = out_grid(Rs,nqo);
 rel1 = rel_res(apply_c(Tm'*Qs,FT,GT,nqi),apply_c(Rs,FT,GT,nqi),GT);
 pK = -min_quad(F,neg(YK),G);                % max <x,Kx>/(||x|| ||Kx||)
+% Print, then check the tolerances
 fprintf('(iv) gamma %.8g | getsol(Km) vs Km(gamma, getsol(Q)): rel %.2e | T''Q-R: rel %.2e | max <x,Kx> %.2e\n',...
     g,relK,rel1,pK);
 assert(relK<=1e-10,'(iv) getsol(Km) differs from Km rebuilt with the legacy gamma (%.3g)',relK)
@@ -506,6 +730,7 @@ assert(pK<=1e-8,'(iv) extracted KYP operator not negative on test functions (%.3
 bad = sol;  bad.solinfo.RRx = sol.solinfo.x(1:ntot);
 relx = rel_res(apply_c(getsol_lpivar_sop(bad,Km),F,G,nqi),apply_c(Kf,F,G,nqi),G);
 fprintf('(iv) control solinfo.x: getsol(Km) vs Km(gamma, getsol(Q)) rel %.2e\n',relx);
+% Results
 out = struct('gam',g,'rel_b',r.rel_b,'relK',relK,'rel1',rel1,'maxK',pK,'rel_x',relx,...
     'ndec',ntot,'nx',numel(sol.solinfo.x));
 end
@@ -515,6 +740,15 @@ end
 % (iii) dispatch against legacy lpigetsol
 % ========================================================================
 function out = part_iii()
+% OUT = PART_III() runs part (iii): the dispatch of LPIGETSOL_SOP,
+% GETSOL_LPIVAR_SOP and SUBS_DVAR_SOP over the legacy and the new classes,
+% on programs with a known decision vector, and errors at the first
+% failure.
+% INPUT  none.
+% OUTPUT out: 'struct' with fields nlegacy, nnew and nerr (R.iii of
+%             TEST_GETSOL_SOP).
+% The counts; a 1-D program on [0,1] with a positive dopvar P1, a dopvar
+% Q1, a 2 x 1 dpvar g and a cdopvar Pc on R^1 x L2^1[s]
 out = struct('nlegacy',0,'nnew',0,'nerr',0);
 pvar s theta
 prog = lpiprogram(s,theta,[0 1]);
@@ -523,6 +757,8 @@ prog = lpiprogram(s,theta,[0 1]);
 [prog,g] = lpidecvar(prog,[2 1]);                   % dpvar
 [prog,Pc] = lpivar_cdopvar(prog,struct('out',[1;1],'in',[1;1]), ...
             struct('out',{{{},{'s'}}},'in',{{{},{'s'}}}),[0 1],2);   % cdopvar in this program
+% A known decision vector and a solver report, so the program reads as
+% solved; the fixed opvar of P1
 N = numel(prog.decvartable);
 prog.solinfo.RRx = randn(N+2,1);                    % 2 entries past decvartable, as a slack
 prog.solinfo.info = struct('pinf',0,'dinf',0,'numerr',0);
@@ -536,6 +772,8 @@ prog2.solinfo.info = struct('pinf',0);
 assert(isa(P2,'dopvar2d'),'(iii) lpivar did not return a dopvar2d')
 P2sol = lpigetsol(prog2,P2);
 
+% Legacy objects: lpigetsol_sop and subs_dvar_sop against lpigetsol, bit
+% for bit
 leg = {  {'[]',[]}, {'double',[1 2;3 4]}, {'polynomial',s^2+3*s}, {'opvar',Psol_leg}, ...
          {'dpvar',g}, {'dpvar expr',2*g(1)+g(2)*s}, {'char',g.dvarname{1}}, {'cellstr',g.dvarname(:)'}, ...
          {'cell of dpvar',{g,2*g}}, {'dopvar',P1}, {'dopvar',Q1} };
@@ -570,6 +808,7 @@ assert(bit_equal(c,lpigetsol(prog,g)),'(iii) permuted names change the dpvar res
 % of its LOWEST row, where getequation puts its At row; sosgetsol agrees.
 Zc = cellstr(Pc.Zd(:));     nm1 = Zc{1};
 [~,ic] = ismember(Zc,prog.decvartable);     dv = prog.solinfo.RRx(ic);
+% The first name of Pc appended (dupA) or prepended (dupB) with value 99
 dupA = prog;    dupA.decvartable = [prog.decvartable(:); {nm1}];   dupA.solinfo.RRx = [prog.solinfo.RRx(1:N); 99];
 dupB = prog;    dupB.decvartable = [{nm1}; prog.decvartable(:)];   dupB.solinfo.RRx = [99; prog.solinfo.RRx(1:N)];
 dvB = dv;       dvB(1) = 99;
@@ -609,6 +848,7 @@ for k = 1:numel(bads)
     assert(ok,'(iii) class %s not rejected',class(bads{k}))
     out.nerr = out.nerr+1;
 end
+% An unsolved program (empty solver report), and a program without RRx
 unsolved = prog;    unsolved.solinfo.info = [];
 try
     lpigetsol_sop(unsolved,Pc);     ok = false;
@@ -631,10 +871,16 @@ end
 % shared helpers
 % ========================================================================
 function tf = same_ops(A,B,tol)
-% Same class, same block grid, same metadata and parameters within tol
-% (absolute, max entry); tol = 0 demands bit identity.
+% TF = SAME_OPS(A,B,TOL) returns true for the same class, the same block
+% grid, the same metadata and parameters within tol (absolute, max entry);
+% tol = 0 demands bit identity.
+% INPUT  A, B: 'copvar', 'cdopvar', 'sopvar' or 'sdopvar' objects; tol:
+%              double.
+% OUTPUT tf:   logical.
 tf = strcmp(class(A),class(B));
 if ~tf,     return,     end
+% Containers: the grid, the empty blocks, every block, and for a cdopvar
+% its decision-variable list
 if isa(A,'copvar') || isa(A,'cdopvar')
     tf = isequal(size(A.C),size(B.C));
     for k = 1:numel(A.C)
@@ -648,6 +894,8 @@ if isa(A,'copvar') || isa(A,'cdopvar')
     if tf && isa(A,'cdopvar'),  tf = isequal(cellstr(A.Zd(:)),cellstr(B.Zd(:)));   end
     return
 end
+% Blocks: the metadata, then every parameter cell (A and B cells and the
+% decision-variable list of an sdopvar)
 tf = isequal(A.vars,B.vars) && isequal(A.dom,B.dom) && isequal(A.dims,B.dims) ...
     && isequal(A.ZL,B.ZL) && isequal(A.ZR,B.ZR);
 if ~tf,     return,     end
@@ -668,11 +916,18 @@ end
 end
 
 function tf = bit_equal(a,b)
-% Bit-identical data, recursively. 'isequal' cannot be used directly: the
-% polynomial overload is ELEMENTWISE (SOSTOOLS400/multipoly/@polynomial/
-% isequal.m) and returns an array.
+% TF = BIT_EQUAL(A,B) returns true for bit-identical data, recursively: the
+% same class and size, then a 'polynomial' by its coefficient, degmat,
+% varname and matdim, another object by each public property, a struct by
+% its field names (in any order) and fields, a cell by its entries, and
+% any other value by isequal.
+% INPUT  a, b: values of any class.
+% OUTPUT tf:   logical.
 tf = strcmp(class(a),class(b)) && isequal(size(a),size(b));
 if ~tf,     return,     end
+% 'isequal' cannot be used directly: the polynomial overload is
+% ELEMENTWISE (SOSTOOLS400/multipoly/@polynomial/isequal.m) and returns an
+% array.
 if isa(a,'polynomial')
     tf = isequal(a.coefficient,b.coefficient) && isequal(a.degmat,b.degmat) ...
         && isequal(a.varname,b.varname) && isequal(a.matdim,b.matdim);
@@ -697,18 +952,32 @@ end
 end
 
 function m = maxabs(x)
+% M = MAXABS(X) returns the largest absolute entry of X as a full double, 0
+% for an empty X.
+% INPUT  x: numeric array.
+% OUTPUT m: double.
 m = 0;  if ~isempty(x),     m = full(max(abs(x(:))));   end
 end
 
 function p = derangement(n)
-% A permutation of 1:n with no fixed point (n >= 2).
+% P = DERANGEMENT(N) returns a random permutation of 1:n with no fixed
+% point (n >= 2), by rejection; 1:n for n < 2.
+% INPUT  n: double.
+% OUTPUT p: 1 x n double.
 p = 1:n;
 if n<2,     return,     end
 while any(p==1:n),  p = randperm(n);    end
 end
 
 function [x,w] = gauss01(n)
-% Gauss-Legendre nodes and weights on [0,1] (Golub-Welsch).
+% [X,W] = GAUSS01(N) returns the Gauss-Legendre nodes and weights on [0,1]
+% (Golub-Welsch).
+% INPUT  n: double, the number of nodes.
+% OUTPUT x: n x 1 double, the nodes in increasing order; w: n x 1 double,
+%           the weights.
+% Nodes: the eigenvalues of the Jacobi matrix of the Legendre recurrence;
+% weights: twice the squared first entries of its eigenvectors; then the
+% map from [-1,1] to [0,1]
 b = (1:n-1)./sqrt(4*(1:n-1).^2-1);
 [Vv,L] = eig(diag(b,1)+diag(b,-1));
 [x,ix] = sort(diag(L));     w = 2*Vv(1,ix)'.^2;

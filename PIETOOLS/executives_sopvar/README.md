@@ -1,30 +1,31 @@
-# executives_sopvar: the executives on the container path (MMP, 10/08/2026)
+# executives_sopvar: the executives on the container path
 
-Parallel versions of every file in `executives/` (1-D) and `executives/2D/`, one `PIETOOLS_<name>_sop`
-per stock `PIETOOLS_<name>`, built on `lpi_programming_sopvar` (which holds the former `sopvar/lpis_sopvar`
-since 10/16/2026) and the helpers in `utility_functions/` (below). The stock files
-are untouched; `pietools_path_update` is one `genpath`, so every name here ends in `_sop` and
-`which -all` resolves each once. The stock output list is kept, in the stock order, and one `info`
-struct is appended.
+Nine executives, one per analysis, built on `lpi_programming_sopvar` and the helpers in
+`utility_functions/` (below). Each takes a `pie_struct` (1-D or 2-D) and a settings structure, writes
+its LPI in its own file, and returns the outputs of the stock executive followed by one `info` struct.
+The LPI form is an argument; the dimension is read from the PIE. Every name ends in `_sop`, so
+`which -all` resolves each once beside the stock executives, which are untouched.
 
-| stock executive | container version | builder (private/) | form |
-|---|---|---|---|
-| PIETOOLS_PDEstability, _dual | PIETOOLS_PDEstability_sop, _dual_sop | stability_build_sop | P, Pd |
-| PIETOOLS_PIE2PDEstability, _dual | PIETOOLS_PIE2PDEstability_sop, _dual_sop | stability_build_sop | Q, Qd |
-| PIETOOLS_Hinf_gain, _coercive, _dual, _dual_coercive | ..._sop | hinf_build_sop | Q, P, Qd, Pd |
-| PIETOOLS_Hinf_control, _estimator | ..._sop | synth_build_sop | ctrl, est |
-| PIETOOLS_H2_norm_c, _o, _c_coercive, _o_coercive | ..._sop | h2_build_sop | c, o, cco, oco |
-| PIETOOLS_H2_control, _estimator | ..._sop | h2_build_sop | ctrl, est |
-| PIETOOLS_well_posedness | PIETOOLS_well_posedness_sop | (in the file) | |
-| PIETOOLS_auto_execute (script) | PIETOOLS_auto_execute_sop | | |
-| 2D/PIETOOLS_stability_2D, _dual_2D | ..._sop | stability_build_sop | P, Pd |
-| 2D/PIETOOLS_Hinf_gain_2D, _2D_non_coercive, _dual_2D | ..._sop | hinf_build_sop | P, Q, Pd |
-| 2D/PIETOOLS_Hinf_estimator_2D | PIETOOLS_Hinf_estimator_2D_sop | synth_build_sop | est |
-| 2D/PIETOOLS_H2_norm_2D_c, _o, _c_non_coercive, _o_non_coercive | ..._sop | h2_build_sop | cco, oco, c, o |
+| executive | FORM | stock executives it covers |
+|---|---|---|
+| `PIETOOLS_stability_sop(PIE,settings,form)` | 'P' (default), 'Pd', 'Q', 'Qd'; in 2-D 'Q', 'Qd' are posed as 'P', 'Pd' | PDEstability, _dual, PIE2PDEstability, _dual, 2D/stability_2D, _dual_2D |
+| `PIETOOLS_well_posedness_sop(PIE,settings)` | | well_posedness |
+| `PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)` | 'Q' (default), 'Qd', 'P', 'Pd'; in 2-D 'Qd' is posed as 'Pd' | Hinf_gain, _coercive, _dual, _dual_coercive, 2D/Hinf_gain_2D, _2D_non_coercive, _dual_2D |
+| `PIETOOLS_Hinf_control_sop(PIE,settings)` | | Hinf_control |
+| `PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)` | | Hinf_estimator, 2D/Hinf_estimator_2D |
+| `PIETOOLS_H2_norm_sop(PIE,settings,form)` | 'c' (default), 'o', 'cco', 'oco' | H2_norm_c, _o, _c_coercive, _o_coercive, 2D/H2_norm_2D_c_non_coercive, _o_non_coercive, _2D_c, _2D_o |
+| `PIETOOLS_H2_control_sop(PIE,settings)` | | H2_control |
+| `PIETOOLS_H2_estimator_sop(PIE,settings)` | | H2_estimator |
+| `PIETOOLS_auto_execute_sop` (script) | | auto_execute |
 
-The 1-D wrappers route a 2-D PIE to the 2-D version with the same LPI, as the stock wrappers do
-(`Hinf_gain` to `_2D_non_coercive`, `Hinf_gain_coercive` to `_2D`, both duals to `_dual_2D`,
-`PDEstability` and `PIE2PDEstability` to `stability_2D`, the H2 norms to their 2-D forms).
+Without settings, each executive takes the default of the stock executive it covers: `lpisettings('light')`,
+except stability in 1-D (`lpisettings('heavy')`, eppos 1e-4, eppos2 1e-6) and in 2-D (`lpisettings('light')`,
+simplify 1, `settings_2d.eppos` 1e-2), and well-posedness (`lpisettings('heavy')`, simplify 1, eppos = eppos2 =
+1e-2). `lpisettings_sop` (folder `settings_sopvar`) gives tiers tuned for this path.
+
+On 10/28/2026 these nine replaced the 28 files of 10/08/2026 (one per stock executive, each calling a
+builder in `private/`). Each form poses the program its former file posed: 31 cases compared, with status,
+value, decision count, rows and Gram sizes identical.
 
 ## What is different from the stock executives
 
@@ -55,7 +56,7 @@ The 1-D wrappers route a 2-D PIE to the 2-D version with the same LPI, as the st
    executive the slack at `dw_P = 0` is infeasible (6.5e3 variables, 0.46 s) and one raise certifies
    (1.04e5 variables), 2.95 s in total against 6.35 s from the default `dw_P = 2` (measured 10/16/2026).
    What a raise cannot do is show that no degree certifies; set `max_raise = 0` to skip the raises.
-5. **Dual.** The builders set `prog.sopeq = {}` after `lpiprogram` (when `settings.sop.keepdual`), which
+5. **Dual.** The executives set `prog.sopeq = {}` after `lpiprogram` (when `settings.sop.keepdual`), which
    asks `lpi_eq_cdopvar` to record which row of the program is which coefficient of which cell (opt-in:
    programs built elsewhere gain no field); `lpigetdual_sop` assembles the solver's multipliers into the
    signed dual kernel of the negativity constraint (`info.dual`, a `copvar`; `info.dual_norm1`). The
@@ -77,15 +78,17 @@ The 1-D wrappers route a 2-D PIE to the 2-D version with the same LPI, as the st
 7. **Margin.** `settings.sop.margin = eps` certifies `-Dop + eps*e_D >= 0` with `e_D` the lift's own
    energy (the regularizer of the proof program under which polynomial certificates exist at a fixed
    lift). Default 0.
-8. **Fixed gamma.** `settings.sop.gam_fixed = g` (or the third argument of the 2-D gain and estimator
-   executives, the stock's `gain`) poses the feasibility test at gamma = g; the value returned is g when
+8. **Fixed gamma.** `settings.sop.gam_fixed = g` (or the argument `gain` of `PIETOOLS_Hinf_gain_sop` and
+   `PIETOOLS_Hinf_estimator_sop`, the stock 2-D executives' `gain`) poses the feasibility test at gamma = g; the value returned is g when
    certified and Inf otherwise. The stock bisection options are not reproduced.
 
 ## Settings
 
 Stock `lpisettings` structs work unchanged; `exec_sop_settings` adds the `sop` field with defaults
 (slack 'like', dw_Q 1, dw_P 2, max_raise 2, margin 0, witness true, N_cheb 24, nfreq 240, keepdual true,
-verbose true) and selects MOSEK when installed; `sos_opts.simplify` is left as given. In 2-D the free
+verbose true; `dw_feas`, `max_raise_feas`, `eppos_stab` empty, which leaves stability and well-posedness
+on `dw_P`/`dw_Q`, `max_raise` and the stock eppos) and selects MOSEK when installed; `sos_opts.simplify` is
+left as given. In 2-D the free
 operators (Q of the Q forms, Z of the
 estimator) take their degrees from the storage (`get_lpivar_degs_sop`, the per-role reading) and from
 the largest entry of `settings_2d.Zop_deg` (one cap on every role of `lpivar_cdopvar`, a superset of the
@@ -93,14 +96,16 @@ stock `lpivar_2d` monomials); in 1-D from `get_lpivar_degs_sop` and `settings.dd
 
 ## utility_functions/ (moved from lpi_programming_sopvar, 10/16/2026)
 
-The helpers the builders call. They are on the path like every folder, not in `private/`: the tests
-and examples of `lpi_programming_sopvar` and the cx_exec tests call some of them. The stock
-counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop` are in
-`executives/utility_functions/`.
+The helpers the executives call. They are on the path like every folder: the tests and examples of
+`lpi_programming_sopvar`, the cx_exec tests, `sopvar/@sopvar/inv` and the stock `getController` call some
+of them. The stock counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop` are
+in `executives/utility_functions/`.
 
 | function | what it does |
 |---|---|
 | `exec_sop_settings` | completes a settings struct with the `sop` field (Settings, above) |
+| `exec_tools_sop` | the storage, stock slack, margins, identities and opvar conversion the settings define for a 1-D or 2-D PIE |
+| `exec_info_sop` | the part of `info` every executive shares: status, loop history, slack, SDP shape, dual kernel |
 | `lpi_solve_loop_sop` | the degree loop: build, solve, classify the exit, raise `dw` |
 | `settings_2d_sop` | the 2-D settings the stock 2-D executives read, with their defaults |
 | `poslpivar_sop`, `poslpivar_settings_sop` | the 1-D storage and slack from the stock degrees and settings (Executive translators, below) |
@@ -139,8 +144,8 @@ and `getObserver` give 8.1e-5 and 7.4e-3 on the same solved P, Z.
 | `[L,Lop,info] = getObserver_sop(P,Z[,opts])` | `L = P^{-1} Z`, the same way. |
 | `[K,info] = getController_direct_sop(P,Z[,opts])` | the gains `K1`, `K2(s)` of `u = Z P^{-1} x` WITHOUT forming `P^{-1}` (the analogue of Cor. 11 of arXiv 1806.08071): grid values of the Gohberg-Krein data and their cumulative integrals (`gk_grid`), Simpson for the Schur complement; `K.apply` evaluates `u` by quadrature, `K.op` is the one polynomial fit (of `K2`) for `closedLoopPIE`, `K.fit.relrms` its residual. Agrees with the inverse route to 1e-9 (Test_copvar_inv). The QT formulation is discussed in `opvar/inverse_dependency_map_2026_10_09.md`, Sec. 8.2. |
 
-`synth_build_sop` and `h2_build_sop` call these in 1-D and return the `opvar` gain as
-before; `info.G` is the container gain and `info.inv` the inverse diagnostics. 2-D keeps
+`PIETOOLS_Hinf_control_sop`, `_Hinf_estimator_sop`, `_H2_control_sop` and `_H2_estimator_sop` call
+these in 1-D and return the `opvar` gain; `info.G` is the container gain and `info.inv` the inverse diagnostics. 2-D keeps
 `getObserver_2D`. The defects of the stock routines are documented in
 `opvar/inverse_dependency_map_2026_10_09.md`.
 
@@ -172,6 +177,9 @@ container Q degrees equal stock `get_lpivar_degs` on 5 plants x 6 presets x 3 op
 forms.
 
 ## Status (measured 10/08/2026, MOSEK 11, light settings)
+
+The rows name the executives of 10/08/2026; the table at the top gives the executive and form that pose
+each of these programs now.
 
 `tests/test_executives_sop.m` asserts the 1-D part (19 checks; `test_executives_sop(false)` adds the
 2-D stability executive). The numbers below are from the session drivers (`run_exec_1d`,

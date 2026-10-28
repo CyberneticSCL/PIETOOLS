@@ -1,75 +1,47 @@
 function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MMP, 09/30/2026
-% function [prog,Eq] = lpi_eq_sdopvar(prog,P,opts,dvars_checked)            % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
-% function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                 % MMP, 09/26/2026 (was)
-% function prog = lpi_eq_sdopvar(prog,P,opts)                               % MMP, 09/26/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PROG = LPI_EQ_SDOPVAR(PROG,P) takes an LPI optimization program structure
-% 'prog' and an 'sdopvar' decision variable P, and adds equality constraints
-% enforcing P==0. It is the 'sdopvar' counterpart of 'lpi_eq', and applies in
-% particular to the operators returned by 'possopvar'.
+% PROG = LPI_EQ_SDOPVAR(PROG,P,OPTS) adds to the LPI program PROG the
+% equality constraints P == 0 for the 'sdopvar' decision operator
 %
-% An 'sdopvar' object represents the operator
+%   (P x)(s) = sum_gamma int_{s'} K_gamma(s,s') I_gamma(s-s') x(s') ds',
+%   K_gamma(s,s') = kron(I_m,ZL(s))'*C_gamma(d)*kron(I_n,ZR(s')),
+%   vec(C_gamma(d)) = A_gamma + B_gamma'*d,
 %
-%   (P x)(s) = sum_gamma int_{s'} K_gamma(s,s') I_gamma(s-s') x(s') ds'
-%
-%   K_gamma(s,s') = (I_m o ZL(s))^T unvec(A_gamma + B_gamma'*d) (I_n o ZR(s'))
-%
-% for gamma in {1,2,3}^n3, where index 1 denotes a multiplier (a factor
-% delta(s_k-s_k')), 2 a lower integral and 3 an upper integral.
-%
-% Since the 3^n3 indicator patterns I_gamma act on disjoint regions, the
-% operator vanishes exactly when every term vanishes, and a term vanishes
-% exactly when its coefficients do. The second half of that relies on the
-% canonical multiplier form, which every 'sdopvar' satisfies: in a direction
-% where gamma_k=1 the factor delta(s_k-s_k') identifies s_k with s_k', so
-% degrees could otherwise be moved freely between ZL and ZR without changing
-% the operator, and constraining the stored coefficients would be strictly
-% stronger than constraining the operator. The canonical form pins that
-% freedom by keeping all of the degree on the left, so the coefficients are
-% determined by the operator and constraining them is exactly right. See
-% 'canonicalize_multiplier' and the class documentation.
-%
-% This routine therefore constrains the stored coefficients directly, after
-% dropping the positions the canonical form requires to be zero.
+% gamma in {1,2,3}^n3 over the n3 variables common to the input and output
+% spaces (1 a multiplier, a factor delta(s_k-s_k'); 2 a lower and 3 an
+% upper integral), m x n = P.dims, d the decision variables P.Zd: for every
+% parameter cell gamma, the equations A_gamma(c) + B_gamma(:,c)'*d = 0 at
+% each position c of C_gamma that the canonical multiplier form allows
+% (the columns whose ZR monomial has degree 0 in every multiplier
+% direction of gamma), all-zero equations omitted. In canonical multiplier
+% form, which every 'sdopvar' object has, these equations hold exactly
+% when P is the zero operator.
 %
 % INPUT
-% - prog:   'struct' specifying an LPI program structure to modify (see also
-%           'lpiprogram'). All decision variables of P must already appear in
-%           'prog.decvartable';
-% - P:      'sdopvar' object of which to enforce P==0. Parameters that are
-%           empty or identically zero generate no constraints;
-% - opts:   (optional) set opts = 'symmetric' if P is known to be
-%           self-adjoint, to constrain only one parameter per adjoint pair.
-%           Taking the adjoint exchanges lower and upper integrals in every
-%           direction, so the parameters pair up under the index map
-%           1->1, 2->3, 3->2;
+% - prog:   'struct', an LPI program (lpiprogram or lpiprogram_sop) whose
+%           prog.decvartable holds every name of P.Zd;
+% - P:      'sdopvar' object; an empty or all-zero parameter adds no
+%           equation;
+% - opts:   (optional) 'char', 'symmetric' for a P that is self-adjoint for
+%           every value of d: of each pair of parameter cells mapped to each
+%           other by exchanging lower (2) and upper (3) integrals in every
+%           direction, only the one of lower linear index is constrained
+%           (default []: every cell).
 %
 % OUTPUT
-% - prog:   Same LPI program structure as the input, but with the added
-%           constraints enforcing P==0.
+% - prog:   'struct', PROG with the equations appended to prog.expr as
+%           'eq' entries, in the order of the parameter cells and, within a
+%           cell, of the positions c.
 %
 % NOTES
-% To enforce P==Q, call LPI_EQ_SDOPVAR(PROG,P-Q); '@sdopvar/plus' aligns the
-% monomial and decision variable bases of the two operators.
-%
-% The constraints of one call are joined into as few 'soseq' calls as a cap % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-% The constraints of one call are joined into as few prog.expr entries as   % MMP, 10/02/2026
-% a cap                                                                     % MMP, 10/02/2026
-% of numel(prog.decvartable) nonzeros each allows, so prog.expr gets a few  % MMP, 09/26/2026
-% entries per call, not one per parameter. The rows sossolve assembles from % MMP, 09/26/2026
-% prog.expr (At and b, in order) are the same either way.                   % MMP, 09/26/2026
-% Each entry is the one soseq would write, written by 'lpi_soseq' without   % MMP, 10/02/2026
-% soseq's scan of all program names (see 'impose_eq_rows').                 % MMP, 10/02/2026
-%
-% The work is two private routines of lpis_sopvar: 'collect_eq_rows' builds % MMP, 09/30/2026 % MMP, 10/16/2026 (was)
-% The work is two private routines of lpi_programming_sopvar:               % MMP, 10/16/2026 % MMP, 10/21/2026 (was)
-% The work is two private routines of lpi_programming_sopvar/misc:          % MMP, 10/21/2026
-% 'collect_eq_rows' builds                                                  % MMP, 10/16/2026
-% the rows without imposing them and 'impose_eq_rows' imposes them.         % MMP, 09/30/2026
-% 'lpi_eq_cdopvar' calls the two directly, to join the rows of all blocks   % MMP, 09/30/2026
-% that share a decision variable list.                                      % MMP, 09/30/2026
+% P of a class other than 'sdopvar' (a 'sopvar', 'polynomial' or 'double'
+% included), P not in canonical multiplier form, a name of P.Zd absent from
+% prog.decvartable, and OPTS other than 'symmetric' are errors. To impose
+% P == Q, call LPI_EQ_SDOPVAR(PROG,P-Q).
 %
 % See also LPI_EQ, LPI_EQ_NDOPVAR, POSSOPVAR, SOSEQ, SDOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - lpi_eq_sdopvar
@@ -182,6 +154,18 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 %                  helpers to misc/private/: the folder root keeps the user
 %                  functions only. The help text and the locations above
 %                  read accordingly. Code unchanged.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), step comments in the body; code
+%                  unchanged. The deleted header text was the comparison
+%                  with 'lpi_eq', the argument that constraining the
+%                  canonical coefficients is exact, and notes, with their
+%                  (was) lines, on the joined prog.expr entries and on the
+%                  private routines that do the work. The (was) lines of
+%                  the earlier signatures moved from under the function
+%                  line to here, so that help starts with the description:
+% function [prog,Eq] = lpi_eq_sdopvar(prog,P,opts,dvars_checked)            % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+% function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                 % MMP, 09/26/2026 (was)
+% function prog = lpi_eq_sdopvar(prog,P,opts)                               % MMP, 09/26/2026 (was)
 
 
 % BEGIN MMP, 09/30/2026: the three modes split. Deleted here, moved verbatim
@@ -193,7 +177,9 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % which 'lpi_eq_cdopvar' reached the two halves; it now calls them itself.
 % Collect, then impose: the rows and the soseq calls are unchanged.
 if nargin<3,    opts = [];      end                                         % MMP, 09/30/2026
+% The equations of P, every name of P.Zd checked against prog
 Eq = collect_eq_rows(prog,P,opts,false);                                    % MMP, 09/30/2026
+% Appended to prog.expr
 prog = impose_eq_rows(prog,Eq);                                             % MMP, 09/30/2026
 % END MMP, 09/30/2026
 

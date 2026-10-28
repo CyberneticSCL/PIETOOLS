@@ -1,44 +1,92 @@
 function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [prog,Pop,Qcell,basis_list] = POSCOPVAR(prog,dims,spaces,dom,deg,options)
-% declares a positive semidefinite, self-adjoint 'cdopvar' decision operator
-% on a concatenation of mixed spaces,
+% [PROG,POP,QCELL,BASIS_LIST] = POSCOPVAR(PROG,DIMS,SPACES,DOM,DEG,OPTIONS)
+% declares in the LPI program PROG a positive semidefinite, self-adjoint
+% 'cdopvar' decision operator on a concatenation of spaces, parameterized
+% as in Sec. 8.4 of the sopvar document,
 %
 %       Pop: X -> X,     X = L_2^{m_1}[s^1] x ... x L_2^{m_M}[s^M],
-%       Pop = Pop* >= 0,
 %
-% parameterized as in Sec. 8.4 of the sopvar document,
+%       Pop = sum_{b,b'} Z_b'*(g*Q_{b,b'})*Z_{b'},     Q >= 0,
 %
-%       Pop = sum_{k,l} sum_{i,j} (Z_{alpha_i^k})* Q_{(ki),(lj)} (Z_{alpha_j^l})
+% with ONE Gram matrix Q of decision variables over every pair (b,b') of
+% basis operators of all spaces, so that Pop is positive as a whole, and
+% g(theta) >= 0 the weight of OPTIONS.psatz. An empty s^k is the space
+% R^{m_k}. Basis operator b of space k carries a multi-index alpha over the
+% variables of s^k and maps L_2^{m_k}[s^k] to L_2[theta], theta over every
+% variable of the registry:
 %
-% with a SINGLE Q>=0 spanning every (space, multi-index) pair, so that the
-% container is positive as a whole and not merely blockwise. An empty space
-% is R^{m_k}, which is what makes this cover the mixed finite/infinite case
-% of a PIE that 'possopvar' does not.
+%       (Z_b x)(theta) = int I_alpha(theta-s) ...
+%                            (I_{m_k} kron Z^alpha(theta,s)) x(s) ds,
 %
-% This is a wrapper. The construction lives in 'copquadvar', which assembles % MMP, 10/17/2026 (was)
-% that quadratic form and takes the variable type as an argument;           % MMP, 10/17/2026 (was)
-% 'poscopvar' fixes the type to 'pos'. Every input and output, and every    % MMP, 10/17/2026 (was)
-% option other than 'type', is exactly as documented in 'copquadvar' -- see % MMP, 10/17/2026 (was)
-% there for dims, spaces, dom, deg, options.psatz, options.sep,             % MMP, 10/17/2026 (was)
-% options.include and the returned Qcell and basis_list.                    % MMP, 10/17/2026 (was)
-% This is a wrapper of 'poscopvar_direct', which maps the Gram straight to  % MMP, 10/17/2026
-% the kernel coefficients: the operator, decision variables (names and      % MMP, 10/17/2026
-% order), Qcell and basis_list are those of 'copquadvar' with type 'pos'    % MMP, 10/17/2026
-% (test_poscopvar_direct). Every input and output, and every option other   % MMP, 10/17/2026
-% than 'type', is as documented in 'copquadvar' -- see there for dims,      % MMP, 10/17/2026
-% spaces, dom, deg, options.psatz, options.sep, options.include and the     % MMP, 10/17/2026
-% returned Qcell and basis_list; options.path and options.cache are those   % MMP, 10/17/2026
-% of 'poscopvar_direct'. 'copquadvar' builds the same operator through the  % MMP, 10/17/2026
-% pair integrals of its basis operators and takes type 'sym' as well.       % MMP, 10/17/2026
+% I_alpha(r) = prod_d I_{alpha_d}(r_d) over the variables of s^k, alpha_d =
+% 1 the multiplier (delta), 2 the lower integral (s_d <= theta_d), 3 the
+% upper integral (s_d >= theta_d), 4 the full integral; Z^alpha(theta,s)
+% is the vector of monomials of the degrees DEG, and on R^{m_k},
+% Z_b x = (I_{m_k} kron Z^alpha(theta)) x. Pop is also appended to the
+% cell prog.sop_pos, from which LPI_INEQ_SOP sizes an inequality that
+% depends on Pop.
 %
-% Passing options.type here is an error rather than a silent override, since
-% a 'sym' variable would not be a positive operator and the name would then
-% be wrong.
+% INPUT
+% - prog:        'struct', the LPI program (LPIPROGRAM_SOP);
+% - dims:        double, M x 1 positive integers, dims(k) = m_k the number
+%                of components of space k; a scalar is used for every
+%                space;
+% - spaces:      1 x M cell of 'cellstr', spaces{k} the names of the
+%                variables of s^k ({} for R^{m_k}); a plain 'cellstr' is
+%                one space, so several spaces are nested, as {{},{'s'}};
+% - dom:         double, nv x 2, dom(d,:) the interval of variable d of
+%                the registry (the sorted union of all spaces), or one
+%                1 x 2 row for every variable; or a 'struct' with fields
+%                vars ('cellstr') and dom (double, one row per name);
+% - deg:         the degrees of Z^alpha(theta,s): a scalar (int and mult),
+%                or a 'struct' with the optional fields
+%                  int     scalar or 1 x nv, the degree in each theta_d
+%                          (default 1);
+%                  mult    scalar or 1 x nv, the degree in each s_d of
+%                          s^k, 0 where alpha_d = 1 (default int);
+%                  joint   scalar, a cap on the total degree (default
+%                          none);
+%                  subset  2^(2nv) caps, one per subset of [theta, s^k],
+%                          for a space with every registry variable only;
+%                or a 1 x M cell of these, one per space, each of which
+%                may be a cell with one per basis operator of the space;
+% - options:     (optional) 'struct' with the optional fields
+%                  type     char, 'pos' (any other value is an error);
+%                  psatz    double, the weight g: 0 (default, g = 1), 1
+%                           (g = prod_d (theta_d-a_d)*(b_d-theta_d)), or
+%                           2d+1 / 2d+2, d = 1..nv (g = (theta_d-a_d)/L_d
+%                           or (b_d-theta_d)/L_d, L_d = b_d-a_d); any
+%                           other value is an error;
+%                  sep      logical, scalar or 1 x nv: where true, the
+%                           lower and upper basis operators of that
+%                           direction are replaced by the full integral
+%                           (alpha_d = 4);
+%                  include  1 x M cell, entry k selecting basis operators
+%                           of space k: multi-index rows over the
+%                           variables of s^k, a logical mask, or linear
+%                           indices (default all);
+%                  path     char, 'fast' (default) or 'general', the
+%                           construction of the map from Q to the kernels
+%                           of Pop (the same Pop up to rounding);
+%                  cache    logical (default true): keep the position
+%                           maps of the session; POSCOPVAR_DIRECT('clear')
+%                           empties them.
 %
-% See also COPQUADVAR, POSSOPVAR, SOPQUADVAR, POSLPIVAR, LPI_EQ_CDOPVAR.    % MMP, 10/17/2026 (was)
-% See also POSCOPVAR_DIRECT, COPQUADVAR, POSSOPVAR, SOPQUADVAR, POSLPIVAR,  % MMP, 10/17/2026
-%          LPI_EQ_CDOPVAR.                                                  % MMP, 10/17/2026
+% OUTPUT
+% - prog:        'struct', the program with Q declared positive
+%                semidefinite and Pop appended to prog.sop_pos;
+% - Pop:         'cdopvar' object, M x M blocks on X, the operator above;
+% - Qcell:       N_b x N_b cell, Qcell{b,b'} the 'cellstr' names of the
+%                decision variables of block (b,b') of Q, N_b the number
+%                of basis operators of all spaces;
+% - basis_list:  double, N_b x (1+nv), row b the basis operator b: its
+%                space k, then its multi-index entry alpha_d in each
+%                registry direction, 0 where s^k lacks variable d; rows
+%                ordered by space, as Qcell.
+%
+% See also POSCOPVAR_DIRECT, COPQUADVAR, POSSOPVAR, SOPQUADVAR, POSLPIVAR,
+%          LPI_EQ_CDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -92,7 +140,20 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  or a face), since poscopvar_direct accepts more (a row
 %                  of codes, the box quadratics 2nv+2+d) and
 %                  test_copquadvar_faces asserts the rejections.
+% MMP, 10/21/2026: Pop is recorded in prog.sop_pos, from which lpi_ineq_sop
+%                  sizes the certificate of an inequality that depends on
+%                  Pop (maintainer: lpi_ineq_sop needs no hand-set options).
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), step comments in the body; code
+%                  unchanged. The deleted header text was the wrapper
+%                  description (its earlier version kept as (was) lines),
+%                  the references to copquadvar and poscopvar_direct for
+%                  the inputs and outputs, a test name and the reason
+%                  options.type is refused. The help text of the
+%                  10/21/2026 entry is in the paragraph and the OUTPUT
+%                  entry of prog, without markers.
 
+% Check the inputs; OPTIONS a struct, of type 'pos' only
 if nargin<5
     error("Not enough input arguments.")
 end
@@ -124,7 +185,13 @@ if ~isscalar(ps) || ~ismember(ps,[0,1,3:2*nv+2])                            % MM
           +"in 1..nv, here nv = "+num2str(nv)+"; 2 is "...
           +"poslpivar_2d's ball, not the box.")                             % MMP, 10/17/2026
 end                                                                         % MMP, 10/17/2026
+% Declare Q and build Pop
 [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,options); % MMP, 10/17/2026
 basis_list = info.basis_list;                   % as copquadvar's           % MMP, 10/17/2026
+% The record of lpi_ineq_sop: an inequality that depends on Pop is sized    % MMP, 10/21/2026
+% from Pop's support, not from every value of its decision variables.       % MMP, 10/21/2026
+% MATLAB copies on write, so the record shares Pop's arrays.                % MMP, 10/21/2026
+if ~isfield(prog,'sop_pos'),    prog.sop_pos = {};  end                     % MMP, 10/21/2026
+prog.sop_pos{end+1} = Pop;                                                  % MMP, 10/21/2026
 
 end

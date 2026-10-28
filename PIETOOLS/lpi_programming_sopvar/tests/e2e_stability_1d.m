@@ -1,40 +1,81 @@
 function out = e2e_stability_1d(plant,level)                                % MMP, 10/21/2026
-% function out = stability_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% OUT = STABILITY_1D_SOP(PLANT,LEVEL) solves the 1-D PIE stability LPI of
-% executives/PIETOOLS_PIE2PDEstability.m (Q form, the default 'stability'
-% executive) on the container path, extracts the Lyapunov operator with
-% lpigetsol_sop and certifies it:
+% OUT = E2E_STABILITY_1D(PLANT,LEVEL) builds with cx_PIE2PDEstability, on
+% the container path, the stability LPI of the 1-D PIE  T x_t = A x  of
+% PLANT,
 %
 %   P = P1 (+P2) + eppos2*T'*T,  T'*Q - P = 0 (Q free),
 %   D = A'*Q + Q'*A + epneg*P,   D + N = 0,  N >= 0,
 %
-% which certifies stability of the PIE T z_t = A z. The program is
-% cx_PIE2PDEstability's (sopvar/Testfolder/sdopvar/claude_tests/cx_exec),
-% which also returns its operators.
-%
-% CHECKS (each asserted; error id stability_1d_sop:check):
-% (1) solve certified: MOSEK numerr 0, pinf 0; rel_b <= 1e-6 on the
-%     solinfo.RRx rows; Gram blocks PSD (min eig >= -1e-8 max);
-% (2) the extracted constraint operators reproduce the SDP's rows: the
-%     rows of each relation, rebuilt by lpi_eq_sop on an empty copy of the
-%     program and evaluated at solinfo.RRx, have norm equal to the
-%     coefficient norm of the extracted T'Q - P (every coefficient is a
-%     row), and between 1 and sqrt(2) times it for D + N ('symmetric');
-%     the two row sets together are the program's rows (norms add up);
-% (3) semantically, by action on random test functions (opcheck_sop):
-%     T'Q = P in weak form <T y, Q x> = <y, P x>, and D = A'Q + Q'A (+
-%     epneg P) in weak form <y, D x> = <A y, Q x> + <Q y, A x>, neither
-%     computing an adjoint or a composition; D + N = 0; each to 1e-5
-%     relative; P >= 0 and N >= 0 on the test functions;
-% (4) control: solinfo.x in RRx's place breaks (3) by more than 1e3 times.
+% with P1, P2 and N the positive operators of lpisettings(LEVEL), solves
+% it with MOSEK, extracts P, Q, D, N, T'*Q - P and D + N with
+% lpigetsol_sop, and checks them, erroring at the first failed check:
+%   (1) MOSEK numerr 0 and pinf 0; rel_b = ||At'x - b||/||b|| <= 1e-6 at
+%       x = solinfo.RRx; the least eigenvalue of the Gram blocks at least
+%       -1e-8 times the largest; the extracted operators are 'copvar'
+%       objects;
+%   (2) the rows of T'*Q - P = 0 and of D + N = 0 ('symmetric'), imposed
+%       by lpi_eq_sop on a copy of the program without constraints, have
+%       residual norms r1 and r2 at solinfo.RRx with sqrt(r1^2 + r2^2)
+%       equal to the residual norm of all rows of the program to 1e-6
+%       relative; the coefficient norm of the extracted T'*Q - P equals r1
+%       to 1e-6 relative, that of D + N lies in [r2, sqrt(2) r2] (1e-6
+%       slack);
+%   (3) by the action on 6 random polynomial test functions x, y
+%       (opcheck_sop, quadrature of the kernels): <T y, Q x> = <y, P x>
+%       and D + N = 0 to 1e-5 relative; <A y, Q x> + <Q y, A x>
+%       + epneg <y, P x> = <y, D x> to 1e-10 relative; <x, P x> and
+%       <x, N x> at least -1e-8 (normalized);
+%   (4) with the first entries of solinfo.x in place of solinfo.RRx, the
+%       larger of the residuals of <T y, Q x> = <y, P x> and D + N = 0
+%       exceeds 1e3 times the larger one at solinfo.RRx.
 %
 % INPUT
-% - plant: cx_plant argument cell (default {'rd',0.5}, u_t = u_ss +
-%          0.5 pi^2 u, Dirichlet: stable);
-% - level: lpisettings name (default 'light').
-% OUTPUT struct: rel_b, psd_relmin, the ratios of (2), the residuals and
-%   margins of (3), the control, and the times (s).
+% - plant:  (optional) 'cell', the arguments of cx_plant naming a 1-D
+%           plant; default {'rd',0.5}, the PIE of u_t = u_ss + 0.5 pi^2 u
+%           on [0,1], u(0) = u(1) = 0;
+% - level:  (optional) 'char', the name of the LPI settings (lpisettings);
+%           default 'light'.
+%
+% OUTPUT
+% - out:    'struct' with fields rel_b and psd_relmin ('double', of the
+%           solve), ndec ('double', the number of decision variables),
+%           coef_rows (1x2 'double', the coefficient norms over r1 and r2),
+%           rows_res ([r1 r2]), weak_TQP, weak_D and res_DN ('double', the
+%           residuals of (3)), psd (1x2 'double', the least <x,Px> and
+%           <x,Nx>), control (1x2 'double', the residuals of (4)), t
+%           ('struct' of seconds: build, solve, extract); printed lines
+%           with the values.
+%
+% NOTES
+% A 2-D plant is an error ('stability_1d_sop:plant'); a failed check
+% errors with identifier 'stability_1d_sop:check'. Requires MOSEK.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - e2e_stability_1d
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/29/2026. Tier 1 end-to-end example E2.
 % MMP, 10/21/2026: moved from examples/stability_1d_sop.m to
@@ -42,16 +83,30 @@ function out = e2e_stability_1d(plant,level)                                % MM
 %                helpers (cx_exec, opcheck_sop), not an example of standard
 %                usage; examples/stability_1d_sop.m is now that. Code
 %                unchanged; the error identifiers keep the former name.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), the licence block added, step comments
+%                in the body and headers of the local functions; code
+%                unchanged. The deleted header text was the stock executive
+%                the LPI reproduces and the location of the helper that
+%                builds it. The tolerance of the weak form of D, 1e-10 in
+%                the code, was given as 1e-5.
+%                The (was) line of the former signature moved here from
+%                under the function line, so that help starts with the
+%                description:
+% function out = stability_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 
+% Defaults; no warnings for non-canonical multipliers; a check asserts
+% with one identifier
 if nargin<1 || isempty(plant),  plant = {'rd',0.5};     end
 if nargin<2 || isempty(level),  level = 'light';        end
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
 chk = @(c,varargin) assert(c,'stability_1d_sop:check',varargin{:});
+% Settings with MOSEK; the PIE of the plant
 st = cx_settings(level,'mosek');
 PIE = cx_plant(plant{:});
 
+% Build the LPI and its operators (1-D only), then solve
 t0 = tic;
 [prog,ops] = cx_PIE2PDEstability(PIE,st);
 t_build = toc(t0);
@@ -59,6 +114,7 @@ if ~isfield(ops,'P'),   error('stability_1d_sop:plant','A 1-D PIE is required.')
 t0 = tic;
 prog = lpisolve(prog,st.sos_opts);
 t_solve = toc(t0);
+% (1) solver flags, rel_b and the PSD margin
 info = prog.solinfo.info;
 [rb,~,prel] = cx_resid(prog);
 fprintf('E2 %s/%s: numerr %d, pinf %d, rel_b %.2e, psd_relmin %.2e; %d decision variables; build %.1f s, solve %.1f s\n',...
@@ -111,6 +167,7 @@ fprintf('   control solinfo.x: T''Q=P weak %.2e, D+N %.2e (||x - RRx|| = %.2e)\n
     norm(xx-prog.solinfo.RRx(1:nd)));
 chk(max(w1x,rNx)>1e3*max([w1,rN,1e-12]),'(4) reading solinfo.x is not detected')
 
+% Output
 out = struct('rel_b',rb,'psd_relmin',prel,'ndec',nd,'coef_rows',[c1/r1, c2/r2],'rows_res',[r1 r2],...
     'weak_TQP',w1,'weak_D',wd,'res_DN',rN,'psd',[pP pN],'control',[w1x rNx],...
     't',struct('build',t_build,'solve',t_solve,'extract',t_extract));
@@ -120,19 +177,30 @@ end
 
 % ------------------------------------------------------------------------
 function r = rows_at(prog,E,o)
-% Norm of the rows lpi_eq_sop(.,E,o{:}) imposes, at solinfo.RRx: E imposed
-% on a copy of PROG with no expressions, then evaluated as row_res does.
+% R = ROWS_AT(PROG,E,O) returns the residual norm, at prog.solinfo.RRx, of
+% the rows that lpi_eq_sop(.,E,O{:}) imposes on a copy of PROG with no
+% expressions.
+% INPUT  prog: 'struct', a solved LPI program; E: 'cdopvar' object, the
+%        constraint operator; o: 'cell', the options of lpi_eq_sop ({} or
+%        {'symmetric'}).
+% OUTPUT r: 'double'.
+% Copy of PROG with no expressions
 pe = prog;
 pe.expr.num = 0;
 fn = fieldnames(pe.expr);
 for k = 1:numel(fn),    if iscell(pe.expr.(fn{k})),    pe.expr.(fn{k}) = {};   end,    end
+% Impose E = 0; the residual of its rows
 pe = lpi_eq_sop(pe,E,o{:});
 r = row_res(pe,1:pe.expr.num);
 end
 
 function r = row_res(prog,rows)
-% ||At_i' x - b_i|| over the expressions ROWS, x = solinfo.RRx
-% (decvartable order, the order of At rows).
+% R = ROW_RES(PROG,ROWS) returns sqrt(sum_i ||At_i'*x - b_i||^2) over the
+% expressions i in ROWS, x = prog.solinfo.RRx (decvartable order, the
+% order of the rows of At_i).
+% INPUT  prog: 'struct', a solved LPI program; rows: 'double' vector of
+%        indices into prog.expr.At and prog.expr.b.
+% OUTPUT r: 'double'.
 x = prog.solinfo.RRx(:);    r2 = 0;
 for i = rows
     At = prog.expr.At{i};   b = prog.expr.b{i};

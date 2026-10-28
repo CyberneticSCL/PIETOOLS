@@ -1,25 +1,38 @@
 function prog = impose_eq_rows(prog,Eq)
-% PROG = IMPOSE_EQ_ROWS(PROG,EQ) imposes the blocks EQ.Cs{:}, each (q+1) x n_k
-% over the names EQ.Zd with row 1 the constant term, joining consecutive    % MMP, 09/26/2026
-% blocks into as few soseq calls as the cap below allows, each on one       % MMP, 09/26/2026
-% variable-free row dpvar (see the layout note in 'collect_eq_rows'). Columns
-% keep their order, so the At and b produced are those of one soseq per     % MMP, 09/26/2026
-% block, concatenated as sossolve concatenates prog.expr.                   % MMP, 09/26/2026
-% Cap: at most N = numel(prog.decvartable) nonzeros per soseq; a larger     % MMP, 09/26/2026
-% block goes alone. Each soseq pays an O(N) scan of the program's names     % MMP, 09/26/2026
-% (getequation), which N nonzeros of work amortize; and soseq holds ~9      % MMP, 09/26/2026
-% copies of its coefficients (combine, compress, getequation), so each      % MMP, 09/26/2026
-% soseq's transient is O(N) bytes. Eq.Cs itself, one copy of all the        % MMP, 09/26/2026
-% collected coefficients (O(nnz)), lives until the last soseq. Measured,    % MMP, 09/26/2026
-% 2-D container Hinf, q = 2.3e6: one uncapped soseq peaked at 974 MB,       % MMP, 09/26/2026
-% capped 447 MB (per parameter 291 MB, stock lpi_eq_2d 540 MB).             % MMP, 09/26/2026
-% Each batch is now written by 'lpi_soseq' when EQ.pos gives the table rows % MMP, 10/02/2026
-% of EQ.Zd; soseq runs only without it (a name repeated in EQ.Zd, or a      % MMP, 10/02/2026
-% hand-built EQ). lpi_soseq scans no names, so the cap no longer amortizes  % MMP, 10/02/2026
-% a scan; it still bounds the per-batch transient (the joined M, 16 B per   % MMP, 10/02/2026
-% nonzero, and lpi_soseq's ~80 B), and every entry is the one soseq wrote.  % MMP, 10/02/2026
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROG = IMPOSE_EQ_ROWS(PROG,EQ) appends to the LPI program PROG, for every
+% column l of every block C = EQ.Cs{k}, in order, the equation
+%
+%       C(1,l) + sum_i C(1+i,l)*d_i = 0,        d_i named EQ.Zd{i},
+%
+% omitting all-zero columns. Consecutive blocks are joined into one 'eq'
+% entry of prog.expr while their nonzeros total at most
+% numel(prog.decvartable); a block with more nonzeros is an entry of its
+% own.
+%
+% INPUT
+% - prog:   'struct', an LPI program whose prog.decvartable holds every
+%           name of EQ.Zd;
+% - Eq:     'struct' with fields
+%             Cs   cell of sparse double blocks, block k (q+1) x n_k with
+%                  q = numel(Zd): row 1 the constant terms, row 1+i the
+%                  coefficients of Zd{i}, one column per equation;
+%             Zd   q x 1 cellstr, the decision variable names;
+%             pos  (optional) double, q x 1, pos(i) the first row of
+%                  prog.decvartable named Zd{i}; ignored unless it has q
+%                  entries.
+%
+% OUTPUT
+% - prog:   'struct', PROG with one 'eq' entry appended to prog.expr per
+%           group of joined blocks; PROG unchanged when EQ.Cs is empty.
+%
+% NOTES
+% EQ.pos is not checked against prog.decvartable: a wrong pos puts the
+% coefficients on the wrong decision variables.
 %
 % See also COLLECT_EQ_ROWS, LPI_EQ_SDOPVAR, LPI_EQ_CDOPVAR, SOSEQ.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - impose_eq_rows
@@ -60,18 +73,28 @@ function prog = impose_eq_rows(prog,Eq)
 %                  names against each batch (measured). The entry above
 %                  ("same soseq calls") now holds for the entries, not the
 %                  calls.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), step comments in the body; code
+%                  unchanged. The deleted header text was the cost model of
+%                  the cap with its measurements, the description of the
+%                  soseq and lpi_soseq routes, and a pointer to the layout
+%                  note in 'collect_eq_rows'.
 
 if isempty(Eq.Cs),  return,     end                                         % MMP, 09/26/2026
 % Rows of Eq.Zd known (collect_eq_rows' Eq.pos): no soseq.                  % MMP, 10/02/2026
 direct = isfield(Eq,'pos') && numel(Eq.pos)==numel(Eq.Zd);                  % MMP, 10/02/2026
+% Cap on the nonzeros of one entry; the nonzeros of each block
 cap = numel(prog.decvartable);                                              % MMP, 09/26/2026
 nz = cellfun(@nnz,Eq.Cs);                                                   % MMP, 09/26/2026
+% Groups of consecutive blocks: from block k0, add the next block while the
+% total stays within the cap
 k0 = 1;                                                                     % MMP, 09/26/2026
 while k0<=numel(Eq.Cs)                                                      % MMP, 09/26/2026
     k1 = k0;    tot = nz(k0);                                               % MMP, 09/26/2026
     while k1<numel(Eq.Cs) && tot+nz(k1+1)<=cap                              % MMP, 09/26/2026
         k1 = k1+1;  tot = tot+nz(k1);                                       % MMP, 09/26/2026
     end                                                                     % MMP, 09/26/2026
+    % The columns of the group, joined in order
     M = [Eq.Cs{k0:k1}];                                                     % MMP, 09/26/2026
     % BEGIN MMP, 10/02/2026: the entry soseq would append, written from the
     % triplets of M with the rows collect_eq_rows found ('lpi_soseq'). The
@@ -84,6 +107,7 @@ while k0<=numel(Eq.Cs)                                                      % MM
     % drop the others only after O(q) passes over their names.              % MMP, 09/26/2026
     rows = find(any(M,2));                                                  % MMP, 09/26/2026
     rows = [1; rows(rows>1)];                                               % MMP, 09/26/2026
+    % The equations as a 1 x size(M,2) variable-free 'dpvar'
     Dk = dpvar(M(rows,:),zeros(1,0),{},Eq.Zd(rows(2:end)-1),[1,size(M,2)]); % MMP, 09/26/2026
     % Free the joined copy before soseq makes its own.                      % MMP, 09/26/2026
     M = [];                                                                 % MMP, 09/26/2026

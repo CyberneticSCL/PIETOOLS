@@ -1,117 +1,130 @@
 function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [PROG,POP,QCELL,INFO] = POSCOPVAR_DIRECT(PROG,DIMS,SPACES,DOM,DEG,OPTIONS)
-% declares the positive semidefinite, self-adjoint 'cdopvar' decision
-% operator of 'poscopvar' on a concatenation of mixed spaces by the DIRECT
-% MAP from the Gram matrix to the kernel coefficients: no polynomial
-% product, no coefficient sheet and no operator composition in between.
+% declares in the LPI program PROG one positive semidefinite Gram matrix
+% Q_c of decision variables per Positivstellensatz term c, and returns the
+% self-adjoint 'cdopvar' decision operator on X = L_2^{m_1}[s^1] x ... x
+% L_2^{m_M}[s^M] (an empty s^k is R^{m_k})
 %
-% THE MAP. With the basis operators of 'copquadvar' (Sec. 9.1 of the sopvar
-% document), Gram row u = (component c, matrix row r, monomial theta^p s^j)
-% and column v = (c', t, theta^q s'^l), and one Positivstellensatz weight
-% g(theta) = prod_d g_d(theta_d), the kernel of Pop is
+%       Pop = sum_c sum_{b,b'} Z_b'*(g_c*Q_c{b,b'})*Z_{b'} >= 0,
 %
-%   sum_{u,v} Q_uv s^j s'^l e_r e_t' prod_d int I_{alpha_d}(theta_d - s_d)
-%                      I_{beta_d}(theta_d - s'_d) g_d(theta_d) theta_d^{p_d+q_d} dtheta_d,
+% with Z_b the basis operators of all spaces at the degrees of term c and
+% g_c(theta) >= 0 the weight of term c. Basis operator b of space k
+% carries a multi-index alpha over the variables of s^k and maps
+% L_2^{m_k}[s^k] to L_2[theta], theta over every registry variable:
 %
-% alpha, beta the multi-indices of c and c' (1 multiplier, 2 lower, 3 upper,
-% 4 full). Every factor is an entry of the 1-D table of Sec. 6.1 with
-% G = g_d theta^n, n = p_d + q_d, and calG its antiderivative (lower cell
-% s' <= s, upper cell s <= s'):
+%       (Z_b x)(theta) = int I_alpha(theta-s) ...
+%                            (I_{m_k} kron Z^alpha(theta,s)) x(s) ds,
 %
-%   (1,1) mult: G(s)        (1,2) low: G(s)            (1,3) up: G(s)
-%   (2,1) up:   G(s')       (3,1) low: G(s')
-%   (2,2) low:  calG(b)-calG(s)      up: calG(b)-calG(s')
-%   (3,3) low:  calG(s')-calG(a)     up: calG(s)-calG(a)
-%   (2,3) up:   calG(s')-calG(s)     (3,2) low: calG(s)-calG(s')
-%   a full index is the sum of the two one-sided rows (or columns),
+% I_alpha(r) = prod_d I_{alpha_d}(r_d) over the variables of s^k, alpha_d =
+% 1 the multiplier (delta), 2 the lower integral (s_d <= theta_d), 3 the
+% upper integral (s_d >= theta_d), 4 the full integral; Z^alpha(theta,s)
+% is the vector of monomials of the degrees DEG, and on R^{m_k},
+% Z_b x = (I_{m_k} kron Z^alpha(theta)) x. The kernel coefficients of Pop
+% are mapped from the entries of each Q_c directly: with Gram row
+% u = (b, matrix row r, monomial theta^p s^j), column v = (b', t,
+% theta^q s'^l), alpha and beta the multi-indices of b and b', and
+% g_c = prod_d g_d, the kernel of Pop is the sum over (u,v) of
 %
-% and a direction only one space has, or neither has, is the one-sided or
-% definite integral of the same G. Each entry is a short list of (left
-% exponent, right exponent, coefficient); the N-D entry is the Kronecker
-% product of the per-direction lists, the lift monomials add j and l to the
-% exponents, and every term becomes a triplet (Gram position, coefficient
-% column of the cell, value). One 'sparse' per cell, then the symmetric
-% placement of the decision variables, gives params.B of every block. The
-% bases ZL, ZR are the exponents reached, so no padding is stored.
+%   Q_uv s^j s'^l e_r e_t' prod_d int I_{alpha_d}(theta_d-s_d) ...
+%        I_{beta_d}(theta_d-s'_d) g_d(theta_d) theta_d^(p_d+q_d) dtheta_d.
 %
-% TWO PATHS (OPTIONS.path):
-%   'general'  the tables are built for the term's own weight g_d, given by
-%              its coefficients, at the Gram's own degrees;
-%   'fast'     (default) a canonical weight is a product of degree-1
-%              factors per direction, so it moves onto the Gram side as a
-%              shift: g Z_w'^T S Z_w' = Z_w^T (E^T S F) Z_w with
-%              (theta-a) v_{w'} = E_a v_w and (b-theta) v_{w'} = E_b v_w, the
-%              product term on both sides, a face term on the left only.
-%              The tables are then those of g = 1 (single monomials) on the
-%              shifted index set, and the position map, which depends on the
-%              degrees, domain and spaces but not on the program, is CACHED
-%              across calls (OPTIONS.cache) and reused by every term that
-%              lands on the same index set, e.g. the plain term at w and the
-%              product term at w-1 of 'lpi_ineq'. The shift route is taken
-%              only when its map is cached (INFO.route 'fast-shift'); on a
-%              miss the term's own map is built and cached ('fast-own'),
-%              since the shifted map is the plain map on the enlarged index
-%              set with the shift's fan-out on top.
-% Both paths give the same Pop up to rounding; measured in
-% test_poscopvar_direct.
+% POSCOPVAR_DIRECT('clear') empties the cache of position maps and returns
+% [], [], {} and struct('cleared',true).
 %
 % INPUT
-% - prog, dims, spaces, dom: as 'poscopvar';
-% - deg:     as 'copquadvar' (int, mult, joint, subset; a scalar; a cell per
-%            space, each a cell per basis operator). The aliases 'lift'
-%            (for mult) and 'weight' (for int) of 'poscopvar_lift' are
-%            accepted. Joint and subset caps ARE supported: the map needs
-%            only the index set of the Gram;
-% - options: (optional) struct with fields
-%   sep, include   as 'copquadvar';
-%   psatz          term codes as 'poscopvar', one or a ROW of them: 0
-%                  (default), 1 (the box product), 2d+1 / 2d+2 (lower /
-%                  upper face in direction d, normalised by the length),
-%                  2nv+2+d (the box quadratic (s_d-a_d)(b_d-s_d) in
-%                  direction d alone; its offset lowers 'int' in that
-%                  direction only, so [0, 2nv+3..3nv+2, 1] at offsets
-%                  [0, 1..1, 1] is the Markov-Lukacs tensor set).
-%                  With several codes Pop is the SUM of the terms, one Gram
-%                  each, declared in the given order, all on one decision
-%                  list and built in one pass: the multipliers are added
-%                  before the lift is applied;
-%   psatz_offset   per term (or one for all, default 0): the term's 'int'
-%                  lowered by it in every direction, floored at 0, 'mult'
-%                  kept, a 'joint' cap lowered by it per direction the
-%                  weight acts in ('subset' caps refused). [0 1] at codes
-%                  [0 1] is the Markov-Lukacs pair S0 + g S1 of 1-D, which
-%                  the plain term's cached map serves at once;
-%   path           'fast' (default) or 'general', see above;
-%   cache          logical, default true: keep the position maps of this
-%                  session. poscopvar_direct('clear') empties the cache;
+% - prog:     'struct', the LPI program (LPIPROGRAM_SOP), or the char
+%             'clear';
+% - dims:     double, M x 1 positive integers, dims(k) = m_k the number of
+%             components of space k; a scalar is used for every space;
+% - spaces:   1 x M cell of 'cellstr', spaces{k} the names of the
+%             variables of s^k ({} for R^{m_k}); a plain 'cellstr' is one
+%             space;
+% - dom:      double, nv x 2, dom(d,:) the interval of variable d of the
+%             registry (the sorted union of all spaces), or one 1 x 2 row
+%             for every variable; or a 'struct' with fields vars
+%             ('cellstr') and dom (double, one row per name);
+% - deg:      the degrees of Z^alpha(theta,s): a scalar (int and mult), or
+%             a 'struct' with the optional fields int (scalar or 1 x nv,
+%             the degree in each theta_d, default 1; alias 'weight'), mult
+%             (scalar or 1 x nv, the degree in each s_d of s^k, 0 where
+%             alpha_d = 1, default int; alias 'lift'), joint (scalar, a cap
+%             on the total degree) and subset (2^(2nv) caps, one per
+%             subset of [theta, s^k], for a space with every registry
+%             variable only); or a 1 x M cell of these, one per space, each
+%             of which may be a cell with one per basis operator of the
+%             space;
+% - options:  (optional) 'struct' with the optional fields
+%               type          char, 'pos' (any other value is an error);
+%               sep           logical, scalar or 1 x nv: where true, the
+%                             lower and upper basis operators of that
+%                             direction are replaced by the full integral
+%                             (alpha_d = 4);
+%               include       1 x M cell, entry k selecting basis
+%                             operators of space k: multi-index rows over
+%                             the variables of s^k, a logical mask, or
+%                             linear indices (default all);
+%               psatz         double, the term codes, one or a row, one
+%                             Gram each in the given order: 0 (default,
+%                             g = 1), 1 (g = prod_d (theta_d-a_d)*
+%                             (b_d-theta_d)), 2d+1 / 2d+2
+%                             (g = (theta_d-a_d)/L_d or (b_d-theta_d)/L_d,
+%                             L_d = b_d-a_d), 2nv+2+d
+%                             (g = (theta_d-a_d)*(b_d-theta_d)), d = 1..nv;
+%               psatz_offset  double, nonnegative integers, one per code or
+%                             one for all (default 0): the int of the term
+%                             lowered by it in every direction (in
+%                             direction d alone for code 2nv+2+d), floored
+%                             at 0, mult kept, a joint cap lowered by it
+%                             per direction the weight acts in; an error
+%                             with a subset cap;
+%               path          char, 'fast' (default) or 'general': the
+%                             weight moved onto the Gram index as a shift
+%                             when the map of the shifted index set is
+%                             cached, else integrated with the monomials;
+%                             the same Pop up to rounding;
+%               cache         logical (default true): keep the position
+%                             maps for the session, keyed on everything
+%                             they depend on;
+%               estimate      logical (default false): return the sizes
+%                             only, declaring nothing.
 %
 % OUTPUT
-% - prog:    the program with the Gram declared ('sosquadvar', type 'pos');
-% - Pop:     M x M 'cdopvar' on the given spaces, Pop = Pop' >= 0, on the
-%            same decision variables, in the same order, as 'poscopvar'
-%            would declare for the same inputs on the same program;
-% - Qcell:   N_b x N_b cell, Qcell{c,c'} the names of the decision
-%            variables of the Gram block of basis operators c and c', as
-%            'copquadvar' returns them; with several terms a 1 x nt cell of
-%            such cells, one per term;
-% - info:    struct with fields basis_list, E (the monomial grid of every
-%            basis operator, first term), N (Gram dimensions, one per
-%            term), ndec (all terms), path, code, offset, route
-%            ('fast-shift', 'fast-own' or 'general'; a cell with several
-%            terms), cache_hit, Qdpvar (the Gram as the N x N 'dpvar' of
-%            'sosquadvar', for 'sosgetsol'; a cell with several terms),
-%            terms (per-term struct array: code, offset, E, N, off, Nc,
-%            names, ndec, route, cache_hit, times) and the summed times
-%            t_declare, t_map, t_product, t_blocks, t_total in seconds.
-%
-% NOTES
-% Cost: the Gram declaration is 'sosquadvar' with the constant basis, O(N^2)
-% in the Gram dimension N; the map is one pass over the Gram positions with
-% a fan-out equal to the product of the per-direction list lengths, which is
-% the nnz of B plus the duplicates 'sparse' sums. Nothing is proportional
-% to the number of decision variables except B itself and the symmetric
-% placement D, which has two entries per variable.
+% - prog:     'struct', the program with each Q_c declared positive
+%             semidefinite (SOSQUADVAR); unchanged with options.estimate;
+% - Pop:      'cdopvar' object, M x M blocks on X, the operator above; []
+%             with options.estimate;
+% - Qcell:    N_b x N_b cell, Qcell{b,b'} the 'cellstr' names of the
+%             decision variables of block (b,b') of Q_c, N_b the number of
+%             basis operators; with several terms, a 1 x nt cell of such
+%             cells, one per term; {} with options.estimate;
+% - info:     'struct' with fields
+%               basis_list    double, N_b x (1+nv), row b: the space of
+%                             basis operator b, then its multi-index entry
+%                             alpha_d in each registry direction, 0 where
+%                             its space lacks variable d;
+%               E             1 x N_b cell, the exponents of
+%                             Z^alpha(theta,s) of each basis operator,
+%                             first term;
+%               N             double row, the Gram dimension of each term;
+%               ndec          double, the number of decision variables of
+%                             Pop;
+%               path          char, the path used;
+%               route         char per term: 'fast-shift' (the shift on a
+%                             cached map), 'fast-own' (the map of the term
+%                             itself) or 'general'; a cell with several
+%                             terms;
+%               code, offset  double rows, the terms;
+%               cache_hit     logical row, per term;
+%               Qdpvar        'dpvar' object, the N x N Gram matrix, for
+%                             SOSGETSOL; a cell with several terms;
+%               terms         struct array, per term: code, offset, E, N,
+%                             off, Nc, names, ndec, route, cache_hit,
+%                             t_declare, t_map, t_product;
+%               t_declare, t_map, t_product, t_blocks, t_total
+%                             double, seconds;
+%             with options.estimate, the fields N, ndec (sum(N.*(N+1)/2))
+%             and estimate (true).
 %
 % See also POSCOPVAR, COPQUADVAR, POSCOPVAR_LIFT, LIFT_COPVAR,
 % PRUNE_ZERO_MONOMIALS.
@@ -168,7 +181,23 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                position mapped to one coefficient with weight 1; the map
 %                is then the Gram itself, block by block, as copquadvar
 %                builds it. Nothing changes when nv >= 1.
+% MMP, 10/21/2026: options.estimate: the Gram dimension of every term and
+%                the decision variables of the call, from the grids the
+%                build uses, returned before any declaration. LPI_INEQ_SOP
+%                prints them before it builds (maintainer: lpi_ineq_sop
+%                always estimates the decision variables needed).
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), step comments in the body and headers
+%                of the local functions; code unchanged. The deleted
+%                header text was the comparison with copquadvar, the
+%                references to poscopvar and copquadvar for the inputs,
+%                the reason for the cache rule of the fast path, a test
+%                name and the cost note; the 1-D table of the map is in
+%                the header of dir_list. The help text of the 10/21/2026
+%                entry is in the entries of options.estimate and of the
+%                outputs, without markers.
 
+% The cache of position maps; 'clear' empties it
 persistent CACHE
 if nargin>=1 && (ischar(prog) || isstring(prog))
     if strcmpi(char(prog),'clear')
@@ -177,6 +206,7 @@ if nargin>=1 && (ischar(prog) || isstring(prog))
     end
     error("The first input is the program, or 'clear' to empty the cache.")
 end
+% Check the inputs; OPTIONS a struct, of type 'pos' only
 if nargin<5
     error("Not enough input arguments.")
 end
@@ -188,6 +218,7 @@ if isfield(options,'type') && ~isempty(options.type) && ~strcmp(char(options.typ
     error("'poscopvar_direct' declares a positive operator (type 'pos').")
 end
 if isempty(CACHE),  CACHE = containers.Map('KeyType','char','ValueType','any');    end
+% The terms: codes and nonnegative integer offsets, one per code
 codes = 0;
 if isfield(options,'psatz') && ~isempty(options.psatz),  codes = double(options.psatz(:).');   end
 offs = zeros(size(codes));
@@ -202,6 +233,7 @@ if any(offs<0 | offs~=round(offs))
     error("'psatz_offset' should be nonnegative integers.")
 end
 nt = numel(codes);
+% Path, cache and estimate options; the timer
 path = 'fast';
 if isfield(options,'path') && ~isempty(options.path),    path = lower(char(options.path));   end
 if ~any(strcmp(path,{'fast','general'}))
@@ -209,6 +241,8 @@ if ~any(strcmp(path,{'fast','general'}))
 end
 usecache = true;
 if isfield(options,'cache') && ~isempty(options.cache),  usecache = logical(options.cache);  end
+est = isfield(options,'estimate') && ~isempty(options.estimate) && logical(options.estimate); % MMP, 10/21/2026
+Nest = zeros(1,nt);             % the Gram dimensions, when est             % MMP, 10/21/2026
 t_all = tic;
 
 % % % Spaces, registry, components: 'copquadvar's enumeration, through
@@ -218,10 +252,12 @@ M = numel(sp);  vars = meta.vars;   nv = numel(vars);   dom = meta.dom;
 mask = meta.space_out;  mk = meta.dim_out(:);
 own = cell(1,M);
 for k = 1:M,    own{k} = reshape(find(mask(k,:)),1,[]);     end
+% Term codes valid for nv variables
 % if any(~ismember(codes,[0,1,3:2*nv+2]))                                   % MMP, 10/08/2026 (was)
 if any(~ismember(codes,[0,1,3:3*nv+2]))                                     % MMP, 10/08/2026
     error("'psatz' entries should be 0, 1, face codes 2d+1 / 2d+2 or quadratic codes 2nv+2+d with d in 1..nv.")
 end
+% The basis operators of every space, their space and index within it
 lopt = struct();
 if isfield(options,'sep'),      lopt.sep = options.sep;         end
 if isfield(options,'include'),  lopt.include = options.include; end
@@ -265,6 +301,8 @@ for c = 1:nt
             offv = zeros(1,nv);     offv(codes(c)-2*nv-2) = offs(c);        % MMP, 10/08/2026
         end
         spec = reduce_spec(spec,offv,ng_of(codes(c),nv),nv);                % MMP, 10/08/2026
+        % Caps per variable, 'mult' zero where the multi-index is 1; the
+        % exponent grid
         d = process_degrees_one(spec,nv);
         ok = own{k};
         if ~isempty(d.subset) && numel(ok)~=nv
@@ -282,6 +320,7 @@ for c = 1:nt
     Tc = cellfun(@(e) size(e,1),E);     Tc = Tc(:);
     Nc = Tc.*mk(bsp);
     off = [0; cumsum(Nc)];  N = off(end);
+    if est,     Nest(c) = N;    continue,   end     % sizes only            % MMP, 10/21/2026
     t0 = tic;
     [prog,Pq] = sosquadvar(prog,{polynomial(1)},{polynomial(1)},N,N,'pos');
     names = Pq{1,1}.dvarname;
@@ -313,6 +352,7 @@ for c = 1:nt
         key = cache_key(basis_list,ELt,ERt,mk,dom,gco,own);
         hit = usecache && isKey(CACHE,key);
     end
+    % The route taken
     if useshift,                        route = 'fast-shift';
     elseif strcmp(path,'fast'),         route = 'fast-own';
     else,                               route = 'general';
@@ -327,11 +367,17 @@ for c = 1:nt
         if usecache,    CACHE(key) = PM;    end
     end
     t_map = toc(t0);
+    % Record the term
     terms(c) = struct('code',codes(c),'offset',offs(c),'E',{E},'N',N,'off',off,'Nc',Nc,...
                       'names',{names},'ndec',ndec_c,'route',route,'cache_hit',hit,...
                       'Qdpvar',Pq{1,1},'PM',PM,'SE',{SE},'SF',{SF},'useshift',useshift,...
                       't_declare',t_declare,'t_map',t_map,'t_product',0);
 end
+if est                          % one Gram per term, distinct names         % MMP, 10/21/2026
+    Pop = [];   Qcell = {};                                                 % MMP, 10/21/2026
+    info = struct('N',Nest,'ndec',sum(Nest.*(Nest+1)/2),'estimate',true);   % MMP, 10/21/2026
+    return                                                                  % MMP, 10/21/2026
+end                                                                         % MMP, 10/21/2026
 
 % % % The decision variables of all terms in one list, sorted as copquadvar
 % sorts its names, and each term's placement: dvar k sits at (u,v) and
@@ -342,12 +388,15 @@ allnames = vertcat(terms.names);
 ndec = numel(Zd);
 D = cell(1,nt);     pos = 0;
 for c = 1:nt
+    % Rows of the names of the term in the common list; the name of each
+    % Gram position (u,v)
     t0 = tic;
     rm = rowall(pos+(1:terms(c).ndec));     pos = pos+terms(c).ndec;
     N = terms(c).N;
     [U,V] = ndgrid(1:N,1:N);
     kk = lind_sym(U(:),V(:),N);
     D{c} = sparse(rm(kk),U(:)+(V(:)-1)*N,1,ndec,N^2);
+    % Shift route: from the source positions to the target positions
     if terms(c).useshift
         SEf = blkdiag_comp(terms(c).SE,mk(bsp));    SFf = blkdiag_comp(terms(c).SF,mk(bsp));
         D{c} = D{c}*kron(SFf,SEf);
@@ -361,6 +410,7 @@ t0 = tic;
 Cblk = cell(M,M);
 for k = 1:M
     for kp = 1:M
+        % Block (k,kp): the union of the bases the terms reach
         ok = own{k};    op = own{kp};
         ZL = cell(1,numel(ok));     ZR = cell(1,numel(op));
         for c = 1:nt
@@ -368,9 +418,12 @@ for k = 1:M
             for i = 1:numel(ok),    ZL{i} = union(ZL{i},b.ZL{i});   ZL{i} = ZL{i}(:);  end
             for i = 1:numel(op),    ZR{i} = union(ZR{i},b.ZR{i});   ZR{i} = ZR{i}(:);  end
         end
+        % Its coefficient count and parameter cells
         NL = prod([cellfun(@numel,ZL),1]);  NR = prod([cellfun(@numel,ZR),1]);
         nAB = mk(k)*NL*mk(kp)*NR;
         n3 = terms(1).PM.blk{k,kp}.n3;      ncell = 3^n3;
+        % Per cell, the sum over the terms of names times positions, on
+        % the union bases
         Bsum = cell(ncell,1);
         for c = 1:nt
             b = terms(c).PM.blk{k,kp};
@@ -382,6 +435,7 @@ for k = 1:M
                 if isempty(Bsum{q}),    Bsum{q} = Bq;   else,   Bsum{q} = Bsum{q}+Bq;  end
             end
         end
+        % Parameters: a zero constant part, B the decision coefficients
         params = struct('A',{cell(ncell,1)},'B',{cell(ncell,1)});
         for q = 1:ncell
             params.A{q} = sparse(nAB,1);
@@ -391,6 +445,7 @@ for k = 1:M
         end
         params.A = reshape(params.A,[3*ones(1,n3),1,1]);
         params.B = reshape(params.B,[3*ones(1,n3),1,1]);
+        % The 'sdopvar' block on the variables and domains of the spaces
         vio = struct('out',{vars(ok)},'in',{vars(op)});
         dio = struct('out',dom(ok,:),'in',dom(op,:));
         Cblk{k,kp} = sdopvar(params,vio,Zd,ZL,ZR,dio,[mk(k),mk(kp)]);
@@ -416,6 +471,7 @@ if nargout>=3
     end
     if nt==1,   Qcell = Qc{1};  else,   Qcell = Qc;     end
 end
+% Route and Gram per term; the info output
 if nt==1,   route = terms(1).route;     Qd = terms(1).Qdpvar;
 else,       route = {terms.route};      Qd = {terms.Qdpvar};
 end
@@ -430,7 +486,12 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function n = ng_of(code,nv)
-% Directions in which the weight of a term has positive degree.
+% N = NG_OF(CODE,NV) returns the number of directions in which the weight
+% of the term CODE has positive degree: 0 for the plain term, NV for the
+% box product, 1 for a face or a single-direction box quadratic.
+% INPUT  code: double, the term code; nv: double, the number of registry
+%        variables.
+% OUTPUT n:    double.
 if code==0,         n = 0;
 elseif code==1,     n = nv;
 else,               n = 1;
@@ -440,13 +501,23 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spec = reduce_spec(spec,off,ng,nv)
-% The degree specification of a Psatz term: 'int' lowered by OFF in every
-% direction (OFF a row: per direction), floored at 0, 'mult' kept at what
-% it was (its default is the ORIGINAL 'int'), a 'joint' cap lowered by OFF
-% per direction the weight acts in (a row: by its sum). A 'subset' cap
-% cannot move with 'int' and is refused.
+% SPEC = REDUCE_SPEC(SPEC,OFF,NG,NV) returns the degree specification of a
+% Psatz term: 'int' lowered by OFF in every direction (OFF a row: per
+% direction), floored at 0, 'mult' kept at what it was (its default is the
+% ORIGINAL 'int'), a 'joint' cap lowered by OFF per direction the weight
+% acts in (a row: by its sum). A 'subset' cap cannot move with 'int' and
+% is refused.
+% INPUT  spec: double scalar, or 'struct' with the optional fields int,
+%              mult, joint, subset;
+%        off:  double, the offset: a scalar, or 1 x nv, one per direction;
+%        ng:   double, the number of directions the weight acts in;
+%        nv:   double, the number of registry variables.
+% OUTPUT spec: SPEC when OFF is zero, else a 'struct' with fields int
+%              (1 x max(nv,1) double), mult and, if given, joint.
+% No offset: SPEC unchanged
 % if off==0,  return,     end                                               % MMP, 10/08/2026 (was)
 if all(off==0),     return,     end                                         % MMP, 10/08/2026
+% A scalar specification as a struct; a subset cap refused
 if isnumeric(spec) && isscalar(spec)
     spec = struct('int',spec,'mult',spec);
 elseif ~isstruct(spec)
@@ -455,11 +526,13 @@ end
 if isfield(spec,'subset') && ~isempty(spec.subset)
     error("A 'psatz_offset' is not defined for a 'subset' degree specification.")
 end
+% 'int' lowered and floored at 0; 'mult' defaults to the original 'int'
 w = 1;
 if isfield(spec,'int') && ~isempty(spec.int),   w = spec.int;   end
 if ~isfield(spec,'mult') || isempty(spec.mult), spec.mult = w;  end
 w = reshape(w,1,[]);    if isscalar(w),   w = repmat(w,1,max(nv,1));    end
 spec.int = max(w-off,0);
+% 'joint' lowered by the total offset over the directions of the weight
 if isfield(spec,'joint') && ~isempty(spec.joint)
 %   spec.joint = max(spec.joint-off*ng,0);                                  % MMP, 10/08/2026 (was)
     tot = off*ng;   if ~isscalar(off),  tot = sum(off);     end             % MMP, 10/08/2026
@@ -470,11 +543,20 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Ec = embed_cols(ZLc,ZRc,ZL,ZR,m,n)
-% The sparse map from a term's coefficient columns, on its own bases ZLc,
-% ZRc, to the columns on the union bases ZL, ZR of the block; [] when the
-% bases coincide. Columns are (row r, left monomial, column t, right
-% monomial), left and right monomials first variable slowest.
+% EC = EMBED_COLS(ZLC,ZRC,ZL,ZR,M,N) returns the sparse map from the
+% coefficient columns of a term, on its own bases ZLc, ZRc, to the columns
+% on the union bases ZL, ZR of the block; [] when the bases coincide.
+% Columns are (row r, left monomial, column t, right monomial), left and
+% right monomials first variable slowest.
+% INPUT  ZLc, ZRc: cells of exponent columns, one per output / input
+%                  variable of the block: the bases of the term;
+%        ZL, ZR:   cells of the same lengths, the union bases;
+%        m, n:     double, the component counts of the output and input
+%                  spaces of the block.
+% OUTPUT Ec:       sparse 0/1 matrix, m*NLc*n*NRc x m*NL*n*NR, or [].
+% Same bases: no map
 if isequal(ZLc,ZL) && isequal(ZRc,ZR),  Ec = [];  return,     end
+% The position of each own monomial in the union bases
 ELc = multiindex_grid(ZLc,'first_slowest');     NLc = size(ELc,1);
 ERc = multiindex_grid(ZRc,'first_slowest');     NRc = size(ERc,1);
 nZL = cellfun(@numel,ZL);   nZR = cellfun(@numel,ZR);
@@ -489,6 +571,7 @@ for i = 1:numel(ZR)
     [~,p] = ismember(ERc(:,i),ZR{i});
     ridx = ridx+(p-1)*prod([nZR(i+1:end),1]);
 end
+% The union column of every own column
 nABc = m*NLc*n*NRc;
 j = (1:nABc)'-1;
 rowpart = mod(j,m*NLc);     colpart = floor(j/(m*NLc));
@@ -501,8 +584,12 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function k = lind_sym(u,v,N)
-% The decision variable of Gram position (u,v): sosquadvar's numbering of
-% the lower triangle by columns, mirrored.
+% K = LIND_SYM(U,V,N) returns the decision variable of Gram position
+% (u,v): the numbering of SOSQUADVAR of the lower triangle by columns,
+% mirrored.
+% INPUT  u, v: double arrays of one size, row and column indices in 1..N;
+%        N:    double, the Gram dimension.
+% OUTPUT k:    double array of that size, indices in 1..N*(N+1)/2.
 U = max(u,v);   V = min(u,v);
 k = U + (V-1)*N - V.*(V-1)/2;
 end
@@ -510,9 +597,13 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = blkdiag_comp(Sc,m)
-% The shift of the whole Gram index from the per-component shifts: rows
-% (component, matrix row, monomial), so component c contributes
-% kron(I_m, Sc{c}).
+% S = BLKDIAG_COMP(SC,M) returns the shift of the whole Gram index from the
+% per-component shifts: rows (component, matrix row, monomial), so
+% component c contributes kron(I_m, Sc{c}).
+% INPUT  Sc: 1 x Nb cell of sparse matrices, the shift map of each basis
+%            operator;
+%        m:  Nb x 1 double, the component count of the space of each.
+% OUTPUT S:  sparse, blkdiag of kron(speye(m(c)),Sc{c}) over c.
 B = cell(1,numel(Sc));
 for c = 1:numel(Sc),    B{c} = kron(speye(m(c)),Sc{c});   end
 S = blkdiag(B{:});
@@ -521,7 +612,13 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function deg = alias_deg(deg)
-% 'lift' and 'weight' of poscopvar_lift read as copquadvar's 'mult', 'int'.
+% DEG = ALIAS_DEG(DEG) returns the degree specification DEG with the fields
+% 'lift' and 'weight' (the names of POSCOPVAR_LIFT) read as 'mult' and
+% 'int': each fills the field it stands for when that is absent or empty,
+% and is removed.
+% INPUT  deg: double, 'struct', or a cell of them, nested to any depth.
+% OUTPUT deg: the same, without the fields 'lift' and 'weight'.
+% A cell entry by entry; a struct field by field
 if iscell(deg)
     for i = 1:numel(deg),   deg{i} = alias_deg(deg{i});   end
 elseif isstruct(deg)
@@ -539,11 +636,22 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [gco,shL,shR] = term_weight(code,nv,dom,path)
-% gco{d}: coefficients of g_d (constant first) for the general path (1 on
-% the fast path); shL{d}, shR{d}: rows [shift, coefficient] of the left and
-% right degree-1 factors on the fast path (identity on the general path).
+% [GCO,SHL,SHR] = TERM_WEIGHT(CODE,NV,DOM,PATH) returns the weight of the
+% term CODE per direction: gco{d}, the coefficients of g_d (constant
+% first) for the general path (1 on the fast path); shL{d}, shR{d}, the
+% rows [shift, coefficient] of the left and right degree-1 factors on the
+% fast path (the identity [0,1] on the general path).
+% INPUT  code: double, the term code (0, 1, 2d+1, 2d+2 or 2nv+2+d);
+%        nv:   double, the number of registry variables;
+%        dom:  nv x 2 double, the registry domains;
+%        path: char, 'fast' or 'general'.
+% OUTPUT gco:      1 x nv cell of double rows;
+%        shL, shR: 1 x nv cells of K x 2 double.
+% The identity weight; then the factors of CODE
 gco = repmat({1},1,nv);     shL = repmat({[0,1]},1,nv);   shR = shL;
 if code==1
+    % Box product in every direction: on the fast path (theta_d-a_d) on the
+    % left and (b_d-theta_d) on the right, else their product
     for d = 1:nv
         a = dom(d,1);   b = dom(d,2);
         if strcmp(path,'fast')
@@ -558,6 +666,8 @@ elseif code>2*nv+2      % the box quadratic in direction d alone            % MM
     else,                       gco{d} = [-a*b, a+b, -1];                   % MMP, 10/08/2026
     end
 elseif code>=3
+    % Face of direction d: (theta_d-a_d)/L or (b_d-theta_d)/L, on the fast
+    % path a shift on the left only
     d = floor((code-1)/2);  a = dom(d,1);   b = dom(d,2);   L = b-a;
     if mod(code,2)==1,  fl = [-a,1]/L;  else,   fl = [b,-1]/L;    end
     if strcmp(path,'fast'),     shL{d} = [0,fl(1); 1,fl(2)];
@@ -569,12 +679,21 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Et,S] = shift_grid(E,nv,sh)
-% The target grid of a component under the per-direction shifts sh{d}
-% (rows [e, coef]) and the sparse map S, S(t_source,t_target) = the product
-% of the coefficients of the shift combination taking one to the other.
+% [ET,S] = SHIFT_GRID(E,NV,SH) returns the target grid of a component under
+% the per-direction shifts sh{d} (rows [e, coef]) and the sparse map S,
+% S(t_source,t_target) = the product of the coefficients of the shift
+% combination taking one to the other.
+% INPUT  E:   T x (nv+n_k) double, the exponents of a basis operator, the
+%             theta exponents first;
+%        nv:  double, the number of registry variables;
+%        sh:  1 x nv cell of K_d x 2 double, the shifts.
+% OUTPUT Et:  double, the distinct shifted rows, sorted;
+%        S:   sparse T x size(Et,1).
+% Every combination of one shift per direction
 T = size(E,1);
 combos = multiindex_grid(cellfun(@(s) 1:size(s,1),sh,'UniformOutput',false));
 nc = size(combos,1);
+% The shifted rows, their source rows and coefficients
 Eall = zeros(nc*T,size(E,2));   rows = zeros(nc*T,1);    vals = zeros(nc*T,1);
 for i = 1:nc
     ev = zeros(1,nv);   cf = 1;
@@ -584,6 +703,7 @@ for i = 1:nc
     Es = E;     Es(:,1:nv) = Es(:,1:nv)+ev;
     Eall((i-1)*T+(1:T),:) = Es;     rows((i-1)*T+(1:T)) = (1:T)';   vals((i-1)*T+(1:T)) = cf;
 end
+% The distinct targets and the map
 [Et,~,ic] = unique(Eall,'rows');
 S = sparse(rows,ic,vals,T,size(Et,1));
 end
@@ -591,6 +711,16 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function key = cache_key(basis_list,ELt,ERt,mk,dom,gco,own)
+% KEY = CACHE_KEY(BASIS_LIST,ELT,ERT,MK,DOM,GCO,OWN) returns the key of a
+% position map in the cache: the JSON text of everything the map depends
+% on.
+% INPUT  basis_list: Nb x (1+nv) double, the basis operators;
+%        ELt, ERt:   1 x Nb cells, the left and right target grids;
+%        mk:         M x 1 double, the component counts of the spaces;
+%        dom:        nv x 2 double, the registry domains;
+%        gco:        1 x nv cell, the coefficients of the weight;
+%        own:        1 x M cell, the registry indices of each space.
+% OUTPUT key:        char.
 s = jsonencode(struct('bl',basis_list,'EL',{ELt},'ER',{ERt},'m',mk,'dom',dom,...
                       'g',{gco},'own',{own}));
 key = s;
@@ -599,10 +729,33 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function L = dir_list(kind,al,be,n,g,a,b)
-% The 1-D table of the header for G = g(theta) theta^n: rows
-% [gamma, left exponent, right exponent, coefficient]; gamma is 1 when the
-% direction is not shared. kind: 3 shared, 2 output space only, 1 input
-% space only, 0 neither.
+% L = DIR_LIST(KIND,AL,BE,N,G,A,B) returns, for one direction and the
+% multi-index entries AL (left) and BE (right) of a pair of basis
+% operators, int I_AL(theta-s) I_BE(theta-s') G(theta) dtheta with
+% G = g(theta) theta^N, as rows [gamma, left exponent, right exponent,
+% coefficient]: the kernel, coefficient times s^left s'^right, in
+% parameter cell gamma (1 multiplier, 2 lower s' <= s, 3 upper s <= s';
+% 1 when the direction is not shared). With calG the antiderivative of G,
+%
+%   (1,1) mult: G(s)        (1,2) low: G(s)            (1,3) up: G(s)
+%   (2,1) up:   G(s')       (3,1) low: G(s')
+%   (2,2) low:  calG(b)-calG(s)      up: calG(b)-calG(s')
+%   (3,3) low:  calG(s')-calG(a)     up: calG(s)-calG(a)
+%   (2,3) up:   calG(s')-calG(s)     (3,2) low: calG(s)-calG(s')
+%
+% an index 4 (full) is the sum of the rows (or columns) 2 and 3, and a
+% direction only one space has, or neither has, gives the one-sided or
+% the definite integral of G.
+% INPUT  kind:   double, 3 the direction is in both spaces, 2 in the
+%                output space only, 1 in the input space only, 0 in
+%                neither;
+%        al, be: double, 1 to 4, the multi-index entries of the left and
+%                right basis operators in the direction;
+%        n:      double, the exponent of theta;
+%        g:      double row, the coefficients of g, constant first;
+%        a, b:   double, the domain of the direction.
+% OUTPUT L:      K x 4 double, the rows with a nonzero coefficient.
+% G(s), G(s'), calG(s), calG(s'), calG(b) and calG(a) as rows
 K = numel(g)-1;     kk = (0:K)';     gk = reshape(g,[],1);
 o = ones(K+1,1);    z = zeros(K+1,1);
 Gs  = [o, n+kk, z, gk];                     % G(s)
@@ -613,6 +766,7 @@ Cb  = [1, 0, 0, sum(gk.*b.^(n+kk+1)./(n+kk+1))];
 Ca  = [1, 0, 0, sum(gk.*a.^(n+kk+1)./(n+kk+1))];
 neg = @(X) [X(:,1:3), -X(:,4)];
 gam = @(X,gm) [gm*ones(size(X,1),1), X(:,2:4)];
+% The entry of the table for KIND, AL and BE
 switch kind
     case 0
         L = [Cb; neg(Ca)];
@@ -653,15 +807,32 @@ switch kind
     otherwise
         error("Internal error: kind %d.",kind)
 end
+% Only the nonzero coefficients
 L = L(L(:,4)~=0,:);
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function PM = pos_map(ELt,ERt,basis_list,mk,own,dom,gco,nv)
-% The map from the target Gram positions to the coefficient columns of
-% every block and parameter cell: PM.blk{k,kp} with fields Bpos (cell over
-% the 3^n3 cells, each sparse NLt*NRt x nAB), ZL, ZR, nAB, n3.
+% PM = POS_MAP(ELT,ERT,BASIS_LIST,MK,OWN,DOM,GCO,NV) returns the map from
+% the target Gram positions to the coefficient columns of every block and
+% parameter cell: PM.blk{k,kp} with fields Bpos (cell over the 3^n3 cells,
+% each sparse NLt*NRt x nAB), ZL, ZR, nAB, n3.
+% INPUT  ELt, ERt:   1 x Nb cells, the left and right target grids of the
+%                    basis operators (exponent rows over [theta, s^k]);
+%        basis_list: Nb x (1+nv) double, the basis operators;
+%        mk:         M x 1 double, the component counts of the spaces;
+%        own:        1 x M cell, the registry indices of each space;
+%        dom:        nv x 2 double, the registry domains;
+%        gco:        1 x nv cell, the coefficients of g_d, constant first;
+%        nv:         double, the number of registry variables.
+% OUTPUT PM:         'struct' with fields blk (M x M cell of 'struct':
+%                    Bpos, a 3^n3 x 1 cell of sparse matrices or []; ZL,
+%                    ZR, the monomial bases reached; nAB, the number of
+%                    coefficients; n3, the number of shared variables),
+%                    NLt and NRt (the numbers of left and right Gram
+%                    positions).
+% Sizes and offsets of the Gram rows and columns of each basis operator
 Nb = size(basis_list,1);    bsp = basis_list(:,1);     M = numel(own);
 TL = cellfun(@(e) size(e,1),ELt);   TL = TL(:);
 TR = cellfun(@(e) size(e,1),ERt);   TR = TR(:);
@@ -699,6 +870,11 @@ nmax = max(PL,[],1)+max(PR,[],1);
 LST = cell(1,nv);
 for d = 1:nv,   LST{d} = cell(4,5,5,nmax(d)+1);    end
     function L = getlist(d,kind,al,be,n)
+        % L = GETLIST(D,KIND,AL,BE,N) returns DIR_LIST for direction D,
+        % memoized in LST on (KIND,AL,BE,N).
+        % INPUT  d: double, the direction; kind, al, be, n: double, as
+        %        DIR_LIST takes them.
+        % OUTPUT L: K x 4 double (zeros(0,4) when empty).
         L = LST{d}{kind+1,al+1,be+1,n+1};
         if isempty(L)
             L = dir_list(kind,al,be,n,gco{d},dom(d,1),dom(d,2));
@@ -707,6 +883,8 @@ for d = 1:nv,   LST{d} = cell(4,5,5,nmax(d)+1);    end
         end
     end
 
+% Every block (k,kp): the kind of each direction (3 shared, 2 output
+% space only, 1 input space only, 0 neither) and its basis operators
 blk = cell(M,M);
 for k = 1:M
   for kp = 1:M
@@ -738,6 +916,7 @@ for k = 1:M
         end
       end
     end
+    % The bases: the exponents hit, and the position of each in them
     ZL = cell(1,numel(ok));     ZR = cell(1,numel(op));
     posL = cell(1,nv);          posR = cell(1,nv);
     for i = 1:numel(ok)
@@ -748,6 +927,7 @@ for k = 1:M
         d = op(i);  ZR{i} = find(hitR{d})-1;    ZR{i} = ZR{i}(:);
         posR{d} = zeros(ERmax(d)+1,1);  posR{d}(ZR{i}+1) = 1:numel(ZR{i});
     end
+    % The number of coefficients; strides of the left and right monomials
     nZL = cellfun(@numel,ZL);   nZR = cellfun(@numel,ZR);
     NL = prod([nZL,1]);         NR = prod([nZR,1]);
     nAB = mk(k)*NL*mk(kp)*NR;
@@ -811,6 +991,7 @@ for k = 1:M
         val = repmat(vv,[1,mk(k),mk(kp)]);
         qrep = repmat(qcell,[1,mk(k),mk(kp)]);
         pos = pos(:);   col = col(:);   val = val(:);   qrep = qrep(:);
+        % The triplets, grouped by parameter cell
         if ncell==1
             I{1}{end+1} = pos;  J{1}{end+1} = col;   Vv{1}{end+1} = val;
         else
@@ -824,6 +1005,7 @@ for k = 1:M
         if nrep>1,  continue,   end     % (nrep only documents the expansion)
       end
     end
+    % One sparse matrix per parameter cell
     Bpos = cell(ncell,1);
     for q = 1:ncell
         if isempty(I{q}),   Bpos{q} = [];    continue,   end
@@ -838,10 +1020,26 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T = dir_matrix(kind,al,be,PLc,PRc,JLc,LLc,getlist,ELmax,ERmax,ng)
-% One direction of one pair: rows (p,q,j,l), p slowest, columns
-% (gamma,eL,eR), gamma slowest, values the table coefficients.
+% T = DIR_MATRIX(KIND,AL,BE,PLC,PRC,JLC,LLC,GETLIST,ELMAX,ERMAX,NG) returns
+% one direction of one pair of basis operators: rows (p,q,j,l), p slowest,
+% the theta exponents p, q and the lift exponents j, l of the left and
+% right Gram monomials; columns (gamma,eL,eR), gamma slowest, the parameter
+% cell and the exponents of s and s'; values the table coefficients.
+% INPUT  kind, al, be: double, as DIR_LIST takes them;
+%        PLc, PRc:     double, the largest left and right theta exponents;
+%        JLc, LLc:     double, the largest left and right lift exponents;
+%        getlist:      function handle, L = getlist(kind,al,be,n), the
+%                      rows of DIR_LIST;
+%        ELmax, ERmax: double, the largest exponents of s and s';
+%        ng:           double, the number of parameter cells (3 shared, 1
+%                      otherwise).
+% OUTPUT T:            sparse (PLc+1)*(PRc+1)*(JLc+1)*(LLc+1) x
+%                      ng*(ELmax+1)*(ERmax+1).
+% Sizes; the lift exponents (j,l) of every pair
 nr = (PLc+1)*(PRc+1)*(JLc+1)*(LLc+1);   nc = ng*(ELmax+1)*(ERmax+1);
 [jj,ll] = ndgrid(0:JLc,0:LLc);  jj = reshape(jj,1,[]);   ll = reshape(ll,1,[]);
+% Triplets for every theta pair (p,q): the table at exponent p+q, shifted
+% by the lift exponents
 I = {};     J = {};     V = {};
 for p = 0:PLc
     for q = 0:PRc
@@ -855,6 +1053,7 @@ for p = 0:PLc
         V{end+1} = repmat(L(:,4),1,numel(jj));                              %#ok<AGROW>
     end
 end
+% No triplet: the zero matrix; else one sparse matrix
 if isempty(I)
     T = sparse(nr,nc);
     return
@@ -868,8 +1067,14 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ELt,ERt,SE,SF] = target_grids(E,nv,shL,shR)
-% The left and right target grids of every component under the shifts,
-% with the maps from the source grid.
+% [ELT,ERT,SE,SF] = TARGET_GRIDS(E,NV,SHL,SHR) returns the left and right
+% target grids of every component under the shifts, with the maps from
+% the source grid (SHIFT_GRID).
+% INPUT  E:        1 x Nb cell, the exponent grid of each basis operator;
+%        nv:       double, the number of registry variables;
+%        shL, shR: 1 x nv cells of K x 2 double, the left and right shifts.
+% OUTPUT ELt, ERt: 1 x Nb cells, the target grids;
+%        SE, SF:   1 x Nb cells of sparse maps, source rows to target rows.
 Nb = numel(E);
 ELt = cell(1,Nb);   ERt = cell(1,Nb);   SE = cell(1,Nb);   SF = cell(1,Nb);
 for c = 1:Nb

@@ -1,55 +1,48 @@
 function prog = lpi_soseq(prog,C,Zd,pos)
-% PROG = LPI_SOSEQ(PROG,C,ZD,POS) imposes the n scalar equations
-%       C(1,l) + sum_i C(1+i,l) d_i = 0,        l = 1,...,n = size(C,2),
-% on the decision variables d_i named ZD{i}. It appends to prog.expr the
-% one 'eq' entry that soseq(prog,dpvar(C,zeros(1,0),{},ZD,[1,n])) appends,
-% built from the triplets of C: soseq specialised to the variable-free
-% affine equations LPIs impose.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROG = LPI_SOSEQ(PROG,C,ZD,POS) adds to the program PROG the n equations
 %
-% INPUTS
-% - prog:   SOS or LPI program structure ('sosprogram', 'lpiprogram');
-% - C:      (q+1) x n double, sparse or full; row 1 the constant term, row
-%           1+i the coefficients of ZD{i}. Column l is one equation;
-% - Zd:     q x 1 cellstr of decision variable names in prog.decvartable;
-% - pos:    optional q x 1: pos(i) = the FIRST row of prog.decvartable
-%           named Zd{i}, as 'collect_eq_rows' returns it. Trusted - only its
-%           length is checked; a wrong pos puts coefficients on the wrong
-%           variables. Omitted or [] (q > 0), it is computed here by one
-%           unique over the program's names, O((N+q) log(N+q)).
+%       C(1,l) + sum_i C(1+i,l) d_i = 0,        l = 1,...,n = size(C,2),
+%
+% in the decision variables d_i named ZD{i}, as one equality entry
+% e = prog.expr.num + 1 of prog.expr: with kept the indices of the nonzero
+% columns of C in increasing order, n' their number, N the number of
+% decision variables of PROG and pos(i) the row of ZD{i} in
+% prog.decvartable,
+%
+%       type{e} = 'eq',
+%       At{e}   = N x n' sparse, At{e}(pos(i),l) = -C(1+i,kept(l)),
+%       b{e}    = C(1,kept)', sparse when C is sparse,
+%       Z{e}    = sparse(n', numel([prog.vartable; prog.varmat.vartable])),
+%
+% so that At{e}'*x = b{e}, x the vector of the N decision variables of
+% PROG, are the equations of the kept columns.
+%
+% INPUT
+% - prog:  'struct', an SOS or LPI program (sosprogram, lpiprogram) with
+%          the fields expr, decvartable, vartable and varmat.vartable;
+% - C:     'double', (q+1) x n, sparse or full: row 1 the constant terms,
+%          row 1+i the coefficients of ZD{i}, column l equation l;
+% - Zd:    'cellstr', the q names of decision variables of PROG;
+% - pos:   (optional) 'double', q x 1, pos(i) the first row of
+%          prog.decvartable named ZD{i}, used as given; omitted or [], it
+%          is computed from the names.
 %
 % OUTPUT
-% - prog:   prog.expr.num + 1 entries; entry e has type{e} = 'eq' and At{e},
-%           b{e}, Z{e} equal (isequal, same sparsity) to the ones soseq
-%           writes. No other field changes.
+% - prog:  'struct', PROG with the entry e added to prog.expr.
 %
 % NOTES
-% For this input soseq -> sosconstr -> getequation (dpvar branch) writes,
-% with N = numel(prog.decvartable):
-% - the columns of C that are zero (0 = 0) are dropped, the rest kept in
-%   order (getequation: col_nums = any(C,1));
-% - b = C(1,kept)', a column, sparse when C is;
-% - At = N x n' sparse, At(pos(i),l) = -C(1+i,kept(l)), so sossolve's
-%   At'*x = b is the equation above;
-% - Z = sparse(n', numel([prog.vartable; prog.varmat.vartable])), all
-%   zero: one constant monomial per equation.
-% These are built here directly. soseq is called instead, as is, when its
-% answer is not this: a program with symbolic variables (sosconstr takes
-% its symbolic branch); a Zd repeating a name that C uses (combine sums the
-% rows, which may cancel a column); an all-zero C (compress returns a full
-% coefficient matrix); a C that is not real double (the dpvar constructor
-% rejects other classes, getequation conjugates b); and NaN entries (any()
-% ignores NaN, so soseq drops a row or column whose only entries are NaN).
-% One input class differs: names that differ only in trailing blanks.
-% combine pads names into a char array and merges them; here they stay
-% distinct. Generated names ('coeff_' + integer) never end in a blank.
-%
-% Cost, given pos: O(nnz(C) + n) time, about 80 B per nonzero of transient
-% memory (triplets, index maps, the output), nothing in N beyond At's
-% column pointers. soseq pays a scan of all N names of
-% prog.decvartable per call (getequation's ismember), sorts the names of
-% the expression (combine) and holds about 9 copies of C.
+% For a program with symbolic variables (a field symvartable), a C that is
+% zero, not a real 'double' or has NaN entries, and, when POS is not given,
+% a name repeated in ZD with nonzero rows of C, the entry is that of
+% soseq(prog,dpvar(C,zeros(1,0),{},ZD,[1,n])), which is called instead.
+% Fewer than three inputs, size(C,1) ~= numel(ZD)+1, numel(POS) ~=
+% numel(ZD) and, when POS is not given, a name with a nonzero row of C
+% that is not in prog.decvartable are errors.
 %
 % See also SOSEQ, IMPOSE_EQ_ROWS, COLLECT_EQ_ROWS, LPI_EQ_SDOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - lpi_soseq
@@ -80,7 +73,15 @@ function prog = lpi_soseq(prog,C,Zd,pos)
 %                  soseq calls spent ~0.54 s in getequation matching the
 %                  2.7e6 program names against the expression's (5.9 s of
 %                  the 6.86 s getequation total, measured).
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), step comments in the body and the
+%                  INPUT and OUTPUT lines of the local function; code
+%                  unchanged. The deleted header text was the trace of what
+%                  soseq writes for this input, the reason for each case
+%                  passed to soseq, the case of names that differ in
+%                  trailing blanks, and cost figures against soseq.
 
+% Three inputs at least; ZD a column of q names; C with q+1 rows
 if nargin<3
     error("lpi_soseq needs a program, a coefficient matrix and a name list.")
 end
@@ -94,6 +95,8 @@ if isfield(prog,'symvartable') || nnz(C)==0 || ~isa(C,'double') || ~isreal(C)
     prog = soseq(prog,dpvar(C,zeros(1,0),{},Zd,[1,n]));
     return
 end
+% Table rows of the names unless POS is given; a name repeated with nonzero
+% rows of C: soseq
 if nargin<4 || (isempty(pos) && q>0)
     [pos,dup] = table_rows(prog.decvartable,Zd,C);
     if dup
@@ -117,6 +120,7 @@ kept = false(n,1);  kept(c) = true;
 newc = cumsum(kept);    nk = nnz(kept);
 c = newc(c);                                % kept columns renumbered, in order
 isc = (r==1);                               % the constant row
+% The new entry e: type, At, b (full when C is full) and Z
 e = prog.expr.num + 1;
 prog.expr.num = e;
 prog.expr.type{e} = 'eq';
@@ -135,6 +139,13 @@ function [pos,dup] = table_rows(dvt,Zd,C)
 % POS(i) = first row of the table DVT named Zd{i}; DUP true if a name that C
 % uses occurs twice in Zd. Errors on a name C uses that is not in the table,
 % as getequation does; names whose rows of C are zero are not needed.
+% INPUT  dvt: prog.decvartable, a 'cellstr' or names that 'string'
+%             converts;
+%        Zd:  q x 1 'cellstr'; C: (q+1) x n 'double'.
+% OUTPUT pos: q x 1 'double', the table row of each name, above numel(DVT)
+%             for a name not in the table;
+%        dup: 'logical'.
+% The table names as a column 'cellstr'
 if iscellstr(dvt),  known = dvt(:);
 else,               known = cellstr(string(dvt(:)));
 end
@@ -143,6 +154,7 @@ nk = numel(known);
 % name is in the table, and it is then the lowest such row.
 [~,ia,ic] = unique([known;Zd]);
 pos = ia(ic(nk+1:end));
+% The names in use: each in the table, a repeated row flagged
 ur = find(any(C,2));    ur = ur(ur>1)-1;    % names with a nonzero row
 p = pos(ur);
 if any(p>nk)

@@ -1,95 +1,75 @@
 function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [PROG,POP] = LPIVAR_CDOPVAR(PROG,DIMS,SPACES,DOM,DEG,OPTIONS) declares a
-% GENERAL decision operator between concatenations of mixed spaces,
+% [PROG,POP] = LPIVAR_CDOPVAR(PROG,DIMS,SPACES,DOM,DEG,OPTIONS) declares in
+% the LPI program PROG the decision operator
 %
 %   Pop: L_2^{p_1}[s^1] x ... x L_2^{p_N}[s^N]
 %                   -> L_2^{q_1}[t^1] x ... x L_2^{q_M}[t^M],
+%   (Pop x)_i = sum_j Pop.C{i,j} x_j,
 %
-% whose every kernel coefficient is a free decision variable: no positivity,
-% no self-adjointness, and the input and output spaces may differ. It is the
-% container counterpart of 'lpivar' (and 'lpivar_2d'), which the Q-form
-% stability and H-infinity executives use for Qop, and which control and
-% estimation use for the rectangular gain variable Zop.
+% with free kernels. Block (i,j) maps input space j to output space i;
+% with S3 the variables the two spaces share, S2 those of the output space
+% only and S1 those of the input space only, its kernel in the parameter
+% cell gam in {1,2,3}^|S3| is
 %
-% Each block (i,j) is an 'sdopvar' from space j to space i. With S3 the
-% variables the two spaces share, S2 those only in the output and S1 those
-% only in the input, its kernel in gamma cell gam (Sec. 4-5) is
+%   K_gam(t,s') = (I_{q_i} (x) ZL(t))' C_gam (I_{p_j} (x) ZR(s')),
 %
-%   K_gam(t,s') = (I_q (x) ZL(t))' C_gam (I_p (x) ZR(s')),
-%
-% gam_k = 1 a multiplier delta(t_k - s'_k), 2 and 3 the lower and upper
-% integrals in direction k of S3. Every admissible entry of every C_gam is
-% its own decision variable; admissible means within the degree caps below
-% and, in a multiplier direction, at right degree 0, which is the canonical
-% multiplier form the class requires (Sec. 5), so the constructor has
-% nothing to fold.
+% with t the variables [S2,S3], s' the variables [S3,S1], ZL and ZR the
+% Kronecker products of the monomial vectors of each variable, and, for
+% the k-th variable of S3, gam_k = 1 a multiplier delta(t_k - s'_k), 2 and
+% 3 the integrals over s'_k < t_k and s'_k > t_k. Every entry of C_gam
+% whose monomials are within the caps of DEG, and of degree 0 in s'_k
+% where gam_k = 1, is a separate decision variable; every other entry of
+% C_gam is zero.
 %
 % INPUT
-% - prog:   'struct' specifying an LPI program to modify;
-% - dims:   struct with fields 'out' (M x 1) and 'in' (N x 1), the component
-%           counts q_i and p_j; or an M x 1 array for a square container
-%           whose input spaces are its output spaces. A scalar is expanded;
-% - spaces: struct with fields 'out' (1 x M cell) and 'in' (1 x N cell) of
-%           'cellstr' variable names, one per space, an empty entry being
-%           the finite-dimensional space R^q; or a 1 x M cell for a square
-%           container, as 'poscopvar' takes it. A plain 'cellstr' is one
-%           space;
-% - dom:    nv x 2 domains in the order of the SORTED registry of all
-%           variables, a single 1 x 2 row for every variable, or a struct
-%           with fields 'vars' and 'dom' pairing names with intervals - the
-%           forms 'poscopvar' accepts;
-% - deg:    (optional, default 1) the degree caps, per variable ROLE:
-%             'mult'  left degree in a multiplier direction of S3;
-%             'int'   [left, right] degrees in an integral direction of S3;
-%             'out'   degree in an output-only (S2) variable;
-%             'in'    degree in an input-only (S1) variable.
-%           A scalar d sets mult = out = in = d and int = [d d]. A 1 x 3
-%           array [d1 d2 d3] is 'lpivar's convention and sets mult = out =
-%           in = d1, int = [d3 d2]: in 1-D that reproduces lpivar's P, Q1,
-%           Q2, R0 (degree d1) and R1, R2 (d3 in s, d2 in theta). A struct
-%           may give any subset of the fields, the rest defaulting to 1. An
-%           M x N cell gives one specification per block;
-%           'int' and 'mult' are KERNEL degrees here (ZL in t_k, ZR in      % MMP, 09/30/2026
-%           s'_k). In 'copquadvar'/'poscopvar' and 'sopquadvar'/'possopvar' % MMP, 09/30/2026
-%           the same names cap each basis operator Z_alpha: 'int' in the    % MMP, 09/30/2026
-%           integration variable theta_k, 'mult' in s_k. A struct with only % MMP, 09/30/2026
-%           these two fields, 'mult' a scalar, passes both routines, so a   % MMP, 09/30/2026
-%           deg written for one gives the other a different basis without   % MMP, 09/30/2026
-%           an error ('joint' and 'subset' are refused here);               % MMP, 09/30/2026
-% - options: (optional) struct with field
-%           - occ:  M x N logical, false for a structurally zero block,
-%                   which declares no variables. Default all true;
-%                   a row or column entirely false still holds one          % MMP, 09/25/2026
-%                   explicit zero block, with no variables;                 % MMP, 09/25/2026
+% - prog:    'struct', the LPI program (LPIPROGRAM_SOP), with the field
+%            decvartable;
+% - dims:    'struct' with fields out (M x 1 'double', the counts q_i) and,
+%            optionally, in (N x 1 'double', the counts p_j; default out);
+%            or a 'double' array, the counts q_i, also taken as the p_j. A
+%            scalar count applies to every space. Counts are positive
+%            integers;
+% - spaces:  'struct' with fields out (1 x M cell, entry i the 'cellstr' of
+%            the variable names of t^i) and, optionally, in (1 x N cell,
+%            the same for s^j; default out); or a 1 x M cell, the output
+%            spaces, also taken as the input spaces. An empty entry is the
+%            finite-dimensional space R^{q_i} (R^{p_j}); a 'cellstr', char
+%            or 'polynomial' in place of the cell is one space. No space
+%            repeats a name, and no name ends in '_int' or '_dum';
+% - dom:     nv x 2 'double', row k the interval [a,b], a < b, of the k-th
+%            name in the sorted list of the nv names of SPACES; one 1 x 2
+%            row for every variable; or a 'struct' with fields vars
+%            ('cellstr', every name of SPACES among them) and dom
+%            ('double', one row [a,b] per name of vars);
+% - deg:     (optional) the degree caps, nonnegative integers (default 1):
+%            a 'struct' with any of the fields
+%              mult  'double', the degree in t_k where gam_k = 1;
+%              int   1 x 2 'double', the degrees in t_k and in s'_k where
+%                    gam_k = 2 or 3 (a scalar for both);
+%              out   'double', the degree in each variable of S2;
+%              in    'double', the degree in each variable of S1;
+%            a field not given being 1; or a 'double' d, for mult = out =
+%            in = d and int = [d d]; or a 1 x 3 'double' [d1 d2 d3], for
+%            mult = out = in = d1 and int = [d3 d2]; or an M x N cell of
+%            these, entry (i,j) for block (i,j);
+% - options: (optional) 'struct' with the optional field occ (M x N
+%            'logical', default true(M,N)): occ(i,j) false makes block
+%            (i,j) structurally zero ([], no decision variables); a row or
+%            column with no true entry gets, in its first column or row, a
+%            block of degree 0 with zero coefficients and no decision
+%            variables.
 %
 % OUTPUT
-% - prog:   the program with the new decision variables declared;
-% - Pop:    'cdopvar' object. All blocks are on one decision variable list,
-%           declared by a single 'lpidecvar' call.
-%
-% NOTES
-% Every decision variable multiplies exactly one monomial entry of one
-% kernel, so the number of variables equals the dimension of the operator
-% family and the map from variables to operators is injective. For 1-D
-% spaces and lpivar's degrees the count is lpivar's own,
-%   n11*n12 + (d1+1)*(n11*n22 + n21*n12 + n21*n22) + 2*(d3+1)*(d2+1)*n21*n22,
-% and the kernels span the same family (see 'test_lpivar_cdopvar').
-%
-% Degree caps are per ROLE, not per variable. Unlike 'lpivar_2d' there is
-% no 'sep' option: an operator separable in a direction is a restriction of
-% this family, and can be imposed with 'lpi_eq_cdopvar' if wanted.
-%
-% (was) The domain parsing mirrors 'copquadvar', which does it inline, rather than % MMP, 09/30/2026 (was)
-% (was) refactor that routine into a shared helper.                         % MMP, 09/30/2026 (was)
-% Spaces, dimensions and domains are read by 'parse_copvar_spaces'          % MMP, 09/30/2026
-% (sopvar/misc/conventions), the parser 'eye_copvar_sop', 'zeros_copvar_sop' % MMP, 09/30/2026
-% and 'mat2copvar_sop' also call.                                           % MMP, 09/30/2026
-%
-% Cost: O(number of decision variables) - one triplet per variable, one
-% 'sparse' per gamma cell, and one declaration for the whole container. The
-% decision rows of every block's B are the container's full list, which
-% costs only B's column pointers, O(nC), not O(q) per block.
+% - prog:    'struct', PROG with the decision variables of POP appended to
+%            prog.decvartable;
+% - Pop:     'cdopvar' object of M x N blocks, block (i,j) an 'sdopvar'
+%            object with output variables [S2,S3] and input variables
+%            [S3,S1] (each set sorted) and the exponents 0..out (S2) and
+%            0..max(mult,int(1)) (S3) in ZL, 0..int(2) (S3) and 0..in (S1)
+%            in ZR; [] where occ is false, except the blocks of degree 0
+%            above. Pop.Zd, the 'cellstr' column of the decision variable
+%            names, is shared by every block.
 %
 % See also LPIVAR, LPIVAR_2D, POSCOPVAR, LPI_EQ_CDOPVAR, CDOPVAR.
 %
@@ -148,7 +128,17 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  fields, 'mult' scalar, passes both (measured at nv = 1
 %                  and 2), so the mix-up raises no error. Help only; the
 %                  field names are unchanged.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), step comments in the body and headers
+%                  of the local functions; code unchanged. The deleted
+%                  header text was the comparisons with lpivar, lpivar_2d,
+%                  copquadvar and poscopvar (among them the 'deg' remark of
+%                  the third 09/30/2026 entry), the variable count and span
+%                  against lpivar with a test reference, the note on the
+%                  shared parser of the second 09/30/2026 entry, and a cost
+%                  note.
 
+% Defaults of the optional inputs; PROG must be an LPI program
 if nargin<5 || isempty(deg),        deg = 1;            end
 if nargin<6 || isempty(options),    options = struct(); end
 if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
@@ -184,6 +174,7 @@ if isfield(options,'occ') && ~isempty(options.occ)
         error("options.occ should be %d x %d, one entry per block.",M,N)
     end
 end
+% Degree caps of every block
 degs = parse_deg(deg,M,N);
 % A row or column with no block cannot have its space read off one          % MMP, 09/25/2026
 % ('verify', cdopvar(C)), so it gets one explicit zero block: degree 0,     % MMP, 09/25/2026
@@ -206,6 +197,7 @@ for i = 1:M
         if zfill(i,j)                                                       % MMP, 09/25/2026
             s.pos = cellfun(@(p) zeros(0,1),s.pos,'UniformOutput',false);   % MMP, 09/25/2026
         end                                                                 % MMP, 09/25/2026
+        % Index of the block's first decision variable on the one list
         s.first = q+1;
         % s.pos is 3 x 3 x ... for two or more shared variables, so sum
         % over ALL of it; a plain sum() returns a row and q a vector.
@@ -214,6 +206,7 @@ for i = 1:M
     end
 end
 
+% One declaration of the q decision variables; Zd their names
 Zd = cell(0,1);
 if q>0
     [prog,dv] = lpidecvar(prog,[q,1]);
@@ -232,6 +225,9 @@ for i = 1:M
 %       if ~occ(i,j),   continue,   end                                     % MMP, 09/25/2026 (was)
         if isempty(spec{i,j}),  continue,   end     % a [] block            % MMP, 09/25/2026
         s = spec{i,j};
+        % Gamma cell g: a zero constant part, and in B a 1 in row k0+r-1
+        % and column s.pos{g}(r): decision variable k0+r-1 is the
+        % coefficient at that position of vec(C_g)
         A = cell(size(s.pos));      B = cell(size(s.pos));
         k0 = s.first;
         for g = 1:numel(s.pos)
@@ -240,6 +236,7 @@ for i = 1:M
             B{g} = sparse(k0+(0:ng-1)',s.pos{g},1,q,s.nC);
             k0 = k0+ng;
         end
+        % The block, on the container's decision variable list Zd
         params = struct('A',{A},'B',{B});
         C{i,j} = sdopvar(params,s.vars,Zd,s.ZL,s.ZR,s.dom,s.dims);
     end
@@ -262,9 +259,21 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function s = block_spec(vo,vi,m,n,dg,vars,dom)
-% Bases, canonical variable order and coefficient positions of one block,
-% from output space vo (m components) to input space vi (n components).
+% S = BLOCK_SPEC(VO,VI,M,N,DG,VARS,DOM) returns the variables, domains,
+% monomial bases and decision coefficient positions of the block from the
+% input space VI (N components) to the output space VO (M components).
+% INPUT  vo, vi: cellstr, the variable names of the output and input space;
+%        m, n:   double, their component counts;
+%        dg:     'struct' of degree caps, fields mult, int (1 x 2), out, in;
+%        vars:   1 x nv cellstr, the sorted registry;
+%        dom:    nv x 2 double, the domains in registry order.
+% OUTPUT s:      'struct' with fields vars and dom ('struct's with fields
+%                out and in), ZL and ZR (cells of exponent columns), dims
+%                ([m,n]), nC (double, the entries of a coefficient matrix)
+%                and pos (3^n3 cells, 3 x ... x 3; cell g the 1-based
+%                positions in vec(C_g) of the admissible coefficients).
 
+% Shared (S3), output-only (S2) and input-only (S1) variables, each sorted
 vo = sort(reshape(vo,1,[]));    vi = sort(reshape(vi,1,[]));
 S3 = intersect(vo,vi);          S2 = setdiff(vo,vi);    S1 = setdiff(vi,vo);
 S3 = reshape(S3,1,[]);          S2 = reshape(S2,1,[]);  S1 = reshape(S1,1,[]);
@@ -277,12 +286,15 @@ vout = [S2, S3];    vin = [S3, S1];                 % the class's canonical orde
 dl3 = max(dg.mult,dg.int(1));
 ZL = [repmat({(0:dg.out)'},1,n2), repmat({(0:dl3)'},1,n3)];
 ZR = [repmat({(0:dg.int(2))'},1,n3), repmat({(0:dg.in)'},1,n1)];
+% Basis sizes, the coefficient matrix (nrow x n*NR, nC entries), and the
+% Kronecker strides of the two bases
 nL = cellfun(@numel,ZL);    nR = cellfun(@numel,ZR);
 NL = prod([nL,1]);          NR = prod([nR,1]);
 nrow = m*NL;                nC = nrow*n*NR;
 % sL = strides(nL);           sR = strides(nR);                             % MMP, 09/30/2026 (was)
 sL = kron_strides(nL);      sR = kron_strides(nR);                          % MMP, 09/30/2026
 
+% Positions of the admissible coefficients, one gamma cell at a time
 ncell = 3^n3;
 pos = cell([3*ones(1,n3),1,1]);
 for g = 1:ncell
@@ -313,6 +325,7 @@ for g = 1:ncell
     pos{g} = reshape(r + nrow*reshape(c,1,[]),[],1) + 1;
 end
 
+% The block's variables and domains on each side, bases, size, positions
 [~,io] = ismember(vout,vars);   [~,ii] = ismember(vin,vars);
 s = struct();
 s.vars = struct('out',{vout},'in',{vin});
@@ -332,13 +345,20 @@ end
 
 
 function degs = parse_deg(deg,M,N)
-% One normalized specification per block: fields mult, int (1 x 2), out, in.
+% DEGS = PARSE_DEG(DEG,M,N) returns the degree caps of each of the M x N
+% blocks in normalized form.
+% INPUT  deg:  'double' scalar or 1 x 3 array, 'struct', or M x N cell of
+%              these (one per block);
+%        M, N: double, the numbers of output and input spaces.
+% OUTPUT degs: M x N cell of 'struct', fields mult, int (1 x 2), out, in.
 if iscell(deg)
+    % One specification per block
     if ~isequal(size(deg),[M,N])
         error("A cell of degree specifications should be %d x %d.",M,N)
     end
     degs = cellfun(@norm_deg,deg,'UniformOutput',false);
 else
+    % One specification for every block
     d = norm_deg(deg);
     degs = repmat({d},M,N);
 end
@@ -346,9 +366,16 @@ end
 
 
 function d = norm_deg(x)
+% D = NORM_DEG(X) returns one degree specification as a 'struct' with the
+% fields mult, int (1 x 2), out and in, each a nonnegative integer.
+% INPUT  x: 'double' d (every cap d), 1 x 3 'double' [d1 d2 d3] (mult =
+%           out = in = d1, int = [d3 d2]), or 'struct' with any of the
+%           fields mult, int, out, in (the others 1).
+% OUTPUT d: 'struct'.
 % 'get_lpivar_degs' returns its degrees SPARSE, and the executives pass them
 % straight on; ranges built from a sparse scalar are sparse, so make it full.
 if isnumeric(x),    x = full(x);    end
+% A scalar, a 1 x 3 array, or a struct over the defaults
 if isnumeric(x) && isscalar(x)
     d = struct('mult',x,'int',[x,x],'out',x,'in',x);
 elseif isnumeric(x) && numel(x)==3
@@ -367,6 +394,7 @@ else
     error("A degree should be a scalar, a 1x3 array [d1 d2 d3], or a struct "...
           +"with fields mult, int, out, in.")
 end
+% Every cap a nonnegative integer, and 'int' of two entries
 v = [d.mult, d.int(:)', d.out, d.in];
 if numel(d.int)~=2 || any(v<0) || any(v~=round(v))
     error("Degrees should be nonnegative integers, and 'int' a 1 x 2 [left right].")

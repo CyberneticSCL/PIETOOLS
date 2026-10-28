@@ -1,155 +1,111 @@
 function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [prog,Pop,Qcell,basis_list] = COPQUADVAR(prog,dims,spaces,dom,deg,options)
-% declares a self-adjoint 'cdopvar' decision operator on a CONCATENATION OF
-% MIXED SPACES as a quadratic form in a list of basis operators, following
-% Sec. 8.4 of the sopvar document,
+% [PROG,POP,QCELL,BASIS_LIST] = COPQUADVAR(PROG,DIMS,SPACES,DOM,DEG,OPTIONS)
+% declares a self-adjoint 'cdopvar' decision operator Pop on the product of
+% M spaces
 %
-%       Pop: X -> X,     X = L_2^{m_1}[s^1] x ... x L_2^{m_M}[s^M],
+%       X = X_1 x ... x X_M,   X_k = L_2^{m_k}[s^k]  (R^{m_k} if s^k = {}),
 %
-%       Pop = sum_{k,l} sum_{i,j} (Z_{alpha_i^k})* Q_{(ki),(lj)} (Z_{alpha_j^l})
+% as the quadratic form (sopvar document, Sec. 8.4 and 9)
 %
-% so that block (k,l) of the container is the (k,l) group of that sum. There
-% is ONE coefficient matrix Q spanning every (space, multi-index) pair, which
-% is what makes the whole container positive rather than only its diagonal.
-% An empty space is R^{m_k}, so this covers the mixed finite/infinite case
-% that every PIE has and that 'sopquadvar' explicitly does not: see its NOTES.
+%       Pop = sum_{c,e} (Z_c)* (g Q_{ce}) (Z_e),
 %
-% Each basis operator carries a multi-index over its OWN space's variables
-% and acts into a common auxiliary space L_2[theta] over all the variables,
+% c and e over the basis operators of all spaces, with one Gram matrix
+% Q = [Q_{ce}] over all of them, symmetric, and positive semidefinite for
+% type 'pos'; block (k,l) of Pop is the sum over the c of space k and the e
+% of space l. Basis operator c of space k carries a multi-index alpha over
+% the variables of s^k and maps X_k to L_2^{m_k}[theta], theta =
+% (theta_1,...,theta_nv) the variables of the registry, the sorted union of
+% the s^k:
 %
-%       (Z_alpha x)(theta) = int_{s in dom(s^k)} I_alpha(theta-s) ...
-%                               (I_{m_k} kron Z^alpha(theta,s)) x(s) ds,
+%       (Z_c x)(theta) = int I_alpha(theta-s) (I_{m_k} kron Z^c(theta,s))
+%                            x(s) ds,
 %
-%       I_alpha(r) = prod_d I_{alpha_d}(r_d),
+%       I_alpha(r) = prod_{d in s^k} I_{alpha_d}(r_d),
+%       I_0(r) = delta(r),  I_1(r) = 1 for r >= 0,  I_-1(r) = 1 for r <= 0,
 %
-%       I_0(r) = delta(r),  I_1(r) = 1 for r>=0,  I_-1(r) = 1 for r<=0,
-%
-% with the product indicator taken over the variables of s^k only: a variable
-% the space does not have gets no indicator, and the basis depends on its
-% theta polynomially. Pairing two such operators integrates theta out, and
-% each direction d falls into one of four cases,
-%
-%   d in s^k and s^l   two-sided, the semiseparable integral of Sec. 6.1;
-%                      d is a shared variable S3 of block (k,l)
-%   d in s^k only      one-sided, int_dom I_beta(s_d-theta_d) . dtheta_d;
-%                      d is a created variable S2, a free multiplier
-%   d in s^l only      one-sided, int_dom I_alpha(theta_d-s'_d) . dtheta_d;
-%                      d is a lost variable S1, integrated over its domain
-%   d in neither       int_dom . dtheta_d, a plain definite integral
-%
-% Only the first needs 'int_semisep'; the other three are antiderivatives of
-% a monomial, evaluated at a limit that is either a spatial variable or an
-% endpoint. They are applied first, so 'int_semisep' sees only the shared
-% directions of the pair.
-%
-% For a single space this reproduces 'sopquadvar' exactly - every direction
-% is then shared - and for the two spaces (R^n, L_2^m[s]) it reproduces the
-% four blocks of 'poslpivar'.
+% the integral over the domain of s^k (none on R^{m_k}), I_1 and I_-1 zero
+% elsewhere. A multi-index stores 1, 2, 3 for the entries 0 (multiplier), 1
+% (lower integral) and -1 (upper integral), and 4 for the full-domain
+% integral I_1 + I_-1 = 1. Z^c(theta,s) is the vector of the monomials in
+% theta and s^k within the degree caps of c (degree 0 in s_d where alpha_d
+% is a multiplier), and g(theta) the weight of OPTIONS.psatz, a multiplier
+% on L_2[theta]. Integrating theta out, a direction d of s^k and s^l gives
+% a semiseparable kernel in (s_d,s'_d), one of s^k only a polynomial in
+% s_d, one of s^l only a polynomial in s'_d, and one of neither a definite
+% integral; each block of Pop is an 'sdopvar' object, affine in the entries
+% of Q.
 %
 % INPUT
-% - prog:   'struct' specifying an LPI/SOS program to modify;
-% - dims:   M x 1 array of positive integers, dims(k) the dimension m_k of
-%           space k. A scalar is used for every space. Since Pop is
-%           self-adjoint the input and output spaces coincide;
-% - spaces: 1 x M cell of 'cellstr' objects, spaces{k} naming the spatial
-%           variables of space k. An EMPTY entry is the finite-dimensional
-%           space R^{m_k}. A plain 'cellstr' is read as a single space, so
-%           that copquadvar(prog,m,{'s1'},...) means what it looks like;
-%           several spaces must therefore be nested, as in {{},{'s1'}}. May
-%           also be given as a 'struct' with field 'out';
-% - dom:    nv x 2 array, dom(d,:) = [ad,bd] the domain of the d-th variable
-%           of the registry, which is the SORTED union of all the spaces. May
-%           be given as a single 1x2 row, used for every variable, or as a
-%           'struct' with fields 'vars' and 'dom' pairing each name with its
-%           interval, which removes the need to know the registry's order;
-% - deg:    degrees of the monomial bases Z^alpha(theta,s), in the vocabulary
-%           of 'sopquadvar': a scalar, or a 'struct' with fields 'int',
-%           'mult', 'joint' and 'subset'. 'int' and 'mult' are given over the
-%           whole registry, and space k uses the 'mult' entries of its own
-%           variables; the basis of space k is therefore built over
-%           [theta_1..theta_nv, s^k], whose length varies with the space, so
-%           'subset' - whose indexing depends on that length - is accepted
-%           only for a space holding every variable. May also be a cell with
-%           one such specification per SPACE, each of which may itself be a
-%           cell with one per basis operator of that space;
-%           the fields cap degrees of the factor Z^alpha(theta,s), not of   % MMP, 09/30/2026
-%           the kernel of Pop:                                              % MMP, 09/30/2026
-%             'int'    scalar or 1 x nv, the degree in each integration     % MMP, 09/30/2026
-%                      variable theta_d. Defaults to 1;                     % MMP, 09/30/2026
-%             'mult'   scalar or 1 x nv, the degree in each output          % MMP, 09/30/2026
-%                      variable s_d, set to 0 where alpha_d is a            % MMP, 09/30/2026
-%                      multiplier. Defaults to 'int';                       % MMP, 09/30/2026
-%             'joint'  scalar, the total degree in (theta,s^k). Defaults    % MMP, 09/30/2026
-%                      to no further cap;                                   % MMP, 09/30/2026
-%             'subset' 2^(2*nv) entries, one cap per subset of              % MMP, 09/30/2026
-%                      [theta_1..theta_nv, s^k], as in 'sopquadvar';        % MMP, 09/30/2026
-%           'lpivar_cdopvar' names its fields 'int' and 'mult' too, with    % MMP, 09/30/2026
-%           other meanings: kernel degrees per variable role, 'mult' the    % MMP, 09/30/2026
-%           left degree in a multiplier direction and 'int' the [left       % MMP, 09/30/2026
-%           right] degrees in an integral direction. A 'deg' struct         % MMP, 09/30/2026
-%           therefore does not carry over between the two routines;         % MMP, 09/30/2026
-% - options: (optional) 'struct' specifying other options, with fields
-%   options.type      'pos' (default) declares Q positive semidefinite, so
-%                     that Pop = Pop* >= 0; 'sym' declares it symmetric but
-%                     otherwise unconstrained. Passed to 'sosquadvar', whose
-%                     vocabulary this is, and the only place positivity
-%                     enters;
-%   options.psatz     set to 1 to enforce positivity only on the domain, by
-%                     including the factor g(theta) = prod_d
-%                     (theta_d-ad)*(bd-theta_d). Defaults to 0, and rejected
-%                     for type 'sym', where a nonnegative weight means
-%                     nothing;
-%                     set to 2d+1 or 2d+2 (d = 1..nv, over the registry) for
-%                     the linear weight of ONE face of the box,
-%                     g = (theta_d-ad)/(bd-ad) or (bd-theta_d)/(bd-ad). Declare
-%                     one variable per face and sum them, each at the full
-%                     degree of the base variable (measured in
-%                     'poslpivar_2d', CC 09/23/2026: face terms at eq_deg-1
-%                     destroyed the certificate). In 2-D with sorted names
-%                     these are 'poslpivar_2d' psatz 3-6;
-%   options.sep       logical scalar or 1 x nv array over the registry. Where
-%                     sep(d) is true the lower and upper integral basis
-%                     operators in direction d are replaced by one
-%                     full-domain integral, encoded as alpha_d = 4, exactly
-%                     as in 'sopquadvar';
-%   options.include   1 x M cell, entry k selecting the basis operators of
-%                     space k in any of the formats 'sopquadvar' accepts: an
-%                     array of multi-indices over space k's own variables, a
-%                     logical mask over its basis operators, or linear
-%                     indices into them. For a single space the cell may be
-%                     omitted. Defaults to all;
+% - prog:    'struct', the LPI program to which the decision variables of Q
+%            are added;
+% - dims:    'double', M x 1 array of positive integers, dims(k) = m_k, or
+%            a scalar for every space; or a 'struct' with field out (that
+%            array) and an optional field in equal to out;
+% - spaces:  1 x M 'cell', spaces{k} the variables s^k of space k: a
+%            'cellstr' of distinct names, a 'char' name, a 'polynomial'
+%            object (its variables), or empty for R^{m_k}. A 'cellstr',
+%            'char' or 'polynomial' SPACES is one space, an empty SPACES
+%            the space R^{m_1}. Or a 'struct' with field out (that cell)
+%            and an optional field in equal to out. Names ending in '_int'
+%            or '_dum' are an error;
+% - dom:     'double', nv x 2 array, dom(d,:) = [a_d,b_d], a_d < b_d, the
+%            domain of registry variable d; or a 1 x 2 row for every
+%            variable; or a 'struct' with fields vars (a 'cellstr' of the
+%            names) and dom (one row per name);
+% - deg:     the degree caps of the monomials Z^c(theta,s), over the
+%            variables [theta_1..theta_nv, s^k]: a 'double' scalar d, the
+%            cap of every theta_d and every s_d; or a 'struct' with the
+%            optional fields
+%              int     scalar or 1 x nv, the cap in each theta_d (default
+%                      1);
+%              mult    scalar or 1 x nv over the registry, the cap in each
+%                      s_d of s^k (default int);
+%              joint   scalar, the cap of the total degree (default none);
+%              subset  2^(2*nv) array, the cap of the total degree in each
+%                      subset of [theta_1..theta_nv, s_1..s_nv], the subset
+%                      with members b at index 1+sum(2.^(b-1)); accepted
+%                      only for a space holding every registry variable
+%                      (default none);
+%            or a 1 x M 'cell', one scalar or 'struct' per space, or for a
+%            space a 'cell' with one per basis operator of that space, in
+%            the order of its rows of BASIS_LIST;
+% - options: (optional) 'struct' with the optional fields
+%              type     'char', 'pos' (default) for Q >= 0, so that
+%                       Pop = Pop* >= 0, or 'sym' for Q symmetric;
+%              psatz    'double', the weight g: 0 (default) g = 1; 1 g =
+%                       prod_d (theta_d-a_d)(b_d-theta_d); 2d+1 or 2d+2,
+%                       d = 1..nv over the registry, g = (theta_d-a_d)/
+%                       (b_d-a_d) or (b_d-theta_d)/(b_d-a_d). Any other
+%                       value is an error, and a nonzero one with type
+%                       'sym';
+%              sep      'logical' scalar or 1 x nv over the registry
+%                       (default false): where sep(d), alpha_d takes the
+%                       values 1 and 4, elsewhere 1, 2 and 3;
+%              include  1 x M 'cell', include{k} the basis operators of
+%                       space k among all its multi-indices (one column
+%                       per variable of s^k in registry order, enumerated
+%                       with the first column fastest): an array of rows
+%                       of multi-indices, a 'logical' mask, or linear
+%                       indices into that enumeration; [] (default) for
+%                       all; for M = 1 the entry itself. Each space keeps
+%                       at least one, all distinct.
 %
 % OUTPUT
-% - prog:       the same program, now carrying the decision variables of Pop
-%               and, for type 'pos', the constraint Q>=0;
-% - Pop:        M x M 'cdopvar' container representing a self-adjoint PI
-%               operator decision variable on X, positive semidefinite when
-%               the type is 'pos';
-% - Qcell:      N x N cell of 'cellstr' objects naming the decision variables
-%               of each block of Q, as returned by 'sosquadvar', where N is
-%               the total number of basis operators over all spaces;
-% - basis_list: N x (1+nv) array, row c describing basis operator c: column 1
-%               is its space index k, and column 1+d its multi-index entry
-%               in direction d, or 0 where variable d is not in s^k. The rows
-%               are ordered by space and match Qcell;
-%
-% NOTES
-% The container's blocks are assembled from one Q, so the object returned is
-% positive as a whole; constraining only the diagonal blocks would be a
-% strictly weaker condition and is not what this builds.
-%
-% Sec. 8.4 observes that there should not be two implementations of this
-% construction, just the general one with a fastlane for the single-space
-% case. 'sopquadvar' is that fastlane and still has its own pair loop; the  % MMP, 10/01/2026 (was)
-% input processing, degree handling and coefficient bookkeeping are already % MMP, 10/01/2026 (was)
-% shared through 'lpis_sopvar/private'.                                     % MMP, 10/01/2026 (was)
-% Since 10/01/2026 there is one: 'sopquadvar' checks its single-space       % MMP, 10/01/2026
-% inputs, moves them to the sorted registry and calls this routine, so the  % MMP, 10/01/2026
-% construction exists only here (for sorted variables its programs are      % MMP, 10/01/2026
-% bit-identical to the former pair loop's).                                 % MMP, 10/01/2026
-% The space, domain and registry parse is 'parse_copvar_spaces', shared     % MMP, 09/30/2026
-% with 'lpivar_cdopvar'.                                                    % MMP, 09/30/2026
+% - prog:       'struct', PROG with the decision variables of Q and, for
+%               type 'pos', the constraint Q >= 0;
+% - Pop:        'cdopvar' object, M x M, on X: block (k,l) an 'sdopvar'
+%               object from X_l to X_k, every block on the one list of the
+%               decision variables of Q (sorted names); Pop = Pop*, and
+%               Pop >= 0 for type 'pos';
+% - Qcell:      N x N 'cell', N the number of basis operators of all
+%               spaces: Qcell{c,e} the 'cellstr' array of the names of the
+%               entries of Q_{ce}, rows (component, monomial of Z^c) and
+%               columns (component, monomial of Z^e), monomial fastest;
+% - basis_list: N x (1+nv) 'double', row c for basis operator c: its space
+%               index k in column 1 and its multi-index entry alpha_d in
+%               column 1+d (0 where d is not a variable of s^k); the rows
+%               ordered by space, then as included.
 %
 % See also SOPQUADVAR, POSCOPVAR, POSSOPVAR, POSLPIVAR, SOSQUADVAR,
 % INT_SEMISEP, CDOPVAR, LPI_EQ_CDOPVAR.
@@ -320,6 +276,15 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %                  gives 'int' and 'mult' other meanings; no option changed.
 % MMP, 10/01/2026: 'sopquadvar' now calls this routine (one space) instead
 %                  of its own pair loop; NOTES updated. No code change here.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), step comments in the body and headers
+%                  of the local functions; code unchanged. The deleted
+%                  header text was the comparisons with sopquadvar,
+%                  poslpivar, poslpivar_2d and lpivar_cdopvar, the history
+%                  of the single implementation and of the shared parser
+%                  (NOTES), a measurement (face terms at eq_deg-1), and the
+%                  rationale for the one Gram and for the order of the
+%                  integrations.
 
 
 % % % BEGIN change MMP, 09/30/2026 (split): the primary runs the            % MMP, 09/30/2026
@@ -332,11 +297,14 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 % passing variables in and out, and in 'block_terms' the calls to           % MMP, 09/30/2026
 % 'gamma_params' and 'by_space'.                                            % MMP, 09/30/2026
 
+% Five inputs required; OPTIONS [] when omitted
 if nargin<5
     error("Not enough input arguments.")
 end
 if nargin<6,    options = [];   end                                         % MMP, 09/30/2026
 
+% Spaces and registry; options; basis operators, their degree caps and
+% their monomial vectors
 S = parse_inputs(dims,spaces,dom);                                          % MMP, 09/30/2026
 [options,vartype,S.sep,incl] = parse_options(options,S.nv,S.M);             % MMP, 09/30/2026
 [alpha_sp,nb,base,basis_list,bsp,bix] = basis_operators(S,incl);            % MMP, 09/30/2026
@@ -353,6 +321,8 @@ B = struct('alpha_sp',{alpha_sp},'nb',nb,'base',base,'Nprod',{Nprod});      % MM
 [B.Zd,B.dmap,B.ndec] = common_dvars(Qcell);                                 % MMP, 09/30/2026
 B.gfun = psatz_weight(options,S);                                           % MMP, 09/30/2026
 
+% Block (k,l): the sum of the terms of all pairs of basis operators of
+% spaces k and l
 M = S.M;                                                                    % MMP, 09/30/2026
 Cblk = cell(M,M);
 for k = 1:M
@@ -366,6 +336,7 @@ for k = 1:M
   end
 end
 
+% The container of the M x M blocks
 Pop = cdopvar(Cblk);
 % % % END change MMP, 09/30/2026 (split)                                    % MMP, 09/30/2026
 
@@ -380,9 +351,18 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function S = parse_inputs(dims,spaces,dom)                                  % MMP, 09/30/2026
+% S = PARSE_INPUTS(DIMS,SPACES,DOM) reads the spaces, dimensions and domain
+% of COPQUADVAR, after checking that the input spaces and dimensions are
+% the output ones.
 % Spaces, registry, dims and domain, as the fields of S: M, nv, vars,       % MMP, 09/30/2026
 % vars_int, vars_dum (the names of theta and s'), mask (M x nv, space k     % MMP, 09/30/2026
 % has variable d), own{k} (its variable indices, a row), dims, dom.         % MMP, 09/30/2026
+% INPUT  dims, spaces, dom: the inputs of COPQUADVAR of these names.
+% OUTPUT S: 'struct' with the fields above: M, nv 'double' (the numbers of
+%           spaces and of registry variables); vars (sorted), vars_int,
+%           vars_dum 1 x nv 'cellstr'; mask M x nv 'logical'; own 1 x M
+%           'cell' of 'double' rows; dims M x 1 'double'; dom nv x 2
+%           'double'.
 
 % % % BEGIN change MMP, 09/30/2026 (parser): spaces, registry, dims,        % MMP, 09/30/2026
 % reserved names and domain are read by 'parse_copvar_spaces', the parser   % MMP, 09/30/2026
@@ -400,6 +380,7 @@ function S = parse_inputs(dims,spaces,dom)                                  % MM
 if ~isequal(sp_in,spaces) || ~isequal(meta.dim_in,meta.dim_out)             % MMP, 09/30/2026
     error("A self-adjoint operator has equal input and output spaces.")     % MMP, 09/30/2026
 end                                                                         % MMP, 09/30/2026
+% Number of spaces; the sorted registry, the variable masks, dims, domain
 M = numel(spaces);                                                          % MMP, 09/30/2026
 vars = meta.vars;       nv = numel(vars);       mask = meta.space_out;      % MMP, 09/30/2026
 dims = meta.dim_out;    dom = meta.dom;                                     % MMP, 09/30/2026
@@ -429,8 +410,16 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [options,vartype,sep,incl] = parse_options(options,nv,M)           % MMP, 09/30/2026
+% [OPTIONS,VARTYPE,SEP,INCL] = PARSE_OPTIONS(OPTIONS,NV,M) checks the
+% options of COPQUADVAR and returns them with their defaults:
 % Options psatz (validated, as double), type, sep (1 x nv logical) and      % MMP, 09/30/2026
 % include (1 x M cell), for nv registry variables and M spaces.             % MMP, 09/30/2026
+% INPUT  options: 'struct', the OPTIONS of COPQUADVAR, or [] when omitted;
+%        nv, M:   'double', the numbers of registry variables and spaces.
+% OUTPUT options: OPTIONS with field psatz, a 'double' (0 when absent);
+%        vartype: 'char', 'pos' or 'sym';
+%        sep:     1 x nv 'logical';
+%        incl:    1 x M 'cell', the include entry of each space ([]: all).
 
 % % % Options
 % if nargin<6 || isempty(options)                                           % MMP, 09/30/2026 (was)
@@ -440,6 +429,7 @@ end
 if ~isa(options,'struct')
     error("Options should be specified as a 'struct' object.")
 end
+% psatz: 0 when absent
 if ~isfield(options,'psatz') || isempty(options.psatz)
     options.psatz = 0;
 end
@@ -461,6 +451,7 @@ end
 % Double from here on: an integer class passes the check above, and then    % MMP, 09/27/2026
 % floor((psatz-1)/2) rounds in integer arithmetic and picks the wrong face. % MMP, 09/27/2026
 options.psatz = double(options.psatz);                                      % MMP, 09/27/2026
+% type: 'pos' when absent, or 'sym'; a psatz weight only for 'pos'
 vartype = 'pos';
 if isfield(options,'type') && ~isempty(options.type)
     vartype = char(options.type);
@@ -471,6 +462,7 @@ end
 if strcmp(vartype,'sym') && options.psatz
     error("'psatz' has no meaning for a 'sym' variable; use type 'pos'.")
 end
+% sep: one logical per registry variable, false when absent
 if ~isfield(options,'sep') || isempty(options.sep)
     sep = false(1,nv);
 else
@@ -481,6 +473,7 @@ else
         error("'sep' should be a scalar or have one entry per registry variable.")
     end
 end
+% include: one entry per space, [] (all) when absent
 if ~isfield(options,'include')
     incl = cell(1,M);
 else
@@ -499,10 +492,23 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [alpha_sp,nb,base,basis_list,bsp,bix] = basis_operators(S,incl)    % MMP, 09/30/2026
+% [ALPHA_SP,NB,BASE,BASIS_LIST,BSP,BIX] = BASIS_OPERATORS(S,INCL) lists the
+% multi-indices of the included basis operators of every space.
 % The basis operators Z_alpha of Sec. 9.1, per space: alpha_sp{k} holds     % MMP, 09/30/2026
 % one multi-index per row over space k's own variables, nb(k) rows; base,   % MMP, 09/30/2026
 % bsp, bix map global basis c to (space, row) and back; basis_list is the   % MMP, 09/30/2026
 % output of the same name.                                                  % MMP, 09/30/2026
+% INPUT  S:          'struct' of PARSE_INPUTS with field sep (1 x nv
+%                    'logical'); read are M, nv, own, sep;
+%        incl:       1 x M 'cell' of PARSE_OPTIONS.
+% OUTPUT alpha_sp:   1 x M 'cell', alpha_sp{k} nb(k) x numel(own{k})
+%                    'double';
+%        nb:         1 x M 'double';
+%        base:       1 x (M+1) 'double', [0, cumsum(nb)]: row i of space k
+%                    is basis operator base(k)+i;
+%        basis_list: N x (1+nv) 'double', N = sum(nb);
+%        bsp, bix:   N x 1 'double', the space of basis operator c and its
+%                    row in alpha_sp.
 M = S.M;    nv = S.nv;  own = S.own;    sep = S.sep;                        % MMP, 09/30/2026
 
 % % % Basis operators of each space. The multi-index runs over the space's
@@ -510,6 +516,8 @@ M = S.M;    nv = S.nv;  own = S.own;    sep = S.sep;                        % MM
 % indicator, so there is nothing to choose in that direction.
 alpha_sp = cell(1,M);   nb = zeros(1,M);
 for k = 1:M
+    % Admissible entries per variable of the space: 1, 4 where sep is set,
+    % else 1, 2, 3
     nk = numel(own{k});
     vals = cell(1,nk);
     for t = 1:nk
@@ -519,6 +527,7 @@ for k = 1:M
     % Shared enumeration, direction 1 fastest (Sec. 9.1 multi-indices): a   % MMP, 09/30/2026
     % linear 'include' index means the same here and in 'sopquadvar'.       % MMP, 09/30/2026
     A = multiindex_grid(vals);                                              % MMP, 09/30/2026
+    % The included ones: at least one, all distinct
     A = alpha_select(A,incl{k},nk,k);
     if size(A,1)==0
         error("At least one basis operator must be included for space "...
@@ -549,6 +558,8 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function deg_list = degree_list(deg,S,nb,bsp,bix)                           % MMP, 09/30/2026
+% DEG_LIST = DEGREE_LIST(DEG,S,NB,BSP,BIX) expands the degree caps DEG of
+% COPQUADVAR into one specification per basis operator.
 % The degree specification of each basis operator: deg_list{c} is the       % MMP, 09/30/2026
 % struct 'process_degrees_one' returns for global basis c, with fields      % MMP, 09/30/2026
 %   int     1 x nv, cap on the degree in each integration variable theta_d; % MMP, 09/30/2026
@@ -560,6 +571,12 @@ function deg_list = degree_list(deg,S,nb,bsp,bix)                           % MM
 % names in 'lpivar_cdopvar', which are kernel degrees per variable role:    % MMP, 09/30/2026
 % there 'mult' is the left degree in a multiplier direction and 'int' the   % MMP, 09/30/2026
 % [left right] degrees in an integral direction.                            % MMP, 09/30/2026
+% INPUT  deg:          the DEG of COPQUADVAR;
+%        S:            'struct' of PARSE_INPUTS; read are M, nv, own;
+%        nb, bsp, bix: 'double', of BASIS_OPERATORS.
+% OUTPUT deg_list:     1 x N 'cell' of 'struct' with fields int, mult
+%                      (1 x nv 'double'), joint ('double') and subset
+%                      (1 x 2^(2*nv) 'double', or []).
 M = S.M;    nv = S.nv;  own = S.own;    N = sum(nb);                        % MMP, 09/30/2026
 
 % % % Degrees, one struct per basis operator. 'int' and 'mult' are given over
@@ -574,6 +591,8 @@ else
 end
 deg_list = cell(1,N);
 for c = 1:N
+    % The specification of basis operator c: that of its space, or its
+    % entry in a per-basis cell
     k = bsp(c);     spec = deg_sp{k};
     if iscell(spec)
         if numel(spec)~=nb(k)
@@ -582,6 +601,7 @@ for c = 1:N
         end
         spec = spec{bix(c)};
     end
+    % Expanded to int, mult (1 x nv), joint and subset
     d = process_degrees_one(spec,nv);
     if ~isempty(d.subset) && numel(own{k})~=nv
         % 'subset' is indexed over the variables the grid is built in, which
@@ -601,8 +621,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [Z1c,Z2c,mdim] = monomial_bases(S,alpha_sp,deg_list,bsp,bix)       % MMP, 09/30/2026
+% [Z1C,Z2C,MDIM] = MONOMIAL_BASES(S,ALPHA_SP,DEG_LIST,BSP,BIX) returns the
+% monomial vector Z^c of every basis operator c, within its degree caps:
 % Z1c{c}, Z2c{c}: the monomials of basis c in (theta,s) and (theta,s'),     % MMP, 09/30/2026
 % the two arguments 'sosquadvar' takes; mdim(c) its space dimension.        % MMP, 09/30/2026
+% INPUT  S:        'struct' of PARSE_INPUTS; read are own, vars, vars_int,
+%                  vars_dum, dims;
+%        alpha_sp: 1 x M 'cell'; bsp, bix: N x 1 'double', of
+%                  BASIS_OPERATORS;
+%        deg_list: 1 x N 'cell' of DEGREE_LIST.
+% OUTPUT Z1c, Z2c: 1 x N 'cell' of 'polynomial' column vectors, the
+%                  monomials over [theta_1..theta_nv, s^k] and over
+%                  [theta_1..theta_nv, s'^k];
+%        mdim:     N x 1 'double', mdim(c) = m_k of the space of c.
 own = S.own;    vars = S.vars;  vars_int = S.vars_int;                      % MMP, 09/30/2026
 vars_dum = S.vars_dum;  dims = S.dims;  N = numel(bsp);                     % MMP, 09/30/2026
 
@@ -610,12 +641,14 @@ vars_dum = S.vars_dum;  dims = S.dims;  N = numel(bsp);                     % MM
 % differ only in the name of the second group.
 Z1c = cell(1,N);    Z2c = cell(1,N);    mdim = zeros(N,1);
 for c = 1:N
+    % Caps in theta_1..theta_nv and in the variables of s^k
     k = bsp(c);     ok = own{k};
     caps_int  = deg_list{c}.int;
     caps_mult = deg_list{c}.mult(ok);
     % A multiplier in direction d identifies s_d with theta_d, so any s_d
     % dependence of the basis would be redundant.
     caps_mult(alpha_sp{k}(bix(c),:)==1) = 0;
+    % Exponent grid; the monomial vectors in (theta,s) and (theta,s')
     Ei = build_exponent_grid([caps_int,caps_mult],deg_list{c}.joint, ...
                              deg_list{c}.subset);
     Ti = size(Ei,1);
@@ -633,8 +666,15 @@ end
 % The 'sosquadvar' call that declares Q is in the primary.                  % MMP, 09/30/2026
 
 function [Zd,dmap,ndec] = common_dvars(Qcell)                               % MMP, 09/30/2026
+% [ZD,DMAP,NDEC] = COMMON_DVARS(QCELL) returns the decision variables of
+% the Gram blocks QCELL and their index map:
 % The sorted list Zd of every decision variable of Q, ndec = numel(Zd),     % MMP, 09/30/2026
 % and dmap: name -> index into Zd.                                          % MMP, 09/30/2026
+% INPUT  Qcell: N x N 'cell' of 'cellstr' arrays, the names of the entries
+%               of each block of Q.
+% OUTPUT Zd:    ndec x 1 'cellstr', sorted, without repeats;
+%        dmap:  'containers.Map' from name to index in Zd;
+%        ndec:  'double'.
 
 % Common decision variable basis, so that every block is expressed over the
 % same Zd - a class invariant of 'cdopvar'.
@@ -647,6 +687,7 @@ for q = 1:numel(Qcell)
     Zd{q} = reshape(cellstr(string(Qcell{q})),[],1);                        % MMP, 09/26/2026
 end
 Zd = vertcat(Zd{:});                                                        % MMP, 09/26/2026
+% Sorted, without repeats; the map from name to index
 Zd = unique(Zd);    ndec = numel(Zd);
 dmap = containers.Map(Zd,num2cell(1:ndec));
 
@@ -655,7 +696,13 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function gfun = psatz_weight(options,S)                                     % MMP, 09/30/2026
+% GFUN = PSATZ_WEIGHT(OPTIONS,S) returns the weight g(theta) of
+% OPTIONS.psatz:
 % The weight g(theta) of options.psatz (0: g = 1), see the help.            % MMP, 09/30/2026
+% INPUT  options: 'struct' with field psatz, a 'double': 0, 1, 2d+1 or
+%                 2d+2;
+%        S:       'struct' of PARSE_INPUTS; read are nv, vars_int, dom.
+% OUTPUT gfun:    'polynomial' in the theta variables vars_int.
 nv = S.nv;  vars_int = S.vars_int;  dom = S.dom;                            % MMP, 09/30/2026
 
 % Multiplier restricting positivity to the domain, evaluated at the
@@ -687,12 +734,25 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [terms,nt] = block_terms(k,l,S,B)                                  % MMP, 09/30/2026
+% [TERMS,NT] = BLOCK_TERMS(K,L,S,B) returns the terms of block (K,L) of
+% Pop, from space L to space K:
 % The terms Z_i* Q_ij Z_j (Sec. 9.2) of block (k,l), i over the basis       % MMP, 09/30/2026
 % operators of space k and j over those of space l, integration variable    % MMP, 09/30/2026
 % eliminated: terms{1:nt}, one sdopvar per substitution pair of each        % MMP, 09/30/2026
 % (i,j), all on the one list B.Zd. HOT: runs the whole elimination. It      % MMP, 09/30/2026
 % must not assign into Zd, Nprod or prog: writing one element of a          % MMP, 09/30/2026
 % shared q-length cell copies all of it (27.5 ms at q = 2.7e6, measured).   % MMP, 09/30/2026
+% INPUT  k, l:  'double', the output and the input space;
+%        S:     'struct' of PARSE_INPUTS with field sep;
+%        B:     'struct' with fields alpha_sp, nb, base (of
+%               BASIS_OPERATORS), Nprod (N x N 'cell' of 'dpvar',
+%               Nprod{c,e} = (I kron Z1c{c})' Q_ce (I kron Z2c{e})), Zd,
+%               dmap, ndec (of COMMON_DVARS) and gfun (of PSATZ_WEIGHT).
+% OUTPUT terms: 'cell', terms{1:nt} 'sdopvar' objects from space l to space
+%               k, one per pair (i,j) and per substitution of 2 and 3 for
+%               the entries 4 of the multi-indices in the shared
+%               directions;
+%        nt:    'double'.
 nv = S.nv;  vars = S.vars;  vars_int = S.vars_int;  vars_dum = S.vars_dum;  % MMP, 09/30/2026
 own = S.own;  dims = S.dims;  mask = S.mask;  dom = S.dom;  sep = S.sep;    % MMP, 09/30/2026
 alpha_sp = B.alpha_sp;  nb = B.nb;  base = B.base;  Nprod = B.Nprod;        % MMP, 09/30/2026
@@ -702,6 +762,7 @@ gfun = B.gfun;  Zd = B.Zd;  dmap = B.dmap;  ndec = B.ndec;                  % MM
 % full-domain integral is self-adjoint.
 negmap = [1,3,2,4];
 
+    % Variables and dimensions of the output space k and the input space l
     ok = own{k};    ol = own{l};    mk = dims(k);   ml = dims(l);
 %   nk = numel(ok); nlv = numel(ol);                                        % MMP, 09/30/2026 (was)
     nk = numel(ok);     % nlv went with the loops 'by_space' replaced       % MMP, 09/30/2026
@@ -715,6 +776,8 @@ negmap = [1,3,2,4];
     D3 = reshape(find(cls==3),1,[]);        n3 = numel(D3);
     p3 = zeros(1,nv);       p3(D3) = 1:n3;      % position of d within D3
 
+    % Variable split (s,theta | s') of each product; the variables and
+    % domains of the block
     vars_conv = struct('out',{[vars(ok),vars_int]},'in',{vars_dum(ol)});
     vars_io   = struct('out',{vars(ok)},'in',{vars(ol)});
     dom_io    = struct('out',dom(ok,:),'in',dom(ol,:));
@@ -731,6 +794,8 @@ negmap = [1,3,2,4];
         Rij = gfun*Nprod{base(k)+i,base(l)+j};
         [Pblk,ZLb,ZRb] = dpvar2sdvar(Rij,vars_conv);
 
+        % Monomial groups of the rows (s, theta) and the columns (s'), and
+        % their sizes
         Zs  = ZLb(1:nk);
         Zth = ZLb(nk+1:nk+nv);
         Zsp = ZRb;
@@ -803,6 +868,8 @@ negmap = [1,3,2,4];
         [Cgam,ZL3,ZR3] = int_semisep(G,aL_all(iL,:),aR_all(iR,:), ...
                                      dom(D3,:),'triplets');                 % MMP, 09/26/2026
 
+        % Exponents of the shared directions laid out per variable of each
+        % space
 %       ZL3f = repmat({0},1,nk);                                            % MMP, 09/30/2026 (was)
 %       for t = 1:nk                                                        % MMP, 09/30/2026 (was)
 %           if cls(ok(t))==3,   ZL3f{t} = ZL3{p3(ok(t))};   end             % MMP, 09/30/2026 (was)
@@ -828,6 +895,7 @@ negmap = [1,3,2,4];
         NR3 = prod([cellfun(@numel,ZR3f),1]);
         MR  = kron(MR1,speye(NR3))*MR2;
 
+        % The merge maps over the matrix rows and columns
         Lmat = kron(speye(mk),ML).';
         Rmat = kron(speye(ml),MR);
 
@@ -835,6 +903,7 @@ negmap = [1,3,2,4];
         params = gamma_params(Cgam,g1b,NL3,g2b,NR3,nloc,Lmat,Rmat, ...
                               locB,ndec,n3);                                % MMP, 09/30/2026
 
+        % The term, on the one decision variable list Zd
         nt = nt+1;
         terms{nt} = sdopvar(params,vars_io,Zd,ZLf,ZRf,dom_io,[mk,ml]);
         end
@@ -851,11 +920,30 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function params = gamma_params(Cgam,g1b,NL3,g2b,NR3,nloc,Lmat,Rmat, ...
                                locB,ndec,n3)                                % MMP, 09/30/2026
+% PARAMS = GAMMA_PARAMS(CGAM,G1B,NL3,G2B,NR3,NLOC,LMAT,RMAT,LOCB,NDEC,N3)
+% returns the coefficients Lmat*C_q*Rmat of the gamma cells q of one term:
 % The sdopvar parameter cell of one term: params.A{q}, params.B{q} (the     % MMP, 09/30/2026
 % constant and decision parts of gamma cell q, B over the global list of    % MMP, 09/30/2026
 % ndec variables), as a 3 x ... x 3 cell over the n3 shared variables.      % MMP, 09/30/2026
 % Cgam{q}: triplets from 'int_semisep' on the block's own nloc sheets;      % MMP, 09/30/2026
 % locB: their rows in the global list; Lmat, Rmat: the basis merge maps.    % MMP, 09/30/2026
+% INPUT  Cgam:     'cell' of 3^n3 'struct' with fields i, j, v, m, n, the
+%                  triplets of C_q, g1b*NL3 x (1+nloc)*g2b*NR3: column
+%                  block 1 the constant part, block 1+r decision variable r
+%                  of the term;
+%        g1b, NL3, g2b, NR3: 'double', the row count g1b*NL3 and the column
+%                  count g2b*NR3 of each block of C_q;
+%        nloc:     'double', the number of decision variables of the term;
+%        Lmat:     sparse (m_k*NLf) x (g1b*NL3), Rmat: sparse (g2b*NR3) x
+%                  (m_l*NRf), the maps onto the merged bases of NLf and NRf
+%                  monomials;
+%        locB:     nloc x 1 'double', the indices of those variables in Zd;
+%        ndec:     'double', numel(Zd);
+%        n3:       'double', the number of shared directions.
+% OUTPUT params:   'struct' with fields A and B, 'cell' arrays 3 x ... x 3
+%                  over the n3 shared directions: A{q} the vectorized
+%                  constant part, sparse (m_k*NLf*m_l*NRf) x 1, and B{q}
+%                  the decision part, sparse ndec x (m_k*NLf*m_l*NRf).
 
         % Nothing between 'pack_sheets' and here mixes sheets -- each stays a
         % contiguous block of columns, as 'unpack_sheets' own header records --
@@ -911,9 +999,14 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Z = by_space(src,idx,sel)                                          % MMP, 09/30/2026
+% Z = BY_SPACE(SRC,IDX,SEL) picks the entries IDX(SEL) of SRC:
 % Exponent lists laid out per variable of one space: Z{t} = src{idx(t)}     % MMP, 09/30/2026
 % where sel(t), and 0 (degree 0 only) elsewhere. Replaces four identical    % MMP, 09/30/2026
 % scatter loops of 'block_terms' (initial coding 09/21/2026).               % MMP, 09/30/2026
+% INPUT  src: 'cell' of exponent column vectors;
+%        idx: 1 x n 'double', indices into src where sel is true;
+%        sel: 1 x n 'logical'.
+% OUTPUT Z:   1 x n 'cell'.
 
 Z = repmat({0},1,numel(idx));                                               % MMP, 09/30/2026
 Z(sel) = src(idx(sel));                                                     % MMP, 09/30/2026
@@ -929,26 +1022,39 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function A = alpha_select(A,incl,nd,k)
-% Apply one space's 'include' specification, in any of the three formats
-% 'sopquadvar' accepts. Validating multi-index rows against the generated
-% list rather than a numeric range is what makes a separable direction, which
-% admits only 1 and 4, reject 2 and 3.
+% A = ALPHA_SELECT(A,INCL,ND,K) returns the rows of A that the include
+% entry INCL of space K selects.
+% INPUT  A:    n x nd 'double', the admissible multi-indices of space k,
+%              one per row;
+%        incl: [] (all rows); a 'logical' mask over the rows; an array with
+%              nd columns, each row a multi-index among the rows of A; or
+%              linear indices into the rows;
+%        nd:   'double', the number of variables of space k;
+%        k:    'double', the index of the space, for the error messages.
+% OUTPUT A:    the selected rows; INCL itself for an array of
+%              multi-indices.
 
+% [] selects every row
 if isempty(incl)
     return
 end
+% A logical mask, one entry per row
 if islogical(incl)
     if numel(incl)~=size(A,1)
         error("A logical 'include' for space "+num2str(k)+" has one entry "...
               +"per basis operator of that space.")
     end
     A = A(incl(:),:);
+% Rows of multi-indices. Validating them against the generated list rather
+% than a numeric range is what makes a separable direction, which admits
+% only 1 and 4, reject 2 and 3.
 elseif nd>0 && size(incl,2)==nd
     if ~all(ismember(incl,A,'rows'))
         error("'include' for space "+num2str(k)+" contains an inadmissible "...
               +"multi-index.")
     end
     A = incl;
+% Linear indices into the rows
 else
     if any(incl(:)<1) || any(incl(:)>size(A,1)) || any(incl(:)~=round(incl(:)))
         error("Linear indices in 'include' for space "+num2str(k)...
@@ -962,37 +1068,50 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [C2,Zp,NL1,NR1] = int_onesided(C,g1,g2,nsheet,Zth,cls,oneidx,dom)
-% Integrate out the theta directions that are NOT shared by the block pair.
-%
-% Sharing is what makes the semiseparable integral necessary: with a variable
-% on both sides the result carries an indicator in s-s' and splits over
-% gamma. With the variable on one side only, or on neither, the integral is
-% an antiderivative of a monomial evaluated at one limit,
+% [C2,ZP,NL1,NR1] = INT_ONESIDED(C,G1,G2,NSHEET,ZTH,CLS,ONEIDX,DOM)
+% integrates out the theta directions that are NOT shared by the block
+% pair, the monomial theta_d^p in direction d becoming
 %
 %   cls(d)==1   int I_beta(s_d-theta_d) theta_d^p dtheta_d,  beta = oneidx(d)
 %   cls(d)==2   int I_alpha(theta_d-s'_d) theta_d^p dtheta_d
 %   cls(d)==0   int_a^b theta_d^p dtheta_d
 %
-% and the outcome is a polynomial in s_d, in s'_d, or a constant. Doing these
-% first leaves 'int_semisep' only the shared directions.
+% a polynomial in s_d, in s'_d, or a constant (alpha = oneidx(d) for
+% cls(d)==2).
 %
-% INPUTS
-% - C:      (g1*NG) x ((1+nsheet)*g2) packed coefficient matrix, rows indexed
-%           (g1, theta) with theta fastest and direction 1 slowest within it,
-%           columns (sheet, g2);
-% - Zth:    1 x nv cell of theta exponent column vectors;
-% - cls:    1 x nv direction classes, 3 shared and left alone;
-% - oneidx: 1 x nv multi-index entries, read only where cls is 1 or 2;
+% INPUT  C:      (g1*NG) x ((1+nsheet)*g2) sparse, the packed coefficient
+%                matrix, rows indexed (g1, theta) with theta fastest and
+%                direction 1 slowest within it, columns (sheet, g2), NG the
+%                number of theta monomials;
+%        g1, g2: 'double', the row and column counts before the theta
+%                monomials;
+%        nsheet: 'double', the number of decision-variable sheets, sheet 1
+%                (the constant part) not counted;
+%        Zth:    1 x nv 'cell' of theta exponent column vectors;
+%        cls:    1 x nv 'double', the direction classes: 3 shared (left
+%                alone), 1 output space only, 2 input space only, 0
+%                neither;
+%        oneidx: 1 x nv 'double', multi-index entries, read only where cls
+%                is 1 or 2;
+%        dom:    nv x 2 'double', the domains.
+% OUTPUT C2:     (g1*NL1*NG3) x ((1+nsheet)*g2*NR1) sparse, rows now
+%                indexed (g1, new s monomials, remaining theta) and columns
+%                (sheet, g2, new s' monomials), which is the layout
+%                'int_semisep' consumes with g1*NL1 and g2*NR1 as its
+%                dimensions, NG3 the number of remaining theta monomials;
+%        Zp:     1 x nv 'cell', Zp{d} the new exponents produced in
+%                direction d and [] where none are;
+%        NL1, NR1: 'double', the sizes of the two new monomial groups.
 %
-% OUTPUTS
-% - C2:     (g1*NL1*NG3) x ((1+nsheet)*g2*NR1), rows now indexed
-%           (g1, new s monomials, remaining theta) and columns
-%           (sheet, g2, new s' monomials), which is the layout
-%           'int_semisep' consumes with g1*NL1 and g2*NR1 as its dimensions;
-% - Zp:     1 x nv cell, Zp{d} the new exponents produced in direction d and
-%           [] where none are;
-% - NL1,NR1: sizes of the two new monomial groups.
+% Sharing is what makes the semiseparable integral necessary: with a variable
+% on both sides the result carries an indicator in s-s' and splits over
+% gamma. With the variable on one side only, or on neither, the integral is
+% an antiderivative of a monomial evaluated at one limit. Doing these first
+% leaves 'int_semisep' only the shared directions.
 
+% Per direction, the map W{d} from the theta exponents to the exponents of
+% the result: the identity (shared), a definite integral (neither) or a
+% one-sided integral
 nv = numel(cls);
 W = cell(1,nv);     nout = ones(1,nv);      Zp = cell(1,nv);
 for d = 1:nv
@@ -1008,6 +1127,7 @@ for d = 1:nv
     nout(d) = size(W{d},1);
 end
 
+% Sizes: theta monomials; new s, new s' and remaining theta monomials
 NG  = prod([cellfun(@numel,Zth),1]);
 dL  = reshape(find(cls==1),1,[]);
 dR  = reshape(find(cls==2),1,[]);
@@ -1059,11 +1179,13 @@ ith  = mod(ir-1,NG)+1;
 sh   = floor((ic-1)/g2);            % 0-based sheet
 jc   = mod(ic-1,g2);                % 0-based (matrix column, s' monomial)
 
+% Entries of T grouped by their theta monomial (column of T)
 cnt = accumarray(tc,1,[NG,1]);
 ptr = [0;cumsum(cnt)];
 [~,ord] = sort(tc);
 iLs = iL(ord);  iRs = iR(ord);  i3s = i3(ord);  tws = tw(ord);
 
+% Fan-out of each nonzero of C; an all-zero C2 when there is no output
 cc  = cnt(ith);
 tot = sum(cc);
 if tot==0
@@ -1090,6 +1212,7 @@ off = cumsum([0;cc(1:end-1)]);
 pos = (1:tot).' - colv(repelem(off,cc));        % 1..cc(u) within nonzero u
 sel = colv(repelem(ptr(ith),cc)) + pos;
 
+% Row, column and value of every output entry
 newrow = (colv(repelem(arow,cc))*NL1 + iLs(sel))*NG3 + i3s(sel) + 1;
 newcol = colv(repelem(sh,cc))*(g2*NR1) + colv(repelem(jc,cc))*NR1 + iRs(sel) + 1;
 newval = colv(repelem(v,cc)).*tws(sel);
@@ -1101,8 +1224,10 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function x = colv(x)
-% Force a column, so that an arithmetic combination of two such vectors
-% cannot silently become a matrix by implicit expansion.
+% X = COLV(X) returns X as a column, so that an arithmetic combination of
+% two such vectors cannot silently become a matrix by implicit expansion.
+% INPUT  x: array.
+% OUTPUT x: numel(x) x 1, the entries of X in linear order.
 
 x = reshape(x,[],1);
 
@@ -1111,9 +1236,10 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Zo,W] = onesided_int(P,side,idx,lim)
-% Integral of theta^p against a single indicator over the domain, returning
-% the exponents Zo of the result in the surviving spatial variable and the
-% map W from the theta exponents P to them.
+% [ZO,W] = ONESIDED_INT(P,SIDE,IDX,LIM) integrates theta^p against a
+% single indicator over the domain, returning the exponents Zo of the
+% result in the surviving spatial variable and the map W from the theta
+% exponents P to them.
 %
 %   side 1   the variable is the OUTPUT s_d, indicator I_idx(s_d-theta_d)
 %   side 2   the variable is the INPUT s'_d, indicator I_idx(theta_d-s'_d)
@@ -1125,7 +1251,19 @@ function [Zo,W] = onesided_int(P,side,idx,lim)
 %   side 1, idx 3   I_-1(s-th)=1 for th>=s   ->  int_s^b
 %   side 2, idx 2   I_1(th-s')=1 for th>=s'  ->  int_{s'}^b
 %   side 2, idx 3   I_-1(th-s')=1 for th<=s' ->  int_a^{s'}
+%
+% INPUT  P:    'double' column of the nonnegative exponents p of theta_d;
+%        side: 'double', 1 or 2 as above;
+%        idx:  'double', the multi-index entry: 1 multiplier (theta_d
+%              becomes the variable), 2 or 3 as above, 4 full-domain
+%              integral;
+%        lim:  1 x 2 'double', the domain [a,b].
+% OUTPUT Zo:   'double' column of the exponents of the variable (0 alone
+%              for idx 4);
+%        W:    numel(Zo) x numel(P) sparse, column t the coefficients of
+%              the integral of theta^P(t) on the monomials of Zo.
 
+% Multiplier: substitution; full-domain integral: definite integral
 if idx==1
     % delta identifies theta_d with the spatial variable: substitution.
     Zo = reshape(P,[],1);
@@ -1139,9 +1277,12 @@ if idx==4
     return
 end
 
+% Lower or upper integral: whether the variable is the upper limit
 a = lim(1);     b = lim(2);     P = reshape(P,[],1);    np = numel(P);
 var_is_upper = (side==1 && idx==2) || (side==2 && idx==3);
 
+% Exponents of the result; the constant and variable coefficients of each
+% antiderivative, in the rows of Zo of exponent 0 and p+1
 Zo = unique([0;P+1]);           % P>=0, so Zo(1)==0 and the constant row is 1
 [~,posv] = ismember(P+1,Zo);
 w0 = zeros(np,1);   wv = zeros(np,1);
@@ -1162,8 +1303,15 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Zo,W] = definite_int(P,lim)
-% int_a^b theta^p dtheta for each exponent in P: a single constant row.
+% [ZO,W] = DEFINITE_INT(P,LIM) returns int_a^b theta^p dtheta for each
+% exponent p in P: a single constant row.
+% INPUT  P:   'double' vector of the nonnegative exponents;
+%        lim: 1 x 2 'double', the domain [a,b].
+% OUTPUT Zo:  0, the exponent of the constant;
+%        W:   1 x numel(P) sparse, W(t) = (b^(p+1)-a^(p+1))/(p+1) for
+%             p = P(t).
 
+% One coefficient per exponent, on the constant monomial
 a = lim(1);     b = lim(2);     P = reshape(P,[],1);    np = numel(P);
 Zo = 0;
 w = zeros(1,np);

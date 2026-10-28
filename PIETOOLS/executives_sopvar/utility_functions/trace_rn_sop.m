@@ -1,30 +1,34 @@
 function tr = trace_rn_sop(X)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TR = TRACE_RN_SOP(X) is the trace of the finite-dimensional part of the
-% square operator X, as the H2 executives take it, for either family:
+% TR = TRACE_RN_SOP(X) returns the trace of the finite-dimensional part of
+% the square PI operator X:
 %
-%   X opvar/dopvar        trace(X.P)
-%   X opvar2d/dopvar2d    trace(X.R00)
-%   X copvar/cdopvar      the sum of the diagonal entries of every diagonal
-%                         block X.C{k,k} whose space k is R^q, as a 1 x 1
-%                         'dpvar' over X.Zd (the constant 0 when X has no
-%                         R^q space), so that lpi_ineq(prog,gam-TR) applies.
+%   X 'opvar', 'dopvar'       trace(X.P);
+%   X 'opvar2d', 'dopvar2d'   trace(X.R00);
+%   X 'copvar', 'cdopvar'     the sum of the traces of the diagonal blocks
+%                             X.C{k,k} whose space k has no spatial
+%                             variable: for an m x m 'sdopvar' block with
+%                             coefficient unvec(A + B'*d), d the decision
+%                             variables, sum(A(idx)) + sum(B(:,idx),2)'*d
+%                             with idx = (0:m-1)*m + (1:m); for a 'sopvar'
+%                             block, trace(params{1}).
 %
 % INPUT
-% - X:      square operator (legacy or container).
+% - X:    'opvar', 'dopvar', 'opvar2d', 'dopvar2d', 'copvar' or 'cdopvar'
+%         object, square.
 %
 % OUTPUT
-% - tr:     1 x 1 'dpvar' (or what trace returns for the legacy fields).
+% - tr:   for a legacy X, what trace returns for X.P or X.R00 ('double', or
+%         'dpvar' for a 'dopvar' or 'dopvar2d' whose part is a 'dpvar');
+%         for a container, a 1 x 1 'dpvar' over the decision variables X.Zd
+%         (none for a 'copvar'), the constant 0 when every space of X has a
+%         spatial variable.
 %
 % NOTES
-% Container blocks: an sdopvar R^q -> R^q block has kernel unvec(A + B'd),
-% m x m, so its trace is sum A(idx) + sum B(:,idx)'d with
-% idx = (0:m-1)*m + (1:m); a fixed sopvar block adds trace(params{1}).
-% Checks: an R^q diagonal block must be square and carry no variables, and
-% its decision list must be X's.
-% Cost: O(nnz of B's diagonal columns), plus an O(q) comparison of each R^q
-% block's decision list with X.Zd (q = numel(X.Zd)); nothing is densified
-% along the decision axis.
+% X of another class is an error. For a container, a diagonal block on a
+% space without spatial variable that is not square, carries spatial
+% variables, or has decision variables other than X.Zd is an error, as is
+% an 'sdopvar' block whose A is nonzero and has other than m*m entries.
 %
 % See also LPI_INEQ, POSLPIVAR_SOP, LPIVAR_CDOPVAR.
 %
@@ -59,7 +63,12 @@ function tr = trace_rn_sop(X)
 %                legacy branches and a check that an R^q diagonal block is
 %                square (cx_h2_trace read dims(1) only). cx_h2_trace stays,
 %                unchanged, for the frozen 2-D H2 transcriptions.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), step comments in the body; code
+%                unchanged. The deleted header text was the use of the
+%                output by its callers and a cost note.
 
+% Legacy operators: the trace of the matrix part
 if isa(X,'opvar') || isa(X,'dopvar')
     tr = trace(X.P);    return
 elseif isa(X,'opvar2d') || isa(X,'dopvar2d')
@@ -67,10 +76,15 @@ elseif isa(X,'opvar2d') || isa(X,'dopvar2d')
 elseif ~(isa(X,'copvar') || isa(X,'cdopvar'))
     error('trace_rn_sop:class','X must be an opvar, opvar2d, copvar or cdopvar.')
 end
+% Container: the constant a and the decision coefficients b of the trace,
+% over the decision list of X
 if isa(X,'cdopvar'),    Zd = X.Zd(:);   else,   Zd = cell(0,1);     end
 q = numel(Zd);
 a = 0;      b = sparse(q,1);
 isR = ~any(X.space_out,2);                  % spaces with no variable: R^q
+% Each nonzero diagonal block on a space without spatial variable: check it,
+% then add the sum of its diagonal entries (B read on its diagonal columns
+% only)
 for k = find(isR(:)).'
     blk = X.C{k,k};
     if isempty(blk),    continue,   end
@@ -96,5 +110,6 @@ for k = find(isR(:)).'
         if ~isempty(C),  a = a + full(trace(C));   end
     end
 end
+% The trace a + b'*Zd as a 1 x 1 dpvar
 tr = dpvar(sparse([a; b]),zeros(1,0),{},Zd,[1 1]);
 end

@@ -1,65 +1,101 @@
 function out = e2e_heat3d_stability(kappa,opts)                             % MMP, 10/21/2026
-% function out = heat3d_stability_sop(kappa,opts)                           % MMP, 10/21/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% OUT = HEAT3D_STABILITY_SOP(KAPPA,OPTS) certifies exponential stability at
-% rate KAPPA of the 3-D heat equation
+% OUT = E2E_HEAT3D_STABILITY(KAPPA,OPTS) certifies exponential stability
+% at rate KAPPA of the heat equation in N = OPTS.N spatial variables,
 %
-%   u_t = u_s1s1 + u_s2s2 + u_s3s3  on [0,1]^3,  s1 DD, s2 and s3 DN,
+%   u_t = u_s1s1 + ... + u_sNsN  on [0,1]^N,  u = 0 at s1 = 0 and s1 = 1,
+%   u = 0 at si = 0 and u_si = 0 at si = 1 for i >= 2,
 %
-% (exact rate kappa* = lambda1 = 3 pi^2/2 = 14.804407) with the heatNd
-% benchmark LPI (Jagt & Peet, arXiv:2508.14840v4, Cor. 35; PIETOOLS_demos/
-% sopvar_demos, preset 'bench', d = 0, ep = 0.1), and extracts and checks
-% the certificate with lpigetsol_sop. Stock PIETOOLS stops at 2 spatial
-% variables; the container classes pose the LPI in 3:
+% whose exact decay rate is pi^2 + (N-1) pi^2/4 (3 pi^2/2 for N = 3), by
+% the LPI of Jagt & Peet, arXiv:2508.14840v4, Cor. 35 (heatNd_lpi, preset
+% 'bench', d = 0, ep = 0.1): for the PIE  T v_t = A0 v  (heatNd_pie), find
+% a decision operator P of degree d, R >= 0 and Q >= 0 with
 %
-%   (15a)  P*T - ep^2 T*T - R = 0,  R >= 0   (imposed as P*T - T*P = 0 and
-%          its self-adjoint part, 'split'),
-%   (15b)  P*A0 + A0*P + 2 kappa P*T + Q = 0,  Q >= 0.
+%   (15a)  P'*T - (P'*T)' = 0  and  P'*T - ep^2 T'*T - R = 0,
+%   (15b)  X1 + KAPPA*X2 + Q = 0,  X1 = P'*A0 + (P'*A0)',
+%          X2 = P'*T + (P'*T)',
 %
-% The SDP (m 31770, 2.7e6 decision variables) is solved by heatNd_solve
-% (MOSEK) on a maximal independent subset of the rows; the verdict is on
-% ALL rows (+1 needs MOSEK OPTIMAL, rel_b <= 1e-6, PSD blocks). The
-% measured bisection bracket at d = 0 is [14.60, 14.70) (heatNd README
-% Sec. 6.3), so the default KAPPA = 14.0 is below it.
-%
-% CHECKS (each asserted; error id heat3d_stability_sop:check):
-% (1) heatNd_solve verdict +1 (certified on all rows);
-% (2) the extracted constraint operators reproduce the SDP rows: with
-%     solinfo.RRx = RR*x*bscl (heatNd_sdp's map to decvartable order),
-%     the (15a) and (15b) row sets have residual norms r_a, r_b with
-%     r_a^2 + r_b^2 = ||At'RRx - b||^2. Every row is a canonical coefficient
-%     of the extracted constraint operators, one per adjoint pair
-%     ('symmetric'), so the coefficient norm c is >= r. (15b) is self-adjoint
-%     for every decision value, so c_b <= sqrt(2) r_b. In (15a) P*T - T*P is
-%     anti-self-adjoint and P*T - ep^2 T*T - R = S + (P*T - T*P)/2 with S
-%     self-adjoint, whence c_a <= 2 r_a;
-% (3) by action on test functions (opcheck_sop, 3-D quadrature): (15a)
-%     P*T - ep^2 T*T = R and P*T = (P*T)', (15b) X1 + kappa X2 = -Q, each to
-%     1e-5 relative; R >= 0, Q >= 0 and -(X1 + kappa X2) >= 0 (the decrease
-%     condition) on the test functions (>= -1e-8, normalized);
-% (4) control: RRx perturbed by 1e-3 of its rms entry breaks (3) by more
-%     than 1e3 times the real residual.
+% each equality on one parameter per adjoint pair ('symmetric'). The SDP
+% (heatNd_sdp) is solved with MOSEK on a maximal linearly independent
+% subset of its equality rows (heatNd_solve), P, R, Q and the constraint
+% operators are extracted with lpigetsol_sop, and they are checked,
+% erroring at the first failed check:
+%   (0) a row set from OPTS.keepfile belongs to an SDP with the same m, K
+%       and b;
+%   (1) heatNd_solve returns the verdict +1: MOSEK OPTIMAL, rel_b =
+%       ||At'x - b||/||b|| <= 1e-6 on all rows, the least eigenvalue of the
+%       PSD blocks at least -1e-8 times the largest, x ~= 0; the extracted
+%       operators are 'copvar' objects;
+%   (2) at solinfo.RRx = RR*x*bscl (x the MOSEK point, RR and bscl from
+%       heatNd_sdp), the residual norms r_a of the (15a) rows and r_b of
+%       the (15b) rows satisfy sqrt(r_a^2 + r_b^2) = r_all to 1e-6
+%       relative, r_all = ||At'x - b||*bscl; the coefficient norm of the
+%       extracted (15a) operators lies in [r_a, 2 r_a] and that of (15b)
+%       in [r_b, sqrt(2) r_b] (1e-6 slack);
+%   (3) by the action on OPTS.nt random polynomial test functions of
+%       degree at most 2 (opcheck_sop, OPTS.nq Gauss nodes per direction):
+%       P'*T - ep^2 T'*T = R, P'*T = (P'*T)' and X1 + KAPPA*X2 = -Q to 1e-5
+%       relative; R, Q and -(X1 + KAPPA*X2) at least -1e-8 (normalized);
+%   (4) with solinfo.RRx perturbed by 1e-3 times its rms entry (Gaussian,
+%       seed 7), the larger of the residuals of P'*T - ep^2 T'*T = R and
+%       X1 + KAPPA*X2 = -Q exceeds 1e3 times the larger unperturbed one.
 %
 % INPUT
-% - kappa: rate (default 14.0); the SDP depends on kappa only (heatNd_lpi);
-% - opts (struct, optional):
-%     keep      row set of the SDP (heatNd_lindep); default: computed here,
-%               one sparse QR, 363 s measured;
-%     keepfile  a heatNd_sdp dump of the same family whose info.keep is
-%               reused (checked: same m, K and b; At is affine in kappa, the
-%               dependency structural, heatNd_lindep header);
-%     nt, nq    test functions (4) and Gauss nodes per direction (6);
-%     N         number of variables (default 3; 1 or 2 is a cheap dry run of
-%               the same code, s1 DD, the others DN).
-% OUTPUT struct: the verdict v (heatNd_solve), the row/coefficient norms of
-%   (2), the residuals and margins of (3), the control, sizes, times (s)
-%   and memory (MB).
+% - kappa:  (optional) 'double', the rate; default 14.0;
+% - opts:   (optional) 'struct' with optional fields
+%             keep      'double' vector, the equality rows to solve on;
+%             keepfile  'char', a .mat file saved by heatNd_sdp whose
+%                       info.keep is the row set;
+%             nt        'double', the number of test functions (default 4);
+%             nq        'double', Gauss nodes per direction (default 6);
+%             N         'double', the number of spatial variables
+%                       (default 3);
+%           without keep and keepfile, the row set is computed by one
+%           sparse QR (heatNd_lindep).
 %
-% COST (measured, heatNd README Sec. 8): build 74-119 s; MOSEK on the
-% 22226 independent rows 371-697 s at 10.7-11.45 GB; on all rows 499-921 s
-% at 20.1-20.9 GB. This example, 09/29/2026, on a shared machine: build
-% 133 s, MOSEK 852 s (20 iterations), process peak 12.97 GB, extraction of
-% 9 operators 10.8 s, checks 57 s, 18 min in all. Price before running.
+% OUTPUT
+% - out:    'struct' with fields kappa and kstar ('double', the rate and
+%           the exact rate), v ('struct', the verdict of heatNd_solve,
+%           field x emptied), nkeep, m, ndec ('double', the rows solved on,
+%           all rows, the decision variables), Ks ('double', the PSD block
+%           sizes), rows ([r_a r_b r_all]), coef_rows (1x2 'double', the
+%           coefficient norms over r_a and r_b), res (1x3 'double', the
+%           residuals of (3)), psd (1x3 'double', the least values for R, Q
+%           and -(X1 + KAPPA*X2)), control (1x2 'double', the residuals of
+%           (4)), mem ('struct', the memory record of heatNd_lpi), t
+%           ('struct' of seconds: build, sdp, keep, mosek, extract, check);
+%           printed lines with the values.
+%
+% NOTES
+% A failed check errors with identifier 'heat3d_stability_sop:check'. By
+% Cor. 35, a certificate exists only for KAPPA at most the exact rate.
+% Requires MOSEK.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - e2e_heat3d_stability
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/29/2026. Tier 1 end-to-end example E4.
 % MMP, 10/21/2026: moved from examples/heat3d_stability_sop.m to
@@ -69,8 +105,20 @@ function out = e2e_heat3d_stability(kappa,opts)                             % MM
 %                replaces it: the PDE front end converts at most two
 %                spatial variables. Code unchanged; the error identifiers
 %                keep the former name.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), the licence block added, step comments
+%                in the body and headers of the local functions; code
+%                unchanged. The deleted header text was the measured size,
+%                cost and bisection bracket of the SDP, a comparison with
+%                stock PIETOOLS, the derivation of the bounds of check (2)
+%                and references to a README.
+%                The (was) line of the former signature moved here from
+%                under the function line, so that help starts with the
+%                description:
+% function out = heat3d_stability_sop(kappa,opts)                           % MMP, 10/21/2026 (was)
 
+% Defaults; no warnings for non-canonical multipliers; a check asserts
+% with one identifier
 if nargin<1 || isempty(kappa),  kappa = 14.0;       end
 if nargin<2 || isempty(opts),   opts = struct();    end
 if ~isfield(opts,'nt'),     opts.nt = 4;    end
@@ -79,9 +127,12 @@ if ~isfield(opts,'N'),      opts.N = 3;     end
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
 chk = @(c,varargin) assert(c,'heat3d_stability_sop:check',varargin{:});
+% epsilon of (15a), degree of P
 ep = 0.1;   d = 0;
 
 % % % Program and SDP.
+% The PIE (r = 0), the LPI at KAPPA and its operators (meta.base), then
+% the SDP in SeDuMi form
 t0 = tic;
 pie = heatNd_pie(opts.N,0);
 [prog,meta] = heatNd_lpi(pie,d,kappa,ep,struct('preset','bench'));
@@ -92,6 +143,8 @@ fprintf('E4 %d-D heat, kappa %.4f (kappa* %.6f): ndec %d, m %d, Ks %s; build %.1
     opts.N,kappa,pie.exact.lambda1,numel(prog.decvartable),D.m,mat2str(D.K.s),t_build,t_sdp);
 
 % % % Row set, then the solve (verdict on all rows).
+% Rows given, read from a dump of the same SDP family (check (0)), or
+% found by one sparse QR
 t0 = tic;
 if isfield(opts,'keep') && ~isempty(opts.keep)
     keep = opts.keep(:);    src = 'given';
@@ -105,6 +158,7 @@ else
 end
 t_keep = toc(t0);
 fprintf('   rows: %d independent of %d (%s, %.1f s)\n',numel(keep),D.m,src,t_keep);
+% (1) MOSEK on the kept rows, the verdict on all rows
 v = heatNd_solve(D,struct('keep',keep,'rows','keep','keepx',true));
 fprintf('   heatNd_solve: st %+d (%s); rel_b %.2e (all rows), psd_relmin %.2e, MOSEK %.0f s, %d iter, peak %.0f MB\n',...
     v.st,v.why,v.rel_b,v.psd_relmin,v.t_mosek,v.iter,v.mem_peak);
@@ -112,10 +166,13 @@ chk(v.st==1,'(1) not certified: %s',v.why)
 
 % % % Extraction: the dump's point in decvartable order is a solved program.
 t0 = tic;
+% Cone vector and decvartable-order point, both scaled back by bscl
 prog.solinfo.x = v.x*D.bscl;
 prog.solinfo.RRx = full(D.RR*v.x)*D.bscl;
 prog.solinfo.info = struct('route','heatNd_solve','st',v.st,'rel_b',v.rel_b);
 v.x = [];
+% P, R, Q, the constraint operators of (15a), (15b) and the parts that
+% check (3) uses
 Ps = lpigetsol_sop(prog,B.P);   Rs = lpigetsol_sop(prog,B.R);   Qs = lpigetsol_sop(prog,B.Q);
 PT = B.P'*pie.T;                                % as heatNd_lpi composes it
 Ea1 = PT - PT';     Ea2 = B.E1 - B.R;   Eb = B.X1 + meta.kappa*B.X2 + B.Q;
@@ -157,6 +214,7 @@ r15bx = opcheck_sop('res',lpigetsol_sop(bad,B.X1 + meta.kappa*B.X2),-lpigetsol_s
 fprintf('   control RRx + 1e-3 rms noise: (15a) %.2e, (15b) %.2e\n',r15ax,r15bx);
 chk(max(r15ax,r15bx)>1e3*max([r15a,r15b,1e-12]),'(4) a perturbed RRx is not detected')
 
+% Output
 out = struct('kappa',kappa,'kstar',pie.exact.lambda1,'v',v,'nkeep',numel(keep),'m',D.m,...
     'ndec',numel(prog.decvartable),'Ks',D.K.s,'rows',[ra rb_ rall],'coef_rows',[ca/ra cb/rb_],...
     'res',[r15a rPT r15b],'psd',[pR pQ pL],'control',[r15ax r15bx],'mem',meta.mem,...
@@ -167,13 +225,21 @@ end
 
 % ------------------------------------------------------------------------
 function x = v_x(D,prog)
-% The solved cone vector, normalized as D.b (heatNd_sdp: x_orig = x*bscl).
+% X = V_X(D,PROG) returns the solved cone vector in the scaling of D.b,
+% prog.solinfo.x/D.bscl.
+% INPUT  D: 'struct' of heatNd_sdp (field bscl); prog: 'struct', a solved
+%        LPI program (field solinfo.x).
+% OUTPUT x: 'double' column.
 x = prog.solinfo.x/D.bscl;
 end
 
 function r = row_res(prog,rows)
-% ||At_i' x - b_i|| over the expressions ROWS, x = solinfo.RRx
-% (decvartable order, the order of At rows).
+% R = ROW_RES(PROG,ROWS) returns sqrt(sum_i ||At_i'*x - b_i||^2) over the
+% expressions i in ROWS, x = prog.solinfo.RRx (decvartable order, the
+% order of the rows of At_i).
+% INPUT  prog: 'struct', a solved LPI program; rows: 'double' vector of
+%        indices into prog.expr.At and prog.expr.b.
+% OUTPUT r: 'double'.
 x = prog.solinfo.RRx(:);    r2 = 0;
 for i = rows
     At = prog.expr.At{i};   b = prog.expr.b{i};

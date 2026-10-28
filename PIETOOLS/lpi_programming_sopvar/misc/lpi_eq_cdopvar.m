@@ -1,60 +1,62 @@
 function prog = lpi_eq_cdopvar(prog,P,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PROG = LPI_EQ_CDOPVAR(PROG,P) takes an LPI optimization program structure
-% 'prog' and a 'cdopvar' decision operator P on a concatenation of mixed
-% spaces, and adds equality constraints enforcing P==0. It is the container
-% counterpart of 'lpi_eq_sdopvar', and applies in particular to the operators
-% returned by 'poscopvar' and to sums and compositions of them.
-%
-% A container acts blockwise,
+% PROG = LPI_EQ_CDOPVAR(PROG,P,OPTS) adds to the LPI program PROG the
+% equality constraints P == 0 for the 'cdopvar' decision container P,
 %
 %   (P x)_i = sum_j P.C{i,j} x_j,
 %
-% on x = [x_1;...;x_N] with the x_j independent, so P==0 holds exactly when
-% every block is the zero operator. Each block is an ordinary 'sdopvar' and
-% is constrained by 'lpi_eq_sdopvar'; there is nothing further to do at the
-% container level. A block stored as [] is structurally zero and generates no
-% constraints.
+% block by block. An 'sdopvar' block, with parameter cells gamma of
+% coefficients vec(C_gamma(d)) = A_gamma + B_gamma'*d over the decision
+% variables d = P.Zd, gets the equations A_gamma(c) + B_gamma(:,c)'*d = 0
+% at each position c of C_gamma that its canonical multiplier form allows
+% (the columns whose ZR monomial has degree 0 in every multiplier
+% direction of gamma), all-zero equations omitted; these hold exactly
+% when the block is the zero operator. A block [] or an all-zero 'sopvar'
+% block gets no equation.
 %
 % INPUT
-% - prog:   'struct' specifying an LPI program structure to modify (see also
-%           'lpiprogram'). All decision variables of P must already appear in
-%           'prog.decvartable';
-% - P:      'cdopvar' object of which to enforce P==0;
-% - opts:   (optional) set opts = 'symmetric' if P is known to be
-%           self-adjoint, to constrain only one block per adjoint pair.
-%           Block (j,i) of a self-adjoint container is the adjoint of block
-%           (i,j), so the off-diagonal blocks are constrained for i<j only,
-%           and each diagonal block is passed 'symmetric' in turn so that its
-%           own parameters are paired the same way. As in 'lpi_eq_sdopvar'
-%           this is taken on the caller's word: if P is not self-adjoint the
-%           resulting constraint is strictly weaker than P==0;
+% - prog:   'struct', an LPI program (lpiprogram or lpiprogram_sop) whose
+%           prog.decvartable holds every name of P.Zd; with the field sopeq
+%           (a cell, e.g. {}), the rows of this call are recorded there
+%           (see OUTPUT);
+% - P:      'cdopvar' object, M x N blocks P.C{i,j}, each an 'sdopvar'
+%           object, a 'sopvar' object or [];
+% - opts:   (optional) 'char', 'symmetric' for a P that is self-adjoint for
+%           every value of d: of the blocks (i,j) and (j,i), i < j, only
+%           (i,j) is constrained, or (j,i) when (i,j) is not an 'sdopvar';
+%           in a diagonal block, of each pair of parameter cells mapped to
+%           each other by exchanging lower (2) and upper (3) integrals in
+%           every direction, only the one of lower linear index (default
+%           []: every block and cell).
 %
 % OUTPUT
-% - prog:   Same LPI program structure as the input, but with the added
-%           constraints enforcing P==0.
+% - prog:   'struct', PROG with the equations appended to prog.expr as
+%           'eq' entries, in the block order (1,1), (1,2), ..., (M,N) and,
+%           within a block, in the order of the parameter cells and
+%           positions; when PROG has the field sopeq, a 'struct' appended to
+%           prog.sopeq with fields
+%             rows       1 x 2 double, the first and last row of the
+%                        equations among the rows of prog.expr;
+%             entries    struct array, one entry per 'sdopvar' block except
+%                        those 'symmetric' skips, in row order, with fields
+%                        i, j (double, the block), cells (double row, its
+%                        parameter cells with equations), cols (cell, per
+%                        cell the linear positions c of its equations, in
+%                        row order) and blk ('struct' with the block's ZL,
+%                        ZR, dims, vars and dom, NL and NR (double, its
+%                        numbers of left and right monomials), psize (the
+%                        size of its parameter array) and symmetric);
+%             M, N       double, the block grid;
+%             symmetric  logical, OPTS was 'symmetric';
+%             space_out, space_in, vars, dom
+%                        those of P.
 %
 % NOTES
-% To enforce P==Q, call LPI_EQ_CDOPVAR(PROG,P-Q); '@cdopvar/plus' aligns    % MMP, 09/26/2026
-% the blocks, monomial bases and decision variable lists of the two
-% containers, and a zero block on one side passes through untouched.        % MMP, 09/26/2026
-% (was) To enforce P==Q, call LPI_EQ_CDOPVAR(PROG,P+(-1)*Q); '@cdopvar/plus' aligns % MMP, 09/26/2026 (was)
-% (was) containers, and a zero block on one side passes through untouched. Note % MMP, 09/26/2026 (was)
-% (was) that neither 'cdopvar' nor 'copvar' defines 'minus' or 'uminus', so P-Q is % MMP, 09/26/2026 (was)
-% (was) not executable; the scalar branch of '@cdopvar/mtimes' is what negates a % MMP, 09/26/2026 (was)
-% (was) container.                                                          % MMP, 09/26/2026 (was)
-%
-% Where one block of an adjoint pair is structurally zero and the other is
-% not, the nonzero one is constrained, so 'symmetric' does not depend on
-% which of the two a sum happened to populate. For a genuinely self-adjoint
-% container the two cases cannot differ in substance.
-%
-% All blocks sharing a decision variable list are imposed together, joined  % MMP, 09/26/2026
-% into as few 'soseq' calls as a cap of numel(prog.decvartable) nonzeros    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-% into as few prog.expr entries as a nonzero cap of numel(prog.decvartable) % MMP, 10/02/2026
-% each allows (see 'lpi_eq_sdopvar'), so prog.expr gains a few entries per  % MMP, 09/26/2026
-% call. The rows sossolve assembles (At and b, in order) are those one      % MMP, 09/26/2026
-% 'soseq' per parameter gave.                                               % MMP, 09/26/2026
+% P a 'copvar' or of a class other than 'cdopvar', PROG without the field
+% decvartable, OPTS other than 'symmetric', 'symmetric' with M ~= N, a
+% nonzero 'sopvar' block, a block not in canonical multiplier form, and a
+% name of P.Zd absent from prog.decvartable are errors. To impose P == Q,
+% call LPI_EQ_CDOPVAR(PROG,P-Q).
 %
 % See also LPI_EQ_SDOPVAR, LPI_EQ, POSCOPVAR, COPQUADVAR, CDOPVAR.
 %
@@ -156,7 +158,17 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  helpers to misc/private/: the folder root keeps the user
 %                  functions only. The locations in the entries above read
 %                  accordingly. Code unchanged.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), step comments in the body; code
+%                  unchanged. The deleted header text was the comparison
+%                  with 'lpi_eq_sdopvar', the argument that blockwise
+%                  equations are exact, the P-Q recipe's (was) lines, the
+%                  reason for the rule on adjoint pairs with one zero block
+%                  and notes on joining blocks into prog.expr entries. The
+%                  rule that the 09/21/2026 entry and the comment at the
+%                  'symmetric' skip call the NOTES is now in the OPTS entry.
 
+% Inputs: a decision container and an LPI program
 if isa(P,'copvar')
     error("Input of type 'copvar' carries no decision variables; use 'eq' "...
           +"on its blocks to test whether it is zero.")
@@ -168,6 +180,7 @@ if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
     error("First input must be an LPI program structure; see 'lpiprogram'.")
 end
 
+% Option 'symmetric'
 symm = false;
 if nargin>2 && ~isempty(opts)
     if (ischar(opts) || isstring(opts)) && strcmpi(char(opts),'symmetric')
@@ -178,6 +191,7 @@ if nargin>2 && ~isempty(opts)
     end
 end
 
+% Block grid; 'symmetric' needs a square one
 [M,N] = size(P.C);
 if symm && M~=N
     error("Only a square container can be self-adjoint; this one is "...
@@ -207,8 +221,11 @@ if record && isfield(prog,'expr') && isfield(prog.expr,'At')                % MM
     for e = 1:numel(prog.expr.At),  r0 = r0 + size(prog.expr.At{e},2);  end % MMP, 10/08/2026
 end                                                                         % MMP, 10/08/2026
 ents = struct('i',{},'j',{},'cells',{},'cols',{},'blk',{});                 % MMP, 10/08/2026
+% Blocks in the order (1,1), (1,2), ..., (M,N)
 for i = 1:M
     for j = 1:N
+        % Under 'symmetric', a block below the diagonal is skipped when its
+        % mirror (j,i) is an 'sdopvar', which is constrained instead
         if symm && j<i
             % Skip only when the mirror will ACTUALLY be constrained, which % MMP, 09/21/2026
             % means it carries decision variables. Testing isempty alone     % MMP, 09/21/2026
@@ -228,6 +245,8 @@ for i = 1:M
                 continue
             end
         end
+        % Block (i,j): [] and an all-zero 'sopvar' add nothing, a nonzero
+        % 'sopvar' is an error
         Bij = P.C{i,j};
         if isempty(Bij)
             continue                        % structurally zero
@@ -243,6 +262,8 @@ for i = 1:M
             end
             continue
         end
+        % A list equal to the last verified one needs no check; a new list
+        % first imposes the rows collected over the old one
         % isequal is O(q) with a small constant (~10 ms at q = 3.8e5); the  % MMP, 09/26/2026
         % check it replaces hashes the whole program table.                 % MMP, 09/26/2026
         checked = isequal(Bij.Zd,Zd_ok);                                    % MMP, 09/26/2026
@@ -275,6 +296,7 @@ for i = 1:M
         if isempty(batch),  batch = Eq;                                     % MMP, 09/26/2026
         else,               batch.Cs = [batch.Cs, Eq.Cs];                   % MMP, 09/26/2026
         end                                                                 % MMP, 09/26/2026
+        % Row record of the block
         if record                                                           % MMP, 10/08/2026
             ents(end+1) = struct('i',i,'j',j,'cells',Eq.cells,'cols',{Eq.cols},'blk',Eq.blk); %#ok<AGROW> % MMP, 10/08/2026
         end                                                                 % MMP, 10/08/2026
@@ -297,6 +319,7 @@ if ~isempty(batch)                                                          % MM
 end                                                                         % MMP, 09/26/2026
 % Record the rows of this call (prog.sopeq{end}) for 'lpigetdual_sop'.      % MMP, 10/08/2026
 if record                                                                   % MMP, 10/08/2026
+    % Rows written: one per recorded position
     nrow = 0;                                                               % MMP, 10/08/2026
     for e = 1:numel(ents),  nrow = nrow + sum(cellfun(@numel,ents(e).cols));    end % MMP, 10/08/2026
     prog.sopeq{end+1} = struct('rows',[r0+1,r0+nrow],'entries',ents,'M',M,'N',N, ...% MMP, 10/08/2026

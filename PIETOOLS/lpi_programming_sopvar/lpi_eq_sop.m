@@ -1,44 +1,37 @@
 function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MMP, 10/08/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PROG = LPI_EQ_SOP(PROG,P,OPTS) takes an LPI optimization program
-% structure 'prog' and a (PI operator) decision variable P of either
-% operator family, and adds equality constraints enforcing P==0. It is
-% 'lpi_eq' with the 'sopvar' family added, so that one LPI body serves
-% both:
-%
-%   class of P                              handled by
-%   'cdopvar', 'copvar'                     lpi_eq_cdopvar
-%   'sdopvar', 'sopvar'                     lpi_eq_sdopvar
-%   anything else ('dpvar', 'dopvar',       lpi_eq, unchanged
-%   'dopvar2d', 'opvar', 'opvar2d',
-%   'polynomial', 'double', ...)
-%
-% Each routine keeps its own checks and errors: a fixed 'copvar' or
-% 'sopvar' is refused by the container routines (no decision variables),
-% and 'polynomial'/'double' by 'lpi_eq', as each does today.
+% [PROG,TAG] = LPI_EQ_SOP(PROG,P,OPTS) adds to the LPI program PROG the
+% equality constraints P == 0 on the decision variables of P: for a
+% 'cdopvar' P, that every block is zero (LPI_EQ_CDOPVAR); for an 'sdopvar'
+% P, that every stored coefficient of every parameter is zero
+% (LPI_EQ_SDOPVAR); for any other P, the constraints of LPI_EQ.
 %
 % INPUT
-% - prog:   'struct' specifying the LPI program structure to modify (see
-%           'lpiprogram_sop' or 'lpiprogram');
-% - P:      the operator or decision variable to set to zero;
-% - opts:   (optional) 'symmetric' if P is self-adjoint, to constrain one
-%           parameter (container: one block) per adjoint pair; passed to
-%           the routine unchanged, and only when given.
+% - prog:   'struct', the LPI program to modify (from LPIPROGRAM_SOP or
+%           LPIPROGRAM), whose field decvartable holds every decision
+%           variable of P;
+% - P:      'cdopvar' or 'sdopvar' object, the decision operator to set to
+%           zero; or a 'dpvar', 'opvar', 'dopvar', 'opvar2d' or 'dopvar2d'
+%           object;
+% - opts:   (optional) char 'symmetric', for a self-adjoint P: one
+%           parameter of each adjoint pair is constrained (for a 'cdopvar',
+%           one block of each pair of blocks (i,j) and (j,i), and one
+%           parameter of each pair within a diagonal block). For a P that
+%           is not self-adjoint the constraints are then weaker than
+%           P == 0.
 %
 % OUTPUT
-% - prog:   the program with the constraints P==0 added: the same program,
-%           field for field, that the routine in the table above builds
-%           when called directly (tests/test_lpi_eq_sop).
+% - prog:   'struct', PROG with the constraints P == 0 added;
+% - tag:    'double', for a 'cdopvar' P and a PROG with the field sopeq (a
+%           cell): the index in prog.sopeq of the record of the rows this
+%           call added (the TAG input of LPIGETDUAL_SOP); 0 otherwise.
 %
 % NOTES
-% Cost: two to four class tests, then the routine's own cost. The
-% container routines impose the rows in joined 'soseq' calls, about one     % MMP, 10/02/2026 (was)
-% container routines impose the rows in joined prog.expr entries written    % MMP, 10/02/2026
-% by 'lpi_soseq', about one                                                 % MMP, 10/02/2026
-% per numel(prog.decvartable) nonzeros (see 'lpi_eq_sdopvar').
+% A 'copvar', 'sopvar', 'polynomial' or 'double' P, which has no decision
+% variables, is an error.
 %
 % See also LPI_EQ, LPI_EQ_CDOPVAR, LPI_EQ_SDOPVAR, LPIPROGRAM_SOP,
-%          LPIGETSOL_SOP.
+%          LPIGETSOL_SOP, LPIGETDUAL_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -77,15 +70,24 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 %                impose_eq_rows; the note on a second output is obsolete.
 % MMP, 10/02/2026: Comment only: the container rows are written by
 %                'lpi_soseq', not soseq.
-
-% Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and
-% lpi_eq_sdopvar each test nargin for it.
 % MMP, 10/08/2026: second output TAG, the index in prog.sopeq of the row
 %                  record lpi_eq_cdopvar keeps for this equality, so that
 %                  'lpigetdual_sop' can assemble its dual kernel; 0 on the
 %                  single-block and legacy paths, which keep no record.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), step comments in the body; code
+%                unchanged. The 10/08/2026 entry, which stood in the body,
+%                moved to this log. The deleted header text was the
+%                comparison with lpi_eq, the per-routine remarks on errors,
+%                a test reference and a cost note with its 10/02/2026 edit.
+
+% Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and
+% lpi_eq_sdopvar each test nargin for it.
+% TAG is 0 unless lpi_eq_cdopvar records the rows of this equality
 tag = 0;                                                                    % MMP, 10/08/2026
 if isa(P,'cdopvar') || isa(P,'copvar')
+    % Container: every block, by lpi_eq_cdopvar; TAG the index of the row
+    % record it appends to prog.sopeq when the program has that field
     if nargin>=3,   prog = lpi_eq_cdopvar(prog,P,opts);
     else,           prog = lpi_eq_cdopvar(prog,P);
     end
@@ -98,6 +100,7 @@ elseif isa(P,'sdopvar') || isa(P,'sopvar')
     else,           prog = lpi_eq_sdopvar(prog,P);
     end
 else
+    % Every other class: lpi_eq
     if nargin>=3,   prog = lpi_eq(prog,P,opts);
     else,           prog = lpi_eq(prog,P);
     end

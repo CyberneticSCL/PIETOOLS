@@ -1,42 +1,104 @@
 function R = test_lpiprogram_sop(parts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% R = TEST_LPIPROGRAM_SOP(PARTS) tests 'lpiprogram_sop'. PARTS: cellstr
-% subset of {'a','b','c','d'} (default all).
+% R = TEST_LPIPROGRAM_SOP(PARTS) checks lpiprogram_sop in the parts that
+% PARTS names, and errors at the first failed check; a program equals
+% another field by field (same_val_sop: 'polynomial' and 'dpvar' objects
+% by their stored arrays):
+%   (a) for 16 input forms of lpiprogram on 1 or 2 spatial variables, with
+%       dummy, decision and free variables, lpiprogram_sop returns the
+%       program of lpiprogram, and the comparison detects a changed domain
+%       and a changed dummy variable; for 8 malformed inputs it raises the
+%       error message of lpiprogram; on 3 variables it returns the program
+%       of lpiprogram, with dom [0 1] in each variable and vartable
+%       [s1; s2; s3; th1; th2; th3];
+%   (b) for N = 3, 4 and s_i on [0,i], lpiprogram_sop of the 'polynomial'
+%       and of the 'cellstr' variables returns the program built by
+%       sosprogram with vartable [s1; ...; sN; s1_dum; ...; sN_dum] and
+%       that dom;
+%   (c) for s1, s2, s3 on [0,1], [-1,2], [0,0.5], a 'copvar', a 'cdopvar',
+%       their 'sopvar' and 'sdopvar' blocks, a 'struct' with fields vars
+%       and dom, and the 'cellstr' and string variable names with the
+%       domain each give the program of the 'polynomial' variables; a
+%       'copvar' on L2[b] x L2[a] with a on [0,3] and b on [0,1] gives the
+%       vartable [a; b; a_dum; b_dum] and dom [0 3; 0 1]; a 'dpvar' after
+%       a 'copvar' gives the decvartable; the comparison detects a changed
+%       domain;
+%   (d) on lpiprogram_sop programs, with lpidecvar, lpi_ineq (gam >= 0),
+%       lpisetobj, lpi_eq_sop ('symmetric') and lpisolve (MOSEK, no
+%       simplification): min gam s.t. gam*I - V'*V = W, W >= 0 for the
+%       Volterra operator (V x)(s) = int_0^s1 ... int_0^sN x(t) dt on
+%       L2[0,1]^N, N = 1, 2, ||V|| = (2/pi)^N, W of degree 1 from
+%       poscopvar plus the product psatz term (N = 1) or the 2N linear
+%       face terms (N = 2), bound sqrt(gam); and min gam s.t.
+%       gam*I - M = W, W >= 0 for the multiplier M = [2 1; 1 2] on
+%       L2^2[0,1]^N, N = 1, ..., 4, W of degree 0, exact value 3, bound
+%       gam. Each program has at most 1e5 decision variables; MOSEK numerr
+%       0 and pinf 0, rel_b = ||At'x - b||/||b|| <= 1e-6 at
+%       x = solinfo.RRx, the least eigenvalue of the Gram blocks at least
+%       -1e-8 times the largest; the bound at least the exact value
+%       (1e-6 relative) and, for M and for V at N = 1, at most the exact
+%       value plus 1e-4 relative; the extracted W and E = gam*I - V'*V - W
+%       (resp. gam*I - M - W) are 'copvar' objects, and the coefficient
+%       norm of E lies in [r, sqrt(2) r] (1e-6 slack), r the residual norm
+%       of the rows of E = 0.
 %
-% (a) Every input form of 'lpiprogram' with <= 2 spatial variables: the
-%     output equals lpiprogram's FIELD BY FIELD (polynomial and dpvar
-%     objects compared by their stored arrays, not by the elementwise
-%     isequal overload); every error case gives lpiprogram's message.
-% (b) N = 3, 4: equals the program heatNd_lpi / heatNd_poincare /
-%     test_copquadvar_faces built by hand for N > 2 (sosprogram + vartable
-%     [vars; vars_dum] + dom), field by field; lpiprogram refuses these.
-% (c) The new forms: cellstr names, a copvar / cdopvar / sopvar / sdopvar,
-%     and a struct(vars,dom), each equal to the polynomial form with the
-%     sorted registry and '_dum' dummies.
-% (d) The container workflow on an N-variable program with the legacy
-%     lpidecvar, lpi_ineq (scalar), lpisetobj and lpisolve unchanged:
-%     - an upper bound on the norm of the N-D Volterra operator
-%         (V x)(s) = int_0^{s_1} ... int_0^{s_N} x(t) dt, ||V|| = (2/pi)^N,
-%       from  min gam  s.t.  gam*I - V'*V = W, W >= 0 (poscopvar degree 1
-%       plus, at N = 1, the product-psatz term as volterra_norm_sop, and
-%       at N = 2 the 2N linear face terms), N = 1, 2;
-%     - min gam s.t. gam*I - M = W >= 0 for the multiplier M = [2 1;1 2] on
-%       L2^2[s1..sN] (gam* = 3), N = 1..4, poscopvar degree 0.
-%     Checks: MOSEK numerr 0, rel_b <= 1e-6 on solinfo.RRx rows, Gram
-%     blocks PSD; the bound is >= the exact value (soundness), equal to
-%     1e-4 where the cone is exact (Volterra N = 1, mult); gam from
-%     lpigetsol_sop; the extracted E = gam*I - M - W has coefficient norm
-%     between 1 and sqrt(2) times the SDP row residual of its rows.
+% INPUT
+% - parts:  (optional) 'cellstr' subset of {'a','b','c','d'}, or a 'char'
+%           comma-separated list of them; default all four.
+%
+% OUTPUT
+% - R:      'struct' with one field per part run: a ('struct' with fields
+%           ncases and nerr, the numbers of input forms and error cases),
+%           b and c (logical true), d ('struct' array, one entry per LPI,
+%           with fields prob ('volterra' or 'mult'), N, gam (the bound),
+%           exact, rel_b, ce_rr (the coefficient norm over r), ndv, m, Ks,
+%           t (seconds)); printed lines per part.
+%
+% NOTES
+% Part (d) requires MOSEK.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - test_lpiprogram_sop
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/29/2026
 % MMP, 10/01/2026: lpiprogram now takes any number of variables (the cap is
 %   removed), so part (a) checks that lpiprogram_sop equals it at N = 3
 %   instead of checking that lpiprogram refuses; part (b) still compares
 %   N = 3, 4 against the hand-built program, which is now also lpiprogram.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%   inputs, outputs), the licence block added, step comments in the body
+%   and headers of the local functions; code unchanged. The deleted header
+%   text was references to other files, history ("the new forms",
+%   "lpiprogram refuses these"), and, in the header of part_d, a measured
+%   problem size and the rationale for N <= 2.
 
+% Default parts; a comma list becomes a cellstr
 if nargin<1 || isempty(parts),  parts = {'a','b','c','d'};  end
 if ischar(parts),   parts = strsplit(parts,',');    end
+% Run the parts named
 R = struct();
 if ismember('a',parts),     R.a = part_a();     end
 if ismember('b',parts),     R.b = part_b();     end
@@ -48,6 +110,11 @@ end
 
 % ========================================================================
 function out = part_a()
+% OUT = PART_A() runs part (a): lpiprogram_sop against lpiprogram on 16
+% input forms, 8 malformed inputs and 3 variables.
+% INPUT  none.
+% OUTPUT out: 'struct' with fields ncases and nerr ('double').
+% Variables, decision variables, and the PIE of u_t = u_ss + 0.5 pi^2 u
 pvar s th s1 s2 th1 th2 f1
 a = dpvar({'a1','a2'});
 PIE = initialize(cx_plant('rd',0.5));
@@ -68,6 +135,7 @@ cases = { ...
     {s,[0 1],a,f1}, ...
     {PIE.vars(:,1),PIE.vars(:,2),PIE.dom}, ...
     {PIE.vars,PIE.dom}};
+% Each form against lpiprogram
 for k = 1:numel(cases)
     c = cases{k};
     p0 = lpiprogram(c{:});      p1 = lpiprogram_sop(c{:});
@@ -95,6 +163,7 @@ assert(same_val_sop(lpiprogram([s1;s2;s3],[th1;th2;th3],[0 1]),p3,'p3'), ...
        '(a) 3 variables: lpiprogram_sop differs from lpiprogram')           % MMP, 10/01/2026
 assert(isequal(p3.dom,repmat([0 1],3,1)) && isequal(elem_names(p3.vartable),{'s1','s2','s3','th1','th2','th3'}),...
     '(a) 3-variable program wrong')
+% Summary and output
 fprintf('(a) %d forms equal to lpiprogram field by field; %d error messages equal\n',numel(cases),numel(bad));
 out = struct('ncases',numel(cases),'nerr',numel(bad));
 end
@@ -102,6 +171,10 @@ end
 
 % ========================================================================
 function out = part_b()
+% OUT = PART_B() runs part (b): lpiprogram_sop on 3 and 4 variables
+% against the program built by sosprogram.
+% INPUT  none.
+% OUTPUT out: logical true.
 for N = 3:4
     vars = arrayfun(@(i) sprintf('s%d',i),1:N,'uni',0);
     dom = [zeros(N,1), (1:N)'];
@@ -110,6 +183,7 @@ for N = 3:4
     prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));
     prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))];
     prog.dom = dom;
+    % The 'polynomial' and the 'cellstr' forms against it
     p1 = lpiprogram_sop(polynomial(vars(:)),[],dom);
     [tf,where] = same_val_sop(prog,p1,'prog');
     assert(tf,'(b) N = %d: differs from the hand-built program at %s',N,where)
@@ -123,12 +197,17 @@ end
 
 % ========================================================================
 function out = part_c()
+% OUT = PART_C() runs part (c): the container, 'struct' and name forms of
+% lpiprogram_sop against its 'polynomial' form.
+% INPUT  none.
+% OUTPUT out: logical true.
 % Registry sorted, domains per variable (distinct, so a row mix-up shows).
 vars = {'s1','s2','s3'};    D = [0 1; -1 2; 0 0.5];
 ref = lpiprogram_sop(polynomial(vars(:)),[],D);
 Ic = eye_copvar_sop(2,{vars},D);                        % copvar
 [~,Pc] = lpivar_cdopvar(lpiprogram_sop(vars,D),1,{vars},D,1);  % cdopvar
 fm = { {Ic}, {Pc}, {Ic.C{1,1}}, {Pc.C{1,1}}, {struct('vars',{vars},'dom',D)}, {vars,D}, {string(vars),D} };
+% Each form against the 'polynomial' form
 for k = 1:numel(fm)
     p = lpiprogram_sop(fm{k}{:});
     [tf,where] = same_val_sop(ref,p,'prog');
@@ -145,6 +224,7 @@ p = lpiprogram_sop(Ic,dpvar({'g'}));
 assert(isequal(p.decvartable,{'g'}),'(c) decision variables after a container lost')
 % Non-vacuity: a different domain is seen.
 assert(~same_val_sop(ref,lpiprogram_sop(vars,[0 1;0 2;0 0.5]),'p'),'(c) comparison blind to dom')
+% Summary and output
 fprintf('(c) %d new input forms equal to the polynomial form\n',numel(fm));
 out = true;
 end
@@ -152,19 +232,21 @@ end
 
 % ========================================================================
 function out = part_d()
-% Two N-variable LPIs, solved with MOSEK through the legacy lpidecvar,
-% lpi_ineq (scalar), lpisetobj and lpisolve on an lpiprogram_sop program:
-%  'volterra' (N = 1, 2): min gam s.t. gam*I - V'V = W, W >= 0 from
-%     poscopvar degree 1 plus psatz terms (below); ||V|| = (2/pi)^N.
-%     Degree 1 at N = 3 is 2 Grams of 1000 (2.0e6 variables, m 72131,
-%     build 105 s, measured), so N <= 2 here;
-%  'mult' (N = 1..4): min gam s.t. gam*I - M = W, W >= 0 from poscopvar
-%     degree 0, M the constant multiplier [2 1; 1 2] on L2^2[s1..sN]:
-%     gam* = 3, the largest eigenvalue of [2 1; 1 2].
+% OUT = PART_D() runs part (d), two N-variable LPIs on lpiprogram_sop
+% programs solved with MOSEK: 'volterra' (N = 1, 2), min gam s.t.
+% gam*I - V'*V = W, W >= 0, ||V|| = (2/pi)^N; and 'mult' (N = 1, ..., 4),
+% min gam s.t. gam*I - M = W, W >= 0, M = [2 1; 1 2] on L2^2[s1..sN], the
+% exact value 3, the largest eigenvalue of M.
+% INPUT  none.
+% OUTPUT out: 'struct' array, one entry per LPI, with fields prob, N, gam
+%        (the bound), exact, rel_b, ce_rr, ndv, m, Ks, t.
+% Solver options; the output; the cases (problem, N)
 sopts = struct('solver','mosek','simplify',false);
 out = struct('prob',{},'N',{},'gam',{},'exact',{},'rel_b',{},'ce_rr',{},'ndv',{},'m',{},'Ks',{},'t',{});
 C = [repmat({'volterra'},2,1), {1;2}; repmat({'mult'},4,1), {1;2;3;4}];
 for c = 1:size(C,1)
+    % Variables s1..sN on [0,1]; the operator M, the number of components,
+    % the degree of W and the exact value
     [pb,N] = C{c,:};
     t0 = tic;
     vars = arrayfun(@(i) sprintf('s%d',i),1:N,'uni',0);
@@ -180,6 +262,7 @@ for c = 1:size(C,1)
         M = mat2copvar_sop([2 1;1 2],2,{vars},D);
         nc = 2;     deg = 0;    ex = 3;
     end
+    % Program from M; gam >= 0; W >= 0 with its psatz terms
     prog = lpiprogram_sop(M);                           % container form
     [prog,gam] = lpidecvar(prog,'gam');
     prog = lpi_ineq(prog,gam);                          % legacy scalar path
@@ -198,6 +281,8 @@ for c = 1:size(C,1)
             end
         end
     end
+    % E = 0, one parameter per adjoint pair, its rows recorded; objective
+    % gam; the size budget; the solve
     E = gam - M - W;                                    % dpvar - copvar: gam*I - M
     ne0 = prog.expr.num;
     prog = lpi_eq_sop(prog,E,'symmetric');
@@ -206,6 +291,7 @@ for c = 1:size(C,1)
     S0 = cx_shape(prog);
     assert(S0.ndv<=1e5,'(d) %s N=%d: %d decision variables, above this test''s budget',pb,N,S0.ndv)
     evalc('prog = lpisolve(prog,sopts);');
+    % Solver report, rel_b and PSD margin; gam, E and W extracted
     info = prog.solinfo.info;
     [rb,~,prel] = cx_resid(prog);
     g = double(lpigetsol_sop(prog,gam));
@@ -214,6 +300,7 @@ for c = 1:size(C,1)
     % adjoint pair ('symmetric'), so ||r_rows|| <= ||coef E(sol)|| <=
     % sqrt(2) ||r_rows||: extraction reproduces the solver's row residual.
     rr = row_res(prog,rows);    ce = coef_norm(Es);
+    % The bound (sqrt(gam) for V); record and print; the checks
     S = cx_shape(prog);
     if strcmp(pb,'volterra'),   val = sqrt(g);  else,   val = g;    end
     out(c) = struct('prob',pb,'N',N,'gam',val,'exact',ex,'rel_b',rb,'ce_rr',ce/max(rr,realmin),...
@@ -235,8 +322,11 @@ end
 
 % ========================================================================
 function nm = elem_names(p)
-% Variable name of each element of a column of pvars, in element order
-% (p.varname is the sorted list of the array's variables).
+% NM = ELEM_NAMES(P) returns the variable name of each element of the
+% column P of 'polynomial' variables, in element order (P.varname is the
+% sorted list of the variables of the array).
+% INPUT  p: 'polynomial' column, each element one variable.
+% OUTPUT nm: 1 x numel(P) 'cellstr'.
 nm = cell(1,numel(p));
 for i = 1:numel(p),     v = p(i).varname;   nm{i} = v{1};     end
 end
@@ -244,8 +334,12 @@ end
 
 % ========================================================================
 function r = row_res(prog,rows)
-% ||At_i' x - b_i|| over the expressions ROWS, x = solinfo.RRx (decvartable
-% order, the order of At rows).
+% R = ROW_RES(PROG,ROWS) returns sqrt(sum_i ||At_i'*x - b_i||^2) over the
+% expressions i in ROWS, x = prog.solinfo.RRx (decvartable order, the
+% order of the rows of At_i).
+% INPUT  prog: 'struct', a solved LPI program; rows: 'double' vector of
+%        indices into prog.expr.At and prog.expr.b.
+% OUTPUT r: 'double'.
 x = prog.solinfo.RRx(:);    r2 = 0;
 for i = rows
     At = prog.expr.At{i};   b = prog.expr.b{i};
@@ -255,6 +349,10 @@ r = sqrt(full(r2));
 end
 
 function c = coef_norm(P)
+% C = COEF_NORM(P) returns the Frobenius norm of all stored parameters of
+% the 'copvar' P.
+% INPUT  P: 'copvar' object.
+% OUTPUT c: 'double'.
 c = 0;
 for k = 1:numel(P.C)
     if isempty(P.C{k}),     continue,   end
@@ -265,6 +363,10 @@ c = sqrt(full(c));
 end
 
 function m = err_msg(f)
+% M = ERR_MSG(F) returns the message of the error that F() raises ('' when
+% it raises none).
+% INPUT  f: 'function_handle', called with no argument.
+% OUTPUT m: 'char'.
 m = '';
 try,    f();    catch e,    m = e.message;  end
 end

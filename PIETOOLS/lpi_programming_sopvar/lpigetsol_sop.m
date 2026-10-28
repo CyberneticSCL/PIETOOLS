@@ -1,40 +1,37 @@
 function dvar_sol = lpigetsol_sop(prog,dvar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% DVAR_SOL = LPIGETSOL_SOP(PROG,DVAR) takes a solved LPI program structure
-% 'prog' and returns the solved value of the variable or function 'dvar',
-% for the LPI objects of both operator families. It is 'lpigetsol' with the
-% 'sopvar' family added, so that one executive body serves both:
-%
-%   class of DVAR                               handled by
-%   'sdopvar', 'cdopvar'                        getsol_lpivar_sop (new)
-%   'sopvar', 'copvar'                          returned as is (no variables)
-%   cell holding any of the four classes above  this function, per element
-%     (at any depth)
-%   'opvar', 'opvar2d' with dpvar-valued fields this function, per field
-%   [], 'double', 'polynomial', 'opvar',        lpigetsol, unchanged
-%   'opvar2d', 'dpvar', char, other cell,
-%   'dopvar', 'dopvar2d'
-%
-% Any other class is an error, as in 'lpigetsol'.
+% DVAR_SOL = LPIGETSOL_SOP(PROG,DVAR) returns DVAR with each of its
+% decision variables replaced by its value in the solved LPI program PROG:
+% an 'sdopvar' or 'cdopvar' DVAR by GETSOL_LPIVAR_SOP; a cell that holds,
+% at any depth, an object of class 'sopvar', 'sdopvar', 'copvar' or
+% 'cdopvar', element by element; an 'opvar' or 'opvar2d' DVAR with
+% 'dpvar'-valued fields, field by field, by LPIGETSOL; and any other DVAR
+% by LPIGETSOL. A 'sopvar' or 'copvar' DVAR is returned unchanged.
 %
 % INPUT
-% - prog:   'struct' specifying a solved LPI optimization program structure
-%           (see also 'lpiprogram'). The format should match that used by
-%           SOSTOOLS;
-% - dvar:   object of one of the classes above: an array of decision
-%           variables, a function of decision variables, or a PI operator
-%           decision variable of the LPI program.
+% - prog:     'struct', an LPI program solved by LPISOLVE, with the fields
+%             solinfo.info, decvartable and solinfo.RRx;
+% - dvar:     'sdopvar' or 'cdopvar' object, a decision operator; a
+%             'sopvar' or 'copvar' object; a cell of objects of the classes
+%             listed here; an 'opvar' or 'opvar2d' object, possibly with
+%             'dpvar'-valued fields; or [], a 'double', 'polynomial',
+%             'dpvar', char, 'cellstr', 'dopvar' or 'dopvar2d' object.
 %
 % OUTPUT
-% - dvar_sol:   solved value of 'dvar' as per the solved program. For
-%               'sdopvar'/'cdopvar' a 'sopvar'/'copvar' (see
-%               'getsol_lpivar_sop' for names absent from the program).
+% - dvar_sol: DVAR at the solution: for an 'sdopvar' ('cdopvar') DVAR, a
+%             'sopvar' ('copvar') object, or an 'sdopvar' ('cdopvar')
+%             object on the names that prog.decvartable does not hold; for
+%             a cell, a cell of the same size; for an 'opvar' or 'opvar2d'
+%             DVAR, the object with each 'dpvar' it holds replaced by its
+%             value; for [], 'double' and 'polynomial', DVAR itself; for
+%             'dpvar', char and a cell without a 'sopvar', 'sdopvar',
+%             'copvar' or 'cdopvar' element, the value SOSGETSOL returns;
+%             for 'dopvar' and 'dopvar2d', the 'opvar' or 'opvar2d' object
+%             GETSOL_LPIVAR returns.
 %
 % NOTES
-% A cell holding a new-class object is taken apart here, one element per
-% call, because 'lpigetsol' hands cells to 'sosgetsol', which cannot read
-% the new classes. A cell with no such element is handed to 'lpigetsol'
-% whole, so its result is exactly the legacy one.
+% A DVAR of another class, a PROG that is not a 'struct' and a PROG whose
+% solinfo.info is empty are errors.
 %
 % See also LPIGETSOL, GETSOL_LPIVAR_SOP, SUBS_DVAR_SOP.
 %
@@ -69,6 +66,11 @@ function dvar_sol = lpigetsol_sop(prog,dvar)
 %                so that it shadows nothing (every folder is on the path).
 %                Mirrors lpigetsol (DJ, 10/19/2024), which it calls for
 %                every legacy class.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), step comments in the body and headers
+%                of the local functions; code unchanged. The deleted
+%                header text was the class table with its comparison to
+%                lpigetsol and the reason a cell is taken apart here.
 
 % Same program checks as lpigetsol, made here too so that the new-class
 % branches, which do not pass through lpigetsol, apply them.
@@ -80,10 +82,13 @@ if ~isfield(prog,'solinfo') || ~isfield(prog.solinfo,'info') || isempty(prog.sol
 end
 
 if isa(dvar,'sdopvar') || isa(dvar,'cdopvar')
+    % Decision operator of the container family: getsol_lpivar_sop
     dvar_sol = getsol_lpivar_sop(prog,dvar);
 elseif isa(dvar,'sopvar') || isa(dvar,'copvar')
     dvar_sol = dvar;                            % fixed: nothing to substitute
 elseif iscell(dvar) && ~iscellstr(dvar) && any(cellfun(@hasnew,dvar(:)))
+    % A cell holding a container-family object: one element at a time,
+    % since sosgetsol, which lpigetsol hands a cell to, cannot read them
     dvar_sol = cell(size(dvar));                % nested cells recurse here too
     for k = 1:numel(dvar)
         dvar_sol{k} = lpigetsol_sop(prog,dvar{k});
@@ -97,6 +102,7 @@ elseif isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial') ...
         || ischar(dvar) || iscell(dvar) || isa(dvar,'dopvar') || isa(dvar,'dopvar2d')
     dvar_sol = lpigetsol(prog,dvar);            % legacy classes, unchanged
 else
+    % Any other class
     error('lpigetsol_sop:badClass',...
         ['Variable of which to extract the solution should be specified as object of type '...
          '''dpvar'', ''dopvar'', ''dopvar2d'', ''sdopvar'' or ''cdopvar'' (or a fixed '...
@@ -107,22 +113,31 @@ end
 
 
 function tf = hasnew(x)
-% x is, or is a cell holding at any depth, a sopvar-family object.
+% TF = HASNEW(X) returns true when X is, or is a cell holding at any depth,
+% a 'sopvar', 'sdopvar', 'copvar' or 'cdopvar' object.
+% INPUT  x:  any value.
+% OUTPUT tf: logical.
 tf = isa(x,'sopvar') || isa(x,'sdopvar') || isa(x,'copvar') || isa(x,'cdopvar') ...
     || (iscell(x) && any(cellfun(@hasnew,x(:))));
 end
 
 
 function tf = hasdpvar(X)
-% X (an opvar/opvar2d, one of its fields, a struct or a cell) holds a dpvar.
+% TF = HASDPVAR(X) returns true when X is a 'dpvar' or holds one at any
+% depth, as a property of an 'opvar' or 'opvar2d', a field of a struct or
+% an element of a cell.
+% INPUT  X:  any value.
+% OUTPUT tf: logical.
 if isa(X,'dpvar')
     tf = true;
 elseif isa(X,'opvar') || isa(X,'opvar2d') || isstruct(X)
+    % An object or a struct: any of its fields
     f = fieldnames(X);      tf = false;         % fieldnames lists an object's public properties
     for k = 1:numel(f)
         if hasdpvar(X.(f{k})),  tf = true;  return,  end
     end
 elseif iscell(X)
+    % A cell: any of its elements
     tf = any(cellfun(@hasdpvar,X(:)));
 else
     tf = false;
@@ -131,17 +146,23 @@ end
 
 
 function X = subs_fields(prog,X)
-% Replace every dpvar held in X by its solved value (lpigetsol, i.e.
-% sosgetsol). Only fields that hold a dpvar are assigned, so no other
-% property (dim, I, var1, ...) passes through a set method.
+% X = SUBS_FIELDS(PROG,X) returns X with every 'dpvar' it holds replaced by
+% its solved value (lpigetsol, i.e. sosgetsol).
+% INPUT  prog: 'struct', the solved LPI program;
+%        X:    'dpvar', 'opvar' or 'opvar2d' object, struct or cell.
+% OUTPUT X:    X with each 'dpvar' replaced by its value.
+% Only fields that hold a dpvar are assigned, so no other property (dim,
+% I, var1, ...) passes through a set method.
 if isa(X,'dpvar')
     X = lpigetsol(prog,X);
 elseif isa(X,'opvar') || isa(X,'opvar2d') || isstruct(X)
+    % An object or a struct: each field that holds a dpvar
     f = fieldnames(X);
     for k = 1:numel(f)
         if hasdpvar(X.(f{k})),  X.(f{k}) = subs_fields(prog,X.(f{k}));  end
     end
 elseif iscell(X)
+    % A cell: each element that holds a dpvar
     for k = 1:numel(X)
         if hasdpvar(X{k}),  X{k} = subs_fields(prog,X{k});  end
     end

@@ -1,56 +1,45 @@
 function Psol = getsol_lpivar_sop(prog,P)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PSOL = GETSOL_LPIVAR_SOP(PROG,P) returns the solved value of a PI operator
-% decision variable P of a solved LPI program PROG, for the operator classes
-% of both families:
+% PSOL = GETSOL_LPIVAR_SOP(PROG,P) returns the decision operator P with
+% each of its decision variables replaced by its value in the solved LPI
+% program PROG. For an 'sdopvar' operator P with decision variables
+% d = P.Zd, whose parameter cell gam stores vec C_gam(d) = A_gam + B_gam'*d
+% (A_gam = P.params.A{gam}, B_gam = P.params.B{gam}), the result has the
+% parameters
 %
-%   'sdopvar' -> 'sopvar',   'cdopvar' -> 'copvar'      (new, this file)
-%   'dopvar'  -> 'opvar',    'dopvar2d' -> 'opvar2d'    (legacy getsol_lpivar)
-%   'sopvar', 'copvar'                                  (returned as is)
-%   'opvar', 'opvar2d'                                  (legacy getsol_lpivar)
+%   C_gam = reshape(A_gam + B_gam'*dsol, m, n),
+%   m = P.dims(1)*prod(cellfun(@numel,P.ZL)),
+%   n = P.dims(2)*prod(cellfun(@numel,P.ZR)),
+%
+% with dsol(k) the entry of PROG.solinfo.RRx at the first row of
+% PROG.decvartable that holds the name P.Zd{k}, and 0 when no row does; a
+% name that no row holds keeps its rows of B_gam and remains a decision
+% variable. A 'cdopvar' container is treated block by block, its 'sopvar'
+% and [] blocks kept as they are. A 'sopvar' or 'copvar' P is returned
+% unchanged; an 'opvar', 'dopvar', 'opvar2d' or 'dopvar2d' P is passed to
+% GETSOL_LPIVAR.
 %
 % INPUT
-% - prog:   'struct', a solved LPI program (see 'lpiprogram', 'lpisolve').
-%           Read: prog.decvartable and prog.solinfo.RRx;
-% - P:      PI operator decision variable of one of the classes above.
+% - prog:   'struct', an LPI program solved by LPISOLVE, with the fields
+%           decvartable ('cellstr' or string array, the decision variable
+%           names) and solinfo.RRx ('double' vector, entry r the value of
+%           the r-th name of decvartable);
+% - P:      'sdopvar' or 'cdopvar' object, the decision operator; or a
+%           'sopvar', 'copvar', 'opvar', 'dopvar', 'opvar2d' or 'dopvar2d'
+%           object.
 %
 % OUTPUT
-% - Psol:   the operator with every decision variable of P that is listed
-%           in prog.decvartable replaced by its solved value. When all are
-%           listed, which is the case for any variable declared in PROG,
-%           Psol is FIXED: 'sopvar' for 'sdopvar', 'copvar' for 'cdopvar'.
-%           Names of P absent from prog.decvartable stay decision variables
-%           and Psol is then an 'sdopvar'/'cdopvar' on those names only,
-%           which is what 'sosgetsol' does for a 'dpvar'.
+% - Psol:   for an 'sdopvar' P, a 'sopvar' object when PROG.decvartable
+%           holds every name of P.Zd, else an 'sdopvar' object whose
+%           decision variables are the names it does not hold; for a
+%           'cdopvar' P, likewise a 'copvar' or a 'cdopvar' object, with
+%           the spaces, dimensions and domains of P; for the other classes,
+%           as stated above.
 %
 % NOTES
-% Values come from prog.solinfo.RRx, whose entries are in decvartable order
-% (the order of expr.At rows). prog.solinfo.x is the solver's cone vector:
-% it holds a slack per 'ineq' constraint and is in the solver's ordering,
-% so it coincides with RRx only for a program with no free variable and no
-% inequality.
-%
-% A decision operator stores each parameter as vec C_gam(d) = A_gam +
-% B_gam'*d (sopvar document Sec. 8.1.1), so the solved parameter is
-% C_gam = unvec(A_gam + B_gam'*d, m, n), m = dims(1)*prod(|ZL|), n =
-% dims(2)*prod(|ZR|), column-major as 'sopvar2sdopvar' vectorizes it. No
-% 'dpvar' is formed: legacy 'lpigetsol' on a 'dpvar' of q names goes
-% through 'dpvar2poly', measured not to finish in 35 min at q ~ 2.8e5.
-%
-% COST, q = numel(P.Zd), N = numel(prog.decvartable), nnz = nonzeros of the
-% B_gam over all blocks and gamma cells:
-% - lookup, ONCE per operator: every 'sdopvar' block of a 'cdopvar' carries
-%   the container Zd (class invariant), so one name lookup serves all
-%   blocks: decvartable scanned against Zd, O(N log q + q log q) string
-%   comparisons, O(N) memory (see dvar_positions);
-% - substitution: d'*B_gam per cell, O(nnz(B_gam) + n*m) time. B_gam' is
-%   never formed: a transpose of a q-row sparse matrix allocates q+1 column
-%   pointers per cell;
-% - memory: the q-vector d of values and the lookup's index vectors, plus
-%   the result's fixed parameters, which do not depend on q.
-% A name that decvartable lists twice (the (i,j) and (j,i) entries of a
-% Gram variable) takes its value from its LOWEST row, where getequation
-% puts its At row.
+% Errors when PROG has no field decvartable, when solinfo.RRx is empty (no
+% solution) or has fewer entries than decvartable, and when P is of
+% another class.
 %
 % See also LPIGETSOL_SOP, SUBS_DVAR_SOP, GETSOL_LPIVAR, LPIGETSOL, SOSGETSOL.
 %
@@ -88,6 +77,13 @@ function Psol = getsol_lpivar_sop(prog,P)
 %                position instead of through a 'dpvar' of q names. Legacy
 %                classes go to 'getsol_lpivar' unchanged, so one executive
 %                body can call this for either family.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), step comments in the body and headers
+%                of the local functions; code unchanged. The deleted
+%                header text was the class table, the reason solinfo.RRx
+%                is read rather than solinfo.x, the cost analysis with a
+%                measured run time, and the design rationale and
+%                measurements of the local-function headers.
 
 % % % Legacy and fixed classes: no new code.
 if isa(P,'sopvar') || isa(P,'copvar')
@@ -110,6 +106,7 @@ if ~isfield(prog,'solinfo') || ~isfield(prog.solinfo,'RRx') || isempty(prog.soli
     error('getsol_lpivar_sop:notSolved',['No solution seems to have been produced: either '...
         '"lpisolve" has not been called, or the program was found to be infeasible.'])
 end
+% The names as a cellstr column, and at least one value per name
 dtab = prog.decvartable;
 if isstring(dtab),  dtab = cellstr(dtab);   end
 dtab = dtab(:);
@@ -119,7 +116,9 @@ if numel(RRx)<numel(dtab)
         'solinfo.RRx has %d entries for %d decision variables.',numel(RRx),numel(dtab))
 end
 
-% % % One lookup for the whole operator; see COST above.
+% % % One lookup for the whole operator, since every 'sdopvar' block of a
+% % % 'cdopvar' carries the container list P.Zd: the values d of the names
+% % % found, 0 for the others, and the names Zk left as decision variables.
 Zd = P.Zd;
 if isstring(Zd),    Zd = cellstr(Zd);   end     % rand_sdopvar names are strings
 Zd = Zd(:);
@@ -129,6 +128,7 @@ d = zeros(q,1);                                 % absent names contribute 0 here
 d(tf) = full(RRx(loc(tf)));                     % and keep their rows of B
 Zk = Zd(~tf);                                   % names left as decision variables
 
+% An 'sdopvar': substitute in its gamma cells
 if isa(P,'sdopvar')
     Psol = subs_block(P,d,tf,Zk);
     return
@@ -146,6 +146,8 @@ for k = 1:numel(C)
     end
     C{k} = subs_block(C{k},d,tf,Zk);
 end
+% The container on the metadata of P: a 'copvar' when every name was found,
+% else a 'cdopvar' on the names left
 meta = metadata(P);                             % validated at P's construction
 if all(tf)
     Psol = copvar(C,rmfield(meta,'Zd'));        % trusted form: P's metadata is unchanged
@@ -159,25 +161,22 @@ end
 
 % ========================================================================
 function [tf,loc] = dvar_positions(Zd,dtab)
-% loc(k) = LOWEST row of dtab holding Zd{k}, tf(k) = loc(k)>0.
-%
-% Lowest, because decvartable repeats names: an 'sos' Gram variable of
-% size n declares n^2 entries, (i,j) and (j,i) under one name (measured on
-% poscopvar: 100 entries, 55 names). getequation puts a name's At row at
-% its lowest table row, so RRx there is the value the program's rows
-% constrain; sosgetsol (intersect) and ismember(Zd,dtab) read the same.
-%
-% The table is scanned against Zd, as getequation does, rather than Zd
-% looked up in the table: the latter sorts the whole table. Measured,
-% N = 3e6 names: 0.65 s against 3.0 s at q = 1e3, 4.06 s against 4.09 s
-% at q = 3e6. Time O(N log q + q log q), memory O(N) for tf and loc of
-% the scan. Zd must hold distinct names, as every constructor of the
-% classes produces; a repeated name would match on its first copy only.
+% [TF,LOC] = DVAR_POSITIONS(ZD,DTAB) returns, for each name Zd{k}, the
+% first row LOC(k) of DTAB that holds it (0 for none) and TF(k) = LOC(k)>0.
+% INPUT  Zd:   q x 1 cellstr of distinct names (a repeated name is found on
+%              its first copy only);
+%        dtab: N x 1 cellstr, the decision variable table.
+% OUTPUT tf:   q x 1 logical;
+%        loc:  q x 1 double.
+% No names: empty outputs
 q = numel(Zd);
 if q==0
     tf = false(0,1);    loc = zeros(0,1);
     return
 end
+% Each table row against Zd, then the lowest row of each name: decvartable
+% repeats the name of a Gram entry ((i,j) and (j,i)), and getequation puts
+% the At row of a name at its lowest table row
 [in,pos] = ismember(dtab,Zd);
 r = find(in);
 % reshape: for a table of one name find returns a ROW, 1x0 when absent,
@@ -189,15 +188,20 @@ end
 
 % ========================================================================
 function Pout = subs_block(P,d,tf,Zk)
-% Substitute d into every gamma cell of one 'sdopvar' block P,
+% POUT = SUBS_BLOCK(P,D,TF,ZK) returns the 'sdopvar' block P with the
+% values D substituted in every gamma cell,
 %
 %   C_gam = unvec(A_gam + B_gam'*d, m, n)          (Sec. 8.1.1),
 %
-% keeping the rows of B_gam for the names not found (tf false), which are
-% Zk. Returns a 'sopvar' when Zk is empty, else an 'sdopvar' on Zk. Both
-% constructors are handed vars/ZL/ZR/dom unchanged from P, which already
-% satisfy the canonical variable order and the canonical multiplier form;
-% the substitution only removes content, so neither rewrites anything.
+% keeping the rows of B_gam for the names not found (TF false), which are
+% ZK.
+% INPUT  P:    'sdopvar' object;
+%        d:    q x 1 double, the values, 0 for a name not found;
+%        tf:   q x 1 logical, true for a name found;
+%        Zk:   cellstr, the names not found, in the order of P.Zd.
+% OUTPUT Pout: 'sopvar' object when Zk is empty, else an 'sdopvar' object
+%              on Zk.
+% Size m x n of a coefficient matrix; the parameters of P
 q = numel(d);
 m = P.dims(1)*prod([cellfun(@numel,P.ZL),1]);  % rows: component outer, ZL inner
 n = P.dims(2)*prod([cellfun(@numel,P.ZR),1]);  % columns: component outer, ZR inner
@@ -206,6 +210,7 @@ A = prm.A;      B = prm.B;
 fixed = isempty(Zk);
 pC = cell(size(A));                             % fixed parameters, or vec A_gam
 pB = cell(size(A));                             % remaining B_gam rows
+% Each gamma cell: its constant part a and decision coefficients b
 for g = 1:numel(A)
     a = A{g};
     b = [];     if g<=numel(B),     b = B{g};   end
@@ -216,6 +221,8 @@ for g = 1:numel(A)
         v = a;
         bk = sparse(numel(Zk),m*n);
     else
+        % Substitute, v = a + b'*d, and keep the rows of b of the names
+        % not found
         if size(b,1)~=q || size(b,2)~=m*n
             error('getsol_lpivar_sop:badB',...
                 'Cell %d of B is %dx%d; expected %dx%d from Zd, dims, ZL and ZR.',...
@@ -239,12 +246,18 @@ for g = 1:numel(A)
     else
         error('getsol_lpivar_sop:badA','Cell %d of A has %d entries; expected %d.',g,numel(v),m*n)
     end
+    % The cell: the fixed coefficient matrix, or the new constant part v and
+    % the B rows left
     if fixed
         pC{g} = reshape(v,m,n);                 % unvec, column-major
     else
         pC{g} = v;      pB{g} = bk;
     end
 end
+% The block. Both constructors are handed vars/ZL/ZR/dom unchanged from P,
+% which already satisfy the canonical variable order and the canonical
+% multiplier form; the substitution only removes content, so neither
+% rewrites anything.
 if fixed
     Pout = sopvar(pC,P.vars,P.ZL,P.ZR,P.dom,P.dims);
 else

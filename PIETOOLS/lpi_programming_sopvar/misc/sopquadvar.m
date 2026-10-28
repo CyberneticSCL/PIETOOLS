@@ -1,161 +1,89 @@
 function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
-% [prog,Pop,Qcell,alpha_list] = SOPQUADVAR(prog,dim,vars,dom,deg,options)
-% declares a self-adjoint 'sdopvar' decision operator as a QUADRATIC FORM in
-% a list of basis operators,
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [PROG,POP,QCELL,ALPHA_LIST] = SOPQUADVAR(PROG,DIM,VARS,DOM,DEG,OPTIONS)
+% declares a self-adjoint 'sdopvar' decision operator on L_2^m[s],
+% s = (s_1,...,s_n3) the variables VARS on the box DOM, as the quadratic
+% form
 %
-%       Pop: L_2^m[S3] -> L_2^m[S3],
-%       Pop = sum_{i,j} (Z_{alpha_i})* Q_{ij} (Z_{alpha_j}),
+%       Pop = sum_{i,j=1}^N Z_i^* g Q_ij Z_j,
 %
-% following Sec. 7 of the sopvar document. This is the constructor; it does
-% not itself impose positivity. Whether the coefficient matrix Q is
-% constrained is 'options.type', passed straight through to 'sosquadvar',
-% exactly as 'sosquadvar' is the workhorse for 'sostools' and 'dpvar'. With
-% the default type 'pos' the result satisfies Pop = Pop* >= 0, which is what
-% 'possopvar' asks for; with 'sym' it is an unconstrained self-adjoint one.
+% Q = [Q_ij] a Gram matrix of new decision variables, positive
+% semidefinite (OPTIONS.type 'pos', so that Pop >= 0) or symmetric
+% ('sym'), g the multiplication by the weight g(theta) of OPTIONS.psatz,
+% and Z_i the basis operator of the multi-index alpha_i, row i of
+% ALPHA_LIST,
 %
-% Each basis operator carries a single multi-index alpha and acts as
+%       (Z_i x)(theta) = int I_{alpha_i}(theta-s)
+%                            (I_m kron Z^{alpha_i}(theta,s)) x(s) ds,
+%       I_alpha(r) = prod_k I_{alpha_k}(r_k),     I_1(r) = delta(r),
+%       I_2(r) = [r >= 0],     I_3(r) = [r <= 0],     I_4(r) = 1,
 %
-%       (Z_alpha x)(s) = int_theta I_alpha(s-theta) ...
-%                           (I_m kron Z^alpha(theta,s)) x(theta) dtheta,
-%
-%       I_alpha(s) = prod_k I_{alpha_k}(s_k),
-%
-%       I_0(r) = delta(r),   I_1(r) = 1 for r>=0,   I_-1(r) = 1 for r<=0.
-%
-% Composing the adjoint pair and eliminating the integration variable theta
-% by the semiseparable integral of Sec. 6.1 gives the sopvar kernel form
-%
-%       (Pop x)(s) = sum_gamma int_{s'} K_gamma(s,s') I_gamma(s-s') x(s') ds'
-%
-%       K_gamma(s,s') = (I_m kron ZL(s))' C_gamma(d) (I_m kron ZR(s'))
-%
-% with C_gamma(d) = unvec(A_gamma + B_gamma'*d) affine in the entries d of Q.
-%
-% For a single spatial variable this reproduces the L_2 -> L_2 block of
-% 'poslpivar': alpha=1 is the multiplier block Z1(s), alpha=2 is the lower
-% integral block Z2(eta,s), and alpha=3 is the upper integral block
-% Z3(eta,s).
+% the integral over the box, [.] the indicator function and
+% Z^alpha(theta,s) the column of the monomials theta^a s^b within the
+% degree caps DEG, of degree 0 in s_k where alpha_k = 1, T_i their number
+% for alpha = alpha_i. Entry alpha_k is 1 (multiplier), 2 (lower integral)
+% or 3 (upper integral), and 1 or 4 (integral over [a_k,b_k]) in a
+% separable direction.
 %
 % INPUT
-% - prog:   'struct' specifying an LPI/SOS program to modify;
-% - dim:    scalar m, or 1x2 array [m,m], specifying the dimension of the
-%           function space L_2^m. Since Pop is self-adjoint the input and
-%           output dimensions must agree;
-% - vars:   1 x n3 'cellstr' object specifying the names of the spatial
-%           variables, or a scalar n3, in which case the variables are named
-%           's1',...,'sn3'. These are the variables common to the input and
-%           output space, i.e. the set S3 of the sopvar document;
-% - dom:    n3 x 2 array of type 'double', with dom(k,:) = [ak,bk] the
-%           domain of variable k. May be given as a single 1x2 row, in which
-%           case the same domain is used for every variable;
-% - deg:    degrees of the monomial bases Z^alpha(theta,s). May be given as
-%             * a scalar d, in which case every basis has degree at most d
-%               in each theta_k and each s_k;
-%             * a 'struct' with any of the fields
-%                   deg.int:    scalar or 1 x n3, maximal degree in each
-%                               integration variable theta_k. Defaults to 1;
-%                   deg.mult:   scalar or 1 x n3, maximal degree in each
-%                               output variable s_k. Defaults to deg.int;
-%                   deg.joint:  scalar, maximal total degree of theta and s
-%                               combined. Defaults to no further restriction;
-%                   deg.subset: 2^(2*n3) array, one maximal degree per
-%                               SUBSET of the variables, over the ordering
-%                               [theta_1..theta_n3, s_1..s_n3]. The bound
-%                               for the subset whose members are the bits
-%                               set in b sits at index 1+sum(2.^(b-1)), the
-%                               convention 'poslpivar_2d/build_monoms' uses;
-%                               entry 1 is unused. 'int', 'mult' and 'joint'
-%                               are its singleton and full-set special
-%                               cases. Optional, and needed only to
-%                               reproduce a basis that per-variable plus
-%                               total degrees cannot describe, as the 2D
-%                               settings files do -- see
-%                               'settings2possopvar';
-%               For one spatial variable, (deg.int,deg.mult,deg.joint)
-%               correspond to the elements of 'poslpivar's d{2};
-%             * a cell array with one such scalar or struct per included
-%               basis operator, in the order of the rows of alpha_list;
-%           Note that Z^alpha is taken to have degree 0 in s_k whenever
-%           alpha_k = 1, since the factor delta(s_k-theta_k) identifies the
-%           two variables and any s_k dependence would be redundant;
-% - options: (optional) 'struct' specifying other options, with fields
-%   options.type      'pos' (default) declares the coefficient matrix Q
-%                     positive semidefinite, so that Pop = Pop* >= 0. 'sym'
-%                     declares it symmetric but otherwise unconstrained,
-%                     giving a self-adjoint operator VARIABLE rather than a
-%                     positive one -- the Zop of the settings files. Both
-%                     values are 'sosquadvar's own vocabulary and are passed
-%                     straight through. This single argument is the whole of
-%                     the positivity question; the rest of this routine is
-%                     assembly;
-%   options.psatz     set to 1 to enforce positivity of the operator only on
-%                     the domain, by including the factor
-%                     g(theta) = prod_k (theta_k-ak)*(bk-theta_k) in the
-%                     construction; set to 2k+1 or 2k+2 (k = 1..n3) for the
-%                     linear weight of ONE face of the box,
-%                     g = (theta_k-ak)/(bk-ak) or (bk-theta_k)/(bk-ak).
-%                     Here k counts S3 in SORTED order -- the k-th entry of
-%                     sort(vars), [ak,bk] its row of dom -- unlike dom, deg,
-%                     sep and include, which follow 'vars'; for the same
-%                     single space a code then names the same face as in
-%                     'copquadvar' (whose registry spans all its spaces).
-%                     Declare one variable per face and sum them, each at
-%                     the full degree (see 'copquadvar'). Any other value
-%                     is an error, including
-%                     2, the ball of 'poslpivar_2d'. Defaults to 0. Rejected
-%                     for type 'sym', where a nonnegative weight means
-%                     nothing;
-%   options.sep       logical scalar or 1 x n3 array. Where sep(k) is true,
-%                     direction k is SEPARABLE: the lower and upper integral
-%                     basis operators are replaced by a single full-domain
-%                     integral, so the returned operator has equal lower and
-%                     upper kernels in that direction. This is the R_1 = R_2
-%                     form of 'poslpivar_2d's option of the same name. The
-%                     admissible alpha_k are then 1 and 4, where 4 denotes
-%                     the full-domain integral. Defaults to all false;
-%   options.include   specification of which basis operators to include.
-%                     Either an N x n3 array whose rows are the desired
-%                     multi-indices alpha (entries in {1,2,3}, or {1,4} in a
-%                     separable direction, with 1 the multiplier, 2 the lower
-%                     integral, 3 the upper and 4 the full-domain integral),
-%                     or a logical array with one entry per basis operator in
-%                     their standard linear order, or a numeric vector of
-%                     linear indices into that order. Defaults to all;
+% - prog:    'struct', the SOS or LPI program to which the decision
+%            variables of Q are added;
+% - dim:     'double', m or [m,m], m a positive integer;
+% - vars:    'cellstr', 1 x n3, distinct variable names, none ending in
+%            '_int' or '_dum'; or a 'char' (one name), a 'polynomial' (its
+%            variables) or a 'double' n3 (the names 's1',...,'sn3');
+% - dom:     'double', n3 x 2, row k the interval [a_k,b_k] of vars{k},
+%            a_k < b_k; or 1 x 2, the interval of every variable; [] for
+%            n3 = 0;
+% - deg:     the degree caps of Z^alpha(theta,s): a 'double' scalar d,
+%            degree at most d in each theta_k and in each s_k; or a
+%            'struct' with the optional fields
+%              int     'double', scalar or 1 x n3, the cap in each theta_k
+%                      (default 1);
+%              mult    'double', scalar or 1 x n3, the cap in each s_k
+%                      (default int);
+%              joint   'double' scalar, the cap on the total degree
+%                      (default none);
+%              subset  'double', 2^(2*n3) entries, one cap per subset of
+%                      (theta_1,...,theta_n3,s_1,...,s_n3): the subset of
+%                      the members b at index 1+sum(2.^(b-1)), entry 1
+%                      unused (default none);
+%            or a 'cell' with one such scalar or 'struct' per row of
+%            ALPHA_LIST, in that order; caps follow the order of VARS;
+% - options: (optional) 'struct' with the optional fields
+%              type     'char', 'pos' (default) or 'sym';
+%              psatz    'double' scalar, the weight: 0, g = 1 (default);
+%                       1, g(theta) = prod_k (theta_k-a_k)(b_k-theta_k);
+%                       2k+1 or 2k+2, k = 1,...,n3 indexing sort(VARS),
+%                       g(theta) = (theta_k-a_k)/(b_k-a_k) or
+%                       (b_k-theta_k)/(b_k-a_k); nonzero only with type
+%                       'pos';
+%              sep      'logical', scalar or 1 x n3 (default false), the
+%                       separable directions;
+%              include  the basis operators (default all, in the
+%                       enumeration of every alpha, direction 1 fastest):
+%                       a 'double' array with n3 columns, its rows
+%                       distinct admissible alpha; a 'logical' mask over
+%                       the enumeration; or other 'double' indices into
+%                       it.
 %
 % OUTPUT
-% - prog:       'struct' specifying the same program as the input, but now
-%               including the decision variables defining Pop and, for type
-%               'pos', a constraint enforcing Q>=0;
-% - Pop:        m x m 'sdopvar' object representing a self-adjoint PI
-%               operator decision variable, positive semidefinite when the
-%               type is 'pos';
-% - Qcell:      N x N cell array of 'cellstr' objects naming the decision
-%               variables in each block Q_{ij} of the Gram matrix Q, as
-%               returned by 'sosquadvar';
-% - alpha_list: N x n3 array whose rows are the multi-indices alpha of the
-%               included basis operators, in the order used for Qcell;
-%
-% NOTES
-% This implements only the L_2 -> L_2 part of the construction, i.e. the
-% reduction of Sec. 9.1 in which the created and lost variables S1 and S2
-% are ignored. A positive operator on R^n x L_2^m[S3] additionally requires
-% the R^n -> R^n, L_2 -> R^n and R^n -> L_2 blocks, which are formed from
-% the same Q>=0 but need a container object to hold them.
-%
-% Following Sec. 9.3, the products (Z_{alpha_i})* Q_{ij} (Z_{alpha_j}) are
-% formed as 'dpvar' objects via 'sosquadvar' and then converted to the
-% kernel format with 'dpvar2sdvar'. This reuses existing code at the cost of
-% carrying three groups of variables through the 'dpvar' arithmetic, and is
-% the temporary measure the document describes; the coefficient matrices
-% B_gamma could instead be built directly from vec(Q) by index arithmetic.
-%
-% The construction itself is 'copquadvar' on one space (10/01/2026): this
-% routine is its single-space interface, in the caller's variable order.
+% - prog:       'struct', PROG with the decision variables of Q and, for
+%               type 'pos', the constraint Q >= 0;
+% - Pop:        'sdopvar' object, m x m, on L_2^m[s];
+% - Qcell:      N x N 'cell', Qcell{i,j} the (m*T_i) x (m*T_j) 'cellstr'
+%               of the names of the entries of Q_ij, component outer and
+%               monomial inner, the monomials of Z^{alpha_i} ordered as the
+%               sorted rows of their exponents over (theta,s), variables in
+%               the order of VARS;
+% - alpha_list: 'double', N x n3, row i the multi-index alpha_i over VARS.
 %
 % See also COPQUADVAR, POSSOPVAR, POSLPIVAR, SOSQUADVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - possopvar
+% PIETOOLS - sopquadvar
 %
 % Copyright (C) 2026 PIETOOLS Team
 %
@@ -179,6 +107,15 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026: Initial coding (as 'possopvar')
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), the name line of the licence block
+%                  corrected (possopvar -> sopquadvar), step comments in
+%                  the body and the INPUT and OUTPUT lines of the local
+%                  function; code unchanged. The deleted header text was
+%                  the kernel form of the result, the reduction to
+%                  'poslpivar' in 1-D, implementation notes (the 'dpvar'
+%                  route, the call of 'copquadvar', the R^n blocks not
+%                  built) and the rationale of 'type'.
 % MMP, 10/21/2026: moved to lpi_programming_sopvar/misc/ and the private
 %                  helpers to misc/private/: the folder root keeps the user
 %                  functions only. The locations in the entries below read
@@ -335,6 +272,7 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % % % Matrix dimension
+% m from DIM, a scalar or an equal pair; a positive integer
 if isscalar(dim)
     m = dim;
 elseif numel(dim)==2
@@ -350,6 +288,8 @@ if m<1 || m~=round(m)
 end
 
 % % % Spatial variables
+% Names from a count, a 'polynomial' or a 'char'; then a row of distinct
+% names
 if isnumeric(vars) && isscalar(vars)
     n3 = vars;
     vars = cell(1,n3);
@@ -398,6 +338,7 @@ end
 check_reserved_names(vars);     % shared check, same message                % MMP, 09/30/2026
 
 % % % Domain
+% n3 x 2, a single row repeated for every variable, each a_k < b_k
 if isempty(dom) && n3==0
     dom = zeros(0,2);
 end
@@ -414,6 +355,7 @@ if any(dom(:,2)<=dom(:,1))
 end
 
 % % % Options
+% OPTIONS a 'struct'; psatz 0 when absent, then its value checked
 if nargin<6 || isempty(options)
     options = struct();
 end
@@ -490,6 +432,8 @@ end                                                                         % MM
 %     rep = rep*szv(k);                                                     % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
 % end                                                                       % MMP, 09/12/2026 % MMP, 09/30/2026 (was)
 alpha_all = multiindex_grid(vals);  % the same loop, shared (conventions/)  % MMP, 09/30/2026
+% The rows of ALPHA_LIST: all, a logical mask, multi-index rows, or linear
+% indices into the enumeration
 if ~isfield(options,'include') || isempty(options.include)
     alpha_list = alpha_all;
 else
@@ -520,6 +464,7 @@ end
 if size(alpha_list,1)==0
     error("At least one basis operator must be included.")
 end
+% Distinct rows; nblk = N basis operators
 if size(unique(alpha_list,'rows'),1)~=size(alpha_list,1)
     error("Multi-indices in 'include' should be distinct.")
 end
@@ -541,9 +486,12 @@ nblk = size(alpha_list,1);
 % The basis list built above goes in as 'include', which copquadvar keeps
 % in the given order, so alpha_list, Qcell and a per-basis 'deg' cell keep
 % this routine's order.
+% Options over the registry: sep and the rows of ALPHA_LIST permuted
 o = options;                                                                % MMP, 10/01/2026
 o.sep = sep(ord_S3);                                                        % MMP, 10/01/2026
 o.include = alpha_list(:,ord_S3);                                           % MMP, 10/01/2026
+% DEG over the registry; a cell DEG becomes one space with one entry per
+% basis operator
 if iscell(deg)                                                              % MMP, 10/01/2026
     if numel(deg)~=nblk                                                     % MMP, 10/01/2026
         error("A cell 'deg' should have one entry per included basis operator.") % MMP, 10/01/2026
@@ -553,6 +501,7 @@ if iscell(deg)                                                              % MM
 else                                                                        % MMP, 10/01/2026
     degc = registry_deg(deg,ord_S3,n3);                                     % MMP, 10/01/2026
 end                                                                         % MMP, 10/01/2026
+% The quadratic form on the one space L_2^m[s]
 [prog,Pc,Qcell] = copquadvar(prog,m,{vars},struct('vars',{vars},'dom',dom),degc,o); % MMP, 10/01/2026
 % Unsorted variables: copquadvar lists each basis operator's monomials over % MMP, 10/01/2026
 % the registry, this routine listed them over 'vars'. Rebuild both exponent % MMP, 10/01/2026
@@ -562,6 +511,8 @@ end                                                                         % MM
 if ~isequal(reshape(ord_S3,1,[]),1:n3)                                      % MMP, 10/01/2026
     Rw = cell(1,nblk);                                                      % MMP, 10/01/2026
     for i = 1:nblk                                                          % MMP, 10/01/2026
+        % Row map of basis i: its monomials over VARS located among those
+        % over the registry, repeated for each of the m components
         spec = deg;     if iscell(deg),  spec = deg{i};  end                % MMP, 10/01/2026
         dc = process_degrees_one(spec,n3);                                  % MMP, 10/01/2026
         dr = process_degrees_one(registry_deg(spec,ord_S3,n3),n3);          % MMP, 10/01/2026
@@ -575,12 +526,14 @@ if ~isequal(reshape(ord_S3,1,[]),1:n3)                                      % MM
         end                                                                 % MMP, 10/01/2026
         Rw{i} = reshape(p(:)+size(Er,1)*(0:m-1),[],1);                      % MMP, 10/01/2026
     end                                                                     % MMP, 10/01/2026
+    % Rows and columns of every block of Qcell in the order over VARS
     for i = 1:nblk                                                          % MMP, 10/01/2026
         for j = 1:nblk                                                      % MMP, 10/01/2026
             Qcell{i,j} = Qcell{i,j}(Rw{i},Rw{j});                           % MMP, 10/01/2026
         end                                                                 % MMP, 10/01/2026
     end                                                                     % MMP, 10/01/2026
 end                                                                         % MMP, 10/01/2026
+% Pop: the single block of the container
 Pop = Pc.C{1,1};                                                           % MMP, 10/01/2026
 % END MMP, 10/01/2026
 
@@ -593,16 +546,25 @@ function d = registry_deg(d,ord,n3)
 % relabelling the bits of its index over [theta_1..theta_n3, s_1..s_n3]
 % (see the help: the subset with bits b sits at 1+sum(2.^(b-1))). A scalar
 % or a scalar cap is the same in every order.
+% INPUT  d:   one degree specification over the order of VARS: a 'double'
+%             scalar, or a 'struct' with the fields of DEG;
+%        ord: 1 x n3 'double', sorted variable j is vars{ord(j)};
+%        n3:  'double', the number of variables.
+% OUTPUT d:   the specification over the sorted registry.
 %
 % Initial coding MMP, 10/01/2026
+% A scalar, or fewer than two variables: unchanged
 if ~isstruct(d) || n3<2                                                     % MMP, 10/01/2026
     return                                                                  % MMP, 10/01/2026
 end                                                                         % MMP, 10/01/2026
+% Per-variable caps in registry order
 for f = {'int','mult'}                                                      % MMP, 10/01/2026
     if isfield(d,f{1}) && numel(d.(f{1}))==n3                               % MMP, 10/01/2026
         d.(f{1}) = d.(f{1})(ord);                                           % MMP, 10/01/2026
     end                                                                     % MMP, 10/01/2026
 end                                                                         % MMP, 10/01/2026
+% Subset caps: each entry moved to the index of the same subset over the
+% registry
 if isfield(d,'subset') && numel(d.subset)==2^(2*n3)                         % MMP, 10/01/2026
     r(ord) = 1:n3;                              % registry position of vars{k} % MMP, 10/01/2026
     nb = [r, n3+r];                             % caller bit b -> registry bit % MMP, 10/01/2026

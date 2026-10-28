@@ -1,21 +1,50 @@
 function [Aout,Bout] = lr_multiply(L,A,B,R)                                 % MMP, 09/30/2026
-% function [Aout,Bout] = lr_multiply(L,A,B,R,K)                             % MMP, 09/30/2026 (was)
-% function [Aout,Bout] = lr_multiply(L,A,B,R)                               % MMP, 09/26/2026 (was)
-% Given vec(C(d)) = A + B'*d, return the coefficients of vec(L*C(d)*R), using
-% vec(L*C*R) = (R' kron L)*vec(C).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [AOUT,BOUT] = LR_MULTIPLY(L,A,B,R) returns, for the matrix C(d) with
+% vec(C(d)) = A + B'*d, the coefficients of L*C(d)*R, using
+% vec(L*C*R) = kron(R.',L)*vec(C):
 %
-% The constant term is handled by reshaping, which avoids the Kronecker
-% (was) product entirely. For B the product is formed explicitly, as in     % MMP, 09/30/2026 (was)
-% (was) @sdopvar/plus: here L and R are monomial selection matrices with a single % MMP, 09/30/2026 (was)
-% product entirely. For B the product is formed explicitly:                 % MMP, 09/30/2026
-% here L and R are monomial selection matrices with a single                % MMP, 09/30/2026
-% nonzero per row, so the Kronecker product has only nnz(L)*nnz(R) nonzeros
-% and applying it to all decision variables at once is far cheaper than
-% looping over the rows of B, of which there may be many thousands.
+%       vec(L*C(d)*R) = Aout + Bout'*d,
+%       Aout = vec(L*reshape(A,size(L,2),size(R,1))*R),
+%       Bout = B*kron(R.',L).'.
 %
-% (was) Optional K = kron(R.',L).', for a caller applying the same L and R to     % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
-% (was) several coefficient sets (one per gamma cell): forming it once per pair   % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
-% (was) instead of once per cell removed ~3 of 11.7 s of a 2-D poscopvar build.   % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+% INPUT
+% - L:      'double', p x mr, sparse or full;
+% - A:      'double', (mr*nc) x 1, the vec of the constant term of C(d);
+% - B:      'double', nd x (mr*nc), row i the vec of the coefficient of
+%           d_i, as a row; not used, and may be [], when BOUT is not
+%           requested;
+% - R:      'double', nc x r, sparse or full.
+%
+% OUTPUT
+% - Aout:   'double', (p*r) x 1;
+% - Bout:   'double', nd x (p*r).
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - lr_multiply
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % MMP, 09/26/2026: optional fifth input K, as above. Without it the
 %                  behaviour is unchanged.
@@ -31,12 +60,29 @@ function [Aout,Bout] = lr_multiply(L,A,B,R)                                 % MM
 %                  the w1-w3 builds. Help: no longer "as in @sdopvar/plus",
 %                  which maps its bases with 'apply_basis_map' (via
 %                  plus_batch) since 09/07/2026.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), the licence block added, step comments
+%                  in the body; code unchanged. The log entries above moved
+%                  here from the help text. The deleted header text was the
+%                  cost rationale for forming the Kronecker product, with
+%                  its (was) lines, and the help of the input K removed on
+%                  09/30/2026, which the first 09/26/2026 entry calls
+%                  'above'. The log had no initial-coding entry: initial
+%                  coding MP, 08/22/2026, as a local function of 'possopvar'
+%                  (the file since renamed 'sopquadvar'), moved to private/
+%                  by MMP, 09/21/2026. The (was) lines of the earlier
+%                  signatures moved from under the function line to here,
+%                  so that help starts with the description:
+% function [Aout,Bout] = lr_multiply(L,A,B,R,K)                             % MMP, 09/30/2026 (was)
+% function [Aout,Bout] = lr_multiply(L,A,B,R)                               % MMP, 09/26/2026 (was)
 
+% Constant term: A as the mr x nc matrix, multiplied, vectorized
 X = reshape(A,size(L,2),size(R,1));
 Y = L*X*R;
 Aout = Y(:);
 if nargout<2,  return;  end     % B unused: no Kronecker product            % MMP, 09/26/2026
 
+% Decision part: every row of B at once, times kron(R.',L).'
 % Bout = B*kron(R.',L).';                                                   % MMP, 09/26/2026 (was)
 % if nargin<5 || isempty(K),  K = kron(R.',L).';  end                         % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
 % Bout = B*K;                                                                 % MMP, 09/26/2026 % MMP, 09/30/2026 (was)

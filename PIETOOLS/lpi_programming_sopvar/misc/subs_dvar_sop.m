@@ -1,31 +1,43 @@
 function Xsol = subs_dvar_sop(X,dnames,dvals)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% XSOL = SUBS_DVAR_SOP(X,DNAMES,DVALS) substitutes given values for named
-% decision variables in an LPI object X of either operator family, with no
-% solved program: decision variable DNAMES{k} takes the value DVALS(k).
-%
-% This is the entry point for certification, where the point is not a
-% solver's answer: a candidate from a low-rank or first-order method, a
-% rounded point, or a perturbed one. It is 'lpigetsol_sop' applied to a
-% program structure holding only DNAMES as decvartable and DVALS as
-% solinfo.RRx, so both entry points run the one implementation, and every
-% class 'lpigetsol_sop' accepts is accepted here with the same result.
+% XSOL = SUBS_DVAR_SOP(X,DNAMES,DVALS) substitutes the value DVALS(k) for
+% the decision variable named DNAMES{k} in X, for every k, without a solved
+% program: XSOL is the solved value of X in a program whose decision
+% variables are DNAMES, with the values DVALS.
 %
 % INPUT
-% - X:      object of any class accepted by 'lpigetsol_sop': 'sdopvar',
-%           'cdopvar', 'dopvar', 'dopvar2d', 'dpvar', a fixed operator or
-%           matrix, or a cell of these;
-% - dnames: cellstr (or string array) of decision variable names, in any
-%           order, UNIQUE. Names not in X are ignored;
-% - dvals:  numeric vector, dvals(k) the value of dnames{k}.
+% - X:      the object to substitute in: an 'sdopvar', 'cdopvar', 'dopvar',
+%           'dopvar2d' or 'dpvar' object; an 'opvar' or 'opvar2d' object,
+%           whose fields may hold 'dpvar' objects; a 'sopvar', 'copvar',
+%           'polynomial' or 'double' object; a 'char' decision variable
+%           name; or a 'cell' of these (see NOTES);
+% - dnames: 'cellstr' or string array of distinct decision variable names,
+%           in any order; names X does not hold are not used;
+% - dvals:  numeric array with numel(dnames) entries, dvals(k) the value of
+%           dnames{k}.
 %
 % OUTPUT
-% - Xsol:   X with every listed decision variable replaced by its value.
-%           Variables of X not in DNAMES stay decision variables, so a
-%           subset of the variables can be fixed (e.g. only gamma).
+% - Xsol:   X with every decision variable named in DNAMES replaced by its
+%           value; the decision variables of X not named stay decision
+%           variables. An 'sdopvar' or 'cdopvar' X gives a 'sopvar' or
+%           'copvar' object when DNAMES names all of its decision
+%           variables, else an 'sdopvar' or 'cdopvar' object on the
+%           others; a 'dopvar' or 'dopvar2d' X with all of them named gives
+%           an 'opvar' or 'opvar2d' object; a 'dpvar' X gives a
+%           'polynomial' object (all named) or a 'dpvar' object on the
+%           others; the 'dpvar' fields of an 'opvar' or 'opvar2d' X are
+%           substituted; a 'char' name gives a 'polynomial' object, its
+%           value when it is named; a 'cell' is substituted entry by
+%           entry; a 'sopvar', 'copvar', 'polynomial' or 'double' X, and an
+%           'opvar' or 'opvar2d' X without 'dpvar' fields, are returned as
+%           they are.
 %
-% COST: as 'getsol_lpivar_sop' with N = numel(dnames); for the legacy
-% classes, as 'lpigetsol'.
+% NOTES
+% A 'cell' X that holds no 'sopvar', 'sdopvar', 'copvar' or 'cdopvar'
+% object, at any depth, may hold only 'dpvar', 'polynomial', 'double' and
+% 'char' objects and cells of them, and its 'polynomial' entries are
+% substituted. DNAMES not a 'cellstr' or string array, or DVALS not numeric
+% or with a number of entries other than numel(DNAMES), is an error.
 %
 % See also LPIGETSOL_SOP, GETSOL_LPIVAR_SOP, SOSGETSOL.
 %
@@ -59,7 +71,14 @@ function Xsol = subs_dvar_sop(X,dnames,dvals)
 %                solved program, for certification of candidate points;
 %                the low-rank certifiers (pielr_evalop/pielr_certify) had
 %                it for dopvar/dopvar2d/dpvar only.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), step comments in the body; code
+%                unchanged. The deleted header text was the purpose (the
+%                certification of candidate points), the rationale of
+%                running lpigetsol_sop, and the cost by reference to
+%                getsol_lpivar_sop and lpigetsol.
 
+% DNAMES as a 'cellstr'; DVALS numeric, one entry per name
 if isstring(dnames),    dnames = cellstr(dnames);   end
 if ~iscellstr(dnames) %#ok<ISCLSTR>
     error('subs_dvar_sop:badNames','DNAMES must be a cellstr or string array of decision variable names.')
@@ -72,6 +91,7 @@ end
 % read, and no other; 'info' only marks the structure as solved.
 prog = struct('decvartable',{dnames(:)},...
               'solinfo',struct('RRx',double(dvals(:)),'info',struct('source','subs_dvar_sop')));
+% The solved value of X for that program
 Xsol = lpigetsol_sop(prog,X);
 
 end

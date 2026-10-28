@@ -1,65 +1,93 @@
 function out = e2e_hinf_gain_1d(plant,level)                                % MMP, 10/21/2026
-% function out = hinf_gain_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% OUT = HINF_GAIN_1D_SOP(PLANT,LEVEL) computes an upper bound on the
-% H-infinity gain of a 1-D PIE on the container path, with the gain gamma
-% a DECISION VARIABLE minimized in ONE SDP, and certifies the extracted
-% solution. It is the LPI of executives/PIETOOLS_Hinf_gain.m (primal KYP,
-% non-coercive Q form) posed with the Tier 1 functions:
+% OUT = E2E_HINF_GAIN_1D(PLANT,LEVEL) computes, on the container path, an
+% upper bound gam on the H-infinity gain from w to z of the 1-D PIE
+% T x_t = A x + B_w w,  z = C_z x + D_zw w  of PLANT, with gam a decision
+% variable minimized in one SDP,
 %
 %   min gam  s.t.  gam >= 0,  R >= 0,  T'Q - R = 0,
-%       K = [-gam*I_w, D',       B_w'Q     ]
-%           [ D,       -gam*I_z, C_z       ]  <= 0,  i.e. K + N = 0, N >= 0,
-%           [ Q'B_w,   C_z',     A'Q + Q'A ]
+%       K = [-gam*I_w, D_zw',    B_w'Q    ]
+%           [ D_zw,    -gam*I_z, C_z      ]  <= 0,  i.e. K + N = 0, N >= 0,
+%           [ Q'B_w,   C_z',     A'Q + Q'A]
 %
-% built as cx_Hinf_gain (sopvar/Testfolder/sdopvar/claude_tests/cx_exec)
-% builds it, except that cx_Hinf_gain substitutes a fixed double gamma
-% (no dpvar x container product existed) and is bisected:
-%   - lpiprogram_sop(T), from the container's registry and domain;
-%   - [prog,gam] = lpidecvar(prog,'gam'); gam >= 0 by the legacy scalar
-%     lpi_ineq (sosineq); lpisetobj(prog,gam);
-%   - R: cx_hinf_lf (poscopvar as the executive's poslpivar calls);
-%     Q: lpivar_cdopvar at get_lpivar_degs's degrees (cx_hinf_qdeg);
-%   - -(gam*I_w), -(gam*I_z): dpvar times eye_copvar_sop (Tier 1b/1c);
-%   - N: poscopvar as cx_hinf_slack; checked to build cx_hinf_slack's
-%     program exactly;
-%   - both equalities through lpi_eq_sop; solve with lpisolve (MOSEK);
-%   - gam, Q, R, N, K and the two constraint operators through
-%     lpigetsol_sop.
-%
-% CHECKS (each asserted; error id hinf_gain_1d_sop:check):
-% (1) solve certified: MOSEK numerr 0, pinf 0; rel_b <= 1e-6 on the
-%     solinfo.RRx rows (cx_resid); Gram blocks PSD (min eig >= -1e-8 max);
-% (2) gamma equals the stock PIETOOLS_Hinf_gain bound on the same PIE and
-%     settings to 1e-4 relative; for io1 at 'light' it lies in the
-%     container bisection bracket [0.182503, 0.182626] of cx_run_1d, widened
-%     by the bisection tolerance (1e-5 relative);
-% (3) the extracted operators reproduce the SDP's own residual: for each
-%     equality E = 0, ||coef E(sol)|| / ||r_rows|| is 1 for T'Q - R (every
-%     coefficient is a row) and in [1, sqrt(2)] for K + N ('symmetric':
-%     one row per adjoint pair);
-% (4) semantically, by action on random test functions (opcheck_sop,
-%     kernels integrated from the class definition): T'Q = R in weak form
-%     <T y, Q x> = <y, R x> (no adjoint or composition computed), K + N = 0,
-%     each to 1e-5 relative (the solve stops at rel_b ~ 5e-7, and a
-%     function-space residual is not the row residual); getsol(K) equals K
-%     rebuilt from the extracted gamma and Q by the operator algebra to
-%     1e-10 (the dpvar operators evaluated at the solution); R >= 0, N >= 0
-%     and K <= 0 on the test functions;
-% (5) control: reading solinfo.x in place of solinfo.RRx breaks (4) by
-%     more than 1e3 times the real residual.
+% on an lpiprogram_sop program: gam from lpidecvar, gam >= 0 by lpi_ineq;
+% R and N the positive operators of the 'lf' and 'slack' settings of
+% lpisettings(LEVEL) (poslpivar_settings_sop); Q free (lpivar_cdopvar at
+% the degrees get_lpivar_degs_sop reads off R); I_w, I_z from
+% eye_copvar_sop; the two equalities by lpi_eq_sop, the second
+% 'symmetric'. It solves the LPI with MOSEK, extracts gam, Q, R, N, K and
+% the two constraint operators with lpigetsol_sop, and checks them,
+% erroring at the first failed check:
+%   (1) MOSEK numerr 0 and pinf 0; rel_b = ||At'x - b||/||b|| <= 1e-6 at
+%       x = solinfo.RRx; the least eigenvalue of the Gram blocks at least
+%       -1e-8 times the largest; the extracted operators are 'copvar'
+%       objects;
+%   (2) gam equals the bound of stock PIETOOLS_Hinf_gain on the same PIE
+%       and settings to 1e-4 relative; for PLANT {'io1'} at 'light', gam
+%       lies in [0.182503, 0.182626], widened by 1e-5 relative;
+%   (3) with r1, r2 the residual norms at solinfo.RRx of the rows of
+%       T'Q - R = 0 and K + N = 0, the coefficient norm of the extracted
+%       T'Q - R equals r1 to 1e-6 relative, that of K + N lies in
+%       [r2, sqrt(2) r2] (1e-6 slack);
+%   (4) by the action on 6 random polynomial test functions x, y
+%       (opcheck_sop, quadrature of the kernels): <T y, Q x> = <y, R x>
+%       and N + K = 0 to 1e-5 relative; the extracted K equals K rebuilt
+%       from the extracted gam and Q to 1e-10 relative; <x, R x> and
+%       <x, N x> at least -1e-8, and <x, K x> at most the larger of 1e-8
+%       and the residual of N + K (normalized);
+%   (5) with the first entries of solinfo.x in place of solinfo.RRx, the
+%       larger of the residuals of <T y, Q x> = <y, R x> and N + K = 0
+%       exceeds 1e3 times the larger one at solinfo.RRx.
 %
 % INPUT
-% - plant: cx_plant argument cell (default {'io1'}); a 1-D PIE with Tw = 0
-%          (the non-coercive branch of the executive);
-% - level: lpisettings name (default 'light').
-% OUTPUT struct: gam (container), gam_stock, rel_b, psd_relmin, the ratios
-%   of (3), the residuals and margins of (4), the control, the SDP shapes of
-%   both programs, and the times (s).
+% - plant:  (optional) 'cell', the arguments of cx_plant naming a 1-D
+%           plant with Tw = 0; default {'io1'}, the PIE of
+%           u_t = u_ss + 0.5 pi^2 u + w(s) on [0,1], u(0) = u(1) = 0,
+%           z = int_0^1 u ds;
+% - level:  (optional) 'char', the name of the LPI settings (lpisettings);
+%           default 'light'.
 %
-% Needs the cx_exec helpers (sopvar/Testfolder/sdopvar/claude_tests/
-% cx_exec) and heatNd_apply (PIETOOLS_demos/sopvar_demos) on the path;
-% pietools_path_update puts both there.
+% OUTPUT
+% - out:    'struct' with fields gam and gam_stock ('double', the container
+%           and the stock bound), rel_b, psd_min and psd_relmin ('double',
+%           of the container solve), coef_rows (1x2 'double', the
+%           coefficient norms over r1 and r2), rows_res ([r1 r2]),
+%           weak_TQR, res_KN and res_Kgetsol ('double', the residuals of
+%           (4)), psd (1x3 'double', the least <x,Rx> and <x,Nx> and the
+%           largest <x,Kx>), control (1x2 'double', the residuals of (5)),
+%           shape_stock and shape ('struct' of cx_shape: ndv, Kf, Ks, m,
+%           nvar), t ('struct' of seconds: stock, build, solve, extract);
+%           printed lines with the values.
+%
+% NOTES
+% A 2-D plant or Tw ~= 0 is an error ('hinf_gain_1d_sop:plant'); a failed
+% check errors with identifier 'hinf_gain_1d_sop:check'. Requires MOSEK.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - e2e_hinf_gain_1d
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/29/2026. Tier 1 end-to-end example E1.
 % MMP, 10/06/2026: cx_hinf_lf -> poslpivar_settings_sop ('lf'), cx_hinf_qdeg
@@ -77,8 +105,22 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 %                helpers (cx_exec, opcheck_sop), not an example of standard
 %                usage; examples/hinf_gain_1d_sop.m is now that. Code
 %                unchanged; the error identifiers keep the former name.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), the licence block added, step comments
+%                in the body and the header of the local function; code
+%                unchanged. The deleted header text was the stock executive
+%                the LPI reproduces, the provenance of the program and of
+%                the bracket of check (2), the rationale for the
+%                tolerances, and the path of the helpers. The references of
+%                the 10/06/2026 entry to the header text above no longer
+%                apply.
+%                The (was) line of the former signature moved here from
+%                under the function line, so that help starts with the
+%                description:
+% function out = hinf_gain_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 
+% Defaults; no warnings for non-canonical multipliers; settings with
+% MOSEK; the PIE, 1-D with Tw = 0; a check asserts with one identifier
 if nargin<1 || isempty(plant),  plant = {'io1'};    end
 if nargin<2 || isempty(level),  level = 'light';    end
 warning('off','sopvar:noncanonicalMultiplier');
@@ -97,15 +139,20 @@ t_stock = toc(t0);
 
 % % % Container program, gamma a decision variable.
 t0 = tic;
+% The PIE operators as containers; identity operators on the spaces of w
+% and z
 Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
 Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw);
 % [spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out'); % MMP, 10/06/2026 (was)
 [spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026
 Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
+% Program; gam >= 0 a decision variable, the objective
 prog = lpiprogram_sop(Tm);                          % registry and dom of T
 [prog,gam] = lpidecvar(prog,'gam');
 prog = lpi_ineq(prog,gam);                          % gam >= 0: legacy sosineq
 prog = lpisetobj(prog,gam);
+% R >= 0 ('lf' settings) and Q free on the output spaces of T; T'Q - R = 0,
+% its rows recorded
 % [prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);             % R >= 0              % MMP, 10/06/2026 (was)
 % [sp,dm] = cx_space_list(Tm,'out');                                        % MMP, 10/06/2026 (was)
 % [prog,Qm] = lpivar_cdopvar(prog,dm,sp,PIE.dom,cx_hinf_qdeg(Rm));          % MMP, 10/06/2026 (was)
@@ -116,6 +163,7 @@ E1 = Tm'*Qm - Rm;
 e0 = prog.expr.num;
 prog = lpi_eq_sop(prog,E1);                         % NOT symmetric (stock line 157)
 rows1 = e0+1:prog.expr.num;
+% KYP operator K, affine in gam and Q
 Km = [-(gam*Iw),   Dzw',        Bw'*Qm;
        Dzw,        -(gam*Iz),   Cz;
        Qm'*Bw,     Cz',         Am'*Qm + Qm'*Am];
@@ -135,6 +183,7 @@ Km = [-(gam*Iw),   Dzw',        Bw'*Qm;
 % N >= 0 on K's spaces (dd2/options2, + dd3/options3 when override2 ~= 1).  % MMP, 10/06/2026
 [prog,Nm] = poslpivar_settings_sop(prog,Km,st,'slack','out',PIE.dom);       % MMP, 10/06/2026
 % END MMP, 10/06/2026
+% K + N = 0, one parameter per adjoint pair, its rows recorded
 E2 = Nm + Km;
 e0 = prog.expr.num;
 prog = lpi_eq_sop(prog,E2,'symmetric');             % Deop + Dop = 0
@@ -149,6 +198,7 @@ t_build = toc(t0);
 t0 = tic;
 prog = lpisolve(prog,st.sos_opts);
 t_solve = toc(t0);
+% (1) solver flags, rel_b and the PSD margin; the shapes of both SDPs
 info = prog.solinfo.info;
 [rb,pmin,prel] = cx_resid(prog);
 Ss = cx_shape(prog_s);  Sc = cx_shape(prog);
@@ -205,6 +255,7 @@ rNx = opcheck_sop('res',lpigetsol_sop(bad,Nm),-lpigetsol_sop(bad,Km),o);
 fprintf('   control solinfo.x: T''Q=R weak %.2e, K+N %.2e\n',w1x,rNx);
 chk(max(w1x,rNx)>1e3*max([w1,rN,1e-12]),'(5) reading solinfo.x is not detected')
 
+% Output
 out = struct('gam',g,'gam_stock',gam_s,'rel_b',rb,'psd_min',pmin,'psd_relmin',prel,...
     'coef_rows',[c1/r1, c2/r2],'rows_res',[r1 r2],'weak_TQR',w1,'res_KN',rN,'res_Kgetsol',rK,...
     'psd',[pR pN pK],'control',[w1x rNx],'shape_stock',Ss,'shape',Sc,...
@@ -215,8 +266,12 @@ end
 
 % ------------------------------------------------------------------------
 function r = row_res(prog,rows)
-% ||At_i' x - b_i|| over the expressions ROWS, x = solinfo.RRx
-% (decvartable order, the order of At rows).
+% R = ROW_RES(PROG,ROWS) returns sqrt(sum_i ||At_i'*x - b_i||^2) over the
+% expressions i in ROWS, x = prog.solinfo.RRx (decvartable order, the
+% order of the rows of At_i).
+% INPUT  prog: 'struct', a solved LPI program; rows: 'double' vector of
+%        indices into prog.expr.At and prog.expr.b.
+% OUTPUT r: 'double'.
 x = prog.solinfo.RRx(:);    r2 = 0;
 for i = rows
     At = prog.expr.At{i};   b = prog.expr.b{i};

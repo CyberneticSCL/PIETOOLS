@@ -1,52 +1,84 @@
 function out = e2e_stability_2d(frac,level)                                 % MMP, 10/21/2026
-% function out = stability_2d_sop(frac,level)                               % MMP, 10/21/2026 (was)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% OUT = STABILITY_2D_SOP(FRAC,LEVEL) solves the 2-D PIE stability LPI of
-% executives/2D/PIETOOLS_stability_2D.m (direct form) on the container
-% path for the 2-D heat equation u_t = u_s1s1 + u_s2s2 + FRAC*2 pi^2 u,
-% Dirichlet on [0,1]^2 (cx_plant('rd2',FRAC)), and tests the EXTRACTION of
-% its solution with lpigetsol_sop:
+% OUT = E2E_STABILITY_2D(FRAC,LEVEL) builds, on the container path, the
+% stability LPI of the PIE  T x_t = A x  of the 2-D heat equation
 %
-%   P = P0 + diag(eppos) >= 0,   Q = (A'(P T))' + A'(P T) = -Qe,  Qe >= 0.
+%   u_t = u_s1s1 + u_s2s2 + FRAC*2 pi^2 u  on [0,1]^2,  u = 0 on the
+%   boundary,
 %
-% NOT A CERTIFICATE. Psatz-free 2-D stability is limited by solver
-% accuracy (MOSEK fails at every fraction; SeDuMi stops at rel_b ~ 7e-6 at
-% FRAC = 0.1, above the 1e-6 gate: memory notes dopvar2d-vs-sopvar-2d-
-% precision, psatz-generators-2d). So this solves with SeDuMi and shows
-% that the extracted operators reproduce the solver's own residual level;
-% it does not certify stability.
+%   P = P0 (+ psatz terms) + diag(eppos) >= 0,
+%   Q = (A'(P T))' + A'(P T) (+ 2 epneg T'(P T)) = -Qe,  Qe >= 0,
 %
-% The program is cx_stability_2D's (sopvar/Testfolder/sdopvar/
-% claude_tests/cx_exec), which returns no operators and is frozen by the
-% maintainer. It is transcribed below (BUILD_2D) with lpiprogram_sop and
-% lpi_eq_sop in place of lpiprogram and lpi_eq_cdopvar, and returns P, Q,
-% Qe; the transcription must build cx_stability_2D's program exactly (At,
-% b, variables, decvartable), which cx_stability_2D, called unmodified,
-% provides as the reference.
+% with the 2-D settings of lpisettings(LEVEL) on an lpiprogram_sop program
+% (BUILD_2D), solves it with SeDuMi, extracts P, Q, Qe and Qe + Q with
+% lpigetsol_sop, and checks the extraction, erroring at the first failed
+% check. The solve is held to no residual bound, so the test does not
+% certify stability:
+%   (0) the program equals, in expr.At, expr.b, var.idx, var.type,
+%       decvartable and dom, the program of cx_stability_2D;
+%   (1) SeDuMi returns a point: ||solinfo.x|| > 1e-12 and
+%       rel_b < 1 - 1e-6, rel_b = ||At'x - b||/||b|| at x = solinfo.RRx;
+%       the extracted operators are 'copvar' objects;
+%   (2) the coefficient norm of the extracted Qe + Q lies in [r, sqrt(2) r]
+%       (1e-6 slack), r the residual norm of all rows at solinfo.RRx;
+%   (3) by the action on 6 random polynomial test functions (opcheck_sop,
+%       10 Gauss nodes per direction), the extracted Q equals
+%       (A'(P T))' + A'(P T) (+ 2 epneg T'(P T)) at the extracted P to
+%       1e-10 relative;
+%   (4) on the same test functions, Qe + Q = 0 to 1e-3 relative, and
+%       <x, P x> and <x, Qe x> at least -1e-6 (normalized);
+%   (5) with solinfo.RRx perturbed by 1e-3 times its rms entry (Gaussian,
+%       seed 7), the residual of Qe + Q = 0 exceeds 10 times its
+%       unperturbed value.
+% The pinf, dinf, numerr and feasratio of SeDuMi, rel_b and the PSD margin
+% are printed.
 %
-% CHECKS (each asserted; error id stability_2d_sop:check):
-% (0) the transcription builds cx_stability_2D's program exactly;
-% (1) SeDuMi returns a point (not X = 0; rel_b < 1); pinf, numerr,
-%     feasratio, rel_b and the PSD margin are reported;
-% (2) the extracted constraint operator E = Qe + Q reproduces the SDP
-%     residual: every row of the program is a canonical coefficient of E,
-%     one per adjoint pair ('symmetric'), so ||r_rows|| <= ||coef E(sol)||
-%     <= sqrt(2) ||r_rows|| (1e-6 slack);
-% (3) getsol(Q) equals Q rebuilt from getsol(P) by the operator algebra
-%     to 1e-10 (by action);
-% (4) by action on test functions: Qe + Q = 0 to within the solver's
-%     accuracy class (relative residual <= 1e-3; the value is reported
-%     beside rel_b); P and Qe >= -1e-6 on the test functions;
-% (5) control: RRx perturbed by 1e-3 of its rms entry breaks (4) by more
-%     than 10 times (solinfo.x equals RRx here: no free variable, no
-%     inequality).
+% INPUT
+% - frac:   (optional) 'double', the reaction coefficient over 2 pi^2 (the
+%           PDE is stable for FRAC < 1); default 0.1;
+% - level:  (optional) 'char', the name of the LPI settings (lpisettings);
+%           default 'light'.
 %
-% INPUT  frac (default 0.1), level (lpisettings name, default 'light').
-% OUTPUT struct: SeDuMi info, rel_b, psd margins, the ratio of (2), the
-%   residuals of (3)-(5), the SDP shape and the times (s).
-% Cost (measured 09/29/2026, FRAC 0.1, light): m 3456, 179840 decision
-% variables, Ks [424 8]; build 1.8-2.7 s each (transcription and
-% reference); SeDuMi 215-273 s; about 4-5 min in all.
+% OUTPUT
+% - out:    'struct' with fields info ('struct', the SeDuMi report),
+%           rel_b, psd_min and psd_relmin ('double'), coef_rows ('double',
+%           the coefficient norm of (2) over r), rows_res ('double', r),
+%           res_Qgetsol and res_E ('double', the residuals of (3) and (4)),
+%           psd (1x2 'double', the least <x,Px> and <x,Qe x>), control
+%           ('double', the residual of (5)), shape ('struct' of cx_shape:
+%           ndv, Kf, Ks, m, nvar), t ('struct' of seconds: ref, build,
+%           solve, extract); printed lines with the values.
+%
+% NOTES
+% A failed check errors with identifier 'stability_2d_sop:check'; 2-D
+% settings with use_sosineq = 1 are an error ('stability_2d_sop:gap').
+% Requires SeDuMi.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PIETOOLS - e2e_stability_2d
+%
+% Copyright (C) 2026 PIETOOLS Team
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/29/2026. Tier 1 end-to-end example E3.
 % MMP, 10/21/2026: moved from examples/stability_2d_sop.m to
@@ -54,19 +86,34 @@ function out = e2e_stability_2d(frac,level)                                 % MM
 %                helpers (cx_exec, opcheck_sop), not an example of standard
 %                usage; examples/stability_2d_sop.m is now that. Code
 %                unchanged; the error identifiers keep the former name.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                inputs, outputs), the licence block added, step comments
+%                in the body and headers of the local functions; code
+%                unchanged. The deleted header text was the measured solver
+%                accuracy and cost, references to memory notes, the
+%                provenance of the program, the rationale for the bounds of
+%                check (2) and notes on keeping BUILD_2D in step with its
+%                reference.
+%                The (was) line of the former signature moved here from
+%                under the function line, so that help starts with the
+%                description:
+% function out = stability_2d_sop(frac,level)                               % MMP, 10/21/2026 (was)
 
+% Defaults; no warnings for non-canonical multipliers; a check asserts
+% with one identifier
 if nargin<1 || isempty(frac),   frac = 0.1;         end
 if nargin<2 || isempty(level),  level = 'light';    end
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
 chk = @(c,varargin) assert(c,'stability_2d_sop:check',varargin{:});
+% Settings with SeDuMi; the PIE of the 2-D heat equation
 st = cx_settings(level,'sedumi');
 PIE = initialize(cx_plant('rd2',frac));
 
 % % % Reference program (frozen file, unmodified) and the transcription.
 t0 = tic;   pref = cx_stability_2D(PIE,st);     t_ref = toc(t0);
 t0 = tic;   [prog,ops] = build_2d(PIE,st);      t_build = toc(t0);
+% (0) the two programs must be equal; the shape of the SDP
 same = isequal(pref.expr.At,prog.expr.At) && isequal(pref.expr.b,prog.expr.b) && ...
        isequal(pref.var.idx,prog.var.idx) && isequal(pref.var.type,prog.var.type) && ...
        isequal(pref.decvartable,prog.decvartable) && isequal(pref.dom,prog.dom);
@@ -77,6 +124,7 @@ chk(same,'(0) the transcription does not build cx_stability_2D''s program')
 
 % % % Solve (SeDuMi).
 t0 = tic;   prog = lpisolve(prog,st.sos_opts);  t_solve = toc(t0);
+% (1) solver report; rel_b, PSD margin and whether x = 0
 info = prog.solinfo.info;
 [rb,pmin,prel,triv] = cx_resid(prog);
 fprintf('   SeDuMi: pinf %d, dinf %d, numerr %d, feasratio %.4f; rel_b %.2e, psd_min %.2e (rel %.2e); solve %.1f s\n',...
@@ -123,6 +171,7 @@ fprintf('   control RRx + 1e-3 rms noise: Qe + Q %.2e (||x - RRx|| = %.2e)\n',rE
     norm(prog.solinfo.x(1:nxr)-x(1:nxr)));
 chk(rEx>10*rE,'(5) a perturbed RRx is not detected (%.3g vs %.3g)',rEx,rE)
 
+% Output
 out = struct('info',info,'rel_b',rb,'psd_min',pmin,'psd_relmin',prel,'coef_rows',ce/rall,...
     'rows_res',rall,'res_Qgetsol',rQ,'res_E',rE,'psd',[pP pQe],'control',rEx,'shape',S,...
     't',struct('ref',t_ref,'build',t_build,'solve',t_solve,'extract',t_extract));
@@ -132,30 +181,44 @@ end
 
 % ------------------------------------------------------------------------
 function [prog,ops] = build_2d(PIE,st)
-% cx_stability_2D.m (MMP 09/25/2026), body transcribed line for line with
-% two substitutions, lpiprogram -> lpiprogram_sop and lpi_eq_cdopvar ->
-% lpi_eq_sop, and the operators returned. Keep in step with it by hand;
-% check (0) catches a divergence.
+% [PROG,OPS] = BUILD_2D(PIE,ST) builds, unsolved, the LPI
+% P = P0 (+ psatz terms) + diag(eppos),  Q = (A'(P T))' + A'(P T)
+% (+ 2 epneg T'(P T)),  Qe + Q = 0  with P0, Qe and the psatz terms
+% positive operators (cx_stability_pos2d) at the degrees and options of
+% the 2-D settings, Qe pruned from the zero structure of Q.
+% INPUT  PIE: 'pie_struct' object of a 2-D PIE whose state is in
+%             L2[s1,s2];
+%        st:  'struct' of LPI settings with fields sos_opts and
+%             settings_2d, or 2-D settings with is2D true; use_sosineq = 1
+%             is an error.
+% OUTPUT prog: 'struct', the LPI program; ops: 'struct' with fields T, A
+%        ('copvar'), P, Q, Qe ('cdopvar') and epneg ('double').
+% 2-D settings, with the solver options of ST
 if ~isfield(st,'is2D') || ~st.is2D
     sos_opts = st.sos_opts;     st = st.settings_2d;    st.sos_opts = sos_opts;
 end
+% Margins (one per space of T) and decay rate
 if ~isfield(st,'eppos'),    eppos = [1e-4;1e-6;1e-6;1e-6];
 else,                       eppos = st.eppos;   if numel(eppos)==1,  eppos = eppos*ones(4,1);  end
 end
 epneg = 0;  if isfield(st,'epneg'),    epneg = st.epneg;   end
+% Degrees and options of the psatz terms of P
 LF_use_psatz = st.LF_use_psatz;
 LF_deg_psatz = psatz_cell(st.LF_deg_psatz,LF_use_psatz);
 LF_opts_psatz = psatz_cell(st.LF_opts_psatz,LF_use_psatz);
 if st.use_sosineq
     error('stability_2d_sop:gap','use_sosineq=1 needs lpi_ineq_2d, which has no container counterpart.')
 end
+% Degrees and options of Qe and of its psatz terms
 eq_opts = st.eq_opts;   eq_deg = st.eq_deg;     eq_use_psatz = st.eq_use_psatz;
 eq_deg_psatz = psatz_cell(st.eq_deg_psatz,eq_use_psatz);
 eq_opts_psatz = psatz_cell(st.eq_opts_psatz,eq_use_psatz);
 
+% The PIE operators as containers; the program
 Tm = opvar2d2copvar(PIE.T);     Am = opvar2d2copvar(PIE.A);
 prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 
+% P = P0 (+ psatz terms) + diag(eppos) on the output space of T
 [prog,Pm] = cx_stability_pos2d(prog,Tm,'out',PIE.dom,st.LF_deg,st.LF_opts);
 for j = 1:length(LF_use_psatz)
     if LF_use_psatz(j)~=0
@@ -169,6 +232,7 @@ if ~all(eppos==0)
     Pm = Pm + opvar2d2copvar(opvar2d(Ip,[np,np],PIE.dom,PIE.vars));
 end
 
+% Q = (A'(P T))' + A'(P T) (+ 2 epneg T'(P T))
 PTm = Pm*Tm;    APTm = Am'*PTm;
 if epneg==0
     Qm = APTm' + APTm;
@@ -176,6 +240,8 @@ else
     Qm = APTm' + APTm + 2*epneg*(Tm'*PTm);
 end
 
+% Qe >= 0, pruned from the zero structure of Q (tolerance 1e-12), and its
+% psatz terms, which exclude what Qe excludes
 ztol = 1e-12;
 eq_opts = cx_stability_eq_opts_2D(Qm,eq_opts,ztol);
 [prog,Qem] = cx_stability_pos2d(prog,Qm,'out',PIE.dom,eq_deg,eq_opts);
@@ -187,12 +253,20 @@ for j = 1:length(eq_use_psatz)
         Qem = Qem + Qe2m;
     end
 end
+% Qe + Q = 0, one parameter per adjoint pair; the operators
 prog = lpi_eq_sop(prog,Qem+Qm,'symmetric');
 ops = struct('T',Tm,'A',Am,'P',Pm,'Q',Qm,'Qe',Qem,'epneg',epneg);
 end
 
 function outcell = psatz_cell(incell,use_psatz)
-% cx_stability_2D's local function of the same name, unchanged.
+% OUTCELL = PSATZ_CELL(INCELL,USE_PSATZ) returns one entry of INCELL per
+% psatz term: {} when every entry of USE_PSATZ is 0; INCELL repeated when
+% it is a 'struct' or has one entry; INCELL itself when it has one entry
+% per term; INCELL(USE_PSATZ) when it has at least max(USE_PSATZ)
+% entries; any other INCELL is an error.
+% INPUT  incell: 'struct' or 'cell' of degrees or options; use_psatz:
+%        'double' vector, the psatz terms.
+% OUTPUT outcell: 'cell', one entry per element of USE_PSATZ.
 if all(use_psatz==0),                   outcell = {};   return, end
 if isa(incell,'struct'),                outcell = repmat({incell},1,length(use_psatz));
 elseif numel(incell)==1,                outcell = repmat(incell(1),1,length(use_psatz));
@@ -203,7 +277,12 @@ end
 end
 
 function r = row_res(prog,rows)
-% ||At_i' x - b_i|| over the expressions ROWS, x = solinfo.RRx.
+% R = ROW_RES(PROG,ROWS) returns sqrt(sum_i ||At_i'*x - b_i||^2) over the
+% expressions i in ROWS, x = prog.solinfo.RRx (decvartable order, the
+% order of the rows of At_i).
+% INPUT  prog: 'struct', a solved LPI program; rows: 'double' vector of
+%        indices into prog.expr.At and prog.expr.b.
+% OUTPUT r: 'double'.
 x = prog.solinfo.RRx(:);    r2 = 0;
 for i = rows
     At = prog.expr.At{i};   b = prog.expr.b{i};

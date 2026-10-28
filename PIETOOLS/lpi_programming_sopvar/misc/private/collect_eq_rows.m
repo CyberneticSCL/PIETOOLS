@@ -1,38 +1,59 @@
 function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% EQ = COLLECT_EQ_ROWS(PROG,P,OPTS,DVARS_CHECKED) returns, without imposing
-% them, the equality constraints that enforce P==0 for an 'sdopvar' P: one
-% row block per constrained parameter cell. 'lpi_eq_sdopvar' is this
-% followed by 'impose_eq_rows'; 'lpi_eq_cdopvar' collects the blocks of
-% every container block over one decision list and imposes them together.
-%
-% The rows are the stored coefficients of each parameter, restricted to
-% the positions the canonical multiplier form allows to be nonzero: by the
-% class invariant the operator vanishes exactly when they do (see
-% 'lpi_eq_sdopvar'; sopvar_implementation_notes.pdf Sec. 8.1.6 for
-% equality by coefficients).
+% EQ = COLLECT_EQ_ROWS(PROG,P,OPTS,DVARS_CHECKED) returns, without adding
+% them to PROG, the equations that impose P == 0 for the 'sdopvar' decision
+% operator P: for each parameter cell k of P, with coefficients
+% vec(C_k(d)) = A_k + B_k'*d over the decision variables d = P.Zd, the
+% equations A_k(c) + B_k(:,c)'*d = 0 at the positions c in keep, those
+% that the canonical multiplier form allows (the columns whose ZR monomial
+% has degree 0 in every multiplier direction of cell k), as the columns of
+% the block [A_k(keep).'; B_k(:,keep)]. A cell whose kept coefficients are
+% all zero gives no block. With OPTS = 'symmetric', of each pair of cells
+% mapped to each other by exchanging lower (2) and upper (3) integrals in
+% every direction, only the one of lower linear index gives a block.
 %
 % INPUT
-% - prog:   'struct' LPI program; every entry of P.Zd must be in
-%           prog.decvartable. Read only: prog is not modified;
-% - P:      'sdopvar' object;
-% - opts:   [] or 'symmetric', as for 'lpi_eq_sdopvar';
-% - dvars_checked: true if the caller has already verified that every entry
-%           of P.Zd is in prog.decvartable, so the check, which hashes all
-%           of prog.decvartable, is skipped. 'lpi_eq_cdopvar' uses it to
-%           check once per distinct list rather than once per block;
+% - prog:   'struct', an LPI program whose prog.decvartable (a cellstr, or
+%           names that cellstr(string(.)) converts) holds every name of
+%           P.Zd; read only;
+% - P:      'sdopvar' object in canonical multiplier form, with params.A
+%           and params.B cells of 3^n3 parameters, n3 the number of
+%           variables common to P.vars.in and P.vars.out;
+% - opts:   (optional) 'char', 'symmetric', or [] (default []);
+% - dvars_checked:  (optional) 'logical', true when every name of P.Zd is
+%           known to be in prog.decvartable: the membership check is
+%           skipped and Eq.pos is empty (default false).
 %
 % OUTPUT
-% - Eq:     struct with fields Cs, one sparse (q+1) x n_k block per
-%           constrained parameter (row 1 the constant term, row 1+i
-%           decision variable Eq.Zd{i}), in the order one soseq per
-%           parameter imposed them, and Zd, the q x 1 cellstr of names.
-%           Field pos (q x 1): pos(i) = first row of prog.decvartable named % MMP, 10/02/2026
-%           Zd{i}, from the membership check; 0 x 1 when the check is       % MMP, 10/02/2026
-%           skipped (dvars_checked) or Zd repeats a name. 'impose_eq_rows'  % MMP, 10/02/2026
-%           writes the rows directly ('lpi_soseq') when it has pos.         % MMP, 10/02/2026
+% - Eq:     'struct' with fields
+%             Cs     1 x nk cell, one sparse (q+1) x n_k double block per
+%                    cell with equations, q = numel(P.Zd): row 1 the
+%                    constant terms A_k(c), row 1+i the coefficients of
+%                    Zd{i}, one column per kept position c;
+%             Zd     q x 1 cellstr, the names P.Zd;
+%             pos    double, q x 1, pos(i) the first row of
+%                    prog.decvartable named Zd{i}; 0 x 1 when the check is
+%                    skipped or Zd repeats a name;
+%             cols   1 x nk cell, per block the linear positions c (double
+%                    row) of its nonzero columns in the (m*NL) x (n*NR)
+%                    coefficient matrix (P.dims = [m,n]; NL, NR the numbers
+%                    of monomials of P.ZL, P.ZR), in order: the equations
+%                    that remain once all-zero columns are omitted;
+%             cells  1 x nk double, the parameter cell (linear index into
+%                    P.params.A) of each block;
+%             blk    'struct' with the fields ZL, ZR, dims, vars and dom of
+%                    P, NL and NR (double), psize (the size of
+%                    P.params.A) and symmetric (logical, OPTS was
+%                    'symmetric').
+%
+% NOTES
+% P of a class other than 'sdopvar', P not in canonical multiplier form,
+% parameters of inconsistent size or count, a name of P.Zd absent from
+% prog.decvartable, and OPTS other than 'symmetric' are errors.
 %
 % See also LPI_EQ_SDOPVAR, IMPOSE_EQ_ROWS, LPI_EQ_CDOPVAR.
+%
+% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - collect_eq_rows
@@ -83,6 +104,12 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 %                  check (1 B x N, q > 1 only). The check's N-length arrays
 %                  (known, ia, ic) are now freed before the parameter loop;
 %                  they used to live through it.
+% MMP, 10/28/2026: Header to the header protocol (what the function does,
+%                  inputs, outputs), step comments in the body and the
+%                  header of the local function to the same protocol; code
+%                  unchanged. The deleted header text was the callers' use
+%                  of the routine, a notes reference, and the reason the
+%                  kept coefficients determine the operator.
 
 % % % Check the inputs
 if isa(P,'polynomial') || isa(P,'double')
@@ -104,12 +131,15 @@ if iscellstr(P.Zd)                                                          % MM
 else                                                                        % MMP, 09/26/2026
     dvars = cellstr(string(P.Zd(:)));                                       % MMP, 09/26/2026
 end                                                                         % MMP, 09/26/2026
+% Sizes: q names; the m x n matrix; NL and NR monomials; nC coefficients
+% per parameter
 q = numel(dvars);
 m = P.dims(1);      n = P.dims(2);
 nL = cellfun(@numel,P.ZL(:)');      NL = prod([nL,1]);
 nR = cellfun(@numel,P.ZR(:)');      NR = prod([nR,1]);
 nC = (m*NL)*(n*NR);
 
+% The constant (A) and decision (B) parts of the parameters, as cells
 params_A = P.params.A;
 params_B = P.params.B;
 if ~iscell(params_A) || ~iscell(params_B)
@@ -125,6 +155,7 @@ if numel(params_A)~=3^n3
     error("Expected 3^n3 = "+num2str(3^n3)+" parameters for "+num2str(n3)...
           +" common variables, found "+num2str(numel(params_A))+".")
 end
+% Position of each shared variable among the input variables
 [~,posR] = ismember(vars_S3,P.vars.in);
 
 % Constraining only the positions the canonical form allows is equivalent to  % MMP, 08/29/2026
@@ -216,6 +247,8 @@ cols = cell(1,numel(params_A));     % positions written, per parameter      % MM
 % % % Impose the constraints, one parameter at a time                       % MMP, 09/26/2026 (was)
 % % % Collect the constraints, one parameter at a time                      % MMP, 09/26/2026
 for k=1:numel(params_A)
+    % Parameter k: an empty part as a sparse zero; skipped when all zero;
+    % its size checked
     Ak = params_A{k};
     Bk = params_B{k};
     if isempty(Ak)
@@ -324,14 +357,21 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function keep = canonical_positions(gam,ZR,posR,m,n,NL,NR)
-% KEEP = CANONICAL_POSITIONS(...) returns the linear positions within vec(C)
-% that the canonical multiplier form allows a parameter with multi-index GAM
-% to use: those whose right monomial has degree 0 in every direction GAM
-% marks as a multiplier. Every degree is kept in the remaining directions.
-%
-% The parameters of an 'sdopvar' are canonical by class invariant, so the
-% positions this drops are zero and constraining them would add nothing.
+% KEEP = CANONICAL_POSITIONS(GAM,ZR,POSR,M,N,NL,NR) returns the linear
+% positions in the (M*NL) x (N*NR) coefficient matrix of a parameter cell
+% with multi-index GAM that the canonical multiplier form allows: those
+% whose column has a right monomial of degree 0 in every direction GAM
+% marks as a multiplier (gam(t) = 1).
+% INPUT  gam:    1 x n3 double, entries 1 (multiplier), 2, 3 (integrals);
+%        ZR:     cell of double columns, the exponents of the right
+%                monomials in each input variable;
+%        posR:   1 x n3 double, the index in ZR of shared variable t;
+%        m, n:   double, the matrix dimensions of the operator;
+%        NL, NR: double, the numbers of left and right monomials.
+% OUTPUT keep:   double column, the positions in ascending order.
 
+% Columns allowed: in each multiplier direction the right monomials of
+% degree 0 in that variable, every monomial in the other variables
 nR = cellfun(@numel,ZR(:)');
 okB = true(NR,1);
 for t = find(gam==1)
