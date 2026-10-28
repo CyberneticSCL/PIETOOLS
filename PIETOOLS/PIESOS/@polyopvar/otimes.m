@@ -56,6 +56,8 @@ function C = otimes(A,B,otype)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/22/2026: Initial coding;
+% DJ, 10/28/2026: Do not merge two states without spatial variables, e.g.
+%                   x.*x, into one factor;
 
 % Check the type of product
 if nargin<3
@@ -106,7 +108,7 @@ C = A;
 [ridcsA,cidcsA,ZvalsA] = find(A.Z);     [nrA,ncA] = size(A.Z);
 [ridcsB,cidcsB,ZvalsB] = find(B.Z);     [nrB,ncB] = size(B.Z);
 % The factors of B follow all factors of A, including the multipliers from R (zeros in Z), see `polyopvar`
-[nfacA,nopsA] = num_factors(A);
+[nfacA,~] = num_factors(A);
 dA = repelem(nfacA,nrB,1);
 ridcsA = (ridcsA(:)-1)*nrB + (1:nrB);       % repelem(A.Z,nrB,1)
 cidcsA = repmat(cidcsA(:),1,nrB);
@@ -126,11 +128,31 @@ C.dom.out = C.C.dom.out;
 C.depmat.out = C.C.depmat.out;
 C.chkval = true;
 
-% otimes merges a constant of A (a single factor, in a monomial of degree 0) with a scalar
-% factor of B without variables, e.g. a state not depending on any spatial variable, into
-% one factor. B then has no factor of its own to shift: its monomial follows the (zero)
-% monomial of the constant directly, as the zeros in Z are padding in that case.
-is_const = full(nfacA==1 & ~any(A.Z,2));    % also a function given by a block of type double, see num_factors
+% The operators of two monomials that each are a state without spatial variables (x.*x) are
+% merged into one factor by otimes, as if they were constants: recompute them as two factors
+if otype==1
+    idcsA = find(ode_monomials(A,nfacA));
+    idcsB = find(ode_monomials(B,num_factors(B)));
+    if ~isempty(idcsA) && ~isempty(idcsB)
+        ops = C.C.ops;
+        for i=idcsA(:)'
+            for j=idcsB(:)'
+                for r=1:size(ops,1)
+                    if isa(A.C.ops{r,i},'tensopvar') && isa(B.C.ops{r,j},'tensopvar')
+                        % Columns of C are ordered A outer, B inner
+                        ops{r,(i-1)*nrB+j} = otimes(A.C.ops{r,i},B.C.ops{r,j},[1,2]);
+                    end
+                end
+            end
+        end
+        C.C.ops = ops;
+    end
+end
+
+% otimes merges a constant of A (a single factor, in a monomial of degree 
+% 0) with a scalar factor of B without variables, e.g. a state not 
+% depending on any spatial variable, into one factor.
+is_const = full(nfacA==1 & ~any(A.Z,2));
 if any(is_const)
     [~,nopsB] = num_factors(B);
     for i=find(is_const(:))'
@@ -147,4 +169,18 @@ C.Z = Znew;
 % Finally, combine terms involving the same monomial
 C = combine_terms(C);
 
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function is_ode = ode_monomials(P,nfac)
+% Monomials of P that consist of a single scalar state without spatial 
+% variables, with one factor
+is_state = P.dims.in(:)==1 & ~any(P.depmat.in,2);
+[ridcs,~,vals] = find(P.Z);
+is_ode = false(size(P.Z,1),1);
+is_ode(ridcs(is_state(vals))) = true;
+is_ode = is_ode & full(nfac(:)==1) & full(sum(P.Z~=0,2)==1);
 end

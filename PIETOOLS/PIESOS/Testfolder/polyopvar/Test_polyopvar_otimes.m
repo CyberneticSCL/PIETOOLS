@@ -8,6 +8,7 @@
 % elementwise product at the same point.
 
 % DJ (CC), 10/22/2026: Initial coding;
+% DJ (CC), 10/26/2026: Add products of states without spatial variables;
 
 % NOTES
 % - The case of a pointwise product as a factor of a tensor product (a
@@ -62,7 +63,45 @@ check(ev(otimes([1;2;3],B,1),vals),[1;2;3].*b,tol,'constant vector, otype=1');
 expect_error(@() otimes([1;2;3],B,2),'scalar constant');
 expect_error(@() otimes(B,[1;2;3],2),'scalar constant');
 
-% (4) the type of product is a scalar 1 or 2
+% (4) states without spatial variables (ODE states) and constants: the product of two such
+% states keeps two factors (the identity on such a state looks like a constant operator, but
+% must not be merged into the other factor), a constant folds into the factor next to it.
+% Evaluated by eval_polyopvar (independent of subs) and by apply_poly
+pvar s1
+xc = polyopvar({'xc'},1,{'s1'},dom,false);
+zc = polyopvar({'zc'},1,{'s1'},dom,false);
+yp = polyopvar({'yp'},1,{'s1'},dom,true);
+c3 = constant2polyopvar(3);
+vc = struct('xc',polynomial(2.5),'zc',polynomial(-1.5),'yp',1+2*s1+s1^2);
+xv = vc.xc;     zv = vc.zc;     yv = vc.yp;
+cs = {'xc.*xc',            xc.*xc,                  xv*xv
+      'xc.*zc',            xc.*zc,                  xv*zv
+      'zc.*xc',            zc.*xc,                  xv*zv
+      'xc.*xc.*xc',        xc.*xc.*xc,              xv^3
+      '(xc+zc).*(xc+zc)',  (xc+zc).*(xc+zc),        (xv+zv)^2
+      '(2*xc+c3).*xc',     (2*xc+c3).*xc,           (2*xv+3)*xv
+      'xc.*yp',            xc.*yp,                  xv*yv
+      'yp.*xc',            yp.*xc,                  xv*yv
+      '(xc.*xc).*yp',      (xc.*xc).*yp,            xv^2*yv
+      'yp.*(xc.*zc)',      yp.*(xc.*zc),            xv*zv*yv
+      'c3.*xc',            c3.*xc,                  3*xv
+      'xc.*c3',            xc.*c3,                  3*xv
+      'c3.*c3',            c3.*c3,                  polynomial(9)
+      'c3.*(xc.*xc)',      c3.*(xc.*xc),            3*xv^2
+      '(xc.*xc).*c3',      (xc.*xc).*c3,            3*xv^2
+      'xc o xc',           otimes(xc,xc,2),         xv*xv
+      'xc o zc',           otimes(xc,zc,2),         xv*zv};
+for k=1:size(cs,1)
+    Pk = cs{k,2};
+    check(eval_polyopvar(Pk,cellfun(@(nm) vc.(nm),Pk.varname(:),'UniformOutput',false)),cs{k,3},tol,['ODE state, eval_polyopvar: ',cs{k,1}]);
+    check(ev(Pk,vc),cs{k,3},tol,['ODE state, apply_poly: ',cs{k,1}]);
+end
+% the monomial has a factor for each of the states
+if ~isequal(full(num_factors(xc.*xc)),2) || ~isequal(full(num_factors(xc.*xc.*xc)),3)
+    error("Test_polyopvar_otimes failed: a product of ODE states must have a factor for each state.")
+end
+
+% (5) the type of product is a scalar 1 or 2
 for ot = {[1,2],[2,2],[1;2],0,3,1.5,[],'a'}
     expect_error(@() otimes(x1,x2,ot{1}),'otype');
 end
