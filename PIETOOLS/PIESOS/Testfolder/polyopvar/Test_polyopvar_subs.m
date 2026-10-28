@@ -55,6 +55,9 @@ function Test_polyopvar_subs()
 %   Test_polyopvar_subs_nested, Test_polyopvar_subs_ode_rows,
 %   Test_polyopvar_subs_var, Test_polyopvar_subs_var_function,
 %   Test_polyopvar_subs_vector_states into this test, as cases;
+% DJ (CC), 10/28/2026: In case_class, substitute constants in functionals of
+%   degree d>1 (compared with the tensor product evaluation) instead of
+%   expecting an error;
 
 cases = {@case_class, @case_const, @case_const_partial, @case_fctr, @case_fctr_function, @case_multirow, @case_name, @case_nested, @case_ode_rows, @case_var, @case_var_function, @case_vector_states};
 nfail = 0;
@@ -320,17 +323,18 @@ function case_class()
             lbl = sprintf('(6) N=%d,Z=%d',N,iz);
             % all states by functions of y
             ncases = ncases+check_poly_V(V,N,tol,lbl);
-            % all states by constants: only for monomials of degree one
+            % all states by constants, also for monomials of degree d>1, on which the functional acts
+            % by the tensor product of the d values: compared with eval_polyopvar for degree one, and with
+            % the functional applied to the tensor product built here for the other monomials
             cvals = {rand_const(svs,1,'polynomial');rand_const(svs,1,'polynomial');rand_const(svs,1,'polynomial')};
+            fnew = subs(V,allnames,vertcat(cvals{:}));
             if size(Z,2)==1
-                fnew = subs(V,allnames,vertcat(cvals{:}));
                 Yref = eval_polyopvar(V,cvals);
-                assert_close(eval_new(fnew,struct(),sz1,allnames),Yref,tol,[lbl,' (all states by constants)']);
-                ncases = ncases+1;
             else
-                expect_error(@() subs(V,allnames,vertcat(cvals{:})),'degree one');
-                ncases = ncases+1;
+                Yref = eval_V_tensor(V,cvals,svars);
             end
+            assert_close(eval_new(fnew,struct(),sz1,allnames),Yref,tol,[lbl,' (all states by constants)']);
+            ncases = ncases+1;
         end
     end
 
@@ -1845,6 +1849,29 @@ V.vars.in = svars;          V.vars.out = cell(1,0);
 V.dom.in = dom.in;          V.dom.out = zeros(0,2);
 V.depmat.in = true(3,N);    V.depmat.out = zeros(1,0);
 V = initialize(V);
+end
+
+function Y = eval_V_tensor(V,cvals,svars)
+% Value of the functional V at the constant states cvals: each monomial is applied to the Kronecker
+% product of its factors (first factor slowest), the variable s of the j-th factor being named s_j.
+% Independent of subs and of the handling of the cell of factors by apply_op of 'intop'
+Y = 0;
+Zf = full(V.Z);
+for k=1:size(Zf,1)
+    idcs = Zf(k,Zf(k,:)~=0);
+    v = 1;
+    for j=1:numel(idcs)
+        xj = polynomial(cvals{idcs(j)});
+        if numel(idcs)>1
+            for i=1:numel(svars)
+                xj.varname(strcmp(xj.varname,svars{i})) = {[svars{i},'_',num2str(j)]};
+            end
+        end
+        v = kron(v,xj);
+    end
+    Y = Y + apply_op(V.C.ops{1,k},v);
+end
+Y = polynomial(Y);
 end
 
 function val = make_val(svars,dom,yname,sza,szy,dval)

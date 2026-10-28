@@ -242,6 +242,53 @@ chk_close(apply_poly(f0t+f0t,{}),2+2*s1,tol,'(6) degree-0 sum, variable renamed 
 % errors
 expect_error(@() apply_poly(x.*y,{s1}),'Values must be specified for all states');
 
+%% (7) apply_poly of functionals (intop) with monomials of degree d>1: the functional acts on the
+% tensor product of the values (apply_op of 'intop' takes the cell of the factors, the copy s_j of
+% a variable being that of the j-th factor). Compared with the integrals computed directly, not
+% with eval_polyopvar, which cannot evaluate these monomials
+I2 = @(p) int(int(p,s1,0,1),s2,0,1);
+rng(300);
+v = rv();       vx = v.x;   vy = v.y;   vz = v.z;
+vals3 = {vx;vy;vz};
+c3 = constant2polyopvar(3);
+F1 = innerprod(x,y);                    I1 = I2(vx*vy);
+F2 = innerprod(x,x)+3*innerprod(y,z);   I2v = I2(vx^2)+3*I2(vy*vz);
+Fc = {F1,                    I1
+      F2,                    I2v
+      3*F1,                  3*I1
+      F1.*c3,                3*I1
+      c3.*F1,                3*I1
+      (F1+2).*c3,            3*(I1+2)
+      F1.*(F1+c3),           I1*(I1+3)
+      F1.*F2,                I1*I2v
+      F1+c3,                 I1+3};
+for k=1:size(Fc,1)
+    chk_close(apply_poly(Fc{k,1},vals3),Fc{k,2},tol,sprintf('(7.%d) functional',k));
+end
+% degree 3: <x.*y,z> = int vx*vy*vz
+F3 = innerprod(x.*y,z);
+chk(isequal(full(num_factors(F3)),3),'(7) degree 3 functional');
+chk_close(apply_poly(F3,vals3),I2(vx*vy*vz),tol,'(7) degree 3');
+% the operator applied to the cell of the factors, directly
+op = F1.C.ops{1,1};
+chk_close(apply_op(op,{vx,vy}),I1,tol,'(7) apply_op of intop with a cell of factors');
+chk_close(apply_op(op,{vy,vx}),I1,tol,'(7) apply_op of intop, factors swapped (symmetric functional)');
+% vector-valued states a, b of dimension 2: <a,M,b> = int a'*M*b with M not symmetric, so that the
+% order of the Kronecker product of the factors (first factor slowest) is tested
+M = [1,2;3,5];
+va = [rp(vn,1);rp(vn,1)];       vb = [rp(vn,1);rp(vn,1)];
+av = polyopvar({'a'},2,vn,[0,1;0,1],true(1,2));
+bv = polyopvar({'b'},2,vn,[0,1;0,1],true(1,2));
+chk_close(apply_poly(innerprod(av,M,bv),{va;vb}),I2(va.'*M*vb),tol,'(7) vector-valued states, asymmetric weight');
+chk_close(apply_poly(innerprod(bv,M,av),{va;vb}),I2(vb.'*M*va),tol,'(7) vector-valued states, other order');
+% spatially varying weight
+wgt = 1+s1+s2^2;
+chk_close(apply_poly(innerprod(x,wgt,y),vals3),I2(wgt*vx*vy),tol,'(7) weighted');
+% a state in a single variable
+pu = rp({'s1'},3);
+Fu = innerprod(u,u);
+chk_close(apply_poly(Fu,{pu}),int(pu^2,s1,0,1),tol,'(7) functional of a state in one variable');
+
 fprintf('Test_polyopvar_class passed (%d cases).\n',counter(0))
 
 

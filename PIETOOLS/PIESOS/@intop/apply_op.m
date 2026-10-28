@@ -6,7 +6,8 @@ function c = apply_op(Kop,v)
 % - Kop:    m x n 'intop' object acting on
 %           L2^{n}[[a1,b1]^d1 x ... x [aN,bN]^dN];
 % - v:      n x p 'polynomial' (or 'double') array, representing a
-%           polynomial function in L2^{n}[[a1,b1]^d1 x ... x [aN,bN]^dN];
+%           polynomial function in L2^{n}[[a1,b1]^d1 x ... x [aN,bN]^dN],
+%           or a 1 x d cell of the d factors of a monomial, see NOTES;
 %
 % OUTPUTS
 % - c:      m x p 'polynomial' array (m x p 'dpvar' array if Kop depends on
@@ -20,6 +21,13 @@ function c = apply_op(Kop,v)
 % - v may also be given as a 1x1 cell {v}, the form in which a single
 %   factor of a degree-one monomial is passed on by 'apply_op' of
 %   'tensopvar' and 'tensopmat'.
+% - For a monomial of degree d>1, v may be the 1 x d cell {v1,...,vd} of
+%   its factors, so that Kop acts on their tensor product v1 o ... o vd,
+%   the Kronecker product with the first factor slowest, see 'polyopvar'.
+%   The copies s_1,...,s_d of a variable s of the functional are then the
+%   variable s of the factors in order, e.g. v(s_1,s_2) = v1(s_1)*v2(s_2).
+%   If fewer than d factors depend on s, Kop must have as many copies of s
+%   as there are such factors.
 % - With the kernels expressed in terms of the monomials z(s) defined by
 %   Kop.Z.in, the integral over the region r of the kernel times v is
 %       P_r * W_r,     W_r = int_r kron(I_n,z(s))*v(s) ds,
@@ -57,6 +65,8 @@ function c = apply_op(Kop,v)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/28/2026: Allow v to be the 1 x d cell of the factors of a
+%                   monomial of degree d>1, acting on their tensor product;
 
 % % Process the inputs
 % Check that the functional is properly specified
@@ -68,6 +78,8 @@ end
 % Check that the function is properly specified
 if iscell(v) && isscalar(v)
     v = v{1};
+elseif iscell(v)
+    v = kron_factors(v,Kop);
 end
 if isa(v,'double')
     v = polynomial(v);
@@ -124,7 +136,11 @@ Cv = full(v.C);                                 % monomial in each row, entry (j
 nmv = size(Cv,1);
 if nmv==0 || ~any(Cv(:))
     % v is zero
-    c = declare_result(zeros(m*(nd+1),p),Kop.Zd,m,p);
+    if nd==0
+        c = polynomial(zeros(m,p));
+    else
+        c = dpvar(sparse(m*(nd+1),p),zeros(1,0),cell(0,1),Kop.Zd,[m,p]);
+    end
     return
 end
 vdeg = full(v.degmat);
@@ -182,8 +198,8 @@ sz_params = [size(Kop.params,1:N),1];
 Cres = apply_regions(Cres,T,dimsT,1,cell(1,0),Kop,A,sz_params,nmons,nZ,n,p,nF);
 
 % Declare the result
-if isempty(namesF)
-    c = declare_result(Cres,Kop.Zd,m,p);
+if nd==0 && isempty(namesF)
+    c = polynomial(Cres);
 elseif nd==0
     % Polynomial in the other variables: monomials as rows, entry (i,l) in column (l-1)*m+i
     [ii,jj,vv] = find(Cres);
@@ -195,8 +211,11 @@ else
 end
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function Cres = apply_regions(Cres,T,dimsT,i,jidx,Kop,A,sz_params,nmons,nZ,n,p,nF)
 % Contract the tensor T, with dimensions dimsT =
 % [nmv_i,...,nmv_N,nF*n*p,nmons_1,...,nmons_{i-1}], along the first
@@ -224,8 +243,11 @@ for j=1:nterms_i
     Cres = apply_regions(Cres,Tj,dims_new,i+1,[jidx,{j}],Kop,A,sz_params,nmons,nZ,n,p,nF);
 end
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function F = integrate_term(pE,Kop,int_order,pvars,i,j)
 % Integrate the polynomial vector pE in the dummy variables of direction i
 % over the domain of term j along this direction, returning the vector of
@@ -255,26 +277,49 @@ for k=1:di
         Zj = int_simple(Zj,var,L,U);
     end
 end
-F = reshape(double_poly(Zj),[],1);
-end
-
-
-function W = double_poly(Zv)
-% Convert a polynomial without variables to a double array
-if any(any(Zv.degmat~=0))
+% The integrated polynomials have no variables left: the values are the coefficients, summed over the monomials
+if any(any(Zj.degmat~=0))
     error("The integrated polynomial still depends on spatial variables.")
 end
-sz = size(Zv);
-W = reshape(full(sum(Zv.C,1)),sz(1),sz(2));
+F = reshape(full(sum(Zj.C,1)),[],1);
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
-function c = declare_result(Cres,Zd,m,p)
-% Declare the result as a polynomial or dpvar
-nd = numel(Zd);
-if nd==0
-    c = polynomial(Cres);
-else
-    c = dpvar(sparse(Cres),zeros(1,0),cell(0,1),Zd,[m,p]);
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+function v = kron_factors(vc,Kop)
+% V = KRON_FACTORS(VC,KOP) returns the tensor product of the factors in the 1 x d cell VC, as
+% a function of the copies s_1,...,s_ncp of each variable s of Kop, the k-th factor depending
+% on s taking the copy s_k
+d = numel(vc);
+for j=1:d
+    if isa(vc{j},'double')
+        vc{j} = polynomial(vc{j});
+    elseif ~isa(vc{j},'polynomial')
+        error("Factors of the function must be of type 'polynomial'.")
+    end
+end
+for i=1:numel(Kop.vars.in)
+    ncp = Kop.depmat.in(i);
+    has_var = cellfun(@(a) ismember(Kop.vars.in{i},a.varname),vc);
+    % Copy of the variable in each factor: all factors have one if there are d copies (also if the factor
+    % is constant), else only those factors in which the variable occurs, which must match the copies
+    if ncp==d
+        copies = 1:d;
+    elseif sum(has_var)==ncp
+        copies = zeros(1,d);
+        copies(has_var) = 1:ncp;
+    else
+        error("The number of factors depending on variable "+Kop.vars.in{i}+" does not match the number of its copies in the functional.")
+    end
+    for j=find(has_var(:))'
+        vc{j}.varname(strcmp(vc{j}.varname,Kop.vars.in{i})) = {[Kop.vars.in{i},'_',num2str(copies(j))]};
+    end
+end
+v = vc{1};
+for j=2:d
+    v = kron(v,vc{j});
 end
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

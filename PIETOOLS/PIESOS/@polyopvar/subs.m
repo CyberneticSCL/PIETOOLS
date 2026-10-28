@@ -75,6 +75,7 @@ function fnew = subs(f,var,val)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/28/2026: Substitute constants in functionals of degree d>1;
 
 if ~isa(f,'polyopvar')
     error("Input must be of type 'polyopvar'.")
@@ -422,10 +423,9 @@ function fnew = subs_const(f,var,val)
 %
 % NOTES
 % - A monomial in which all states are replaced becomes a constant (degree-0)
-%   term, Kop*(val o ... o val). Functionals (intop) are supported only for
-%   monomials of degree one, and functions only if their output is a pointwise
-%   (not tensor) product of the factors, as this relies on apply_op of
-%   'tensopmat'.
+%   term, Kop*(val o ... o val). Functions are supported only if their output
+%   is a pointwise (not tensor) product of the factors, as this relies on
+%   apply_op of 'tensopmat'.
 % - In a monomial in which only some states are replaced, the factors replaced
 %   stay in the operator, as multipliers from R (zeros in Z, see `polyopvar`)
 %   mapping the dummy input 1 to the constant function (in the variables the
@@ -576,9 +576,7 @@ else
     Yrows = cell(nr,1);
     for j=sub_idcs
         Zj = full(f.Z(j,f.Z(j,:)~=0));
-        if any(cellfun(@(c) isa(c,'intop'),f.C.ops(:,j))) && numel(Zj)>1
-            error("Substitution of a constant in a functional is only supported for monomials of degree one.")
-        end
+        % A functional of degree d>1 acts on the tensor product of the d values (apply_op of 'intop')
         zpos = find(f.Z(j,:));          % positions of the states in Z
         for k=1:numel(Zj)
             % A constant function may only depend on the variables of the state
