@@ -3,6 +3,10 @@ function results = test_convert_PIETOOLS_PDE_periodic_higher_order()
 % Tests scalar, vector and mixed differentiability orders without assuming a
 % particular basis for the auxiliary moments. No SDP solver is required.
 
+% MMP, 10/28/2026: PIE.Fop, PIE.Kop read as PIE.F, PIE.K, the pie_struct
+%                  property names since c578e16c; the old names raised
+%                  "Unrecognized ... field 'Fop'" in all 14 tests.
+
 tests = {@periodic_first_order, @periodic_third_order, ...
     @periodic_fourth_order, @periodic_sixth_order, ...
     @guaranteed_moment_fourth_order, @guaranteed_moment_sixth_order, ...
@@ -55,7 +59,8 @@ end
 x = 2+s^order*(1-s)^order;
 PIE = check_solution(PDE, x, 1);
 check_inverse_identities(PIE, order);
-[k0,k1] = apply_pi(PIE.Kop, 0, 1);
+% [k0,k1] = apply_pi(PIE.Kop, 0, 1);                                        % MMP, 10/28/2026 (was)
+[k0,k1] = apply_pi(PIE.K, 0, 1);                                            % MMP, 10/28/2026
 assert(poly_norm(k0)+poly_norm(k1)>1e-7, ...
     'Periodic BCs must reject a constant nonzero highest derivative.');
 end
@@ -175,7 +180,8 @@ x = 2+6*s^5-15*s^4+10*s^3-s+s^4*(1-s)^4;
 PDE = initialize(PDE,true);
 assert_poly_equal(boundary_values(PDE,x),zeros(4,1),'input/output fixture BCs');
 PIE = convert_PIETOOLS_PDE(PDE,'silent');
-[q,~] = apply_pi(PIE.Fop,[],x);
+% [q,~] = apply_pi(PIE.Fop,[],x);                                           % MMP, 10/28/2026 (was)
+[q,~] = apply_pi(PIE.F,[],x);                                               % MMP, 10/28/2026
 f = derivative(x,s,4);
 check_reconstruction(PIE,q,f,x,4);
 w = 2; u = -3;
@@ -184,7 +190,8 @@ rhs = f+s^2*derivative(x,s,3)+(2-s)*derivative(x,s,1) ...
 [a0,a1] = apply_pi(PIE.A,q,f);
 [b10,b11] = apply_pi(PIE.B1,w,[]);
 [b20,b21] = apply_pi(PIE.B2,u,[]);
-[expected_qdot,~] = apply_pi(PIE.Fop,[],rhs);
+% [expected_qdot,~] = apply_pi(PIE.Fop,[],rhs);                             % MMP, 10/28/2026 (was)
+[expected_qdot,~] = apply_pi(PIE.F,[],rhs);                                 % MMP, 10/28/2026
 assert_poly_equal(a0+b10+b20,expected_qdot,'higher-order input moment dynamics');
 assert_poly_equal(a1+b11+b21,rhs,'higher-order input PDE dynamics');
 [z,~] = apply_pi(PIE.C1,q,f);
@@ -206,7 +213,8 @@ x = 2+s^4*(1-s)^4;
 PIE = convert_PIETOOLS_PDE(PDE,'silent');
 PIE_top = convert_PIETOOLS_PDE(PDE,{'silent','Top'});
 PIE_initialized = initialize(PIE);
-[q,~] = apply_pi(PIE.Fop,[],x);
+% [q,~] = apply_pi(PIE.Fop,[],x);                                           % MMP, 10/28/2026 (was)
+[q,~] = apply_pi(PIE.F,[],x);                                               % MMP, 10/28/2026
 f = derivative(x,s,4);
 check_reconstruction(PIE_top,q,f,x,4);
 check_reconstruction(PIE_initialized,q,f,x,4);
@@ -219,8 +227,10 @@ function nonsingular_fourth_order()
 [s, sd] = variables();
 PDE = make_pde([s,sd],[0,1],4,1,'clamped');
 PIE = convert_PIETOOLS_PDE(PDE,'silent');
-assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
-    'Nonsingular fourth-order conversion must not acquire auxiliary states.');
+% assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
+%     'Nonsingular fourth-order conversion must not acquire auxiliary states.'); % MMP, 10/28/2026 (was)
+assert(isempty(PIE.F) && isempty(PIE.K), ...
+    'Nonsingular fourth-order conversion must not acquire auxiliary states.'); % MMP, 10/28/2026
 x = s^2*(1-s)^2;
 f = derivative(x,s,4);
 [t0,t1] = apply_pi(PIE.T,[],f);
@@ -246,11 +256,13 @@ assert(sum(PIE.x_tab(finite_rows,2))==expected_aux);
 assert(isequal(PIE.x_tab(finite_rows,1),PIE.misc.periodic.source_components));
 [x,orders] = physical_order(PDE,PIE,x);
 [rhs,~] = physical_order(PDE,PIE,rhs);
-[q,~] = apply_pi(PIE.Fop,[],x);
+% [q,~] = apply_pi(PIE.Fop,[],x);                                           % MMP, 10/28/2026 (was)
+[q,~] = apply_pi(PIE.F,[],x);                                               % MMP, 10/28/2026
 f = highest_derivatives(x,PIE.vars(1,1),orders);
 check_reconstruction(PIE,q,f,x,orders);
 [a0,a1] = apply_pi(PIE.A,q,f);
-[expected_qdot,~] = apply_pi(PIE.Fop,[],rhs);
+% [expected_qdot,~] = apply_pi(PIE.Fop,[],rhs);                             % MMP, 10/28/2026 (was)
+[expected_qdot,~] = apply_pi(PIE.F,[],rhs);                                 % MMP, 10/28/2026
 assert_poly_equal(a0,expected_qdot,'auxiliary higher-order dynamics');
 assert_poly_equal(a1,rhs,'distributed higher-order dynamics');
 end
@@ -261,11 +273,15 @@ assert(isempty(r0));
 assert_poly_equal(reconstructed,x,'physical reconstruction');
 assert_poly_equal(highest_derivatives(reconstructed,PIE.vars(1,1),orders), ...
     f,'componentwise highest-derivative identity');
-[recovered_q,~] = apply_pi(PIE.Fop,[],reconstructed);
+% [recovered_q,~] = apply_pi(PIE.Fop,[],reconstructed);                     % MMP, 10/28/2026 (was)
+[recovered_q,~] = apply_pi(PIE.F,[],reconstructed);                         % MMP, 10/28/2026
 assert_poly_equal(recovered_q,q,'moment identity');
-[k0,k1] = apply_pi(PIE.Kop,q,f);
-assert_poly_equal(k0,zeros(PIE.Kop.dim(1,1),1),'finite BC compatibility');
-assert_poly_equal(k1,zeros(PIE.Kop.dim(2,1),1),'distributed BC compatibility');
+% [k0,k1] = apply_pi(PIE.Kop,q,f);                                          % MMP, 10/28/2026 (was)
+[k0,k1] = apply_pi(PIE.K,q,f);                                              % MMP, 10/28/2026
+% assert_poly_equal(k0,zeros(PIE.Kop.dim(1,1),1),'finite BC compatibility'); % MMP, 10/28/2026 (was)
+assert_poly_equal(k0,zeros(PIE.K.dim(1,1),1),'finite BC compatibility');    % MMP, 10/28/2026
+% assert_poly_equal(k1,zeros(PIE.Kop.dim(2,1),1),'distributed BC compatibility'); % MMP, 10/28/2026 (was)
+assert_poly_equal(k1,zeros(PIE.K.dim(2,1),1),'distributed BC compatibility'); % MMP, 10/28/2026
 [t0,t1] = apply_pi(PIE.T,q,f);
 assert_poly_equal(t0,q,'augmented finite identity');
 assert_poly_equal(t1,x,'augmented distributed reconstruction');
@@ -280,7 +296,8 @@ f = polynomial(ones(n,1))+s*(1:n)';
 [~,x] = apply_pi(PIE.misc.periodic.reconstruction,q,f);
 assert_poly_equal(highest_derivatives(x,s,orders),f, ...
     'highest derivative of arbitrary reconstruction');
-[recovered_q,~] = apply_pi(PIE.Fop,[],x);
+% [recovered_q,~] = apply_pi(PIE.Fop,[],x);                                 % MMP, 10/28/2026 (was)
+[recovered_q,~] = apply_pi(PIE.F,[],x);                                     % MMP, 10/28/2026
 assert_poly_equal(recovered_q,q,'moments of arbitrary reconstruction');
 end
 

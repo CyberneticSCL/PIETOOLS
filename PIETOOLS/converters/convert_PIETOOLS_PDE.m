@@ -154,6 +154,12 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %                   Jagt, Chernyshenko and Peet, arXiv:2503.22896v5,
 %                   Definition 1, Lemma 5 and Proposition 11.
 % DJ, 10/28/2026: Throw an error if some state has no equation (tdiff=nan);
+% MMP, 10/28/2026: The PBC fallback also requires G rank-deficient with its
+%                   rows and columns scaled to unit maximum. rank(G) alone,
+%                   its tolerance set by the largest entry, took the
+%                   fallback for G = [1e-10 1e-4; 1 1e6+1e-7] (det 1.0e-17,
+%                   rank 2 when scaled; the test
+%                   nearly_singular_boundary_rejection).
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -460,7 +466,13 @@ else
                 % In the rank-deficient case, proceed to Gauss-Jordan factorization
                 % as per Lem. 3 of [Jagt, 2025]. 
                 G = double(Pop_b2BC.P);
-                if rank(G)<size(G,2)
+                % Rank-deficient also with rows and columns scaled to unit  % MMP, 10/28/2026
+                % max, so that BC units and the domain length do not        % MMP, 10/28/2026
+                % select the fallback for a nonsingular G.                  % MMP, 10/28/2026
+                Gs = G./max(max(abs(G),[],2),realmin);                      % MMP, 10/28/2026
+                Gs = Gs./max(max(abs(Gs),[],1),realmin);                    % MMP, 10/28/2026
+%               if rank(G)<size(G,2)                                        % MMP, 10/28/2026 (was)
+                if rank(G)<size(G,2) && rank(Gs)<size(G,2)                  % MMP, 10/28/2026
                     % Use the declared spatial derivative order of each 1D state.
                     % Keep temporal-order and boundary-input restrictions.
                     if any(x_tab(:,3)~=1)

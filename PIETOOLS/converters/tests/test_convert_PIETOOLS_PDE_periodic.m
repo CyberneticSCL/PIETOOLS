@@ -8,6 +8,12 @@ function results = test_convert_PIETOOLS_PDE_periodic()
 % The auxiliary coordinates need not use any particular nullspace basis.
 % We test their defining identities using q = F*x and f = d_s^2*x instead.
 
+% MMP, 10/28/2026: PIE.Fop, PIE.Kop and the struct fields 'Fop', 'Kop'
+%                  read as F, K, the pie_struct property names since
+%                  c578e16c; the old names raised "Unrecognized ... field
+%                  'Fop'" in 13 of the 19 tests. The display check reads
+%                  'F:', 'K:', as display.m prints them.
+
 tests = {@periodic_heat, @neumann_heat, @affine_kernel, @guaranteed_moment_fallback, ...
     @rank_zero_boundary_matrix, @mixed_components, @integral_boundaries, ...
     @shifted_domain_and_custom_variables, @repeated_boundary_terms, ...
@@ -148,8 +154,10 @@ PDE.y{1} = struct('vars', [], 'size', 1, 'term', ...
 x = 3 + s^2*(1-s)^2;
 PDE = initialize(PDE, true);
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-F = PIE.Fop;
-K = PIE.Kop;
+% F = PIE.Fop;                                                              % MMP, 10/28/2026 (was)
+F = PIE.F;                                                                  % MMP, 10/28/2026
+% K = PIE.Kop;                                                              % MMP, 10/28/2026 (was)
+K = PIE.K;                                                                  % MMP, 10/28/2026
 [q, ~] = apply_pi(F, [], x);
 f = diff(diff(x, s), s);
 check_reconstruction(PIE, F, K, q, f, x);
@@ -179,33 +187,47 @@ PDE = heat_pde([s, sd], [0, 1], 1, [1,0,-1,0; 0,1,0,-1]);
 assert(nargout('convert_PIETOOLS_PDE')==1, ...
     'The public PDE converter must return only the PIE structure.');
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-F = PIE.Fop;
-K = PIE.Kop;
+% F = PIE.Fop;                                                              % MMP, 10/28/2026 (was)
+F = PIE.F;                                                                  % MMP, 10/28/2026
+% K = PIE.Kop;                                                              % MMP, 10/28/2026 (was)
+K = PIE.K;                                                                  % MMP, 10/28/2026
 PIE_initialized = initialize(PIE);
 PIE_public = convert(PDE);
 PIE_top = convert_PIETOOLS_PDE(PDE, {'silent', 'Top'});
-PIE_from_struct = pie_struct(struct('Fop', F, 'Kop', K));
+% PIE_from_struct = pie_struct(struct('Fop', F, 'Kop', K));                 % MMP, 10/28/2026 (was)
+PIE_from_struct = pie_struct(struct('F', F, 'K', K));                       % MMP, 10/28/2026
 PIE_roundtrip = pie_struct(struct(PIE));
 display_text = evalc('display(PIE)');
-assert(contains(display_text,'Fop:') && contains(display_text,'Kop:'), ...
-    'PIE display must show the auxiliary operators.');
+% assert(contains(display_text,'Fop:') && contains(display_text,'Kop:'), ...
+%     'PIE display must show the auxiliary operators.');                    % MMP, 10/28/2026 (was)
+assert(contains(display_text,'F:') && contains(display_text,'K:'), ...
+    'PIE display must show the auxiliary operators.');                      % MMP, 10/28/2026
 x = 2 + s^2*(1-s)^2;
 [q, ~] = apply_pi(F, [], x);
 f = diff(diff(x,s),s);
-check_reconstruction(PIE_initialized, PIE_initialized.Fop, ...
-    PIE_initialized.Kop, q, f, x);
-check_reconstruction(PIE_public, PIE_public.Fop, PIE_public.Kop, q, f, x);
-check_reconstruction(PIE_top, PIE_top.Fop, PIE_top.Kop, q, f, x);
-check_reconstruction(PIE_roundtrip, PIE_roundtrip.Fop, ...
-    PIE_roundtrip.Kop, q, f, x);
-[copied_q, ~] = apply_pi(PIE_from_struct.Fop, [], x);
+% check_reconstruction(PIE_initialized, PIE_initialized.Fop, ...
+%     PIE_initialized.Kop, q, f, x);                                        % MMP, 10/28/2026 (was)
+check_reconstruction(PIE_initialized, PIE_initialized.F, ...
+    PIE_initialized.K, q, f, x);                                            % MMP, 10/28/2026
+% check_reconstruction(PIE_public, PIE_public.Fop, PIE_public.Kop, q, f, x); % MMP, 10/28/2026 (was)
+check_reconstruction(PIE_public, PIE_public.F, PIE_public.K, q, f, x);      % MMP, 10/28/2026
+% check_reconstruction(PIE_top, PIE_top.Fop, PIE_top.Kop, q, f, x);         % MMP, 10/28/2026 (was)
+check_reconstruction(PIE_top, PIE_top.F, PIE_top.K, q, f, x);               % MMP, 10/28/2026
+% check_reconstruction(PIE_roundtrip, PIE_roundtrip.Fop, ...
+%     PIE_roundtrip.Kop, q, f, x);                                          % MMP, 10/28/2026 (was)
+check_reconstruction(PIE_roundtrip, PIE_roundtrip.F, ...
+    PIE_roundtrip.K, q, f, x);                                              % MMP, 10/28/2026
+% [copied_q, ~] = apply_pi(PIE_from_struct.Fop, [], x);                     % MMP, 10/28/2026 (was)
+[copied_q, ~] = apply_pi(PIE_from_struct.F, [], x);                         % MMP, 10/28/2026
 assert_poly_equal(copied_q, q, 'struct constructor preserves moment operator');
-[copied_k0, copied_k1] = apply_pi(PIE_from_struct.Kop, q, f);
+% [copied_k0, copied_k1] = apply_pi(PIE_from_struct.Kop, q, f);             % MMP, 10/28/2026 (was)
+[copied_k0, copied_k1] = apply_pi(PIE_from_struct.K, q, f);                 % MMP, 10/28/2026
 assert_poly_equal(copied_k0, zeros(K.dim(1,1),1), ...
     'struct constructor preserves finite compatibility constraint');
 assert_poly_equal(copied_k1, zeros(K.dim(2,1),1), ...
     'struct constructor preserves distributed compatibility constraint');
-check_constraint_detects_invalid_state(PIE, PIE_from_struct.Kop, q, 1);
+% check_constraint_detects_invalid_state(PIE, PIE_from_struct.Kop, q, 1);   % MMP, 10/28/2026 (was)
+check_constraint_detects_invalid_state(PIE, PIE_from_struct.K, q, 1);       % MMP, 10/28/2026
 end
 
 function dirichlet_compatibility()
@@ -214,10 +236,14 @@ B = [1,0,0,0; 0,0,1,0];
 PDE = heat_pde([s, sd], [0, 1], 1, B);
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
 PIE_default = pie_struct();
-assert(isempty(PIE_default.Fop) && isempty(PIE_default.Kop), ...
-    'New PIE structures must default to empty auxiliary operators.');
-assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
-    'Ordinary PDE conversion must leave auxiliary operators empty.');
+% assert(isempty(PIE_default.Fop) && isempty(PIE_default.Kop), ...
+%     'New PIE structures must default to empty auxiliary operators.');     % MMP, 10/28/2026 (was)
+assert(isempty(PIE_default.F) && isempty(PIE_default.K), ...
+    'New PIE structures must default to empty auxiliary operators.');       % MMP, 10/28/2026
+% assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
+%     'Ordinary PDE conversion must leave auxiliary operators empty.');     % MMP, 10/28/2026 (was)
+assert(isempty(PIE.F) && isempty(PIE.K), ...
+    'Ordinary PDE conversion must leave auxiliary operators empty.');       % MMP, 10/28/2026
 x = s*(1-s)*(2+s);
 f = diff(diff(x,s),s);
 [t0, t1] = apply_pi(PIE.T, [], f);
@@ -343,8 +369,10 @@ for k = 1:4
 end
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
 assert(isa(PIE.T,'opvar2d'));
-assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
-    'Ordinary 2D PDE conversion must leave auxiliary operators empty.');
+% assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
+%     'Ordinary 2D PDE conversion must leave auxiliary operators empty.');  % MMP, 10/28/2026 (was)
+assert(isempty(PIE.F) && isempty(PIE.K), ...
+    'Ordinary 2D PDE conversion must leave auxiliary operators empty.');    % MMP, 10/28/2026
 assert(isequal(PIE.T.dim,[0,0;0,0;0,0;1,1]));
 x = s1*(1-s1)*s2*(1-s2);
 f = diff(diff(diff(diff(x,s1),s1),s2),s2);
@@ -373,8 +401,10 @@ PDE = initialize(PDE, true);
 assert_poly_equal(boundary_values(PDE,x), zeros(sum(PDE.BC_tab(:,2)),1), ...
     'test polynomial satisfies declared BCs');
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-F = PIE.Fop;
-K = PIE.Kop;
+% F = PIE.Fop;                                                              % MMP, 10/28/2026 (was)
+F = PIE.F;                                                                  % MMP, 10/28/2026
+% K = PIE.Kop;                                                              % MMP, 10/28/2026 (was)
+K = PIE.K;                                                                  % MMP, 10/28/2026
 assert(isfield(PIE.misc, 'periodic'), 'Missing periodic conversion metadata.');
 assert(PIE.misc.periodic.n_aux==expected_aux, ...
     'Unexpected number of auxiliary moment states.');
