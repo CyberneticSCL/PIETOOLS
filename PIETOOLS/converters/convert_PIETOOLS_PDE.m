@@ -48,8 +48,17 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %           state, input, or output component it corresponds to, what size
 %           this component is, and which of the dim variables it depends
 %           on.
+%           
+%           Fop, Kop: Optional operators for 1D Generalized Periodic
+%           Boundary Conditions (PBCs) as treated in [Jagt, 2025].
+%           The augmented state is v = [PIE.Fop*x; xf] and must satisfy
+%           PIE.Kop*v = 0. Both fields are [] for the usual conversion.
+%           The reconstruction map and auxiliary state metadata
+%           are stored in PIE.misc.periodic.
+
 %
 % NOTES:
+%
 % - For a state variables x(s1,s2), differentiable up to order i wrt s1 and
 %   order j wrt s2, the associated fundamental state variable xf(s1,s2) is
 %   defined as
@@ -58,8 +67,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %       0 = F(x,u,w);
 %   there exist unique PI operator T, Tu and Tw such that
 %       x(s1,s2) = (T * x)(s1,s2) + (Tu * u)(s1,s2) + (Tw * w)(s1,s2);
-%   This function constructs these operators {T, Tx Tw}. Using these 
-%   operators, it then constructs the PI operators A through Dzw such that 
+%   This function constructs these operators {T, Tx Tw}.Then, it constructs the PI operators A through Dzw such that 
 %   the PDE may be equivalently represented by the PIE
 %       Tw*w(t) + Tu*u + T*xf(t) = A  * xf(t) + Bu  * u(t) + Bw  * w(t);
 %                           y(t) = Cy * xf(t) + Dyu * u(t) + Dyw * w(t);
@@ -93,6 +101,12 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   where nvars = PIE.dim. For each j in 1 to nvars, if is_bval(j)=1, then
 %   the input is evaluated at the lower-boundary PIE.dom(j,1) in the
 %   spatial variable PIE.vars(j,1);
+%
+% - For 1D generalized PBCs, the fundamental states  includes average
+%    coordinates: v=[Fop*x; xf], where xf takes each declared spatial derivative. 
+%   PIE.T maps v to [Fop*x; x], while PIE.misc.periodic.reconstruction maps
+%   v to the PDE state. The new constriant Kop*v=0 is part of this constrained PIE representation. The formulas
+%   below describe the usual nonsingular conversion.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
@@ -136,11 +150,20 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DJ, 01/25/2026: Bugfix in case BCs only involve lower boundary values;
 % DJ, 02/15/2026: Include boundary values of inputs in 2D case with
 %                   inhomogeneous BCs;
+% DB, 10/27/2026: Allow conversion for 1D PBCs using
+%                   Jagt, Chernyshenko and Peet, arXiv:2503.22896v5,
+%                   Definition 1, Lemma 5 and Proposition 11.
+% Codex, 10/27/2026: Preserve the original nonsingular determinant/pinv path;
+%                   use the added PBC fallback only for singular matrices.
+% Codex, 10/28/2026: Extend the PBC reconstruction to mixed spatial orders
+%                   using the existing FTC expansion.
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Initialization                                          % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Fop = []; Kop = [];
+periodic_info = [];
 
 % Pass PDEs in legacy format to legacy converters.
 if isfield(PDE,'n0') || isfield(PDE,'n1') || isfield(PDE,'n2')
@@ -394,7 +417,6 @@ np_op.BC = get_opdim(PDE.BC_tab);
 % using a separate subroutine.
 [Pop_b2BC, Pop_f2BC, Pop_u2BC, Pop_w2BC] = construct_PI_ops_BCs(PDE,bc_state_tab);
 
-
 % % % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 % % % STEP 3: 
 % % % Invert the operator P_b2BC, to express xb in terms of xf, u and w as
@@ -429,8 +451,33 @@ else
                 Pop_b2BC_inv = pinv(double(Pop_b2BC.P));
                 Pop_f2b = -Pop_b2BC_inv*Pop_f2BC;
             else
-                error(['The PI operator defining the boundary conditions appears not to be invertible.',...
-                    ' Please make sure that your system is well-posed.'])
+                % Check numerical rank deficiency in the 1D BC matrix G as
+                % rank(G) is less than the number of core-boundary coordinates.
+                % In the rank-deficient case, proceed to Gauss-Jordan factorization
+                % as per Lem. 3 of [Jagt, 2025]. 
+                G = double(Pop_b2BC.P);
+                if rank(G)<size(G,2)
+                    % Use the declared spatial derivative order of each 1D state.
+                    % Keep temporal-order and boundary-input restrictions.
+                    if any(x_tab(:,3)~=1)
+                        error('Currently supported generalized PBCs do not include coupled ODE states).')
+                    end
+                    for ii=1:numel(PDE.x)
+                        if isfield(PDE.x{ii},'tdiff') && PDE.x{ii}.tdiff~=1
+                            error('Currently supported generalized PBCs do not include higher-order temporal derivatives.')
+                        end
+                    end
+                    if ~(Pop_u2BC==0) || ~(Pop_w2BC==0)
+                        error('PIETOOLS:convert:SingularBCInputs', ...
+                            'Currently supported generalized PBCs do not include boundary inputs.')
+                    end
+                    [Top_x,Fop,Kop,periodic_info] = compute_PIETOOLS_PDE_periodic_map( ...
+                        PDE,Pop_f2x,Pop_b2x,Pop_b2BC,Pop_f2BC);
+                    periodic_info.source_components = xcomp_order(periodic_info.source_components);
+                else
+                    error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                        ' Please make sure that your system is well-posed.'])
+                end
             end
         end
     else
@@ -442,13 +489,15 @@ else
                     ' Please make sure that your system is well-posed.'])
         end
     end
-    % Check that the inverse is sufficiently accurate.
-    if eq(Pop_b2BC * Pop_f2b + Pop_f2BC,0,op_clean_tol)
-        Top_x = Pop_b2x*Pop_f2b + Pop_f2x;
-        Top_x = clean_opvar(Top_x,op_clean_tol);
-    else
-        error(['The PI operator defining the boundary conditions appears not to be invertible.',...
-                ' Please make sure that your system is well-posed.'])
+    if isempty(periodic_info)
+        % Check that the inverse is sufficiently accurate.
+        if eq(Pop_b2BC * Pop_f2b + Pop_f2BC,0,op_clean_tol)
+            Top_x = Pop_b2x*Pop_f2b + Pop_f2x;
+            Top_x = clean_opvar(Top_x,op_clean_tol);
+        else
+            error(['The PI operator defining the boundary conditions appears not to be invertible.',...
+                    ' Please make sure that your system is well-posed.'])
+        end
     end
 end
 % Then Tu.
@@ -532,6 +581,9 @@ if return_Top
     PIE = pie_struct();
     PIE.dom = dom;  PIE.vars = vars;
     PIE.T = Top.x;  PIE.Tw = Top.w;     PIE.Tu = Top.u;
+    if ~isempty(periodic_info)
+        PIE = augment_periodic_map(PIE,Top,Fop,Kop,periodic_info);
+    end
     return
 end
 
@@ -693,9 +745,27 @@ PIE.D12 = clean_opvar(Dop_u2z,op_clean_tol);
 PIE.D21 = clean_opvar(Dop_w2y,op_clean_tol);
 PIE.D22 = clean_opvar(Dop_u2y,op_clean_tol);
 
+if ~isempty(periodic_info)
+    % v0_t = Fop*x_t supplies the dynamics of the retained nullspace
+    % coordinates. The lower rows still describe the physical PDE state.
+    PIE = augment_periodic_map(PIE,Top,Fop,Kop,periodic_info);
+    PIE.A = [Fop*PIE.A; PIE.A];
+    PIE.B1 = [Fop*PIE.B1; PIE.B1];
+    PIE.B2 = [Fop*PIE.B2; PIE.B2];
+end
+
 % Keep track of how the state components in the original PDE are
 % now ordered in the PIE.
-x_tab(:,1) = xcomp_order;       PIE.x_tab = x_tab;
+x_tab(:,1) = xcomp_order;
+if ~isempty(periodic_info)
+    % One row per scalar moment also handles partial rank loss within a
+    % vector-valued PDE component.
+    m = periodic_info.n_aux;
+    source_comps = periodic_info.source_components;
+    x_tab = [[source_comps(:),ones(m,1),zeros(m,2)]; x_tab];
+    tdiff_list = [ones(m,1); tdiff_list];
+end
+PIE.x_tab = x_tab;
 y_tab(:,1) = ycomp_order;       PIE.y_tab = y_tab;
 z_tab(:,1) = zcomp_order;       PIE.z_tab = z_tab;
 u_tab(:,1) = ucomp_order;       PIE.u_tab = u_tab;
@@ -726,6 +796,9 @@ if any(tdiff_list>1)
     [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,true);
 else
     tdiff_tab = [(1:numel(PDE.x))',zeros(numel(PDE.x),1)];
+    if ~isempty(periodic_info)
+        tdiff_tab = [(1:size(x_tab,1))',zeros(size(x_tab,1),1)];
+    end
 end
 
 % Finally, provide an overview of how the new state variables relate to the
@@ -734,6 +807,11 @@ if ~suppress_summary
     objs = {'x';'u';'w';'y';'z'};
     for idx = 1:5
         obj = objs{idx};
+        if strcmp(obj,'x') && ~isempty(periodic_info)
+            fprintf('\nAdded %d moment states v0 = Fop*x; the other states are the declared spatial derivatives.\n',periodic_info.n_aux);
+            fprintf('The PIE state must satisfy PIE.Kop*v = 0; moments are defined by PIE.Fop.\n');
+            continue
+        end
         if size(PIE.([obj,'_tab']),1)>=1
             print_convert_summary(PIE,obj,tdiff_tab(:,2));
         end
@@ -742,6 +820,23 @@ end
 
 end
 
+
+
+function PIE = augment_periodic_map(PIE,Top,Fop,Kop,info)
+% Add identity rows for the moment states, preserving a square PIE map.
+m = info.n_aux;
+selector = opvar();
+selector.I = Top.x.I;
+selector.var1 = Top.x.var1; selector.var2 = Top.x.var2;
+selector.dim = [m,m;0,Top.x.dim(2,2)];
+selector.P = eye(m);
+PIE.T = [selector; Top.x];
+PIE.Tw = [Fop*Top.w; Top.w];
+PIE.Tu = [Fop*Top.u; Top.u];
+PIE.Fop = Fop;
+PIE.Kop = Kop;
+PIE.misc.periodic = info;
+end
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%
