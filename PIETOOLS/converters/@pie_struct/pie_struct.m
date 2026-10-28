@@ -53,10 +53,10 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %               defining the associated fundamental state component in the
 %               PIE.
 %
-% - PIE.Fop, PIE.Kop:
+% - PIE.F, PIE.K:
 %               Optional operators for 1D case where the derivative operator has non-trivial null space.
-%               PIE.Fop maps the PDE state to auxiliary average state. The PIE state
-%               is v = [PIE.Fop*x_pde; xf] in aHilbert space constrained by PIE.Kop*v = 0. 
+%               PIE.F maps the PDE state to auxiliary average state. The PIE state
+%               is v = [PIE.F*x_pde; xf] in aHilbert space constrained by PIE.K*v = 0. 
 %               Each component of xf uses its declared spatial derivative order.
 % Both fields default to [] if the null-space of the derivative operator is trivial, and hence T is the left-inverse 
 % of the derivative operator.
@@ -90,7 +90,7 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %
 % Initial coding SS, DJ - 08/12/2022
 % DJ, 06/25/2025: Add "misc" field for additional data.
-% DB, 10/27/2026: Add optional Fop and Kop fields for 1D generalized Periodic Boundary Conditions treated in [Jagt, 2025] .
+% DB, 10/27/2026: Add optional F and K fields for 1D generalized Periodic Boundary Conditions treated in [Jagt, 2025] .
     
     properties
         dom = zeros(0,2);
@@ -98,8 +98,8 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
         T;
         Tw;
         Tu;
-        Fop = [];
-        Kop = [];
+        F = [];
+        K = [];
         A;
         B1;
         B2;
@@ -162,11 +162,11 @@ methods
                 if isfield(varargin{1},'Tw')
                     obj.Tw = varargin{1}.Tw;
                 end
-                if isfield(varargin{1},'Fop')
-                    obj.Fop = varargin{1}.Fop;
+                if isfield(varargin{1},'F')
+                    obj.F = varargin{1}.F;
                 end
-                if isfield(varargin{1},'Kop')
-                    obj.Kop = varargin{1}.Kop;
+                if isfield(varargin{1},'K')
+                    obj.K = varargin{1}.K;
                 end
                 if isfield(varargin{1},'misc')
                     obj.misc = varargin{1}.misc;

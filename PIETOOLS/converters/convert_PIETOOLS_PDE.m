@@ -49,10 +49,10 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %           this component is, and which of the dim variables it depends
 %           on.
 %           
-%           Fop, Kop: Optional operators for 1D Generalized Periodic
+%           F, K: Optional operators for 1D Generalized Periodic
 %           Boundary Conditions (PBCs) as treated in [Jagt, 2025].
-%           The augmented state is v = [PIE.Fop*x; xf] and must satisfy
-%           PIE.Kop*v = 0. Both fields are [] for the usual conversion.
+%           The augmented state is v = [PIE.F*x; xf] and must satisfy
+%           PIE.K*v = 0. Both fields are [] for the usual conversion.
 %           The reconstruction map and auxiliary state metadata
 %           are stored in PIE.misc.periodic.
 
@@ -103,9 +103,9 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %   spatial variable PIE.vars(j,1);
 %
 % - For 1D generalized PBCs, the fundamental states  includes average
-%    coordinates: v=[Fop*x; xf], where xf takes each declared spatial derivative. 
-%   PIE.T maps v to [Fop*x; x], while PIE.misc.periodic.reconstruction maps
-%   v to the PDE state. The new constriant Kop*v=0 is part of this constrained PIE representation. The formulas
+%    coordinates: v=[F*x; xf], where xf takes each declared spatial derivative. 
+%   PIE.T maps v to [F*x; x], while PIE.misc.periodic.reconstruction maps
+%   v to the PDE state. The new constriant K*v=0 is part of this constrained PIE representation. The formulas
 %   below describe the usual nonsingular conversion.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -746,7 +746,7 @@ PIE.D21 = clean_opvar(Dop_w2y,op_clean_tol);
 PIE.D22 = clean_opvar(Dop_u2y,op_clean_tol);
 
 if ~isempty(periodic_info)
-    % v0_t = Fop*x_t supplies the dynamics of the retained nullspace
+    % v0_t = F*x_t supplies the dynamics of the retained nullspace
     % coordinates. The lower rows still describe the physical PDE state.
     PIE = augment_periodic_map(PIE,Top,Fop,Kop,periodic_info);
     PIE.A = [Fop*PIE.A; PIE.A];
@@ -808,8 +808,8 @@ if ~suppress_summary
     for idx = 1:5
         obj = objs{idx};
         if strcmp(obj,'x') && ~isempty(periodic_info)
-            fprintf('\nAdded %d moment states v0 = Fop*x; the other states are the declared spatial derivatives.\n',periodic_info.n_aux);
-            fprintf('The PIE state must satisfy PIE.Kop*v = 0; moments are defined by PIE.Fop.\n');
+            fprintf('\nAdded %d moment states v0 = F*x; the other states are the declared spatial derivatives.\n',periodic_info.n_aux);
+            fprintf('The PIE state must satisfy PIE.K*v = 0; moments are defined by PIE.F.\n');
             continue
         end
         if size(PIE.([obj,'_tab']),1)>=1
@@ -833,8 +833,8 @@ selector.P = eye(m);
 PIE.T = [selector; Top.x];
 PIE.Tw = [Fop*Top.w; Top.w];
 PIE.Tu = [Fop*Top.u; Top.u];
-PIE.Fop = Fop;
-PIE.Kop = Kop;
+PIE.F = Fop;
+PIE.K = Kop;
 PIE.misc.periodic = info;
 end
 

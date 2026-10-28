@@ -42,7 +42,7 @@ function display(PIE,name)
 %
 % Initial coding DJ - 08/30/2022
 % DJ, 06/25/2025: Add display of 'misc' field;
-% DB, 10/27/2026: Display optional PI operators Fop/Kop in case the null
+% DB, 10/27/2026: Display optional PI operators F/K in case the null
 % space of the derivative operator is non-trivial.
 
 % % % Set up a list of characters that we need for the display
@@ -150,7 +150,7 @@ fprintf(['\n      C2: [',ny,ttimes,nx,' ',op,'];    ',...
 
 fprintf('\n');
 
-for field = {'Fop','Kop'}
+for field = {'F','K'}
     obj = PIE.(field{1});
     if ~isempty(obj)
         fprintf('\n%s: [%d-by-%d %s];\n',field{1},size(obj,1), ...

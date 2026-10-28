@@ -25,6 +25,7 @@ function PIEc = pie2copvar(PIE)
 %           nonzero dimension to the i-th output space of nonzero
 %           dimension, the spaces in the order (R, L2[s]) in 1-D and
 %           (R, L2[s1], L2[s2], L2[s1,s2]) in 2-D.
+%           Optional F and K fields are also converted when nonempty.
 %
 % NOTES
 % 'op2copvar_sop' is the conversion the container executives
@@ -73,6 +74,7 @@ function PIEc = pie2copvar(PIE)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/27/2026
+% DB 10/28/2026: Add conversion for F and K fields, non-empty in the case of Periodic Boundary Conditions.
 
 if ~isa(PIE,'pie_struct')
     error('pie2copvar:pie','The PIE should be a ''pie_struct''.');
@@ -90,6 +92,11 @@ for k = 1:numel(ops)
         PIEc.(ops{k}) = op2copvar_sop(Pop);
     else
         PIEc.(ops{k}) = [];                     % no input or no output space
+    end
+end
+for field = {'F','K'}
+    if ~isempty(PIEc.(field{1}))
+        PIEc.(field{1}) = op2copvar_sop(PIEc.(field{1}));
     end
 end
 end
