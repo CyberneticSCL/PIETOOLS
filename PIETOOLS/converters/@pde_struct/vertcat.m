@@ -41,6 +41,7 @@ function [PDE_out] = vertcat(varargin)
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
 % DJ, 08/22/2025: Allow concatenation with multiple zeros, [0;0;x];
+% DJ, 10/28/2026: Fix error for conflicting equations;
 
 
 % % % Process the inputs
@@ -161,7 +162,7 @@ else
             else
                 % Both PDE structures specify an equation for this object,
                 % this may lead to conflict...
-                error(["The two PDEs to concatenate cannot both specify an equation for the same object '",obj,"'."])
+                error("The two PDEs to concatenate cannot both specify an equation for the same object '"+obj+"'.")
             end
         end
     end

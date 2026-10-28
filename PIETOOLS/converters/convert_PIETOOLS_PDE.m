@@ -157,6 +157,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %                   use the added PBC fallback only for singular matrices.
 % Codex, 10/28/2026: Extend the PBC reconstruction to mixed spatial orders
 %                   using the existing FTC expansion.
+% DJ, 10/28/2026: Throw an error if some state has no equation (tdiff=nan);
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -218,6 +219,13 @@ PDE = pde_struct(PDE);
 if ~PDE.is_initialized 
     PDE = initialize(PDE,true);
 end
+
+% Every state must have a (differential) equation to be converted to a PIE.
+x_noeq = find(cellfun(@(xi) isfield(xi,'tdiff') && isnan(xi.tdiff),PDE.x));  % DJ, 10/28/2026
+if ~isempty(x_noeq)                                                         
+    error(['Conversion to PIE is not supported: no differential equation has been specified for state component(s) x{',strjoin(arrayfun(@num2str,x_noeq(:)','UniformOutput',false),'}, x{'),'}.',...
+            ' A PDE without dynamics describes a boundary value problem, which cannot be converted to a PIE.']) 
+end                                                                         
 
 % Pass to nonlinear converter if appropriate
 if PDE.is_nonlinear

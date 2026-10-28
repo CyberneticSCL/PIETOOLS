@@ -81,6 +81,7 @@ function [n_eqs,n_terms] = size(PDE,objs,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding DJ - 06/23/2024
+% DJ, 10/28/2026: Return 0 terms for object types without equations;.
 
 % % % Process the inputs
 % % Check that the PDE is properly specified
@@ -197,7 +198,7 @@ if ~use_vec_size || use_vec_size_tot
     n_eqs = cellfun(@(a) sum(a),n_eqs);
     % Determine the maximal number of terms that appear in the equations of
     % each type.
-    n_terms = cellfun(@(a) max(a),n_terms);
+    n_terms = cellfun(@(a) max([0;a(:)]),n_terms);                          % DJ, 10/28/2026
 end
 
 % Convert cell to array.

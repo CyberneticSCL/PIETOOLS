@@ -101,6 +101,11 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 %                   associated to the ith state component. Should not be
 %                   specified for the inputs, outputs, or BCs. Defaults to
 %                   1 if not specified.
+%                   If no terms are specified for the state (and the
+%                   equation is not declared zero), no equation is assumed
+%                   to exist for this state, and tdiff is set to nan. The
+%                   state is then constrained only by the BCs, and the PDE
+%                   cannot be converted to a PIE.
 %
 % - PDE.x{i}.term:  A cell with each element defining a term in
 %   (mandatory)     the (differential) equation associated to the
@@ -220,6 +225,9 @@ function [PDE,Gvar_order] = initialize(PDE,suppress_summary)
 % DJ, 01/03/2025: Account for "is_zero" field;
 % DJ, 01/15/2025: Allow for field 'loc' in terms with input as well;
 % DJ, 02/17/2026: Add support for nonlinear terms;
+% DJ, 10/28/2026: Set tdiff=nan for states without equation (no terms,
+%                   no declared zero equation) so boundary value problems 
+%                   can be represented;
 
 
 % % % --------------------------------------------------------------- % % %
@@ -1030,8 +1038,12 @@ for ii=1:numel(PDE.(obj))
     % % Next, loop over the terms in the PDE, and check the order of the
     % % derivative of the state component considered in each term.
     if ~isfield(PDE.(obj){ii},'term')
-        warning(['No equation has been specified for ',obj,'{',num2str(ii),'};',...
-                    ' to specify terms in the differential equation for this component, use the field ',obj,'{',num2str(ii),'}.term']);
+        % A state without equation is allowed (BVP, see check_terms);
+        % outputs and BCs without terms still warrant a warning.
+        if ~strcmp(obj,'x')                                                 % DJ, 10/28/2026
+            warning(['No equation has been specified for ',obj,'{',num2str(ii),'};',...
+                        ' to specify terms in the differential equation for this component, use the field ',obj,'{',num2str(ii),'}.term']);
+        end
         PDE.(obj){ii}.term = cell(0);
         continue
     else
@@ -1396,7 +1408,14 @@ while ii<=n_eqs
         
         % Check if a temporal derivative is specified.
         if ~isfield(PDE.x{ii},'tdiff')
-            PDE.x{ii}.tdiff = 1;
+            % No terms and no declared zero equation: no equation for x,
+            % so no temporal derivative is defined (tdiff=nan, BVP).
+            is_zero_x = isfield(PDE.x{ii},'is_zero') && PDE.x{ii}.is_zero;  % DJ, 10/28/2026
+            if isempty(PDE.x{ii}.term) && ~is_zero_x  
+                PDE.x{ii}.tdiff = nan;   
+            else
+                PDE.x{ii}.tdiff = 1;
+            end
         elseif PDE.x{ii}.tdiff>1
             % Higher order temporal derivatives will need to be processed
             % before conversion to a PIE is possible.

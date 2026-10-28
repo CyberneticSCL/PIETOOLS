@@ -52,6 +52,8 @@ function val = subsref(PDE,prop)
 % DJ, 01/03/2025: Update to assume a loose PDE variable is specified as a
 %                   single free term, see also update to "pde_var";
 % DJ, 01/04/2025: Allow order of differentiability of state to be extracted;
+% DJ, 10/28/2026: Do not copy tdiff=nan (state without equation) to the
+%                   extracted term;
 
 
 % % % If the object is a single PDE variable, we have a separate case for
@@ -159,7 +161,7 @@ elseif strcmp(prop(1).type,'()')
                     % state.
                     free_tmp{ii}.term{1}.(obj) = eq_num;
                     free_tmp{ii}.term{1}.C = eye(PDE.(obj){eq_num}.size);
-                    if isfield(eq_struct,'tdiff')
+                    if isfield(eq_struct,'tdiff') && ~isnan(eq_struct.tdiff) % DJ, 10/28/2026
                         free_tmp{ii}.term{1}.tdiff = eq_struct.tdiff;
                     end
                 end

@@ -62,6 +62,7 @@ function [PDE,tdiff_state_tab] = expand_tderivatives(PDE,suppress_summary)
 % Initial coding DJ - 10/14/2022
 % DJ, 01/05/2025: Account for field "ID" in object specifications.
 % DJ, 06/13/2025: Update to impose BCs on newly introduced state variables;
+% DJ, 10/28/2026: Skip states with tdiff=nan (no equation);
 
 % % % Check the inputs, and initialize.
 if nargin==1
@@ -97,6 +98,10 @@ for ii=1:nx
     if ~isfield(PDE.x{ii},'tdiff') || PDE.x{ii}.tdiff==1
         continue
     end
+    % A state without equation has no temporal derivative to expand.
+    if isnan(PDE.x{ii}.tdiff)                                               % DJ, 10/28/2026
+        continue                                                            
+    end 
     
     % If a higher order temporal derivative is specified, split the
     % state component as
