@@ -14,6 +14,7 @@ display(PDE);
 PIE = convert(PDE,'pie');
 display(PIE);
 PIEc = pie2copvar(PIE);
+%% convert to copvar
 % First row corresponds to te average/moment state, second row corresponds to the original PDE state
 T = copvar(PIEc.T.C(2,:)); A = copvar(PIEc.A.C(2,:));
 F = PIEc.F; K = PIEc.K;
@@ -28,8 +29,9 @@ prog = lpiprogram_sop(T);
 [prog,P] = poscopvar(prog,1,{'s'},PIE.dom,struct('int',3,'mult',3,'joint',3));
 P = P + 1e-4*I;
 % Lagrange decision PI variable (indefinite)
-[prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1), ...
-    struct('out',{{{}, {'s'}}},'in',{{{}}}),PIE.dom,6);
+spaces.out = {[], {'s'}};  % R and L2[s]
+spaces.in  = [];         % R
+[prog,X] = lpivar_cdopvar(prog,struct('out',[1;1],'in',1),spaces,PIE.dom,6);
 % Enforce negativity of Lyapunov function D_t<Tx(s,t),PTx(s,t)> <= 0 for
 % all x(s,t) : Kx(s,t)=0, a <= s <= b
 Q = A'*P*T + T'*P*A + 2*alpha*T'*P*T + X*K + K'*X';
