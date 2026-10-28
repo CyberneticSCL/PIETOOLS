@@ -1,4 +1,4 @@
-2function varargout = examples_PDE_library_PIETOOLS(varargin)
+function varargout = examples_PDE_library_PIETOOLS(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % examples_PDE_library_PIETOOLS.m     PIETOOLS 2024
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
