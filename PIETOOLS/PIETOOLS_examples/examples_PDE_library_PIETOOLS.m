@@ -155,7 +155,7 @@ switch index
 %        Diffusion and Heat-Equation Type Systems
 %--------------------------------------------------------------------------
     case 5
-%   PDE: x_{t} = lam*x + x_{ss}                     | lam = 9.86   (unstable for lam > pi^2/4,
+%   PDE: x_{t} = lam*x + x_{ss}                     | lam = 9.86   (unstable for lam > pi^2,
 %                                                                                          exponentially stable and FE PDE stable for lam < pi^2 = 9.8696)  
 %   BCs: x(s=0) = 0,      x(s=1) = 0                |                               Ahmadi 2015 [5] 
 %                                                                         (Exponentially PDE stable )

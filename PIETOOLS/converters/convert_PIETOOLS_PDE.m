@@ -153,10 +153,6 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % DB, 10/27/2026: Allow conversion for 1D PBCs using
 %                   Jagt, Chernyshenko and Peet, arXiv:2503.22896v5,
 %                   Definition 1, Lemma 5 and Proposition 11.
-% Codex, 10/27/2026: Preserve the original nonsingular determinant/pinv path;
-%                   use the added PBC fallback only for singular matrices.
-% Codex, 10/28/2026: Extend the PBC reconstruction to mixed spatial orders
-%                   using the existing FTC expansion.
 % DJ, 10/28/2026: Throw an error if some state has no equation (tdiff=nan);
 %
 %
