@@ -109,7 +109,7 @@ in `executives/utility_functions/`.
 | `lpi_solve_loop_sop` | the degree loop: build, solve, classify the exit, raise `dw` |
 | `settings_2d_sop` | the 2-D settings the stock 2-D executives read, with their defaults |
 | `poslpivar_sop`, `poslpivar_settings_sop` | the 1-D storage and slack from the stock degrees and settings (Executive translators, below) |
-| `poslpivar_settings_2d_sop` | the same in 2-D, for R^n and L2[x,y] spaces |
+| `poslpivar_settings_2d_sop` | the same in 2-D, for R^n, L2[x], L2[y] and L2[x,y] spaces (L2[x], L2[y] since 10/28/2026, from `dx`, `dy`) |
 | `settings2possopvar` | a stock settings struct (`settings_PIETOOLS_*`, `*_2D`) as `possopvar` degrees and options, for `poslpivar_settings_2d_sop` and the cx_exec 2-D tests (from `sopvar/lpis_sopvar`, 10/16/2026) |
 | `get_lpivar_degs_sop` | the degrees of the free operator, read off the storage |
 | `trace_rn_sop` | the trace over the R^q blocks, for the H2 executives |
