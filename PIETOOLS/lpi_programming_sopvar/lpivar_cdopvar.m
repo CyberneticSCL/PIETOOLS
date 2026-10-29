@@ -29,7 +29,10 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %            optionally, in (N x 1 'double', the counts p_j; default out);
 %            or a 'double' array, the counts q_i, also taken as the p_j. A
 %            scalar count applies to every space. Counts are positive
-%            integers;
+%            integers. In the 'struct' form an empty out or in is no space
+%            on that side (an empty channel of a PIE), and SPACES of that
+%            side is not read; an empty 'double' array is no space on
+%            either side;
 % - spaces:  'struct' with fields out (1 x M cell, entry i the 'cellstr' of
 %            the variable names of t^i) and, optionally, in (1 x N cell,
 %            the same for s^j; default out); or a 1 x M cell, the output
@@ -69,7 +72,9 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %            0..max(mult,int(1)) (S3) in ZL, 0..int(2) (S3) and 0..in (S1)
 %            in ZR; [] where occ is false, except the blocks of degree 0
 %            above. Pop.Zd, the 'cellstr' column of the decision variable
-%            names, is shared by every block.
+%            names, is shared by every block. With no space on a side, POP
+%            is M x 0 or 0 x N (0 x 0 if both), with no block and no
+%            decision variable, and PROG is returned unchanged.
 %
 % See also LPIVAR, LPIVAR_2D, POSCOPVAR, LPI_EQ_CDOPVAR, CDOPVAR.
 %
@@ -137,6 +142,15 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  against lpivar with a test reference, the note on the
 %                  shared parser of the second 09/30/2026 entry, and a cost
 %                  note.
+% MMP, 10/28/2026: An empty count list on one side of a 'struct' DIMS is no
+%                  space on that side: an M x 0 or 0 x N container with no
+%                  decision variable (new local function empty_side).
+%                  Before, the parser read the empty space list as one R^q
+%                  space and the counts as missing, so the container
+%                  executives failed on a PIE with an empty channel (the
+%                  observer gain from no measurement, the controller of no
+%                  input); maintainer: empty channels should not raise an
+%                  error. Help text: DIMS and POP.
 
 % Defaults of the optional inputs; PROG must be an LPI program
 if nargin<5 || isempty(deg),        deg = 1;            end
@@ -144,6 +158,15 @@ if nargin<6 || isempty(options),    options = struct(); end
 if ~isa(prog,'struct') || ~isfield(prog,'decvartable')
     error("'prog' should be an LPI program structure; use 'lpiprogram'.")
 end
+
+% An empty count list on a side: no space there, so no block and no         % MMP, 10/28/2026
+% decision variable; PROG is unchanged                                      % MMP, 10/28/2026
+if (~isstruct(dims) && isempty(dims)) || ...
+        (isstruct(dims) && ((isfield(dims,'out') && isempty(dims.out)) || ...
+                            (isfield(dims,'in') && isempty(dims.in))))      % MMP, 10/28/2026
+    Pop = empty_side(dims,spaces,dom);                                      % MMP, 10/28/2026
+    return                                                                  % MMP, 10/28/2026
+end                                                                         % MMP, 10/28/2026
 
 % % % Spaces and dimensions
 % [sp_out,sp_in,d_out,d_in] = parse_spaces(dims,spaces);                    % MMP, 09/30/2026 (was)
@@ -400,3 +423,42 @@ if numel(d.int)~=2 || any(v<0) || any(v~=round(v))
     error("Degrees should be nonnegative integers, and 'int' a 1 x 2 [left right].")
 end
 end
+
+
+function Pop = empty_side(dims,spaces,dom)                                  % MMP, 10/28/2026
+% POP = EMPTY_SIDE(DIMS,SPACES,DOM) returns the container with no space on  % MMP, 10/28/2026
+% the side whose count list in DIMS is empty and the spaces of the other    % MMP, 10/28/2026
+% side, with no block and no decision variable.                             % MMP, 10/28/2026
+% INPUT  dims:   'struct' with fields out and (optionally) in, at least     % MMP, 10/28/2026
+%                one of them empty (in absent: the same as out), or an      % MMP, 10/28/2026
+%                empty 'double' (no space on either side);                  % MMP, 10/28/2026
+%        spaces: 'struct' with fields out and in, as LPIVAR_CDOPVAR; the    % MMP, 10/28/2026
+%                field of an empty side is not read;                        % MMP, 10/28/2026
+%        dom:    as LPIVAR_CDOPVAR.                                         % MMP, 10/28/2026
+% OUTPUT Pop:    'cdopvar' object, M x 0, 0 x N or 0 x 0, Zd empty.         % MMP, 10/28/2026
+% Which sides are empty; an empty 'double' DIMS is both                     % MMP, 10/28/2026
+if ~isstruct(dims),     dims = struct('out',[],'in',[]);    end             % MMP, 10/28/2026
+eo = isempty(dims.out);                                                     % MMP, 10/28/2026
+ei = eo;    if isfield(dims,'in'),  ei = isempty(dims.in);  end             % MMP, 10/28/2026
+if eo && ei                                                                 % MMP, 10/28/2026
+    % Neither side has a space                                              % MMP, 10/28/2026
+    meta = struct('vars',{cell(1,0)},'dom',zeros(0,2),'space_out',false(0,0),...
+                  'space_in',false(0,0),'dim_out',zeros(0,1),'dim_in',zeros(0,1)); % MMP, 10/28/2026
+else                                                                        % MMP, 10/28/2026
+    % The spaces of the other side, parsed as one list (output = input),    % MMP, 10/28/2026
+    % then the empty side stated with no space                              % MMP, 10/28/2026
+    if eo,  meta = parse_copvar_spaces(dims.in,spaces.in,dom);              % MMP, 10/28/2026
+    else,   meta = parse_copvar_spaces(dims.out,spaces.out,dom);            % MMP, 10/28/2026
+    end                                                                     % MMP, 10/28/2026
+    nv = numel(meta.vars);                                                  % MMP, 10/28/2026
+    if eo                                                                   % MMP, 10/28/2026
+        meta.space_in = meta.space_out;     meta.dim_in = meta.dim_out;     % MMP, 10/28/2026
+        meta.space_out = false(0,nv);       meta.dim_out = zeros(0,1);      % MMP, 10/28/2026
+    else                                                                    % MMP, 10/28/2026
+        meta.space_in = false(0,nv);        meta.dim_in = zeros(0,1);       % MMP, 10/28/2026
+    end                                                                     % MMP, 10/28/2026
+end                                                                         % MMP, 10/28/2026
+% No block, no decision variable                                            % MMP, 10/28/2026
+meta.Zd = cell(0,1);                                                        % MMP, 10/28/2026
+Pop = cdopvar(cell(numel(meta.dim_out),numel(meta.dim_in)),meta);           % MMP, 10/28/2026
+end                                                                         % MMP, 10/28/2026

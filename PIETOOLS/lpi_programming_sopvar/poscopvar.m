@@ -31,7 +31,8 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 % - prog:        'struct', the LPI program (LPIPROGRAM_SOP);
 % - dims:        double, M x 1 positive integers, dims(k) = m_k the number
 %                of components of space k; a scalar is used for every
-%                space;
+%                space; empty for no space (POP is then 0 x 0, with no
+%                decision variable, and PROG is returned unchanged);
 % - spaces:      1 x M cell of 'cellstr', spaces{k} the names of the
 %                variables of s^k ({} for R^{m_k}); a plain 'cellstr' is
 %                one space, so several spaces are nested, as {{},{'s'}};
@@ -152,6 +153,12 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  options.type is refused. The help text of the
 %                  10/21/2026 entry is in the paragraph and the OUTPUT
 %                  entry of prog, without markers.
+% MMP, 10/28/2026: Empty DIMS (no space: an empty channel of a PIE, as the
+%                  W of the H2 executives on R^0 when the PIE has no
+%                  disturbance or no regulated output) returns the 0 x 0
+%                  operator with no decision variable. Before, the space
+%                  parser read the empty list as one R^q space and failed
+%                  (maintainer: empty channels should not raise an error).
 
 % Check the inputs; OPTIONS a struct, of type 'pos' only
 if nargin<5
@@ -169,6 +176,16 @@ if isfield(options,'type') && ~isempty(options.type) ...
           +"'copquadvar' directly.",char(options.type))
 end
 options.type = 'pos';
+
+% No space (an empty channel of a PIE, as the W of an H2 LPI on R^0): the   % MMP, 10/28/2026
+% 0 x 0 operator, with no block and no decision variable; PROG unchanged    % MMP, 10/28/2026
+if isempty(dims)                                                            % MMP, 10/28/2026
+    meta0 = struct('vars',{cell(1,0)},'dom',zeros(0,2),'space_out',false(0,0),...
+                   'space_in',false(0,0),'dim_out',zeros(0,1),'dim_in',zeros(0,1),...
+                   'Zd',{cell(0,1)});                                       % MMP, 10/28/2026
+    Pop = cdopvar(cell(0,0),meta0);     Qcell = {};     basis_list = zeros(0,1); % MMP, 10/28/2026
+    return                                                                  % MMP, 10/28/2026
+end                                                                         % MMP, 10/28/2026
 
 % [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,options); % MMP, 10/17/2026 (was)
 meta = parse_copvar_spaces(dims,spaces,dom);    % the registry, for nv      % MMP, 10/17/2026

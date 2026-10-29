@@ -47,6 +47,8 @@ function Pmop = opvar2copvar(Pop)
 % m2 = 0 no R column, likewise n1, n2 for L2, so e.g. dim = [0 0; n n]      % MMP, 09/25/2026
 % gives a 1 x 1 container. Including such a space would give a row or       % MMP, 09/25/2026
 % column of zero dimension.                                                 % MMP, 09/25/2026
+% With no space at all on one side (m1 = n1 = 0, or m2 = n2 = 0) the        % MMP, 10/28/2026
+% container has no space on that side: an empty channel of a PIE.           % MMP, 10/28/2026
 % (was) A zero-dimensional side is skipped the same way: for m = 0 the whole first % MMP, 09/25/2026 (was)
 % (was) row and column are absent, and the result is a 1 x 1 container. Rows and % MMP, 09/25/2026 (was)
 % (was) columns of a 'copvar' cannot be entirely empty, since the container reads % MMP, 09/25/2026 (was)
@@ -105,6 +107,15 @@ function Pmop = opvar2copvar(Pop)
 %                  no populated block") and could not be rebuilt by copvar(C)
 %                  ('copvar:emptyRow'), e.g. D11 = 0. A zero block costs one
 %                  degree-0 basis.
+% MMP, 10/28/2026: An operator with no space on one side (dim with a zero
+%                  column, as C1, D11 of a PIE with no regulated output) is
+%                  converted to a container with no space on that side
+%                  instead of the error 'opvar2copvar:empty' (maintainer:
+%                  empty channels should not raise an error). The
+%                  container executives failed on such PIEs (H-infinity
+%                  control of DDE19 and DDF03 in the 10/28 example-library
+%                  baseline); the stock path runs them. The zero-block
+%                  loops skip a side with no space.
 
 if ~isa(Pop,'opvar')
     error('opvar2copvar:badInput','Input must be an opvar object.')
@@ -128,9 +139,12 @@ d = Pop.dim;
 % end                                                                       % MMP, 09/25/2026 (was)
 rows = [d(1,1)>0, d(2,1)>0];         % output spaces R, L2 that exist       % MMP, 09/25/2026
 cols = [d(1,2)>0, d(2,2)>0];         % input spaces R, L2 that exist        % MMP, 09/25/2026
-if ~any(rows) || ~any(cols)                                                 % MMP, 09/25/2026
-    error('opvar2copvar:empty','Operator has no dimensions to convert.')    % MMP, 09/25/2026
-end                                                                         % MMP, 09/25/2026
+% if ~any(rows) || ~any(cols)                                               % MMP, 10/28/2026 (was)
+%     error('opvar2copvar:empty','Operator has no dimensions to convert.')  % MMP, 10/28/2026 (was)
+% end                                                                       % MMP, 10/28/2026 (was)
+% No space on a side (an empty channel of a PIE, as C1 without a regulated  % MMP, 10/28/2026
+% output): the container has no space on that side, as an opvar has a       % MMP, 10/28/2026
+% zero dimension; its products and concatenations contribute nothing.       % MMP, 10/28/2026
 
 % One selector per component, in the [out_R in_R; out_L2 in_L2] layout.
 % sel = {[m m;0 0], [m 0;0 n];                                              % MMP, 09/25/2026 (was)
@@ -153,8 +167,12 @@ for i = find(rows),     for j = find(cols)                                  % MM
     keep(i,j) = ~is_zero_component(Pop.(nm{i,j}));                          % MMP, 09/25/2026
 end,                    end                                                 % MMP, 09/25/2026
 ir = find(rows);        jc = find(cols);                                    % MMP, 09/25/2026
-for i = ir,     if ~any(keep(i,:)),     keep(i,jc(1)) = true;   end,    end % MMP, 09/25/2026
-for j = jc,     if ~any(keep(:,j)),     keep(ir(1),j) = true;   end,    end % MMP, 09/25/2026
+% for i = ir,     if ~any(keep(i,:)),     keep(i,jc(1)) = true;   end,    end % MMP, 10/28/2026 (was)
+% for j = jc,     if ~any(keep(:,j)),     keep(ir(1),j) = true;   end,    end % MMP, 10/28/2026 (was)
+% With no space on the other side there is no block to place: the row or    % MMP, 10/28/2026
+% column stays empty and the stated metadata carries its space              % MMP, 10/28/2026
+for i = ir,     if ~isempty(jc) && ~any(keep(i,:)),     keep(i,jc(1)) = true;   end,    end % MMP, 10/28/2026
+for j = jc,     if ~isempty(ir) && ~any(keep(:,j)),     keep(ir(1),j) = true;   end,    end % MMP, 10/28/2026
 % % % END change MMP, 09/25/2026                                            % MMP, 09/25/2026
 
 C = cell(sum(rows),sum(cols));

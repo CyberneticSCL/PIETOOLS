@@ -117,6 +117,12 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 %                witness was the gain of the PIE without the Tw term.
 %                'h2' returns ok = false when Tw ~= 0. For Tw = 0 both are
 %                computed as before.
+% MMP, 10/28/2026: 'gain' with an empty channel (no disturbance or no
+%                regulated output) returns the gain 0 at omega 0. Before,
+%                the worst input was read off the SVD of an nz x 0 response
+%                and the index failed, so the H-infinity gain executive
+%                errored on a PIE without disturbance (maintainer: empty
+%                channels should not raise an error).
 
 % Output with every quantity not computed
 W = struct('ok',false,'note','','N',NaN,'gain',NaN,'omega',NaN,'wcoef',[],'wgrid',[],'sgrid',[], ...
@@ -178,6 +184,12 @@ switch mode
             W.note = ['lyap: ' ME.message];
         end
     case 'gain'
+        % No disturbance or no regulated output: the response is empty and  % MMP, 10/28/2026
+        % the gain 0                                                        % MMP, 10/28/2026
+        if size(B,2)==0 || size(C,1)==0                                     % MMP, 10/28/2026
+            W.omega = 0;    W.gain = 0;     W.ok = true;                    % MMP, 10/28/2026
+            W.t = toc(t0);  return                                          % MMP, 10/28/2026
+        end                                                                 % MMP, 10/28/2026
         % Norm of the frequency response at om = 0 and nfreq frequencies up
         % to 100*rho, rho the largest of 1 and the finite eigenvalue moduli
         G = @(om) C*((1i*om*T - A)\B) + D;

@@ -18,6 +18,8 @@ end-to-end checks that were there, which call test helpers, moved to `tests/` as
 MMP, 10/21/2026: `lpi_ineq_sop` counts and prints the decision variables of its certificate before
 declaring it, and sizes it from the operators of `poscopvar` its target depends on (§2); the
 examples no longer set `opts.like`.
+MMP, 10/28/2026: `lpiscript_sop`, the container counterpart of `lpiscript`, which had none
+(maintainer: create one); the folder root holds eight user functions.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -44,6 +46,7 @@ The user functions, in the folder root. Each is the container counterpart of the
 | `lpi_ineq_sop` | `lpi_ineq` | imposes `P >= 0`: sizes the positive slack, prints its decision variables, declares it, then `P - Pop == 0` (§2) |
 | `lpigetsol_sop` | `lpigetsol` | the solved value of a decision variable or operator (§2) |
 | `getsol_lpivar_sop` | `getsol_lpivar` | the same for a decision operator (§2) |
+| `lpiscript_sop` | `lpiscript` | solves a predefined LPI by name (`'stability'`, `'l2gain'`, `'h2norm'`, `'hinf-controller'`, ...) with the container executive and form of `PIETOOLS_auto_execute_sop`; the outputs of `lpiscript`, then the executive's `info` |
 
 The routines the user functions depend on, in `misc/` (public, since the executives, the tests and
 the demos call some of them). From `sopvar/lpis_sopvar` (10/16/2026) and the former folder root

@@ -7,7 +7,8 @@ function Pm = op2copvar_sop(Pop)
 %                 L2[y], L2[x,y]), one block per nonzero component, with a
 %                 zero block kept in every all-zero row and column so that
 %                 no space is dropped (opvar2d2copvar errors there), as the
-%                 2-D transcriptions do;
+%                 2-D transcriptions do; with no space at all on one side,  % MMP, 10/28/2026
+%                 a container with no space on that side;                   % MMP, 10/28/2026
 %   copvar/cdopvar -> returned as is.
 %
 % Initial coding MMP, 10/08/2026 (the opvar2d branch is the logic of the
@@ -18,6 +19,13 @@ function Pm = op2copvar_sop(Pop)
 %                sopvar/Testfolder/converters: a conversion between operator
 %                classes, not LPI programming, and the executives must not
 %                depend on a test folder. Comment only otherwise.
+% MMP, 10/28/2026: An opvar2d with no space on one side (an empty channel of
+%                a PIE, such as C1 with no regulated output) gives a
+%                container with no space on that side, its spaces stated
+%                from POP.dim; before, the side with no rows or columns made
+%                the zero-block loops fail (maintainer: empty channels
+%                should not raise an error; opvar2copvar does the same in
+%                1-D).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if isa(Pop,'copvar') || isa(Pop,'cdopvar'),     Pm = Pop;   return,     end
 if isa(Pop,'opvar') || isa(Pop,'dopvar')
@@ -34,8 +42,11 @@ d = Pop.dim;
 rows = find(d(:,1)>0);  cols = find(d(:,2)>0);
 keep = false(4,4);
 for i = rows',  for j = cols',  keep(i,j) = ~is_zero(Pop.(nm{i,j}));  end,  end
-for i = rows',  if ~any(keep(i,cols)),  keep(i,cols(1)) = true;   end,    end
-for j = cols',  if ~any(keep(rows,j)),  keep(rows(1),j) = true;   end,    end
+% for i = rows',  if ~any(keep(i,cols)),  keep(i,cols(1)) = true;   end,    end % MMP, 10/28/2026 (was)
+% for j = cols',  if ~any(keep(rows,j)),  keep(rows(1),j) = true;   end,    end % MMP, 10/28/2026 (was)
+% A side with no space has no block to place (see the end)                  % MMP, 10/28/2026
+for i = rows',  if ~isempty(cols) && ~any(keep(i,cols)),  keep(i,cols(1)) = true;   end,    end % MMP, 10/28/2026
+for j = cols',  if ~isempty(rows) && ~any(keep(rows,j)),  keep(rows(1),j) = true;   end,    end % MMP, 10/28/2026
 C = cell(numel(rows),numel(cols));
 for a = 1:numel(rows)
     for b = 1:numel(cols)
@@ -49,7 +60,23 @@ for a = 1:numel(rows)
         C{a,b} = opvar2d2sopvar(Pblk);
     end
 end
-Pm = copvar(C);
+% Pm = copvar(C);                                                           % MMP, 10/28/2026 (was)
+if ~isempty(rows) && ~isempty(cols)                                         % MMP, 10/28/2026
+    Pm = copvar(C);                                                         % MMP, 10/28/2026
+else                                                                        % MMP, 10/28/2026
+    % No space on one side (an empty channel of a PIE): no block to read    % MMP, 10/28/2026
+    % the spaces off, so they are stated from POP.dim. Space k of R, L2[x], % MMP, 10/28/2026
+    % L2[y], L2[x,y] holds the variables of row k of MASK; the registry is  % MMP, 10/28/2026
+    % those the present spaces hold, sorted, with their domains             % MMP, 10/28/2026
+    nmv = reshape(Pop.var1.varname,1,[]);                                   % MMP, 10/28/2026
+    mask = logical([0 0; 1 0; 0 1; 1 1]);                                   % MMP, 10/28/2026
+    used = any(mask(unique([rows;cols]),:),1);                              % MMP, 10/28/2026
+    [vs,ix] = sort(nmv(used));                                              % MMP, 10/28/2026
+    dI = Pop.I(used,:);         mk = mask(:,used);      mk = mk(:,ix);      % MMP, 10/28/2026
+    meta = struct('vars',{vs},'dom',dI(ix,:),'space_out',mk(rows,:),...
+                  'space_in',mk(cols,:),'dim_out',d(rows,1),'dim_in',d(cols,2)); % MMP, 10/28/2026
+    Pm = copvar(C,meta);                                                    % MMP, 10/28/2026
+end                                                                         % MMP, 10/28/2026
 end
 
 
