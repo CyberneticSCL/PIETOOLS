@@ -28,6 +28,12 @@ function P = sopvar_from_kernels(K,S2,S3,S1,vars,dom,dims)
 %
 % NOTE: local helper of the sopvar converters, building the operator in the
 % same way as 'opvar2d2sopvar', for an arbitrary number of variables.
+%
+% PIETOOLS - sopvar_from_kernels
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding: Claude 10/28/2026
 
 names = pvar2varname(vars(:,1));    names = names(:)';
 dnames = pvar2varname(vars(:,2));   dnames = dnames(:)';

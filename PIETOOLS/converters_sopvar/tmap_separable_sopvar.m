@@ -57,8 +57,8 @@ function Top = tmap_separable_sopvar(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding, adapting Compute_Tmap_PDE_2D_Separable to 'copvar' and an
-% arbitrary number of variables, 10/28/2026
+% Initial coding: Claude 10/28/2026, adapting Compute_Tmap_PDE_2D_Separable to 'copvar' and an
+% arbitrary number of variables
 
 vars = PDE.vars;
 nvars = size(vars,1);

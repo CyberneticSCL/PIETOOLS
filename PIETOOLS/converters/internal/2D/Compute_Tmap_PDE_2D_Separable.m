@@ -508,6 +508,12 @@ catch
     error('The expansion of the PDE state in terms of the PIE state fails; perhaps the PDE is ill-posed, or not currently supported.')
 end
 
+% Generalized periodic BCs introduce additional moment states, which are not
+% supported by this approach.                                               % Claude, 10/28/2026
+if ~isempty(PIE_1D.F)
+    error('PIETOOLS:convert:PeriodicSeparable','Periodic boundary conditions are not supported by the separable expansion.')
+end
+
 % Extract the operators Top such that
 % v(x,t) = Top*d_{var_idx}^{diff} v +Twop*w +Tuop*u;
 Top_1D = PIE_1D.T;        % Note that these operators are only 1D opvars!

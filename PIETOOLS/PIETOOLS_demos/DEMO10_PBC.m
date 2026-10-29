@@ -4,6 +4,7 @@ pvar s t;
 x = pde_var(s,[-1,1]);
 lam = pi^2-1;
 alpha = 0.99;                       % Analytical mean-free decay rate: 1.
+% Initial coding DB 10/29/2026
 
 %% Declare the PDE and convert to the augmented PIE.
 eq_PDE = diff(x,t)==lam*x+diff(x,s,2);
