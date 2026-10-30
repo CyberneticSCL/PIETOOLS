@@ -43,7 +43,7 @@ function display(PIE,name)
 % DJ, 06/25/2025: Add display of 'misc' field;
 % DB, 10/27/2026: Display optional PI operators F/K in case the null
 % space of the derivative operator is non-trivial.
-% DJ, 10/29/2026: Update to new pie_struct structure (display the function
+% DJ, 10/30/2026: Update to new pie_struct structure (display the function
 %                   spaces, and constraint operators if specified);
 
 % % % Set up a list of characters that we need for the display
@@ -73,7 +73,7 @@ num_list = {'\x30';
 dim = PIE.dim;
 
 % Check the sizes of the states, inputs and outputs.
-nx = sum(PIE.space.x.dims);                                                 % DJ, 10/29/2026
+nx = sum(PIE.space.x.dims);                                                 % DJ, 10/30/2026
 nw = sum(PIE.space.w.dims);
 nu = sum(PIE.space.u.dims);
 nz = sum(PIE.space.z.dims);
@@ -129,11 +129,12 @@ fprintf(['\n      Cy: [',ny,ttimes,nx,' ',op,'];    ',...
 fprintf('\n');
 
 % Display the operators defining the algebraic constraint, if any.
-for field = {'K','Kw','Ku'}                                                 % DJ, 10/29/2026
-    obj = PIE.(field{1});
-    if size(obj,1)>0
-        fprintf('\n%s: [%s %s];\n',field{1},mat2str(size(obj)),class(obj));
-    end
+nK = size(PIE.K,1);                                                         % DJ, 10/30/2026
+if nK>0
+    nK = num2str(nK);
+    fprintf(['\n       K: [',nK,ttimes,nx,' ',op,'];     ',...
+                     'Kw: [',nK,ttimes,nw,' ',op,'];     ',...
+                     'Ku: [',nK,ttimes,nu,' ',op,']; \n']);
 end
 
 if ~isempty(PIE.misc) && ~(isstruct(PIE.misc) && isempty(fieldnames(PIE.misc)))

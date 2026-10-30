@@ -41,7 +41,7 @@ function display(PIE,name)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% DJ, 10/29/2026: Initial coding, based on the display function of
+% DJ, 10/30/2026: Initial coding, based on the display function of
 %                   pie_struct;
 
 try
@@ -89,11 +89,12 @@ end
 fprintf('\n');
 
 % Display the operators defining the algebraic constraint, if any.
-for field = {'K','Kw','Ku'}
-    obj = PIE.(field{1});
-    if size(obj,1)>0
-        fprintf('\n%s: [%s %s];\n',field{1},mat2str(size(obj)),class(obj));
-    end
+nK = size(PIE.K,1);
+if nK>0
+    nK = num2str(nK);
+    fprintf(['\n       K: [',nK,ttimes,nx,' ',op,'];     ',...
+                     'Kw: [',nK,ttimes,nw,' ',op,'];     ',...
+                     'Ku: [',nK,ttimes,nu,' ',op,']; \n']);
 end
 
 if ~isempty(PIE.misc) && ~(isstruct(PIE.misc) && isempty(fieldnames(PIE.misc)))
