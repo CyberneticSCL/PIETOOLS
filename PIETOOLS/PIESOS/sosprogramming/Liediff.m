@@ -9,19 +9,22 @@ function dV = Liediff(V,PIE)
 %           functional (as declared by e.g. `piesos_quadvar`, `innerprod`),
 %           in terms of the PDE state variables u=T*x, and potentially also
 %           the associated PIE state variables x (see NOTES);
-% - PIE:    'struct' representing a distributed polynomial PIE, as output
-%           by `convert_PIETOOLS_PDE_nonlinear`, with fields
+% - PIE:    'npie_struct' representing a distributed polynomial PIE, as
+%           output by `convert_PIETOOLS_PDE_nonlinear`, with fields
 %           T:  'tensopmat' representing the map x -> u=T*x from PIE state
 %               to PDE state;
 %           f:  'polyopvar' representing the right-hand side of the PIE,
 %               d/dt u = f(x);
-%           x:  'polyopvar' array of the individual PIE state variables;
-%           varname_pde, varname_pie: cellstr with the names of the PDE and
-%               PIE state variables, in the same order as the rows of T, f;
+%           space.x.varname: cellstr with the names of the PIE state
+%               variables x, in the order of the columns of T. The
+%               variables are collected in PIE.x;
+%           space_pde.x.varname: cellstr with the names of the PDE state
+%               variables u, associated to the PIE state variables in the
+%               rows of T, f by PIE.pde2pie.x.idx;
 %
 % OUTPUTS
 % - dV:     1 x 1 'polyopvar' object representing the derivative of V along
-%           the PIE, in terms of the PIE state variables PIE.varname_pie
+%           the PIE, in terms of the PIE state variables PIE.space.x.varname
 %           (V and dV as declared by `piesos_LF`);
 %
 % NOTES
@@ -44,7 +47,7 @@ function dV = Liediff(V,PIE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Liediff
 %
-% Copyright (C) 2026 PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -66,6 +69,8 @@ function dV = Liediff(V,PIE)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/29/2026: Use the function spaces and names of the components in
+%                   PIE.space and PIE.space_pde of the 'npie_struct' PIE;
 
 % Check the inputs
 if ~isa(V,'polyopvar')
@@ -74,9 +79,12 @@ end
 if ~isequal(size(V),[1,1])
     error("The functional must be scalar-valued.")
 end
-if ~isstruct(PIE) || ~all(isfield(PIE,{'T','f','x','varname_pde','varname_pie'}))
-    error("The PIE must be specified as 'struct' with fields 'T', 'f', 'x', 'varname_pde', and 'varname_pie'.")
-end
+if ~isa(PIE,'npie_struct')                                                  % DJ, 10/29/2026
+    error("The PIE must be specified as 'npie_struct'.") 
+end                                                                         
+if ~PIE.is_initialized                                                      % DJ, 10/29/2026
+    PIE = initialize(PIE);
+end                 
 if ~V.chkval
     V = initialize(V);          % guarantee V.Z and V.C are consistent
 end
@@ -84,8 +92,8 @@ V = clean_poly(V);
 
 % Every state in V must be a PDE state u or a PIE state x of the PIE; names
 % in both lists could not be told apart
-names_pde = PIE.varname_pde(:);
-names_pie = PIE.varname_pie(:);
+names_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));                % DJ, 10/29/2026
+names_pie = PIE.space.x.varname;
 if any(ismember(names_pde,names_pie))
     error("PDE and PIE state variables must have different names.")
 end

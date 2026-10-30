@@ -37,6 +37,7 @@
 % DJ, 12/15/2024: Match structure to that of other demos;
 % DB, 12/27/2024: Replace sys() objects by pde_var();
 % DJ, 05/18/2025: Declare no particular SDP solver by default;
+% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 
 
 clc; clear; close all; clear stateNameGenerator;
@@ -68,25 +69,25 @@ B1 = PIE.B1;    C1 = PIE.C1;
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram(s,[0,1]); 
+prog = lpiprogram_sop(T);                                                   % DJ (CC), 10/30/2026
 
 % % Declare decision variables:
 % %   gam \in \R,     W:L2-->L2,    Z:\R-->L2
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable W>=0 with default polynomial degrees up to 3.
-[prog,W] = poslpivar(prog,[0;1]);
+[prog,W] = poscopvar(prog,1,{{'s'}},[0,1],3);                               % DJ (CC), 10/30/2026
 
 % % Set inequality constraints:
 % %   A W T* + T W A* + B1 B1* <= 0
 % %   gam >= trace(C1 W C1*)
 % Operator inequality Dop<=0
 Dop =  A*W*T'+T*W*A'+B1*B1';
-prog = lpi_ineq(prog,-Dop);
+prog = lpi_ineq_sop(prog,-Dop);                                             % DJ (CC), 10/30/2026
 % Scalar inequality gam >= trace(C1 W C1*)
 Aux = C1*W*C1';
-traceVal = trace(Aux.P);
-prog = lpi_ineq(prog, gam-traceVal);
+traceVal = trace_rn_sop(Aux);                                               % DJ (CC), 10/30/2026
+prog = lpi_ineq_sop(prog, gam-traceVal);                                    % DJ (CC), 10/30/2026
 
 % % Set objective function:
 % %   min gam
@@ -95,8 +96,8 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
-gamd = sqrt(double(lpigetsol(prog_sol,gam)));
-Wc = lpigetsol(prog_sol,W);
+gamd = sqrt(double(lpigetsol_sop(prog_sol,gam)));                           % DJ (CC), 10/30/2026
+Wc = lpigetsol_sop(prog_sol,W);                                             % DJ (CC), 10/30/2026
 
 
 echo off

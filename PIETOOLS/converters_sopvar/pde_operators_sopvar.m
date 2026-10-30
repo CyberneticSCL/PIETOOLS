@@ -51,8 +51,8 @@ function ops = pde_operators_sopvar(PDE,Top)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding, 'copvar' version of the PIE operators computed in
-% convert_PIETOOLS_PDE, 10/28/2026
+% Initial coding: Claude 10/28/2026, 'copvar' version of the PIE operators computed in
+% convert_PIETOOLS_PDE
 
 vars = PDE.vars;
 dom = PDE.dom;

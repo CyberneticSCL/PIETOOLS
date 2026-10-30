@@ -149,6 +149,8 @@ function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_s
 % DJ, 12/16/2024: Fix call to 2D converter;
 % DJ, 02/15/2026: Take derivative of all boundary inputs, introducing
 %                   boundary values of inputs if necessary;
+% DJ (CC), 10/29/2026: The operator F of the 1D PIE is no longer a field of
+%                   the PIE; check PIE_1D.misc.periodic for periodic BCs;
 %
 
 % % % Extract the inputs
@@ -506,6 +508,14 @@ PDE_1D = initialize(PDE_1D,true);
 try PIE_1D = convert_PIETOOLS_PDE(PDE_1D,[],{'silent','Top'});                      % DJ, 12/16/2024
 catch
     error('The expansion of the PDE state in terms of the PIE state fails; perhaps the PDE is ill-posed, or not currently supported.')
+end
+
+% Generalized periodic BCs introduce additional moment states, which are not
+% supported by this approach.                                               % Claude, 10/28/2026
+%   if ~isempty(PIE_1D.F)                                                   % DJ (CC), 10/29/2026 (was)
+% F is no longer a field of the PIE, see PIE.misc.periodic.F.              % DJ (CC), 10/29/2026
+if isfield(PIE_1D.misc,'periodic')                                      % DJ (CC), 10/29/2026
+    error('PIETOOLS:convert:PeriodicSeparable','Periodic boundary conditions are not supported by the separable expansion.')
 end
 
 % Extract the operators Top such that

@@ -1,5 +1,5 @@
 % State-feedback stabilization of an unstable 2D reaction-diffusion PDE.
-% Initial coding DB 10/29/2026
+% Initial coding DB 10/27/2026
 % controller reconstruction AT 10/28/2026
 clear; clc; clear stateNameGenerator
 pvar s1 s2

@@ -35,6 +35,7 @@
 % variables.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/29/2026: Use the regulated output polynomial PIE.gz, instead of PIE.h;
 %
 
 clear;  clear stateNameGenerator
@@ -71,7 +72,7 @@ PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
 Top = PIE.T;
 % The Sobolev ball requires Rx = Rop*x, the derivative u_s in terms of the PIE state
 % x. We obtain it by declaring an output z = u_s in the PDE, which the converter
-% returns as the 'polyopvar' PIE.h = Rop*x:
+% returns as the 'polyopvar' PIE.gz = Rop*x:
 f = PIE.f;
 x = PIE.x;
 
@@ -113,7 +114,7 @@ disp(" --- Declaring the local ball ---")
 if BALL
     g = R^2-innerprod(Tx,Tx); % L2 ball of radius R.
 else
-    Rx = PIE.h;
+    Rx = PIE.gz;
     g = R^2-(innerprod(Top*x,Top*x) + innerprod(Rx,Rx)); % Sobolev ball of radius R.
 end
 

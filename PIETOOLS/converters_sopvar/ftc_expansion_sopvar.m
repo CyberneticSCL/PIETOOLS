@@ -64,8 +64,8 @@ function [Pop_f2x, Pop_b2x, bc_state_tab] = ftc_expansion_sopvar(PDE)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding, adapting PIETOOLS_FTC_Expansion_2D to 'copvar' and an
-% arbitrary number of variables, 10/28/2026
+% Initial coding: Claude 10/28/2026, adapting PIETOOLS_FTC_Expansion_2D to 'copvar' and an
+% arbitrary number of variables
 
 dom = PDE.dom;
 vars = PDE.vars;

@@ -68,6 +68,9 @@
 % YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde into
 % solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
 % solution.timedep.primary{1,2}
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
+% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -102,24 +105,25 @@ B1 = PIE.B1;    D11 = PIE.D11;  D21 = PIE.D21;
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram(s,[0,1]);
+prog = lpiprogram_sop(T);                                                   % DJ (CC), 10/30/2026
 
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-opts.sep = 1;                   % set P.R.R1=P.R.R2
-[prog,P] = poslpivar(prog,T.dim,4,opts);
+popts.sep = 1;                  % set the lower and upper kernels equal
+[prog,P] = poscopvar(prog,1,{{'s'}},[0,1],4,popts);                         % DJ (CC), 10/30/2026
 % Indefinite operator variable Z: \R-->L2
-[prog,Z] = lpivar(prog,[0,1;1,0],4);
+spaces.out = {'s'};     spaces.in = [];
+[prog,Z] = lpivar_cdopvar(prog,struct('out',1,'in',1),spaces,[0,1],4);      % DJ (CC), 10/30/2026
 
 % % Set inequality constraints:
 % %   Q <= 0
 Q = [-gam,              -D11',        -(P*B1+Z*D21)'*T;
      -D11,              -gam,         C1;
      -T'*(P*B1+Z*D21),  C1',          (P*A+Z*C2)'*T+T'*(P*A+Z*C2)];
-prog = lpi_ineq(prog,-Q);
+prog = lpi_ineq_sop(prog,-Q);                                               % DJ (CC), 10/30/2026
 
 % % Set objective function:
 % %   min gam
@@ -128,22 +132,24 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variables
-gam_val = lpigetsol(prog_sol,gam);
-Pval = lpigetsol(prog_sol,P);
-Zval = lpigetsol(prog_sol,Z);
+gam_val = double(lpigetsol_sop(prog_sol,gam));                              % DJ (CC), 10/30/2026
+Pval = lpigetsol_sop(prog_sol,P);                                           % DJ (CC), 10/30/2026
+Zval = lpigetsol_sop(prog_sol,Z);                                           % DJ (CC), 10/30/2026
 % Build optimal observer operator L
-Lval = getObserver(Pval,Zval);
+[Lval,~,~] = getObserver_sop(Pval,Zval);                                    % DJ (CC), 10/30/2026
 
 % % Construct the closed-loop PIE system
 % Declare Luenberger estimator with input y
 %   d/dt T*vhat(t,s) = (A+L*C2)*vhat(t,s) - Ly(t,s);
 %            zhat(t) = C1*vhat(t);
 % and take LFT with PIE
-PIE_est = piess(T,A+Lval*C2,-Lval,C1(1,:));
+PIE_est = pie_struct();                                                     % DJ (CC), 10/30/2026
+PIE_est.T = T;     PIE_est.A = A+Lval*C2;      PIE_est.Bw = -Lval;     PIE_est.Cz = C1;  % DJ (CC), 10/30/2026
+PIE_est = initialize(PIE_est);                                              % DJ (CC), 10/30/2026
 PIE_CL = pielft(PIE,PIE_est);
 
 % % Alternatively, uncomment to use pre-defined functions
-% [prog, Lval, gam_val] = lpiscript(PIE,'hinf-observer','heavy');   
+% [prog, Lval, gam_val] = lpiscript_sop(PIE,'hinf-observer','heavy');       % DJ (CC), 10/29/2026
 % PIE_CL = closedLoopPIE(PIE,Lval,'observer');
 
 

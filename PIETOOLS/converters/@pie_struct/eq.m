@@ -1,23 +1,23 @@
 function logval=eq(objA, objB)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Display the fields of a "pie_struct" object 'PIE', with name 'name'.
+% LOGVAL = EQ(OBJA,OBJB) or OBJA==OBJB tests whether two "pie_struct"
+% objects represent the same PIE.
 %
 % INPUT
-% - objA, objB:    pie_struct class objects defining PIE.
+% - objA, objB:    pie_struct class objects defining PIEs;
 %
 % OUTPUT
-% - logval: 0 is objA~=objB, 1 otherwise
+% - logval: true if the PIEs involve the same spatial variables and domain,
+%           and each of the operators is the same, false otherwise.
 %
 % NOTES
-% This is a "disp" function, not a "display" function. It only shows which
-% fields the input PIE pertains, ordered in a particular manner, without
-% showing e.g. the structure of the associated system or the specific
-% variables, domain or parameters.
+% Operators of different types, or acting on different function spaces,
+% are not equal.
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS
+% PIETOOLS - eq
 %
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -38,16 +38,35 @@ function logval=eq(objA, objB)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% DJ, 10/29/2026: Update to new pie_struct structure;
 
 
-PI_list = {'T', 'A', 'Tw', 'Tu', 'B1', 'B2', 'C1','C2', 'D11', 'D12','D21', 'D22', 'dom'};
+% List of the operators to compare.
+PI_list = {'T', 'Tw', 'Tu',...
+           'A', 'Bw', 'Bu',...
+           'Cz','Cy', 'Dzw',...
+           'Dzu','Dyw', 'Dyu',...
+           'K', 'Kw', 'Ku'};                                                % DJ, 10/29/2026
 
 logval = 0;
 
 if isa(objA,'pie_struct')&&isa(objB,'pie_struct')
+    if ~isequal(objA.space.vars,objB.space.vars) || ~isequal(objA.dom,objB.dom)
+        logval = 1;
+    end
     for i=PI_list
-        if ~(objA.(i{:})==objB.(i{:}))
-            logval=1;
+        opA = objA.(i{:});      opB = objB.(i{:});
+        if size(opA,1)==0 && size(opB,1)==0
+            % Neither of the operators has been specified, or both have no rows.
+            continue
+        end
+        % Operators of different types (e.g. opvar and copvar), or acting
+        % on different spaces, are not equal.
+        try is_equal = logical(opA==opB);
+        catch, is_equal = false;
+        end
+        if ~all(is_equal)
+            logval = 1;
         end
     end
 else

@@ -27,6 +27,12 @@ function P = assemble_copvar_blocks(entries,rmasks,rdims,cmasks,cdims,vars,dom)
 % - P:      'copvar' with one row per output space and one column per input
 %           space, in the order given. Blocks without any entries are
 %           structurally zero.
+%
+% PIETOOLS - assemble_copvar_blocks
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding: Claude 10/28/2026
 
 nvars = size(vars,1);
 names = pvar2varname(vars(:,1));    names = names(:)';

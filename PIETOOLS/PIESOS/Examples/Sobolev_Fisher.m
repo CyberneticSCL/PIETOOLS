@@ -42,6 +42,7 @@
 % infeasibility certificate.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/29/2026: Use the regulated output polynomial PIE.gz, instead of PIE.h;
 
 clear;  clear stateNameGenerator
 
@@ -170,7 +171,7 @@ disp(" --- Declaring the local ball ---")
 if BALL
     g = R^2 - innerprod(Tx,Tx); % L2 ball of radius R.
 else
-    Rx = PIE.h;
+    Rx = PIE.gz;
     g = R^2 - innerprod(Rx,Rx); % Sobolev ball of radius R. - innerprod(Tx,Tx) 
 end
 
@@ -181,7 +182,7 @@ if use_L2_bnd
     V_low = Vx - eppos*innerprod(Tx,Tx);
 else
     % Lower bound by Sobolev norm of PDE state
-    Rx = PIE.h;
+    Rx = PIE.gz;
     V_low = Vx - eppos*innerprod(Rx,Rx);
 end
 

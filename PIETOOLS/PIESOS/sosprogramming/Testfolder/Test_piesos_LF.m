@@ -205,16 +205,16 @@ for i=1:numel(X0)
 end
 vals = struct();
 for i=1:numel(X0)
-    vals.(PIE.varname_pie{i}) = X0{i};
+    vals.(PIE.space.x.varname{i}) = X0{i};
 end
 end
 
 function idcs = state_idcs(PIE,names,use_pde)
 % Indices in the PIE of the states with the given names, sorted by name
 if use_pde
-    list = PIE.varname_pde(:);
+    list = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));
 else
-    list = PIE.varname_pie(:);
+    list = PIE.space.x.varname(:);
 end
 [~,idcs] = ismember(names(:),list);
 [~,srt] = sort(list(idcs));
@@ -223,7 +223,7 @@ end
 
 function Zu = monomials_in(PIE,idcs,degmat)
 % The monomials Z(u) in the PDE states idcs, as used by piesos_LF
-xu = polyopvar(PIE.varname_pde(idcs),PIE.x_tab(idcs,2),{'s'},PIE.dom,logical(PIE.x_tab(idcs,3)));
+xu = polyopvar(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(idcs,1)),PIE.x_tab(idcs,2),{'s'},PIE.dom,logical(PIE.x_tab(idcs,3)));
 Zu = dmonomials(xu,degmat);
 end
 
@@ -239,7 +239,7 @@ d0map = random_decvars(Pmat,seed);
 Zu = monomials_in(PIE,idcs,degmat);
 Xu = struct();
 for i=1:numel(idcs)
-    Xu.(PIE.varname_pde{idcs(i)}) = u0(idcs(i)) + h*w0(idcs(i));
+    Xu.(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(idcs(i),1)}) = u0(idcs(i)) + h*w0(idcs(i));
 end
 Ph = block_matrix(cellfun(@(P) eval_dpvar_at(P,d0map),Pmat,'UniformOutput',false));
 YL = apply_side(Zop,Zu,Xu);
@@ -261,7 +261,7 @@ sv = polynomial({'s'});     sv = sv(1);
 [vals,~,~,u0,w0,xdot0] = pie_values(PIE,X0);
 idcs = state_idcs(PIE,names_pde,true);
 prog = piesos_program(PIE.x);
-[prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,PIE.varname_pie(idcs),degmat,opts);
+[prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,PIE.space.x.varname(idcs),degmat,opts);
 % Normalization: random linear combination of the decision variables equal to 1
 names = cell(0,1);
 for k=1:numel(Pmat)
@@ -282,8 +282,8 @@ dVsol = piesos_getsol(prog,dV);
 Zu = monomials_in(PIE,idcs,degmat);
 Xl = struct();      Xr = struct();
 for i=1:numel(idcs)
-    Xl.(PIE.varname_pde{idcs(i)}) = X0{idcs(i)} + h*xdot0{idcs(i)};
-    Xr.(PIE.varname_pde{idcs(i)}) = u0(idcs(i)) + h*w0(idcs(i));
+    Xl.(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(idcs(i),1)}) = X0{idcs(i)} + h*xdot0{idcs(i)};
+    Xr.(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(idcs(i),1)}) = u0(idcs(i)) + h*w0(idcs(i));
 end
 Ph = block_matrix(Psol);
 YL = apply_side(Zop,Zu,Xl);
@@ -554,15 +554,15 @@ assert(isa(Vf,'polyopvar'),'V must be a polyopvar.');
 % 'pde' and 'pie': all PDE or all PIE states, in any case or as string
 opts = struct('degs',struct('in',0,'out',0),'pos',true);
 [~,Vg,dVg] = piesos_LF(prog,PIE,'pde',1,opts);
-[~,Vh,dVh] = piesos_LF(prog,PIE,PIE.varname_pde,1,opts);
+[~,Vh,dVh] = piesos_LF(prog,PIE,PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),1,opts);
 assert(isequal(Vg,Vh) && isequal(dVg,dVh),'''pde'' must be equivalent to all PDE state names.');
 [~,Vg,dVg] = piesos_LF(prog,PIE,"PDE",1,opts);
 assert(isequal(Vg,Vh) && isequal(dVg,dVh),'Case and string must not matter.');
 opts = struct('degs',struct('in',0,'out',0));
 [~,Vi,dVi] = piesos_LF(prog,PIE,'pie',1,opts);
-[~,Vj,dVj] = piesos_LF(prog,PIE,PIE.varname_pie,1,opts);
+[~,Vj,dVj] = piesos_LF(prog,PIE,PIE.space.x.varname,1,opts);
 assert(isequal(Vi,Vj) && isequal(dVi,dVj),'''pie'' must be equivalent to all PIE state names.');
-assert(numel(PIE.varname_pie)==2 && nnz(Vi.degmat(:))>0,'Vacuous: ''pie'' must involve both states.');
+assert(numel(PIE.space.x.varname)==2 && nnz(Vi.degmat(:))>0,'Vacuous: ''pie'' must involve both states.');
 end
 
 function case_errors()
@@ -666,7 +666,7 @@ function vals = pie_vals(PIE,X0)
 % Values of the PIE states by name
 vals = struct();
 for i=1:numel(X0)
-    vals.(PIE.varname_pie{i}) = X0{i};
+    vals.(PIE.space.x.varname{i}) = X0{i};
 end
 end
 

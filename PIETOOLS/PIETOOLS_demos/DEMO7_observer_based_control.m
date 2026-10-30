@@ -69,6 +69,9 @@
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/22/2024: Use piess and pielft;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
+% DJ (CC), 10/30/2026: Declare the estimator with copvar operators;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -107,8 +110,10 @@ C2 = PIE.C2;    D21 = PIE.D21;  D22 = PIE.D22;
 
 % % Use the predefined Hinf control and estimator functions.
 settings = lpisettings('heavy');
-[prog_k, Kval, gam_co_val] = lpiscript(PIE,'hinf-controller',settings);
-[prog_l, Lval, gam_ob_val] = lpiscript(PIE,'hinf-observer',settings);
+%   [prog_k, Kval, gam_co_val] = lpiscript(PIE,'hinf-controller',settings); % DJ (CC), 10/29/2026 (was)
+[prog_k, Kval, gam_co_val] = lpiscript_sop(PIE,'hinf-controller',settings); % DJ (CC), 10/29/2026
+%   [prog_l, Lval, gam_ob_val] = lpiscript(PIE,'hinf-observer',settings);   % DJ (CC), 10/29/2026 (was)
+[prog_l, Lval, gam_ob_val] = lpiscript_sop(PIE,'hinf-observer',settings);   % DJ (CC), 10/29/2026
 
 % % Construct the closed-loop PIE system
 % Declare Luenberger estimator with input y and output u
@@ -116,7 +121,10 @@ settings = lpisettings('heavy');
 %            zhat(t) = C1*vhat(t);
 %               u(t) = K*vhat(t);
 % and take LFT with PIE
-PIE_est = piess(T,A+Lval*C2,-Lval,{C1(1,:);Kval});
+Lval = op2copvar_sop(Lval);     Kval = op2copvar_sop(Kval);     % the gains as containers  % DJ (CC), 10/30/2026
+Sel = mat2copvar_sop([1,0],struct('out',1,'in',2),struct('out',{{{}}},'in',{{{}}}),struct('vars',{C1.vars},'dom',C1.dom));   % first output  % DJ (CC), 10/30/2026
+%   PIE_est = piess(T,A+Lval*C2,-Lval,{C1(1,:);Kval});                      % DJ (CC), 10/30/2026 (was)
+PIE_est = piess(T,A+Lval*C2,-Lval,{Sel*C1;Kval});                           % DJ (CC), 10/30/2026
 PIE_CL = pielft(PIE,PIE_est);
 
 

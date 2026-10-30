@@ -4,16 +4,18 @@ function PIE_out = PIE2polyPIE(PIE_in)
 % side expressed as a (linear) distributed polynomial.
 %
 % INPUTS
-% - PIE_in:     'pie_struct' object representing a linear PIE, with the
-%               operators T and A in 'opvar' format (1D PIEs);
+% - PIE_in:     'pie_struct' object representing a linear PIE in one
+%               spatial variable, with the operators T and A in 'opvar'
+%               or 'copvar' format;
 %
 % OUTPUTS
-% - PIE_out:    'struct' representing the same PIE as the input, with the
-%               right-hand side of the PIE defined by a 'polyopvar'
+% - PIE_out:    'npie_struct' representing the same PIE as the input, with
+%               the right-hand side of the PIE defined by a 'polyopvar'
 %               object, PIE_out.f, so that
 %                   d/dt T*x = f(x) = A*x;
-%               It has fields T (a 'tensopmat'), f, x, varname_pde,
-%               varname_pie, x_tab, vars, dom and dim, as the output of
+%               It has fields T (a 'tensopmat'), f, the function space with
+%               the names of the states (space.x.varname, and
+%               space_pde.x.varname), and the state x, as the output of
 %               `convert_PIETOOLS_PDE_nonlinear`, needed for e.g.
 %               `piesos_LF`. The fundamental state is split into a state
 %               collecting the finite-dimensional (ODE) components (if
@@ -30,7 +32,7 @@ function PIE_out = PIE2polyPIE(PIE_in)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - PIE2polyPIE
 %
-% Copyright (C) 2026 PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -52,9 +54,17 @@ function PIE_out = PIE2polyPIE(PIE_in)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/29/2026: Update to new PIE structures: accept a PIE with operators
+%                   in 'copvar' format (converting using `pie2opvar`), and
+%                   return an 'npie_struct' object, instead of a struct;
 
 % Check that the PIE is a 1D PIE with operators in opvar format
 Aop = PIE_in.A;     Top = PIE_in.T;
+if isa(Aop,'copvar') || isa(Top,'copvar')                                   % DJ, 10/29/2026
+    % Convert operators of the initialized PIE to opvar objects. 
+    PIE_old = pie2opvar(PIE_in);
+    Aop = PIE_old.A;    Top = PIE_old.T;
+end
 if ~isa(Aop,'opvar') || ~isa(Top,'opvar')
     error("PIE must have 1D operators T and A of type 'opvar'.")
 end
@@ -69,20 +79,24 @@ nnr = [0;cumsum(sizes)];
 
 % Declare the PIE state variables
 vars = PIE_in.vars;     dom = PIE_in.dom;
-PIE_out = struct();
-PIE_out.dom = dom;
-PIE_out.vars = vars;
-PIE_out.dim = size(vars,1);
+PIE_out = npie_struct();                                                    % DJ, 10/29/2026
+PIE_out.space.vars = reshape(pvar2varname(vars(:,1)),1,[]); 
+PIE_out.space.dom = dom;
 PIE_out.x_tab = [(1:nstates)',sizes,double(is_pde)];
-PIE_out.varname_pde = cell(nstates,1);
-PIE_out.varname_pie = cell(nstates,1);
-ndig = numel(num2str(nstates));       % zero-padded names, sorted in the order of the states
+% Name the states, in the function spaces of the PIE and of the PDE, using
+% zero-padded numbers, so that the names are sorted in the order of the
+% states.
+ndig = numel(num2str(nstates));                                             % DJ, 10/29/2026
+names_pde = cell(nstates,1);        names_pie = cell(nstates,1); 
 for i=1:nstates
-    PIE_out.varname_pde{i} = ['x',num2str(i,['%0',num2str(ndig),'d'])];
-    PIE_out.varname_pie{i} = ['x',num2str(i,['%0',num2str(ndig),'d']),'_pie'];
+    names_pde{i} = ['x',num2str(i,['%0',num2str(ndig),'d'])];
+    names_pie{i} = ['x',num2str(i,['%0',num2str(ndig),'d']),'_pie'];
 end
-x = polyopvar(PIE_out.varname_pie,sizes,vars(:,1),dom,is_pde);
-PIE_out.x = x;
+PIE_out.space.x.varname = names_pie;
+PIE_out.space_pde.vars = PIE_out.space.vars;    PIE_out.space_pde.dom = dom;
+PIE_out.space_pde.x = struct('dims',sizes,'depmat',PIE_out.space.x.depmat,...
+                             'varname',{names_pde},'ID',(1:nstates)');
+x = PIE_out.x;
 
 % Declare the operators T and A as 'tensopmat', with a block for each pair
 % of state components
@@ -102,39 +116,25 @@ Amat = vertcat_blocks(Acell);
 PIE_out.T = Tmat;
 PIE_out.f = Amat*x;
 
-% nx = size(Aop,1);
-% x_name = [repmat('x',[nx,1]),num2str((1:nx)')];
-% x_name = mat2cell(x_name,ones(nx,1),size(x_name,2));
-%
-% % Declare the right-hand side of the PDE
-% f = polyopvar(x_name,Aop.var1,Aop.dom);
-% for i=1:nx
-%     for j=1:nx
-%         f.C.ops{i,j} = dopvar2ndopvar(Aop(i,j));
-%     end
-% end
-%
-% % Declare the PIE
-% PIE_out = struct();
-% PIE_out.T = dopvar2ndopvar(PIE_in.T);
-% PIE_out.f = f;
-% PIE_out.vars = PIE_in.vars;
-% PIE_out.dom = PIE_in.dom;
-
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 function Cmat = vertcat_blocks(Ccell)
 % Concatenate a cell of 'tensopmat' blocks into a single 'tensopmat'
 rows = cell(size(Ccell,1),1);
 for i=1:size(Ccell,1)
     row_i = [];
     for j=1:size(Ccell,2)
-        row_i = [row_i,Ccell{i,j}]; %#ok<AGROW>
+        row_i = [row_i,Ccell{i,j}]; 
     end
     rows{i} = row_i;
 end
 Cmat = [];
 for i=1:numel(rows)
-    Cmat = [Cmat;rows{i}]; %#ok<AGROW>
+    Cmat = [Cmat;rows{i}];
 end
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

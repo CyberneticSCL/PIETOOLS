@@ -4,7 +4,7 @@
 % The names of the state variables, polyopvar.varname, are stored as a
 % p x 1 column (see the class documentation), whatever the route
 % (constructor, vertcat/plus via common_states, subs, clean_poly, ...)
-% and the orientation of the input, e.g. PIE.varname_pie, a 1 x p row.
+% and the orientation of the input, e.g. PIE.space.x.varname, a 1 x p row.
 %
 % Each check uses at least 2 states, as for 1 state a row and a column
 % are the same array. An object whose varname was set as a row
@@ -112,15 +112,15 @@ PDE = [diff(u1,t)==diff(u1,s,2)+u1*u2;
        diff(u2,t)==diff(u2,s,2)-u1*u2;
        subs(u1,s,0)==0;  subs(u1,s,1)==0;  subs(u2,s,0)==0;  subs(u2,s,1)==0];
 out = evalc('PIE = convert(PDE);');         %#ok<NASGU>
-if numel(PIE.varname_pie)<2
+if numel(PIE.space.x.varname)<2
     error("Test setup: the PIE must have at least 2 states.")
 end
 chk_col(PIE.x,'PIE.x');
-if size(PIE.varname_pie,2)~=1 || size(PIE.varname_pde,2)~=1
-    error("PIE.varname_pie and PIE.varname_pde must be columns.")
+if size(PIE.space.x.varname,2)~=1 || size(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),2)~=1
+    error("PIE.space.x.varname and PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)) must be columns.")
 end
-if ~isequal(PIE.x.varname,sort(PIE.varname_pie))
-    error("PIE.x.varname must be the sorted PIE.varname_pie.")
+if ~isequal(PIE.x.varname,sort(PIE.space.x.varname))
+    error("PIE.x.varname must be the sorted PIE.space.x.varname.")
 end
 
 disp('Test_polyopvar_varname_column passed: varname is a column for all routes.')

@@ -33,8 +33,9 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 %
 % INPUT
 % - PIE:    'pie_struct' object of a 1-D PIE with T, Tw, A, B1, C1, D11
-%           'opvar' objects (the other operators are not used); w has nwf
-%           finite and nwd distributed components, PIE.B1.dim(:,2);
+%           'opvar' or 'copvar' objects (the other operators are not used);
+%           w has nwf finite and nwd distributed components,
+%           PIE.B1.dim(:,2) after conversion to 'opvar' objects;
 % - mode:   char, 'gain', 'rate' or 'h2';
 % - opts:   (optional) 'struct' with the optional fields N_cheb (double,
 %           the Legendre degree N, default 24) and nfreq (double, default
@@ -123,6 +124,11 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 %                and the index failed, so the H-infinity gain executive
 %                errored on a PIE without disturbance (maintainer: empty
 %                channels should not raise an error).
+% DJ, 10/29/2026: Convert the operators of the PIE to 'opvar' objects
+%                using pie2opvar, which PIE_DISC_SOP and PIE.B1.dim require,
+%                instead of initializing the PIE, whose operators are now
+%                'copvar' objects. This is a temporary fix, we should 
+%                really work with the new PIE structure directly;
 
 % Output with every quantity not computed
 W = struct('ok',false,'note','','N',NaN,'gain',NaN,'omega',NaN,'wcoef',[],'wgrid',[],'sgrid',[], ...
@@ -132,10 +138,11 @@ if nargin<3 || isempty(opts),   opts = struct();    end
 if nargin<4,    Y = [];     end
 if nargin<5,    wblk = 1;   end
 N = getf(opts,'N_cheb',24);     nfreq = getf(opts,'nfreq',240);
-% Start the timer; initialize the PIE (an error leaves it as given)
+% Start the timer; convert the PIE to opvar objects (an error leaves it as
+% given)
 t0 = tic;
 try
-    PIE = initialize(PIE);
+    PIE = pie2opvar(PIE);                                                   % DJ, 10/29/2026
 catch
 end
 % 1-D only

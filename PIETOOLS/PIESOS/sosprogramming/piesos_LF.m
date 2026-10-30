@@ -16,16 +16,21 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program (see `piesos_program`);
-% - PIE:    'struct' representing the PIE for which a Lyapunov functional
-%           is sought, as output by `convert_PIETOOLS_PDE_nonlinear`, with
-%           fields T, f, x, varname_pde, varname_pie, x_tab, vars, and dom;
+% - PIE:    'npie_struct' representing the PIE for which a Lyapunov
+%           functional is sought, as output by
+%           `convert_PIETOOLS_PDE_nonlinear`, with operators T and f, the
+%           function space PIE.space of the PIE, with the names of the
+%           states PIE.space.x.varname, and the names of the PDE states
+%           PIE.space_pde.x.varname, associated to the PIE states by
+%           PIE.pde2pie.x.idx;
 % - xvars:  n x 1 'polyopvar' array of individual state variables, or
 %           cellstr with their names, specifying the state variables on
 %           which V depends. These may be PDE state variables, PIE state
 %           variables, or both, in which case V is the sum of a functional
 %           in the PDE states and one in the PIE states. Can also be
 %           specified as 'pde' or 'pie', to use all PDE or all PIE state
-%           variables, respectively (PIE.varname_pde, PIE.varname_pie);
+%           variables, respectively (PIE.space_pde.x.varname,
+%           PIE.space.x.varname);
 % - degmat: m x n array of integers specifying the distributed monomial
 %           degrees of the monomials Z in each of the state variables. If
 %           specified as m x 1 array, the degrees are taken to be the
@@ -90,7 +95,7 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - piesos_LF
 %
-% Copyright (C) 2026 PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -113,6 +118,8 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 %
 % DJ, 10/15/2026: Initial coding, based on V3_Liediff by CR;
 % DJ, 10/23/2026: Fix for vector-valued states;
+% DJ, 10/29/2026: Use the function spaces and names of the components in
+%                   PIE.space and PIE.space_pde of the 'npie_struct' PIE;
 
 % Check the options
 if nargin<=4
@@ -131,8 +138,14 @@ end
 get_dV = ~isfield(opts,'derivative') || logical(opts.derivative);
 
 % Extract the PDE and PIE state variables
-varname_pde = PIE.varname_pde;
-varname_pie = PIE.varname_pie;
+if ~isa(PIE,'npie_struct')                                                  % DJ, 10/29/2026
+    error("The PIE must be specified as 'npie_struct'.")
+end
+if ~PIE.is_initialized                                                      % DJ, 10/29/2026
+    PIE = initialize(PIE);      
+end
+varname_pie = PIE.space.x.varname;
+varname_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));
 
 % Check that the state variables are properly declared
 if (ischar(xvars) || (isstring(xvars) && isscalar(xvars))) && ~isempty(xvars)
@@ -209,10 +222,10 @@ if size(degmat,2)==numel(varnames) && numel(varnames)>1
 end
 
 % Determine the function space in which the states exist
-pvars = pvar2varname(PIE.vars(:,1))';                       % spatial variables
-xsize = PIE.x_tab(idcs_PIE,2);                              % state size
-xdepmat = logical(PIE.x_tab(idcs_PIE,2+(1:numel(pvars))));  % dependence on spatial variables
-dom = PIE.dom;                                              % spatial domain
+pvars = PIE.space.vars;                                     % spatial variables      % DJ, 10/29/2026
+xsize = PIE.space.x.dims(idcs_PIE);                         % state size          
+xdepmat = PIE.space.x.depmat(idcs_PIE,:);                   % dependence on spatial variables  
+dom = PIE.space.dom;                                        % spatial domain     
 if isa(xvars,'polyopvar')
     % Check that the provided state variables exist in the same domain as
     % their counterparts in the PIE
@@ -234,7 +247,7 @@ if ~isequal(idcs_PIE(:)',1:numel(varname_pie))
     % Indexing is not supported for operators of multiple components, so
     % only index if V depends on a subset of the states
     % A vector-valued state occupies several rows of T and f
-    xrow0 = cumsum([0;PIE.x_tab(:,2)]);
+    xrow0 = cumsum([0;PIE.space.x.dims]);                                   % DJ, 10/29/2026
     rows_PIE = cell2mat(arrayfun(@(i) xrow0(i)+1:xrow0(i+1),idcs_PIE(:)','UniformOutput',false));
     Top = Top(rows_PIE,:);
     fx = fx(rows_PIE,:);                    % d/dt (Tx) = f(x)

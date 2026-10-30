@@ -1,6 +1,12 @@
 function Q = sopvar_rows(P,rows)
 % Q = SOPVAR_ROWS(P,ROWS) returns the 'sopvar' operator that maps to only
 % the components ROWS of the output of the 'sopvar' P.
+%
+% PIETOOLS - sopvar_rows
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding: Claude 10/28/2026
 nz = prod(cellfun(@numel,P.ZL));
 if isempty(P.ZL),   nz = 1;     end
 rowsel = reshape((rows(:)'-1)*nz + (1:nz)',[],1);

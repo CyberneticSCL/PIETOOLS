@@ -4,12 +4,21 @@ function PIE = convert_PIETOOLS_PDE_sopvar(PDE,comp_order,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copy of convert_PIETOOLS_PDE, in which the operators of the PIE are
 % returned as 'copvar' containers of 'sopvar' blocks, rather than as 'opvar'
-% or 'opvar2d' objects. The PIE is derived exactly as in
-% convert_PIETOOLS_PDE (using opvar and opvar2d objects internally); the
-% operators T, Tw, Tu, A, B1, B2, C1, D11, D12, C2, D21, D22, and the
-% optional F and K, are converted to 'copvar' only when the PIE is
-% returned, as in 'pie2copvar'. Operators without an input or output space
-% are returned as [], and conversion of nonlinear PDEs is not changed.
+% or 'opvar2d' objects. The operators T, Tw, Tu, A, B1, B2, C1, D11, D12, C2,
+% D21, D22, and the optional F and K, are all returned as 'copvar' objects.
+% Operators without an input or output space are returned as [].
+%
+% The PIE is first constructed directly using 'copvar' objects, for any
+% number of spatial variables, see "convert_native_sopvar" and the helpers
+% "ftc_expansion_sopvar", "bc_operators_sopvar", "tmap_sopvar",
+% "tmap_separable_sopvar", "periodic_map_sopvar" and "pde_operators_sopvar".
+% This supports 1D PDEs with generalized periodic BCs, and 2D and 3D PDEs
+% with separable BCs. If the PDE is not supported (e.g. it involves
+% higher-order temporal derivatives, or BCs coupling several directions), the
+% PIE is derived as in convert_PIETOOLS_PDE using opvar and opvar2d
+% objects, and the operators are then converted to 'copvar' only when the
+% PIE is returned, as in 'pie2copvar'. Conversion of nonlinear PDEs is not
+% changed.
 %
 % Convert a coupled ODE-1D_PDE-2D system to an equivalent PIE.
 %
@@ -165,9 +174,11 @@ function PIE = convert_PIETOOLS_PDE_sopvar(PDE,comp_order,flag)
 % Codex, 10/28/2026: Extend the PBC reconstruction to mixed spatial orders
 %                   using the existing FTC expansion.
 % DJ, 10/28/2026: Throw an error if some state has no equation (tdiff=nan);
-% Copy to converters_sopvar, 10/28/2026: return the PIE operators as
-%                   'copvar' objects, converting at each exit of the
-%                   function (see "pie_ops2copvar").
+% Initial coding: Claude 10/28/2026: copy to converters_sopvar, returning
+%                   the PIE operators as 'copvar' objects. Construct the PIE
+%                   directly with 'copvar' (see "convert_native_sopvar"),
+%                   falling back on the opvar route, converting at each exit
+%                   of the function (see "pie_ops2copvar").
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -366,8 +377,8 @@ end
 
 % % % Attempt to construct the PIE directly using 'copvar' operators, for
 % % % any number of spatial variables. If this is not possible for the PDE
-% % % at hand (e.g. for generalized periodic boundary conditions, higher-order
-% % % temporal derivatives, or inputs that require derivatives to be taken),
+% % % at hand (e.g. for higher-order temporal derivatives, or inputs that
+% % % require derivatives to be taken),
 % % % we continue with the construction using opvar and opvar2d objects
 % % % below, converting the result to 'copvar' objects at the end.
 [PIE_native,native_ok,native_msg] = convert_native_sopvar(PDE,comp_order,return_Top,suppress_summary);
@@ -874,7 +885,10 @@ end
 
 
 function [PIE,ok,msg] = convert_native_sopvar(PDE,comp_order,return_Top,suppress_summary)
-% Construct the PIE associated to the PDE directly using 'copvar' objects.
+% Construct the PIE associated to the PDE directly using 'copvar' objects,
+% for any number of spatial variables, including 1D generalized periodic BCs
+% (adding the moment states, and the operators F and K).
+% Initial coding: Claude 10/28/2026
 % Returns ok=false, and a message msg explaining why, if the PDE (as
 % specified) is not supported by the direct construction, in which case the
 % PIE should be constructed using opvar objects instead.
@@ -983,6 +997,7 @@ end
 
 
 function PIE = pie_ops2copvar(PIE,ops)
+% Initial coding: Claude 10/28/2026
 % Replace the opvar/opvar2d operators of the PIE by copvar objects.
 % Operators in "ops" are converted individually if they are specified;
 % otherwise, the operators of the full PIE are converted using "pie2copvar",
@@ -1014,6 +1029,7 @@ end
 
 
 function PIE = augment_periodic_map(PIE,Top,Fop,Kop,info)
+% (opvar route) Initial coding: Claude 10/28/2026
 % Add identity rows for the moment states, preserving a square PIE map.
 m = info.n_aux;
 selector = opvar();

@@ -31,7 +31,8 @@ pie = convert(pde,'pie');
 
 
 % % % Run LPI stability test for PIE, using 'veryheavy' settings
-[prog, Pop] = lpiscript(pie,  'stability','veryheavy');
+%   [prog, Pop] = lpiscript(pie,  'stability','veryheavy');                 % DJ (CC), 10/29/2026 (was)
+[prog, Pop] = lpiscript_sop(pie,  'stability','veryheavy');                 % DJ (CC), 10/29/2026
 
 %%%%%%%%%%%%%%%%%% End Code Snippet %%%%%%%%%%%%%%%%%%
 echo off

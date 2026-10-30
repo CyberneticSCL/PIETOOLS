@@ -8,9 +8,10 @@ function tl = exec_tools_sop(PIE,st)
 % or 'opvar2d' object (1-D, 2-D).
 %
 % INPUT
-% - PIE:  'pie_struct' object as EXEC_PIE_SOP returns it: a 1-D or 2-D PIE
-%         with T an 'opvar' (1-D) or 'opvar2d' (2-D) object, or a container
-%         PIE (T a 'copvar' object) in any number nv >= 1 of variables;
+% - PIE:  'pie_struct' object as EXEC_PIE_SOP returns it: T a 'copvar'
+%         object (the pie_struct of 10/29/2026, or any container PIE) in
+%         any number nv >= 1 of variables, or in an older 1-D or 2-D PIE an
+%         'opvar' (1-D) or 'opvar2d' (2-D) object;
 % - st:   'struct' of LPI settings, completed by EXEC_SOP_SETTINGS:
 %           1-D  eppos, eppos2, epneg, ddZ (each optional), and the degree
 %                fields of POSLPIVAR_SETTINGS_SOP;
@@ -149,6 +150,24 @@ function tl = exec_tools_sop(PIE,st)
 %                the settings_sopvar tiers ([1-D 2-D 3-D], since 10/29/2026)
 %                reduced to this dimension's entry, so the executives keep
 %                reading scalars; a NaN cap_delta means no bound.
+% DJ (CC), 10/29/2026: Support the 'copvar' operators of the new pie_struct:
+%                tl.ident and eye_state read the spaces of PIE.T and Bop
+%                from the 'copvar' fields, as PIE.T.dim and Bop.dim no longer
+%                exist; eye_state gives one block for each block of PIE.T,
+%                and tl.ident one for each space of Bop;
+% MMP, 10/30/2026: Merge of origin/ndopvar. The tl.ident and EYE_STATE bodies
+%                of the entry above (DJ, origin commit 3df33dcc) and the
+%                container branch of 10/29/2026 (IDENT_OP, EYE_CONTAINER)
+%                both read the spaces from the 'copvar' fields; the
+%                container branch is kept. The DJ tl.ident lines are
+%                commented out; the DJ EYE_STATE body is named where it
+%                stood.
+%                EYE_CONTAINER indexes the weights by 1 + sum_k 2^(k-1) over
+%                the variables of a space, equal to the 1 + sum_k loc(k) of
+%                DJ in 1-D and 2-D; in 3 or more variables that index gives
+%                {s3} and {s1,s2} the same weight. IDENT_OP returns the 0 x 0
+%                container of EYE_COPVAR_SOP for an empty channel, where DJ
+%                returned copvar().
 
 % Dimension and spatial variables of the PIE
 nv = PIE.dim;
@@ -212,6 +231,17 @@ if ~isempty(cd) && ~isnan(cd)                                               % MM
     ct = max(ti.Jmax,0) + cd;                                               % MMP, 10/29/2026
     tl.capfor = @(X) cap_for(X,Tc.vars,ct);                                 % MMP, 10/29/2026
 end                                                                         % MMP, 10/29/2026
+% The copvar tl.eye, tl.ident of DJ (CC), 10/29/2026, which the merge of    % MMP, 10/30/2026
+% 10/30/2026 replaces by the container branch above (header entry):         % MMP, 10/30/2026
+% tl.eye   = @(side,e) eye_state(PIE,side,e);                               % MMP, 10/30/2026 (was)
+%   tl.ident = @(Bop,side) op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,PIE.dom));   % DJ (CC), 10/29/2026 (was)
+% % The identity on the output (side 1) or input (side 2) spaces of a 'copvar'   % DJ (CC), 10/29/2026
+% % Bop, with one block for each of its spaces; an empty container if Bop has    % DJ (CC), 10/29/2026
+% % no space on that side (an empty channel), as the former opvar construction.  % DJ (CC), 10/29/2026
+% sd = {'out','in'};                                                        % MMP, 10/30/2026 (was)
+% spc = @(B,s) arrayfun(@(k) B.vars(B.(['space_',sd{s}])(k,:)),1:numel(B.(['dim_',sd{s}])),'UniformOutput',false);   % MMP, 10/30/2026 (was)
+% mkI = {@(B,s) copvar(), @(B,s) eye_copvar_sop(B.(['dim_',sd{s}]),spc(B,s),struct('vars',{B.vars},'dom',B.dom))};   % MMP, 10/30/2026 (was)
+% tl.ident = @(Bop,side) mkI{1+~isempty(Bop.(['dim_',sd{side}]))}(Bop,side); % MMP, 10/30/2026 (was)
 end
 
 
@@ -230,6 +260,9 @@ function Im = eye_state(PIE,side,e,dom)                                     % MM
 % OUTPUT Im:    'copvar' object.
 % A container PIE: on the spaces of its T                                   % MMP, 10/29/2026
 if isa(PIE.T,'copvar'),     Im = eye_container(PIE,side,e,dom);     return,     end % MMP, 10/29/2026
+% The copvar body of DJ (CC), 10/29/2026 (origin commit 3df33dcc) is not    % MMP, 10/30/2026
+% carried by the merge of 10/30/2026: the line above reaches EYE_CONTAINER, % MMP, 10/30/2026
+% which reads the same copvar fields (header entry). An opvar PIE below.    % MMP, 10/30/2026
 n = PIE.T.dim(:,side);
 if isscalar(e),     e = e*ones(numel(n),1);     end
 if numel(e)~=numel(n)
@@ -247,6 +280,8 @@ else
 end
 Im = op2copvar_sop(Pop);
 end
+
+
 
 
 % % % BEGIN MMP, 10/29/2026: new local functions EYE_CONTAINER, IDENT_OP,

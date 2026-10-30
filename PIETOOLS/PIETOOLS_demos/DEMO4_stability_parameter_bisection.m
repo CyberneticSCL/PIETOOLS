@@ -39,6 +39,9 @@
 % DJ, 12/22/2024: Explicitly construct stability LPI;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state;
 % DJ, 05/18/2025: Declare no particular SDP solver by default;
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
+% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -73,18 +76,17 @@ for iter = 1:n_iters
     % === Declare the LPI
 
     % % Initialize LPI program
-    prog = lpiprogram(s,[0,1]);
+    prog = lpiprogram_sop(T);                                                   % DJ (CC), 10/30/2026
     
     % % Declare decision variables:
     % %   P:L2-->L2,    P>0
-    [prog,P] = poslpivar(prog,T.dim);
-    P = P + 1e-4;                   % enforce P>=1e-4
+    [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],2);                               % DJ (CC), 10/30/2026
+    P = P + 1e-4*eye_copvar_sop(1,{{'s'}},[0,1]);   % enforce P>=1e-4           % DJ (CC), 10/30/2026
     
     % % Set inequality constraints:
     % %   A'*P*T + T'*P*A <= 0
     Q = A'*P*T + T'*P*A;
-    opts.psatz = 1;                 % allow Q>=0 outside domain
-    prog = lpi_ineq(prog,-Q,opts);
+    prog = lpi_ineq_sop(prog,-Q);    % by default, allow Q>=0 outside domain    % DJ (CC), 10/30/2026
     
     % % Solve and retrieve the solution
     % solve_opts.solver = 'sedumi';   % uncomment to declare SDP solver     % DJ, 05/18/2025
@@ -93,7 +95,7 @@ for iter = 1:n_iters
     prog = lpisolve(prog,solve_opts);
 
     % % Alternatively, uncomment to run pre-defined stability executive
-    % prog = lpiscript(PIE,'stability',settings);
+    % prog = lpiscript_sop(PIE,'stability',settings);                       % DJ (CC), 10/29/2026
 
     % Check if the system is stable
     is_pinf = prog.solinfo.info.pinf;       % is primal feasible?

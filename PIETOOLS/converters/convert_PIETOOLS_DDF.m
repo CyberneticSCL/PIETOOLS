@@ -47,6 +47,8 @@ function PIE=convert_PIETOOLS_DDF(DDF,out_type)
 % matrices with empty matrices of correct size
 %  DJ - 09/01/2022: Output result as "pie_struct" object.
 % DJ, 12/07/2024: Use new default vars (s1,s2) and (s1_dum,s2_dum);
+% DJ, 10/29/2026: Set the spatial variables and domain in PIE.space, instead
+%                   of the dependent fields PIE.vars and PIE.dom;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convert DDF to 4-PI representation
@@ -293,8 +295,8 @@ a=-1;b=0;
 X = [a b];
 
 PIE = pie_struct();
-PIE.vars = [Top.var1,Top.var2];
-PIE.dom=X;
+PIE.space.vars = reshape(pvar2varname(Top.var1),1,[]);                      % DJ, 10/29/2026
+PIE.space.dom = X;                                                          % DJ, 10/29/2026
 PIE.T = Top;    PIE.Tw = TB1op;     PIE.Tu = TB2op;
 PIE.A = Aop;    PIE.B1 = B1op;      PIE.B2 = B2op;
 PIE.C1 = C1op;  PIE.D11 = D11op;    PIE.D12 = D12op;

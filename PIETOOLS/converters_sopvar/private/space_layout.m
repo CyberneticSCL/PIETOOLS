@@ -15,6 +15,12 @@ function [masks,dims,comp_idx] = space_layout(sizes,dep,nvars)
 % - dims:   1 x nspaces array with the total size of the components in each space;
 % - comp_idx:   ncomps x 1 cell, with for each component the indices in the
 %           space it lives in that are associated to this component.
+%
+% PIETOOLS - space_layout
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding: Claude 10/28/2026
 ncomps = numel(sizes);
 if nvars>0 && ncomps>0
     cmask = double(dep)*(2.^(0:nvars-1)');

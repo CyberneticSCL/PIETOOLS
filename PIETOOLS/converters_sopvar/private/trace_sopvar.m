@@ -22,6 +22,12 @@ function Q = trace_sopvar(P,name,bndry)
 %   evaluation of the input, which is not a PI operator. An error is
 %   therefore thrown if P has a non-zero multiplier in s;
 % - The variable must be an output variable of P; otherwise, P is returned.
+%
+% PIETOOLS - trace_sopvar
+% If you modify this code, document all changes carefully and include date
+% authorship, and a brief description of modifications
+%
+% Initial coding: Claude 10/28/2026
 
 iv = find(strcmp(P.vars.out,name));
 if isempty(iv)

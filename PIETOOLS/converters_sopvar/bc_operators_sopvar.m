@@ -53,7 +53,7 @@ function [Pop_b2BC, Pop_f2BC, Pop_u2BC, Pop_w2BC, layout] = bc_operators_sopvar(
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding, adapting construct_PI_ops_BCs to 'copvar', 10/28/2026
+% Initial coding: Claude 10/28/2026, adapting construct_PI_ops_BCs to 'copvar'
 
 dom = PDE.dom;
 vars = PDE.vars;

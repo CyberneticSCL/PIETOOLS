@@ -57,8 +57,7 @@ function [Top, Fop, Kop, info] = periodic_map_sopvar(PDE,Pop_f2x,Pop_b2x,bc_stat
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding, adapting compute_PIETOOLS_PDE_periodic_map to 'copvar',
-% 10/28/2026
+% Initial coding: Claude 10/28/2026, adapting compute_PIETOOLS_PDE_periodic_map to 'copvar'
 
 vars = PDE.vars;        dom = PDE.dom;
 s = vars(1,1);          theta = vars(1,2);
