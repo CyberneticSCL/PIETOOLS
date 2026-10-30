@@ -2,10 +2,10 @@ function cl = lpi_classify_sop(prog,obj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CL = LPI_CLASSIFY_SOP(PROG,OBJ) names the solver exit of the solved LPI
 % program PROG from the flags of prog.solinfo.info: status 'infeasible' if
-% pinf = 1, else 'unbounded' if dinf = 1, else 'unknown' if numerr = 2,
-% else 'inaccurate' if numerr = 1, else 'optimal'; 'unsolved' when PROG
-% carries no solver report. It reads back the value of the objective OBJ
-% and marks an 'unknown' exit as divergent unless OBJ is given and its
+% pinf = 1, else 'unbounded' if dinf = 1, else 'inaccurate' if numerr = 1,
+% else 'unknown' if numerr is nonzero, else 'optimal'; 'unsolved' when
+% PROG carries no solver report. It reads back the value of the objective
+% OBJ and marks an 'unknown' exit as divergent unless OBJ is given and its
 % value is at most 1e3 in modulus.
 %
 % INPUT
@@ -63,6 +63,10 @@ function cl = lpi_classify_sop(prog,obj)
 %                unchanged. The deleted header text was the interpretation
 %                of a divergent exit, a notes reference and the use the
 %                degree loop makes of the status.
+% MMP, 10/30/2026: A nonzero numerr other than 1 and 2 is now 'unknown';
+%                it was 'optimal', and so certified. SOSSOLVE passes the
+%                SDPT3 termcode as numerr when it is <= 0, and a negative
+%                termcode is a failed solve (-6: iteration limit).
 
 % Every field unset; 'unsolved' without a solver report
 cl = struct('status','','numerr',NaN,'pinf',NaN,'dinf',NaN,'feasratio',NaN,'obj',NaN, ...
@@ -90,6 +94,9 @@ if cl.pinf==1,          cl.status = 'infeasible';
 elseif cl.dinf==1,      cl.status = 'unbounded';
 elseif cl.numerr==2,    cl.status = 'unknown';
 elseif cl.numerr==1,    cl.status = 'inaccurate';
+% Any other nonzero numerr is a failed solve: SOSSOLVE passes the SDPT3
+% termcode as numerr when it is <= 0 (-6: iteration limit)
+elseif cl.numerr~=0,    cl.status = 'unknown';                              % MMP, 10/30/2026
 else,                   cl.status = 'optimal';
 end
 % An 'unknown' exit is divergent unless |obj| <= divtol
