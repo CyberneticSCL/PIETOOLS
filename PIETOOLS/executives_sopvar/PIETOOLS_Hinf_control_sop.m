@@ -17,8 +17,10 @@ function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D PIE, with T, A, B1, B2, C1, D11
-%             and D12 'opvar' objects; Tw and Tu zero (no disturbance or
-%             input at the boundary);
+%             and D12 'opvar' objects, or 'copvar' objects (a 1-D container
+%             PIE, EXEC_PIE_SOP); Tw and Tu zero or absent (no disturbance
+%             or input at the boundary); a PIE in two or more variables is
+%             an error;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P;
@@ -82,6 +84,20 @@ function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
 % MMP, 10/28/2026: The body (a call of private/synth_build_sop) is replaced
 %                by the builder's 'ctrl' code (MMP, 10/08/2026, 10/09/2026),
 %                the program unchanged. Header to the header protocol.
+% MMP, 10/29/2026: The PIE goes through EXEC_PIE_SOP (INITIALIZE for an
+%                opvar PIE, as before; a 1-D container PIE accepted), and
+%                every PIE in two or more variables is rejected, not only a
+%                2-D one: the controller gain is extracted in 1-D only
+%                (GETCONTROLLER_SOP).
+% MMP, 10/29/2026: The slack takes opts.cap = capfor(K) of EXEC_TOOLS_SOP,
+%                the per-direction bounds of settings.sop.cap_delta; empty
+%                by default, so every program is unchanged unless cap_delta
+%                is set.
+% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
+%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
+%                cap_delta) reduced to its entry for the dimension of the
+%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
+%                scalar settings are unchanged.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -91,13 +107,16 @@ if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_Hinf_control_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = initialize(PIE);
+% PIE = initialize(PIE);                                                    % MMP, 10/29/2026 (was)
+PIE = exec_pie_sop(PIE);                    % opvar or container PIE        % MMP, 10/29/2026
 label = 'Hinf_control_sop';
 
 % Complete the container options and read the tools of the PIE's dimension
 st = exec_sop_settings(settings);
 tl = exec_tools_sop(PIE,st);    nv = tl.nv;
-if nv==2,   error('PIETOOLS_Hinf_control_sop:dim2','Optimal control of 2D PIEs is currently not supported.');   end
+st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)        % MMP, 10/29/2026
+% if nv==2,   error('PIETOOLS_Hinf_control_sop:dim2','Optimal control of 2D PIEs is currently not supported.');   end % MMP, 10/29/2026 (was)
+if nv>=2,   error('PIETOOLS_Hinf_control_sop:dim2','Optimal control of PIEs in two or more variables is currently not supported.');   end % MMP, 10/29/2026
 if ~(PIE.Tw==0) || ~(PIE.Tu==0)
     error('PIETOOLS_Hinf_control_sop:Tw','The LPI cannot be solved for systems with disturbances or inputs at the boundary.');
 end
@@ -176,7 +195,8 @@ end
             [prog,tag] = lpi_eq_sop(prog,Nm+Km,'symmetric');
             li = struct('tag',tag,'degrees',[],'terms',[]);
         else
-            o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin);
+%           o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin); % MMP, 10/29/2026 (was)
+            o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin,'cap',tl.capfor(Km)); % MMP, 10/29/2026
             [prog,Nm,li] = lpi_ineq_sop(prog,-Km,o);
         end
         obj = gamv;     if ~isempty(gfix),   obj = [];  end

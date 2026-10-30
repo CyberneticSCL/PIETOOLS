@@ -14,11 +14,13 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 % with P and R positive operators and omega = -settings.epneg. While the
 % solver returns UNKNOWN or INFEASIBLE, the program is rebuilt with the
 % degree of both slacks raised by one, up to settings.sop.max_raise_feas
-% (or max_raise) times.
+% (its 1-D entry; or max_raise) times.
 %
 % INPUT
-% - PIE:      'pie_struct' object of a 1-D PIE, with T and A 'opvar' objects;
-%             its other operators are not used;
+% - PIE:      'pie_struct' object of a 1-D PIE, with T and A 'opvar' objects,
+%             or 'copvar' objects (a 1-D container PIE, EXEC_PIE_SOP); its
+%             other operators are not used; a PIE in two or more variables
+%             is an error;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P, R;
@@ -83,6 +85,22 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 % MMP, 10/28/2026: Header to the header protocol, step comments in the body;
 %                code unchanged. The deleted header text compared the file
 %                with the stock executive and named the helpers it calls.
+% MMP, 10/29/2026: settings.sop.max_raise_feas may hold one entry per
+%                dimension (PIETOOLS_stability_sop reads entry min(nv,end));
+%                this 1-D executive reads its 1-D entry, as for dw_feas.
+% MMP, 10/29/2026: The PIE goes through EXEC_PIE_SOP (INITIALIZE for an
+%                opvar PIE, as before; a 1-D container PIE accepted), and
+%                every PIE in two or more variables is rejected, not only a
+%                2-D one.
+% MMP, 10/29/2026: Each slack takes opts.cap = capfor(target) of
+%                EXEC_TOOLS_SOP, the per-direction bounds of
+%                settings.sop.cap_delta; empty by default, so every program
+%                is unchanged unless cap_delta is set.
+% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
+%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
+%                cap_delta) reduced to its entry for the dimension of the
+%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
+%                scalar settings are unchanged.
 
 % Default settings, as the stock executive; check the PIE
 if nargin<2 || isempty(settings)
@@ -93,18 +111,22 @@ end
 label = 'well_posedness_sop';
 st = exec_sop_settings(settings);
 if ~isa(PIE,'pie_struct'),  error('PIETOOLS_well_posedness_sop:pie','The PIE should be a ''pie_struct''.');  end
-PIE = initialize(PIE);
-if PIE.dim==2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of 2D PDEs is currently not supported.');   end
+% PIE = initialize(PIE);                                                    % MMP, 10/29/2026 (was)
+% if PIE.dim==2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of 2D PDEs is currently not supported.');   end % MMP, 10/29/2026 (was)
+PIE = exec_pie_sop(PIE);                    % opvar or container PIE        % MMP, 10/29/2026
+if PIE.dim>=2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of PDEs in two or more variables is currently not supported.');   end % MMP, 10/29/2026
 
 % Tools of the PIE's dimension (storage, stock slack, margins); omega, and
 % the degree raise and raise count of a feasibility LPI
 tl = exec_tools_sop(PIE,st);
+st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)        % MMP, 10/29/2026
 eppos = tl.eppos;   omega = -tl.epneg;
 if ~isempty(st.sop.eppos_stab),     eppos(:) = st.sop.eppos_stab;   end     % MMP, 10/28/2026
 dwbase = st.sop.dw_P;                                                       % MMP, 10/28/2026
 if ~isempty(st.sop.dw_feas),    dwbase = st.sop.dw_feas(1);     end         % MMP, 10/28/2026
 if ~isempty(st.sop.max_raise_feas)                                          % MMP, 10/28/2026
-    st.sop.max_raise = st.sop.max_raise_feas;                               % MMP, 10/28/2026
+%   st.sop.max_raise = st.sop.max_raise_feas;                               % MMP, 10/29/2026 (was)
+    st.sop.max_raise = st.sop.max_raise_feas(1);    % the 1-D entry         % MMP, 10/29/2026
 end                                                                         % MMP, 10/28/2026
 
 % The PIE operators as containers
@@ -173,10 +195,12 @@ end
             li = struct('tag',tag,'degrees',[],'terms',[]);
         else
 %           o1 = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin); % MMP, 10/28/2026 (was)
-            o1 = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin);   % MMP, 10/28/2026
+%           o1 = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin);   % MMP, 10/29/2026 (was)
+            o1 = struct('like',Pm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dm1)); % MMP, 10/29/2026
             [prog,~,li] = lpi_ineq_sop(prog,-Dm1,o1);
 %           o2 = struct('like',Rm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin); % MMP, 10/28/2026 (was)
-            o2 = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin);   % MMP, 10/28/2026
+%           o2 = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin);   % MMP, 10/29/2026 (was)
+            o2 = struct('like',Rm,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dm2)); % MMP, 10/29/2026
             [prog,~,li2] = lpi_ineq_sop(prog,Dm2,o2);
             li.degrees2 = li2.degrees;
         end

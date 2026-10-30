@@ -1,14 +1,49 @@
 # executives_sopvar: the executives on the container path
 
 Nine executives, one per analysis, built on `lpi_programming_sopvar` and the helpers in
-`utility_functions/` (below). Each takes a `pie_struct` (1-D or 2-D) and a settings structure, writes
+`utility_functions/` (below). Each takes a `pie_struct` (1-D or 2-D, or a container PIE, below) and a settings structure, writes
 its LPI in its own file, and returns the outputs of the stock executive followed by one `info` struct.
 The LPI form is an argument; the dimension is read from the PIE. Every name ends in `_sop`, so
 `which -all` resolves each once beside the stock executives, which are untouched.
 
+**Container PIEs and 3 or more variables (since 10/29/2026).** The PIE may instead be a container
+PIE: a `pie_struct` whose operators are `copvar` objects, as `pie2copvar` returns, in any number nv
+of spatial variables (vars nv x 2, dom nv x 2).
+- `exec_pie_sop` initializes an opvar PIE as before. For a container PIE it sets every absent
+  operator ([]) to 0.
+- In 1-D and 2-D a container PIE builds the same SDP as the opvar PIE: 23 executive/form builds
+  matched, with identical fingerprints.
+- In 3 or more variables, `exec_tools_sop` declares the storage from `settings.settings_nd`. The
+  default follows the stock light 2-D storage: a multiplier and one separable full integral per
+  space. Only the 'like' slack is available, and solved operators stay containers.
+- Stability, H-infinity gain and H2 norm run in N-D. The H-infinity estimator solves its LPI but
+  returns no gain, because the gain is extracted in 1-D and 2-D only. The controllers, the H2
+  estimator and well-posedness reject nv >= 2.
+- Size: the 'like' slack is a tensor product of the 1-D lift basis, 12^3 = 1,728 per term over 7
+  terms in 3-D at weight 1 (m 145,123 with the first all-basis storage), beyond MOSEK on this
+  workstation. In 3 or more variables the tiers bound it per direction (`cap_delta`, see
+  `settings_sopvar/README.md`): 360 per term at light.
+- Measured 10/29/2026 at light (MOSEK 11.0.30, this workstation, one pass each) on heat fields on
+  [0,1]^3, s1 Dirichlet-Dirichlet and s2, s3 Dirichlet-Neumann, against exact modal values. One
+  field: u_t = lap u + w, z = int u. ODE + field: x_t = -x + int u, u_t = lap u + x + w, z = x.
+
+  | plant | LPI | rows | build | solve | result |
+  |---|---|---|---|---|---|
+  | one field | stability | 28,956 | 34 s | 313 s | certified |
+  | one field | H-infinity gain | 31,154 | 25 s | 564 s | 0.0585827, exact 0.0414732 (+41%) |
+  | one field, u_t = lap u + 5u | stability | 33,231 | 47 s | 312 s | certified (r = 5, 34% of the threshold; 10/30/2026) |
+  | ODE + field | stability | 29,155 | 91 s | 353 s | certified |
+  | ODE + field | H-infinity gain | 31,493 | 26 s | 442 s | 0.0605787, exact 0.0432677 (+40%) |
+  | two coupled fields | stability, gain | 166,572, 170,772 | 280 s, 351 s | not run | beyond MOSEK here |
+
+  Rows grow about as the square of the number of PDE fields. MOSEK memory grows about as rows^1.9-2
+  and peaked at 13.7 GB on the r = 5 program (10/30/2026), so two coupled fields project to about
+  290-340 GB. At heavy the one-field programs build in 163-167 s with 58,922 and 59,718 rows, and
+  their solves project to about 41-44 GB (not run); `settings_sopvar/README.md` has the tier table.
+
 | executive | FORM | stock executives it covers |
 |---|---|---|
-| `PIETOOLS_stability_sop(PIE,settings,form)` | 'P' (default), 'Pd', 'Q', 'Qd'; in 2-D 'Q', 'Qd' are posed as 'P', 'Pd' | PDEstability, _dual, PIE2PDEstability, _dual, 2D/stability_2D, _dual_2D |
+| `PIETOOLS_stability_sop(PIE,settings,form)` | 'P' (default), 'Pd', 'Q', 'Qd', and the finite-energy forms 'FP', 'FQ' (since 10/28/2026; epneg > 0); in 2-D 'Q', 'Qd', 'FQ' are posed as 'P', 'Pd', 'FP' | PDEstability, _dual, PIE2PDEstability, _dual, FEPDEstability, FEPIE2PDEstability, 2D/stability_2D, _dual_2D, 2D/FEPDEstability_2D, FEPIE2PDEstability_2D |
 | `PIETOOLS_well_posedness_sop(PIE,settings)` | | well_posedness |
 | `PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)` | 'Q' (default), 'Qd', 'P', 'Pd'; in 2-D 'Qd' is posed as 'Pd' | Hinf_gain, _coercive, _dual, _dual_coercive, 2D/Hinf_gain_2D, _2D_non_coercive, _dual_2D |
 | `PIETOOLS_Hinf_control_sop(PIE,settings)` | | Hinf_control |
@@ -21,7 +56,8 @@ The LPI form is an argument; the dimension is read from the PIE. Every name ends
 Without settings, each executive takes the default of the stock executive it covers: `lpisettings('light')`,
 except stability in 1-D (`lpisettings('heavy')`, eppos 1e-4, eppos2 1e-6) and in 2-D (`lpisettings('light')`,
 simplify 1, `settings_2d.eppos` 1e-2), and well-posedness (`lpisettings('heavy')`, simplify 1, eppos = eppos2 =
-1e-2). `lpisettings_sop` (folder `settings_sopvar`) gives tiers tuned for this path.
+1e-2). `lpisettings_sop` (folder `settings_sopvar`) gives tiers tuned for this path. `lpiscript_sop`
+(folder `lpi_programming_sopvar`, since 10/28/2026) runs them by the names of `lpiscript`.
 
 On 10/28/2026 these nine replaced the 28 files of 10/08/2026 (one per stock executive, each calling a
 builder in `private/`). Each form poses the program its former file posed: 31 cases compared, with status,
@@ -104,7 +140,8 @@ in `executives/utility_functions/`.
 | function | what it does |
 |---|---|
 | `exec_sop_settings` | completes a settings struct with the `sop` field (Settings, above) |
-| `exec_tools_sop` | the storage, stock slack, margins, identities and opvar conversion the settings define for a 1-D or 2-D PIE |
+| `exec_tools_sop` | the storage, stock slack, margins, identities and opvar conversion the settings define for a 1-D or 2-D PIE, and for a container PIE in 3 or more variables (`settings_nd`, since 10/29/2026) |
+| `exec_pie_sop` | the PIE an executive receives: an opvar PIE initialized, a container PIE with absent operators set to 0 (10/29/2026) |
 | `exec_info_sop` | the part of `info` every executive shares: status, loop history, slack, SDP shape, dual kernel |
 | `lpi_solve_loop_sop` | the degree loop: build, solve, classify the exit, raise `dw` |
 | `settings_2d_sop` | the 2-D settings the stock 2-D executives read, with their defaults |

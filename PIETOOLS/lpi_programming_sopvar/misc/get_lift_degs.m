@@ -62,8 +62,13 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %          length, the term codes and the amounts by which each lowers the
 %          weight degree;
 % - info:  'struct' with fields Dmin, Dmax, Mdeg, J, D, w (1 x nv double),
-%          wR, dD, dw, nv, M (double), vars (1 x nv cellstr, the registry)
-%          and isR (1 x M logical, true for an R^q space).
+%          Jmax (1 x nv double, the largest total degree of a kernel
+%          monomial in the two variables of direction d: i + j over the
+%          lower cells, i over multiplier and one-sided cells; -1 where
+%          unseen; the per-direction cap theta_d + s_d a lift basis needs
+%          to carry the operator read, as heatNd_lpi 'Tspan' reads it from
+%          T), wR, dD, dw, nv, M (double), vars (1 x nv cellstr, the
+%          registry) and isR (1 x M logical, true for an R^q space).
 %
 % NOTES
 % The rule bounds the support of a fixed P. For P linear in a decision
@@ -120,6 +125,12 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 %                benchmarks), the cost note and a second notes reference.
 %                The help text of the 10/21/2026 entry is in the INPUT
 %                entry of opts.like, without markers.
+% MMP, 10/29/2026: info.Jmax, the largest total degree of a kernel monomial
+%                per direction, read in the same pass as Dmin, Dmax, Mdeg,
+%                J: the per-direction cap of a lift basis an operator needs
+%                (heatNd_lpi 'Tspan' reads it from T; the N-D executives
+%                can read it from T here and pass it to LPI_INEQ_SOP
+%                opts.cap). Degrees and terms unchanged.
 
 % Options; the defaults of dD, dw and wR
 if nargin<2 || isempty(opts),   opts = struct();    end
@@ -190,6 +201,11 @@ end
 
 % % % The support, per direction
 Dmin = zeros(1,nv);     Dmax = zeros(1,nv);     Mdeg = -ones(1,nv);     J = -ones(1,nv);
+% Jmax_d: the largest total degree in (s_d, s'_d) of a kernel monomial,     % MMP, 10/29/2026
+% i + j over the lower cells, i over multiplier and one-sided cells (-1 if  % MMP, 10/29/2026
+% unseen): what a per-direction cap theta_d + s_d of a lift basis must      % MMP, 10/29/2026
+% span to carry the operator (heatNd_lpi 'Tspan' reads it from T).          % MMP, 10/29/2026
+Jmax = -ones(1,nv);                                                         % MMP, 10/29/2026
 for b = 1:numel(blocks)
     % Block b: its variables and their registry indices, its monomial
     % grids, dimensions and shared variables S3
@@ -215,9 +231,11 @@ for b = 1:numel(blocks)
             d = d3(t);  i = EL(li,p3o(t));   j = ER(ei,p3i(t));
             if gam(t)==1
                 Mdeg(d) = max([Mdeg(d); i(:)]);
+                Jmax(d) = max([Jmax(d); i(:)]);                             % MMP, 10/29/2026
             elseif gam(t)==2
                 Dmin(d) = max([Dmin(d); min(i(:),j(:))]);
                 Dmax(d) = max([Dmax(d); max(i(:),j(:))]);
+                Jmax(d) = max([Jmax(d); i(:)+j(:)]);                        % MMP, 10/29/2026
             end
         end
         % one-sided directions: the exponent of the side that has them
@@ -225,11 +243,13 @@ for b = 1:numel(blocks)
             if ismember(vout{t},S3),    continue,   end
             d = find(strcmp(vars,vout{t}));  i = EL(li,t);
             if otherR,  J(d) = max([J(d); i(:)]);  else,   Dmax(d) = max([Dmax(d); i(:)]);  end
+            Jmax(d) = max([Jmax(d); i(:)]);                                 % MMP, 10/29/2026
         end
         for t = 1:numel(vin)
             if ismember(vin{t},S3),     continue,   end
             d = find(strcmp(vars,vin{t}));   j = ER(ei,t);
             if otherR,  J(d) = max([J(d); j(:)]);  else,   Dmax(d) = max([Dmax(d); j(:)]);  end
+            Jmax(d) = max([Jmax(d); j(:)]);                                 % MMP, 10/29/2026
         end
     end
 end
@@ -275,8 +295,10 @@ else
 end
 % The outputs
 terms = struct('codes',codes,'offsets',offs);
-info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'D',D,'w',w,'wR',wR,'dD',dD,'dw',dw,...
-              'nv',nv,'M',M,'vars',{vars},'isR',isR);
+% info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'D',D,'w',w,'wR',wR,'dD',dD,'dw',dw,...
+%               'nv',nv,'M',M,'vars',{vars},'isR',isR);                     % MMP, 10/29/2026 (was)
+info = struct('Dmin',Dmin,'Dmax',Dmax,'Mdeg',Mdeg,'J',J,'Jmax',Jmax,'D',D,'w',w,'wR',wR,...
+              'dD',dD,'dw',dw,'nv',nv,'M',M,'vars',{vars},'isR',isR);       % MMP, 10/29/2026
 
 end
 

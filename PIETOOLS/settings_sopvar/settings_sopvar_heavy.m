@@ -19,17 +19,24 @@ function st = settings_sopvar_heavy()
 %                    operator in the gain, norm and synthesis LPIs;
 %           epneg    double, 0: the decay rate;
 %           sos_opts 'struct' with simplify = 0;
-%           sop      'struct' of container options:
+%           settings_nd  'struct', the storage in 3 or more variables
+%                    (EXEC_TOOLS_SOP): LF_int 1, LF_mult 0, eppos 1e-2;
+%           sop      'struct' of container options, a vector holding one
+%                    entry per dimension (1-D, 2-D, 3-D and higher):
 %             slack 'like'       each negativity slack sized from the
 %                                positive operator of the LPI;
-%             dw_feas [1 2]      degree raise of that slack in stability
-%                                and well-posedness, 1-D and 2-D;
+%             dw_feas [1 2 2]    degree raise of that slack in stability
+%                                and well-posedness;
 %             dw_P 2, dw_Q 1     the same in the coercive and synthesis
 %                                LPIs, and in the Q forms;
-%             max_raise_feas 2, max_raise 1   rebuilds with that degree one
-%                                higher after UNKNOWN or INFEASIBLE, in
-%                                stability and well-posedness, and in the
-%                                other LPIs;
+%             max_raise_feas [2 2 0], max_raise [1 1 0]   rebuilds with that
+%                                degree one higher after UNKNOWN or
+%                                INFEASIBLE, in stability and
+%                                well-posedness, and in the other LPIs;
+%             cap_delta [NaN NaN 1]  no bound in 1-D and 2-D; in 3-D and
+%                                higher the slack bases bounded per
+%                                direction by Jmax(T) + 1
+%                                (EXEC_SOP_SETTINGS);
 %             eppos_stab 1e-2    margin of the positive operator in stability
 %                                and well-posedness, on every space;
 %             margin 0           no regularizer on the certified inequality;
@@ -65,6 +72,15 @@ function st = settings_sopvar_heavy()
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/28/2026
+% MMP, 10/29/2026: 3-D entries (maintainer: every tier defined for 3-D; the
+%                harder tiers built, solved possibly by cuADMM):
+%                settings_nd, the lean N-D storage of EXEC_TOOLS_SOP; a
+%                third entry of dw_feas, max_raise_feas, max_raise and
+%                cap_delta for 3 or more variables: weight 2, no raise, the
+%                per-direction bound Jmax(T) + 1. In 2-D that bound gives
+%                gains within 0.15% of exact (measured 10/29); in 3-D its
+%                slack is about 9-10 M Gram entries (estimated), past MOSEK
+%                on this workstation.
 
 % Storage degrees (see the header).
 st = settings_PIETOOLS_heavy();
@@ -75,7 +91,14 @@ st.eppos = 1e-4;    st.eppos2 = 1e-4;   st.epneg = 0;
 st.settings_2d.eppos = 1e-2*ones(4,1);  st.settings_2d.epneg = 0;
 st.sos_opts = struct('simplify',0);
 % Container knobs (EXEC_SOP_SETTINGS).
-st.sop = struct('slack','like','dw_feas',[1 2],'dw_P',2,'dw_Q',1, ...
-                'max_raise_feas',2,'max_raise',1,'eppos_stab',1e-2,'margin',0, ...
-                'keepdual',true,'witness',true,'N_cheb',24,'nfreq',240);
+% st.sop = struct('slack','like','dw_feas',[1 2],'dw_P',2,'dw_Q',1, ...
+%                 'max_raise_feas',2,'max_raise',1,'eppos_stab',1e-2,'margin',0, ...
+%                 'keepdual',true,'witness',true,'N_cheb',24,'nfreq',240);  % MMP, 10/29/2026 (was)
+% Storage in 3 or more variables (EXEC_TOOLS_SOP): the lean rule            % MMP, 10/29/2026
+st.settings_nd = struct('LF_int',1,'LF_mult',0,'eppos',1e-2);               % MMP, 10/29/2026
+% Entries [1-D 2-D 3-D] where a vector: 3-D at weight 2, no raise, bounded  % MMP, 10/29/2026
+st.sop = struct('slack','like','dw_feas',[1 2 2],'dw_P',2,'dw_Q',1, ...
+                'max_raise_feas',[2 2 0],'max_raise',[1 1 0],'cap_delta',[NaN NaN 1], ...
+                'eppos_stab',1e-2,'margin',0, ...
+                'keepdual',true,'witness',true,'N_cheb',24,'nfreq',240);    % MMP, 10/29/2026
 end

@@ -70,6 +70,14 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                          P + margin*eD - Pop == 0 instead, eD = A'*A with
 %                          A the lift of LIFT_COPVAR at the largest 'mult'
 %                          degree of the specification (at least 1);
+%            cap           double, 1 x nv, nv the registry variables of P:
+%                          per direction k the bound theta_k + s_k <=
+%                          cap(k) on the monomials of the lift basis, as a
+%                          'subset' array on every L2 space holding all
+%                          registry variables, over the degrees read or
+%                          given (default []: none); the terms keep their
+%                          offsets, under which POSCOPVAR_DIRECT lowers the
+%                          bound where a term's weight acts;
 %          for P of another class, OPTS is passed to LPI_INEQ (fields
 %          psatz, pure, sep).
 %
@@ -106,6 +114,7 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                        'opts.like', 'opts.deg', or, for the default
 %                        like, the number of operators found followed by
 %                        ' operator(s) of poscopvar';
+%            cap         double row, opts.cap ([] when none);
 %          for P of another class, struct('legacy',true).
 %
 % See also LPI_INEQ, LPI_EQ_SOP, POSCOPVAR_DIRECT, GET_LIFT_DEGS,
@@ -170,6 +179,18 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                for one call (NOTES), dates and README references. The
 %                help text of the 10/21/2026 entry is in the paragraph and
 %                in the entries of opts.like and info, without markers.
+% MMP, 10/29/2026: opts.cap, per-direction bounds theta_k + s_k <= cap(k) on
+%                the lift basis of the slack, passed to POSCOPVAR_DIRECT as
+%                a 'subset' array on every full L2 space over the degrees
+%                read or given (the per-direction Kronecker form of
+%                heatNd_lpi RQ_deg); the terms keep their offsets, which
+%                POSCOPVAR_DIRECT now applies to subset bounds (its entry
+%                of the same date). For the N-D executives: the Repo
+%                cleanup session's prototype lpi_ineq_capped (10/29/2026)
+%                measured caps read from T plus 2 keeping the 2-D gains and
+%                the 0.99 lambda1 rate at 15-24% fewer Gram entries, and
+%                this option reproduces its programs (scratch cap_repro,
+%                10/29/2026). INFO.cap.
 
 % Check the inputs; OPTS is optional
 if nargin<2
@@ -243,6 +264,44 @@ else
     % Degrees and terms read from the support
     [deg,terms,dinfo] = get_lift_degs(P,opts);
 end
+
+% % % BEGIN MMP, 10/29/2026. opts.cap: per-direction bounds theta_k + s_k <=
+% cap(k) on the lift basis, as a 'subset' array on every L2 space holding
+% all registry variables (the only spaces POSCOPVAR_DIRECT accepts one on),
+% over the degrees read or given. The array is the per-direction Kronecker
+% form of heatNd_lpi RQ_deg: subset S bounded by the sum over directions
+% of int_k (theta_k alone in S), mult_k (s_k alone) or min(cap_k,
+% int_k+mult_k) (both). The terms keep their offsets; REDUCE_SPEC lowers
+% the bounds where a term's weight acts. For the N-D executives (Repo
+% cleanup session, 10/29/2026).
+cap = [];
+if isfield(opts,'cap') && ~isempty(opts.cap)
+    cap = reshape(opts.cap,1,[]);   nv = numel(P.vars);
+    if numel(cap)~=nv
+        error('lpi_ineq_sop:cap',"opts.cap should have one entry per registry variable of P.")
+    end
+    if ~iscell(deg),    deg = repmat({deg},1,M);    end
+    for k = 1:M
+        if numel(sp{k})~=nv,    continue,   end
+        s = deg{k};
+        if isnumeric(s) && isscalar(s),     s = struct('int',s,'mult',s);   end
+        if ~isstruct(s)
+            error('lpi_ineq_sop:cap',"opts.cap needs a scalar or 'struct' degree per space.")
+        end
+        ct = 1;     if isfield(s,'int') && ~isempty(s.int),     ct = s.int;     end
+        cs = ct;    if isfield(s,'mult') && ~isempty(s.mult),   cs = s.mult;    end
+        ct = reshape(ct,1,[]);  if isscalar(ct),    ct = repmat(ct,1,nv);   end
+        cs = reshape(cs,1,[]);  if isscalar(cs),    cs = repmat(cs,1,nv);   end
+        cj = min(cap,ct+cs);
+        n = 2*nv;   sc = zeros(1,2^n);
+        for i = 1:2^n
+            b = bitget(i-1,1:n)>0;  bt = b(1:nv);   bs = b(nv+1:n);
+            sc(i) = sum(ct.*(bt & ~bs) + cs.*(bs & ~bt) + cj.*(bt & bs));
+        end
+        s.subset = sc;      deg{k} = s;
+    end
+end
+% % % END MMP, 10/29/2026
 
 % % % The basis operators each L2 space needs: those whose diagonal term can
 % reach the support of P's diagonal block.
@@ -322,6 +381,7 @@ end                                                                         % MM
 %               'tag',tag,'margin',margin,'eD',eD);                         % MMP, 10/21/2026 (was)
 info = struct('deg',{deg},'terms',terms,'degrees',dinfo,'include',{include},'direct',pinfo, ...
               'tag',tag,'margin',margin,'eD',eD,'ndec',nd,'N',einfo.N,'sized_from',src); % MMP, 10/21/2026
+info.cap = cap;                                                             % MMP, 10/29/2026
 
 end
 

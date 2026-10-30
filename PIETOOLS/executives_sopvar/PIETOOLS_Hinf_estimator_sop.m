@@ -19,8 +19,10 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D or 2-D PIE, with T, Tw, A, B1, C1,
-%             D11, C2 and D21 'opvar' (1-D) or 'opvar2d' (2-D) objects; in
-%             2-D, Tw and B1 not both nonzero;
+%             D11, C2 and D21 'opvar' (1-D) or 'opvar2d' (2-D) objects, or of
+%             a container PIE in any number of variables, with these
+%             operators 'copvar' objects (EXEC_PIE_SOP; Tw may be absent);
+%             in two or more variables, Tw and B1 not both nonzero;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of P;
@@ -28,6 +30,8 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %               settings_2d   2-D degrees of P (LF_deg, ...) and of Z
 %                       (the largest entry of Zop_deg);
 %               eppos, eppos2 (1-D), settings_2d.eppos (2-D)  margins of P;
+%               settings_nd    degrees and margin of P and Z in 3 or more
+%                              variables (EXEC_TOOLS_SOP);
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_P, the
 %                       degree raise of the slack, max_raise, gam_fixed.
@@ -38,7 +42,9 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
 % - L:        'opvar' (1-D) or 'opvar2d' (2-D) object, the observer gain from
-%             y to the state ([] when the solver returned no solution);
+%             y to the state ([] when the solver returned no solution, and
+%             in 3 or more variables, where no gain extraction exists: the
+%             LPI is solved and P, Z are returned);
 % - gam:      double, the certified bound; with GAIN, GAIN when certified and
 %             Inf otherwise; NaN when the solver returned no value;
 % - P, Z:     'opvar' (1-D) or 'opvar2d' (2-D) objects, the solved P and Z;
@@ -88,6 +94,22 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %                code (MMP, 10/08/2026, 10/09/2026), with the third argument
 %                GAIN of PIETOOLS_Hinf_estimator_2D_sop; the programs
 %                unchanged. Header to the header protocol.
+% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs
+%                (maintainer: the executives must support n variables, at
+%                least 3-D). The PIE goes through EXEC_PIE_SOP (INITIALIZE
+%                for an opvar PIE, as before); the 2-D Tw/B1 check holds for
+%                every nv >= 2. In 3 or more variables the LPI is solved and
+%                no gain is extracted (GETOBSERVER_SOP is 1-D, getObserver_2D
+%                2-D): L = [] with a message.
+% MMP, 10/29/2026: The slack takes opts.cap = capfor(K) of EXEC_TOOLS_SOP,
+%                the per-direction bounds of settings.sop.cap_delta; empty
+%                by default, so every program is unchanged unless cap_delta
+%                is set.
+% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
+%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
+%                cap_delta) reduced to its entry for the dimension of the
+%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
+%                scalar settings are unchanged.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -98,14 +120,17 @@ if nargin>=3 && ~isempty(gain) && gain~=0,  settings.sop.gam_fixed = gain;  end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_Hinf_estimator_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = initialize(PIE);
+% PIE = initialize(PIE);                                                    % MMP, 10/29/2026 (was)
+PIE = exec_pie_sop(PIE);                    % opvar or container PIE        % MMP, 10/29/2026
 label = 'Hinf_estimator_sop';
 
 % Complete the container options and read the tools of the PIE's dimension
 st = exec_sop_settings(settings);
 tl = exec_tools_sop(PIE,st);    nv = tl.nv;
+st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)        % MMP, 10/29/2026
 Tw0 = (PIE.Tw==0);
-if nv==2 && ~Tw0 && ~(PIE.B1==0)
+% if nv==2 && ~Tw0 && ~(PIE.B1==0)                                          % MMP, 10/29/2026 (was)
+if nv>=2 && ~Tw0 && ~(PIE.B1==0)                                            % MMP, 10/29/2026
     error('PIETOOLS_Hinf_estimator_sop:TwB','The PIE takes both the input w and its derivative dw/dt; LPI based estimator synthesis is currently not supported.');
 end
 gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
@@ -134,7 +159,10 @@ try
     Psol = getsol_lpivar_sop(prog,aux.Pm);  Zsol = getsol_lpivar_sop(prog,aux.Zm);
     P = tl.toop(Psol);      Z = tl.toop(Zsol);
     if nv==1,   [Gc,L,iinv] = getObserver_sop(Psol,Zsol);
-    else,       L = getObserver_2D(P,Z);
+%   else,       L = getObserver_2D(P,Z);                                    % MMP, 10/29/2026 (was)
+    elseif nv==2,   L = getObserver_2D(P,Z);                                % MMP, 10/29/2026
+    elseif st.sop.verbose                   % no N-D gain extraction        % MMP, 10/29/2026
+        fprintf('  [%s] gain extraction: none in %d variables; P and Z returned.\n',label,nv); % MMP, 10/29/2026
     end
 catch ME
     if st.sop.verbose,  fprintf('  [%s] gain extraction: %s\n',label,ME.message);  end
@@ -194,7 +222,8 @@ end
             [prog,tag] = lpi_eq_sop(prog,Nm+Km,'symmetric');
             li = struct('tag',tag,'degrees',[],'terms',[]);
         else
-            o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin);
+%           o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin); % MMP, 10/29/2026 (was)
+            o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin,'cap',tl.capfor(Km)); % MMP, 10/29/2026
             [prog,Nm,li] = lpi_ineq_sop(prog,-Km,o);
         end
         obj = gamv;     if ~isempty(gfix),   obj = [];  end

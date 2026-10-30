@@ -19,11 +19,15 @@ function st = settings_sopvar_custom()
 %                    operator in the gain, norm and synthesis LPIs;
 %           epneg    double, 0: the decay rate;
 %           sos_opts 'struct' with simplify = 0;
-%           sop      'struct' of container options: slack 'like', dw_feas
-%                    [0 1], dw_P 2, dw_Q 1, max_raise_feas 2, max_raise 1,
-%                    eppos_stab 1e-2, margin 0, keepdual true, witness
-%                    true, N_cheb 24, nfreq 240, verbose true, each
-%                    described where it is set.
+%           settings_nd  'struct', the storage in 3 or more variables
+%                    (EXEC_TOOLS_SOP): LF_int 1, LF_mult 0, eppos 1e-2;
+%           sop      'struct' of container options, as light, a vector
+%                    holding one entry per dimension (1-D, 2-D, 3-D and
+%                    higher): slack 'like', dw_feas [0 1 1], dw_P [2 2 1],
+%                    dw_Q 1, max_raise_feas [2 1 0], max_raise [1 1 0],
+%                    cap_delta [NaN NaN 0], eppos_stab 1e-2, margin 0,
+%                    keepdual true, witness true, N_cheb 24, nfreq 240,
+%                    verbose true, each described where it is set.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -52,6 +56,12 @@ function st = settings_sopvar_custom()
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/28/2026
+% MMP, 10/29/2026: As light, with the 3-D entries of 10/29/2026 (maintainer:
+%                every tier defined for 3-D): settings_nd; dw_feas, dw_P,
+%                max_raise_feas, max_raise and cap_delta with one entry per
+%                dimension [1-D 2-D 3-D]. max_raise_feas in 2-D follows
+%                light (1, was 2: the second 2-D raise certified nothing in
+%                the 10/28 baseline).
 
 % Storage degrees: any stock level, 1-D (settings_PIETOOLS_<level>: dd1,
 % dd12, options1, options12, ddZ) and 2-D (settings_PIETOOLS_<level>_2D:
@@ -69,19 +79,38 @@ st.settings_2d.eppos = 1e-2*ones(4,1);  st.settings_2d.epneg = 0;
 % Solver: sos_opts.solver 'mosek' or 'sedumi' (unset: MOSEK when installed,
 % else SeDuMi); simplify 0 or 1.
 st.sos_opts = struct('simplify',0);
+% Storage in 3 or more variables (EXEC_TOOLS_SOP): LF_int, LF_mult (or an   % MMP, 10/29/2026
+% explicit POSCOPVAR LF_deg, LF_opts), LF_psatz, eppos, Zop_deg             % MMP, 10/29/2026
+st.settings_nd = struct('LF_int',1,'LF_mult',0,'eppos',1e-2);               % MMP, 10/29/2026
 % Container knobs (EXEC_SOP_SETTINGS).
+% st.sop = struct( ...
+%     'slack','like', ...         'like' | 'stock' (the stock slack, for comparison)
+%     'dw_feas',[0 1], ...        weight raise, stability and well-posedness, [1-D 2-D]
+%     'dw_P',2, ...               weight raise, coercive gains and norms, synthesis
+%     'dw_Q',1, ...               weight raise, the Q (non-coercive) forms
+%     'max_raise_feas',2, ...     raises on UNKNOWN / INFEASIBLE, stability, well-posedness
+%     'max_raise',1, ...          raises on UNKNOWN / INFEASIBLE, every other LPI
+%     'eppos_stab',1e-2, ...      storage margin of stability and well-posedness, every space
+%     'margin',0, ...             eps > 0 certifies -D + eps*e_D >= 0 instead of -D >= 0
+%     'keepdual',true, ...        assemble the dual kernel of the negativity constraint
+%     'witness',true, ...         1-D numerical counterpart: gain, rate or H2 norm
+%     'N_cheb',24, ...            its Legendre order
+%     'nfreq',240, ...            its frequency samples
+%     'verbose',true);                                                      % MMP, 10/29/2026 (was)
+% A vector holds one entry per dimension [1-D 2-D 3-D and higher]
 st.sop = struct( ...
     'slack','like', ...         'like' | 'stock' (the stock slack, for comparison)
-    'dw_feas',[0 1], ...        weight raise, stability and well-posedness, [1-D 2-D]
-    'dw_P',2, ...               weight raise, coercive gains and norms, synthesis
+    'dw_feas',[0 1 1], ...      weight raise, stability and well-posedness
+    'dw_P',[2 2 1], ...         weight raise, coercive gains and norms, synthesis
     'dw_Q',1, ...               weight raise, the Q (non-coercive) forms
-    'max_raise_feas',2, ...     raises on UNKNOWN / INFEASIBLE, stability, well-posedness
-    'max_raise',1, ...          raises on UNKNOWN / INFEASIBLE, every other LPI
+    'max_raise_feas',[2 1 0], ...  raises on UNKNOWN / INFEASIBLE, stability, well-posedness
+    'max_raise',[1 1 0], ...    raises on UNKNOWN / INFEASIBLE, every other LPI
+    'cap_delta',[NaN NaN 0], ...   per-direction slack bound Jmax(T) + delta (NaN: none)
     'eppos_stab',1e-2, ...      storage margin of stability and well-posedness, every space
     'margin',0, ...             eps > 0 certifies -D + eps*e_D >= 0 instead of -D >= 0
     'keepdual',true, ...        assemble the dual kernel of the negativity constraint
     'witness',true, ...         1-D numerical counterpart: gain, rate or H2 norm
     'N_cheb',24, ...            its Legendre order
     'nfreq',240, ...            its frequency samples
-    'verbose',true);
+    'verbose',true);                                                        % MMP, 10/29/2026
 end

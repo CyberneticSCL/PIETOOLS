@@ -18,7 +18,9 @@ function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D PIE, with T, A, B1, B2, C1 and D12
-%             'opvar' objects; Tw, Tu and D11 zero;
+%             'opvar' objects, or 'copvar' objects (a 1-D container PIE,
+%             EXEC_PIE_SOP); Tw, Tu and D11 zero or absent; a PIE in two or
+%             more variables is an error;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P;
@@ -80,6 +82,19 @@ function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
 %                cop2opvar_sop, was never reached) is replaced by the
 %                builder's 'ctrl' code (MMP, 10/08/2026, 10/09/2026), the
 %                program unchanged. Header to the header protocol.
+% MMP, 10/29/2026: The PIE goes through EXEC_PIE_SOP (INITIALIZE for an
+%                opvar PIE, as before; a 1-D container PIE accepted), and
+%                every PIE in two or more variables is rejected, not only a
+%                2-D one: the gain is extracted in 1-D only.
+% MMP, 10/29/2026: Both slacks take opts.cap of EXEC_TOOLS_SOP capfor, each
+%                laid over its own target's variables (the per-direction
+%                bounds of settings.sop.cap_delta); empty by default, so
+%                every program is unchanged unless cap_delta is set.
+% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
+%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
+%                cap_delta) reduced to its entry for the dimension of the
+%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
+%                scalar settings are unchanged.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -89,14 +104,17 @@ if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_H2_control_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = initialize(PIE);
+% PIE = initialize(PIE);                                                    % MMP, 10/29/2026 (was)
+PIE = exec_pie_sop(PIE);                    % opvar or container PIE        % MMP, 10/29/2026
 label = 'H2_control_sop';
 
 % Complete the container options and read the tools of the PIE's dimension
 st = exec_sop_settings(settings);
 tl = exec_tools_sop(PIE,st);    nv = tl.nv;
+st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)        % MMP, 10/29/2026
 if ~(PIE.Tw==0),    error('PIETOOLS_H2_control_sop:Tw','The H2 LPI cannot be solved with disturbances at the boundary.');  end
-if nv==2,           error('PIETOOLS_H2_control_sop:dim2','H2 control of 2-D PIEs is not supported.');    end
+% if nv==2,           error('PIETOOLS_H2_control_sop:dim2','H2 control of 2-D PIEs is not supported.');    end % MMP, 10/29/2026 (was)
+if nv>=2,           error('PIETOOLS_H2_control_sop:dim2','H2 control of PIEs in two or more variables is not supported.');    end % MMP, 10/29/2026
 if ~(PIE.Tu==0),    error('PIETOOLS_H2_control_sop:Tu','Inputs at the boundary are not supported.');   end
 if ~(PIE.D11==0),   error('PIETOOLS_H2_control_sop:D11','Feedthrough D11 is not supported.');          end
 eppos = tl.eppos;
@@ -169,9 +187,12 @@ end
             [prog,Npos] = tl.slack(prog,Dpos);
             prog = lpi_eq_sop(prog,Npos - Dpos,'symmetric');
         else
-            o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin);
+%           o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin); % MMP, 10/29/2026 (was)
+            o = struct('like',Pm,'dw',st.sop.dw_P+dw,'margin',st.sop.margin,'cap',tl.capfor(Dneg)); % MMP, 10/29/2026
             [prog,~,li] = lpi_ineq_sop(prog,-Dneg,o);
-            [prog,~,~] = lpi_ineq_sop(prog,Dpos,o);
+%           [prog,~,~] = lpi_ineq_sop(prog,Dpos,o);                         % MMP, 10/29/2026 (was)
+            op = o;     op.cap = tl.capfor(Dpos);       % its own variables % MMP, 10/29/2026
+            [prog,~,~] = lpi_ineq_sop(prog,Dpos,op);                        % MMP, 10/29/2026
         end
         % gam >= trace(W)
         prog = lpi_ineq(prog,gamv - trace_rn_sop(Wm));

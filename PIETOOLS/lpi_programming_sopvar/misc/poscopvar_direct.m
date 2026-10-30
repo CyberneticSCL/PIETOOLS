@@ -196,6 +196,21 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                the header of dir_list. The help text of the 10/21/2026
 %                entry is in the entries of options.estimate and of the
 %                outputs, without markers.
+% MMP, 10/29/2026: A 'subset' degree array moves with a Psatz offset instead
+%                of being refused (reduce_spec; act_of replaces ng_of):
+%                every subset bound falls by the offset of each direction
+%                in which the term's weight acts whose theta lies in the
+%                subset, the smallest shift under which the term reaches no
+%                kernel monomial outside the plain term's (the 'joint' rule
+%                already in place, applied per subset). Asked by the Repo
+%                cleanup session for per-direction caps on the 'like' slack
+%                of the N-D executives (its prototype lpi_ineq_capped, rule
+%                A). Measured 10/29/2026 on the 2-D heat PIE at caps read
+%                from T plus 2: the gains of the rules agree to 7e-6, no
+%                shift adds 4-10% equality rows, a shift in every lowered
+%                direction saves 8-13% Gram entries at the same rows.
+%                Programs without a subset array are unchanged (six
+%                fingerprints before and after, scratch fp_regress).
 
 % The cache of position maps; 'clear' empties it
 persistent CACHE
@@ -300,7 +315,8 @@ for c = 1:nt
         if codes(c)>2*nv+2      % single-direction quadratic: lower 'int' there only
             offv = zeros(1,nv);     offv(codes(c)-2*nv-2) = offs(c);        % MMP, 10/08/2026
         end
-        spec = reduce_spec(spec,offv,ng_of(codes(c),nv),nv);                % MMP, 10/08/2026
+%       spec = reduce_spec(spec,offv,ng_of(codes(c),nv),nv);                % MMP, 10/29/2026 (was)
+        spec = reduce_spec(spec,offv,act_of(codes(c),nv),nv);               % MMP, 10/29/2026
         % Caps per variable, 'mult' zero where the multi-index is 1; the
         % exponent grid
         d = process_degrees_one(spec,nv);
@@ -485,47 +501,71 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function n = ng_of(code,nv)
-% N = NG_OF(CODE,NV) returns the number of directions in which the weight
-% of the term CODE has positive degree: 0 for the plain term, NV for the
-% box product, 1 for a face or a single-direction box quadratic.
+% function n = ng_of(code,nv)                                               % MMP, 10/29/2026 (was)
+function act = act_of(code,nv)                                              % MMP, 10/29/2026
+% ACT = ACT_OF(CODE,NV) returns a 1 x NV logical row, true in the
+% directions in which the weight of the term CODE has positive degree:
+% none for the plain term, all for the box product, direction d for a face
+% 2d+1 / 2d+2 or a single-direction box quadratic 2nv+2+d. (Replaces
+% NG_OF, which returned the count: the subset rule of REDUCE_SPEC needs
+% the directions themselves.)
 % INPUT  code: double, the term code; nv: double, the number of registry
 %        variables.
-% OUTPUT n:    double.
-if code==0,         n = 0;
-elseif code==1,     n = nv;
-else,               n = 1;
-end
+% OUTPUT act:  1 x nv logical.
+% if code==0,         n = 0;                                                % MMP, 10/29/2026 (was)
+% elseif code==1,     n = nv;                                               % MMP, 10/29/2026 (was)
+% else,               n = 1;                                                % MMP, 10/29/2026 (was)
+% end                                                                       % MMP, 10/29/2026 (was)
+act = false(1,nv);                                                          % MMP, 10/29/2026
+if code==1,                         act(:) = true;                          % MMP, 10/29/2026
+elseif code>=3 && code<=2*nv+2,     act(floor((code-1)/2)) = true;          % MMP, 10/29/2026
+elseif code>2*nv+2,                 act(code-2*nv-2) = true;                % MMP, 10/29/2026
+end                                                                         % MMP, 10/29/2026
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spec = reduce_spec(spec,off,ng,nv)
-% SPEC = REDUCE_SPEC(SPEC,OFF,NG,NV) returns the degree specification of a
+% function spec = reduce_spec(spec,off,ng,nv)                               % MMP, 10/29/2026 (was)
+function spec = reduce_spec(spec,off,act,nv)                                % MMP, 10/29/2026
+% SPEC = REDUCE_SPEC(SPEC,OFF,ACT,NV) returns the degree specification of a
 % Psatz term: 'int' lowered by OFF in every direction (OFF a row: per
 % direction), floored at 0, 'mult' kept at what it was (its default is the
 % ORIGINAL 'int'), a 'joint' cap lowered by OFF per direction the weight
-% acts in (a row: by its sum). A 'subset' cap cannot move with 'int' and
-% is refused.
+% acts in (a row: by its sum), and every 'subset' bound lowered by the
+% offset of each direction the weight acts in whose theta lies in the
+% subset.
+% The subset rule: a term's lower-cell kernel exponent c + a + a' + e + 1
+% (lift exponent c, theta exponents a, a', weight degree e in that
+% direction) is one of the plain term's, c + a0 + a0' + 1 with a0 = a +
+% e_L, a0' = a' + e_R, e_L + e_R = e, only when a0 and a0' satisfy the
+% plain bounds; for term monomials saturating the term's bound on both
+% sides this requires the bound lowered by ceil(e/2) = the offset wherever
+% the weight acts, and nothing where only 'int' fell. Under this shift the
+% term adds no kernel monomial, so no equality row, beyond the plain term;
+% with no shift a face reaches kernel monomials outside the plain support
+% (2-D heat, 10/29/2026: 4-10% more rows); a shift in every lowered
+% direction gives a sub-basis of this one. The 'joint' rule above is the
+% same shift applied to the full set.
 % INPUT  spec: double scalar, or 'struct' with the optional fields int,
 %              mult, joint, subset;
 %        off:  double, the offset: a scalar, or 1 x nv, one per direction;
-%        ng:   double, the number of directions the weight acts in;
+%        act:  1 x nv logical, the directions the weight acts in;
 %        nv:   double, the number of registry variables.
 % OUTPUT spec: SPEC when OFF is zero, else a 'struct' with fields int
-%              (1 x max(nv,1) double), mult and, if given, joint.
+%              (1 x max(nv,1) double), mult and, if given, joint and
+%              subset.
 % No offset: SPEC unchanged
 % if off==0,  return,     end                                               % MMP, 10/08/2026 (was)
 if all(off==0),     return,     end                                         % MMP, 10/08/2026
-% A scalar specification as a struct; a subset cap refused
+% A scalar specification as a struct
 if isnumeric(spec) && isscalar(spec)
     spec = struct('int',spec,'mult',spec);
 elseif ~isstruct(spec)
     error("Monomial degrees should be specified as a scalar or 'struct' object.")
 end
-if isfield(spec,'subset') && ~isempty(spec.subset)
-    error("A 'psatz_offset' is not defined for a 'subset' degree specification.")
-end
+% if isfield(spec,'subset') && ~isempty(spec.subset)                        % MMP, 10/29/2026 (was)
+%     error("A 'psatz_offset' is not defined for a 'subset' degree specification.") % MMP, 10/29/2026 (was)
+% end                                                                       % MMP, 10/29/2026 (was)
 % 'int' lowered and floored at 0; 'mult' defaults to the original 'int'
 w = 1;
 if isfield(spec,'int') && ~isempty(spec.int),   w = spec.int;   end
@@ -533,11 +573,28 @@ if ~isfield(spec,'mult') || isempty(spec.mult), spec.mult = w;  end
 w = reshape(w,1,[]);    if isscalar(w),   w = repmat(w,1,max(nv,1));    end
 spec.int = max(w-off,0);
 % 'joint' lowered by the total offset over the directions of the weight
+ng = nnz(act);                                                              % MMP, 10/29/2026
 if isfield(spec,'joint') && ~isempty(spec.joint)
 %   spec.joint = max(spec.joint-off*ng,0);                                  % MMP, 10/08/2026 (was)
     tot = off*ng;   if ~isscalar(off),  tot = sum(off);     end             % MMP, 10/08/2026
     spec.joint = max(spec.joint-tot,0);                                     % MMP, 10/08/2026
 end
+% % % BEGIN MMP, 10/29/2026. 'subset' bounds (variables [theta_1..theta_nv,
+% s_1..s_nv], the subset with members b at 1+sum(2.^(b-1)), so theta_k is
+% bit k of i-1; PROCESS_DEGREES_ONE) lowered by the offset of every acting
+% direction whose theta lies in the subset, floored at 0: the rule above.
+if isfield(spec,'subset') && ~isempty(spec.subset)
+    sc = reshape(spec.subset,1,[]);     n = numel(sc);
+    offk = reshape(off,1,[]);
+    if isscalar(offk),  offk = repmat(offk,1,max(nv,1));    end
+    drop = zeros(1,n);
+    for k = find(reshape(act,1,[]))
+        inS = bitget(0:n-1,k)>0;
+        drop(inS) = drop(inS) + offk(k);
+    end
+    spec.subset = max(sc-drop,0);
+end
+% % % END MMP, 10/29/2026
 end
 
 

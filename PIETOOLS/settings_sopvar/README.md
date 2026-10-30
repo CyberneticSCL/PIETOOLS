@@ -10,20 +10,42 @@ or `custom` (a template equal to light). The arguments are those of `lpisettings
 
 ## What a tier sets
 
-| tier | storage 1-D | storage 2-D | dw_feas [1-D 2-D] | dw_P | dw_Q | raises feas / other | dual, witness |
-|---|---|---|---|---|---|---|---|
-| stripped | light | light | [0 1] | 1 | 1 | 1 / 0 | off |
-| light | light | light | [0 1] | 2 | 1 | 2 / 1 | on (order 24, 240 frequencies) |
-| heavy | heavy | stripped | [1 2] | 2 | 1 | 2 / 1 | on (24, 240) |
-| veryheavy | veryheavy | heavy | [1 2] | 2 | 1 | 3 / 2 | on (32, 480) |
+| tier | storage 1-D | storage 2-D | dw_feas | dw_P | dw_Q | raises feas / other | cap_delta | dual, witness |
+|---|---|---|---|---|---|---|---|---|
+| stripped | light | light | [0 1 1] | 1 | 1 | [1 1 0] / 0 | [NaN NaN 0] | off |
+| light | light | light | [0 1 1] | [2 2 1] | 1 | [2 1 0] / [1 1 0] | [NaN NaN 0] | on (order 24, 240 frequencies) |
+| heavy | heavy | stripped | [1 2 2] | 2 | 1 | [2 2 0] / [1 1 0] | [NaN NaN 1] | on (24, 240) |
+| veryheavy | veryheavy | heavy | [1 2 2] | 2 | 1 | [3 3 0] / [2 2 0] | [NaN NaN 2] | on (32, 480) |
 
+- **Vectors** hold the entries of 1, 2, and 3 or more variables (10/29/2026). The executives read the
+  entry of the PIE dimension (`exec_tools_sop`); a scalar serves every dimension.
 - **Storage** `light`, `heavy`, ...: the degrees of the stock `settings_PIETOOLS_<level>` (1-D) and
   `settings_PIETOOLS_<level>_2D` (2-D), read by `poslpivar_settings_sop` and `poslpivar_settings_2d_sop`.
+  In 3 or more variables every tier takes `settings_nd` (LF_int 1, LF_mult 0, eppos 1e-2): a multiplier
+  and one separable full integral of degree 1 per space.
+- **cap_delta**: per-direction bounds theta_k + s_k <= Jmax_k(T) + delta on the slack bases
+  (`lpi_ineq_sop` opts.cap). Jmax_k(T) is the largest total degree in (s_k, s'_k) of a kernel monomial
+  of T (`get_lift_degs`): 2 for a Dirichlet-Dirichlet heat direction, 1 for Dirichlet-Neumann. NaN is
+  no bound, so 1-D and 2-D programs are unchanged.
 - **dw_feas**: the weight raise of the slack in stability and well-posedness (`PIETOOLS_stability_sop`,
   `PIETOOLS_well_posedness_sop`); **dw_P**: coercive gains and norms, synthesis; **dw_Q**: the Q
   (non-coercive) forms. The raise is added to the rule of `get_lift_degs`.
 - **raises**: `max_raise_feas` / `max_raise`, the passes of the degree loop (`lpi_solve_loop_sop`), each
   rebuilding the program with the weight one higher after MOSEK returns UNKNOWN or INFEASIBLE.
+  `max_raise_feas`, like `dw_feas`, is a scalar or one entry per dimension, the last entry serving
+  every higher dimension. Light has `[2 1]` since 10/29/2026. In the 10/28 example-library baseline at
+  light, the second 2-D raise ran only on PDE 36 and 38, which are infeasible on both paths. It took
+  2,803 s of the tier's 3,819 s of solve time and certified nothing. The first 2-D raise certified PDE
+  34 (2D_KISS_Model).
+- Rerun 10/29 at light with `[2 1]`. Every pass builds the same program as on 10/28, and the verdicts
+  are unchanged. The four rows took 625 s in all, against about 3,500 s before.
+
+  | Row | Result | Passes, rows | Wall time |
+  |---|---|---|---|
+  | PDE 34 | certified | 2: 2,139 → 3,075 | 13 s |
+  | PDE 36 | infeasible | 2: 8,504 → 12,248 | 175 s (1,643 s of solve on 10/28) |
+  | PDE 38 | infeasible | 2: 8,504 → 12,248 | 217 s (1,621 s of solve on 10/28) |
+  | PDE 39 | certified | 1: 19,143 | 220 s |
 - **dual, witness**: `keepdual` (the dual kernel of the negativity constraint) and `witness` (the 1-D
   numerical counterpart: frequency sweep, spectrum or H2 norm, on a Legendre Galerkin model).
 - Every tier: `slack` 'like', `margin` 0, `eppos_stab` 1e-2 (stability and well-posedness, every space),
@@ -65,6 +87,24 @@ well-posedness at f = 0.5):
 
 The veryheavy 2-D rows are the programs of `lpisettings('heavy')` on the same executives (storage, weight
 raise 2 and eppos 1e-2 coincide with the tier); 10,514 and 10,648 rows, Gram blocks up to 1,026.
+
+**3-D** (10/29/2026; one heat field on [0,1]^3, defined in `executives_sopvar/README.md`; rows, Gram
+entries, seconds):
+
+| tier | stability | H-infinity gain |
+|---|---|---|
+| stripped, light | 28,956 rows, 0.91M, built 35 s, solved 313 s: certified | 31,154 rows, 0.92M, built 25 s, solved 564 s: +41% |
+| heavy | 58,922 rows, 9.38M, built 167 s, not solved | 59,718 rows, 9.41M, built 163 s, not solved |
+| veryheavy | not built | not built: 35.6M (cap prototype) |
+
+- Stripped and light build identical 3-D programs: their 3-D entries agree in weight (1) and cap (0).
+- The two heavy builds peaked at 17.0 GB in one MATLAB session. Their solves project to about 41-44
+  GB, scaled as rows^1.9-2 from the 13.7 GB peak of the 33,231-row light solve at r = 5 (10/30/2026):
+  within a 64 GB machine, but over the 40 GB this workstation had free. Not run.
+- The veryheavy slack is 3.8x the heavy one. At the heavy rate of 1.8 kB per Gram entry it would need
+  about 64 GB to build (projected, not measured), more than the 41 GB available on this workstation.
+- At light, an ODE coupled to one field solves as fast as one field (29,155 and 31,493 rows, solved in
+  353 s and 442 s). Two coupled fields give 166,572 and 170,772 rows, past MOSEK here.
 
 Against the stock-derived levels the executives used before (`lpisettings`): at light, P-form stability
 falls from 1,000 to 280-568 variables, well-posedness from 2,325 to 625, and 2-D stability at f = 0.5 from
@@ -118,3 +158,9 @@ per call; `verbose` is printing.
   explained.
 - 2-D storages between the stock stripped and heavy 2-D levels, and (2,3)/(3,2) faces, are over the
   20-minute daytime budget.
+- 3-D on this workstation: no tier solves two coupled PDE fields, heavy builds but is not solved, and
+  veryheavy is not built (10/29/2026).
+- Smaller 3-D storage does not rescue two coupled fields (10/30/2026). Storage integral degree 0, or a
+  multiplier alone, brings two fields to 54,416 or 52,480 rows, but degree 0 is infeasible on one field
+  at r = 5, which light certifies (33,231 rows). Degree 0 with lift increment dD 0 gives 15,497 rows and
+  is infeasible even on one field at r = 0.

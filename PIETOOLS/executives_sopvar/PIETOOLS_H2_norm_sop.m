@@ -12,9 +12,10 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %          [-gam I, B1'; B1, Q'*A' + A*Q] <= 0,  [W, C1*Q; Q'*C1', R] >= 0;
 %   'o'    R >= 0, T'*Q = R, W >= 0 on the space of w, gam >= trace(W),
 %          [-gam I, C1; C1', Q'*A + A'*Q] <= 0,  [W, B1'*Q; Q'*B1, R] >= 0;
-%   'cco'  W >= 0 (2-D: W >= eppos I on R^n and L2[s1,s2]),
+%   'cco'  W >= 0 (two or more variables: W >= eppos I on R^n and on the
+%          space in every variable),
 %          (A*W)*T' + T*(W*A') + B1*B1' <= 0,  gam >= trace(C1*W*C1');
-%   'oco'  W >= 0 (2-D: as 'cco'),
+%   'oco'  W >= 0 (two or more variables: as 'cco'),
 %          (A'*W)*T + T'*(W*A) + C1'*C1 <= 0,  gam >= trace(B1'*W*B1);
 %
 % the trace taken over the finite-dimensional block. The bound GAM is gam
@@ -24,14 +25,18 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D or 2-D PIE, with T, A, B1 and C1
-%             'opvar' (1-D) or 'opvar2d' (2-D) objects; Tw zero (no
-%             disturbance at the boundary);
+%             'opvar' (1-D) or 'opvar2d' (2-D) objects, or of a container
+%             PIE in any number of variables, with these operators 'copvar'
+%             objects (EXEC_PIE_SOP); Tw zero or absent (no disturbance at
+%             the boundary);
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of R
 %                       (of W in 'cco', 'oco');
 %               settings_2d   2-D degrees;
 %               settings_2d.eppos (2-D)  margins of W in 'cco', 'oco';
+%               settings_nd    degrees and margin in 3 or more variables
+%                              (EXEC_TOOLS_SOP);
 %               sos_opts  solver options;
 %               sop     container options (EXEC_SOP_SETTINGS): dw_Q for 'c'
 %                       and 'o', dw_P for 'cco' and 'oco', max_raise.
@@ -94,6 +99,22 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                _2D_c_sop, _2D_o_sop), which called private/h2_build_sop
 %                (MMP, 10/08/2026, 10/09/2026); their LPIs are the forms
 %                here, the program of each unchanged.
+% MMP, 10/29/2026: PIEs in 3 or more variables and container PIEs
+%                (maintainer: the executives must support n variables, at
+%                least 3-D). The PIE goes through EXEC_PIE_SOP (INITIALIZE
+%                for an opvar PIE, as before); the 2-D margin of W in
+%                'cco', 'oco' holds for every nv >= 2, written for the
+%                2^nv variable subsets: eppos on R^n and on the space in
+%                every variable, 0 between (e(2:3) = 0 at nv = 2).
+% MMP, 10/29/2026: Both slacks take opts.cap of EXEC_TOOLS_SOP capfor, each
+%                laid over its own target's variables (the per-direction
+%                bounds of settings.sop.cap_delta); empty by default, so
+%                every program is unchanged unless cap_delta is set.
+% MMP, 10/29/2026: st.sop takes tl.sop of EXEC_TOOLS_SOP: each per-dimension
+%                vector (dw_feas, dw_P, dw_Q, max_raise, max_raise_feas,
+%                cap_delta) reduced to its entry for the dimension of the
+%                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
+%                scalar settings are unchanged.
 
 % Default settings and form; check the PIE
 if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
@@ -101,12 +122,14 @@ if nargin<3 || isempty(form),       form = 'c';     end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_H2_norm_sop:pie','The PIE should be a ''pie_struct'' object.');
 end
-PIE = initialize(PIE);
+% PIE = initialize(PIE);                                                    % MMP, 10/29/2026 (was)
+PIE = exec_pie_sop(PIE);                    % opvar or container PIE        % MMP, 10/29/2026
 label = ['H2_norm_sop ' form];
 
 % Complete the container options and read the tools of the PIE's dimension
 st = exec_sop_settings(settings);
 tl = exec_tools_sop(PIE,st);    nv = tl.nv;
+st.sop = tl.sop;    % the options of this dimension (EXEC_TOOLS_SOP)        % MMP, 10/29/2026
 if ~(PIE.Tw==0),    error('PIETOOLS_H2_norm_sop:Tw','The H2 norm LPI cannot be solved with disturbances at the boundary.');  end
 if ~any(strcmp(form,{'c','o','cco','oco'}))
     error('PIETOOLS_H2_norm_sop:form','FORM should be ''c'', ''o'', ''cco'' or ''oco''.');
@@ -226,10 +249,13 @@ end
                 prog = lpi_eq_sop(prog,Npos - Dpos,'symmetric');
             end
         else
-            o = struct('like',like,'dw',dwbase+dw,'margin',st.sop.margin);
+%           o = struct('like',like,'dw',dwbase+dw,'margin',st.sop.margin);  % MMP, 10/29/2026 (was)
+            o = struct('like',like,'dw',dwbase+dw,'margin',st.sop.margin,'cap',tl.capfor(Dneg)); % MMP, 10/29/2026
             [prog,~,li] = lpi_ineq_sop(prog,-Dneg,o);
             if ~isempty(Dpos)
-                [prog,~,~] = lpi_ineq_sop(prog,Dpos,o);
+%               [prog,~,~] = lpi_ineq_sop(prog,Dpos,o);                     % MMP, 10/29/2026 (was)
+                op = o;     op.cap = tl.capfor(Dpos);   % its own variables % MMP, 10/29/2026
+                [prog,~,~] = lpi_ineq_sop(prog,Dpos,op);                    % MMP, 10/29/2026
             end
         end
         % gam >= trace
@@ -257,11 +283,17 @@ end
     end
 
     function Wm = add_eppos2d(Wm)
-        % WM = ADD_EPPOS2D(WM) adds eppos I on R^n and L2[s1,s2] to W in 2-D
-        % (blkdiag(eppos(1) I, 0, 0, eppos(4) I)); returns W unchanged in 1-D.
+        % WM = ADD_EPPOS2D(WM) adds eppos I on R^n and on the space in every
+        % variable to W in two or more variables (2-D: blkdiag(eppos(1) I,
+        % 0, 0, eppos(4) I)); returns W unchanged in 1-D.
         % INPUT/OUTPUT  Wm: 'cdopvar' object, W.
-        if nv==2
-            e = eppos;  e(2:3) = 0;
+%       if nv==2                                                            % MMP, 10/29/2026 (was)
+%           e = eppos;  e(2:3) = 0;                                         % MMP, 10/29/2026 (was)
+        if nv>=2                                                            % MMP, 10/29/2026
+            % One margin per variable subset (EXEC_TOOLS_SOP, eye), zero    % MMP, 10/29/2026
+            % on the partial ones                                           % MMP, 10/29/2026
+            e = eppos(:);   if isscalar(e),     e = e*ones(2^nv,1);     end % MMP, 10/29/2026
+            e(2:end-1) = 0;                                                 % MMP, 10/29/2026
             if ~all(e==0),  Wm = Wm + tl.eye(1,e);  end
         end
     end

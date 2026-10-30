@@ -44,11 +44,20 @@ function st = exec_sop_settings(st)
 %                         (LPIGETDUAL_SOP);
 %             verbose     logical (default true), print each pass and the
 %                         result;
-%             dw_feas     double, a scalar or [1-D, 2-D], the weight raise
-%                         of the stability and well-posedness LPIs in place
-%                         of dw_P and dw_Q (default []: dw_P and dw_Q);
-%             max_raise_feas  double, max_raise of the stability and
+%             dw_feas     double, a scalar or one entry per dimension
+%                         ([1-D, 2-D, ...], the last entry serving every
+%                         higher dimension), the weight raise of the
+%                         stability and well-posedness LPIs in place of dw_P
+%                         and dw_Q (default []: dw_P and dw_Q);
+%             max_raise_feas  double, a scalar or one entry per dimension,
+%                         as dw_feas, max_raise of the stability and
 %                         well-posedness LPIs (default []: max_raise);
+%             cap_delta   double, a scalar or one entry per dimension, as
+%                         dw_feas: when set, the lift basis of every slack
+%                         LPI_INEQ_SOP declares is bounded per direction,
+%                         theta_k + s_k <= Jmax_k(T) + cap_delta (Jmax of
+%                         GET_LIFT_DEGS on the PIE's T; default []: no
+%                         bound, every program unchanged);
 %             eppos_stab  double, a scalar or one entry per space, the
 %                         margin of the positive operator of the stability
 %                         and well-posedness LPIs in place of eppos, eppos2
@@ -106,13 +115,27 @@ function st = exec_sop_settings(st)
 %                inputs, outputs), the licence block added, step comments
 %                in the body; code unchanged. The deleted header text was
 %                measurement notes, file references and a solver note.
+% MMP, 10/29/2026: max_raise_feas documented as one entry per dimension, as
+%                dw_feas; the help text states the rule both follow (the
+%                last entry serves every higher dimension, as entry
+%                min(nv,end) in PIETOOLS_stability_sop). Code unchanged.
+% MMP, 10/29/2026: Field cap_delta (default [], no change): per-direction
+%                bounds theta_k + s_k <= Jmax_k(T) + cap_delta on the slack
+%                bases (opts.cap of LPI_INEQ_SOP, EXEC_TOOLS_SOP capfor). The
+%                bound read from T is the rule that made the 3-D heat
+%                benchmark solvable; at cap_delta 2 the 2-D heat and PDE 45
+%                gains stay within 1e-5 of the unbounded slack with 15-20%
+%                fewer rows (measured 10/29).
 
 % Defaults of the fields of ST.sop
 % d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
 %            'N_cheb',24,'nfreq',240,'keepdual',true,'verbose',true);       % MMP, 10/28/2026 (was)
+% d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
+%            'N_cheb',24,'nfreq',240,'keepdual',true,'verbose',true, ...
+%            'dw_feas',[],'max_raise_feas',[],'eppos_stab',[]);             % MMP, 10/29/2026 (was)
 d = struct('slack','like','dw_Q',1,'dw_P',2,'max_raise',2,'margin',0,'witness',true, ...
            'N_cheb',24,'nfreq',240,'keepdual',true,'verbose',true, ...
-           'dw_feas',[],'max_raise_feas',[],'eppos_stab',[]);               % MMP, 10/28/2026
+           'dw_feas',[],'max_raise_feas',[],'eppos_stab',[],'cap_delta',[]); % MMP, 10/29/2026
 % Check ST; set each missing or empty field of ST.sop to its default
 if ~isstruct(st),   error('exec_sop_settings:st','ST should be a settings struct (lpisettings).');   end
 if ~isfield(st,'sop') || isempty(st.sop),   st.sop = struct();     end
