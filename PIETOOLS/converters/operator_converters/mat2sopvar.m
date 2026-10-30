@@ -48,6 +48,8 @@ function Pop = mat2sopvar(Pmat,vars,dom)
 % authorship, and a brief description of modifications
 %
 % DJ, 06/12/2026: Initial coding
+% DJ, 10/29/2026: Refuse a matrix that depends on a variable that is
+%                   not in vars.out. 
 
 % Check that the matrix is properly specified
 if isa(Pmat,'double')
@@ -75,6 +77,16 @@ if ~isnumeric(dom.in) || ~all(size(dom.in)==[N,2])
 end
 if ~isnumeric(dom.out) || ~all(size(dom.out)==[M,2])
     error("Number of output domains should match number of output variables.")
+end
+
+% A multiplier is a kernel in the output variables only, so a variable of
+% Pmat outside vars.out has no representation.
+vname_Pmat = Pmat.varname(:);
+has_coef = full(any(Pmat.coefficient,2));
+is_bad = any(full(Pmat.degmat(has_coef,:)),1)' & ~ismember(vname_Pmat,vars.out(:));
+if any(is_bad)                                                              % DJ, 10/29/2026
+    error("Matrix depends on variable(s) '%s', which are not output variables of the operator.",...
+        strjoin(vname_Pmat(is_bad)',"', '"))
 end
 
 % Extract the coefficients defining the multiplier operator
