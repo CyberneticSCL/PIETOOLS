@@ -64,6 +64,8 @@
 % YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde into
 % solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
 % solution.timedep.primary{1,2}
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -137,7 +139,7 @@ Kval = getController(Pval,Zval,1e-3);
 PIE_CL = piess(T,A+B2*Kval,B1,C1+D12*Kval,D11);
 
 % % Alternatively, uncomment to use pre-defined functions
-% [prog, Kval, gam_val] = lpiscript(PIE,'hinf-controller','heavy');   
+% [prog, Kval, gam_val] = lpiscript_sop(PIE,'hinf-controller','heavy');     % DJ (CC), 10/29/2026
 % PIE_CL = closedLoopPIE(PIE,Kval);
 
 

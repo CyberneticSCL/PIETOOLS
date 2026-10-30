@@ -75,7 +75,7 @@ P_opts.degs = 3;        % maximal monomial degree of Zop.
 P_opts.exclude = [0;0;0];
 P_opts.sep = 1;
 P_opts.pos = true;      % V is a distributed SOS polynomial
-[prog,Vx,dV,Pmat,Zop] = piesos_LF(prog,PIE,PIE.varname_pde,(1:d)',P_opts); 
+[prog,Vx,dV,Pmat,Zop] = piesos_LF(prog,PIE,'pde',(1:d)',P_opts);     % all PDE states
 
 % Ensure strict positivity of the Lyapunov functional, adding
 % eppos*<u,u>, with derivative 2*eppos*<u,f(x)>.

@@ -148,6 +148,8 @@
 % opts.type is PDE_t or PDE_b.
 % VJ 11/16/2025 - added support for cylindrical coordinate examples
 % YP 1/22/2026 - passing u_tab, w_tab to initial setup
+% DJ, 10/29/2026: Convert 'pie_struct' to the old format (opvar/opvar2d)
+% using pie2opvar, so that the PIE can be handled as before;
 
 function [solution, grid]=PIESIM(varargin)
 
@@ -166,6 +168,8 @@ function [solution, grid]=PIESIM(varargin)
         
         % Convert PDE to PIE
         PIE = convert_PIETOOLS_PDE(PDE,'pie');
+        % Convert pie_struct to old format (opvar/opvar2d), as used below
+        if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % DJ, 10/29/2026
 
     elseif strcmp(opts.type,'DDE')
         DDE=varargin{1};
@@ -174,12 +178,16 @@ function [solution, grid]=PIESIM(varargin)
         DDE = initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
         DDF = convert_PIETOOLS_DDE(DDE,'ddf');
         PIE = convert_PIETOOLS_DDF(DDF,'pie');
+        % Convert pie_struct to old format (opvar/opvar2d), as used below
+        if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % DJ, 10/29/2026
 
         % Check the inputs and define problem size
         [PIE,uinput,opts,psize]=PIESIM_input_check(PIE,uinput,opts);
    
     elseif strcmp(opts.type,'PIE')
         PIE=varargin{1};
+        % Convert pie_struct to old format (opvar/opvar2d), as used below
+        if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % DJ, 10/29/2026
         % Check the inputs and define problem size
         [PIE,uinput,opts,psize]=PIESIM_input_check(PIE,uinput,opts);
     end  

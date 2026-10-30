@@ -42,7 +42,7 @@ function Test_Liediff(only)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - Test_Liediff
 %
-% Copyright (C) 2026 PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -162,14 +162,14 @@ for i=1:numel(X0)
 end
 valsx = struct();       valsu = struct();
 for i=1:numel(X0)
-    valsx.(PIE.varname_pie{i}) = X0{i};
-    valsu.(PIE.varname_pde{i}) = u0(i);
+    valsx.(PIE.space.x.varname{i}) = X0{i};
+    valsu.(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(i,1)}) = u0(i);
 end
 end
 
 function idcs = state_idcs(PIE,names)
 % Indices in the PIE of the PDE states with the given names, sorted by name
-list = PIE.varname_pde(:);
+list = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));
 [~,idcs] = ismember(names(:),list);
 [~,srt] = sort(list(idcs));
 idcs = idcs(srt);
@@ -177,7 +177,7 @@ end
 
 function Zu = monomials_in(PIE,idcs,degmat)
 % The monomials Z(u) in the PDE states idcs
-xu = polyopvar(PIE.varname_pde(idcs),PIE.x_tab(idcs,2),{'s'},PIE.dom,logical(PIE.x_tab(idcs,3)));
+xu = polyopvar(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(idcs,1)),PIE.x_tab(idcs,2),{'s'},PIE.dom,logical(PIE.x_tab(idcs,3)));
 Zu = dmonomials(xu,degmat);
 end
 
@@ -192,11 +192,11 @@ prog = piesos_program(PIE.x);
 Zu = monomials_in(PIE,idcs,degmat);
 [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,Zu,Zu,opts); %#ok<ASGLU>
 dV = Liediff(V,PIE);
-assert(all(ismember(dV.varname,PIE.varname_pie)),'dV must be expressed in the PIE states.');
+assert(all(ismember(dV.varname,PIE.space.x.varname)),'dV must be expressed in the PIE states.');
 d0map = random_decvars(Pmat,seed);
 Xu = struct();
 for i=1:numel(idcs)
-    Xu.(PIE.varname_pde{idcs(i)}) = u0(idcs(i)) + h*w0(idcs(i));
+    Xu.(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(idcs(i),1)}) = u0(idcs(i)) + h*w0(idcs(i));
 end
 Ph = block_matrix(cellfun(@(P) eval_dpvar_at(P,d0map),Pmat,'UniformOutput',false));
 YL = apply_side(ZopL,Zu,Xu);
@@ -219,7 +219,7 @@ pvar h
 sv = polynomial({'s'});     sv = sv(1);
 [valsx,valsu,u0,w0,xdot0] = pie_values(PIE,X0);
 idcs = state_idcs(PIE,names);
-names_pde = PIE.varname_pde(idcs);      names_x = PIE.varname_pie(idcs);
+names_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(idcs,1));      names_x = PIE.space.x.varname(idcs);
 prog = piesos_program(PIE.x);
 Zu = monomials_in(PIE,idcs,degmat);
 Zx = subs(Zu,Zu.varname,names_x);
@@ -227,7 +227,7 @@ Zx = subs(Zu,Zu.varname,names_x);
 assert(isequal(ZopL,ZopR),'The same operators must be used on the left and right.');
 % Symmetry condition V(xL,T*xR) = V(xR,T*xL) for independent copies xL, xR of the PIE state
 Top = PIE.T;
-if ~isequal(idcs(:)',1:numel(PIE.varname_pde))
+if ~isequal(idcs(:)',1:numel(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1))))
     Top = Top(idcs,:);
 end
 Tx = Top*PIE.x;
@@ -257,8 +257,8 @@ Vsol = piesos_getsol(prog,Vxu);
 dVsol = piesos_getsol(prog,dV);
 Xl = struct();      Xr = struct();
 for i=1:numel(idcs)
-    Xl.(PIE.varname_pde{idcs(i)}) = X0{idcs(i)} + h*xdot0{idcs(i)};
-    Xr.(PIE.varname_pde{idcs(i)}) = u0(idcs(i)) + h*w0(idcs(i));
+    Xl.(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(idcs(i),1)}) = X0{idcs(i)} + h*xdot0{idcs(i)};
+    Xr.(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(idcs(i),1)}) = u0(idcs(i)) + h*w0(idcs(i));
 end
 Ph = block_matrix(Psol);
 YL = apply_side(ZopL,Zu,Xl);
@@ -525,7 +525,7 @@ function case_mixed_known()
 % V(x,u) = int x_i*u_i ds, symmetric since the Green's function T of the Dirichlet problem is
 % self-adjoint, with no decision variables: dV = 2*int x*f(x) ds, as the exact derivative
 PIE = get_pie('coupled');   X0 = states_x0(2);
-xu = polyopvar(PIE.varname_pde,PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
+xu = polyopvar(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
 V1 = innerprod(PIE.x(1,:),xu(1,:));
 res = check_known(PIE,X0,V1,{'x1'});
 assert_res(res,'int x1*u1');
@@ -549,7 +549,7 @@ PIE = get_pie('coupled');   X0 = states_x0(2);
 pvar h
 sv = polynomial({'s'});     sv = sv(1);
 [valsx,valsu,u0,w0,xdot0] = pie_values(PIE,X0);
-xu = polyopvar(PIE.varname_pde,PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
+xu = polyopvar(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
 V1 = innerprod(xu(1,:),xu(1,:));                % int u1^2
 V2 = innerprod(PIE.x(2,:),xu(2,:));             % int x2*u2
 a = 0.7;    b = 1.3;
@@ -576,7 +576,7 @@ PIE = get_pie('coupled');   X0 = states_x0(2);
 pvar h
 sv = polynomial({'s'});     sv = sv(1);
 [valsx,~,u0,w0] = pie_values(PIE,X0);
-xu = polyopvar(PIE.varname_pde,PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
+xu = polyopvar(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
 V1 = innerprod(xu(1,:),xu(1,:));                % int u1^2
 yv = polyopvar({'y'},1,{'s'},PIE.dom,true);
 Vs = {common_states(V1,xu(2,:)), common_states(V1,PIE.x(2,:)), common_states(V1,yv)};
@@ -628,7 +628,7 @@ PIE = get_pie('coupled');   X0 = states_x0(2);
 pvar h
 sv = polynomial({'s'});     sv = sv(1);
 [valsx,valsu,u0,w0] = pie_values(PIE,X0);
-xu = polyopvar(PIE.varname_pde,PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
+xu = polyopvar(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
 m = 1+2*sv;
 % V = int u1*u1*u2 ds, with the second factor replaced by the function m: V = int u1*m*u2 ds
 V3 = innerprod(xu(1,:).*xu(1,:),xu(2,:));
@@ -646,12 +646,15 @@ end
 
 function case_errors()
 PIE = get_pie('coupled');
-xu = polyopvar(PIE.varname_pde,PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
+xu = polyopvar(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),PIE.x_tab(:,2),{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
 V1 = innerprod(xu(1,:),xu(1,:));
 assert_err(@() Liediff(5,PIE),'polyopvar');
 assert_err(@() Liediff([V1;V1],PIE),'scalar-valued');
-assert_err(@() Liediff(V1,rmfield(PIE,'f')),'with fields');
-assert_err(@() Liediff(V1,5),'with fields');
+%   assert_err(@() Liediff(V1,rmfield(PIE,'f')),'with fields');            % DJ, 10/29/2026 (was)
+%   assert_err(@() Liediff(V1,5),'with fields');                            % DJ, 10/29/2026 (was)
+PIE_nof = PIE;     PIE_nof.f = [];                                         % DJ, 10/29/2026
+assert_err(@() Liediff(V1,PIE_nof),'mandatory');                         % DJ, 10/29/2026
+assert_err(@() Liediff(V1,5),'npie_struct');                           % DJ, 10/29/2026
 % states of V that are not states of the PIE
 yv = polyopvar({'y'},1,{'s'},PIE.dom,true);
 assert_err(@() Liediff(innerprod(yv,yv),PIE),'must appear as PDE or PIE state');
@@ -659,6 +662,11 @@ assert_err(@() Liediff(innerprod(yv,yv),PIE),'must appear as PDE or PIE state');
 assert_err(@() Liediff(innerprod(PIE.x(1,:),PIE.x(1,:)),PIE),'PIE states only');
 assert_err(@() Liediff(V1+innerprod(PIE.x(1,:),PIE.x(1,:)),PIE),'PIE states only');
 % PDE and PIE states of the same name
-PIE2 = PIE;     PIE2.varname_pie = PIE2.varname_pde;
+PIE2 = PIE;     PIE2.space.x.varname = PIE2.space_pde.x.varname(PIE2.pde2pie.x.idx(:,1));
+% The states of the polynomials must be renamed too, for the PIE to be valid.  % DJ, 10/29/2026
+for name = {'f','gz','gy'}                                                  % DJ, 10/29/2026
+    keep = ismember(PIE.space.x.varname,PIE.(name{1}).varname);             % DJ, 10/29/2026
+    PIE2.(name{1}).varname = PIE2.space.x.varname(keep);                    % DJ, 10/29/2026
+end                                                                         % DJ, 10/29/2026
 assert_err(@() Liediff(V1,PIE2),'different names');
 end

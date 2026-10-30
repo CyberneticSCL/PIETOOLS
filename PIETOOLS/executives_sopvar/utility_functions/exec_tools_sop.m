@@ -7,8 +7,8 @@ function tl = exec_tools_sop(PIE,st)
 % conversion of a solved container back to an 'opvar' or 'opvar2d' object.
 %
 % INPUT
-% - PIE:  'pie_struct' object of a 1-D or 2-D PIE (initialized), with T an
-%         'opvar' (1-D) or 'opvar2d' (2-D) object;
+% - PIE:  'pie_struct' object of a 1-D or 2-D PIE (initialized), with T a
+%         'copvar' object;
 % - st:   'struct' of LPI settings, completed by EXEC_SOP_SETTINGS:
 %           1-D  eppos, eppos2, epneg, ddZ (each optional), and the degree
 %                fields of POSLPIVAR_SETTINGS_SOP;
@@ -42,7 +42,7 @@ function tl = exec_tools_sop(PIE,st)
 %                          weight per space;
 %           ident          function handle, I = ident(Bop,side): the
 %                          identity 'copvar' on the output (SIDE 1) or input
-%                          (SIDE 2) space of the 'opvar' / 'opvar2d' Bop;
+%                          (SIDE 2) space of the 'copvar' Bop;
 %           toop           function handle, Op = toop(C): the 'copvar' C as
 %                          an 'opvar' (1-D) or 'opvar2d' (2-D) object;
 %           zdeg           the degrees of a free operator for
@@ -81,6 +81,11 @@ function tl = exec_tools_sop(PIE,st)
 %                utility_functions/ with the consolidation of the
 %                executives; header to the header protocol, the licence
 %                block added, step comments in the body; code unchanged.
+% DJ (CC), 10/29/2026: Support the 'copvar' operators of the new pie_struct:
+%                tl.ident and eye_state read the spaces of PIE.T and Bop
+%                from the 'copvar' fields, as PIE.T.dim and Bop.dim no longer
+%                exist; eye_state gives one block for each block of PIE.T,
+%                and tl.ident one for each space of Bop;
 
 % Dimension and spatial variables of the PIE
 nv = PIE.dim;
@@ -115,7 +120,14 @@ end
 % Identity operators: weighted on the state spaces, plain on an input or
 % output space of an operator
 tl.eye   = @(side,e) eye_state(PIE,side,e);
-tl.ident = @(Bop,side) op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,PIE.dom));
+%   tl.ident = @(Bop,side) op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,PIE.dom));   % DJ (CC), 10/29/2026 (was)
+% The identity on the output (side 1) or input (side 2) spaces of a 'copvar'   % DJ (CC), 10/29/2026
+% Bop, with one block for each of its spaces; an empty container if Bop has    % DJ (CC), 10/29/2026
+% no space on that side (an empty channel), as the former opvar construction.  % DJ (CC), 10/29/2026
+sd = {'out','in'};                                                          % DJ (CC), 10/29/2026
+spc = @(B,s) arrayfun(@(k) B.vars(B.(['space_',sd{s}])(k,:)),1:numel(B.(['dim_',sd{s}])),'UniformOutput',false);   % DJ (CC), 10/29/2026
+mkI = {@(B,s) copvar(), @(B,s) eye_copvar_sop(B.(['dim_',sd{s}]),spc(B,s),struct('vars',{B.vars},'dom',B.dom))};   % DJ (CC), 10/29/2026
+tl.ident = @(Bop,side) mkI{1+~isempty(Bop.(['dim_',sd{side}]))}(Bop,side);  % DJ (CC), 10/29/2026
 end
 
 
@@ -128,23 +140,35 @@ function Im = eye_state(PIE,side,e)
 %        e:     double, one weight per space of that side (2 in 1-D, 4 in
 %               2-D), or a scalar for every space.
 % OUTPUT Im:    'copvar' object.
-n = PIE.T.dim(:,side);
-if isscalar(e),     e = e*ones(numel(n),1);     end
-if numel(e)~=numel(n)
-    error('exec_tools_sop:e','E should have one weight per space (%d) or be a scalar.',numel(n));
-end
-% The block-diagonal matrix of the weights, as an opvar / opvar2d, then a
-% container
-blocks = cell(1,numel(n));
-for k = 1:numel(n),     blocks{k} = e(k)*eye(n(k));    end
-Imat = blkdiag(blocks{:});
-if PIE.dim==1
-    Pop = mat2opvar(Imat,n,PIE.vars,PIE.dom);
+%   n = PIE.T.dim(:,side);                                                  % DJ (CC), 10/29/2026 (was)
+% The type of space (1: R, 2: L2[s1], 3: L2[s2], 4: L2[s1,s2]) of each block   % DJ (CC), 10/29/2026
+% of PIE.T, from the registry of its variables                              % DJ (CC), 10/29/2026
+T = PIE.T;                                                                  % DJ (CC), 10/29/2026
+if side==1                                                                  % DJ (CC), 10/29/2026
+    dims = T.dim_out;  
+    mask = T.space_out;  
 else
-    Pop = opvar2d(Imat,[n,n],PIE.dom,PIE.vars);
+    dims = T.dim_in;  
+    mask = T.space_in;  
 end
-Im = op2copvar_sop(Pop);
+[~,loc] = ismember(T.vars,PIE.space.vars);                                  % DJ (CC), 10/29/2026
+kind = ones(numel(dims),1);                                                 % DJ (CC), 10/29/2026
+for k = 1:numel(loc),   kind = kind + loc(k)*mask(:,k);   end              % DJ (CC), 10/29/2026
+%   if isscalar(e),     e = e*ones(numel(n),1);     end                     % DJ (CC), 10/29/2026 (was)
+%   if numel(e)~=numel(n)                                                   % DJ (CC), 10/29/2026 (was)
+if isscalar(e),     e = e*ones(2^PIE.dim,1);     end                        % DJ (CC), 10/29/2026
+if numel(e)~=2^PIE.dim                                                      % DJ (CC), 10/29/2026
+    error('exec_tools_sop:e','E should have one weight per space (%d) or be a scalar.',2^PIE.dim);   % DJ (CC), 10/29/2026
 end
+% The block-diagonal matrix of the weights, as a container with the blocks  % DJ (CC), 10/29/2026
+% of PIE.T                                                                  % DJ (CC), 10/29/2026
+blocks = cell(1,numel(dims));                                               % DJ (CC), 10/29/2026
+spaces = cell(1,numel(dims));                                               % DJ (CC), 10/29/2026
+for k = 1:numel(dims),  blocks{k} = e(kind(k))*eye(dims(k));  spaces{k} = T.vars(mask(k,:));   end   % DJ (CC), 10/29/2026
+Im = mat2copvar_sop(blkdiag(blocks{:}),dims,spaces,struct('vars',{T.vars},'dom',T.dom));   % DJ (CC), 10/29/2026
+end
+
+
 
 
 function v = getf(s,f,d)

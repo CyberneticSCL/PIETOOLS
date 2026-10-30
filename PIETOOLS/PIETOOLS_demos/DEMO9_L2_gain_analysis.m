@@ -54,6 +54,8 @@
 % YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde{1,2,3} into
 % solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
 % solution.timedep.primary{1,2,3,4}
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -141,7 +143,7 @@ prog_sol = lpisolve(prog);
 gam_val = double(lpigetsol(prog_sol,gam));
 
 % % Alternatively, uncomment to use pre-defined executive
-% [prog, ~, gam_val] = lpiscript(PIE,'l2gain','stripped');   
+% [prog, ~, gam_val] = lpiscript_sop(PIE,'l2gain','stripped');              % DJ (CC), 10/29/2026
 
 
 echo off

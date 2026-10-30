@@ -1,21 +1,27 @@
 function PIE = piess(Top,Aop,Bop,Cop,Dop)
-% PIE = PIESS(TOP,AOP,BOP,COP,DOP) takes a set of PI operators, and 
-% constructs the associated PIE rerpresentation. Declaring Top through Dop
+% PIE = PIESS(TOP,AOP,BOP,COP,DOP) takes a set of PI operators, and
+% constructs the associated PIE representation. Declaring Top through Dop
 % as 'opvar' or 'opvar2d' objects, the output PIE is a 'pie_struct' object
-% representing a "5-PIE"
+% representing a "5-PIE",
+%
 %   d/dt Top*v(t) = Aop*v(t) + Bop*w(t)
 %            z(t) = Cop*v(t) + Dop*w(t)
+%
 % where v(t) is the fundamental state, w(t) the exogenous input
 % (disturbance), and z(t) the regulated output, all possibly vector-valued
 % and involving coupled finite- and infinite-dimensional components,
 % determined by the dimensions of the specified operators.
 % Alternatively, if cells of operators are specified as
+%
 %       Top = {Tvop,Twop,Tuop},     Bop = {Bwop,Buop};
 %       Cop = {Czop;Cuop},          Dop = {Dzwop,Dzuop; Dywop,Dyup};
+% 
 % the output PIE is a 'pie_struct' object representing the "12-PIE"
+% 
 %   d/dt (Top*v(t)+Twop*w(t)+Tuop*u(t)) = Aop*v(t) +Bwop*w(t) +Buop*u(t)
 %                                  z(t) = Czop*v(t)+Dzwop*w(t)+Dzuop*u(t)
 %                                  y(t) = Cyop*v(t)+Dywop*w(t)+Dyuop*u(t)
+% 
 % where now u(t) is the controlled input, and y(t) the observed output,
 % with dimensions and domain again determined by the input operators.
 %
@@ -56,22 +62,26 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %           Defaults to [], returning 0 operator(s) of suitable dimensions;
 %
 % OUTPUT
-% - PIE:    'pie_struct' object representing the PIE defined by the
-%           specified operators. The specified operators will be stored in
-%           the PIE structure under the appropriate fields, so that e.g.
-%           PIE.T = Top, PIE.Tw = Twop, PIE.A = Aop, etc..
+% - PIE:    'pie_struct' object representing the (linear) PIE defined by
+%           the specified operators. The specified operators will be stored
+%           in the PIE structure under the appropriate fields, so that e.g.
+%           PIE.T = Top, PIE.Tw = Twop, PIE.A = Aop, etc.. The PIE is
+%           initialized, so that the operators are 'copvar' objects.
 %
 % NOTES
+% - Only linear PIEs, of type 'pie_struct', are supported.
 % - Passing a single argument "PIE = piess(Top)", the input Top will be
 % interpreted as operator Dzwop from disturbance to regulated output, and a
 % PIE will be constructed as just z(t) = Dzwop*w(t). However, PIETOOLS
 % currently offers no functionality for actually working with such systems.
+% - PIEs with algebraic constraints (K, Kw, Ku) are currently not
+% supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - PIESS
+% PIETOOLS - piess
 %
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -94,13 +104,15 @@ function PIE = piess(Top,Aop,Bop,Cop,Dop)
 %
 % DJ, 12/20/2024: Initial coding;
 % DJ, 12/30/2024: Suppress feedthrough warning if Dop is empty;
+% DJ, 10/29/2026: Update to new pie_struct structure;
 
 
 % % % Process the inputs
 % % Check how may input arguments are passed.
 if nargin==0
-    % Return empty pie_var structure.
-    PIE = pie_var();
+    % Return empty pie_struct structure.
+    PIE = pie_struct();
+    return
 elseif nargin==1
     % Just as Matlab's `ss`, interpret single argument as direct map from
     % input to output.
@@ -182,12 +194,12 @@ end
 if (isa(Bwop,'double') && isequal(Bwop,0)) || isempty(Bwop)
     Bwop = [];
 elseif ~isa(Bwop,'opvar') && ~isa(Bwop,'opvar2d') && ~isa(Bwop,'polynomial') && ~isa(Bwop,'double')
-    error("Input operators Bop should be defined as a single 'opvar' object Bwop or 1x2 cell {Bwop,Buop} of ''opvar'' objects.")
+    error("Input operators Bop should be defined as a single 'opvar' object Bwop or 1x2 cell {Bwop,Buop} of 'opvar' objects.")
 end
 if (isa(Buop,'double') && isequal(Buop,0)) || isempty(Buop)
     Buop = [];
 elseif ~isa(Buop,'opvar') && ~isa(Buop,'opvar2d') && ~isa(Buop,'polynomial') && ~isa(Buop,'double')
-    error("Input operators Bop should be defined as a single 'opvar' object Bwop or 1x2 cell {Bwop,Buop} of ''opvar'' objects.")
+    error("Input operators Bop should be defined as a single 'opvar' object Bwop or 1x2 cell {Bwop,Buop} of 'opvar' objects.")
 end
 % Operator Cop
 Czop = Cop;     Cyop = [];      % assume no controlled input by default
@@ -282,7 +294,7 @@ if any(nr_T~=nc_T)
 end
 [nr_A,nc_A,vars_A,dom_A] = get_op_props(Aop);
 if any(nr_A~=nc_A)
-    error("Operator Top defining the fundamental map should be symmetric.")
+    error("Operator Aop defining the PIE dynamics should be symmetric.")
 end
 [nr_Tw,nc_Tw,vars_Tw,dom_Tw] = get_op_props(Twop);
 [nr_Tu,nc_Tu,vars_Tu,dom_Tu] = get_op_props(Tuop);
@@ -339,7 +351,7 @@ if dim>0
         end
     end
 else
-    % Aparantly all operators are finite-dimensional
+    % Apparently all operators are finite-dimensional
     % --> augment to 1D system, with default domain and variables;
     tmp = opvar();
     var1 = tmp.var1;    var2 = tmp.var2;    dom = tmp.I;
@@ -362,13 +374,18 @@ Dyuop = rebuild_op(Dyuop,ny_op,nu_op,[var1,var2],dom);
 
 
 % % % Build the PIE representation.
-pie_struct PIE;
-PIE.vars = [var1,var2];     PIE.dom = dom;
+PIE = pie_struct();
+%   PIE.vars = [var1,var2];     PIE.dom = dom;                              % DJ, 10/29/2026 (was)
+PIE.space.vars = reshape(pvar2varname(var1),1,[]);                          % DJ, 10/29/2026
+PIE.space.dom = dom;                                                        % DJ, 10/29/2026
 
 PIE.T = Top;    PIE.Tw = Twop;      PIE.Tu = Tuop;
 PIE.A = Aop;    PIE.Bw = Bwop;      PIE.Bu = Buop;
 PIE.Cz = Czop;  PIE.Dzw = Dzwop;    PIE.Dzu = Dzuop;
 PIE.Cy = Cyop;  PIE.Dyw = Dywop;    PIE.Dyu = Dyuop;
+
+% Convert the operators to copvar objects, and set the function spaces.     % DJ, 10/29/2026
+PIE = initialize(PIE);
 
 end
 

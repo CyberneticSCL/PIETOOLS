@@ -53,7 +53,7 @@ function [Top_x,Fop,Kop,info] = compute_PIETOOLS_PDE_periodic_map_2D(PDE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - compute_PIETOOLS_PDE_periodic_map_2D
 %
-% Copyright (C) 2026 PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -76,6 +76,8 @@ function [Top_x,Fop,Kop,info] = compute_PIETOOLS_PDE_periodic_map_2D(PDE)
 %
 % Initial coding: Claude 10/28/2026
 % Claude, 10/29/2026: Add generalized PBCs along both spatial directions
+% DJ (CC), 10/29/2026: The operator F of the 1D PIEs is read from
+%                   PIE.misc.periodic.F, as F is no longer a field of the PIE;
 
 id_unsup = 'PIETOOLS:convert:Periodic2D';
 dom = PDE.dom;      vars = PDE.vars;
@@ -100,7 +102,9 @@ PIE_dir = cell(1,2);    is_per = false(1,2);
 for dd=1:2
     PDE_1D = build_1D_PDE(PDE,dd,id_unsup);
     PIE_dir{dd} = convert_PIETOOLS_PDE(PDE_1D,[],{'silent','Top'});
-    is_per(dd) = ~isempty(PIE_dir{dd}.F);
+%   is_per(dd) = ~isempty(PIE_dir{dd}.F);                                   % DJ (CC), 10/29/2026 (was)
+    % F is no longer a field of the PIE, but kept in PIE.misc.periodic.F.      % DJ (CC), 10/29/2026
+    is_per(dd) = isfield(PIE_dir{dd}.misc,'periodic');                      % DJ (CC), 10/29/2026
 end
 if ~any(is_per)
     error('PIETOOLS:convert:NotPeriodic2D','The boundary conditions are not periodic along either spatial direction.')
@@ -111,7 +115,8 @@ elseif all(is_per)
 end
 p = find(is_per);       q = 3-p;
 PIEp = PIE_dir{p};      PIEq = PIE_dir{q};
-Tp1 = PIEp.T;           Fp1 = PIEp.F;           Kp1 = PIEp.K;
+%Tp1 = PIEp.T;           Fp1 = PIEp.F;           Kp1 = PIEp.K;            % DJ (CC), 10/29/2026 (was)
+Tp1 = PIEp.T;           Fp1 = PIEp.misc.periodic.F;     Kp1 = PIEp.K;       % DJ (CC), 10/29/2026
 info1 = PIEp.misc.periodic;
 m = info1.n_aux;
 vars_old_p = Tp1.var1;
@@ -326,7 +331,8 @@ for dd=1:2
     PIEd = PIE_dir{dd};
     vars_old = PIEd.vars(1,:)';     vars_new = vars(dd,:)';
     Td = PIEd.T;
-    L.F = lift(PIEd.F.Q1,vars_old,vars_new);
+%   L.F = lift(PIEd.F.Q1,vars_old,vars_new);                                % DJ (CC), 10/29/2026 (was)
+    L.F = lift(PIEd.misc.periodic.F.Q1,vars_old,vars_new);                  % DJ (CC), 10/29/2026
     L.T0 = lift(Td.Q2,vars_old,vars_new);
     L.K = lift(PIEd.K.Q1,vars_old,vars_new);
     L.R = cell(1,3);

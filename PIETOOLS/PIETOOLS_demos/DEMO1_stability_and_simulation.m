@@ -50,6 +50,8 @@
 % YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde into
 % solution.final.primary{1,2}; renamed solution.timedep.ode/solution.timedep.pde into
 % solution.timedep.primary{1,2}
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -127,7 +129,7 @@ solve_opts.simplify = true;     % simplify SDP before solving
 prog = lpisolve(prog,solve_opts);
 
 % % Alternatively, uncomment to use pre-defined stability test
-% lpiscript(pie,'stability','light')
+% lpiscript_sop(pie,'stability','light')                                    % DJ (CC), 10/29/2026
 
 
 echo off

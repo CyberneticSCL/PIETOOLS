@@ -14,11 +14,12 @@
 %   V >= eppos*||u_s||^2;    (positivity)
 %   dV <= 0;                 (derivative along the PIE, dV = -2*<x,f(x)>)
 % are enforced using `piesos_ineq`. The derivative u_s = R*x is obtained
-% as the output PIE.h of the PDE with output z = u_s.
+% as the output PIE.gz of the PDE with output z = u_s.
 %
 % The user may change the coefficient eppos.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/29/2026: Use the regulated output polynomial PIE.gz, instead of PIE.h;
 
 clear;  clear stateNameGenerator
 
@@ -35,7 +36,7 @@ T = PIE.T;
 f = PIE.f;
 x = PIE.x;
 
-Rx = PIE.h;                 % R*x = u_s
+Rx = PIE.gz;                 % R*x = u_s
 
 % Declare the SOS program
 prog = piesos_program(x);

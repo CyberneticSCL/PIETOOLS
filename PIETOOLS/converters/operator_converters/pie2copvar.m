@@ -52,7 +52,7 @@ function PIEc = pie2copvar(PIE)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - pie2copvar
 %
-% Copyright (C) 2026 PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -75,6 +75,9 @@ function PIEc = pie2copvar(PIE)
 %
 % Initial coding MMP, 10/27/2026
 % DB 10/28/2026: Add conversion for F and K fields, non-empty in the case of Periodic Boundary Conditions.
+% DJ (CC), 10/29/2026: Update to new pie_struct structure: initialize
+%                   converts the operators to copvar objects, and the F field
+%                   no longer exists;
 
 if ~isa(PIE,'pie_struct')
     error('pie2copvar:pie','The PIE should be a ''pie_struct''.');
@@ -84,19 +87,18 @@ if isa(PIE.T,'copvar'),     return,     end         % already converted
 % Absent operators become zero opvars of the dimensions the other operators
 % imply; dimensions, domains and variables are checked, as the executives
 % do before converting.
+% Update to new pie_struct structure: initialize now converts the operators
+% to copvar objects, including those with an empty channel (no input or no
+% output space), which are copvar objects without spaces on that side
+% rather than [].                                                           % DJ (CC), 10/29/2026
 PIEc = initialize(PIE);
-ops = {'T','Tw','Tu','A','B1','B2','C1','D11','D12','C2','D21','D22'};
-for k = 1:numel(ops)
-    Pop = PIEc.(ops{k});
-    if any(Pop.dim(:,1)) && any(Pop.dim(:,2))
-        PIEc.(ops{k}) = op2copvar_sop(Pop);
-    else
-        PIEc.(ops{k}) = [];                     % no input or no output space
-    end
-end
-for field = {'F','K'}
-    if ~isempty(PIEc.(field{1}))
-        PIEc.(field{1}) = op2copvar_sop(PIEc.(field{1}));
-    end
-end
+% ops = {'T','Tw','Tu','A','B1','B2','C1','D11','D12','C2','D21','D22'};   % DJ (CC), 10/29/2026 (was)
+% for k = 1:numel(ops)                                                      % DJ (CC), 10/29/2026 (was)
+%     Pop = PIEc.(ops{k});                                                  % DJ (CC), 10/29/2026 (was)
+%     if any(Pop.dim(:,1)) && any(Pop.dim(:,2))                             % DJ (CC), 10/29/2026 (was)
+%         PIEc.(ops{k}) = op2copvar_sop(Pop);                               % DJ (CC), 10/29/2026 (was)
+%     else                                                                  % DJ (CC), 10/29/2026 (was)
+%         PIEc.(ops{k}) = [];                     % no input or no output space % DJ (CC), 10/29/2026 (was)
+%     end                                                                   % DJ (CC), 10/29/2026 (was)
+% end                                                                       % DJ (CC), 10/29/2026 (was)
 end

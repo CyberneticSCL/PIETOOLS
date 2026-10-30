@@ -3,21 +3,27 @@
 % converter `convert`, for examples 1 through 32 of the PDE library
 % `examples_PDE_library_PIETOOLS_nouinput`.
 %
-% The operators Tw, Tu, B1, B2 and D11-D22 are compared as 'opvar'
-% objects. The operators T, f, g and h ('tensopmat' and 'polyopvar'
-% objects) are compared by applying them to random polynomial states,
-% up to the relative tolerance tol. The conversion of a linear PIE by
-% `PIE2polyPIE` is tested in the same way. An error is thrown if any
-% discrepancy is found.
+% The operators Tw, Tu, B1, B2 and D11-D22 ('tensopmat' objects, 'opvar'
+% objects in the linear PIE), and T, f, g and h ('tensopmat' and
+% 'polyopvar' objects) are compared by applying them to random polynomial
+% states and inputs, up to the relative tolerance tol. The conversion of a
+% linear PIE by `PIE2polyPIE` is tested in the same way. An error is thrown
+% if any discrepancy is found.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 10/29/2026: Use PIE.space.x.varname for the names of the states;
+% DJ (CC), 10/29/2026: Use the polynomials gz and gy, instead of h and g;
+% DJ (CC), 10/29/2026: The nonlinear converter now returns an
+%                   'npie_struct', with the operators Tw, ..., D22 as
+%                   'tensopmat' objects, so these are compared by applying
+%                   them to random inputs;
 %
 % NOTES
 % - The state components of the PIE of the nonlinear converter may be
 %   ordered differently than the PDE states (e.g. in example 32, x3
 %   comes before x2), as in the linear converter, see x_tab. The kth
 %   variable of PIE.x, 'xk_pie', is the kth component in x_tab (the kth
-%   column of T), and PIE.varname_pde{k} the associated PDE state.
+%   column of T), and PIE.space_pde.x.varname{PIE.pde2pie.x.idx(k,1)} the associated PDE state.
 
 clear
 example_nums = 1:32;
@@ -34,22 +40,47 @@ for example_num = example_nums
     PDE = examples_PDE_library_PIETOOLS_nouinput(example_num);
     evalc('PIE_poly = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
     msgs = {};
-    if ~isequal(PIE_poly.varname_pie,PIE_poly.x.varname(:)) || ~isequal(PIE_poly.varname_pie,sort(PIE_poly.varname_pie))
-        msgs{end+1} = "PIE.varname_pie is not sorted, or differs from PIE.x.varname";             %#ok<SAGROW>
+%   if ~isequal(PIE_poly.varname_pie,PIE_poly.x.varname(:)) || ~isequal(PIE_poly.varname_pie,sort(PIE_poly.varname_pie))    % DJ (CC), 10/29/2026 (was)
+%       msgs{end+1} = "PIE.varname_pie is not sorted, or differs from PIE.x.varname";     % DJ (CC), 10/29/2026 (was)
+    if ~isequal(PIE_poly.space.x.varname,PIE_poly.x.varname(:)) || ~isequal(PIE_poly.space.x.varname,sort(PIE_poly.space.x.varname))    % DJ (CC), 10/29/2026
+        msgs{end+1} = "PIE.space.x.varname is not sorted, or differs from PIE.x.varname";             %#ok<SAGROW>
     end
 
-    % Check the operators that are still 'opvar' objects
-    ops_old = {'Tw','Tu','B1','B2','D11','D12','D21','D22'};
-    for k=1:numel(ops_old)
-        name = ops_old{k};
+    % % % Start of changes DJ (CC), 10/29/2026: the operators from the inputs are
+    % % % 'tensopmat' objects, which are applied to random inputs, as T below.
+    %   ops_old = {'Tw','Tu','B1','B2','D11','D12','D21','D22'};            % DJ (CC), 10/29/2026 (was)
+    %   for k=1:numel(ops_old)                                              % DJ (CC), 10/29/2026 (was)
+    %       name = ops_old{k};                                              % DJ (CC), 10/29/2026 (was)
+    %       Pold = PIE_lin.(name);      Ppoly = PIE_poly.(name);            % DJ (CC), 10/29/2026 (was)
+    %       if ~isequal(size(Pold),size(Ppoly)) || ~isequal(Pold.dim,Ppoly.dim)     % DJ (CC), 10/29/2026 (was)
+    %           msgs{end+1} = sprintf("%s: dimensions differ",name);        % DJ (CC), 10/29/2026 (was)
+    %       elseif ~all(all(Pold==Ppoly))                                   % DJ (CC), 10/29/2026 (was)
+    %           msgs{end+1} = sprintf("%s: operators differ",name);         % DJ (CC), 10/29/2026 (was)
+    %       end                                                             % DJ (CC), 10/29/2026 (was)
+    %       nchecked = nchecked+1;                                          % DJ (CC), 10/29/2026 (was)
+    %   end                                                                 % DJ (CC), 10/29/2026 (was)
+    ops_in = {'Tw','x_tab','w_tab';  'Tu','x_tab','u_tab';
+              'B1','x_tab','w_tab';  'B2','x_tab','u_tab';
+              'D11','z_tab','w_tab'; 'D12','z_tab','u_tab';
+              'D21','y_tab','w_tab'; 'D22','y_tab','u_tab'};
+    for k=1:size(ops_in,1)
+        name = ops_in{k,1};
         Pold = PIE_lin.(name);      Ppoly = PIE_poly.(name);
-        if ~isequal(size(Pold),size(Ppoly)) || ~isequal(Pold.dim,Ppoly.dim)
-            msgs{end+1} = sprintf("%s: dimensions differ",name);            %#ok<SAGROW>
-        elseif ~all(all(Pold==Ppoly))
-            msgs{end+1} = sprintf("%s: operators differ",name);             %#ok<SAGROW>
+        tab_out = PIE_poly.(ops_in{k,2});       tab_in = PIE_poly.(ops_in{k,3});
+        if isempty(tab_out) || isempty(tab_in)
+            % Operator maps from or to an empty space
+            if size(Pold,1)*size(Pold,2)>0 && ~(isempty(Ppoly))
+                msgs{end+1} = sprintf("%s: operator should be empty",name); %#ok<SAGROW>
+            end
+        else
+            [Xin,v_in] = random_states(tab_in,s);
+            Y_new = order_as_opvar(apply_op(Ppoly,Xin),tab_out);
+            Y_old = apply_opvar(Pold,v_in);
+            msgs = [msgs,compare_action(Y_old,Y_new,tol,name)];             %#ok<AGROW>
         end
         nchecked = nchecked+1;
     end
+    % % % End of changes DJ (CC), 10/29/2026
 
     % Check the maps from the fundamental state, applied to random states
     x_tab = PIE_poly.x_tab;
@@ -65,7 +96,7 @@ for example_num = example_nums
     Y_old = apply_opvar(PIE_lin.A,v_old);
     msgs = [msgs,compare_action(Y_old,Y_new,tol,'f=A*x')];
     % h and C1, g and C2: regulated and observed outputs
-    outs = {'h','C1','z_tab';  'g','C2','y_tab'};
+    outs = {'gz','C1','z_tab';  'gy','C2','y_tab'};
     for k=1:size(outs,1)
         Pold = PIE_lin.(outs{k,2});
         if size(Pold,1)==0 || isempty(PIE_poly.(outs{k,1}).C.ops)
@@ -204,8 +235,8 @@ end
 if size(PIE_lin.C1,1)>0
     C1op_poly = 0*PIE_lin.C1;
     C1op_poly = C1op_poly(:,end+1:end);
-    for j=1:numel(PIE_poly.h.C.ops)
-        C1op_poly = [C1op_poly,PIE_poly.h.C.ops{j}];
+    for j=1:numel(PIE_poly.gz.C.ops)
+        C1op_poly = [C1op_poly,PIE_poly.gz.C.ops{j}];
     end
     if ~all(all(PIE_lin.C1==C1op_poly))
         error("C1 operator does not match")
@@ -214,8 +245,8 @@ end
 if size(PIE_lin.C2,1)>0
     C2op_poly = 0*PIE_lin.C2;
     C2op_poly = C2op_poly(:,end+1:end);
-    for j=1:numel(PIE_poly.g.C.ops)
-        C2op_poly = [C2op_poly,PIE_poly.g.C.ops{j}];
+    for j=1:numel(PIE_poly.gy.C.ops)
+        C2op_poly = [C2op_poly,PIE_poly.gy.C.ops{j}];
     end
     if ~all(all(PIE_lin.C2==C2op_poly))
         error("C2 operator does not match")

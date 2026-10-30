@@ -21,45 +21,45 @@ function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 %               state) have been computed, returning only those;
 %
 % OUTPUTS
-% - PIE:        struct with fields
-%                   'dim':  number of spatial variables in the PIE;
-%                   'dom':  dim x 2 array, each row defining the interval
-%                           associated to a spatial variable;
-%                   'vars': dim x 2 'polynomial' object, with the first
-%                           column defining the primary variables, and the
-%                           second the associated dummy variables as used
-%                           in the PI operators;
+% - PIE:        'npie_struct' object (see "@npie_struct/npie_struct")
+%               representing the PIE, with, in particular, fields
 %                   'T', 'Tw', 'Tu':  the map from the fundamental state
 %                           xf, exogenous input w, and actuator input u
 %                           to the PDE state x. T is a 'tensopmat' object
 %                           (an 'opvar' or 'opvar2d' object if flag
-%                           contains 'Top'), Tw and Tu are 'opvar' or
-%                           'opvar2d' objects;
-%                   'f', 'g', 'h':  'polyopvar' objects representing
+%                           contains 'Top'), Tw and Tu are 'tensopmat'
+%                           objects;
+%                   'f', 'gy', 'gz':  'polyopvar' objects representing
 %                           distributed polynomials defining the right-hand
 %                           side of the PIE for the state, observed output
 %                           y, and regulated output z, respectively;
-%                   'B1', 'B2':  'opvar2d' objects representing the
+%                   'Bw', 'Bu':  'tensopmat' objects representing the
 %                           contribution of the exogenous inputs w and the
 %                           actuator inputs u to the PIE state equation;
-%                   'D11', 'D12':  'opvar2d' objects representing the
+%                   'Dzw', 'Dzu':  'tensopmat' objects representing the
 %                           contribution of w and u to z;
-%                   'D21', 'D22':  'opvar2d' objects representing the
+%                   'Dyw', 'Dyu':  'tensopmat' objects representing the
 %                           contribution of w and u to y;
-%                   'x_tab', 'y_tab', 'z_tab', 'u_tab', 'w_tab':  arrays
-%                           describing for each fundamental state, output,
-%                           and input component, which PDE component it
-%                           corresponds to, what size this component is,
-%                           and which of the dim variables it depends on;
-%                   'varname_pie', 'varname_pde':  cells of 'char'
-%                           objects, with the names of the PIE and PDE
-%                           states;
-%                   'x', 'x_pde':  the fundamental state, as a 'polyopvar'
-%                           object, and the PDE state T*x.
+%                   'space', 'space_pde', 'pie2pde', 'pde2pie':  the function
+%                           spaces of the PIE and PDE, and the maps between
+%                           them. The tables 'x_tab', 'y_tab', 'z_tab',
+%                           'u_tab', and 'w_tab' describe for each
+%                           fundamental state, output, and input component,
+%                           which PDE component it corresponds to, what size
+%                           this component is, and which of the dim
+%                           variables it depends on;
+%                   'x':  the fundamental state, as a 'polyopvar'
+%                           object, computed from the function space of
+%                           the PIE, PIE.space, in which
+%                           PIE.space.x.varname and
+%                           PIE.space_pde.x.varname are the names of the
+%                           PIE and PDE states. The earlier fields 'B1',
+%                           ..., 'D22' remain accessible as aliases, and
+%                           the polynomials 'g' and 'h' are now 'gy' and
+%                           'gz', respectively;
 %               If flag contains 'Top', PIE is a 'pie_struct' object,
 %               with only the fields 'dom', 'vars', 'T', 'Tw' and 'Tu';
-%
-% NOTES
+%% NOTES
 % - For a state variable x(s1,s2), differentiable up to order i wrt s1 and
 %   order j wrt s2, the associated fundamental state variable xf(s1,s2) is
 %   defined as
@@ -111,7 +111,7 @@ function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE_nonlinear
 %
-% Copyright (C) 2026 PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -133,7 +133,15 @@ function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
-%
+% DJ (CC), 10/29/2026: Update to new npie_struct structure: return an
+%                   'npie_struct' object, with the maps between PDE and PIE
+%                   in PIE.space_pde, PIE.pie2pde and PIE.pde2pie (using
+%                   "pie_pde_maps"). The polynomials g and h are renamed gy
+%                   and gz;
+% DJ (CC), 10/29/2026: The names of the states are stored in
+%                   PIE.space.x.varname, and the PIE state PIE.x is computed
+%                   from the function space, and no longer stored in
+%                   PIE.misc; the PIE is initialized before returning;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Initialization                                          % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -186,10 +194,12 @@ end
 %     fprintf([' --- Running "expand_tderivatives" to reduce to first-order temporal derivatives ---\n']);
 %     PDE = expand_tderivatives(PDE);
 % end
+PDE0 = PDE;     del_tab = [];                                               % DJ (CC), 10/29/2026
 if PDE.has_delay
     fprintf(['\n','Delayed states on inputs were encounterd:\n']);
     fprintf([' --- Running "expand_delays" to remove the delays --- \n']);
-    PDE = expand_delays(PDE);
+%   PDE = expand_delays(PDE);                                               % DJ (CC), 10/29/2026 (was)
+    [PDE,del_tab] = expand_delays(PDE);                                     % DJ (CC), 10/29/2026
 end
 if PDE.dim>2
     fprintf(['\n','The PDE involves more than 2 spatial variables:\n']);
@@ -198,6 +208,12 @@ if PDE.dim>2
     if PDE.dim>2
         error('The number of spatial variables could not be reduced to 2 or fewer; conversion to PIE is not currently supported.')
     end
+    % The maps between the PDE and PIE are described for the PDE with the
+    % combined variables; delays are not supported in this case.            % DJ (CC), 10/29/2026
+    if ~isempty(del_tab)
+        error('Delays are not supported for PDEs in more than 2 spatial variables.')
+    end
+    PDE0 = PDE;
 end
 
 % Extract spatial variables, and their domain (these will be used in
@@ -507,7 +523,9 @@ end
 if return_Top
     % If only the T operators are requested, we stop here.
     PIE = pie_struct();
-    PIE.dom = dom;  PIE.vars = vars;
+%   PIE.dom = dom;  PIE.vars = vars;                                        % DJ (CC), 10/29/2026 (was)
+    PIE.space.vars = reshape(pvar2varname(vars(:,1)),1,[]);                 % DJ (CC), 10/29/2026
+    PIE.space.dom = dom;                                                    % DJ (CC), 10/29/2026
     PIE.T = Top.x;  PIE.Tw = Top.w;     PIE.Tu = Top.u;
     return
 end
@@ -572,10 +590,19 @@ end
 % define our PIE.
 
 % Keep track of the variables and domain of the system.
-PIE = struct();
-PIE.dom = dom;
-PIE.vars = vars;
-PIE.dim = size(PIE.vars,1);
+% % % Start of changes DJ (CC), 10/29/2026: the PIE is now an 'npie_struct'
+% % % object, with polynomials f, gy, and gz, and the operators Tw, Tu, Bw, ...
+% % % set below as 'tensopmat' objects (the old fields B1, ..., D22 remain
+% % % accessible as aliases, g and h are renamed gy and gz, and the names of the
+% % % components are stored in PIE.space.x.varname). The previous version
+% % % returned a struct, with these fields.
+%   PIE = struct();                                                         % DJ (CC), 10/29/2026 (was)
+%   PIE.dom = dom;                                                          % DJ (CC), 10/29/2026 (was)
+%   PIE.vars = vars;                                                        % DJ (CC), 10/29/2026 (was)
+%   PIE.dim = size(PIE.vars,1);                                             % DJ (CC), 10/29/2026 (was)
+PIE = npie_struct();                                                        % DJ (CC), 10/29/2026
+PIE.space.vars = reshape(pvar2varname(vars(:,1)),1,[]);                     % DJ (CC), 10/29/2026
+PIE.space.dom = dom;                                                        % DJ (CC), 10/29/2026
 
 % Store the PI operators defining the fundamental to PDE state map.
 Topi = [];
@@ -592,13 +619,16 @@ for i=1:size(x_tab,1)
 end
 %PIE.T = opvar2sopvar(clean_opvar(Top.x,op_clean_tol));
 PIE.T = Topi;
-PIE.Tw = clean_opvar(Top.w,op_clean_tol);
-PIE.Tu = clean_opvar(Top.u,op_clean_tol);
+%   PIE.Tw = clean_opvar(Top.w,op_clean_tol);                               % DJ (CC), 10/29/2026 (was)
+%   PIE.Tu = clean_opvar(Top.u,op_clean_tol);                               % DJ (CC), 10/29/2026 (was)
+% Tw, Tu, Bw, ..., are set below, once the tables describing the components % DJ (CC), 10/29/2026
+% are available.                                                            % DJ (CC), 10/29/2026
 
 % Store the PI operators defining the PIE.
-PIE.f = fx;     PIE.B1 = Bop_w2x;       PIE.B2 = Bop_u2x;
-PIE.g = fy;     PIE.D11 = Dop_w2z;      PIE.D12 = Dop_u2z;
-PIE.h = fz;     PIE.D21 = Dop_w2y;      PIE.D22 = Dop_u2y;
+%   PIE.f = fx;     PIE.B1 = Bop_w2x;       PIE.B2 = Bop_u2x;               % DJ (CC), 10/29/2026 (was)
+%   PIE.g = fy;     PIE.D11 = Dop_w2z;      PIE.D12 = Dop_u2z;              % DJ (CC), 10/29/2026 (was)
+%   PIE.h = fz;     PIE.D21 = Dop_w2y;      PIE.D22 = Dop_u2y;              % DJ (CC), 10/29/2026 (was)
+PIE.f = fx;     PIE.gz = fz;    PIE.gy = fy;                                % DJ (CC), 10/29/2026
 
 % Keep track of how the state components in the original PDE are
 % now ordered in the PIE.
@@ -609,19 +639,27 @@ u_tab(:,1) = ucomp_order;       PIE.u_tab = u_tab;
 w_tab(:,1) = wcomp_order;       PIE.w_tab = w_tab;
 
 % Store the variable names of the PDE and PIE states
-PIE.varname_pie = cell(size(x_tab,1),1);
-PIE.varname_pde = cell(size(x_tab,1),1);
-ndig_x = numel(num2str(size(x_tab,1)));
-for i=1:size(x_tab,1)
-    PIE.varname_pde{i} = ['x',num2str(x_tab(i,1))];
-    PIE.varname_pie{i} = ['x',num2str(i,['%0',num2str(ndig_x),'d']),'_pie'];
-end
+%   PIE.varname_pie = cell(size(x_tab,1),1);                                % DJ (CC), 10/29/2026 (was)
+%   PIE.varname_pde = cell(size(x_tab,1),1);                                % DJ (CC), 10/29/2026 (was)
+%   ndig_x = numel(num2str(size(x_tab,1)));                                 % DJ (CC), 10/29/2026 (was)
+%   for i=1:size(x_tab,1)                                                   % DJ (CC), 10/29/2026 (was)
+%       PIE.varname_pde{i} = ['x',num2str(x_tab(i,1))];                     % DJ (CC), 10/29/2026 (was)
+%       PIE.varname_pie{i} = ['x',num2str(i,['%0',num2str(ndig_x),'d']),'_pie'];   % DJ (CC), 10/29/2026 (was)
+%   end                                                                     % DJ (CC), 10/29/2026 (was)
+%   % Store the PIE state variables                                         % DJ (CC), 10/29/2026 (was)
+%   xvars = polyopvar(PIE.varname_pie,x_tab(:,2),PIE.vars(:,1),PIE.dom,logical(x_tab(:,3:2+nvars)));   % DJ (CC), 10/29/2026 (was)
+%   PIE.x = xvars;                                                          % DJ (CC), 10/29/2026 (was)
 
-% Store the PIE state variables
-xvars = polyopvar(PIE.varname_pie,x_tab(:,2),PIE.vars(:,1),PIE.dom,logical(x_tab(:,3:2+nvars)));
-PIE.x = xvars;
-PIE.x_pde = PIE.T*xvars;
-
+% The names of the PIE states are those used in the polynomials f, gy, gz,
+% and the zero-padded numbers ensure the names are sorted, as the components   % DJ (CC), 10/29/2026
+% of PIE.x are. The PIE state PIE.x is now constructed from PIE.space, and    % DJ (CC), 10/29/2026
+% the names of the PDE states, 'x1', 'x2', ..., are assigned by "initialize". % DJ (CC), 10/29/2026
+ndig_x = numel(num2str(size(x_tab,1)));                                     % DJ (CC), 10/29/2026
+PIE.space.x.varname = cell(size(x_tab,1),1);                                % DJ (CC), 10/29/2026
+for i=1:size(x_tab,1)                                                       % DJ (CC), 10/29/2026
+    PIE.space.x.varname{i} = ['x',num2str(i,['%0',num2str(ndig_x),'d']),'_pie'];    % DJ (CC), 10/29/2026
+end                                                                         % DJ (CC), 10/29/2026
+% % % End of changes DJ (CC), 10/29/2026
 % Account for the introduction of boundary values of the inputs
 PIE.w_tab = PIE.w_tab(w_idcs,:);
 PIE.u_tab = PIE.u_tab(u_idcs,:);
@@ -650,6 +688,27 @@ else
     tdiff_tab = [(1:numel(PDE.x))',zeros(numel(PDE.x),1)];
 end
 
+% % % Start of changes DJ (CC), 10/29/2026: convert the operators mapping the
+% % % inputs to 'tensopmat' objects, with a block for each of the components
+% % % of the state, inputs, and outputs (these were previously the 'opvar' or
+% % % 'opvar2d' objects Top.w, Top.u, Bop_w2x, ..., stored as PIE.Tw, ..., PIE.D22).
+PIE.Tw = opvar2tensopmat_comps(Top.w,PIE.x_tab,PIE.w_tab,op_clean_tol);     % DJ (CC), 10/29/2026
+PIE.Tu = opvar2tensopmat_comps(Top.u,PIE.x_tab,PIE.u_tab,op_clean_tol);     % DJ (CC), 10/29/2026
+PIE.Bw = opvar2tensopmat_comps(Bop_w2x,PIE.x_tab,PIE.w_tab,op_clean_tol);   % DJ (CC), 10/29/2026
+PIE.Bu = opvar2tensopmat_comps(Bop_u2x,PIE.x_tab,PIE.u_tab,op_clean_tol);   % DJ (CC), 10/29/2026
+PIE.Dzw = opvar2tensopmat_comps(Dop_w2z,PIE.z_tab,PIE.w_tab,op_clean_tol);  % DJ (CC), 10/29/2026
+PIE.Dzu = opvar2tensopmat_comps(Dop_u2z,PIE.z_tab,PIE.u_tab,op_clean_tol);  % DJ (CC), 10/29/2026
+PIE.Dyw = opvar2tensopmat_comps(Dop_w2y,PIE.y_tab,PIE.w_tab,op_clean_tol);  % DJ (CC), 10/29/2026
+PIE.Dyu = opvar2tensopmat_comps(Dop_u2y,PIE.y_tab,PIE.u_tab,op_clean_tol);  % DJ (CC), 10/29/2026
+
+% Describe the function spaces of the PDE, and the maps between the PDE and
+% PIE variables.                                                            % DJ (CC), 10/29/2026
+PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop);                               % DJ (CC), 10/29/2026
+% Check that the PIE is well-defined, and name the components that have not  % DJ (CC), 10/29/2026
+% been named, using "initialize".                                           % DJ (CC), 10/29/2026
+PIE = initialize(PIE);                                                      % DJ (CC), 10/29/2026
+% % % End of changes DJ (CC), 10/29/2026
+
 % Finally, provide an overview of how the new state variables relate to the
 % PDE variables.
 if ~suppress_summary
@@ -662,6 +721,43 @@ if ~suppress_summary
     end
 end
 
+end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+%% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function Cop = opvar2tensopmat_comps(Pop,tab_out,tab_in,tol)
+% COP = OPVAR2TENSOPMAT_COMPS(POP,TAB_OUT,TAB_IN,TOL) converts an 'opvar' or
+% 'opvar2d' object to a 'tensopmat' object with a block for each of the
+% components of the output and input.                                       % DJ (CC), 10/29/2026
+%
+% INPUT
+% - Pop:    'opvar' or 'opvar2d' object, mapping between spaces ordered by
+%           type (R, L2[s1], ...), as are the components in the tables;
+% - tab_out, tab_in:    tables describing the output and input components,
+%           with the sizes of the components in the second column;
+% - tol:    coefficients smaller than tol are discarded;
+%
+% OUTPUT
+% - Cop:    'tensopmat' object with a row for each output component and a
+%           column for each input component, or [] if there are no
+%           components in the output or the input;
+Cop = [];
+if isempty(tab_out) || isempty(tab_in)
+    return
+end
+nn_out = [0;cumsum(tab_out(:,2))];
+nn_in = [0;cumsum(tab_in(:,2))];
+for i=1:size(tab_out,1)
+    Cop_i = [];
+    for j=1:size(tab_in,1)
+        Pij = opvar2sopvar(clean_opvar(Pop(nn_out(i)+1:nn_out(i+1),nn_in(j)+1:nn_in(j+1)),tol));
+        Cop_i = [Cop_i, tensopmat(tensopvar(Pij))];
+    end
+    Cop = [Cop; Cop_i];
+end
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 

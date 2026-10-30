@@ -2,16 +2,20 @@
 % states returned by convert_PIETOOLS_PDE_nonlinear. The kth variable of
 % the 'polyopvar' PIE.x (which sorts its variables by name) must be the
 % kth state component in x_tab, i.e. the kth column of the operator T and
-% the kth state in PIE.varname_pie and PIE.varname_pde, also if the
+% the kth state in PIE.space.x.varname and the PDE state with name
+% PIE.space_pde.x.varname(PIE.pde2pie.x.idx(k,1)), also if the
 % converter reorders the state components, and if there are 10 or more
-% states. PIE.varname_pie must be sorted, and the same as PIE.x.varname
+% states. PIE.space.x.varname must be sorted, and the same as PIE.x.varname
 % and the names in f.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ, 10/29/2026: Use the names in PIE.space.x.varname and
+%                   PIE.space_pde.x.varname, instead of PIE.varname_pie and
+%                   PIE.varname_pde (which are removed);
 %
 % NOTES:
 % - 'clear stateNameGenerator' restarts the state numbering in each case,
-%   so the PDE states are named x1, x2, ... as the checks (varname_pde =
+%   so the PDE states are named x1, x2, ... as the checks (space_pde.x.varname =
 %   'x<x_tab(i,1)>') assume.
 
 pvar s t
@@ -32,7 +36,8 @@ if isequal(PIE.x_tab(:,1),sort(PIE.x_tab(:,1)))
 end
 check_names(PIE,'reordered');
 % The first state is the first order state u2: T = int_0^s
-if ~strcmp(PIE.varname_pde{1},'x2')
+%   if ~strcmp(PIE.varname_pde{1},'x2')                                     % DJ, 10/29/2026 (was)
+if ~strcmp(PIE.space_pde.x.varname{PIE.pde2pie.x.idx(1,1)},'x2')            % DJ, 10/29/2026
     error("Test_convert_PDE_nonlinear_varnames failed: the first state is not the PDE state x2.")
 end
 v = 3*s^2+1;                                        % state value of the first order state
@@ -61,19 +66,20 @@ fprintf('Test_convert_PDE_nonlinear_varnames passed (%d cases).\n',ncases)
 
 function check_names(PIE,label)
 nx = size(PIE.x_tab,1);
-names = PIE.varname_pie;
+names = PIE.space.x.varname;                                                % DJ, 10/29/2026
+names_pde = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1));                % DJ, 10/29/2026
 if ~isequal(names,sort(names))
-    error("Test_convert_PDE_nonlinear_varnames failed (%s): PIE.varname_pie is not sorted.",label)
+    error("Test_convert_PDE_nonlinear_varnames failed (%s): PIE.space.x.varname is not sorted.",label)
 elseif ~isequal(reshape(PIE.x.varname,[],1),reshape(names,[],1))
-    error("Test_convert_PDE_nonlinear_varnames failed (%s): PIE.x.varname differs from PIE.varname_pie.",label)
-elseif numel(PIE.varname_pde)~=nx || numel(names)~=nx
+    error("Test_convert_PDE_nonlinear_varnames failed (%s): PIE.x.varname differs from PIE.space.x.varname.",label)
+elseif numel(names_pde)~=nx || numel(names)~=nx
     error("Test_convert_PDE_nonlinear_varnames failed (%s): number of names differs from the number of states.",label)
 elseif ~all(ismember(PIE.f.varname,names))
-    error("Test_convert_PDE_nonlinear_varnames failed (%s): the names in f are not those in PIE.varname_pie.",label)
+    error("Test_convert_PDE_nonlinear_varnames failed (%s): the names in f are not those in PIE.space.x.varname.",label)
 end
 for i=1:nx
-    if ~strcmp(PIE.varname_pde{i},['x',num2str(PIE.x_tab(i,1))])
-        error("Test_convert_PDE_nonlinear_varnames failed (%s): varname_pde does not match x_tab.",label)
+    if ~strcmp(names_pde{i},['x',num2str(PIE.x_tab(i,1))])
+        error("Test_convert_PDE_nonlinear_varnames failed (%s): the PDE state names do not match x_tab.",label)
     end
 end
 end

@@ -48,6 +48,8 @@
 % DB, 12/29/2024: Use pde_var objects instead of sys and state;
 % DJ, 12/30/2024: Remove 'ndiff' input to PIESIM;
 % YP, 02/23/2026: Update inputs and outputs to PIESIM
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
 clear
 
 
@@ -148,16 +150,19 @@ PIE = convert(odepde,'pie');
 
 % Verify stability of the system by runnig the stability executive.
 settings = lpisettings('heavy');    % use heavy settings: more expensive but less conservative
-lpiscript(PIE,'stability',settings);
+%   lpiscript(PIE,'stability',settings);                                    % DJ (CC), 10/29/2026 (was)
+lpiscript_sop(PIE,'stability',settings);                                    % DJ (CC), 10/29/2026
 
 % Compute an upper bound gam on the H_infty norm or L2-gain of the system,
 % so that ||z(.)||_{L2} <= gam*||w(.)||_{L2}.
-[~,~, gam] = lpiscript(PIE,'l2gain',settings);
+%   [~,~, gam] = lpiscript(PIE,'l2gain',settings);                          % DJ (CC), 10/29/2026 (was)
+[~,~, gam] = lpiscript_sop(PIE,'l2gain',settings);                          % DJ (CC), 10/29/2026
 
 % Compute a feedback gain operator K that minimizes the H_infty norm of the
 % closed-loop system with state feedback u = K*v, for fundamental (PIE)
 % state v.
-[~, Kval, gam_CL] = lpiscript(PIE,'hinf-controller','light');
+%   [~, Kval, gam_CL] = lpiscript(PIE,'hinf-controller','light');           % DJ (CC), 10/29/2026 (was)
+[~, Kval, gam_CL] = lpiscript_sop(PIE,'hinf-controller','light');           % DJ (CC), 10/29/2026
 
 % Now, we construct the closed-loop system using the controller obtained by
 % solving the above LPI and then re-runs the simulations to see if there

@@ -1422,7 +1422,7 @@ function case_ode_rows()
         for i=1:nst
             U0{i} = u0(row0(i)+1:row0(i+1));
         end
-        xu = polyopvar(PIE.varname_pde,sz,{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
+        xu = polyopvar(PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)),sz,{'s'},PIE.dom,logical(PIE.x_tab(:,3)));
         Zu = dmonomials(xu,1);
         % (a) all states
         Zref = eval_polyopvar(Zu,U0);
@@ -1433,7 +1433,7 @@ function case_ode_rows()
         % (b) substitution of a subset of the states: the others remain
         for i=1:nst
             vals = U0;      vals(i) = [];
-            names = PIE.varname_pde(i);
+            names = PIE.space_pde.x.varname(PIE.pde2pie.x.idx(i,1));
             ridx = row0(i)+1:row0(i+1);
             % substitute only state i by its row(s) of Tx: the remaining PDE states stay
             Tx_i = Tx(ridx,:);
@@ -1454,7 +1454,7 @@ function case_ode_rows()
             Vref = Vref + q;
         end
         vals = struct();
-        for i=1:nst,     vals.(PIE.varname_pie{i}) = X0{i};     end
+        for i=1:nst,     vals.(PIE.space.x.varname{i}) = X0{i};     end
         Y = eval_V_ode_rows(V,vals);
         check_equal(Y,Vref,tol,sprintf('example %d, innerprod',ex));
         ncases = ncases+1;
@@ -2803,11 +2803,11 @@ function xv = state_values(P,PIE,X0,U0)
 % are given a value of the right size)
 xv = cell(numel(P.varname),1);
 for k=1:numel(xv)
-    [tf,jx] = ismember(P.varname{k},PIE.varname_pie);
+    [tf,jx] = ismember(P.varname{k},PIE.space.x.varname);
     if tf
         xv{k} = X0{jx};
     else
-        [~,jx] = ismember(P.varname{k},PIE.varname_pde);
+        [~,jx] = ismember(P.varname{k},PIE.space_pde.x.varname(PIE.pde2pie.x.idx(:,1)));
         xv{k} = U0{jx};
     end
 end

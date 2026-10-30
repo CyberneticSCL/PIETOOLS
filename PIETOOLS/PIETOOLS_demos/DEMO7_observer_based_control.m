@@ -69,6 +69,8 @@
 % DJ, 12/15/2024: Use PIESIM_plotsolution to plot simulation results;
 % DJ, 12/22/2024: Use piess and pielft;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -107,8 +109,10 @@ C2 = PIE.C2;    D21 = PIE.D21;  D22 = PIE.D22;
 
 % % Use the predefined Hinf control and estimator functions.
 settings = lpisettings('heavy');
-[prog_k, Kval, gam_co_val] = lpiscript(PIE,'hinf-controller',settings);
-[prog_l, Lval, gam_ob_val] = lpiscript(PIE,'hinf-observer',settings);
+%   [prog_k, Kval, gam_co_val] = lpiscript(PIE,'hinf-controller',settings); % DJ (CC), 10/29/2026 (was)
+[prog_k, Kval, gam_co_val] = lpiscript_sop(PIE,'hinf-controller',settings); % DJ (CC), 10/29/2026
+%   [prog_l, Lval, gam_ob_val] = lpiscript(PIE,'hinf-observer',settings);   % DJ (CC), 10/29/2026 (was)
+[prog_l, Lval, gam_ob_val] = lpiscript_sop(PIE,'hinf-observer',settings);   % DJ (CC), 10/29/2026
 
 % % Construct the closed-loop PIE system
 % Declare Luenberger estimator with input y and output u

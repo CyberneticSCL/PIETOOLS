@@ -11,7 +11,7 @@
 % BCs: u1(t,0) = u1(t,1) = 0;
 %
 % We also declare the output z = (u1_s,u2), so that the PIE has the
-% output PIE.h = R*x = z.
+% output PIE.gz = R*x = z.
 %
 % This script tests stability of the PIE, by constructing a distributed
 % SOS Lyapunov functional V(x) = <Zop*Z(x),Pmat*Zop*Z(Tx)>, with
@@ -33,6 +33,7 @@
 % q3_deg of the monomials of W1, W2 and W3.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/29/2026: Use the regulated output polynomial PIE.gz, instead of PIE.h;
 
 clear;  clear stateNameGenerator
 
@@ -109,7 +110,7 @@ end
 if use_L2_pos % LF lower bound dependent on ball.
     V_low = Vx - eppos*innerprod(Tx,Tx);
 else
-    Rx = PIE.h;
+    Rx = PIE.gz;
     V_low = Vx - eppos*innerprod(Rx,Rx);
 end
 

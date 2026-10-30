@@ -29,6 +29,7 @@
 % not set and the derivative dV is not computed.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 10/29/2026: Use the regulated output polynomial PIE.gz, instead of PIE.h;
 
 clear;  clear stateNameGenerator
 
@@ -152,7 +153,7 @@ disp(" --- Declaring the local ball ---")
 if use_L2_ball
     g = q_sobolev^2 - innerprod(Tx,Tx); % L2 ball of radius R.
 else
-    Rx = PIE.h;
+    Rx = PIE.gz;
     g = q_sobolev^2 - innerprod(Rx,Rx); % Sobolev ball of radius R. - innerprod(Tx,Tx) 
 end
 

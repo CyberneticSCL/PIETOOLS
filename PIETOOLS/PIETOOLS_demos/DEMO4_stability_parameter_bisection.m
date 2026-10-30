@@ -39,6 +39,8 @@
 % DJ, 12/22/2024: Explicitly construct stability LPI;
 % DB, 12/29/2024: Use pde_var objects instead of sys and state;
 % DJ, 05/18/2025: Declare no particular SDP solver by default;
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -93,7 +95,7 @@ for iter = 1:n_iters
     prog = lpisolve(prog,solve_opts);
 
     % % Alternatively, uncomment to run pre-defined stability executive
-    % prog = lpiscript(PIE,'stability',settings);
+    % prog = lpiscript_sop(PIE,'stability',settings);                       % DJ (CC), 10/29/2026
 
     % Check if the system is stable
     is_pinf = prog.solinfo.info.pinf;       % is primal feasible?

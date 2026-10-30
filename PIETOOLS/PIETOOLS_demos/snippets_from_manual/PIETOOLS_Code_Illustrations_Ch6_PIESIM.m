@@ -33,6 +33,8 @@
 % YP, 02/17/2026: Renamed solution.final.ode/solution.final.pde{1,2,3} into
 % solution.final.primary{1,2,3,4}; renamed solution.timedep.ode/solution.timedep.pde{1,2,3} into
 % solution.timedep.primary{1,2,3,4}
+% DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
+%                   executives do not support the new pie_struct;
 clc; clear; close all; clear stateNameGenerator
 
 %% 6.4.1: 1D PDE Example
@@ -325,7 +327,8 @@ xlabel('$t$','FontSize',14,'Interpreter','latex');
 %% 6.4.5 PIE Simulation
 % Synthesize an optimal controller for the DDE in PIE representation
 PIE = convert_PIETOOLS_DDE(DDE,'pie');
-[~, K, gam] = lpiscript(PIE,'hinf-controller','light');
+%   [~, K, gam] = lpiscript(PIE,'hinf-controller','light');                 % DJ (CC), 10/29/2026 (was)
+[~, K, gam] = lpiscript_sop(PIE,'hinf-controller','light');                 % DJ (CC), 10/29/2026
 PIE_CL = closedLoopPIE(PIE,K);
 % Declare discretization and temporal integration options
 opts.plot = 'yes';

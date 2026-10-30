@@ -43,18 +43,28 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %           column defining the primary variables, and the second the
 %           associated dummy variables as used in the opvar objects.
 %
+%           space_pde, pie2pde, pde2pie: The function spaces of the PDE,
+%           and the maps between the PDE and PIE states, inputs, and
+%           outputs, see also "@pie_struct/pie_struct". These are set by
+%           "pie_pde_maps", using also the delays expanded by
+%           "expand_delays" (pde2pie.x.delay, loc, diff, tdiff).
+%
 %           x_tab, y_tab, z_tab, u_tab, w_tab: Arrays describing for each
 %           fundamental state, input, and output component, which PDE
 %           state, input, or output component it corresponds to, what size
 %           this component is, and which of the dim variables it depends
 %           on.
 %           
-%           F, K: Optional operators for Generalized Periodic
+%           K: Optional operator for Generalized Periodic
 %           Boundary Conditions (PBCs) as treated in [Jagt, 2025].
-%           The augmented state is v = [PIE.F*x; xf] and must satisfy
-%           PIE.K*v = 0. Both fields are [] for the usual conversion.
-%           The reconstruction map and auxiliary state metadata
-%           are stored in PIE.misc.periodic.  DB, 10/27/2026:
+%           The augmented state is v = [F*x; xf] and must satisfy
+%           PIE.K*v = 0. K is [] for the usual conversion.
+%           The operator F, mapping the PDE state to the first
+%           PIE.misc.periodic.n_aux components of v, is stored in the map
+%           from PDE to PIE, PIE.pde2pie.x.C (see also
+%           "@pie_struct/pie_struct"). The reconstruction map and
+%           auxiliary state metadata are stored in PIE.misc.periodic.
+%           DB, 10/27/2026:
 %           In 2D, periodic BCs are supported along one of the two
 %           spatial directions (with regular BCs along the other), in which
 %           case the augmented states are functions of the other variable,
@@ -117,7 +127,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - convert_PIETOOLS_PDE
 %
-% Copyright (C)2026 PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -171,6 +181,12 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %                   direction, with regular BCs along the other, using
 %                   "compute_PIETOOLS_PDE_periodic_map_2D"; fall back on
 %                   Option 2 if the separable expansion finds periodic BCs.
+% DJ (CC), 10/29/2026: Update to new pie_struct structure: describe the PDE
+%                   function spaces and the maps between the PDE and PIE in
+%                   PIE.space_pde, PIE.pie2pde and PIE.pde2pie (using the
+%                   new function "pie_pde_maps"). The operator PIE.F for
+%                   periodic BCs is now stored in PIE.pde2pie.x.C, so the
+%                   DB, 10/27/2026 assignment PIE.F = Fop is removed;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -240,6 +256,9 @@ if ~isempty(x_noeq)
             ' A PDE without dynamics describes a boundary value problem, which cannot be converted to a PIE.']) 
 end                                                                         
 
+% Keep track of the original PDE, for the maps between the PDE and PIE.    % DJ (CC), 10/29/2026
+PDE0 = PDE;     del_tab = [];                                               % DJ (CC), 10/29/2026
+
 % Pass to nonlinear converter if appropriate
 if PDE.is_nonlinear
     PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag);
@@ -256,7 +275,8 @@ end
 if PDE.has_delay
     fprintf(['\n','Delayed states on inputs were encounterd:\n']);
     fprintf([' --- Running "expand_delays" to remove the delays --- \n']);
-    PDE = expand_delays(PDE);
+%   PDE = expand_delays(PDE);                                               % DJ (CC), 10/29/2026 (was)
+    [PDE,del_tab] = expand_delays(PDE);                                     % DJ (CC), 10/29/2026
 end
 if PDE.dim>2
     fprintf(['\n','The PDE involves more than 2 spatial variables:\n']);
@@ -265,6 +285,12 @@ if PDE.dim>2
     if PDE.dim>2
         error('The number of spatial variables could not be reduced to 2 or fewer; conversion to PIE is not currently supported.')
     end
+    % The PDE for which the maps to the PIE are described has the combined
+    % variables. Delays are not supported in this case.                     % DJ (CC), 10/29/2026
+    if ~isempty(del_tab)                                                    % DJ (CC), 10/29/2026
+        error('Delays are not supported for PDEs in more than 2 spatial variables.')    % DJ (CC), 10/29/2026
+    end                                                                     % DJ (CC), 10/29/2026
+    PDE0 = PDE;                                                             % DJ (CC), 10/29/2026
 end
 
 % Extract spatial variables, and their domain (these will be used in
@@ -661,10 +687,14 @@ end
 if return_Top
     % If only the T operators are requested, we stop here.
     PIE = pie_struct();    
-    PIE.dom = dom;  PIE.vars = vars;
+%   PIE.dom = dom;  PIE.vars = vars;                                        % DJ (CC), 10/29/2026 (was)
+    PIE.space.vars = reshape(pvar2varname(vars(:,1)),1,[]);                 % DJ (CC), 10/29/2026
+    PIE.space.dom = dom;                                                    % DJ (CC), 10/29/2026
     PIE.T = Top.x;  PIE.Tw = Top.w;     PIE.Tu = Top.u;
     if ~isempty(periodic_info) % DB, 10/27/2026
         PIE = augment_periodic_map(PIE,Top,Fop,Kop,periodic_info); % DB, 10/27/2026
+        % Without the maps to the PDE, keep F in PIE.misc.                  % DJ (CC), 10/29/2026
+        PIE.misc.periodic.F = Fop;                                          % DJ (CC), 10/29/2026
     end  % DB, 10/27/2026
     return  
 end
@@ -808,8 +838,10 @@ end
 
 % Keep track of the variables and domain of the system.
 PIE = pie_struct();
-PIE.dom = dom;
-PIE.vars = vars;
+%   PIE.dom = dom;                                                          % DJ (CC), 10/29/2026 (was)
+%   PIE.vars = vars;                                                        % DJ (CC), 10/29/2026 (was)
+PIE.space.vars = reshape(pvar2varname(vars(:,1)),1,[]);                     % DJ (CC), 10/29/2026
+PIE.space.dom = dom;                                                        % DJ (CC), 10/29/2026
 
 % Store the PI operators defining the fundamental to PDE state map.
 PIE.T = Top.x;
@@ -887,6 +919,10 @@ else
     end% DB, 10/27/2026
 end
 
+% Describe the function spaces of the PDE, and the maps between the PDE and
+% PIE variables, including the operator F for periodic BCs in pde2pie.x.C.  % DJ (CC), 10/29/2026
+PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop,Fop);                           % DJ (CC), 10/29/2026
+
 % Finally, provide an overview of how the new state variables relate to the
 % PDE variables.                                                            % DJ, 06/18/2025
 if ~suppress_summary
@@ -895,7 +931,7 @@ if ~suppress_summary
         obj = objs{idx};
         if strcmp(obj,'x') && ~isempty(periodic_info)   % DB, 10/27/2026
             fprintf('\nAdded %d moment states v0 = F*x; the other states are the declared spatial derivatives.\n',periodic_info.n_aux); % DB, 10/27/2026
-            fprintf('The PIE state must satisfy PIE.K*v = 0; moments are defined by PIE.F.\n'); % DB, 10/27/2026
+            fprintf('The PIE state must satisfy PIE.K*v = 0; moments are defined by PIE.pde2pie.x.C.\n');   % DJ (CC), 10/29/2026 (was PIE.F) % DB, 10/27/2026
             continue% DB, 10/27/2026
         end% DB, 10/27/2026
         if size(PIE.([obj,'_tab']),1)>=1
@@ -923,7 +959,9 @@ function PIE = augment_periodic_map(PIE,Top,Fop,Kop,info) % DB, 10/27/2026
     PIE.T = [selector; Top.x];% DB, 10/27/2026
     PIE.Tw = [Fop*Top.w; Top.w];% DB, 10/27/2026
     PIE.Tu = [Fop*Top.u; Top.u];% DB, 10/27/2026
-    PIE.F = Fop;% DB, 10/27/2026
+%   PIE.F = Fop;% DB, 10/27/2026                                            % DJ (CC), 10/29/2026 (was)
+    % F is not a field of the PIE, but the map from the PDE state to the moment    % DJ (CC), 10/29/2026
+    % components of the PIE state, PIE.pde2pie.x.C, set by pie_pde_maps.    % DJ (CC), 10/29/2026
     PIE.K = Kop;% DB, 10/27/2026
     PIE.misc.periodic = info;% DB, 10/27/2026
 end
