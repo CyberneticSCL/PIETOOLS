@@ -4,15 +4,16 @@ function cl = lpi_classify_sop(prog,obj)
 % program PROG from the flags of prog.solinfo.info: status 'infeasible' if
 % pinf = 1, else 'unbounded' if dinf = 1, else 'inaccurate' if numerr = 1,
 % else 'unknown' if numerr is nonzero, else 'optimal'; 'unsolved' when
-% PROG carries no solver report. It reads back the value of the objective
-% OBJ and marks an 'unknown' exit as divergent unless OBJ is given and its
-% value is at most 1e3 in modulus.
+% PROG carries no solver report. It passes on the residual of the SDP
+% equality system at the returned point, reads back the value of the
+% objective OBJ, and marks an 'unknown' exit as divergent unless OBJ is
+% given and its value is at most 1e3 in modulus.
 %
 % INPUT
 % - prog:   'struct', an LPI program solved by lpisolve or sossolve; read
 %           is the 'struct' prog.solinfo.info, with the optional fields
-%           numerr, pinf, dinf (double, default 0), feasratio and cpusec
-%           (double, default NaN);
+%           numerr, pinf, dinf (double, default 0), feasratio, cpusec,
+%           relres and eta (double, default NaN);
 % - obj:    (optional) 'dpvar' or 'polynomial' object, the objective of
 %           PROG (a scalar function of its decision variables), or 'char',
 %           the name of a decision variable (default []: no objective).
@@ -21,9 +22,13 @@ function cl = lpi_classify_sop(prog,obj)
 % - cl:     'struct' with fields
 %             status     char, 'optimal', 'inaccurate', 'infeasible',
 %                        'unbounded', 'unknown' or 'unsolved';
-%             numerr, pinf, dinf, feasratio, cpusec
+%             numerr, pinf, dinf, feasratio, cpusec, relres, eta
 %                        double, the fields of prog.solinfo.info (the
 %                        defaults above when absent; NaN for 'unsolved');
+%                        relres = ||A*x-b||/||b|| and eta, the row-normwise
+%                        backward error, are the residual of the SDP
+%                        equality system A*x = b at the returned point x
+%                        (SOSSOLVE);
 %             obj        double, the value of OBJ (NaN without OBJ, for
 %                        'unsolved', or when it cannot be read back);
 %             divergent  logical, true for status 'unknown' with obj NaN or
@@ -66,11 +71,17 @@ function cl = lpi_classify_sop(prog,obj)
 % MMP, 10/30/2026: A nonzero numerr other than 1 and 2 is now 'unknown';
 %                it was 'optimal', and so certified. SOSSOLVE passes the
 %                SDPT3 termcode as numerr when it is <= 0, and a negative
-%                termcode is a failed solve (-6: iteration limit).
+%                termcode is a failed solve (-6: iteration limit). The
+%                residual of the SDP equality system at the returned point
+%                (relres, eta) is passed on from the solver report, so an
+%                exit is judged by its residual when the solver sets no
+%                infeasibility flags.
 
 % Every field unset; 'unsolved' without a solver report
+%   cl = struct('status','','numerr',NaN,'pinf',NaN,'dinf',NaN,'feasratio',NaN,'obj',NaN, ...
+%               'divergent',false,'divtol',1e3,'cpusec',NaN);               % MMP, 10/30/2026 (was)
 cl = struct('status','','numerr',NaN,'pinf',NaN,'dinf',NaN,'feasratio',NaN,'obj',NaN, ...
-            'divergent',false,'divtol',1e3,'cpusec',NaN);
+            'divergent',false,'divtol',1e3,'cpusec',NaN,'relres',NaN,'eta',NaN); % MMP, 10/30/2026
 if ~isfield(prog,'solinfo') || ~isfield(prog.solinfo,'info')
     cl.status = 'unsolved';     return
 end
@@ -79,6 +90,8 @@ info = prog.solinfo.info;
 g = @(f,dflt) local_get(info,f,dflt);
 cl.numerr = g('numerr',0);  cl.pinf = g('pinf',0);  cl.dinf = g('dinf',0);
 cl.feasratio = g('feasratio',NaN);  cl.cpusec = g('cpusec',NaN);
+% Residual of the SDP equality system at the returned point (NaN when absent)
+cl.relres = g('relres',NaN);    cl.eta = g('eta',NaN);                      % MMP, 10/30/2026
 % Value of the objective; NaN when it cannot be read back
 if nargin>=2 && ~isempty(obj)
     try

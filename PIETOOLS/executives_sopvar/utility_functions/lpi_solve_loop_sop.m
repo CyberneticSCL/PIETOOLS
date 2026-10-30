@@ -26,14 +26,16 @@ function [prog,aux,hist] = lpi_solve_loop_sop(build,st,label)
 %                       obj (double, the objective value, NaN without one),
 %                       divergent (logical, true for status 'unknown' with
 %                       obj NaN or |obj| > divtol), divtol (double, 1e3),
-%                       numerr, pinf, dinf, feasratio, cpusec (double, from
-%                       the solver report);
+%                       numerr, pinf, dinf, feasratio, cpusec, relres, eta
+%                       (double, from the solver report; relres and eta
+%                       are the residual of the SDP equality system at the
+%                       returned point, LPI_CLASSIFY_SOP);
 %             dw        double, the raise of the last pass;
 %             hist      HIST;
 %           added;
 % - hist:   'struct' array, one entry per pass, with fields dw, status,
-%           divergent, obj, numerr, pinf, dinf (as in classify), ndv
-%           (double, the number of decision variables,
+%           divergent, obj, numerr, pinf, dinf, relres, eta (as in
+%           classify), ndv (double, the number of decision variables,
 %           numel(prog.decvartable)), m (double, the number of equality
 %           rows of the SDP, the columns of every prog.expr.At{e}), t_build
 %           and t_solve (double, seconds).
@@ -78,13 +80,19 @@ function [prog,aux,hist] = lpi_solve_loop_sop(build,st,label)
 %                  in the body; code unchanged. The deleted header text was
 %                  the rationale for raising on each status, a notes
 %                  reference and measurement results.
+% MMP, 10/30/2026: The history and the printed line of each pass carry
+%                  relres and eta, the residual of the SDP equality system
+%                  at the returned point, so a pass can be judged by its
+%                  residual when the solver sets no infeasibility flags.
 
 % Default label; complete the container options
 if nargin<3,    label = '';     end
 st = exec_sop_settings(st);
 % Empty history; the first pass at raise 0
+%   hist = struct('dw',{},'status',{},'divergent',{},'obj',{},'numerr',{},'pinf',{},'dinf',{}, ...
+%                 'ndv',{},'m',{},'t_build',{},'t_solve',{});               % MMP, 10/30/2026 (was)
 hist = struct('dw',{},'status',{},'divergent',{},'obj',{},'numerr',{},'pinf',{},'dinf',{}, ...
-              'ndv',{},'m',{},'t_build',{},'t_solve',{});
+              'relres',{},'eta',{},'ndv',{},'m',{},'t_build',{},'t_solve',{}); % MMP, 10/30/2026
 dw = 0;
 for it = 0:st.sop.max_raise
     % Build and solve at raise dw, timing each
@@ -99,13 +107,20 @@ for it = 0:st.sop.max_raise
         for e = 1:numel(prog.expr.At),  m = m + size(prog.expr.At{e},2);    end
     end
     % Record and print the pass
+%       hist(end+1) = struct('dw',dw,'status',cl.status,'divergent',cl.divergent,'obj',cl.obj, ...
+%                            'numerr',cl.numerr,'pinf',cl.pinf,'dinf',cl.dinf, ...
+%                            'ndv',numel(prog.decvartable),'m',m,'t_build',tb,'t_solve',ts); %#ok<AGROW> % MMP, 10/30/2026 (was)
     hist(end+1) = struct('dw',dw,'status',cl.status,'divergent',cl.divergent,'obj',cl.obj, ...
                          'numerr',cl.numerr,'pinf',cl.pinf,'dinf',cl.dinf, ...
-                         'ndv',numel(prog.decvartable),'m',m,'t_build',tb,'t_solve',ts); %#ok<AGROW>
+                         'relres',cl.relres,'eta',cl.eta, ...
+                         'ndv',numel(prog.decvartable),'m',m,'t_build',tb,'t_solve',ts); %#ok<AGROW> % MMP, 10/30/2026
     if st.sop.verbose
-        fprintf('  [%s] dw %d: %s%s, objective %s, %d decision variables, %d rows, build %.1f s, solve %.1f s\n', ...
-                label,dw,cl.status,tern(cl.divergent,' (divergent)',''),num2str(cl.obj,'%.8g'), ...
-                numel(prog.decvartable),m,tb,ts);
+%           fprintf('  [%s] dw %d: %s%s, objective %s, %d decision variables, %d rows, build %.1f s, solve %.1f s\n', ...
+%                   label,dw,cl.status,tern(cl.divergent,' (divergent)',''),num2str(cl.obj,'%.8g'), ...
+%                   numel(prog.decvartable),m,tb,ts);                       % MMP, 10/30/2026 (was)
+        fprintf('  [%s] dw %d: %s%s, residual %.1e, eta %.1e, objective %s, %d decision variables, %d rows, build %.1f s, solve %.1f s\n', ...
+                label,dw,cl.status,tern(cl.divergent,' (divergent)',''),cl.relres,cl.eta, ...
+                num2str(cl.obj,'%.8g'),numel(prog.decvartable),m,tb,ts);    % MMP, 10/30/2026
     end
     % Stop unless the status is 'unknown' or 'infeasible' and a raise is
     % left; otherwise raise the slack weight by one
