@@ -57,6 +57,7 @@
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 12/23/2024: Simplify demo (remove lines of code where possible);
+% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -84,7 +85,7 @@ H1op = PIE.C1;      % (H1op*x_{ss}) = x_{s}
 % === Declare the LPI
 
 % % Initialize LPI program
-prob = lpiprogram(s,[a,b]);
+prob = lpiprogram_sop(H2op);                                                % DJ (CC), 10/30/2026
 
 % % Declare decision variables:
 % %   gam \in \R
@@ -92,8 +93,8 @@ prob = lpiprogram(s,[a,b]);
 
 % % Set inequality constraints:
 % %   gam*H1op'*H1op' - H2op'*H2op >= 0
-opts.psatz = 1;                 % allow gam H1op'*H1op < H2op'*H2op outside of [a,b]
-prob = lpi_ineq(prob,gam*(H1op'*H1op)-H2op'*H2op,opts);
+% % (by default, this is allowed to fail outside of [a,b])
+prob = lpi_ineq_sop(prob,gam*(H1op'*H1op)-H2op'*H2op);                      % DJ (CC), 10/30/2026
 
 % % Set objective function:
 % %   min gam
@@ -101,7 +102,7 @@ prob = lpisetobj(prob, gam);
 
 % % Solve LPI and retrieve solution
 prob = lpisolve(prob);
-poincare_constant = sqrt(double(lpigetsol(prob,gam)));
+poincare_constant = sqrt(double(lpigetsol_sop(prob,gam)));                  % DJ (CC), 10/30/2026
 
 
 echo off

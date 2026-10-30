@@ -187,6 +187,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %                   new function "pie_pde_maps"). The operator PIE.F for
 %                   periodic BCs is now stored in PIE.pde2pie.x.C, so the
 %                   DB, 10/27/2026 assignment PIE.F = Fop is removed;
+% DJ, 10/30/2026: Initialize the PIE before returning;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -922,6 +923,8 @@ end
 % Describe the function spaces of the PDE, and the maps between the PDE and
 % PIE variables, including the operator F for periodic BCs in pde2pie.x.C.  % DJ (CC), 10/29/2026
 PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop,Fop);                           % DJ (CC), 10/29/2026
+% Initialize the PIE, converting the operators to copvar objects.
+PIE = initialize(PIE);                                                       % DJ, 10/30/2026
 
 % Finally, provide an overview of how the new state variables relate to the
 % PDE variables.                                                            % DJ, 06/18/2025

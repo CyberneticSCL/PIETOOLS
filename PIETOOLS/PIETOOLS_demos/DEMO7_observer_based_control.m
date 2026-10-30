@@ -71,6 +71,7 @@
 % DB, 12/29/2024: Use pde_var objects instead of sys and state
 % DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
 %                   executives do not support the new pie_struct;
+% DJ (CC), 10/30/2026: Declare the estimator with copvar operators;
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -120,7 +121,10 @@ settings = lpisettings('heavy');
 %            zhat(t) = C1*vhat(t);
 %               u(t) = K*vhat(t);
 % and take LFT with PIE
-PIE_est = piess(T,A+Lval*C2,-Lval,{C1(1,:);Kval});
+Lval = op2copvar_sop(Lval);     Kval = op2copvar_sop(Kval);     % the gains as containers  % DJ (CC), 10/30/2026
+Sel = mat2copvar_sop([1,0],struct('out',1,'in',2),struct('out',{{{}}},'in',{{{}}}),struct('vars',{C1.vars},'dom',C1.dom));   % first output  % DJ (CC), 10/30/2026
+%   PIE_est = piess(T,A+Lval*C2,-Lval,{C1(1,:);Kval});                      % DJ (CC), 10/30/2026 (was)
+PIE_est = piess(T,A+Lval*C2,-Lval,{Sel*C1;Kval});                           % DJ (CC), 10/30/2026
 PIE_CL = pielft(PIE,PIE_est);
 
 

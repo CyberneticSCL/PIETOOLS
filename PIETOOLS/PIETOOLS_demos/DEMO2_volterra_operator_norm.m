@@ -39,6 +39,7 @@
 % MP, SS, DJ, 2022: Initial coding;
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
+% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -56,7 +57,8 @@ Top.R.R1 = 1; Top.I = [a,b];
 % === Declare the LPI
 
 % % Initialize LPI program
-prob = lpiprogram(Top.vars,Top.I);
+T = op2copvar_sop(Top);            % the operator as a container            % DJ (CC), 10/30/2026
+prob = lpiprogram_sop(T);                                                   % DJ (CC), 10/30/2026
 
 % % Declare decision variables:
 % %   gam \in \R
@@ -64,8 +66,7 @@ prob = lpiprogram(Top.vars,Top.I);
 
 % % Set inequality constraints
 % %   Top'*Top-gam <= 0
-opts.psatz = 1;                             % Allow Top'*Top-gam>0 outside of [a,b]
-prob = lpi_ineq(prob,gam-Top'*Top,opts); % lpi_ineq(prob,Q) enforces Q>=0
+prob = lpi_ineq_sop(prob,gam-T'*T);       % lpi_ineq_sop(prob,Q) enforces Q>=0  % DJ (CC), 10/30/2026
 
 % % Set objective function:
 % %   min gam
@@ -73,7 +74,7 @@ prob = lpisetobj(prob, gam);
 
 % % Solve LPI and retrieve solution
 prob = lpisolve(prob);
-operator_norm = sqrt(double(lpigetsol(prob,gam)));
+operator_norm = sqrt(double(lpigetsol_sop(prob,gam)));                      % DJ (CC), 10/30/2026
 
 
 echo off

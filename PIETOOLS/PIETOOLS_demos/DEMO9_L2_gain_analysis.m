@@ -56,6 +56,7 @@
 % solution.timedep.primary{1,2,3,4}
 % DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
 %                   executives do not support the new pie_struct;
+% DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 
 clc; clear; close all; clear stateNameGenerator
 echo on
@@ -116,22 +117,21 @@ w = double(subs(uinput.w,st,tval));
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram([s1;s2],[a,b;c,d]);
+prog = lpiprogram_sop(T);                                                   % DJ (CC), 10/30/2026
 
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2
 % Scalar decision variable
 [prog,gam] = lpidecvar(prog,'gam');
 % Positive operator variable P>=0
-[prog,P] = poslpivar(prog,T.dim);
+[prog,P] = poscopvar(prog,1,{{'s1','s2'}},[a,b;c,d],1);                     % DJ (CC), 10/30/2026
 
 % % Set inequality constraints:
 % %   Q <= 0
 Q = [-gam,        D',      (P*B)'*T;
      D,           -gam,    C;
      T'*(P*B),    C',     (P*A)'*T+T'*(P*A)];
-opts_Q.psatz = 2;
-prog = lpi_ineq(prog,-Q,opts_Q);
+prog = lpi_ineq_sop(prog,-Q);                                               % DJ (CC), 10/30/2026
 
 % % Set objective function:
 % %   min gam
@@ -140,7 +140,7 @@ prog = lpisetobj(prog, gam);
 % % Solve and retrieve the solution
 prog_sol = lpisolve(prog);
 % Extract solved value of decision variable
-gam_val = double(lpigetsol(prog_sol,gam));
+gam_val = double(lpigetsol_sop(prog_sol,gam));                              % DJ (CC), 10/30/2026
 
 % % Alternatively, uncomment to use pre-defined executive
 % [prog, ~, gam_val] = lpiscript_sop(PIE,'l2gain','stripped');              % DJ (CC), 10/29/2026
