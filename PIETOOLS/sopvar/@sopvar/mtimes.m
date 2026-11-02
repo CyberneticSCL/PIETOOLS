@@ -114,6 +114,8 @@ function C = mtimes(A,B)
 %                  input components. sopvar listed ?dpvar as inferior, but
 %                  this method handled numeric factors only, so gam*P
 %                  failed in the dims check below.
+% DJ, 11/01/2026: Bugfix for scalar multiplication with zero blocks
+%                   specified as [] or scalar 0.
 %
 
 % dpvar factor: legacy semantics, before any work; the composition below    % MMP, 09/29/2026
@@ -135,7 +137,11 @@ if isnumeric(A)
         C.dims(1) = size(A,1);                                              % MMP, 09/06/2026
         A = kron(sparse(A),speye(prod([cellfun(@numel,B.ZL),1])));          % MMP, 09/06/2026
     end                                                                     % MMP, 09/06/2026
-    C.params = cellfun(@(b) A*b, B.params,'UniformOutput',false);
+    % Zero-blocks declared as [] or scalar 0 stay as is.
+    Bparams = B.params;
+    is_zeroB = cellfun(@(b) isempty(b) || (isscalar(b) && b==0), Bparams);  % DJ, 11/01/2026
+    Bparams(~is_zeroB) = cellfun(@(b) A*b, Bparams(~is_zeroB),'UniformOutput',false);
+    C.params = Bparams;
     return
 elseif isnumeric(B)
     if ~isscalar(B) && size(A,2)~=size(B,1)
@@ -146,7 +152,11 @@ elseif isnumeric(B)
         C.dims(2) = size(B,2);                                              % MMP, 09/06/2026
         B = kron(sparse(B),speye(prod([cellfun(@numel,A.ZR),1])));          % MMP, 09/06/2026
     end                                                                     % MMP, 09/06/2026
-    C.params = cellfun(@(a) a*B, A.params,'UniformOutput',false);
+    % Zero-blocks declared as [] or scalar 0 stay as is.
+    Aparams = A.params;
+    is_zeroA = cellfun(@(a) isempty(a) || (isscalar(a) && a==0), Aparams);  % DJ, 11/01/2026
+    Aparams(~is_zeroA) = cellfun(@(a) a*B, Aparams(~is_zeroA),'UniformOutput',false); 
+    C.params = Aparams;
     return
 end
 
