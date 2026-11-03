@@ -38,6 +38,7 @@ function DMB_test()
     %
     % CR, 10/06/2026: Initial coding.
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+% DJ, 11/02/2026: Call the new convert function;
     clear stateNameGenerator
 
 
@@ -52,7 +53,7 @@ function DMB_test()
            subs(u,s,dom(1))==0;
            subs(u,s,dom(2))==0];
 
-    PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+    PIE = convert(PDE,'silent');                                            % DJ, 11/02/2026
     x   = PIE.x;
 
 

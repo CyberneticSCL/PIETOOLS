@@ -10,7 +10,7 @@ function dV = Liediff(V,PIE)
 %           in terms of the PDE state variables u=T*x, and potentially also
 %           the associated PIE state variables x (see NOTES);
 % - PIE:    'npie_struct' representing a distributed polynomial PIE, as
-%           output by `convert_PIETOOLS_PDE_nonlinear`, with fields
+%           output by `convert_PIETOOLS_PDE`, with fields
 %           T:  'tensopmat' representing the map x -> u=T*x from PIE state
 %               to PDE state;
 %           f:  'polyopvar' representing the right-hand side of the PIE,
@@ -71,6 +71,8 @@ function dV = Liediff(V,PIE)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/29/2026: Use the function spaces and names of the components in
 %                   PIE.space and PIE.space_pde of the 'npie_struct' PIE;
+% DJ (CC), 11/02/2026: Refer to convert_PIETOOLS_PDE, which now also converts
+%   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
 
 % Check the inputs
 if ~isa(V,'polyopvar')

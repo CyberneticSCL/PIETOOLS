@@ -27,8 +27,8 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %               fundamental state. After initialize, these have no rows if
 %               the PIE has no constraint. The constraint is only partially
 %               supported: vertcat and horzcat concatenate the constraints,
-%               whereas ctranspose, pielft, and expand_tderivatives give an
-%               error for PIEs with a constraint.
+%               whereas ctranspose and pielft give an error for PIEs with
+%               a constraint.
 %
 %
 % === The Function Spaces ===

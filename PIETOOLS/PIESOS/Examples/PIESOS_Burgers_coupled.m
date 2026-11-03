@@ -27,6 +27,7 @@
 % Q_opts.psatz of the constraint on dV.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
 %%%% 1. Modelling PIE.
 
@@ -46,7 +47,7 @@ PDE = [diff(x1,t)==diff(x1,s,2)+r*x1-x1*diff(x1,s);
        subs(x2,s,dom(2))==0];
 
 % Convert to a PIE
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,'silent');                                                % DJ, 11/02/2026
 Top = PIE.T;
 f = PIE.f;
 

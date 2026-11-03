@@ -66,6 +66,7 @@ function Test_Liediff(only)
 % DJ (CC), 10/15/2026: Initial coding;
 % DJ (CC), 10/22/2026: apply_side: Zop acts on the entries of the basis
 %                        (rows of Z.C), not on its monomials;
+% DJ, 11/02/2026: Call the new convert function;
 
 tests ={@case_pde, @case_pde_degrees, @case_pde_coupled, @case_mixed, ...
          @case_mixed_known, @case_combined, @case_unused_states, @case_nonlinear, ...
@@ -136,7 +137,7 @@ switch kind
     otherwise
         error('Unknown PIE.');
 end
-evalc('PIE = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
+evalc('PIE = convert(PDE,{''silent'',''nonlinear''});');                    % DJ, 11/02/2026
 cache.(kind) = PIE;
 end
 

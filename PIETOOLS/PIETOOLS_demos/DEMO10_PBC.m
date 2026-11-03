@@ -67,9 +67,8 @@ display(PDE);
 PIE = convert(PDE,'pie');
 display(PIE);
 %% Extract operators defining the PIE
-% First row of T corresponds to auxiliary state variables,
-% second row corresponds to the original PDE state
-T = copvar(PIE.T.C(2,:));   A = copvar(PIE.A.C(2,:));
+% Extract the PIE dynamics of the original PDE state
+T = PIE.pie2pde.x*PIE.T;    A = PIE.pie2pde.x*PIE.A;
 % The PIE state must also satisfy K*x=0
 K = PIE.K;
 %% Take the deviation of the PDE state from the mean

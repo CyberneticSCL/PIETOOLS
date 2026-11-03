@@ -1,5 +1,5 @@
-function PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop,Fop)
-% PIE = PIE_PDE_MAPS(PIE,PDE0,DEL_TAB,WOP,UOP,FOP) declares the function
+function PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop,Fop)                % DJ (CC), 11/02/2026
+% PIE = PIE_PDE_MAPS_2D(PIE,PDE0,DEL_TAB,WOP,UOP,FOP) declares the function
 % spaces of a PDE, and the maps between this PDE and the PIE constructed
 % from it, in the fields PIE.space_pde, PIE.pie2pde and PIE.pde2pie.
 %
@@ -54,7 +54,7 @@ function PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop,Fop)
 %   the type of space they exist in, as for an 'opvar2d' object.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - pie_pde_maps
+% PIETOOLS - pie_pde_maps_2D
 %
 % Copyright (C)2026  PIETOOLS Team
 %
@@ -78,6 +78,8 @@ function PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop,Fop)
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 10/29/2026: Initial coding;
+% DJ (CC), 11/02/2026: Renamed from pie_pde_maps and moved to
+%   internal/legacy, with the old converters that call it;
 
 if nargin<3,    del_tab = [];   end
 if nargin<4,    Wop = 1;        end

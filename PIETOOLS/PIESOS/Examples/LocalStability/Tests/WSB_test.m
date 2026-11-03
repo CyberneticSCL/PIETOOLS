@@ -24,6 +24,7 @@
 %
 % CR, 10/06/2026: Initial coding.
 % DJ, 10/15/2026: Updated to use new polyopvar functions;
+% DJ, 11/02/2026: Call the new convert function;
 
 % Test the weighted Sobolev bound and local-domain polynomial used in
 % LocalStability.m against Theorem 1 of Auto.pdf. In the notation of the
@@ -50,7 +51,7 @@ PDE = [diff(u,t)==diff(u,s,2) + 5*u + u^2;
        subs(u,s,dom(1))==0;
        subs(u,s,dom(2))==0];
 
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,'silent');                                                % DJ, 11/02/2026
 Top = PIE.T;
 x   = PIE.x;
 

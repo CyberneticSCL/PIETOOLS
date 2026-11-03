@@ -92,9 +92,10 @@ function res = LocalStability(PDE, r, alpha, eppos, lambda, dist_degs, mon_degs,
     % CR, 10/14/2026: Added opts structure for constructing Pcell using
     %                 psatz multiplier.
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+% DJ, 11/02/2026: Call the new convert function;
 
     %% Convert PDE to PIE.
-    PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');                     % DJ, 10/14/2026
+    PIE = convert(PDE,'silent');                                            % DJ, 11/02/2026
     Top = PIE.T;    % Inverse map.
     f   = PIE.f;    % Polynomial PIE.
     dom = PIE.dom;  % Spatial domain [a,b].

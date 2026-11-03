@@ -20,6 +20,7 @@
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/29/2026: Use the regulated output polynomial PIE.gz, instead of PIE.h;
+% DJ, 11/02/2026: Call the new convert function;
 
 clear;  clear stateNameGenerator
 
@@ -31,7 +32,7 @@ PDE = [diff(u,t)==diff(u,s,2);
        subs(u,s,dom(1))==0;  subs(u,s,dom(2))==0;
        z==diff(u,s)];
 
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,{'silent','nonlinear'});                                  % DJ, 11/02/2026
 T = PIE.T;
 f = PIE.f;
 x = PIE.x;

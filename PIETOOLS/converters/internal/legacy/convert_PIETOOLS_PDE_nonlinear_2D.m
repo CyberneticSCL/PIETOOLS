@@ -1,5 +1,5 @@
-function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
-% PIE = CONVERT_PIETOOLS_PDE_NONLINEAR(PDE,COMP_ORDER,FLAG) converts a
+function PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,comp_order,flag)       % DJ (CC), 11/02/2026
+% PIE = CONVERT_PIETOOLS_PDE_NONLINEAR_2D(PDE,COMP_ORDER,FLAG) converts a
 % coupled ODE-1D PDE-2D PDE system, possibly with nonlinear terms, to an
 % equivalent PIE.
 %
@@ -109,7 +109,7 @@ function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 %   COMP_ORDER.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PIETOOLS - convert_PIETOOLS_PDE_nonlinear
+% PIETOOLS - convert_PIETOOLS_PDE_nonlinear_2D
 %
 % Copyright (C)2026  PIETOOLS Team
 %
@@ -136,12 +136,16 @@ function PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag)
 % DJ (CC), 10/29/2026: Update to new npie_struct structure: return an
 %                   'npie_struct' object, with the maps between PDE and PIE
 %                   in PIE.space_pde, PIE.pie2pde and PIE.pde2pie (using
-%                   "pie_pde_maps"). The polynomials g and h are renamed gy
-%                   and gz;
+%                   "pie_pde_maps_2D"). The polynomials g and h are renamed
+%                   gy and gz;
 % DJ (CC), 10/29/2026: The names of the states are stored in
 %                   PIE.space.x.varname, and the PIE state PIE.x is computed
 %                   from the function space, and no longer stored in
 %                   PIE.misc; the PIE is initialized before returning;
+% DJ (CC), 11/02/2026: Renamed from convert_PIETOOLS_PDE_nonlinear and
+%   moved to internal/legacy: convert_PIETOOLS_PDE now also converts
+%   nonlinear PDEs, in any number of spatial variables. Calls
+%   pie_pde_maps_2D, renamed likewise;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % % % % Initialization                                          % % % % %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -703,7 +707,8 @@ PIE.Dyu = opvar2tensopmat_comps(Dop_u2y,PIE.y_tab,PIE.u_tab,op_clean_tol);  % DJ
 
 % Describe the function spaces of the PDE, and the maps between the PDE and
 % PIE variables.                                                            % DJ (CC), 10/29/2026
-PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop);                               % DJ (CC), 10/29/2026
+%PIE = pie_pde_maps(PIE,PDE0,del_tab,Wop,Uop);                              % DJ (CC), 11/02/2026 (was); earlier: DJ (CC), 10/29/2026
+PIE = pie_pde_maps_2D(PIE,PDE0,del_tab,Wop,Uop);                            % DJ (CC), 11/02/2026
 % Check that the PIE is well-defined, and name the components that have not  % DJ (CC), 10/29/2026
 % been named, using "initialize".                                           % DJ (CC), 10/29/2026
 PIE = initialize(PIE);                                                      % DJ (CC), 10/29/2026

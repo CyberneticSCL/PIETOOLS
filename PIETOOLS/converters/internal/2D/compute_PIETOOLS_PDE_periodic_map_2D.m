@@ -78,6 +78,8 @@ function [Top_x,Fop,Kop,info] = compute_PIETOOLS_PDE_periodic_map_2D(PDE)
 % Claude, 10/29/2026: Add generalized PBCs along both spatial directions
 % DJ (CC), 10/29/2026: The operator F of the 1D PIEs is read from
 %                   PIE.misc.periodic.F, as F is no longer a field of the PIE;
+% DJ (CC), 11/02/2026: Call convert_PIETOOLS_PDE_2D (the old converter,
+%   now in internal/legacy) for the 1D sub-PDEs;
 
 id_unsup = 'PIETOOLS:convert:Periodic2D';
 dom = PDE.dom;      vars = PDE.vars;
@@ -101,7 +103,8 @@ end
 PIE_dir = cell(1,2);    is_per = false(1,2);
 for dd=1:2
     PDE_1D = build_1D_PDE(PDE,dd,id_unsup);
-    PIE_dir{dd} = convert_PIETOOLS_PDE(PDE_1D,[],{'silent','Top'});
+%    PIE_dir{dd} = convert_PIETOOLS_PDE(PDE_1D,[],{'silent','Top'});        % DJ (CC), 11/02/2026 (was)
+    PIE_dir{dd} = convert_PIETOOLS_PDE_2D(PDE_1D,[],{'silent','Top'});      % DJ (CC), 11/02/2026
 %   is_per(dd) = ~isempty(PIE_dir{dd}.F);                                   % DJ (CC), 10/29/2026 (was)
     % F is no longer a field of the PIE, but kept in PIE.misc.periodic.F.      % DJ (CC), 10/29/2026
     is_per(dd) = isfield(PIE_dir{dd}.misc,'periodic');                      % DJ (CC), 10/29/2026

@@ -70,7 +70,7 @@ classdef npie_struct
 %
 % === The PIE to PDE Bijection ===
 %
-% A PIE constructed from a PDE (see `convert_PIETOOLS_PDE_nonlinear`) keeps
+% A PIE constructed from a PDE (see `convert_PIETOOLS_PDE`) keeps
 % track of the equivalence between the PDE state space and the PIE state
 % space,
 %

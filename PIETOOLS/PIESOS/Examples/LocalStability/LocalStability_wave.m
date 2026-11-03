@@ -79,6 +79,7 @@ function res = LocalStability_wave(mu, a, k, rad, eppos, lambda, C_fix, sol_opts
     % include date authorship, and a brief description of modifications
     %
     % DJ, 10/28/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
     if nargin<5 || isempty(eppos),      eppos = 0.05;           end
     if nargin<6 || isempty(lambda),     lambda = 0.05;          end
@@ -97,7 +98,7 @@ function res = LocalStability_wave(mu, a, k, rad, eppos, lambda, C_fix, sol_opts
            diff(u2,t) == diff(u1,s,2) - 2*mu*u2 + a*u1 + u1^3;
            subs(u1,s,dom(1)) == 0;
            subs(diff(u1,s),s,dom(2)) + k*subs(u1,s,dom(2)) == 0];
-    PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+    PIE = convert(PDE,'silent');                                            % DJ, 11/02/2026
     Top = PIE.T;    x = PIE.x;
     % The rows of T follow the order of the PIE states
     iz = find(PIE.x_tab(:,1)==1);       iy = find(PIE.x_tab(:,1)==2);

@@ -42,6 +42,7 @@
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/29/2026: Use the regulated output polynomial PIE.gz, instead of PIE.h;
+% DJ, 11/02/2026: Call the new convert function;
 %
 
 clear;  clear stateNameGenerator
@@ -76,7 +77,7 @@ lam2_deg = 4; % degree of monomials (not distributed) used to define the operato
 %% 1. Modelling PIE.
 
 % Convert to a PIE
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,'silent');                                                % DJ, 11/02/2026
 Top = PIE.T;
 % The Sobolev ball requires Rx = Rop*x, the derivative u_s in terms of the PIE state
 % x. We obtain it by declaring an output z = u_s in the PDE, which the converter

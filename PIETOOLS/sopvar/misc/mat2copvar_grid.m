@@ -74,6 +74,7 @@ function P = mat2copvar_grid(Mat,meta,mult_only)
 %                eye_copvar_sop, zeros_copvar_sop and mat2copvar_sop, which
 %                replace the opvar2copvar(mat2opvar(...)) detour; that
 %                detour has no N-D route.
+% DJ, 11/02/2026: Support empty input/output spaces;
 
 if nargin<3 || isempty(mult_only),  mult_only = false;  end
 isdec = isa(Mat,'dpvar');
@@ -117,14 +118,17 @@ for i = 1:M
 end
 % One explicit zero block per empty row, then per empty column.
 occ = ~cellfun(@isempty,C);
-for i = find(~any(occ,2))'
-    nc = meta.dim_out(i)*meta.dim_in(1);
-    C{i,1} = const_block(sparse(nc,1),sparse(numel(Zd),nc),Zd,isdec,meta,i,1,false);
-    occ(i,1) = true;
-end
-for j = find(~any(occ,1))
-    nc = meta.dim_out(1)*meta.dim_in(j);
-    C{1,j} = const_block(sparse(nc,1),sparse(numel(Zd),nc),Zd,isdec,meta,1,j,false);
+% (none if there are no rows or no columns)
+if M>0 && N>0                                                               % DJ, 11/02/2026
+    for i = find(~any(occ,2))'
+        nc = meta.dim_out(i)*meta.dim_in(1);
+        C{i,1} = const_block(sparse(nc,1),sparse(numel(Zd),nc),Zd,isdec,meta,i,1,false);
+        occ(i,1) = true;
+    end
+    for j = find(~any(occ,1))
+        nc = meta.dim_out(1)*meta.dim_in(j);
+        C{1,j} = const_block(sparse(nc,1),sparse(numel(Zd),nc),Zd,isdec,meta,1,j,false);
+    end
 end
 
 % Metadata is the caller's, already validated, so the trusted constructor.

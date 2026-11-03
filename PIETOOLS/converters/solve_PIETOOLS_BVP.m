@@ -2,7 +2,7 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 % [Tops,Kops,Dmap,info] = SOLVE_PIETOOLS_BVP(PDE,diffs,opts) computes
 % operators parameterizing all states of an ND PDE that satisfy its
 % boundary conditions (BCs): with the fundamental state xf (free of BCs,
-% except for the constraints Kops.K*xf=0) and the fundamental inputs wf,
+% except for the constraints Kops.x*xf=0) and the fundamental inputs wf,
 % uf (the right-hand sides of the BCs), for all x_pde in the domain D
 %       x_pde = Tops.x*xf + Tops.w*wf + Tops.u*uf,
 % and, if requested, for the derivatives of the states
@@ -43,15 +43,20 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 % but with the option 'blocks' (and for 'tensopmat') splits it into a block
 % for each state (info.blocks).
 % - Tops:   struct with fields x, w, u: the maps xf --> x_pde,
-%           wf --> x_pde and uf --> x_pde (w, u are [] if the BCs
-%           have no such inputs). Without diffs, these are single
+%           wf --> x_pde and uf --> x_pde (w, u are zero operators if
+%           the BCs have no such inputs, without columns if there are
+%           no inputs at all). Without diffs, these are single
 %           operators. With diffs, nx x 1 cells, with
 %           x{k}{alpha_1+1,...,alpha_N+1} the
 %           1 x nV operator to D^{alpha}x_pde_k for the requested alpha
 %           (and alpha=0), and [] for the others, and w{k}, u{k} the same
 %           for wf, uf;
-% - Kops:   struct with field K, the operator of the constraints K*xf=0
-%           ([] if there are none);
+% - Kops:   struct with fields x, w, u, the operators of the constraints
+%           Kops.x*xf + Kops.w*wf + Kops.u*uf = 0, with a row for each
+%           constraint, as operators of the same class as Tops. Without
+%           constraints, they have no rows. The inputs do not enter the
+%           constraints (yet), so Kops.w and Kops.u are zero operators
+%           (without rows if there are no constraints);
 % - Dmap:   struct with fields x, w, u, defining the components of xf,
 %           wf and uf in terms of the PDE, as PIE.pde2pie does for
 %           a PIE: component c is obtained from the PDE component idx(c)
@@ -284,7 +289,7 @@ end
 % columns of xf = [xf_1;...;xf_G]. The inputs in the BCs are
 % fundamental inputs, those derived from states of lower dimension being
 % eliminated below.
-sol = repmat(struct('Rops',[],'Kops',[],'Fop',[],'info',[],'Gops',[]),1,numel(PDEs));
+sol = repmat(struct('Tops',[],'Kops',[],'Fop',[],'info',[],'Gops',[]),1,numel(PDEs));
 for g=1:numel(PDEs)
     % Derivative orders to compute for the states in the group
     diffs_g = diffs_comp(dec.x_idcs{g});
@@ -294,7 +299,7 @@ for g=1:numel(PDEs)
         alphas_g = vertcat(diffs_g{:});
     end
     try
-        [sol(g).Rops,sol(g).Kops,sol(g).Fop,sol(g).info,sol(g).Gops] = solve_BVP_group(PDEs{g},alphas_g,any(dec.w_idcs{g}>nw0));
+        [sol(g).Tops,sol(g).Kops,sol(g).Fop,sol(g).info,sol(g).Gops] = solve_BVP_group(PDEs{g},alphas_g,any(dec.w_idcs{g}>nw0));
     catch ME
         if strcmp(ME.identifier,'compose_Tmaps:inputsRankDeficient') && any(dec.w_idcs{g}>nw0)
             error('solve_PIETOOLS_BVP:sourceRankDeficient','The boundary conditions %s involve states of lower dimension, in a direction that is rank deficient (e.g. periodic); this is not supported.',mat2str(dec.BC_idcs{g}(:)'))
@@ -341,8 +346,8 @@ for ty={'x','w','u'}
     % Number of columns of each group, and the spaces of these columns
     ncols_g = zeros(1,nG);
     for g=1:nG
-        if ~isempty(sol(g).Rops.(obj_type))
-            ncols_g(g) = size(sol(g).Rops.(obj_type){1}{1}.C,2);
+        if ~isempty(sol(g).Tops.(obj_type))
+            ncols_g(g) = size(sol(g).Tops.(obj_type){1}{1}.C,2);
         end
     end
     off = [0,cumsum(ncols_g)];       ncols_tot = off(end);
@@ -406,13 +411,13 @@ for ty={'x','w','u'}
     R_cell = cell(nx,1);
     for g=1:nG
         for k_grp=1:numel(dec.x_idcs{g})
-            R_group = sol(g).Rops.x{k_grp};
+            R_group = sol(g).Tops.x{k_grp};
             Rk = cell(size(R_group));
             for lidx=find(~cellfun(@isempty,R_group(:)))'
                 blk_ref = R_group{lidx}.C{1,1};
                 row = cell(1,ncols_tot);
                 if ~isempty(colmap{g})
-                    row(colmap{g}) = sol(g).Rops.(obj_type){k_grp}{lidx}.C(1,:);
+                    row(colmap{g}) = sol(g).Tops.(obj_type){k_grp}{lidx}.C(1,:);
                 end
                 for c=find(cellfun(@isempty,row))
                     row{c} = zero_op(blk_ref.dims(1),col_spaces(c),blk_ref.vars.out,blk_ref.dom.out);
@@ -435,8 +440,8 @@ for ty={'x','w','u'}
         % the columns without a block (of other groups) are zero
         K_blocks = cell(0,ncols_tot);
         for g=1:nG
-            if ~isempty(sol(g).Kops.K)
-                K_blocks(end+(1:size(sol(g).Kops.K.C,1)),off(g)+(1:ncols_g(g))) = sol(g).Kops.K.C;
+            if size(sol(g).Kops.x,1)>0
+                K_blocks(end+(1:size(sol(g).Kops.x.C,1)),off(g)+(1:ncols_g(g))) = sol(g).Kops.x.C;
             end
         end
         if ~isempty(K_blocks)
@@ -758,10 +763,85 @@ end
 if isfield(Rops,'Iw')
     Gops.Iw = Rops.Iw;      Gops.Iu = Rops.Iu;
 end
+% % % The constraints Kx*xf + Kw*wf + Ku*uf = 0, as operators of the class
+% % % of Tops with a row for each constraint: Kops.x is K, or has no rows if
+% % % there are no constraints, and the inputs do not enter the constraints
+% % % (yet)
+% % % Kops.w and Kops.u are zero operators with the rows of Kops.x. Tops.w
+% % % and Tops.u are zero operators with the rows of Tops.x, if there are no
+% % % inputs in the BCs. The columns are the components of space.w, space.u
+if use_nonlin
+    [vars_srt,ord] = sort(vars_pde);
+    Kx = Kops.K;
+    Kops = struct('x',Kx,'w',[],'u',[]);
+    if isempty(Kx)
+        % No constraints: no rows
+        Kx = struct('dims',struct('out',zeros(0,1)),'vars',struct('out',{cell(1,0)}),'dom',struct('out',zeros(0,2)),'depmat',struct('out',zeros(0,0)));
+        Kops.x = mat2tensopmat(zeros(0,sum(space.x.dims)),struct('in',space.x.dims,'out',zeros(0,1)),struct('in',{vars_srt},'out',{cell(1,0)}),...
+            struct('in',space.dom(ord,:),'out',zeros(0,2)),struct('in',double(space.x.depmat(:,ord)),'out',zeros(0,0)));
+    end
+    for ty={'w','u'}
+        sp = space.(ty{1});
+        in_dom = space.dom(ord,:);      in_dep = double(sp.depmat(:,ord));
+        Kops.(ty{1}) = mat2tensopmat(zeros(sum(Kx.dims.out),sum(sp.dims)),struct('in',sp.dims,'out',Kx.dims.out),...
+            struct('in',{vars_srt},'out',{Kx.vars.out}),struct('in',in_dom,'out',Kx.dom.out),struct('in',in_dep,'out',Kx.depmat.out));
+        if ~isempty(Tops.(ty{1}))
+            continue
+        end
+        if ~want_diffs
+            P = Tops.x;
+            Tops.(ty{1}) = mat2tensopmat(zeros(sum(P.dims.out),sum(sp.dims)),struct('in',sp.dims,'out',P.dims.out),...
+                struct('in',{vars_srt},'out',{P.vars.out}),struct('in',in_dom,'out',P.dom.out),struct('in',in_dep,'out',P.depmat.out));
+            continue
+        end
+        Tops.(ty{1}) = cell(size(Tops.x));
+        for k=1:numel(Tops.x)
+            Tops.(ty{1}){k} = cell(size(Tops.x{k}));
+            for l=find(~cellfun(@isempty,Tops.x{k}(:)))'
+                P = Tops.x{k}{l};
+                Tops.(ty{1}){k}{l} = mat2tensopmat(zeros(sum(P.dims.out),sum(sp.dims)),struct('in',sp.dims,'out',P.dims.out),...
+                    struct('in',{vars_srt},'out',{P.vars.out}),struct('in',in_dom,'out',P.dom.out),struct('in',in_dep,'out',P.depmat.out));
+            end
+        end
+    end
+else
+    Kx = Kops.K;
+    Kops = struct('x',Kx,'w',[],'u',[]);
+    if isempty(Kx)
+        % No constraints: no rows
+        Kx = struct('dim_out',zeros(0,1),'vars',{cell(1,0)},'space_out',false(0,0));
+        Kops.x = zeros_copvar_sop(struct('out',zeros(0,1),'in',space.x.dims),struct('out',{cell(1,0)},'in',{arrayfun(@(i) vars_pde(space.x.depmat(i,:)),1:numel(space.x.dims),'UniformOutput',false)}),struct('vars',{vars_pde},'dom',space.dom));
+    end
+    for ty={'w','u'}
+        sp = space.(ty{1});
+        in_spaces = arrayfun(@(i) vars_pde(sp.depmat(i,:)),1:numel(sp.dims),'UniformOutput',false);
+        out_spaces = arrayfun(@(i) Kx.vars(Kx.space_out(i,:)),1:numel(Kx.dim_out),'UniformOutput',false);
+        Kops.(ty{1}) = zeros_copvar_sop(struct('out',Kx.dim_out,'in',sp.dims),struct('out',{out_spaces},'in',{in_spaces}),struct('vars',{vars_pde},'dom',space.dom));
+        if ~isempty(Tops.(ty{1}))
+            continue
+        end
+        if ~want_diffs
+            P = Tops.x;
+            out_spaces = arrayfun(@(i) P.vars(P.space_out(i,:)),1:numel(P.dim_out),'UniformOutput',false);
+            Tops.(ty{1}) = zeros_copvar_sop(struct('out',P.dim_out,'in',sp.dims),struct('out',{out_spaces},'in',{in_spaces}),struct('vars',{vars_pde},'dom',space.dom));
+            continue
+        end
+        Tops.(ty{1}) = cell(size(Tops.x));
+        for k=1:numel(Tops.x)
+            Tops.(ty{1}){k} = cell(size(Tops.x{k}));
+            for l=find(~cellfun(@isempty,Tops.x{k}(:)))'
+                P = Tops.x{k}{l};
+                out_spaces = arrayfun(@(i) P.vars(P.space_out(i,:)),1:numel(P.dim_out),'UniformOutput',false);
+                Tops.(ty{1}){k}{l} = zeros_copvar_sop(struct('out',P.dim_out,'in',sp.dims),struct('out',{out_spaces},'in',{in_spaces}),struct('vars',{vars_pde},'dom',space.dom));
+            end
+        end
+    end
+end
 info.space = space;
 info.Gops = Gops;
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
 
 
 
@@ -801,8 +881,8 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function [Rops,Kops,Fop,info,Gops] = solve_BVP_group(PDE,alphas,sources)
-% [Rops,Kops,Fop,info,Gops] = SOLVE_BVP_GROUP(PDE,alphas,sources)
+function [Tops,Kops,Fop,info,Gops] = solve_BVP_group(PDE,alphas,sources)
+% [Tops,Kops,Fop,info,Gops] = SOLVE_BVP_GROUP(PDE,alphas,sources)
 % computes the operators parameterizing all states satisfying the BCs of a
 % single group of coupled BCs, such as the groups returned by
 % decouple_BVPs: the BCs are split into 1D problems along each direction
@@ -813,13 +893,13 @@ function [Rops,Kops,Fop,info,Gops] = solve_BVP_group(PDE,alphas,sources)
 % - PDE:    initialized 'pde_struct' object defining a PDE in the terms
 %           format, whose states all depend on the same variables. Only the
 %           BCs are used;
-% - alphas: the derivative orders to compute for Rops, as in compose_Tmaps
+% - alphas: the derivative orders to compute for Tops, as in compose_Tmaps
 %           ('all' for all);
 % - sources: true if the inputs in the BCs are derived from states of lower
 %           dimension, see compose_Tmaps;
 %
 % OUTPUT
-% - Rops,Kops,Fop,Gops: operators as in compose_Tmaps;
+% - Tops,Kops,Fop,Gops: operators as in compose_Tmaps;
 % - info:   struct with fields groups, fund, inputs, rhs as in
 %           solve_PIETOOLS_BVP, for a single group (group index 1, states
 %           x_idcs=1:nx). The fields inputs and rhs have subfields w and u
@@ -939,7 +1019,7 @@ end
 % % % Compose the solutions along the different directions: each maps the
 % % % 1D fundamental state to the states and their derivatives in that
 % % % direction
-[Rops,Kops,Fop,info_comp,Gops] = compose_Tmaps(maps,vars_pde(dir_idcs),PDE.dom(dir_idcs,:),sizes,Delta(:,dir_idcs),alphas,sources);
+[Tops,Kops,Fop,info_comp,Gops] = compose_Tmaps(maps,vars_pde(dir_idcs),PDE.dom(dir_idcs,:),sizes,Delta(:,dir_idcs),alphas,sources);
 % Info on the group, in terms of the states and BCs of the group; the
 % indices are mapped to those of the PDE in solve_PIETOOLS_BVP
 info = struct('groups',struct('BC_idcs',1:numel(PDE.BC),'vars',{info_comp.vars},'pass',{info_comp.vars(info_comp.pass)}));

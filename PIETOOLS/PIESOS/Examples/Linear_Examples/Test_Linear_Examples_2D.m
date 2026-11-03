@@ -120,13 +120,14 @@
 % - 39: not run, as it has 3 states;
 % - 41, 44: infeasible also for pdegs=2 and ineq degs=3, and for the
 %   classical test ('heavy'; 41: feasratio 0.495, numerr=2; 44: pinf=1).
-%   For 41, `convert_PIETOOLS_PDE_nonlinear` merges s1 with the delay
+%   For 41, `convert_PIETOOLS_PDE` merges s1 with the delay
 %   variable, so the PIE has one spatial variable.
 % By hand, the default of 43 (+a1*x(t-tau)) has mode 1 with characteristic
 % equation s=0.9+exp(-s*tau), with a positive root, so it is unstable,
 % unlike the library description (not verified numerically).
 %
 % DJ (CC), 10/22/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
 %%%% 0. Settings
 
@@ -217,7 +218,7 @@ for k = 1:n_ex
     try
         % Declare the PIE
         PDE = examples_PDE_library_PIETOOLS_nouinput(ex_num,ex_tab{row,4}{:});
-        PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+        PIE = convert(PDE,{'silent','nonlinear'});                          % DJ, 11/02/2026
 
         % Options for piesos_ineq
         ineq_opts = struct('psatz',opt.psatz);

@@ -11,14 +11,14 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 % u=(u_{0},...,u_{d}) satisfying the BCs, with v0=Fop*u and v1=(u_{0};
 % u_{1}'; ...; (d/ds)^{d}u_{d}), the fundamental state being [v0;v1],
 %     u = Tops.T0*v0 + Tops.T1*v1 + Tops.Tw*w,
-%     Kops.K1*v1 = Kops.Kw*w,
+%     Kops.x*v1 + Kops.w*w = 0,
 % and, for the derivatives requested in diffs and 0<=i<=j<=d,
 %     (d/ds)^{i} u_{j} = Tops.R0{j+1,i+1}*v0 + Tops.R1{j+1,i+1}*v1
 %                                               + Tops.Rw{j+1,i+1}*w.
-% Conversely, for all v0 and v1 with Kops.K1*v1=Kops.Kw*w, the function
+% Conversely, for all v0 and v1 with Kops.x*v1+Kops.w*w=0, the function
 % u = Tops.T0*v0+Tops.T1*v1+Tops.Tw*w satisfies the BCs, with Fop*u=v0 and
 % (d/ds)^{j}u_{j}=v1_{j}: the fundamental state is free of all BCs except
-% Kops.K1*v1=Kops.Kw*w.
+% Kops.x*v1+Kops.w*w=0.
 %
 % INPUT
 % - PDE:    'pde_struct' (or 'struct') object defining a BVP in a single
@@ -32,7 +32,7 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 %           and the number of conditions (rows) should match the total
 %           order of the states, sum_k n_k*diff_k. The right-hand side w of
 %           the conditions is not specified in PDE, but is the input of the
-%           operators Tops.Tw, Kops.Kw and Tops.Rw. It stacks the
+%           operators Tops.Tw, Kops.w and Tops.Rw. It stacks the
 %           right-hand sides of the conditions PDE.BC{1},PDE.BC{2},...,
 %           e.g. the forcing returned by split_BVPs;
 % - diffs:  (optional) the orders i of the derivatives (d/ds)^{i}u_{j} for
@@ -61,10 +61,12 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 %               Only the elements for the orders i in diffs are computed,
 %               the others (and those with n_{j}=0 or i>j) are empty;
 % - Kops:   struct with fields
-%               K1: L2^{|n|} --> R^{m}, v1 --> int_{a}^{b} K(s)*v1(s) ds,
-%               Kw: R^{n_tot} --> R^{m}, w --> J2*w,
-%           such that K1*v1=Kw*w for the fundamental state of u. The
-%           constraint does not depend on v0. Both are empty if m=0;
+%               x: L2^{|n|} --> R^{m}, v1 --> int_{a}^{b} K(s)*v1(s) ds,
+%               w: R^{n_tot} --> R^{m}, w --> -J2*w,
+%               u: R^{0} --> R^{m}, zero (there are no inputs u),
+%           such that Kops.x*v1+Kops.w*w=0 for the fundamental state of u,
+%           as in solve_PIETOOLS_BVP. The constraint does not depend on v0.
+%           All have no rows if m=0;
 % - Fop:    L2^{|n|} --> R^{m}, u --> v0 = int_{a}^{b} F3(s)*u(s) ds. Empty
 %           if m=0. The choice of F3 is not unique: if m=|n|, F3 is the
 %           mean of the state, F3 = I/(b-a), provided this defines a valid
@@ -238,6 +240,24 @@ else
 end
 % The maps to the derivatives are returned with those to u
 Tops.R0 = Rops.R0;    Tops.R1 = Rops.R1;    Tops.Rw = Rops.Rw;
+
+% The constraints Kx*v1 + Kw*w + Ku*u = 0, with Kw = -Kw of compute_Tmap_1D
+cols = struct('x',struct('dims',n_all,'depmat',true),'w',struct('dims',n_tot,'depmat',false),...
+               'u',struct('dims',zeros(0,1),'depmat',false(0,1)));
+Kw = Kops.Kw;
+vars_1D = {s.varname{1}};
+empty_op = @(P,sp) zeros_copvar_sop(struct('out',P.dim_out,'in',sp.dims),struct('out',{arrayfun(@(i) P.vars(P.space_out(i,:)),1:numel(P.dim_out),'UniformOutput',false)},'in',{arrayfun(@(i) vars_1D(sp.depmat(i,:)),1:numel(sp.dims),'UniformOutput',false)}),struct('vars',{vars_1D},'dom',PDE.dom));
+K1 = Kops.K1;
+Kops = struct('x',K1,'w',[],'u',[]);
+if isempty(K1)
+    K1 = struct('dim_out',zeros(0,1),'vars',{cell(1,0)},'space_out',false(0,0));
+    Kops.x = empty_op(K1,cols.x);
+end
+Kops.w = empty_op(K1,cols.w);
+Kops.u = empty_op(K1,cols.u);
+if ~isempty(Kw)
+    Kops.w = -Kw;
+end
 
 m = 0;                                      % Fop is empty if m=0
 if ~isempty(Fop)

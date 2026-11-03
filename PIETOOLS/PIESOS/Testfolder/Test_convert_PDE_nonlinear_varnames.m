@@ -1,5 +1,5 @@
 % Test_convert_PDE_nonlinear_varnames.m -- names and order of the PIE
-% states returned by convert_PIETOOLS_PDE_nonlinear. The kth variable of
+% states returned by convert_PIETOOLS_PDE. The kth variable of
 % the 'polyopvar' PIE.x (which sorts its variables by name) must be the
 % kth state component in x_tab, i.e. the kth column of the operator T and
 % the kth state in PIE.space.x.varname and the PDE state with name
@@ -12,6 +12,10 @@
 % DJ, 10/29/2026: Use the names in PIE.space.x.varname and
 %                   PIE.space_pde.x.varname, instead of PIE.varname_pie and
 %                   PIE.varname_pde (which are removed);
+% DJ, 11/02/2026: Call the new convert function;
+% DJ (CC), 11/02/2026: The first case calls the old converter
+%   convert_PIETOOLS_PDE_nonlinear_2D, as it tests the reordering of
+%   the components, which convert does not do;
 %
 % NOTES:
 % - 'clear stateNameGenerator' restarts the state numbering in each case,
@@ -30,7 +34,7 @@ PDE = [diff(u1,t)==diff(u1,s,2)-u1+u2;
        diff(u2,t)==-diff(u2,s)-u2;
        subs(u1,s,dom(1))==0;    subs(u1,s,dom(2))==0;
        subs(u2,s,dom(1))==0];
-evalc('PIE = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
+evalc('PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,''silent'');');          % DJ (CC), 11/02/2026
 if isequal(PIE.x_tab(:,1),sort(PIE.x_tab(:,1)))
     error("Test_convert_PDE_nonlinear_varnames: the converter did not reorder the components, the test is vacuous.")
 end
@@ -57,7 +61,7 @@ for i=1:n
     PDEi = [diff(ui,t)==diff(ui,s,2)-i*ui;   subs(ui,s,dom(1))==0;   subs(ui,s,dom(2))==0];
     if i==1,    PDE = PDEi;     else,   PDE = [PDE;PDEi];   end
 end
-evalc('PIE = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
+evalc('PIE = convert(PDE,{''silent'',''nonlinear''});');                    % DJ, 11/02/2026
 check_names(PIE,'11 states');
 ncases = ncases+1;
 

@@ -28,6 +28,7 @@
 % CR, 10/06/2026: Added a numerical central finite-difference regression.
 % CR, 10/06/2026: Added block-wise adjoint-symmetry constraint tests.
 % DJ, 10/15/2026: Updated to use new polyopvar functions;
+% DJ, 11/02/2026: Call the new convert function;
 
 % Test the basic construction, distributed polynomial degrees, and the
 % analytical d=1 and d=2 Lie derivatives returned by V3_Liediff.m.
@@ -48,7 +49,7 @@ PDE = [diff(u,t)==diff(u,s,2) + alp*u - bet*u^2;
        subs(u,s,dom(1))==0;
        subs(u,s,dom(2))==0];
 
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,'silent');                                                % DJ, 11/02/2026
 f   = PIE.f;
 x   = PIE.x;
 

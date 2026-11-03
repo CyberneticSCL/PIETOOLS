@@ -110,10 +110,13 @@ function [meta,sp_out,sp_in] = parse_copvar_spaces(dims,spaces,dom)
 %                  lpi_programming_sopvar, and the constructors that call
 %                  this routine are in sopvar/constructors, so it stays
 %                  public for those two folders.
+% DJ, 11/02/2026:  Support empty dims.out and dims.in to specify zero
+%                   operator with no rows or columns;
 
 [sp_out,sp_in,d_out,d_in] = parse_spaces(dims,spaces);
 M = numel(sp_out);      N = numel(sp_in);
-vars = reshape(unique([sp_out{:}, sp_in{:}]),1,[]);     nv = numel(vars);
+vars = [sp_out{:}, sp_in{:}];       if isempty(vars),   vars = cell(1,0);   end
+vars = reshape(unique(vars),1,[]);     nv = numel(vars);
 check_reserved_names(vars);
 dom = parse_dom(dom,vars);
 so = false(M,nv);       si = false(N,nv);
@@ -143,7 +146,6 @@ if isstruct(spaces)
 else
     so = norm_spaces(spaces);   si = so;
 end
-M = numel(so);      N = numel(si);
 if isstruct(dims)
     dout = reshape(dims.out,[],1);
     if isfield(dims,'in'),  din = reshape(dims.in,[],1);
@@ -152,6 +154,11 @@ if isstruct(dims)
 else
     dout = reshape(dims,[],1);  din = dout;
 end
+% Empty dimensions specify no output (input) spaces at all, i.e. no rows
+% (columns) of the container, whatever the spaces specified
+if isempty(dout),   so = cell(1,0);     end                                 % DJ, 11/02/2026
+if isempty(din),    si = cell(1,0);     end
+M = numel(so);      N = numel(si);
 if isscalar(dout),  dout = repmat(dout,M,1);    end
 if isscalar(din),   din = repmat(din,N,1);      end
 if numel(dout)~=M || numel(din)~=N

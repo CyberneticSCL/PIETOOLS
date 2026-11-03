@@ -5,6 +5,7 @@
 % the kernels of DP, and compared with kernel_degree and kernel_degree2.
 
 % DJ, 10/15/2026: Updated to use new polyopvar functions;
+% DJ, 11/02/2026: Call the new convert function;
 
 clear stateNameGenerator;
 pvar s t
@@ -13,7 +14,7 @@ u   = pde_var(s,dom);
 PDE = [diff(u,t)==diff(u,s,2) + 5*u + u^2;
        subs(u,s,dom(1))==0;
        subs(u,s,dom(2))==0];
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,'silent');                                                % DJ, 11/02/2026
 x   = PIE.x;
 
 % each row: [d,opdeg], the degree of the basis and the spatial degree in SOS_DP

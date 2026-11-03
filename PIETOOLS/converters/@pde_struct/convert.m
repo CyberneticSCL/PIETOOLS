@@ -10,21 +10,22 @@ function PIE = convert(PDE,out_type)
 %               be converted. Only out_type='pie' is supported, as we only
 %               convert PDEs to PIEs. This second argument is only included
 %               to match "convert" function for 'sys' type objects.
+%               Alternatively, 'char' or cell of 'char' objects with the
+%               flags 'silent' (suppress the display), 'nonlinear' (return
+%               an 'npie_struct' also for a linear PDE) and/or 'Top' of
+%               "convert_PIETOOLS_PDE", which are passed on to it;
 %
 % OUTPUT:
-% - PIE:        A pie_struct object defining the equivalent PIE 
-%               representation of the input PDE, if this representation
-%               exists.
+% - PIE:        A pie_struct object (or an npie_struct object, if the PDE
+%               is nonlinear or the flag 'nonlinear' is specified) defining
+%               the equivalent PIE representation of the input PDE, if this
+%               representation exists.
 %
-% NOTES:
-%
-% For support, contact M. Peet, Arizona State University at mpeet@asu.edu
-% or D. Jagt at djagt@asu.edu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - pde_struct/convert
 %
-% Copyright (C)2022  M. Peet, S. Shivakumar, D. Jagt
+% Copyright (C)2026 PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -49,15 +50,26 @@ function PIE = convert(PDE,out_type)
 % Call combines 1D-2D converter, DJ - 10/17/2024
 % Display successful connversion message DB -12/22/24
 % DJ, 06/01/2025: Move pre-processing of PDE to "convert_PIETOOLS_PDE";
+% DJ, 11/02/2026: Accept the flags 'silent', 'nonlinear', 'Top' of
+%                   "convert_PIETOOLS_PDE" as second input;
 
-% We support only PDE to PIE conversion.
-if nargin==2 && ~strcmpi(out_type,'pie')
-    error('Only conversion from PDE to PIE is supported. The second argument must be set to ''pie'', or be omitted.')
+% We support only PDE to PIE conversion. The second argument is 'pie', or
+% flags of convert_PIETOOLS_PDE, with the 'pie' left out.
+if nargin<2
+    out_type = {};
 end
+flag = cellstr(out_type);
+if ~all(ismember(flag,{'pie','silent','nonlinear','Top','return_Top'}))     % DJ, 11/02/2026
+    error(['Only conversion from PDE to PIE is supported. The second argument must be ''pie'', ',...
+        'or flags of convert_PIETOOLS_PDE (''silent'', ''nonlinear'', ''Top''), or be omitted.'])
+end
+flag = flag(~strcmp(flag,'pie'));
 
 % Call the PDE to PIE converter.
-PIE = convert_PIETOOLS_PDE(PDE);
+PIE = convert_PIETOOLS_PDE(PDE,flag);
 
 % DB 12/22/24
-fprintf('\n --- Conversion to PIE was successful --- \n');
+if ~ismember('silent',flag)                                                 % DJ, 11/02/2026
+    fprintf('\n --- Conversion to PIE was successful --- \n');
+end
 end

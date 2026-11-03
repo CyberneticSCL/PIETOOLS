@@ -1,15 +1,15 @@
-function [Rops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,sources)
-% [Rops,Kops,Fop,info,Gops]=COMPOSE_TMAPS(maps,vars,dom,sizes,Delta,
+function [Tops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alphas,sources)
+% [Tops,Kops,Fop,info,Gops]=COMPOSE_TMAPS(maps,vars,dom,sizes,Delta,
 % alphas,sources) composes the solution operators of the 1D boundary value
 % problems (BVPs) along the N directions of a group of states on the same
 % variables, as a tensor product, after checking that they are compatible.
 % This gives the operators of the ND fundamental state space Y, so that
 % for all x_pde in the PDE domain D, with xf in Y and fundamental inputs
 % wf and uf (the exogenous and actuator inputs in the BCs),
-%       D^{alpha}x_pde_k = Rops.x{k}{alpha+1}*xf
-%                          + Rops.w{k}{alpha+1}*wf
-%                          + Rops.u{k}{alpha+1}*uf,
-%       Kops.K*xf = 0.
+%       D^{alpha}x_pde_k = Tops.x{k}{alpha+1}*xf
+%                          + Tops.w{k}{alpha+1}*wf
+%                          + Tops.u{k}{alpha+1}*uf,
+%       Kops.x*xf + Kops.w*wf + Kops.u*uf = 0.
 %
 % INPUT
 % - maps:   1 x N struct array with fields Tops, Kops, Fop, info (the
@@ -25,7 +25,7 @@ function [Rops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alp
 % - sizes:  1 x q array, the dimensions of the q states;
 % - Delta:  q x N array, the orders of each state in each variable;
 % - alphas: (optional) nal x N array of derivative orders alpha for which
-%           to compute the operators in Rops, 'all' (default) for all
+%           to compute the operators in Tops, 'all' (default) for all
 %           alpha<=Delta, or [] for none. The operator for alpha=0 (the
 %           state itself) is always computed;
 % - sources: (optional) true if all inputs in the BCs are determined by
@@ -37,11 +37,15 @@ function [Rops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alp
 % OUTPUT
 % All operators are 'copvar' objects, with the nV components xf_c of
 % xf as columns.
-% - Rops:   struct with fields x, w, u: q x 1 cells, with
+% - Tops:   struct with fields x, w, u: q x 1 cells, with
 %           x{k}{alpha_1+1,...,alpha_N+1} the 1 x nV operator
 %           xf --> D^{alpha}x_pde_k for alpha<=Delta_k in alphas ([]
 %           for the others), and w{k}, u{k} the same for wf, uf;
-% - Kops:   struct with field K, the constraints K*xf=0 ([] if none);
+% - Kops:   struct with fields x, w, u, the operators of the constraints
+%           Kops.x*xf + Kops.w*wf + Kops.u*uf = 0, with a row for each
+%           constraint (no rows if there are none), and columns for the
+%           components of xf, wf and uf. The inputs do not enter the
+%           constraints, so Kops.w and Kops.u are zero;
 % - Fop:    nV x q operator such that xf_c = sum_k Fop_{c,k}*
 %           D^{Dorder_{c,k}}x_pde_k, with Dorder as in info.fund(c).Dorder;
 % - info:   struct with fields
@@ -362,7 +366,7 @@ for i=find(~triv)
         end
     end
     if m(i)>0
-        ops_1D(i).K = maps(i).Kops.K1.C{1,1}(:,perm_back);
+        ops_1D(i).K = maps(i).Kops.x.C{1,1}(:,perm_back);
         ops_1D(i).F = maps(i).Fop.C{1,1}(:,perm_back);
         % With one auxiliary value for each component of the general
         % direction, these are ordered as the regrouped components in the
@@ -572,7 +576,7 @@ for k=1:q
 end
 % % % Assemble the outputs; the input operators are empty if there are no
 % % % inputs of that type
-Rops = struct('x',{R_state},'w',[],'u',[]);
+Tops = struct('x',{R_state},'w',[],'u',[]);
 Fop = copvar(F_blocks);
 Gops = struct('w',[],'u',[]);
 for ty=itypes
@@ -580,7 +584,7 @@ for ty=itypes
     if isempty(inputs_ops.(obj_type))
         continue
     end
-    Rops.(obj_type) = R_inputs.(obj_type);
+    Tops.(obj_type) = R_inputs.(obj_type);
     % Map from the fundamental inputs to the right-hand sides of the
     % conditions (Gops), with zero blocks where a component does not enter
     for ii=1:numel(rhs_info.(obj_type))
@@ -601,7 +605,28 @@ if ~isempty(K_blocks)
     end
     Kop = copvar(K_blocks);
 end
-Kops = struct('K',Kop);
+% The spaces of the components of xf, wf and uf
+cols = struct('x',[],'w',[],'u',[]);
+comps = struct('x',fund,'w',inputs_info.w,'u',inputs_info.u);
+for ty={'x','w','u'}
+    comps_ty = comps.(ty{1});
+    if ~isstruct(comps_ty)
+        comps_ty = struct('dim',{},'vars',{});
+    end
+    cols.(ty{1}) = struct('dims',reshape([comps_ty.dim],[],1),'depmat',false(numel(comps_ty),numel(vars)));
+    for c=1:numel(comps_ty)
+        cols.(ty{1}).depmat(c,:) = ismember(vars,comps_ty(c).vars);
+    end
+end
+% Zero operators with the rows of Kop (none if there are no constraints)
+empty_op = @(P,sp) zeros_copvar_sop(struct('out',P.dim_out,'in',sp.dims),struct('out',{arrayfun(@(i) P.vars(P.space_out(i,:)),1:numel(P.dim_out),'UniformOutput',false)},'in',{arrayfun(@(i) vars(sp.depmat(i,:)),1:numel(sp.dims),'UniformOutput',false)}),struct('vars',{vars},'dom',dom));
+Kops = struct('x',Kop,'w',[],'u',[]);
+if isempty(Kop)
+    Kop = struct('dim_out',zeros(0,1),'vars',{cell(1,0)},'space_out',false(0,0));
+    Kops.x = empty_op(Kop,cols.x);
+end
+Kops.w = empty_op(Kop,cols.w);
+Kops.u = empty_op(Kop,cols.u);
 
 % % % Information on the components of xf, and the inputs
 info = struct('vars',{vars},'pass',pass,'fund',fund,'inputs',inputs_info,'rhs',rhs_info);

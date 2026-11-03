@@ -58,6 +58,7 @@ function Test_polyopvar_subs()
 % DJ (CC), 10/28/2026: In case_class, substitute constants in functionals of
 %   degree d>1 (compared with the tensor product evaluation) instead of
 %   expecting an error;
+% DJ, 11/02/2026: Call the new convert function;
 
 cases = {@case_class, @case_const, @case_const_partial, @case_fctr, @case_fctr_function, @case_multirow, @case_name, @case_nested, @case_ode_rows, @case_var, @case_var_function, @case_vector_states};
 nfail = 0;
@@ -1403,7 +1404,7 @@ function case_ode_rows()
     for ex = [9,8]
         rng(500+ex);
         PDE = examples_PDE_library_PIETOOLS_nouinput(ex);
-        evalc('PIE = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
+        evalc('PIE = convert(PDE,{''silent'',''nonlinear''});');            % DJ, 11/02/2026
         sz = PIE.x_tab(:,2);
         nst = numel(sz);
         % Random PIE states: constants for ODE states, polynomials in s for PDE states

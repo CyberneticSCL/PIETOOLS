@@ -3,7 +3,7 @@
 %
 % This script takes the PDE with number example_num from the library
 % `examples_PDE_library_PIETOOLS_nouinput`, converts it to a PIE with
-% `convert_PIETOOLS_PDE_nonlinear`, and tests stability of the PIE. It
+% `convert_PIETOOLS_PDE`, and tests stability of the PIE. It
 % declares a distributed SOS Lyapunov functional V(x) =
 % <Zop*Z(u),Pmat*Zop*Z(u)> + eppos*||u||^2, with u = T*x the PDE state,
 % Z(u) = [u ... u^d]', Zop a basis of multiplier and integral operators,
@@ -18,13 +18,14 @@
 % functional, the coefficient eppos, and the option ineq_opts.psatz.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
 %%%% 1. Declare the PIE
 
 clear
 example_num = 6;
 PDE = examples_PDE_library_PIETOOLS_nouinput(example_num);
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,{'silent','nonlinear'});                                  % DJ, 11/02/2026
 
 
 

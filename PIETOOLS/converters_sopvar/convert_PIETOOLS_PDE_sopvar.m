@@ -179,6 +179,7 @@ function PIE = convert_PIETOOLS_PDE_sopvar(PDE,comp_order,flag)
 %                   directly with 'copvar' (see "convert_native_sopvar"),
 %                   falling back on the opvar route, converting at each exit
 %                   of the function (see "pie_ops2copvar").
+% DJ, 11/02/2026: Call the legacy convert_PIETOOLS_PDE_nonlinear_2D;
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -252,7 +253,7 @@ end
 
 % Pass to nonlinear converter if appropriate
 if PDE.is_nonlinear
-    PIE = convert_PIETOOLS_PDE_nonlinear(PDE,comp_order,flag);
+    PIE = convert_PIETOOLS_PDE_nonlinear_2D(PDE,comp_order,flag);           % DJ, 11/02/2026
     return
 end
 

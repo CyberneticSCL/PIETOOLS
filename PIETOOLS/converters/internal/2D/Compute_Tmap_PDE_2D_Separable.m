@@ -151,6 +151,8 @@ function [Top_f,Dvals] = Compute_Tmap_PDE_2D_Separable(PDE,comp_order,suppress_s
 %                   boundary values of inputs if necessary;
 % DJ (CC), 10/29/2026: The operator F of the 1D PIE is no longer a field of
 %                   the PIE; check PIE_1D.misc.periodic for periodic BCs;
+% DJ (CC), 11/02/2026: Call convert_PIETOOLS_PDE_2D (the old converter,
+%   now in internal/legacy) for the 1D sub-PDEs;
 %
 
 % % % Extract the inputs
@@ -505,7 +507,8 @@ PDE_1D.BC = PDE_1D.BC(~is_altvar_BC);
 % % Compute the 1D PIE representation associated to the 1D PDE
 PDE_1D = initialize(PDE_1D,true);
 [PDE_1D,comp_order] = reorder_comps(PDE_1D,'all',true);
-try PIE_1D = convert_PIETOOLS_PDE(PDE_1D,[],{'silent','Top'});                      % DJ, 12/16/2024
+%try PIE_1D = convert_PIETOOLS_PDE(PDE_1D,[],{'silent','Top'});             % DJ (CC), 11/02/2026 (was); earlier: DJ, 12/16/2024
+try PIE_1D = convert_PIETOOLS_PDE_2D(PDE_1D,[],{'silent','Top'});           % DJ (CC), 11/02/2026
 catch
     error('The expansion of the PDE state in terms of the PIE state fails; perhaps the PDE is ill-posed, or not currently supported.')
 end

@@ -20,6 +20,7 @@
 % coefficient 1e-2 that enforces strict positivity of V.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
 clear;  clear stateNameGenerator
 pvar x t
@@ -32,7 +33,7 @@ PDE = [diff(u1,t)==diff(u2,x)-u1*u2^2;
        subs(u1,x,0)==0;  subs(u2,x,1)==0];
 
 % Convert to a PIE
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');  
+PIE = convert(PDE,'silent');                                                % DJ, 11/02/2026
 T = PIE.T;  f = PIE.f;
 u = PIE.x;
 

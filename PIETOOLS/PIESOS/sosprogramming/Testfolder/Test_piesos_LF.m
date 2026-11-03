@@ -83,6 +83,7 @@ function Test_piesos_LF(only)
 %                        monomials;
 % DJ (CC), 10/23/2026: check_pde_blocks: one block of Zop per state (vector
 %                        variable of dmonomials), not per scalar entry;
+% DJ, 11/02/2026: Call the new convert function;
 
 tests ={@case_pde_options, @case_pde_degrees, @case_pde_coupled, ...
          @case_mixed, @case_mixed_coupled, @case_combined, ...
@@ -180,7 +181,7 @@ switch kind
     otherwise
         error('Unknown PIE.');
 end
-evalc('PIE = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
+evalc('PIE = convert(PDE,{''silent'',''nonlinear''});');                    % DJ, 11/02/2026
 cache.(kind) = PIE;
 end
 

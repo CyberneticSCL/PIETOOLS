@@ -31,6 +31,7 @@
 % piesos_LF, piesos_ineq, @tensopvar/subsref and mtimes).
 %
 % DJ (CC), 10/22/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
 %%%% 0. Settings
 
@@ -136,7 +137,7 @@ for k = 1:n_ex
             PDE = [PDE; diff(z{j},'t')==-(1/DDE.tau(j))*diff(z{j},s);
                         subs(z{j},s,0)==xo];
         end
-        PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+        PIE = convert(PDE,{'silent','nonlinear'});                          % DJ, 11/02/2026
 
         % Declare V and its derivative dV
         x = PIE.x;

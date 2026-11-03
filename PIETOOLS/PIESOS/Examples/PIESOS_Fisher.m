@@ -28,6 +28,7 @@
 % radius R, and the flags use_ineq1, use_ineq2 and use_bnd.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
 %%%% 1. Declare the PIE for which to test stability
 
@@ -44,7 +45,7 @@ PDE = [diff(x,t)==diff(x,s,2)+alp*x-bet*x^2;
        subs(x,s,dom(1))==0;  subs(x,s,dom(2))==0];
 
 % Convert to a PIE
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,'silent');                                                % DJ, 11/02/2026
 Top = PIE.T;
 f = PIE.f;
 x = PIE.x;

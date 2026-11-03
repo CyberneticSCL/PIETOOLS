@@ -130,6 +130,7 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
     % DJ, 10/21/2026: Add support for vector-valued case;
     % DJ, 10/21/2026: Certified radius rho as 5th output; progress times.
+% DJ, 11/02/2026: Call the new convert function;
 
     t_start = tic;
 
@@ -175,7 +176,7 @@ function res = LocalStability_v2(PDE, r, alpha, eppos, lambda, dist_degs, mon_de
     end
 
     %% Convert PDE to PIE.
-    PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');                     % DJ, 10/14/2026
+    PIE = convert(PDE,'silent');                                            % DJ, 11/02/2026
     Top = PIE.T;    % Inverse map.
     f   = PIE.f;    % Polynomial PIE.
     dom = PIE.dom;  % Spatial domain [a,b].

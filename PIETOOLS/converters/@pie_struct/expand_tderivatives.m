@@ -1,55 +1,57 @@
 function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % [PIE,TDIFF_TAB] = EXPAND_TDERIVATIVES(PIE,TDIFF_LIST,SUPPRESS_SUMMARY)
-% takes a PIE involving higher-order temporal derivatives, and introduces
-% auxiliary fundamental state components to model these higher-order
-% temporal derivatives, representing the PIE as a first-order in time
-% system.
+% takes a PIE with evolution equations of higher order in time, and adds
+% components for the temporal derivatives of the state, so that the PIE is
+% first order in time. This works for any number of spatial variables, and
+% for PIEs with a constraint K*x=0, as it operates on the 'copvar'
+% operators directly, with a block for each component of the state.
 %
 % INPUT
-% - PIE:        'pie_struct' object representing a PIE with nx state
-%               evolution equations, some of which involve higher-order
-%               temporal derivatives.
-% - tdiff_list: nx x 1 array of type 'double', specifying for each of the
-%               nx fundamental state components the order of the temporal
-%               derivative in the evolution equation of this state
-%               component.
-% - suppress_summary: (optional) boolean variable indicating whether to
-%                   suppress the display of a summary of how the state
-%                   components in the output PIE relate to those in the
-%                   input PIE.
+% - PIE:        'pie_struct' object with nb state components x_i, with
+%               evolution equations of order p_i in time,
+%                   (d/dt)^{p_i} (T_i*x + Tw_i*w + Tu_i*u)
+%                       = A_i*x + Bw_i*w + Bu_i*u,
+%               for T_i the i-th row of T, and similarly for the other
+%               operators, and a constraint K*x=0;
+% - tdiff_list: nb x 1 array of positive integers, the orders p_i of the
+%               temporal derivatives in the equations;
+% - suppress_summary:   (optional) logical, true to suppress the display
+%               of how the state components in the output PIE relate to
+%               those in the input PIE (false by default);
 %
 % OUTPUT
-% - PIE:    'pie_struct' object representing the same PIE but now involving
-%           only first-order in time derivatives, introducing auxiliary
-%           variables to model the higher-order temporal derivatives. See
-%           also the notes.
-% - tdiff_tab:  nx x 2 array specifying for each of the fundamental state
-%               components in the new PIE how they relate to the state
-%               components in the original PIE. In particular, for each
-%               state component i in the output PIE, we have
-%                  x_{i} = (d/dt)^{tdiff_tab(i,2)} x_{old,tdiff_tab(i,1)}.
+% - PIE:        'pie_struct' object, first order in time, describing the
+%               same system with the state components of the input and
+%               their temporal derivatives (see NOTES);
+% - tdiff_tab:  nb_new x 2 array, specifying for each state component of
+%               the output PIE what component of the input PIE it is the
+%               temporal derivative of: component i is
+%                   x_i = (d/dt)^{tdiff_tab(i,2)}*
+%                         x_{old,tdiff_tab(i,1)};
 %
 % NOTES
-% For each state component in the PIE, the function checks whether any of
-% the associated evolution equations involves a higher-order temporal
-% derivative of this component. If so, auxiliary variables are added to
-% represent the higher-order temporal derivatives of this state component,
-% expressing the dynamics in terms of only first-order temporal
-% derivatives. For example, if equation ii involves the pth-order
-% derivative of two state components,
-%   (d/dt)^p Top(i,:)*v = Top(i,i)*(d/dt)^p v_{i} + Top(i,j)*(d/dt)^p v_{j}
-%            Aop(i,:)*v = Aop(i,i)*v_{i} + Aop(i,k)*v_{k}
-% then we introduce v_{i,l} = d/dt^(l-1) v_{i} and 
-% v_{j,l} = (d/dt)^(l-1) v_{j} for l ranging from 1 to p 
-% (so that v_{i,1}=v_{i}), and expand the dynamics as
-%   (d/dt)Top_new(i,:) v = d/dt v_{i,l} = v_{i,l+1} = Aop_new(i,:)*v
-% for l from 1 to p-1, and
-%   (d/dt)Top_new(i+p,:) v = Top_new(i+k,i+p)*(d/dt)v_{i,k} +
-%                          Top(i+p,j+q)*(d/dt)v_{j,p}
-%                          = Aop_new(i+p,i)*v_{i} + Aop_new(i+p,k)*v_{k}
-% NOTE that this means that Top*v may no longer return the PDE state (if it
-% did so previously), as now the dynamics for state variable v_{i}=v_{i,1}
-% are given by    d/dt v_{i,1} = v_{i,2},   so that Top_new(i,i) = I.
+% - A component x_j gets L_j temporal derivatives x_{j,l}=(d/dt)^l x_j,
+%   l=1,...,L_j, for L_j the highest value of p_i-1 among the equations
+%   with p_i>1 in which x_j appears (T_{i,j}~=0). The new components follow
+%   the component they derive from, x_{j,0}=x_j.
+% - The equation of x_j is moved to the last component x_{j,L_j}, with the
+%   operators T_{i,c} of an equation of order p_i acting on x_{c,p_i-1}, so
+%   that it is first order. For l<L_j, the new equations are
+%   (d/dt) x_{j,l} = x_{j,l+1}.
+%   As a result, T*x need no longer be the PDE state, and pie2pde.x is
+%   adjusted, so that x_pde=X_pde*(T*x+Tw*w+Tu*u) still holds: with the old
+%   operators X_old and T_old, the PDE state is x_pde=sum_i X_old(:,i)*
+%   (T_old*x)_i, where (T_old*x)_i is the i-th row of the new
+%   T*x+Tw*w+Tu*u if p_i=1, and sum_c T_old(i,c)*x_{c,0} otherwise.
+% - The derivatives satisfy the constraint of x. For each constraint of K,
+%   a constraint is added for each of the derivatives of the components in
+%   it, acting on x_{c,l} for the same l. An error is thrown if a
+%   constraint involves components with different numbers of derivatives.
+% - The expansion is not supported for equations with p_i>1 that involve
+%   inputs in T (boundary inputs), as these would require derivatives of
+%   the inputs, or for constraints involving inputs, Kw and Ku.
+% - The maps pde2pie of the new components are those of the component they
+%   derive from, with the order of the temporal derivative increased.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - expand_tderivatives
@@ -79,319 +81,207 @@ function [PIE,tdiff_tab] = expand_tderivatives(PIE,tdiff_list,suppress_summary)
 % DJ, 10/29/2026: Update to new pie_struct structure (expansion of copvar
 %                   operators, extension of the maps between PDE and PIE,
 %                   and no support for PIEs with an algebraic constraint);
+% DJ, 11/02/2026: Major overhaul to support ND PIEs and algebraic 
+%                   constraints;
 
-% % % Process the inputs
-% Check that sufficient arguments are passed.
+% % % Check the inputs
 if nargin<2
     error("Insufficient input arguments.")
 elseif nargin==2
-    % Print summary by default.
     suppress_summary = false;
 elseif nargin>3
     error("Too many input arguments.")
 end
-% Check if the PIE is properly specified.
 if ~isa(PIE,'pie_struct')
-    error("First argument must be of type 'pie_struct'.")
+    error("The PIE must be specified as a 'pie_struct' object.")
 end
-% DJ, 10/29/2026
-% The expansion below is performed using 'opvar' and 'opvar2d' operators, so
-% we convert the operators of the initialized PIE, and convert the operators
-% of the result back.
 if ~PIE.is_initialized
     PIE = initialize(PIE);
 end
-PIE_copvar = PIE;
-for op_name = {'T','Tw','Tu','A','Bw','Bu','Cz','Dzw','Dzu','Cy','Dyw','Dyu'}
-    if PIE.dim<=1
-        PIE.(op_name{1}) = copvar2opvar(PIE.(op_name{1}));
-    else
-        PIE.(op_name{1}) = copvar2opvar2d(PIE.(op_name{1}),PIE.space.vars);
-    end
-end
-% Check if the orders of the temporal derivatives are properly specified.
-if ~isnumeric(tdiff_list) || any(tdiff_list<=0) || any(tdiff_list~=round(tdiff_list))
-    error("Orders of temporal derivatives should be specified as nx1 array of positive integers.")
-end
-% Make sure we have a temporal derivative for each state variable.
+nb = numel(PIE.space.x.dims);
 tdiff_list = tdiff_list(:);
-nx = size(PIE.T,1);
-if isempty(PIE.x_tab)
-    % Assume each state component is scalar-valued
-    ncomps = nx;
-    comp_IDs = (1:nx)';
-    comp_IDs_full = comp_IDs;
-    n_vars = ones(nx,1);
-    nn_vars = (0:nx)';
-    var_idcs = mat2cell([(1:nx)',(1:nx)'],ones(nx,1),2);
-else
-    % Get size of each state component from second column of x_tab
-    ncomps = size(PIE.x_tab,1);
-    comp_IDs = (1:ncomps)';
-    n_vars = PIE.x_tab(:,2);
-    comp_IDs_full = repelem(comp_IDs,n_vars);
-    nn_vars = [0;cumsum(PIE.x_tab(:,2))];
-    % Establish what variable indices in the state correspond to each
-    % component
-    var_idcs = cellfun(@(a)(a(1):a(2))',mat2cell([nn_vars(1:end-1)+1,nn_vars(2:end)],ones(ncomps,1),2),'UniformOutput',false);
+if numel(tdiff_list)~=nb || any(tdiff_list<1) || any(tdiff_list~=round(tdiff_list))
+    error("The orders of the temporal derivatives should be specified as an array of positive integers, one for each state component.")
 end
-if numel(tdiff_list)==ncomps
-    tdiff_list = tdiff_list(comp_IDs_full);
-elseif numel(tdiff_list)~=nx
-    error("Number of temporal derivatives should match number of evolution equations in the PIE.")
-end
-
-
-
-% % % Determine what temporal derivatives must be taken, and of which state
-% % % variables.
-
-% Check which evolution equations involve higher-order temporal derivatives
-eq_expnd = tdiff_list>1;
-tdiff_list = tdiff_list(eq_expnd)-1;
-if ~any(eq_expnd)
-    % All evolution equations are first-order in time
-    % --> nothing to do here.
-    tdiff_tab = [(1:ncomps)',zeros(ncomps,1)];                                % DJ, 10/29/2026
+if all(tdiff_list==1)
+    tdiff_tab = [(1:nb)',zeros(nb,1)];
     if ~suppress_summary
         fprintf(['\n','No higher-order temporal derivatives were encountered; returning original PIE'])
     end
-    PIE = PIE_copvar;
     return
-elseif any(~(PIE.Tw(eq_expnd,:)==0)) || any(~(PIE.Tu(eq_expnd,:)==0))
-    error("Expansion of higher-order temporal derivatives is not supported for PDE states with boundary inputs.")
-elseif size(PIE.K,1)>0
-    % DJ, 10/29/2026
-    % The constraint on the state is not extended to the auxiliary components.
-    error("Expansion of higher-order temporal derivatives is not supported for PIEs with an algebraic constraint.")
+end
+% Blocks of an operator that are nonzero, and the identity on component j
+has_op = @(B) ~isempty(B) && any(cellfun(@nnz,B.params(:)));
+nz_blocks = @(P) cellfun(has_op,P.C);
+space = PIE.space;
+identity_op = @(j) mat2sopvar(eye(space.x.dims(j)),struct('in',{space.vars(space.x.depmat(j,:))},'out',{space.vars(space.x.depmat(j,:))}),struct('in',space.dom(space.x.depmat(j,:),:),'out',space.dom(space.x.depmat(j,:),:)));
+% Metadata of the operator P with the rows (columns) of its spaces taken
+% from the rows row_idcs (columns col_idcs) of P
+meta_subset = @(P,row_idcs,col_idcs) struct('vars',{P.vars},'dom',P.dom,'space_out',P.space_out(row_idcs,:),'space_in',P.space_in(col_idcs,:),'dim_out',P.dim_out(row_idcs),'dim_in',P.dim_in(col_idcs));
+is_exp = tdiff_list>1;
+T_nz = nz_blocks(PIE.T);
+A_nz = nz_blocks(PIE.A);
+Tin_nz = [nz_blocks(PIE.Tw),nz_blocks(PIE.Tu)];
+if any(any(Tin_nz(is_exp,:)))
+    error("expand_tderivatives:boundaryInputs","Expansion of higher-order temporal derivatives is not supported for states with boundary inputs.")
+end
+if any(any([nz_blocks(PIE.Kw),nz_blocks(PIE.Ku)]))
+    error("expand_tderivatives:constraintInputs","Expansion of higher-order temporal derivatives is not supported for constraints involving inputs.")
 end
 
-% Check which state variables require higher order-temporal derivatives.
-Top_tdiff = PIE.T(eq_expnd,:);
-comp_tdiffs = zeros(ncomps,1);
-for tt = unique(tdiff_list)'
-    r_idcs = tdiff_list==tt;
-    Top_tt = Top_tdiff(r_idcs,:);
-    for jj=1:ncomps
-        c_idcs = var_idcs{jj};
-        if any(~(Top_tt(:,c_idcs)==0))
-            comp_tdiffs(jj) = tt;
-        end
+
+% % % Determine the components, and the new components for the temporal
+% % % derivatives
+% L(j): number of derivatives of component j; the new components are
+% ordered per component j, with the derivatives of order 0,...,L(j),
+% parent_idx and tdiff_ord the component and order of each, first(j) the
+% new index of x_pie_j, and host(j) that of the last derivative, which
+% gets the equation of x_pie_j
+L = zeros(nb,1);
+for i=find(is_exp)'
+    cols = T_nz(i,:)';
+    L(cols) = max(L(cols),tdiff_list(i)-1);
+end
+nnew = sum(L+1);
+parent_idx = repelem((1:nb)',L+1,1);
+tdiff_ord = cell2mat(arrayfun(@(l) (0:l)',L,'UniformOutput',false));
+first = cumsum([1;L(1:end-1)+1]);
+host = first+L;
+tdiff_tab = [parent_idx,tdiff_ord];
+
+
+% % % The operators T and A: the equation of x_pie_i moves to host(i),
+% % % where T acts on x_pie_{c,p_i-1}, and the derivatives get the
+% % % equations (d/dt) x_pie_{j,l} = x_pie_{j,l+1}
+T_old = PIE.T.C;       A_old = PIE.A.C;
+T_new = cell(nnew,nnew);       A_new = cell(nnew,nnew);
+% Row i: move the equation of x_pie_i to host(i), add the chain equations
+for i=1:nb
+    tdiff_i = 0;
+    if is_exp(i)
+        tdiff_i = tdiff_list(i)-1;
+    end
+    for c=find(T_nz(i,:))
+        T_new{host(i),first(c)+tdiff_i} = T_old{i,c};
+    end
+    for c=find(A_nz(i,:))
+        A_new{host(i),first(c)} = A_old{i,c};
+    end
+    for l=0:L(i)-1
+        T_new{first(i)+l,first(i)+l} = identity_op(i);
+        A_new{first(i)+l,first(i)+l+1} = identity_op(i);
     end
 end
-comp_expnd = comp_tdiffs>0;
-comp_tdiffs = comp_tdiffs(comp_expnd);
-
-
-
-% % % Augment the fundamental, introducing auxiliary variables representing
-% % % temporal derivatives of state variables where necessary.
-
-% Add higher-order temporal derivatives.
-n_aux = sum(comp_tdiffs);                          % number of auxiliary vars
-aux_IDs = repelem(comp_IDs(comp_expnd),comp_tdiffs);
-n_vars_aux = n_vars(aux_IDs);
-nn_vars_aux = nn_vars(end) + cumsum(n_vars_aux);
-% Assign to each auxiliary component a set of new state variables.
-var_idcs_aux = cellfun(@(a)(a(1):a(2))',mat2cell([[nn_vars(end)+1;nn_vars_aux(1:end-1)+1],nn_vars_aux(1:end)],ones(n_aux,1),2),'UniformOutput',false);
-% Also keep track of which of the original state variables are associated
-% with each auxiliary component
-var_idcs_aux_old = repelem(var_idcs(comp_expnd),comp_tdiffs);
-
-% DJ, 10/29/2026
-% Keep track of the maps between the PDE and PIE, which must be extended to
-% the new components below.
-p2p0 = PIE.pde2pie;     p2d0 = PIE.pie2pde;
-
-% Update the state information table to incorporate the new variables
-if ~isempty(PIE.x_tab)
-    aux_tab = PIE.x_tab(aux_IDs,:);
-    %aux_tab(:,2+PIE.dim+(1:PIE.dim)) = 0;      % should we set the order of regularity to zero?
-    %aux_tab(:,1) = ncomps+(1:n_aux)';
-    PIE.x_tab = [PIE.x_tab; aux_tab];
+PIE.T = copvar(T_new,meta_subset(PIE.T,parent_idx,parent_idx));
+PIE.A = copvar(A_new,meta_subset(PIE.A,parent_idx,parent_idx));
+% The rows of the operators on the inputs move to host(i) as well, and the
+% columns of the operators on the state are those of x_pie_{c,0}
+for fname = {'Tw','Tu','Bw','Bu'}
+    P = PIE.(fname{1});
+    blocks_new = cell(nnew,size(P.C,2));
+    blocks_new(host,:) = P.C;
+    PIE.(fname{1}) = copvar(blocks_new,meta_subset(P,parent_idx,1:size(P.C,2)));
+end
+for fname = {'Cz','Cy'}
+    P = PIE.(fname{1});
+    blocks_new = cell(size(P.C,1),nnew);
+    blocks_new(:,first) = P.C;
+    PIE.(fname{1}) = copvar(blocks_new,meta_subset(P,1:size(P.C,1),parent_idx));
 end
 
-% Augmenting the state, for each state component, keep track of what order
-% temporal derivative of which original state component it represents
-tot_IDs = [comp_IDs; aux_IDs];                  % associated original state component
-aux_tdiffs = cell2mat(cellfun(@(a)(1:a)',num2cell(comp_tdiffs),'UniformOutput',false));
-comp_tdiffs = [zeros(ncomps,1); aux_tdiffs];    % order of temporal derivative
-n_vars_tot = [n_vars; n_vars_aux];
-var_idcs_tot = [var_idcs; var_idcs_aux];
-var_idcs_old = [var_idcs; var_idcs_aux_old];
-ncomps_tot = ncomps + n_aux;
 
-% We reorder the state components so that the auxiliary variables
-% immediately follow their corresponding original state
-[tot_IDs_new,old2new_idcs] = sortrows_integerTable(tot_IDs);    % tot_IDs_new = tot_IDs(old2new_idcs);
-n_vars_new = n_vars_tot(old2new_idcs);
-nn_vars_new = [0;cumsum(n_vars_new)];
-var_idcs_new = cellfun(@(a)(a(1):a(2))',mat2cell([nn_vars_new(1:end-1)+1,nn_vars_new(2:end)],ones(ncomps_tot,1),2),'UniformOutput',false);
-var_idcs_old = var_idcs_old(old2new_idcs);
-% We update the order of the state variables (comprising the state
-% components) accordingly
-old2new_idcs_full = cell2mat(var_idcs_tot(old2new_idcs));   % x_new = x_old(old2new_idcs);
-[~,new2old_idcs_full] = sort(old2new_idcs_full);            % x_old = x_new(new2old_idcs);  
-
-% Compute updated dimensions of the opvar object
-nx_op = PIE.T.dim(:,1);
-nnx_op = [0;cumsum(nx_op)];
-nx_op_new = zeros(size(nx_op));
-for jj=1:numel(nx_op)
-    is_jj_comps = nn_vars(2:end)>nnx_op(jj) & nn_vars(2:end)<=nnx_op(jj+1);
-    comp_IDs_jj = comp_IDs(is_jj_comps);
-    nx_op_new(jj) = sum(n_vars_new(ismember(tot_IDs_new,comp_IDs_jj)));
+% % % The constraint K*x_pie=0 holds for each of the derivatives, with the
+% % % components of a constraint having the same number of derivatives
+K = PIE.K;
+nK = size(K.C,1);
+if nK>0
+    K_nz = nz_blocks(K);
+    L_con = zeros(nK,1);
+    for r=1:nK
+        cols = find(K_nz(r,:));
+        if isempty(cols)
+            continue
+        end
+        if any(L(cols)~=L(cols(1)))
+            error("expand_tderivatives:constraintOrders","A constraint on the state involves components with different numbers of temporal derivatives; this is not supported.")
+        end
+        L_con(r) = L(cols(1));
+    end
+    % The constraints (row of K, order of the derivative), by order
+    K_rows = [repelem((1:nK)',L_con+1,1),cell2mat(arrayfun(@(l) (0:l)',L_con,'UniformOutput',false))];
+    K_rows = sortrows(K_rows,[2,1]);
+    K_new = cell(size(K_rows,1),nnew);
+    for q=1:size(K_rows,1)
+        for c=find(K_nz(K_rows(q,1),:))
+            K_new{q,first(c)+K_rows(q,2)} = K.C{K_rows(q,1),c};
+        end
+    end
+    PIE.K = copvar(K_new,meta_subset(K,K_rows(:,1),parent_idx));
+else
+    PIE.K = [];
 end
-comp_tdiffs_new = comp_tdiffs(old2new_idcs);
-if ~isempty(PIE.x_tab)
-    PIE.x_tab = PIE.x_tab(old2new_idcs,:);
-    % DJ, 10/29/2026
-    % Keep track of the order of the temporal derivative that each of the
-    % components represents, for the map from PDE to PIE, and extend the
-    % other maps between the PDE and PIE to the auxiliary components. Each
-    % auxiliary component maps from the same PDE component as the component
-    % of which it is the derivative, par(k) being the original component of
-    % the new component k.
-    PIE.pde2pie.x.tdiff = comp_tdiffs(old2new_idcs);
-    par = tot_IDs(old2new_idcs);
-    if size(p2p0.x.idx,1)==ncomps
-        PIE.pde2pie.x.idx = p2p0.x.idx(par,:);
-        for fname = {'loc','delay'}
-            if size(p2p0.x.(fname{1}),1)==ncomps
-                PIE.pde2pie.x.(fname{1}) = p2p0.x.(fname{1})(par,:);
+PIE.Kw = [];        PIE.Ku = [];
+
+
+% % % The function spaces, and the maps between the PDE and PIE: the new
+% % % components are maps from the same PDE component, with a temporal
+% % % derivative
+space.x.dims = space.x.dims(parent_idx);
+space.x.depmat = space.x.depmat(parent_idx,:);
+pde2pie_s = PIE.pde2pie;
+for fname = {'idx','diff','loc','delay'}
+    if size(pde2pie_s.x.(fname{1}),1)==nb
+        pde2pie_s.x.(fname{1}) = pde2pie_s.x.(fname{1})(parent_idx,:);
+    end
+end
+if size(pde2pie_s.x.tdiff,1)==nb
+    pde2pie_s.x.tdiff = pde2pie_s.x.tdiff(parent_idx) + tdiff_ord;
+end
+if isa(pde2pie_s.x.C,'copvar') && size(pde2pie_s.x.C.C,1)==nb
+    blocks_new = cell(nnew,nnew);
+    for k=1:nnew
+        blocks_new{k,k} = pde2pie_s.x.C.C{parent_idx(k),parent_idx(k)};
+    end
+    pde2pie_s.x.C = copvar(blocks_new,meta_subset(pde2pie_s.x.C,parent_idx,parent_idx));
+end
+% The PDE state from the new T*x_pie+Tw*w+Tu*u, see NOTES
+pie2pde_s = PIE.pie2pde;
+X_old = pie2pde_s.x;
+if isa(X_old,'copvar') && size(X_old.C,2)==nb
+    X_nz = nz_blocks(X_old);
+    X_new = cell(size(X_old.C,1),nnew);
+    for i=1:nb
+        if is_exp(i)
+            cols = find(T_nz(i,:));       targets = first(cols)';     ops = T_old(i,cols);
+        else
+            targets = host(i);              ops = {[]};
+        end
+        for k=find(X_nz(:,i))'
+            for m=1:numel(targets)
+                P = X_old.C{k,i};
+                if ~isempty(ops{m})
+                    P = P*ops{m};
+                end
+                if isempty(X_new{k,targets(m)})
+                    X_new{k,targets(m)} = P;
+                else
+                    X_new{k,targets(m)} = X_new{k,targets(m)} + P;
+                end
             end
         end
-        if size(p2p0.x.tdiff,1)==ncomps
-            PIE.pde2pie.x.tdiff = p2p0.x.tdiff(par) + comp_tdiffs(old2new_idcs);
-        end
     end
-    isorig = comp_tdiffs(old2new_idcs)==0;      % components that are not auxiliary
-    if isa(p2p0.x.C,'copvar') && size(p2p0.x.C,1)==ncomps && size(p2p0.x.C,2)==ncomps
-        % The auxiliary components are maps from the same PDE component.
-        meta = metadata(p2p0.x.C);
-        Cblk = cell(numel(par));
-        for kk=1:numel(par)
-            Cblk{kk,kk} = p2p0.x.C.C{par(kk),par(kk)};
-        end
-        meta.space_out = meta.space_out(par,:);     meta.dim_out = meta.dim_out(par);
-        meta.space_in = meta.space_in(par,:);       meta.dim_in = meta.dim_in(par);
-        PIE.pde2pie.x.C = copvar(Cblk,meta);
-    end
-    if isa(p2d0.x,'copvar') && size(p2d0.x,2)==ncomps
-        % The auxiliary components are not components of the PDE state.
-        meta = metadata(p2d0.x);
-        Xblk = cell(size(p2d0.x,1),numel(par));
-        for kk=find(isorig)'
-            Xblk(:,kk) = p2d0.x.C(:,par(kk));
-        end
-        meta.space_in = meta.space_in(par,:);       meta.dim_in = meta.dim_in(par);
-        PIE.pie2pde.x = copvar(Xblk,meta);
-    end
+    pie2pde_s.x = copvar(X_new,meta_subset(X_old,1:size(X_old.C,1),parent_idx));
 end
-    
-
-
-% % % Update the PIE structure to express dynamics in terms of augmented
-% % % state
-
-% % Update the columns of the various PI operators to account for the new
-% % order of the state components
-fnames = {'A','Cz','Cy'};
-for kk=1:numel(fnames)
-    op_name = fnames{kk};
-    % Declare zero operator with column dimension matching new state size.
-    nr_op = PIE.(op_name).dim(:,1);
-    if PIE.dim==1
-        Pop_new = opvar();
-    else
-        Pop_new = opvar2d();
-    end
-    Pop_new.dim = [nr_op,nx_op_new];
-    Pop_new.I = PIE.dom;
-    Pop_new.var1 = PIE.vars(:,1);       Pop_new.var2 = PIE.vars(:,2);
-    % Set terms of original operator in appropriate columns of Pop_new.
-    if any(nr_op)
-        Pop_new(:,new2old_idcs_full(1:nx)) = PIE.(op_name);
-    end
-    PIE.(op_name) = Pop_new;
-end
-
-
-% % Express higher-order temporal derivative in old evolution equations
-% % in terms of auxiliary variables,
-% %   Top(i,i)*(d/dt)^{k}v_{i} + Top(i,j)*(d/dt)^{k}v_{j} = Aop(i,:)*v
-% %   => Top(i,i)*(d/dt)v_{i,k-1} + Top(i,j)*(d/dt)v_{j,k-1} = Aop(i,:)*v
-% First, declare a zero operator with appropriate column dimension.
-if PIE.dim==1
-    Top_new = opvar();
-else
-    Top_new = opvar2d();
-end
-Top_new.dim = [nx_op,nx_op_new];
-Top_new.I = PIE.dom;
-Top_new.var1 = PIE.vars(:,1);       Top_new.var2 = PIE.vars(:,2);
-% Set terms associated to first-order in time evolution equations.
-Top_new(~eq_expnd,new2old_idcs_full(1:nx)) = PIE.T(~eq_expnd,:);
-% Set terms associated to higher-order in time evolution equations, using
-% the auxiliary variables to represent higher-order derivatives.
-Top_new_tdiff = Top_new(eq_expnd,:);
-for tt = unique(tdiff_list')
-    r_idcs = tdiff_list==tt;
-    is_tt_ID = comp_tdiffs_new==tt;
-    c_idcs_new = cell2mat(var_idcs_new(is_tt_ID));
-    c_idcs_old = cell2mat(var_idcs_old(is_tt_ID));
-    Top_new_tdiff(r_idcs,c_idcs_new) = Top_tdiff(r_idcs,c_idcs_old);
-end
-Top_new(eq_expnd,:) = Top_new_tdiff;
-PIE.T = Top_new;
-
-
-% % Declare evolution equations for the auxiliary state variables,
-% %   (d/dt) v_{i,k} = v_{i,k+1}
-fnames = {'T','Tw','Tu','A','Bw','Bu'};
-[~,strt_idcs] = unique(tot_IDs_new);            % idcs at which new component starts
-end_idcs = [strt_idcs(2:end)-1; ncomps_tot];
-end_idcs_full = cell2mat(var_idcs_new(end_idcs));
-for kk=1:numel(fnames)
-    op_name = fnames{kk};
-    % Declare zero operators of row dimensions matching new state size.
-    nc_op = PIE.(op_name).dim(:,2);
-    if PIE.dim==1
-        Pop_new = opvar();
-    else
-        Pop_new = opvar2d();
-    end
-    Pop_new.dim = [nx_op_new,nc_op];
-    Pop_new.I = PIE.dom;
-    Pop_new.var1 = PIE.vars(:,1);       Pop_new.var2 = PIE.vars(:,2);
-    % Set original PIE equations in appropriate rows of Pop_new
-    if any(nc_op)
-        Pop_new(end_idcs_full,:) = PIE.(op_name);
-    end
-    PIE.(op_name) = Pop_new;
-end
-% Declare the equations of the form (d/dt) v_{i,k} = v_{i,k+1}
-for ii=1:length(strt_idcs)
-    r_idcs = cell2mat(var_idcs_new(strt_idcs(ii):end_idcs(ii)-1));
-    c_idcs = cell2mat(var_idcs_new(strt_idcs(ii)+1:end_idcs(ii)));
-    PIE.T(r_idcs,r_idcs) = eye(numel(r_idcs));
-    PIE.A(r_idcs,c_idcs) = eye(numel(r_idcs));
-end
-
-
-
-% % % Process the outputs, and print a summary of the work, if desired.
-% DJ, 10/29/2026
-% The operators K, Kw, and Ku have no rows, and are initialized again for the
-% new state.
-PIE.K = [];     PIE.Kw = [];    PIE.Ku = [];
+PIE.space = space;
+PIE.pde2pie = pde2pie_s;
+PIE.pie2pde = pie2pde_s;
 PIE = initialize(PIE);
-tdiff_tab = [tot_IDs_new, comp_tdiffs_new];
 if ~suppress_summary
     print_tdiff_expansion_summary(PIE,tdiff_tab);
 end
 
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
 
@@ -448,8 +338,8 @@ n_digits = 1+floor(log(ncomps)/log(10));
 % % For the purpose of clearer display, we make an estimate of how long the
 % % display will be. 
 % First, determine which variables appear in the different state variables.
-nvars = size(PIE.vars,1);
-global_vars_obj = PIE.vars;
+nvars = numel(PIE.space.vars);
+global_vars_obj = PIE.space.vars;
 lngth_varnames = 3;      % just three characters: (t)
 if ~isempty(global_vars_obj)
     varname_cell = cell(nvars,1);
@@ -478,7 +368,7 @@ for ii=1:ncomps
     
     % Establish the names of the variables on which the component depends.
     varnames_ii_t = 't';
-    var_idcs = find(PIE.x_tab(ii,3:2+PIE.dim));
+    var_idcs = find(PIE.space.x.depmat(ii,:));
     for kk=var_idcs
         varnames_ii_t = [varnames_ii_t,',',varname_cell{kk}];
     end

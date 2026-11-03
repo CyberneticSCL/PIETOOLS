@@ -57,6 +57,7 @@
 % vector-valued states (error in intop/combine_terms).
 %
 % DJ (CC), 10/22/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
 %%%% 0. Settings
 
@@ -141,7 +142,7 @@ for k = 1:n_ex
     try
         % Declare the PIE
         PDE = examples_PDE_library_PIETOOLS_nouinput(ex_num,ex_tab{row,4}{:});
-        PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+        PIE = convert(PDE,{'silent','nonlinear'});                          % DJ, 11/02/2026
 
         % Declare V and its derivative dV
         x = PIE.x;

@@ -25,6 +25,7 @@
 % ineq_opts.psatz, qdegs and Q_opts.psatz of the constraint on dV.
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/02/2026: Call the new convert function;
 
 %%%% 1. Declare the PIE for which to verify stability
 
@@ -40,7 +41,7 @@ PDE = [diff(x,t)==-diff(x,s,4)-diff(x,s,2)-r*x^2-x*diff(x,s);
         subs(x,s,1)==0;     subs(diff(x,s),s,1)==0];
 
 % Convert to PIE
-PIE = convert_PIETOOLS_PDE_nonlinear(PDE,'silent');
+PIE = convert(PDE,'silent');                                                % DJ, 11/02/2026
 Top = PIE.T;
 f = PIE.f;
 

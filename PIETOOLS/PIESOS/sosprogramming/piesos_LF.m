@@ -17,8 +17,8 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 % INPUTS
 % - prog:   'struct' specifying a PIESOS program (see `piesos_program`);
 % - PIE:    'npie_struct' representing the PIE for which a Lyapunov
-%           functional is sought, as output by
-%           `convert_PIETOOLS_PDE_nonlinear`, with operators T and f, the
+%           functional is sought, as output by `convert_PIETOOLS_PDE`
+%          , with operators T and f, the
 %           function space PIE.space of the PIE, with the names of the
 %           states PIE.space.x.varname, and the names of the PDE states
 %           PIE.space_pde.x.varname, associated to the PIE states by
@@ -120,6 +120,8 @@ function [prog,V,dV,Pmat,Zop] = piesos_LF(prog,PIE,xvars,degmat,opts)
 % DJ, 10/23/2026: Fix for vector-valued states;
 % DJ, 10/29/2026: Use the function spaces and names of the components in
 %                   PIE.space and PIE.space_pde of the 'npie_struct' PIE;
+% DJ (CC), 11/02/2026: Refer to convert_PIETOOLS_PDE, which now also converts
+%   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
 
 % Check the options
 if nargin<=4

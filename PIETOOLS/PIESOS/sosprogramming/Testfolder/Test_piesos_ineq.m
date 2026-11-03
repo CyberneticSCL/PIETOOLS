@@ -58,6 +58,7 @@ function Test_piesos_ineq()
 %   (degrees per state, no longer per scalar row), check its block sizes;
 % DJ (CC), 10/23/2026: Merge Test_piesos_ineq_unused_states into this test,
 %   as cases;
+% DJ, 11/02/2026: Call the new convert function;
 
 % NOTES
 % - case_mixed_basis_warning pins a known limitation: a basis monomial
@@ -122,7 +123,7 @@ function case_unused_states()
     dom = [0,1];
     u = pde_var(s,dom);
     PDE = [diff(u,t)==-diff(u,s);   subs(u,s,dom(1))==0];
-    evalc('PIE = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
+    evalc('PIE = convert(PDE,{''silent'',''nonlinear''});');                % DJ, 11/02/2026
     x = PIE.x;
     nfeas = 0;
 
