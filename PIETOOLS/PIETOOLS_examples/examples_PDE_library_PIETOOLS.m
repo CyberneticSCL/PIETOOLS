@@ -1,6 +1,6 @@
 function varargout = examples_PDE_library_PIETOOLS(varargin)                % MMP, 10/28/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% examples_PDE_library_PIETOOLS.m     PIETOOLS 2024
+% examples_PDE_library_PIETOOLS.m     PIETOOLS 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This library file contains the definition of some common ODE-PDE systems
 % drawn from the literature. To use one of the examples, call this function
@@ -88,15 +88,17 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)                % MM
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MP - 7_1_2020
-% Updated to the Nth order format, added 4th order implementation of 
-% Timoshenko beam equation. DJ - 05-24-2021
-% Adjusted to function format. DJ - 05-31-2021
-% Updated zero input case, and fixed some examples. DJ - 12-29-2021
-% Update to new terms format and separate files: DJ - 08/25/2022
-% Removed a stray "2" before "function" on line 1: MATLAB rejected the
-% file, so every call to this function failed. MMP - 10/28/2026
+% MP, 07/01/2020: Initial coding;
+% DJ, 05/24/2021: Update to the Nth order format, and add 4th order
+%                   implementation of Timoshenko beam equation;
+% DJ, 05/31/2021: Adjust to function format;
+% DJ, 12/29/2021: Update zero input case, and fix some examples;
+% DJ, 08/25/2022: Update to new terms format and separate files;
+% MMP, 10/28/2026: Remove a stray "2" before "function" on line 1, as
+%                   MATLAB rejected the file, so every call to this
+%                   function failed;
 % 2function varargout = examples_PDE_library_PIETOOLS(varargin)             % MMP, 10/28/2026 (was)
+% DJ, 11/02/2026: Add 3D examples, 53-55;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -842,8 +844,60 @@ if BATCH~=0
         BATCH = 0;
     end
     [PDE_t] = PIETOOLS_PDE_Ex_Unstable_ReactionDiffusion_Control(GUI,params);
-% 
-                                    
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       3D Examples 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%==========================================================================
+%       Stability analysis
+%==========================================================================
+%--------------------------------------------------------------------------
+%       Diffusive/Heat Equation Type Systems
+%--------------------------------------------------------------------------
+    case 53
+%   PDE: x_{t} = lam*x + C*(x_{(2,0,0)}             | lam = 1;  C = 1;          (stable iff lam < 3*pi^2*C/2 = 14.8044 for C = 1)
+%                         + x_{(0,2,0)}             |
+%                         + x_{(0,0,2)})            | ne = 1 (state size)
+%   BCs: x(s1=0) = 0,        x(s1=1) = 0,           |
+%        x(s2=0) = 0,        x_{s2}(s2=1) = 0,      |
+%        x_{s3}(s3=0) = 0,   x(s3=1) = 0;           |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_3D_Reaction_Diffusion_Eq(GUI,params);
+%--------------------------------------------------------------------------
+    case 54
+%   PDE: x_{t} = lam*x + C*(x_{(2,0,0)}             | lam = 1;  C = 1;          (stable iff lam < 3*pi^2*C + |b|^2/(4*C) = 30.4838
+%                         + x_{(0,2,0)}             | b1 = 0.5; b2 = 1;                     for the default parameters)
+%                         + x_{(0,0,2)})            | b3 = 1.5;
+%                 + b1*x_{(1,0,0)} + b2*x_{(0,1,0)} | ne = 1 (state size)
+%                 + b3*x_{(0,0,1)}                  | 
+%   BCs: x(s1=0) = 0,   x(s2=0) = 0,   x(s3=0) = 0, |
+%        x(s1=1) = 0,   x(s2=1) = 0,   x(s3=1) = 0; |
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_3D_Advection_Diffusion_Eq(GUI,params);
+%--------------------------------------------------------------------------
+    case 55
+%   PDE: x1_{t} = C1*(x1_{(2,0,0)} + x1_{(0,2,0)}   | lam = 1;  C1 = 1;  
+%                   + x1_{(0,0,2)}) + lam*x2        | C2 = 0.3;                 (stable iff |lam| < 3*pi^2*sqrt(C1*C2) = 16.2174
+%        x2_{t} = C2*(x2_{(2,0,0)} + x2_{(0,2,0)}   | ne = 2 (state size)           for the default parameters)
+%                   + x2_{(0,0,2)}) + lam*x1        | 
+%   BCs: xi(s1=0) = 0,   xi(s2=0) = 0,   xi(s3=0) = 0,  i = 1,2
+%        xi(s1=1) = 0,   xi(s2=1) = 0,   xi(s3=1) = 0;
+    if BATCH~=0
+        disp('No batch input format available for this system, using terms-based format instead.')
+        TERM = 1;
+        BATCH = 0;
+    end
+    [PDE_t] = PIETOOLS_PDE_Ex_3D_Coupled_Heat_Eq(GUI,params);
+%
+
 %==========================================================================
 %       Additional Examples (Undocumented)
 %==========================================================================
@@ -1265,7 +1319,7 @@ function [index,BATCH,TERM,GUI,params] = process_inputs(varargin0,nargin1)
 % examples_PDE_library_PIETOOLS function.
 
 
-n_examples = 52;
+n_examples = 55;
 
 BATCH = 0;      % if nonzero, batch-based PDE is assigned as output number BATCH of this function
 TERM = 0;       % if nonzero, term-based PDE is assigned as output number TERM of this function
