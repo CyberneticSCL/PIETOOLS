@@ -103,12 +103,10 @@ function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
 %                an opvar PIE, so every operator reaching them was a
 %                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
 %                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP and the gamma
-%                constraints are imposed by LPI_INEQ_SOP, the functions of
-%                lpi_programming_sopvar, in place of LPIPROGRAM and
-%                LPI_INEQ of lpi_programming; for these arguments
-%                ('polynomial' variables, a 'dpvar' gamma) both build the
-%                same program.
+% MMP, 11/04/2026: The scalar gamma constraints are imposed by
+%                LPI_INEQ_SOP of lpi_programming_sopvar in place of
+%                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
+%                impose it by SOSINEQ, so the program is the same.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -182,8 +180,7 @@ end
         %               ('cdopvar' P and Z), Km (the LPI operator), Nm (the
         %               slack), li (slack info of LPI_INEQ_SOP), form.
         % New program; record the equality rows when the dual is kept
-%         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);           % MMP, 11/04/2026 (was)
-        prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % MMP, 11/04/2026
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam >= 0 as the objective, or the fixed gain
         if isempty(gfix)

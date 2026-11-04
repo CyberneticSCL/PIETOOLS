@@ -73,6 +73,9 @@
 %                  step comments in the body; code unchanged. The deleted
 %                  header text was the comparison with DEMO2 and the list
 %                  of the user and stock functions the script calls.
+% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the
+%                  variables of Top; LPIPROGRAM_SOP, which read them off T,
+%                  is retired.
 
 % % % MMP, 10/21/2026: start of the rewritten body (header note).
 echo on
@@ -82,7 +85,8 @@ Top.R.R1 = 1;   Top.I = [0,1];
 T = op2copvar_sop(Top);
 
 % The LPI
-prog = lpiprogram_sop(T);                   % a program on the variables of T
+% prog = lpiprogram_sop(T);                   % a program on the variables of T % MMP, 11/04/2026 (was)
+prog = lpiprogram(Top.vars,Top.I);          % a program on the variables of Top % MMP, 11/04/2026
 [prog,gam] = lpidecvar(prog,'gam');         % a scalar decision variable
 prog = lpi_ineq_sop(prog,gam - T'*T);       % gam*I - T'*T >= 0
 prog = lpisetobj(prog,gam);                 % minimize gam

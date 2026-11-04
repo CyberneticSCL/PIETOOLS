@@ -10,7 +10,7 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 %           [ D_zw,    -gam*I_z, C_z      ]  <= 0,  i.e. K + N = 0, N >= 0,
 %           [ Q'B_w,   C_z',     A'Q + Q'A]
 %
-% on an lpiprogram_sop program: gam from lpidecvar, gam >= 0 by lpi_ineq;
+% on an lpiprogram program: gam from lpidecvar, gam >= 0 by lpi_ineq;
 % R and N the positive operators of the 'lf' and 'slack' settings of
 % lpisettings(LEVEL) (poslpivar_settings_sop); Q free (lpivar_cdopvar at
 % the degrees get_lpivar_degs_sop reads off R); I_w, I_z from
@@ -117,6 +117,9 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 %                The (was) line of the former signature moved here from
 %                under the function line, so that help starts with the
 %                description:
+% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+%                extra input forms (names, containers) only filled fields that
+%                container routines do not read, is retired.
 % function out = hinf_gain_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 
 % Defaults; no warnings for non-canonical multipliers; settings with
@@ -147,7 +150,8 @@ Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.D
 [spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026
 Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
 % Program; gam >= 0 a decision variable, the objective
-prog = lpiprogram_sop(Tm);                          % registry and dom of T
+% prog = lpiprogram_sop(Tm);                          % registry and dom of T % MMP, 11/04/2026 (was)
+prog = lpiprogram(PIE.vars,PIE.dom);                % variables of the PIE  % MMP, 11/04/2026
 [prog,gam] = lpidecvar(prog,'gam');
 prog = lpi_ineq(prog,gam);                          % gam >= 0: legacy sosineq
 prog = lpisetobj(prog,gam);

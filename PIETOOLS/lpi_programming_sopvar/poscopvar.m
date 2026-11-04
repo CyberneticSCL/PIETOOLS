@@ -28,7 +28,7 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 % depends on Pop.
 %
 % INPUT
-% - prog:        'struct', the LPI program (LPIPROGRAM_SOP);
+% - prog:        'struct', the LPI program (LPIPROGRAM);
 % - dims:        double, M x 1 positive integers, dims(k) = m_k the number
 %                of components of space k; a scalar is used for every
 %                space; empty for no space (POP is then 0 x 0, with no
@@ -159,6 +159,8 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  operator with no decision variable. Before, the space
 %                  parser read the empty list as one R^q space and failed
 %                  (maintainer: empty channels should not raise an error).
+% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
+%                LPIPROGRAM_SOP is retired.
 
 % Check the inputs; OPTIONS a struct, of type 'pos' only
 if nargin<5

@@ -33,7 +33,7 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 % [], [], {} and struct('cleared',true).
 %
 % INPUT
-% - prog:     'struct', the LPI program (LPIPROGRAM_SOP), or the char
+% - prog:     'struct', the LPI program (LPIPROGRAM), or the char
 %             'clear';
 % - dims:     double, M x 1 positive integers, dims(k) = m_k the number of
 %             components of space k; a scalar is used for every space;
@@ -211,6 +211,8 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 %                direction saves 8-13% Gram entries at the same rows.
 %                Programs without a subset array are unchanged (six
 %                fingerprints before and after, scratch fp_regress).
+% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
+%                LPIPROGRAM_SOP is retired.
 
 % The cache of position maps; 'clear' empties it
 persistent CACHE

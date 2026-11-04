@@ -30,9 +30,6 @@ function R = test_copquadvar_faces()
 % MMP, 10/01/2026: The program is lpiprogram for every N; it no longer refuses
 %   N > 2, so the hand-built copy for N > 2 is commented out. Same program
 %   (lpiprogram builds exactly what the copy built).
-% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP of
-%   lpi_programming_sopvar in place of LPIPROGRAM of lpi_programming;
-%   with 'polynomial' variables both build the same program.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 heatNd_path();
@@ -147,8 +144,7 @@ function prog = mkprog(vars,dom)
 % prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));                      % MMP, 10/01/2026 (was)
 % prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))]; % MMP, 10/01/2026 (was)
 % prog.dom = dom;                                                           % MMP, 10/01/2026 (was)
-% prog = lpiprogram(polynomial(vars(:)),[],dom);                            % MMP, 11/04/2026 (was)
-prog = lpiprogram_sop(polynomial(vars(:)),[],dom);                          % MMP, 11/04/2026
+prog = lpiprogram(polynomial(vars(:)),[],dom);                              % MMP, 10/01/2026
 end
 
 function y = basis_apply(alpha,x,Th,dom,nq)

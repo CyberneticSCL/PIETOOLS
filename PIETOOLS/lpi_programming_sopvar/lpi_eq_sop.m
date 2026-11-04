@@ -8,7 +8,7 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 % constraints of LPI_EQ.
 %
 % INPUT
-% - prog:   'struct', the LPI program to modify (from LPIPROGRAM_SOP or
+% - prog:   'struct', the LPI program to modify (from
 %           LPIPROGRAM), whose field decvartable holds every decision
 %           variable of P;
 % - P:      'cdopvar' or 'sdopvar' object, the decision operator to set to
@@ -31,7 +31,7 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 % A 'copvar', 'sopvar', 'polynomial' or 'double' P, which has no decision
 % variables, is an error.
 %
-% See also LPI_EQ, LPI_EQ_CDOPVAR, LPI_EQ_SDOPVAR, LPIPROGRAM_SOP,
+% See also LPI_EQ, LPI_EQ_CDOPVAR, LPI_EQ_SDOPVAR, LPIPROGRAM,
 %          LPIGETSOL_SOP, LPIGETDUAL_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -86,6 +86,8 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 %                this class (OPTS unused): the container path no longer
 %                calls lpi_programming for it. The opvar classes still go
 %                to LPI_EQ.
+% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
+%                LPIPROGRAM_SOP is retired.
 
 % Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and
 % lpi_eq_sdopvar each test nargin for it.

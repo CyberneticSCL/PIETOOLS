@@ -51,6 +51,8 @@
 %
 % DB, 10/29/2026: Initial coding;
 % DJ, 10/30/2026: Update to use "int2copvar" to compute mean;
+% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
+%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 
 clc; clear; clear stateNameGenerator
 pvar s t;
@@ -81,7 +83,8 @@ T = (I-S)*T;            A = (I-S)*A;
 % T = (I-S)*T; A = (I-S)*A;
 %% The slack X enforces dissipation subject to linear PI constraint
 % Initialize lpiprogram
-prog = lpiprogram_sop(T);
+% prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
+prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
 % Lyapunov decision PI variable (coercive)
 [prog,P] = poscopvar(prog,1,{'s'},PIE.dom,struct('int',3,'mult',3,'joint',3));
 P = P + 1e-4*I;

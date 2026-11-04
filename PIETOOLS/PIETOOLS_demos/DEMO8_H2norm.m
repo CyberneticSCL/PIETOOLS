@@ -38,6 +38,8 @@
 % DB, 12/27/2024: Replace sys() objects by pde_var();
 % DJ, 05/18/2025: Declare no particular SDP solver by default;
 % DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
+% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
+%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 
 
 clc; clear; close all; clear stateNameGenerator;
@@ -69,7 +71,8 @@ B1 = PIE.B1;    C1 = PIE.C1;
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram_sop(T);                                                   % DJ (CC), 10/30/2026
+% prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
+prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
 
 % % Declare decision variables:
 % %   gam \in \R,     W:L2-->L2,    Z:\R-->L2

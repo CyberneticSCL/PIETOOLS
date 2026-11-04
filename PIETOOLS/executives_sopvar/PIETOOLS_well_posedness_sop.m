@@ -106,10 +106,6 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %                an opvar PIE, so every operator reaching them was a
 %                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
 %                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP of
-%                lpi_programming_sopvar in place of LPIPROGRAM of
-%                lpi_programming; with 'polynomial' variables both build
-%                the same program.
 
 % Default settings, as the stock executive; check the PIE
 if nargin<2 || isempty(settings)
@@ -184,8 +180,7 @@ end
         %               constrained operators), li (slack info of
         %               LPI_INEQ_SOP for Dm1, with degrees2 those for Dm2).
         % New program; record the equality rows when the dual is kept
-%         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);           % MMP, 11/04/2026 (was)
-        prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % MMP, 11/04/2026
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
         if st.sop.keepdual,     prog.sopeq = {};    end
         % P >= eppos I on the output space of T, R >= I on its input space
         [prog,Pm] = tl.storage(prog,Tm,'out');

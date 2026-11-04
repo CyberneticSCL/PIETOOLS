@@ -78,6 +78,9 @@ function test_lpi_ineq_sop
 %                reader chose in (1) and (2); part (6) is now listed. The
 %                help text of the 10/21/2026 entry is in (7), without
 %                markers.
+% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+%                extra input forms (names, containers) only filled fields that
+%                container routines do not read, is retired.
 
 % Silence the canonical-form warnings; MOSEK, else SeDuMi; the pass count
 warning('off','sopvar:noncanonicalMultiplier');
@@ -93,7 +96,8 @@ ZL = {[0;1]};   ZR = {[0;1]};
 params = reshape({sparse(2,2),sparse([2 0;-1 0]),sparse([2 -1;0 0])},[3 1 1]);
 Pt = copvar({sopvar(params,struct('out',{vars},'in',{vars}),ZL,ZR,struct('out',dom,'in',dom),[1 1])});
 % Pt >= 0, solved; the residual
-prog = lpiprogram_sop(Pt);
+% prog = lpiprogram_sop(Pt);                                                % MMP, 11/04/2026 (was)
+prog = lpiprogram(polynomial(vars(:)),[],dom);                              % MMP, 11/04/2026
 [prog,Pop,inf1] = lpi_ineq_sop(prog,Pt);
 prog = lpisolve(prog,sopts);
 rel_b = cx_resid(prog);
@@ -110,7 +114,8 @@ pie = heatNd_pie(1,0);  vars = pie.vars;    dom = pie.dom;    ep = 0.1;
 res = zeros(1,2);   kap = [9, 11];
 for i = 1:2
     % P free, P'*T self-adjoint, the two inequalities; solve
-    prog = lpiprogram_sop(vars,dom);
+%     prog = lpiprogram_sop(vars,dom);                                      % MMP, 11/04/2026 (was)
+    prog = lpiprogram(polynomial(vars(:)),[],dom);                          % MMP, 11/04/2026
     [prog,P] = lpivar_cdopvar(prog,1,{vars},dom,1);
     PT = P'*pie.T;  PA = P'*pie.A0;  TT = pie.T'*pie.T;
     E1 = PT + PT' - 2*ep^2*TT;                  % 2 (P*T - ep^2 T*T), self-adjoint form
@@ -142,7 +147,8 @@ npass = npass+1;
 % T'*T of the 2-D heat PIE, solved; the residual
 pie2 = heatNd_pie(2,0);
 TT2 = pie2.T'*pie2.T;
-prog = lpiprogram_sop(pie2.vars,pie2.dom);
+% prog = lpiprogram_sop(pie2.vars,pie2.dom);                                % MMP, 11/04/2026 (was)
+prog = lpiprogram(polynomial(pie2.vars(:)),[],pie2.dom);                    % MMP, 11/04/2026
 [prog,Pop2,inf3] = lpi_ineq_sop(prog,TT2);
 prog = lpisolve(prog,sopts);
 rel_b = cx_resid(prog);
@@ -155,7 +161,8 @@ npass = npass+1;
 
 %% (4) options
 % Each option variant on Pt, built and not solved
-prog = lpiprogram_sop(Pt);
+% prog = lpiprogram_sop(Pt);                                                % MMP, 11/04/2026 (was)
+prog = lpiprogram(polynomial(vars(:)),[],dom);                              % MMP, 11/04/2026
 [~,Pa] = lpi_ineq_sop(prog,Pt,struct('psatz','none'));
 [~,Pb] = lpi_ineq_sop(prog,Pt,struct('psatz','faces'));
 [~,Pc,ic] = lpi_ineq_sop(prog,Pt,struct('deg',struct('int',1,'mult',1)));
@@ -217,7 +224,8 @@ npass = npass+1;
 %     exactly as with opts.like = {P1,P2}.
 % Two operators of poscopvar; targets on P1 and on P1 and P2
 pie1 = heatNd_pie(1,0);
-prog = lpiprogram_sop(pie1.vars,pie1.dom);
+% prog = lpiprogram_sop(pie1.vars,pie1.dom);                                % MMP, 11/04/2026 (was)
+prog = lpiprogram(polynomial(pie1.vars(:)),[],pie1.dom);                    % MMP, 11/04/2026
 [prog,P1] = poscopvar(prog,1,{pie1.vars},pie1.dom,2);
 [prog,P2] = poscopvar(prog,1,{pie1.vars},pie1.dom,3);
 X1 = -(pie1.T'*P1*pie1.A0 + pie1.A0'*P1*pie1.T);

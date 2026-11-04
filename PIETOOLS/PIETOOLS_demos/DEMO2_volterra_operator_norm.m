@@ -40,6 +40,8 @@
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 11/19/2024: Simplify demo (remove lines of code where possible);
 % DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
+% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the variables
+%   of Top; LPIPROGRAM_SOP, which read them off T, is retired.
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -58,7 +60,8 @@ Top.R.R1 = 1; Top.I = [a,b];
 
 % % Initialize LPI program
 T = op2copvar_sop(Top);            % the operator as a container            % DJ (CC), 10/30/2026
-prob = lpiprogram_sop(T);                                                   % DJ (CC), 10/30/2026
+% prob = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
+prob = lpiprogram(Top.vars,Top.I);                                          % MMP, 11/04/2026
 
 % % Declare decision variables:
 % %   gam \in \R

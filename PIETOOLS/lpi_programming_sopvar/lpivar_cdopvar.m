@@ -23,7 +23,7 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 % C_gam is zero.
 %
 % INPUT
-% - prog:    'struct', the LPI program (LPIPROGRAM_SOP), with the field
+% - prog:    'struct', the LPI program (LPIPROGRAM), with the field
 %            decvartable;
 % - dims:    'struct' with fields out (M x 1 'double', the counts q_i) and,
 %            optionally, in (N x 1 'double', the counts p_j; default out);
@@ -151,6 +151,8 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  observer gain from no measurement, the controller of no
 %                  input); maintainer: empty channels should not raise an
 %                  error. Help text: DIMS and POP.
+% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
+%                LPIPROGRAM_SOP is retired.
 
 % Defaults of the optional inputs; PROG must be an LPI program
 if nargin<5 || isempty(deg),        deg = 1;            end

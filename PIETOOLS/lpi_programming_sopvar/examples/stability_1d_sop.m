@@ -83,6 +83,8 @@
 %                the LPI and its folder. The help text of the 10/21/2026
 %                entries is in the paragraph after the LPI, without
 %                markers.
+% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
+%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 
 echo on
 % The PDE and its PIE
@@ -98,7 +100,8 @@ T = op2copvar_sop(PIE.T);                   % the PIE operators as containers
 A = op2copvar_sop(PIE.A);                   % on L2[s]
 
 % The LPI
-prog = lpiprogram_sop(T);
+% prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
+prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
 [prog,P] = poscopvar(prog,1,{{'s'}},[0,1],2);       % P >= 0 on L2[s], degree 2
 P = P + 1e-3*eye_copvar_sop(1,{{'s'}},[0,1]);       % P >= 1e-3*I
 prog = lpi_ineq_sop(prog,-(T'*P*A + A'*P*T));      % T'*P*A + A'*P*T <= 0   % MMP, 10/21/2026

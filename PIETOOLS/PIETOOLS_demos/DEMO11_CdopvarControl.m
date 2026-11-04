@@ -1,6 +1,8 @@
 % State-feedback stabilization of an unstable 2D reaction-diffusion PDE.
 % Initial coding DB 10/27/2026
 % controller reconstruction AT 10/28/2026
+% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
+%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 clear; clc; clear stateNameGenerator
 pvar s1 s2
 c1 = 1; c2 = 1; lam = 2*pi^2+1; ne = 1;
@@ -20,7 +22,8 @@ vars = {'s1','s2'};
 I = eye_copvar_sop(ne,vars,PIE.dom);
 
 %% Positive PI Lyapunov variable and free auxiliary feedback variable.
-prog = lpiprogram_sop(T);
+% prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
+prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
 [prog,P] = poscopvar(prog,ne,vars,PIE.dom,0);
 P = P + 1e-4*I;
 spaces.out = []; spaces.in = vars;

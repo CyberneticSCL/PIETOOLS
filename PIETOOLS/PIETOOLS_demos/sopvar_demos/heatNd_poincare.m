@@ -130,9 +130,6 @@ function R = heatNd_poincare(pie,spec,popts)
 % MMP, 10/01/2026: The program is lpiprogram for every N; it no longer refuses
 %   N > 2, so the hand-built copy for N > 2 is commented out. Same program
 %   (lpiprogram builds exactly what the copy built).
-% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP of
-%   lpi_programming_sopvar in place of LPIPROGRAM of lpi_programming;
-%   with 'polynomial' variables both build the same program.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2 || isempty(spec),   spec = struct();    end
@@ -367,8 +364,7 @@ function prog = make_prog(vars,dom)
 % spatial variables'); for N > 2 build what it would return, as HEATND_LPI.
 % (10/01/2026: it no longer refuses; one call for every N.)                 % MMP, 10/01/2026
 % if numel(vars)<=2                                                         % MMP, 10/01/2026 (was)
-%     prog = lpiprogram(polynomial(vars(:)),[],dom);                        % MMP, 11/04/2026 (was)
-    prog = lpiprogram_sop(polynomial(vars(:)),[],dom);                      % MMP, 11/04/2026
+    prog = lpiprogram(polynomial(vars(:)),[],dom);
 % else                                                                      % MMP, 10/01/2026 (was)
 %     prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));                  % MMP, 10/01/2026 (was)
 %     prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))]; % MMP, 10/01/2026 (was)

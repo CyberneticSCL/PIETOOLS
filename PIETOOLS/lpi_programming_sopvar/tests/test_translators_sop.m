@@ -79,6 +79,9 @@ function R = test_translators_sop()
 %                unchanged. The deleted header text was a history note on
 %                the copies these routines replace and a reference to
 %                another test.
+% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+%                extra input forms (names, containers) only filled fields that
+%                container routines do not read, is retired.
 
 % No warnings for non-canonical multipliers; seed; s1 on [0,1]; check
 % counter
@@ -121,7 +124,8 @@ Xr = rand_copvar(struct('out',{{{}}},'in',{{{'s1'}}}),struct('out',2,'in',1),dom
 X2 = eye_copvar_sop(1,{{'s1','s2'}},[0 1;0 1]);     % one space over two variables
 pc = lpiprogram(s1,s1_dum,dom);
 E = { @() poslpivar_sop(pc,Xr,1,[]),                                   'poslpivar_sop:side'
-      @() poslpivar_sop(lpiprogram_sop({'s1','s2'},[0 1;0 1]),X2,1,[]), 'poslpivar_sop:dim'
+%       @() poslpivar_sop(lpiprogram_sop({'s1','s2'},[0 1;0 1]),X2,1,[]), 'poslpivar_sop:dim' % MMP, 11/04/2026 (was)
+      @() poslpivar_sop(lpiprogram(polynomial({'s1';'s2'}),[0 1;0 1]),X2,1,[]), 'poslpivar_sop:dim' % MMP, 11/04/2026
       @() poslpivar_sop(pc,Xm,1,struct('exclude',[1 0 0 0])),         'poslpivar_sop:excludeRn'
       @() poslpivar_sop(pc,Xm,1,struct('exclude',[0 1 1 1])),         'poslpivar_sop:excludeL2'
       @() nout3(pc,Xm),                                                'poslpivar_sop:nargout'

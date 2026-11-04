@@ -9,7 +9,7 @@ function out = e2e_stability_2d(frac,level)                                 % MM
 %   P = P0 (+ psatz terms) + diag(eppos) >= 0,
 %   Q = (A'(P T))' + A'(P T) (+ 2 epneg T'(P T)) = -Qe,  Qe >= 0,
 %
-% with the 2-D settings of lpisettings(LEVEL) on an lpiprogram_sop program
+% with the 2-D settings of lpisettings(LEVEL) on an lpiprogram program
 % (BUILD_2D), solves it with SeDuMi, extracts P, Q, Qe and Qe + Q with
 % lpigetsol_sop, and checks the extraction, erroring at the first failed
 % check. The solve is held to no residual bound, so the test does not
@@ -97,6 +97,9 @@ function out = e2e_stability_2d(frac,level)                                 % MM
 %                The (was) line of the former signature moved here from
 %                under the function line, so that help starts with the
 %                description:
+% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+%                extra input forms (names, containers) only filled fields that
+%                container routines do not read, is retired.
 % function out = stability_2d_sop(frac,level)                               % MMP, 10/21/2026 (was)
 
 % Defaults; no warnings for non-canonical multipliers; a check asserts
@@ -216,7 +219,8 @@ eq_opts_psatz = psatz_cell(st.eq_opts_psatz,eq_use_psatz);
 
 % The PIE operators as containers; the program
 Tm = opvar2d2copvar(PIE.T);     Am = opvar2d2copvar(PIE.A);
-prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+% prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);               % MMP, 11/04/2026 (was)
+prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                     % MMP, 11/04/2026
 
 % P = P0 (+ psatz terms) + diag(eppos) on the output space of T
 [prog,Pm] = cx_stability_pos2d(prog,Tm,'out',PIE.dom,st.LF_deg,st.LF_opts);

@@ -139,10 +139,6 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                an opvar PIE, so every operator reaching them was a
 %                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
 %                the removal of the opvar classes; programs unchanged.
-% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP of
-%                lpi_programming_sopvar in place of LPIPROGRAM of
-%                lpi_programming; with 'polynomial' variables both build
-%                the same program.
 
 % Default settings and form, as the stock executive of the PIE's dimension
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -248,8 +244,7 @@ end
         %               operator), Nm (the slack), li (slack info of
         %               LPI_INEQ_SOP), form.
         % New program; record the equality rows when the dual is kept
-%         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);           % MMP, 11/04/2026 (was)
-        prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % MMP, 11/04/2026
+        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
         if st.sop.keepdual,     prog.sopeq = {};    end
         % The positive operator P and the derivative operator Dm of FORM
         switch form

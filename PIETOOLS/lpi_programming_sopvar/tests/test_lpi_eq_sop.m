@@ -1,7 +1,7 @@
 function R = test_lpi_eq_sop()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % R = TEST_LPI_EQ_SOP() checks the dispatch of lpi_eq_sop, and errors at
-% the first failed check. On the programs lpiprogram_sop of s on [0,1], of
+% the first failed check. On the programs lpiprogram of s on [0,1], of
 % (s1,s2) on [0,1] x [0,2] and of (s1,s2,s3) on [0,1] x [0,2] x [0,3]:
 %   (1) for 16 cases, lpi_eq_sop(prog,P,opts{:}) returns the program, equal
 %       field by field (same_val_sop: 'polynomial' and 'dpvar' objects by
@@ -76,6 +76,9 @@ function R = test_lpi_eq_sop()
 %                That the option reaches the container routines is checked
 %                instead on the 4 container P that are not self-adjoint,
 %                where 'symmetric' must add fewer rows. Help: entry (2).
+% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+%                extra input forms (names, containers) only filled fields that
+%                container routines do not read, is retired.
 
 % No warnings for non-canonical multipliers; variables; check counter
 warning('off','sopvar:noncanonicalMultiplier');
@@ -83,16 +86,19 @@ warning('off','sdopvar:noncanonicalMultiplier');
 pvar s th s1 s2 th1 th2
 n = 0;
 % % % Programs and decision operators.
-p1 = lpiprogram_sop(s,th,[0 1]);
+% p1 = lpiprogram_sop(s,th,[0 1]);                                          % MMP, 11/04/2026 (was)
+p1 = lpiprogram(s,th,[0 1]);                                                % MMP, 11/04/2026
 [p1,Pc1] = lpivar_cdopvar(p1,1,{{'s'}},[0 1],2);
 [p1,Pd1] = lpivar(p1,[1 1;1 1],[2 2 2]);
 [p1,g] = lpidecvar(p1,'g');
 [p1,Pc5] = lpivar_cdopvar(p1,[1;1],{{},{'s'}},[0 1],1);   % R^1 x L2[s], 2 x 2
-p2 = lpiprogram_sop([s1;s2],[th1;th2],[0 1;0 2]);
+% p2 = lpiprogram_sop([s1;s2],[th1;th2],[0 1;0 2]);                         % MMP, 11/04/2026 (was)
+p2 = lpiprogram([s1;s2],[th1;th2],[0 1;0 2]);                               % MMP, 11/04/2026
 [p2,Pc2] = lpivar_cdopvar(p2,1,{{'s1','s2'}},[0 1;0 2],1);
 [p2,Pd2] = lpivar(p2,[0 0;0 0;0 0;1 1],1);
 v3 = {'s1','s2','s3'};  D3 = [0 1;0 2;0 3];
-p3 = lpiprogram_sop(v3,D3);
+% p3 = lpiprogram_sop(v3,D3);                                               % MMP, 11/04/2026 (was)
+p3 = lpiprogram(polynomial(v3(:)),[],D3);                                   % MMP, 11/04/2026
 [p3,Pc3] = lpivar_cdopvar(p3,1,{v3},D3,1);
 % A self-adjoint container and its block; the blocks of Pc1 and Pc3
 Sc1 = Pc1+Pc1';   Sb1 = Sc1.C{1,1};    Bc1 = Pc1.C{1,1};    Bc3 = Pc3.C{1,1};

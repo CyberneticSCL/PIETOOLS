@@ -75,7 +75,8 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 % MMP, 11/04/2026: Moved from lpi_programming/ to lpi_programming_sopvar/,
 %   code unchanged: it references no operator class and declares the
 %   program of both operator families, while lpi_programming/ is retired
-%   with the opvar classes.
+%   with the opvar classes. The adapter 'lpiprogram_sop' named in the
+%   10/01/2026 entry is retired the same day (cleaning/private/dead_code).
 
 
 % % % Process the inputs

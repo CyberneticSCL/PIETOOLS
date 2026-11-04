@@ -33,6 +33,11 @@ functions. `lpi_ineq_sop`, `lpi_eq_sop` and `lpigetsol_sop` send a `dpvar` (and 
 a `polynomial`) to `sosineq`, `soseq` and `sosgetsol` directly, which is what the routines of
 `lpi_programming/` do for those classes; the container executives call no routine of
 `lpi_programming/`.
+MMP, 11/04/2026: `lpiprogram_sop` and its test `test_lpiprogram_sop` moved to
+`cleaning/private/dead_code/`: no container routine reads the program's spatial variables, so
+its extra input forms (names, containers, a `vars`/`dom` struct) only filled unread fields (§2).
+Callers declare the program with `lpiprogram` (a PIE: `lpiprogram(PIE.vars,PIE.dom)`). The folder
+root holds eleven user functions.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -55,7 +60,6 @@ and `lpisolve` (in this folder since 11/04/2026) serve both families unchanged.
 
 | function | stock counterpart | what it does |
 |---|---|---|
-| `lpiprogram_sop` | `lpiprogram` | declares the program; also from a container's registry (§2) |
 | `lpivar_cdopvar` | `lpivar` | declares a free `cdopvar` decision operator between concatenations of mixed spaces |
 | `poscopvar` | `poslpivar` | declares a positive self-adjoint `cdopvar` on a concatenation of mixed spaces; calls `poscopvar_direct` (since 10/17/2026; `copquadvar` before, the same operator and decision variables); records it in `prog.sop_pos` for `lpi_ineq_sop` (10/21/2026) |
 | `lpi_eq_sop` | `lpi_eq` | imposes `P == 0` (§2) |
@@ -91,8 +95,8 @@ the demos call some of them). From `sopvar/lpis_sopvar` (10/16/2026) and the for
 
 `pietools_path_update` adds every folder to the path with one `genpath`, so a file here
 must never reuse a legacy name. Such a file would shadow the legacy one for every
-caller. Every dispatcher here therefore ends in **`_sop`**: `lpiprogram_sop`,
-`lpi_eq_sop`, `lpigetsol_sop`, and so on. The container routines name their class
+caller. Every dispatcher here therefore ends in **`_sop`**: `lpi_eq_sop`,
+`lpi_ineq_sop`, `lpigetsol_sop`, and so on. The container routines name their class
 (`lpivar_cdopvar`, `poscopvar`, `possopvar`, `lpi_eq_cdopvar`, ...) or use a name no legacy
 file has (`lpi_soseq`, `get_lift_degs`, `lift_copvar`). Helpers follow the same rule:
 
@@ -114,26 +118,22 @@ collide with a legacy one.
 
 ## 2. Dispatch tables
 
-### `prog = lpiprogram_sop(...)`
+### `prog = lpiprogram(...)`
 
-This is `lpiprogram` with three more input forms (the last three rows below). Since
-10/01/2026 `lpiprogram` itself takes any number of variables, so `lpiprogram_sop` only
-converts those forms and calls it; before, it was a copy of lpiprogram without the
-2-variable cap. Its outputs and error messages were checked unchanged on 93 input forms.
+The program of both families is declared by `lpiprogram` (in this folder since 11/04/2026),
+in any number of spatial variables: `(vartab,dumvartab,dom[,decvartab[,freevartab]])`,
+`(vartab,dom,...)`, an n×2 `vartab` (variables and dummies), a 1×2 `dom` for all variables.
+For a PIE, `lpiprogram(PIE.vars,PIE.dom)`. The program has the fields
+`vartable = [vars; dummies; free]` (a `polynomial`), `dom` (n×2), `decvartable` (a cellstr),
+and the SOSTOOLS fields.
 
-| input | result |
-|---|---|
-| every `lpiprogram` form: `(vartab,dumvartab,dom[,decvartab[,freevartab]])`, `(vartab,dom,...)`, an n×2 `vartab`, a 1×2 `dom` for all variables | as `lpiprogram`, for any n |
-| `(names,dom,...)` with `names` a cellstr or string, e.g. a container's registry `P.vars`, `P.dom` | polynomial variables in that order; dummies `s_dum` |
-| `(P[,decvartab[,freevartab]])` with `P` a `copvar`, `cdopvar`, `sopvar` or `sdopvar` | `P`'s sorted registry and domains; dummies `s_dum` |
-| `(struct('vars',..,'dom',..),...)` | the same |
-
-It has these fields: `vartable = [vars; dummies; free]` (a `polynomial`), `dom` (n×2),
-`decvartable` (a cellstr), and the SOSTOOLS fields.
-
-The former copy deviated from `lpiprogram` in three places. Since 10/01/2026 `lpiprogram`
-has two of them itself (it checks the dummy variables with `ispvar`, and with no spatial
-variable sets `dom = zeros(0,2)`); the cellstr and container forms stay here.
+No container routine reads `vartable` or `dom` (measured 11/04/2026: the four examples and
+DEMO2 with a program declared on no spatial variable build the same SDP and solve to the same
+feasratio). They matter when stock constraints share the program: the stock `lpi_ineq` and
+`lpi_eq` on an opvar read the dummies from `vartable` and the domain from `dom`, and a
+`polynomial` constraint in s needs s in `vartable`. `lpiprogram_sop`, which added three input
+forms (variable names as text, a container, a `vars`/`dom` struct) that only filled these
+fields, was retired on 11/04/2026 (to `cleaning/private/dead_code/`).
 
 ### `prog = lpi_eq_sop(prog,P[,opts])`
 
@@ -225,8 +225,8 @@ refused. Use `dpvar(c)` or `mat2copvar_sop` instead.
 unchanged on container programs. **Measured** in two places:
 
 - E1: 1-D, gamma declared, `gam >= 0`, and minimized;
-- test_lpiprogram_sop (d): N = 1, 2, 3, 4 programs from `lpiprogram_sop`, with
-  `lpidecvar`, `lpi_ineq`, `lpisetobj`, `lpisolve` and `lpigetsol_sop`.
+- test_lpiprogram_sop (d), retired 11/04/2026 with `lpiprogram_sop`: N = 1, 2, 3, 4
+  programs, with `lpidecvar`, `lpi_ineq`, `lpisetobj`, `lpisolve` and `lpigetsol_sop`.
 
 Neither `prog.vartable` nor `prog.dom` is read by lpidecvar, lpisetobj, lpisolve or any
 container routine.
@@ -313,7 +313,6 @@ both on the path from `genpath`, and `tests/private/opcheck_sop`.
 
 | command | what | time |
 |---|---|---|
-| `test_lpiprogram_sop` | (a) 16 lpiprogram forms field by field and 8 error messages; (b) N = 3, 4 against the hand-built N-D program; (c) the 7 new input forms; (d) N-D solves (Volterra N = 1, 2; multiplier N = 1..4) | 92 s |
 | `test_lpi_eq_sop` | dispatch of 16 cases field by field, the option pass-through, 7 errors | 2 s |
 | `test_getsol_sop`, `bench_getsol_sop` | getsol (getsol agent) | 18 s, minutes |
 | `test_dpvar_ops_sop`, `test_dpvar_hinf_chain_sop` | dpvar operators and constructors (operators agent) | 17 s, 10 s |

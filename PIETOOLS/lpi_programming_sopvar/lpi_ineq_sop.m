@@ -17,7 +17,7 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % other class it calls LPI_INEQ(PROG,P,OPTS).
 %
 % INPUT
-% - prog:  'struct', the LPI program (LPIPROGRAM_SOP or LPIPROGRAM); read
+% - prog:  'struct', the LPI program (LPIPROGRAM); read
 %          are decvartable and, if present, sop_pos (cell of the 'cdopvar'
 %          objects POSCOPVAR declared) and sopeq (cell of the equality
 %          records read by LPIGETDUAL_SOP);
@@ -121,7 +121,7 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %          for P of another class, struct('legacy',true).
 %
 % See also LPI_INEQ, LPI_EQ_SOP, POSCOPVAR_DIRECT, GET_LIFT_DEGS,
-%          EQ_OPTS_SOPVAR, LPIPROGRAM_SOP.
+%          EQ_OPTS_SOPVAR, LPIPROGRAM.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -200,6 +200,8 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                container path, e.g. the gamma constraints of the
 %                executives, no longer calls lpi_programming. The opvar
 %                classes still go to LPI_INEQ.
+% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
+%                LPIPROGRAM_SOP is retired.
 
 % Check the inputs; OPTS is optional
 if nargin<2

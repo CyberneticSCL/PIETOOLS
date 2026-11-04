@@ -58,6 +58,8 @@
 % DJ, 10/20/2024: Update to use new LPI programming functions;
 % DJ, 12/23/2024: Simplify demo (remove lines of code where possible);
 % DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
+% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
+%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -85,7 +87,8 @@ H1op = PIE.C1;      % (H1op*x_{ss}) = x_{s}
 % === Declare the LPI
 
 % % Initialize LPI program
-prob = lpiprogram_sop(H2op);                                                % DJ (CC), 10/30/2026
+% prob = lpiprogram_sop(H2op);                                              % MMP, 11/04/2026 (was)
+prob = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
 
 % % Declare decision variables:
 % %   gam \in \R

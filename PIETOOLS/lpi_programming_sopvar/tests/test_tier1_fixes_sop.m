@@ -64,6 +64,9 @@ function test_tier1_fixes_sop()
 %                in the body and headers of the local functions; code
 %                unchanged. The deleted header text was the history of the
 %                three defects the checks target.
+% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
+%                extra input forms (names, containers) only filled fields that
+%                container routines do not read, is retired.
 
 % No warnings for non-canonical multipliers; check counter
 warning('off','sopvar:noncanonicalMultiplier');
@@ -161,7 +164,8 @@ end
 nchk = nchk+3;
 
 % nested cells of container decision operators
-prog = lpiprogram_sop({'s'},[0 1]);
+% prog = lpiprogram_sop({'s'},[0 1]);                                       % MMP, 11/04/2026 (was)
+prog = lpiprogram(polynomial({'s'}),[0 1]);                                 % MMP, 11/04/2026
 [prog,Q] = lpivar_cdopvar(prog,1,{{'s'}},[0 1],1);
 prog.solinfo = struct('RRx',randn(numel(prog.decvartable),1),'x',[],'info',1);
 Qs = lpigetsol_sop(prog,Q);

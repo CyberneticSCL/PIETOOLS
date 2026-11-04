@@ -20,7 +20,7 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % one is written.
 %
 % INPUT
-% - prog:   'struct', an LPI program (lpiprogram or lpiprogram_sop) whose
+% - prog:   'struct', an LPI program (lpiprogram) whose
 %           prog.decvartable holds every name of P.Zd;
 % - P:      'sdopvar' object; an empty or all-zero parameter adds no
 %           equation;
@@ -170,6 +170,8 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % function prog = lpi_eq_sdopvar(prog,P,opts)                               % MMP, 09/26/2026 (was)
 % MMP, 11/01/2026: Help only: 'collect_eq_rows' drops the equations that
 %                  are multiples of another, and the description says so.
+% MMP, 11/04/2026: Help only: PROG comes from LPIPROGRAM; LPIPROGRAM_SOP
+%                  is retired.
 
 
 % BEGIN MMP, 09/30/2026: the three modes split. Deleted here, moved verbatim

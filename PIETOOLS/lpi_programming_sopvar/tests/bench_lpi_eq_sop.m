@@ -4,18 +4,17 @@ function T = bench_lpi_eq_sop(qs,Ns,reps)
 % of lpi_eq_sop(prog,P) and of lpi_eq_cdopvar(prog,P), the routine it
 % dispatches to, for a square 'cdopvar' decision operator P, over a sweep
 % of the number q of decision variables and N of spatial variables, and
-% the wall time of lpiprogram_sop and of lpiprogram. For each N in NS and
+% the wall time of lpiprogram. For each N in NS and
 % q in QS, P maps L2^n[s1,...,sN] to itself, [0,1] in each variable, and
 % is declared by lpivar_cdopvar at degree 2 (N = 1) or 1 (N >= 2) on the
-% program lpiprogram_sop({'s1',...,'sN'},D), with
+% program lpiprogram([s1;...;sN],[],D), with
 % n = max(1,round(sqrt(q/c1))), c1 the number of decision variables at
 % n = 1. The two routines run alternately, REPS times each, the least wall
 % time of each is kept, and the two programs must have equal expr.At and
 % expr.b. At q = max(QS), the MATLAB profiler records the PeakMem of each
 % call (the memory allocated above the entry of the call, by the function
-% and its callees). Last, the least of 20 wall times of lpiprogram_sop and
-% of lpiprogram on [s1;s2] with domain [0,1], and of lpiprogram_sop alone
-% on 1, 3, 5 and 9 variables, are printed.
+% and its callees). Last, the least of 20 wall times of lpiprogram on 1,
+% 2, 3, 5 and 9 variables with domain [0,1] are printed.
 %
 % INPUT
 % - qs:     (optional) 'double' vector, the target numbers of decision
@@ -67,6 +66,9 @@ function T = bench_lpi_eq_sop(qs,Ns,reps)
 %                inputs, outputs), the licence block added, step comments
 %                in the body and the header of the local function; code
 %                unchanged. No header text was deleted.
+% MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP is
+%                retired, so the closing timing of it against LPIPROGRAM
+%                is commented out and LPIPROGRAM alone is timed.
 
 % Defaults; no warnings for non-canonical multipliers
 if nargin<1 || isempty(qs),     qs = [1e4 1e5 1e6];     end
@@ -82,12 +84,14 @@ for N = Ns
     vars = arrayfun(@(i) sprintf('s%d',i),1:N,'uni',0);
     D = repmat([0 1],N,1);
     % Decision variables per component pair at degree d: count once at n = 1.
-    [~,P1] = lpivar_cdopvar(lpiprogram_sop(vars,D),1,{vars},D,dg(N));
+%     [~,P1] = lpivar_cdopvar(lpiprogram_sop(vars,D),1,{vars},D,dg(N));     % MMP, 11/04/2026 (was)
+    [~,P1] = lpivar_cdopvar(lpiprogram(polynomial(vars(:)),[],D),1,{vars},D,dg(N)); % MMP, 11/04/2026
     c1 = numel(P1.Zd);
     for q = qs
         % Component count for about q decision variables; the program and P
         n = max(1,round(sqrt(q/c1)));
-        [prog,P] = lpivar_cdopvar(lpiprogram_sop(vars,D),n,{vars},D,dg(N));
+%         [prog,P] = lpivar_cdopvar(lpiprogram_sop(vars,D),n,{vars},D,dg(N)); % MMP, 11/04/2026 (was)
+        [prog,P] = lpivar_cdopvar(lpiprogram(polynomial(vars(:)),[],D),n,{vars},D,dg(N)); % MMP, 11/04/2026
         % Least wall time of each routine over REPS alternating calls
         tq = inf(1,2);
         for r = 1:reps
@@ -114,21 +118,29 @@ end
 % The table of the sweep
 T = array2table(rows,'VariableNames',{'N','n','q','t_sop','t_direct','ratio','rows','peak_sop_MB','peak_direct_MB'});
 
-% lpiprogram_sop against lpiprogram (N <= 2) and alone (N up to 9).
-pvar s1 s2
-% N = 2: least of 20 wall times of each
-t = inf(1,2);
-for r = 1:20
-    t0 = tic;   lpiprogram_sop([s1;s2],[0 1]);  t(1) = min(t(1),toc(t0));
-    t0 = tic;   lpiprogram([s1;s2],[0 1]);      t(2) = min(t(2),toc(t0));
-end
-fprintf('lpiprogram_sop %.2f ms, lpiprogram %.2f ms (N = 2, min of 20)\n',1e3*t(1),1e3*t(2));
-% lpiprogram_sop alone, N = 1, 3, 5, 9
-for N = [1 3 5 9]
+% % % BEGIN MMP, 11/04/2026: timing of LPIPROGRAM_SOP (retired) commented out
+% % lpiprogram_sop against lpiprogram (N <= 2) and alone (N up to 9).
+% pvar s1 s2
+% % N = 2: least of 20 wall times of each
+% t = inf(1,2);
+% for r = 1:20
+%     t0 = tic;   lpiprogram_sop([s1;s2],[0 1]);  t(1) = min(t(1),toc(t0));
+%     t0 = tic;   lpiprogram([s1;s2],[0 1]);      t(2) = min(t(2),toc(t0));
+% end
+% fprintf('lpiprogram_sop %.2f ms, lpiprogram %.2f ms (N = 2, min of 20)\n',1e3*t(1),1e3*t(2));
+% % lpiprogram_sop alone, N = 1, 3, 5, 9
+% for N = [1 3 5 9]
+%     vars = arrayfun(@(i) sprintf('s%d',i),1:N,'uni',0);     tn = inf;
+%     for r = 1:20,   t0 = tic;   lpiprogram_sop(vars,[0 1]);   tn = min(tn,toc(t0));   end
+%     fprintf('lpiprogram_sop N = %d: %.2f ms\n',N,1e3*tn);
+% end
+% Least of 20 wall times of lpiprogram, N = 1, 2, 3, 5, 9
+for N = [1 2 3 5 9]
     vars = arrayfun(@(i) sprintf('s%d',i),1:N,'uni',0);     tn = inf;
-    for r = 1:20,   t0 = tic;   lpiprogram_sop(vars,[0 1]);   tn = min(tn,toc(t0));   end
-    fprintf('lpiprogram_sop N = %d: %.2f ms\n',N,1e3*tn);
+    for r = 1:20,   t0 = tic;   lpiprogram(polynomial(vars(:)),[],[0 1]);   tn = min(tn,toc(t0));   end
+    fprintf('lpiprogram N = %d: %.2f ms\n',N,1e3*tn);
 end
+% % % END MMP, 11/04/2026
 end
 
 

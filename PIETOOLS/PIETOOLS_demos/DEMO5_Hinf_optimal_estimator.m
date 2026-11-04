@@ -71,6 +71,8 @@
 % DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
 %                   executives do not support the new pie_struct;
 % DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
+% MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
+%   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -105,7 +107,8 @@ B1 = PIE.B1;    D11 = PIE.D11;  D21 = PIE.D21;
 % === Declare the LPI
 
 % % Initialize LPI program
-prog = lpiprogram_sop(T);                                                   % DJ (CC), 10/30/2026
+% prog = lpiprogram_sop(T);                                                 % MMP, 11/04/2026 (was)
+prog = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
 
 % % Declare decision variables:
 % %   gam \in \R,     P:L2-->L2,    Z:\R-->L2

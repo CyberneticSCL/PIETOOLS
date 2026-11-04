@@ -16,7 +16,7 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % in OUTPUT). A block [] or an all-zero 'sopvar' block gets no equation.
 %
 % INPUT
-% - prog:   'struct', an LPI program (lpiprogram or lpiprogram_sop) whose
+% - prog:   'struct', an LPI program (lpiprogram) whose
 %           prog.decvartable holds every name of P.Zd; with the field sopeq
 %           (a cell, e.g. {}), the rows of this call are recorded there
 %           (see OUTPUT);
@@ -180,6 +180,8 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  map of them (field dup), so the dual of a dropped row
 %                  can be recovered from the row written for it. Help:
 %                  description and the OUTPUT entry 'entries'.
+% MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
+%                LPIPROGRAM_SOP is retired.
 
 % Inputs: a decision container and an LPI program
 if isa(P,'copvar')
