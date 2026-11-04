@@ -20,6 +20,12 @@ declaring it, and sizes it from the operators of `poscopvar` its target depends 
 examples no longer set `opts.like`.
 MMP, 10/28/2026: `lpiscript_sop`, the container counterpart of `lpiscript`, which had none
 (maintainer: create one); the folder root holds eight user functions.
+MMP, 11/01/2026: the container equality writer (`misc/private/collect_eq_rows`, under
+`lpi_eq_cdopvar` and `lpi_eq_sdopvar`) writes one equation of each set of equations of a block
+that are multiples of one another (to 1e-12 of the largest coefficient; entries below 5e-13 of it,
+round-off of the products, left out of the comparison), and the row record lists the others
+(`entries.dup`). 3-D heatNd stability LPI at light, r = 5: 33,231 -> 23,268 rows; of the rows
+MOSEK keeps, 21,336 -> 14,817; MOSEK 283 -> 176 s, 24 -> 18 iterations, on those rows.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:

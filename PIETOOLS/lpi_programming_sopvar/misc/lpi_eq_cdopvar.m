@@ -11,8 +11,9 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % at each position c of C_gamma that its canonical multiplier form allows
 % (the columns whose ZR monomial has degree 0 in every multiplier
 % direction of gamma), all-zero equations omitted; these hold exactly
-% when the block is the zero operator. A block [] or an all-zero 'sopvar'
-% block gets no equation.
+% when the block is the zero operator. Of each set of equations of a block
+% that are multiples of one another, only one is written (see entries.dup
+% in OUTPUT). A block [] or an all-zero 'sopvar' block gets no equation.
 %
 % INPUT
 % - prog:   'struct', an LPI program (lpiprogram or lpiprogram_sop) whose
@@ -42,10 +43,17 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                        i, j (double, the block), cells (double row, its
 %                        parameter cells with equations), cols (cell, per
 %                        cell the linear positions c of its equations, in
-%                        row order) and blk ('struct' with the block's ZL,
+%                        row order), blk ('struct' with the block's ZL,
 %                        ZR, dims, vars and dom, NL and NR (double, its
 %                        numbers of left and right monomials), psize (the
-%                        size of its parameter array) and symmetric);
+%                        size of its parameter array) and symmetric) and
+%                        dup ('struct' with fields cell, col, rcell, rcol
+%                        and factor, double columns: per equation of the
+%                        block not written because it is a multiple, its
+%                        parameter cell and position, those of the written
+%                        equation, and f with (equation not written) =
+%                        f*(equation written), to 1e-12 of its largest
+%                        coefficient);
 %             M, N       double, the block grid;
 %             symmetric  logical, OPTS was 'symmetric';
 %             space_out, space_in, vars, dom
@@ -167,6 +175,11 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 %                  and notes on joining blocks into prog.expr entries. The
 %                  rule that the 09/21/2026 entry and the comment at the
 %                  'symmetric' skip call the NOTES is now in the OPTS entry.
+% MMP, 11/01/2026: 'collect_eq_rows' drops the equations of a block that
+%                  are multiples of another; the record entries carry its
+%                  map of them (field dup), so the dual of a dropped row
+%                  can be recovered from the row written for it. Help:
+%                  description and the OUTPUT entry 'entries'.
 
 % Inputs: a decision container and an LPI program
 if isa(P,'copvar')
@@ -220,7 +233,9 @@ r0 = 0;                                                                     % MM
 if record && isfield(prog,'expr') && isfield(prog.expr,'At')                % MMP, 10/08/2026
     for e = 1:numel(prog.expr.At),  r0 = r0 + size(prog.expr.At{e},2);  end % MMP, 10/08/2026
 end                                                                         % MMP, 10/08/2026
-ents = struct('i',{},'j',{},'cells',{},'cols',{},'blk',{});                 % MMP, 10/08/2026
+% ents = struct('i',{},'j',{},'cells',{},'cols',{},'blk',{});               % MMP, 10/08/2026 % MMP, 11/01/2026 (was)
+% dup: the equations collect_eq_rows dropped as multiples                   % MMP, 11/01/2026
+ents = struct('i',{},'j',{},'cells',{},'cols',{},'blk',{},'dup',{});        % MMP, 11/01/2026
 % Blocks in the order (1,1), (1,2), ..., (M,N)
 for i = 1:M
     for j = 1:N
@@ -298,7 +313,8 @@ for i = 1:M
         end                                                                 % MMP, 09/26/2026
         % Row record of the block
         if record                                                           % MMP, 10/08/2026
-            ents(end+1) = struct('i',i,'j',j,'cells',Eq.cells,'cols',{Eq.cols},'blk',Eq.blk); %#ok<AGROW> % MMP, 10/08/2026
+%           ents(end+1) = struct('i',i,'j',j,'cells',Eq.cells,'cols',{Eq.cols},'blk',Eq.blk); %#ok<AGROW> % MMP, 10/08/2026 % MMP, 11/01/2026 (was)
+            ents(end+1) = struct('i',i,'j',j,'cells',Eq.cells,'cols',{Eq.cols},'blk',Eq.blk,'dup',Eq.dup); %#ok<AGROW> % MMP, 11/01/2026
         end                                                                 % MMP, 10/08/2026
         % Verified now: lpi_eq_sdopvar errors on an unknown variable.       % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
         % Verified now: collect_eq_rows errors on an unknown variable.      % MMP, 09/30/2026

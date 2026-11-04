@@ -15,7 +15,9 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % (the columns whose ZR monomial has degree 0 in every multiplier
 % direction of gamma), all-zero equations omitted. In canonical multiplier
 % form, which every 'sdopvar' object has, these equations hold exactly
-% when P is the zero operator.
+% when P is the zero operator. Of each set of these equations that are
+% multiples of one another (to 1e-12 of the largest coefficient), only
+% one is written.
 %
 % INPUT
 % - prog:   'struct', an LPI program (lpiprogram or lpiprogram_sop) whose
@@ -166,6 +168,8 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % function [prog,Eq] = lpi_eq_sdopvar(prog,P,opts,dvars_checked)            % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
 % function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                 % MMP, 09/26/2026 (was)
 % function prog = lpi_eq_sdopvar(prog,P,opts)                               % MMP, 09/26/2026 (was)
+% MMP, 11/01/2026: Help only: 'collect_eq_rows' drops the equations that
+%                  are multiples of another, and the description says so.
 
 
 % BEGIN MMP, 09/30/2026: the three modes split. Deleted here, moved verbatim

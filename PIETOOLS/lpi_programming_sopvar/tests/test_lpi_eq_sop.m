@@ -14,7 +14,11 @@ function R = test_lpi_eq_sop()
 %       L2[s1,s2] from lpivar, or its sum with its adjoint, or the 'dpvar'
 %       g - 1 (lpi_eq); opts is {'symmetric'} for the 7 self-adjoint P and
 %       {} for the others;
-%   (2) for those 7 cases, the call without 'symmetric' adds more rows;
+%   (2) for those 7 cases, the call without 'symmetric' adds more rows
+%       (the 2 'dopvar'/'dopvar2d' cases) or at least as many (the 5
+%       container cases); for the 4 container P that are not self-adjoint
+%       (on L2[s] and L2[s1,s2,s3], and their 'sdopvar' blocks), the call
+%       with 'symmetric' adds fewer rows than without;
 %   (3) the 1x1 'cdopvar' on L2[s] and its 'sdopvar' block add the same
 %       rows (At and b);
 %   (4) for a fixed 'copvar', a fixed 'sopvar', a 'polynomial', a
@@ -65,6 +69,13 @@ function R = test_lpi_eq_sop()
 %                unchanged. No header text was deleted. The comment of
 %                sopvar2fixed said the A part is added; the code does not
 %                add it.
+% MMP, 11/01/2026: Check (2) for the container cases: 'collect_eq_rows'
+%                now drops equations that are multiples of another, so the
+%                call without 'symmetric' on a self-adjoint P drops the
+%                adjoint copies as well and may add exactly as many rows.
+%                That the option reaches the container routines is checked
+%                instead on the 4 container P that are not self-adjoint,
+%                where 'symmetric' must add fewer rows. Help: entry (2).
 
 % No warnings for non-canonical multipliers; variables; check counter
 warning('off','sopvar:noncanonicalMultiplier');
@@ -120,12 +131,30 @@ for k = 1:size(C,1)
     n = n+1;
 end
 % 'symmetric' reaches the routine: the paired cases differ in row count.
+% The container writer drops equations that are multiples of another        % MMP, 11/01/2026
+% (collect_eq_rows), so without the option the adjoint copies of a          % MMP, 11/01/2026
+% self-adjoint P go too and the container counts can tie (cases 2-10);      % MMP, 11/01/2026
+% the legacy writer keeps them (13, 15).                                    % MMP, 11/01/2026
 for k = [2 4 6 8 10 13 15]
     pa = lpi_eq_sop(C{k,1},C{k,2});         % same operator, no option
-    assert(nrows(pa)-nrows(C{k,1}) > rows(k),'case %d: symmetric did not reduce the rows (%d vs %d)',...
-        k,rows(k),nrows(pa)-nrows(C{k,1}))
+%   assert(nrows(pa)-nrows(C{k,1}) > rows(k),'case %d: symmetric did not reduce the rows (%d vs %d)',... % MMP, 11/01/2026 (was)
+%       k,rows(k),nrows(pa)-nrows(C{k,1}))                                  % MMP, 11/01/2026 (was)
+    more = nrows(pa)-nrows(C{k,1}) > rows(k);                               % MMP, 11/01/2026
+    if k<=10,   more = more || nrows(pa)-nrows(C{k,1}) == rows(k);  end     % MMP, 11/01/2026
+    assert(more,'case %d: symmetric did not reduce the rows (%d vs %d)',... % MMP, 11/01/2026
+        k,rows(k),nrows(pa)-nrows(C{k,1}))                                  % MMP, 11/01/2026
     n = n+1;
 end
+% The option reaches the container routines: on a P that is not             % MMP, 11/01/2026
+% self-adjoint, whose adjoint cells carry other equations, 'symmetric'      % MMP, 11/01/2026
+% (one cell of each adjoint pair) adds fewer rows than no option (cases     % MMP, 11/01/2026
+% 1, 7, 9, 11: Pc1, Pc3 and their blocks).                                  % MMP, 11/01/2026
+for k = [1 7 9 11]                                                          % MMP, 11/01/2026
+    pa = lpi_eq_sop(C{k,1},C{k,2},'symmetric');                             % MMP, 11/01/2026
+    assert(nrows(pa)-nrows(C{k,1}) < rows(k),'case %d: symmetric did not reach the routine (%d vs %d)',... % MMP, 11/01/2026
+        k,nrows(pa)-nrows(C{k,1}),rows(k))                                  % MMP, 11/01/2026
+    n = n+1;                                                                % MMP, 11/01/2026
+end                                                                         % MMP, 11/01/2026
 % A cdopvar and its one block: the same rows through the two routines.
 pa = lpi_eq_sop(p1,Pc1);    pb = lpi_eq_sop(p1,Pc1.C{1,1});
 [Aa,ba] = rows_of(pa,nrows(p1));    [Ab,bb] = rows_of(pb,nrows(p1));

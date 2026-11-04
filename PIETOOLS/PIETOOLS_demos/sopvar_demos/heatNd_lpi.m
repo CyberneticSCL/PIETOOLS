@@ -120,7 +120,8 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %
 % OUTPUT
 % - prog: SOSTOOLS/LPI program with 'eq' expressions only (no 'ineq'), so
-%         the pre-solve SDP is complete (HEATND_SDP);
+%         the pre-solve SDP is complete (HEATND_SDP), and the row record    % MMP, 11/02/2026
+%         sopeq of its equalities (LPI_EQ_CDOPVAR);                         % MMP, 11/02/2026
 % - meta: N, r, d, k, kappa (= r + k, the only rate the SDP sees), ep, opts
 %         (resolved), kstar, lambda1 (= kappa*); t (stage wall times, s);
 %         mem (MB: MATLAB in use after the build, process PEAK working set
@@ -160,6 +161,11 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   lift/weight rules and put the product term one degree below the plain
 %   term. Defaults reproduce every earlier program: 'custom' is never a
 %   preset and offset 0 is the former behaviour. Both enter the base key.
+% MMP, 11/02/2026: The program carries the row record prog.sopeq of
+%   LPI_EQ_CDOPVAR, which lists the equations each equality drops as
+%   multiples of a written one (since 11/01/2026); E2E_HEAT3D_STABILITY
+%   check (2) needs them to compare the extracted operators with the rows.
+%   Rows and SDP unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<5 || isempty(opts),   opts = struct();    end
@@ -194,6 +200,9 @@ if isempty(opts.base)
     t0 = tic;
 %   if N<=2                                                                 % MMP, 10/01/2026 (was)
         prog = lpiprogram(polynomial(vars(:)),[],dom);
+        % Opt in to the row record: it lists the equations dropped as       % MMP, 11/02/2026
+        % multiples, which the checks of E2E_HEAT3D_STABILITY account for.  % MMP, 11/02/2026
+        prog.sopeq = {};                                                    % MMP, 11/02/2026
 %   else                                                                    % MMP, 10/01/2026 (was)
 %       prog = sosprogram(polynomial([]),dpvar(zeros(0,1)));                % MMP, 10/01/2026 (was)
 %       prog.vartable = [prog.vartable; polynomial(vars(:)); polynomial(strcat(vars(:),'_dum'))]; % MMP, 10/01/2026 (was)

@@ -11,6 +11,10 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 % all zero gives no block. With OPTS = 'symmetric', of each pair of cells
 % mapped to each other by exchanging lower (2) and upper (3) integrals in
 % every direction, only the one of lower linear index gives a block.
+% All-zero equations are omitted. Of each set of equations that are
+% multiples of one another, over all cells, only the one with the largest
+% absolute coefficient is kept (the first of equals); the others are
+% listed in Eq.dup.
 %
 % INPUT
 % - prog:   'struct', an LPI program whose prog.decvartable (a cellstr, or
@@ -29,22 +33,27 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 %             Cs     1 x nk cell, one sparse (q+1) x n_k double block per
 %                    cell with equations, q = numel(P.Zd): row 1 the
 %                    constant terms A_k(c), row 1+i the coefficients of
-%                    Zd{i}, one column per kept position c;
+%                    Zd{i}, one column per position c of cols, in order;
 %             Zd     q x 1 cellstr, the names P.Zd;
 %             pos    double, q x 1, pos(i) the first row of
 %                    prog.decvartable named Zd{i}; 0 x 1 when the check is
 %                    skipped or Zd repeats a name;
 %             cols   1 x nk cell, per block the linear positions c (double
-%                    row) of its nonzero columns in the (m*NL) x (n*NR)
+%                    row) of its equations in the (m*NL) x (n*NR)
 %                    coefficient matrix (P.dims = [m,n]; NL, NR the numbers
-%                    of monomials of P.ZL, P.ZR), in order: the equations
-%                    that remain once all-zero columns are omitted;
+%                    of monomials of P.ZL, P.ZR), in ascending order;
 %             cells  1 x nk double, the parameter cell (linear index into
 %                    P.params.A) of each block;
 %             blk    'struct' with the fields ZL, ZR, dims, vars and dom of
 %                    P, NL and NR (double), psize (the size of
 %                    P.params.A) and symmetric (logical, OPTS was
-%                    'symmetric').
+%                    'symmetric');
+%             dup    'struct' with fields cell, col, rcell, rcol and
+%                    factor, double columns with one entry per equation
+%                    dropped as a multiple: its parameter cell and
+%                    position, those of the equation kept for it, and f,
+%                    with (dropped column) = f*(kept column) + e,
+%                    |e| <= 1e-12*max|dropped column| entrywise.
 %
 % NOTES
 % P of a class other than 'sdopvar', P not in canonical multiplier form,
@@ -110,6 +119,20 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 %                  unchanged. The deleted header text was the callers' use
 %                  of the routine, a notes reference, and the reason the
 %                  kept coefficients determine the operator.
+% MMP, 11/01/2026: Equations that are multiples of another equation of P,
+%                  over all cells, are dropped (local 'drop_multiples');
+%                  Eq.dup lists them. A multiple adds no constraint; the
+%                  test holds to 1e-12 of the largest coefficient, entries
+%                  below 5e-13 of it (round-off of the products that build
+%                  P) left out. 3-D heatNd stability LPI (light, r = 5):
+%                  33,231 -> 23,268 rows written; of the rows with an entry
+%                  >= 1e-12 (those MOSEK keeps), 21,336 -> 14,817, no
+%                  multiple left; on those 14,817 rows MOSEK took 18
+%                  instead of 24 iterations, 176 instead of 283 s. The rows
+%                  kept are unchanged bit for bit. Cs{k} now holds only the
+%                  columns of cols{k}: its all-zero columns, which the
+%                  writers dropped, are removed here. Help: description and
+%                  the OUTPUT entries Cs, cols and dup.
 
 % % % Check the inputs
 if isa(P,'polynomial') || isa(P,'double')
@@ -336,7 +359,13 @@ for k=1:numel(params_A)
     % column has a nonzero, in order (LPIGETDUAL_SOP reads them back).      % MMP, 10/08/2026
     nzc = full(any(Cs{k},1));                                               % MMP, 10/08/2026
     cols{k} = reshape(keep(nzc),1,[]);                                      % MMP, 10/08/2026
+    % Columns of Cs{k} one to one with cols{k}, for drop_multiples          % MMP, 11/01/2026
+    if ~all(nzc),   Cs{k} = Cs{k}(:,nzc);   end                             % MMP, 11/01/2026
 end
+
+% Equations that are multiples of another, over all cells, are dropped:     % MMP, 11/01/2026
+% they constrain nothing more, and solvers pay for each row.                % MMP, 11/01/2026
+[Cs,cols,dup] = drop_multiples(Cs,cols);                                    % MMP, 11/01/2026
 
 % Skipped parameters stay [] and are dropped. Order is the loop's, which is % MMP, 09/26/2026
 % the order of the former one-soseq-per-parameter expressions.              % MMP, 09/26/2026
@@ -348,8 +377,11 @@ end
 kept = ~cellfun(@isempty,Cs);                                               % MMP, 10/08/2026
 blk = struct('ZL',{P.ZL},'ZR',{P.ZR},'dims',P.dims,'vars',P.vars,'dom',P.dom, ...% MMP, 10/08/2026
              'NL',NL,'NR',NR,'psize',size(params_A),'symmetric',use_symmetry);% MMP, 10/08/2026
+% Eq = struct('Cs',{Cs(kept)},'Zd',{dvars},'pos',{pos}, ...                 % MMP, 10/08/2026 % MMP, 11/01/2026 (was)
+%             'cols',{cols(kept)},'cells',find(kept),'blk',blk);            % MMP, 10/08/2026 % MMP, 11/01/2026 (was)
+% dup: the equations dropped as multiples (see OUTPUT).                     % MMP, 11/01/2026
 Eq = struct('Cs',{Cs(kept)},'Zd',{dvars},'pos',{pos}, ...                   % MMP, 10/08/2026
-            'cols',{cols(kept)},'cells',find(kept),'blk',blk);              % MMP, 10/08/2026
+            'cols',{cols(kept)},'cells',find(kept),'blk',blk,'dup',dup);    % MMP, 11/01/2026
 
 end
 
@@ -396,3 +428,143 @@ nrow = m*NL;
 keep = sort((jG(:)*NR + bG(:))*nrow + rG(:) + 1);
 
 end
+
+
+
+% BEGIN MMP, 11/01/2026: local function drop_multiples, new
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [Cs,cols,dup] = drop_multiples(Cs,cols)
+% [CS,COLS,DUP] = DROP_MULTIPLES(CS,COLS) removes from the blocks CS every
+% column that is a multiple of another column of CS. Entries of at most
+% 5e-13 times the largest absolute entry of their column are left out of
+% the comparison. Each column is scaled by s, the sign of its first entry
+% compared times its largest absolute entry; columns with the same rows of
+% entries compared, and scaled entries there that agree to 1e-12, form a
+% group, and of each group only the column of largest |s| (the first of
+% equals) is kept. COLS is pruned with CS.
+% INPUT  Cs:   1 x nk cell; Cs{k} [] or a sparse (q+1) x L_k 'double'
+%              block with no all-zero column;
+%        cols: 1 x nk cell; cols{k} the L_k positions of the columns of
+%              Cs{k}, a 'double' row.
+% OUTPUT Cs, cols: the inputs without the dropped columns;
+%        dup:  'struct' with fields cell, col, rcell, rcol and factor,
+%              'double' columns, one entry per dropped column: its block k
+%              and position, those of the column kept for it, and f with
+%              (dropped column) = f*(kept column) + e, |e| <= 1e-12 times
+%              the largest absolute entry of the dropped column.
+
+tol = 1e-12;
+dup = struct('cell',zeros(0,1),'col',zeros(0,1),'rcell',zeros(0,1), ...
+             'rcol',zeros(0,1),'factor',zeros(0,1));
+% Blocks with columns; the columns of block ks(t) are o(t)+1:o(t+1) in the
+% joint numbering
+ks = find(~cellfun(@isempty,Cs));
+L = cellfun(@(C) size(C,2),Cs(ks));
+o = cumsum([0, L]);     nt = o(end);
+if nt<2,    return,     end
+
+% Pass 1, per column: the entries compared, those above thr = tol/2 times
+% the largest absolute entry (smaller ones are round-off of cancelled sums
+% in the products that build P, which change the pattern of a multiple);
+% their number, first row, the scale s and two weighted sums of the scaled
+% entries (the hash). The weights are Weyl sequences of the row index,
+% evaluated at the nonzeros only: no array of length q. find lists a block
+% by column, rows ascending, so fp is the first entry of each column.
+% ~(<=) keeps a NaN entry, so that its column is never matched.
+cnt = zeros(nt,1);  fr = zeros(nt,1);   s = zeros(nt,1);    h = zeros(nt,2);
+thr = zeros(nt,1);
+for t = 1:numel(ks)
+    [ii,jj,vv] = find(Cs{ks(t)});
+    ii = ii(:);     jj = jj(:);     vv = vv(:);     % rows for a 1 x L block (q = 0)
+    J = o(t)+(1:L(t))';
+    mx = accumarray(jj,abs(vv),[L(t),1],@max);
+    thr(J) = (tol/2)*mx;
+    sg = ~(abs(vv) <= thr(J(jj)));
+    ii = ii(sg);    jj = jj(sg);    vv = vv(sg);
+    c = accumarray(jj,1,[L(t),1]);
+    fp = cumsum([1; c(1:end-1)]);
+    st = sign(vv(fp)).*mx;
+    vv = vv./st(jj);
+    cnt(J) = c;     fr(J) = ii(fp);     s(J) = st;
+    h(J,1) = accumarray(jj,vv.*(mod(ii*0.6180339887498949,1)-0.5),[L(t),1]);
+    h(J,2) = accumarray(jj,vv.*(mod(ii*0.4142135623730950,1)-0.5),[L(t),1]);
+end
+
+% Rounds over the columns act still to be grouped, at first all of them.
+% Candidate groups: equal count, first row and hashes rounded to 1e-8, as
+% multiples have equal scaled columns. The representative of a group is
+% its member of largest |s|, so that a solver that zeroes entries below an
+% absolute tolerance (MOSEK: 1e-12) cannot erase the kept row while a
+% larger multiple of it is dropped. A hash match is no proof: every
+% candidate is compared with its representative entrywise. A near multiple
+% can share the key and, as representative, refuse the true multiples of
+% its group, so the refused candidates are grouped again among themselves.
+key = [cnt, fr, round(h*1e8)];
+act = (1:nt)';      drop = zeros(0,1);      r = zeros(0,1);     gathered = false;
+while numel(act)>=2
+    % Groups of act; cand the members that are not representatives, rc
+    % their representatives
+    [~,~,g] = unique(key(act,:),'rows');
+    [~,ord] = sortrows([g, -abs(s(act)), act]);
+    first = [true; diff(g(ord))~=0];
+    rg = act(ord(first));
+    rp = zeros(numel(act),1);   rp(ord) = rg(cumsum(first));
+    cand = act(rp~=act);    rc = rp(rp~=act);
+    if isempty(cand),   break,  end
+    % Pass 2, first round only (later candidates and representatives are
+    % among the first candidates): rows R and scaled values V of the
+    % candidates and representatives, column after column, column j from
+    % ptr(j) on
+    if ~gathered
+        use = false(nt,1);  use(cand) = true;   use(rc) = true;
+        ci = cnt.*use;
+        ptr = cumsum([1; ci(1:end-1)]);
+        R = zeros(sum(ci),1);   V = zeros(sum(ci),1);
+        for t = 1:numel(ks)
+            J = o(t)+(1:L(t))';
+            j0 = J(find(use(J),1));
+            if isempty(j0),     continue,   end
+            [ii,jj,vv] = find(Cs{ks(t)});
+            ii = ii(:);     jj = jj(:);     vv = vv(:);
+            sel = use(J(jj)) & ~(abs(vv) <= thr(J(jj)));     % as in pass 1
+            p = ptr(j0) + (0:nnz(sel)-1)';
+            R(p) = ii(sel);     V(p) = vv(sel)./s(J(jj(sel)));
+        end
+        gathered = true;
+    end
+    % Entry l of a candidate against entry l of its representative (the
+    % key makes the counts equal): the same row, scaled values within tol;
+    % ~(<=) so that a NaN fails. grp: the candidate of each compared entry,
+    % a column (repelem returns a row for one candidate).
+    nc = cnt(cand);
+    grp = repelem((1:numel(cand))',nc);     grp = grp(:);
+    st0 = cumsum([0; nc]);
+    off = (1:st0(end))' - st0(grp) - 1;
+    ia = ptr(cand(grp)) + off;
+    ib = ptr(rc(grp)) + off;
+    bad = R(ia)~=R(ib) | ~(abs(V(ia)-V(ib))<=tol);
+    ok = accumarray(grp,double(bad),[numel(cand),1])==0;
+    % Few rounds (one when no candidate is refused), O(nt) each
+    drop = [drop; cand(ok)];    r = [r; rc(ok)];  %#ok<AGROW>
+    act = cand(~ok);
+end
+if isempty(drop),   return,     end
+
+% The dropped columns with the columns kept for them, then the blocks and
+% positions without the dropped columns
+tb = repelem((1:numel(ks))',L(:));      % block (index into ks) of each column
+tb = tb(:);
+pos = [cols{ks}].';
+dup = struct('cell',reshape(ks(tb(drop)),[],1),'col',pos(drop), ...
+             'rcell',reshape(ks(tb(r)),[],1),'rcol',pos(r),'factor',s(drop)./s(r));
+keep = true(nt,1);  keep(drop) = false;
+for t = 1:numel(ks)
+    kt = keep(o(t)+1:o(t+1));
+    if ~all(kt)
+        Cs{ks(t)} = Cs{ks(t)}(:,kt);
+        cols{ks(t)} = cols{ks(t)}(kt);
+    end
+end
+
+end
+% END MMP, 11/01/2026

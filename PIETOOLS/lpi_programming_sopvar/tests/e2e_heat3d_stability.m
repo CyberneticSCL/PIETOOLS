@@ -29,9 +29,12 @@ function out = e2e_heat3d_stability(kappa,opts)                             % MM
 %   (2) at solinfo.RRx = RR*x*bscl (x the MOSEK point, RR and bscl from
 %       heatNd_sdp), the residual norms r_a of the (15a) rows and r_b of
 %       the (15b) rows satisfy sqrt(r_a^2 + r_b^2) = r_all to 1e-6
-%       relative, r_all = ||At'x - b||*bscl; the coefficient norm of the
-%       extracted (15a) operators lies in [r_a, 2 r_a] and that of (15b)
-%       in [r_b, sqrt(2) r_b] (1e-6 slack);
+%       relative plus tau, the round-off bound of the residual evaluated
+%       twice, r_all = ||At'x - b||*bscl; with the rows not written because
+%       each is f times a written one (residual f times that of the written
+%       row) joined to r_a and r_b, the coefficient norm of the extracted
+%       (15a) operators lies in [r_a, 2 r_a] and that of (15b) in
+%       [r_b, sqrt(2) r_b] (1e-6 slack);
 %   (3) by the action on OPTS.nt random polynomial test functions of
 %       degree at most 2 (opcheck_sop, OPTS.nq Gauss nodes per direction):
 %       P'*T - ep^2 T'*T = R, P'*T = (P'*T)' and X1 + KAPPA*X2 = -Q to 1e-5
@@ -63,7 +66,10 @@ function out = e2e_heat3d_stability(kappa,opts)                             % MM
 %           residuals of (3)), psd (1x3 'double', the least values for R, Q
 %           and -(X1 + KAPPA*X2)), control (1x2 'double', the residuals of
 %           (4)), mem ('struct', the memory record of heatNd_lpi), t
-%           ('struct' of seconds: build, sdp, keep, mosek, extract, check);
+%           ('struct' of seconds: build, sdp, keep, mosek, extract, check),
+%           dropped (1x2 'double', the residual norms of the rows not
+%           written, (15a) and (15b)) and tau ('double', the round-off
+%           slack of the row-set comparison of (2));
 %           printed lines with the values.
 %
 % NOTES
@@ -116,6 +122,17 @@ function out = e2e_heat3d_stability(kappa,opts)                             % MM
 %                under the function line, so that help starts with the
 %                description:
 % function out = heat3d_stability_sop(kappa,opts)                           % MMP, 10/21/2026 (was)
+% MMP, 11/02/2026: Check (2) with the rows lpi_eq_cdopvar no longer writes
+%                because each is f times a written one (11/01/2026): their
+%                residuals, f times that of the written row (heatNd_lpi
+%                records them in prog.sopeq), join r_a and r_b; without
+%                them the (15b) ratio was 1.455 > sqrt(2). The comparison of
+%                r_all with the row sets gains the slack tau, the round-off
+%                bound of the residual evaluated twice: they differed by
+%                3e-6 relative in 3-D, and by 3.5e-6 in 1-D and 1.4e-6 in
+%                2-D with the former writer, above the former 1e-6. Help
+%                (2) and OUTPUT (dropped, tau) updated; local function
+%                dup_res.
 
 % Defaults; no warnings for non-canonical multipliers; a check asserts
 % with one identifier
@@ -186,12 +203,29 @@ chk(all(cellfun(@(X) isa(X,'copvar'),{Ps,Rs,Qs,Ea1s,Ea2s,Ebs,E1s,PTs,Ls})),'(1) 
 na = B.prog.expr.num;
 ra = row_res(prog,1:na);    rb_ = row_res(prog,na+1:prog.expr.num);
 rall = norm(D.At'*v_x(D,prog) - D.b)*D.bscl;
+% Slack tau of the row-set comparison: round-off of two evaluations of the  % MMP, 11/02/2026
+% residual, gamma_n (|A|'|x| + |b|) each for rows of n terms (Higham,       % MMP, 11/02/2026
+% Accuracy and Stability of Numerical Algorithms, Sec. 3.1), plus the       % MMP, 11/02/2026
+% scalings of x. The residual is ~1e-12 of these terms (1-D, 2-D), so 1e-6  % MMP, 11/02/2026
+% of it is below round-off (measured 1.4e-6 to 5.5e-6 relative).            % MMP, 11/02/2026
+nA = full(max(sum(D.At~=0,1)));                                             % MMP, 11/02/2026
+tau = (nA+3)*eps*norm(abs(D.At)'*abs(v_x(D,prog)) + abs(D.b))*D.bscl;       % MMP, 11/02/2026
+% Rows not written because each is f times a written one (prog.sopeq):      % MMP, 11/02/2026
+% residual f times that of the written row, joined to r_a and r_b           % MMP, 11/02/2026
+[da,db] = dup_res(prog,sum(cellfun(@numel,prog.expr.b(1:na))));             % MMP, 11/02/2026
+raf = hypot(ra,da);     rbf = hypot(rb_,db);                                % MMP, 11/02/2026
 ca = hypot(opcheck_sop('coef',Ea1s),opcheck_sop('coef',Ea2s));     cb = opcheck_sop('coef',Ebs);
-fprintf('   rows (15a) %.3e, (15b) %.3e, all %.3e (hypot %.3e); ||coef|| / ||rows||: (15a) %.5f, (15b) %.5f\n',...
-    ra,rb_,rall,hypot(ra,rb_),ca/ra,cb/rb_);
-chk(abs(hypot(ra,rb_)/rall-1)<=1e-6,'(2) the two row sets are not the SDP''s rows (%.6g vs %.6g)',hypot(ra,rb_),rall)
-chk(ca>=ra*(1-1e-6) && ca<=2*ra*(1+1e-6),'(2) (15a): coefficient norm %.6g vs row residual %.6g',ca,ra)
-chk(cb>=rb_*(1-1e-6) && cb<=sqrt(2)*rb_*(1+1e-6),'(2) (15b): coefficient norm %.6g vs row residual %.6g',cb,rb_)
+% fprintf('   rows (15a) %.3e, (15b) %.3e, all %.3e (hypot %.3e); ||coef|| / ||rows||: (15a) %.5f, (15b) %.5f\n',... % MMP, 11/02/2026 (was)
+%     ra,rb_,rall,hypot(ra,rb_),ca/ra,cb/rb_);                              % MMP, 11/02/2026 (was)
+fprintf(['   rows (15a) %.3e, (15b) %.3e, all %.3e (hypot %.3e), tau %.1e; not written (15a) %.3e, '...
+         '(15b) %.3e; ||coef|| / ||rows||: (15a) %.5f, (15b) %.5f (written rows only %.5f, %.5f)\n'],...
+    ra,rb_,rall,hypot(ra,rb_),tau,da,db,ca/raf,cb/rbf,ca/ra,cb/rb_);        % MMP, 11/02/2026
+% chk(abs(hypot(ra,rb_)/rall-1)<=1e-6,'(2) the two row sets are not the SDP''s rows (%.6g vs %.6g)',hypot(ra,rb_),rall) % MMP, 11/02/2026 (was)
+% chk(ca>=ra*(1-1e-6) && ca<=2*ra*(1+1e-6),'(2) (15a): coefficient norm %.6g vs row residual %.6g',ca,ra) % MMP, 11/02/2026 (was)
+% chk(cb>=rb_*(1-1e-6) && cb<=sqrt(2)*rb_*(1+1e-6),'(2) (15b): coefficient norm %.6g vs row residual %.6g',cb,rb_) % MMP, 11/02/2026 (was)
+chk(abs(hypot(ra,rb_)-rall)<=1e-6*rall+tau,'(2) the two row sets are not the SDP''s rows (%.6g vs %.6g)',hypot(ra,rb_),rall) % MMP, 11/02/2026
+chk(ca>=raf*(1-1e-6) && ca<=2*raf*(1+1e-6),'(2) (15a): coefficient norm %.6g vs row residual %.6g',ca,raf) % MMP, 11/02/2026
+chk(cb>=rbf*(1-1e-6) && cb<=sqrt(2)*rbf*(1+1e-6),'(2) (15b): coefficient norm %.6g vs row residual %.6g',cb,rbf) % MMP, 11/02/2026
 
 % (3) by action, 3-D quadrature.
 o = struct('nt',opts.nt,'deg',2,'nqi',opts.nq,'nqo',opts.nq);
@@ -219,6 +253,7 @@ out = struct('kappa',kappa,'kstar',pie.exact.lambda1,'v',v,'nkeep',numel(keep),'
     'ndec',numel(prog.decvartable),'Ks',D.K.s,'rows',[ra rb_ rall],'coef_rows',[ca/ra cb/rb_],...
     'res',[r15a rPT r15b],'psd',[pR pQ pL],'control',[r15ax r15bx],'mem',meta.mem,...
     't',struct('build',t_build,'sdp',t_sdp,'keep',t_keep,'mosek',v.t_mosek,'extract',t_extract,'check',t_check));
+out.dropped = [da db];  out.tau = tau;  % rows not written, slack of (2)    % MMP, 11/02/2026
 fprintf('E4 PASS: kappa %.4f certified, certificate extracted and checked\n',kappa);
 end
 
@@ -247,3 +282,46 @@ for i = rows
 end
 r = sqrt(full(r2));
 end
+
+% BEGIN MMP, 11/02/2026: local function dup_res, new
+function [da,db] = dup_res(prog,ma)
+% [DA,DB] = DUP_RES(PROG,MA) returns the residual norms of the equations
+% that LPI_EQ_CDOPVAR did not write because each is f times a written one
+% (prog.sopeq, entries.dup): sqrt(sum (f*r)^2), r the residual of the
+% written row at x = prog.solinfo.RRx; DA over the records that start in
+% the first MA rows of prog.expr, DB over the rest.
+% INPUT  prog: 'struct', a solved LPI program with the field sopeq; ma:
+%        'double', the number of rows of the first equalities.
+% OUTPUT da, db: 'double'.
+x = prog.solinfo.RRx(:);
+% Residual of every row, in the row order of prog.expr (the record's)
+res = cell(prog.expr.num,1);
+for i = 1:prog.expr.num
+    At = prog.expr.At{i};   res{i} = At'*x(1:size(At,1)) - prog.expr.b{i};
+end
+res = full(vertcat(res{:}));
+d2 = [0 0];
+for k = 1:numel(prog.sopeq)
+    rec = prog.sopeq{k};    r = rec.rows(1);
+    for e = 1:numel(rec.entries)
+        en = rec.entries(e);
+        % First row of each parameter cell of the block, then the next block
+        nk = reshape(cellfun(@numel,en.cols),1,[]);     r1 = r + [0, cumsum(nk(1:end-1))];
+        r = r + sum(nk);
+        % A record written before 11/01/2026 has no field dup: none dropped
+        if ~isfield(en,'dup') || isempty(en.dup.rcol),     continue,   end
+        % Row of each written equation: its cell's first row plus its place
+        dp = en.dup;    row = zeros(size(dp.rcol));
+        for t = 1:numel(en.cells)
+            s = dp.rcell==en.cells(t);
+            [tf,loc] = ismember(dp.rcol(s),en.cols{t});
+            row(s) = tf.*(r1(t)+loc-1);
+        end
+        assert(all(row>0),'heat3d_stability_sop:check','(2) a dropped equation refers to no written row')
+        g = 1 + (rec.rows(1)>ma);
+        d2(g) = d2(g) + sum((dp.factor.*res(row)).^2);
+    end
+end
+da = sqrt(d2(1));   db = sqrt(d2(2));
+end
+% END MMP, 11/02/2026
