@@ -8,10 +8,9 @@ function tl = exec_tools_sop(PIE,st)
 % or 'opvar2d' object (1-D, 2-D).
 %
 % INPUT
-% - PIE:  'pie_struct' object as EXEC_PIE_SOP returns it: T a 'copvar'
-%         object (the pie_struct of 10/29/2026, or any container PIE) in
-%         any number nv >= 1 of variables, or in an older 1-D or 2-D PIE an
-%         'opvar' (1-D) or 'opvar2d' (2-D) object;
+% - PIE:  'pie_struct' object as EXEC_PIE_SOP returns it: each operator a
+%         'copvar' object or 0 (absent), in any number nv >= 1 of
+%         variables;
 % - st:   'struct' of LPI settings, completed by EXEC_SOP_SETTINGS:
 %           1-D  eppos, eppos2, epneg, ddZ (each optional), and the degree
 %                fields of POSLPIVAR_SETTINGS_SOP;
@@ -63,15 +62,12 @@ function tl = exec_tools_sop(PIE,st)
 %           eye            function handle, E = eye(side,e): the 'copvar'
 %                          operator diag(e_k I) on the output (SIDE 1) or
 %                          input (SIDE 2) spaces of PIE.T; e a scalar, or
-%                          one weight per row of PIE.T.dim (opvar PIE), or
-%                          2^nv weights (container PIE), the weight of a
-%                          space being entry 1 + sum_k 2^(k-1) over the
-%                          positions k in PIE.vars of its variables, which
-%                          is the row order of PIE.T.dim in 1-D and 2-D;
+%                          2^nv weights, the weight of a space being entry
+%                          1 + sum_k 2^(k-1) over the positions k in
+%                          PIE.vars of its variables;
 %           ident          function handle, I = ident(Bop,side): the
 %                          identity 'copvar' on the output (SIDE 1) or input
-%                          (SIDE 2) space of the 'opvar', 'opvar2d' or
-%                          'copvar' Bop;
+%                          (SIDE 2) space of the 'copvar' or 'cdopvar' Bop;
 %           toop           function handle, Op = toop(C): the 'copvar' C as
 %                          an 'opvar' (1-D) or 'opvar2d' (2-D) object; C
 %                          itself in N-D;
@@ -168,6 +164,17 @@ function tl = exec_tools_sop(PIE,st)
 %                {s3} and {s1,s2} the same weight. IDENT_OP returns the 0 x 0
 %                container of EYE_COPVAR_SOP for an empty channel, where DJ
 %                returned copvar().
+% MMP, 11/04/2026: The opvar-PIE code is removed, being unreachable:
+%                EXEC_PIE_SOP returns a PIE whose operators are all 'copvar'
+%                objects. EYE_STATE calls EYE_CONTAINER (its opvar body
+%                commented out); IDENT_OP raises an error for a class other
+%                than 'copvar' or 'cdopvar' (its opvar branch commented out,
+%                its arguments VARS and PDOM dropped); capfor reads PIE.T
+%                without OP2COPVAR_SOP. The help text of the file, EYE_STATE
+%                and IDENT_OP no longer describes an opvar PIE. Step of the
+%                removal of the opvar classes. This supersedes the opvar-PIE
+%                parts of the entries of 10/29/2026 ("an opvar PIE takes the
+%                former code") and 10/30/2026 (the EYE_STATE body).
 
 % Dimension and spatial variables of the PIE
 nv = PIE.dim;
@@ -217,7 +224,8 @@ end
 % tl.ident = @(Bop,side) op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,PIE.dom)); % MMP, 10/29/2026 (was)
 cdom = PIE.dom;     if nv>=2,   cdom = tl.dom;  end % the domain of a container % MMP, 10/29/2026
 tl.eye   = @(side,e) eye_state(PIE,side,e,cdom);                            % MMP, 10/29/2026
-tl.ident = @(Bop,side) ident_op(Bop,side,vars,PIE.dom,cdom);                % MMP, 10/29/2026
+% tl.ident = @(Bop,side) ident_op(Bop,side,vars,PIE.dom,cdom);              % MMP, 11/04/2026 (was)
+tl.ident = @(Bop,side) ident_op(Bop,side,cdom);    % copvar Bop only        % MMP, 11/04/2026
 % The container options of this dimension: every per-dimension vector       % MMP, 10/29/2026
 % reduced to its entry min(nv,end) (local SOP_OF_DIM), for the executives   % MMP, 10/29/2026
 tl.sop = [];    if isfield(st,'sop'),   tl.sop = sop_of_dim(st.sop,nv);     end % MMP, 10/29/2026
@@ -227,7 +235,8 @@ tl.sop = [];    if isfield(st,'sop'),   tl.sop = sop_of_dim(st.sop,nv);     end 
 tl.capfor = @(X) [];                                                        % MMP, 10/29/2026
 cd = [];    if isstruct(tl.sop) && isfield(tl.sop,'cap_delta'),     cd = tl.sop.cap_delta;  end % MMP, 10/29/2026
 if ~isempty(cd) && ~isnan(cd)                                               % MMP, 10/29/2026
-    Tc = op2copvar_sop(PIE.T);      [~,~,ti] = get_lift_degs(Tc,struct());  % MMP, 10/29/2026
+%     Tc = op2copvar_sop(PIE.T);      [~,~,ti] = get_lift_degs(Tc,struct()); % MMP, 11/04/2026 (was)
+    Tc = PIE.T;     [~,~,ti] = get_lift_degs(Tc,struct());  % a 'copvar'    % MMP, 11/04/2026
     ct = max(ti.Jmax,0) + cd;                                               % MMP, 10/29/2026
     tl.capfor = @(X) cap_for(X,Tc.vars,ct);                                 % MMP, 10/29/2026
 end                                                                         % MMP, 10/29/2026
@@ -249,36 +258,39 @@ end
 function Im = eye_state(PIE,side,e,dom)                                     % MMP, 10/29/2026
 % IM = EYE_STATE(PIE,SIDE,E,DOM) returns diag(e_k I_{n_k}) on the state
 % spaces of the PIE as a 'copvar' object.
-% INPUT  PIE:   'pie_struct' object: an opvar PIE (1-D or 2-D) or a
-%               container PIE (T a 'copvar', any dimension);
+% INPUT  PIE:   'pie_struct' object, T a 'copvar' object, any dimension;
 %        side:  1 (the output spaces of PIE.T, the PDE state) or 2 (its
 %               input spaces, the fundamental state);
-%        e:     double, a scalar for every space, or for an opvar PIE one
-%               weight per row of PIE.T.dim (2 in 1-D, 4 in 2-D), for a
-%               container PIE 2^nv weights (EYE_CONTAINER);
-%        dom:   the domain argument of MAT2COPVAR_SOP (container PIE).
+%        e:     double, a scalar for every space, or 2^nv weights
+%               (EYE_CONTAINER);
+%        dom:   the domain argument of MAT2COPVAR_SOP.
 % OUTPUT Im:    'copvar' object.
 % A container PIE: on the spaces of its T                                   % MMP, 10/29/2026
-if isa(PIE.T,'copvar'),     Im = eye_container(PIE,side,e,dom);     return,     end % MMP, 10/29/2026
-% The copvar body of DJ (CC), 10/29/2026 (origin commit 3df33dcc) is not    % MMP, 10/30/2026
-% carried by the merge of 10/30/2026: the line above reaches EYE_CONTAINER, % MMP, 10/30/2026
-% which reads the same copvar fields (header entry). An opvar PIE below.    % MMP, 10/30/2026
-n = PIE.T.dim(:,side);
-if isscalar(e),     e = e*ones(numel(n),1);     end
-if numel(e)~=numel(n)
-    error('exec_tools_sop:e','E should have one weight per space (%d) or be a scalar.',numel(n));
-end
-% The block-diagonal matrix of the weights, as an opvar / opvar2d, then a
-% container
-blocks = cell(1,numel(n));
-for k = 1:numel(n),     blocks{k} = e(k)*eye(n(k));    end
-Imat = blkdiag(blocks{:});
-if PIE.dim==1
-    Pop = mat2opvar(Imat,n,PIE.vars,PIE.dom);
-else
-    Pop = opvar2d(Imat,[n,n],PIE.dom,PIE.vars);
-end
-Im = op2copvar_sop(Pop);
+% if isa(PIE.T,'copvar'),     Im = eye_container(PIE,side,e,dom);     return,     end % MMP, 11/04/2026 (was)
+% Every PIE reaching here has a 'copvar' T (EXEC_PIE_SOP)                   % MMP, 11/04/2026
+Im = eye_container(PIE,side,e,dom);                                         % MMP, 11/04/2026
+% % % BEGIN MMP, 11/04/2026: the opvar-PIE body below is commented out, being
+% % % unreachable (no opvar PIE reaches EXEC_TOOLS_SOP; header entry).
+% % The copvar body of DJ (CC), 10/29/2026 (origin commit 3df33dcc) is not    % MMP, 10/30/2026
+% % carried by the merge of 10/30/2026: the line above reaches EYE_CONTAINER, % MMP, 10/30/2026
+% % which reads the same copvar fields (header entry). An opvar PIE below.    % MMP, 10/30/2026
+% n = PIE.T.dim(:,side);
+% if isscalar(e),     e = e*ones(numel(n),1);     end
+% if numel(e)~=numel(n)
+%     error('exec_tools_sop:e','E should have one weight per space (%d) or be a scalar.',numel(n));
+% end
+% % The block-diagonal matrix of the weights, as an opvar / opvar2d, then a
+% % container
+% blocks = cell(1,numel(n));
+% for k = 1:numel(n),     blocks{k} = e(k)*eye(n(k));    end
+% Imat = blkdiag(blocks{:});
+% if PIE.dim==1
+%     Pop = mat2opvar(Imat,n,PIE.vars,PIE.dom);
+% else
+%     Pop = opvar2d(Imat,[n,n],PIE.dom,PIE.vars);
+% end
+% Im = op2copvar_sop(Pop);
+% % % END MMP, 11/04/2026
 end
 
 
@@ -319,20 +331,23 @@ Im = mat2copvar_sop(blkdiag(blocks{:}),dm,sp,dom);
 end
 
 
-function I = ident_op(Bop,side,vars,pdom,cdom)                              % MMP, 10/29/2026
-% I = IDENT_OP(BOP,SIDE,VARS,PDOM,CDOM) returns the identity 'copvar' on the
-% output (SIDE 1) or input (SIDE 2) spaces of BOP.
-% INPUT  Bop:   'opvar', 'opvar2d', 'copvar' or 'cdopvar' object;
+% function I = ident_op(Bop,side,vars,pdom,cdom)                            % MMP, 11/04/2026 (was)
+function I = ident_op(Bop,side,cdom)                                        % MMP, 11/04/2026
+% I = IDENT_OP(BOP,SIDE,CDOM) returns the identity 'copvar' on the output
+% (SIDE 1) or input (SIDE 2) spaces of BOP.
+% INPUT  Bop:   'copvar' or 'cdopvar' object;
 %        side:  1 or 2;
-%        vars:  PIE.vars, and pdom: PIE.dom (an opvar Bop);
-%        cdom:  the domain argument of EYE_COPVAR_SOP (a container Bop).
+%        cdom:  the domain argument of EYE_COPVAR_SOP.
 % OUTPUT I:     'copvar' object.
 if isa(Bop,'copvar') || isa(Bop,'cdopvar')
     sd = {'out','in'};
     [sp,dm] = copvar_space_list(Bop,sd{side});
     I = eye_copvar_sop(dm,sp,cdom);
 else
-    I = op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,pdom));
+%     I = op2copvar_sop(mat2opvar(eye(size(Bop,side)),Bop.dim(:,side),vars,pdom)); % MMP, 11/04/2026 (was)
+    % Every PIE operator is a 'copvar' (EXEC_PIE_SOP): anything else, such  % MMP, 11/04/2026
+    % as the 0 of an absent channel, has no spaces to read                  % MMP, 11/04/2026
+    error('exec_tools_sop:ident','BOP should be a ''copvar'' or ''cdopvar'' object.'); % MMP, 11/04/2026
 end
 end
 

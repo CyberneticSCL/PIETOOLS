@@ -110,6 +110,17 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %                cap_delta) reduced to its entry for the dimension of the
 %                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
 %                scalar settings are unchanged.
+% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
+%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
+%                an opvar PIE, so every operator reaching them was a
+%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
+%                the removal of the opvar classes; programs unchanged.
+% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP and the gamma
+%                constraints are imposed by LPI_INEQ_SOP, the functions of
+%                lpi_programming_sopvar, in place of LPIPROGRAM and
+%                LPI_INEQ of lpi_programming; for these arguments
+%                ('polynomial' variables, a 'dpvar' gamma) both build the
+%                same program.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -137,11 +148,16 @@ gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.s
 eppos = tl.eppos;
 
 % The PIE operators as containers, and the identities on w and z
-Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);
-Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11);
-Cy = op2copvar_sop(PIE.C2); Dyw = op2copvar_sop(PIE.D21);
+% EXEC_PIE_SOP returns every operator as a 'copvar': read as they are       % MMP, 11/04/2026
+% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/04/2026 (was)
+Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/04/2026
+% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);  Dzw = op2copvar_sop(PIE.D11); % MMP, 11/04/2026 (was)
+Bw = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;                              % MMP, 11/04/2026
+% Cy = op2copvar_sop(PIE.C2); Dyw = op2copvar_sop(PIE.D21);                 % MMP, 11/04/2026 (was)
+Cy = PIE.C2;    Dyw = PIE.D21;                                              % MMP, 11/04/2026
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
-Twm = [];   if ~Tw0,    Twm = op2copvar_sop(PIE.Tw);    end
+% Twm = [];   if ~Tw0,    Twm = op2copvar_sop(PIE.Tw);    end               % MMP, 11/04/2026 (was)
+Twm = [];   if ~Tw0,    Twm = PIE.Tw;    end                                % MMP, 11/04/2026
 
 % Build and solve, raising the slack degree while the solver returns
 % UNKNOWN or INFEASIBLE
@@ -187,12 +203,14 @@ end
         %               operator), Nm (the slack), li (slack info of
         %               LPI_INEQ_SOP), form.
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);           % MMP, 11/04/2026 (was)
+        prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % MMP, 11/04/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam >= 0 as the objective, or the fixed gain
         if isempty(gfix)
             [prog,gamv] = lpidecvar(prog,'gam');
-            prog = lpi_ineq(prog,gamv);
+%             prog = lpi_ineq(prog,gamv);                                   % MMP, 11/04/2026 (was)
+            prog = lpi_ineq_sop(prog,gamv);                                 % MMP, 11/04/2026
             prog = lpisetobj(prog,gamv);
         else
             gamv = gfix;

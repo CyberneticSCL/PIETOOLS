@@ -5,8 +5,10 @@ function dvar_sol = lpigetsol_sop(prog,dvar)
 % an 'sdopvar' or 'cdopvar' DVAR by GETSOL_LPIVAR_SOP; a cell that holds,
 % at any depth, an object of class 'sopvar', 'sdopvar', 'copvar' or
 % 'cdopvar', element by element; an 'opvar' or 'opvar2d' DVAR with
-% 'dpvar'-valued fields, field by field, by LPIGETSOL; and any other DVAR
-% by LPIGETSOL. A 'sopvar' or 'copvar' DVAR is returned unchanged.
+% 'dpvar'-valued fields, field by field, by LPIGETSOL; a 'dpvar', char or
+% other cell by SOSGETSOL; and a 'dopvar' or 'dopvar2d' DVAR by LPIGETSOL.
+% A 'sopvar', 'copvar', 'double' or 'polynomial' DVAR, or [], is returned
+% unchanged.
 %
 % INPUT
 % - prog:     'struct', an LPI program solved by LPISOLVE, with the fields
@@ -71,6 +73,13 @@ function dvar_sol = lpigetsol_sop(prog,dvar)
 %                of the local functions; code unchanged. The deleted
 %                header text was the class table with its comparison to
 %                lpigetsol and the reason a cell is taken apart here.
+% MMP, 11/04/2026: [], 'double' and 'polynomial' are returned unchanged and
+%                a 'dpvar', char or cell goes to SOSGETSOL here, instead of
+%                through LPIGETSOL of lpi_programming, which does exactly
+%                that for these classes in the same order: the container
+%                path (the gamma of the executives and DEMOs) no longer
+%                calls lpi_programming. The opvar classes still go to
+%                LPIGETSOL.
 
 % Same program checks as lpigetsol, made here too so that the new-class
 % branches, which do not pass through lpigetsol, apply them.
@@ -97,6 +106,10 @@ elseif (isa(dvar,'opvar') || isa(dvar,'opvar2d')) && hasdpvar(dvar)
     % Legacy [dpvar, opvar] concatenation leaves dpvar-valued fields in an
     % opvar, which lpigetsol returns UNSUBSTITUTED; substitute each field.
     dvar_sol = subs_fields(prog,dvar);
+elseif isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial')        % MMP, 11/04/2026
+    dvar_sol = dvar;    % fixed: nothing to substitute, as in LPIGETSOL     % MMP, 11/04/2026
+elseif isa(dvar,'dpvar') || ischar(dvar) || iscell(dvar)                    % MMP, 11/04/2026
+    dvar_sol = sosgetsol(prog,dvar);    % as LPIGETSOL does for these       % MMP, 11/04/2026
 elseif isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial') ...
         || isa(dvar,'opvar') || isa(dvar,'opvar2d') || isa(dvar,'dpvar') ...
         || ischar(dvar) || iscell(dvar) || isa(dvar,'dopvar') || isa(dvar,'dopvar2d')

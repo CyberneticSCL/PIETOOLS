@@ -115,6 +115,17 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                cap_delta) reduced to its entry for the dimension of the
 %                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
 %                scalar settings are unchanged.
+% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
+%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
+%                an opvar PIE, so every operator reaching them was a
+%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
+%                the removal of the opvar classes; programs unchanged.
+% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP and the gamma
+%                constraints are imposed by LPI_INEQ_SOP, the functions of
+%                lpi_programming_sopvar, in place of LPIPROGRAM and
+%                LPI_INEQ of lpi_programming; for these arguments
+%                ('polynomial' variables, a 'dpvar' gamma) both build the
+%                same program.
 
 % Default settings and form; check the PIE
 if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
@@ -141,8 +152,11 @@ dwbase = st.sop.dw_P;   if qform,    dwbase = st.sop.dw_Q;   end
 eppos = tl.eppos;
 
 % The PIE operators as containers, and the identities on w and z
-Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);
-Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);
+% EXEC_PIE_SOP returns every operator as a 'copvar': read as they are       % MMP, 11/04/2026
+% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/04/2026 (was)
+Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/04/2026
+% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);                   % MMP, 11/04/2026 (was)
+Bw = PIE.B1;    Cz = PIE.C1;                                                % MMP, 11/04/2026
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 
 % Build and solve, raising the slack degree while the solver returns
@@ -195,11 +209,13 @@ end
         %               (slack info of LPI_INEQ_SOP for the negativity
         %               constraint), form.
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);           % MMP, 11/04/2026 (was)
+        prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % MMP, 11/04/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam as the objective, gam >= 0 except in 'o' (as the stock 1-D files)
         [prog,gamv] = lpidecvar(prog,'gam');
-        if ~strcmp(form,'o'),   prog = lpi_ineq(prog,gamv);     end
+%         if ~strcmp(form,'o'),   prog = lpi_ineq(prog,gamv);     end       % MMP, 11/04/2026 (was)
+        if ~strcmp(form,'o'),   prog = lpi_ineq_sop(prog,gamv);     end     % MMP, 11/04/2026
         prog = lpisetobj(prog,gamv);
         % The operators, the negativity (Dneg) and positivity (Dpos)
         % constraints of FORM, the support of the slacks and the trace
@@ -259,7 +275,8 @@ end
             end
         end
         % gam >= trace
-        prog = lpi_ineq(prog,gamv - tr);
+%         prog = lpi_ineq(prog,gamv - tr);                                  % MMP, 11/04/2026 (was)
+        prog = lpi_ineq_sop(prog,gamv - tr);                                % MMP, 11/04/2026
         aux = struct('obj',gamv,'Rm',Rm,'Qm',Qm,'Pm',[],'Zm',[],'Wm',Wm,'li',li,'form',form);
     end
 

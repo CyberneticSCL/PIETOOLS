@@ -59,6 +59,10 @@ function [prog,dvar_out] = lpidecvar(prog,dvar)
 %
 % DJ, 10/19/2024: Initial coding;
 % DJ, 12/14/2024: Allow function to be used to generate decision variables;
+% MMP, 11/04/2026: Moved from lpi_programming/ to lpi_programming_sopvar/,
+%   code unchanged: it references no operator class and serves both
+%   operator families, while lpi_programming/ is retired with the opvar
+%   classes;
 
 % Check that the inputs make sense.
 if ~isa(prog,'struct')

@@ -101,6 +101,15 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %                cap_delta) reduced to its entry for the dimension of the
 %                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
 %                scalar settings are unchanged.
+% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
+%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
+%                an opvar PIE, so every operator reaching them was a
+%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
+%                the removal of the opvar classes; programs unchanged.
+% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP of
+%                lpi_programming_sopvar in place of LPIPROGRAM of
+%                lpi_programming; with 'polynomial' variables both build
+%                the same program.
 
 % Default settings, as the stock executive; check the PIE
 if nargin<2 || isempty(settings)
@@ -130,7 +139,9 @@ if ~isempty(st.sop.max_raise_feas)                                          % MM
 end                                                                         % MMP, 10/28/2026
 
 % The PIE operators as containers
-Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);
+% EXEC_PIE_SOP returns every operator as a 'copvar': read as they are       % MMP, 11/04/2026
+% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/04/2026 (was)
+Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/04/2026
 
 % Build and solve, raising the slack degrees while the solver returns
 % UNKNOWN or INFEASIBLE
@@ -173,7 +184,8 @@ end
         %               constrained operators), li (slack info of
         %               LPI_INEQ_SOP for Dm1, with degrees2 those for Dm2).
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);           % MMP, 11/04/2026 (was)
+        prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % MMP, 11/04/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % P >= eppos I on the output space of T, R >= I on its input space
         [prog,Pm] = tl.storage(prog,Tm,'out');

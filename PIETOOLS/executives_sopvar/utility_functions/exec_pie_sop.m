@@ -14,7 +14,8 @@ function PIE = exec_pie_sop(PIE)
 %                                   z = C1*x + D11*w + D12*u,
 %                                   y = C2*x + D21*w + D22*u,
 %         with either 'opvar' / 'opvar2d' operators, or T a 'copvar' object
-%         and each other operator a 'copvar' object or [] (absent); for a
+%         and each other operator a 'copvar', 'opvar' or 'opvar2d' object,
+%         or [] (absent); for a
 %         container PIE, vars (nv x 2 'polynomial', the spatial variables
 %         and their dummies) and dom (nv x 2 double) define the dimension
 %         nv = PIE.dim.
@@ -22,7 +23,9 @@ function PIE = exec_pie_sop(PIE)
 % OUTPUT
 % - PIE:  'pie_struct' object: INITIALIZE(PIE) for an opvar PIE; for a
 %         container PIE, the input with each of T, Tw, Tu, A, B1, B2, C1,
-%         D11, D12, C2, D21, D22 that is [] replaced by 0.
+%         D11, D12, C2, D21, D22 that is [] replaced by 0, and each that is
+%         an 'opvar' or 'opvar2d' object converted to a 'copvar' object.
+%         Every operator of the output is a 'copvar' object or 0.
 %
 % NOTES
 % A PIE other than a 'pie_struct', and a container PIE whose vars and dom
@@ -59,6 +62,11 @@ function PIE = exec_pie_sop(PIE)
 %                executives must support n variables, at least 3-D).
 %                INITIALIZE errors on a container PIE, and an absent
 %                operator [] makes Op==0 empty, which '&&' rejects.
+% MMP, 11/04/2026: An 'opvar' or 'opvar2d' operator in a container PIE is
+%                converted here. The executives no longer call
+%                OP2COPVAR_SOP on the PIE operators, which converted such
+%                an operator; this keeps that case working and makes every
+%                operator of the output a 'copvar' or 0.
 
 % A pie_struct only, as every executive requires
 if ~isa(PIE,'pie_struct')
@@ -80,5 +88,8 @@ ops = {'T','Tw','Tu','A','B1','B2','C1','D11','D12','C2','D21','D22'};
 for k = 1:numel(ops)
     X = PIE.(ops{k});
     if isnumeric(X) && isempty(X),  PIE.(ops{k}) = 0;   end
+    % An opvar operator beside a 'copvar' T: converted, since the           % MMP, 11/04/2026
+    % executives read every operator as a 'copvar'                          % MMP, 11/04/2026
+    if isa(X,'opvar') || isa(X,'opvar2d'),  PIE.(ops{k}) = op2copvar_sop(X);    end % MMP, 11/04/2026
 end
 end

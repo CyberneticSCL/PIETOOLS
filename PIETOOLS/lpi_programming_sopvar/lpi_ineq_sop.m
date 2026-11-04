@@ -12,8 +12,9 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % degrees read from the support of P or of OPTS.like (GET_LIFT_DEGS), Q_c
 % a Gram matrix of decision variables (POSCOPVAR_DIRECT), and imposes
 % P - Pop == 0 (LPI_EQ_SOP, 'symmetric'). Before declaring Pop, it prints
-% the number of decision variables Pop adds and the program total. For P
-% of any other class it calls LPI_INEQ(PROG,P,OPTS).
+% the number of decision variables Pop adds and the program total. For a
+% 'dpvar' or 'polynomial' P it imposes P >= 0 by SOSINEQ; for P of any
+% other class it calls LPI_INEQ(PROG,P,OPTS).
 %
 % INPUT
 % - prog:  'struct', the LPI program (LPIPROGRAM_SOP or LPIPROGRAM); read
@@ -22,9 +23,9 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %          records read by LPIGETDUAL_SOP);
 % - P:     'cdopvar' or 'copvar' object, square (the same output and input
 %          spaces) and self-adjoint (not checked), the operator to make
-%          positive; for a 'copvar' P the constraint certifies P >= 0. Any
-%          other class ('dopvar', 'dopvar2d', 'opvar', 'opvar2d', 'dpvar',
-%          'polynomial') is passed to LPI_INEQ;
+%          positive; for a 'copvar' P the constraint certifies P >= 0. A
+%          'dpvar' or 'polynomial' P goes to SOSINEQ; any other class
+%          ('dopvar', 'dopvar2d', 'opvar', 'opvar2d') is passed to LPI_INEQ;
 % - opts:  (optional) 'struct' with the optional fields
 %            dD, dw        double, added to the lift degree and to the
 %                          weight degree read from the support (default
@@ -78,12 +79,14 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                          given (default []: none); the terms keep their
 %                          offsets, under which POSCOPVAR_DIRECT lowers the
 %                          bound where a term's weight acts;
-%          for P of another class, OPTS is passed to LPI_INEQ (fields
-%          psatz, pure, sep).
+%          for a 'dpvar' or 'polynomial' P, OPTS is not used; for P of
+%          another class, OPTS is passed to LPI_INEQ (fields psatz, pure,
+%          sep).
 %
 % OUTPUT
 % - prog:  'struct', the program with the Gram matrices of Pop declared
-%          positive semidefinite and P - Pop == 0 imposed; for P of another
+%          positive semidefinite and P - Pop == 0 imposed; for a 'dpvar'
+%          or 'polynomial' P, the program of SOSINEQ; for P of another
 %          class, the program of LPI_INEQ;
 % - Pop:   'cdopvar' object on the spaces of P, the positive operator Pop
 %          ([] for P of another class);
@@ -191,6 +194,12 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                the 0.99 lambda1 rate at 15-24% fewer Gram entries, and
 %                this option reproduces its programs (scratch cap_repro,
 %                10/29/2026). INFO.cap.
+% MMP, 11/04/2026: A 'dpvar' or 'polynomial' P is imposed by SOSINEQ here
+%                instead of through LPI_INEQ of lpi_programming, which does
+%                exactly that for these classes (OPTS unused): the
+%                container path, e.g. the gamma constraints of the
+%                executives, no longer calls lpi_programming. The opvar
+%                classes still go to LPI_INEQ.
 
 % Check the inputs; OPTS is optional
 if nargin<2
@@ -200,7 +209,10 @@ if nargin<3,    opts = [];  end
 
 % % % Legacy classes: 'lpi_ineq', unchanged.
 if ~(isa(P,'cdopvar') || isa(P,'copvar'))
-    if isempty(opts),   prog = lpi_ineq(prog,P);
+%     if isempty(opts),   prog = lpi_ineq(prog,P);                          % MMP, 11/04/2026 (was)
+    % 'dpvar', 'polynomial': SOSINEQ, as LPI_INEQ does for them             % MMP, 11/04/2026
+    if isa(P,'dpvar') || isa(P,'polynomial'),   prog = sosineq(prog,P);     % MMP, 11/04/2026
+    elseif isempty(opts),   prog = lpi_ineq(prog,P);                        % MMP, 11/04/2026
     else,               prog = lpi_ineq(prog,P,opts);
     end
     Pop = [];   info = struct('legacy',true);

@@ -72,6 +72,10 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 %   Also: the dummy variables' ispvar check tested 'vartab' again, and no
 %   spatial variables failed the vector test and then dom(:,2); now zero
 %   variables give dom = zeros(0,2). Valid inputs give the same program.
+% MMP, 11/04/2026: Moved from lpi_programming/ to lpi_programming_sopvar/,
+%   code unchanged: it references no operator class and declares the
+%   program of both operator families, while lpi_programming/ is retired
+%   with the opvar classes.
 
 
 % % % Process the inputs

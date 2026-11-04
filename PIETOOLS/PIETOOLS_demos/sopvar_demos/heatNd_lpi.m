@@ -166,6 +166,9 @@ function [prog,meta] = heatNd_lpi(pie,d,k,ep,opts)
 %   multiples of a written one (since 11/01/2026); E2E_HEAT3D_STABILITY
 %   check (2) needs them to compare the extracted operators with the rows.
 %   Rows and SDP unchanged.
+% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP of
+%   lpi_programming_sopvar in place of LPIPROGRAM of lpi_programming;
+%   with 'polynomial' variables both build the same program.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<5 || isempty(opts),   opts = struct();    end
@@ -199,7 +202,8 @@ if isempty(opts.base)
     % (10/01/2026: it no longer refuses; one call for every N.)             % MMP, 10/01/2026
     t0 = tic;
 %   if N<=2                                                                 % MMP, 10/01/2026 (was)
-        prog = lpiprogram(polynomial(vars(:)),[],dom);
+%         prog = lpiprogram(polynomial(vars(:)),[],dom);                    % MMP, 11/04/2026 (was)
+        prog = lpiprogram_sop(polynomial(vars(:)),[],dom);                  % MMP, 11/04/2026
         % Opt in to the row record: it lists the equations dropped as       % MMP, 11/02/2026
         % multiples, which the checks of E2E_HEAT3D_STABILITY account for.  % MMP, 11/02/2026
         prog.sopeq = {};                                                    % MMP, 11/02/2026

@@ -95,6 +95,17 @@ function [prog,K,gam,P,Z,W,info] = PIETOOLS_H2_control_sop(PIE,settings)
 %                cap_delta) reduced to its entry for the dimension of the
 %                PIE, so the settings tiers may hold [1-D 2-D 3-D] values;
 %                scalar settings are unchanged.
+% MMP, 11/04/2026: The PIE operators are read as they are; the calls to
+%                OP2COPVAR_SOP are commented out. EXEC_PIE_SOP initializes
+%                an opvar PIE, so every operator reaching them was a
+%                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
+%                the removal of the opvar classes; programs unchanged.
+% MMP, 11/04/2026: The program is built by LPIPROGRAM_SOP and the gamma
+%                constraints are imposed by LPI_INEQ_SOP, the functions of
+%                lpi_programming_sopvar, in place of LPIPROGRAM and
+%                LPI_INEQ of lpi_programming; for these arguments
+%                ('polynomial' variables, a 'dpvar' gamma) both build the
+%                same program.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -120,9 +131,13 @@ if ~(PIE.D11==0),   error('PIETOOLS_H2_control_sop:D11','Feedthrough D11 is not 
 eppos = tl.eppos;
 
 % The PIE operators as containers, and the identity on w
-Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);
-Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);
-B2m = op2copvar_sop(PIE.B2);    D12m = op2copvar_sop(PIE.D12);
+% EXEC_PIE_SOP returns every operator as a 'copvar': read as they are       % MMP, 11/04/2026
+% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/04/2026 (was)
+Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/04/2026
+% Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);                   % MMP, 11/04/2026 (was)
+Bw = PIE.B1;    Cz = PIE.C1;                                                % MMP, 11/04/2026
+% B2m = op2copvar_sop(PIE.B2);    D12m = op2copvar_sop(PIE.D12);            % MMP, 11/04/2026 (was)
+B2m = PIE.B2;   D12m = PIE.D12;                                             % MMP, 11/04/2026
 Iw = tl.ident(PIE.B1,2);
 
 % Build and solve, raising the slack degree while the solver returns
@@ -158,11 +173,13 @@ end
         %               ('cdopvar' P, Z, W), li (slack info of LPI_INEQ_SOP
         %               for the negativity constraint), form.
         % New program; record the equality rows when the dual is kept
-        prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
+%         prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);           % MMP, 11/04/2026 (was)
+        prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);         % MMP, 11/04/2026
         if st.sop.keepdual,     prog.sopeq = {};    end
         % gam >= 0 as the objective
         [prog,gamv] = lpidecvar(prog,'gam');
-        prog = lpi_ineq(prog,gamv);
+%         prog = lpi_ineq(prog,gamv);                                       % MMP, 11/04/2026 (was)
+        prog = lpi_ineq_sop(prog,gamv);                                     % MMP, 11/04/2026
         prog = lpisetobj(prog,gamv);
         % P >= eppos I; Z free from the state to u; W free on the space of z
         [spx,dmx] = copvar_space_list(Am,'out');
@@ -195,7 +212,8 @@ end
             [prog,~,~] = lpi_ineq_sop(prog,Dpos,op);                        % MMP, 10/29/2026
         end
         % gam >= trace(W)
-        prog = lpi_ineq(prog,gamv - trace_rn_sop(Wm));
+%         prog = lpi_ineq(prog,gamv - trace_rn_sop(Wm));                    % MMP, 11/04/2026 (was)
+        prog = lpi_ineq_sop(prog,gamv - trace_rn_sop(Wm));                  % MMP, 11/04/2026
         aux = struct('obj',gamv,'Rm',[],'Qm',[],'Pm',Pm,'Zm',Zm,'Wm',Wm,'li',li,'form','ctrl');
     end
 % % % END body replaced by MMP, 10/28/2026

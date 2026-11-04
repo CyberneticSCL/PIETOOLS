@@ -26,6 +26,13 @@ that are multiples of one another (to 1e-12 of the largest coefficient; entries 
 round-off of the products, left out of the comparison), and the row record lists the others
 (`entries.dup`). 3-D heatNd stability LPI at light, r = 5: 33,231 -> 23,268 rows; of the rows
 MOSEK keeps, 21,336 -> 14,817; MOSEK 283 -> 176 s, 24 -> 18 iterations, on those rows.
+MMP, 11/04/2026: `lpiprogram`, `lpidecvar`, `lpisetobj` and `lpisolve` moved here from
+`lpi_programming/`, code unchanged: they reference no operator class and serve both families,
+while `lpi_programming/` is retired with the opvar classes. The folder root holds twelve user
+functions. `lpi_ineq_sop`, `lpi_eq_sop` and `lpigetsol_sop` send a `dpvar` (and `lpi_ineq_sop`
+a `polynomial`) to `sosineq`, `soseq` and `sosgetsol` directly, which is what the routines of
+`lpi_programming/` do for those classes; the container executives call no routine of
+`lpi_programming/`.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:
@@ -35,13 +42,16 @@ families:
 - the container family: `sopvar`, `sdopvar`, `copvar` and `cdopvar`, in any number of
   spatial variables.
 
-Every `_sop` function sends a legacy class to the existing legacy routine, unchanged,
-so its result is the legacy result. It sends a container-family class to container
-code. No file in `lpi_programming/` was modified, apart from `lpiprogram`, which takes
-any number of variables since 10/01/2026.
+Every `_sop` function sends an `opvar`, `dopvar`, `opvar2d` or `dopvar2d` object to the
+routine of `lpi_programming/`, unchanged, so its result is the legacy result; handles a `dpvar`
+(in `lpi_ineq_sop` also a `polynomial`; in `lpigetsol_sop` also `[]`, `double`, `polynomial`,
+char and cells) as that routine does, by the same SOSTOOLS call or return, without calling it
+(since 11/04/2026); and sends a container-family class to container code. No file in `lpi_programming/` was modified, apart from
+`lpiprogram`, which takes any number of variables since 10/01/2026.
 
-The user functions, in the folder root. Each is the container counterpart of the user function of
-`lpi_programming/` in the second column; `lpidecvar`, `lpisetobj` and `lpisolve` are used unchanged.
+The user functions, in the folder root. Each `_sop` function is the container counterpart of the
+user function of `lpi_programming/` in the second column; `lpiprogram`, `lpidecvar`, `lpisetobj`
+and `lpisolve` (in this folder since 11/04/2026) serve both families unchanged.
 
 | function | stock counterpart | what it does |
 |---|---|---|
@@ -52,6 +62,10 @@ The user functions, in the folder root. Each is the container counterpart of the
 | `lpi_ineq_sop` | `lpi_ineq` | imposes `P >= 0`: sizes the positive slack, prints its decision variables, declares it, then `P - Pop == 0` (§2) |
 | `lpigetsol_sop` | `lpigetsol` | the solved value of a decision variable or operator (§2) |
 | `getsol_lpivar_sop` | `getsol_lpivar` | the same for a decision operator (§2) |
+| `lpiprogram` | – | declares the program in any number of spatial variables, for both families |
+| `lpidecvar` | – | declares a scalar or matrix decision variable (`dpvar`) |
+| `lpisetobj` | – | sets the objective, a linear function of `dpvar` decision variables |
+| `lpisolve` | – | solves the program (`sossolve`) |
 | `lpiscript_sop` | `lpiscript` | solves a predefined LPI by name (`'stability'`, `'l2gain'`, `'h2norm'`, `'hinf-controller'`, ...) with the container executive and form of `PIETOOLS_auto_execute_sop`; the outputs of `lpiscript`, then the executive's `info` |
 
 The routines the user functions depend on, in `misc/` (public, since the executives, the tests and
@@ -204,9 +218,10 @@ A product of two decision operators is refused (`cdopvar:decisionTimesDecision`)
 Numeric operands keep their earlier behaviour: `P + 1e-3` and `[X, 0]` are still
 refused. Use `dpvar(c)` or `mat2copvar_sop` instead.
 
-### Legacy routines that need no `_sop` version
+### Routines that need no `_sop` version
 
-`lpidecvar`, `lpisetobj`, `lpisolve` and the scalar `lpi_ineq(prog,gam)` (sosineq) work
+`lpidecvar`, `lpisetobj`, `lpisolve` (in this folder since 11/04/2026) and the scalar
+`lpi_ineq(prog,gam)` (sosineq; `lpi_ineq_sop` makes the same call since 11/04/2026) work
 unchanged on container programs. **Measured** in two places:
 
 - E1: 1-D, gamma declared, `gam >= 0`, and minimized;
@@ -266,7 +281,7 @@ are MOSEK 11 and SeDuMi (E3).
 The scripts in `examples/` show standard usage, as the DEMOs of `PIETOOLS_demos/` do. A PDE is
 declared with `pde_var` and converted with `convert` (or an `opvar` is declared), its operators
 become containers with `op2copvar_sop`, and one LPI is written with the user functions of the folder
-root and the stock `lpidecvar`, `lpisetobj` and `lpisolve`. Each runs by name, with MOSEK when
+root, among them `lpidecvar`, `lpisetobj` and `lpisolve`. Each runs by name, with MOSEK when
 `mosekopt` is on the path and SeDuMi otherwise. Measured with MOSEK 11 on the development
 workstation, the time including `convert`:
 

@@ -40,6 +40,10 @@ function prog_sol = lpisolve(prog,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/18/2024 - Initial coding
+% MMP, 11/04/2026 - Moved from lpi_programming/ to lpi_programming_sopvar/,
+%   code unchanged: it references no operator class and serves both
+%   operator families, while lpi_programming/ is retired with the opvar
+%   classes.
 
 % % Solve using 'sossolve' with desired settings, if specified.
 if nargin>=2

@@ -4,7 +4,8 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 % equality constraints P == 0 on the decision variables of P: for a
 % 'cdopvar' P, that every block is zero (LPI_EQ_CDOPVAR); for an 'sdopvar'
 % P, that every stored coefficient of every parameter is zero
-% (LPI_EQ_SDOPVAR); for any other P, the constraints of LPI_EQ.
+% (LPI_EQ_SDOPVAR); for a 'dpvar' P, P == 0 by SOSEQ; for any other P, the
+% constraints of LPI_EQ.
 %
 % INPUT
 % - prog:   'struct', the LPI program to modify (from LPIPROGRAM_SOP or
@@ -80,6 +81,11 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 %                moved to this log. The deleted header text was the
 %                comparison with lpi_eq, the per-routine remarks on errors,
 %                a test reference and a cost note with its 10/02/2026 edit.
+% MMP, 11/04/2026: A 'dpvar' P is imposed by SOSEQ here instead of through
+%                LPI_EQ of lpi_programming, which does exactly that for
+%                this class (OPTS unused): the container path no longer
+%                calls lpi_programming for it. The opvar classes still go
+%                to LPI_EQ.
 
 % Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and
 % lpi_eq_sdopvar each test nargin for it.
@@ -99,6 +105,9 @@ elseif isa(P,'sdopvar') || isa(P,'sopvar')
     if nargin>=3,   prog = lpi_eq_sdopvar(prog,P,opts);
     else,           prog = lpi_eq_sdopvar(prog,P);
     end
+elseif isa(P,'dpvar')                                                       % MMP, 11/04/2026
+    % 'dpvar': SOSEQ, as LPI_EQ does for it                                 % MMP, 11/04/2026
+    prog = soseq(prog,P);                                                   % MMP, 11/04/2026
 else
     % Every other class: lpi_eq
     if nargin>=3,   prog = lpi_eq(prog,P,opts);
