@@ -74,6 +74,7 @@ function At = ctranspose(A)
 %                  leaves the coefficients no longer determined by it. The
 %                  adjoint is now assembled through 'canonical_adjoint_map',
 %                  which swaps only the integral directions.
+% DJ, 11/04/2026: Support zero blocks specified as scalar 0, like [].
 
 % initialize the transpose object
 At = A;  
@@ -122,7 +123,8 @@ ncol_t = A.dims(1)*prod([cellfun(@numel,rightZ),1]);                        % MM
 Ct = cell(size(A.params));                                                  % MMP, 08/29/2026
 for kk = 1:numel(A.params)                                                  % MMP, 08/29/2026
     Ck = A.params{kk};                                                      % MMP, 08/29/2026
-    if isempty(Ck)                                                          % MMP, 08/29/2026
+    % [] and scalar 0 are zero blocks of the size of the block
+    if isempty(Ck) || (isscalar(Ck) && Ck==0)                               % DJ, 11/04/2026
         Ct{adjidx(kk)} = sparse(nrow_t,ncol_t);                             % MMP, 08/29/2026
     else                                                                    % MMP, 08/29/2026
         Ct{adjidx(kk)} = reshape(Tcell{kk}*sparse(Ck(:)),nrow_t,ncol_t);    % MMP, 08/29/2026

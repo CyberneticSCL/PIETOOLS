@@ -55,6 +55,8 @@ function C = plus(A,B)
 %                  block's size its multiplier; the sum is an sdopvar.
 %                  Before, it failed in the dims check below. Numeric
 %                  summands are not routed and fail there as before.
+% DJ, 11/04/2026: Support zero blocks specified as [] or scalar 0, by
+%                   expanding them to the size of the block.
 
 % initialize added output class
 
@@ -105,6 +107,16 @@ C1R = kron(eye(A.dims(2)), C1R);
 C2R = kron(eye(B.dims(2)), C2R);
 
 
+
+% [] and scalar 0 are zero blocks of the size of the block (see sopvar.m)
+for i=1:numel(A.params)                                                     % DJ, 11/04/2026
+    if isempty(A.params{i}) || (isscalar(A.params{i}) && A.params{i}==0)
+        A.params{i} = sparse(size(C1L,1),size(C1R,1));
+    end
+    if isempty(B.params{i}) || (isscalar(B.params{i}) && B.params{i}==0)
+        B.params{i} = sparse(size(C2L,1),size(C2R,1));
+    end
+end
 
 params = A.params;
 for i=1:numel(A.params)  % linear indexing of multi-dimensional cell array

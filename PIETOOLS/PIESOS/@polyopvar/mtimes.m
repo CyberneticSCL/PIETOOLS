@@ -16,6 +16,15 @@ function C = mtimes(A,B)
 %   them is scalar, and is computed using times.
 % - Right-multiplication of a 'polyopvar' object A by a constant is only
 %   supported for a numeric scalar B.
+% - Left-multiplication of B by a non-scalar 'double' matrix A returns a
+%   polynomial with a single row-block, each row of which is a linear
+%   combination of the rows of B. If the rows of B map to different output
+%   spaces (e.g. R and L2[s], or L2[s1] and L2[s2]), they are first lifted
+%   to a common output space, e.g. elements of R become elements of L2[s1]
+%   that are constant in s1.
+% - Multiplication of a non-scalar matrix with a monomial on which an
+%   operator with several factors acts (e.g. x0*u) is not supported, see
+%   @tensopvar/mtimes.m.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,6 +52,8 @@ function C = mtimes(A,B)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/04/2026: Left-multiplication by a matrix lifts rows with different
+%                   output spaces to a common space;
 
 % Make sure the inner dimensions match
 if size(A,2)~=size(B,1) && ~all(size(A)==1) && ~all(size(B)==1)
@@ -60,6 +71,17 @@ if isa(A,'polyopvar') && isa(B,'polyopvar')
     end
 elseif ~isa(A,'polyopvar')
     % Multiplication of constant with polynomial
+    % A row of A*B combines the rows of B, so these must map to the same
+    % output space: lift them to a common one if they differ, as in plus.
+    % An operator A acts on the output space of each row as it is: no lift.
+    if isa(A,'double') && ~all(size(A)==1)
+        if ~B.chkval
+            B = initialize(B);
+        end
+        if any(any(diff(B.depmat.out,1,1)))                                 % DJ, 11/04/2026
+            B = lift_output(B,B.vars,B.dom,[],max(B.depmat.out,[],1));
+        end
+    end
     C = B;
     C.C = A*B.C;
     C.dims.out = C.C.dims.out;
