@@ -150,6 +150,10 @@
 % YP 1/22/2026 - passing u_tab, w_tab to initial setup
 % DJ, 10/29/2026: Convert 'pie_struct' to the old format (opvar/opvar2d)
 % using pie2opvar, so that the PIE can be handled as before;
+% MMP, 11/04/2026: Convert 'pie_struct' with pie2piesim, to structs of the
+% kernels that the discretization reads, instead of opvar/opvar2d objects
+% (pie2opvar): PIESIM needs no operator class. Replaces the conversion of
+% DJ, 10/29/2026;
 
 function [solution, grid]=PIESIM(varargin)
 
@@ -168,8 +172,9 @@ function [solution, grid]=PIESIM(varargin)
         
         % Convert PDE to PIE
         PIE = convert_PIETOOLS_PDE(PDE,'pie');
-        % Convert pie_struct to old format (opvar/opvar2d), as used below
-        if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % DJ, 10/29/2026
+        % Convert pie_struct to structs of its kernels, as used below       % MMP, 11/04/2026
+%       if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % MMP, 11/04/2026 (was); DJ, 10/29/2026
+        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % MMP, 11/04/2026
 
     elseif strcmp(opts.type,'DDE')
         DDE=varargin{1};
@@ -178,16 +183,18 @@ function [solution, grid]=PIESIM(varargin)
         DDE = initialize_PIETOOLS_DDE(DDE); % error checking and preprocessing
         DDF = convert_PIETOOLS_DDE(DDE,'ddf');
         PIE = convert_PIETOOLS_DDF(DDF,'pie');
-        % Convert pie_struct to old format (opvar/opvar2d), as used below
-        if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % DJ, 10/29/2026
+        % Convert pie_struct to structs of its kernels, as used below       % MMP, 11/04/2026
+%       if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % MMP, 11/04/2026 (was); DJ, 10/29/2026
+        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % MMP, 11/04/2026
 
         % Check the inputs and define problem size
         [PIE,uinput,opts,psize]=PIESIM_input_check(PIE,uinput,opts);
    
     elseif strcmp(opts.type,'PIE')
         PIE=varargin{1};
-        % Convert pie_struct to old format (opvar/opvar2d), as used below
-        if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % DJ, 10/29/2026
+        % Convert pie_struct to structs of its kernels, as used below       % MMP, 11/04/2026
+%       if isa(PIE,'pie_struct'), PIE = pie2opvar(PIE); end                 % MMP, 11/04/2026 (was); DJ, 10/29/2026
+        if isa(PIE,'pie_struct'), PIE = pie2piesim(PIE); end                % MMP, 11/04/2026
         % Check the inputs and define problem size
         [PIE,uinput,opts,psize]=PIESIM_input_check(PIE,uinput,opts);
     end  

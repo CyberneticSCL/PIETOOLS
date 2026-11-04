@@ -43,6 +43,9 @@ function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 % YP, 12/29/2025: Updated disturbance and control input check
 % YP, 1/27/2026: Added support for infinite-dimensional outputs in 2D
 % YP, 2/17/2026: Changed all initial conditions to uinput.ic format
+% MMP, 11/04/2026: Operator sizes from the field dim, not size(): PIESIM.m
+%   passes each operator as a struct of its kernels (pie2piesim), whose
+%   size() is 1 x 1. For an opvar both give the same numbers.
 
 syms st sx sy;
 structure=varargin{1};
@@ -349,8 +352,11 @@ elseif (opts.type=='DDE')
 
     % Define problem size for discretization
     psize.dim = 1;      % DDE is 1D
-    psize.nu=size(PIE.Tu,2);
-    psize.nw=size(PIE.Tw,2);
+%   psize.nu=size(PIE.Tu,2);                                                % MMP, 11/04/2026 (was)
+%   psize.nw=size(PIE.Tw,2);                                                % MMP, 11/04/2026 (was)
+    % Sizes from dim: an operator is a struct of kernels (pie2piesim)       % MMP, 11/04/2026
+    psize.nu=sum(PIE.Tu.dim(:,2));                                          % MMP, 11/04/2026
+    psize.nw=sum(PIE.Tw.dim(:,2));                                          % MMP, 11/04/2026
     psize.n0=PIE.T.dim(1,1);
     nx = PIE.T.dim(2,1);
     psize.N=opts.N;
@@ -359,11 +365,16 @@ elseif (opts.type=='DDE')
     % Size of finite-dimensional and infinite-dimensional outputs
     psize.nr0 = size(PIE.C1.Q1,1);
     psize.no0 = size(PIE.C2.Q1,1); 
-    psize.nrx = size(PIE.C1,1)-psize.nr0;
-    psize.nox = size(PIE.C2,1)-psize.no0;  
+%   psize.nrx = size(PIE.C1,1)-psize.nr0;                                   % MMP, 11/04/2026 (was)
+%   psize.nox = size(PIE.C2,1)-psize.no0;                                   % MMP, 11/04/2026 (was)
+    % Sizes from dim: an operator is a struct of kernels (pie2piesim)       % MMP, 11/04/2026
+    psize.nrx = sum(PIE.C1.dim(:,1))-psize.nr0;                             % MMP, 11/04/2026
+    psize.nox = sum(PIE.C2.dim(:,1))-psize.no0;                             % MMP, 11/04/2026
 
-    psize.nu=size(PIE.Tu,2); % number of disturbances
-    psize.nw=size(PIE.Tw,2); % number of control inputs
+%   psize.nu=size(PIE.Tu,2); % number of disturbances                       % MMP, 11/04/2026 (was)
+%   psize.nw=size(PIE.Tw,2); % number of control inputs                     % MMP, 11/04/2026 (was)
+    psize.nu=sum(PIE.Tu.dim(:,2)); % number of disturbances                 % MMP, 11/04/2026
+    psize.nw=sum(PIE.Tw.dim(:,2)); % number of control inputs               % MMP, 11/04/2026
 
     % Check if the problem size is defined correctly
     if length(opts.N)>1
@@ -494,11 +505,16 @@ elseif (opts.type=='PIE')
     %------------------------
     psize.nr0 = size(PIE.C1.Q1,1);
     psize.no0 = size(PIE.C2.Q1,1); 
-    psize.nrx = size(PIE.C1,1)-psize.nr0;
-    psize.nox = size(PIE.C2,1)-psize.no0;  
+%   psize.nrx = size(PIE.C1,1)-psize.nr0;                                   % MMP, 11/04/2026 (was)
+%   psize.nox = size(PIE.C2,1)-psize.no0;                                   % MMP, 11/04/2026 (was)
+    % Sizes from dim: an operator is a struct of kernels (pie2piesim)       % MMP, 11/04/2026
+    psize.nrx = sum(PIE.C1.dim(:,1))-psize.nr0;                             % MMP, 11/04/2026
+    psize.nox = sum(PIE.C2.dim(:,1))-psize.no0;                             % MMP, 11/04/2026
 
-    psize.nu=size(PIE.Tu,2); % number of disturbances
-    psize.nw=size(PIE.Tw,2); % number of control inputs
+%   psize.nu=size(PIE.Tu,2); % number of disturbances                       % MMP, 11/04/2026 (was)
+%   psize.nw=size(PIE.Tw,2); % number of control inputs                     % MMP, 11/04/2026 (was)
+    psize.nu=sum(PIE.Tu.dim(:,2)); % number of disturbances                 % MMP, 11/04/2026
+    psize.nw=sum(PIE.Tw.dim(:,2)); % number of control inputs               % MMP, 11/04/2026
 
     % Determine which disturbances vary in either x, y, or both
 
