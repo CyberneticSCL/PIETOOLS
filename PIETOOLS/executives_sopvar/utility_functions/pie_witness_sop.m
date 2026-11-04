@@ -32,10 +32,9 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 % of node i.
 %
 % INPUT
-% - PIE:    'pie_struct' object of a 1-D PIE with T, Tw, A, B1, C1, D11
-%           'opvar' or 'copvar' objects (the other operators are not used);
-%           w has nwf finite and nwd distributed components,
-%           PIE.B1.dim(:,2) after conversion to 'opvar' objects;
+% - PIE:    'pie_struct' object of a 1-D PIE, of which T, Tw, A, B1, C1
+%           and D11 are used; w has nwf finite and nwd distributed
+%           components;
 % - mode:   char, 'gain', 'rate' or 'h2';
 % - opts:   (optional) 'struct' with the optional fields N_cheb (double,
 %           the Legendre degree N, default 24) and nfreq (double, default
@@ -127,8 +126,14 @@ function W = pie_witness_sop(PIE,mode,opts,Y,wblk)
 % DJ, 10/29/2026: Convert the operators of the PIE to 'opvar' objects
 %                using pie2opvar, which PIE_DISC_SOP and PIE.B1.dim require,
 %                instead of initializing the PIE, whose operators are now
-%                'copvar' objects. This is a temporary fix, we should 
+%                'copvar' objects. This is a temporary fix, we should
 %                really work with the new PIE structure directly;
+% MMP, 11/04/2026: Convert with PIE2PIESIM, to structs of the kernels,
+%                instead of PIE2OPVAR, so that the witness needs no
+%                operator class; the test Tw == 0 reads the kernels
+%                (local ZERO_KERNELS, every coefficient below 1e-14 in
+%                modulus, the tolerance of the opvar test it replaces).
+%                Supersedes DJ, 10/29/2026. Header: PIE input text.
 
 % Output with every quantity not computed
 W = struct('ok',false,'note','','N',NaN,'gain',NaN,'omega',NaN,'wcoef',[],'wgrid',[],'sgrid',[], ...
@@ -138,11 +143,12 @@ if nargin<3 || isempty(opts),   opts = struct();    end
 if nargin<4,    Y = [];     end
 if nargin<5,    wblk = 1;   end
 N = getf(opts,'N_cheb',24);     nfreq = getf(opts,'nfreq',240);
-% Start the timer; convert the PIE to opvar objects (an error leaves it as
-% given)
+% Start the timer; convert the PIE to structs of its kernels (an error      % MMP, 11/04/2026
+% leaves it as given)                                                       % MMP, 11/04/2026
 t0 = tic;
 try
-    PIE = pie2opvar(PIE);                                                   % DJ, 10/29/2026
+%   PIE = pie2opvar(PIE);                                                   % MMP, 11/04/2026 (was); DJ, 10/29/2026
+    PIE = pie2piesim(PIE);                                                  % MMP, 11/04/2026
 catch
 end
 % 1-D only
@@ -158,7 +164,8 @@ try
     C = pie_disc_sop(PIE.C1,N);
     D = pie_disc_sop(PIE.D11,N);
     % The boundary-disturbance operator Tw, when nonzero                    % MMP, 10/28/2026
-    Tw0 = (PIE.Tw==0);                                                      % MMP, 10/28/2026
+%   Tw0 = (PIE.Tw==0);                                                      % MMP, 11/04/2026 (was); MMP, 10/28/2026
+    Tw0 = zero_kernels(PIE.Tw,1e-14);                                       % MMP, 11/04/2026
     Twd = [];   if ~Tw0,    Twd = pie_disc_sop(PIE.Tw,N);   end             % MMP, 10/28/2026
 catch ME
     W.note = ['pie_disc_sop: ' ME.message];     return
@@ -367,3 +374,22 @@ P = reshape(1:n*q,n,q)';    P = P(:);
 Kq = Kg(P,P);
 Kq = (Kq+Kq')/2;
 end
+
+
+% BEGIN MMP, 11/04/2026: local function zero_kernels, new
+function tf = zero_kernels(X,tol)
+% TF = ZERO_KERNELS(X,TOL) is true when every kernel of the 1-D operator X
+% has all its coefficients below TOL in modulus.
+% INPUT  X: 'struct' with the kernel fields P, Q1, Q2 and R (fields R0, R1,
+%        R2), each 'double' or 'polynomial' (PIE2PIESIM); tol: 'double'.
+% OUTPUT tf: logical.
+K = {X.P, X.Q1, X.Q2, X.R.R0, X.R.R1, X.R.R2};
+tf = true;
+for k = 1:numel(K)
+    c = K{k};
+    % Merge repeated monomials first, as the subtraction of the opvar test did
+    if isa(c,'polynomial'),     c = combine(c);     c = c.coefficient;  end
+    tf = tf && all(abs(c(:))<tol);
+end
+end
+% END MMP, 11/04/2026

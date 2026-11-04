@@ -19,7 +19,8 @@ function [M,info] = pie_disc_sop(Pop,N,dom)
 % function it represents.
 %
 % INPUT
-% - Pop:  'opvar' object with Pop.dim = [m0 n0; m1 n1], parameters P
+% - Pop:  'struct' of kernels (PIE2PIESIM) or 'opvar' object, with fields
+%         dim = [m0 n0; m1 n1], I, var1, var2 and the parameters P
 %         (double), Q1, Q2, R.R0 (polynomials in Pop.var1, or double) and
 %         R.R1, R.R2 (polynomials in Pop.var1 and Pop.var2, or double); or
 %         a 'double' matrix, returned as M;
@@ -84,14 +85,22 @@ function [M,info] = pie_disc_sop(Pop,N,dom)
 %                  in the body and headers of the local functions; code
 %                  unchanged. The deleted header text was a remark on
 %                  compositions and on the mass matrix.
+% MMP, 11/04/2026: Accept a struct of kernels (PIE2PIESIM), which
+%                  PIE_WITNESS_SOP now passes: the routine reads only
+%                  fields. Header: POP input text.
 
 % A matrix is its own Galerkin matrix
 if isa(Pop,'double')
     M = Pop;    info = struct('evalbasis',[],'dims',[size(Pop,1) 0; 0 0; size(Pop,2) 0],'a',NaN,'b',NaN,'q',NaN,'nq',NaN);
     return
 end
-% Otherwise an opvar: domain, basis size, dimensions and variable names
-if ~isa(Pop,'opvar'),   error('pie_disc_sop:class','POP should be an opvar or a double.');  end
+% Otherwise a struct of kernels or an opvar: domain, basis size,            % MMP, 11/04/2026
+% dimensions and variable names                                             % MMP, 11/04/2026
+% if ~isa(Pop,'opvar'),   error('pie_disc_sop:class','POP should be an opvar or a double.');  end % MMP, 11/04/2026 (was)
+if ~isa(Pop,'opvar') && ~isstruct(Pop)                                      % MMP, 11/04/2026
+    error('pie_disc_sop:class',...
+          'POP should be a struct of kernels, an opvar or a double.');      % MMP, 11/04/2026
+end                                                                         % MMP, 11/04/2026
 if nargin<3 || isempty(dom),    dom = Pop.I;    end
 a = dom(1);     b = dom(2);     q = N+1;
 d = Pop.dim;    m0 = d(1,1);    m1 = d(2,1);    n0 = d(1,2);    n1 = d(2,2);

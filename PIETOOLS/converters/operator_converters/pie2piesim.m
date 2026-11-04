@@ -1,8 +1,8 @@
 function PIE_out = pie2piesim(PIE)
 % PIE_OUT = PIE2PIESIM(PIE) returns the linear PIE PIE as the struct that
-% PIESIM discretizes: each operator a struct of its polynomial kernels, with
-% the components of each kind of space (R, L2[s1], L2[s2], L2[s1,s2])
-% stacked in that order.
+% PIESIM and the executive witness (PIE_WITNESS_SOP) discretize: each
+% operator a struct of its polynomial kernels, with the components of each
+% kind of space (R, L2[s1], L2[s2], L2[s1,s2]) stacked in that order.
 %
 % INPUT
 % - PIE:        'pie_struct' object, a linear PIE in at most 2 spatial
@@ -71,6 +71,8 @@ function PIE_out = pie2piesim(PIE)
 %   and the kernel formulas of SOPVAR2OPVAR, SOPVAR2OPVAR2D and the
 %   orientation rule of COPVAR2OPVAR2D, writing plain structs, so that PIESIM
 %   needs no operator class.
+% MMP, 11/04/2026: Moved from PIESIM/PIESIM_routines/PIESIM_Setup to
+%   converters/operator_converters, since PIE_WITNESS_SOP calls it too.
 
 % Operators as 'copvar' objects; at most 2 spatial variables
 if ~isa(PIE,'pie_struct')
