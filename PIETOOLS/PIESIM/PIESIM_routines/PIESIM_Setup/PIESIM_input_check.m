@@ -46,6 +46,11 @@ function [structure, uinput, opts, psize]=PIESIM_input_check(varargin)
 % MMP, 11/04/2026: Operator sizes from the field dim, not size(): PIESIM.m
 %   passes each operator as a struct of its kernels (pie2piesim), whose
 %   size() is 1 x 1. For an opvar both give the same numbers.
+% MMP, 11/04/2026: DDE input with more initial conditions than states:
+%   keep the first n0+nx, the count the elseif tests; the removal
+%   read ns, which only the PDE branch defines (Unrecognized function or
+%   variable 'ns', e.g. a 2-state DDE with the 3 initial conditions of
+%   PIETOOLS_DDE.m).
 
 syms st sx sy;
 structure=varargin{1};
@@ -441,7 +446,8 @@ elseif (opts.type=='DDE')
     elseif(length(uinput.ic)>n0+nx)
          disp('Warning: Number of initial conditions on DDE states is greater than the number of DDE states');
          disp('Extra initial conditions will be ignored');
-         uinput.ic(n0+ns+1:length(uinput.ic))=[];
+%        uinput.ic(n0+ns+1:length(uinput.ic))=[];                           % MMP, 11/04/2026 (was)
+         uinput.ic(n0+nx+1:length(uinput.ic))=[];  % keep n0+nx             % MMP, 11/04/2026
     end
 
         if (n0>0)

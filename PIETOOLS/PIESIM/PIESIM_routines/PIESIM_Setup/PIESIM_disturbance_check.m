@@ -15,6 +15,9 @@ function uinput = PIESIM_disturbance_check(varargin)
 % conditions. If empty or incomplete, will be set to default values 
 
 % Initial coding: YP 1/4/2026
+% MMP, 11/04/2026: The zero defaults of the control inputs assign with
+%   deal, as the other signal types do: uinput.u{1:nu}=0 is an error for
+%   nu > 1 (e.g. a DDE with three control inputs, catalog DDE18).
 
 syms st sx sy;
 
@@ -44,7 +47,8 @@ nu0=psize.nu0;
   if (nu>0 & ~isfield(uinput,'u') )
             if ~isfield(uinput,'control')
                 disp('Signal type for control inputs is not defined. Defaulting to zero');
-                       uinput.u{1:nu}=0;
+%                      uinput.u{1:nu}=0;                                    % MMP, 11/04/2026 (was)
+                       [uinput.u{1:nu}]=deal(0);                            % MMP, 11/04/2026
             else
             disp('Control inputs are not defined. Defaulting to a user-specified signal type');
                 switch uinput.control
@@ -56,7 +60,8 @@ nu0=psize.nu0;
                         [uinput.u{1:nu}]=deal(sinc(st));
                     otherwise
                         disp('The specified signal type for control inputs is not supported. Defaulting to zero');
-                       uinput.u{1:nu}=0;
+%                      uinput.u{1:nu}=0;                                    % MMP, 11/04/2026 (was)
+                       [uinput.u{1:nu}]=deal(0);                            % MMP, 11/04/2026
                 end
             end
     end
