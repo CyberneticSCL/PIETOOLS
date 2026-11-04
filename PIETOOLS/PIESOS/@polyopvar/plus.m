@@ -15,10 +15,16 @@ function C = plus(A,B)
 %
 % NOTES
 % - Adding the scalar 0 to a 'polyopvar' object returns that object.
-% - Addition of polynomials depending on different spatial variables is
-%   not supported: the output dimensions must match, e.g. p1(x)(s1) +
-%   p2(y)(s2) does not work, as we would have to augment p1(x)(s1,s2) and
-%   p2(y)(s1,s2), which is not implemented.
+% - If the output spaces of the polynomials differ, they are lifted to the
+%   same space by 'lift_output': the output of a polynomial is constant
+%   along the output variables it is not defined in. For example, for
+%   p1(x)(s1) and p2(y)(s2), the sum is the function of (s1,s2) defined
+%   by p1(x)(s1) + p2(y)(s2), and the sum of a polynomial in an ODE state
+%   (output in R) and one in a PDE state is a function of the spatial
+%   variable.
+% - A scalar-valued polynomial (or constant) can be added to a
+%   vector-valued polynomial, and is then added to each of its rows.
+%   Otherwise, the vector dimensions must match.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - plus
@@ -45,6 +51,8 @@ function C = plus(A,B)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/03/2026: Add support for addition of polynomials with different
+%                   output spaces (e.g. p1(x1)(s1) + p2(x2)(s2));
 
 % Allow addition of polynomial with 0
 if isnumeric(A) && isequal(A,0)
@@ -66,6 +74,10 @@ if isa(B,'double') || isa(B,'polynomial') || isa(B,'dpvar')
 elseif ~isa(B,'polyopvar')
     error("Addition of 'polyopvar' objects with non-'polyopvar' objects is not supported.")
 end
+
+% Make sure the two distributed polynomials have the same output space, so
+% that the operators defining them can be added
+[A,B] = common_outputs(A,B);                                                % DJ, 11/03/2026
 
 % Make sure the sizes of the polynomials match
 if any(size(A)~=size(B))

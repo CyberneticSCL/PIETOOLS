@@ -24,12 +24,14 @@
 %       states, and its errors.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 11/03/2026: plus lifts the polynomials to the same output space
+%   (lift_output) and adds a scalar to each row of a vector: check the
+%   values of x+a, a+x, x-a, a-x, and of [x;y]+x, instead of expecting an
+%   error or only warning;
 
 % NOTES:
 % - Adding a number to a function of spatial variables (x+a, a+x, x-a,
-%   a-x) errors in plus.m, as a constant has no output variables.
-%   chk_or_warn checks the value if the operation is supported, and
-%   otherwise only warns.
+%   a-x) lifts the constant to a constant function of these variables.
 % - Needs eval_polyopvar and rand_polyopvar (Testfolder/polyopvar) on the
 %   path.
 
@@ -152,10 +154,13 @@ for rep=1:5
 end
 % number +- state: see NOTES
 rng(50);    v = rv();       a = randn;
-chk_or_warn(@() ev(x+a,v),v.x+a,tol,'x+a');
-chk_or_warn(@() ev(a+x,v),v.x+a,tol,'a+x');
-chk_or_warn(@() ev(x-a,v),v.x-a,tol,'x-a');
-chk_or_warn(@() ev(a-x,v),a-v.x,tol,'a-x');
+chk_close(ev(x+a,v),v.x+a,tol,'(4) x+a');
+chk_close(ev(a+x,v),v.x+a,tol,'(4) a+x');
+chk_close(ev(x-a,v),v.x-a,tol,'(4) x-a');
+chk_close(ev(a-x,v),a-v.x,tol,'(4) a-x');
+% a scalar plus a vector is added to each row
+chk_close(ev([x;y]+x,v),[v.x+v.x;v.y+v.x],tol,'(4) [x;y]+x');
+chk_close(ev(x-[x;y],v),[v.x-v.x;v.x-v.y],tol,'(4) x-[x;y]');
 chk_close(ev(x+y+z-x,struct('x',2*s1,'y',s2,'z',1+s1)),s2+1+s1,tol,'(4) sum collects terms');
 % the sum of a polynomial with itself is a single monomial
 S = x+x;
@@ -167,7 +172,7 @@ chk_close(ev(cz+y,v),v.y,tol,'(4) zero polynomial plus y');
 % errors
 expect_error(@() x+'a','not supported');
 expect_error(@() 'a'+x,'not supported');
-expect_error(@() [x;y]+x,'Dimensions');
+expect_error(@() [x;y]+[x;y;z],'Dimensions');
 expect_error(@() [x;y]*[x;y],'Incorrect dimensions');
 expect_error(@() [x;y;z]*[x;y],'Incorrect dimensions');
 expect_error(@() x*[x;y],'Row dimensions of operators must match');      % scalar * vector of polynomials is not expanded
@@ -319,17 +324,6 @@ catch ME
     return
 end
 error("Test_polyopvar_class failed: no error for %s.",func2str(fun))
-end
-
-function chk_or_warn(fun,Yref,tol,label)
-% check the value of fun() if it can be computed, else warn
-try
-    Y = fun();
-catch ME
-    warning('Test_polyopvar_class:unsupported',"%s errors: %s",label,ME.message);
-    return
-end
-chk_close(Y,Yref,tol,label);
 end
 
 function chk_close(Y,Yref,tol,label)
