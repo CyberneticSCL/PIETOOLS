@@ -1,0 +1,6 @@
+# Fixture data and MATLAB logs stay out of git: the harness in each
+# folder's private/ regenerates them from the recorded commit (see that
+# folder's README). The harness's own catalog.mat is kept.
+*.mat
+!*/private/catalog.mat
+logs/

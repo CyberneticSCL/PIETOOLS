@@ -1,0 +1,552 @@
+library,id,settings,type,bisect,dim,documented,stock_status,stock_result,stock_seconds,stock_decvars,sop_status,sop_result,sop_seconds,sop_decvars,verdict,stock_sdps,stock_solve_seconds,stock_construct_seconds,stock_equalities,sop_sdps,sop_solve_seconds,sop_construct_seconds,sop_equalities,stock_mosek,sop_mosek,verdict_mosek
+PDE,8/stability_dual,veryheavy,stability_dual,no,1,9.8696 (stable for lam<pi^2),infeasible,0,2.00,39812,infeasible,0,6.24,64196,neither,1,1.04,0.96,2380,4,5.21,1.03,2544,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE14,heavy,Hinf_control,no,1,0.3953,certified,0.39528495,2.17,3343,certified,0.39528489,0.50,7623,same,1,0.03,2.14,246,1,0.05,0.45,360,OPTIMAL,OPTIMAL,same
+PDE,22,heavy,Hinf_gain,no,1,0.2083,certified,0.20833387,0.62,820,certified,0.20833385,0.39,1596,same,1,0.01,0.61,136,1,0.01,0.38,157,OPTIMAL,OPTIMAL,same
+DDE,DDE25,veryheavy,H2_norm,no,1,3.6724,certified,3.672378,1.33,18106,certified,3.6723768,0.95,12346,same,1,0.12,1.21,661,1,0.19,0.76,624,OPTIMAL,OPTIMAL,same
+PDE,1,veryheavy,stability,no,1,stable (v=-1),certified,1,0.70,9268,certified,1,2.64,6484,same,1,0.05,0.65,436,1,0.04,2.60,418,OPTIMAL,OPTIMAL,same
+DDE,DDE16,heavy,Hinf_control,no,1,0.9630,certified,0.96293758,239.02,56074,certified,0.96293716,10.26,135913,same,1,2.80,236.22,3493,1,9.00,1.26,5615,OPTIMAL,OPTIMAL,same
+PDE,13.2,heavy,stability,no,1,stable,certified,1,0.68,3036,certified,1,1.22,13052,same,1,0.03,0.65,928,1,0.12,1.10,1092,OPTIMAL,OPTIMAL,same
+PDE,5,heavy,stability,yes,1,9.8696 (stable for lam<pi^2),converged,9.8599661,5.17,687,converged,9.8696044,5.28,3155,sop tighter,11,0.13,5.04,136,29,1.25,4.03,174,OPTIMAL,PRIMAL_INFEASIBLE_CER,sop tighter
+PDE,9/stability_dual,light,stability_dual,no,1,0 (stable for k<0),certified,1,0.59,479,certified,1,0.33,463,same,1,0.01,0.58,130,1,0.01,0.32,130,OPTIMAL,OPTIMAL,same
+PDE,50,light,H2_norm,no,2,custom+psatz=0.8502,skipped,NaN,0.01,NaN,error,NaN,4.67,NaN,sop error,0,0.00,0.01,NaN,0,0.00,4.67,NaN,-,-,sop error
+NDSDDF,NDS11,stripped,stability,no,1,,unknown,0,0.36,207,unknown,0,0.32,545,neither,1,0.01,0.35,101,1,0.01,0.31,143,OPTIMAL,OPTIMAL,same
+DDE,DDE05,stripped,stability,yes,1,1.5707,lo_fail,NaN,0.45,164,converged,1.5707,4.98,883,sop only,1,0.00,0.45,77,21,0.24,4.74,127,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,sop only
+PDE,37,stripped,stability,no,2,stable for a<=pi^2/2 (a=4),infeasible,0,53.42,426413,certified,1,5.26,103744,sop only,1,35.69,17.73,4220,1,2.98,2.28,2138,UNKNOWN,OPTIMAL,sop only
+PDE,22,stripped,Hinf_gain,no,1,veryheavy=0.2083;heavy=0.2083;light=0.2085,unknown,166307.27,0.54,164,certified,0.20847421,0.55,929,sop only,1,0.01,0.53,89,1,0.01,0.54,140,UNKNOWN,OPTIMAL,sop only
+PDE,42,veryheavy,stability,no,2,,skipped,NaN,0.03,NaN,error,NaN,3.89,NaN,sop error,0,0.00,0.03,NaN,0,0.00,3.89,NaN,-,-,sop error
+PDE,7,heavy,stability,yes,1,4.66 (unstable for lam>4.66),converged,4.6508984,5.21,687,converged,4.6508984,3.80,3155,same,11,0.11,5.10,151,17,0.54,3.26,180,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,same
+DDE,DDE02,light,stability,yes,1,2 ([1]: tauNmax<2),converged,2.0839844,9.42,7056,converged,2.0839844,14.18,6800,same,11,3.60,5.82,1664,21,10.05,4.13,1624,OPTIMAL,OPTIMAL,same
+PDE,50,heavy,H2_norm,no,2,custom+psatz=0.8502,skipped,NaN,0.02,NaN,error,NaN,4.90,NaN,sop error,0,0.00,0.02,NaN,0,0.00,4.90,NaN,-,-,sop error
+PDE,8,stripped,stability,yes,1,9.8696 (stable for lam<pi^2),lo_fail,NaN,0.86,828,lo_fail,NaN,1.86,3972,neither,1,0.01,0.85,512,2,0.26,1.60,724,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+PDE,10,heavy,stability,no,1,stable (k=-2),certified,1,0.66,785,certified,1,0.52,1525,same,1,0.01,0.65,146,1,0.02,0.50,168,OPTIMAL,OPTIMAL,same
+DDE,DDE05/stability_dual,light,stability_dual,no,1,1.5707,certified,1,0.72,479,certified,1,0.23,463,same,1,0.01,0.71,112,1,0.01,0.22,111,OPTIMAL,OPTIMAL,same
+PDE,51,veryheavy,H2_estimator,no,1,1.2683,certified,1.2683017,2.85,17291,unknown,1.2683017,1.11,15252,stock only,1,0.14,2.71,331,1,0.16,0.95,332,OPTIMAL,OPTIMAL,same
+DDE,DDE04,heavy,stability,yes,1,6.17258,converged,6.1665521,5.49,3140,converged,6.17258,12.13,13380,sop tighter,11,0.59,4.90,500,29,6.56,5.57,700,OPTIMAL,UNKNOWN,sop tighter
+PDE,52,heavy,H2_control,no,1,,inaccurate,1.1886555,1.32,1369,certified,1.0900775,1.17,3986,sop only,1,0.05,1.27,118,1,0.38,0.79,176,UNKNOWN,OPTIMAL,sop only
+DDE,DDE11/Hinf_gain_dual,light,Hinf_gain_dual,no,1,2.87,unknown,2.8858171,0.57,730,certified,2.8779855,0.35,1246,sop only,1,0.02,0.55,169,1,0.05,0.30,181,OPTIMAL,OPTIMAL,sop tighter
+PDE,49,stripped,H2_norm,no,1,veryheavy=0.1016;heavy=0.1017;light=0.1043,unknown,9086.7368,0.81,227,certified,0.10165573,0.93,1563,sop only,1,0.02,0.79,95,1,0.08,0.85,169,UNKNOWN,OPTIMAL,sop only
+PDE,34,stripped,stability,no,2,stable for lam<=2*pi^2 (lam=19),infeasible,0,61.21,426413,certified,1,20.47,187984,sop only,1,42.71,18.50,4220,2,15.50,4.97,3075,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,6,veryheavy,stability,yes,1,2.467 (stable for lam<pi^2/4),converged,2.4674011,8.37,9268,converged,2.4674011,11.12,15196,same,11,1.22,7.15,496,38,6.73,4.39,533,UNKNOWN,UNKNOWN,same
+PDE,49/H2_norm_dual,light,H2_norm_dual,no,1,0.1362,certified,0.13632304,0.74,755,certified,0.10585578,0.74,1563,sop tighter,1,0.03,0.71,143,1,0.09,0.65,169,OPTIMAL,OPTIMAL,sop tighter
+PDE,39,light,stability,no,2,,skipped,NaN,0.01,NaN,certified,1,250.21,933696,skipped,0,0.00,0.01,NaN,1,242.53,7.68,19143,-,OPTIMAL,skipped
+PDE,47,veryheavy,Hinf_gain,no,2,exact=0.20668,skipped,NaN,0.02,NaN,skipped,NaN,0.05,NaN,skipped,0,0.00,0.02,NaN,0,0.00,0.05,NaN,-,-,skipped
+PDE,5,stripped,stability,yes,1,9.8696 (stable for lam<pi^2),lo_fail,NaN,0.91,127,converged,9.8599661,4.60,780,sop only,1,0.00,0.91,91,16,0.17,4.43,136,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE26/H2_norm_dual,veryheavy,H2_norm_dual,no,1,3.8307,certified,3.8299598,64.35,625980,certified,3.8299593,67.12,423228,same,1,53.85,10.50,21829,1,64.99,2.13,20563,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS07/stability_dual,heavy,stability_dual,no,1,0.5? (stability verified for h<.603),certified,1,0.51,2940,certified,1,0.31,5828,same,1,0.04,0.47,450,1,0.05,0.26,530,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS03,light,stability,no,1,stable (tau=[.3 .6]),certified,1,0.63,7056,certified,1,0.42,6800,same,1,0.16,0.47,1728,1,0.16,0.26,1688,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS01/stability_dual,stripped,stability_dual,no,1,2.2255 (analytic max; uncited),infeasible,0,0.32,656,certified,1,0.41,1852,sop only,1,0.01,0.31,316,1,0.05,0.36,460,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,49/H2_norm_dual,veryheavy,H2_norm_dual,no,1,0.1016,certified,0.10157559,1.08,17511,certified,0.10157588,0.79,11847,sop looser,1,0.07,1.01,614,1,0.07,0.72,579,OPTIMAL,OPTIMAL,sop looser
+DDE,DDE17/Hinf_control,heavy,Hinf_control,no,1,,certified,9.351344,37.36,19386,certified,9.3513437,1.91,45101,same,1,0.35,37.01,1285,1,1.06,0.85,1987,OPTIMAL,OPTIMAL,same
+PDE,40,heavy,stability,no,2,,certified,1,613.84,2007994,unknown,0,60.16,755625,stock only,1,507.29,106.55,12582,1,54.52,5.64,5308,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS10/stability_dual,light,stability_dual,no,1,,certified,1,0.44,1916,certified,1,0.26,1852,same,1,0.03,0.41,464,1,0.03,0.23,460,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS05,light,stability,yes,1,1.5804? (stability verified for h<2.04),converged,1.57312,8.98,7056,converged,1.5797836,19.13,22928,sop tighter,12,3.12,5.86,1728,29,14.09,5.04,2136,OPTIMAL,UNKNOWN,sop tighter
+PDE,2.2,light,stability,no,1,stable,certified,1,0.39,1616,certified,1,0.35,1552,same,1,0.02,0.37,424,1,0.02,0.33,404,OPTIMAL,OPTIMAL,same
+PDE,46,stripped,Hinf_gain,no,2,exact=0.17110,unknown,1.5703683,331.44,904571,unknown,276.67613,16.14,194191,neither,1,319.67,11.77,13021,1,9.72,6.42,3656,UNKNOWN,UNKNOWN,neither
+PDE,31,stripped,Hinf_control,no,1,light=2.7407e-04,unknown,25.143725,1.54,487,inaccurate,0.00024061777,1.07,2563,neither,1,0.03,1.51,117,1,0.13,0.94,210,UNKNOWN,UNKNOWN,neither
+NDSDDF,DDF01,veryheavy,stability,no,1,,certified,1,1.10,37072,certified,1,0.74,25936,same,1,0.43,0.67,1784,1,0.40,0.34,1712,OPTIMAL,OPTIMAL,same
+DDE,DDE05,veryheavy,stability,yes,1,1.5707,converged,1.5707,10.12,9607,converged,1.5707,13.27,15619,same,11,1.63,8.49,479,38,6.86,6.41,530,UNKNOWN,UNKNOWN,same
+DDE,DDE03/stability_dual,veryheavy,stability_dual,no,1,1.71785 (taumin=.100174),certified,1,0.95,9953,certified,1,0.36,7073,same,1,0.07,0.88,504,1,0.06,0.30,492,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS05,heavy,stability,yes,1,1.5804? (stability verified for h<2.04),converged,1.5784509,10.37,11760,converged,1.5797836,41.97,51984,sop tighter,12,3.89,6.48,1872,28,35.88,6.09,2640,OPTIMAL,UNKNOWN,sop tighter
+PDE,2.2,heavy,stability,no,1,stable,certified,1,0.42,2748,certified,1,0.28,5564,same,1,0.03,0.39,448,1,0.04,0.24,500,OPTIMAL,OPTIMAL,same
+PDE,2,stripped,stability,no,1,stable,infeasible,0,0.45,508,certified,1,0.59,1552,sop only,1,0.01,0.44,276,1,0.03,0.56,404,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,22,veryheavy,Hinf_gain,no,1,0.2083,certified,0.20833337,0.84,9769,certified,0.20833338,0.49,6889,same,1,0.05,0.79,501,1,0.04,0.45,488,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS07,heavy,stability,yes,1,0.5? (stability verified for h<.603),converged,0.44453613,6.67,2940,converged,0.44453613,8.37,12996,same,12,0.56,6.11,468,24,3.68,4.69,660,PRIMAL_INFEASIBLE_CER,UNKNOWN,same
+PDE,2.4,heavy,stability,no,1,stable,certified,1,0.41,2748,certified,1,0.29,5564,same,1,0.03,0.38,448,1,0.05,0.24,500,OPTIMAL,OPTIMAL,same
+DDE,DDE20,light,Hinf_estimator,no,1,0.2357,certified,0.23570227,1.16,735,certified,0.23570228,0.51,1626,same,1,0.01,1.15,102,1,0.02,0.49,124,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS09,stripped,stability,yes,1,0.603,lo_fail,NaN,0.70,4100,converged,0.5994668,22.55,22075,sop only,1,0.17,0.53,2000,15,17.44,5.11,3275,PRIMAL_INFEASIBLE_CER,UNKNOWN,sop only
+DDE,DDE14,veryheavy,Hinf_control,no,1,0.3953,certified,0.39528478,34.20,38983,certified,0.39528482,0.90,32143,same,1,0.36,33.84,744,1,0.27,0.63,694,OPTIMAL,OPTIMAL,same
+DDE,DDE01/stability_dual,light,stability_dual,no,1,2.04 (analytical range [0.2; 2.04]),infeasible,0,0.73,1916,certified,1,0.86,5996,sop only,1,0.05,0.68,452,3,0.29,0.57,556,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,29,light,Hinf_control,no,1,1.0000,certified,1.0002058,0.96,509,certified,1.000004,0.55,1274,sop tighter,1,0.03,0.93,85,1,0.01,0.54,93,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE22,light,Hinf_estimator,no,1,1.3501,certified,1.3500959,9.63,6845,certified,1.3500949,0.70,17909,same,1,0.11,9.52,670,1,0.23,0.47,994,OPTIMAL,OPTIMAL,same
+PDE,43,stripped,stability,no,2,stable for tau<1.0347 (tau=1),infeasible,0,13.29,124290,error,NaN,2.55,NaN,sop error,1,6.23,7.06,3696,0,0.00,2.55,NaN,PRIMAL_INFEASIBLE_CER,-,sop error
+PDE,31,veryheavy,Hinf_control,no,1,light=2.7407e-04,certified,0.00019104994,151.83,37367,certified,0.00021681725,1.66,30683,sop looser,1,1.07,150.76,670,1,0.78,0.88,663,OPTIMAL,OPTIMAL,sop looser
+DDE,DDE22,heavy,Hinf_estimator,no,1,1.3501,certified,1.3500949,8.69,11765,certified,1.3500949,1.03,27965,same,1,0.13,8.56,762,1,0.41,0.62,1206,OPTIMAL,OPTIMAL,same
+PDE,30,heavy,Hinf_control,no,1,0.6594,inaccurate,0.66027973,1.61,952,inaccurate,0.52324381,1.47,2907,neither,1,0.06,1.55,99,2,0.21,1.26,135,UNKNOWN,UNKNOWN,neither
+NDSDDF,NDS05,veryheavy,stability,yes,1,1.5804? (stability verified for h<2.04),converged,1.5797836,95.86,150992,converged,1.5797836,425.24,246512,same,12,76.28,19.58,7472,36,404.40,20.84,8264,UNKNOWN,UNKNOWN,same
+DDE,DDE24,heavy,Hinf_estimator,no,1,,certified,1.043963,44.68,11765,certified,1.0439678,1.35,27965,sop looser,1,0.20,44.48,762,1,0.58,0.77,1206,OPTIMAL,OPTIMAL,sop looser
+PDE,13/stability_dual,light,stability_dual,no,1,stable,certified,1,0.49,1616,certified,1,0.23,1552,same,1,0.03,0.46,428,1,0.04,0.19,420,OPTIMAL,OPTIMAL,same
+PDE,4.2,heavy,stability,no,1,stable,certified,1,0.41,2748,certified,1,0.29,5564,same,1,0.03,0.38,436,1,0.05,0.24,492,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS12/stability_dual,stripped,stability_dual,no,1,0.4448?,infeasible,0,0.34,579,certified,1,0.36,1700,sop only,1,0.01,0.33,276,1,0.03,0.33,410,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,13/stability_dual,stripped,stability_dual,no,1,stable,infeasible,0,0.32,508,certified,1,0.33,1552,sop only,1,0.00,0.32,282,1,0.05,0.28,420,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE05/stability_dual,veryheavy,stability_dual,no,1,1.5707,certified,1,0.82,9607,certified,1,0.29,6775,same,1,0.06,0.76,470,1,0.04,0.25,458,OPTIMAL,OPTIMAL,same
+PDE,40,veryheavy,stability,no,2,,skipped,NaN,0.02,NaN,skipped,NaN,0.02,NaN,skipped,0,0.00,0.02,NaN,0,0.00,0.02,NaN,-,-,skipped
+PDE,27,veryheavy,Hinf_estimator,no,1,1.0004,certified,1.0000314,2.37,9549,certified,1.0000267,0.97,7852,sop tighter,1,0.23,2.14,179,1,0.31,0.66,167,OPTIMAL,OPTIMAL,sop tighter
+NDSDDF,DDF01/stability_dual,heavy,stability_dual,no,1,,certified,1,0.39,2748,certified,1,0.27,5564,same,1,0.03,0.36,416,1,0.06,0.21,496,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS03/stability_dual,heavy,stability_dual,no,1,stable (tau=[.3 .6]),certified,1,0.71,11760,certified,1,0.72,23312,same,1,0.22,0.49,1832,1,0.43,0.29,2152,OPTIMAL,OPTIMAL,same
+PDE,17,light,stability,no,1,stable for k>0 (k=1),certified,1,0.39,1616,certified,1,0.28,1552,same,1,0.02,0.37,384,1,0.02,0.26,368,OPTIMAL,OPTIMAL,same
+DDE,DDE10,light,Hinf_gain,no,1,0.2364,certified,0.23644702,1.03,2109,certified,0.23644309,0.48,3837,sop tighter,1,0.04,0.99,485,1,0.05,0.43,544,OPTIMAL,OPTIMAL,sop tighter
+PDE,40,stripped,stability,no,2,,unknown,0,43.38,427800,unknown,0,7.91,105206,neither,1,23.98,19.40,4275,1,3.10,4.81,2154,OPTIMAL,OPTIMAL,same
+DDE,DDE19,veryheavy,Hinf_control,no,1,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),inaccurate,0.0011439028,9.19,10557,error,NaN,0.17,NaN,sop error,1,0.30,8.89,234,0,0.00,0.17,NaN,UNKNOWN,-,sop error
+PDE,19,light,stability,no,1,stable,certified,1,0.45,3636,certified,1,0.31,3492,same,1,0.06,0.39,888,1,0.08,0.23,848,OPTIMAL,OPTIMAL,same
+PDE,1,light,stability,no,1,stable (v=-1),certified,1,0.41,404,certified,1,2.19,388,same,1,0.01,0.40,94,1,0.01,2.18,90,OPTIMAL,OPTIMAL,same
+PDE,36,veryheavy,stability,no,2,,skipped,NaN,0.02,NaN,skipped,NaN,0.02,NaN,skipped,0,0.00,0.02,NaN,0,0.00,0.02,NaN,-,-,skipped
+PDE,8/stability_dual,stripped,stability_dual,no,1,9.8696 (stable for lam<pi^2),infeasible,0,0.51,828,infeasible,0,0.89,3972,neither,1,0.01,0.50,524,2,0.19,0.70,736,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE12,heavy,Hinf_gain,no,1,4.9784,certified,4.9804991,0.66,3413,certified,4.9793843,0.58,6517,sop tighter,1,0.13,0.53,521,1,0.20,0.38,612,OPTIMAL,OPTIMAL,sop tighter
+PDE,19,heavy,stability,no,1,stable,certified,1,0.50,6183,certified,1,0.41,12519,same,1,0.07,0.43,954,1,0.15,0.26,1100,OPTIMAL,OPTIMAL,same
+PDE,1/stability_dual,light,stability_dual,no,1,stable (v=-1),certified,1,0.35,404,certified,1,0.65,388,same,1,0.01,0.34,92,1,0.01,0.64,90,OPTIMAL,OPTIMAL,same
+DDE,DDE09/Hinf_gain_dual,stripped,Hinf_gain_dual,no,1,25.907 (tau=1.5),unknown,7656.4508,0.45,205,certified,25.909467,0.48,1040,sop only,1,0.01,0.44,93,1,0.03,0.45,144,UNKNOWN,OPTIMAL,sop only
+PDE,21/Hinf_gain_dual,stripped,Hinf_gain_dual,no,1,veryheavy=0.8419;heavy=0.8552;light=0.8722,unknown,21.047657,0.48,577,certified,0.84188348,0.43,3409,sop only,1,0.02,0.46,275,1,0.07,0.36,462,UNKNOWN,OPTIMAL,sop only
+PDE,3,heavy,stability,no,1,stable,certified,1,0.48,6183,unknown,0,0.66,12519,stock only,1,0.08,0.40,1008,1,0.41,0.25,1125,OPTIMAL,OPTIMAL,same
+PDE,45,veryheavy,Hinf_gain,no,2,exact=0.11101,skipped,NaN,0.03,NaN,skipped,NaN,0.03,NaN,skipped,0,0.00,0.03,NaN,0,0.00,0.03,NaN,-,-,skipped
+PDE,47,light,Hinf_gain,no,2,exact=0.20668,unknown,0.2085097,252.95,795395,unknown,22601.94,62.69,350746,neither,1,241.96,10.99,15503,2,53.95,8.74,5062,OPTIMAL,UNKNOWN,stock only
+NDSDDF,NDS11,light,stability,no,1,,unknown,0,0.45,561,unknown,0,0.27,545,neither,1,0.01,0.44,144,1,0.01,0.26,143,OPTIMAL,OPTIMAL,same
+NDSDDF,DDF03,stripped,Hinf_control,no,1,,unknown,0.0012624754,0.94,761,error,NaN,0.18,NaN,sop error,1,0.04,0.90,157,0,0.00,0.18,NaN,UNKNOWN,-,sop error
+DDE,DDE07/stability_dual,veryheavy,stability_dual,no,1,1.3722,certified,1,1.40,38428,certified,1,0.62,27100,same,1,0.58,0.82,1860,1,0.36,0.26,1812,OPTIMAL,OPTIMAL,same
+PDE,11,veryheavy,stability,yes,1,2.7 (stable for R<2.7; not tight),converged,2.9296875,17.52,37072,converged,2.9296875,37.93,25936,same,12,8.12,9.40,2064,33,32.45,5.48,2000,OPTIMAL,OPTIMAL,same
+PDE,9/stability_dual,heavy,stability_dual,no,1,0 (stable for k<0),certified,1,0.55,785,certified,1,0.38,1525,same,1,0.01,0.54,141,1,0.01,0.37,163,OPTIMAL,OPTIMAL,same
+PDE,49,light,H2_norm,no,1,0.1043,certified,0.1043153,1.02,755,certified,0.10165573,0.81,1563,sop tighter,1,0.03,0.99,143,1,0.06,0.75,169,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE02,heavy,stability,yes,1,2 ([1]: tauNmax<2),converged,2.0800781,10.36,11760,converged,2.0839844,32.61,23312,sop tighter,11,4.67,5.69,1808,21,27.03,5.58,2112,OPTIMAL,OPTIMAL,sop tighter
+PDE,49,heavy,H2_norm,no,1,0.1017,certified,0.10171659,0.85,1338,certified,0.10157602,0.84,2818,sop tighter,1,0.05,0.80,158,1,0.03,0.81,200,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE05/stability_dual,heavy,stability_dual,no,1,1.5707,certified,1,0.54,785,certified,1,0.26,1525,same,1,0.01,0.53,122,1,0.01,0.25,142,OPTIMAL,OPTIMAL,same
+DDE,DDE17,stripped,stability,yes,1,stable at h=.08; unstable at h=1,lo_fail,NaN,0.62,4303,converged,0.14833984,31.63,22609,sop only,1,0.20,0.42,2022,19,25.54,6.09,3302,PRIMAL_INFEASIBLE_CER,UNKNOWN,sop only
+DDE,DDE08/stability_dual,stripped,stability_dual,no,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),infeasible,0,0.33,311,certified,1,0.35,733,sop only,1,0.00,0.33,139,1,0.02,0.33,186,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE02,stripped,stability,yes,1,2 ([1]: tauNmax<2),lo_fail,NaN,0.43,2316,converged,2.0839844,12.91,6800,sop only,1,0.03,0.40,1088,16,7.97,4.94,1624,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE11/Hinf_gain_dual,heavy,Hinf_gain_dual,no,1,2.87,certified,2.878629,0.59,1120,unknown,2.8763708,0.44,2004,stock only,1,0.05,0.54,185,1,0.09,0.35,205,OPTIMAL,OPTIMAL,sop tighter
+PDE,37,light,stability,no,2,stable for a<=pi^2/2 (a=4),certified,1,4.15,46792,certified,1,3.73,103744,same,1,1.05,3.10,2142,1,2.28,1.45,2138,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS01,light,stability,yes,1,2.2255 (analytic max; uncited),converged,2.2211533,5.31,1916,converged,2.2233267,3.97,1852,sop tighter,11,0.38,4.93,476,15,0.79,3.18,468,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop tighter
+NDSDDF,NDS10/stability_dual,stripped,stability_dual,no,1,,certified,1,0.32,656,certified,1,0.34,1852,same,1,0.01,0.31,316,1,0.04,0.30,460,OPTIMAL,OPTIMAL,same
+PDE,13.2,stripped,stability,no,1,stable,infeasible,0,1.37,860,certified,1,1.53,3280,sop only,1,0.00,1.37,892,1,0.06,1.47,908,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,11/stability_dual,stripped,stability_dual,no,1,2.7 (stable for R<2.7; not tight),infeasible,0,0.38,508,certified,1,0.45,1552,sop only,1,0.00,0.38,364,1,0.05,0.40,512,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,16,veryheavy,stability,no,1,,infeasible,0,8.65,148288,infeasible,0,33.83,243136,neither,1,7.24,1.41,7844,4,32.46,1.37,8576,UNKNOWN,UNKNOWN,neither
+PDE,49/H2_norm_dual,heavy,H2_norm_dual,no,1,0.1162,unknown,0.11612574,0.68,1338,certified,0.10405054,0.77,2818,sop only,1,0.03,0.65,158,1,0.08,0.69,200,OPTIMAL,OPTIMAL,sop tighter
+PDE,39,heavy,stability,no,2,,skipped,NaN,0.03,NaN,skipped,NaN,0.02,NaN,skipped,0,0.00,0.03,NaN,0,0.00,0.02,NaN,-,-,skipped
+PDE,13.2,veryheavy,stability,no,1,stable,unknown,0,2.25,37072,unknown,0,1.90,25936,neither,1,1.37,0.88,1876,1,0.82,1.08,1828,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS03,heavy,stability,no,1,stable (tau=[.3 .6]),certified,1,0.74,11760,certified,1,0.77,23312,same,1,0.22,0.52,1872,1,0.46,0.31,2176,OPTIMAL,OPTIMAL,same
+DDE,DDE14,stripped,Hinf_control,no,1,0.3953,unknown,0.73751147,0.95,646,certified,0.39528477,0.56,3015,sop only,1,0.02,0.93,138,1,0.03,0.53,248,UNKNOWN,OPTIMAL,sop only
+PDE,6/stability_dual,stripped,stability_dual,no,1,2.467 (stable for lam<pi^2/4),infeasible,0,0.35,127,certified,1,0.26,388,sop only,1,0.00,0.35,82,1,0.01,0.25,117,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+NDSDDF,NDS10/stability_dual,veryheavy,stability_dual,no,1,,certified,1,1.23,38428,certified,1,0.83,27100,same,1,0.44,0.79,1920,1,0.42,0.41,1872,OPTIMAL,OPTIMAL,same
+PDE,20/Hinf_gain_dual,veryheavy,Hinf_gain_dual,no,1,0.5000,certified,0.50000022,0.81,9769,certified,0.50000026,0.58,6889,same,1,0.05,0.76,468,1,0.04,0.54,455,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS10/stability_dual,heavy,stability_dual,no,1,,certified,1,0.47,3140,certified,1,0.31,6100,same,1,0.04,0.43,504,1,0.06,0.25,584,OPTIMAL,OPTIMAL,same
+PDE,25,light,Hinf_gain,no,1,0.8102,certified,0.81036635,0.65,1793,certified,0.81029224,0.49,3409,sop tighter,1,0.06,0.59,555,1,0.07,0.42,582,OPTIMAL,OPTIMAL,sop tighter
+PDE,27,light,Hinf_estimator,no,1,1.0004,certified,1.0000354,1.05,457,unknown,1.0000249,0.67,1180,stock only,1,0.03,1.02,51,1,0.08,0.59,71,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE19,light,Hinf_control,no,1,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),certified,0.0010857628,1.81,697,error,NaN,0.11,NaN,sop error,1,0.03,1.78,88,0,0.00,0.11,NaN,OPTIMAL,-,sop error
+PDE,50/H2_norm_dual,stripped,H2_norm_dual,no,2,custom+psatz=0.8398,infeasible,0.12096038,720.74,1866918,error,NaN,4.78,NaN,sop error,1,677.21,43.53,16528,0,0.00,4.78,NaN,PRIMAL_INFEASIBLE_CER,-,sop error
+NDSDDF,DDF01/stability_dual,veryheavy,stability_dual,no,1,,certified,1,1.03,37072,certified,1,0.62,25936,same,1,0.40,0.63,1760,1,0.33,0.29,1712,OPTIMAL,OPTIMAL,same
+DDE,DDE20,heavy,Hinf_estimator,no,1,0.2357,certified,0.23570227,1.31,1142,certified,0.23570229,0.56,2373,same,1,0.01,1.30,112,1,0.02,0.54,142,OPTIMAL,OPTIMAL,same
+PDE,27,heavy,Hinf_estimator,no,1,1.0004,certified,1.000031,1.05,780,certified,1.0000244,0.71,1827,sop tighter,1,0.05,1.00,57,1,0.09,0.62,85,OPTIMAL,OPTIMAL,sop tighter
+NDSDDF,NDS04/stability_dual,light,stability_dual,no,1,0.552 (stable for any h1>0; h2<.552),certified,1,0.82,7056,certified,1,0.41,6800,same,1,0.18,0.64,1688,1,0.18,0.23,1672,OPTIMAL,OPTIMAL,same
+DDE,DDE26,stripped,H2_norm,no,1,3.8307,unknown,212.89317,1.13,8020,unknown,3.8308423,4.44,54996,neither,1,0.54,0.59,3276,1,3.81,0.63,5952,UNKNOWN,OPTIMAL,sop only
+DDE,DDE17/Hinf_control,stripped,Hinf_control,no,1,,unknown,9.3516722,2.21,3622,certified,9.3513437,1.50,17386,sop only,1,0.10,2.11,655,1,0.44,1.06,1322,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE11,stripped,Hinf_gain,no,1,2.87,unknown,10120.436,0.51,277,certified,2.8772544,0.46,1246,sop only,1,0.02,0.49,128,1,0.05,0.41,184,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS02/stability_dual,veryheavy,stability_dual,no,1,stable at tau=20 (literature: tau<.7516),certified,1,1.52,38428,certified,1,1.02,27100,same,1,0.60,0.92,1920,1,0.64,0.38,1872,OPTIMAL,OPTIMAL,same
+DDE,DDE01/stability_dual,heavy,stability_dual,no,1,2.04 (analytical range [0.2; 2.04]),infeasible,0,0.50,3140,certified,1,0.48,6100,sop only,1,0.07,0.43,492,1,0.18,0.30,572,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,29,heavy,Hinf_control,no,1,1.0000,certified,1.000004,1.08,852,certified,1.000004,0.65,1945,same,1,0.01,1.07,90,1,0.02,0.63,107,OPTIMAL,OPTIMAL,same
+DDE,DDE23,veryheavy,Hinf_estimator,no,1,1.808,certified,1.8080604,376.10,85569,certified,1.8080604,2.42,70374,same,1,0.98,375.12,1550,1,1.08,1.34,1440,OPTIMAL,OPTIMAL,same
+PDE,2.4,veryheavy,stability,no,1,stable,certified,1,1.10,37072,certified,1,0.57,25936,same,1,0.42,0.68,1864,1,0.29,0.28,1772,OPTIMAL,OPTIMAL,same
+DDE,DDE25/H2_norm_dual,light,H2_norm_dual,no,1,3.6724,certified,3.6724229,0.61,882,certified,3.6723929,0.36,1746,sop tighter,1,0.01,0.60,168,1,0.01,0.35,196,OPTIMAL,OPTIMAL,sop tighter
+PDE,15,light,stability_dual,no,1,TOC: (unstable); PDE stable with damping c>0,infeasible,0,0.85,6464,infeasible,0,2.26,21888,neither,1,0.34,0.51,1639,3,1.74,0.52,2003,UNKNOWN,UNKNOWN,neither
+PDE,17,stripped,stability,no,1,stable for k>0 (k=1),certified,1,0.35,508,certified,1,0.28,1552,same,1,0.01,0.34,246,1,0.03,0.25,368,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS12/stability_dual,veryheavy,stability_dual,no,1,0.4448?,certified,1,1.25,37748,certified,1,0.78,26516,same,1,0.44,0.81,1818,1,0.35,0.43,1770,OPTIMAL,OPTIMAL,same
+PDE,13/stability_dual,heavy,stability_dual,no,1,stable,certified,1,0.49,2748,certified,1,0.33,5564,same,1,0.09,0.40,460,1,0.08,0.25,540,OPTIMAL,OPTIMAL,same
+DDE,DDE09,light,Hinf_gain,no,1,25.907 (tau=1.5),inaccurate,26.935434,0.63,580,certified,25.912728,0.53,1040,sop only,1,0.02,0.61,132,1,0.04,0.49,147,UNKNOWN,OPTIMAL,sop only
+DDE,DDE23,stripped,Hinf_estimator,no,1,1.808,inaccurate,2.1365643,3.77,1253,certified,1.8080604,0.86,6198,sop only,1,0.06,3.71,239,1,0.08,0.78,474,UNKNOWN,OPTIMAL,sop only
+DDE,DDE06/stability_dual,stripped,stability_dual,no,1,3 (bmax),infeasible,0,0.36,579,certified,1,0.34,1700,sop only,1,0.01,0.35,270,1,0.04,0.30,402,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,1/stability_dual,veryheavy,stability_dual,no,1,stable (v=-1),certified,1,0.63,9268,certified,1,0.75,6484,same,1,0.05,0.58,430,1,0.04,0.71,418,OPTIMAL,OPTIMAL,same
+DDE,DDE10,heavy,Hinf_gain,no,1,0.2364,certified,0.23644325,0.69,3413,certified,0.23644325,0.48,6517,same,1,0.04,0.65,529,1,0.06,0.42,620,OPTIMAL,OPTIMAL,same
+PDE,17,heavy,stability,no,1,stable for k>0 (k=1),certified,1,0.42,2748,certified,1,0.30,5564,same,1,0.03,0.39,416,1,0.06,0.24,488,OPTIMAL,OPTIMAL,same
+DDE,DDE09/Hinf_gain_dual,veryheavy,Hinf_gain_dual,no,1,25.907 (tau=1.5),certified,25.907747,0.98,10116,certified,25.907747,0.42,7188,same,1,0.09,0.89,501,1,0.08,0.34,486,OPTIMAL,OPTIMAL,same
+PDE,1,heavy,stability,no,1,stable (v=-1),certified,1,0.41,687,certified,1,1.48,1391,same,1,0.01,0.40,102,1,0.01,1.47,120,OPTIMAL,OPTIMAL,same
+PDE,45,light,Hinf_gain,no,2,exact=0.11101,certified,0.11196592,311.57,795395,unknown,2593.8227,59.90,350746,stock only,1,300.65,10.92,15503,2,52.25,7.65,5134,OPTIMAL,UNKNOWN,stock only
+NDSDDF,NDS03,stripped,stability,no,1,stable (tau=[.3 .6]),certified,1,0.45,2316,certified,1,0.55,6800,same,1,0.06,0.39,1136,1,0.19,0.36,1688,OPTIMAL,OPTIMAL,same
+PDE,29,stripped,Hinf_control,no,1,1.0000,unknown,14619.706,1.07,161,certified,1.000004,0.86,770,sop only,1,0.01,1.06,61,1,0.01,0.85,85,UNKNOWN,OPTIMAL,sop only
+PDE,14,stripped,stability,no,1,stable (TOC: PDE stable without damping),certified,1,0.45,2032,certified,1,0.52,6208,same,1,0.04,0.41,992,1,0.19,0.33,1476,OPTIMAL,OPTIMAL,same
+PDE,4,veryheavy,stability,no,1,stable,certified,1,1.13,37072,certified,1,0.56,25936,same,1,0.45,0.68,1864,1,0.31,0.25,1772,OPTIMAL,OPTIMAL,same
+PDE,1/stability_dual,heavy,stability_dual,no,1,stable (v=-1),certified,1,0.36,687,certified,1,0.35,1391,same,1,0.01,0.35,100,1,0.01,0.34,120,OPTIMAL,OPTIMAL,same
+DDE,DDE09/Hinf_gain_dual,light,Hinf_gain_dual,no,1,25.907 (tau=1.5),inaccurate,26.965918,0.56,580,certified,25.909467,0.46,1040,sop only,1,0.02,0.54,131,1,0.02,0.44,144,UNKNOWN,OPTIMAL,sop only
+DDE,DDE20,stripped,Hinf_estimator,no,1,0.2357,unknown,0.23787999,0.94,266,certified,0.23570228,0.68,1050,sop only,1,0.07,0.87,78,1,0.02,0.66,106,OPTIMAL,OPTIMAL,sop tighter
+PDE,52,stripped,H2_control,no,1,,unknown,18464.466,1.40,225,certified,1.0976091,0.93,1423,sop only,1,0.01,1.39,71,1,0.09,0.84,123,UNKNOWN,OPTIMAL,sop only
+PDE,47,heavy,Hinf_gain,no,2,exact=0.20668,skipped,NaN,0.02,NaN,skipped,NaN,0.04,NaN,skipped,0,0.00,0.02,NaN,0,0.00,0.04,NaN,-,-,skipped
+NDSDDF,NDS11,heavy,stability,no,1,,unknown,0,0.47,891,unknown,0,0.30,1667,neither,1,0.01,0.46,156,1,0.01,0.29,178,OPTIMAL,OPTIMAL,same
+PDE,26,stripped,Hinf_gain,no,1,2.1457,unknown,52691.08,0.66,1352,certified,2.147294,0.95,7893,sop only,1,0.06,0.60,976,1,0.34,0.61,1414,UNKNOWN,OPTIMAL,sop only
+PDE,11,stripped,stability,yes,1,2.7 (stable for R<2.7; not tight),lo_fail,NaN,0.41,508,converged,2.9296875,6.56,3120,sop only,1,0.00,0.41,364,22,1.53,5.03,544,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,4.3,stripped,stability,no,1,stable,infeasible,0,0.63,508,certified,1,0.31,1552,sop only,1,0.00,0.63,276,1,0.04,0.27,404,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE03,veryheavy,stability,yes,1,1.71785 (taumin=.100174),converged,1.71785,10.80,9953,converged,1.71785,14.87,16049,same,11,1.86,8.94,513,38,7.97,6.90,567,UNKNOWN,UNKNOWN,same
+PDE,33,light,stability,no,2,,certified,1,2.16,2804,certified,1,4.10,103744,same,1,0.03,2.13,402,1,1.70,2.40,2106,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS08/stability_dual,light,stability_dual,no,1,0.02755,certified,1,0.77,7664,certified,1,0.46,7408,same,1,0.30,0.47,1856,1,0.22,0.24,1840,OPTIMAL,OPTIMAL,same
+PDE,20,veryheavy,Hinf_gain,no,1,0.5000,certified,0.50000029,0.88,9769,certified,0.50000028,1.07,6889,same,1,0.06,0.82,467,1,0.06,1.01,454,OPTIMAL,OPTIMAL,same
+PDE,9,veryheavy,stability,yes,1,0 (stable for k<0),converged,-0.00024414062,11.77,9607,converged,-0.00024414062,12.41,6775,same,12,1.20,10.57,524,27,6.20,6.21,508,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS08/stability_dual,heavy,stability_dual,no,1,0.02755,certified,1,0.87,12560,certified,1,1.00,24400,same,1,0.34,0.53,2016,1,0.72,0.28,2336,OPTIMAL,OPTIMAL,same
+PDE,35,light,stability,no,2,,certified,1,7.81,43352,certified,1,3.91,103744,same,1,1.11,6.70,2126,1,1.97,1.94,2139,OPTIMAL,OPTIMAL,same
+PDE,4.5,light,stability,no,1,stable,infeasible,0,0.37,1616,infeasible,0,0.50,5472,neither,1,0.02,0.35,424,3,0.16,0.34,492,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE12,veryheavy,Hinf_gain,no,1,4.9784,certified,4.9784475,1.49,39437,certified,4.9784478,0.73,27917,same,1,0.54,0.95,1923,1,0.32,0.41,1870,OPTIMAL,OPTIMAL,same
+PDE,4.4,veryheavy,stability,no,1,stable,certified,1,1.18,37072,certified,1,0.54,25936,same,1,0.47,0.71,1832,1,0.32,0.22,1738,OPTIMAL,OPTIMAL,same
+PDE,35,heavy,stability,no,2,,certified,1,731.00,2003922,certified,1,33.05,751849,same,1,623.37,107.63,12468,1,29.55,3.50,5297,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS11/stability_dual,light,stability_dual,no,1,,certified,1,0.42,561,certified,1,0.22,545,same,1,0.01,0.41,136,1,0.01,0.21,136,OPTIMAL,OPTIMAL,same
+PDE,38,stripped,stability,no,2,,infeasible,0,749.51,1705652,infeasible,0,203.30,751936,neither,1,717.43,32.08,16880,2,196.08,7.22,12248,UNKNOWN,PRIMAL_INFEASIBLE_CER,neither
+NDSDDF,NDS12,stripped,stability,yes,1,0.4448?,lo_fail,NaN,0.35,579,converged,0.44436562,4.21,1700,sop only,1,0.01,0.34,284,13,0.54,3.67,422,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,23,stripped,Hinf_gain,no,1,light=25.249;heavy=23.706;veryheavy=23.622,unknown,8645785.1,0.60,164,certified,23.709405,0.77,929,sop only,1,0.01,0.59,125,1,0.02,0.75,170,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS01,heavy,stability,yes,1,2.2255 (analytic max; uncited),converged,2.2233267,6.06,3140,converged,2.2233267,5.35,6100,same,11,0.50,5.56,516,15,1.76,3.59,596,OPTIMAL,OPTIMAL,same
+PDE,37,heavy,stability,no,2,stable for a<=pi^2/2 (a=4),certified,1,540.26,2003922,certified,1,44.33,751849,same,1,437.65,102.61,12468,1,41.47,2.86,5284,OPTIMAL,OPTIMAL,same
+PDE,6/stability_dual,light,stability_dual,no,1,2.467 (stable for lam<pi^2/4),certified,1,0.38,404,certified,1,0.20,388,same,1,0.01,0.37,119,1,0.01,0.19,117,OPTIMAL,OPTIMAL,same
+DDE,DDE04/stability_dual,stripped,stability_dual,no,1,6.17258,infeasible,0,0.38,656,certified,1,0.36,1852,sop only,1,0.01,0.37,304,1,0.06,0.30,444,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,9,stripped,stability,yes,1,0 (stable for k<0),lo_fail,NaN,0.78,167,converged,-0.00024414062,6.55,463,sop only,1,0.02,0.76,98,17,0.28,6.27,136,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS03,veryheavy,stability,no,1,stable (tau=[.3 .6]),certified,1,5.64,150992,certified,1,6.36,106064,same,1,3.97,1.67,7472,1,5.64,0.72,7184,OPTIMAL,OPTIMAL,same
+DDE,DDE21,veryheavy,Hinf_estimator,no,1,2.327,certified,2.3270002,17.34,38983,certified,2.3270003,1.30,32143,same,1,0.38,16.96,740,1,0.39,0.91,690,OPTIMAL,OPTIMAL,same
+DDE,DDE08,veryheavy,stability,yes,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),converged,3.0412354,11.58,10669,converged,3.7382812,15.34,16933,sop tighter,12,2.21,9.37,593,39,8.84,6.50,653,UNKNOWN,UNKNOWN,sop tighter
+PDE,23,light,Hinf_gain,no,1,25.249,inaccurate,25.624192,0.65,497,certified,23.709405,0.42,929,sop only,1,0.02,0.63,169,1,0.02,0.40,170,UNKNOWN,OPTIMAL,sop only
+PDE,25,veryheavy,Hinf_gain,no,1,0.8102,certified,0.81021205,1.64,38065,certified,0.81021185,1.64,26737,same,1,0.66,0.98,2099,1,1.15,0.49,2070,OPTIMAL,OPTIMAL,same
+DDE,DDE17,light,stability,yes,1,stable at h=.08; unstable at h=1,converged,0.14833984,15.20,12369,converged,0.14833984,39.71,38149,same,12,8.53,6.67,2992,26,34.38,5.33,3682,UNKNOWN,UNKNOWN,same
+DDE,DDE02/stability_dual,light,stability_dual,no,1,2 ([1]: tauNmax<2),certified,1,0.74,7056,certified,1,0.48,6800,same,1,0.23,0.51,1632,1,0.23,0.25,1616,OPTIMAL,OPTIMAL,same
+PDE,35,stripped,stability,no,2,,unknown,0,41.40,426413,certified,1,5.47,103744,sop only,1,23.68,17.72,4220,1,2.44,3.03,2139,OPTIMAL,OPTIMAL,same
+PDE,20,stripped,Hinf_gain,no,1,veryheavy=0.5000;heavy=0.5011;light=0.5162,unknown,10.096441,0.90,164,certified,0.50081445,0.94,929,sop only,1,0.01,0.89,76,1,0.07,0.87,124,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS12,veryheavy,stability,yes,1,0.4448?,converged,0.44436562,15.50,37748,converged,0.44436562,22.74,26516,same,11,6.14,9.36,1868,17,16.34,6.40,1796,OPTIMAL,OPTIMAL,same
+DDE,DDE17,veryheavy,stability,yes,1,stable at h=.08; unstable at h=1,converged,0.14833984,243.04,241889,converged,0.14833984,1070.56,392609,same,12,214.48,28.56,12202,33,1042.92,27.64,13492,UNKNOWN,UNKNOWN,same
+PDE,25,heavy,Hinf_gain,no,1,0.8102,certified,0.81021208,0.68,3005,certified,0.81021203,0.54,5965,same,1,0.05,0.63,577,1,0.07,0.47,624,OPTIMAL,OPTIMAL,same
+PDE,8,light,stability,yes,1,9.8696 (stable for lam<pi^2),lo_fail,NaN,0.77,2244,lo_fail,NaN,1.80,6548,neither,1,0.06,0.71,706,3,0.33,1.47,758,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE12/Hinf_gain_dual,stripped,Hinf_gain_dual,no,1,4.9784,unknown,10929.053,0.44,733,certified,4.9796898,0.58,3837,sop only,1,0.03,0.41,327,1,0.14,0.44,528,UNKNOWN,OPTIMAL,sop only
+PDE,6,stripped,stability,yes,1,2.467 (stable for lam<pi^2/4),lo_fail,NaN,0.44,127,converged,2.4674011,4.47,780,sop only,1,0.00,0.44,82,21,0.26,4.21,127,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,sop only
+PDE,2.3,stripped,stability,no,1,stable,certified,1,0.33,508,certified,1,0.28,1552,same,1,0.01,0.32,276,1,0.03,0.25,404,OPTIMAL,OPTIMAL,same
+PDE,34,veryheavy,stability,no,2,stable for lam<=2*pi^2 (lam=19),skipped,NaN,0.02,NaN,certified,1,446.23,2376580,skipped,0,0.00,0.02,NaN,1,438.63,7.60,10514,-,OPTIMAL,skipped
+DDE,DDE19,heavy,Hinf_control,no,1,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),inaccurate,0.001256276,1.64,1086,error,NaN,0.12,NaN,sop error,1,0.06,1.58,97,0,0.00,0.12,NaN,UNKNOWN,-,sop error
+PDE,11,light,stability,yes,1,2.7 (stable for R<2.7; not tight),converged,2.928125,5.45,1616,converged,2.9296875,5.39,3120,sop tighter,12,0.54,4.91,528,29,1.96,3.43,544,UNKNOWN,OPTIMAL,sop tighter
+NDSDDF,NDS08,veryheavy,stability,yes,1,0.02755,converged,0.027469287,105.82,153712,converged,0.026662158,139.84,108400,sop looser,11,87.20,18.62,7824,17,131.92,7.92,7536,OPTIMAL,OPTIMAL,sop looser
+DDE,DDE26,veryheavy,H2_norm,no,1,3.8307,certified,3.8299456,65.87,625980,certified,3.8299403,59.21,423228,sop tighter,1,55.92,9.95,21882,1,56.76,2.45,20616,OPTIMAL,OPTIMAL,sop tighter
+NDSDDF,NDS04/stability_dual,heavy,stability_dual,no,1,0.552 (stable for any h1>0; h2<.552),certified,1,0.76,11760,certified,1,0.72,23312,same,1,0.22,0.54,1832,1,0.43,0.29,2152,OPTIMAL,OPTIMAL,same
+PDE,13,light,stability,no,1,stable,certified,1,0.52,1616,certified,1,0.33,1552,same,1,0.08,0.44,428,1,0.09,0.24,420,OPTIMAL,OPTIMAL,same
+PDE,20/Hinf_gain_dual,light,Hinf_gain_dual,no,1,0.5204,unknown,0.52047954,0.58,497,certified,0.50000223,0.49,929,sop only,1,0.02,0.56,112,1,0.02,0.47,125,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE05,light,stability,yes,1,1.5707,converged,1.5676322,6.82,479,converged,1.5707,4.90,1499,sop tighter,11,0.11,6.71,115,30,0.37,4.53,142,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,sop tighter
+PDE,50/H2_norm_dual,light,H2_norm_dual,no,2,custom+psatz=0.8398,skipped,NaN,0.02,NaN,error,NaN,5.26,NaN,sop error,0,0.00,0.02,NaN,0,0.00,5.26,NaN,-,-,sop error
+PDE,32,stripped,Hinf_control,no,1,heavy=0.5971,infeasible,1.6937578e+08,2.40,577,inaccurate,0.59970885,1.32,2833,neither,1,0.02,2.38,140,1,0.15,1.17,241,UNKNOWN,UNKNOWN,neither
+PDE,43,veryheavy,stability,no,2,stable for tau<1.0347 (tau=1),skipped,NaN,0.02,NaN,error,NaN,1.88,NaN,sop error,0,0.00,0.02,NaN,0,0.00,1.88,NaN,-,-,sop error
+PDE,13,heavy,stability,no,1,stable,unknown,0,0.51,2748,certified,1,0.41,5564,sop only,1,0.09,0.42,460,1,0.12,0.29,540,OPTIMAL,OPTIMAL,same
+DDE,DDE07,light,stability,yes,1,1.3722,lo_fail,NaN,0.49,1916,converged,1.3713711,5.57,5996,sop only,1,0.05,0.44,450,26,1.53,4.04,558,PRIMAL_INFEASIBLE_CER,UNKNOWN,sop only
+NDSDDF,DDF03,light,Hinf_control,no,1,,inaccurate,0.00086718353,1.81,2217,error,NaN,0.10,NaN,sop error,1,0.12,1.69,241,0,0.00,0.10,NaN,UNKNOWN,-,sop error
+PDE,3,stripped,stability,no,1,stable,infeasible,0,0.36,1143,unknown,0,0.41,3492,neither,1,0.02,0.34,621,1,0.16,0.25,909,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE25/H2_norm_dual,heavy,H2_norm_dual,no,1,3.6724,certified,3.6723937,0.71,1508,certified,3.6723912,0.38,3060,same,1,0.01,0.70,187,1,0.02,0.36,231,OPTIMAL,OPTIMAL,same
+DDE,DDE07,heavy,stability,yes,1,1.3722,converged,1.3145986,5.84,3140,converged,1.3713711,9.85,13380,sop tighter,11,0.91,4.93,492,25,4.98,4.87,692,UNKNOWN,UNKNOWN,sop tighter
+PDE,15,heavy,stability_dual,no,1,TOC: (unstable); PDE stable with damping c>0,infeasible,0,1.10,10992,infeasible,0,4.55,50480,neither,1,0.55,0.55,1751,3,3.82,0.73,2483,UNKNOWN,UNKNOWN,neither
+PDE,39,veryheavy,stability,no,2,,skipped,NaN,0.02,NaN,skipped,NaN,0.03,NaN,skipped,0,0.00,0.02,NaN,0,0.00,0.03,NaN,-,-,skipped
+DDE,DDE09,heavy,Hinf_gain,no,1,25.907 (tau=1.5),certified,25.909112,0.60,926,certified,25.907748,0.48,1738,sop tighter,1,0.02,0.58,144,1,0.02,0.46,167,OPTIMAL,OPTIMAL,sop tighter
+PDE,41,light,stability,no,1,,unknown,0,0.79,1616,unknown,0,1.42,5472,neither,1,0.05,0.74,498,3,0.23,1.19,547,UNKNOWN,UNKNOWN,neither
+NDSDDF,NDS08/stability_dual,stripped,stability_dual,no,1,0.02755,infeasible,0,0.43,2624,certified,1,0.68,7408,sop only,1,0.08,0.35,1264,1,0.28,0.40,1840,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,43,light,stability,no,2,stable for tau<1.0347 (tau=1),infeasible,0,3.74,7434,error,NaN,1.64,NaN,sop error,1,0.20,3.54,1058,0,0.00,1.64,NaN,PRIMAL_INFEASIBLE_CER,-,sop error
+DDE,DDE02/stability_dual,stripped,stability_dual,no,1,2 ([1]: tauNmax<2),infeasible,0,0.40,2316,certified,1,0.71,6800,sop only,1,0.03,0.37,1088,1,0.28,0.43,1616,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,49/H2_norm_dual,stripped,H2_norm_dual,no,1,veryheavy=0.1016;heavy=0.1162;light=0.1362,unknown,405.13175,0.54,227,certified,0.10585578,0.76,1563,sop only,1,0.02,0.52,95,1,0.10,0.66,169,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS04/stability_dual,veryheavy,stability_dual,no,1,0.552 (stable for any h1>0; h2<.552),certified,1,7.29,150992,certified,1,6.24,106064,same,1,5.71,1.58,7352,1,5.64,0.60,7160,OPTIMAL,OPTIMAL,same
+PDE,48,veryheavy,Hinf_estimator,no,2,,error,NaN,1.83,NaN,skipped,NaN,0.01,NaN,stock error,0,0.00,1.83,NaN,0,0.00,0.01,NaN,-,-,stock error
+PDE,4.2,veryheavy,stability,no,1,stable,certified,1,1.11,37072,certified,1,0.55,25936,same,1,0.42,0.69,1832,1,0.30,0.25,1738,OPTIMAL,OPTIMAL,same
+PDE,43,heavy,stability,no,2,stable for tau<1.0347 (tau=1),infeasible,0,130.10,638217,error,NaN,2.09,NaN,sop error,1,97.58,32.52,10918,0,0.00,2.09,NaN,PRIMAL_ILLPOSED_CER,-,sop error
+NDSDDF,NDS08,light,stability,yes,1,0.02755,converged,0.027523096,8.54,7664,converged,0.027307861,9.74,7408,sop looser,11,3.25,5.29,1904,15,6.53,3.21,1872,OPTIMAL,OPTIMAL,sop looser
+PDE,45,heavy,Hinf_gain,no,2,exact=0.11101,skipped,NaN,0.02,NaN,unknown,54.832297,291.32,1398292,skipped,0,0.00,0.02,NaN,2,279.80,11.52,9732,-,UNKNOWN,skipped
+PDE,14,veryheavy,stability,no,1,stable (TOC: PDE stable without damping),certified,1,5.66,148288,certified,1,7.16,103744,same,1,4.48,1.18,7088,1,6.58,0.58,6756,OPTIMAL,OPTIMAL,same
+DDE,DDE09/Hinf_gain_dual,heavy,Hinf_gain_dual,no,1,25.907 (tau=1.5),certified,25.909261,0.56,926,certified,25.907747,0.33,1738,sop tighter,1,0.03,0.53,143,1,0.02,0.31,164,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE06/stability_dual,light,stability_dual,no,1,3 (bmax),certified,1,0.51,1764,certified,1,0.25,1700,same,1,0.03,0.48,406,1,0.03,0.22,402,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS01,veryheavy,stability,yes,1,2.2255 (analytic max; uncited),converged,2.2233267,15.74,38428,converged,2.2233267,22.41,27100,same,11,6.27,9.47,1956,17,15.78,6.63,1884,OPTIMAL,OPTIMAL,same
+DDE,DDE06/stability_dual,heavy,stability_dual,no,1,3 (bmax),certified,1,0.50,2940,certified,1,0.34,5828,same,1,0.04,0.46,442,1,0.07,0.27,522,OPTIMAL,OPTIMAL,same
+DDE,DDE12/Hinf_gain_dual,light,Hinf_gain_dual,no,1,4.9784,certified,5.0167628,0.65,2109,certified,4.9796898,0.41,3837,sop tighter,1,0.12,0.53,473,1,0.10,0.31,528,OPTIMAL,OPTIMAL,sop tighter
+PDE,31,light,Hinf_control,no,1,2.7407e-04,unknown,0.00030168115,3.16,1663,certified,0.00025719111,0.79,4387,sop only,1,0.07,3.09,199,1,0.09,0.70,260,UNKNOWN,OPTIMAL,sop only
+DDE,DDE10/Hinf_gain_dual,stripped,Hinf_gain_dual,no,1,0.2364,inaccurate,0.58506203,0.42,733,certified,0.23645073,0.41,3837,sop only,1,0.03,0.39,333,1,0.08,0.33,532,UNKNOWN,OPTIMAL,sop only
+DDE,DDE09,stripped,Hinf_gain,no,1,25.907 (tau=1.5),unknown,11745.449,0.53,205,certified,25.912728,0.49,1040,sop only,1,0.01,0.52,94,1,0.04,0.45,147,UNKNOWN,OPTIMAL,sop only
+PDE,23,veryheavy,Hinf_gain,no,1,23.622,certified,23.705798,1.19,9769,certified,23.70554,0.59,6889,sop tighter,1,0.30,0.89,567,1,0.11,0.48,566,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE12/Hinf_gain_dual,heavy,Hinf_gain_dual,no,1,4.9784,certified,4.9806385,0.76,3413,certified,4.9793913,0.61,6517,sop tighter,1,0.15,0.61,519,1,0.24,0.37,606,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE25,light,H2_norm,no,1,3.6724,certified,3.6755127,0.70,882,certified,3.6746237,0.48,1746,sop tighter,1,0.02,0.68,168,1,0.04,0.44,198,OPTIMAL,OPTIMAL,sop tighter
+PDE,4.3,light,stability,no,1,stable,certified,1,0.37,1616,certified,1,0.23,1552,same,1,0.03,0.34,424,1,0.03,0.20,404,OPTIMAL,OPTIMAL,same
+PDE,33,heavy,stability,no,2,,certified,1,508.78,1993782,certified,1,27.65,751849,same,1,406.49,102.29,10264,1,23.22,4.43,5202,OPTIMAL,OPTIMAL,same
+PDE,19,veryheavy,stability,no,1,stable,certified,1,2.52,83412,certified,1,1.84,58356,same,1,1.62,0.90,4038,1,1.50,0.34,3842,OPTIMAL,OPTIMAL,same
+PDE,4.5,heavy,stability,no,1,stable,infeasible,0,0.44,2748,infeasible,0,0.81,12620,neither,1,0.05,0.39,448,3,0.46,0.35,612,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE06,stripped,stability,yes,1,3 (bmax),lo_fail,NaN,0.42,579,converged,3,6.65,3324,sop only,1,0.01,0.41,272,20,1.79,4.86,460,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,sop only
+NDSDDF,NDS11/stability_dual,heavy,stability_dual,no,1,,unknown,0,0.45,891,unknown,0,0.28,1667,neither,1,0.02,0.43,149,1,0.02,0.26,171,OPTIMAL,OPTIMAL,same
+PDE,21,light,Hinf_gain,no,1,0.8424,certified,0.84238353,0.71,1793,certified,0.84187746,0.55,3409,sop tighter,1,0.12,0.59,409,1,0.04,0.51,460,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE13,light,Hinf_control,no,1,1.339 (tau=2),certified,1.4791875,3.25,2007,certified,1.3649751,0.79,4983,sop tighter,1,0.09,3.16,220,1,0.13,0.66,302,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE17/Hinf_control,veryheavy,Hinf_control,no,1,,certified,9.351344,1356.99,238231,certified,9.3513439,8.31,196066,same,1,5.58,1351.41,4255,1,6.10,2.21,3967,OPTIMAL,OPTIMAL,same
+PDE,28,veryheavy,Hinf_estimator,no,1,1.0005,unknown,1.0000635,20.78,9549,certified,1.0000483,0.81,7852,sop only,1,0.12,20.66,183,1,0.18,0.63,179,OPTIMAL,OPTIMAL,sop tighter
+PDE,2.2,veryheavy,stability,no,1,stable,certified,1,1.13,37072,certified,1,0.70,25936,same,1,0.44,0.69,1864,1,0.31,0.39,1772,OPTIMAL,OPTIMAL,same
+PDE,21,heavy,Hinf_gain,no,1,0.8419,certified,0.8418775,0.69,3005,certified,0.84187729,0.56,5965,same,1,0.04,0.65,443,1,0.06,0.50,526,OPTIMAL,OPTIMAL,same
+PDE,6/stability_dual,heavy,stability_dual,no,1,2.467 (stable for lam<pi^2/4),certified,1,0.41,687,certified,1,0.23,1391,same,1,0.01,0.40,125,1,0.01,0.22,140,OPTIMAL,OPTIMAL,same
+PDE,4,light,stability,no,1,stable,infeasible,0,0.39,1616,certified,1,0.22,1552,sop only,1,0.03,0.36,424,1,0.02,0.20,404,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE15,light,Hinf_control,no,1,0.6104,certified,0.61043412,1.55,2113,certified,0.61043363,0.46,5173,same,1,0.03,1.52,241,1,0.05,0.41,326,OPTIMAL,OPTIMAL,same
+DDE,DDE15,heavy,Hinf_control,no,1,0.6104,certified,0.61043354,1.91,3489,certified,0.61043361,0.53,7861,same,1,0.03,1.88,269,1,0.05,0.48,386,OPTIMAL,OPTIMAL,same
+PDE,23,heavy,Hinf_gain,no,1,23.706,certified,23.706131,0.71,820,certified,23.706053,0.49,1596,sop tighter,1,0.01,0.70,174,1,0.04,0.45,179,OPTIMAL,OPTIMAL,sop tighter
+PDE,6,light,stability,yes,1,2.467 (stable for lam<pi^2/4),converged,2.4649915,7.94,404,converged,2.4674011,3.60,1368,sop tighter,11,0.10,7.84,122,30,0.45,3.15,138,OPTIMAL,PRIMAL_INFEASIBLE_CER,sop tighter
+NDSDDF,NDS05/stability_dual,light,stability_dual,no,1,1.5804? (stability verified for h<2.04),certified,1,0.67,7056,certified,1,0.44,6800,same,1,0.22,0.45,1656,1,0.21,0.23,1640,OPTIMAL,OPTIMAL,same
+NDSDDF,DDF01,stripped,stability,no,1,,certified,1,0.32,508,certified,1,0.40,1552,same,1,0.01,0.31,252,1,0.03,0.37,376,OPTIMAL,OPTIMAL,same
+DDE,DDE18,stripped,Hinf_control,no,1,0.4092 (n=3),unknown,1.7056457,1.10,2143,certified,0.39221757,1.10,8704,sop only,1,0.10,1.00,568,1,0.41,0.69,829,UNKNOWN,OPTIMAL,sop only
+DDE,DDE03,stripped,stability,yes,1,1.71785 (taumin=.100174),lo_fail,NaN,0.44,207,converged,1.7128172,4.71,993,sop only,1,0.00,0.44,94,18,0.28,4.43,149,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE17,heavy,stability,yes,1,stable at h=.08; unstable at h=1,converged,0.14833984,18.07,20139,converged,0.14833984,89.30,84599,same,12,11.11,6.96,3252,26,82.16,7.14,4522,UNKNOWN,UNKNOWN,same
+DDE,DDE02/stability_dual,heavy,stability_dual,no,1,2 ([1]: tauNmax<2),certified,1,0.76,11760,certified,1,0.80,23312,same,1,0.26,0.50,1776,1,0.49,0.31,2096,OPTIMAL,OPTIMAL,same
+PDE,6,heavy,stability,yes,1,2.467 (stable for lam<pi^2/4),converged,2.4674011,6.10,687,converged,2.4674011,4.93,3155,same,11,0.12,5.98,126,29,1.46,3.47,168,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,same
+PDE,13.2/stability_dual,stripped,stability_dual,no,1,stable,infeasible,0,0.61,860,certified,1,0.56,3280,sop only,1,0.00,0.61,896,1,0.05,0.51,908,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+NDSDDF,NDS08/stability_dual,veryheavy,stability_dual,no,1,0.02755,certified,1,8.01,153712,certified,1,8.34,108400,same,1,6.38,1.63,7680,1,7.79,0.55,7488,OPTIMAL,OPTIMAL,same
+DDE,DDE10/Hinf_gain_dual,veryheavy,Hinf_gain_dual,no,1,0.2364,certified,0.23644321,1.45,39437,certified,0.23644305,0.94,27917,same,1,0.52,0.93,1937,1,0.41,0.53,1884,OPTIMAL,OPTIMAL,same
+PDE,8,heavy,stability,yes,1,9.8696 (stable for lam<pi^2),lo_fail,NaN,0.80,3564,lo_fail,NaN,1.99,14172,neither,1,0.14,0.66,740,3,0.67,1.32,904,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+PDE,13.2/stability_dual,light,stability_dual,no,1,stable,certified,1,0.54,1904,certified,1,0.46,3280,same,1,0.02,0.52,916,1,0.04,0.42,908,OPTIMAL,OPTIMAL,same
+DDE,DDE03,light,stability,yes,1,1.71785 (taumin=.100174),converged,1.4729222,5.82,561,converged,1.7144948,4.37,1637,sop tighter,11,0.19,5.63,135,22,0.33,4.04,165,UNKNOWN,PRIMAL_INFEASIBLE_CER,sop tighter
+PDE,51,light,H2_estimator,no,1,veryheavy=1.2683,unknown,60.039601,1.21,715,certified,1.2699296,4.11,2416,sop only,1,0.02,1.19,100,1,0.08,4.03,137,UNKNOWN,OPTIMAL,sop only
+PDE,2,veryheavy,stability,no,1,stable,certified,1,1.18,37072,certified,1,1.09,25936,same,1,0.45,0.73,1864,1,0.32,0.77,1772,OPTIMAL,OPTIMAL,same
+PDE,51,heavy,H2_estimator,no,1,veryheavy=1.2683,unknown,1.310802,1.20,1298,certified,1.2683158,0.84,3851,sop only,1,0.03,1.17,109,1,0.07,0.77,164,UNKNOWN,OPTIMAL,sop only
+PDE,11,heavy,stability,yes,1,2.7 (stable for R<2.7; not tight),converged,2.9296875,6.23,2748,converged,2.9296875,7.64,5564,same,12,0.67,5.56,544,26,3.68,3.96,584,OPTIMAL,OPTIMAL,same
+NDSDDF,DDF01,light,stability,no,1,,certified,1,0.37,1616,certified,1,0.27,1552,same,1,0.02,0.35,392,1,0.02,0.25,376,OPTIMAL,OPTIMAL,same
+PDE,47,stripped,Hinf_gain,no,2,exact=0.20668,certified,0.20707431,288.30,904571,unknown,85916.661,24.34,194191,stock only,1,276.91,11.39,13021,1,17.79,6.55,3496,OPTIMAL,UNKNOWN,stock only
+DDE,DDE15,stripped,Hinf_control,no,1,0.6104,unknown,1.2309641,0.89,689,certified,0.61043373,0.59,3157,sop only,1,0.04,0.85,157,1,0.04,0.55,270,UNKNOWN,OPTIMAL,sop only
+NDSDDF,DDF01,heavy,stability,no,1,,certified,1,0.41,2748,certified,1,0.33,5564,same,1,0.03,0.38,424,1,0.06,0.27,496,OPTIMAL,OPTIMAL,same
+DDE,DDE05,heavy,stability,yes,1,1.5707,converged,1.5691661,6.73,785,converged,1.5707,6.14,3345,sop tighter,11,0.11,6.62,125,29,1.00,5.14,175,OPTIMAL,PRIMAL_INFEASIBLE_CER,sop tighter
+PDE,20/Hinf_gain_dual,heavy,Hinf_gain_dual,no,1,0.5058,certified,0.50581225,0.74,820,certified,0.5000013,0.37,1596,sop tighter,1,0.10,0.64,121,1,0.02,0.35,142,OPTIMAL,OPTIMAL,sop tighter
+PDE,50/H2_norm_dual,heavy,H2_norm_dual,no,2,custom+psatz=0.8398,skipped,NaN,0.02,NaN,error,NaN,4.78,NaN,sop error,0,0.00,0.02,NaN,0,0.00,4.78,NaN,-,-,sop error
+PDE,7/stability_dual,veryheavy,stability_dual,no,1,4.66 (unstable for lam>4.66),certified,1,0.77,9268,certified,1,0.36,6484,same,1,0.05,0.72,563,1,0.06,0.30,563,OPTIMAL,OPTIMAL,same
+NDSDDF,DDF03,heavy,Hinf_control,no,1,,unknown,0.00082408924,1.82,3605,error,NaN,0.13,NaN,sop error,1,0.13,1.69,269,0,0.00,0.13,NaN,UNKNOWN,-,sop error
+DDE,DDE01,veryheavy,stability,yes,1,2.04 (analytical range [0.2; 2.04]),converged,2.008125,20.11,38428,converged,2.0101172,18.95,27100,sop tighter,11,10.54,9.57,1916,17,14.14,4.81,1844,OPTIMAL,OPTIMAL,sop tighter
+PDE,52,veryheavy,H2_control,no,1,,certified,1.0899804,1239.06,17546,certified,1.0899565,0.94,15503,sop tighter,1,0.29,1238.77,345,1,0.16,0.78,347,OPTIMAL,OPTIMAL,sop tighter
+NDSDDF,NDS04,light,stability,yes,1,0.552 (stable for any h1>0; h2<.552),hi_pass,0.69,1.29,7056,hi_pass,0.69,0.79,6800,same,2,0.33,0.96,1728,2,0.33,0.46,1688,OPTIMAL,OPTIMAL,same
+DDE,DDE12,stripped,Hinf_gain,no,1,4.9784,unknown,8053.3239,0.46,733,certified,4.9840028,0.49,3837,sop only,1,0.02,0.44,329,1,0.11,0.38,534,UNKNOWN,OPTIMAL,sop only
+PDE,44,stripped,stability,yes,1,0.5 (stable for mu<0.5),lo_fail,NaN,0.96,2195,lo_fail,NaN,2.18,12892,neither,1,0.03,0.93,1367,2,0.73,1.45,2079,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE12/Hinf_gain_dual,veryheavy,Hinf_gain_dual,no,1,4.9784,certified,4.9784482,1.50,39437,certified,4.9784483,0.71,27917,same,1,0.55,0.95,1917,1,0.33,0.38,1864,OPTIMAL,OPTIMAL,same
+PDE,7,veryheavy,stability,yes,1,4.66 (unstable for lam>4.66),converged,4.6508984,8.60,9268,converged,4.6508984,6.07,15196,same,11,0.83,7.77,543,20,2.54,3.53,575,UNKNOWN,UNKNOWN,same
+PDE,41,heavy,stability,no,1,,unknown,0,0.82,2748,unknown,0,1.95,12620,neither,1,0.07,0.75,516,3,0.70,1.25,667,UNKNOWN,UNKNOWN,neither
+PDE,2.3,light,stability,no,1,stable,certified,1,0.41,1616,certified,1,0.46,1552,same,1,0.02,0.39,424,1,0.02,0.44,404,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS01/stability_dual,light,stability_dual,no,1,2.2255 (analytic max; uncited),certified,1,0.44,1916,certified,1,0.25,1852,same,1,0.03,0.41,464,1,0.03,0.22,460,OPTIMAL,OPTIMAL,same
+DDE,DDE10,veryheavy,Hinf_gain,no,1,0.2364,certified,0.23644296,1.46,39437,certified,0.23644309,0.82,27917,same,1,0.52,0.94,1949,1,0.32,0.50,1896,OPTIMAL,OPTIMAL,same
+PDE,2.3,heavy,stability,no,1,stable,certified,1,0.42,2748,certified,1,0.31,5564,same,1,0.03,0.39,448,1,0.05,0.26,500,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS07,stripped,stability,yes,1,0.5? (stability verified for h<.603),lo_fail,NaN,0.39,579,converged,0.44453613,5.28,3324,sop only,1,0.01,0.38,284,18,0.88,4.40,476,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,sop only
+NDSDDF,NDS04/stability_dual,stripped,stability_dual,no,1,0.552 (stable for any h1>0; h2<.552),certified,1,0.63,2316,certified,1,0.57,6800,same,1,0.16,0.47,1128,1,0.22,0.35,1672,OPTIMAL,OPTIMAL,same
+PDE,18,stripped,stability_dual,no,1,stable (TOC: dual stable),infeasible,0,0.38,508,certified,1,0.36,1552,sop only,1,0.00,0.38,297,1,0.05,0.31,436,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+NDSDDF,NDS08,heavy,stability,yes,1,0.02755,converged,0.027523096,10.67,12560,converged,0.027334766,20.28,24400,sop looser,11,4.73,5.94,2064,15,16.34,3.94,2384,OPTIMAL,OPTIMAL,sop looser
+NDSDDF,NDS09/stability_dual,light,stability_dual,no,1,0.603,unknown,0,1.19,11975,unknown,0,0.86,11575,neither,1,0.70,0.49,2900,1,0.58,0.28,2875,OPTIMAL,OPTIMAL,same
+DDE,DDE21,light,Hinf_estimator,no,1,2.327,certified,2.3273346,1.43,2007,certified,2.3270003,0.43,4983,sop tighter,1,0.05,1.38,216,1,0.04,0.39,302,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE24,stripped,Hinf_estimator,no,1,,certified,1.0910502,9.27,2060,certified,1.0439561,1.35,10517,sop tighter,1,0.10,9.17,370,1,0.30,1.05,782,OPTIMAL,OPTIMAL,sop tighter
+PDE,41,stripped,stability,no,1,,infeasible,0,1.12,508,unknown,0,1.45,3120,neither,1,0.02,1.10,338,2,0.14,1.31,515,PRIMAL_INFEASIBLE_CER,UNKNOWN,neither
+DDE,DDE06,veryheavy,stability,yes,1,3 (bmax),converged,3,19.96,37748,converged,3,49.04,61628,same,11,10.37,9.59,1828,38,40.90,8.14,2026,UNKNOWN,PRIMAL_INFEASIBLE_CER,same
+PDE,9/stability_dual,veryheavy,stability_dual,no,1,0 (stable for k<0),certified,1,0.88,9607,certified,1,0.40,6775,same,1,0.06,0.82,506,1,0.05,0.35,494,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS09/stability_dual,heavy,stability_dual,no,1,0.603,unknown,0,1.51,19625,certified,1,1.74,38125,sop only,1,0.94,0.57,3150,1,1.42,0.32,3650,OPTIMAL,OPTIMAL,same
+DDE,DDE23,light,Hinf_estimator,no,1,1.808,unknown,1.8080823,11.98,4065,certified,1.8080604,0.60,10446,sop only,1,0.10,11.88,416,1,0.10,0.50,597,OPTIMAL,OPTIMAL,sop tighter
+PDE,31,heavy,Hinf_control,no,1,light=2.7407e-04,inaccurate,0.00028592772,10.68,2871,certified,0.00024497011,0.91,6875,sop only,1,0.07,10.61,209,1,0.15,0.76,310,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS12/stability_dual,light,stability_dual,no,1,0.4448?,certified,1,0.44,1764,certified,1,0.24,1700,same,1,0.02,0.42,414,1,0.02,0.22,410,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS04,stripped,stability,yes,1,0.552 (stable for any h1>0; h2<.552),hi_pass,0.69,0.84,2316,hi_pass,0.69,1.19,6800,same,2,0.13,0.71,1136,2,0.43,0.76,1688,OPTIMAL,OPTIMAL,same
+PDE,15,stripped,stability_dual,no,1,TOC: (unstable); PDE stable with damping c>0,infeasible,0,0.59,2032,infeasible,0,1.68,12480,neither,1,0.10,0.49,1083,2,1.12,0.56,1799,PRIMAL_INFEASIBLE_CER,UNKNOWN,neither
+NDSDDF,NDS10,veryheavy,stability,no,1,,certified,1,1.28,38428,certified,1,0.78,27100,same,1,0.47,0.81,1956,1,0.37,0.41,1884,OPTIMAL,OPTIMAL,same
+DDE,DDE15,veryheavy,Hinf_control,no,1,0.6104,certified,0.61043368,19.27,39497,certified,0.61043352,0.89,32605,same,1,0.31,18.96,777,1,0.27,0.62,726,OPTIMAL,OPTIMAL,same
+DDE,DDE25,heavy,H2_norm,no,1,3.6724,certified,3.6746955,0.81,1508,unknown,3.6742593,0.45,3060,stock only,1,0.03,0.78,187,1,0.07,0.38,233,OPTIMAL,OPTIMAL,sop tighter
+PDE,4.3,heavy,stability,no,1,stable,certified,1,0.43,2748,certified,1,0.31,5564,same,1,0.04,0.39,448,1,0.06,0.25,500,OPTIMAL,OPTIMAL,same
+PDE,7/stability_dual,light,stability_dual,no,1,4.66 (unstable for lam>4.66),infeasible,0,0.42,404,certified,1,0.37,1368,sop only,1,0.01,0.41,147,3,0.04,0.33,151,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE21,stripped,Hinf_estimator,no,1,2.327,unknown,3.0255562,1.06,646,certified,2.3270005,0.54,3015,sop only,1,0.04,1.02,134,1,0.04,0.50,244,UNKNOWN,OPTIMAL,sop only
+DDE,DDE02/stability_dual,veryheavy,stability_dual,no,1,2 ([1]: tauNmax<2),certified,1,7.38,150992,certified,1,5.37,106064,same,1,5.61,1.77,7200,1,4.94,0.43,7008,OPTIMAL,OPTIMAL,same
+PDE,32,veryheavy,Hinf_control,no,1,heavy=0.5971,certified,0.51774361,15.68,38325,certified,0.51760997,1.73,31537,sop tighter,1,1.56,14.12,713,1,0.86,0.87,687,OPTIMAL,OPTIMAL,sop tighter
+PDE,18,light,stability_dual,no,1,stable (TOC: dual stable),unknown,0,0.44,1616,certified,1,0.29,1552,sop only,1,0.04,0.40,444,1,0.04,0.25,436,OPTIMAL,OPTIMAL,same
+DDE,DDE11,light,Hinf_gain,no,1,2.87,certified,2.8846663,0.58,730,certified,2.8772544,0.50,1246,sop tighter,1,0.03,0.55,170,1,0.04,0.46,184,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE24,veryheavy,Hinf_estimator,no,1,,certified,1.0439852,1215.13,150237,certified,1.0439723,5.31,123397,sop tighter,1,2.77,1212.36,2630,1,3.47,1.84,2442,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE03/stability_dual,light,stability_dual,no,1,1.71785 (taumin=.100174),certified,1,0.49,561,certified,1,0.31,545,same,1,0.01,0.48,132,1,0.01,0.30,132,OPTIMAL,OPTIMAL,same
+PDE,2,light,stability,no,1,stable,certified,1,0.44,1616,certified,1,0.62,1552,same,1,0.02,0.42,424,1,0.02,0.60,404,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS01,stripped,stability,yes,1,2.2255 (analytic max; uncited),lo_fail,NaN,0.40,656,converged,2.2233267,4.28,1852,sop only,1,0.01,0.39,320,13,0.68,3.60,468,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,27,stripped,Hinf_estimator,no,1,1.0004,unknown,1.0003823,0.91,140,certified,1.0000369,0.69,700,sop only,1,0.01,0.90,31,1,0.04,0.65,58,UNKNOWN,OPTIMAL,sop only
+PDE,12,stripped,stability,yes,1,21 (stable for R<21; not tight),lo_fail,NaN,0.41,1143,hi_pass,37.5,0.91,3492,sop only,1,0.00,0.41,769,2,0.22,0.69,1115,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,4.4,stripped,stability,no,1,stable,infeasible,0,0.53,508,certified,1,0.32,1552,sop only,1,0.00,0.53,266,1,0.04,0.28,390,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,41,veryheavy,stability,no,1,,inaccurate,0.5,1.76,37072,inaccurate,0.5,5.45,60784,neither,1,0.73,1.03,1992,4,4.01,1.44,2123,UNKNOWN,UNKNOWN,neither
+DDE,DDE13,heavy,Hinf_control,no,1,1.339 (tau=2),certified,1.4055741,6.46,3343,certified,1.3531041,0.93,7623,sop tighter,1,0.14,6.32,246,1,0.24,0.69,360,OPTIMAL,OPTIMAL,sop tighter
+PDE,50,stripped,H2_norm,no,2,custom+psatz=0.8502,certified,0.81274691,1026.55,1866918,error,NaN,4.73,NaN,sop error,1,982.56,43.99,16528,0,0.00,4.73,NaN,OPTIMAL,-,sop error
+PDE,4,heavy,stability,no,1,stable,certified,1,0.42,2748,certified,1,0.29,5564,same,1,0.04,0.38,448,1,0.05,0.24,500,OPTIMAL,OPTIMAL,same
+PDE,50,veryheavy,H2_norm,no,2,custom+psatz=0.8502,skipped,NaN,0.03,NaN,error,NaN,4.72,NaN,sop error,0,0.00,0.03,NaN,0,0.00,4.72,NaN,-,-,sop error
+PDE,50/H2_norm_dual,veryheavy,H2_norm_dual,no,2,custom+psatz=0.8398,skipped,NaN,0.02,NaN,error,NaN,4.78,NaN,sop error,0,0.00,0.02,NaN,0,0.00,4.78,NaN,-,-,sop error
+NDSDDF,NDS11/stability_dual,stripped,stability_dual,no,1,,infeasible,0,0.35,207,certified,1,0.29,545,sop only,1,0.00,0.35,96,1,0.02,0.27,136,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,37,veryheavy,stability,no,2,stable for a<=pi^2/2 (a=4),skipped,NaN,0.02,NaN,certified,1,529.06,2376580,skipped,0,0.00,0.02,NaN,1,522.64,6.42,10512,-,OPTIMAL,skipped
+NDSDDF,NDS05/stability_dual,heavy,stability_dual,no,1,1.5804? (stability verified for h<2.04),certified,1,0.80,11760,certified,1,0.96,23312,same,1,0.30,0.50,1800,1,0.67,0.29,2120,OPTIMAL,OPTIMAL,same
+PDE,48,light,Hinf_estimator,no,2,,error,NaN,2.08,NaN,unknown,0.005050555,16.58,195815,stock error,0,0.00,2.08,NaN,1,9.69,6.89,5298,-,OPTIMAL,stock error
+PDE,21/Hinf_gain_dual,light,Hinf_gain_dual,no,1,0.8722,certified,0.87457085,0.56,1793,certified,0.84188348,0.37,3409,sop tighter,1,0.08,0.48,411,1,0.06,0.31,462,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE01,light,stability,yes,1,2.04 (analytical range [0.2; 2.04]),converged,1.8407813,5.97,1916,converged,2.0160938,7.49,5996,sop tighter,11,0.72,5.25,460,24,2.07,5.42,568,UNKNOWN,UNKNOWN,sop tighter
+NDSDDF,NDS12,light,stability,yes,1,0.4448?,converged,0.44436562,5.09,1764,converged,0.44436562,3.33,1700,same,11,0.32,4.77,432,15,0.61,2.72,422,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS02/stability_dual,stripped,stability_dual,no,1,stable at tau=20 (literature: tau<.7516),certified,1,0.34,656,certified,1,0.37,1852,same,1,0.01,0.33,316,1,0.04,0.33,460,OPTIMAL,OPTIMAL,same
+PDE,24,stripped,Hinf_gain,no,1,8.2136,unknown,64516.16,0.54,164,certified,8.2137125,0.66,929,sop only,1,0.01,0.53,107,1,0.03,0.63,156,UNKNOWN,OPTIMAL,sop only
+DDE,DDE04/stability_dual,veryheavy,stability_dual,no,1,6.17258,certified,1,1.60,38428,certified,1,0.74,27100,same,1,0.68,0.92,1880,1,0.47,0.27,1832,OPTIMAL,OPTIMAL,same
+DDE,DDE01,heavy,stability,yes,1,2.04 (analytical range [0.2; 2.04]),converged,1.8905859,6.25,3140,converged,1.9085156,6.42,6100,sop tighter,11,1.11,5.14,500,15,2.33,4.09,580,OPTIMAL,OPTIMAL,sop tighter
+PDE,46,veryheavy,Hinf_gain,no,2,exact=0.17110,skipped,NaN,0.03,NaN,skipped,NaN,0.05,NaN,skipped,0,0.00,0.03,NaN,0,0.00,0.05,NaN,-,-,skipped
+DDE,DDE03,heavy,stability,yes,1,1.71785 (taumin=.100174),converged,1.4913756,5.46,891,converged,1.7161724,4.04,1667,sop tighter,11,0.24,5.22,148,15,0.43,3.61,170,OPTIMAL,OPTIMAL,sop tighter
+PDE,13.2/stability_dual,heavy,stability_dual,no,1,stable,certified,1,0.58,3036,certified,1,0.88,13052,same,1,0.04,0.54,932,1,0.43,0.45,1092,OPTIMAL,OPTIMAL,same
+PDE,20/Hinf_gain_dual,stripped,Hinf_gain_dual,no,1,veryheavy=0.5000;heavy=0.5058;light=0.5204,unknown,12.245657,0.47,164,certified,0.50000223,0.41,929,sop only,1,0.01,0.46,77,1,0.02,0.39,125,UNKNOWN,OPTIMAL,sop only
+PDE,12,veryheavy,stability,yes,1,21 (stable for R<21; not tight),hi_pass,37.5,6.84,83412,hi_pass,37.5,5.28,58356,same,2,5.04,1.80,4491,2,4.58,0.70,4355,OPTIMAL,OPTIMAL,same
+PDE,38,light,stability,no,2,,skipped,NaN,0.02,NaN,infeasible,0,1638.45,3006976,skipped,0,0.00,0.02,NaN,3,1616.69,21.76,20888,-,PRIMAL_INFEASIBLE_CER,skipped
+NDSDDF,NDS10,stripped,stability,no,1,,certified,1,0.34,656,certified,1,0.29,1852,same,1,0.01,0.33,320,1,0.04,0.25,468,OPTIMAL,OPTIMAL,same
+DDE,DDE04,veryheavy,stability,yes,1,6.17258,converged,6.1665521,17.44,38428,converged,6.1665521,12.29,27100,same,11,7.23,10.21,1916,14,8.43,3.86,1844,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS02,light,stability,no,1,stable at tau=20 (literature: tau<.7516),certified,1,0.45,1916,certified,1,0.24,1852,same,1,0.03,0.42,476,1,0.03,0.21,468,OPTIMAL,OPTIMAL,same
+PDE,7,stripped,stability,yes,1,4.66 (unstable for lam>4.66),lo_fail,NaN,0.48,127,converged,4.6508984,4.53,780,sop only,1,0.00,0.48,103,22,0.17,4.36,150,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,sop only
+PDE,2.4,stripped,stability,no,1,stable,certified,1,0.30,508,certified,1,0.38,1552,same,1,0.01,0.29,276,1,0.02,0.36,404,OPTIMAL,OPTIMAL,same
+PDE,21,veryheavy,Hinf_gain,no,1,0.8419,certified,0.84187717,1.50,38065,certified,0.84187717,0.88,26737,same,1,0.44,1.06,1809,1,0.28,0.60,1760,OPTIMAL,OPTIMAL,same
+DDE,DDE06/stability_dual,veryheavy,stability_dual,no,1,3 (bmax),certified,1,1.55,37748,certified,1,0.85,26516,same,1,0.56,0.99,1798,1,0.47,0.38,1750,OPTIMAL,OPTIMAL,same
+PDE,4.5,veryheavy,stability,no,1,stable,infeasible,0,1.52,37072,infeasible,0,4.93,60784,neither,1,0.84,0.68,1864,4,4.31,0.62,1988,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+NDSDDF,NDS04,heavy,stability,yes,1,0.552 (stable for any h1>0; h2<.552),hi_pass,0.69,1.48,11760,hi_pass,0.69,1.42,23312,same,2,0.41,1.07,1872,2,0.86,0.56,2176,OPTIMAL,OPTIMAL,same
+PDE,11/stability_dual,light,stability_dual,no,1,2.7 (stable for R<2.7; not tight),certified,1,0.41,1616,certified,1,0.23,1552,same,1,0.02,0.39,520,1,0.03,0.20,512,OPTIMAL,OPTIMAL,same
+DDE,DDE07/stability_dual,light,stability_dual,no,1,1.3722,certified,1,0.44,1916,certified,1,0.26,1852,same,1,0.04,0.40,440,1,0.04,0.22,438,OPTIMAL,OPTIMAL,same
+PDE,30,veryheavy,Hinf_control,no,1,heavy=0.6594,inaccurate,0.5236531,926.18,10139,inaccurate,0.52223241,2.61,13910,neither,1,0.28,925.90,221,3,0.87,1.74,263,UNKNOWN,UNKNOWN,neither
+PDE,17,veryheavy,stability,no,1,stable for k>0 (k=1),certified,1,1.11,37072,certified,1,0.54,25936,same,1,0.43,0.68,1764,1,0.28,0.26,1692,OPTIMAL,OPTIMAL,same
+PDE,11/stability_dual,veryheavy,stability_dual,no,1,2.7 (stable for R<2.7; not tight),certified,1,1.18,37072,certified,1,0.54,25936,same,1,0.45,0.73,2028,1,0.29,0.25,2000,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS01/stability_dual,heavy,stability_dual,no,1,2.2255 (analytic max; uncited),certified,1,0.54,3140,certified,1,0.32,6100,same,1,0.04,0.50,504,1,0.06,0.26,584,OPTIMAL,OPTIMAL,same
+DDE,DDE07/stability_dual,heavy,stability_dual,no,1,1.3722,certified,1,0.58,3140,certified,1,0.32,6100,same,1,0.06,0.52,482,1,0.07,0.25,566,OPTIMAL,OPTIMAL,same
+PDE,11/stability_dual,heavy,stability_dual,no,1,2.7 (stable for R<2.7; not tight),certified,1,0.45,2748,certified,1,0.30,5564,same,1,0.03,0.42,540,1,0.05,0.25,584,OPTIMAL,OPTIMAL,same
+PDE,26,light,Hinf_gain,no,1,2.1457,certified,2.148556,0.72,4173,certified,2.147294,0.73,7893,sop tighter,1,0.09,0.63,1375,1,0.25,0.48,1414,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE07/stability_dual,stripped,stability_dual,no,1,1.3722,infeasible,0,0.32,656,certified,1,0.37,1852,sop only,1,0.01,0.31,298,1,0.05,0.32,438,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,4,stripped,stability,no,1,stable,infeasible,0,0.38,508,certified,1,0.28,1552,sop only,1,0.00,0.38,276,1,0.03,0.25,404,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+NDSDDF,NDS04,veryheavy,stability,yes,1,0.552 (stable for any h1>0; h2<.552),hi_pass,0.69,11.01,150992,hi_pass,0.69,11.92,106064,same,2,7.64,3.37,7472,2,10.60,1.32,7184,OPTIMAL,OPTIMAL,same
+DDE,DDE09,veryheavy,Hinf_gain,no,1,25.907 (tau=1.5),certified,25.907745,1.09,10116,certified,25.907748,0.52,7188,same,1,0.10,0.99,504,1,0.09,0.43,489,OPTIMAL,OPTIMAL,same
+PDE,28,light,Hinf_estimator,no,1,1.0005,certified,1.0001194,3.41,457,certified,1.000055,0.53,1180,sop tighter,1,0.02,3.39,61,1,0.05,0.48,75,OPTIMAL,OPTIMAL,sop tighter
+PDE,9/stability_dual,stripped,stability_dual,no,1,0 (stable for k<0),infeasible,0,0.50,164,certified,1,0.47,463,sop only,1,0.00,0.50,91,1,0.01,0.46,130,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,26,veryheavy,Hinf_gain,no,1,2.1457,certified,2.1456817,4.11,86397,certified,2.1456856,2.73,60765,sop looser,1,2.72,1.39,4870,1,2.07,0.66,4819,OPTIMAL,OPTIMAL,sop looser
+DDE,DDE21,heavy,Hinf_estimator,no,1,2.327,certified,2.3270011,1.52,3343,certified,2.3270004,0.59,7623,same,1,0.04,1.48,242,1,0.07,0.52,360,OPTIMAL,OPTIMAL,same
+DDE,DDE23,heavy,Hinf_estimator,no,1,1.808,certified,1.8080605,4.45,6912,certified,1.8080604,0.74,16197,same,1,0.06,4.39,467,1,0.15,0.59,720,OPTIMAL,OPTIMAL,same
+PDE,1,stripped,stability,no,1,stable (v=-1),certified,1,0.46,127,certified,1,1.97,388,same,1,0.00,0.46,60,1,0.01,1.96,90,OPTIMAL,OPTIMAL,same
+DDE,DDE08/stability_dual,veryheavy,stability_dual,no,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),certified,1,0.89,10669,certified,1,0.32,7693,same,1,0.08,0.81,584,1,0.08,0.24,572,OPTIMAL,OPTIMAL,same
+PDE,35,veryheavy,stability,no,2,,skipped,NaN,0.02,NaN,certified,1,420.43,2376580,skipped,0,0.00,0.02,NaN,1,412.99,7.44,10518,-,OPTIMAL,skipped
+NDSDDF,NDS12/stability_dual,heavy,stability_dual,no,1,0.4448?,certified,1,0.59,2940,certified,1,0.32,5828,same,1,0.04,0.55,450,1,0.05,0.27,530,OPTIMAL,OPTIMAL,same
+PDE,16,light,stability,no,1,,infeasible,0,0.66,7616,infeasible,0,7.03,83904,neither,1,0.00,0.66,4084,3,6.32,0.71,6512,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+NDSDDF,NDS09,veryheavy,stability,yes,1,0.603,converged,0.5994668,185.58,240175,converged,0.5994668,598.93,390475,same,11,154.48,31.10,12225,23,580.49,18.44,13500,UNKNOWN,UNKNOWN,same
+PDE,13/stability_dual,veryheavy,stability_dual,no,1,stable,certified,1,1.46,37072,certified,1,0.86,25936,same,1,0.76,0.70,1852,1,0.60,0.26,1804,OPTIMAL,OPTIMAL,same
+PDE,7/stability_dual,heavy,stability_dual,no,1,4.66 (unstable for lam>4.66),certified,1,0.44,687,certified,1,0.28,1391,same,1,0.01,0.43,151,1,0.02,0.26,154,OPTIMAL,OPTIMAL,same
+DDE,DDE11,heavy,Hinf_gain,no,1,2.87,certified,2.877362,0.58,1120,unknown,2.8758942,0.77,2004,stock only,1,0.04,0.54,186,1,0.33,0.44,208,OPTIMAL,OPTIMAL,sop tighter
+PDE,18,heavy,stability_dual,no,1,stable (TOC: dual stable),certified,1,0.48,2748,certified,1,0.35,5564,same,1,0.03,0.45,468,1,0.08,0.27,530,OPTIMAL,OPTIMAL,same
+DDE,DDE25/H2_norm_dual,veryheavy,H2_norm_dual,no,1,3.6724,certified,3.6723795,1.17,18106,certified,3.6723796,0.62,12346,same,1,0.08,1.09,659,1,0.07,0.55,622,OPTIMAL,OPTIMAL,same
+DDE,DDE03/stability_dual,heavy,stability_dual,no,1,1.71785 (taumin=.100174),certified,1,0.46,891,certified,1,0.28,1667,same,1,0.01,0.45,145,1,0.02,0.26,167,OPTIMAL,OPTIMAL,same
+PDE,2,heavy,stability,no,1,stable,certified,1,0.46,2748,certified,1,0.70,5564,same,1,0.03,0.43,448,1,0.05,0.65,500,OPTIMAL,OPTIMAL,same
+PDE,46,light,Hinf_gain,no,2,exact=0.17110,certified,0.17168878,309.68,795395,unknown,962.67199,55.37,350746,stock only,1,298.73,10.95,15503,2,47.66,7.71,5222,OPTIMAL,UNKNOWN,stock only
+NDSDDF,NDS01/stability_dual,veryheavy,stability_dual,no,1,2.2255 (analytic max; uncited),certified,1,1.33,38428,certified,1,0.88,27100,same,1,0.50,0.83,1920,1,0.40,0.48,1872,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS10,light,stability,no,1,,certified,1,0.65,1916,certified,1,0.23,1852,same,1,0.03,0.62,476,1,0.03,0.20,468,OPTIMAL,OPTIMAL,same
+PDE,39,stripped,stability,no,2,,skipped,NaN,0.01,NaN,certified,1,249.76,933696,skipped,0,0.00,0.01,NaN,1,242.49,7.27,19143,-,OPTIMAL,skipped
+DDE,DDE07,stripped,stability,yes,1,1.3722,lo_fail,NaN,0.37,656,converged,1.3713711,5.74,3532,sop only,1,0.01,0.36,300,19,1.10,4.64,498,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,sop only
+DDE,DDE05/stability_dual,stripped,stability_dual,no,1,1.5707,infeasible,0,0.63,164,certified,1,0.44,463,sop only,1,0.00,0.63,76,1,0.01,0.43,111,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+NDSDDF,NDS11/stability_dual,veryheavy,stability_dual,no,1,,unknown,0,0.78,9953,unknown,0,0.48,7073,neither,1,0.10,0.68,514,1,0.10,0.38,502,OPTIMAL,OPTIMAL,same
+PDE,21/Hinf_gain_dual,veryheavy,Hinf_gain_dual,no,1,0.8419,certified,0.84187751,1.31,38065,certified,0.84187749,0.70,26737,same,1,0.43,0.88,1811,1,0.31,0.39,1762,OPTIMAL,OPTIMAL,same
+PDE,5,veryheavy,stability,yes,1,9.8696 (stable for lam<pi^2),converged,9.8696044,9.44,9268,converged,9.8696044,10.68,15196,same,11,1.50,7.94,516,38,5.76,4.92,548,UNKNOWN,UNKNOWN,same
+NDSDDF,NDS12,heavy,stability,yes,1,0.4448?,converged,0.44436562,5.63,2940,converged,0.44436562,4.89,5828,same,11,0.48,5.15,468,15,1.51,3.38,544,OPTIMAL,OPTIMAL,same
+PDE,48,heavy,Hinf_estimator,no,2,,error,NaN,1.76,NaN,unknown,0.0046891088,79.01,767456,stock error,0,0.00,1.76,NaN,1,68.95,10.06,7186,-,OPTIMAL,stock error
+PDE,21/Hinf_gain_dual,heavy,Hinf_gain_dual,no,1,0.8552,unknown,0.85792769,0.67,3005,certified,0.84187959,0.39,5965,sop only,1,0.16,0.51,445,1,0.07,0.32,528,OPTIMAL,OPTIMAL,sop tighter
+PDE,7/stability_dual,stripped,stability_dual,no,1,4.66 (unstable for lam>4.66),infeasible,0,0.39,127,unknown,0,0.36,780,neither,1,0.00,0.39,107,2,0.03,0.33,147,PRIMAL_INFEASIBLE_CER,UNKNOWN,neither
+PDE,34,light,stability,no,2,stable for lam<=2*pi^2 (lam=19),certified,1,6.01,92552,certified,1,13.96,187984,same,1,2.59,3.42,2744,2,11.03,2.93,3075,OPTIMAL,OPTIMAL,same
+PDE,36,light,stability,no,2,,skipped,NaN,0.01,NaN,infeasible,0,1652.97,3006976,skipped,0,0.00,0.01,NaN,3,1639.67,13.30,20888,-,PRIMAL_INFEASIBLE_CER,skipped
+PDE,36,stripped,stability,no,2,,infeasible,0,708.66,1705652,infeasible,0,192.70,751936,neither,1,676.77,31.89,16880,2,185.22,7.48,12248,UNKNOWN,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE19,stripped,Hinf_control,no,1,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),unknown,0.0045700428,0.81,257,error,NaN,0.17,NaN,sop error,1,0.01,0.80,65,0,0.00,0.17,NaN,UNKNOWN,-,sop error
+DDE,DDE04,stripped,stability,yes,1,6.17258,lo_fail,NaN,0.46,656,converged,6.1665521,5.61,3532,sop only,1,0.02,0.44,308,17,1.22,4.39,508,UNKNOWN,OPTIMAL,sop only
+PDE,21,stripped,Hinf_gain,no,1,veryheavy=0.8419;heavy=0.8419;light=0.8424,unknown,9.4038827,0.56,577,certified,0.84187746,0.61,3409,sop only,1,0.02,0.54,273,1,0.04,0.57,460,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS02/stability_dual,light,stability_dual,no,1,stable at tau=20 (literature: tau<.7516),certified,1,0.44,1916,certified,1,0.24,1852,same,1,0.04,0.40,464,1,0.03,0.21,460,OPTIMAL,OPTIMAL,same
+PDE,38,heavy,stability,no,2,,skipped,NaN,0.02,NaN,skipped,NaN,0.03,NaN,skipped,0,0.00,0.02,NaN,0,0.00,0.03,NaN,-,-,skipped
+NDSDDF,NDS02,heavy,stability,no,1,stable at tau=20 (literature: tau<.7516),certified,1,0.54,3140,certified,1,0.35,6100,same,1,0.05,0.49,516,1,0.08,0.27,596,OPTIMAL,OPTIMAL,same
+DDE,DDE13,veryheavy,Hinf_control,no,1,1.339 (tau=2),certified,1.3418419,88.67,38983,certified,1.3411285,1.51,32143,sop tighter,1,0.89,87.78,744,1,0.75,0.76,694,OPTIMAL,OPTIMAL,sop tighter
+PDE,24,light,Hinf_gain,no,1,8.2136,certified,8.8654107,0.54,497,certified,8.2137125,0.38,929,sop tighter,1,0.01,0.53,149,1,0.03,0.35,156,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE16,stripped,Hinf_control,no,1,0.9630,inaccurate,1.5782226,34.27,9364,certified,0.96293761,5.73,49900,sop only,1,0.80,33.47,1603,1,4.30,1.43,3590,UNKNOWN,OPTIMAL,sop only
+DDE,DDE01,stripped,stability,yes,1,2.04 (analytical range [0.2; 2.04]),lo_fail,NaN,0.46,656,converged,2.0141016,6.93,3532,sop only,1,0.01,0.45,308,18,1.58,5.35,508,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,48,stripped,Hinf_estimator,no,2,,error,NaN,2.05,NaN,certified,0.005225697,15.19,110135,stock error,0,0.00,2.05,NaN,1,5.99,9.20,4568,-,OPTIMAL,stock error
+PDE,33,stripped,stability,no,2,,certified,1,38.24,425198,certified,1,5.40,103744,same,1,20.03,18.21,3920,1,2.28,3.12,2106,OPTIMAL,OPTIMAL,same
+PDE,13.2/stability_dual,veryheavy,stability_dual,no,1,stable,certified,1,2.26,37072,certified,1,1.10,25936,same,1,1.36,0.90,1876,1,0.64,0.46,1828,OPTIMAL,OPTIMAL,same
+DDE,DDE18,light,Hinf_control,no,1,0.4092 (n=3),certified,0.39947318,3.61,6031,certified,0.3791484,1.01,13672,sop tighter,1,0.18,3.43,775,1,0.38,0.63,973,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE22,veryheavy,Hinf_estimator,no,1,1.3501,certified,1.3500949,820.63,150237,certified,1.3500949,4.43,123397,same,1,1.91,818.72,2630,1,2.62,1.81,2442,OPTIMAL,OPTIMAL,same
+PDE,26,heavy,Hinf_gain,no,1,2.1457,certified,2.1456957,0.78,6960,certified,2.1456961,0.79,13728,same,1,0.12,0.66,1426,1,0.26,0.53,1519,OPTIMAL,OPTIMAL,same
+PDE,9,light,stability,yes,1,0 (stable for k<0),converged,-0.00024414062,6.94,479,converged,-0.00024414062,5.49,463,same,12,0.13,6.81,136,22,0.43,5.06,136,OPTIMAL,OPTIMAL,same
+PDE,28,heavy,Hinf_estimator,no,1,1.0005,certified,1.000119,4.82,780,certified,1.0000414,0.65,1827,sop tighter,1,0.03,4.79,64,1,0.06,0.59,88,OPTIMAL,OPTIMAL,sop tighter
+PDE,8/stability_dual,light,stability_dual,no,1,9.8696 (stable for lam<pi^2),infeasible,0,0.57,2244,infeasible,0,0.96,6548,neither,1,0.04,0.53,712,3,0.31,0.65,768,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+PDE,12,light,stability,yes,1,21 (stable for R<21; not tight),lo_fail,NaN,0.58,3636,hi_pass,37.5,0.61,3492,sop only,1,0.15,0.43,1135,2,0.17,0.44,1115,UNKNOWN,OPTIMAL,sop only
+PDE,45,stripped,Hinf_gain,no,2,exact=0.11101,unknown,0.25217674,277.39,904571,unknown,3283.7071,24.22,194191,neither,1,264.95,12.44,13021,1,17.64,6.58,3568,UNKNOWN,UNKNOWN,neither
+DDE,DDE13,stripped,Hinf_control,no,1,1.339 (tau=2),unknown,9.9695219,1.12,646,certified,1.4303321,1.02,3015,sop only,1,0.03,1.09,138,1,0.10,0.92,248,UNKNOWN,OPTIMAL,sop only
+DDE,DDE03/stability_dual,stripped,stability_dual,no,1,1.71785 (taumin=.100174),infeasible,0,0.39,207,certified,1,0.30,545,sop only,1,0.00,0.39,93,1,0.01,0.29,132,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,30,stripped,Hinf_control,no,1,heavy=0.6594,infeasible,0.0004707612,1.36,198,inaccurate,0.65069408,1.71,866,neither,1,0.01,1.35,70,1,0.06,1.65,93,PRIMAL_INFEASIBLE_CER,UNKNOWN,neither
+DDE,DDE18,veryheavy,Hinf_control,no,1,0.4092 (n=3),unknown,0.33537122,415.73,94303,certified,0.33468658,4.91,78328,sop only,1,4.06,411.67,2089,1,3.62,1.29,1945,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE06,light,stability,yes,1,3 (bmax),converged,3,5.75,1764,converged,3,7.11,5732,same,11,0.57,5.18,416,29,2.79,4.32,518,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,same
+PDE,14,light,stability,no,1,stable (TOC: PDE stable without damping),certified,1,0.53,6464,certified,1,0.47,6208,same,1,0.14,0.39,1544,1,0.15,0.32,1476,OPTIMAL,OPTIMAL,same
+DDE,DDE08,light,stability,yes,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),converged,1.1712036,5.99,749,converged,1.4185425,4.72,1237,sop tighter,12,0.22,5.77,187,29,0.57,4.15,205,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE04/stability_dual,light,stability_dual,no,1,6.17258,certified,1,0.46,1916,certified,1,0.27,1852,same,1,0.04,0.42,448,1,0.04,0.23,444,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS08,stripped,stability,yes,1,0.02755,lo_fail,NaN,0.42,2624,converged,0.027307861,10.85,7408,sop only,1,0.04,0.38,1280,13,6.81,4.04,1872,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,19,stripped,stability,no,1,stable,certified,1,0.37,1143,certified,1,0.41,3492,same,1,0.02,0.35,570,1,0.10,0.31,848,OPTIMAL,OPTIMAL,same
+PDE,3,veryheavy,stability,no,1,stable,certified,1,3.68,83412,certified,1,2.20,58356,same,1,2.76,0.92,4194,1,1.86,0.34,3987,OPTIMAL,OPTIMAL,same
+PDE,16,heavy,stability,no,1,,infeasible,0,0.68,12144,infeasible,0,11.44,122992,neither,1,0.00,0.68,4148,3,10.52,0.92,6864,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE10/Hinf_gain_dual,light,Hinf_gain_dual,no,1,0.2364,certified,0.23692132,0.62,2109,certified,0.23645073,0.37,3837,sop tighter,1,0.05,0.57,481,1,0.07,0.30,532,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE11/Hinf_gain_dual,stripped,Hinf_gain_dual,no,1,2.87,unknown,16716.275,0.47,277,certified,2.8779855,0.60,1246,sop only,1,0.01,0.46,127,1,0.06,0.54,181,UNKNOWN,OPTIMAL,sop only
+PDE,42,stripped,stability,no,2,,infeasible,0,21.07,135405,error,NaN,5.33,NaN,sop error,1,9.74,11.33,4305,0,0.00,5.33,NaN,PRIMAL_INFEASIBLE_CER,-,sop error
+PDE,1/stability_dual,stripped,stability_dual,no,1,stable (v=-1),certified,1,0.30,127,certified,1,0.40,388,same,1,0.00,0.30,60,1,0.01,0.39,90,OPTIMAL,OPTIMAL,same
+PDE,44,veryheavy,stability,yes,1,0.5 (stable for mu<0.5),lo_fail,NaN,7.19,149644,lo_fail,NaN,31.21,244828,neither,1,5.35,1.84,7948,4,28.53,2.68,8543,UNKNOWN,UNKNOWN,neither
+PDE,42,light,stability,no,2,,certified,1,7.06,8683,error,NaN,3.47,NaN,sop error,1,0.18,6.88,1283,0,0.00,3.47,NaN,OPTIMAL,-,sop error
+PDE,10,veryheavy,stability,no,1,stable (k=-2),certified,1,1.10,9607,certified,1,0.55,6775,same,1,0.08,1.02,524,1,0.05,0.50,508,OPTIMAL,OPTIMAL,same
+PDE,44,light,stability,yes,1,0.5 (stable for mu<0.5),lo_fail,NaN,1.12,6764,lo_fail,NaN,2.43,22412,neither,1,0.18,0.94,1983,3,1.14,1.29,2231,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE26/H2_norm_dual,light,H2_norm_dual,no,1,3.8307,certified,3.8308308,2.76,26580,certified,3.8306886,3.31,54996,sop tighter,1,1.92,0.84,4981,1,2.87,0.44,5899,OPTIMAL,OPTIMAL,sop tighter
+NDSDDF,NDS05,stripped,stability,yes,1,1.5804? (stability verified for h<2.04),lo_fail,NaN,0.49,2316,converged,1.5797836,16.22,13296,sop only,1,0.13,0.36,1136,21,10.14,6.08,1904,UNKNOWN,UNKNOWN,sop only
+PDE,16,stripped,stability,no,1,,infeasible,0,0.62,3440,infeasible,0,5.44,52928,neither,1,0.00,0.62,4025,2,4.64,0.80,6192,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE02,veryheavy,stability,yes,1,2 ([1]: tauNmax<2),converged,2.0839844,103.40,150992,converged,2.0839844,235.56,106064,same,11,87.55,15.85,7312,26,224.27,11.29,7024,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS09,light,stability,yes,1,0.603,converged,0.5994668,12.23,11975,converged,0.5994668,24.60,37475,same,11,6.14,6.09,2975,19,20.61,3.99,3650,UNKNOWN,UNKNOWN,same
+PDE,46,heavy,Hinf_gain,no,2,exact=0.17110,skipped,NaN,0.02,NaN,unknown,8.5889181,277.64,1398292,skipped,0,0.00,0.02,NaN,2,263.42,14.22,9922,-,UNKNOWN,skipped
+PDE,8,veryheavy,stability,yes,1,9.8696 (stable for lam<pi^2),lo_fail,NaN,1.98,39812,lo_fail,NaN,6.97,64196,neither,1,0.94,1.04,2388,4,4.80,2.17,2522,UNKNOWN,UNKNOWN,neither
+NDSDDF,NDS10,heavy,stability,no,1,,certified,1,0.63,3140,certified,1,0.30,6100,same,1,0.04,0.59,516,1,0.05,0.25,596,OPTIMAL,OPTIMAL,same
+PDE,49,veryheavy,H2_norm,no,1,0.1016,certified,0.10157584,1.23,17511,certified,0.10157583,0.89,11847,same,1,0.08,1.15,614,1,0.07,0.82,579,OPTIMAL,OPTIMAL,same
+PDE,4.3,veryheavy,stability,no,1,stable,certified,1,1.23,37072,certified,1,0.62,25936,same,1,0.51,0.72,1864,1,0.37,0.25,1772,OPTIMAL,OPTIMAL,same
+PDE,32,light,Hinf_control,no,1,heavy=0.5971,unknown,3.1924802,1.54,1861,unknown,0.55109001,1.41,7249,neither,1,0.09,1.45,223,2,0.36,1.05,348,UNKNOWN,UNKNOWN,neither
+NDSDDF,NDS02,stripped,stability,no,1,stable at tau=20 (literature: tau<.7516),unknown,0,0.38,656,certified,1,0.41,1852,sop only,1,0.03,0.35,320,1,0.04,0.37,468,OPTIMAL,OPTIMAL,same
+PDE,4.5,stripped,stability,no,1,stable,infeasible,0,0.38,508,infeasible,0,0.44,3120,neither,1,0.00,0.38,276,2,0.10,0.34,444,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+PDE,15,veryheavy,stability_dual,no,1,TOC: (unstable); PDE stable with damping c>0,infeasible,0,9.13,148288,infeasible,0,33.02,243136,neither,1,7.83,1.30,7215,4,31.53,1.49,8007,UNKNOWN,UNKNOWN,neither
+DDE,DDE26,light,H2_norm,no,1,3.8307,certified,3.8309416,2.68,26580,unknown,3.8308423,3.34,54996,stock only,1,1.78,0.90,4998,1,2.80,0.54,5952,OPTIMAL,OPTIMAL,sop tighter
+PDE,4.4,light,stability,no,1,stable,certified,1,0.38,1616,certified,1,0.25,1552,same,1,0.03,0.35,410,1,0.03,0.22,390,OPTIMAL,OPTIMAL,same
+DDE,DDE01/stability_dual,stripped,stability_dual,no,1,2.04 (analytical range [0.2; 2.04]),infeasible,0,0.36,656,inaccurate,0.5,0.72,3532,neither,1,0.01,0.35,308,2,0.19,0.53,500,PRIMAL_INFEASIBLE_CER,UNKNOWN,neither
+PDE,51,stripped,H2_estimator,no,1,veryheavy=1.2683,infeasible,27876.492,1.20,203,certified,1.2707131,0.91,1344,sop only,1,0.01,1.19,64,1,0.06,0.85,113,UNKNOWN,OPTIMAL,sop only
+NDSDDF,DDF03,veryheavy,Hinf_control,no,1,,inaccurate,0.00091560022,20.40,39817,error,NaN,0.13,NaN,sop error,1,1.41,18.99,777,0,0.00,0.13,NaN,UNKNOWN,-,sop error
+NDSDDF,NDS02,veryheavy,stability,no,1,stable at tau=20 (literature: tau<.7516),certified,1,1.39,38428,certified,1,0.93,27100,same,1,0.55,0.84,1956,1,0.49,0.44,1884,OPTIMAL,OPTIMAL,same
+DDE,DDE07,veryheavy,stability,yes,1,1.3722,converged,1.3721821,18.09,38428,converged,1.3721821,35.80,27100,same,11,8.63,9.46,1890,29,29.41,6.39,1818,OPTIMAL,OPTIMAL,same
+PDE,34,heavy,stability,no,2,stable for lam<=2*pi^2 (lam=19),skipped,NaN,0.02,NaN,certified,1,42.47,751849,skipped,0,0.00,0.02,NaN,1,38.56,3.91,5287,-,OPTIMAL,skipped
+PDE,36,heavy,stability,no,2,,skipped,NaN,0.02,NaN,skipped,NaN,0.02,NaN,skipped,0,0.00,0.02,NaN,0,0.00,0.02,NaN,-,-,skipped
+NDSDDF,NDS03/stability_dual,veryheavy,stability_dual,no,1,stable (tau=[.3 .6]),certified,1,7.44,150992,certified,1,6.60,106064,same,1,5.80,1.64,7352,1,5.88,0.72,7160,OPTIMAL,OPTIMAL,same
+PDE,24,veryheavy,Hinf_gain,no,1,8.2136,certified,8.2137246,1.02,9769,certified,8.2140624,0.83,9397,sop looser,1,0.18,0.84,544,2,0.34,0.49,553,OPTIMAL,OPTIMAL,sop looser
+DDE,DDE08/stability_dual,light,stability_dual,no,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),certified,1,0.44,749,certified,1,0.23,733,same,1,0.01,0.43,184,1,0.01,0.22,186,OPTIMAL,OPTIMAL,same
+PDE,20,light,Hinf_gain,no,1,0.5162,certified,0.51633301,1.30,497,certified,0.50081445,0.88,929,sop tighter,1,0.03,1.27,111,1,0.05,0.83,124,OPTIMAL,OPTIMAL,sop tighter
+PDE,4.2,stripped,stability,no,1,stable,certified,1,2.34,508,certified,1,0.28,1552,same,1,0.01,2.33,266,1,0.03,0.25,390,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS11,veryheavy,stability,no,1,,unknown,0,0.76,9953,unknown,0,0.51,7073,neither,1,0.06,0.70,536,1,0.09,0.42,518,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS02/stability_dual,heavy,stability_dual,no,1,stable at tau=20 (literature: tau<.7516),certified,1,0.51,3140,certified,1,0.34,6100,same,1,0.05,0.46,504,1,0.07,0.27,584,OPTIMAL,OPTIMAL,same
+PDE,22,light,Hinf_gain,no,1,0.2085,certified,0.20847444,0.53,497,certified,0.20847421,0.41,929,sop tighter,1,0.01,0.52,127,1,0.01,0.40,140,OPTIMAL,OPTIMAL,sop tighter
+PDE,33,veryheavy,stability,no,2,,skipped,NaN,0.02,NaN,certified,1,306.38,2376580,skipped,0,0.00,0.02,NaN,1,295.74,10.64,10368,-,OPTIMAL,skipped
+PDE,5,light,stability,yes,1,9.8696 (stable for lam<pi^2),converged,9.8599661,4.88,404,converged,9.8599661,3.25,780,same,11,0.11,4.77,132,17,0.18,3.07,136,OPTIMAL,OPTIMAL,same
+DDE,DDE16,light,Hinf_control,no,1,0.9630,certified,0.96298353,230.41,32161,certified,0.96293737,5.45,86188,sop tighter,1,3.65,226.76,3061,1,4.54,0.91,4589,OPTIMAL,OPTIMAL,sop tighter
+PDE,13.2,light,stability,no,1,stable,certified,1,0.64,1904,certified,1,1.21,3280,same,1,0.02,0.62,912,1,0.05,1.16,908,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS07,veryheavy,stability,yes,1,0.5? (stability verified for h<.603),converged,0.44453613,18.60,37748,converged,0.44453613,32.11,61628,same,12,8.47,10.13,1868,30,26.14,5.97,2066,UNKNOWN,UNKNOWN,same
+PDE,24,heavy,Hinf_gain,no,1,8.2136,certified,8.2140083,0.59,820,certified,8.2140553,0.45,1596,sop looser,1,0.02,0.57,155,1,0.05,0.40,167,OPTIMAL,OPTIMAL,sop looser
+PDE,7,light,stability,yes,1,4.66 (unstable for lam>4.66),lo_fail,NaN,0.49,404,converged,4.6508984,3.38,1368,sop only,1,0.01,0.48,147,25,0.23,3.15,155,UNKNOWN,UNKNOWN,sop only
+PDE,29,veryheavy,Hinf_control,no,1,1.0000,certified,1.0000039,1530.48,9805,certified,1.000004,0.84,8082,same,1,0.07,1530.41,207,1,0.05,0.79,207,OPTIMAL,OPTIMAL,same
+PDE,2.3,veryheavy,stability,no,1,stable,certified,1,1.12,37072,certified,1,0.82,25936,same,1,0.44,0.68,1864,1,0.30,0.52,1772,OPTIMAL,OPTIMAL,same
+DDE,DDE18,heavy,Hinf_control,no,1,0.4092 (n=3),unknown,0.38939641,6.21,9514,unknown,0.37579925,1.27,20179,neither,1,0.36,5.85,856,1,0.58,0.69,1126,OPTIMAL,OPTIMAL,sop tighter
+PDE,10,light,stability,no,1,stable (k=-2),infeasible,0,0.63,479,unknown,0,0.77,1499,neither,1,0.02,0.61,136,3,0.08,0.69,165,UNKNOWN,UNKNOWN,neither
+NDSDDF,NDS09/stability_dual,stripped,stability_dual,no,1,0.603,infeasible,0,0.48,4100,unknown,0,1.08,11575,neither,1,0.10,0.38,1975,1,0.74,0.34,2875,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE26/H2_norm_dual,stripped,H2_norm_dual,no,1,3.8307,unknown,5.5607079,1.02,8020,certified,3.8306886,4.76,54996,sop only,1,0.47,0.55,3259,1,4.22,0.54,5899,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS05/stability_dual,veryheavy,stability_dual,no,1,1.5804? (stability verified for h<2.04),certified,1,7.45,150992,certified,1,5.39,106064,same,1,5.85,1.60,7272,1,4.99,0.40,7080,OPTIMAL,OPTIMAL,same
+DDE,DDE01/stability_dual,veryheavy,stability_dual,no,1,2.04 (analytical range [0.2; 2.04]),certified,1,2.39,38428,certified,1,1.21,27100,same,1,1.60,0.79,1884,1,0.87,0.34,1836,OPTIMAL,OPTIMAL,same
+PDE,9,heavy,stability,yes,1,0 (stable for k<0),converged,-0.00024414062,7.35,785,converged,-0.00024414062,6.43,1525,same,12,0.17,7.18,146,22,1.06,5.37,168,OPTIMAL,OPTIMAL,same
+DDE,DDE04,light,stability,yes,1,6.17258,converged,6.0761334,5.82,1916,converged,6.1665521,4.64,3532,sop tighter,11,0.68,5.14,460,19,1.33,3.31,508,UNKNOWN,OPTIMAL,sop tighter
+PDE,52,light,H2_control,no,1,,unknown,116.48755,1.30,766,certified,1.0962356,1.68,2523,sop only,1,0.04,1.26,108,1,0.23,1.45,148,UNKNOWN,OPTIMAL,sop only
+PDE,38,veryheavy,stability,no,2,,skipped,NaN,0.02,NaN,skipped,NaN,0.02,NaN,skipped,0,0.00,0.02,NaN,0,0.00,0.02,NaN,-,-,skipped
+PDE,12,heavy,stability,yes,1,21 (stable for R<21; not tight),hi_pass,37.5,1.08,6183,hi_pass,37.5,0.89,12519,same,2,0.18,0.90,1179,2,0.35,0.54,1295,OPTIMAL,OPTIMAL,same
+PDE,8/stability_dual,heavy,stability_dual,no,1,9.8696 (stable for lam<pi^2),infeasible,0,0.68,3564,infeasible,0,1.28,14172,neither,1,0.11,0.57,748,3,0.59,0.69,904,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+NDSDDF,DDF01/stability_dual,stripped,stability_dual,no,1,,certified,1,0.26,508,certified,1,0.22,1552,same,1,0.01,0.25,252,1,0.04,0.18,376,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS05/stability_dual,stripped,stability_dual,no,1,1.5804? (stability verified for h<2.04),infeasible,0,0.37,2316,certified,1,0.62,6800,sop only,1,0.04,0.33,1104,1,0.31,0.31,1640,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+DDE,DDE06,heavy,stability,yes,1,3 (bmax),converged,3,6.09,2940,converged,3,11.44,12996,same,11,0.95,5.14,452,29,5.90,5.54,644,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,same
+PDE,14,heavy,stability,no,1,stable (TOC: PDE stable without damping),certified,1,0.63,10992,certified,1,0.87,22256,same,1,0.20,0.43,1664,1,0.45,0.42,1932,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS07/stability_dual,light,stability_dual,no,1,0.5? (stability verified for h<.603),certified,1,0.48,1764,certified,1,0.25,1700,same,1,0.03,0.45,414,1,0.03,0.22,410,OPTIMAL,OPTIMAL,same
+PDE,2.2,stripped,stability,no,1,stable,certified,1,0.32,508,certified,1,0.26,1552,same,1,0.01,0.31,276,1,0.02,0.24,404,OPTIMAL,OPTIMAL,same
+DDE,DDE08,heavy,stability,yes,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),converged,1.2124268,5.83,1127,converged,1.42229,6.17,3963,sop tighter,12,0.29,5.54,206,26,1.30,4.87,268,UNKNOWN,PRIMAL_INFEASIBLE_CER,sop tighter
+DDE,DDE04/stability_dual,heavy,stability_dual,no,1,6.17258,certified,1,0.48,3140,certified,1,0.41,6100,same,1,0.05,0.43,488,1,0.10,0.31,568,OPTIMAL,OPTIMAL,same
+DDE,DDE17/Hinf_control,light,Hinf_control,no,1,,certified,9.3513437,31.21,11491,certified,9.3513439,1.21,29146,same,1,0.21,31.00,1135,1,0.53,0.68,1647,OPTIMAL,OPTIMAL,same
+PDE,40,light,stability,no,2,,certified,1,3.78,16694,unknown,0,5.26,105206,stock only,1,0.27,3.51,1405,1,2.30,2.96,2154,OPTIMAL,OPTIMAL,same
+DDE,DDE25,stripped,H2_norm,no,1,3.6724,unknown,685.75156,0.54,285,certified,3.6746237,0.53,1746,sop only,1,0.01,0.53,116,1,0.05,0.48,198,UNKNOWN,OPTIMAL,sop only
+DDE,DDE10,stripped,Hinf_gain,no,1,0.2364,unknown,0.46237241,0.50,733,certified,0.23644309,0.59,3837,sop only,1,0.02,0.48,337,1,0.06,0.53,544,UNKNOWN,OPTIMAL,sop only
+PDE,13,veryheavy,stability,no,1,stable,certified,1,1.60,37072,certified,1,0.90,25936,same,1,0.88,0.72,1868,1,0.61,0.29,1804,OPTIMAL,OPTIMAL,same
+DDE,DDE10/Hinf_gain_dual,heavy,Hinf_gain_dual,no,1,0.2364,certified,0.23645241,0.59,3413,certified,0.23644362,0.46,6517,sop tighter,1,0.05,0.54,525,1,0.11,0.35,608,OPTIMAL,OPTIMAL,sop tighter
+NDSDDF,NDS07/stability_dual,veryheavy,stability_dual,no,1,0.5? (stability verified for h<.603),certified,1,1.24,37748,certified,1,0.52,26516,same,1,0.43,0.81,1818,1,0.27,0.25,1770,OPTIMAL,OPTIMAL,same
+PDE,42,heavy,stability,no,2,,skipped,NaN,0.02,NaN,error,NaN,4.77,NaN,sop error,0,0.00,0.02,NaN,0,0.00,4.77,NaN,-,-,sop error
+NDSDDF,NDS07,light,stability,yes,1,0.5? (stability verified for h<.603),converged,0.44416626,5.82,1764,converged,0.44453613,5.45,5732,sop tighter,12,0.40,5.42,432,24,1.32,4.13,534,OPTIMAL,UNKNOWN,sop tighter
+PDE,2.4,light,stability,no,1,stable,certified,1,0.37,1616,certified,1,0.25,1552,same,1,0.02,0.35,424,1,0.02,0.23,404,OPTIMAL,OPTIMAL,same
+DDE,DDE26/H2_norm_dual,heavy,H2_norm_dual,no,1,3.8307,certified,3.8306693,4.11,47124,certified,3.8306405,6.21,99540,sop tighter,1,3.09,1.02,5551,1,5.59,0.62,7045,OPTIMAL,OPTIMAL,sop tighter
+PDE,44,heavy,stability,yes,1,0.5 (stable for mu<0.5),lo_fail,NaN,1.24,11372,lo_fail,NaN,7.02,51228,neither,1,0.31,0.93,2072,3,5.55,1.47,2715,PRIMAL_INFEASIBLE_CER,PRIMAL_INFEASIBLE_CER,neither
+DDE,DDE22,stripped,Hinf_estimator,no,1,1.3501,inaccurate,1.4697876,1.69,2060,certified,1.3500949,0.91,10517,sop only,1,0.13,1.56,370,1,0.17,0.74,782,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS09,heavy,stability,yes,1,0.603,converged,0.5994668,15.51,19625,converged,0.5994668,52.84,83625,same,11,8.93,6.58,3225,19,47.67,5.17,4475,UNKNOWN,UNKNOWN,same
+PDE,30,light,Hinf_control,no,1,heavy=0.6594,unknown,1.4239786,1.22,587,unknown,0.64991793,1.09,1394,neither,1,0.02,1.20,95,1,0.06,1.03,105,UNKNOWN,OPTIMAL,sop only
+DDE,DDE11,veryheavy,Hinf_gain,no,1,2.87,certified,2.8666078,1.03,10734,certified,2.8666078,0.44,7710,same,1,0.07,0.96,562,1,0.05,0.39,542,OPTIMAL,OPTIMAL,same
+PDE,18,veryheavy,stability_dual,no,1,stable (TOC: dual stable),certified,1,1.27,37072,certified,1,0.79,25936,same,1,0.52,0.75,1880,1,0.50,0.29,1844,OPTIMAL,OPTIMAL,same
+PDE,6/stability_dual,veryheavy,stability_dual,no,1,2.467 (stable for lam<pi^2/4),certified,1,0.68,9268,certified,1,0.26,6484,same,1,0.06,0.62,487,1,0.04,0.22,479,OPTIMAL,OPTIMAL,same
+DDE,DDE24,light,Hinf_estimator,no,1,,certified,1.0462873,37.04,6845,certified,1.0439636,1.22,17909,sop tighter,1,0.27,36.77,670,1,0.43,0.79,994,OPTIMAL,OPTIMAL,sop tighter
+PDE,4.2,light,stability,no,1,stable,certified,1,0.37,1616,certified,1,0.22,1552,same,1,0.02,0.35,410,1,0.03,0.19,390,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS07/stability_dual,stripped,stability_dual,no,1,0.5? (stability verified for h<.603),infeasible,0,0.34,579,certified,1,0.33,1700,sop only,1,0.01,0.33,276,1,0.03,0.30,410,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,28,stripped,Hinf_estimator,no,1,1.0005,certified,1.381503,3.11,140,certified,1.0000745,0.69,700,sop tighter,1,0.01,3.10,39,1,0.04,0.65,62,OPTIMAL,OPTIMAL,sop tighter
+PDE,13,stripped,stability,no,1,stable,infeasible,0,0.43,508,certified,1,0.44,1552,sop only,1,0.00,0.43,280,1,0.09,0.35,420,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,32,heavy,Hinf_control,no,1,0.5971,unknown,0.58725334,2.06,3153,unknown,0.54215546,1.32,10413,neither,1,0.11,1.95,243,2,0.28,1.04,402,UNKNOWN,OPTIMAL,sop only
+NDSDDF,DDF01/stability_dual,light,stability_dual,no,1,,certified,1,0.36,1616,certified,1,0.17,1552,same,1,0.02,0.34,384,1,0.02,0.15,376,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS03/stability_dual,light,stability_dual,no,1,stable (tau=[.3 .6]),certified,1,0.63,7056,certified,1,0.39,6800,same,1,0.18,0.45,1688,1,0.16,0.23,1672,OPTIMAL,OPTIMAL,same
+DDE,DDE25/H2_norm_dual,stripped,H2_norm_dual,no,1,3.6724,unknown,6.9683108,0.51,285,certified,3.6723929,0.37,1746,sop only,1,0.02,0.49,116,1,0.01,0.36,196,UNKNOWN,OPTIMAL,sop only
+NDSDDF,NDS09/stability_dual,veryheavy,stability_dual,no,1,0.603,certified,1,18.42,240175,certified,1,19.60,169375,same,1,15.39,3.03,12000,1,18.68,0.92,11700,OPTIMAL,OPTIMAL,same
+DDE,DDE20,veryheavy,Hinf_estimator,no,1,0.2357,certified,0.23570226,5.78,10747,certified,0.23570226,0.88,8946,same,1,0.04,5.74,254,1,0.04,0.84,235,OPTIMAL,OPTIMAL,same
+DDE,DDE11/Hinf_gain_dual,veryheavy,Hinf_gain_dual,no,1,2.87,certified,2.8666078,0.95,10734,certified,2.8666078,0.38,7710,same,1,0.07,0.88,559,1,0.05,0.33,539,OPTIMAL,OPTIMAL,same
+DDE,DDE26,heavy,H2_norm,no,1,3.8307,certified,3.8306781,3.81,47124,certified,3.8305602,5.96,99540,sop tighter,1,2.79,1.02,5568,1,5.34,0.62,7098,OPTIMAL,OPTIMAL,sop tighter
+PDE,4.4,heavy,stability,no,1,stable,certified,1,0.41,2748,certified,1,0.28,5564,same,1,0.04,0.37,436,1,0.06,0.22,492,OPTIMAL,OPTIMAL,same
+NDSDDF,NDS03/stability_dual,stripped,stability_dual,no,1,stable (tau=[.3 .6]),certified,1,0.39,2316,certified,1,0.54,6800,same,1,0.05,0.34,1128,1,0.21,0.33,1672,OPTIMAL,OPTIMAL,same
+DDE,DDE12,light,Hinf_gain,no,1,4.9784,certified,5.0724782,0.59,2109,certified,4.9840028,0.41,3837,sop tighter,1,0.07,0.52,475,1,0.09,0.32,534,OPTIMAL,OPTIMAL,sop tighter
+DDE,DDE08,stripped,stability,yes,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),lo_fail,NaN,0.37,311,converged,1.4185425,6.01,1237,sop only,1,0.00,0.37,140,22,0.43,5.58,205,PRIMAL_INFEASIBLE_CER,OPTIMAL,sop only
+PDE,25,stripped,Hinf_gain,no,1,0.8102,unknown,39014.559,0.53,577,certified,0.81029224,0.82,3409,sop only,1,0.01,0.52,393,1,0.09,0.73,582,UNKNOWN,OPTIMAL,sop only
+PDE,10,stripped,stability,no,1,stable (k=-2),infeasible,0,0.61,167,unknown,0,0.76,883,neither,1,0.00,0.61,98,2,0.05,0.71,150,PRIMAL_INFEASIBLE_CER,UNKNOWN,neither
+DDE,DDE08/stability_dual,heavy,stability_dual,no,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),certified,1,0.44,1127,certified,1,0.32,1975,same,1,0.01,0.43,203,1,0.03,0.29,229,OPTIMAL,OPTIMAL,same
+PDE,20,heavy,Hinf_gain,no,1,0.5011,certified,0.50106073,0.77,820,certified,0.50066378,0.80,1596,sop tighter,1,0.05,0.72,120,1,0.07,0.73,141,OPTIMAL,OPTIMAL,sop tighter
+PDE,3,light,stability,no,1,stable,certified,1,0.49,3636,unknown,0,0.38,3492,stock only,1,0.11,0.38,954,1,0.13,0.25,909,OPTIMAL,OPTIMAL,same
+DDE,DDE14,light,Hinf_control,no,1,0.3953,certified,0.3952848,2.48,2007,certified,0.39528506,0.41,4983,same,1,0.03,2.45,220,1,0.03,0.38,302,OPTIMAL,OPTIMAL,same

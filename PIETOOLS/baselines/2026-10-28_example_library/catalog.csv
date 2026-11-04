@@ -1,0 +1,143 @@
+library,id,name,type,executive,parameter,documented,bisect,lo,hi,dim,pie_size,run,setter_effective,note
+PDE,1,Transport_Eq,stability,PIETOOLS_PIE2PDEstability,,stable (v=-1),no,NaN,NaN,1,[0 1],yes,NaN,
+PDE,1/stability_dual,Transport_Eq,stability_dual,PIETOOLS_PIE2PDEstability_dual,,stable (v=-1),no,NaN,NaN,1,[0 1],yes,NaN,
+PDE,2,Lamare,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,index 2 = 2.1
+PDE,2.2,Lamare,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,2.3,Lamare,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,2.4,Lamare,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,3,Diagne,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 3],yes,NaN,
+PDE,4,Saba,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,index 4 = 4.1
+PDE,4.2,Saba,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,4.3,Saba,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,4.4,Saba,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,4.5,Saba,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,5,Reaction_Diffusion_Eq,stability,PIETOOLS_PIE2PDEstability,lam,9.8696 (stable for lam<pi^2),yes,7.4022,12.337,1,[0 1],yes,1,
+PDE,6,Reaction_Diffusion_Gahlawat,stability,PIETOOLS_PIE2PDEstability,lam,2.467 (stable for lam<pi^2/4),yes,1.85055,3.08425,1,[0 1],yes,1,
+PDE,6/stability_dual,Reaction_Diffusion_Gahlawat,stability_dual,PIETOOLS_PIE2PDEstability_dual,lam,2.467 (stable for lam<pi^2/4),no,1.85055,3.08425,1,[0 1],yes,1,| single solve at the library default
+PDE,7,Parabolic_Eq_Gahlawat,stability,PIETOOLS_PIE2PDEstability,lam,4.66 (unstable for lam>4.66),yes,3.495,5.825,1,[0 1],yes,1,c is built from lam before params are evaluated: a lam override alone has no effect; the setter rebuilds c
+PDE,7/stability_dual,Parabolic_Eq_Gahlawat,stability_dual,PIETOOLS_PIE2PDEstability_dual,lam,4.66 (unstable for lam>4.66),no,3.495,5.825,1,[0 1],yes,1,c is built from lam before params are evaluated: a lam override alone has no effect; the setter rebuilds c | single solve at the library default
+PDE,8,Heat_Eq_with_ODE_Das,stability,PIETOOLS_PIE2PDEstability,lam,9.8696 (stable for lam<pi^2),yes,7.4022,12.337,1,[4 2],yes,1,
+PDE,8/stability_dual,Heat_Eq_with_ODE_Das,stability_dual,PIETOOLS_PIE2PDEstability_dual,lam,9.8696 (stable for lam<pi^2),no,7.4022,12.337,1,[4 2],yes,1,| single solve at the library default
+PDE,9,Heat_Eq_with_ODE_in_BC,stability,PIETOOLS_PIE2PDEstability,k,0 (stable for k<0),yes,-1,0.25,1,[1 1],yes,1,tolerance relative to the bracket width
+PDE,9/stability_dual,Heat_Eq_with_ODE_in_BC,stability_dual,PIETOOLS_PIE2PDEstability_dual,k,0 (stable for k<0),no,-1,0.25,1,[1 1],yes,1,tolerance relative to the bracket width | single solve at the library default
+PDE,10,Heat_Eq_with_ODE_Tang,stability,PIETOOLS_PIE2PDEstability,,stable (k=-2),no,NaN,NaN,1,[1 1],yes,NaN,
+PDE,11,Reaction_Diffusion_Ahmadi,stability,PIETOOLS_PIE2PDEstability,R,2.7 (stable for R<2.7; not tight),yes,2.025,3.625,1,[0 2],yes,1,default R=2.9 exceeds the documented 2.7; n=1 Dirichlet mode gives R*=pi^2/max(eig(Cm))=2.9306 (inferred)
+PDE,11/stability_dual,Reaction_Diffusion_Ahmadi,stability_dual,PIETOOLS_PIE2PDEstability_dual,R,2.7 (stable for R<2.7; not tight),no,2.025,3.625,1,[0 2],yes,1,default R=2.9 exceeds the documented 2.7; n=1 Dirichlet mode gives R*=pi^2/max(eig(Cm))=2.9306 (inferred) | single solve at the library default
+PDE,12,Reaction_Diffusion_Ahmadi_2,stability,PIETOOLS_PIE2PDEstability,R,21 (stable for R<21; not tight),yes,15.75,37.5,1,[0 3],yes,1,default R=30; Cm strictly lower triangular: cascade of heat equations; stable for every R>0 (inferred)
+PDE,13,Euler_Bernoulli_Beam_Eq,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,index 13 = 13.1
+PDE,13/stability_dual,Euler_Bernoulli_Beam_Eq,stability_dual,PIETOOLS_PIE2PDEstability_dual,,stable,no,NaN,NaN,1,[0 2],yes,NaN,index 13 = 13.1
+PDE,13.2,Euler_Bernoulli_Beam_Eq,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,13.2/stability_dual,Euler_Bernoulli_Beam_Eq,stability_dual,PIETOOLS_PIE2PDEstability_dual,,stable,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,14,Timoshenko_Beam_1,stability,PIETOOLS_PIE2PDEstability,,stable (TOC: PDE stable without damping),no,NaN,NaN,1,[0 4],yes,NaN,
+PDE,15,Timoshenko_Beam_2,stability_dual,PIETOOLS_PIE2PDEstability_dual,,TOC: (unstable); PDE stable with damping c>0,no,NaN,NaN,1,[0 4],yes,NaN,
+PDE,16,Timoshenko_Beam_3,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,1,[0 4],yes,NaN,no documented verdict
+PDE,17,Wave_Eq_Boundary_Damped,stability,PIETOOLS_PIE2PDEstability,,stable for k>0 (k=1),no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,18,Wave_Eq_Datko_Boundary_Damped_1,stability_dual,PIETOOLS_PIE2PDEstability_dual,,stable (TOC: dual stable),no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,19,Wave_Eq_Datko_Boundary_Damped_2,stability,PIETOOLS_PIE2PDEstability,,stable,no,NaN,NaN,1,[0 3],yes,NaN,
+PDE,20,Transport_Eq_with_Disturbance,Hinf_gain,PIETOOLS_Hinf_gain,,veryheavy=0.5000;heavy=0.5011;light=0.5162,no,NaN,NaN,1,[0 1],yes,NaN,
+PDE,20/Hinf_gain_dual,Transport_Eq_with_Disturbance,Hinf_gain_dual,PIETOOLS_Hinf_gain_dual,,veryheavy=0.5000;heavy=0.5058;light=0.5204,no,NaN,NaN,1,[0 1],yes,NaN,
+PDE,21,Wave_Eq_Tip_Damped,Hinf_gain,PIETOOLS_Hinf_gain,,veryheavy=0.8419;heavy=0.8419;light=0.8424,no,NaN,NaN,1,[0 2],yes,NaN,k=0.5
+PDE,21/Hinf_gain_dual,Wave_Eq_Tip_Damped,Hinf_gain_dual,PIETOOLS_Hinf_gain_dual,,veryheavy=0.8419;heavy=0.8552;light=0.8722,no,NaN,NaN,1,[0 2],yes,NaN,k=0.5
+PDE,22,Heat_Eq_with_Distributed_Disturbance,Hinf_gain,PIETOOLS_Hinf_gain,,veryheavy=0.2083;heavy=0.2083;light=0.2085,no,NaN,NaN,1,[0 1],yes,NaN,
+PDE,23,Parabolic_Eq_with_Disturbance,Hinf_gain,PIETOOLS_Hinf_gain,,light=25.249;heavy=23.706;veryheavy=23.622,no,NaN,NaN,1,[0 1],yes,NaN,lam=4.6
+PDE,24,Reaction_Diffusion_Eq_with_Disturbance,Hinf_gain,PIETOOLS_Hinf_gain,,8.2136,no,NaN,NaN,1,[0 1],yes,NaN,lam=(1-1e-2)*pi^2
+PDE,25,Diffusive_Eq_with_Distributed_Disturbance,Hinf_gain,PIETOOLS_Hinf_gain,,0.8102,no,NaN,NaN,1,[0 2],yes,NaN,R=2.6
+PDE,26,Diffusive_Eq_with_Distributed_Disturbance_2,Hinf_gain,PIETOOLS_Hinf_gain,,2.1457,no,NaN,NaN,1,[0 3],yes,NaN,R=21-1e-3
+PDE,27,Transport_Eq_with_Observed_Output,Hinf_estimator,PIETOOLS_Hinf_estimator,,1.0004,no,NaN,NaN,1,[0 1],yes,NaN,
+PDE,28,Heat_Eq_with_Observed_Output,Hinf_estimator,PIETOOLS_Hinf_estimator,,1.0005,no,NaN,NaN,1,[0 1],yes,NaN,
+PDE,29,Reaction_Diffusion_Eq_with_Controlled_Input,Hinf_control,PIETOOLS_Hinf_control,,1.0000,no,NaN,NaN,1,[0 1],yes,NaN,lam=10
+PDE,30,Reaction_Diffusion_Boundary_ODE_Control,Hinf_control,PIETOOLS_Hinf_control,,heavy=0.6594,no,NaN,NaN,1,[1 1],yes,NaN,TOC: MOSEK numerr=2; lam=5
+PDE,31,Euler_Bernoulli_Beam_with_Control,Hinf_control,PIETOOLS_Hinf_control,,light=2.7407e-04,no,NaN,NaN,1,[0 2],yes,NaN,TOC: MOSEK numerr=2; c=0.1
+PDE,32,Wave_Eq_Boundary_ODE_Control,Hinf_control,PIETOOLS_Hinf_control,,heavy=0.5971,no,NaN,NaN,1,[1 2],yes,NaN,TOC: MOSEK numerr=2; c=1
+PDE,33,2D_Transport_Eq,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,2,,yes,NaN,
+PDE,34,2D_KISS_Model,stability,PIETOOLS_PIE2PDEstability,,stable for lam<=2*pi^2 (lam=19),no,NaN,NaN,2,,yes,NaN,
+PDE,35,2D_Reaction_Diffusion_Eq,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,2,,yes,NaN,
+PDE,36,2D_Telegraph_Eq,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,2,,yes,NaN,
+PDE,37,2D_Parabolic_Eq,stability,PIETOOLS_PIE2PDEstability,,stable for a<=pi^2/2 (a=4),no,NaN,NaN,2,,yes,NaN,
+PDE,38,2D_Wave_Eq,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,2,,yes,NaN,
+PDE,39,2D_NS_Antonelli,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,2,,yes,NaN,
+PDE,40,2D_Heat_Eq_with_ODE,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,2,,yes,NaN,
+PDE,41,Heat_Eq_w_Delayed_Boundary_Input,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,1,[0 2],yes,NaN,
+PDE,42,Coupled_ODE_Heat_Eq_w_Delay,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,2,,yes,NaN,
+PDE,43,Heat_Eq_w_Interior_Delay,stability,PIETOOLS_PIE2PDEstability,,stable for tau<1.0347 (tau=1),no,NaN,NaN,2,,yes,NaN,
+PDE,44,Wave_Eq_w_Boundary_Delay,stability,PIETOOLS_PIE2PDEstability,mu,0.5 (stable for mu<0.5),yes,0.375,0.625,1,[1 4],yes,1,listed among the 2-D examples but converts to a 1-D PIE (size [1 4])
+PDE,45,2D_ReactionDiffusion_DDDN,Hinf_gain,PIETOOLS_Hinf_gain,,exact=0.11101,no,NaN,NaN,2,,yes,NaN,
+PDE,46,2D_ReactionDiffusion_DDDD,Hinf_gain,PIETOOLS_Hinf_gain,,exact=0.17110,no,NaN,NaN,2,,yes,NaN,
+PDE,47,2D_ReactionDiffusion_DNDN,Hinf_gain,PIETOOLS_Hinf_gain,,exact=0.20668,no,NaN,NaN,2,,yes,NaN,
+PDE,48,2D_ReactionDiffusion_DNDN_EdgeObserve,Hinf_estimator,PIETOOLS_Hinf_estimator,,,no,NaN,NaN,2,,yes,NaN,
+PDE,49,Transport_Eq_with_Disturbance2,H2_norm,PIETOOLS_H2_norm_o,,veryheavy=0.1016;heavy=0.1017;light=0.1043,no,NaN,NaN,1,[0 1],yes,NaN,TOC: 0.1016 by numerical integration
+PDE,49/H2_norm_dual,Transport_Eq_with_Disturbance2,H2_norm_dual,PIETOOLS_H2_norm_c,,veryheavy=0.1016;heavy=0.1162;light=0.1362,no,NaN,NaN,1,[0 1],yes,NaN,TOC: 0.1016 by numerical integration
+PDE,50,PIETOOLS_PDDE_Ex,H2_norm,PIETOOLS_H2_norm_o,,custom+psatz=0.8502,no,NaN,NaN,2,,yes,NaN,TOC values used custom settings with settings_2d.ineq_opts.psatz=1 set by hand
+PDE,50/H2_norm_dual,PIETOOLS_PDDE_Ex,H2_norm_dual,PIETOOLS_H2_norm_c,,custom+psatz=0.8398,no,NaN,NaN,2,,yes,NaN,TOC values used custom settings with settings_2d.ineq_opts.psatz=1 set by hand
+PDE,51,Unstable_ReactionDiffusion,H2_estimator,PIETOOLS_H2_estimator,,veryheavy=1.2683,no,NaN,NaN,1,[0 1],yes,NaN,closed-loop H2 norm
+PDE,52,Unstable_ReactionDiffusion_Control,H2_control,PIETOOLS_H2_control,,,no,NaN,NaN,1,[0 1],yes,NaN,
+DDE,DDE01,Distributed delay example,stability,PIETOOLS_PIE2PDEstability,tau(1),2.04 (analytical range [0.2; 2.04]),yes,1.53,2.55,1,[2 2],yes,1,A0 unstable: delay-stabilized; lo inside the documented range
+DDE,DDE01/stability_dual,Distributed delay example,stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(1),2.04 (analytical range [0.2; 2.04]),no,1.53,2.55,1,[2 2],yes,1,A0 unstable: delay-stabilized; lo inside the documented range | single solve at the library default
+DDE,DDE02,Distributed delay; [1] p.270,stability,PIETOOLS_PIE2PDEstability,tauN,2 ([1]: tauNmax<2),yes,1.5,2.5,1,[2 4],yes,1,
+DDE,DDE02/stability_dual,Distributed delay; [1] p.270,stability_dual,PIETOOLS_PIE2PDEstability_dual,tauN,2 ([1]: tauNmax<2),no,1.5,2.5,1,[2 4],yes,1,| single solve at the library default
+DDE,DDE03,Example B; [1] p.193,stability,PIETOOLS_PIE2PDEstability,tau(1),1.71785 (taumin=.100174),yes,1.28839,2.14731,1,[2 1],yes,1,
+DDE,DDE03/stability_dual,Example B; [1] p.193,stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(1),1.71785 (taumin=.100174),no,1.28839,2.14731,1,[2 1],yes,1,| single solve at the library default
+DDE,DDE04,Example; [1] p.192,stability,PIETOOLS_PIE2PDEstability,tau(1),6.17258,yes,4.62943,7.71572,1,[2 2],yes,1,
+DDE,DDE04/stability_dual,Example; [1] p.192,stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(1),6.17258,no,4.62943,7.71572,1,[2 2],yes,1,| single solve at the library default
+DDE,DDE05,Example A; [2],stability,PIETOOLS_PIE2PDEstability,tau(1),1.5707,yes,1.17802,1.96338,1,[1 1],yes,1,
+DDE,DDE05/stability_dual,Example A; [2],stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(1),1.5707,no,1.17802,1.96338,1,[1 1],yes,1,| single solve at the library default
+DDE,DDE06,Example C; [2];[3],stability,PIETOOLS_PIE2PDEstability,b=Ai{1},3 (bmax),yes,2.25,3.75,1,[1 2],yes,1,
+DDE,DDE06/stability_dual,Example C; [2];[3],stability_dual,PIETOOLS_PIE2PDEstability_dual,b=Ai{1},3 (bmax),no,2.25,3.75,1,[1 2],yes,1,| single solve at the library default
+DDE,DDE07,Example D; [2],stability,PIETOOLS_PIE2PDEstability,tauN,1.3722,yes,1.3,1.71525,1,[2 2],yes,1,A0 unstable: lo is the block value
+DDE,DDE07/stability_dual,Example D; [2],stability_dual,PIETOOLS_PIE2PDEstability_dual,tauN,1.3722,no,1.3,1.71525,1,[2 2],yes,1,A0 unstable: lo is the block value | single solve at the library default
+DDE,DDE08,Example E; [2] from [9],stability,PIETOOLS_PIE2PDEstability,tau(1),3.95 (tauNmax in [3.9;3.95]; requires veryheavy),yes,1.1,4.9375,1,[4 1],yes,1,block sets tauN=1.37 but uses DDE.tau(1)=1.1
+DDE,DDE08/stability_dual,Example E; [2] from [9],stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(1),3.95 (tauNmax in [3.9;3.95]; requires veryheavy),no,1.1,4.9375,1,[4 1],yes,1,block sets tauN=1.37 but uses DDE.tau(1)=1.1 | single solve at the library default
+DDE,DDE09,Example 1 (unsourced); Hinf gain,Hinf_gain,PIETOOLS_Hinf_gain,,25.907 (tau=1.5),no,NaN,NaN,1,[1 1],yes,NaN,also documented: 2 at tau=.5
+DDE,DDE09/Hinf_gain_dual,Example 1 (unsourced); Hinf gain,Hinf_gain_dual,PIETOOLS_Hinf_gain_dual,,25.907 (tau=1.5),no,NaN,NaN,1,[1 1],yes,NaN,also documented: 2 at tau=.5
+DDE,DDE10,Example A.1; [3],Hinf_gain,PIETOOLS_Hinf_gain,,0.2364,no,NaN,NaN,1,[2 2],yes,NaN,
+DDE,DDE10/Hinf_gain_dual,Example A.1; [3],Hinf_gain_dual,PIETOOLS_Hinf_gain_dual,,0.2364,no,NaN,NaN,1,[2 2],yes,NaN,
+DDE,DDE11,Example A.2; [3],Hinf_gain,PIETOOLS_Hinf_gain,,2.87,no,NaN,NaN,1,[2 1],yes,NaN,
+DDE,DDE11/Hinf_gain_dual,Example A.2; [3],Hinf_gain_dual,PIETOOLS_Hinf_gain_dual,,2.87,no,NaN,NaN,1,[2 1],yes,NaN,
+DDE,DDE12,Example D derived from [2]; Hinf gain,Hinf_gain,PIETOOLS_Hinf_gain,,4.9784,no,NaN,NaN,1,[2 2],yes,NaN,
+DDE,DDE12/Hinf_gain_dual,Example D derived from [2]; Hinf gain,Hinf_gain_dual,PIETOOLS_Hinf_gain_dual,,4.9784,no,NaN,NaN,1,[2 2],yes,NaN,
+DDE,DDE13,Example 3; [4] from [8];[7],Hinf_control,PIETOOLS_Hinf_control,,1.339 (tau=2),no,NaN,NaN,1,[2 2],yes,NaN,also documented: .1000 at tau=.99
+DDE,DDE14,Example B.2; [4] from [7],Hinf_control,PIETOOLS_Hinf_control,,0.3953,no,NaN,NaN,1,[2 2],yes,NaN,
+DDE,DDE15,Example B.3; [4] from [6],Hinf_control,PIETOOLS_Hinf_control,,0.6104,no,NaN,NaN,1,[2 2],yes,NaN,
+DDE,DDE16,Scalability example; [4]; n=3; K=3,Hinf_control,PIETOOLS_Hinf_control,,0.9630,no,NaN,NaN,1,[3 9],yes,NaN,
+DDE,DDE17,Spring-mass network delay; n=3,stability,PIETOOLS_PIE2PDEstability,h,stable at h=.08; unstable at h=1,yes,0.05,1,1,[6 5],yes,1,block assigns B2(n+1;1)=1 to a local B2; so DDE.B2=0 (library defect); tolerance relative to the bracket width
+DDE,DDE17/Hinf_control,Spring-mass network delay; n=3,Hinf_control,PIETOOLS_Hinf_control,h,,no,0.05,1,1,[6 5],yes,1,block assigns B2(n+1;1)=1 to a local B2; so DDE.B2=0 (library defect); tolerance relative to the bracket width | single solve at the library default
+DDE,DDE18,Multiple showering people; [2]; n=3,Hinf_control,PIETOOLS_Hinf_control,,0.4092 (n=3),no,NaN,NaN,1,[6 3],yes,NaN,
+DDE,DDE19,Wind tunnel; [4] from [5],Hinf_control,PIETOOLS_Hinf_control,,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),no,NaN,NaN,1,[3 1],yes,NaN,block uses fields C0; C{1}; D1; D2
+DDE,DDE20,Example 1; [12] from [11],Hinf_estimator,PIETOOLS_Hinf_estimator,,0.2357,no,NaN,NaN,1,[2 1],yes,NaN,
+DDE,DDE21,Example 2; [12] from [13],Hinf_estimator,PIETOOLS_Hinf_estimator,,2.327,no,NaN,NaN,1,[2 2],yes,NaN,
+DDE,DDE22,Example 3; [12],Hinf_estimator,PIETOOLS_Hinf_estimator,,1.3501,no,NaN,NaN,1,[2 4],yes,NaN,
+DDE,DDE23,Example 1; [10],Hinf_estimator,PIETOOLS_Hinf_estimator,,1.808,no,NaN,NaN,1,[2 3],yes,NaN,
+DDE,DDE24,Example 2; [10],Hinf_estimator,PIETOOLS_Hinf_estimator,,,no,NaN,NaN,1,[2 4],yes,NaN,no documented value
+DDE,DDE25,Example 1; [13]; H2 norm,H2_norm,PIETOOLS_H2_norm_o,,3.6724,no,NaN,NaN,1,[1 1],yes,NaN,
+DDE,DDE25/H2_norm_dual,Example 1; [13]; H2 norm,H2_norm_dual,PIETOOLS_H2_norm_c,,3.6724,no,NaN,NaN,1,[1 1],yes,NaN,
+DDE,DDE26,Example 2b; [13]; H2 norm,H2_norm,PIETOOLS_H2_norm_o,,3.8307,no,NaN,NaN,1,[3 6],yes,NaN,uncommented in the library file
+DDE,DDE26/H2_norm_dual,Example 2b; [13]; H2 norm,H2_norm_dual,PIETOOLS_H2_norm_c,,3.8307,no,NaN,NaN,1,[3 6],yes,NaN,uncommented in the library file
+DDE,DDE_RAND,Random example generator,,,,,no,NaN,NaN,NaN,,no,NaN,not run: random system; no documented value
+NDSDDF,NDS01,Neutral; version of Han 2005 [1],stability,PIETOOLS_PIE2PDEstability,tau(1),2.2255 (analytic max; uncited),yes,1.66912,2.78187,1,[2 2],yes,1,
+NDSDDF,NDS01/stability_dual,Neutral; version of Han 2005 [1],stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(1),2.2255 (analytic max; uncited),no,1.66912,2.78187,1,[2 2],yes,1,| single solve at the library default
+NDSDDF,NDS02,Neutral; Park and Won 2000 Ex.3 [4],stability,PIETOOLS_PIE2PDEstability,,stable at tau=20 (literature: tau<.7516),no,NaN,NaN,1,[2 2],yes,NaN,
+NDSDDF,NDS02/stability_dual,Neutral; Park and Won 2000 Ex.3 [4],stability_dual,PIETOOLS_PIE2PDEstability_dual,,stable at tau=20 (literature: tau<.7516),no,NaN,NaN,1,[2 2],yes,NaN,
+NDSDDF,NDS03,Neutral; Park and Won 1999a Ex.2.2 [2],stability,PIETOOLS_PIE2PDEstability,,stable (tau=[.3 .6]),no,NaN,NaN,1,[2 4],yes,NaN,
+NDSDDF,NDS03/stability_dual,Neutral; Park and Won 1999a Ex.2.2 [2],stability_dual,PIETOOLS_PIE2PDEstability_dual,,stable (tau=[.3 .6]),no,NaN,NaN,1,[2 4],yes,NaN,
+NDSDDF,NDS04,Neutral; Park and Won 1999a Ex.2.3 [2],stability,PIETOOLS_PIE2PDEstability,tau(2),0.552 (stable for any h1>0; h2<.552),yes,0.414,0.69,1,[2 4],yes,1,
+NDSDDF,NDS04/stability_dual,Neutral; Park and Won 1999a Ex.2.3 [2],stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(2),0.552 (stable for any h1>0; h2<.552),no,0.414,0.69,1,[2 4],yes,1,| single solve at the library default
+NDSDDF,NDS05,Neutral; Zhao 2018 [7]; tau=[h 3h],stability,PIETOOLS_PIE2PDEstability,h,1.5804? (stability verified for h<2.04),yes,1.1853,2.55,1,[2 4],yes,1,
+NDSDDF,NDS05/stability_dual,Neutral; Zhao 2018 [7]; tau=[h 3h],stability_dual,PIETOOLS_PIE2PDEstability_dual,h,1.5804? (stability verified for h<2.04),no,1.1853,2.55,1,[2 4],yes,1,| single solve at the library default
+NDSDDF,NDS06,Neutral; Zhao 2018 [7] (?????),,,,0.7722? (max),no,NaN,NaN,NaN,,no,NaN,not run: code commented twice in the library (disabled)
+NDSDDF,NDS07,Neutral; Zhao 2018 [7]; scalar; tau=[h 2h],stability,PIETOOLS_PIE2PDEstability,h,0.5? (stability verified for h<.603),yes,0.375,0.75375,1,[1 2],yes,1,
+NDSDDF,NDS07/stability_dual,Neutral; Zhao 2018 [7]; scalar; tau=[h 2h],stability_dual,PIETOOLS_PIE2PDEstability_dual,h,0.5? (stability verified for h<.603),no,0.375,0.75375,1,[1 2],yes,1,| single solve at the library default
+NDSDDF,NDS08,Neutral; Olgac and Sipahi 2004,stability,PIETOOLS_PIE2PDEstability,tau(1),0.02755,yes,0.0206625,0.0344375,1,[4 4],yes,1,
+NDSDDF,NDS08/stability_dual,Neutral; Olgac and Sipahi 2004,stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(1),0.02755,no,0.0206625,0.0344375,1,[4 4],yes,1,| single solve at the library default
+NDSDDF,NDS09,Neutral; Ramirez and Sipahi 2020,stability,PIETOOLS_PIE2PDEstability,tau(1),0.603,yes,0.45225,0.75375,1,[5 5],yes,1,
+NDSDDF,NDS09/stability_dual,Neutral; Ramirez and Sipahi 2020,stability_dual,PIETOOLS_PIE2PDEstability_dual,tau(1),0.603,no,0.45225,0.75375,1,[5 5],yes,1,| single solve at the library default
+NDSDDF,NDS10,Neutral; source uncertain,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,1,[2 2],yes,NaN,no documented value
+NDSDDF,NDS10/stability_dual,Neutral; source uncertain,stability_dual,PIETOOLS_PIE2PDEstability_dual,,,no,NaN,NaN,1,[2 2],yes,NaN,no documented value
+NDSDDF,NDS11,Neutral; PI-controlled (unsourced),stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,1,[2 1],yes,NaN,no documented value
+NDSDDF,NDS11/stability_dual,Neutral; PI-controlled (unsourced),stability_dual,PIETOOLS_PIE2PDEstability_dual,,,no,NaN,NaN,1,[2 1],yes,NaN,no documented value
+NDSDDF,NDS12,Neutral; 2 delays; scalar; tau=[h 2h],stability,PIETOOLS_PIE2PDEstability,h,0.4448?,yes,0.3336,0.556,1,[1 2],yes,1,
+NDSDDF,NDS12/stability_dual,Neutral; 2 delays; scalar; tau=[h 2h],stability_dual,PIETOOLS_PIE2PDEstability_dual,h,0.4448?,no,0.3336,0.556,1,[1 2],yes,1,| single solve at the library default
+NDSDDF,NDS_FRAG,Fragment (ndim=size(An;1)),,,,,no,NaN,NaN,NaN,,no,NaN,not run: fragment; An undefined
+NDSDDF,DDF01,Pure difference equation,stability,PIETOOLS_PIE2PDEstability,,,no,NaN,NaN,1,[0 2],yes,NaN,no documented value
+NDSDDF,DDF01/stability_dual,Pure difference equation,stability_dual,PIETOOLS_PIE2PDEstability_dual,,,no,NaN,NaN,1,[0 2],yes,NaN,no documented value
+NDSDDF,DDF02,Pure difference equation (repeat),,,,,no,NaN,NaN,NaN,,no,NaN,not run: identical to DDF01
+NDSDDF,DDF03,Multiple showering people; DDF; n=2,Hinf_control,PIETOOLS_Hinf_control,,,no,NaN,NaN,1,[4 2],yes,NaN,uncommented in the library file; note "min in [.32 .38]" is a leftover gam_guess comment

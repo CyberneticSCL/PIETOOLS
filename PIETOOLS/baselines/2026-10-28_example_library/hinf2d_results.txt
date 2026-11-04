@@ -1,0 +1,62 @@
+T.dim [0 0;0 0;0 0;1 1]
+T.R22 nonzero cells [false false false;false true true;false true true]
+A.R22 nonzero cells [false true true;true true true;true true true]
+##FP stock P stripped             build   22.9 s | m  13021 | n   904571 | scal   452768 | Kf 1 | Ks [13  951] | nnzA 5255229 | sumabsA 570678.7897 | sumsqA 118785.0926 | rownnz2 2738157697 | normb 1 nnzb 58 | nnzc 1 sumc 1
+##FP sop P stock-slack stripped   build   21.7 s | m  12962 | n   904572 | scal   452769 | Kf 1 | Ks [13  951    1] | nnzA 5254861 | sumabsA 570319.7897 | sumsqA 118606.5926 | rownnz2 2738609951 | normb 1 nnzb 58 | nnzc 1 sumc 1
+##FP stock Q stripped             build   59.1 s | m  16228 | n  1803968 | scal   902737 | Kf 150 | Ks [13  1343] | nnzA 7320242 | sumabsA 1063174.345 | sumsqA 288808.6821 | rownnz2 5221196518 | normb 1 nnzb 4 | nnzc 1 sumc 1
+##FP sop Q stock-slack stripped   build   25.9 s | m  16869 | n  1804261 | scal   903030 | Kf 442 | Ks [13  1343     1] | nnzA 7333942 | sumabsA 1070703.178 | sumsqA 300973.2756 | rownnz2 5234898576 | normb 1 nnzb 4 | nnzc 1 sumc 1
+##FP sop P like light             build    2.7 s | m   4094 | n   200426 | scal   100683 | Kf 1 | Ks [8  334  149  149  149  149    1] | nnzA 1382074 | sumabsA 150913.0833 | sumsqA 28341.66148 | rownnz2 1142045180 | normb 1 nnzb 58 | nnzc 1 sumc 1
+##FP sop P like stripped          build    1.4 s | m   2786 | n   111071 | scal    55913 | Kf 1 | Ks [8  149  149  149  149  149    1] | nnzA 860539 | sumabsA 115018.5833 | sumsqA 24148.94563 | rownnz2 594366533 | normb 1 nnzb 58 | nnzc 1 sumc 1
+##SOL PDE 45 P like stripped          optimal    gam 0.11690171   exact 0.11101    13.3 s | passes 1 | dw 0 | m 2786 | build 3.6 | solve 8.1
+##SOL PDE 46 P like stripped          optimal    gam 0.26671432   exact 0.17110     7.6 s | passes 1 | dw 0 | m 2788 | build 1.2 | solve 5.7
+##SOL PDE 47 P like stripped          optimal    gam 0.20855069   exact 0.20668    10.5 s | passes 1 | dw 0 | m 2786 | build 0.9 | solve 9
+##SOL PDE 45 P like light             optimal    gam 0.11198164   exact 0.11101    23.1 s | passes 1 | dw 0 | m 4094 | build 1.1 | solve 21.4
+##SOL PDE 46 P like light             optimal    gam 0.17172215   exact 0.17110    18.9 s | passes 1 | dw 0 | m 4096 | build 1 | solve 17.4
+##SOL PDE 47 P like light             optimal    gam 0.20853484   exact 0.20668    12.7 s | passes 1 | dw 0 | m 4094 | build 0.7 | solve 11.5
+##SOL PDE 47 P stock-slack stripped   optimal    gam 0.20713437   exact 0.20668   409.7 s | passes 1 | dw 0 | m 12962 | build 17.1 | solve 392
+# hd_l1v, stock reference PIETOOLS_PIE2PDEstability (_2D: Q form), sop stability 'P' form
+PDE:42 T.dim [1 1;1 1;1 1;1 1]
+##FP PDE:42 stock stripped stock    build   9.8 s | m   4305 | scal    67940 | Kf 64 | Ks [46  365] | nnzA 587562 | sumabsA 310125.9123 | sumsqA 796646.1619 | rownnz2 186312908 | normb 1
+##FP PDE:42 stock stripped sop      build   7.0 s | m   4198 | scal   124053 | Kf 0 | Ks [24  497] | nnzA 1734523 | sumabsA 424916.649 | sumsqA 852529.3048 | rownnz2 1069062251 | normb 1
+##FP PDE:42 asym caps stock         build   8.5 s | m   4550 | scal    72699 | Kf 68 | Ks [52  377] | nnzA 615489 | sumabsA 330218.1822 | sumsqA 897635.3179 | rownnz2 191617827 | normb 1
+##FP PDE:42 asym caps sop           build   4.9 s | m   4437 | scal   132247 | Kf 0 | Ks [28  513] | nnzA 1813976 | sumabsA 450041.7709 | sumsqA 956668.1039 | rownnz2 1103845370 | normb 1
+PDE:43 T.dim [0 0;1 1;0 0;1 1]
+##FP PDE:43 stock stripped stock    build   5.8 s | m   3696 | scal    62354 | Kf 26 | Ks [42  350] | nnzA 551693 | sumabsA 1745270.703 | sumsqA 597974554.1 | rownnz2 182357539 | normb 1
+##FP PDE:43 stock stripped sop      build   3.4 s | m   3656 | scal   113697 | Kf 0 | Ks [18  476] | nnzA 1366155 | sumabsA 2799646.781 | sumsqA 726016657.1 | rownnz2 674930997 | normb 1
+##FP PDE:43 asym caps stock         build   5.6 s | m   3857 | scal    65370 | Kf 28 | Ks [46  358] | nnzA 568158 | sumabsA 1914064.438 | sumsqA 691186206 | rownnz2 185389864 | normb 1
+##FP PDE:43 asym caps sop           build   3.3 s | m   3769 | scal   117580 | Kf 0 | Ks [20  484] | nnzA 1398127 | sumabsA 3100749.646 | sumsqA 867291010.6 | rownnz2 686406113 | normb 1
+# hd_l1v, stock reference PIETOOLS_PDEstability (_2D: P form)
+PDE:42 T.dim [1 1;1 1;1 1;1 1]
+##FP PDE:42 stock stripped stock    build   6.6 s | m   4198 | scal   124053 | Kf 0 | Ks [24  497] | nnzA 1734255 | sumabsA 424916.649 | sumsqA 852529.3048 | rownnz2 1068797723 | normb 1
+##FP PDE:42 stock stripped sop      build   7.7 s | m   4198 | scal   124053 | Kf 0 | Ks [24  497] | nnzA 1734523 | sumabsA 424916.649 | sumsqA 852529.3048 | rownnz2 1069062251 | normb 1
+##FP PDE:42 asym caps stock         build   5.7 s | m   4437 | scal   132247 | Kf 0 | Ks [28  513] | nnzA 1813624 | sumabsA 450041.7709 | sumsqA 956668.1039 | rownnz2 1103418446 | normb 1
+##FP PDE:42 asym caps sop           build   5.1 s | m   4437 | scal   132247 | Kf 0 | Ks [28  513] | nnzA 1813976 | sumabsA 450041.7709 | sumsqA 956668.1039 | rownnz2 1103845370 | normb 1
+PDE:43 T.dim [0 0;1 1;0 0;1 1]
+##FP PDE:43 stock stripped stock    build   3.2 s | m   3656 | scal   113697 | Kf 0 | Ks [18  476] | nnzA 1366101 | sumabsA 2799646.781 | sumsqA 726016657.1 | rownnz2 674861681 | normb 1
+##FP PDE:43 stock stripped sop      build   3.5 s | m   3656 | scal   113697 | Kf 0 | Ks [18  476] | nnzA 1366155 | sumabsA 2799646.781 | sumsqA 726016657.1 | rownnz2 674930997 | normb 1
+##FP PDE:43 asym caps stock         build   3.1 s | m   3769 | scal   117580 | Kf 0 | Ks [20  484] | nnzA 1398067 | sumabsA 3100749.646 | sumsqA 867291010.6 | rownnz2 686327981 | normb 1
+##FP PDE:43 asym caps sop           build   3.3 s | m   3769 | scal   117580 | Kf 0 | Ks [20  484] | nnzA 1398127 | sumabsA 3100749.646 | sumsqA 867291010.6 | rownnz2 686406113 | normb 1
+# hd_qform run 1: P form, and the Q form (Q of P*T, R from T'*Q) with the KYP slack like R
+##FP stripped P form              build    2.6 s | m   2786 | n    111071 | scal     55913 | Kf 1 | Ks [8  149  149  149  149  149    1] | nnzA 860539
+##DEG P: mult 0, int [1 1], out 0, in 0 | P*T: mult 0, int [1 3], out 0, in 0
+##Q  free coefficients 289
+##POS R         Gram blocks [900 400 400 400 400] | sum N^2 1450000 | term codes [0 3 4 5 6]
+##POS KYP slack Gram blocks [2705 1522 1522 1522 1522] | sum N^2 16582961 | term codes [0 3 4 5 6]
+##FP stripped Q form, Q of P*T    ERROR after 4.6 s: KYP slack: sum N^2 = 16582961 exceeds 10000000; not built. (pos_sized)
+##FP light P form                 build    1.0 s | m   4094 | n    200426 | scal    100683 | Kf 1 | Ks [8  334  149  149  149  149    1] | nnzA 1382074
+##DEG P: mult 0, int [1 1], out 0, in 0 | P*T: mult 0, int [1 3], out 0, in 0
+##Q  free coefficients 289
+##POS R         Gram blocks [900 400 400 400 400] | sum N^2 1450000 | term codes [0 3 4 5 6]
+##POS KYP slack Gram blocks [4226 2705 2705 2705 2705] | sum N^2 47127176 | term codes [0 3 4 5 6]
+##FP light Q form, Q of P*T       ERROR after 2.3 s: KYP slack: sum N^2 = 47127176 exceeds 10000000; not built. (pos_sized)
+# hd_qform run 2: the Q form with the KYP slack like P (dw_P)
+##DEG P: mult 0, int [1 1], out 0, in 0 | P*T: mult 0, int [1 3], out 0, in 0
+##Q  free coefficients 289
+##POS R         Gram blocks [900 400 400 400 400] | sum N^2 1450000 | term codes [0 3 4 5 6]
+##POS KYP slack Gram blocks [197 197 197 197 197] | sum N^2 194045 | term codes [0 3 4 5 6]
+##FP stripped Q form, slack like P build    8.8 s | m  25854 | n   1644336 | scal    824056 | Kf 290 | Ks [900  400  400  400  400  197  197  197  197  197    1] | nnzA 22306488
+##DEG P: mult 0, int [1 1], out 0, in 0 | P*T: mult 0, int [1 3], out 0, in 0
+##Q  free coefficients 289
+##POS R         Gram blocks [900 400 400 400 400] | sum N^2 1450000 | term codes [0 3 4 5 6]
+##POS KYP slack Gram blocks [442 197 197 197 197] | sum N^2 350600 | term codes [0 3 4 5 6]
+##FP light Q form, slack like P   build    5.2 s | m  27417 | n   1800891 | scal    902456 | Kf 290 | Ks [900  400  400  400  400  442  197  197  197  197    1] | nnzA 22985373

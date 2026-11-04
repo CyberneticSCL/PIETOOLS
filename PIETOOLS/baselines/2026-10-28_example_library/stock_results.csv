@@ -1,0 +1,796 @@
+library,id,settings,status,result,documented,n_solves,seconds,decision_variables,note
+PDE,6,light,converged,2.4649915,2.467 (stable for lam<pi^2/4),11,7.94,404,PIETOOLS_PIE2PDEstability | bracket [1.85055 3.08425] final [2.46499 2.4674] | steps 1.85055:C(2s) 3.08425:F(1s) 2.4674:F(0s) 2.15898:C(0s) 2.31319:C(0s) 2.39029:C(0s) 2.42885:C(0s) 2.44812:C(0s) 2.45776:C(0s) 2.46258:C(0s) 2.46499:C(0s) | last: fr=1.01 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=122 nx=404
+PDE,6,heavy,converged,2.4674011,2.467 (stable for lam<pi^2/4),11,6.10,687,PIETOOLS_PIE2PDEstability | bracket [1.85055 3.08425] final [2.4674 2.46981] | steps 1.85055:C(0s) 3.08425:F(0s) 2.4674:C(0s) 2.77583:F(0s) 2.62161:F(0s) 2.54451:F(0s) 2.50595:F(1s) 2.48668:F(0s) 2.47704:F(0s) 2.47222:F(0s) 2.46981:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=17 cpu=0.0s m=126 nx=687
+PDE,20,light,certified,0.51633301,0.5162,1,1.30,497,PIETOOLS_Hinf_gain | fr=0.934 pinf=0 dinf=0 numerr=0 iter=35 cpu=0.0s m=111 nx=498
+PDE,20,heavy,certified,0.50106073,0.5011,1,0.77,820,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=38 cpu=0.1s m=120 nx=821
+PDE,35,light,certified,1,,1,7.81,43352,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=1.1s m=2126 nx=43352
+PDE,35,heavy,certified,1,,1,731.00,2003922,PIETOOLS_PIE2PDEstability | fr=0.992 pinf=0 dinf=0 numerr=0 iter=19 cpu=623.4s m=12468 nx=2.00392e+06
+DDE,DDE05,light,converged,1.5676322,1.5707,11,6.82,479,PIETOOLS_PIE2PDEstability | bracket [1.17802 1.96338] final [1.56763 1.56917] | steps 1.17802:C(1s) 1.96338:F(1s) 1.5707:F(1s) 1.37436:C(1s) 1.47253:C(1s) 1.52162:C(1s) 1.54616:C(1s) 1.55843:C(1s) 1.56456:C(1s) 1.56763:C(1s) 1.56917:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=13 cpu=0.0s m=115 nx=479
+DDE,DDE05,heavy,converged,1.5691661,1.5707,11,6.73,785,PIETOOLS_PIE2PDEstability | bracket [1.17802 1.96338] final [1.56917 1.5707] | steps 1.17802:C(1s) 1.96338:F(1s) 1.5707:F(1s) 1.37436:C(1s) 1.47253:C(1s) 1.52162:C(1s) 1.54616:C(1s) 1.55843:C(1s) 1.56456:C(1s) 1.56763:C(1s) 1.56917:C(1s) | last: fr=0.99 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.0s m=125 nx=785
+DDE,DDE10,light,certified,0.23644702,0.2364,1,1.03,2109,PIETOOLS_Hinf_gain | fr=0.71 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=485 nx=2110
+DDE,DDE10,heavy,certified,0.23644325,0.2364,1,0.69,3413,PIETOOLS_Hinf_gain | fr=0.928 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=529 nx=3414
+NDSDDF,NDS10,light,certified,1,,1,0.65,1916,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=476 nx=1916
+NDSDDF,NDS10,heavy,certified,1,,1,0.63,3140,PIETOOLS_PIE2PDEstability | fr=0.97 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=516 nx=3140
+DDE,DDE05/stability_dual,extreme,infeasible,0,1.5707,1,2.23,48,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=35 nx=48
+NDSDDF,NDS04/stability_dual,extreme,infeasible,0,0.552 (stable for any h1>0; h2<.552),1,0.66,588,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=456 nx=588
+DDE,DDE05/stability_dual,stripped,infeasible,0,1.5707,1,0.63,164,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=76 nx=164
+NDSDDF,NDS04/stability_dual,stripped,certified,1,0.552 (stable for any h1>0; h2<.552),1,0.63,2316,PIETOOLS_PIE2PDEstability_dual | fr=1.06 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.2s m=1128 nx=2316
+DDE,DDE05/stability_dual,light,certified,1,1.5707,1,0.72,479,PIETOOLS_PIE2PDEstability_dual | fr=0.963 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=112 nx=479
+NDSDDF,NDS04/stability_dual,light,certified,1,0.552 (stable for any h1>0; h2<.552),1,0.82,7056,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.2s m=1688 nx=7056
+DDE,DDE05/stability_dual,heavy,certified,1,1.5707,1,0.54,785,PIETOOLS_PIE2PDEstability_dual | fr=0.939 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=122 nx=785
+NDSDDF,NDS04/stability_dual,heavy,certified,1,0.552 (stable for any h1>0; h2<.552),1,0.76,11760,PIETOOLS_PIE2PDEstability_dual | fr=1.03 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.2s m=1832 nx=11760
+DDE,DDE05/stability_dual,veryheavy,certified,1,1.5707,1,0.82,9607,PIETOOLS_PIE2PDEstability_dual | fr=1.08 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=470 nx=9607
+NDSDDF,NDS04/stability_dual,veryheavy,certified,1,0.552 (stable for any h1>0; h2<.552),1,7.29,150992,PIETOOLS_PIE2PDEstability_dual | fr=0.992 pinf=0 dinf=0 numerr=0 iter=15 cpu=5.7s m=7352 nx=150992
+DDE,DDE05/stability_dual,custom,certified,1,1.5707,1,0.92,6397,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=518 nx=6397
+NDSDDF,NDS04/stability_dual,custom,certified,1,0.552 (stable for any h1>0; h2<.552),1,5.95,100016,PIETOOLS_PIE2PDEstability_dual | fr=0.99 pinf=0 dinf=0 numerr=0 iter=14 cpu=4.4s m=8072 nx=100016
+DDE,DDE16,light,certified,0.96298353,0.9630,1,230.41,32161,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=23 cpu=3.6s m=3061 nx=32162
+DDE,DDE17/Hinf_control,light,certified,9.3513437,,1,31.21,11491,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.2s m=1135 nx=11492
+PDE,1,extreme,certified,1,stable (v=-1),1,3.20,27,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=3 cpu=0.0s m=21 nx=27
+PDE,1/stability_dual,extreme,certified,1,stable (v=-1),1,0.53,27,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=3 cpu=0.0s m=20 nx=27
+PDE,2,extreme,infeasible,0,stable,1,0.66,108,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=92 nx=108
+PDE,2.2,extreme,certified,1,stable,1,0.38,108,PIETOOLS_PIE2PDEstability | fr=1.02 pinf=0 dinf=0 numerr=0 iter=7 cpu=0.0s m=92 nx=108
+PDE,2.3,extreme,infeasible,0,stable,1,0.42,108,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=92 nx=108
+PDE,2.4,extreme,certified,1,stable,1,0.30,108,PIETOOLS_PIE2PDEstability | fr=0.978 pinf=0 dinf=0 numerr=0 iter=8 cpu=0.0s m=92 nx=108
+PDE,3,extreme,infeasible,0,stable,1,0.30,243,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=13 cpu=0.0s m=207 nx=243
+PDE,4,extreme,infeasible,0,stable,1,0.26,108,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=92 nx=108
+PDE,4.2,extreme,infeasible,0,stable,1,0.26,108,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=88 nx=108
+PDE,4.3,extreme,infeasible,0,stable,1,0.26,108,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=92 nx=108
+PDE,4.4,extreme,infeasible,0,stable,1,0.27,108,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=88 nx=108
+PDE,4.5,extreme,infeasible,0,stable,1,0.26,108,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=92 nx=108
+PDE,5,extreme,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,0.67,47,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=86 nx=47
+PDE,6,extreme,lo_fail,NaN,2.467 (stable for lam<pi^2/4),1,0.36,47,PIETOOLS_PIE2PDEstability | bracket [1.85055 3.08425] final [1.85055 3.08425] | steps 1.85055:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=77 nx=47
+PDE,6/stability_dual,extreme,infeasible,0,2.467 (stable for lam<pi^2/4),1,0.31,47,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=77 nx=47
+PDE,7,extreme,lo_fail,NaN,4.66 (unstable for lam>4.66),1,0.45,47,PIETOOLS_PIE2PDEstability | bracket [3.495 5.825] final [3.495 5.825] | steps 3.495:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=98 nx=47
+PDE,7/stability_dual,extreme,infeasible,0,4.66 (unstable for lam>4.66),1,0.50,47,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=102 nx=47
+PDE,8,extreme,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,0.77,380,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=492 nx=380
+PDE,8/stability_dual,extreme,infeasible,0,9.8696 (stable for lam<pi^2),1,0.46,380,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=504 nx=380
+PDE,9,extreme,lo_fail,NaN,0 (stable for k<0),1,0.71,71,PIETOOLS_PIE2PDEstability | bracket [-1 0.25] final [-1 0.25] | steps -1:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=89 nx=71
+PDE,9/stability_dual,extreme,infeasible,0,0 (stable for k<0),1,0.48,68,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=81 nx=68
+PDE,10,extreme,infeasible,0,stable (k=-2),1,0.66,71,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=89 nx=71
+PDE,11,extreme,lo_fail,NaN,2.7 (stable for R<2.7; not tight),1,0.39,188,PIETOOLS_PIE2PDEstability | bracket [2.025 3.625] final [2.025 3.625] | steps 2.025:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=344 nx=188
+PDE,11/stability_dual,extreme,infeasible,0,2.7 (stable for R<2.7; not tight),1,0.36,188,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=344 nx=188
+PDE,12,extreme,lo_fail,NaN,21 (stable for R<21; not tight),1,0.38,423,PIETOOLS_PIE2PDEstability | bracket [15.75 37.5] final [15.75 37.5] | steps 15.75:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=716 nx=423
+PDE,13,extreme,infeasible,0,stable,1,0.38,188,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=250 nx=188
+PDE,13/stability_dual,extreme,infeasible,0,stable,1,0.31,188,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=254 nx=188
+PDE,13.2,extreme,infeasible,0,stable,1,1.31,540,PIETOOLS_PIE2PDEstability | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=874 nx=540
+PDE,13.2/stability_dual,extreme,infeasible,0,stable,1,0.60,540,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=878 nx=540
+PDE,14,extreme,certified,1,stable (TOC: PDE stable without damping),1,0.38,432,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=4 cpu=0.0s m=328 nx=432
+PDE,15,extreme,infeasible,0,TOC: (unstable); PDE stable with damping c>0,1,0.52,752,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=995 nx=752
+PDE,16,extreme,infeasible,0,,1,0.64,2160,PIETOOLS_PIE2PDEstability | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=3989 nx=2160
+PDE,17,extreme,certified,1,stable for k>0 (k=1),1,0.31,108,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=4 cpu=0.0s m=86 nx=108
+PDE,18,extreme,infeasible,0,stable (TOC: dual stable),1,0.41,188,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=275 nx=188
+PDE,19,extreme,certified,1,stable,1,0.28,243,PIETOOLS_PIE2PDEstability | fr=1.04 pinf=0 dinf=0 numerr=0 iter=5 cpu=0.0s m=189 nx=243
+PDE,20,extreme,error,NaN,veryheavy=0.5000;heavy=0.5011;light=0.5162,0,0.36,NaN,PIETOOLS_Hinf_gain | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+PDE,20/Hinf_gain_dual,extreme,error,NaN,veryheavy=0.5000;heavy=0.5058;light=0.5204,0,0.13,NaN,PIETOOLS_Hinf_gain_dual | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+PDE,21,extreme,error,NaN,veryheavy=0.8419;heavy=0.8419;light=0.8424,0,0.24,NaN,PIETOOLS_Hinf_gain | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+PDE,21/Hinf_gain_dual,extreme,error,NaN,veryheavy=0.8419;heavy=0.8552;light=0.8722,0,0.15,NaN,PIETOOLS_Hinf_gain_dual | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+PDE,22,extreme,error,NaN,veryheavy=0.2083;heavy=0.2083;light=0.2085,0,0.22,NaN,PIETOOLS_Hinf_gain | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+PDE,23,extreme,error,NaN,light=25.249;heavy=23.706;veryheavy=23.622,0,0.28,NaN,PIETOOLS_Hinf_gain | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+PDE,24,extreme,error,NaN,8.2136,0,0.20,NaN,PIETOOLS_Hinf_gain | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+PDE,25,extreme,error,NaN,0.8102,0,0.23,NaN,PIETOOLS_Hinf_gain | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+PDE,26,extreme,error,NaN,2.1457,0,0.24,NaN,PIETOOLS_Hinf_gain | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+PDE,27,extreme,unknown,3153.9993,1.0004,1,1.24,44,PIETOOLS_Hinf_estimator | fr=0.173 pinf=0 dinf=0 numerr=2 iter=66 cpu=0.0s m=24 nx=45
+PDE,28,extreme,unknown,97130049,1.0005,1,0.89,44,PIETOOLS_Hinf_estimator | fr=-0.82 pinf=0 dinf=0 numerr=2 iter=32 cpu=0.0s m=27 nx=45
+PDE,29,extreme,infeasible,0.00037711499,1.0000,1,0.83,57,PIETOOLS_Hinf_control | fr=-0.985 pinf=1 dinf=0 numerr=0 iter=35 cpu=0.0s m=48 nx=58
+PDE,30,extreme,infeasible,0.00037277895,heavy=0.6594,1,1.19,78,PIETOOLS_Hinf_control | fr=-0.865 pinf=1 dinf=0 numerr=0 iter=29 cpu=0.0s m=51 nx=79
+PDE,31,extreme,infeasible,1.9436821e+08,light=2.7407e-04,1,0.96,135,PIETOOLS_Hinf_control | fr=-0.96 pinf=0 dinf=0 numerr=2 iter=19 cpu=0.0s m=67 nx=136
+PDE,32,extreme,infeasible,51382451,heavy=0.5971,1,1.16,177,PIETOOLS_Hinf_control | fr=-0.996 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.0s m=88 nx=178
+PDE,33,extreme,certified,1,,1,20.19,274658,PIETOOLS_PIE2PDEstability | fr=1.18 pinf=0 dinf=0 numerr=0 iter=11 cpu=11.2s m=3511 nx=274658
+PDE,34,extreme,infeasible,0,stable for lam<=2*pi^2 (lam=19),1,39.42,351761,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=17 cpu=28.1s m=4000 nx=351761
+PDE,35,extreme,unknown,0,,1,30.84,351761,PIETOOLS_PIE2PDEstability | fr=1.67 pinf=0 dinf=0 numerr=0 iter=14 cpu=19.8s m=4000 nx=351761
+PDE,36,extreme,infeasible,0,,1,595.39,1407044,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=2 iter=16 cpu=574.2s m=16000 nx=1.40704e+06
+PDE,37,extreme,infeasible,0,stable for a<=pi^2/2 (a=4),1,41.15,351761,PIETOOLS_PIE2PDEstability | fr=-1.02 pinf=0 dinf=0 numerr=2 iter=21 cpu=30.7s m=4000 nx=351761
+PDE,38,extreme,infeasible,0,,1,495.38,1407044,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=2 iter=15 cpu=473.9s m=16000 nx=1.40704e+06
+PDE,39,extreme,infeasible,0,,1,2242.83,3165849,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=12 cpu=2190.1s m=36000 nx=3.16585e+06
+PDE,40,extreme,unknown,0,,1,29.37,353022,PIETOOLS_PIE2PDEstability | fr=1.88 pinf=0 dinf=0 numerr=0 iter=12 cpu=17.3s m=4050 nx=353022
+PDE,41,extreme,infeasible,0,,1,1.02,188,PIETOOLS_PIE2PDEstability | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=336 nx=188
+PDE,42,extreme,infeasible,0,,1,15.63,111689,PIETOOLS_PIE2PDEstability | fr=-0.997 pinf=1 dinf=0 numerr=0 iter=16 cpu=4.9s m=3579 nx=111689
+PDE,43,extreme,infeasible,0,stable for tau<1.0347 (tau=1),1,10.06,102341,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=16 cpu=3.6s m=2947 nx=102341
+PDE,44,extreme,lo_fail,NaN,0.5 (stable for mu<0.5),1,0.87,851,PIETOOLS_PIE2PDEstability | bracket [0.375 0.625] final [0.375 0.625] | steps 0.375:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=1306 nx=851
+PDE,45,extreme,unknown,0.27819334,exact=0.11101,1,314.59,870491,PIETOOLS_Hinf_gain | fr=0.674 pinf=0 dinf=0 numerr=2 iter=25 cpu=304.1s m=12893 nx=870491
+PDE,46,extreme,unknown,2.1732026,exact=0.17110,1,264.05,870491,PIETOOLS_Hinf_gain | fr=0.379 pinf=0 dinf=0 numerr=2 iter=21 cpu=254.2s m=12893 nx=870491
+PDE,47,extreme,unknown,0.20853467,exact=0.20668,1,155.53,870491,PIETOOLS_Hinf_gain | fr=0.693 pinf=0 dinf=0 numerr=0 iter=12 cpu=145.8s m=12893 nx=870491
+PDE,48,extreme,error,NaN,,0,1.76,NaN,PIETOOLS_Hinf_estimator | MATLAB:badsubscript: Index exceeds the number of array elements. Index must not exceed 5. @ lpivar_2d:476
+PDE,49,extreme,error,NaN,veryheavy=0.1016;heavy=0.1017;light=0.1043,0,0.32,NaN,PIETOOLS_H2_norm_o | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+PDE,49/H2_norm_dual,extreme,error,NaN,veryheavy=0.1016;heavy=0.1162;light=0.1362,0,0.19,NaN,PIETOOLS_H2_norm_c | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+PDE,50,extreme,certified,0.91076757,custom+psatz=0.8502,1,576.13,1505539,PIETOOLS_H2_norm_o | fr=0.872 pinf=0 dinf=0 numerr=0 iter=21 cpu=545.1s m=15494 nx=1.50554e+06
+PDE,50/H2_norm_dual,extreme,infeasible,0.21818455,custom+psatz=0.8398,1,541.66,1505539,PIETOOLS_H2_norm_c | fr=-1 pinf=1 dinf=0 numerr=0 iter=20 cpu=512.2s m=15494 nx=1.50554e+06
+PDE,51,extreme,infeasible,0.00050242138,veryheavy=1.2683,1,2.49,59,PIETOOLS_H2_estimator | fr=-1.05 pinf=1 dinf=0 numerr=0 iter=32 cpu=0.0s m=38 nx=61
+PDE,52,extreme,infeasible,0.00045232276,,1,1.23,73,PIETOOLS_H2_control | fr=-0.986 pinf=1 dinf=0 numerr=0 iter=36 cpu=0.0s m=44 nx=75
+DDE,DDE01,extreme,lo_fail,NaN,2.04 (analytical range [0.2; 2.04]),1,0.58,192,PIETOOLS_PIE2PDEstability | bracket [1.53 2.55] final [1.53 2.55] | steps 1.53:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=144 nx=192
+DDE,DDE01/stability_dual,extreme,infeasible,0,2.04 (analytical range [0.2; 2.04]),1,0.31,192,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=144 nx=192
+DDE,DDE02,extreme,lo_fail,NaN,2 ([1]: tauNmax<2),1,0.47,588,PIETOOLS_PIE2PDEstability | bracket [1.5 2.5] final [1.5 2.5] | steps 1.5:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=472 nx=588
+DDE,DDE02/stability_dual,extreme,infeasible,0,2 ([1]: tauNmax<2),1,0.37,588,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=464 nx=588
+DDE,DDE03,extreme,lo_fail,NaN,1.71785 (taumin=.100174),1,0.42,75,PIETOOLS_PIE2PDEstability | bracket [1.28839 2.14731] final [1.28839 2.14731] | steps 1.28839:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=49 nx=75
+DDE,DDE03/stability_dual,extreme,infeasible,0,1.71785 (taumin=.100174),1,0.33,75,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=51 nx=75
+DDE,DDE04,extreme,lo_fail,NaN,6.17258,1,0.32,192,PIETOOLS_PIE2PDEstability | bracket [4.62943 7.71572] final [4.62943 7.71572] | steps 4.62943:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=132 nx=192
+DDE,DDE04/stability_dual,extreme,infeasible,0,6.17258,1,0.29,192,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=140 nx=192
+DDE,DDE05,extreme,lo_fail,NaN,1.5707,1,0.43,48,PIETOOLS_PIE2PDEstability | bracket [1.17802 1.96338] final [1.17802 1.96338] | steps 1.17802:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=33 nx=48
+DDE,DDE06,extreme,lo_fail,NaN,3 (bmax),1,0.39,147,PIETOOLS_PIE2PDEstability | bracket [2.25 3.75] final [2.25 3.75] | steps 2.25:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=106 nx=147
+DDE,DDE06/stability_dual,extreme,infeasible,0,3 (bmax),1,0.27,147,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=114 nx=147
+DDE,DDE07,extreme,lo_fail,NaN,1.3722,1,0.35,192,PIETOOLS_PIE2PDEstability | bracket [1.3 1.71525] final [1.3 1.71525] | steps 1.3:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=132 nx=192
+DDE,DDE07/stability_dual,extreme,infeasible,0,1.3722,1,0.26,192,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=140 nx=192
+DDE,DDE08,extreme,lo_fail,NaN,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),1,0.30,147,PIETOOLS_PIE2PDEstability | bracket [1.1 4.9375] final [1.1 4.9375] | steps 1.1:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=93 nx=147
+DDE,DDE08/stability_dual,extreme,infeasible,0,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),1,0.27,147,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=95 nx=147
+DDE,DDE09,extreme,error,NaN,25.907 (tau=1.5),0,0.14,NaN,PIETOOLS_Hinf_gain | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+DDE,DDE09/Hinf_gain_dual,extreme,error,NaN,25.907 (tau=1.5),0,0.10,NaN,PIETOOLS_Hinf_gain_dual | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+DDE,DDE10,extreme,error,NaN,0.2364,0,0.12,NaN,PIETOOLS_Hinf_gain | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+DDE,DDE10/Hinf_gain_dual,extreme,error,NaN,0.2364,0,0.09,NaN,PIETOOLS_Hinf_gain_dual | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+DDE,DDE11,extreme,error,NaN,2.87,0,0.13,NaN,PIETOOLS_Hinf_gain | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+DDE,DDE11/Hinf_gain_dual,extreme,error,NaN,2.87,0,0.09,NaN,PIETOOLS_Hinf_gain_dual | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+DDE,DDE12,extreme,error,NaN,4.9784,0,0.12,NaN,PIETOOLS_Hinf_gain | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+DDE,DDE12/Hinf_gain_dual,extreme,error,NaN,4.9784,0,0.11,NaN,PIETOOLS_Hinf_gain_dual | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+DDE,DDE13,extreme,unknown,128.15969,1.339 (tau=2),1,0.83,214,PIETOOLS_Hinf_control | fr=-0.126 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.0s m=90 nx=215
+DDE,DDE14,extreme,unknown,3.0788411,0.3953,1,0.61,214,PIETOOLS_Hinf_control | fr=0.148 pinf=0 dinf=0 numerr=2 iter=22 cpu=0.0s m=90 nx=215
+DDE,DDE15,extreme,unknown,4.8962676,0.6104,1,0.63,241,PIETOOLS_Hinf_control | fr=-0.0763 pinf=0 dinf=0 numerr=2 iter=27 cpu=0.0s m=107 nx=242
+DDE,DDE16,extreme,unknown,9.4004362,0.9630,1,0.97,2236,PIETOOLS_Hinf_control | fr=0.0812 pinf=0 dinf=0 numerr=2 iter=22 cpu=0.2s m=802 nx=2237
+DDE,DDE17,extreme,lo_fail,NaN,stable at h=.08; unstable at h=1,1,0.34,1323,PIETOOLS_PIE2PDEstability | bracket [0.05 1] final [0.05 1] | steps 0.05:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=897 nx=1323
+DDE,DDE17/Hinf_control,extreme,unknown,4947.0245,,1,0.81,1062,PIETOOLS_Hinf_control | fr=-0.368 pinf=0 dinf=0 numerr=2 iter=33 cpu=0.1s m=375 nx=1063
+DDE,DDE18,extreme,unknown,10.996893,0.4092 (n=3),1,0.75,919,PIETOOLS_Hinf_control | fr=0.0792 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.1s m=442 nx=920
+DDE,DDE19,extreme,inaccurate,0.0014197799,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),1,0.66,113,PIETOOLS_Hinf_control | fr=0.97 pinf=0 dinf=0 numerr=2 iter=27 cpu=0.0s m=51 nx=114
+DDE,DDE20,extreme,inaccurate,0.30217381,0.2357,1,0.76,122,PIETOOLS_Hinf_estimator | fr=0.755 pinf=0 dinf=0 numerr=2 iter=94 cpu=0.0s m=63 nx=123
+DDE,DDE21,extreme,unknown,4839.5981,2.327,1,0.70,214,PIETOOLS_Hinf_estimator | fr=0.0153 pinf=0 dinf=0 numerr=2 iter=27 cpu=0.0s m=86 nx=215
+DDE,DDE22,extreme,unknown,135.20288,1.3501,1,0.67,556,PIETOOLS_Hinf_estimator | fr=0.32 pinf=0 dinf=0 numerr=2 iter=28 cpu=0.0s m=202 nx=557
+DDE,DDE23,extreme,unknown,532.76693,1.808,1,0.64,365,PIETOOLS_Hinf_estimator | fr=0.483 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.0s m=143 nx=366
+DDE,DDE24,extreme,certified,1.1169548,,1,0.67,556,PIETOOLS_Hinf_estimator | fr=0.998 pinf=0 dinf=0 numerr=0 iter=21 cpu=0.0s m=210 nx=557
+DDE,DDE25,extreme,error,NaN,3.6724,0,0.11,NaN,PIETOOLS_H2_norm_o | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+DDE,DDE25/H2_norm_dual,extreme,error,NaN,3.6724,0,0.09,NaN,PIETOOLS_H2_norm_c | MATLAB:samelen: Vectors must be the same length. @ sosquadvar:569
+DDE,DDE26,extreme,error,NaN,3.8307,0,0.11,NaN,PIETOOLS_H2_norm_o | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+DDE,DDE26/H2_norm_dual,extreme,error,NaN,3.8307,0,0.09,NaN,PIETOOLS_H2_norm_c | MATLAB:sizeDimensionsMustMatch: Arrays have incompatible sizes for this operation. @ sosquadvar:480
+NDSDDF,NDS01,extreme,lo_fail,NaN,2.2255 (analytic max; uncited),1,0.36,192,PIETOOLS_PIE2PDEstability | bracket [1.66912 2.78187] final [1.66912 2.78187] | steps 1.66912:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=140 nx=192
+NDSDDF,NDS01/stability_dual,extreme,infeasible,0,2.2255 (analytic max; uncited),1,0.27,192,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=140 nx=192
+NDSDDF,NDS02,extreme,infeasible,0,stable at tau=20 (literature: tau<.7516),1,0.31,192,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=140 nx=192
+NDSDDF,NDS02/stability_dual,extreme,infeasible,0,stable at tau=20 (literature: tau<.7516),1,0.25,192,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=140 nx=192
+NDSDDF,NDS03,extreme,certified,1,stable (tau=[.3 .6]),1,0.36,588,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=5 cpu=0.0s m=456 nx=588
+NDSDDF,NDS03/stability_dual,extreme,infeasible,0,stable (tau=[.3 .6]),1,0.25,588,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=456 nx=588
+NDSDDF,NDS04,extreme,lo_fail,NaN,0.552 (stable for any h1>0; h2<.552),1,0.31,588,PIETOOLS_PIE2PDEstability | bracket [0.414 0.69] final [0.414 0.69] | steps 0.414:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=456 nx=588
+NDSDDF,NDS05,extreme,lo_fail,NaN,1.5804? (stability verified for h<2.04),1,0.28,588,PIETOOLS_PIE2PDEstability | bracket [1.1853 2.55] final [1.1853 2.55] | steps 1.1853:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=456 nx=588
+NDSDDF,NDS05/stability_dual,extreme,infeasible,0,1.5804? (stability verified for h<2.04),1,0.24,588,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=456 nx=588
+NDSDDF,NDS07,extreme,lo_fail,NaN,0.5? (stability verified for h<.603),1,0.31,147,PIETOOLS_PIE2PDEstability | bracket [0.375 0.75375] final [0.375 0.75375] | steps 0.375:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=114 nx=147
+NDSDDF,NDS07/stability_dual,extreme,infeasible,0,0.5? (stability verified for h<.603),1,0.27,147,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=114 nx=147
+NDSDDF,NDS08,extreme,lo_fail,NaN,0.02755,1,0.29,768,PIETOOLS_PIE2PDEstability | bracket [0.0206625 0.0344375] final [0.0206625 0.0344375] | steps 0.0206625:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=560 nx=768
+NDSDDF,NDS08/stability_dual,extreme,infeasible,0,0.02755,1,0.25,768,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=4 cpu=0.0s m=560 nx=768
+NDSDDF,NDS09,extreme,lo_fail,NaN,0.603,1,0.32,1200,PIETOOLS_PIE2PDEstability | bracket [0.45225 0.75375] final [0.45225 0.75375] | steps 0.45225:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=875 nx=1200
+NDSDDF,NDS09/stability_dual,extreme,infeasible,0,0.603,1,0.26,1200,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=875 nx=1200
+NDSDDF,NDS10,extreme,certified,1,,1,0.26,192,PIETOOLS_PIE2PDEstability | fr=1.02 pinf=0 dinf=0 numerr=0 iter=6 cpu=0.0s m=140 nx=192
+NDSDDF,NDS10/stability_dual,extreme,infeasible,0,,1,0.23,192,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=140 nx=192
+NDSDDF,NDS11,extreme,infeasible,0,,1,0.29,75,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=2 iter=12 cpu=0.0s m=51 nx=75
+NDSDDF,NDS11/stability_dual,extreme,infeasible,0,,1,0.24,75,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=51 nx=75
+NDSDDF,NDS12,extreme,lo_fail,NaN,0.4448?,1,0.28,147,PIETOOLS_PIE2PDEstability | bracket [0.3336 0.556] final [0.3336 0.556] | steps 0.3336:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=114 nx=147
+NDSDDF,NDS12/stability_dual,extreme,infeasible,0,0.4448?,1,0.26,147,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=5 cpu=0.0s m=114 nx=147
+NDSDDF,DDF01,extreme,certified,1,,1,0.27,108,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=4 cpu=0.0s m=92 nx=108
+NDSDDF,DDF01/stability_dual,extreme,certified,1,,1,0.21,108,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=4 cpu=0.0s m=92 nx=108
+NDSDDF,DDF03,extreme,unknown,0.00048773172,,1,0.63,281,PIETOOLS_Hinf_control | fr=0.379 pinf=0 dinf=0 numerr=2 iter=19 cpu=0.0s m=105 nx=282
+PDE,1,stripped,certified,1,stable (v=-1),1,0.46,127,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=60 nx=127
+PDE,1/stability_dual,stripped,certified,1,stable (v=-1),1,0.30,127,PIETOOLS_PIE2PDEstability_dual | fr=0.993 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=60 nx=127
+PDE,2,stripped,infeasible,0,stable,1,0.45,508,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=10 cpu=0.0s m=276 nx=508
+PDE,2.2,stripped,certified,1,stable,1,0.32,508,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.0s m=276 nx=508
+PDE,2.3,stripped,certified,1,stable,1,0.33,508,PIETOOLS_PIE2PDEstability | fr=1.24 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=276 nx=508
+PDE,2.4,stripped,certified,1,stable,1,0.30,508,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.0s m=276 nx=508
+PDE,3,stripped,infeasible,0,stable,1,0.36,1143,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=11 cpu=0.0s m=621 nx=1143
+PDE,4,stripped,infeasible,0,stable,1,0.38,508,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=8 cpu=0.0s m=276 nx=508
+PDE,4.2,stripped,certified,1,stable,1,2.34,508,PIETOOLS_PIE2PDEstability | fr=1.05 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=266 nx=508
+PDE,4.3,stripped,infeasible,0,stable,1,0.63,508,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=276 nx=508
+PDE,4.4,stripped,infeasible,0,stable,1,0.53,508,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=266 nx=508
+PDE,4.5,stripped,infeasible,0,stable,1,0.38,508,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=276 nx=508
+PDE,5,stripped,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,0.91,127,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=91 nx=127
+PDE,6,stripped,lo_fail,NaN,2.467 (stable for lam<pi^2/4),1,0.44,127,PIETOOLS_PIE2PDEstability | bracket [1.85055 3.08425] final [1.85055 3.08425] | steps 1.85055:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=82 nx=127
+PDE,6/stability_dual,stripped,infeasible,0,2.467 (stable for lam<pi^2/4),1,0.35,127,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=82 nx=127
+PDE,7,stripped,lo_fail,NaN,4.66 (unstable for lam>4.66),1,0.48,127,PIETOOLS_PIE2PDEstability | bracket [3.495 5.825] final [3.495 5.825] | steps 3.495:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=103 nx=127
+PDE,7/stability_dual,stripped,infeasible,0,4.66 (unstable for lam>4.66),1,0.39,127,PIETOOLS_PIE2PDEstability_dual | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=107 nx=127
+PDE,8,stripped,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,0.86,828,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=512 nx=828
+PDE,8/stability_dual,stripped,infeasible,0,9.8696 (stable for lam<pi^2),1,0.51,828,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=524 nx=828
+PDE,9,stripped,lo_fail,NaN,0 (stable for k<0),1,0.78,167,PIETOOLS_PIE2PDEstability | bracket [-1 0.25] final [-1 0.25] | steps -1:U(1s) | last: fr=0.0817 pinf=0 dinf=0 numerr=2 iter=40 cpu=0.0s m=98 nx=167
+PDE,9/stability_dual,stripped,infeasible,0,0 (stable for k<0),1,0.50,164,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=91 nx=164
+PDE,10,stripped,infeasible,0,stable (k=-2),1,0.61,167,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=98 nx=167
+PDE,11,stripped,lo_fail,NaN,2.7 (stable for R<2.7; not tight),1,0.41,508,PIETOOLS_PIE2PDEstability | bracket [2.025 3.625] final [2.025 3.625] | steps 2.025:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=364 nx=508
+PDE,11/stability_dual,stripped,infeasible,0,2.7 (stable for R<2.7; not tight),1,0.38,508,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=364 nx=508
+PDE,12,stripped,lo_fail,NaN,21 (stable for R<21; not tight),1,0.41,1143,PIETOOLS_PIE2PDEstability | bracket [15.75 37.5] final [15.75 37.5] | steps 15.75:F(0s) | last: fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=769 nx=1143
+PDE,13,stripped,infeasible,0,stable,1,0.43,508,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=280 nx=508
+PDE,13/stability_dual,stripped,infeasible,0,stable,1,0.32,508,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=282 nx=508
+PDE,13.2,stripped,infeasible,0,stable,1,1.37,860,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=892 nx=860
+PDE,13.2/stability_dual,stripped,infeasible,0,stable,1,0.61,860,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=896 nx=860
+PDE,14,stripped,certified,1,stable (TOC: PDE stable without damping),1,0.45,2032,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.0s m=992 nx=2032
+PDE,15,stripped,infeasible,0,TOC: (unstable); PDE stable with damping c>0,1,0.59,2032,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=24 cpu=0.1s m=1083 nx=2032
+PDE,16,stripped,infeasible,0,,1,0.62,3440,PIETOOLS_PIE2PDEstability | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=4025 nx=3440
+PDE,17,stripped,certified,1,stable for k>0 (k=1),1,0.35,508,PIETOOLS_PIE2PDEstability | fr=0.969 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=246 nx=508
+PDE,18,stripped,infeasible,0,stable (TOC: dual stable),1,0.38,508,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=8 cpu=0.0s m=297 nx=508
+PDE,19,stripped,certified,1,stable,1,0.37,1143,PIETOOLS_PIE2PDEstability | fr=0.856 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=570 nx=1143
+PDE,20,stripped,unknown,10.096441,veryheavy=0.5000;heavy=0.5011;light=0.5162,1,0.90,164,PIETOOLS_Hinf_gain | fr=0.309 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.0s m=76 nx=165
+PDE,20/Hinf_gain_dual,stripped,unknown,12.245657,veryheavy=0.5000;heavy=0.5058;light=0.5204,1,0.47,164,PIETOOLS_Hinf_gain_dual | fr=-0.15 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.0s m=77 nx=165
+PDE,21,stripped,unknown,9.4038827,veryheavy=0.8419;heavy=0.8419;light=0.8424,1,0.56,577,PIETOOLS_Hinf_gain | fr=0.166 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.0s m=273 nx=578
+PDE,21/Hinf_gain_dual,stripped,unknown,21.047657,veryheavy=0.8419;heavy=0.8552;light=0.8722,1,0.48,577,PIETOOLS_Hinf_gain_dual | fr=0.204 pinf=0 dinf=0 numerr=2 iter=19 cpu=0.0s m=275 nx=578
+PDE,22,stripped,unknown,166307.27,veryheavy=0.2083;heavy=0.2083;light=0.2085,1,0.54,164,PIETOOLS_Hinf_gain | fr=-0.223 pinf=0 dinf=0 numerr=2 iter=29 cpu=0.0s m=89 nx=165
+PDE,23,stripped,unknown,8645785.1,light=25.249;heavy=23.706;veryheavy=23.622,1,0.60,164,PIETOOLS_Hinf_gain | fr=-0.195 pinf=0 dinf=0 numerr=2 iter=42 cpu=0.0s m=125 nx=165
+PDE,24,stripped,unknown,64516.16,8.2136,1,0.54,164,PIETOOLS_Hinf_gain | fr=-0.234 pinf=0 dinf=0 numerr=2 iter=31 cpu=0.0s m=107 nx=165
+PDE,25,stripped,unknown,39014.559,0.8102,1,0.53,577,PIETOOLS_Hinf_gain | fr=-0.131 pinf=0 dinf=0 numerr=2 iter=27 cpu=0.0s m=393 nx=578
+PDE,26,stripped,unknown,52691.08,2.1457,1,0.66,1352,PIETOOLS_Hinf_gain | fr=0.213 pinf=0 dinf=0 numerr=2 iter=31 cpu=0.1s m=976 nx=1353
+PDE,27,stripped,unknown,1.0003823,1.0004,1,0.91,140,PIETOOLS_Hinf_estimator | fr=0.26 pinf=0 dinf=0 numerr=2 iter=22 cpu=0.0s m=31 nx=141
+PDE,28,stripped,certified,1.381503,1.0005,1,3.11,140,PIETOOLS_Hinf_estimator | fr=0.991 pinf=0 dinf=0 numerr=0 iter=30 cpu=0.0s m=39 nx=141
+PDE,29,stripped,unknown,14619.706,1.0000,1,1.07,161,PIETOOLS_Hinf_control | fr=-0.5 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.0s m=61 nx=162
+PDE,30,stripped,infeasible,0.0004707612,heavy=0.6594,1,1.36,198,PIETOOLS_Hinf_control | fr=-1 pinf=1 dinf=0 numerr=0 iter=27 cpu=0.0s m=70 nx=199
+PDE,31,stripped,unknown,25.143725,light=2.7407e-04,1,1.54,487,PIETOOLS_Hinf_control | fr=-0.222 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.0s m=117 nx=488
+PDE,32,stripped,infeasible,1.6937578e+08,heavy=0.5971,1,2.40,577,PIETOOLS_Hinf_control | fr=-0.953 pinf=0 dinf=0 numerr=2 iter=26 cpu=0.0s m=140 nx=578
+PDE,33,stripped,certified,1,,1,38.24,425198,PIETOOLS_PIE2PDEstability | fr=1.07 pinf=0 dinf=0 numerr=0 iter=12 cpu=20.0s m=3920 nx=425198
+PDE,34,stripped,infeasible,0,stable for lam<=2*pi^2 (lam=19),1,61.21,426413,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=17 cpu=42.7s m=4220 nx=426413
+PDE,35,stripped,unknown,0,,1,41.40,426413,PIETOOLS_PIE2PDEstability | fr=2.75 pinf=0 dinf=0 numerr=0 iter=12 cpu=23.7s m=4220 nx=426413
+PDE,36,stripped,infeasible,0,,1,708.66,1705652,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=2 iter=15 cpu=676.8s m=16880 nx=1.70565e+06
+PDE,37,stripped,infeasible,0,stable for a<=pi^2/2 (a=4),1,53.42,426413,PIETOOLS_PIE2PDEstability | fr=-1.02 pinf=0 dinf=0 numerr=2 iter=18 cpu=35.7s m=4220 nx=426413
+PDE,38,stripped,infeasible,0,,1,749.51,1705652,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=2 iter=15 cpu=717.4s m=16880 nx=1.70565e+06
+PDE,39,stripped,skipped,NaN,,0,0.01,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 2243 s per solve > 600 s (from extreme 2243 s; factor 1)
+PDE,40,stripped,unknown,0,,1,43.38,427800,PIETOOLS_PIE2PDEstability | fr=2.42 pinf=0 dinf=0 numerr=0 iter=13 cpu=24.0s m=4275 nx=427800
+PDE,41,stripped,infeasible,0,,1,1.12,508,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=22 cpu=0.0s m=338 nx=508
+PDE,42,stripped,infeasible,0,,1,21.07,135405,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=19 cpu=9.7s m=4305 nx=135405
+PDE,43,stripped,infeasible,0,stable for tau<1.0347 (tau=1),1,13.29,124290,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=19 cpu=6.2s m=3696 nx=124290
+PDE,44,stripped,lo_fail,NaN,0.5 (stable for mu<0.5),1,0.96,2195,PIETOOLS_PIE2PDEstability | bracket [0.375 0.625] final [0.375 0.625] | steps 0.375:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=1367 nx=2195
+PDE,45,stripped,unknown,0.25217674,exact=0.11101,1,277.39,904571,PIETOOLS_Hinf_gain | fr=-0.148 pinf=0 dinf=0 numerr=2 iter=21 cpu=264.9s m=13021 nx=904571
+PDE,46,stripped,unknown,1.5703683,exact=0.17110,1,331.44,904571,PIETOOLS_Hinf_gain | fr=-0.0342 pinf=0 dinf=0 numerr=2 iter=25 cpu=319.7s m=13021 nx=904571
+PDE,47,stripped,certified,0.20707431,exact=0.20668,1,288.30,904571,PIETOOLS_Hinf_gain | fr=0.999 pinf=0 dinf=0 numerr=0 iter=22 cpu=276.9s m=13021 nx=904571
+PDE,48,stripped,error,NaN,,0,2.05,NaN,PIETOOLS_Hinf_estimator | MATLAB:badsubscript: Index exceeds the number of array elements. Index must not exceed 5. @ lpivar_2d:476
+PDE,49,stripped,unknown,9086.7368,veryheavy=0.1016;heavy=0.1017;light=0.1043,1,0.81,227,PIETOOLS_H2_norm_o | fr=0.364 pinf=0 dinf=0 numerr=2 iter=39 cpu=0.0s m=95 nx=228
+PDE,49/H2_norm_dual,stripped,unknown,405.13175,veryheavy=0.1016;heavy=0.1162;light=0.1362,1,0.54,227,PIETOOLS_H2_norm_c | fr=0.261 pinf=0 dinf=0 numerr=2 iter=31 cpu=0.0s m=95 nx=229
+PDE,50,stripped,certified,0.81274691,custom+psatz=0.8502,1,1026.55,1866918,PIETOOLS_H2_norm_o | fr=1 pinf=0 dinf=0 numerr=0 iter=30 cpu=982.6s m=16528 nx=1.86692e+06
+PDE,50/H2_norm_dual,stripped,infeasible,0.12096038,custom+psatz=0.8398,1,720.74,1866918,PIETOOLS_H2_norm_c | fr=-1 pinf=1 dinf=0 numerr=0 iter=20 cpu=677.2s m=16528 nx=1.86692e+06
+PDE,51,stripped,infeasible,27876.492,veryheavy=1.2683,1,1.20,203,PIETOOLS_H2_estimator | fr=-0.9 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.0s m=64 nx=205
+PDE,52,stripped,unknown,18464.466,,1,1.40,225,PIETOOLS_H2_control | fr=-0.75 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.0s m=71 nx=227
+DDE,DDE01,stripped,lo_fail,NaN,2.04 (analytical range [0.2; 2.04]),1,0.46,656,PIETOOLS_PIE2PDEstability | bracket [1.53 2.55] final [1.53 2.55] | steps 1.53:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=308 nx=656
+DDE,DDE01/stability_dual,stripped,infeasible,0,2.04 (analytical range [0.2; 2.04]),1,0.36,656,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=308 nx=656
+DDE,DDE02,stripped,lo_fail,NaN,2 ([1]: tauNmax<2),1,0.43,2316,PIETOOLS_PIE2PDEstability | bracket [1.5 2.5] final [1.5 2.5] | steps 1.5:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=1088 nx=2316
+DDE,DDE02/stability_dual,stripped,infeasible,0,2 ([1]: tauNmax<2),1,0.40,2316,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=1088 nx=2316
+DDE,DDE03,stripped,lo_fail,NaN,1.71785 (taumin=.100174),1,0.44,207,PIETOOLS_PIE2PDEstability | bracket [1.28839 2.14731] final [1.28839 2.14731] | steps 1.28839:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=94 nx=207
+DDE,DDE03/stability_dual,stripped,infeasible,0,1.71785 (taumin=.100174),1,0.39,207,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=93 nx=207
+DDE,DDE04,stripped,lo_fail,NaN,6.17258,1,0.46,656,PIETOOLS_PIE2PDEstability | bracket [4.62943 7.71572] final [4.62943 7.71572] | steps 4.62943:F(0s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=17 cpu=0.0s m=308 nx=656
+DDE,DDE04/stability_dual,stripped,infeasible,0,6.17258,1,0.38,656,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=10 cpu=0.0s m=304 nx=656
+DDE,DDE05,stripped,lo_fail,NaN,1.5707,1,0.45,164,PIETOOLS_PIE2PDEstability | bracket [1.17802 1.96338] final [1.17802 1.96338] | steps 1.17802:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=77 nx=164
+DDE,DDE06,stripped,lo_fail,NaN,3 (bmax),1,0.42,579,PIETOOLS_PIE2PDEstability | bracket [2.25 3.75] final [2.25 3.75] | steps 2.25:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=272 nx=579
+DDE,DDE06/stability_dual,stripped,infeasible,0,3 (bmax),1,0.36,579,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=9 cpu=0.0s m=270 nx=579
+DDE,DDE07,stripped,lo_fail,NaN,1.3722,1,0.37,656,PIETOOLS_PIE2PDEstability | bracket [1.3 1.71525] final [1.3 1.71525] | steps 1.3:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=300 nx=656
+DDE,DDE07/stability_dual,stripped,infeasible,0,1.3722,1,0.32,656,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=6 cpu=0.0s m=298 nx=656
+DDE,DDE08,stripped,lo_fail,NaN,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),1,0.37,311,PIETOOLS_PIE2PDEstability | bracket [1.1 4.9375] final [1.1 4.9375] | steps 1.1:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=140 nx=311
+DDE,DDE08/stability_dual,stripped,infeasible,0,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),1,0.33,311,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=139 nx=311
+DDE,DDE09,stripped,unknown,11745.449,25.907 (tau=1.5),1,0.53,205,PIETOOLS_Hinf_gain | fr=-0.394 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.0s m=94 nx=206
+DDE,DDE09/Hinf_gain_dual,stripped,unknown,7656.4508,25.907 (tau=1.5),1,0.45,205,PIETOOLS_Hinf_gain_dual | fr=-0.278 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.0s m=93 nx=206
+DDE,DDE10,stripped,unknown,0.46237241,0.2364,1,0.50,733,PIETOOLS_Hinf_gain | fr=0.0985 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.0s m=337 nx=734
+DDE,DDE10/Hinf_gain_dual,stripped,inaccurate,0.58506203,0.2364,1,0.42,733,PIETOOLS_Hinf_gain_dual | fr=0.97 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.0s m=333 nx=734
+DDE,DDE11,stripped,unknown,10120.436,2.87,1,0.51,277,PIETOOLS_Hinf_gain | fr=-0.0652 pinf=0 dinf=0 numerr=2 iter=30 cpu=0.0s m=128 nx=278
+DDE,DDE11/Hinf_gain_dual,stripped,unknown,16716.275,2.87,1,0.47,277,PIETOOLS_Hinf_gain_dual | fr=-0.31 pinf=0 dinf=0 numerr=2 iter=26 cpu=0.0s m=127 nx=278
+DDE,DDE12,stripped,unknown,8053.3239,4.9784,1,0.46,733,PIETOOLS_Hinf_gain | fr=-0.365 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.0s m=329 nx=734
+DDE,DDE12/Hinf_gain_dual,stripped,unknown,10929.053,4.9784,1,0.44,733,PIETOOLS_Hinf_gain_dual | fr=-0.358 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.0s m=327 nx=734
+DDE,DDE13,stripped,unknown,9.9695219,1.339 (tau=2),1,1.12,646,PIETOOLS_Hinf_control | fr=0.126 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.0s m=138 nx=647
+DDE,DDE14,stripped,unknown,0.73751147,0.3953,1,0.95,646,PIETOOLS_Hinf_control | fr=-0.039 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.0s m=138 nx=647
+DDE,DDE15,stripped,unknown,1.2309641,0.6104,1,0.89,689,PIETOOLS_Hinf_control | fr=0.337 pinf=0 dinf=0 numerr=2 iter=30 cpu=0.0s m=157 nx=690
+DDE,DDE16,stripped,inaccurate,1.5782226,0.9630,1,34.27,9364,PIETOOLS_Hinf_control | fr=0.926 pinf=0 dinf=0 numerr=2 iter=22 cpu=0.8s m=1603 nx=9365
+DDE,DDE17,stripped,lo_fail,NaN,stable at h=.08; unstable at h=1,1,0.62,4303,PIETOOLS_PIE2PDEstability | bracket [0.05 1] final [0.05 1] | steps 0.05:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=12 cpu=0.2s m=2022 nx=4303
+DDE,DDE17/Hinf_control,stripped,unknown,9.3516722,,1,2.21,3622,PIETOOLS_Hinf_control | fr=0.519 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=655 nx=3623
+DDE,DDE18,stripped,unknown,1.7056457,0.4092 (n=3),1,1.10,2143,PIETOOLS_Hinf_control | fr=-0.0951 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.1s m=568 nx=2144
+DDE,DDE19,stripped,unknown,0.0045700428,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),1,0.81,257,PIETOOLS_Hinf_control | fr=0.336 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.0s m=65 nx=258
+DDE,DDE20,stripped,unknown,0.23787999,0.2357,1,0.94,266,PIETOOLS_Hinf_estimator | fr=0.342 pinf=0 dinf=0 numerr=0 iter=94 cpu=0.1s m=78 nx=267
+DDE,DDE21,stripped,unknown,3.0255562,2.327,1,1.06,646,PIETOOLS_Hinf_estimator | fr=0.594 pinf=0 dinf=0 numerr=2 iter=27 cpu=0.0s m=134 nx=647
+DDE,DDE22,stripped,inaccurate,1.4697876,1.3501,1,1.69,2060,PIETOOLS_Hinf_estimator | fr=0.96 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.1s m=370 nx=2061
+DDE,DDE23,stripped,inaccurate,2.1365643,1.808,1,3.77,1253,PIETOOLS_Hinf_estimator | fr=0.953 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.1s m=239 nx=1254
+DDE,DDE24,stripped,certified,1.0910502,,1,9.27,2060,PIETOOLS_Hinf_estimator | fr=0.983 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.1s m=370 nx=2061
+DDE,DDE25,stripped,unknown,685.75156,3.6724,1,0.54,285,PIETOOLS_H2_norm_o | fr=-0.29 pinf=0 dinf=0 numerr=2 iter=30 cpu=0.0s m=116 nx=286
+DDE,DDE25/H2_norm_dual,stripped,unknown,6.9683108,3.6724,1,0.51,285,PIETOOLS_H2_norm_c | fr=0.572 pinf=0 dinf=0 numerr=2 iter=34 cpu=0.0s m=116 nx=287
+DDE,DDE26,stripped,unknown,212.89317,3.8307,1,1.13,8020,PIETOOLS_H2_norm_o | fr=-0.421 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.5s m=3276 nx=8021
+DDE,DDE26/H2_norm_dual,stripped,unknown,5.5607079,3.8307,1,1.02,8020,PIETOOLS_H2_norm_c | fr=0.101 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.5s m=3259 nx=8022
+NDSDDF,NDS01,stripped,lo_fail,NaN,2.2255 (analytic max; uncited),1,0.40,656,PIETOOLS_PIE2PDEstability | bracket [1.66912 2.78187] final [1.66912 2.78187] | steps 1.66912:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=8 cpu=0.0s m=320 nx=656
+NDSDDF,NDS01/stability_dual,stripped,infeasible,0,2.2255 (analytic max; uncited),1,0.32,656,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=9 cpu=0.0s m=316 nx=656
+NDSDDF,NDS02,stripped,unknown,0,stable at tau=20 (literature: tau<.7516),1,0.38,656,PIETOOLS_PIE2PDEstability | fr=1.68 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.0s m=320 nx=656
+NDSDDF,NDS02/stability_dual,stripped,certified,1,stable at tau=20 (literature: tau<.7516),1,0.34,656,PIETOOLS_PIE2PDEstability_dual | fr=1.14 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.0s m=316 nx=656
+NDSDDF,NDS03,stripped,certified,1,stable (tau=[.3 .6]),1,0.45,2316,PIETOOLS_PIE2PDEstability | fr=0.997 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=1136 nx=2316
+NDSDDF,NDS03/stability_dual,stripped,certified,1,stable (tau=[.3 .6]),1,0.39,2316,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=1128 nx=2316
+NDSDDF,NDS04,stripped,hi_pass,0.69,0.552 (stable for any h1>0; h2<.552),2,0.84,2316,PIETOOLS_PIE2PDEstability | bracket [0.414 0.69] final [0.414 0.69] | steps 0.414:C(0s) 0.69:C(0s) | last: fr=0.995 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=1136 nx=2316
+NDSDDF,NDS05,stripped,lo_fail,NaN,1.5804? (stability verified for h<2.04),1,0.49,2316,PIETOOLS_PIE2PDEstability | bracket [1.1853 2.55] final [1.1853 2.55] | steps 1.1853:F(0s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=26 cpu=0.1s m=1136 nx=2316
+NDSDDF,NDS05/stability_dual,stripped,infeasible,0,1.5804? (stability verified for h<2.04),1,0.37,2316,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=8 cpu=0.0s m=1104 nx=2316
+NDSDDF,NDS07,stripped,lo_fail,NaN,0.5? (stability verified for h<.603),1,0.39,579,PIETOOLS_PIE2PDEstability | bracket [0.375 0.75375] final [0.375 0.75375] | steps 0.375:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=8 cpu=0.0s m=284 nx=579
+NDSDDF,NDS07/stability_dual,stripped,infeasible,0,0.5? (stability verified for h<.603),1,0.34,579,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=276 nx=579
+NDSDDF,NDS08,stripped,lo_fail,NaN,0.02755,1,0.42,2624,PIETOOLS_PIE2PDEstability | bracket [0.0206625 0.0344375] final [0.0206625 0.0344375] | steps 0.0206625:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=1280 nx=2624
+NDSDDF,NDS08/stability_dual,stripped,infeasible,0,0.02755,1,0.43,2624,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=12 cpu=0.1s m=1264 nx=2624
+NDSDDF,NDS09,stripped,lo_fail,NaN,0.603,1,0.70,4100,PIETOOLS_PIE2PDEstability | bracket [0.45225 0.75375] final [0.45225 0.75375] | steps 0.45225:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=10 cpu=0.2s m=2000 nx=4100
+NDSDDF,NDS09/stability_dual,stripped,infeasible,0,0.603,1,0.48,4100,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.1s m=1975 nx=4100
+NDSDDF,NDS10,stripped,certified,1,,1,0.34,656,PIETOOLS_PIE2PDEstability | fr=0.956 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=320 nx=656
+NDSDDF,NDS10/stability_dual,stripped,certified,1,,1,0.32,656,PIETOOLS_PIE2PDEstability_dual | fr=0.922 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=316 nx=656
+NDSDDF,NDS11,stripped,unknown,0,,1,0.36,207,PIETOOLS_PIE2PDEstability | fr=5.03 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=101 nx=207
+NDSDDF,NDS11/stability_dual,stripped,infeasible,0,,1,0.35,207,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=14 cpu=0.0s m=96 nx=207
+NDSDDF,NDS12,stripped,lo_fail,NaN,0.4448?,1,0.35,579,PIETOOLS_PIE2PDEstability | bracket [0.3336 0.556] final [0.3336 0.556] | steps 0.3336:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=8 cpu=0.0s m=284 nx=579
+NDSDDF,NDS12/stability_dual,stripped,infeasible,0,0.4448?,1,0.34,579,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=7 cpu=0.0s m=276 nx=579
+NDSDDF,DDF01,stripped,certified,1,,1,0.32,508,PIETOOLS_PIE2PDEstability | fr=0.99 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=252 nx=508
+NDSDDF,DDF01/stability_dual,stripped,certified,1,,1,0.26,508,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=252 nx=508
+NDSDDF,DDF03,stripped,unknown,0.0012624754,,1,0.94,761,PIETOOLS_Hinf_control | fr=0.319 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.0s m=157 nx=762
+PDE,1,light,certified,1,stable (v=-1),1,0.41,404,PIETOOLS_PIE2PDEstability | fr=0.894 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=94 nx=404
+PDE,1/stability_dual,light,certified,1,stable (v=-1),1,0.35,404,PIETOOLS_PIE2PDEstability_dual | fr=1.04 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=92 nx=404
+PDE,2,light,certified,1,stable,1,0.44,1616,PIETOOLS_PIE2PDEstability | fr=0.993 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=424 nx=1616
+PDE,2.2,light,certified,1,stable,1,0.39,1616,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=424 nx=1616
+PDE,2.3,light,certified,1,stable,1,0.41,1616,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=424 nx=1616
+PDE,2.4,light,certified,1,stable,1,0.37,1616,PIETOOLS_PIE2PDEstability | fr=0.995 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.0s m=424 nx=1616
+PDE,3,light,certified,1,stable,1,0.49,3636,PIETOOLS_PIE2PDEstability | fr=1.3 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.1s m=954 nx=3636
+PDE,4,light,infeasible,0,stable,1,0.39,1616,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=15 cpu=0.0s m=424 nx=1616
+PDE,4.2,light,certified,1,stable,1,0.37,1616,PIETOOLS_PIE2PDEstability | fr=1.03 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=410 nx=1616
+PDE,4.3,light,certified,1,stable,1,0.37,1616,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=424 nx=1616
+PDE,4.4,light,certified,1,stable,1,0.38,1616,PIETOOLS_PIE2PDEstability | fr=0.954 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=410 nx=1616
+PDE,4.5,light,infeasible,0,stable,1,0.37,1616,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=9 cpu=0.0s m=424 nx=1616
+PDE,5,light,converged,9.8599661,9.8696 (stable for lam<pi^2),11,4.88,404,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [9.85997 9.8696] | steps 7.4022:C(0s) 12.337:F(0s) 9.8696:F(0s) 8.6359:C(0s) 9.25275:C(0s) 9.56118:C(0s) 9.71539:C(0s) 9.7925:C(0s) 9.83105:C(0s) 9.85033:C(0s) 9.85997:C(0s) | last: fr=1.11 pinf=0 dinf=0 numerr=0 iter=29 cpu=0.0s m=132 nx=404
+PDE,6/stability_dual,light,certified,1,2.467 (stable for lam<pi^2/4),1,0.38,404,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=119 nx=404
+PDE,7,light,lo_fail,NaN,4.66 (unstable for lam>4.66),1,0.49,404,PIETOOLS_PIE2PDEstability | bracket [3.495 5.825] final [3.495 5.825] | steps 3.495:U(0s) | last: fr=-0.116 pinf=0 dinf=0 numerr=2 iter=22 cpu=0.0s m=147 nx=404
+PDE,7/stability_dual,light,infeasible,0,4.66 (unstable for lam>4.66),1,0.42,404,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=20 cpu=0.0s m=147 nx=404
+PDE,8,light,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,0.77,2244,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=18 cpu=0.1s m=706 nx=2244
+PDE,8/stability_dual,light,infeasible,0,9.8696 (stable for lam<pi^2),1,0.57,2244,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=14 cpu=0.0s m=712 nx=2244
+PDE,9,light,converged,-0.00024414062,0 (stable for k<0),12,6.94,479,PIETOOLS_PIE2PDEstability | bracket [-1 0.25] final [-0.000244141 0.000976562] | steps -1:C(0s) 0.25:F(0s) -0.375:C(0s) -0.0625:C(0s) 0.09375:F(0s) 0.015625:F(0s) -0.0234375:C(0s) -0.00390625:C(1s) 0.00585938:F(0s) 0.000976562:F(0s) -0.00146484:C(0s) -0.000244141:C(0s) | last: fr=1.02 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.0s m=136 nx=479
+PDE,9/stability_dual,light,certified,1,0 (stable for k<0),1,0.59,479,PIETOOLS_PIE2PDEstability_dual | fr=0.998 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=130 nx=479
+PDE,10,light,infeasible,0,stable (k=-2),1,0.63,479,PIETOOLS_PIE2PDEstability | fr=-0.985 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.0s m=136 nx=479
+PDE,11,light,converged,2.928125,2.7 (stable for R<2.7; not tight),12,5.45,1616,PIETOOLS_PIE2PDEstability | bracket [2.025 3.625] final [2.92813 2.92969] | steps 2.025:C(0s) 3.625:F(0s) 2.825:C(0s) 3.225:F(0s) 3.025:F(0s) 2.925:C(0s) 2.975:F(0s) 2.95:F(0s) 2.9375:F(0s) 2.93125:F(0s) 2.92813:C(0s) 2.92969:F(0s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=19 cpu=0.0s m=528 nx=1616
+PDE,11/stability_dual,light,certified,1,2.7 (stable for R<2.7; not tight),1,0.41,1616,PIETOOLS_PIE2PDEstability_dual | fr=0.989 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=520 nx=1616
+PDE,12,light,lo_fail,NaN,21 (stable for R<21; not tight),1,0.58,3636,PIETOOLS_PIE2PDEstability | bracket [15.75 37.5] final [15.75 37.5] | steps 15.75:F(0s) | last: fr=-0.976 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.1s m=1135 nx=3636
+PDE,13,light,certified,1,stable,1,0.52,1616,PIETOOLS_PIE2PDEstability | fr=0.975 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.1s m=428 nx=1616
+PDE,13/stability_dual,light,certified,1,stable,1,0.49,1616,PIETOOLS_PIE2PDEstability_dual | fr=0.983 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.0s m=428 nx=1616
+PDE,13.2,light,certified,1,stable,1,0.64,1904,PIETOOLS_PIE2PDEstability | fr=0.972 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=912 nx=1904
+PDE,13.2/stability_dual,light,certified,1,stable,1,0.54,1904,PIETOOLS_PIE2PDEstability_dual | fr=0.972 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=916 nx=1904
+PDE,14,light,certified,1,stable (TOC: PDE stable without damping),1,0.53,6464,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=1544 nx=6464
+PDE,15,light,infeasible,0,TOC: (unstable); PDE stable with damping c>0,1,0.85,6464,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=0 dinf=0 numerr=2 iter=28 cpu=0.3s m=1639 nx=6464
+PDE,16,light,infeasible,0,,1,0.66,7616,PIETOOLS_PIE2PDEstability | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=4084 nx=7616
+PDE,17,light,certified,1,stable for k>0 (k=1),1,0.39,1616,PIETOOLS_PIE2PDEstability | fr=0.998 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=384 nx=1616
+PDE,18,light,unknown,0,stable (TOC: dual stable),1,0.44,1616,PIETOOLS_PIE2PDEstability_dual | fr=0.308 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.0s m=444 nx=1616
+PDE,19,light,certified,1,stable,1,0.45,3636,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=888 nx=3636
+PDE,20/Hinf_gain_dual,light,unknown,0.52047954,0.5204,1,0.58,497,PIETOOLS_Hinf_gain_dual | fr=0.323 pinf=0 dinf=0 numerr=0 iter=33 cpu=0.0s m=112 nx=498
+PDE,21,light,certified,0.84238353,0.8424,1,0.71,1793,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=39 cpu=0.1s m=409 nx=1794
+PDE,21/Hinf_gain_dual,light,certified,0.87457085,0.8722,1,0.56,1793,PIETOOLS_Hinf_gain_dual | fr=0.876 pinf=0 dinf=0 numerr=0 iter=27 cpu=0.1s m=411 nx=1794
+PDE,22,light,certified,0.20847444,0.2085,1,0.53,497,PIETOOLS_Hinf_gain | fr=0.738 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.0s m=127 nx=498
+PDE,23,light,inaccurate,25.624192,25.249,1,0.65,497,PIETOOLS_Hinf_gain | fr=0.995 pinf=0 dinf=0 numerr=2 iter=22 cpu=0.0s m=169 nx=498
+PDE,24,light,certified,8.8654107,8.2136,1,0.54,497,PIETOOLS_Hinf_gain | fr=0.998 pinf=0 dinf=0 numerr=0 iter=22 cpu=0.0s m=149 nx=498
+PDE,25,light,certified,0.81036635,0.8102,1,0.65,1793,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.1s m=555 nx=1794
+PDE,26,light,certified,2.148556,2.1457,1,0.72,4173,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.1s m=1375 nx=4174
+PDE,27,light,certified,1.0000354,1.0004,1,1.05,457,PIETOOLS_Hinf_estimator | fr=0.999 pinf=0 dinf=0 numerr=0 iter=36 cpu=0.0s m=51 nx=458
+PDE,28,light,certified,1.0001194,1.0005,1,3.41,457,PIETOOLS_Hinf_estimator | fr=0.998 pinf=0 dinf=0 numerr=0 iter=31 cpu=0.0s m=61 nx=458
+PDE,29,light,certified,1.0002058,1.0000,1,0.96,509,PIETOOLS_Hinf_control | fr=0.99 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.0s m=85 nx=510
+PDE,30,light,unknown,1.4239786,heavy=0.6594,1,1.22,587,PIETOOLS_Hinf_control | fr=0.251 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.0s m=95 nx=588
+PDE,31,light,unknown,0.00030168115,2.7407e-04,1,3.16,1663,PIETOOLS_Hinf_control | fr=0.569 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.1s m=199 nx=1664
+PDE,32,light,unknown,3.1924802,heavy=0.5971,1,1.54,1861,PIETOOLS_Hinf_control | fr=0.622 pinf=0 dinf=0 numerr=2 iter=28 cpu=0.1s m=223 nx=1862
+PDE,33,light,certified,1,,1,2.16,2804,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=6 cpu=0.0s m=402 nx=2804
+PDE,34,light,certified,1,stable for lam<=2*pi^2 (lam=19),1,6.01,92552,PIETOOLS_PIE2PDEstability | fr=0.995 pinf=0 dinf=0 numerr=0 iter=15 cpu=2.6s m=2744 nx=92552
+PDE,36,light,skipped,NaN,,0,0.01,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 843 s per solve > 600 s (from stripped 709 s; factor 1.19)
+PDE,37,light,certified,1,stable for a<=pi^2/2 (a=4),1,4.15,46792,PIETOOLS_PIE2PDEstability | fr=0.999 pinf=0 dinf=0 numerr=0 iter=12 cpu=1.1s m=2142 nx=46792
+PDE,38,light,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 1134 s per solve > 600 s (from stripped 750 s; factor 1.51)
+PDE,39,light,skipped,NaN,,0,0.01,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier stripped skipped or out of memory
+PDE,40,light,certified,1,,1,3.78,16694,PIETOOLS_PIE2PDEstability | fr=0.985 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=1405 nx=16694
+PDE,41,light,unknown,0,,1,0.79,1616,PIETOOLS_PIE2PDEstability | fr=-0.0225 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.1s m=498 nx=1616
+PDE,42,light,certified,1,,1,7.06,8683,PIETOOLS_PIE2PDEstability | fr=1.04 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.2s m=1283 nx=8683
+PDE,43,light,infeasible,0,stable for tau<1.0347 (tau=1),1,3.74,7434,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=14 cpu=0.2s m=1058 nx=7434
+PDE,44,light,lo_fail,NaN,0.5 (stable for mu<0.5),1,1.12,6764,PIETOOLS_PIE2PDEstability | bracket [0.375 0.625] final [0.375 0.625] | steps 0.375:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=13 cpu=0.2s m=1983 nx=6764
+PDE,45,light,certified,0.11196592,exact=0.11101,1,311.57,795395,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=22 cpu=300.7s m=15503 nx=795395
+PDE,46,light,certified,0.17168878,exact=0.17110,1,309.68,795395,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=22 cpu=298.7s m=15503 nx=795395
+PDE,47,light,unknown,0.2085097,exact=0.20668,1,252.95,795395,PIETOOLS_Hinf_gain | fr=0.488 pinf=0 dinf=0 numerr=0 iter=17 cpu=242.0s m=15503 nx=795395
+PDE,48,light,error,NaN,,0,2.08,NaN,PIETOOLS_Hinf_estimator | MATLAB:badsubscript: Index exceeds the number of array elements. Index must not exceed 5. @ lpivar_2d:476
+PDE,49,light,certified,0.1043153,0.1043,1,1.02,755,PIETOOLS_H2_norm_o | fr=0.938 pinf=0 dinf=0 numerr=0 iter=32 cpu=0.0s m=143 nx=756
+PDE,49/H2_norm_dual,light,certified,0.13632304,0.1362,1,0.74,755,PIETOOLS_H2_norm_c | fr=0.982 pinf=0 dinf=0 numerr=0 iter=36 cpu=0.0s m=143 nx=757
+PDE,50,light,skipped,NaN,custom+psatz=0.8502,0,0.01,NaN,PIETOOLS_H2_norm_o | skipped: projected 1829 s per solve > 600 s (from stripped 1027 s; factor 1.78)
+PDE,50/H2_norm_dual,light,skipped,NaN,custom+psatz=0.8398,0,0.02,NaN,PIETOOLS_H2_norm_c | skipped: projected 959 s per solve > 600 s (from stripped 721 s; factor 1.33)
+PDE,51,light,unknown,60.039601,veryheavy=1.2683,1,1.21,715,PIETOOLS_H2_estimator | fr=-0.355 pinf=0 dinf=0 numerr=2 iter=28 cpu=0.0s m=100 nx=717
+PDE,52,light,unknown,116.48755,,1,1.30,766,PIETOOLS_H2_control | fr=-0.268 pinf=0 dinf=0 numerr=2 iter=37 cpu=0.0s m=108 nx=768
+DDE,DDE01,light,converged,1.8407813,2.04 (analytical range [0.2; 2.04]),11,5.97,1916,PIETOOLS_PIE2PDEstability | bracket [1.53 2.55] final [1.84078 1.84277] | steps 1.53:C(0s) 2.55:F(0s) 2.04:F(0s) 1.785:C(0s) 1.9125:F(1s) 1.84875:U(1s) 1.81688:C(0s) 1.83281:C(1s) 1.84078:C(1s) 1.84477:I(0s) 1.84277:I(1s) | last: fr=1.03 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.1s m=460 nx=1916
+DDE,DDE01/stability_dual,light,infeasible,0,2.04 (analytical range [0.2; 2.04]),1,0.73,1916,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=14 cpu=0.0s m=452 nx=1916
+DDE,DDE02,light,converged,2.0839844,2 ([1]: tauNmax<2),11,9.42,7056,PIETOOLS_PIE2PDEstability | bracket [1.5 2.5] final [2.08398 2.08594] | steps 1.5:C(1s) 2.5:F(1s) 2:C(1s) 2.25:F(1s) 2.125:F(1s) 2.0625:C(1s) 2.09375:F(1s) 2.07812:C(1s) 2.08594:F(1s) 2.08203:C(1s) 2.08398:C(1s) | last: fr=1 pinf=0 dinf=0 numerr=0 iter=25 cpu=0.4s m=1664 nx=7056
+DDE,DDE02/stability_dual,light,certified,1,2 ([1]: tauNmax<2),1,0.74,7056,PIETOOLS_PIE2PDEstability_dual | fr=0.989 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.2s m=1632 nx=7056
+DDE,DDE03,light,converged,1.4729222,1.71785 (taumin=.100174),11,5.82,561,PIETOOLS_PIE2PDEstability | bracket [1.28839 2.14731] final [1.47292 1.4746] | steps 1.28839:C(1s) 2.14731:F(0s) 1.71785:F(0s) 1.50312:F(0s) 1.39575:C(0s) 1.44944:C(0s) 1.47628:I(0s) 1.46286:C(0s) 1.46957:C(0s) 1.47292:C(0s) 1.4746:I(0s) | last: fr=1.14 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.0s m=135 nx=561
+DDE,DDE03/stability_dual,light,certified,1,1.71785 (taumin=.100174),1,0.49,561,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.0s m=132 nx=561
+DDE,DDE04,light,converged,6.0761334,6.17258,11,5.82,1916,PIETOOLS_PIE2PDEstability | bracket [4.62943 7.71572] final [6.07613 6.08216] | steps 4.62943:C(0s) 7.71572:F(0s) 6.17258:F(1s) 5.40101:C(0s) 5.78679:C(0s) 5.97969:C(0s) 6.07613:C(0s) 6.12436:F(0s) 6.10025:F(1s) 6.08819:F(1s) 6.08216:F(0s) | last: fr=-0.997 pinf=0 dinf=0 numerr=2 iter=26 cpu=0.1s m=460 nx=1916
+DDE,DDE04/stability_dual,light,certified,1,6.17258,1,0.46,1916,PIETOOLS_PIE2PDEstability_dual | fr=0.973 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.0s m=448 nx=1916
+DDE,DDE06,light,converged,3,3 (bmax),11,5.75,1764,PIETOOLS_PIE2PDEstability | bracket [2.25 3.75] final [3 3.00293] | steps 2.25:C(0s) 3.75:F(0s) 3:C(0s) 3.375:F(0s) 3.1875:F(0s) 3.09375:F(0s) 3.04688:F(1s) 3.02344:F(0s) 3.01172:F(0s) 3.00586:F(0s) 3.00293:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=22 cpu=0.1s m=416 nx=1764
+DDE,DDE06/stability_dual,light,certified,1,3 (bmax),1,0.51,1764,PIETOOLS_PIE2PDEstability_dual | fr=0.994 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=406 nx=1764
+DDE,DDE07,light,lo_fail,NaN,1.3722,1,0.49,1916,PIETOOLS_PIE2PDEstability | bracket [1.3 1.71525] final [1.3 1.71525] | steps 1.3:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=15 cpu=0.0s m=450 nx=1916
+DDE,DDE07/stability_dual,light,certified,1,1.3722,1,0.44,1916,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=440 nx=1916
+DDE,DDE08,light,converged,1.1712036,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),12,5.99,749,PIETOOLS_PIE2PDEstability | bracket [1.1 4.9375] final [1.1712 1.17495] | steps 1.1:C(0s) 4.9375:F(0s) 3.01875:F(0s) 2.05938:F(1s) 1.57969:F(0s) 1.33984:F(0s) 1.21992:F(0s) 1.15996:C(0s) 1.18994:F(0s) 1.17495:F(0s) 1.16746:C(0s) 1.1712:C(0s) | last: fr=1.1 pinf=0 dinf=0 numerr=0 iter=24 cpu=0.0s m=187 nx=749
+DDE,DDE08/stability_dual,light,certified,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),1,0.44,749,PIETOOLS_PIE2PDEstability_dual | fr=1.07 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=184 nx=749
+DDE,DDE09,light,inaccurate,26.935434,25.907 (tau=1.5),1,0.63,580,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=2 iter=22 cpu=0.0s m=132 nx=581
+DDE,DDE09/Hinf_gain_dual,light,inaccurate,26.965918,25.907 (tau=1.5),1,0.56,580,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=2 iter=26 cpu=0.0s m=131 nx=581
+DDE,DDE10/Hinf_gain_dual,light,certified,0.23692132,0.2364,1,0.62,2109,PIETOOLS_Hinf_gain_dual | fr=0.998 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.1s m=481 nx=2110
+DDE,DDE11,light,certified,2.8846663,2.87,1,0.58,730,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=31 cpu=0.0s m=170 nx=731
+DDE,DDE11/Hinf_gain_dual,light,unknown,2.8858171,2.87,1,0.57,730,PIETOOLS_Hinf_gain_dual | fr=0.429 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.0s m=169 nx=731
+DDE,DDE12,light,certified,5.0724782,4.9784,1,0.59,2109,PIETOOLS_Hinf_gain | fr=0.948 pinf=0 dinf=0 numerr=0 iter=22 cpu=0.1s m=475 nx=2110
+DDE,DDE12/Hinf_gain_dual,light,certified,5.0167628,4.9784,1,0.65,2109,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.1s m=473 nx=2110
+DDE,DDE13,light,certified,1.4791875,1.339 (tau=2),1,3.25,2007,PIETOOLS_Hinf_control | fr=0.999 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.1s m=220 nx=2008
+DDE,DDE14,light,certified,0.3952848,0.3953,1,2.48,2007,PIETOOLS_Hinf_control | fr=1.07 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=220 nx=2008
+DDE,DDE15,light,certified,0.61043412,0.6104,1,1.55,2113,PIETOOLS_Hinf_control | fr=0.908 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=241 nx=2114
+DDE,DDE17,light,converged,0.14833984,stable at h=.08; unstable at h=1,12,15.20,12369,PIETOOLS_PIE2PDEstability | bracket [0.05 1] final [0.14834 0.149268] | steps 0.05:C(1s) 1:F(1s) 0.525:F(1s) 0.2875:F(1s) 0.16875:F(1s) 0.109375:C(1s) 0.139063:C(1s) 0.153906:F(1s) 0.146484:C(1s) 0.150195:F(2s) 0.14834:C(1s) 0.149268:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=24 cpu=1.0s m=2992 nx=12369
+DDE,DDE18,light,certified,0.39947318,0.4092 (n=3),1,3.61,6031,PIETOOLS_Hinf_control | fr=0.815 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.2s m=775 nx=6032
+DDE,DDE19,light,certified,0.0010857628,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),1,1.81,697,PIETOOLS_Hinf_control | fr=0.703 pinf=0 dinf=0 numerr=0 iter=29 cpu=0.0s m=88 nx=698
+DDE,DDE20,light,certified,0.23570227,0.2357,1,1.16,735,PIETOOLS_Hinf_estimator | fr=0.999 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.0s m=102 nx=736
+DDE,DDE21,light,certified,2.3273346,2.327,1,1.43,2007,PIETOOLS_Hinf_estimator | fr=0.972 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.0s m=216 nx=2008
+DDE,DDE22,light,certified,1.3500959,1.3501,1,9.63,6845,PIETOOLS_Hinf_estimator | fr=0.913 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.1s m=670 nx=6846
+DDE,DDE23,light,unknown,1.8080823,1.808,1,11.98,4065,PIETOOLS_Hinf_estimator | fr=0.247 pinf=0 dinf=0 numerr=0 iter=19 cpu=0.1s m=416 nx=4066
+DDE,DDE24,light,certified,1.0462873,,1,37.04,6845,PIETOOLS_Hinf_estimator | fr=1 pinf=0 dinf=0 numerr=0 iter=25 cpu=0.3s m=670 nx=6846
+DDE,DDE25,light,certified,3.6755127,3.6724,1,0.70,882,PIETOOLS_H2_norm_o | fr=1 pinf=0 dinf=0 numerr=0 iter=25 cpu=0.0s m=168 nx=883
+DDE,DDE25/H2_norm_dual,light,certified,3.6724229,3.6724,1,0.61,882,PIETOOLS_H2_norm_c | fr=0.813 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=168 nx=884
+DDE,DDE26,light,certified,3.8309416,3.8307,1,2.68,26580,PIETOOLS_H2_norm_o | fr=0.947 pinf=0 dinf=0 numerr=0 iter=17 cpu=1.8s m=4998 nx=26581
+DDE,DDE26/H2_norm_dual,light,certified,3.8308308,3.8307,1,2.76,26580,PIETOOLS_H2_norm_c | fr=0.983 pinf=0 dinf=0 numerr=0 iter=20 cpu=1.9s m=4981 nx=26582
+NDSDDF,NDS01,light,converged,2.2211533,2.2255 (analytic max; uncited),11,5.31,1916,PIETOOLS_PIE2PDEstability | bracket [1.66912 2.78187] final [2.22115 2.22333] | steps 1.66912:C(0s) 2.78187:F(0s) 2.2255:F(0s) 1.94731:C(0s) 2.08641:C(0s) 2.15595:C(1s) 2.19073:C(0s) 2.20811:C(0s) 2.21681:C(0s) 2.22115:C(0s) 2.22333:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=17 cpu=0.0s m=476 nx=1916
+NDSDDF,NDS01/stability_dual,light,certified,1,2.2255 (analytic max; uncited),1,0.44,1916,PIETOOLS_PIE2PDEstability_dual | fr=1.04 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=464 nx=1916
+NDSDDF,NDS02,light,certified,1,stable at tau=20 (literature: tau<.7516),1,0.45,1916,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=476 nx=1916
+NDSDDF,NDS02/stability_dual,light,certified,1,stable at tau=20 (literature: tau<.7516),1,0.44,1916,PIETOOLS_PIE2PDEstability_dual | fr=0.942 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=464 nx=1916
+NDSDDF,NDS03,light,certified,1,stable (tau=[.3 .6]),1,0.63,7056,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.2s m=1728 nx=7056
+NDSDDF,NDS03/stability_dual,light,certified,1,stable (tau=[.3 .6]),1,0.63,7056,PIETOOLS_PIE2PDEstability_dual | fr=0.994 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.2s m=1688 nx=7056
+NDSDDF,NDS04,light,hi_pass,0.69,0.552 (stable for any h1>0; h2<.552),2,1.29,7056,PIETOOLS_PIE2PDEstability | bracket [0.414 0.69] final [0.414 0.69] | steps 0.414:C(1s) 0.69:C(1s) | last: fr=1.01 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.2s m=1728 nx=7056
+NDSDDF,NDS05,light,converged,1.57312,1.5804? (stability verified for h<2.04),12,8.98,7056,PIETOOLS_PIE2PDEstability | bracket [1.1853 2.55] final [1.57312 1.57445] | steps 1.1853:C(1s) 2.55:F(1s) 1.86765:F(1s) 1.52648:C(1s) 1.69706:F(1s) 1.61177:F(1s) 1.56912:C(1s) 1.59045:F(1s) 1.57978:F(1s) 1.57445:U(1s) 1.57179:C(1s) 1.57312:C(1s) | last: fr=0.991 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.2s m=1728 nx=7056
+NDSDDF,NDS05/stability_dual,light,certified,1,1.5804? (stability verified for h<2.04),1,0.67,7056,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.2s m=1656 nx=7056
+NDSDDF,NDS07,light,converged,0.44416626,0.5? (stability verified for h<.603),12,5.82,1764,PIETOOLS_PIE2PDEstability | bracket [0.375 0.75375] final [0.444166 0.444536] | steps 0.375:C(0s) 0.75375:F(0s) 0.564375:F(0s) 0.469687:F(0s) 0.422344:C(0s) 0.446016:F(0s) 0.43418:C(0s) 0.440098:C(0s) 0.443057:C(0s) 0.444536:U(0s) 0.443796:C(1s) 0.444166:C(0s) | last: fr=0.994 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=432 nx=1764
+NDSDDF,NDS07/stability_dual,light,certified,1,0.5? (stability verified for h<.603),1,0.48,1764,PIETOOLS_PIE2PDEstability_dual | fr=0.997 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=414 nx=1764
+NDSDDF,NDS08,light,converged,0.027523096,0.02755,11,8.54,7664,PIETOOLS_PIE2PDEstability | bracket [0.0206625 0.0344375] final [0.0275231 0.02755] | steps 0.0206625:C(1s) 0.0344375:F(1s) 0.02755:F(1s) 0.0241063:C(1s) 0.0258281:C(1s) 0.0266891:C(1s) 0.0271195:C(1s) 0.0273348:C(1s) 0.0274424:C(1s) 0.0274962:C(1s) 0.0275231:C(1s) | last: fr=1 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.2s m=1904 nx=7664
+NDSDDF,NDS08/stability_dual,light,certified,1,0.02755,1,0.77,7664,PIETOOLS_PIE2PDEstability_dual | fr=0.991 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.3s m=1856 nx=7664
+NDSDDF,NDS09,light,converged,0.5994668,0.603,11,12.23,11975,PIETOOLS_PIE2PDEstability | bracket [0.45225 0.75375] final [0.599467 0.600056] | steps 0.45225:C(1s) 0.75375:F(1s) 0.603:F(1s) 0.527625:C(1s) 0.565312:C(1s) 0.584156:C(1s) 0.593578:C(1s) 0.598289:C(1s) 0.600645:F(1s) 0.599467:C(1s) 0.600056:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=18 cpu=0.7s m=2975 nx=11975
+NDSDDF,NDS09/stability_dual,light,unknown,0,0.603,1,1.19,11975,PIETOOLS_PIE2PDEstability_dual | fr=1.97 pinf=0 dinf=0 numerr=0 iter=19 cpu=0.7s m=2900 nx=11975
+NDSDDF,NDS10/stability_dual,light,certified,1,,1,0.44,1916,PIETOOLS_PIE2PDEstability_dual | fr=0.997 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=464 nx=1916
+NDSDDF,NDS11,light,unknown,0,,1,0.45,561,PIETOOLS_PIE2PDEstability | fr=2.29 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=144 nx=561
+NDSDDF,NDS11/stability_dual,light,certified,1,,1,0.42,561,PIETOOLS_PIE2PDEstability_dual | fr=1.02 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=136 nx=561
+NDSDDF,NDS12,light,converged,0.44436562,0.4448?,11,5.09,1764,PIETOOLS_PIE2PDEstability | bracket [0.3336 0.556] final [0.444366 0.4448] | steps 0.3336:C(0s) 0.556:F(0s) 0.4448:F(0s) 0.3892:C(0s) 0.417:C(0s) 0.4309:C(0s) 0.43785:C(0s) 0.441325:C(0s) 0.443062:C(0s) 0.443931:C(0s) 0.444366:C(0s) | last: fr=1.01 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.0s m=432 nx=1764
+NDSDDF,NDS12/stability_dual,light,certified,1,0.4448?,1,0.44,1764,PIETOOLS_PIE2PDEstability_dual | fr=0.997 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=414 nx=1764
+NDSDDF,DDF01,light,certified,1,,1,0.37,1616,PIETOOLS_PIE2PDEstability | fr=0.989 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=392 nx=1616
+NDSDDF,DDF01/stability_dual,light,certified,1,,1,0.36,1616,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=384 nx=1616
+NDSDDF,DDF03,light,inaccurate,0.00086718353,,1,1.81,2217,PIETOOLS_Hinf_control | fr=0.881 pinf=0 dinf=0 numerr=2 iter=30 cpu=0.1s m=241 nx=2218
+PDE,1,heavy,certified,1,stable (v=-1),1,0.41,687,PIETOOLS_PIE2PDEstability | fr=0.911 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=102 nx=687
+PDE,1/stability_dual,heavy,certified,1,stable (v=-1),1,0.36,687,PIETOOLS_PIE2PDEstability_dual | fr=1.08 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=100 nx=687
+PDE,2,heavy,certified,1,stable,1,0.46,2748,PIETOOLS_PIE2PDEstability | fr=0.965 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=448 nx=2748
+PDE,2.2,heavy,certified,1,stable,1,0.42,2748,PIETOOLS_PIE2PDEstability | fr=1.05 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=448 nx=2748
+PDE,2.3,heavy,certified,1,stable,1,0.42,2748,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=448 nx=2748
+PDE,2.4,heavy,certified,1,stable,1,0.41,2748,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.0s m=448 nx=2748
+PDE,3,heavy,certified,1,stable,1,0.48,6183,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=1008 nx=6183
+PDE,4,heavy,certified,1,stable,1,0.42,2748,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=448 nx=2748
+PDE,4.2,heavy,certified,1,stable,1,0.41,2748,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=436 nx=2748
+PDE,4.3,heavy,certified,1,stable,1,0.43,2748,PIETOOLS_PIE2PDEstability | fr=0.985 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=448 nx=2748
+PDE,4.4,heavy,certified,1,stable,1,0.41,2748,PIETOOLS_PIE2PDEstability | fr=0.929 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=436 nx=2748
+PDE,4.5,heavy,infeasible,0,stable,1,0.44,2748,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=13 cpu=0.1s m=448 nx=2748
+PDE,5,heavy,converged,9.8599661,9.8696 (stable for lam<pi^2),11,5.17,687,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [9.85997 9.8696] | steps 7.4022:C(0s) 12.337:F(0s) 9.8696:U(0s) 8.6359:C(0s) 9.25275:C(0s) 9.56118:C(0s) 9.71539:C(0s) 9.7925:C(0s) 9.83105:C(0s) 9.85033:C(0s) 9.85997:C(0s) | last: fr=0.979 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.0s m=136 nx=687
+PDE,6/stability_dual,heavy,certified,1,2.467 (stable for lam<pi^2/4),1,0.41,687,PIETOOLS_PIE2PDEstability_dual | fr=0.996 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=125 nx=687
+PDE,7,heavy,converged,4.6508984,4.66 (unstable for lam>4.66),11,5.21,687,PIETOOLS_PIE2PDEstability | bracket [3.495 5.825] final [4.6509 4.65545] | steps 3.495:C(0s) 5.825:F(0s) 4.66:F(0s) 4.0775:C(0s) 4.36875:C(0s) 4.51438:C(0s) 4.58719:C(0s) 4.62359:C(0s) 4.6418:C(0s) 4.6509:C(0s) 4.65545:F(0s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=16 cpu=0.0s m=151 nx=687
+PDE,7/stability_dual,heavy,certified,1,4.66 (unstable for lam>4.66),1,0.44,687,PIETOOLS_PIE2PDEstability_dual | fr=1.03 pinf=0 dinf=0 numerr=0 iter=19 cpu=0.0s m=151 nx=687
+PDE,8,heavy,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,0.80,3564,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=23 cpu=0.1s m=740 nx=3564
+PDE,8/stability_dual,heavy,infeasible,0,9.8696 (stable for lam<pi^2),1,0.68,3564,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=22 cpu=0.1s m=748 nx=3564
+PDE,9,heavy,converged,-0.00024414062,0 (stable for k<0),12,7.35,785,PIETOOLS_PIE2PDEstability | bracket [-1 0.25] final [-0.000244141 0.000976562] | steps -1:C(0s) 0.25:F(1s) -0.375:C(1s) -0.0625:C(1s) 0.09375:F(0s) 0.015625:F(0s) -0.0234375:C(1s) -0.00390625:C(0s) 0.00585938:F(0s) 0.000976562:F(1s) -0.00146484:C(0s) -0.000244141:C(0s) | last: fr=0.981 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=146 nx=785
+PDE,9/stability_dual,heavy,certified,1,0 (stable for k<0),1,0.55,785,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=141 nx=785
+PDE,10,heavy,certified,1,stable (k=-2),1,0.66,785,PIETOOLS_PIE2PDEstability | fr=1.06 pinf=0 dinf=0 numerr=0 iter=19 cpu=0.0s m=146 nx=785
+PDE,11,heavy,converged,2.9296875,2.7 (stable for R<2.7; not tight),12,6.23,2748,PIETOOLS_PIE2PDEstability | bracket [2.025 3.625] final [2.92969 2.93125] | steps 2.025:C(0s) 3.625:F(0s) 2.825:C(0s) 3.225:F(0s) 3.025:F(0s) 2.925:C(0s) 2.975:F(0s) 2.95:F(0s) 2.9375:F(1s) 2.93125:F(0s) 2.92813:C(0s) 2.92969:C(0s) | last: fr=1 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=544 nx=2748
+PDE,11/stability_dual,heavy,certified,1,2.7 (stable for R<2.7; not tight),1,0.45,2748,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=540 nx=2748
+PDE,12,heavy,hi_pass,37.5,21 (stable for R<21; not tight),2,1.08,6183,PIETOOLS_PIE2PDEstability | bracket [15.75 37.5] final [15.75 37.5] | steps 15.75:C(0s) 37.5:C(0s) | last: fr=1.01 pinf=0 dinf=0 numerr=0 iter=20 cpu=0.1s m=1179 nx=6183
+PDE,13,heavy,unknown,0,stable,1,0.51,2748,PIETOOLS_PIE2PDEstability | fr=0.6 pinf=0 dinf=0 numerr=0 iter=20 cpu=0.1s m=460 nx=2748
+PDE,13/stability_dual,heavy,certified,1,stable,1,0.49,2748,PIETOOLS_PIE2PDEstability_dual | fr=0.752 pinf=0 dinf=0 numerr=0 iter=21 cpu=0.1s m=460 nx=2748
+PDE,13.2,heavy,certified,1,stable,1,0.68,3036,PIETOOLS_PIE2PDEstability | fr=1.07 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=928 nx=3036
+PDE,13.2/stability_dual,heavy,certified,1,stable,1,0.58,3036,PIETOOLS_PIE2PDEstability_dual | fr=0.99 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.0s m=932 nx=3036
+PDE,14,heavy,certified,1,stable (TOC: PDE stable without damping),1,0.63,10992,PIETOOLS_PIE2PDEstability | fr=0.996 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.2s m=1664 nx=10992
+PDE,15,heavy,infeasible,0,TOC: (unstable); PDE stable with damping c>0,1,1.10,10992,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=0 dinf=0 numerr=2 iter=32 cpu=0.6s m=1751 nx=10992
+PDE,16,heavy,infeasible,0,,1,0.68,12144,PIETOOLS_PIE2PDEstability | fr=0 pinf=1 dinf=0 numerr=0 iter=0 cpu=0.0s m=4148 nx=12144
+PDE,17,heavy,certified,1,stable for k>0 (k=1),1,0.42,2748,PIETOOLS_PIE2PDEstability | fr=0.97 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=416 nx=2748
+PDE,18,heavy,certified,1,stable (TOC: dual stable),1,0.48,2748,PIETOOLS_PIE2PDEstability_dual | fr=0.988 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=468 nx=2748
+PDE,19,heavy,certified,1,stable,1,0.50,6183,PIETOOLS_PIE2PDEstability | fr=1.06 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=954 nx=6183
+PDE,20/Hinf_gain_dual,heavy,certified,0.50581225,0.5058,1,0.74,820,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=65 cpu=0.1s m=121 nx=821
+PDE,21,heavy,certified,0.8418775,0.8419,1,0.69,3005,PIETOOLS_Hinf_gain | fr=0.979 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=443 nx=3006
+PDE,21/Hinf_gain_dual,heavy,unknown,0.85792769,0.8552,1,0.67,3005,PIETOOLS_Hinf_gain_dual | fr=0.308 pinf=0 dinf=0 numerr=0 iter=31 cpu=0.2s m=445 nx=3006
+PDE,22,heavy,certified,0.20833387,0.2083,1,0.62,820,PIETOOLS_Hinf_gain | fr=1.04 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=136 nx=821
+PDE,23,heavy,certified,23.706131,23.706,1,0.71,820,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.0s m=174 nx=821
+PDE,24,heavy,certified,8.2140083,8.2136,1,0.59,820,PIETOOLS_Hinf_gain | fr=0.999 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.0s m=155 nx=821
+PDE,25,heavy,certified,0.81021208,0.8102,1,0.68,3005,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.1s m=577 nx=3006
+PDE,26,heavy,certified,2.1456957,2.1457,1,0.78,6960,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.1s m=1426 nx=6961
+PDE,27,heavy,certified,1.000031,1.0004,1,1.05,780,PIETOOLS_Hinf_estimator | fr=0.998 pinf=0 dinf=0 numerr=0 iter=44 cpu=0.1s m=57 nx=781
+PDE,28,heavy,certified,1.000119,1.0005,1,4.82,780,PIETOOLS_Hinf_estimator | fr=0.998 pinf=0 dinf=0 numerr=0 iter=27 cpu=0.0s m=64 nx=781
+PDE,29,heavy,certified,1.000004,1.0000,1,1.08,852,PIETOOLS_Hinf_control | fr=0.937 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=90 nx=853
+PDE,30,heavy,inaccurate,0.66027973,0.6594,1,1.61,952,PIETOOLS_Hinf_control | fr=0.998 pinf=0 dinf=0 numerr=2 iter=39 cpu=0.1s m=99 nx=953
+PDE,31,heavy,inaccurate,0.00028592772,light=2.7407e-04,1,10.68,2871,PIETOOLS_Hinf_control | fr=0.995 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.1s m=209 nx=2872
+PDE,32,heavy,unknown,0.58725334,0.5971,1,2.06,3153,PIETOOLS_Hinf_control | fr=0.19 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.1s m=243 nx=3154
+PDE,33,heavy,certified,1,,1,508.78,1993782,PIETOOLS_PIE2PDEstability | fr=0.914 pinf=0 dinf=0 numerr=0 iter=13 cpu=406.5s m=10264 nx=1.99378e+06
+PDE,34,heavy,skipped,NaN,stable for lam<=2*pi^2 (lam=19),0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 601 s per solve > 600 s (from light 6 s; factor 100)
+PDE,36,heavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier light skipped or out of memory
+PDE,37,heavy,certified,1,stable for a<=pi^2/2 (a=4),1,540.26,2003922,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=437.7s m=12468 nx=2.00392e+06
+PDE,38,heavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier light skipped or out of memory
+PDE,39,heavy,skipped,NaN,,0,0.03,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier light skipped or out of memory
+PDE,40,heavy,certified,1,,1,613.84,2007994,PIETOOLS_PIE2PDEstability | fr=0.998 pinf=0 dinf=0 numerr=0 iter=16 cpu=507.3s m=12582 nx=2.00799e+06
+PDE,41,heavy,unknown,0,,1,0.82,2748,PIETOOLS_PIE2PDEstability | fr=0.298 pinf=0 dinf=0 numerr=2 iter=19 cpu=0.1s m=516 nx=2748
+PDE,42,heavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 706 s per solve > 600 s (from light 7 s; factor 100)
+PDE,43,heavy,infeasible,0,stable for tau<1.0347 (tau=1),1,130.10,638217,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=0 iter=26 cpu=97.6s m=10918 nx=638217
+PDE,44,heavy,lo_fail,NaN,0.5 (stable for mu<0.5),1,1.24,11372,PIETOOLS_PIE2PDEstability | bracket [0.375 0.625] final [0.375 0.625] | steps 0.375:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=15 cpu=0.3s m=2072 nx=11372
+PDE,45,heavy,skipped,NaN,exact=0.11101,0,0.02,NaN,PIETOOLS_Hinf_gain | skipped: projected 31157 s per solve > 600 s (from light 312 s; factor 100)
+PDE,46,heavy,skipped,NaN,exact=0.17110,0,0.02,NaN,PIETOOLS_Hinf_gain | skipped: projected 30968 s per solve > 600 s (from light 310 s; factor 100)
+PDE,47,heavy,skipped,NaN,exact=0.20668,0,0.02,NaN,PIETOOLS_Hinf_gain | skipped: projected 25295 s per solve > 600 s (from light 253 s; factor 100)
+PDE,48,heavy,error,NaN,,0,1.76,NaN,PIETOOLS_Hinf_estimator | MATLAB:badsubscript: Index exceeds the number of array elements. Index must not exceed 5. @ lpivar_2d:476
+PDE,49,heavy,certified,0.10171659,0.1017,1,0.85,1338,PIETOOLS_H2_norm_o | fr=1 pinf=0 dinf=0 numerr=0 iter=36 cpu=0.0s m=158 nx=1339
+PDE,49/H2_norm_dual,heavy,unknown,0.11612574,0.1162,1,0.68,1338,PIETOOLS_H2_norm_c | fr=0.659 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.0s m=158 nx=1340
+PDE,50,heavy,skipped,NaN,custom+psatz=0.8502,0,0.02,NaN,PIETOOLS_H2_norm_o | skipped: lighter tier light skipped or out of memory
+PDE,50/H2_norm_dual,heavy,skipped,NaN,custom+psatz=0.8398,0,0.02,NaN,PIETOOLS_H2_norm_c | skipped: lighter tier light skipped or out of memory
+PDE,51,heavy,unknown,1.310802,veryheavy=1.2683,1,1.20,1298,PIETOOLS_H2_estimator | fr=0.25 pinf=0 dinf=0 numerr=2 iter=26 cpu=0.0s m=109 nx=1300
+PDE,52,heavy,inaccurate,1.1886555,,1,1.32,1369,PIETOOLS_H2_control | fr=0.985 pinf=0 dinf=0 numerr=2 iter=33 cpu=0.1s m=118 nx=1371
+DDE,DDE01,heavy,converged,1.8905859,2.04 (analytical range [0.2; 2.04]),11,6.25,3140,PIETOOLS_PIE2PDEstability | bracket [1.53 2.55] final [1.89059 1.89258] | steps 1.53:C(1s) 2.55:F(0s) 2.04:F(0s) 1.785:C(1s) 1.9125:I(0s) 1.84875:C(1s) 1.88063:C(1s) 1.89656:I(1s) 1.88859:C(1s) 1.89258:I(1s) 1.89059:C(1s) | last: fr=1.03 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.1s m=500 nx=3140
+DDE,DDE01/stability_dual,heavy,infeasible,0,2.04 (analytical range [0.2; 2.04]),1,0.50,3140,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=17 cpu=0.1s m=492 nx=3140
+DDE,DDE02,heavy,converged,2.0800781,2 ([1]: tauNmax<2),11,10.36,11760,PIETOOLS_PIE2PDEstability | bracket [1.5 2.5] final [2.08008 2.08203] | steps 1.5:C(1s) 2.5:F(1s) 2:C(1s) 2.25:F(1s) 2.125:F(1s) 2.0625:C(1s) 2.09375:F(1s) 2.07812:C(1s) 2.08594:F(1s) 2.08203:U(1s) 2.08008:C(1s) | last: fr=1.09 pinf=0 dinf=0 numerr=0 iter=35 cpu=0.7s m=1808 nx=11760
+DDE,DDE02/stability_dual,heavy,certified,1,2 ([1]: tauNmax<2),1,0.76,11760,PIETOOLS_PIE2PDEstability_dual | fr=1.02 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.3s m=1776 nx=11760
+DDE,DDE03,heavy,converged,1.4913756,1.71785 (taumin=.100174),11,5.46,891,PIETOOLS_PIE2PDEstability | bracket [1.28839 2.14731] final [1.49138 1.49305] | steps 1.28839:C(0s) 2.14731:F(0s) 1.71785:F(0s) 1.50312:F(0s) 1.39575:C(0s) 1.44944:C(0s) 1.47628:C(0s) 1.4897:C(1s) 1.49641:I(0s) 1.49305:I(0s) 1.49138:C(0s) | last: fr=1 pinf=0 dinf=0 numerr=0 iter=37 cpu=0.0s m=148 nx=891
+DDE,DDE03/stability_dual,heavy,certified,1,1.71785 (taumin=.100174),1,0.46,891,PIETOOLS_PIE2PDEstability_dual | fr=0.999 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.0s m=145 nx=891
+DDE,DDE04,heavy,converged,6.1665521,6.17258,11,5.49,3140,PIETOOLS_PIE2PDEstability | bracket [4.62943 7.71572] final [6.16655 6.17258] | steps 4.62943:C(0s) 7.71572:F(0s) 6.17258:F(0s) 5.40101:C(0s) 5.78679:C(0s) 5.97969:C(0s) 6.07613:C(0s) 6.12436:C(0s) 6.14847:C(0s) 6.16052:C(0s) 6.16655:C(0s) | last: fr=0.999 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.1s m=500 nx=3140
+DDE,DDE04/stability_dual,heavy,certified,1,6.17258,1,0.48,3140,PIETOOLS_PIE2PDEstability_dual | fr=1.03 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.1s m=488 nx=3140
+DDE,DDE06,heavy,converged,3,3 (bmax),11,6.09,2940,PIETOOLS_PIE2PDEstability | bracket [2.25 3.75] final [3 3.00293] | steps 2.25:C(0s) 3.75:F(0s) 3:C(0s) 3.375:F(1s) 3.1875:F(1s) 3.09375:F(1s) 3.04688:F(1s) 3.02344:F(1s) 3.01172:F(1s) 3.00586:F(1s) 3.00293:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=24 cpu=0.1s m=452 nx=2940
+DDE,DDE06/stability_dual,heavy,certified,1,3 (bmax),1,0.50,2940,PIETOOLS_PIE2PDEstability_dual | fr=0.989 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=442 nx=2940
+DDE,DDE07,heavy,converged,1.3145986,1.3722,11,5.84,3140,PIETOOLS_PIE2PDEstability | bracket [1.3 1.71525] final [1.3146 1.31541] | steps 1.3:C(1s) 1.71525:F(0s) 1.50762:F(0s) 1.40381:F(0s) 1.35191:F(0s) 1.32595:F(0s) 1.31298:C(0s) 1.31946:F(0s) 1.31622:I(1s) 1.3146:C(1s) 1.31541:I(1s) | last: fr=0.949 pinf=0 dinf=0 numerr=2 iter=27 cpu=0.1s m=492 nx=3140
+DDE,DDE07/stability_dual,heavy,certified,1,1.3722,1,0.58,3140,PIETOOLS_PIE2PDEstability_dual | fr=0.995 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=482 nx=3140
+DDE,DDE08,heavy,converged,1.2124268,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),12,5.83,1127,PIETOOLS_PIE2PDEstability | bracket [1.1 4.9375] final [1.21243 1.21617] | steps 1.1:C(0s) 4.9375:F(0s) 3.01875:F(0s) 2.05938:F(0s) 1.57969:F(0s) 1.33984:F(0s) 1.21992:F(0s) 1.15996:C(0s) 1.18994:C(0s) 1.20493:C(0s) 1.21243:C(0s) 1.21617:F(0s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=30 cpu=0.0s m=206 nx=1127
+DDE,DDE08/stability_dual,heavy,certified,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),1,0.44,1127,PIETOOLS_PIE2PDEstability_dual | fr=1.05 pinf=0 dinf=0 numerr=0 iter=19 cpu=0.0s m=203 nx=1127
+DDE,DDE09,heavy,certified,25.909112,25.907 (tau=1.5),1,0.60,926,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=21 cpu=0.0s m=144 nx=927
+DDE,DDE09/Hinf_gain_dual,heavy,certified,25.909261,25.907 (tau=1.5),1,0.56,926,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.0s m=143 nx=927
+DDE,DDE10/Hinf_gain_dual,heavy,certified,0.23645241,0.2364,1,0.59,3413,PIETOOLS_Hinf_gain_dual | fr=1.06 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.1s m=525 nx=3414
+DDE,DDE11,heavy,certified,2.877362,2.87,1,0.58,1120,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.0s m=186 nx=1121
+DDE,DDE11/Hinf_gain_dual,heavy,certified,2.878629,2.87,1,0.59,1120,PIETOOLS_Hinf_gain_dual | fr=0.999 pinf=0 dinf=0 numerr=0 iter=31 cpu=0.1s m=185 nx=1121
+DDE,DDE12,heavy,certified,4.9804991,4.9784,1,0.66,3413,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.1s m=521 nx=3414
+DDE,DDE12/Hinf_gain_dual,heavy,certified,4.9806385,4.9784,1,0.76,3413,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.1s m=519 nx=3414
+DDE,DDE13,heavy,certified,1.4055741,1.339 (tau=2),1,6.46,3343,PIETOOLS_Hinf_control | fr=0.953 pinf=0 dinf=0 numerr=0 iter=27 cpu=0.1s m=246 nx=3344
+DDE,DDE14,heavy,certified,0.39528495,0.3953,1,2.17,3343,PIETOOLS_Hinf_control | fr=1.11 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.0s m=246 nx=3344
+DDE,DDE15,heavy,certified,0.61043354,0.6104,1,1.91,3489,PIETOOLS_Hinf_control | fr=0.931 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=269 nx=3490
+DDE,DDE16,heavy,certified,0.96293758,0.9630,1,239.02,56074,PIETOOLS_Hinf_control | fr=0.909 pinf=0 dinf=0 numerr=0 iter=13 cpu=2.8s m=3493 nx=56075
+DDE,DDE17,heavy,converged,0.14833984,stable at h=.08; unstable at h=1,12,18.07,20139,PIETOOLS_PIE2PDEstability | bracket [0.05 1] final [0.14834 0.149268] | steps 0.05:C(1s) 1:F(1s) 0.525:F(1s) 0.2875:F(2s) 0.16875:F(2s) 0.109375:C(1s) 0.139063:C(1s) 0.153906:F(2s) 0.146484:C(1s) 0.150195:F(2s) 0.14834:C(1s) 0.149268:F(2s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=25 cpu=1.3s m=3252 nx=20139
+DDE,DDE17/Hinf_control,heavy,certified,9.351344,,1,37.36,19386,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.4s m=1285 nx=19387
+DDE,DDE18,heavy,unknown,0.38939641,0.4092 (n=3),1,6.21,9514,PIETOOLS_Hinf_control | fr=0.507 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.4s m=856 nx=9515
+DDE,DDE19,heavy,inaccurate,0.001256276,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),1,1.64,1086,PIETOOLS_Hinf_control | fr=0.998 pinf=0 dinf=0 numerr=2 iter=35 cpu=0.1s m=97 nx=1087
+DDE,DDE20,heavy,certified,0.23570227,0.2357,1,1.31,1142,PIETOOLS_Hinf_estimator | fr=0.998 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.0s m=112 nx=1143
+DDE,DDE21,heavy,certified,2.3270011,2.327,1,1.52,3343,PIETOOLS_Hinf_estimator | fr=0.848 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=242 nx=3344
+DDE,DDE22,heavy,certified,1.3500949,1.3501,1,8.69,11765,PIETOOLS_Hinf_estimator | fr=0.978 pinf=0 dinf=0 numerr=0 iter=10 cpu=0.1s m=762 nx=11766
+DDE,DDE23,heavy,certified,1.8080605,1.808,1,4.45,6912,PIETOOLS_Hinf_estimator | fr=0.958 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.1s m=467 nx=6913
+DDE,DDE24,heavy,certified,1.043963,,1,44.68,11765,PIETOOLS_Hinf_estimator | fr=0.92 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.2s m=762 nx=11766
+DDE,DDE25,heavy,certified,3.6746955,3.6724,1,0.81,1508,PIETOOLS_H2_norm_o | fr=0.999 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.0s m=187 nx=1509
+DDE,DDE25/H2_norm_dual,heavy,certified,3.6723937,3.6724,1,0.71,1508,PIETOOLS_H2_norm_c | fr=0.967 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=187 nx=1510
+DDE,DDE26,heavy,certified,3.8306781,3.8307,1,3.81,47124,PIETOOLS_H2_norm_o | fr=0.937 pinf=0 dinf=0 numerr=0 iter=20 cpu=2.8s m=5568 nx=47125
+DDE,DDE26/H2_norm_dual,heavy,certified,3.8306693,3.8307,1,4.11,47124,PIETOOLS_H2_norm_c | fr=1 pinf=0 dinf=0 numerr=0 iter=24 cpu=3.1s m=5551 nx=47126
+NDSDDF,NDS01,heavy,converged,2.2233267,2.2255 (analytic max; uncited),11,6.06,3140,PIETOOLS_PIE2PDEstability | bracket [1.66912 2.78187] final [2.22333 2.2255] | steps 1.66912:C(1s) 2.78187:F(1s) 2.2255:F(1s) 1.94731:C(0s) 2.08641:C(1s) 2.15595:C(1s) 2.19073:C(1s) 2.20811:C(0s) 2.21681:C(0s) 2.22115:C(1s) 2.22333:C(1s) | last: fr=0.994 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=516 nx=3140
+NDSDDF,NDS01/stability_dual,heavy,certified,1,2.2255 (analytic max; uncited),1,0.54,3140,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=504 nx=3140
+NDSDDF,NDS02,heavy,certified,1,stable at tau=20 (literature: tau<.7516),1,0.54,3140,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=516 nx=3140
+NDSDDF,NDS02/stability_dual,heavy,certified,1,stable at tau=20 (literature: tau<.7516),1,0.51,3140,PIETOOLS_PIE2PDEstability_dual | fr=0.978 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=504 nx=3140
+NDSDDF,NDS03,heavy,certified,1,stable (tau=[.3 .6]),1,0.74,11760,PIETOOLS_PIE2PDEstability | fr=0.994 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.2s m=1872 nx=11760
+NDSDDF,NDS03/stability_dual,heavy,certified,1,stable (tau=[.3 .6]),1,0.71,11760,PIETOOLS_PIE2PDEstability_dual | fr=0.983 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.2s m=1832 nx=11760
+NDSDDF,NDS04,heavy,hi_pass,0.69,0.552 (stable for any h1>0; h2<.552),2,1.48,11760,PIETOOLS_PIE2PDEstability | bracket [0.414 0.69] final [0.414 0.69] | steps 0.414:C(1s) 0.69:C(1s) | last: fr=1.01 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.2s m=1872 nx=11760
+NDSDDF,NDS05,heavy,converged,1.5784509,1.5804? (stability verified for h<2.04),12,10.37,11760,PIETOOLS_PIE2PDEstability | bracket [1.1853 2.55] final [1.57845 1.57978] | steps 1.1853:C(1s) 2.55:F(1s) 1.86765:F(1s) 1.52648:C(1s) 1.69706:F(1s) 1.61177:F(1s) 1.56912:C(1s) 1.59045:F(1s) 1.57978:U(1s) 1.57445:C(1s) 1.57712:C(1s) 1.57845:C(1s) | last: fr=0.99 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.3s m=1872 nx=11760
+NDSDDF,NDS05/stability_dual,heavy,certified,1,1.5804? (stability verified for h<2.04),1,0.80,11760,PIETOOLS_PIE2PDEstability_dual | fr=0.998 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.3s m=1800 nx=11760
+NDSDDF,NDS07,heavy,converged,0.44453613,0.5? (stability verified for h<.603),12,6.67,2940,PIETOOLS_PIE2PDEstability | bracket [0.375 0.75375] final [0.444536 0.444906] | steps 0.375:C(1s) 0.75375:F(1s) 0.564375:F(0s) 0.469687:F(1s) 0.422344:C(0s) 0.446016:F(0s) 0.43418:C(1s) 0.440098:C(0s) 0.443057:C(0s) 0.444536:C(0s) 0.445276:F(1s) 0.444906:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=16 cpu=0.1s m=468 nx=2940
+NDSDDF,NDS07/stability_dual,heavy,certified,1,0.5? (stability verified for h<.603),1,0.51,2940,PIETOOLS_PIE2PDEstability_dual | fr=0.995 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=450 nx=2940
+NDSDDF,NDS08,heavy,converged,0.027523096,0.02755,11,10.67,12560,PIETOOLS_PIE2PDEstability | bracket [0.0206625 0.0344375] final [0.0275231 0.02755] | steps 0.0206625:C(1s) 0.0344375:F(1s) 0.02755:F(1s) 0.0241063:C(1s) 0.0258281:C(1s) 0.0266891:C(1s) 0.0271195:C(1s) 0.0273348:C(1s) 0.0274424:C(1s) 0.0274962:C(1s) 0.0275231:C(1s) | last: fr=0.788 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.4s m=2064 nx=12560
+NDSDDF,NDS08/stability_dual,heavy,certified,1,0.02755,1,0.87,12560,PIETOOLS_PIE2PDEstability_dual | fr=0.938 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.3s m=2016 nx=12560
+NDSDDF,NDS09,heavy,converged,0.5994668,0.603,11,15.51,19625,PIETOOLS_PIE2PDEstability | bracket [0.45225 0.75375] final [0.599467 0.600056] | steps 0.45225:C(1s) 0.75375:F(2s) 0.603:F(2s) 0.527625:C(1s) 0.565312:C(1s) 0.584156:C(1s) 0.593578:C(1s) 0.598289:C(1s) 0.600645:F(2s) 0.599467:C(1s) 0.600056:F(2s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=20 cpu=1.1s m=3225 nx=19625
+NDSDDF,NDS09/stability_dual,heavy,unknown,0,0.603,1,1.51,19625,PIETOOLS_PIE2PDEstability_dual | fr=2.84 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.9s m=3150 nx=19625
+NDSDDF,NDS10/stability_dual,heavy,certified,1,,1,0.47,3140,PIETOOLS_PIE2PDEstability_dual | fr=0.998 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=504 nx=3140
+NDSDDF,NDS11,heavy,unknown,0,,1,0.47,891,PIETOOLS_PIE2PDEstability | fr=2.53 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=156 nx=891
+NDSDDF,NDS11/stability_dual,heavy,unknown,0,,1,0.45,891,PIETOOLS_PIE2PDEstability_dual | fr=0.0613 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=149 nx=891
+NDSDDF,NDS12,heavy,converged,0.44436562,0.4448?,11,5.63,2940,PIETOOLS_PIE2PDEstability | bracket [0.3336 0.556] final [0.444366 0.4448] | steps 0.3336:C(0s) 0.556:F(0s) 0.4448:F(0s) 0.3892:C(0s) 0.417:C(0s) 0.4309:C(1s) 0.43785:C(0s) 0.441325:C(0s) 0.443062:C(0s) 0.443931:C(0s) 0.444366:C(0s) | last: fr=1.04 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=468 nx=2940
+NDSDDF,NDS12/stability_dual,heavy,certified,1,0.4448?,1,0.59,2940,PIETOOLS_PIE2PDEstability_dual | fr=0.997 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=450 nx=2940
+NDSDDF,DDF01,heavy,certified,1,,1,0.41,2748,PIETOOLS_PIE2PDEstability | fr=0.999 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=424 nx=2748
+NDSDDF,DDF01/stability_dual,heavy,certified,1,,1,0.39,2748,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=416 nx=2748
+NDSDDF,DDF03,heavy,unknown,0.00082408924,,1,1.82,3605,PIETOOLS_Hinf_control | fr=0.528 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.1s m=269 nx=3606
+PDE,1,veryheavy,certified,1,stable (v=-1),1,0.70,9268,PIETOOLS_PIE2PDEstability | fr=1.03 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=436 nx=9268
+PDE,1/stability_dual,veryheavy,certified,1,stable (v=-1),1,0.63,9268,PIETOOLS_PIE2PDEstability_dual | fr=0.783 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=430 nx=9268
+PDE,2,veryheavy,certified,1,stable,1,1.18,37072,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.5s m=1864 nx=37072
+PDE,2.2,veryheavy,certified,1,stable,1,1.13,37072,PIETOOLS_PIE2PDEstability | fr=0.959 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.4s m=1864 nx=37072
+PDE,2.3,veryheavy,certified,1,stable,1,1.12,37072,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.4s m=1864 nx=37072
+PDE,2.4,veryheavy,certified,1,stable,1,1.10,37072,PIETOOLS_PIE2PDEstability | fr=0.996 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.4s m=1864 nx=37072
+PDE,3,veryheavy,certified,1,stable,1,3.68,83412,PIETOOLS_PIE2PDEstability | fr=1.08 pinf=0 dinf=0 numerr=0 iter=18 cpu=2.8s m=4194 nx=83412
+PDE,4,veryheavy,certified,1,stable,1,1.13,37072,PIETOOLS_PIE2PDEstability | fr=1.02 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.4s m=1864 nx=37072
+PDE,4.2,veryheavy,certified,1,stable,1,1.11,37072,PIETOOLS_PIE2PDEstability | fr=0.978 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.4s m=1832 nx=37072
+PDE,4.3,veryheavy,certified,1,stable,1,1.23,37072,PIETOOLS_PIE2PDEstability | fr=0.982 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.5s m=1864 nx=37072
+PDE,4.4,veryheavy,certified,1,stable,1,1.18,37072,PIETOOLS_PIE2PDEstability | fr=0.985 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.5s m=1832 nx=37072
+PDE,4.5,veryheavy,infeasible,0,stable,1,1.52,37072,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=21 cpu=0.8s m=1864 nx=37072
+PDE,5,veryheavy,converged,9.8696044,9.8696 (stable for lam<pi^2),11,9.44,9268,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [9.8696 9.87924] | steps 7.4022:C(1s) 12.337:F(1s) 9.8696:C(1s) 11.1033:F(1s) 10.4865:F(1s) 10.178:F(1s) 10.0238:F(1s) 9.94671:F(1s) 9.90816:F(1s) 9.88888:F(1s) 9.87924:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.2s m=516 nx=9268
+PDE,6,veryheavy,converged,2.4674011,2.467 (stable for lam<pi^2/4),11,8.37,9268,PIETOOLS_PIE2PDEstability | bracket [1.85055 3.08425] final [2.4674 2.46981] | steps 1.85055:C(1s) 3.08425:F(1s) 2.4674:C(1s) 2.77583:F(1s) 2.62161:F(1s) 2.54451:F(1s) 2.50595:F(1s) 2.48668:F(1s) 2.47704:F(1s) 2.47222:F(1s) 2.46981:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.1s m=496 nx=9268
+PDE,6/stability_dual,veryheavy,certified,1,2.467 (stable for lam<pi^2/4),1,0.68,9268,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=487 nx=9268
+PDE,7,veryheavy,converged,4.6508984,4.66 (unstable for lam>4.66),11,8.60,9268,PIETOOLS_PIE2PDEstability | bracket [3.495 5.825] final [4.6509 4.65545] | steps 3.495:C(1s) 5.825:F(1s) 4.66:F(1s) 4.0775:C(1s) 4.36875:C(1s) 4.51438:C(1s) 4.58719:C(1s) 4.62359:C(1s) 4.6418:C(1s) 4.6509:C(1s) 4.65545:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.1s m=543 nx=9268
+PDE,7/stability_dual,veryheavy,certified,1,4.66 (unstable for lam>4.66),1,0.77,9268,PIETOOLS_PIE2PDEstability_dual | fr=0.998 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=563 nx=9268
+PDE,8,veryheavy,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,1.98,39812,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:F(2s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.9s m=2388 nx=39812
+PDE,8/stability_dual,veryheavy,infeasible,0,9.8696 (stable for lam<pi^2),1,2.00,39812,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=1 dinf=0 numerr=0 iter=23 cpu=1.0s m=2380 nx=39812
+PDE,9,veryheavy,converged,-0.00024414062,0 (stable for k<0),12,11.77,9607,PIETOOLS_PIE2PDEstability | bracket [-1 0.25] final [-0.000244141 0.000976562] | steps -1:C(1s) 0.25:F(1s) -0.375:C(1s) -0.0625:C(1s) 0.09375:F(1s) 0.015625:F(1s) -0.0234375:C(1s) -0.00390625:C(1s) 0.00585938:F(1s) 0.000976562:F(1s) -0.00146484:C(1s) -0.000244141:C(1s) | last: fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=524 nx=9607
+PDE,9/stability_dual,veryheavy,certified,1,0 (stable for k<0),1,0.88,9607,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=506 nx=9607
+PDE,10,veryheavy,certified,1,stable (k=-2),1,1.10,9607,PIETOOLS_PIE2PDEstability | fr=0.973 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.1s m=524 nx=9607
+PDE,11,veryheavy,converged,2.9296875,2.7 (stable for R<2.7; not tight),12,17.52,37072,PIETOOLS_PIE2PDEstability | bracket [2.025 3.625] final [2.92969 2.93125] | steps 2.025:C(1s) 3.625:F(1s) 2.825:C(1s) 3.225:F(1s) 3.025:F(1s) 2.925:C(1s) 2.975:F(1s) 2.95:F(2s) 2.9375:F(2s) 2.93125:F(2s) 2.92813:C(1s) 2.92969:C(1s) | last: fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.4s m=2064 nx=37072
+PDE,11/stability_dual,veryheavy,certified,1,2.7 (stable for R<2.7; not tight),1,1.18,37072,PIETOOLS_PIE2PDEstability_dual | fr=0.999 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.5s m=2028 nx=37072
+PDE,12,veryheavy,hi_pass,37.5,21 (stable for R<21; not tight),2,6.84,83412,PIETOOLS_PIE2PDEstability | bracket [15.75 37.5] final [15.75 37.5] | steps 15.75:C(3s) 37.5:C(4s) | last: fr=0.986 pinf=0 dinf=0 numerr=0 iter=23 cpu=3.2s m=4491 nx=83412
+PDE,13,veryheavy,certified,1,stable,1,1.60,37072,PIETOOLS_PIE2PDEstability | fr=1.08 pinf=0 dinf=0 numerr=0 iter=21 cpu=0.9s m=1868 nx=37072
+PDE,13/stability_dual,veryheavy,certified,1,stable,1,1.46,37072,PIETOOLS_PIE2PDEstability_dual | fr=1.04 pinf=0 dinf=0 numerr=0 iter=19 cpu=0.8s m=1852 nx=37072
+PDE,13.2,veryheavy,unknown,0,stable,1,2.25,37072,PIETOOLS_PIE2PDEstability | fr=1.97 pinf=0 dinf=0 numerr=0 iter=31 cpu=1.4s m=1876 nx=37072
+PDE,13.2/stability_dual,veryheavy,certified,1,stable,1,2.26,37072,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=29 cpu=1.4s m=1876 nx=37072
+PDE,14,veryheavy,certified,1,stable (TOC: PDE stable without damping),1,5.66,148288,PIETOOLS_PIE2PDEstability | fr=0.995 pinf=0 dinf=0 numerr=0 iter=15 cpu=4.5s m=7088 nx=148288
+PDE,15,veryheavy,infeasible,0,TOC: (unstable); PDE stable with damping c>0,1,9.13,148288,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=0 dinf=0 numerr=2 iter=23 cpu=7.8s m=7215 nx=148288
+PDE,16,veryheavy,infeasible,0,,1,8.65,148288,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=2 iter=20 cpu=7.2s m=7844 nx=148288
+PDE,17,veryheavy,certified,1,stable for k>0 (k=1),1,1.11,37072,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.4s m=1764 nx=37072
+PDE,18,veryheavy,certified,1,stable (TOC: dual stable),1,1.27,37072,PIETOOLS_PIE2PDEstability_dual | fr=1.02 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.5s m=1880 nx=37072
+PDE,19,veryheavy,certified,1,stable,1,2.52,83412,PIETOOLS_PIE2PDEstability | fr=0.994 pinf=0 dinf=0 numerr=0 iter=13 cpu=1.6s m=4038 nx=83412
+PDE,20,veryheavy,certified,0.50000029,0.5000,1,0.88,9769,PIETOOLS_Hinf_gain | fr=1.01 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=467 nx=9770
+PDE,20/Hinf_gain_dual,veryheavy,certified,0.50000022,0.5000,1,0.81,9769,PIETOOLS_Hinf_gain_dual | fr=1.02 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=468 nx=9770
+PDE,21,veryheavy,certified,0.84187717,0.8419,1,1.50,38065,PIETOOLS_Hinf_gain | fr=1.02 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.4s m=1809 nx=38066
+PDE,21/Hinf_gain_dual,veryheavy,certified,0.84187751,0.8419,1,1.31,38065,PIETOOLS_Hinf_gain_dual | fr=1.05 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.4s m=1811 nx=38066
+PDE,22,veryheavy,certified,0.20833337,0.2083,1,0.84,9769,PIETOOLS_Hinf_gain | fr=1.07 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=501 nx=9770
+PDE,23,veryheavy,certified,23.705798,23.622,1,1.19,9769,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=36 cpu=0.3s m=567 nx=9770
+PDE,24,veryheavy,certified,8.2137246,8.2136,1,1.02,9769,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.2s m=544 nx=9770
+PDE,25,veryheavy,certified,0.81021205,0.8102,1,1.64,38065,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.7s m=2099 nx=38066
+PDE,26,veryheavy,certified,2.1456817,2.1457,1,4.11,86397,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=19 cpu=2.7s m=4870 nx=86398
+PDE,27,veryheavy,certified,1.0000314,1.0004,1,2.37,9549,PIETOOLS_Hinf_estimator | fr=0.788 pinf=0 dinf=0 numerr=0 iter=35 cpu=0.2s m=179 nx=9550
+PDE,28,veryheavy,unknown,1.0000635,1.0005,1,20.78,9549,PIETOOLS_Hinf_estimator | fr=0.456 pinf=0 dinf=0 numerr=0 iter=21 cpu=0.1s m=183 nx=9550
+PDE,29,veryheavy,certified,1.0000039,1.0000,1,1530.48,9805,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=207 nx=9806
+PDE,30,veryheavy,inaccurate,0.5236531,heavy=0.6594,1,926.18,10139,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=2 iter=31 cpu=0.3s m=221 nx=10140
+PDE,31,veryheavy,certified,0.00019104994,light=2.7407e-04,1,151.83,37367,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=28 cpu=1.1s m=670 nx=37368
+PDE,32,veryheavy,certified,0.51774361,heavy=0.5971,1,15.68,38325,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=34 cpu=1.6s m=713 nx=38326
+PDE,33,veryheavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 7809 s per solve > 600 s (from heavy 509 s; factor 15.3)
+PDE,34,veryheavy,skipped,NaN,stable for lam<=2*pi^2 (lam=19),0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier heavy skipped or out of memory
+PDE,35,veryheavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 7310 s per solve > 600 s (from heavy 731 s; factor 10)
+PDE,36,veryheavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier heavy skipped or out of memory
+PDE,37,veryheavy,skipped,NaN,stable for a<=pi^2/2 (a=4),0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 6164 s per solve > 600 s (from heavy 540 s; factor 11.4)
+PDE,38,veryheavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier heavy skipped or out of memory
+PDE,39,veryheavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier heavy skipped or out of memory
+PDE,40,veryheavy,skipped,NaN,,0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 7822 s per solve > 600 s (from heavy 614 s; factor 12.7)
+PDE,41,veryheavy,inaccurate,0.5,,1,1.76,37072,PIETOOLS_PIE2PDEstability | fr=1.03 pinf=0 dinf=0 numerr=2 iter=18 cpu=0.7s m=1992 nx=37072
+PDE,42,veryheavy,skipped,NaN,,0,0.03,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier heavy skipped or out of memory
+PDE,43,veryheavy,skipped,NaN,stable for tau<1.0347 (tau=1),0,0.02,NaN,PIETOOLS_PIE2PDEstability | skipped: projected 1301 s per solve > 600 s (from heavy 130 s; factor 10)
+PDE,44,veryheavy,lo_fail,NaN,0.5 (stable for mu<0.5),1,7.19,149644,PIETOOLS_PIE2PDEstability | bracket [0.375 0.625] final [0.375 0.625] | steps 0.375:U(7s) | last: fr=-0.0915 pinf=0 dinf=0 numerr=2 iter=15 cpu=5.4s m=7948 nx=149644
+PDE,45,veryheavy,skipped,NaN,exact=0.11101,0,0.03,NaN,PIETOOLS_Hinf_gain | skipped: lighter tier heavy skipped or out of memory
+PDE,46,veryheavy,skipped,NaN,exact=0.17110,0,0.03,NaN,PIETOOLS_Hinf_gain | skipped: lighter tier heavy skipped or out of memory
+PDE,47,veryheavy,skipped,NaN,exact=0.20668,0,0.02,NaN,PIETOOLS_Hinf_gain | skipped: lighter tier heavy skipped or out of memory
+PDE,48,veryheavy,error,NaN,,0,1.83,NaN,PIETOOLS_Hinf_estimator | MATLAB:badsubscript: Index exceeds the number of array elements. Index must not exceed 5. @ lpivar_2d:476
+PDE,49,veryheavy,certified,0.10157584,0.1016,1,1.23,17511,PIETOOLS_H2_norm_o | fr=0.952 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=614 nx=17512
+PDE,49/H2_norm_dual,veryheavy,certified,0.10157559,0.1016,1,1.08,17511,PIETOOLS_H2_norm_c | fr=0.952 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=614 nx=17513
+PDE,50,veryheavy,skipped,NaN,custom+psatz=0.8502,0,0.03,NaN,PIETOOLS_H2_norm_o | skipped: lighter tier heavy skipped or out of memory
+PDE,50/H2_norm_dual,veryheavy,skipped,NaN,custom+psatz=0.8398,0,0.02,NaN,PIETOOLS_H2_norm_c | skipped: lighter tier heavy skipped or out of memory
+PDE,51,veryheavy,certified,1.2683017,1.2683,1,2.85,17291,PIETOOLS_H2_estimator | fr=1 pinf=0 dinf=0 numerr=0 iter=24 cpu=0.1s m=331 nx=17293
+PDE,52,veryheavy,certified,1.0899804,,1,1239.06,17546,PIETOOLS_H2_control | fr=1 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.3s m=345 nx=17548
+DDE,DDE01,veryheavy,converged,2.008125,2.04 (analytical range [0.2; 2.04]),11,20.11,38428,PIETOOLS_PIE2PDEstability | bracket [1.53 2.55] final [2.00813 2.01012] | steps 1.53:C(1s) 2.55:F(2s) 2.04:U(2s) 1.785:C(1s) 1.9125:C(2s) 1.97625:C(3s) 2.00813:C(2s) 2.02406:U(2s) 2.01609:U(2s) 2.01211:U(2s) 2.01012:U(2s) | last: fr=2.46 pinf=0 dinf=0 numerr=0 iter=20 cpu=0.8s m=1916 nx=38428
+DDE,DDE01/stability_dual,veryheavy,certified,1,2.04 (analytical range [0.2; 2.04]),1,2.39,38428,PIETOOLS_PIE2PDEstability_dual | fr=1.06 pinf=0 dinf=0 numerr=0 iter=36 cpu=1.6s m=1884 nx=38428
+DDE,DDE02,veryheavy,converged,2.0839844,2 ([1]: tauNmax<2),11,103.40,150992,PIETOOLS_PIE2PDEstability | bracket [1.5 2.5] final [2.08398 2.08594] | steps 1.5:C(6s) 2.5:F(9s) 2:C(13s) 2.25:F(8s) 2.125:F(8s) 2.0625:C(12s) 2.09375:F(12s) 2.07812:C(8s) 2.08594:F(9s) 2.08203:C(8s) 2.08398:C(12s) | last: fr=1.26 pinf=0 dinf=0 numerr=0 iter=26 cpu=10.2s m=7312 nx=150992
+DDE,DDE02/stability_dual,veryheavy,certified,1,2 ([1]: tauNmax<2),1,7.38,150992,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=15 cpu=5.6s m=7200 nx=150992
+DDE,DDE03,veryheavy,converged,1.71785,1.71785 (taumin=.100174),11,10.80,9953,PIETOOLS_PIE2PDEstability | bracket [1.28839 2.14731] final [1.71785 1.71953] | steps 1.28839:C(1s) 2.14731:F(1s) 1.71785:C(1s) 1.93258:F(1s) 1.82522:F(1s) 1.77153:F(1s) 1.74469:F(1s) 1.73127:F(1s) 1.72456:F(1s) 1.72121:F(1s) 1.71953:F(1s) | last: fr=-0.992 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.2s m=513 nx=9953
+DDE,DDE03/stability_dual,veryheavy,certified,1,1.71785 (taumin=.100174),1,0.95,9953,PIETOOLS_PIE2PDEstability_dual | fr=0.993 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=504 nx=9953
+DDE,DDE04,veryheavy,converged,6.1665521,6.17258,11,17.44,38428,PIETOOLS_PIE2PDEstability | bracket [4.62943 7.71572] final [6.16655 6.17258] | steps 4.62943:C(2s) 7.71572:F(2s) 6.17258:U(1s) 5.40101:C(2s) 5.78679:C(2s) 5.97969:C(1s) 6.07613:C(2s) 6.12436:C(2s) 6.14847:C(2s) 6.16052:C(1s) 6.16655:C(1s) | last: fr=0.977 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.6s m=1916 nx=38428
+DDE,DDE04/stability_dual,veryheavy,certified,1,6.17258,1,1.60,38428,PIETOOLS_PIE2PDEstability_dual | fr=0.984 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.7s m=1880 nx=38428
+DDE,DDE05,veryheavy,converged,1.5707,1.5707,11,10.12,9607,PIETOOLS_PIE2PDEstability | bracket [1.17802 1.96338] final [1.5707 1.57223] | steps 1.17802:C(1s) 1.96338:F(1s) 1.5707:C(1s) 1.76704:F(1s) 1.66887:F(1s) 1.61978:F(1s) 1.59524:F(1s) 1.58297:F(1s) 1.57684:F(1s) 1.57377:F(1s) 1.57223:F(1s) | last: fr=-0.99 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.2s m=479 nx=9607
+DDE,DDE06,veryheavy,converged,3,3 (bmax),11,19.96,37748,PIETOOLS_PIE2PDEstability | bracket [2.25 3.75] final [3 3.00293] | steps 2.25:C(1s) 3.75:F(2s) 3:C(1s) 3.375:F(2s) 3.1875:F(2s) 3.09375:F(2s) 3.04688:F(2s) 3.02344:F(2s) 3.01172:F(2s) 3.00586:F(2s) 3.00293:F(2s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=23 cpu=1.0s m=1828 nx=37748
+DDE,DDE06/stability_dual,veryheavy,certified,1,3 (bmax),1,1.55,37748,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.6s m=1798 nx=37748
+DDE,DDE07,veryheavy,converged,1.3721821,1.3722,11,18.09,38428,PIETOOLS_PIE2PDEstability | bracket [1.3 1.71525] final [1.37218 1.37299] | steps 1.3:C(1s) 1.71525:F(2s) 1.50762:F(2s) 1.40381:F(2s) 1.35191:C(1s) 1.37786:F(2s) 1.36488:C(1s) 1.37137:C(1s) 1.37462:F(2s) 1.37299:F(2s) 1.37218:C(1s) | last: fr=1 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.6s m=1890 nx=38428
+DDE,DDE07/stability_dual,veryheavy,certified,1,1.3722,1,1.40,38428,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.6s m=1860 nx=38428
+DDE,DDE08,veryheavy,converged,3.0412354,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),12,11.58,10669,PIETOOLS_PIE2PDEstability | bracket [1.1 4.9375] final [3.04124 3.04498] | steps 1.1:C(1s) 4.9375:F(1s) 3.01875:C(1s) 3.97812:U(1s) 3.49844:I(1s) 3.25859:I(1s) 3.13867:I(1s) 3.07871:I(1s) 3.04873:I(1s) 3.03374:C(1s) 3.04124:C(1s) 3.04498:I(1s) | last: fr=0.996 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.2s m=593 nx=10669
+DDE,DDE08/stability_dual,veryheavy,certified,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),1,0.89,10669,PIETOOLS_PIE2PDEstability_dual | fr=0.976 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=584 nx=10669
+DDE,DDE09,veryheavy,certified,25.907745,25.907 (tau=1.5),1,1.09,10116,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.1s m=504 nx=10117
+DDE,DDE09/Hinf_gain_dual,veryheavy,certified,25.907747,25.907 (tau=1.5),1,0.98,10116,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.1s m=501 nx=10117
+DDE,DDE10,veryheavy,certified,0.23644296,0.2364,1,1.46,39437,PIETOOLS_Hinf_gain | fr=1.05 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.5s m=1949 nx=39438
+DDE,DDE10/Hinf_gain_dual,veryheavy,certified,0.23644321,0.2364,1,1.45,39437,PIETOOLS_Hinf_gain_dual | fr=1.03 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.5s m=1937 nx=39438
+DDE,DDE11,veryheavy,certified,2.8666078,2.87,1,1.03,10734,PIETOOLS_Hinf_gain | fr=0.959 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=562 nx=10735
+DDE,DDE11/Hinf_gain_dual,veryheavy,certified,2.8666078,2.87,1,0.95,10734,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=559 nx=10735
+DDE,DDE12,veryheavy,certified,4.9784475,4.9784,1,1.49,39437,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.5s m=1923 nx=39438
+DDE,DDE12/Hinf_gain_dual,veryheavy,certified,4.9784482,4.9784,1,1.50,39437,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.6s m=1917 nx=39438
+DDE,DDE13,veryheavy,certified,1.3418419,1.339 (tau=2),1,88.67,38983,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=23 cpu=0.9s m=744 nx=38984
+DDE,DDE14,veryheavy,certified,0.39528478,0.3953,1,34.20,38983,PIETOOLS_Hinf_control | fr=1.04 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.4s m=744 nx=38984
+DDE,DDE15,veryheavy,certified,0.61043368,0.6104,1,19.27,39497,PIETOOLS_Hinf_control | fr=1.04 pinf=0 dinf=0 numerr=0 iter=10 cpu=0.3s m=777 nx=39498
+DDE,DDE17,veryheavy,converged,0.14833984,stable at h=.08; unstable at h=1,12,243.04,241889,PIETOOLS_PIE2PDEstability | bracket [0.05 1] final [0.14834 0.149268] | steps 0.05:C(17s) 1:F(26s) 0.525:F(23s) 0.2875:F(23s) 0.16875:F(24s) 0.109375:C(15s) 0.139063:C(16s) 0.153906:F(23s) 0.146484:C(16s) 0.150195:F(23s) 0.14834:C(16s) 0.149268:F(22s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=20 cpu=19.3s m=12202 nx=241889
+DDE,DDE17/Hinf_control,veryheavy,certified,9.351344,,1,1356.99,238231,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=11 cpu=5.6s m=4255 nx=238232
+DDE,DDE18,veryheavy,unknown,0.33537122,0.4092 (n=3),1,415.73,94303,PIETOOLS_Hinf_control | fr=0.274 pinf=0 dinf=0 numerr=0 iter=29 cpu=4.1s m=2089 nx=94304
+DDE,DDE19,veryheavy,inaccurate,0.0011439028,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),1,9.19,10557,PIETOOLS_Hinf_control | fr=0.998 pinf=0 dinf=0 numerr=2 iter=35 cpu=0.3s m=234 nx=10558
+DDE,DDE20,veryheavy,certified,0.23570226,0.2357,1,5.78,10747,PIETOOLS_Hinf_estimator | fr=0.992 pinf=0 dinf=0 numerr=0 iter=10 cpu=0.0s m=254 nx=10748
+DDE,DDE21,veryheavy,certified,2.3270002,2.327,1,17.34,38983,PIETOOLS_Hinf_estimator | fr=0.93 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.4s m=740 nx=38984
+DDE,DDE22,veryheavy,certified,1.3500949,1.3501,1,820.63,150237,PIETOOLS_Hinf_estimator | fr=1.08 pinf=0 dinf=0 numerr=0 iter=9 cpu=1.9s m=2630 nx=150238
+DDE,DDE23,veryheavy,certified,1.8080604,1.808,1,376.10,85569,PIETOOLS_Hinf_estimator | fr=1 pinf=0 dinf=0 numerr=0 iter=10 cpu=1.0s m=1550 nx=85570
+DDE,DDE24,veryheavy,certified,1.0439852,,1,1215.13,150237,PIETOOLS_Hinf_estimator | fr=0.993 pinf=0 dinf=0 numerr=0 iter=13 cpu=2.8s m=2630 nx=150238
+DDE,DDE25,veryheavy,certified,3.672378,3.6724,1,1.33,18106,PIETOOLS_H2_norm_o | fr=1.18 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=661 nx=18107
+DDE,DDE25/H2_norm_dual,veryheavy,certified,3.6723795,3.6724,1,1.17,18106,PIETOOLS_H2_norm_c | fr=0.953 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=659 nx=18108
+DDE,DDE26,veryheavy,certified,3.8299456,3.8307,1,65.87,625980,PIETOOLS_H2_norm_o | fr=0.979 pinf=0 dinf=0 numerr=0 iter=16 cpu=55.9s m=21882 nx=625981
+DDE,DDE26/H2_norm_dual,veryheavy,certified,3.8299598,3.8307,1,64.35,625980,PIETOOLS_H2_norm_c | fr=0.997 pinf=0 dinf=0 numerr=0 iter=17 cpu=53.9s m=21829 nx=625982
+NDSDDF,NDS01,veryheavy,converged,2.2233267,2.2255 (analytic max; uncited),11,15.74,38428,PIETOOLS_PIE2PDEstability | bracket [1.66912 2.78187] final [2.22333 2.2255] | steps 1.66912:C(1s) 2.78187:F(2s) 2.2255:F(2s) 1.94731:C(1s) 2.08641:C(1s) 2.15595:C(1s) 2.19073:C(1s) 2.20811:C(1s) 2.21681:C(1s) 2.22115:C(1s) 2.22333:C(1s) | last: fr=0.99 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.5s m=1956 nx=38428
+NDSDDF,NDS01/stability_dual,veryheavy,certified,1,2.2255 (analytic max; uncited),1,1.33,38428,PIETOOLS_PIE2PDEstability_dual | fr=0.999 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.5s m=1920 nx=38428
+NDSDDF,NDS02,veryheavy,certified,1,stable at tau=20 (literature: tau<.7516),1,1.39,38428,PIETOOLS_PIE2PDEstability | fr=1.02 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.6s m=1956 nx=38428
+NDSDDF,NDS02/stability_dual,veryheavy,certified,1,stable at tau=20 (literature: tau<.7516),1,1.52,38428,PIETOOLS_PIE2PDEstability_dual | fr=1.02 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.6s m=1920 nx=38428
+NDSDDF,NDS03,veryheavy,certified,1,stable (tau=[.3 .6]),1,5.64,150992,PIETOOLS_PIE2PDEstability | fr=0.97 pinf=0 dinf=0 numerr=0 iter=12 cpu=4.0s m=7472 nx=150992
+NDSDDF,NDS03/stability_dual,veryheavy,certified,1,stable (tau=[.3 .6]),1,7.44,150992,PIETOOLS_PIE2PDEstability_dual | fr=0.989 pinf=0 dinf=0 numerr=0 iter=15 cpu=5.8s m=7352 nx=150992
+NDSDDF,NDS04,veryheavy,hi_pass,0.69,0.552 (stable for any h1>0; h2<.552),2,11.01,150992,PIETOOLS_PIE2PDEstability | bracket [0.414 0.69] final [0.414 0.69] | steps 0.414:C(5s) 0.69:C(6s) | last: fr=0.991 pinf=0 dinf=0 numerr=0 iter=12 cpu=3.9s m=7472 nx=150992
+NDSDDF,NDS05,veryheavy,converged,1.5797836,1.5804? (stability verified for h<2.04),12,95.86,150992,PIETOOLS_PIE2PDEstability | bracket [1.1853 2.55] final [1.57978 1.58112] | steps 1.1853:C(6s) 2.55:F(9s) 1.86765:F(9s) 1.52648:C(6s) 1.69706:F(9s) 1.61177:F(9s) 1.56912:C(6s) 1.59045:F(9s) 1.57978:C(7s) 1.58511:F(9s) 1.58245:F(9s) 1.58112:F(8s) | last: fr=-0.993 pinf=0 dinf=0 numerr=2 iter=22 cpu=6.9s m=7472 nx=150992
+NDSDDF,NDS05/stability_dual,veryheavy,certified,1,1.5804? (stability verified for h<2.04),1,7.45,150992,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=17 cpu=5.9s m=7272 nx=150992
+NDSDDF,NDS07,veryheavy,converged,0.44453613,0.5? (stability verified for h<.603),12,18.60,37748,PIETOOLS_PIE2PDEstability | bracket [0.375 0.75375] final [0.444536 0.444906] | steps 0.375:C(1s) 0.75375:F(2s) 0.564375:F(2s) 0.469687:F(2s) 0.422344:C(1s) 0.446016:F(2s) 0.43418:C(1s) 0.440098:C(1s) 0.443057:C(1s) 0.444536:C(1s) 0.445276:F(2s) 0.444906:F(2s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.8s m=1868 nx=37748
+NDSDDF,NDS07/stability_dual,veryheavy,certified,1,0.5? (stability verified for h<.603),1,1.24,37748,PIETOOLS_PIE2PDEstability_dual | fr=0.994 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.4s m=1818 nx=37748
+NDSDDF,NDS08,veryheavy,converged,0.027469287,0.02755,11,105.82,153712,PIETOOLS_PIE2PDEstability | bracket [0.0206625 0.0344375] final [0.0274693 0.0274962] | steps 0.0206625:C(8s) 0.0344375:F(9s) 0.02755:F(12s) 0.0241063:C(9s) 0.0258281:C(9s) 0.0266891:C(12s) 0.0271195:C(9s) 0.0273348:C(10s) 0.0274424:C(8s) 0.0274962:U(9s) 0.0274693:C(10s) | last: fr=1.11 pinf=0 dinf=0 numerr=0 iter=23 cpu=8.7s m=7824 nx=153712
+NDSDDF,NDS08/stability_dual,veryheavy,certified,1,0.02755,1,8.01,153712,PIETOOLS_PIE2PDEstability_dual | fr=0.911 pinf=0 dinf=0 numerr=0 iter=15 cpu=6.4s m=7680 nx=153712
+NDSDDF,NDS09,veryheavy,converged,0.5994668,0.603,11,185.58,240175,PIETOOLS_PIE2PDEstability | bracket [0.45225 0.75375] final [0.599467 0.600056] | steps 0.45225:C(14s) 0.75375:F(20s) 0.603:F(19s) 0.527625:C(14s) 0.565312:C(14s) 0.584156:C(16s) 0.593578:C(16s) 0.598289:C(15s) 0.600645:F(20s) 0.599467:C(16s) 0.600056:F(19s) | last: fr=-0.999 pinf=0 dinf=0 numerr=2 iter=18 cpu=16.6s m=12225 nx=240175
+NDSDDF,NDS09/stability_dual,veryheavy,certified,1,0.603,1,18.42,240175,PIETOOLS_PIE2PDEstability_dual | fr=0.991 pinf=0 dinf=0 numerr=0 iter=16 cpu=15.4s m=12000 nx=240175
+NDSDDF,NDS10,veryheavy,certified,1,,1,1.28,38428,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.5s m=1956 nx=38428
+NDSDDF,NDS10/stability_dual,veryheavy,certified,1,,1,1.23,38428,PIETOOLS_PIE2PDEstability_dual | fr=0.988 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.4s m=1920 nx=38428
+NDSDDF,NDS11,veryheavy,unknown,0,,1,0.76,9953,PIETOOLS_PIE2PDEstability | fr=0.653 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=536 nx=9953
+NDSDDF,NDS11/stability_dual,veryheavy,unknown,0,,1,0.78,9953,PIETOOLS_PIE2PDEstability_dual | fr=1.46 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=514 nx=9953
+NDSDDF,NDS12,veryheavy,converged,0.44436562,0.4448?,11,15.50,37748,PIETOOLS_PIE2PDEstability | bracket [0.3336 0.556] final [0.444366 0.4448] | steps 0.3336:C(1s) 0.556:F(2s) 0.4448:F(2s) 0.3892:C(1s) 0.417:C(1s) 0.4309:C(1s) 0.43785:C(1s) 0.441325:C(1s) 0.443062:C(1s) 0.443931:C(1s) 0.444366:C(1s) | last: fr=0.991 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.5s m=1868 nx=37748
+NDSDDF,NDS12/stability_dual,veryheavy,certified,1,0.4448?,1,1.25,37748,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.4s m=1818 nx=37748
+NDSDDF,DDF01,veryheavy,certified,1,,1,1.10,37072,PIETOOLS_PIE2PDEstability | fr=0.993 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.4s m=1784 nx=37072
+NDSDDF,DDF01/stability_dual,veryheavy,certified,1,,1,1.03,37072,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.4s m=1760 nx=37072
+NDSDDF,DDF03,veryheavy,inaccurate,0.00091560022,,1,20.40,39817,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=2 iter=31 cpu=1.4s m=777 nx=39818
+PDE,1,custom,certified,1,stable (v=-1),1,0.65,6107,PIETOOLS_PIE2PDEstability | fr=0.976 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=470 nx=6107
+PDE,1/stability_dual,custom,certified,1,stable (v=-1),1,0.60,6107,PIETOOLS_PIE2PDEstability_dual | fr=1.02 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=470 nx=6107
+PDE,2,custom,certified,1,stable,1,1.02,24428,PIETOOLS_PIE2PDEstability | fr=0.999 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=2068 nx=24428
+PDE,2.2,custom,certified,1,stable,1,0.98,24428,PIETOOLS_PIE2PDEstability | fr=0.953 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=2068 nx=24428
+PDE,2.3,custom,certified,1,stable,1,0.97,24428,PIETOOLS_PIE2PDEstability | fr=0.997 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.3s m=2068 nx=24428
+PDE,2.4,custom,certified,1,stable,1,1.07,24428,PIETOOLS_PIE2PDEstability | fr=0.986 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.3s m=2068 nx=24428
+PDE,3,custom,certified,1,stable,1,2.17,54963,PIETOOLS_PIE2PDEstability | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=1.2s m=4653 nx=54963
+PDE,4,custom,certified,1,stable,1,0.97,24428,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=2068 nx=24428
+PDE,4.2,custom,certified,1,stable,1,0.98,24428,PIETOOLS_PIE2PDEstability | fr=0.975 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=2028 nx=24428
+PDE,4.3,custom,certified,1,stable,1,1.00,24428,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.3s m=2068 nx=24428
+PDE,4.4,custom,certified,1,stable,1,1.01,24428,PIETOOLS_PIE2PDEstability | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.3s m=2028 nx=24428
+PDE,4.5,custom,infeasible,0,stable,1,1.30,24428,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=23 cpu=0.6s m=2068 nx=24428
+PDE,5,custom,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,0.80,6107,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:U(1s) | last: fr=0.325 pinf=0 dinf=0 numerr=0 iter=17 cpu=0.1s m=587 nx=6107
+PDE,6,custom,converged,2.4674011,2.467 (stable for lam<pi^2/4),11,8.09,6107,PIETOOLS_PIE2PDEstability | bracket [1.85055 3.08425] final [2.4674 2.46981] | steps 1.85055:C(1s) 3.08425:F(1s) 2.4674:C(1s) 2.77583:F(1s) 2.62161:F(1s) 2.54451:F(1s) 2.50595:F(1s) 2.48668:F(1s) 2.47704:F(1s) 2.47222:F(1s) 2.46981:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.1s m=562 nx=6107
+PDE,6/stability_dual,custom,certified,1,2.467 (stable for lam<pi^2/4),1,0.69,6107,PIETOOLS_PIE2PDEstability_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.0s m=547 nx=6107
+PDE,7,custom,converged,4.6508984,4.66 (unstable for lam>4.66),11,8.54,6107,PIETOOLS_PIE2PDEstability | bracket [3.495 5.825] final [4.6509 4.65545] | steps 3.495:C(1s) 5.825:F(1s) 4.66:F(1s) 4.0775:C(1s) 4.36875:C(1s) 4.51438:C(1s) 4.58719:C(1s) 4.62359:C(1s) 4.6418:C(1s) 4.6509:C(1s) 4.65545:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.1s m=631 nx=6107
+PDE,7/stability_dual,custom,certified,1,4.66 (unstable for lam>4.66),1,0.89,6107,PIETOOLS_PIE2PDEstability_dual | fr=0.801 pinf=0 dinf=0 numerr=0 iter=27 cpu=0.1s m=660 nx=6107
+PDE,8,custom,lo_fail,NaN,9.8696 (stable for lam<pi^2),1,1.69,26780,PIETOOLS_PIE2PDEstability | bracket [7.4022 12.337] final [7.4022 12.337] | steps 7.4022:F(2s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=16 cpu=0.6s m=2736 nx=26780
+PDE,8/stability_dual,custom,infeasible,0,9.8696 (stable for lam<pi^2),1,1.60,26780,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=0 dinf=0 numerr=2 iter=17 cpu=0.6s m=2704 nx=26780
+PDE,9,custom,converged,-0.00024414062,0 (stable for k<0),12,11.51,6397,PIETOOLS_PIE2PDEstability | bracket [-1 0.25] final [-0.000244141 0.000976562] | steps -1:C(1s) 0.25:F(1s) -0.375:C(1s) -0.0625:C(1s) 0.09375:F(1s) 0.015625:F(1s) -0.0234375:C(1s) -0.00390625:C(1s) 0.00585938:F(1s) 0.000976562:F(1s) -0.00146484:C(1s) -0.000244141:C(1s) | last: fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=569 nx=6397
+PDE,9/stability_dual,custom,certified,1,0 (stable for k<0),1,0.98,6397,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.1s m=556 nx=6397
+PDE,10,custom,unknown,0,stable (k=-2),1,1.06,6397,PIETOOLS_PIE2PDEstability | fr=0.28 pinf=0 dinf=0 numerr=0 iter=19 cpu=0.1s m=569 nx=6397
+PDE,11,custom,converged,2.6734375,2.7 (stable for R<2.7; not tight),12,16.61,24428,PIETOOLS_PIE2PDEstability | bracket [2.025 3.625] final [2.67344 2.675] | steps 2.025:C(1s) 3.625:F(1s) 2.825:U(1s) 2.425:C(1s) 2.625:C(1s) 2.725:U(1s) 2.675:U(1s) 2.65:C(1s) 2.6625:C(1s) 2.66875:C(1s) 2.67188:C(1s) 2.67344:C(1s) | last: fr=0.909 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.5s m=2348 nx=24428
+PDE,11/stability_dual,custom,certified,1,2.7 (stable for R<2.7; not tight),1,1.31,24428,PIETOOLS_PIE2PDEstability_dual | fr=0.961 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.6s m=2288 nx=24428
+PDE,12,custom,converged,27.219727,21 (stable for R<21; not tight),13,40.04,54963,PIETOOLS_PIE2PDEstability | bracket [15.75 37.5] final [27.2197 27.2303] | steps 15.75:C(3s) 37.5:I(2s) 26.625:C(3s) 32.0625:U(3s) 29.3438:I(3s) 27.9844:U(3s) 27.3047:U(3s) 26.9648:C(3s) 27.1348:C(2s) 27.2197:C(2s) 27.2622:U(3s) 27.241:U(4s) 27.2303:U(3s) | last: fr=2.4 pinf=0 dinf=0 numerr=0 iter=24 cpu=2.4s m=5093 nx=54963
+PDE,13,custom,certified,1,stable,1,1.47,24428,PIETOOLS_PIE2PDEstability | fr=1.23 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.8s m=2020 nx=24428
+PDE,13/stability_dual,custom,certified,1,stable,1,1.22,24428,PIETOOLS_PIE2PDEstability_dual | fr=1.06 pinf=0 dinf=0 numerr=0 iter=21 cpu=0.6s m=2022 nx=24428
+PDE,13.2,custom,unknown,0,stable,1,1.54,24428,PIETOOLS_PIE2PDEstability | fr=1.63 pinf=0 dinf=0 numerr=0 iter=25 cpu=0.7s m=2030 nx=24428
+PDE,13.2/stability_dual,custom,certified,1,stable,1,1.23,24428,PIETOOLS_PIE2PDEstability_dual | fr=0.889 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.3s m=2034 nx=24428
+PDE,14,custom,certified,1,stable (TOC: PDE stable without damping),1,5.20,97712,PIETOOLS_PIE2PDEstability | fr=0.989 pinf=0 dinf=0 numerr=0 iter=17 cpu=4.2s m=7736 nx=97712
+PDE,15,custom,infeasible,0,TOC: (unstable); PDE stable with damping c>0,1,7.49,97712,PIETOOLS_PIE2PDEstability_dual | fr=-1 pinf=0 dinf=0 numerr=2 iter=24 cpu=6.3s m=7919 nx=97712
+PDE,16,custom,infeasible,0,,1,7.75,97712,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=25 cpu=6.5s m=8689 nx=97712
+PDE,17,custom,certified,1,stable for k>0 (k=1),1,1.08,24428,PIETOOLS_PIE2PDEstability | fr=1.02 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.3s m=1902 nx=24428
+PDE,18,custom,certified,1,stable (TOC: dual stable),1,1.08,24428,PIETOOLS_PIE2PDEstability_dual | fr=0.991 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=2085 nx=24428
+PDE,19,custom,certified,1,stable,1,1.97,54963,PIETOOLS_PIE2PDEstability | fr=0.995 pinf=0 dinf=0 numerr=0 iter=12 cpu=1.2s m=4414 nx=54963
+PDE,20,custom,certified,0.50000024,veryheavy=0.5000;heavy=0.5011;light=0.5162,1,0.85,6452,PIETOOLS_Hinf_gain | fr=1.04 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.0s m=507 nx=6453
+PDE,20/Hinf_gain_dual,custom,certified,0.50000022,veryheavy=0.5000;heavy=0.5058;light=0.5204,1,0.78,6452,PIETOOLS_Hinf_gain_dual | fr=1.1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=508 nx=6453
+PDE,21,custom,certified,0.84187718,veryheavy=0.8419;heavy=0.8419;light=0.8424,1,1.14,25109,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=11 cpu=0.3s m=1971 nx=25110
+PDE,21/Hinf_gain_dual,custom,certified,0.84187724,veryheavy=0.8419;heavy=0.8552;light=0.8722,1,1.09,25109,PIETOOLS_Hinf_gain_dual | fr=1.01 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.3s m=1973 nx=25110
+PDE,22,custom,certified,0.20833338,veryheavy=0.2083;heavy=0.2083;light=0.2085,1,0.84,6452,PIETOOLS_Hinf_gain | fr=1.03 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=544 nx=6453
+PDE,23,custom,certified,23.705799,light=25.249;heavy=23.706;veryheavy=23.622,1,1.06,6452,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=29 cpu=0.2s m=658 nx=6453
+PDE,24,custom,certified,8.2139574,8.2136,1,0.95,6452,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.1s m=609 nx=6453
+PDE,25,custom,certified,0.81021166,0.8102,1,1.96,25109,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=32 cpu=1.0s m=2359 nx=25110
+PDE,26,custom,certified,2.145307,2.1457,1,3.27,57012,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=18 cpu=1.9s m=5528 nx=57013
+PDE,27,custom,certified,1.000081,1.0004,1,2.77,6186,PIETOOLS_Hinf_estimator | fr=0.999 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.1s m=131 nx=6187
+PDE,28,custom,certified,1.0000513,1.0005,1,21.57,6186,PIETOOLS_Hinf_estimator | fr=0.999 pinf=0 dinf=0 numerr=0 iter=28 cpu=0.2s m=136 nx=6187
+PDE,29,custom,certified,1.000004,1.0000,1,1645.71,6364,PIETOOLS_Hinf_control | fr=0.999 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.1s m=183 nx=6365
+PDE,30,custom,unknown,0.522391,heavy=0.6594,1,5403.54,6644,PIETOOLS_Hinf_control | fr=0.407 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.2s m=196 nx=6645
+PDE,31,custom,unknown,0.00019357922,light=2.7407e-04,1,196.38,24351,PIETOOLS_Hinf_control | fr=0.657 pinf=0 dinf=0 numerr=0 iter=20 cpu=0.5s m=553 nx=24352
+PDE,32,custom,unknown,0.51721991,heavy=0.5971,1,37.26,24917,PIETOOLS_Hinf_control | fr=0.294 pinf=0 dinf=0 numerr=0 iter=26 cpu=0.7s m=539 nx=24918
+PDE,33,custom,certified,1,,1,2.55,28532,PIETOOLS_PIE2PDEstability | fr=1.02 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.6s m=1492 nx=28532
+PDE,34,custom,infeasible,0,stable for lam<=2*pi^2 (lam=19),1,15.19,242356,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=16 cpu=10.6s m=4774 nx=242356
+PDE,35,custom,unknown,0,,1,11.20,242356,PIETOOLS_PIE2PDEstability | fr=1.4 pinf=0 dinf=0 numerr=0 iter=12 cpu=6.5s m=4774 nx=242356
+PDE,36,custom,skipped,NaN,,0,0.03,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier light skipped or out of memory
+PDE,37,custom,infeasible,0,stable for a<=pi^2/2 (a=4),1,12.01,188740,PIETOOLS_PIE2PDEstability | fr=-1 pinf=1 dinf=0 numerr=0 iter=19 cpu=7.7s m=4194 nx=188740
+PDE,38,custom,skipped,NaN,,0,0.03,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier light skipped or out of memory
+PDE,39,custom,skipped,NaN,,0,0.03,NaN,PIETOOLS_PIE2PDEstability | skipped: lighter tier light skipped or out of memory
+PDE,40,custom,unknown,0,,1,6.37,122455,PIETOOLS_PIE2PDEstability | fr=2.16 pinf=0 dinf=0 numerr=0 iter=11 cpu=2.3s m=3532 nx=122455
+PDE,41,custom,unknown,0,,1,1.64,24428,PIETOOLS_PIE2PDEstability | fr=-0.795 pinf=0 dinf=0 numerr=2 iter=20 cpu=0.6s m=2226 nx=24428
+PDE,42,custom,infeasible,0,,1,8.44,30489,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=2 iter=16 cpu=1.3s m=2504 nx=30489
+PDE,43,custom,infeasible,0,stable for tau<1.0347 (tau=1),1,5.74,53491,PIETOOLS_PIE2PDEstability | fr=-1 pinf=0 dinf=0 numerr=2 iter=19 cpu=1.8s m=2523 nx=53491
+PDE,44,custom,lo_fail,NaN,0.5 (stable for mu<0.5),1,6.38,98860,PIETOOLS_PIE2PDEstability | bracket [0.375 0.625] final [0.375 0.625] | steps 0.375:U(6s) | last: fr=-0.403 pinf=0 dinf=0 numerr=2 iter=18 cpu=4.7s m=8773 nx=98860
+PDE,45,custom,skipped,NaN,exact=0.11101,0,0.03,NaN,PIETOOLS_Hinf_gain | skipped: projected 3116 s per solve > 600 s (from light 312 s; factor 10)
+PDE,46,custom,skipped,NaN,exact=0.17110,0,0.03,NaN,PIETOOLS_Hinf_gain | skipped: projected 3097 s per solve > 600 s (from light 310 s; factor 10)
+PDE,47,custom,skipped,NaN,exact=0.20668,0,0.03,NaN,PIETOOLS_Hinf_gain | skipped: projected 2530 s per solve > 600 s (from light 253 s; factor 10)
+PDE,48,custom,error,NaN,,0,1.95,NaN,PIETOOLS_Hinf_estimator | MATLAB:badsubscript: Index exceeds the number of array elements. Index must not exceed 5. @ lpivar_2d:476
+PDE,49,custom,certified,0.10157602,veryheavy=0.1016;heavy=0.1017;light=0.1043,1,1.16,9977,PIETOOLS_H2_norm_o | fr=0.856 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=620 nx=9978
+PDE,49/H2_norm_dual,custom,certified,0.10157567,veryheavy=0.1016;heavy=0.1162;light=0.1362,1,1.02,9977,PIETOOLS_H2_norm_c | fr=0.885 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=620 nx=9979
+PDE,50,custom,skipped,NaN,custom+psatz=0.8502,0,0.03,NaN,PIETOOLS_H2_norm_o | skipped: lighter tier light skipped or out of memory
+PDE,50/H2_norm_dual,custom,skipped,NaN,custom+psatz=0.8398,0,0.03,NaN,PIETOOLS_H2_norm_c | skipped: lighter tier light skipped or out of memory
+PDE,51,custom,infeasible,1056171.6,veryheavy=1.2683,1,22.43,9711,PIETOOLS_H2_estimator | fr=-1 pinf=0 dinf=0 numerr=2 iter=25 cpu=0.2s m=274 nx=9713
+PDE,52,custom,unknown,8449.9346,,1,3276.68,9888,PIETOOLS_H2_control | fr=0.365 pinf=0 dinf=0 numerr=2 iter=29 cpu=0.2s m=286 nx=9890
+DDE,DDE01,custom,converged,2.0380078,2.04 (analytical range [0.2; 2.04]),11,19.25,25588,PIETOOLS_PIE2PDEstability | bracket [1.53 2.55] final [2.03801 2.04] | steps 1.53:C(1s) 2.55:F(2s) 2.04:U(2s) 1.785:C(1s) 1.9125:C(1s) 1.97625:C(1s) 2.00813:C(2s) 2.02406:C(2s) 2.03203:C(2s) 2.03602:C(2s) 2.03801:C(2s) | last: fr=0.957 pinf=0 dinf=0 numerr=0 iter=41 cpu=1.3s m=2072 nx=25588
+DDE,DDE01/stability_dual,custom,certified,1,2.04 (analytical range [0.2; 2.04]),1,1.62,25588,PIETOOLS_PIE2PDEstability_dual | fr=0.993 pinf=0 dinf=0 numerr=0 iter=29 cpu=0.8s m=2076 nx=25588
+DDE,DDE02,custom,converged,2.0839844,2 ([1]: tauNmax<2),11,83.46,100016,PIETOOLS_PIE2PDEstability | bracket [1.5 2.5] final [2.08398 2.08594] | steps 1.5:C(5s) 2.5:F(7s) 2:C(6s) 2.25:F(7s) 2.125:F(8s) 2.0625:C(9s) 2.09375:F(7s) 2.07812:C(9s) 2.08594:F(7s) 2.08203:C(9s) 2.08398:C(9s) | last: fr=1 pinf=0 dinf=0 numerr=0 iter=33 cpu=8.2s m=7896 nx=100016
+DDE,DDE02/stability_dual,custom,certified,1,2 ([1]: tauNmax<2),1,6.64,100016,PIETOOLS_PIE2PDEstability_dual | fr=0.992 pinf=0 dinf=0 numerr=0 iter=18 cpu=5.1s m=7904 nx=100016
+DDE,DDE03,custom,converged,1.71785,1.71785 (taumin=.100174),11,10.14,6695,PIETOOLS_PIE2PDEstability | bracket [1.28839 2.14731] final [1.71785 1.71953] | steps 1.28839:C(1s) 2.14731:F(1s) 1.71785:C(1s) 1.93258:F(1s) 1.82522:F(1s) 1.77153:F(1s) 1.74469:F(1s) 1.73127:F(1s) 1.72456:F(1s) 1.72121:F(1s) 1.71953:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=23 cpu=0.1s m=558 nx=6695
+DDE,DDE03/stability_dual,custom,certified,1,1.71785 (taumin=.100174),1,0.85,6695,PIETOOLS_PIE2PDEstability_dual | fr=0.996 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.1s m=558 nx=6695
+DDE,DDE04,custom,converged,6.1665521,6.17258,11,14.02,25588,PIETOOLS_PIE2PDEstability | bracket [4.62943 7.71572] final [6.16655 6.17258] | steps 4.62943:C(1s) 7.71572:F(1s) 6.17258:U(2s) 5.40101:C(1s) 5.78679:C(1s) 5.97969:C(1s) 6.07613:C(1s) 6.12436:C(1s) 6.14847:C(1s) 6.16052:C(1s) 6.16655:C(1s) | last: fr=0.966 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.4s m=2072 nx=25588
+DDE,DDE04/stability_dual,custom,certified,1,6.17258,1,1.29,25588,PIETOOLS_PIE2PDEstability_dual | fr=0.957 pinf=0 dinf=0 numerr=0 iter=18 cpu=0.5s m=2072 nx=25588
+DDE,DDE05,custom,converged,1.5707,1.5707,11,9.83,6397,PIETOOLS_PIE2PDEstability | bracket [1.17802 1.96338] final [1.5707 1.57223] | steps 1.17802:C(1s) 1.96338:F(1s) 1.5707:C(1s) 1.76704:F(1s) 1.66887:F(1s) 1.61978:F(1s) 1.59524:F(1s) 1.58297:F(1s) 1.57684:F(1s) 1.57377:F(1s) 1.57223:F(1s) | last: fr=-1 pinf=0 dinf=0 numerr=2 iter=21 cpu=0.1s m=518 nx=6397
+DDE,DDE06,custom,converged,3,3 (bmax),11,15.46,25004,PIETOOLS_PIE2PDEstability | bracket [2.25 3.75] final [3 3.00293] | steps 2.25:C(1s) 3.75:F(1s) 3:C(1s) 3.375:F(1s) 3.1875:F(1s) 3.09375:F(2s) 3.04688:F(1s) 3.02344:F(1s) 3.01172:F(1s) 3.00586:F(1s) 3.00293:F(1s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=21 cpu=0.6s m=1974 nx=25004
+DDE,DDE06/stability_dual,custom,certified,1,3 (bmax),1,1.18,25004,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=14 cpu=0.4s m=1974 nx=25004
+DDE,DDE07,custom,converged,1.3721821,1.3722,11,14.70,25588,PIETOOLS_PIE2PDEstability | bracket [1.3 1.71525] final [1.37218 1.37299] | steps 1.3:C(1s) 1.71525:F(1s) 1.50762:F(1s) 1.40381:F(1s) 1.35191:C(1s) 1.37786:F(1s) 1.36488:C(1s) 1.37137:C(1s) 1.37462:F(1s) 1.37299:F(1s) 1.37218:C(1s) | last: fr=0.998 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.4s m=2048 nx=25588
+DDE,DDE07/stability_dual,custom,certified,1,1.3722,1,1.16,25588,PIETOOLS_PIE2PDEstability_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.4s m=2048 nx=25588
+DDE,DDE08,custom,converged,3.6408447,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),12,10.85,7315,PIETOOLS_PIE2PDEstability | bracket [1.1 4.9375] final [3.64084 3.64459] | steps 1.1:C(1s) 4.9375:U(1s) 3.01875:C(1s) 3.97812:F(1s) 3.49844:C(1s) 3.73828:I(1s) 3.61836:C(1s) 3.67832:I(1s) 3.64834:I(1s) 3.63335:C(1s) 3.64084:C(1s) 3.64459:I(1s) | last: fr=1.05 pinf=0 dinf=0 numerr=2 iter=24 cpu=0.1s m=650 nx=7315
+DDE,DDE08/stability_dual,custom,certified,1,3.95 (tauNmax in [3.9;3.95]; requires veryheavy),1,0.77,7315,PIETOOLS_PIE2PDEstability_dual | fr=0.958 pinf=0 dinf=0 numerr=0 iter=15 cpu=0.1s m=650 nx=7315
+DDE,DDE09,custom,certified,25.907746,25.907 (tau=1.5),1,0.95,6750,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.1s m=547 nx=6751
+DDE,DDE09/Hinf_gain_dual,custom,certified,25.907746,25.907 (tau=1.5),1,0.92,6750,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=16 cpu=0.1s m=547 nx=6751
+DDE,DDE10,custom,certified,0.23644298,0.2364,1,1.27,26285,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=2125 nx=26286
+DDE,DDE10/Hinf_gain_dual,custom,certified,0.23644317,0.2364,1,1.26,26285,PIETOOLS_Hinf_gain_dual | fr=1.03 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=2125 nx=26286
+DDE,DDE11,custom,certified,2.8666078,2.87,1,0.92,7242,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=611 nx=7243
+DDE,DDE11/Hinf_gain_dual,custom,certified,2.8666078,2.87,1,0.95,7242,PIETOOLS_Hinf_gain_dual | fr=0.996 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.0s m=609 nx=7243
+DDE,DDE12,custom,certified,4.9784479,4.9784,1,1.25,26285,PIETOOLS_Hinf_gain | fr=1 pinf=0 dinf=0 numerr=0 iter=12 cpu=0.3s m=2101 nx=26286
+DDE,DDE12/Hinf_gain_dual,custom,certified,4.9784484,4.9784,1,1.27,26285,PIETOOLS_Hinf_gain_dual | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.3s m=2101 nx=26286
+DDE,DDE13,custom,certified,1.3415082,1.339 (tau=2),1,110.16,25467,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=27 cpu=0.7s m=550 nx=25468
+DDE,DDE14,custom,certified,0.39528476,0.3953,1,43.44,25467,PIETOOLS_Hinf_control | fr=1.02 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.3s m=550 nx=25468
+DDE,DDE15,custom,certified,0.61043356,0.6104,1,30.28,25825,PIETOOLS_Hinf_control | fr=1.03 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.2s m=579 nx=25826
+DDE,DDE17,custom,converged,0.14833984,stable at h=.08; unstable at h=1,12,169.97,161399,PIETOOLS_PIE2PDEstability | bracket [0.05 1] final [0.14834 0.149268] | steps 0.05:C(10s) 1:F(16s) 0.525:F(13s) 0.2875:F(16s) 0.16875:F(16s) 0.109375:C(12s) 0.139063:C(11s) 0.153906:F(15s) 0.146484:C(11s) 0.150195:F(17s) 0.14834:C(11s) 0.149268:F(22s) | last: fr=-1 pinf=1 dinf=0 numerr=0 iter=33 cpu=20.0s m=13202 nx=161399
+DDE,DDE17/Hinf_control,custom,certified,9.351344,,1,2081.03,155616,PIETOOLS_Hinf_control | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=3.0s m=3075 nx=155617
+DDE,DDE18,custom,certified,0.32705498,0.4092 (n=3),1,572.63,62362,PIETOOLS_Hinf_control | fr=0.999 pinf=0 dinf=0 numerr=0 iter=28 cpu=2.3s m=1612 nx=62363
+DDE,DDE19,custom,unknown,0.00173056,1.964 (degrees 2;4 and 4;8); 1.9369 (6;12),1,25.10,7032,PIETOOLS_Hinf_control | fr=0.4 pinf=0 dinf=0 numerr=2 iter=22 cpu=0.1s m=181 nx=7033
+DDE,DDE20,custom,certified,0.23570226,0.2357,1,25.24,7120,PIETOOLS_Hinf_estimator | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.0s m=199 nx=7121
+DDE,DDE21,custom,certified,2.3270002,2.327,1,61.95,25467,PIETOOLS_Hinf_estimator | fr=1 pinf=0 dinf=0 numerr=0 iter=13 cpu=0.3s m=544 nx=25468

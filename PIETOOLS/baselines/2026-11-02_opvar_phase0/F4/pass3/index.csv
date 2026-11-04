@@ -1,0 +1,12 @@
+name,status,seconds,scalars,note
+DEMO1_stability_and_simulation,ok,12.35,b=0.01 c=1,
+DEMO2_volterra_operator_norm,ok,1.02,a=0 b=1 operator_norm=0.6368044657,
+DEMO3_poincare_inequality,ok,2.43,a=0 b=1 poincare_constant=0.3876803675,
+DEMO4_stability_parameter_bisection,ok,5.57,feasrat=-1.000000116 is_dinf=0 is_pinf=1 iter=8 lam=9.8828125 lam_max=9.921875 lam_min=9.84375 n_iters=8,
+DEMO5_Hinf_optimal_estimator,ok,9.46,gam_val=1.000094369 lam=4,
+DEMO6_Hinf_optimal_control,ok,10.77,gam_val=1.414977873 lam=5,
+DEMO7_observer_based_control,ok,14.50,gam_co_val=1.000126864 gam_ob_val=0.0002759920741 lam=5,
+DEMO8_H2norm,ok,3.91,gamd=0.101574958,
+DEMO9_L2_gain_analysis,ok,39.54,a=0 b=1 c=0 d=1 gam_val=0.09397897519 lam=5,
+DEMO10_PBC,ok,4.69,alpha=0.99 lam=8.869604401,
+DEMO11_CdopvarControl,ok,13.67,alpha=0.1 c1=1 c2=1 lam=20.7392088 ne=1,

@@ -1,0 +1,525 @@
+Phase 0: pass 1 vs pass 3, 04-Nov-2026 02:34:47
+
+== F1 (label, status a/b, Dop, solution)
+1D_ex01 ok/ok 0 0
+1D_ex02 ok/ok 0 0
+1D_ex03 ok/ok 0 0
+1D_ex04 ok/ok 0 0
+1D_ex05 ok/ok 0 0
+1D_ex06 ok/ok 0 0
+1D_ex07 ok/ok 0 0
+1D_ex08 ok/ok 0 0
+1D_ex09 ok/ok 0 0
+1D_ex10 ok/ok 0 0
+1D_ex11 ok/ok 0 0
+1D_ex12 ok/ok 0 0
+1D_ex13 ok/ok 0 0
+1D_ex14 ok/ok 0 0
+1D_ex15 ok/ok 0 0
+1D_ex16 ok/ok 0 0
+1D_ex17 ok/ok 0 0
+1D_ex18 ok/ok 0 0
+1D_ex19 ok/ok 0 0
+1D_ex20 ok/ok 0 0
+1D_ex21 ok/ok 0 0
+1D_ex22 ok/ok 0 0
+1D_ex23 ok/ok 0 0
+1D_ex24 ok/ok 0 0
+1D_ex25 ok/ok 0 0
+1D_ex26 ok/ok 0 0
+1D_ex27 ok/ok 0 0
+1D_ex28 ok/ok 0 0
+1D_ex29 ok/ok 0 0
+1D_ex30 ok/ok 0 0
+1D_ex31 ok/ok 0 0
+1D_ex32 error/error NaN NaN
+1D_ex33 ok/ok 0 0
+1D_ex34 ok/ok 0 0
+1D_ex35 ok/ok 0 0
+1D_ex36 ok/ok 0 0
+1D_ex37 ok/ok 0 0
+1D_ex38 ok/ok 0 0
+1D_ex39 ok/ok 0 0
+1D_ex40 ok/ok 0 0
+1D_ex41 ok/ok 2.42e-10 1.42e-13
+2D_ex01 ok/ok 8.8e-11 8.44e-15
+2D_ex02 ok/ok 5.35e-12 2.25e-12
+2D_ex03 ok/ok 7.25e-12 1.73e-12
+2D_ex04 ok/ok 8.83e-12 3.37e-12
+2D_ex05 ok/ok 2.22e-16 1.79e-13
+2D_ex06 ok/ok 8.62e-12 9.86e-13
+2D_ex07 ok/ok 0 0
+2D_ex08 ok/ok 2.02e-08 0.34
+2D_ex09 ok/ok 1.43e-10 8.48e-11
+2D_ex10 ok/ok 2.18e-12 1.15e-12
+2D_ex11 ok/ok 2.58e-12 1.86e-11
+2D_ex12 ok/ok 1.94e-11 1.96e-13
+2D_ex13 ok/ok 3.99e-12 1.08e-12
+2D_ex14 ok/ok 5.49e-12 1.15e-13
+2D_ex15 ok/ok 0 0
+2D_ex16 ok/ok 8.8e-08 0.000248
+2D_ex17 ok/ok 1.04e-09 6.85e-11
+2D_ex18 ok/ok 7.82e-12 1.87e-12
+2D_ex19 ok/ok 2.22e-16 1.12e-15
+2D_ex20 ok/ok 1.12e-09 2.53e-10
+2D_ex21 ok/ok 5.9e-12 4.11e-14
+2D_ex22 ok/ok 6.03e-12 7.87e-12
+2D_ex23 ok/ok 6.59e-12 1.33e-09
+2D_ex24 ok/ok 5.48e-12 1.63e-13
+2D_ex25 ok/ok 8.58e-12 6.19e-14
+2D_ex26 ok/ok 0 0
+2D_ex27 ok/ok 0 0
+2D_ex28 ok/ok 0 0
+2D_ex29 ok/ok 0 0
+2D_ex30 ok/ok 0 0
+2D_ex31 ok/ok 0 0
+2D_ex32 ok/ok 0 0
+F1: 73 examples, largest relative difference 0.34
+
+== F2 (label, status a/b, outputs, opvar outputs)
+LIB_DDE_DDE01 ok/ok 0 0
+LIB_DDE_DDE02 ok/ok 0 0
+LIB_DDE_DDE03 ok/ok 0 0
+LIB_DDE_DDE04 ok/ok 0 0
+LIB_DDE_DDE05 ok/ok 0 0
+LIB_DDE_DDE06 ok/ok 0 0
+LIB_DDE_DDE07 ok/ok 0 0
+LIB_DDE_DDE08 ok/ok 0 0
+LIB_DDE_DDE09 ok/ok 0 0
+LIB_DDE_DDE10 ok/ok 0 0
+LIB_DDE_DDE11 ok/ok 0 0
+LIB_DDE_DDE12 ok/ok 0 0
+LIB_DDE_DDE13 ok/ok 0 0
+LIB_DDE_DDE14 ok/ok 0 0
+LIB_DDE_DDE15 ok/ok 0 0
+LIB_DDE_DDE16 ok/ok 0 0
+LIB_DDE_DDE17 ok/ok 0 0
+LIB_DDE_DDE18 ok/ok 0 0
+LIB_DDE_DDE19 ok/ok 0 0
+LIB_DDE_DDE20 ok/ok 0 0
+LIB_DDE_DDE21 ok/ok 0 0
+LIB_DDE_DDE22 ok/ok 0 0
+LIB_DDE_DDE23 ok/ok 0 0
+LIB_DDE_DDE24 ok/ok 0 0
+LIB_DDE_DDE25 ok/ok 0 0
+LIB_DDE_DDE26 ok/ok 0 0
+LIB_NDSDDF_DDF01 ok/ok 0 0
+LIB_NDSDDF_DDF03 ok/ok 0 0
+LIB_NDSDDF_NDS01 ok/ok 0 0
+LIB_NDSDDF_NDS02 ok/ok 0 0
+LIB_NDSDDF_NDS03 ok/ok 0 0
+LIB_NDSDDF_NDS04 ok/ok 0 0
+LIB_NDSDDF_NDS05 ok/ok 0 0
+LIB_NDSDDF_NDS07 ok/ok 0 0
+LIB_NDSDDF_NDS08 ok/ok 0 0
+LIB_NDSDDF_NDS09 ok/ok 0 0
+LIB_NDSDDF_NDS10 ok/ok 0 0
+LIB_NDSDDF_NDS11 ok/ok 0 0
+LIB_NDSDDF_NDS12 ok/ok 0 0
+LIB_PDE_1 ok/ok 0 0
+LIB_PDE_10 ok/ok 3.71e-16 0
+LIB_PDE_11 ok/ok 3.67e-16 0
+LIB_PDE_12 ok/ok 0 0
+LIB_PDE_13 ok/ok 1.11e-16 0
+LIB_PDE_13_2 ok/ok Inf 0
+LIB_PDE_14 ok/ok 0 0
+LIB_PDE_15 ok/ok Inf 0
+LIB_PDE_16 ok/ok Inf 0
+LIB_PDE_17 ok/ok Inf 0
+LIB_PDE_18 ok/ok Inf 0
+LIB_PDE_19 ok/ok Inf 0
+LIB_PDE_2 ok/ok 2.86e-16 0
+LIB_PDE_20 ok/ok 0 0
+LIB_PDE_21 ok/ok Inf 0
+LIB_PDE_22 ok/ok 0 0
+LIB_PDE_23 ok/ok 0 0
+LIB_PDE_24 ok/ok 1.55e-15 0
+LIB_PDE_25 ok/ok 3.66e-16 0
+LIB_PDE_26 ok/ok 1.94e-16 0
+LIB_PDE_27 ok/ok 0 0
+LIB_PDE_28 ok/ok 2.22e-16 0
+LIB_PDE_29 ok/ok Inf 0
+LIB_PDE_2_2 ok/ok 4.04e-16 0
+LIB_PDE_2_3 ok/ok 5.27e-16 0
+LIB_PDE_2_4 ok/ok 8.45e-16 0
+LIB_PDE_3 ok/ok 8.66e-16 0
+LIB_PDE_30 ok/ok Inf 0
+LIB_PDE_31 ok/ok Inf 0
+LIB_PDE_32 ok/ok Inf 0
+LIB_PDE_33 ok/ok 0 0
+LIB_PDE_34 ok/ok 8.88e-16 0
+LIB_PDE_35 ok/ok 3.33e-16 0
+LIB_PDE_36 ok/ok Inf 0
+LIB_PDE_37 ok/ok 3.61e-16 0
+LIB_PDE_38 ok/ok Inf 0
+LIB_PDE_39 ok/ok Inf 0
+LIB_PDE_4 ok/ok 5.86e-16 0
+LIB_PDE_40 ok/ok 1.42e-15 0
+LIB_PDE_41 ok/ok Inf 0
+LIB_PDE_42 ok/ok 2.2e-15 0
+LIB_PDE_43 ok/ok 2.72e-15 0
+LIB_PDE_44 ok/ok Inf 0
+LIB_PDE_45 ok/ok 3.12e-16 0
+LIB_PDE_46 ok/ok 1.72e-15 0
+LIB_PDE_47 ok/ok 0 0
+LIB_PDE_48 ok/ok 1.53 0
+LIB_PDE_49 ok/ok 0 0
+LIB_PDE_4_2 ok/ok 0 0
+LIB_PDE_4_3 ok/ok 1.95e-16 0
+LIB_PDE_4_4 ok/ok 0 0
+LIB_PDE_4_5 ok/ok 5.21e-16 0
+LIB_PDE_5 ok/ok 5.04e-16 0
+LIB_PDE_50 ok/ok Inf 0
+LIB_PDE_51 ok/ok 0 0
+LIB_PDE_52 ok/ok 0 0
+LIB_PDE_6 ok/ok 0 0
+LIB_PDE_7 ok/ok 0 0
+LIB_PDE_8 ok/ok 2.38e-15 0
+LIB_PDE_9 ok/ok 2.8e-16 0
+PIESIM1D_01 ok/ok 0 0
+PIESIM1D_02 ok/ok 0 0
+PIESIM1D_03 ok/ok 0 0
+PIESIM1D_04 ok/ok 0 0
+PIESIM1D_05 ok/ok 0 0
+PIESIM1D_06 ok/ok 0 0
+PIESIM1D_07 ok/ok 0 0
+PIESIM1D_08 ok/ok 0 0
+PIESIM1D_09 ok/ok 0 0
+PIESIM1D_10 ok/ok 0 0
+PIESIM1D_11 ok/ok 0 0
+PIESIM1D_12 ok/ok 0 0
+PIESIM1D_13 ok/ok 0 0
+PIESIM1D_14 ok/ok 0 0
+PIESIM1D_15 ok/ok 0 0
+PIESIM1D_16 ok/ok 0 0
+PIESIM1D_17 ok/ok 0 0
+PIESIM1D_18 ok/ok 0 0
+PIESIM1D_19 ok/ok 0 0
+PIESIM1D_20 ok/ok 0 0
+PIESIM1D_21 ok/ok 0 0
+PIESIM1D_22 ok/ok 0 0
+PIESIM1D_23 ok/ok 0 0
+PIESIM1D_24 ok/ok 0 0
+PIESIM1D_25 ok/ok 0 0
+PIESIM1D_26 ok/ok 0 0
+PIESIM1D_27 ok/ok 0 0
+PIESIM1D_28 ok/ok 0 0
+PIESIM1D_29 ok/ok 0 0
+PIESIM1D_30 ok/ok 0 0
+PIESIM1D_31 ok/ok 0 0
+PIESIM1D_32 ok/ok 0 0
+PIESIM1D_33 ok/ok 0 0
+PIESIM1D_34 ok/ok 0 0
+PIESIM1D_35 ok/ok 0 0
+PIESIM1D_36 ok/ok 0 0
+PIESIM1D_37 ok/ok 0 0
+PIESIM1D_38 ok/ok 0 0
+PIESIM1D_39 ok/ok 0 0
+PIESIM1D_40 ok/ok 0 0
+PIESIM1D_41 ok/ok 4.44e-16 0
+PIESIM2D_01 ok/ok 1.29e-14 0
+PIESIM2D_02 ok/ok 1.96 0
+PIESIM2D_03 ok/ok 2.04 0
+PIESIM2D_04 ok/ok 1.01e-15 0
+PIESIM2D_05 ok/ok 1.54 0
+PIESIM2D_06 ok/ok 2.44e-15 0
+PIESIM2D_07 ok/ok 0 0
+PIESIM2D_08 ok/ok 1.02e-14 0
+PIESIM2D_09 ok/ok 2.78e-16 0
+PIESIM2D_10 ok/ok 5.64e-16 0
+PIESIM2D_11 ok/ok Inf 0
+PIESIM2D_12 ok/ok Inf 0
+PIESIM2D_13 ok/ok 6.11e-16 0
+PIESIM2D_14 ok/ok 9.39e-16 0
+PIESIM2D_15 ok/ok Inf 0
+PIESIM2D_16 ok/ok 2.61e-15 0
+PIESIM2D_17 ok/ok 1.33e-15 0
+PIESIM2D_18 ok/ok 4.09e-16 0
+PIESIM2D_19 ok/ok 15.3 0
+PIESIM2D_20 ok/ok Inf 0
+PIESIM2D_21 ok/ok 1.67e-16 0
+PIESIM2D_22 ok/ok 3.33e-16 0
+PIESIM2D_23 ok/ok 1.47 0
+PIESIM2D_24 ok/ok 1.54 0
+PIESIM2D_25 ok/ok Inf 0
+PIESIM2D_26 ok/ok 0 0
+PIESIM2D_27 ok/ok 0 0
+PIESIM2D_28 ok/ok Inf 0
+PIESIM2D_29 ok/ok 0 0
+PIESIM2D_30 ok/ok 0 0
+PIESIM2D_31 ok/ok 0 0
+PIESIM2D_32 ok/ok 0 0
+F2: 172 PIEs, largest relative difference Inf
+
+== F3 (row, status a/b, result a/b, shape equal)
+PDE|1|light certified/certified 1/1 1
+PDE|1/stability_dual|light certified/certified 1/1 1
+PDE|2|light certified/certified 1/1 0
+PDE|2.2|light certified/certified 1/1 0
+PDE|2.3|light certified/certified 1/1 0
+PDE|2.4|light certified/certified 1/1 0
+PDE|3|light unknown/certified 0/1 0
+PDE|4|light certified/certified 1/1 0
+PDE|4.2|light certified/certified 1/1 0
+PDE|4.3|light certified/certified 1/1 0
+PDE|4.4|light certified/certified 1/1 0
+PDE|4.5|light infeasible/infeasible 0/0 0
+PDE|5|light converged/converged 9.8599661/9.8599661 0
+PDE|6|light converged/converged 2.4674011/2.4674011 0
+PDE|6/stability_dual|light certified/certified 1/1 0
+PDE|7|light converged/converged 4.6508984/4.6508984 0
+PDE|7/stability_dual|light certified/certified 1/1 0
+PDE|8|light lo_fail/lo_fail NaN/NaN 0
+PDE|8/stability_dual|light infeasible/infeasible 0/0 0
+PDE|9|light converged/converged -0.00024414062/-0.00024414062 0
+PDE|9/stability_dual|light certified/certified 1/1 0
+PDE|10|light unknown/unknown 0/0 0
+PDE|11|light converged/converged 2.9296875/2.9296875 0
+PDE|11/stability_dual|light certified/certified 1/1 0
+PDE|12|light hi_pass/hi_pass 37.5/37.5 0
+PDE|13|light certified/certified 1/1 0
+PDE|13/stability_dual|light certified/certified 1/1 0
+PDE|13.2|light certified/certified 1/1 0
+PDE|13.2/stability_dual|light certified/certified 1/1 0
+PDE|14|light certified/certified 1/1 0
+PDE|15|light infeasible/infeasible 0/0 0
+PDE|16|light infeasible/infeasible 0/0 0
+PDE|17|light certified/certified 1/1 0
+PDE|18|light certified/certified 1/1 0
+PDE|19|light certified/certified 1/1 0
+PDE|20|light certified/certified 0.50081445/0.50081445 1
+PDE|20/Hinf_gain_dual|light certified/certified 0.50000223/0.50000223 1
+PDE|21|light certified/certified 0.84187746/0.84187746 0
+PDE|21/Hinf_gain_dual|light certified/certified 0.84188348/0.84188347 0
+PDE|22|light certified/certified 0.20847421/0.20847416 0
+PDE|23|light certified/certified 23.709405/23.718499 0
+PDE|24|light certified/certified 8.2137125/8.2138923 0
+PDE|25|light certified/certified 0.81029224/0.81029249 0
+PDE|26|light certified/certified 2.147294/2.1472865 0
+PDE|27|light unknown/unknown 1.0000249/1.0000249 1
+PDE|28|light certified/certified 1.000055/1.000055 1
+PDE|29|light certified/certified 1.000004/1.000004 0
+PDE|30|light unknown/unknown 0.64991793/0.64975777 0
+PDE|31|light certified/certified 0.00025719111/0.00025708184 0
+PDE|32|light unknown/unknown 0.55109001/0.55109092 0
+PDE|33|light certified/certified 1/1 0
+PDE|34|light certified/certified 1/1 0
+PDE|35|light certified/certified 1/1 0
+PDE|37|light certified/certified 1/1 0
+PDE|39|light certified/certified 1/1 0
+PDE|40|light unknown/unknown 0/0 0
+PDE|41|light unknown/unknown 0/0 0
+PDE|42|light certified/certified 1/1 0
+PDE|43|light infeasible/infeasible 0/0 0
+PDE|44|light lo_fail/lo_fail NaN/NaN 0
+PDE|45|light unknown/unknown 2593.8227/3329.3592 0
+PDE|46|light unknown/unknown 962.67199/455.37038 0
+PDE|47|light unknown/unknown 22601.94/355.67186 0
+PDE|48|light unknown/unknown 0.005050555/0.0041613453 0
+PDE|49|light certified/certified 0.10165573/0.10165573 1
+PDE|49/H2_norm_dual|light certified/certified 0.10585578/0.10585578 1
+PDE|51|light certified/certified 1.2699296/1.2699296 1
+PDE|52|light certified/certified 1.0962356/1.0962356 1
+DDE|DDE01|light converged/converged 2.0160938/2.0180859 0
+DDE|DDE01/stability_dual|light certified/certified 1/1 0
+DDE|DDE02|light converged/converged 2.0839844/2.0839844 0
+DDE|DDE02/stability_dual|light certified/certified 1/1 0
+DDE|DDE03|light converged/converged 1.7144948/1.7144948 0
+DDE|DDE03/stability_dual|light certified/certified 1/1 0
+DDE|DDE04|light converged/converged 6.1665521/6.1665521 0
+DDE|DDE04/stability_dual|light certified/certified 1/1 0
+DDE|DDE05|light converged/converged 1.5707/1.5707 1
+DDE|DDE05/stability_dual|light certified/certified 1/1 1
+DDE|DDE06|light converged/converged 3/3 0
+DDE|DDE06/stability_dual|light certified/certified 1/1 0
+DDE|DDE07|light converged/converged 1.3713711/1.3713711 0
+DDE|DDE07/stability_dual|light certified/certified 1/1 0
+DDE|DDE08|light converged/converged 1.4185425/1.4185425 0
+DDE|DDE08/stability_dual|light certified/certified 1/1 0
+DDE|DDE09|light certified/certified 25.912728/25.912728 1
+DDE|DDE09/Hinf_gain_dual|light certified/certified 25.909467/25.909467 1
+DDE|DDE10|light certified/certified 0.23644309/0.23644309 0
+DDE|DDE10/Hinf_gain_dual|light certified/certified 0.23645073/0.23645055 0
+DDE|DDE11|light certified/certified 2.8772544/2.8772595 0
+DDE|DDE11/Hinf_gain_dual|light certified/certified 2.8779855/2.8779834 0
+DDE|DDE12|light certified/certified 4.9840028/4.9835374 0
+DDE|DDE12/Hinf_gain_dual|light certified/certified 4.9796898/4.9796696 0
+DDE|DDE13|light certified/certified 1.3649751/1.3657495 0
+DDE|DDE14|light certified/certified 0.39528506/0.39528506 0
+DDE|DDE15|light certified/certified 0.61043363/0.61043363 0
+DDE|DDE16|light certified/certified 0.96293737/0.96293737 0
+DDE|DDE17|light converged/converged 0.14833984/0.14833984 0
+DDE|DDE17/Hinf_control|light certified/certified 9.3513439/9.3513439 0
+DDE|DDE18|light certified/certified 0.3791484/0.37801951 0
+DDE|DDE19|light error/unknown NaN/0.0014027311 0
+DDE|DDE20|light certified/certified 0.23570228/0.23570228 0
+DDE|DDE21|light certified/certified 2.3270003/2.3270003 0
+DDE|DDE22|light certified/certified 1.3500949/1.3500949 0
+DDE|DDE23|light certified/certified 1.8080604/1.8080605 0
+DDE|DDE24|light certified/certified 1.0439636/1.0439644 0
+DDE|DDE25|light certified/certified 3.6746237/3.6746237 1
+DDE|DDE25/H2_norm_dual|light certified/certified 3.6723929/3.6723929 1
+DDE|DDE26|light unknown/unknown 3.8308423/3.8308533 0
+DDE|DDE26/H2_norm_dual|light certified/certified 3.8306886/3.830674 0
+NDSDDF|NDS01|light converged/converged 2.2233267/2.2233267 0
+NDSDDF|NDS01/stability_dual|light certified/certified 1/1 0
+NDSDDF|NDS02|light certified/certified 1/1 0
+NDSDDF|NDS02/stability_dual|light certified/certified 1/1 0
+NDSDDF|NDS03|light certified/certified 1/1 0
+NDSDDF|NDS03/stability_dual|light certified/certified 1/1 0
+NDSDDF|NDS04|light hi_pass/hi_pass 0.69/0.69 0
+NDSDDF|NDS04/stability_dual|light certified/certified 1/1 0
+NDSDDF|NDS05|light converged/converged 1.5797836/1.5797836 0
+NDSDDF|NDS05/stability_dual|light certified/certified 1/1 0
+NDSDDF|NDS07|light converged/converged 0.44453613/0.44453613 0
+NDSDDF|NDS07/stability_dual|light certified/certified 1/1 0
+NDSDDF|NDS08|light converged/converged 0.027307861/0.027523096 0
+NDSDDF|NDS08/stability_dual|light certified/certified 1/1 0
+NDSDDF|NDS09|light converged/converged 0.5994668/0.5994668 0
+NDSDDF|NDS09/stability_dual|light unknown/certified 0/1 0
+NDSDDF|NDS10|light certified/certified 1/1 0
+NDSDDF|NDS10/stability_dual|light certified/certified 1/1 0
+NDSDDF|NDS11|light unknown/unknown 0/0 0
+NDSDDF|NDS11/stability_dual|light certified/unknown 1/0 0
+NDSDDF|NDS12|light converged/converged 0.44436562/0.44436562 0
+NDSDDF|NDS12/stability_dual|light certified/certified 1/1 0
+NDSDDF|DDF01|light certified/certified 1/1 0
+NDSDDF|DDF01/stability_dual|light certified/certified 1/1 0
+NDSDDF|DDF03|light error/inaccurate NaN/0.00054836065 0
+F3: 134 rows in both; status differs 5, result differs (>1e-6 rel) 22, shape differs 118
+F3: m differs on 118 rows (sum of m 157114 / 150999); nx, ndv or Ks differs on 7 rows
+F3: pass 1 only (1): PDE|50|light
+F3: pass 3 only (0): 
+F3: rows with a different status, result or shape (118):
+  PDE|2|light  certified/certified  1/1  [m=404 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=398 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|2.2|light  certified/certified  1/1  [m=404 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=398 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|2.3|light  certified/certified  1/1  [m=404 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=398 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|2.4|light  certified/certified  1/1  [m=404 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=398 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|3|light  unknown/certified  0/1  [m=909 nx=3492 ndv=3492 Ks=[42 30 21]] / [m=822 nx=3492 ndv=3492 Ks=[42 30 21]]
+  PDE|4|light  certified/certified  1/1  [m=404 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=370 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|4.2|light  certified/certified  1/1  [m=390 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=370 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|4.3|light  certified/certified  1/1  [m=404 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=370 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|4.4|light  certified/certified  1/1  [m=390 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=370 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|4.5|light  infeasible/infeasible  0/0  [m=492 nx=5472 ndv=5472 Ks=[56 42 20]] / [m=466 nx=5472 ndv=5472 Ks=[56 42 20]]
+  PDE|5|light  converged/converged  9.8599661/9.8599661  [m=136 nx=780 ndv=780 Ks=[21 14 10]] / [m=126 nx=780 ndv=780 Ks=[21 14 10]]
+  PDE|6|light  converged/converged  2.4674011/2.4674011  [m=138 nx=1368 ndv=1368 Ks=[28 21 10]] / [m=136 nx=1368 ndv=1368 Ks=[28 21 10]]
+  PDE|6/stability_dual|light  certified/certified  1/1  [m=117 nx=388 ndv=388 Ks=[14 10 7]] / [m=114 nx=388 ndv=388 Ks=[14 10 7]]
+  PDE|7|light  converged/converged  4.6508984/4.6508984  [m=155 nx=1368 ndv=1368 Ks=[28 21 10]] / [m=152 nx=1368 ndv=1368 Ks=[28 21 10]]
+  PDE|7/stability_dual|light  certified/certified  1/1  [m=151 nx=1368 ndv=1368 Ks=[28 21 10]] / [m=149 nx=1368 ndv=1368 Ks=[28 21 10]]
+  PDE|8|light  lo_fail/lo_fail  NaN/NaN  [m=758 nx=6548 ndv=6548 Ks=[60 46 24]] / [m=714 nx=6548 ndv=6548 Ks=[60 46 24]]
+  PDE|8/stability_dual|light  infeasible/infeasible  0/0  [m=768 nx=6548 ndv=6548 Ks=[60 46 24]] / [m=716 nx=6548 ndv=6548 Ks=[60 46 24]]
+  PDE|9|light  converged/converged  -0.00024414062/-0.00024414062  [m=136 nx=463 ndv=463 Ks=[15 11 8]] / [m=129 nx=463 ndv=463 Ks=[15 11 8]]
+  PDE|9/stability_dual|light  certified/certified  1/1  [m=130 nx=463 ndv=463 Ks=[15 11 8]] / [m=123 nx=463 ndv=463 Ks=[15 11 8]]
+  PDE|10|light  unknown/unknown  0/0  [m=165 nx=1499 ndv=1499 Ks=[29 22 11]] / [m=158 nx=1499 ndv=1499 Ks=[29 22 11]]
+  PDE|11|light  converged/converged  2.9296875/2.9296875  [m=544 nx=3120 ndv=3120 Ks=[42 28 20]] / [m=496 nx=3120 ndv=3120 Ks=[42 28 20]]
+  PDE|11/stability_dual|light  certified/certified  1/1  [m=512 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=458 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|12|light  hi_pass/hi_pass  37.5/37.5  [m=1115 nx=3492 ndv=3492 Ks=[42 30 21]] / [m=1071 nx=3492 ndv=3492 Ks=[42 30 21]]
+  PDE|13|light  certified/certified  1/1  [m=420 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=408 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|13/stability_dual|light  certified/certified  1/1  [m=420 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=408 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|13.2|light  certified/certified  1/1  [m=908 nx=3280 ndv=3280 Ks=[44 22 20]] / [m=895 nx=3280 ndv=3280 Ks=[44 22 20]]
+  PDE|13.2/stability_dual|light  certified/certified  1/1  [m=908 nx=3280 ndv=3280 Ks=[44 22 20]] / [m=895 nx=3280 ndv=3280 Ks=[44 22 20]]
+  PDE|14|light  certified/certified  1/1  [m=1476 nx=6208 ndv=6208 Ks=[56 40 28]] / [m=1432 nx=6208 ndv=6208 Ks=[56 40 28]]
+  PDE|15|light  infeasible/infeasible  0/0  [m=2003 nx=21888 ndv=21888 Ks=[112 84 40]] / [m=1915 nx=19188 ndv=19188 Ks=[104 78 40]]
+  PDE|16|light  infeasible/infeasible  0/0  [m=6512 nx=83904 ndv=83904 Ks=[220 176 40]] / [m=6441 nx=80337 ndv=80337 Ks=[215 172 40]]
+  PDE|17|light  certified/certified  1/1  [m=368 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=365 nx=1552 ndv=1552 Ks=[28 20 14]]
+  PDE|18|light  certified/certified  1/1  [m=436 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=429 nx=1417 ndv=1417 Ks=[26 20 13]]
+  PDE|19|light  certified/certified  1/1  [m=848 nx=3492 ndv=3492 Ks=[42 30 21]] / [m=836 nx=3287 ndv=3287 Ks=[40 30 20]]
+  PDE|21|light  certified/certified  0.84187746/0.84187746  [m=460 nx=3410 ndv=3409 Ks=[44 30 20 1]] / [m=455 nx=3410 ndv=3409 Ks=[44 30 20 1]]
+  PDE|21/Hinf_gain_dual|light  certified/certified  0.84188348/0.84188347  [m=462 nx=3410 ndv=3409 Ks=[44 30 20 1]] / [m=457 nx=3410 ndv=3409 Ks=[44 30 20 1]]
+  PDE|22|light  certified/certified  0.20847421/0.20847416  [m=140 nx=930 ndv=929 Ks=[23 16 10 1]] / [m=138 nx=930 ndv=929 Ks=[23 16 10 1]]
+  PDE|23|light  certified/certified  23.709405/23.718499  [m=170 nx=930 ndv=929 Ks=[23 16 10 1]] / [m=167 nx=930 ndv=929 Ks=[23 16 10 1]]
+  PDE|24|light  certified/certified  8.2137125/8.2138923  [m=156 nx=930 ndv=929 Ks=[23 16 10 1]] / [m=146 nx=930 ndv=929 Ks=[23 16 10 1]]
+  PDE|25|light  certified/certified  0.81029224/0.81029249  [m=582 nx=3410 ndv=3409 Ks=[44 30 20 1]] / [m=534 nx=3410 ndv=3409 Ks=[44 30 20 1]]
+  PDE|26|light  certified/certified  2.147294/2.1472865  [m=1414 nx=7894 ndv=7893 Ks=[67 46 30 1]] / [m=1274 nx=7894 ndv=7893 Ks=[67 46 30 1]]
+  PDE|29|light  certified/certified  1.000004/1.000004  [m=93 nx=1275 ndv=1274 Ks=[27 21 10 1]] / [m=92 nx=1275 ndv=1274 Ks=[27 21 10 1]]
+  PDE|30|light  unknown/unknown  0.64991793/0.64975777  [m=105 nx=1395 ndv=1394 Ks=[28 22 11 1]] / [m=104 nx=1395 ndv=1394 Ks=[28 22 11 1]]
+  PDE|31|light  certified/certified  0.00025719111/0.00025708184  [m=260 nx=4388 ndv=4387 Ks=[50 38 20 1]] / [m=259 nx=4388 ndv=4387 Ks=[50 38 20 1]]
+  PDE|32|light  unknown/unknown  0.55109001/0.55109092  [m=348 nx=7250 ndv=7249 Ks=[64 52 21 1]] / [m=346 nx=7250 ndv=7249 Ks=[64 52 21 1]]
+  PDE|33|light  certified/certified  1/1  [m=2106 nx=103744 ndv=103744 Ks=[144 144 144 144 144 8]] / [m=2041 nx=103744 ndv=103744 Ks=[144 144 144 144 144 8]]
+  PDE|34|light  certified/certified  1/1  [m=3075 nx=187984 ndv=187984 Ks=[324 144 144 144 144 8]] / [m=2968 nx=187984 ndv=187984 Ks=[324 144 144 144 144 8]]
+  PDE|35|light  certified/certified  1/1  [m=2139 nx=103744 ndv=103744 Ks=[144 144 144 144 144 8]] / [m=2052 nx=103744 ndv=103744 Ks=[144 144 144 144 144 8]]
+  PDE|37|light  certified/certified  1/1  [m=2138 nx=103744 ndv=103744 Ks=[144 144 144 144 144 8]] / [m=2043 nx=103744 ndv=103744 Ks=[144 144 144 144 144 8]]
+  PDE|39|light  certified/certified  1/1  [m=19143 nx=933696 ndv=933696 Ks=[432 432 432 432 432 24]] / [m=18411 nx=933696 ndv=933696 Ks=[432 432 432 432 432 24]]
+  PDE|40|light  unknown/unknown  0/0  [m=2154 nx=105206 ndv=105206 Ks=[145 145 145 145 145 9]] / [m=2079 nx=105206 ndv=105206 Ks=[145 145 145 145 145 9]]
+  PDE|41|light  unknown/unknown  0/0  [m=547 nx=5472 ndv=5472 Ks=[56 42 20]] / [m=515 nx=5472 ndv=5472 Ks=[56 42 20]]
+  PDE|42|light  certified/certified  1/1  [m=4508 nx=336926 ndv=336926 Ks=[433 193 193 193 193 21]] / [m=4397 nx=336926 ndv=336926 Ks=[433 193 193 193 193 21]]
+  PDE|43|light  infeasible/infeasible  0/0  [m=4872 nx=508228 ndv=508228 Ks=[504 252 252 252 252 14]] / [m=4757 nx=508228 ndv=508228 Ks=[504 252 252 252 252 14]]
+  PDE|44|light  lo_fail/lo_fail  NaN/NaN  [m=2231 nx=22412 ndv=22412 Ks=[113 85 41]] / [m=2135 nx=21023 ndv=21023 Ks=[109 82 41]]
+  PDE|45|light  unknown/unknown  2593.8227/3329.3592  [m=5134 nx=350747 ndv=350746 Ks=[442 197 197 197 197 8 1]] / [m=5018 nx=350747 ndv=350746 Ks=[442 197 197 197 197 8 1]]
+  PDE|46|light  unknown/unknown  962.67199/455.37038  [m=5222 nx=350747 ndv=350746 Ks=[442 197 197 197 197 8 1]] / [m=5036 nx=350747 ndv=350746 Ks=[442 197 197 197 197 8 1]]
+  PDE|47|light  unknown/unknown  22601.94/355.67186  [m=5062 nx=350747 ndv=350746 Ks=[442 197 197 197 197 8 1]] / [m=5001 nx=350747 ndv=350746 Ks=[442 197 197 197 197 8 1]]
+  PDE|48|light  unknown/unknown  0.005050555/0.0041613453  [m=5298 nx=195816 ndv=195815 Ks=[328 148 148 148 148 8 1]] / [m=3764 nx=195816 ndv=195815 Ks=[328 148 148 148 148 8 1]]
+  DDE|DDE01|light  converged/converged  2.0160938/2.0180859  [m=568 nx=5996 ndv=5996 Ks=[58 44 22]] / [m=557 nx=5996 ndv=5996 Ks=[58 44 22]]
+  DDE|DDE01/stability_dual|light  certified/certified  1/1  [m=556 nx=5996 ndv=5996 Ks=[58 44 22]] / [m=545 nx=5996 ndv=5996 Ks=[58 44 22]]
+  DDE|DDE02|light  converged/converged  2.0839844/2.0839844  [m=1624 nx=6800 ndv=6800 Ks=[58 42 30]] / [m=1581 nx=6800 ndv=6800 Ks=[58 42 30]]
+  DDE|DDE02/stability_dual|light  certified/certified  1/1  [m=1616 nx=6800 ndv=6800 Ks=[58 42 30]] / [m=1573 nx=6800 ndv=6800 Ks=[58 42 30]]
+  DDE|DDE03|light  converged/converged  1.7144948/1.7144948  [m=165 nx=1637 ndv=1637 Ks=[30 23 12]] / [m=164 nx=1637 ndv=1637 Ks=[30 23 12]]
+  DDE|DDE03/stability_dual|light  certified/certified  1/1  [m=132 nx=545 ndv=545 Ks=[16 12 9]] / [m=131 nx=545 ndv=545 Ks=[16 12 9]]
+  DDE|DDE04|light  converged/converged  6.1665521/6.1665521  [m=508 nx=3532 ndv=3532 Ks=[44 30 22]] / [m=499 nx=3532 ndv=3532 Ks=[44 30 22]]
+  DDE|DDE04/stability_dual|light  certified/certified  1/1  [m=444 nx=1852 ndv=1852 Ks=[30 22 16]] / [m=436 nx=1852 ndv=1852 Ks=[30 22 16]]
+  DDE|DDE06|light  converged/converged  3/3  [m=518 nx=5732 ndv=5732 Ks=[57 43 21]] / [m=508 nx=5732 ndv=5732 Ks=[57 43 21]]
+  DDE|DDE06/stability_dual|light  certified/certified  1/1  [m=402 nx=1700 ndv=1700 Ks=[29 21 15]] / [m=395 nx=1700 ndv=1700 Ks=[29 21 15]]
+  DDE|DDE07|light  converged/converged  1.3713711/1.3713711  [m=558 nx=5996 ndv=5996 Ks=[58 44 22]] / [m=547 nx=5996 ndv=5996 Ks=[58 44 22]]
+  DDE|DDE07/stability_dual|light  certified/certified  1/1  [m=438 nx=1852 ndv=1852 Ks=[30 22 16]] / [m=430 nx=1852 ndv=1852 Ks=[30 22 16]]
+  DDE|DDE08|light  converged/converged  1.4185425/1.4185425  [m=205 nx=1237 ndv=1237 Ks=[25 18 14]] / [m=199 nx=1237 ndv=1237 Ks=[25 18 14]]
+  DDE|DDE08/stability_dual|light  certified/certified  1/1  [m=186 nx=733 ndv=733 Ks=[18 14 11]] / [m=180 nx=733 ndv=733 Ks=[18 14 11]]
+  DDE|DDE10|light  certified/certified  0.23644309/0.23644309  [m=544 nx=3838 ndv=3837 Ks=[46 32 22 1]] / [m=535 nx=3838 ndv=3837 Ks=[46 32 22 1]]
+  DDE|DDE10/Hinf_gain_dual|light  certified/certified  0.23645073/0.23645055  [m=532 nx=3838 ndv=3837 Ks=[46 32 22 1]] / [m=523 nx=3838 ndv=3837 Ks=[46 32 22 1]]
+  DDE|DDE11|light  certified/certified  2.8772544/2.8772595  [m=184 nx=1247 ndv=1246 Ks=[26 19 12 1]] / [m=182 nx=1247 ndv=1246 Ks=[26 19 12 1]]
+  DDE|DDE11/Hinf_gain_dual|light  certified/certified  2.8779855/2.8779834  [m=181 nx=1247 ndv=1246 Ks=[26 19 12 1]] / [m=179 nx=1247 ndv=1246 Ks=[26 19 12 1]]
+  DDE|DDE12|light  certified/certified  4.9840028/4.9835374  [m=534 nx=3838 ndv=3837 Ks=[46 32 22 1]] / [m=525 nx=3838 ndv=3837 Ks=[46 32 22 1]]
+  DDE|DDE12/Hinf_gain_dual|light  certified/certified  4.9796898/4.9796696  [m=528 nx=3838 ndv=3837 Ks=[46 32 22 1]] / [m=519 nx=3838 ndv=3837 Ks=[46 32 22 1]]
+  DDE|DDE13|light  certified/certified  1.3649751/1.3657495  [m=302 nx=4984 ndv=4983 Ks=[53 41 22 1]] / [m=299 nx=4984 ndv=4983 Ks=[53 41 22 1]]
+  DDE|DDE14|light  certified/certified  0.39528506/0.39528506  [m=302 nx=4984 ndv=4983 Ks=[53 41 22 1]] / [m=299 nx=4984 ndv=4983 Ks=[53 41 22 1]]
+  DDE|DDE15|light  certified/certified  0.61043363/0.61043363  [m=326 nx=5174 ndv=5173 Ks=[54 42 22 1]] / [m=322 nx=5174 ndv=5173 Ks=[54 42 22 1]]
+  DDE|DDE16|light  certified/certified  0.96293737/0.96293737  [m=4589 nx=86189 ndv=86188 Ks=[222 168 93 1]] / [m=4576 nx=86189 ndv=86188 Ks=[222 168 93 1]]
+  DDE|DDE17|light  converged/converged  0.14833984/0.14833984  [m=3682 nx=38149 ndv=38149 Ks=[146 111 56]] / [m=3492 nx=38149 ndv=38149 Ks=[146 111 56]]
+  DDE|DDE17/Hinf_control|light  certified/certified  9.3513439/9.3513439  [m=1647 nx=29147 ndv=29146 Ks=[128 98 56 1]] / [m=1630 nx=29147 ndv=29146 Ks=[128 98 56 1]]
+  DDE|DDE18|light  certified/certified  0.3791484/0.37801951  [m=973 nx=13673 ndv=13672 Ks=[87 69 36 1]] / [m=937 nx=13673 ndv=13672 Ks=[87 69 36 1]]
+  DDE|DDE19|light  error/unknown  NaN/0.0014027311  [] / [m=124 nx=2243 ndv=2242 Ks=[35 29 13 1]]
+  DDE|DDE20|light  certified/certified  0.23570228/0.23570228  [m=124 nx=1627 ndv=1626 Ks=[30 24 12 1]] / [m=121 nx=1627 ndv=1626 Ks=[30 24 12 1]]
+  DDE|DDE21|light  certified/certified  2.3270003/2.3270003  [m=302 nx=4984 ndv=4983 Ks=[53 41 22 1]] / [m=299 nx=4984 ndv=4983 Ks=[53 41 22 1]]
+  DDE|DDE22|light  certified/certified  1.3500949/1.3500949  [m=994 nx=17910 ndv=17909 Ks=[101 77 42 1]] / [m=990 nx=17910 ndv=17909 Ks=[101 77 42 1]]
+  DDE|DDE23|light  certified/certified  1.8080604/1.8080605  [m=597 nx=10447 ndv=10446 Ks=[77 59 32 1]] / [m=592 nx=10447 ndv=10446 Ks=[77 59 32 1]]
+  DDE|DDE24|light  certified/certified  1.0439636/1.0439644  [m=994 nx=17910 ndv=17909 Ks=[101 77 42 1]] / [m=990 nx=17910 ndv=17909 Ks=[101 77 42 1]]
+  DDE|DDE26|light  unknown/unknown  3.8308423/3.8308533  [m=5952 nx=54997 ndv=54996 Ks=[130 130 88 88 63 1 1]] / [m=5751 nx=54997 ndv=54996 Ks=[130 130 88 88 63 1 1]]
+  DDE|DDE26/H2_norm_dual|light  certified/certified  3.8306886/3.830674  [m=5899 nx=54998 ndv=54996 Ks=[130 130 88 88 63 1 1 1]] / [m=5698 nx=54998 ndv=54996 Ks=[130 130 88 88 63 1 1 1]]
+  NDSDDF|NDS01|light  converged/converged  2.2233267/2.2233267  [m=468 nx=1852 ndv=1852 Ks=[30 22 16]] / [m=460 nx=1852 ndv=1852 Ks=[30 22 16]]
+  NDSDDF|NDS01/stability_dual|light  certified/certified  1/1  [m=460 nx=1852 ndv=1852 Ks=[30 22 16]] / [m=452 nx=1852 ndv=1852 Ks=[30 22 16]]
+  NDSDDF|NDS02|light  certified/certified  1/1  [m=468 nx=1852 ndv=1852 Ks=[30 22 16]] / [m=444 nx=1852 ndv=1852 Ks=[30 22 16]]
+  NDSDDF|NDS02/stability_dual|light  certified/certified  1/1  [m=460 nx=1852 ndv=1852 Ks=[30 22 16]] / [m=436 nx=1852 ndv=1852 Ks=[30 22 16]]
+  NDSDDF|NDS03|light  certified/certified  1/1  [m=1688 nx=6800 ndv=6800 Ks=[58 42 30]] / [m=1645 nx=6800 ndv=6800 Ks=[58 42 30]]
+  NDSDDF|NDS03/stability_dual|light  certified/certified  1/1  [m=1672 nx=6800 ndv=6800 Ks=[58 42 30]] / [m=1629 nx=6800 ndv=6800 Ks=[58 42 30]]
+  NDSDDF|NDS04|light  hi_pass/hi_pass  0.69/0.69  [m=1688 nx=6800 ndv=6800 Ks=[58 42 30]] / [m=1645 nx=6800 ndv=6800 Ks=[58 42 30]]
+  NDSDDF|NDS04/stability_dual|light  certified/certified  1/1  [m=1672 nx=6800 ndv=6800 Ks=[58 42 30]] / [m=1629 nx=6800 ndv=6800 Ks=[58 42 30]]
+  NDSDDF|NDS05|light  converged/converged  1.5797836/1.5797836  [m=2136 nx=22928 ndv=22928 Ks=[114 86 42]] / [m=2043 nx=22928 ndv=22928 Ks=[114 86 42]]
+  NDSDDF|NDS05/stability_dual|light  certified/certified  1/1  [m=1640 nx=6800 ndv=6800 Ks=[58 42 30]] / [m=1597 nx=6800 ndv=6800 Ks=[58 42 30]]
+  NDSDDF|NDS07|light  converged/converged  0.44453613/0.44453613  [m=534 nx=5732 ndv=5732 Ks=[57 43 21]] / [m=508 nx=5732 ndv=5732 Ks=[57 43 21]]
+  NDSDDF|NDS07/stability_dual|light  certified/certified  1/1  [m=410 nx=1700 ndv=1700 Ks=[29 21 15]] / [m=403 nx=1700 ndv=1700 Ks=[29 21 15]]
+  NDSDDF|NDS08|light  converged/converged  0.027307861/0.027523096  [m=1872 nx=7408 ndv=7408 Ks=[60 44 32]] / [m=1824 nx=7408 ndv=7408 Ks=[60 44 32]]
+  NDSDDF|NDS08/stability_dual|light  certified/certified  1/1  [m=1840 nx=7408 ndv=7408 Ks=[60 44 32]] / [m=1792 nx=7408 ndv=7408 Ks=[60 44 32]]
+  NDSDDF|NDS09|light  converged/converged  0.5994668/0.5994668  [m=3650 nx=37475 ndv=37475 Ks=[145 110 55]] / [m=3540 nx=37475 ndv=37475 Ks=[145 110 55]]
+  NDSDDF|NDS09/stability_dual|light  unknown/certified  0/1  [m=2875 nx=11575 ndv=11575 Ks=[75 55 40]] / [m=2795 nx=11575 ndv=11575 Ks=[75 55 40]]
+  NDSDDF|NDS10|light  certified/certified  1/1  [m=468 nx=1852 ndv=1852 Ks=[30 22 16]] / [m=460 nx=1852 ndv=1852 Ks=[30 22 16]]
+  NDSDDF|NDS10/stability_dual|light  certified/certified  1/1  [m=460 nx=1852 ndv=1852 Ks=[30 22 16]] / [m=452 nx=1852 ndv=1852 Ks=[30 22 16]]
+  NDSDDF|NDS11|light  unknown/unknown  0/0  [m=143 nx=545 ndv=545 Ks=[16 12 9]] / [m=133 nx=545 ndv=545 Ks=[16 12 9]]
+  NDSDDF|NDS11/stability_dual|light  certified/unknown  1/0  [m=136 nx=545 ndv=545 Ks=[16 12 9]] / [m=131 nx=545 ndv=545 Ks=[16 12 9]]
+  NDSDDF|NDS12|light  converged/converged  0.44436562/0.44436562  [m=422 nx=1700 ndv=1700 Ks=[29 21 15]] / [m=399 nx=1700 ndv=1700 Ks=[29 21 15]]
+  NDSDDF|NDS12/stability_dual|light  certified/certified  1/1  [m=410 nx=1700 ndv=1700 Ks=[29 21 15]] / [m=403 nx=1700 ndv=1700 Ks=[29 21 15]]
+  NDSDDF|DDF01|light  certified/certified  1/1  [m=376 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=362 nx=1552 ndv=1552 Ks=[28 20 14]]
+  NDSDDF|DDF01/stability_dual|light  certified/certified  1/1  [m=376 nx=1552 ndv=1552 Ks=[28 20 14]] / [m=362 nx=1552 ndv=1552 Ks=[28 20 14]]
+  NDSDDF|DDF03|light  error/inaccurate  NaN/0.00054836065  [] / [m=381 nx=7870 ndv=7869 Ks=[66 54 24 1]]
+
+== F4 (DEMO, status a/b, numeric variables, objects differing/total, scalars a/b differing)
+DEMO10_PBC ok/ok 0.00327 2/17 
+DEMO11_CdopvarControl ok/ok 4.52e-05 11/21 
+DEMO1_stability_and_simulation ok/ok 0 4/19 
+DEMO2_volterra_operator_norm ok/ok 0.000865 0/2 
+DEMO3_poincare_inequality ok/ok 0.00353 3/9 
+DEMO4_stability_parameter_bisection ok/ok 1 6/9 feasrat -1.000001526/-1.000000116; is_pinf 0/1
+DEMO5_Hinf_optimal_estimator ok/ok 1 12/26 
+DEMO6_Hinf_optimal_control ok/ok 2.07e-06 11/24 
+DEMO7_observer_based_control ok/ok 9.55e-08 13/25 
+DEMO8_H2norm ok/ok 0 3/17 
+DEMO9_L2_gain_analysis ok/ok 6.6e-09 5/15 
+F4: 11 DEMOs, largest relative difference of numeric variables 1, object variables differing 70 of 184
