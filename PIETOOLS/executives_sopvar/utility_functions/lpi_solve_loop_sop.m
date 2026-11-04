@@ -22,7 +22,9 @@ function [prog,aux,hist] = lpi_solve_loop_sop(build,st,label)
 % - aux:    'struct', the aux of the last pass with the fields
 %             classify  'struct' of the solver exit: status (char,
 %                       'optimal', 'inaccurate', 'infeasible', 'unbounded',
-%                       'unknown', or 'unsolved' without a solver report),
+%                       'unknown', 'residual' for a solver that decides no
+%                       feasibility (cuADMM), or 'unsolved' without a
+%                       solver report),
 %                       obj (double, the objective value, NaN without one),
 %                       divergent (logical, true for status 'unknown' with
 %                       obj NaN or |obj| > divtol), divtol (double, 1e3),

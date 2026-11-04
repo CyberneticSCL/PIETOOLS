@@ -19,7 +19,9 @@ function info = exec_info_sop(prog,aux,st,label)
 % OUTPUT
 % - info:   'struct' with fields
 %             status      char: 'optimal', 'inaccurate', 'infeasible',
-%                         'unbounded' or 'unknown';
+%                         'unbounded', 'unknown', or 'residual' for a
+%                         solver that decides no feasibility (cuADMM; judge
+%                         it by hist.relres and hist.eta);
 %             certified   logical, true when status is 'optimal' or
 %                         'inaccurate';
 %             dw, hist    the last raise and the loop history;
@@ -65,6 +67,8 @@ function info = exec_info_sop(prog,aux,st,label)
 %                utility_functions/ with the consolidation of the
 %                executives; header to the header protocol, the licence
 %                block added, step comments in the body; code unchanged.
+% MMP, 10/30/2026: Header only: status 'residual' (LPI_CLASSIFY_SOP, a
+%                cuADMM exit) listed; code unchanged.
 
 % Status of the last pass and the SDP shape
 cl = aux.classify;

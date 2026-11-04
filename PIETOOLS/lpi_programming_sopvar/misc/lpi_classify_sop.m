@@ -1,19 +1,22 @@
 function cl = lpi_classify_sop(prog,obj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CL = LPI_CLASSIFY_SOP(PROG,OBJ) names the solver exit of the solved LPI
-% program PROG from the flags of prog.solinfo.info: status 'infeasible' if
-% pinf = 1, else 'unbounded' if dinf = 1, else 'inaccurate' if numerr = 1,
-% else 'unknown' if numerr is nonzero, else 'optimal'; 'unsolved' when
-% PROG carries no solver report. It passes on the residual of the SDP
-% equality system at the returned point, reads back the value of the
-% objective OBJ, and marks an 'unknown' exit as divergent unless OBJ is
-% given and its value is at most 1e3 in modulus.
+% program PROG: status 'residual' when the solver decides no feasibility
+% (cuADMM), whose exit is judged by its residual alone; otherwise, from the
+% flags of prog.solinfo.info, 'infeasible' if pinf = 1, else 'unbounded' if
+% dinf = 1, else 'inaccurate' if numerr = 1, else 'unknown' if numerr is
+% nonzero, else 'optimal'; 'unsolved' when PROG carries no solver report.
+% It passes on the residual of the SDP equality system at the returned
+% point, reads back the value of the objective OBJ, and marks an 'unknown'
+% exit as divergent unless OBJ is given and its value is at most 1e3 in
+% modulus.
 %
 % INPUT
 % - prog:   'struct', an LPI program solved by lpisolve or sossolve; read
-%           is the 'struct' prog.solinfo.info, with the optional fields
+%           are the 'struct' prog.solinfo.info, with the optional fields
 %           numerr, pinf, dinf (double, default 0), feasratio, cpusec,
-%           relres and eta (double, default NaN);
+%           relres and eta (double, default NaN), and the solver name
+%           prog.solinfo.solverOptions.solver (char, optional);
 % - obj:    (optional) 'dpvar' or 'polynomial' object, the objective of
 %           PROG (a scalar function of its decision variables), or 'char',
 %           the name of a decision variable (default []: no objective).
@@ -21,7 +24,7 @@ function cl = lpi_classify_sop(prog,obj)
 % OUTPUT
 % - cl:     'struct' with fields
 %             status     char, 'optimal', 'inaccurate', 'infeasible',
-%                        'unbounded', 'unknown' or 'unsolved';
+%                        'unbounded', 'unknown', 'residual' or 'unsolved';
 %             numerr, pinf, dinf, feasratio, cpusec, relres, eta
 %                        double, the fields of prog.solinfo.info (the
 %                        defaults above when absent; NaN for 'unsolved');
@@ -75,7 +78,9 @@ function cl = lpi_classify_sop(prog,obj)
 %                residual of the SDP equality system at the returned point
 %                (relres, eta) is passed on from the solver report, so an
 %                exit is judged by its residual when the solver sets no
-%                infeasibility flags.
+%                infeasibility flags. A cuADMM exit is 'residual': cuADMM
+%                decides no feasibility, so it is never certified and, not
+%                being 'unknown' or 'infeasible', starts no degree raise.
 
 % Every field unset; 'unsolved' without a solver report
 %   cl = struct('status','','numerr',NaN,'pinf',NaN,'dinf',NaN,'feasratio',NaN,'obj',NaN, ...
@@ -103,7 +108,14 @@ if nargin>=2 && ~isempty(obj)
     end
 end
 % Status, by precedence pinf, dinf, numerr 2, numerr 1
-if cl.pinf==1,          cl.status = 'infeasible';
+% A solver that decides no feasibility (cuADMM) is judged by its residual
+slv = '';                                                                   % MMP, 10/30/2026
+if isfield(prog.solinfo,'solverOptions') && isfield(prog.solinfo.solverOptions,'solver') % MMP, 10/30/2026
+    slv = lower(char(prog.solinfo.solverOptions.solver));                   % MMP, 10/30/2026
+end                                                                         % MMP, 10/30/2026
+% if cl.pinf==1,          cl.status = 'infeasible';                         % MMP, 10/30/2026 (was)
+if strcmp(slv,'cuadmm'),    cl.status = 'residual';                         % MMP, 10/30/2026
+elseif cl.pinf==1,      cl.status = 'infeasible';                           % MMP, 10/30/2026
 elseif cl.dinf==1,      cl.status = 'unbounded';
 elseif cl.numerr==2,    cl.status = 'unknown';
 elseif cl.numerr==1,    cl.status = 'inaccurate';
