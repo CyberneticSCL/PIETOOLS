@@ -126,6 +126,13 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %                the stock GETOBSERVER_2D still computes L on opvar2d
 %                copies of P and Z (the 2-D gain is an open decision); its
 %                result is converted to a container. Header outputs updated.
+% MMP, 11/04/2026: 2-D gain L = P^{-1} Z by GETOBSERVER_SOP with the
+%                container inverse of a separable P (COPVAR/INV, Woodbury;
+%                maintainer: "Build a container 2-D inverse"); for a
+%                non-separable P the least-squares gain of its method 'qp',
+%                as the stock fell back from the separable inverse to
+%                MLDIVIDE. Replaces GETOBSERVER_2D on opvar2d copies (entry
+%                above): the executive no longer uses the opvar classes.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -180,13 +187,24 @@ try
     Psol = getsol_lpivar_sop(prog,aux.Pm);  Zsol = getsol_lpivar_sop(prog,aux.Zm);
 %   P = tl.toop(Psol);      Z = tl.toop(Zsol);                              % MMP, 11/04/2026 (was)
 %   if nv==1,   [Gc,L,iinv] = getObserver_sop(Psol,Zsol);                   % MMP, 11/04/2026 (was)
-    % The containers as solved; L the container gain; in 2-D the stock      % MMP, 11/04/2026
-    % GETOBSERVER_2D on opvar2d copies of P and Z, L converted back         % MMP, 11/04/2026
+%   % The containers as solved; L the container gain; in 2-D the stock      % MMP, 11/04/2026 (was)
+%   % GETOBSERVER_2D on opvar2d copies of P and Z, L converted back         % MMP, 11/04/2026 (was)
+    % The containers as solved; L the container gain                        % MMP, 11/04/2026
     P = Psol;      Z = Zsol;                                                % MMP, 11/04/2026
     if nv==1,   [Gc,~,iinv] = getObserver_sop(Psol,Zsol);   L = Gc;         % MMP, 11/04/2026
 %   else,       L = getObserver_2D(P,Z);                                    % MMP, 10/29/2026 (was)
 %   elseif nv==2,   L = getObserver_2D(P,Z);                                % MMP, 11/04/2026 (was); MMP, 10/29/2026
-    elseif nv==2,   L = op2copvar_sop(getObserver_2D(tl.toop(Psol),tl.toop(Zsol))); % MMP, 11/04/2026
+%   elseif nv==2,   L = op2copvar_sop(getObserver_2D(tl.toop(Psol),tl.toop(Zsol))); % MMP, 11/04/2026 (was)
+    elseif nv==2                                                            % MMP, 11/04/2026
+        % 2-D: the container inverse of a separable P (COPVAR/INV); for a   % MMP, 11/04/2026
+        % non-separable P the least-squares gain of the method 'qp'         % MMP, 11/04/2026
+        try                                                                 % MMP, 11/04/2026
+            [Gc,~,iinv] = getObserver_sop(Psol,Zsol);                       % MMP, 11/04/2026
+        catch ME2                                                           % MMP, 11/04/2026
+            if st.sop.verbose,  fprintf('  [%s] gain extraction: %s; least squares (qp).\n',label,ME2.message);  end % MMP, 11/04/2026
+            [Gc,~,iinv] = getObserver_sop(Psol,Zsol,struct('method','qp')); % MMP, 11/04/2026
+        end                                                                 % MMP, 11/04/2026
+        L = Gc;                                                             % MMP, 11/04/2026
     elseif st.sop.verbose                   % no N-D gain extraction        % MMP, 10/29/2026
         fprintf('  [%s] gain extraction: none in %d variables; P and Z returned.\n',label,nv); % MMP, 10/29/2026
     end

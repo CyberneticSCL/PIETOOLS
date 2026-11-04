@@ -13,10 +13,10 @@ function [K,Kop,info] = getController_sop(P,Z,opts)
 % - P:      'copvar' object (or 'opvar', converted by OPVAR2COPVAR), the
 %           solved Lyapunov operator, with the same spaces and dimensions in
 %           and out. P may be an N-D copvar, in any number of spatial
-%           variables and with any spaces; but the inverse (method 'inv')
-%           exists for one spatial variable only, R^k x L2^m[s] with at most
-%           one R^k and one L2 space. If P or Z depends on more than one
-%           spatial variable, the method 'qp' is required;
+%           variables and with any spaces; the inverse (method 'inv') exists
+%           in one spatial variable for R^k x L2^m[s] with at most one R^k
+%           and one L2 space, and in several for a separable P (COPVAR/INV);
+%           otherwise the method 'qp' is required;
 % - Z:      'copvar' object (or 'opvar'), the solved free operator, from the
 %           spaces of P to R^nu, R^k x L2^m[s] -> R^nu in 1-D; for the method
 %           'qp' also N-D (the spatial variables of P and Z);
@@ -26,9 +26,9 @@ function [K,Kop,info] = getController_sop(P,Z,opts)
 %           fit degree, 4), degmax (largest fit degree, 16), deg (one fixed
 %           fit degree, in place of deg0, degmax, tol), tol_rank (relative
 %           SVD cut of the kernel ranks, 1e-13). And the method:
-%             method     'inv' (default), the gain K = Z*P^{-1} above, for
-%                        one spatial variable only (an error for an N-D P or
-%                        Z), or 'qp', the gain K of bounded degree minimizing
+%             method     'inv' (default), the gain K = Z*P^{-1} above (in
+%                        several variables an error for a non-separable P),
+%                        or 'qp', the gain K of bounded degree minimizing
 %                        ||Z - K*P||^2 by QP_COPVAR, with no inverse of P
 %                        (P must be self-adjoint), for any number of spatial
 %                        variables and required when there are several. The options of the 'qp'
@@ -98,6 +98,10 @@ function [K,Kop,info] = getController_sop(P,Z,opts)
 %                operator class. The unit vectors of the method 'qp' are
 %                built by MAT2COPVAR_SOP instead of MAT2OPVAR and
 %                OPVAR2COPVAR. Supersedes the Kop lines of AT, 10/28/2026.
+% MMP, 11/04/2026: The method 'inv' in several variables: COPVAR/INV now
+%                inverts a separable P (Woodbury), so the refusal of an N-D
+%                P or Z is removed; a non-separable P raises the error of
+%                COPVAR/INV. Header: the methods.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Default options; 'opvar' operators to containers
@@ -137,11 +141,12 @@ if strcmpi(method,'qp')                                                     % AT
     end                                                                     % AT, 10/28/2026
     K = Xt';                                % K = (sum_j X_j e_j')'          % AT, 10/28/2026
 else                                                                        % AT, 10/28/2026
-    % The inverse is one-dimensional                                        % AT, 10/28/2026
-    if numel(P.vars)>1 || numel(Z.vars)>1                                   % AT, 10/28/2026
-        error('getController_sop:ndInverse',['P and Z depend on %d spatial variables, and the inverse '... % AT, 10/28/2026
-            '(method ''inv'') is one-dimensional: use opts.method = ''qp''.'],max(numel(P.vars),numel(Z.vars)));% AT, 10/28/2026
-    end                                                                     % AT, 10/28/2026
+%   % The inverse is one-dimensional                                        % MMP, 11/04/2026 (was); AT, 10/28/2026
+%   if numel(P.vars)>1 || numel(Z.vars)>1                                   % MMP, 11/04/2026 (was); AT, 10/28/2026
+%       error('getController_sop:ndInverse',['P and Z depend on %d spatial variables, and the inverse '... % MMP, 11/04/2026 (was); AT, 10/28/2026
+%           '(method ''inv'') is one-dimensional: use opts.method = ''qp''.'],max(numel(P.vars),numel(Z.vars)));% MMP, 11/04/2026 (was); AT, 10/28/2026
+%   end                                                                     % MMP, 11/04/2026 (was); AT, 10/28/2026
+    % In several variables COPVAR/INV inverts a separable P                 % MMP, 11/04/2026
     % K = Z*P^{-1}
     [Pinv,info] = inv(P,opts);
     K = Z*Pinv;

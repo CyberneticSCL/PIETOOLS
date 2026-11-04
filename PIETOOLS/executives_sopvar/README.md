@@ -109,9 +109,10 @@ value, decision count, rows and Gram sizes identical.
 6. **Outputs.** The stock outputs in the stock order, then `info`: status ('optimal', 'inaccurate',
    'infeasible', 'unbounded', 'unknown'), certified, the value, the witness fields, the degrees and
    terms of the slack, the SDP shape (`lpi_shape_sop`: decision count, cone sizes, rows), the loop
-   history and the dual kernel. The synthesis executives return K or L as an opvar (opvar2d in 2-D)
-   through `getController_sop` / `getObserver_sop` in 1-D (since 10/09/2026; `utility_functions/`,
-   below) and the stock `getObserver_2D` in 2-D.
+   history and the dual kernel. The synthesis executives return K or L as a `copvar` (since
+   11/04/2026) through `getController_sop` / `getObserver_sop` (`utility_functions/`, below); the
+   2-D H-infinity estimator through the separable container inverse of `@copvar/inv` (11/04/2026),
+   with the least-squares method 'qp' for a non-separable P.
 7. **Margin.** `settings.sop.margin = eps` certifies `-Dop + eps*e_D >= 0` with `e_D` the lift's own
    energy (the regularizer of the proof program under which polynomial certificates exist at a fixed
    lift). Default 0.
@@ -183,8 +184,10 @@ and `getObserver` give 8.1e-5 and 7.4e-3 on the same solved P, Z.
 | `[K,info] = getController_direct_sop(P,Z[,opts])` | the gains `K1`, `K2(s)` of `u = Z P^{-1} x` WITHOUT forming `P^{-1}` (the analogue of Cor. 11 of arXiv 1806.08071): grid values of the Gohberg-Krein data and their cumulative integrals (`gk_grid`), Simpson for the Schur complement; `K.apply` evaluates `u` by quadrature, `K.op` is the one polynomial fit (of `K2`) for `closedLoopPIE`, `K.fit.relrms` its residual. Agrees with the inverse route to 1e-9 (Test_copvar_inv). The QT formulation is discussed in `opvar/inverse_dependency_map_2026_10_09.md`, Sec. 8.2. |
 
 `PIETOOLS_Hinf_control_sop`, `_Hinf_estimator_sop`, `_H2_control_sop` and `_H2_estimator_sop` call
-these in 1-D and return the `opvar` gain; `info.G` is the container gain and `info.inv` the inverse diagnostics. 2-D keeps
-`getObserver_2D`. The defects of the stock routines are documented in
+these and return the container gain (also `info.G`), `info.inv` the inverse diagnostics. In 2-D the
+estimator inverts a separable P by `@copvar/inv` (Woodbury: block-diagonal multiplier plus full
+integrals, the factors fitted by tensor Chebyshev least squares) and falls back to the method 'qp'
+otherwise; the controller executives refuse two or more variables. The defects of the stock routines are documented in
 `opvar/inverse_dependency_map_2026_10_09.md`.
 
 ### Executive translators (Tier 2, MMP, 10/06/2026)
