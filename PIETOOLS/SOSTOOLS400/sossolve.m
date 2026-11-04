@@ -9,7 +9,8 @@ function [sos,info] = sossolve(sos,options)
 % and/or the solver-specific options respectively by fields
 %
 % SOLVER_OPT.solver (name of the solver). This can be 'sedumi', 'sdpnal',
-% 'sdpnalplus', 'csdp', 'cdcs', 'sdpt3', 'sdpa'.
+% 'sdpnalplus', 'csdp', 'cdcs', 'sdpt3', 'sdpa', 'cuadmm' (an external GPU
+% executable, see CUADMM_SEDUMI; never chosen by default).
 % SOLVER_OPT.params (a structure containing solver-specific parameters)
 %
 % The default values for solvers is 'SeDuMi' with parameter ALG = 2, which
@@ -109,6 +110,12 @@ function [sos,info] = sossolve(sos,options)
 %                   when b is sparse. Rows below 1e-12 of the largest (in
 %                   coefficients and right-hand side) are rounding residue
 %                   and are left out of eta.
+% 10/30/2026 - MMP - Added cuADMM as an optional solver, 'cuadmm', through
+%                   CUADMM_SEDUMI: a first-order (ADMM) solver on a CUDA GPU,
+%                   whose memory grows with nnz(A) where an interior-point
+%                   solver stores the m x m Schur complement. It decides no
+%                   infeasibility (pinf = dinf = 0); its point is judged by
+%                   relres and eta. Never chosen as the default solver.
 
 % Record whether the caller supplied solver parameters.
 user_params = (nargin>=2) && isfield(options,'params');                     % MMP, 08/23/2026
@@ -131,11 +138,16 @@ elseif ((nargin==2) && ~isnumeric('options') )%2 arguments given,
 end
 
 % Check if solver is appropriately specified.
-solver_list = {'mosek'; 'sedumi'; 'sdpt3'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpa'; 'cdcs'};     % 05/18/2025 - DJ
-path_list = {'mosekopt'; 'sedumi'; 'sqlp'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpam'; 'cdcs'};
+% solver_list = {'mosek'; 'sedumi'; 'sdpt3'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpa'; 'cdcs'};     % 05/18/2025 - DJ
+% path_list = {'mosekopt'; 'sedumi'; 'sqlp'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpam'; 'cdcs'}; % MMP, 10/30/2026 (was)
+% cuADMM last: its interface file is always present, the executable it runs
+% is checked only at the solve, so it is never the default solver
+solver_list = {'mosek'; 'sedumi'; 'sdpt3'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpa'; 'cdcs'; 'cuadmm'}; % MMP, 10/30/2026
+path_list = {'mosekopt'; 'sedumi'; 'sqlp'; 'csdp'; 'sdpnal'; 'sdpnalplus'; 'sdpam'; 'cdcs'; 'cuadmm_sedumi'}; % MMP, 10/30/2026
 if strcmp(options.solver,'none')
     % If no solver is specified, default to first one found on path.
-    for k=1:length(solver_list)
+%   for k=1:length(solver_list)                                             % MMP, 10/30/2026 (was)
+    for k=1:length(solver_list)-1                                           % MMP, 10/30/2026
         if exist(path_list{k},'file')
             options.solver = solver_list{k};
             break
@@ -148,8 +160,10 @@ else
     % Otherwise, check that the desired solver is indeed on Matlab path.
     [is_solver,solver_num] = ismember(options.solver,solver_list);
     if ~is_solver
+%       error(['The desired SDP solver ''',options.solver,''' is not supported by SOSTOOLS. Please pass one of: ',...
+%               '''sedumi'', ''mosek'', ''sdpt3'', ''csdp'', ''sdpnal'', ''sdpnalplus'', ''sdpa'', ''cdcs''.']) % MMP, 10/30/2026 (was)
         error(['The desired SDP solver ''',options.solver,''' is not supported by SOSTOOLS. Please pass one of: ',...
-                '''sedumi'', ''mosek'', ''sdpt3'', ''csdp'', ''sdpnal'', ''sdpnalplus'', ''sdpa'', ''cdcs''.'])
+                '''sedumi'', ''mosek'', ''sdpt3'', ''csdp'', ''sdpnal'', ''sdpnalplus'', ''sdpa'', ''cdcs'', ''cuadmm''.']) % MMP, 10/30/2026
     elseif ~exist(path_list{solver_num},'file')
         error(['The desired SDP solver ''',solver_list{solver_num},''' could not be found. Please make sure the function ''',path_list{solver_num},''' is on the Matlab path.'])
     end
@@ -636,6 +650,16 @@ elseif strcmp(lower(options.solver),'sdpa')
             info.dinf = 1;
         end
     end;
+elseif strcmp(lower(options.solver),'cuadmm')                               % MMP, 10/30/2026
+    % cuADMM (first-order ADMM on a CUDA GPU, an executable run on text
+    % files) in action. It decides neither primal nor dual infeasibility:
+    % pinf = dinf = 0, numerr = 1 at its iteration limit, and the point is
+    % judged by info.relres and info.eta below. The SeDuMi defaults set above
+    % for a call without params (tol 1e-9) are not passed on.
+    disp(['Size: ' num2str(size(At))]);                                     % MMP, 10/30/2026
+    disp([' ']);                                                            % MMP, 10/30/2026
+    cpars = struct();   if user_params,     cpars = options.params;     end % MMP, 10/30/2026
+    [x,y,info] = cuadmm_sedumi(At,b,c,K,cpars);                             % MMP, 10/30/2026
 end;
 
 % DJ - Avoid multiplication with empty array if infeasible
