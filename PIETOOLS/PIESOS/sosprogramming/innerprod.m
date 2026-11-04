@@ -21,6 +21,14 @@ function V = innerprod(u1,P,u2)
 % NOTES
 % - If u1 is not a 'polyopvar', V is computed as (u1'*P)*u2. If u2 is not
 %   a 'polyopvar', V is computed as (P*u2)'*u1.
+% - If u1 and u2 map to different output function spaces, e.g. R and
+%   L2[s], or L2[s1] and L2[s2], and P is a scalar, they are lifted to
+%   the same space using 'lift_output' (see 'common_outputs'): block i of
+%   u1 is constant along the output variables that block i of u2 depends
+%   on, and vice versa, so that block i is integrated over the output
+%   variables of both, e.g. <x,u> = x*int_a^b u(s) ds for x in R and u in
+%   L2[s]. For non-scalar P, this kind of lifting is already performed
+%   inherently.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - innerprod
@@ -47,6 +55,7 @@ function V = innerprod(u1,P,u2)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/04/2026: Lift u1 and u2 to a common output space.
 
 % Check that the inputs are appropriate
 is_symmetric = false;
@@ -87,6 +96,11 @@ end
 n_blks1 = numel(u1.dims.out);
 n_blks2 = numel(u2.dims.out);
 if isscalar(P) && ~isa(P,'cell')
+    % Lift u1 and u2 to a common output space, only if their dimensions match:
+    % common_outputs would also repeat a scalar to the size of a vector
+    if isequal(u1.dims.out,u2.dims.out)                                     % DJ, 11/04/2026
+        [u1,u2] = common_outputs(u1,u2);
+    end
     if ~isequal(u1.dims.out,u2.dims.out)
         error("Dimensions of vectors for which to compute inner product must match.")
     elseif ~isequal(u1.vars.out,u2.vars.out) || ~isequal(u1.dom.out,u2.dom.out) || ~isequal(u1.depmat.out,u2.depmat.out)
