@@ -21,6 +21,11 @@ function Test_copvar_inv(quick)
 % Each check prints its line; the function errors at the first failure.
 %
 % Initial coding MMP, 10/09/2026
+% MMP, 11/04/2026: (d) The executives return containers (11/04/2026): K, L,
+%                P and Z are converted by COPVAR2OPVAR for the stock oracle
+%                (getController, getObserver, opvar algebra), and the gains
+%                are checked to be 'copvar'. Before, the stock getController
+%                errored on the container P ('isvalid').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin<1,    quick = true;   end
 warning('off','sopvar:noncanonicalMultiplier');
@@ -112,14 +117,17 @@ if ~quick
     % the gains are judged by their defining equations, K P = Z and P L = Z
     % (residual on the grid relative to max |Z|), the stock gains alongside
     [~,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,st);
+    % containers returned: opvar copies for the stock oracle                % MMP, 11/04/2026
+    Kc = K;     K = copvar2opvar(Kc);   P = copvar2opvar(P);    Z = copvar2opvar(Z); % MMP, 11/04/2026
     Kst = getController(P,Z);
     zmax = opres(Z,sg);
     rK = opres(K*P - Z,sg)/zmax;     rKst = opres(Kst*P - Z,sg)/zmax;
     dK = pdiff(K.Q1,Kst.Q1,s,s_dum,sg)/max(1e-300,pmax(Kst.Q1,s,s_dum,sg));
     W = pie_witness_sop(closedLoopPIE(PIE,K),'gain',struct('N_cheb',24));
-    n = check(n,isa(info.G,'copvar') && isa(K,'opvar') && rK<1e-6 && W.gain<=gam*(1+1e-6), ...
+%   n = check(n,isa(info.G,'copvar') && isa(K,'opvar') && rK<1e-6 && W.gain<=gam*(1+1e-6), ... % MMP, 11/04/2026 (was)
+    n = check(n,isa(info.G,'copvar') && isa(Kc,'copvar') && rK<1e-6 && W.gain<=gam*(1+1e-6), ...
         sprintf('Hinf_control_sop: gamma %.7g, closed-loop numerical gain %.7g; |K P - Z|/|Z| %.1e (stock getController %.1e), K vs stock rel %.1e, inverse d %d relrms %.1e', ...
-        gam,W.gain,rK,rKst,dK,info.inv.d,max(info.inv.relrms)));
+        gam,W.gain,rK,rKst,dK,info.inv.d,max(info.inv.relrms)));            % MMP, 11/04/2026
     % the direct construction on the solved P, Z against the inverse route
     Kd = getController_direct_sop(P,Z);
     q = zeros(size(Kd.Q1));
@@ -131,13 +139,16 @@ if ~quick
         sprintf('   direct gains: K2 vs inverse route %.1e (rel), |K P - Z|/|Z| %.1e (fit d %d relrms %.1e), closed-loop numerical gain %.7g', ...
         dQ,rKd,Kd.fit.d,Kd.fit.relrms,Wd.gain));
     [~,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,st);
+    % containers returned: opvar copies for the stock oracle                % MMP, 11/04/2026
+    Lc = L;     L = copvar2opvar(Lc);   P = copvar2opvar(P);    Z = copvar2opvar(Z); % MMP, 11/04/2026
     Lst = getObserver(P,Z);
     zmax = opres(Z,sg);
     rL = opres(P*L - Z,sg)/zmax;     rLst = opres(P*Lst - Z,sg)/zmax;
     dL = max([pdiff(L.Q2,Lst.Q2,s,s_dum,sg), max(abs(double(L.P)-double(Lst.P)))])/max(1e-300,max([pmax(Lst.Q2,s,s_dum,sg), max(abs(double(Lst.P)))]));
-    n = check(n,isa(info.G,'copvar') && isa(L,'opvar') && rL<1e-6, ...
+%   n = check(n,isa(info.G,'copvar') && isa(L,'opvar') && rL<1e-6, ...      % MMP, 11/04/2026 (was)
+    n = check(n,isa(info.G,'copvar') && isa(Lc,'copvar') && rL<1e-6, ...
         sprintf('Hinf_estimator_sop: gamma %.7g; |P L - Z|/|Z| %.1e (stock getObserver %.1e), L vs stock rel %.1e, inverse d %d relrms %.1e, cond R0 %.1e', ...
-        gam,rL,rLst,dL,info.inv.d,max(info.inv.relrms),info.inv.condR0));
+        gam,rL,rLst,dL,info.inv.d,max(info.inv.relrms),info.inv.condR0));   % MMP, 11/04/2026
 end
 fprintf('Test_copvar_inv: %d checks passed\n',n);
 end
