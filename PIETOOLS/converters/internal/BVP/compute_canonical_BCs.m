@@ -102,6 +102,10 @@ function [G,H,p,J,vars] = compute_canonical_BCs(n,E,F,dom,vars,opts)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/02/2026: Initial coding;
+% MMP, 11/04/2026: For a constant F, the variables s and s_dum are declared
+%   as s1 and s1_dum directly instead of read off an empty 'opvar', whose
+%   defaults they are: the conversion of a pde_struct PDE no longer needs
+%   the opvar class (removal of the opvar classes);
 
 
 % % Process the options
@@ -157,8 +161,10 @@ end
 % Check the F matrix
 if isa(F,'double') || isa(F,'polynomial') && isdouble(F)
     F = double(F);
-    tmp = opvar();
-    s = tmp.var1;    s_dum = tmp.var2;
+%     tmp = opvar();                                                        % MMP, 11/04/2026 (was)
+%     s = tmp.var1;    s_dum = tmp.var2;                                    % MMP, 11/04/2026 (was)
+    % the defaults of an empty opvar, without the class                     % MMP, 11/04/2026
+    s = pvar('s1');    s_dum = pvar('s1_dum');                              % MMP, 11/04/2026
 elseif isa(F,'polynomial')
     if ~isscalar(F.varname)
         error("Input 'F' can depend on at most one variable.")

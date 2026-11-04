@@ -50,6 +50,21 @@ function PIE_out=convert_PIETOOLS_PDE_batch(PDE)
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
 % DJ, 12/16/2024: Output PIE as 'pie_struct' object;
 % DJ, 02/21/2025: Allow spatial variables to be declared in PDE structure;
+% MMP, 11/04/2026: The PIE operators are 'copvar' containers built by
+%   PI4_COPVAR_SOP instead of 'opvar' objects, so the batch format converts
+%   without the opvar class (removal of the opvar classes; the batch format
+%   is kept, maintainer 11/04/2026). Each operator was a slice of
+%   Ptop = Apop*Phfop or of Tbigop. A row slice of a product is the row
+%   slice of the left factor times the right factor, and a column slice
+%   the left factor times the column slice of the right factor, so each is
+%   now one product of a row slice of Apop and a column slice of Phfop
+%   (or one column slice of Tbigop), each built from the rows or columns
+%   of the matrices above; op_slice and the opvar products are gone.
+%   PI4_COPVAR_SOP builds the blocks OP2COPVAR_SOP built from the opvar
+%   slices in INITIALIZE. The PIE is initialized here, as the pde_struct
+%   converter does. The dummy variable is VAR1 with '_dum' appended, the
+%   name PI4_COPVAR_SOP and INITIALIZE use. This supersedes the entry of
+%   DJ, 09/29/2021 (the zero filling of empty opvar parameters).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following script performs error checking operations and sets
 % undefined operators to empty opbjects.
@@ -187,15 +202,18 @@ Q2b=[B21 B22 E Exx];
  R0b=[A0 A1 A2];
  R1b=Rxx1; R2b=Rxx2;
 
-%%% At this point, we can construct the primal dynamics opvar
-opvar Apop;
-Apop.dim = [nz+ny+nx,nw+nu+nx+nrL1;np,nrL2]; Apop.var1 = var1; Apop.var2 = var2; Apop.I = X;
-Apop.P=Pb;
-Apop.Q1=Q1b;
-Apop.Q2=Q2b;
-Apop.R.R0=R0b;
-Apop.R.R1=R1b;
-Apop.R.R2=R2b;
+% % % BEGIN MMP, 11/04/2026: the opvar Apop is commented out; its row slices
+% % % are built as 'copvar' containers below, after Phf (header entry).
+% %%% At this point, we can construct the primal dynamics opvar
+% opvar Apop;
+% Apop.dim = [nz+ny+nx,nw+nu+nx+nrL1;np,nrL2]; Apop.var1 = var1; Apop.var2 = var2; Apop.I = X;
+% Apop.P=Pb;
+% Apop.Q1=Q1b;
+% Apop.Q2=Q2b;
+% Apop.R.R0=R0b;
+% Apop.R.R1=R1b;
+% Apop.R.R2=R2b;
+% % % END MMP, 11/04/2026
 
 
 %%%%%%%%%%%%%%%%%%%% Converting Lambda1 X  %%%%%%%%%%%%%%%%%%%%%%%
@@ -265,18 +283,22 @@ R0hf=Ib1*[I0 z01 z02;z10 z11 z12; z20 z21 z22]+Ib2*[z00 z01 z02;z10 I1 z12; z20 
 R1hf=Ib1*R1f+diff(Ib2*R1f+diff(Ib3*R1f,var1),var1);
 R2hf=Ib1*R2f+diff(Ib2*R2f+diff(Ib3*R2f,var1),var1);
 
-%%% We now construct the Phfop
-opvar Phfop;
-Phfop.dim = [nw+nu+nx+nrL1, nw+nu+nx;nrL2, np]; Phfop.var1 = var1; Phfop.var2 = var2; Phfop.I = X;
-Phfop.P=Phf;
-Phfop.Q1=Q1hf;
-Phfop.Q2=Q2hf;
-Phfop.R.R0=R0hf;
-Phfop.R.R1=R1hf;
-Phfop.R.R2=R2hf;
-
-%%% We now construct the Ptop
-Ptop=Apop*Phfop;
+% % % BEGIN MMP, 11/04/2026: the opvars Phfop, Ptop and Tbigop, the op_slice
+% % % partition and the zero filling of DJ, 09/29/2021 are commented out down
+% % % to the END marker; the operators are built as 'copvar' containers after
+% % % it (header entry).
+% %%% We now construct the Phfop
+% opvar Phfop;
+% Phfop.dim = [nw+nu+nx+nrL1, nw+nu+nx;nrL2, np]; Phfop.var1 = var1; Phfop.var2 = var2; Phfop.I = X;
+% Phfop.P=Phf;
+% Phfop.Q1=Q1hf;
+% Phfop.Q2=Q2hf;
+% Phfop.R.R0=R0hf;
+% Phfop.R.R1=R1hf;
+% Phfop.R.R2=R2hf;
+%
+% %%% We now construct the Ptop
+% Ptop=Apop*Phfop;
 
 % %%% We now construct the Tbigop
 % opvar Tbigop
@@ -288,50 +310,120 @@ Ptop=Apop*Phfop;
 % Tbigop.R.R0=R0f;
 % Tbigop.R.R1=R1f;
 % Tbigop.R.R2=R2f;
-%%% We now construct the Tbigop (smaller construction)
+% %%% We now construct the Tbigop (smaller construction)
+%
+% opvar Tbigop;
+% Tbigop.dim = [nx, nw+nu+nx;np, np]; Tbigop.var1 = var1; Tbigop.var2 = var2; Tbigop.I = X;
+% Tbigop.P=[ zeros(nx,nw+nu) eye(nx)];
+% Tbigop.Q1=zeros(nx,np);
+% Tbigop.Q2=Q2f;
+% Tbigop.R.R0=R0f;
+% Tbigop.R.R1=R1f;
+% Tbigop.R.R2=R2f;
+%
+%
+% %%% Now we have to partition Ptop to get the desired pieces
+% D11op=op_slice(Ptop,1:nz,1:nw);
+% D21op=op_slice(Ptop,(nz+1):(nz+ny),1:nw);
+% B1op=op_slice(Ptop,(nz+ny+1):(nz+ny+nx+np),1:nw);
+% D12op=op_slice(Ptop,1:nz,(nw+1):(nw+nu));
+% D22op=op_slice(Ptop,(nz+1):(nz+ny),(nw+1):(nw+nu));
+% B2op=op_slice(Ptop,(nz+ny+1):(nz+ny+nx+np),(nw+1):(nw+nu));
+% C1op=op_slice(Ptop,1:nz,(nw+nu+1):(nw+nu+nx+np));
+% C2op=op_slice(Ptop,(nz+1):(nz+ny),(nw+nu+1):(nw+nu+nx+np));
+% Aop=op_slice(Ptop,(nz+ny+1):(nz+ny+nx+np),(nw+nu+1):(nw+nu+nx+np));
+% TB1op=op_slice(Tbigop,1:(nx+np),1:nw);
+% TB2op=op_slice(Tbigop,1:(nx+np),(nw+1):(nw+nu));
+% Top=op_slice(Tbigop,1:(nx+np),(nw+nu+1):(nw+nu+nx+np));
+%
+% %nx1 = nx; nx2 = np;
+%
+% % DJ 09/29/2021: fill in empty parameters with appropriate zeros
+% opnames = {'Top','TB1op','TB2op','Aop','B1op','B2op','C1op','D11op','D12op','C2op','D21op','D22op'};
+% for j=1:length(opnames)
+%     op = opnames{j};
+%     eval([op,'.dim=',op,'.dim;'])
+% end
+% % % END MMP, 11/04/2026 (code commented out)
 
-opvar Tbigop;
-Tbigop.dim = [nx, nw+nu+nx;np, np]; Tbigop.var1 = var1; Tbigop.var2 = var2; Tbigop.I = X;
-Tbigop.P=[ zeros(nx,nw+nu) eye(nx)];
-Tbigop.Q1=zeros(nx,np);
-Tbigop.Q2=Q2f;
-Tbigop.R.R0=R0f;
-Tbigop.R.R1=R1f;
-Tbigop.R.R2=R2f;
-
-
-%%% Now we have to partition Ptop to get the desired pieces
-D11op=op_slice(Ptop,1:nz,1:nw);
-D21op=op_slice(Ptop,(nz+1):(nz+ny),1:nw);
-B1op=op_slice(Ptop,(nz+ny+1):(nz+ny+nx+np),1:nw);
-D12op=op_slice(Ptop,1:nz,(nw+1):(nw+nu));
-D22op=op_slice(Ptop,(nz+1):(nz+ny),(nw+1):(nw+nu));
-B2op=op_slice(Ptop,(nz+ny+1):(nz+ny+nx+np),(nw+1):(nw+nu));
-C1op=op_slice(Ptop,1:nz,(nw+nu+1):(nw+nu+nx+np));
-C2op=op_slice(Ptop,(nz+1):(nz+ny),(nw+nu+1):(nw+nu+nx+np));
-Aop=op_slice(Ptop,(nz+ny+1):(nz+ny+nx+np),(nw+nu+1):(nw+nu+nx+np));
-TB1op=op_slice(Tbigop,1:(nx+np),1:nw);
-TB2op=op_slice(Tbigop,1:(nx+np),(nw+1):(nw+nu));
-Top=op_slice(Tbigop,1:(nx+np),(nw+nu+1):(nw+nu+nx+np));
-
-%nx1 = nx; nx2 = np;
-
-% DJ 09/29/2021: fill in empty parameters with appropriate zeros
-opnames = {'Top','TB1op','TB2op','Aop','B1op','B2op','C1op','D11op','D12op','C2op','D21op','D22op'};
-for j=1:length(opnames)
-    op = opnames{j};
-    eval([op,'.dim=',op,'.dim;'])
+% % % BEGIN MMP, 11/04/2026: the operators as 'copvar' containers (header
+% % % entry); everything from here to the END marker is new.
+% The dummy variable as PI4_COPVAR_SOP names it: VAR1 with '_dum'. A
+% different dummy (PDE.vars) is renamed in the kernels that hold it.
+vdum = pvar([var1.varname{1},'_dum']);
+if ~strcmp(var2.varname{1},vdum.varname{1})
+    if isa(R1f,'polynomial'),   R1f = subs(R1f,var2,vdum);      end
+    if isa(R2f,'polynomial'),   R2f = subs(R2f,var2,vdum);      end
+    if isa(R1hf,'polynomial'),  R1hf = subs(R1hf,var2,vdum);    end
+    if isa(R2hf,'polynomial'),  R2hf = subs(R2hf,var2,vdum);    end
+    var2 = vdum;
 end
+% Index sets: rows of Apop (z, y, and the ODE rows x of [x; PDE]), columns
+% of Phfop and Tbigop (w, u, and the ODE columns x of [x; PDE]); ncR is the
+% size of the finite-dimensional space between Apop and Phfop
+rz = 1:nz;              ry = nz+(1:ny);         rx = nz+ny+(1:nx);
+cw = 1:nw;              cu = nw+(1:nu);         cx = nw+nu+(1:nx);
+ncR = nw+nu+nx+nrL1;
+pi4 = @(P,Q1,Q2,R,dims) pi4_copvar_sop(P,Q1,Q2,R,dims,var1,var2,X);
+% Row slices of Apop: z and y have no PDE rows
+Az = pi4(Pb(rz,:),Q1b(rz,:),[],{[],[],[]},[nz ncR; 0 nrL2]);
+Ay = pi4(Pb(ry,:),Q1b(ry,:),[],{[],[],[]},[ny ncR; 0 nrL2]);
+Ax = pi4(Pb(rx,:),Q1b(rx,:),Q2b,{R0b,R1b,R2b},[nx ncR; np nrL2]);
+% Column slices of Phfop: w and u have no PDE columns
+Pw = pi4(Phf(:,cw),[],Q2hf(:,cw),{[],[],[]},[ncR nw; nrL2 0]);
+Pu = pi4(Phf(:,cu),[],Q2hf(:,cu),{[],[],[]},[ncR nu; nrL2 0]);
+Px = pi4(Phf(:,cx),Q1hf,Q2hf(:,cx),{R0hf,R1hf,R2hf},[ncR nx; nrL2 np]);
+% The slices of Ptop = Apop*Phfop, each one product of two slices
+D11op = mult_or_zero(Az,Pw,[nz nw; 0 0],pi4);
+D12op = mult_or_zero(Az,Pu,[nz nu; 0 0],pi4);
+C1op  = mult_or_zero(Az,Px,[nz nx; 0 np],pi4);
+D21op = mult_or_zero(Ay,Pw,[ny nw; 0 0],pi4);
+D22op = mult_or_zero(Ay,Pu,[ny nu; 0 0],pi4);
+C2op  = mult_or_zero(Ay,Px,[ny nx; 0 np],pi4);
+B1op  = mult_or_zero(Ax,Pw,[nx nw; np 0],pi4);
+B2op  = mult_or_zero(Ax,Pu,[nx nu; np 0],pi4);
+Aop   = mult_or_zero(Ax,Px,[nx nx; np np],pi4);
+% The column slices of Tbigop (P = [0 0 I], Q1 = 0, Q2 = Q2f, R = R0f-R2f)
+TB1op = pi4(zeros(nx,nw),[],Q2f(:,cw),{[],[],[]},[nx nw; np 0]);
+TB2op = pi4(zeros(nx,nu),[],Q2f(:,cu),{[],[],[]},[nx nu; np 0]);
+Top   = pi4(eye(nx),zeros(nx,np),Q2f(:,cx),{R0f,R1f,R2f},[nx nx; np np]);
+% % % END MMP, 11/04/2026
 
 %remove temporary opvars
-%clear Apop Phfop Tbigop; 
+%clear Apop Phfop Tbigop;
 pie_struct PIE_out;                                                         % DJ, 12/16/2024
-PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];
+% PIE_out.dom = X;   PIE_out.vars = [Top.var1,Top.var2];                    % MMP, 11/04/2026 (was)
+PIE_out.dom = X;   PIE_out.vars = [var1,var2];  % Top has no var1, var2     % MMP, 11/04/2026
 PIE_out.T = Top;   PIE_out.Tw = TB1op;  PIE_out.Tu = TB2op;
 PIE_out.A = Aop;   PIE_out.B1 = B1op;   PIE_out.B2 = B2op;
 PIE_out.C1 = C1op; PIE_out.D11 = D11op; PIE_out.D12 = D12op;
 PIE_out.C2 = C2op; PIE_out.D21 = D21op; PIE_out.D22 = D22op;
+% Spaces and maps from the copvar operators, as the pde_struct converter    % MMP, 11/04/2026
+PIE_out = initialize(PIE_out);                                              % MMP, 11/04/2026
 end
+
+
+% % % BEGIN MMP, 11/04/2026: new local function MULT_OR_ZERO (header entry)
+function Pop = mult_or_zero(L,R,dims,pi4)
+% POP = MULT_OR_ZERO(L,R,DIMS,PI4) returns the product L*R of two 'copvar'
+% containers, or the zero operator of dimensions DIMS when the product has
+% no output or no input space (an empty channel, such as D11 with no
+% regulated output), which a product of containers does not represent.
+% INPUT  L, R:  'copvar' objects, the input spaces of L the output spaces
+%               of R;
+%        dims:  2 x 2 'double', [q0 p0; q1 p1], the finite-dimensional and
+%               L2 dimensions of the output (column 1) and input (column 2)
+%               of the product;
+%        pi4:   function handle, PI4(P,Q1,Q2,R,DIMS) = PI4_COPVAR_SOP with
+%               the variables and domain of the PIE.
+% OUTPUT Pop:   'copvar' object.
+if sum(dims(:,1))==0 || sum(dims(:,2))==0
+    Pop = pi4(zeros(dims(1,1),dims(1,2)),[],[],{[],[],[]},dims);
+else
+    Pop = L*R;
+end
+end
+% % % END MMP, 11/04/2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % System Definition:
 % \dot [xo(t) ]  =A xo(t)+ E0 [x_2(a) + int(Ea(s) [x_1(t,s)] ds,a,b) + int(Eb(s) [x_2s(t,s)] ds,a,b) + int(Ec(s)[x_2ss(t,s)] ds,a,b) + [B11] w(t) + [B12] u(t)
