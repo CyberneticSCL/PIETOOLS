@@ -47,6 +47,7 @@ of spatial variables (vars nv x 2, dom nv x 2).
 | `PIETOOLS_well_posedness_sop(PIE,settings)` | | well_posedness |
 | `PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)` | 'Q' (default), 'Qd', 'P', 'Pd'; in 2-D 'Qd' is posed as 'Pd' | Hinf_gain, _coercive, _dual, _dual_coercive, 2D/Hinf_gain_2D, _2D_non_coercive, _dual_2D |
 | `PIETOOLS_Hinf_control_sop(PIE,settings)` | | Hinf_control |
+| `PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)` | Theorem 5 of J. Chun's notes (no PI inverse, TK recovered); D22 = 0; returns the dynamic output feedback controller PIE (TK, AK, BK, CK, DK); `closedLoopPIE(PIE,Kc,'dynamic')` builds the closed loop; since 10/31/2026 | none (new) |
 | `PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)` | | Hinf_estimator, 2D/Hinf_estimator_2D |
 | `PIETOOLS_H2_norm_sop(PIE,settings,form)` | 'c' (default), 'o', 'cco', 'oco' | H2_norm_c, _o, _c_coercive, _o_coercive, 2D/H2_norm_2D_c_non_coercive, _o_non_coercive, _2D_c, _2D_o |
 | `PIETOOLS_H2_control_sop(PIE,settings)` | | H2_control |

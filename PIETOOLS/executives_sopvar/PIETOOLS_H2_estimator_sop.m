@@ -10,8 +10,10 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 % gam,
 %
 %   P >= eppos I,  Z and W free,  gam >= trace(W),
-%   [-gam I, C1; C1', (T'*P)*A + (A'*P)*T + (T'*Z)*C2 + (C2'*Z')*T] <= 0,
-%   [W, -(B1'*P + D21'*Z'); -(B1'*P + D21'*Z')', P] >= 0,
+%   [-gam I, C1; 
+%   C1', (T'*P)*A + (A'*P)*T + (T'*Z)*C2 + (C2'*Z')*T] <= 0,
+%   [W, -(B1'*P + D21'*Z');
+%   -(B1'*P + D21'*Z')', P] >= 0,
 %
 % with L = P^{-1}*Z. While the solver returns UNKNOWN or INFEASIBLE, the
 % program is rebuilt with the degree of the slacks raised by one, up to
