@@ -51,9 +51,8 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - P:        'opvar' (1-D) or 'opvar2d' (2-D) object, the solved positive
-%             operator; the 'copvar' object when the conversion fails, []
-%             when the solver returned no solution;
+% - P:        'copvar' object, the solved positive operator ([] when the
+%             solver returned no solution);
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
 %                          'unbounded' or 'unknown';
@@ -139,6 +138,9 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                an opvar PIE, so every operator reaching them was a
 %                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
 %                the removal of the opvar classes; programs unchanged.
+% MMP, 11/04/2026: P returned as a 'copvar' object, not converted to an
+%                opvar / opvar2d (maintainer decision: the executives
+%                return containers). Header output updated.
 
 % Default settings and form, as the stock executive of the PIE's dimension
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -208,11 +210,12 @@ Tm = PIE.T;     Am = PIE.A;                                                 % MM
 [prog,aux] = lpi_solve_loop_sop(@assemble,st,label);
 cl = aux.classify;
 
-% The solved storage, converted back to an opvar / opvar2d
+% The solved storage, as a 'copvar'                                         % MMP, 11/04/2026
 Psol = [];  P = [];
 try
     Psol = getsol_lpivar_sop(prog,aux.Pm);
-    P = tl.toop(Psol);
+%   P = tl.toop(Psol);                                                      % MMP, 11/04/2026 (was)
+    P = Psol;                                                               % MMP, 11/04/2026
 catch
     P = Psol;
 end

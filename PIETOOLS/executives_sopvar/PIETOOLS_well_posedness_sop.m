@@ -34,7 +34,7 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - P, R:     'opvar' objects, the solved P and R ([] when the solver
+% - P, R:     'copvar' objects, the solved P and R ([] when the solver
 %             returned no solution);
 % - omega:    double, the omega of the LPI;
 % - info:     'struct' with fields
@@ -106,6 +106,9 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %                an opvar PIE, so every operator reaching them was a
 %                'copvar', which OP2COPVAR_SOP returned unchanged. Step of
 %                the removal of the opvar classes; programs unchanged.
+% MMP, 11/04/2026: P and R returned as 'copvar' objects, not converted to
+%                opvar (maintainer decision: the executives return
+%                containers). Header outputs updated.
 
 % Default settings, as the stock executive; check the PIE
 if nargin<2 || isempty(settings)
@@ -144,11 +147,13 @@ Tm = PIE.T;     Am = PIE.A;                                                 % MM
 [prog,aux] = lpi_solve_loop_sop(@assemble,st,label);
 cl = aux.classify;
 
-% The solved P and R, converted back to opvars
+% The solved P and R, as 'copvar' objects                                   % MMP, 11/04/2026
 P = [];     R = [];
 try
-    P = tl.toop(getsol_lpivar_sop(prog,aux.Pm));
-    R = tl.toop(getsol_lpivar_sop(prog,aux.Rm));
+%   P = tl.toop(getsol_lpivar_sop(prog,aux.Pm));                            % MMP, 11/04/2026 (was)
+%   R = tl.toop(getsol_lpivar_sop(prog,aux.Rm));                            % MMP, 11/04/2026 (was)
+    P = getsol_lpivar_sop(prog,aux.Pm);                                     % MMP, 11/04/2026
+    R = getsol_lpivar_sop(prog,aux.Rm);                                     % MMP, 11/04/2026
 catch ME
     if st.sop.verbose,  fprintf('  [%s] solution extraction: %s\n',label,ME.message);  end
 end

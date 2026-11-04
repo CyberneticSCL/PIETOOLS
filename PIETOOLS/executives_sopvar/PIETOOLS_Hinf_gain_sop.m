@@ -46,9 +46,8 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - R:        'opvar' (1-D) or 'opvar2d' (2-D) object, the solved positive
-%             operator R; the 'copvar' object when the conversion fails, []
-%             when the solver returned no solution;
+% - R:        'copvar' object, the solved positive operator R ([] when the
+%             solver returned no solution);
 % - gam:      double, the certified bound; with GAIN, GAIN when certified
 %             and Inf otherwise; NaN when the solver returned no value;
 % - info:     'struct' with fields
@@ -133,6 +132,9 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 %                LPI_INEQ_SOP of lpi_programming_sopvar in place of
 %                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
 %                impose it by SOSINEQ, so the program is the same.
+% MMP, 11/04/2026: R returned as a 'copvar' object, not converted to an
+%                opvar / opvar2d (maintainer decision: the executives
+%                return containers). Header output updated.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -214,11 +216,12 @@ elseif certified,   gam = gfix;
 else,               gam = Inf;
 end
 
-% The solved R, converted back to an opvar / opvar2d
+% The solved R, as a 'copvar'                                               % MMP, 11/04/2026
 Rsol = [];  R = [];
 try
     Rsol = getsol_lpivar_sop(prog,aux.Rm);
-    R = tl.toop(Rsol);
+%   R = tl.toop(Rsol);                                                      % MMP, 11/04/2026 (was)
+    R = Rsol;                                                               % MMP, 11/04/2026
 catch
     R = Rsol;
 end

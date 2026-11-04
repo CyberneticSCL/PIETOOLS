@@ -45,11 +45,11 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - W:        'opvar' (1-D) or 'opvar2d' (2-D) object, the solved W ([] when
+% - W:        'copvar' object, the solved W ([] when
 %             the solver returned no solution);
 % - gam:      double, the certified bound on the H2 norm; NaN when the
 %             solver returned no value;
-% - R, Q:     'opvar' / 'opvar2d' objects, the solved R and Q in the forms
+% - R, Q:     'copvar' objects, the solved R and Q in the forms
 %             'c' and 'o'; [] in 'cco' and 'oco';
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
@@ -124,6 +124,9 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                LPI_INEQ_SOP of lpi_programming_sopvar in place of
 %                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
 %                impose it by SOSINEQ, so the program is the same.
+% MMP, 11/04/2026: W, R and Q returned as 'copvar' objects, not converted
+%                to opvar / opvar2d (maintainer decision: the executives
+%                return containers). Header outputs updated.
 
 % Default settings and form; check the PIE
 if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
@@ -165,13 +168,16 @@ gam_lpi = cl.obj;
 gam = gam_lpi;
 if any(strcmp(form,{'cco','oco'})),     gam = sqrt(gam_lpi);    end
 
-% The solved W (and R, Q), converted back to opvar / opvar2d
+% The solved W (and R, Q), as 'copvar' objects                              % MMP, 11/04/2026
 W = [];     R = [];     Q = [];
 try
-    W = tl.toop(getsol_lpivar_sop(prog,aux.Wm));
+%   W = tl.toop(getsol_lpivar_sop(prog,aux.Wm));                            % MMP, 11/04/2026 (was)
+    W = getsol_lpivar_sop(prog,aux.Wm);                                     % MMP, 11/04/2026
     if qform
-        R = tl.toop(getsol_lpivar_sop(prog,aux.Rm));
-        Q = tl.toop(getsol_lpivar_sop(prog,aux.Qm));
+%       R = tl.toop(getsol_lpivar_sop(prog,aux.Rm));                        % MMP, 11/04/2026 (was)
+%       Q = tl.toop(getsol_lpivar_sop(prog,aux.Qm));                        % MMP, 11/04/2026 (was)
+        R = getsol_lpivar_sop(prog,aux.Rm);                                 % MMP, 11/04/2026
+        Q = getsol_lpivar_sop(prog,aux.Qm);                                 % MMP, 11/04/2026
     end
 catch ME
     if st.sop.verbose,  fprintf('  [%s] output extraction: %s\n',label,ME.message);  end

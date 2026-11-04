@@ -41,13 +41,13 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - L:        'opvar' (1-D) or 'opvar2d' (2-D) object, the observer gain from
+% - L:        'copvar' object, the observer gain from
 %             y to the state ([] when the solver returned no solution, and
 %             in 3 or more variables, where no gain extraction exists: the
 %             LPI is solved and P, Z are returned);
 % - gam:      double, the certified bound; with GAIN, GAIN when certified and
 %             Inf otherwise; NaN when the solver returned no value;
-% - P, Z:     'opvar' (1-D) or 'opvar2d' (2-D) objects, the solved P and Z;
+% - P, Z:     'copvar' objects, the solved P and Z;
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
 %                          'unbounded' or 'unknown';
@@ -119,6 +119,13 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %                LPI_INEQ_SOP of lpi_programming_sopvar in place of
 %                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
 %                impose it by SOSINEQ, so the program is the same.
+% MMP, 11/04/2026: P, Z and the gain L returned as 'copvar' objects, not
+%                converted to opvar / opvar2d (maintainer decision: the
+%                executives return containers). 1-D: L is the container of
+%                GETOBSERVER_SOP, which no longer builds an opvar copy. 2-D:
+%                the stock GETOBSERVER_2D still computes L on opvar2d
+%                copies of P and Z (the 2-D gain is an open decision); its
+%                result is converted to a container. Header outputs updated.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -171,10 +178,15 @@ end
 L = [];     P = [];     Z = [];     Psol = [];  Zsol = [];  Gc = [];    iinv = [];
 try
     Psol = getsol_lpivar_sop(prog,aux.Pm);  Zsol = getsol_lpivar_sop(prog,aux.Zm);
-    P = tl.toop(Psol);      Z = tl.toop(Zsol);
-    if nv==1,   [Gc,L,iinv] = getObserver_sop(Psol,Zsol);
+%   P = tl.toop(Psol);      Z = tl.toop(Zsol);                              % MMP, 11/04/2026 (was)
+%   if nv==1,   [Gc,L,iinv] = getObserver_sop(Psol,Zsol);                   % MMP, 11/04/2026 (was)
+    % The containers as solved; L the container gain; in 2-D the stock      % MMP, 11/04/2026
+    % GETOBSERVER_2D on opvar2d copies of P and Z, L converted back         % MMP, 11/04/2026
+    P = Psol;      Z = Zsol;                                                % MMP, 11/04/2026
+    if nv==1,   [Gc,~,iinv] = getObserver_sop(Psol,Zsol);   L = Gc;         % MMP, 11/04/2026
 %   else,       L = getObserver_2D(P,Z);                                    % MMP, 10/29/2026 (was)
-    elseif nv==2,   L = getObserver_2D(P,Z);                                % MMP, 10/29/2026
+%   elseif nv==2,   L = getObserver_2D(P,Z);                                % MMP, 11/04/2026 (was); MMP, 10/29/2026
+    elseif nv==2,   L = op2copvar_sop(getObserver_2D(tl.toop(Psol),tl.toop(Zsol))); % MMP, 11/04/2026
     elseif st.sop.verbose                   % no N-D gain extraction        % MMP, 10/29/2026
         fprintf('  [%s] gain extraction: none in %d variables; P and Z returned.\n',label,nv); % MMP, 10/29/2026
     end

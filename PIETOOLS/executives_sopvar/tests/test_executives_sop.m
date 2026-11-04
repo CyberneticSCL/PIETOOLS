@@ -56,6 +56,8 @@ function test_executives_sop(quick)
 %                PIETOOLS_H2_norm_sop with a form, in place of the removed
 %                per-form files); header to the header protocol, the
 %                licence block added.
+% MMP, 11/04/2026: The gains and solved operators are checked as 'copvar'
+%                objects: the executives return containers.
 
 % Settings, solver and messages; counter of passed checks
 if nargin<1,    quick = true;   end
@@ -101,8 +103,9 @@ for nm = {'Hinf_control','Hinf_estimator','H2_control','H2_estimator'}
     [out{:}] = feval(['PIETOOLS_' nm{1} '_sop'],PIE,st);
     g = out{3};     info = out{end};
     ref = g_num;    if contains(nm{1},'H2'),    ref = h_num;    end
-    n = check(n,info.certified && isa(out{2},'opvar') && g<=ref*(1+1e-3), ...
-              sprintf('%s_sop: %s, gamma %.7g (open loop %.7g), gain class %s',nm{1},info.status,g,ref,class(out{2})));
+%   n = check(n,info.certified && isa(out{2},'opvar') && g<=ref*(1+1e-3), ... % MMP, 11/04/2026 (was)
+    n = check(n,info.certified && isa(out{2},'copvar') && g<=ref*(1+1e-3), ...
+              sprintf('%s_sop: %s, gamma %.7g (open loop %.7g), gain class %s',nm{1},info.status,g,ref,class(out{2}))); % MMP, 11/04/2026
 end
 % ---- (b) the stock slack reproduces the stock
 st2 = st;   st2.sop.slack = 'stock';
@@ -120,12 +123,14 @@ sts = st;   sts.eppos = 1e-4;   sts.eppos2 = 1e-6;    sts.epneg = 0;
 %     [~,P,info] = feval(['PIETOOLS_' nm{1} '_sop'],PIEs,sts);              % MMP, 10/28/2026 (was)
 for fm = {'P','Pd','Q','Qd'}                                                % MMP, 10/28/2026
     [~,P,info] = PIETOOLS_stability_sop(PIEs,sts,fm{1});                    % MMP, 10/28/2026
-    n = check(n,info.certified && isa(P,'opvar') && abs(info.maxre+pi^2/2)<=1e-3, ...
-              sprintf('stability_sop %s: %s, max Re eig(A,T) %.5g',fm{1},info.status,info.maxre)); % MMP, 10/28/2026
+%   n = check(n,info.certified && isa(P,'opvar') && abs(info.maxre+pi^2/2)<=1e-3, ... % MMP, 11/04/2026 (was)
+    n = check(n,info.certified && isa(P,'copvar') && abs(info.maxre+pi^2/2)<=1e-3, ...
+              sprintf('stability_sop %s: %s, max Re eig(A,T) %.5g',fm{1},info.status,info.maxre)); % MMP, 10/28/2026; MMP, 11/04/2026
 end
 [~,P,R,om,info] = PIETOOLS_well_posedness_sop(PIEs,sts);
-n = check(n,info.certified && isa(P,'opvar') && isa(R,'opvar') && om==0, ...
-          sprintf('well_posedness_sop: %s, omega %g',info.status,om));
+% n = check(n,info.certified && isa(P,'opvar') && isa(R,'opvar') && om==0, ... % MMP, 11/04/2026 (was)
+n = check(n,info.certified && isa(P,'copvar') && isa(R,'copvar') && om==0, ...
+          sprintf('well_posedness_sop: %s, omega %g',info.status,om));      % MMP, 11/04/2026
 % ---- (d) 2-D stability
 if ~quick
     pvar s1 s2
@@ -136,7 +141,8 @@ if ~quick
     st3 = st;   st3.sop.max_raise = 0;
 %   [~,P,info] = PIETOOLS_stability_2D_sop(PIE3,st3);                       % MMP, 10/28/2026 (was)
     [~,P,info] = PIETOOLS_stability_sop(PIE3,st3,'P');                      % MMP, 10/28/2026
-    n = check(n,info.certified && isa(P,'opvar2d'),sprintf('stability_sop P (2-D): %s, nx %d',info.status,info.shape.nx)); % MMP, 10/28/2026
+%   n = check(n,info.certified && isa(P,'opvar2d'),sprintf('stability_sop P (2-D): %s, nx %d',info.status,info.shape.nx)); % MMP, 11/04/2026 (was); MMP, 10/28/2026
+    n = check(n,info.certified && isa(P,'copvar'),sprintf('stability_sop P (2-D): %s, nx %d',info.status,info.shape.nx)); % MMP, 11/04/2026
 end
 fprintf('test_executives_sop: %d checks passed\n',n);
 end

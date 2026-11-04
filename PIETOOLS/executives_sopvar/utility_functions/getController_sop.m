@@ -41,9 +41,8 @@ function [K,Kop,info] = getController_sop(P,Z,opts)
 %
 % OUTPUT
 % - K:      'copvar' object, R^k x L2^m[s] -> R^nu;
-% - Kop:    'opvar' object, K converted by COPVAR2OPVAR ([] when fewer than
-%           two outputs are requested, or, with a warning, when K depends on
-%           more than one spatial variable: there is no 'opvar' form then);
+% - Kop:    [], kept so that [K,~,INFO] calls keep the position of INFO; the
+%           gain is K;
 % - info:   for the method 'inv', 'struct' of the inverse, with fields N, h
 %           (grid step), r1, r2 (kernel ranks), n (= r1 + r2), rcondU22,
 %           condR0 (largest condition number of R0 on the grid), d (fit
@@ -94,6 +93,11 @@ function [K,Kop,info] = getController_sop(P,Z,opts)
 %                default, and is unchanged. Options opts.qp_deg, qp_basis,
 %                qp_assembly, qp_solver, qp_lambda, qp_verbose. Tested on the
 %                1-D plant of Test_copvar_inv, R^2 x L2^2.
+% MMP, 11/04/2026: No 'opvar' copy of K: Kop is [] (the executives return
+%                containers, maintainer decision), so the routine needs no
+%                operator class. The unit vectors of the method 'qp' are
+%                built by MAT2COPVAR_SOP instead of MAT2OPVAR and
+%                OPVAR2COPVAR. Supersedes the Kop lines of AT, 10/28/2026.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Default options; 'opvar' operators to containers
@@ -117,12 +121,15 @@ if strcmpi(method,'qp')                                                     % AT
         if isfield(opts,['qp_' f{1}]),  qo.(f{1}) = opts.(['qp_' f{1}]);    end % AT, 10/28/2026
     end                                                                     % AT, 10/28/2026
     nu = Z.dim_out(1);                                                      % AT, 10/28/2026
-    pvar s_qp s_qp_dum                                                      % AT, 10/28/2026
+%   pvar s_qp s_qp_dum                                                      % MMP, 11/04/2026 (was); AT, 10/28/2026
     Zt = Z';                                                                % AT, 10/28/2026
     Xt = [];    info = struct('qp',{cell(1,nu)});                           % AT, 10/28/2026
     for j = 1:nu                                                            % AT, 10/28/2026
         % column selector e_j: R^1 -> R^nu                                  % AT, 10/28/2026
-        Ej = opvar2copvar(mat2opvar(full(sparse(j,1,1,nu,1)),[nu 1;0 0],[s_qp,s_qp_dum],[0,1])); % AT, 10/28/2026
+%       Ej = opvar2copvar(mat2opvar(full(sparse(j,1,1,nu,1)),[nu 1;0 0],[s_qp,s_qp_dum],[0,1])); % MMP, 11/04/2026 (was); AT, 10/28/2026
+        % as a container on R, with the variable registry of Z              % MMP, 11/04/2026
+        Ej = mat2copvar_sop(full(sparse(j,1,1,nu,1)),struct('out',nu,'in',1),...
+                 struct('out',{{{}}},'in',{{{}}}),struct('vars',{Z.vars},'dom',Z.dom)); % MMP, 11/04/2026
         [Xj,info.qp{j}] = qp_copvar(P,Zt*Ej,qo);                            % AT, 10/28/2026
         info.qp{j}.H = [];   info.qp{j}.f = [];     % keep the diagnostics, not the n x n matrix  % AT, 10/28/2026
         Ejt = Ej';                                                          % AT, 10/28/2026
@@ -140,12 +147,14 @@ else                                                                        % AT
     K = Z*Pinv;
 end                                                                         % AT, 10/28/2026
 
-Kop = [];                                                                   % AT, 10/28/2026
-if nargout>1                                                                % AT, 10/28/2026
-    if numel(K.vars)<=1                                                     % AT, 10/28/2026
-        Kop = copvar2opvar(K);                                              % AT, 10/28/2026
-    else    % no 'opvar' form in N-D: Kop = []                              % AT, 10/28/2026
-        warning('getController_sop:Kop','K depends on %d spatial variables and has no ''opvar'' form: Kop = [].',numel(K.vars));% AT, 10/28/2026
-    end                                                                     % AT, 10/28/2026
-end                                                                         % AT, 10/28/2026
+% Kop = [];                                                                 % MMP, 11/04/2026 (was); AT, 10/28/2026
+% if nargout>1                                                              % MMP, 11/04/2026 (was); AT, 10/28/2026
+%     if numel(K.vars)<=1                                                   % MMP, 11/04/2026 (was); AT, 10/28/2026
+%         Kop = copvar2opvar(K);                                            % MMP, 11/04/2026 (was); AT, 10/28/2026
+%     else    % no 'opvar' form in N-D: Kop = []                            % MMP, 11/04/2026 (was); AT, 10/28/2026
+%         warning('getController_sop:Kop','K depends on %d spatial variables and has no ''opvar'' form: Kop = [].',numel(K.vars));% MMP, 11/04/2026 (was); AT, 10/28/2026
+%     end                                                                   % MMP, 11/04/2026 (was); AT, 10/28/2026
+% end                                                                       % MMP, 11/04/2026 (was); AT, 10/28/2026
+% No operator copy of K: the gain is the container K                        % MMP, 11/04/2026
+Kop = [];                                                                   % MMP, 11/04/2026
 end

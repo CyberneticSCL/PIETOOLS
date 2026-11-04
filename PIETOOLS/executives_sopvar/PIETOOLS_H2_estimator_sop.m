@@ -34,11 +34,11 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - L:        'opvar' object, the observer gain from y to the state ([] when
+% - L:        'copvar' object, the observer gain from y to the state ([] when
 %             the solver returned no solution);
 % - gam:      double, the certified bound; NaN when the solver returned no
 %             value;
-% - P, Z, W:  'opvar' objects, the solved P, Z and W;
+% - P, Z, W:  'copvar' objects, the solved P, Z and W;
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
 %                          'unbounded' or 'unknown';
@@ -105,6 +105,11 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %                LPI_INEQ_SOP of lpi_programming_sopvar in place of
 %                LPI_INEQ of lpi_programming; for a 'dpvar' gamma both
 %                impose it by SOSINEQ, so the program is the same.
+% MMP, 11/04/2026: P, Z, W and the gain L returned as 'copvar' objects, not
+%                converted to opvar (maintainer decision: the executives
+%                return containers); L is the container of GETOBSERVER_SOP,
+%                which no longer builds an opvar copy. Header outputs
+%                updated.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -148,8 +153,11 @@ gam = cl.obj;
 L = [];     P = [];     Z = [];     W = [];     Gc = [];    iinv = [];
 try
     Psol = getsol_lpivar_sop(prog,aux.Pm);  Zsol = getsol_lpivar_sop(prog,aux.Zm);  Wsol = getsol_lpivar_sop(prog,aux.Wm);
-    P = tl.toop(Psol);      Z = tl.toop(Zsol);      W = tl.toop(Wsol);
-    [Gc,L,iinv] = getObserver_sop(Psol,Zsol);
+%   P = tl.toop(Psol);      Z = tl.toop(Zsol);      W = tl.toop(Wsol);      % MMP, 11/04/2026 (was)
+%   [Gc,L,iinv] = getObserver_sop(Psol,Zsol);                               % MMP, 11/04/2026 (was)
+    % The containers as solved; L the container gain                        % MMP, 11/04/2026
+    P = Psol;      Z = Zsol;      W = Wsol;                                 % MMP, 11/04/2026
+    [Gc,~,iinv] = getObserver_sop(Psol,Zsol);       L = Gc;                 % MMP, 11/04/2026
 catch ME
     if st.sop.verbose,  fprintf('  [%s] output extraction: %s\n',label,ME.message);  end
 end
