@@ -9,7 +9,9 @@ classdef npie_struct
 %
 % for distributed polynomials f, gz, and gy in the fundamental state x,
 % where w is the exogenous input, u the actuator input, z the regulated
-% output, and y the observed output. For linear PIEs, see `pie_struct`.
+% output, and y the observed output. For linear PIEs, see `pie_struct`. A
+% linear PIE PIE_lin can be converted to a nonlinear PIE by calling
+% `npie_struct(PIE_lin)`, see `pie2npie_struct`.
 %
 %
 % === The Equations ===
@@ -188,6 +190,7 @@ classdef npie_struct
 % authorship, and a brief description of modifications
 %
 % DJ, 10/29/2026: Initial coding;
+% DJ, 11/03/2026: Convert a pie_struct object, using pie2npie_struct;
 
 properties
     % The dynamics
@@ -239,7 +242,8 @@ function obj = npie_struct(varargin)
     %NPIE_STRUCT Construct an instance of this class
     %   Use e.g. npie_struct PIE1 PIE2 to declare multiple empty PIEs, or
     %   convert a struct with fields named as the properties (including the
-    %   hidden fields used in earlier versions) to an npie_struct.
+    %   hidden fields used in earlier versions) to an npie_struct, or
+    %   npie_struct(PIE) to convert a linear PIE of type pie_struct.
     % Declare the fields of the function spaces and the maps between the
     % PIE and PDE, without any components.
     obj.space = empty_space(false);
@@ -255,6 +259,9 @@ function obj = npie_struct(varargin)
             end
         elseif isa(varargin{1},'npie_struct')
             obj = varargin{1};
+        elseif isa(varargin{1},'pie_struct')                                % DJ, 11/03/2026
+            % Convert a linear PIE to a nonlinear PIE.
+            obj = pie2npie_struct(varargin{1});
         elseif isa(varargin{1},'struct')
             % If a struct is provided, convert to an "npie_struct".
             % Copy information from any field in the struct that matches a

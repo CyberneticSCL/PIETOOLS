@@ -9,7 +9,9 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 %
 % where x is the fundamental state, w the exogenous input, u the actuator
 % input, z the regulated output, and y the observed output. For nonlinear
-% PIEs, see `npie_struct`.
+% PIEs, see `npie_struct`. A linear PIE_nl of type npie_struct can be
+% converted to a pie_struct by calling `pie_struct(PIE_nl)`, see
+% `npie2pie_struct`.
 %
 %
 % === The Equations ===
@@ -178,6 +180,7 @@ classdef (InferiorClasses={?opvar2d,?dpvar,?polynomial}) pie_struct
 % DJ, 10/29/2026: New format with separate fields for the function spaces
 %                   (space, space_pde), the maps between PDE and PIE
 %                   (pie2pde, pde2pie), and the operators;
+% DJ, 11/03/2026: Convert an npie_struct, using npie2pie_struct;
 
 properties
     % The dynamics
@@ -244,6 +247,10 @@ function obj = pie_struct(varargin)
             end
         elseif isa(varargin{1},'pie_struct')
             obj = varargin{1};
+        elseif isa(varargin{1},'npie_struct')                               % DJ, 11/03/2026
+            % Convert an 'npie_struct' to a 'pie_struct' using
+            % npie2pie_struct, which gives an error if the PIE is nonlinear.
+            obj = npie2pie_struct(varargin{1});
         elseif isa(varargin{1},'struct')
             % If a struct is provided, convert to a "pie_struct".
             % Copy information from any field in the struct that matches a

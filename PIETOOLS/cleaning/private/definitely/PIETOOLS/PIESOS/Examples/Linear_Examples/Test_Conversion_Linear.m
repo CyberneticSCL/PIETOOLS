@@ -1,5 +1,5 @@
 % Test_Conversion_Linear.m -- checks that the nonlinear converter
-% `convert_PIETOOLS_PDE_nonlinear` returns the same PIE as the linear
+% `convert_PIETOOLS_PDE_nonlinear_2D` returns the same PIE as the linear
 % converter `convert`, for examples 1 through 32 of the PDE library
 % `examples_PDE_library_PIETOOLS_nouinput`.
 %
@@ -7,7 +7,7 @@
 % objects in the linear PIE), and T, f, g and h ('tensopmat' and
 % 'polyopvar' objects) are compared by applying them to random polynomial
 % states and inputs, up to the relative tolerance tol. The conversion of a
-% linear PIE by `PIE2polyPIE` is tested in the same way. An error is thrown
+% linear PIE by `pie2npie_struct` is tested in the same way. An error is thrown
 % if any discrepancy is found.
 %
 % DJ (CC), 10/15/2026: Initial coding;
@@ -17,6 +17,13 @@
 %                   'npie_struct', with the operators Tw, ..., D22 as
 %                   'tensopmat' objects, so these are compared by applying
 %                   them to random inputs;
+% DJ (CC), 10/30/2026: `convert` returns a PIE with 'copvar' operators, so
+%                   the reference PIE_lin, to which `apply_opvar` is
+%                   applied, is now obtained using `pie2opvar`, and
+%                   `PIE2polyPIE` is passed the 'copvar' PIE;
+% DJ (CC), 11/02/2026: Compare the legacy converters, now named
+%   convert_PIETOOLS_PDE_2D and convert_PIETOOLS_PDE_nonlinear_2D;
+% DJ (CC), 11/03/2026: PIE2polyPIE is renamed `pie2npie_struct`;
 %
 % NOTES
 % - The state components of the PIE of the nonlinear converter may be
@@ -35,10 +42,13 @@ for example_num = example_nums
     % Convert to PIE using both functions
     clear stateNameGenerator
     PDE = examples_PDE_library_PIETOOLS_nouinput(example_num);
-    evalc('PIE_lin = convert(PDE);');
+%   evalc('PIE_lin = convert(PDE);');                                       % DJ (CC), 10/30/2026 (was)
+%   evalc('PIE_new = convert(PDE); PIE_lin = pie2opvar(PIE_new);');         % DJ (CC), 11/02/2026 (was); earlier: DJ (CC), 10/30/2026
+    evalc('PIE_new = convert_PIETOOLS_PDE_2D(PDE); PIE_lin = pie2opvar(PIE_new);'); % DJ (CC), 11/02/2026
     clear stateNameGenerator
     PDE = examples_PDE_library_PIETOOLS_nouinput(example_num);
-    evalc('PIE_poly = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');
+%    evalc('PIE_poly = convert_PIETOOLS_PDE_nonlinear(PDE,''silent'');');   % DJ (CC), 11/02/2026 (was)
+    evalc('PIE_poly = convert_PIETOOLS_PDE_nonlinear_2D(PDE,''silent'');'); % DJ (CC), 11/02/2026
     msgs = {};
 %   if ~isequal(PIE_poly.varname_pie,PIE_poly.x.varname(:)) || ~isequal(PIE_poly.varname_pie,sort(PIE_poly.varname_pie))    % DJ (CC), 10/29/2026 (was)
 %       msgs{end+1} = "PIE.varname_pie is not sorted, or differs from PIE.x.varname";     % DJ (CC), 10/29/2026 (was)
@@ -109,14 +119,16 @@ for example_num = example_nums
         msgs = [msgs,compare_action(Y_old,Y_new,tol,[outs{k,1},'=',outs{k,2},'*x'])]; %#ok<AGROW>
     end
 
-    % Check the conversion of the linear PIE by PIE2polyPIE
-    PIE_conv = PIE2polyPIE(PIE_lin);
+    % Check the conversion of the linear PIE by pie2npie_struct             % DJ (CC), 11/03/2026
+%   PIE_conv = PIE2polyPIE(PIE_lin);                                        % DJ (CC), 10/30/2026 (was)
+%   PIE_conv = PIE2polyPIE(PIE_new);                                        % DJ (CC), 11/03/2026 (was); earlier: DJ (CC), 10/30/2026
+    PIE_conv = pie2npie_struct(PIE_new);                                    % DJ (CC), 11/03/2026
     [X2,v_old2] = random_states(PIE_conv.x_tab,s);
     Y_new = order_as_opvar(apply_op(PIE_conv.T,X2),PIE_conv.x_tab);
-    msgs = [msgs,compare_action(apply_opvar(PIE_lin.T,v_old2),Y_new,tol,'PIE2polyPIE: T')];
+    msgs = [msgs,compare_action(apply_opvar(PIE_lin.T,v_old2),Y_new,tol,'pie2npie_struct: T')];               % DJ (CC), 11/03/2026
     Y_new = apply_poly(PIE_conv.f,values_by_name(PIE_conv.f,PIE_conv.x,X2));
     Y_new = order_as_opvar(Y_new,PIE_conv.x_tab);
-    msgs = [msgs,compare_action(apply_opvar(PIE_lin.A,v_old2),Y_new,tol,'PIE2polyPIE: f=A*x')];
+    msgs = [msgs,compare_action(apply_opvar(PIE_lin.A,v_old2),Y_new,tol,'pie2npie_struct: f=A*x')];            % DJ (CC), 11/03/2026
     nchecked = nchecked+4;
 
     if isempty(msgs)
@@ -211,7 +223,8 @@ example_num = 29;       % 21, 31 and 32 have states that do not contribute
 % Convert to PIE using both functions
 PDE = examples_PDE_library_PIETOOLS_nouinput(example_num);
 PIE_lin = convert(PDE);
-PIE_poly = convert_PIETOOLS_PDE_nonlinear(PDE);
+%PIE_poly = convert_PIETOOLS_PDE_nonlinear(PDE);                            % DJ (CC), 11/02/2026 (was)
+PIE_poly = convert_PIETOOLS_PDE_nonlinear_2D(PDE);                          % DJ (CC), 11/02/2026
 
 % Check that the operators match
 % First check the T operator
