@@ -64,6 +64,15 @@ function PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE)
 %  SS - 9/28: added correction to fix 0x0 empty matrices by replacing with empty matrices of correct size 
 %  DJ - 09/01/2022: Output result as "pie_struct" object.
 % DJ, 12/07/2024: Use new default vars s1 and s1_dum;
+% MMP, 11/04/2026: Build the twelve operators as 'copvar' containers of
+%                   'sopvar' blocks (PI4_COPVAR_SOP) instead of 'opvar'
+%                   objects; no 'opvar' is constructed, as the class is
+%                   being removed from PIETOOLS. The input dimension of D12,
+%                   D22 and TB2 is nu, not nw: with nu ~= nw the former dims
+%                   gave operators whose u spaces disagree, so INITIALIZE
+%                   rejected the PIE (12 of the 26 library DDEs). The PIE
+%                   is now initialized here, as by convert_PIETOOLS_DDF, and
+%                   its variables are set in PIE.space (DJ, 10/29/2026).
 
 disp('WARNING: convert_PIETOOLS_DDE2PIE is no longer supported! Direct conversion of DDE to PIE is NOT recommended and may result in very large computation times!!! Please use minimize_PIETOOLS_DDE2PIE instead!')
 
@@ -129,141 +138,178 @@ for i = 1:nK
 end
 nxb=(nx+nw+nu)*nK; % number of infinite-dimensional states
 
-% Initialize the system 4-PI operators
-opvar Top Aop C1op C2op B1op B2op D11op D12op D21op D22op TB1op TB2op;
-Top.I = [-1 0]; Top.dim = [nx nx; nxb nxb]; Top.var1 = s1; Top.var2 = s1_dum;
-Aop.I = [-1 0]; Aop.dim = [nx nx; nxb nxb]; Aop.var1 = s1; Aop.var2 = s1_dum;
-C1op.I = [-1 0]; C1op.dim = [nz nx; 0 nxb]; C1op.var1 = s1; C1op.var2 = s1_dum;
-C2op.I = [-1 0]; C2op.dim = [ny nx; 0 nxb]; C2op.var1 = s1; C2op.var2 = s1_dum;
-B1op.I = [-1 0]; B1op.dim=[nx nw; nxb 0]; B1op.var1 = s1; B1op.var2 = s1_dum;
-B2op.I = [-1 0]; B2op.dim = [nx nu; nxb 0]; B2op.var1 = s1; B2op.var2 = s1_dum;
-D11op.I = [-1 0]; D11op.dim = [nz nw; 0 0]; D11op.var1 = s1; D11op.var2 = s1_dum;
-D12op.I = [-1 0]; D12op.dim = [nz nw; 0 0]; D12op.var1 = s1; D12op.var2 = s1_dum;
-D21op.I = [-1 0]; D21op.dim = [ny nw; 0 0]; D21op.var1 = s1; D21op.var2 = s1_dum;
-D22op.I = [-1 0]; D22op.dim = [ny nw; 0 0]; D22op.var1 = s1; D22op.var2 = s1_dum;
-TB1op.I = [-1 0]; TB1op.dim = [nx nw; nxb 0]; TB1op.var1 = s1; TB1op.var2 = s1_dum;
-TB2op.I = [-1 0]; TB2op.dim = [nx nu; nxb 0]; TB2op.var1 = s1; TB2op.var2 = s1_dum;
+% % % BEGIN change MMP, 11/04/2026: the operators as containers.            % MMP, 11/04/2026
+% Each operator [P, Q1; Q2, R]: R^p0 x L2^p1[s1] -> R^q0 x L2^q1[s1], R the % MMP, 11/04/2026
+% multiplier R0 plus the integrals of R1 on [-1,s1] and R2 on [s1,0], is    % MMP, 11/04/2026
+% built by PI4_COPVAR_SOP from the components of the former opvar, block    % MMP, 11/04/2026
+% for block as OP2COPVAR_SOP converted that opvar in INITIALIZE.            % MMP, 11/04/2026
+% Arguments: P, Q1, Q2, {R0,R1,R2}, dim = [q0 p0; q1 p1] as the opvar dim.  % MMP, 11/04/2026
+% The u channel has nu columns in D12, D22 and TB2; the former dims gave    % MMP, 11/04/2026
+% nw (D12, D22 when declared, D22 and TB2 when corrected).                  % MMP, 11/04/2026
+% Former code, kept as comments after the new: the opvar declarations and   % MMP, 11/04/2026
+% fields (MP 7_01_2020; variables DJ 12/07/2024), dims (SS 9/28).           % MMP, 11/04/2026
+I1 = [-1 0];                       % domain of s1, the former opvar field I % MMP, 11/04/2026
+Top   = pi4_copvar_sop(eye(nx),zeros(nx,nxb),Tb0,{zeros(nxb),Tba,Tbb},...
+                       [nx nx; nxb nxb],s1,s1_dum,I1);                      % MMP, 11/04/2026
+TB1op = pi4_copvar_sop(zeros(nx,nw),[],Tb1,{[],[],[]},...
+                       [nx nw; nxb 0],s1,s1_dum,I1);                        % MMP, 11/04/2026
+TB2op = pi4_copvar_sop(zeros(nx,nu),[],Tb2,{[],[],[]},...
+                       [nx nu; nxb 0],s1,s1_dum,I1);                        % MMP, 11/04/2026
+Aop   = pi4_copvar_sop(Ab0,Ab,zeros(nxb,nx),{Itau,zeros(nxb),zeros(nxb)},...
+                       [nx nx; nxb nxb],s1,s1_dum,I1);                      % MMP, 11/04/2026
+C1op  = pi4_copvar_sop(Cb10,Cb11,[],{[],[],[]},...
+                       [nz nx; 0 nxb],s1,s1_dum,I1);                        % MMP, 11/04/2026
+C2op  = pi4_copvar_sop(Cb20,Cb21,[],{[],[],[]},...
+                       [ny nx; 0 nxb],s1,s1_dum,I1);                        % MMP, 11/04/2026
+B1op  = pi4_copvar_sop(Bb1,[],zeros(nxb,nw),{[],[],[]},...
+                       [nx nw; nxb 0],s1,s1_dum,I1);                        % MMP, 11/04/2026
+B2op  = pi4_copvar_sop(Bb2,[],zeros(nxb,nu),{[],[],[]},...
+                       [nx nu; nxb 0],s1,s1_dum,I1);                        % MMP, 11/04/2026
+D11op = pi4_copvar_sop(Db11,[],[],{[],[],[]},[nz nw; 0 0],s1,s1_dum,I1);    % MMP, 11/04/2026
+D12op = pi4_copvar_sop(Db12,[],[],{[],[],[]},[nz nu; 0 0],s1,s1_dum,I1);    % MMP, 11/04/2026
+D21op = pi4_copvar_sop(Db21,[],[],{[],[],[]},[ny nw; 0 0],s1,s1_dum,I1);    % MMP, 11/04/2026
+D22op = pi4_copvar_sop(Db22,[],[],{[],[],[]},[ny nu; 0 0],s1,s1_dum,I1);    % MMP, 11/04/2026
+% Former code:                                                              % MMP, 11/04/2026
+% % Initialize the system 4-PI operators                                    % MMP, 11/04/2026 (was)
+% opvar Top Aop C1op C2op B1op B2op D11op D12op D21op D22op TB1op TB2op;    % MMP, 11/04/2026 (was)
+% Top.I = [-1 0]; Top.dim = [nx nx; nxb nxb]; Top.var1 = s1; Top.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% Aop.I = [-1 0]; Aop.dim = [nx nx; nxb nxb]; Aop.var1 = s1; Aop.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% C1op.I = [-1 0]; C1op.dim = [nz nx; 0 nxb]; C1op.var1 = s1; C1op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% C2op.I = [-1 0]; C2op.dim = [ny nx; 0 nxb]; C2op.var1 = s1; C2op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% B1op.I = [-1 0]; B1op.dim=[nx nw; nxb 0]; B1op.var1 = s1; B1op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% B2op.I = [-1 0]; B2op.dim = [nx nu; nxb 0]; B2op.var1 = s1; B2op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% D11op.I = [-1 0]; D11op.dim = [nz nw; 0 0]; D11op.var1 = s1; D11op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% D12op.I = [-1 0]; D12op.dim = [nz nw; 0 0]; D12op.var1 = s1; D12op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% D21op.I = [-1 0]; D21op.dim = [ny nw; 0 0]; D21op.var1 = s1; D21op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% D22op.I = [-1 0]; D22op.dim = [ny nw; 0 0]; D22op.var1 = s1; D22op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% TB1op.I = [-1 0]; TB1op.dim = [nx nw; nxb 0]; TB1op.var1 = s1; TB1op.var2 = s1_dum; % MMP, 11/04/2026 (was)
+% TB2op.I = [-1 0]; TB2op.dim = [nx nu; nxb 0]; TB2op.var1 = s1; TB2op.var2 = s1_dum; % MMP, 11/04/2026 (was)
 
-% We now define the 4-PI system operators
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Start with Top
-Top.P=eye(nx);
-Top.Q1=zeros(nx,nxb);
-Top.Q2=Tb0;%oneK;
-Top.R.R0=zeros(nxb);
-Top.R.R1=Tba;%zeros(nxb);
-Top.R.R2=Tbb;%-eye(nxb);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next TB1op
-TB1op.P=zeros(nx,nw);
-TB1op.Q1=[];
-TB1op.Q2=Tb1;
-TB1op.R.R0=[];
-TB1op.R.R1=[];
-TB1op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next TB2op
-TB2op.P=zeros(nx,nu);
-TB2op.Q1=[];
-TB2op.Q2=Tb2;
-TB2op.R.R0=[];
-TB2op.R.R1=[];
-TB2op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next Aop
-Aop.P=Ab0;
-Aop.Q1=Ab;
-Aop.Q2=zeros(nxb,nx);
-Aop.R.R0=Itau;
-Aop.R.R1=zeros(nxb);
-Aop.R.R2=zeros(nxb);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next C1op
-C1op.P=Cb10;
-C1op.Q1=Cb11;
-C1op.Q2=[];
-C1op.R.R0=[];
-C1op.R.R1=[];
-C1op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next C2op
-C2op.P=Cb20;
-C2op.Q1=Cb21;
-C2op.Q2=[];
-C2op.R.R0=[];
-C2op.R.R1=[];
-C2op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next B1op
-B1op.P=Bb1;
-B1op.Q1=[];
-B1op.Q2=zeros(nxb,nw);
-B1op.R.R0=[];
-B1op.R.R1=[];
-B1op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next B2op
-B2op.P=Bb2;
-B2op.Q1=[];
-B2op.Q2=zeros(nxb,nu);
-B2op.R.R0=[];
-B2op.R.R1=[];
-B2op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next D11op
-D11op.P=Db11;
-D11op.Q1=[];
-D11op.Q2=[];
-D11op.R.R0=[];
-D11op.R.R1=[];
-D11op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next D12op
-D12op.P=Db12;
-D12op.Q1=[];
-D12op.Q2=[];
-D12op.R.R0=[];
-D12op.R.R1=[];
-D12op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next D21op
-D21op.P=Db21;
-D21op.Q1=[];
-D21op.Q2=[];
-D21op.R.R0=[];
-D21op.R.R1=[];
-D21op.R.R2=[];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Next D22op
-D22op.P=Db22;
-D22op.Q1=[];
-D22op.Q2=[];
-D22op.R.R0=[];
-D22op.R.R1=[];
-D22op.R.R2=[];
+% % We now define the 4-PI system operators                                 % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Start with Top                                                          % MMP, 11/04/2026 (was)
+% Top.P=eye(nx);                                                            % MMP, 11/04/2026 (was)
+% Top.Q1=zeros(nx,nxb);                                                     % MMP, 11/04/2026 (was)
+% Top.Q2=Tb0;%oneK;                                                         % MMP, 11/04/2026 (was)
+% Top.R.R0=zeros(nxb);                                                      % MMP, 11/04/2026 (was)
+% Top.R.R1=Tba;%zeros(nxb);                                                 % MMP, 11/04/2026 (was)
+% Top.R.R2=Tbb;%-eye(nxb);                                                  % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next TB1op                                                              % MMP, 11/04/2026 (was)
+% TB1op.P=zeros(nx,nw);                                                     % MMP, 11/04/2026 (was)
+% TB1op.Q1=[];                                                              % MMP, 11/04/2026 (was)
+% TB1op.Q2=Tb1;                                                             % MMP, 11/04/2026 (was)
+% TB1op.R.R0=[];                                                            % MMP, 11/04/2026 (was)
+% TB1op.R.R1=[];                                                            % MMP, 11/04/2026 (was)
+% TB1op.R.R2=[];                                                            % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next TB2op                                                              % MMP, 11/04/2026 (was)
+% TB2op.P=zeros(nx,nu);                                                     % MMP, 11/04/2026 (was)
+% TB2op.Q1=[];                                                              % MMP, 11/04/2026 (was)
+% TB2op.Q2=Tb2;                                                             % MMP, 11/04/2026 (was)
+% TB2op.R.R0=[];                                                            % MMP, 11/04/2026 (was)
+% TB2op.R.R1=[];                                                            % MMP, 11/04/2026 (was)
+% TB2op.R.R2=[];                                                            % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next Aop                                                                % MMP, 11/04/2026 (was)
+% Aop.P=Ab0;                                                                % MMP, 11/04/2026 (was)
+% Aop.Q1=Ab;                                                                % MMP, 11/04/2026 (was)
+% Aop.Q2=zeros(nxb,nx);                                                     % MMP, 11/04/2026 (was)
+% Aop.R.R0=Itau;                                                            % MMP, 11/04/2026 (was)
+% Aop.R.R1=zeros(nxb);                                                      % MMP, 11/04/2026 (was)
+% Aop.R.R2=zeros(nxb);                                                      % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next C1op                                                               % MMP, 11/04/2026 (was)
+% C1op.P=Cb10;                                                              % MMP, 11/04/2026 (was)
+% C1op.Q1=Cb11;                                                             % MMP, 11/04/2026 (was)
+% C1op.Q2=[];                                                               % MMP, 11/04/2026 (was)
+% C1op.R.R0=[];                                                             % MMP, 11/04/2026 (was)
+% C1op.R.R1=[];                                                             % MMP, 11/04/2026 (was)
+% C1op.R.R2=[];                                                             % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next C2op                                                               % MMP, 11/04/2026 (was)
+% C2op.P=Cb20;                                                              % MMP, 11/04/2026 (was)
+% C2op.Q1=Cb21;                                                             % MMP, 11/04/2026 (was)
+% C2op.Q2=[];                                                               % MMP, 11/04/2026 (was)
+% C2op.R.R0=[];                                                             % MMP, 11/04/2026 (was)
+% C2op.R.R1=[];                                                             % MMP, 11/04/2026 (was)
+% C2op.R.R2=[];                                                             % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next B1op                                                               % MMP, 11/04/2026 (was)
+% B1op.P=Bb1;                                                               % MMP, 11/04/2026 (was)
+% B1op.Q1=[];                                                               % MMP, 11/04/2026 (was)
+% B1op.Q2=zeros(nxb,nw);                                                    % MMP, 11/04/2026 (was)
+% B1op.R.R0=[];                                                             % MMP, 11/04/2026 (was)
+% B1op.R.R1=[];                                                             % MMP, 11/04/2026 (was)
+% B1op.R.R2=[];                                                             % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next B2op                                                               % MMP, 11/04/2026 (was)
+% B2op.P=Bb2;                                                               % MMP, 11/04/2026 (was)
+% B2op.Q1=[];                                                               % MMP, 11/04/2026 (was)
+% B2op.Q2=zeros(nxb,nu);                                                    % MMP, 11/04/2026 (was)
+% B2op.R.R0=[];                                                             % MMP, 11/04/2026 (was)
+% B2op.R.R1=[];                                                             % MMP, 11/04/2026 (was)
+% B2op.R.R2=[];                                                             % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next D11op                                                              % MMP, 11/04/2026 (was)
+% D11op.P=Db11;                                                             % MMP, 11/04/2026 (was)
+% D11op.Q1=[];                                                              % MMP, 11/04/2026 (was)
+% D11op.Q2=[];                                                              % MMP, 11/04/2026 (was)
+% D11op.R.R0=[];                                                            % MMP, 11/04/2026 (was)
+% D11op.R.R1=[];                                                            % MMP, 11/04/2026 (was)
+% D11op.R.R2=[];                                                            % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next D12op                                                              % MMP, 11/04/2026 (was)
+% D12op.P=Db12;                                                             % MMP, 11/04/2026 (was)
+% D12op.Q1=[];                                                              % MMP, 11/04/2026 (was)
+% D12op.Q2=[];                                                              % MMP, 11/04/2026 (was)
+% D12op.R.R0=[];                                                            % MMP, 11/04/2026 (was)
+% D12op.R.R1=[];                                                            % MMP, 11/04/2026 (was)
+% D12op.R.R2=[];                                                            % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next D21op                                                              % MMP, 11/04/2026 (was)
+% D21op.P=Db21;                                                             % MMP, 11/04/2026 (was)
+% D21op.Q1=[];                                                              % MMP, 11/04/2026 (was)
+% D21op.Q2=[];                                                              % MMP, 11/04/2026 (was)
+% D21op.R.R0=[];                                                            % MMP, 11/04/2026 (was)
+% D21op.R.R1=[];                                                            % MMP, 11/04/2026 (was)
+% D21op.R.R2=[];                                                            % MMP, 11/04/2026 (was)
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% % MMP, 11/04/2026 (was)
+% % Next D22op                                                              % MMP, 11/04/2026 (was)
+% D22op.P=Db22;                                                             % MMP, 11/04/2026 (was)
+% D22op.Q1=[];                                                              % MMP, 11/04/2026 (was)
+% D22op.Q2=[];                                                              % MMP, 11/04/2026 (was)
+% D22op.R.R0=[];                                                            % MMP, 11/04/2026 (was)
+% D22op.R.R1=[];                                                            % MMP, 11/04/2026 (was)
+% D22op.R.R2=[];                                                            % MMP, 11/04/2026 (was)
 
 
-% correction of empty dimensions
-Top.dim = [nx nx; nxb nxb]; 
-Aop.dim = [nx nx; nxb nxb]; 
-C1op.dim = [nz nx; 0 nxb]; 
-C2op.dim = [ny nx; 0 nxb]; 
-B1op.dim=[nx nw; nxb 0]; 
-B2op.dim = [nx nu; nxb 0]; 
-D11op.dim = [nz nw; 0 0]; 
-D12op.dim = [nz nu; 0 0]; 
-D21op.dim = [ny nw; 0 0]; 
-D22op.dim = [ny nw; 0 0]; 
-TB1op.dim = [nx nw; nxb 0]; 
-TB2op.dim = [nx nw; nxb 0]; 
+% % correction of empty dimensions                                          % MMP, 11/04/2026 (was)
+% Top.dim = [nx nx; nxb nxb];                                               % MMP, 11/04/2026 (was)
+% Aop.dim = [nx nx; nxb nxb];                                               % MMP, 11/04/2026 (was)
+% C1op.dim = [nz nx; 0 nxb];                                                % MMP, 11/04/2026 (was)
+% C2op.dim = [ny nx; 0 nxb];                                                % MMP, 11/04/2026 (was)
+% B1op.dim=[nx nw; nxb 0];                                                  % MMP, 11/04/2026 (was)
+% B2op.dim = [nx nu; nxb 0];                                                % MMP, 11/04/2026 (was)
+% D11op.dim = [nz nw; 0 0];                                                 % MMP, 11/04/2026 (was)
+% D12op.dim = [nz nu; 0 0];                                                 % MMP, 11/04/2026 (was)
+% D21op.dim = [ny nw; 0 0];                                                 % MMP, 11/04/2026 (was)
+% D22op.dim = [ny nw; 0 0];                                                 % MMP, 11/04/2026 (was)
+% TB1op.dim = [nx nw; nxb 0];                                               % MMP, 11/04/2026 (was)
+% TB2op.dim = [nx nw; nxb 0];                                               % MMP, 11/04/2026 (was)
+% % % END change MMP, 11/04/2026                                            % MMP, 11/04/2026
 
 
 PIE = pie_struct();
-PIE.vars = [Top.var1,Top.var2];
-PIE.dom=[-1 0];
+% PIE.vars = [Top.var1,Top.var2];                                           % MMP, 11/04/2026 (was)
+% PIE.dom=[-1 0];                                                           % MMP, 11/04/2026 (was)
+PIE.space.vars = reshape(pvar2varname(s1),1,[]);                            % MMP, 11/04/2026
+PIE.space.dom = [-1 0];                                                     % MMP, 11/04/2026
 PIE.T = Top; PIE.Tw = TB1op; PIE.Tu = TB2op;
 PIE.A = Aop; PIE.B1 = B1op; PIE.B2 = B2op;
 PIE.C1 = C1op; PIE.D11 = D11op; PIE.D12 = D12op;
 PIE.C2 = C2op; PIE.D21 = D21op; PIE.D22 = D22op;
+% Check the spaces of the operators, as convert_PIETOOLS_DDF does           % MMP, 11/04/2026
+PIE = initialize(PIE);                                                      % MMP, 11/04/2026
 
 end

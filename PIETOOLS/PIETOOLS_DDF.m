@@ -25,6 +25,16 @@
 % The fourth and final set of commands uses a script which sets up and solves an LPI as
 % determined by the LPI settings and 
 %
+% MMP, 11/04/2026: Solve the LPIs with the container executives
+%                   (PIETOOLS_*_sop) and lpisettings_sop: the stock
+%                   executives stop on the copvar PIE convert_PIETOOLS_DDF
+%                   returns, and PIETOOLS_stability, PIETOOLS_stability_dual,
+%                   called before, do not exist.
+% MMP, 11/04/2026: With DDE2DDF = 1, convert the DDE with
+%                   convert_PIETOOLS_DDE2PIE_legacy (DDF_min = 0) or its
+%                   minimal DDF with convert_PIETOOLS_DDF (DDF_min = 1);
+%                   convert_PIETOOLS_DDE2PIE, called before, does not exist.
+%
 % addpath(genpath('.')) % makes sure any local version  of SOSTOOLS in the
 % current folder is at the head of the path (Troubleshooting purposes only)
 % close all; clear all; path(pathdef); clc; 
@@ -184,7 +194,8 @@ examples_NDSDDF_library_PIETOOLS
 %
 % settings_PIETOOLS_extreme is often infeasible
 sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
-settings = lpisettings('light');
+% settings = lpisettings('light');                                          % MMP, 11/04/2026 (was)
+settings = lpisettings_sop('light');  % tiers of the container executives   % MMP, 11/04/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -215,14 +226,19 @@ if exist('NDS','var')
      NDS=initialize_PIETOOLS_NDS(NDS);
      DDF=convert_PIETOOLS_NDS2DDF(NDS);
 end
+% DDE input: the PIE of the DDE itself (DDF_min = 0) or of its minimal      % MMP, 11/04/2026
+% DDF (DDF_min = 1), the two conversions of PIETOOLS_DDE.m. Both called     % MMP, 11/04/2026
+% convert_PIETOOLS_DDE2PIE, which does not exist.                           % MMP, 11/04/2026
 if DDE2DDF==1
     if DDF_min==0
         DDE=initialize_PIETOOLS_DDE(DDE);
-        PIE=convert_PIETOOLS_DDE2PIE(DDE);
+%       PIE=convert_PIETOOLS_DDE2PIE(DDE);                                  % MMP, 11/04/2026 (was)
+        PIE=convert_PIETOOLS_DDE2PIE_legacy(DDE);                           % MMP, 11/04/2026
     else
         DDE=initialize_PIETOOLS_DDE(DDE);
         DDE=minimize_PIETOOLS_DDE2DDF(DDE);
-        PIE=convert_PIETOOLS_DDE2PIE(DDE);
+%       PIE=convert_PIETOOLS_DDE2PIE(DDE);                                  % MMP, 11/04/2026 (was)
+        PIE=convert_PIETOOLS_DDF(DDE,'pie');   % DDE holds the minimal DDF  % MMP, 11/04/2026
     end
 else
     if DDF_min==1
@@ -241,28 +257,39 @@ end
 %%%%%%%%%%% Calling the Executives %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Construct and solve the LPI corresponding to the problem you specified earlier
+% The container executives (PIETOOLS_*_sop), which take the copvar PIE      % MMP, 11/04/2026
+% that convert_PIETOOLS_DDF returns; the stock ones stop on a copvar        % MMP, 11/04/2026
+% (no field dim). Each returns the outputs of the stock executive in        % MMP, 11/04/2026
+% the same order, then an info struct. PIETOOLS_stability and               % MMP, 11/04/2026
+% PIETOOLS_stability_dual, called before, do not exist.                     % MMP, 11/04/2026
 if stability==1
-    [prog, P] = PIETOOLS_stability(PIE,settings);
+%   [prog, P] = PIETOOLS_stability(PIE,settings);                           % MMP, 11/04/2026 (was)
+    [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                   % MMP, 11/04/2026
 end
 if stability_dual==1
-    [prog, P] = PIETOOLS_stability_dual(PIE,settings);
+%   [prog, P] = PIETOOLS_stability_dual(PIE,settings);                      % MMP, 11/04/2026 (was)
+    [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                  % MMP, 11/04/2026
 end
 if Hinf_gain==1
-    [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
+%   [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                    % MMP, 11/04/2026 (was)
+    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');            % MMP, 11/04/2026
 end
 if Hinf_gain_dual==1
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
+%   [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);               % MMP, 11/04/2026 (was)
+    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/04/2026
 end
 if Hinf_control==1
     settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP
     settings.options12.sep = 1; 
 
-    [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
+%   [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % MMP, 11/04/2026 (was)
+    [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % MMP, 11/04/2026
 end
 if Hinf_estimator==1
     settings.options1.sep = 1;  % Pop needs to separable in order to construct controller - SS,MP
     settings.options12.sep = 1; 
-    [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
+%   [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);         % MMP, 11/04/2026 (was)
+    [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % MMP, 11/04/2026
 end
 
 

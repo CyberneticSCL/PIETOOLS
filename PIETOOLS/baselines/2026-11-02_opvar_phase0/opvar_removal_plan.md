@@ -591,6 +591,12 @@ README rather than being deleted.
 - **2c – DDE, DDF, NDS.** Rebuild the operator assembly of `convert_PIETOOLS_DDF.m` (13 opvars, 36 `.R.R*`
   field accesses) with `mat2copvar_sop` and the Phase-1 constructor. `convert_PIETOOLS_DDE2PIE_legacy`, called only
   by `PIETOOLS_DDE.m:53`, retires.
+  **Done 11/04 (uncommitted)** [M]: both converters build their 12 operators with the new
+  `sopvar/constructors/pi4_copvar_sop.m` (1-D 4-PI kernels → copvar, the blocks of `opvar2copvar`). DDF: the
+  39 library PIEs are identical to the former ones, the 66 DDE and NDS/DDF F3 rows equal pass 3. The legacy
+  converter is kept (maintainer: sometimes used) and repaired: the u dimension of D12, D22, TB2 was nw, so 12
+  of the 26 library DDEs failed `initialize`; now 26 of 26 pass. `PIETOOLS_DDE.m` defaults to
+  `DDE_minimal_rep = 1`. Both convert every library system with `opvar/` off the path.
 - **2d – Nonlinear PDEs.** `convert_PIETOOLS_PDE_nonlinear.m` (15 opvars, `opvar2sopvar` → `tensopvar`):
   build the sopvar blocks with the helpers of 2a.
 - **2e – Class definitions.** Remove `?opvar` and `?opvar2d` from `pde_struct` and `?opvar2d` from
@@ -698,7 +704,13 @@ README rather than being deleted.
   containers.
 - **Root scripts.** `PIETOOLS_PDE.m:100–106` (opvar fields size the initial condition → `PIE.space.x` or
   `T.dim_in`); `PIETOOLS_DDE.m`, `PIETOOLS_DDF.m` (stock executives → `_sop` executives or `lpiscript_sop`,
-  and the four missing functions of §2.6).
+  and the four missing functions of §2.6). **`PIETOOLS_DDE.m` done 11/04 (uncommitted)** [M]: the ten LPI
+  calls go to the `_sop` executives with `lpisettings_sop('light')`; every branch runs on a library DDE,
+  values equal to F3 pass 3 where the settings agree. **`PIETOOLS_DDF.m` done 11/04 (uncommitted)** [M]: its
+  six LPI calls likewise (two of them named the nonexistent `PIETOOLS_stability`, `_stability_dual`);
+  every branch runs on a library NDS or DDF example. Its `DDE2DDF = 1` branch (off by default) called the
+  nonexistent `convert_PIETOOLS_DDE2PIE`; it now calls `convert_PIETOOLS_DDE2PIE_legacy` (`DDF_min = 0`)
+  or `convert_PIETOOLS_DDF` of the minimal DDF (`DDF_min = 1`), both run on DDE01 and DDE10.
 - **Example library.** `examples_PDE_library_PIETOOLS.m:1006, 1015` → `PIETOOLS_auto_execute_sop`.
 - **GUI.** The `.mlapp` follows the decision on 2b; it is edited in App Designer.
 - **Demo folders.** `multivariate_PIE_2508_14840/jp_wave_plate_rates.m` (stock `lpi_eq`, `lpi_ineq`,

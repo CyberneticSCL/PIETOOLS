@@ -23,13 +23,24 @@
 % The fourth and final set of commands uses a script which sets up and solves an LPI as
 % determined by the LPI settings and 
 %
+% MMP, 11/04/2026: DDE_minimal_rep = 1, the minimal DDF representation
+%                   (convert_PIETOOLS_DDF) that the NOTE below states is
+%                   the default; it was 0, the representation of
+%                   convert_PIETOOLS_DDE2PIE_legacy.
+% MMP, 11/04/2026: Solve the LPIs with the container executives
+%                   (PIETOOLS_*_sop) and lpisettings_sop: the stock
+%                   executives stop on the copvar PIEs the converters
+%                   return. PIETOOLS_H2_controller, called before, does not
+%                   exist; the H2 control LPI is PIETOOLS_H2_control_sop.
+%
 close all; clear; %path(pathdef); 
 clc;
 stability=0; stability_dual=0; 
 Hinf_gain=0; Hinf_gain_dual=0; H2_norm=0; H2_norm_dual=0;
 Hinf_control=0; Hinf_estimator=0; H2_control=0; H2_estimator=0;
 
-DDE_minimal_rep=0;
+% DDE_minimal_rep=0;                                                        % MMP, 11/04/2026 (was)
+DDE_minimal_rep=1;                                                          % MMP, 11/04/2026
 % sosineq_on=1; 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -195,7 +206,8 @@ if strcmp(simulate,'on')
 
 
 sosineq_on=0; % binary variable indicating whether to use ineqaulity or equality constraint
-settings = lpisettings('light');
+% settings = lpisettings('light');                                          % MMP, 11/04/2026 (was)
+settings = lpisettings_sop('light');  % tiers of the container executives   % MMP, 11/04/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -236,35 +248,50 @@ end
 
 
 %%% Construct and solve the LPI corresponding to the problem you specified earlier
+% The container executives (PIETOOLS_*_sop), which take the copvar PIE      % MMP, 11/04/2026
+% that both converters return; the stock ones stop on a copvar (no          % MMP, 11/04/2026
+% field dim). Each returns the outputs of the stock executive in the        % MMP, 11/04/2026
+% same order, then an info struct. PIETOOLS_H2_controller, called           % MMP, 11/04/2026
+% before, does not exist.                                                   % MMP, 11/04/2026
 if stability==1
-    [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);
+%   [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);                    % MMP, 11/04/2026 (was)
+    [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                   % MMP, 11/04/2026
 end
 if stability_dual==1
-    [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);
+%   [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);               % MMP, 11/04/2026 (was)
+    [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                  % MMP, 11/04/2026
 end
 if Hinf_gain==1
-    [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
+%   [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                    % MMP, 11/04/2026 (was)
+    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');            % MMP, 11/04/2026
 end
 if Hinf_gain_dual==1
-    [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
+%   [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);               % MMP, 11/04/2026 (was)
+    [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');           % MMP, 11/04/2026
 end
 if Hinf_control==1
-    [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
+%   [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);           % MMP, 11/04/2026 (was)
+    [prog, K, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings);       % MMP, 11/04/2026
 end
 if Hinf_estimator==1
-    [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
+%   [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);         % MMP, 11/04/2026 (was)
+    [prog, L, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);     % MMP, 11/04/2026
 end
 if H2_norm==1
-    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_o(PIE,settings);
+%   [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_o(PIE,settings);              % MMP, 11/04/2026 (was)
+    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'o');        % MMP, 11/04/2026
 end
 if H2_norm_dual==1
-    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_c(PIE,settings);
+%   [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_c(PIE,settings);              % MMP, 11/04/2026 (was)
+    [prog, W, gamma, R, Q] = PIETOOLS_H2_norm_sop(PIE,settings,'c');        % MMP, 11/04/2026
 end
 if H2_control==1
-    [prog, K, gamma, P, Z] = PIETOOLS_H2_controller(PIE,settings);
+%   [prog, K, gamma, P, Z] = PIETOOLS_H2_controller(PIE,settings);          % MMP, 11/04/2026 (was)
+    [prog, K, gamma, P, Z] = PIETOOLS_H2_control_sop(PIE,settings);         % MMP, 11/04/2026
 end
 if H2_estimator==1
-    [prog, L, gamma, P, Z] = PIETOOLS_H2_estimator(PIE,settings);
+%   [prog, L, gamma, P, Z] = PIETOOLS_H2_estimator(PIE,settings);           % MMP, 11/04/2026 (was)
+    [prog, L, gamma, P, Z] = PIETOOLS_H2_estimator_sop(PIE,settings);       % MMP, 11/04/2026
 end
 
 
