@@ -59,10 +59,10 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %
 % OUTPUT
 % - prog:     'struct', the solved LPI program;
-% - Kc:       'struct' with fields TK, AK, BK, CK, DK, the 'opvar' objects
-%             of the controller PIE above, and G, the same operators as
-%             'copvar' objects; [] when the solver returned no solution or
-%             the controller could not be recovered;
+% - Kc:       'struct' with fields TK, AK, BK, CK, DK, the 'copvar' objects
+%             of the controller PIE above, and G, a 'struct' with the same
+%             five fields; [] when the solver returned no solution or the
+%             controller could not be recovered;
 % - gam:      double, the certified closed-loop bound; with gam_fixed,
 %             gam_fixed when certified and Inf otherwise; NaN when the
 %             solver returned no value;
@@ -112,6 +112,12 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 % Initial coding: DB 10/31/2026, based on formulation and code of Jungbae Chun
 % DB 11/01/2026 - Removed the form 'inv' (TK = T, inverts PI operators); only
 %                 the inversion-free form remains, with TK recovered
+% MMP 11/05/2026 - Kc holds the 'copvar' operators: the conversion by
+%                 tl.toop needs the opvar classes in 1-D and 2-D, and without
+%                 them the recovery failed inside the try/catch, so Kc was [].
+%                 gam >= 0 by LPI_INEQ_SOP instead of the stock LPI_INEQ. No
+%                 OP2COPVAR_SOP on the PIE operators, which EXEC_PIE_SOP has
+%                 already converted (it returned its input).
 
 % Default settings; check the PIE
 if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
@@ -140,10 +146,15 @@ cmar = 0;   if isfield(st.sop,'coupling_margin') && ~isempty(st.sop.coupling_mar
 gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
 
 % The PIE operators as containers, and the identities on w and z
-Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);
-Bw = op2copvar_sop(PIE.B1); Bu = op2copvar_sop(PIE.B2);
-Cz = op2copvar_sop(PIE.C1); Dzw = op2copvar_sop(PIE.D11);   Dzu = op2copvar_sop(PIE.D12);
-Cy = op2copvar_sop(PIE.C2); Dyw = op2copvar_sop(PIE.D21);
+% EXEC_PIE_SOP has converted them: no OP2COPVAR_SOP                         % MMP, 11/05/2026
+% Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/05/2026 (was)
+% Bw = op2copvar_sop(PIE.B1); Bu = op2copvar_sop(PIE.B2);                   % MMP, 11/05/2026 (was)
+% Cz = op2copvar_sop(PIE.C1); Dzw = op2copvar_sop(PIE.D11);   Dzu = op2copvar_sop(PIE.D12); % MMP, 11/05/2026 (was)
+% Cy = op2copvar_sop(PIE.C2); Dyw = op2copvar_sop(PIE.D21);                 % MMP, 11/05/2026 (was)
+Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/05/2026
+Bw = PIE.B1;    Bu = PIE.B2;                                                % MMP, 11/05/2026
+Cz = PIE.C1;    Dzw = PIE.D11;      Dzu = PIE.D12;                          % MMP, 11/05/2026
+Cy = PIE.C2;    Dyw = PIE.D21;                                              % MMP, 11/05/2026
 Iw = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
 
 % The spaces of the free operators, as lists of the variables of each space
@@ -175,7 +186,9 @@ try
     BK = sol.Bn - sol.Q'*Bu*DK;
     AK = BK*Cy*sol.U + sol.Q'*(Am*sol.U + Bu*sol.Cn) - sol.An;
     TK = Tm'*(sol.Q*sol.U - Tm);
-    Kc = struct('TK',tl.toop(TK),'AK',tl.toop(AK),'BK',tl.toop(BK),'CK',tl.toop(CK),'DK',tl.toop(DK));
+%   Kc = struct('TK',tl.toop(TK),'AK',tl.toop(AK),'BK',tl.toop(BK),'CK',tl.toop(CK),'DK',tl.toop(DK)); % MMP, 11/05/2026 (was)
+    % The containers: tl.toop needs the opvar classes in 1-D and 2-D        % MMP, 11/05/2026
+    Kc = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);                   % MMP, 11/05/2026
     Kc.G = struct('TK',TK,'AK',AK,'BK',BK,'CK',CK,'DK',DK);
 catch ME
     if st.sop.verbose,  fprintf('  [%s] controller recovery: %s\n',label,ME.message);  end
@@ -205,7 +218,8 @@ end
         % gam >= 0 as the objective, or the fixed gain
         if isempty(gfix)
             [prog,gamv] = lpidecvar(prog,'gam');
-            prog = lpi_ineq(prog,gamv);
+%           prog = lpi_ineq(prog,gamv);                                     % MMP, 11/05/2026 (was)
+            prog = lpi_ineq_sop(prog,gamv);                                 % MMP, 11/05/2026
             prog = lpisetobj(prog,gamv);
         else
             gamv = gfix;
