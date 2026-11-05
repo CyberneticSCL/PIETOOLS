@@ -32,6 +32,12 @@ function PDE_struct = parsePDEParams(varlist, PDE_Text, metadata)
 % DEVELOPER LOGS:
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+% MMP, 11/05/2026: The loop over differentiability orders runs to the
+%   largest order, max(Xvals(:,1)), instead of max(Xvals): Xvals has two
+%   columns, so with two or more PDE states max(Xvals) is a row and R2025b
+%   rejects it as a colon operand (33 of the 47 GUI files of the example
+%   library failed to parse). Earlier releases used its first element,
+%   max(Xvals(:,1)), so the result there is unchanged.
 % remove whitespaces
 % PDE_Text = regexprep(PDE_Text,'\s+','');
 PDE_text = erase(PDE_Text,'$'); % remove $
@@ -54,7 +60,8 @@ else
 end
 Xvals = cell2mat(varlist(contains(varlist(:,1),'X'),2));
 Xvals = [Xvals zeros(size(Xvals))];
-for i=0:max(Xvals)
+% for i=0:max(Xvals)                                                        % MMP, 11/05/2026 (was)
+for i=0:max(Xvals(:,1))     % the orders are column 1                       % MMP, 11/05/2026
     Xvals(Xvals(:,1)==i,2) = (1:length(Xvals(Xvals(:,1)==i,2)))';
 end
 

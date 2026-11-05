@@ -29,6 +29,19 @@ function PIE = convert_PIETOOLS_PDE_terms(PDE)
 %
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
+% MMP, 11/05/2026: The coefficients of the terms are rewritten from the
+%   variables PDE.vars ([s, s_dum] from the PDE GUI) in s1, s1_dum, the
+%   variables INITIALIZE_PIETOOLS_PDE_terms_legacy sets since DJ,
+%   12/07/2024. Before, coefficients in s were in a variable the terms
+%   converter does not integrate over (GUI heat equation with disturbance
+%   s*w: gamma 0.3333 instead of 0.2085). New local function TERMS_VARS.
+%   Also, terms of one equation that address the same block (the same ODE
+%   state, input, or boundary value or derivative of a PDE state) now add:
+%   the 13 placements into Cz, Cy, A, Dzw, Dzu, Dyw, Dyu, Bxw, Bxu, A{},
+%   Bpb{}, Ebp{}, Ebb{} accumulate instead of assigning, which kept only the
+%   last term (GUI Lamare BC 0 = X2(0) - 0.6*X1(0) - 0.1*X2(0) gave X2(0)
+%   the coefficient -0.1, not 0.9). Placements into Crp, Drb, Bpv, Ebv get
+%   their own rows of r or columns of v per term, and are unchanged.
 
 
 % For now convert the new terms format to old terms format
@@ -51,6 +64,11 @@ pdeID = pdetab(sortidx,1); % find the PDE names in sorted order
 % order
 PDE.x = PDE.x(reorder); PDE.x_tab = PDE.x_tab(reorder,:);
 x = PDE.x; z = PDE.z; y = PDE.y; BC = PDE.BC;
+% Coefficients in PDE.vars -> s1, s1_dum, the variables of the legacy       % MMP, 11/05/2026
+% terms format (INITIALIZE_PIETOOLS_PDE_terms_legacy)                       % MMP, 11/05/2026
+vnew = [pvar('s1'),pvar('s1_dum')];                                         % MMP, 11/05/2026
+x = terms_vars(x,PDE.vars,vnew);    z = terms_vars(z,PDE.vars,vnew);        % MMP, 11/05/2026
+y = terms_vars(y,PDE.vars,vnew);    BC = terms_vars(BC,PDE.vars,vnew);      % MMP, 11/05/2026
 
 odetab = PDE.x_tab(PDE.x_tab(:,3)==0,:); % find the ODE table
 odeID = odetab(:,1);
@@ -183,7 +201,8 @@ for i=1:length(z)
             if ismember(tmpterm.x,odeID) % ode state; place in Cz
                 cols = find(tmpterm.x==odetab(:,1));
                 cols = xpartition(cols):xpartition(cols+1)-1;
-                PDE_out.ODE.Cz(rows,cols) = tmpterm.C;
+%               PDE_out.ODE.Cz(rows,cols) = tmpterm.C;                      % MMP, 11/05/2026 (was)
+                PDE_out.ODE.Cz(rows,cols) = PDE_out.ODE.Cz(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
             else % pde state; place in Dzr and simutaneously find Crp/Drb
                 rrows = rpartition(k):rpartition(k+1)-1;
                 maxder = pdetab((tmpterm.x==pdeID),4); % max derivative of the current PDE term
@@ -213,11 +232,13 @@ for i=1:length(z)
         elseif isfield(tmpterm,'w') % dist term; place in Dzw
             cols = find(tmpterm.w==PDE.w_tab(:,1));
             cols = wpartition(cols):wpartition(cols+1)-1;
-            PDE_out.ODE.Dzw(rows,cols) = tmpterm.C;
+%           PDE_out.ODE.Dzw(rows,cols) = tmpterm.C;                         % MMP, 11/05/2026 (was)
+            PDE_out.ODE.Dzw(rows,cols) = PDE_out.ODE.Dzw(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
         else % control term; place in Dzu
             cols = find(tmpterm.u==PDE.u_tab(:,1));
             cols = upartition(cols):upartition(cols+1)-1;
-            PDE_out.ODE.Dzu(rows,cols) = tmpterm.C;
+%           PDE_out.ODE.Dzu(rows,cols) = tmpterm.C;                         % MMP, 11/05/2026 (was)
+            PDE_out.ODE.Dzu(rows,cols) = PDE_out.ODE.Dzu(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
         end
     end
 end
@@ -231,7 +252,8 @@ for i=1:length(y)
             if ismember(tmpterm.x,odeID) % ode state; place in Cy
                 cols = find(tmpterm.x==odetab(:,1));
                 cols = xpartition(cols):xpartition(cols+1)-1;
-                PDE_out.ODE.Cy(rows,cols) = tmpterm.C;
+%               PDE_out.ODE.Cy(rows,cols) = tmpterm.C;                      % MMP, 11/05/2026 (was)
+                PDE_out.ODE.Cy(rows,cols) = PDE_out.ODE.Cy(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
             else % pde state; place in Dyr and simutaneously find Crp/Drb
                 rrows = rpartition(k):rpartition(k+1)-1;
                 maxder = pdetab((tmpterm.x==pdeID),4); % max derivative of the current PDE term
@@ -261,11 +283,13 @@ for i=1:length(y)
         elseif isfield(tmpterm,'w') % dist term; place in Dyw
             cols = find(tmpterm.w==PDE.w_tab(:,1));
             cols = wpartition(cols):wpartition(cols+1)-1;
-            PDE_out.ODE.Dyw(rows,cols) = tmpterm.C;
+%           PDE_out.ODE.Dyw(rows,cols) = tmpterm.C;                         % MMP, 11/05/2026 (was)
+            PDE_out.ODE.Dyw(rows,cols) = PDE_out.ODE.Dyw(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
         else % control term; place in Dyu
             cols = find(tmpterm.u==PDE.u_tab(:,1));
             cols = upartition(cols):upartition(cols+1)-1;
-            PDE_out.ODE.Dyu(rows,cols) = tmpterm.C;
+%           PDE_out.ODE.Dyu(rows,cols) = tmpterm.C;                         % MMP, 11/05/2026 (was)
+            PDE_out.ODE.Dyu(rows,cols) = PDE_out.ODE.Dyu(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
         end
     end
 end
@@ -279,7 +303,8 @@ for i=1:length(x)
                 if ismember(tmpterm.x,odeID) % ode state; place in A
                     cols = find(tmpterm.x==odetab(:,1));
                     cols = xpartition(cols):xpartition(cols+1)-1;
-                    PDE_out.ODE.A(rows,cols) = tmpterm.C;
+%                   PDE_out.ODE.A(rows,cols) = tmpterm.C;                   % MMP, 11/05/2026 (was)
+                    PDE_out.ODE.A(rows,cols) = PDE_out.ODE.A(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
                 else % pde state; place in Br and simutaneously find Crp/Drb
                     rrows = rpartition(k):rpartition(k+1)-1;
                     maxder = pdetab((tmpterm.x==pdeID),4); % max derivative of the current PDE term
@@ -309,11 +334,13 @@ for i=1:length(x)
             elseif isfield(tmpterm,'w') % dist term; place in Bxw
                 cols = find(tmpterm.w==PDE.w_tab(:,1));
                 cols = wpartition(cols):wpartition(cols+1)-1;
-                PDE_out.ODE.Bxw(rows,cols) = tmpterm.C;
+%               PDE_out.ODE.Bxw(rows,cols) = tmpterm.C;                     % MMP, 11/05/2026 (was)
+                PDE_out.ODE.Bxw(rows,cols) = PDE_out.ODE.Bxw(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
             else % control term; place in Bxu
                 cols = find(tmpterm.u==PDE.u_tab(:,1));
                 cols = upartition(cols):upartition(cols+1)-1;
-                PDE_out.ODE.Bxu(rows,cols) = tmpterm.C;
+%               PDE_out.ODE.Bxu(rows,cols) = tmpterm.C;                     % MMP, 11/05/2026 (was)
+                PDE_out.ODE.Bxu(rows,cols) = PDE_out.ODE.Bxu(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
             end
         end
     end
@@ -374,7 +401,8 @@ for i=1:length(x)
                     else% R0 term
                         loc = (lstate)*np_all_derivatives + sum(N:-1:N-der+1) + rstate + 1;
                     end
-                    PDE_out.PDE.A{loc}.coeff(rows,cols) = tmpterm.C;
+%                   PDE_out.PDE.A{loc}.coeff(rows,cols) = tmpterm.C;        % MMP, 11/05/2026 (was)
+                    PDE_out.PDE.A{loc}.coeff(rows,cols) = PDE_out.PDE.A{loc}.coeff(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
                 else % boundary add to Bpb
                     if ~isfield(tmpterm,'D')
                         tmpterm.D = 0;
@@ -382,7 +410,8 @@ for i=1:length(x)
                     der = tmpterm.D;
                     deltaval = (double(tmpterm.loc(1))==dom(2));    % 0 if lower boundary, 1 if upper boundary
                     loc = lstate*(2*np_all_derivatives-2*(N+1)) + deltaval*(np_all_derivatives-N-1) + sum(N-1:-1:N-der) + rstate;
-                    PDE_out.PDE.Bpb{loc}.coeff(rows,cols) = tmpterm.C;
+%                   PDE_out.PDE.Bpb{loc}.coeff(rows,cols) = tmpterm.C;      % MMP, 11/05/2026 (was)
+                    PDE_out.PDE.Bpb{loc}.coeff(rows,cols) = PDE_out.PDE.Bpb{loc}.coeff(rows,cols) + tmpterm.C;  % MMP, 11/05/2026
                 end
             end
         end
@@ -428,7 +457,8 @@ for i=1:length(BC)
                 end
                 der = tmpterm.D; % derivative order of current term
                 loc=sum(N:-1:N-der+1) + rstate + 1;
-                PDE_out.BC.Ebp{loc}.coeff(rows,rcols) = -tmpterm.C;
+%               PDE_out.BC.Ebp{loc}.coeff(rows,rcols) = -tmpterm.C;         % MMP, 11/05/2026 (was)
+                PDE_out.BC.Ebp{loc}.coeff(rows,rcols) = PDE_out.BC.Ebp{loc}.coeff(rows,rcols) - tmpterm.C;  % MMP, 11/05/2026
             else % boundary value, add to Ebb
                 if ~isfield(tmpterm,'D')
                     tmpterm.D = 0;
@@ -436,7 +466,8 @@ for i=1:length(BC)
                 der = tmpterm.D;
                 deltaval = (double(tmpterm.loc(1))==dom(2));    % 0 if lower boundary, 1 if upper boundary
                 loc=deltaval*(np_all_derivatives-N-1) + sum(N-1:-1:N-der) + rstate;
-                PDE_out.BC.Ebb{loc}.coeff(rows,rcols) = tmpterm.C;
+%               PDE_out.BC.Ebb{loc}.coeff(rows,rcols) = tmpterm.C;          % MMP, 11/05/2026 (was)
+                PDE_out.BC.Ebb{loc}.coeff(rows,rcols) = PDE_out.BC.Ebb{loc}.coeff(rows,rcols) + tmpterm.C;  % MMP, 11/05/2026
             end
         end
     end
@@ -452,3 +483,27 @@ if strcmp(PIE,'Singular B_T: A PIE representation of this PDE may not exist')
 end
 
 end
+
+
+% % % BEGIN MMP, 11/05/2026: new local function TERMS_VARS (header entry)
+function tc = terms_vars(tc,vold,vnew)
+% TC = TERMS_VARS(TC,VOLD,VNEW) rewrites the 'polynomial' coefficients C of
+% the terms of the equations in TC from the variables VOLD in VNEW.
+% INPUT  tc:    cell of equations of a 1-D 'pde_struct' (PDE.x, PDE.z,
+%               PDE.y or PDE.BC), each a struct with a cell 'term' of
+%               structs with a field C;
+%        vold:  1 x 2 'polynomial', [primary, dummy] variable of the PDE;
+%        vnew:  1 x 2 'polynomial', [s1, s1_dum].
+% OUTPUT tc:    TC with every C in VNEW. Limits I and locations loc are left
+%               as they are: the converter only tests them for being numeric.
+for i = 1:numel(tc)
+    if ~isfield(tc{i},'term'),  continue,   end
+    for j = 1:numel(tc{i}.term)
+        C = tc{i}.term{j}.C;
+        if isa(C,'polynomial')
+            tc{i}.term{j}.C = subs(subs(C,vold(1),vnew(1)),vold(2),vnew(2));
+        end
+    end
+end
+end
+% % % END MMP, 11/05/2026
