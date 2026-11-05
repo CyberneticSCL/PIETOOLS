@@ -15,13 +15,19 @@
 #                 pass, 5 min F4; worst case set by the caps about 3.3 h)
 # Each step is one MATLAB process with a time cap. Create the file STOP in this
 # folder to skip the steps that have not started. Log: runs_phase0.log.
+# MMP, 11/05/2026: DEMO11 is DEMO11_2DControl, which replaced
+#                  DEMO11_CdopvarControl in 36f50e26 (same LPI; B2 -> Bu and
+#                  the variables from PIE.space). The F4 comparison pairs
+#                  passes by file name, so passes 1-4 have no partner for it.
 P0W="C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/baselines/2026-11-02_opvar_phase0"
 LOG="$P0W/runs_phase0.log"
 NOWAIT="$2"
 mkdir -p "$P0W/logs"
+# DEMO11 renamed; the third line of DEMOS was                               # MMP, 11/05/2026
+#      DEMO7_observer_based_control DEMO8_H2norm DEMO9_L2_gain_analysis DEMO10_PBC DEMO11_CdopvarControl" # MMP, 11/05/2026 (was)
 DEMOS="DEMO1_stability_and_simulation DEMO2_volterra_operator_norm DEMO3_poincare_inequality
        DEMO4_stability_parameter_bisection DEMO5_Hinf_optimal_estimator DEMO6_Hinf_optimal_control
-       DEMO7_observer_based_control DEMO8_H2norm DEMO9_L2_gain_analysis DEMO10_PBC DEMO11_CdopvarControl"
+       DEMO7_observer_based_control DEMO8_H2norm DEMO9_L2_gain_analysis DEMO10_PBC DEMO11_2DControl"
 step() {   # name, cap in seconds, MATLAB command
   if [ -f "$P0W/STOP" ]; then echo "$(date '+%F %T') STOP present: $1 not run" >> "$LOG"; return; fi
   echo "$(date '+%F %T') start $1 (cap $2 s, P0_ROOT $P0_ROOT): $3" >> "$LOG"
