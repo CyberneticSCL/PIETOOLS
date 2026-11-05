@@ -11,6 +11,17 @@ close all; clc; clear; clear stateNameGenerator
 
 % This program determines stability, hinf-norm and designs hinf-optimal
 % observer of a linear coupled ODE-PDE which is defined in the format given below.
+%
+% MMP, 11/04/2026: Step 4 sizes the initial conditions from PIE.space.x,
+%                   the size and spatial dependence of each PIE state
+%                   component. It read the sizes of PIE.T.P and R.R0 (1-D),
+%                   R00, Rxx, Ryy and R22 (2-D), fields of opvar and
+%                   opvar2d. PIE.T is a copvar, without these fields, for
+%                   every PDE format except the legacy terms format, so
+%                   Step 4 stopped on all other formats. The legacy format
+%                   returns an uninitialized PIE (opvar operators,
+%                   PIE.space empty): a copy is initialized first, as
+%                   PIESIM does, and PIE itself is unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,15 +106,27 @@ opts.tf=10;
 opts.dt = 0.05;
 opts.plot='yes';
 % Declare initial conditions for PIE state
+% Component sizes and spatial dependence of the PIE state, from PIE.space;  % MMP, 11/04/2026
+% a copvar T has no fields P, R.R0 (opvar), R00, Rxx, Ryy, R22 (opvar2d).   % MMP, 11/04/2026
+% The legacy terms format returns an uninitialized PIE (opvar operators,    % MMP, 11/04/2026
+% no PIE.space); a copy is initialized, as PIESIM does, and PIE is kept.    % MMP, 11/04/2026
+PIE_init = PIE;                                                             % MMP, 11/04/2026
+if ~PIE_init.is_initialized,    PIE_init = initialize(PIE_init);    end     % MMP, 11/04/2026
+xdims = PIE_init.space.x.dims;  xdep = PIE_init.space.x.depmat;             % MMP, 11/04/2026
 if PIE.dim<=1
     syms sx
-    uinput.ic = [ones(1,size(PIE.T.P,1)),ones(1,size(PIE.T.R.R0,1))*sin(sym(pi)*sx)];
+%   uinput.ic = [ones(1,size(PIE.T.P,1)),ones(1,size(PIE.T.R.R0,1))*sin(sym(pi)*sx)];  % MMP, 11/04/2026 (was)
+    uinput.ic = [ones(1,sum(xdims(~any(xdep,2)))),ones(1,sum(xdims(any(xdep,2))))*sin(sym(pi)*sx)];  % MMP, 11/04/2026
 else
     syms sx sy
-    uinput.ic = ones(1,size(PIE.T.R00,1));
-    uinput.ic = [uinput.ic,ones(1,size(PIE.T.Rxx{1},1))*sin(sym(pi)*sx)];
-    uinput.ic = [uinput.ic,ones(1,size(PIE.T.Ryy{1},1))*sin(sym(pi)*sy)];
-    uinput.ic = [uinput.ic,ones(1,size(PIE.T.R22{1},1))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];
+%   uinput.ic = ones(1,size(PIE.T.R00,1));                                  % MMP, 11/04/2026 (was)
+%   uinput.ic = [uinput.ic,ones(1,size(PIE.T.Rxx{1},1))*sin(sym(pi)*sx)];   % MMP, 11/04/2026 (was)
+%   uinput.ic = [uinput.ic,ones(1,size(PIE.T.Ryy{1},1))*sin(sym(pi)*sy)];   % MMP, 11/04/2026 (was)
+%   uinput.ic = [uinput.ic,ones(1,size(PIE.T.R22{1},1))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];  % MMP, 11/04/2026 (was)
+    uinput.ic = ones(1,sum(xdims(~any(xdep,2))));                           % MMP, 11/04/2026
+    uinput.ic = [uinput.ic,ones(1,sum(xdims(xdep(:,1) & ~xdep(:,2))))*sin(sym(pi)*sx)];  % MMP, 11/04/2026
+    uinput.ic = [uinput.ic,ones(1,sum(xdims(~xdep(:,1) & xdep(:,2))))*sin(sym(pi)*sy)];  % MMP, 11/04/2026
+    uinput.ic = [uinput.ic,ones(1,sum(xdims(xdep(:,1) & xdep(:,2))))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];  % MMP, 11/04/2026
 end
 
 if ~exist('PIE_CL','var')
