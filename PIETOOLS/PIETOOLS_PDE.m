@@ -31,6 +31,12 @@ close all; clc; clear; clear stateNameGenerator
 %                   a format PIESIM no longer reads; uinput.ic is one
 %                   vector (Step 4), and the zeros now follow each kind of
 %                   space in it.
+% MMP, 11/05/2026: For PIESIM(PDE,...), Step 4 lays the initial conditions
+%                   out in the order of PDE.x_tab, the order in which
+%                   PIESIM reads them for a pde_struct. By kind, a state
+%                   declared after one of another kind received the entry
+%                   of that kind; PIESIM 2-D library examples 19 and 20
+%                   stopped.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -155,6 +161,22 @@ else
     uinput.ic = [uinput.ic,ones(1,sum(xdims(~xdep(:,1) & xdep(:,2))))*sin(sym(pi)*sy)];  % MMP, 11/04/2026
     uinput.ic = [uinput.ic,ones(1,sum(xdims(xdep(:,1) & xdep(:,2))))*sin(sym(pi)*sx)*sin(sym(pi)*sy)];  % MMP, 11/04/2026
 end
+% PIESIM(PDE,...) below reads one entry per scalar state component of the   % MMP, 11/05/2026
+% PDE, in the order of PDE.x_tab. Laid out by kind, an entry reached a state  % MMP, 11/05/2026
+% of another kind unless the states were declared by kind. The same entries % MMP, 11/05/2026
+% in x_tab order: size in column 2, dependence on each variable in columns  % MMP, 11/05/2026
+% 3:2+dim. The other PDE formats list the R states first, and the PIE paths % MMP, 11/05/2026
+% read by kind, so they keep the layout above.                              % MMP, 11/05/2026
+if isa(PDE,'pde_struct') && ~exist('PIE_CL','var')                          % MMP, 11/05/2026
+    PDE_init = PDE;                                                         % MMP, 11/05/2026
+    if ~PDE_init.is_initialized,    PDE_init = initialize(PDE_init,true);   end  % MMP, 11/05/2026
+    syms sx sy                                                              % MMP, 11/05/2026
+    % The entry of each kind 1-4: R, L2[s1], L2[s2], L2[s1,s2]              % MMP, 11/05/2026
+    ic_kind = [sym(1),sin(sym(pi)*sx),sin(sym(pi)*sy),sin(sym(pi)*sx)*sin(sym(pi)*sy)];  % MMP, 11/05/2026
+    nd = min(PDE_init.dim,2);   dep = false(size(PDE_init.x_tab,1),2);      % MMP, 11/05/2026
+    dep(:,1:nd) = PDE_init.x_tab(:,3:2+nd)~=0;                              % MMP, 11/05/2026
+    uinput.ic = ic_kind(repelem(1+dep(:,1)+2*dep(:,2),PDE_init.x_tab(:,2)));  % MMP, 11/05/2026
+end                                                                         % MMP, 11/05/2026
 
 if ~exist('PIE_CL','var')
     % Simulate the open-loop PDE solution in PDE representation
