@@ -20,8 +20,13 @@ function [PDE_t,PDE_b] = PIETOOLS_PDE_Ex_Heat_Eq_with_Distributed_Disturbance(GU
 % %             x_{s}(s=1) = 0
 % % And Output  z(t) = int(x(t,s),s,0,1)
 % %
-% % gamma = 0.3333.
+% % gamma = 0.3333.                                                         % MMP, 11/05/2026 (was)
+% % gamma = 0.2083 (= 5/24, attained at frequency 0).                       % MMP, 11/05/2026
 % %---------------------------------------------------------------------% %
+
+% MMP, 11/05/2026: gamma was stated as 0.3333, the gain of x_t = x_ss + w.
+%   With s*w the gain at frequency 0 is int_0^1 x(s) ds = 5/24 for the
+%   steady state x = s/2 - s^3/6, and the H-infinity LPI returns 0.20847.
 
 % Determine the location of this example file <-- DO NOT MOVE THE FILE
 loc = mfilename('fullpath');
