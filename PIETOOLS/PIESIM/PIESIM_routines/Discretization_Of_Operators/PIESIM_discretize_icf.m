@@ -24,6 +24,10 @@
 % through parser 
 % YP, 1/7/2026 - changed the notaiton of ic.PDE to ic.PIE for PIE simulation
 % YP, 2/17/2026: Changed all initial conditions to uinput.ic format
+% MMP, 11/05/2026: No non-polynomial forcing without disturbances (nw=0).
+%   The batch and legacy terms input checks set nw=0 when uinput.w is not
+%   given but keep uinput.Bpw_nonpol with its nw columns, so the sum
+%   Dop.B1cheb+B1_nonpol in PIESIM_discretize_all failed (incompatible sizes).
 
 function [coeff,B1_nonpol]=PIESIM_discretize_icf(uinput,psize,gridall);
 
@@ -75,7 +79,10 @@ coeff.acheb_f0=acheb_f0;
 
 % Discretize matrix operator for non-polyn0mial in space forcing
 
-if isfield(uinput,'Bpw_nonpol') 
+% Bpw_nonpol multiplies w, so nw=0 means no forcing; the batch and legacy   % MMP, 11/05/2026
+% terms input checks set nw=0 without uinput.w but keep Bpw_nonpol.         % MMP, 11/05/2026
+% if isfield(uinput,'Bpw_nonpol')                                           % MMP, 11/05/2026 (was)
+if isfield(uinput,'Bpw_nonpol') && nw>0                                     % MMP, 11/05/2026
 B1_nonpol = PIESIM_NonPoly2Mat_cheb(N, uinput.Bpw_nonpol, p, gridall);
 else
 B1_nonpol=[];   
