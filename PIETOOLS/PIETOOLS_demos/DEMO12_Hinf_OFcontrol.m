@@ -18,8 +18,10 @@
 % that minimizes a bound gam on the L2-gain from w to z of the closed loop.
 % The controller operators are recovered from the solution of the LPI in PIETOOLS_Hinf_OFcontrol_sop.
 %    Then, we
-%  - certify the H-infinity norm of the closed loop with the analysis
+%  - bound the H-infinity norm of the closed loop with the analysis
 %    executive PIETOOLS_Hinf_gain_sop, applied to the PIE of the closed loop,
+%    and report the bound only when the solver certifies it and it is not
+%    below the numerical gain of the closed loop,
 %  - compare gam with the finite-dimensional H-infinity optimal controllers
 %    (hinfsyn) for finite-difference discretizations of the PDE.
 
@@ -48,6 +50,14 @@
 % authorship, and a brief description of modifications
 %
 % Initial coding: DB 10/31/2026, based on formulation of Jungbae Chun.
+% MMP 11/05/2026: A bound is printed only when certified: gam when
+%                 INFO.certified; the closed-loop bound when INFO.certified
+%                 and not below the numerical gain (the witness, no longer
+%                 switched off). The closed-loop LPI stalls (relres 1.6e-5),
+%                 MOSEK reports the stalled point as optimal, and its value
+%                 5.6129 was below the closed-loop gain 5.6150. hinfsyn at
+%                 RelTol 1e-7: the default 1e-2 returned gamma up to 1% above
+%                 the optimum, which put it above the certified PIE bound.
 
 clear; clc; clear stateNameGenerator
 
@@ -72,7 +82,12 @@ PIE = convert(PDE,'pie');
 % small: the free operators Q and U rescale R and V.
 settings = lpisettings('light');
 settings.eppos = 1e-7;      settings.eppos2 = 1e-7;
-[prog,Kc,gam] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings);
+% [prog,Kc,gam] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings);                % MMP, 11/05/2026 (was)
+[prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings);             % MMP, 11/05/2026
+% gam is a bound only when the solver certified it                          % MMP, 11/05/2026
+if ~info.certified                                                          % MMP, 11/05/2026
+    error('The synthesis LPI certifies no bound (status %s).',info.status); % MMP, 11/05/2026
+end                                                                         % MMP, 11/05/2026
 fprintf('\nThe LPI certifies a closed-loop H-infinity bound gam = %.4f.\n',gam);
 
 %% Certify the H-infinity norm of the closed loop
@@ -85,9 +100,19 @@ PIEcl = closedLoopPIE(PIE,Kc,'dynamic');
 settings_an = lpisettings('light');
 settings_an.dd1 = {4,[6 6 6],[6 6 6]};
 settings_an.eppos = 1e-6;   settings_an.eppos2 = 1e-6;
-settings_an.sop.witness = false;
-[~,~,gam_cl] = PIETOOLS_Hinf_gain_sop(PIEcl,settings_an,'Q');
-fprintf('The H-infinity norm of the closed loop is bounded by %.4f.\n',gam_cl);
+% settings_an.sop.witness = false;                                          % MMP, 11/05/2026 (was)
+% [~,~,gam_cl] = PIETOOLS_Hinf_gain_sop(PIEcl,settings_an,'Q');             % MMP, 11/05/2026 (was)
+% fprintf('The H-infinity norm of the closed loop is bounded by %.4f.\n',gam_cl); % MMP, 11/05/2026 (was)
+% The witness (on by default) is the gain of the discretized closed loop, a % MMP, 11/05/2026
+% lower bound on it: a value below it is no bound, whatever the status      % MMP, 11/05/2026
+[~,~,gam_cl,info_cl] = PIETOOLS_Hinf_gain_sop(PIEcl,settings_an,'Q');       % MMP, 11/05/2026
+cert_cl = info_cl.certified && ~(info_cl.gap<0);                            % MMP, 11/05/2026
+if cert_cl                                                                  % MMP, 11/05/2026
+    fprintf('The H-infinity norm of the closed loop is bounded by %.4f.\n',gam_cl); % MMP, 11/05/2026
+else                                                                        % MMP, 11/05/2026
+    fprintf(['The analysis LPI certifies no bound on the closed loop (status %s, value %.4f;\n' ...
+             'numerical closed-loop gain %.4f).\n'],info_cl.status,gam_cl,info_cl.gain_lb); % MMP, 11/05/2026
+end                                                                         % MMP, 11/05/2026
 
 %% Compare with the finite-dimensional baseline 
 % If Robust Control Toolbox available, discretize the PDE by finite differences on N+1 grid points, and synthesize
@@ -102,9 +127,13 @@ if exist('hinfsyn','file')
         C1N = [h*ones(1,N-1); zeros(1,N-1)];    C2N = h*ones(1,N-1);
         D11N = zeros(2,2);  D12N = [0; 1];      D21N = [0 1];   D22N = 0;
         PN = ss(AN,[B1N B2N],[C1N; C2N],[D11N D12N; D21N D22N]);
-        [~,~,gam_N(k)] = hinfsyn(PN,1,1);
+%       [~,~,gam_N(k)] = hinfsyn(PN,1,1);                                   % MMP, 11/05/2026 (was)
+        % RelTol 1e-7: the default 1e-2 returns gamma up to 1% above the optimum % MMP, 11/05/2026
+        [~,~,gam_N(k)] = hinfsyn(PN,1,1,hinfsynOptions('RelTol',1e-7));     % MMP, 11/05/2026
     end
     fprintf('\nBaseline: finite-difference discretization and hinfsyn\n');
     for k = 1:numel(Nlist),     fprintf('  N = %3d:  gamma = %.4f\n',Nlist(k),gam_N(k));     end
-    fprintf('PIE:  gam (LPI) = %.4f, closed-loop norm bound = %.4f\n',gam,gam_cl);
+%   fprintf('PIE:  gam (LPI) = %.4f, closed-loop norm bound = %.4f\n',gam,gam_cl); % MMP, 11/05/2026 (was)
+    fprintf('PIE:  gam (LPI) = %.4f\n',gam);                                % MMP, 11/05/2026
+    if cert_cl,     fprintf('      closed-loop norm bound = %.4f\n',gam_cl);    end % MMP, 11/05/2026
 end
