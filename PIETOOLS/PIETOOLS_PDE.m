@@ -22,6 +22,15 @@ close all; clc; clear; clear stateNameGenerator
 %                   returns an uninitialized PIE (opvar operators,
 %                   PIE.space empty): a copy is initialized first, as
 %                   PIESIM does, and PIE itself is unchanged.
+% MMP, 11/05/2026: Step 3 names the container executives (PIETOOLS_*_sop),
+%                   lpiscript_sop, PIETOOLS_auto_execute_sop and
+%                   lpisettings_sop: the stock executives stop on the
+%                   copvar PIEs the converters return. With an estimator,
+%                   the closed-loop simulation appended the zero initial
+%                   estimate to uinput.ic.ODE and uinput.ic.PDE, fields of
+%                   a format PIESIM no longer reads; uinput.ic is one
+%                   vector (Step 4), and the zeros now follow each kind of
+%                   space in it.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,7 +75,8 @@ PIE = convert_PIETOOLS_PDE(PDE);
 
 % % --- Specify settings ---
 %settings = settings_PIETOOLS_heavy;
-settings = lpisettings('heavy');
+% settings = lpisettings('heavy');                                          % MMP, 11/05/2026 (was)
+settings = lpisettings_sop('heavy');  % tiers of the container executives   % MMP, 11/05/2026
 settings.eppos = 1e-2;                % Positivity of Lyapunov Function with respect to real-valued states
 settings.eppos2 = 1*1e-6;             % Positivity of Lyapunov Function with respect to spatially distributed states
 settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Function in both ODE and PDE state -  >0 if exponential stability desired
@@ -75,20 +85,37 @@ settings.epneg = 0;                   % Negativity of Derivative of Lyapunov Fun
 settings.sos_opts.solver='sedumi';  % one of 'sedumi', 'mosek', 'sdpnalplus', or 'sdpt3'
 
 % % --- Prompt for settings and choose executive automatically based on the example ---
-% PIETOOLS_auto_execute
+% PIETOOLS_auto_execute                                                     % MMP, 11/05/2026 (was)
+% PIETOOLS_auto_execute_sop                                                 % MMP, 11/05/2026
 
 % % --- Manually run desired executives ---
-% [prog,P] = lpiscript(PIE,'hinf-observer',settings);
-% [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);
-% [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);
-% [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);
-% [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);
-% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);
-% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings);
-% [prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);
-% [prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);
-% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control(PIE,settings);
-% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator(PIE,settings);
+% The container executives (PIETOOLS_*_sop) take the copvar PIE that        % MMP, 11/05/2026
+% convert_PIETOOLS_PDE returns; the stock executives stop on it. Each       % MMP, 11/05/2026
+% returns the outputs of the stock executive in the same order, then an     % MMP, 11/05/2026
+% info struct; the third argument is the form ('Q', 'Qd': PIE2PDE forms;    % MMP, 11/05/2026
+% 'o', 'c': observability and controllability H2 norms).                    % MMP, 11/05/2026
+% [prog,P] = lpiscript(PIE,'hinf-observer',settings);                       % MMP, 11/05/2026 (was)
+% [prog,P] = lpiscript_sop(PIE,'hinf-observer',settings);                   % MMP, 11/05/2026
+% [prog, P] = PIETOOLS_PIE2PDEstability(PIE,settings);                      % MMP, 11/05/2026 (was)
+% [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Q');                     % MMP, 11/05/2026
+% [prog, P] = PIETOOLS_PIE2PDEstability_dual(PIE,settings);                 % MMP, 11/05/2026 (was)
+% [prog, P] = PIETOOLS_stability_sop(PIE,settings,'Qd');                    % MMP, 11/05/2026
+% [prog, P, gamma] = PIETOOLS_Hinf_gain(PIE,settings);                      % MMP, 11/05/2026 (was)
+% [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Q');              % MMP, 11/05/2026
+% [prog, P, gamma] = PIETOOLS_Hinf_gain_dual(PIE,settings);                 % MMP, 11/05/2026 (was)
+% [prog, P, gamma] = PIETOOLS_Hinf_gain_sop(PIE,settings,'Qd');             % MMP, 11/05/2026
+% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control(PIE,settings);     % MMP, 11/05/2026 (was)
+% [prog, K_control, gamma, P, Z] = PIETOOLS_Hinf_control_sop(PIE,settings); % MMP, 11/05/2026
+% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator(PIE,settings); % MMP, 11/05/2026 (was)
+% [prog, L_estimator, gamma, P, Z] = PIETOOLS_Hinf_estimator_sop(PIE,settings);  % MMP, 11/05/2026
+% [prog, Wo, gamma] = PIETOOLS_H2_norm_o(PIE,settings);                     % MMP, 11/05/2026 (was)
+% [prog, Wo, gamma] = PIETOOLS_H2_norm_sop(PIE,settings,'o');               % MMP, 11/05/2026
+% [prog, Wc, gamma] = PIETOOLS_H2_norm_c(PIE,settings);                     % MMP, 11/05/2026 (was)
+% [prog, Wc, gamma] = PIETOOLS_H2_norm_sop(PIE,settings,'c');               % MMP, 11/05/2026
+% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control(PIE,settings);    % MMP, 11/05/2026 (was)
+% [prog, K_control, gamma, P, Z, W] = PIETOOLS_H2_control_sop(PIE,settings);  % MMP, 11/05/2026
+% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator(PIE,settings);  % MMP, 11/05/2026 (was)
+% [prog, L_estimator, gamma, P, Z, W] = PIETOOLS_H2_estimator_sop(PIE,settings);  % MMP, 11/05/2026
 
 % % Construct the closed-loop PIE representation, if applicable
 if exist('K_control','var')
@@ -207,8 +234,15 @@ if exist('PIE_CL','var')
     % applicable
     if exist('L_estimator','var')
         % Set initial estimate of state to 0.
-        uinput.ic.ODE = [uinput.ic.ODE,0*uinput.ic.ODE];
-        uinput.ic.PDE = [uinput.ic.PDE,0*uinput.ic.PDE];
+%       uinput.ic.ODE = [uinput.ic.ODE,0*uinput.ic.ODE];                    % MMP, 11/05/2026 (was)
+%       uinput.ic.PDE = [uinput.ic.PDE,0*uinput.ic.PDE];                    % MMP, 11/05/2026 (was)
+        % uinput.ic is one vector, the kinds of space in turn (Step 4); in  % MMP, 11/05/2026
+        % each kind the closed-loop state [x;xhat] has x, then xhat.        % MMP, 11/05/2026
+        kinds = 1 + any(xdep,2);                            % R, L2         % MMP, 11/05/2026
+        if PIE.dim>1,   kinds = 1 + xdep(:,1) + 2*xdep(:,2);    end         % MMP, 11/05/2026
+        ick = mat2cell(uinput.ic,1,accumarray(kinds,xdims,[2+2*(PIE.dim>1),1])');  % MMP, 11/05/2026
+        uinput.ic = [ick; cellfun(@(c) 0*c,ick,'UniformOutput',false)];     % MMP, 11/05/2026
+        uinput.ic = [uinput.ic{:}];                                         % MMP, 11/05/2026
     end
 
     % Simulate the closed-loop response
