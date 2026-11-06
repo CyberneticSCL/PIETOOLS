@@ -103,6 +103,7 @@ function disp_struct = get_display(Rop,name,expand)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_blocks = 6;         % maximal number of blocks defined as the actual operators
@@ -119,9 +120,8 @@ if nargin<3
 end
 [p,d] = size(Rop.ops);
 
-sub_dig = char(8320 + (0:9));
+[~,sub_dig,sup_dig] = varname2display('0123456789');        % subscript and superscript digits
 sub_str = @(n) sub_dig(sprintf('%d',n)-'0'+1);
-sup_dig = char([8304,185,178,179,8308:8313]);         % superscript digits 0,...,9
 sup_str = @(n) sup_dig(sprintf('%d',n)-'0'+1);
 L2_sym = ['L',sub_str(2)];                              % L_2
 

@@ -71,6 +71,7 @@ function display(Kop,name,width_max,call_name)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -110,7 +111,8 @@ if disp_struct.use_K
     if isscalar(Kop.params)
         fprintf('\n  Call "%s.kernels{1}" to extract kernel K.\n',call_name);
     else
-        fprintf('\n  Call "%s.kernels{i}" to extract kernel K%s.\n',call_name,char(7522));
+        [~,sub_i] = varname2display('i');
+        fprintf('\n  Call "%s.kernels{i}" to extract kernel K%s.\n',call_name,sub_i);
     end
 end
 fprintf('\n');

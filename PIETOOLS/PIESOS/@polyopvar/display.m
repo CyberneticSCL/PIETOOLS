@@ -81,6 +81,7 @@ function display(P,name,width_max,expand)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -131,7 +132,6 @@ if is_state
     return
 end
 
-sub_dig = char(8320 + (0:9));
 row_disp = get_display(P,expand);
 fprintf('\n');
 use_C = false;
@@ -140,7 +140,8 @@ for i=1:nr
     % depends on
     poly_name = name;
     if nr>1
-        poly_name = [poly_name,sub_dig(sprintf('%d',i)-'0'+1)];
+        [~,sub_i] = varname2display(sprintf('%d',i));
+        poly_name = [poly_name,sub_i];
     end
     if ~isempty(row_disp(i).states)
         poly_name = [poly_name,'(',strjoin(row_disp(i).states,','),')'];
@@ -155,8 +156,8 @@ fprintf('\n');
 
 if use_C
     op_name = 'C';
-    if nr>1,    op_name = [op_name,char(7522)];   end         % subscript i
-    if nZ>1,    op_name = [op_name,char(11388)];  end         % subscript j
+    if nr>1,    [~,sub_i] = varname2display('i');   op_name = [op_name,sub_i];  end         % subscript i
+    if nZ>1,    [~,sub_j] = varname2display('j');   op_name = [op_name,sub_j];  end         % subscript j
     if nr>1,    iname = 'i';    else,   iname = '1';    end
     if nZ>1,    jname = 'j';    else,   jname = '1';    end
     fprintf('  Call "%s.C{%s,%s}" to extract operator %s acting on monomial %s.\n\n',call_name,iname,jname,op_name,jname);

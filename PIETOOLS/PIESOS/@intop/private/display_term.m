@@ -73,6 +73,8 @@ function [term_str,term_sign,use_K] = display_term(Kop,sub_idcs,k,xsym)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the names of dummy variables, the limits, and the
+%                   subscripts from 'varname2display';
 
 % Default settings
 max_nnz = 4;            % maximal number of nonzero coefficients of a kernel
@@ -89,13 +91,7 @@ dum_pos = [0,cumsum(ncopies)];               % copies of variable i: dum_pos(i)+
 dom = Kop.dom.in;
 [m,n] = size(Kop);
 
-% The characters that can be displayed as subscript or superscript, as for
-% the display of a PDE: the digits 0,...,9, the minus and gamma
-plain_chars = ['0123456789-',char(947)];
-sub_chars = char([8320:8329,8331,7527]);
-sup_chars = char([8304,185,178,179,8308:8313,8315,7518]);
-
-dum_names = cell(1,ndum);      dum_names_plain = cell(1,ndum);
+dum_names = cell(1,ndum);
 
 % Resolve the multipliers: copy copy_idx along direction i is evaluated at the
 % integrated copy rep_idx(copy_idx), or at the boundary value
@@ -124,28 +120,23 @@ for i=1:nvars
         end
     end
 end
-% Names of the dummy variables: gamma, with the subscript k for the kth integrated
-% copy if there are multiple (the others are multipliers, evaluated at an
-% integrated copy). The plain names, with normal digits, are used for the limits
+% Names of the dummy variables, numbered by the kth integrated copy if there
+% are multiple (the others are multipliers, evaluated at an integrated copy)
+dum_vars = repelem(reshape(Kop.vars.in,1,[]),reshape(ncopies,1,[]));      % variable of each copy
 is_int = rep_idx==(1:ndum);
 nint = sum(is_int);
 for dum_idx=find(is_int)
-    dum_names{dum_idx} = char(947);       dum_names_plain{dum_idx} = char(947);
+    dum_names{dum_idx} = varname2display([dum_vars{dum_idx},'_dum']);
     if nint>1
-        int_rank = sum(is_int(1:dum_idx));
-        dum_names{dum_idx} = [char(947),sub_chars(sprintf('%d',int_rank)-'0'+1)];
-        dum_names_plain{dum_idx} = [char(947),sprintf('%d',int_rank)];
+        dum_names{dum_idx} = varname2display(sprintf('%s_dum%d',dum_vars{dum_idx},sum(is_int(1:dum_idx))));
     end
 end
 eff_names = dum_names;           % name or value that each copy is displayed as
-eff_names_plain = dum_names_plain;
 for dum_idx=1:ndum
     if rep_idx(dum_idx)==0
         eff_names{dum_idx} = sprintf('%g',rep_val(dum_idx));
-        eff_names_plain{dum_idx} = eff_names{dum_idx};
     else
         eff_names{dum_idx} = dum_names{rep_idx(dum_idx)};
-        eff_names_plain{dum_idx} = dum_names_plain{rep_idx(dum_idx)};
     end
 end
 
@@ -157,7 +148,7 @@ for i=1:nvars
     if ncopies(i)==0
         continue
     end
-    lim_names = [{sprintf('%g',dom(i,1))},eff_names_plain(dum_pos(i)+1:dum_pos(i+1)),{sprintf('%g',dom(i,2))}];
+    lim_names = [{sprintf('%g',dom(i,1))},eff_names(dum_pos(i)+1:dum_pos(i+1)),{sprintf('%g',dom(i,2))}];
     % Integrate over the variables that are not multipliers, ordered
     % inner to outer by get_int_order, using the index to break ties
     int_order = get_int_order(Kop.intmat{i}(sub_idcs(i),:));
@@ -167,25 +158,11 @@ for i=1:nvars
     nint_i = numel(int_copies);
     for j=1:nint_i
         copy_idx = int_copies(j);
-        % Display the limits as subscript and superscript, if they consist of
-        % integers and variables, and in braces otherwise (e.g. for 0.5), as
-        % for the display of a PDE. The lower limit precedes the integral
-        % symbol, the upper limit follows it. A dummy variable gamma
-        % is kept in an upper limit, which is a superscript, and in a lower
-        % limit, which is a subscript
-        lim_lo = lim_names{lim_lo_idx(copy_idx)+1};      lim_hi = lim_names{lim_hi_idx(copy_idx)+1};
-        [is_plain_lo,char_pos_lo] = ismember(lim_lo,plain_chars);
-        [is_plain_hi,char_pos_hi] = ismember(lim_hi,plain_chars);
-        if all(is_plain_lo)
-            lim_lo = sub_chars(char_pos_lo);
-        else
-            lim_lo = ['{',lim_names{lim_lo_idx(copy_idx)+1},'}_'];
-        end
-        if all(is_plain_hi)
-            lim_hi = sup_chars(char_pos_hi);
-        else
-            lim_hi = ['^{',lim_names{lim_hi_idx(copy_idx)+1},'}'];
-        end
+        % The limits as subscript and superscript, or in braces, see
+        % 'varname2display'. The lower limit precedes the integral symbol,
+        % the upper limit follows it
+        [~,lim_lo] = varname2display(lim_names{lim_lo_idx(copy_idx)+1});
+        [~,~,lim_hi] = varname2display(lim_names{lim_hi_idx(copy_idx)+1});
         int_strs{i}{nint_i+1-j} = [lim_lo,int_sym,lim_hi];
         diff_strs{i}{j} = ['d',dum_names{dum_pos(i)+copy_idx}];
     end
@@ -207,7 +184,7 @@ else
     if isscalar(Kop.params)
         kern_str = 'K';
     else
-        kern_str = ['K',sub_chars(sprintf('%d',k)-'0'+1)];
+        kern_str = varname2display(sprintf('K%d',k));
     end
     if nvars>0
         kern_str = [kern_str,'(',kern_args,')'];
@@ -262,7 +239,6 @@ ndum = numel(dum_names);
 ndvars = numel(Kop.Zd);
 [m,n] = size(Kop);
 [nmons,strides,nZ] = Zdims(Kop.Z.in);
-sup_dig = char([8304,185,178,179,8308:8313]);
 pm_chars = '+-';
 
 % Determine the degree of each term in each (merged) dummy variable
@@ -302,7 +278,8 @@ for t=1:numel(coef_sums)
     for g=find(mono_degs>0)
         mono_facs{end+1} = dum_names{g};                             %#ok<AGROW>
         if mono_degs(g)>1
-            mono_facs{end} = [dum_names{g},sup_dig(sprintf('%d',mono_degs(g))-'0'+1)];
+            [~,~,pow_str] = varname2display(sprintf('%d',mono_degs(g)));       % superscript
+            mono_facs{end} = [dum_names{g},pow_str];
         end
     end
     if dvar_t>1

@@ -84,6 +84,7 @@ function disp_struct = get_display(Rop,xnames,expand)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_ops = 3;            % maximal number of terms for which the operators R_ij are
@@ -111,7 +112,7 @@ if Rop.otype(2)==2
 else
     in_sym = ' = ';
 end
-sub_dig = char(8320 + (0:9));
+[~,sub_dig] = varname2display('0123456789');                 % subscript digits
 sub_str = @(n) sub_dig(sprintf('%d',n)-'0'+1);
 
 % Name of the input, x, unless this is also the name of a variable (ignoring a

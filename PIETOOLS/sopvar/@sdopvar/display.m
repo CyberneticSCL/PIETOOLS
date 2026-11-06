@@ -74,6 +74,7 @@ function display(P,name,width_max,call_name)
 % DJ, 11/06/2026: Initial coding;
 % DJ, 11/06/2026: Extract the kernels that are displayed by name with
 %                   'kernels', instead of the coefficients;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -107,7 +108,8 @@ if ~isempty(disp_struct.rows)
             lhs = ['(',lhs,')'];
         end
         if numel(disp_struct.rows)>1
-            lhs = [lhs,sprintf('%d',i)-'0'+8320];
+            [~,sub_i] = varname2display(sprintf('%d',i));
+            lhs = [lhs,sub_i];
         end
         if ~isempty(out_names)
             lhs = [lhs,'(',strjoin(out_names,','),')'];
@@ -131,7 +133,8 @@ if disp_struct.use_K
     if isscalar(P.params.A)
         fprintf('\n  Call "%s.kernels{1}" to extract kernel K.\n',call_name);
     else
-        fprintf('\n  Call "%s.kernels{i}" to extract kernel K%s.\n',call_name,char(7522));
+        [~,sub_i] = varname2display('i');
+        fprintf('\n  Call "%s.kernels{i}" to extract kernel K%s.\n',call_name,sub_i);
     end
 end
 fprintf('\n');

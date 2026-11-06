@@ -72,6 +72,7 @@ function row_disp = get_display(P,expand)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_terms = 6;          % maximal number of monomials and terms for which the operators
@@ -88,8 +89,7 @@ state_names = cellfun(@varname2display,reshape(P.varname,1,[]),'UniformOutput',f
 
 otimes_sym = [' ',char(8855),' '];
 pow_sym = char(7506);
-sub_dig = char(8320 + (0:9));
-sup_dig = char([8304,185,178,179,8308:8313]);
+[~,sub_dig,sup_dig] = varname2display('0123456789');        % subscript and superscript digits
 sub_str = @(n) sub_dig(sprintf('%d',n)-'0'+1);
 sup_str = @(n) sup_dig(sprintf('%d',n)-'0'+1);
 

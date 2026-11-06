@@ -86,6 +86,7 @@ function display(Rop,name,width_max,expand,call_name)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_factors = 4;        % maximal number of factors of x displayed; with more
@@ -174,10 +175,12 @@ end
 if ~disp_struct.expanded
     op_name = 'R';
     if K>1
-        op_name = [op_name,char(7522)];   % subscript i
+        [~,sub_i] = varname2display('i');
+        op_name = [op_name,sub_i];        % subscript i
     end
     if d>1
-        op_name = [op_name,char(11388)];  % subscript j
+        [~,sub_j] = varname2display('j');
+        op_name = [op_name,sub_j];        % subscript j
     end
     if K>1
         iname = 'i';

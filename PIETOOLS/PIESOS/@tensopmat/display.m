@@ -77,6 +77,7 @@ function display(Rop,name,width_max,expand)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -134,7 +135,8 @@ if disp_struct.is_id
         end
         lhs = [name,' ',disp_struct.xsym];
         if p>1
-            lhs = ['(',lhs,')',sprintf('%d',i)-'0'+8320];
+            [~,sub_i] = varname2display(sprintf('%d',i));
+            lhs = ['(',lhs,')',sub_i];
         end
         print_terms([lhs,args,' ='],{[disp_struct.xnames{i},args]},1,width_max);
     end
@@ -173,10 +175,12 @@ fprintf('%s\n',disp_struct.notes{:});
 
 blk_name = 'C';
 if p>1
-    blk_name = [blk_name,char(7522)];       % subscript i
+    [~,sub_i] = varname2display('i');
+    blk_name = [blk_name,sub_i];            % subscript i
 end
 if d>1
-    blk_name = [blk_name,char(11388)];      % subscript j
+    [~,sub_j] = varname2display('j');
+    blk_name = [blk_name,sub_j];            % subscript j
 end
 if p>1
     iname = 'i';
