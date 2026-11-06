@@ -20,6 +20,8 @@ function K = kernels(Kop)
 %   elements is returned as a sparse array of type 'double' instead.
 % - The sparse coefficients Kop.params can be used directly, instead of the
 %   'polynomial' and 'dpvar' objects.
+% - KERNELS(KOP) is the same as the dependent property KOP.KERNELS, which
+%   should be used instead.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -47,59 +49,8 @@ function K = kernels(Kop)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/04/2026: Return Kop.kernels, see 'get.kernels' in 'intop';
 
-% Check that the functional is properly specified
-if ~Kop.chkval && ~isvalid(Kop)
-    error("The functional is not properly declared.")
-end
-N = numel(Kop.vars.in);
-vn = Kop.varnames.in_dum;
-dumnames = [cell(1,0),vn{:}];
-[nmons,~,nZ] = Zdims(Kop.Z.in);
-nd = numel(Kop.Zd);
-[m,n] = size(Kop);
-
-% Degree matrix of the full basis, first variable slowest
-degmat_full = zeros(1,0);
-for i=1:N
-    degmat_full = [repelem(degmat_full,nmons(i),1), repmat(Kop.Z.in{i},size(degmat_full,1),1)];
-end
-
-K = cell(size(Kop.params));
-for k=1:numel(K)
-    P = Kop.params{k};
-    [r,c,v] = find(P);
-    r = r(:);   c = c(:);   v = v(:);   % row vectors if P has one row
-    j = ceil(c/nZ);
-    z = c - (j-1)*nZ;
-    blk = ceil(r/(nd+1));               % matrix row
-    d = r - (blk-1)*(nd+1);             % 1: constant term, l+1: decision variable l
-    zused = unique(z);
-    if nd==0 && (isempty(zused) || ~any(any(degmat_full(zused,:)))) && m*n>1e6
-        % Constant kernel with many elements: keep sparse
-        K{k} = sparse(r,j,v,m,n);
-        continue
-    end
-    if isempty(zused)
-        zused = 1;
-    end
-    nzu = numel(zused);
-    pz = zeros(nZ,1);       pz(zused) = 1:nzu;
-    dg = degmat_full(zused,:);
-    is_used_var = any(dg,1);
-    dg = dg(:,is_used_var);
-    varname_k = reshape(dumnames(is_used_var),[],1);
-    % Decision variables with nonzero coefficients in this kernel
-    [dused,~,id] = unique(d(d>1));
-    if isempty(dused)
-        % Plain polynomial: monomial rows, columns (j-1)*m+i
-        K{k} = polynomial(sparse(pz(z),(j-1)*m+blk,v,nzu,m*n),dg,varname_k,[m,n]);
-    else
-        nu = numel(dused);
-        dnew = ones(size(d));       dnew(d>1) = 1 + id;
-        C = sparse((blk-1)*(nu+1)+dnew,(j-1)*nzu+pz(z),v,m*(nu+1),n*nzu);
-        K{k} = dpvar(C,dg,varname_k,Kop.Zd(dused-1),[m,n]);
-    end
-end
+K = Kop.kernels;
 
 end
