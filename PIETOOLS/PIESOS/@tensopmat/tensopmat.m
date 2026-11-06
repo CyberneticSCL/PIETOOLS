@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?tensopvar,?ndopvar,?nopvar,?sopvar,?dpvar,?polynomial})tensopmat
+classdef (InferiorClasses={?tensopvar,?sopvar,?dpvar,?polynomial})tensopmat
 % Class of 'tensopmat' objects, representing a matrix structure wherein
 % each element is a tensor-PI operator
 %   Cop = [C11, ..., C1d]
@@ -79,6 +79,7 @@ classdef (InferiorClasses={?tensopvar,?ndopvar,?nopvar,?sopvar,?dpvar,?polynomia
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
 
 properties
     ops = cell(0,0);

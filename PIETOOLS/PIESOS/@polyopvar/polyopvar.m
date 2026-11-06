@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?sopvar,?tensopvar,?tensopmat})polyopvar
+classdef (InferiorClasses={?polynomial,?dpvar,?sopvar,?tensopvar,?tensopmat})polyopvar
 % This function defines the class of 'polyopvar' objects, representing
 % polynomial functions on distributed states.
 %
@@ -100,6 +100,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?sopvar,?tensopva
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/06/2026: Set method for C: output space follows the coefficients;
+% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
 
 properties
     C = tensopmat();

@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?sopvar})tensopvar
+classdef (InferiorClasses={?polynomial,?dpvar,?sopvar})tensopvar
 % Class of 'tensopvar' objects, representing linear combinations of tensor
 % products of PI operators,
 %
@@ -108,6 +108,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?sopvar})tensopva
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
 
 properties
     ops = {};
