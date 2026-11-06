@@ -7,7 +7,8 @@ i9-14900KF, 63.7 GB. The sweeps ran in about 10 min.
 Files: `private/bench_class_ops.m` (benchmark), `private/analyze_class_ops.m` (summary),
 `results.csv` (every timed row), `tables.md` (all summary tables). The two functions sit in
 `private/` to stay off the MATLAB path. The benchmark needs `opvar/`, so `results.csv` is the
-record once the opvar classes are retired.
+record once the opvar classes are retired. `scaling/` holds scaling-plot data and figures (operation
+time against q, stability-LPI parsing time against the Lyapunov degree), with its own README.
 
 ## Scope
 
