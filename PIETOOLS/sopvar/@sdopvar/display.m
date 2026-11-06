@@ -15,8 +15,8 @@ function display(P,name,width_max,call_name)
 %           multiple terms. Defaults to the width of the command window, or
 %           to 100 if this cannot be determined;
 % - call_name:  (optional) char, the expression with which the user can
-%           call the operator, used in the call to extract the coefficients
-%           of a kernel. Defaults to name, also if that is ans, and is set
+%           call the operator, used in the call to extract a kernel.
+%           Defaults to name, also if that is ans, and is set
 %           by the display of a container that has P as its only block,
 %           e.g. 'Pop.C{1,1}';
 %
@@ -37,9 +37,8 @@ function display(P,name,width_max,call_name)
 %   nonzero coefficients per element, and the element has at most 100
 %   characters; the elements of a vector-valued function x are named x_1,
 %   x_2, .... Other kernels K_i are displayed by name. The kernel
-%   K_i is defined by the coefficients vec(C) = A + B'*d, for the decision
-%   variables d in P.Zd, with the constant part A = P.params.A{i} and the
-%   part B = P.params.B{i} that multiplies the decision variables.
+%   K_i can be extracted by calling P.kernels{i}, a 'dpvar' object in the
+%   variables, the dummy variables, and the decision variables P.Zd.
 % - The function that the operator acts on is named x, unless a variable is
 %   also named x (ignoring a number at the end of the name), in which case
 %   it is named u, w, or v, the first that is not the name of a variable.
@@ -73,6 +72,8 @@ function display(P,name,width_max,call_name)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Extract the kernels that are displayed by name with
+%                   'kernels', instead of the coefficients;
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -125,16 +126,12 @@ end
 fprintf('\n');
 print_terms(lhs,disp_struct.terms,disp_struct.signs,width_max);
 
-% Explain how to extract the coefficients of the kernels that are not
-% displayed
+% Explain how to extract the kernels that are not displayed
 if disp_struct.use_K
     if isscalar(P.params.A)
-        fprintf('\n  Call "%s.params.A{1}" and "%s.params.B{1}" to extract the coefficients of kernel K.\n',call_name,call_name);
+        fprintf('\n  Call "%s.kernels{1}" to extract kernel K.\n',call_name);
     else
-        fprintf('\n  Call "%s.params.A{i}" and "%s.params.B{i}" to extract the coefficients of kernel K%s.\n',call_name,call_name,char(7522));
-    end
-    if ~isempty(P.Zd)
-        fprintf('  The coefficients are A + B''*d, for the decision variables d in %s.Zd.\n',call_name);
+        fprintf('\n  Call "%s.kernels{i}" to extract kernel K%s.\n',call_name,char(7522));
     end
 end
 fprintf('\n');
