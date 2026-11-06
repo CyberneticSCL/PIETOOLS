@@ -54,6 +54,7 @@ function C = mtimes(A,B)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/04/2026: Left-multiplication by a matrix lifts rows with different
 %                   output spaces to a common space;
+% DJ, 11/06/2026: Output space of C follows from C.C (see set.C);
 
 % Make sure the inner dimensions match
 if size(A,2)~=size(B,1) && ~all(size(A)==1) && ~all(size(B)==1)
@@ -83,11 +84,8 @@ elseif ~isa(A,'polyopvar')
         end
     end
     C = B;
+    % The output space of C is set by the assignment of C.C, see set.C
     C.C = A*B.C;
-    C.dims.out = C.C.dims.out;
-    C.vars.out = C.C.vars.out;
-    C.dom.out = C.C.dom.out;
-    C.depmat.out = C.C.depmat.out;
     return
 elseif ~isa(B,'polyopvar')
     % Multiplication of polynomial with constant

@@ -72,6 +72,7 @@ function P_out = lift_output(P,vars,dom,dims,deps)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/03/2026: Initial coding;
+% DJ, 11/06/2026: Output space of P_out follows from P_out.C (see set.C);
 
 % Check that the polynomial is properly declared
 if ~isa(P,'polyopvar')
@@ -91,14 +92,11 @@ end
 % polynomial (all inputs are checked there)
 C = lift_output(P.C,vars,dom,dims,deps);
 
-% Set the output space of the polynomial to that of the new operator. The
-% input space, and the monomials, are unchanged
+% Set the output space of the polynomial to that of the new operator, by the
+% assignment of P_out.C, see set.C. The input space, and the monomials, are
+% unchanged
 P_out = P;
 P_out.C = C;
-P_out.dims.out = C.dims.out;
-P_out.vars.out = C.vars.out;
-P_out.dom.out = C.dom.out;
-P_out.depmat.out = C.depmat.out;
 P_out.chkval = false;
 P_out = initialize(P_out);
 

@@ -58,6 +58,7 @@ function C = otimes(A,B,otype)
 % DJ, 10/22/2026: Initial coding;
 % DJ, 10/28/2026: Do not merge two states without spatial variables, e.g.
 %                   x.*x, into one factor;
+% DJ, 11/06/2026: Output space of C follows from C.C (see set.C);
 
 % Check the type of product
 if nargin<3
@@ -121,11 +122,8 @@ Znew = sparse([ridcsA(:);ridcsB(:)],[cidcsA(:);cidcsB(:)],[ZvalsA(:);ZvalsB(:)],
 % Declare the coefficients acting on the full vector of monomials: the
 % product of the outputs of type otype (pointwise or Kronecker), and the
 % tensor product of the inputs, the monomials
+% The output space of C is set by the assignment of C.C, see set.C
 C.C = otimes(A.C,B.C,[otype,2]);
-C.dims.out = C.C.dims.out;
-C.vars.out = C.C.vars.out;
-C.dom.out = C.C.dom.out;
-C.depmat.out = C.C.depmat.out;
 C.chkval = true;
 
 % The operators of two monomials that each are a state without spatial variables (x.*x) are

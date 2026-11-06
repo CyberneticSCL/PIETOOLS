@@ -56,6 +56,7 @@ function V = innerprod(u1,P,u2)
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/04/2026: Lift u1 and u2 to a common output space.
+% DJ, 11/06/2026: Output space of V follows from V.C (see set.C).
 
 % Check that the inputs are appropriate
 is_symmetric = false;
@@ -259,11 +260,8 @@ Kop = tensopmat(Kcell);
 % Declare the polynomial defined by coefficients K and monomials Z
 V = u1;
 V.Z = Z_lin;
+% The output space of V is set by the assignment of V.C, see set.C
 V.C = Kop;
-V.dims.out = 1;
-V.vars.out = Kop.vars.out;
-V.dom.out = Kop.dom.out;
-V.depmat.out = Kop.depmat.out;
 V.chkval = true;
 
 % Get rid of duplicate terms in the functional

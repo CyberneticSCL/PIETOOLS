@@ -60,6 +60,7 @@ function out = subsref(obj,ref)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/23/2026: Support ':' in f{i,j}, and drop the monomials without a
 %                   nonempty block; several blocks via C{I,J} of tensopmat;
+% DJ, 11/06/2026: Output space of f(i,j), f{i,j} follows from C (see set.C);
 
 if isempty(ref)
     out = obj;
@@ -77,11 +78,8 @@ switch ref(1).type
         % Use 'tensopvar' subsref to extract desired elements
         C = obj.C;
         C = subsref(C,ref(1));
+        % The output space of out is set by the assignment of out.C, see set.C
         out.C = C;
-        out.dims.out = C.dims.out;
-        out.vars.out = C.vars.out;
-        out.dom.out = C.dom.out;
-        out.depmat.out = C.depmat.out;
         out.chkval = false;
         out = initialize(out);
 
@@ -138,16 +136,12 @@ switch ref(1).type
             C = obj.C{indr,indc};
         end
 
-        % Retain only the corresponding monomials, and let 'initialize'
-        % recompute the output side (and validate the result) from the
-        % now-reduced coefficient operator.
+        % Retain only the corresponding monomials; the output side follows from
+        % the now-reduced coefficient operator (set.C), and 'initialize'
+        % validates the result.
         out = obj;
         out.C = C;
         out.Z = obj.Z(indc,:);
-        out.dims.out = [];
-        out.vars.out = cell(1,0);
-        out.dom.out = zeros(0,2);
-        out.depmat.out = [];
         out.chkval = false;
         out = initialize(out);
 
