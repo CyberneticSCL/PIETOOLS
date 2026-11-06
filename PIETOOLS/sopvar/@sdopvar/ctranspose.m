@@ -1,6 +1,11 @@
 function At = ctranspose(A)
-% Pt = ctranspose(P) transposes a sdopvar operator P: L_2^p[S1,S3] to L_2^q[S2,S3]
-% Date: 8/17/26
+% AT = CTRANSPOSE(A) returns the adjoint A' of the 'sdopvar' object A with
+% respect to the L2 inner product, affine in the same decision variables:
+% in a direction with an integral the lower and upper integrals exchange and
+% the monomial bases swap; in a multiplier direction the bases stay, since
+% delta(s-s') collapses the kernel onto the diagonal (canonical multiplier
+% form, see 'sdopvar').
+%
 % INPUTS
 % - A:  'sdopvar' object representing a PI operator from L_2^p[S1,S3] to
 %       L_2^q[S2,S3];
@@ -44,14 +49,16 @@ function At = ctranspose(A)
 %                  constraining the operator. The adjoint is now assembled
 %                  through 'canonical_adjoint_map', which swaps only the
 %                  integral directions.
-%
-% Compute the number of variables S3 that appear in both the input and output spaces.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
+%                  house format (a 'Date' line removed), step comments, the
+%                  08/29/2026 note tightened, INPUT/OUTPUT for the local
+%                  function; code unchanged.
+
+% Number of shared variables, one cell direction each
 nvars3 = numel(intersect(A.vars.in,A.vars.out));
-% each common variable has three kernel types: multiplier, lower integral, upper integral.
-%1 = multiplier
-%2 = lower integral
-%3 = upper integral
-%Under adjoint/transposition, lower and upper integral kernels swap. Multiplier terms stay multiplier
+% Cell alpha of A becomes cell -alpha of At: the lower (2) and upper (3)
+% integrals exchange in every direction, the multiplier (1) stays, so
+% position [1 2 3] maps to [1 3 2]
 idx = repmat({[1 3 2]},1,nvars3);
 params = A.params;
 if numel(params.A)~=3^nvars3                                                % MMP, 08/29/2026
@@ -65,18 +72,16 @@ else                                                                        % MM
     adjidx = 1;                                                             % MMP, 08/29/2026
 end                                                                         % MMP, 08/29/2026
 
-% The coefficients are rearranged, not merely transposed. In a direction     % MMP, 08/29/2026
-% carrying an integral the primary and dummy variables exchange roles, so    % MMP, 08/29/2026
-% the monomial bases swap. In a direction carrying a multiplier they do      % MMP, 08/29/2026
-% not: delta(s-s') collapses the kernel onto the diagonal, so the adjoint    % MMP, 08/29/2026
-% is the same polynomial in s with the matrix indices transposed, and the    % MMP, 08/29/2026
-% degree stays on the left basis. That is what keeps the canonical           % MMP, 08/29/2026
-% multiplier form invariant under taking adjoints.                           % MMP, 08/29/2026
+% The coefficients are rearranged, not merely transposed: the bases swap in % MMP, 08/29/2026
+% an integral direction and stay in a multiplier direction (see the help    % MMP, 08/29/2026
+% text), which 'canonical_adjoint_map' encodes as one map Tcell{ii} per cell % MMP, 08/29/2026
+% acting on vec(C); B maps by the transpose of the same matrix.             % MMP, 08/29/2026
 [Tcell,ZLt,ZRt] = canonical_adjoint_map(A.vars,A.ZL,A.ZR,A.dims);           % MMP, 08/29/2026
 nC_t = A.dims(2)*prod([cellfun(@numel,ZLt),1]) ...                          % MMP, 08/29/2026
        * A.dims(1)*prod([cellfun(@numel,ZRt),1]);                           % MMP, 08/29/2026
 q = size_decvars(A);                                                        % MMP, 08/29/2026
 
+% Map each cell of A to the cell adjidx(ii) of At; [] stands for a zero cell
 pA = cell(size(params.A));      pB = cell(size(params.B));                  % MMP, 08/29/2026
 for ii=1:numel(params.A)                                                    % MMP, 08/29/2026
     Aii = params.A{ii};         Bii = params.B{ii};                         % MMP, 08/29/2026
@@ -93,14 +98,18 @@ for ii=1:numel(params.A)                                                    % MM
 end                                                                         % MMP, 08/29/2026
 params.A = pA;      params.B = pB;                                          % MMP, 08/29/2026
 
+% Exchange the input and output variables and domains; declare the adjoint
 At_vars = struct('in',{A.vars.out},'out',{A.vars.in});
 At_dom = struct('in',A.dom.out,'out',A.dom.in);
 At = sdopvar(params,At_vars,A.Zd,ZLt,ZRt,At_dom,[A.dims(2),A.dims(1)]);     % MMP, 08/29/2026
 end
 
 function q = size_decvars(A)                                                % MMP, 08/29/2026
-% Number of decision variables, taken from a stored parameter where possible % MMP, 08/29/2026
-% so that an operator with none is handled the same way.                     % MMP, 08/29/2026
+% Q = SIZE_DECVARS(A) returns the number of decision variables, read from a % MMP, 08/29/2026
+% stored parameter where there is one, so that an operator with none is     % MMP, 08/29/2026
+% handled the same way.                                                     % MMP, 08/29/2026
+% INPUT   A: 'sdopvar' object.
+% OUTPUT  q: number of rows of the B parameters (numel(A.Zd) if all empty).
 
 q = numel(A.Zd);                                                            % MMP, 08/29/2026
 for ii = 1:numel(A.params.B)                                                % MMP, 08/29/2026

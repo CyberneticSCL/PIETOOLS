@@ -52,29 +52,29 @@ function obj = sopvar2nopvar(objsopvar)
 %   guard does fire. It relies on that and on 'char' not collapsing two
 %   different lists under padding; the cellstr form needs neither. Ported
 %   from commit ca42b7f0 (09/21/2026), which stayed on an unmerged branch.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): step comments,
+%   stale comments removed (commented-out random-parameter lines, a
+%   fragmentary note on the column layout); code unchanged.
 
-
-if ~isa(objsopvar, 'sopvar') 
+if ~isa(objsopvar, 'sopvar')
     error('The input should be sopvar')
 end
 
-
-
+% An nopvar maps a space to itself: same variables and domains on both sides
 P = objsopvar;
 dims = [P.dims(1), P.dims(2)];
 if ~isequal(P.dom.in, P.dom.out)
     error('Input/Output domains dismatch')
 end
-% 'isequal' on the cellstr rather than 'strcmp' on 'char' of it: 'char'     % MMP, 10/04/2026
-% pads a ragged name list into a matrix, so the test depends on padding,    % MMP, 10/04/2026
-% and removing the 'char' would make 'strcmp' elementwise, so 'any(~[])'    % MMP, 10/04/2026
-% would pass an empty list -- the bug fixed in 'plus' on 09/07/2026.        % MMP, 10/04/2026
+% 'isequal' on the cellstr, not 'strcmp' on 'char' of it, which depends on  % MMP, 10/04/2026
+% the padding of a ragged name list (and 'strcmp' without 'char' would be   % MMP, 10/04/2026
+% elementwise, the 'any(~[])' bug fixed in 'plus' on 09/07/2026).           % MMP, 10/04/2026
 % if any(~strcmp(char(P.vars.in),char(P.vars.out)))                         % MMP, 10/04/2026 (was)
 if ~isequal(P.vars.in(:),P.vars.out(:))                                     % MMP, 10/04/2026
     error('Input/Output vars dismatch')
 end
-% ndopvar include dummy variables
-% P.vars(:, 2) -- only dummy variables
+
+% The nopvar variable table has one row [s, s_dum] per spatial variable
 vars_old = string(char(P.vars.in));
 
 for idx = 1:length(vars_old)
@@ -85,8 +85,8 @@ for idx = 1:length(vars_old)
         vars_new = [vars_new; [var1, var1_dummy]];
     end
 end
-% now construct monomial basis
-% ZL = ZR;
+
+% Degrees of the monomial bases, one per variable
 ZL = P.ZL;
 ZR = P.ZR;
 degL = cellfun(@(x) max(x), ZL);
@@ -108,10 +108,10 @@ for kk = 1:numel(ZL)                                                        % MM
               +"or pad the basis first.")                                   % MMP, 09/29/2026
     end                                                                     % MMP, 09/29/2026
 end                                                                         % MMP, 09/29/2026
-% now transform coefficient matrix 
-% in ndopvar it is (Ik o [1;d])^T Cj in R^{k times }
-% Cj has the size dim(1)*len(Zl)*(len(dvarnames)+1) times (len(Zr)*dim(2))
-% Cj(1:dim(1)*len(Zl), :) are our A
+% Coefficient matrices. An nopvar cell holds, per input component, the
+% columns of the complete basis 0:deg in every variable, with the dummy
+% variable degrees only in the integral directions; those columns are
+% selected from the sopvar parameter, which carries the full ZR basis.
 
 N = size(P.dom.in,1);
 left_size  = dims(1)*prod(cellfun(@(x) length(x), ZL));
@@ -119,17 +119,15 @@ right_size = dims(2)*prod(cellfun(@(x) length(x), ZR));
 
 C_new = cell(size(P.params));
 sz_C = size(C_new);
-for ii=1:numel(P.params) 
-    % new C is dim(1)*len(Zl)*(len(dvarnames)+1) times (len(Zr)*dim(2))
-    % need to determinated which columns to choose
-    % Determine the index of element ii along each dimension of the cell C
+for ii=1:numel(P.params)
+    % Multi-index of cell ii: entry 1 is a multiplier, 2 and 3 integrals
     idcs = cell(1,N);
     [idcs{:}] = ind2sub(sz_C,ii);
-    idcs = cell2mat(idcs); % array of indeces 
-    % If element ii corresponds to an integral, we need to account for the
-    % monomial basis in the associated dummy variable
+    idcs = cell2mat(idcs); % array of indeces
+    % Columns to keep: every monomial in an integral direction, the
+    % constant monomial only in a multiplier direction
     is_int = logical(idcs-1);
-    column_idx = 1;% column_idx indicates 
+    column_idx = 1;
     for dim_idx = 1:length(deg)
         if is_int(dim_idx)
             column_idx = kron(column_idx, ones(1, deg(dim_idx) + 1));
@@ -154,13 +152,9 @@ for ii=1:numel(P.params)
               +"contract that direction first.")                            % MMP, 09/29/2026
     end                                                                     % MMP, 09/29/2026
     C_new{ii} = C_sopvar(:, cols_mon);
-    % cdim = n*prod(deg(is_int)+1);
-    % % Set sparse coefficients of dimension rdim x cdim
-    % rho = (q+10)/(rdim*cdim);
-    % Pop.C{ii} = sprand(rdim,cdim,rho);
 end
 
-
+% Declare the nopvar
 obj = nopvar(); % empty nopvar
 obj.dom =  P.dom.in;
 obj.deg =  deg;

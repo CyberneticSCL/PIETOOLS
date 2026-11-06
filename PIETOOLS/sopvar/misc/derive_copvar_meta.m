@@ -62,6 +62,8 @@ function meta = derive_copvar_meta(C,cls,okclasses)
 %                  them. Mechanical rename, no functional change. Renamed here:
 %                  derive_mopvar_meta -> derive_copvar_meta. File was
 %                  'derive_mopvar_meta.m'.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                  for the local function; code unchanged.
 
 [M,N] = size(C);
 occ = ~cellfun(@isempty,C);       % which cells hold an operator
@@ -166,9 +168,14 @@ end
 
 % ========================================================================
 function [names,lo,hi] = register(names,lo,hi,v,d,i,j,cls)
-% Add the variables v with domains d to the registry, rejecting a variable
-% that two blocks, or the two sides of one block, place on different
-% domains. This is the check that cannot be made one block at a time.
+% [NAMES,LO,HI] = REGISTER(NAMES,LO,HI,V,D,I,J,CLS) adds the variables V
+% with domains D to the registry, rejecting a variable that two blocks, or
+% the two sides of one block, place on different domains. This is the check
+% that cannot be made one block at a time.
+% INPUTS  names, lo, hi: the registry so far (names, lower and upper ends);
+%         v: cellstr; d: numel(v) x 2; i, j: block position, for the
+%         message; cls: container class, for the identifier.
+% OUTPUT  names, lo, hi: the registry with v added.
 
 v = v(:)';
 if size(d,1)~=numel(v)

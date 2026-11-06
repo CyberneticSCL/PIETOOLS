@@ -98,6 +98,8 @@ function [C,meta,Zds,src] = cat_copvar_grid(dir,args,cls)
 %                  unsorted names, double masks) now keep it, as plus and
 %                  mtimes already did; the deleted loop rebuilt a sorted row
 %                  and logical masks. No library constructor builds one.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT for the
+%                  local functions; code unchanged.
 
 if ~any(strcmp(dir,{'h','v','d'}))
     error('cat_copvar_grid:badDir',"'dir' must be 'h', 'v' or 'd'.")
@@ -244,9 +246,15 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function check_side(S1,Sk,D1,Dk,vars,k,what,side,cls,opname)
-% Rows (horzcat) or columns (vertcat) must match one for one: the same
-% space as a set of variables, and the same component count. The masks are
-% already over the merged registry, so mask equality is set equality.
+% CHECK_SIDE(S1,SK,D1,DK,VARS,K,WHAT,SIDE,CLS,OPNAME) errors unless the rows
+% (horzcat) or columns (vertcat) of operand K match operand 1 one for one:
+% the same space as a set of variables, and the same component count. The
+% masks are already over the merged registry, so mask equality is set
+% equality.
+% INPUTS  S1, Sk: space masks of operands 1 and k; D1, Dk: their component
+%         counts; vars: the merged registry; k: operand index; what: 'row'
+%         or 'column'; side: 'output' or 'input'; cls, opname: for the
+%         error identifier and message.
 
 for r = 1:size(S1,1)
     if ~isequal(S1(r,:),Sk(r,:))
@@ -268,5 +276,6 @@ end
 
 
 function s = ternary(c,a,b)
+% S = TERNARY(C,A,B) is A when C is true and B otherwise.
 if c,   s = a;  else,   s = b;  end
 end

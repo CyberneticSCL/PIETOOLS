@@ -1,13 +1,12 @@
 function Pop_in = uplus(Pop_in)
-% POP_OUT = uplus(POP_IN) returns the 'sopvar' object representing the
-% scalar product P for the PI operator P defined by POP_IN.
+% POP_IN = UPLUS(POP_IN) returns the 'sopvar' object POP_IN itself, so that
+% the unary +P is defined for a PI operator P.
 %
-% INPUTS
+% INPUT
 % - Pop_in:     m x n 'sopvar' object;
 %
-% OUTPUTS
-% - Pop_in:    m x n 'sopvar' object representing the operator defined by
-%               (-1)*Pop_in;
+% OUTPUT
+% - Pop_in:     the same m x n 'sopvar' object, unchanged.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - uplus
@@ -34,6 +33,8 @@ function Pop_in = uplus(Pop_in)
 % authorship, and a brief description of modifications
 %
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+% MMP, 11/06/2026: Help text corrected: it described (-1)*P, copied from
+%                  'uminus'; +P returns P. Code unchanged.
 
-
+% Nothing to do: +P is P
 end

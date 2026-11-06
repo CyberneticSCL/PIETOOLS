@@ -71,20 +71,12 @@ function [params,ZL,ZR,changed] = canonicalize_multiplier(params,vars,ZL,ZR,dims
 % MMP, 08/29/2026: Initial coding
 % MMP, 09/29/2026: Pass 1 tests 'has_content' first, so an empty cell skips
 %                  the multi-index and the mask, and the mask of each
-%                  multiplier direction t (right monomials of degree 0 in
-%                  t, a function of ZR and t only) is built on first use
-%                  and reused, instead of per cell per direction. Same
-%                  skips, same bad/need/need_zero, so outputs are
-%                  bit-identical (3788 build calls; 3000 random inputs,
-%                  848 rewritten, 918 raising the same error in both).
-%                  Unprofiled against the HEAD copy on captured arguments,
-%                  median per call: 3 shared directions 327 -> 62 us (3-D
-%                  heatNd, 1.36 -> 0.48 s per build), 2 directions 100 ->
-%                  47 us, 1 direction 38 -> 33 us. Cost flat in q, as
-%                  before. 'has_content' tests storage by 'stores': nnz for
-%                  sparse, find(X,1) for full, since it now runs for every
-%                  cell and nnz of a full q x nC B scanned it (constructor
-%                  0.18 -> 6.5 ms at 2 variables, q = 1e6, before this).
+%                  multiplier direction (a function of ZR and t only) is
+%                  built on first use and reused. Outputs bit-identical
+%                  (3788 build calls, 3000 random inputs); 3-D heatNd
+%                  1.36 -> 0.48 s per build. 'has_content' tests storage by
+%                  'stores' (nnz for sparse, find(X,1) for full), since nnz
+%                  of a full q x nC B scanned it.
 % MMP, 09/30/2026: Index conventions from the shared helpers in
 %                  sopvar/misc/conventions: gamma_of_cell for the cell
 %                  multi-index (was ind2sub + cell2mat), kron_strides,
@@ -107,6 +99,8 @@ function [params,ZL,ZR,changed] = canonicalize_multiplier(params,vars,ZL,ZR,dims
 %                  sopvar/misc/canonical_form, after what it holds (the
 %                  canonical form of the block classes), not the tool that
 %                  wrote it. The move changes no code.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the 09/29/2026
+%                  entry condensed; code unchanged.
 
 changed = false;
 

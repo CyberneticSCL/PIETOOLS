@@ -1,8 +1,6 @@
 function outcopvar = canonicalize(incopvar)
-% canonicalize
-%
-% Build and store the two auxiliary common-basis representations of a
-% copvar:
+% OUTCOPVAR = CANONICALIZE(INCOPVAR) builds and stores the two auxiliary
+% common-basis representations of a copvar:
 %
 %   1. row-common form:
 %        all blocks in row i have the same left basis ZL;
@@ -62,6 +60,9 @@ function outcopvar = canonicalize(incopvar)
 %                  inmopvar -> incopvar, outmopvar -> outcopvar. Moved from
 %                  @mopvar/ with the class. Only identifiers changed; the
 %                  routine is otherwise as committed in 0f4cb3d3.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-lines in the
+%                  house format and INPUT/OUTPUT for the local functions;
+%                  wording otherwise as the author wrote it; code unchanged.
 
 outcopvar = incopvar;
 
@@ -89,9 +90,7 @@ outcopvar.rightCommonC     = R.C;
 
 end
 function Q = commonRowBasis(P)
-% commonRowBasis
-%
-% Q = commonRowBasis(P) rewrites each block row of the copvar P so that
+% Q = COMMONROWBASIS(P) rewrites each block row of the copvar P so that
 % all populated blocks in row i use the same left monomial basis ZL.
 %
 % For
@@ -114,6 +113,9 @@ function Q = commonRowBasis(P)
 %
 % Row consistency is already guaranteed by the copvar constructor, so
 % no checks on vars.out, dom.out, or dim_out are performed here.
+% INPUT   P: 'copvar'.
+% OUTPUT  Q: 'copvar' with Q.C the rewritten blocks and Q.leftCommonBasis
+%         the M x 1 cell of row bases.
 
 [M,N] = size(P.C);
 
@@ -225,9 +227,7 @@ Q = copvar(Cnew,P.metadata());
 Q.leftCommonBasis = Zcommon;
 end
 function Q = commonColumnBasis(P)
-% commonColumnBasis
-%
-% Q = commonColumnBasis(P) rewrites each block column of the copvar P so
+% Q = COMMONCOLUMNBASIS(P) rewrites each block column of the copvar P so
 % that all populated blocks in column j use the same right monomial basis.
 %
 % For
@@ -250,6 +250,9 @@ function Q = commonColumnBasis(P)
 %
 % Column consistency is already guaranteed by the copvar constructor, so
 % no checks on vars.in, dom.in, or dim_in are performed here.
+% INPUT   P: 'copvar'.
+% OUTPUT  Q: 'copvar' with Q.C the rewritten blocks and Q.rightCommonBasis
+%         the N x 1 cell of column bases.
 
 [M,N] = size(P.C);
 
@@ -346,15 +349,17 @@ Q.rightCommonBasis = Zcommon;
 end
 
 function idx = basisEmbeddingIndex(Zold,Znew)
-% basisEmbeddingIndex
-%
-% idx(k) is the position of tensor-product monomial k of Zold in Znew.
+% IDX = BASISEMBEDDINGINDEX(ZOLD,ZNEW): idx(k) is the position of
+% tensor-product monomial k of Zold in Znew.
 %
 % Zold and Znew are cell arrays of one-dimensional exponent lists:
 %
 %   Z = Z{1} kron Z{2} kron ... kron Z{n}.
 %
 % The last variable therefore varies fastest.
+% INPUTS  Zold, Znew: 1 x nv cells of exponent vectors, Zold{i} within
+%         Znew{i}.
+% OUTPUT  idx: prod(numel(Zold{i})) x 1 positions.
 
 nv = numel(Zold);
 

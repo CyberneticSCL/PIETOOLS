@@ -1,3 +1,10 @@
+% Test of the 'sopvar' adjoint in two variables against 'opvar2d': for 100
+% random opvar2d objects between random spaces, the adjoint of the sopvar
+% conversion is converted back with sopvar2opvar2d and compared with the
+% opvar2d adjoint; errors on the first mismatch.
+%
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 for j=1:100
 % Declare the independent variables
 pvar s1 s2 s1_dum s2_dum

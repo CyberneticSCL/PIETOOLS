@@ -1,15 +1,18 @@
 function logval = eq(P1,P2,tol)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% logval = eq(P1,P2,tol) tests equality of two sopvars P1 and P2 with tolerance tol
-% Date: 6/13/19
-% Version: 1.0
-% 
-% INPUTS
-% P1, P2: sopvar class objects
-% tol: acceptable tolerance value. If max(P1-P2)<tol, then P1=P2
-% 
-% OUTPUTS
-% logval: returns 1 if the objects are equal, 0 if not equal
+% LOGVAL = EQ(P1,P2,TOL) tests whether two 'sopvar' objects represent the
+% same operator: P1 == P2 is true when every coefficient of P1 - P2 is
+% smaller than TOL in modulus.
+%
+% INPUT
+% - P1, P2: 'sopvar' objects; one of them may be the scalar 0, which stands
+%           for the zero operator on the spaces of the other;
+% - tol:    (optional) scalar, the absolute tolerance on the coefficients
+%           of the difference. Defaults to 1e-14;
+%
+% OUTPUT
+% - logval: logical, true if P1 and P2 represent the same operator to the
+%           tolerance, false otherwise (also when the dimensions differ).
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,27 +40,26 @@ function logval = eq(P1,P2,tol)
 % authorship, and a brief description of modifications
 %
 % AT, 01/21/2026: Initial coding
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
+%                  house format, step comments, stale comments removed
+%                  (commented-out field assignments of another class);
+%                  code unchanged.
 
+% Default tolerance
 if nargin<3
     tol=1e-14;
-end    
+end
 
+% A scalar 0 stands for the zero operator on the spaces of the other operand
 if ~isa(P1,'sopvar')&&(P1==0)
     P1 = 0*P2;
-    % ndopvar P1
-    % P1.dom = P2.dom;
-    % P1.dim = P2.dim;
-    % P1.vars = P2.vars;
-elseif  ~isa(P2,'sopvar')&&(P2==0) 
+elseif  ~isa(P2,'sopvar')&&(P2==0)
     P2 = 0*P1;
-    % ndopvar P2
-    % P2.dom = P1.dom;
-    % P2.dim = P1.dim;
-    % P2.vars = P1.vars;
 elseif ~isa(P1,'sopvar')|| ~isa(P2,'sopvar')
     error('To check equality either both values must be sopvar objects, or one of them have to be zero');
 end
 
+% Operators of different dimensions are not equal
 logval = true;
 if any(P1.dims~=P2.dims)
     disp('sopvars have different dimensions and hence cannot be equal');
@@ -65,29 +67,24 @@ if any(P1.dims~=P2.dims)
     return
 end
 
-% Check that domain and variables match
+% Report differing domains (the difference below then fails in 'plus')
 if any(any(P1.dom_1~=P2.dom_1))|| any(any(P1.dom_2~=P2.dom_2)) || any(any(P1.dom_3~=P2.dom_3))
     disp('Operators have different intervals and hence cannot be equal');
 end
 
+% Compare through the difference, so that 'plus' aligns the monomial bases: % MMP, 08/29/2026
+% two objects can represent one operator on different bases ('ctranspose'   % MMP, 08/29/2026
+% enlarges them where a multiplier and an integral direction share a basis). % MMP, 08/29/2026
+D = P1 + uminus(P2);                                                        % MMP, 08/29/2026
 
- 
-% Compare through the difference rather than parameter by parameter. That     % MMP, 08/29/2026
-% lets 'plus' align the monomial bases through 'UnionBasisMonomials', which   % MMP, 08/29/2026
-% matters because two objects can represent the same operator on different    % MMP, 08/29/2026
-% bases: 'ctranspose' enlarges them where a multiplier direction and an       % MMP, 08/29/2026
-% integral direction have to share one basis. Comparing the stored            % MMP, 08/29/2026
-% coefficients is otherwise only meaningful because of the canonical          % MMP, 08/29/2026
-% multiplier form; see the class documentation.                               % MMP, 08/29/2026
-D = P1 + uminus(P2);                                                         % MMP, 08/29/2026
-
+% Equal iff every coefficient of the difference is below the tolerance
 logval = true;
-for ii = 1:numel(D.params)                                                   % MMP, 08/29/2026
+for ii = 1:numel(D.params)                                                  % MMP, 08/29/2026
     dv = nonzeros(D.params{ii});    % 'max(...,''all'')' rejects sparse input % MMP, 08/29/2026
-    if ~isempty(dv) && max(abs(dv))>=tol                                     % MMP, 08/29/2026
-        logval = false;                                                      % MMP, 08/29/2026
-        return                                                               % MMP, 08/29/2026
-    end                                                                      % MMP, 08/29/2026
+    if ~isempty(dv) && max(abs(dv))>=tol                                    % MMP, 08/29/2026
+        logval = false;                                                     % MMP, 08/29/2026
+        return                                                              % MMP, 08/29/2026
+    end                                                                     % MMP, 08/29/2026
 end
 
 end

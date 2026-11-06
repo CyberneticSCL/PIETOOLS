@@ -100,30 +100,16 @@ function C = mtimes(A,B)
 %                  restated over their union by 'merge_copvar_registry'
 %                  instead of raising mtimes:registryMismatch, so an R^n ->
 %                  R^n operator (Dzu, Dyw: empty registry) composes with an
-%                  L_2 one, as Hinf_control's Dzu*Z and the estimators'
-%                  Z*Dyw need. Metadata only: measured 20-40 us, flat in q
-%                  (1e3 to 3.9e5) and in nv (1 to 4), nothing held; a
-%                  variable on two domains is cdopvar:domConflict. (2) The
-%                  decision variable lists are reconciled by
-%                  'merge_dvar_lists', as in 'plus', instead of
-%                  unique(...,'stable') + 'put_on_list'. One factor is always
-%                  fixed and its promoted list empty, so the lists differ in
-%                  every product with decision variables and the old route
-%                  paid an O(q log q) sort of names plus a name search per
-%                  block each time; the owner shortcut keeps the decision
-%                  factor's list and only points its blocks at it. Measured
-%                  on the two products of T'*(P*A), P from 'poscopvar' over
-%                  R x L2^m[s1] (2 x 2 grid), same process, alternated: per
-%                  product 0.031 -> 0.001 s at q = 9.9e4 and 0.23 ->
-%                  0.007-0.012 s at q = 3.9e5; transient peak +2 -> <2 MB and
-%                  +20 -> +6 MB (the 6 MB are the (:) copies of the list,
-%                  made by both routes); same result. Small against the
-%                  product: T'*(P*A) takes 41 s at q = 9.9e4 either way
-%                  (random dense degree-2 T and A from rand_copvar). For
-%                  scale: the stock dopvar product T'*(P*A), timed on the
-%                  same P family, is SLOWER - 1.3-3.4x, on PIE operators (1
-%                  and 4 PDE states, q to 5.3e4) and on dense random ones.
-%                  'put_on_list' now has no caller.
+%                  L_2 one. Metadata only, flat in q and nv; a variable on
+%                  two domains is cdopvar:domConflict. (2) The decision
+%                  variable lists are reconciled by 'merge_dvar_lists', as
+%                  in 'plus', instead of unique(...,'stable') +
+%                  'put_on_list': one factor is always fixed with an empty
+%                  promoted list, so the old route sorted the names and
+%                  searched them per block on every product; the owner
+%                  shortcut keeps the decision factor's list and points its
+%                  blocks at it (per product 0.23 -> 0.01 s at q = 3.9e5,
+%                  same result). 'put_on_list' now has no caller.
 % MMP, 09/29/2026: A dpvar factor is routed at the top to 'dpvar_op_copvar'
 %                  with the legacy @dopvar semantics: a constant dpvar
 %                  scales, a dpvar with decision variables is refused
@@ -139,6 +125,8 @@ function C = mtimes(A,B)
 %                  copies per product (the "+6 MB" of the 09/26/2026 entry).
 %                  Same union, same blocks, same result. 'put_on_list', in
 %                  the '(was)' lines, is deleted (no caller since 09/26/2026).
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the 09/26/2026
+%                  entry condensed; code unchanged.
 
 % dpvar factor: the constant multiplier of legacy @dopvar/mtimes. Before    % MMP, 09/29/2026
 % any work, so the composition below is untouched.                          % MMP, 09/29/2026

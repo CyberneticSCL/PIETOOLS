@@ -49,20 +49,16 @@ function [Aout,Bout] = apply_basis_map(T,Ain,Bin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the scatter note
+%                  condensed; code unchanged.
 
 if isempty(T)
     Aout = Ain;     Bout = Bin;
 else
-    % T.idx is injective -- distinct monomials take distinct positions in
-    % the merged basis -- so this is a scatter with no accumulation, and one
-    % indexed assignment per output expresses it.
-    %
-    % Assignment rather than a triplet build: measured against both the old
-    % sparse multiply and a sparse() over find(Bin) at q = 2000, nC 729 ->
-    % 13824, over densities 1e-4 to 1. Assignment was fastest at every
-    % point (0.05x to 0.47x of the multiply), while the triplet build lost
-    % to the multiply once B was dense (1.28x at nnz 921k) because that
-    % constructor must sort every entry.
+    % T.idx is injective (distinct monomials take distinct positions), so
+    % this is a scatter with no accumulation: one indexed assignment per
+    % output, measured faster than a sparse multiply at every density and
+    % than a triplet build, which must sort every entry, for a dense B.
     Aout = sparse(T.nC,1);              Aout(T.idx)   = Ain;
     Bout = sparse(size(Bin,1),T.nC);    Bout(:,T.idx) = Bin;
 end

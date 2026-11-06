@@ -49,8 +49,10 @@ function Pblkdiag = blkdiag(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
+%                  for the local function; code unchanged.
 
-% Deal with single input case
+% A single operand is returned as is
 if nargin==1
     Pblkdiag = varargin{1};
     return
@@ -98,10 +100,12 @@ end
 
 %%
 function Z = zero_like(P,dims)
-% Zero operator of the requested dimension, on the variables, domain,
-% monomial bases and decision variable list of P. The bases are inherited so
-% that the concatenations see one common basis wherever possible; an all-zero
-% coefficient is correct on any basis.
+% Z = ZERO_LIKE(P,DIMS) returns the zero operator of dimension DIMS on the
+% variables, domain, monomial bases and decision variable list of P. The
+% bases are inherited so that the concatenations see one common basis
+% wherever possible; an all-zero coefficient is correct on any basis.
+% INPUTS  P: 'sdopvar' object; dims: 1 x 2 dimensions of the zero block.
+% OUTPUT  Z: 'sdopvar' object with all-zero sparse parameters.
 
 NL = prod([cellfun(@numel,P.ZL),1]);
 NR = prod([cellfun(@numel,P.ZR),1]);

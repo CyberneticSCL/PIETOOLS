@@ -1,9 +1,16 @@
 
+% Test of repelem for 'sopvar': a random operator with each block repeated
+% nr times down and nc times across, applied to the repeated polynomial,
+% against nc copies of the application of the original (apply_sopvar);
+% prints the maximal coefficient of the difference (expected 0).
+%
 % MMP, 09/17/2026: Draw one domain per variable NAME over the union of
 % vars.in and vars.out and index dom.in/dom.out out of that table, replacing
 % two independent per-side draws. A variable shared by the input and output
 % space is one variable carrying one interval, so independent draws gave it
 % two and 'rand_sopvar' rejected the operator (see commit e6842c92).
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 
 % % Set parameters for declaring random operator
 % Dimensions

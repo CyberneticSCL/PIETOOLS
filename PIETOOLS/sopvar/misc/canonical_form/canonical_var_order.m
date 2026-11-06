@@ -86,17 +86,15 @@ function [vars,dom,ZL,ZR,rowIdx,colIdx,changed] = canonical_var_order(vars,dom,Z
 %                  sopvar/misc/canonical_form, after what it holds (the
 %                  canonical form of the block classes), not the tool that
 %                  wrote it. The move changes no code.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the normalization
+%                  note condensed; code unchanged.
 
 vin  = vars.in(:).';        vout = vars.out(:).';
 
-% Normalize the two input shapes the class tolerates elsewhere. This routine
-% runs BEFORE 'canonicalize_multiplier', which is where the same
-% normalization used to happen (its 'Normalize the bases' step), so         % MMP, 09/30/2026
-% callers that legitimately hand over row-oriented exponent vectors or an   % MMP, 09/30/2026
-% empty domain side as [] reached the code below in a shape it could not    % MMP, 09/30/2026
-% use: 'monomial_gather' matched degree table ROWS, so a row basis widened  % MMP, 09/30/2026
-% the table instead of lengthening it and the 'rows' ismember threw (until  % MMP, 09/30/2026
-% 09/30/2026; its shared degree table now reads either orientation).        % MMP, 09/30/2026
+% Normalize the two input shapes the class tolerates elsewhere (row
+% exponent vectors, [] for an empty domain side): this routine runs BEFORE
+% 'canonicalize_multiplier', whose 'Normalize the bases' step did this, and % MMP, 09/30/2026
+% the code below reads the column form.                                     % MMP, 09/30/2026
 ZL = reshape(ZL,1,[]);      ZR = reshape(ZR,1,[]);
 for i = 1:numel(ZL),    ZL{i} = ZL{i}(:);    end
 for i = 1:numel(ZR),    ZR{i} = ZR{i}(:);    end

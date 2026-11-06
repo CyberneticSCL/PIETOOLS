@@ -121,22 +121,24 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar,?dpvar}) cdopvar
 %                  @dopvar semantics). A dpvar with decision variables times
 %                  a cdopvar is refused there, as cdopvar*cdopvar is.
 %                  Before, the dpvar's own method was called and failed.
-%                  The classdef line was
-% classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar}) cdopvar % MMP, 09/29/2026 (was)
+%                  The classdef line before is the (was) line at the end of
+%                  this log.
 % MMP, 09/30/2026: 'unify_dvars' reconciles through 'merge_dvar_lists',
 %                  each block its own operand, instead of its own copy of
-%                  the rule (one unique(...,'stable'), then 'setdvars' by
-%                  name per block). One algorithm now keeps the one-list
-%                  invariant for the constructor, plus, mtimes and
-%                  concatenation. Same list and blocks; where the lists
-%                  differ each block moves by the sort's row map, not by a
-%                  name search, and no list is read through a q-length (:)
-%                  copy unless stored as a row.
+%                  the rule, so one algorithm keeps the one-list invariant
+%                  for the constructor, plus, mtimes and concatenation.
+%                  Same list and blocks; where the lists differ each block
+%                  moves by the sort's row map, not by a name search.
 % MMP, 09/30/2026: The initial-coding entry calls copvar's ?sdopvar
 %                  precedence inert. That no longer holds since 09/25/2026:
 %                  @copvar/horzcat, vertcat and blkdiag rely on it to catch a
 %                  decision block among fixed operands and promote it to a
 %                  'cdopvar' (see the 09/30/2026 entry in 'copvar'). Doc only.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the (was) classdef
+%                  line moved to the end of the log, 'unify_dvars' given
+%                  INPUT/OUTPUT and its (was) comment lines removed, the
+%                  09/30/2026 notes condensed; code unchanged.
+% classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?copvar}) cdopvar % MMP, 09/29/2026 (was)
 
     properties
         C = {};                     % M x N cell of blocks; [] = zero block
@@ -213,25 +215,19 @@ end
 
 % ========================================================================
 function [C,Zd] = unify_dvars(C)
-% Put every 'sdopvar' block on one decision variable list and return it.
+% [C,ZD] = UNIFY_DVARS(C) puts every 'sdopvar' block of the grid C on one
+% decision variable list ZD, which every such block then shares.
+% INPUT   C: M x N cell of blocks ([] for a zero block).
+% OUTPUT  C: the grid with every 'sdopvar' block on Zd; Zd: column cellstr,
+%         cell(0,1) when no block carries decision variables.
 %
-% (was) The numel guard is O(1) and settles the usual mismatch without touching % MMP, 09/30/2026 (was)
-% (was) the names; 'isequal' is O(q) string comparisons and is only reached once % MMP, 09/30/2026 (was)
-% (was) the lengths already agree.                                          % MMP, 09/30/2026 (was)
 % Each block is its own operand of 'merge_dvar_lists', the rule of plus,    % MMP, 09/30/2026
-% mtimes and concatenation. Same list: one unique(...,'stable') over the    % MMP, 09/30/2026
-% lists in block order (one merge, not pairwise against a growing list,     % MMP, 09/30/2026
-% which profiled at 32% of 'possopvar' at three spatial variables), and     % MMP, 09/30/2026
-% the same all-equal shortcut ('isequal' tests sizes first, the O(1) guard  % MMP, 09/30/2026
-% once explicit here). Where lists differ a block moves by its slice of     % MMP, 09/30/2026
-% the sort's row map, not by a name search: the same rows, since the union  % MMP, 09/30/2026
-% has distinct names. Every block then shares the one array.                % MMP, 09/30/2026
-% % % BEGIN MMP, 09/30/2026. Deleted (initial coding 09/17/2026): Zd from
-% % % the first block's Zd(:), the same test over every block's Zd(:), the
-% % % union unique(vertcat(lists{:}),'stable'), and per block setdvars(B,Zd)
-% % % by name then B.Zd = Zd, whose comment measured the sharing at 0 MB
-% % % against 24.4 MB for the fresh Zd(:).' 'setdvars' stores (16 blocks,
-% % % q = 2e5); 'merge_dvar_lists' makes the same assignment.
+% mtimes and concatenation: one unique(...,'stable') over the lists in      % MMP, 09/30/2026
+% block order, the all-equal shortcut, and where the lists differ a block   % MMP, 09/30/2026
+% moves by its slice of the sort's row map, not by a name search.           % MMP, 09/30/2026
+% % % BEGIN MMP, 09/30/2026. Deleted (initial coding 09/17/2026): the
+% % % union of the blocks' Zd(:) lists and per block setdvars(B,Zd) by name
+% % % then B.Zd = Zd; 'merge_dvar_lists' makes the same assignment.
 
 dec = find(cellfun(@(b) isa(b,'sdopvar'),C(:)))';
 Zd = cell(0,1);

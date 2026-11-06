@@ -31,14 +31,10 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 % the pairwise version N-1 times:
 %
 %   1. The decision variable lists are merged with a single
-%      unique(...,'stable') over the concatenation of all N. That is
-%      provably the same list as iterating Zd = [Zd; setdiff(Zd_k,Zd,...)],
-%      which is the order the former pairwise 'CombineDecisionBasis'        % MMP, 09/29/2026
-%      produced (no longer called), because both keep                       % MMP, 09/29/2026
-%      first occurrences in order; but it costs one sort of the whole set
-%      instead of N-1 setdiffs against a growing accumulator. This is the
-%      dominant cost: a setdiff over decision variable NAMES accounted for
-%      roughly 90% of pairwise 'plus'/'horzcat' time at q = 21504.
+%      unique(...,'stable') over the concatenation of all N: the same list
+%      as iterating Zd = [Zd; setdiff(Zd_k,Zd,...)], since both keep first
+%      occurrences in order, at one sort of the whole set instead of N-1
+%      setdiffs against a growing accumulator (the dominant pairwise cost).
 %   2. Each operand is embedded into the FINAL merged basis exactly once.
 %      Chaining pairwise merges re-maps operand 1 through N-1 successive
 %      transforms, and each of those acts on the growing accumulated
@@ -76,32 +72,24 @@ function [objs,T,Zd,ZL,ZR] = sync_basis(objs,shared_Zd)                     % MM
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
-% MMP, 09/26/2026: The decision-list comparison was 1.24 of the 1.36 s this
-% routine took in the 2-D container Hinf build: 147 isequal calls on lists
-% of 3.8e5 names, ~8.4 ms each, although every operand carried one shared
-% list. (1) Optional input 'shared_Zd', a caller's guarantee that the lists
-% are equal, skips the comparison; 'plus_batch' forwards it and '@sdopvar/
-% plus' sets it after promoting a 'sopvar' operand onto the other's list.
-% (2) Compare Zd itself when it is already a column: 'P.Zd(:)' copies the
-% q-entry cell. Measured, same process vs HEAD: without the flag 1.44 ->
-% 0.91 s and 56 -> 0.2 MB allocated; with 'copquadvar' passing it 0.15 s.
-% At q = 1e6 over 3 variables (729 summands per block) 11.2 -> 0.9 s.
-% Same output, bit for bit.
-% MMP, 09/29/2026: Each operand's positions in the merged bases are read
-% directly by the local 'basis_positions' (ismember per direction and
-% Kronecker strides, first variable outermost), instead of building the
-% selection matrices of 'UnionBasisMonomials' and recovering the positions
-% with find(). Same positions, work on the monomial axis only, flat in q.
-% 3-D heat build, profiled: the 4738 position calls 1.27 -> 0.12 s, this
-% routine 1.83 -> 0.62 s; programs bit-identical. New guard: a monomial of
-% an operand missing from the merged basis errors, where the direct form
-% would give position 0 and the old route built its own union without
-% complaint. This was the only live
-% caller of the @sdopvar copy of 'UnionBasisMonomials' (MMP, SS, AT, DJ,
-% 06/08/2026), which is moved to sopvar/private/dead_code/; @sopvar/private
-% keeps its own copy. NOTES
-% item 1 no longer names 'CombineDecisionBasis' as live. In the 09/26/2026
-% entry, '@sdopvar/plus' now sets 'shared_Zd' through 'plus_batch'.
+% MMP, 09/26/2026: (1) Optional input 'shared_Zd', the caller's guarantee
+%                  that the decision lists are equal, skips the O(q) isequal
+%                  per operand (1.24 of 1.36 s in the 2-D container Hinf
+%                  build, 147 calls on 3.8e5 names); 'plus_batch' forwards
+%                  it. (2) Zd is compared as stored when already a column:
+%                  'P.Zd(:)' copies the q-entry cell. Same output.
+% MMP, 09/29/2026: The positions of each operand's monomials in the merged
+%                  bases are read directly by the local 'basis_positions'
+%                  (ismember per direction, Kronecker strides) instead of
+%                  through the selection matrices of 'UnionBasisMonomials'
+%                  and find(); same positions, flat in q (3-D heat build:
+%                  1.83 -> 0.62 s). A monomial missing from the merged
+%                  basis now errors. The @sdopvar copy of
+%                  'UnionBasisMonomials' (MMP, SS, AT, DJ, 06/08/2026) lost
+%                  its only caller and is in the dead-code folder.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): log entries
+%                  condensed, a measurement dropped from the NOTES, the
+%                  BEGIN note shortened; code unchanged.
 
 N = numel(objs);
 if N==0
@@ -171,11 +159,9 @@ for k = 1:N
         continue
     end
     % BEGIN MMP, 09/29/2026: aL(a) is the position in ZL of monomial a of
-    % objs{k}.ZL, read directly; likewise aR. Deleted with the old code
-    % below: its 9 comment lines (09/07/2026) on the UnionBasisMonomials
-    % selection matrices and the find() back to positions. The embedding
-    % into the merged basis is a pure scatter, stored as the index vector
-    % T{k}.idx below rather than as a matrix; see 'apply_basis_map'.
+    % objs{k}.ZL, read directly; likewise aR. The embedding into the merged
+    % basis is a pure scatter, stored as the index vector T{k}.idx below
+    % rather than as a matrix; see 'apply_basis_map'.
 %   [~,CL] = UnionBasisMonomials(objs{k}.ZL,ZL);                            % MMP, 09/29/2026 (was)
 %   [~,CR] = UnionBasisMonomials(objs{k}.ZR,ZR);                            % MMP, 09/29/2026 (was)
 %   aL = zeros(size(CL,1),1);   [rL,cL] = find(CL);     aL(rL) = cL;        % MMP, 09/29/2026 (was)

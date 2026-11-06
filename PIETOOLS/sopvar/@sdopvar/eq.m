@@ -1,5 +1,7 @@
 function logval = eq(P1,P2,tol)
-% Test equality of two sdopvar objects after aligning decision and monomial bases.
+% LOGVAL = EQ(P1,P2,TOL) tests whether two 'sdopvar' objects represent the
+% same decision operator, after aligning their decision-variable and
+% monomial bases.
 %
 % INPUTS
 % - P1, P2: 'sdopvar' objects of the same size; one of them may instead be
@@ -39,10 +41,18 @@ function logval = eq(P1,P2,tol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
+% MMP, 09/07/2026: The operands are aligned by 'sync_basis' and
+%                  'apply_basis_map' (the (was) lines below held the
+%                  pairwise prologue) and compared on the stored nonzeros.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-line and log
+%                  entries, the sparse-comparison note tightened, header for
+%                  the local function; code unchanged.
 
+% Default tolerance
 if nargin<3
     tol = 1e-14;
 end
+% A scalar 0 operand: test the other for being the zero operator
 if ~isa(P1,'sdopvar') && isequal(P1,0)
     logval = eq_zero(P2,tol);
     return
@@ -55,6 +65,7 @@ if ~isa(P1,'sdopvar') || ~isa(P2,'sdopvar')
     error('Both inputs must be sdopvar objects, or one input must be zero.');
 end
 
+% Different dimensions, spaces, domains or cell counts: not equal
 if any(P1.dims~=P2.dims)
     logval = false;
     return
@@ -75,29 +86,27 @@ end
 % Put both objects in the same decision-variable and monomial coordinates.  % MMP, 09/07/2026
 [ops,T] = sync_basis({P1,P2});                                              % MMP, 09/07/2026
 P1 = ops{1};    P2 = ops{2};                                                % MMP, 09/07/2026
-%[P1,P2,~] = CombineDecisionBasis(P1,P2);                                  % MMP, 09/07/2026 (was)
-%[~,C1R,C2R] = UnionBasisMonomials(P1.ZR,P2.ZR);                           % MMP, 09/07/2026 (was)
-%[~,C1L,C2L] = UnionBasisMonomials(P1.ZL,P2.ZL);                           % MMP, 09/07/2026 (was)
-%C1L = kron(eye(P1.dims(1)),C1L);                                          % MMP, 09/07/2026 (was)
-%C2L = kron(eye(P2.dims(1)),C2L);                                          % MMP, 09/07/2026 (was)
-%C1R = kron(eye(P1.dims(2)),C1R);                                          % MMP, 09/07/2026 (was)
-%C2R = kron(eye(P2.dims(2)),C2R);                                          % MMP, 09/07/2026 (was)
-%T1 = kron(C1R',C1L');                                                     % MMP, 09/07/2026 (was)
-%T2 = kron(C2R',C2L');                                                     % MMP, 09/07/2026 (was)
+%[P1,P2,~] = CombineDecisionBasis(P1,P2);                                   % MMP, 09/07/2026 (was)
+%[~,C1R,C2R] = UnionBasisMonomials(P1.ZR,P2.ZR);                            % MMP, 09/07/2026 (was)
+%[~,C1L,C2L] = UnionBasisMonomials(P1.ZL,P2.ZL);                            % MMP, 09/07/2026 (was)
+%C1L = kron(eye(P1.dims(1)),C1L);                                           % MMP, 09/07/2026 (was)
+%C2L = kron(eye(P2.dims(1)),C2L);                                           % MMP, 09/07/2026 (was)
+%C1R = kron(eye(P1.dims(2)),C1R);                                           % MMP, 09/07/2026 (was)
+%C2R = kron(eye(P2.dims(2)),C2R);                                           % MMP, 09/07/2026 (was)
+%T1 = kron(C1R',C1L');                                                      % MMP, 09/07/2026 (was)
+%T2 = kron(C2R',C2L');                                                      % MMP, 09/07/2026 (was)
 
+% Compare the coefficients cell by cell on the common bases
 logval = true;
 for ii=1:numel(P1.params.A)
     [A1,B1] = apply_basis_map(T{1},P1.params.A{ii},P1.params.B{ii});        % MMP, 09/07/2026
     [A2,B2] = apply_basis_map(T{2},P2.params.A{ii},P2.params.B{ii});        % MMP, 09/07/2026
-%   A1 = T1*P1.params.A{ii};                                               % MMP, 09/07/2026 (was)
-%   A2 = T2*P2.params.A{ii};                                               % MMP, 09/07/2026 (was)
-%   B1 = P1.params.B{ii}*T1.';                                             % MMP, 09/07/2026 (was)
-%   B2 = P2.params.B{ii}*T2.';                                             % MMP, 09/07/2026 (was)
-    % 'all(abs(D(:))<tol)' on a sparse D materialises a FULL logical of     % MMP, 09/07/2026
-    % q*nC entries, since every implicit zero satisfies the comparison:     % MMP, 09/07/2026
-    % 1166 MB and 0.21 s measured at q=1e5, nC=1296, to compare a 0.1 MB    % MMP, 09/07/2026
-    % object. Testing the stored nonzeros is equivalent for tol>0 and is    % MMP, 09/07/2026
-    % O(nnz), and the rows of B are the decision variables.                 % MMP, 09/07/2026
+%   A1 = T1*P1.params.A{ii};                                                % MMP, 09/07/2026 (was)
+%   A2 = T2*P2.params.A{ii};                                                % MMP, 09/07/2026 (was)
+%   B1 = P1.params.B{ii}*T1.';                                              % MMP, 09/07/2026 (was)
+%   B2 = P2.params.B{ii}*T2.';                                              % MMP, 09/07/2026 (was)
+    % Test the stored nonzeros: 'all(abs(D(:))<tol)' on a sparse D would    % MMP, 09/07/2026
+    % build a full q*nC logical (the rows of B are the decision variables). % MMP, 09/07/2026
     logval = logval && ~any(abs(nonzeros(A1-A2))>=tol) ...
                     && ~any(abs(nonzeros(B1-B2))>=tol);                     % MMP, 09/07/2026
 %   logval = logval && all(abs(A1(:)-A2(:))<tol) && all(abs(B1(:)-B2(:))<tol); % MMP, 09/07/2026 (was)
@@ -108,13 +117,17 @@ end
 end
 
 function logval = eq_zero(P,tol)
+% LOGVAL = EQ_ZERO(P,TOL) is true when every stored coefficient of the
+% 'sdopvar' P, constant and decision-variable part, is below TOL in modulus.
+% INPUTS  P: 'sdopvar' object (or a scalar, tested against 0); tol: scalar.
+% OUTPUT  logval: logical.
 if ~isa(P,'sdopvar')
     logval = isequal(P,0);
     return
 end
 logval = true;
 for ii=1:numel(P.params.A)
-    % Same sparse-comparison trap as above; see the note in eq.           % MMP, 09/07/2026
+    % Same sparse-comparison trap as above; see the note in eq.             % MMP, 09/07/2026
     logval = logval && ~any(abs(nonzeros(P.params.A{ii}))>=tol) ...
                     && ~any(abs(nonzeros(P.params.B{ii}))>=tol);            % MMP, 09/07/2026
 %   logval = logval && all(abs(P.params.A{ii}(:))<tol) && all(abs(P.params.B{ii}(:))<tol); % MMP, 09/07/2026 (was)

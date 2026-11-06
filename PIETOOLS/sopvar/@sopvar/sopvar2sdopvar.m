@@ -51,12 +51,13 @@ function Pd = sopvar2sdopvar(P,Zd)
 %
 % Initial coding MMP, 09/07/2026
 % MMP, 09/29/2026: The help text named 'CombineDecisionBasis' as the routine
-% that merges decision variable lists. It had no caller after 09/07/2026 and
-% is now in sopvar/private/dead_code/; 'sync_basis' does the merge. Comment only. The two help
-% lines were (kept here so that 'help' shows only the current text):
-% % two share a decision variable list and 'CombineDecisionBasis' takes its % MMP, 09/29/2026 (was)
-% % fast path instead of a setdiff over every name.                         % MMP, 09/29/2026 (was)
+%                  that merges decision variable lists; it is dead code and
+%                  'sync_basis' does the merge. Comment only.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the two replaced
+%                  help lines kept as (was) in the 09/29/2026 entry removed;
+%                  code unchanged.
 
+% The input must be a fixed operator; no decision variables by default
 if ~isa(P,'sopvar')
     error("Input must be of type 'sopvar'.")
 end
@@ -64,6 +65,7 @@ if nargin<2 || isempty(Zd)
     Zd = cell(0,1);
 end
 
+% Promote each cell: A the vec of the coefficient matrix, B empty
 q = numel(Zd);
 params = struct('A',{cell(size(P.params))},'B',{cell(size(P.params))});
 for k = 1:numel(P.params)

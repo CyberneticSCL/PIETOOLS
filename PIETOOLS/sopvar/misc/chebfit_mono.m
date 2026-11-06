@@ -13,6 +13,18 @@ function [Cmono,relrms,d] = chebfit_mono(x,Y,ab,deg0,degmax,tol,x2)
 % 16 on 101 points, where a monomial Vandermonde does not; the conversion
 % to monomials is exact arithmetic on the recurrence.
 %
+% INPUTS
+% - x:      sample points in [a,b]; x2: (optional) the points of the second
+%           variable, for a two-variable fit;
+% - Y:      sampled values, one column per function (layout above);
+% - ab:     1 x 2 interval [a,b];
+% - deg0, degmax, tol: initial and maximal degree, relative RMS tolerance.
+%
+% OUTPUTS
+% - Cmono:  monomial coefficients (layout above);
+% - relrms: relative RMS residual at the returned degree;
+% - d:      the degree used.
+%
 % See also SOPVAR/INV, GETCONTROLLER_DIRECT_SOP, GK_GRID.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -43,6 +55,8 @@ function [Cmono,relrms,d] = chebfit_mono(x,Y,ab,deg0,degmax,tol,x2)
 %
 % Initial coding MMP, 10/09/2026: the fit part of @sopvar/inv (same date),
 %                moved here so that the gain construction can share it.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
+%                block added; code unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 a = ab(1);  b = ab(2);

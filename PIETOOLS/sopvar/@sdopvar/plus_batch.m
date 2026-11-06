@@ -55,28 +55,21 @@ function C = plus_batch(varargin)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/07/2026
-% MMP, 09/26/2026: Optional trailing 'shared_Zd', forwarded to 'sync_basis'.
-% In the 2-D container Hinf build (q = 7.6e5) 'copquadvar' sums ~16 terms
-% per block, all constructed on its one Zd, and sync_basis spent 1.32 of
-% plus_batch's 1.63 s re-proving that with 136 isequal calls on 3.8e5-name
-% lists. The caller knows it; the check cannot be made O(1) here. Same
-% output, bit for bit.
-% MMP, 09/26/2026: Skip adding a summand that stores no entries (local
-% 'noop_sum'): 860 of the 1096 additions in the same build, each copying
-% the whole running sum. Guarded to real sparse double of equal size, where
-% the skipped sum is provably the same bits. Such a summand is also mapped
-% onto the merged bases without 'apply_basis_map', whose scatter of zeros
-% took 4.9 of plus_batch's 7.3 s at q = 1e6 over three spatial variables
-% (single-space 'poscopvar', one block of 729 summands). Measured, same
-% process vs HEAD, with the 'shared_Zd' call site in 'copquadvar':
-% plus_batch 2-D Hinf (q = 7.6e5) 1.66 -> 0.25 s; 3 variables (q = 1e6)
-% 24.5 -> 3.1 s. Programs bit-identical.
-% MMP, 09/29/2026: A summand without entries is now skipped before its
-% zeros are built, in exactly the cases where 'noop_sum' then skipped both
-% adds (running sums real sparse double of the merged sizes); in any other
-% case it is handled as before, so the output keeps its bits. 3-D heat
-% build: 'noop_sum' calls 174636 -> 58398; programs bit-identical. Also
-% '@sdopvar/plus' now calls this routine for its two operands.
+% MMP, 09/26/2026: Optional trailing 'shared_Zd', forwarded to 'sync_basis',
+%                  which otherwise re-proves equal decision variable lists
+%                  with one O(q) isequal per operand (1.32 of 1.63 s in the
+%                  2-D container Hinf build at q = 7.6e5). Same output.
+% MMP, 09/26/2026: A summand that stores no entries is skipped ('noop_sum':
+%                  real sparse double of equal size, where S + 0 keeps the
+%                  bits of S) and mapped onto the merged bases without
+%                  'apply_basis_map' (2-D Hinf 1.66 -> 0.25 s, 3 variables
+%                  at q = 1e6 24.5 -> 3.1 s; programs bit-identical).
+% MMP, 09/29/2026: Such a summand is skipped before its zeros are built,
+%                  exactly where 'noop_sum' would skip both adds; otherwise
+%                  as before. '@sdopvar/plus' now calls this routine.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): log entries and
+%                  body notes condensed to the fact and its reason; code
+%                  unchanged.
 
 % A trailing 'shared_Zd' is removed before the operands are processed; see  % MMP, 09/26/2026
 % INPUT. Any other text input is an error rather than an operand.           % MMP, 09/26/2026
@@ -140,11 +133,9 @@ end
 [ops,T,Zd,ZL,ZR] = sync_basis(ops,shared_Zd);                               % MMP, 09/26/2026
 
 % % % Add the summands in sequence. Only the SYNCHRONIZATION is batched;
-% the summation is left as sparse additions, which merge two already-sorted
-% column structures. Collecting all N operands' triplets into one sparse()
-% call instead was measured 1.6x SLOWER at N=729, q=2000 (16.6 s against
-% 10.1 s), because that constructor must sort N*nnz entries; it was faster
-% only when q was small enough for the sort to be free.
+% the summation stays as sparse additions, which merge two sorted column
+% structures (one sparse() over all N triplets must sort N*nnz entries and
+% was measured 1.6x slower at N=729, q=2000).
 ncell = numel(ops{1}.params.A);
 params_new.A = cell(size(ops{1}.params.A));
 params_new.B = cell(size(ops{1}.params.B));
@@ -153,19 +144,16 @@ for i = 1:ncell
     for k = 2:N
 %       [Ak,Bk] = apply_basis_map(T{k},ops{k}.params.A{i},ops{k}.params.B{i}); % MMP, 09/26/2026 (was)
         % A summand without entries maps to sparse zeros of the merged      % MMP, 09/26/2026
-        % size; build those directly rather than run apply_basis_map's      % MMP, 09/26/2026
-        % scatter (4.9 of plus_batch's 7.3 s at q = 1e6, 3 variables). The  % MMP, 09/26/2026
-        % guard admits only inputs on which that scatter succeeds and       % MMP, 09/26/2026
-        % returns exactly these: real double, numel/columns matching T.idx. % MMP, 09/26/2026
+        % size, built directly instead of by apply_basis_map's scatter; the % MMP, 09/26/2026
+        % guard admits exactly the inputs on which that scatter returns     % MMP, 09/26/2026
+        % these zeros (real double, numel/columns matching T.idx).          % MMP, 09/26/2026
         Ar = ops{k}.params.A{i};    Br = ops{k}.params.B{i};                % MMP, 09/26/2026
         if ~isempty(T{k}) && nnz(Ar)==0 && nnz(Br)==0 && isa(Ar,'double') ...
             && isa(Br,'double') && isreal(Ar) && isreal(Br) && ismatrix(Br) ...
             && numel(Ar)==numel(T{k}.idx) && size(Br,2)==numel(T{k}.idx)    % MMP, 09/26/2026
-            % Both adds below would be skipped: 'noop_sum' holds for these  % MMP, 09/29/2026
-            % zeros exactly when the running sums are real sparse double    % MMP, 09/29/2026
-            % of the merged sizes. Then skip before building the zeros;     % MMP, 09/29/2026
-            % otherwise (e.g. a full sum, whose -0 the add turns to +0)     % MMP, 09/29/2026
-            % build them and add as before.                                 % MMP, 09/29/2026
+            % Skip before building the zeros when 'noop_sum' would skip     % MMP, 09/29/2026
+            % both adds anyway: running sums real sparse double of the      % MMP, 09/29/2026
+            % merged sizes (a full sum could hold -0, which + 0 flips).     % MMP, 09/29/2026
             if issparse(Asum) && issparse(Bsum) && isa(Asum,'double') ...
                 && isa(Bsum,'double') && isreal(Asum) && isreal(Bsum) ...
                 && isequal(size(Asum),[T{k}.nC,1]) ...
@@ -178,9 +166,8 @@ for i = 1:ncell
         end                                                                 % MMP, 09/26/2026
 %       Asum = Asum + Ak;                                                   % MMP, 09/26/2026 (was)
 %       Bsum = Bsum + Bk;                                                   % MMP, 09/26/2026 (was)
-        % A summand without entries still costs a copy of the whole sum.    % MMP, 09/26/2026
-        % 860 of 1096 are such in the 2-D Hinf build, copying 4.9e7 entries % MMP, 09/26/2026
-        % to add 4.5e6. Skipped only where the sum keeps the same bits.     % MMP, 09/26/2026
+        % Adding an empty summand would copy the whole running sum; skip    % MMP, 09/26/2026
+        % it where the sum keeps the same bits ('noop_sum').                % MMP, 09/26/2026
         if ~noop_sum(Asum,Ak),  Asum = Asum + Ak;   end                     % MMP, 09/26/2026
         if ~noop_sum(Bsum,Bk),  Bsum = Bsum + Bk;   end                     % MMP, 09/26/2026
     end

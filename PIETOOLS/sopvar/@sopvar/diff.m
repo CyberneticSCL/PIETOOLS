@@ -68,6 +68,9 @@ function [dPop,is_zero] = diff(Pop,vars,d,chk_override)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/20/2026: Initial coding;
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
+%                  added to the headers of the local functions; code
+%                  unchanged.
 
 if nargin<=3 || ~chk_override
     % Check that the operator is properly specified
@@ -153,8 +156,16 @@ function [dP,is_zero] = diff_step(P,v)
 % d/ds K lowers the degree a of s in ZL by one with factor a. K(s,s) moves
 % the degree b of the dummy variable onto ZL, (a,b) -> (a+b,0), which is
 % the canonical multiplier form; ZR is enlarged by degree 0 if it lacks it.
+%
+% INPUTS
+% - P:      m x n 'sopvar' object;
+% - v:      char, the name of one output variable of P;
+%
+% OUTPUTS
+% - dP:     m x n 'sopvar' object representing d/dv o P;
+% - is_zero: true if dP is known to be the zero operator.
 
-% Extract variables and monomials of operator P 
+% Extract variables and monomials of operator P
 vin = P.vars.in(:)';    vout = P.vars.out(:)';
 M = numel(vout);        N = numel(vin);
 m = P.dims(1);          n = P.dims(2);
@@ -305,9 +316,21 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% 
 function [i1,dl,j1,dr] = term_degrees(ri,ci,ZL,ZR,NL,NR,sL,sR)
-% Matrix row/column and monomial degrees of the entries (ri,ci) of a
+% [I1,DL,J1,DR] = TERM_DEGREES(RI,CI,ZL,ZR,NL,NR,SL,SR) returns the matrix
+% row and column and the monomial degrees of the entries (RI,CI) of a
 % parameter; rows are ordered (matrix row, left monomial), columns (matrix
 % column, right monomial), monomials as kron(Z{1},...,Z{end}).
+%
+% INPUTS
+% - ri, ci: column vectors of row and column indices into the parameter;
+% - ZL, ZR: cells of exponent columns, the left and right monomial bases;
+% - NL, NR: the numbers of left and right monomials;
+% - sL, sR: their Kronecker strides ('kron_strides');
+%
+% OUTPUTS
+% - i1, j1: 0-based matrix row and column of each entry;
+% - dl, dr: numel(ri) x numel(ZL) and numel(ci) x numel(ZR) arrays of the
+%           degree of each entry in each output and input variable.
 i1 = floor((ri-1)/NL);      a = kron_split(mod(ri-1,NL),sL);
 j1 = floor((ci-1)/NR);      b = kron_split(mod(ci-1,NR),sR);
 dl = zeros(numel(ri),numel(ZL));

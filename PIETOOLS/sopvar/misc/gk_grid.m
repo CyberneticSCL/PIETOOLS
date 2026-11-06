@@ -66,6 +66,8 @@ function G = gk_grid(R,opts,lf,rf)
 %
 % Initial coding MMP, 10/09/2026: the grid part of @sopvar/inv (same date),
 %                moved here so that the gain construction can share it.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-lines for the
+%                nested functions; code unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2 || isempty(opts),   opts = struct();    end
@@ -167,6 +169,7 @@ G = struct('a',a,'b',b,'m',m,'N',N,'sg',sg,'h',h,'w',w,'r1',r1,'r2',r2,'n',n,...
 G.E = E;    G.Y = Y;        % assigned after: an empty cell inside struct() makes an empty struct array
 
     function [Lb,Rb] = bases(s)
+        % the monomial bases at s: Lb = I_m kron ZL(s)', Rb = I_m kron ZR(s)
         Lb = kron(Im,sparse(s.^zL)');   Rb = kron(Im,sparse(s.^zR));
     end
     function [Ci,Bi] = CB(Lb,Rb,R0i)
@@ -176,6 +179,8 @@ G.E = E;    G.Y = Y;        % assigned after: an empty cell inside struct() make
         Ci = -R0i*Fm;   Bi = Gm;
     end
     function [Lmat,Rmat] = stage(s,Ci,Bi,R0i)
+        % the matrices of the two augmented linear systems at s:
+        % X' = Lmat*X(1:n,:) (U and the E_i), W' = W(:,1:n)*Rmat (V, the Y_j)
         A = Bi*Ci;
         Lmat = zeros(nX,n);     Lmat(1:n,:) = A;    off1 = n;
         for ii = 1:L
@@ -187,12 +192,15 @@ G.E = E;    G.Y = Y;        % assigned after: an empty cell inside struct() make
         end
     end
     function R0s = R0_at(s)
+        % the multiplier R0(s)
         [Lb,Rb] = bases(s);     R0s = full(Lb*C0*Rb);
     end
     function Fs = F_at(s)
+        % the kernel factor [F1(s) F2(s)]
         [Lb,~] = bases(s);      Fs = [full(Lb*U1), full(Lb*U2)];
     end
     function Gs = G_at(s)
+        % the kernel factor [G1(s); -G2(s)]
         [~,Rb] = bases(s);      Gs = [full(V1*Rb); -full(V2*Rb)];
     end
 end

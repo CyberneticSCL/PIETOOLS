@@ -5,10 +5,11 @@ function varargout = spIkron(q,varargin)
 % INPUTS
 % - q:  scalar integer specifying the dimension of the identity matrix
 % - C:  Either:
-%       1. A sparse matrix for which to compute
-%       1x5 cell representing the sparse matrix as
+%       1. a sparse matrix, or
+%       2. the elements C{1},...,C{5} (and optionally C{6}) of a sparse
+%          matrix, passed as separate arguments, with
 %           Cmat = sparse(C{1}, C{2}, C{3}, C{4}, C{5}),
-%       with elements:
+%       and elements:
 %       C{1} - m x 1 array of nonnegative integers, specifying the row
 %               indices in Cmat
 %       C{2} - m x 1 array of nonnegative integers, specifying the column
@@ -20,10 +21,16 @@ function varargout = spIkron(q,varargin)
 %       C{6} - (optional) number of nonzero elements in Cmat
 %
 % OUTPUTS
-% - IC: 1x5 cell representing the sparse matrix I o Cmat as
+% - IC: with one output, the sparse matrix I o Cmat; with 5 or 6 outputs,
+%       the elements IC{1},...,IC{6} with
 %           ICmat = sparse(IC{1}, IC{2}, IC{3}, IC{4}, IC{5}).
 %
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
+%                  corrected to the argument form the code reads (separate
+%                  arguments, not one cell); code unchanged. The branch
+%                  'if varargout==6' compares a cell with 6 and never runs
+%                  (nargout==6 is meant); left as is.
 
 % If C is specified as an actual array, we compute the kronecker product
 % using the built-in Matlab routine

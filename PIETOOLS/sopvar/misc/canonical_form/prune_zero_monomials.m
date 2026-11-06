@@ -84,6 +84,8 @@ function [ZLn,ZRn,keepL,keepR] = prune_zero_monomials(ZL,ZR,occL,occR)
 %                  sopvar/misc/canonical_form, after what it holds (the
 %                  canonical form of the block classes), not the tool that
 %                  wrote it. The move changes no code.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                  for the local function; code unchanged.
 
 [ZLn,keepL] = prune_side(ZL,occL);
 [ZRn,keepR] = prune_side(ZR,occR);
@@ -93,7 +95,11 @@ end
 
 %%
 function [Zn,keep] = prune_side(Z,occ)
-% Per-direction prune of one tensor basis, with the composite gather.
+% [ZN,KEEP] = PRUNE_SIDE(Z,OCC) prunes one tensor basis per direction and
+% returns the composite gather.
+% INPUTS  Z: 1 x N cell of exponent vectors; occ: prod(numel) logical.
+% OUTPUT  Zn: the pruned basis; keep: gather index (the identity when
+%         nothing is pruned).
 
 Zn = Z;
 sz = cellfun(@numel,Z);     sz = sz(:).';

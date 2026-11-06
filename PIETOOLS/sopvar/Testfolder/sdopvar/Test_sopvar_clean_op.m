@@ -1,5 +1,11 @@
-% Test_sopvar_clean_op.m
+% Test of clean_op for 'sopvar': over 12 random operators, (1) a coefficient
+% overwritten with sub-tolerance noise is zeroed and nothing else changes,
+% (2) an all-zero operator is flagged is_zero and acts as the zero map, and
+% (3) a nonzero operator is not flagged and its action is unchanged; errors
+% on the first failure.
 %
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 
 tol = 1e-8;
 

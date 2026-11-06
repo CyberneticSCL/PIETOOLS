@@ -119,6 +119,8 @@ function tf = eq_copvar(A,B,tol)
 %           with the same dimensions and every pair of blocks is equal to   % MMP, 09/29/2026 (was)
 %           within tol. For decision containers, "equal" is equality as     % MMP, 09/29/2026 (was)
 %           affine functions of the decision variables, matched by name.    % MMP, 09/29/2026 (was)
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                  for the local functions; code unchanged.
 
 if nargin<3 || isempty(tol)
     tol = 1e-14;
@@ -194,6 +196,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function tf = is_numeric_zero(X)
+% TF = IS_NUMERIC_ZERO(X) is true for the numeric scalar 0.
 tf = isnumeric(X) && isscalar(X) && X==0;
 end
 
@@ -214,6 +217,8 @@ end
 
 
 function tf = is_zero(P,tol)
+% TF = IS_ZERO(P,TOL) is true when every populated block of the container P
+% is zero within TOL.
 tf = true;
 % for ii = 1:numel(P.C)                                                     % MMP, 09/29/2026 (was)
 %     if ~isempty(P.C{ii}) && ~eq(P.C{ii},0,tol)                            % MMP, 09/29/2026 (was)
@@ -228,8 +233,11 @@ end
 
 
 function tf = same_space(A,mA,B,mB)
-% Same variable names, and each on the same domain in both containers.
-% A, B: containers, or structs with their fields vars and dom.              % MMP, 09/29/2026
+% TF = SAME_SPACE(A,MA,B,MB): the same variable names, each on the same
+% domain in both containers.
+% INPUTS  A, B: containers, or structs with their fields vars and dom;      % MMP, 09/29/2026
+%         mA, mB: logical masks of one space over A.vars and B.vars.
+% OUTPUT  tf: logical.
 vA = A.vars(mA);    vB = B.vars(mB);
 tf = isequal(sort(vA(:))',sort(vB(:))');
 if ~tf,     return,     end
@@ -252,6 +260,8 @@ function tf = eq_refined(A,B,mA,mB,tol)
 % the same-partition path and cannot come back here. A side with no
 % components in either operand gives a 0 x N (or M x 0) cut grid, with no
 % kernel entries: the component spaces of the other side decide.
+% INPUTS  A, B: containers; mA, mB: their fields as structs; tol: scalar.
+% OUTPUT  tf: logical.
 tf = false;
 [ok,rA,rB] = refine(mA.dim_out,mB.dim_out);     if ~ok,     return,     end
 [ok,cA,cB] = refine(mA.dim_in,mB.dim_in);       if ~ok,     return,     end
@@ -271,6 +281,9 @@ function [ok,a,b] = refine(dA,dB)
 % components br(t)+1..br(t+1), br the union of the breakpoints; a.blk(t) is
 % the block of A holding it and a.loc{t} its indices inside that block,
 % likewise b. A zero-count block holds no segment and drops out.
+% INPUTS  dA, dB: component counts per block of the two partitions.
+% OUTPUT  ok: logical; a, b: structs with fields blk (segment -> block) and
+%         loc (segment -> indices inside the block).
 cA = [0;cumsum(dA(:))];     cB = [0;cumsum(dB(:))];
 ok = cA(end)==cB(end);
 a = struct('blk',zeros(0,1),'loc',{cell(0,1)});     b = a;
@@ -293,6 +306,8 @@ function R = cut(P,m,r,c)
 % fields of P read once. Slicing needs fully sized block parameters: a
 % block with the [] / scalar-0 parameter shorthand, which the constructor
 % accepts, errors in @sopvar/subsref (pre-existing).
+% INPUTS  P: container; m: its fields; r, c: the refinements of 'refine'.
+% OUTPUT  R: container of the class of P on the refined grid.
 C = cell(numel(r.blk),numel(c.blk));
 for t = 1:numel(r.blk)
     for u = 1:numel(c.blk)

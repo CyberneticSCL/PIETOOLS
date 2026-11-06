@@ -1,8 +1,8 @@
 function [varsC,ZC,CC] = leftShiftMonomials_SD( ...
     varsA,ZA,CA,varsB,ZB,CB)
-% leftShiftMonomials_SD
-%
-% Decision-variable-dependent version of 'leftShiftMonomials_SS'. Computes
+% [VARSC,ZC,CC] = LEFTSHIFTMONOMIALS_SD(VARSA,ZA,CA,VARSB,ZB,CB) is the
+% decision-variable-dependent version of 'leftShiftMonomials_SS': it
+% computes
 %
 %   ((I_p \otimes ZA')*CA{I,J})*((I_q \otimes ZB')*CB{I})
 %       = (I_p \otimes ZC')*CC{I,J}
@@ -51,8 +51,12 @@ function [varsC,ZC,CC] = leftShiftMonomials_SD( ...
 % authorship, and a brief description of modifications
 %
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-line in the
+%                  house format, step comments; code unchanged.
 %
 
+% Sizes: NB monomials of the right factor, q its row blocks, mA x q the
+% constant part of each CA cell as a matrix
 [nI,nJ] = size(CA);
 
 NB = prod(cellfun(@numel,ZB));
@@ -79,6 +83,7 @@ if mod(nCoef,q) ~= 0
 end
 
 mA = nCoef/q;
+% Constant parts as matrices, for the numeric routine
 CAconstant = cell(nI,nJ);
 
 for i = 1:nI
@@ -94,9 +99,13 @@ for i = 1:nI
     end
 end
 
+% Shift the constant parts and get the linear map Tmap{I} of the shift,
+% vec(CC) = Tmap{I}*vec(CA)
 [varsC,ZC,CCconstant,Tmap] = leftShiftMonomials_SS( ...
     varsA,ZA,CAconstant,varsB,ZB,CB);
 
+% The decision coefficients take the same map; the rows of B are the
+% decision variables and are only carried through
 CC = cell(nI,nJ);
 
 for i = 1:nI

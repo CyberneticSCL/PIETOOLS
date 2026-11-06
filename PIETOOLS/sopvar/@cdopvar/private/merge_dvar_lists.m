@@ -20,7 +20,6 @@ function [C,Zd] = merge_dvar_lists(C,Zds,src)
 % OUTPUTS
 % - C:      the grid, every 'sdopvar' block on ZD and sharing that one      % MMP, 09/25/2026
 %           array, as the container invariant requires;                     % MMP, 09/25/2026
-% (was) - C:      the grid, every 'sdopvar' block on ZD;                    % MMP, 09/25/2026 (was)
 % - Zd:     the container's decision variable list, a column cellstr.
 %
 % NOTES
@@ -30,21 +29,15 @@ function [C,Zd] = merge_dvar_lists(C,Zds,src)
 % only pointed at the one array, so concatenation stays O(blocks). Owners,  % MMP, 09/25/2026
 % not nonempty lists: sdopvar blocks on an EMPTY list must still be moved   % MMP, 09/25/2026
 % onto the union, where they get zero rows.                                 % MMP, 09/25/2026
-% (was) When every nonempty list is the same one - the normal case, operands % MMP, 09/25/2026 (was)
-% (was) declared by one call or carried through arithmetic together - it is % MMP, 09/25/2026 (was)
-% (was) reused and no block is touched, so concatenation stays O(blocks).   % MMP, 09/25/2026 (was)
 %
 % Otherwise ONE 'unique(...,'stable')' over the concatenated lists gives
 % both the union and, through its third output, the position in the union
 % of every entry of every list: exactly each operand's row map. Each block
 % is then moved by its operand's slice of that map, O(nnz(B)). The earlier
-% (was) route, 'put_on_list', lets every block search the union by name; measured % MMP, 09/30/2026 (was)
 % route, a name search of the union by each block ('setdvars'); measured    % MMP, 09/30/2026
 % on a two-list [D, E] at q = 4e5 that per-block 'ismember' was 4.4 of the
 % 5.3 s. An operand whose map is the identity - its list IS the union -     % MMP, 09/25/2026
 % keeps its blocks as they are.                                             % MMP, 09/25/2026
-% (was) 5.3 s. 'setdvars' spot-checks each supplied map, so a block that is not % MMP, 09/25/2026 (was)
-% (was) on its operand's list is caught rather than silently misplaced.     % MMP, 09/25/2026 (was)
 %
 % The map is TRUSTED to describe each block's rows, which the container     % MMP, 09/25/2026
 % invariant guarantees and only direct assignment to a block's properties   % MMP, 09/25/2026
@@ -85,30 +78,25 @@ function [C,Zd] = merge_dvar_lists(C,Zds,src)
 % Initial coding MMP, 09/25/2026
 % MMP, 09/25/2026: Three changes after review, each reproduced first.
 %                  (1) Sharing is decided over the operands that OWN an
-%                  'sdopvar' block, not over the nonempty lists: [D, E] with
-%                  E's blocks sdopvar on an EMPTY list kept D's list and left
-%                  E's blocks with 0 decision rows in a container of 10.
-%                  (2) An operand whose map is the identity is not rebuilt:
-%                  [R2; Q1] with R2 already on the union ran 8 'setdvars'
-%                  where 4 are needed. (3) On the shared-list shortcut every
-%                  block is pointed at the one Zd array; a block sum carries
-%                  a private copy of the list per block. The note that
-%                  'setdvars' catches a misplaced block was wrong (a
-%                  permutation passes) and is replaced. Now also called by
-%                  '@cdopvar/plus'.
+%                  'sdopvar' block, not over the nonempty lists ([D, E] with
+%                  E's blocks on an EMPTY list kept D's list and left them
+%                  with 0 decision rows). (2) An operand whose map is the
+%                  identity is not rebuilt. (3) On the shared-list shortcut
+%                  every block is pointed at the one Zd array (a block sum
+%                  carries a private copy). The note that 'setdvars' catches
+%                  a misplaced block was wrong (a permutation passes). Now
+%                  also called by '@cdopvar/plus'.
 % MMP, 09/26/2026: Header notes that '@cdopvar/mtimes' calls it too. Doc
 %                  only.
 % MMP, 09/30/2026: NOTES take over the rationale for reconciling before the
-%                  block loop from 'private/put_on_list' (Initial coding
-%                  09/17/2026; entries 09/25 and 09/26/2026), deleted: no
-%                  caller since 09/26/2026. Its loop, 'setdvars' by name per
-%                  block and then the shared array, is the name-search route
-%                  of NOTES. The two comments citing it now say what it did.
-%                  '(was)' lines in @cdopvar/plus and @cdopvar/mtimes still
-%                  name it. Comments only.
-% MMP, 09/30/2026: Header: now also called by the 'cdopvar' constructor
-%                  ('unify_dvars'), and by plus and mtimes through
-%                  'merge_dvar_pair'. Doc only.
+%                  block loop from 'private/put_on_list' (initial coding
+%                  09/17/2026), deleted: no caller since 09/26/2026; its
+%                  loop is the name-search route of NOTES. Also called by
+%                  the 'cdopvar' constructor ('unify_dvars') and, through
+%                  'merge_dvar_pair', by plus and mtimes. Doc only.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the (was) lines
+%                  of the help text removed (the log records them), log
+%                  entries condensed; code unchanged.
 
 nz = ~cellfun(@isempty,Zds);
 % Operands owning an sdopvar block, whatever their list; with none, the     % MMP, 09/25/2026

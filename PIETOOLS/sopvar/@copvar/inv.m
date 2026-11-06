@@ -96,6 +96,9 @@ function [Pinv,info] = inv(P,opts)
 %                were refused. The 2-D H-infinity estimator gain uses it in
 %                place of the stock getObserver_2D. Header: the N-D method,
 %                its options and info fields.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUT/OUTPUT for
+%                the local functions 'blockmat' and 'matblock'; code
+%                unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2,    opts = struct();    end
@@ -149,7 +152,9 @@ end
 
 
 function Mat = blockmat(B,k)
-% the k x k matrix of an R^k -> R^k block, [] being zero
+% MAT = BLOCKMAT(B,K) the k x k matrix of an R^k -> R^k block, [] being zero.
+% INPUT  B: 'sopvar' block on R^k, or []; k: its dimension.
+% OUTPUT Mat: full k x k double.
 if isempty(B),  Mat = zeros(k);     return,     end
 Mat = full(B.params{1});
 if ~isequal(size(Mat),[k k])
@@ -158,7 +163,10 @@ end
 end
 
 function B = matblock(Mat,k)
-% the 'sopvar' block of a k x k matrix on R^k, as 'opvar2sopvar' builds it
+% B = MATBLOCK(MAT,K) the 'sopvar' block of a k x k matrix on R^k, as
+% 'opvar2sopvar' builds it.
+% INPUT  Mat: k x k double; k: its dimension.
+% OUTPUT B: 'sopvar' block with no spatial variable.
 vars = struct;  vars.in = {};   vars.out = {};
 dom = struct;   dom.in = zeros(0,2);    dom.out = zeros(0,2);
 B = sopvar({Mat},vars,cell(1,0),cell(1,0),dom,[k k]);

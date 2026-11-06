@@ -113,6 +113,8 @@ function [deg,report] = degbalance_core(P,opts)
 %                  which is not the canonical form the rest of that folder,
 %                  now sopvar/misc/canonical_form, holds. The move changes
 %                  no code.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                  for the local functions; code unchanged.
 
 if nargin<2 || isempty(opts)
     opts = struct();
@@ -245,8 +247,10 @@ end
 
 %%
 function C = reach(a,n3)
-% Cells the diagonal of block 'a' can populate; see 'eq_opts_sopvar', where
-% this was measured.
+% C = REACH(A,N3) lists the cells the diagonal of block 'a' can populate;
+% see 'eq_opts_sopvar', where this was measured.
+% INPUT   a: 1 x n3 basis multi-index; n3: number of shared variables.
+% OUTPUT  C: column of linear cell indices.
 sets = cell(1,n3);
 for k = 1:n3
     if a(k)==1, sets{k} = 1; else, sets{k} = [2 3]; end
@@ -269,6 +273,10 @@ end
 
 %%
 function A = enum_alpha(n3,sepv)
+% A = ENUM_ALPHA(N3,SEPV) lists every basis multi-index, {1,2,3} per
+% direction or {1,4} in a separable one, direction 1 fastest.
+% INPUT   n3: number of shared variables; sepv: 1 x n3 logical.
+% OUTPUT  A: nblk x n3 array.
 vals = cell(1,n3);
 for k = 1:n3
     if sepv(k), vals{k} = [1,4]; else, vals{k} = [1,2,3]; end
@@ -284,6 +292,11 @@ end
 
 %%
 function [ri,ci] = nzpos(P,k)
+% [RI,CI] = NZPOS(P,K) returns the row and column positions of the stored
+% nonzeros of cell K of P (constant or decision part), empty past the last
+% cell.
+% INPUT   P: 'sopvar' or 'sdopvar'; k: linear cell index.
+% OUTPUT  ri, ci: column vectors of positions in the unvectorized C_k.
 if isa(P,'sdopvar')
     if k>numel(P.params.A), ri=[]; ci=[]; return, end
     m = size(P.params.A{k},1);
@@ -303,12 +316,15 @@ end
 
 %%
 function n = numcells(P)
+% N = NUMCELLS(P) is the number of parameter cells of the block P.
 if isa(P,'sdopvar'), n = numel(P.params.A); else, n = numel(P.params); end
 end
 
 
 %%
 function v = getdef(s,f,dflt)
+% V = GETDEF(S,F,DFLT) reads field F of the struct S, or DFLT when it is
+% absent or empty.
 if isa(s,'struct') && isfield(s,f) && ~isempty(s.(f))
     v = s.(f);
 else

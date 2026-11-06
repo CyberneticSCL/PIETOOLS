@@ -1,13 +1,14 @@
+% Test of the converters between 'ndopvar'/'nopvar' and 'sdopvar'/'sopvar'
+% in two variables: a random ndopvar converted to sdopvar and back, and the
+% product of two random nopvar objects against the product of their sopvar
+% conversions converted back. Displays the two equality verdicts. Both are
+% round trips through a converter pair, which a matching pair of inverse
+% errors passes; see the header of Test_copvar_converters.
+%
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added, a
+%                  block of commented-out scratch code removed; code
+%                  unchanged.
 clc;clear;
-% d = 5;
-% n = 3;
-% m = 4;
-% D = rand(1, d);
-% C = rand(d*n, m);
-% AAA =  kron(eye(n), D)*C;   % first representation
-% BBB = D*reshape(C, d, n*m); % second representation
-% max(abs(reshape(AAA, 1, [])- BBB))
-
 
 % Set the spatial dimension and size of the operators
 N = 2;

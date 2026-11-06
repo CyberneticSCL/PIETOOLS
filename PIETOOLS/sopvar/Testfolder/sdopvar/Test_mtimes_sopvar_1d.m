@@ -1,3 +1,9 @@
+% Test of the 'sopvar' composition in one variable against 'opvar': two
+% random opvar objects on L2 are composed by both classes and the cleaned
+% difference of the R0, R1, R2 components is displayed (expected 0).
+%
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 clc; clear;
 % Declare the independent variables
 pvar s1 s1_dum                  % MMP, 08/30/2026: sopvar2opvar now names the dummy <primary>_dum

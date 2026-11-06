@@ -1,9 +1,16 @@
 
+% Test of the 'sopvar' sum: two random operators from rand_sopvar on random
+% variables and domains, the sum applied to a random polynomial against the
+% sum of the two applications (apply_sopvar); prints the maximal
+% coefficient of the difference (expected 0).
+%
 % MMP, 09/17/2026: Draw one domain per variable NAME over the union of
 % vars.in and vars.out and index dom.in/dom.out out of that table, replacing
 % two independent per-side draws. A variable shared by the input and output
 % space is one variable carrying one interval, so independent draws gave it
 % two and 'rand_sopvar' rejected the operator (see commit e6842c92).
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 
 % % Set parameters for declaring random operator
 % Dimensions

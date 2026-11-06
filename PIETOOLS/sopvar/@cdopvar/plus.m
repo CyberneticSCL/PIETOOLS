@@ -65,26 +65,20 @@ function C = plus(A,B)
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
 %                  @mdopvar/ with the class.
-% MMP, 09/25/2026: Reconcile the two decision variable lists with
-%                  'merge_dvar_lists' instead of 'put_on_list'. One
-%                  unique(...,'stable') then gives both operands' row maps,
-%                  where 'put_on_list' had every block search the union by
-%                  name: measured on two separately declared containers at
-%                  q = 4e5 each, D + E took 5.31 s, 4.24 s of it that per-block
-%                  'ismember'. This is the pattern of every executive
-%                  (Top'*Qop - Pop, Dop + Deop), and 'minus' goes through
-%                  here. Also point every block sum at the container's one Zd
-%                  array afterwards: a block sum carries a fresh copy of the
-%                  list, one per block, where the container invariant is one.
+% MMP, 09/25/2026: The two decision variable lists are reconciled with
+%                  'merge_dvar_lists' instead of 'put_on_list': one
+%                  unique(...,'stable') gives both operands' row maps, where
+%                  'put_on_list' had every block search the union by name
+%                  (4.24 of 5.31 s for D + E at q = 4e5 each; the pattern of
+%                  every executive, and 'minus' goes through here). Every
+%                  block sum is then pointed at the container's one Zd
+%                  array, since a block sum carries its own copy of the list.
 % MMP, 09/26/2026: Summands over different variable registries are restated
 %                  over their union by 'merge_copvar_registry' instead of
-%                  raising plus:registryMismatch. An R^n -> R^n operator
-%                  (-gam*Iw) has an empty registry and a product such as
-%                  PB'*Tw keeps its left factor's, so compatible summands
-%                  were refused, blocking Hinf_gain with Tw ~= 0. The
-%                  registry is metadata: blocks and Zd untouched, cost
-%                  O(nv), flat in q. A variable on two domains is
-%                  cdopvar:domConflict.
+%                  raising plus:registryMismatch (an R^n -> R^n operator
+%                  such as -gam*Iw has an empty registry, so Hinf_gain with
+%                  Tw ~= 0 was refused). Metadata only, flat in q; a
+%                  variable on two domains is cdopvar:domConflict.
 % MMP, 09/29/2026: A dpvar summand is routed at the top to
 %                  'dpvar_op_copvar' with the legacy @dopvar/plus semantics:
 %                  a scalar is scalar*I on a square operator (gam*I - Q), a
@@ -93,17 +87,15 @@ function C = plus(A,B)
 %                  errored plus:badInput. A numeric summand is still
 %                  plus:badInput. minus = plus(A,-B) reaches the branch
 %                  unchanged.
-% MMP, 09/30/2026: The comment before the reconciliation points to
-%                  'merge_dvar_lists', whose NOTES now hold the rationale,
-%                  instead of 'private/put_on_list', deleted (no caller since
-%                  09/26/2026). The '(was)' lines below that call it are
-%                  history. Comment only.
 % MMP, 09/30/2026: The reconciliation calls 'merge_dvar_pair' (new, private),
 %                  the two-operand wrapper of 'merge_dvar_lists' that this
 %                  file and 'mtimes' each carried inline. It reads each list
 %                  as stored, where A.Zd(:) and B.Zd(:) made up to 5 q-length
-%                  copies per sum (measured 12.3 ms each at q = 1.07e6).
-%                  Same union, same blocks, same result.
+%                  copies per sum. Same union, same blocks, same result.
+%                  'private/put_on_list' (no caller since 09/26/2026) is
+%                  deleted; the '(was)' lines below that call it are history.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): log entries
+%                  condensed, a (was) comment line removed; code unchanged.
 
 % dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
 % the container checks below.                                               % MMP, 09/29/2026
@@ -137,7 +129,6 @@ if ~isequal(A.dim_out(:),B.dim_out(:)) || ~isequal(A.dim_in(:),B.dim_in(:))
 end
 
 % Reconcile the decision variables once, before the block loop; see
-% (was) 'put_on_list' for why doing it as a by-product of the loop is wrong. % MMP, 09/30/2026 (was)
 % 'merge_dvar_lists' for why doing it as a by-product of the loop is wrong. % MMP, 09/30/2026
 % Merging first also puts every block addition below on its fast lane.
 % CA = A.C;   CB = B.C;   Zd = A.Zd(:);                                     % MMP, 09/30/2026 (was)

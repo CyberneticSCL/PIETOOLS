@@ -1,14 +1,14 @@
 function [Minv_qp, RM1_qp, RM2_qp, info] = ...
    inv_1D(M_qp, FG1_qp, FG2_qp, interval, opts)
-% inv_1D
-% Given [a,b], M, and FG1/FG2
-% representing the operator
-%   (M - K)x = M(s)x(s) - ∫_a^s M(s)^{-1} FG1(s,t) x(t) dt - ∫_s^b M(s)^{-1} FG2(s,t)x(t) dt
-%
-% Compute (M - K)^(-1) = (I - K)^(-1) M^{-1} = M^{-1} + R M^{-1}
-% using Gohberg–Krein, where
+% [MINV_QP,RM1_QP,RM2_QP,INFO] = SOPVAR.INV_1D(M_QP,FG1_QP,FG2_QP,INTERVAL,
+% OPTS) inverts the 1D operator on L2^m[a,b] given by 'quadPoly' kernels,
+%   (M - K)x = M(s)x(s) - ∫_a^s M(s)^{-1} FG1(s,t) x(t) dt - ∫_s^b M(s)^{-1} FG2(s,t)x(t) dt,
+% computing (M - K)^(-1) = (I - K)^(-1) M^{-1} = M^{-1} + R M^{-1}
+% by the Gohberg-Krein method (see @sopvar/inv), where
 %   K1(s,t) = M(s)^{-1} FG1(s,t) ≈ M(s)^{-1}F1(s)G1(t)
 %   K2(s,t) = M(s)^{-1} FG2(s,t) ≈ M(s)^{-1}F2(s)G2(t)
+% are split by SVD. The kernels of the inverse are fitted back to 'quadPoly'
+% objects on the grid at the end.
 %
 % INPUTS
 %   M_qp   : quadPoly, m×m, depends only on s
@@ -59,6 +59,12 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
 % authorship, and a brief description of modifications
 %
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): calling line and
+%                  method statement added to the help text, headers with
+%                  INPUTS/OUTPUTS for the local functions; code unchanged.
+%                  The only caller is ndopvar/@quadPoly/test/
+%                  transfer_function_test.m; @sopvar/inv is the inverse of
+%                  the class.
 %
 
     % ----------------------- Defaults -----------------------
@@ -247,6 +253,9 @@ function [Minv_qp, RM1_qp, RM2_qp, info] = ...
     info.infoFG2 = infoFG2;
 
     function Ai = A_at(ii)
+    % AI = A_AT(II) returns A(s_ii) = B(s_ii)*C(s_ii), stored or recomputed.
+    % INPUT  ii: grid index.
+    % OUTPUT Ai: n x n matrix.
         if opts.storeABC
             Ai = A(:,:,ii);
         else
@@ -260,12 +269,21 @@ end
 % Fit kernel quadPoly from T (m×n×N) and S (n×m×N) without storing eta(:,:,i,j)
 % ======================================================================
 function Q = fit_kernel_from_TS(Zs_out, ns_out, Zt_in, nt_in, grid, T, S, isLower)
-% Fit kernel using two-sided least squares:
-%   Y ≈ Phi_out * C * Phi_in'
-% via QR: Phi_out=Qo*Ro, Phi_in=Qi*Ri, so
-%   C = Ro \ (Qo' * Y * Qi) / (Ri')
+% Q = FIT_KERNEL_FROM_TS(ZS_OUT,NS_OUT,ZT_IN,NT_IN,GRID,T,S,ISLOWER) fits
+% the kernel samples Y(i,j) = T(:,:,i)*S(:,:,j), on the lower (t <= s) or
+% upper (t > s) triangle of the grid, to a 'quadPoly' by two-sided least
+% squares, Y ≈ Phi_out*C*Phi_in', through thin QR factors of the two basis
+% matrices, C = Ro \ (Qo'*Y*Qi) / (Ri'), without forming kron(Phi_in,Phi_out).
 %
-% This avoids kron(Phi_in,Phi_out) and avoids build_Phi().
+% INPUTS
+% - Zs_out, ns_out: exponent cells and names of the left (s) basis;
+% - Zt_in, nt_in:   exponent cells and names of the right (t) basis;
+% - grid:    N x 1 grid points;
+% - T:       m x n x N samples, S: n x m x N samples;
+% - isLower: true to fit the lower triangle (t <= s), false the upper.
+%
+% OUTPUT
+% - Q:       m x m 'quadPoly' kernel on the given bases.
 
     N = numel(grid);
     m = size(T,1);
@@ -338,6 +356,10 @@ end
 % quadPoly evaluation at a scalar point (sval,tval). Use [] for constant side.
 % ======================================================================
 function F = quadPoly_eval(Q, sval, tval)
+% F = QUADPOLY_EVAL(Q,SVAL,TVAL) evaluates the 'quadPoly' Q at the scalar
+% points s = SVAL and t = TVAL; [] for a side on which Q is constant.
+% INPUTS  Q: 'quadPoly'; sval, tval: scalars or [].
+% OUTPUT  F: full dim(1) x dim(2) matrix Q(sval,tval).
     m = Q.dim(1); n = Q.dim(2);
 
     zs = 1;
@@ -371,6 +393,12 @@ end
 % Fit left-only quadPoly from samples Minv(:,:,i) on grid(i)
 % ======================================================================
 function Q = fit_leftOnly_quadPoly(Zs, ns, grid, Msamp)
+% Q = FIT_LEFTONLY_QUADPOLY(ZS,NS,GRID,MSAMP) fits the samples MSAMP(:,:,i)
+% at GRID(i) to a 'quadPoly' in the left variables only, entry by entry by
+% least squares on the basis ZS.
+% INPUTS  Zs, ns: exponent cells and names of the basis; grid: N x 1;
+%         Msamp: m x m x N samples.
+% OUTPUT  Q: m x m 'quadPoly' depending on s only.
     N = numel(grid);
     m = size(Msamp,1);
 
@@ -398,8 +426,10 @@ function Q = fit_leftOnly_quadPoly(Zs, ns, grid, Msamp)
     Q = quadPoly(C,Zs,{0},[m,m],ns,{});
 end
 function Phi = basis_matrix_cached(Zcell, x)
-% Phi(i,:) = Z(x_i)^T, where Z = kron over variables of x.^exps.
-% Efficient replacement for build_Phi().
+% PHI = BASIS_MATRIX_CACHED(ZCELL,X) returns the basis matrix with rows
+% Phi(i,:) = Z(x_i)', Z the Kronecker product over the variables of x.^exps.
+% INPUTS  Zcell: cell of exponent vectors; x: N x 1 points.
+% OUTPUT  Phi: N x prod(numel(Zcell{k})) matrix.
 
     N = numel(x);
     if isempty(Zcell)
@@ -416,9 +446,10 @@ function Phi = basis_matrix_cached(Zcell, x)
 end
 
 function Z = rowwise_kron(A, B)
-% Row-wise Kronecker product:
-% If A is N×p and B is N×q, returns Z (N×(p*q)) with
+% Z = ROWWISE_KRON(A,B) returns the row-wise Kronecker product,
 % Z(i,:) = kron(A(i,:), B(i,:)).
+% INPUTS  A: N x p, B: N x q.
+% OUTPUT  Z: N x (p*q).
 
     [N,p] = size(A);
     [N2,q] = size(B);
@@ -437,6 +468,10 @@ end
 % Basis size product
 % ======================================================================
 function d = quadPoly_basisSize(Zcell)
+% D = QUADPOLY_BASISSIZE(ZCELL) returns the number of monomials of the
+% tensor basis, the product of the numbers of exponents per variable.
+% INPUT   Zcell: cell of exponent vectors (empty for a constant basis).
+% OUTPUT  d: scalar.
     if isempty(Zcell), d = 1; return; end
     d = 1;
     for i = 1:numel(Zcell)
@@ -448,6 +483,10 @@ end
 % Zero kernel quadPoly like another kernel (same bases/dims)
 % ======================================================================
 function Z = zeroKernelLike(Klike)
+% Z = ZEROKERNELLIKE(KLIKE) returns the zero 'quadPoly' with the bases,
+% names and dimensions of KLIKE.
+% INPUT   Klike: 'quadPoly'.
+% OUTPUT  Z: 'quadPoly' with an all-zero sparse coefficient matrix.
     m = Klike.dim(1);
     d_out = quadPoly_basisSize(Klike.Zs);
     d_in  = quadPoly_basisSize(Klike.Zt);
@@ -510,7 +549,10 @@ function [Zc, nc] = mergeBasis(Z1, n1, Z2, n2)
 end
 
 function tf = isConstantBasisCell(Z)
-% True if Z represents constant-only basis (either {0} or a single 0 entry).
+% TF = ISCONSTANTBASISCELL(Z) is true if Z represents the constant-only
+% basis: empty, or a single cell whose exponents are all 0.
+% INPUT   Z: cell of exponent vectors.
+% OUTPUT  tf: logical.
     if isempty(Z)
         tf = true;
         return;

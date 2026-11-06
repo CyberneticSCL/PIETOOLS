@@ -1,4 +1,11 @@
 
+% Test of the 'sopvar' composition in two variables against 'opvar2d': two
+% random opvar2d objects (B: L2[y] -> L2[y], A: L2[y] -> L2[x,y]) are
+% composed by both classes and the cleaned difference is left in Cop_diff
+% (expected zero).
+%
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 % Declare the independent variables
 pvar s1 s2 s1_dum s2_dum   % dummies must be <primary>_dum            % MMP, 08/30/2026
 var1 = [s1;s2];

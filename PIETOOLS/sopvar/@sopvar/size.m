@@ -1,16 +1,19 @@
 function varargout = size(P,dim)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% varargout = size(P,dim) gives the size of PI operator P: R^p x L2^q to
-% R^m x L2^n along dimensions dim
-% 
-% INPUTS
-% P: sopvar class object
-% dim: a scalar or 1-by-2 non-zero integer vector
-% 
-% OUTPUTS
-% varargout: one value if dim is scalar, two values if no dim is specified
-% 
-% NOTES:
+% VARARGOUT = SIZE(P,DIM) returns the matrix dimensions of the 'sopvar'
+% object P, the numbers of output and input components [q,p] of the PI
+% operator L_2^p -> L_2^q it represents: SIZE(P) returns [q,p], [Q,P] =
+% SIZE(P) returns them separately, and SIZE(P,DIM) returns the entries DIM.
+%
+% INPUT
+% - P:      'sopvar' object;
+% - dim:    (optional) 1 or 2, or a vector of them, the dimensions to
+%           return.
+%
+% OUTPUT
+% - varargout: with one output and no DIM the 1 x 2 vector [q,p]; with two
+%           outputs q and p; with DIM the requested entries of [q,p].
+%
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
 
@@ -40,24 +43,26 @@ function varargout = size(P,dim)
 % authorship, and a brief description of modifications
 %
 % Initial coding AT -- 01/28/2026
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
+%                  house format (it described the spaces of another class),
+%                  step comments, dead comment lines removed; code unchanged.
+
 if ~isa(P,'sopvar')
     error('To check validity input must be sopvar object');
 end
 
+% The dimensions [q,p]; the sums below are over a single row
 matdim = P.dims;
 
-
+% One output and no DIM: the vector [q,p]
 if nargout<=1 && nargin==1
 varargout = {sum(matdim,1)};
 return
 elseif nargin==1
 dim = 1:2;
 end
-% 
+% Separate outputs, restricted to DIM
 varargout{1} = sum(matdim(:,1));
 varargout{2} = sum(matdim(:,2));
-% varargout{4} = sum(matdim(2,:));
-% 
-% 
 varargout = varargout(dim);
 end

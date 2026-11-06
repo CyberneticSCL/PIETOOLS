@@ -26,8 +26,6 @@ function varargout = merge_copvar_registry(cls,opname,varargin)
 %
 % The merge rule is the one concatenation applies in 'cat_copvar_grid':
 % sorted union, and a variable given two different domains is an error,
-% (was) cls:domConflict, with the same message. 'cat_copvar_grid' keeps its own % MMP, 09/30/2026 (was)
-% (was) copy of that loop (09/25/2026); it could call this routine instead. % MMP, 09/30/2026 (was)
 % cls:domConflict. 'cat_copvar_grid' calls this routine for it, so          % MMP, 09/30/2026
 % concatenation, 'plus' and 'mtimes' share one copy of the rule.            % MMP, 09/30/2026
 %
@@ -73,6 +71,8 @@ function varargout = merge_copvar_registry(cls,opname,varargin)
 % Initial coding MMP, 09/26/2026
 % MMP, 09/30/2026: NOTES: 'cat_copvar_grid' now calls this routine instead
 %                  of keeping its own copy of the merge loop. Doc only here.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the (was) lines of
+%                  the 09/30/2026 doc change removed; code unchanged.
 
 K = numel(varargin);
 varargout = varargin;

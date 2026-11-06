@@ -6,7 +6,6 @@ function At = ctranspose(A)
 %
 % following Sec. 8.2 of the sopvar document. The block grid transposes and
 % each block is adjoined by @sopvar/ctranspose.                             % MMP, 09/26/2026
-% (was) each block is adjoined by @sopvar/ctranspose or @sdopvar/ctranspose. % MMP, 09/26/2026 (was)
 %
 % INPUTS
 % - A:      an M x N 'copvar' object;
@@ -20,9 +19,6 @@ function At = ctranspose(A)
 % are the input spaces of A and vice versa, so space_out and space_in swap,
 % as do dim_out and dim_in. The variable registry and the domains are       % MMP, 09/26/2026
 % unchanged - an adjoint introduces no spatial variable.                    % MMP, 09/26/2026
-% (was) as do dim_out and dim_in. The variable registry, the domains and the % MMP, 09/26/2026 (was)
-% (was) decision variable list are unchanged - an adjoint neither introduces a % MMP, 09/26/2026 (was)
-% (was) spatial variable nor a decision variable.                           % MMP, 09/26/2026 (was)
 %
 % Zero blocks stay zero: the adjoint of an absent block is absent, and the
 % container metadata continues to determine what it maps between.
@@ -77,7 +73,11 @@ function At = ctranspose(A)
 % MMP, 09/26/2026: Header no longer mentions sdopvar blocks or a decision
 %                  variable list, left over from before the 09/17 class split:
 %                  a copvar holds sopvar blocks only and has no Zd. Doc only.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the (was) lines
+%                  of the 09/26/2026 doc change removed from the help text
+%                  (that entry records them); code unchanged.
 
+% Transpose the grid, adjoining each populated block; [] stays []
 if ~isa(A,'copvar')
     error('ctranspose:badInput','Input must be a copvar object.')
 end
@@ -92,6 +92,7 @@ for i = 1:M
     end
 end
 
+% Output and input metadata exchange; registry and domains stay
 meta = metadata(A);
 meta.space_out = A.space_in;        meta.space_in = A.space_out;
 meta.dim_out = A.dim_in;            meta.dim_in = A.dim_out;

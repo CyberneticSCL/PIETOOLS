@@ -40,8 +40,13 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
     % monomials in P.vars.in. That is monomials are constructed by as
     % follows: ZR(P.vars.in) = P.vars.in(1).^ZR{1}\otimes ... P.vars.in(i).^ZR{i}...
     %
-    % - P.params:   3^n3 (stored as 3x3...x3) Cell array of sparse matrices, where n_3 is the number of variables in S_3;
-
+    % - P.params:   struct with fields 'A' and 'B', each a 3^n3 (stored as
+    % 3x3...x3) cell array, n_3 the number of variables in S_3, with
+    % params.A{alpha} the vec of the constant coefficient matrix of cell
+    % alpha and params.B{alpha} the nd x numel(params.A{alpha}) sparse
+    % matrix of the decision variable coefficients;
+    % - P.Zd:   nd x 1 cell array of the names of the decision variables d.
+    %
     % Each kernel of the PI operator is represented as
     % K_alpha =
     % (I_dims(1)\otimes ZL(s2,s3)')
@@ -75,23 +80,23 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
     %           and multipliers in canonical form (with a warning if rewritten);
     %
     %
-    % CANONICAL MULTIPLIER FORM                                              % MMP, 08/29/2026
-    % A parameter with alpha(k)==1 carries a factor delta(s_k-s_k'), which   % MMP, 08/29/2026
-    % identifies s_k with s_k'. A coefficient at left degree a and right     % MMP, 08/29/2026
-    % degree b in direction k then contributes the same monomial s_k^(a+b)   % MMP, 08/29/2026
-    % as one at left degree a+b and right degree 0, so the stored            % MMP, 08/29/2026
+    % CANONICAL MULTIPLIER FORM                                             % MMP, 08/29/2026
+    % A parameter with alpha(k)==1 carries a factor delta(s_k-s_k'), which  % MMP, 08/29/2026
+    % identifies s_k with s_k'. A coefficient at left degree a and right    % MMP, 08/29/2026
+    % degree b in direction k then contributes the same monomial s_k^(a+b)  % MMP, 08/29/2026
+    % as one at left degree a+b and right degree 0, so the stored           % MMP, 08/29/2026
     % coefficients are not determined by the operator. Objects of this class % MMP, 08/29/2026
     % therefore satisfy                                                     % MMP, 08/29/2026
-    %                                                                        % MMP, 08/29/2026
-    %   alpha(k)==1  ==>  the parameter has no content outside the columns   % MMP, 08/29/2026
-    %                     whose ZR monomial has degree 0 in direction k,     % MMP, 08/29/2026
-    %                                                                        % MMP, 08/29/2026
-    % that is, a multiplier direction carries no dummy variable degree. The  % MMP, 08/29/2026
-    % constructor enforces this by rewriting anything that does not already  % MMP, 08/29/2026
-    % satisfy it, enlarging ZL where the folded degrees require it; see      % MMP, 08/29/2026
+    %                                                                       % MMP, 08/29/2026
+    %   alpha(k)==1  ==>  the parameter has no content outside the columns  % MMP, 08/29/2026
+    %                     whose ZR monomial has degree 0 in direction k,    % MMP, 08/29/2026
+    %                                                                       % MMP, 08/29/2026
+    % that is, a multiplier direction carries no dummy variable degree. The % MMP, 08/29/2026
+    % constructor enforces this by rewriting anything that does not already % MMP, 08/29/2026
+    % satisfy it, enlarging ZL where the folded degrees require it; see     % MMP, 08/29/2026
     % 'canonicalize_multiplier'. The representation is then unique, which is % MMP, 08/29/2026
-    % what lets 'eq' compare coefficients and 'lpi_eq_sdopvar' constrain     % MMP, 08/29/2026
-    % them to zero. Assigning to the properties directly bypasses the        % MMP, 08/29/2026
+    % what lets 'eq' compare coefficients and 'lpi_eq_sdopvar' constrain    % MMP, 08/29/2026
+    % them to zero. Assigning to the properties directly bypasses the       % MMP, 08/29/2026
     % constructor and so bypasses the invariant; build a new object instead. % MMP, 08/29/2026
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,27 +131,24 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
     %                  only.
     % MMP, 09/29/2026: ?dpvar added to InferiorClasses, so that a dpvar
     %                  operand (gam*P, P - gam, [gam, P]) dispatches to this
-    %                  class's methods, which now route it to
-    %                  'dpvar_op_copvar' (legacy @dopvar semantics). Before,
-    %                  the dpvar's own method was called and failed. The
-    %                  classdef line was
-% classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar           % MMP, 09/07/2026 % MMP, 09/29/2026 (was)
-    % MMP, 09/29/2026: Moved dead files of this class, all written by other
-    %                  developers, to sopvar/private/dead_code/ (off the
-    %                  path; its README lists origin and author). Each has no live
-    %                  caller: whole-repository grep of code and strings,
-    %                  and no feval/str2func/eval that could build the name.
-    %                  mtimes_AT (an uncalled variant of mtimes, dated
-    %                  09/07-09/10/2026, last changed 09/11/2026),
-    %                  plus_decparam, plus_decparam_batch (dated 09/07/2026),
-    %                  minus_decparam (called plus_dpvar, which exists
-    %                  nowhere), lrmultiply_batch, rand_sdopvar (no caller
-    %                  passes an sdopvar, so every call reaches the
-    %                  Testfolder/sdopvar function of that name), test_script
-    %                  (no assertions), private/MatrixMultiply (its two calls
-    %                  in mtimes.m are commented out) and
-    %                  private/CombineDecisionBasis (dated 08/29/2026; its
-    %                  callers moved to 'sync_basis' on 09/07/2026).
+    %                  class's methods, which route it to 'dpvar_op_copvar'
+    %                  (legacy @dopvar semantics); before, the dpvar's own
+    %                  method was called and failed. The classdef line
+    %                  before is the (was) line at the end of this log.
+    % MMP, 09/29/2026: Dead files of this class (no live caller), all by
+    %                  other developers, moved to the dead-code folder (now
+    %                  cleaning/dead_code/, whose README lists origin and
+    %                  author): mtimes_AT, plus_decparam, plus_decparam_batch,
+    %                  minus_decparam, lrmultiply_batch, rand_sdopvar,
+    %                  test_script, private/MatrixMultiply and
+    %                  private/CombineDecisionBasis.
+    % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): a blank line
+    %                  that cut the help text short is now a comment line
+    %                  (params and Zd described there), the 09/29/2026
+    %                  entries condensed, the (was) classdef line moved to
+    %                  the end of the log, constructor comments tightened;
+    %                  code unchanged.
+% classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar                   % MMP, 09/07/2026 % MMP, 09/29/2026 (was)
     %
 
     properties
@@ -162,46 +164,41 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
 
     methods
         function P = sdopvar(params,vars,Zd,ZL,ZR,dom,dims)
-            % The canonical multiplier form is a class invariant; see the    % MMP, 08/29/2026
-            % CANONICAL MULTIPLIER FORM note above. Anything handed in that  % MMP, 08/29/2026
-            % is not canonical is rewritten here, so no 'sdopvar' object can % MMP, 08/29/2026
-            % violate it. The check inspects only the positions the form     % MMP, 08/29/2026
-            % forbids, so for a canonical object it costs numel(C) per       % MMP, 08/29/2026
-            % parameter and does not scale with the decision variables.      % MMP, 08/29/2026
-            % Canonical spatial-variable order, vars.out = [S2,S3] and       % MMP, 09/09/2026
-            % vars.in = [S3,S1], applied before the multiplier form. ZL{i}   % MMP, 09/09/2026
-            % is bound positionally to vars.out(i), so reordering the        % MMP, 09/09/2026
-            % variables permutes the vec index of every coefficient. The     % MMP, 09/09/2026
-            % decision variables are the rows of B and are only carried      % MMP, 09/09/2026
-            % through, so this does not scale with their number. The helper  % MMP, 09/09/2026
-            % also rejects a pass-through variable given different domains   % MMP, 09/09/2026
-            % on the two sides.                                              % MMP, 09/09/2026
-            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                   % MMP, 09/09/2026
-                canonical_var_order(vars,dom,ZL,ZR,dims);                    % MMP, 09/09/2026
-            if reordered                                                     % MMP, 09/09/2026
-                nrow = dims(1)*prod([cellfun(@numel,ZL),1]);                 % MMP, 09/09/2026
-                vecIdx = reshape(rowIdx(:)+(colIdx(:).'-1)*nrow,[],1);       % MMP, 09/09/2026
-                for ii = 1:numel(params.A)                                   % MMP, 09/09/2026
-                    % [] and scalar 0 are the zero-block shorthand accepted  % MMP, 09/09/2026
-                    % everywhere else in the class, and indexing one throws. % MMP, 09/09/2026
-                    % Permuting a zero block is a no-op, and for a single    % MMP, 09/09/2026
-                    % coefficient the gather can only be the identity.       % MMP, 09/09/2026
-                    if numel(params.A{ii})>1                                 % MMP, 09/09/2026
-                        params.A{ii} = params.A{ii}(vecIdx);                 % MMP, 09/09/2026
-                    end                                                      % MMP, 09/09/2026
-                    if size(params.B{ii},2)>1                                % MMP, 09/09/2026
-                        params.B{ii} = params.B{ii}(:,vecIdx);               % MMP, 09/09/2026
-                    end                                                      % MMP, 09/09/2026
-                end                                                          % MMP, 09/09/2026
-            end                                                              % MMP, 09/09/2026
-            [params,ZL,ZR,was_rewritten] = ...                               % MMP, 08/29/2026
-                canonicalize_multiplier(params,vars,ZL,ZR,dims);             % MMP, 08/29/2026
-            if was_rewritten                                                 % MMP, 08/29/2026
-                warning('sdopvar:noncanonicalMultiplier',...                 % MMP, 08/29/2026
+            % Canonical variable order first, vars.out = [S2,S3] and        % MMP, 09/09/2026
+            % vars.in = [S3,S1]: ZL{i} is bound to vars.out(i), so a        % MMP, 09/09/2026
+            % reordering permutes the vec index of every coefficient; the   % MMP, 09/09/2026
+            % decision variables (rows of B) are carried through, so this   % MMP, 09/09/2026
+            % does not scale with their number. A pass-through variable     % MMP, 09/09/2026
+            % given two domains is rejected there.                          % MMP, 09/09/2026
+            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                  % MMP, 09/09/2026
+                canonical_var_order(vars,dom,ZL,ZR,dims);                   % MMP, 09/09/2026
+            if reordered                                                    % MMP, 09/09/2026
+                nrow = dims(1)*prod([cellfun(@numel,ZL),1]);                % MMP, 09/09/2026
+                vecIdx = reshape(rowIdx(:)+(colIdx(:).'-1)*nrow,[],1);      % MMP, 09/09/2026
+                for ii = 1:numel(params.A)                                  % MMP, 09/09/2026
+                    % [] and scalar 0 (zero-block shorthand) cannot be      % MMP, 09/09/2026
+                    % indexed, and permuting a zero block is a no-op.       % MMP, 09/09/2026
+                    if numel(params.A{ii})>1                                % MMP, 09/09/2026
+                        params.A{ii} = params.A{ii}(vecIdx);                % MMP, 09/09/2026
+                    end                                                     % MMP, 09/09/2026
+                    if size(params.B{ii},2)>1                               % MMP, 09/09/2026
+                        params.B{ii} = params.B{ii}(:,vecIdx);              % MMP, 09/09/2026
+                    end                                                     % MMP, 09/09/2026
+                end                                                         % MMP, 09/09/2026
+            end                                                             % MMP, 09/09/2026
+            % Then the canonical multiplier form, the class invariant of    % MMP, 08/29/2026
+            % the help text; the check reads only the forbidden positions,  % MMP, 08/29/2026
+            % so a canonical object costs numel(C) per parameter and nothing % MMP, 08/29/2026
+            % in the decision variables.                                    % MMP, 08/29/2026
+            [params,ZL,ZR,was_rewritten] = ...                              % MMP, 08/29/2026
+                canonicalize_multiplier(params,vars,ZL,ZR,dims);            % MMP, 08/29/2026
+            if was_rewritten                                                % MMP, 08/29/2026
+                warning('sdopvar:noncanonicalMultiplier',...                % MMP, 08/29/2026
                     ['A multiplier parameter depended on a dummy variable, so it was rewritten in '...% MMP, 08/29/2026
                      'canonical form and ZL was enlarged to hold the folded degrees. The operator '...% MMP, 08/29/2026
                      'is unchanged. Build multiplier parameters with the degree on ZL to avoid this.']);% MMP, 08/29/2026
-            end                                                              % MMP, 08/29/2026
+            end                                                             % MMP, 08/29/2026
+            % Store the canonical data
             P.params = params;
             P.vars = vars;
             P.dom = dom;

@@ -1,3 +1,11 @@
+% Test of the 'sopvar' composition: random Aop and Bop from rand_sopvar
+% (sparse coefficients, variables drawn at random), the product applied to
+% a random polynomial against the sequential application by apply_sopvar;
+% prints the composition time and the maximal coefficient of the
+% difference (expected 0).
+%
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 clc; clear;
 % Aop: L2^k[varmid] -> L2^m[varout]
 % Bop: L2^n[varin] -> L2^k[varmid]

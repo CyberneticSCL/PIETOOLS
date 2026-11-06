@@ -1,3 +1,10 @@
+% Comparison script, named for a 'sopvar' composition bug traced by AT: the
+% product of two hand-built one-variable operators with gapped monomial
+% bases against the opvar product of their conversions; the cleaned
+% difference of R0, R1, R2 is displayed. Not an assertion test.
+%
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 clc;clear;
 rng(1)
 n1 = 3;

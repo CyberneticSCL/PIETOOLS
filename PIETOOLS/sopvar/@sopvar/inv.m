@@ -30,10 +30,7 @@ function [Rinv,info] = inv(R,opts)
 % OPTS.tol or d = OPTS.degmax; the monomial coefficients are placed on
 % ZL = ZR = (0:d)', the multiplier in the ZR-degree-0 columns, the canonical
 % multiplier form of the class. R0^{-1} is rational, so the inverse is only
-% approximated by a polynomial block; INFO reports the fit residuals. This
-% is the route of the stock 'inv_opvar_2' (SS, 02/2026), written against
-% the block storage: no polynomial objects, no monomial bookkeeping, the
-% kernel split is one SVD per kernel.
+% approximated by a polynomial block; INFO reports the fit residuals.
 %
 % INPUTS
 % - R:      'sopvar', L2^m[s] -> L2^m[s] with one spatial variable, square;
@@ -96,8 +93,11 @@ function [Rinv,info] = inv(R,opts)
 %                getController_direct_sop, which builds the gains from the
 %                same grid data without forming the inverse. Same output
 %                (Test_copvar_inv passes unchanged).
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): a history sentence
+%                removed from the help text; code unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% ---- options, defaults overridden by the fields of OPTS
 if nargin<2,    opts = struct();    end
 o = struct('N',101,'tol',1e-8,'deg0',4,'degmax',16,'deg',[],'tol_rank',1e-13);
 fn = fieldnames(opts);

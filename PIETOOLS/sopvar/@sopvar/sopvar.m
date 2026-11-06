@@ -41,24 +41,50 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     % monomials in P.vars.in. That is monomials are constructed by as
     % follows: ZR(P.vars.in) = P.vars.in(1).^ZR{1}\otimes ... P.vars.in(i).^ZR{i}...
     %
-    % CANONICAL MULTIPLIER FORM                                              % MMP, 08/29/2026
-    % A parameter P.params{alpha} with alpha(k)==1 carries a factor          % MMP, 08/29/2026
+    % CONSTRUCTOR P = sopvar(params,vars,ZL,ZR,dom,dims)
+    %
+    % INPUT
+    % - params: cell array with one cell per multi-index gamma in
+    %           {1,2,3}^n3 (3 x ... x 3 with n3 directions; 3 x 1 for
+    %           n3 = 1; a single cell for n3 = 0), cell gamma the sparse
+    %           coefficient matrix C_gamma of the kernel of that cell, of
+    %           size dims(1)*nL x dims(2)*nR with nL, nR the numbers of
+    %           monomials of ZL and ZR (rows and columns are component
+    %           outer, monomial inner); [] or scalar 0 for a zero cell;
+    % - vars:   struct with fields 'in' and 'out', cellstr of the spatial
+    %           variable names of the input and output spaces, in any
+    %           order;
+    % - ZL, ZR: cell arrays with one column of monomial exponents per
+    %           variable of vars.out and of vars.in, in the same order;
+    % - dom:    struct with fields 'in' and 'out', one row [a,b] per
+    %           variable of vars.in and of vars.out;
+    % - dims:   1 x 2 array [q,p], the numbers of output and input
+    %           components.
+    %
+    % OUTPUT
+    % - P:      'sopvar' object, with the variables in the canonical order
+    %           above (the coefficients permuted to match) and every
+    %           multiplier cell in canonical form; a warning is issued when
+    %           a parameter had to be rewritten.
+    %
+    % CANONICAL MULTIPLIER FORM                                             % MMP, 08/29/2026
+    % A parameter P.params{alpha} with alpha(k)==1 carries a factor         % MMP, 08/29/2026
     % delta(s_k-s_k'), which identifies s_k with s_k'. A coefficient at left % MMP, 08/29/2026
-    % degree a and right degree b in direction k then contributes the same   % MMP, 08/29/2026
-    % monomial s_k^(a+b) as one at left degree a+b and right degree 0, so    % MMP, 08/29/2026
+    % degree a and right degree b in direction k then contributes the same  % MMP, 08/29/2026
+    % monomial s_k^(a+b) as one at left degree a+b and right degree 0, so   % MMP, 08/29/2026
     % the stored coefficients are not determined by the operator. Objects of % MMP, 08/29/2026
     % this class therefore satisfy                                          % MMP, 08/29/2026
-    %                                                                        % MMP, 08/29/2026
+    %                                                                       % MMP, 08/29/2026
     %   alpha(k)==1  ==>  P.params{alpha} has no content outside the columns % MMP, 08/29/2026
-    %                     whose ZR monomial has degree 0 in direction k,     % MMP, 08/29/2026
-    %                                                                        % MMP, 08/29/2026
-    % that is, a multiplier direction carries no dummy variable degree. The  % MMP, 08/29/2026
-    % constructor enforces this by rewriting anything that does not already  % MMP, 08/29/2026
-    % satisfy it, enlarging ZL where the folded degrees require it; see      % MMP, 08/29/2026
+    %                     whose ZR monomial has degree 0 in direction k,    % MMP, 08/29/2026
+    %                                                                       % MMP, 08/29/2026
+    % that is, a multiplier direction carries no dummy variable degree. The % MMP, 08/29/2026
+    % constructor enforces this by rewriting anything that does not already % MMP, 08/29/2026
+    % satisfy it, enlarging ZL where the folded degrees require it; see     % MMP, 08/29/2026
     % 'canonicalize_multiplier'. The representation is then unique, which is % MMP, 08/29/2026
-    % what lets 'eq' compare coefficients and 'lpi_eq_sdopvar' constrain     % MMP, 08/29/2026
-    % them. Assigning to P.params directly bypasses the constructor and so   % MMP, 08/29/2026
-    % bypasses the invariant; build a new object instead.                    % MMP, 08/29/2026
+    % what lets 'eq' compare coefficients and 'lpi_eq_sdopvar' constrain    % MMP, 08/29/2026
+    % them. Assigning to P.params directly bypasses the constructor and so  % MMP, 08/29/2026
+    % bypasses the invariant; build a new object instead.                   % MMP, 08/29/2026
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Copyright (C) 2026 PIETOOLS Team
     %
@@ -91,40 +117,18 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %                  contradicts: [S2,S3] is sorted only when S2 is empty.
     %                  Corrected, since code that assumed it could locate a
     %                  variable by sorted position would now be wrong.
-    % MMP, 09/29/2026: Removed dead files of this class: moved to
-    %                  sopvar/private/dead_code/ (off the path; its README
-    %                  lists origin and author) where another developer
-    %                  wrote them, deleted where MMP did (randsopvar,
-    %                  test_MP). Each has no live
-    %                  caller: whole-repository grep of code and strings,
-    %                  and no feval/str2func/eval that could build the name.
-    %                  Methods: sopvar_old (quadPoly-era constructor, dated
-    %                  01/15/2026), ctranspose_old (quadPoly-era adjoint, dated
-    %                  1/16/26; reachable as ctranspose_old(P), and it failed
-    %                  on a sopvar), randOpvar, randsopvar (called the
-    %                  sopvar_old signature, MATLAB:TooManyInputs), and the
-    %                  scripts mtimestest, test_MP, test_script (no
-    %                  assertions). private/: int_2b (a 9-input variant; the
-    %                  local int_2b in mtimes.m takes precedence, so only
-    %                  termCompose called it), leftPermuteVec,
-    %                  leftShiftMonomials_old, leftshiftMonomoials_AT,
-    %                  rightshiftMonomials_AT, mapAlphaBetaToGamma,
-    %                  monomial_outer, monomial_shift_left,
-    %                  monomial_shift_right, termCompose, termCompose_old (the
-    %                  _AT pair and both termCompose read quadPoly fields
-    %                  that a sparse parameter lacks, so could not run on a
-    %                  sopvar). The private files carry no date stamps. Also
-    %                  moved:
-    %                  Testfolder/test_leftshift_monomials_sopvar,
-    %                  example_of_leftshiftmonomials_AT,
-    %                  leftshiftMonomoials_ATv2, rightshiftMonomials_ATv2,
-    %                  which called these private files, the live private
-    %                  leftShiftMonomials_SS, or each other, and could not
-    %                  run, since a private function is not visible outside
-    %                  the class. All 22 were last changed in
-    %                  commit 2135d87f (08/30/2026); the 2 deleted ones
-    %                  remain in git history.
-    %                  The Static declaration of randsopvar is commented out.
+    % MMP, 09/29/2026: Dead files of this class removed (no live caller):
+    %                  the quadPoly-era methods sopvar_old, ctranspose_old,
+    %                  randOpvar, three test scripts and 11 private helpers
+    %                  moved to the dead-code folder (now cleaning/dead_code/,
+    %                  whose README lists origin and author); randsopvar and
+    %                  test_MP, written by MMP, deleted. The Static
+    %                  declaration of randsopvar is removed.
+    % MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): constructor
+    %                  INPUT/OUTPUT added to the class help, the 09/29/2026
+    %                  entry condensed to what it records, constructor
+    %                  comments tightened, the commented-out randsopvar
+    %                  declaration removed; code unchanged.
     properties
         vars = struct('in',{},'out',{});
         dom = struct('in',zeros(0,2),'out',zeros(0,2));
@@ -144,40 +148,35 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
 
     methods
         function P = sopvar(params,vars,ZL,ZR,dom,dims)
-            % The canonical multiplier form is a class invariant; see the    % MMP, 08/29/2026
-            % CANONICAL MULTIPLIER FORM note above. Anything handed in that  % MMP, 08/29/2026
-            % is not canonical is rewritten here, so no 'sopvar' object can  % MMP, 08/29/2026
-            % violate it. An object that is already canonical, which is the  % MMP, 08/29/2026
-            % normal case, is not touched.                                   % MMP, 08/29/2026
-            % Canonical spatial-variable order, vars.out = [S2,S3] and       % MMP, 09/09/2026
-            % vars.in = [S3,S1], applied before the multiplier form. ZL{i}   % MMP, 09/09/2026
-            % is bound positionally to vars.out(i), so reordering the        % MMP, 09/09/2026
-            % variables permutes the monomial index of every coefficient;    % MMP, 09/09/2026
-            % 'canonical_var_order' returns that permutation lifted over the % MMP, 09/09/2026
-            % matrix dimension, empty when nothing moves. It also rejects a  % MMP, 09/09/2026
-            % pass-through variable given different domains on the two sides.% MMP, 09/09/2026
-            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                   % MMP, 09/09/2026
-                canonical_var_order(vars,dom,ZL,ZR,dims);                    % MMP, 09/09/2026
-            if reordered                                                     % MMP, 09/09/2026
-                for ii = 1:numel(params)                                     % MMP, 09/09/2026
-                    % [] and scalar 0 are the zero-block shorthand accepted  % MMP, 09/09/2026
-                    % everywhere else in the class, and indexing one throws. % MMP, 09/09/2026
-                    % Permuting a zero block is a no-op, and for a genuine   % MMP, 09/09/2026
-                    % 1x1 the gather can only be the identity, so skipping   % MMP, 09/09/2026
-                    % is exact in both cases.                                % MMP, 09/09/2026
-                    if numel(params{ii})>1                                   % MMP, 09/09/2026
-                        params{ii} = params{ii}(rowIdx,colIdx);              % MMP, 09/09/2026
-                    end                                                      % MMP, 09/09/2026
-                end                                                          % MMP, 09/09/2026
-            end                                                              % MMP, 09/09/2026
-            [params,ZL,ZR,was_rewritten] = ...                               % MMP, 08/29/2026
-                canonicalize_multiplier(params,vars,ZL,ZR,dims);             % MMP, 08/29/2026
-            if was_rewritten                                                 % MMP, 08/29/2026
-                warning('sopvar:noncanonicalMultiplier',...                  % MMP, 08/29/2026
+            % Canonical variable order first, vars.out = [S2,S3] and        % MMP, 09/09/2026
+            % vars.in = [S3,S1]: ZL{i} is bound to vars.out(i), so a        % MMP, 09/09/2026
+            % reordering permutes the monomial index of every coefficient   % MMP, 09/09/2026
+            % (rowIdx, colIdx, lifted over the matrix dimension; empty when % MMP, 09/09/2026
+            % nothing moves). A pass-through variable given two domains is  % MMP, 09/09/2026
+            % rejected there.                                               % MMP, 09/09/2026
+            [vars,dom,ZL,ZR,rowIdx,colIdx,reordered] = ...                  % MMP, 09/09/2026
+                canonical_var_order(vars,dom,ZL,ZR,dims);                   % MMP, 09/09/2026
+            if reordered                                                    % MMP, 09/09/2026
+                for ii = 1:numel(params)                                    % MMP, 09/09/2026
+                    % [] and scalar 0 (zero-block shorthand) cannot be      % MMP, 09/09/2026
+                    % indexed, and permuting a zero block is a no-op.       % MMP, 09/09/2026
+                    if numel(params{ii})>1                                  % MMP, 09/09/2026
+                        params{ii} = params{ii}(rowIdx,colIdx);             % MMP, 09/09/2026
+                    end                                                     % MMP, 09/09/2026
+                end                                                         % MMP, 09/09/2026
+            end                                                             % MMP, 09/09/2026
+            % Then the canonical multiplier form, the class invariant of    % MMP, 08/29/2026
+            % the help text: a non-canonical parameter is rewritten, a      % MMP, 08/29/2026
+            % canonical one is not touched.                                 % MMP, 08/29/2026
+            [params,ZL,ZR,was_rewritten] = ...                              % MMP, 08/29/2026
+                canonicalize_multiplier(params,vars,ZL,ZR,dims);            % MMP, 08/29/2026
+            if was_rewritten                                                % MMP, 08/29/2026
+                warning('sopvar:noncanonicalMultiplier',...                 % MMP, 08/29/2026
                     ['A multiplier parameter depended on a dummy variable, so it was rewritten in '...% MMP, 08/29/2026
                      'canonical form and ZL was enlarged to hold the folded degrees. The operator '...% MMP, 08/29/2026
                      'is unchanged. Build multiplier parameters with the degree on ZL to avoid this.']);% MMP, 08/29/2026
-            end                                                              % MMP, 08/29/2026
+            end                                                             % MMP, 08/29/2026
+            % Store the canonical data
             P.params = params;
             P.vars = vars;
             P.dom = dom;
@@ -185,6 +184,8 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
             P.ZR = ZR;
             P.ZL = ZL;
 
+            % The variable partition S1 (input only), S2 (output only), S3
+            % (shared), each sorted, with their domains
             P.vars_S1 = setdiff(vars.in,vars.out);
             P.vars_S2 = setdiff(vars.out,vars.in);
             P.vars_S3 = intersect(vars.in,vars.out);
@@ -197,8 +198,6 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
         end
     end
     methods(Static)
-%       out = randsopvar(vars_S1,vars_S2,vars_S3,dim,degree,density);       % MMP, 09/29/2026 (was)
-        % randsopvar.m is deleted (dead); see the 09/29/2026 header entry.  % MMP, 09/29/2026
         [Minv, R1Minv, R2Minv, info] = inv_1D(M, K1, K2, interval, opts);
     end
 

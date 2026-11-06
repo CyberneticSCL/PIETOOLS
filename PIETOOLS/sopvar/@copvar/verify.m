@@ -59,20 +59,12 @@ function info = verify(P)                                                   % MM
 % authorship, and a brief description of modifications
 %
 % MP, 01/19/2026: Initial coding
-% MMP, 09/17/2026: Replaced the body. The 01/19/2026 draft could not run:
-%                  its first executable line read 'C' and 'fields' before
-%                  either was assigned, 'r' was never assigned, dynamic
-%                  field access was attempted with the non-field names
-%                  'dim(1)' and 'vars(1)', and 'row = Mop{i,:}' takes only
-%                  the first element of a comma list. It also compared
-%                  variable lists for equality, which rejects legitimate
-%                  containers for the canonical-order reason above. All of
-%                  it is deleted rather than commented out; the 01/19/2026
-%                  entry no longer describes code present here. The draft's
-%                  commented-out cellfun sketches noted that empty elements
-%                  should be eliminated; that is now the zero-block
-%                  convention, under which [] is a legal block whose space
-%                  and dimension come from the container metadata.
+% MMP, 09/17/2026: Body replaced. The 01/19/2026 draft could not run (it
+%                  read unassigned variables and took the first element of
+%                  a comma list) and compared variable lists for equality,
+%                  which rejects legitimate containers (canonical order,
+%                  above). All of it deleted rather than commented out; the
+%                  01/19/2026 entry describes no code present here.
 % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Moved from
@@ -89,6 +81,8 @@ function info = verify(P)                                                   % MM
 %                  09/25/2026 rename ('mopvar' is now the stub class in
 %                  @mopvar). Mechanical, no functional change; each marked
 %                  line differs from its old text only by that name.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): the 09/17/2026
+%                  entry condensed; code unchanged.
 
 % % % BEGIN body replaced by MMP, 09/30/2026 - the 09/17/2026 body, deleted
 % % % here, is 'verify_copvar_meta'; see the header entry above.

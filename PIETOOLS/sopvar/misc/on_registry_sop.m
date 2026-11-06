@@ -7,9 +7,18 @@ function X = on_registry_sop(X,R)
 % and Tw'*(P*Bw) on the state's variable (@cdopvar/plus demands identical
 % registries).
 %
+% INPUTS
+% - X:  'copvar' or 'cdopvar' object;
+% - R:  'copvar' or 'cdopvar' object whose registry contains X's;
+%
+% OUTPUTS
+% - X:  the same operator on the registry of R, of the input's class.
+%
 % Initial coding MMP, 10/08/2026 (the logic of the frozen test helper
 % cx_on_registry, in the library so that the executives depend on the
 % library only).
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): INPUTS/OUTPUTS
+%                  added; code unchanged.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if isequal(X.vars,R.vars) && isequal(X.dom,R.dom),  return,     end
 meta = metadata(X);

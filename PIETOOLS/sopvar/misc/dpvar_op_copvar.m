@@ -82,6 +82,8 @@ function R = dpvar_op_copvar(op,varargin)
 %                as a decision variable (gam*I, gam - T'*T, [-gam, D'; ..])
 %                for the H-inf/H2 executives and DEMO2/3/5/6/9, one branch
 %                shared by the four classes' mtimes/plus/horzcat/vertcat.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                for the local functions; code unchanged.
 
 switch op
     case 'mtimes',              R = op_mtimes(varargin{1},varargin{2});
@@ -96,6 +98,13 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R = op_mtimes(A,B)
+% R = OP_MTIMES(A,B) is A*B with one operand a 'dpvar' and the other an
+% operator: a constant scalar scales through the class's own path, a dpvar
+% scalar scales every block (fixed operator only), a matrix multiplies the
+% output or input components through its constant container.
+% INPUTS  A, B: the two factors, one a 'dpvar'.
+% OUTPUT  R: block or container; 'sdopvar'/'cdopvar' when decision
+%         variables enter.
 left = ~isoperator(A);              % the matrix is the left factor
 if left,    D = A;  X = B;  else,   D = B;  X = A;      end
 D = const_value(D);
@@ -169,6 +178,11 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R = op_plus(A,B)
+% R = OP_PLUS(A,B) is A + B with one operand a 'dpvar': a scalar is d*I on a
+% square operator, a matrix of the total size a multiplier split by the
+% dimensions, both built as a constant container and added with X first.
+% INPUTS  A, B: the two summands, one a 'dpvar'.
+% OUTPUT  R: block or container of the class the sum takes.
 if isoperator(A),   X = A;  D = B;  else,   X = B;  D = A;      end
 D = const_value(D);
 [meta,blk] = side_meta(X);
@@ -193,8 +207,11 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R = op_cat(op,args)
-% Each matrix entry becomes a container on the spaces of the first operator
-% among the operands: its rows (horzcat) or columns (vertcat).
+% R = OP_CAT(OP,ARGS) concatenates ARGS with 'horzcat' or 'vertcat': each
+% matrix entry becomes a container on the spaces of the first operator
+% among the operands, its rows (horzcat) or columns (vertcat).
+% INPUTS  op: 'horzcat' or 'vertcat'; args: cell of operands.
+% OUTPUT  R: the concatenated container.
 iref = find(cellfun(@isoperator,args),1);
 meta = side_meta(args{iref});
 nv = numel(meta.vars);
@@ -227,6 +244,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function tf = isoperator(x)
+% TF = ISOPERATOR(X) is true for a container or a block of the four classes.
 tf = isa(x,'copvar') || isa(x,'cdopvar') || isa(x,'sopvar') || isa(x,'sdopvar');
 end
 

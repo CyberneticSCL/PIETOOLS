@@ -90,6 +90,8 @@ function Pop = copvar2opvar2d(Pc,vars_xy)                                   % MM
 %                  change; each marked line differs from its old text only
 %                  by that name. The one line with a 09/28/2026 marker keeps
 %                  its old text as '(was)'.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                  for the local functions; code unchanged.
 
 if ~isa(Pc,'copvar')                                                        % MMP, 09/30/2026
     error('copvar2opvar2d:badInput','Input must be a copvar object.')
@@ -168,8 +170,12 @@ end
 
 % ------------------------------------------------------------------------
 function idx = space_index(mask,vars,vars_xy,side)
-% opvar2d's space index for each row of a mask: 1 for R, 2 for L2[x], 3 for
-% L2[y], 4 for L2[x,y], with x and y as named in vars_xy.
+% IDX = SPACE_INDEX(MASK,VARS,VARS_XY,SIDE) returns opvar2d's space index
+% for each row of a mask: 1 for R, 2 for L2[x], 3 for L2[y], 4 for L2[x,y],
+% with x and y as named in vars_xy.
+% INPUTS  mask: nsp x nv logical; vars: 1 x nv registry; vars_xy: 1 x 2
+%         cellstr; side: 'output' or 'input', for the error message.
+% OUTPUT  idx: nsp x 1 indices in 1..4.
 nsp = size(mask,1);
 idx = zeros(nsp,1);
 has_x = false(nsp,1);       has_y = false(nsp,1);
@@ -195,8 +201,11 @@ end
 end
 
 function I = dom_matrix(Pc,vars_xy)                                         % MMP, 09/30/2026
-% opvar2d's I is 2x2, row k the domain of vars_xy{k}. A direction the
-% container never used has no recorded domain, so it defaults to [0,1].
+% I = DOM_MATRIX(PC,VARS_XY) returns opvar2d's 2 x 2 domain matrix, row k
+% the domain of vars_xy{k}. A direction the container never used has no
+% recorded domain, so it defaults to [0,1].
+% INPUTS  Pc: 'copvar'; vars_xy: 1 x 2 cellstr.
+% OUTPUT  I: 2 x 2 double.
 I = [0 1;0 1];
 for k = 1:min(2,numel(vars_xy))
     idx = find(strcmp(Pc.vars,vars_xy{k}),1);                               % MMP, 09/30/2026

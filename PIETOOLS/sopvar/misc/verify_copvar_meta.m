@@ -75,6 +75,8 @@ function info = verify_copvar_meta(P,cls,okclasses)
 %                a message: the admitted classes are an argument, each
 %                property of P is read once into the struct 'm', and the
 %                Zd lists are compared as columns without copying a column.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                for the local function; code unchanged.
 
 if ~isa(P,cls)
     error('verify:badInput','Input must be a %s object.',cls)
@@ -178,8 +180,13 @@ end
 
 % ========================================================================
 function flags = check_dom(flags,i,j,v,d,vars,dom,side)
-% Compare a block's domains, listed in its own variable order, against the
-% container registry.
+% FLAGS = CHECK_DOM(FLAGS,I,J,V,D,VARS,DOM,SIDE) compares the domains D of
+% block (I,J), listed in its own variable order V, against the container
+% registry (VARS, DOM), appending a message to FLAGS per mismatch.
+% INPUTS  flags: cell of messages; i, j: block position; v: cellstr; d:
+%         numel(v) x 2; vars: registry; dom: nv x 2; side: 'output' or
+%         'input'.
+% OUTPUT  flags: the messages, extended.
 v = v(:)';
 if size(d,1)~=numel(v)
     flags{end+1,1} = sprintf('Block (%d,%d) lists %d %s variables against %d domain rows.',...

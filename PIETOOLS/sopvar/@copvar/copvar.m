@@ -25,7 +25,10 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
 % - P.space_out: M x nv logical, row i is the mask of s^i in P.vars;
 % - P.space_in:  N x nv logical, row j is the mask of s^j;
 % - P.dim_out:   M x 1 component counts q_i;
-% - P.dim_in:    N x 1 component counts p_j.
+% - P.dim_in:    N x 1 component counts p_j;
+% - (protected) leftCommonBasis, leftCommonC, rightCommonBasis,
+%                rightCommonC: the row- and column-common forms that
+%                'canonicalize' fills in; empty otherwise.
 %
 % Blocks still carry their own vars/dom/dims, so they stay valid standalone
 % operators and no block method changes. The container holds the
@@ -96,30 +99,19 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
 % authorship, and a brief description of modifications
 %
 % MP, 01/15/2026: Initial coding
-% MMP, 09/17/2026: Replaced the body. The 01/15/2026 stub was a copy of
-%                  'ndopvar': constructor named 'ndopvar', header describing
-%                  'nopvar' elements, and properties (C, deg, dom, dim,
-%                  vars) plus 'get.dim' implementing ndopvar's single-basis
-%                  deg/nZ convention, under which a coefficient block is
-%                  dim(1)*nZ x dim(2)*nZ_t. 'sopvar' has no 'deg' property
-%                  and no such convention - it carries per-variable bases ZL
-%                  and ZR over separate input and output variable lists - so
-%                  none of the stub was reusable and all of it is deleted
-%                  rather than commented out. The 01/15/2026 entry therefore
-%                  no longer describes code present here.
-% MMP, 09/17/2026: Split the decision-variable case out into 'cdopvar', so
-%                  that the containers mirror the sopvar/sdopvar pair and
-%                  'class(P)' states whether decision variables are present.
-%                  Consequences here: the 'Zd' property, its merge in the
-%                  constructor, 'private/put_on_list', the reconciliation in
-%                  'plus'/'mtimes', 'isdecision' and the
-%                  'decisionTimesDecision' guard are all gone, and a block
-%                  of class 'sdopvar' is now rejected. Note this makes the
-%                  09/11/2026 branch edit's inclusion of ?sdopvar in
-%                  InferiorClasses inert - 'copvar' no longer interacts with
-%                  an 'sdopvar' - but it is left as the author wrote it,
-%                  since the precedence it declares is harmless and never
-%                  exercised.
+% MMP, 09/17/2026: Body replaced. The 01/15/2026 stub was a copy of
+%                  'ndopvar' (constructor, header and properties, with the
+%                  single-basis deg/nZ convention that 'sopvar' does not
+%                  have), none of it reusable; all of it deleted rather than
+%                  commented out, so the 01/15/2026 entry describes no code
+%                  present here.
+% MMP, 09/17/2026: Decision-variable case split out into 'cdopvar', so the
+%                  containers mirror the sopvar/sdopvar pair and 'class(P)'
+%                  states whether decision variables are present: the 'Zd'
+%                  property, its merge, 'private/put_on_list', the
+%                  reconciliation in 'plus'/'mtimes', 'isdecision' and the
+%                  'decisionTimesDecision' guard are gone, and an 'sdopvar'
+%                  block is rejected.
 % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Renamed here:
@@ -130,17 +122,20 @@ classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar,?dpvar}) copvar     % MM
 %                  class's methods, which route it to 'dpvar_op_copvar'
 %                  (legacy @opvar/@dopvar semantics; the result is a
 %                  cdopvar). Before, the dpvar's own method was called and
-%                  failed. The classdef line was
+%                  failed. The classdef line before is the (was) line at
+%                  the end of this log.
+% MMP, 09/30/2026: The ?sdopvar precedence is relied on since 09/25/2026:
+%                  @copvar/horzcat, vertcat and blkdiag receive a decision
+%                  BLOCK among the operands because copvar outranks sdopvar,
+%                  promote it and re-dispatch to 'cdopvar'; without it
+%                  [B, P] with B an 'sdopvar' would reach @sdopvar/horzcat
+%                  (MATLAB calls the leftmost argument's method when no
+%                  precedence is declared). Doc only.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): log entries
+%                  condensed, the (was) classdef line moved to the end of
+%                  the log, the protected properties named in the help;
+%                  code unchanged.
 % classdef (InferiorClasses={?polynomial,?sopvar,?sdopvar}) copvar          % MMP, 09/29/2026 (was)
-% MMP, 09/30/2026: The 09/17/2026 entry calls the ?sdopvar precedence
-%                  inert and never exercised. That no longer holds since
-%                  09/25/2026: @copvar/horzcat, vertcat and blkdiag rely on
-%                  it ("copvar outranks sdopvar, so a decision BLOCK among
-%                  the operands lands here"), promoting such a block and
-%                  re-dispatching to 'cdopvar'. Without it an operand list
-%                  that starts with the 'sdopvar' block, [B, P], would reach
-%                  @sdopvar/horzcat (MATLAB calls the leftmost argument's
-%                  method when no precedence is declared). Doc only.
 
 % % % BEGIN body replaced by MMP, 09/17/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

@@ -1,29 +1,21 @@
 function [Pcat] = vertcat(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [Pcat] = vertcat(varargin) takes n inputs and concatentates them vertically,
-% provided they satisfy the following criteria:
-% 1) All input must be of type 'sopvar' 
-% 2) The input dimensions varargin{j}.dim(:,2) of all opvar objects must
-%       match;
-% 3) The spatial variables varargin{j}.var1 and varargin{j}.var2, as well 
-%       as the domain varargin{j}.I of all opvar objects must match;
-% 4) Concatenation should make sense within the context of the opvar class,
-%       that is, opvars always mapt to from RxL2, never to L2xR. We cannot
-%       concatenate e.g. [A;B] for A:R-->L2 and B:R-->R.
+% PCAT = VERTCAT(A_1,...,A_n) returns the vertical concatenation
+% [A_1;...;A_n] of 'sopvar' objects on the same spaces: the operator whose
+% i-th block of output components is A_i applied to the whole input.
 %
-% INPUTS
-% - varargin:   two or more 'sopvar' objects [A_1;...;A_n] with the same
-%               number of columns (dims(2)), domains and spatial variables.
-%               A 'dpvar' entry is also accepted, in which case the call is
-%               routed to 'dpvar_op_copvar';
+% INPUT
+% - A_1,...,A_n: two or more 'sopvar' objects with the same number of
+%               columns (dims(2)), spatial variables and domains. A 'dpvar'
+%               entry is also accepted, in which case the call is routed to
+%               'dpvar_op_copvar';
 %
-% OUTPUTS
+% OUTPUT
 % - Pcat:       'sopvar' object representing [A_1;...;A_n], with dims(1)
 %               the sum of those of the inputs, and with ZL, ZR the unions
 %               of the monomial bases of the inputs. A container if any
-%               input is a 'dpvar';
+%               input is a 'dpvar'.
 %
-% NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
 
@@ -69,9 +61,13 @@ function [Pcat] = vertcat(varargin)
 %                  integral from L2), which returns a CONTAINER, since that
 %                  entry's output space is not this block's. Before, it
 %                  errored "Currently supported only for sopvar".
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
+%                  house format (the criteria list referred to the fields
+%                  of another class), step comments, stale comments removed
+%                  (an orphaned 'matrix' remark in the class check, a dead
+%                  'Pcat.dim' line); code unchanged.
 
-
-% Deal with single input case
+% A single operand is returned as is
 if nargin==1
     Pcat = varargin{1};
     return
@@ -83,37 +79,34 @@ if any(cellfun(@(a) isa(a,'dpvar'),varargin))                               % MM
     return                                                                  % MMP, 09/29/2026
 end                                                                         % MMP, 09/29/2026
 
-% Extract the operators
+% The first two operands; the rest are handled by recursion below
 a = varargin{1};    b = varargin{2};
 
-% Currently support some matrix-opvar concatenation
+% Only 'sopvar' operands are supported
 if ~isa(b,'sopvar') || ~isa(a, 'sopvar')
     error("Currently supported only for sopvar");
-    % Only supported if a in fact corresponds to a matrix as well
 end
 
-% Check that domain and variables match
+% The domains must match
 if any(any(a.dom.in~=b.dom.in)) || any(any(a.dom.out~=b.dom.out))
     error('Operators being concatenated have different intervals');
 end
 
-% Check that domain and variables match
-% 'isequal' rather than 'any(~strcmp(...))': strcmp of two cellstr of       % MMP, 09/07/2026
-% different length scalar-expands to an empty logical, so any([]) is        % MMP, 09/07/2026
-% false and a mismatch between {} and {'s1'} passed. That let an R->R       % MMP, 09/07/2026
-% block sit above an L2->R one, silently discarding the spatial variable    % MMP, 09/07/2026
-% and retyping an L2 component as R.                                       % MMP, 09/07/2026
+% The variables must match. 'isequal', not 'any(~strcmp(...))': for lists   % MMP, 09/07/2026
+% of different length strcmp gives an empty logical, so {} against {'s1'}   % MMP, 09/07/2026
+% passed and an L2 component was silently retyped as R.                     % MMP, 09/07/2026
 if ~isequal(a.vars.in(:),b.vars.in(:)) || ~isequal(a.vars.out(:),b.vars.out(:)) % MMP, 09/07/2026
 %if any(~strcmp(a.vars.in, b.vars.in))|| any(~strcmp(a.vars.out, b.vars.out)) % MMP, 09/07/2026 (was)
     error('Operators being concatenated have input/output variables');
 end
- 
 
-% Check that the output dimensions match
+% The input dimensions must match
 if any(a.dims(2)~=b.dims(2))
     error('Cannot concatenate vertically: Input dimensions of sopvar objects do not match')
-end  
+end
 
+% Union monomial bases Z of the two operands, with Zi = Ci*Z the embedding
+% of each operand's basis
 ZL1 = a.ZL;
 ZL2 = b.ZL;
 ZR1 = a.ZR;
@@ -122,26 +115,28 @@ ZR2 = b.ZR;
 [ZR, C1R, C2R] = UnionBasisMonomials(ZR1, ZR2);
 [ZL, C1L, C2L] = UnionBasisMonomials(ZL1, ZL2);
 
-
+% Lift the embeddings over the matrix dimensions: rows and columns of a
+% parameter are component outer, monomial inner
 C1L = kron(eye(a.dims(1)), C1L);
 C2L = kron(eye(b.dims(1)), C2L);
 C1R = kron(eye(a.dims(2)), C1R);
 C2R = kron(eye(b.dims(2)), C2R);
-% Finally, let's actually concatenate
+
+% Each parameter on the union bases is the vertical concatenation of the
+% two re-expressed parameters
 params = a.params;
 for ii=1:numel(a.params)
-    params{ii} = [C1L'*a.params{ii}*C1R; C2L'*b.params{ii}*C2R]; % concatenation of quadpoly
+    params{ii} = [C1L'*a.params{ii}*C1R; C2L'*b.params{ii}*C2R];
 end
-
-% Pcat.dim = [a.dim(1), a.dim(2)+b.dim(2)];
 
 dims = a.dims;
 dims(1) = dims(1) + b.dims(1);
 
+% Declare the operator (the constructor enforces the canonical form)
 Pcat = sopvar(params, a.vars, ZL, ZR, a.dom, dims);                         % MMP, 08/29/2026
 
-
-if nargin>2 
+% Remaining operands
+if nargin>2
 %   Pcat = horzcat(Pcat, varargin{3:end});                                  % MMP, 09/29/2026 (was)
     Pcat = vertcat(Pcat, varargin{3:end});                                  % MMP, 09/29/2026
 end

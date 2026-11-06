@@ -40,35 +40,27 @@ function Cout = lrmultiply(L, C, R)
 % authorship, and a brief description of modifications
 %
 % Initial coding SS; vectorization AT, 09/08/2026
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): commented-out
+%                  earlier implementations removed, step comments; the
+%                  preallocation of Bout before the product is dead and is
+%                  left in place; code unchanged.
 
 
 A = C.A;
 B = C.B;
 
-% the following avoids construction of big (R'\otimes L)
+% Constant part: vec(L*X*R) = (R' kron L)*vec(X) with X = reshape(A),
+% without forming the Kronecker product
 X = reshape(A,size(L,2),size(R,1));
 Y = L*X*R;  % (R^T\otimes L)*A = vec(L*X*R), X = reshape(A)
 Aout = Y(:);
 
 Bout = sparse(size(B,1),size(L,1)*size(R,2));
 
-% new implementation using kronecker product
-% vec(L*X*R) = (R' otimes L)*vec(X) = vec(X)' (R otimes L') 
-% Rkron = kron(speye(size(L,2)), R);
-% Lkron = kron(L, speye(size(R,1)));
-LRkron = kron(R, L');%;Lkron*Rkron;
+% Decision part, one row vec(X_i)' of B per variable: the rows map by the
+% transpose, B*(R kron L')
+LRkron = kron(R, L');
 Bout = B*LRkron;
-
-% Previous implementation
-% it was a loop over decision variables
-% for i=1:size(B,1)  % row slicing is likely to me slow
-%     X = reshape(B(i,:)',size(L,2),size(R,1));
-%     Y = L*X*R;
-%     Bout(i,:) = Y(:);
-% end 
-% if max(abs(Bout - Out), [], 'all') > 1.e-10
-%     error('ERROR')
-% end
 
 Cout = struct('A',Aout,'B', Bout);
 end

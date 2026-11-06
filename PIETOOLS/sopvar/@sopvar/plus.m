@@ -1,18 +1,20 @@
 function C = plus(A,B)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% C = plus(A,B) adds two sopvar operators A,B: L_2^p[Si,...Sn] to L_2^q[Sj,...,Sm]
-% Date: 1/16/26
-% Version: 1.0
-% 
-% INPUTS
-% A: sopvar class object L_2^p[Si,...Sn] to L_2^q[Sj,...,Sm]
-% B: sopvar class object L_2^p[Si,...Sn] to L_2^q[Sj,...,Sm]
-% Note: A,B must have identical dimensions and domains
+% C = PLUS(A,B) returns the sum A + B of two 'sopvar' objects that map
+% between the same spaces, on the unions of their monomial bases.
 %
-% OUTPUTS
-% C = A+B:  L_2^q[Sj,...,Sm] to L_2^p[Si,...Sn]
-% 
-% NOTES:
+% INPUT
+% - A, B:   'sopvar' objects with the same dims, spatial variables and
+%           domains. One of them may be a 'dpvar' object, in which case the
+%           call is routed to 'dpvar_op_copvar' (a scalar stands for
+%           scalar*I on a square block, a matrix of the block's size for its
+%           multiplier);
+%
+% OUTPUT
+% - C:      'sopvar' object representing A + B, with ZL and ZR the unions
+%           of the monomial bases of A and B; an 'sdopvar' object when a
+%           summand is a 'dpvar'.
+%
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 % or S. Shivakumar at sshivak8@asu.edu
 
@@ -57,8 +59,10 @@ function C = plus(A,B)
 %                  summands are not routed and fail there as before.
 % DJ, 11/04/2026: Support zero blocks specified as [] or scalar 0, by
 %                   expanding them to the size of the block.
-
-% initialize added output class
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): help block in the
+%                  house format, step comments, stale comments removed
+%                  (empty lead-in lines, a remark attributing the loop form
+%                  to a chat assistant); code unchanged.
 
 % dpvar summand: legacy scalar*I / matrix multiplier, before                % MMP, 09/29/2026
 % the checks below.                                                         % MMP, 09/29/2026
@@ -67,15 +71,13 @@ if isa(A,'dpvar') || isa(B,'dpvar')                                         % MM
     return                                                                  % MMP, 09/29/2026
 end                                                                         % MMP, 09/29/2026
 
-% Error handling: Checks to ensure A and B are compatible
+% The summands must have the same dimensions, variables, domains and cells
 if any(A.dims~=B.dims)
     error('Summands A and B have different dimensions');
 end
 
-% 'isequal' rather than 'any(~strcmp(...))': strcmp of two cellstr of       % MMP, 09/07/2026
-% different length scalar-expands to an empty logical, so any([]) is        % MMP, 09/07/2026
-% false and a summand on {} passed against one on {'s1'}, silently          % MMP, 09/07/2026
-% discarding the spatial variable.                                         % MMP, 09/07/2026
+% 'isequal', not 'any(~strcmp(...))': for lists of different length strcmp  % MMP, 09/07/2026
+% gives an empty logical, so a summand on {} passed against one on {'s1'}.  % MMP, 09/07/2026
 if ~isequal(A.vars.in(:),B.vars.in(:)) || ~isequal(A.vars.out(:),B.vars.out(:)) % MMP, 09/07/2026
 %if any(~strcmp(A.vars.in,B.vars.in)) ||any(~strcmp(A.vars.out,B.vars.out)) % MMP, 09/07/2026 (was)
     error('Summands A and B map between different spaces');
@@ -88,25 +90,23 @@ end
 if numel(A.params)~=numel(B.params)
     error('number of terms in summands is not equal -- one of them is probably malformed');
 end
-% dimensions of params in A and B, vars_in and vars_out
 
-
+% Union monomial bases Z of the two summands, with Zi = Ci*Z the embedding
+% of each summand's basis
 ZL1 = A.ZL;
 ZL2 = B.ZL;
 ZR1 = A.ZR;
 ZR2 = B.ZR;
 
-%find common basis
 [ZR, C1R, C2R] = UnionBasisMonomials(ZR1, ZR2);
 [ZL, C1L, C2L] = UnionBasisMonomials(ZL1, ZL2);
 
-
+% Lift the embeddings over the matrix dimensions: rows and columns of a
+% parameter are component outer, monomial inner
 C1L = kron(eye(A.dims(1)), C1L);
 C2L = kron(eye(B.dims(1)), C2L);
 C1R = kron(eye(A.dims(2)), C1R);
 C2R = kron(eye(B.dims(2)), C2R);
-
-
 
 % [] and scalar 0 are zero blocks of the size of the block (see sopvar.m)
 for i=1:numel(A.params)                                                     % DJ, 11/04/2026
@@ -118,12 +118,14 @@ for i=1:numel(A.params)                                                     % DJ
     end
 end
 
+% Add the parameters cell by cell on the union bases (linear indexing of
+% the 3 x ... x 3 cell array)
 params = A.params;
-for i=1:numel(A.params)  % linear indexing of multi-dimensional cell array
-    params{i} = C1L'*A.params{i}*C1R +C2L'*B.params{i}*C2R;  % adding quadpoly objects. % Note: chatgpt says this approach is faster than cellfun
+for i=1:numel(A.params)
+    params{i} = C1L'*A.params{i}*C1R +C2L'*B.params{i}*C2R;
 end
 
-
+% Declare the operator (the constructor enforces the canonical form)
 C = sopvar(params, A.vars, ZL, ZR, A.dom, A.dims);                          % MMP, 08/29/2026
 
 end

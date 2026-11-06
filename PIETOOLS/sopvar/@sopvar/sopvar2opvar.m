@@ -13,10 +13,10 @@ function obj = sopvar2opvar(objSopvar)
 % - obj:        'opvar' object representing the same operator as the input;
 %
 % NOTES
-% The primary variable is taken from objSopvar.vars, and the dummy is that   % MMP, 08/30/2026
-% name with '_dum' appended, matching 'sopvar2opvar2d' and 'sopvar2nopvar'.  % MMP, 08/30/2026
+% The primary variable is taken from objSopvar.vars, and the dummy is that  % MMP, 08/30/2026
+% name with '_dum' appended, matching 'sopvar2opvar2d' and 'sopvar2nopvar'. % MMP, 08/30/2026
 % An 'sopvar' records only one name per direction, so a dummy named anything % MMP, 08/30/2026
-% else cannot be recovered and is renamed to this convention.                % MMP, 08/30/2026
+% else cannot be recovered and is renamed to this convention.               % MMP, 08/30/2026
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,8 +49,9 @@ function obj = sopvar2opvar(objSopvar)
 %                  hardcoding 's1', which relabelled any operator not already
 %                  in 's1', and name the dummy <primary>_dum instead of 't1',
 %                  matching what 'sopvar2opvar2d' and 'sopvar2nopvar' already
-%                  did. Answers the 'should we use s1_dum?' note.
-
+%                  did.
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): a stale remark in
+%                  the 08/30/2026 entry removed; code unchanged.
 
 % Extract the dimension, variables and domain of the operator
 dims = objSopvar.dims;

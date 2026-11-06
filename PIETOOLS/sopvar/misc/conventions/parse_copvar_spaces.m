@@ -112,6 +112,8 @@ function [meta,sp_out,sp_in] = parse_copvar_spaces(dims,spaces,dom)
 %                  public for those two folders.
 % DJ, 11/02/2026:  Support empty dims.out and dims.in to specify zero
 %                   operator with no rows or columns;
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                  for the local functions; code unchanged.
 
 [sp_out,sp_in,d_out,d_in] = parse_spaces(dims,spaces);
 M = numel(sp_out);      N = numel(sp_in);
@@ -130,7 +132,12 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [so,si,dout,din] = parse_spaces(dims,spaces)
-% Output and input space lists, and component counts.
+% [SO,SI,DOUT,DIN] = PARSE_SPACES(DIMS,SPACES) reads the output and input
+% space lists and component counts from the accepted forms of DIMS and
+% SPACES.
+% INPUTS  dims, spaces: as for the primary function.
+% OUTPUT  so, si: 1 x M and 1 x N cells of cellstr; dout, din: M x 1 and
+%         N x 1 counts.
 if isstruct(spaces)
     if ~isscalar(spaces)
         error("'spaces' should be a single struct, not an array; struct() with "...
@@ -171,7 +178,10 @@ end
 
 
 function sp = norm_spaces(sp)
-% A plain cellstr is ONE space; otherwise a cell of cellstr, one per space.
+% SP = NORM_SPACES(SP) normalizes a space list: a plain cellstr, char or
+% pvar is ONE space; otherwise a cell with one cellstr per space.
+% INPUT   sp: the list in any accepted form.
+% OUTPUT  sp: 1 x M cell of 1 x n_i cellstr.
 if isempty(sp),     sp = {cell(1,0)};   return,     end
 if iscellstr(sp) || ischar(sp) || isa(sp,'polynomial'),  sp = {sp};  end
 % Anything else must be a cell of spaces. Without this, brace indexing a
@@ -199,8 +209,10 @@ end
 
 
 function dom = parse_dom(dom,vars)
-% nv x 2 in registry order, one 1 x 2 row for all, or a struct pairing
-% names with intervals.
+% DOM = PARSE_DOM(DOM,VARS) reads the domains: nv x 2 in registry order,
+% one 1 x 2 row for all, or a struct pairing names with intervals.
+% INPUTS  dom: in any accepted form; vars: the sorted registry.
+% OUTPUT  dom: nv x 2 double.
 nv = numel(vars);
 if isa(dom,'struct')
     if ~isfield(dom,'vars') || ~isfield(dom,'dom')

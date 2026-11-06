@@ -1,4 +1,11 @@
 
+% Test of apply_sopvar in two variables: a random 'opvar2d' between random
+% spaces converted with opvar2sopvar, and a random polynomial (or matrix),
+% applied through apply_opvar and apply_sopvar; prints the maximal
+% coefficient of the difference (expected 0).
+%
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): header added;
+%                  code unchanged.
 % Declare the independent variables
 pvar s1 s1_dum s2 s2_dum
 var1 = [s1; s2];

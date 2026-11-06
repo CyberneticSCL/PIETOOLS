@@ -75,6 +75,8 @@ function P = mat2copvar_grid(Mat,meta,mult_only)
 %                replace the opvar2copvar(mat2opvar(...)) detour; that
 %                detour has no N-D route.
 % DJ, 11/02/2026: Support empty input/output spaces;
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what/INPUT/OUTPUT
+%                for the local function; code unchanged.
 
 if nargin<3 || isempty(mult_only),  mult_only = false;  end
 isdec = isa(Mat,'dpvar');
@@ -148,9 +150,15 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function b = const_block(Aij,Bij,Zd,isdec,meta,i,j,mult_only)
-% The constant block from input space j to output space i, degree-0 bases,
-% content in the all-multiplier cell only (gamma = 1 in every shared
-% direction, linear index 1).
+% B = CONST_BLOCK(AIJ,BIJ,ZD,ISDEC,META,I,J,MULT_ONLY) builds the constant
+% block from input space j to output space i: degree-0 bases, content in
+% the all-multiplier cell only (gamma = 1 in every shared direction, linear
+% index 1).
+% INPUTS  Aij: vec of the block's matrix; Bij: nd x numel(Aij) decision
+%         coefficients; Zd: decision variable names; isdec: build an
+%         'sdopvar'; meta: container metadata; i, j: the spaces;
+%         mult_only: refuse an integral block.
+% OUTPUT  b: 'sopvar' or 'sdopvar' block.
 
 vars = meta.vars;
 vo = vars(meta.space_out(i,:));     vi = vars(meta.space_in(j,:));   % sorted

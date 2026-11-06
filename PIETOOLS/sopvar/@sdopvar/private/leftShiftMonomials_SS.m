@@ -1,18 +1,19 @@
 function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
-% leftShiftMonomials_SS
-%
-% Computes
+% [VARSC,ZC,CC,TMAP] = LEFTSHIFTMONOMIALS_SS(VARSA,ZA,CA,VARSB,ZB,CB)
+% multiplies a coefficient on the monomial basis ZA by one on ZB and moves
+% the monomials of the product onto a single left basis ZC:
 %
 %   ((I_p \otimes ZA')*CA{I,J})*((I_q \otimes ZB')*CB{I})
 %       = (I_p \otimes ZC')*CC{I,J}
 %
 % for each cell index I,J.
 %
-% Optional 4th output:
+% Optional 4th output, the linear map of the shift,
 %
-%   vec(CC{I,J}) = Tmap{I} * vec(CA{I,J})
+%   vec(CC{I,J}) = Tmap{I} * vec(CA{I,J}),
 %
-% This is useful when CA{I,J} is not numeric but represented through
+% which 'leftShiftMonomials_SD' applies to the decision-variable
+% coefficients of an affine CA{I,J}.
 %
 % INPUTS
 % - varsA, varsB:   cell arrays of spatial variable names;
@@ -55,10 +56,12 @@ function [varsC,ZC,CC,Tmap] = leftShiftMonomials_SS(varsA,ZA,CA,varsB,ZB,CB)
 % authorship, and a brief description of modifications
 %
 % Initial coding MP, SS, DJ, AT, DB - 10/24/2026
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-line in the
+%                  house format, the sentence on Tmap completed (its tail
+%                  sat in the body), step comments; code unchanged.
 %
 
-% decision-parameter coefficients.
-
+% Row orientation of the lists; NA, NB the numbers of monomials
 varsA = varsA(:).';
 varsB = varsB(:).';
 ZA = ZA(:).';
@@ -93,6 +96,8 @@ end
 
 p = mA/NA;
 
+% The merged variable list and, per variable, the basis of the products:
+% the sums of an exponent of ZA and one of ZB (or the one basis present)
 varsC = union(varsA,varsB);
 nC = numel(varsC);
 
@@ -118,6 +123,9 @@ if isempty(ZC)
     NC = 1;
 end
 
+% Exponent tables of the tensor bases ZA, ZB and ZC over varsC: one row per
+% monomial, first variable outermost; a variable absent from a basis has
+% exponent 0
 EAc = zeros(NA,nC);
 
 for t = 1:numel(varsA)
@@ -152,6 +160,9 @@ for t = 1:nC
     EC(:,t) = kron(ones(left,1),kron(ZC{t}(:),ones(right,1)));
 end
 
+% Qmat maps each product monomial (a of ZA, b of ZB, a outer) to its
+% position in ZC: Qmat(c,(a-1)*NB+b) = 1 where the exponents of a and b
+% sum to those of c
 if nC == 0
     Qmat = sparse(1,1,1,1,1);
 else
@@ -169,6 +180,8 @@ end
 
 IpQ = kron(speye(p),Qmat);
 
+% Per row block I: CC{I,J} = (I_p kron Qmat)*(CA{I,J} kron I_NB)*CB{I}, or
+% through Tmap{I} when the map is requested
 CC = cell(nI,nJ);
 
 if nargout >= 4
@@ -186,6 +199,9 @@ for I = 1:nI
     end
 
     if nargout >= 4
+        % The product as a linear map on vec(CA): the sum over the ZB
+        % monomial k of kron(Ek.',Dk), Dk the columns of IpQ and Ek the
+        % rows of CB{I} that belong to k
         T = sparse(p*NC*r,p*NA*q);
 
         for k = 1:NB

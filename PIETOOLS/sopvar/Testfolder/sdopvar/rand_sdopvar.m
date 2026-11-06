@@ -1,10 +1,20 @@
 function Pout = rand_sdopvar(matdim,vars,dom,degs,ndecvars,dnsty)
-% Generates a random sdopvar object given input parameters
-% Each kernel coefficient satisfies
+% POUT = RAND_SDOPVAR(MATDIM,VARS,DOM,DEGS,NDECVARS,DNSTY) generates a
+% random 'sdopvar' object. Each kernel coefficient satisfies
 %
 %   vec(C_alpha(d)) = params{alpha}.A + params{alpha}.B' * d
 %
 % where d is the column vector of decision variables.
+%
+% INPUTS
+% - matdim, vars, dom, degs, dnsty: as for 'rand_sopvar';
+% - ndecvars: number of decision variables; their names are generated here;
+%
+% OUTPUTS
+% - Pout:   'sdopvar' object with random sparse coefficients A and B;
+%
+% MMP, 11/06/2026: Comment pass (maintainer, 11/06/2026): what-line and
+%                  INPUTS/OUTPUTS added; code unchanged.
 
 % Check that the matrix dimensions are properly specified
 if isscalar(matdim)
