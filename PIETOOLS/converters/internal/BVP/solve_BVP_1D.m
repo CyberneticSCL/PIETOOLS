@@ -29,8 +29,9 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 %           - C*(d/ds)^{D}u_{k}(a)  or  C*(d/ds)^{D}u_{k}(b),  with
 %             constant C and D less than the order of u_{k};
 %           - int_{a}^{b} C(s)*u_{k}(s) ds, over the full domain;
-%           and the number of conditions (rows) should match the total
-%           order of the states, sum_k n_k*diff_k. The right-hand side w of
+%           and the number of conditions (rows) should be at least the
+%           total order of the states, sum_k n_k*diff_k, the surplus
+%           constraining the fundamental state. The right-hand side w of
 %           the conditions is not specified in PDE, but is the input of the
 %           operators Tops.Tw, Kops.w and Tops.Rw. It stacks the
 %           right-hand sides of the conditions PDE.BC{1},PDE.BC{2},...,
@@ -46,27 +47,28 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 % and one output space (R^{p} or L2^{p}[a,b]). The states are regrouped by
 % order, u = [u_{0};u_{1};...;u_{d}], with u_{j} stacking the states of
 % order j in the order in which they appear in PDE.x, see info.x_order.
-% Here m = n_tot-rank(G) is the number of constraints on the fundamental
-% state (see info.m), n_{j} the dimension of u_{j}, |n| = sum_j n_{j}, and
-% n_tot = sum_j j*n_{j} the number of BCs.
+% Here m = n_tot-rank(G) is the number of auxiliary values of the
+% fundamental state (see info.m), mK = n_BC-rank(G) the number of constraints
+% on it, n_BC the number of BCs, n_{j} the dimension of u_{j}, |n| = sum_j
+% n_{j}, and n_tot = sum_j j*n_{j} the total order of the states.
 % - Tops:   struct with fields
 %               T0: R^{m} --> L2^{|n|}, the map v0 --> u (empty if m=0),
 %               T1: L2^{|n|} --> L2^{|n|}, the map v1 --> u,
-%               Tw: R^{n_tot} --> L2^{|n|}, the map w --> u,
+%               Tw: R^{n_BC} --> L2^{|n|}, the map w --> u,
 %               R0, R1, Rw: (d+1) x (d+1) cells, with elements
 %                   R0{j+1,i+1}: R^{m} --> L2^{n_{j}} (empty if m=0),
 %                   R1{j+1,i+1}: L2^{|n|} --> L2^{n_{j}},
-%                   Rw{j+1,i+1}: R^{n_tot} --> L2^{n_{j}},
+%                   Rw{j+1,i+1}: R^{n_BC} --> L2^{n_{j}},
 %               mapping v0, v1 and w to (d/ds)^{i} u_{j}, for 0<=i<=j<=d.
 %               Only the elements for the orders i in diffs are computed,
 %               the others (and those with n_{j}=0 or i>j) are empty;
 % - Kops:   struct with fields
-%               x: L2^{|n|} --> R^{m}, v1 --> int_{a}^{b} K(s)*v1(s) ds,
-%               w: R^{n_tot} --> R^{m}, w --> -J2*w,
-%               u: R^{0} --> R^{m}, zero (there are no inputs u),
+%               x: L2^{|n|} --> R^{mK}, v1 --> int_{a}^{b} K(s)*v1(s) ds,
+%               w: R^{n_BC} --> R^{mK}, w --> -J2*w,
+%               u: R^{0} --> R^{mK}, zero (there are no inputs u),
 %           such that Kops.x*v1+Kops.w*w=0 for the fundamental state of u,
 %           as in solve_PIETOOLS_BVP. The constraint does not depend on v0.
-%           All have no rows if m=0;
+%           All have no rows if mK=0;
 % - Fop:    L2^{|n|} --> R^{m}, u --> v0 = int_{a}^{b} F3(s)*u(s) ds. Empty
 %           if m=0. The choice of F3 is not unique: if m=|n|, F3 is the
 %           mean of the state, F3 = I/(b-a), provided this defines a valid
@@ -82,9 +84,9 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 %           - lab_E,lab_F:  1 x 2*n_tot and 1 x |n| arrays, giving for each
 %                       column of E and F the index of the state in PDE.x
 %                       that it acts on;
-%           - m:        number of constraints on the fundamental state, the
-%                       dimension of Fop's output. No auxiliary values are
-%                       needed if m=0;
+%           - m:        number of auxiliary values of the fundamental
+%                       state, the dimension of Fop's output. No auxiliary
+%                       values are needed if m=0;
 % - Qops:   (optional) struct splitting the map w --> u through the Taylor
 %           coefficients c=Cw*w at s=a of the polynomial part of u that is
 %           due to w, so that Tops.Tw = Tp*Cw and Tops.Rw{j+1,i+1} =
@@ -92,7 +94,7 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 %           Lambda_a u = [D_{1}u_{1}(a);...;D_{d}u_{d}(a)] of single
 %           derivatives of single components, instead of the arbitrary
 %           combinations in the rows of w. Fields
-%               Cw: n_tot x n_tot array of type 'double', with c = Cw*w,
+%               Cw: n_tot x n_BC array of type 'double', with c = Cw*w,
 %               Tp: R^{n_tot} --> L2^{|n|}, c --> ebar(s-a)*c, with ebar
 %                   the Taylor basis of the differentiable components,
 %               Rp: (d+1) x (d+1) cell, with Rp{j+1,i+1}: R^{n_tot} -->
@@ -132,6 +134,9 @@ function [Tops,Kops,Fop,info,Qops] = solve_BVP_1D(PDE,diffs)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/02/2026: Initial coding;
+% DJ, 11/06/2026: Allow more BCs than the total order of the states. The
+%   surplus BCs give constraints on the fundamental state (Kops.x), so that
+%   the BC data E,F and the input w have n_BC rows (was n_tot);
 
 % % % Make sure the BVP is initialized, and is a valid 1D BVP
 PDE = pde_struct(PDE);
@@ -169,8 +174,10 @@ n_all = sum(n_vec);                         % dimension of the state u
 nBC = numel(PDE.BC);
 nrow = cellfun(@(c) c.size,PDE.BC);         % number of rows in each BC
 row0 = [0;cumsum(nrow(:))];
-if row0(end)~=n_tot
-    error(['The number of boundary conditions (',num2str(row0(end)),') should match the total order of the states (',num2str(n_tot),').'])
+% Surplus BCs (row0(end)>n_tot) become constraints on the fundamental
+% state, Kops.x*v1+Kops.w*w=0
+if row0(end)<n_tot                                                          % DJ, 11/06/2026
+    error(['The number of boundary conditions (',num2str(row0(end)),') should be at least the total order of the states (',num2str(n_tot),').'])
 end
 
 
@@ -180,7 +187,8 @@ end
 s = PDE.vars(1,1);      sd = PDE.vars(1,2);
 idx_E0 = cumsum([0,2*(1:d).*n_vec(2:end)]);     % start of block j in E
 idx_F0 = cumsum([0,n_vec]);                     % start of block j in F
-E = zeros(n_tot,2*n_tot);           F = polynomial(zeros(n_tot,n_all));
+% One row of E and F for each of the row0(end)>=n_tot conditions
+E = zeros(row0(end),2*n_tot);       F = polynomial(zeros(row0(end),n_all)); % DJ, 11/06/2026
 
 % Label the columns of E and F by the state they act on
 lab_E = zeros(1,2*n_tot);            lab_F = zeros(1,n_all);
@@ -195,7 +203,7 @@ end
 
 for kk=1:nBC
     rws = row0(kk)+(1:nrow(kk));
-    Rsel = zeros(n_tot,nrow(kk));       Rsel(rws,:) = eye(nrow(kk));
+    Rsel = zeros(row0(end),nrow(kk));   Rsel(rws,:) = eye(nrow(kk));
     for jj=1:numel(PDE.BC{kk}.term)
         t = PDE.BC{kk}.term{jj};
         if ~isfield(t,'x')
@@ -242,7 +250,7 @@ end
 Tops.R0 = Rops.R0;    Tops.R1 = Rops.R1;    Tops.Rw = Rops.Rw;
 
 % The constraints Kx*v1 + Kw*w + Ku*u = 0, with Kw = -Kw of compute_Tmap_1D
-cols = struct('x',struct('dims',n_all,'depmat',true),'w',struct('dims',n_tot,'depmat',false),...
+cols = struct('x',struct('dims',n_all,'depmat',true),'w',struct('dims',row0(end),'depmat',false),...
                'u',struct('dims',zeros(0,1),'depmat',false(0,1)));
 Kw = Kops.Kw;
 vars_1D = {s.varname{1}};

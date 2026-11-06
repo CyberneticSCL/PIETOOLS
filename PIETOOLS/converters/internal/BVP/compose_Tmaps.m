@@ -80,8 +80,9 @@ function [Tops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alp
 %       x_pde = (prod_{j in A} T_{1,j})
 %                       (sum_I prod_{i in R} T_i^{[I]} xf_I),
 %   with T_i^{[I]}=T_{1,i} for i in I and T_{0,i} otherwise, and
-%   K_i xf_I=0 for i in I. D^{alpha}x_pde follows by replacing each T by
-%   its derivative.
+%   K_i xf_I=0 for i in I and for i in A with nonempty K_i (more conditions
+%   than the order of the states). D^{alpha}x_pde follows by replacing each
+%   T by its derivative.
 % - The construction is valid if the BCs along each direction are order
 %   compatible, the T_{1,j} of the admissible directions preserve the BCs
 %   along all other directions, and all but one rank-deficient direction
@@ -91,7 +92,12 @@ function [Tops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alp
 %   if all directions are admissible. Fundamental inputs are free functions
 %   such that x_pde is in D, and every x_pde in D with compatible inputs is
 %   of this form (see fund_inputs), so that the user need not enforce any
-%   compatibility. The inputs w and u are decomposed separately.
+%   compatibility. The inputs w and u are decomposed separately. Inputs are
+%   not supported along directions with more conditions than the order of
+%   the states (K_i with more rows than auxiliary values).
+% - A K_i for i in A (more conditions than the order of the states) should
+%   be scalar (same conditions for every component), so that it commutes
+%   with the maps along the other directions, unless there are no others.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -119,6 +125,12 @@ function [Tops,Kops,Fop,info,Gops] = compose_Tmaps(maps,vars,dom,sizes,Delta,alp
 % authorship, and a brief description of modifications
 %
 % DJ (CC), 11/02/2026: Initial coding;
+% DJ (CC), 11/06/2026: Support more conditions than the order of the states
+%   along a direction. The surplus conditions are constraints K_j*xf_I=0, as
+%   for the rank-deficient directions, but also along admissible directions
+%   (m_j=0, K_j nonempty), which were treated as unconstrained (silently
+%   dropping K_j). Not supported (error): non-scalar K_j with other
+%   directions, and inputs with surplus conditions;
 
 % % % Dimensions: N directions, q states of the group, ns scalar
 % % % components. The 1D solutions are expressed in the states regrouped by
@@ -131,9 +143,11 @@ cs_end = cumsum(sizes);     cs_start = cs_end-sizes+1;
 d = max(Delta,[],1);                        % highest order in each direction
 triv = arrayfun(@(mp) isempty(mp.info),maps);
 m = zeros(1,N);                             % number of auxiliary values
+nK = zeros(1,N);                            % number of constraints K*v1=0, nK>=m  % DJ (CC), 11/06/2026
 regroup_idcs = cell(1,N);                            % position in u of the regrouped state
 for i=find(~triv)
     m(i) = maps(i).info.m;
+    nK(i) = sum(maps(i).Kops.x.dim_out);
     regroup_idcs{i} = cell2mat(arrayfun(@(k) cs_start(k):cs_end(k),maps(i).info.x_order,'UniformOutput',false));
 end
 
@@ -158,6 +172,12 @@ end
 any_forced = forced.w | forced.u;
 if any(any_forced) && any(m>0) && (~sources || any(any_forced & m>0))
     error('compose_Tmaps:inputsRankDeficient',['The boundary conditions have inputs, but the directions ',strjoin(vars(m>0),', '),' are rank deficient; inputs in the boundary conditions are only supported if all directions are admissible.'])
+end
+% Constraints K*v1=J2*w, beyond those of the auxiliary values (nK>m,
+% from more conditions than the order of the states), couple the inputs to the
+% fundamental state, which the fundamental inputs do not account for
+if any(any_forced) && any(nK>m)                                             % DJ (CC), 11/06/2026
+    error('compose_Tmaps:inputsConstrained',['The boundary conditions have inputs, but along ',strjoin(vars(nK>m),', '),' there are more conditions than the order of the states; inputs are only supported if there are no such conditions.'])
 end
 % Rows without inputs of a type along a direction with inputs of that type:
 % their right-hand side is zero, so they must be preserved too
@@ -230,7 +250,9 @@ for i=find(~triv)
     rank_sum = 0;
     for class_k=unique(class_id)'
         rank_class = rank(Mmat(:,col_class==class_k),tol);
-        if rank_class>sum(sizes(class_id==class_k).*Delta(class_id==class_k,i)')
+        % With a single class, more conditions than the order of the
+        % states are surplus conditions (constraints), not an incompatibility
+        if rank_class>sum(sizes(class_id==class_k).*Delta(class_id==class_k,i)') && max(class_id)>1  % DJ (CC), 11/06/2026
             error('compose_Tmaps:orderIncompatible',['The boundary conditions along ',vars{i},' are order incompatible.'])
         end
         rank_sum = rank_sum + rank_class;
@@ -300,6 +322,14 @@ for i=find(~triv)
     end
 end
 adm_idcs = find(~triv & m==0);       rk_idcs = find(m>0);
+% Admissible directions with constraints K*v1=0 (more conditions than
+% the order of the states), which apply to every component xf_I of xf, as T_{1,j}
+% is always used. For K to commute with the maps along the other directions,
+% the conditions should be scalar, unless there are no other directions
+adm_K = adm_idcs(nK(adm_idcs)>0);                                           % DJ (CC), 11/06/2026
+if any(~scalar(adm_K)) && nnz(~triv)>1
+    error('compose_Tmaps:coupledConstrained',['The boundary conditions along ',strjoin(vars(adm_K(~scalar(adm_K))),', '),' have more conditions than the order of the states, and couple components; this is only supported if there are no other directions with boundary conditions.'])
+end
 nonscalar = rk_idcs(~scalar(rk_idcs));
 if numel(nonscalar)>1
     error('compose_Tmaps:coupledRankDeficient',['The boundary conditions along ',strjoin(vars(nonscalar),', '),' are rank deficient, and couple components; at most one such direction is supported.'])
@@ -365,6 +395,9 @@ for i=find(~triv)
             ops_1D(i).Rp{a+1} = stack_rows(maps(i).Qops.Rp,n,a,d(i),perm_back);
         end
     end
+    if m(i)==0 && nK(i)>0                                                   % DJ (CC), 11/06/2026
+        ops_1D(i).K = maps(i).Kops.x.C{1,1}(:,perm_back);
+    end
     if m(i)>0
         ops_1D(i).K = maps(i).Kops.x.C{1,1}(:,perm_back);
         ops_1D(i).F = maps(i).Fop.C{1,1}(:,perm_back);
@@ -385,8 +418,11 @@ end
 % Scalar directions: all components have the same BCs, so the 1D operators
 % are X (x) I_ns, of which only the scalar X is used; the identity factor
 % is reintroduced per component by kron when composing below
-for i=scalar_idcs
-    for R_name={'R1','R0'}
+% Admissible directions with scalar constraints (m=0) only need K
+% unkronned, as their R1 are applied in full below
+for i=[scalar_idcs,adm_K(scalar(adm_K))]                                    % DJ (CC), 11/06/2026
+    R_names = {'R1','R0'};      if m(i)==0, R_names = {}; end
+    for R_name=R_names
         for a=find(~cellfun(@isempty,ops_1D(i).(R_name{1})(:)))'
             ops_1D(i).(R_name{1}){a} = unkron(ops_1D(i).(R_name{1}){a},ns);
         end
@@ -420,7 +456,7 @@ for i=scalar_idcs
         K_rref = rref([K_coefs,eye(size(K_coefs,1))],tol_K);
         ops_1D(i).K = unkron(K_rref(:,size(K_coefs,2)+1:end)*K_op,ns);
     end
-    ops_1D(i).F = unkron(ops_1D(i).F,ns);
+    if m(i)>0, ops_1D(i).F = unkron(ops_1D(i).F,ns); end
 end
 
 
@@ -507,6 +543,17 @@ for c=1:ncomp
             X = kron(ops_1D(i).K,speye(dim_I));
         end
         K_blocks(end+1,c) = {compose_sopvar(struct('op',X,'var',vars{i}),vars(var_mask),vars,dom,dim_I)};                       %#ok<AGROW>
+    end
+    % Constraints K_j xf_I=0 along the admissible directions with
+    % extra conditions, for every I: a scalar K acts on all values, and a
+    % non-scalar K (only if j is the sole direction, so dim_I=ns) on the
+    % components
+    for j=adm_K                                                             % DJ (CC), 11/06/2026
+        X = ops_1D(j).K;
+        if scalar(j)
+            X = kron(X,speye(dim_I));
+        end
+        K_blocks(end+1,c) = {compose_sopvar(struct('op',X,'var',vars{j}),vars(var_mask),vars,dom,dim_I)};   %#ok<AGROW>
     end
 end
 
