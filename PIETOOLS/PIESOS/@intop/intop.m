@@ -101,8 +101,9 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intop
 %   intmat, Z.in, and params.
 % - The kernels may also be specified as a cell of 'double', 'polynomial',
 %   or 'dpvar' objects in the constructor, which expresses them in terms of
-%   the same monomials and decision variables. The method 'kernels' returns
-%   the kernels in this form. The kernels may only depend on the dummy
+%   the same monomials and decision variables. The dependent property
+%   'kernels' returns the kernels in this form, and Kop.kernels{i} the
+%   kernel defined by params{i}. The kernels may only depend on the dummy
 %   variables of the functional, Kop.varnames.in_dum.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,6 +132,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intop
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/22/2026: Require ordered intmat, see 'intop.canonicalize_intmat';
+% DJ, 11/04/2026: Add dependent property 'kernels';
 
 
 properties
@@ -154,6 +156,7 @@ properties (Hidden,Dependent)
     varnames;
     pvars;
     depmat;
+    kernels;
 end
 
 
@@ -546,6 +549,41 @@ for i=1:N
         var_order_i(j,:) = max(lvls_j)-lvls_j+1;
     end
     int_order{i} = var_order_i;
+end
+
+end
+
+
+%%
+function K = get.kernels(Kop)
+% K = GET.KERNELS(KOP) returns the kernels defining the functional KOP, as a
+% cell of the same size as KOP.params, with element K{i1,...,iN} the m x n
+% kernel K_{i1,...,iN} associated with KOP.params{i1,...,iN}, see the
+% documentation of the class.
+%
+% OUTPUTS
+% - K:      cell of the same size as Kop.params, with each element an m x n
+%           object of type 'dpvar' if the kernel has decision variables, or
+%           'polynomial' otherwise, in terms of the dummy variables of the
+%           functional, Kop.varnames.in_dum. Each kernel only involves
+%           those monomials and those decision variables that appear in it,
+%           so that the decision variables of different kernels may differ;
+%
+% NOTES
+% - If Kop has no decision variables, a constant kernel with more than 1e6
+%   elements is returned as a sparse array of type 'double' instead.
+% - The sparse coefficients Kop.params can be used directly, instead of the
+%   'polynomial' and 'dpvar' objects.
+
+% Check that the functional is properly specified
+if ~Kop.chkval && ~isvalid(Kop)
+    error("The functional is not properly declared.")
+end
+vn = Kop.varnames.in_dum;
+dumnames = [cell(1,0),vn{:}];
+K = cell(size(Kop.params));
+for k=1:numel(K)
+    K{k} = params2kernel(Kop.params{k},Kop.Z.in,Kop.Zd,dumnames);
 end
 
 end

@@ -112,6 +112,7 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/02/2026: Initial coding (ND version);
+% DJ, 11/06/2026: Display PIE states and inputs with a hat in the summary;
 
 % % % Pass PDEs in the legacy formats to the legacy converters, as the
 % % % PIETOOLS converter does, and convert other structures to pde_struct
@@ -619,6 +620,11 @@ thin_space = char(8201);
 sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 partial = '\x2202';
 sub_t = '\x209C';
+% The PIE state and inputs are indicated with a hat, unlike those of the PDE
+hat = '';
+if any(strcmp(obj,{'x','u','w'}))
+    hat = '\x302';
+end
 %sub_s = '\x209B';
 %int = '\x222B';
 %xdot = '\x1E8B';
@@ -717,7 +723,7 @@ for ii=1:ncomps
     end
     % Set the name of the component, including its dependence on spatial
     % variables.
-    LHS_name = [' ',obj,Lcomp_idx,'(',varnames_LHS_t,')'];
+    LHS_name = [' ',obj,hat,Lcomp_idx,'(',varnames_LHS_t,')'];
     LHS_length = 1 + LHS_length + 3;
         
     % Establish the index for the old component

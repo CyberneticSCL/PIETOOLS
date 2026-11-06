@@ -125,6 +125,7 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
     %                  commit 2135d87f (08/30/2026); the 2 deleted ones
     %                  remain in git history.
     %                  The Static declaration of randsopvar is commented out.
+    % DJ, 11/05/2026: Add the dependent property 'kernels'.
     properties
         vars = struct('in',{},'out',{});
         dom = struct('in',zeros(0,2),'out',zeros(0,2));
@@ -132,6 +133,9 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
         ZL = {};
         ZR = {};
         params = {0};
+    end
+    properties(Dependent,Hidden)
+        kernels;    % cell of the kernels defined by params, see get.kernels
     end
     properties(Access=protected)
         vars_S1;   % these variables are integrated out (full integral only)
@@ -194,6 +198,20 @@ classdef (InferiorClasses={?polynomial,?dpvar})sopvar
             P.dom_2 = dom.out(idx,:);
             [~,idx] = ismember(P.vars_S3,vars.in);
             P.dom_3 = dom.in(idx,:);
+        end
+
+        function K = get.kernels(P)
+            % K = GET.KERNELS(P) returns the kernels defining the operator P,
+            % as a cell of the same size as P.params, with element K{i}
+            % the dims(1) x dims(2) kernel K_i associated with P.params{i},
+            % as a 'polynomial' object in the variables vars.out, and in
+            % the dummy variables, named as the variables in vars.in with
+            % _dum appended. See 'display' for the integrals corresponding
+            % to each kernel.
+            K = cell(size(P.params));
+            for k=1:numel(K)
+                K{k} = params2kernel(P,k);
+            end
         end
     end
     methods(Static)
