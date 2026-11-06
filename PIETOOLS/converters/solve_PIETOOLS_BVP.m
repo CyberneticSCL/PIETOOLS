@@ -118,6 +118,10 @@ function [Tops,Kops,Dmap,info] = solve_PIETOOLS_BVP(PDE,diffs,opts)
 %                       that is not in the BCs ([] for those that are);
 % NOTES
 % - See compose_Tmaps for the construction, and conditions for support.
+% - The number of BCs along a direction should be at least the order of the
+%   states along it. Surplus BCs (beyond this order) are constraints on the
+%   fundamental state, which are included in Kops.x*xf=0, see compose_Tmaps
+%   for the conditions (e.g. no inputs in the BCs along such a direction).
 % - Computing only the derivatives needed (diffs) avoids an operator for
 %   each of the up to prod(Delta_k+1) derivatives of each state.
 % - States of lower dimension in the BCs of other states (e.g. ODE states)

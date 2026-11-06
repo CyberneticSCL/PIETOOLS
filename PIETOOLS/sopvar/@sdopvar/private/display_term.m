@@ -81,6 +81,8 @@ function [term_str,term_sign,use_K] = display_term(P,k,xsym,out_names,entry_idcs
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the names of dummy variables, the limits, and the
+%                   subscripts from 'varname2display';
 
 % Default settings
 max_nnz = 4;            % maximal number of nonzero coefficients of a kernel (element)
@@ -103,12 +105,6 @@ if nargin<4 || isempty(out_names)
 end
 out_disp = reshape(out_names,1,[]);
 
-% The characters that can be displayed as subscript or superscript, as for
-% the display of a PDE: the digits 0,...,9, the variable s, and the minus
-plain_chars = '0123456789s-';
-sub_chars = char([8320:8329,8347,8331]);
-sup_chars = char([8304,185,178,179,8308:8313,738,8315]);
-
 % Type of each input variable: 0 if it is only an input variable, and 1, 2
 % or 3 if it is also an output variable, as for the parameter
 shared_vars = intersect(in_vars,out_vars);
@@ -121,13 +117,13 @@ var_kind = zeros(1,nvars_in);
 var_kind(is_shared) = multi_idx(shared_pos(is_shared));
 [~,out_pos] = ismember(in_vars,out_vars);        % position of each input variable among the output variables
 
-% Dummy variables: gamma, with the subscript k for the kth integrated variable
-% if there are multiple (the dummy variable of a multiplier is not displayed)
-dum_disp = repmat({char(947)},1,nvars_in);
+% Dummy variables, numbered by the kth integrated variable if there are
+% multiple (the dummy variable of a multiplier is not displayed)
+dum_disp = cellfun(@(v) varname2display([v,'_dum']),in_vars,'UniformOutput',false);
 if sum(var_kind~=1)>1
     int_rank = cumsum(var_kind~=1);
     for q=1:nvars_in
-        dum_disp{q} = [char(947),sprintf('%d',int_rank(q))-'0'+8320];
+        dum_disp{q} = varname2display(sprintf('%s_dum%d',in_vars{q},int_rank(q)));
     end
 end
 
@@ -143,35 +139,15 @@ for q=1:nvars_in
     end
     x_args{q} = dum_disp{q};
     kern_args{end+1} = dum_disp{q};                                %#ok<AGROW>
-    lim_lo = sprintf('%g',P.dom.in(q,1));       lim_lo_disp = lim_lo;
-    lim_hi = sprintf('%g',P.dom.in(q,2));       lim_hi_disp = lim_hi;
-    if var_kind(q)>=2
-        % The output variable: plain, unless it is displayed with a copy
-        out_idx = out_pos(q);
-        lim_name = out_disp{out_idx};
-        if strcmp(out_disp{out_idx},varname2display(out_vars{out_idx}))
-            lim_name = out_vars{out_idx};
-        end
-        if var_kind(q)==2
-            lim_hi = lim_name;   lim_hi_disp = out_disp{out_idx};
-        else
-            lim_lo = lim_name;   lim_lo_disp = out_disp{out_idx};
-        end
-    end
-    % Display a limit as subscript or superscript if it consists of the
-    % characters that have one (integers and variables), and in braces
-    % otherwise (e.g. for 0.5), as for the display of a PDE
-    [is_plain_lo,char_pos_lo] = ismember(lim_lo,plain_chars);
-    [is_plain_hi,char_pos_hi] = ismember(lim_hi,plain_chars);
-    if all(is_plain_lo)
-        lim_lo = sub_chars(char_pos_lo);
-    else
-        lim_lo = ['{',lim_lo_disp,'}_'];
-    end
-    if all(is_plain_hi)
-        lim_hi = sup_chars(char_pos_hi);
-    else
-        lim_hi = ['^{',lim_hi_disp,'}'];
+    % Limits: the boundaries of the domain, or the output variable, as
+    % displayed. A limit is a subscript or superscript, or in braces, see
+    % 'varname2display'
+    [~,lim_lo] = varname2display(sprintf('%g',P.dom.in(q,1)));
+    [~,~,lim_hi] = varname2display(sprintf('%g',P.dom.in(q,2)));
+    if var_kind(q)==2
+        [~,~,lim_hi] = varname2display(out_disp{out_pos(q)});
+    elseif var_kind(q)==3
+        [~,lim_lo] = varname2display(out_disp{out_pos(q)});
     end
     int_strs{end+1} = [lim_lo,char(8747),lim_hi];                       %#ok<AGROW>
     diff_strs = [{['d',dum_disp{q}]},diff_strs];                       %#ok<AGROW>
@@ -197,7 +173,7 @@ else
     if isscalar(P.params.A)
         kern_str = 'K';
     else
-        kern_str = ['K',sub_chars(sprintf('%d',k)-'0'+1)];
+        kern_str = varname2display(sprintf('K%d',k));
     end
     if ~isempty(kern_args)
         kern_str = [kern_str,'(',strjoin(kern_args,','),')'];
@@ -249,7 +225,6 @@ function [kern_str,ksign] = explicit_kernel(i,j,l,coefs,degmat,var_names,dvar_na
 % - ksign:  1 or -1, the sign of a scalar kernel with a single term, which
 %           is not included in kern_str, and 1 otherwise;
 
-sup_dig = char([8304,185,178,179,8308:8313]);       % superscript digits 0,...,9
 pm_chars = '+-';                                    % pm_chars(1+(x<0)) is the sign of x
 
 % Add the terms of equal monomials, which may arise from multipliers
@@ -272,7 +247,8 @@ for t=1:numel(coef_sums)
     for g=find(mono_degs>0)
         mono_facs{end+1} = var_names{g};                             %#ok<AGROW>
         if mono_degs(g)>1
-            mono_facs{end} = [var_names{g},sup_dig(sprintf('%d',mono_degs(g))-'0'+1)];
+            [~,~,pow_str] = varname2display(sprintf('%d',mono_degs(g)));       % superscript
+            mono_facs{end} = [var_names{g},pow_str];
         end
     end
     if abs(coef_sums(t))~=1 || isempty(mono_facs)

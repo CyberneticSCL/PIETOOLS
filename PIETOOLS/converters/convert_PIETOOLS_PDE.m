@@ -113,6 +113,8 @@ function PIE = convert_PIETOOLS_PDE(PDE,comp_order,flag)
 %
 % DJ, 11/02/2026: Initial coding (ND version);
 % DJ, 11/06/2026: Display PIE states and inputs with a hat in the summary;
+% DJ, 11/06/2026: Get the names of components and variables in the summary
+%                   from 'varname2display';
 
 % % % Pass PDEs in the legacy formats to the legacy converters, as the
 % % % PIETOOLS converter does, and convert other structures to pde_struct
@@ -617,13 +619,13 @@ end
 
 % Use UNICODE to add subscript indices to different components.
 thin_space = char(8201);
-sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
 partial = '\x2202';
 sub_t = '\x209C';
-% The PIE state and inputs are indicated with a hat, unlike those of the PDE
-hat = '';
+% The PIE state and inputs are indicated as such in their names (a hat), unlike
+% those of the PDE; the names are given by 'varname2display'
+pie_tag = '';
 if any(strcmp(obj,{'x','u','w'}))
-    hat = '\x302';
+    pie_tag = '_pie';
 end
 %sub_s = '\x209B';
 %int = '\x222B';
@@ -657,10 +659,10 @@ if ~isempty(global_vars_obj) || has_diffs
         varname_cell{1} = 's';
         lngth_varnames = lngth_varnames+2;    % add two characters: ,s
     else
-        varname_cell{1} = ['s',sub_num{2}];
+        varname_cell{1} = varname2display('s1');
         lngth_varnames = lngth_varnames+2;    % add three characters: ,s1
         for kk=2:nvars
-            varname_cell{kk} = ['s',cell2mat(sub_num(str2num(num2str(kk)')+1)')];
+            varname_cell{kk} = varname2display(sprintf('s%d',kk));
             lngth_varnames = lngth_varnames+2;    % add three characters: ,sj
         end
     end
@@ -708,37 +710,26 @@ for ii=1:ncomps
         varnames_RHS_t = varnames_LHS_t;
     end
     
-    % Establish the (subscript) index for the new component.
+    % Establish the index for the new component, displayed as a subscript.
     new_idx = ii;
-    if ncomps==1
-        Lcomp_idx = '';
-    elseif ii<=9
-        % The component number consists of a single decimal.
-        Lcomp_idx = sub_num{new_idx+1};
-        LHS_length = LHS_length + 1;
-    else
-        % The component number consists of multiple decimals.
-        Lcomp_idx = cell2mat(sub_num(str2num(num2str(new_idx)')+1)');
-        LHS_length = LHS_length + length(num2str(new_idx));
+    Lcomp_idx = '';
+    if ncomps>1
+        Lcomp_idx = num2str(new_idx);
+        LHS_length = LHS_length + length(Lcomp_idx);
     end
     % Set the name of the component, including its dependence on spatial
     % variables.
-    LHS_name = [' ',obj,hat,Lcomp_idx,'(',varnames_LHS_t,')'];
+    LHS_name = [' ',varname2display([obj,pie_tag,Lcomp_idx]),'(',varnames_LHS_t,')'];
     LHS_length = 1 + LHS_length + 3;
-        
+
     % Establish the index for the old component
-    if ncomps==1
-        Rcomp_idx = '';
-    elseif old_ID<=9
-        % The component number consists of a single decimal.
-        Rcomp_idx = sub_num{old_ID+1};
-    else
-        % The component number consists of multiple decimals.
-        Rcomp_idx = cell2mat(sub_num(str2num(num2str(old_ID)')+1)');
+    Rcomp_idx = '';
+    if ncomps>1
+        Rcomp_idx = num2str(old_ID);
     end
     % Set the name of the component, including its dependence on spatial
     % variables.
-    RHS_name = [thin_space,obj,Rcomp_idx,'(',varnames_RHS_t,')'];
+    RHS_name = [thin_space,varname2display([obj,Rcomp_idx]),'(',varnames_RHS_t,')'];
     % For state components, also indicate what spatial/temporal derivative
     % of the PDE state they correspond to.
     if strcmp(obj,'x') && any(tdiff_list)

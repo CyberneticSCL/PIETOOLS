@@ -87,15 +87,18 @@ function [prog, V3, dV3, Pcell] = V3_Liediff(prog, PIE, d, opdeg)
     %                   after substitution.
     % CR, 10/06/2026: Corrected symmetry constraint.
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+    % DJ (CC), 11/06/2026: Declare basis operator as 'sopvar'
+    %                   ('polys2sopvar'), instead of converting an 'opvar';
+    %                   accept the 'npie_struct' returned by 'convert' as PIE;
 
     narginchk(4,4);
 
     %% Check the PIE and degree data.
 
-    if ~isstruct(PIE) || ~isfield(PIE,'T') || ~isfield(PIE,'f') || ...
-            ~isfield(PIE,'dom')
+    if ~isa(PIE,'npie_struct') && (~isstruct(PIE) || ~isfield(PIE,'T') || ...
+            ~isfield(PIE,'f') || ~isfield(PIE,'dom'))                       % DJ (CC), 11/06/2026
         error('V3_Liediff:InvalidPIE', ...
-            'PIE must be a structure with fields T, f, and dom.');
+            'PIE must be an npie_struct, or a structure with fields T, f, and dom.');
     end
 
     if ~isa(PIE.f,'polyopvar')
@@ -151,26 +154,18 @@ function [prog, V3, dV3, Pcell] = V3_Liediff(prog, PIE, d, opdeg)
 
     pvar s s_dum
     Zmon     = monomials([s,s_dum],0:opdeg);
-    Zop      = opvar();
-    Zop.var1 = s;
-    Zop.var2 = s_dum;
-    Zop.I    = dom;
-
-    % The degree-one case admits the multiplier component of the 3-PI basis. 
-    % The current higher tensor conversion does not support multiplier factors, 
+    % The degree-one case admits the multiplier component of the 3-PI basis.
+    % The current higher tensor conversion does not support multiplier factors,
     % so only the two integral components are used for d > 1.
     if d == 1
         Zmon0    = monomials(s,0:opdeg);
-        Zop.R.R0 = [Zmon0;0*Zmon;0*Zmon];
-        Zop.R.R1 = [0*Zmon0;Zmon;0*Zmon];
-        Zop.R.R2 = [0*Zmon0;0*Zmon;Zmon];
+        Zker     = {[Zmon0;0*Zmon;0*Zmon];[0*Zmon0;Zmon;0*Zmon];[0*Zmon0;0*Zmon;Zmon]}; % DJ (CC), 11/06/2026
     else
-        Zop.R.R0 = [0*Zmon;0*Zmon];
-        Zop.R.R1 = [Zmon;0*Zmon];
-        Zop.R.R2 = [0*Zmon;Zmon];
+        Zker     = {[0*Zmon;0*Zmon];[Zmon;0*Zmon];[0*Zmon;Zmon]};           % DJ (CC), 11/06/2026
     end
+    Zop  = polys2sopvar(Zker,s,dom);                                        % DJ (CC), 11/06/2026
 
-    Z    = tensopmat(sopvar2tensopvar(opvar2sopvar(Zop)));
+    Z    = tensopmat(sopvar2tensopvar(Zop));                                % DJ (CC), 11/06/2026
     ZTop = Z*Top;
     Zx   = Z*x;
     ZTx  = ZTop*x;

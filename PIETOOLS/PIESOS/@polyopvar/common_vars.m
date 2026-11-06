@@ -39,6 +39,7 @@ function [A_out,B_out] = common_vars(A_in,B_in)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/06/2026: Output space follows from A_out.C, B_out.C (see set.C);
 
 % Unify the state variables (varname/dims.in/vars.in/dom.in/depmat.in/Z)
 [A_out,B_out] = common_states(A_in,B_in);
@@ -47,8 +48,5 @@ function [A_out,B_out] = common_vars(A_in,B_in)
 % coefficients
 [C_A,C_B] = common_vars(A_out.C,B_out.C);
 A_out.C = C_A;                       B_out.C = C_B;
-A_out.vars.out = C_A.vars.out;       B_out.vars.out = C_B.vars.out;
-A_out.dom.out = C_A.dom.out;         B_out.dom.out = C_B.dom.out;
-A_out.depmat.out = C_A.depmat.out;   B_out.depmat.out = C_B.depmat.out;
 
 end

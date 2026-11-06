@@ -24,12 +24,13 @@ function [G,H,p,J,vars] = compute_canonical_BCs(n,E,F,dom,vars,opts)
 % INPUT
 % - n:  1 x d+1 array specifying the vector dimension of the different
 %       state variables, n = (n0,...,nd);
-% - E:  n_tot x 2*n_tot array of type 'double', n_tot=sum((1:d).*n(2:end)),
+% - E:  q x 2*n_tot array of type 'double', n_tot=sum((1:d).*n(2:end)),
 %       defining the contribution of the boundary states to the boundary
 %       conditions. The columns of the block E_{i,j} correspond to
 %       [D_{j}u_{j}(a); D_{j}u_{j}(b)], and the blocks are ordered by j.
-%       For the option 'nosplit', E can have any number q of rows;
-% - F:  n_tot x sum(n) array of type 'polynomial' or 'double' specifying
+%       The number q of conditions should be at least n_tot, but for the
+%       option 'nosplit', E can have any number q of rows;
+% - F:  q x sum(n) array of type 'polynomial' or 'double' specifying
 %       the integral term in the boundary conditions. Can depend on at most
 %       1 variable. For the option 'nosplit', F must have q rows;
 % - dom:    1x2 array specifying the upper and lower boundaries [a,b] of
@@ -43,16 +44,15 @@ function [G,H,p,J,vars] = compute_canonical_BCs(n,E,F,dom,vars,opts)
 %           H without splitting the conditions;
 %
 % OUTPUT
-% - G:  n_tot x n_tot array of type 'double' representing the canonical
-%       form of the boundary conditions (q x n_tot for 'nosplit');
-% - H:  n_tot x sum(n) array of type 'polynomial' representing the integral
+% - G:  q x n_tot array of type 'double' representing the canonical
+%       form of the boundary conditions;
+% - H:  q x sum(n) array of type 'polynomial' representing the integral
 %       term in the canonical form of the boundary conditions. Will be
-%       defined in terms of the same variable as the input F (q x sum(n)
-%       for 'nosplit');
+%       defined in terms of the same variable as the input F;
 % - p:  1 x r array for r<=n_tot specifying the pivots of matrix G,
 %       corresponding to elements of D_{j}u_{j}(a) which are actually
 %       constrained by the boundary conditions. Empty for 'nosplit';
-% - J:  n_tot x n_tot invertible array of type 'double' representing the
+% - J:  q x q invertible array of type 'double' representing the
 %       row operations such that Enew = J*E and Fnew = J*F. The identity
 %       for 'nosplit';
 % - vars:   1x2 array of type 'polynomial' specifying the spatial variable
@@ -106,6 +106,10 @@ function [G,H,p,J,vars] = compute_canonical_BCs(n,E,F,dom,vars,opts)
 %   as s1 and s1_dum directly instead of read off an empty 'opvar', whose
 %   defaults they are: the conversion of a pde_struct PDE no longer needs
 %   the opvar class (removal of the opvar classes);
+% DJ, 11/06/2026: Allow q>=n_tot conditions, instead of exactly n_tot, so
+%   that conditions beyond the total order of the states become constraints
+%   on the highest derivatives (zero rows of G, rows of H). The row
+%   reduction acts on the q rows (was n_tot);
 
 
 % % Process the options
@@ -262,8 +266,10 @@ p = zeros(1,0);
 if ~do_split
     return
 end
-if q~=n_tot
-    error("Input E should be a matrix of dimension n_tot x 2n_tot, for n_tot = sum((1:d).*n(2:end)).")
+% More conditions than boundary values (q>n_tot) are allowed. The rows of
+% G beyond its rank are then zero, and the same rows of H constrain v1
+if q<n_tot                                                                  % DJ, 11/06/2026
+    error("Input E should be a matrix of dimension q x 2n_tot, for q>=n_tot = sum((1:d).*n(2:end)).")
 end
 
 % % Convert to reduced row echelon form, by row operations J*G. Entries
@@ -281,14 +287,14 @@ for jj=1:n_tot
     ii = ii+ii_strt-1;
     % Construct a row permutation matrix Pjj such that Pjj*G has all zeros
     % in column jj, except in element (ii,jj), which must be equal to 1;
-    Pjj = eye(n_tot);
+    Pjj = eye(q);                                                           % DJ, 11/06/2026
     Pii = -G(:,jj)/G(ii,jj);
     Pii(ii) = 1/G(ii,jj);
     Pjj(:,ii) = Pii;
 
     % Exchange rows to place row ii in position ii_strt
-    Ujj = eye(n_tot-ii_strt+1);
-    Ujj = Ujj([(ii+1:n_tot+1)-ii_strt,1:ii-ii_strt],:);
+    Ujj = eye(q-ii_strt+1);
+    Ujj = Ujj([(ii+1:q+1)-ii_strt,1:ii-ii_strt],:);
     Ujj = blkdiag(eye(ii_strt-1),Ujj);
     Pjj = Ujj*Pjj;
 
@@ -301,7 +307,7 @@ for jj=1:n_tot
 
     % Row ii is now linearly independent of all other rows
     ii_strt = ii_strt+1;
-    if ii_strt>n_tot
+    if ii_strt>q
         break
     end
 end

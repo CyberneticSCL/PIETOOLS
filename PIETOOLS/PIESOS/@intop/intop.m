@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intop
+classdef (InferiorClasses={?polynomial,?dpvar})intop
 % INTOP is a class used to represent functionals Kop acting on
 % infinite-dimensional states
 %   v in L2[[a1,b1]^d1 x ... x [aN,bN]^dN],
@@ -133,6 +133,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar})intop
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/22/2026: Require ordered intmat, see 'intop.canonicalize_intmat';
 % DJ, 11/04/2026: Add dependent property 'kernels';
+% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
 
 
 properties

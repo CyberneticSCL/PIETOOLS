@@ -72,6 +72,8 @@ function row_disp = get_display(P,expand)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
+% DJ, 11/06/2026: Display an identity on several factors as the monomial;
 
 % Default settings
 max_terms = 6;          % maximal number of monomials and terms for which the operators
@@ -88,8 +90,7 @@ state_names = cellfun(@varname2display,reshape(P.varname,1,[]),'UniformOutput',f
 
 otimes_sym = [' ',char(8855),' '];
 pow_sym = char(7506);
-sub_dig = char(8320 + (0:9));
-sup_dig = char([8304,185,178,179,8308:8313]);
+[~,sub_dig,sup_dig] = varname2display('0123456789');        % subscript and superscript digits
 sub_str = @(n) sub_dig(sprintf('%d',n)-'0'+1);
 sup_str = @(n) sup_dig(sprintf('%d',n)-'0'+1);
 
@@ -168,6 +169,16 @@ for i=1:nr
         if isa(blk,'tensopvar') && size(blk.ops,2)==nfac(j)
             blk_disp = get_display(blk,fctr_names);
             is_ok = blk_disp.expanded;
+            % The display of an identity operator on several factors names the function it acts
+            % on by the generic symbol x, not by the factors: use the monomial instead, with the
+            % output variables, e.g. x^{o2}(s_1,s_2)
+            if blk_disp.is_id && nfac(j)>1
+                id_str = mono_strs{j};
+                if ~isempty(blk_disp.out_args)
+                    id_str = [id_str,'(',strjoin(blk_disp.out_args,','),')'];
+                end
+                blk_disp.terms = {id_str};
+            end
         elseif isa(blk,'intop')
             % A functional acts on the monomial as a function of the variables
             % of all its factors, e.g. (x o y)(s_1,s_2)

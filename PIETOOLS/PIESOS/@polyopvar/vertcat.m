@@ -43,6 +43,7 @@ function F = vertcat(varargin)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/06/2026: Determine the output dimensions before assigning F.C;
 
 % Return an empty 'polyopvar' object if no inputs are specified
 if nargin==0
@@ -88,12 +89,16 @@ for i=2:nargin
             || ~isequal(B.C.depmat.in,F.C.depmat.in)
         error("Input function spaces of the coefficients defining the polynomials must match for vertical concatenation.")
     end
+    % Output dimensions and dependencies of the concatenation, determined before F.C is
+    % assigned, which sets the output space of F to that of the new coefficients, see set.C
+    dims_out = [F.dims.out; B.dims.out];
+    depmat_out = [F.depmat.out; B.depmat.out];
     % Concatenate the coefficient operators defining each polynomial
     F.C = [F.C; B.C];
     F.chkval = true;
     % Set the output domains of the function
-    F.dims.out = [F.dims.out; B.dims.out];
-    F.depmat.out = [F.depmat.out; B.depmat.out];
+    F.dims.out = dims_out;
+    F.depmat.out = depmat_out;
     F.chkval = true;
 end
 

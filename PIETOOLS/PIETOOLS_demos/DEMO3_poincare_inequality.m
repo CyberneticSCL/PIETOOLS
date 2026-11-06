@@ -10,17 +10,14 @@
 %      s.t.     <x, x> − c^2 <x_s,x_s> ≤ 0
 %               x \in H1:={x: x_{s}\in L_2[0,1] & x(0)=x(1)=0}
 % To solve, we suppose that x is twice-differentiable,
-%               {x: x_{ss}\in L_2[0,1] & x(0)=x(1)=0}.
-% We define an artificial PDE on x as
-%       d/dt x(t,s) = x_{ss}(t,s)
-%            z(t,s) = x_{s}(t,s)
-%            x(t,0) = x(t,1) = 0
-% For this PDE, we can obtain a PIE representation
-%       d/dt (H2op*v)(t,s) = v(t,s)
-%                   z(t,s) = (H1op*v)(t,s)
-% where now v(t) is free of boundary conditions, and H1op and H2op are s.t.
-%   (H2op*x_{ss})(s) = x(s),
-%   (H1op*x_{ss})(s) = x_{s}(s).
+%               D := {x: x_{ss}\in L_2[0,1] & x(0)=x(1)=0}.
+% We define a boundary value problem
+%               x_{ss} = v,     x(0)=x(1)=0,    v in L2[0,1]
+% and find the solution H2op: L2 --> D such that
+%               x = H2op*v
+% for v in L2[0,1] free of boundary conditions. We also compute 
+% H1op = (d/ds) H2op such that
+%     (H1op*v)(s) = x_{s}(s).
 % Given these operators, we can pose the Poincare optimization problem as
 % an LPI
 %   min_{gam}   gam,
@@ -33,7 +30,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - DEMO3
 %
-% Copyright (C)2024  PIETOOLS Team
+% Copyright (C)2026  PIETOOLS Team
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -60,6 +57,7 @@
 % DJ (CC), 10/30/2026: Declare the LPI using the sopvar methods;
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
+% DJ, 11/06/2026: Use BVP instead of PDE
 
 clc; clear; clear stateNameGenerator;
 echo on
@@ -67,28 +65,26 @@ echo on
 % =============================================
 % === Declare the operators of interest
 
-% % Declare system as PDE
+% % Declare the BVP
+% %     x_{ss} = v,     x(a) = x(b) = 0
 a = 0;  b = 1;
 pvar t s
-x = pde_var(1,s,[a,b]);
-z = pde_var('output',1,s,[a,b]);
-PDE = [diff(x,t)==diff(x,s,2);
-       z==diff(x,s,1);
-       subs(x,s,a)==0;
+x = pde_var(s,[a,b],2);     % x in W^2[a,b]
+BVP = [subs(x,s,a)==0;
        subs(x,s,b)==0];
 
-% % Convert PDE to PIE
-PIE = convert(PDE);
-H2op = PIE.T;       % (H2op*x_{ss}) = x;
-H1op = PIE.C1;      % (H1op*x_{ss}) = x_{s}
+% % Solve the boundary value problem
+% %     x = Top * v     v in L2[0,1]
+Top = solve_PIETOOLS_BVP(BVP);
+H2op = Top.x;                       % (H2op*x_{ss}) = x;
+H1op = diff(H2op,s);                % (H1op*x_{ss}) = x_{s}
 
 
 % =============================================
 % === Declare the LPI
 
 % % Initialize LPI program
-% prob = lpiprogram_sop(H2op);                                              % MMP, 11/04/2026 (was)
-prob = lpiprogram(PIE.vars,PIE.dom);                                        % MMP, 11/04/2026
+prob = lpiprogram(H2op.vars,H2op.dom);
 
 % % Declare decision variables:
 % %   gam \in \R

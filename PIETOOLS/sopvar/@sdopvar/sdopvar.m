@@ -148,6 +148,7 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
     %                  entries condensed, the (was) classdef line moved to
     %                  the end of the log, constructor comments tightened;
     %                  code unchanged.
+    % DJ, 11/06/2026: Add the dependent property 'kernels'.
 % classdef(InferiorClasses={?polynomial,?sopvar}) sdopvar                   % MMP, 09/07/2026 % MMP, 09/29/2026 (was)
     %
 
@@ -160,6 +161,9 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
         Zd = {};
         params = struct('A', {0},'B', {});  % represents C(d) = unvec(A + B'*d)
         % for an m-by-n decision opvar, A is size m*n-by-1, B is size nd-by-m*n.
+    end
+    properties(Dependent,Hidden)
+        kernels;    % cell of the kernels defined by params, see get.kernels
     end
 
     methods
@@ -206,6 +210,21 @@ classdef(InferiorClasses={?polynomial,?sopvar,?dpvar}) sdopvar              % MM
             P.ZR = ZR; 
             P.ZL = ZL;
             P.Zd = Zd;
+        end
+
+        function K = get.kernels(P)
+            % K = GET.KERNELS(P) returns the kernels defining the operator P,
+            % as a cell of the same size as P.params.A, with element K{i}
+            % the dims(1) x dims(2) kernel K_i associated with the parameter
+            % P.params.A{i}, P.params.B{i}, as a 'dpvar' object in the
+            % variables vars.out, in the dummy variables, named as the
+            % variables in vars.in with _dum appended, and in the decision
+            % variables Zd. See 'display' for the integrals corresponding to
+            % each kernel.
+            K = cell(size(P.params.A));
+            for k=1:numel(K)
+                K{k} = params2kernel(P,k);
+            end
         end
     end
 end

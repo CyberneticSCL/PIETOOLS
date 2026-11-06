@@ -69,6 +69,8 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom, opts)
     % CR, 10/14/2026: Added opts structure as optional input so Pcell can
     %                 be constructed using a psatz multiplier.
     % DJ, 10/15/2026: Updated to use new polyopvar functions;
+    % DJ (CC), 11/06/2026: Declare basis operators as 'sopvar'
+    %                   ('polys2sopvar'), instead of converting an 'opvar';
         
             
     %% Build the monomial basis used to parameterize P.
@@ -110,15 +112,9 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom, opts)
             Zmon1    = monomials(s,0:opdeg);                              % NOTE: +4 should be removed 
             Zmon2    = monomials(s_dum,0:opdeg);
             Zmon = kron(Zmon1,Zmon2);
-            Zop      = opvar();
-            Zop.var1 = s;
-            Zop.var2 = s_dum;
-            Zop.I    = dom;  
-            Zop.R.R0 = [0*Zmon;0*Zmon];
-            Zop.R.R1 = [Zmon;0*Zmon];
-            Zop.R.R2 = [0*Zmon;Zmon];
+            Zop = polys2sopvar({[0*Zmon;0*Zmon];[Zmon;0*Zmon];[0*Zmon;Zmon]},s,dom); % DJ (CC), 11/06/2026
 
-            Z  = tensopmat(sopvar2tensopvar(opvar2sopvar(Zop)));
+            Z  = tensopmat(sopvar2tensopvar(Zop));                          % DJ (CC), 11/06/2026
             Zx = Z*x;
             Zs{i} = Zx;
         else
@@ -130,23 +126,11 @@ function [prog, DP, Pcell, Zs] = SOS_DP(prog, d, opdeg, x, dom, opts)
             Zmon2    = monomials(s_dum,0:floor(opdeg/i));
             Zmon = kron(Zmon1,Zmon2);
             % Zop1 is degree opdeg/i in s, and opdeg/i in theta
-            Zop1      = opvar();
-            Zop1.var1 = s;
-            Zop1.var2 = s_dum;
-            Zop1.I    = dom;  
-            Zop1.R.R0 = [0*Zmon;0*Zmon];
-            Zop1.R.R1 = [Zmon;0*Zmon];
-            Zop1.R.R2 = [0*Zmon;Zmon];
-            Z1  = tensopmat(sopvar2tensopvar(opvar2sopvar(Zop1)));
+            Zop1 = polys2sopvar({[0*Zmon;0*Zmon];[Zmon;0*Zmon];[0*Zmon;Zmon]},s,dom); % DJ (CC), 11/06/2026
+            Z1  = tensopmat(sopvar2tensopvar(Zop1));                        % DJ (CC), 11/06/2026
             % Zop2 is degree 0 in s, and opdeg/i in theta
-            Zop2      = opvar();
-            Zop2.var1 = s;
-            Zop2.var2 = s_dum;
-            Zop2.I    = dom;  
-            Zop2.R.R0 = [0*Zmon2;0*Zmon2];
-            Zop2.R.R1 = [Zmon2;0*Zmon2];
-            Zop2.R.R2 = [0*Zmon2;Zmon2];
-            Z2  = tensopmat(sopvar2tensopvar(opvar2sopvar(Zop2)));
+            Zop2 = polys2sopvar({[0*Zmon2;0*Zmon2];[Zmon2;0*Zmon2];[0*Zmon2;Zmon2]},s,dom); % DJ (CC), 11/06/2026
+            Z2  = tensopmat(sopvar2tensopvar(Zop2));                        % DJ (CC), 11/06/2026
             % Take the tensor product
             Z1x = Z1*x;
             Z2x = Z2*x;

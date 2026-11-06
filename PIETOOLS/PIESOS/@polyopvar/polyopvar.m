@@ -1,4 +1,4 @@
-classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?sopvar,?tensopvar,?tensopmat})polyopvar
+classdef (InferiorClasses={?polynomial,?dpvar,?sopvar,?tensopvar,?tensopmat})polyopvar
 % This function defines the class of 'polyopvar' objects, representing
 % polynomial functions on distributed states.
 %
@@ -99,6 +99,8 @@ classdef (InferiorClasses={?polynomial,?dpvar,?nopvar,?ndopvar,?sopvar,?tensopva
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/06/2026: Set method for C: output space follows the coefficients;
+% DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
 
 properties
     C = tensopmat();
@@ -271,7 +273,8 @@ function [P] = polyopvar(varargin) %constructor
             Ccell{j,j} = tensopvar(Cj);
         end
         Cop = tensopmat(Ccell);
-        % Declare the distributed polynomial variable
+        % Declare the distributed polynomial variable, with the output space
+        % of Cop, see set.C
         P.C = Cop;
         % Canonicalize order of state variables (varname), so declaring
         % the same variables in a different order produces the same
@@ -280,16 +283,40 @@ function [P] = polyopvar(varargin) %constructor
         [~,var_inv_idx] = sort(var_sort_idx);
         P.Z = sparse(var_inv_idx(:));
         P.varname = varname_sorted;
-        P.dims.in = dims(var_sort_idx);     P.dims.out = Cop.dims.out;
+        P.dims.in = dims(var_sort_idx);
         % Canonicalize order of input vars so states over the same        
         % variables declared in different orders agree on vars.in/dom.in.
         [vars_in,sort_idx] = sort(vars.in);
         dom_in = dom.in(sort_idx,:);
-        P.vars.in = vars_in;        P.vars.out = Cop.vars.out;
-        P.dom.in = dom_in;          P.dom.out = Cop.dom.out;
+        P.vars.in = vars_in;
+        P.dom.in = dom_in;
         P.depmat.in = depmat(var_sort_idx,sort_idx);
-        P.depmat.out = Cop.depmat.out;
         P.chkval = true;
+    end
+end
+
+function obj = set.C(obj,c)
+% OBJ = SET.C(OBJ,C) sets the coefficients obj.C of the polynomial to C, and
+% the output space of the polynomial to that of C. Called on every
+% assignment to obj.C, also in the methods of the class.
+%
+% INPUTS
+% - obj:    'polyopvar' object;
+% - c:      'tensopmat' object, the new value of obj.C;
+%
+% OUTPUTS
+% - obj:    'polyopvar' object with obj.C=c. If c has been checked
+%           (c.chkval), obj.dims.out, obj.vars.out, obj.dom.out and
+%           obj.depmat.out are those of c. They must be, see initialize.
+%           The input space is not changed, as it concerns the states,
+%           not the monomials on which c acts. If c has not been checked,
+%           nothing else is changed;
+    obj.C = c;
+    if isa(c,'tensopmat') && c.chkval
+        obj.dims.out = c.dims.out;
+        obj.vars.out = c.vars.out;
+        obj.dom.out = c.dom.out;
+        obj.depmat.out = c.depmat.out;
     end
 end
 

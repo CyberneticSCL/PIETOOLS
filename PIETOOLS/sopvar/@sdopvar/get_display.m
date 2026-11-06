@@ -22,9 +22,8 @@ function disp_struct = get_display(P,xname,out_names)
 %       terms:  1 x n cell of char, the terms of the sum, without their
 %               sign, see 'display_term';
 %       signs:  1 x n array of 1 and -1, the sign of each term;
-%       use_K:  logical, true if a kernel is displayed by name. The
-%               coefficients of the kernel K_i can then be extracted by
-%               calling P.params.A{i} and P.params.B{i};
+%       use_K:  logical, true if a kernel is displayed by name. The kernel
+%               K_i can then be extracted by calling P.kernels{i};
 %       ok:     logical, true if the operator is displayed explicitly (no
 %               kernel by name), with at most 6 terms of at most 100
 %               characters, so that it may be part of a larger display;
@@ -77,6 +76,9 @@ function disp_struct = get_display(P,xname,out_names)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Extract the kernels that are displayed by name with
+%                   'kernels', instead of the coefficients;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_terms = 6;          % maximal number of terms of an operator displayed explicitly
@@ -157,9 +159,9 @@ rows = struct('terms',{},'signs',{});
 x_names = repmat({xname},1,n);
 if n>1
     for j=1:n
-        % A comma separates the index from a subscript at the end of the name
-        sep = repmat(',',1,xname(end)>=8320 && xname(end)<=8329);
-        x_names{j} = [xname,sep,sprintf('%d',j)-'0'+8320];
+        % The index j is a copy, separated by a comma from a subscript at
+        % the end of the name
+        x_names{j} = varname2display(xname,j);
     end
 end
 

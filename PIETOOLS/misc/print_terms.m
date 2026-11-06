@@ -51,6 +51,8 @@ function print_terms(lhs,terms,signs,width_max)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Exclude all combining marks from the width of the left-hand
+%                   side, instead of only the circumflex;
 
 % Default settings
 width_default = 100;    % maximal width of a line, if the width of the command window
@@ -68,7 +70,7 @@ if nargin<4 || isempty(width_max)
     catch
     end
 end
-indent_str = repmat(' ',1,2+numel(lhs)-nnz(lhs==char(770))-1);     % the combining circumflex takes no space
+indent_str = repmat(' ',1,2+numel(lhs)-nnz(lhs>=768 & lhs<=879)-1);     % combining marks U+0300-U+036F take no space
 sign_chars = '+-';                  % sign_chars(1+(signs(j)<0)) is the sign of term j
 if isempty(terms)
     fprintf('  %s 0\n',lhs);

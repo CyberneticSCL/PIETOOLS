@@ -77,6 +77,7 @@ function prog = lpiprogram(vartab,dumvartab,dom,decvartab,freevartab)
 %   program of both operator families, while lpi_programming/ is retired
 %   with the opvar classes. The adapter 'lpiprogram_sop' named in the
 %   10/01/2026 entry is retired the same day (cleaning/private/dead_code).
+% DJ, 11/06/2026: Allow variable names to be specified as cellstr;
 
 
 % % % Process the inputs
@@ -119,6 +120,8 @@ end
 % % Check that the spatial variables are properly specified.
 if isempty(vartab)
     vartab = polynomial(zeros(0,1));
+elseif iscellstr(vartab)                                                    % DJ, 11/06/2026
+    vartab = polynomial(vartab);
 elseif ~isa(vartab,'polynomial')
     error("Spatial variables in the LPI optimization program should be specified as nx1 array of type 'polynomial'.")
 elseif ~ispvar(vartab)

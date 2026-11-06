@@ -3,7 +3,7 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 % takes a matrix E and polynomial F defining BCs on domain dom=[a,b] as
 %   sum_{j=1}^{d} E_{i,j}*[D_{j}u_{j}(a); D_{j}u_{j}(b)]
 %       + sum_{j=0}^{d} int_{a}^{b} F_{i,j}(s)*u_{j}(s) ds = w_{i},
-% for i in {1,...,d}, where D_{j}u = [u; u_{s}; ...; (d/ds)^{j-1}u], and
+% for i in {1,...,q}, where D_{j}u = [u; u_{s}; ...; (d/ds)^{j-1}u], and
 % u_{j} is a function in W_{2}^{j,n_{j}}[a,b], for state dimensions
 % n=(n_{0},...,n_{d}), and returns operators such that, for all
 % u=(u_{0},...,u_{d}) satisfying the BCs, with v0=Fop*u and
@@ -22,11 +22,11 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 % INPUT
 % - n:  1 x d+1 array specifying the vector dimension of the different
 %       state variables, n = (n0,...,nd);
-% - E:  n_tot x 2*n_tot array of type 'double', n_tot=sum((1:d).*n(2:end)),
-%       defining the contribution of the boundary states to the boundary
-%       conditions, with the columns of the block E_{i,j} corresponding to
-%       [D_{j}u_{j}(a); D_{j}u_{j}(b)];
-% - F:  n_tot x sum(n) array of type 'polynomial' or 'double' specifying
+% - E:  q x 2*n_tot array of type 'double', n_tot=sum((1:d).*n(2:end)), for
+%       q>=n_tot the number of BCs, defining the contribution of the
+%       boundary states to the boundary conditions, with the columns of the
+%       block E_{i,j} corresponding to [D_{j}u_{j}(a); D_{j}u_{j}(b)];
+% - F:  q x sum(n) array of type 'polynomial' or 'double' specifying
 %       the integral term in the BCs. Can depend on at most 1 variable;
 % - dom:    1x2 array specifying the lower and upper boundaries [a,b] of
 %           the interval on which u(s) is defined;
@@ -41,23 +41,24 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 % input and one output space (R^{p} or L2^{p}[a,b]). The spatial variable
 % is vars(1) (or the variable of F, or the default of 'opvar'), and the
 % dummy variable is <vars(1)>_dum, as 'sopvar' does not record the dummy.
-% Here m = n_tot-rank(G) is the number of constraints on the fundamental
-% state, and |n| = sum(n).
+% Here m = n_tot-rank(G) is the number of auxiliary values, mK = q-rank(G)
+% the number of constraints on the fundamental state (mK=m if q=n_tot),
+% and |n| = sum(n).
 % - Tops:   struct with fields
 %               T0: R^{m} --> L2^{|n|}, the map v0 --> u (empty if m=0),
 %               T1: L2^{|n|} --> L2^{|n|}, the map v1 --> u,
-%               Tw: R^{n_tot} --> L2^{|n|}, the map w --> u;
+%               Tw: R^{q} --> L2^{|n|}, the map w --> u;
 % - Rops:   struct with fields R0, R1, Rw, each a (d+1) x (d+1) cell, with
 %               R0{j+1,i+1}: R^{m} --> L2^{n_{j}}  (empty if m=0),
 %               R1{j+1,i+1}: L2^{|n|} --> L2^{n_{j}},
-%               Rw{j+1,i+1}: R^{n_tot} --> L2^{n_{j}},
+%               Rw{j+1,i+1}: R^{q} --> L2^{n_{j}},
 %           mapping v0, v1, and w to (d/ds)^{i} u_{j}, for 0<=i<=j<=d.
 %           Left empty if n_{j}=0 or i>j;
 % - Kops:   struct with fields
-%               K1: L2^{|n|} --> R^{m}, v1 --> int_{a}^{b} K(s)*v1(s) ds,
-%               Kw: R^{n_tot} --> R^{m}, w --> J2*w,
+%               K1: L2^{|n|} --> R^{mK}, v1 --> int_{a}^{b} K(s)*v1(s) ds,
+%               Kw: R^{q} --> R^{mK}, w --> J2*w,
 %           such that K1*v1=Kw*w for the fundamental state of u. The
-%           constraint does not depend on v0. Both are empty if m=0;
+%           constraint does not depend on v0. Both are empty if mK=0;
 % - Fop:    L2^{|n|} --> R^{m}, u --> v0 = int_{a}^{b} F3(s)*u(s) ds. Empty
 %           if m=0. Not a struct, as v0 does not depend on w. The choice of
 %           F3 is not unique. If m=|n|, F3 is the mean of the state,
@@ -72,7 +73,7 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 %           [D_{1}u_{1}(a);...;D_{d}u_{d}(a)] of single derivatives of
 %           single components, instead of the arbitrary combinations in
 %           the rows of w. Fields:
-%               Cw: n_tot x n_tot array of type 'double', with c = Cw*w;
+%               Cw: n_tot x q array of type 'double', with c = Cw*w;
 %               Tp: R^{n_tot} --> L2^{|n|}, c --> ebar(s-a)*c, with ebar
 %                   the Taylor basis of the differentiable components;
 %               Rp: (d+1) x (d+1) cell, with Rp{j+1,i+1}: R^{n_tot} -->
@@ -84,7 +85,7 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 % The BCs are first converted to canonical form (compute_canonical_BCs),
 %   G*[D_{1}u_{1}(a);...;D_{d}u_{d}(a)] + int_{a}^{b} H(s)*v1(s) ds = w,
 % where the first r=rank(G) rows (G1,H1) are such that G1 has full row
-% rank, and the last m rows constrain only v1, defining K. The remaining
+% rank, and the last mK rows constrain only v1, defining K. The remaining
 % boundary values are fixed by m auxiliary values v0 = int_{a}^{b} F3(s)*
 % u(s) ds, with F3 chosen such that Ghat = [G1; int F3(s)*ebar(s-a) ds] is
 % invertible: F3 = I/(b-a) if m=|n| and possible, and F3 = P'*Phi
@@ -124,6 +125,10 @@ function [Tops,Rops,Kops,Fop,Qops] = compute_Tmap_1D(n,E,F,dom,vars,orders)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/02/2026: Initial coding;
+% DJ, 11/06/2026: Allow q>=n_tot BCs. The number m=n_tot-r of auxiliary
+%   values (v0) and the number mK=q-r of constraints on v1 differ for
+%   q>n_tot, so K1,Kw are declared whenever mK>0 (was m>0), and w has q
+%   entries (was n_tot);
 
 
 % % Convert BCs to canonical form (which checks the inputs),
@@ -142,10 +147,15 @@ d = numel(n)-1;
 if nargin<6
     orders = 0:d;
 end
-n_tot = sum((1:d).*n(2:end));       % number of boundary values and of BCs
+n_tot = sum((1:d).*n(2:end));       % number of boundary values
 n_all = sum(n);                     % dimension of the state [u_0;...;u_d]
 r = numel(p);
 m = n_tot-r;
+% The q-r rows of G beyond its rank r are constraints on v1, outnumbering
+% the m=n_tot-r auxiliary values (the boundary values not fixed by the BCs)
+% if q>n_tot
+q = size(E,1);                                                              % DJ, 11/06/2026
+mK = q-r;
 c = setdiff(1:n_tot,p);             % non-pivot columns of G
 
 G1 = G(1:r,:);          H1 = H(1:r,:);          J1 = J(1:r,:);
@@ -270,7 +280,7 @@ mk = @(polys,q,pp,in_L2,out_L2) copvar({make_sopvar(polys,q,pp,vname,[a,b],in_L2
 % Pbar(s-theta)+T1(s,theta) on [a,s], T1(s,theta) on [s,b]
 Tops = struct('T0',[],'T1',[],'Tw',[]);
 Tops.T1 = mk({P0,Pbar+T1,T1},n_all,n_all,true,true);
-Tops.Tw = mk({Tw},n_all,n_tot,false,true);
+Tops.Tw = mk({Tw},n_all,q,false,true);
 if m>0
     Tops.T0 = mk({T0},n_all,m,false,true);
 end
@@ -278,9 +288,13 @@ end
 % K1*v1 = Kw*w, with K1*v1 = int K(s)*v1(s) ds, and Kw = J2
 Kops = struct('K1',[],'Kw',[]);
 Fop = [];
+% The constraints exist whenever mK>0, also if there are no auxiliary
+% values (m=0)
+if mK>0                                                                     % DJ, 11/06/2026
+    Kops.K1 = mk({K},mK,n_all,true,false);
+    Kops.Kw = mk({J2},mK,q,false,false);
+end
 if m>0
-    Kops.K1 = mk({K},m,n_all,true,false);
-    Kops.Kw = mk({J2},m,n_tot,false,false);
     Fop = mk({F3},m,n_all,true,false);
 end
 
@@ -296,7 +310,7 @@ for j=0:d
     end
     for i=orders(orders<=j)
         if i==j
-            R0ji = zeros(nj,m);     Rwji = zeros(nj,n_tot);
+            R0ji = zeros(nj,m);     Rwji = zeros(nj,q);
             R1ji = {S{j+1},zeros(nj,n_all),zeros(nj,n_all)};
         else
             T0ji = S{j+1}*T0;       
@@ -315,7 +329,7 @@ for j=0:d
             Rops.R0{j+1,i+1} = mk({R0ji},nj,m,false,true);
         end
         Rops.R1{j+1,i+1} = mk(R1ji,nj,n_all,true,true);
-        Rops.Rw{j+1,i+1} = mk({Rwji},nj,n_tot,false,true);
+        Rops.Rw{j+1,i+1} = mk({Rwji},nj,q,false,true);
     end
 end
 

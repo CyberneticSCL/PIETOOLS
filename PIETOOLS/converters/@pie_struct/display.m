@@ -73,6 +73,8 @@ function display(PIE,name,width_max,expand)
 %                   spaces, and constraint operators if specified);
 % DJ, 11/06/2026: Define the operators as actual operators, if small, and
 %                   display the spaces of the state, inputs and outputs;
+% DJ, 11/06/2026: Get the names of PIE states and the subscripts from
+%                   'varname2display';
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -106,15 +108,14 @@ if ~PIE.is_initialized
     end
 end
 
-% Symbols: the partial derivative in time, and the hat of the state, inputs and
-% outputs, a combining circumflex displayed over the letter before it. The
-% inputs w, u have a hat, unless the map PIE.pie2pde.w, PIE.pie2pde.u to the
-% PDE input is specified and an identity operator, so that it is the PDE input.
-% The outputs z, y have no hat, unless the map to the PDE output is specified,
-% and not an identity operator
+% Symbols: the partial derivative in time, and the names of the state, inputs and
+% outputs of the PIE, as given by 'varname2display' for a name ending with _pie.
+% The inputs w, u are named as for the PIE, unless the map PIE.pie2pde.w,
+% PIE.pie2pde.u to the PDE input is specified and an identity operator, so that
+% it is the PDE input. The outputs z, y are named as for the PDE, unless the map
+% to the PDE output is specified, and not an identity operator
 dt_sym = [char(8706),char(8348)];
-hat = char(770);
-sig_names = struct('w',['w',hat],'u',['u',hat],'y','y','z','z');
+sig_names = struct('w',varname2display('w_pie'),'u',varname2display('u_pie'),'y','y','z','z');
 for sig = {'w','u','y','z'}
     is_specified = false;       is_pde_id = false;
     try
@@ -125,10 +126,10 @@ for sig = {'w','u','y','z'}
     if is_pde_id && any(strcmp(sig{1},{'w','u'}))
         sig_names.(sig{1}) = sig{1};
     elseif is_specified && ~is_pde_id && any(strcmp(sig{1},{'y','z'}))
-        sig_names.(sig{1}) = [sig{1},hat];
+        sig_names.(sig{1}) = varname2display([sig{1},'_pie']);
     end
 end
-x_names = {['x',hat],sig_names.w,sig_names.u};
+x_names = {varname2display('x_pie'),sig_names.w,sig_names.u};
 is_nl = isa(PIE,'npie_struct');
 
 % Operators in the left-hand side, dynamics, regulated output, observed output
@@ -164,10 +165,10 @@ end
 
 % Display the equations with the equality signs aligned. The outputs are
 % displayed if there are any, and the constraint if it is nontrivial. The width
-% of a left-hand side excludes the combining circumflex, which takes no space.
+% of a left-hand side excludes the combining marks, which take no space.
 eq_lhs = {[dt_sym,' (',strjoin(eq_terms{1},' + '),')(t) ='], [sig_names.z,'(t) ='], [sig_names.y,'(t) ='], '0 ='};
 eq_shown = [true, ~isempty(PIE.space.z.dims), ~isempty(PIE.space.y.dims), ~isempty(eq_terms{5})];
-lhs_widths = cellfun(@(a) numel(a)-nnz(a==hat),eq_lhs);
+lhs_widths = cellfun(@(a) numel(a)-nnz(a>=768 & a<=879),eq_lhs);     % combining marks U+0300-U+036F
 lhs_widths(1) = lhs_widths(1)-1;        % the space after dt_sym makes up for the narrow subscript t
 pie_type = 'linear';
 if is_nl
@@ -182,7 +183,6 @@ fprintf('\n');
 % The spaces of the state, inputs and outputs that are nonempty: the product
 % of the spaces L_2^m[S] of the components, with S the product of the
 % intervals of the variables that they depend on, and R^m if there are none
-sup_dig = char([8304,185,178,179,8308:8313]);
 signals = {'x',[x_names{1},'(t)']; 'w',[x_names{2},'(t)']; 'u',[x_names{3},'(t)']; 'z',[sig_names.z,'(t)']; 'y',[sig_names.y,'(t)']};
 space_lines = cell(1,0);
 for k=1:size(signals,1)
@@ -191,7 +191,7 @@ for k=1:size(signals,1)
     for l=1:numel(sig_space.dims)
         pow_str = '';
         if sig_space.dims(l)~=1
-            pow_str = sup_dig(sprintf('%d',sig_space.dims(l))-'0'+1);
+            [~,~,pow_str] = varname2display(sprintf('%d',sig_space.dims(l)));       % superscript
         end
         var_idcs = find(sig_space.depmat(l,:));
         if isempty(var_idcs)
@@ -201,7 +201,7 @@ for k=1:size(signals,1)
             if ~isscalar(var_idcs)
                 intvl_strs = {['[',strjoin(intvl_strs,'x'),']']};
             end
-            comp_strs{l} = ['L',char(8322),pow_str,intvl_strs{1}];
+            comp_strs{l} = [varname2display('L2'),pow_str,intvl_strs{1}];
         end
     end
     if ~isempty(comp_strs)
@@ -305,7 +305,8 @@ for q=1:numel(poly_names)
     op_name = 'C';
     if poly_nterms(q)>1
         jname = 'j';
-        op_name = ['C',char(11388)];
+        [~,sub_j] = varname2display('j');
+        op_name = ['C',sub_j];
     end
     fprintf('  Call "%s.%s.C{1,%s}" to extract operator %s acting on monomial %s of %s.\n', ...
         call_name,poly_names{q},jname,op_name,jname,poly_names{q});

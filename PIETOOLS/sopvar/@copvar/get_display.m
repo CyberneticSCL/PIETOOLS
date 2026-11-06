@@ -96,6 +96,7 @@ function disp_struct = get_display(Pop,name,expand)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/06/2026: Get the subscripts from 'varname2display';
 
 % Default settings
 max_blocks = 6;         % maximal number of blocks defined as the actual operators
@@ -112,9 +113,8 @@ if nargin<3
 end
 [p,d] = size(Pop.C);
 
-sub_dig = char(8320 + (0:9));
+[~,sub_dig,sup_dig] = varname2display('0123456789');        % subscript and superscript digits
 sub_str = @(n) sub_dig(sprintf('%d',n)-'0'+1);
-sup_dig = char([8304,185,178,179,8308:8313]);
 sup_str = @(n) sup_dig(sprintf('%d',n)-'0'+1);
 L2_sym = ['L',sub_str(2)];
 
@@ -291,7 +291,7 @@ if expand && sum(Pop.dim_in)<=max_elems && sum(Pop.dim_out)<=max_elems
                     % Identity operator: the element of the function itself
                     x_elem = disp_struct.xnames{j};
                     if Pop.dim_in(j)>1
-                        x_elem = [x_elem,repmat(',',1,x_elem(end)>=8320 && x_elem(end)<=8329),sub_str(a)];
+                        x_elem = varname2display(x_elem,a);         % copy a, after a comma if x_elem has a subscript
                     end
                     if ~isempty(out_names)
                         x_elem = [x_elem,'(',strjoin(out_names,','),')'];
