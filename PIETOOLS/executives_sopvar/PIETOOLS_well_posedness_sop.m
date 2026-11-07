@@ -19,8 +19,9 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D PIE, with T and A 'opvar' objects,
 %             or 'copvar' objects (a 1-D container PIE, EXEC_PIE_SOP); its
-%             other operators are not used; a PIE in two or more variables
-%             is an error;
+%             other operators are not used; K empty (a constraint K x = 0
+%             on the state, e.g. periodic BCs, is an error); a PIE in two
+%             or more variables is an error;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P, R;
@@ -109,6 +110,16 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 % MMP, 11/04/2026: P and R returned as 'copvar' objects, not converted to
 %                opvar (maintainer decision: the executives return
 %                containers). Header outputs updated.
+% MMP, 11/07/2026: A PIE with a constraint K x = 0 on the state (PIE.K, set
+%                by convert_PIETOOLS_PDE for rank-deficient boundary
+%                conditions, e.g. periodic, with auxiliary states) is an
+%                error. The row of each auxiliary state is F times the PDE
+%                row (convert_PIETOOLS_PDE), so on ker K the range of T - A
+%                is {[F y; y]}, a proper subspace of the output space of T,
+%                and (T - A)*R*(T - A)' - eppos I >= 0 is infeasible: the
+%                LPI cannot certify such a PIE, with or without K imposed
+%                (x_t = x_ss + lam*x, periodic or Neumann BCs, well posed:
+%                infeasible). Header updated.
 
 % Default settings, as the stock executive; check the PIE
 if nargin<2 || isempty(settings)
@@ -123,6 +134,11 @@ if ~isa(PIE,'pie_struct'),  error('PIETOOLS_well_posedness_sop:pie','The PIE sho
 % if PIE.dim==2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of 2D PDEs is currently not supported.');   end % MMP, 10/29/2026 (was)
 PIE = exec_pie_sop(PIE);                    % opvar or container PIE        % MMP, 10/29/2026
 if PIE.dim>=2,  error('PIETOOLS_well_posedness_sop:dim','Well-posedness analysis of PDEs in two or more variables is currently not supported.');   end % MMP, 10/29/2026
+% With a constraint K x = 0 (auxiliary states) the range of T - A is a      % MMP, 11/07/2026
+% proper subspace: the surjectivity condition below cannot hold             % MMP, 11/07/2026
+if isa(PIE.K,'copvar') && size(PIE.K,1)>0                                   % MMP, 11/07/2026
+    error('PIETOOLS_well_posedness_sop:K','PIEs with an algebraic constraint K are not supported.');  % MMP, 11/07/2026
+end                                                                         % MMP, 11/07/2026
 
 % Tools of the PIE's dimension (storage, stock slack, margins); omega, and
 % the degree raise and raise count of a feasibility LPI
