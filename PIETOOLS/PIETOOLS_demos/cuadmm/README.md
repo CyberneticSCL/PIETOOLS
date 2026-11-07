@@ -68,10 +68,12 @@ them until the expectations are re-recorded. Measured 11/07 with MOSEK, light se
 
 Not ported; each still calls the stock code:
 
-- `experiments/` (45 of 73 scripts);
-- `private/lpi_resid`, `opnorm_pi`, `opgram`: Galerkin matrices of `opvar` operators, reached
-  only from `experiments/`;
-- `shadows/poslpivar.m.txt`, a stock `poslpivar` copy used by `experiments/`;
+- `experiments/` (45 of 73 scripts), moved on 11/07/2026 to
+  `cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/`, off the MATLAB path, with the
+  helpers only they called: `cuadmm_private`, `cuadmm_shadow` with `shadows/` (instrumented
+  copies of `lpisolve` and the stock `poslpivar`), and `private/lpi_resid`, `opnorm_pi`,
+  `opgram`, `pgridval`, `gaussleg`, `legval` (Galerkin matrices of `opvar` operators), now in
+  `private_files/` there;
 - `heat2d_compare.m`, whose LPI comes from `lowrank_2d_stability/build_stab_2d_st2` (`opvar2d`);
 - `cuadmm_linear_psatz` (no caller): it stops on the missing `eq_opts_psatz`, see below.
 
@@ -102,11 +104,10 @@ not this port.
 | `dump2cuadmm.m`, `cuimport.m`, `bl_verify.m` | SDP → cuADMM input; cuADMM certificate → scored against the ORIGINAL data |
 | `bl_expect.tsv` | banked expectations — a package input, kept in the repo |
 | `gpu/` | the cuADMM arm: `bl_gpu.sh`, `bl_bisgpu.sh`, `bl_gpu_post.sh` |
-| `private/` | plant builders (`bl_b_*`) and helpers (`sdpshape`, `stab_mirror`, `opnorm_pi`, …) |
-| `experiments/` | the one-off studies behind specific claims in the report; see its README |
-| `shadows/` | instrumented copies of two PIETOOLS functions, stored as `.txt`; see below |
+| `private/` | plant builders (`bl_b_*`, `fisher_prog`), the executive map `bl_sop`, `bl_settings`, `sdpshape`, `stab_mirror` |
+| `experiments/` | moved 11/07/2026 to `cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/`: the one-off studies behind specific claims in the report, with their README; their helpers moved with them (`cuadmm_private.m`, `cuadmm_shadow.m`, `shadows/`, six files of `private/`) |
 | `results/2026-09-24/` | the measured tables and raw logs behind `BASELINE_REPORT.md` |
-| `cuadmm_outdir.m`, `cuadmm_private.m`, `cuadmm_shadow.m` | output root; private-helper hook; shadow control |
+| `cuadmm_outdir.m` | output root |
 
 ## The GPU arm
 
@@ -134,6 +135,10 @@ before and after). Why: b is 88–99.8% zeros, so the 2-norm ratio is an absolut
 tightens like 1/√m.
 
 ## Shadows: read this before running an experiment that uses one
+
+`cuadmm_shadow`, `shadows/` and the experiments that used them moved to `cleaning/` on
+11/07/2026. `cuadmm_path` still removes any shadow folder left on the path. The rest of this
+section describes them as they were.
 
 Some experiments replace a PIETOOLS function with an instrumented copy. `lpisolve` becomes a
 capture stub that records the program and never solves; `poslpivar` gets a variant with

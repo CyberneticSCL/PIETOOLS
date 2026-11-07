@@ -12,7 +12,9 @@ moved folder, `@X` became `X_class` and `private` became `private_files`, so add
 the path cannot create a second class or private definition.
 
 - `private/definitely/` – the Claude test folders (`claude_tests`, `claude`, `Testfolder_Claude`),
-  a backup of unpushed commits, session notes, to-do lists and `CLAUDE.md`.
+  a backup of unpushed commits, session notes, to-do lists and `CLAUDE.md`; since 11/07/2026 also
+  the one-off study scripts of the cuADMM harness (`PIETOOLS_demos/cuadmm/experiments/`) and the
+  helpers only they called.
 - `private/dead_code/` – obsolete code with no caller anywhere in the tree on 10/23/2026: a word search for
   each function name over every tracked file, comments excluded, plus the files of
   `PIETOOLS_PDE_GUI.mlapp`. It includes the earlier `sopvar/private/dead_code/` (09/29/2026), whose
@@ -28,7 +30,7 @@ the path cannot create a second class or private definition.
 | `PIETOOLS/opvar/inv_opvar_old.m` | called by `inv_opvar.m` |
 | `PIETOOLS/opvar/inv_opvar_2.m` | the reference of `sopvar/Testfolder/Test_copvar_inv.m` |
 | `PIETOOLS/SOSTOOLS400/multipoly/s2p_old.m`, `@polynomial/p2s_old.m`, both copies of `peval.mexw32` and `peval.c` | SOSTOOLS is a separate toolbox |
-| `PIETOOLS/PIETOOLS_demos/cuadmm/`, `PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/` | left alone for now (maintainer, 10/23/2026) |
+| `PIETOOLS/PIETOOLS_demos/cuadmm/` (apart from `experiments/` and its helpers, moved 11/07/2026), `PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/` | left alone for now (maintainer, 10/23/2026) |
 
 Not yet decided (candidates for `maybe/`): `sopvar/sopvar_lift_notes.tex` and `.pdf`,
 `sopvar/sopvar_implementation_notes.pdf`, `sopvar/sopvar_duality_pruning_notes.tex`,
@@ -220,3 +222,8 @@ First commit is the earliest commit of the original path, renames followed.
 | `PIETOOLS/converters/@pie_struct_opvar/` (10 files: `ctranspose.m`, `display.m`, `eq.m`, `expand_tderivatives.m`, `horzcat.m`, `initialize.m`, `pie_struct.m`, `subsasgn.m`, `subsref.m`, `vertcat.m`) | `dead_code/PIETOOLS/converters/pie_struct_opvar_class/` | never committed: an untracked copy of the `opvar`-based `@pie_struct` as it was before the 10/29/2026 update (now `copvar`-based, with `npie_struct` for nonlinear PIEs); moved with `Move-Item`, not `git mv`; nothing in the tree refers to it by name |
 | `PIETOOLS/lpi_programming_sopvar/lpiprogram_sop.m` (11/04/2026: no container routine reads the program variables its extra input forms filled; callers use `lpiprogram`) | `dead_code/PIETOOLS/lpi_programming_sopvar/lpiprogram_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
 | `PIETOOLS/lpi_programming_sopvar/tests/test_lpiprogram_sop.m` (11/04/2026: the test of `lpiprogram_sop`) | `dead_code/PIETOOLS/lpi_programming_sopvar/tests/test_lpiprogram_sop.m` | MATTHEW M PEET, 2026-09-29, 0a66f793 |
+| `PIETOOLS/PIETOOLS_demos/cuadmm/experiments/` (74 files: 73 scripts and `README.md`; 11/07/2026, maintainer: "move the experiments folder to cleaning"; they call the stock LPI functions and executives, which the harness no longer uses, and no file outside the folder calls them) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/` | MATTHEW M PEET, 2026-09-25, db49553e |
+| `PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_private.m` (11/07/2026, maintainer: "move them too"; called only by `experiments/`) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_private.m` | MATTHEW M PEET, 2026-09-25, db49553e |
+| `PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_shadow.m` (as above) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/cuadmm_shadow.m` | MATTHEW M PEET, 2026-09-25, db49553e |
+| `PIETOOLS/PIETOOLS_demos/cuadmm/shadows/lpisolve.m.txt`, `poslpivar.m.txt` (read only by `cuadmm_shadow`) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/shadows/` | MATTHEW M PEET, 2026-09-25, db49553e |
+| `PIETOOLS/PIETOOLS_demos/cuadmm/private/lpi_resid.m`, `opnorm_pi.m`, `opgram.m`, `pgridval.m`, `gaussleg.m`, `legval.m` (called only by `experiments/` and by each other) | `definitely/PIETOOLS/PIETOOLS_demos/cuadmm/private_files/` | MATTHEW M PEET, 2026-09-25, db49553e |
