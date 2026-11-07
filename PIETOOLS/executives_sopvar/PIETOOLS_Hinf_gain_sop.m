@@ -23,12 +23,19 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % INFEASIBLE, the program is rebuilt with the degree of the negativity
 % slack raised by one, up to settings.sop.max_raise times.
 %
+% If PIE.K is nonempty, the PIE state satisfies K x = 0 (e.g. periodic
+% boundary conditions): in 'Q' and 'P' the block of the KYP operator on the
+% state carries + K'*Z + Z'*K, with Z a free operator, which vanishes on
+% ker K; 'Qd' and 'Pd' are posed as 'Q' and 'P'.
+%
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D or 2-D PIE, with T, Tw, A, B1, C1
 %             and D11 'opvar' (1-D) or 'opvar2d' (2-D) objects, or of a
 %             container PIE in any number of variables, with these
-%             operators 'copvar' objects (EXEC_PIE_SOP; Tw may be absent);
-%             in two or more variables, Tw and B1 not both nonzero;
+%             operators 'copvar' objects (EXEC_PIE_SOP; Tw may be absent),
+%             and K a 'copvar' object (the constraint K x = 0 on the state)
+%             or empty; in two or more variables, Tw and B1 not both
+%             nonzero;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of R;
@@ -135,6 +142,18 @@ function [prog,R,gam,info] = PIETOOLS_Hinf_gain_sop(PIE,settings,form,gain)
 % MMP, 11/04/2026: R returned as a 'copvar' object, not converted to an
 %                opvar / opvar2d (maintainer decision: the executives
 %                return containers). Header output updated.
+% MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
+%                convert_PIETOOLS_PDE for rank-deficient boundary
+%                conditions, e.g. periodic) is used: in 'Q' and 'P' the
+%                block of the KYP operator on the state carries
+%                + K'*Z + Z'*K, Z free (EXEC_KMULT_SOP), so the LPI holds on
+%                ker K only; 'Qd' and 'Pd', which have no such term, are
+%                posed as 'Q' and 'P'. On x_t = x_ss + lam*x + w, periodic
+%                BCs, z = int x (gain 1/|lam|), no form certified a bound
+%                before (status unknown; 'Qd' returned gam 0.012 for gain
+%                1); now every form returns 1 at lam = -1 and 2 at
+%                lam = -0.5, and none certifies lam = 1 (unstable).
+%                Programs without K unchanged. Header updated.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -162,6 +181,11 @@ Tw0 = (PIE.Tw==0);
 if nv>=2 && ~Tw0 && ~(PIE.B1==0)                                            % MMP, 10/29/2026
     error('PIETOOLS_Hinf_gain_sop:TwB','The PIE takes both the input w and its derivative dw/dt; not supported in two or more variables.'); % MMP, 10/29/2026
 end
+% The constraint K x = 0 on the state, if any (empty for most PIEs). The    % MMP, 11/07/2026
+% dual forms have no term for it: posed as the primal ones                  % MMP, 11/07/2026
+Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;                % MMP, 11/07/2026
+if hasK && strcmp(form,'Qd'),   form = 'Q';     end                         % MMP, 11/07/2026
+if hasK && strcmp(form,'Pd'),   form = 'P';     end                         % MMP, 11/07/2026
 switch form
     case 'Q'
         if ~Tw0,    form = 'P';     label = [label ' -> P (Tw ~= 0)'];   end
@@ -279,9 +303,13 @@ end
                 [sp,dm] = copvar_space_list(Tm,'out');
                 [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
                 prog = lpi_eq_sop(prog,Tm'*Qm-Rm);
+                % The state block, with K'*Z + Z'*K if K is given           % MMP, 11/07/2026
+                X33 = Am'*Qm + Qm'*Am;                                      % MMP, 11/07/2026
+                if hasK,    [prog,X33] = exec_kmult_sop(prog,X33,Kcon,Tm,tl.dom,Rm);    end  % MMP, 11/07/2026
                 Km = [-(gamv*Iw),   Dzw',       Bw'*Qm;
                        Dzw,         -(gamv*Iz), Cz;
-                       Qm'*Bw,      Cz',        Am'*Qm + Qm'*Am];
+%                      Qm'*Bw,      Cz',        Am'*Qm + Qm'*Am];           % MMP, 11/07/2026 (was)
+                       Qm'*Bw,      Cz',        X33];                       % MMP, 11/07/2026
                 wblk = 1;
             case 'Qd'
                 [sp,dm] = copvar_space_list(Tm,'out');
@@ -299,9 +327,13 @@ end
                     K11 = on_registry_sop(K11,X) + X + PB'*Twm;
                     K13 = K13 + Twm'*PA;    K31 = K31 + PA'*Twm;
                 end
+                % The state block, with K'*Z + Z'*K if K is given           % MMP, 11/07/2026
+                X33 = PA'*Tm + Tm'*PA;                                      % MMP, 11/07/2026
+                if hasK,    [prog,X33] = exec_kmult_sop(prog,X33,Kcon,Tm,tl.dom,Rm);    end  % MMP, 11/07/2026
                 Km = [K11,      Dzw',       K13;
                       Dzw,      -(gamv*Iz), Cz;
-                      K31,      Cz',        PA'*Tm + Tm'*PA];
+%                     K31,      Cz',        PA'*Tm + Tm'*PA];               % MMP, 11/07/2026 (was)
+                      K31,      Cz',        X33];                           % MMP, 11/07/2026
                 wblk = 1;
             case 'Pd'
                 CP = Cz*Rm;     AP = Am*Rm;

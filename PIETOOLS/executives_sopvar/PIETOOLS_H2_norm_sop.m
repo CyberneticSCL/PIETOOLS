@@ -23,12 +23,18 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 % returns UNKNOWN or INFEASIBLE, the program is rebuilt with the degree of
 % the slacks raised by one, up to settings.sop.max_raise times.
 %
+% If PIE.K is nonempty, the PIE state satisfies K x = 0 (e.g. periodic
+% boundary conditions): in 'o' and 'oco' the block of the negativity
+% condition on the state carries + K'*Z + Z'*K, with Z a free operator,
+% which vanishes on ker K; 'c' and 'cco' are posed as 'o' and 'oco'.
+%
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D or 2-D PIE, with T, A, B1 and C1
 %             'opvar' (1-D) or 'opvar2d' (2-D) objects, or of a container
 %             PIE in any number of variables, with these operators 'copvar'
 %             objects (EXEC_PIE_SOP); Tw zero or absent (no disturbance at
-%             the boundary);
+%             the boundary); K a 'copvar' object (the constraint K x = 0 on
+%             the state) or empty;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of R
@@ -127,6 +133,18 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 % MMP, 11/04/2026: W, R and Q returned as 'copvar' objects, not converted
 %                to opvar / opvar2d (maintainer decision: the executives
 %                return containers). Header outputs updated.
+% MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
+%                convert_PIETOOLS_PDE for rank-deficient boundary
+%                conditions, e.g. periodic) is used: in 'o' and 'oco' the
+%                block of the negativity condition on the state carries
+%                + K'*Z + Z'*K, Z free (EXEC_KMULT_SOP), so it holds on
+%                ker K only; 'c' and 'cco', which have no such term, are
+%                posed as 'o' and 'oco'. On x_t = x_ss + lam*x + w,
+%                periodic BCs, z = int x (H2 norm 1/sqrt(2|lam|)), no form
+%                certified a bound before (the default 'c' returned 0.052,
+%                status unknown, for 0.7071); now every form returns 0.7071
+%                at lam = -1 and none certifies lam = 1 (unstable).
+%                Programs without K unchanged. Header updated.
 
 % Default settings and form; check the PIE
 if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
@@ -146,6 +164,11 @@ if ~(PIE.Tw==0),    error('PIETOOLS_H2_norm_sop:Tw','The H2 norm LPI cannot be s
 if ~any(strcmp(form,{'c','o','cco','oco'}))
     error('PIETOOLS_H2_norm_sop:form','FORM should be ''c'', ''o'', ''cco'' or ''oco''.');
 end
+% The constraint K x = 0 on the state, if any (empty for most PIEs). 'c'    % MMP, 11/07/2026
+% and 'cco' have no term for it: posed as 'o' and 'oco'                     % MMP, 11/07/2026
+Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;                % MMP, 11/07/2026
+if hasK && strcmp(form,'c'),    form = 'o';     end                         % MMP, 11/07/2026
+if hasK && strcmp(form,'cco'),  form = 'oco';   end                         % MMP, 11/07/2026
 qform = any(strcmp(form,{'c','o'}));
 
 % Degree raise of the slacks and the margins
@@ -241,8 +264,12 @@ end
                 [prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
                 prog = lpi_eq_sop(prog,Tm'*Qm - Rm);
                 [prog,Wm] = wdecl(prog,Bw,'in');
+                % The state block, with K'*Z + Z'*K if K is given           % MMP, 11/07/2026
+                X22 = Qm'*Am + Am'*Qm;                                      % MMP, 11/07/2026
+                if hasK,    [prog,X22] = exec_kmult_sop(prog,X22,Kcon,Tm,tl.dom,Rm);    end  % MMP, 11/07/2026
                 Dneg = [-(gamv*Iz),  Cz;
-                        Cz',         Qm'*Am + Am'*Qm];
+%                       Cz',         Qm'*Am + Am'*Qm];                      % MMP, 11/07/2026 (was)
+                        Cz',         X22];                                  % MMP, 11/07/2026
                 Dpos = [Wm,         Bw'*Qm;
                         Qm'*Bw,     Rm];
                 like = Rm;  tr = trace_rn_sop(Wm);
@@ -255,6 +282,8 @@ end
                 [prog,Wm] = tl.storage(prog,Tm,'out');
                 Wm = add_eppos2d(Wm);
                 Dneg = (Am'*Wm)*Tm + Tm'*(Wm*Am) + Cz'*Cz;
+                % Acts on the state: K'*Z + Z'*K if K is given              % MMP, 11/07/2026
+                if hasK,    [prog,Dneg] = exec_kmult_sop(prog,Dneg,Kcon,Tm,tl.dom,Wm);  end  % MMP, 11/07/2026
                 Dpos = [];  like = Wm;  tr = trace_rn_sop((Bw'*Wm)*Bw);
         end
         % Dneg <= 0 and Dpos >= 0: the stock slacks and equalities, or the
