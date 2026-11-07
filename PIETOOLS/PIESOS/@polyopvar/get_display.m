@@ -39,7 +39,9 @@ function row_disp = get_display(P,expand)
 % - A monomial is displayed as the tensor product of its factors, in the
 %   order of P.Z, with the tensor product of d consecutive copies of a
 %   state x displayed as x^{od}. A factor of a monomial that is a known
-%   function (a multiplier from R, see 'polyopvar') is displayed as 1.
+%   function (a multiplier from R, see 'polyopvar') is displayed as 1. The
+%   tensor product and the tensor power are displayed as o and ^{od}
+%   unless 'use_unicode' is true, see 'varname2display'.
 % - The operator that acts on a monomial with d factors is displayed
 %   with the factors of the monomial as the functions on which the d
 %   factors of the operator act, so that the operator is displayed as the
@@ -74,6 +76,7 @@ function row_disp = get_display(P,expand)
 % DJ, 11/06/2026: Initial coding;
 % DJ, 11/06/2026: Get the subscripts from 'varname2display';
 % DJ, 11/06/2026: Display an identity on several factors as the monomial;
+% DJ, 11/06/2026: Get the tensor product and power from 'varname2display';
 
 % Default settings
 max_terms = 6;          % maximal number of monomials and terms for which the operators
@@ -88,11 +91,9 @@ end
 state_names = cellfun(@varname2display,reshape(P.varname,1,[]),'UniformOutput',false);
 [nr,nZ] = size(P.C.ops);
 
-otimes_sym = [' ',char(8855),' '];
-pow_sym = char(7506);
-[~,sub_dig,sup_dig] = varname2display('0123456789');        % subscript and superscript digits
+otimes_sym = [' ',varname2display('otimes'),' '];
+[~,sub_dig] = varname2display('0123456789');                 % subscript digits
 sub_str = @(n) sub_dig(sprintf('%d',n)-'0'+1);
-sup_str = @(n) sup_dig(sprintf('%d',n)-'0'+1);
 
 % Display each monomial as the tensor product of its factors: consecutive
 % copies of a state x as a tensor power x^{od}, and a multiplier from R as 1
@@ -118,7 +119,8 @@ for j=1:nZ
         else
             fctr_groups{end+1} = state_names{fctr_states_j(k)};           %#ok<AGROW>
             if r>1
-                fctr_groups{end} = [fctr_groups{end},pow_sym,sup_str(r)];
+                [~,~,pow_str] = varname2display(sprintf('otimes%d',r));      % tensor power
+                fctr_groups{end} = [fctr_groups{end},pow_str];
             end
         end
         k = k+r;

@@ -75,6 +75,7 @@ function display(PIE,name,width_max,expand)
 %                   display the spaces of the state, inputs and outputs;
 % DJ, 11/06/2026: Get the names of PIE states and the subscripts from
 %                   'varname2display';
+% DJ, 11/06/2026: Display the time derivative as d_t, unless 'use_unicode';
 
 if nargin<2 || isempty(name)
     name = inputname(1);
@@ -115,6 +116,9 @@ end
 % it is the PDE input. The outputs z, y are named as for the PDE, unless the map
 % to the PDE output is specified, and not an identity operator
 dt_sym = [char(8706),char(8348)];
+if ~use_unicode()
+    dt_sym = [char(8706),'_t'];
+end
 sig_names = struct('w',varname2display('w_pie'),'u',varname2display('u_pie'),'y','y','z','z');
 for sig = {'w','u','y','z'}
     is_specified = false;       is_pde_id = false;
@@ -169,7 +173,9 @@ end
 eq_lhs = {[dt_sym,' (',strjoin(eq_terms{1},' + '),')(t) ='], [sig_names.z,'(t) ='], [sig_names.y,'(t) ='], '0 ='};
 eq_shown = [true, ~isempty(PIE.space.z.dims), ~isempty(PIE.space.y.dims), ~isempty(eq_terms{5})];
 lhs_widths = cellfun(@(a) numel(a)-nnz(a>=768 & a<=879),eq_lhs);     % combining marks U+0300-U+036F
-lhs_widths(1) = lhs_widths(1)-1;        % the space after dt_sym makes up for the narrow subscript t
+if use_unicode()
+    lhs_widths(1) = lhs_widths(1)-1;    % the space after dt_sym makes up for the narrow subscript t
+end
 pie_type = 'linear';
 if is_nl
     pie_type = 'nonlinear';

@@ -85,9 +85,10 @@ function disp_struct = get_display(Rop,xnames,expand)
 %
 % DJ, 11/06/2026: Initial coding;
 % DJ, 11/06/2026: Get the subscripts from 'varname2display';
+% DJ, 11/06/2026: Get the tensor product from 'varname2display';
 
 % Default settings
-max_ops = 3;            % maximal number of terms for which the operators R_ij are
+max_ops = 3;           % maximal number of terms for which the operators R_ij are
                         % displayed as the actual operators, and above which only
                         % the first and last term are displayed
 max_terms = 6;          % maximal number of terms displayed with the actual operators
@@ -101,7 +102,7 @@ if ~Rop.chkval
 end
 [K,d] = size(Rop.ops);
 
-otimes_sym = char(8855);
+otimes_sym = varname2display('otimes');                     % tensor product
 if Rop.otype(1)==2
     out_sym = [' ',otimes_sym,' '];
 else

@@ -34,28 +34,23 @@ function [] = display_PDE_crude(PDE)
 % DJ, 06/23/2024: Initial coding;
 % DJ, 01/03/2025: Display zero equation for x, y, or z as well, but only if
 %                   explicitly declared using 'is_zero' field;
+% DJ, 11/06/2026: Get the subscripts and variable names from
+%                   'varname2display', display the time derivative as d_t
+%                   unless 'use_unicode', and call coefficients C_ij;
 
 % % % Declare some UNICODE char symbols to display temporal derivatives of
-% % % state components for the left-hand side of the equation.
-% % https://rupertshepherd.info/resource_pages/superscript-letters-in-unicode
-sub_i = '\x1D62';
-%sub_j = '\x2C7C';
-sub_k = '\x2096';
-sub_t = '\x209C';
-partial = '\x2202';
-sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
-sup_num = cell(10,1);    % Superscripts
-sup_num{1} = '\x2070';   % Superscript 0
-sup_num{2} = '\xB9';
-sup_num{3} = '\xB2';
-sup_num{4} = '\xB3';
-sup_num{5} = '\x2074';
-sup_num{6} = '\x2075';
-sup_num{7} = '\x2076';
-sup_num{8} = '\x2077';
-sup_num{9} = '\x2078';
-sup_num{10} = '\x2079';
-sup_min = '\x207B';
+% % % state components for the left-hand side of the equation. The names,
+% % % subscripts and superscripts are given by 'varname2display'.
+[~,sub_dig,sup_dig] = varname2display('0123456789');
+sub_num = cellstr(sub_dig(:));      % Subscripts
+sup_num = cellstr(sup_dig(:));      % Superscripts
+[~,sub_i] = varname2display('i');
+[~,sub_j] = varname2display('j');
+sub_t = char(8348);
+if ~use_unicode()
+    sub_t = '_t';           % the subscript t is missing from many fonts
+end
+partial = char(8706);
 
 
 % % % Loop over all types of equations in the PDE, displaying them line by
@@ -143,7 +138,7 @@ for kk=1:numel(eq_types)
                 Lobj_vars = [Lobj_vars,')'];
             else
                 for ll=1:size(eq_struct.vars,1)
-                    Lobj_vars = [Lobj_vars,',',eq_struct.vars(ll).varname{1}];
+                    Lobj_vars = [Lobj_vars,',',varname2display(eq_struct.vars(ll).varname{1})];
                 end
                 Lobj_vars = [Lobj_vars,')'];
             end
@@ -210,7 +205,7 @@ end
 
 % % Inform users on how to extract coefficients, if applicable.
 if use_C
-    fprintf(['\n\n Call "PDE.C{i,k}" to see the value of coefficients C',sub_i,sub_k,' as in the displayed equations.'])
+    fprintf(['\n\n Call "PDE.C{i,j}" to see the value of coefficients C',sub_i,sub_j,' as in the displayed equations.'])
 end
 
 % % Add some empty lines.

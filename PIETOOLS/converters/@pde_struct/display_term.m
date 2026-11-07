@@ -52,59 +52,29 @@ function [term_str,term_sign,use_Cij] = display_term(PDE,PDE_term,C_idcs,use_ID)
 %
 % Initial coding DJ - 06/23/2024
 % DJ, 02/17/2026: Updates for nonlinear case
+% DJ, 11/06/2026: Get the names, subscripts and limits of integrals from
+%                   'varname2display', display the time derivative as d_t
+%                   unless 'use_unicode', and use plain parentheses in
+%                   indices;
 
-% % % Set up a "library" of UNICODE characters
-% % Greek letters
-%phi = '\x03D5';
-%tau = '\x03C4';
+% % % Set up the symbols to display the term. The names, subscripts and
+% % % superscripts are given by 'varname2display'.
+[~,sub_dig,sup_dig] = varname2display('0123456789');
+sub_num = cellstr(sub_dig(:));      % Subscripts
+sup_num = cellstr(sup_dig(:));      % Superscripts
 
-% % Subscripts
-% sub_i = '\x1D62';
-% sub_k = '\x2096';
-% sub_s = '\x209B';
-sub_t = '\x209C';
-%sub_phi = '\x1D69';
+% Temporal derivative, partial derivative and integral symbol
+sub_t = char(8348);
+if ~use_unicode()
+    sub_t = '_t';           % the subscript t is missing from many fonts
+end
+partial = char(8706);
+int_symbol = char(8747);
 
-
-% https://rupertshepherd.info/resource_pages/superscript-letters-in-unicode
-%sup_s = '\x02E2';
-%sup_t = '\x1D57';
-% sup_u = '\x1D58';
-% sup_v = '\x1D5B';
-% sup_w = '\x02B7';
-% sup_x = '\x02E3';
-% sup_y = '\x02B8';
-% sup_z = '\x1DBB';
-
-
-
-% % % Define a number of symbols we'll need to display the system
-% Subscripts
-sub_num = mat2cell([repmat('\x208',[10,1]),num2str((0:9)')],ones(10,1),6);
-sub_min = '\x208B';
-sub_a = '\x2090';
-sup_b = '\x1D47';
-sub_lp = '\x208D';      % Left parenthesis
-sub_rp = '\x208E';      % Right parenthesis
-
-% Superscripts
-sup_num = cell(10,1);    % Superscripts
-sup_num{1} = '\x2070';  % Superscript 0
-sup_num{2} = '\xB9';
-sup_num{3} = '\xB2';
-sup_num{4} = '\xB3';
-sup_num{5} = '\x2074';
-sup_num{6} = '\x2075';
-sup_num{7} = '\x2076';
-sup_num{8} = '\x2077';
-sup_num{9} = '\x2078';
-sup_num{10} = '\x2079';
-sup_min = '\x207B';
-
-% Partial derivative and integral symbol
-partial = '\x2202';
-int_symbol = '\x222B';
-%tau = '\x1D70F';
+% Parentheses around multiple-digit indices, as plain characters, as the
+% subscript parentheses are missing from many fonts
+sub_lp = '(';
+sub_rp = ')';
 
 % Establish the equation number, term number, and factor number
 fctr_num = 0;
@@ -230,7 +200,7 @@ Rstate_trm = [Rstate_trm,Rstate_idx];
 Rvars = PDE.(Robj){tab_row}.vars;
 Rvarname = cell(size(Rvars,1),1);
 for kk=1:length(Rvarname)
-    Rvarname{kk} = Rvars(kk).varname{1};
+    Rvarname{kk} = varname2display(Rvars(kk).varname{1});
 end
 
 
@@ -283,66 +253,26 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
             continue
         end
         
-        % % Add lower limit of integral.
+        % % Add lower limit of integral, and the integral symbol. A number is
+        % % displayed with subscripts, or in braces if it is not an integer.
         L_kk = PDE_term.I{kk}(1);
         if isa(L_kk,'double') || (isa(L_kk,'polynomial') && isdouble(L_kk))
-            L_kk = double(L_kk);
-            if (round(L_kk)-L_kk)~=0
-                % The lower limit is not integer --> indicate
-                % as just a_kk
-                int_trm = [int_trm,sub_a,sub_num{kk+1}];
-            else
-                if L_kk < 0
-                    % Negative value: add a minus
-                    int_trm = [int_trm,sub_min];
-                    L_kk = abs(L_kk);
-                end
-                if L_kk<=9
-                    % The value consists of a single decimal
-                    int_trm = [int_trm,sub_num{L_kk+1}];
-                else
-                    % The value consists of multiple decimals
-                    int_trm = [int_trm, cell2mat(sub_num(str2num(num2str(L_kk)')+1)')];
-                end
-            end
-            % % Add integral symbol
-            int_trm = [int_trm,int_symbol];
+            [~,lim_lo] = varname2display(sprintf('%g',double(L_kk)));
         else
-            % The lower limit is a variable, set to s_kk
-            int_trm = [int_trm,'{',L_kk.varname{1},'}_',int_symbol];
-            %Lkk_var1_indx = ismember(var1_name,L_kk.varname{1});
-            %int_trm = [int_trm, sub_var1_list{Lkk_var1_indx}];
+            % The lower limit is a variable
+            [~,lim_lo] = varname2display(L_kk.varname{1});
         end
+        int_trm = [int_trm,lim_lo,int_symbol];
 
-        
         % % Add upper limit of integral.
         U_kk = PDE_term.I{kk}(2);
         if isa(U_kk,'double') || (isa(U_kk,'polynomial') && isdouble(U_kk))
-            U_kk = double(U_kk);
-            if (round(U_kk)-U_kk)~=0
-                % The upper limit is not integer --> indicate
-                % as just n_kk
-                int_trm = [int_trm,sup_b,sup_num{kk+1}];
-            else
-                if U_kk < 0
-                    % Negative value: add a minus
-                    int_trm = [int_trm,sup_min];
-                    U_kk = abs(U_kk);
-                end
-                if U_kk<=9
-                    % The value consists of a single decimal
-                    int_trm = [int_trm,sup_num{U_kk+1}];
-                else
-                    % The value consists of multiple decimals
-                    int_trm = [int_trm, cell2mat(sup_num(str2num(num2str(U_kk)')+1)')];
-                end
-            end
+            [~,~,lim_hi] = varname2display(sprintf('%g',double(U_kk)));
         else
-            % The upper limit is a variable, set to s_kk
-            int_trm = [int_trm,'^{',U_kk.varname{1},'}'];
-            %Ukk_var1_indx = ismember(var1_name,U_kk.varname{1});
-            %int_trm = [int_trm, sup_var1_list{Ukk_var1_indx}];
+            % The upper limit is a variable
+            [~,~,lim_hi] = varname2display(U_kk.varname{1});
         end
+        int_trm = [int_trm,lim_hi];
         
         % Add the dummy variables used for integration
         if isfield(PDE_term,'loc')
@@ -355,7 +285,7 @@ if isfield(PDE_term,'I') && ~isempty(PDE_term.I)
                 varname_kk = ['s',num2str(kk)];
             end            
         end
-        dtheta_trm = ['d',varname_kk,' ',dtheta_trm,]; 
+        dtheta_trm = ['d',varname2display(varname_kk),' ',dtheta_trm,]; 
     end
 end
 % Place brackets around the integrand.
@@ -410,9 +340,9 @@ if isfield(PDE_term,'C') && ~isempty(PDE_term.C)
         use_Cij = true;
 
         % Set display of the variables on which the function depends
-        Cvar_str = ['(',Cval.varname{1}];
+        Cvar_str = ['(',varname2display(Cval.varname{1})];
         for kk=2:length(Cval.varname)
-            Cvar_str = [Cvar_str,',',Cval.varname{kk}];
+            Cvar_str = [Cvar_str,',',varname2display(Cval.varname{kk})];
         end
         Cvar_str = [Cvar_str,')'];
 
@@ -501,7 +431,7 @@ if (isfield(PDE_term,'loc') && ~isempty(PDE_term.loc))
         if isa(loc_kk,'double') || (isa(loc_kk,'polynomial') && isdouble(loc_kk))
             loc_kk = num2str(double(loc_kk));
         else
-            loc_kk = loc_kk.varname{1};
+            loc_kk = varname2display(loc_kk.varname{1});
         end
         Rvar1_str = [Rvar1_str,',',loc_kk];
     end
@@ -521,7 +451,7 @@ else%if ~isfield(PDE_term,'loc')
     if isfield(PDE.(Robj){tab_row},'vars')
         vars = PDE.(Robj){tab_row}.vars;
         for kk=1:size(vars,1)
-            loc_kk = vars(kk,1).varname{1};
+            loc_kk = varname2display(vars(kk,1).varname{1});
             Rvar1_str = [Rvar1_str,',',loc_kk];
         end
     end

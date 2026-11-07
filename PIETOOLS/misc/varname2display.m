@@ -15,7 +15,8 @@ function [str,lo,hi] = varname2display(name,copy)
 % OUTPUTS
 % - str:    char, the name to display. A name with _pie (a state variable
 %           of a PIE) gets a hat, displayed after the name, e.g. 'x_pie' as
-%           x with a hat. Then follow the subscripts, in order,
+%           x with a hat if 'use_unicode' is true, and as xf if not. Then
+%           follow the subscripts, in order,
 %           - the number at the end of the name, e.g. 's1' is displayed as
 %             s with the subscript 1, and 'x1_pie' as x with a hat and the
 %             subscript 1;
@@ -30,12 +31,15 @@ function [str,lo,hi] = varname2display(name,copy)
 %           and is displayed as is;
 % - lo:     char, the name as a lower limit of an integral, which precedes
 %           the integral symbol: the name as subscripts, if all of its
-%           displayed characters have one (the digits, the minus, s, i, j
-%           and gamma), e.g. for 's1' and 's_dum2', and {str}_ otherwise,
+%           displayed characters have one (the digits, the minus, s, i, j,
+%           k and gamma), e.g. for 's1' and 's_dum2', and {str}_ otherwise,
 %           e.g. for 0.5 or for a copy. For an index, e.g. '2' or 'i', this
 %           is the subscript to be used in the display of an operator,
 %           e.g. K_2. The name may also be given as it is displayed, e.g.
-%           the str of 's1', which gives the same lo;
+%           the str of 's1', which gives the same lo. If 'use_unicode' is
+%           false, only digits are displayed as subscripts, and all other
+%           names as {str}_, e.g. {s_1}_ for 's1', except for the indices
+%           i, j and k, which are displayed as the letters themselves;
 % - hi:     char, the name as an upper limit of an integral, which follows
 %           the integral symbol: as lo, but with superscripts, and ^{str}
 %           otherwise. For an index, the superscript, e.g. R^2;
@@ -43,7 +47,16 @@ function [str,lo,hi] = varname2display(name,copy)
 % NOTES
 % - The hat is the combining circumflex U+0302, which is displayed over the
 %   last character of the name, e.g. the x in x1_pie. It takes up a
-%   character in the string, but no space in the display.
+%   character in the string, but no space in the display. It is not used
+%   if 'use_unicode' is false, because many fonts miss it, or place it
+%   wrongly. The same holds for the subscript and superscript letters of
+%   the limits. The subscript and superscript digits, and gamma, are used
+%   in both cases.
+% - The names otimes and otimes<d>, e.g. otimes2, give the tensor product
+%   and the tensor power. Then str is the circled times U+2297 if
+%   'use_unicode' is true, and o if not, and hi is the power d, as the
+%   superscript o with the superscript digits d, or ^{od} if not, e.g.
+%   ^{o2}. The lower limit lo is empty.
 % - A name with _pie is a name in which _pie is preceded by at least one
 %   character, and followed only by an (optional) number, e.g. x_pie or
 %   x_pie2, not x_piece.
@@ -78,9 +91,28 @@ function [str,lo,hi] = varname2display(name,copy)
 % DJ, 11/06/2026: Initial coding;
 % DJ, 11/06/2026: Add dummy variables and numbers, and the forms for the
 %                   limits of an integral;
+% DJ, 11/06/2026: Add the setting 'use_unicode': avoid unicode characters
+%                   when set to false (default);
 
+plain_txt = ~use_unicode();           % avoid characters that many fonts miss
 sub_dig = char(8320 + (0:9));
+sup_dig = char([8304,185,178,179,8308:8313]);
 sbs = @(n) sub_dig(n-'0'+1);
+sps = @(n) sup_dig(n-'0'+1);
+
+% The tensor product, and the tensor power
+tok = regexp(name,'^otimes(\d*)$','tokens','once');
+if ~isempty(tok)
+    if plain_txt
+        str = 'o';
+        hi = ['^{o',tok{1},'}'];
+    else
+        str = char(8855);
+        hi = [char(7506),sps(tok{1})];
+    end
+    lo = '';
+    return
+end
 
 % Name, hat and index
 pie = '';       idx = '';
@@ -97,6 +129,9 @@ else
         if ~isempty(tok)
             base = [tok{1},tok{2}];
             pie = char(770);
+            if plain_txt
+                pie = 'f';                      % fundamental state or input
+            end
         end
         tok = regexp(base,'^(.*[^0-9_])_?(\d+)$','tokens','once');
         if ~isempty(tok)
@@ -120,13 +155,21 @@ str = [base,pie,sep,strjoin(sub_strs,',')];
 % The name as a limit of an integral: as subscript or superscript if all
 % characters of the name have one (also a subscript digit), and in braces
 % otherwise, as for the display of a PDE
-glyphs = ['0123456789',sub_dig,'-s',char([947,105,106])];
-subs = char([8320:8329,8320:8329,8331,8347,7527,7522,11388]);
-sups = char([8304,185,178,179,8308:8313,8304,185,178,179,8308:8313,8315,738,7518,8305,690]);
-[is_glyph,pos] = ismember(str,glyphs);
+glyphs = ['0123456789',sub_dig,'-s',char([947,105,106,107])];
+subs = char([8320:8329,8320:8329,8331,8347,7527,7522,11388,8342]);
+sups = char([8304,185,178,179,8308:8313,8304,185,178,179,8308:8313,8315,738,7518,8305,690,7503]);
+% Without use_unicode, only the digits have a subscript or superscript
+n_glyphs = numel(glyphs);
+if plain_txt
+    n_glyphs = 20;
+end
+[is_glyph,pos] = ismember(str,glyphs(1:n_glyphs));
 if all(is_glyph)
     lo = subs(pos);
     hi = sups(pos);
+elseif plain_txt && any(strcmp(str,{'i','j','k'}))
+    lo = str;                                   % index of a block
+    hi = str;
 else
     lo = ['{',str,'}_'];
     hi = ['^{',str,'}'];
