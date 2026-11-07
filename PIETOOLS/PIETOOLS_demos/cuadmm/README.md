@@ -27,6 +27,68 @@ baseline run wrote ~1.9 GB of dumps.
 setenv('CUADMM_OUT','D:\cuadmm')   % put generated data somewhere durable
 ```
 
+## Container path (11/07/2026)
+
+Since 3df33dcc (10/29/2026), `convert` returns a `pie_struct` of `copvar` operators, which the
+stock executives reject (`Top.dim`), and the opvar removal retires `opvar/`, `lpi_programming/`
+and `executives/`. The harness now runs on the container path. It was run on 11/07 in an export
+of 8fd693bd with those three folders deleted.
+
+- The builders run the container executive of each stock name in `bl_cases`
+  (`private/bl_sop`): `PIE2PDEstability` → `PIETOOLS_stability_sop(PIE,st,'Q')`,
+  `Hinf_gain_2D` → `PIETOOLS_Hinf_gain_sop(PIE,st,'P')`, and so on.
+- `bl_settings` sets `st.sop.max_raise = 0`, so a case is one SDP, as with the stock
+  executives. With raises, the dumped SDP would depend on the solver's first verdict.
+- `stab_mirror` builds the first pass of `PIETOOLS_stability_sop` form `'Q'` without solving.
+  Its `At` and `b` equal the executive's exactly at heavy n = 1, 2, 4 and light n = 1.
+- `cuadmm_path` asserts single resolution of `poscopvar`, `lpi_eq_sop`, `lpi_ineq_sop`,
+  `lpivar_cdopvar` and `exec_tools_sop` in place of the stock LPI functions.
+- `bl_run` and `bl_check` record a solve with no point (sossolve returns `x = []` on primal
+  infeasibility) instead of erroring; `bl_check` banks it as `sentinel_nopoint`.
+- `bl_run`'s `eta` leaves out rows of rounding residue, as sossolve's `info.eta` does. The
+  container 2-D programs carry such rows: `stab2_rd` reads 5.2e-2 with them, 6.4e-10 without.
+
+**The container executives pose different SDPs.** `bl_expect.tsv`, `results/2026-09-24/` and
+`BASELINE_REPORT.md` hold stock-path values, and `bl_check` reports STRUCTURE CHANGED against
+them until the expectations are re-recorded. Measured 11/07 with MOSEK, light settings:
+
+| case | stock m, blocks, result | container m, blocks, result |
+|---|---|---|
+| `stab_rd1` | 130, [10 15 6], certified | 126, [10 21 14], certified |
+| `hinf_rd1` | 242, [10 31 13 1], gam 0.1826 | 195, [10 25 17 1], gam 0.18248164 |
+| `hinfco_rd1` | 176, numerr 2 | 138, gam 0.1824806 |
+| `hinfduco_rd1` | 168, gam 8251.9, numerr 2 | 126, primal infeasible, no point |
+| `ctrl_rd1` | 181, rel_b 1.1e-3 | 141, primal infeasible, no point |
+| `stab2_rd` | 3456, [8 424], rel_b 2.08 | 2968, 6 blocks (largest 324), certified |
+| `hinf2_rd` | 14005, [8 869], gam 1.272 | 3945, 7 blocks (largest 334), gam 0.17172217 |
+| `hinf2nc_rd` | – | 3470, numerr 2, gam 756.6 |
+| `hinf2du_rd` | – | 3941, primal infeasible, no point |
+
+`hinf2_rd`'s closed-form gain is 0.1711.
+
+Not ported; each still calls the stock code:
+
+- `experiments/` (45 of 73 scripts), moved on 11/07/2026 to
+  `cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/`, off the MATLAB path, with the
+  helpers only they called: `cuadmm_private`, `cuadmm_shadow` with `shadows/` (instrumented
+  copies of `lpisolve` and the stock `poslpivar`), and `private/lpi_resid`, `opnorm_pi`,
+  `opgram`, `pgridval`, `gaussleg`, `legval` (Galerkin matrices of `opvar` operators), now in
+  `private_files/` there;
+- `heat2d_compare.m`, whose LPI comes from `lowrank_2d_stability/build_stab_2d_st2` (`opvar2d`);
+- `cuadmm_linear_psatz` (no caller): it stops on the missing `eq_opts_psatz`, see below.
+
+`stab2_rd_psz` and `stab2_rd_psz90` do not apply `pz`: the 2-D settings carry no `eq_opts_psatz`
+since the master merge of 10/27/2026, and the container's default slack holds the four linear
+face generators in 2-D anyway. `stab2_rd_psz` poses the same SDP as `stab2_rd` (measured).
+
+`bl_bisect` and `cuimport` compute `eta` over every row, so on the container 2-D programs their
+`eta` includes the residue rows (5.2e-2 at MOSEK's `stab2_rd` point, against the 1e-7
+certification threshold).
+
+`nl_fisher_*` stop in `PIESOS/@polyopvar/mtimes` ("Right-multiplication of polynomials is
+currently not supported", from `innerprod.m:82`) with or without `opvar/`: a PIESOS change,
+not this port.
+
 ## Layout
 
 | path | contents |
@@ -42,11 +104,10 @@ setenv('CUADMM_OUT','D:\cuadmm')   % put generated data somewhere durable
 | `dump2cuadmm.m`, `cuimport.m`, `bl_verify.m` | SDP → cuADMM input; cuADMM certificate → scored against the ORIGINAL data |
 | `bl_expect.tsv` | banked expectations — a package input, kept in the repo |
 | `gpu/` | the cuADMM arm: `bl_gpu.sh`, `bl_bisgpu.sh`, `bl_gpu_post.sh` |
-| `private/` | plant builders (`bl_b_*`) and helpers (`sdpshape`, `stab_mirror`, `opnorm_pi`, …) |
-| `experiments/` | the one-off studies behind specific claims in the report; see its README |
-| `shadows/` | instrumented copies of two PIETOOLS functions, stored as `.txt`; see below |
+| `private/` | plant builders (`bl_b_*`, `fisher_prog`), the executive map `bl_sop`, `bl_settings`, `sdpshape`, `stab_mirror` |
+| `experiments/` | moved 11/07/2026 to `cleaning/private/definitely/PIETOOLS/PIETOOLS_demos/cuadmm/experiments/`: the one-off studies behind specific claims in the report, with their README; their helpers moved with them (`cuadmm_private.m`, `cuadmm_shadow.m`, `shadows/`, six files of `private/`) |
 | `results/2026-09-24/` | the measured tables and raw logs behind `BASELINE_REPORT.md` |
-| `cuadmm_outdir.m`, `cuadmm_private.m`, `cuadmm_shadow.m` | output root; private-helper hook; shadow control |
+| `cuadmm_outdir.m` | output root |
 
 ## The GPU arm
 
@@ -74,6 +135,10 @@ before and after). Why: b is 88–99.8% zeros, so the 2-norm ratio is an absolut
 tightens like 1/√m.
 
 ## Shadows: read this before running an experiment that uses one
+
+`cuadmm_shadow`, `shadows/` and the experiments that used them moved to `cleaning/` on
+11/07/2026. `cuadmm_path` still removes any shadow folder left on the path. The rest of this
+section describes them as they were.
 
 Some experiments replace a PIETOOLS function with an instrumented copy. `lpisolve` becomes a
 capture stub that records the program and never solves; `poslpivar` gets a variant with

@@ -32,6 +32,9 @@ function r = cuimport(dumpdir,matfile,sfx)
 %   eta_psd  eta of x with every block clipped to PSD, i.e. of a point IN the
 %            cone: the backward error of the whole certificate.  Measured: a
 %            tolerated lambda_min of -3e-9 x max turns ~1:1 into eta_psd ~4e-9.
+% CC, 11/07/2026: eta and eta_psd leave out the rows whose coefficients and b
+%   both lie below 1e-12 of their maxima, as sossolve's info.eta: rounding
+%   residue, ratio O(1) at any x (the container 2-D programs, e.g. stab2_rd).
 
 S = load(matfile);                       % SeDuMi form: At (nvar x m), b, c, K
 K = S.K;  if ~isfield(K,'f')||isempty(K.f), K.f = 0; end
@@ -70,6 +73,7 @@ for k = 1:numel(Ks)
 end
 r.psd_relmin = r.psd_min/max(r.psd_max,eps);
 rn = full(sqrt(sum(S.At.^2,1)))';  bb = full(S.b(:));                       % CC, 09/27/2026
+rn(rn <= 1e-12*max(rn) & abs(bb) <= 1e-12*max(abs(bb))) = Inf;  % ratio 0   % CC, 11/07/2026
 r.eta     = max(abs(S.At'*x   - bb)./(rn*max(abs(x))   + abs(bb) + realmin));  % CC, 09/27/2026
 r.eta_psd = max(abs(S.At'*xcl - bb)./(rn*max(abs(xcl)) + abs(bb) + realmin));  % CC, 09/27/2026
 r.max_asym   = max(r.asym);

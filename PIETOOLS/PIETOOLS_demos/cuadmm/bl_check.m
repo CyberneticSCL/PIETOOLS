@@ -33,6 +33,9 @@ function R = bl_check(suite,mode)
 %   ||x|| = 0.028) as a trivial-point return. The verdict logic treats both
 %   sentinel labels alike, so no verdict changes; the label is what a reader
 %   uses to tell "no certificate" from "a bad one".
+% CC, 11/07/2026: a solve with no point (sossolve x = [], 'Primal program
+%   infeasible, no solution produced'; the container dual-form LPIs at dw 0)
+%   gives rel_b NaN instead of an error, and banks as 'sentinel_nopoint'.
 
 if nargin < 2, mode = 'check'; end
 cuadmm_path;
@@ -67,6 +70,7 @@ for k = 1:numel(S.ids)
             Atf=[]; bf=[];
             for q=1:sol.expr.num, Atf=[Atf,sol.expr.At{q}]; bf=[bf;sol.expr.b{q}]; end %#ok<AGROW>
             x = sol.solinfo.RRx(:);
+            if isempty(x), x = nan(size(Atf,1),1); end                      % CC, 11/07/2026
             rb = norm(full(Atf'*x-bf))/max(norm(full(bf)),eps);
             m = Sh.m; Kf = Sh.Kf; Ks = mat2str(Sh.Ks); nz = Sh.nnzAt;
             [v,note] = judge(S.check,id,E,m,Kf,Ks,nz,rb);
@@ -150,7 +154,10 @@ st = 'pass';
 % rel_b > 1 is a solver returning a point worse than zero (stab2_rd, 2.08), not X=0.
 %if rb > 0.5, st = 'sentinel_trivial';                                      % CC, 09/26/2026 (was)
 %elseif rb > 1e-4, st = 'sentinel_poor'; end                                % CC, 09/26/2026 (was)
-if abs(rb-1) <= 1e-6                                                        % CC, 09/26/2026
+%if abs(rb-1) <= 1e-6                                                       % CC, 11/07/2026 (was)
+if isnan(rb)                                % no point: sossolve x = []     % CC, 11/07/2026
+    st = 'sentinel_nopoint';                                                % CC, 11/07/2026
+elseif abs(rb-1) <= 1e-6                                                    % CC, 11/07/2026
     st = 'sentinel_trivial';                                                % CC, 09/26/2026
 elseif rb > 1e-4                                                            % CC, 09/26/2026
     st = 'sentinel_poor';                                                   % CC, 09/26/2026

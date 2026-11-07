@@ -4,6 +4,8 @@ function [sol,M] = bl_b_stab1(phys,frac,setname,exec,n)
 % n (optional) replicates the state n times -- decoupled, so the answer is
 % unchanged and only the SDP grows. That is what makes the scaling arm a clean
 % size sweep rather than a different problem at every rung.
+% CC, 11/07/2026: exec names a stock executive; the container executive of the
+%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
 if nargin<5 || isempty(n), n = 1; end
 clear stateNameGenerator
 pvar s t
@@ -21,7 +23,9 @@ switch phys
 end
 PIE = initialize(convert(PDE));
 st  = bl_settings(setname);
-[sol,P] = feval(['PIETOOLS_' exec],PIE,st);
+%[sol,P] = feval(['PIETOOLS_' exec],PIE,st);                                % CC, 11/07/2026 (was)
+[fn,fa] = bl_sop(exec);                                                     % CC, 11/07/2026
+[sol,P] = feval(fn,PIE,st,fa{:});                                           % CC, 11/07/2026
 M = struct('Pop',P,'Top',PIE.T,'Aop',PIE.A);
 end
 

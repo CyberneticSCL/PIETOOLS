@@ -26,6 +26,11 @@ function C = bl_cases()
 %   commented out, not deleted: their builders are unchanged and their banked
 %   rows stay in bl_expect.tsv and results/2026-09-24, so uncommenting restores
 %   them. Loses the only trivial-point sentinels (h2cco_rd1, h2_2dc_rd).
+% CC, 11/07/2026: the executive names in args are the stock executives'; the
+%   builders run the container executive of the same LPI (private/bl_sop),
+%   since the stock ones reject a copvar PIE (3df33dcc). The container SDPs
+%   differ from the stock ones, so bl_expect.tsv and results/2026-09-24 hold
+%   stock-path values.
 
 L = {};
 add = @(id,cls,dim,kind,bld,args) struct('id',id,'cls',cls,'dim',dim, ...

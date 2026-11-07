@@ -6,6 +6,9 @@ function [sol,M] = bl_b_syn1(exec,setname)
 %
 % Output count from nargout(), and M assembled field by field: struct() with a
 % cell value expands into a struct ARRAY rather than storing the cell.
+%
+% CC, 11/07/2026: exec names a stock executive; the container executive of the
+%   same LPI runs (bl_sop), since the stock ones reject a copvar PIE.
 clear stateNameGenerator
 pvar s t
 x = pde_var(1,s,[0,1]);
@@ -19,10 +22,12 @@ PDE = [diff(x,t,1)==diff(x,s,2)+0.5*pi^2*x+w+u;
        subs(x,s,0)==0;  subs(x,s,1)==0];
 PIE = initialize(convert(PDE));
 st  = bl_settings(setname);
-fn  = ['PIETOOLS_' exec];
+%fn  = ['PIETOOLS_' exec];                                                  % CC, 11/07/2026 (was)
+[fn,fa] = bl_sop(exec);                                                     % CC, 11/07/2026
 nout = abs(nargout(fn));
 out = cell(1,nout);
-[out{1:nout}] = feval(fn,PIE,st);
+%[out{1:nout}] = feval(fn,PIE,st);                                          % CC, 11/07/2026 (was)
+[out{1:nout}] = feval(fn,PIE,st,fa{:});                                     % CC, 11/07/2026
 sol = out{1};
 
 M = struct();
