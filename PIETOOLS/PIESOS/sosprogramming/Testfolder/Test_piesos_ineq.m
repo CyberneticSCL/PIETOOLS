@@ -59,6 +59,8 @@ function Test_piesos_ineq()
 % DJ (CC), 10/23/2026: Merge Test_piesos_ineq_unused_states into this test,
 %   as cases;
 % DJ, 11/02/2026: Call the new convert function;
+% DJ (CC), 11/07/2026: Add case_deg_renamed: the old option 'deg' is renamed to
+%   'degs' with a warning, not overwritten by the default degrees;
 
 % NOTES
 % - case_mixed_basis_warning pins a known limitation: a basis monomial
@@ -74,13 +76,15 @@ function Test_piesos_ineq()
 % - The degree rule for Zop is exact for numeric f; f with decision
 %   variables (case_symbolic_f) uses the heuristic d=p=ceil((e(1)-1)/3).
 
+% The last line of the list was
+%   @case_unused_states};                                                   % DJ (CC), 11/07/2026 (was)
 tests ={@case_input_errors, @case_sweep_1var, @case_certificate_values, ...
          @case_nonlocal_kernel, @case_user_options, @case_zero_basis, ...
          @case_constants, @case_psatz, @case_two_states, @case_mixed_dependence, ...
          @case_two_variables, @case_uncombined_f, ...
          @case_mixed_basis_warning, @case_kernel_degrees, @case_option_types, ...
          @case_psatz_degree, @case_symbolic_f, @case_vector_states, ...
-         @case_unused_states};
+         @case_unused_states, @case_deg_renamed};                           % DJ (CC), 11/07/2026
 nfail = 0;
 for i=1:numel(tests)
     try
@@ -301,6 +305,70 @@ fN = make_V(x,K,2);
 [~,~,~,ZopN0] = piesos_ineq(prog,fN);
 [~,~,~,Zop2] = piesos_ineq(prog,fN,struct('degs',2));
 assert(size(Zop2,1)>size(ZopN0,1),'degs=2 must give a larger basis than the default.');
+end
+
+function case_deg_renamed()
+% The old option 'deg' is renamed 'degs', with a warning, as in piesos_quadvar. It
+% must not be overwritten by the default degrees set here (so that the basis is that
+% of degs), nor give the warning that degs is specified, which it is only if the
+% user did. If 'degs' is specified as well, 'deg' is ignored, with a warning.
+pvar s
+[prog,x] = new_prog({'s'});
+K = intop({polynomial(2)},{[0 3 0 1]},{'s'},[0,1]);
+f = make_V(x,K,2);
+id = 'PIESOS:quadvar:renamedDeg';
+prev = warning('query',id);     warning('on',id);
+restore = onCleanup(@() warning(prev));
+[dflt,wid] = ineq_warn(prog,f,struct());
+assert(isempty(wid),'No warning expected without opts.deg, got %s.',wid);
+ref = ineq_warn(prog,f,struct('degs',2));
+assert(size(ref{4},1)>size(dflt{4},1),'Test setup: degs=2 must give a larger basis than the default.');
+% (a) deg alone: the output of degs, with the warning that it is renamed
+[out,wid,msg] = ineq_warn(prog,f,struct('deg',2));
+assert(strcmp(wid,id) && contains(msg,'renamed'),'(a) Expected the warning %s (renamed), got "%s" (%s).',id,msg,wid);
+assert_same_ineq(ref,out,'(a) deg vs degs');
+% (b) deg and degs: deg is ignored, with the warning
+[out,wid,msg] = ineq_warn(prog,f,struct('deg',0,'degs',2));
+assert(strcmp(wid,id) && contains(msg,'ignored'),'(b) Expected the warning %s (ignored), got "%s" (%s).',id,msg,wid);
+assert_same_ineq(ref,out,'(b) deg and degs');
+% (c) deg with the other options, which are not overwritten
+refE = ineq_warn(prog,f,struct('degs',2,'exclude',[false;false;false]));
+[out,wid] = ineq_warn(prog,f,struct('deg',2,'exclude',[false;false;false]));
+assert(strcmp(wid,id),'(c) Expected the warning %s, got "%s".',id,wid);
+assert_same_ineq(refE,out,'(c) deg and exclude');
+% (d) deg as a struct of degrees, with psatz multipliers
+dg = struct('in',1,'out',1);
+refP = ineq_warn(prog,f,struct('degs',dg,'psatz',1));
+[out,wid] = ineq_warn(prog,f,struct('deg',dg,'psatz',1));
+assert(strcmp(wid,id),'(d) Expected the warning %s, got "%s".',id,wid);
+assert_same_ineq(refP,out,'(d) deg struct and psatz');
+end
+
+function [out,wid,msg] = ineq_warn(prog,f,opts)
+% [OUT,WID,MSG] = INEQ_WARN(PROG,F,OPTS) calls piesos_ineq(PROG,F,OPTS) without
+% displaying the warnings, and returns its outputs and the last warning.
+%
+% INPUT
+% - prog:   PIESOS program 'struct';
+% - f:      scalar 'polyopvar' functional;
+% - opts:   'struct' with options of piesos_ineq;
+%
+% OUTPUT
+% - out:    1 x 5 cell {prog,g,Qmat,Zop,Z}, the outputs of piesos_ineq;
+% - wid:    'char' identifier of the last warning, '' if none was thrown;
+% - msg:    'char' message of the last warning;
+out = cell(1,5);
+lastwarn('');
+evalc('[out{:}] = piesos_ineq(prog,f,opts);');
+[msg,wid] = lastwarn;
+end
+
+function assert_same_ineq(A,B,label)
+% Outputs A, B = {prog,g,Qmat,Zop,Z} of two piesos_ineq calls must be identical
+assert(isequal(A{1},B{1}),'%s: programs differ.',label);
+assert(isequal(A{2},B{2}),'%s: g differs.',label);
+assert(isequal(size(A{3}),size(B{3})),'%s: sizes of Qmat differ.',label);
+assert(isequal(A{4},B{4}),'%s: Zop differs.',label);
 end
 
 function case_zero_basis()

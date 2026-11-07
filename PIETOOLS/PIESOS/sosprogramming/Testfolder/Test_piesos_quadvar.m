@@ -65,6 +65,8 @@ function Test_piesos_quadvar()
 % DJ (CC), 10/23/2026: dmonomials has the variables y, not the scalar rows:
 %                        basis of the entries of y built by selection, new
 %                        cases dmonomials(y,[1;2]), dmonomials(Tm*y,[1;2]);
+% DJ (CC), 11/07/2026: Add case_deg_renamed: the old option 'deg' is renamed
+%                        to 'degs' with a warning, instead of being ignored;
 
 % NOTES
 % - piesos_sosvar wraps piesos_quadvar, so the comparison with it only
@@ -76,10 +78,13 @@ function Test_piesos_quadvar()
 % - Random decision-variable values come from rng(seed) per check, so
 %   reruns are reproducible.
 
+% The last line of the list was
+%   @case_coefficients, @case_ode_state, @case_coefficient_errors, @case_errors};   % DJ (CC), 11/07/2026 (was)
 tests ={@case_equals_sosvar, @case_general_equal_bases, @case_different_bases, ...
          @case_operators_differ, @case_vector_valued, @case_basis_forms, ...
          @case_degs_forms, @case_operator_options, @case_wiring, ...
-         @case_coefficients, @case_ode_state, @case_coefficient_errors, @case_errors};
+         @case_coefficients, @case_ode_state, @case_coefficient_errors, @case_errors, ...
+         @case_deg_renamed};                                                % DJ (CC), 11/07/2026
 nfail = 0;
 for i=1:numel(tests)
     tstart = tic;
@@ -563,6 +568,83 @@ assert_same_output(ref,out,'opts.degs and opts.R.degs');
 % value check with different degrees
 S2 = make_states();
 run_check('different degrees in opts.L.degs, opts.R.degs',S2,[S2.x1;S2.x4],[],struct('L',struct('degs',dL),'R',struct('degs',dR)),80);
+end
+
+function case_deg_renamed()
+% The old option 'deg' is renamed 'degs', with a warning, unless 'degs' is also
+% specified, in which case 'deg' is ignored, also with a warning. Without it,
+% 'deg' is silently ignored and the degrees fall back to 0 (the default)
+S = make_states();
+Z = [S.x1;S.x4];
+prog0 = piesos_program(S.all);
+id = 'PIESOS:quadvar:renamedDeg';
+prev = warning('query',id);     warning('on',id);
+restore = onCleanup(@() warning(prev));
+dL = struct('in',1,'out',0);        dR = struct('in',{{0,1}},'out',0);
+[dflt,wid] = quadvar_warn(prog0,Z,struct());
+assert(isempty(wid),'No warning expected without opts.deg, got %s.',wid);
+% (a) 'deg' gives the output of 'degs' (scalar, struct, and left and right), not the default
+forms = {2,dL,dR,struct('L',dL,'R',dR)};
+for k=1:numel(forms)
+    ref = quadvar_warn(prog0,Z,struct('degs',forms{k}));
+    [out,wid,msg] = quadvar_warn(prog0,Z,struct('deg',forms{k}));
+    assert(strcmp(wid,id) && contains(msg,'renamed'),'(a%d) Expected the warning %s, got "%s".',k,id,wid);
+    assert_same_output(ref,out,sprintf('(a%d) deg vs degs',k));
+    assert(~isequal(out{1},dflt{1}),'(a%d) The degrees must differ from the default 0.',k);
+end
+% (b) 'degs' specified as well: 'deg' is ignored
+ref = quadvar_warn(prog0,Z,struct('degs',dL));
+[out,wid,msg] = quadvar_warn(prog0,Z,struct('deg',3,'degs',dL));
+assert(strcmp(wid,id) && contains(msg,'ignored'),'(b) Expected the warning %s, got "%s".',id,wid);
+assert_same_output(ref,out,'(b) deg and degs');
+% (c) a general 'deg', with opts.L.degs for the left basis
+ref = quadvar_warn(prog0,Z,struct('degs',dR,'L',struct('degs',dL)));
+[out,wid] = quadvar_warn(prog0,Z,struct('deg',dR,'L',struct('degs',dL)));
+assert(strcmp(wid,id),'(c) Expected the warning %s, got "%s".',id,wid);
+assert_same_output(ref,out,'(c) deg and opts.L.degs');
+% (d) the same through piesos_sosvar
+A = cell(1,4);      [A{:}] = piesos_sosvar(prog0,Z,struct('degs',dL));
+B = cell(1,4);      lastwarn('');
+evalc('[B{:}] = piesos_sosvar(prog0,Z,struct(''deg'',dL));');
+[~,wid] = lastwarn;
+assert(strcmp(wid,id),'(d) Expected the warning %s, got "%s".',id,wid);
+assert(isequal(A{1},B{1}) && isequal(A{2},B{2}),'(d) piesos_sosvar: deg differs from degs.');
+% (e) a different basis on the right, ZR specified
+ZR = [S.x4;S.x1];
+refR = cell(1,5);       [refR{:}] = piesos_quadvar(prog0,Z,ZR,struct('degs',dL));
+outR = cell(1,5);       lastwarn('');
+evalc('[outR{:}] = piesos_quadvar(prog0,Z,ZR,struct(''deg'',dL));');
+[~,wid] = lastwarn;
+assert(strcmp(wid,id),'(e) Expected the warning %s, got "%s".',id,wid);
+assert_same_output(refR,outR,'(e) deg with ZR specified');
+% (f) the rename also works with the warning disabled, and does not change the opts of the caller
+o = struct('deg',dL);
+warning('off',id);
+out = quadvar_warn(prog0,Z,o);
+warning('on',id);
+ref = quadvar_warn(prog0,Z,struct('degs',dL));
+assert_same_output(ref,out,'(f) deg with the warning disabled');
+assert(isequal(fieldnames(o),{'deg'}),'(f) The opts of the caller must not change.');
+end
+
+function [out,wid,msg] = quadvar_warn(prog0,Z,opts)
+% [OUT,WID,MSG] = QUADVAR_WARN(PROG0,Z,OPTS) calls piesos_quadvar(PROG0,Z,[],OPTS)
+% without displaying the warnings, and returns the identifier and message of
+% the last warning.
+%
+% INPUT
+% - prog0:  PIESOS program 'struct';
+% - Z:      n x 1 'polyopvar' basis;
+% - opts:   'struct' with options of piesos_quadvar;
+%
+% OUTPUT
+% - out:    1 x 5 cell {prog,V,Pmat,ZopL,ZopR}, the outputs of piesos_quadvar;
+% - wid:    'char' identifier of the last warning, '' if none was thrown;
+% - msg:    'char' message of the last warning;
+out = cell(1,5);
+lastwarn('');
+evalc('[out{:}] = piesos_quadvar(prog0,Z,[],opts);');
+[msg,wid] = lastwarn;
 end
 
 function case_operator_options()

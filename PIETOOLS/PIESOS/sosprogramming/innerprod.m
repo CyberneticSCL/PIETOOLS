@@ -12,7 +12,9 @@ function V = innerprod(u1,P,u2)
 %           variables, and is then integrated along with the functions.
 %           A scalar P is used as P times the identity. If only u1 is
 %           passed, P = 1. If INNERPROD(U1,U2) is called with a
-%           'polyopvar' U2 in the second position, P = 1 and u2 = U2;
+%           'polyopvar' U2 in the second position, P = 1 and u2 = U2.
+%           The old order INNERPROD(U1,U2,P) is swapped to INNERPROD(U1,P,U2),
+%           with a warning;
 %
 % OUTPUTS
 % - V:      1 x 1 'polyopvar' object representing the inner product of the
@@ -57,6 +59,8 @@ function V = innerprod(u1,P,u2)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/04/2026: Lift u1 and u2 to a common output space.
 % DJ, 11/06/2026: Output space of V follows from V.C (see set.C).
+% DJ, 11/07/2026: Swap the arguments of the order innerprod(u1,u2,P),
+%                   with a warning;
 
 % Check that the inputs are appropriate
 is_symmetric = false;
@@ -64,6 +68,14 @@ if nargin==1
     u2 = u1;
     P = 1;
     is_symmetric = true;
+end
+% Old order innerprod(u1,u2,P): a 'polyopvar' u2 is in the place of the weight,
+% which is never a 'polyopvar', and the weight in the place of u2. As the
+% meaning is the same, <u1,P*u2>, swap them (before u2=[] is handled below)
+if nargin>=3 && isa(P,'polyopvar') && ~isa(u2,'polyopvar')                  % DJ, 11/07/2026
+    warning('PIESOS:innerprod:oldOrder', ...
+        "innerprod(u1,u2,P) for weight P is not supported; proceeding with innerprod(u1,P,u2). ");
+    [P,u2] = deal(u2,P);
 end
 % u2 omitted or empty: take u2 = u1, innerprod(u1,P) = innerprod(u1,P,u1)
 if (nargin==2 && ~isa(P,'polyopvar')) || (nargin>=3 && isempty(u2))

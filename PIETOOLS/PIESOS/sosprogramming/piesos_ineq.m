@@ -14,7 +14,9 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 %               'psatz':  1 x N array of orders, passed on to
 %                         `piesos_poslpivar` (see there);
 %               'degs', 'exclude':  set here, based on the kernels of f
-%                         (see NOTES), only if not specified;
+%                         (see NOTES), only if not specified. A field
+%                         'deg' is renamed to 'degs' by `piesos_quadvar`,
+%                         with a warning;
 %               'tol':    tolerance below which coefficients of f are
 %                         taken to be zero. Defaults to 1e-14;
 %
@@ -116,6 +118,8 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/23/2026: Pass the degrees per state to dmonomials;
 % DJ, 11/06/2026: Set chkval of f.C after removing the constant monomial;
+% DJ, 11/07/2026: Assume 'deg' specifies degrees if 'degs' is not
+%                        specified;
 
 % % Check the inputs
 % Check the program structure
@@ -302,7 +306,8 @@ end
 pz = ceil(DP/2);
 pz(qz>0) = ceil(qz(qz>0)/2) + ceil(max(DP(qz>0)-qz(qz>0),0)/2);
 pz = max(pz,dbal);
-if ~isfield(opts,'degs')
+% The degrees are set below, unless specified in opts.degs, or in opts.deg
+if ~isfield(opts,'degs') && ~isfield(opts,'deg')                            % DJ, 11/07/2026
     if isempty(zvidx)
         opts.degs = 0;
     else

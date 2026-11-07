@@ -41,7 +41,9 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 %           of ZopL and ZopR are defined, those in degs.out the monomials 
 %           in the primary variables, defining the basis of Pmat(s). The 
 %           same degrees are used for ZopL and ZopR, unless degs is a 
-%           struct with fields L and R, specifying the degrees of each;
+%           struct with fields L and R, specifying the degrees of each.
+%           A field 'deg' is renamed 'degs', with a warning, unless
+%           'degs' is specified;
 %    L/R:   (optional) structs with fields 'degs', 'exclude', 'sep', and
 %           'otype', specifying separate options for the operators ZopL
 %           (L) and ZopR (R), see `monopmat` for the latter three. The
@@ -111,6 +113,7 @@ function [prog,V,Pmat,ZopL,ZopR] = piesos_quadvar(prog,ZL,ZR,opts)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/22/2026: Support coefficients ZL.C, ZR.C, e.g. T*x;
 % DJ, 11/06/2026: Output space of V follows from V.C (see set.C);
+% DJ, 11/07/2026: Rename field 'deg' to 'degs', with a warning;
 
 % Verify that the monomials are appropriately specified
 is_eqZLR = false;
@@ -149,6 +152,18 @@ if nargin<=3
 end
 if ~isa(opts,'struct')
     error("Options must be specified as a 'struct'.")
+end
+% Allow degrees to be specified using 'deg' if no 'degs' are specified
+if isfield(opts,'deg')                                                      % DJ, 11/07/2026
+    if isfield(opts,'degs')
+        warning('PIESOS:quadvar:renamedDeg', ...
+            "Option 'deg' is ignored, as opts.degs is specified.");
+    else
+        warning('PIESOS:quadvar:renamedDeg', ...
+            "Option 'deg' is renamed 'degs': using opts.degs = opts.deg.");
+        opts.degs = opts.deg;
+    end
+    opts = rmfield(opts,'deg');
 end
 % Check options for the operators
 % Degrees: in opts.degs, or for the left and right basis in opts.L.degs and

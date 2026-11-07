@@ -11,9 +11,13 @@
 % of mixed monomial structure, weights of type double / polynomial / cell
 % / dpvar (rectangular, nonsymmetric), and the one-argument form.
 % innerprod(u1,P) and innerprod(u1,P,[]) are in Part 8, all-zero weights
-% in Part 9, weights depending on space in Part 10.
+% in Part 9, weights depending on space in Part 10, the old argument order
+% innerprod(u1,u2,P) in Part 11.
 %
 % DJ (CC), 10/15/2026: Initial coding;
+% DJ (CC), 11/07/2026: Add Part 11: the old order innerprod(u1,u2,P) is swapped,
+%                        with a warning, instead of failing or giving another
+%                        object;
 
 % NOTES:
 % - 'ntrial' (random trials per part) can be preset in the workspace;
@@ -323,6 +327,116 @@ for trial = 1:ntrial
     end
 end
 disp('Test_polyopvar_innerprod Part 10 (spatially varying weight) passed.')
+
+%% Part 11: old order innerprod(u1,u2,P), swapped with the warning below
+% Same ground truth as in Parts 1-10, <u1,P*u2> by direct integration. The
+% weights are those that failed in the old order: scalar double (silently a
+% different object), matrix double, cell and polynomial, scalar and matrix
+% dpvar (@polyopvar/mtimes). The new order must not warn.
+id = 'PIESOS:innerprod:oldOrder';
+prev = warning('query',id);     warning('on',id);
+restore = onCleanup(@() warning(prev));
+dpvar d1 d2
+for trial = 1:ntrial
+    rng(31000+trial);
+    nvars = randi([1,2]);
+    vars = arrayfun(@(i) ['s',num2str(i)],1:nvars,'UniformOutput',false);
+    dom = sort(randn(nvars,2),2);
+    p1 = randi([1,3]);      p2 = randi([1,3]);
+    [x,~,dx] = rand_polyopvar(p1,3,vars,dom);
+    [y,~,dy] = rand_polyopvar(p2,3,vars,dom);
+    y.varname = cellfun(@(s)['y',s(2:end)],y.varname,'UniformOutput',false);
+    n1 = sum(dx);   n2 = sum(dy);
+    vals = struct();
+    for i=1:p1,  vals.(['x',num2str(i)]) = rand_poly([dx(i),1],vars,2,4);   end
+    for i=1:p2,  vals.(['y',num2str(i)]) = rand_poly([dy(i),1],vars,2,4);   end
+    vals_str = sprintf('(trial=%d,dx=%s,dy=%s,nvars=%d)',trial,mat2str(dx'),mat2str(dy'),nvars);
+    P = randn(n1,n2);       Pcell = mat2cell(P,dx(:)',dy(:)');
+    W = rand_poly([n1,n2],vars,2,4);        a = randn;
+    Qs = randn(n1,n1);      Qs = Qs+Qs';    w = rand_poly([1,1],vars,2,4);
+
+    % Numeric weights: warning, and the value of <u1,P*u2>
+    calls = {@() innerprod(x,y,P),      y,  P,          'double matrix weight';
+             @() innerprod(x,y,Pcell),  y,  P,          'cell weight';
+             @() innerprod(x,y,W),      y,  W,          'polynomial weight';
+             @() innerprod(x,x,a),      x,  a*eye(n1),  'scalar double weight';
+             @() innerprod(x,x,Qs),     x,  Qs,         'symmetric weight, u1=u2';
+             @() innerprod(x,x,w),      x,  w*eye(n1),  'scalar spatial polynomial weight'};
+    for k=1:size(calls,1)
+        lastwarn('');
+        evalc('Vold = calls{k,1}();');
+        [~,wid] = lastwarn;
+        if ~strcmp(wid,id)
+            error("Test_polyopvar_innerprod failed: old order, %s: expected the warning %s, got '%s' %s.",calls{k,4},id,wid,vals_str)
+        end
+        check(@() Vold,vals,x,calls{k,2},calls{k,3},dom,vars,tol,['old order, ',calls{k,4},' ',vals_str]);
+    end
+
+    % dpvar weights, linear in the decision variables, as in Part 7
+    P0 = randn(n1,n2);   P1 = randn(n1,n2);   P2 = randn(n1,n2);
+    Pd = P0 + d1*P1 + d2*P2;
+    u1v = eval_arg(x,vals);     u2v = eval_arg(y,vals);
+    lastwarn('');
+    evalc('Vold = innerprod(x,y,Pd);');
+    [~,wid] = lastwarn;
+    if ~strcmp(wid,id)
+        error("Test_polyopvar_innerprod failed: old order, dpvar matrix weight: expected the warning %s, got '%s' %s.",id,wid,vals_str)
+    end
+    ref = integrate(u1v'*P0*u2v,vars,dom) + d1*integrate(u1v'*P1*u2v,vars,dom) ...
+            + d2*integrate(u1v'*P2*u2v,vars,dom);
+    D = eval_V(Vold,vals) - ref;    err = full(D.C);
+    if max(abs(err(:)))>tol*max(1,max(abs(full(ref.C(:)))))
+        error("Test_polyopvar_innerprod failed: old order, dpvar matrix weight %s.",vals_str)
+    end
+    % A scalar dpvar weight with one state, as in a scalar PIE
+    lastwarn('');
+    evalc('Vold = innerprod(x,x,d1);');
+    [~,wid] = lastwarn;
+    if ~strcmp(wid,id)
+        error("Test_polyopvar_innerprod failed: old order, scalar dpvar weight: expected the warning %s, got '%s' %s.",id,wid,vals_str)
+    end
+    ref = d1*integrate(u1v'*u1v,vars,dom);
+    D = eval_V(Vold,vals) - ref;    err = full(D.C);
+    if max(abs(err(:)))>tol*max(1,max(abs(full(ref.C(:)))))
+        error("Test_polyopvar_innerprod failed: old order, scalar dpvar weight %s.",vals_str)
+    end
+
+    % The new order does not warn, and neither does a missing weight
+    lastwarn('');
+    evalc('innerprod(x,P,y); innerprod(x,x); innerprod(x,P*P'',x); innerprod(x,Pd,y);');
+    [~,wid] = lastwarn;
+    if ~isempty(wid)
+        error("Test_polyopvar_innerprod failed: unexpected warning '%s' for the new order %s.",wid,vals_str)
+    end
+
+    % Two states in the second and third place are no old order: still an error
+    err_caught = false;
+    try
+        evalc('innerprod(x,y,y);');
+    catch
+        err_caught = true;
+    end
+    if ~err_caught
+        error("Test_polyopvar_innerprod failed: innerprod(x,y,y) was not rejected %s.",vals_str)
+    end
+end
+% Constant first argument (as in Part 6): innerprod(a,x,1) is the old order of innerprod(a,1,x)
+rng(31500);
+pvar s1 s2
+x = polyopvar('x',[s1,s2],[0,1]);
+vals = struct('x',rand_poly([1,1],{'s1','s2'},2,4));
+a = randn;
+lastwarn('');
+evalc('V = innerprod(a,x,1);');
+[~,wid] = lastwarn;
+if ~strcmp(wid,id)
+    error("Test_polyopvar_innerprod failed: old order, constant u1: expected the warning %s, got '%s'.",id,wid)
+end
+chk = apply_poly(V,{vals.x}) - a*vals.x;
+if max(max(abs(cleanpoly(chk,1e-10).C)))>tol
+    error("Test_polyopvar_innerprod failed: old order, constant u1.")
+end
+disp('Test_polyopvar_innerprod Part 11 (old argument order) passed.')
 
 nfail = getappdata(0,'innerprod_nfail');
 if nfail>0
