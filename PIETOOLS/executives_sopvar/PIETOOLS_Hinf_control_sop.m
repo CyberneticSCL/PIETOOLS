@@ -19,8 +19,9 @@ function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
 % - PIE:      'pie_struct' object of a 1-D PIE, with T, A, B1, B2, C1, D11
 %             and D12 'opvar' objects, or 'copvar' objects (a 1-D container
 %             PIE, EXEC_PIE_SOP); Tw and Tu zero or absent (no disturbance
-%             or input at the boundary); a PIE in two or more variables is
-%             an error;
+%             or input at the boundary); K empty (a constraint
+%             K x = 0 on the state, e.g. periodic BCs, is an error); a PIE
+%             in two or more variables is an error;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P;
@@ -112,6 +113,16 @@ function [prog,K,gam,P,Z,info] = PIETOOLS_Hinf_control_sop(PIE,settings)
 %                return containers); K is the container of
 %                GETCONTROLLER_SOP, which no longer builds an opvar copy.
 %                Header outputs updated.
+% MMP, 11/07/2026: A PIE with a constraint K x = 0 on the state (PIE.K, set
+%                by convert_PIETOOLS_PDE for rank-deficient boundary
+%                conditions, e.g. periodic) is an error, as in
+%                PIETOOLS_Hinf_OFcontrol_sop. The LPI is posed on the dual,
+%                where K cannot be imposed by a multiplier, and the dual
+%                stability LPI without K certified unstable PIEs
+%                (PIETOOLS_stability_sop, 11/07/2026). Before, the solver
+%                returned status unknown with gam 0.014 for an optimal
+%                bound of 0.70711 (x_t = x_ss - x + w + u, periodic BCs,
+%                z = [int x; u]). Header updated.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -134,6 +145,11 @@ if nv>=2,   error('PIETOOLS_Hinf_control_sop:dim2','Optimal control of PIEs in t
 if ~(PIE.Tw==0) || ~(PIE.Tu==0)
     error('PIETOOLS_Hinf_control_sop:Tw','The LPI cannot be solved for systems with disturbances or inputs at the boundary.');
 end
+% A constraint K x = 0 on the state (e.g. periodic BCs) cannot be imposed   % MMP, 11/07/2026
+% in this dual LPI, and a dual LPI without it is not sufficient             % MMP, 11/07/2026
+if isa(PIE.K,'copvar') && size(PIE.K,1)>0                                   % MMP, 11/07/2026
+    error('PIETOOLS_Hinf_control_sop:K','PIEs with an algebraic constraint K are not supported.');  % MMP, 11/07/2026
+end                                                                         % MMP, 11/07/2026
 eppos = tl.eppos;
 gfix = [];  if isfield(st.sop,'gam_fixed') && ~isempty(st.sop.gam_fixed) && st.sop.gam_fixed~=0,    gfix = st.sop.gam_fixed;    end
 

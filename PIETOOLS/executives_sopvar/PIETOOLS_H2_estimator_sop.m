@@ -17,13 +17,17 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %
 % with L = P^{-1}*Z. While the solver returns UNKNOWN or INFEASIBLE, the
 % program is rebuilt with the degree of the slacks raised by one, up to
-% settings.sop.max_raise times.
+% settings.sop.max_raise times. If PIE.K is nonempty, the PIE state
+% satisfies K x = 0 (e.g. periodic boundary conditions), and the block of
+% the negativity condition on the state carries + K'*Z_K + Z_K'*K, with
+% Z_K a free operator, which vanishes on ker K.
 %
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D PIE, with T, A, B1, C1, C2 and D21
 %             'opvar' objects, or 'copvar' objects (a 1-D container PIE,
-%             EXEC_PIE_SOP); Tw and D11 zero or absent; a PIE in two or
-%             more variables is an error;
+%             EXEC_PIE_SOP); Tw and D11 zero or absent; K a 'copvar'
+%             object (the constraint K x = 0 on the state) or empty; a PIE
+%             in two or more variables is an error;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   degrees of P;
@@ -112,6 +116,18 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %                return containers); L is the container of GETOBSERVER_SOP,
 %                which no longer builds an opvar copy. Header outputs
 %                updated.
+% MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
+%                convert_PIETOOLS_PDE for rank-deficient boundary
+%                conditions, e.g. periodic) is used: the block of the
+%                negativity condition on the state carries
+%                + K'*Z_K + Z_K'*K, Z_K free (EXEC_KMULT_SOP), so it holds
+%                on ker K only. On x_t = x_ss + lam*x + w1, periodic BCs,
+%                y = int x + w2, z = int x (optimal sqrt(lam+sqrt(lam^2+1)),
+%                the Kalman filter of the mean of x), no bound was certified
+%                before (status unknown); now 0.64359 at lam = -1, 1.55377
+%                at lam = 1; with y = int (s-1/2) x + w2 (mean unobservable)
+%                0.70711 at lam = -1, none at lam = 1. Programs without K
+%                unchanged. Header updated.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
@@ -139,6 +155,8 @@ eppos = tl.eppos;
 % EXEC_PIE_SOP returns every operator as a 'copvar': read as they are       % MMP, 11/04/2026
 % Tm = op2copvar_sop(PIE.T);  Am = op2copvar_sop(PIE.A);                    % MMP, 11/04/2026 (was)
 Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/04/2026
+% The constraint K x = 0 on the state, if any (empty for most PIEs)         % MMP, 11/07/2026
+Kcon = PIE.K;   hasK = isa(Kcon,'copvar') && size(Kcon,1)>0;                % MMP, 11/07/2026
 % Bw = op2copvar_sop(PIE.B1); Cz = op2copvar_sop(PIE.C1);                   % MMP, 11/04/2026 (was)
 Bw = PIE.B1;    Cz = PIE.C1;                                                % MMP, 11/04/2026
 % C2m = op2copvar_sop(PIE.C2);    D21m = op2copvar_sop(PIE.D21);            % MMP, 11/04/2026 (was)
@@ -197,8 +215,12 @@ end
         [spw,dmw] = copvar_space_list(Bw,'in');
         [prog,Wm] = lpivar_cdopvar(prog,dmw,spw,tl.dom,tl.zdeg);
         % The negativity (Dneg) and positivity (Dpos) constraints
+        % The state block, with K'*Z_K + Z_K'*K if K is given               % MMP, 11/07/2026
+        X22 = (Tm'*Pm)*Am + (Am'*Pm)*Tm + (Tm'*Zm)*C2m + (C2m'*Zm')*Tm;     % MMP, 11/07/2026
+        if hasK,    [prog,X22] = exec_kmult_sop(prog,X22,Kcon,Tm,tl.dom,Pm);    end  % MMP, 11/07/2026
         Dneg = [-(gamv*Iz),  Cz;
-                Cz',         (Tm'*Pm)*Am + (Am'*Pm)*Tm + (Tm'*Zm)*C2m + (C2m'*Zm')*Tm];
+%               Cz',         (Tm'*Pm)*Am + (Am'*Pm)*Tm + (Tm'*Zm)*C2m + (C2m'*Zm')*Tm];  % MMP, 11/07/2026 (was)
+                Cz',         X22];                                          % MMP, 11/07/2026
         D12 = Bw'*Pm + on_registry_sop(D21m',Zm')*Zm';
         Dpos = [Wm,       -D12;
                 -D12',    Pm];
