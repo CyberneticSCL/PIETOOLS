@@ -116,6 +116,7 @@ properties (Hidden)
     has_delay = false;      % Does the system involve any delayed states/inputs?
     has_hotd = false;       % Does the system involve any higher-order temporal derivatives?
     is_nonlinear = false;   % Is the PDE nonlinear?
+    constraint_ID = [];     % IDs of the outputs z that are static constraints 0=E(s), see initialize (DB 11/07/2026)
 end
 properties (Dependent)
     % Dimension of the system

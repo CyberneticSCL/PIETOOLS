@@ -278,6 +278,11 @@ PDE.w_tab = PDE.w_tab(new_order_w,:);
 [~,new_order_BC] = sort(PDE.BC_tab(:,1));
 PDE.BC_tab = PDE.BC_tab(new_order_BC,:);
 
+% DB 11/07/2026: equations 0=E(s) that hold on the whole domain are static
+% constraints, not boundary conditions: they are stored as outputs z flagged
+% in PDE.constraint_ID, see extract_static_constraints
+PDE = extract_static_constraints(PDE);
+
 % % % --------------------------------------------------------------- % % %
 % % % Build a full list of the spatial variables that appear, and
 % % % their domain.
@@ -688,12 +693,14 @@ end
 % % inputs, outputs, and BCs were encountered, what their sizes are, and on
 % % what variables they depend.
 if ~suppress_summary
-    print_initialization_summary(PDE,'x',ncomps_x);
-    print_initialization_summary(PDE,'u');
-    print_initialization_summary(PDE,'w');
-    print_initialization_summary(PDE,'y');
-    print_initialization_summary(PDE,'z');
-    print_initialization_summary(PDE,'BC');
+    PDE_sum = static_constraints(PDE,'drop');   % DB 11/07/2026: summarized apart from the outputs
+    print_initialization_summary(PDE_sum,'x',ncomps_x);
+    print_initialization_summary(PDE_sum,'u');
+    print_initialization_summary(PDE_sum,'w');
+    print_initialization_summary(PDE_sum,'y');
+    print_initialization_summary(PDE_sum,'z');
+    print_initialization_summary(PDE_sum,'BC');
+    print_initialization_summary(static_constraints(PDE,'only'),'BC',[],'static constraint');   % DB 11/07/2026
 end
 
 % Keep track of whether the PDE is nonlinear
@@ -2409,7 +2416,7 @@ end
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-function print_initialization_summary(PDE,obj,ncomps_x)
+function print_initialization_summary(PDE,obj,ncomps_x,name_override)
 % print_initialization_summary(PDE,obj,ncomps_x)
 % prints in the command window some information concerning how many
 % components "PDE.(obj)" were encountered, on what variables each of these
@@ -2446,6 +2453,9 @@ elseif strcmp(obj,'w')
     object_name = 'exogenous input';
 elseif strcmp(obj,'BC')
     object_name = 'boundary condition';
+end
+if nargin>=4 && ~isempty(name_override)
+    object_name = name_override;     % DB 11/07/2026
 end
 % If there are multiple components of the object, we add an 's' at the end.
 num_comps = numel(PDE.(obj));
@@ -2537,6 +2547,9 @@ for ii=1:num_comps
     % variables.
     if strcmp(obj,'BC')
         LHS_name = [' F',Lcomp_idx,'(',varnames_ii_t,') = 0'];
+        if nargin>=4 && ~isempty(name_override)
+            LHS_name = [' E',Lcomp_idx,'(',varnames_ii_t,') = 0'];   % static constraint
+        end
         LHS_length = length(obj) + LHS_length + 7;
     else
         LHS_name = [' ',obj,Lcomp_idx,'(',varnames_ii_t,')'];
@@ -2595,3 +2608,80 @@ end
 
 end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+function PDE = extract_static_constraints(PDE)
+% PDE = EXTRACT_STATIC_CONSTRAINTS(PDE) finds the static constraints
+% 0=E(s) among the equations 0=F(s) that were declared with the PDE: those
+% in which all terms evaluate a state at its own variables (no boundary
+% position, no integral), such as the continuity condition
+% 0 = d/ds1 v2 + d/ds2 v3. These are not boundary conditions: each is
+% removed from PDE.BC, and stored as an output z with the same terms, whose
+% ID is listed in PDE.constraint_ID. The converter uses the operator of
+% this output as additional rows of K in K*xf=0.
+%
+% DB 11/07/2026: Initial coding;
+is_int = false(numel(PDE.BC),1);
+iszeropoly = @(d) ~any(any(full(polynomial(d).coefficient)));
+for ii=1:numel(PDE.BC)
+    if ~isfield(PDE.BC{ii},'term') || isempty(PDE.BC{ii}.term)
+        continue
+    end
+    ok = true;      has_var = false;
+    for jj=1:numel(PDE.BC{ii}.term)
+        trm = PDE.BC{ii}.term{jj};
+        for kk=1:numel(trm)
+            if ~isfield(trm,'x') || isempty(trm(kk).x) || ~isfield(trm,'loc')
+                ok = false;     break
+            end
+            xv = PDE.x{trm(kk).x}.vars;     xv = xv(:,1);
+            loc = trm(kk).loc;
+            if numel(loc)~=numel(xv) || (isfield(trm,'I') && ~isempty(trm(kk).I) && any(~cellfun(@isempty,trm(kk).I)))
+                ok = false;     break
+            end
+            for mm=1:numel(xv)
+                if ~iszeropoly(loc(mm)-xv(mm))
+                    ok = false;     break
+                end
+            end
+            has_var = has_var || numel(xv)>0;
+        end
+        if ~ok
+            break
+        end
+    end
+    is_int(ii) = ok && has_var;
+end
+if ~any(is_int)
+    return
+end
+% The variables and domains of the states in the static constraints
+for ii=find(is_int)'
+    vars_c = polynomial(zeros(0,1));    names_c = cell(0,1);    dom_c = zeros(0,2);
+    for jj=1:numel(PDE.BC{ii}.term)
+        for kk=1:numel(PDE.BC{ii}.term{jj})
+            xk = PDE.x{PDE.BC{ii}.term{jj}(kk).x};
+            for mm=1:size(xk.vars,1)
+                if ~ismember(xk.vars(mm,1).varname{1},names_c)
+                    names_c{end+1,1} = xk.vars(mm,1).varname{1};
+                    vars_c = [vars_c; xk.vars(mm,1)];
+                    dom_c = [dom_c; xk.dom(mm,:)];
+                end
+            end
+        end
+    end
+    sz_c = size(PDE.BC{ii}.term{1}(1).C,1);
+    zi = struct('size',sz_c,'vars',vars_c,'dom',dom_c,'ID',stateNameGenerator,'term',{PDE.BC{ii}.term});
+    zc = PDE.z;     zc{end+1,1} = zi;       PDE.z = zc;
+    PDE.z_tab(end+1,:) = [size(PDE.z_tab,1)+1,sz_c,zeros(1,size(PDE.z_tab,2)-2)];
+    PDE.constraint_ID = [PDE.constraint_ID, zi.ID];
+end
+bc = PDE.BC;    bc(is_int) = [];    PDE.BC = bc;
+if size(PDE.BC_tab,1)==numel(is_int)
+    PDE.BC_tab(is_int,:) = [];
+    PDE.BC_tab(:,1) = (1:size(PDE.BC_tab,1))';
+else
+    PDE.BC_tab = zeros(numel(bc),size(PDE.BC_tab,2));   % rebuilt below
+end
+end

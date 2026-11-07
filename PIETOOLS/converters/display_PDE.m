@@ -77,6 +77,10 @@ end
 
 %fprintf([name,' = \n']);
 
+% DB 11/07/2026: static constraints 0=E(s) are displayed as equations
+% (not as outputs, and they are not boundary conditions)
+PDE = static_constraints(PDE);
+
 % Maximal number of characters we allow on a single line in the command 
 % window.
 width_max = 150;
