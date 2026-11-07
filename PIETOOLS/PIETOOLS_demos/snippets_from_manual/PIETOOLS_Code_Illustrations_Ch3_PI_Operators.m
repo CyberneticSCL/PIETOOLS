@@ -38,9 +38,14 @@ clear
 %   (A*v)(s) = [int_{-1}^{s} v1(th) + 2*v2(th) dth]
 %              [int_{-1}^{s} 3*v1(th) + 4*v2(th) dth]
 % for v=(v1,v2) in L2^2[-1,1]
-opvar A;
-A.I = [-1,1];
-A.R.R1 = [1,2; 3,4];
+% opvar A;                                                                  % DB, 11/06/2026 (was)
+% A.I = [-1,1];                                                             % DB, 11/06/2026 (was)
+% A.R.R1 = [1,2; 3,4];                                                      % DB, 11/06/2026 (was)
+% copvar objects are declared with "pi4_copvar_sop(P,Q1,Q2,R,dims,s,s_dum,dom)",% DB, 11/06/2026
+% where dims = [q0,p0; q1,p1] are the dimensions of the R and L2 parts of the% DB, 11/06/2026
+% output (q) and input (p), and R = {R0,R1,R2} (with [] for a zero parameter)% DB, 11/06/2026
+pvar s s_dum                                                                % DB, 11/06/2026
+A = pi4_copvar_sop([],[],[],{[],[1,2; 3,4],[]},[0 0; 2 2],s,s_dum,[-1,1]);  % DB, 11/06/2026
 
 % Declare an opvar object representing the 3-PI operator
 % B: L2[0,1] --> L2^2[0,1] defined by
@@ -53,10 +58,11 @@ pvar s s_dum
 R0 = [1; s^2];
 R1 = [2*s; s*(s-s_dum)];
 R2 = [3*s_dum; (3/4)*(s^2-s)];
-opvar B;
-B.I = [0,1];
-B.var1 = s;      B.var2 = s_dum;
-B.R.R0 = R0;     B.R.R1 = R1;     B.R.R2 = R2;
+% opvar B;                                                                  % DB, 11/06/2026 (was)
+% B.I = [0,1];                                                              % DB, 11/06/2026 (was)
+% B.var1 = s;      B.var2 = s_dum;                                          % DB, 11/06/2026 (was)
+% B.R.R0 = R0;     B.R.R1 = R1;     B.R.R2 = R2;                            % DB, 11/06/2026 (was)
+B = pi4_copvar_sop([],[],[],{R0,R1,R2},[0 0; 2 1],s,s_dum,[0,1]);           % DB, 11/06/2026
 
 
 %% 3.1.4 Declaring 4-PI Operators
@@ -67,18 +73,23 @@ B.R.R0 = R0;     B.R.R1 = R1;     B.R.R2 = R2;
 %              [-s*x2 +v(s) +int_{0}^{s}(s-th)*v(th)dth +int_{s}^{3}s*v(th)dth    ]
 %              [s*x1 +s^3*v(s) +int_{0}^{s}th*v(th)dth +int_{s}^{3}(th-s)*v(th)dth]
 % for q=(x,v1,v2) in R x L2^2[0,3].
-pvar s tt
-P = [-1,2];
-Q1 = (3-s^2);
-Q2 = [0,-s; s,0];
-R0 = [1; s^3]; R1 = [s-tt; tt]; R2 = [s; tt-s];
-opvar C;
-C.I = [0,3];
-C.var1 = s; C.var2 = tt;
-C.P = P;
-C.Q1 = Q1;
-C.Q2 = Q2;
-C.R.R0 = R0; C.R.R1 = R1; C.R.R2 = R2;
+% pvar s tt                                                                 % DB, 11/06/2026 (was)
+% P = [-1,2];                                                               % DB, 11/06/2026 (was)
+% Q1 = (3-s^2);                                                             % DB, 11/06/2026 (was)
+% Q2 = [0,-s; s,0];                                                         % DB, 11/06/2026 (was)
+% R0 = [1; s^3]; R1 = [s-tt; tt]; R2 = [s; tt-s];                           % DB, 11/06/2026 (was)
+% opvar C;                                                                  % DB, 11/06/2026 (was)
+% C.I = [0,3];                                                              % DB, 11/06/2026 (was)
+% C.var1 = s; C.var2 = tt;                                                  % DB, 11/06/2026 (was)
+% C.P = P;                                                                  % DB, 11/06/2026 (was)
+% C.Q1 = Q1;                                                                % DB, 11/06/2026 (was)
+% C.Q2 = Q2;                                                                % DB, 11/06/2026 (was)
+% C.R.R0 = R0; C.R.R1 = R1; C.R.R2 = R2;                                    % DB, 11/06/2026 (was)
+P = [-1,2];                                                                 % DB, 11/06/2026
+Q1 = (3-s^2);                                                               % DB, 11/06/2026
+Q2 = [0,-s; s,0];                                                           % DB, 11/06/2026
+R0 = [1; s^3]; R1 = [s-s_dum; s_dum]; R2 = [s; s_dum-s];   % dummy variable s_dum% DB, 11/06/2026
+C = pi4_copvar_sop(P,Q1,Q2,{R0,R1,R2},[1 2; 2 1],s,s_dum,[0,3]);            % DB, 11/06/2026
 
 
 %% 3.2.1 Declaring 9-PI Operators
@@ -94,6 +105,7 @@ opvar2d D;
 D.var1 = [s1;s2];
 D.I = [0,1; 1,2];
 D.R22{2,3} = N12;
+D = op2copvar_sop(D);     % convert the opvar2d to a copvar                 % DB, 11/06/2026
 
 % Declare an opvar2d object representing the 9-PI operator
 % E: L2[[0,1]x[-1,1]] --> L2[[0,1]x[-1,1]] defined by
@@ -101,14 +113,20 @@ D.R22{2,3} = N12;
 %               +int_{x}^{1}(x-th)*y*v(th,y)dth
 %                   +int_{x}^{1}int_{-1}^{y}(x-th)*(y-nu)*v(th,nu) dnu dth
 % for v in L2[[0,1]x[-1,1]]
-pvar s1 s2 th1 th2
-N00 = s1^2 * s2^2;      N01 = s1*(s2-th2);
-N20 = (s1-th1)*s2;      N21 = (s1-th1)*(s2-th2);
+% pvar s1 s2 th1 th2                                                        % DB, 11/06/2026 (was)
+% N00 = s1^2 * s2^2;      N01 = s1*(s2-th2);                                % DB, 11/06/2026 (was)
+% N20 = (s1-th1)*s2;      N21 = (s1-th1)*(s2-th2);                          % DB, 11/06/2026 (was)
+% (for a copvar, the dummy variables must be named s1_dum, s2_dum)          % DB, 11/06/2026
+pvar s1 s2 s1_dum s2_dum                                                    % DB, 11/06/2026
+N00 = s1^2 * s2^2;      N01 = s1*(s2-s2_dum);                               % DB, 11/06/2026
+N20 = (s1-s1_dum)*s2;   N21 = (s1-s1_dum)*(s2-s2_dum);                      % DB, 11/06/2026
 opvar2d E;
-E.var1 = [s1;s2]; E.var2 = [th1; th2];
+% E.var1 = [s1;s2]; E.var2 = [th1; th2];                                    % DB, 11/06/2026 (was)
+E.var1 = [s1;s2]; E.var2 = [s1_dum; s2_dum];                                % DB, 11/06/2026
 E.I = [0,1; -1,1];
 E.R22{1,1} = N00; E.R22{1,2} = N01;
 E.R22{3,1} = N20; E.R22{3,2} = N21;
+E = op2copvar_sop(E);     % convert the opvar2d to a copvar                 % DB, 11/06/2026
 
 
 %% 3.2.2 Declaring General 2D PI Operators
@@ -120,17 +138,26 @@ E.R22{3,1} = N20; E.R22{3,2} = N21;
 %     [y^2*v1(x) +int_{0}^{x}y*v1(th)dth +int_{0}^{x}int_{2}^{y}th*nu*v2(th,nu) dth dnu]
 % for v=(v0,v1,v2) in R x L2[0,2] x L2[[0,2]x[2,3]]
 
-pvar x y theta nu
-Rx0 = [1; x];
-Rxx_0 = [x; x^2]; Rxx_2 = [1; theta-x];
-Rx2_1 = [y; y^2 * (x-theta)];
-R2x_0 = y^2; R2x_1 = y;
-R22_11 = theta*nu;
+% pvar x y theta nu                                                         % DB, 11/06/2026 (was)
+% Rx0 = [1; x];                                                             % DB, 11/06/2026 (was)
+% Rxx_0 = [x; x^2]; Rxx_2 = [1; theta-x];                                   % DB, 11/06/2026 (was)
+% Rx2_1 = [y; y^2 * (x-theta)];                                             % DB, 11/06/2026 (was)
+% R2x_0 = y^2; R2x_1 = y;                                                   % DB, 11/06/2026 (was)
+% R22_11 = theta*nu;                                                        % DB, 11/06/2026 (was)
+% (for a copvar, the dummy variables must be named x_dum, y_dum)            % DB, 11/06/2026
+pvar x y x_dum y_dum                                                        % DB, 11/06/2026
+Rx0 = [1; x];                                                               % DB, 11/06/2026
+Rxx_0 = [x; x^2]; Rxx_2 = [1; x_dum-x];                                     % DB, 11/06/2026
+Rx2_1 = [y; y^2 * (x-x_dum)];                                               % DB, 11/06/2026
+R2x_0 = y^2; R2x_1 = y;                                                     % DB, 11/06/2026
+R22_11 = x_dum*y_dum;                                                       % DB, 11/06/2026
 opvar2d F;
-F.var1 = [x; y]; F.var2 = [theta; nu];
+% F.var1 = [x; y]; F.var2 = [theta; nu];                                    % DB, 11/06/2026 (was)
+F.var1 = [x; y]; F.var2 = [x_dum; y_dum];                                   % DB, 11/06/2026
 F.I = [0,2; 2,3];
 F.Rx0 = Rx0;
 F.Rxx{1} = Rxx_0; F.Rxx{3} = Rxx_2;
 F.Rx2{2} = Rx2_1;
 F.R2x{1} = R2x_0; F.R2x{2} = R2x_1;
 F.R22{2,2} = R22_11;
+F = op2copvar_sop(F);     % convert the opvar2d to a copvar                 % DB, 11/06/2026

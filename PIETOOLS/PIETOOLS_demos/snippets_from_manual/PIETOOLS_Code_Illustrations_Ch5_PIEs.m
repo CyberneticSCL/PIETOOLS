@@ -89,51 +89,73 @@ PIE = convert(PDE,'pie')
 
 
 %% 5.5.1 Declaring a simple PIE
-opvar T A;
-T.I = [0,1];    A.I = [0,1];
-T.R.R1 = 1;  
-A.R.R0 = 2;     A.R.R1 = 10;
+% opvar T A;                                                                % DB, 11/06/2026 (was)
+% T.I = [0,1];    A.I = [0,1];                                              % DB, 11/06/2026 (was)
+% T.R.R1 = 1;                                                               % DB, 11/06/2026 (was)
+% A.R.R0 = 2;     A.R.R1 = 10;                                              % DB, 11/06/2026 (was)
+% Operators are declared as copvar objects, with "pi4_copvar_sop(P,Q1,Q2,R,dims,s,s_dum,dom)"% DB, 11/06/2026
+pvar s s_dum;       dom = [0,1];                                            % DB, 11/06/2026
+T = pi4_copvar_sop([],[],[],{[],1,[]},[0 0;1 1],s,s_dum,dom);               % DB, 11/06/2026
+A = pi4_copvar_sop([],[],[],{2,10,[]},[0 0;1 1],s,s_dum,dom);               % DB, 11/06/2026
 
 PIE1 = piess(T,A)
 
 %% 5.5.2 Declaring a PIE with disturbances and outputs
-opvar C;
-C.I = [0,1];    s = C.var1;
-C.Q1 = 1-s;
+% opvar C;                                                                  % DB, 11/06/2026 (was)
+% C.I = [0,1];    s = C.var1;                                               % DB, 11/06/2026 (was)
+% C.Q1 = 1-s;                                                               % DB, 11/06/2026 (was)
 
-PIE2 = piess(T,A,5*s,C,0)
+% PIE2 = piess(T,A,5*s,C,0)                                                 % DB, 11/06/2026 (was)
+C = pi4_copvar_sop([],1-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);             % DB, 11/06/2026
+B1 = pi4_copvar_sop([],[],5*s,{[],[],[]},[0 1;1 0],s,s_dum,dom);            % DB, 11/06/2026
+
+PIE2 = piess(T,A,B1,C,0)                                                    % DB, 11/06/2026
 PIE2.B1
 
 %% 5.5.3 Declaring a PIE with actuation and sensing
-opvar T C1 C2;
-T.I = [0,1];        C1.I = [0,1];    C2.I = [0,1];
-s = T.var1;         theta = T.var2;
-T.R.R1 = -s;        T.R.R2 = -theta;
-C1.Q1 = 0.5*s^2-s;  C2.Q1 = -s;
+% opvar T C1 C2;                                                            % DB, 11/06/2026 (was)
+% T.I = [0,1];        C1.I = [0,1];    C2.I = [0,1];                        % DB, 11/06/2026 (was)
+% s = T.var1;         theta = T.var2;                                       % DB, 11/06/2026 (was)
+% T.R.R1 = -s;        T.R.R2 = -theta;                                      % DB, 11/06/2026 (was)
+% C1.Q1 = 0.5*s^2-s;  C2.Q1 = -s;                                           % DB, 11/06/2026 (was)
 
-A = 0.5;    Tu = 1;     B1 = s*(2-s);
-D12 = 1;    D22 = 1;
+% A = 0.5;    Tu = 1;     B1 = s*(2-s);                                     % DB, 11/06/2026 (was)
+% D12 = 1;    D22 = 1;                                                      % DB, 11/06/2026 (was)
+T = pi4_copvar_sop([],[],[],{[],-s,-s_dum},[0 0;1 1],s,s_dum,dom);          % DB, 11/06/2026
+C1 = pi4_copvar_sop([],0.5*s^2-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);      % DB, 11/06/2026
+C2 = pi4_copvar_sop([],-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);             % DB, 11/06/2026
+
+A = pi4_copvar_sop([],[],[],{0.5,[],[]},[0 0;1 1],s,s_dum,dom);             % DB, 11/06/2026
+Tu = pi4_copvar_sop([],[],1,{[],[],[]},[0 1;1 0],s,s_dum,dom);              % DB, 11/06/2026
+B1 = pi4_copvar_sop([],[],s*(2-s),{[],[],[]},[0 1;1 0],s,s_dum,dom);        % DB, 11/06/2026
+D12 = pi4_copvar_sop(1,[],[],{[],[],[]},[1 1;0 0],s,s_dum,dom);             % DB, 11/06/2026
+D22 = D12;                                                                  % DB, 11/06/2026
 
 PIE3 = piess({T,0,Tu},A,{0,B1},{C1;C2},{0,D12;0,D22});
 
 %% 5.5.4 Taking Interconnections of PIEs
 % Impose the feedback law u(t)=K*v(t)
-opvar K;
-K.I = [0,1];    K.Q1 = 1;
+% opvar K;                                                                  % DB, 11/06/2026 (was)
+% K.I = [0,1];    K.Q1 = 1;                                                 % DB, 11/06/2026 (was)
+K = pi4_copvar_sop([],1,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);               % DB, 11/06/2026
 PIE3_CL1 = closedLoopPIE(PIE3,K)
 
 % Construct a Luenberger estimator with gain L*(vhat(t)-v(t))
-opvar L;        s = L.var1;
-L.I = [0,1];    L.Q2 = s*(1-s);
+% opvar L;        s = L.var1;                                               % DB, 11/06/2026 (was)
+% L.I = [0,1];    L.Q2 = s*(1-s);                                           % DB, 11/06/2026 (was)
+L = pi4_copvar_sop([],[],s*(1-s),{[],[],[]},[0 1;1 0],s,s_dum,dom);         % DB, 11/06/2026
 PIE3_CL2 = closedLoopPIE(PIE3,L,'observer')
 
 % Construct an estimator with as output the control law
-opvar T A C1;
-T.I = [0,1];    A.I = [0,1];    C1.I = [0,1];
-s = T.var1;         theta = T.var2;
-T.R.R1 = -s;        T.R.R2 = -theta;
-A.R.R0 = 0.5;       A.R.R1 = -s*(1-s)*theta;    A.R.R2 = A.R.R1;
-C1.Q1 = 0.5*s^2-s;
+% opvar T A C1;                                                             % DB, 11/06/2026 (was)
+% T.I = [0,1];    A.I = [0,1];    C1.I = [0,1];                             % DB, 11/06/2026 (was)
+% s = T.var1;         theta = T.var2;                                       % DB, 11/06/2026 (was)
+% T.R.R1 = -s;        T.R.R2 = -theta;                                      % DB, 11/06/2026 (was)
+% A.R.R0 = 0.5;       A.R.R1 = -s*(1-s)*theta;    A.R.R2 = A.R.R1;          % DB, 11/06/2026 (was)
+% C1.Q1 = 0.5*s^2-s;                                                        % DB, 11/06/2026 (was)
+T = pi4_copvar_sop([],[],[],{[],-s,-s_dum},[0 0;1 1],s,s_dum,dom);          % DB, 11/06/2026
+A = pi4_copvar_sop([],[],[],{0.5,-s*(1-s)*s_dum,-s*(1-s)*s_dum},[0 0;1 1],s,s_dum,dom);% DB, 11/06/2026
+C1 = pi4_copvar_sop([],0.5*s^2-s,[],{[],[],[]},[1 0;0 1],s,s_dum,dom);      % DB, 11/06/2026
 PIE3_est = piess(T,A,{[],-L},{C1;K})
 % Take interconnection to impose estimator based feedback
 PIE3_CL3 = pielft(PIE3,PIE3_est)

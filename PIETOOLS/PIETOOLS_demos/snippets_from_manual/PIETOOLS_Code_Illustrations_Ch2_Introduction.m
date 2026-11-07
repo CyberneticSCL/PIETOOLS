@@ -101,7 +101,7 @@ uinput.u = 0;                   % value of control as function of time
 uinput.w = sin(5*st)*exp(-st);  % value of disturbance as function of time
 
 % Simulate the ODE-PDE system using specified settings.
-[solution,grid] = PIESIM(odepde, opts, uinput);
+[solution,grids] = PIESIM(odepde, opts, uinput);
 
 % Extract values of the second state variables and thet output at each time step.
 tval = solution.timedep.dtime;
@@ -116,7 +116,7 @@ sgtitle('Open-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter',
 
 ax1 = subplot(1,2,1);
 box on
-surf(tval,grid,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tval,grids,phi2,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h=colorbar;     
 colormap jet
 ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
@@ -198,7 +198,7 @@ sgtitle('Closed-loop zero-state response with $w(t)=sin(5t)e^{-t}$','Interpreter
 
 ax1 = subplot(1,2,1);
 box on
-surf(tval,grid,phi2_cl,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
+surf(tval,grids,phi2_cl,'FaceAlpha',0.75,'Linestyle','--','FaceColor','interp','MeshStyle','row');
 h=colorbar;     
 colormap jet
 ylabel(h,'$|\dot{\mathbf{x}}(t,s)|$','interpreter', 'latex','FontSize',15)
