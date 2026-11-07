@@ -27,11 +27,19 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 % entry for the dimension of the PIE, the last entry for a higher one; or
 % max_raise) times.
 %
+% If PIE.K is nonempty, the PIE state satisfies K x = 0 (e.g. periodic
+% boundary conditions), and the negativity condition of 'P', 'Q', 'FP' and
+% 'FQ' carries + K'*Z + Z'*K, with Z a free operator, which vanishes on
+% ker K: the condition is imposed on ker K only. 'Pd' and 'Qd' are then
+% posed as 'P' and 'Q': without K they are not sufficient for stability.
+%
 % INPUT
 % - PIE:      'pie_struct' object of a 1-D or 2-D PIE, with T and A 'opvar'
 %             (1-D) or 'opvar2d' (2-D) objects, or of a container PIE in any
 %             number of variables, with T and A 'copvar' objects
-%             (EXEC_PIE_SOP); its other operators are not used;
+%             (EXEC_PIE_SOP), and K a 'copvar' object (the constraint
+%             K x = 0 on the state) or empty; its other operators are not
+%             used;
 % - settings: (optional) 'struct' of LPI settings, as returned by lpisettings
 %             or lpisettings_sop:
 %               dd1, dd12, options1, options12, override1   1-D degrees of P;
@@ -60,8 +68,8 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                          'inaccurate';
 %               form, epneg, eppos, nv   the LPI posed and the dimension;
 %               storage    'copvar' object, the solved P;
-%               D, N       'cdopvar' objects, the derivative operator and
-%                          the slack;
+%               D, N       'cdopvar' objects, the derivative operator
+%                          (with K'*Z + Z'*K when K is used) and the slack;
 %               maxre      double, in 1-D with settings.sop.witness the
 %                          largest real part of the eigenvalues of the
 %                          Legendre discretization of (A,T), else NaN;
@@ -141,6 +149,21 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 % MMP, 11/04/2026: P returned as a 'copvar' object, not converted to an
 %                opvar / opvar2d (maintainer decision: the executives
 %                return containers). Header output updated.
+% MMP, 11/07/2026: The constraint K x = 0 of the PIE (PIE.K, set by
+%                convert_PIETOOLS_PDE for rank-deficient boundary
+%                conditions, e.g. periodic, with auxiliary states) is used:
+%                in 'P', 'Q', 'FP', 'FQ' the negativity condition, which
+%                acts on the state x, carries + K'*Z + Z'*K, Z free, so it
+%                holds on ker K only. Without it the LPI was posed off
+%                ker K too, where the auxiliary dynamics miss a boundary
+%                condition: x_t = x_ss - x with periodic or Neumann BCs was
+%                infeasible, now certified, at decay rates up to the exact
+%                bound (V decays at rate 2: epneg 1.9 certified, 2.1
+%                infeasible). With K, 'Pd' and 'Qd' are posed as 'P' and
+%                'Q': they ignore K, and certified unstable PIEs
+%                (x_t = x_ss + x with periodic, Neumann or rank-deficient
+%                BCs; 7 of 8 runs). Programs without K unchanged.
+%                Header updated.
 
 % Default settings and form, as the stock executive of the PIE's dimension
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -181,6 +204,12 @@ end
 if nv>=2 && strcmp(form,'Q'),   form = 'P';     end     % no Q forms in N-D % MMP, 10/29/2026
 if nv>=2 && strcmp(form,'Qd'),  form = 'Pd';    end                         % MMP, 10/29/2026
 if nv>=2 && strcmp(form,'FQ'),  form = 'FP';    end                         % MMP, 10/29/2026
+% The constraint K x = 0 on the state, if any (empty for most PIEs)         % MMP, 11/07/2026
+Km = PIE.K;     hasK = isa(Km,'copvar') && size(Km,1)>0;                    % MMP, 11/07/2026
+% Dual forms test the PIE without K, which is not sufficient: 'Pd', 'Qd'    % MMP, 11/07/2026
+% certified x_t = x_ss + x, periodic BCs (unstable). Posed as 'P', 'Q'.     % MMP, 11/07/2026
+if hasK && strcmp(form,'Pd'),   form = 'P';     end                         % MMP, 11/07/2026
+if hasK && strcmp(form,'Qd'),   form = 'Q';     end                         % MMP, 11/07/2026
 % coercive = any(strcmp(form,{'P','Pd'}));                                  % MMP, 10/28/2026 (was)
 coercive = any(strcmp(form,{'P','Pd','FP'}));   % 'FP' sizes its slack as 'P' % MMP, 10/28/2026
 
@@ -291,6 +320,16 @@ end
                 prog = lpi_eq_sop(prog,Tm'*Qm - Pm);                        % MMP, 10/28/2026
                 Dm = Am'*Qm + Qm'*Am + epneg*(Tm'*Tm);                      % MMP, 10/28/2026
         end
+        % BEGIN MMP, 11/07/2026: Dm <= 0 on ker K only
+        % In the primal forms Dm acts on the state x; with Z free from the
+        % state space to the output space of K, x'(K'*Z + Z'*K)x = 0 when
+        % K x = 0, so Dm + K'*Z + Z'*K <= 0 gives Dm <= 0 on ker K.
+        if hasK && any(strcmp(form,{'P','Q','FP','FQ'}))
+            [spK,dmK] = copvar_space_list(Km,'out');    [spI,dmI] = copvar_space_list(Tm,'in');
+            [prog,Zm] = lpivar_cdopvar(prog,struct('out',dmK,'in',dmI),struct('out',{spK},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pm));
+            Dm = Dm + Km'*Zm + Zm'*Km;
+        end
+        % END MMP, 11/07/2026
         % Dm <= 0: the stock slack and an equality, or the slack sized from P
         if strcmp(st.sop.slack,'stock')
             [prog,Nm] = tl.slack(prog,Dm);
