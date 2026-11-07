@@ -156,6 +156,12 @@ function R = bl_bisect(dumpfile,opts)                                        % C
 %   20x margin.  Only the primal certification is skipped: the Farkas test
 %   still runs, and Mosek, SeDuMi and 'file' points are never skipped.
 %   cert_skip = Inf disables it.
+% CC, 11/07/2026: every eta leaves out the rows whose coefficients and b both
+%   lie below 1e-12 of their maxima, as sossolve's info.eta (10/30/2026) and
+%   bl_run: such a row is rounding residue and its ratio is O(1) at any x. The
+%   container 2-D programs carry such rows (stab2_rd: eta 5.2e-2 at MOSEK's
+%   point with them, 6.4e-10 without), so no point could pass psd_eta_tol.
+%   Programs without them are unchanged.
 
 if nargin < 2, opts = struct(); end
 cuadmm_path;
@@ -206,6 +212,12 @@ C.live = fullfile(P.outdir,sprintf('%s_%s_probes.tsv',tag,P.solver));
 % zeros, so a residual relative to ||b|| says nothing per row), and the face.
 C.rownorm  = full(sqrt(sum(C.As.^2,1)))';
 C.rownorm0 = full(sqrt(sum(C.At0.^2,1)))';
+% CC, 11/07/2026: residue rows (header) get an infinite norm, so their ratio is
+% 0 in every eta; b from the unpinned rows, the pin row (s*e_j, s*gamma) is kept
+bz = abs(C.b_un) <= 1e-12*max(abs(C.b_un));                                 % CC, 11/07/2026
+C.rownorm0(C.rownorm0 <= 1e-12*max(C.rownorm0) & bz) = Inf;                 % CC, 11/07/2026
+bz = [bz; false(numel(C.rownorm)-numel(bz),1)];                             % CC, 11/07/2026
+C.rownorm(C.rownorm <= 1e-12*max(C.rownorm) & bz) = Inf;                    % CC, 11/07/2026
 C.zero = arrayfun(@(N) false(N,1),Ks,'UniformOutput',false);  C.keep = true(vec_len,1);
 C.facemsg = 'off';
 if P.face
