@@ -43,6 +43,13 @@ function bl_run(chunk)
 % earlier as gamma = -0.0 with numerr 1. Reading sol.expr AFTER the solve gets
 % the complete system.
 %
+% CC, 11/07/2026: a solve with no point is recorded, not an error. sossolve
+%   returns x = [] on 'Primal program infeasible, no solution produced', which
+%   the container executives' dual-form LPIs give at dw 0 (hinfduco_rd1,
+%   ctrl_rd1, hinf2du_rd, measured 11/07); rel_b, eta, normx and the PSD
+%   margins are then NaN, and the SDP is still dumped. eta leaves out
+%   rounding-residue rows, as sossolve's info.eta (etaof).
+%
 % NO ACCEPT/REJECT IS STORED, only quantities. Three separate gates have already
 % manufactured a wrong answer in this campaign, so the file records enough to
 % diagnose a bad verdict afterwards WITHOUT re-solving: normx together with
@@ -105,6 +112,7 @@ for i = 1:numel(C)
         Atf=[]; bf=[];
         for q=1:sol.expr.num, Atf=[Atf,sol.expr.At{q}]; bf=[bf;sol.expr.b{q}]; end %#ok<AGROW>
         x  = sol.solinfo.RRx(:);
+        if isempty(x), x = nan(size(Atf,1),1);  row.note = 'no point'; end  % CC, 11/07/2026
         nb = norm(full(bf));
         row.rel_b = norm(full(Atf'*x-bf))/max(nb,eps);
         row.eta   = etaof(Atf,bf,x);                                        % CC, 09/27/2026
@@ -122,8 +130,10 @@ for i = 1:numel(C)
         % it is a slicing artefact and not a noise floor. The cone vector gives
         % +1.7e-11. rel_b above is unaffected: RRx and Atf are both decvartable.
         xc = sol.solinfo.x(:);
+        if ~isempty(xc)                                                     % CC, 11/07/2026
         [row.psd_min,row.psd_relmin] = psdmargin(xc,S);
         [~,row.psd_rel_bad]         = psdmargin(x,S);   % the wrong-vector value, kept visible
+        end                                                                 % CC, 11/07/2026
 
         I = sol.solinfo.info;
         row.t_mosek = getf(I,'cpusec');  row.feasratio = getf(I,'feasratio');
@@ -184,8 +194,15 @@ end
 function e = etaof(At,b,x)
 % CC, 09/27/2026: row-normwise backward error of x for At'x = b (header):
 % invariant to row scaling, unlike ||r||_2/||b||_2.  O(nnz(At)).
+% CC, 11/07/2026: rows whose coefficients and b both lie below 1e-12 of their
+%   maxima are left out, as in sossolve's info.eta (10/30/2026): such a row is
+%   rounding residue, and its ratio is O(1) at any x. Measured on the container
+%   2-D programs: stab2_rd eta 5.2e-2 with them, 6.4e-10 without (rel_b 9.0e-8).
 b = full(b(:));  rn = full(sqrt(sum(At.^2,1)))';
-e = max(abs(At'*x - b)./(rn*max(abs(x)) + abs(b) + realmin));
+%e = max(abs(At'*x - b)./(rn*max(abs(x)) + abs(b) + realmin));              % CC, 11/07/2026 (was)
+on = rn>1e-12*max(rn) | abs(b)>1e-12*max(abs(b));                           % CC, 11/07/2026
+r  = abs(At'*x - b);                                                        % CC, 11/07/2026
+e  = max(r(on)./(rn(on)*max(abs(x)) + abs(b(on)) + realmin));               % CC, 11/07/2026
 end
 
 function x = clippsd(x,S)

@@ -1,56 +1,55 @@
 function out = stab_mirror(PIE,st)
-% stab_mirror -- PIETOOLS_PIE2PDEstability, reproduced line for line up to the
-% solve, but RETURNING the operators so a residual can be measured at the
-% operator level.  The stock executive returns only (prog,P), and the LPI's
-% residual operator -- the thing that must be zero -- is internal to it.
+% stab_mirror -- PIETOOLS_stability_sop in form 'Q' (the PIE2PDE form), built as
+% that executive builds its first pass but NOT solved, RETURNING the operators.
+% bl_scale and bl_big need the SDP's shape before deciding to solve (Mosek's
+% dense Schur complement), and the executive solves internally.
 %
-% FAITHFULNESS IS CHECKED, NOT ASSUMED: t4 compares sdpshape(out.prog) against
-% sdpshape of the stock executive's captured program.  If m, Kf, Ns and nnz all
-% agree, the mirror poses the same SDP.
+% FAITHFULNESS IS CHECKED, NOT ASSUMED: sdpshape(out.prog) must equal sdpshape
+% of the executive's solved program (m, Kf, Ns, nnz) on the same PIE and
+% settings.
 %
-% Mirrors executives/PIETOOLS_PIE2PDEstability.m as of 2026-09-23.
+% CC, 11/07/2026: ported to the container executive. Deleted: the mirror of the
+%   stock PIETOOLS_PIE2PDEstability as of 2026-09-23 (poslpivar for P,
+%   get_lpivar_degs and lpivar for Q, lpi_eq for T'*Q = P, lpi_ineq or a
+%   poslpivar slack with lpi_eq for the negativity), which stops on Top.dim
+%   since convert returns copvar operators (3df33dcc, 10/29/2026); the opvar
+%   removal retires that executive. Now the 'Q' branch of the executive's
+%   assemble (MMP, 11/04/2026) at raise 0, the program it solves first, and
+%   only with bl_settings' max_raise 0. 1-D only: the executive poses 'Q' as
+%   'P' in two or more variables. Operators are cdopvar / copvar; out.Deop is
+%   the slack N, Dop + Deop == 0 as before.
 
 if ~isa(PIE,'pie_struct'), error('stab_mirror:type','PIE must be a pie_struct'); end
-PIE = initialize(PIE);
-Top = PIE.T;   Aop = PIE.A;
-
-dd1=st.dd1; dd12=st.dd12; options1=st.options1; options12=st.options12;
-override1=st.override1; eppos=st.eppos; epneg=st.epneg; eppos2=st.eppos2;  %#ok<NASGU>
+% CC, 11/07/2026 (start): the executive's setup, then its 'Q' assemble at dw 0
+PIE = exec_pie_sop(PIE);                    % every operator a copvar
+st  = exec_sop_settings(st);                % container options completed
+tl  = exec_tools_sop(PIE,st);   st.sop = tl.sop;
+if tl.nv~=1, error('stab_mirror:nv','1-D only: %d variables pose ''Q'' as ''P''',tl.nv); end
+dwbase = st.sop.dw_Q;                       % weight raise of the 'like' slack
+if ~isempty(st.sop.dw_feas),    dwbase = st.sop.dw_feas(min(tl.nv,end));    end
+eppos = tl.eppos;   epneg = tl.epneg;
+if ~isempty(st.sop.eppos_stab), eppos(:) = st.sop.eppos_stab;   end
+Top = PIE.T;    Aop = PIE.A;
 
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
-
-% STEP 1: positive Lyapunov operator
-[prog,P1op] = poslpivar(prog,Top.dim,dd1,options1);
-if override1~=1
-    [prog,P2op] = poslpivar(prog,Top.dim,dd12,options12);
-    Pop = P1op+P2op;
+if st.sop.keepdual, prog.sopeq = {};    end
+% P >= eppos2*T'*T, Q free with T'*Q = P
+[prog,Pop] = tl.storage(prog,Top,'in');
+Pop = Pop + eppos(2)*(Top'*Top);
+[spO,dmO] = copvar_space_list(Top,'out');   [spI,dmI] = copvar_space_list(Top,'in');
+[prog,Qop] = lpivar_cdopvar(prog,struct('out',dmO,'in',dmI),struct('out',{spO},'in',{spI}),tl.dom,get_lpivar_degs_sop(Pop));
+prog = lpi_eq_sop(prog,Top'*Qop - Pop);
+% A'*Q + Q'*A + epneg*P <= 0, by the slack the settings select
+Dop = Aop'*Qop + Qop'*Aop;
+if epneg~=0,    Dop = Dop + epneg*Pop;  end
+if strcmp(st.sop.slack,'stock')
+    [prog,Deop] = tl.slack(prog,Dop);
+    prog = lpi_eq_sop(prog,Dop+Deop,'symmetric');
 else
-    Pop = P1op;
+    o = struct('like',Pop,'dw',dwbase,'margin',st.sop.margin,'cap',tl.capfor(Dop));
+    [prog,Deop] = lpi_ineq_sop(prog,-Dop,o);
 end
-Pop = Pop + eppos2*Top'*Top;
-
-% Indefinite Qop with Top'*Qop = Pop
-Qdeg = get_lpivar_degs(Pop,Top);
-[prog,Qop] = lpivar(prog,Top.dim,Qdeg);
-prog = lpi_eq(prog,Top'*Qop-Pop);
-
-% STEP 2: the negativity operator
-Dop = Aop'*Qop+Qop'*Aop + epneg*Pop;
-
-% STEP 3: enforce negativity through an equality with a positive slack
-if st.sosineq_on
-    prog = lpi_ineq(prog,-Dop,st.opts);
-    Deop = [];
-else
-    [prog,De1op] = poslpivar(prog,Dop.dim,st.dd2,st.options2);
-    if st.override2~=1
-        [prog,De2op] = poslpivar(prog,Dop.dim,st.dd3,st.options3);
-        Deop = De1op+De2op;
-    else
-        Deop = De1op;
-    end
-    prog = lpi_eq(prog,Dop+Deop,'symmetric');
-end
+% CC, 11/07/2026 (end)
 
 out = struct('prog',prog,'Pop',Pop,'Qop',Qop,'Dop',Dop,'Deop',Deop,'Top',Top,'Aop',Aop);
 end
