@@ -135,6 +135,8 @@ function case_zero_class()
             cops{1,k} = [];
         end
         f.C.ops = cops;
+        % Zero blocks do not determine the dimensions of their columns: C is declared proper by hand
+        f.C.chkval = true;                                                  % DJ (CC), 11/06/2026
 
         g = combine_terms(f);
 

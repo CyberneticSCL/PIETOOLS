@@ -201,6 +201,8 @@ function case_dead_vars()
         Pop_dead.vars.in = [Pop_dead.vars.in, {'dead_in'}];
         Pop_dead.dom.in = [Pop_dead.dom.in; [0,1]];
         Pop_dead.depmat.in = [Pop_dead.depmat.in, zeros(d,1)];
+        % The dead variables are declared by hand; the field assignments unset chkval, so set it again
+        Pop_dead.chkval = true;                                             % DJ (CC), 11/06/2026
 
         [Pop_clean,is_zero] = clean_op(Pop_dead);
         if is_zero

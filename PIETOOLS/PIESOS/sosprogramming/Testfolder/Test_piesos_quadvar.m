@@ -766,12 +766,12 @@ Zn = [S.x1;S.x1.*S.x4];
 [i2,j2] = find(cellfun(@(b) isa(b,'tensopvar') && size(b.ops,2)==2,Zn.C.ops));
 assert(~isempty(i2),'The test needs a block with two factors.');
 blk = Zn.C.ops{i2(1),j2(1)};    blk.ops = {blk};
-Zn.C.ops{i2(1),j2(1)} = blk;    Zn.chkval = true;
+Zn.C.ops{i2(1),j2(1)} = blk;    Zn.chkval = true;    Zn.C.chkval = true;
 assert_err(@() piesos_quadvar(prog0,Zn,[],opts),'nested factors');
 assert_err(@() piesos_quadvar(prog0,S.x1,Zn,opts),'ZR with nested factors');
 % a zero row
 Z0 = [S.x1;S.x4];
-Z0.C.ops(2,:) = cell(1,size(Z0.C.ops,2));       Z0.chkval = true;
+Z0.C.ops(2,:) = cell(1,size(Z0.C.ops,2));       Z0.chkval = true;    Z0.C.chkval = true;
 assert_err(@() piesos_quadvar(prog0,Z0,[],opts),'Row 2 of ZL.C is zero');
 assert_err(@() piesos_quadvar(prog0,S.x1,Z0,opts),'Row 2 of ZR.C is zero');
 % a monomial with factors of different sizes (not constructed by dmonomials or
@@ -780,16 +780,16 @@ Zm = [S.y;otimes(S.y,S.y)];
 [i2,j2] = find(cellfun(@(b) isa(b,'tensopvar') && size(b.ops,2)==2,Zm.C.ops));
 assert(~isempty(i2),'The test needs a block with two factors.');
 blk = Zm.C.ops{i2(1),j2(1)};    blk.dims(2,1) = blk.dims(1,1)+1;
-Zm.C.ops{i2(1),j2(1)} = blk;    Zm.chkval = true;
+Zm.C.ops{i2(1),j2(1)} = blk;    Zm.chkval = true;    Zm.C.chkval = true;
 assert_err(@() piesos_quadvar(prog0,Zm,[],opts),'must have the same size');
 assert_err(@() piesos_quadvar(prog0,S.x1,Zm,opts),'must have the same size');
 % a block that is not a tensor-PI operator
 Zb = T*S.x1;
-Zb.C.ops{1,1} = T;                              Zb.chkval = true;
+Zb.C.ops{1,1} = T;                              Zb.chkval = true;    Zb.C.chkval = true;
 assert_err(@() piesos_quadvar(prog0,Zb,[],opts),'must be tensor-PI operators');
 % a row with blocks acting on functions of different variables
 Zs = [S.x1;S.x2];
-Zs.C.ops{1,2} = Zs.C.ops{2,2};                  Zs.chkval = true;
+Zs.C.ops{1,2} = Zs.C.ops{2,2};                  Zs.chkval = true;    Zs.C.chkval = true;
 assert_err(@() piesos_quadvar(prog0,Zs,[],opts),'must match that of output');
 end
 

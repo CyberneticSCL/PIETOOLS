@@ -76,6 +76,7 @@ function fnew = subs(f,var,val)
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/28/2026: Substitute constants in functionals of degree d>1;
+% DJ, 11/06/2026: Set chkval of the coefficients after editing them;
 
 if ~isa(f,'polyopvar')
     error("Input must be of type 'polyopvar'.")
@@ -206,6 +207,8 @@ for j=1:size(Z,1)
     f_j.C.ops = C.ops(:,j);
     f_j.C.dims.in = C.dims.in(j);
     f_j.C.depmat.in = C.depmat.in(j,:);
+    % A column of the checked C is consistent: editing its fields unset chkval
+    f_j.C.chkval = true;
     % Determine which factors in the monomial correspond to variables to
     % substitute, including repeated factors
     [is_fctr,val_idcs] = ismember(full(Z(j,:)),var_idcs);
@@ -257,6 +260,7 @@ for k=1:size(fnew.Z,1)
     fk.C.ops = fnew.C.ops(:,k);
     fk.C.dims.in = fnew.C.dims.in(k);
     fk.C.depmat.in = fnew.C.depmat.in(k,:);
+    fk.C.chkval = true;
     frest = frest + subs_fctrs(fk,var_idcs,val);
 end
 if isa(frest,'polyopvar')
@@ -385,6 +389,7 @@ function val = val_rows(val,idcs)
 val.C.ops = val.C.ops(idcs,:);
 val.C.dims.out = val.C.dims.out(idcs);
 val.C.depmat.out = val.C.depmat.out(idcs,:);
+val.C.chkval = true;
 val.dims.out = val.C.dims.out;
 val.depmat.out = val.C.depmat.out;
 end
@@ -540,6 +545,7 @@ for j=part_idcs
     f_j.C.ops = f.C.ops(:,j);
     f_j.C.dims.in = f.C.dims.in(j);
     f_j.C.depmat.in = f.C.depmat.in(j,:);
+    f_j.C.chkval = true;
     zj = full(f.Z(j,:));
     for k=1:numel(Pcell{j}{1})
         pos = Pcell{j}{1}(k);       Yk = Pcell{j}{2}{k};
@@ -592,6 +598,7 @@ else
             Cij.depmat.in = f.C.depmat.in(j,:);
             Cij.dims.out = f.C.dims.out(i);
             Cij.depmat.out = f.C.depmat.out(i,:);
+            Cij.chkval = true;
             if isempty(Yrows{i})
                 Yrows{i} = apply_op(Cij,Xcell(j));
             else
@@ -641,6 +648,7 @@ if any(is_kept)
     frest.C.ops = f.C.ops(:,is_kept);
     frest.C.dims.in = f.C.dims.in(is_kept);
     frest.C.depmat.in = f.C.depmat.in(is_kept,:);
+    frest.C.chkval = true;
     fnew = frest + fnew;
 end
 

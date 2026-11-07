@@ -69,6 +69,7 @@ function [f,is_zero] = clean_poly(f,ztol)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/06/2026: Set chkval of the coefficients after editing them;
 
 if nargin==1
     ztol = 1e-12;
@@ -122,6 +123,8 @@ if ~all(keep_mono)
     Cop.depmat.in = Cop.depmat.in(keep_mono,:);
     f.Z = f.Z(keep_mono,:);
 end
+% The edits above unset chkval, but C is still consistent: f was checked
+Cop.chkval = true;
 % Get rid of trailing zero columns in Z. Zeros before the last nonzero column may be the
 % positions of factors that are multipliers from R, see `polyopvar`, and removing them
 % would shift the factors that follow.

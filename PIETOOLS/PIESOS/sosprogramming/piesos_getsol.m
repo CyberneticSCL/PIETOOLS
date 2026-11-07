@@ -49,6 +49,7 @@ function dvar_sol = piesos_getsol(prog,dvar)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/06/2026: Keep chkval of a 'tensopmat' for its solution;
 
 % Check that the program structure is properly specified.
 if ~isa(prog,'struct')
@@ -69,6 +70,7 @@ elseif isa(dvar,'tensopmat')
     for j=1:numel(dvar.ops)
         dvar_sol.ops{j} = piesos_getsol(prog,dvar.ops{j});
     end
+    dvar_sol.chkval = dvar.chkval;
 elseif isa(dvar,'tensopvar')
     % The variable defines coefficients acting on distributed monomials
     dvar_sol = dvar;

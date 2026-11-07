@@ -47,6 +47,7 @@ function f = combine_terms(f)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/06/2026: Set chkval of the coefficients after editing them;
 
 if ~f.chkval
     f = initialize(f);
@@ -96,6 +97,8 @@ end
 Cop.ops = ops_new;
 Cop.depmat.in = depmat_new;
 Cop.dims.in = dims_new;
+% Editing the fields of a 'tensopmat' unsets chkval: the fields match the new blocks
+Cop.chkval = true;
 
 if any(any(Cop.depmat.out))
     f.C = Cop;
@@ -168,6 +171,7 @@ old_deg_nums = [old_deg_nums{:}];
 Cop.ops = [opcell{:}];
 Cop.depmat.in = Cop.depmat.in(old_deg_nums,:);
 Cop.dims.in = Cop.dims.in(old_deg_nums);
+Cop.chkval = true;
 Zmat_new = sparse([Zcell{:}]');
 
 % Set the new polynomial

@@ -362,6 +362,8 @@ function case_vars()
     C.vars.in = {'s1','s2','s3'};   C.dom.in = [0,1;0,2;0,3];
     % 5a: C does not act on s3
     C.depmat.in = [f.C.depmat.in,zeros(size(f.C.depmat.in,1),1)];
+    % The operators do not depend on s3, so initialize(C) would drop it: C is declared proper by hand
+    C.chkval = true;                                                        % DJ (CC), 11/06/2026
     g = f;      g.C = C;            g.chkval = false;
     h = initialize(g);              % f.vars.in = {s1,s2}
     if ~isequal(h.vars.in,{'s1','s2'}) || ~isequal(h.dom.in,[0,1;0,2]) || ...
@@ -376,6 +378,7 @@ function case_vars()
     end
     % 5b: C acts on s3
     C.depmat.in = [f.C.depmat.in,ones(size(f.C.depmat.in,1),1)];
+    C.chkval = true;                                                        % DJ (CC), 11/06/2026
     g = f;      g.C = C;            g.chkval = false;
     expect_error(@() initialize(g),'conflicts','C acting on variable missing in f');
 
