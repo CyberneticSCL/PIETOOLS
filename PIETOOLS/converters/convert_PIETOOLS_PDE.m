@@ -557,8 +557,13 @@ end
 if ~suppress_summary
     for obj_summary = {'x','u','w','y','z'}
         if strcmp(obj_summary{1},'x') && any(is_aux)
-            fprintf('\nAdded %d auxiliary states xf = F*x_pde; the other states are the declared spatial derivatives.\n',nnz(is_aux));
-            fprintf('The PIE state must satisfy PIE.K*xf = 0; the states are defined by PIE.pde2pie.x.C.\n');
+            % DB 11/07/2026: usual summary, where the auxiliary states are
+            % displayed as the operator F applied to x, and a note on K*xf=0
+            if size(PIE.x_tab,1)>=1
+                print_convert_summary(PIE,'x',tdiff_tab(:,2),'',find(is_aux)',F_cell(is_aux));
+            end
+            fprintf('\nThe PIE state must satisfy PIE.K*xf = 0.\n');
+            fprintf('The states are defined by PIE.pde2pie.x.C.\n');
         elseif size(PIE.([obj_summary{1},'_tab']),1)>=1
             print_convert_summary(PIE,obj_summary{1},tdiff_tab(:,2));
         end
@@ -570,7 +575,7 @@ end
 
 
 %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %% %%
-function print_convert_summary(PIE,obj,tdiff_list)
+function print_convert_summary(PIE,obj,tdiff_list,aux_msg,aux_idcs,F_aux)
 % PRINT_CONVERT_SUMMARY(PIE,obj,tdiff_list) prints information in the
 % command window on how the state variables, inputs, and outputs in the
 % computed PIE structure relate to those in the original PDE.
@@ -615,6 +620,9 @@ else
     % Indicate how the new components relate to those in the PDE
     has_diffs = true;
     fprintf(['\n','The following ',object_name,'s have been introduced:\n']);  
+    if nargin>=4 && ~isempty(aux_msg)
+        fprintf(aux_msg);       % DB 11/07/2026
+    end
 end
 
 % Use UNICODE to add subscript indices to different components.
@@ -760,7 +768,28 @@ for ii=1:ncomps
         end
         RHS_name = [diff_str,RHS_name];
     end
-    
+    if nargin>=6 && ismember(ii,aux_idcs)
+        % DB 11/07/2026: auxiliary state xf=F*x, displayed as the integral
+        % form of F*x (not as a boundary value of x)
+        F_str = 'F*x';
+        try
+            F_blk = F_aux{aux_idcs==ii};
+            F_d = get_display(F_blk,varname2display(['x',Rcomp_idx]));
+            if F_d.ok
+                F_str = '';
+                for kk=1:numel(F_d.terms)
+                    if kk==1
+                        sgn = repmat('-',1,F_d.signs(kk)<0);
+                    else
+                        sgn = [' ',char(43+2*(F_d.signs(kk)<0)),' '];
+                    end
+                    F_str = [F_str,sgn,F_d.terms{kk}];
+                end
+            end
+        catch
+        end
+        RHS_name = [diff_str,thin_space,F_str];
+    end
     % % % Finally, display:
     MT_space = max(LHS_length_max-LHS_length,1);
     fprintf(['  ',LHS_name,repmat(' ',[1,MT_space]),' <--  ',RHS_name,'\n']);

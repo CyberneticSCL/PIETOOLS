@@ -10,9 +10,9 @@
 % The smallest eigenvalue of -(d^2/ds1^2 + d^2/ds2^2) with these BCs is
 % 2*pi^2, so the open-loop system is unstable, with growth rate lam-2*pi^2 = 1.
 % First we convert the above PDE to a PIE of the form:
-%   [T \dot{v}](t) = [A v](t) + [B u](t),
-% where v = d^2/(ds1 ds2) x is the fundamental state, and T maps v to x.
-% Then, to find a state feedback u = K*T*v that makes the closed-loop system
+%   [T \dot{xf}](t) = [A xf](t) + [B u](t),
+% where xf = d^2/(ds1 ds2) x is the fundamental state, and T maps xf to x.
+% Then, to find a state feedback u = K*T*xf that makes the closed-loop system
 % decay at rate alpha, we solve the dual LPI
 %   find_{P,Z}  P,Z
 %   s.t.        P>=0,
