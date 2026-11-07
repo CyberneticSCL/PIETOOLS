@@ -59,6 +59,7 @@ function C = otimes(A,B,otype)
 % DJ, 10/28/2026: Do not merge two states without spatial variables, e.g.
 %                   x.*x, into one factor;
 % DJ, 11/06/2026: Output space of C follows from C.C (see set.C);
+% DJ, 11/06/2026: Set chkval of C.C after replacing its blocks;
 
 % Check the type of product
 if nargin<3
@@ -144,6 +145,7 @@ if otype==1
             end
         end
         C.C.ops = ops;
+        C.C.chkval = true;
     end
 end
 

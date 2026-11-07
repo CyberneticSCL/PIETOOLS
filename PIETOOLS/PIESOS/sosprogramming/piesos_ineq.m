@@ -115,6 +115,7 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/23/2026: Pass the degrees per state to dmonomials;
+% DJ, 11/06/2026: Set chkval of f.C after removing the constant monomial;
 
 % % Check the inputs
 % Check the program structure
@@ -395,6 +396,7 @@ if any(is_const)
     f.C.ops = f.C.ops(:,keep);
     f.C.dims.in = f.C.dims.in(keep);
     f.C.depmat.in = f.C.depmat.in(keep,:);
+    f.C.chkval = true;
     f.Z = f.Z(keep,:);
 end
 

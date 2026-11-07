@@ -281,6 +281,7 @@ prog = sosdecvar(prog,c1);
 V = x1*x1;
 C = V.C;
 C.ops = {c1-3};
+C.chkval = true;                % the field assignment unsets chkval, see @tensopmat/subsasgn     % DJ (CC), 11/06/2026
 V.C = C;
 V.chkval = true;
 n0 = prog.expr.num;

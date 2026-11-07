@@ -18,7 +18,9 @@ function out = subsasgn(obj,ref,RHS)
 %               obj.ops(idcs1,idcs2) as a block;
 %
 % OUTPUTS
-% - out:    'tensopmat' object with the desired component value;
+% - out:    'tensopmat' object with the desired component value. After a
+%           '.'-type assignment, out.chkval=false, as the fields have not
+%           been checked since they were changed (chkval itself is just set);
 %
 % NOTES
 % - The indices of C{i,j} count the row- and column-blocks of obj.ops, as
@@ -58,10 +60,16 @@ function out = subsasgn(obj,ref,RHS)
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/23/2026: Support ':' in C{I,J}=RHS, as in 'subsref';
+% DJ, 11/06/2026: Set chkval=false after a '.'-type assignment;
 
 switch ref(1).type
     case '.'
         out = builtin('subsasgn',obj,ref,RHS);
+        % The fields are no longer known to be consistent: set chkval=true
+        % manually if they are
+        if ~strcmp(ref(1).subs,'chkval')
+            out.chkval = false;
+        end
     case '()'
         error("'()'-type subsassign is not supported for tensopmat objects.")
     case '{}'
