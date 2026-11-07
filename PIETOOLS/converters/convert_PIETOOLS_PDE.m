@@ -149,6 +149,35 @@ end
 if ~PDE.is_initialized
     PDE = initialize(PDE,true);
 end
+% DB 11/07/2026: outputs flagged as static constraints 0=E(s) (see
+% initialize) are not outputs of the PIE; their operator is added to K: the PDE is
+% converted without them, and with only them, which have the same
+% fundamental state, and their rows Cz are the rows of K that are added
+if ~isempty(PDE.constraint_ID) && ~return_Top
+    z_IDs = cellfun(@(zi) zi.ID,PDE.z);
+    is_con = ismember(z_IDs(:),PDE.constraint_ID(:));
+    PDE_con = PDE;      PDE_con.constraint_ID = [];
+    PDE_con.z = PDE.z(is_con);          PDE_con.z_tab = PDE.z_tab(is_con,:);
+    PDE_con.z_tab(:,1) = (1:nnz(is_con))';
+    PDE_main = PDE;     PDE_main.constraint_ID = [];
+    PDE_main.z = PDE.z(~is_con);        PDE_main.z_tab = PDE.z_tab(~is_con,:);
+    PDE_main.z_tab(:,1) = (1:nnz(~is_con))';
+    PIE = convert_PIETOOLS_PDE(PDE_main,[flag(:)',{'constraint_main'}]);
+    PIE_con = convert_PIETOOLS_PDE(PDE_con,[flag(:)',{'silent'}]);
+    for ic=1:numel(PDE_con.z)
+        for jc=1:numel(PDE_con.z{ic}.term)
+            if any(isfield(PDE_con.z{ic}.term{jc},{'w','u'}))
+                error("Constraints 0=F(s) cannot involve the inputs w or u.")
+            end
+        end
+    end
+    if isempty(PIE.K) || isempty(PIE.K.C)
+        PIE.K = PIE_con.Cz;
+    else
+        PIE.K = [PIE.K; PIE_con.Cz];
+    end
+    return
+end
 x_noeq = find(cellfun(@(xi) isfield(xi,'tdiff') && isnan(xi.tdiff),PDE.x));
 if ~isempty(x_noeq)
     error(['Conversion to PIE is not supported: no differential equation has been specified for state component(s) x{',strjoin(arrayfun(@num2str,x_noeq(:)','UniformOutput',false),'}, x{'),'}.',...
