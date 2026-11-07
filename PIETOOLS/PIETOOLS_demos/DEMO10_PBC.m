@@ -2,10 +2,7 @@
 %
 % This document illustrates how the decay rate of a PDE with periodic
 % boundary conditions can be certified using PIETOOLS, as in Section VI-A
-% of D. S. Jagt, S. Chernyshenko and M. M. Peet, "Representation and
-% Stability Analysis of 1D PDEs with Periodic Boundary Conditions,"
-% arXiv:2503.22896, 2025.
-% Specifically, we consider the following system:
+% of [1].  Specifically, we consider the following system:
 % PDE:      d/dt x(t,s) = lam*x(t,s) + (d^2/ds^2) x(t,s),   s in [-1,1];
 % BCs:                0 = x(t,-1) - x(t,1);
 %                     0 = d/ds x(t,-1) - d/ds x(t,1);
@@ -13,16 +10,16 @@
 % is unstable, but the mean-free part x - (1/2)int_{-1}^{1} x(t,s) ds
 % decays at rate pi^2-lam = 1.
 % First we convert the above PDE to a PIE of the form:
-%   [T \dot{v}](t,s) = [A v](t,s),    [K v](t,s) = 0;
-% where the PIE state v includes auxiliary states, and the second row of T
-% maps v to the PDE state x. Letting S be the mean operator,
+%   [T \dot{xf}](t,s) = [A xf](t,s),    [K xf](t,s) = 0;
+% where the PIE state xf includes auxiliary states, and the second row of T
+% maps xf to the PDE state x. Letting S be the mean operator,
 % [S x](s) = (1/2)int_{-1}^{1} x(r) dr, we then define Tt = (I-S)*T and
-% At = (I-S)*A, so that Tt*v is the mean-free part of x. To certify that
+% At = (I-S)*A, so that Tt*xf is the mean-free part of x. To certify that
 % it decays at rate alpha, we solve the LPI
 %   find_{P,X}  P,X
 %   s.t.        P>=0,
 %       At'*P*Tt + Tt'*P*At + 2*alpha*Tt'*P*Tt + X*K + K'*X' <= 0
-% where X is a slack variable enforcing the constraint K*v=0.
+% where X is a slack variable enforcing the constraint K*xf=0.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,7 +64,6 @@ eq_BC = [subs(x,s,-1)==subs(x,s,1);
 PDE = initialize([eq_PDE;eq_BC]);
 display(PDE);
 PIE = convert(PDE,'pie');
-display(PIE);
 %% Extract operators defining the PIE
 % Extract the PIE dynamics of the original PDE state
 T = PIE.pie2pde.x*PIE.T;    A = PIE.pie2pde.x*PIE.A;
@@ -105,3 +101,6 @@ Psol = getsol_lpivar_sop(prog,P);
 Xsol = getsol_lpivar_sop(prog,X);
 fprintf('\nCertified mean-free decay rate alpha = %.4f (analytical limit %.4f).\n', ...
     alpha,pi^2-lam);
+%[1] D. Jagt, S. Chernyshenko, and M. Peet. Representation and stability analysis of 1D PDEs
+% with periodic boundary conditions. In Proceedings of the IEEE Conference on Decision
+% and Control, pages 2050–2057. IEEE, 2025.
