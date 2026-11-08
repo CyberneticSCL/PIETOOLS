@@ -6,7 +6,8 @@
 %
 %   PIE  = 2D heat equation below
 %   st   = 2D PIETOOLS settings below
-%   LPI  = build_stab_2d_st2(PIE,st)
+%   LPI  = A.build(PIE,st), A = pielr_lpi('stability'): the form 'P' LPI of
+%          PIETOOLS_stability_sop with the stock slack
 %
 % PDE:
 %   x_t = x_s1s1 + x_s2s2 + lam*x,    (s1,s2) in [0,1]^2, x in R^n
@@ -32,6 +33,10 @@
 %   point, which this script calls, in place of build_stab_2d_st2.m: since the
 %   container port A.build no longer calls that file, and the low-rank session
 %   retires it (interface agreed 11/08).
+% CC, 11/08/2026: the LPI named in the header and the printout is the build
+%   of pielr_lpi('stability'), which since the low-rank container port
+%   (c3bfac42) poses the form 'P' LPI of PIETOOLS_stability_sop with the
+%   stock slack; build_stab_2d_st2 is no longer called.
 %% parameters
 n = 1;                          % Number of coupled heat-equation states.
 lam = 2;                        % Reaction coefficient in x_t = x_s1s1 + x_s2s2 + lam*x.
@@ -114,7 +119,8 @@ fprintf('  PDE: x_t = x_s1s1 + x_s2s2 + lam*x on [0,1]^2, x in R^%d\n', n);
 fprintf('  BC : x = 0 on all four edges\n');
 fprintf('  lam = %.8g  (lam / (2*pi^2) = %.6g)\n', lam, lam/lam_star);
 fprintf('  analytic stable iff lam < %.8g\n', lam_star);
-fprintf('  LPI: build_stab_2d_st2 with nd=%d\n', nd);
+% fprintf('  LPI: build_stab_2d_st2 with nd=%d\n', nd);                     % CC, 11/08/2026 (was)
+fprintf('  LPI: pielr_lpi(''stability'') with nd=%d\n', nd);                % CC, 11/08/2026
 t0 = tic;
 pvar s1 s2
 clear stateNameGenerator

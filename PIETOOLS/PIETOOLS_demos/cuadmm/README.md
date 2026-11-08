@@ -83,8 +83,12 @@ Not ported; each still calls the stock code:
   copies of `lpisolve` and the stock `poslpivar`), and `private/lpi_resid`, `opnorm_pi`,
   `opgram`, `pgridval`, `gaussleg`, `legval` (Galerkin matrices of `opvar` operators), now in
   `private_files/` there;
-- `heat2d_compare.m`, whose LPI comes from `lowrank_2d_stability/build_stab_2d_st2` (`opvar2d`);
 - `cuadmm_linear_psatz` (no caller): it stops on the missing `eq_opts_psatz`, see below.
+
+`heat2d_compare.m` runs on the container path since the low-rank package was ported (11/08/2026,
+c3bfac42): its LPI is the build of `pielr_lpi('stability')`, the form `'P'` LPI of
+`PIETOOLS_stability_sop` with the stock slack. Measured to assemble (nd 4: m 5721, blocks
+[8 744]); not re-run end to end.
 
 `stab2_rd_psz` and `stab2_rd_psz90` do not apply `pz`: the 2-D settings carry no `eq_opts_psatz`
 since the master merge of 10/27/2026, and the container's default slack holds the four linear
