@@ -65,7 +65,7 @@ PDE_t.x{1}.term{1}.x = [1;2];
 PDE_t.x{1}.term{1}.C = [-2*ad, -ad^2];
 
 % PDE: x1_{t} = ... + x2_{ss}
-PDE_t.PDE.A{4}.coeff = 1; PDE_t.PDE.A{4}.Lstate = 1; PDE_t.PDE.A{4}.Rstate = 2; PDE_t.PDE.A{4}.D = 2;
+%PDE_t.PDE.A{4}.coeff = 1; PDE_t.PDE.A{4}.Lstate = 1; PDE_t.PDE.A{4}.Rstate = 2; PDE_t.PDE.A{4}.D = 2;
 PDE_t.x{1}.term{2}.x = 2;
 PDE_t.x{1}.term{2}.D = 2;
 

@@ -1,11 +1,15 @@
 function results = test_convert_PIETOOLS_PDE_periodic_higher_order()
 %TEST_CONVERT_PIETOOLS_PDE_PERIODIC_HIGHER_ORDER Solver-free FTC regressions.
 % Tests scalar, vector and mixed differentiability orders without assuming a
-% particular basis for the auxiliary moments. No SDP solver is required.
-
-% MMP, 10/28/2026: PIE.Fop, PIE.Kop read as PIE.F, PIE.K, the pie_struct
-%                  property names since c578e16c; the old names raised
-%                  "Unrecognized ... field 'Fop'" in all 14 tests.
+% particular basis for the auxiliary moments, by the identities of the PIE
+% on the 'copvar' operators, see test_convert_PIETOOLS_PDE_periodic:
+%   K*xf = 0,   T*xf = [auxiliary states; PDE states],
+%   A*xf + B*inputs = [F*rhs; rhs].
+% No SDP solver is required.
+%
+% DB, 11/07/2026: Rewritten for the 'copvar' PIEs of the converter, as for
+%   test_convert_PIETOOLS_PDE_periodic (no PIE.F, PIE.misc.periodic, or
+%   x_tab ordering; the identities above instead).
 
 tests = {@periodic_first_order, @periodic_third_order, ...
     @periodic_fourth_order, @periodic_sixth_order, ...
@@ -57,12 +61,8 @@ if order>1
     PDE.x{1}.term{3} = struct('x',1,'D',order-1,'C',s);
 end
 x = 2+s^order*(1-s)^order;
-PIE = check_solution(PDE, x, 1);
-check_inverse_identities(PIE, order);
-% [k0,k1] = apply_pi(PIE.Kop, 0, 1);                                        % MMP, 10/28/2026 (was)
-[k0,k1] = apply_pi(PIE.K, 0, 1);                                            % MMP, 10/28/2026
-assert(poly_norm(k0)+poly_norm(k1)>1e-7, ...
-    'Periodic BCs must reject a constant nonzero highest derivative.');
+[PIE,xf] = check_solution(PDE, x, 1);
+check_rejects_constant_highest_derivative(PIE, xf);
 end
 
 function rank_zero_fourth_order()
@@ -70,20 +70,16 @@ function rank_zero_fourth_order()
 [s, sd] = variables();
 PDE = make_pde([s,sd], [0,1], 4, 1, 'taylor');
 x = 2+3*s+4*s^2+5*s^3+s^4*(1-s)^4;
-PIE = check_solution(PDE, x, 4);
-assert(PIE.misc.periodic.boundary_rank==0);
-check_inverse_identities(PIE, 4);
+check_solution(PDE, x, 4);
 end
 
 function guaranteed_moment_fourth_order()
 % A cubic moment cannot distinguish the free cubic kernel from the BCs.
-% Conversion must use independent dual moments instead.
 check_guaranteed_moment(4,2/21);
 end
 
 function guaranteed_moment_sixth_order()
-% The corresponding order-six fixture exercises the same fallback with
-% a fifth-degree kernel and a higher-degree FTC integral.
+% The corresponding order-six fixture, with a fifth-degree kernel.
 check_guaranteed_moment(6,1/220);
 end
 
@@ -96,27 +92,18 @@ for k = 1:order-2
     PDE.BC{k+1}.term = {struct('x',1,'D',k,'loc',0,'C',1)};
 end
 x = s^(order-1)/factorial(order-1)-alpha+s^order*(1-s)^order;
-PIE = check_solution(PDE,x,1);
-check_inverse_identities(PIE,order);
+check_solution(PDE,x,1);
 end
 
 function mixed_orders_and_vector_component()
-% The original first component is a two-vector of order 4, while the
-% second is scalar of order 2. Conversion reorders the latter first.
+% The first component is a two-vector of order 4, the second is scalar of
+% order 2.
 [s, sd] = variables();
 PDE = make_pde([s,sd], [0,1], [4,2], [2,1], 'periodic');
 PDE.x{1}.term{2} = struct('x',2,'D',1,'C',[1;2]);
 PDE.x{2}.term{2} = struct('x',1,'D',3,'C',[2,-1]);
 x = [2+s^4*(1-s)^4; 3+2*s^4*(1-s)^4; 4+3*s^2*(1-s)^2];
-PIE = check_solution(PDE, x, 3);
-physical = PIE.x_tab(PIE.x_tab(:,3)==1,:);
-assert(isequal(physical(:,1),[2;1]), ...
-    'Mixed differentiability orders must retain the original component IDs.');
-assert(isequal(physical(:,2:4),[1,1,2;2,1,4]), ...
-    'Physical metadata must preserve vector sizes and spatial orders.');
-assert(isequal(sort(PIE.misc.periodic.source_components),[1;1;2]), ...
-    'Every periodic scalar coordinate needs a correctly attributed moment.');
-check_inverse_identities(PIE, [2;4;4]);
+check_solution(PDE, x, 3);
 end
 
 function shifted_domain_and_variables()
@@ -126,25 +113,18 @@ dom = [-1,1];
 PDE = make_pde([s,sd], dom, 3, 1, 'periodic');
 x = 3+(s-dom(1))^3*(dom(2)-s)^3;
 PIE = check_solution(PDE, x, 1);
-assert(isequal(PIE.dom,dom));
-assert(all(all(isequal(PIE.vars,[s,sd]))));
-check_inverse_identities(PIE, 3);
+assert(isequal(double(PIE.space_pde.dom),dom), 'The domain must be preserved.');
 end
 
 function mixed_zero_and_fourth_order()
 % A distributed state with no spatial differentiability is already a
-% fundamental coordinate. Its reconstruction needs the R0 identity block.
+% fundamental coordinate.
 [s, sd] = variables();
 PDE = make_pde([s,sd],[0,1],[4,0],[1,1],'periodic');
 PDE.x{1}.term{2} = struct('x',2,'D',0,'C',s);
 PDE.x{2}.term{2} = struct('x',1,'D',2,'C',1);
 x = [2+s^4*(1-s)^4;3+s+s^2];
-PIE = check_solution(PDE,x,1);
-physical = PIE.x_tab(PIE.x_tab(:,3)==1,:);
-assert(isequal(physical(:,1),[2;1]));
-assert(isequal(physical(:,4),[0;4]));
-assert(isequal(PIE.misc.periodic.source_components,1));
-check_inverse_identities(PIE,[0;4]);
+check_solution(PDE,x,1);
 end
 
 function integral_third_order_boundaries()
@@ -155,8 +135,7 @@ PDE = make_pde([s,sd], [0,1], 3, 1, 'taylor');
 PDE.BC{1}.term = {struct('x',1,'D',2,'loc',s, ...
     'I',{{[0,1]}},'C',sd-1/2)};
 x = 2+3*s+4*s^2+s^3*(1-s)^3;
-PIE = check_solution(PDE, x, 3);
-check_inverse_identities(PIE, 3);
+check_solution(PDE, x, 3);
 end
 
 function higher_derivative_inputs_and_outputs()
@@ -177,32 +156,20 @@ PDE.y{1} = struct('vars',[],'size',1,'term', ...
       struct('w',1,'C',1),struct('u',1,'C',-1)}});
 % This periodic polynomial has nonzero first and third endpoint derivatives.
 x = 2+6*s^5-15*s^4+10*s^3-s+s^4*(1-s)^4;
-PDE = initialize(PDE,true);
-assert_poly_equal(boundary_values(PDE,x),zeros(4,1),'input/output fixture BCs');
-PIE = convert_PIETOOLS_PDE(PDE,'silent');
-% [q,~] = apply_pi(PIE.Fop,[],x);                                           % MMP, 10/28/2026 (was)
-[q,~] = apply_pi(PIE.F,[],x);                                               % MMP, 10/28/2026
-f = derivative(x,s,4);
-check_reconstruction(PIE,q,f,x,4);
 w = 2; u = -3;
+f = derivative(x,s,4);
 rhs = f+s^2*derivative(x,s,3)+(2-s)*derivative(x,s,1) ...
     +(s+1)*x+(2-s)*w+(1+s)*u;
-[a0,a1] = apply_pi(PIE.A,q,f);
-[b10,b11] = apply_pi(PIE.B1,w,[]);
-[b20,b21] = apply_pi(PIE.B2,u,[]);
-% [expected_qdot,~] = apply_pi(PIE.Fop,[],rhs);                             % MMP, 10/28/2026 (was)
-[expected_qdot,~] = apply_pi(PIE.F,[],rhs);                                 % MMP, 10/28/2026
-assert_poly_equal(a0+b10+b20,expected_qdot,'higher-order input moment dynamics');
-assert_poly_equal(a1+b11+b21,rhs,'higher-order input PDE dynamics');
-[z,~] = apply_pi(PIE.C1,q,f);
-[zw,~] = apply_pi(PIE.D11,w,[]);
-[zu,~] = apply_pi(PIE.D12,u,[]);
-assert_poly_equal(z+zw+zu,int((s+1)*derivative(x,s,2),s,0,1), ...
-    'integral higher-derivative output');
-[y,~] = apply_pi(PIE.C2,q,f);
-[yw,~] = apply_pi(PIE.D21,w,[]);
-[yu,~] = apply_pi(PIE.D22,u,[]);
-assert_poly_equal(y+yw+yu,subs(derivative(x,s,1),s,0) ...
+PDE = initialize(PDE,true);
+[PIE,xf] = check_solution(PDE,x,1,rhs,{w},{u});
+z = add_polys(first_of(pie_test_utils('apply',PIE.Cz,xf)), ...
+    first_of(pie_test_utils('apply',PIE.Dzw,{w})), ...
+    first_of(pie_test_utils('apply',PIE.Dzu,{u})));
+assert_poly_equal(z,int((s+1)*derivative(x,s,2),s,0,1),'integral higher-derivative output');
+y = add_polys(first_of(pie_test_utils('apply',PIE.Cy,xf)), ...
+    first_of(pie_test_utils('apply',PIE.Dyw,{w})), ...
+    first_of(pie_test_utils('apply',PIE.Dyu,{u})));
+assert_poly_equal(y,subs(derivative(x,s,1),s,0) ...
     +2*subs(derivative(x,s,3),s,1)+w-u,'boundary higher-derivative output');
 end
 
@@ -211,94 +178,114 @@ function public_conversion_paths()
 PDE = make_pde([s,sd],[0,1],4,1,'periodic');
 x = 2+s^4*(1-s)^4;
 PIE = convert_PIETOOLS_PDE(PDE,'silent');
-PIE_top = convert_PIETOOLS_PDE(PDE,{'silent','Top'});
 PIE_initialized = initialize(PIE);
-% [q,~] = apply_pi(PIE.Fop,[],x);                                           % MMP, 10/28/2026 (was)
-[q,~] = apply_pi(PIE.F,[],x);                                               % MMP, 10/28/2026
-f = derivative(x,s,4);
-check_reconstruction(PIE_top,q,f,x,4);
-check_reconstruction(PIE_initialized,q,f,x,4);
-assert(isequal(PIE.misc.periodic.source_components, ...
-    PIE_top.misc.periodic.source_components));
+PDE = initialize(PDE,true);
+rhs = state_rhs(PDE,x);
+check_identities(PIE,PDE,x,rhs,{},{});
+check_identities(PIE_initialized,PDE,x,rhs,{},{});
+PIE_top = convert_PIETOOLS_PDE(PDE,{'silent','Top'});
+assert(~isempty(PIE_top.T),'The flag Top must return T.');
 end
 
 function nonsingular_fourth_order()
 % Clamped conditions retain the original nonsingular conversion path.
 [s, sd] = variables();
-PDE = make_pde([s,sd],[0,1],4,1,'clamped');
+PDE = initialize(make_pde([s,sd],[0,1],4,1,'clamped'),true);
 PIE = convert_PIETOOLS_PDE(PDE,'silent');
-% assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
-%     'Nonsingular fourth-order conversion must not acquire auxiliary states.'); % MMP, 10/28/2026 (was)
-assert(isempty(PIE.F) && isempty(PIE.K), ...
-    'Nonsingular fourth-order conversion must not acquire auxiliary states.'); % MMP, 10/28/2026
+assert(isempty(PIE.K) || isempty(PIE.K.C), ...
+    'Nonsingular fourth-order conversion must not acquire auxiliary states.');
+[aux,~] = pie_test_utils('aux',PIE);
+assert(isempty(aux),'Nonsingular fourth-order conversion must not acquire auxiliary states.');
 x = s^2*(1-s)^2;
-f = derivative(x,s,4);
-[t0,t1] = apply_pi(PIE.T,[],f);
-assert(isempty(t0));
-assert_poly_equal(t1,x,'nonsingular fourth-order reconstruction');
-[a0,a1] = apply_pi(PIE.A,[],f);
-assert(isempty(a0));
-assert_poly_equal(a1,f,'nonsingular fourth-order dynamics');
+check_identities(PIE,PDE,x,state_rhs(PDE,x),{},{});
 end
 
-function PIE = check_solution(PDE,x,expected_aux)
+function [PIE,xf] = check_solution(PDE,x,expected_aux,rhs,w,u)
 PDE = initialize(PDE,true);
 assert_poly_equal(boundary_values(PDE,x),zeros(sum(PDE.BC_tab(:,2)),1), ...
     'test polynomial satisfies all declared BCs');
-rhs = state_rhs(PDE,x);
+if nargin<4 || isempty(rhs), rhs = state_rhs(PDE,x); end
+if nargin<5, w = {}; end
+if nargin<6, u = {}; end
 PIE = convert_PIETOOLS_PDE(PDE,'silent');
-assert(isfield(PIE.misc,'periodic'));
-assert(PIE.misc.periodic.n_aux==expected_aux,'Unexpected auxiliary-state count.');
-assert(isequal(PIE.T.dim,[expected_aux,expected_aux;numel(x),numel(x)]), ...
-    'Augmented reconstruction must be square.');
-finite_rows = PIE.x_tab(:,3)==0;
-assert(sum(PIE.x_tab(finite_rows,2))==expected_aux);
-assert(isequal(PIE.x_tab(finite_rows,1),PIE.misc.periodic.source_components));
-[x,orders] = physical_order(PDE,PIE,x);
-[rhs,~] = physical_order(PDE,PIE,rhs);
-% [q,~] = apply_pi(PIE.Fop,[],x);                                           % MMP, 10/28/2026 (was)
-[q,~] = apply_pi(PIE.F,[],x);                                               % MMP, 10/28/2026
-f = highest_derivatives(x,PIE.vars(1,1),orders);
-check_reconstruction(PIE,q,f,x,orders);
-[a0,a1] = apply_pi(PIE.A,q,f);
-% [expected_qdot,~] = apply_pi(PIE.Fop,[],rhs);                             % MMP, 10/28/2026 (was)
-[expected_qdot,~] = apply_pi(PIE.F,[],rhs);                                 % MMP, 10/28/2026
-assert_poly_equal(a0,expected_qdot,'auxiliary higher-order dynamics');
-assert_poly_equal(a1,rhs,'distributed higher-order dynamics');
+[aux,~] = pie_test_utils('aux',PIE);
+n_aux = sum(PIE.space.x.dims(aux));
+assert(n_aux==expected_aux,'Unexpected auxiliary-state count: %d, expected %d.',n_aux,expected_aux);
+xf = check_identities(PIE,PDE,x,rhs,w,u);
 end
 
-function check_reconstruction(PIE,q,f,x,orders)
-[r0,reconstructed] = apply_pi(PIE.misc.periodic.reconstruction,q,f);
-assert(isempty(r0));
-assert_poly_equal(reconstructed,x,'physical reconstruction');
-assert_poly_equal(highest_derivatives(reconstructed,PIE.vars(1,1),orders), ...
-    f,'componentwise highest-derivative identity');
-% [recovered_q,~] = apply_pi(PIE.Fop,[],reconstructed);                     % MMP, 10/28/2026 (was)
-[recovered_q,~] = apply_pi(PIE.F,[],reconstructed);                         % MMP, 10/28/2026
-assert_poly_equal(recovered_q,q,'moment identity');
-% [k0,k1] = apply_pi(PIE.Kop,q,f);                                          % MMP, 10/28/2026 (was)
-[k0,k1] = apply_pi(PIE.K,q,f);                                              % MMP, 10/28/2026
-% assert_poly_equal(k0,zeros(PIE.Kop.dim(1,1),1),'finite BC compatibility'); % MMP, 10/28/2026 (was)
-assert_poly_equal(k0,zeros(PIE.K.dim(1,1),1),'finite BC compatibility');    % MMP, 10/28/2026
-% assert_poly_equal(k1,zeros(PIE.Kop.dim(2,1),1),'distributed BC compatibility'); % MMP, 10/28/2026 (was)
-assert_poly_equal(k1,zeros(PIE.K.dim(2,1),1),'distributed BC compatibility'); % MMP, 10/28/2026
-[t0,t1] = apply_pi(PIE.T,q,f);
-assert_poly_equal(t0,q,'augmented finite identity');
-assert_poly_equal(t1,x,'augmented distributed reconstruction');
+function check_rejects_constant_highest_derivative(PIE,xf)
+[aux,main] = pie_test_utils('aux',PIE);
+bad = xf;
+for b = aux, bad{b} = polynomial(zeros(size(xf{b}))); end
+for b = main, bad{b} = polynomial(ones(size(xf{b}))); end
+Kx = pie_test_utils('apply',PIE.K,bad);
+assert(any(cellfun(@(c) ~isempty(c) && poly_norm(c)>1e-7,Kx)), ...
+    'Periodic BCs must reject a constant nonzero highest derivative.');
 end
 
-function check_inverse_identities(PIE,orders)
-% These two inverse identities must hold even when f violates the BCs.
-s = PIE.vars(1,1);
-q = (1:PIE.misc.periodic.n_aux)';
-n = PIE.T.dim(2,2);
-f = polynomial(ones(n,1))+s*(1:n)';
-[~,x] = apply_pi(PIE.misc.periodic.reconstruction,q,f);
-assert_poly_equal(highest_derivatives(x,s,orders),f, ...
-    'highest derivative of arbitrary reconstruction');
-% [recovered_q,~] = apply_pi(PIE.Fop,[],x);                                 % MMP, 10/28/2026 (was)
-[recovered_q,~] = apply_pi(PIE.F,[],x);                                     % MMP, 10/28/2026
-assert_poly_equal(recovered_q,q,'moments of arbitrary reconstruction');
+function v = first_of(c)
+v = c{1};
+end
+
+function xf = check_identities(PIE, PDE, x, rhs, w, u)
+% K*xf=0, T*xf=[aux; PDE states], and A*xf+B*inputs=[F*rhs; rhs]
+xf = pie_test_utils('xf', PIE, PDE, x);
+p2p = PIE.pde2pie.x;
+[aux, ~] = pie_test_utils('aux', PIE);
+if ~isempty(PIE.K) && ~isempty(PIE.K.C)
+    Kx = pie_test_utils('apply', PIE.K, xf);
+    for r = 1:numel(Kx)
+        assert(isempty(Kx{r}) || poly_norm(Kx{r})<1e-8, 'K*xf must vanish.');
+    end
+end
+Tx = pie_test_utils('apply', PIE.T, xf);
+Ax = pie_test_utils('apply', PIE.A, xf);
+if ~isempty(w) && ~isempty(PIE.Bw), Bw = pie_test_utils('apply',PIE.Bw,w); else, Bw = []; end
+if ~isempty(u) && ~isempty(PIE.Bu), Bu = pie_test_utils('apply',PIE.Bu,u); else, Bu = []; end
+for r = 1:numel(xf)
+    k = p2p.idx(r,1);
+    rhs_k = pie_test_utils('pde_state', PDE, rhs, k);
+    if ismember(r, aux)
+        assert_poly_equal(Tx{r}, xf{r}, sprintf('auxiliary identity of block %d',r));
+        expected = apply_F(PIE, r, rhs_k);
+    else
+        assert_poly_equal(Tx{r}, pie_test_utils('pde_state',PDE,x,k), ...
+            sprintf('reconstruction of block %d',r));
+        expected = rhs_k;
+    end
+    total = Ax{r};
+    if ~isempty(Bw) && ~isempty(Bw{r}), total = total+Bw{r}; end
+    if ~isempty(Bu) && ~isempty(Bu{r}), total = total+Bu{r}; end
+    assert_poly_equal(total, expected, sprintf('dynamics of block %d',r));
+end
+end
+
+function total = add_polys(varargin)
+% Sum of polynomials, where [] is a zero operator output
+total = [];
+for k = 1:numel(varargin)
+    if isempty(varargin{k}), continue, end
+    if isempty(total), total = varargin{k}; else, total = total+varargin{k}; end
+end
+end
+
+function q = apply_F(PIE, b, f)
+% The map xf_b = C_b*(derivative), applied to f
+Cb = PIE.pde2pie.x.C.C{b,b};
+tmp = pie_test_utils('apply', copvar({Cb}), {f});
+q = tmp{1};
+end
+
+function check_constraint_detects_invalid_state(PIE, xf)
+% K must reject a distributed state that is not a derivative of a periodic one
+[aux, main] = pie_test_utils('aux', PIE);
+bad = xf;
+for b = aux, bad{b} = polynomial(zeros(size(xf{b}))); end
+for b = main, bad{b} = polynomial(ones(size(xf{b}))); end
+Kx = pie_test_utils('apply', PIE.K, bad);
+assert(any(cellfun(@(c) ~isempty(c) && poly_norm(c)>1e-7, Kx)), ...
+    'K must reject an incompatible highest derivative.');
 end
 
 function PDE = make_pde(vars,dom,orders,sizes,kind)
@@ -371,52 +358,9 @@ for i = 1:numel(PDE.x)
 end
 end
 
-function [ordered,orders] = physical_order(PDE,PIE,value)
-offsets = [0;cumsum(PDE.x_tab(:,2))];
-rows = PIE.x_tab(PIE.x_tab(:,3)==1,:);
-ordered = polynomial(zeros(0,1)); orders = zeros(0,1);
-for k = 1:size(rows,1)
-    j = rows(k,1);
-    ordered = [ordered;value(offsets(j)+1:offsets(j+1))]; %#ok<AGROW>
-    orders = [orders;repmat(rows(k,4),rows(k,2),1)]; %#ok<AGROW>
-end
-end
-
-function f = highest_derivatives(x,s,orders)
-orders = orders(:);
-assert(numel(x)==numel(orders));
-f = polynomial(zeros(numel(x),1));
-for k = 1:numel(x)
-    f(k) = derivative(x(k),s,orders(k));
-end
-end
-
 function p = derivative(p,s,order)
 for k = 1:order
     p = diff(p,s);
-end
-end
-
-function [finite,distributed] = apply_pi(P,q,f)
-% Evaluate opvar kernels by polynomial integration.
-assert(isa(P,'opvar'));
-q = polynomial(reshape(q,numel(q),1));
-f = polynomial(reshape(f,numel(f),1));
-assert(numel(q)==P.dim(1,2) && numel(f)==P.dim(2,2));
-s = P.var1; sd = P.var2;
-finite = polynomial(zeros(P.dim(1,1),1));
-distributed = polynomial(zeros(P.dim(2,1),1));
-if P.dim(1,1)>0
-    if P.dim(1,2)>0, finite = finite+P.P*q; end
-    if P.dim(2,2)>0, finite = finite+int(P.Q1*f,s,P.I(1),P.I(2)); end
-end
-if P.dim(2,1)>0
-    if P.dim(1,2)>0, distributed = distributed+P.Q2*q; end
-    if P.dim(2,2)>0
-        distributed = distributed+P.R.R0*f ...
-            +int(P.R.R1*subs(f,s,sd),sd,P.I(1),s) ...
-            +int(P.R.R2*subs(f,s,sd),sd,s,P.I(2));
-    end
 end
 end
 

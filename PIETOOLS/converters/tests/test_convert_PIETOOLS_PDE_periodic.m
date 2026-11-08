@@ -1,25 +1,27 @@
 function results = test_convert_PIETOOLS_PDE_periodic()
-% CODEX generated test
-%TEST_CONVERT_PIETOOLS_PDE_PERIODIC Exact, solver-free PBC regressions.
-% Add PIETOOLS and the updated converters directory to the MATLAB path, then
-% run results = test_convert_PIETOOLS_PDE_periodic. No SDP solver or Symbolic
-% Math Toolbox is required: the checks use PIETOOLS' polynomial class.
+%TEST_CONVERT_PIETOOLS_PDE_PERIODIC Exact, solver-free regressions of the
+% conversion of 1D PDEs with periodic (and other) boundary conditions.
+% Add PIETOOLS and the converters directory to the MATLAB path, then run
+% results = test_convert_PIETOOLS_PDE_periodic. No SDP solver is required.
 %
-% The auxiliary coordinates need not use any particular nullspace basis.
-% We test their defining identities using q = F*x and f = d_s^2*x instead.
-
-% MMP, 10/28/2026: PIE.Fop, PIE.Kop and the struct fields 'Fop', 'Kop'
-%                  read as F, K, the pie_struct property names since
-%                  c578e16c; the old names raised "Unrecognized ... field
-%                  'Fop'" in 13 of the 19 tests. The display check reads
-%                  'F:', 'K:', as display.m prints them.
+% The PIEs are 'copvar' operators on the components of the PIE state xf,
+% see PIE.pde2pie. The tests evaluate the operators exactly on polynomials
+% (pie_test_utils), and check the defining identities, instead of the number
+% of auxiliary states, or the choice of their coordinates:
+%   K*xf = 0,   T*xf = [auxiliary states; PDE states],
+%   A*xf + B*inputs = [F*rhs; rhs],  with xf_b = C_b*D^{diff_b}x.
+%
+% DB, 11/07/2026: Rewritten for the 'copvar' PIEs of the converter. The tests
+%   of the removed interface (PIE.F, PIE.misc.periodic, the argument for the
+%   order of the components, the rejection of nearly singular BCs, which the
+%   converter now converts) were replaced by the identities above.
 
 tests = {@periodic_heat, @neumann_heat, @affine_kernel, @guaranteed_moment_fallback, ...
     @rank_zero_boundary_matrix, @mixed_components, @integral_boundaries, ...
     @shifted_domain_and_custom_variables, @repeated_boundary_terms, ...
-    @inputs_and_outputs, @public_conversion_paths, @reordered_source_metadata, ...
-    @dirichlet_compatibility, @small_determinant_dirichlet_rejection, ...
-    @nearly_singular_boundary_rejection, ...
+    @inputs_and_outputs, @public_conversion_paths, ...
+    @dirichlet_compatibility, @small_determinant_dirichlet, ...
+    @nearly_singular_boundary, ...
     @first_order_transport, @coupled_ode_pde, ...
     @two_dimensional_dirichlet, @unsupported_boundary_forcing};
 results = struct('name', cell(size(tests)), 'passed', false, 'message', '');
@@ -44,8 +46,8 @@ function periodic_heat()
 [s, sd] = variables();
 PDE = heat_pde([s, sd], [0, 1], 1, [1,0,-1,0; 0,1,0,-1]);
 x = 3 + s^2*(1-s)^2;
-[PIE, ~, K, q] = check_solution(PDE, x, 1);
-check_constraint_detects_invalid_state(PIE, K, q, 1);
+[PIE, xf] = check_solution(PDE, x, 1);
+check_constraint_detects_invalid_state(PIE, xf);
 end
 
 function neumann_heat()
@@ -63,18 +65,17 @@ end
 
 function guaranteed_moment_fallback()
 % The heuristic moment 2*s is dependent on x(0)+(2/3)*x_s(0)=0.
-% This forces the guaranteed dual-moment construction from Lemma 5.
 [s, sd] = variables();
 PDE = heat_pde([s, sd], [0, 1], 1, [1,2/3,0,0; 0,-1,0,1]);
 check_solution(PDE, s-2/3+s^2*(1-s)^2, 1);
 end
 
 function rank_zero_boundary_matrix()
-% Both BCs vanish on every affine function, so rank(G)=0 and n_aux=2.
+% Both BCs vanish on every affine function, so two moments are needed.
 [s, sd] = variables();
 PDE = heat_pde([s, sd], [0, 1], 1, [-1,-1,1,0; 0,-1,0,1]);
-[PIE, ~, K, q] = check_solution(PDE, 2 + 3*s + s^2*(1-s)^2, 2);
-check_constraint_detects_invalid_state(PIE, K, q, 1);
+[PIE, xf] = check_solution(PDE, 2 + 3*s + s^2*(1-s)^2, 2);
+check_constraint_detects_invalid_state(PIE, xf);
 end
 
 function mixed_components()
@@ -97,7 +98,6 @@ end
 function integral_boundaries()
 % Integral coefficients use the declared dummy variable. The first BC is
 % integral_0^1 (theta-1/2)*x(theta) dtheta - x_s(0)/12 = 0.
-% Together with x_s(1)=x_s(0), this leaves both affine modes free.
 [s, sd] = variables();
 PDE = heat_pde([s, sd], [0, 1], 1, [0,0,0,0; 0,-1,0,1]);
 PDE.BC{1}.term = {struct('x', 1, 'D', 0, 'loc', s, ...
@@ -114,8 +114,7 @@ r = s-dom(1);
 L = diff(dom);
 PDE = heat_pde([s, sd], dom, 1, [-1,-L,1,0; 0,-1,0,1]);
 PIE = check_solution(PDE, 7 + 2*r + r^2*(L-r)^2, 2);
-assert(isequal(PIE.dom, dom));
-assert(all(all(isequal(PIE.vars, [s, sd]))));
+assert(isequal(double(PIE.space_pde.dom),dom), 'The domain must be preserved.');
 end
 
 function repeated_boundary_terms()
@@ -152,32 +151,17 @@ PDE.y{1} = struct('vars', [], 'size', 1, 'term', ...
       struct('x', 1, 'loc', 1, 'D', 1, 'C', 2), ...
       struct('w', 1, 'C', 1), struct('u', 1, 'C', -1)}});
 x = 3 + s^2*(1-s)^2;
-PDE = initialize(PDE, true);
-PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-% F = PIE.Fop;                                                              % MMP, 10/28/2026 (was)
-F = PIE.F;                                                                  % MMP, 10/28/2026
-% K = PIE.Kop;                                                              % MMP, 10/28/2026 (was)
-K = PIE.K;                                                                  % MMP, 10/28/2026
-[q, ~] = apply_pi(F, [], x);
-f = diff(diff(x, s), s);
-check_reconstruction(PIE, F, K, q, f, x);
 w = 2;
 u = -3;
-rhs = f + (s+1)*x + s^2*diff(x,s) + (2-s)*w + (1+s)*u;
-[a0, a1] = apply_pi(PIE.A, q, f);
-[b10, b11] = apply_pi(PIE.B1, w, []);
-[b20, b21] = apply_pi(PIE.B2, u, []);
-[expected_qdot, ~] = apply_pi(F, [], rhs);
-assert_poly_equal(a0+b10+b20, expected_qdot, 'input moment dynamics');
-assert_poly_equal(a1+b11+b21, rhs, 'input PDE dynamics');
-[z, ~] = apply_pi(PIE.C1, q, f);
-[zw, ~] = apply_pi(PIE.D11, w, []);
-[zu, ~] = apply_pi(PIE.D12, u, []);
-assert_poly_equal(z+zw+zu, int((s+1)*x,s,0,1), 'integral output');
-[y, ~] = apply_pi(PIE.C2, q, f);
-[yw, ~] = apply_pi(PIE.D21, w, []);
-[yu, ~] = apply_pi(PIE.D22, u, []);
-assert_poly_equal(y+yw+yu, subs(x,s,0)+2*subs(diff(x,s),s,1)+w-u, ...
+rhs = diff(diff(x,s),s) + (s+1)*x + s^2*diff(x,s) + (2-s)*w + (1+s)*u;
+PDE = initialize(PDE, true);
+[PIE, xf] = check_solution(PDE, x, 1, rhs, {w}, {u});
+[z, dzw, dzu] = deal(pie_test_utils('apply',PIE.Cz,xf), ...
+    pie_test_utils('apply',PIE.Dzw,{w}), pie_test_utils('apply',PIE.Dzu,{u}));
+assert_poly_equal(add_polys(z{1},dzw{1},dzu{1}), int((s+1)*x,s,0,1), 'integral output');
+[y, dyw, dyu] = deal(pie_test_utils('apply',PIE.Cy,xf), ...
+    pie_test_utils('apply',PIE.Dyw,{w}), pie_test_utils('apply',PIE.Dyu,{u}));
+assert_poly_equal(add_polys(y{1},dyw{1},dyu{1}), subs(x,s,0)+2*subs(diff(x,s),s,1)+w-u, ...
     'boundary output with feedthrough');
 end
 
@@ -186,48 +170,24 @@ function public_conversion_paths()
 PDE = heat_pde([s, sd], [0, 1], 1, [1,0,-1,0; 0,1,0,-1]);
 assert(nargout('convert_PIETOOLS_PDE')==1, ...
     'The public PDE converter must return only the PIE structure.');
-PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-% F = PIE.Fop;                                                              % MMP, 10/28/2026 (was)
-F = PIE.F;                                                                  % MMP, 10/28/2026
-% K = PIE.Kop;                                                              % MMP, 10/28/2026 (was)
-K = PIE.K;                                                                  % MMP, 10/28/2026
-PIE_initialized = initialize(PIE);
-PIE_public = convert(PDE);
-PIE_top = convert_PIETOOLS_PDE(PDE, {'silent', 'Top'});
-% PIE_from_struct = pie_struct(struct('Fop', F, 'Kop', K));                 % MMP, 10/28/2026 (was)
-PIE_from_struct = pie_struct(struct('F', F, 'K', K));                       % MMP, 10/28/2026
-PIE_roundtrip = pie_struct(struct(PIE));
-display_text = evalc('display(PIE)');
-% assert(contains(display_text,'Fop:') && contains(display_text,'Kop:'), ...
-%     'PIE display must show the auxiliary operators.');                    % MMP, 10/28/2026 (was)
-assert(contains(display_text,'F:') && contains(display_text,'K:'), ...
-    'PIE display must show the auxiliary operators.');                      % MMP, 10/28/2026
 x = 2 + s^2*(1-s)^2;
-[q, ~] = apply_pi(F, [], x);
-f = diff(diff(x,s),s);
-% check_reconstruction(PIE_initialized, PIE_initialized.Fop, ...
-%     PIE_initialized.Kop, q, f, x);                                        % MMP, 10/28/2026 (was)
-check_reconstruction(PIE_initialized, PIE_initialized.F, ...
-    PIE_initialized.K, q, f, x);                                            % MMP, 10/28/2026
-% check_reconstruction(PIE_public, PIE_public.Fop, PIE_public.Kop, q, f, x); % MMP, 10/28/2026 (was)
-check_reconstruction(PIE_public, PIE_public.F, PIE_public.K, q, f, x);      % MMP, 10/28/2026
-% check_reconstruction(PIE_top, PIE_top.Fop, PIE_top.Kop, q, f, x);         % MMP, 10/28/2026 (was)
-check_reconstruction(PIE_top, PIE_top.F, PIE_top.K, q, f, x);               % MMP, 10/28/2026
-% check_reconstruction(PIE_roundtrip, PIE_roundtrip.Fop, ...
-%     PIE_roundtrip.Kop, q, f, x);                                          % MMP, 10/28/2026 (was)
-check_reconstruction(PIE_roundtrip, PIE_roundtrip.F, ...
-    PIE_roundtrip.K, q, f, x);                                              % MMP, 10/28/2026
-% [copied_q, ~] = apply_pi(PIE_from_struct.Fop, [], x);                     % MMP, 10/28/2026 (was)
-[copied_q, ~] = apply_pi(PIE_from_struct.F, [], x);                         % MMP, 10/28/2026
-assert_poly_equal(copied_q, q, 'struct constructor preserves moment operator');
-% [copied_k0, copied_k1] = apply_pi(PIE_from_struct.Kop, q, f);             % MMP, 10/28/2026 (was)
-[copied_k0, copied_k1] = apply_pi(PIE_from_struct.K, q, f);                 % MMP, 10/28/2026
-assert_poly_equal(copied_k0, zeros(K.dim(1,1),1), ...
-    'struct constructor preserves finite compatibility constraint');
-assert_poly_equal(copied_k1, zeros(K.dim(2,1),1), ...
-    'struct constructor preserves distributed compatibility constraint');
-% check_constraint_detects_invalid_state(PIE, PIE_from_struct.Kop, q, 1);   % MMP, 10/28/2026 (was)
-check_constraint_detects_invalid_state(PIE, PIE_from_struct.K, q, 1);       % MMP, 10/28/2026
+PIE = convert_PIETOOLS_PDE(PDE, 'silent');
+PIE_public = convert(PDE);
+PIE_initialized = initialize(PIE);
+PIE_roundtrip = pie_struct(struct(PIE));
+PIEs = {PIE, PIE_public, PIE_initialized, PIE_roundtrip};
+PDE = initialize(PDE, true);
+for k = 1:numel(PIEs)
+    xf = pie_test_utils('xf',PIEs{k},PDE,x);
+    Kx = pie_test_utils('apply',PIEs{k}.K,xf);
+    assert(all(cellfun(@(c) poly_norm(c)<1e-8,Kx)), 'K*xf must vanish.');
+    Tx = pie_test_utils('apply',PIEs{k}.T,xf);
+    assert_poly_equal(Tx{end}, x, 'reconstruction of the PDE state');
+end
+PIE_top = convert_PIETOOLS_PDE(PDE, {'silent', 'Top'});
+assert(~isempty(PIE_top.T), 'The flag Top must return T.');
+display_text = evalc('display(PIE)');
+assert(contains(display_text,'K'), 'The PIE display must show K.');
 end
 
 function dirichlet_compatibility()
@@ -235,78 +195,42 @@ function dirichlet_compatibility()
 B = [1,0,0,0; 0,0,1,0];
 PDE = heat_pde([s, sd], [0, 1], 1, B);
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-PIE_default = pie_struct();
-% assert(isempty(PIE_default.Fop) && isempty(PIE_default.Kop), ...
-%     'New PIE structures must default to empty auxiliary operators.');     % MMP, 10/28/2026 (was)
-assert(isempty(PIE_default.F) && isempty(PIE_default.K), ...
-    'New PIE structures must default to empty auxiliary operators.');       % MMP, 10/28/2026
-% assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
-%     'Ordinary PDE conversion must leave auxiliary operators empty.');     % MMP, 10/28/2026 (was)
-assert(isempty(PIE.F) && isempty(PIE.K), ...
-    'Ordinary PDE conversion must leave auxiliary operators empty.');       % MMP, 10/28/2026
+assert(isempty(PIE.K) || isempty(PIE.K.C), ...
+    'Ordinary PDE conversion must leave K empty.');
 x = s*(1-s)*(2+s);
-f = diff(diff(x,s),s);
-[t0, t1] = apply_pi(PIE.T, [], f);
-assert(isempty(t0));
-assert_poly_equal(t1, x, 'ordinary Dirichlet reconstruction');
-assert(PIE.T.dim(1,1)==0, 'Dirichlet must not acquire auxiliary states.');
-% Use scaling for which the original pinv retains both boundary directions.
-PDE_scaled = heat_pde([s, sd], [0, 1], 1, diag([1e-2, 1e2])*B);
+PDE = initialize(PDE, true);
+[aux, ~] = pie_test_utils('aux', PIE);
+assert(isempty(aux), 'Dirichlet must not acquire auxiliary states.');
+xf = pie_test_utils('xf',PIE,PDE,x);
+Tx = pie_test_utils('apply',PIE.T,xf);
+assert_poly_equal(Tx{1}, x, 'ordinary Dirichlet reconstruction');
+% Row-scaled BCs give the same PIE
+PDE_scaled = initialize(heat_pde([s, sd], [0, 1], 1, diag([1e-2, 1e2])*B), true);
 PIE_scaled = convert_PIETOOLS_PDE(PDE_scaled, 'silent');
-[~, scaled_x] = apply_pi(PIE_scaled.T, [], f);
-assert_poly_equal(scaled_x, x, 'row-scaled Dirichlet reconstruction');
-assert(PIE_scaled.T.dim(1,1)==0);
+xf = pie_test_utils('xf',PIE_scaled,PDE_scaled,x);
+Tx = pie_test_utils('apply',PIE_scaled.T,xf);
+assert_poly_equal(Tx{1}, x, 'row-scaled Dirichlet reconstruction');
 end
 
-function small_determinant_dirichlet_rejection()
-% Preserve the original converter's rejection even though G is full rank.
-% Its determinant is 1e-20 <= eps, and this must not select the PBC path.
+function small_determinant_dirichlet()
+% Dirichlet BCs of a very small norm are not rejected: the PIE is the same.
 [s, sd] = variables();
 B = 1e-10*[1,0,0,0; 0,0,1,0];
-PDE = heat_pde([s, sd], [0, 1], 1, B);
-try
-    convert_PIETOOLS_PDE(PDE, 'silent');
-catch exception
-    assert(contains(exception.message, ...
-        'The PI operator defining the boundary conditions appears not to be invertible.'), ...
-        'Small full-rank boundary matrices must keep the original invertibility error.');
-    return
-end
-error('A full-rank boundary matrix with determinant <= eps must be rejected.');
+PDE = initialize(heat_pde([s, sd], [0, 1], 1, B), true);
+PIE = convert_PIETOOLS_PDE(PDE, 'silent');
+x = s*(1-s)*(2+s);
+xf = pie_test_utils('xf',PIE,PDE,x);
+Tx = pie_test_utils('apply',PIE.T,xf);
+assert_poly_equal(Tx{end}, x, 'reconstruction for BCs of a small norm');
 end
 
-function nearly_singular_boundary_rejection()
-% Numerical rank alone would classify this matrix as singular, but its
-% determinant is nonzero and safely below eps. A long interval separates
-% the nonzero determinant from the numerical rank of the scaled matrix.
+function nearly_singular_boundary()
+% A nearly singular boundary matrix on a long interval is converted.
 [s, sd] = variables();
 B = [0,0,1e-10,0; 0,0,1,1e-7];
-PDE = heat_pde([s, sd], [0, 1e6], 1, B);
-try
-    convert_PIETOOLS_PDE(PDE, 'silent');
-catch exception
-    assert(contains(exception.message, ...
-        'The PI operator defining the boundary conditions appears not to be invertible.'), ...
-        'Nearly singular full-rank boundary matrices must keep the original error.');
-    return
-end
-error('A nonzero determinant <= eps must not select the periodic conversion.');
-end
-
-function reordered_source_metadata()
-[s, sd] = variables();
-B = zeros(4,8);
-B(1,[1,5]) = [1,-1];
-B(2,[3,7]) = [1,-1];
-B(3,[2,4,6]) = [-1,-1,1];
-B(4,[4,8]) = [-1,1];
-PDE = heat_pde([s, sd], [0,1], [1,1], B);
-order = struct('x', [2;1], 'y', [], 'z', [], 'u', [], 'w', []);
-PIE = convert_PIETOOLS_PDE(PDE, order, {'silent'});
-PIE_top = convert_PIETOOLS_PDE(PDE, order, {'silent','Top'});
-assert(isequal(PIE.misc.periodic.source_components, ...
-    PIE_top.misc.periodic.source_components), ...
-    'Top and full conversion must preserve the same source component IDs.');
+PDE = initialize(heat_pde([s, sd], [0, 1e6], 1, B), true);
+PIE = convert_PIETOOLS_PDE(PDE, 'silent');
+assert(~isempty(PIE.T), 'The conversion must return a PIE.');
 end
 
 function first_order_transport()
@@ -317,16 +241,14 @@ PDE.dom = [0,1];
 PDE.x{1} = struct('vars', [s,sd], 'dom', [0,1], 'size', 1, ...
     'diff', 1, 'term', {{struct('x',1,'D',1,'C',-1)}});
 PDE.BC{1} = struct('term', {{struct('x',1,'loc',0)}});
+PDE = initialize(PDE, true);
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
 x = s+s^2;
-f = diff(x,s);
-[t0,t1] = apply_pi(PIE.T, [], f);
-assert(isempty(t0));
-assert_poly_equal(t1, x, 'legacy transport reconstruction');
-[a0,a1] = apply_pi(PIE.A, [], f);
-assert(isempty(a0));
-assert_poly_equal(a1, -f, 'legacy transport dynamics');
-assert(isequal(PIE.T.dim,[0,0;1,1]));
+xf = pie_test_utils('xf',PIE,PDE,x);
+Tx = pie_test_utils('apply',PIE.T,xf);
+assert_poly_equal(Tx{end}, x, 'transport reconstruction');
+Ax = pie_test_utils('apply',PIE.A,xf);
+assert_poly_equal(Ax{end}, -diff(x,s), 'transport dynamics');
 end
 
 function coupled_ode_pde()
@@ -341,17 +263,13 @@ PDE.x{2} = struct('vars', [s,sd], 'dom', [0,1], 'size', 1, ...
     {{struct('x',2,'D',2,'C',1), struct('x',1,'C',s)}});
 PDE.BC{1} = struct('term', {{struct('x',2,'loc',0)}});
 PDE.BC{2} = struct('term', {{struct('x',2,'loc',1)}});
+PDE = initialize(PDE, true);
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-x = s*(1-s)*(2+s);
 q = 3;
-f = diff(diff(x,s),s);
-[t0,t1] = apply_pi(PIE.T, q, f);
-assert_poly_equal(t0, q, 'legacy coupled ODE identity');
-assert_poly_equal(t1, x, 'legacy coupled PDE reconstruction');
-[a0,a1] = apply_pi(PIE.A, q, f);
-assert_poly_equal(a0, -q+subs(diff(x,s),s,0), 'legacy coupled ODE dynamics');
-assert_poly_equal(a1, f+s*q, 'legacy coupled PDE dynamics');
-assert(isequal(PIE.T.dim,[1,1;1,1]));
+xpde = s*(1-s)*(2+s);
+x = [q; xpde];
+rhs = [-q+subs(diff(xpde,s),s,0); diff(diff(xpde,s),s)+s*q];
+check_identities(PIE, PDE, x, rhs, {}, {});
 end
 
 function two_dimensional_dirichlet()
@@ -368,17 +286,10 @@ for k = 1:4
     PDE.BC{k} = struct('term', {{struct('x',1,'loc',locations{k})}});
 end
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-assert(isa(PIE.T,'opvar2d'));
-% assert(isempty(PIE.Fop) && isempty(PIE.Kop), ...
-%     'Ordinary 2D PDE conversion must leave auxiliary operators empty.');  % MMP, 10/28/2026 (was)
-assert(isempty(PIE.F) && isempty(PIE.K), ...
-    'Ordinary 2D PDE conversion must leave auxiliary operators empty.');    % MMP, 10/28/2026
-assert(isequal(PIE.T.dim,[0,0;0,0;0,0;1,1]));
-x = s1*(1-s1)*s2*(1-s2);
-f = diff(diff(diff(diff(x,s1),s1),s2),s2);
-assert_poly_equal(apply_pure_2d(PIE.T,f), x, 'legacy 2D reconstruction');
-rhs = diff(diff(x,s1),s1)+diff(diff(x,s2),s2);
-assert_poly_equal(apply_pure_2d(PIE.A,f), rhs, 'legacy 2D heat dynamics');
+assert(isa(PIE.T,'copvar'), 'The 2D PIE must be a copvar.');
+assert(isempty(PIE.K) || isempty(PIE.K.C), ...
+    'Ordinary 2D PDE conversion must leave K empty.');
+assert(isequal(size(PIE.T.C),[1,1]), 'Ordinary 2D Dirichlet has a single state.');
 end
 
 function unsupported_boundary_forcing()
@@ -389,63 +300,92 @@ PDE.BC{1}.term{end+1} = struct('w',1,'C',1);
 try
     convert_PIETOOLS_PDE(PDE, 'silent');
 catch exception
-    assert(strcmp(exception.identifier,'PIETOOLS:convert:SingularBCInputs'), ...
+    assert(contains(exception.message,'inputs in the boundary conditions'), ...
         'Boundary forcing must fail with the documented unsupported-case error.');
     return
 end
 error('Boundary forcing with singular BCs must be rejected explicitly.');
 end
 
-function [PIE, F, K, q] = check_solution(PDE, x, expected_aux)
+function [PIE, xf] = check_solution(PDE, x, expected_aux, rhs, w, u)
+% Convert, and check the identities of the PIE on the PDE state x
 PDE = initialize(PDE, true);
 assert_poly_equal(boundary_values(PDE,x), zeros(sum(PDE.BC_tab(:,2)),1), ...
     'test polynomial satisfies declared BCs');
+if nargin<4 || isempty(rhs)
+    rhs = x;
+    for k = 1:numel(x)
+        rhs(k) = diff(diff(x(k),PDE.vars(1,1)),PDE.vars(1,1));
+    end
+end
+if nargin<5, w = {}; end
+if nargin<6, u = {}; end
 PIE = convert_PIETOOLS_PDE(PDE, 'silent');
-% F = PIE.Fop;                                                              % MMP, 10/28/2026 (was)
-F = PIE.F;                                                                  % MMP, 10/28/2026
-% K = PIE.Kop;                                                              % MMP, 10/28/2026 (was)
-K = PIE.K;                                                                  % MMP, 10/28/2026
-assert(isfield(PIE.misc, 'periodic'), 'Missing periodic conversion metadata.');
-assert(PIE.misc.periodic.n_aux==expected_aux, ...
-    'Unexpected number of auxiliary moment states.');
-assert(isequal(PIE.T.dim, [expected_aux,expected_aux;numel(x),numel(x)]), ...
-    'Augmented PIE.T must be square.');
-assert(sum(PIE.x_tab(PIE.x_tab(:,3)==0,2))==expected_aux, ...
-    'The finite auxiliary states must appear in PIE.x_tab.');
-assert(sum(PIE.x_tab(PIE.x_tab(:,3)==1,2))==numel(x));
-[q, ~] = apply_pi(F, [], x);
-assert(numel(q)==expected_aux);
-s = PDE.vars(1,1);
-f = diff(diff(x,s),s);
-check_reconstruction(PIE, F, K, q, f, x);
-[a0, a1] = apply_pi(PIE.A, q, f);
-[moment_rhs, ~] = apply_pi(F, [], f);
-assert_poly_equal(a0, moment_rhs, 'auxiliary heat dynamics');
-assert_poly_equal(a1, f, 'distributed heat dynamics');
+[aux, ~] = pie_test_utils('aux', PIE);
+n_aux = sum(PIE.space.x.dims(aux));
+assert(n_aux==expected_aux, ...
+    'Unexpected number of auxiliary states: %d, expected %d.', n_aux, expected_aux);
+xf = check_identities(PIE, PDE, x, rhs, w, u);
 end
 
-function check_reconstruction(PIE, F, K, q, f, x)
-[r0, reconstructed] = apply_pi(PIE.misc.periodic.reconstruction, q, f);
-assert(isempty(r0), 'PDE reconstruction must have no finite output.');
-assert_poly_equal(reconstructed, x, 'PDE reconstruction');
-s = PIE.vars(1,1);
-assert_poly_equal(diff(diff(reconstructed,s),s), f, 'second derivative identity');
-[recovered_q, ~] = apply_pi(F, [], reconstructed);
-assert_poly_equal(recovered_q, q, 'moment coordinate identity');
-[k0, k1] = apply_pi(K, q, f);
-assert_poly_equal(k0, zeros(K.dim(1,1),1), 'finite compatibility constraint');
-assert_poly_equal(k1, zeros(K.dim(2,1),1), 'distributed compatibility constraint');
-[t0, t1] = apply_pi(PIE.T, q, f);
-assert_poly_equal(t0, q, 'augmented finite identity');
-assert_poly_equal(t1, x, 'augmented reconstruction');
+function xf = check_identities(PIE, PDE, x, rhs, w, u)
+% K*xf=0, T*xf=[aux; PDE states], and A*xf+B*inputs=[F*rhs; rhs]
+xf = pie_test_utils('xf', PIE, PDE, x);
+p2p = PIE.pde2pie.x;
+[aux, ~] = pie_test_utils('aux', PIE);
+if ~isempty(PIE.K) && ~isempty(PIE.K.C)
+    Kx = pie_test_utils('apply', PIE.K, xf);
+    for r = 1:numel(Kx)
+        assert(isempty(Kx{r}) || poly_norm(Kx{r})<1e-8, 'K*xf must vanish.');
+    end
+end
+Tx = pie_test_utils('apply', PIE.T, xf);
+Ax = pie_test_utils('apply', PIE.A, xf);
+if ~isempty(w) && ~isempty(PIE.Bw), Bw = pie_test_utils('apply',PIE.Bw,w); else, Bw = []; end
+if ~isempty(u) && ~isempty(PIE.Bu), Bu = pie_test_utils('apply',PIE.Bu,u); else, Bu = []; end
+for r = 1:numel(xf)
+    k = p2p.idx(r,1);
+    rhs_k = pie_test_utils('pde_state', PDE, rhs, k);
+    if ismember(r, aux)
+        assert_poly_equal(Tx{r}, xf{r}, sprintf('auxiliary identity of block %d',r));
+        expected = apply_F(PIE, r, rhs_k);
+    else
+        assert_poly_equal(Tx{r}, pie_test_utils('pde_state',PDE,x,k), ...
+            sprintf('reconstruction of block %d',r));
+        expected = rhs_k;
+    end
+    total = Ax{r};
+    if ~isempty(Bw) && ~isempty(Bw{r}), total = total+Bw{r}; end
+    if ~isempty(Bu) && ~isempty(Bu{r}), total = total+Bu{r}; end
+    assert_poly_equal(total, expected, sprintf('dynamics of block %d',r));
+end
 end
 
-function check_constraint_detects_invalid_state(PIE, K, q, f)
-[k0, k1] = apply_pi(K, q, polynomial(f));
-assert(poly_norm(k0)+poly_norm(k1)>1e-7, ...
+function total = add_polys(varargin)
+% Sum of polynomials, where [] is a zero operator output
+total = [];
+for k = 1:numel(varargin)
+    if isempty(varargin{k}), continue, end
+    if isempty(total), total = varargin{k}; else, total = total+varargin{k}; end
+end
+end
+
+function q = apply_F(PIE, b, f)
+% The map xf_b = C_b*(derivative), applied to f
+Cb = PIE.pde2pie.x.C.C{b,b};
+tmp = pie_test_utils('apply', copvar({Cb}), {f});
+q = tmp{1};
+end
+
+function check_constraint_detects_invalid_state(PIE, xf)
+% K must reject a distributed state that is not a derivative of a periodic one
+[aux, main] = pie_test_utils('aux', PIE);
+bad = xf;
+for b = aux, bad{b} = polynomial(zeros(size(xf{b}))); end
+for b = main, bad{b} = polynomial(ones(size(xf{b}))); end
+Kx = pie_test_utils('apply', PIE.K, bad);
+assert(any(cellfun(@(c) ~isempty(c) && poly_norm(c)>1e-7, Kx)), ...
     'K must reject an incompatible highest derivative.');
-[~, invalid_x] = apply_pi(PIE.misc.periodic.reconstruction, q, polynomial(f));
-assert(poly_norm(diff(diff(invalid_x,PIE.vars(1,1)),PIE.vars(1,1))-f)<1e-7);
 end
 
 function PDE = heat_pde(vars, dom, sizes, B)
@@ -498,54 +438,6 @@ for i = 1:numel(PDE.BC)
         end
     end
     values = [values;value]; %#ok<AGROW>
-end
-end
-
-function [finite, distributed] = apply_pi(P, q, f)
-% Evaluate an opvar on an explicit polynomial, integrating its kernels.
-assert(isa(P,'opvar'), 'Expected a one-dimensional opvar.');
-q = polynomial(reshape(q,numel(q),1));
-f = polynomial(reshape(f,numel(f),1));
-assert(numel(q)==P.dim(1,2) && numel(f)==P.dim(2,2), ...
-    'Polynomial test input dimensions do not match the operator.');
-s = P.var1;
-sd = P.var2;
-finite = polynomial(zeros(P.dim(1,1),1));
-distributed = polynomial(zeros(P.dim(2,1),1));
-if P.dim(1,1)>0
-    if P.dim(1,2)>0, finite = finite+P.P*q; end
-    if P.dim(2,2)>0
-        finite = finite+int(P.Q1*f,s,P.I(1),P.I(2));
-    end
-end
-if P.dim(2,1)>0
-    if P.dim(1,2)>0, distributed = distributed+P.Q2*q; end
-    if P.dim(2,2)>0
-        distributed = distributed+P.R.R0*f ...
-            + int(P.R.R1*subs(f,s,sd),sd,P.I(1),s) ...
-            + int(P.R.R2*subs(f,s,sd),sd,s,P.I(2));
-    end
-end
-end
-
-function result = apply_pure_2d(P, f)
-% Evaluate the 2D-to-2D block when all other operator dimensions vanish.
-assert(all(all(P.dim(1:3,:)==0)));
-s = P.var1;
-t = P.var2;
-result = polynomial(zeros(P.dim(4,1),1));
-for i = 1:3
-    for j = 1:3
-        term = f;
-        if i>1, term = subs(term,s(1),t(1)); end
-        if j>1, term = subs(term,s(2),t(2)); end
-        term = P.R22{i,j}*term;
-        if i==2, term = int(term,t(1),P.I(1,1),s(1)); end
-        if i==3, term = int(term,t(1),s(1),P.I(1,2)); end
-        if j==2, term = int(term,t(2),P.I(2,1),s(2)); end
-        if j==3, term = int(term,t(2),s(2),P.I(2,2)); end
-        result = result+term;
-    end
 end
 end
 
