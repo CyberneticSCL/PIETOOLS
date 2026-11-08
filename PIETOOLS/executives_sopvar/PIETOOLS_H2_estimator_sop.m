@@ -47,7 +47,8 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 % - P, Z, W:  'copvar' objects, the solved P, Z and W;
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
-%                          'unbounded' or 'unknown';
+%                          'unbounded', 'unknown' or 'residual' (cuADMM,
+%                          which decides no feasibility: never certified);
 %               certified  logical, true when status is 'optimal' or
 %                          'inaccurate';
 %               form ('est'), gam, gam_lpi (equal to gam), nv;
@@ -128,6 +129,8 @@ function [prog,L,gam,P,Z,W,info] = PIETOOLS_H2_estimator_sop(PIE,settings)
 %                at lam = 1; with y = int (s-1/2) x + w2 (mean unobservable)
 %                0.70711 at lam = -1, none at lam = 1. Programs without K
 %                unchanged. Header updated.
+% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
+%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries

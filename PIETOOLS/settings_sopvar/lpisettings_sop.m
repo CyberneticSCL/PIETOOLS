@@ -28,7 +28,9 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 % - simplify: (optional) char, '' (default) or 'psimplify': simplify the
 %             SDP before it is solved;
 % - solver:   (optional) char, '' (default: MOSEK when installed, else
-%             SeDuMi), 'mosek', 'sedumi', 'sdpt3' or 'sdpnalplus'.
+%             SeDuMi), 'mosek', 'sedumi', 'sdpt3', 'sdpnalplus' or 'cuadmm'
+%             (the GPU executable of CUADMM_SEDUMI; the executives return
+%             status 'residual', never certified).
 %
 % OUTPUT
 % - st:       'struct' with fields
@@ -117,13 +119,17 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                max_raise_feas, max_raise, cap_delta) and settings_nd; the
 %                tiers now set cap_delta, so 'empty in every tier' in the
 %                entry above no longer holds. Code unchanged.
+% MMP, 11/07/2026: solver 'cuadmm' admitted. The arguments block rejected
+%                it, although sossolve has the option since 10/30/2026 and
+%                the executives classify its exit ('residual').
 
 % Admissible values and defaults of the inputs
 arguments
     type {mustBeMember(type,{'stripped','light','heavy','veryheavy','custom'})} = 'light';
     derivative_strictness {mustBeNonnegative} = 0;
     simplify {mustBeMember(simplify,{'','psimplify'})} = '';
-    solver {mustBeMember(solver,{'','sedumi','mosek','sdpt3','sdpnalplus'})} = '';
+%   solver {mustBeMember(solver,{'','sedumi','mosek','sdpt3','sdpnalplus'})} = ''; % MMP, 11/07/2026 (was)
+    solver {mustBeMember(solver,{'','sedumi','mosek','sdpt3','sdpnalplus','cuadmm'})} = ''; % MMP, 11/07/2026
 end
 % The settings of the tier
 switch type

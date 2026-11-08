@@ -116,9 +116,17 @@ function [sos,info] = sossolve(sos,options)
 %                   solver stores the m x m Schur complement. It decides no
 %                   infeasibility (pinf = dinf = 0); its point is judged by
 %                   relres and eta. Never chosen as the default solver.
+% 11/07/2026 - MMP - cuADMM: for params without the field tol, the SeDuMi
+%                   default tol = 1e-9 filled in below no longer reaches
+%                   CUADMM_SEDUMI; at 1e-9 cuADMM ran to its iteration limit
+%                   (measured: 30,000 of 30,000 iterations on a program that
+%                   converges in 9,173 at 1e-6). CUADMM_SEDUMI's own default
+%                   1e-6 applies, as for a call without params.
 
 % Record whether the caller supplied solver parameters.
 user_params = (nargin>=2) && isfield(options,'params');                     % MMP, 08/23/2026
+% And a tolerance: the default tol filled in below is SeDuMi's.             % MMP, 11/07/2026
+user_tol = user_params && isfield(options.params,'tol');                    % MMP, 11/07/2026
 
 if (nargin==1)
     %Default options from old sossolve
@@ -659,6 +667,9 @@ elseif strcmp(lower(options.solver),'cuadmm')                               % MM
     disp(['Size: ' num2str(size(At))]);                                     % MMP, 10/30/2026
     disp([' ']);                                                            % MMP, 10/30/2026
     cpars = struct();   if user_params,     cpars = options.params;     end % MMP, 10/30/2026
+    % Nor is the tol 1e-9 filled in for params without tol: cuADMM then runs
+    % to its iteration limit. CUADMM_SEDUMI's default (1e-6) applies.
+    if user_params && ~user_tol,    cpars = rmfield(cpars,'tol');   end     % MMP, 11/07/2026
     [x,y,info] = cuadmm_sedumi(At,b,c,K,cpars);                             % MMP, 10/30/2026
 end;
 

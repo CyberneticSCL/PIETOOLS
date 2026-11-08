@@ -25,6 +25,15 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 % CC, 09/26/2026: S.cuadmm.bisect now holds bl_bisect's defaults (certified
 %   verdicts, interval-scaled lean threshold and cap); the pinf_plateau rule
 %   and its validated_to_m/refuted_at_m fields from the entry above are gone.
+% CC, 11/08/2026: S from lpisettings_sop(base), the container tier of that
+%   name, in place of the stock lpisettings, whose folder leaves the path. S
+%   gains the tier's sop and settings_nd; tier 0 ('stripped') now carries the
+%   stock light storage, tier 3 ('heavy') the stock stripped 2-D storage
+%   (measured 11/08). S.cuadmm, which bl_bisect reads, is unchanged at every
+%   tier and dimension. dd2, dd3 and override2 below reach the SDP only through
+%   the 'stock' slack (sop.slack); the tiers set 'like', so on the container
+%   path the Dup and psatz columns of the ladder pose no different program
+%   (read from the code, not measured).
 %
 % ---------------------------------------------------------------------------
 % WHAT TRANSFERS FROM pielr_settings, AND WHY
@@ -155,7 +164,7 @@ function S = cuadmm_settings(tier,dim)                                      % CC
 %   tier   0,1,2,3 (default 1)
 %   dim    1 or 2 (default 1)
 % OUTPUT
-%   S      lpisettings struct with the tier applied, plus S.cuadmm (solver
+%   S      lpisettings_sop struct with the tier applied, plus S.cuadmm (solver
 %          options, budget, form, bisection rule), S.poincare, and the
 %          provenance fields S.tier, S.tier_base, S.tier_Dup, S.dim.
 
@@ -171,7 +180,8 @@ switch tier
     case 2, base = 'light';     Dup = 2;  psatz = 1;
     case 3, base = 'heavy';     Dup = 2;  psatz = 1;
 end
-S = lpisettings(base);
+% S = lpisettings(base);                                                    % CC, 11/08/2026 (was)
+S = lpisettings_sop(base);                                                  % CC, 11/08/2026
 
 % sossolve would otherwise overwrite At/b/K/c with the sospsimplify-reduced
 % system (sossolve.m:256-262), so the dumped SDP would not be the one solved.

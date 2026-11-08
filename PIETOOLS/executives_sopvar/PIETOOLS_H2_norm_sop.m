@@ -59,7 +59,8 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %             'c' and 'o'; [] in 'cco' and 'oco';
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
-%                          'unbounded' or 'unknown';
+%                          'unbounded', 'unknown' or 'residual' (cuADMM,
+%                          which decides no feasibility: never certified);
 %               certified  logical, true when status is 'optimal' or
 %                          'inaccurate';
 %               form, gam, gam_lpi, nv  the LPI posed, the bound, the LPI
@@ -145,6 +146,8 @@ function [prog,W,gam,R,Q,info] = PIETOOLS_H2_norm_sop(PIE,settings,form)
 %                status unknown, for 0.7071); now every form returns 0.7071
 %                at lam = -1 and none certifies lam = 1 (unstable).
 %                Programs without K unchanged. Header updated.
+% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
+%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
 
 % Default settings and form; check the PIE
 if nargin<2 || isempty(settings),   settings = lpisettings('light');    end

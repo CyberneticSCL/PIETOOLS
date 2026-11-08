@@ -66,6 +66,15 @@ them until the expectations are re-recorded. Measured 11/07 with MOSEK, light se
 
 `hinf2_rd`'s closed-form gain is 0.1711.
 
+**Settings from `lpisettings_sop` (11/08/2026).** The stock `lpisettings` and
+`settings_PIETOOLS_*` leave the MATLAB path, so `bl_settings`, `cuadmm_settings`, `bl_big`,
+`bl_scale` and `heat2d_compare` take the tier of the same name from `lpisettings_sop`. Measured
+on the 24 registry cases with MOSEK: the objective cases pose the same SDPs as in the table
+above. The feasibility cases pose the tier's first pass, at its `dw_feas` and `eppos_stab`
+1e-2: `stab_rd1` m 116, blocks [10 14 7]; `stab2_rd` m 2044, largest block 144; both
+certified. `stab2_rd_psz90` (0.9 λ*) is primal infeasible at that pass; the tier's raise, which
+`bl_settings` turns off, certifies it at the 11/07 program (m 2968).
+
 Not ported; each still calls the stock code:
 
 - `experiments/` (45 of 73 scripts), moved on 11/07/2026 to
@@ -126,6 +135,15 @@ Two things that cost real time:
   `CUADMM_TIMING` line, never by the exit code.
 
 The binary path defaults to this workstation's build; override it with `CUADMM_EXE`.
+
+To build the binary elsewhere, run `SOSTOOLS400/internal/processing/cuadmm_install.sh`
+(11/08/2026) under Ubuntu or WSL; on Windows, in PowerShell, in that folder:
+`wsl bash cuadmm_install.sh`. It installs the missing packages, builds upstream cuADMM
+(commit fcadc30) with `cuadmm_exe.patch` (11/07/2026) from the same folder into `~/cuADMM`,
+where `cuadmm_sedumi` looks when `CUADMM_EXE` is unset, and solves a test SDP. The patch holds
+the changes that `cuadmm_sedumi` and these scripts need: command-line arguments, the solution
+dump, the `CUADMM_TIMING` line, and build fixes; its first lines give the manual build steps.
+`gpu/cuadmm_pinf_inf.patch` applies on top of it.
 
 The workstation build carries `gpu/cuadmm_pinf_inf.patch` (2026-09-27). It adds an optional
 10th argument: `1` makes cuADMM's primal residual, both its stopping test and the printed pinf,

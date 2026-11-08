@@ -23,6 +23,15 @@
 %   The assembled LPI is exported in the text format used by
 %   PIETOOLS_demos/cuadmm/dump2cuadmm.m.
 % Note: the full Mosek reference for n=1, nd=4 is known to be a long solve.
+%
+% CC, 11/08/2026: settings from lpisettings_sop('light').settings_2d in place
+%   of settings_PIETOOLS_light_2D, whose folder leaves the path: the same
+%   struct plus eppos and epneg, which the SDP settings block sets anyway
+%   (isequaln, measured 11/08). The script was not re-run.
+% CC, 11/08/2026: the low-rank folder is recognized by pielr_solve.m, its entry
+%   point, which this script calls, in place of build_stab_2d_st2.m: since the
+%   container port A.build no longer calls that file, and the low-rank session
+%   retires it (interface agreed 11/08).
 %% parameters
 n = 1;                          % Number of coupled heat-equation states.
 lam = 2;                        % Reaction coefficient in x_t = x_s1s1 + x_s2s2 + lam*x.
@@ -69,7 +78,8 @@ cu_root = fullfile(pietools_root, 'PIETOOLS_demos', 'cuadmm');
 if exist(fullfile(pietools_root, 'pietools_path_update.m'), 'file') ~= 2
     error('PIETOOLS root not found: %s', pietools_root);
 end
-if exist(fullfile(lr_root, 'build_stab_2d_st2.m'), 'file') ~= 2
+% if exist(fullfile(lr_root, 'build_stab_2d_st2.m'), 'file') ~= 2           % CC, 11/08/2026 (was)
+if exist(fullfile(lr_root, 'pielr_solve.m'), 'file') ~= 2                   % CC, 11/08/2026
     error('lowrank_2d_stability folder not found: %s', lr_root);
 end
 if exist(fullfile(cu_root, 'dump2cuadmm.m'), 'file') ~= 2
@@ -117,7 +127,8 @@ sys = [diff(x,'t') == diff(x,s1,2) + diff(x,s2,2) + lam*x;
 PIE = convert(sys, 'pie');
 t_pie = toc(t0);
 %% SDP settings
-st = settings_PIETOOLS_light_2D();
+% st = settings_PIETOOLS_light_2D();                                        % CC, 11/08/2026 (was)
+st = lpisettings_sop('light');  st = st.settings_2d;                        % CC, 11/08/2026
 if ~isempty(dmult)
     st.LF_deg.d2{1,1} = dmult*ones(2,2);
 end

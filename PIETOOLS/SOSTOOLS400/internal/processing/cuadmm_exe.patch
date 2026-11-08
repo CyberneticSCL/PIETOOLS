@@ -1,0 +1,386 @@
+cuadmm_exe.patch: the changes to cuADMM that CUADMM_SEDUMI needs.
+
+cuADMM (https://github.com/ComputationalRobotics/cuADMM) is a first-order SDP
+solver for CUDA GPUs. This patch is made against its commit fcadc30. Upstream,
+cuadmm_exe fixes the tolerance (1e-4) and the iteration limit (1e6) and writes
+no solution; CUADMM_SEDUMI passes both and reads the solution back.
+
+Changes:
+  src/main.cu        the arguments <prefix> [tol] [max_iter] [eig_streams]
+                     [dump_sol] [switch_admm] [sig] [sigscale] [sig_thresh];
+                     with dump_sol = 1, the files X_opt.txt, y_opt.txt and
+                     S_opt.txt; the line CUADMM_TIMING, which marks a
+                     completed solve (the exit status is 0 even when CUDA
+                     fails), and the line CUADMM_MEM of GPU memory use.
+  include/cuadmm/memory.h
+                     the solution files written from the heap (a stack array
+                     segfaults past about 1e6 entries) and in %.17g.
+  include/cuadmm/cholesky_cpu.h
+                     the diagonal shift of A*A' relative to its largest
+                     diagonal entry: with the fixed shift 1e-16 the
+                     factorization fails when the equality constraints are
+                     linearly dependent.
+  include/lapack.h   (new) the LP64 LAPACK routine dsyevd, for systems
+                     without MATLAB's lapack.h.
+  CMakeLists.txt     LAPACK in place of MATLAB; Ubuntu's SuiteSparse paths.
+
+On Ubuntu or Debian, including Ubuntu under WSL, cuadmm_install.sh, in this
+folder, installs the missing packages and carries out the steps below.
+Elsewhere, build on Linux or under WSL, with the CUDA toolkit, CMake, BLAS,
+LAPACK and SuiteSparse (CHOLMOD, CAMD, CCOLAMD) installed:
+
+  git clone https://github.com/ComputationalRobotics/cuADMM.git
+  cd cuADMM
+  git checkout fcadc30
+  git submodule update --init
+  git apply <this folder>/cuadmm_exe.patch
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CUDA_FLAGS="-gencode arch=compute_89,code=sm_89"
+  cmake --build build --target cuadmm_exe -j8
+
+The CUDA flags name the compute capability of the GPU (89: RTX 40 series,
+80: A100, 90: H100); without them nvcc compiles for its default
+architecture, and the driver JIT-compiles that code at load. Configuring
+downloads googletest. CUADMM_SEDUMI looks for ~/cuADMM/build/cuadmm_exe;
+for a build elsewhere, set the environment variable CUADMM_EXE to the path
+of build/cuadmm_exe as the launcher sees it (under WSL, /home/... or
+~/...), or pass it to CUADMM_SEDUMI as pars.exe.
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b4e7139..74b2326 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -32,7 +32,8 @@ find_package(CUDAToolkit REQUIRED)
+ set_property(TARGET ${ROUTINE} PROPERTY CUDA_ARCHITECTURES OFF)
+ 
+ find_package(BLAS REQUIRED)
+-find_package(Matlab REQUIRED)
++find_package(LAPACK REQUIRED)   # added: eig_cpu.h calls dsyevd
++# find_package(Matlab REQUIRED)  # removed: mex.h is used only in MATLAB/, not src/ or include/
+ 
+ set_property(TARGET ${ROUTINE} PROPERTY CUDA_ARCHITECTURES OFF)
+ 
+@@ -47,9 +48,10 @@ find_path(SUITESPARSE_INCLUDE_DIRECTORIES
+ if(NOT SUITESPARSE_INCLUDE_DIRECTORIES)
+   message(FATAL_ERROR "SuiteSparse include directory not found. Please set SUITESPARSE_INCLUDE_DIRECTORIES manually.")
+ endif()
+-set(CMAD_LIB /usr/local/lib/libcamd.so)
+-set(CCOLAMD_LIB /usr/local/lib/libccolamd.so)
+-set(CHOLMOD_LIB /usr/local/lib/libcholmod.so)
++# Ubuntu's libsuitesparse-dev locations (upstream: /usr/local/lib); edit elsewhere
++set(CMAD_LIB /usr/lib/x86_64-linux-gnu/libcamd.so)
++set(CCOLAMD_LIB /usr/lib/x86_64-linux-gnu/libccolamd.so)
++set(CHOLMOD_LIB /usr/lib/x86_64-linux-gnu/libcholmod.so)
+ 
+ set(CMAKE_INSTALL_PREFIX ../)
+ 
+@@ -81,6 +83,7 @@ target_link_libraries(
+     ${CHOLMOD_LIB}
+     ${Matlab_LIBRARIES}
+     ${BLAS_LIBRARIES}
++    ${LAPACK_LIBRARIES}
+     psd_lib
+ )
+ 
+diff --git a/include/cuadmm/cholesky_cpu.h b/include/cuadmm/cholesky_cpu.h
+index 1eaaaeb..f55194f 100644
+--- a/include/cuadmm/cholesky_cpu.h
++++ b/include/cuadmm/cholesky_cpu.h
+@@ -95,6 +95,28 @@ public:
+ 
+         // Stabilize the system by adding a small value to the diagonal:
+         // AAt <-- 1.0 * AAt + eps * I
++        //
++        // The shift is RELATIVE to the data scale, eps = max(eps, 1e-12*max(diag)),
++        // the caller's eps kept as an absolute floor.  When the equality
++        // constraints are linearly dependent, as in SOS programs with redundant
++        // equalities (rank(A)/m = 0.64-0.93 measured), A*A' is singular and must
++        // be shifted, but the upstream fixed eps = 1e-16 lies 5-6 orders of
++        // magnitude below the roundoff of the factorization, which scales like
++        // machine_eps * ||AAt|| * m: 2.3e-11 to 2.1e-10 at max(diag) ~ 30-40 and
++        // m ~ 3.4e3-8.1e4.  Measured on such programs: chol(AAt + 1e-16*I) fails
++        // on every one, chol(AAt + 1e-12*max(diag)*I) succeeds on every one.
++        double maxdiag = 0.0;
++        {
++            const int *AAt_p = (const int *) chol_sp_AAt_1->p;
++            const int *AAt_i = (const int *) chol_sp_AAt_1->i;
++            const double *AAt_x = (const double *) chol_sp_AAt_1->x;
++            for (int j = 0; j < this->AAt_size; ++j)
++                for (int k = AAt_p[j]; k < AAt_p[j + 1]; ++k)
++                    if (AAt_i[k] == j && AAt_x[k] > maxdiag) maxdiag = AAt_x[k];
++        }
++        const double eps_rel_tau = 1e-12;
++        if (maxdiag > 0.0 && eps_rel_tau * maxdiag > eps)
++            eps = eps_rel_tau * maxdiag;
+         double alpha = 1.0;
+         cholmod_sparse *chol_sp_I = cholmod_speye(this->AAt_size, this->AAt_size, CHOLMOD_DOUBLE + CHOLMOD_REAL, &this->cc);
+         cholmod_sparse *chol_sp_AAt_2 = cholmod_add(
+diff --git a/include/cuadmm/memory.h b/include/cuadmm/memory.h
+index 350d78d..d63f1bd 100644
+--- a/include/cuadmm/memory.h
++++ b/include/cuadmm/memory.h
+@@ -352,8 +352,11 @@ public:
+         FILE *file = fopen(filename.c_str(), "w");
+         if (file != NULL)
+         {
+-            // copy the vector to the device
+-            T host_vec[this->size];
++            // copy the vector to the host.  HEAP, not a stack VLA: more than
++            // about 1e6 doubles overflows the default 8 MB stack and segfaults;
++            // vec_len reaches 4e6 on measured SDPs.
++            std::vector<T> host_buf(this->size);
++            T *host_vec = host_buf.data();
+             CHECK_CUDA(cudaDeviceSynchronize());
+             CHECK_CUDA(cudaMemcpy(host_vec, this->vals, sizeof(T) * this->size, cudaMemcpyDeviceToHost));
+             CHECK_CUDA(cudaDeviceSynchronize());
+@@ -361,8 +364,9 @@ public:
+             // write the vector to the file
+             if (std::is_same<T, float>::value || std::is_same<T, double>::value)
+             {
++                // %.17g, not %.17f: 17 decimals drop significant digits of small entries
+                 for (size_t i = 0; i < this->size; i++)
+-                    fprintf(file, "%.17f\n", host_vec[i]);
++                    fprintf(file, "%.17g\n", host_vec[i]);
+             }
+             else if (std::is_same<T, int>::value)
+             {
+diff --git a/include/lapack.h b/include/lapack.h
+new file mode 100755
+index 0000000..49308a0
+--- /dev/null
++++ b/include/lapack.h
+@@ -0,0 +1,93 @@
++/*
++    lapack.h  --  minimal LAPACK shim supplying the one routine cuADMM needs.
++
++    WHY THIS FILE EXISTS
++    include/cuadmm/eig_cpu.h does  #include <lapack.h>  and calls dsyevd passing
++    ptrdiff_t* for every integer argument.  That is MATLAB's lapack.h convention
++    (64-bit LAPACK integers).  Ubuntu ships no lapack.h at all: liblapack64-dev is
++    library-only and lapack.h lives in the lapacke packages.  dsyevd is the ONLY
++    LAPACK routine referenced anywhere in cuADMM's src/ or include/.
++
++    WHY NOT LINK THE ILP64 LIBRARY (liblapack64), which would need no conversion:
++    libcholmod.so has NEEDED liblapack.so.3, and both that (OpenBLAS) and
++    liblapack64.so.3 export dsyevd_ under the SAME unsuffixed name with different
++    integer widths.  Loading both puts two ABIs behind one symbol; whichever the
++    loader picks also interposes on CHOLMOD's own LAPACK calls, corrupting the
++    sparse Cholesky of A*A' that cuADMM depends on.  A mixed-ABI process is the
++    more dangerous option, so we keep ONE LAPACK -- the LP64 OpenBLAS already in
++    the link -- and narrow explicitly here.
++
++    Narrowing is safe because it is checked, not assumed: dsyevd's largest
++    argument is lwork = 1 + 6N + 2N^2, which exceeds INT_MAX only past N ~ 32768,
++    far above the PSD blocks of the SDPs measured (largest N = 2856).  The guard
++    below aborts rather than truncating, so the failure is never silent.
++*/
++
++#ifndef CUADMM_LAPACK_SHIM_H
++#define CUADMM_LAPACK_SHIM_H
++
++#include <stddef.h>
++#include <limits.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/* LP64 LAPACK: integers are 32-bit. Resolved from libopenblas/liblapack.so.3. */
++void dsyevd_(
++    const char* jobz, const char* uplo,
++    const int* n, double* a, const int* lda,
++    double* w,
++    double* work, const int* lwork,
++    int* iwork, const int* liwork,
++    int* info);
++
++#ifdef __cplusplus
++}
++#endif
++
++/* Checked ptrdiff_t -> int narrowing. */
++static inline int cuadmm_lapack_narrow(ptrdiff_t v, const char* what)
++{
++    if (v > (ptrdiff_t)INT_MAX || v < -(ptrdiff_t)INT_MAX) {
++        fprintf(stderr,
++            "cuADMM lapack shim: %s = %td exceeds the 32-bit LAPACK range. "
++            "Rebuild against an ILP64 LAPACK whose symbols are suffixed "
++            "(e.g. dsyevd_64_) so it cannot collide with CHOLMOD's LP64 LAPACK.\n",
++            what, v);
++        abort();
++    }
++    return (int)v;
++}
++
++/* eig_cpu.h calls the unsuffixed name with ptrdiff_t* arguments. Bridge to the
++   LP64 entry point; iwork and info are ptrdiff_t arrays on the caller's side, so
++   they need a staged int buffer, not a cast. */
++static inline void dsyevd(
++    const char* jobz, const char* uplo,
++    const ptrdiff_t* n, double* a, const ptrdiff_t* lda,
++    double* w,
++    double* work, const ptrdiff_t* lwork,
++    ptrdiff_t* iwork, const ptrdiff_t* liwork,
++    ptrdiff_t* info)
++{
++    const int n_i     = cuadmm_lapack_narrow(*n,      "n");
++    const int lda_i   = cuadmm_lapack_narrow(*lda,    "lda");
++    const int lwork_i = cuadmm_lapack_narrow(*lwork,  "lwork");
++    const int liwork_i= cuadmm_lapack_narrow(*liwork, "liwork");
++    int info_i = 0;
++
++    /* iwork is a genuine int32 array to LAPACK. The caller allocated liwork
++       ptrdiff_t slots = 2x the bytes needed, so the front half is reusable as
++       int storage without a separate allocation. */
++    int* iwork_i = (int*)iwork;
++
++    dsyevd_(jobz, uplo, &n_i, a, &lda_i, w, work, &lwork_i,
++            iwork_i, &liwork_i, &info_i);
++
++    *info = (ptrdiff_t)info_i;
++}
++
++#endif /* CUADMM_LAPACK_SHIM_H */
+diff --git a/src/main.cu b/src/main.cu
+index fb18ad1..d193d00 100644
+--- a/src/main.cu
++++ b/src/main.cu
+@@ -1,17 +1,71 @@
+ #include <cusparse.h>
++#include <cuda_runtime.h>
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <iostream>
++#include <chrono>
+ 
+ #include "cuadmm/solver.h"
+ #include "cuadmm/problem.h"
+ 
++// usage: cuadmm_exe <prefix> [stop_tol] [max_iter] [eig_streams] [dump_sol]
++//                            [switch_admm] [sig] [sigscale] [sig_thresh]
++//
++// Everything past <prefix> was hardcoded upstream (tol 1e-4, max_iter 1e6,
++// sig 1e2, standard ADMM).  A caller needs the tolerance and the iteration
++// limit at least: the time per iteration does not depend on the tolerance, the
++// iteration count does (334, 4417, 12917, 126344 iterations at 1e-4, 1e-5,
++// 1e-6, 1e-7 on one measured SDP).
++//   switch_admm - iteration at which to switch to sGS-ADMM (0 = never, the
++//                 upstream default; upstream's own commented line used 5000)
++//   sig/sigscale/sig_thresh - the penalty parameter and its update schedule
++// dump_sol = 1 writes X, y and S to <prefix>X_opt.txt, y_opt.txt, S_opt.txt, so
++// the caller can check the residual and the PSD blocks of the point itself.
++// The CUADMM_TIMING line marks a completed solve: the exit status is 0 even
++// when every CUDA call fails.
++//
++// MEMORY INSTRUMENTATION (CUADMM_MEM lines).  These problems are expected to be
++// memory-limited before they are time-limited, so peak memory is a first-class
++// measurement.  WSL does NOT report per-process GPU memory -- nvidia-smi
++// --query-compute-apps returns no rows -- and the Windows desktop already holds
++// 2.5-3.8 GiB that drifts, so sampling nvidia-smi cannot attribute usage to this
++// process.  cudaMemGetInfo deltas can: a baseline is taken AFTER the CUDA
++// context exists but BEFORE any solver allocation, and every later reading is
++// reported as a delta from it.  Peak memory is an INIT-TIME property, so this
++// can be measured with a handful of iterations instead of a full solve.
++static size_t gpu_used_bytes()
++{
++    size_t freeB = 0, totalB = 0;
++    if (cudaMemGetInfo(&freeB, &totalB) != cudaSuccess) return 0;
++    return totalB - freeB;
++}
++
+ int main(int argc, char *argv[])
+ {
++    if (argc < 2) {
++        std::cerr << "usage: " << argv[0]
++                  << " <prefix> [stop_tol] [max_iter] [eig_streams] [dump_sol]"
++                     " [switch_admm] [sig] [sigscale] [sig_thresh]\n";
++        return 1;
++    }
+     std::string prefix = argv[1];
+-    int eig_stream_num_per_gpu = 15;
++    double stop_tol = (argc > 2) ? atof(argv[2]) : 1e-4;
++    int max_iter    = (argc > 3) ? atoi(argv[3]) : (int)1e6;
++    int eig_stream_num_per_gpu = (argc > 4) ? atoi(argv[4]) : 15;
++    bool dump_sol   = (argc > 5) ? (atoi(argv[5]) != 0) : false;
++    int switch_admm = (argc > 6) ? atoi(argv[6]) : 0;
++    double sig      = (argc > 7) ? atof(argv[7]) : 1e2;
++    double sigscale = (argc > 8) ? atof(argv[8]) : 2.0;
++    int sig_thresh  = (argc > 9) ? atoi(argv[9]) : 500;
++
++    // Force the CUDA context to exist before the baseline, so the baseline does
++    // not accidentally include context creation (~300-500 MiB) as solver usage.
++    cudaFree(0);
++    size_t mem_base = gpu_used_bytes();
+ 
+     Problem problem;
+     problem.from_txt(prefix);
++    size_t mem_loaded = gpu_used_bytes();
+ 
+     // extract the second element of each tuple in blk_vals
+     std::vector<char> blk_sizes;
+@@ -23,7 +77,8 @@ int main(int argc, char *argv[])
+     }
+ 
+     SDPSolver solver;
+-    double sig = 1e2;
++
++    auto t0 = std::chrono::steady_clock::now();
+     solver.init(
+         eig_stream_num_per_gpu,
+         problem.vec_len, problem.con_num,
+@@ -35,14 +90,46 @@ int main(int argc, char *argv[])
+         ProjectionMethod::EIG_FP64,
+         problem.X_vals.data(), problem.y_vals.data(), problem.S_vals.data(),
+         sig, true);
++    auto t1 = std::chrono::steady_clock::now();
++    size_t mem_init = gpu_used_bytes();
++
++    // switch_admm == 0 reproduces upstream's standard-ADMM call exactly;
++    // non-zero selects the sGS-ADMM path at that iteration.
++    solver.solve(max_iter, stop_tol, sig_thresh, 50, 100, switch_admm,
++                 switch_admm ? 5000 : 0, 1e-2, sigscale, true);
++    auto t2 = std::chrono::steady_clock::now();
++    size_t mem_solve = gpu_used_bytes();
+ 
+-    // sGS-ADMM
+-    // solver.solve((int) 1e6, 1e-4, 500, 50, 100, 5000);
++    if (dump_sol) {
++        solver.X.to_txt(prefix + "X_opt.txt");
++        solver.y.to_txt(prefix + "y_opt.txt");
++        solver.S.to_txt(prefix + "S_opt.txt");
++    }
+ 
+-    // standard ADMM
+-    solver.solve((int)1e6, 1e-4, 500, 50, 100, 0, 0);
++    double t_init  = std::chrono::duration<double>(t1 - t0).count();
++    double t_solve = std::chrono::duration<double>(t2 - t1).count();
++    std::cout << "CUADMM_TIMING init " << t_init
++              << " solve " << t_solve
++              << " total " << (t_init + t_solve)
++              << " tol " << stop_tol
++              << " switch_admm " << switch_admm
++              << " sig " << sig
++              << " sigscale " << sigscale
++              << " sig_thresh " << sig_thresh << std::endl;
+ 
+-    // solver.X.to_txt(prefix + "X_opt.txt");
++    // Deltas from the post-context baseline are this process's own GPU usage.
++    // vec_len/con_num/At_nnz are echoed so the scaling fit needs nothing else.
++    const double MiB = 1024.0 * 1024.0;
++    std::cout << "CUADMM_MEM base_MiB " << (mem_base / MiB)
++              << " after_load_MiB "  << ((double)mem_loaded - (double)mem_base) / MiB
++              << " after_init_MiB "  << ((double)mem_init   - (double)mem_base) / MiB
++              << " after_solve_MiB " << ((double)mem_solve  - (double)mem_base) / MiB
++              << " vec_len " << problem.vec_len
++              << " con_num " << problem.con_num
++              << " At_nnz "  << problem.At_nnz
++              << " mat_num " << problem.mat_num
++              << " eig_streams " << eig_stream_num_per_gpu
++              << std::endl;
+ 
+     return 0;
+-}
+\ No newline at end of file
++}

@@ -68,7 +68,8 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %             solver returned no value;
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
-%                          'unbounded' or 'unknown';
+%                          'unbounded', 'unknown' or 'residual' (cuADMM,
+%                          which decides no feasibility: never certified);
 %               certified  logical, true when status is 'optimal' or
 %                          'inaccurate';
 %                gam, gam_fixed ([]), nv;
@@ -118,6 +119,8 @@ function [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings)
 %                 gam >= 0 by LPI_INEQ_SOP instead of the stock LPI_INEQ. No
 %                 OP2COPVAR_SOP on the PIE operators, which EXEC_PIE_SOP has
 %                 already converted (it returned its input).
+% MMP 11/07/2026 - Help text: status 'residual', which LPI_CLASSIFY_SOP
+%                 returns for a cuADMM exit since 11/04/2026. Code unchanged.
 
 % Default settings; check the PIE
 if nargin<2 || isempty(settings),   settings = lpisettings('light');    end

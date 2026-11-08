@@ -22,6 +22,11 @@ function bl_scale()
 %             still data -- it is how the ladder's m(n) curve is extended past
 %             the point where this machine can solve.
 %   ERR       failed to build
+%
+% CC, 11/08/2026: lpisettings_sop('heavy') in place of the stock
+%   lpisettings('heavy'), whose folder leaves the path: the same storage and
+%   shape (m, Ks, nnzAt equal at n = 1, 2, 3, measured); normb is 100x, from
+%   the tier's stability margin eppos_stab 1e-2 (was eppos 1e-4).
 
 cuadmm_path;
 HERE = fileparts(mfilename('fullpath'));
@@ -55,7 +60,8 @@ for n = NS
         x = pde_var(n,s,[0,1]);
         PIE = initialize(convert([diff(x,t,1)==diff(x,s,2)+0.5*pi^2*x; ...
                                   subs(x,s,0)==0; subs(x,s,1)==0]));
-        st = lpisettings('heavy');
+%       st = lpisettings('heavy');                                          % CC, 11/08/2026 (was)
+        st = lpisettings_sop('heavy');                                      % CC, 11/08/2026
         st.sos_opts.solver='mosek'; st.sos_opts.simplify=false;
         tb = tic;  evalc('out = stab_mirror(PIE,st);');  row.t_build = toc(tb);
 
