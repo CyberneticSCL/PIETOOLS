@@ -10,8 +10,8 @@ function test_executives_sop(quick)
 %       value plus 1e-3 (H-infinity) or 5e-3 (H2) relative, each synthesis
 %       value at most the open-loop value;
 %   (b) with settings.sop.slack = 'stock', PIETOOLS_Hinf_gain_sop and
-%       PIETOOLS_H2_norm_sop (form 'c') return the value of the stock
-%       PIETOOLS_Hinf_gain and PIETOOLS_H2_norm_c to 1e-4 relative;
+%       PIETOOLS_H2_norm_sop (form 'c') return the recorded value of the
+%       stock PIETOOLS_Hinf_gain and PIETOOLS_H2_norm_c to 1e-4 relative;
 %   (c) on x_t = x_ss + pi^2/2 x, x(0) = x(1) = 0, the four forms of
 %       PIETOOLS_stability_sop and PIETOOLS_well_posedness_sop certify, with
 %       the largest real part of the discretized spectrum at -pi^2/2 to 1e-3;
@@ -58,6 +58,11 @@ function test_executives_sop(quick)
 %                licence block added.
 % MMP, 11/04/2026: The gains and solved operators are checked as 'copvar'
 %                objects: the executives return containers.
+% MMP, 11/07/2026: Part (b) compares with recorded values of the stock
+%                executives. PIEs hold 'copvar' operators, on which the
+%                stock PIETOOLS_Hinf_gain and PIETOOLS_H2_norm_c fail at
+%                their first poslpivar call (Top.dim); the test ended there,
+%                before parts (c) and (d).
 
 % Settings, solver and messages; counter of passed checks
 if nargin<1,    quick = true;   end
@@ -109,10 +114,14 @@ for nm = {'Hinf_control','Hinf_estimator','H2_control','H2_estimator'}
 end
 % ---- (b) the stock slack reproduces the stock
 st2 = st;   st2.sop.slack = 'stock';
-evalc('[~,~,gs] = PIETOOLS_Hinf_gain(PIE,st);');
+% evalc('[~,~,gs] = PIETOOLS_Hinf_gain(PIE,st);');                          % MMP, 11/07/2026 (was)
+% Stock values recorded 11/07/2026 at e6319ace, MOSEK 11.0.30: each         % MMP, 11/07/2026
+% executive without its pie_struct check, on pie2opvar(PIE), settings st.   % MMP, 11/07/2026
+gs = 0.03333235189;                         % stock PIETOOLS_Hinf_gain      % MMP, 11/07/2026
 [~,~,g,info] = PIETOOLS_Hinf_gain_sop(PIE,st2);
 n = check(n,info.certified && abs(g-gs)<=1e-4*gs,sprintf('Hinf_gain_sop stock slack %.8g vs stock %.8g',g,gs));
-evalc('[~,~,gs] = PIETOOLS_H2_norm_c(PIE,st);');
+% evalc('[~,~,gs] = PIETOOLS_H2_norm_c(PIE,st);');                          % MMP, 11/07/2026 (was)
+gs = 0.05271563553;                         % stock PIETOOLS_H2_norm_c      % MMP, 11/07/2026
 % [~,~,g,~,~,info] = PIETOOLS_H2_norm_c_sop(PIE,st2);                      % MMP, 10/28/2026 (was)
 [~,~,g,~,~,info] = PIETOOLS_H2_norm_sop(PIE,st2,'c');                       % MMP, 10/28/2026
 % n = check(n,info.certified && abs(g-gs)<=1e-4*gs,sprintf('H2_norm_c_sop stock slack %.8g vs stock %.8g',g,gs)); % MMP, 10/28/2026 (was)

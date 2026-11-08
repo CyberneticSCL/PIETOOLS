@@ -133,6 +133,10 @@ function out = e2e_heat3d_stability(kappa,opts)                             % MM
 %                2-D with the former writer, above the former 1e-6. Help
 %                (2) and OUTPUT (dropped, tau) updated; local function
 %                dup_res.
+% MMP, 11/07/2026: The local function dup_res moved to private/dup_res.m,
+%                shared with e2e_hinf_gain_1d and e2e_stability_1d, whose
+%                row checks need it too; the call is unchanged. The local
+%                function of the 11/02/2026 entry is now that file.
 
 % Defaults; no warnings for non-canonical multipliers; a check asserts
 % with one identifier
@@ -283,45 +287,6 @@ end
 r = sqrt(full(r2));
 end
 
-% BEGIN MMP, 11/02/2026: local function dup_res, new
-function [da,db] = dup_res(prog,ma)
-% [DA,DB] = DUP_RES(PROG,MA) returns the residual norms of the equations
-% that LPI_EQ_CDOPVAR did not write because each is f times a written one
-% (prog.sopeq, entries.dup): sqrt(sum (f*r)^2), r the residual of the
-% written row at x = prog.solinfo.RRx; DA over the records that start in
-% the first MA rows of prog.expr, DB over the rest.
-% INPUT  prog: 'struct', a solved LPI program with the field sopeq; ma:
-%        'double', the number of rows of the first equalities.
-% OUTPUT da, db: 'double'.
-x = prog.solinfo.RRx(:);
-% Residual of every row, in the row order of prog.expr (the record's)
-res = cell(prog.expr.num,1);
-for i = 1:prog.expr.num
-    At = prog.expr.At{i};   res{i} = At'*x(1:size(At,1)) - prog.expr.b{i};
-end
-res = full(vertcat(res{:}));
-d2 = [0 0];
-for k = 1:numel(prog.sopeq)
-    rec = prog.sopeq{k};    r = rec.rows(1);
-    for e = 1:numel(rec.entries)
-        en = rec.entries(e);
-        % First row of each parameter cell of the block, then the next block
-        nk = reshape(cellfun(@numel,en.cols),1,[]);     r1 = r + [0, cumsum(nk(1:end-1))];
-        r = r + sum(nk);
-        % A record written before 11/01/2026 has no field dup: none dropped
-        if ~isfield(en,'dup') || isempty(en.dup.rcol),     continue,   end
-        % Row of each written equation: its cell's first row plus its place
-        dp = en.dup;    row = zeros(size(dp.rcol));
-        for t = 1:numel(en.cells)
-            s = dp.rcell==en.cells(t);
-            [tf,loc] = ismember(dp.rcol(s),en.cols{t});
-            row(s) = tf.*(r1(t)+loc-1);
-        end
-        assert(all(row>0),'heat3d_stability_sop:check','(2) a dropped equation refers to no written row')
-        g = 1 + (rec.rows(1)>ma);
-        d2(g) = d2(g) + sum((dp.factor.*res(row)).^2);
-    end
-end
-da = sqrt(d2(1));   db = sqrt(d2(2));
-end
-% END MMP, 11/02/2026
+% The local function dup_res (MMP, 11/02/2026, 40 lines) is deleted: it     % MMP, 11/07/2026
+% moved to private/dup_res.m, shared with e2e_hinf_gain_1d and              % MMP, 11/07/2026
+% e2e_stability_1d; code unchanged except its assertion's identifier.       % MMP, 11/07/2026

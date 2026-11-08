@@ -36,6 +36,8 @@ function [prog,ops] = cx_PIE2PDEstability(PIE,st)                           % MM
 %                  programs unchanged (126-program bit-identity check).
 %                  'cx_stability_lpivar_degs' above now refers to the
 %                  library routine get_lpivar_degs_sop.
+% MMP, 11/07/2026: T and A are used directly: PIEs hold 'copvar'
+%                  operators, on which opvar2copvar errors.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -63,7 +65,8 @@ end
 override2 = st.override2;   options2 = st.options2;     options3 = st.options3;
 dd2 = st.dd2;   dd3 = st.dd3;
 
-Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
+% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+Tm = PIE.T;     Am = PIE.A;                 % 'copvar' since initialize     % MMP, 11/07/2026
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);        % line 105
 
 % P = P1 (+P2) + eppos2*T'*T, lines 112-120.

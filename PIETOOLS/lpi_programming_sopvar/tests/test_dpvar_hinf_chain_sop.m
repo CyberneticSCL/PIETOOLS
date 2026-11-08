@@ -15,8 +15,8 @@ function R = test_dpvar_hinf_chain_sop(plant)
 % (poslpivar_settings_sop); Q free (lpivar_cdopvar at the degrees
 % get_lpivar_degs_sop reads off R); I_w, I_z from eye_copvar_sop; the two
 % equalities by lpi_eq_cdopvar, the second 'symmetric'. It solves the LPI
-% and stock PIETOOLS_Hinf_gain on the same PIE, both at
-% lpisettings('light') with MOSEK, and checks:
+% at lpisettings('light') with MOSEK and checks it against the recorded
+% solve of stock PIETOOLS_Hinf_gain on the same PIE and settings:
 %   (1) K is a 'cdopvar' with gam among its decision variables; when z is
 %       in R^1, K equals (eq) the operator with the 'dpvar' -gam in place
 %       of -gam*I_z;
@@ -43,7 +43,10 @@ function R = test_dpvar_hinf_chain_sop(plant)
 %
 % NOTES
 % After the last check, a failed check is an error
-% ('test_dpvar_hinf_chain_sop:failed'). Requires MOSEK.
+% ('test_dpvar_hinf_chain_sop:failed'). Requires MOSEK. The stock solve is
+% recorded for PLANT {'io1'} only, since the stock executive fails on PIEs
+% with 'copvar' operators; another plant is an error
+% ('test_dpvar_hinf_chain_sop:plant').
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -84,9 +87,17 @@ function R = test_dpvar_hinf_chain_sop(plant)
 %                  unchanged. The deleted header text was the provenance of
 %                  the program, design notes on the identity operators and
 %                  a measured difference of the row counts.
+% MMP, 11/07/2026: The stock solve (gamma, solver report, SDP shape) is a
+%                  recorded value for {'io1'}, and the PIE operators are
+%                  used directly: PIEs hold 'copvar' operators, on which the
+%                  stock PIETOOLS_Hinf_gain fails at its first poslpivar call
+%                  (Top.dim) and opvar2copvar errors.
 
 % Default plant; no warnings for non-canonical multipliers; check counters
 if nargin<1 || isempty(plant),  plant = {'io1'};    end
+if ~isequal(plant,{'io1'})                                                  % MMP, 11/07/2026
+    error('test_dpvar_hinf_chain_sop:plant','The stock solve is recorded for plant {''io1''} only.') % MMP, 11/07/2026
+end                                                                         % MMP, 11/07/2026
 warning('off','sopvar:noncanonicalMultiplier');
 warning('off','sdopvar:noncanonicalMultiplier');
 npass = 0;  nfail = 0;
@@ -104,21 +115,30 @@ npass = 0;  nfail = 0;
 st = cx_settings('light','mosek');
 PIE = initialize(cx_plant(plant{:}));
 
-% % % Stock executive, unmodified.
+% % % Stock executive, unmodified.                                          % MMP, 11/07/2026 (was)
+% % % Stock executive: its solve, recorded 11/07/2026 at e6319ace, MOSEK    % MMP, 11/07/2026
+% 11.0.30, by PIETOOLS_Hinf_gain without its pie_struct check on            % MMP, 11/07/2026
+% pie2opvar(PIE).                                                           % MMP, 11/07/2026
 t = tic;
-[prog_s,~,gam_s] = PIETOOLS_Hinf_gain(PIE,st);
+% [prog_s,~,gam_s] = PIETOOLS_Hinf_gain(PIE,st);                            % MMP, 11/07/2026 (was)
+gam_s = 0.1826263619;                                                       % MMP, 11/07/2026
 ts = toc(t);
 % Its solver report, rel_b and PSD margin
-info_s = prog_s.solinfo.info;
-[rb_s,pm_s] = cx_resid(prog_s);
+% info_s = prog_s.solinfo.info;                                             % MMP, 11/07/2026 (was)
+% [rb_s,pm_s] = cx_resid(prog_s);                                           % MMP, 11/07/2026 (was)
+info_s = struct('numerr',0,'pinf',0);                                       % MMP, 11/07/2026
+rb_s = 4.056e-07;   pm_s = 1.770e-09;                                       % MMP, 11/07/2026
+Ss = struct('ndv',1274,'Kf',44,'Ks',[31 13 10 1],'m',242,'nvar',1275);      % MMP, 11/07/2026
 
 % % % Container program, gamma a decision variable.
 t = tic;
 % The PIE operators as containers; identity operators on the spaces of w
 % and z
-Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
-Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);
-Dzw = opvar2copvar(PIE.Dzw);
+% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+% Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);                    % MMP, 11/07/2026 (was)
+% Dzw = opvar2copvar(PIE.Dzw);                                              % MMP, 11/07/2026 (was)
+Tm = PIE.T;     Am = PIE.A;                 % 'copvar' since initialize     % MMP, 11/07/2026
+Bw = PIE.Bw;    Cz = PIE.Cz;    Dzw = PIE.Dzw;                              % MMP, 11/07/2026
 % [spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out'); % MMP, 10/06/2026 (was)
 [spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026
 Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
@@ -160,7 +180,8 @@ t = tic;
 prog = lpisolve(prog,st.sos_opts);
 tc = toc(t);
 % Both shapes post-solve: sossolve adds the slack block of an 'ineq' (gam >= 0).
-Ss = cx_shape(prog_s);  Sc = cx_shape(prog);
+% Ss = cx_shape(prog_s);  Sc = cx_shape(prog);                              % MMP, 11/07/2026 (was)
+Sc = cx_shape(prog);                        % Ss recorded above             % MMP, 11/07/2026
 % Solver report, rel_b, PSD margins and gamma of the container solve
 info_c = prog.solinfo.info;
 [rb_c,pm_c,pr_c] = cx_resid(prog);

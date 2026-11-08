@@ -147,6 +147,8 @@ function R = test_getsol_sop(parts)
 %                  independent evaluation, a reference to the Tier 1 plan,
 %                  and the claim that the solinfo.x control is checked in
 %                  (ii) (it is printed only).
+% MMP, 11/07/2026: part (iv) uses the PIE operators directly: PIEs hold
+%                  'copvar' operators, on which opvar2copvar errors.
 
 % Default: all four parts; one part given as char
 if nargin<1 || isempty(parts),  parts = {'i','ii','iii','iv'};  end
@@ -674,8 +676,10 @@ function out = part_iv()
 nqi = 10;   nqo = 12;   ntest = 6;
 st = cx_settings('light','mosek');
 PIE = initialize(cx_plant('io1'));
-Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);
-Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw);
+% Tm = opvar2copvar(PIE.T);   Am = opvar2copvar(PIE.A);                     % MMP, 11/07/2026 (was)
+% Bw = opvar2copvar(PIE.Bw);  Cz = opvar2copvar(PIE.Cz);  Dzw = opvar2copvar(PIE.Dzw); % MMP, 11/07/2026 (was)
+Tm = PIE.T;     Am = PIE.A;                 % 'copvar' since initialize     % MMP, 11/07/2026
+Bw = PIE.Bw;    Cz = PIE.Cz;    Dzw = PIE.Dzw;                              % MMP, 11/07/2026
 % Identity operators on the spaces of w and z
 % [spw,dmw] = cx_space_list(Bw,'in');     [spz,dmz] = cx_space_list(Cz,'out'); % MMP, 10/06/2026 (was)
 [spw,dmw] = copvar_space_list(Bw,'in');     [spz,dmz] = copvar_space_list(Cz,'out'); % MMP, 10/06/2026

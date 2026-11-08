@@ -18,9 +18,10 @@ function out = e2e_stability_1d(plant,level)                                % MM
 %       by lpi_eq_sop on a copy of the program without constraints, have
 %       residual norms r1 and r2 at solinfo.RRx with sqrt(r1^2 + r2^2)
 %       equal to the residual norm of all rows of the program to 1e-6
-%       relative; the coefficient norm of the extracted T'*Q - P equals r1
-%       to 1e-6 relative, that of D + N lies in [r2, sqrt(2) r2] (1e-6
-%       slack);
+%       relative; with the rows lpi_eq_sop does not write (each f times a
+%       written one) joined to r1 and r2, the coefficient norm of the
+%       extracted T'*Q - P equals r1 to 1e-6 relative, that of D + N lies
+%       in [r2, sqrt(2) r2] (1e-6 slack);
 %   (3) by the action on 6 random polynomial test functions x, y
 %       (opcheck_sop, quadrature of the kernels): <T y, Q x> = <y, P x>
 %       and D + N = 0 to 1e-5 relative; <A y, Q x> + <Q y, A x>
@@ -94,6 +95,12 @@ function out = e2e_stability_1d(plant,level)                                % MM
 %                under the function line, so that help starts with the
 %                description:
 % function out = stability_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
+% MMP, 11/07/2026: The coefficient checks of (2) count the rows lpi_eq_sop
+%                does not write because each is f times a written one
+%                (since 11/01/2026): ROWS_AT records them (pe.sopeq) and
+%                returns their residual norm (private/dup_res), joined to r1
+%                and r2 after the comparison of the written rows with the
+%                program's; without them the T'Q - P ratio was 1.00773.
 
 % Defaults; no warnings for non-canonical multipliers; a check asserts
 % with one identifier
@@ -133,12 +140,16 @@ t_extract = toc(t0);
 chk(all(cellfun(@(X) isa(X,'copvar'),{Ps,Qs,Ds,Ns,E1s,E2s})),'(1) extracted operators not fixed')
 
 % (2) extraction against the SDP rows, per relation.
-r1 = rows_at(prog,E1,{});   r2 = rows_at(prog,E2,{'symmetric'});
+% r1 = rows_at(prog,E1,{});   r2 = rows_at(prog,E2,{'symmetric'});          % MMP, 11/07/2026 (was)
+[r1,d1] = rows_at(prog,E1,{});   [r2,d2] = rows_at(prog,E2,{'symmetric'});  % MMP, 11/07/2026
 rall = row_res(prog,1:prog.expr.num);
 c1 = opcheck_sop('coef',E1s);   c2 = opcheck_sop('coef',E2s);
 fprintf('   ||coef E(sol)|| / ||r_rows||: T''Q-P %.6f (rows %.2e), D+N %.4f (rows %.2e); rows %.3e = %.3e (all)\n',...
     c1/r1,r1,c2/r2,r2,hypot(r1,r2),rall);
 chk(abs(hypot(r1,r2)/rall-1)<=1e-6,'(2) the rebuilt rows are not the program''s rows (%.6g vs %.6g)',hypot(r1,r2),rall)
+% The written rows match the program's; the rows not written join r1, r2    % MMP, 11/07/2026
+r1 = hypot(r1,d1);  r2 = hypot(r2,d2);                                      % MMP, 11/07/2026
+fprintf('   with the rows not written (%.2e, %.2e): T''Q-P %.6f, D+N %.4f\n',d1,d2,c1/r1,c2/r2); % MMP, 11/07/2026
 chk(abs(c1/r1-1)<=1e-6,'(2) T''Q-P: coefficient norm %.6g vs row residual %.6g',c1,r1)
 chk(c2>=r2*(1-1e-6) && c2<=sqrt(2)*r2*(1+1e-6),'(2) D+N: coefficient norm %.6g vs row residual %.6g',c2,r2)
 
@@ -176,22 +187,26 @@ end
 
 
 % ------------------------------------------------------------------------
-function r = rows_at(prog,E,o)
-% R = ROWS_AT(PROG,E,O) returns the residual norm, at prog.solinfo.RRx, of
-% the rows that lpi_eq_sop(.,E,O{:}) imposes on a copy of PROG with no
-% expressions.
+% function r = rows_at(prog,E,o)                                            % MMP, 11/07/2026 (was)
+function [r,d] = rows_at(prog,E,o)                                          % MMP, 11/07/2026
+% [R,D] = ROWS_AT(PROG,E,O) returns the residual norm R, at
+% prog.solinfo.RRx, of the rows that lpi_eq_sop(.,E,O{:}) imposes on a copy
+% of PROG with no expressions, and that, D, of the rows it does not write
+% because each is f times a written one (DUP_RES).
 % INPUT  prog: 'struct', a solved LPI program; E: 'cdopvar' object, the
 %        constraint operator; o: 'cell', the options of lpi_eq_sop ({} or
 %        {'symmetric'}).
-% OUTPUT r: 'double'.
+% OUTPUT r, d: 'double'.
 % Copy of PROG with no expressions
 pe = prog;
 pe.expr.num = 0;
 fn = fieldnames(pe.expr);
 for k = 1:numel(fn),    if iscell(pe.expr.(fn{k})),    pe.expr.(fn{k}) = {};   end,    end
-% Impose E = 0; the residual of its rows
+% Impose E = 0, recording the rows not written; the residuals of both
+pe.sopeq = {};                                                              % MMP, 11/07/2026
 pe = lpi_eq_sop(pe,E,o{:});
 r = row_res(pe,1:pe.expr.num);
+d = dup_res(pe,Inf);                                                        % MMP, 11/07/2026
 end
 
 function r = row_res(prog,rows)
