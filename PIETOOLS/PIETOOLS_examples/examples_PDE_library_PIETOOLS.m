@@ -99,6 +99,9 @@ function varargout = examples_PDE_library_PIETOOLS(varargin)                % MM
 %                   function failed;
 % 2function varargout = examples_PDE_library_PIETOOLS(varargin)             % MMP, 10/28/2026 (was)
 % DJ, 11/02/2026: Add 3D examples, 53-55;
+% MMP, 11/08/2026: Run the executive through PIETOOLS_auto_execute_sop: the
+%                   stock PIETOOLS_auto_execute left the path on 11/08/2026
+%                   (cleaning/private), so answering 'y' errored;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1057,7 +1060,8 @@ userinp = strrep(userinp,'''','');    % Get rid of potential apostrophes
 if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
     PIE = convert_PIETOOLS_PDE(varargout{1});
     assignin('base','PIE',PIE);
-    evalin('base','PIETOOLS_auto_execute');
+%   evalin('base','PIETOOLS_auto_execute');                                 % MMP, 11/08/2026 (was)
+    evalin('base','PIETOOLS_auto_execute_sop');                             % MMP, 11/08/2026
 elseif strcmpi(userinp,'n') || strcmpi(userinp,'no')
     return
 else
@@ -1066,7 +1070,8 @@ else
     if strcmpi(userinp,'y') || strcmpi(userinp,'yes')
         PIE = convert_PIETOOLS_PDE(varargout{1});
         assignin('base','PIE',PIE);
-        evalin('base','PIETOOLS_auto_execute');
+%       evalin('base','PIETOOLS_auto_execute');                             % MMP, 11/08/2026 (was)
+        evalin('base','PIETOOLS_auto_execute_sop');                         % MMP, 11/08/2026
     elseif strcmpi(userinp,'n') || strcmpi(userinp,'no')
         return
     else
