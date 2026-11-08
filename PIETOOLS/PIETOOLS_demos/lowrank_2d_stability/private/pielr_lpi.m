@@ -76,11 +76,25 @@ A.resid   = @(prog,H) stab_resid(prog,H);
 end
 
 function [prog,H] = stab_build(PIE,st,dual)
-if pie_dim(PIE)==2
-    [prog,H] = build_stab_2d_st2(PIE,stab_2d_settings(st),dual);
-else
-    [prog,H] = build_stab_1d(PIE,st,dual);
+% BEGIN CC, 11/08/2026: one container builder for 1-D and 2-D.
+% build_stab_2d_st2 (opvar2d, poslpivar_2d, lpi_eq_2d) no longer runs; the
+% container builder dispatches by dimension through exec_tools_sop.  A bare
+% 2-D settings struct (set2d_deg, heat2d_compare in PIETOOLS_demos/cuadmm) is
+% wrapped as the settings_2d field of the container 'light' settings, so
+% callers keep passing what they passed before.
+% if pie_dim(PIE)==2                                                        % CC, 11/08/2026 (was)
+%     [prog,H] = build_stab_2d_st2(PIE,stab_2d_settings(st),dual);          % CC, 11/08/2026 (was)
+% else                                                                      % CC, 11/08/2026 (was)
+%     [prog,H] = build_stab_1d(PIE,st,dual);                                % CC, 11/08/2026 (was)
+% end                                                                       % CC, 11/08/2026 (was)
+if pie_dim(PIE)==2 && ~isfield(st,'settings_2d')
+    S2 = lpisettings_sop('light');
+    S2.settings_2d = stab_2d_settings(st);
+    if isfield(st,'sos_opts'),  S2.sos_opts = st.sos_opts;  end
+    st = S2;
 end
+[prog,H] = build_stab_1d(PIE,st,dual);
+% END CC, 11/08/2026
 end
 
 function s2d = stab_2d_settings(st)
@@ -100,32 +114,25 @@ function S = stab_resid(prog,H)
 % affine in the decision variables, so substituting then rebuilding equals
 % rebuilding then substituting -- this tests the identity semantically
 % instead of trusting the assembled equality rows.
+% BEGIN CC, 11/08/2026: container operators.  Deleted: the opvar2d branch
+% (PIETOOLS_stability_2D arithmetic plus clean_opvar at ztol 1e-12) and the
+% opvar branch, both 09/23/2026; 'copvar' arithmetic serves 1-D and 2-D in one
+% branch, with the 2-D factor 2 on epneg carried as H.epfac (build_stab_1d).
 Pop  = pielr_evalop(prog,H.Pop);
 Deop = pielr_evalop(prog,H.Deop);
-if isa(Pop,'opvar2d')
-    % PIETOOLS_stability_2D lines 164-172 / _dual_2D lines 165-173
-    if ~H.dual
-        PTop  = Pop*H.Top;    APTop = H.Aop'*PTop;
-        if H.epneg==0, Dop = APTop' + APTop;
-        else,          Dop = APTop' + APTop + 2*H.epneg*(H.Top'*PTop);  end
-    else
-        TPop  = H.Top*Pop;    TPAop = TPop*H.Aop';
-        if H.epneg==0, Dop = TPAop' + TPAop;
-        else,          Dop = TPAop' + TPAop + 2*H.epneg*(TPop*H.Top');  end
-    end
-    Dop = clean_opvar(Dop,1e-12);      % same ztol the constraint was built at
+% the negativity operator rebuilt on the substituted P, as the builder posed it
+if ~H.dual
+    Dop = H.Top'*Pop*H.Aop + H.Aop'*Pop*H.Top;
+    if H.epneg~=0,  Dop = Dop + H.epfac*H.epneg*(H.Top'*Pop*H.Top);  end
 else
-    % PIETOOLS_PDEstability / _dual, one line each
-    if ~H.dual
-        Dop = H.Top'*Pop*H.Aop + H.Aop'*Pop*H.Top + H.epneg*H.Top'*Pop*H.Top;
-    else
-        Dop = H.Top*Pop*H.Aop' + H.Aop*Pop*H.Top' + H.epneg*H.Top*Pop*H.Top';
-    end
+    Dop = H.Top*Pop*H.Aop' + H.Aop*Pop*H.Top';
+    if H.epneg~=0,  Dop = Dop + H.epfac*H.epneg*(H.Top*Pop*H.Top');  end
 end
 S.Res = Dop + Deop;
 S.Nrm = Pop;
-S.why = ['Pop = poslpivar(..) + blkdiag(eppos*I,eppos2*I), so Pop >= eppos*I ' ...
-         'by construction and max|Pop| is bounded below at every candidate.'];
+S.why = ['Pop is the storage plus eppos*I, so Pop >= eppos*I by construction ' ...
+         'and max|Pop| is bounded below at every candidate.'];
+% END CC, 11/08/2026
 % field assignment, NOT struct('Dop',Dop,...): with an opvar2d argument that
 % call dispatches to opvar2d's own struct method and errors "Too many input
 % arguments".  Same trap pielr_certify's norm_pie documents; it does not fire

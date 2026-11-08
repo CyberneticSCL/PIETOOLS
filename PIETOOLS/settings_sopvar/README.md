@@ -1,8 +1,8 @@
 # settings_sopvar: settings of the container executives (MMP, 10/28/2026)
 
 `lpisettings_sop(type, derivative_strictness, simplify, solver)` returns the settings structure that the
-executives of `executives_sopvar` read, for `type` = `stripped`, `light` (default), `heavy`, `veryheavy`
-or `custom` (a template equal to light). The arguments are those of `lpisettings`.
+executives of `executives_sopvar` read, for `type` = `extreme`, `stripped`, `light` (default), `heavy`,
+`veryheavy` or `custom` (a template equal to light). The arguments are those of `lpisettings`.
 
 ```matlab
 [prog,P,gam,info] = PIETOOLS_Hinf_gain_sop(PIE, lpisettings_sop('heavy'), 'P');
@@ -12,6 +12,7 @@ or `custom` (a template equal to light). The arguments are those of `lpisettings
 
 | tier | storage 1-D | storage 2-D | dw_feas | dw_P | dw_Q | raises feas / other | cap_delta | dual, witness |
 |---|---|---|---|---|---|---|---|---|
+| extreme | extreme | extreme | [0 1 1] | 1 | 1 | [1 1 0] / 0 | [NaN NaN 0] | off |
 | stripped | light | light | [0 1 1] | 1 | 1 | [1 1 0] / 0 | [NaN NaN 0] | off |
 | light | light | light | [0 1 1] | [2 2 1] | 1 | [2 1 0] / [1 1 0] | [NaN NaN 0] | on (order 24, 240 frequencies) |
 | heavy | heavy | stripped | [1 2 2] | 2 | 1 | [2 2 0] / [1 1 0] | [NaN NaN 1] | on (24, 240) |
@@ -21,6 +22,11 @@ or `custom` (a template equal to light). The arguments are those of `lpisettings
   entry of the PIE dimension (`exec_tools_sop`); a scalar serves every dimension.
 - **Storage** `light`, `heavy`, ...: the degrees of the stock `settings_PIETOOLS_<level>` (1-D) and
   `settings_PIETOOLS_<level>_2D` (2-D), read by `poslpivar_settings_sop` and `poslpivar_settings_2d_sop`.
+  Since 11/08/2026 the tiers read copies of those values in `private/` (`storage_extreme`, `_light`,
+  `_heavy`, `_veryheavy`; `storage_extreme_2D`, `_light_2D`, `_stripped_2D`, `_heavy_2D`), so
+  `settings_sopvar` calls no file outside this folder; `lpisettings_sop(tier)` is unchanged for every
+  tier that existed before (`isequaln`). The `extreme` tier (11/08/2026) takes the stock extreme
+  storage with the container options of `stripped`.
   In 3 or more variables every tier takes `settings_nd` (LF_int 1, LF_mult 0, eppos 1e-2): a multiplier
   and one separable full integral of degree 1 per space.
 - **cap_delta**: per-direction bounds theta_k + s_k <= Jmax_k(T) + delta on the slack bases

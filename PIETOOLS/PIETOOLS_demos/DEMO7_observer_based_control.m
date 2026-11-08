@@ -72,6 +72,8 @@
 % DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
 %                   executives do not support the new pie_struct;
 % DJ (CC), 10/30/2026: Declare the estimator with copvar operators;
+% MMP, 11/08/2026: Settings lpisettings_sop('heavy') (was the stock
+%                   lpisettings('heavy'), whose folder leaves the path);
 
 clear; clc; close all; clear stateNameGenerator
 echo on
@@ -109,7 +111,8 @@ C2 = PIE.C2;    D21 = PIE.D21;  D22 = PIE.D22;
 % === Declare the LPI
 
 % % Use the predefined Hinf control and estimator functions.
-settings = lpisettings('heavy');
+% settings = lpisettings('heavy');                                          % MMP, 11/08/2026 (was)
+settings = lpisettings_sop('heavy');                                        % MMP, 11/08/2026
 %   [prog_k, Kval, gam_co_val] = lpiscript(PIE,'hinf-controller',settings); % DJ (CC), 10/29/2026 (was)
 [prog_k, Kval, gam_co_val] = lpiscript_sop(PIE,'hinf-controller',settings); % DJ (CC), 10/29/2026
 %   [prog_l, Lval, gam_ob_val] = lpiscript(PIE,'hinf-observer',settings);   % DJ (CC), 10/29/2026 (was)

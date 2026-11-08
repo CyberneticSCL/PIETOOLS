@@ -48,9 +48,9 @@ of 8fd693bd with those three folders deleted.
 - `bl_run`'s `eta` leaves out rows of rounding residue, as sossolve's `info.eta` does. The
   container 2-D programs carry such rows: `stab2_rd` reads 5.2e-2 with them, 6.4e-10 without.
 
-**The container executives pose different SDPs.** `bl_expect.tsv`, `results/2026-09-24/` and
-`BASELINE_REPORT.md` hold stock-path values, and `bl_check` reports STRUCTURE CHANGED against
-them until the expectations are re-recorded. Measured 11/07 with MOSEK, light settings:
+**The container executives pose different SDPs.** `results/2026-09-24/` and `BASELINE_REPORT.md`
+hold stock-path values; `bl_expect.tsv` was re-recorded on 11/08/2026 (below). Measured 11/07
+with MOSEK, stock light settings:
 
 | case | stock m, blocks, result | container m, blocks, result |
 |---|---|---|
@@ -66,6 +66,23 @@ them until the expectations are re-recorded. Measured 11/07 with MOSEK, light se
 
 `hinf2_rd`'s closed-form gain is 0.1711.
 
+**Settings from `lpisettings_sop` (11/08/2026).** The stock `lpisettings` and
+`settings_PIETOOLS_*` leave the MATLAB path, so `bl_settings`, `cuadmm_settings`, `bl_big`,
+`bl_scale` and `heat2d_compare` take the tier of the same name from `lpisettings_sop`. Measured
+on the 24 registry cases with MOSEK: the objective cases pose the same SDPs as in the table
+above. The feasibility cases pose the tier's first pass, at its `dw_feas` and `eppos_stab`
+1e-2: `stab_rd1` m 116, blocks [10 14 7]; `stab2_rd` m 2044, largest block 144; both
+certified. `stab2_rd_psz90` (0.9 λ*) is primal infeasible at that pass; the tier's raise, which
+`bl_settings` turns off, certifies it at the 11/07 program (m 2968).
+
+`bl_expect.tsv` was re-recorded on these tiers (11/08/2026) for the 27 cases of the suites
+`structure`, `twod`, `objective2d` and `scaling`; `stab2_rd_psz` and `stab2_rd_psz90` are
+banked for the first time. A second `bl_check` pass gives 27 PASS, four of them known failures:
+`hinfduco_rd1`, `ctrl_rd1` and `hinf2du_rd` return no point, `stab2_rd_psz90` the trivial point.
+The H2 rows (dropped from the regime) and the `nl_fisher_*` rows (which do not build since the
+PIESOS API change of 10/15/2026) keep their stock-path values. `hinf2nc_rd` banks as `pass` on
+its residual (6.5e-6), although MOSEK returns numerr 2 and gam 756.6.
+
 Not ported; each still calls the stock code:
 
 - `experiments/` (45 of 73 scripts), moved on 11/07/2026 to
@@ -74,8 +91,12 @@ Not ported; each still calls the stock code:
   copies of `lpisolve` and the stock `poslpivar`), and `private/lpi_resid`, `opnorm_pi`,
   `opgram`, `pgridval`, `gaussleg`, `legval` (Galerkin matrices of `opvar` operators), now in
   `private_files/` there;
-- `heat2d_compare.m`, whose LPI comes from `lowrank_2d_stability/build_stab_2d_st2` (`opvar2d`);
 - `cuadmm_linear_psatz` (no caller): it stops on the missing `eq_opts_psatz`, see below.
+
+`heat2d_compare.m` runs on the container path since the low-rank package was ported (11/08/2026,
+c3bfac42): its LPI is the build of `pielr_lpi('stability')`, the form `'P'` LPI of
+`PIETOOLS_stability_sop` with the stock slack. Measured to assemble (nd 4: m 5721, blocks
+[8 744]); not re-run end to end.
 
 `stab2_rd_psz` and `stab2_rd_psz90` do not apply `pz`: the 2-D settings carry no `eq_opts_psatz`
 since the master merge of 10/27/2026, and the container's default slack holds the four linear
@@ -126,6 +147,15 @@ Two things that cost real time:
   `CUADMM_TIMING` line, never by the exit code.
 
 The binary path defaults to this workstation's build; override it with `CUADMM_EXE`.
+
+To build the binary elsewhere, run `SOSTOOLS400/internal/processing/cuadmm_install.sh`
+(11/08/2026) under Ubuntu or WSL; on Windows, in PowerShell, in that folder:
+`wsl bash cuadmm_install.sh`. It installs the missing packages, builds upstream cuADMM
+(commit fcadc30) with `cuadmm_exe.patch` (11/07/2026) from the same folder into `~/cuADMM`,
+where `cuadmm_sedumi` looks when `CUADMM_EXE` is unset, and solves a test SDP. The patch holds
+the changes that `cuadmm_sedumi` and these scripts need: command-line arguments, the solution
+dump, the `CUADMM_TIMING` line, and build fixes; its first lines give the manual build steps.
+`gpu/cuadmm_pinf_inf.patch` applies on top of it.
 
 The workstation build carries `gpu/cuadmm_pinf_inf.patch` (2026-09-27). It adds an optional
 10th argument: `1` makes cuADMM's primal residual, both its stopping test and the printed pinf,

@@ -32,6 +32,12 @@ the path cannot create a second class or private definition.
   it"); `closedLoopPIE` moved to `executives_sopvar/utility_functions/`, and `get_eq_opts_2D`, which
   nothing on the path calls, to `private/executives/utility_functions/` (maintainer: "now address
   closedLoopPIE and get_eq_opts_2D").
+- `private/settings/` (11/08/2026, maintainer: "Move it now") – the 13 files of `settings/`
+  (`lpisettings`, the 1-D presets and the `2D/` presets), from `orphaned_file/needed/settings/`
+  once every caller on the path had switched to `lpisettings_sop`; the tiers of `settings_sopvar`
+  read copies of the six presets they use in `settings_sopvar/private/storage_*.m`, and an `extreme`
+  tier stands in for the stock extreme level. The only remaining call is in
+  `PIETOOLS_demos/lowrank_2d_stability/tests_1d/`, which already calls retired functions.
 
 ## Not moved
 

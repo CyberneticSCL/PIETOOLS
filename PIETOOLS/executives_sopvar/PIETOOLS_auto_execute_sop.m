@@ -81,6 +81,9 @@
 %                PIETOOLS_H2_norm_c_sop, removed). The call string is set in
 %                each branch; the former single line built it from the
 %                name. Header to the header protocol.
+% MMP, 11/08/2026: The level asked for goes to lpisettings_sop (was the
+%                stock lpisettings, whose folder leaves the path); every
+%                name offered, 'extreme' included, is a tier there.
 
 % The PIE: from the workspace, the GUI, or a PDE
 if ~exist('PIE','var')
@@ -159,7 +162,8 @@ if ~exist('settings','var')
         fprintf(2,"\n Unknown settings specified; proceeding with 'light' settings.\n")
         sttngs = 'light';
     end
-    settings = lpisettings(sttngs);
+%   settings = lpisettings(sttngs);                                         % MMP, 11/08/2026 (was)
+    settings = lpisettings_sop(sttngs);                                     % MMP, 11/08/2026
 end
 
 % Run each executive, assigning its outputs in the base workspace

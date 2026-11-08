@@ -1,0 +1,4 @@
+# The cuADMM patch keeps LF line endings: git apply rejects a CRLF copy.
+cuadmm_exe.patch eol=lf
+# So does the install script: bash rejects CR line endings.
+cuadmm_install.sh eol=lf

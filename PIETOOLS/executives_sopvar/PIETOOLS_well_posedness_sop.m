@@ -40,7 +40,8 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 % - omega:    double, the omega of the LPI;
 % - info:     'struct' with fields
 %               status     char: 'optimal', 'inaccurate', 'infeasible',
-%                          'unbounded' or 'unknown';
+%                          'unbounded', 'unknown' or 'residual' (cuADMM,
+%                          which decides no feasibility: never certified);
 %               certified  logical, true when status is 'optimal' or
 %                          'inaccurate';
 %               omega, eppos   as posed;
@@ -120,10 +121,18 @@ function [prog,P,R,omega,info] = PIETOOLS_well_posedness_sop(PIE,settings)
 %                LPI cannot certify such a PIE, with or without K imposed
 %                (x_t = x_ss + lam*x, periodic or Neumann BCs, well posed:
 %                infeasible). Header updated.
+% MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
+%                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+% MMP, 11/08/2026: Default settings lpisettings_sop('heavy') (was the stock
+%                lpisettings('heavy'), whose folder leaves the path): the
+%                same 1-D storage degrees, the stripped 2-D storage of the
+%                heavy tier (was the stock heavy 2-D), and the container
+%                options of that tier (maintainer, 11/08/2026).
 
 % Default settings, as the stock executive; check the PIE
 if nargin<2 || isempty(settings)
-    settings = lpisettings('heavy');
+%   settings = lpisettings('heavy');                                        % MMP, 11/08/2026 (was)
+    settings = lpisettings_sop('heavy');                                    % MMP, 11/08/2026
     settings.sos_opts.simplify = 1;
     settings.eppos = 1e-2;  settings.eppos2 = 1e-2;   settings.epneg = 0;
 end

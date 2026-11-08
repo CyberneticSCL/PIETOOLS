@@ -14,6 +14,19 @@ function X = pielr_evalop(prog,X)                                           % CC
 %
 % An already-substituted object (opvar / opvar2d / double) passes through.
 
+% BEGIN CC, 11/08/2026: container operators.  A 'copvar' or 'sopvar' holds
+% no decision variable; a 'cdopvar' or 'sdopvar' is substituted by
+% GETSOL_LPIVAR_SOP, which reads prog.solinfo.RRx against prog.decvartable --
+% the vector pielr_opcheck writes there before calling this.  Checked first:
+% the opvar classes below left the path (f83486c8) and their isa tests now
+% return false rather than error.
+if isa(X,'copvar') || isa(X,'sopvar')
+    return                                  % nothing to substitute
+end
+if isa(X,'cdopvar') || isa(X,'sdopvar')
+    X = getsol_lpivar_sop(prog,X);   return
+end
+% END CC, 11/08/2026
 if isa(X,'opvar') || isa(X,'opvar2d') || isa(X,'double') || isa(X,'polynomial')
     return                                  % nothing to substitute
 end

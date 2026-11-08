@@ -17,7 +17,7 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 % of A or a nonzero column of B are read:
 %
 %   every block over at most one variable on each side: Qdeg = [deg1,
-%     deg2, deg2-1], deg1 the largest exponent of ZL in the multiplier cell
+%     deg2, max(deg2-1,0)], deg1 the largest exponent of ZL in the multiplier cell
 %     of a block on one shared variable (R0) and of ZL and ZR in a block
 %     without shared variable (P, Q1, Q2), deg2 the largest exponent of ZL
 %     and ZR in the integral cells of a block on one shared variable (R1,
@@ -37,8 +37,8 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %         not used for a container.
 %
 % OUTPUT
-% - Qdeg: 1x3 double [deg1, deg2, deg2-1] in 1-D (last entry -1 when
-%         deg2 = 0); for a legacy 2-D Rop, a 'struct' with fields dx (3x1
+% - Qdeg: 1x3 double [deg1, deg2, max(deg2-1,0)] in 1-D (for a container
+%         Rop); for a legacy 2-D Rop, a 'struct' with fields dx (3x1
 %         cell), dy (1x3 cell) and d2 (3x3 cell) of degree arrays; for a
 %         container with a block over two or more variables, a 'struct'
 %         with fields mult (double), int (1x2 double), out and in (double).
@@ -92,6 +92,13 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %                  header text was the comparison with the stock rule, a
 %                  measurement and a README reference, a cost note and
 %                  history.
+% MMP, 11/08/2026: The last 1-D entry is max(deg2-1,0) (was deg2-1): a
+%                  positive operator without integral kernels (deg2 = 0, as
+%                  in the 'extreme' tier) gave -1, which LPIVAR_CDOPVAR
+%                  rejects, so the Q forms of the gain and norm LPIs failed.
+%                  The stock rule subtracts 1 likewise although its help
+%                  text promises nonnegative degrees (maintainer: probably a
+%                  typo). Unchanged whenever deg2 >= 1.
 
 % Legacy operator: the stock rule
 if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))
@@ -144,7 +151,8 @@ for b = 1:numel(Rop.C)
         end
     end
 end
-Qdeg = [deg1,deg2,deg2-1];
+% Qdeg = [deg1,deg2,deg2-1];                                                % MMP, 11/08/2026 (was)
+Qdeg = [deg1,deg2,max(deg2-1,0)];       % no negative degree when deg2 = 0  % MMP, 11/08/2026
 end
 
 

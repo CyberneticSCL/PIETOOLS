@@ -26,8 +26,11 @@ function [x,y,info] = cuadmm_sedumi(At,b,c,K,pars)
 %       (sizes of the PSD blocks); K.l, K.q and K.r must be absent, empty
 %       or zero;
 % pars: (optional) struct with the optional fields
-%         exe       char, the path of cuadmm_exe as the launcher sees it
-%                   (default: the environment variable CUADMM_EXE);
+%         exe       char, the path of cuadmm_exe as the launcher sees it,
+%                   where a leading ~/ is the home folder (default: the
+%                   environment variable CUADMM_EXE, else
+%                   ~/cuADMM/build/cuadmm_exe, where cuadmm_install.sh
+%                   builds it);
 %         launcher  'auto' (default), 'wsl' or 'linux': 'auto' runs the
 %                   executable under WSL on Windows and directly elsewhere;
 %         tol       double, the stopping tolerance (default 1e-6);
@@ -58,10 +61,14 @@ function [x,y,info] = cuadmm_sedumi(At,b,c,K,pars)
 % write X_opt.txt, y_opt.txt, S_opt.txt into the folder when dump_sol is
 % 1, and print a line "CUADMM_TIMING init <s> solve <s>". The upstream
 % main.cu fixes the tolerance and the iteration limit and writes no
-% solution, so it needs these additions. Without the CUADMM_TIMING line in
-% its log the run is an error: the executable exits with status 0 even
-% when CUDA fails.
-% Under WSL the executable runs with LD_LIBRARY_PATH=/usr/lib/wsl/lib,
+% solution, so it needs these additions: cuadmm_exe.patch, in this folder,
+% makes them to cuADMM (github.com/ComputationalRobotics/cuADMM, commit
+% fcadc30), and its first lines give the build steps. cuadmm_install.sh,
+% in this folder, carries out those steps on Ubuntu or Debian, including
+% Ubuntu under WSL. Without the CUADMM_TIMING line in its log the run is
+% an error: the executable exits with status 0 even when CUDA fails.
+% Under WSL, in the default distribution, the executable runs with
+% LD_LIBRARY_PATH=/usr/lib/wsl/lib,
 % where the WSL GPU driver is. On Linux, system() passes MATLAB's own
 % LD_LIBRARY_PATH, whose libstdc++ can be older than the one the
 % executable was built with; when the environment variable
@@ -94,6 +101,16 @@ function [x,y,info] = cuadmm_sedumi(At,b,c,K,pars)
 % authorship, and a brief description of modifications
 %
 % 10/30/26 - MMP - initial coding
+% 11/07/26 - MMP - Help text: the additions the executable needs ship in
+%                  this folder as cuadmm_exe.patch, against cuADMM commit
+%                  fcadc30; before, they existed only in local builds.
+%                  Code unchanged.
+% 11/08/26 - MMP - Without pars.exe and CUADMM_EXE, the executable is
+%                  ~/cuADMM/build/cuadmm_exe, where the new
+%                  cuadmm_install.sh builds it (was: an error). A leading
+%                  ~/ in exe stays unquoted, so the shell expands it;
+%                  quoted, it required an absolute path. The error for a
+%                  failed run names cuadmm_install.sh.
 
 % Options, with the defaults above
 if nargin<5 || isempty(pars),   pars = struct();    end
@@ -103,9 +120,11 @@ fn = fieldnames(dflt);
 for i = 1:numel(fn)
     if ~isfield(pars,fn{i}) || isempty(pars.(fn{i})),   pars.(fn{i}) = dflt.(fn{i});    end
 end
-if isempty(pars.exe)
-    error('cuadmm_sedumi:exe','No cuADMM executable: set pars.exe or the environment variable CUADMM_EXE.');
-end
+% if isempty(pars.exe)                                                      % MMP, 11/08/2026 (was)
+%     error('cuadmm_sedumi:exe','No cuADMM executable: set pars.exe or the environment variable CUADMM_EXE.'); % MMP, 11/08/2026 (was)
+% end                                                                       % MMP, 11/08/2026 (was)
+% Neither set: the executable where cuadmm_install.sh builds it
+if isempty(pars.exe),   pars.exe = '~/cuADMM/build/cuadmm_exe';     end     % MMP, 11/08/2026
 L = pars.launcher;
 if strcmp(L,'auto'),    if ispc, L = 'wsl'; else, L = 'linux'; end,     end
 
@@ -175,8 +194,13 @@ write_vec(fullfile(wd,'C.txt'),T*c(:));
 % Run, wrapped per platform; dump_sol = 1, 15 eigensolver streams
 logf = fullfile(wd,'cuadmm.log');
 pre = '';   if isfinite(pars.timeout),  pre = sprintf('timeout %d ',max(1,ceil(pars.timeout)));  end
-core = sprintf('%s''%s'' ''%s/'' %.6g %d 15 1 > ''%s'' 2>&1',pre,pars.exe,upath(L,wd), ...
-               pars.tol,round(pars.maxit),upath(L,logf));
+% The executable in single quotes, except a leading ~/, which the shell
+% expands to the home folder only unquoted
+exq = ['''' pars.exe ''''];                                                 % MMP, 11/08/2026
+if strncmp(pars.exe,'~/',2),    exq = ['~/''' pars.exe(3:end) ''''];    end % MMP, 11/08/2026
+% core = sprintf('%s''%s'' ''%s/'' %.6g %d 15 1 > ''%s'' 2>&1',pre,pars.exe,upath(L,wd), ... % MMP, 11/08/2026 (was)
+core = sprintf('%s%s ''%s/'' %.6g %d 15 1 > ''%s'' 2>&1',pre,exq,upath(L,wd), ...
+               pars.tol,round(pars.maxit),upath(L,logf));                   % MMP, 11/08/2026
 switch L
     case 'wsl'
         cmd = sprintf('wsl -e bash -c "LD_LIBRARY_PATH=/usr/lib/wsl/lib %s"',core);
@@ -194,7 +218,10 @@ txt = '';   if exist(logf,'file'),  txt = fileread(logf);   end
 tm = regexp(txt,'CUADMM_TIMING init (\S+) solve (\S+)','tokens','once');
 if isempty(tm)
     tl = txt(max(1,end-1500):end);
-    error('cuadmm_sedumi:failed','cuADMM returned no solution (failed, or stopped by the timeout); end of %s:\n%s',logf,tl);
+%   error('cuadmm_sedumi:failed','cuADMM returned no solution (failed, or stopped by the timeout); end of %s:\n%s',logf,tl); % MMP, 11/08/2026 (was)
+    % The hint names the script that builds a missing executable
+    error('cuadmm_sedumi:failed',['cuADMM returned no solution (failed, or stopped by the timeout); end of %s:\n%s\n' ...
+          'If %s is missing, cuadmm_install.sh in %s builds it.'],logf,tl,pars.exe,fileparts(mfilename('fullpath'))); % MMP, 11/08/2026
 end
 tok = regexp(txt,'^\s*(\d+)\s*\|\s*(\S+)\s+(\S+)\s*\|\s*(\S+)\s+(\S+)\s+(\S+)\s*\|','tokens','lineanchors');
 tr = nan(1,6);  if ~isempty(tok),   tr = str2double(tok{end});  end

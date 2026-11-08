@@ -9,6 +9,7 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %
 %   TYPE       storage 1-D / 2-D   dw_feas  dw_P     dw_Q  max_raise_feas /   cap_delta
 %                                                          max_raise
+%   extreme    extreme / extreme   [0 1 1]  1        1     [1 1 0] / 0        [NaN NaN 0]
 %   stripped   light / light       [0 1 1]  1        1     [1 1 0] / 0        [NaN NaN 0]
 %   light      light / light       [0 1 1]  [2 2 1]  1     [2 1 0] / [1 1 0]  [NaN NaN 0]
 %   heavy      heavy / stripped    [1 2 2]  2        1     [2 2 0] / [1 1 0]  [NaN NaN 1]
@@ -18,17 +19,19 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 % A vector holds the entries of 1, 2, and 3 or more variables; NaN in
 % cap_delta is no bound. In 3 or more variables every tier takes the
 % storage settings_nd (EXEC_TOOLS_SOP). keepdual and witness are false at
-% stripped, true otherwise.
+% extreme and stripped, true otherwise.
 %
 % INPUT
-% - type:     (optional) char, 'stripped', 'light' (default), 'heavy',
-%             'veryheavy' or 'custom';
+% - type:     (optional) char, 'extreme', 'stripped', 'light' (default),
+%             'heavy', 'veryheavy' or 'custom';
 % - derivative_strictness: (optional) double >= 0, the decay rate epneg of
 %             the stability LPIs, in 1-D and 2-D (default 0);
 % - simplify: (optional) char, '' (default) or 'psimplify': simplify the
 %             SDP before it is solved;
 % - solver:   (optional) char, '' (default: MOSEK when installed, else
-%             SeDuMi), 'mosek', 'sedumi', 'sdpt3' or 'sdpnalplus'.
+%             SeDuMi), 'mosek', 'sedumi', 'sdpt3', 'sdpnalplus' or 'cuadmm'
+%             (the GPU executable of CUADMM_SEDUMI; the executives return
+%             status 'residual', never certified).
 %
 % OUTPUT
 % - st:       'struct' with fields
@@ -117,16 +120,25 @@ function st = lpisettings_sop(type,derivative_strictness,simplify,solver)
 %                max_raise_feas, max_raise, cap_delta) and settings_nd; the
 %                tiers now set cap_delta, so 'empty in every tier' in the
 %                entry above no longer holds. Code unchanged.
+% MMP, 11/07/2026: solver 'cuadmm' admitted. The arguments block rejected
+%                it, although sossolve has the option since 10/30/2026 and
+%                the executives classify its exit ('residual').
+% MMP, 11/08/2026: Tier 'extreme' (SETTINGS_SOPVAR_EXTREME), the counterpart
+%                of the stock extreme level, so that every level name of
+%                the stock LPISETTINGS has a tier; help text updated.
 
 % Admissible values and defaults of the inputs
 arguments
-    type {mustBeMember(type,{'stripped','light','heavy','veryheavy','custom'})} = 'light';
+%   type {mustBeMember(type,{'stripped','light','heavy','veryheavy','custom'})} = 'light'; % MMP, 11/08/2026 (was)
+    type {mustBeMember(type,{'extreme','stripped','light','heavy','veryheavy','custom'})} = 'light'; % MMP, 11/08/2026
     derivative_strictness {mustBeNonnegative} = 0;
     simplify {mustBeMember(simplify,{'','psimplify'})} = '';
-    solver {mustBeMember(solver,{'','sedumi','mosek','sdpt3','sdpnalplus'})} = '';
+%   solver {mustBeMember(solver,{'','sedumi','mosek','sdpt3','sdpnalplus'})} = ''; % MMP, 11/07/2026 (was)
+    solver {mustBeMember(solver,{'','sedumi','mosek','sdpt3','sdpnalplus','cuadmm'})} = ''; % MMP, 11/07/2026
 end
 % The settings of the tier
 switch type
+    case 'extreme',     st = settings_sopvar_extreme();                     % MMP, 11/08/2026
     case 'stripped',    st = settings_sopvar_stripped();
     case 'light',       st = settings_sopvar_light();
     case 'heavy',       st = settings_sopvar_heavy();

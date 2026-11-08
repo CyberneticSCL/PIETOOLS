@@ -27,6 +27,12 @@ function bl_big(ns,frac,rot)                                                % CC
 %   is infeasible by theory at any n -- a soundness sentinel for sizes where no
 %   reference solver runs (Sol has no Mosek).  Built without solving, as before.
 %
+% CC, 11/08/2026: lpisettings_sop('heavy') in place of the stock
+%   lpisettings('heavy'), whose folder leaves the path: the same 1-D storage;
+%   the stability margin is the tier's eppos_stab 1e-2 (was eppos 1e-4). The
+%   dump (At, b/||b||) is the same to 1e-16 and bscl in _meta is 100x
+%   (measured n = 1, 2).
+%
 % Unlocked by the lpi_eq fix (nnz instead of ~all(all(C.C==0))): before it, the
 % n=32 program could not even be BUILT -- construction requested a 9613344x1536
 % dense array, 123.8 GB. The wall was in PIETOOLS, not in any solver.
@@ -76,7 +82,8 @@ for n = ns                                                                  % CC
             PIE = initialize(convert([diff(x,t,1)==diff(x,s,2)+frac*pi^2*x; ...
                                       subs(x,s,0)==0; subs(x,s,1)==0]));    % CC, 09/27/2026
         end                                                                 % CC, 09/27/2026 (b)
-        stg = lpisettings('heavy');
+%       stg = lpisettings('heavy');                                         % CC, 11/08/2026 (was)
+        stg = lpisettings_sop('heavy');                                     % CC, 11/08/2026
         stg.sos_opts.solver='mosek'; stg.sos_opts.simplify=false;
         t0=tic; evalc('out = stab_mirror(PIE,stg);'); tb=toc(t0);
         S = sdpshape(out.prog);

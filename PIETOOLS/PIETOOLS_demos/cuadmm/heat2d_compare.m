@@ -6,7 +6,8 @@
 %
 %   PIE  = 2D heat equation below
 %   st   = 2D PIETOOLS settings below
-%   LPI  = build_stab_2d_st2(PIE,st)
+%   LPI  = A.build(PIE,st), A = pielr_lpi('stability'): the form 'P' LPI of
+%          PIETOOLS_stability_sop with the stock slack
 %
 % PDE:
 %   x_t = x_s1s1 + x_s2s2 + lam*x,    (s1,s2) in [0,1]^2, x in R^n
@@ -23,6 +24,19 @@
 %   The assembled LPI is exported in the text format used by
 %   PIETOOLS_demos/cuadmm/dump2cuadmm.m.
 % Note: the full Mosek reference for n=1, nd=4 is known to be a long solve.
+%
+% CC, 11/08/2026: settings from lpisettings_sop('light').settings_2d in place
+%   of settings_PIETOOLS_light_2D, whose folder leaves the path: the same
+%   struct plus eppos and epneg, which the SDP settings block sets anyway
+%   (isequaln, measured 11/08). The script was not re-run.
+% CC, 11/08/2026: the low-rank folder is recognized by pielr_solve.m, its entry
+%   point, which this script calls, in place of build_stab_2d_st2.m: since the
+%   container port A.build no longer calls that file, and the low-rank session
+%   retires it (interface agreed 11/08).
+% CC, 11/08/2026: the LPI named in the header and the printout is the build
+%   of pielr_lpi('stability'), which since the low-rank container port
+%   (c3bfac42) poses the form 'P' LPI of PIETOOLS_stability_sop with the
+%   stock slack; build_stab_2d_st2 is no longer called.
 %% parameters
 n = 1;                          % Number of coupled heat-equation states.
 lam = 2;                        % Reaction coefficient in x_t = x_s1s1 + x_s2s2 + lam*x.
@@ -69,7 +83,8 @@ cu_root = fullfile(pietools_root, 'PIETOOLS_demos', 'cuadmm');
 if exist(fullfile(pietools_root, 'pietools_path_update.m'), 'file') ~= 2
     error('PIETOOLS root not found: %s', pietools_root);
 end
-if exist(fullfile(lr_root, 'build_stab_2d_st2.m'), 'file') ~= 2
+% if exist(fullfile(lr_root, 'build_stab_2d_st2.m'), 'file') ~= 2           % CC, 11/08/2026 (was)
+if exist(fullfile(lr_root, 'pielr_solve.m'), 'file') ~= 2                   % CC, 11/08/2026
     error('lowrank_2d_stability folder not found: %s', lr_root);
 end
 if exist(fullfile(cu_root, 'dump2cuadmm.m'), 'file') ~= 2
@@ -104,7 +119,8 @@ fprintf('  PDE: x_t = x_s1s1 + x_s2s2 + lam*x on [0,1]^2, x in R^%d\n', n);
 fprintf('  BC : x = 0 on all four edges\n');
 fprintf('  lam = %.8g  (lam / (2*pi^2) = %.6g)\n', lam, lam/lam_star);
 fprintf('  analytic stable iff lam < %.8g\n', lam_star);
-fprintf('  LPI: build_stab_2d_st2 with nd=%d\n', nd);
+% fprintf('  LPI: build_stab_2d_st2 with nd=%d\n', nd);                     % CC, 11/08/2026 (was)
+fprintf('  LPI: pielr_lpi(''stability'') with nd=%d\n', nd);                % CC, 11/08/2026
 t0 = tic;
 pvar s1 s2
 clear stateNameGenerator
@@ -117,7 +133,8 @@ sys = [diff(x,'t') == diff(x,s1,2) + diff(x,s2,2) + lam*x;
 PIE = convert(sys, 'pie');
 t_pie = toc(t0);
 %% SDP settings
-st = settings_PIETOOLS_light_2D();
+% st = settings_PIETOOLS_light_2D();                                        % CC, 11/08/2026 (was)
+st = lpisettings_sop('light');  st = st.settings_2d;                        % CC, 11/08/2026
 if ~isempty(dmult)
     st.LF_deg.d2{1,1} = dmult*ones(2,2);
 end
