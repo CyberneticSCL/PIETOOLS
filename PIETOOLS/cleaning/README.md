@@ -19,6 +19,15 @@ the path cannot create a second class or private definition.
   each function name over every tracked file, comments excluded, plus the files of
   `PIETOOLS_PDE_GUI.mlapp`. It includes the earlier `sopvar/private/dead_code/` (09/29/2026), whose
   own README lists the original paths of its 31 files.
+- `private/lpi_programming/`, `private/opvar/`, `private/executives/` (11/08/2026, maintainer: "move
+  lpi_programming, opvar, executives, and settings folders into cleaning/private") – the stock LPI
+  layer, the opvar classes with their helpers, and the stock executives, each moved whole from
+  `PIETOOLS/<folder>/`; `@opvar`, `@dopvar`, `2D/@opvar2d`, `2D/@dopvar2d` became `*_class`, and the
+  empty `@quadPoly`, `Testing` and `legacy` folders were dropped. `opvar/2D/int_simple.m` moved to
+  `misc/` first. The 17 files that code on the path still calls – all of `settings/`, `closedLoopPIE`,
+  `get_eq_opts_2D`, the stock `lpi_ineq` and `lpigetsol` – moved to `orphaned_file/needed/` instead
+  (maintainer: "anything that is needed can move into orphaned_files/needed"), which lists them with
+  their callers.
 
 ## Not moved
 
@@ -26,9 +35,9 @@ the path cannot create a second class or private definition.
 |---|---|
 | 12 helpers in `PIETOOLS/sopvar/Testfolder/sdopvar/claude_tests/` (`cx_exec/cx_PIE2PDEstability`, `cx_plant`, `cx_resid`, `cx_settings`, `cx_shape`, `cx_solve`, `cx_space_list`, `cx_stability_2D`, `cx_stability_eq_opts_2D`, `cx_stability_pos2d`; `pi_dpvar_eval`, `pi_poly_grid`) | called by 9 tests in `lpi_programming_sopvar/tests/` and by `PIETOOLS_demos/sopvar_demos/heatNd_solve.m` and `heatNd_path.m` |
 | `PIETOOLS/converters/internal/legacy/` (8 files) | called by `PIETOOLS_DDE.m`, `convert_PIETOOLS_PDE.m` and `initialize_PIETOOLS_PDE.m` |
-| `PIETOOLS/opvar/2D/@opvar2d/*_legacy.m`, `@dopvar2d/*_legacy.m` (6 files) | called by the 2-D H-infinity executives |
-| `PIETOOLS/opvar/inv_opvar_old.m` | called by `inv_opvar.m` |
-| `PIETOOLS/opvar/inv_opvar_2.m` | the reference of `sopvar/Testfolder/Test_copvar_inv.m` |
+| `PIETOOLS/opvar/2D/@opvar2d/*_legacy.m`, `@dopvar2d/*_legacy.m` (6 files) | called by the 2-D H-infinity executives; moved with `opvar/` on 11/08/2026 |
+| `PIETOOLS/opvar/inv_opvar_old.m` | called by `inv_opvar.m`; moved with `opvar/` on 11/08/2026 |
+| `PIETOOLS/opvar/inv_opvar_2.m` | the reference of `sopvar/Testfolder/Test_copvar_inv.m`; moved with `opvar/` on 11/08/2026 |
 | `PIETOOLS/SOSTOOLS400/multipoly/s2p_old.m`, `@polynomial/p2s_old.m`, both copies of `peval.mexw32` and `peval.c` | SOSTOOLS is a separate toolbox |
 | `PIETOOLS/PIETOOLS_demos/cuadmm/` (apart from `experiments/` and its helpers, moved 11/07/2026), `PIETOOLS/PIETOOLS_demos/lowrank_2d_stability/` | left alone for now (maintainer, 10/23/2026) |
 
@@ -37,6 +46,32 @@ Not yet decided (candidates for `maybe/`): `sopvar/sopvar_lift_notes.tex` and `.
 `ndopvar/Notes_representation_ndopvar_v5.pdf`, and `PIETOOLS/PIETOOLS_2025_User_Manual.pdf`, which
 master added on 04/29/2026 and which is an older copy of
 `PIETOOLS_documentation/PIETOOLS_2025_User_Manual.pdf`.
+
+## Code on the path that still calls a retired function (11/08/2026)
+
+Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless marked static; the
+`executives/` and `settings/` names by a word search on 11/08/2026.
+
+- Tests whose reference or subject is an opvar class or the stock LPI layer (decision 5 of the opvar
+  removal plan): 13 Phase 6 tests, 10 in `sopvar/Testfolder` and 3 in `ndopvar/Testfolder` (2 of the
+  13 only through the dead line `rand_ndopvar.m:5`), 4 in `PIESOS/Examples/LocalStability/Testfolder`,
+  and the legacy sections of `test_dpvar_ops_sop`, `test_lpi_eq_sop`, `test_lpi_ineq_sop`,
+  `test_tier1_fixes_sop`, `test_translators_sop`, `test_getsol_sop` (iii); `Test_copvar_inv` also
+  calls `getController`, `getObserver`.
+- `converters/internal/2D/PIETOOLS_FTC_Expansion_2D.m:225`, the 2-D nonlinear converter, builds
+  opvars; so do the legacy 2-D converter chain and `convert_PIETOOLS_PDE_sopvar` (static).
+- The 2022 declaration format: the `parser/@state` and `@terms` methods build opvars (static;
+  decision 2), and the GUI follows it.
+- `PIETOOLS_examples/examples_PDE_library_PIETOOLS.m:1060, 1069` call `PIETOOLS_auto_execute`, which
+  already failed on every copvar PIE; `PIETOOLS_auto_execute_sop` is its container counterpart.
+- `PIETOOLS_demos/multivariate_PIE_2508_14840/jp_wave_plate_rates.m` (the stock LPI layer),
+  `PIETOOLS_demos/lowrank_2d_stability/` (the stock executives and LPI layer) and
+  `PIETOOLS_demos/cuadmm/heat2d_compare.m` (through `lowrank_2d_stability`) (static).
+- The manual snippets of Ch3 and Ch5 and `lpi_programming_sopvar/examples/volterra_norm_sop.m:83`
+  build opvars (static).
+- Branches that only an opvar-class input reaches, now dead: `lpi_eq_sop`, `lpi_ineq_sop` (also a
+  `double` P), `getsol_lpivar_sop`, `lpigetsol_sop`, `poslpivar_sop` and `get_lpivar_degs_sop` (a
+  non-container operator), `piesos_getsol`, `piesos_ineq`, `dopvar2sdopvar` (static).
 
 ## Moved files
 

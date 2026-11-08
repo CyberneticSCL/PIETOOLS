@@ -672,7 +672,10 @@ README rather than being deleted.
 - **PIESOS (20 files).** Drop the opvar branches of `tensopmat` (153, 175), `tensopmat/initialize` (161),
   `tensopvar/initialize` (61), `piesos_ineq` (132–137), `piesos_getsol` (85–94).
   `@intop/apply_op.m:277` calls `opvar/2D/int_simple.m`, a `dpvar`/`polynomial` integrator that references
-  no class: move it out of `opvar/` before Phase 8, whatever the PIESOS schedule. `PIE2polyPIE.m`
+  no class: move it out of `opvar/` before Phase 8, whatever the PIESOS schedule. **Done 11/08** [M]: now
+  `misc/int_simple.m`, code unchanged. On `b0623f6f` without `opvar/` and `lpi_programming/` it resolves there
+  only, and the 41 PIESOS tests that stopped at it run: 40 pass, `Test_polyopvar_subs` fails its one case
+  `case_const_partial` as with `opvar/` present. `PIE2polyPIE.m`
   (`pie2opvar`, `opvar2sopvar`) and 12 example or test files that build opvars use the Phase-1 constructor.
   PIESOS testing is deferred (maintainer, 10/23).
 - **ndopvar (14).** 5 error messages name "opvar objects" (text only). `Testfolder/converters`
@@ -737,6 +740,13 @@ README rather than being deleted.
   path.
 - **Verification.** The full suite on the default path: tests, DEMOs, snippets, F1, F3; `which('opvar')`
   is empty; the scan of §1.1 finds none of the four names in code outside `cleaning/`.
+- **Done 11/08** [M] (maintainer: "move lpi_programming, opvar, executives, and settings folders into
+  cleaning/private"), ahead of decisions 2, 5 and 6: `opvar/`, `lpi_programming/` and `executives/` are in
+  `cleaning/private/<folder>/`; the 17 files that code on the path still calls (all of `settings/`,
+  `closedLoopPIE`, `get_eq_opts_2D`, the stock `lpi_ineq` and `lpigetsol`) are in `orphaned_file/needed/`.
+  On `b0623f6f` the DEMOs differ only in solver timings and the container tests pass apart from their
+  legacy sections; `cleaning/README.md` lists the code that still calls a retired function. Not run with
+  these moves: F1, F3, the snippets.
 
 ### Order and parallelism
 

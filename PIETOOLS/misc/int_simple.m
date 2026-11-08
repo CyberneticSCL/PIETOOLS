@@ -47,6 +47,9 @@ function Eint = int_simple(E,ivar,x1,x2)
 % Initial coding DJ, MP, SS - 04/14/2022
 % DJ, 05/23/22 - Allow inputs of class 'double'
 % DJ, 01/28/26 - Convert constants specified as 'polynomial' to 'double';
+% MMP, 11/08/26 - Moved unchanged from opvar/2D/ to misc/: it acts on
+%   'polynomial' and 'dpvar' only, PIESOS (@intop/apply_op) calls it, and
+%   opvar/ is being retired (opvar removal plan, Phase 6).
 
 if nargin<4
     error('At least 4 input arguments are required')
