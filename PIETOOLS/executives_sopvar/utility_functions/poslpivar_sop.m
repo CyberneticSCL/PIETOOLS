@@ -13,15 +13,13 @@ function varargout = poslpivar_sop(prog,n,varargin)
 % D times I_m, and g(eta) = (eta-a)*(b-eta) when OPTIONS.psatz = 1, g = 1
 % otherwise. With OPTIONS.sep = 1, Z2 integrates over [a,b] and Z3 is
 % dropped.
-% [PROG,POP,QMAT,ZOP,GS] = POSLPIVAR_SOP(PROG,N[,D[,OPTIONS]]), with N not
-% a 'copvar' or 'cdopvar' object, returns POSLPIVAR(PROG,N,D,OPTIONS).
+% An X that is not a 'copvar' or 'cdopvar' object, such as the dimension N
+% of POSLPIVAR (retired), is an error.
 %
 % INPUT
 % - prog:     'struct', the LPI program to which the decision variables are
 %             added;
-% - X:        'copvar' or 'cdopvar' object whose SIDE spaces P maps; or
-%   N:        'double', the dimensions [n0;n1] of an operator on
-%             R^n0 x L2^n1, or the 2x2 .dim of an 'opvar' object;
+% - X:        'copvar' or 'cdopvar' object whose SIDE spaces P maps;
 % - D:        (optional) 'cell' {d1,d2,d3}: d1 the degree of Z1, d2 =
 %             [degree in eta, degree in s, joint degree] of Z2, d3 the same
 %             for Z3. Gaps are filled: a one-entry d2 or d3 p becomes
@@ -29,8 +27,7 @@ function varargout = poslpivar_sop(prog,n,varargin)
 %             d3 is d2; {d1} is {d1,[d1 d1 d1],[d1 d1 d1]}. A 'double' p is
 %             {p}, [p q] is {max(p,q),[p q max(p,q)],[p q max(p,q)]},
 %             [p q r] is {max(p,q,r),[p q r],[p q r]}. [] or omitted:
-%             {1,[1,1,1],[1,1,1]}. With N, D and OPTIONS are passed to
-%             POSLPIVAR unchanged;
+%             {1,[1,1,1],[1,1,1]};
 % - OPTIONS:  (optional) 'struct' with fields, each optional, psatz (g is
 %             used only for psatz = 1; default 0), exclude (1x4 logical:
 %             entry 1 the R^q basis, entries 2:4 Z1, Z2, Z3; default
@@ -48,18 +45,15 @@ function varargout = poslpivar_sop(prog,n,varargin)
 % - prog:     'struct', the program with the decision variables of Q and the
 %             constraint Q >= 0 added;
 % - P:        'cdopvar' object on the SIDE spaces of X.
-% With N: prog; POP, 'dopvar' object, POP = ZOP'*(GS*QMAT)*ZOP; QMAT,
-% 'dpvar' object, the Gram matrix; ZOP, 'opvar' object, the monomial
-% operator; GS, 'polynomial' object, the weight g. For a 2-D program
-% (PROG.dom 2x2), POP is a 'dopvar2d' and ZOP an 'opvar2d' object.
 %
 % NOTES
-% Errors: a space of X over two or more variables; exclude(1) set with an
+% Errors: X not a 'copvar' or 'cdopvar' object (poslpivar_sop:class); a
+% space of X over two or more variables; exclude(1) set with an
 % R^q space present; every L2 basis operator excluded (exclude(2:4), Z3
 % counted as excluded under sep) with an L2 space present; more than two
 % outputs with a container X; a malformed D; OPTIONS not a 'struct'.
 %
-% See also POSLPIVAR, POSCOPVAR, POSLPIVAR_SETTINGS_SOP, COPVAR_SPACE_LIST.
+% See also POSCOPVAR, POSLPIVAR_SETTINGS_SOP, COPVAR_SPACE_LIST.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -99,13 +93,22 @@ function varargout = poslpivar_sop(prog,n,varargin)
 %                inputs, outputs), step comments in the body; code
 %                unchanged. The deleted header text was the comparison with
 %                the 1-D branch of poslpivar and a cost note.
+% MMP, 11/08/2026: A second input that is not a 'copvar' or 'cdopvar'
+%                object, such as the dimension N, is an error
+%                (poslpivar_sop:class). It went to POSLPIVAR, retired
+%                11/08/2026 (cleaning/private) with the opvar classes it
+%                returned. Help text to match.
 
-% A dimension N: the call is POSLPIVAR's
-if ~(isa(n,'copvar') || isa(n,'cdopvar'))
-    % Legacy family: poslpivar itself.
-    [varargout{1:max(nargout,1)}] = poslpivar(prog,n,varargin{:});
-    return
-end
+% % A dimension N: the call is POSLPIVAR's                                  % MMP, 11/08/2026 (was)
+% if ~(isa(n,'copvar') || isa(n,'cdopvar'))                                 % MMP, 11/08/2026 (was)
+%     % Legacy family: poslpivar itself.                                    % MMP, 11/08/2026 (was)
+%     [varargout{1:max(nargout,1)}] = poslpivar(prog,n,varargin{:});        % MMP, 11/08/2026 (was)
+%     return                                                                % MMP, 11/08/2026 (was)
+% end                                                                       % MMP, 11/08/2026 (was)
+% Only a container: POSLPIVAR, which took a dimension N, is retired         % MMP, 11/08/2026
+if ~(isa(n,'copvar') || isa(n,'cdopvar'))                                   % MMP, 11/08/2026
+    error('poslpivar_sop:class','X should be a copvar or cdopvar object; got %s.',class(n)) % MMP, 11/08/2026
+end                                                                         % MMP, 11/08/2026
 % A container X: at most two outputs
 X = n;
 if nargout>2

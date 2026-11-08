@@ -21,8 +21,8 @@ function test_lpi_ineq_sop
 %       variables than the default for 'none' and dD = dw = 0, more for
 %       'faces', at least as many for prune false, and info.degrees.given
 %       set for the given deg;
-%   (5) for the 'dopvar' of POSLPIVAR on a 1-D program, LPI_INEQ_SOP adds
-%       the decision variables and expressions LPI_INEQ adds;
+%   (5) none since 11/08/2026: it compared LPI_INEQ_SOP with LPI_INEQ on a
+%       'dopvar' of POSLPIVAR, all three retired;
 %   (6) opts.like = Pt'*Pt gives the lift and weight that GET_LIFT_DEGS
 %       reads from Pt'*Pt, with more decision variables than the default,
 %       and a 'double' opts.like is refused;
@@ -81,6 +81,10 @@ function test_lpi_ineq_sop
 % MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
 %                extra input forms (names, containers) only filled fields that
 %                container routines do not read, is retired.
+% MMP, 11/08/2026: Part (5), lpi_ineq_sop against LPI_INEQ on a 'dopvar' of
+%                POSLPIVAR (10/08/2026), deleted: the three are retired
+%                (cleaning/private), and the branch of lpi_ineq_sop it
+%                exercised now raises lpi_ineq_sop:class.
 
 % Silence the canonical-form warnings; MOSEK, else SeDuMi; the pass count
 warning('off','sopvar:noncanonicalMultiplier');
@@ -179,19 +183,9 @@ fprintf('  passed: (4) options: none %d < default %d < faces %d; given deg %d; p
         numel(Pa.Zd),numel(Pop.Zd),numel(Pb.Zd),numel(Pc.Zd),numel(Pd.Zd),numel(Pe.Zd));
 npass = npass+1;
 
-%% (5) legacy dispatch
-% A positive 'dopvar' through lpi_ineq and through lpi_ineq_sop
-pvar s th;
-prog1 = lpiprogram(s,th,[0 1]);
-[prog1,Pl] = poslpivar(prog1,[1;1],1);
-p1 = lpi_ineq(prog1,Pl);
-p2 = lpi_ineq_sop(prog1,Pl);
-if ~isequal(numel(p1.decvartable),numel(p2.decvartable)) || p1.expr.num~=p2.expr.num
-    error('test_lpi_ineq_sop: (5) the legacy dispatch differs from lpi_ineq.');
-end
-fprintf('  passed: (5) legacy dopvar: lpi_ineq and lpi_ineq_sop agree (%d decision variables, %d expressions)\n',...
-        numel(p2.decvartable),p2.expr.num);
-npass = npass+1;
+%% (5) none: the legacy dispatch is retired                                 % MMP, 11/08/2026
+% Deleted: lpi_ineq_sop against LPI_INEQ on a positive 'dopvar' of          % MMP, 11/08/2026
+% POSLPIVAR on a 1-D program (MMP, 10/08/2026); all three are retired.      % MMP, 11/08/2026
 
 %% (6) opts.like: the support of another operator, laid out over P's spaces
 % Pt sized from the support of Pt'*Pt

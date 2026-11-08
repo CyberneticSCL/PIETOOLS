@@ -64,10 +64,11 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
 
 - Tests whose reference or subject is an opvar class or the stock LPI layer (decision 5 of the opvar
   removal plan): 13 Phase 6 tests, 10 in `sopvar/Testfolder` and 3 in `ndopvar/Testfolder` (2 of the
-  13 only through the dead line `rand_ndopvar.m:5`), 4 in `PIESOS/Examples/LocalStability/Testfolder`,
-  and the legacy sections of `test_dpvar_ops_sop`, `test_lpi_eq_sop`, `test_lpi_ineq_sop`,
-  `test_tier1_fixes_sop`, `test_translators_sop`, `test_getsol_sop` (iii); `Test_copvar_inv` also
-  calls `getController`, `getObserver`.
+  13 only through the dead line `rand_ndopvar.m:5`), and 4 in
+  `PIESOS/Examples/LocalStability/Testfolder`; `Test_copvar_inv` also calls `getController`,
+  `getObserver`. The legacy sections of `test_dpvar_ops_sop`, `test_lpi_eq_sop`, `test_lpi_ineq_sop`,
+  `test_tier1_fixes_sop`, `test_translators_sop` and `test_getsol_sop` (iii) were deleted later on
+  11/08/2026 (Phase 3 cleanup).
 - `converters/internal/2D/PIETOOLS_FTC_Expansion_2D.m:225`, the 2-D nonlinear converter, builds
   opvars; so do the legacy 2-D converter chain and `convert_PIETOOLS_PDE_sopvar` (static).
 - The 2022 declaration format: the `parser/@state` and `@terms` methods build opvars (static;
@@ -79,10 +80,10 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
   `PIETOOLS_demos/cuadmm/heat2d_compare.m` (through `lowrank_2d_stability`) (static).
 - The manual snippets of Ch3 and Ch5 and `lpi_programming_sopvar/examples/volterra_norm_sop.m:83`
   build opvars (static).
-- Branches that only an opvar-class input reaches, now dead: `lpi_eq_sop`, `getsol_lpivar_sop`,
-  `lpigetsol_sop`, `poslpivar_sop` and `get_lpivar_degs_sop` (a non-container operator),
-  `piesos_getsol`, `piesos_ineq`, `dopvar2sdopvar` (static). `lpi_ineq_sop` raises its own error for
-  such a P since 11/08/2026.
+- Branches that only an opvar-class input reaches, now dead: `piesos_getsol`, `piesos_ineq`,
+  `dopvar2sdopvar` (static). `lpi_ineq_sop`, `lpi_eq_sop`, `getsol_lpivar_sop`, `lpigetsol_sop`,
+  `poslpivar_sop` and `get_lpivar_degs_sop` raise their own errors for such an input since
+  11/08/2026.
 
 ## Moved files
 

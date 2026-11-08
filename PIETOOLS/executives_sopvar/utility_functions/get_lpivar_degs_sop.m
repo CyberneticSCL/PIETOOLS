@@ -1,14 +1,9 @@
 function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % QDEG = GET_LPIVAR_DEGS_SOP(ROP,TOP) returns the degrees of the free
-% operator Q of an LPI, for 'lpivar' or LPIVAR_CDOPVAR, read off the
-% positive operator ROP.
-%
-% For a legacy ROP ('opvar', 'dopvar', 'opvar2d', 'dopvar2d') it returns
-% get_lpivar_degs(Rop,Top): in 1-D, Qdeg = [deg1, deg2, deg2-1] with deg1
-% the largest degree of a monomial of Q1, Q2 and R.R0 and deg2 the largest
-% degree in either variable of a monomial of R.R1 and R.R2; in 2-D, the
-% largest degrees of the parameters of Rop in each variable.
+% operator Q of an LPI, for LPIVAR_CDOPVAR, read off the positive operator
+% ROP. An ROP that is not a 'copvar' or 'cdopvar' object is an error
+% (get_lpivar_degs_sop:class).
 %
 % For a container ROP ('copvar', 'cdopvar'), each parameter cell of a
 % block has the coefficient A + B'*d (d the decision variables; A for a
@@ -30,20 +25,16 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %     side only.
 %
 % INPUT
-% - Rop:  'opvar', 'dopvar', 'opvar2d' or 'dopvar2d' object, or 'copvar'
-%         or 'cdopvar' object with 'sopvar' and 'sdopvar' blocks;
-% - Top:  'opvar', 'dopvar', 'opvar2d' or 'dopvar2d' object, the T operator
-%         of the PIE, of the dimension of Rop: required for a legacy Rop,
-%         not used for a container.
+% - Rop:  'copvar' or 'cdopvar' object with 'sopvar' and 'sdopvar' blocks;
+% - Top:  (optional) not used; the second input of the stock
+%         GET_LPIVAR_DEGS, whose calling form this keeps.
 %
 % OUTPUT
-% - Qdeg: 1x3 double [deg1, deg2, max(deg2-1,0)] in 1-D (for a container
-%         Rop); for a legacy 2-D Rop, a 'struct' with fields dx (3x1
-%         cell), dy (1x3 cell) and d2 (3x3 cell) of degree arrays; for a
-%         container with a block over two or more variables, a 'struct'
-%         with fields mult (double), int (1x2 double), out and in (double).
+% - Qdeg: 1x3 double [deg1, deg2, max(deg2-1,0)] in 1-D; for a container
+%         with a block over two or more variables, a 'struct' with fields
+%         mult (double), int (1x2 double), out and in (double).
 %
-% See also GET_LPIVAR_DEGS, LPIVAR_CDOPVAR, POSLPIVAR_SOP.
+% See also LPIVAR_CDOPVAR, POSLPIVAR_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -99,12 +90,21 @@ function Qdeg = get_lpivar_degs_sop(Rop,Top)
 %                  The stock rule subtracts 1 likewise although its help
 %                  text promises nonnegative degrees (maintainer: probably a
 %                  typo). Unchanged whenever deg2 >= 1.
+% MMP, 11/08/2026: An ROP that is not a container is an error
+%                  (get_lpivar_degs_sop:class). It went to GET_LPIVAR_DEGS,
+%                  retired 11/08/2026 (cleaning/private) with the opvar
+%                  classes it read. Help text to match; TOP is unused.
 
-% Legacy operator: the stock rule
-if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))
-    Qdeg = get_lpivar_degs(Rop,Top);
-    return
-end
+% % Legacy operator: the stock rule                                         % MMP, 11/08/2026 (was)
+% if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))                             % MMP, 11/08/2026 (was)
+%     Qdeg = get_lpivar_degs(Rop,Top);                                      % MMP, 11/08/2026 (was)
+%     return                                                                % MMP, 11/08/2026 (was)
+% end                                                                       % MMP, 11/08/2026 (was)
+% Only a container: GET_LPIVAR_DEGS, which read the opvar classes, is       % MMP, 11/08/2026
+% retired                                                                   % MMP, 11/08/2026
+if ~(isa(Rop,'copvar') || isa(Rop,'cdopvar'))                               % MMP, 11/08/2026
+    error('get_lpivar_degs_sop:class','Rop should be a copvar or cdopvar object; got %s.',class(Rop)) % MMP, 11/08/2026
+end                                                                         % MMP, 11/08/2026
 % A block over two or more variables on a side: the per-role caps of the
 % N-D reading
 for b = 1:numel(Rop.C)                                                      % MMP, 10/08/2026

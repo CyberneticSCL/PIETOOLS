@@ -4,38 +4,32 @@ function dvar_sol = lpigetsol_sop(prog,dvar)
 % decision variables replaced by its value in the solved LPI program PROG:
 % an 'sdopvar' or 'cdopvar' DVAR by GETSOL_LPIVAR_SOP; a cell that holds,
 % at any depth, an object of class 'sopvar', 'sdopvar', 'copvar' or
-% 'cdopvar', element by element; an 'opvar' or 'opvar2d' DVAR with
-% 'dpvar'-valued fields, field by field, by LPIGETSOL; a 'dpvar', char or
-% other cell by SOSGETSOL; and a 'dopvar' or 'dopvar2d' DVAR by LPIGETSOL.
-% A 'sopvar', 'copvar', 'double' or 'polynomial' DVAR, or [], is returned
-% unchanged.
+% 'cdopvar', element by element; and a 'dpvar', char or other cell by
+% SOSGETSOL. A 'sopvar', 'copvar', 'double' or 'polynomial' DVAR, or [], is
+% returned unchanged.
 %
 % INPUT
 % - prog:     'struct', an LPI program solved by LPISOLVE, with the fields
 %             solinfo.info, decvartable and solinfo.RRx;
 % - dvar:     'sdopvar' or 'cdopvar' object, a decision operator; a
 %             'sopvar' or 'copvar' object; a cell of objects of the classes
-%             listed here; an 'opvar' or 'opvar2d' object, possibly with
-%             'dpvar'-valued fields; or [], a 'double', 'polynomial',
-%             'dpvar', char, 'cellstr', 'dopvar' or 'dopvar2d' object.
+%             listed here; or [], a 'double', 'polynomial', 'dpvar', char
+%             or 'cellstr' object.
 %
 % OUTPUT
 % - dvar_sol: DVAR at the solution: for an 'sdopvar' ('cdopvar') DVAR, a
 %             'sopvar' ('copvar') object, or an 'sdopvar' ('cdopvar')
 %             object on the names that prog.decvartable does not hold; for
-%             a cell, a cell of the same size; for an 'opvar' or 'opvar2d'
-%             DVAR, the object with each 'dpvar' it holds replaced by its
-%             value; for [], 'double' and 'polynomial', DVAR itself; for
-%             'dpvar', char and a cell without a 'sopvar', 'sdopvar',
-%             'copvar' or 'cdopvar' element, the value SOSGETSOL returns;
-%             for 'dopvar' and 'dopvar2d', the 'opvar' or 'opvar2d' object
-%             GETSOL_LPIVAR returns.
+%             a cell, a cell of the same size; for [], 'double' and
+%             'polynomial', DVAR itself; for 'dpvar', char and a cell
+%             without a 'sopvar', 'sdopvar', 'copvar' or 'cdopvar' element,
+%             the value SOSGETSOL returns.
 %
 % NOTES
 % A DVAR of another class, a PROG that is not a 'struct' and a PROG whose
 % solinfo.info is empty are errors.
 %
-% See also LPIGETSOL, GETSOL_LPIVAR_SOP, SUBS_DVAR_SOP.
+% See also SOSGETSOL, GETSOL_LPIVAR_SOP, SUBS_DVAR_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -80,6 +74,14 @@ function dvar_sol = lpigetsol_sop(prog,dvar)
 %                path (the gamma of the executives and DEMOs) no longer
 %                calls lpi_programming. The opvar classes still go to
 %                LPIGETSOL.
+% MMP, 11/08/2026: The branches of the opvar classes are gone, an 'opvar'
+%                or 'opvar2d' with 'dpvar' fields (local SUBS_FIELDS) and the
+%                legacy classes (LPIGETSOL): both are retired (cleaning/
+%                private, 11/08/2026), and such a DVAR now raises
+%                lpigetsol_sop:badClass. The local functions HASDPVAR and
+%                SUBS_FIELDS, used only there, are deleted. Help text to
+%                match. The last sentence of the 11/04/2026 entry no longer
+%                holds.
 
 % Same program checks as lpigetsol, made here too so that the new-class
 % branches, which do not pass through lpigetsol, apply them.
@@ -102,24 +104,28 @@ elseif iscell(dvar) && ~iscellstr(dvar) && any(cellfun(@hasnew,dvar(:)))
     for k = 1:numel(dvar)
         dvar_sol{k} = lpigetsol_sop(prog,dvar{k});
     end
-elseif (isa(dvar,'opvar') || isa(dvar,'opvar2d')) && hasdpvar(dvar)
-    % Legacy [dpvar, opvar] concatenation leaves dpvar-valued fields in an
-    % opvar, which lpigetsol returns UNSUBSTITUTED; substitute each field.
-    dvar_sol = subs_fields(prog,dvar);
+% elseif (isa(dvar,'opvar') || isa(dvar,'opvar2d')) && hasdpvar(dvar)       % MMP, 11/08/2026 (was)
+%     % Legacy [dpvar, opvar] concatenation leaves dpvar-valued fields in an  % MMP, 11/08/2026 (was)
+%     % opvar, which lpigetsol returns UNSUBSTITUTED; substitute each field.  % MMP, 11/08/2026 (was)
+%     dvar_sol = subs_fields(prog,dvar);                                    % MMP, 11/08/2026 (was)
 elseif isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial')        % MMP, 11/04/2026
     dvar_sol = dvar;    % fixed: nothing to substitute, as in LPIGETSOL     % MMP, 11/04/2026
 elseif isa(dvar,'dpvar') || ischar(dvar) || iscell(dvar)                    % MMP, 11/04/2026
     dvar_sol = sosgetsol(prog,dvar);    % as LPIGETSOL does for these       % MMP, 11/04/2026
-elseif isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial') ...
-        || isa(dvar,'opvar') || isa(dvar,'opvar2d') || isa(dvar,'dpvar') ...
-        || ischar(dvar) || iscell(dvar) || isa(dvar,'dopvar') || isa(dvar,'dopvar2d')
-    dvar_sol = lpigetsol(prog,dvar);            % legacy classes, unchanged
+% elseif isempty(dvar) || isa(dvar,'double') || isa(dvar,'polynomial') ...
+%         || isa(dvar,'opvar') || isa(dvar,'opvar2d') || isa(dvar,'dpvar') ...
+%         || ischar(dvar) || iscell(dvar) || isa(dvar,'dopvar') || isa(dvar,'dopvar2d')
+%     dvar_sol = lpigetsol(prog,dvar);            % legacy classes, unchanged % MMP, 11/08/2026 (was)
 else
     % Any other class
+%   error('lpigetsol_sop:badClass',...
+%       ['Variable of which to extract the solution should be specified as object of type '...
+%        '''dpvar'', ''dopvar'', ''dopvar2d'', ''sdopvar'' or ''cdopvar'' (or a fixed '...
+%        'opvar, opvar2d, sopvar, copvar, polynomial or double); got ''%s''.'],class(dvar)) % MMP, 11/08/2026 (was)
     error('lpigetsol_sop:badClass',...
         ['Variable of which to extract the solution should be specified as object of type '...
-         '''dpvar'', ''dopvar'', ''dopvar2d'', ''sdopvar'' or ''cdopvar'' (or a fixed '...
-         'opvar, opvar2d, sopvar, copvar, polynomial or double); got ''%s''.'],class(dvar))
+         '''dpvar'', ''sdopvar'' or ''cdopvar'' (or a fixed sopvar, copvar, '...
+         'polynomial or double); got ''%s''.'],class(dvar))                 % MMP, 11/08/2026
 end
 
 end
@@ -135,49 +141,5 @@ tf = isa(x,'sopvar') || isa(x,'sdopvar') || isa(x,'copvar') || isa(x,'cdopvar') 
 end
 
 
-function tf = hasdpvar(X)
-% TF = HASDPVAR(X) returns true when X is a 'dpvar' or holds one at any
-% depth, as a property of an 'opvar' or 'opvar2d', a field of a struct or
-% an element of a cell.
-% INPUT  X:  any value.
-% OUTPUT tf: logical.
-if isa(X,'dpvar')
-    tf = true;
-elseif isa(X,'opvar') || isa(X,'opvar2d') || isstruct(X)
-    % An object or a struct: any of its fields
-    f = fieldnames(X);      tf = false;         % fieldnames lists an object's public properties
-    for k = 1:numel(f)
-        if hasdpvar(X.(f{k})),  tf = true;  return,  end
-    end
-elseif iscell(X)
-    % A cell: any of its elements
-    tf = any(cellfun(@hasdpvar,X(:)));
-else
-    tf = false;
-end
-end
-
-
-function X = subs_fields(prog,X)
-% X = SUBS_FIELDS(PROG,X) returns X with every 'dpvar' it holds replaced by
-% its solved value (lpigetsol, i.e. sosgetsol).
-% INPUT  prog: 'struct', the solved LPI program;
-%        X:    'dpvar', 'opvar' or 'opvar2d' object, struct or cell.
-% OUTPUT X:    X with each 'dpvar' replaced by its value.
-% Only fields that hold a dpvar are assigned, so no other property (dim,
-% I, var1, ...) passes through a set method.
-if isa(X,'dpvar')
-    X = lpigetsol(prog,X);
-elseif isa(X,'opvar') || isa(X,'opvar2d') || isstruct(X)
-    % An object or a struct: each field that holds a dpvar
-    f = fieldnames(X);
-    for k = 1:numel(f)
-        if hasdpvar(X.(f{k})),  X.(f{k}) = subs_fields(prog,X.(f{k}));  end
-    end
-elseif iscell(X)
-    % A cell: each element that holds a dpvar
-    for k = 1:numel(X)
-        if hasdpvar(X{k}),  X{k} = subs_fields(prog,X{k});  end
-    end
-end
-end
+% The local functions HASDPVAR and SUBS_FIELDS (MMP, 09/29/2026), which     % MMP, 11/08/2026
+% served only the 'opvar' branch above, are deleted.                        % MMP, 11/08/2026

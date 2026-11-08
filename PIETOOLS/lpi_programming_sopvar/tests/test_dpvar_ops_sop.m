@@ -24,8 +24,7 @@ function test_dpvar_ops_sop()
 %       the names gam, h1, h2 for a 3 x 4 'dpvar' affine in them, each
 %       acting as the matrix does (a multiplier in a shared variable,
 %       constant in an output-only one, integrated over an input-only
-%       one); in 1-D, MAT2COPVAR_SOP and EYE_COPVAR_SOP equal
-%       OPVAR2COPVAR(MAT2OPVAR(...)) to 1e-12;
+%       one);
 %   (c) on X: R^1 x L2^2 -> R^1 x L2^2, a 'copvar' and a 'cdopvar' with 3
 %       decision variables, all variables on [0,1]: gam*X, X*gam, -gam*X,
 %       (2*gam-0.5)*X, dpvar(2.5)*X; gam + X, X - gam, gam - X as X plus or
@@ -36,10 +35,8 @@ function test_dpvar_ops_sop()
 %       integral); the products, the sums and [D21, Xb] for a 'sopvar'
 %       block Xb; the class of each result ('copvar' or 'sopvar' for a
 %       constant 'dpvar') and its decision-variable list;
-%   (d) in 1-D, the operations of (c) on random 'opvar' objects equal the
-%       container results to 1e-10 (container eq after OPVAR2COPVAR), both
-%       at the same decision values, and MAT2OPVAR equals MAT2COPVAR_SOP on
-%       a 3 x 3 'dpvar' matrix on R^3.
+%   (d) none since 11/08/2026: it compared the operations of (c) with the
+%       'opvar' classes, now retired.
 % Every result passes verify (containers) and is in canonical multiplier
 % form in every block as returned. Errors, by identifier: a product of two
 % decision objects; a numeric summand, numeric matrix factor or numeric
@@ -57,8 +54,8 @@ function test_dpvar_ops_sop()
 % the last check when any check failed.
 %
 % NOTES
-% Requires RAND_COPVAR, RAND_CDOPVAR, APPLY_SOPVAR, PI_POLY_GRID and
-% PI_DPVAR_EVAL (sopvar/Testfolder) on the path.
+% Requires RAND_COPVAR, RAND_CDOPVAR, APPLY_SOPVAR and PI_POLY_GRID
+% (sopvar/Testfolder) on the path.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -94,6 +91,13 @@ function test_dpvar_ops_sop()
 %                the container parity map, the rationale for checking
 %                against the definition, the history of the numeric
 %                operands and the list of helper routines.
+% MMP, 11/08/2026: The comparisons with the opvar classes (09/29/2026)
+%                deleted: in (b), MAT2COPVAR_SOP and EYE_COPVAR_SOP against
+%                OPVAR2COPVAR(MAT2OPVAR(...)), which (b) already checks by
+%                their action; all of (d); and the local functions
+%                FIX_DOPVAR and EV_DP, used only by (d). The opvar classes
+%                and MAT2OPVAR are retired (cleaning/private). Help: (b),
+%                (d), NOTES.
 
 % Fixed seed; canonical-form warnings off; the check counts and the
 % relative tolerance of CKVAL
@@ -261,16 +265,9 @@ for nd = 1:3
         sprintf('nd=%d spatial dpvar',nd));
     ckerr(@() eye_copvar_sop(ds,ss,dstr),'eye_copvar_sop:notSquare',sprintf('nd=%d eye nonsquare',nd));
 end
-% Against the legacy detour in 1-D: opvar2copvar(mat2opvar(...)).
-s1 = polynomial({'s1'});  th1 = polynomial({'s1_dum'});   % pvar would assignin into a static workspace
-Mo = randn(3,3);    Mo(1,2:3) = 0;      % mat2opvar refuses a nonzero Q1
-Lg = opvar2copvar(mat2opvar(Mo,[1 1;2 2],[s1,th1],[0 1]));
-Mc = mat2copvar_sop(Mo,[1;2],{{},{'s1'}},[0 1],struct('mult_only',true));
-ck(eq(Lg,Mc,1e-12),'1-D mat2copvar_sop == opvar2copvar(mat2opvar)');
-% The identity on R^1 x L2^2[s1], the same way
-Ic = eye_copvar_sop([1;2],{{},{'s1'}},[0 1]);
-ck(eq(opvar2copvar(mat2opvar(eye(3),[1 1;2 2],[s1,th1],[0 1])),Ic,1e-12),...
-    '1-D eye_copvar_sop == opvar2copvar(mat2opvar(eye))');
+% Deleted: in 1-D, mat2copvar_sop and eye_copvar_sop against                % MMP, 11/08/2026
+% opvar2copvar(mat2opvar(...)) (MMP, 09/29/2026); both are checked by       % MMP, 11/08/2026
+% their action above, and mat2opvar is retired.                             % MMP, 11/08/2026
 
 % % % ================================================================ 1b
 % The dpvar operands, check (c)
@@ -443,54 +440,10 @@ for nd = 1:3
     ckerr(@() [gam; Xdb],'vertcat:dimMismatch',tag('[gam; Xdb] columns'));
 end
 
-% % % ======================================================= legacy, 1-D
-% The legacy operators, check (d)
-fprintf('--- against legacy opvar/dopvar (1-D)\n');
-% s on [0,1]; the values of gam, h1, h2 only
-s = polynomial({'s'});  th = polynomial({'s_dum'});    % opvar2sopvar needs the '_dum' dummy
-I0 = [0 1];
-NAMES = {'gam','h1','h2'};  VALS = VALS(1:3);
-% A random opvar on R^1 x L2^2[s]; cmp: the legacy result at the values,
-% as a container, equals the container result at the values to 1e-10
-Xo  = rand_opvar([1 1;2 2],2,s,th,I0);
-cmp = @(Lg,Rc,msg) ck(eq(opvar2copvar(fix_dopvar(Lg,NAMES,VALS)),fix_op(Rc,NAMES,VALS),1e-10),msg);
-Xc  = opvar2copvar(Xo);
-% Scalar products and sums
-cmp(gam*Xo,gam*Xc,'legacy gam*X');
-cmp(Xo*gam,Xc*gam,'legacy X*gam');
-cmp(-gam*Xo,-gam*Xc,'legacy -gam*X');
-cmp((2*gam-0.5)*Xo,(2*gam-0.5)*Xc,'legacy (2gam-0.5)*X');
-cmp(gam+Xo,gam+Xc,'legacy gam+X');
-cmp(Xo-gam,Xc-gam,'legacy X-gam');
-cmp(gam-Xo,gam-Xc,'legacy gam-X');
-% A 3 x 3 dpvar multiplier, its R^1 <- L2 entries zero
-Dm = rand_dp(3,3,gam,h);    Dm(1,2:3) = 0;
-cmp(Dm+Xo,Dm+Xc,'legacy Dm+X');
-cmp(Xo-Dm,Xc-Dm,'legacy X-Dm');
-% Matrix products, then concatenations with a dpvar entry into and out of
-% L2
-Xout = rand_opvar([0 1;2 2],2,s,th,I0);     % one output type: L2^2
-D32 = rand_dp(3,2,gam,h);
-cmp(D32*Xout,D32*opvar2copvar(Xout),'legacy D*X (output L2)');
-Xin = rand_opvar([1 0;2 2],2,s,th,I0);      % one input type: L2^2
-D23 = rand_dp(2,3,gam,h);
-cmp(Xin*D23,opvar2copvar(Xin)*D23,'legacy X*D (input L2)');
-Aop = rand_opvar([0 0;2 2],2,s,th,I0);
-D21 = rand_dp(2,1,gam,h);   D12 = rand_dp(1,2,gam,h);
-cmp([D21, Aop],[D21, opvar2copvar(Aop)],'legacy [D, A] (Q2)');
-cmp([D12; Aop],[D12; opvar2copvar(Aop)],'legacy [D; A] (Q1)');
-% The block matrix [-gam, -D', -B'; -D, -gam, C; -B, C', A]: D: R^1 -> R^1,
-% B: R^1 -> L2^2, C: L2^2 -> R^1
-Do = rand_opvar([1 1;0 0],2,s,th,I0);   Bo = rand_opvar([0 1;2 0],2,s,th,I0);
-Co = rand_opvar([1 0;0 2],2,s,th,I0);
-Lq = [-gam, -Do', -Bo'; -Do, -gam, Co; -Bo, Co', Aop];
-Dc = opvar2copvar(Do);  Bc = opvar2copvar(Bo);  Cc = opvar2copvar(Co);  Ac = opvar2copvar(Aop);
-Rq = [-gam, -Dc', -Bc'; -Dc, -gam, Cc; -Bc, Cc', Ac];
-cmp(Lq,Rq,'legacy DEMO5 shape');
-% A 3 x 3 dpvar matrix on R^3: mat2opvar against mat2copvar_sop
-DEMO6 = [-gam*eye(2), randn(2,1); randn(1,2), -gam];
-cmp(mat2opvar(DEMO6,[3 3;0 0],[s,th],I0),mat2copvar_sop(DEMO6,3,{{}},[]),...
-    'legacy mat2opvar(dpvar) vs mat2copvar_sop, -gam*eye(2) block matrix');
+% % % ======================================================= legacy, 1-D   % MMP, 11/08/2026 (was)
+% Deleted: check (d) (MMP, 09/29/2026), the operations of (c) on random     % MMP, 11/08/2026
+% 'opvar' objects against the container results, and mat2opvar against      % MMP, 11/08/2026
+% mat2copvar_sop on a 'dpvar' matrix; the opvar classes are retired.        % MMP, 11/08/2026
 
 % The counts; an error when any check failed
 fprintf('test_dpvar_ops_sop: %d passed, %d failed\n',npass,nfail);
@@ -566,34 +519,8 @@ end
 end
 
 
-function Pf = fix_dopvar(P,names,vals)
-% PF = FIX_DOPVAR(P,NAMES,VALS) returns the legacy operator P at the
-% decision values, field by field (PI_DPVAR_EVAL). Either class: an
-% 'opvar' can hold dpvar fields ([D, A] with a dpvar D).
-% INPUT  P:     'dopvar' or 'opvar' object; names: cellstr, decision
-%               variable names; vals: double, vals(k) the value of
-%               names{k}.
-% OUTPUT Pf:    'opvar' object.
-Pf = opvar();
-Pf.I = P.I;     Pf.var1 = P.var1;   Pf.var2 = P.var2;
-f = {'P','Q1','Q2'};
-for k = 1:3,    Pf.(f{k}) = ev_dp(P.(f{k}),names,vals);       end
-f = {'R0','R1','R2'};
-for k = 1:3,    Pf.R.(f{k}) = ev_dp(P.R.(f{k}),names,vals);   end
-Pf.dim = Pf.dim;
-end
-
-
-function y = ev_dp(x,names,vals)
-% Y = EV_DP(X,NAMES,VALS) returns a 'dpvar' X at the decision values
-% (PI_DPVAR_EVAL), and any other X unchanged.
-% INPUT  x:     'dpvar', 'polynomial' or 'double'; names: cellstr; vals:
-%               double, vals(k) the value of names{k}.
-% OUTPUT y:     'polynomial' for a 'dpvar' X, else X.
-if isa(x,'dpvar'),  y = pi_dpvar_eval(x,names,vals);
-else,               y = x;
-end
-end
+% The local functions FIX_DOPVAR and EV_DP (MMP, 09/29/2026), used only     % MMP, 11/08/2026
+% by the deleted check (d), are deleted.                                    % MMP, 11/08/2026
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

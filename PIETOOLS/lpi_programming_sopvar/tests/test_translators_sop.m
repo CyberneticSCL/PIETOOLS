@@ -2,42 +2,28 @@ function R = test_translators_sop()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % R = TEST_TRANSLATORS_SOP() checks poslpivar_sop, poslpivar_settings_sop,
 % get_lpivar_degs_sop, trace_rn_sop and copvar_space_list in one spatial
-% variable s1 on [0,1], against the stock routines or against their
-% definitions, and errors at the first failed check:
-%   (i)   on legacy inputs, field by field (same_val_sop): poslpivar_sop
-%         returns what poslpivar returns at nargout 1 to 5 (degrees
-%         {2,[1 2 3],[2 1 3]}, psatz 1, exclude [0 0 0 1]);
-%         poslpivar_settings_sop(prog,dim,settings,'lf') returns the sum of
-%         the poslpivar operators of dd1/options1 and dd12/options12
-%         (lpisettings('custom') with override1 = override2 = 0);
-%         get_lpivar_degs_sop returns what get_lpivar_degs returns; and
-%         trace_rn_sop of a 'dopvar' returns the trace of its P part;
+% variable s1 on [0,1], against their definitions, and errors at the first
+% failed check:
+%   (i)   none since 11/08/2026: it compared the translators with the
+%         stock poslpivar and get_lpivar_degs on legacy inputs, retired;
 %   (ii)  each of 12 inputs built to fail raises an error, with the
 %         identifier expected where one is listed (poslpivar_sop:side,
 %         :dim, :excludeRn, :excludeL2, :nargout;
-%         poslpivar_settings_sop:sosineq, :role; get_lpivar_degs_sop:dim;
-%         trace_rn_sop:square; copvar_space_list:side), and with the
-%         message of poslpivar for malformed degrees and options;
-%   (iii) on the container R x L2[s1], poslpivar_settings_sop for the roles
+%         poslpivar_settings_sop:sosineq, :role; get_lpivar_degs_sop:class;
+%         trace_rn_sop:square; copvar_space_list:side);
+%   (iii) on the container R x L2[s1], with lpisettings_sop('custom') and
+%         override1 = override2 = 0, poslpivar_settings_sop for the roles
 %         'lf' and 'slack' returns the program and operator of two
 %         poslpivar_sop calls summed;
-%   (iv)  for the plants io1 and rd (frac 0.5) of cx_plant and the
-%         lpisettings 'stripped', 'light', 'heavy', 'veryheavy', 'extreme'
-%         and 'custom',
-%         get_lpivar_degs_sop of the container operators R, R + eppos2 T'T
-%         and R + eppos2 T T' returns what get_lpivar_degs returns for the
-%         stock operators of the same settings; with the integral bases
-%         excluded, both return -1 as third degree;
+%   (iv)  with the integral bases excluded (exclude [0 0 1 1]),
+%         get_lpivar_degs_sop returns 0 as third degree;
 %   (v)   at random decision values, trace_rn_sop equals the sum of the
 %         traces of the R^q diagonal blocks of the substituted operator, to
 %         1e-12 (1 + |trace|), for a free operator on R^3, a free operator
 %         W on R^2 x L2[s1], Mz*W*Mz' (Mz a random fixed operator), the
 %         identity on R^3 x L2[s1] and the identity on L2^2[s1] (trace 0);
-%   (vi)  for every pattern of zero dimensions of an 'opvar' with random
-%         nonzero blocks (dimensions at most [2 3; 1 2]), copvar_space_list
-%         of its 'copvar' (opvar2copvar) lists R before L2[s1], drops the
-%         spaces of dimension 0, and returns the nonzero dimensions of each
-%         side.
+%   (vi)  none since 11/08/2026: it built its operators as 'opvar'
+%         objects (opvar2copvar), retired.
 %
 % INPUT
 % none.
@@ -88,6 +74,18 @@ function R = test_translators_sop()
 % MMP, 11/08/2026: (iv) Z2, Z3 excluded: GET_LPIVAR_DEGS_SOP now returns
 %                max(deg2-1,0), so the check expects 0 and compares with the
 %                stock degrees floored at 0 (the stock rule gives -1).
+% MMP, 11/08/2026: The comparisons with the stock routines (10/06/2026)
+%                deleted: (i), the two message checks of (ii), the stock
+%                loop of (iv) and its stock comparison, and (vi), which
+%                built its operators as opvars. POSLPIVAR, GET_LPIVAR_DEGS,
+%                LPIVAR and the opvar classes are retired (cleaning/
+%                private). (iv) keeps the container check of the third
+%                degree; the settings of (iii) are set before (ii). Help to
+%                match.
+% MMP, 11/08/2026: (ii) case 10 passes a double to GET_LPIVAR_DEGS_SOP and
+%                expects :class. It passed the container X2 and expected
+%                :dim, which the N-D reading (10/08/2026) replaced by a
+%                returned struct. Help to match.
 
 % No warnings for non-canonical multipliers; seed; s1 on [0,1]; check
 % counter
@@ -98,31 +96,14 @@ pvar s1 s1_dum
 dom = [0 1];
 n = 0;
 
-% % % (i) legacy dispatch
-% poslpivar_sop against poslpivar at nargout 1 to 5
-pl = lpiprogram(s1,s1_dum,dom);
-dd = {2,[1 2 3],[2 1 3]};   op = struct('psatz',1,'exclude',[0 0 0 1],'sep',0);
-for no = 1:5
-    a = cell(1,no);     b = cell(1,no);
-    [a{:}] = poslpivar_sop(pl,[1;1],dd,op);
-    [b{:}] = poslpivar(pl,[1;1],dd,op);
-    [tf,where] = same_val_sop(a,b,'out');
-    assert(tf,'(i) poslpivar_sop nargout %d differs at %s',no,where);    n = n+1;
-end
-% poslpivar_settings_sop ('lf') against the two poslpivar terms
+% % % (i) legacy dispatch                                                   % MMP, 11/08/2026 (was)
+% Deleted: (i) (MMP, 10/06/2026), poslpivar_sop, poslpivar_settings_sop,    % MMP, 11/08/2026
+% get_lpivar_degs_sop and trace_rn_sop against POSLPIVAR, GET_LPIVAR_DEGS   % MMP, 11/08/2026
+% and LPIVAR on legacy inputs; all retired. Kept: the settings, used by     % MMP, 11/08/2026
+% (ii) and (iii).                                                           % MMP, 11/08/2026
 % st = lpisettings('custom');                                               % MMP, 11/08/2026 (was)
 st = lpisettings_sop('custom');                                             % MMP, 11/08/2026
 st.override1 = 0;   st.override2 = 0;           % both second terms declared
-[pa,Pa] = poslpivar_settings_sop(pl,[1 1;1 1],st,'lf');
-[pb,P1] = poslpivar(pl,[1 1;1 1],st.dd1,st.options1);
-[pb,P2] = poslpivar(pb,[1 1;1 1],st.dd12,st.options12);
-assert(same_val_sop({pa,Pa},{pb,P1+P2}),'(i) legacy lf pair differs');      n = n+1;
-% get_lpivar_degs_sop and trace_rn_sop on legacy operators
-PIE = cx_plant('rd',0.5);
-[~,Rop] = poslpivar(lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom),PIE.T.dim,st.dd1,st.options1);
-assert(isequal(get_lpivar_degs_sop(Rop,PIE.T),get_lpivar_degs(Rop,PIE.T)),'(i) legacy Qdeg');   n = n+1;
-[~,Wop] = lpivar(pl,[2 2;0 0],1);
-assert(same_val_sop(trace_rn_sop(Wop),trace(Wop.P)),'(i) legacy trace');   n = n+1;
 
 % % % (ii) errors
 % Containers: R^1 x L2[s1], L2[s1] -> R^2, one space over two variables
@@ -140,7 +121,8 @@ E = { @() poslpivar_sop(pc,Xr,1,[]),                                   'poslpiva
       @() poslpivar_sop(pc,Xm,1,7),                                    ''
       @() poslpivar_settings_sop(pc,Xm,setfield(st,'sosineq_on',1),'slack'), 'poslpivar_settings_sop:sosineq'
       @() poslpivar_settings_sop(pc,Xm,st,'other'),                    'poslpivar_settings_sop:role'
-      @() get_lpivar_degs_sop(X2),                                     'get_lpivar_degs_sop:dim'
+%       @() get_lpivar_degs_sop(X2),                                     'get_lpivar_degs_sop:dim' % MMP, 11/08/2026 (was)
+      @() get_lpivar_degs_sop(eye(2)),                                 'get_lpivar_degs_sop:class' % MMP, 11/08/2026
       @() trace_rn_sop(rand_copvar(struct('out',{{{}}},'in',{{{}}}),struct('out',3,'in',2),dom,0,0.8)), 'trace_rn_sop:square'
       @() copvar_space_list(Xm,'both'),                                'copvar_space_list:side' };
 % Each case raises an error, with the listed identifier where one is given
@@ -152,10 +134,8 @@ for k = 1:size(E,1)
     end
     n = n+1;
 end
-% poslpivar's own messages for malformed degrees and options
-assert(strcmp(errmsg(E{6,1}),errmsg(@() poslpivar(pl,[1;1],[1 2 3 4],struct()))),'(ii) degree message');
-assert(strcmp(errmsg(E{7,1}),errmsg(@() poslpivar(pl,[1;1],1,7))),'(ii) options message');
-n = n+2;
+% Deleted: cases 6 and 7 against the messages of POSLPIVAR (MMP,            % MMP, 11/08/2026
+% 10/06/2026), retired; the loop above still requires an error for each.    % MMP, 11/08/2026
 
 % % % (iii) poslpivar_settings_sop composition, container
 % For each role, its two settings terms by poslpivar_sop, summed
@@ -170,36 +150,15 @@ for role = {'lf','slack'}
     assert(tf,'(iii) %s pair differs at %s',role{1},where);    n = n+1;
 end
 
-% % % (iv) Q degrees against stock get_lpivar_degs
-% For each plant and preset: the stock R, and the container R on the
-% output and on the input spaces of T; three forms each
-for pk = {{'io1'},{'rd',0.5}}
-    PIE = cx_plant(pk{1}{:});   T = PIE.T;  Tm = opvar2copvar(T);
-    for ps = {'stripped','light','heavy','veryheavy','extreme','custom'}
-%       st6 = lpisettings(ps{1});   e2 = st6.eppos2;                        % MMP, 11/08/2026 (was)
-        st6 = lpisettings_sop(ps{1});   e2 = st6.eppos2;                    % MMP, 11/08/2026
-        p0 = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
-        [~,Rop] = poslpivar_settings_sop(p0,T.dim,st6,'lf');
-        [~,Ro] = poslpivar_settings_sop(p0,Tm,st6,'lf','out',PIE.dom);
-        [~,Ri] = poslpivar_settings_sop(p0,Tm,st6,'lf','in',PIE.dom);
-        pairs = {get_lpivar_degs(Rop,T),          get_lpivar_degs_sop(Ro);
-                 get_lpivar_degs(Rop+e2*T'*T,T),  get_lpivar_degs_sop(Ri+e2*Tm'*Tm);
-                 get_lpivar_degs(Rop+e2*T*T',T),  get_lpivar_degs_sop(Ro+e2*Tm*Tm')};
-        for r = 1:3
-            assert(isequal(full(pairs{r,1}),pairs{r,2}),'(iv) %s/%s form %d: stock %s, container %s', ...
-                   pk{1}{1},ps{1},r,mat2str(full(pairs{r,1})),mat2str(pairs{r,2}));
-            n = n+1;
-        end
-    end
-end
+% % % (iv) Q degrees against stock get_lpivar_degs                          % MMP, 11/08/2026 (was)
+% % % (iv) the third Q degree without integral bases                        % MMP, 11/08/2026
+% Deleted: the loop over two plants and six presets comparing               % MMP, 11/08/2026
+% get_lpivar_degs_sop with GET_LPIVAR_DEGS on the stock operators, and the  % MMP, 11/08/2026
+% stock side of the check below (MMP, 10/06/2026; GET_LPIVAR_DEGS and the   % MMP, 11/08/2026
+% opvar classes are retired).                                               % MMP, 11/08/2026
 [~,R0] = poslpivar_sop(pc,Xm,1,struct('exclude',[0 0 1 1]));      % no R1, R2: deg2 = 0
-[~,R0l] = poslpivar(pl,[1;1],1,struct('exclude',[0 0 1 1]));
-Tl = opvar();  Tl.dim = [1 1;1 1];  Tl.I = dom;     % get_lpivar_degs needs an opvar T
 q0 = get_lpivar_degs_sop(R0);
-% assert(isequal(q0,full(get_lpivar_degs(R0l,Tl))) && q0(3)==-1, ...
-%        '(iv) Z2, Z3 excluded: stock %s, container %s (expected deg2 = 0 -> -1)',mat2str(full(get_lpivar_degs(R0l,Tl))),mat2str(q0)); % MMP, 11/08/2026 (was)
-assert(isequal(q0,max(full(get_lpivar_degs(R0l,Tl)),0)) && q0(3)==0, ...
-       '(iv) Z2, Z3 excluded: stock %s, container %s (expected deg2 = 0 -> 0)',mat2str(full(get_lpivar_degs(R0l,Tl))),mat2str(q0)); % MMP, 11/08/2026
+assert(q0(3)==0,'(iv) Z2, Z3 excluded: container %s (expected third degree 0)',mat2str(q0)) % MMP, 11/08/2026
 n = n+1;
 
 % % % (v) trace against its definition
@@ -230,25 +189,10 @@ for k = 1:numel(Xs)
     n = n+1;
 end
 
-% % % (vi) space lists against opvar dims
-% Every pattern of zero dimensions with a nonzero input and output
-for pat = 0:15
-    dm = [bitand(pat,1),bitand(pat,2)/2; bitand(pat,4)/4,bitand(pat,8)/8].*[2 3;1 2];
-    if ~any(dm(:,1)) || ~any(dm(:,2)),  continue,   end
-    Pop = opvar();  Pop.dim = dm;   Pop.I = dom;    Pop.var1 = s1;  Pop.var2 = s1_dum;
-    Pop.P = rand(dm(1,1),dm(1,2));      Pop.Q1 = rand(dm(1,1),dm(2,2));     % nonzero, so
-    Pop.Q2 = rand(dm(2,1),dm(1,2));     Pop.R.R0 = rand(dm(2,1),dm(2,2));   % every block is kept
-    Pc = opvar2copvar(Pop);
-    % Each side: R before L2[s1], spaces of dimension 0 dropped
-    for side = {'out','in'}
-        c = 1 + strcmp(side{1},'in');
-        keep = dm(:,c)>0;
-        spx = {cell(1,0), {'s1'}};      spx = spx(keep);    dmx = dm(keep,c);
-        [sp,dmv] = copvar_space_list(Pc,side{1});
-        assert(isequal(sp,spx) && isequal(dmv,dmx),'(vi) dim %s side %s',mat2str(dm),side{1});
-        n = n+1;
-    end
-end
+% % % (vi) space lists against opvar dims                                   % MMP, 11/08/2026 (was)
+% Deleted: (vi) (MMP, 10/06/2026), copvar_space_list on the 'copvar' of     % MMP, 11/08/2026
+% an 'opvar' (opvar2copvar) for each pattern of zero dimensions; the opvar  % MMP, 11/08/2026
+% classes are retired.                                                      % MMP, 11/08/2026
 
 % Summary and output
 fprintf('test_translators_sop: %d checks passed.\n',n);

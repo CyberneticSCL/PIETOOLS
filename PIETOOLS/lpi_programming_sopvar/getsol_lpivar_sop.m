@@ -16,8 +16,7 @@ function Psol = getsol_lpivar_sop(prog,P)
 % name that no row holds keeps its rows of B_gam and remains a decision
 % variable. A 'cdopvar' container is treated block by block, its 'sopvar'
 % and [] blocks kept as they are. A 'sopvar' or 'copvar' P is returned
-% unchanged; an 'opvar', 'dopvar', 'opvar2d' or 'dopvar2d' P is passed to
-% GETSOL_LPIVAR.
+% unchanged.
 %
 % INPUT
 % - prog:   'struct', an LPI program solved by LPISOLVE, with the fields
@@ -25,8 +24,7 @@ function Psol = getsol_lpivar_sop(prog,P)
 %           names) and solinfo.RRx ('double' vector, entry r the value of
 %           the r-th name of decvartable);
 % - P:      'sdopvar' or 'cdopvar' object, the decision operator; or a
-%           'sopvar', 'copvar', 'opvar', 'dopvar', 'opvar2d' or 'dopvar2d'
-%           object.
+%           'sopvar' or 'copvar' object.
 %
 % OUTPUT
 % - Psol:   for an 'sdopvar' P, a 'sopvar' object when PROG.decvartable
@@ -41,7 +39,7 @@ function Psol = getsol_lpivar_sop(prog,P)
 % solution) or has fewer entries than decvartable, and when P is of
 % another class.
 %
-% See also LPIGETSOL_SOP, SUBS_DVAR_SOP, GETSOL_LPIVAR, LPIGETSOL, SOSGETSOL.
+% See also LPIGETSOL_SOP, SUBS_DVAR_SOP, SOSGETSOL.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -84,18 +82,26 @@ function Psol = getsol_lpivar_sop(prog,P)
 %                is read rather than solinfo.x, the cost analysis with a
 %                measured run time, and the design rationale and
 %                measurements of the local-function headers.
+% MMP, 11/08/2026: The branch of the opvar classes (GETSOL_LPIVAR) is gone:
+%                both are retired (cleaning/private, 11/08/2026), and such a
+%                P now raises getsol_lpivar_sop:badClass, whose message
+%                lists the classes still accepted. Help text to match.
 
-% % % Legacy and fixed classes: no new code.
+% % % Legacy and fixed classes: no new code.                                % MMP, 11/08/2026 (was)
+% % % Fixed classes: nothing to substitute                                  % MMP, 11/08/2026
 if isa(P,'sopvar') || isa(P,'copvar')
     Psol = P;                                   % nothing to substitute
     return
-elseif isa(P,'opvar') || isa(P,'dopvar') || isa(P,'opvar2d') || isa(P,'dopvar2d')
-    Psol = getsol_lpivar(prog,P);               % legacy, unchanged
-    return
+% elseif isa(P,'opvar') || isa(P,'dopvar') || isa(P,'opvar2d') || isa(P,'dopvar2d') % MMP, 11/08/2026 (was)
+%     Psol = getsol_lpivar(prog,P);               % legacy, unchanged       % MMP, 11/08/2026 (was)
+%     return                                                                % MMP, 11/08/2026 (was)
 elseif ~isa(P,'sdopvar') && ~isa(P,'cdopvar')
+%   error('getsol_lpivar_sop:badClass',...
+%       ['No solution extraction for class ''%s''; expected sdopvar, cdopvar, '...
+%        'sopvar, copvar, opvar, dopvar, opvar2d or dopvar2d.'],class(P))   % MMP, 11/08/2026 (was)
     error('getsol_lpivar_sop:badClass',...
         ['No solution extraction for class ''%s''; expected sdopvar, cdopvar, '...
-         'sopvar, copvar, opvar, dopvar, opvar2d or dopvar2d.'],class(P))
+         'sopvar or copvar.'],class(P))                                     % MMP, 11/08/2026
 end
 
 % % % Solved values, in decvartable order. Same test and message as sosgetsol.

@@ -630,6 +630,23 @@ README rather than being deleted.
   `lpi_programming/` off the path; the KYP LPI of session 1 returns γ = 0.16772409 [M with the full path].
 - **Performance** [I]: scalar branches; nothing on the decision-variable axis changes.
 - **Size** [I]: 4 files, ≈40 changed lines; 4 files moved; 11 tests adjusted.
+- **Done 11/08** (maintainer: "Yes, start it"). No container wrapper reaches a
+  retired routine: a `dpvar` still goes to `soseq`, `sosineq` or `sosgetsol` (also a char or cell in
+  `lpigetsol_sop`), and every class the stock routines read raises the wrapper's own error –
+  `lpi_ineq_sop:class` (433980d7), `lpi_eq_sop:class`, `lpigetsol_sop:badClass`,
+  `getsol_lpivar_sop:badClass`, `poslpivar_sop:class`, `get_lpivar_degs_sop:class`. `lpiprogram`,
+  `lpidecvar`, `lpisetobj` and `lpisolve` were already in `lpi_programming_sopvar/`. The legacy sections of
+  six tests are deleted, not redirected to F2 and F3 (decision 5 stays open): `test_dpvar_ops_sop` (b)
+  against `opvar2copvar` and (d); `test_getsol_sop` (iii) against `getsol_lpivar`; `test_lpi_eq_sop`, its
+  four `dopvar` rows, three `lpi_eq` error rows and (5); `test_lpi_ineq_sop` (5); `test_tier1_fixes_sop`,
+  the legacy half of (3); `test_translators_sop` (i), two message checks of (ii), the stock loop of (iv)
+  and (vi), the only test of `copvar_space_list` dropping a space of dimension zero. Case 10 of
+  `test_translators_sop` (ii) expected `get_lpivar_degs_sop:dim`, which the N-D reading of 10/08/2026
+  replaced by a returned struct; it now passes a double and expects `:class`. [M] on exports of
+  `2c8f7143` with the eleven files: `test_executives_sop` and the eight container LPI tests pass (pass 25;
+  `test_translators_sop` 20 checks, `test_dpvar_ops_sop` 575, `test_lpi_eq_sop` 29); every field in which
+  the 12 DEMOs differ from the same commit is a solver timing (pass 23 against 24). Not done:
+  `lpiscript_sop` keeps its `sys` branch (decision 2).
 
 ### Phase 4 – Container executives without opvar exits
 
@@ -742,8 +759,12 @@ README rather than being deleted.
   is empty; the scan of §1.1 finds none of the four names in code outside `cleaning/`.
 - **Done 11/08** [M] (maintainer: "move lpi_programming, opvar, executives, and settings folders into
   cleaning/private"), ahead of decisions 2, 5 and 6: `opvar/`, `lpi_programming/` and `executives/` are in
-  `cleaning/private/<folder>/`; the 13 files of `settings/`, which code on the path still calls, are in
-  `orphaned_file/needed/`. `closedLoopPIE` is in `executives_sopvar/utility_functions/` (DEMO12 runs,
+  `cleaning/private/<folder>/`. `settings/` followed later on 11/08 (maintainer: "Move it now"; Repo
+  cleanup session): every caller on the path now calls `lpisettings_sop`, whose tiers read copies of
+  the presets they use in `settings_sopvar/private/` (with an `extreme` tier), and the 13 files are in
+  `cleaning/private/settings/`; measured there, `lpisettings_sop` returns the same structure for every
+  old tier (0 of 16 calls differ) and `test_executives_sop` passes 19 of 19. `orphaned_file/needed/`
+  holds no code. `closedLoopPIE` is in `executives_sopvar/utility_functions/` (DEMO12 runs,
   values as before) and `get_eq_opts_2D`, which nothing on the path calls, in
   `cleaning/private/executives/utility_functions/`. The stock `lpi_ineq` and
   `lpigetsol` followed the rest of `lpi_programming/` later on 11/08 [M]: E1, `test_dpvar_hinf_chain_sop`

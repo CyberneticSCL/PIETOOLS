@@ -17,12 +17,7 @@ function test_tier1_fixes_sop()
 %       returns a 'sopvar' acting as bz to 1e-14 relative; for the
 %       'sdopvar' gam*bb with the last column of its first B parameter
 %       removed, it raises the error 'getsol_lpivar_sop:badB';
-%   (3) for the 'opvar' [[gam; 1-h], T5], T5 a random 'opvar' from
-%       R x L2^2[s] to L2^2[s] and h a 'dpvar', subs_dvar_sop at gam = 0.7,
-%       h = -1.3 returns an 'opvar' with no 'dpvar' field that differs from
-%       [[0.7; 2.3], T5] by less than 1e-14 in every coefficient;
-%       lpigetsol_sop and lpigetsol return T5 itself, exactly; and for a
-%       'cdopvar' Q on L2[s] from lpivar_cdopvar at random values,
+%   (3) for a 'cdopvar' Q on L2[s] from lpivar_cdopvar at random values,
 %       lpigetsol_sop of the nested cell {{Q},Q} returns the 'copvar'
 %       lpigetsol_sop(prog,Q) in both places.
 %
@@ -67,6 +62,12 @@ function test_tier1_fixes_sop()
 % MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
 %                extra input forms (names, containers) only filled fields that
 %                container routines do not read, is retired.
+% MMP, 11/08/2026: The legacy half of (3) (09/29/2026) deleted: substitution
+%                into an 'opvar' with 'dpvar' fields, and lpigetsol_sop and
+%                LPIGETSOL on a random 'opvar' (RAND_OPVAR). The opvar
+%                classes and LPIGETSOL are retired (cleaning/private), and
+%                lpigetsol_sop rejects them. The local function MAXC, used
+%                only there, deleted too. Help: entry (3).
 
 % No warnings for non-canonical multipliers; check counter
 warning('off','sopvar:noncanonicalMultiplier');
@@ -133,36 +134,10 @@ e = get_err(@() subs_dvar_sop(Xb,{'gam'},1));
 assert(strcmp(e.identifier,'getsol_lpivar_sop:badB'),'(2) mis-sized nonzero B: %s',e.identifier);
 nchk = nchk+1;
 
-% --------------------------------------- (3) legacy opvar with dpvar fields
-pvar s s_dum
-T5 = rand_opvar([0 1; 2 2],1,s,s_dum,[0 1]);
-h = dpvar('h');
-L = [[gam; 1-h], T5];
-assert(isa(L,'opvar') && isa(L.Q2,'dpvar'),'setup: legacy [dpvar, opvar] should hold a dpvar Q2');
-% Substitute: no dpvar field may be left, and the result must be the
-% concatenation of the values
-Sx = subs_dvar_sop(L,{'gam';'h'},[0.7;-1.3]);
-Ref = [[0.7; 2.3], T5];
-fl = {'P','Q1','Q2'};   fr = {'R0','R1','R2'};
-for k = 1:3
-    assert(~isa(Sx.(fl{k}),'dpvar') && ~isa(Sx.R.(fr{k}),'dpvar'),'(3) a dpvar field is left');
-end
-D = Sx - Ref;
-m = max([maxc(D.P),maxc(D.Q1),maxc(D.Q2),maxc(D.R.R0),maxc(D.R.R1),maxc(D.R.R2)]);
-assert(m<1e-14,'(3) substituted opvar differs from the legacy value by %.2e',m);
-% T5, with no dpvar field, through lpigetsol_sop and lpigetsol on a
-% program holding gam and h
-prog = struct('decvartable',{{'gam';'h'}},'solinfo',struct('RRx',[0.7;-1.3],'x',[],'info',1));
-% (isequal(T5,T5) is false for a legacy opvar - its R struct fails isequal
-% against itself - so the legacy route is checked by an exact difference)
-Sa = lpigetsol_sop(prog,T5);    Sb = lpigetsol(prog,T5);
-for X = {Sa - T5, Sb - T5}
-    Dx = X{1};
-    m = max([maxc(Dx.P),maxc(Dx.Q1),maxc(Dx.Q2),maxc(Dx.R.R0),maxc(Dx.R.R1),maxc(Dx.R.R2)]);
-    assert(isa(Sa,'opvar') && m==0,'(3) opvar without dpvar fields is not returned as is (%.2e)',m);
-end
-nchk = nchk+3;
-
+% --------------------------------------- (3) nested container cells        % MMP, 11/08/2026
+% Deleted: the legacy half of (3) (MMP, 09/29/2026), substitution into an   % MMP, 11/08/2026
+% 'opvar' with 'dpvar' fields and LPIGETSOL on a random 'opvar'; the opvar  % MMP, 11/08/2026
+% classes and LPIGETSOL are retired.                                        % MMP, 11/08/2026
 % nested cells of container decision operators
 % prog = lpiprogram_sop({'s'},[0 1]);                                       % MMP, 11/04/2026 (was)
 prog = lpiprogram(polynomial({'s'}),[0 1]);                                 % MMP, 11/04/2026
@@ -190,15 +165,5 @@ catch ME,   e = ME;
 end
 end
 
-function m = maxc(X)
-% M = MAXC(X) returns the largest absolute coefficient of a double or
-% polynomial X (0 when X has none).
-% INPUT  X: 'double' or 'polynomial' array.
-% OUTPUT m: 'double'.
-if isnumeric(X)
-    m = full(max(abs(X(:))));
-else
-    cf = polynomial(X).coefficient;     m = full(max(abs(cf(:))));
-end
-if isempty(m),  m = 0;  end
-end
+% The local function MAXC (MMP, 09/29/2026), used only by the deleted       % MMP, 11/08/2026
+% legacy half of (3), is deleted.                                           % MMP, 11/08/2026

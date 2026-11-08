@@ -40,13 +40,12 @@ function R = test_getsol_sop(parts)
 %         a standard normal vector, n = numel(decvartable), raises the
 %         larger residual by a factor of more than 1e3.
 %   (iii) A 1-D program (s in [0,1]; RRx random, 2 entries longer than
-%         decvartable) and a 2-D program on [0,1]^2. LPIGETSOL_SOP returns
-%         the result of LPIGETSOL bit for bit for [], 'double',
-%         'polynomial', 'opvar', 'dpvar', a 'dpvar' expression, char,
-%         cellstr, a cell of 'dpvar', two 'dopvar', a 'dopvar2d' and an
-%         'opvar2d' object, and so does SUBS_DVAR_SOP for the 1-D objects;
-%         the comparison detects RRx + 1; GETSOL_LPIVAR_SOP returns the
-%         result of GETSOL_LPIVAR for 'dopvar' and 'dopvar2d'; a permuted
+%         decvartable) and a 2-D program on [0,1]^2. LPIGETSOL_SOP and
+%         SUBS_DVAR_SOP return, bit for bit, [], a 'double' and a
+%         'polynomial' unchanged, and the result of SOSGETSOL for a
+%         'dpvar', a 'dpvar' expression, char, cellstr and a cell of
+%         'dpvar' (what LPIGETSOL returned for these classes); the
+%         comparison detects RRx + 1; a permuted
 %         name list gives the same 'dpvar' result; a name listed twice in
 %         decvartable takes the value of its lower row index, in
 %         GETSOL_LPIVAR_SOP and SOSGETSOL alike. A 'cdopvar' gives a
@@ -69,7 +68,7 @@ function R = test_getsol_sop(parts)
 %         a program in which solinfo.x and solinfo.RRx differ in length.
 %         The solve has pinf = numerr = 0, rel_b at most 1e-6 and the Gram
 %         eigenvalue ratio at least -1e-8; the extracted K equals K rebuilt
-%         from the gamma of LPIGETSOL and the extracted Q to 1e-10
+%         from the gamma of LPIGETSOL_SOP and the extracted Q to 1e-10
 %         relative; on 6 test functions T'*Q = R holds to 1e-5 relative and
 %         <x,Kx>/(||x|| ||Kx||) is at most 1e-8.
 % In (ii) and (iv) the residuals with solinfo.x in place of RRx are
@@ -153,6 +152,15 @@ function R = test_getsol_sop(parts)
 %                  gamma by LPIGETSOL_SOP, which reduce to SOSINEQ and
 %                  SOSGETSOL for a 'dpvar' as LPI_INEQ and LPIGETSOL did;
 %                  those two are retired (cleaning/private).
+% MMP, 11/08/2026: part (iii) (09/29/2026) without the opvar classes: [],
+%                  'double', 'polynomial', 'dpvar', char, cellstr and a cell
+%                  of 'dpvar' are checked against what LPIGETSOL returned
+%                  for them (the object itself, or SOSGETSOL); the 'opvar',
+%                  'dopvar', 'dopvar2d' and 'opvar2d' objects and the
+%                  GETSOL_LPIVAR comparisons are deleted, and the 2-D
+%                  program holds a named 'dpvar' instead of a 'dopvar2d'.
+%                  LPIGETSOL, GETSOL_LPIVAR, POSLPIVAR, LPIVAR and the opvar
+%                  classes are retired (cleaning/private). Help: (iii), (iv).
 
 % Default: all four parts; one part given as char
 if nargin<1 || isempty(parts),  parts = {'i','ii','iii','iv'};  end
@@ -747,23 +755,24 @@ end
 
 
 % ========================================================================
-% (iii) dispatch against legacy lpigetsol
+% (iii) dispatch against legacy lpigetsol                                   % MMP, 11/08/2026 (was)
+% (iii) dispatch of lpigetsol_sop, getsol_lpivar_sop and subs_dvar_sop      % MMP, 11/08/2026
 % ========================================================================
 function out = part_iii()
 % OUT = PART_III() runs part (iii): the dispatch of LPIGETSOL_SOP,
-% GETSOL_LPIVAR_SOP and SUBS_DVAR_SOP over the legacy and the new classes,
-% on programs with a known decision vector, and errors at the first
-% failure.
+% GETSOL_LPIVAR_SOP and SUBS_DVAR_SOP over the plain and the container
+% classes, on programs with a known decision vector, and errors at the
+% first failure.
 % INPUT  none.
-% OUTPUT out: 'struct' with fields nlegacy, nnew and nerr (R.iii of
-%             TEST_GETSOL_SOP).
-% The counts; a 1-D program on [0,1] with a positive dopvar P1, a dopvar
-% Q1, a 2 x 1 dpvar g and a cdopvar Pc on R^1 x L2^1[s]
+% OUTPUT out: 'struct' with fields nlegacy (the plain objects checked),
+%             nnew and nerr (R.iii of TEST_GETSOL_SOP).
+% The counts; a 1-D program on [0,1] with a 2 x 1 dpvar g and a cdopvar Pc
+% on R^1 x L2^1[s]
 out = struct('nlegacy',0,'nnew',0,'nerr',0);
 pvar s theta
 prog = lpiprogram(s,theta,[0 1]);
-[prog,P1] = poslpivar(prog,[1 1],2);                % dopvar
-[prog,Q1] = lpivar(prog,[1 1;1 1],2);               % dopvar
+% [prog,P1] = poslpivar(prog,[1 1],2);                % dopvar              % MMP, 11/08/2026 (was)
+% [prog,Q1] = lpivar(prog,[1 1;1 1],2);               % dopvar              % MMP, 11/08/2026 (was)
 [prog,g] = lpidecvar(prog,[2 1]);                   % dpvar
 [prog,Pc] = lpivar_cdopvar(prog,struct('out',[1;1],'in',[1;1]), ...
             struct('out',{{{},{'s'}}},'in',{{{},{'s'}}}),[0 1],2);   % cdopvar in this program
@@ -772,47 +781,42 @@ prog = lpiprogram(s,theta,[0 1]);
 N = numel(prog.decvartable);
 prog.solinfo.RRx = randn(N+2,1);                    % 2 entries past decvartable, as a slack
 prog.solinfo.info = struct('pinf',0,'dinf',0,'numerr',0);
-Psol_leg = lpigetsol(prog,P1);                      % a fixed opvar
-% 2-D program for dopvar2d / opvar2d.
+% BEGIN MMP, 11/08/2026: the opvar classes, LPIGETSOL and GETSOL_LPIVAR are
+% retired. Deleted here: Psol_leg = lpigetsol(prog,P1); the 2-D program's
+% dopvar2d P2 = lpivar(prog2,...) with its class check and P2sol =
+% lpigetsol(prog2,P2); the 'opvar' and 'dopvar' entries of the table below;
+% the 2-D loop over {P2, P2sol} against lpigetsol; and getsol_lpivar_sop
+% against getsol_lpivar on P1 and P2 (all MMP, 09/29/2026).
+% 2-D program; a named dpvar, so that none of the names of Pc are listed
 pvar s1 s2 t1 t2
 prog2 = lpiprogram([s1;s2],[t1;t2],[0 1;0 1]);
-[prog2,P2] = lpivar(prog2,[1 1;1 1;1 1;1 1],1);     % dopvar2d
+[prog2,~] = lpidecvar(prog2,'h2');
 prog2.solinfo.RRx = randn(numel(prog2.decvartable),1);
 prog2.solinfo.info = struct('pinf',0);
-assert(isa(P2,'dopvar2d'),'(iii) lpivar did not return a dopvar2d')
-P2sol = lpigetsol(prog2,P2);
 
-% Legacy objects: lpigetsol_sop and subs_dvar_sop against lpigetsol, bit
-% for bit
-leg = {  {'[]',[]}, {'double',[1 2;3 4]}, {'polynomial',s^2+3*s}, {'opvar',Psol_leg}, ...
+% Plain objects: lpigetsol_sop and subs_dvar_sop against what LPIGETSOL
+% returned for them, bit for bit: the object itself for [], 'double' and
+% 'polynomial' (the first 3 entries), SOSGETSOL for the others
+leg = {  {'[]',[]}, {'double',[1 2;3 4]}, {'polynomial',s^2+3*s}, ...
          {'dpvar',g}, {'dpvar expr',2*g(1)+g(2)*s}, {'char',g.dvarname{1}}, {'cellstr',g.dvarname(:)'}, ...
-         {'cell of dpvar',{g,2*g}}, {'dopvar',P1}, {'dopvar',Q1} };
+         {'cell of dpvar',{g,2*g}} };
 for k = 1:numel(leg)
     [lbl,Xk] = leg{k}{:};
-    a = lpigetsol(prog,Xk);     b = lpigetsol_sop(prog,Xk);
+    if k<=3,    a = Xk;     else,   a = sosgetsol(prog,Xk);     end
+    b = lpigetsol_sop(prog,Xk);
     c = subs_dvar_sop(Xk,prog.decvartable,prog.solinfo.RRx(1:N));
-    assert(bit_equal(a,b),'(iii) %s: lpigetsol_sop differs from lpigetsol',lbl)
-    assert(bit_equal(a,c),'(iii) %s: subs_dvar_sop differs from lpigetsol',lbl)
+    assert(bit_equal(a,b),'(iii) %s: lpigetsol_sop differs from the reference',lbl)
+    assert(bit_equal(a,c),'(iii) %s: subs_dvar_sop differs from the reference',lbl)
     out.nlegacy = out.nlegacy+1;
 end
 % The comparison must see a different decision vector (non-vacuous).
 alt = prog;     alt.solinfo.RRx = prog.solinfo.RRx + 1;
-assert(~bit_equal(lpigetsol(prog,P1),lpigetsol_sop(alt,P1)) && ...
-       ~bit_equal(lpigetsol(prog,g),lpigetsol_sop(alt,g)),'(iii) bit_equal is blind to the values')
-% Same for the 2-D classes, and getsol_lpivar_sop against getsol_lpivar.
-leg2 = {{'dopvar2d',P2},{'opvar2d',P2sol}};
-for k = 1:numel(leg2)
-    [lbl,Xk] = leg2{k}{:};
-    a = lpigetsol(prog2,Xk);    b = lpigetsol_sop(prog2,Xk);
-    assert(bit_equal(a,b),'(iii) %s: lpigetsol_sop differs from lpigetsol',lbl)
-    out.nlegacy = out.nlegacy+1;
-end
-assert(bit_equal(getsol_lpivar_sop(prog,P1),getsol_lpivar(prog,P1)),'(iii) getsol_lpivar_sop(dopvar) differs')
-assert(bit_equal(getsol_lpivar_sop(prog2,P2),getsol_lpivar(prog2,P2)),'(iii) getsol_lpivar_sop(dopvar2d) differs')
-% Names keyed, in any order: a permuted list gives the legacy answer.
+assert(~bit_equal(sosgetsol(prog,g),lpigetsol_sop(alt,g)),'(iii) bit_equal is blind to the values')
+% Names keyed, in any order: a permuted list gives the same answer.
 pm = randperm(N);
 c = subs_dvar_sop(g,prog.decvartable(pm),prog.solinfo.RRx(pm));
-assert(bit_equal(c,lpigetsol(prog,g)),'(iii) permuted names change the dpvar result')
+assert(bit_equal(c,sosgetsol(prog,g)),'(iii) permuted names change the dpvar result')
+% END MMP, 11/08/2026
 
 % A name listed twice in decvartable (a Gram's (i,j),(j,i)) takes the value
 % of its LOWEST row, where getequation puts its At row; sosgetsol agrees.
@@ -835,8 +839,10 @@ assert(isa(lpigetsol_sop(prog,b12),'sopvar'),'(iii) sdopvar dispatch')
 assert(isequal(lpigetsol_sop(prog,Pcs),Pcs),'(iii) copvar not returned as is')
 assert(isequal(lpigetsol_sop(prog,Pcs.C{2,2}),Pcs.C{2,2}),'(iii) sopvar not returned as is')
 mix = lpigetsol_sop(prog,{Pc,g;Pcs,[]});
-assert(isequal(size(mix),[2 2]) && same_ops(mix{1,1},Pcs,0) && bit_equal(mix{1,2},lpigetsol(prog,g)) ...
-    && isequal(mix{2,1},Pcs) && isempty(mix{2,2}),'(iii) mixed cell')
+% assert(isequal(size(mix),[2 2]) && same_ops(mix{1,1},Pcs,0) && bit_equal(mix{1,2},lpigetsol(prog,g)) ...
+%     && isequal(mix{2,1},Pcs) && isempty(mix{2,2}),'(iii) mixed cell')     % MMP, 11/08/2026 (was)
+assert(isequal(size(mix),[2 2]) && same_ops(mix{1,1},Pcs,0) && bit_equal(mix{1,2},sosgetsol(prog,g)) ...
+    && isequal(mix{2,1},Pcs) && isempty(mix{2,2}),'(iii) mixed cell')       % MMP, 11/08/2026
 % the substitution needs names: none of Pc's are in prog2, so nothing moves
 Pnone = getsol_lpivar_sop(prog2,Pc);
 assert(isa(Pnone,'cdopvar') && isequal(cellstr(Pnone.Zd(:)),cellstr(Pc.Zd(:))),'(iii) absent names must stay')
@@ -851,7 +857,8 @@ for k = 1:numel(bads)
         ok = false;
     catch e
         ok = true;
-        if ~iscell(bads{k})     % a cell of legacy content is legacy lpigetsol's error
+%       if ~iscell(bads{k})     % a cell of legacy content is legacy lpigetsol's error % MMP, 11/08/2026 (was)
+        if ~iscell(bads{k})     % a plain cell goes to SOSGETSOL, which errors  % MMP, 11/08/2026
             ok = strcmp(e.identifier,'lpigetsol_sop:badClass');
         end
     end
@@ -872,8 +879,10 @@ catch e
     ok = strcmp(e.identifier,'getsol_lpivar_sop:notSolved');
 end
 assert(ok,'(iii) program without RRx accepted');
-fprintf('(iii) %d legacy objects bit-identical to lpigetsol, %d new-class checks, %d rejections\n',...
-    out.nlegacy,out.nnew,out.nerr);
+% fprintf('(iii) %d legacy objects bit-identical to lpigetsol, %d new-class checks, %d rejections\n',...
+%     out.nlegacy,out.nnew,out.nerr);                                       % MMP, 11/08/2026 (was)
+fprintf('(iii) %d plain objects bit-identical to the reference, %d new-class checks, %d rejections\n',...
+    out.nlegacy,out.nnew,out.nerr);                                         % MMP, 11/08/2026
 end
 
 

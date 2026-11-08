@@ -4,16 +4,15 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 % equality constraints P == 0 on the decision variables of P: for a
 % 'cdopvar' P, that every block is zero (LPI_EQ_CDOPVAR); for an 'sdopvar'
 % P, that every stored coefficient of every parameter is zero
-% (LPI_EQ_SDOPVAR); for a 'dpvar' P, P == 0 by SOSEQ; for any other P, the
-% constraints of LPI_EQ.
+% (LPI_EQ_SDOPVAR); for a 'dpvar' P, P == 0 by SOSEQ; any other P is an
+% error.
 %
 % INPUT
 % - prog:   'struct', the LPI program to modify (from
 %           LPIPROGRAM), whose field decvartable holds every decision
 %           variable of P;
 % - P:      'cdopvar' or 'sdopvar' object, the decision operator to set to
-%           zero; or a 'dpvar', 'opvar', 'dopvar', 'opvar2d' or 'dopvar2d'
-%           object;
+%           zero; or a 'dpvar' object;
 % - opts:   (optional) char 'symmetric', for a self-adjoint P: one
 %           parameter of each adjoint pair is constrained (for a 'cdopvar',
 %           one block of each pair of blocks (i,j) and (j,i), and one
@@ -29,9 +28,10 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 %
 % NOTES
 % A 'copvar', 'sopvar', 'polynomial' or 'double' P, which has no decision
-% variables, is an error.
+% variables, is an error, as is a P of any other class
+% ('lpi_eq_sop:class').
 %
-% See also LPI_EQ, LPI_EQ_CDOPVAR, LPI_EQ_SDOPVAR, LPIPROGRAM,
+% See also SOSEQ, LPI_EQ_CDOPVAR, LPI_EQ_SDOPVAR, LPIPROGRAM,
 %          LPIGETSOL_SOP, LPIGETDUAL_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -88,9 +88,17 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 %                to LPI_EQ.
 % MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
 %                LPIPROGRAM_SOP is retired.
+% MMP, 11/08/2026: P of a class other than 'cdopvar', 'copvar', 'sdopvar',
+%                'sopvar' and 'dpvar' is an error (lpi_eq_sop:class). It
+%                went to LPI_EQ, retired 11/08/2026 (cleaning/private) with
+%                the opvar classes, the only other classes it accepted.
+%                Help text to match. The last sentence of the first
+%                11/04/2026 entry no longer holds.
 
-% Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and
-% lpi_eq_sdopvar each test nargin for it.
+% Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and        % MMP, 11/08/2026 (was)
+% lpi_eq_sdopvar each test nargin for it.                                   % MMP, 11/08/2026 (was)
+% Only opts the caller gave is passed on: lpi_eq_cdopvar and lpi_eq_sdopvar % MMP, 11/08/2026
+% each test nargin for it.                                                  % MMP, 11/08/2026
 % TAG is 0 unless lpi_eq_cdopvar records the rows of this equality
 tag = 0;                                                                    % MMP, 10/08/2026
 if isa(P,'cdopvar') || isa(P,'copvar')
@@ -111,10 +119,13 @@ elseif isa(P,'dpvar')                                                       % MM
     % 'dpvar': SOSEQ, as LPI_EQ does for it                                 % MMP, 11/04/2026
     prog = soseq(prog,P);                                                   % MMP, 11/04/2026
 else
-    % Every other class: lpi_eq
-    if nargin>=3,   prog = lpi_eq(prog,P,opts);
-    else,           prog = lpi_eq(prog,P);
-    end
+%   % Every other class: lpi_eq                                             % MMP, 11/08/2026 (was)
+%   if nargin>=3,   prog = lpi_eq(prog,P,opts);                             % MMP, 11/08/2026 (was)
+%   else,           prog = lpi_eq(prog,P);                                  % MMP, 11/08/2026 (was)
+%   end                                                                     % MMP, 11/08/2026 (was)
+    % Every other class: LPI_EQ, retired 11/08/2026, rejected all but the   % MMP, 11/08/2026
+    % opvar family, retired with it                                         % MMP, 11/08/2026
+    error('lpi_eq_sop:class','P should be a cdopvar, sdopvar or dpvar object; got %s.',class(P)) % MMP, 11/08/2026
 end
 
 end
