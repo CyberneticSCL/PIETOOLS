@@ -1,36 +1,38 @@
 id	m	Kf	Ks	nnzAt	rel_b	numerr	kind	state
-stab_rd1	130	43	[10 15 6]	982	1.32278e-08	0	feas	pass
-stabdual_rd1	130	43	[10 15 6]	982	1.33245e-08	0	feas	pass
-stabpde_rd1	54	0	[10 15 6]	1054	5.08852e-08	0	feas	pass
-stabpded_rd1	54	0	[10 15 6]	1054	5.09999e-08	0	feas	pass
-stab_rd1_hv	135	45	[11 20 11]	1315	2.79054e-08	0	feas	pass
-stab_rd1_tight	135	45	[11 20 11]	1315	1.15051e-08	0	feas	pass
-stab_tr1	96	43	[10 15 6]	730	6.42328e-08	0	feas	pass
-stab_wave1	520	172	[20 30 12]	4016	5.89671e-08	0	feas	pass
-hinf_rd1	242	44	[10 31 13 1]	1945	5.10481e-07	0	obj	pass
-hinfco_rd1	176	1	[10 31 13 1]	2497	9.39136e-07	2	obj	pass_numerr2
-hinfdu_rd1	244	44	[10 31 13 1]	2005	1.51843e-08	0	obj	pass
-hinfduco_rd1	168	1	[10 31 13 1]	2200	0.001864	2	obj	sentinel_poor
-hinf_rd1_hv	267	46	[11 41 23 1]	3266	4.82793e-08	0	obj	pass
+stab_rd1	116	43	[10 14 7]	946	1.40963e-08	NaN	feas	pass
+stabdual_rd1	116	43	[10 14 7]	946	1.40963e-08	NaN	feas	pass
+stabpde_rd1	44	0	[10 12 6]	998	1.40071e-08	NaN	feas	pass
+stabpded_rd1	44	0	[10 12 6]	998	1.40071e-08	NaN	feas	pass
+stab_rd1_hv	139	45	[11 28 21]	2287	2.28303e-08	NaN	feas	pass
+stab_rd1_tight	139	45	[11 28 21]	2287	1.14669e-08	NaN	feas	pass
+stab_tr1	94	43	[10 14 7]	752	7.15929e-08	NaN	feas	pass
+stab_wave1	458	172	[20 28 14]	3848	8.33656e-08	NaN	feas	pass
+hinf_rd1	195	44	[10 25 17 1]	1719	5.74361e-08	NaN	obj	pass
+hinfco_rd1	138	1	[10 29 22 1]	2937	1.23711e-07	NaN	obj	pass
+hinfdu_rd1	183	44	[10 25 17 1]	1782	6.58689e-08	NaN	obj	pass
+hinfduco_rd1	126	1	[10 29 22 1]	2683	NaN	NaN	obj	sentinel_nopoint
+hinf_rd1_hv	226	46	[11 33 25 1]	2699	1.08725e-07	NaN	obj	pass
 h2c_rd1	272	44	[10 1 30 16 12 7 1 1]	2337	2.77525e-07	0	obj	pass
 h2cco_rd1	56	1	[10 15 6 1 1]	1111	1	0	obj	sentinel_trivial
 h2o_rd1	269	44	[10 8 16 30 7 12 1]	2330	3.97282e-06	2	obj	pass_numerr2
 h2oco_rd1	56	1	[10 15 6 1 1]	1056	5.67846e-08	0	obj	pass
-est_rd1	189	4	[10 32 14 1]	2592	1.07103e-06	0	obj	pass
+est_rd1	153	4	[10 30 23 1]	3051	3.73105e-07	NaN	obj	pass
 h2est_rd1	198	25	[10 17 30 8 12 1 1]	2559	6.45269e-07	2	obj	pass_numerr2
-ctrl_rd1	181	4	[10 32 14 1]	2293	0.00108361	2	obj	sentinel_poor
+ctrl_rd1	141	4	[10 30 23 1]	2797	NaN	NaN	obj	sentinel_nopoint
 h2ctrl_rd1	202	8	[10 30 17 12 8 1 1]	2537	0.000781056	2	obj	sentinel_poor
-wellposed_rd1	108	0	[10 10 15 15 6 6]	2148	8.74222e-08	0	feas	pass
+wellposed_rd1	91	0	[10 10 12 6 14 7]	2079	8.19808e-08	NaN	feas	pass
 nl_fisher_opt	5093	1	[5 50 50 40 456 380]	1.80334e+06	5.108e-06	0	obj	pass
 nl_fisher_gamfix	5093	0	[5 50 50 40 456 380]	1.80334e+06	5.14548e-06	0	feas	pass
 nl_fisher_nobnd	4978	0	[5 50 456 380]	1.79684e+06	3.43612e-05	0	feas	pass
-stab2_rd	3456	0	[8 424]	557492	2.08158	2	feas	sentinel_poor
-stab2dual_rd	3456	0	[8 424]	557492	0.00843163	2	feas	sentinel_poor
-hinf2_rd	14005	1	[8 869]	2.25462e+06	0.000136177	2	obj	sentinel_poor
-hinf2nc_rd	16949	42	[8 1229]	3.1345e+06	0.00015363	2	obj	sentinel_poor
-hinf2du_rd	14006	1	[8 869]	2.25392e+06	0.00483557	2	obj	sentinel_poor
+stab2_rd	2044	0	[8 144 144 144 144 144]	417919	1.91117e-07	NaN	feas	pass
+stab2dual_rd	2044	0	[8 144 144 144 144 144]	417919	1.91117e-07	NaN	feas	pass
+stab2_rd_psz	2044	0	[8 144 144 144 144 144]	417919	1.91117e-07	NaN	feas	pass
+stab2_rd_psz90	2044	0	[8 144 144 144 144 144]	417866	1	NaN	feas	sentinel_trivial
+hinf2_rd	3945	1	[8 334 149 149 149 149 1]	680833	7.41066e-07	NaN	obj	pass
+hinf2nc_rd	3470	82	[8 197 197 197 197 197 1]	565316	6.47152e-06	NaN	obj	pass
+hinf2du_rd	3941	1	[8 334 149 149 149 149 1]	680358	NaN	NaN	obj	sentinel_nopoint
 h2_2dc_rd	4127	1	[8 614 1]	781341	1	0	obj	sentinel_trivial
-scale_stab_n02	540	180	[22 40 22]	5414	2.33438e-08	0	feas	pass
-scale_stab_n04	2160	720	[44 80 44]	21964	3.87048e-08	0	feas	pass
-scale_stab_n08	8640	2880	[88 160 88]	88472	6.29157e-08	0	feas	pass
-scale_stab_n16	34560	11520	[176 320 176]	355104	5.83976e-08	0	feas	pass
+scale_stab_n02	544	180	[22 56 42]	9385	2.75313e-08	NaN	feas	pass
+scale_stab_n04	2152	720	[44 112 84]	38014	9.19144e-08	NaN	feas	pass
+scale_stab_n08	8560	2880	[88 224 168]	153004	5.55918e-08	NaN	feas	pass
+scale_stab_n16	34144	11520	[176 448 336]	613912	4.36615e-08	NaN	feas	pass

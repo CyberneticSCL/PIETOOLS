@@ -48,9 +48,9 @@ of 8fd693bd with those three folders deleted.
 - `bl_run`'s `eta` leaves out rows of rounding residue, as sossolve's `info.eta` does. The
   container 2-D programs carry such rows: `stab2_rd` reads 5.2e-2 with them, 6.4e-10 without.
 
-**The container executives pose different SDPs.** `bl_expect.tsv`, `results/2026-09-24/` and
-`BASELINE_REPORT.md` hold stock-path values, and `bl_check` reports STRUCTURE CHANGED against
-them until the expectations are re-recorded. Measured 11/07 with MOSEK, light settings:
+**The container executives pose different SDPs.** `results/2026-09-24/` and `BASELINE_REPORT.md`
+hold stock-path values; `bl_expect.tsv` was re-recorded on 11/08/2026 (below). Measured 11/07
+with MOSEK, stock light settings:
 
 | case | stock m, blocks, result | container m, blocks, result |
 |---|---|---|
@@ -74,6 +74,14 @@ above. The feasibility cases pose the tier's first pass, at its `dw_feas` and `e
 1e-2: `stab_rd1` m 116, blocks [10 14 7]; `stab2_rd` m 2044, largest block 144; both
 certified. `stab2_rd_psz90` (0.9 λ*) is primal infeasible at that pass; the tier's raise, which
 `bl_settings` turns off, certifies it at the 11/07 program (m 2968).
+
+`bl_expect.tsv` was re-recorded on these tiers (11/08/2026) for the 27 cases of the suites
+`structure`, `twod`, `objective2d` and `scaling`; `stab2_rd_psz` and `stab2_rd_psz90` are
+banked for the first time. A second `bl_check` pass gives 27 PASS, four of them known failures:
+`hinfduco_rd1`, `ctrl_rd1` and `hinf2du_rd` return no point, `stab2_rd_psz90` the trivial point.
+The H2 rows (dropped from the regime) and the `nl_fisher_*` rows (which do not build since the
+PIESOS API change of 10/15/2026) keep their stock-path values. `hinf2nc_rd` banks as `pass` on
+its residual (6.5e-6), although MOSEK returns numerr 2 and gam 756.6.
 
 Not ported; each still calls the stock code:
 
