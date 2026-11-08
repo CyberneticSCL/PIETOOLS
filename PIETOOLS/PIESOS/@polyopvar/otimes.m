@@ -29,6 +29,8 @@ function C = otimes(A,B,otype)
 %   of a copy of the variables for each factor, for otype=1 of a single
 %   copy, see 'polyopvar'.
 % - A.*B calls otimes(A,B,1), see @polyopvar/times.m.
+% - An adjoint (see 'ctranspose') is not supported as a factor, also for
+%   times, power and mpower, which call otimes or opower.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,6 +62,12 @@ function C = otimes(A,B,otype)
 %                   x.*x, into one factor;
 % DJ, 11/06/2026: Output space of C follows from C.C (see set.C);
 % DJ, 11/06/2026: Set chkval of C.C after replacing its blocks;
+% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
+
+% An adjoint is not a polynomial in the states, so cannot be multiplied
+if (isa(A,'polyopvar') && A.is_adjoint) || (isa(B,'polyopvar') && B.is_adjoint)
+    error("polyopvar:adjoint_not_supported","'otimes' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
+end
 
 % Check the type of product
 if nargin<3

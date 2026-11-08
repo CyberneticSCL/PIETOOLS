@@ -25,6 +25,15 @@ function C = mtimes(A,B)
 % - Multiplication of a non-scalar matrix with a monomial on which an
 %   operator with several factors acts (e.g. x0*u) is not supported, see
 %   @tensopvar/mtimes.m.
+% - If A is an adjoint (A=U'*W, see 'ctranspose'), A*B is
+%   - for a 'polyopvar' B, the inner product innerprod(U,W,B), a scalar
+%     'polyopvar', so that U'*B = innerprod(U,B);
+%   - for a 'double', 'polynomial' or 'dpvar' B with as many rows as A has
+%     columns, or a scalar, the adjoint U'*W*B, with weight W*B (B for the
+%     unit weight W=1), so that U'*P*V = innerprod(U,P,V). A scalar weight
+%     P represents P*eye(n).
+%   A product with an adjoint as the right factor, e.g. U*V', is not
+%   supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,10 +64,33 @@ function C = mtimes(A,B)
 % DJ, 11/04/2026: Left-multiplication by a matrix lifts rows with different
 %                   output spaces to a common space;
 % DJ, 11/06/2026: Output space of C follows from C.C (see set.C);
+% DJ, 11/07/2026: Support products with an adjoint, see 'ctranspose';
 
 % Make sure the inner dimensions match
 if size(A,2)~=size(B,1) && ~all(size(A)==1) && ~all(size(B)==1)
     error("Incorrect dimensions for matrix multiplication.")
+end
+
+% Handle an adjoint separately: it is not a polynomial in the states
+if isa(B,'polyopvar') && B.is_adjoint
+    error("Multiplication with an adjoint as the right factor, e.g. u*v', is not supported.")
+elseif isa(A,'polyopvar') && A.is_adjoint
+    % The polynomial U of A=U'*W, without the weight W
+    Au = A;     Au.is_adjoint = false;      Au.weight = 1;
+    if isa(B,'polyopvar')
+        % <U,W*B>: innerprod checks the dimensions of W, as the check above
+        % skips a scalar A
+        C = innerprod(Au,A.weight,B);
+    elseif (isnumeric(B) || isa(B,'polynomial') || isa(B,'dpvar')) && (all(size(B)==1) || size(B,1)==size(A,2))
+        % U'*W*B stores the weight W*B, for the inner product with a later
+        % factor. Check the dimensions of B here, as the check above skips
+        % a scalar A
+        C = A;
+        C.weight = A.weight*B;
+    else
+        error("An adjoint can only be multiplied with a 'polyopvar' object, or with a scalar or matrix of type 'double', 'polynomial' or 'dpvar' with as many rows as the adjoint has columns.")
+    end
+    return
 end
 
 % Distinguish three cases

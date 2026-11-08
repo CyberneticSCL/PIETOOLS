@@ -61,6 +61,7 @@ function out = subsref(obj,ref)
 % DJ, 10/23/2026: Support ':' in f{i,j}, and drop the monomials without a
 %                   nonempty block; several blocks via C{I,J} of tensopmat;
 % DJ, 11/06/2026: Output space of f(i,j), f{i,j} follows from C (see set.C);
+% DJ, 11/07/2026: Reject adjoints for f(i,j) and f{i,j}, see 'ctranspose';
 
 if isempty(ref)
     out = obj;
@@ -73,6 +74,9 @@ switch ref(1).type
         out = builtin('subsref',obj,ref);
         
     case '()'
+        if obj.is_adjoint
+            error("polyopvar:adjoint_not_supported","'subsref' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
+        end
         % Extract elements of the matrix-valued polynomial
         out = obj;
         % Use 'tensopvar' subsref to extract desired elements
@@ -89,6 +93,9 @@ switch ref(1).type
         end
         
     case '{}'
+        if obj.is_adjoint
+            error("polyopvar:adjoint_not_supported","'subsref' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
+        end
         % When calling f{i,j}, extract the term associated to the jth
         % monomial in the ith function
         % Numbers of blocks of C.ops, which C.ops(i,j) indexes: size(obj.C) counts scalar rows/columns

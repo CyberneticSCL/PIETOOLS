@@ -39,10 +39,13 @@ function prog = piesos_eq(prog,f,tol)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/07/2026: Reject an adjoint (u'), see 'ctranspose';
 
 
 if ~isa(f,'polyopvar')
     error("Distributed polynomial functional must be specified as object of type 'polyopvar'.")
+elseif f.is_adjoint
+    error("An adjoint (u') is not a polynomial in the states: use u'*v instead.")
 end
 if ~f.chkval && ~isvalid(f)
     error("Polynomial is not properly declared.")

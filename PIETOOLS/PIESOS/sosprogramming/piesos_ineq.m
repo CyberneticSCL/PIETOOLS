@@ -120,6 +120,7 @@ function [prog,g,Qmat,Zop,Z] = piesos_ineq(prog,f,opts)
 % DJ, 11/06/2026: Set chkval of f.C after removing the constant monomial;
 % DJ, 11/07/2026: Assume 'deg' specifies degrees if 'degs' is not
 %                        specified;
+% DJ, 11/07/2026: Reject an adjoint (u'), see 'ctranspose';
 
 % % Check the inputs
 % Check the program structure
@@ -143,6 +144,8 @@ elseif isa(f,'dopvar') || isa(f,'dopvar2d') || isa(f,'opvar') || isa(f,'opvar2d'
     return
 elseif ~isa(f,'polyopvar')
     error("Distributed polynomial functional must be specified as object of type 'polyopvar'.")
+elseif f.is_adjoint
+    error("An adjoint (u') is not a polynomial in the states: use u'*v instead.")
 end
 % Make sure f is properly declared, and a scalar-valued functional, as
 % piesos_eq(prog,f-g) compares it with the scalar functional g

@@ -43,6 +43,12 @@ function [A_out,B_out] = common_states(A_in,B_in)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
+
+% The objects returned do not store whether they are adjoints
+if A_in.is_adjoint || B_in.is_adjoint
+    error("polyopvar:adjoint_not_supported","'common_states' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
+end
 
 % Extract the parameters representing each polynomial's states
 var_A = A_in.varname;               var_B = B_in.varname;

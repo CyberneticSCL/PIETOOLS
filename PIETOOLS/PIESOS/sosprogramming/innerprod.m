@@ -31,6 +31,8 @@ function V = innerprod(u1,P,u2)
 %   variables of both, e.g. <x,u> = x*int_a^b u(s) ds for x in R and u in
 %   L2[s]. For non-scalar P, this kind of lifting is already performed
 %   inherently.
+% - V = innerprod(u1,P,u2) is also computed by u1'*P*u2, see 'ctranspose'
+%   and 'mtimes'. u1 and u2 themselves cannot be adjoints.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - innerprod
@@ -61,6 +63,7 @@ function V = innerprod(u1,P,u2)
 % DJ, 11/06/2026: Output space of V follows from V.C (see set.C).
 % DJ, 11/07/2026: Swap the arguments of the order innerprod(u1,u2,P),
 %                   with a warning;
+% DJ, 11/07/2026: Reject adjoints as arguments, see 'ctranspose';
 
 % Check that the inputs are appropriate
 is_symmetric = false;
@@ -86,6 +89,10 @@ if nargin<=2 && isa(P,'polyopvar')
     % Assume P represents a vector rather than the weight
     u2 = P;
     P = 1;
+end
+% An adjoint would pass is_adjoint to V = u1 below
+if (isa(u1,'polyopvar') && u1.is_adjoint) || (isa(u2,'polyopvar') && u2.is_adjoint)
+    error("The inner product of an adjoint 'polyopvar' object, e.g. u', is not supported: use u'*v.")
 end
 if ~isa(u1,'polyopvar') 
     V = (u1'*P)*u2;
