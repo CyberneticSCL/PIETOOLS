@@ -109,17 +109,14 @@ function [prog,Pop,Qcell,alpha_list] = possopvar(prog,dim,vars,dom,deg,options)
 % authorship, and a brief description of modifications
 %
 % MP, 08/22/2026:  Initial coding
-% MMP, 09/21/2026: Body moved to 'sopquadvar' and this reduced to a wrapper.
-%                  The body never imposed positivity itself -- it assembles
-%                  a quadratic form, and the whole of the positivity
-%                  question was the literal 'pos' passed to 'sosquadvar' --
-%                  so it belonged in a constructor that Sec. 8.4's
-%                  'poscopvar' can share, rather than being duplicated. The
-%                  earlier header entries for the sep option, deg.subset,
-%                  the sorted-S3 cell order and the block accumulation now
-%                  live with the code in 'sopquadvar'. Behaviour here is
-%                  unchanged, checked against the Gram dimensions measured
-%                  beforehand and the 'test_possopvar' suite.
+% MMP, 09/21/2026: Body moved to 'sopquadvar', this reduced to a wrapper:
+%                  the body assembles a quadratic form and positivity was
+%                  only the literal 'pos' passed to 'sosquadvar', so it
+%                  belongs in a constructor 'poscopvar' (Sec. 8.4) can
+%                  share. The earlier entries (sep, deg.subset, the
+%                  sorted-S3 cell order, the block accumulation) are in
+%                  'sopquadvar'. Behaviour unchanged (Gram dimensions,
+%                  'test_possopvar').
 % MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
 %                  mdopvar -> cdopvar, with every file and function named after
 %                  them. Mechanical rename, no functional change. Renamed here:
@@ -131,6 +128,8 @@ function [prog,Pop,Qcell,alpha_list] = possopvar(prog,dim,vars,dom,deg,options)
 %                  that this wraps sopquadvar, with the reference to it for
 %                  the inputs and outputs, and the reason options.type is
 %                  refused.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
+%                  code unchanged.
 
 % OPTIONS: a 'struct', struct() when omitted; type 'pos' only
 if nargin<6 || isempty(options)

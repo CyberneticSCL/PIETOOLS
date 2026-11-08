@@ -5,8 +5,8 @@ function R = test_endtoend_sop(which_)
 % at the first failed check:
 %   'E1'  e2e_hinf_gain_1d: the H-infinity gain LPI of a 1-D PIE with the
 %         gain gamma a decision variable, solved once with MOSEK; gamma
-%         against stock PIETOOLS_Hinf_gain, the extracted certificate
-%         checked by its action;
+%         against the recorded bound of the stock executive, the extracted
+%         certificate checked by its action;
 %   'E2'  e2e_stability_1d: the stability LPI of a 1-D PIE, solved with
 %         MOSEK, the extracted certificate checked by its action;
 %   'E3'  e2e_stability_2d: the stability LPI of the 2-D heat equation,
@@ -67,6 +67,9 @@ function R = test_endtoend_sop(which_)
 %                in the body; code unchanged. The deleted header text was
 %                the measured run time and memory of each check and a
 %                history note.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): E1 compares with
+%                the recorded stock bound (e2e_hinf_gain_1d, 11/07/2026);
+%                code unchanged.
 
 % Default selection; a comma list or 'all' becomes a cellstr of names
 if nargin<1 || isempty(which_),     which_ = {'E1','E2'};   end

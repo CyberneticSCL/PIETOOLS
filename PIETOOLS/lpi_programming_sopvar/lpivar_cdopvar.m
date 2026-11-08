@@ -76,7 +76,7 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %            is M x 0 or 0 x N (0 x 0 if both), with no block and no
 %            decision variable, and PROG is returned unchanged.
 %
-% See also LPIVAR, LPIVAR_2D, POSCOPVAR, LPI_EQ_CDOPVAR, CDOPVAR.
+% See also POSCOPVAR, LPI_EQ_CDOPVAR, CDOPVAR, LPIPROGRAM.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -111,37 +111,25 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  cdopvar(C), which read a row's space off a block. Costs
 %                  O(nC) of column pointers for that block, nothing in q.
 % MMP, 09/30/2026: Shared helpers of sopvar/misc/conventions replace local
-%                  copies of conventions that three to four files each
-%                  wrote: 'parse_copvar_spaces' reads spaces, dimensions,
-%                  sorted registry, reserved names and domains (its bodies
-%                  are this file's parse_spaces, norm_spaces and parse_dom,
-%                  which also lived verbatim in 'spaces2meta_sop');
+%                  copies that three to four files each wrote:
+%                  'parse_copvar_spaces' (spaces, dimensions, sorted
+%                  registry, reserved names, domains; its bodies are the
+%                  former locals parse_spaces, norm_spaces and parse_dom),
 %                  'kron_strides', 'gamma_of_cell' and 'multiindex_grid'
-%                  give the Kronecker strides, the gamma of a parameter cell
-%                  and the tensor indices (the cells: Sec. 1 and 4 of
-%                  sopvar_implementation_notes.pdf).
-%                  Locals strides, tensor_index, gamma_of, parse_spaces,
-%                  norm_spaces and parse_dom deleted. Same program bit for
-%                  bit (tr_ab, 91 SDP leaves over w1-w3). One message
-%                  changes: a non-cell space list, e.g. 5, now raises the
-%                  parser's "Spaces should be specified as a cell of
-%                  'cellstr' objects." instead of MATLAB's brace-indexing
-%                  error. NOTES line on 'copquadvar' replaced.
-% MMP, 09/30/2026: Help for 'deg' states that 'int' and 'mult' are kernel
-%                  degrees here but basis-operator caps in 'copquadvar' and
-%                  'sopquadvar', and that a struct with only those two
-%                  fields, 'mult' scalar, passes both (measured at nv = 1
-%                  and 2), so the mix-up raises no error. Help only; the
-%                  field names are unchanged.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body and headers
-%                  of the local functions; code unchanged. The deleted
-%                  header text was the comparisons with lpivar, lpivar_2d,
-%                  copquadvar and poscopvar (among them the 'deg' remark of
-%                  the third 09/30/2026 entry), the variable count and span
-%                  against lpivar with a test reference, the note on the
-%                  shared parser of the second 09/30/2026 entry, and a cost
-%                  note.
+%                  (the cells: Sec. 1 and 4 of
+%                  sopvar_implementation_notes.pdf). Locals strides,
+%                  tensor_index, gamma_of, parse_spaces, norm_spaces and
+%                  parse_dom deleted; same program bit for bit. A non-cell
+%                  space list now raises the parser's message instead of a
+%                  brace-indexing error.
+% MMP, 09/30/2026: Help remark on 'deg' ('int' and 'mult' are kernel degrees
+%                  here, basis-operator caps in 'copquadvar' and
+%                  'sopquadvar'); removed with the 10/28/2026 header.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body
+%                  and headers of the local functions; code unchanged.
+%                  Deleted: the comparisons with lpivar, lpivar_2d,
+%                  copquadvar and poscopvar, the variable count and span
+%                  against lpivar, the shared-parser note and a cost note.
 % MMP, 10/28/2026: An empty count list on one side of a 'struct' DIMS is no
 %                  space on that side: an M x 0 or 0 x N container with no
 %                  decision variable (new local function empty_side).
@@ -153,6 +141,9 @@ function [prog,Pop] = lpivar_cdopvar(prog,dims,spaces,dom,deg,options)
 %                  error. Help text: DIMS and POP.
 % MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
 %                LPIPROGRAM_SOP is retired.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, See
+%                  also without the retired lpivar and lpivar_2d, the
+%                  deletion note before parse_deg shortened; code unchanged.
 
 % Defaults of the optional inputs; PROG must be an LPI program
 if nargin<5 || isempty(deg),        deg = 1;            end
@@ -361,12 +352,11 @@ s.nC = nC;      s.pos = pos;
 end
 
 
-% MMP, 09/30/2026: local functions strides, tensor_index and gamma_of (Initial
-% coding 09/25/2026, no line stamps) deleted, replaced by the shared
-% kron_strides, multiindex_grid and gamma_of_cell (sopvar/misc/conventions),
-% which reproduce them exactly (test_index_maps (B) holds verbatim copies).
-% Local functions parse_spaces, norm_spaces and parse_dom (Initial coding
-% 09/25/2026) deleted, moved verbatim into parse_copvar_spaces.
+% MMP, 09/30/2026: locals strides, tensor_index and gamma_of (09/25/2026, no
+% line stamps) deleted for the shared kron_strides, multiindex_grid and
+% gamma_of_cell (sopvar/misc/conventions; test_index_maps (B) holds verbatim
+% copies); parse_spaces, norm_spaces and parse_dom (09/25/2026) moved
+% verbatim into parse_copvar_spaces.
 
 
 function degs = parse_deg(deg,M,N)

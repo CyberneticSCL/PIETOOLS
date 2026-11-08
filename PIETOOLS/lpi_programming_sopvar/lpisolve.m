@@ -11,7 +11,7 @@ function prog_sol = lpisolve(prog,opts)
 %               the optimization program specified by lpi;
 %
 % OUTPUT
-% - prog:       solved LPI program() structure for desired LPI;
+% - prog_sol:   'struct', the solved LPI program;
 %
 % NOTES:
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu,
@@ -44,6 +44,8 @@ function prog_sol = lpisolve(prog,opts)
 %   code unchanged: it references no operator class and serves both
 %   operator families, while lpi_programming/ is retired with the opvar
 %   classes.
+% MMP, 11/08/2026 - Comment pass (maintainer, 11/08/2026): OUTPUT names
+%   prog_sol; code unchanged.
 
 % % Solve using 'sossolve' with desired settings, if specified.
 if nargin>=2

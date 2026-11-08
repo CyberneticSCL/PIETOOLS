@@ -45,34 +45,24 @@ function loc = dvar_rows(dvars_old,dmap)
 % authorship, and a brief description of modifications
 %
 % MMP, 09/22/2026: Initial coding, split out of 'remap_dvars'.
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change.
+% MMP, 09/25/2026: Container classes renamed mopvar -> copvar, mdopvar ->
+%                  cdopvar (mechanical, no functional change).
 % MMP, 09/26/2026: One vectorized 'values' call instead of a per-name
-%                  'isKey' and subsref loop; 'isKey' now runs only to name
-%                  the culprit when 'values' fails. Same output. Measured
-%                  in situ, 2-D Hinf build (125 calls, 7.1e5 names): 3.58 s
-%                  -> 0.28 s; 2-D heavy stability (7.9e5 names, 9.1e5
-%                  global): 3.40 -> 0.32 s. Standalone, 1e5 names against
-%                  1e6 global: 0.58 -> 0.16 s. Still a hash per name, so
-%                  linear in the names looked up and independent of the
-%                  global count; 'ismember' against the sorted global list
-%                  was measured and rejected: it pays for the global list on
-%                  every call, 0.64 s against 0.013 s for 1e4 names of 1e6.
+%                  'isKey' and subsref loop; 'isKey' runs only to name the
+%                  culprit when 'values' fails. Same output, 10x faster in
+%                  the 2-D builds. Still a hash per name: linear in the
+%                  names looked up and independent of the global count
+%                  ('ismember' against the global list pays for that list
+%                  on every call).
 % MMP, 09/30/2026: 'remap_dvars' deleted: no caller since 09/22/2026 (its
-%                  scatter half is built from triplets in the callers). Help
-%                  no longer introduces this routine as its lookup half; the
-%                  hash-per-name rationale it held is the paragraph above.
+%                  scatter half is built from triplets in the callers).
 %                  Comments only.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body; code
-%                  unchanged. The log entries above moved here from the help
-%                  text, below the licence block, which gains its last
-%                  paragraph. The deleted header text was the rationale for
-%                  the lookup (eliminate on the block's own decision rows,
-%                  scatter once) with a measurement, the cost of a lookup
-%                  per name (the paragraph the 09/30/2026 entry calls
-%                  "above"), and two (was) lines.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                  code unchanged. Deleted: the rationale for the lookup
+%                  with a measurement, the cost of a lookup per name and two
+%                  (was) lines.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
+%                  code unchanged.
 
 % The global row of every name, by one vectorized lookup
 % loc = zeros(numel(dvars_old),1);                                          % MMP, 09/26/2026 (was)

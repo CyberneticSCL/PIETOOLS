@@ -18,7 +18,7 @@
 % degree 2, and
 % LPI_INEQ_SOP imposes the inequality with a certificate sized from P,
 % printing its decision variables first. The script then computes the
-% bound of PIETOOLS_Hinf_gain_sop(PIE,lpisettings('light')) and prints
+% bound of PIETOOLS_Hinf_gain_sop(PIE,lpisettings_sop('light')) and prints
 % both bounds.
 %
 % INPUT
@@ -35,7 +35,7 @@
 % - P, K:           'cdopvar' objects, the positive operator and the block
 %                   operator of the LPI;
 % - gain:           double, the bound of the LPI;
-% - settings:       'struct', lpisettings('light');
+% - settings:       'struct', lpisettings_sop('light');
 % - gain_exec:      double, the bound of PIETOOLS_Hinf_gain_sop;
 % - s, t:           'polynomial' objects, the spatial and time variables;
 % - x, w, z:        'pde_struct' objects, the state, input and output.
@@ -93,6 +93,8 @@
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
 % MMP, 11/08/2026: The executive gets lpisettings_sop('light') (was the stock
 %   lpisettings('light'), whose folder leaves the path).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
+%   lpisettings_sop('light') with the code; code unchanged.
 
 echo on
 % The PDE and its PIE

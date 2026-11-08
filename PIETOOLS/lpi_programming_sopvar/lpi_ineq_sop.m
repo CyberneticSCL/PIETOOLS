@@ -153,57 +153,46 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                record of the equality, for the dual read-back), for the
 %                container executives.
 % MMP, 10/08/2026: The pruned 'include' expands the full-integral index 4
-%                (eq_opts_sopvar marks a direction separable when the
-%                diagonal block's lower and upper cells agree, as the stock
-%                2-D storage's do under options.sep) to the indices 2 and 3
-%                of the unseparated lift; the 2-D H2 Q forms, whose
-%                positivity block carries the storage itself, failed in
-%                alpha_select ("inadmissible multi-index") before this.
-% MMP, 10/21/2026: Maintainer: lpi_ineq_sop always estimates the decision
-%                variables needed, and needs no hand-set options. (1) The
-%                decision variables of the certificate are counted before
-%                anything is declared (POSCOPVAR_DIRECT 'estimate') and
-%                printed with the program total; INFO.ndec, INFO.N. (2)
-%                Without opts.like and opts.deg, the support is read from
-%                the positive operators of 'poscopvar' that P depends on
-%                (prog.sop_pos), as the executives pass their storage: sized
-%                from P itself, the 2-D stability LPI of examples/
-%                stability_2d_sop declared 12036880 decision variables and
-%                was unsolved after 900 s and 31 GB, against 197920 from
-%                its operator (README Sec. 4).
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body, INPUT and
-%                OUTPUT lines for the local function; code unchanged. The
-%                deleted header text was the comparison with lpi_ineq and
-%                its dispatch table, measurement results, the rationale
-%                for one call (NOTES), dates and README references. The
-%                help text of the 10/21/2026 entry is in the paragraph and
-%                in the entries of opts.like and info, without markers.
+%                (eq_opts_sopvar marks a direction separable when the lower
+%                and upper cells of the diagonal block agree) to the indices
+%                2 and 3 of the unseparated lift; the 2-D H2 Q forms failed
+%                in alpha_select ("inadmissible multi-index") before this.
+% MMP, 10/21/2026: Maintainer: lpi_ineq_sop sizes its certificate itself
+%                and needs no hand-set options. (1) The decision variables
+%                of the certificate are counted before anything is declared
+%                (POSCOPVAR_DIRECT 'estimate') and printed with the program
+%                total; INFO.ndec, INFO.N. (2) Without opts.like and
+%                opts.deg, the support is read from the operators of
+%                'poscopvar' that P depends on (prog.sop_pos), as the
+%                executives pass their storage; read from P itself, a P
+%                linear in a decision operator is certified for every value
+%                of that operator, at 60 times the variables in the 2-D
+%                stability LPI (README Sec. 4).
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body,
+%                INPUT and OUTPUT lines for the local function; code
+%                unchanged. Deleted: the comparison with lpi_ineq and its
+%                dispatch table, measurements, the rationale for one call
+%                (NOTES), dates and README references.
 % MMP, 10/29/2026: opts.cap, per-direction bounds theta_k + s_k <= cap(k) on
 %                the lift basis of the slack, passed to POSCOPVAR_DIRECT as
 %                a 'subset' array on every full L2 space over the degrees
 %                read or given (the per-direction Kronecker form of
 %                heatNd_lpi RQ_deg); the terms keep their offsets, which
-%                POSCOPVAR_DIRECT now applies to subset bounds (its entry
-%                of the same date). For the N-D executives: the Repo
-%                cleanup session's prototype lpi_ineq_capped (10/29/2026)
-%                measured caps read from T plus 2 keeping the 2-D gains and
-%                the 0.99 lambda1 rate at 15-24% fewer Gram entries, and
-%                this option reproduces its programs (scratch cap_repro,
-%                10/29/2026). INFO.cap.
+%                POSCOPVAR_DIRECT applies to subset bounds (its entry of the
+%                same date). For the N-D executives; reproduces the programs
+%                of the prototype lpi_ineq_capped (10/29/2026). INFO.cap.
 % MMP, 11/04/2026: A 'dpvar' or 'polynomial' P is imposed by SOSINEQ here
-%                instead of through LPI_INEQ of lpi_programming, which does
-%                exactly that for these classes (OPTS unused): the
-%                container path, e.g. the gamma constraints of the
-%                executives, no longer calls lpi_programming. The opvar
-%                classes still go to LPI_INEQ.
+%                (what LPI_INEQ did for these classes, OPTS unused), so the
+%                container path no longer calls lpi_programming.
 % MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
 %                LPIPROGRAM_SOP is retired.
 % MMP, 11/08/2026: P of a class other than 'cdopvar', 'copvar', 'dpvar'
 %                and 'polynomial' is an error. It went to LPI_INEQ, retired
 %                11/08/2026 (cleaning/private) with the opvar classes, the
-%                only other classes it accepted. Help text to match. The
-%                last sentence of the first 11/04/2026 entry no longer holds.
+%                only other classes it accepted. Help text to match.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, the
+%                opts.cap note tightened, a (was) comment line removed; code
+%                unchanged.
 
 % Check the inputs; OPTS is optional
 if nargin<2
@@ -211,7 +200,6 @@ if nargin<2
 end
 if nargin<3,    opts = [];  end
 
-% % % Legacy classes: 'lpi_ineq', unchanged.                                % MMP, 11/08/2026 (was)
 % % % Not a container: 'dpvar', 'polynomial' by SOSINEQ; others an error    % MMP, 11/08/2026
 if ~(isa(P,'cdopvar') || isa(P,'copvar'))
 %     if isempty(opts),   prog = lpi_ineq(prog,P);                          % MMP, 11/04/2026 (was)
@@ -292,8 +280,7 @@ end
 % form of heatNd_lpi RQ_deg: subset S bounded by the sum over directions
 % of int_k (theta_k alone in S), mult_k (s_k alone) or min(cap_k,
 % int_k+mult_k) (both). The terms keep their offsets; REDUCE_SPEC lowers
-% the bounds where a term's weight acts. For the N-D executives (Repo
-% cleanup session, 10/29/2026).
+% the bounds where a term's weight acts.
 cap = [];
 if isfield(opts,'cap') && ~isempty(opts.cap)
     cap = reshape(opts.cap,1,[]);   nv = numel(P.vars);
@@ -386,7 +373,7 @@ if isfield(opts,'margin') && ~isempty(opts.margin) && opts.margin>0         % MM
     for k = 1:numel(dc)                                                     % MMP, 10/08/2026
         if isstruct(dc{k}) && isfield(dc{k},'mult') && ~isempty(dc{k}.mult) % MMP, 10/08/2026
             dl = max([dl, reshape(dc{k}.mult,1,[])]);                       % MMP, 10/08/2026
-        elseif isnumeric(dc{k}) && isscalar(dc{k}),  dl = max(dl,dc{k});   % MMP, 10/08/2026
+        elseif isnumeric(dc{k}) && isscalar(dc{k}),  dl = max(dl,dc{k});    % MMP, 10/08/2026
         end                                                                 % MMP, 10/08/2026
     end                                                                     % MMP, 10/08/2026
     A_D = lift_copvar(dm,sp,dom,dl,lopt);                                   % MMP, 10/08/2026

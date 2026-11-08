@@ -78,7 +78,7 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 %               the order of VARS;
 % - alpha_list: 'double', N x n3, row i the multi-index alpha_i over VARS.
 %
-% See also COPQUADVAR, POSSOPVAR, POSLPIVAR, SOSQUADVAR.
+% See also COPQUADVAR, POSSOPVAR, SOSQUADVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -106,165 +106,68 @@ function [prog,Pop,Qcell,alpha_list] = sopquadvar(prog,dim,vars,dom,deg,options)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MP, 08/22/2026: Initial coding (as 'possopvar')
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), the name line of the licence block
-%                  corrected (possopvar -> sopquadvar), step comments in
-%                  the body and the INPUT and OUTPUT lines of the local
-%                  function; code unchanged. The deleted header text was
-%                  the kernel form of the result, the reduction to
-%                  'poslpivar' in 1-D, implementation notes (the 'dpvar'
-%                  route, the call of 'copquadvar', the R^n blocks not
-%                  built) and the rationale of 'type'.
-% MMP, 10/21/2026: moved to lpi_programming_sopvar/misc/ and the private
-%                  helpers to misc/private/: the folder root keeps the user
-%                  functions only. The locations in the entries below read
-%                  accordingly. Code unchanged.
-% MMP, 10/16/2026: moved, with private/, from sopvar/lpis_sopvar/ to
-%                  lpi_programming_sopvar/; 'lpis_sopvar' in the entries
-%                  below now reads lpi_programming_sopvar. Code unchanged.
-% MMP, 10/01/2026: One implementation of the Sec. 9 construction: this file
-%                  now checks its inputs as before, moves them to the sorted
-%                  registry and calls 'copquadvar' on one space, returning
-%                  the single block. The construction below the checks is
-%                  deleted (see BEGIN/END). It had diverged from copquadvar
-%                  five times since 09/22/2026; copquadvar held the 09/26
-%                  speed-ups, this file the zero-cell skip (now in both).
-%                  For sorted variables the program, Pop, Qcell and
-%                  alpha_list are bit-identical to before. For unsorted ones
-%                  the program equals the former one for the sorted
-%                  variables, the Gram blocks list monomials in registry
-%                  order, and Qcell is reordered back to the caller's
-%                  monomial order so it keeps its meaning. Every entry below that
-%                  describes the deleted construction (09/07, 09/11 for the
-%                  cell relabelling, 09/21 moved subfunctions, 09/22 and
-%                  09/30 SGCELL) no longer applies; 'process_degrees' had
-%                  this file as its only caller and is deleted.
-% MMP, 09/30/2026: SGCELL instrumentation removed: two counters in the gamma
-%                  cell loop (MMP, 09/22/2026) and a print when the
-%                  environment variable SGCELL was set, which no file in the
-%                  repository sets. Diagnostic only; nothing it computed was
-%                  returned.
-% MMP, 09/30/2026: The reserved-suffix check and the enumeration of the
-%                  basis multi-indices alpha (sopvar_implementation_notes.pdf
-%                  Sec. 9.1; direction 1 fastest)
-%                  call the shared 'check_reserved_names' and
-%                  'multiindex_grid' (sopvar/misc/conventions) instead of
-%                  inline copies of what 'copquadvar', 'lpivar_cdopvar',
-%                  'eq_opts_sopvar' and 'spaces2meta_sop' also wrote. Same
-%                  message, same alpha_all (test_index_maps (B) compares the
-%                  verbatim inline form).
-% MMP, 09/30/2026: 'lpis_sopvar/private/remap_dvars' deleted: no caller
-%                  since the 09/22/2026 entry below replaced its call (kept
-%                  there as a '(was)' line) by 'dvar_rows' plus a triplet
-%                  scatter. The 09/21/2026 entry's list of moved subfunctions
-%                  therefore no longer holds for it. Comments only.
-% MMP, 09/28/2026: options.psatz is value-checked, and 2k+1 / 2k+2 weight the
-%                  Gram form by one face of the box, (theta_k-a_k)/L_k or
-%                  (b_k-theta_k)/L_k, k over SORTED S3. The value was taken
-%                  for its truthiness, so 2 (poslpivar_2d's ball), every
-%                  face code and out-of-range codes such as 9 at n3 = 2 all
-%                  silently built the product weight, while 'copquadvar'
-%                  (MMP, 09/27/2026) reads 3.. as faces: one options struct,
-%                  two cones. Check, double conversion and face branch
-%                  mirror copquadvar's; sorted k makes a code name the same
-%                  face in both. Help text updated. psatz 0/1 unchanged.
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Renamed here:
-%                  mopquadvar -> copquadvar, posmopvar -> poscopvar.
-% MMP, 09/22/2026: Defer the scatter onto the global decision variable basis
-%                  until after the theta elimination. 'remap_dvars' was called
-%                  before 'pack_sheets', so every block was widened from its
-%                  own decision rows to the global count BEFORE the integral,
-%                  and since 'pack_sheets' lays one sheet per row that put the
-%                  global count on the sheet axis of every intermediate.
-%                  Nothing between there and 'unpack_sheets' mixes sheets --
-%                  each stays a contiguous block of columns, as
-%                  'unpack_sheets' own header records -- so the widening was
-%                  pure zero padding. MEASURED at two variables and degree 2,
-%                  ndec = 97461: the sheet axis was 97462 columns for block
-%                  pair (1,1), which needs 46, a factor of 2119, and 292386
-%                  against 2190 for pair (2,3). Profiling the same case put
-%                  48% of the runtime in 'int_semisep>rearrangeCoef' at 166 MB
-%                  of allocation per call, with 392 GB allocated in total
-%                  against a 242 MB peak -- the churn was the padding. The
-%                  block now carries its own rows through the elimination and
-%                  is scattered once per parameter cell, built from triplets
-%                  rather than by the index-assignment into a q-row sparse
-%                  that CLAUDE.md s2 forbids. Alternating A/B, two
-%                  repetitions: 20.85/21.10 s becomes 5.94/6.04 s at two
-%                  variables and degree 2 (3.5x), 0.18/0.19 becomes 0.15/0.11
-%                  at one variable and degree 3, and the small cases are
-%                  unchanged -- the saving tracks the padding factor, which
-%                  grows with ndec. Coefficients are unchanged:
-%                  'test_possopvar' compares the defining identity against an
-%                  independent oracle and still passes 14 of 14.
-% MMP, 09/21/2026: Eight subfunctions moved verbatim to 'lpis_sopvar/private'
-%                  - 'process_degrees', 'process_degrees_one',
-%                  'expand_caps', 'remap_dvars', 'pack_sheets',
-%                  'unpack_sheets', 'lr_multiply' and 'expand_full'. Sec. 8.4
-%                  asks for one implementation shared with the multi-domain
-%                  'copquadvar' rather than two, and a file-local subfunction
-%                  cannot be shared. A 'private' folder is visible to every
-%                  function in 'lpis_sopvar' and to nothing else, so the
-%                  bodies are unchanged and no name is exposed.
-% MMP, 09/21/2026: Renamed from 'possopvar' and the variable type made an
-%                  argument. Sec. 8.4 asks for a poscopvar over the mixed
-%                  domains of a 'copvar' and observes that there should not
-%                  be two implementations, just the general one with a
-%                  fastlane. Extracting the constructor is the first step:
-%                  the body assembles sum_ij Z_i^* Q_ij Z_j from a basis
-%                  list and a coefficient matrix, and the ONLY place
-%                  positivity entered was the literal 'pos' handed to
-%                  'sosquadvar', so this is not a positivity routine and
-%                  should not be named as one. 'possopvar' is now a wrapper
-%                  fixing type to 'pos', with its behaviour unchanged, and
-%                  'sym' additionally becomes available for the
-%                  unconstrained operator variable the settings files call
-%                  Zop. Multi-domain support, and the 'poscopvar' wrapper
-%                  over it, follow separately.
-% MMP, 09/21/2026: Accept 'deg.subset', one maximal degree per SUBSET of the
-%                  variables, over the order the basis is built in. The
-%                  previous vocabulary was one cap per variable plus a
-%                  single total cap, which cannot describe the bases the 2D
-%                  settings files ask for: 'poslpivar_2d/build_monoms'
-%                  prunes with 2^nvars subset caps. Converting such a file
-%                  could therefore only produce a covering SUPERSET,
-%                  measured at 1.05x to 1.80x the basis across the six
-%                  shipped 2D files, so the two builders were not the same
-%                  cone at stock settings. 'int', 'mult' and 'joint' are the
-%                  singleton and full-set special cases and still work
-%                  exactly as before; the field is optional and empty by
-%                  default, so nothing existing changes.
-% MMP, 09/12/2026: Support 'options.sep', matching 'poslpivar_2d'. A
-%                  separable direction replaces its lower and upper integral
-%                  basis operators by one full-domain integral, encoded as
-%                  alpha_k = 4, so the returned operator satisfies
-%                  R_lower = R_upper there: int_a^s + int_s^b = int_a^b over
-%                  a shared kernel. Implemented by expanding each 4 into its
-%                  2/3 substitutions on both sides of B_i'*Q*B_j, against
-%                  the same Q, and emitting each term as its own block --
-%                  'plus_batch' already sums the blocks and merges their
-%                  monomials, so the rest of the loop is untouched. The
-%                  motivation is degree, not expressiveness: a full-domain
-%                  integral has CONSTANT limits, so composing with it never
-%                  substitutes a spatial variable into an integration limit,
-%                  where the Volterra form inflates the monomial degree at
-%                  every composition. On the 2D heat equation that inflation
-%                  drives the composed derivative to per-variable degree 12
-%                  against 3 for the 'opvar2d' path, and SeDuMi then fails
-%                  with numerr=2 at every lambda. It also shrinks the basis
-%                  from 3^n3 blocks to 2^n3 when every direction is
-%                  separable, at the cost of up to 4^nsep more
-%                  'int_semisep' calls per block pair.
-% MMP, 09/07/2026: Collect the nblk^2 blocks and sum them once with
-%                  'plus_batch' instead of accumulating pairwise. Every
-%                  block is built on the same Zd, so one synchronization of
-%                  decision variables and monomial bases serves all of them;
-%                  accumulating pairwise re-synchronized the growing
-%                  accumulator on every addition, which profiled at 32% of
-%                  this routine at three spatial variables (729 additions).
+% MP, 08/22/2026:  Initial coding (as 'possopvar')
+% MMP, 09/07/2026: The nblk^2 blocks collected and summed once with
+%                  'plus_batch' instead of pairwise (one synchronization of
+%                  decision variables and bases instead of one per addition;
+%                  32% of the routine at three variables).
+% MMP, 09/12/2026: options.sep, as 'poslpivar_2d': a separable direction
+%                  replaces its lower and upper integral basis operators by
+%                  one full-domain integral (alpha_k = 4), so the operator
+%                  has equal lower and upper kernels there; constant limits
+%                  keep compositions from inflating the monomial degree
+%                  (2-D heat: per-variable degree 12 against 3 without).
+% MMP, 09/21/2026: Renamed from 'possopvar' with the variable type an
+%                  argument ('pos' or 'sym'): the body assembles the
+%                  quadratic form and positivity enters only through
+%                  'sosquadvar'; 'possopvar' is the wrapper fixing 'pos'.
+%                  deg.subset: one cap per subset of the variables, the
+%                  vocabulary of the 2-D settings files. Eight subfunctions
+%                  moved verbatim to the private folder, shared with
+%                  'copquadvar'.
+% MMP, 09/22/2026: The scatter onto the global decision list deferred to
+%                  after the theta elimination: each block carries its own
+%                  decision rows through 'int_semisep' (the global count on
+%                  the sheet axis was zero padding, a factor up to 2119
+%                  measured); 3.5x faster at two variables and degree 2,
+%                  coefficients unchanged ('test_possopvar').
+% MMP, 09/25/2026: Container classes renamed mopvar -> copvar, mdopvar ->
+%                  cdopvar; here mopquadvar -> copquadvar, posmopvar ->
+%                  poscopvar.
+% MMP, 09/28/2026: options.psatz value-checked; 2k+1 / 2k+2 weight the form
+%                  by one face of the box, k over SORTED S3, as 'copquadvar'
+%                  (09/27/2026). Before, 2 (the ball of poslpivar_2d), the
+%                  face codes and out-of-range codes silently built the
+%                  product weight. psatz 0/1 unchanged.
+% MMP, 09/30/2026: SGCELL instrumentation (two counters and an environment
+%                  variable print, 09/22/2026) removed. The reserved-suffix
+%                  check and the enumeration of the multi-indices call the
+%                  shared 'check_reserved_names' and 'multiindex_grid'
+%                  (sopvar/misc/conventions). private/remap_dvars deleted
+%                  (no caller since 09/22/2026).
+% MMP, 10/01/2026: One implementation of the Sec. 9 construction: the inputs
+%                  are checked as before, moved to the sorted registry and
+%                  passed to 'copquadvar' on one space, whose single block
+%                  is returned; the construction below the checks is deleted
+%                  (BEGIN/END), with 'process_degrees', whose only caller
+%                  this file was. For sorted variables everything is
+%                  bit-identical; for unsorted ones Qcell is reordered back
+%                  to the caller's monomial order. The entries above on the
+%                  deleted construction (09/07, 09/12, the 09/21
+%                  subfunctions, 09/22, 09/30 SGCELL) are history.
+% MMP, 10/16/2026: Moved, with private/, from sopvar/lpis_sopvar/ to
+%                  lpi_programming_sopvar/; 10/21/2026 to its misc/ (helpers
+%                  to misc/private/). Code unchanged.
+% MMP, 10/28/2026: Header to the header protocol, the name line of the
+%                  licence block corrected (possopvar -> sopquadvar), step
+%                  comments in the body and the INPUT and OUTPUT lines of
+%                  the local function; code unchanged. Deleted: the kernel
+%                  form of the result, the reduction to 'poslpivar' in 1-D,
+%                  implementation notes and the rationale of 'type'.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed and
+%                  in date order, body notes on the deleted construction and
+%                  on sep and type shortened, See also without the retired
+%                  poslpivar, the what line of registry_deg; code unchanged.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -308,28 +211,16 @@ vars = vars(:)';        n3 = numel(vars);
 if numel(unique(vars))~=n3
     error("Spatial variable names should be unique.")
 end
-% The parameter cell of an sopvar/sdopvar is indexed over S3 in SORTED      % MMP, 09/11/2026
-% order: the class recovers a direction from a cell subscript with          % MMP, 09/11/2026
-% intersect(vars.in,vars.out), which sorts (see canonicalize_multiplier,    % MMP, 09/11/2026
-% apply_sopvar and lpi_eq_sdopvar). Everything below is built over 'vars'   % MMP, 09/11/2026
-% in the CALLER's order, because 'dom' and 'alpha_list' have to stay        % MMP, 09/11/2026
-% consistent with each other for 'int_semisep'. This records the            % MMP, 09/11/2026
-% permutation so the finished cell can be relabelled onto sorted order      % MMP, 09/11/2026
-% just before the constructor is called; sorted variable j is              % MMP, 09/11/2026
-% vars{ord_S3(j)}.                                                          % MMP, 09/11/2026
+% copquadvar works over the SORTED registry (an sopvar/sdopvar indexes its  % MMP, 10/01/2026
+% parameter cell over S3 in sorted order); ord_S3 maps the caller's order   % MMP, 10/01/2026
+% onto it: registry variable j is vars{ord_S3(j)}.                          % MMP, 10/01/2026
 [~,ord_S3] = sort(vars);                                                    % MMP, 09/11/2026
-% (10/01/2026: the comment above describes the deleted construction; ord_S3 % MMP, 10/01/2026
-% now maps the caller's order onto copquadvar's sorted registry, below.)    % MMP, 10/01/2026
 
-% Declare names for the integration variable theta and the input dummy
-% variable s'. Neither appears in the returned object: the dummy variables
-% of an sdopvar are implicit in vars.in.
-% These suffixes are reserved outright, rather than only where they would
-% actually collide, so that the set of admissible names does not depend on
-% which other variables happen to be present.
+% Names ending in '_int' or '_dum' are reserved outright: copquadvar builds
+% the theta and s' names from these suffixes, and the admissible names
+% should not depend on which other variables are present.
 % vars_int = strcat(vars,'_int');                                           % MMP, 10/01/2026 (was)
 % vars_dum = strcat(vars,'_dum');                                           % MMP, 10/01/2026 (was)
-% copquadvar builds both name lists now; the reservation stays here.        % MMP, 10/01/2026
 % is_reserved = ~cellfun(@isempty,regexp(vars,'_(int|dum)$','once'));       % MMP, 09/30/2026 (was)
 % if any(is_reserved)                                                       % MMP, 09/30/2026 (was)
 %     error("Spatial variable names may not end in '_int' or '_dum'; "...
@@ -376,33 +267,25 @@ end                                                                         % MM
 % Double from here on: an integer class passes the check above, and then    % MMP, 09/28/2026
 % floor((psatz-1)/2) rounds in integer arithmetic and picks the wrong face. % MMP, 09/28/2026
 options.psatz = double(options.psatz);                                      % MMP, 09/28/2026
-% % % Variable type. This is the ONLY place positivity enters: everything    % MMP, 09/21/2026
-% else here assembles sum_ij Z_i^* Q_ij Z_j from the basis list and the      % MMP, 09/21/2026
-% coefficient matrix, and whether Q is constrained is one argument to        % MMP, 09/21/2026
-% 'sosquadvar'. 'pos' reproduces what 'possopvar' has always declared;       % MMP, 09/21/2026
-% 'sym' gives an unconstrained self-adjoint operator variable, the Zop of   % MMP, 09/21/2026
-% the settings files. Both names are 'sosquadvar' own vocabulary.           % MMP, 09/21/2026
+% % % Variable type, the only place positivity enters: 'pos' constrains Q    % MMP, 09/21/2026
+% (what 'possopvar' declares), 'sym' gives an unconstrained self-adjoint    % MMP, 09/21/2026
+% operator variable (the Zop of the settings files); 'sosquadvar' names.    % MMP, 09/21/2026
 vartype = 'pos';                                                            % MMP, 09/21/2026
 if isfield(options,'type') && ~isempty(options.type)                        % MMP, 09/21/2026
     vartype = char(options.type);                                           % MMP, 09/21/2026
-    if ~ismember(vartype,{'pos','sym'})                                    % MMP, 09/21/2026
-        error("'type' should be 'pos' or 'sym'.")                          % MMP, 09/21/2026
+    if ~ismember(vartype,{'pos','sym'})                                     % MMP, 09/21/2026
+        error("'type' should be 'pos' or 'sym'.")                           % MMP, 09/21/2026
     end                                                                     % MMP, 09/21/2026
 end                                                                         % MMP, 09/21/2026
-if strcmp(vartype,'sym') && options.psatz                                  % MMP, 09/21/2026
-    % A psatz weight multiplies the form by g(theta) >= 0 on the domain,     % MMP, 09/21/2026
-    % which only means anything when Q is constrained.                       % MMP, 09/21/2026
-    error("'psatz' has no meaning for a 'sym' variable; use type 'pos'.")  % MMP, 09/21/2026
+if strcmp(vartype,'sym') && options.psatz                                   % MMP, 09/21/2026
+    % A psatz weight multiplies the form by g(theta) >= 0 on the domain,    % MMP, 09/21/2026
+    % which only means anything when Q is constrained.                      % MMP, 09/21/2026
+    error("'psatz' has no meaning for a 'sym' variable; use type 'pos'.")   % MMP, 09/21/2026
 end                                                                         % MMP, 09/21/2026
-% % % Separable directions                                                  % MMP, 09/12/2026
-% 'sep(k)' replaces the lower and upper integral basis operators in         % MMP, 09/12/2026
-% direction k by a single FULL-DOMAIN integral, encoded as alpha_k = 4.     % MMP, 09/12/2026
-% Since int_a^s + int_s^b = int_a^b over one shared kernel, the operator    % MMP, 09/12/2026
-% then has equal lower and upper kernels in that direction: the R_1 = R_2   % MMP, 09/12/2026
-% form 'poslpivar_2d' calls 'sep'. Its limits are constant, so composing    % MMP, 09/12/2026
-% with it never substitutes a spatial variable into an integration limit    % MMP, 09/12/2026
-% and never inflates the monomial degree, which the Volterra form does at   % MMP, 09/12/2026
-% every composition.                                                        % MMP, 09/12/2026
+% % % Separable directions: sep(k) replaces the lower and upper integral     % MMP, 09/12/2026
+% basis operators in direction k by one full-domain integral (alpha_k = 4), % MMP, 09/12/2026
+% so the operator has equal lower and upper kernels there; its limits are   % MMP, 09/12/2026
+% constant, so compositions do not inflate the monomial degree.             % MMP, 09/12/2026
 if ~isfield(options,'sep') || isempty(options.sep)                          % MMP, 09/12/2026
     sep = false(1,n3);                                                      % MMP, 09/12/2026
 else                                                                        % MMP, 09/12/2026
@@ -459,8 +342,8 @@ else
         alpha_list = alpha_all(incl(:),:);
     end
 end
-% Note that for n3=0 there is exactly one basis operator, indexed by the
-% empty multi-index, so the row count rather than 'isempty' must be tested.
+% For n3 = 0 there is one basis operator, the empty multi-index, so the row
+% count is tested, not 'isempty'.
 if size(alpha_list,1)==0
     error("At least one basis operator must be included.")
 end
@@ -534,18 +417,18 @@ if ~isequal(reshape(ord_S3,1,[]),1:n3)                                      % MM
     end                                                                     % MMP, 10/01/2026
 end                                                                         % MMP, 10/01/2026
 % Pop: the single block of the container
-Pop = Pc.C{1,1};                                                           % MMP, 10/01/2026
+Pop = Pc.C{1,1};                                                            % MMP, 10/01/2026
 % END MMP, 10/01/2026
 
 end
 
 
 function d = registry_deg(d,ord,n3)
-% One degree specification moved from the caller's variable order to the
-% sorted registry: the per-variable caps by ORD, and the 'subset' array by
-% relabelling the bits of its index over [theta_1..theta_n3, s_1..s_n3]
-% (see the help: the subset with bits b sits at 1+sum(2.^(b-1))). A scalar
-% or a scalar cap is the same in every order.
+% D = REGISTRY_DEG(D,ORD,N3) returns one degree specification moved from
+% the caller's variable order to the sorted registry: the per-variable caps
+% by ORD, and the 'subset' array by relabelling the bits of its index over
+% [theta_1..theta_n3, s_1..s_n3] (the subset with bits b sits at
+% 1+sum(2.^(b-1))). A scalar or a scalar cap is the same in every order.
 % INPUT  d:   one degree specification over the order of VARS: a 'double'
 %             scalar, or a 'struct' with the fields of DEG;
 %        ord: 1 x n3 'double', sorted variable j is vars{ord(j)};

@@ -6,11 +6,10 @@ function Xsol = subs_dvar_sop(X,dnames,dvals)
 % variables are DNAMES, with the values DVALS.
 %
 % INPUT
-% - X:      the object to substitute in: an 'sdopvar', 'cdopvar', 'dopvar',
-%           'dopvar2d' or 'dpvar' object; an 'opvar' or 'opvar2d' object,
-%           whose fields may hold 'dpvar' objects; a 'sopvar', 'copvar',
-%           'polynomial' or 'double' object; a 'char' decision variable
-%           name; or a 'cell' of these (see NOTES);
+% - X:      the object to substitute in: an 'sdopvar', 'cdopvar' or 'dpvar'
+%           object; a 'sopvar', 'copvar', 'polynomial' or 'double' object;
+%           a 'char' decision variable name; or a 'cell' of these (see
+%           NOTES);
 % - dnames: 'cellstr' or string array of distinct decision variable names,
 %           in any order; names X does not hold are not used;
 % - dvals:  numeric array with numel(dnames) entries, dvals(k) the value of
@@ -22,15 +21,11 @@ function Xsol = subs_dvar_sop(X,dnames,dvals)
 %           variables. An 'sdopvar' or 'cdopvar' X gives a 'sopvar' or
 %           'copvar' object when DNAMES names all of its decision
 %           variables, else an 'sdopvar' or 'cdopvar' object on the
-%           others; a 'dopvar' or 'dopvar2d' X with all of them named gives
-%           an 'opvar' or 'opvar2d' object; a 'dpvar' X gives a
-%           'polynomial' object (all named) or a 'dpvar' object on the
-%           others; the 'dpvar' fields of an 'opvar' or 'opvar2d' X are
-%           substituted; a 'char' name gives a 'polynomial' object, its
-%           value when it is named; a 'cell' is substituted entry by
-%           entry; a 'sopvar', 'copvar', 'polynomial' or 'double' X, and an
-%           'opvar' or 'opvar2d' X without 'dpvar' fields, are returned as
-%           they are.
+%           others; a 'dpvar' X gives a 'polynomial' object (all named) or
+%           a 'dpvar' object on the others; a 'char' name gives a
+%           'polynomial' object, its value when it is named; a 'cell' is
+%           substituted entry by entry; a 'sopvar', 'copvar', 'polynomial'
+%           or 'double' X is returned as it is.
 %
 % NOTES
 % A 'cell' X that holds no 'sopvar', 'sdopvar', 'copvar' or 'cdopvar'
@@ -77,6 +72,9 @@ function Xsol = subs_dvar_sop(X,dnames,dvals)
 %                certification of candidate points), the rationale of
 %                running lpigetsol_sop, and the cost by reference to
 %                getsol_lpivar_sop and lpigetsol.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the opvar classes,
+%                retired 11/08/2026 and no longer accepted by LPIGETSOL_SOP,
+%                removed from the help and the fields note; code unchanged.
 
 % DNAMES as a 'cellstr'; DVALS numeric, one entry per name
 if isstring(dnames),    dnames = cellstr(dnames);   end
@@ -87,8 +85,8 @@ if ~isnumeric(dvals) || numel(dvals)~=numel(dnames)
     error('subs_dvar_sop:badVals','DVALS must be numeric with one entry per name (%d names, %d values).',...
         numel(dnames),numel(dvals))
 end
-% The fields lpigetsol_sop, getsol_lpivar_sop, sosgetsol and getsol_lpivar
-% read, and no other; 'info' only marks the structure as solved.
+% The fields lpigetsol_sop, getsol_lpivar_sop and sosgetsol read, and no
+% other; 'info' only marks the structure as solved.
 prog = struct('decvartable',{dnames(:)},...
               'solinfo',struct('RRx',double(dvals(:)),'info',struct('source','subs_dvar_sop')));
 % The solved value of X for that program

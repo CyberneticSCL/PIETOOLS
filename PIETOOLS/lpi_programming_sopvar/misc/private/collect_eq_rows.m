@@ -89,50 +89,42 @@ function Eq = collect_eq_rows(prog,P,opts,dvars_checked)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/30/2026: the collect mode of 'lpi_eq_sdopvar' as
-%                  its own routine. 'lpi_eq_sdopvar' selected collect-only
-%                  by a second output and a 4th input, and impose-only by a
-%                  struct P, so '[prog,Eq] = lpi_eq_sdopvar(...)' silently
-%                  imposed nothing. The body below is lpi_eq_sdopvar's from
-%                  the input checks to the Eq struct, moved verbatim with
-%                  its markers (MMP 08/28, 08/29, 09/26 and 09/30/2026), as
-%                  is the local 'canonical_positions'. Not moved: the
-%                  nargout switch that imposed the rows ('lpi_eq_sdopvar'
-%                  calls 'impose_eq_rows' instead). One comment renames
-%                  impose_rows -> impose_eq_rows (marked below).
+%                  its own routine (there, a second output and a 4th input
+%                  selected it, so '[prog,Eq] = lpi_eq_sdopvar(...)'
+%                  silently imposed nothing). The body is lpi_eq_sdopvar's
+%                  from the input checks to the Eq struct, moved verbatim
+%                  with its markers (MMP 08/28, 08/29, 09/26 and
+%                  09/30/2026), as is the local 'canonical_positions'.
+% MMP, 10/02/2026: Eq.pos, the table row of each name, from the membership
+%                  check's own unique (its first-occurrence output), so
+%                  'impose_eq_rows' can write prog.expr without soseq, whose
+%                  getequation matched all N program names against each
+%                  batch. Same verdict and errors; the N-length arrays of
+%                  the check are freed before the parameter loop.
 % MMP, 10/08/2026: Eq.cols, Eq.cells and Eq.blk: which coefficient position
 %                  each written row constrains, per parameter, with the
 %                  block's bases, so that 'lpigetdual_sop' can assemble the
 %                  solver's multipliers into the dual kernel. Rows unchanged.
-% MMP, 10/02/2026: Eq.pos, the table row of each name, from the membership
-%                  check's own unique (its first-occurrence output), so
-%                  'impose_eq_rows' can write prog.expr without soseq,
-%                  whose getequation matched all N program names against
-%                  each batch (0.54 s per call at N = 2.7e6, measured).
-%                  Same verdict and errors; cost +7 B x N transient (ia
-%                  replaces a logical), 8 B x q held, and an O(N) repeat
-%                  check (1 B x N, q > 1 only). The check's N-length arrays
-%                  (known, ia, ic) are now freed before the parameter loop;
-%                  they used to live through it.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body and the
-%                  header of the local function to the same protocol; code
-%                  unchanged. The deleted header text was the callers' use
-%                  of the routine, a notes reference, and the reason the
-%                  kept coefficients determine the operator.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body
+%                  and the header of the local function; code unchanged.
+%                  Deleted: the callers' use of the routine, a notes
+%                  reference, and the reason the kept coefficients determine
+%                  the operator.
 % MMP, 11/01/2026: Equations that are multiples of another equation of P,
 %                  over all cells, are dropped (local 'drop_multiples');
 %                  Eq.dup lists them. A multiple adds no constraint; the
 %                  test holds to 1e-12 of the largest coefficient, entries
 %                  below 5e-13 of it (round-off of the products that build
-%                  P) left out. 3-D heatNd stability LPI (light, r = 5):
-%                  33,231 -> 23,268 rows written; of the rows with an entry
-%                  >= 1e-12 (those MOSEK keeps), 21,336 -> 14,817, no
-%                  multiple left; on those 14,817 rows MOSEK took 18
-%                  instead of 24 iterations, 176 instead of 283 s. The rows
-%                  kept are unchanged bit for bit. Cs{k} now holds only the
-%                  columns of cols{k}: its all-zero columns, which the
-%                  writers dropped, are removed here. Help: description and
-%                  the OUTPUT entries Cs, cols and dup.
+%                  P) left out. 3-D heatNd stability LPI: 33,231 -> 23,268
+%                  rows written, MOSEK 283 -> 176 s; the rows kept are
+%                  unchanged bit for bit. Cs{k} holds only the columns of
+%                  cols{k}. Help: description and the OUTPUT entries Cs,
+%                  cols and dup.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed and
+%                  in date order, (was) comment lines and a note on (was)
+%                  code removed, the notes on the canonical positions, the
+%                  membership check and the row layout shortened; code
+%                  unchanged.
 
 % % % Check the inputs
 if isa(P,'polynomial') || isa(P,'double')
@@ -183,12 +175,12 @@ end
 
 % Constraining only the positions the canonical form allows is equivalent to  % MMP, 08/29/2026
 % constraining the operator ONLY because the rest are zero. If they are not,  % MMP, 08/29/2026
-% this routine would silently impose no constraint at all where it should     % MMP, 08/29/2026
-% impose one, which is a soundness failure rather than a wrong answer. The    % MMP, 08/29/2026
+% this routine would silently impose no constraint at all where it should   % MMP, 08/29/2026
+% impose one, which is a soundness failure rather than a wrong answer. The  % MMP, 08/29/2026
 % constructor guarantees the invariant, so this can only fire for parameters  % MMP, 08/29/2026
 % assigned directly to the properties, which bypasses it. The check inspects  % MMP, 08/29/2026
-% only the forbidden positions, so it costs numel(C) per parameter and        % MMP, 08/29/2026
-% nothing in the number of decision variables.                                % MMP, 08/29/2026
+% only the forbidden positions, so it costs numel(C) per parameter and      % MMP, 08/29/2026
+% nothing in the number of decision variables.                              % MMP, 08/29/2026
 [is_canon,canon_info] = is_canonical_multiplier(P.params,P.vars,P.ZL,P.ZR,P.dims);% MMP, 08/29/2026
 if ~is_canon                                                                % MMP, 08/29/2026
     error("The operator is not in canonical multiplier form, so constraining its "...% MMP, 08/29/2026
@@ -212,11 +204,10 @@ if q>0 && ~(nargin>=4 && dvars_checked)                                     % MM
     end                                                                     % MMP, 09/26/2026
 %   is_new = ~ismember(dvars,known);                                        % MMP, 09/26/2026 (was)
     % One unique over [known;dvars]: ic labels each distinct name, and a    % MMP, 09/26/2026
-    % dvar is known iff its label also occurs among the table's. Exact:     % MMP, 09/26/2026
-    % unique and ismember both match names char for char. Measured ~2x      % MMP, 09/26/2026
-    % cheaper than ismember for 2 to 3.8e5 names against 7.6e5; a single    % MMP, 09/26/2026
-    % name keeps ismember, whose scalar path is one strcmp (18 vs 171 ms).  % MMP, 09/26/2026
-    % On failure ismember runs to name the first missing variable.          % MMP, 09/26/2026
+    % dvar is known iff its label also occurs among the table's (exact, as  % MMP, 09/26/2026
+    % ismember, and about 2x cheaper for large lists). A single name keeps  % MMP, 09/26/2026
+    % ismember, whose scalar path is one strcmp. On failure ismember runs   % MMP, 09/26/2026
+    % to name the first missing variable.                                   % MMP, 09/26/2026
     if q==1                                                                 % MMP, 09/26/2026
 %       is_new = ~ismember(dvars,known);                                    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
         % The scalar path's loc is the first strcmp match, the lowest row.  % MMP, 10/02/2026
@@ -262,12 +253,10 @@ end
 
 % sz_C = [3*ones(1,n3),1];                                                  % MMP, 09/30/2026 (was)
 
-% Constraint blocks of the parameters, collected for one soseq (see Eq).    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
 % Constraint blocks of the parameters, collected for one prog.expr entry.   % MMP, 10/02/2026
 Cs = cell(1,numel(params_A));                                               % MMP, 09/26/2026
 cols = cell(1,numel(params_A));     % positions written, per parameter      % MMP, 10/08/2026
 
-% % % Impose the constraints, one parameter at a time                       % MMP, 09/26/2026 (was)
 % % % Collect the constraints, one parameter at a time                      % MMP, 09/26/2026
 for k=1:numel(params_A)
     % Parameter k: an empty part as a sparse zero; skipped when all zero;
@@ -308,48 +297,30 @@ for k=1:numel(params_A)
         end
     end
 
-    % Keep only the coefficients the canonical form allows to be nonzero. In  % MMP, 08/29/2026
-    % a multiplier direction the rest are zero by the class invariant, so     % MMP, 08/29/2026
-    % constraining them would add nothing; and because the invariant holds,   % MMP, 08/29/2026
-    % setting the kept coefficients to zero is equivalent to setting the      % MMP, 08/29/2026
-    % operator to zero. Earlier versions had to contract the multiplier       % MMP, 08/29/2026
-    % directions here instead, since the coefficients were not then           % MMP, 08/29/2026
-    % determined by the operator; see 'canonicalize_multiplier'.              % MMP, 08/29/2026
-    keep = canonical_positions(gam,P.ZR,posR,m,n,NL,NR);                     % MMP, 08/29/2026
-    A_eff = Ak(keep);                                                        % MMP, 08/29/2026
-    B_eff = Bk(:,keep);                                                      % MMP, 08/29/2026
+    % Keep only the coefficients the canonical form allows to be nonzero:   % MMP, 08/29/2026
+    % the rest are zero by the class invariant, so setting the kept ones to % MMP, 08/29/2026
+    % zero sets the operator to zero (see 'canonicalize_multiplier').       % MMP, 08/29/2026
+    keep = canonical_positions(gam,P.ZR,posR,m,n,NL,NR);                    % MMP, 08/29/2026
+    A_eff = Ak(keep);                                                       % MMP, 08/29/2026
+    B_eff = Bk(:,keep);                                                     % MMP, 08/29/2026
     if nnz(A_eff)==0 && nnz(B_eff)==0
         continue
     end
-    n_eff = numel(keep);                                                     % MMP, 08/29/2026
+    n_eff = numel(keep);                                                    % MMP, 08/29/2026
 
-    % Wrap the affine expressions as a variable-free 'dpvar' and impose the
-    % equality. The constraints are laid out as a ROW of n_eff scalar
-    % entries rather than a column: a dpvar coefficient matrix carries one
-    % block of q+1 rows per matrix ROW, so a column layout would give it
-    % n_eff*(q+1) rows, and the generic combine/compress pass inside
-    % sosconstr scales with that row count. As a row the coefficient matrix
-    % is (q+1) by n_eff with the same nonzeros, which is orders of magnitude
-    % cheaper to process and yields byte-identical At, b and Z.
+    % The equations as the columns of a (q+1) x n_eff block, row 1 the
+    % constant term: the layout of a 1 x n_eff variable-free 'dpvar' (one
+    % block of q+1 rows per matrix ROW), which the writers take as is.
 %   M = [reshape(full(A_eff),1,[]); B_eff];                                 % MMP, 09/26/2026 (was)
 %   [sg,ii,vv] = find(M);                                                   % MMP, 09/26/2026 (was)
 %   Cdp = sparse(sg,ii,vv,q+1,n_eff);                                       % MMP, 09/26/2026 (was)
 %   Dk = dpvar(Cdp,zeros(1,0),{},dvars,[1,n_eff]);                          % MMP, 09/26/2026 (was)
-    % Pass only the decision variables this parameter uses. sosconstr's     % MMP, 09/26/2026
-    % combine/compress drop the rest anyway, but only after O(q) passes     % MMP, 09/26/2026
-    % over all q names (char + sortrows in DPVuniquedvar). In the 2-D Hinf  % MMP, 09/26/2026
-    % build a parameter uses 1 to 1.0e5 of q = 3.8e5. At, b, Z unchanged:   % MMP, 09/26/2026
-    % compress would remove exactly these zero rows, and getequation places % MMP, 09/26/2026
-    % the remaining rows by name.                                           % MMP, 09/26/2026
 %   used = find(any(B_eff,2));                                              % MMP, 09/26/2026 (was)
 %   M = [reshape(full(A_eff),1,[]); B_eff(used,:)];                         % MMP, 09/26/2026 (was)
 %   [sg,ii,vv] = find(M);                                                   % MMP, 09/26/2026 (was)
 %   Cdp = sparse(sg,ii,vv,numel(used)+1,n_eff);                             % MMP, 09/26/2026 (was)
 %   Dk = dpvar(Cdp,zeros(1,0),{},dvars(used),[1,n_eff]);                    % MMP, 09/26/2026 (was)
 %   prog = soseq(prog,Dk);                                                  % MMP, 09/26/2026 (was)
-    % Collect rather than impose: joined soseq calls (impose_eq_rows) pay   % MMP, 09/30/2026 % MMP, 10/02/2026 (was)
-    % getequation's scan of the q program names per ~q nonzeros, not per    % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-    % parameter.                                                            % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
     % Collect rather than impose: impose_eq_rows writes one prog.expr entry % MMP, 10/02/2026
     % per ~q nonzeros, not one per parameter.                               % MMP, 10/02/2026
     % Row 1 the constant term, row 1+i dvars{i}; sparse even if B is full.  % MMP, 09/26/2026

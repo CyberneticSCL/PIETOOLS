@@ -58,46 +58,28 @@ function [A,B] = unpack_sheets(C,mrow,ncol,nsheet,L,R,rloc,nrow)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MMP, 09/26/2026: Triplet input for C (above), from 'copquadvar' via
-%                  int_semisep(...,'triplets'). The 'find' below was 3.6 s
-%                  of a 19.7 s 2-D Hinf build (io2, light, 1146 calls),
-%                  O(n) per call. Exact: every 'sparse' here depends only
-%                  on the SET of triplets, not their order -- positions are
-%                  distinct except in the fused B, which the guard limits
-%                  to two per entry, and x1+x2 == x2+x1 -- and the triplets
-%                  are the set 'find' returned. Matrix input is unchanged.
-% MMP, 09/26/2026: Optional inputs L, R, RLOC, NROW, as above, for
-%                  'copquadvar'. Profiled A/B, 2-D Hinf build (io2, light,
-%                  1146 calls): unpack + lr_multiply + kron 5.7 + 1.3 +
-%                  1.6 s -> 4.6 + 0 + 0.1 s, of which 3.5 s is the 'find'
-%                  below: its cost is the column count of C (1.35e7 per
-%                  call for ~3900 nonzeros), set by 'int_semisep'. Memory
-%                  per call drops from O(mrow*ncol) (B's column pointers,
-%                  the Kronecker product) to O(nnz(C)): peak 209 -> 5 MB
-%                  here and 616 -> 5 MB in kron on 2-D heavy stability.
-%                  Bit-identical: see the guard below. Without the new
-%                  inputs the behaviour is unchanged ('sopquadvar').
+% MMP, 09/26/2026: Triplet input for C, from 'copquadvar' via
+%                  int_semisep(...,'triplets'), so no 'find' runs over the
+%                  O(ncol*nsheet) columns of a matrix; exact, since every
+%                  'sparse' here depends on the set of triplets only. The
+%                  inputs L, R, RLOC and NROW: lr_multiply and the row
+%                  scatter fused into one index remap of the triplets, with
+%                  the exactness guard below; memory per call O(nnz(C))
+%                  instead of O(mrow*ncol).
 % MMP, 10/01/2026: Matrix input and the four-argument call removed: their
 %                  only caller was the 'sopquadvar' construction, now
-%                  'copquadvar' on one space, which always passes the
-%                  triplets with L, R, RLOC, NROW. The 09/26 entries'
-%                  "unchanged without the new inputs" no longer applies.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), the licence block added, step comments
-%                  in the body; code unchanged. The log entries above moved
-%                  here from the help text; what they call "above" is now
-%                  the INPUT entries of C, L, R, RLOC and NROW. The deleted
-%                  header text was a comparison with 'pack_sheets' and
-%                  'int_semisep', the cost rationale for scanning the
+%                  'copquadvar' on one space.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                  code unchanged. Deleted: a comparison with 'pack_sheets'
+%                  and 'int_semisep', the cost rationale for scanning the
 %                  triplets once and for the fused route, and the help of
-%                  the matrix input and the four-argument call removed on
-%                  10/01/2026. The log had no initial-coding entry: initial
-%                  coding MP, 08/22/2026, as a local function of 'possopvar'
-%                  (the file since renamed 'sopquadvar'), moved to private/
-%                  by MMP, 09/21/2026. The (was) line of the earlier
-%                  signature moved from under the function line to here, so
-%                  that help starts with the description:
+%                  the removed matrix input. No initial-coding entry: MP,
+%                  08/22/2026, as a local function of 'possopvar' (since
+%                  renamed 'sopquadvar'), moved to private/ by MMP,
+%                  09/21/2026. Earlier signature:
 % function [A,B] = unpack_sheets(C,mrow,ncol,nsheet)                        % MMP, 09/26/2026 (was)
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, the
+%                  guard note shortened; code unchanged.
 
 % Inputs: the triplets of C and all eight arguments; C of the stated size
 if ~isstruct(C) || nargin<8                                                 % MMP, 10/01/2026
@@ -148,12 +130,10 @@ fused = size(L,2)==mrow && size(R,1)==ncol ...
 if fused                                                                    % MMP, 09/26/2026
     kj = rL(irow(~is_A)) + size(L,1)*(cR(cc)-1);                            % MMP, 09/26/2026
     % Exactness guard. B*K sums the coefficients landing on one entry in
-    % ascending vec index; 'sparse' sums duplicates in an order of its own
-    % (measured to differ at 1e5 nonzeros). With at most TWO per entry the
-    % order is immaterial, x1+x2 == x2+x1, and unit weights make the
-    % products exact. Every cx_exec build measured, 1-D and 2-D, light and
-    % heavy, has at most two, though the map's structural fan-in reaches
-    % 1296, so the count is taken on the data.
+    % ascending vec index; 'sparse' sums duplicates in an order of its own.
+    % With at most TWO per entry the order is immaterial and unit weights
+    % make the products exact; the count is taken on the data, since the
+    % structural fan-in of the map reaches 1296.
     cnt = sparse(sg,kj,1,nsheet,nout);                                      % MMP, 09/26/2026
     fused = all(nonzeros(cnt)<=2);                                          % MMP, 09/26/2026
 end                                                                         % MMP, 09/26/2026

@@ -166,6 +166,8 @@ function [prog,Pop,M,A,info] = poscopvar_lift(prog,dims,spaces,dom,deg,options)
 %                header text was the reading of the degrees in the proof
 %                program (with references to notes and a memo), a measured
 %                equivalence with 'poscopvar', and remarks on cost and N-D.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): what lines for
+%                parse_deg and one_deg; code unchanged.
 
 % Five inputs at least; OPTIONS a 'struct', type 'pos' only
 if nargin<5
@@ -261,8 +263,9 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [dl,ws] = parse_deg(deg,Ms,isR,nv,options)
-% dl{k}, ws{k}: the lift and weight of space k, each a 1 x nv row or, when
-% 'deg' gives one entry per component, a cell of rows.
+% [DL,WS] = PARSE_DEG(DEG,MS,ISR,NV,OPTIONS) returns in dl{k}, ws{k} the
+% lift and weight of space k, each a 1 x nv row or, when 'deg' gives one
+% entry per component, a cell of rows.
 % INPUT  deg:     the DEG input of POSCOPVAR_LIFT;
 %        Ms:      'double', the number of spaces;
 %        isR:     1 x Ms 'logical', true for an R^{m_k} space;
@@ -300,9 +303,11 @@ end
 
 
 function [dl,w] = one_deg(d,isRk,nv,percell)
-% A scalar: lift = weight = scalar (copquadvar's scalar 'deg'); a struct:
-% weight (alias int) default 1, lift (alias mult) default weight. An R
-% space reads only the weight, default 0 for a struct or a per-space cell.
+% [DL,W] = ONE_DEG(D,ISRK,NV,PERCELL) returns the lift and weight of one
+% entry of DEG. A scalar: lift = weight = scalar (the scalar 'deg' of
+% copquadvar); a struct: weight (alias int) default 1, lift (alias mult)
+% default weight. An R space reads only the weight, default 0 for a struct
+% or a per-space cell.
 % INPUT  d:       one entry of DEG, a 'double' scalar or a 'struct';
 %        isRk:    'logical', true for an R^{m_k} space;
 %        nv:      'double', the number of registry variables;

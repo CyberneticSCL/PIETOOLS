@@ -86,8 +86,8 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                registry direction, 0 where s^k lacks variable d; rows
 %                ordered by space, as Qcell.
 %
-% See also POSCOPVAR_DIRECT, COPQUADVAR, POSSOPVAR, SOPQUADVAR, POSLPIVAR,
-%          LPI_EQ_CDOPVAR.
+% See also POSCOPVAR_DIRECT, COPQUADVAR, POSSOPVAR, SOPQUADVAR,
+%          LPI_EQ_CDOPVAR, LPI_INEQ_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -122,37 +122,24 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  mopquadvar -> copquadvar, posmopvar -> poscopvar. File was
 %                  'posmopvar.m'.
 % MMP, 10/17/2026: Built by 'poscopvar_direct' instead of 'copquadvar': the
-%                  same operator and decision variables (24 cases to
-%                  4.4e-16, test_poscopvar_direct) at 2.0-3.8x less time
-%                  cold and 7-19x warm, and in 3-D a third of the peak
-%                  memory (17 operators, 10/16/2026); in the executives the
-%                  storage builds 5-15x faster, the same program and values
-%                  to 10 digits. Cost: the position map of each distinct
-%                  shape stays cached for the session, about 16 B per
-%                  coefficient nonzero (117 MB for 3-D at int = mult = 1,
-%                  q = 5.0e5); poscopvar_direct('clear') releases it,
-%                  options.cache = false skips it. 'copquadvar' stays the
+%                  same operator and decision variables (test_poscopvar_direct,
+%                  24 cases) at 2-4x less time cold, 7-19x warm, and a third
+%                  of the 3-D peak memory. The position map of each distinct
+%                  shape stays cached for the session (about 16 B per
+%                  coefficient nonzero); poscopvar_direct('clear') releases
+%                  it, options.cache = false skips it. 'copquadvar' stays the
 %                  routine for type 'sym' and the reference of the tests.
-%                  The case with every space R^q (no spatial variable, the
-%                  W of the H2 Q-form executives) needs poscopvar_direct's
-%                  fix of the same date; before it, pos_map errored there
-%                  (found by the chain test on PIETOOLS_H2_norm_c_sop).
-%                  options.psatz keeps copquadvar's check (one code, 0, 1
-%                  or a face), since poscopvar_direct accepts more (a row
-%                  of codes, the box quadratics 2nv+2+d) and
+%                  options.psatz keeps copquadvar's check (one code, 0, 1 or
+%                  a face), since poscopvar_direct accepts more and
 %                  test_copquadvar_faces asserts the rejections.
 % MMP, 10/21/2026: Pop is recorded in prog.sop_pos, from which lpi_ineq_sop
 %                  sizes the certificate of an inequality that depends on
 %                  Pop (maintainer: lpi_ineq_sop needs no hand-set options).
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body; code
-%                  unchanged. The deleted header text was the wrapper
-%                  description (its earlier version kept as (was) lines),
-%                  the references to copquadvar and poscopvar_direct for
-%                  the inputs and outputs, a test name and the reason
-%                  options.type is refused. The help text of the
-%                  10/21/2026 entry is in the paragraph and the OUTPUT
-%                  entry of prog, without markers.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                  code unchanged. Deleted: the wrapper description, the
+%                  references to copquadvar and poscopvar_direct for the
+%                  inputs and outputs, a test name and the reason
+%                  options.type is refused.
 % MMP, 10/28/2026: Empty DIMS (no space: an empty channel of a PIE, as the
 %                  W of the H2 executives on R^0 when the PIE has no
 %                  disturbance or no regulated output) returns the 0 x 0
@@ -161,6 +148,8 @@ function [prog,Pop,Qcell,basis_list] = poscopvar(prog,dims,spaces,dom,deg,option
 %                  (maintainer: empty channels should not raise an error).
 % MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
 %                LPIPROGRAM_SOP is retired.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, See
+%                  also without the retired poslpivar; code unchanged.
 
 % Check the inputs; OPTIONS a struct, of type 'pos' only
 if nargin<5

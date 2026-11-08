@@ -58,6 +58,8 @@ function [Z,M] = merge_monomial_product(Z1,Z2)
 %                header text was the reason the merge is needed (the
 %                elimination of an integration variable) and a reference
 %                to the sopvar convention.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the what line of
+%                full_degmat; code unchanged.
 
 % Both bases as rows of N per-variable exponent vectors
 Z1 = Z1(:).';
@@ -110,8 +112,9 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function degmat = full_degmat(Zc)
-% Expand a 1 x N cell of per-variable degree vectors into the degree matrix
-% of the full tensor basis kron(Zc{1},...,Zc{N}), with variable 1 outermost.
+% DEGMAT = FULL_DEGMAT(ZC) expands a 1 x N cell of per-variable degree
+% vectors into the degree matrix of the full tensor basis
+% kron(Zc{1},...,Zc{N}), with variable 1 outermost.
 % INPUT  Zc:     1 x N cell of double column vectors of exponents.
 % OUTPUT degmat: prod(cellfun(@numel,Zc)) x N double, row t the exponents
 %                of monomial t (1 x 0 for N = 0).

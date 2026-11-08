@@ -85,6 +85,8 @@ function R = test_lpi_eq_sop()
 %                identifier lpi_eq_sop:class. LPIVAR, LPI_EQ and the opvar
 %                classes are retired (cleaning/private). Help: (1), (2),
 %                (4), (5), OUTPUT.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): two (was) comment
+%                lines removed; code unchanged.
 
 % No warnings for non-canonical multipliers; variables; check counter
 warning('off','sopvar:noncanonicalMultiplier');
@@ -108,7 +110,6 @@ p3 = lpiprogram(polynomial(v3(:)),[],D3);                                   % MM
 [p3,Pc3] = lpivar_cdopvar(p3,1,{v3},D3,1);
 % A self-adjoint container and its block; the blocks of Pc1 and Pc3
 Sc1 = Pc1+Pc1';   Sb1 = Sc1.C{1,1};    Bc1 = Pc1.C{1,1};    Bc3 = Pc3.C{1,1};
-% % The classes; lpivar on a 2-D program must give a dopvar2d               % MMP, 11/08/2026 (was)
 % fprintf('classes: %s %s %s %s %s %s\n',class(Pc1),class(Pd1),class(Pc5),class(Pc2),class(Pd2),class(Pc3)); % MMP, 11/08/2026 (was)
 % assert(isa(Pd2,'dopvar2d'),'lpivar on a 2-D program did not give a dopvar2d') % MMP, 11/08/2026 (was)
 % The classes                                                               % MMP, 11/08/2026
@@ -150,8 +151,7 @@ end
 % 'symmetric' reaches the routine: the paired cases differ in row count.
 % The container writer drops equations that are multiples of another        % MMP, 11/01/2026
 % (collect_eq_rows), so without the option the adjoint copies of a          % MMP, 11/01/2026
-% self-adjoint P go too and the container counts can tie (cases 2-10);      % MMP, 11/01/2026
-% % the legacy writer keeps them (13, 15).                                  % MMP, 11/08/2026 (was)
+% self-adjoint P go too and the container counts can tie (cases 2-10).      % MMP, 11/01/2026
 % for k = [2 4 6 8 10 13 15]                                                % MMP, 11/08/2026 (was)
 for k = [2 4 6 8 10]                        % the legacy cases are deleted  % MMP, 11/08/2026
     pa = lpi_eq_sop(C{k,1},C{k,2});         % same operator, no option

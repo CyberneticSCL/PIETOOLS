@@ -7,7 +7,7 @@ function out = e2e_stability_1d(plant,level)                                % MM
 %   P = P1 (+P2) + eppos2*T'*T,  T'*Q - P = 0 (Q free),
 %   D = A'*Q + Q'*A + epneg*P,   D + N = 0,  N >= 0,
 %
-% with P1, P2 and N the positive operators of lpisettings(LEVEL), solves
+% with P1, P2 and N the positive operators of lpisettings_sop(LEVEL), solves
 % it with MOSEK, extracts P, Q, D, N, T'*Q - P and D + N with
 % lpigetsol_sop, and checks them, erroring at the first failed check:
 %   (1) MOSEK numerr 0 and pinf 0; rel_b = ||At'x - b||/||b|| <= 1e-6 at
@@ -35,8 +35,8 @@ function out = e2e_stability_1d(plant,level)                                % MM
 % - plant:  (optional) 'cell', the arguments of cx_plant naming a 1-D
 %           plant; default {'rd',0.5}, the PIE of u_t = u_ss + 0.5 pi^2 u
 %           on [0,1], u(0) = u(1) = 0;
-% - level:  (optional) 'char', the name of the LPI settings (lpisettings);
-%           default 'light'.
+% - level:  (optional) 'char', the name of the LPI settings
+%           (lpisettings_sop); default 'light'.
 %
 % OUTPUT
 % - out:    'struct' with fields rel_b and psd_relmin ('double', of the
@@ -101,6 +101,9 @@ function out = e2e_stability_1d(plant,level)                                % MM
 %                returns their residual norm (private/dup_res), joined to r1
 %                and r2 after the comparison of the written rows with the
 %                program's; without them the T'Q - P ratio was 1.00773.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
+%                lpisettings_sop, the settings cx_settings returns since
+%                11/08/2026; code unchanged.
 
 % Defaults; no warnings for non-canonical multipliers; a check asserts
 % with one identifier

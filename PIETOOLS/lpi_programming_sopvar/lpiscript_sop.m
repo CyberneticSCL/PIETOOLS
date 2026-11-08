@@ -25,10 +25,10 @@ function [prog_sol, varargout] = lpiscript_sop(PIE,lpi,opts)
 % - lpi:   'char' or 'string', one of the names above; or a function handle
 %          f, called as [prog_sol, vout] = f(PIE,OPTS), with vout a 'cell'
 %          of further outputs;
-% - opts:  'struct' of LPI settings (lpisettings_sop or lpisettings); or a
-%          'char' or 'string' naming a level: 'stripped', 'light', 'heavy',
-%          'veryheavy' or 'custom' (lpisettings_sop), or 'extreme'
-%          (lpisettings); or [] for lpisettings_sop('light').
+% - opts:  'struct' of LPI settings (lpisettings_sop); or a 'char' or
+%          'string' naming a tier: 'stripped', 'light', 'heavy',
+%          'veryheavy', 'custom' or 'extreme'; or [] for
+%          lpisettings_sop('light').
 %
 % OUTPUT
 % - prog_sol:   'struct', the solved LPI program;
@@ -79,6 +79,9 @@ function [prog_sol, varargout] = lpiscript_sop(PIE,lpi,opts)
 % MMP, 11/08/2026: 'extreme' goes to the new tier of lpisettings_sop (was
 %                the stock lpisettings, whose folder leaves the path), so
 %                every settings name is a container tier.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): help of OPTS to
+%                the settings change above; (was) comment lines removed;
+%                code unchanged.
 
 % Three inputs, as LPISCRIPT
 if nargin<3
@@ -100,10 +103,8 @@ if ~isa(lpi,'function_handle')
     end
 end
 
-% The settings: a struct as given, a level by name (the container tiers of
-% lpisettings_sop; 'extreme', which they lack, from lpisettings), or the    % MMP, 11/08/2026 (was)
-% light tier                                                                % MMP, 11/08/2026 (was)
-% lpisettings_sop, 'extreme' included), or the light tier                   % MMP, 11/08/2026
+% The settings: a struct as given, a tier by name (lpisettings_sop,
+% 'extreme' included), or the light tier                                    % MMP, 11/08/2026
 if isempty(opts)
     opts = lpisettings_sop('light');
 elseif isa(opts,'string') || isa(opts,'char')

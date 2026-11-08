@@ -99,6 +99,8 @@ function [prog,M,info] = posmult_cdopvar(prog,dims,spaces,dom,w,options)
 %                with its notes references, the role of M in the proof
 %                program, the comparison with copquadvar, and the cost and
 %                measurement notes.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the pruning note
+%                condensed; code unchanged.
 
 % Four inputs required; W = 1 and OPTIONS = struct() when omitted
 if nargin<4
@@ -174,11 +176,10 @@ end
 
 % % % Prune every block to its occupied monomials. 'copquadvar' returns a
 % block on the bases its pair integrals can reach, and a multiplier-only
-% block occupies right degree 0 and left degree 2w of them only (measured
-% 10/07/2026: 3-D, w = 1, 8000 x 8000 coefficient grids per cell with
-% 421875 of 64e6 columns in use). The composition A'*M*A by
-% '@cdopvar/mtimes' carries M's bases through every intermediate, so the
-% padding multiplies its time and memory. The operator is unchanged.
+% block occupies right degree 0 and left degree 2w of them only (in 3-D at
+% w = 1, under 1% of the columns). The composition A'*M*A by
+% '@cdopvar/mtimes' carries the bases of M through every intermediate, so
+% the padding multiplies its time and memory. The operator is unchanged.
 [Mo,Mi] = size(M.C);
 for i = 1:Mo
     for j = 1:Mi

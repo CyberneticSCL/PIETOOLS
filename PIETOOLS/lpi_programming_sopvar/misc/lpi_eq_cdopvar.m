@@ -66,7 +66,7 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % name of P.Zd absent from prog.decvartable are errors. To impose P == Q,
 % call LPI_EQ_CDOPVAR(PROG,P-Q).
 %
-% See also LPI_EQ_SDOPVAR, LPI_EQ, POSCOPVAR, COPQUADVAR, CDOPVAR.
+% See also LPI_EQ_SDOPVAR, LPI_EQ_SOP, POSCOPVAR, COPQUADVAR, CDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -95,93 +95,56 @@ function prog = lpi_eq_cdopvar(prog,P,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/21/2026
-% MMP, 09/21/2026: Fix the 'symmetric' skip condition, which tested the
-%                   mirror block for emptiness rather than for carrying
-%                   decision variables, so an adjoint pair made of a stored
-%                   all-zero 'sopvar' and a nonzero 'sdopvar' had NEITHER
-%                   block constrained -- the opposite of what the NOTES
-%                   above promise. Reproduced by counting 'prog.expr.num'.
-%                   Also corrected the P-Q recipe in the NOTES: no container
-%                   class defines 'minus'.
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Renamed here:
-%                  lpi_eq_mdopvar -> lpi_eq_cdopvar, posmopvar -> poscopvar.
-%                  File was 'lpi_eq_mdopvar.m'.
-% MMP, 09/26/2026: NOTES recipe is P-Q again: minus/uminus exist for both
-%                  containers since 09/25/2026. The 09/21 note that no
-%                  container class defines 'minus' is obsolete. Doc only.
-% MMP, 09/26/2026: Verify each block's decision variables against the
-%                  program once per distinct Zd list, not once per block.
-%                  lpi_eq_sdopvar's check hashes all q names of
-%                  prog.decvartable; blocks of a container sum share one list
-%                  (@cdopvar/plus), and soseq adds no variables, so one check
-%                  covers every block with that list. Measured, 2-D container
-%                  Hinf build (q = 7.6e5, 6 blocks): 2.3 s of ismember became
-%                  one call plus an O(q) isequal (~10 ms) per block. Same
-%                  program, bit for bit.
-% MMP, 09/26/2026: Blocks sharing a Zd list are imposed together, joined up
-%                  to q nonzeros per soseq, instead of one soseq per nonzero
-%                  parameter of every block: each soseq scans all q names of
-%                  prog.decvartable in getequation. Blocks are collected with
-%                  lpi_eq_sdopvar's second output and imposed by it, columns
-%                  in the old order. 2-D container Hinf: 14 soseq -> 4, S6b
-%                  1.9x faster at +50% stage peak, below stock's in both
-%                  (numbers: lpi_eq_sdopvar, MMP 09/26/2026). prog.expr has
-%                  fewer entries; the
-%                  At, b, c, K sossolve builds are bit-identical, row order
-%                  included. The 09/21 entry's check by counting
-%                  prog.expr.num no longer discriminates (blocks now share
-%                  entries); count equality rows (columns of At) instead.
-% MMP, 09/30/2026: Collect with 'collect_eq_rows' and impose with
-%                  'impose_eq_rows' (lpis_sopvar/private), the two halves
-%                  of 'lpi_eq_sdopvar', called by name instead of through
-%                  its second output, 4th input and struct-P modes, which
-%                  are gone. The previous entry's "collected with
-%                  lpi_eq_sdopvar's second output and imposed by it" now
-%                  reads: collected by collect_eq_rows, imposed by
-%                  impose_eq_rows. Same calls in the same order, same
-%                  program bit for bit.
-% MMP, 10/08/2026: Row bookkeeping for the dual: prog.sopeq{end} records the
-%                  rows this call produced (first and last row of the
-%                  program, the blocks in writing order with their
-%                  parameters, positions and bases, from collect_eq_rows),
-%                  so 'lpigetdual_sop' can assemble prog.solinfo.y into the
-%                  signed dual kernel of this equality. Rows unchanged.
-%                  Opt-in (same day): recorded only when the program already
-%                  carries the field 'sopeq', so that no other caller's
-%                  program gains a field. Checked: b'y equals the primal
-%                  objective with sos_opts.simplify 0 and 1 (sossolve puts
-%                  the multipliers back in the original row coordinates).
-% MMP, 10/02/2026: Comments only. impose_eq_rows now writes each joined
-%                  batch with 'lpi_soseq' (the rows from collect_eq_rows'
-%                  check), so no soseq scans the program names; 'soseq
-%                  calls' below read 'prog.expr entries'. The batch keeps
-%                  the Eq.pos of its first block, valid for every later
-%                  block with an equal list.
-% MMP, 10/16/2026: moved, with private/, from sopvar/lpis_sopvar/ to
-%                  lpi_programming_sopvar/; 'lpis_sopvar' in the entries
-%                  above now reads lpi_programming_sopvar. Code unchanged.
-% MMP, 10/21/2026: moved to lpi_programming_sopvar/misc/ and the private
-%                  helpers to misc/private/: the folder root keeps the user
-%                  functions only. The locations in the entries above read
-%                  accordingly. Code unchanged.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body; code
-%                  unchanged. The deleted header text was the comparison
-%                  with 'lpi_eq_sdopvar', the argument that blockwise
-%                  equations are exact, the P-Q recipe's (was) lines, the
-%                  reason for the rule on adjoint pairs with one zero block
-%                  and notes on joining blocks into prog.expr entries. The
-%                  rule that the 09/21/2026 entry and the comment at the
-%                  'symmetric' skip call the NOTES is now in the OPTS entry.
-% MMP, 11/01/2026: 'collect_eq_rows' drops the equations of a block that
-%                  are multiples of another; the record entries carry its
-%                  map of them (field dup), so the dual of a dropped row
-%                  can be recovered from the row written for it. Help:
-%                  description and the OUTPUT entry 'entries'.
+% MMP, 09/21/2026: 'symmetric' skips a block below the diagonal only when
+%                  its mirror carries decision variables; it tested the
+%                  mirror for emptiness, so an adjoint pair of a stored
+%                  all-zero 'sopvar' and a nonzero 'sdopvar' had neither
+%                  block constrained.
+% MMP, 09/25/2026: Container classes renamed mopvar -> copvar and mdopvar ->
+%                  cdopvar, with every file and function named after them;
+%                  here lpi_eq_mdopvar -> lpi_eq_cdopvar, posmopvar ->
+%                  poscopvar. File was 'lpi_eq_mdopvar.m'.
+% MMP, 09/26/2026: The decision list of a block is checked against the
+%                  program once per distinct Zd list, not once per block:
+%                  blocks of a container sum share one list (@cdopvar/plus)
+%                  and nothing in this loop adds variables. Blocks sharing a
+%                  list are collected and imposed together, joined up to q
+%                  nonzeros per entry of prog.expr, in the old column order;
+%                  the At, b, c, K of sossolve are bit-identical.
+% MMP, 09/30/2026: Collected by 'collect_eq_rows' and imposed by
+%                  'impose_eq_rows' (misc/private), the two halves of
+%                  'lpi_eq_sdopvar', called by name; same program bit for
+%                  bit.
+% MMP, 10/02/2026: Comments only: impose_eq_rows writes each batch with
+%                  'lpi_soseq', so no soseq scans the program names; a batch
+%                  keeps the Eq.pos of its first block, valid for every
+%                  later block with an equal list.
+% MMP, 10/08/2026: Row bookkeeping for the dual: when PROG carries the field
+%                  sopeq, prog.sopeq{end} records the rows this call produced
+%                  (first and last row, the blocks in writing order with
+%                  their cells, positions and bases), for 'lpigetdual_sop'.
+%                  Rows unchanged; a program without the field gains none.
+% MMP, 10/16/2026: Moved, with private/, from sopvar/lpis_sopvar/ to
+%                  lpi_programming_sopvar/; 10/21/2026 to its misc/ (helpers
+%                  to misc/private/). Code unchanged.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                  code unchanged. Deleted: the comparison with
+%                  'lpi_eq_sdopvar', the argument that blockwise equations
+%                  are exact, the (was) lines of the P-Q recipe, the reason
+%                  for the rule on adjoint pairs with one zero block and
+%                  notes on joining blocks into prog.expr entries.
+% MMP, 11/01/2026: 'collect_eq_rows' drops the equations of a block that are
+%                  multiples of another; the record entries carry its map of
+%                  them (field dup), so the dual of a dropped row can be
+%                  recovered from the row written for it. Help: description
+%                  and the OUTPUT entry 'entries'.
 % MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
 %                LPIPROGRAM_SOP is retired.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed and
+%                  in date order, (was) comment lines removed and the notes
+%                  they fragmented reflowed, the 'symmetric' guard note
+%                  shortened, See also without the retired lpi_eq; code
+%                  unchanged.
 
 % Inputs: a decision container and an LPI program
 if isa(P,'copvar')
@@ -213,21 +176,18 @@ if symm && M~=N
           +num2str(M)+" x "+num2str(N)+".")
 end
 
-% Last Zd list lpi_eq_sdopvar verified against prog.decvartable (NaN:       % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
 % Last Zd list collect_eq_rows verified against prog.decvartable (NaN:      % MMP, 09/30/2026
 % none). prog.decvartable does not change in this loop, so the verdict      % MMP, 09/26/2026
 % carries over to every later block with an equal list.                     % MMP, 09/26/2026
 Zd_ok = NaN;                                                                % MMP, 09/26/2026
-% Constraints collected, not yet imposed, all over the list Zd_ok. Every    % MMP, 09/26/2026
-% soseq scans all q names of prog.decvartable, so all blocks sharing a list % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
-% (the common case, see Zd_ok) are imposed together, ~q nonzeros per soseq. % MMP, 09/26/2026 % MMP, 10/02/2026 (was)
+% Constraints collected, not yet imposed, all over the list Zd_ok. The      % MMP, 10/02/2026
 % check of the list against prog.decvartable runs once per list, so all     % MMP, 10/02/2026
 % blocks sharing one (the common case, see Zd_ok) are imposed together.     % MMP, 10/02/2026
 batch = [];                                                                 % MMP, 09/26/2026
-% Row bookkeeping for the dual read-back ('lpigetdual_sop'): the program's % MMP, 10/08/2026
-% row count before this call and, per block written, the parameters and    % MMP, 10/08/2026
-% positions in the order the rows are produced. Opt-in: only a program     % MMP, 10/08/2026
-% that already carries the field 'sopeq' (the container executives set     % MMP, 10/08/2026
+% Row bookkeeping for the dual read-back ('lpigetdual_sop'): the program's  % MMP, 10/08/2026
+% row count before this call and, per block written, the parameters and     % MMP, 10/08/2026
+% positions in the order the rows are produced. Opt-in: only a program      % MMP, 10/08/2026
+% that already carries the field 'sopeq' (the container executives set      % MMP, 10/08/2026
 % prog.sopeq = {} after lpiprogram) is recorded; every other caller's       % MMP, 10/08/2026
 % program keeps the stock fields.                                           % MMP, 10/08/2026
 record = isfield(prog,'sopeq');                                             % MMP, 10/08/2026
@@ -244,21 +204,12 @@ for i = 1:M
         % Under 'symmetric', a block below the diagonal is skipped when its
         % mirror (j,i) is an 'sdopvar', which is constrained instead
         if symm && j<i
-            % Skip only when the mirror will ACTUALLY be constrained, which % MMP, 09/21/2026
-            % means it carries decision variables. Testing isempty alone     % MMP, 09/21/2026
-            % also skipped this block when the mirror was a stored all-zero  % MMP, 09/21/2026
-            % 'sopvar', and the mirror's own visit then returns early at the  % MMP, 09/21/2026
-            % fixed-block branch below, so NEITHER was constrained -- the     % MMP, 09/21/2026
-            % behaviour this file's own NOTES rule out. Measured on a 2 x 2   % MMP, 09/21/2026
-            % container with block (1,2) replaced by a zero 'sopvar':         % MMP, 09/21/2026
-            % 'symmetric' emitted 3 constraint expressions, exactly what the  % MMP, 09/21/2026
-            % diagonal alone emits, against 4 for the all-decision case.      % MMP, 09/21/2026
-            % Only reachable when the container is not in fact self-adjoint,  % MMP, 09/21/2026
-            % since a zero block of a self-adjoint container has a zero       % MMP, 09/21/2026
-            % mirror -- but a guard whose only job is to be safe under a      % MMP, 09/21/2026
-            % violated precondition should not fail silently there.           % MMP, 09/21/2026
-            if isa(P.C{j,i},'sdopvar')                                       % MMP, 09/21/2026
-%           if ~isempty(P.C{j,i}) || isempty(P.C{i,j})                       % MMP, 09/21/2026 (was)
+            % Skip only when the mirror carries decision variables: a       % MMP, 09/21/2026
+            % stored all-zero 'sopvar' mirror returns early below, so an    % MMP, 09/21/2026
+            % isempty test left NEITHER block constrained. Reachable only   % MMP, 09/21/2026
+            % when the container is not self-adjoint; no silent failure.    % MMP, 09/21/2026
+            if isa(P.C{j,i},'sdopvar')                                      % MMP, 09/21/2026
+%           if ~isempty(P.C{j,i}) || isempty(P.C{i,j})                      % MMP, 09/21/2026 (was)
                 continue
             end
         end
@@ -290,7 +241,6 @@ for i = 1:M
             prog = impose_eq_rows(prog,batch);                              % MMP, 09/30/2026
             batch = [];                                                     % MMP, 09/26/2026
         end                                                                 % MMP, 09/26/2026
-        % Second output: collect this block's constraints, do not impose.   % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
         % Collect this block's constraints, do not impose (prog unchanged). % MMP, 09/30/2026
         if symm && i==j
 %           prog = lpi_eq_sdopvar(prog,Bij,'symmetric');                    % MMP, 09/26/2026 (was)
@@ -318,19 +268,13 @@ for i = 1:M
 %           ents(end+1) = struct('i',i,'j',j,'cells',Eq.cells,'cols',{Eq.cols},'blk',Eq.blk); %#ok<AGROW> % MMP, 10/08/2026 % MMP, 11/01/2026 (was)
             ents(end+1) = struct('i',i,'j',j,'cells',Eq.cells,'cols',{Eq.cols},'blk',Eq.blk,'dup',Eq.dup); %#ok<AGROW> % MMP, 11/01/2026
         end                                                                 % MMP, 10/08/2026
-        % Verified now: lpi_eq_sdopvar errors on an unknown variable.       % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
         % Verified now: collect_eq_rows errors on an unknown variable.      % MMP, 09/30/2026
         Zd_ok = Bij.Zd;                                                     % MMP, 09/26/2026
     end
 end
-% The rest: all blocks if they share one list. lpi_eq_sdopvar caps each     % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
-% soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
-% the collected coefficients, O(nnz), until then (see impose_rows there).   % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
 % The rest: all blocks if they share one list. impose_eq_rows caps each     % MMP, 09/30/2026
-% soseq at q nonzeros, bounding its transient; 'batch' holds one copy of    % MMP, 09/30/2026 % MMP, 10/02/2026 (was)
 % prog.expr entry at q nonzeros, bounding its transient; 'batch' holds      % MMP, 10/02/2026
-% one copy of                                                               % MMP, 10/02/2026
-% the collected coefficients, O(nnz), until then (see its help).            % MMP, 09/30/2026
+% one copy of the collected coefficients, O(nnz), until then (see help).    % MMP, 09/30/2026
 if ~isempty(batch)                                                          % MMP, 09/26/2026
 %   prog = lpi_eq_sdopvar(prog,batch);                                      % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
     prog = impose_eq_rows(prog,batch);                                      % MMP, 09/30/2026

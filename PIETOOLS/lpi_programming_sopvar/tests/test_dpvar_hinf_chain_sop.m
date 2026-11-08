@@ -10,12 +10,12 @@ function R = test_dpvar_hinf_chain_sop(plant)
 %         D_zw,    -gam*I_z, C_z;
 %         Q'B_w,   C_z',     A'Q + Q'A],
 %
-% on an lpiprogram program: gam from lpidecvar, gam >= 0 by lpi_ineq; R
-% and N the positive operators of the 'lf' and 'slack' settings
+% on an lpiprogram program: gam from lpidecvar, gam >= 0 by lpi_ineq_sop;
+% R and N the positive operators of the 'lf' and 'slack' settings
 % (poslpivar_settings_sop); Q free (lpivar_cdopvar at the degrees
 % get_lpivar_degs_sop reads off R); I_w, I_z from eye_copvar_sop; the two
 % equalities by lpi_eq_cdopvar, the second 'symmetric'. It solves the LPI
-% at lpisettings('light') with MOSEK and checks it against the recorded
+% at lpisettings_sop('light') with MOSEK and checks it against the recorded
 % solve of stock PIETOOLS_Hinf_gain on the same PIE and settings:
 %   (1) K is a 'cdopvar' with gam among its decision variables; when z is
 %       in R^1, K equals (eq) the operator with the 'dpvar' -gam in place
@@ -96,6 +96,9 @@ function R = test_dpvar_hinf_chain_sop(plant)
 %                  which reduce to SOSINEQ and SOSGETSOL for a 'dpvar' as
 %                  LPI_INEQ and LPIGETSOL did; those two are retired
 %                  (cleaning/private).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
+%                  lpi_ineq_sop and lpisettings_sop with the code, a (was)
+%                  comment line removed; code unchanged.
 
 % Default plant; no warnings for non-canonical multipliers; check counters
 if nargin<1 || isempty(plant),  plant = {'io1'};    end
@@ -119,7 +122,6 @@ npass = 0;  nfail = 0;
 st = cx_settings('light','mosek');
 PIE = initialize(cx_plant(plant{:}));
 
-% % % Stock executive, unmodified.                                          % MMP, 11/07/2026 (was)
 % % % Stock executive: its solve, recorded 11/07/2026 at e6319ace, MOSEK    % MMP, 11/07/2026
 % 11.0.30, by PIETOOLS_Hinf_gain without its pie_struct check on            % MMP, 11/07/2026
 % pie2opvar(PIE).                                                           % MMP, 11/07/2026

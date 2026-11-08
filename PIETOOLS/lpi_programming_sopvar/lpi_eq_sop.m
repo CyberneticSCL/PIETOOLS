@@ -81,22 +81,20 @@ function [prog,tag] = lpi_eq_sop(prog,P,opts)                               % MM
 %                moved to this log. The deleted header text was the
 %                comparison with lpi_eq, the per-routine remarks on errors,
 %                a test reference and a cost note with its 10/02/2026 edit.
-% MMP, 11/04/2026: A 'dpvar' P is imposed by SOSEQ here instead of through
-%                LPI_EQ of lpi_programming, which does exactly that for
-%                this class (OPTS unused): the container path no longer
-%                calls lpi_programming for it. The opvar classes still go
-%                to LPI_EQ.
+% MMP, 11/04/2026: A 'dpvar' P is imposed by SOSEQ here (what LPI_EQ did
+%                for this class, OPTS unused), so the container path no
+%                longer calls lpi_programming for it.
 % MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
 %                LPIPROGRAM_SOP is retired.
 % MMP, 11/08/2026: P of a class other than 'cdopvar', 'copvar', 'sdopvar',
 %                'sopvar' and 'dpvar' is an error (lpi_eq_sop:class). It
 %                went to LPI_EQ, retired 11/08/2026 (cleaning/private) with
 %                the opvar classes, the only other classes it accepted.
-%                Help text to match. The last sentence of the first
-%                11/04/2026 entry no longer holds.
+%                Help text to match.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): (was) comment
+%                lines removed, the first 11/04/2026 entry without its
+%                superseded sentence; code unchanged.
 
-% Only opts the caller gave is passed on: lpi_eq, lpi_eq_cdopvar and        % MMP, 11/08/2026 (was)
-% lpi_eq_sdopvar each test nargin for it.                                   % MMP, 11/08/2026 (was)
 % Only opts the caller gave is passed on: lpi_eq_cdopvar and lpi_eq_sdopvar % MMP, 11/08/2026
 % each test nargin for it.                                                  % MMP, 11/08/2026
 % TAG is 0 unless lpi_eq_cdopvar records the rows of this equality
@@ -107,7 +105,7 @@ if isa(P,'cdopvar') || isa(P,'copvar')
     if nargin>=3,   prog = lpi_eq_cdopvar(prog,P,opts);
     else,           prog = lpi_eq_cdopvar(prog,P);
     end
-    if isfield(prog,'sopeq'),   tag = numel(prog.sopeq);    end              % MMP, 10/08/2026
+    if isfield(prog,'sopeq'),   tag = numel(prog.sopeq);    end             % MMP, 10/08/2026
 elseif isa(P,'sdopvar') || isa(P,'sopvar')
 %   % One output: lpi_eq_sdopvar imposes the rows (a second output would    % MMP, 09/30/2026 (was)
 %   % return them unimposed).                                               % MMP, 09/30/2026 (was)

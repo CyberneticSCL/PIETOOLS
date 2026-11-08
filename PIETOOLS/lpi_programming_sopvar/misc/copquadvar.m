@@ -107,8 +107,8 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 %               column 1+d (0 where d is not a variable of s^k); the rows
 %               ordered by space, then as included.
 %
-% See also SOPQUADVAR, POSCOPVAR, POSSOPVAR, POSLPIVAR, SOSQUADVAR,
-% INT_SEMISEP, CDOPVAR, LPI_EQ_CDOPVAR.
+% See also SOPQUADVAR, POSCOPVAR, POSSOPVAR, SOSQUADVAR, INT_SEMISEP,
+% CDOPVAR, LPI_EQ_CDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -137,154 +137,71 @@ function [prog,Pop,Qcell,basis_list] = copquadvar(prog,dims,spaces,dom,deg,optio
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 09/21/2026
-% MMP, 09/25/2026: Renamed the container classes mopvar -> copvar and
-%                  mdopvar -> cdopvar, with every file and function named after
-%                  them. Mechanical rename, no functional change. Renamed here:
-%                  mopquadvar -> copquadvar, test_posmopvar -> test_poscopvar.
-%                  File was 'mopquadvar.m'.
-% MMP, 09/22/2026: Defer the scatter onto the global decision variable basis
-%                  until after the elimination, the same change 'sopquadvar'
-%                  took on this date and for the same reason: 'remap_dvars'
-%                  before 'pack_sheets' put the global decision count on the
-%                  sheet axis of every intermediate, where each block needs
-%                  only its own. 'int_onesided' now receives nloc rather than
-%                  ndec as its sheet count, so its triplet remapping works on
-%                  the narrow axis too. Alternating A/B, two repetitions, on
-%                  the four spaces R x L2[x] x L2[y] x L2[x,y]: at degree 2
-%                  and ndec = 166176, 83.2/78.1 s becomes 14.3/13.5 s (5.8x);
-%                  at degree 1 and ndec = 10440, 5.16/4.87 becomes 4.23/4.03.
-%                  As in 'sopquadvar' the saving tracks the padding factor and
-%                  so grows with ndec. Coefficients unchanged: 'test_poscopvar'
-%                  checks the defining identity against an independent oracle
-%                  and still passes 19 of 19.
-% MMP, 09/21/2026: Force every 'repelem' result in 'int_onesided' to a column.
-%                   'repelem' of a scalar returns a ROW, so with exactly one
-%                   nonzero in the block's coefficient matrix the index
-%                   arithmetic implicitly expanded to a matrix, each entry was
-%                   emitted 'cc' times at the same position, and 'sparse'
-%                   summed the duplicates - a block scaled by the one-sided
-%                   fan-out, silently. Only reachable at monomial degree 0,
-%                   which is why every earlier test missed it, and invisible
-%                   to a span comparison since scaling a generator does not
-%                   change the span.
-% MMP, 09/21/2026: Validate the VALUE of options.psatz instead of its
-%                   truthiness. psatz=2 was accepted and silently built the
-%                   box, where 'poslpivar_2d' builds a ball - a different
-%                   cone with no warning.
-% MMP, 09/21/2026: Bound the per-pair term preallocation by the separable
-%                   SHARED directions rather than by all shared directions.
-%                   With the default sep it over-allocated an empty cell
-%                   array by 4^n3 per block pair.
-% MMP, 09/26/2026: Form kron(Rmat.',Lmat).' once per (iL,iR) pair and pass
-%                  it to 'lr_multiply', which formed it once per gamma cell
-%                  with the same Lmat and Rmat (3^n3 cells). Measured on a
-%                  2-D stability build: kron was 3.2 of 11.7 s. Same result;
-%                  cost unchanged in q, one kron per pair instead of 3^n3.
-% MMP, 09/26/2026: Call site only: the per-gamma unpack_sheets, lr_multiply,
-%                  find and scatter onto Zd are now one 'unpack_sheets'
-%                  call, which applies Lmat and Rmat as an index remap of
-%                  the triplets of Cgam{q}. SUPERSEDES the entry above: no
-%                  Kronecker product is formed any more. With the
-%                  vectorized 'dvar_rows' of the same date, alternating A/B
-%                  medians of whole cx_exec builds: 2-D Hinf (io2, light,
-%                  ndec 7.6e5) 55.0 -> 40.0 s; 2-D stability 9.4 -> 6.7 s
-%                  light, 67.3 -> 45.3 s heavy (ndec 9.1e5); nv=3 poscopvar
-%                  3.2 -> 2.5 s. Programs bit-identical in every field.
-%                  What remains of this loop is 'find' on Cgam, whose
-%                  column count 'int_semisep' sets at (1+nloc)*g2b*NR3.
-% MMP, 09/26/2026: Call int_semisep with layout 'triplets', so Cgam{q}
-%                  reaches 'unpack_sheets' as (i,j,v) and the
-%                  (1+nloc)*g2b*NR3-column matrix above is never built nor
-%                  scanned (4.6 + 3.6 s of a 19.7 s 2-D Hinf build). And Zd
-%                  is concatenated once instead of grown per Qcell block.
-%                  Programs bit-identical; measured numbers in int_semisep.
-% MMP, 09/26/2026: plus_batch(...,'shared_Zd'): every term of a block is
-%                  built on this call's one Zd, so its per-operand O(q) list
-%                  comparison is redundant (plus_batch 1.13 -> 0.33 s, 2-D
-%                  Hinf). Pblk.dvarname passed without a cellstr(string())
-%                  round trip when already a cellstr. Bit-identical.
+% MMP, 09/21/2026: Every 'repelem' result in 'int_onesided' forced to a
+%                  column: 'repelem' of a scalar returns a row, so a block
+%                  with one nonzero was scaled by the one-sided fan-out
+%                  (reachable at monomial degree 0 only; invisible to a span
+%                  comparison). options.psatz validated by value (2 built
+%                  the box where 'poslpivar_2d' builds a ball). The per-pair
+%                  term preallocation bounded by the separable shared
+%                  directions, not all shared ones (4^n3 over-allocation).
+% MMP, 09/22/2026: The scatter onto the global decision list deferred to
+%                  after the elimination, as 'sopquadvar' the same day:
+%                  'int_onesided' receives nloc, not ndec, as its sheet
+%                  count (5.8x at degree 2, ndec = 1.7e5; coefficients
+%                  unchanged, 'test_poscopvar').
+% MMP, 09/25/2026: Container classes renamed mopvar -> copvar, mdopvar ->
+%                  cdopvar; here mopquadvar -> copquadvar, test_posmopvar ->
+%                  test_poscopvar. File was 'mopquadvar.m'.
+% MMP, 09/26/2026: The per-gamma unpack, 'lr_multiply', find and scatter
+%                  onto Zd are one 'unpack_sheets' call applying Lmat and
+%                  Rmat as an index remap of the triplets of Cgam{q} (no
+%                  Kronecker product formed); int_semisep called with layout
+%                  'triplets', so the (1+nloc)*g2b*NR3-column matrix is
+%                  never built; Zd concatenated once; plus_batch(...,
+%                  'shared_Zd') skips its O(q) per-operand list comparison.
+%                  Programs bit-identical; 2-D H-infinity build 55 -> 40 s.
 % MMP, 09/27/2026: options.psatz = 2d+1 / 2d+2 weights the Gram form by the
-%                  normalised linear generator (theta_d-a_d)/L_d or
-%                  (b_d-theta_d)/L_d of one face of the box, d indexing the
-%                  registry: the N-D extension of 'poslpivar_2d' psatz 3-6
-%                  (identical codes in 2-D with sorted names). The product
-%                  weight (psatz=1) vanishes on every face, so it cannot
-%                  supply what a certificate needs near one face; measured on
-%                  the heatNd benchmark (u_t = Lap u + r u), 2-D: product
-%                  certifies nothing, the 4 faces reach 0.9875 kappa*.
-%                  Nonnegative on the box by construction, so no weight can
-%                  make the variable indefinite. psatz 0/1 unchanged.
-% MMP, 09/29/2026: Skip an all-zero gamma cell before 'unpack_sheets' and
-%                  write its zeros directly: the skip 'sopquadvar' took on
-%                  09/22/2026, which this copy lacked. At most 2^n3 of the
-%                  3^n3 cells can be nonzero (Sec. 6.1 key table), so
-%                  79884 of 87696 unpack calls in the 3-D heatNd build
-%                  (w3) were on an empty cell. Measured unprofiled against
-%                  the HEAD copy on the same arguments: 52 -> 15 us per
-%                  empty cell (median, 60 captured w3 sets), ~3.0 s per w3
-%                  build; the 14 w3 calls 43.5 -> 39.1 s. Cost in q
-%                  unchanged: the zeros written are those the unpack
-%                  returned. Programs bit-identical (w1-w3, 91 SDP
-%                  leaves). An empty B stored as [] was rejected:
-%                  'plus_batch' then errors ('Bsum + []').
-% MMP, 09/30/2026: Shared helpers (sopvar/misc/conventions) in place of
-%                  two local copies, each of which had hand-written twins
-%                  elsewhere that could drift apart silently: (1) spaces,
-%                  registry, dims, reserved names and domain are read by
-%                  'parse_copvar_spaces', the parser shared with
-%                  'lpivar_cdopvar'; the self-adjoint check stays here,
-%                  after the parse. (2) 'multiindex_grid' replaces the
-%                  local 'alpha_grid' (same body, direction 1 fastest,
-%                  the order 'sopquadvar' and 'eq_opts_sopvar' use).
-%                  'int_onesided' keeps its inline copy of 'kron_split',
-%                  which the helper calls would slow (see its comment).
-%                  Same values on every input the old parse accepted:
-%                  'test_space_parser' compares the two on 120 random
-%                  inputs, and the programs are bit-identical (w1-w3,
-%                  91 SDP leaves). On other inputs the parser's NOTES
-%                  list the differences: six messages reworded; the
-%                  self-adjoint error now follows the other input
-%                  errors; a struct ARRAY 'spaces' is refused (its first
-%                  element was used); '' is one R^q space (a variable
-%                  named '' was declared); struct dims and [] spaces are
-%                  accepted. Time unchanged: the 14 w3 calls, run on the
-%                  same arguments within one build, unprofiled, take
-%                  34.99 s before and 34.88 s after (a second copy of the
-%                  old file: 34.57 s).
-% MMP, 09/30/2026: Split the primary function into local functions, one
-%                  per phase of the construction, bodies moved unchanged:
-%                  parse_inputs, parse_options, basis_operators,
-%                  degree_list, monomial_bases, common_dvars, psatz_weight
-%                  and block_terms, with, inside block_terms, gamma_params
-%                  (the parameter cell of one term over the gamma cells of
-%                  Sec. 6.1) and by_space (four identical scatter loops).
-%                  Two moved lines change, marked (was): the nargin test
-%                  on options moves to the primary, and the unused nlv
-%                  goes. Why: the basis operators Z_alpha (Sec. 9.1) and the
-%                  pairs Z_i* Q_ij Z_j (Sec. 9.2) sat behind about 260
-%                  lines of input normalization, and the computation of one
-%                  term 6 loops deep in one function of McCabe 101.
-%                  Primary: 354 -> 24 code lines, McCabe 101 -> 5, nesting
-%                  depth 8 -> 2; largest local McCabe 20 (parse_options),
-%                  deepest nesting 4 (block_terms). The q-length Zd and
-%                  the Nprod cell reach block_terms by reference and are
-%                  only read. Programs bit-identical (w1-w3, 91 SDP
-%                  leaves); the 14 w3 calls on the same arguments take
-%                  34.94 s against 34.99 s before (unprofiled, one build).
-%                  Also documented, in the help and in degree_list, what
-%                  each 'deg' field means here, and that 'lpivar_cdopvar'
-%                  gives 'int' and 'mult' other meanings; no option changed.
-% MMP, 10/01/2026: 'sopquadvar' now calls this routine (one space) instead
-%                  of its own pair loop; NOTES updated. No code change here.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body and headers
-%                  of the local functions; code unchanged. The deleted
-%                  header text was the comparisons with sopquadvar,
-%                  poslpivar, poslpivar_2d and lpivar_cdopvar, the history
-%                  of the single implementation and of the shared parser
-%                  (NOTES), a measurement (face terms at eq_deg-1), and the
-%                  rationale for the one Gram and for the order of the
+%                  normalised linear generator of one face of the box, d
+%                  over the registry (the N-D extension of poslpivar_2d
+%                  psatz 3-6): the product weight vanishes on every face,
+%                  so it cannot certify near one (2-D heatNd: the product
+%                  certifies nothing, the 4 faces reach 0.9875 kappa*).
+% MMP, 09/29/2026: An all-zero gamma cell skipped before 'unpack_sheets' and
+%                  its zeros written directly (at most 2^n3 of the 3^n3
+%                  cells can be nonzero, Sec. 6.1); programs bit-identical.
+%                  An empty B stored as [] is rejected by 'plus_batch'.
+% MMP, 09/30/2026: Shared helpers (sopvar/misc/conventions): spaces,
+%                  registry, dims, reserved names and domain read by
+%                  'parse_copvar_spaces' (the self-adjoint check stays
+%                  here); 'multiindex_grid' replaces the local 'alpha_grid'.
+%                  Same values on every input the old parse accepted; six
+%                  messages reworded, a struct array 'spaces' refused, ''
+%                  one R^q space, struct dims and [] spaces accepted.
+% MMP, 09/30/2026: The primary split into local functions, one per phase,
+%                  bodies moved unchanged: parse_inputs, parse_options,
+%                  basis_operators, degree_list, monomial_bases,
+%                  common_dvars, psatz_weight, block_terms (with
+%                  gamma_params and by_space). Two moved lines change,
+%                  marked (was): the nargin test on options, and the unused
+%                  nlv. Programs bit-identical, time unchanged. The help and
+%                  degree_list state what each 'deg' field means here and
+%                  that 'lpivar_cdopvar' gives 'int' and 'mult' other
+%                  meanings.
+% MMP, 10/01/2026: 'sopquadvar' calls this routine (one space) instead of
+%                  its own pair loop; no code change here.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body
+%                  and headers of the local functions; code unchanged.
+%                  Deleted: the comparisons with sopquadvar, poslpivar,
+%                  poslpivar_2d and lpivar_cdopvar, the history of the single
+%                  implementation and of the shared parser, a measurement
+%                  and the rationale for the one Gram and the order of the
 %                  integrations.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed and
+%                  in date order, a (was) comment line and a note on (was)
+%                  code removed, the notes in gamma_params and int_onesided
+%                  shortened, See also without the retired poslpivar; code
+%                  unchanged.
 
 
 % % % BEGIN change MMP, 09/30/2026 (split): the primary runs the            % MMP, 09/30/2026
@@ -433,7 +350,6 @@ end
 if ~isfield(options,'psatz') || isempty(options.psatz)
     options.psatz = 0;
 end
-% Only 0 and 1 are implemented, and the value is checked rather than taken  % MMP, 09/27/2026 (was)
 % 0, 1 and the face codes are implemented; the value is checked, not taken  % MMP, 09/27/2026
 % for its truthiness. 'poslpivar_2d' also accepts 2, whose weight is a BALL
 % (rds^2 - sum (s_d-c_d)^2) and not the box built below, so treating 2 as 1
@@ -945,30 +861,23 @@ function params = gamma_params(Cgam,g1b,NL3,g2b,NR3,nloc,Lmat,Rmat, ...
 %                  constant part, sparse (m_k*NLf*m_l*NRf) x 1, and B{q}
 %                  the decision part, sparse ndec x (m_k*NLf*m_l*NRf).
 
-        % Nothing between 'pack_sheets' and here mixes sheets -- each stays a
-        % contiguous block of columns, as 'unpack_sheets' own header records --
-        % so the block's own nloc sheets carry the elimination and the rows are
-        % scattered onto the global basis once, here, from triplets. Widening
-        % to ndec sheets beforehand padded every intermediate: measured in
-        % 'sopquadvar' at 134 to 2119 times the width the block needs.
+        % Nothing between 'pack_sheets' and here mixes sheets (each stays a
+        % contiguous block of columns), so the block's own nloc sheets carry
+        % the elimination and the rows are scattered onto the global basis
+        % once, here, from triplets; ndec sheets would pad every intermediate.
         params = struct();
         params.A = cell(numel(Cgam),1);
         params.B = cell(numel(Cgam),1);
-        % Lmat and Rmat are those of this (iL,iR) pair for every gamma cell, % MMP, 09/26/2026
-        % so their Kronecker product is formed once here, not once per cell. % MMP, 09/26/2026
 %       KLR = kron(Rmat.',Lmat).';                                          % MMP, 09/26/2026 (was)
-        % Superseded the same day: 'unpack_sheets' now applies Lmat, Rmat and
-        % the scatter onto Zd as one index remap of the triplets of Cgam{q}, so
-        % no Kronecker product is formed at all (see its header).
+        % 'unpack_sheets' applies Lmat, Rmat and the scatter onto Zd as one
+        % index remap of the triplets of Cgam{q}; no Kronecker product is
+        % formed (the KLR of 09/26/2026 was superseded the same day).
         for q = 1:numel(Cgam)
 %           [Aq,Bq] = unpack_sheets(Cgam{q},g1b*NL3,g2b*NR3,ndec);          % MMP, 09/22/2026 (was)
 %           [Aq,Bq] = unpack_sheets(Cgam{q},g1b*NL3,g2b*NR3,nloc);          % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
 %           [params.A{q},Bout] = lr_multiply(Lmat,Aq,Bq,Rmat);              % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
 %           [params.A{q},Bout] = lr_multiply(Lmat,Aq,Bq,Rmat,KLR);          % MMP, 09/26/2026 (was)
 %           [params.A{q},params.B{q}] = lr_multiply(Lmat,Aq,Bq,Rmat);       % MMP, 09/22/2026 (was)
-            % 'find' returns ROWS for a single-row input, which Bout is when
-            % the block carries one decision variable; forced to columns, as
-            % elsewhere in this file.
 %           [bi,bj,bv] = find(Bout);                                        % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
 %           params.B{q} = sparse(colv(locB(bi)),colv(bj),colv(bv), ...
 %                                ndec,size(Bout,2));                        % MMP, 09/22/2026 % MMP, 09/26/2026 (was)
@@ -1192,22 +1101,12 @@ if tot==0
     C2 = sparse(g1*NL1*NG3,(1+nsheet)*g2*NR1);
     return
 end
-% Every 'repelem' result is forced to a column. 'repelem' of a 1 x 1 first
-% argument returns a ROW, and 'pos' below is a column, so when C has exactly
-% ONE nonzero the subtraction implicitly expands into a tot x tot matrix
-% instead of a tot x 1 vector. Every entry then gets emitted 'cc' times at
-% the SAME (row,column), 'sparse' sums the duplicates, and the block comes
-% out scaled by cc with no error anywhere.
-%
-% MEASURED: for spaces {s1,s2} x {s2} at degree 0 with one basis each,
-% T = [2;-1] and a single nonzero in C gave sel = [1 2 1 2] and a kernel of
-% 2*(b1-s1) against the correct (b1-s1). It bites only when nnz(C)==1 AND a
-% non-shared direction has fan-out above 1, which is why it is invisible at
-% degree 1 or more (C then has several nonzeros), invisible for a multiplier
-% direction (fan-out 1), and was invisible on a domain starting at 0, where
-% the alpha=2 weight -a^(p+1)/(p+1) is zero and drops out leaving fan-out 1.
-% The span comparisons against poslpivar cannot see it either: scaling a
-% generator does not change the span.
+% Every 'repelem' result is forced to a column: 'repelem' of a 1 x 1 first
+% argument returns a ROW, and 'pos' below is a column, so with exactly one
+% nonzero in C the subtraction would expand into a tot x tot matrix, every
+% entry emitted 'cc' times at the same (row,column) and summed by 'sparse':
+% a block scaled by cc, with no error (nnz(C)==1 and a non-shared direction
+% with fan-out above 1 only; invisible to a span comparison).
 off = cumsum([0;cc(1:end-1)]);
 pos = (1:tot).' - colv(repelem(off,cc));        % 1..cc(u) within nonzero u
 sel = colv(repelem(ptr(ith),cc)) + pos;

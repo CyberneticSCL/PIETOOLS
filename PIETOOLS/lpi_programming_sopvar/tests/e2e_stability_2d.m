@@ -9,7 +9,7 @@ function out = e2e_stability_2d(frac,level)                                 % MM
 %   P = P0 (+ psatz terms) + diag(eppos) >= 0,
 %   Q = (A'(P T))' + A'(P T) (+ 2 epneg T'(P T)) = -Qe,  Qe >= 0,
 %
-% with the 2-D settings of lpisettings(LEVEL) on an lpiprogram program
+% with the 2-D settings of lpisettings_sop(LEVEL) on an lpiprogram program
 % (BUILD_2D), solves it with SeDuMi, extracts P, Q, Qe and Qe + Q with
 % lpigetsol_sop, and checks the extraction, erroring at the first failed
 % check. The solve is held to no residual bound, so the test does not
@@ -36,8 +36,8 @@ function out = e2e_stability_2d(frac,level)                                 % MM
 % INPUT
 % - frac:   (optional) 'double', the reaction coefficient over 2 pi^2 (the
 %           PDE is stable for FRAC < 1); default 0.1;
-% - level:  (optional) 'char', the name of the LPI settings (lpisettings);
-%           default 'light'.
+% - level:  (optional) 'char', the name of the LPI settings
+%           (lpisettings_sop); default 'light'.
 %
 % OUTPUT
 % - out:    'struct' with fields info ('struct', the SeDuMi report),
@@ -97,10 +97,14 @@ function out = e2e_stability_2d(frac,level)                                 % MM
 %                The (was) line of the former signature moved here from
 %                under the function line, so that help starts with the
 %                description:
+% function out = stability_2d_sop(frac,level)                               % MMP, 10/21/2026 (was)
 % MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
 %                extra input forms (names, containers) only filled fields that
 %                container routines do not read, is retired.
-% function out = stability_2d_sop(frac,level)                               % MMP, 10/21/2026 (was)
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
+%                lpisettings_sop, the settings cx_settings returns since
+%                11/08/2026; the (was) signature line back under the
+%                10/28/2026 entry; code unchanged.
 
 % Defaults; no warnings for non-canonical multipliers; a check asserts
 % with one identifier

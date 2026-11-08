@@ -131,6 +131,8 @@ function [A,info] = lift_copvar(dims,spaces,dom,dlift,options)
 %                listed, which the code rejects), and the kernel is
 %                I_{m_k} kron V^alpha(s), component outer (V^alpha kron
 %                I_{m_k} was written).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): what lines for
+%                lift_block, per_component and alpha_select; code unchanged.
 
 % Three inputs at least; DLIFT 1 and OPTIONS struct() by default
 if nargin<3
@@ -312,11 +314,12 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function b = lift_block(comps,Ky,ok,vars,dom,mk)
-% The block of A from space k (own variables ok, mk components) into a Y
-% space of dimension Ky, holding the components COMPS: rows comp.off+1..,
-% columns on the union of their monomial bases, each nonzero cell a 0/1
-% placement. Output variables [S2,S3] with S2 the registry variables k
-% lacks (constant there), input variables S3 = s^k.
+% B = LIFT_BLOCK(COMPS,KY,OK,VARS,DOM,MK) returns the block of A from space
+% k (own variables OK, MK components) into a Y space of dimension KY,
+% holding the components COMPS: rows comp.off+1.., columns on the union of
+% their monomial bases, each nonzero cell a 0/1 placement. Output variables
+% [S2,S3] with S2 the registry variables k lacks (constant there), input
+% variables S3 = s^k.
 % INPUT  comps: 'struct' array, the entries of INFO.comp in the block;
 %        Ky:    'double', the dimension of the Y space;
 %        ok:    1 x n_k 'double', the registry indices of the variables of
@@ -369,8 +372,9 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = per_component(spec,M,nb,nv,name)
-% One 1 x nv row per component from a scalar, a 1 x nv row, a 1 x M cell of
-% those, or a 1 x M cell whose entry k is a 1 x nb(k) cell of those.
+% OUT = PER_COMPONENT(SPEC,M,NB,NV,NAME) returns one 1 x nv row per
+% component from a scalar, a 1 x nv row, a 1 x M cell of those, or a 1 x M
+% cell whose entry k is a 1 x nb(k) cell of those.
 % INPUT  spec: the DLIFT or ygroup input;
 %        M:    'double', the number of spaces;
 %        nb:   1 x M 'double', the number of components of each space;
@@ -424,9 +428,10 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function A = alpha_select(A,incl,nd,k)
-% One space's 'include', in the three formats 'copquadvar' accepts (its
-% local function of the same name): multi-index rows validated against the
-% generated list, a logical mask, or linear indices.
+% A = ALPHA_SELECT(A,INCL,ND,K) applies one space's 'include', in the three
+% formats 'copquadvar' accepts (its local function of the same name):
+% multi-index rows validated against the generated list, a logical mask, or
+% linear indices.
 % INPUT  A:    'double', the enumeration of the multi-indices, one per row;
 %        incl: the entry of OPTIONS.include for the space ([] for all);
 %        nd:   'double', the number of variables of the space;

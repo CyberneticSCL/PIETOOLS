@@ -86,8 +86,9 @@ function Psol = getsol_lpivar_sop(prog,P)
 %                both are retired (cleaning/private, 11/08/2026), and such a
 %                P now raises getsol_lpivar_sop:badClass, whose message
 %                lists the classes still accepted. Help text to match.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): a (was) comment
+%                line removed; code unchanged.
 
-% % % Legacy and fixed classes: no new code.                                % MMP, 11/08/2026 (was)
 % % % Fixed classes: nothing to substitute                                  % MMP, 11/08/2026
 if isa(P,'sopvar') || isa(P,'copvar')
     Psol = P;                                   % nothing to substitute

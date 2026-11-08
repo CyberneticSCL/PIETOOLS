@@ -86,6 +86,8 @@ function R = test_translators_sop()
 %                expects :class. It passed the container X2 and expected
 %                :dim, which the N-D reading (10/08/2026) replaced by a
 %                returned struct. Help to match.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): three (was)
+%                comment lines removed; code unchanged.
 
 % No warnings for non-canonical multipliers; seed; s1 on [0,1]; check
 % counter
@@ -96,7 +98,6 @@ pvar s1 s1_dum
 dom = [0 1];
 n = 0;
 
-% % % (i) legacy dispatch                                                   % MMP, 11/08/2026 (was)
 % Deleted: (i) (MMP, 10/06/2026), poslpivar_sop, poslpivar_settings_sop,    % MMP, 11/08/2026
 % get_lpivar_degs_sop and trace_rn_sop against POSLPIVAR, GET_LPIVAR_DEGS   % MMP, 11/08/2026
 % and LPIVAR on legacy inputs; all retired. Kept: the settings, used by     % MMP, 11/08/2026
@@ -150,7 +151,6 @@ for role = {'lf','slack'}
     assert(tf,'(iii) %s pair differs at %s',role{1},where);    n = n+1;
 end
 
-% % % (iv) Q degrees against stock get_lpivar_degs                          % MMP, 11/08/2026 (was)
 % % % (iv) the third Q degree without integral bases                        % MMP, 11/08/2026
 % Deleted: the loop over two plants and six presets comparing               % MMP, 11/08/2026
 % get_lpivar_degs_sop with GET_LPIVAR_DEGS on the stock operators, and the  % MMP, 11/08/2026
@@ -189,7 +189,6 @@ for k = 1:numel(Xs)
     n = n+1;
 end
 
-% % % (vi) space lists against opvar dims                                   % MMP, 11/08/2026 (was)
 % Deleted: (vi) (MMP, 10/06/2026), copvar_space_list on the 'copvar' of     % MMP, 11/08/2026
 % an 'opvar' (opvar2copvar) for each pattern of zero dimensions; the opvar  % MMP, 11/08/2026
 % classes are retired.                                                      % MMP, 11/08/2026

@@ -46,35 +46,22 @@ function [Aout,Bout] = lr_multiply(L,A,B,R)                                 % MM
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% MMP, 09/26/2026: optional fifth input K, as above. Without it the
-%                  behaviour is unchanged.
-% MMP, 09/26/2026: Skip B when only Aout is requested: 'unpack_sheets' now
-%                  maps B itself and calls this for A alone, so forming K
-%                  there would undo the saving. No caller passes K any more
-%                  ('copquadvar' did, above); the input is kept.
-% MMP, 09/30/2026: Fifth input K removed. No caller passed it (previous
-%                  entry), so the first 09/26/2026 entry no longer holds;
-%                  Bout is B*kron(R.',L).' again, the product the K default
-%                  formed. The removed default ran only on the unfused path
-%                  of 'unpack_sheets' and in 'sopquadvar', both 0 calls in
-%                  the w1-w3 builds. Help: no longer "as in @sdopvar/plus",
-%                  which maps its bases with 'apply_basis_map' (via
-%                  plus_batch) since 09/07/2026.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), the licence block added, step comments
-%                  in the body; code unchanged. The log entries above moved
-%                  here from the help text. The deleted header text was the
-%                  cost rationale for forming the Kronecker product, with
-%                  its (was) lines, and the help of the input K removed on
-%                  09/30/2026, which the first 09/26/2026 entry calls
-%                  'above'. The log had no initial-coding entry: initial
-%                  coding MP, 08/22/2026, as a local function of 'possopvar'
-%                  (the file since renamed 'sopquadvar'), moved to private/
-%                  by MMP, 09/21/2026. The (was) lines of the earlier
-%                  signatures moved from under the function line to here,
-%                  so that help starts with the description:
+% MMP, 09/26/2026: Optional fifth input K, the product kron(R.',L).' formed
+%                  once by the caller; B skipped when only Aout is requested
+%                  ('unpack_sheets' maps B itself).
+% MMP, 09/30/2026: K removed: no caller passed it any more. Bout is
+%                  B*kron(R.',L).' again, the product the K default formed,
+%                  reached on the unfused path of 'unpack_sheets' only.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                  code unchanged. Deleted: the cost rationale for forming
+%                  the Kronecker product and the help of the input K. No
+%                  initial-coding entry: MP, 08/22/2026, as a local function
+%                  of 'possopvar' (since renamed 'sopquadvar'), moved to
+%                  private/ by MMP, 09/21/2026. Earlier signatures:
 % function [Aout,Bout] = lr_multiply(L,A,B,R,K)                             % MMP, 09/30/2026 (was)
 % function [Aout,Bout] = lr_multiply(L,A,B,R)                               % MMP, 09/26/2026 (was)
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
+%                  code unchanged.
 
 % Constant term: A as the mr x nc matrix, multiplied, vectorized
 X = reshape(A,size(L,2),size(R,1));
@@ -84,8 +71,8 @@ if nargout<2,  return;  end     % B unused: no Kronecker product            % MM
 
 % Decision part: every row of B at once, times kron(R.',L).'
 % Bout = B*kron(R.',L).';                                                   % MMP, 09/26/2026 (was)
-% if nargin<5 || isempty(K),  K = kron(R.',L).';  end                         % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
-% Bout = B*K;                                                                 % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+% if nargin<5 || isempty(K),  K = kron(R.',L).';  end                       % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
+% Bout = B*K;                                                               % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
 Bout = B*kron(R.',L).';     % the product the K default formed              % MMP, 09/30/2026
 
 end

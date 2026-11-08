@@ -83,17 +83,15 @@ function [Y,info] = lpigetdual_sop(prog,tag)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), the licence block added, step comments
-%                in the body; code unchanged. The deleted header text was a
-%                memo reference, the invariance of the dual under the b
+% MMP, 10/28/2026: Header to the header protocol, the licence block, step
+%                comments in the body; code unchanged. Deleted: a memo
+%                reference, the invariance of the dual under the b
 %                normalization, the requirement sos_opts.simplify = 0
 %                (sossolve returns y in the rows of the unsimplified
-%                program), a pointer to a caller, and the claim that under
-%                'symmetric' the lower-triangular blocks are written
-%                (LPI_EQ_CDOPVAR writes the blocks (i,j) with i <= j and a
-%                block below the diagonal only when its mirror is not an
-%                'sdopvar').
+%                program), a pointer to a caller, and a wrong claim on the
+%                blocks 'symmetric' writes (INFO.symmetric states it).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
+%                code unchanged.
 
 % The record TAG and the multipliers must exist
 if ~isfield(prog,'sopeq') || tag<1 || tag>numel(prog.sopeq)

@@ -98,6 +98,8 @@ function test_dpvar_ops_sop()
 %                FIX_DOPVAR and EV_DP, used only by (d). The opvar classes
 %                and MAT2OPVAR are retired (cleaning/private). Help: (b),
 %                (d), NOTES.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): a (was) comment
+%                line removed; code unchanged.
 
 % Fixed seed; canonical-form warnings off; the check counts and the
 % relative tolerance of CKVAL
@@ -440,7 +442,6 @@ for nd = 1:3
     ckerr(@() [gam; Xdb],'vertcat:dimMismatch',tag('[gam; Xdb] columns'));
 end
 
-% % % ======================================================= legacy, 1-D   % MMP, 11/08/2026 (was)
 % Deleted: check (d) (MMP, 09/29/2026), the operations of (c) on random     % MMP, 11/08/2026
 % 'opvar' objects against the container results, and mat2opvar against      % MMP, 11/08/2026
 % mat2copvar_sop on a 'dpvar' matrix; the opvar classes are retired.        % MMP, 11/08/2026

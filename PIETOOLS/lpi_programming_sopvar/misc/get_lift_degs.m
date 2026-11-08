@@ -76,7 +76,8 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 % every value of the decision operator; to size from the positive operator
 % of the LPI instead, pass it as OPTS.like.
 %
-% See also POSCOPVAR_DIRECT, LPI_INEQ_SOP, EQ_OPTS_SOPVAR, GET_LPIVAR_DEGS.
+% See also POSCOPVAR_DIRECT, LPI_INEQ_SOP, EQ_OPTS_SOPVAR,
+%          GET_LPIVAR_DEGS_SOP.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -105,32 +106,30 @@ function [deg,terms,info] = get_lift_degs(P,opts)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/08/2026. The sizing routine of the separated form,
-%                from the measured degree map (memory degree-map-proof-to-
-%                code) and the heat benchmark (heatNd_tailor).
+%                from the degree map of the lift (sopvar_lift_notes Sec. 7)
+%                and the heat benchmark (heatNd_tailor).
 % MMP, 10/08/2026: N-D 'auto' terms: the 2N faces at w-1 instead of w when
-%                every weight is at least 2. Measured on the 2-D heat
-%                benchmark (R (1,1), Q (2,2): 12.336731 at nx 339209
-%                against 1.04e6 for the faces at w) and on the 2-D coercive
-%                KYP slack (the same gain at 200425 against 557845
-%                variables); the Markov-Lukacs tensor set lost both tests
-%                (sopvar_lift_notes Sec. 10). A face term at weight 0
-%                certified nothing in 1-D DD, hence the floor at w = 1.
+%                every weight is at least 2 (the same certified values at
+%                about a third of the variables on the 2-D heat benchmark
+%                and the 2-D coercive KYP slack; the Markov-Lukacs tensor
+%                set lost both, sopvar_lift_notes Sec. 10). A face term at
+%                weight 0 certified nothing in 1-D DD, hence the floor at
+%                w = 1.
 % MMP, 10/21/2026: opts.like may be a cell of operators, their supports
 %                pooled: LPI_INEQ_SOP passes every positive operator of
 %                'poscopvar' its target depends on.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body and headers
-%                of the local functions; code unchanged. The deleted
-%                header text was measurement results (the heat and KYP
-%                benchmarks), the cost note and a second notes reference.
-%                The help text of the 10/21/2026 entry is in the INPUT
-%                entry of opts.like, without markers.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body
+%                and headers of the local functions; code unchanged.
+%                Deleted: measurement results (the heat and KYP benchmarks),
+%                the cost note and a second notes reference.
 % MMP, 10/29/2026: info.Jmax, the largest total degree of a kernel monomial
 %                per direction, read in the same pass as Dmin, Dmax, Mdeg,
 %                J: the per-direction cap of a lift basis an operator needs
 %                (heatNd_lpi 'Tspan' reads it from T; the N-D executives
 %                can read it from T here and pass it to LPI_INEQ_SOP
 %                opts.cap). Degrees and terms unchanged.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed,
+%                See also names GET_LPIVAR_DEGS_SOP; code unchanged.
 
 % Options; the defaults of dD, dw and wR
 if nargin<2 || isempty(opts),   opts = struct();    end

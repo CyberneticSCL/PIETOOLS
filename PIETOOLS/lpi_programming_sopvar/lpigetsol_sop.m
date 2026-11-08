@@ -68,23 +68,22 @@ function dvar_sol = lpigetsol_sop(prog,dvar)
 %                header text was the class table with its comparison to
 %                lpigetsol and the reason a cell is taken apart here.
 % MMP, 11/04/2026: [], 'double' and 'polynomial' are returned unchanged and
-%                a 'dpvar', char or cell goes to SOSGETSOL here, instead of
-%                through LPIGETSOL of lpi_programming, which does exactly
-%                that for these classes in the same order: the container
-%                path (the gamma of the executives and DEMOs) no longer
-%                calls lpi_programming. The opvar classes still go to
-%                LPIGETSOL.
+%                a 'dpvar', char or cell goes to SOSGETSOL here (what
+%                LPIGETSOL did for these classes, in the same order), so the
+%                container path no longer calls lpi_programming.
 % MMP, 11/08/2026: The branches of the opvar classes are gone, an 'opvar'
 %                or 'opvar2d' with 'dpvar' fields (local SUBS_FIELDS) and the
 %                legacy classes (LPIGETSOL): both are retired (cleaning/
 %                private, 11/08/2026), and such a DVAR now raises
 %                lpigetsol_sop:badClass. The local functions HASDPVAR and
 %                SUBS_FIELDS, used only there, are deleted. Help text to
-%                match. The last sentence of the 11/04/2026 entry no longer
-%                holds.
+%                match.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the 11/04/2026
+%                entry without its superseded sentence, two body notes that
+%                named the retired lpigetsol reworded; code unchanged.
 
-% Same program checks as lpigetsol, made here too so that the new-class
-% branches, which do not pass through lpigetsol, apply them.
+% The program must be a 'struct' with a solver report (the checks LPIGETSOL
+% made)
 if ~isa(prog,'struct')
     error('LPI program structure should be specified as object of type ''struct''.')
 end
@@ -99,7 +98,7 @@ elseif isa(dvar,'sopvar') || isa(dvar,'copvar')
     dvar_sol = dvar;                            % fixed: nothing to substitute
 elseif iscell(dvar) && ~iscellstr(dvar) && any(cellfun(@hasnew,dvar(:)))
     % A cell holding a container-family object: one element at a time,
-    % since sosgetsol, which lpigetsol hands a cell to, cannot read them
+    % since sosgetsol cannot read them
     dvar_sol = cell(size(dvar));                % nested cells recurse here too
     for k = 1:numel(dvar)
         dvar_sol{k} = lpigetsol_sop(prog,dvar{k});

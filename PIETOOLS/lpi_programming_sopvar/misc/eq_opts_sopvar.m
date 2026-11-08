@@ -41,7 +41,7 @@ function [opts,report] = eq_opts_sopvar(Dop,opts,ztol)
 %            true on the nonzero cells of DOP, in linear cell order,
 %            direction 1 fastest).
 %
-% See also POSSOPVAR, GET_EQ_OPTS_2D, SETTINGS2POSSOPVAR, LPI_EQ_SDOPVAR.
+% See also POSSOPVAR, SETTINGS2POSSOPVAR, LPI_EQ_SDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -69,35 +69,30 @@ function [opts,report] = eq_opts_sopvar(Dop,opts,ztol)
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 09/21/2026: the negativity operator dominates the cost
-%                  of an LPI -- at two spatial variables its Gram is the
-%                  overwhelming majority of the program -- and most of its
-%                  basis is dead on arrival, because the operator being
-%                  cancelled has no content in the cells those blocks can
-%                  reach. Declaring them costs decision variables and
-%                  contributes only identically-zero equality rows. The
-%                  'opvar2d' path has 'get_eq_opts_2D' for this; 'sopvar'
-%                  had nothing.
-% MMP, 09/30/2026: The parameter-cell <-> gamma map (Sec. 1 and 4 of
-%                  sopvar_implementation_notes.pdf; direction 1 fastest)
-%                  and the multi-index enumerations
-%                  call the shared 'gamma_of_cell', 'cell_of_gamma' and
-%                  'multiindex_grid' (sopvar/misc/conventions); the locals
-%                  gamma_of and lin_of, and the kron loops of reach and
-%                  enum_alpha, are gone. The cell order is load-bearing: the
+% Initial coding MMP, 09/21/2026: at two spatial variables the Gram of the
+%                  negativity operator is most of the program, and a basis
+%                  operator whose diagonal reaches no nonzero cell of the
+%                  target adds decision variables and identically zero
+%                  equality rows only; this reads the support and drops them.
+% MMP, 09/30/2026: The cell <-> gamma map (Sec. 1 and 4 of
+%                  sopvar_implementation_notes.pdf; direction 1 fastest) and
+%                  the multi-index enumerations call the shared
+%                  'gamma_of_cell', 'cell_of_gamma' and 'multiindex_grid'
+%                  (sopvar/misc/conventions); the locals gamma_of and lin_of
+%                  and the kron loops of reach and enum_alpha are gone. The
 %                  'include' rows emitted here are read by 'copquadvar' and
-%                  'sopquadvar', so all three must enumerate alike; the
-%                  helper states that order once.
-%                  Same output on every input that ran before; at n3 = 0
-%                  (no shared variable) reach and enum_alpha now return
-%                  cell 1 and the empty multi-index where they errored.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), the name line of the licence block
-%                  added, step comments in the body and headers of the
-%                  local functions; code unchanged. The deleted header text
-%                  was the argument that a dropped block contributes
-%                  nothing, how the reach sets were found (by measurement)
-%                  and a comparison with 'get_eq_opts_2D'.
+%                  'sopquadvar', so all three enumerate alike. Same output as
+%                  before; at n3 = 0 reach and enum_alpha return cell 1 and
+%                  the empty multi-index where they errored.
+% MMP, 10/28/2026: Header to the header protocol, the name line of the
+%                  licence block, step comments in the body and headers of
+%                  the local functions; code unchanged. Deleted: the
+%                  argument that a dropped block contributes nothing, how
+%                  the reach sets were found and a comparison with
+%                  'get_eq_opts_2D'.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed,
+%                  references to the retired get_eq_opts_2D removed, what
+%                  lines for four local functions; code unchanged.
 
 % Defaults: OPTS struct(), ZTOL 1e-12; DOP an 'sopvar' or 'sdopvar'
 if nargin<2 || isempty(opts)
@@ -136,8 +131,7 @@ if ~any(sup)
 end
 
 % % % Directions in which Dop is already separable: the gamma_k=2 and
-% gamma_k=3 cells agree for every setting of the other indices. Same test as
-% 'get_eq_opts_2D', which reads it off Qop.R22.
+% gamma_k=3 cells agree for every setting of the other indices.
 % The directions OPTS.sep marks are separable without the test
 sepv = false(1,n3);
 if isfield(opts,'sep') && ~isempty(opts.sep)
@@ -204,12 +198,11 @@ end
 
 %%
 function C = reach(a,n3)
-% Linear cell indices the diagonal of block 'a' can populate:
-%   reach(a) = prod_k ({1} if a_k==1 else {2,3}).
-% MEASURED by declaring one block at a time; adjoining sends a lower
-% integral to an upper one, so an integral direction reaches both Volterra
-% cells and a multiplier direction only the delta cell. alpha_k = 4, the
-% full-domain integral, is an integral in this respect.
+% C = REACH(A,N3) returns the linear cell indices the diagonal of block A
+% can populate, reach(a) = prod_k ({1} if a_k==1 else {2,3}): adjoining
+% sends a lower integral to an upper one, so an integral direction reaches
+% both Volterra cells and a multiplier direction only the delta cell;
+% alpha_k = 4, the full-domain integral, is an integral in this respect.
 % INPUT  a:  1 x n3 'double', the multi-index alpha;
 %        n3: 'double', the number of variables.
 % OUTPUT C:  'double' column of linear cell indices.
@@ -238,8 +231,9 @@ end
 
 %%
 function A = enum_alpha(n3,sepv)
-% Admissible multi-indices: {1,2,3} in an ordinary direction and {1,4} in a
-% separable one, direction 1 varying fastest, matching 'possopvar'.
+% A = ENUM_ALPHA(N3,SEPV) returns the admissible multi-indices: {1,2,3} in
+% an ordinary direction and {1,4} in a separable one, direction 1 varying
+% fastest, matching 'possopvar'.
 % INPUT  n3:   'double', the number of variables;
 %        sepv: 1 x n3 'logical', the separable directions.
 % OUTPUT A:    'double', one multi-index per row, n3 columns.
@@ -268,8 +262,8 @@ end
 
 %%
 function m = cellmax(P,k)
-% Largest magnitude in cell k, over the constant part and every row of the
-% decision part.
+% M = CELLMAX(P,K) returns the largest magnitude in cell K, over the
+% constant part and every row of the decision part.
 % INPUT  P: 'sopvar' or 'sdopvar' object; k: 'double', a cell index.
 % OUTPUT m: 'double', 0 for a cell beyond the last.
 m = 0;
@@ -288,8 +282,9 @@ end
 
 %%
 function d = celldiff(P,k1,k2)
-% Largest magnitude of the difference between two cells. Cells of an
-% 'sopvar' share one global ZL/ZR, so they are directly comparable.
+% D = CELLDIFF(P,K1,K2) returns the largest magnitude of the difference
+% between cells K1 and K2; cells of an 'sopvar' share one ZL/ZR, so they
+% are directly comparable.
 % INPUT  P:      'sopvar' or 'sdopvar' object;
 %        k1, k2: 'double', two cell indices.
 % OUTPUT d:      'double'; for an 'sdopvar', the larger of the A and B

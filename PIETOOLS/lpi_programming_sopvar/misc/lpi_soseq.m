@@ -69,17 +69,17 @@ function prog = lpi_soseq(prog,C,Zd,pos)
 % authorship, and a brief description of modifications
 %
 % Initial coding MMP, 10/02/2026: replaces the soseq call of
-%                  'impose_eq_rows'. In the 3-D heatNd build each of its 11
-%                  soseq calls spent ~0.54 s in getequation matching the
-%                  2.7e6 program names against the expression's (5.9 s of
-%                  the 6.86 s getequation total, measured).
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body and the
-%                  INPUT and OUTPUT lines of the local function; code
-%                  unchanged. The deleted header text was the trace of what
-%                  soseq writes for this input, the reason for each case
-%                  passed to soseq, the case of names that differ in
-%                  trailing blanks, and cost figures against soseq.
+%                  'impose_eq_rows', whose getequation matched every program
+%                  name against the expression's on each call (most of the
+%                  3-D heatNd build time at 2.7e6 names).
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body
+%                  and the INPUT and OUTPUT lines of the local function;
+%                  code unchanged. Deleted: the trace of what soseq writes
+%                  for this input, the reason for each case passed to soseq,
+%                  the case of names that differ in trailing blanks, and
+%                  cost figures against soseq.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed, the
+%                  what line of table_rows; code unchanged.
 
 % Three inputs at least; ZD a column of q names; C with q+1 rows
 if nargin<3
@@ -136,9 +136,10 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pos,dup] = table_rows(dvt,Zd,C)
-% POS(i) = first row of the table DVT named Zd{i}; DUP true if a name that C
-% uses occurs twice in Zd. Errors on a name C uses that is not in the table,
-% as getequation does; names whose rows of C are zero are not needed.
+% [POS,DUP] = TABLE_ROWS(DVT,ZD,C) returns in POS(i) the first row of the
+% table DVT named Zd{i}, and DUP true when a name that C uses occurs twice
+% in Zd. Errors on a name C uses that is not in the table, as getequation
+% does; names whose rows of C are zero are not needed.
 % INPUT  dvt: prog.decvartable, a 'cellstr' or names that 'string'
 %             converts;
 %        Zd:  q x 1 'cellstr'; C: (q+1) x n 'double'.

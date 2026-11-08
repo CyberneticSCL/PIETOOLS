@@ -155,64 +155,51 @@ function [prog,Pop,Qcell,info] = poscopvar_direct(prog,dims,spaces,dom,deg,optio
 % If you modify this code, document all changes carefully and include date
 % authorship, and a brief description of modifications
 %
-% Initial coding MMP, 10/07/2026. The direct Gram-to-kernel map proposed
-%                after profiling 'copquadvar' (57% of its time in the
-%                symbolic product, the sheet conversion and the per-pair
-%                term objects) and the separated form (three operator
-%                objects on union bases, 34 GB in 3-D).
+% Initial coding MMP, 10/07/2026. The direct Gram-to-kernel map: 'copquadvar'
+%                spent most of its time in the symbolic product, the sheet
+%                conversion and the per-pair term objects, and the separated
+%                form held three operator objects on union bases (34 GB in
+%                3-D).
 % MMP, 10/08/2026: Single-direction box quadratics as term codes 2nv+2+d,
 %                offset lowering 'int' in that direction only, so the
-%                Markov-Lukacs tensor set (plain, g_d at w-1 in s_d, the
-%                product at w-1) can be compared with the 2N faces at w.
+%                Markov-Lukacs tensor set can be compared with the 2N faces.
 % MMP, 10/08/2026: Several Positivstellensatz terms in one call ('psatz' a
 %                row, 'psatz_offset' per term): one Gram per term, the maps
 %                shared where the index sets coincide, every term's map
 %                embedded in the union of the bases and summed on one
-%                decision list, so a sum of terms costs one block build and
-%                no container addition. For 'lpi_ineq_sop'. One term is
-%                unchanged (the same program, Qcell and info as before).
-% MMP, 10/17/2026: Spaces without a spatial variable (every space R^q, nv =
-%                0: the W on R^{n_w} or R^{n_z} of the H2 executives through
-%                poslpivar_sop -> poscopvar) errored in pos_map, found by
-%                the Posopvar session's chain test: the stride vector of a
-%                one-row exponent grid had a stray entry, and the Kronecker
-%                product over directions indexed a third dimension of size
-%                zero. Both now read the empty direction set as one Gram
-%                position mapped to one coefficient with weight 1; the map
-%                is then the Gram itself, block by block, as copquadvar
-%                builds it. Nothing changes when nv >= 1.
+%                decision list. For 'lpi_ineq_sop'. One term is unchanged.
+% MMP, 10/17/2026: Spaces without a spatial variable (nv = 0, the W on R^q
+%                of the H2 executives) errored in pos_map: the stride vector
+%                of a one-row exponent grid had a stray entry, and the
+%                Kronecker product over directions indexed an empty third
+%                dimension. Both read the empty direction set as one Gram
+%                position mapped to one coefficient with weight 1. Nothing
+%                changes when nv >= 1.
 % MMP, 10/21/2026: options.estimate: the Gram dimension of every term and
 %                the decision variables of the call, from the grids the
-%                build uses, returned before any declaration. LPI_INEQ_SOP
-%                prints them before it builds (maintainer: lpi_ineq_sop
-%                always estimates the decision variables needed).
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                inputs, outputs), step comments in the body and headers
-%                of the local functions; code unchanged. The deleted
-%                header text was the comparison with copquadvar, the
-%                references to poscopvar and copquadvar for the inputs,
-%                the reason for the cache rule of the fast path, a test
-%                name and the cost note; the 1-D table of the map is in
-%                the header of dir_list. The help text of the 10/21/2026
-%                entry is in the entries of options.estimate and of the
-%                outputs, without markers.
+%                build uses, returned before any declaration (LPI_INEQ_SOP
+%                prints them before it builds).
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body
+%                and headers of the local functions; code unchanged.
+%                Deleted: the comparison with copquadvar, references to
+%                poscopvar and copquadvar for the inputs, the reason for the
+%                cache rule of the fast path, a test name and the cost note;
+%                the 1-D table of the map is in the header of dir_list.
 % MMP, 10/29/2026: A 'subset' degree array moves with a Psatz offset instead
 %                of being refused (reduce_spec; act_of replaces ng_of):
 %                every subset bound falls by the offset of each direction
 %                in which the term's weight acts whose theta lies in the
 %                subset, the smallest shift under which the term reaches no
-%                kernel monomial outside the plain term's (the 'joint' rule
-%                already in place, applied per subset). Asked by the Repo
-%                cleanup session for per-direction caps on the 'like' slack
-%                of the N-D executives (its prototype lpi_ineq_capped, rule
-%                A). Measured 10/29/2026 on the 2-D heat PIE at caps read
-%                from T plus 2: the gains of the rules agree to 7e-6, no
-%                shift adds 4-10% equality rows, a shift in every lowered
-%                direction saves 8-13% Gram entries at the same rows.
-%                Programs without a subset array are unchanged (six
-%                fingerprints before and after, scratch fp_regress).
+%                kernel monomial outside the plain term's (the 'joint' rule,
+%                per subset). For per-direction caps on the 'like' slack of
+%                the N-D executives; on the 2-D heat PIE the gains of the
+%                rules agree to 7e-6 and the shift saves 8-13% Gram entries
+%                at the same rows. Programs without a subset array are
+%                unchanged.
 % MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
 %                LPIPROGRAM_SOP is retired.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed;
+%                code unchanged.
 
 % The cache of position maps; 'clear' empties it
 persistent CACHE
@@ -912,7 +899,7 @@ for c = 1:Nb
     % monomial index on the target grid from the exponent row, 0 if absent.
     % The stride vector has one entry per exponent column: with no spatial
     % variable (every space R^q) it is EMPTY, and the one-row grid maps to
-    % index 1; cumprod([1,rng(1:end-1)]) gave a stray entry there.         % MMP, 10/17/2026
+    % index 1; cumprod([1,rng(1:end-1)]) gave a stray entry there.          % MMP, 10/17/2026
 %   rng = [PL(c,:)+1, JL(c,ok)+1];      stL{c} = cumprod([1,rng(1:end-1)]); % MMP, 10/17/2026 (was)
     rng = [PL(c,:)+1, JL(c,ok)+1];      st = cumprod([1,rng]);  stL{c} = st(1:numel(rng)); % MMP, 10/17/2026
     tlL{c} = zeros(prod(rng),1);        tlL{c}(1+ELt{c}*stL{c}(:)) = (1:TL(c))';
@@ -1004,7 +991,7 @@ for k = 1:M
         cp = cps(jc);
         % With no spatial variable the Kronecker product over directions is
         % empty: one Gram position (the constant) maps to one coefficient,
-        % weight 1 (Td has no third dimension to index then).              % MMP, 10/17/2026
+        % weight 1 (Td has no third dimension to index then).               % MMP, 10/17/2026
 %       T = Td{ic,jc,1};    rsz(1) = size(T,1);    csz(1) = size(T,2);      % MMP, 10/17/2026 (was)
         if nv==0,   T = sparse(1);                                          % MMP, 10/17/2026
         else,       T = Td{ic,jc,1};    rsz(1) = size(T,1);    csz(1) = size(T,2); % MMP, 10/17/2026

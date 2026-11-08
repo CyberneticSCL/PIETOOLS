@@ -41,7 +41,8 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % prog.decvartable, and OPTS other than 'symmetric' are errors. To impose
 % P == Q, call LPI_EQ_SDOPVAR(PROG,P-Q).
 %
-% See also LPI_EQ, LPI_EQ_NDOPVAR, POSSOPVAR, SOSEQ, SDOPVAR.
+% See also LPI_EQ_SOP, LPI_EQ_CDOPVAR, LPI_EQ_NDOPVAR, POSSOPVAR, SOSEQ,
+%          SDOPVAR.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
 
@@ -70,118 +71,61 @@ function prog = lpi_eq_sdopvar(prog,P,opts)                                 % MM
 % authorship, and a brief description of modifications
 %
 % MMP, 08/28/2026: Initial coding
-% MMP, 08/29/2026: Drop the multiplier contraction. The canonical multiplier
-%                  form is now a class invariant, enforced by the 'sdopvar'
-%                  constructor, so the stored coefficients are determined by
-%                  the operator and can be constrained directly. What remains
-%                  is a selection of the positions the form allows to be
-%                  nonzero, which is pure indexing.
-% MMP, 09/26/2026: Name handling in O(q) per call removed from the hot path.
-%                  (1) Use P.Zd and prog.decvartable as they are when they are
-%                  already cellstr, instead of a cellstr(string(.)) round trip
-%                  over q names each; (2) optional 4th input lets
-%                  'lpi_eq_cdopvar' skip the membership check for blocks whose
-%                  list it has already verified; (3) hand soseq only the
-%                  decision variables a parameter uses, so sosconstr's
-%                  combine/compress no longer sort all q names per call.
-%                  Measured, 2-D container Hinf build (q = 7.6e5, 6 calls,
-%                  14 soseq): the check and conversions took 3.7 s and
-%                  combine/compress 1.6 s; same program, bit for bit.
-% MMP, 09/26/2026: Membership check by one unique over [table; names]
-%                  instead of ismember(names,table). The reverse scan
-%                  getequation took today (ismember(table,names)) does not
-%                  help here: the names are half the table (3.8e5 of 7.6e5),
-%                  so both sides are large; measured 261 vs 275 ms. The
-%                  unique route, same process vs HEAD: 2-D Hinf 411 -> 212
-%                  ms, q = 1e6 over 3 variables 461 -> 191 ms; peak +8 MB
-%                  at 1.1e6 names (6.5 -> 14.5 MB). A single name keeps
-%                  ismember (a strcmp there). Same verdict, same error.
-% MMP, 09/26/2026: One soseq per ~q nonzeros instead of one per parameter.
-%                  Every soseq scans all q names of prog.decvartable in
-%                  getequation (ismember(decvartable,dvarname)), and each
-%                  call hashes its names again. Measured, 2-D container Hinf
-%                  (q = 7.6e5): 14 calls, 28 ms fixed each (1-entry soseq),
-%                  738k names hashed for a 3.8e5 list; soseq 1.74 of the
-%                  2.29 s of S6b. The parameters' columns are now collected
-%                  in the old call order and imposed as row dpvars joined up
-%                  to q nonzeros each (impose_rows). A second output returns
-%                  them unimposed and P = that output imposes them, so
-%                  'lpi_eq_cdopvar' joins all its blocks. The cap, not one
-%                  soseq for everything: soseq holds ~9 copies of its input,
-%                  so one uncapped call peaked at 3.4x the per-parameter
-%                  memory. Measured 2-D Hinf, q = 7.6e5 / 2.3e6, old -> new:
-%                  2.2 -> 1.1 s / 9.5 -> 5.0 s; peak 90 -> 138 MB / 291 ->
-%                  447 MB (stock lpi_eq_2d 1.5 s, 174 MB / 6.3 s, 540 MB).
-%                  Item (3) of the first 09/26 entry now applies per soseq:
-%                  the names used by any of its parameters. prog.expr has
-%                  fewer, longer entries; the At, b, c, K sossolve builds
-%                  are bit-identical, row order included. Cost: soseq calls
-%                  ~ nnz/q + name-list changes, instead of the parameter
-%                  count (3^n3 per block, multiplicative in dimension);
-%                  memory ~9 x 16 B x min(q + largest parameter, nnz) per
-%                  soseq plus one 16 B/nnz copy of the collected blocks.
-%                  Measured in 1-D and 2-D only.
-% MMP, 09/30/2026: The gamma of parameter k and the cell of its adjoint
-%                  (direction 1 fastest; Sec. 1 and 4 of
-%                  sopvar_implementation_notes.pdf) come from the
-%                  shared 'gamma_of_cell' and 'cell_of_gamma'
-%                  (sopvar/misc/conventions) instead of ind2sub/sub2ind over
-%                  sz_C, a map several files wrote locally. Same integers;
-%                  3.5 us less per parameter (4.2 -> 0.75 us per call,
-%                  measured standalone).
-% MMP, 09/30/2026: One routine per mode. The signature is the public one
-%                  again, prog = lpi_eq_sdopvar(prog,P,opts): collect the
-%                  rows ('collect_eq_rows'), impose them ('impose_eq_rows'),
-%                  both moved verbatim to lpis_sopvar/private. A second
-%                  output used to mean "collect, do not impose" and a struct
-%                  P "impose only", a switch invisible at the call site in
-%                  'lpi_eq_cdopvar', which now calls the two directly. So
-%                  the 09/26/2026 entries' 4th input, second output and
-%                  batch form (and their help, 13 lines stamped 09/26/2026)
-%                  are no longer here; the check, the cap and the row order
-%                  they describe hold in the private routines. Same program
-%                  bit for bit (tr_ab, 91 SDP leaves over w1-w3).
-% MMP, 10/02/2026: NOTES: the joined rows are written by 'lpi_soseq', not
-%                  soseq (see 'impose_eq_rows'); no code change here. The
-%                  second 09/26/2026 entry's cost model (each soseq scans
-%                  all q names; ~9 copies per soseq) and the 09/30/2026
-%                  "soseq calls are unchanged" now describe only the soseq
-%                  fallback; by default each batch costs O(nnz) and ~80 B
-%                  per nonzero (lpi_soseq), the batches unchanged.
-% MMP, 10/16/2026: moved, with private/, from sopvar/lpis_sopvar/ to
-%                  lpi_programming_sopvar/; 'lpis_sopvar' in the 09/30/2026
-%                  entry and BEGIN block now reads lpi_programming_sopvar.
-%                  The help text names the new folder. Code unchanged.
-% MMP, 10/21/2026: moved to lpi_programming_sopvar/misc/ and the private
-%                  helpers to misc/private/: the folder root keeps the user
-%                  functions only. The help text and the locations above
-%                  read accordingly. Code unchanged.
-% MMP, 10/28/2026: Header to the header protocol (what the function does,
-%                  inputs, outputs), step comments in the body; code
-%                  unchanged. The deleted header text was the comparison
-%                  with 'lpi_eq', the argument that constraining the
-%                  canonical coefficients is exact, and notes, with their
-%                  (was) lines, on the joined prog.expr entries and on the
-%                  private routines that do the work. The (was) lines of
-%                  the earlier signatures moved from under the function
-%                  line to here, so that help starts with the description:
+% MMP, 08/29/2026: The multiplier contraction dropped: the canonical
+%                  multiplier form is a class invariant (the 'sdopvar'
+%                  constructor), so the stored coefficients are determined
+%                  by the operator and are constrained directly, at the
+%                  positions the form allows.
+% MMP, 09/26/2026: Name handling off the hot path: P.Zd and prog.decvartable
+%                  used as cellstr without conversion, membership by one
+%                  unique over [table; names], soseq handed only the names a
+%                  parameter uses, and one soseq per ~q nonzeros instead of
+%                  one per parameter (the parameters' columns collected in
+%                  the old order and imposed as joined row dpvars; the cap
+%                  bounds the transient of soseq, which holds ~9 copies of
+%                  its input). Same program bit for bit; measured in 1-D and
+%                  2-D (2-D H-infinity, q = 7.6e5: 2.2 -> 1.1 s).
+% MMP, 09/30/2026: The gamma of a parameter and the cell of its adjoint from
+%                  the shared 'gamma_of_cell' and 'cell_of_gamma'
+%                  (sopvar/misc/conventions). One routine per mode: the
+%                  collection ('collect_eq_rows') and the imposition
+%                  ('impose_eq_rows') moved verbatim to private helpers, and
+%                  the 4th input, second output and struct-P batch form of
+%                  09/26/2026, through which 'lpi_eq_cdopvar' reached them,
+%                  are gone; it calls the two directly. Same program bit for
+%                  bit. Earlier signatures:
 % function [prog,Eq] = lpi_eq_sdopvar(prog,P,opts,dvars_checked)            % MMP, 09/26/2026 % MMP, 09/30/2026 (was)
 % function prog = lpi_eq_sdopvar(prog,P,opts,dvars_checked)                 % MMP, 09/26/2026 (was)
 % function prog = lpi_eq_sdopvar(prog,P,opts)                               % MMP, 09/26/2026 (was)
+% MMP, 10/02/2026: Help only: the joined rows are written by 'lpi_soseq',
+%                  not soseq (see 'impose_eq_rows'); each batch costs O(nnz)
+%                  and ~80 B per nonzero.
+% MMP, 10/16/2026: Moved, with private/, from sopvar/lpis_sopvar/ to
+%                  lpi_programming_sopvar/; 10/21/2026 to its misc/ (helpers
+%                  to misc/private/). Code unchanged.
+% MMP, 10/28/2026: Header to the header protocol, step comments in the body;
+%                  code unchanged. Deleted: the comparison with 'lpi_eq',
+%                  the argument that constraining the canonical coefficients
+%                  is exact, and notes on the joined prog.expr entries and
+%                  the private routines.
 % MMP, 11/01/2026: Help only: 'collect_eq_rows' drops the equations that
 %                  are multiples of another, and the description says so.
 % MMP, 11/04/2026: Help only: PROG comes from LPIPROGRAM; LPIPROGRAM_SOP
 %                  is retired.
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): log condensed
+%                  (measurements to one figure), See also without the
+%                  retired lpi_eq, the BEGIN note names misc/private; code
+%                  unchanged.
 
 
-% BEGIN MMP, 09/30/2026: the three modes split. Deleted here, moved verbatim
-% to lpis_sopvar/private: the input checks and the collection loop (lines
-% stamped MMP 08/28, 08/29, 09/26 and 09/30/2026) with the local function
+% BEGIN MMP, 09/30/2026: the three modes split. Moved verbatim to
+% misc/private: the input checks and the collection loop (lines stamped MMP
+% 08/28, 08/29, 09/26 and 09/30/2026) with the local function
 % canonical_positions, to 'collect_eq_rows'; the local function impose_rows
 % (MMP, 09/26/2026), to 'impose_eq_rows'. Deleted outright: the batch-form
 % branch for a struct P and the nargout switch (MMP, 09/26/2026), through
 % which 'lpi_eq_cdopvar' reached the two halves; it now calls them itself.
-% Collect, then impose: the rows and the soseq calls are unchanged.
+% Collect, then impose: the rows are unchanged.
 if nargin<3,    opts = [];      end                                         % MMP, 09/30/2026
 % The equations of P, every name of P.Zd checked against prog
 Eq = collect_eq_rows(prog,P,opts,false);                                    % MMP, 09/30/2026

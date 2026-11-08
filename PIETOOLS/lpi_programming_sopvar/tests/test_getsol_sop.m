@@ -27,7 +27,8 @@ function R = test_getsol_sop(parts)
 %   (ii)  The stability LPI of CX_PIE2PDESTABILITY (T'*Q - P = 0, D + N = 0
 %         with D = A'*Q + Q'*A + epneg*P, P and N positive, Q free) for
 %         x_t = x_ss + pi^2/2 x, x(0) = x(1) = 0 (CX_PLANT('rd',0.5)), at
-%         lpisettings('light') with MOSEK. The solve has pinf = numerr = 0,
+%         lpisettings_sop('light') with MOSEK. The solve has pinf = numerr =
+%         0,
 %         the equality residual rel_b on solinfo.RRx at most 1e-6, and Gram
 %         eigenvalues at least -1e-8 times the largest. The extracted P, Q,
 %         D, N pass verify and agree bit for bit across the three routines.
@@ -60,7 +61,7 @@ function R = test_getsol_sop(parts)
 %         ('getsol_lpivar_sop:notSolved').
 %   (iv)  The H-infinity gain LPI for x_t = x_ss + pi^2/2 x + w,
 %         z = int_0^1 x ds, x(0) = x(1) = 0, w in L2[0,1] (CX_PLANT('io1')),
-%         at lpisettings('light') with MOSEK: gamma a 'dpvar' decision
+%         at lpisettings_sop('light') with MOSEK: gamma a 'dpvar' decision
 %         variable, gamma >= 0, minimized; T'*Q - R = 0 with R positive and
 %         Q free; N + K = 0 with N positive, for the KYP operator
 %           K = [-gamma*I, Dzw', Bw'*Q; Dzw, -gamma*I, Cz;
@@ -161,6 +162,10 @@ function R = test_getsol_sop(parts)
 %                  program holds a named 'dpvar' instead of a 'dopvar2d'.
 %                  LPIGETSOL, GETSOL_LPIVAR, POSLPIVAR, LPIVAR and the opvar
 %                  classes are retired (cleaning/private). Help: (iii), (iv).
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
+%                  lpisettings_sop with cx_settings, a (was) comment line
+%                  removed, a note on the "legacy gamma" reworded; code
+%                  unchanged.
 
 % Default: all four parts; one part given as char
 if nargin<1 || isempty(parts),  parts = {'i','ii','iii','iv'};  end
@@ -726,7 +731,7 @@ assert(r.numerr==0 && r.pinf==0 && r.rel_b<=1e-6 && r.psd_relmin>=-1e-8,'(iv) so
 g = double(lpigetsol_sop(sol,gam));         % dpvar: SOSGETSOL              % MMP, 11/08/2026
 Ks = getsol_lpivar_sop(sol,Km);     Qs = getsol_lpivar_sop(sol,Qm);     Rs = getsol_lpivar_sop(sol,Rm);
 assert(isa(Ks,'copvar') && isa(Qs,'copvar') && isa(Rs,'copvar'),'(iv) not fixed')
-% Km at the solution, rebuilt from the legacy gamma and the extracted Q.
+% Km at the solution, rebuilt from the extracted gamma and Q.
 Kf = [(-g)*Iw, Dzw', Bw'*Qs;  Dzw, (-g)*Iz, Cz;  Qs'*Bw, Cz', Am'*Qs + Qs'*Am];
 % The extracted K against the rebuilt K on test functions
 F = test_funcs(Ks,ntest);   G = out_grid(Ks,nqo);
@@ -755,7 +760,6 @@ end
 
 
 % ========================================================================
-% (iii) dispatch against legacy lpigetsol                                   % MMP, 11/08/2026 (was)
 % (iii) dispatch of lpigetsol_sop, getsol_lpivar_sop and subs_dvar_sop      % MMP, 11/08/2026
 % ========================================================================
 function out = part_iii()

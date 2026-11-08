@@ -10,9 +10,9 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 %           [ D_zw,    -gam*I_z, C_z      ]  <= 0,  i.e. K + N = 0, N >= 0,
 %           [ Q'B_w,   C_z',     A'Q + Q'A]
 %
-% on an lpiprogram program: gam from lpidecvar, gam >= 0 by lpi_ineq;
+% on an lpiprogram program: gam from lpidecvar, gam >= 0 by lpi_ineq_sop;
 % R and N the positive operators of the 'lf' and 'slack' settings of
-% lpisettings(LEVEL) (poslpivar_settings_sop); Q free (lpivar_cdopvar at
+% lpisettings_sop(LEVEL) (poslpivar_settings_sop); Q free (lpivar_cdopvar at
 % the degrees get_lpivar_degs_sop reads off R); I_w, I_z from
 % eye_copvar_sop; the two equalities by lpi_eq_sop, the second
 % 'symmetric'. It solves the LPI with MOSEK, extracts gam, Q, R, N, K and
@@ -47,8 +47,8 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 %           plant with Tw = 0; default {'io1'}, the PIE of
 %           u_t = u_ss + 0.5 pi^2 u + w(s) on [0,1], u(0) = u(1) = 0,
 %           z = int_0^1 u ds;
-% - level:  (optional) 'char', the name of the LPI settings (lpisettings);
-%           default 'light'.
+% - level:  (optional) 'char', the name of the LPI settings
+%           (lpisettings_sop); default 'light'.
 %
 % OUTPUT
 % - out:    'struct' with fields gam and gam_stock ('double', the container
@@ -122,6 +122,7 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 %                The (was) line of the former signature moved here from
 %                under the function line, so that help starts with the
 %                description:
+% function out = hinf_gain_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 % MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
 %                extra input forms (names, containers) only filled fields that
 %                container routines do not read, is retired.
@@ -136,7 +137,11 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 % MMP, 11/08/2026: gam >= 0 by LPI_INEQ_SOP, which imposes a 'dpvar' by
 %                SOSINEQ as LPI_INEQ did; LPI_INEQ is retired
 %                (cleaning/private).
-% function out = hinf_gain_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
+% MMP, 11/08/2026: Comment pass (maintainer, 11/08/2026): the help names
+%                lpi_ineq_sop and lpisettings_sop (the settings cx_settings
+%                returns since 11/08/2026), a (was) comment line removed,
+%                the (was) signature line back under the 10/28/2026 entry;
+%                code unchanged.
 
 % Defaults; no warnings for non-canonical multipliers; settings with
 % MOSEK; the PIE, 1-D with Tw = 0; a check asserts with one identifier
@@ -151,7 +156,6 @@ if PIE.dim~=1 || ~(PIE.Tw==0)
 end
 chk = @(c,varargin) assert(c,'hinf_gain_1d_sop:check',varargin{:});
 
-% % % Stock executive, unmodified.                                          % MMP, 11/07/2026 (was)
 % % % Stock executive: its bound and SDP shape for {'io1'} at 'light',      % MMP, 11/07/2026
 % recorded 11/07/2026 at e6319ace, MOSEK 11.0.30, by PIETOOLS_Hinf_gain     % MMP, 11/07/2026
 % without its pie_struct check on pie2opvar(PIE); NaN otherwise.            % MMP, 11/07/2026
