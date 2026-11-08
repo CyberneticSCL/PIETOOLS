@@ -1,136 +1,99 @@
 function [prog,H] = build_l2gain_1d(PIE,st,dual)                            % CC, 09/23/2026
-% BUILD_L2GAIN_1D  1-D Hinf-gain (L2-gain) LPI, returning OPERATOR HANDLES.
+% [PROG,H] = BUILD_L2GAIN_1D(PIE,ST,DUAL) assembles, without solving, the KYP
+% LPI of PIETOOLS_Hinf_gain_sop, form 'Q' (DUAL false) or 'Qd' (DUAL true),
+% with the stock negativity slack, for the L2 gain gam from w to z of the PIE
 %
-% Same LPI as executives/PIETOOLS_Hinf_gain.m (dual = false) and
-% PIETOOLS_Hinf_gain_dual.m (dual = true), minus the solve.
+%       T x_t = A x + B1 w,      z = C1 x + D11 w:
 %
-% WHY THIS EXECUTIVE IS WORTH ADAPTING.  Three reasons, all structural:
-%  (a) the example library publishes reference gamma values, so a certificate
-%      can be scored on ACCURACY (gamma against the reference) instead of on a
-%      binary gate -- which is what a benchmark for solver changes needs;
-%  (b) gamma is a free scalar decision variable, so the program has Kf > 0.
-%      restrict_solve and bm_resid both plumb a free block and neither has
-%      ever been exercised with one (restrict_solve.m's own comment: "Kf = 0
-%      in every program this package builds");
-%  (c) on a face the restricted problem becomes min gamma s.t. M s = b,
-%      S >= 0 -- a genuine tiny SDP with an objective.  The feasibility
-%      restriction has no objective to pin its solution, which is why
-%      restrict_solve has to take a sign-free determined solve and then
-%      project onto the PSD cone; with an objective that hack is unnecessary.
+%   'Q'   R >= 0,  T'*Q = R,
+%         [-gam I, D11', B1'*Q; D11, -gam I, C1; Q'*B1, C1', A'*Q + Q'*A] + N = 0;
+%   'Qd'  R >= 0,  T*Q = R,
+%         [-gam I, D11, C1*Q; D11', -gam I, B1'; Q'*C1', B1, Q'*A' + A*Q] + N = 0;
 %
-% SOUNDNESS IS UNCHANGED, AND IT IS AN UPPER BOUND.  Restricting to a face can
-% only lose feasible points, so any S >= 0 satisfying the restricted system
-% gives a feasible point of the original LPI, hence a valid UPPER bound on the
-% true optimal gamma.  A face that fails says nothing about the true gamma.
+% with R the positive storage operator, Q a free operator and N >= 0 the stock
+% slack (degrees dd2, dd3, psatz flag override2). gam is a decision variable
+% with gam >= 0 and the objective min gam, or the number ST.gamfix, which
+% makes the LPI a feasibility test at that gain.
 %
-% THE LAYOUT TRAP THIS EXECUTIVE EXPOSES.  lpivar(prog,Top.dim,Qdeg) stores Qop
-% as 'poly' entries in sos.var, INTERLEAVED between the 'sos' Gram blocks.
-% MEASURED on Ex_Transport_Eq_with_Disturbance at 'light':
-%   x(1) gam free | x(2..101) sos N=10 | x(102..144) poly free | x(145..433)
-%   sos N=17 | x(434..497) sos N=8.
-% raw_data's contiguous model returns Kf=1, Ns=[10 17 8] and so accounts for
-% 454 of 497 coordinates.  Use pielr_rawdata, which reads the map from the
-% program.  lpi_ineq(prog,gam) also produces an expr of type 'ineq' that
-% raw_data would concatenate as an equality, pinning gamma instead of
-% bounding it; pielr_rawdata separates those too.
+% INPUT
+% - PIE:   'pie_struct' object of a 1-D PIE with 'copvar' (or 'opvar')
+%          operators T, A, B1, C1, D11 and Tw = 0;
+% - st:    'struct' of LPI settings as returned by lpisettings_sop: dd1,
+%          dd12, options1, options12, override1 (storage), dd2, dd3,
+%          options2, options3, override2 (slack); sosineq_on, if present,
+%          must be 0; gamfix (optional) 'double', a fixed gain;
+% - dual:  (optional) logical, true for form 'Qd' (default false).
+% OUTPUT
+% - prog:  'struct', the unsolved LPI program;
+% - H:     'struct' with fields Top, Aop, Bwop, Czop, Dzwop ('copvar', T, A,
+%          B1, C1, D11), Iw, Iz ('copvar' identities on w and z), Rop
+%          ('cdopvar', R), Qop ('cdopvar', Q), Dop ('cdopvar', the KYP
+%          operator), Deop ('cdopvar', the slack N), gam ('dpvar', or
+%          'double' with ST.gamfix), dual, st, PIE.
 %
-% INPUT   PIE  pie_struct with T, A, Bw, Cz, Dzw (PIE.dim == 1)
-%         st   1-D settings struct, as lpisettings(...) returns
-%         dual optional, default false
-% OUTPUT  prog unsolved LPI program
-%         H    .Top .Aop .Bwop .Czop .Dzwop .Iw .Iz .Rop .Qop .Dop .Deop
-%              .gam .dual .st .PIE
+% CHANGE LOG
+% CC, 09/23/2026: initial coding, on opvar/poslpivar/lpivar/lpi_eq/lpi_ineq
+%   (executives PIETOOLS_Hinf_gain and PIETOOLS_Hinf_gain_dual).
+% CC, 09/24/2026: ST.gamfix, a numeric gain substituted for the decision
+%   variable.
+% CC, 11/08/2026: rewritten on the container LPI layer, the setup and the
+%   'Q'/'Qd' assemble of PIETOOLS_Hinf_gain_sop with the stock slack branch;
+%   opvar, poslpivar, lpivar, lpi_eq and lpi_ineq left the path (f83486c8,
+%   433980d7). The opvar body of 09/23/2026 and 09/24/2026 is deleted.
 
+% BEGIN CC, 11/08/2026: container build (replaces the opvar body, 09/23/2026
+% and 09/24/2026)
 if nargin<3 || isempty(dual), dual = false; end
-PIE = initialize(PIE);
-Top = PIE.T;    Twop = PIE.Tw;
-Aop = PIE.A;    Bwop = PIE.Bw;
-Czop = PIE.Cz;  Dzwop = PIE.Dzw;
-
-% The executive silently reroutes to the coercive variant when there is a
-% disturbance at the boundary, which is a DIFFERENT LPI with a different
-% residual expression.  Refuse instead of adapting the wrong one.
-if ~(Twop==0)
+% A disturbance at the boundary makes the executive pose form 'P' instead,
+% a different LPI with a different residual: refuse rather than mis-adapt
+if ~(PIE.Tw==0)
     error('build_l2gain_1d:Tw', ...
-        ['PIE.Tw is nonzero (disturbance at the boundary).  ' ...
-         'PIETOOLS_Hinf_gain reroutes this case to PIETOOLS_Hinf_gain_coercive, ' ...
-         'a different LPI; adapt that one rather than using this builder.']);
+        ['PIE.Tw is nonzero (disturbance at the boundary): PIETOOLS_Hinf_gain_sop ' ...
+         'poses form ''P'' there, a different LPI than this builder.']);
 end
+% The operator gate needs the equality route: sosineq_on poses no slack N
 if isfield(st,'sosineq_on') && st.sosineq_on
     error('build_l2gain_1d:sosineq', ...
-          'sosineq_on=1 has no Deop slack; the operator gate needs the equality route.');
+          'sosineq_on=1 has no slack operator; the operator gate needs the equality route.');
 end
-
+% Container PIE, completed settings, storage/slack builders, plant operators
+PIE = exec_pie_sop(PIE);
+st  = exec_sop_settings(st);
+tl  = exec_tools_sop(PIE,st);    st.sop = tl.sop;
+Tm  = PIE.T;     Am = PIE.A;
+Bw  = PIE.B1;    Cz = PIE.C1;    Dzw = PIE.D11;
+Iw  = tl.ident(PIE.B1,2);    Iz = tl.ident(PIE.C1,1);
+% gam: a decision variable with gam >= 0 and min gam, or the fixed number
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
-% GAMFIX: build with a NUMERIC gamma, turning the optimisation into a pure
-% feasibility test.  PIETOOLS_Hinf_gain documents this route itself ("a
-% specific gain test specified by defining a specific desired value of gamma
-% ... results in a feasibility test instead of an optimization problem").
-%
-% WHY IT MATTERS, measured by the parallel cuADMM session on this same
-% executive and plant family: with the objective active the interior-point
-% solve reaches rel_b 2.058e-07 (light) / 1.523e-07 (heavy), while bisection
-% at fixed gamma on the same programs reaches 3.3e-08 to 7.8e-08 -- about an
-% ORDER OF MAGNITUDE better equality residual for a gamma agreeing to 1.9e-05.
-% With c = 0 the dual condition A'y + z = c is trivially satisfiable and the
-% gap is ~0 for free, so the solver spends its effort on primal feasibility;
-% with c nonzero the iterates trade feasibility against optimality.
-%
-% Substituting rather than pinning by an appended row: pinning would leave
-% the gamma >= 0 cone block and the objective in the data while making that
-% block redundant, and redundant equality rows are a known conditioning
-% hazard in this stack.  Substitution removes the block instead.  Note b then
-% DEPENDS on gamma (Dop carries -gam*Iw and -gam*Iz as constant blocks), so
-% each fixed-gamma program is differently scaled -- harmless for a relative
-% residual, misleading if absolute residuals are compared across a bracket.
 if isfield(st,'gamfix') && ~isempty(st.gamfix)
-    gam = st.gamfix;                 % a plain number: no decvar, no objective
+    gamv = st.gamfix;
 else
-    dpvar gam;
-    prog = lpidecvar(prog, gam);
-    prog = lpi_ineq(prog, gam);      % expr of type 'ineq'; see header
-    prog = lpisetobj(prog, gam);
+    [prog,gamv] = lpidecvar(prog,'gam');
+    prog = lpi_ineq_sop(prog,gamv);
+    prog = lpisetobj(prog,gamv);
 end
-
-% ---- positive operator Rop, and the free operator Qop it couples to ------
-[prog, R1op] = poslpivar(prog, Top.dim, st.dd1, st.options1);
-if st.override1~=1
-    [prog, P2op] = poslpivar(prog, Top.dim, st.dd12, st.options12);
-    Rop = R1op + P2op;
-else
-    Rop = R1op;
-end
-Qdeg = get_lpivar_degs(Rop,Top);
-[prog, Qop] = lpivar(prog,Top.dim,Qdeg);
+% Storage R >= 0 (no margin in the 'Q' forms), Q free, coupling T'Q = R (or TQ = R)
+[prog,Rm] = tl.storage(prog,Tm,'out');
+[sp,dm] = copvar_space_list(Tm,'out');
+[prog,Qm] = lpivar_cdopvar(prog,dm,sp,tl.dom,get_lpivar_degs_sop(Rm));
 if ~dual
-    prog = lpi_eq(prog, Top'*Qop-Rop);        % PIETOOLS_Hinf_gain
+    prog = lpi_eq_sop(prog,Tm'*Qm-Rm);
+    Km = [-(gamv*Iw),   Dzw',       Bw'*Qm;
+           Dzw,         -(gamv*Iz), Cz;
+           Qm'*Bw,      Cz',        Am'*Qm + Qm'*Am];
 else
-    prog = lpi_eq(prog, Top*Qop-Rop);         % PIETOOLS_Hinf_gain_dual
+    prog = lpi_eq_sop(prog,Tm*Qm-Rm);
+    Km = [-(gamv*Iz),   Dzw,        Cz*Qm;
+           Dzw',        -(gamv*Iw), Bw';
+           Qm'*Cz',     Bw,         Qm'*Am' + Am*Qm];
 end
-
-% ---- the negativity block -----------------------------------------------
-Iw = mat2opvar(eye(size(Bwop,2)), Bwop.dim(:,2), PIE.vars, PIE.dom);
-Iz = mat2opvar(eye(size(Czop,1)), Czop.dim(:,1), PIE.vars, PIE.dom);
-if ~dual
-    Dop = [-gam*Iw,       Dzwop',     Bwop'*Qop;
-            Dzwop,        -gam*Iz,    Czop;
-            Qop'*Bwop,    Czop'       Aop'*Qop+Qop'*Aop];
-else
-    Dop = [-gam*Iz,       Dzwop,     Czop*Qop;
-            Dzwop',       -gam*Iw,   Bwop';
-            Qop'*Czop',   Bwop,      Qop'*Aop'+Aop*Qop];
-end
-
-[prog, De1op] = poslpivar(prog, Dop.dim, st.dd2, st.options2);
-if st.override2~=1
-    [prog, De2op] = poslpivar(prog, Dop.dim, st.dd3, st.options3);
-    Deop = De1op + De2op;
-else
-    Deop = De1op;
-end
-prog = lpi_eq(prog,Deop+Dop,'symmetric');
-
-H.Top=Top; H.Aop=Aop; H.Bwop=Bwop; H.Czop=Czop; H.Dzwop=Dzwop;
-H.Iw=Iw;   H.Iz=Iz;   H.Rop=Rop;   H.Qop=Qop;   H.Dop=Dop;  H.Deop=Deop;
-H.gam=gam; H.dual=dual; H.st=st;   H.PIE=PIE;
+% Km <= 0 through the stock slack: Km + N = 0 with N >= 0 of dd2/dd3/override2
+[prog,Nm] = tl.slack(prog,Km);
+prog = lpi_eq_sop(prog,Nm+Km,'symmetric');
+% Handles for the operator gate (pielr_lpi l2g_resid)
+H.Top = Tm;     H.Aop = Am;     H.Bwop = Bw;    H.Czop = Cz;    H.Dzwop = Dzw;
+H.Iw = Iw;      H.Iz = Iz;      H.Rop = Rm;     H.Qop = Qm;
+H.Dop = Km;     H.Deop = Nm;    H.gam = gamv;
+H.dual = dual;  H.st = st;      H.PIE = PIE;
+% END CC, 11/08/2026
 end

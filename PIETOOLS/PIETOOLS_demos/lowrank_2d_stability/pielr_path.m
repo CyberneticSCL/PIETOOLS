@@ -63,8 +63,15 @@ end
 % free functions only: class methods (clean_opvar, convert, ...) live under
 % @class folders, which the '@' filter below excludes because a method cannot
 % shadow calls on other types
-need = {'poslpivar_2d','lpi_eq_2d','pde_var','get_eq_opts_2D','lpiprogram', ...
-        'lpigetsol','monomials','sortrows_integerTable'};
+% need = {'poslpivar_2d','lpi_eq_2d','pde_var','get_eq_opts_2D','lpiprogram', ...
+%         'lpigetsol','monomials','sortrows_integerTable'};                 % CC, 11/08/2026 (was)
+% The container functions the builders and the gate call; the stock
+% opvar-path functions left the path (f83486c8, 433980d7) and asserting them
+% stopped every caller with "0 copies".
+need = {'pde_var','lpiprogram','lpi_eq_sop','lpi_ineq_sop', ...
+        'lpivar_cdopvar','getsol_lpivar_sop','lpisolve', ...
+        'exec_pie_sop','exec_sop_settings','exec_tools_sop', ...
+        'lpisettings_sop','monomials','sortrows_integerTable'};             % CC, 11/08/2026
 own  = {'pielr_certify','pielr_certify_pos','pielr_tensor', ...        % CC, 09/19/2026
         'set2d_deg','nb_rd2d','build_stab_2d_st2', ...                 % CC, 09/19/2026
         'pielr_solve','pielr_bench','pielr_bench_cases', ...           % CC, 09/23/2026

@@ -89,9 +89,10 @@ function S = pielr_settings(tier,dim)                                      % CC,
 %    3    ON                2    heavy     both levers
 %
 % POINCARE is sized differently and gets its own sub-struct: that LPI comes
-% through lpi_ineq, whose degrees are set by degbalance(P) from the operator
-% rather than by any preset, so the only knobs are the psatz flag and a bump
-% on the balanced degree.  S.poincare.psatz / S.poincare.dbump carry them.
+% through lpi_ineq_sop, which sizes the lift from the support of the        % CC, 11/08/2026
+% operator rather than from any preset, so the only knobs are the psatz     % CC, 11/08/2026
+% flag and a raise of the weight degree (dw = 1 + dbump; degbalance left    % CC, 11/08/2026
+% the path).  S.poincare.psatz / S.poincare.dbump carry them.               % CC, 11/08/2026
 %
 % OUTPUT  S  a settings struct usable as pielr_solve's opts.settings, with
 %            S.poincare attached for the Poincare adapter and S.tier recorded.
@@ -107,7 +108,11 @@ switch tier
     case 3, base = 'heavy';     Dup = 2;  psatz = 1;
 end
 
-S = lpisettings(base);
+% lpisettings_sop: the container presets; their storage degrees and margins
+% equal lpisettings' (measured, all 8 base fields read here), plus the .sop
+% options the container LPI layer reads.  lpisettings is leaving the path.
+% S = lpisettings(base);                                                    % CC, 11/08/2026 (was)
+S = lpisettings_sop(base);                                                  % CC, 11/08/2026
 S.sos_opts.simplify = false;
 % PIN THE SOLVER.  sossolve takes the first solver on the path and mosekopt
 % leads its list, so an unset sos_opts.solver silently selects Mosek --
@@ -130,7 +135,10 @@ n4 = n2 + n3;
 S.dd2 = {n1+Dup,   [n2+Dup-1, n3+Dup,   n4+Dup],   [n2+Dup-1, n3+Dup,   n4+Dup]};
 S.dd3 = {n1+Dup-1, [n2+Dup-2, n3+Dup-1, n4+Dup-1], [n2+Dup-2, n3+Dup-1, n4+Dup-1]};
 
-% Poincare: psatz flag plus a bump on degbalance's own degrees
+% Poincare: psatz flag plus a bump on degbalance's own degrees              % CC, 11/08/2026 (was)
+% Poincare: psatz flag plus a raise of lpi_ineq_sop's weight degree.  Tier  % CC, 11/08/2026
+% 0 (psatz 'none') poses a cone proved empty for every degree and gam       % CC, 11/08/2026
+% (09/28/2026); a pass there is a gate false positive (BENCH.md sec. 11).   % CC, 11/08/2026
 S.poincare = struct('psatz',psatz,'dbump',max(0,tier-1));
 
 % BM BUDGET SCALES WITH THE TIER, and this is the number a caller most needs.

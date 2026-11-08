@@ -16,6 +16,25 @@ function [m,npar] = pielr_maxop(X)                                          % CC
 % The 1-D R field is a STRUCT, not a cell, so it needs its own branch: an
 % opvar's properties() returns 'R' once, and its three sub-fields are leaves.
 
+% BEGIN CC, 11/08/2026: a 'copvar' (substituted container): the largest
+% |coefficient| over every parameter of every 'sopvar' block of X.C.  A block
+% holding [] is structurally zero and has no parameters.  No enumeration
+% assert: the block cell and the parameter cells are walked whole, so a
+% block or multi-index cannot be skipped the way a hard-coded field list can.
+if isa(X,'copvar')
+    m = 0;  npar = 0;
+    for i = 1:numel(X.C)
+        B = X.C{i};
+        if isempty(B),  continue,  end
+        for k = 1:numel(B.params)
+            v = B.params{k};
+            if ~isempty(v),  m = max(m,full(max(abs(v(:)))));  end
+            npar = npar + 1;
+        end
+    end
+    return
+end
+% END CC, 11/08/2026
 if isa(X,'opvar') || isa(X,'dopvar')
     nprop_want = 4;   nleaf_want = 6;    skip = {'I','var1','var2','dim','dimdependent'};
 elseif isa(X,'opvar2d') || isa(X,'dopvar2d')

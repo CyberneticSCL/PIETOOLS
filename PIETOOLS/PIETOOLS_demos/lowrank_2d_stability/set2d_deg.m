@@ -27,7 +27,10 @@ function s2d = set2d_deg(Dup,dmult)
 % CC, 09/27/2026: also see set2d_psatz4, which wraps this to add the four
 %   linear face generators; it inherits this eppos.
 if nargin<2, dmult = []; end
-s2d = settings_PIETOOLS_light_2D();
+% The 2-D storage of the container 'light' preset: equal to
+% settings_PIETOOLS_light_2D(), which is leaving the path.
+% s2d = settings_PIETOOLS_light_2D();                                       % CC, 11/08/2026 (was)
+s2d = lpisettings_sop('light');   s2d = s2d.settings_2d;                    % CC, 11/08/2026
 if ~isempty(dmult)
     % the (1,1) cell is the multiplier direction in BOTH x and y; raising it is
     % what makes R22{1,1} non-constant

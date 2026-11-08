@@ -905,3 +905,126 @@ returned solution. Those are not the same kind of object, and for the objective 
 low-rank point is scored against the *pinned* system of its trial (D plus the appended γ row)
 rather than against D. Both are the system each point was actually found against, which is the
 right choice, but the table is not a like-for-like comparison of two solvers' outputs.
+
+---
+
+## 11. The port to the container classes (11/08/2026)
+
+`opvar/`, `lpi_programming/` and `executives/` left the MATLAB path on 11/08 (f83486c8), the
+stock `lpi_ineq` and `lpigetsol` with them (433980d7), and `lpisettings`/`settings_PIETOOLS_*`
+are next. Every builder in this package called them. The port poses the same LPIs on `copvar`
+and `cdopvar` operators.
+
+### What the builders now pose
+
+| builder | transcribes | forms |
+|---|---|---|
+| `build_stab_1d` (1-D and 2-D) | assemble step of `PIETOOLS_stability_sop` | `'P'`, `'Pd'` |
+| `build_l2gain_1d` | assemble step of `PIETOOLS_Hinf_gain_sop` | `'Q'`, `'Qd'` |
+| `build_poincare_1d` | `lpi_ineq_sop` on γ H₁'H₁ − H₂'H₂ | – |
+
+Each builder copies the executive's assemble step with the **stock** slack (`tl.slack`, reading
+`dd2`, `dd3`, `override2`), not the container default `'like'`, which ignores those fields and
+would collapse the tier ladder. Calling the executive itself would cost an interior-point solve:
+`lpi_solve_loop_sop` builds and solves in one call, so the reference would run before the
+low-rank arm saw the program. A build-only switch there would remove the transcription; that
+code belongs to the executives' owners.
+
+The rest: `lpisettings_sop` replaces `lpisettings` (equal on all 8 base fields read here);
+`lpisettings_sop('light').settings_2d` replaces `settings_PIETOOLS_light_2D`; the gate
+recomposes the stability operator on containers (`stab_resid`) and reads container coefficients
+(`pielr_evalop`, `pielr_maxop`); `pielr_path` asserts the container functions; and
+`pielr_bench_cases` follows the library signature `(index,GUI,params)` of 840864ec, so
+`lib-beam-eb` passes index 13.
+
+### Stability: same verdicts, fewer rows
+
+All 11 runnable 1-D/DDE stability cases certify, as before; on the 10 compared, BM returns the
+banked ranks (`lib-beam-eb` certifies at rel_op 2.85e-11, rank not compared). m now lies in
+[rankA, m stock]: the container equality writer drops verified-redundant rows (e3a1f667), which
+removes upstream part of the rank deficiency §10 measured. Gram block sizes are unchanged.
+
+| case | m stock | m port | rankA |
+|---|---|---|---|
+| rd1d-lam0.5 | 59 | 56 | 55 |
+| rd1d-lam0.9 | 59 | 56 | 55 |
+| rd1d-n2 | 236 | 216 | 210 |
+| advdiff1d | – | 56 | – |
+| advdiff1d-dual | 61 | 58 | 55 |
+| lib-transport | 53 | 53 | 53 |
+| lib-beam-eb | 212 | 205 | 203 |
+| dde-scalar | 61 | 61 | 61 |
+| dde-2state | 71 | 70 | 70 |
+| dde-2delay | 227 | 220 | 218 |
+| dde-2state-dual | 248 | 240 | 237 |
+
+2-D, `rd2d-deg3-f010`: m 3311 (stock 3456), Gram blocks [8 424], build 5.0 s. The SeDuMi
+reference certifies (rel_op 8.16e-07, 139 s); one rank-1 BM attempt stagnates at 4.35e-02 in
+23 s. 2-D stands where §9 left it: the reference certifies and the low-rank arm does not.
+
+### Objective LPIs, tier 2
+
+Ratio = low-rank bound / interior-point bound on the same program.
+
+| case | m stock | m port | ratio stock | ratio port |
+|---|---|---|---|---|
+| gain-heat-dist | 146 | 143 | 1.0003 | 1.00003 |
+| gain-transport-dual | 131 | 130 | 1.0019 | 1.00195 |
+| gain-transport | 130 | 129 | 1.0015 | 1.00122 |
+| gain-reacdiff | 160 | 149 | 1.0004 | **0.99963** |
+
+**gain-reacdiff at tier 2 is a gate false positive.** The low-rank bound 8.2108 lies below the
+reference 8.21388 (Mosek; SeDuMi stops at 8.20744 but fails the gate at rel_op 1.42e-05, so
+`'best'` keeps Mosek). A low-rank restriction can only raise an optimum, so one of the two points
+is wrong. Fixed-γ feasibility solves of the same program, judged by the same gate:
+
+| γ | SeDuMi rel_op | SeDuMi feasratio | Mosek rel_op | Mosek feasratio |
+|---|---|---|---|---|
+| 8.2108 (low-rank) | 8.36e-06 | −0.70 | 9.15e-06 | −0.86 |
+| 8.2120 | 4.52e-06 | −0.55 | 4.28e-06 | −0.95 |
+| 8.21388 (reference) | 6.41e-06 | 0.72 | **4.30e-07** | 0.18 |
+| 8.2200 | **8.17e-08** | 1.11 | **3.36e-07** | 3.69 |
+
+At the low-rank γ neither solver comes within 9× of the gate and both report negative feasratio
+(as `sossolve` returns it; pinf is 0 in every row, so no Farkas certificate). The low-rank point
+passes at 9.70e-07. The bisection parked γ where a residual first fell below 1e-6, the same
+defect as Poincaré tier 0 below and the tier-0/3 rows of §9. Before the port this cell gave
+1.0004 at m 160. The measurements do not separate two possible causes of the change – a shift
+in the gate edge and a different BM path on the reduced row set.
+
+### Poincaré: a different program, and a tier-0 false positive
+
+`lpi_ineq_sop` sizes the lift from the support of the operator and raises the weight degree by
+`dw = 1 + dbump`, with the psatz term one weight degree lower; the stock route used
+`degbalance(P)` plus `dbump` on every slot. The programs differ, so the tiers do not map one to
+one. Ratio = √γ / (1/π):
+
+| tier | psatz | Gram blocks | m | ratio stock | ratio port |
+|---|---|---|---|---|---|
+| 0 | off | 12 | 27 | fail | 22.42 (false positive) |
+| 1 | on | [12 6] | 27 | 1.3414 | 1.2185 |
+| 2 | on | [18 12] | 39 | 1.0001 | 1.00012 |
+| 3 | on | [24 18] | 51 | 1.0001 | 1.00015 |
+
+**Tier 0 passes the gate on an empty cone.** With the psatz term off, the cone is Σ Λᵢ'Λᵢ over
+PI operators Λᵢ, and γ H₁'H₁ − H₂'H₂ lies outside it for every degree and every γ (proved
+09/28/2026). The low-rank arm nonetheless returns ok at √γ = 7.14, with rel_op 9.95e-07 against
+the 1e-6 gate. On the same program the interior-point reference fails (rel_op 4.06e-05 at
+γ = 17.8), and a fixed-γ feasibility solve at γ = 100 ends in SeDuMi numerr 1 with neither
+infeasibility flag set – no Slater point, so the solver cannot return a Farkas certificate. The
+bisection parked γ where the BM residual first fell below the gate. The bound 7.14 exceeds 1/π,
+but no certificate stands behind it. This is the gate defect of §9 (no residual threshold makes
+γ bisection sound), not a defect of the port; before the port, tier 0 failed outright.
+
+Tier 3 lands 2.8e-5 (relative) above tier 2; not investigated.
+
+### What does not run
+
+- `lib-wave-damped`: the PDE-to-PIE converter fails at `extract_static_constraints:2638`
+  ("Unrecognized field name 'vars'"), reproduced outside this package. Converter code; not
+  patched here.
+- Not ported; each calls retired functions (MATLAB `exist` scan, 11/08): `build_stab_2d_st2`
+  (no caller left), `pielr_certify`, `pielr_certify_pos`, `private/opcheck_2d`,
+  `private/opcheck_pos2d`, `private/pielr_evalgram`, `demo_poincare_2d`, `tests_1d/*`, and the
+  2-D gain and Poincaré adapters in `pielr_lpi`.
+- The banked 2-D rows of §9 and §10 predate both the 09/27 eppos change and this port.

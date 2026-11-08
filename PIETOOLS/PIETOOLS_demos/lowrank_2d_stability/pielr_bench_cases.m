@@ -52,7 +52,7 @@ C = add(C,'lib-transport','1d-pde','stability','light',1, ...
 C = add(C,'lib-heat-ode-das','1d-pde','stability','light',1, ...
     @() lib_pie('PIETOOLS_PDE_Ex_Heat_Eq_with_ODE_Das'), 'PDE coupled to an ODE: nonzero n0 block');
 C = add(C,'lib-beam-eb','1d-pde','stability','heavy',1, ...
-    @() lib_pie('PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq'), 'fourth order; the Example-21 family where max|Dop| collapsed');
+    @() lib_pie('PIETOOLS_PDE_Ex_Euler_Bernoulli_Beam_Eq',13), 'fourth order; the Example-21 family where max|Dop| collapsed'); % CC, 11/08/2026
 C = add(C,'lib-wave-damped','1d-pde','stability','light',1, ...
     @() lib_pie('PIETOOLS_PDE_Ex_Wave_Eq_Boundary_Damped'), 'second order in time');
 
@@ -143,11 +143,16 @@ sys = [diff(phi,t,1)==diff(phi,s,2)+c*diff(phi,s,1)+lam*phi;
 PIE = convert(sys);
 end
 
-function PIE = lib_pie(fname)
+% function PIE = lib_pie(fname)                                             % CC, 11/08/2026 (was)
+function PIE = lib_pie(fname,idx)                                           % CC, 11/08/2026
 % The example FILES are called directly: examples_PDE_library_PIETOOLS ends in
 % an unguarded input() prompt (line 976) and cannot be driven non-interactively.
+% IDX: the library index, for example files whose signature is
+% (index,GUI,params) since 840864ec (the Euler-Bernoulli beam: 13 selects the
+% states u_t, u_ss this case was built on, 13.2 the states u, u_t).
 f = str2func(fname);
-[PDE,~] = f(0,{});
+% [PDE,~] = f(0,{});                                                        % CC, 11/08/2026 (was)
+if nargin(f)==3,  [PDE,~] = f(idx,0,{});  else,  [PDE,~] = f(0,{});  end    % CC, 11/08/2026
 PDE = initialize_PIETOOLS_PDE(PDE,true);
 PIE = convert(PDE,'pie');
 end

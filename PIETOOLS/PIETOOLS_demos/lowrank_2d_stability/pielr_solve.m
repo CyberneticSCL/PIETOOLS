@@ -153,9 +153,11 @@ if ~isempty(opts.gate_eta),  A.gate.eta_tol = opts.gate_eta;  end           % CC
 PIE = pielr_norm_pie(PIE);
 dim = pielr_pie_dim(PIE);
 if isempty(opts.settings)
-    if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings('light'); end
+%   if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings('light'); end % CC, 11/08/2026 (was)
+    if dim==2, opts.settings = set2d_deg(4,[]); else, opts.settings = lpisettings_sop('light'); end % CC, 11/08/2026
 elseif ischar(opts.settings) || isstring(opts.settings)
-    opts.settings = lpisettings(char(opts.settings));
+%   opts.settings = lpisettings(char(opts.settings));                       % CC, 11/08/2026 (was)
+    opts.settings = lpisettings_sop(char(opts.settings));                   % CC, 11/08/2026
 end
 
 notes = {};
