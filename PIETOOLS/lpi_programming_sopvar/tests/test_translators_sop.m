@@ -82,6 +82,12 @@ function R = test_translators_sop()
 % MMP, 11/04/2026: Programs declared by LPIPROGRAM; LPIPROGRAM_SOP, whose
 %                extra input forms (names, containers) only filled fields that
 %                container routines do not read, is retired.
+% MMP, 11/08/2026: Settings from lpisettings_sop (was the stock lpisettings,
+%                whose folder leaves the path); the preset loop of (iv)
+%                covers the same six names, 'extreme' now a tier there.
+% MMP, 11/08/2026: (iv) Z2, Z3 excluded: GET_LPIVAR_DEGS_SOP now returns
+%                max(deg2-1,0), so the check expects 0 and compares with the
+%                stock degrees floored at 0 (the stock rule gives -1).
 
 % No warnings for non-canonical multipliers; seed; s1 on [0,1]; check
 % counter
@@ -104,7 +110,8 @@ for no = 1:5
     assert(tf,'(i) poslpivar_sop nargout %d differs at %s',no,where);    n = n+1;
 end
 % poslpivar_settings_sop ('lf') against the two poslpivar terms
-st = lpisettings('custom');
+% st = lpisettings('custom');                                               % MMP, 11/08/2026 (was)
+st = lpisettings_sop('custom');                                             % MMP, 11/08/2026
 st.override1 = 0;   st.override2 = 0;           % both second terms declared
 [pa,Pa] = poslpivar_settings_sop(pl,[1 1;1 1],st,'lf');
 [pb,P1] = poslpivar(pl,[1 1;1 1],st.dd1,st.options1);
@@ -169,7 +176,8 @@ end
 for pk = {{'io1'},{'rd',0.5}}
     PIE = cx_plant(pk{1}{:});   T = PIE.T;  Tm = opvar2copvar(T);
     for ps = {'stripped','light','heavy','veryheavy','extreme','custom'}
-        st6 = lpisettings(ps{1});   e2 = st6.eppos2;
+%       st6 = lpisettings(ps{1});   e2 = st6.eppos2;                        % MMP, 11/08/2026 (was)
+        st6 = lpisettings_sop(ps{1});   e2 = st6.eppos2;                    % MMP, 11/08/2026
         p0 = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
         [~,Rop] = poslpivar_settings_sop(p0,T.dim,st6,'lf');
         [~,Ro] = poslpivar_settings_sop(p0,Tm,st6,'lf','out',PIE.dom);
@@ -188,8 +196,10 @@ end
 [~,R0l] = poslpivar(pl,[1;1],1,struct('exclude',[0 0 1 1]));
 Tl = opvar();  Tl.dim = [1 1;1 1];  Tl.I = dom;     % get_lpivar_degs needs an opvar T
 q0 = get_lpivar_degs_sop(R0);
-assert(isequal(q0,full(get_lpivar_degs(R0l,Tl))) && q0(3)==-1, ...
-       '(iv) Z2, Z3 excluded: stock %s, container %s (expected deg2 = 0 -> -1)',mat2str(full(get_lpivar_degs(R0l,Tl))),mat2str(q0));
+% assert(isequal(q0,full(get_lpivar_degs(R0l,Tl))) && q0(3)==-1, ...
+%        '(iv) Z2, Z3 excluded: stock %s, container %s (expected deg2 = 0 -> -1)',mat2str(full(get_lpivar_degs(R0l,Tl))),mat2str(q0)); % MMP, 11/08/2026 (was)
+assert(isequal(q0,max(full(get_lpivar_degs(R0l,Tl)),0)) && q0(3)==0, ...
+       '(iv) Z2, Z3 excluded: stock %s, container %s (expected deg2 = 0 -> 0)',mat2str(full(get_lpivar_degs(R0l,Tl))),mat2str(q0)); % MMP, 11/08/2026
 n = n+1;
 
 % % % (v) trace against its definition

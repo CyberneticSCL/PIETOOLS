@@ -63,11 +63,14 @@ function test_executives_sop(quick)
 %                stock PIETOOLS_Hinf_gain and PIETOOLS_H2_norm_c fail at
 %                their first poslpivar call (Top.dim); the test ended there,
 %                before parts (c) and (d).
+% MMP, 11/08/2026: Settings lpisettings_sop('light') (was the stock
+%                lpisettings('light'), whose folder leaves the path).
 
 % Settings, solver and messages; counter of passed checks
 if nargin<1,    quick = true;   end
 warning('off','sopvar:noncanonicalMultiplier');  warning('off','sdopvar:noncanonicalMultiplier');
-st = lpisettings('light');
+% st = lpisettings('light');                                                % MMP, 11/08/2026 (was)
+st = lpisettings_sop('light');                                              % MMP, 11/08/2026
 if ~isempty(which('mosekopt')),     st.sos_opts.solver = 'mosek';   end
 st.sop.verbose = false;
 n = 0;

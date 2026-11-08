@@ -81,10 +81,16 @@ function st = settings_sopvar_heavy()
 %                gains within 0.15% of exact (measured 10/29); in 3-D its
 %                slack is about 9-10 M Gram entries (estimated), past MOSEK
 %                on this workstation.
+% MMP, 11/08/2026: Storage degrees from STORAGE_HEAVY and
+%                STORAGE_STRIPPED_2D in settings_sopvar/private, copies of
+%                the stock levels with the values unchanged: the tier calls
+%                no file outside settings_sopvar.
 
 % Storage degrees (see the header).
-st = settings_PIETOOLS_heavy();
-st.settings_2d = settings_PIETOOLS_stripped_2D();
+% st = settings_PIETOOLS_heavy();                                           % MMP, 11/08/2026 (was)
+% st.settings_2d = settings_PIETOOLS_stripped_2D();                         % MMP, 11/08/2026 (was)
+st = storage_heavy();                                                       % MMP, 11/08/2026
+st.settings_2d = storage_stripped_2D();                                     % MMP, 11/08/2026
 % Margins of the positive operator in the gain, norm and synthesis LPIs;
 % stability and well-posedness take sop.eppos_stab instead.
 st.eppos = 1e-4;    st.eppos2 = 1e-4;   st.epneg = 0;

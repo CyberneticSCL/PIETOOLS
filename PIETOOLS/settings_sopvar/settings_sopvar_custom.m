@@ -62,12 +62,23 @@ function st = settings_sopvar_custom()
 %                dimension [1-D 2-D 3-D]. max_raise_feas in 2-D follows
 %                light (1, was 2: the second 2-D raise certified nothing in
 %                the 10/28 baseline).
+% MMP, 11/08/2026: Storage degrees from STORAGE_LIGHT and STORAGE_LIGHT_2D
+%                in settings_sopvar/private, copies of the stock light
+%                levels with the values unchanged: the tier calls no file
+%                outside settings_sopvar. The comment below names those
+%                copies.
 
-% Storage degrees: any stock level, 1-D (settings_PIETOOLS_<level>: dd1,
-% dd12, options1, options12, ddZ) and 2-D (settings_PIETOOLS_<level>_2D:
-% LF_deg, LF_opts, Zop_deg, ...), or those fields edited.
-st = settings_PIETOOLS_light();
-st.settings_2d = settings_PIETOOLS_light_2D();
+% Storage degrees: any stock level, 1-D (settings_PIETOOLS_<level>: dd1,    % MMP, 11/08/2026 (was)
+% dd12, options1, options12, ddZ) and 2-D (settings_PIETOOLS_<level>_2D:    % MMP, 11/08/2026 (was)
+% LF_deg, LF_opts, Zop_deg, ...), or those fields edited.                   % MMP, 11/08/2026 (was)
+% Storage degrees: a level in settings_sopvar/private, 1-D (storage_light,  % MMP, 11/08/2026
+% _heavy, _veryheavy: dd1, dd12, options1, options12, ddZ) and 2-D          % MMP, 11/08/2026
+% (storage_light_2D, _stripped_2D, _heavy_2D: LF_deg, LF_opts, Zop_deg,     % MMP, 11/08/2026
+% ...), or those fields edited.                                             % MMP, 11/08/2026
+% st = settings_PIETOOLS_light();                                           % MMP, 11/08/2026 (was)
+% st.settings_2d = settings_PIETOOLS_light_2D();                            % MMP, 11/08/2026 (was)
+st = storage_light();                                                       % MMP, 11/08/2026
+st.settings_2d = storage_light_2D();                                        % MMP, 11/08/2026
 % Margins: eppos (R^n), eppos2 (L2) in 1-D, one per space of R x L2[s1] x
 % L2[s2] x L2[s1,s2] in 2-D, for the gain, norm and synthesis LPIs.
 st.eppos = 1e-4;    st.eppos2 = 1e-4;   st.epneg = 0;

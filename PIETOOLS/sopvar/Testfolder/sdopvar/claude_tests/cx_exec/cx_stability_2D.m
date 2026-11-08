@@ -22,6 +22,10 @@ function prog = cx_stability_2D(PIE,st)
 %   cx_stability_eq_opts_2D applies its rules to the cdopvar Q.
 %
 % Initial coding MMP, 09/25/2026
+% MMP, 11/08/2026: Default 2-D settings from lpisettings_sop('light') (was
+%                the stock preset settings_PIETOOLS_light_2D, whose folder
+%                leaves the path): its settings_2d holds the same fields,
+%                plus eppos and epneg, which are set below as before.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -30,7 +34,8 @@ end
 PIE = initialize(PIE);
 % Settings, lines 56-117.
 if nargin==1
-    st = settings_PIETOOLS_light_2D;
+%   st = settings_PIETOOLS_light_2D;                                        % MMP, 11/08/2026 (was)
+    st = lpisettings_sop('light');  st = st.settings_2d;                    % MMP, 11/08/2026
     st.sos_opts.simplify = 1;
     st.eppos = 1e-2*ones(4,1);  st.epneg = 0;
 elseif ~isfield(st,'is2D') || ~st.is2D

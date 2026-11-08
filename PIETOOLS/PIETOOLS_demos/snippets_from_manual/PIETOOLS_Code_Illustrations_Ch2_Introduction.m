@@ -50,6 +50,8 @@
 % YP, 02/23/2026: Update inputs and outputs to PIESIM
 % DJ (CC), 10/29/2026: Call lpiscript_sop instead of lpiscript, whose
 %                   executives do not support the new pie_struct;
+% MMP, 11/08/2026: Settings lpisettings_sop('heavy') (was the stock
+%                   lpisettings('heavy'), whose folder leaves the path);
 clear
 
 
@@ -149,7 +151,8 @@ ax2.YLim = [-0.6,0.8];
 PIE = convert(odepde,'pie');
 
 % Verify stability of the system by runnig the stability executive.
-settings = lpisettings('heavy');    % use heavy settings: more expensive but less conservative
+% settings = lpisettings('heavy');    % use heavy settings: more expensive but less conservative % MMP, 11/08/2026 (was)
+settings = lpisettings_sop('heavy');  % heavy: more expensive, less conservative  % MMP, 11/08/2026
 %   lpiscript(PIE,'stability',settings);                                    % DJ (CC), 10/29/2026 (was)
 lpiscript_sop(PIE,'stability',settings);                                    % DJ (CC), 10/29/2026
 

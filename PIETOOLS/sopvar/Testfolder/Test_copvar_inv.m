@@ -26,6 +26,8 @@ function Test_copvar_inv(quick)
 %                (getController, getObserver, opvar algebra), and the gains
 %                are checked to be 'copvar'. Before, the stock getController
 %                errored on the container P ('isvalid').
+% MMP, 11/08/2026: (d) settings lpisettings_sop('light') (was the stock
+%                lpisettings('light'), whose folder leaves the path).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin<1,    quick = true;   end
 warning('off','sopvar:noncanonicalMultiplier');
@@ -104,7 +106,8 @@ Pm = opvar2copvar(Pc);   Pinv = inv(Pm);
 n = check(n,norm(full(Pinv.C{1,1}.params{1})-inv([2 1;0 3]))<1e-14,'pure matrix on R^2');
 % (d) the executives
 if ~quick
-    st = lpisettings('light');
+%   st = lpisettings('light');                                              % MMP, 11/08/2026 (was)
+    st = lpisettings_sop('light');                                          % MMP, 11/08/2026
     if ~isempty(which('mosekopt')),     st.sos_opts.solver = 'mosek';   end
     st.sop.verbose = false;
     pvar t

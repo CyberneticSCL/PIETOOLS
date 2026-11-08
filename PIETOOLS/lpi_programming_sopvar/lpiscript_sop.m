@@ -76,6 +76,9 @@ function [prog_sol, varargout] = lpiscript_sop(PIE,lpi,opts)
 %                settings name raises an error listing the accepted ones
 %                (LPISCRIPT passes it to lpisettings, whose list lacks the
 %                container tiers).
+% MMP, 11/08/2026: 'extreme' goes to the new tier of lpisettings_sop (was
+%                the stock lpisettings, whose folder leaves the path), so
+%                every settings name is a container tier.
 
 % Three inputs, as LPISCRIPT
 if nargin<3
@@ -98,16 +101,18 @@ if ~isa(lpi,'function_handle')
 end
 
 % The settings: a struct as given, a level by name (the container tiers of
-% lpisettings_sop; 'extreme', which they lack, from lpisettings), or the
-% light tier
+% lpisettings_sop; 'extreme', which they lack, from lpisettings), or the    % MMP, 11/08/2026 (was)
+% light tier                                                                % MMP, 11/08/2026 (was)
+% lpisettings_sop, 'extreme' included), or the light tier                   % MMP, 11/08/2026
 if isempty(opts)
     opts = lpisettings_sop('light');
 elseif isa(opts,'string') || isa(opts,'char')
     opts = char(opts);
-    if ismember(opts,{'stripped','light','heavy','veryheavy','custom'})
+%   if ismember(opts,{'stripped','light','heavy','veryheavy','custom'})     % MMP, 11/08/2026 (was)
+    if ismember(opts,{'extreme','stripped','light','heavy','veryheavy','custom'}) % MMP, 11/08/2026
         opts = lpisettings_sop(opts);
-    elseif strcmp(opts,'extreme')
-        opts = lpisettings(opts);
+%   elseif strcmp(opts,'extreme')                                           % MMP, 11/08/2026 (was)
+%       opts = lpisettings(opts);                                           % MMP, 11/08/2026 (was)
     else
         error("Settings should be one of 'stripped', 'light', 'heavy', 'veryheavy', 'custom' or 'extreme'.")
     end

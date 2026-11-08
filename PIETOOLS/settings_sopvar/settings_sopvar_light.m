@@ -89,11 +89,17 @@ function st = settings_sopvar_light()
 %                solved here; two coupled fields give m 166,572 (stability),
 %                past MOSEK on this workstation. In 2-D this setting gives
 %                gains 36-39% above exact; cap_delta 1 gives 0.13-0.15%.
+% MMP, 11/08/2026: Storage degrees from STORAGE_LIGHT and STORAGE_LIGHT_2D
+%                in settings_sopvar/private, copies of the stock light
+%                levels with the values unchanged: the tier calls no file
+%                outside settings_sopvar.
 
 % Storage degrees: the stock light levels, read by poslpivar_settings_sop
 % (1-D) and poslpivar_settings_2d_sop (2-D).
-st = settings_PIETOOLS_light();
-st.settings_2d = settings_PIETOOLS_light_2D();
+% st = settings_PIETOOLS_light();                                           % MMP, 11/08/2026 (was)
+% st.settings_2d = settings_PIETOOLS_light_2D();                            % MMP, 11/08/2026 (was)
+st = storage_light();                                                       % MMP, 11/08/2026
+st.settings_2d = storage_light_2D();                                        % MMP, 11/08/2026
 % Margins of the positive operator in the gain, norm and synthesis LPIs;
 % stability and well-posedness take sop.eppos_stab instead.
 st.eppos = 1e-4;    st.eppos2 = 1e-4;   st.epneg = 0;

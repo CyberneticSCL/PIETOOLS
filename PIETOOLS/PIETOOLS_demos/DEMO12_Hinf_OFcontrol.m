@@ -58,6 +58,9 @@
 %                 5.6129 was below the closed-loop gain 5.6150. hinfsyn at
 %                 RelTol 1e-7: the default 1e-2 returned gamma up to 1% above
 %                 the optimum, which put it above the certified PIE bound.
+% MMP 11/08/2026: Settings lpisettings_sop('light') for the synthesis and
+%                 the closed-loop analysis (was the stock lpisettings('light'),
+%                 whose folder leaves the path).
 
 clear; clc; clear stateNameGenerator
 
@@ -80,7 +83,8 @@ PIE = convert(PDE,'pie');
 %% Synthesize the controller
 % The positivity margins eppos of the operators R and V of the LPI are taken
 % small: the free operators Q and U rescale R and V.
-settings = lpisettings('light');
+% settings = lpisettings('light');                                          % MMP, 11/08/2026 (was)
+settings = lpisettings_sop('light');                                        % MMP, 11/08/2026
 settings.eppos = 1e-7;      settings.eppos2 = 1e-7;
 % [prog,Kc,gam] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings);                % MMP, 11/05/2026 (was)
 [prog,Kc,gam,info] = PIETOOLS_Hinf_OFcontrol_sop(PIE,settings);             % MMP, 11/05/2026
@@ -97,7 +101,8 @@ fprintf('\nThe LPI certifies a closed-loop H-infinity bound gam = %.4f.\n',gam);
 % operators carry factors of T, so the storage is declared with higher
 % degrees than the default.
 PIEcl = closedLoopPIE(PIE,Kc,'dynamic');
-settings_an = lpisettings('light');
+% settings_an = lpisettings('light');                                       % MMP, 11/08/2026 (was)
+settings_an = lpisettings_sop('light');                                     % MMP, 11/08/2026
 settings_an.dd1 = {4,[6 6 6],[6 6 6]};
 settings_an.eppos = 1e-6;   settings_an.eppos2 = 1e-6;
 % settings_an.sop.witness = false;                                          % MMP, 11/05/2026 (was)

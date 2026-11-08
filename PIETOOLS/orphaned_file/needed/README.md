@@ -7,14 +7,17 @@ Files of the folders retired to `cleaning/private/` on 11/08/2026 (`lpi_programm
 under its original subpath, so `git mv orphaned_file/needed/<path> <path>` restores it. Each name
 has one definition on the path.
 
-| File | Called by |
-|---|---|
-| `settings/lpisettings.m` | the container executives `PIETOOLS_*_sop` (default settings), `PIETOOLS_auto_execute_sop`, `lpiscript_sop`, `lpi_programming_sopvar/examples/hinf_gain_1d_sop.m`, DEMO7, DEMO12, the Ch2 snippet, the cuADMM baseline suite, container tests |
-| `settings/settings_PIETOOLS_{light,heavy,veryheavy,stripped,custom,extreme}.m` and `settings/2D/settings_PIETOOLS_*_2D.m` (12) | `lpisettings`, one 1-D and one 2-D file per preset; `settings_sopvar/settings_sopvar_{light,heavy,veryheavy,stripped,custom}.m` |
+Since 11/08/2026 the folder holds no code: each file below was here at first and left later that day.
 
-None of them calls a retired function.
+- `settings/lpisettings.m` and the 12 presets `settings/settings_PIETOOLS_{light,heavy,veryheavy,
+  stripped,custom,extreme}.m`, `settings/2D/settings_PIETOOLS_*_2D.m`: called by the container
+  executives (default settings), `PIETOOLS_auto_execute_sop`, `lpiscript_sop`, `hinf_gain_1d_sop`,
+  DEMO7, DEMO12, the Ch2 snippet, the cuADMM baseline suite, container tests, and the tiers of
+  `settings_sopvar`. Every caller on the path now calls `lpisettings_sop`, whose tiers read copies of
+  the presets they use in `settings_sopvar/private/` (with an `extreme` tier added); the only
+  remaining call is in `PIETOOLS_demos/lowrank_2d_stability/tests_1d/`, which already calls retired
+  functions. Now in `cleaning/private/settings/` (maintainer: "Move it now").
 
-Also here at first, each gone later on 11/08/2026:
 - `executives/utility_functions/closedLoopPIE.m`, called by `PIETOOLS_PDE.m`, DEMO12 and the Ch2,
   Ch5, Ch6 and Ch7 snippets: now in `executives_sopvar/utility_functions/`, code unchanged.
 - `executives/utility_functions/get_eq_opts_2D.m`: kept for `cx_stability_eq_opts_2D` (E3), which

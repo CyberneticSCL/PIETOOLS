@@ -91,6 +91,8 @@
 %                markers.
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the spatial
 %   variables of the PIE; LPIPROGRAM_SOP, which read them off T, is retired.
+% MMP, 11/08/2026: The executive gets lpisettings_sop('light') (was the stock
+%   lpisettings('light'), whose folder leaves the path).
 
 echo on
 % The PDE and its PIE
@@ -124,7 +126,8 @@ prog = lpisolve(prog);                              % MOSEK, else SeDuMi    % MM
 gain = double(lpigetsol_sop(prog,gam));
 
 % The same problem through the executive
-settings = lpisettings('light');
+% settings = lpisettings('light');                                          % MMP, 11/08/2026 (was)
+settings = lpisettings_sop('light');                                        % MMP, 11/08/2026
 [~,~,gain_exec] = PIETOOLS_Hinf_gain_sop(PIE,settings);
 echo off
 

@@ -81,10 +81,16 @@ function st = settings_sopvar_veryheavy()
 %                per-direction bound Jmax(T) + 2, which in 2-D matches the
 %                unbounded slack's accuracy (measured 10/29); in 3-D its
 %                slack is about 35 M Gram entries (estimated).
+% MMP, 11/08/2026: Storage degrees from STORAGE_VERYHEAVY and
+%                STORAGE_HEAVY_2D in settings_sopvar/private, copies of the
+%                stock levels with the values unchanged: the tier calls no
+%                file outside settings_sopvar.
 
 % Storage degrees (see the header).
-st = settings_PIETOOLS_veryheavy();
-st.settings_2d = settings_PIETOOLS_heavy_2D();
+% st = settings_PIETOOLS_veryheavy();                                       % MMP, 11/08/2026 (was)
+% st.settings_2d = settings_PIETOOLS_heavy_2D();                            % MMP, 11/08/2026 (was)
+st = storage_veryheavy();                                                   % MMP, 11/08/2026
+st.settings_2d = storage_heavy_2D();                                        % MMP, 11/08/2026
 % Margins of the positive operator in the gain, norm and synthesis LPIs;
 % stability and well-posedness take sop.eppos_stab instead.
 st.eppos = 1e-4;    st.eppos2 = 1e-4;   st.epneg = 0;

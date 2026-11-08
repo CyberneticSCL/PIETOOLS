@@ -167,6 +167,11 @@ function [prog,P,info] = PIETOOLS_stability_sop(PIE,settings,form)
 %                Header updated.
 % MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
 %                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+% MMP, 11/08/2026: Default settings lpisettings_sop('light') in 2-D and
+%                higher, lpisettings_sop('heavy') in 1-D (was the stock
+%                lpisettings of the same levels, whose folder leaves the
+%                path): the same storage degrees there, with the container
+%                options of those tiers (maintainer, 11/08/2026).
 
 % Default settings and form, as the stock executive of the PIE's dimension
 if nargin<3 || isempty(form),   form = 'P';     end
@@ -179,12 +184,14 @@ fe = any(strcmp(form,{'FP','FQ'}));         % finite-energy forms           % MM
 if nargin<2 || isempty(settings)
 %   if PIE.dim==2                                                           % MMP, 10/29/2026 (was)
     if PIE.dim>=2                           % the 2-D defaults in N-D too   % MMP, 10/29/2026
-        settings = lpisettings('light');
+%       settings = lpisettings('light');                                    % MMP, 11/08/2026 (was)
+        settings = lpisettings_sop('light');                                % MMP, 11/08/2026
         settings.sos_opts.simplify = 1;
         settings.settings_2d.eppos = 1e-2*ones(4,1);    settings.settings_2d.epneg = 0;
         if fe,  settings.settings_2d.epneg = 1e-5;  end % the stock FE default % MMP, 10/28/2026
     else
-        settings = lpisettings('heavy');
+%       settings = lpisettings('heavy');                                    % MMP, 11/08/2026 (was)
+        settings = lpisettings_sop('heavy');                                % MMP, 11/08/2026
         settings.eppos = 1e-4;  settings.eppos2 = 1e-6;     settings.epneg = 0;
         if fe,  settings.epneg = 1e-5;  end             % the stock FE default % MMP, 10/28/2026
     end

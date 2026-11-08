@@ -38,6 +38,11 @@ function [prog,ops] = cx_PIE2PDEstability(PIE,st)                           % MM
 %                  library routine get_lpivar_degs_sop.
 % MMP, 11/07/2026: T and A are used directly: PIEs hold 'copvar'
 %                  operators, on which opvar2copvar errors.
+% MMP, 11/08/2026: Default settings from lpisettings_sop('heavy') (was the
+%                  stock preset settings_PIETOOLS_heavy, whose folder leaves
+%                  the path): the fields read below (dd1, dd12, options1,
+%                  options12, override1, sosineq_on) are the same; epneg,
+%                  eppos2 and sos_opts are set below as before.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isa(PIE,'pie_struct')
@@ -52,7 +57,8 @@ if PIE.dim==2                                       % stock lines 60-68
     return
 end
 if nargin<2                                         % stock lines 73-79
-    st = settings_PIETOOLS_heavy;
+%   st = settings_PIETOOLS_heavy;                                           % MMP, 11/08/2026 (was)
+    st = lpisettings_sop('heavy');                                          % MMP, 11/08/2026
     st.sos_opts.simplify = 1;
     st.eppos = 1e-4;    st.eppos2 = 1e-6;   st.epneg = 0;
 end

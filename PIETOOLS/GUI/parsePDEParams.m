@@ -38,6 +38,11 @@ function PDE_struct = parsePDEParams(varlist, PDE_Text, metadata)
 %   rejects it as a colon operand (33 of the 47 GUI files of the example
 %   library failed to parse). Earlier releases used its first element,
 %   max(Xvals(:,1)), so the result there is unchanged.
+% MMP, 11/08/2026: Each PDE state gets the global variable and domain
+%   (PDE_struct.vars, PDE_struct.dom), the values initialize assigns to a
+%   state without them. Since c47e093a (11/07/2026) initialize reads the
+%   vars of the states in boundary terms before assigning these defaults,
+%   so without them 46 of the 47 GUI files of the example library failed.
 % remove whitespaces
 % PDE_Text = regexprep(PDE_Text,'\s+','');
 PDE_text = erase(PDE_Text,'$'); % remove $
@@ -117,6 +122,8 @@ end
 diffvals = varlist(contains(varlist(:,1),'X'),2);
 for i=no+1:no+sum(n_pde)
     PDE_struct.x{i}.diff = diffvals{i-no};
+    PDE_struct.x{i}.vars = PDE_struct.vars;     % defaults of initialize,   % MMP, 11/08/2026
+    PDE_struct.x{i}.dom = PDE_struct.dom;       % set before it reads them  % MMP, 11/08/2026
 end
 
 

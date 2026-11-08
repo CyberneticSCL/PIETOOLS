@@ -153,12 +153,17 @@ function [prog,L,gam,P,Z,info] = PIETOOLS_Hinf_estimator_sop(PIE,settings,gain)
 %                updated.
 % MMP, 11/07/2026: Help text: status 'residual', which LPI_CLASSIFY_SOP
 %                returns for a cuADMM exit since 11/04/2026. Code unchanged.
+% MMP, 11/08/2026: Default settings lpisettings_sop('light') (was the stock
+%                lpisettings('light'), whose folder leaves the path): the
+%                same storage degrees and margins, with the container
+%                options of the light tier (maintainer, 11/08/2026).
 
 % % % BEGIN body replaced by MMP, 10/28/2026 - everything from here to the
 % % % END marker at the foot of the file is new; see the header entries
 % % % above for what was deleted.
 % Default settings and fixed gain; check the PIE
-if nargin<2 || isempty(settings),   settings = lpisettings('light');    end
+% if nargin<2 || isempty(settings),   settings = lpisettings('light');    end % MMP, 11/08/2026 (was)
+if nargin<2 || isempty(settings),  settings = lpisettings_sop('light'); end % MMP, 11/08/2026
 if nargin>=3 && ~isempty(gain) && gain~=0,  settings.sop.gam_fixed = gain;  end
 if ~isa(PIE,'pie_struct')
     error('PIETOOLS_Hinf_estimator_sop:pie','The PIE should be a ''pie_struct'' object.');
