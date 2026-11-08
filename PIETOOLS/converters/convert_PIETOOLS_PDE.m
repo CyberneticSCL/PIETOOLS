@@ -259,11 +259,14 @@ spaces_pde = arrayfun(@(k) get_space(PDE.x_tab,k),1:nx);
 if any(Dmap.x.idx==0)
     error("convert_PIETOOLS_PDE:blocks","Fundamental state components that cannot be split into one block per state are not supported.")
 end
-% List the finite-dimensional blocks (ODE states, moments) first, as in
-% the old converters, so that e.g. an ODE state precedes the PDE states
-% in the PIE. The blocks are permuted in Tops, Kops, Dmap and info.space.
-isfin = arrayfun(@(b) isempty(b.vars),blocks);
-perm = [find(isfin(:))',find(~isfin(:))'];
+% List the blocks by the number of variables they depend on, ascending:
+% the finite-dimensional blocks (ODE states, moments) first, as in the old
+% converters, so that e.g. an ODE state precedes the PDE states in the PIE,
+% then the blocks depending on one variable, then on two, etc. The sort is
+% stable, so that the order of the PDE states is kept within each group.
+% The blocks are permuted in Tops, Kops, Dmap and info.space.
+nvars_blk = arrayfun(@(b) numel(b.vars),blocks);
+[~,perm] = sort(nvars_blk(:)','ascend');
 if ~isequal(perm,1:nblocks)
     blocks = blocks(perm);
     Dmap.x.idx = Dmap.x.idx(perm);
