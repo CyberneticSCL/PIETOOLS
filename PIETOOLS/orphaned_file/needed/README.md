@@ -13,8 +13,12 @@ has one definition on the path.
 | `settings/settings_PIETOOLS_{light,heavy,veryheavy,stripped,custom,extreme}.m` and `settings/2D/settings_PIETOOLS_*_2D.m` (12) | `lpisettings`, one 1-D and one 2-D file per preset; `settings_sopvar/settings_sopvar_{light,heavy,veryheavy,stripped,custom}.m` |
 | `executives/utility_functions/closedLoopPIE.m` | `PIETOOLS_PDE.m`, DEMO12, the Ch2, Ch5, Ch6 and Ch7 snippets |
 | `executives/utility_functions/get_eq_opts_2D.m` | `cx_stability_eq_opts_2D`, so E3 (`e2e_stability_2d`) |
-| `lpi_programming/lpi_ineq.m`, `lpi_programming/lpigetsol.m` | E1 (`e2e_hinf_gain_1d`), `test_dpvar_hinf_chain_sop` and `test_getsol_sop` (iv), on a scalar `dpvar`, where they reduce to `sosineq` and `sosgetsol` |
 
-None of them calls a retired function on these paths: `lpi_ineq` and `lpigetsol` reach `poslpivar`,
-`lpi_eq`, `lpi_ineq_2d` and `getsol_lpivar` only for opvar-class inputs, which can no longer be
-built, and `closedLoopPIE` only tests for the opvar classes by name (`isa`).
+None of them calls a retired function: `closedLoopPIE` only tests for the opvar classes by name
+(`isa`).
+
+`lpi_programming/lpi_ineq.m` and `lpigetsol.m` were here until later on 11/08/2026, for E1
+(`e2e_hinf_gain_1d`), `test_dpvar_hinf_chain_sop` and `test_getsol_sop` (iv), which called them on a
+scalar `dpvar`. Those tests now call `lpi_ineq_sop` and `lpigetsol_sop`, which reduce to `sosineq` and
+`sosgetsol` exactly as the stock functions did, and `lpi_ineq_sop` no longer hands other classes to
+`lpi_ineq`; both files are in `cleaning/private/lpi_programming/`.

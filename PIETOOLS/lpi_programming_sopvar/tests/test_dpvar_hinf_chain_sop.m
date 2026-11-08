@@ -92,6 +92,10 @@ function R = test_dpvar_hinf_chain_sop(plant)
 %                  used directly: PIEs hold 'copvar' operators, on which the
 %                  stock PIETOOLS_Hinf_gain fails at its first poslpivar call
 %                  (Top.dim) and opvar2copvar errors.
+% MMP, 11/08/2026: gam >= 0 by LPI_INEQ_SOP and gamma by LPIGETSOL_SOP,
+%                  which reduce to SOSINEQ and SOSGETSOL for a 'dpvar' as
+%                  LPI_INEQ and LPIGETSOL did; those two are retired
+%                  (cleaning/private).
 
 % Default plant; no warnings for non-canonical multipliers; check counters
 if nargin<1 || isempty(plant),  plant = {'io1'};    end
@@ -147,7 +151,8 @@ Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 gam = dpvar('gam');
 prog = lpidecvar(prog,gam);
-prog = lpi_ineq(prog,gam);
+% prog = lpi_ineq(prog,gam);                                                % MMP, 11/08/2026 (was)
+prog = lpi_ineq_sop(prog,gam);              % SOSINEQ, as LPI_INEQ did      % MMP, 11/08/2026
 prog = lpisetobj(prog,gam);
 % R >= 0 ('lf' settings) and Q free on the output spaces of T; T'Q - R = 0
 % [prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);                                   % MMP, 10/06/2026 (was)
@@ -185,7 +190,8 @@ Sc = cx_shape(prog);                        % Ss recorded above             % MM
 % Solver report, rel_b, PSD margins and gamma of the container solve
 info_c = prog.solinfo.info;
 [rb_c,pm_c,pr_c] = cx_resid(prog);
-gam_c = double(lpigetsol(prog,gam));
+% gam_c = double(lpigetsol(prog,gam));                                      % MMP, 11/08/2026 (was)
+gam_c = double(lpigetsol_sop(prog,gam));    % SOSGETSOL, as LPIGETSOL did   % MMP, 11/08/2026
 
 % (2) SDP shapes, (3) solver flags, (4) gamma
 ck(Sc.ndv==Ss.ndv,sprintf('decision variables: container %d, stock %d',Sc.ndv,Ss.ndv));

@@ -13,8 +13,8 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % a Gram matrix of decision variables (POSCOPVAR_DIRECT), and imposes
 % P - Pop == 0 (LPI_EQ_SOP, 'symmetric'). Before declaring Pop, it prints
 % the number of decision variables Pop adds and the program total. For a
-% 'dpvar' or 'polynomial' P it imposes P >= 0 by SOSINEQ; for P of any
-% other class it calls LPI_INEQ(PROG,P,OPTS).
+% 'dpvar' or 'polynomial' P it imposes P >= 0 by SOSINEQ; P of any other
+% class is an error.
 %
 % INPUT
 % - prog:  'struct', the LPI program (LPIPROGRAM); read
@@ -24,8 +24,8 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 % - P:     'cdopvar' or 'copvar' object, square (the same output and input
 %          spaces) and self-adjoint (not checked), the operator to make
 %          positive; for a 'copvar' P the constraint certifies P >= 0. A
-%          'dpvar' or 'polynomial' P goes to SOSINEQ; any other class
-%          ('dopvar', 'dopvar2d', 'opvar', 'opvar2d') is passed to LPI_INEQ;
+%          'dpvar' or 'polynomial' P goes to SOSINEQ; any other class is
+%          an error;
 % - opts:  (optional) 'struct' with the optional fields
 %            dD, dw        double, added to the lift degree and to the
 %                          weight degree read from the support (default
@@ -79,17 +79,14 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                          given (default []: none); the terms keep their
 %                          offsets, under which POSCOPVAR_DIRECT lowers the
 %                          bound where a term's weight acts;
-%          for a 'dpvar' or 'polynomial' P, OPTS is not used; for P of
-%          another class, OPTS is passed to LPI_INEQ (fields psatz, pure,
-%          sep).
+%          for a 'dpvar' or 'polynomial' P, OPTS is not used.
 %
 % OUTPUT
 % - prog:  'struct', the program with the Gram matrices of Pop declared
 %          positive semidefinite and P - Pop == 0 imposed; for a 'dpvar'
-%          or 'polynomial' P, the program of SOSINEQ; for P of another
-%          class, the program of LPI_INEQ;
+%          or 'polynomial' P, the program of SOSINEQ;
 % - Pop:   'cdopvar' object on the spaces of P, the positive operator Pop
-%          ([] for P of another class);
+%          ([] for a 'dpvar' or 'polynomial' P);
 % - info:  'struct' with fields
 %            deg         the degree specification used: a 1 x M cell of
 %                        'struct' objects read from the support, or
@@ -118,9 +115,9 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                        like, the number of operators found followed by
 %                        ' operator(s) of poscopvar';
 %            cap         double row, opts.cap ([] when none);
-%          for P of another class, struct('legacy',true).
+%          for a 'dpvar' or 'polynomial' P, struct('legacy',true).
 %
-% See also LPI_INEQ, LPI_EQ_SOP, POSCOPVAR_DIRECT, GET_LIFT_DEGS,
+% See also SOSINEQ, LPI_EQ_SOP, POSCOPVAR_DIRECT, GET_LIFT_DEGS,
 %          EQ_OPTS_SOPVAR, LPIPROGRAM.
 %
 % For support, contact M. Peet, Arizona State University at mpeet@asu.edu
@@ -202,6 +199,11 @@ function [prog,Pop,info] = lpi_ineq_sop(prog,P,opts)
 %                classes still go to LPI_INEQ.
 % MMP, 11/04/2026: Help text names LPIPROGRAM as the source of PROG;
 %                LPIPROGRAM_SOP is retired.
+% MMP, 11/08/2026: P of a class other than 'cdopvar', 'copvar', 'dpvar'
+%                and 'polynomial' is an error. It went to LPI_INEQ, retired
+%                11/08/2026 (cleaning/private) with the opvar classes, the
+%                only other classes it accepted. Help text to match. The
+%                last sentence of the first 11/04/2026 entry no longer holds.
 
 % Check the inputs; OPTS is optional
 if nargin<2
@@ -209,13 +211,17 @@ if nargin<2
 end
 if nargin<3,    opts = [];  end
 
-% % % Legacy classes: 'lpi_ineq', unchanged.
+% % % Legacy classes: 'lpi_ineq', unchanged.                                % MMP, 11/08/2026 (was)
+% % % Not a container: 'dpvar', 'polynomial' by SOSINEQ; others an error    % MMP, 11/08/2026
 if ~(isa(P,'cdopvar') || isa(P,'copvar'))
 %     if isempty(opts),   prog = lpi_ineq(prog,P);                          % MMP, 11/04/2026 (was)
     % 'dpvar', 'polynomial': SOSINEQ, as LPI_INEQ does for them             % MMP, 11/04/2026
     if isa(P,'dpvar') || isa(P,'polynomial'),   prog = sosineq(prog,P);     % MMP, 11/04/2026
-    elseif isempty(opts),   prog = lpi_ineq(prog,P);                        % MMP, 11/04/2026
-    else,               prog = lpi_ineq(prog,P,opts);
+%     elseif isempty(opts),   prog = lpi_ineq(prog,P);                      % MMP, 11/08/2026 (was)
+%     else,               prog = lpi_ineq(prog,P,opts);                     % MMP, 11/08/2026 (was)
+    else                                                                    % MMP, 11/08/2026
+        % LPI_INEQ, retired 11/08/2026, rejected every other class as well  % MMP, 11/08/2026
+        error('lpi_ineq_sop:class','P should be a copvar, cdopvar, dpvar or polynomial object; got %s.',class(P)) % MMP, 11/08/2026
     end
     Pop = [];   info = struct('legacy',true);
     return

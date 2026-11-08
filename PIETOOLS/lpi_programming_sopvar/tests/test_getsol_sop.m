@@ -149,6 +149,10 @@ function R = test_getsol_sop(parts)
 %                  (ii) (it is printed only).
 % MMP, 11/07/2026: part (iv) uses the PIE operators directly: PIEs hold
 %                  'copvar' operators, on which opvar2copvar errors.
+% MMP, 11/08/2026: part (iv) imposes gam >= 0 by LPI_INEQ_SOP and reads
+%                  gamma by LPIGETSOL_SOP, which reduce to SOSINEQ and
+%                  SOSGETSOL for a 'dpvar' as LPI_INEQ and LPIGETSOL did;
+%                  those two are retired (cleaning/private).
 
 % Default: all four parts; one part given as char
 if nargin<1 || isempty(parts),  parts = {'i','ii','iii','iv'};  end
@@ -687,7 +691,8 @@ Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
 % The program; gamma declared, gamma >= 0, gamma the objective
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);
 gam = dpvar('gam');
-prog = lpidecvar(prog,gam);     prog = lpi_ineq(prog,gam);  prog = lpisetobj(prog,gam);
+% prog = lpidecvar(prog,gam);     prog = lpi_ineq(prog,gam);  prog = lpisetobj(prog,gam); % MMP, 11/08/2026 (was)
+prog = lpidecvar(prog,gam);     prog = lpi_ineq_sop(prog,gam);  prog = lpisetobj(prog,gam); % MMP, 11/08/2026
 % R positive on the output spaces of T, Q free with the degrees of R, and
 % T'*Q - R = 0
 % [prog,Rm] = cx_hinf_lf(prog,Tm,PIE,st);                                   % MMP, 10/06/2026 (was)
@@ -709,7 +714,8 @@ fprintf('(iv) io1 H-inf: pinf %g numerr %g, rel_b %.2e, psd_relmin %.2e; decvart
     r.pinf,r.numerr,r.rel_b,r.psd_relmin,ntot,numel(sol.solinfo.RRx),numel(sol.solinfo.x));
 assert(r.numerr==0 && r.pinf==0 && r.rel_b<=1e-6 && r.psd_relmin>=-1e-8,'(iv) solve not certified')
 % Extract gamma and the operators K, Q, R
-g = double(lpigetsol(sol,gam));             % legacy dpvar path
+% g = double(lpigetsol(sol,gam));             % legacy dpvar path           % MMP, 11/08/2026 (was)
+g = double(lpigetsol_sop(sol,gam));         % dpvar: SOSGETSOL              % MMP, 11/08/2026
 Ks = getsol_lpivar_sop(sol,Km);     Qs = getsol_lpivar_sop(sol,Qm);     Rs = getsol_lpivar_sop(sol,Rm);
 assert(isa(Ks,'copvar') && isa(Qs,'copvar') && isa(Rs,'copvar'),'(iv) not fixed')
 % Km at the solution, rebuilt from the legacy gamma and the extracted Q.
