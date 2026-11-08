@@ -1,34 +1,31 @@
-% Test_polyopvar_subsref.m -- verify @polyopvar/subsref.m, in two parts:
-% (1) '()': row indexing, v(2,:), and the error for a column-restricted index;
-% (2) '{}': f{i,j} must return a standalone 'polyopvar' object representing the term
-%     f.C.ops{i,j} paired with monomial f.Z(j,:), i.e. the (i,j) contribution to f(x) =
-%     C*Z(x). Summing apply_poly over every populated column j, for a fixed row i,
-%     must reconstruct apply_poly(f,.) restricted to row i exactly. Also f{j,:}, the
-%     nonempty terms of component j with their monomials, for f with diagonal blocks,
-%     [y1;y2], [T1*y1;y1.*y2;y2], vector-valued blocks, y3, [y3;y1], [Top*y1;y2], rows
-%     with several terms, and 1 and 2 spatial variables; f{:,k} (zero rows for the rows
-%     without a block in column k, their dimensions taken from f.C). The values of the
-%     blocks, xb{j}, come from the operators and polynomials directly (apply_sopvar),
-%     independent of apply_poly(f) and of the class under test.
+% Test_polyopvar_subsref.m -- verify @polyopvar/subsref.m, in two parts. A 'polyopvar' p is a
+% vector-valued (matdim(2)=1) function p(x) = C*Z(x), whose blocks are the rows of blocks of C.ops:
+% (1) '()': p(i,j) is element (i,j) of the matrix-valued polynomial, so p(i), p(i,1), p(i,:) select
+%     the scalar row i, and p(:), p([i1,i2]) several rows; the column index can only be 1 or ':';
+% (2) '{}': p{i,j} is block (i,j) of the matrix-valued polynomial, so p{i}, p{i,1}, p{i,:} are the
+%     polynomial with the coefficients p.C{i,:}, acting on the nonempty terms (monomials) of block row i
+%     (the monomials of Z without nonempty block in row i are dropped); p{:,1}, p{[i1,i2],1} several
+%     blocks; the column index can only be 1 or ':'. Checked for p with diagonal blocks, [y1;y2],
+%     [T1*y1;y1.*y2;y2], vector-valued blocks, y3, [y3;y1], [Top*y1;y2], rows with several terms, and
+%     1 and 2 spatial variables. The values of the rows and blocks, xv, xb{j}, come from the operators
+%     and polynomials directly (apply_sopvar), independent of apply_poly(p) and of the class under test.
 
 % DJ (CC), 10/15/2026: Initial coding;
 % DJ (CC), 10/23/2026: '{}' with ':' and numeric column vectors, diagonal and
 %   vector-valued blocks, multiple rows, linear index over blocks; f{:,k} for rows
 %   without a block; '()' part merged from Test_polyopvar_cat_subsref (vertcat is in
 %   Test_polyopvar_vertcat);
+% DJ (CC), 11/08/2026: New meaning of the indices, p(i,j) is element (i,j) and p{i,j} block (i,j) of
+%   the matrix-valued polynomial (only vector-valued, so j=1): p(i), p(i,1), p{i}, p{i,1}; p{i,k}
+%   with k a monomial and p{:,k} are no longer supported (were: terms of the blocks C.ops{i,k});
 
 % NOTES:
-% - '()' with an explicit column index (v(2,1)) is not supported: @polyopvar/subsref.m
-%   forwards [row,col] to the 'tensopmat' subsref, whose columns are one block per
-%   monomial, not per matrix column. Row-only v(2,:) is not affected. The test checks
-%   that the column index errors with the message 'number of monomials must match', so
-%   it fails once column indices are supported.
-% - f{i,j} must return a 'tensopmat' coefficient (not the bare tensopvar/intop that
-%   C.ops{i,j} unwraps to), else out.dims.out / out.depmat.out fail.
-% - A (row,col) pair whose own block is empty and which is the sole entry of its
-%   extracted row and column has no dimensions to extract: an error is expected.
-% - 'end' evaluates to 1 for a 'polyopvar' (MATLAB's size of the scalar object): f{j,end}
-%   is f{j,1}, f(end,:) is f(1,:). Not supported, and not tested except for this value.
+% - Only vector-valued polynomials are supported: a column index other than 1 or ':' is an error,
+%   for '()' and '{}'.
+% - p{i,j} must return a 'tensopmat' coefficient (not the bare tensopvar/intop that C.ops{i,j}
+%   unwraps to), else out.dims.out / out.depmat.out fail.
+% - 'end' evaluates to 1 for a 'polyopvar' (MATLAB's size of the scalar object): p{end} is p{1}, p(end)
+%   is p(1). Not supported, and not tested except for this value.
 
 check_paren_subsref();
 check_curly_subsref();
@@ -47,123 +44,87 @@ yv = {rand_poly([1,1],{'s1','s2'},2,5)};
 
 v = [x;y];
 
-% '()' subsref, row-only
-v2 = v(2,:);
-Vv2 = apply_poly(v2,{xv{1},yv{1}});
-errv2 = cleanpoly(Vv2-yv{1},1e-10);
-if max(max(abs(errv2.C)))>tol*max(1,max(max(abs(yv{1}.C))))
-    error("Test_polyopvar_subsref failed: row-subsref value mismatch.")
-end
-
-% '()' subsref, genuine COLUMN restriction: must error (see NOTES)
-f = x + x.*x;
-threw = false;
-try
-    f1 = f(1,1); %#ok<NASGU>
-catch ME
-    threw = true;
-    if ~contains(ME.message,'number of monomials must match')
-        error("Test_polyopvar_subsref failed: column-restricted '()' errored with unexpected message: %s",ME.message)
+% '()' subsref, rows, with the column index 1 or ':', or a single index
+for vk = {v(2,:),v(2,1),v(2),v(2,':')}
+    Vv2 = apply_poly(vk{1},{xv{1},yv{1}});
+    errv2 = cleanpoly(Vv2-yv{1},1e-10);
+    if max(max(abs(errv2.C)))>tol*max(1,max(max(abs(yv{1}.C))))
+        error("Test_polyopvar_subsref failed: row-subsref value mismatch.")
     end
 end
-if ~threw
-    error("Test_polyopvar_subsref failed: column-restricted '()' should have errored (still-open gap, see header note).")
+
+% a scalar-valued function has the single element f(1,1), also if it has several terms
+f = x + x.*x;
+Vf = apply_poly(f(1,1),xv);
+errf = cleanpoly(Vf-(xv{1}+xv{1}*xv{1}),1e-10);
+if max(max(abs(errf.C)))>tol*max(1,max(max(abs(xv{1}.C))))
+    error("Test_polyopvar_subsref failed: f(1,1) is not f.")
 end
+if ~same_terms(f(1,1),f) || ~same_terms(f(1),f) || ~same_terms(f(:),f)
+    error("Test_polyopvar_subsref failed: f(1,1), f(1) and f(:) must retain all terms.")
+end
+
+% a column index other than 1 (only vector-valued polynomials are supported)
+assert_error(@() f(1,2),'column index must be 1',"f(1,2)");
+assert_error(@() v(2,2),'column index must be 1',"v(2,2)");
+assert_error(@() v(1,[1,2]),'column index must be 1',"v(1,[1,2])");
 end
 
 function check_curly_subsref()
 tol = 1e-8;
-ntrials = 5;
 
 pvar s1 s2
 x = polyopvar('x',[s1,s2],[0,1]);
 y = polyopvar('y',[s1,s2],[0,1]);
 f = x + x.*x;       % 2 distinct monomial terms: bare x, and x^2
-v = [f;y];          % row 1: f's 2 terms; row 2: y's single (different) term
+v = [f;y];          % block row 1: f's 2 terms; block row 2: y's single (different) term
 
-[nr,nc] = size(v.C);
-if nc<2
-    error("Test_polyopvar_subsref failed: test setup expected >=2 monomial columns.")
+[nr,nc] = size(v.C.ops);
+if nr~=2 || nc<3
+    error("Test_polyopvar_subsref failed: test setup expected 2 rows of blocks and >=3 monomial columns.")
 end
 
-for trial=1:ntrials
+for trial=1:5
 
 xv = rand_poly([1,1],{'s1','s2'},2,5);
 yv = rand_poly([1,1],{'s1','s2'},2,5);
 Yfull = apply_poly(v,{xv,yv});
 
+% block i is the ith entry: the polynomial with the coefficients v.C{i,:} on the nonempty terms
 for i=1:nr
-    Ysum = 0;
-    for j=1:nc
-        op_ij = v.C.ops{i,j};
-        if isempty(op_ij)
-            continue
-        end
-        vij = v{i,j};
-        if ~isa(vij,'polyopvar')
-            error("Trial %d: v{%d,%d} did not return a 'polyopvar' object.",trial,i,j)
-        elseif ~isequal(vij.Z,v.Z(j,:))
-            error("Trial %d: v{%d,%d}.Z does not match v.Z(%d,:).",trial,i,j,j)
-        end
-        Ysum = Ysum + apply_poly(vij,{xv,yv});
+    vi = v{i,1};
+    if ~isa(vi,'polyopvar')
+        error("Trial %d: v{%d,1} did not return a 'polyopvar' object.",trial,i)
     end
-    erri = cleanpoly(Ysum-Yfull(i),1e-10);
+    pj = find(~cellfun(@isempty,v.C.ops(i,:)));
+    if ~isequal(vi.Z,v.Z(pj,:))
+        error("Trial %d: v{%d,1}.Z does not match the monomials v.Z of the nonempty terms.",trial,i)
+    end
+    erri = cleanpoly(apply_poly(vi,{xv,yv})-Yfull(i),1e-10);
     if max(max(abs(erri.C)))>tol*max(1,max(max(abs(Yfull(i).C))))
-        error("Trial %d: sum of extracted terms for row %d does not reconstruct the original row.",trial,i)
+        error("Trial %d: v{%d,1} does not represent row %d of v.",trial,i,i)
     end
 end
 
 end
 
-%%%% Linear indexing must match the corresponding (row,col) pair
-v11 = v{1,1};   vlin1 = v{1};
-if ~isequal(v11.Z,vlin1.Z) || ~isequal(v11.C.ops,vlin1.C.ops)
-    error("Test_polyopvar_subsref failed: linear index v{1} does not match v{1,1}.")
-end
-
-%%%% Out-of-range indices must error
-threw = false;
-try
-    bad = v{1,nc+1}; %#ok<NASGU>
-catch
-    threw = true;
-end
-if ~threw
-    error("Test_polyopvar_subsref failed: out-of-range column index should have errored.")
-end
-threw = false;
-try
-    bad = v{nr+1,1}; %#ok<NASGU>
-catch
-    threw = true;
-end
-if ~threw
-    error("Test_polyopvar_subsref failed: out-of-range row index should have errored.")
-end
-
-%%%% A (row,col) pair whose sole (1x1) block is empty cannot be extracted
-empty_pair_found = false;
-for i=1:nr
-    for j=1:nc
-        if isempty(v.C.ops{i,j})
-            empty_pair_found = true;
-            threw = false;
-            try
-                bad = v{i,j}; %#ok<NASGU>
-            catch
-                threw = true;
-            end
-            if ~threw
-                error("Test_polyopvar_subsref failed: extracting an all-empty (%d,%d) block should have errored.",i,j)
-            end
-        end
+%%%% Linear indexing must match the corresponding (row,1) pair
+for k=1:nr
+    vk = v{k};      vk1 = v{k,1};       vkc = v{k,:};
+    if ~isequal(vk.Z,vk1.Z) || ~isequal(vk.C.ops,vk1.C.ops) || ~isequal(vkc.Z,vk1.Z) || ~isequal(vkc.C.ops,vk1.C.ops)
+        error("Test_polyopvar_subsref failed: v{%d}, v{%d,1} and v{%d,:} differ.",k,k,k)
     end
 end
-if ~empty_pair_found
-    error("Test_polyopvar_subsref failed: test setup expected at least one empty (row,col) pair.")
-end
 
-%%%% ':' and numeric column vectors, diagonal and vector-valued blocks
+%%%% Out-of-range indices, and column indices other than 1, must error
+assert_error(@() v{nr+1},'Row indices cannot exceed',"row beyond the blocks, v{nr+1}");
+assert_error(@() v{nr+1,1},'Row indices cannot exceed',"row beyond the blocks, v{nr+1,1}");
+assert_error(@() v{1,2},'column index must be 1',"v{1,2}");
+assert_error(@() v{1,nc},'column index must be 1',"v{1,nc}");
+assert_error(@() v{1,0},'column index must be 1',"v{1,0}");
+assert_error(@() v{2,[1,1]},'column index must be 1',"v{2,[1,1]}");
+
+%%%% ':' and numeric row vectors, diagonal and vector-valued blocks
 ncases = 0;
 svall = {s1,s2};
 for N=1:2
@@ -241,10 +202,47 @@ for N=1:2
         % apply_poly of the whole function must agree with the values of the blocks
         assert_poly_equal(apply_poly(v,xc),xv,tol,[label ', apply_poly(v)']);
 
-        % v{j,:}: the nonempty terms of component j, with their monomials
+        % v(k), v(k,1), v(k,:): the scalar row k of the matrix-valued polynomial v, with all monomials
+        nrv = sum(bs);
+        for k=1:nrv
+            for vk = {v(k),v(k,1),v(k,:)}
+                assert_poly_equal(apply_poly(vk{1},xc),xv(k),tol,sprintf('%s, v(%d)',label,k));
+                if size(vk{1},1)~=1 || size(vk{1}.Z,1)~=size(v.Z,1)
+                    error("Test_polyopvar_subsref failed (%s): v(%d) is not a single row with all monomials.",label,k)
+                end
+            end
+            if ~same_terms(v(k),v(k,:)) || ~same_terms(v(k,1),v(k,:))
+                error("Test_polyopvar_subsref failed (%s): v(%d), v(%d,1) and v(%d,:) differ.",label,k,k,k)
+            end
+            ncases = ncases+1;
+        end
+        % v(:), v(:,1), v(:,:) are v, several rows in the given order
+        for vk = {v(:),v(:,1),v(:,:)}
+            assert_poly_equal(apply_poly(vk{1},xc),xv,tol,[label ', v(:)']);
+            if ~same_terms(vk{1},v)
+                error("Test_polyopvar_subsref failed (%s): v(:) is not v.",label)
+            end
+        end
+        if nrv>=2
+            r = [nrv,1];
+            assert_poly_equal(apply_poly(v(r),xc),xv(r),tol,[label ', v([nrv,1])']);
+            assert_poly_equal(apply_poly(v(r,1),xc),xv(r),tol,[label ', v([nrv,1],1)']);
+            r = 2:nrv;
+            assert_poly_equal(apply_poly(v(r),xc),xv(r),tol,[label ', v(2:end)']);
+        end
+        assert_error(@() v(nrv+1),'exceed',[label ', row beyond the rows']);
+        assert_error(@() v(0),'positive',[label ', row 0']);
+        assert_error(@() v(1,2),'column index must be 1',[label ', column beyond the single column']);
+        assert_error(@() v(1,[1,1]),'column index must be 1',[label ', repeated column']);
+        assert_error(@() v(1,1,1),'At most two indices',[label ', three indices']);
+        ncases = ncases+6;
+
+        % v{j}, v{j,1}, v{j,:}: block j of v, the polynomial with the coefficients of row of blocks j,
+        % on its nonempty terms and their monomials
+        r0 = 0;
         for j=1:nb
-            vj = v{j,:};
-            lbl = sprintf('%s, v{%d,:}',label,j);
+            vj = v{j,1};
+            lbl = sprintf('%s, v{%d,1}',label,j);
             if ~isa(vj,'polyopvar') || size(vj,1)~=bs(j)
                 error("Test_polyopvar_subsref failed (%s): wrong class or size.",lbl)
             elseif ~isequal(size(vj.C.ops),[1,nnz(pop(j,:))]) || any(cellfun(@isempty,vj.C.ops(:)))
@@ -253,90 +251,65 @@ for N=1:2
                 error("Test_polyopvar_subsref failed (%s): monomials do not match those of the nonempty terms.",lbl)
             end
             assert_poly_equal(apply_poly(vj,xc),xb{j},tol,lbl);
-            % an explicit list of all columns must give the same as ':'
-            vj2 = v{j,1:nbc};
-            if ~same_terms(vj,vj2)
-                error("Test_polyopvar_subsref failed (%s): v{j,1:end} differs from v{j,:}.",lbl)
+            % the linear index, and ':', must give the same as the column index 1
+            if ~same_terms(vj,v{j}) || ~same_terms(vj,v{j,:})
+                error("Test_polyopvar_subsref failed (%s): v{j} or v{j,:} differs from v{j,1}.",lbl)
             end
-            % a reversed list of the populated columns: same values, reversed monomials
-            cj = find(pop(j,:));
-            vj3 = v{j,fliplr(cj)};
-            if ~isequal(full(vj3.Z),flipud(full(vj.Z)))
-                error("Test_polyopvar_subsref failed (%s): column order of the index not kept.",lbl)
-            end
-            assert_poly_equal(apply_poly(vj3,xc),xb{j},tol,[lbl ', reversed columns']);
-            % the terms one at a time sum to the component
-            Ysum = 0;
-            for jc=cj
-                Ysum = Ysum + apply_poly(v{j,jc},xc);
-            end
-            assert_poly_equal(Ysum,xb{j},tol,[lbl ', sum of v{j,k}']);
+            assert_poly_equal(apply_poly(v{j},xc),xb{j},tol,sprintf('%s, v{%d}',label,j));
+            % for a scalar block, v(j) is the block
+            rows_j = r0+(1:bs(j));      r0 = r0+bs(j);
+            assert_poly_equal(apply_poly(v(rows_j),xc),xb{j},tol,sprintf('%s, v(rows of block %d)',label,j));
             ncases = ncases+1;
         end
 
-        % stacking v{j,:} over all j, and v{:,:}, reproduce v
-        Vs = v{1,:};
-        for j=2:nb,     Vs = [Vs;v{j,:}];    end                %#ok<AGROW>
-        assert_poly_equal(apply_poly(Vs,xc),xv,tol,[label ', [v{1,:};v{2,:};...]']);
-        Va = v{:,:};
-        assert_poly_equal(apply_poly(Va,xc),xv,tol,[label ', v{:,:}']);
-        if ~isequal(full(Va.Z),full(v.Z))
-            error("Test_polyopvar_subsref failed (%s): v{:,:} does not retain all monomials.",label)
+        % stacking v{j,1} over all j, and v{:,1}, v{:,:}, reproduce v
+        Vs = v{1,1};
+        for j=2:nb,     Vs = [Vs;v{j,1}];    end                %#ok<AGROW>
+        assert_poly_equal(apply_poly(Vs,xc),xv,tol,[label ', [v{1};v{2};...]']);
+        % (assigned first: in a cell array, MATLAB would expect one output per selected block)
+        Va1 = v{:,1};   Va2 = v{:,:};   Va3 = v{1:nb,1};
+        for Va = {Va1,Va2,Va3}
+            assert_poly_equal(apply_poly(Va{1},xc),xv,tol,[label ', v{:,1}']);
+            if ~isequal(full(Va{1}.Z),full(v.Z))
+                error("Test_polyopvar_subsref failed (%s): v{:,1} does not retain all monomials.",label)
+            end
         end
-        % several rows at once, in the given order
+        % several blocks at once, in the given order
         if nb>=2
             for rows = {[1,nb],[nb,1],2:nb}
                 r = rows{1};
+                vr = v{r,1};
+                assert_poly_equal(apply_poly(vr,xc),vertcat(xb{r}),tol,sprintf('%s, v{%s,1}',label,mat2str(r)));
                 vr = v{r,:};
                 assert_poly_equal(apply_poly(vr,xc),vertcat(xb{r}),tol,sprintf('%s, v{%s,:}',label,mat2str(r)));
             end
         end
 
-        % term k of all rows, also if some rows have no block in column k (zero rows, dimensions
-        % kept): the terms over k sum to the function
-        Ysum = 0;
-        for k=1:nbc
-            vk = v{:,k};
-            if size(vk,1)~=sum(bs) || size(vk.Z,1)~=1 || ~isequal(full(vk.Z),full(v.Z(k,:)))
-                error("Test_polyopvar_subsref failed (%s): v{:,%d} is not term %d of all rows.",label,k,k)
-            end
-            Ysum = Ysum + apply_poly(vk,xc);
-            ncases = ncases+1;
+        % indices beyond the blocks (the scalar dimensions size(v.C) are larger for vector-valued blocks),
+        % and only the single column of blocks
+        assert_error(@() v{nb+1,1},'Row indices cannot exceed',[label ', row beyond the blocks']);
+        assert_error(@() v{nb+1},'Row indices cannot exceed',[label ', linear index beyond the blocks']);
+        assert_error(@() v{1,2},'column index must be 1',[label ', column beyond the single column']);
+        if nbc>1        % else v{1,nbc} is v{1,1}
+            assert_error(@() v{1,nbc},'column index must be 1',[label ', column of monomials']);
         end
-        assert_poly_equal(Ysum,xv,tol,[label ', sum of v{:,k}']);
-
-        % linear index over the blocks of C.ops
-        for k=1:nbr*nbc
-            [r,c] = ind2sub([nbr,nbc],k);
-            if pop(r,c)
-                vk = v{k};      vrc = v{r,c};
-                if ~same_terms(vk,vrc)
-                    error("Test_polyopvar_subsref failed (%s): linear index v{%d} differs from v{%d,%d}.",label,k,r,c)
-                end
-            else
-                assert_error(@() v{k},'no nonempty term',sprintf('%s, linear index to an empty block',label));
-            end
-        end
-        % indices beyond the blocks (the scalar dimensions size(v.C) are larger for vector-valued blocks)
-        assert_error(@() v{nbr+1,1},'Row indices cannot exceed',[label ', row beyond the blocks']);
-        assert_error(@() v{1,nbc+1},'Column indices cannot exceed',[label ', column beyond the blocks']);
-        ncases = ncases+3;
+        ncases = ncases+5;
     end
 end
 
 %%%% Empty selections, and the indices that remain unsupported
 vv = [ya;yb];
 assert_error(@() vv{':'},'Linear indexing',"linear ':'");
+assert_error(@() vv{[1,2]},'Linear indexing',"linear index vector");
 assert_error(@() vv{1,1,1},'At most two indices',"three indices");
-assert_error(@() vv{[],:},'no nonempty term',"empty row selection");
-assert_error(@() vv{1,[]},'no nonempty term',"empty column selection");
-assert_error(@() vv{1,2},'no nonempty term',"an empty (row,col) pair, 2x2 blocks");
+assert_error(@() vv{[],1},'no nonempty term',"empty row selection");
+assert_error(@() vv{1,[]},'column index must be 1',"empty column selection");
 % subsequent references are applied to the extracted object
-if ~isequal(full(vv{2,:}.Z),2) || ~isequal(vv{2,:}.dims.out,1)
-    error("Test_polyopvar_subsref failed: chained reference after vv{2,:}.")
+if ~isequal(full(vv{2}.Z),2) || ~isequal(vv{2,:}.dims.out,1) || ~isequal(full(vv{2,1}.Z),2)
+    error("Test_polyopvar_subsref failed: chained reference after vv{2}.")
 end
 % 'end' evaluates to 1, see NOTES
-if ~same_terms(vv{1,end},vv{1,1}) || ~same_terms(vv{end,1},vv{1,1})
+if ~same_terms(vv{end},vv{1}) || ~same_terms(vv{1,end},vv{1,1}) || ~same_terms(vv(end),vv(1))
     error("Test_polyopvar_subsref failed: 'end' no longer evaluates to 1, update the NOTES.")
 end
 end

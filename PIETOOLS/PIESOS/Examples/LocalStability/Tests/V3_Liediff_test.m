@@ -29,6 +29,8 @@
 % CR, 10/06/2026: Added block-wise adjoint-symmetry constraint tests.
 % DJ, 10/15/2026: Updated to use new polyopvar functions;
 % DJ, 11/02/2026: Call the new convert function;
+% DJ, 11/08/2026: Extract term l of f by f.C{':',l} and f.Z(l,:), as
+%                   f{l} is now the whole polynomial;
 
 % Test the basic construction, distributed polynomial degrees, and the
 % analytical d=1 and d=2 Lie derivatives returned by V3_Liediff.m.
@@ -315,7 +317,11 @@ function dF = substitute_pie_rhs(F,factor_idx,f)
 
     dF = 0;
     for l = 1:size(f.degmat,1)
-        f_l           = f{l};
+        % Term l: coefficients f.C{1,l} on the monomial f.Z(l,:) (f{l} is the whole polynomial)
+        f_l           = f;
+        f_l.C         = f.C{':',l};
+        f_l.Z         = f.Z(l,:);
+        f_l           = initialize(f_l);
         dF = dF + subs(F,factor_idx,f_l);
     end
 end

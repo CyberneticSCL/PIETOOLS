@@ -74,6 +74,7 @@ function dV = Liediff(V,PIE)
 % DJ (CC), 11/02/2026: Refer to convert_PIETOOLS_PDE, which now also converts
 %   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
 % DJ, 11/07/2026: Reject an adjoint (u'), see 'ctranspose';
+% DJ, 11/08/2026: Extract term k of V by V.C{':',k} and V.Z(k,:);
 
 % Check the inputs
 if ~isa(V,'polyopvar')
@@ -137,7 +138,11 @@ for k=1:size(V.Z,1)
     if isempty(V.C.ops{1,k})
         continue
     end
-    Wk = V{1,k};
+    % Term k: coefficients V.C{1,k} on the monomial V.Z(k,:)
+    Wk = V;
+    Wk.C = V.C{':',k};
+    Wk.Z = V.Z(k,:);
+    Wk = initialize(Wk);
     zk = full(Wk.Z(1,:));
     pos = find(zk>0);               % positions of the state factors in Wk.Z (rest is padding)
     if isempty(pos)
