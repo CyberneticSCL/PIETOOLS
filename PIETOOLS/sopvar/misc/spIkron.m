@@ -31,6 +31,9 @@ function varargout = spIkron(q,varargin)
 %                  arguments, not one cell); code unchanged. The branch
 %                  'if varargout==6' compares a cell with 6 and never runs
 %                  (nargout==6 is meant); left as is.
+% MMP, 11/08/2026: 'if varargout==6' compared a cell with 6, so every call
+%                  with 2 to 6 outputs errored; replaced by 'if nargout==6'
+%                  (the 11/06 note that it was left as is no longer applies).
 
 % If C is specified as an actual array, we compute the kronecker product
 % using the built-in Matlab routine
@@ -87,7 +90,8 @@ elseif nargout<=6
     varargout{3} = Cvals_I;
     varargout{4} = m*q;
     varargout{5} = n*q;
-    if varargout==6
+%   if varargout==6                                                         % MMP, 11/08/2026 (was)
+    if nargout==6                                                           % MMP, 11/08/2026
         if nargin==7
             varargout{6} = varargin{6}*q;
         else
