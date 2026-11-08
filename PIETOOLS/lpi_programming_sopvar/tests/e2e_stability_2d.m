@@ -105,6 +105,15 @@ function out = e2e_stability_2d(frac,level)                                 % MM
 %                lpisettings_sop, the settings cx_settings returns since
 %                11/08/2026; the (was) signature line back under the
 %                10/28/2026 entry; code unchanged.
+% MMP, 11/08/2026: BUILD_2D takes T and A from the PIE as they are and
+%                builds the margin diag(eppos) by MAT2COPVAR_SOP, as
+%                EXEC_TOOLS_SOP does. It converted T and A by
+%                OPVAR2D2COPVAR, which rejects the container PIEs the
+%                converters return, and built the margin as an OPVAR2D,
+%                retired (cleaning/private). CX_STABILITY_2D, the
+%                reference of check (0), still does both, so E3 stops in
+%                it: at OPVAR2D2COPVAR with the 'extreme' settings, and
+%                earlier, at its use_sosineq = 1 error, with 'light'.
 
 % Defaults; no warnings for non-canonical multipliers; a check asserts
 % with one identifier
@@ -222,7 +231,9 @@ eq_deg_psatz = psatz_cell(st.eq_deg_psatz,eq_use_psatz);
 eq_opts_psatz = psatz_cell(st.eq_opts_psatz,eq_use_psatz);
 
 % The PIE operators as containers; the program
-Tm = opvar2d2copvar(PIE.T);     Am = opvar2d2copvar(PIE.A);
+% Tm = opvar2d2copvar(PIE.T);     Am = opvar2d2copvar(PIE.A);               % MMP, 11/08/2026 (was)
+% Already containers: OPVAR2D2COPVAR accepts only an opvar2d                % MMP, 11/08/2026
+Tm = PIE.T;     Am = PIE.A;                                                 % MMP, 11/08/2026
 % prog = lpiprogram_sop(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);               % MMP, 11/04/2026 (was)
 prog = lpiprogram(PIE.vars(:,1),PIE.vars(:,2),PIE.dom);                     % MMP, 11/04/2026
 
@@ -235,9 +246,17 @@ for j = 1:length(LF_use_psatz)
     end
 end
 if ~all(eppos==0)
-    np = PIE.T.dim(:,1);
-    Ip = blkdiag(eppos(1)*eye(np(1)),eppos(2)*eye(np(2)),eppos(3)*eye(np(3)),eppos(4)*eye(np(4)));
-    Pm = Pm + opvar2d2copvar(opvar2d(Ip,[np,np],PIE.dom,PIE.vars));
+%     np = PIE.T.dim(:,1);                                                  % MMP, 11/08/2026 (was)
+%     Ip = blkdiag(eppos(1)*eye(np(1)),eppos(2)*eye(np(2)),eppos(3)*eye(np(3)),eppos(4)*eye(np(4))); % MMP, 11/08/2026 (was)
+%     Pm = Pm + opvar2d2copvar(opvar2d(Ip,[np,np],PIE.dom,PIE.vars));       % MMP, 11/08/2026 (was)
+    % diag(eppos_k I) on the spaces of T as EXEC_TOOLS_SOP builds it: the   % MMP, 11/08/2026
+    % weight of a space is entry 1 + sum 2^(k-1) over the positions k of    % MMP, 11/08/2026
+    % its variables, i.e. R, L2[s1], L2[s2], L2[s1,s2] as before            % MMP, 11/08/2026
+    [sp,dm] = copvar_space_list(Tm,'out');                                  % MMP, 11/08/2026
+    vn = reshape(PIE.vars(:,1).varname,1,[]);                               % MMP, 11/08/2026
+    Ip = [];                                                                % MMP, 11/08/2026
+    for k = 1:numel(sp),  Ip = blkdiag(Ip,eppos(1+sum(2.^(find(ismember(vn,sp{k}))-1)))*eye(dm(k)));  end % MMP, 11/08/2026
+    Pm = Pm + mat2copvar_sop(Ip,dm,sp,struct('vars',{vn},'dom',PIE.dom));   % MMP, 11/08/2026
 end
 
 % Q = (A'(P T))' + A'(P T) (+ 2 epneg T'(P T))

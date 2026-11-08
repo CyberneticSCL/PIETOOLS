@@ -8,8 +8,8 @@
 %
 %       min gam   s.t.   gam*I - T'*T >= 0,
 %
-% on the container path: T is declared as an 'opvar' object and converted
-% to a 'copvar' object by OP2COPVAR_SOP, and LPI_INEQ_SOP imposes the
+% on the container path: T is declared as a 'copvar' object by
+% PI4_COPVAR_SOP, as in DEMO2, and LPI_INEQ_SOP imposes the
 % inequality with a certificate sized from gam*I - T'*T, so no degree is
 % given, printing its decision variables first. The script prints the
 % bound sqrt(gam) on ||T|| and 2/pi.
@@ -19,8 +19,9 @@
 %
 % OUTPUT
 % the workspace variables
-% - Top:            'opvar' object, the Volterra operator;
-% - T:              'copvar' object, Top as a container;
+% - s1, s1_dum:     'polynomial' objects, the spatial variable and its
+%                   dummy;
+% - T:              'copvar' object, the Volterra operator;
 % - prog:           'struct', the solved LPI program;
 % - gam:            'dpvar' object, the decision variable gam;
 % - operator_norm:  double, sqrt(gam) at the solution, the bound on ||T||.
@@ -76,17 +77,25 @@
 % MMP, 11/04/2026: The LPI program is declared by LPIPROGRAM on the
 %                  variables of Top; LPIPROGRAM_SOP, which read them off T,
 %                  is retired.
+% MMP, 11/08/2026: T is declared by PI4_COPVAR_SOP, as in DEMO2, and the
+%                  program on s1, s1_dum. T was an opvar Top (09/29/2026)
+%                  converted by OP2COPVAR_SOP, and the program of the
+%                  11/04/2026 entry read Top.vars, Top.I; the opvar class
+%                  is retired (cleaning/private). Help to match.
 
 % % % MMP, 10/21/2026: start of the rewritten body (header note).
 echo on
-% The operator, as in DEMO2, and its container form on L2[0,1]
-opvar Top;
-Top.R.R1 = 1;   Top.I = [0,1];
-T = op2copvar_sop(Top);
+% opvar Top;                                                                % MMP, 11/08/2026 (was)
+% Top.R.R1 = 1;   Top.I = [0,1];                                            % MMP, 11/08/2026 (was)
+% T = op2copvar_sop(Top);                                                   % MMP, 11/08/2026 (was)
+% The operator on L2[0,1] as in DEMO2: R1 = 1, the integral from 0 to s     % MMP, 11/08/2026
+pvar s1 s1_dum                                                              % MMP, 11/08/2026
+T = pi4_copvar_sop([],[],[],{0,1,0},[0 0; 1 1],s1,s1_dum,[0,1]);            % MMP, 11/08/2026
 
 % The LPI
 % prog = lpiprogram_sop(T);                   % a program on the variables of T % MMP, 11/04/2026 (was)
-prog = lpiprogram(Top.vars,Top.I);          % a program on the variables of Top % MMP, 11/04/2026
+% prog = lpiprogram(Top.vars,Top.I);          % a program on the variables of Top % MMP, 11/08/2026 (was)
+prog = lpiprogram([s1,s1_dum],[0,1]);       % a program on s1 in [0,1]      % MMP, 11/08/2026
 [prog,gam] = lpidecvar(prog,'gam');         % a scalar decision variable
 prog = lpi_ineq_sop(prog,gam - T'*T);       % gam*I - T'*T >= 0
 prog = lpisetobj(prog,gam);                 % minimize gam

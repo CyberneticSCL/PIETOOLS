@@ -712,7 +712,12 @@ README rather than being deleted.
   `lpiscript_sop`.
 - **`converters/tests` (2).** Class assertions `'opvar'`, `'opvar2d'` → copvar.
 - **`lpi_programming_sopvar/examples`.** `volterra_norm_sop` (opvar construction) and 3 files with
-  `op2copvar_sop` on PIE fields.
+  `op2copvar_sop` on PIE fields. **`volterra_norm_sop` done 11/08** [M]: T from `pi4_copvar_sop`, as
+  in DEMO2; bound 0.636804 with 126 decision variables, the values of its README row. The same day
+  `tests/e2e_stability_2d` (`build_2d`) takes the container `PIE.T`, `PIE.A` as they are and builds the
+  `eppos` margin by `mat2copvar_sop` (equal by action to the `opvar2d` route, measured on `b0623f6f`),
+  and `tests/bench_getsol_sop` lost its part 4 (`lpivar`, `getsol_lpivar`, `lpigetsol`). E3 still stops
+  in its reference `cx_stability_2D` (a 2-D transcription, left alone); see `cleaning/README.md`.
 - **Parallel:** disjoint folders. **Size** [I]: ≈50 files, most of them tests.
 
 ### Phase 7 – User-facing material

@@ -73,13 +73,22 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
   opvars; so do the legacy 2-D converter chain and `convert_PIETOOLS_PDE_sopvar` (static).
 - The 2022 declaration format: the `parser/@state` and `@terms` methods build opvars (static;
   decision 2), and the GUI follows it.
-- `PIETOOLS_examples/examples_PDE_library_PIETOOLS.m:1060, 1069` call `PIETOOLS_auto_execute`, which
-  already failed on every copvar PIE; `PIETOOLS_auto_execute_sop` is its container counterpart.
+- `PIETOOLS_examples/examples_PDE_library_PIETOOLS.m:1060, 1069` called `PIETOOLS_auto_execute`, which
+  already failed on every copvar PIE, until 11/08/2026 (96529608); they now call its container
+  counterpart `PIETOOLS_auto_execute_sop`.
 - `PIETOOLS_demos/multivariate_PIE_2508_14840/jp_wave_plate_rates.m` (the stock LPI layer),
   `PIETOOLS_demos/lowrank_2d_stability/` (the stock executives and LPI layer) and
   `PIETOOLS_demos/cuadmm/heat2d_compare.m` (through `lowrank_2d_stability`) (static).
-- The manual snippets of Ch3 and Ch5 and `lpi_programming_sopvar/examples/volterra_norm_sop.m:83`
-  build opvars (static).
+- The manual snippets of Ch3 and Ch5 build opvars (static). `lpi_programming_sopvar/examples/
+  volterra_norm_sop.m` did too, until 11/08/2026.
+- `sopvar/Testfolder/sdopvar/claude_tests/cx_exec/cx_stability_2D.m:59, 72–74`, the reference of
+  E3 (`lpi_programming_sopvar/tests/e2e_stability_2d.m`, check (0)), passes the container `PIE.T`
+  and `PIE.A` to `opvar2d2copvar`, which accepts only an `opvar2d`, and builds the `eppos` margin as
+  an `opvar2d` (a 2-D transcription, left alone). Measured on 11/08/2026: E3 stops there at line 59
+  (`opvar2d2copvar:badInput`) with the `extreme` settings, and at line 52, its `use_sosineq = 1`
+  error, with the default `light`. The transcription in E3 (`build_2d`) and part 4 of
+  `lpi_programming_sopvar/tests/bench_getsol_sop.m` (`lpivar`, `getsol_lpivar`, `lpigetsol`) called
+  retired functions until 11/08/2026.
 - Branches that only an opvar-class input reaches, now dead: `piesos_getsol`, `piesos_ineq`,
   `dopvar2sdopvar` (static). `lpi_ineq_sop`, `lpi_eq_sop`, `getsol_lpivar_sop`, `lpigetsol_sop`,
   `poslpivar_sop` and `get_lpivar_degs_sop` raise their own errors for such an input since
