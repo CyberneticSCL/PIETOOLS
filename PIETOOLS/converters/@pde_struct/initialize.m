@@ -278,11 +278,6 @@ PDE.w_tab = PDE.w_tab(new_order_w,:);
 [~,new_order_BC] = sort(PDE.BC_tab(:,1));
 PDE.BC_tab = PDE.BC_tab(new_order_BC,:);
 
-% DB 11/07/2026: equations 0=E(s) that hold on the whole domain are static
-% constraints, not boundary conditions: they are stored as outputs z flagged
-% in PDE.constraint_ID, see extract_static_constraints
-PDE = extract_static_constraints(PDE);
-
 % % % --------------------------------------------------------------- % % %
 % % % Build a full list of the spatial variables that appear, and
 % % % their domain.
@@ -350,6 +345,18 @@ PDE.vars = global_vars;
 [PDE,dom_list_u,var_list_u,comp_list_u] = extract_vars(PDE,'u');
 [PDE,dom_list_z,var_list_z,comp_list_z] = extract_vars(PDE,'z');
 [PDE,dom_list_y,var_list_y,comp_list_y] = extract_vars(PDE,'y');
+
+% DB 11/07/2026: equations 0=E(s) that hold on the whole domain are static
+% constraints, not boundary conditions: they are stored as outputs z flagged
+% in PDE.constraint_ID, see extract_static_constraints. This is done after
+% the variables of the states have been set, since the states may be declared
+% without them.
+n_z = numel(PDE.z);
+PDE = extract_static_constraints(PDE);
+if numel(PDE.z)>n_z
+    % Set the (dummy) variables of the outputs that were added
+    [PDE,dom_list_z,var_list_z,comp_list_z] = extract_vars(PDE,'z');
+end
 
 % Combine the lists to get a full list of variable names and their
 % associated domains.
@@ -2622,6 +2629,8 @@ function PDE = extract_static_constraints(PDE)
 % this output as additional rows of K in K*xf=0.
 %
 % DB 11/07/2026: Initial coding;
+% DB 11/08/2026: Called after the variables of the states are set; skip
+%               terms on several states, or on states without variables;
 is_int = false(numel(PDE.BC),1);
 iszeropoly = @(d) ~any(any(full(polynomial(d).coefficient)));
 for ii=1:numel(PDE.BC)
@@ -2633,6 +2642,10 @@ for ii=1:numel(PDE.BC)
         trm = PDE.BC{ii}.term{jj};
         for kk=1:numel(trm)
             if ~isfield(trm,'x') || isempty(trm(kk).x) || ~isfield(trm,'loc')
+                ok = false;     break
+            end
+            % Only terms in a single state with spatial variables qualify
+            if ~isscalar(trm(kk).x) || ~isfield(PDE.x{trm(kk).x},'vars') || isempty(PDE.x{trm(kk).x}.vars)
                 ok = false;     break
             end
             xv = PDE.x{trm(kk).x}.vars;     xv = xv(:,1);
