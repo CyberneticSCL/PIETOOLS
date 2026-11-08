@@ -15,7 +15,10 @@ function varargout = pie_test_utils(cmd,varargin)
 %                                             (auxiliary) blocks, and of the others
 %   xp = pie_test_utils('pde_state',PDE,x,k)  rows of x of the PDE state k
 %
-% DB, 11/07/2026: Initial coding; replaces the 'opvar' interface of the
+% DB, 11/07/2026: Initial coding;
+% DB, 11/08/2026: Do not use sopvar2opvar and the 'opvar' class, which have
+%                 been retired: the kernels of the sopvar blocks are read
+%                 directly (single spatial variable); replaces the 'opvar' interface of the
 %                 tests (PIE.F, PIE.misc.periodic) that the converter no
 %                 longer has;
 
@@ -80,7 +83,7 @@ end
 function out = apply_block(B,v)
 % Evaluate a 'sopvar' block on a polynomial column v, exactly
 v = polynomial(reshape(v,numel(v),1));
-P = sopvar2opvar(B);
+P = sopvar2struct(B);
 q = polynomial(zeros(P.dim(1,2),1));
 f = polynomial(zeros(P.dim(2,2),1));
 if P.dim(1,2)>0, q = v; end
@@ -97,5 +100,37 @@ else
         out = out+P.R.R0*f+int(P.R.R1*subs(f,s,sd),sd,P.I(1),s) ...
                 +int(P.R.R2*subs(f,s,sd),sd,s,P.I(2));
     end
+end
+end
+
+function P = sopvar2struct(B)
+% Fields of the 'opvar' of a sopvar block of a single variable, as a struct:
+% dim, I, var1, var2, P, Q1, Q2 and R.R0, R.R1, R.R2 (as in sopvar2opvar)
+dims = B.dims;      vars = B.vars;      dom = B.dom;
+sv = unique([vars.in,vars.out]);
+if numel(sv)>1
+    error('Only blocks of a single spatial variable are supported.');
+end
+if isempty(sv),  vname = 's1';  else,  vname = char(sv{1});  end
+dname = [vname,'_dum'];
+P = struct('dim',zeros(2,2),'I',[],'var1',polynomial({vname}),'var2',polynomial({dname}),...
+           'P',[],'Q1',[],'Q2',[],'R',struct('R0',[],'R1',[],'R2',[]));
+fin_out = isempty(vars.out);    fin_in = isempty(vars.in);
+P.dim(2-fin_out,1) = dims(1);
+P.dim(2-fin_in,2) = dims(2);
+topoly = @(par,ZL,ZR,vo,vi) combine(quadPoly.quadPoly2polynomial(combine(quadPoly(par,ZL,ZR,dims,vo,vi,0))));
+if fin_out && fin_in
+    P.P = B.params{1};
+elseif fin_out
+    P.I = dom.in;
+    P.Q1 = topoly(B.params{1},{},B.ZR,{},{vname});
+elseif fin_in
+    P.I = dom.out;
+    P.Q2 = topoly(B.params{1},B.ZL,{},{vname},{});
+else
+    P.I = dom.in;
+    P.R.R0 = topoly(B.params{1},B.ZL,B.ZR,{vname},{vname});
+    P.R.R1 = topoly(B.params{2},B.ZL,B.ZR,{vname},{dname});
+    P.R.R2 = topoly(B.params{3},B.ZL,B.ZR,{vname},{dname});
 end
 end
