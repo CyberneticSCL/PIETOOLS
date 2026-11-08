@@ -37,7 +37,9 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar,?tensopvar,?tensopmat})pol
 %               state variables on which the polynomial is defined,
 %                   (x_{1},x_{2},...,x_{p});
 % - P.matdim:   1 x 2 array of integers, specifying the row and column
-%               dimensions of the matrix-valued polynomial;
+%               dimensions of the matrix-valued polynomial. For an adjoint
+%               (see is_adjoint) this is [1,k], for a weight with k columns
+%               (the number of rows of P.C for the unit weight);
 % - P.dims:     struct with fields
 %       in:     p x 1 array specifying the vector sizes of each of the
 %               state variables;
@@ -60,8 +62,22 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar,?tensopvar,?tensopmat})pol
 %        out:   nr x N 'double' array with element (i,j) indicating to
 %               what degree the ith row of the output depends on variable
 %               s_j.
+% - P.is_adjoint:   logical, true if P represents the L2-adjoint U'*W of
+%               the polynomial U defined by C and Z, with weight W. Then
+%               U'*V = innerprod(U,W,V) for a polynomial V, see ctranspose
+%               and mtimes. Defaults to false;
+% - P.weight:   an n x k array of type 'double', 'polynomial' or 'dpvar',
+%               the weight W of an adjoint P=U'*W for a polynomial U with n
+%               rows, with scalar W=w representing w*eye(n). Defaults to
+%               the unit weight W=1, which is also the only value if
+%               P.is_adjoint = false: a matrix times a polynomial is
+%               multiplied into C;
 %
 % NOTES
+% - An adjoint is a functional, and not a polynomial in the states. Most
+%   operations do not support it: only U'*V, U'*W, sums of adjoints with
+%   the same weight, the negative of an adjoint, and the horizontal
+%   concatenation of adjoints. The others throw an error.
 % - vars.in and vars.out always store the spatial variables in the same
 %   (sorted) order; this order corresponds positionally to depmat.in/
 %   depmat.out and dom.in/dom.out.
@@ -101,6 +117,7 @@ classdef (InferiorClasses={?polynomial,?dpvar,?sopvar,?tensopvar,?tensopmat})pol
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/06/2026: Set method for C: output space follows the coefficients;
 % DJ, 11/06/2026: Remove 'nopvar', 'ndopvar' from InferiorClasses;
+% DJ, 11/07/2026: Add properties is_adjoint and weight, see 'ctranspose';
 
 properties
     C = tensopmat();
@@ -110,6 +127,8 @@ properties
     dom = struct('in',zeros(1,0),'out',zeros(1,0));
     dims = struct('in',zeros(1,0),'out',zeros(1,0));
     depmat = struct('in',false(1,0),'out',zeros(1,0));
+    is_adjoint = false;
+    weight = 1;
 end
 properties(Hidden)
     chkval = false;     % indicates whether we have checked the polynomial is properly declared
@@ -328,6 +347,14 @@ function matdim = get.matdim(obj)
     nZ = size(degmat1,1);
     szZ = prod(repmat(obj.dims.in(:)',nZ,1).^degmat1,2);
     matdim = [nr,nc/sum(szZ)];
+    if obj.is_adjoint
+        % The row U'*W, with W of size n x k (or scalar, W*eye(n)) and U of
+        % size n x 1, has size 1 x k
+        matdim = [matdim(2),matdim(1)];
+        if ~all(size(obj.weight)==1)
+            matdim(2) = size(obj.weight,2);
+        end
+    end
 end
 
 

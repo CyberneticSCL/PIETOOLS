@@ -32,6 +32,7 @@ function C = opower(A,d,otype)
 %   holds if A has constant terms (monomials of degree 0), as otimes
 %   merges their factors with those of other monomials.
 % - A.^D is the elementwise power opower(A,D,1), see @polyopvar/power.m.
+% - An adjoint (see 'ctranspose') is not supported.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -59,6 +60,7 @@ function C = opower(A,d,otype)
 % authorship, and a brief description of modifications
 %
 % DJ, 11/06/2026: Initial coding;
+% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 if nargin<2
     error("Not enough inputs")
@@ -72,6 +74,9 @@ elseif ~isscalar(otype) || ~any(otype==[1,2])
 end
 if ~isa(A,'polyopvar')
     error("Input must be of type 'polyopvar'.")
+end
+if A.is_adjoint
+    error("polyopvar:adjoint_not_supported","'opower' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
 end
 if d==0
     C = 1;

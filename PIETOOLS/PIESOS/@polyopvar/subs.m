@@ -77,9 +77,13 @@ function fnew = subs(f,var,val)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 10/28/2026: Substitute constants in functionals of degree d>1;
 % DJ, 11/06/2026: Set chkval of the coefficients after editing them;
+% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 if ~isa(f,'polyopvar')
     error("Input must be of type 'polyopvar'.")
+end
+if f.is_adjoint || (isa(var,'polyopvar') && var.is_adjoint) || (isa(val,'polyopvar') && val.is_adjoint)
+    error("polyopvar:adjoint_not_supported","'subs' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
 end
 if ~f.chkval
     f = initialize(f);

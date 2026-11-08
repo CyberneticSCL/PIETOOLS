@@ -73,10 +73,13 @@ function dV = Liediff(V,PIE)
 %                   PIE.space and PIE.space_pde of the 'npie_struct' PIE;
 % DJ (CC), 11/02/2026: Refer to convert_PIETOOLS_PDE, which now also converts
 %   nonlinear PDEs, in the comments, instead of convert_PIETOOLS_PDE_nonlinear;
+% DJ, 11/07/2026: Reject an adjoint (u'), see 'ctranspose';
 
 % Check the inputs
 if ~isa(V,'polyopvar')
     error("The functional must be specified as 'polyopvar' object.")
+elseif V.is_adjoint
+    error("An adjoint (u') is not a polynomial in the states: use u'*v instead.")
 end
 if ~isequal(size(V),[1,1])
     error("The functional must be scalar-valued.")

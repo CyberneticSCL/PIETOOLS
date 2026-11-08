@@ -63,12 +63,16 @@ function dP = diff(P,vars,d)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/20/2026: Initial coding;
+% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 % Check that the polynomial is properly specified
 if ~isa(P,'polyopvar')
     error("Distributed polynomial must be specified as object of type 'polyopvar'.")
 elseif ~P.chkval
     P = initialize(P);
+end
+if P.is_adjoint
+    error("polyopvar:adjoint_not_supported","'diff' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
 end
 
 % Check that the variables and orders of differentiation are properly

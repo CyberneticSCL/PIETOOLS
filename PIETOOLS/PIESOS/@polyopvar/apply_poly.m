@@ -45,9 +45,13 @@ function Y = apply_poly(P,xvals)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 if ~isa(P,'polyopvar')
     error("First argument must be of type 'polyopvar'.")
+end
+if P.is_adjoint
+    error("polyopvar:adjoint_not_supported","'apply_poly' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
 end
 if ~P.chkval
     P = initialize(P);

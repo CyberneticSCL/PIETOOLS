@@ -44,11 +44,15 @@ function F = vertcat(varargin)
 %
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/06/2026: Determine the output dimensions before assigning F.C;
+% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 % Return an empty 'polyopvar' object if no inputs are specified
 if nargin==0
     F = polyopvar();
     return
+end
+if any(cellfun(@(a) isa(a,'polyopvar') && a.is_adjoint,varargin))
+    error("polyopvar:adjoint_not_supported","'vertcat' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
 end
 
 % Check that the first input is appropriate

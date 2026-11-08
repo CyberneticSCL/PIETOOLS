@@ -25,6 +25,10 @@ function C = plus(A,B)
 % - A scalar-valued polynomial (or constant) can be added to a
 %   vector-valued polynomial, and is then added to each of its rows.
 %   Otherwise, the vector dimensions must match.
+% - An adjoint (A=U1', see 'ctranspose') can only be added to an adjoint of
+%   the same size with the same weight W, as then U1'*W + U2'*W =
+%   (U1+U2)'*W. The adjoints of scalar polynomials are not added to
+%   adjoints of vectors.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PIETOOLS - plus
@@ -53,6 +57,7 @@ function C = plus(A,B)
 % DJ, 10/15/2026: Initial coding;
 % DJ, 11/03/2026: Add support for addition of polynomials with different
 %                   output spaces (e.g. p1(x1)(s1) + p2(x2)(s2));
+% DJ, 11/07/2026: Add adjoints with the same weight, see 'ctranspose';
 
 % Allow addition of polynomial with 0
 if isnumeric(A) && isequal(A,0)
@@ -73,6 +78,31 @@ if isa(B,'double') || isa(B,'polynomial') || isa(B,'dpvar')
     B = constant2polyopvar(B);
 elseif ~isa(B,'polyopvar')
     error("Addition of 'polyopvar' objects with non-'polyopvar' objects is not supported.")
+end
+
+% Add adjoints with equal weight W: U1'*W + U2'*W = (U1+U2)'*W, by adding
+% the polynomials that they are the adjoint of
+if A.is_adjoint || B.is_adjoint
+    % The adjoints must have the same size and weight. isequal is not
+    % defined for dpvar, but A.weight-B.weight is then a dpvar, zero if
+    % it has no nonzero coefficients. isequal of 'polynomial' objects is
+    % elementwise
+    is_same = A.is_adjoint && B.is_adjoint && all(size(A)==size(B)) && isequal(size(A.weight),size(B.weight));
+    if is_same && (isa(A.weight,'dpvar') || isa(B.weight,'dpvar'))
+        D = A.weight - B.weight;
+        is_same = ~any(any(D.C));
+    elseif is_same
+        is_same = all(all(isequal(A.weight,B.weight)));
+    end
+    if ~is_same
+        error("An adjoint can only be added to an adjoint of the same size, with the same weight.")
+    end
+    W = A.weight;
+    A.is_adjoint = false;       A.weight = 1;
+    B.is_adjoint = false;       B.weight = 1;
+    C = plus(A,B);
+    C.is_adjoint = true;        C.weight = W;
+    return
 end
 
 % Make sure the two distributed polynomials have the same output space, so

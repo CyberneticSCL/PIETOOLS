@@ -12,7 +12,10 @@ function f = initialize(f)
 %           The input variables f.vars.in may differ from those of f.C: a
 %           variable of f.C that f lacks must not be acted on, and a
 %           variable of f that f.C lacks must not appear in any monomial
-%           (every monomial is acted on by f.C);
+%           (every monomial is acted on by f.C). If f.is_adjoint is true,
+%           f represents the adjoint of the polynomial defined by f.C and
+%           f.Z, with weight f.weight (1, or with a row for each row of
+%           f.C), see 'polyopvar';
 %
 % OUTPUTS
 % - f:      'polyopvar' object representing the same distributed
@@ -25,7 +28,10 @@ function f = initialize(f)
 %
 % NOTES
 % - Only scalar or column-vector-valued 'polyopvar' objects are
-%   supported: an error is thrown if f.matdim(2)>1.
+%   supported: an error is thrown if f.matdim(2)>1, unless f is an adjoint
+%   (a row vector).
+% - An error is thrown if f.weight is not the scalar 1 (see 'is_eye'),
+%   but f.is_adjoint is false.
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,6 +59,7 @@ function f = initialize(f)
 % authorship, and a brief description of modifications
 %
 % DJ, 10/15/2026: Initial coding;
+% DJ, 11/07/2026: Check the fields is_adjoint and weight;
 
 % Decompose the distributed polynomial
 C = f.C;
@@ -285,8 +292,21 @@ f.dom = fdom;
 f.depmat = fdepmat;
 f.chkval = true;
 
+% The weight is 1, unless f is an adjoint, the row u'*W of a polynomial u,
+% with W a scalar, or with a row for each row of u
+if ~islogical(f.is_adjoint) || ~isscalar(f.is_adjoint)
+    error("Field 'is_adjoint' must be specified as a logical scalar.")
+elseif ~(isnumeric(f.weight) || isa(f.weight,'polynomial') || isa(f.weight,'dpvar'))
+    error("The weight must be specified as object of type 'double', 'polynomial', or 'dpvar'.")
+% The weight of a non-adjoint is the scalar identity 1
+elseif ~f.is_adjoint && ~is_eye(f.weight,1)
+    error("A weight other than 1 can only be specified for an adjoint (is_adjoint=true), otherwise it must be multiplied into the coefficients C.")
+elseif f.is_adjoint && ~all(size(f.weight)==1) && size(f.weight,1)~=size(C,1)
+    error("The number of rows of the weight must match the number of rows of the polynomial.")
+end
+
 % Only column-vector/scalar polyopvar objects are supported for now
-if f.matdim(2)>1                                                           
+if ~f.is_adjoint && f.matdim(2)>1
     error("polyopvar:matrix_valued_not_supported", ...                    
         ['Matrix-valued (multi-column) distributed polynomials are not ' ...
          'currently supported -- only scalar or column-vector-valued ' ...

@@ -73,10 +73,14 @@ function P_out = lift_output(P,vars,dom,dims,deps)
 %
 % DJ, 11/03/2026: Initial coding;
 % DJ, 11/06/2026: Output space of P_out follows from P_out.C (see set.C);
+% DJ, 11/07/2026: Reject adjoints, see 'ctranspose';
 
 % Check that the polynomial is properly declared
 if ~isa(P,'polyopvar')
     error("First argument must be of type 'polyopvar'.")
+end
+if P.is_adjoint
+    error("polyopvar:adjoint_not_supported","'lift_output' is not supported for adjoint 'polyopvar' objects (u'), see 'ctranspose'.")
 end
 if ~P.chkval
     P = initialize(P);
