@@ -24,12 +24,14 @@ the path cannot create a second class or private definition.
   layer, the opvar classes with their helpers, and the stock executives, each moved whole from
   `PIETOOLS/<folder>/`; `@opvar`, `@dopvar`, `2D/@opvar2d`, `2D/@dopvar2d` became `*_class`, and the
   empty `@quadPoly`, `Testing` and `legacy` folders were dropped. `opvar/2D/int_simple.m` moved to
-  `misc/` first. The 15 files that code on the path still calls – all of `settings/`, `closedLoopPIE`,
-  `get_eq_opts_2D` – moved to `orphaned_file/needed/` instead (maintainer: "anything that is needed
-  can move into orphaned_files/needed"), which lists them with their callers. The stock `lpi_ineq`
-  and `lpigetsol` were there too until three container tests and `lpi_ineq_sop` stopped calling
-  them, later on 11/08/2026 (maintainer: "find a way to get rid of it"); they are in
-  `private/lpi_programming/` with the rest.
+  `misc/` first. The 13 files of `settings/`, which code on the path still calls, moved to
+  `orphaned_file/needed/` instead (maintainer: "anything that is needed can move into
+  orphaned_files/needed"), which lists their callers. Four more went there at first and left later
+  on 11/08/2026: the stock `lpi_ineq` and `lpigetsol` rejoined `private/lpi_programming/` once three
+  container tests and `lpi_ineq_sop` stopped calling them (maintainer: "find a way to get rid of
+  it"); `closedLoopPIE` moved to `executives_sopvar/utility_functions/`, and `get_eq_opts_2D`, which
+  nothing on the path calls, to `private/executives/utility_functions/` (maintainer: "now address
+  closedLoopPIE and get_eq_opts_2D").
 
 ## Not moved
 

@@ -742,8 +742,10 @@ README rather than being deleted.
   is empty; the scan of §1.1 finds none of the four names in code outside `cleaning/`.
 - **Done 11/08** [M] (maintainer: "move lpi_programming, opvar, executives, and settings folders into
   cleaning/private"), ahead of decisions 2, 5 and 6: `opvar/`, `lpi_programming/` and `executives/` are in
-  `cleaning/private/<folder>/`; the 15 files that code on the path still calls (all of `settings/`,
-  `closedLoopPIE`, `get_eq_opts_2D`) are in `orphaned_file/needed/`. The stock `lpi_ineq` and
+  `cleaning/private/<folder>/`; the 13 files of `settings/`, which code on the path still calls, are in
+  `orphaned_file/needed/`. `closedLoopPIE` is in `executives_sopvar/utility_functions/` (DEMO12 runs,
+  values as before) and `get_eq_opts_2D`, which nothing on the path calls, in
+  `cleaning/private/executives/utility_functions/`. The stock `lpi_ineq` and
   `lpigetsol` followed the rest of `lpi_programming/` later on 11/08 [M]: E1, `test_dpvar_hinf_chain_sop`
   and `test_getsol_sop` (iv) call `lpi_ineq_sop` and `lpigetsol_sop` (the same `sosineq`, `sosgetsol`
   calls; every printed gamma identical), and `lpi_ineq_sop` raises its own error for other classes.
