@@ -82,6 +82,10 @@ function PIEcl = closedLoopPIE(PIE, K, type)
 % DB, 11/03/2026: Add type 'dynamic', the closed loop of the PIE and a
 %                   dynamic output feedback controller with its own T operator
 %                   (formerly closedLoopPIE_OF_sop);
+% MMP, 11/08/2026: Moved, code unchanged, from executives/utility_functions
+%                   (retired to cleaning/private on 11/08/2026) to
+%                   executives_sopvar/utility_functions: PIETOOLS_PDE.m, DEMO12
+%                   and the manual snippets call it on container PIEs.
 
 if nargin==2
     type = 'controller';

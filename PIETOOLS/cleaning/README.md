@@ -24,10 +24,14 @@ the path cannot create a second class or private definition.
   layer, the opvar classes with their helpers, and the stock executives, each moved whole from
   `PIETOOLS/<folder>/`; `@opvar`, `@dopvar`, `2D/@opvar2d`, `2D/@dopvar2d` became `*_class`, and the
   empty `@quadPoly`, `Testing` and `legacy` folders were dropped. `opvar/2D/int_simple.m` moved to
-  `misc/` first. The 17 files that code on the path still calls – all of `settings/`, `closedLoopPIE`,
-  `get_eq_opts_2D`, the stock `lpi_ineq` and `lpigetsol` – moved to `orphaned_file/needed/` instead
-  (maintainer: "anything that is needed can move into orphaned_files/needed"), which lists them with
-  their callers.
+  `misc/` first. The 13 files of `settings/`, which code on the path still calls, moved to
+  `orphaned_file/needed/` instead (maintainer: "anything that is needed can move into
+  orphaned_files/needed"), which lists their callers. Four more went there at first and left later
+  on 11/08/2026: the stock `lpi_ineq` and `lpigetsol` rejoined `private/lpi_programming/` once three
+  container tests and `lpi_ineq_sop` stopped calling them (maintainer: "find a way to get rid of
+  it"); `closedLoopPIE` moved to `executives_sopvar/utility_functions/`, and `get_eq_opts_2D`, which
+  nothing on the path calls, to `private/executives/utility_functions/` (maintainer: "now address
+  closedLoopPIE and get_eq_opts_2D").
 
 ## Not moved
 
@@ -69,9 +73,10 @@ Measured on 11/07/2026 with `opvar/` and `lpi_programming/` off the path, unless
   `PIETOOLS_demos/cuadmm/heat2d_compare.m` (through `lowrank_2d_stability`) (static).
 - The manual snippets of Ch3 and Ch5 and `lpi_programming_sopvar/examples/volterra_norm_sop.m:83`
   build opvars (static).
-- Branches that only an opvar-class input reaches, now dead: `lpi_eq_sop`, `lpi_ineq_sop` (also a
-  `double` P), `getsol_lpivar_sop`, `lpigetsol_sop`, `poslpivar_sop` and `get_lpivar_degs_sop` (a
-  non-container operator), `piesos_getsol`, `piesos_ineq`, `dopvar2sdopvar` (static).
+- Branches that only an opvar-class input reaches, now dead: `lpi_eq_sop`, `getsol_lpivar_sop`,
+  `lpigetsol_sop`, `poslpivar_sop` and `get_lpivar_degs_sop` (a non-container operator),
+  `piesos_getsol`, `piesos_ineq`, `dopvar2sdopvar` (static). `lpi_ineq_sop` raises its own error for
+  such a P since 11/08/2026.
 
 ## Moved files
 

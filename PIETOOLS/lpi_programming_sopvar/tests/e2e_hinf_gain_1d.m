@@ -133,6 +133,9 @@ function out = e2e_hinf_gain_1d(plant,level)                                % MM
 %                because each is f times a written one (since 11/01/2026):
 %                prog.sopeq records them, private/dup_res adds their
 %                residuals; without them the T'Q - R ratio was 1.02436.
+% MMP, 11/08/2026: gam >= 0 by LPI_INEQ_SOP, which imposes a 'dpvar' by
+%                SOSINEQ as LPI_INEQ did; LPI_INEQ is retired
+%                (cleaning/private).
 % function out = hinf_gain_1d_sop(plant,level)                              % MMP, 10/21/2026 (was)
 
 % Defaults; no warnings for non-canonical multipliers; settings with
@@ -177,7 +180,8 @@ Iw = eye_copvar_sop(dmw,spw,PIE.dom);   Iz = eye_copvar_sop(dmz,spz,PIE.dom);
 prog = lpiprogram(PIE.vars,PIE.dom);                % variables of the PIE  % MMP, 11/04/2026
 prog.sopeq = {};                    % record rows not written, check (3)    % MMP, 11/07/2026
 [prog,gam] = lpidecvar(prog,'gam');
-prog = lpi_ineq(prog,gam);                          % gam >= 0: legacy sosineq
+% prog = lpi_ineq(prog,gam);                          % gam >= 0: legacy sosineq % MMP, 11/08/2026 (was)
+prog = lpi_ineq_sop(prog,gam);                      % gam >= 0: sosineq     % MMP, 11/08/2026
 prog = lpisetobj(prog,gam);
 % R >= 0 ('lf' settings) and Q free on the output spaces of T; T'Q - R = 0,
 % its rows recorded

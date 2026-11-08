@@ -136,8 +136,9 @@ stock `lpivar_2d` monomials); in 1-D from `get_lpivar_degs_sop` and `settings.dd
 
 The helpers the executives call. They are on the path like every folder: the tests and examples of
 `lpi_programming_sopvar`, the cx_exec tests, `sopvar/@sopvar/inv` and the stock `getController` call some
-of them. The stock counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop` are
-in `executives/utility_functions/`.
+of them. The stock counterparts of `get_lpivar_degs_sop`, `getController_sop` and `getObserver_sop` were
+in `executives/utility_functions/`, retired to `cleaning/private/` on 11/08/2026; `closedLoopPIE` moved
+from there to this folder the same day.
 
 | function | what it does |
 |---|---|
@@ -153,6 +154,7 @@ in `executives/utility_functions/`.
 | `get_lpivar_degs_sop` | the degrees of the free operator, read off the storage |
 | `trace_rn_sop` | the trace over the R^q blocks, for the H2 executives |
 | `getController_sop`, `getObserver_sop` | the 1-D gains through the container inverse (below) |
+| `closedLoopPIE` | the closed-loop PIE of a PIE and a state-feedback, observer or dynamic output-feedback gain; called by `PIETOOLS_PDE.m`, DEMO12 and the manual snippets (from `executives/utility_functions/`, 11/08/2026) |
 | `getController_direct_sop` | the controller gains without forming the inverse; called by `Test_copvar_inv` only |
 | `pie_disc_sop`, `pie_witness_sop` | the Legendre-Galerkin matrices of a 1-D PIE, and the numerical counterpart of a certificate |
 
