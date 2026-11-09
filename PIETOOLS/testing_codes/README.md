@@ -2,20 +2,38 @@
 
 Test code staged for removal (maintainer, 11/08/2026: "Move all the testing codes and files which
 exist just for those codes into a testing codes folder in the repo root to be eventually
-cleaned"; the maintainer then placed the folder in `PIETOOLS/` rather than in the git root). Nothing
-was deleted: every tracked file here is a `git mv`, and `git mv testing_codes/<path> <path>`
-restores one.
+cleaned"; the maintainer then placed the folder in `PIETOOLS/` rather than in the git root). Since
+11/09/2026 everything but this README is in `private/` (maintainer: "To be safe, move the files in
+testing folder a private subfolder."), as in `cleaning/`. Nothing was deleted: every tracked file
+here is a `git mv`, and `git mv testing_codes/private/<path> <path>` restores one.
 
-## On the path
+## Off the path
 
-`pietools_path_update` adds `genpath` of `PIETOOLS/`, which includes this folder, so every test,
-harness and helper here resolves by name as before the move. Paths mirror the old ones:
-`testing_codes/<old path under PIETOOLS/>`. The one exception is `PIESOS/polyopvar/@quadPoly/test/`,
-now `PIESOS/polyopvar/quadPoly_class/test/`, so that no second `@quadPoly` folder lands on the path.
-Each `private/` folder keeps its name and moved with the files that call it. No name in this
-folder has a second copy elsewhere on the path (word search over the tracked files, 11/08/2026).
+`pietools_path_update` adds `genpath` of `PIETOOLS/`, and `genpath` skips every folder named
+`private` with everything below it, so no file here is on the default path: toolbox code cannot
+call a test or a test helper, and no name here can shadow a toolbox name. To run a test, add its
+folder to the path or make it the current folder; MATLAB refuses to add a folder named `private`
+but adds its subfolders. All at once:
+
+    addpath(genpath(fullfile(<PIETOOLS>,'testing_codes','private')))
+
+adds the 73 folders below `private/` and warns once, for `private/` itself; a nested `private/`
+folder stays private to its parent (measured on R2025b, 11/09/2026). Documentation elsewhere that
+runs a test by name predates this move: add the folder first.
+
+Paths mirror the old ones: `testing_codes/private/<old path under PIETOOLS/>`. The one exception is
+`PIESOS/polyopvar/@quadPoly/test/`, now `PIESOS/polyopvar/quadPoly_class/test/`, so that no second
+`@quadPoly` folder exists. Each `private/` folder keeps its name and moved with the files that call
+it. No name here has a second copy on the default path (word search over the tracked files,
+11/08/2026).
 
 ## What moved (897 tracked files, 11/08/2026)
+
+The table gives the source of each group under `PIETOOLS/`; since 11/09/2026 each file is at
+`testing_codes/private/<source>`. The merge 864a00d8 (11/09/2026) added two tests of Declan:
+`Test_tensopvar_combine_factors` (`PIESOS/Testfolder/tensopvar/`) and `Test_piesos_ode_states`
+(`PIESOS/sosprogramming/Testfolder/`). With the two copies listed under "New", 901 tracked files
+are in `private/`.
 
 | From | Files | What |
 |---|---|---|
@@ -37,7 +55,8 @@ folder has a second copy elsewhere on the path (word search over the tracked fil
 Also moved, with `mv`: 1,042 untracked files (55 MB), the fixture data of
 `baselines/2026-11-02_opvar_phase0/` (`F1/` 292, `F2/` 688, `F4/` 22, `logs/` 40). The harness reads
 them from its own folder; `testing_codes/baselines/.gitignore` keeps them out of git, as the old
-`baselines/.gitignore` did.
+`baselines/.gitignore` did. On 11/09/2026 they moved into `private/` with their folder and are still
+ignored.
 
 New: `PIETOOLS_demos/cuadmm/.gitattributes` and `.gitignore`, copies of those of
 `PIETOOLS_demos/cuadmm/`. The rule `*.sh text eol=lf` keeps the moved shell scripts LF on a
@@ -93,8 +112,7 @@ Six files built a path from their own location; each change is marked "MMP, 11/0
   `testing_codes/PIETOOLS_demos/cuadmm` of the pushed tree.
 - `baselines/2026-11-02_opvar_phase0/run_phase0.sh`: `P0W` names the new folder.
 
-Valid without a change: `cuadmm_path` requires one copy of `bl_run`, `bl_check` and `bl_fix` inside
-the PIETOOLS tree, which holds this folder; `heatNd_path` asserts the `heatNd_*` files of its own
+Valid without a change: `cuadmm_path` (until 11/09/2026, below); `heatNd_path` asserts the `heatNd_*` files of its own
 folder; `sol_harness.slurm` adds `PIETOOLS_demos/cuadmm` of the tree on Sol. Not changed:
 `baselines/2026-11-02_opvar_phase0/private/p0_path.m` still takes the old `PIETOOLS_demos/cuadmm` and
 `PIETOOLS_demos/lowrank_2d_stability` off the path of an export; in an export of this layout, their
@@ -106,6 +124,18 @@ READMEs updated: `executives_sopvar/`, `lpi_programming_sopvar/`, `PIETOOLS_demo
 (run the heatNd checks after `heatNd_path`), `PIETOOLS_demos/cuadmm/`, and the "Not moved" table of
 `cleaning/README.md`. Comments elsewhere that name an old path (the low-rank documentation,
 `cx_shape`, converter headers, the sopvar notes) are left as written.
+
+On 11/09/2026, for the move into `private/`, seven files changed, each marked "MMP, 11/09/2026":
+
+- `PIETOOLS_demos/lowrank_2d_stability/pielr_path.m` and `PIETOOLS_demos/cuadmm/cuadmm_path.m`
+  (both stay): `pielr_bench*`, and `bl_run` and `bl_check`, leave the single-resolution lists. Off
+  the path they resolve zero times, and either function would stop every caller.
+- `t1d_path.m`: `D.root` is five levels up.
+- `regime.sh` (`BRW`) and `sol_push.sh` (`TREE`): one more level.
+- `sol0.sh` (the submit folder) and `run_phase0.sh` (`P0W`): `private/` joins the path.
+
+The READMEs above now name `testing_codes/private/`; those of `cuadmm`, `sopvar_demos` and
+`lpi_programming_sopvar` say how to add the folders.
 
 ## Checked (11/08/2026, on the default path)
 
@@ -124,3 +154,19 @@ READMEs updated: `executives_sopvar/`, `lpi_programming_sopvar/`, `PIETOOLS_demo
   the folders they compute exist (`TREE` is the PIETOOLS folder, the bridge holds `cuadmm_path`).
 - Not run: the Phase 0 harness, the DEMOs and the example library. No code outside this folder
   changed but `pielr_path`.
+
+## Checked (11/09/2026, after the move into `private/`)
+
+- Default path (`restoredefaultpath`, then `pietools_path_update`): none of the 349 names of the
+  412 moved `.m` files resolves under `testing_codes/`; the only path entry there is
+  `testing_codes/` itself, which holds this README.
+- `cuadmm_path`, `pielr_path` and `heatNd_path` – no error.
+- `addpath(genpath(...))` as above: 73 folders added, one warning, `private/` itself not added.
+  Then `Test_tensopvar_combine_factors`, `Test_mtimes_id_bypass`, `e2e_stability_1d`,
+  `Test_piesos_ode_states` and `test_executives_sop` ran by name without error, and `t1d_path`
+  found the tree, the package and its private folder.
+- The cuADMM quick start, from `PIETOOLS_demos/cuadmm` with the suite added as its README says:
+  `bl_check('structure')` – 16 PASS. The heatNd command of `PIETOOLS_demos/sopvar_demos/README.md`
+  reaches `test_heatNd_pie`, which stops at the `copvar` field `var1`, as before the move.
+- The shell scripts: `bash -n` parses all four, and the folders they compute exist. Not run
+  (GPU, WSL, Sol). Not run: the Phase 0 harness.

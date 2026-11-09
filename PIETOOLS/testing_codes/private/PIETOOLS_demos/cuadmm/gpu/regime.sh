@@ -12,6 +12,10 @@
 # MMP, 11/08/2026: the suite moved to testing_codes/PIETOOLS_demos/cuadmm
 #   (maintainer: move the testing codes to testing_codes); MATLAB also gets
 #   PIETOOLS_demos/cuadmm, which holds cuadmm_path, the first call of bl_regime.
+# MMP, 11/09/2026: the suite moved to testing_codes/private/PIETOOLS_demos/
+#   cuadmm (maintainer: "To be safe, move the files in testing folder a private
+#   subfolder."); BRW climbs one more level. addpath of PKGW still works:
+#   MATLAB refuses only a folder named private, not its subfolders.
 set -u
 PKG="$(cd "$(dirname "$0")/.." && pwd)"
 OUTW="${CUADMM_OUT:?set CUADMM_OUT}"
@@ -21,7 +25,8 @@ DMP="$OUTU/baseline/dumps"
 EXE=${CUADMM_EXE:-/home/mpeet/solvers/cuADMM/build/cuadmm_exe}
 DL="${REGIME_DEADLINE:?set REGIME_DEADLINE}"
 PKGW="$(cygpath -w "$PKG")"
-BRW="$(cygpath -w "$(cd "$PKG/../../../PIETOOLS_demos/cuadmm" && pwd)")"    # MMP, 11/08/2026
+# BRW="$(cygpath -w "$(cd "$PKG/../../../PIETOOLS_demos/cuadmm" && pwd)")"  # MMP, 11/09/2026 (was)
+BRW="$(cygpath -w "$(cd "$PKG/../../../../PIETOOLS_demos/cuadmm" && pwd)")" # MMP, 11/09/2026
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$RG/driver.log"; }
 wsldir() { local w; w="$(cygpath -w "$1")"; echo "/mnt/$(echo "${w:0:1}" | tr A-Z a-z)$(echo "${w:2}" | tr '\\' '/')"; }
 

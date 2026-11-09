@@ -222,7 +222,7 @@ forms.
 The rows name the executives of 10/08/2026; the table at the top gives the executive and form that pose
 each of these programs now.
 
-`testing_codes/executives_sopvar/tests/test_executives_sop.m` (in `tests/` until 11/08/2026) asserts the 1-D part (19 checks; `test_executives_sop(false)` adds the
+`testing_codes/private/executives_sopvar/tests/test_executives_sop.m` (in `tests/` until 11/08/2026; off the path since 11/09/2026) asserts the 1-D part (19 checks; `test_executives_sop(false)` adds the
 2-D stability executive). The numbers below are from the session drivers (`run_exec_1d`,
 `run_exec_1d_b`, `run_exec_2d`, `run_exec_2d_b`); 'stock' is the stock executive, 'stock slack' this
 folder with `settings.sop.slack = 'stock'`, 'like' the default. "numerical" is `pie_witness_sop`.

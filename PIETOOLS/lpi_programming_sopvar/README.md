@@ -40,7 +40,10 @@ Callers declare the program with `lpiprogram` (a PIE: `lpiprogram(PIE.vars,PIE.d
 root holds eleven user functions.
 MMP, 11/08/2026: `tests/` (17 files, `tests/private/` included) moved to
 `testing_codes/lpi_programming_sopvar/tests/` (maintainer: move the testing codes to
-`testing_codes`); `tests/` below names that folder. It is on the path, so the tests run by name.
+`testing_codes`); `tests/` below names that folder.
+MMP, 11/09/2026: the folder is now `testing_codes/private/lpi_programming_sopvar/tests/`, off the
+path (maintainer: "To be safe, move the files in testing folder a private subfolder."). To run the
+tests, make it the current folder or add it to the path.
 
 This folder sits beside `lpi_programming/` and lets one LPI body serve both operator
 families:

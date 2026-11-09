@@ -32,6 +32,11 @@ function cuadmm_path(mode)                                                  % CC
 %      -- other checkouts, never this one.
 %   4. Adds SeDuMi and Mosek if the folders below exist.
 %   5. ASSERTS each routine resolves exactly once AND inside ROOT.
+%
+% MMP, 11/09/2026: bl_run and bl_check leave the step-5 list. The suite moved
+%   to testing_codes/private/ (maintainer: "To be safe, move the files in
+%   testing folder a private subfolder."), off the path, where they resolve
+%   zero times and the assert would stop every caller.
 
 % ---------------------------------------------------------------------------
 % EDIT THESE for your machine. Missing folders are skipped.
@@ -92,9 +97,13 @@ if exist(MOSEK,'dir'),  addpath(MOSEK);  end
 %need = {'poslpivar','lpi_eq','lpiprogram','lpisolve','sossolve', ...
 %        'poslpivar_2d','lpi_eq_2d', ...
 %        'bl_run','bl_check','cuadmm_settings','cuimport','bl_fix'};        % CC, 11/07/2026 (was)
+% need = {'poscopvar','lpi_eq_sop','lpiprogram','lpisolve','sossolve', ...
+%         'lpi_ineq_sop','lpivar_cdopvar','exec_tools_sop', ...
+%         'bl_run','bl_check','cuadmm_settings','cuimport','bl_fix'};       % MMP, 11/09/2026 (was)
+% bl_run, bl_check: off the path in testing_codes/private/ (header).        % MMP, 11/09/2026
 need = {'poscopvar','lpi_eq_sop','lpiprogram','lpisolve','sossolve', ...
         'lpi_ineq_sop','lpivar_cdopvar','exec_tools_sop', ...
-        'bl_run','bl_check','cuadmm_settings','cuimport','bl_fix'};         % CC, 11/07/2026
+        'cuadmm_settings','cuimport','bl_fix'};                             % MMP, 11/09/2026
 for i = 1:numel(need)
     w = unique(which(need{i},'-all'));
     if numel(w) ~= 1

@@ -14,12 +14,17 @@
 # MMP, 11/08/2026: sol/ moved to testing_codes/PIETOOLS_demos/cuadmm/sol
 #   (maintainer: move the testing codes to testing_codes); the job is
 #   submitted from that folder of the pushed tree.
+# MMP, 11/09/2026: sol/ moved to testing_codes/private/PIETOOLS_demos/cuadmm/
+#   sol (maintainer: "To be safe, move the files in testing folder a private
+#   subfolder."); the submit folder follows it.
 set -euo pipefail
 PKG="$(cd "$(dirname "$0")/.." && pwd)"
 bash "$PKG/sol/sol_push.sh" 'C:\Users\mpeet\cuadmm_out\x0_desktop' stab_tr1 stab_rd1_hv scale_rot_f0p50_n04
 # ssh sol "cd /scratch/mpeet/pietools/harness/PIETOOLS/PIETOOLS_demos/cuadmm && \
 #          sbatch --time=00:15:00 --export=ALL,BLOCKS='N1 X0' sol/sol_harness.slurm" # MMP, 11/08/2026 (was)
-ssh sol "cd /scratch/mpeet/pietools/harness/PIETOOLS/testing_codes/PIETOOLS_demos/cuadmm && \
-         sbatch --time=00:15:00 --export=ALL,BLOCKS='N1 X0' sol/sol_harness.slurm" # MMP, 11/08/2026
+# ssh sol "cd /scratch/mpeet/pietools/harness/PIETOOLS/testing_codes/PIETOOLS_demos/cuadmm && \
+#          sbatch --time=00:15:00 --export=ALL,BLOCKS='N1 X0' sol/sol_harness.slurm" # MMP, 11/09/2026 (was)
+ssh sol "cd /scratch/mpeet/pietools/harness/PIETOOLS/testing_codes/private/PIETOOLS_demos/cuadmm && \
+         sbatch --time=00:15:00 --export=ALL,BLOCKS='N1 X0' sol/sol_harness.slurm" # MMP, 11/09/2026
 echo "watch: ssh sol 'squeue -u mpeet; tail -20 /scratch/mpeet/pietools/harness_out/slurm/*.out'"
 echo "fetch: bash $PKG/sol/sol_pull.sh 'C:\\Users\\mpeet\\cuadmm_out\\sol0'"

@@ -22,7 +22,11 @@
 # MMP, 11/08/2026: the harness moved to testing_codes/baselines/ (maintainer:
 #                  move the testing codes to testing_codes); P0W follows it.
 # P0W="C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/baselines/2026-11-02_opvar_phase0" # MMP, 11/08/2026 (was)
-P0W="C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/testing_codes/baselines/2026-11-02_opvar_phase0" # MMP, 11/08/2026
+# MMP, 11/09/2026: the harness moved to testing_codes/private/baselines/
+#                  (maintainer: "To be safe, move the files in testing folder
+#                  a private subfolder."); P0W follows it.
+# P0W="C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/testing_codes/baselines/2026-11-02_opvar_phase0" # MMP, 11/09/2026 (was)
+P0W="C:/Users/mpeet/OneDrive/Documents/GitHub/PIETOOLS/PIETOOLS/testing_codes/private/baselines/2026-11-02_opvar_phase0" # MMP, 11/09/2026
 LOG="$P0W/runs_phase0.log"
 NOWAIT="$2"
 mkdir -p "$P0W/logs"

@@ -35,8 +35,12 @@ function D = t1d_path()                                                     % CC
 %   lowrank_2d_stability/tests_1d (maintainer: move the testing codes to
 %   testing_codes); the package it tests stays in PIETOOLS_demos/, so D.root
 %   is found first, four levels up, and D.pkg from it.
+% MMP, 11/09/2026: the suite moved to testing_codes/private/ (maintainer:
+%   "To be safe, move the files in testing folder a private subfolder."),
+%   one level deeper: D.root is five levels up, not four as stated above.
 D.tests = fileparts(mfilename('fullpath'));
-D.root  = fileparts(fileparts(fileparts(fileparts(D.tests)))); % PIETOOLS tree % MMP, 11/08/2026
+% D.root  = fileparts(fileparts(fileparts(fileparts(D.tests)))); % PIETOOLS tree % MMP, 11/09/2026 (was)
+D.root  = fileparts(fileparts(fileparts(fileparts(fileparts(D.tests))))); % PIETOOLS tree % MMP, 11/09/2026
 % D.pkg   = fileparts(D.tests);                   % lowrank_2d_stability    % MMP, 11/08/2026 (was)
 D.pkg   = fullfile(D.root,'PIETOOLS_demos','lowrank_2d_stability');         % MMP, 11/08/2026
 D.priv  = fullfile(D.pkg,'private');            % the shipped core under test
